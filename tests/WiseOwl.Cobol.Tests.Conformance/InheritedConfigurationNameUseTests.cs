@@ -5,8 +5,8 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// ISO §8.3.2.2 — "Within a source element, a given user-defined word may be used as only one type of user-defined
-/// word" — over the names a CONTAINING element's configuration section declares (kb/Work PB3153). §8.4.6.1 lets a
+/// ISO §2023:8.3.2.2 — "Within a source element, a given user-defined word may be used as only one type of user-defined
+/// word" — over the names a CONTAINING element's configuration section declares (kb/Work PB3153). §2023:8.4.6.1 lets a
 /// contained source element reference them ("may be referenced only by statements and entries either in that source
 /// element that contains a configuration section or in any source element contained within that source element"),
 /// and lets it use identical words of its own ("each source element may use identical user-defined words to name items
@@ -15,7 +15,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// two types in its own source element: refused COBOL2692, exactly as the flat program that declares both is.
 /// </summary>
 /// <remarks>
-/// One row per type §8.4.6.1 lists as declared in a configuration section, each at the first edition that has it.
+/// One row per type §2023:8.4.6.1 lists as declared in a configuration section, each at the first edition that has it.
 /// The corpus goldens <c>negative/pb3153-contained-program-paragraph-spells-an-inherited-class-it-uses</c> and
 /// <c>85/pb3153_inherited_special_names_words</c> pin the class-name and symbolic-character rows end to end;
 /// <c>UserWordDeclarationDriftTests.EveryConfigurationSectionNameType_ResolvesThroughARecordingTable</c> keeps every
@@ -65,7 +65,7 @@ public sealed class InheritedConfigurationNameUseTests
         """;
 
     /// <summary>The contained program USES the inherited name and declares a paragraph spelled like it: two types of
-    /// user-defined word in its own source element (§8.3.2.2), refused COBOL2692 naming both.</summary>
+    /// user-defined word in its own source element (§2023:8.3.2.2), refused COBOL2692 naming both.</summary>
     [Theory]
     [MemberData(nameof(Kinds))]
     public void AUseOfTheInheritedName_BesideAParagraphOfTheSameSpelling_IsRefused(string kind, string entry,
@@ -77,7 +77,7 @@ public sealed class InheritedConfigurationNameUseTests
         EditionHarness.AssertHasDiagnostic(diags, kind);
     }
 
-    /// <summary>The same contained program WITHOUT the use declares only the paragraph: legal (§8.4.6.1, "each source
+    /// <summary>The same contained program WITHOUT the use declares only the paragraph: legal (§2023:8.4.6.1, "each source
     /// element may use identical user-defined words"), so no COBOL2692.</summary>
     [Theory]
     [MemberData(nameof(Kinds))]
@@ -88,10 +88,10 @@ public sealed class InheritedConfigurationNameUseTests
         EditionHarness.AssertNoDiagnostic(diags, "COBOL2692");
     }
 
-    /// <summary>§8.4.6.1: "a source element's reference to such a name, even when it is a different type of
+    /// <summary>§2023:8.4.6.1: "a source element's reference to such a name, even when it is a different type of
     /// user-defined word, is to the item which that source element describes". SET LOCALE … TO admits a locale-name
     /// and an identifier, so the contained program's own PBL is the operand, not its container's locale-name PBL: a
-    /// data-pointer item is legal, and an alphanumeric one is §14.9.39.3 SR27's refusal (COBOL1668), never a use
+    /// data-pointer item is legal, and an alphanumeric one is §2023:14.9.39.3 SR27's refusal (COBOL1668), never a use
     /// of the locale-name (COBOL2692).</summary>
     [Theory]
     [InlineData("USAGE POINTER", true)]
@@ -126,8 +126,8 @@ public sealed class InheritedConfigurationNameUseTests
 
     /// <summary>The same rule at WRITE … ADVANCING, which admits a mnemonic-name and an identifier: the contained
     /// program's own PBT is the line count, not its container's mnemonic-name PBT for C01. An integer item is legal; an
-    /// alphanumeric one is §14.9.51.3 SR14's refusal (COBOL2365), never a use of the mnemonic-name. An own integer
-    /// CONSTANT-NAME is integer-1 (§13.10.3 SR2: it "may be used anywhere that a format specifies a literal of the
+    /// alphanumeric one is §2023:14.9.51.3 SR14's refusal (COBOL2365), never a use of the mnemonic-name. An own integer
+    /// CONSTANT-NAME is integer-1 (§2023:13.10.3 SR2: it "may be used anywhere that a format specifies a literal of the
     /// class and category of constant-name-1"), so it wins too (review round 2; a bare data probe missed it).</summary>
     [Theory]
     [InlineData("PIC 9 VALUE 2", true, 85)]
@@ -172,7 +172,7 @@ public sealed class InheritedConfigurationNameUseTests
         if (!legal) EditionHarness.AssertHasDiagnostic(diags, "COBOL2365");
     }
 
-    /// <summary>The same rule at FUNCTION STANDARD-COMPARE's argument-4 positions (§15.85.2 "( argument-1 argument-2
+    /// <summary>The same rule at FUNCTION STANDARD-COMPARE's argument-4 positions (§2023:15.85.2 "( argument-1 argument-2
     /// [ ordering-name-1 ] [ argument-4 ] )"). Position 3 of the THREE-argument form admits an integer data item as
     /// well as an ordering-name, so the contained program's own PBV is argument-4, not its container's ordering-name
     /// PBV: legal, and no ordering-name use is recorded. With FOUR arguments position 3 IS ordering-name-1, so PBV
@@ -182,7 +182,7 @@ public sealed class InheritedConfigurationNameUseTests
     /// <c>2014/pb3153_inherited_names_yield_to_own_items</c> pins the three-argument form, the EVALUATE and VALUE
     /// alphabet phrases and the VALUE constant-name end to end (review round 1, kb/Work PB3027). The own item may be
     /// a CONSTANT-NAME as well as a data item: an integer constant-name stands where argument-4's integer literal
-    /// may be written (§13.10.3 SR2), and it is no data item, so a data probe alone claimed it as the inherited
+    /// may be written (§2023:13.10.3 SR2), and it is no data item, so a data probe alone claimed it as the inherited
     /// ordering-name (review round 2).</summary>
     [Theory]
     [InlineData("STANDARD-COMPARE(\"a\" \"b\" PBV)", true, "PIC 9 VALUE 1", "data-name")]
@@ -219,7 +219,7 @@ public sealed class InheritedConfigurationNameUseTests
         else EditionHarness.AssertHasDiagnostic(diags, $"({ownType} and ordering-name)");
     }
 
-    /// <summary>A METHOD is a source element of its own (§10.5), and the class-name its class's SPECIAL-NAMES declares
+    /// <summary>A METHOD is a source element of its own (§2023:10.5), and the class-name its class's SPECIAL-NAMES declares
     /// reaches it the same way: method M1A uses PB53MDIG in a class condition and declares a paragraph PB53MDIG (refused
     /// at the use), while method M1B only declares the paragraph (legal).</summary>
     [Fact]

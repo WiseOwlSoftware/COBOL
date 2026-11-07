@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.27.4 GR8 — "In Table 20, Permissible I-O statements
+      *> ISO §2023:14.9.27.4 GR8 — "In Table 20, Permissible I-O statements
       *> by access mode and open mode, 'X' at an intersection indicates
       *> that the specified statement, used in the access mode given
       *> for that row, may be used with the open mode given at the top
@@ -14,18 +14,18 @@
       *> l1_table20_seq_relative.cob walks it for SEQUENTIAL and
       *> RELATIVE. Every X cell is exercised and shall report success;
       *> every BLANK cell is exercised and shall report the status
-      *> §9.1.13.7 names for it:
+      *> §2023:9.1.13.7 names for it:
       *>   item 7 → '47'  READ or START, connector not open input/I-O
       *>   item 8 → '48'  WRITE: a) access sequential and not open
       *>                  extend/output; b) access random or dynamic
       *>                  and not open I-O/output
       *>   item 9 → '49'  REWRITE or DELETE RECORD, not open I-O
       *> The Extend column for the Random and Dynamic rows is blank but
-      *> UNREACHABLE from legal source — §14.9.27.3 SR2 confines EXTEND
+      *> UNREACHABLE from legal source — §2023:14.9.27.3 SR2 confines EXTEND
       *> to sequential access — so it is pinned at the runtime instead,
       *> by unit:Table20WriteOpenModeTests (kb/Work PB325).
       *> The Random row's START cells are blank in every column:
-      *> §14.9.41.3 SR1 rejects that at compile time (see
+      *> §2023:14.9.41.3 SR1 rejects that at compile time (see
       *> conformance:cases/14.9.27-OPEN/pb325-start-random-access).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1TB20B.

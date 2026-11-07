@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.18.15.3 SR1 — CONSTANT RECORD admitted in BOTH
+      *> ISO §2023:13.18.15.3 SR1 — CONSTANT RECORD admitted in BOTH
       *>   local-storage and working-storage.
       *>   "The CONSTANT RECORD clause may be specified only in the
       *>     local-storage or
@@ -13,7 +13,7 @@
       *>   cite.py --check 13.18.15.3 "The CONSTANT RECORD clause may be
       *>     specified only in
       *>     the local-storage or working-storage sections" -> OK
-      *>       §13.18.15.3 1) (Syntax rules)
+      *>       §2023:13.18.15.3 1) (Syntax rules)
       *> This is the ADMITTING half of SR1; the rejecting half (file /
       *>   linkage sections) is
       *> pinned by negative/l1c04-constant-record-linkage and

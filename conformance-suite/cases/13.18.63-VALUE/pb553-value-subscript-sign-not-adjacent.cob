@@ -7,7 +7,7 @@
       *> kb/Work PB553 — the NEGATIVE half of the signed Format-2 VALUE subscript. The grammar rule
       *> `signedIntegerLiteral : (PLUS | MINUS)? INTEGERLIT` is a SUPERSET parse: the sign is its own token
       *> in these slots, so `( + 1 )` — a sign separated from its digits by a space — also parses. The
-      *> standard does not admit it: ISO §8.3.3.3.2 2) says "A literal shall not contain more than one sign
+      *> standard does not admit it: ISO §2023:8.3.3.3.2 2) says "A literal shall not contain more than one sign
       *> character. If a sign is used, it shall appear as the leftmost character of the literal." A literal
       *> is ONE character-string, so a space between the sign and the digits makes two things out of one.
       *> SignedIntegerLiteral.Screen narrows it BY NAME (COBOL2155) on the token stream's own indices —

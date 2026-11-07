@@ -5,7 +5,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// ISO §14.9.27.3 SR8 — "When file-name-1 is not subject to an APPLY COMMIT clause, then if the sharing phrase
+/// ISO §2023:14.9.27.3 SR8 — "When file-name-1 is not subject to an APPLY COMMIT clause, then if the sharing phrase
 /// is omitted from the OPEN statement and the ALL phrase is specified in the SHARING clause of the file control
 /// entry for file-name-1 or if the ALL phrase is specified on the OPEN statement, the LOCK MODE clause shall be
 /// specified in the file control entry for file-name-1." — asserted on the two axes the .cob corpus cannot
@@ -72,7 +72,7 @@ public sealed class OpenSharingLockModeTests
     }
 
     /// <summary>SR8's leading conjunct: a file SUBJECT TO AN APPLY COMMIT clause is exempt. The exemption is not
-    /// decorative — §12.4.5.9.3 SR1 forbids writing a LOCK MODE clause "for a file that is the subject of an
+    /// decorative — §2023:12.4.5.9.3 SR1 forbids writing a LOCK MODE clause "for a file that is the subject of an
     /// APPLY COMMIT clause", so without the exemption SR8 would demand the one clause another rule forbids and
     /// the program could not be written at all. Reachable in the strict lane since kb/Work PB3338 accepted the clause
     /// for a keyed file.</summary>
@@ -82,7 +82,7 @@ public sealed class OpenSharingLockModeTests
         var (ok, errors, warnings) = EditionHarness.CompileFull(Violation("PB319APC", applyCommit: true), 2023);
         Assert.DoesNotContain(warnings, w => w.Contains("COBOL17", StringComparison.Ordinal));   // the clause is accepted, not declined
         EditionHarness.AssertNoDiagnostic(errors, "COBOL5994");
-        Assert.True(ok, "§14.9.27.3 SR8 exempts a file subject to an APPLY COMMIT clause: "
+        Assert.True(ok, "§2023:14.9.27.3 SR8 exempts a file subject to an APPLY COMMIT clause: "
             + string.Join("\n", errors));
     }
 

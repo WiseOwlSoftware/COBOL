@@ -4,7 +4,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.18.58.4 GR1 - "The data-names of the items described
+      *> ISO §2023:13.18.58.4 GR1 - "The data-names of the items described
       *> in these subordinate entries may be referenced only as
       *> subordinate items of groups defined using the type-name ...
       *> If there is no such group, any reference to a name that is the
@@ -12,7 +12,7 @@
       *> another resource, if there is another resource with that name,
       *> or is an invalid reference."  No entry here is described with
       *> TYPE T and nothing else is named M, so MOVE "A" TO M is an
-      *> invalid reference (§8.4.2.1). Expected: COBOL1639 naming M as a
+      *> invalid reference (§2023:8.4.2.1). Expected: COBOL1639 naming M as a
       *> member of the type declaration T - never "not defined", since
       *> the TYPEDEF entry declares it (kb/Work PB1906).
        IDENTIFICATION DIVISION.

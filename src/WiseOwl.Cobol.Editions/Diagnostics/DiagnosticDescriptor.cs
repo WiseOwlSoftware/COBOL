@@ -6,15 +6,15 @@ namespace WiseOwl.Cobol.Editions.Diagnostics;
 /// Which of the standard's two "need not implement" annexes lists the language element a DECLINED-FACILITY
 /// diagnostic refuses or warns about. This is the datum that DECIDES which clause licenses the posture, and until
 /// kb/Work PB709 it existed only as free text inside <see cref="DiagnosticDescriptor.Title"/> and
-/// <see cref="DiagnosticDescriptor.IsoSection"/> — where a §4.2.6 written at an Annex A.4 site is a REAL citation
+/// <see cref="DiagnosticDescriptor.IsoSection"/> — where a §2023:4.2.6 written at an Annex A.4 site is a REAL citation
 /// quoting REAL text that answers a DIFFERENT question, so <c>audit_code_citations.py --check</c> passes and the
 /// wrong clause propagates into the next comment, golden and DEVLOG paragraph that inherits it.
 ///
 /// <para>⛔ THE TWO CLAUSES ARE NOT INTERCHANGEABLE, and the difference is normative rather than editorial.
-/// ISO §4.2.6 (Annex A.3, <i>processor-dependent</i> language elements) carries TWO sentences nothing else in the
+/// ISO §2023:4.2.6 (Annex A.3, <i>processor-dependent</i> language elements) carries TWO sentences nothing else in the
 /// standard carries: "An implementation shall provide a warning mechanism at compile time to indicate use of
 /// syntactically-detectable processor-dependent language elements not supported by that implementation", and
-/// "it is not required to diagnose syntax errors within this unsupported syntax". ISO §4.2.7 (Annex A.4,
+/// "it is not required to diagnose syntax errors within this unsupported syntax". ISO §2023:4.2.7 (Annex A.4,
 /// <i>optional</i> language elements) has NEITHER: it makes the element one an implementor "may, but need not,
 /// implement", requires only that the claim be identified in user documentation, and Annex A.4.1 then admits the
 /// syntax "only when support for that language element is claimed by the implementor". So an A.3 decline is
@@ -31,9 +31,9 @@ public enum DeclinedAnnex
 {
     /// <summary>Not a declined-facility diagnostic — the overwhelming majority of the catalog.</summary>
     None = 0,
-    /// <summary>Annex A.3, the processor-dependent language element list — licensed by ISO §4.2.6.</summary>
+    /// <summary>Annex A.3, the processor-dependent language element list — licensed by ISO §2023:4.2.6.</summary>
     A3 = 1,
-    /// <summary>Annex A.4, the optional language element list — licensed by ISO §4.2.7 (with Annex A.4.1).</summary>
+    /// <summary>Annex A.4, the optional language element list — licensed by ISO §2023:4.2.7 (with Annex A.4.1).</summary>
     A4 = 2,
 }
 
@@ -86,14 +86,14 @@ public sealed record DiagnosticDescriptor(
     public string ResolvedSuppressKey => SuppressKey ?? Code;
 
     /// <summary>The ISO clause that licenses this decline — DERIVED from <see cref="Annex"/> and never written by
-    /// hand, which is the whole point of carrying the annex as data (kb/Work PB709). §4.2.6 for a processor-dependent
-    /// element (Annex A.3), §4.2.7 for an optional one (Annex A.4), both where the facility is listed in both.
+    /// hand, which is the whole point of carrying the annex as data (kb/Work PB709). §2023:4.2.6 for a processor-dependent
+    /// element (Annex A.3), §2023:4.2.7 for an optional one (Annex A.4), both where the facility is listed in both.
     /// <see langword="null"/> for a diagnostic that is not a decline.</summary>
     public string? PostureClause => Annex switch
     {
-        DeclinedAnnex.A3 => "§4.2.6",
-        DeclinedAnnex.A4 => "§4.2.7",
-        DeclinedAnnex.A3 | DeclinedAnnex.A4 => "§4.2.6 / §4.2.7",
+        DeclinedAnnex.A3 => "§2023:4.2.6",
+        DeclinedAnnex.A4 => "§2023:4.2.7",
+        DeclinedAnnex.A3 | DeclinedAnnex.A4 => "§2023:4.2.6 / §2023:4.2.7",
         _ => null,
     };
 }

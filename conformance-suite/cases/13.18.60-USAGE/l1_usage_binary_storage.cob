@@ -5,10 +5,10 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §13.18.60.4 GR4 — USAGE BINARY: computer storage allocation, alignment and
+      *> ISO §2023:13.18.60.4 GR4 — USAGE BINARY: computer storage allocation, alignment and
       *> representation of data (Annex A.1 item 205; docs/CONFORMANCE.md DOC-A.1-205).
       *>
-      *> THE RULE. §13.18.60.4 GR4: "The USAGE BINARY clause specifies that a radix of 2 is
+      *> THE RULE. §2023:13.18.60.4 GR4: "The USAGE BINARY clause specifies that a radix of 2 is
       *> used to represent a numeric item in the storage of the computer. Each implementor
       *> specifies the precise effect of the USAGE BINARY clause upon the alignment and
       *> representation of the data item in the storage of the computer, including the
@@ -27,7 +27,7 @@
       *>                                           9 223 372 036 854 775 807) can -> 8.
       *>       S9(19) -> max 10**19 - 1;           8 CANNOT (10**19-1 > 2**63-1)  -> 16.
       *>     1/2/4/8/16 is therefore the SMALLEST byte ladder GR4 permits at these digit
-      *>     counts, and FUNCTION BYTE-LENGTH (§15.14.1 "an integer equal to the length of the
+      *>     counts, and FUNCTION BYTE-LENGTH (§2023:15.14.1 "an integer equal to the length of the
       *>     argument in bytes") reports it. The S9(19) leg is the one that fails on the
       *>     common "8 bytes for everything from 10 digits up" shortcut.
       *> SIGN - the width is SIGN-INDEPENDENT: S9(4) and 9(4) both answer 2. GR4 leaves this
@@ -41,11 +41,11 @@
       *> BE - GR4's "representation ... including the representation of any algebraic sign".
       *>     Two's complement, MOST SIGNIFICANT BYTE FIRST. -1234 in 16 bits is
       *>     65 536 - 1234 = 64 302 = X"FB2E", so the group image holds X"FB" then X"2E".
-      *>     FUNCTION ORD is 1-based (§15.70.1 "The lowest ordinal position is 1") and the
+      *>     FUNCTION ORD is 1-based (§2023:15.70.1 "The lowest ordinal position is 1") and the
       *>     native alphanumeric ordinal of a character is its code unit + 1, so the two bytes
       *>     read 251+1 = 252 and 46+1 = 47. A little-endian implementation answers "47 252".
       *>     The bytes are reached through a group move to an alphanumeric item, which
-      *>     §14.9.25.4 GR4 makes a byte transfer ("treated exactly as if it were an
+      *>     §2023:14.9.25.4 GR4 makes a byte transfer ("treated exactly as if it were an
       *>     alphanumeric to alphanumeric elementary move"), never a numeric conversion.
       *> RT - the same bytes decode back to the same value and leave the neighbours intact.
        IDENTIFICATION DIVISION.

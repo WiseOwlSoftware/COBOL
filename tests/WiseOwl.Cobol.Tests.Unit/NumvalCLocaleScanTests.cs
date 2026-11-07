@@ -8,7 +8,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The NUMVAL-C / TEST-NUMVAL-C LOCALE arm's scanner (ISO §15.68.3 r5 / §15.94.4; kb/Work PB64 T6), pinned
+/// The NUMVAL-C / TEST-NUMVAL-C LOCALE arm's scanner (ISO §2023:15.68.3 r5 / §2023:15.94.4; kb/Work PB64 T6), pinned
 /// against the INVARIANT locale (tag "" — currency ¤, decimal '.', grouping ',', negative convention
 /// PARENTHESES per CurrencyNegativePattern 0) so every verdict is host-stable and hand-derived. The tag is
 /// always explicit — the current-locale arm rides the conformance goldens, which own a run unit.
@@ -16,7 +16,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 public sealed class NumvalCLocaleScanTests
 {
     /// <summary>The LOCALE value at two fraction digits. ⛔ THE FUNCTION HAS ONE VALUE PROJECTION, AND IT CARRIES
-    /// ITS OWN SCALE (kb/Work PB251): §15.68.4 r1 fixes the returned value with no arithmetic-mode qualification,
+    /// ITS OWN SCALE (kb/Work PB251): §2023:15.68.4 r1 fixes the returned value with no arithmetic-mode qualification,
     /// so the SDIDI is the value in every mode and the scale-2 rendering is this TEST's convenience — it used to
     /// be a scaled-<c>Int128</c> twin of the same rule, and a twin only one caller reaches is a copy nothing
     /// contradicts.</summary>
@@ -24,7 +24,7 @@ public sealed class NumvalCLocaleScanTests
         CobolIntrinsics.NumvalCLocaleDec(text, tag).ToUnscaled(2, CobolRounding.Truncation);
 
     [Theory]
-    // The default path IS the parentheses convention: §15.68.4 r3 with the derived n_sign_posn 0.
+    // The default path IS the parentheses convention: §2023:15.68.4 r3 with the derived n_sign_posn 0.
     [InlineData("(¤1,234.56)", 0)]
     [InlineData("(1,234.56)", 0)]              // r5b.3 "may contain" — the currency string is omissible
     [InlineData("¤1,234.56", 0)]               // unsigned form — nonnegative
@@ -33,7 +33,7 @@ public sealed class NumvalCLocaleScanTests
     [InlineData("( ¤1,234.56 )", 0)]           // spaces at every token adjacency
     [InlineData(".56", 0)]                     // the leading-separator form (parity with r4a's `. digit`)
     [InlineData("+¤1,234.56", 0)]              // the positive convention: positive_sign at the determined posn 1
-    [InlineData("1234567.5", 0)]               // no separator at all — §15.68.3 r5b.6 "may contain"
+    [InlineData("1234567.5", 0)]               // no separator at all — §2023:15.68.3 r5b.6 "may contain"
     [InlineData("¤1.5", 0)]                    // ⚖ fraction width not constrained by frac_digits (2)
     public void Conforming_ReturnsZero(string text, long expected)
     {
@@ -41,12 +41,12 @@ public sealed class NumvalCLocaleScanTests
     }
 
     [Theory]
-    // A bare '-' has NO meaning under LOCALE when the convention is parentheses — §15.68.4 r3's CR/DB/minus
+    // A bare '-' has NO meaning under LOCALE when the convention is parentheses — §2023:15.68.4 r3's CR/DB/minus
     // sentence is explicitly the non-LOCALE leg, and negative_sign is unused with n_sign_posn 0.
     [InlineData("-¤1,234.56", 1)]
     [InlineData("¤1,234.56CR", 10)]            // CR is not a sign indicator under LOCALE (r4b is not inherited)
-    [InlineData("0 1", 3)]                     // §15.94.4 r1 b.1's own worked example — position of the '1'
-    [InlineData("1,234.5,6", 8)]               // a grouping separator right of the decimal separator (§8.2.2)
+    [InlineData("0 1", 3)]                     // §2023:15.94.4 r1 b.1's own worked example — position of the '1'
+    [InlineData("1,234.5,6", 8)]               // a grouping separator right of the decimal separator (§2023:8.2.2)
     [InlineData("1..5", 3)]                    // a second decimal separator
     [InlineData("1,23,4.5", 5)]                // r5b.6 mon_grouping {3}: a 2-digit group ends at this ',' (kb/Work PB835)
     [InlineData("1,2,3,4.5", 4)]               // the second separator follows a 1-digit group
@@ -63,7 +63,7 @@ public sealed class NumvalCLocaleScanTests
     [Fact]
     public void CommaMode_IsInertUnderLocale()
     {
-        // §15.68.3 r4 d (the DECIMAL-POINT IS COMMA role swap) opens "If the LOCALE keyword is not specified" —
+        // §2023:15.68.3 r4 d (the DECIMAL-POINT IS COMMA role swap) opens "If the LOCALE keyword is not specified" —
         // the separators are mon_decimal_point/mon_thousands_sep, full stop. There is no commaMode parameter on
         // the LOCALE entry points at all; this pins that the invariant separators hold regardless.
         Assert.Equal(0, CobolIntrinsics.TestNumvalCLocale("1,234.56", ""));
@@ -73,21 +73,21 @@ public sealed class NumvalCLocaleScanTests
     [Fact]
     public void Value_And_Sign_FollowTheMatchedConvention()
     {
-        // §15.68.4 r3 — negative iff the NEGATIVE convention matched; the parenthesized form IS the negative
+        // §2023:15.68.4 r3 — negative iff the NEGATIVE convention matched; the parenthesized form IS the negative
         // convention under the invariant locale.
         Assert.Equal((Int128)(-123456), Scaled2("(¤1,234.56)"));
         Assert.Equal((Int128)123456, Scaled2("¤1,234.56"));
         Assert.Equal((Int128)123456, Scaled2("+¤1,234.56"));
         // Negative zero evaluates to zero — COBOL numeric has no signed zero.
         Assert.Equal((Int128)0, Scaled2("(¤0.00)"));
-        // §15.68.4 r2 — grouping separators preceding the decimal separator are ignored in the value.
+        // §2023:15.68.4 r2 — grouping separators preceding the decimal separator are ignored in the value.
         Assert.Equal((Int128)123450, Scaled2("1,234.5"));
     }
 
     [Fact]
     public void TestTwin_AgreesWithTheValueFunction()
     {
-        // The ONE-scanner invariant (§15.94.1: TEST-NUMVAL-C exists to verify NUMVAL-C will succeed): for every
+        // The ONE-scanner invariant (§2023:15.94.1: TEST-NUMVAL-C exists to verify NUMVAL-C will succeed): for every
         // probe, TEST == 0 iff NUMVAL-C parses it (checking off ⇒ the reject projection returns 0 — so the
         // agreement is asserted on TEST's verdict against a re-parse, not on the 0 collision).
         foreach (string probe in new[]
@@ -129,7 +129,7 @@ public sealed class NumvalCLocaleScanTests
 
     /// <summary>DETERMINATION L12 is ONE equivalence for both sides (kb/Work PB2766): the snapshot drops every Cf
     /// character, so a Cf character in argument-1 is ignorable too, and every position TEST-NUMVAL-C reports is still
-    /// the ORIGINAL argument's ordinal (§15.94.4 r1).</summary>
+    /// the ORIGINAL argument's ordinal (§2023:15.94.4 r1).</summary>
     [Fact]
     public void L12Equivalence_ACfCharacterInTheArgumentIsIgnorable_AndPositionsStayTheArgumentsOwn()
     {
@@ -155,8 +155,8 @@ public sealed class NumvalCLocaleScanTests
 
     /// <summary>The scenario PB2766 names, over the whole host population: every culture's OWN formatted currency
     /// string — the raw .NET text, U+200F after an ar-* currency symbol and U+00A0 / U+202F grouping included — is
-    /// conforming NUMVAL-C LOCALE input for that culture and evaluates to the formatted value (§15.68.3 r5 b,
-    /// §15.68.4 r1).</summary>
+    /// conforming NUMVAL-C LOCALE input for that culture and evaluates to the formatted value (§2023:15.68.3 r5 b,
+    /// §2023:15.68.4 r1).</summary>
     [Fact]
     public void EveryHostCulture_RecognizesItsOwnFormattedCurrencyString()
     {
@@ -167,7 +167,7 @@ public sealed class NumvalCLocaleScanTests
             if (culture.Name.Length == 0 || !LocaleFacts.For(culture.Name).HasCultureData) continue;
             int d = culture.NumberFormat.CurrencyDecimalDigits;
             if (d is < 0 or > 6) continue;
-            // A locale whose mon_thousands_sep IS its mon_decimal_point (mn-Mong-MN: ',' for both) is §8.2.1 "invalid"
+            // A locale whose mon_thousands_sep IS its mon_decimal_point (mn-Mong-MN: ',' for both) is §2023:8.2.1 "invalid"
             // content to NvScanLocale — its own "1,234,567,89" is ambiguous, and EC-LOCALE-INVALID is the answer.
             var f = MonetaryFacts.Of(LocaleFacts.For(culture.Name));
             if (f.ThousandsSep.Length > 0 && f.ThousandsSep == f.DecimalPoint) continue;
@@ -189,7 +189,7 @@ public sealed class NumvalCLocaleScanTests
     [Fact]
     public void IntCurrSymbol_MatchesItsFirstThreeCharacters()
     {
-        // §15.68.3 r5b.3 — either currency_symbol or the FIRST THREE characters of int_curr_symbol; the
+        // §2023:15.68.3 r5b.3 — either currency_symbol or the FIRST THREE characters of int_curr_symbol; the
         // appended space is never required. en-US: ISOCurrencySymbol "USD".
         Assert.Equal(0, CobolIntrinsics.TestNumvalCLocale("USD1,234.56", "en-US"));
         Assert.Equal(0, CobolIntrinsics.TestNumvalCLocale("USD 1,234.56", "en-US"));
@@ -201,7 +201,7 @@ public sealed class NumvalCLocaleScanTests
     [Fact]
     public void Anycase_FoldsOnlyTheCurrencyString()
     {
-        // §15.68.3 r5b.1 scopes ANYCASE to "the matching rules for detecting a currency string".
+        // §2023:15.68.3 r5b.1 scopes ANYCASE to "the matching rules for detecting a currency string".
         Assert.NotEqual(0, CobolIntrinsics.TestNumvalCLocale("usd1,234.56", "en-US"));
         Assert.Equal(0, CobolIntrinsics.TestNumvalCLocale("usd1,234.56", "en-US", anycase: true));
         Assert.Equal(0, CobolIntrinsics.TestNumvalCLocale("Usd 1,234.56", "en-US", anycase: true));

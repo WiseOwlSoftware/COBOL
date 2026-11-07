@@ -2,10 +2,10 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 namespace WiseOwl.Cobol.Runtime.IO;
 
-/// <summary>One attempt at an input-output operation under the RETRY discipline (ISO §14.7.9.3): the I-O status the
+/// <summary>One attempt at an input-output operation under the RETRY discipline (ISO §2023:14.7.9.3): the I-O status the
 /// attempt produced and, when that status is a conflict, whether the holder of the locked resource is OUTSIDE the
 /// executing run unit.
-/// <para>⛔ THE HOLDER DECIDES WHETHER WAITING CAN HELP (kb/Work PB1163). §14.7.9.3 GR3 — <i>"If the FOREVER phrase is
+/// <para>⛔ THE HOLDER DECIDES WHETHER WAITING CAN HELP (kb/Work PB1163). §2023:14.7.9.3 GR3 — <i>"If the FOREVER phrase is
 /// specified, the mass storage control system shall attempt to gain access to a locked resource until the
 /// input-output operation has been completed"</i> — is kept by polling only when something can release the
 /// resource while this statement waits. A file connector of the EXECUTING run unit cannot: the run unit is
@@ -17,7 +17,7 @@ namespace WiseOwl.Cobol.Runtime.IO;
 /// unit's connectors, and a host sharing refusal (<see cref="HostFile.IsSharingRefusal"/>) is the only way another
 /// run unit's hold is visible. So every attempt names its holder here, and <see cref="FileRegistry.RetryLoop"/> never
 /// guesses it from the status digits.</para></summary>
-/// <param name="Status">The I-O status of this attempt (§9.1.13).</param>
+/// <param name="Status">The I-O status of this attempt (§2023:9.1.13).</param>
 /// <param name="HolderOutsideRunUnit">True when <paramref name="Status"/> is a conflict held outside the executing run
 /// unit, so a later attempt can succeed.</param>
 public readonly record struct RetryAttempt(string Status, bool HolderOutsideRunUnit)

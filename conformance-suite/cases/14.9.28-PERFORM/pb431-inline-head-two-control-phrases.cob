@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB431 — ISO §14.9.28.2 Format 2 prints ONE pair of square brackets over three STACKED
+      *> kb/Work PB431 — ISO §2023:14.9.28.2 Format 2 prints ONE pair of square brackets over three STACKED
       *> alternatives: PERFORM [ times-phrase | until-phrase | varying-phrase ] imperative-statement-1
       *> END-PERFORM. At most one loop-control phrase may be written (rendered from the printed page 682 /
       *> PDF 712). This program writes two, and used to COMPILE AND RUN with the UNTIL silently deleted from

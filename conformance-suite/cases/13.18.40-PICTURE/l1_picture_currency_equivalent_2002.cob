@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.18.40.3 SR28 PICTURE clause — "For floating insertion,
+      *> ISO §2023:13.18.40.3 SR28 PICTURE clause — "For floating insertion,
       *> when the currency symbol is used as the floating insertion
       *> symbol, all occurrences of the currency symbol within
       *> character-string-1 shall be equivalent characters."
@@ -13,7 +13,7 @@
       *>   insertion, when the currency symbol is used as the floating
       *>   insertion symbol, all occurrences of the currency symbol
       *>   within character-string-1 shall be equivalent characters."
-      *>   -> OK  §13.18.40.3 28)  (Syntax rules)
+      *>   -> OK  §2023:13.18.40.3 28)  (Syntax rules)
       *>
       *> THE COBOL-2002 LEG of tests/conformance/2023/
       *> l1_picture_currency_equivalent.cob, which carries the full
@@ -26,15 +26,15 @@
       *> rule has content, so the equivalence cannot silently become a
       *> 2023-only behaviour.
       *>
-      *> DERIVATION IN BRIEF. §13.18.40.3 SR3 -> §12.3.7.3 SR20 ->
-      *> §8.1.3.2 GR3 make 'w' and 'W' equivalent basic letters, so the
+      *> DERIVATION IN BRIEF. §2023:13.18.40.3 SR3 -> §2023:12.3.7.3 SR20 ->
+      *> §2023:8.1.3.2 GR3 make 'w' and 'W' equivalent basic letters, so the
       *> three occurrences form ONE floating insertion string
-      *> (§13.18.40.5 rule 6). Its second symbol is the leftmost limit
+      *> (§2023:13.18.40.5 rule 6). Its second symbol is the leftmost limit
       *> of the numeric data, so the digit positions are 2, 3 and the
       *> '9' at 4; 12 aligns as 012; rule 6a puts one occurrence of the
       *> currency string immediately preceding the first nonzero
       *> numeric character (position 3) and spaces before it. The
-      *> inserted characters are literal-7 = "W" (§12.3.7.3 SR23).
+      *> inserted characters are literal-7 = "W" (§2023:12.3.7.3 SR23).
       *> Hence [ W12], identically for the all-uppercase control.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1PCEQ2.

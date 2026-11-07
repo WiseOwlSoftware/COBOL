@@ -12,29 +12,29 @@
       *> THE RULES.
       *>   python scripts/spec/cite.py --check 14.9.30.4 "the I-O status
       *>   is set to '46' and execution proceeds as indicated in General
-      *>   rule 24"                          -> OK  §14.9.30.4 21)
+      *>   rule 24"                          -> OK  §2023:14.9.30.4 21)
       *>   python scripts/spec/cite.py --check 14.9.30.4 "If, during the
       *>   execution of the READ statement, the at end condition exists,
       *>   the following occurs in the order specified"
-      *>                                     -> OK  §14.9.30.4 24)
+      *>                                     -> OK  §2023:14.9.30.4 24)
       *>   python scripts/spec/cite.py --check 9.1.13.7 "I-O status = 46.
       *>   A sequential READ statement is attempted"
-      *>                                     -> OK  §9.1.13.7 6)
+      *>                                     -> OK  §2023:9.1.13.7 6)
       *>   python scripts/spec/cite.py --check 14.9.30.4 "If neither an
       *>   at end nor an invalid key condition occurs during the execution
       *>   of a READ statement, the AT END phrase or the INVALID KEY phrase
-      *>   is ignored"                       -> OK  §14.9.30.4 13)
+      *>   is ignored"                       -> OK  §2023:14.9.30.4 13)
       *>   python scripts/spec/cite.py --check 14.9.30.4 "If an exception
       *>   condition that is not an at end or an invalid key condition
       *>   exists, control is transferred according to the rules in
-      *>   9.1.12"                           -> OK  §14.9.30.4 13) b)
+      *>   9.1.12"                           -> OK  §2023:14.9.30.4 13) b)
       *>
       *> THE DETERMINATION (kb/Work PB810). GR24's actions are
       *> conditioned on the at end condition, and '46' is not it: it is
-      *> a LOGIC ERROR (§9.1.13.7 6)). So §14.9.30.4 GR13 governs --
+      *> a LOGIC ERROR (§2023:9.1.13.7 6)). So §2023:14.9.30.4 GR13 governs --
       *> the AT END and NOT AT END phrases are ignored, and GR13 b)
       *> transfers control
-      *> through §9.1.12 to the applicable USE declarative, then to the
+      *> through §2023:9.1.12 to the applicable USE declarative, then to the
       *> end of the READ.
       *>
       *> WHY EACH LEG CAN FAIL. The first READ of each empty file is the

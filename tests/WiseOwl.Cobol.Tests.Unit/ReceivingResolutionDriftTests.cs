@@ -11,9 +11,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ EVERY VERB BINDER STATES AN OPERAND'S ROLE WHEN IT RESOLVES IT (kb/Work PB881, CLAUDE.md rule 5).
-/// <para>The receiving-operand prohibitions — ISO §13.18.15.3 SR2 ("Neither the data item described by the
+/// <para>The receiving-operand prohibitions — ISO §2023:13.18.15.3 SR2 ("Neither the data item described by the
 /// subject of the entry nor any data item subordinate to the subject of the entry shall be specified as a
-/// receiving data item"), §8.4.3.15.3 SR3, §8.4.3.14.3 SR2, §8.4.3.6.3 SR1, §13.10.4 GR1 — are rules about an
+/// receiving data item"), §2023:8.4.3.15.3 SR3, §2023:8.4.3.14.3 SR2, §2023:8.4.3.6.3 SR1, §2023:13.10.4 GR1 — are rules about an
 /// OPERAND ROLE, never about a statement, and they are written ONCE, in
 /// <c>ExpressionBinder.ResolveReceiving</c>. The plain reference resolver (<c>ctx.Refs.Resolve</c>) answers only
 /// "where does this live", so a verb binder that reached it for a receiving operand opted out of all of them in
@@ -52,7 +52,7 @@ public sealed class ReceivingResolutionDriftTests
         Assert.True(offenders.Count == 0,
             "A verb binder resolves a data reference through ctx.Refs.Resolve, which screens nothing. Resolve it "
             + "through host.Expr.ResolveReceiving when the statement stores into it (every receiving-operand "
-            + "prohibition — ISO §13.18.15.3 SR2 first among them — lives there) or host.Expr.ResolveSending when it "
+            + "prohibition — ISO §2023:13.18.15.3 SR2 first among them — lives there) or host.Expr.ResolveSending when it "
             + "does not (kb/Work PB881):\n" + string.Join("\n", offenders));
     }
 
@@ -60,7 +60,7 @@ public sealed class ReceivingResolutionDriftTests
     public void TheReceivingChokepoint_AsksTheConstantRecordRule()
     {
         string code = CodeOf(ExpressionBinderPath);
-        // kb/Work PB1418: the prohibitions became a table ResolveReceiving REPORTS and PermitsReceiving (§8.4.3.2.4
+        // kb/Work PB1418: the prohibitions became a table ResolveReceiving REPORTS and PermitsReceiving (§2023:8.4.3.2.4
         // GR5's argument-manner test) only ASKS — so the chokepoint must still consult the place half of that table,
         // and the place half must still ask the constant-record rule.
         string resolve = MemberBody(code, "public Place? ResolveReceiving(");
@@ -69,10 +69,10 @@ public sealed class ReceivingResolutionDriftTests
             "ResolveReceiving no longer consults both halves of the receiving-prohibition table (ReceivingFormBar / "
             + "ReceivingPlaceBar) — every verb's receiver passes through it.");
         Assert.True(MemberBody(code, "internal bool PermitsReceiving(").Contains("ReceivingPlaceBar(", System.StringComparison.Ordinal),
-            "PermitsReceiving no longer asks the same prohibition table ResolveReceiving reports — the §8.4.3.2.4 GR5 "
+            "PermitsReceiving no longer asks the same prohibition table ResolveReceiving reports — the §2023:8.4.3.2.4 GR5 "
             + "argument manner and the receiving chokepoint would disagree about which identifiers are receivable.");
         Assert.True(MemberBody(code, "private ReceivingBar? ReceivingPlaceBar(").Contains("ConstantStoreProhibition(", System.StringComparison.Ordinal),
-            "ReceivingPlaceBar no longer asks DataBinder.ConstantStoreProhibition — ISO §13.18.15.3 SR2 is a rule over "
+            "ReceivingPlaceBar no longer asks DataBinder.ConstantStoreProhibition — ISO §2023:13.18.15.3 SR2 is a rule over "
             + "every receiving data item and this is the one place every verb's receiver passes through.");
     }
 

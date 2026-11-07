@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.6.2.3.2 initial state case 2 — CALLing an INITIAL
+      *> ISO §2023:14.6.2.3.2 initial state case 2 — CALLing an INITIAL
       *> program resets the static data of the programs it directly AND
       *> indirectly contains.
       *> Rule: "Static data is placed in the initial state: ... 2) The
@@ -13,13 +13,13 @@
       *> after the execution of an activating statement referencing a
       *> program that possesses the initial attribute and directly or
       *> indirectly contains the program."
-      *> cite.py: OK  §14.6.2.3.2 2)  (Initial state)
+      *> cite.py: OK  §2023:14.6.2.3.2 2)  (Initial state)
       *> Initial state includes "3) The function, method, or program's
       *> internal file connectors are initialized by setting them to
       *> not be in any open mode." (same clause, second list).
-      *> §14.6.2.3.3: "Static data is in the last-used state except
+      *> §2023:14.6.2.3.3: "Static data is in the last-used state except
       *> when it is in the initial state as defined above."
-      *> cite.py: OK  §14.6.2.3.3   (Last-used state)
+      *> cite.py: OK  §2023:14.6.2.3.3   (Last-used state)
       *> Structure: L1C15D (INITIAL) contains L1C15E (M PIC 99 VALUE 0,
       *> internal file FE) which contains L1C15F (I PIC 99 VALUE 0).
       *> Neither E nor F is INITIAL or RECURSIVE, so their WS is static.

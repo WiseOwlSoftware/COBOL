@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ <see cref="EvaluateOperandCombinations"/> IS ISO Table 15, AND THIS RE-DERIVES IT FROM THE SPEC.
 ///
-/// <para>§14.9.13.3 SR10 says "The permissible combinations of selection subject and selection object operands are
+/// <para>§2023:14.9.13.3 SR10 says "The permissible combinations of selection subject and selection object operands are
 /// indicated in Table 15", and Table 15 is 54 cells. A transcription of 54 cells that nothing checks is a
 /// hand-maintained list (CLAUDE.md rule 5) — and, worse, a table nothing re-derives has never been contradicted
 /// (<c>feedback_a_dead_lookup_is_also_unverified</c>: PB1's <c>ArgKinds</c> column was not merely unread but

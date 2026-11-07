@@ -5,20 +5,20 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO 1989:2023 §9.1.13.6 item 4 b) over an OCCURS DEPENDING ON table of USAGE BIT items: "A READ statement is
+      *> ISO 1989:2023 §2023:9.1.13.6 item 4 b) over an OCCURS DEPENDING ON table of USAGE BIT items: "A READ statement is
       *> unsuccessfully executed because the records are variable in length because of an OCCURS DEPENDING ON clause in
       *> the record ... and the associated DEPENDING ON item contains a value that makes the number of bytes in the
       *> record exceed the value specified or implied by the file description entry" - '34'. The unit of the comparison
-      *> is the BYTE, and a record whose last item ends inside a byte still occupies that whole byte (§13.18.43.4 GR4:
+      *> is the BYTE, and a record whose last item ends inside a byte still occupies that whole byte (§2023:13.18.43.4 GR4:
       *> "If the last data item in the logical record does not end at a byte boundary, the record size includes the
       *> entire byte in which that data item ends"). The record below is the two-byte count N plus a table of 1 TO 20
       *> bits, so its size at a count N is 2 + ceil(N / 8) bytes and the file description IMPLIES the largest
-      *> description, 2 + ceil(20 / 8) = 5 bytes (§13.18.43.4 GR5 a)). The record is unsuccessful exactly when
+      *> description, 2 + ceil(20 / 8) = 5 bytes (§2023:13.18.43.4 GR5 a)). The record is unsuccessful exactly when
       *> 2 + ceil(N / 8) exceeds 5, i.e. when N exceeds 24:
       *>   N = 20  - 5 bytes                 -> '00'
       *>   N = 24  - 5 bytes (3 whole bytes of bits; more than the table's 20, still no more than 5 BYTES) -> '00'
       *>   N = 25  - 6 bytes                 -> '34'
-      *> then the permanent error REMAINS IN EFFECT (§9.1.13.1) - the fourth READ, whose own count (the legal 20) would
+      *> then the permanent error REMAINS IN EFFECT (§2023:9.1.13.1) - the fourth READ, whose own count (the legal 20) would
       *> succeed, answers '34' again - and CLOSE ends it (Annex A.1 item 105, DOC-A.1-105), so the reopened READ of the
       *> first record is '00' again.
       *> WHY EACH LEG CAN FAIL: a comparison in BITS against the table's 20 would refuse N = 24 ('34'); one that

@@ -23,7 +23,7 @@ internal sealed class MarkFileRecordImageLeavesPass : IBindPass
     public PassViews Views => PassViews.Appends(FactSetKind.WholeGroupReferenced, FactSetKind.ImageForcedItems);
 
     /// <summary>The LAST resolve pass (<see cref="BindPipeline"/>): every FILE record area is filled WITHOUT conversion
-    /// by READ/RETURN (ISO §9.1.2 — the record area is one character image), so its numeric-DISPLAY leaves store their
+    /// by READ/RETURN (ISO §2023:9.1.2 — the record area is one character image), so its numeric-DISPLAY leaves store their
     /// images exactly like a whole-referenced group's — even when the PROCEDURE DIVISION never names the record as a
     /// whole (ST103A reads then tests only a child). <c>StorageFormPass</c> consumes <see cref="WholeGroupReferenced"/>
     /// after binding.</summary>
@@ -54,10 +54,10 @@ internal sealed class MarkFileRecordImageLeavesPass : IBindPass
                 // corrupt a plain group-to-group MOVE between two such leaves. Its group-image contribution is
                 // the D-N7 COMPOSITION instead (GroupImageCodec.CarrierImageOf + the national byte transform),
                 // which needs no promotion; the price is that a group move depositing characters incompatible
-                // with the leaf's description leaves it holding §14.6.13.2's value rather than those
+                // with the leaf's description leaves it holding §2023:14.6.13.2's value rather than those
                 // characters, which is the same posture every other non-DISPLAY numeric usage already takes.
                 else if (child.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })
-                    binder.State.ImageForcedItems.Add(child);      // the collected image fact (same rule as the whole-group union, §14.9.25.4 MOVE GR4)
+                    binder.State.ImageForcedItems.Add(child);      // the collected image fact (same rule as the whole-group union, §2023:14.9.25.4 MOVE GR4)
             }
         }
     }

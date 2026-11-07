@@ -7,15 +7,15 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ A FLOAT AT A §15.3 TYPE-6 (INTEGER) POSITION MOVES NO CALL ONTO THE FLOAT LANE (kb/Work PB3268, review R2-2).
+/// ⛔ A FLOAT AT A §2023:15.3 TYPE-6 (INTEGER) POSITION MOVES NO CALL ONTO THE FLOAT LANE (kb/Work PB3268, review R2-2).
 /// <c>IntrinsicRenderer.RawArg</c> converts a binary64 or fractional operand at an integer position to its integer on the
 /// exact carrier BEFORE the lane predicates ask their question, so <c>COMBINED-DATETIME(F1 12345.678901)</c> with
-/// <c>F1</c> a COMP-2 stays an exact value (§15.17.4 r1: "argument-1 + (argument-2 / 100000)"). The
-/// bind-time prediction of the §14.9.25.4 GR1 intermediate result item (<c>FunctionValueLane</c>) has to read the
+/// <c>F1</c> a COMP-2 stays an exact value (§2023:15.17.4 r1: "argument-1 + (argument-2 / 100000)"). The
+/// bind-time prediction of the §2023:14.9.25.4 GR1 intermediate result item (<c>FunctionValueLane</c>) has to read the
 /// arguments the same way: reading the COMP-2 as a float argument gave the intermediate a COMP-2 that rounded the exact
-/// value, so a MOVE to two receivers stored a different digit than the MOVE to one (§15.4.1: "the returned value is the
+/// value, so a MOVE to two receivers stored a different digit than the MOVE to one (§2023:15.4.1: "the returned value is the
 /// same for all instances of a given function"). Strict conformance rejects a float at a type-6 position
-/// (COBOL1627, §15.3), so the witness runs under <c>--permissive</c> — the only mode in which the shape exists,
+/// (COBOL1627, §2023:15.3), so the witness runs under <c>--permissive</c> — the only mode in which the shape exists,
 /// which is why it is not a conformance golden.
 /// </summary>
 public sealed class FunctionValueLanePermissiveTests : WiseOwlCobolTestBase
@@ -48,12 +48,12 @@ public sealed class FunctionValueLanePermissiveTests : WiseOwlCobolTestBase
 
         var (ran, stdout, detail) = RunAssembly(dllPath);
         Assert.True(ran, detail);
-        // 150000 + 12345.678901 / 100000 = 150000.12345678901 (§15.17.4 r1), exactly, per receiver and whatever the
+        // 150000 + 12345.678901 / 100000 = 150000.12345678901 (§2023:15.17.4 r1), exactly, per receiver and whatever the
         // receiver set; a binary64 intermediate rounds the trailing digits away.
         string[] fields = stdout.Trim().Split(' ');
         Assert.Equal(4, fields.Length);
         Assert.True(fields[1] == fields[3] && fields[2] == fields[3],
-            $"a MOVE of one function to two receivers must store what the MOVE to one receiver stores (§15.4.1): {stdout.Trim()}");
+            $"a MOVE of one function to two receivers must store what the MOVE to one receiver stores (§2023:15.4.1): {stdout.Trim()}");
         Assert.Equal("150000.123456789010000", fields[3]);
     }
 }

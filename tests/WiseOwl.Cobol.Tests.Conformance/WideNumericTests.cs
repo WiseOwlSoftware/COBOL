@@ -6,7 +6,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
 /// The WIDE numeric tier (numeric design D1 / SSOT §18 #4): PIC 9(19..31) items store as <see cref="Int128"/>
-/// and compute exactly through the Int128 carrier — a COBOL-2002+ feature (ISO §8.3.3.3.2 caps literals/items at
+/// and compute exactly through the Int128 carrier — a COBOL-2002+ feature (ISO §2023:8.3.3.3.2 caps literals/items at
 /// 31 digits; COBOL-85 capped at 18). SPEC-PINNED (the legacy reference is a COBOL-85 implementation with a
 /// 28-digit decimal engine — it cannot oracle this tier). Includes the edition gates BOTH ways: 19+ digits
 /// REJECTED at --std 85 with a diagnostic NAMING the required edition; >31 rejected at every edition.
@@ -42,7 +42,7 @@ public sealed class WideNumericTests
             Run("01 W PIC 9(31).", "MOVE 1234567890123456789012345678901 TO W.\n    DISPLAY W."));
 
     /// <summary>A 34-digit exact intermediate product (16×15-digit operands × 1000) stores into a 31-digit
-    /// receiver with HIGH-ORDER truncation (the no-ON-SIZE-ERROR behavior, ISO §14.7) — proving the carrier held
+    /// receiver with HIGH-ORDER truncation (the no-ON-SIZE-ERROR behavior, ISO §2023:14.7) — proving the carrier held
     /// every digit exactly up to the store: the low 31 digits match the true product
     /// 9999999999999989000000000000001000.</summary>
     [Fact]

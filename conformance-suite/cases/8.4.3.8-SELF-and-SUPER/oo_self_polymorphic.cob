@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO 1989:2023 §8.4.3.8 / §11.7 — POLYMORPHIC INVOKE SELF across inheritance. ANIMAL.DESCRIBE (inherited by
+      *> ISO 1989:2023 §2023:8.4.3.8 / §2023:11.7 — POLYMORPHIC INVOKE SELF across inheritance. ANIMAL.DESCRIBE (inherited by
       *> DOG) calls INVOKE SELF "SOUND". On a DOG instance, SELF SOUND dispatches virtually (callvirt) to DOG's
       *> override → "WOOF", NOT the base ANIMAL.SOUND "GENERIC". Proves INVOKE SELF is virtual + composes with
       *> INHERITS + multi-method.

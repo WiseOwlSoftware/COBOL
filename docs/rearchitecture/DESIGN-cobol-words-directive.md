@@ -1,7 +1,7 @@
-# DESIGN — the `>>COBOL-WORDS` directive (ISO/IEC 1989:2023 §7.3.10)
+# DESIGN — the `>>COBOL-WORDS` directive (ISO/IEC 1989:2023 §2023:7.3.10)
 
 > **STATUS: IMPLEMENTED (all four increments A–D landed; DEVLOG 962–965).** Subsystem deep-dive for the
-> `>>COBOL-WORDS` compiler directive (ISO §7.3.10; Annex D.12; Annex E.3.3 item 12). Design SSOT for this
+> `>>COBOL-WORDS` compiler directive (ISO §2023:7.3.10; Annex D.12; Annex E.3.3 item 12). Design SSOT for this
 > subsystem; the plan (`REARCHITECTURE_PLAN.md` §0) points here. When the design changes, update THIS
 > doc in the same change set (process rule 4). All four options (EQUATE/UNDEFINE/SUBSTITUTE/RESERVE) are fully
 > supported for reserved, context-sensitive, AND intrinsic-function words, with SR1–SR5 enforced; the token
@@ -13,9 +13,9 @@
 
 `>>COBOL-WORDS` (COBOL-2023, a 2014→2023 addition) lets a source **modify which words are reserved words,
 context-sensitive words, and intrinsic-function-names, and prohibit specific user-defined words**, per
-compilation group. It is processed **during the text-manipulation stage** (§7.3.10.1), and applies to the
+compilation group. It is processed **during the text-manipulation stage** (§2023:7.3.10.1), and applies to the
 **entire compilation group** — it must appear *before the first IDENTIFICATION DIVISION* (SR1). General
-format (§7.3.10.2), exactly one option:
+format (§2023:7.3.10.2), exactly one option:
 
 ```
                  ⎧ EQUATE literal-1 WITH literal-2   ⎫
@@ -24,7 +24,7 @@ format (§7.3.10.2), exactly one option:
                  ⎩ RESERVE literal-6                 ⎭
 ```
 
-Semantics (§7.3.10.4 GRs):
+Semantics (§2023:7.3.10.4 GRs):
 - **EQUATE lit1 WITH lit2** (GR2): lit2 becomes a **synonym** for lit1 — usable in any syntax requiring lit1.
 - **UNDEFINE lit3** (GR3): lit3 is **no longer reserved/restricted** — usable as any user-defined word; the
   syntax requiring lit3 is no longer available.
@@ -32,8 +32,8 @@ Semantics (§7.3.10.4 GRs):
   and is no longer reserved.
 - **RESERVE lit6** (GR5): lit6 **shall not be used as a user-defined word** (a new reserved word).
 - GR6: `>>COBOL-WORDS` does **not** affect compiler-directing statements or directives. The directing statements are
-  exactly COPY and REPLACE (§7.2.2.2; `CobolWordsMap.CompilerDirectingStatementWords`, the one owner of the pair), and the
-  stage order of §7.2.1 agrees: COPY is found in Step 1, COPY REPLACING applies in Step 2, REPLACE in Step 3, and the
+  exactly COPY and REPLACE (§2023:7.2.2.2; `CobolWordsMap.CompilerDirectingStatementWords`, the one owner of the pair), and the
+  stage order of §2023:7.2.1 agrees: COPY is found in Step 1, COPY REPLACING applies in Step 2, REPLACE in Step 3, and the
   directive's actions come last, in Step 4, on the results of Step 3. So the COPY and REPLACE finders in `CopyProcessor`,
   and `DivisionCursor`, read their words **as written** and never consult the word map (no EQUATE, SUBSTITUTE, UNDEFINE or
   RESERVE reaches the word that begins a COPY or REPLACE statement or any word inside one: OF/IN, SUPPRESS, REPLACING, BY,
@@ -46,7 +46,7 @@ Semantics (§7.3.10.4 GRs):
   `CobolErrorStrategy`'s "a period may be missing" guess is not made when the word before the faulting token is such a synonym.
 
 Here lit1/lit3/lit4 are existing **reserved / context-sensitive / intrinsic-function** words (SR3, not a
-special-character word); lit2/lit5/lit6 are fresh **user-defined words** (SR4, per §8.3.2.2). Every literal is
+special-character word); lit2/lit5/lit6 are fresh **user-defined words** (SR4, per §2023:8.3.2.2). Every literal is
 an **alphanumeric literal, non-hex, space-free, case-insensitive** (SR2). A COBOL word may appear in a literal
 of **at most one** `>>COBOL-WORDS` directive in the group (SR5).
 
@@ -93,7 +93,7 @@ names exactly one.
 with **no keyword token type** (a pure intrinsic-function-name, or an unknown SR3 violation) is simply skipped by
 the rewriter and handled by the Compiler layer — the layers compose cleanly." The premise — that the only words
 without a keyword token type are intrinsic names — is false, and nothing measured it. **Measured against ISO
-§8.9 ∪ §8.10 (552 words): 447 are keyword tokens the rewriter can reach; 17 more ARE lexed but publish no ANTLR
+§2023:8.9 ∪ §2023:8.10 (552 words): 447 are keyword tokens the rewriter can reach; 17 more ARE lexed but publish no ANTLR
 literal NAME (a multi-spelling rule), so the token map built from those names could not see them; and 88 are no
 token at all** — ANYCASE, LOCALE, HEX, NAT, ANUM, BYTE, CURRENT, ACTIVATING, NESTED, STACK, TOP-LEVEL, the LC_
 categories, UCS-4/UTF-8/UTF-16 and the rest, deliberately left as bare `IDENTIFIER`s so the §15 phrase words
@@ -110,7 +110,7 @@ The design is therefore **two mechanisms over one rule**:
 
 `CobolWordsMap.Resolve` is the ONE reading of GR2/GR3/GR4 (canonical for a synonym, `null` for a de-reserved
 word, the word in its keyword spelling otherwise) and both mechanisms call it. Its comparisons with a keyword are on the
-basic letters alone (`CobolKeywords`; §8.1.3.2 3) a), 4), kb/Work PB4240): a de-reserved word is found by keyword, a
+basic letters alone (`CobolKeywords`; §2023:8.1.3.2 3) a), 4), kb/Work PB4240): a de-reserved word is found by keyword, a
 synonym (a fresh user-defined word, SR4) by the Annex C fold, and a word written with an extended letter that folds to a
 basic one (U+0130, U+212A) is never the keyword. `CobolKeywordTokens` decides which mechanism owns
 a word, and answers mechanically — the ANTLR vocabulary as the fast path, then a **lex probe** (run the real
@@ -145,14 +145,14 @@ overlay (`Canonical`, `ReservedWordSet.Compose`) answered "no keyword, no reserv
 place: `SUBSTITUTE "RECEIVE" BY "RCV"` then `01 RCV PIC X.` was accepted, the reservation gate retyped RCV a user word, and
 `CMT.` after `SUBSTITUTE "COMMIT" BY "CMT"` was no COMMIT statement (`DISPLAY "A" CMT.` named the item COMMIT as its
 operand). The parser asks a keyword token of the generated table (`ReservedWords.Find`, `ReservedWordSet.Default`), where
-its original is reserved exactly where §8.9 reserves it (GR4, §8.3.2.1 rule 1). The funnel asks it of
+its original is reserved exactly where §2023:8.9 reserves it (GR4, §2023:8.3.2.1 rule 1). The funnel asks it of
 `ReservedWordSet.KeywordToken`, the overlay without its de-reservations: that keeps the RESERVE layer (GR5), which names
 words the lexer may have a token for (REMARKS, PACKED) and the generated table does not know. An `IDENTIFIER` is asked of
 the overlay itself, unless it is a synonym the gate admitted under `--permissive` (its text still the original's, the
 source's own spelling a `CobolWordsMap.SynonymOf`), which is the keyword token's case. `Canonical` stays for the words a
 predicate tests by TEXT (`Word`, `PrintsKeyword`).
 
-**Where the name resolution is called** (each is a §8.9/§8.10 word the lexer does not tokenize):
+**Where the name resolution is called** (each is a §2023:8.9/§2023:8.10 word the lexer does not tokenize):
 `IntrinsicBinder.KeywordWordOf` — the single funnel every §15 phrase word is read through, so TRIM, FIND-STRING,
 SUBSTITUTE, CONVERT, MODULE-NAME, LENGTH and NUMVAL-C/TEST-NUMVAL-C are covered by one call;
 `CobolParserCoreBase.Word` — the single text comparison behind every parser predicate (LOCALE, ORDER,
@@ -163,10 +163,10 @@ UCS-4/UTF-8/UTF-16 coded-set names, the `DECIMAL-POINT IS COMMA` word and the CU
 `ReferenceResolver.IsExceptionObjectRegister` (the predefined register, through `OoBinder.OoIsExceptionObject(word, map)`, the one
 spelling test of that name). A new site that writes its own `string.Equals(text, "KEYWORD")` re-opens the defect, and
 `CobolWordsSpellingSweepDriftTests.NoCompilerSourceComparesAnUnlexedDirectiveWord_ByItsSpelling` refuses the raw-word form
-(`CobolNames.Same` / `CobolKeywords.Same` with the word as a literal) for every §8.9/§8.10 word the lexer has no token for,
+(`CobolNames.Same` / `CobolKeywords.Same` with the word as a literal) for every §2023:8.9/§2023:8.10 word the lexer has no token for,
 derived from the two tables and the lexer grammar, so the next such word needs no edit to the test.
 
-`CobolWordsReachDriftTests` measures all of this: every lexed §8.9/§8.10 word resolves to a token type, the lex
+`CobolWordsReachDriftTests` measures all of this: every lexed §2023:8.9/§2023:8.10 word resolves to a token type, the lex
 probe agrees with the vocabulary wherever both answer, the multi-spelling words are reached ONLY by the probe,
 the population really is partitioned between the two mechanisms, and `Resolve` implements GR2–GR5.
 
@@ -195,7 +195,7 @@ like `FlagState`/`RefModZeroLengthState`.
   **composed** `ReservedWordSet` (replacing the hard-coded `ReservedWordSet.Default` at `ParseArm._reservedWords`)
   so RESERVE rejects (COBOL0901) and UNDEFINE/SUBSTITUTE-lit4 no longer reject. `VersionConformancePass.Run`
   also runs the **SR3/SR4 semantic validation** of the map (needs all three registries — `ReservedWords`
-  [Editions, §8.9], `ContextSensitiveWords` [Editions, §8.10], `IntrinsicCatalog` [Compiler, §8.11]).
+  [Editions, §2023:8.9], `ContextSensitiveWords` [Editions, §2023:8.10], `IntrinsicCatalog` [Compiler, §2023:8.11]).
   `IntrinsicBinder` consults the map to resolve function-name synonyms / removals before `IntrinsicCatalog.TryGet`.
 
 **Greenfield/legacy split:** `COBOL-WORDS` is a recognized directive of the ONE roster
@@ -222,14 +222,14 @@ is the user-word token type.
   `undefFn+=lit4`.
 - **RESERVE lit6.** lit6 added to the ReservedWordSet reserve overlay (high-confidence, reserved at the target
   edition) ⇒ `VisitCobolWord`→`RejectsAt`→COBOL0901 at every user-word occurrence.
-- **A synonym of a reserved word is reserved** (GR2, GR4 with §8.3.2.1 rule 1; kb/Work PB4488). The retype above makes a
-  synonym its original's keyword token only where the original HAS a token; the §8.9 words with none (COPY, REPLACE,
+- **A synonym of a reserved word is reserved** (GR2, GR4 with §2023:8.3.2.1 rule 1; kb/Work PB4488). The retype above makes a
+  synonym its original's keyword token only where the original HAS a token; the §2023:8.9 words with none (COPY, REPLACE,
   LOCALE, NESTED, ANYCASE, SYSTEM-DEFAULT, USER-DEFAULT, EXCEPTION-OBJECT, COMMA, MINUS) left their synonym a plain
   `IDENTIFIER`, which `01 CPY PIC X.` then declared. `CobolWordsMap.ReservedSynonyms` maps every EQUATE literal-2 and
-  SUBSTITUTE literal-5 whose original §8.9 reserves at `DirectiveEdition` to that original, and `ReservedWordSet.Compose`
+  SUBSTITUTE literal-5 whose original §2023:8.9 reserves at `DirectiveEdition` to that original, and `ReservedWordSet.Compose`
   reserves them exactly as RESERVE's literal-6 (verdict `Removed`: the program's own directive made the word reserved), so
   the funnel's COBOL0901 names the synonym and its original. A synonym of a
-  context-sensitive word (§8.10) or of an intrinsic function name stays what it was and is not in the set; a synonym of a
+  context-sensitive word (§2023:8.10) or of an intrinsic function name stays what it was and is not in the set; a synonym of a
   word the lexer retypes is already its keyword token, so the set never decides it. **The COBOL0901 sentence is one rule
   for every reporting stage (kb/Work PB4573):** `ReservedWordSet.UserWordViolationMessage(written, map, edition)` names the
   word AS WRITTEN and, when `CobolWordsMap.SynonymOf(written)` finds it a synonym, the reserved word it stands for. The
@@ -243,29 +243,29 @@ is the user-word token type.
   and CURRENCY PICTURE SYMBOL clause binders): under UNDEFINE the syntax that requires it is not available (GR3), under
   SUBSTITUTE it is written with literal-5 (GR4). The drift test
   `CobolWordsReachDriftTests.EveryReservedWordsSynonym_RejectsAsAUserWord_OnBothSidesOfTheLexerPartition` takes every
-  §8.9 word of the COBOL-2023 list, so the next reserved word needs no edit.
+  §2023:8.9 word of the COBOL-2023 list, so the next reserved word needs no edit.
 
 ## §5 Syntax-rule validation (split by where the facts live)
 
 - **SR1 (before first ID DIVISION)** — Frontend: the boundary is the first line `CompilationUnitStart.IsAt` accepts (the
   `IDENTIFICATION DIVISION` / `ID DIVISION` header, or, the header being optional, the unit's own `PROGRAM-ID` /
-  `CLASS-ID` / `FUNCTION-ID` / `INTERFACE-ID` paragraph — §11.2.1, kb/Work PB829), **read through the group's own
+  `CLASS-ID` / `FUNCTION-ID` / `INTERFACE-ID` paragraph — §2023:11.2.1, kb/Work PB829), **read through the group's own
   synonyms** (kb/Work PB1373): after `>>COBOL-WORDS EQUATE "IDENTIFICATION" WITH "IDENT"` the line `IDENT DIVISION.` IS
-  the header (§7.3.10.4 GR2), so the entries in effect at the line (a POP that withdrew one has taken it back) rewrite the
+  the header (§2023:7.3.10.4 GR2), so the entries in effect at the line (a POP that withdrew one has taken it back) rewrite the
   line's first two words before the test (`IsAt(trimmed, map)`). `CobolWordsDirectiveProcessor.Process` returns that line
   as `FirstUnitLine` (the third result), and `DirectiveSiteProcessor.JudgeFirstUnitPlacement` is the ONE judge of the row's
-  `BeforeFirstCompilationUnit` placement — for the directive and for a PUSH/POP naming it (§7.3.20.3 SR2, §7.3.22.3
+  `BeforeFirstCompilationUnit` placement — for the directive and for a PUSH/POP naming it (§2023:7.3.20.3 SR2, §2023:7.3.22.3
   SR2): a site after that line ⇒ COBOL2652 (it was COBOL1623 before kb/Work PB1377). The site stage cannot judge it on
   the raw text, because it runs before the directive stage and so before any synonym exists.
-- **Operand reading (§8.3.5 2, 5)** — the separator comma and semicolon (each followed by a space) are read as the space they
+- **Operand reading (§2023:8.3.5 2, 5)** — the separator comma and semicolon (each followed by a space) are read as the space they
   stand for ONCE, by the directive-line parse (`CompilerDirectiveLine.SeparatorsAsSpaces`), for every directive operand, so
   `>>COBOL-WORDS EQUATE "DISPLAY", WITH "SHOW"` and `>>TURN EC-SIZE; CHECKING ON` are the space-only spellings (a comma or
-  semicolon ending the operand stays: §7.3.3 SR3/SR4 allow only spaces and an inline comment after a directive). The
-  literal reader then takes a doubled quotation symbol as one character (§8.3.3.2.3 3)) and gives a literal with no closing
+  semicolon ending the operand stays: §2023:7.3.3 SR3/SR4 allow only spaces and an inline comment after a directive). The
+  literal reader then takes a doubled quotation symbol as one character (§2023:8.3.3.2.3 3)) and gives a literal with no closing
   delimiter, or one the next character does not separate, as DEFECTIVE ⇒ COBOL1623 (SR2: "Each literal shall be an
   alphanumeric literal").
 - **SR2 (alphanumeric literal, non-hex, space-free)** — Frontend, per literal at parse time. A WORD in a literal
-  slot is a compilation-variable-name (§7.3.11.4 GR1, kb/Work PB1368): it must be defined before the directive
+  slot is a compilation-variable-name (§2023:7.3.11.4 GR1, kb/Work PB1368): it must be defined before the directive
   (the `>>DEFINE` timeline's `DefinitionAt`, the same fold `CONSTANT … FROM` reads), its value alphanumeric (the slot's
   category), and the literal its DEFINE WROTE passes the same SR2 screen — so a variable defined `AS X"…"` is refused as
   hexadecimal format. Otherwise COBOL1623.
@@ -273,13 +273,13 @@ is the user-word token type.
   a repeat ⇒ COBOL1623 (SR5). (Both the modified word and its substitute count, per D.12.1.)
 - **SR3 (lit1/3/4 = reserved OR context OR intrinsic; not special-character)** — Compiler: ONE population predicate,
   `CobolWordsCategoryPass.IsReservedContextOrIntrinsic`, shared by SR3 and SR4 and read at the directive's own edition
-  (`CobolWordsMap.DirectiveEdition`, 2023): reserved via `ReservedWords.Find(w).R2023` (the generated §8.9 table's 2023
-  flag — a word §8.9 dropped before 2023, AUTHOR or MEMORY, is not in it), **context via `ContextSensitiveWords.Contains`
-  (the generated §8.10 table)**, intrinsic via `IntrinsicCatalog.TryGet` inside its window (`IsDefinedAt`), **and the words
-  this implementation reserves for nonstandard extensions via `NonstandardExtensionRegister.ReservesWord` (§4.2.10 3): JSON,
+  (`CobolWordsMap.DirectiveEdition`, 2023): reserved via `ReservedWords.Find(w).R2023` (the generated §2023:8.9 table's 2023
+  flag — a word §2023:8.9 dropped before 2023, AUTHOR or MEMORY, is not in it), **context via `ContextSensitiveWords.Contains`
+  (the generated §2023:8.10 table)**, intrinsic via `IntrinsicCatalog.TryGet` inside its window (`IsDefinedAt`), **and the words
+  this implementation reserves for nonstandard extensions via `NonstandardExtensionRegister.ReservesWord` (§2023:4.2.10 3): JSON,
   XML, COMP-1 … COMP-5 and COMPUTATIONAL-1 … -5, END-JSON, END-XML and ENTRY, the register's rows, so the next
   `extensionReserved` word reaches SR3 and SR4 with no edit here)**. A word the compiler reserves is a reserved word
-  (§8.3.2.1 1)); §7.3.10.1 and D.12.1 give the directive so a program may change which words are reserved, and D.12.3 names
+  (§2023:8.3.2.1 1)); §2023:7.3.10.1 and D.12.1 give the directive so a program may change which words are reserved, and D.12.3 names
   this very collision ("a change of compiler that includes new reserved words that conflict with existing code"), so
   `UNDEFINE`, `EQUATE` and `SUBSTITUTE` may name them and `RESERVE` and the new word of `EQUATE` / `SUBSTITUTE` may not (owner
   decision 2026-10-31, kb/Work PB4239; docs/CONFORMANCE.md D-RW1). None ⇒ COBOL1623 (SR3). A synonym of such a word used as a
@@ -291,17 +291,17 @@ is the user-word token type.
   ⛔ This used to read "context via `DefaultVocabulary` (a keyword token exists)", which answers a DIFFERENT
   question — the vocabulary knows only the context words this compiler happens to tokenize, so SR3 rejected
   every legal directive naming one of the 31 that it does not (HEX, CURRENT, LC_ALL, ANUM, BYTE, ACTIVATING,
-  STACK, TOP-LEVEL, UCS-4, UTF-8, UTF-16, …) and no directive could name them at all (kb/Work PB250). §8.10's
+  STACK, TOP-LEVEL, UCS-4, UTF-8, UTF-16, …) and no directive could name them at all (kb/Work PB250). §2023:8.10's
   own NOTE points the other way: "Words can be added or deleted from this list for a specific compilation
-  group by use of the COBOL-WORDS directive." The §8.10 table is generated from the spec section by
+  group by use of the COBOL-WORDS directive." The §2023:8.10 table is generated from the spec section by
   `scripts/gen-reserved-words.ps1` and drift-tested against it; SR3/SR4 need no per-edition flags because the
   directive is a COBOL-2023 introduction, so 2023 is the only edition at which they are ever asked. (Each row also
   carries `ContextSensitiveWordEntry.Introduced`, the edition the word is first a keyword, which only the syntax
   diagnostics that name the words expected ask: kb/Work PB4174, CONFORMANCE.md D-EXPECT.)
-- **SR4 (lit2/5/6 NOT reserved/context/intrinsic; a valid user-defined word §8.3.2.2)** — Compiler: reject if
-  the word is in the same population (`CobolWordsCategoryPass.IsReservedContextOrIntrinsic`, the §4.2.10 additions included;
+- **SR4 (lit2/5/6 NOT reserved/context/intrinsic; a valid user-defined word §2023:8.3.2.2)** — Compiler: reject if
+  the word is in the same population (`CobolWordsCategoryPass.IsReservedContextOrIntrinsic`, the §2023:4.2.10 additions included;
   the sentence for such a word names that reservation and D-RW1, not "a reserved / context-sensitive / intrinsic-function
-  word"); the §8.3.2.1 / §8.3.2.2 well-formedness is a
+  word"); the §2023:8.3.2.1 / §2023:8.3.2.2 well-formedness is a
   Frontend check at parse time (`CobolWordsDirectiveProcessor.UserWord`): the word shape (word characters — letters,
   digits, hyphen, underscore, the extended letters — neither hyphen nor underscore first or last), at least one letter, and
   `CobolWordRule.DirectiveWordViolations` at the directive's edition (the 63-character ceiling and Annex B's placement of
@@ -311,7 +311,7 @@ is the user-word token type.
   program that also fails to parse reports COBOL1623 (at the directive's line and column) beside its parse errors. It used
   to run inside `VersionConformancePass`, the terminal bind pass, which a failed parse never reaches.
 
-**Omitted conditional-compilation branches (§7.2.1, kb/Work PB2003).** The directive in the false path of a `>>IF` is part
+**Omitted conditional-compilation branches (§2023:7.2.1, kb/Work PB2003).** The directive in the false path of a `>>IF` is part
 of the text that shall be "syntactically correct", but the conditional-compilation driver consumes that line and the stage
 that parses the operand never sees it. Each stage that owns an operand therefore has a **check-only entry**
 (`CobolWordsDirectiveProcessor.CheckOperand`, the same for `TurnDirectiveProcessor` and `FlagDirectiveProcessor`): the same
@@ -379,12 +379,12 @@ gate) → commit + push + a DEVLOG entry.
   RESERVE-used-as-user-word (0901), SR violations (1623) — listed in `negative/manifest.json`.
 - **Version matrix** — the `cobol-words-directive-2023` row drives `VersionMatrixTests` + `ConstructRegistryDriftTests`.
 - **Reach drift** `tests/WiseOwl.Cobol.Tests.Unit/CobolWordsReachDriftTests.cs` — the §2.1 invariant, measured: every
-  lexed §8.9/§8.10 word resolves to a token type; the lex probe agrees with the vocabulary wherever both answer;
+  lexed §2023:8.9/§2023:8.10 word resolves to a token type; the lex probe agrees with the vocabulary wherever both answer;
   the multi-spelling keywords are reached ONLY by the probe (so removing it fails here, not silently in a user's
   program); the population really is partitioned between the two mechanisms; `Resolve` implements GR2–GR5; and
   `TokenIs` does not re-resolve a word the retype already resolved.
-- **§8.10 table drift** `tests/WiseOwl.Cobol.Tests.Unit/ContextSensitiveWordsDriftTests.cs` — the generated table
-  equals its JSON AND the spec section, and no word is in both §8.9-at-2023 and §8.10.
+- **§2023:8.10 table drift** `tests/WiseOwl.Cobol.Tests.Unit/ContextSensitiveWordsDriftTests.cs` — the generated table
+  equals its JSON AND the spec section, and no word is in both §2023:8.9-at-2023 and §2023:8.10.
 - **Conformance, the name-level half** `tests/conformance/2023/pb250_cobol_words_phrase_word_{equate,undefine}.cob`
   (a §15 phrase word the lexer does not tokenize, both directions),
   `conformance-suite/cases/_unassigned/pb250_cobol_words_multi_spelling.cob` (UNDEFINE "ZERO" leaves ZEROS/ZEROES reserved),
@@ -393,4 +393,4 @@ gate) → commit + push + a DEVLOG entry.
 
 > **Not conflated:** `tests/version-matrix/cobol-words.json` + `scripts/gen-cobol-words.ps1` are the STATIC
 > context-sensitive word-set single-source (the `cobolWord` rule + `_dataNameTokens`); they are unrelated to
-> this §7.3.10 SOURCE directive. Do not edit them for this feature.
+> this §2023:7.3.10 SOURCE directive. Do not edit them for this feature.

@@ -261,7 +261,7 @@ public sealed class CorpusManifestTests
     /// </summary>
     /// <remarks>
     /// A note beginning <c>TERMINATES EC-…</c> inverts the reading of a <c>divergent</c> row: the golden records a
-    /// run that continued past a fatal I-O status nothing covers, and WiseOwl COBOL's ISO §9.1.13.1 choice (Annex A.1
+    /// run that continued past a fatal I-O status nothing covers, and WiseOwl COBOL's ISO §2023:9.1.13.1 choice (Annex A.1
     /// item 103) ends the run unit there, so the run must end naming that exception. The CLI guard read
     /// every <c>divergent</c> row the plain way, so PB322's two TERMINATES rows turned CI's guard red (CI run
     /// 37217227958) while this assembly's NistDifferentialTests, which knew the marker, was green. The shell has
@@ -303,7 +303,7 @@ public sealed class CorpusManifestTests
 
     /// <summary>A note that MEANS the marker must SAY it in the one grammar both readers parse: a row whose note
     /// begins with the word <c>TERMINATES</c> and is not a <c>divergent</c> row with a well-formed marker naming a
-    /// FATAL level-3 exception-name (ISO §14.6.13.1.6 Table 13, <see cref="ExceptionCatalog"/>) would be read by
+    /// FATAL level-3 exception-name (ISO §2023:14.6.13.1.6 Table 13, <see cref="ExceptionCatalog"/>) would be read by
     /// both runners as a plain row, and each would score its termination as a regression.</summary>
     [Fact]
     public void EveryTerminatesNote_IsAWellFormedMarkerOnADivergentRow()
@@ -358,7 +358,7 @@ public sealed class CorpusManifestTests
     /// behind after a golden is repaired is caught too (feedback_measure_the_selectors_complement).
     /// <para>The one declared member today is <b>NC201A</b>: PFM-TEST-F4-23 ("ORDER OF INITIALISATION OF VARYING
     /// IDENTIFIERS") asserts SIX body executions for <c>VARYING A … AFTER B FROM A …</c> under TEST BEFORE,
-    /// while ISO §14.9.28.4 GR13 e) 2 a–c set the inner induction variable to its initialization value BEFORE
+    /// while ISO §2023:14.9.28.4 GR13 e) 2 a–c set the inner induction variable to its initialization value BEFORE
     /// augmenting the one to its left — so B is reset from the PRE-augment A and the statement runs EIGHT.
     /// The determination is in <c>docs/CONFORMANCE.md</c> §3; the citation-bearing pin is in
     /// <c>SpecPinnedNistTests</c>; kb/Work PB436.</para></summary>

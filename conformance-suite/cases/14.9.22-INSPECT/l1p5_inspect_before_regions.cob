@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.22.4 GR9 a) b) — INSPECT eligibility regions: no
+      *> ISO §2023:14.9.22.4 GR9 a) b) — INSPECT eligibility regions: no
       *> phrase, a zero-length identifier-4, and the BEFORE phrase.
       *> Derivations (spec text is the oracle):
       *> GR9a "If neither the BEFORE nor AFTER phrase is specified or

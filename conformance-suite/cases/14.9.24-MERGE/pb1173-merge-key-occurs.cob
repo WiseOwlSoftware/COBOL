@@ -4,9 +4,9 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB1173 — A MERGE KEY UNDER OCCURS IS REFUSED BY §14.9.24.3 SR4 b) AND f).
+      *> kb/Work PB1173 — A MERGE KEY UNDER OCCURS IS REFUSED BY §2023:14.9.24.3 SR4 b) AND f).
       *>   cite.py --check 14.9.24.3 "Key data names shall not be subject to any OCCURS clauses." ->
-      *>     OK §14.9.24.3 4) b)
+      *>     OK §2023:14.9.24.3 4) b)
       *> The MERGE twin of negative/pb1173-sort-file-key-occurs, through the same key-admissibility predicate.
       *> kb/Work PB2512 - the USING and GIVING records are sized to the SD record (its largest record, or its
       *> variable-length range), so the program breaks no rule of the record-size family (SORT SR5, SR11; MERGE

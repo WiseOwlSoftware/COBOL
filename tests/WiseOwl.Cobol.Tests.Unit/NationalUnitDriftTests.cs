@@ -17,12 +17,12 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ HOW MANY BYTES A POSITION OCCUPIES IS A FUNCTION OF THE USAGE, AND THE COMPILER SPELLS IT ONCE — <see
-/// cref="PicInfo.BytesPerPosition"/> (kb/Work PB546; docs/DATA_MODEL_DESIGN.md D-N1). ISO §13.18.60.4 GR8 makes
-/// USAGE NATIONAL the representation, and §13.18.60.3 SR12 lets a usage-national item be of category boolean, national,
+/// cref="PicInfo.BytesPerPosition"/> (kb/Work PB546; docs/DATA_MODEL_DESIGN.md D-N1). ISO §2023:13.18.60.4 GR8 makes
+/// USAGE NATIONAL the representation, and §2023:13.18.60.3 SR12 lets a usage-national item be of category boolean, national,
 /// national-edited, numeric or numeric-edited, so a national byte count chosen by <c>PicCategory.National</c> puts the
 /// boolean, numeric and numeric-edited items of usage national in the one-byte arm. That was measured twice: a boolean
 /// usage-national slice serialized one byte a position (<c>BYTE-LENGTH(BN(1:2))</c> = 2) and a group MOVE into a national
-/// DYNAMIC LENGTH item converted characters where §14.9.25.4 GR4 copies bytes. This class walks every C# file of the
+/// DYNAMIC LENGTH item converted characters where §2023:14.9.25.4 GR4 copies bytes. This class walks every C# file of the
 /// compiler with Roslyn and is red when a national-unit operation — a <c>NatBytes</c>, <c>NatReadWindow</c>,
 /// <c>NatWriteWindow</c> or <c>NatFromStorage</c> emission, the <c>ByteLengthNational</c> runtime entry, or a read of
 /// <c>BytesPerNational</c> — is chosen by a condition that tests the category national and not the usage, or when a
@@ -117,7 +117,7 @@ public sealed class NationalUnitDriftTests
             .ToList();
         Assert.True(categoryKeyed.Count == 0,
             "a national-unit operation is chosen by PicCategory.National alone, so a boolean, numeric or numeric-edited "
-            + "item of usage national (§13.18.60.3 SR12) takes the one-byte arm (kb/Work PB546) — test the usage, through "
+            + "item of usage national (§2023:13.18.60.3 SR12) takes the one-byte arm (kb/Work PB546) — test the usage, through "
             + "PicInfo.BytesPerPosition:\n  " + string.Join("\n  ", categoryKeyed));
     }
 

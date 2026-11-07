@@ -16,16 +16,16 @@ namespace WiseOwl.Cobol.Tests.Unit.Store;
 /// <c>ALPHABET … ALSO</c>: every upper-case letter shares its position with its lower-case twin) has records whose
 /// identity no byte compare can decide, and every expected value below is the standard's:
 /// <list type="bullet">
-///   <item>§12.4.5.12.4 GR1: <i>"The equality or inequality is based on the collating sequence used for the file according
+///   <item>§2023:12.4.5.12.4 GR1: <i>"The equality or inequality is based on the collating sequence used for the file according
 ///   to the rules for a relation condition."</i> — "ABCD" and "abcd" are the SAME prime key, so one record, one holding;</item>
-///   <item>§14.9.51.4 GR35: <i>"The comparison used for ensuring uniqueness, for ordering records, or for suppressing
+///   <item>§2023:14.9.51.4 GR35: <i>"The comparison used for ensuring uniqueness, for ordering records, or for suppressing
 ///   records in the physical file is based on the collating sequence for the file according to the rules for a relation
 ///   condition."</i> — the same for a unique alternate key's value (the '22' of a duplicate, the '51' of a value a change
 ///   freed);</item>
-///   <item>§9.1.16: <i>"The implementor may specify circumstances other than a locked logical record that result in the
+///   <item>§2023:9.1.16: <i>"The implementor may specify circumstances other than a locked logical record that result in the
 ///   return of a locked record status."</i> — a record a live transaction changed answers '51' to every other connector,
 ///   by whichever image of its key the other connector names it (DOC-A.1-152);</item>
-///   <item>§14.9.36.4 GR3: <i>"All files and data-items referenced in active APPLY COMMIT clauses are restored to the state
+///   <item>§2023:14.9.36.4 GR3: <i>"All files and data-items referenced in active APPLY COMMIT clauses are restored to the state
 ///   they were in at the execution of the last COMMIT statement or the start of the run unit if no COMMIT statements had
 ///   previously been executed."</i> — whichever images the run unit's changes named the record by, and the record's own
 ///   key image is back as it was.</item>
@@ -39,7 +39,7 @@ public sealed class HoldingsKeyOrderTests
     private static readonly IOException Refusal = new("refused by the host");
 
     /// <summary><c>ALPHABET … "A" ALSO "a" … "Z" ALSO "z"</c>: each letter shares one collating position with its
-    /// lower-case twin (§12.3.7.4 GR7 ALSO), so "ABCD" and "abcd" are equal keys.</summary>
+    /// lower-case twin (§2023:12.3.7.4 GR7 ALSO), so "ABCD" and "abcd" are equal keys.</summary>
     internal static AlphanumericCollation CaseFold()
     {
         var codes = new List<ushort>();
@@ -142,7 +142,7 @@ public sealed class HoldingsKeyOrderTests
 
     // ── The lock test: a holding is the file's key, whichever image names it ────────────────────────────────────────
 
-    /// <summary>§12.4.5.12.4 GR1, §9.1.16 (finding R2-3, R4-1): A under commit control DELETEs "abcd" by the image "ABCD";
+    /// <summary>§2023:12.4.5.12.4 GR1, §2023:9.1.16 (finding R2-3, R4-1): A under commit control DELETEs "abcd" by the image "ABCD";
     /// B, outside commit control, meets the holding by EVERY image of the key — a WRITE answers '51', a READ finds the
     /// record gone ('23', the invalid key before any lock). A's ROLLBACK restores it, and B's WRITE then answers '22' (the
     /// key is taken) and its READ finds the record, which keeps the image it was WRITTEN with.</summary>
@@ -174,7 +174,7 @@ public sealed class HoldingsKeyOrderTests
         finally { TryDelete(host); }
     }
 
-    /// <summary>§12.4.5.12.4 GR1: A REWRITEs the record "abcd" by the image "ABCD" and B's REWRITE, DELETE and WRITE by any
+    /// <summary>§2023:12.4.5.12.4 GR1: A REWRITEs the record "abcd" by the image "ABCD" and B's REWRITE, DELETE and WRITE by any
     /// image of the key answer '51'; the record's key image in the tree is the one it was WRITTEN with, not the one A's
     /// statement named it by.</summary>
     [Fact]
@@ -205,7 +205,7 @@ public sealed class HoldingsKeyOrderTests
         finally { TryDelete(host); }
     }
 
-    /// <summary>§14.9.51.4 GR35 (finding R2-4): A REWRITEs "abcd" and frees its unique alternate value "wxyz". B's WRITE of
+    /// <summary>§2023:14.9.51.4 GR35 (finding R2-4): A REWRITEs "abcd" and frees its unique alternate value "wxyz". B's WRITE of
     /// that value in any image answers '51' while A lives, and '22' (the value is taken again) after A's ROLLBACK; after A's
     /// COMMIT the value is free, and B's WRITE of it answers '00'.</summary>
     [Fact]
@@ -236,7 +236,7 @@ public sealed class HoldingsKeyOrderTests
         finally { TryDelete(host); }
     }
 
-    /// <summary>§14.9.36.4 GR3: the FIRST before-image is the one a ROLLBACK restores, whichever images the transaction's
+    /// <summary>§2023:14.9.36.4 GR3: the FIRST before-image is the one a ROLLBACK restores, whichever images the transaction's
     /// later changes of the record named it by. A REWRITEs the record "abcd" by "ABCD" and then by "abcd": one holding and
     /// one before-image, so the ROLLBACK restores the record as it was at the start of the run unit, never as A's first
     /// change left it, and its key image is the stored one.</summary>
@@ -267,7 +267,7 @@ public sealed class HoldingsKeyOrderTests
         finally { TryDelete(host); }
     }
 
-    /// <summary>§9.1.16 (kb/Work PB3485): the record lock a READ WITH LOCK takes is the record's, not its key image's. B,
+    /// <summary>§2023:9.1.16 (kb/Work PB3485): the record lock a READ WITH LOCK takes is the record's, not its key image's. B,
     /// another run unit, READs "abcd" WITH LOCK; A's READ WITH LOCK, REWRITE and DELETE by the images "ABCD" and "aBcD" find
     /// it locked ('51'); B's own REWRITE by another image succeeds, and the lock goes with its COMMIT-less UNLOCK.</summary>
     [Fact]
@@ -297,7 +297,7 @@ public sealed class HoldingsKeyOrderTests
 
     // ── The abnormal paths, under that sequence ─────────────────────────────────────────────────────────────────────
 
-    /// <summary>§9.1.18.5 (finding R3-1): A changes the file by the variant images and dies. B's WRITE of "abcd" by an
+    /// <summary>§2023:9.1.18.5 (finding R3-1): A changes the file by the variant images and dies. B's WRITE of "abcd" by an
     /// image A never named finds the holding, rolls A back, and evaluates the WRITE again: '22', never '00'; the record is
     /// as at the start of the run unit under its stored image.</summary>
     [Fact]
@@ -322,7 +322,7 @@ public sealed class HoldingsKeyOrderTests
         finally { TryDelete(host); }
     }
 
-    /// <summary>§9.1.18.5, 2.2.1.6 R6 step 5 (finding R3-1): A changes the file by the variant images and dies; the next
+    /// <summary>§2023:9.1.18.5, 2.2.1.6 R6 step 5 (finding R3-1): A changes the file by the variant images and dies; the next
     /// writable OPEN — its fence's dead-owner step, which retires the transaction through the OPEN's own key orders — finds
     /// the file as at the start of A's run unit and no transaction in it.</summary>
     [Fact]
@@ -343,7 +343,7 @@ public sealed class HoldingsKeyOrderTests
         finally { TryDelete(host); }
     }
 
-    /// <summary>§14.9.7.4 GR3 (2.2.1.16): A's COMMIT refused at EVERY read, write and sync it makes, the transaction having
+    /// <summary>§2023:14.9.7.4 GR3 (2.2.1.16): A's COMMIT refused at EVERY read, write and sync it makes, the transaction having
     /// named its records by variant images. Whatever the region, the file is the previous COMMIT's or the new one's, never a
     /// mixture; before the slot write A's holdings are intact (a WRITE by another image answers '51'); a sync 2 refused
     /// reverses the COMMIT (the reversal restores through the file's key orders: '22'); after it the COMMIT stands. No
@@ -401,7 +401,7 @@ public sealed class HoldingsKeyOrderTests
                     Assert.Equal("30", a.Status("F"));
                     Assert.Equal(k == sync2 ? "22" : "51", Write(b, "aBcDnew1"));
                 }
-                Assert.Null(a.Rollback());   // §14.6.13.1.3 item 8's unconditional ROLLBACK
+                Assert.Null(a.Rollback());   // §2023:14.6.13.1.3 item 8's unconditional ROLLBACK
                 Assert.Equal(0ul, a.TransactionOf("F"));
                 a.CloseAll();
                 b.CloseAll();

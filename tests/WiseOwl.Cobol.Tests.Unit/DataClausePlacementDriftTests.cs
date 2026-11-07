@@ -19,7 +19,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ THE DATA-DESCRIPTION CLAUSE-PLACEMENT TABLE IS TOTAL, AND EACH ROW BITES (kb/Work PB507 / PB512 / PB518 /
 /// PB519; <c>DataBinder.ClausePlacement.cs</c>).
 ///
-/// <para>The defects this table closed were all one shape: a sentence of §13.16.3 that names SEVERAL clauses,
+/// <para>The defects this table closed were all one shape: a sentence of §2023:13.16.3 that names SEVERAL clauses,
 /// enforced for one of them. SR11 names PICTURE, JUSTIFIED and BLANK WHEN ZERO and only PICTURE had a screen; SR5
 /// names REDEFINES and BASED beside EXTERNAL and only BASED had one; SR6/SR7 were <c>continue</c> filters in a
 /// registration scan. So the drift tests pin the two properties that keep the NEXT clause from repeating it:
@@ -124,7 +124,7 @@ public sealed class DataClausePlacementDriftTests
     {
         Bind("EXT" + section, section, "       01  H IS EXTERNAL PIC X(4).\r\n", out var diags);
         Assert.Contains(diags, d => d.Contains("COBOL2404", StringComparison.Ordinal)
-                                    && d.Contains("§13.18.22.3 SR1", StringComparison.Ordinal));
+                                    && d.Contains("§2023:13.18.22.3 SR1", StringComparison.Ordinal));
     }
 
     [Theory]
@@ -150,7 +150,7 @@ public sealed class DataClausePlacementDriftTests
         Assert.Equal("A", binder.Linkage.ExternalBackings[0].Record.CobolName);
     }
 
-    /// <summary>§13.18.38.3 SR1 a) (kb/Work PB1260) — "The OCCURS clause shall not be specified in a data description
+    /// <summary>§2023:13.18.38.3 SR1 a) (kb/Work PB1260) — "The OCCURS clause shall not be specified in a data description
     /// entry that: a) Has a level-number of 01, 66, 77, or 88". The row refuses a level-01 or level-77 table in every
     /// section, and its legal twin (the table one level below a group) binds clean.</summary>
     [Theory]
@@ -164,10 +164,10 @@ public sealed class DataClausePlacementDriftTests
     {
         Bind("OCCLVL", section, "       77  N PIC 9.\r\n" + entry + "\r\n", out var diags);
         Assert.Contains(diags, d => d.Contains("COBOL2404", StringComparison.Ordinal)
-                                    && d.Contains("§13.18.38.3 SR1 a)", StringComparison.Ordinal));
+                                    && d.Contains("§2023:13.18.38.3 SR1 a)", StringComparison.Ordinal));
     }
 
-    /// <summary>§13.16.3 SR16 (kb/Work PB516) — "The BASED clause may be specified only in data description entries in
+    /// <summary>§2023:13.16.3 SR16 (kb/Work PB516) — "The BASED clause may be specified only in data description entries in
     /// the linkage section, in the working-storage section, and in the local-storage section. The level number of
     /// such data description entries shall be 1 or 77." Both sentences are the one Residence row: the file section
     /// and a level-05 entry are refused (and the entry binds as ordinary storage), level 1 and 77 in the three
@@ -179,7 +179,7 @@ public sealed class DataClausePlacementDriftTests
     {
         var binder = Bind("BASEDOUT" + section, section, entries, out var diags);
         Assert.Contains(diags, d => d.Contains("COBOL2404", StringComparison.Ordinal)
-                                    && d.Contains("§13.16.3 SR16", StringComparison.Ordinal)
+                                    && d.Contains("§2023:13.16.3 SR16", StringComparison.Ordinal)
                                     && d.Contains(why, StringComparison.Ordinal));
         Assert.DoesNotContain(binder.ConformanceForest(), i => i.IsBased);
     }
@@ -202,17 +202,17 @@ public sealed class DataClausePlacementDriftTests
         Assert.DoesNotContain(diags, d => d.Contains("COBOL2404", StringComparison.Ordinal));
     }
 
-    // ── the subject rules (§13.18.8.3 SR1/SR2, §13.18.32.3 SR3/SR4) ────────────────────────────────────────
+    // ── the subject rules (§2023:13.18.8.3 SR1/SR2, §2023:13.18.32.3 SR3/SR4) ────────────────────────────────────────
 
     [Theory]
-    [InlineData("       01  X PIC X(5) BLANK WHEN ZERO.\r\n", "§13.18.8.3 SR1")]
-    [InlineData("       01  X PIC 9(5) USAGE COMP BLANK WHEN ZERO.\r\n", "§13.18.8.3 SR2")]
-    [InlineData("       01  X PIC 9(5) USAGE PACKED-DECIMAL BLANK WHEN ZERO.\r\n", "§13.18.8.3 SR2")]
-    [InlineData("       01  X USAGE POINTER BLANK WHEN ZERO.\r\n", "§13.18.8.3 SR1")]
-    [InlineData("       01  X PIC 9(5) JUSTIFIED RIGHT.\r\n", "§13.18.32.3 SR3")]
-    [InlineData("       01  X PIC ZZ9 JUSTIFIED.\r\n", "§13.18.32.3 SR3")]
-    [InlineData("       01  X PIC XXBXX JUSTIFIED.\r\n", "§13.18.32.3 SR3")]
-    [InlineData("       01  X USAGE INDEX JUSTIFIED.\r\n", "§13.18.32.3 SR3")]
+    [InlineData("       01  X PIC X(5) BLANK WHEN ZERO.\r\n", "§2023:13.18.8.3 SR1")]
+    [InlineData("       01  X PIC 9(5) USAGE COMP BLANK WHEN ZERO.\r\n", "§2023:13.18.8.3 SR2")]
+    [InlineData("       01  X PIC 9(5) USAGE PACKED-DECIMAL BLANK WHEN ZERO.\r\n", "§2023:13.18.8.3 SR2")]
+    [InlineData("       01  X USAGE POINTER BLANK WHEN ZERO.\r\n", "§2023:13.18.8.3 SR1")]
+    [InlineData("       01  X PIC 9(5) JUSTIFIED RIGHT.\r\n", "§2023:13.18.32.3 SR3")]
+    [InlineData("       01  X PIC ZZ9 JUSTIFIED.\r\n", "§2023:13.18.32.3 SR3")]
+    [InlineData("       01  X PIC XXBXX JUSTIFIED.\r\n", "§2023:13.18.32.3 SR3")]
+    [InlineData("       01  X USAGE INDEX JUSTIFIED.\r\n", "§2023:13.18.32.3 SR3")]
     public void ClauseOnAnInadmissibleSubject_IsRefused(string ws, string rule)
     {
         Bind("SUBJ", "WORKING-STORAGE", ws, out var diags);
@@ -235,8 +235,8 @@ public sealed class DataClausePlacementDriftTests
                                           || d.Contains("COBOL2403", StringComparison.Ordinal));
     }
 
-    /// <summary>§13.18.32.3 SR4 — "The JUSTIFIED clause shall not be specified for a dynamic-length elementary
-    /// item." Enforced by §13.16.3 SR18's permitted set (COBOL1563), which is the same fact, so
+    /// <summary>§2023:13.18.32.3 SR4 — "The JUSTIFIED clause shall not be specified for a dynamic-length elementary
+    /// item." Enforced by §2023:13.16.3 SR18's permitted set (COBOL1563), which is the same fact, so
     /// <c>CheckClauseSubjects</c> carries no second arm; this pins that the fact IS reported.</summary>
     [Fact]
     public void JustifiedOnADynamicLengthItem_IsRefused()

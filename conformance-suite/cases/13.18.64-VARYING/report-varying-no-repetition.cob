@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §13.18.64.3 SR1 — an entry containing a VARYING clause shall also
+      *> ISO §2023:13.18.64.3 SR1 — an entry containing a VARYING clause shall also
       *> contain an OCCURS clause or, in a report group description entry, a
       *> multiple LINE or multiple COLUMN clause. A single-operand COLUMN entry
       *> gives the counter nothing to repeat over (COBOL1559).

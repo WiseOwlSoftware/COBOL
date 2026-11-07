@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.23.4 GR2 b) — a non-COBOL method is never invoked:
+      *> ISO §2023:14.9.23.4 GR2 b) — a non-COBOL method is never invoked:
       *> the universal-receiver arm of the DOC-A.1-101 determination.
       *> RULE (cite.py --check 14.9.23.4 OK, GR 2 b)): "If the method
       *> to be invoked is a non-COBOL method, the behavior of the INVOKE
@@ -22,17 +22,17 @@
       *> decides whether the .NET member is reached.
       *> DERIVATION of every .out line:
       *>   L1IV101V declares only HELLO; BASE's instance interface is
-      *>   FactoryObject only (§16.2, cite.py OK). Method resolution
-      *>   (§9.3.6, cite.py OK, step 6): "otherwise, the EC-OO-METHOD
-      *>   exception condition is set to exist." §14.9.23.4 GR7 b)
+      *>   FactoryObject only (§2023:16.2, cite.py OK). Method resolution
+      *>   (§2023:9.3.6, cite.py OK, step 6): "otherwise, the EC-OO-METHOD
+      *>   exception condition is set to exist." §2023:14.9.23.4 GR7 b)
       *>   (cite.py OK): "If the method is not found ... the
       *>   EC-OO-METHOD exception condition is set to exist, the method
       *>   invocation is not successful, and execution continues as
       *>   specified in General rule 7g."
       *>   EC-OO-METHOD is fatal (Table 13); the >>TURN enables it, so
-      *>   §14.6.13.1.3 5) (cite.py OK) runs the USE declarative:
+      *>   §2023:14.6.13.1.3 5) (cite.py OK) runs the USE declarative:
       *>   EC-OO-METHOD      printed by the declarative.
-      *>   RESUME AT NEXT STATEMENT (§14.9.33.4 GR2 a) 1., cite.py OK):
+      *>   RESUME AT NEXT STATEMENT (§2023:14.9.33.4 GR2 a) 1., cite.py OK):
       *>   the applicable statement is the INVOKE itself, so control
       *>   continues after it:
       *>   AFTER             printed by the next statement.

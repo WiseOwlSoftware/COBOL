@@ -5,17 +5,17 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §9.1.13.3 1) — I-O status 0x is Not provided (Annex A.1
+      *> ISO §2023:9.1.13.3 1) — I-O status 0x is Not provided (Annex A.1
       *> item 106): every successful statement, at the sites where an
       *> implementor-defined 0x could be reported, answers '00'.
       *>
-      *> THE RULE. §9.1.13.3 1): "I-O status = 0x. An implementor-
+      *> THE RULE. §2023:9.1.13.3 1): "I-O status = 0x. An implementor-
       *>   defined condition exists. The value of x is specified by the
       *>   implementor ... This condition shall not duplicate any
       *>   condition specified by another I-O status value."
-      *>   OK  §9.1.13.3 1)  (Implementor-defined successful completion)
+      *>   OK  §2023:9.1.13.3 1)  (Implementor-defined successful completion)
       *> Annex A.1 106): "I-O status 0x (value of x). This item is
-      *>   optional."   OK  §A.1 106)
+      *>   optional."   OK  §2023:A.1 106)
       *>
       *> THE DOCUMENTED CHOICE, docs/CONFORMANCE.md DOC-A.1-106: "Not
       *>   provided. No input-output statement ever sets an I-O status
@@ -23,11 +23,11 @@
       *>
       *> DERIVATION. With no 0x condition defined, a successful
       *>   statement for which none of the standard's other successful
-      *>   conditions holds can only report §9.1.13.2 1): "I-O status =
+      *>   conditions holds can only report §2023:9.1.13.2 1): "I-O status =
       *>   00. The input-output statement is successfully executed and
       *>   no further information is available concerning the input-
-      *>   output operation."  OK  §9.1.13.2 1)
-      *>   Every statement below is chosen so that NO other §9.1.13.2
+      *>   output operation."  OK  §2023:9.1.13.2 1)
+      *>   Every statement below is chosen so that NO other §2023:9.1.13.2
       *>   value applies: 02 needs a duplicate alternate key (no file
       *>   here has one); 04 a record length outside the fixed
       *>   attributes (each file is read through its own description);
@@ -40,14 +40,14 @@
       *>   DELETE, an UNLOCK, and every CLOSE, over all three
       *>   organizations. Each therefore answers 00, and the lines read
       *>   '<site>=00' throughout.
-      *> UNLOCK. §9.1.13.1 names UNLOCK among the eight statements
-      *>   that set the I-O status. §14.9.47.4 1): "The presence or
+      *> UNLOCK. §2023:9.1.13.1 names UNLOCK among the eight statements
+      *>   that set the I-O status. §2023:14.9.47.4 1): "The presence or
       *>   absence of any record locks does not affect the success of
-      *>   the execution of the UNLOCK statement"  OK  §14.9.47.4 1);
-      *>   §14.9.47.4 3): it "causes the value of the I-O status ... to
-      *>   be updated"  OK  §14.9.47.4 3). An UNLOCK with no lock held
+      *>   the execution of the UNLOCK statement"  OK  §2023:14.9.47.4 1);
+      *>   §2023:14.9.47.4 3): it "causes the value of the I-O status ... to
+      *>   be updated"  OK  §2023:14.9.47.4 3). An UNLOCK with no lock held
       *>   is the successful-with-extra-information case 0x exists
-      *>   for; no §9.1.13.2 value 02-09 names UNLOCK, so it answers
+      *>   for; no §2023:9.1.13.2 value 02-09 names UNLOCK, so it answers
       *>   00. The status is pre-set to "ZZ" so the line proves the
       *>   update happened: a stale 00 cannot fake it.
        IDENTIFICATION DIVISION.

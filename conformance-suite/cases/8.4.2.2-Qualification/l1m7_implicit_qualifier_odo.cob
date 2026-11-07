@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §8.4.2.2.1 rule 5 — implicit qualifiers for a data-name
+      *> ISO §2023:8.4.2.2.1 rule 5 — implicit qualifiers for a data-name
       *> referenced in a data description entry clause (OCCURS
       *> DEPENDING ON) whose subject shares a group with that name.
       *> Rule 5: "The name is a data-name referenced in a data
@@ -15,11 +15,11 @@
       *> subject of the data description entry clause are used as
       *> implicit qualifiers for the reference, in addition to any
       *> explicit qualifiers needed to establish uniqueness within that
-      *> group."   cite.py: OK  §8.4.2.2.1 5)
-      *> §13.18.38.4 GR8 b): with the ODO object in the same group, a
+      *> group."   cite.py: OK  §2023:8.4.2.2.1 5)
+      *> §2023:13.18.38.4 GR8 b): with the ODO object in the same group, a
       *> SENDING group uses the occurrences given by the object's value
       *> and a RECEIVING group its maximum length.
-      *> cite.py: OK  §13.18.38.4 8) b)
+      *> cite.py: OK  §2023:13.18.38.4 8) b)
       *> CNT is declared SIX times, so no ODO below could name it
       *> without rule 5.  Each record is first filled at its maximum
       *> (both counts 5, so GR8 b) gives the full length either way),

@@ -4,12 +4,12 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §13.18.53.3 SR6 — the SOURCE clause's twin of §13.18.63.3 SR35, written for the other clause: "If
+      *> ISO §2023:13.18.53.3 SR6 — the SOURCE clause's twin of §2023:13.18.63.3 SR35, written for the other clause: "If
       *> the SOURCE clause has more than one operand, the entry shall be a repeating entry or shall be
       *> subordinate to a repeating entry, and the number of operands of the SOURCE clause shall be equal to the
       *> number of repetitions of the repeating entry or the same number multiplied by the number of repetitions
       *> of any number of successive repeating entries at higher levels than the repeating entry."  The entry
-      *> below is a repeating entry with TWO repetitions (§13.15.4 GR3 — a COLUMN clause with two operands) and
+      *> below is a repeating entry with TWO repetitions (§2023:13.15.4 GR3 — a COLUMN clause with two operands) and
       *> writes THREE SOURCE operands, which is neither two nor two times anything.
       *> ⛔ THIS IS THE ARM THAT WAS NEVER THERE (kb/Work PB506).  Before it, `reportSourceClause` was
       *> `SOURCE IS? dataReference` — ONE operand, no SOURCES spelling — so a conforming multi-operand SOURCE

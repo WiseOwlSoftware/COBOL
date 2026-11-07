@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO 1989:2023 §11.3/§11.7 (OO COBOL) — INHERITS FROM + polymorphism. DOG INHERITS FROM ANIMAL and
+      *> ISO 1989:2023 §2023:11.3/§2023:11.7 (OO COBOL) — INHERITS FROM + polymorphism. DOG INHERITS FROM ANIMAL and
       *> overrides SPEAK; invoking SPEAK through an ANIMAL-typed reference that holds a DOG dispatches to the
       *> override (virtual dispatch). A DOG with no override would inherit ANIMAL.SPEAK.
        IDENTIFICATION DIVISION.

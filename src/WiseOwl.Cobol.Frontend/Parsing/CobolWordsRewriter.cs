@@ -8,7 +8,7 @@ using WiseOwl.Cobol.Runtime;
 namespace WiseOwl.Cobol.Frontend.Parsing;
 
 /// <summary>
-/// The <c>&gt;&gt;COBOL-WORDS</c> token retype (ISO §7.3.10.4 GR2/GR3/GR4), applied by the lexer to each token as it
+/// The <c>&gt;&gt;COBOL-WORDS</c> token retype (ISO §2023:7.3.10.4 GR2/GR3/GR4), applied by the lexer to each token as it
 /// is emitted (<see cref="Plan"/>, kb/Work PB1372) per the <see cref="CobolWordsMap"/>, so the static ANTLR lexer
 /// needs no per-group regeneration (the owner's recorded direction) and every lexer decision keyed on a keyword —
 /// PIC's mode switch, the FUNCTION argument region, the SUBSCRIPT trigger — reads the word the DIRECTIVE made of it.
@@ -17,7 +17,7 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// drops out of its keyword syntax and is usable as a user word.
 /// <para><b>This retype is HALF the mechanism, and it cannot be the other half</b> (kb/Work PB250). It can only
 /// reach a word the lexer makes a keyword TOKEN; a word that lexes as a plain IDENTIFIER has no token type to
-/// retype, so the retype is a silent no-op for it in BOTH directions. Measured against ISO §8.9 ∪ §8.10, 88 words
+/// retype, so the retype is a silent no-op for it in BOTH directions. Measured against ISO §2023:8.9 ∪ §2023:8.10, 88 words
 /// are in that class — ANYCASE and LOCALE among them, which is why <c>&gt;&gt;COBOL-WORDS EQUATE "LOCALE" …</c>
 /// used to make TEST-NUMVAL-C reject legal source. Those words, and every intrinsic-function name, are reached at
 /// the by-name classification points through <see cref="CobolWordsMap.Resolve"/> — the ONE rule both halves
@@ -77,7 +77,7 @@ public static class CobolWordsRewriter
     /// synonym of FUNCTION never opened an argument region, a de-reserved PICTURE still swallowed the next word as a
     /// picture string, and every later reader of the filled stream (<c>DebuggingLineRewriter</c>'s unit boundaries)
     /// saw the words the DIRECTIVE had changed. One retype, applied where the decisions are made, leaves no later
-    /// stage to forget it. Two disjoint retypes, both ISO §7.3.10.4:
+    /// stage to forget it. Two disjoint retypes, both ISO §2023:7.3.10.4:
     /// <list type="bullet">
     /// <item>SYNONYM (GR2 EQUATE literal-2 / GR4 SUBSTITUTE literal-5): an <c>IDENTIFIER</c> whose text is a synonym
     /// becomes the canonical reserved/context word's token type, spelled canonically.</item>

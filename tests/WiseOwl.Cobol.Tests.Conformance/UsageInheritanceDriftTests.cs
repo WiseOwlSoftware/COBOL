@@ -9,7 +9,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// ⛔ THE §13.18.60.4 GR1 EQUIVALENCE, over the WHOLE <see cref="Usage"/> enum (kb/Work PB495).
+/// ⛔ THE §2023:13.18.60.4 GR1 EQUIVALENCE, over the WHOLE <see cref="Usage"/> enum (kb/Work PB495).
 ///
 /// <para>GR1: <i>"If the USAGE clause is specified or implied at a group level, it applies only to each
 /// elementary item in the group."</i> It does not say the group's clause INFLUENCES its leaves; it says the
@@ -35,7 +35,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// equivalence still holds. Measured while this file was written — dropping BINARY-SHORT from the set left every
 /// test below green while `05 A PIC 9(4) USAGE BINARY-SHORT.` became legal on both arms. The independent oracle
 /// is the standard's own sentence, and it lives in <c>PicturelessUsageSetDriftTests</c> (Unit), which re-reads
-/// §13.16.3 SR8 out of <c>specs/ISO_COBOL_2023.md</c>. Neither file is sufficient alone.</para>
+/// §2023:13.16.3 SR8 out of <c>specs/ISO_COBOL_2023.md</c>. Neither file is sufficient alone.</para>
 /// </summary>
 public sealed class UsageInheritanceDriftTests
 {
@@ -52,14 +52,14 @@ public sealed class UsageInheritanceDriftTests
     /// reached, so neither spelling is evidence about SR8: FLOAT-BINARY-128 and FLOAT-DECIMAL-16/-34 are
     /// documented processor-dependent non-support (COBOL1564, Annex A.3 items 17/19), and the five pointer/object
     /// phrases (MESSAGE-TAG, a bound usage since kb/Work PB4740, among them) are
-    /// refused by §13.18.60.3 SR14 at level 05 whatever the picture — which they are on BOTH spellings since
+    /// refused by §2023:13.18.60.3 SR14 at level 05 whatever the picture — which they are on BOTH spellings since
     /// kb/Work PB819 made the elementary arm read the phrase, so no carve-out for a refused keyword remains in the
     /// GR1 equivalence above. They are named by PREDICATE — the 1564 test and the 1724 test — never by list, so a
     /// member that later lands is tested automatically.</para>
     ///
     /// <para>The second sentence's arm is asserted only in the picture-less direction (a picture-less item of a
     /// picture-less usage compiles). Its converse — a picture-REQUIRING usage with no picture — is kb/Work
-    /// PB504's open mechanism (§13.16.3 SR9's VALUE-implied picture is synthesized nowhere), so it is asserted
+    /// PB504's open mechanism (§2023:13.16.3 SR9's VALUE-implied picture is synthesized nowhere), so it is asserted
     /// as the CURRENT state with the note named, not as the rule.</para></summary>
     [Theory]
     [MemberData(nameof(UsageInheritanceEquivalence.AllUsages), MemberType = typeof(UsageInheritanceEquivalence))]
@@ -73,14 +73,14 @@ public sealed class UsageInheritanceDriftTests
         // The keyword itself refused (documented non-support COBOL1564): neither spelling is SR8 evidence,
         // because no picture rule is ever reached.
         if (withPicture.Contains("COBOL1564")) return;
-        // §13.18.60.3 SR14 refuses the five pointer/object phrases at level 05 whatever the picture — the
+        // §2023:13.18.60.3 SR14 refuses the five pointer/object phrases at level 05 whatever the picture — the
         // placement rule fires first, so again neither spelling is SR8 evidence here.
         if (withPicture.Contains("COBOL1724") && without.Contains("COBOL1724")) return;
 
         if (UsageFamilies.IsPictureless(usage))
         {
             Assert.True(withPicture.StartsWith("COBOL"),
-                $"USAGE {word} is in UsageFamilies.IsPictureless, so ISO §13.16.3 SR8 forbids a PICTURE beside "
+                $"USAGE {word} is in UsageFamilies.IsPictureless, so ISO §2023:13.16.3 SR8 forbids a PICTURE beside "
                 + $"it — but `05 A PIC 9(4) USAGE {word}.` compiled: {withPicture}");
             Assert.True(without.StartsWith("OK"),
                 $"USAGE {word} is picture-less, so `05 A USAGE {word}.` describes a complete item — got {without}");
@@ -88,14 +88,14 @@ public sealed class UsageInheritanceDriftTests
         else
         {
             Assert.True(withPicture.StartsWith("OK") || withPicture.Contains("COBOL0881"),
-                $"USAGE {word} is NOT in UsageFamilies.IsPictureless, so ISO §13.16.3 SR8 REQUIRES a PICTURE "
-                + $"beside it — `05 A PIC 9(4) USAGE {word}.` must be accepted, or refused by a §13.18.60.3 "
+                $"USAGE {word} is NOT in UsageFamilies.IsPictureless, so ISO §2023:13.16.3 SR8 REQUIRES a PICTURE "
+                + $"beside it — `05 A PIC 9(4) USAGE {word}.` must be accepted, or refused by a §2023:13.18.60.3 "
                 + $"picture-category rule (COBOL0881), not by an SR8 prohibition: {withPicture}");
         }
     }
 
     /// <summary>The headline REPRESENTATION half, end to end and in one program: a PICTURE-less elementary item
-    /// under a group that wrote a picture-less usage gets THAT USAGE'S width — the width §13.18.60.4 GR12/GR13
+    /// under a group that wrote a picture-less usage gets THAT USAGE'S width — the width §2023:13.18.60.4 GR12/GR13
     /// and the implementor's Annex A.1 determination fix — where before PB495 it got a ZERO-LENGTH cell and a
     /// MOVE into it crashed the compiler (NullReferenceException in <c>MoveEmitter.ConvertSource</c>).</summary>
     [Fact]
@@ -134,14 +134,14 @@ public sealed class UsageInheritanceDriftTests
             """;
         var (ok, stdout, detail) = new WiseOwlCobolCompiler(2023).CompileAndRun(src);
         Assert.True(ok, detail);
-        // 1/2/4/8 for binary-char/-short/-long/-double (§13.18.60.4 GR12's minimum ranges over the
+        // 1/2/4/8 for binary-char/-short/-long/-double (§2023:13.18.60.4 GR12's minimum ranges over the
         // implementor's two's-complement widths, Annex A.1); 4/8 for float-short/float-long (GR13 + A.1);
-        // 8 for the index item (§13.18.60.4 GR10, implementor-defined — the R40 pin). The GROUP is the width
+        // 8 for the index item (§2023:13.18.60.4 GR10, implementor-defined — the R40 pin). The GROUP is the width
         // of its one leaf, never zero and never a scalar of the usage's own type.
         Assert.Equal("C=1 S=2 L=4 D=8 F=4 G=8 I=8 GRP=2", stdout);
     }
 
-    /// <summary>§13.18.60.3 SR2 — a subordinate entry may write a USAGE clause beside its group's, but "the same
+    /// <summary>§2023:13.18.60.3 SR2 — a subordinate entry may write a USAGE clause beside its group's, but "the same
     /// usage shall be specified in both entries". The rule had NO site at all before PB495: the nearer clause
     /// simply won and the outer one was discarded silently, changing the item's representation and the group's
     /// width from what either written clause asked for.</summary>
@@ -161,12 +161,12 @@ public sealed class UsageInheritanceDriftTests
                 STOP RUN.
             """;
         var (ok, _, detail) = new WiseOwlCobolCompiler(2023).CompileAndRun(bad);
-        Assert.False(ok, "a USAGE DISPLAY leaf inside a USAGE COMPUTATIONAL group violates ISO §13.18.60.3 SR2");
+        Assert.False(ok, "a USAGE DISPLAY leaf inside a USAGE COMPUTATIONAL group violates ISO §2023:13.18.60.3 SR2");
         Assert.Contains("COBOL1927", detail);
-        Assert.Contains("§13.18.60.3 SR2", detail);
+        Assert.Contains("§2023:13.18.60.3 SR2", detail);
 
         // SR6 makes COMP the abbreviation for COMPUTATIONAL, and this implementation identifies BINARY with
-        // both (§13.18.60.4 GR4/GR6 are each implementor-defined) — so "the same usage" is satisfied and all
+        // both (§2023:13.18.60.4 GR4/GR6 are each implementor-defined) — so "the same usage" is satisfied and all
         // three leaves are the 2-byte binary item, group width 6.
         const string ok3 = """
             IDENTIFICATION DIVISION.
@@ -188,7 +188,7 @@ public sealed class UsageInheritanceDriftTests
     }
 
     /// <summary>⛔ A DECLARATION'S DEFECT IS REPORTED ONCE, WHERE IT IS WRITTEN (kb/Work PB3682). A TYPE or SAME AS copy
-    /// reproduces a description "as though … coded in place" (§13.18.57.4 GR1, §13.18.49.4 GR1), so a defect INSIDE the
+    /// reproduces a description "as though … coded in place" (§2023:13.18.57.4 GR1, §2023:13.18.49.4 GR1), so a defect INSIDE the
     /// copy is the declaration's. The usage walk applies the clause to every copy but screens only what is the copy's own or
     /// its placement's, so a TYPEDEF referenced twice reports its contradiction once and names the declaration — not once per
     /// reference naming the subject — and a defect that comes from OUTSIDE the copy (a group the subject is subordinate to)
@@ -234,7 +234,7 @@ public sealed class UsageInheritanceDriftTests
 
     /// <summary>⛔ A DESCRIPTION COPIED BEFORE THE USAGE WALK STILL HAS ITS SUBORDINATES (kb/Work PB3682). Entry bind answers
     /// a picture-less usage with a PICTURE profile on the entry, before its subordinates are parsed, and
-    /// <c>UsageInheritancePass</c> sheds it from a group header (§13.18.60.4 GR1, "and not to the group itself"). TYPE and
+    /// <c>UsageInheritancePass</c> sheds it from a group header (§2023:13.18.60.4 GR1, "and not to the group itself"). TYPE and
     /// SAME AS copy first, so a copy that asked <c>DataItem.IsGroup</c> ("no PICTURE") of `01 G USAGE BINARY-LONG. 05 A.
     /// 05 B.` saw an ELEMENTARY item, cloned no subordinates, and gave the subject one member's width: a SAME AS subject was
     /// a quarter of its source's size, and a TYPEDEF with the same shape was refused outright (COBOL2191 beside COBOL0881).
@@ -297,7 +297,7 @@ public sealed class UsageInheritanceDriftTests
     /// description copies run BEFORE the usage walk, so they ask the ENTRY a question that holds then
     /// (<c>DataItem.HasSubordinates</c>), never the COMPLETED form (<c>IsGroup</c>, "no PICTURE") — and an
     /// <c>IsElementary</c> test is the completed form too (a picture-less leaf under a group's usage has no PICTURE
-    /// yet: `01 G USAGE BINARY-LONG. 05 E. 01 S SAME AS E.` was refused as "not elementary", ISO §13.18.49.3 SR7), so the
+    /// yet: `01 G USAGE BINARY-LONG. 05 E. 01 S SAME AS E.` was refused as "not elementary", ISO §2023:13.18.49.3 SR7), so the
     /// only one left is the STRONG screen, which asks both (a written profile is the question there).</summary>
     [Theory]
     [InlineData("ExpandTemplate")]
@@ -320,7 +320,7 @@ public sealed class UsageInheritanceDriftTests
     }
 
     /// <summary>The classifier a pass that precedes the usage walk asks about an ANCESTOR (the SAME AS expansion's
-    /// §13.18.49.4 GR3 / GR5 transfer reads the groups data-name-1 is subordinate to) answers from the entry's own form
+    /// §2023:13.18.49.4 GR3 / GR5 transfer reads the groups data-name-1 is subordinate to) answers from the entry's own form
     /// (<c>DataItem.IsGroupEntry</c>): the group header still holds the profile entry bind synthesized for its usage, so
     /// the completed form (<c>IsGroup</c>) read it as no group at all and the clause never crossed (kb/Work PB3682).</summary>
     [Fact]
@@ -338,7 +338,7 @@ public sealed class UsageInheritanceDriftTests
 }
 
 /// <summary>
-/// The §13.18.60.4 GR1 equivalence, SHARED by the classes that run it (kb/Work PB4325): the usages and the pictures the
+/// The §2023:13.18.60.4 GR1 equivalence, SHARED by the classes that run it (kb/Work PB4325): the usages and the pictures the
 /// clause is written beside, the compile verdict reduced to what GR1 makes comparable, and the one comparison
 /// (<see cref="AssertGr1Equivalence"/>). Held once so that the equivalence over the usages and over the usage phrases,
 /// which are separate classes so that they run in parallel, cannot drift apart.
@@ -353,22 +353,22 @@ internal static class UsageInheritanceEquivalence
         return d;
     }
 
-    /// <summary>The pictures the §13.18.60.3 screens discriminate between: none, numeric, SIGNED numeric,
+    /// <summary>The pictures the §2023:13.18.60.3 screens discriminate between: none, numeric, SIGNED numeric,
     /// alphanumeric, national, boolean, numeric-edited. One representative per category the rules name.
-    /// <para>The signed representative is not decoration: §13.18.40.3 SR31 ("The symbol 'S' shall not be
+    /// <para>The signed representative is not decoration: §2023:13.18.40.3 SR31 ("The symbol 'S' shall not be
     /// specified in character-string-1 when the NO SIGN phrase of the USAGE Clause is specified for the subject
     /// of the entry") is written over exactly that distinction, and with only an UNSIGNED numeric cell the
     /// matrix could not see it on either arm (kb/Work PB570).</para></summary>
     internal static readonly string[] Pictures =
         ["", "PIC 9(4)", "PIC S9(4)", "PIC X(3)", "PIC N(2)", "PIC 1(3)", "PIC ZZ9"];
 
-    /// <summary>⛔ THE OPTIONAL PHRASES §13.18.60.2 PRINTS INSIDE A USAGE ALTERNATIVE — read off the rendered
+    /// <summary>⛔ THE OPTIONAL PHRASES §2023:13.18.60.2 PRINTS INSIDE A USAGE ALTERNATIVE — read off the rendered
     /// general format, keyed by the usage word they ride on. A phrase is PART OF the USAGE clause, not a clause
-    /// of its own, so §13.18.60.4 GR1 applies it to each elementary item in the group exactly as it applies the
+    /// of its own, so §2023:13.18.60.4 GR1 applies it to each elementary item in the group exactly as it applies the
     /// word: the equivalence below is asserted over `word + phrase`, not just over `word`.
     /// <para><b>Why the table exists.</b> kb/Work PB570: `WITH NO SIGN` was read from the ENTRY'S OWN
     /// <c>usageClause</c> and adjudicated against the entry's own PICTURE, which a group header has not got, so
-    /// the group spelling lost BOTH §13.18.40.3 SR31 and §13.18.60.4 GR11's width — silently, at every nesting
+    /// the group spelling lost BOTH §2023:13.18.40.3 SR31 and §2023:13.18.60.4 GR11's width — silently, at every nesting
     /// depth — while the enum-driven matrix (UsageInheritanceUsageDriftTests, below) stayed green because it only ever wrote the bare word.</para>
     /// <para>⛔ EXCLUDED BY PREDICATE, not by omission: a phrase that carries an OPERAND (<c>POINTER TO
     /// type-name-1</c>, <c>FUNCTION-POINTER TO function-prototype-name-1</c>, <c>PROGRAM-POINTER TO
@@ -425,7 +425,7 @@ internal static class UsageInheritanceEquivalence
          """;
 
     /// <summary>One usage-clause spelling, compared written-on-the-leaf against written-on-the-group over every
-    /// picture in <see cref="Pictures"/>. The ONE comparison both theories run — the §13.18.60.4 GR1 equivalence
+    /// picture in <see cref="Pictures"/>. The ONE comparison both theories run — the §2023:13.18.60.4 GR1 equivalence
     /// is a single rule, and a second copy of the walk would be a second place for it to be wrong.</summary>
     internal static void AssertGr1Equivalence(string word, string phrase)
     {
@@ -443,7 +443,7 @@ internal static class UsageInheritanceEquivalence
             Assert.Equal($"{label} → {dv}", $"{label} → {iv}");
 
             // ⛔ THE THIRD SPELLING (kb/Work PB3682): the same group written in a TYPE DECLARATION, which is "as though
-            // … coded in place" (§13.18.57.4 GR1). A subject typed by it is the same item (same verdict, same width), and
+            // … coded in place" (§2023:13.18.57.4 GR1). A subject typed by it is the same item (same verdict, same width), and
             // the declaration answers for itself whether or not anything references it — the usage walk used to run over
             // the storage roots only, so every refusal above was silent for an unreferenced declaration.
             string typed = Program($"UT{cell}", $"01 TG TYPEDEF USAGE {clause}.\n    05 A {pic}.\n01 V TYPE TG.");
@@ -470,7 +470,7 @@ internal static class UsageInheritanceEquivalence
          """;
 }
 
-/// <summary>The §13.18.60.4 GR1 equivalence over every <see cref="Usage"/> member (kb/Work PB495); its own class so
+/// <summary>The §2023:13.18.60.4 GR1 equivalence over every <see cref="Usage"/> member (kb/Work PB495); its own class so
 /// that it runs beside the phrase equivalence and the other witnesses (kb/Work PB4325).</summary>
 public sealed class UsageInheritanceUsageDriftTests
 {
@@ -480,12 +480,12 @@ public sealed class UsageInheritanceUsageDriftTests
         UsageInheritanceEquivalence.AssertGr1Equivalence(UsageFamilies.UsageWord(usage), "");
 }
 
-/// <summary>The §13.18.60.4 GR1 equivalence over the USAGE clause's optional phrases (kb/Work PB570); its own class so
+/// <summary>The §2023:13.18.60.4 GR1 equivalence over the USAGE clause's optional phrases (kb/Work PB570); its own class so
 /// that it runs beside the usage equivalence and the other witnesses (kb/Work PB4325).</summary>
 public sealed class UsageInheritancePhraseDriftTests
 {
     /// <summary>The SAME equivalence over the USAGE clause's optional PHRASES (<see cref="UsageInheritanceEquivalence.UsageClausePhrases"/>).
-    /// A phrase is part of the clause §13.18.60.4 GR1 applies, so `01 G USAGE u p. 05 A ⟨pic⟩.` describes the
+    /// A phrase is part of the clause §2023:13.18.60.4 GR1 applies, so `01 G USAGE u p. 05 A ⟨pic⟩.` describes the
     /// same item as `01 G. 05 A ⟨pic⟩ USAGE u p.` — including the SR31 rejection when the picture carries 'S'
     /// and the phrase is WITH NO SIGN. Before kb/Work PB570 the second spelling was the only one adjudicated at
     /// all: the first lost both its syntax rule and its width, in silence.</summary>

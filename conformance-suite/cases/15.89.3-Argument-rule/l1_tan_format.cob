@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §15.89.2 general format — FUNCTION TAN ( argument-1 )
+      *> ISO §2023:15.89.2 general format — FUNCTION TAN ( argument-1 )
       *> "<u>FUNCTION</u> <u>TAN</u> ( argument-1 )": both words
       *> underlined (required), exactly one argument inside required
       *> parentheses, nothing bracketed - so unlike 15.75.2 RANDOM

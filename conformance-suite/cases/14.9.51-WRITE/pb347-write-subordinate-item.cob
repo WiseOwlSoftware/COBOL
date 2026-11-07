@@ -4,11 +4,11 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> ISO 1989:2023 §14.9.51.3 syntax rule 5: "Record-name-1 is the name of a logical record in the
+*> ISO 1989:2023 §2023:14.9.51.3 syntax rule 5: "Record-name-1 is the name of a logical record in the
 *> file section of the data division and may be qualified."
 *> A 05 item subordinate to a record is not itself a logical record, so it is not a record-name-1.
 *> Accepted, WRITE IR-DATA wrote the 5-byte subordinate item where the 8-byte record belongs.
-*> §4.2.2 makes the compile-time indication mandatory for "violations of the general formats and the
+*> §2023:4.2.2 makes the compile-time indication mandatory for "violations of the general formats and the
 *> explicit syntax rules of standard COBOL". The rule is written identically in 1985, 2002 and 2014, so
 *> there is no edition gate and every edition rejects. COBOL1757 (kb/Work PB347).
        IDENTIFICATION DIVISION.

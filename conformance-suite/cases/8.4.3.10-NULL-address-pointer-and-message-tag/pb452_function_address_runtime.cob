@@ -8,23 +8,23 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO/IEC 1989:2023 §8.4.3.12.4 GR1 a) — the ADDRESS OF FUNCTION *identifier-1* form, whose operand's
+      *> ISO/IEC 1989:2023 §2023:8.4.3.12.4 GR1 a) — the ADDRESS OF FUNCTION *identifier-1* form, whose operand's
       *> CONTENT names the function at RUN time — with both run-time screens the compile-time SR20 compare
       *> cannot reach. kb/Work PB452.
       *>
-      *> §8.4.3.12.3 SR1 — "Identifier-1 shall be of category alphanumeric or national"; WS-NAME is PIC X.
-      *> §8.4.3.12.4 GR4 — "If the runtime system cannot locate the function, the EC-FUNCTION-NOT-FOUND
+      *> §2023:8.4.3.12.3 SR1 — "Identifier-1 shall be of category alphanumeric or national"; WS-NAME is PIC X.
+      *> §2023:8.4.3.12.4 GR4 — "If the runtime system cannot locate the function, the EC-FUNCTION-NOT-FOUND
       *>   exception condition is set to exist and the value of the address-identifier is the predefined
       *>   address NULL."  The VALUE is defined, so the store still happens.
-      *> §14.9.39.4 GR14 — "If the address identified by identifier-13 is neither the predefined address NULL
+      *> §2023:14.9.39.4 GR14 — "If the address identified by identifier-13 is neither the predefined address NULL
       *>   nor the address of a function defined with the same signature …, the EC-FUNCTION-PTR-INVALID
       *>   exception condition is set to exist, NO DATA ITEMS ARE CHANGED, and the execution of the SET
       *>   statement is terminated."  The outcome is NAMED, so the store is skipped whether or not the
-      *>   condition is being checked; only the raise is checking-gated (§14.6.13.1.4).
-      *> §14.6.13.1.3 5) — both conditions are FATAL (Table 13): "If execution of the declarative completes
+      *>   condition is being checked; only the raise is checking-gated (§2023:14.6.13.1.4).
+      *> §2023:14.6.13.1.3 5) — both conditions are FATAL (Table 13): "If execution of the declarative completes
       *>   normally the execution of the run unit is terminated abnormally". >>TURN … CHECKING ON enables
       *>   them so their declaratives run, and each declarative ends with RESUME AT NEXT STATEMENT
-      *>   (§14.9.33.4 GR2; NOTE 2 of 5)) so the program continues past the SET (kb/Work PB1549).
+      *>   (§2023:14.9.33.4 GR2; NOTE 2 of 5)) so the program continues past the SET (kb/Work PB1549).
       *>
       *> EXPECTED OUTPUT, derived line by line:
       *>   A-SET      WS-NAME holds "PBRTDBL", the function IS locatable, so FPD holds its address (GR1a/GR2).

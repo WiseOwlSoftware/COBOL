@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §8.6.7 2) — a contained program shares the GLOBAL data of
+      *> ISO §2023:8.6.7 2) — a contained program shares the GLOBAL data of
       *> its direct AND its indirect containing programs.
       *> Rule: "If a program is contained within another program, both
       *> programs may refer to data possessing the global attribute
@@ -13,7 +13,7 @@
       *> directly or indirectly contains the containing program."
       *> cite.py --check 8.6.7 "either in the containing program or in
       *>   any program that directly or indirectly contains the
-      *>   containing program" -> OK  §8.6.7 2)  (Sharing data items)
+      *>   containing program" -> OK  §2023:8.6.7 2)  (Sharing data items)
       *> Structure: L1C31E (outer) contains L1C31F (mid) contains
       *> L1C31G (inner). G1 / G1T are GLOBAL in the outer program (they
       *> INDIRECTLY contain the inner one); G2 is GLOBAL in mid (the

@@ -5,7 +5,7 @@ using WiseOwl.Cobol.Editions;
 
 namespace WiseOwl.Cobol.Binding;
 
-/// <summary>One WRITTEN level-88 entry and the entry it immediately follows (ISO §13.16.3 SR24's own subject), captured at
+/// <summary>One WRITTEN level-88 entry and the entry it immediately follows (ISO §2023:13.16.3 SR24's own subject), captured at
 /// bind time because SOURCE ORDER is a fact only <c>BindEntries</c> has. <paramref name="Variable"/> null = the 88 follows no
 /// entry describing a data item.</summary>
 internal readonly record struct ConditionAssociation(string Name, DataItem? Variable, DiagnosticCursor At);
@@ -25,12 +25,12 @@ public sealed class ClauseFacts
     private readonly HashSet<string> _refusedClauseOperands = new(StringComparer.Ordinal);
     private readonly List<ConditionAssociation> _conditionAssociations = [];
 
-    /// <summary>The data description entries whose OWN source wrote a SIGN clause — the subjects §13.18.52.3 SR1/SR2 speak
+    /// <summary>The data description entries whose OWN source wrote a SIGN clause — the subjects §2023:13.18.52.3 SR1/SR2 speak
     /// about (a copy through a TYPE clause or a GR5-assumed ancestor clause is not one, so it is screened once where it is
     /// declared). Filled at entry bind; read once by <see cref="Passes.CheckSignClausesPass.Run"/>.</summary>
     internal IReadOnlySet<DataItem> SignClauseWritten => _signClauseWritten;
 
-    /// <summary>The entries that WROTE a VALUE clause (data-item formats 1 and 2) — the subject of §13.16.3 SR10, "The VALUE
+    /// <summary>The entries that WROTE a VALUE clause (data-item formats 1 and 2) — the subject of §2023:13.16.3 SR10, "The VALUE
     /// clause shall not be specified for data items of class index, message-tag, object, or pointer". Kept apart from
     /// <see cref="DataItem.RawValue"/> because a refused operand (`VALUE NULL`, COBOL2576) stores no value while the clause is
     /// still specified, and the acquired-usage arm is asked after the forest is built.</summary>
@@ -46,7 +46,7 @@ public sealed class ClauseFacts
     internal IReadOnlyList<ConditionAssociation> ConditionAssociations => _conditionAssociations;
 
     /// <summary>The members of every type declaration a TYPE clause references, by name — the "other definition of the
-    /// name" of §8.4.2.2.1 GR4 ("Any other definition of the name is subordinate to a type declaration entry for which the
+    /// name" of §2023:8.4.2.2.1 GR4 ("Any other definition of the name is subordinate to a type declaration entry for which the
     /// type-name is not referenced in any TYPE clause"). Built ONCE, when <see cref="Passes.ExpandTypesPass.Run"/> has completed every declaration; null until then
     /// (a SAME AS operand resolved while the declarations are being completed walks them live, since the copies inside a
     /// declaration are still arriving). Written once.</summary>

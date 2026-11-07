@@ -7,18 +7,18 @@
 *>---
       *> kb/Work PB599 - A FORMAT-2 TABLE SORT WHOSE KEY LIES BEHIND A REDEFINES VIEW OF THE ELEMENT.
       *>   cite.py --check 14.9.40.3 "The data item identified by a key data-name shall be the same as, or subordinate
-      *>     to, the data item referenced by data-name-2." -> OK §14.9.40.3 14) a)
+      *>     to, the data item referenced by data-name-2." -> OK §2023:14.9.40.3 14) a)
       *>   cite.py --check 14.9.40.4 "The sorted table elements of the table referenced by data-name-2 are placed in
-      *>     the table referenced by data-name-2." -> OK §14.9.40.4 24)
+      *>     the table referenced by data-name-2." -> OK §2023:14.9.40.4 24)
       *>   cite.py --check 14.9.40.4 "To determine the relative order in which the table elements are stored after
       *>     sorting, the contents of corresponding key data items are compared according to the rules for comparison
-      *>     of" -> OK §14.9.40.4 19)  (the relation-condition rules)
+      *>     of" -> OK §2023:14.9.40.4 19)  (the relation-condition rules)
       *>   cite.py --check 13.18.44.4 "When the same storage area is defined by more than one data description entry,
       *>     the data-name associated with any of those data description entries may be used to reference that storage
-      *>     area." -> OK §13.18.44.4 2)
+      *>     area." -> OK §2023:13.18.44.4 2)
       *> The key KN redefines KA, so it has no field of its own on the element: the sort reads it through the view's
       *> window (a numeric item over two character positions) and orders by its numeric VALUE (GR19 -> the
-      *> relation-condition rules, §8.8.4.2.4), never by the bytes.
+      *> relation-condition rules, §2023:8.8.4.2.4), never by the bytes.
       *> WHY EACH LEG CAN FAIL (expected values derived from the rules, not copied from a run):
       *>   1  T1 = "10a02b31c", elements (10,a) (02,b) (31,c); SORT E1 ASCENDING KEY KN -> numeric order 2, 10, 31:
       *>        02b10a31c

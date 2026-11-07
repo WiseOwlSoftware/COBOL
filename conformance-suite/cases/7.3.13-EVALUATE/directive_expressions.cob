@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §7.3.6 / §7.3.7 / §7.3.8 (ledger C2) — compile-time EXPRESSION evaluation in conditional-compilation
+      *> ISO §2023:7.3.6 / §2023:7.3.7 / §2023:7.3.8 (ledger C2) — compile-time EXPRESSION evaluation in conditional-compilation
       *> directives. >>DEFINE now EVALUATES a MULTI-TOKEN arithmetic operand (was silently bound to its first
       *> token) and a boolean-expression operand; >>IF (a constant-conditional-expression) and >>EVALUATE select
       *> the surviving source lines by the evaluated values. LVL = 2*3+1 = 7; FLG = "1100" B-OR "0011" = "1111".

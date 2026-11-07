@@ -8,14 +8,14 @@
       *>---
       *> A qualified index-name is a COBOL-2002 relaxation (2002 Annex F.2 item 108, kb/Work PB4305), so the
       *> test runs from 2002.
-      *> ISO/IEC 1989:2023 §8.4.2.2.3 SR1 and SR6 for INDEX-NAMES (kb/Work PB919).
+      *> ISO/IEC 1989:2023 §2023:8.4.2.2.3 SR1 and SR6 for INDEX-NAMES (kb/Work PB919).
       *>   SR1: "For each non unique user-defined name that is explicitly referenced, uniqueness shall be
       *>   established through a sequence of qualifiers that precludes any ambiguity of reference."
       *>   SR6: "The qualification of an index-name may include the name of the table with which the
       *>   index-name is associated, as well as any name by which that table may be qualified."
       *>   SR3: "The words IN and OF are equivalent."
       *> TA and TB each declare INDEXED BY IX, so every IX below is qualified - through its table (IX OF EA),
-      *> through the table's record (IX OF TA), or with IN. Each declaration owns its OWN index (§14.9.39.4
+      *> through the table's record (IX OF TA), or with IN. Each declaration owns its OWN index (§2023:14.9.39.4
       *> GR1 associates an index-name with the table whose INDEXED BY phrase names it), so setting one never
       *> moves the other. Before PB919 the two shared ONE cell, the qualified spellings were "not defined",
       *> and the bare IX compiled clean (the negative companion pb919-index-name-ambiguous).

@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.4.5.4 GR3 — LINAGE-COUNTER of an EXTERNAL file is
+      *> ISO §2023:13.4.5.4 GR3 — LINAGE-COUNTER of an EXTERNAL file is
       *>   external; of a GLOBAL file, a global name
       *> Rule: "If the file description entry for a sequential file
       *>   contains the LINAGE clause and the EXTERNAL clause, the
@@ -14,17 +14,17 @@
       *>   LINAGE clause and the GLOBAL clause, LINAGE-COUNTER is a
       *>   global name."
       *>   cite.py --check 13.4.5.4 "the LINAGE-COUNTER data item is
-      *>   an external data item" -> OK  §13.4.5.4 3)  (General rules)
+      *>   an external data item" -> OK  §2023:13.4.5.4 3)  (General rules)
       *>   cite.py --check 13.4.5.4 "LINAGE-COUNTER is a global name"
-      *>   -> OK  §13.4.5.4 3)  (General rules)
+      *>   -> OK  §2023:13.4.5.4 3)  (General rules)
       *>   cite.py --check 13.18.34.4 "The value of LINAGE-COUNTER is
       *>   automatically set to one at the time an OPEN statement with
       *>   the OUTPUT phrase is executed for the associated file"
-      *>   -> OK  §13.18.34.4 7) d)  (printed under "7) a)")
+      *>   -> OK  §2023:13.18.34.4 7) d)  (printed under "7) a)")
       *>   cite.py --check 13.18.34.4 "When the ADVANCING phrase of the
       *>   WRITE statement is not specified, the LINAGE-COUNTER is
       *>   incremented by the value one"
-      *>   -> OK  §13.18.34.4 7) c) 3.  (printed under "7) a)")
+      *>   -> OK  §2023:13.18.34.4 7) c) 3.  (printed under "7) a)")
       *> GF is GLOBAL in L1C11C; the contained program L1C11CG names
       *> LINAGE-COUNTER with and without the qualifier OF GF (GF's is
       *> the only LINAGE-COUNTER visible there). XF is EXTERNAL and

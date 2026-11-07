@@ -5,8 +5,8 @@ namespace WiseOwl.Cobol.Runtime.IO;
 /// <summary>⛔ THE LINE SEQUENTIAL FILE ENCODING — UTF-8 (owner decision kb/Work R51 item 3; design
 /// <c>FILES_DESIGN.md</c> D29; kb/Work PB1760): a LINE SEQUENTIAL file with no CODE-SET clause is TEXT,
 /// and its characters travel as UTF-8, so every character a record area can hold — Latin-1, the rest of the BMP, a
-/// surrogate pair — round-trips exactly. §12.4.5.10.3 GR2 leaves "the range of allowable characters in a line
-/// sequential file" to the implementor, and §8.1.2 the encoding (DOC-A.1-31 / DOC-A.1-115). A fixed-record file keeps
+/// surrogate pair — round-trips exactly. §2023:12.4.5.10.3 GR2 leaves "the range of allowable characters in a line
+/// sequential file" to the implementor, and §2023:8.1.2 the encoding (DOC-A.1-31 / DOC-A.1-115). A fixed-record file keeps
 /// one byte per position (<see cref="FileCharacterSet"/>), because a variable-width encoding would break its record
 /// arithmetic; a line has no fixed width.
 /// <para><b>The channel.</b> Like every other medium encoding here, this one maps between the NATIVE record image and
@@ -19,8 +19,8 @@ namespace WiseOwl.Cobol.Runtime.IO;
 /// <para><b>Bytes that are not UTF-8</b> (a legacy 8-bit file, a torn sequence) decode, byte for byte, to the lone
 /// surrogates U+DC80–U+DCFF (the "surrogate escape" of Python's PEP 383). A lone surrogate is not a character, so it
 /// is outside the line sequential character set (<see cref="LineSequentialCharacterSet"/>): the READ is successful
-/// with I-O status '09' (§14.9.30.4 GR16 — the ONE predicate, no second test here), the record area keeps every
-/// byte's identity, and a WRITE or REWRITE of such a record area is refused '71' (§14.9.51.4 GR23). ⚖ The status is
+/// with I-O status '09' (§2023:14.9.30.4 GR16 — the ONE predicate, no second test here), the record area keeps every
+/// byte's identity, and a WRITE or REWRITE of such a record area is refused '71' (§2023:14.9.51.4 GR23). ⚖ The status is
 /// the standard's; what the record area holds for a non-character is the implementor's, and preserving the byte is
 /// the GnuCOBOL behavior (a line sequential READ there transfers bytes unchanged).</para>
 /// <para><b>Byte-order mark.</b> A UTF-8 BOM (EF BB BF) at the start of the file is accepted and is not record
@@ -45,7 +45,7 @@ public static class LineSequentialEncoding
             int cp = NextCodePoint(text, ref i);
             if (cp is >= 0xD800 and <= 0xDFFF)
                 throw new InvalidOperationException($"the record contains the lone surrogate U+{cp:X4}, which is outside "
-                    + "the line sequential character set, and no WRITE or REWRITE screen refused it (ISO §14.9.51.4 GR23)");
+                    + "the line sequential character set, and no WRITE or REWRITE screen refused it (ISO §2023:14.9.51.4 GR23)");
             Put(sb, cp);
         }
         return sb.ToString();
@@ -53,7 +53,7 @@ public static class LineSequentialEncoding
 
     /// <summary>⛔ THE NUMBER OF MEDIUM BYTES a record image occupies — <see cref="ToChannel"/>'s length, but TOTAL:
     /// it answers for a record holding a lone surrogate, which has no UTF-8 form and so no byte image (the
-    /// character §14.9.35.4 GR17 d) refuses). That is what lets REWRITE test GR17 b)'s size rule BEFORE d)'s character
+    /// character §2023:14.9.35.4 GR17 d) refuses). That is what lets REWRITE test GR17 b)'s size rule BEFORE d)'s character
     /// set, in the rules' own order (kb/Work PB2834): a character with no image is counted at the fewest bytes ANY
     /// image could give it, the one byte its escape stands for (<see cref="FromChannel"/>), so b) is judged only on
     /// what holds whatever image the character might be given, and a record that exceeds the replaced line even

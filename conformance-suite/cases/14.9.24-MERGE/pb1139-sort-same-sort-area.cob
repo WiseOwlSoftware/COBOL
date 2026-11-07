@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB1139 - TWO FILE-NAMES OF ONE SORT IN THE SAME SAME SORT AREA CLAUSE ARE REFUSED.
       *>   cite.py --check 14.9.40.3 "No pair of file-names in the same SORT statement may be specified in the same
-      *>     SAME SORT AREA or SAME SORT-MERGE AREA clause." -> OK §14.9.40.3 10)
+      *>     SAME SORT AREA or SAME SORT-MERGE AREA clause." -> OK §2023:14.9.40.3 10)
       *> SW (file-name-1) and F1 (a USING file) are one pair of the statement's file-names. The SAME clauses were
       *> parsed and discarded, so nothing could read them.
        IDENTIFICATION DIVISION.

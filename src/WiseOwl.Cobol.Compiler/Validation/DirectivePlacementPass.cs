@@ -10,24 +10,24 @@ using WiseOwl.Cobol.Frontend.Preprocessor;
 namespace WiseOwl.Cobol.Validation;
 
 /// <summary>
-/// THE POSITION PASS for the placement rules of the §7.3 directives that need the PARSE TREE (kb/Work PB1005,
+/// THE POSITION PASS for the placement rules of the §2023:7.3 directives that need the PARSE TREE (kb/Work PB1005,
 /// PB1065, PB1377, PB1378). Each rule is DATA on the directive's <c>constructs.json</c> row
 /// (<see cref="ConstructDialectStatus.Placement"/>), so this pass is written once and a directive with one of these
 /// restrictions is one row field:
 /// <list type="bullet">
-/// <item><see cref="DirectivePlacementRule.BetweenClauses"/> — ISO §7.3.14.3 SR1 (FLAG-02), §7.3.15.3 SR1 (FLAG-14)
-/// and, for the ALL form, §7.3.22.3 SR3 / §7.3.20.3 SR3: "shall be specified only between clauses in divisions other
+/// <item><see cref="DirectivePlacementRule.BetweenClauses"/> — ISO §2023:7.3.14.3 SR1 (FLAG-02), §2023:7.3.15.3 SR1 (FLAG-14)
+/// and, for the ALL form, §2023:7.3.22.3 SR3 / §2023:7.3.20.3 SR3: "shall be specified only between clauses in divisions other
 /// than the procedure division and only between statements in the procedure division" (and, for ALL, only in a
-/// compilation unit). A WARNING (<c>COBOL2344</c>, §4.2.2 — the D20 disposition of the sibling SR4 bans): the
+/// compilation unit). A WARNING (<c>COBOL2344</c>, §2023:4.2.2 — the D20 disposition of the sibling SR4 bans): the
 /// directive is still processed.</item>
-/// <item><see cref="DirectivePlacementRule.OutsideCompilationUnits"/> — ISO §7.3.17.3 SR1 (LEAP-SECOND) and §7.3.21.3
+/// <item><see cref="DirectivePlacementRule.OutsideCompilationUnits"/> — ISO §2023:7.3.17.3 SR1 (LEAP-SECOND) and §2023:7.3.21.3
 /// SR1 (PROPAGATE): "shall not be specified within a compilation unit". An ERROR (<c>COBOL2652</c>): the
 /// directive's effect is folded per unit at the unit's first line, which a directive inside the unit leaves
 /// undefined. BETWEEN two sibling units, or before the first, or after the last END marker, is outside every unit
 /// and LEGAL.</item>
 /// </list>
-/// A <c>&gt;&gt;PUSH</c> or <c>&gt;&gt;POP</c> that NAMES a directive inherits that directive's rule (§7.3.20.3 SR2,
-/// §7.3.22.3 SR2: "shall not be specified where directive-name must not be specified") — the site carries the named
+/// A <c>&gt;&gt;PUSH</c> or <c>&gt;&gt;POP</c> that NAMES a directive inherits that directive's rule (§2023:7.3.20.3 SR2,
+/// §2023:7.3.22.3 SR2: "shall not be specified where directive-name must not be specified") — the site carries the named
 /// row, and the rule of the NAMED row is judged at the PUSH/POP's own position. (The text-level rule,
 /// <see cref="DirectivePlacementRule.BeforeFirstCompilationUnit"/>, is judged where the text is —
 /// <see cref="DirectiveSiteProcessor"/>.)
@@ -79,7 +79,7 @@ internal static class DirectivePlacementPass
             using var _ = sink.At(site.Line, 0);
             if (!between)
             {
-                // OutsideCompilationUnits (§7.3.17.3 SR1, §7.3.21.3 SR1).
+                // OutsideCompilationUnits (§2023:7.3.17.3 SR1, §2023:7.3.21.3 SR1).
                 if (!insideUnit) continue;
                 sink.Error(DiagnosticCatalog.DirectivePlacementViolation, Describe(site, named, placement!, "within a compilation unit"));
                 continue;
@@ -95,7 +95,7 @@ internal static class DirectivePlacementPass
     }
 
     /// <summary>The diagnostic's sentence: the directive, where it was found, and the rule it broke in the standard's
-    /// own words — the named directive's for a PUSH/POP that names one (§7.3.20.3 SR2, §7.3.22.3 SR2), the ALL
+    /// own words — the named directive's for a PUSH/POP that names one (§2023:7.3.20.3 SR2, §2023:7.3.22.3 SR2), the ALL
     /// form's own otherwise.</summary>
     private static string Describe(DirectiveSite site, ConstructDialectStatus? named, DirectivePlacement? placement, string where)
     {
@@ -115,17 +115,17 @@ internal static class DirectivePlacementPass
     }
 
     /// <summary>The two ALL-form rules, each in its own words (the PUSH sentence is printed without the POP sentence's commas).</summary>
-    private static readonly (string Rule, string Text) PushRule = ("§7.3.22.3 SR3",
+    private static readonly (string Rule, string Text) PushRule = ("§2023:7.3.22.3 SR3",
         "If ALL is specified, the PUSH directive shall be specified only in a compilation unit between clauses in "
         + "divisions other than the procedure division and between statements in the procedure division");
-    private static readonly (string Rule, string Text) PopRule = ("§7.3.20.3 SR3",
+    private static readonly (string Rule, string Text) PopRule = ("§2023:7.3.20.3 SR3",
         "If ALL is specified, the POP directive shall be specified only in a compilation unit, between clauses in "
         + "divisions other than the procedure division, and between statements in the procedure division");
 
     /// <summary>The two directive-name rules (SR2 of each).</summary>
-    private static readonly (string Rule, string Text) PushNameRule = ("§7.3.22.3 SR2",
+    private static readonly (string Rule, string Text) PushNameRule = ("§2023:7.3.22.3 SR2",
         "If directive-name is specified, the PUSH directive shall not be specified where directive-name must not be specified");
-    private static readonly (string Rule, string Text) PopNameRule = ("§7.3.20.3 SR2",
+    private static readonly (string Rule, string Text) PopNameRule = ("§2023:7.3.20.3 SR2",
         "If directive-name is specified, the POP directive shall not be specified where directive-name must not be specified");
 
     /// <summary>Every token of the tree in source order, EOF excluded.</summary>

@@ -5,23 +5,23 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §8.5.2.12 GR1 — numeric PICTURE is category numeric only
+      *> ISO §2023:8.5.2.12 GR1 — numeric PICTURE is category numeric only
       *>   WITHOUT BLANK WHEN ZERO; with it the item is numeric-edited.
       *> cite.py --check 8.5.2.12 "An elementary data item described as
       *>   numeric by its PICTURE character-string and not described
-      *>   with a BLANK WHEN ZERO clause" -> OK §8.5.2.12 1)
+      *>   with a BLANK WHEN ZERO clause" -> OK §2023:8.5.2.12 1)
       *> cite.py --check 8.5.2.13 "A data item described as numeric by
       *>   its PICTURE character-string and described with a BLANK WHEN
-      *>   ZERO clause" -> OK §8.5.2.13 2)
+      *>   ZERO clause" -> OK §2023:8.5.2.13 2)
       *> The observable: INITIALIZE REPLACING selects receivers by
       *> CATEGORY -
       *> cite.py --check 14.9.20.4 "The keywords in category-name
       *>   correspond to a category of data as specified in 8.5.2"
-      *>   -> OK §14.9.20.4 2)
+      *>   -> OK §2023:14.9.20.4 2)
       *> cite.py --check 14.9.20.4 "The REPLACING phrase is specified
       *>   and the category of the elementary data item is one of the
       *>   categories specified in the REPLACING phrase"
-      *>   -> OK §14.9.20.4 5) c) 2.
+      *>   -> OK §2023:14.9.20.4 5) c) 2.
       *> and an item that is not a receiving-operand is not moved to.
       *> N is PIC 9(3) (category numeric by 8.5.2.12 1)); B is PIC 9(3)
       *> BLANK WHEN ZERO (category numeric-edited by 8.5.2.13 2)).

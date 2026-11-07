@@ -4,8 +4,8 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.13.3 SR9: "Neither identifier-3 nor identifier-4 shall reference a variable-length
-      *> group."  §8.5.1.12.1 defines the term: "A variable-length group is a group item whose data
+      *> ISO §2023:14.9.13.3 SR9: "Neither identifier-3 nor identifier-4 shall reference a variable-length
+      *> group."  §2023:8.5.1.12.1 defines the term: "A variable-length group is a group item whose data
       *> description has at least one dynamic-length elementary item or dynamic-capacity table as a
       *> subordinate item."  Both ends here hold a `PIC X DYNAMIC LENGTH` member.
       *>

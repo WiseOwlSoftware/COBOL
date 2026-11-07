@@ -11,14 +11,14 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// <b>The &gt;&gt;COBOL-WORDS REACH invariant</b> (ISO §7.3.10; kb/Work PB250). The directive renames, removes and
+/// <b>The &gt;&gt;COBOL-WORDS REACH invariant</b> (ISO §2023:7.3.10; kb/Work PB250). The directive renames, removes and
 /// reserves COBOL words for a compilation group, and this compiler applies it through TWO mechanisms that must
 /// together cover every word the directive is allowed to name:
 /// <list type="number">
 ///   <item>the post-lex TOKEN RETYPE (<see cref="CobolWordsRewriter"/>), which reaches a word only when the lexer
 ///   makes it a keyword token — so <see cref="CobolKeywordTokens"/> must know EVERY such word; and</item>
 ///   <item>the NAME-LEVEL resolution (<see cref="CobolWordsMap.Resolve"/> / <see cref="CobolWordsMap.Is"/>), the
-///   only mechanism that can reach the §8.9/§8.10 words the lexer leaves as bare IDENTIFIERs.</item>
+///   only mechanism that can reach the §2023:8.9/§2023:8.10 words the lexer leaves as bare IDENTIFIERs.</item>
 /// </list>
 /// <para>The class summary of <c>CobolKeywordTokens</c> used to ASSERT the first half's completeness — "Every
 /// reserved word and context-sensitive word is a literal lexer token" — with nothing measuring it, and the claim
@@ -28,14 +28,14 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 public sealed class CobolWordsReachDriftTests
 {
-    /// <summary>Mechanism 1 must be COMPLETE over the population the directive can NAME: every §8.9 ∪ §8.10 word
+    /// <summary>Mechanism 1 must be COMPLETE over the population the directive can NAME: every §2023:8.9 ∪ §2023:8.10 word
     /// the lexer grammar spells as a literal resolves to a token type through
     /// <see cref="CobolKeywordTokens.TryTokenType"/>. Derived from the grammar and the two spec tables, so a new
     /// multi-spelling rule is covered automatically rather than by a hand-maintained list — and so a future
     /// narrowing of the map's derivation fails HERE instead of silently making a directive inert.
-    /// <para>Scoped to §8.9 ∪ §8.10 deliberately: the grammar also spells literals that are not COBOL words at all
+    /// <para>Scoped to §2023:8.9 ∪ §2023:8.10 deliberately: the grammar also spells literals that are not COBOL words at all
     /// (the <c>B</c>/<c>BX</c>/<c>N</c> literal prefixes, the <c>E</c> exponent) or are compiler-directive words,
-    /// which §7.3.10.4 GR6 puts out of the directive's reach — "A COBOL-WORDS directive does not affect any
+    /// which §2023:7.3.10.4 GR6 puts out of the directive's reach — "A COBOL-WORDS directive does not affect any
     /// Compiler directing statements or Compiler directives." Those have no token to retype and no rule that
     /// needs one.</para></summary>
     [Fact]
@@ -47,12 +47,12 @@ public sealed class CobolWordsReachDriftTests
         var namable = SpecWords();
         var lexedSpecWords = literals.Where(namable.Contains).ToList();
         Assert.True(lexedSpecWords.Count > 400,
-            $"only {lexedSpecWords.Count} lexed §8.9/§8.10 words — one of the inputs failed to load");
+            $"only {lexedSpecWords.Count} lexed §2023:8.9/§2023:8.10 words — one of the inputs failed to load");
 
         var missing = lexedSpecWords.Where(w => !CobolKeywordTokens.TryTokenType(w, out _))
                                     .OrderBy(w => w, StringComparer.Ordinal).ToList();
         Assert.True(missing.Count == 0,
-            $"{missing.Count} lexed §8.9/§8.10 word(s) have no token type — >>COBOL-WORDS is silently inert for "
+            $"{missing.Count} lexed §2023:8.9/§2023:8.10 word(s) have no token type — >>COBOL-WORDS is silently inert for "
             + $"them (e.g. {string.Join(", ", missing.Take(5))})");
     }
 
@@ -61,7 +61,7 @@ public sealed class CobolWordsReachDriftTests
     /// multi-spelling rule (<c>PIC : 'PICTURE' | 'PIC'</c>) are absent
     /// from the vocabulary walk and reachable only by asking the lexer itself. Before that fallback existed the
     /// test above failed with 17 such words and <c>&gt;&gt;COBOL-WORDS UNDEFINE "ZERO"</c> was silently inert
-    /// (kb/Work PB250). Since kb/Work PB510 the figurative spellings are ONE TOKEN EACH (they are distinct §8.9
+    /// (kb/Work PB250). Since kb/Work PB510 the figurative spellings are ONE TOKEN EACH (they are distinct §2023:8.9
     /// reserved words, and a general format may name one of them as its keyword), so PICTURE is the surviving
     /// witness of the multi-spelling shape and the figurative words now carry literal names of their own.</summary>
     [Fact]
@@ -122,28 +122,28 @@ public sealed class CobolWordsReachDriftTests
             + $"{string.Join(", ", disagree.Take(5))})");
     }
 
-    /// <summary>Mechanism 2 must be REACHABLE for the rest: every §8.9 ∪ §8.10 word that is NOT a keyword token is
+    /// <summary>Mechanism 2 must be REACHABLE for the rest: every §2023:8.9 ∪ §2023:8.10 word that is NOT a keyword token is
     /// exactly the population <see cref="CobolWordsMap.Resolve"/> exists for, and this pins that the split is real
     /// and non-empty in both directions — a change that tokenized everything, or nothing, would land here. The
-    /// §8.9 ∪ §8.10 population itself is asserted against the spec by
+    /// §2023:8.9 ∪ §2023:8.10 population itself is asserted against the spec by
     /// <see cref="ContextSensitiveWordsDriftTests"/> and <c>ReservedWordsDriftTests</c>.</summary>
     [Fact]
     public void SpecWordPopulation_IsPartitionedByTheTwoMechanisms()
     {
         var all = SpecWords();
-        Assert.True(all.Count > 500, $"only {all.Count} §8.9 ∪ §8.10 words — a table failed to load");
+        Assert.True(all.Count > 500, $"only {all.Count} §2023:8.9 ∪ §2023:8.10 words — a table failed to load");
 
         int tokenPath = all.Count(w => CobolKeywordTokens.TryTokenType(w, out _));
         int namePath = all.Count - tokenPath;
         Assert.True(tokenPath > 400, $"only {tokenPath} spec words reach the TOKEN mechanism");
         Assert.True(namePath > 0, "no spec word reaches the NAME mechanism — CobolWordsMap.Resolve would be dead code");
 
-        // The two words whose inertness opened PB250 are on the NAME path by construction: both are §8.9
-        // RESERVED (not §8.10 context-sensitive, as a binder comment used to claim) and both are deliberately
-        // left as bare IDENTIFIERs so the §15.94.2 / §15.68.2 phrase parses as ordinary arguments.
+        // The two words whose inertness opened PB250 are on the NAME path by construction: both are §2023:8.9
+        // RESERVED (not §2023:8.10 context-sensitive, as a binder comment used to claim) and both are deliberately
+        // left as bare IDENTIFIERs so the §2023:15.94.2 / §2023:15.68.2 phrase parses as ordinary arguments.
         foreach (string w in new[] { "ANYCASE", "LOCALE" })
         {
-            Assert.True(all.Contains(w), $"{w} missing from the §8.9 ∪ §8.10 population");
+            Assert.True(all.Contains(w), $"{w} missing from the §2023:8.9 ∪ §2023:8.10 population");
             Assert.False(CobolKeywordTokens.TryTokenType(w, out _),
                 $"{w} became a lexer token — the §15 phrase detection reads it as a bare argument (IntrinsicBinder"
                 + ".KeywordWordOf); tokenizing it needs an fnArgPhraseWord alternative in the same change");
@@ -151,14 +151,14 @@ public sealed class CobolWordsReachDriftTests
         }
     }
 
-    /// <summary>⛔ A SYNONYM OF A RESERVED WORD IS RESERVED, whichever mechanism reaches its original (ISO §7.3.10.4 GR2, GR4;
-    /// §8.3.2.1 1; kb/Work PB4488). The token retype reaches a synonym only where the lexer has a token for the original,
+    /// <summary>⛔ A SYNONYM OF A RESERVED WORD IS RESERVED, whichever mechanism reaches its original (ISO §2023:7.3.10.4 GR2, GR4;
+    /// §2023:8.3.2.1 1; kb/Work PB4488). The token retype reaches a synonym only where the lexer has a token for the original,
     /// so the other half — the words on the NAME path — would be accepted as user-defined words. The population is the
-    /// §8.9 list of the COBOL-2023 text (<c>reserved-words.json</c>, held equal to the generated table by
+    /// §2023:8.9 list of the COBOL-2023 text (<c>reserved-words.json</c>, held equal to the generated table by
     /// <c>ReservedWordsDriftTests</c>), not the compiler's own predicate: EVERY reserved word, by EQUATE and by
     /// SUBSTITUTE, must reject its synonym through <see cref="ReservedWordSet.Compose"/> and name the original in the
     /// message, and the sample must hold words from BOTH sides of the lexer partition, so a change that retypes more or
-    /// fewer words cannot leave this test vacuous. The next §8.9 word is covered by the table, not by an edit here.</summary>
+    /// fewer words cannot leave this test vacuous. The next §2023:8.9 word is covered by the table, not by an edit here.</summary>
     [Fact]
     public void EveryReservedWordsSynonym_RejectsAsAUserWord_OnBothSidesOfTheLexerPartition()
     {
@@ -166,7 +166,7 @@ public sealed class CobolWordsReachDriftTests
         using (var doc = JsonDocument.Parse(File.ReadAllText(TestRepo.VersionMatrix("reserved-words.json"))))
             foreach (var e in doc.RootElement.GetProperty("words").EnumerateArray())
                 if (e.GetProperty("r2023").GetBoolean()) reserved.Add(e.GetProperty("word").GetString()!);
-        Assert.True(reserved.Count > 400, $"only {reserved.Count} §8.9 words — the table failed to load");
+        Assert.True(reserved.Count > 400, $"only {reserved.Count} §2023:8.9 words — the table failed to load");
         Assert.True(reserved.Any(w => CobolKeywordTokens.TryTokenType(w, out _)), "no reserved word has a lexer token");
         Assert.Contains(reserved, w => !CobolKeywordTokens.TryTokenType(w, out _));   // COPY, LOCALE, …: the name path
 
@@ -186,7 +186,7 @@ public sealed class CobolWordsReachDriftTests
             + $"(e.g. {string.Join(", ", failures.Take(5))})");
     }
 
-    /// <summary>The other side of the same rule (kb/Work PB4488): a synonym of a §8.10 context-sensitive word that §8.9 does
+    /// <summary>The other side of the same rule (kb/Work PB4488): a synonym of a §2023:8.10 context-sensitive word that §2023:8.9 does
     /// not reserve, or of an intrinsic function name, stays what its original was, a word that is no reserved word.</summary>
     [Fact]
     public void ASynonymOfAWordSection89DoesNotReserve_IsNotReserved()
@@ -200,7 +200,7 @@ public sealed class CobolWordsReachDriftTests
         }
     }
 
-    /// <summary>The ONE rule, exercised directly on all four options (§7.3.10.4 GR2–GR5). A regression in
+    /// <summary>The ONE rule, exercised directly on all four options (§2023:7.3.10.4 GR2–GR5). A regression in
     /// <see cref="CobolWordsMap.Resolve"/> silently disarms every by-name classifier at once.</summary>
     [Fact]
     public void Resolve_Implements_GR2_GR3_GR4()
@@ -309,7 +309,7 @@ public sealed class CobolWordsReachDriftTests
         return set;
     }
 
-    /// <summary>The §8.9 ∪ §8.10 population, from the two generated tables.</summary>
+    /// <summary>The §2023:8.9 ∪ §2023:8.10 population, from the two generated tables.</summary>
     internal static HashSet<string> SpecWords()
     {
         var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);

@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §15.41.3 3) — argument-2 outside standard numeric time form
+      *> ISO §2023:15.41.3 3) — argument-2 outside standard numeric time form
       *> RAISES EC-ARGUMENT-FUNCTION, at BOTH ends of the interval.
       *>
       *> "Argument-2 shall be a value in standard numeric time form."

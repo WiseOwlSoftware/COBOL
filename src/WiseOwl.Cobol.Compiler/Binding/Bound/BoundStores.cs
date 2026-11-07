@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Binding.Bound;
 
 /// <summary>
 /// The bound-tree STORE analysis: does a statement write through a Place rooted at a given
-/// <see cref="DataItem"/>? First client: the object-property reference desugar (ISO §8.4.3.9.4 GR1–GR3,
+/// <see cref="DataItem"/>? First client: the object-property reference desugar (ISO §2023:8.4.3.9.4 GR1–GR3,
 /// deep-dive D-P2) — a reference is a RECEIVING occurrence exactly when its synthesized temp is stored by
 /// the statement it desugared out of (GR2/GR3), so the SET accessor is invoked only then; a misclassified
 /// "sending" would skip a required SET (silently lost store), a misclassified "receiving" would run a
@@ -20,7 +20,7 @@ namespace WiseOwl.Cobol.Binding.Bound;
 /// COMPILE error here, and its answer is a non-nullable <see cref="StoreKind"/>: EVERY leaf classifies EVERY
 /// Place it carries, so there is no "outside the taxonomy" answer for a caller to stage (kb/Work PB1275 — thirteen
 /// leaves used to answer null, and the property desugar turned each into COBOL0843, refusing an object or
-/// pointer property in every SET format although §8.4.3.9.3 SR5/SR6 admit it wherever a data item of its
+/// pointer property in every SET format although §2023:8.4.3.9.3 SR5/SR6 admit it wherever a data item of its
 /// description may stand).
 /// </summary>
 /// <remarks>
@@ -41,13 +41,13 @@ namespace WiseOwl.Cobol.Binding.Bound;
 ///   are pc ranges (not nested statements), so they are never walked.
 /// </remarks>
 /// <summary>How a statement touches a given item through its STORE positions (the polarity that selects the
-/// §8.4.3.9.4 general rule): <see cref="None"/> → the occurrence is purely SENDING (GR1, get only);
+/// §2023:8.4.3.9.4 general rule): <see cref="None"/> → the occurrence is purely SENDING (GR1, get only);
 /// <see cref="Write"/> → a WRITE-only receiving position (GR2, set only — the get method is NOT invoked);
 /// <see cref="ReadWrite"/> → an in-place read-modify-write position (GR3, get before + set after);
 /// <see cref="WriteInPart"/> → a receiving position that stores only PART of the item and keeps the rest (ISO
-/// §14.9.43.4 GR7 for STRING; §8.4.3.3.4 GR5 for a reference-modified receiver), so the kept portion is the
+/// §2023:14.9.43.4 GR7 for STRING; §2023:8.4.3.3.4 GR5 for a reference-modified receiver), so the kept portion is the
 /// property's value: get before when the class has a get method, set after — and a class with NO get method is
-/// not an error (the position is a RECEIVING one, §14.9.43.3 SR10, so §8.4.3.9.3 SR3 asks nothing of it).</summary>
+/// not an error (the position is a RECEIVING one, §2023:14.9.43.3 SR10, so §2023:8.4.3.9.3 SR3 asks nothing of it).</summary>
 public enum StoreKind { None, Write, ReadWrite, WriteInPart }
 
 public static class BoundStores
@@ -62,13 +62,13 @@ public static class BoundStores
         var visitor = new StoreKindVisitor(x => ReferenceEquals(x, item), crossingsStore: true);
         var kind = s.Accept(visitor);
         // A whole-receiver arm answered Write for a store into a WINDOW of the item: only that subset is a receiving
-        // item (§8.4.3.3.4 GR5), so the rest of the item is kept, which is the same polarity STRING's GR7 gives.
+        // item (§2023:8.4.3.3.4 GR5), so the rest of the item is kept, which is the same polarity STRING's GR7 gives.
         return kind == StoreKind.Write && visitor.StoredThroughWindow ? StoreKind.WriteInPart : kind;
     }
 
     /// <summary>The polarity of a whole-receiver store through <paramref name="receiver"/>, the store the walk answers
     /// <see cref="StoreKind.Write"/> for: <see cref="StoreKind.WriteInPart"/> when the place is a reference-modified
-    /// WINDOW of its item (<see cref="Place.DenotedItem"/> is null: §8.4.3.3.4 GR5 "a unique data item that is a
+    /// WINDOW of its item (<see cref="Place.DenotedItem"/> is null: §2023:8.4.3.3.4 GR5 "a unique data item that is a
     /// subset"), whose other positions are kept. The one statement of that rule: the walk asks it of every store
     /// position, and a binder that must know the polarity before its statement node exists asks it directly
     /// (MoveBinder.BindMoveOf, kb/Work PB370).</summary>
@@ -76,7 +76,7 @@ public static class BoundStores
         receiver.DenotedItem is null ? StoreKind.WriteInPart : StoreKind.Write;
 
     /// <summary>Does <paramref name="s"/>, or any statement nested in it, STORE into an item
-    /// <paramref name="matches"/> accepts? The second client (kb/Work PB363, ISO §14.9.49.3 SR11 "A USE BEFORE
+    /// <paramref name="matches"/> accepts? The second client (kb/Work PB363, ISO §2023:14.9.49.3 SR11 "A USE BEFORE
     /// REPORTING procedure shall not alter the value of any control data item"): the same emitter-verified
     /// classification, asked of a SET of items instead of one.
     /// <para>A BY REFERENCE CALL argument and an INVOKE write-back are NOT stores here: whether the callee alters
@@ -159,11 +159,11 @@ public static class BoundStores
                     case InitializeStore st when matches(st.Target.Item): return true;
                     case InitializeStoreValue sv when matches(sv.Target.Item): return true;
                     case InitializeSetNull sn when matches(sn.Target.Item): return true;
-                    // §14.9.20.4 GR4/GR6b's implicit SET stores into its TARGET (identifier-2 is the sender).
+                    // §2023:14.9.20.4 GR4/GR6b's implicit SET stores into its TARGET (identifier-2 is the sender).
                     case InitializeSetFrom sf when matches(sf.Target.Item): return true;
                     case InitializeLoop lp when InitStores(lp.Body): return true;
                     // A Format-2 (table) VALUE select stores into the receiver on EVERY arm it has (ISO
-                    // §14.9.20.4 GR5c1c) — the arms differ only in which literal reaches it, so any one of them
+                    // §2023:14.9.20.4 GR5c1c) — the arms differ only in which literal reaches it, so any one of them
                     // answering yes is a store into this item.
                     case InitializeOccurrenceSelect sel when InitStores(
                         [.. sel.Arms.Select(x => x.Do), .. sel.Otherwise is { } o ? new[] { o } : []]): return true;
@@ -217,7 +217,7 @@ public static class BoundStores
 
         // ── Wrappers / containers ───────────────────────────────────────────────────────────────────────
         public StoreKind Visit(BoundSequence n) => Steps(n.Steps);
-        // A multi-operand verb's implicit statements (ISO §14.9.20.4 GR3 and siblings — BoundImplicitSeries):
+        // A multi-operand verb's implicit statements (ISO §2023:14.9.20.4 GR3 and siblings — BoundImplicitSeries):
         // a container exactly like BoundSequence for this query, since any member may carry the store.
         public StoreKind Visit(BoundImplicitSeries n) => Steps(n.Members);
         public StoreKind Visit(BoundEcChecked n) => n.Inner.Accept(this);
@@ -247,7 +247,7 @@ public static class BoundStores
         public StoreKind Visit(BoundDivideGiving n) => StoreOrKids(ReceiversHit(n.Targets), StoreKind.Write, n.SizeError?.OnError, n.SizeError?.NotOnError);
         public StoreKind Visit(BoundDivideRemainder n) => StoreOrKids(Hit(n.Quotient.Place) || Hit(n.Remainder), StoreKind.Write, n.SizeError?.OnError, n.SizeError?.NotOnError);
         public StoreKind Visit(BoundCompute n) => StoreOrKids(ReceiversHit(n.Targets), StoreKind.Write, n.SizeError?.OnError, n.SizeError?.NotOnError);
-        public StoreKind Visit(BoundComputeBoolean n) => n.Targets.Any(Hit) ? StoreKind.Write : StoreKind.None;   // §14.9.8 F2 — no size-error phrase
+        public StoreKind Visit(BoundComputeBoolean n) => n.Targets.Any(Hit) ? StoreKind.Write : StoreKind.None;   // §2023:14.9.8 F2 — no size-error phrase
         public StoreKind Visit(BoundPositionValue n) => Hit(n.Temp) ? StoreKind.Write : StoreKind.None;
         public StoreKind Visit(BoundCorresponding n) => StoreOrKids(n.Pairs.Any(p => Hit(p.Target)) | Hit(n.ReceivingGroup),
             n.Verb == CorrVerb.Move ? StoreKind.Write : StoreKind.ReadWrite,
@@ -261,7 +261,7 @@ public static class BoundStores
         public StoreKind Visit(BoundSetTo n) => n.Targets.Any(TargetHit) ? StoreKind.Write : StoreKind.None;
         public StoreKind Visit(BoundSetUpDown n) => n.Targets.Any(TargetHit) ? StoreKind.ReadWrite : StoreKind.None;
         public StoreKind Visit(BoundSetSize n) => Hit(n.Target) ? StoreKind.ReadWrite : StoreKind.None;   // reads current content, writes resized
-        // Format 15 writes each receiver whole and reads none of them (§14.9.39.4 GR32-GR36 — every value
+        // Format 15 writes each receiver whole and reads none of them (§2023:14.9.39.4 GR32-GR36 — every value
         // is a property of the DESCRIPTION, never of the current content).
         public StoreKind Visit(BoundSetContent n) => n.Stores.Any(st => Hit(st.Target)) ? StoreKind.Write : StoreKind.None;
 
@@ -272,12 +272,12 @@ public static class BoundStores
         // ── ACCEPT / STRING / UNSTRING / INSPECT ────────────────────────────────────────────────────────
         public StoreKind Visit(BoundAccept n) => Hit(n.Target) ? StoreKind.Write : StoreKind.None;
         // identifier-4 (POINTER) is read (GR4) and written back, so it is read-modify-write. identifier-3 (INTO) is
-        // a RECEIVING operand (§14.9.43.3 SR10 — "The data item referenced by identifier-3 is the receiving
-        // operand"), so a property WITH NO GET is legal there (§8.4.3.9.3 SR3 asks for a GET only of a SENDING use;
+        // a RECEIVING operand (§2023:14.9.43.3 SR10 — "The data item referenced by identifier-3 is the receiving
+        // operand"), so a property WITH NO GET is legal there (§2023:8.4.3.9.3 SR3 asks for a GET only of a SENDING use;
         // classifying INTO as read-modify-write demanded one the rule does not — kb/Work PB1275). It is receiving
         // IN PART, though (GR7, below): WriteInPart takes the get method where the class has one.
         // STRING changes "only the portion of the data item referenced by identifier-3 that was referenced during the
-        // execution" (§14.9.43.4 GR7), so the item's earlier content outside that portion survives and the receiving
+        // execution" (§2023:14.9.43.4 GR7), so the item's earlier content outside that portion survives and the receiving
         // reference is WriteInPart: its get method (if the class has one) supplies that content (kb/Work PB2618).
         public StoreKind Visit(BoundStringStmt n) =>
             Hit(n.Pointer) ? StoreKind.ReadWrite
@@ -289,7 +289,7 @@ public static class BoundStores
                     StoreKind.Write, n.OnOverflow, n.NotOnOverflow);    // GR11c/d/e pure stores
         // identifier-1 is an OPERAND since PB10. A function-identifier target has no Place, so it can never be a
         // STORE — which is not a special case here but the same rule stated twice: the guard below already
-        // requires REPLACING/CONVERTING, and §8.4.3.2.3 SR1 bars a function-identifier from exactly those.
+        // requires REPLACING/CONVERTING, and §2023:8.4.3.2.3 SR1 bars a function-identifier from exactly those.
         public StoreKind Visit(BoundInspect n) =>
             (n.Replacing.Count > 0 || n.Converting is not null) && Hit((n.Target as BoundFieldOperand)?.Place)
                 ? StoreKind.ReadWrite                                   // image read, modified, stored
@@ -299,14 +299,14 @@ public static class BoundStores
 
         // ── File I/O (FILE STATUS / record-area stores route through FileModel — never the temp) ─────────
         // The conditional-phrase recursion is TOTAL over the node's phrase bodies, so the sequential WRITE's
-        // §9.1.14 pair (bound under --permissive only — kb/Work PB691) is walked exactly as BoundKeyedWrite's is;
+        // §2023:9.1.14 pair (bound under --permissive only — kb/Work PB691) is walked exactly as BoundKeyedWrite's is;
         // the two arms of one verb may not disagree about which bodies exist (feedback_two_arm_dispatch).
         public StoreKind Visit(BoundWrite n) => StoreOrKids(n.FromMove is not null && Hit(n.Record),
             StoreKind.ReadWrite, n.AtEop, n.NotAtEop,                  // FROM-move then read as the image
             n.InvalidKey?.Invalid, n.InvalidKey?.NotInvalid);          // the --permissive pair (PB691)
-        // The INVALID KEY lists are walked on BOTH READ arms. They are §14.9.30.2 Format-2 phrases and the
+        // The INVALID KEY lists are walked on BOTH READ arms. They are §2023:14.9.30.2 Format-2 phrases and the
         // sequential arm reports COBOL1720 for them, but --permissive leaves the bind standing and
-        // §14.9.30.4 GR13c then RUNS the NOT INVALID KEY imperative — a store inside it is a real store, and
+        // §2023:14.9.30.4 GR13c then RUNS the NOT INVALID KEY imperative — a store inside it is a real store, and
         // omitting the lists here is the same two-arm disagreement kb/Work PB334 was about.
         public StoreKind Visit(BoundRead n) => StoreOrKids(IntoHit(n.IntoMove), StoreKind.Write,
             n.AtEnd, n.NotAtEnd, n.InvalidKey?.Invalid, n.InvalidKey?.NotInvalid);
@@ -335,7 +335,7 @@ public static class BoundStores
             : Hit(n.Returning) ? StoreKind.Write
             : StoreKind.None;
 
-        // The universal (D10) INVOKE: every identifier-3 crosses BY REFERENCE (§14.9.23.3 SR6) and is copied back,
+        // The universal (D10) INVOKE: every identifier-3 crosses BY REFERENCE (§2023:14.9.23.3 SR6) and is copied back,
         // exactly the typed path's write-back crossing; the RETURNING item is stored whole; the receiver and an
         // identifier-2 selector are only read.
         public StoreKind Visit(BoundInvokeUniversal n) =>
@@ -343,32 +343,32 @@ public static class BoundStores
             : Hit(n.Returning) ? StoreKind.Write
             : StoreKind.None;
 
-        // INVOKE NULL (§14.9.23.4 GR5): the statement is terminated before any argument crosses or any result is
+        // INVOKE NULL (§2023:14.9.23.4 GR5): the statement is terminated before any argument crosses or any result is
         // delivered, so it stores nothing.
         public StoreKind Visit(BoundInvokeNull n) => StoreKind.None;
 
         // ── Pointer, object-reference and carrier stores (kb/Work PB1275 — these answered null, "outside the
         //    taxonomy", until every Place they carry was classified). Each SET format below stores its receivers
-        //    whole and reads only its sender (§14.9.39.4); its sender, a FREE / RAISE operand's read, an ALLOCATE
+        //    whole and reads only its sender (§2023:14.9.39.4); its sender, a FREE / RAISE operand's read, an ALLOCATE
         //    size and a SET amount are SENDING occurrences. ──────────────────────────────────────────────────────
         public StoreKind Visit(BoundSetObjectRef n) => WriteIfAny(n.Targets);           // Format 5 (GR9/GR10)
-        public StoreKind Visit(BoundObjectView n) => Hit(n.Target) ? StoreKind.Write : StoreKind.None;   // the view's temporary (§8.4.3.5.4); identifier-1 is only read
-        public StoreKind Visit(BoundSelfReference n) => Hit(n.Target) ? StoreKind.Write : StoreKind.None;   // SELF's temporary (§8.4.3.8.4 GR1)
+        public StoreKind Visit(BoundObjectView n) => Hit(n.Target) ? StoreKind.Write : StoreKind.None;   // the view's temporary (§2023:8.4.3.5.4); identifier-1 is only read
+        public StoreKind Visit(BoundSelfReference n) => Hit(n.Target) ? StoreKind.Write : StoreKind.None;   // SELF's temporary (§2023:8.4.3.8.4 GR1)
         public StoreKind Visit(BoundSetPointer n) =>                                     // Format 7 (GR12)
             WriteIfAny(n.Receivers.Select(r => r.Pointer).OfType<Place>());
         public StoreKind Visit(BoundSetProgramPointer n) => WriteIfAny(n.Targets);      // Format 9 (GR16)
-        public StoreKind Visit(BoundSetEntry n) => WriteIfAny(n.Targets);               // Format 9, ENTRY sender (§8.4.3.13)
+        public StoreKind Visit(BoundSetEntry n) => WriteIfAny(n.Targets);               // Format 9, ENTRY sender (§2023:8.4.3.13)
         public StoreKind Visit(BoundSetFunctionPointer n) => WriteIfAny(n.Targets);     // Format 8 (GR14; kb/Work PB452)
-        public StoreKind Visit(BoundSetFunctionAddress n) => WriteIfAny(n.Targets);     // Format 8, §8.4.3.12 sender
+        public StoreKind Visit(BoundSetFunctionAddress n) => WriteIfAny(n.Targets);     // Format 8, §2023:8.4.3.12 sender
         public StoreKind Visit(BoundSetMessageTag n) => WriteIfAny([n.Target]);         // Format 17 (GR40/GR41; kb/Work PB4740)
         public StoreKind Visit(BoundSaveLocale n) => Hit(n.Target) ? StoreKind.Write : StoreKind.None;   // Format 12 (GR26/GR27)
         public StoreKind Visit(BoundSetLocale n) => StoreKind.None;                    // Format 11 reads a saved pointer
         // Format 10: the address is moved BY the amount (GR20), so the receiver is read and written.
         public StoreKind Visit(BoundSetPointerUpDown n) => n.Targets.Any(Hit) ? StoreKind.ReadWrite : StoreKind.None;
-        // ALLOCATE's RETURNING pointer is stored whole (§14.9.3.4 GR2/GR4); the BASED item's own implicit pointer is
+        // ALLOCATE's RETURNING pointer is stored whole (§2023:14.9.3.4 GR2/GR4); the BASED item's own implicit pointer is
         // not a Place and so never a property temp.
         public StoreKind Visit(BoundAllocate n) => Hit(n.Returning) ? StoreKind.Write : StoreKind.None;
-        // FREE reads each pointer to release its storage and then sets it to NULL (§14.9.15.4 GR1 a)).
+        // FREE reads each pointer to release its storage and then sets it to NULL (§2023:14.9.15.4 GR1 a)).
         public StoreKind Visit(BoundFree n) => n.Operands.Any(Hit) ? StoreKind.ReadWrite : StoreKind.None;
         public StoreKind Visit(BoundRaiseObject n) => StoreKind.None;                  // RAISE identifier-1 is sent
         // SET capacity names a dynamic-capacity TABLE (an AccessPath, never a Place) — and a property subject cannot

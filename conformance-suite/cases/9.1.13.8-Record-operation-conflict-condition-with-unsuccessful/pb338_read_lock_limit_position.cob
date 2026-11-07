@@ -6,24 +6,24 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §12.4.5.9.4 GR7 — "The implementor shall specify the
+      *> ISO §2023:12.4.5.9.4 GR7 — "The implementor shall specify the
       *> maximum number of record locks that may be held by a file
       *> connector; that maximum shall be at least 15. ... Any I-O
       *> statement that attempts to obtain a record lock that would
       *> exceed either limit is unsuccessful and receives an I-O status
       *> that indicates that condition."  WiseOwl COBOL's per-connector
       *> maximum IS 15 (PhysicalFileTable.ConnectorLockMax, the
-      *> standard's floor); §9.1.13.8 item 4 prices the denial '54'.
+      *> standard's floor); §2023:9.1.13.8 item 4 prices the denial '54'.
       *>
       *> THE SUBJECT.  Three legs.  Each opens ONE connector under
       *> LOCK MODE IS MANUAL WITH LOCK ON MULTIPLE RECORDS — the only
-      *> mode that can reach the ceiling, because §12.4.5.9.4 GR6 makes
+      *> mode that can reach the ceiling, because §2023:12.4.5.9.4 GR6 makes
       *> single record locking release the prior lock on every I-O
       *> statement, so a single-locking connector never holds more than
       *> one.  Legs R and I are the FORMAT-1 sequential walk on the two
       *> keyed organizations; leg X is the FORMAT-2 random read.
       *> ⛔ THERE IS NO SEQUENTIAL-ORGANIZATION LEG, AND ADDING ONE
-      *> WOULD BE NON-CONFORMING SOURCE: §12.4.5.9.3 SR2 — "The MULTIPLE
+      *> WOULD BE NON-CONFORMING SOURCE: §2023:12.4.5.9.3 SR2 — "The MULTIPLE
       *> phrase shall not be specified for a file described with
       *> sequential organization or sequential access mode" — so that
       *> organization can never hold a second lock and the ceiling is
@@ -35,16 +35,16 @@
       *>
       *> THE POINT OF THE TEST is the NEXT read.  The '54' READ is
       *> unsuccessful, and it is NOT the record operation conflict
-      *> condition: §14.9.30.4 GR9 defines that condition as "the record
+      *> condition: §2023:14.9.30.4 GR9 defines that condition as "the record
       *> identified for access is locked by ANOTHER file connector",
       *> where '53'/'54' are this connector's own lock COUNT.  So
-      *> §14.9.30.4 GR10 a)'s "The file position indicator is unchanged"
+      *> §2023:14.9.30.4 GR10 a)'s "The file position indicator is unchanged"
       *> does not reach it and GR18 applies in full: "Unless otherwise
       *> specified, at the completion of any unsuccessful execution of a
       *> READ statement, the content of the associated record area is
       *> undefined, the key of reference is undefined for indexed files,
       *> and the file position indicator is set to indicate that no
-      *> valid record position has been established."  §9.1.13.7 item 6
+      *> valid record position has been established."  §2023:9.1.13.7 item 6
       *> then reads that state back: "I-O status = 46.  A sequential
       *> READ statement is attempted referencing a file connector open
       *> in the input or I-O mode and no valid next record has been
@@ -55,7 +55,7 @@
       *> physical retrieval leaves behind: a successfully advanced
       *> position wearing a failure status, silently skipping the record
       *> it failed on (kb/Work PB338).  The UNLOCK between them
-      *> (§14.9.47.4 GR1) frees all fifteen locks and is shown to prove
+      *> (§2023:14.9.47.4 GR1) frees all fifteen locks and is shown to prove
       *> the '46' is the POSITION and not a surviving lock ceiling.
       *>
       *> EXPECTED, derived before it was observed:

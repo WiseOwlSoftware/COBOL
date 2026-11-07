@@ -9,12 +9,12 @@ namespace WiseOwl.Cobol.Runtime;
 /// </summary>
 public abstract class ManagedPointer
 {
-    /// <summary>The NULL carrier (OMITTED argument / NULL pointer — ISO §14.9.4.4 GR11–12).</summary>
+    /// <summary>The NULL carrier (OMITTED argument / NULL pointer — ISO §2023:14.9.4.4 GR11–12).</summary>
     public static readonly ManagedPointer Null = new NullManagedPointer();
 
     /// <summary>Store <paramref name="value"/> into the referenced storage when the carried type can hold it — the
     /// type-erased face of <see cref="ManagedPointer{T}.Value"/>, for a delivery whose sender and receiver are
-    /// described differently but conform (kb/Work PB1164: §14.8.3.3 rule 1 — an object reference of a class conforms
+    /// described differently but conform (kb/Work PB1164: §2023:14.8.3.3 rule 1 — an object reference of a class conforms
     /// to a receiver of a superclass or a universal one "as if a SET statement were performed", so the sender's
     /// carrier type is a SUBCLASS of the receiver's). False when it cannot — a pair no conformance rule admits.</summary>
     internal virtual bool TryAssign(object? value) => false;
@@ -22,7 +22,7 @@ public abstract class ManagedPointer
     /// <summary>True for the NULL carrier.</summary>
     public virtual bool IsNull => false;
 
-    /// <summary>Data-pointer equality (ISO §8.8.4.2.16 / §8.8.4.2 :9772 — "equal if they reference the same
+    /// <summary>Data-pointer equality (ISO §2023:8.8.4.2.16 / §2023:8.8.4.2 :9772 — "equal if they reference the same
     /// address": STRUCTURAL over (storage cell, byte offset) for window pointers; two NULLs are equal; a
     /// legacy accessor carrier compares by instance (the CALL-ABI closures carry no address identity).</summary>
     public static bool SameTarget(ManagedPointer? a, ManagedPointer? b)
@@ -83,14 +83,14 @@ public sealed class ManagedPointer<T> : ManagedPointer
 
     /// <summary>⛔ A BY REFERENCE VIEW OF THE ARGUMENT'S STORAGE WHOSE STORE CAN CREATE STORAGE (kb/Work PB2690): a fixed
     /// table of the formal opposite a dynamic-capacity table of the argument, where a store through an occurrence past the
-    /// capacity creates it (ISO §8.5.1.9.3; §14.2.3 GR8). <paramref name="store"/> receives the value AND the receiving
+    /// capacity creates it (ISO §2023:8.5.1.9.3; §2023:14.2.3 GR8). <paramref name="store"/> receives the value AND the receiving
     /// references the activated element made in the fresh area the value was copied into (<see cref="Watch"/>), or null
     /// when nothing recorded them (the view stored into directly).</summary>
     public static ManagedPointer<T> OverStorage(Func<T> get, Action<T, ReceivingReferences?> store) =>
         new(get, v => store(v, null), overStorage: store);
 
     /// <summary>The activated element has filled the fresh area <paramref name="area"/> from this view (<c>CobolArgAdapt.Area</c>;
-    /// §14.2.3 GR8 realized by a copy): from now on the area records the receiving references made through it, and the
+    /// §2023:14.2.3 GR8 realized by a copy): from now on the area records the receiving references made through it, and the
     /// store back hands them to the view. A no-op for a view that cannot create storage — every carrier but
     /// <see cref="OverStorage"/>'s.</summary>
     public void Watch(ManagedPointer area)
@@ -100,8 +100,8 @@ public sealed class ManagedPointer<T> : ManagedPointer
         _watched = cell;
     }
 
-    /// <summary>True for the omitted-argument carrier (ISO §14.9.4.4 GR11; kb/Work PB133 wave C): the
-    /// §8.8.4.8 omitted-argument condition, <c>CobolArgAdapt.Present</c>, and GR1c's TRANSITIVE omission (an
+    /// <summary>True for the omitted-argument carrier (ISO §2023:14.9.4.4 GR11; kb/Work PB133 wave C): the
+    /// §2023:8.8.4.8 omitted-argument condition, <c>CobolArgAdapt.Present</c>, and GR1c's TRANSITIVE omission (an
     /// omitted formal forwarded as an argument) all read presence through this ONE test.</summary>
     public override bool IsNull => _omittedArgument;
 
@@ -110,7 +110,7 @@ public sealed class ManagedPointer<T> : ManagedPointer
     internal static ManagedPointer<T> OmittedArgument(Func<T> get, Action<T> set) => new(get, set, omittedArgument: true);
 
     /// <summary>An accessor carrier over a native field: reads/writes go straight through to the owner's storage
-    /// — the BY REFERENCE "same storage area" semantics (ISO §14.2.3 GR8) with zero indirection on the owner's
+    /// — the BY REFERENCE "same storage area" semantics (ISO §2023:14.2.3 GR8) with zero indirection on the owner's
     /// own accesses.</summary>
     public static ManagedPointer<T> OverField(Func<T> get, Action<T> set) => new(get, set);
 
@@ -119,9 +119,9 @@ public sealed class ManagedPointer<T> : ManagedPointer
     internal static ManagedPointer<T> OverView(Func<T> get, Action<T> set, object tag) => new(get, set) { ViewTag = tag };
 
     /// <summary>A standalone storage cell seeded with <paramref name="initial"/> — the BY CONTENT copy
-    /// (ISO §14.2.3 GR9: "a record allocated by the activating element"). NOT the ALLOCATE backing — dynamic
+    /// (ISO §2023:14.2.3 GR9: "a record allocated by the activating element"). NOT the ALLOCATE backing — dynamic
     /// storage lives in <see cref="StorageCell"/> behind a <see cref="CellPointer"/> window (increment 2:
-    /// closures carry no address identity for §8.8.4.2 structural equality and no byte offset for F10).</summary>
+    /// closures carry no address identity for §2023:8.8.4.2 structural equality and no byte offset for F10).</summary>
     public static ManagedPointer<T> Cell(T initial)
     {
         var box = new T[1] { initial };

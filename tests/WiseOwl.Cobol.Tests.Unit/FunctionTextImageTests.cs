@@ -6,9 +6,9 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The text image of an intrinsic FUNCTION's returned value (DA2). ISO §15.4 places the value in a "temporary
-/// elementary data item" whose characteristics are IMPLEMENTOR-DEFINED under native arithmetic (§15.4.1), and
-/// §14.9.11.4 GR1 independently makes the DISPLAY conversion implementor-defined — so this table is not derived
+/// The text image of an intrinsic FUNCTION's returned value (DA2). ISO §2023:15.4 places the value in a "temporary
+/// elementary data item" whose characteristics are IMPLEMENTOR-DEFINED under native arithmetic (§2023:15.4.1), and
+/// §2023:14.9.11.4 GR1 independently makes the DISPLAY conversion implementor-defined — so this table is not derived
 /// from the standard, it IS the determination, and `docs/CONFORMANCE.md` documents it as an Annex A.1 item.
 /// <para>
 /// ⛔ WHY THE RULE IS "LITERAL FORM" AND NOT A PADDED FIELD: an intrinsic over constant arguments is FOLDED to a
@@ -21,7 +21,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⚠ THIS IS THE TEXT CHANNEL'S FORM: MOVE to a character receiver, STRING, INSPECT, a text comparison and DISPLAY under
 /// `--numeric-display digits`. DISPLAY under the default `decimal` shows the returned value by the description of its temporary
 /// (kb/Work PB3514, `FunctionDeviceTextTests`), as it shows any numeric data item (DOC-A.1-56); a MOVE of a numeric item has
-/// §14.9.25.4 GR6's digits there too, so the two channels differ for a function exactly as they differ for an item.
+/// §2023:14.9.25.4 GR6's digits there too, so the two channels differ for a function exactly as they differ for an item.
 /// </para>
 /// </summary>
 public sealed class FunctionTextImageTests
@@ -29,7 +29,7 @@ public sealed class FunctionTextImageTests
     /// <summary>Integers render as significant digits with no padding, and a negative carries a leading minus —
     /// never a zoned over-punch, because a function result is a temporary, not a stored DISPLAY item.</summary>
     [Theory]
-    [InlineData(66, 0, "66")]          // FUNCTION ORD("A") — §15.70.1, lowest ordinal is 1
+    [InlineData(66, 0, "66")]          // FUNCTION ORD("A") — §2023:15.70.1, lowest ordinal is 1
     [InlineData(5, 0, "5")]
     [InlineData(0, 0, "0")]
     [InlineData(-14, 0, "-14")]        // FUNCTION MIN(3 -14 0 8 -3)
@@ -50,14 +50,14 @@ public sealed class FunctionTextImageTests
         Assert.Equal(expected, CobolNum.FormatFunctionText(unscaled, scale));
 
     /// <summary>A NEGATIVE scale is P-scaling: the P positions are trailing zeros that occupy no storage
-    /// (§13.18.40.4 GR14 symbol P, operations b)), so the text restores them.</summary>
+    /// (§2023:13.18.40.4 GR14 symbol P, operations b)), so the text restores them.</summary>
     [Theory]
     [InlineData(12, -2, "1200")]
     [InlineData(-12, -2, "-1200")]
     public void NegativeScale_RestoresThePZeros(long unscaled, int scale, string expected) =>
         Assert.Equal(expected, CobolNum.FormatFunctionText(unscaled, scale));
 
-    /// <summary>An SDIDI intermediate (STANDARD-DECIMAL arithmetic, §8.8.1.5) routes through the SAME rule, so a
+    /// <summary>An SDIDI intermediate (STANDARD-DECIMAL arithmetic, §2023:8.8.1.5) routes through the SAME rule, so a
     /// function result does not change appearance with the arithmetic mode in effect.</summary>
     [Theory]
     [InlineData(4250, -2, "42.50")]
@@ -66,10 +66,10 @@ public sealed class FunctionTextImageTests
     public void StandardDecimal_RendersThroughTheSameRule(long sig, int exp, string expected) =>
         Assert.Equal(expected, new CobolDec(sig, exp).ToFunctionText());
 
-    /// <summary>⛔ §14.9.25.4 GR6a — "If the sending operand is described as being signed numeric, the operational
-    /// sign is not moved." A GENERAL rule with NO implementor latitude: the §15.4.1 / §14.9.11.4 GR1 latitude this
+    /// <summary>⛔ §2023:14.9.25.4 GR6a — "If the sending operand is described as being signed numeric, the operational
+    /// sign is not moved." A GENERAL rule with NO implementor latitude: the §2023:15.4.1 / §2023:14.9.11.4 GR1 latitude this
     /// determination rests on covers the FORM of the text (padding, radix), never whether the sign travels. So
-    /// every de-signing context — MOVE to an alphanumeric/national/edited receiver, a text relation (§8.8.4.2.5
+    /// every de-signing context — MOVE to an alphanumeric/national/edited receiver, a text relation (§2023:8.8.4.2.5
     /// routes it through the MOVE rules), INSPECT — gets the MAGNITUDE.
     /// <para>This shipped WRONG for one build: the fix intercepted the operand at AsString's entry, ahead of the
     /// visitor that carries <c>deSign</c>, and simply dropped the flag — so a signed ITEM de-signed while a
@@ -86,7 +86,7 @@ public sealed class FunctionTextImageTests
     }
 
     /// <summary>⛔ kb/Work PB2507 — the image is the LITERAL FORM, so under DECIMAL-POINT IS COMMA its decimal separator is
-    /// the comma (§12.3.7.4 GR14 a: "the character written in numeric literals to represent the decimal separator shall
+    /// the comma (§2023:12.3.7.4 GR14 a: "the character written in numeric literals to represent the decimal separator shall
     /// be the comma"), on BOTH value lanes. The default stays the C#-facing period a compile-time fold's canonical text
     /// needs; a value with no fraction digits has no separator to spell.</summary>
     [Theory]
@@ -121,7 +121,7 @@ public sealed class FunctionTextImageTests
         Assert.Equal("170141183460469231731687303715884105728", CobolNum.FormatFunctionText(Int128.MinValue, 0, deSign: true));
     }
 
-    /// <summary>DISPLAY is NOT a de-signing context — §14.9.11.4 GR1 transfers the operand's content, and the sign
+    /// <summary>DISPLAY is NOT a de-signing context — §2023:14.9.11.4 GR1 transfers the operand's content, and the sign
     /// is part of the value being shown. The default must therefore keep it, or the two contexts collapse.</summary>
     [Theory]
     [InlineData(-14, 0, "-14")]

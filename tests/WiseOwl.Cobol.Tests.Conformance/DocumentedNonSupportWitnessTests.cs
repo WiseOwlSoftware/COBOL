@@ -37,17 +37,17 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 ///
 /// <para>THE SPEC BASIS, per remaining facility. (Commit and rollback left this class with kb/Work PB3338, which
 /// built it on the keyed store engine.) VALIDATE (Annex A.4.14) is
-/// OPTIONAL and additionally OBSOLETE (§4.2.13; Annex F.2 item 5): §4.2.7 requires only that the decline be
+/// OPTIONAL and additionally OBSOLETE (§2023:4.2.13; Annex F.2 item 5): §2023:4.2.7 requires only that the decline be
 /// identified in user documentation, so COBOL1580 is this implementation's own stronger posture — and a
 /// posture that is documented but unmeasured is exactly what these rows owe. Asynchronous messaging (Annex A.3 item 4) and the OPTIONS FLOAT-DECIMAL clause (A.3
-/// item 13) are processor-dependent too, so their warnings (COBOL1578, COBOL2424) are §4.2.6 ¶3
+/// item 13) are processor-dependent too, so their warnings (COBOL1578, COBOL2424) are §2023:4.2.6 ¶3
 /// obligations; kb/Work R43 made the rows conditioned solely on them derived verdicts that these facts witness.</para>
 /// </summary>
 public sealed class DocumentedNonSupportWitnessTests
 {
-    private const string ValidateNonSupport = "COBOL1580";   // VALIDATE — A.4.14 / §4.2.7 / F.2 item 5
+    private const string ValidateNonSupport = "COBOL1580";   // VALIDATE — A.4.14 / §2023:4.2.7 / F.2 item 5
     private const string RecordDelimiterNonSupport = "COBOL1778";   // RECORD DELIMITER — A.3 item 26 + A.1 item 150
-    private const string McsNonSupport = "COBOL1578";               // SEND/RECEIVE — A.3 item 4 / §4.2.6 ¶3
+    private const string McsNonSupport = "COBOL1578";               // SEND/RECEIVE — A.3 item 4 / §2023:4.2.6 ¶3
     private const string FloatDecimalClauseNonSupport = "COBOL2424"; // OPTIONS FLOAT-DECIMAL — A.3 items 13, 19
 
     /// <summary>The conformance-suite test's source text — the witness and the suite run the SAME file.</summary>
@@ -68,11 +68,11 @@ public sealed class DocumentedNonSupportWitnessTests
     }
 
     /// <summary>VALIDATE → COBOL1580, at the editions the facility exists (2002+; at --std 85 VALIDATE is
-    /// an ordinary user-defined word). §13.18.40.4 GR19's only trigger is the format validation stage of a
+    /// an ordinary user-defined word). §2023:13.18.40.4 GR19's only trigger is the format validation stage of a
     /// VALIDATE statement, so the decline is what makes the rule unreachable.
-    /// <para>⚠ The golden's <c>.out</c> pins INERTNESS only, never the decline: §14.9.50.4 GR5 ("the execution
+    /// <para>⚠ The golden's <c>.out</c> pins INERTNESS only, never the decline: §2023:14.9.50.4 GR5 ("the execution
     /// of the VALIDATE statement does not terminate and the content of the invalid data item does not change")
-    /// and §13.18.17.4 GR1 ("The data item itself remains unchanged") make an UNCHANGED subject the conforming
+    /// and §2023:13.18.17.4 GR1 ("The data item itself remains unchanged") make an UNCHANGED subject the conforming
     /// outcome too, so "SUBJECT UNCHANGED" discriminates nothing. Only this warning does.</para></summary>
     [Fact]
     public void ValidateFacility_NamedNonSupportWarning_PinnedToSpec() =>
@@ -80,10 +80,10 @@ public sealed class DocumentedNonSupportWitnessTests
             ValidateNonSupport, 2002, 2014, 2023);
 
     /// <summary>RECORD DELIMITER → COBOL1778, at EVERY edition (the clause is in the '85 file control entry
-    /// and every edition since), and — the point of the pair — ONCE PER ARM. §4.2.6 ¶3 compels the warning for
-    /// the STANDARD-1 arm: Annex A.3 item 26 makes it processor-dependent and §12.4.5.11.4 GR2 makes its medium
+    /// and every edition since), and — the point of the pair — ONCE PER ARM. §2023:4.2.6 ¶3 compels the warning for
+    /// the STANDARD-1 arm: Annex A.3 item 26 makes it processor-dependent and §2023:12.4.5.11.4 GR2 makes its medium
     /// a tape drive this implementation has none of. The feature-name arm is declined on a DIFFERENT licence —
-    /// §12.4.5.11.3 SR2 leaves the available names to the implementor and Annex A.1 item 150 makes providing
+    /// §2023:12.4.5.11.3 SR2 leaves the available names to the implementor and Annex A.1 item 150 makes providing
     /// them optional, and this implementation provides none (docs/CONFORMANCE.md §7) — so nothing about the
     /// STANDARD-1 fix implies it fires.
     /// <para>⛔ THE ASSERTION IS ON THE ARM, NOT ON THE CODE, and that is the whole design. kb/Work PB292's own
@@ -92,7 +92,7 @@ public sealed class DocumentedNonSupportWitnessTests
     /// (feedback_two_arm_dispatch). Each fact therefore demands the diagnostic that quotes ITS OWN clause
     /// spelling back, which is exactly the `seen` half <see cref="WiseOwl.Cobol.Binding.EditionContext.Declined"/>
     /// composes at the site.</para>
-    /// <para>⚠ The golden's <c>.out</c> pins INERTNESS only and cannot pin the decline: §12.4.5.11.4 GR1 —
+    /// <para>⚠ The golden's <c>.out</c> pins INERTNESS only and cannot pin the decline: §2023:12.4.5.11.4 GR1 —
     /// "Any method used shall not be reflected in the record area or the record size used within the function,
     /// method, or program" — means a conforming processor honouring STANDARD-1 and this one ignoring it print
     /// the SAME lengths. Only the compile-time name discriminates.</para></summary>
@@ -113,7 +113,7 @@ public sealed class DocumentedNonSupportWitnessTests
     public void RecordDelimiterFeatureName_NamedNonSupportWarning_PinnedToSpec(int edition) =>
         AssertArmNamed(edition, "RECORD DELIMITER IS PB292-TAPE-FORMAT");
 
-    /// <summary>The same STANDARD-1 arm written WITHOUT the optional word. §12.4.5.11.2's printed diagram
+    /// <summary>The same STANDARD-1 arm written WITHOUT the optional word. §2023:12.4.5.11.2's printed diagram
     /// underlines RECORD, DELIMITER and STANDARD-1 and leaves IS unmarked, so `RECORD DELIMITER STANDARD-1` is
     /// the same clause and must draw the same decline — a decline keyed on the optional word would be a
     /// spelling test wearing a conformance test's clothes.</summary>
@@ -129,7 +129,7 @@ public sealed class DocumentedNonSupportWitnessTests
     /// warning FIRES; this one proves it fires on the CLAUSE and not on the file, the file's organization or
     /// the RECORD VARYING clause — file F4 of the same golden is variable-length, sequential and opened,
     /// written and read exactly like the other three, and writes NO RECORD DELIMITER clause. It is also the
-    /// only file in the program under which §12.4.5.11.4 GR5 speaks at all ("If the RECORD DELIMITER clause is
+    /// only file in the program under which §2023:12.4.5.11.4 GR5 speaks at all ("If the RECORD DELIMITER clause is
     /// not specified …"), so a warning there would contradict the determination filed as Annex A.1 item 151.
     /// A diagnostic that cannot be silent is not evidence of anything.</summary>
     [Theory]
@@ -150,8 +150,8 @@ public sealed class DocumentedNonSupportWitnessTests
 
     /// <summary>ASYNCHRONOUS MESSAGING → COBOL1578, ONCE PER STATEMENT (kb/Work R43 / PB1198). Annex A.3
     /// item 4 makes the facility processor-dependent ("dependent on the capability of a processor to allow run
-    /// units to communicate with each other") and §4.2.6 ¶3 makes the compile-time warning mandatory for a
-    /// declined one. The facility has TWO statements, RECEIVE (§14.9.31) and SEND (§14.9.38), and until this test
+    /// units to communicate with each other") and §2023:4.2.6 ¶3 makes the compile-time warning mandatory for a
+    /// declined one. The facility has TWO statements, RECEIVE (§2023:14.9.31) and SEND (§2023:14.9.38), and until this test
     /// only the SEND site was asserted anywhere (GobackGeneralFormatTests) — so the count, not the code, is the
     /// assertion: a decline wired into one statement's binder arm and not the other would still produce one
     /// COBOL1578 (feedback_two_arm_dispatch). The facility is a COBOL-2023 introduction; below it the two formats
@@ -159,8 +159,8 @@ public sealed class DocumentedNonSupportWitnessTests
     /// 2014 both words are ordinary user-defined words (at 2002 they are still reserved for the obsolete communication
     /// facility, kb/Work PB656; negative/user-word-receive, version-matrix row receive-as-user-word).
     /// <para>The golden's <c>.out</c> pins the INERT half: with no message I-O neither ON EXCEPTION nor NOT ON
-    /// EXCEPTION runs, where a conforming facility runs exactly one of them at each statement (§14.9.31.4 GR4/GR5,
-    /// §14.9.38.4 GR2/GR3).</para></summary>
+    /// EXCEPTION runs, where a conforming facility runs exactly one of them at each statement (§2023:14.9.31.4 GR4/GR5,
+    /// §2023:14.9.38.4 GR2/GR3).</para></summary>
     [Fact]
     public void McsFacility_NamedNonSupportWarning_AtBothStatements_PinnedToSpec()
     {
@@ -171,7 +171,7 @@ public sealed class DocumentedNonSupportWitnessTests
     }
 
     /// <summary>BELOW 2023 THE FORMATS ARE AN INTRODUCTION, NOT THE FACILITY (kb/Work PB374). RECEIVE and SEND are
-    /// §8.9-reserved at COBOL-85 too (the '85 communication module), so a reservation test recognized the 2023 formats
+    /// §2023:8.9-reserved at COBOL-85 too (the '85 communication module), so a reservation test recognized the 2023 formats
     /// at --std 85 and compiled them under the 2023 facility's COBOL1578. Every edition below 2023 now refuses each
     /// statement with the introduction gate, and names no facility it does not have: the negative corpus asserts the
     /// error code only, so the absence of the warning is asserted here.</summary>
@@ -190,12 +190,12 @@ public sealed class DocumentedNonSupportWitnessTests
 
     /// <summary>THE SAME FACILITY'S EXCEPTION-NAMES → COBOL1578, ONCE PER WRITTEN NAME, AND STILL ACCEPTED (kb/Work
     /// PB374). The EC-MCS names compiled in SILENCE against a facility with no setting site; asynchronous messaging is
-    /// Annex A.3 item 4, processor-dependent, so §4.2.6's warning mechanism is owed for them as for SEND and RECEIVE,
+    /// Annex A.3 item 4, processor-dependent, so §2023:4.2.6's warning mechanism is owed for them as for SEND and RECEIVE,
     /// and the posture is accept-inert, never the refusal the optional modules' names get. The golden writes the names
     /// at four of the six sites one funnel serves (TURN, USE, RAISE twice, a PERFORM WHEN), so the count is the
     /// assertion: a site that bypassed the funnel would drop one (feedback_two_arm_dispatch). Every warning names the
     /// exception-name it is about, and the golden's <c>.out</c> pins that the accepted names still work: the RAISE
-    /// reaches the USE declarative and the WHEN phrase (§14.9.29.4 GR1).</summary>
+    /// reaches the USE declarative and the WHEN phrase (§2023:14.9.29.4 GR1).</summary>
     [Fact]
     public void McsExceptionNames_NamedNonSupportWarning_AtEverySite_AndAccepted()
     {
@@ -235,7 +235,7 @@ public sealed class DocumentedNonSupportWitnessTests
 
     /// <summary>The accepted name is a REAL operand, not a tolerated one: the reviewer's own scenario, a USE declarative
     /// for EC-VALIDATE-CONTENT and a RAISE of it under <c>--permissive</c>, with checking enabled by &gt;&gt;TURN, runs
-    /// the declarative (§14.9.29.4 GR1, "If exception-name-1 is specified, the associated exception condition is
+    /// the declarative (§2023:14.9.29.4 GR1, "If exception-name-1 is specified, the associated exception condition is
     /// raised") and continues after the RAISE, the condition being NONFATAL in Table 13. The complement keeps the
     /// rule honest: EC-SCREEN's descriptor is not PermissiveInert (an inert screen statement would move the wrong
     /// data), so <c>--permissive</c> still refuses its names.</summary>
@@ -271,7 +271,7 @@ public sealed class DocumentedNonSupportWitnessTests
 
     /// <summary>The OPTIONS FLOAT-DECIMAL clause → COBOL2424 (kb/Work R43 / PB579). Annex A.3 item 13 makes
     /// the clause processor-dependent and dependent on the standard decimal floating-point usages, which are not
-    /// provided (item 19); §4.2.6 ¶3 compels the warning. It is the decline that LEAKED — the clause compiled
+    /// provided (item 19); §2023:4.2.6 ¶3 compels the warning. It is the decline that LEAKED — the clause compiled
     /// with no diagnostic at all at 2014 and 2023 until this change. The complement is asserted too: the same
     /// program with the claimed FLOAT-BINARY clause in its place draws no COBOL2424, so the warning is about
     /// the declined clause and not about the OPTIONS paragraph.</summary>
@@ -307,7 +307,7 @@ public sealed class DocumentedNonSupportWitnessTests
 
     /// <summary>EVERY legal spelling of the declined FLOAT-DECIMAL clause reaches the COBOL2424 warning — never a
     /// parse error (kb/Work PB1508, wave 59 H; owner decision R43 item 5: a decline that diagnoses legal source
-    /// wrongly is a leak). §11.9.9.2's phrases are enclosed in CHOICE INDICATORS, and §5.2.6.4 says "The
+    /// wrongly is a leak). §2023:11.9.9.2's phrases are enclosed in CHOICE INDICATORS, and §2023:5.2.6.4 says "The
     /// alternatives may be specified in any order": the endianness-first order was refused with an anonymous
     /// COBOL0307 by a second, ORDERED copy of the USAGE clause's phrase group.</summary>
     [Theory]
@@ -335,7 +335,7 @@ public sealed class DocumentedNonSupportWitnessTests
         var armed = warnings.Where(w => w.Contains(RecordDelimiterNonSupport, StringComparison.Ordinal)
                                         && w.Contains(armSpelling, StringComparison.OrdinalIgnoreCase)).ToList();
         Assert.True(armed.Count > 0, $"--std {edition}: expected a {RecordDelimiterNonSupport} warning naming "
-            + $"'{armSpelling}' (ISO §4.2.6 ¶3 — the warning mechanism is mandatory for a syntactically-"
+            + $"'{armSpelling}' (ISO §2023:4.2.6 ¶3 — the warning mechanism is mandatory for a syntactically-"
             + $"detectable unsupported processor-dependent element); got:\n"
             + string.Join("\n", warnings.DefaultIfEmpty("(none)")));
     }

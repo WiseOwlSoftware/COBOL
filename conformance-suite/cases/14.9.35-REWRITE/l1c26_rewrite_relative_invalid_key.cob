@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.35.4 GR19 GR20 GR21 — relative REWRITE: key, size
+      *> ISO §2023:14.9.35.4 GR19 GR20 GR21 — relative REWRITE: key, size
       *> GR19: "Transfer of control following the successful or
       *>   unsuccessful execution of the REWRITE operation depends on
       *>   the presence or absence of the optional INVALID KEY and NOT
@@ -25,44 +25,44 @@
       *>   rewrite file connector is set to the invalid key condition
       *>   '23'."
       *> cite.py --check:
-      *>   OK  §14.9.35.4 19)  (General rules)
-      *>   OK  §14.9.35.4 20)  (General rules)
-      *>   OK  §14.9.35.4 21)  (General rules)
-      *>   OK  §14.9.35.4 14)  (General rules)  unsuccessful: "no
+      *>   OK  §2023:14.9.35.4 19)  (General rules)
+      *>   OK  §2023:14.9.35.4 20)  (General rules)
+      *>   OK  §2023:14.9.35.4 21)  (General rules)
+      *>   OK  §2023:14.9.35.4 14)  (General rules)  unsuccessful: "no
       *>       logical record updating takes place, the content of the
       *>       record area is unaffected"
-      *>   OK  §9.1.14 2)  "If the INVALID KEY phrase is specified ...
+      *>   OK  §2023:9.1.14 2)  "If the INVALID KEY phrase is specified ...
       *>       any applicable exception processing statements are not
       *>       executed, and control is transferred to the
       *>       imperative-statement specified in the INVALID KEY phrase"
-      *>   OK  §9.1.14 3)  "If the INVALID KEY phrase is not specified
+      *>   OK  §2023:9.1.14 3)  "If the INVALID KEY phrase is not specified
       *>       ... any applicable exception processing statements are
       *>       executed"
-      *>   OK  §9.1.14 4)  "the INVALID KEY phrase is ignored, if
+      *>   OK  §2023:9.1.14 4)  "the INVALID KEY phrase is ignored, if
       *>       specified" -- cite.py labels this "4)" but it is the
       *>       UNNUMBERED paragraph following that list (PB1554)
-      *>   OK  §9.1.14 1)  (second list) "If the I-O status indicates
+      *>   OK  §2023:9.1.14 1)  (second list) "If the I-O status indicates
       *>       an unsuccessful completion that is not an invalid key
       *>       condition, control is transferred according to the rules
       *>       of any applicable exception processing statements"
-      *>   OK  §9.1.14 2)  (second list) "control is transferred to the
+      *>   OK  §2023:9.1.14 2)  (second list) "control is transferred to the
       *>       end of the input-output statement or to the
       *>       imperative-statement specified in the NOT INVALID KEY
       *>       phrase if it is specified"
-      *>   OK  §14.9.49.4 6)  format 1 USE procedures "are executed ...
+      *>   OK  §2023:14.9.49.4 6)  format 1 USE procedures "are executed ...
       *>       upon the unsuccessful execution of an input-output
       *>       operation unless an AT END or INVALID KEY phrase takes
       *>       precedence"
-      *>   OK  §13.18.43.4 13) a)  REWRITE record size = content of
+      *>   OK  §2023:13.18.43.4 13) a)  REWRITE record size = content of
       *>       data-name-1 (the DEPENDING ON item LN)
-      *>   OK  §13.18.43.4 15)  after a successful READ data-name-1
+      *>   OK  §2023:13.18.43.4 15)  after a successful READ data-name-1
       *>       holds the size of the record just read
       *> Setup: slot 1 = 'AAAAAAAAAA' (10), slot 2 = 'BBBBBBBBBB' (10);
       *> slots 7 and 9 are empty. VARYING 5 TO 20. DECL counts USE runs.
       *> Derivation of every expected line:
       *>  C1 RK=7 (empty), both phrases: GR21 -> invalid key, '23';
       *>     9.1.14 2) -> INVALID arm, declarative NOT run;
-      *>     §14.9.35.4 GR14 -> record area unaffected:
+      *>     §2023:14.9.35.4 GR14 -> record area unaffected:
       *>     "C1 ST=23 DECL=0 REC=XXXXXXXXXX ARM=INVALID"
       *>  C2 RK=1 (present), LN=12, both phrases: GR21 -> slot 1
       *>     replaced, '00'; 9.1.14 (second list) 2) -> NOT INVALID arm:

@@ -118,8 +118,8 @@ subsets. (Task G4.)
   byte-exact (318 across NC/ST/RL/IX/IC/SQ/IF/SM/RW/OBSQ — incl. the full §15 intrinsic catalog, COPY/SM,
   LINAGE, Report Writer, EXTERNAL/GLOBAL FDs, cross-assembly CALL); final census 357/403 GREEN, zero diffs.
 - **G6 ✅** Deferred data cases: the full `REDEFINES`/`RENAMES` tier model — Tier C resolved as the zoned
-  digit-image codec (§13.18.60 GR4); whole-group `AsImage`/`FromImage` incl. fixed-point BINARY/PACKED leaves;
-  variable-length records (§13.18.43) end-to-end.
+  digit-image codec (§2023:13.18.60 GR4); whole-group `AsImage`/`FromImage` incl. fixed-point BINARY/PACKED leaves;
+  variable-length records (§2023:13.18.43) end-to-end.
 - **G7 (next)** Post-85 features (OO→.NET classes, UDF, pointers, national/boolean,
   JSON/XML, post-85 intrinsics) gated per `--std` — each with BOTH the per-edition spec behavior AND the
   correct rejection diagnostic in every edition that lacks it

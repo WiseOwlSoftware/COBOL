@@ -6,7 +6,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO 1989:2023 §14.9.27.4 GR26 -> §12.4.5.3 GR3/GR4 - ASSIGN ... USING (dynamic file assignment, §9.1.21).
+      *> ISO 1989:2023 §2023:14.9.27.4 GR26 -> §2023:12.4.5.3 GR3/GR4 - ASSIGN ... USING (dynamic file assignment, §2023:9.1.21).
       *> GR3 b): "When the USING phrase of the ASSIGN clause is specified, the file connector referenced by
       *> file-name-1 is associated with a physical file identified by the content of the data item referenced by
       *> data-name-1 in the runtime element that executes the OPEN, SORT, or MERGE statement." GR3's lead sentence
@@ -25,7 +25,7 @@
                ORGANIZATION IS LINE SEQUENTIAL
                FILE STATUS IS WS-CK.
       *> GR3 b) applies "when the USING phrase of the ASSIGN clause is specified" with NO condition on the TO
-      *> phrase, so where both are written the USING content wins and literal-1 is never used. §12.4.5.3 GR4
+      *> phrase, so where both are written the USING content wins and literal-1 is never used. §2023:12.4.5.3 GR4
       *> leaves any consistency rule between the two to the implementor, and WiseOwl COBOL defines none
       *> (docs/CONFORMANCE.md §7, DOC-A.1-10): an unrelated content is accepted, not diagnosed.
            SELECT MIX ASSIGN TO "pb324mix.dat" USING WS-NAME
@@ -51,8 +51,8 @@
        01  WS-MX   PIC XX.
        PROCEDURE DIVISION.
        MAIN.
-      *> An all-space content names no physical file, so the association cannot be made: §12.4.5.3 GR3's closing
-      *> sentence makes the OPEN unsuccessful and §9.1.13.6 item 2 gives that failure its own status, '31'.
+      *> An all-space content names no physical file, so the association cannot be made: §2023:12.4.5.3 GR3's closing
+      *> sentence makes the OPEN unsuccessful and §2023:9.1.13.6 item 2 gives that failure its own status, '31'.
            OPEN OUTPUT DYNF.
            DISPLAY "BLANK=" WS-ST.
            MOVE "pb324a.dat" TO WS-NAME.
@@ -98,7 +98,7 @@
            READ MIX.
            DISPLAY "READE=" MIX-REC.
            CLOSE MIX.
-      *> DELETE FILE acts on the association the last OPEN established (§14.9.10.4 GR20 a) - pb324b.dat.
+      *> DELETE FILE acts on the association the last OPEN established (§2023:14.9.10.4 GR20 a) - pb324b.dat.
            DELETE FILE DYNF.
            DISPLAY "DELB=" WS-ST.
            STOP RUN.

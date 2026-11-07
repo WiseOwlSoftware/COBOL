@@ -4,7 +4,7 @@ using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Editions;
 
-/// <summary>The four mutually-exclusive options of a <c>&gt;&gt;COBOL-WORDS</c> directive (ISO §7.3.10.2).</summary>
+/// <summary>The four mutually-exclusive options of a <c>&gt;&gt;COBOL-WORDS</c> directive (ISO §2023:7.3.10.2).</summary>
 public enum CobolWordsAction
 {
     /// <summary>EQUATE literal-1 WITH literal-2 — literal-2 becomes a synonym for literal-1 (GR2).</summary>
@@ -19,7 +19,7 @@ public enum CobolWordsAction
 }
 
 /// <summary>
-/// One parsed <c>&gt;&gt;COBOL-WORDS</c> operation (ISO §7.3.10). Both words are stored UPPER-CASE (SR2:
+/// One parsed <c>&gt;&gt;COBOL-WORDS</c> operation (ISO §2023:7.3.10). Both words are stored UPPER-CASE (SR2:
 /// case-insensitive) with the enclosing literal quotes stripped. <see cref="Existing"/> is the
 /// reserved/context-sensitive/intrinsic word SR3 governs (present for EQUATE/UNDEFINE/SUBSTITUTE);
 /// <see cref="New"/> is the fresh user-defined word SR4 governs (present for EQUATE/SUBSTITUTE/RESERVE).
@@ -35,7 +35,7 @@ public enum CobolWordsAction
 /// <c>default</c> (no cursor) knowingly.</param>
 public sealed record CobolWordsOp(CobolWordsAction Action, string? Existing, string? New, DiagnosticCursor At)
 {
-    /// <summary>The directive as ISO §7.3.10.2 writes it, its words upper-case and quoted
+    /// <summary>The directive as ISO §2023:7.3.10.2 writes it, its words upper-case and quoted
     /// (<c>&gt;&gt;COBOL-WORDS SUBSTITUTE "COMMA" BY "CMA"</c>): the ONE spelling of an operation for the map's own text
     /// (<see cref="CobolWordsMap.DirectiveText"/>) and for every diagnostic that names the user's directive.</summary>
     public string AsWritten => Action switch
@@ -49,18 +49,18 @@ public sealed record CobolWordsOp(CobolWordsAction Action, string? Existing, str
 
     /// <summary>⛔ THE ONE SENTENCE for a word an UNDEFINE or a SUBSTITUTE withdrew (<see cref="CobolWordsMap.RemovedBy"/>):
     /// the directive as written, the word it withdrew as the source writes it (<paramref name="word"/>) and the rule.
-    /// UNDEFINE: the word "shall no longer be reserved or restricted in any way" (§7.3.10.4 GR3). SUBSTITUTE: literal-5
+    /// UNDEFINE: the word "shall no longer be reserved or restricted in any way" (§2023:7.3.10.4 GR3). SUBSTITUTE: literal-5
     /// "shall be used in any syntax where" literal-4 "is documented as required or optional", and literal-4 "shall no
     /// longer be a reserved word, a context-sensitive word, nor an intrinsic function name" (GR4). Every diagnostic that
     /// names a withdrawn word (the syntax-error note, the clause binders) builds it here, so the cause reads alike
     /// (kb/Work PB4573).</summary>
     public string Withdrew(string word) => Action == CobolWordsAction.Undefine
-        ? $"{AsWritten} withdrew {word} (ISO §7.3.10.4 GR3)"
-        : $"{AsWritten} withdrew {word}, and {New} now stands for it (ISO §7.3.10.4 GR4)";
+        ? $"{AsWritten} withdrew {word} (ISO §2023:7.3.10.4 GR3)"
+        : $"{AsWritten} withdrew {word}, and {New} now stands for it (ISO §2023:7.3.10.4 GR4)";
 
     /// <summary>What the withdrawal leaves of <paramref name="syntax"/>, a phrase of the standard's general formats that
     /// requires <paramref name="word"/>: under UNDEFINE it "shall not be available for use in this compilation group"
-    /// (§7.3.10.4 GR3); under SUBSTITUTE literal-5 "shall be used in any syntax where" the word "is documented as required"
+    /// (§2023:7.3.10.4 GR3); under SUBSTITUTE literal-5 "shall be used in any syntax where" the word "is documented as required"
     /// (GR4), so the phrase is written with literal-5 and is available.</summary>
     public string WithdrawnSyntax(string syntax, string word) => Action == CobolWordsAction.Undefine
         ? $"{syntax} requires the word {word}, so it is not available in this compilation group"
@@ -68,7 +68,7 @@ public sealed record CobolWordsOp(CobolWordsAction Action, string? Existing, str
 }
 
 /// <summary>
-/// The per-compilation-group <c>&gt;&gt;COBOL-WORDS</c> override layer (ISO §7.3.10; Annex D.12; Annex E.3.3
+/// The per-compilation-group <c>&gt;&gt;COBOL-WORDS</c> override layer (ISO §2023:7.3.10; Annex D.12; Annex E.3.3
 /// item 12) — the ONE runtime carrier the owner's recorded direction names: built in the Frontend
 /// (<c>CobolWordsDirectiveProcessor</c>) from the directive text, then consulted by the lexer-applied
 /// <c>CobolWordsRewriter</c> (token retyping), the map-aware lexer data-name gate, the composed
@@ -82,10 +82,10 @@ public sealed class CobolWordsMap
     /// <summary>The no-directive map — every consumer short-circuits on <see cref="IsEmpty"/>.</summary>
     public static readonly CobolWordsMap Empty = new([]);
 
-    /// <summary>The edition whose word populations §7.3.10.3 speaks of: the one that INTRODUCED the directive
-    /// (<c>cobol-words-directive-2023</c>; §7.3.10, Annex E.3.3 item 12), the only edition at which any rule of the
-    /// directive is ever asked. SR3/SR4 (§8.9 reserved ∪ §8.10 context-sensitive ∪ §8.11 intrinsic) and SR4's
-    /// §8.3.2.1 word limits are both read at it, so no caller restates the number.</summary>
+    /// <summary>The edition whose word populations §2023:7.3.10.3 speaks of: the one that INTRODUCED the directive
+    /// (<c>cobol-words-directive-2023</c>; §2023:7.3.10, Annex E.3.3 item 12), the only edition at which any rule of the
+    /// directive is ever asked. SR3/SR4 (§2023:8.9 reserved ∪ §2023:8.10 context-sensitive ∪ §2023:8.11 intrinsic) and SR4's
+    /// §2023:8.3.2.1 word limits are both read at it, so no caller restates the number.</summary>
     public static readonly int DirectiveEdition = ConstructRegistry.Find(Constructs.CobolWordsDirective2023)!.IntroducedIn;
 
     private readonly Dictionary<string, string> _synonyms;
@@ -96,10 +96,10 @@ public sealed class CobolWordsMap
     private readonly Dictionary<string, string> _reservedSynonyms;
     private readonly Dictionary<string, CobolWordsOp> _directingSynonyms;
 
-    /// <summary>The words that begin a compiler directing statement (ISO §7.2.2.2: "The compiler directing statements are
-    /// the COPY statement and the REPLACE statement."), the ONE owner of the pair. §7.3.10.4 GR6 puts them outside the
+    /// <summary>The words that begin a compiler directing statement (ISO §2023:7.2.2.2: "The compiler directing statements are
+    /// the COPY statement and the REPLACE statement."), the ONE owner of the pair. §2023:7.3.10.4 GR6 puts them outside the
     /// directive: "A COBOL-WORDS directive does not affect any Compiler directing statements or Compiler directives", and
-    /// the stage order of §7.2.1 agrees (COPY is found in Step 1, REPLACE applies in Step 3, the directive's actions come
+    /// the stage order of §2023:7.2.1 agrees (COPY is found in Step 1, REPLACE applies in Step 3, the directive's actions come
     /// last, in Step 4), so a synonym of one of these words begins no statement (kb/Work PB4488).</summary>
     public static readonly IReadOnlyList<string> CompilerDirectingStatementWords = ["COPY", "REPLACE"];
 
@@ -136,8 +136,8 @@ public sealed class CobolWordsMap
         _deReserved = new(_removedBy.Keys, CobolKeywords.Comparer);
     }
 
-    /// <summary>What a synonym of <paramref name="original"/> is besides a synonym: reserved, when §8.9 reserves the
-    /// original (GR2, GR4: it "shall be treated as a synonym for" the word, so §8.3.2.1 rule 1 keeps it from being a
+    /// <summary>What a synonym of <paramref name="original"/> is besides a synonym: reserved, when §2023:8.9 reserves the
+    /// original (GR2, GR4: it "shall be treated as a synonym for" the word, so §2023:8.3.2.1 rule 1 keeps it from being a
     /// user-defined word), and a word that begins no statement, when the original begins a compiler directing statement
     /// (GR6).</summary>
     private void NoteSynonym(string synonym, string original, CobolWordsOp op)
@@ -175,7 +175,7 @@ public sealed class CobolWordsMap
         return ops.Count == 0 ? Empty : new CobolWordsMap(ops);
     }
 
-    /// <summary>The map as the <c>&gt;&gt;COBOL-WORDS</c> directive lines that state it (ISO §7.3.10.2), one per operation in source
+    /// <summary>The map as the <c>&gt;&gt;COBOL-WORDS</c> directive lines that state it (ISO §2023:7.3.10.2), one per operation in source
     /// order, each ending in a line feed; empty for <see cref="Empty"/>. A skeleton publishes it (<c>CompileState.CobolWordsMap</c>,
     /// DESIGN-external-repository §6.1) and a compilation that expands the skeleton elsewhere reads it with the one directive
     /// processor, so the words mean the same there.</summary>
@@ -190,7 +190,7 @@ public sealed class CobolWordsMap
 
     /// <summary>The existing word <paramref name="written"/> is a synonym for (EQUATE literal-2 → literal-1, SUBSTITUTE
     /// literal-5 → literal-4), or null when it is not a synonym: the ONE question "did the user write the word itself or its
-    /// synonym" that a diagnostic asks to name the word as written (ISO §7.3.10.4 GR2, GR4; kb/Work PB4573).
+    /// synonym" that a diagnostic asks to name the word as written (ISO §2023:7.3.10.4 GR2, GR4; kb/Work PB4573).
     /// <paramref name="written"/> is the word as the SOURCE writes it, never a retyped token's text, which is already
     /// the original's.</summary>
     public string? SynonymOf(string written) => _synonyms.GetValueOrDefault(written);
@@ -209,7 +209,7 @@ public sealed class CobolWordsMap
     /// <summary>The directive that DE-RESERVED <paramref name="written"/> (the UNDEFINE or SUBSTITUTE naming it as
     /// literal-3 / literal-4), or null when no directive removed it: the question <see cref="Resolve"/> answers with a
     /// null, asked for the directive itself, so a diagnostic names the cause and cites its
-    /// <see cref="CobolWordsOp.At"/> (ISO §7.3.10.4 GR3/GR4; kb/Work PB4309). SR5 (§7.3.10.3) forbids the same COBOL
+    /// <see cref="CobolWordsOp.At"/> (ISO §2023:7.3.10.4 GR3/GR4; kb/Work PB4309). SR5 (§2023:7.3.10.3) forbids the same COBOL
     /// word in more than one directive of a compilation group, so there is at most one.</summary>
     public CobolWordsOp? RemovedBy(string written) => _removedBy.GetValueOrDefault(written);
 
@@ -217,26 +217,26 @@ public sealed class CobolWordsMap
     /// overlay reads this so a use as a user-defined word is COBOL0901-rejected.</summary>
     public IReadOnlySet<string> Reserved => _reserved;
 
-    /// <summary>⛔ A SYNONYM OF A RESERVED WORD IS RESERVED (ISO §7.3.10.4 GR2, GR4; kb/Work PB4488): a fresh user word
-    /// (EQUATE literal-2 / SUBSTITUTE literal-5) → the §8.9 reserved word it stands for, for every synonym whose original
-    /// word §8.9 reserves at <see cref="DirectiveEdition"/>. It is "treated as a synonym for" that word, and "Reserved words
-    /// shall not be used as user-defined words or system-names" (§8.3.2.1 rule 1). The lexer's retype
+    /// <summary>⛔ A SYNONYM OF A RESERVED WORD IS RESERVED (ISO §2023:7.3.10.4 GR2, GR4; kb/Work PB4488): a fresh user word
+    /// (EQUATE literal-2 / SUBSTITUTE literal-5) → the §2023:8.9 reserved word it stands for, for every synonym whose original
+    /// word §2023:8.9 reserves at <see cref="DirectiveEdition"/>. It is "treated as a synonym for" that word, and "Reserved words
+    /// shall not be used as user-defined words or system-names" (§2023:8.3.2.1 rule 1). The lexer's retype
     /// (<c>CobolWordsRewriter.Plan</c>) makes a synonym its original's keyword TOKEN only where the original HAS a token, so
     /// a synonym of COPY, REPLACE, LOCALE, NESTED, ANYCASE, SYSTEM-DEFAULT, USER-DEFAULT, EXCEPTION-OBJECT, COMMA or MINUS
-    /// stays an <c>IDENTIFIER</c> and only this set keeps it from being a name. A synonym of a context-sensitive word (§8.10)
+    /// stays an <c>IDENTIFIER</c> and only this set keeps it from being a name. A synonym of a context-sensitive word (§2023:8.10)
     /// or of an intrinsic function name stays what it was and is not here. The <see cref="ReservedWordSet"/> overlay reads
     /// it, beside <see cref="Reserved"/>.</summary>
     public IReadOnlyDictionary<string, string> ReservedSynonyms => _reservedSynonyms;
 
     /// <summary>The directive that made <paramref name="written"/> a synonym of a word that begins a compiler directing
-    /// statement (<see cref="CompilerDirectingStatementWords"/>), or null. ISO §7.3.10.4 GR6 puts those statements outside
+    /// statement (<see cref="CompilerDirectingStatementWords"/>), or null. ISO §2023:7.3.10.4 GR6 puts those statements outside
     /// the directive, so such a synonym begins no COPY or REPLACE statement (kb/Work PB4488); a diagnostic that finds it at
     /// a syntax error names the directive and the rule.</summary>
     public CobolWordsOp? DirectingStatementSynonymOf(string written) => _directingSynonyms.GetValueOrDefault(written);
 
     /// <summary>
     /// The canonical COBOL word that a word WRITTEN in the source denotes under this compilation group's
-    /// directives (ISO §7.3.10.4 GR2/GR3/GR4) — <b>the ONE resolution</b> every consumer that classifies a word
+    /// directives (ISO §2023:7.3.10.4 GR2/GR3/GR4) — <b>the ONE resolution</b> every consumer that classifies a word
     /// BY NAME calls. The lexer's <c>CobolWordsRewriter.Plan</c> retype can only reach words the lexer makes a keyword
     /// TOKEN; a word the binder classifies from its TEXT (the §15 phrase words ANYCASE/LOCALE/HEX/NAT/…, the
     /// SET-statement LC_ categories, the ALPHABET coded-set names) is reached ONLY here, so a site that compares
@@ -255,15 +255,15 @@ public sealed class CobolWordsMap
     /// <item><paramref name="written"/> itself otherwise — including every word when <see cref="IsEmpty"/>, the
     /// zero-overhead no-directive path.</item>
     /// </list>
-    /// SR3 (§7.3.10.3) restricts literal-1/3/4 to a reserved word, a context-sensitive word or an
+    /// SR3 (§2023:7.3.10.3) restricts literal-1/3/4 to a reserved word, a context-sensitive word or an
     /// intrinsic-function name, and SR5 forbids the same COBOL word in more than one directive of a compilation
     /// group, so the de-reserved set and the synonym keys are disjoint: the order of the two tests below is not a
     /// precedence choice. It matches the order <c>IntrinsicBinder.BindIntrinsicCore</c> has always used
     /// (removal tested against the ORIGINAL written name, then the synonym applied).
     /// </summary>
     /// <param name="written">The word as written in the source. A de-reserved keyword is found on its basic letters
-    /// alone (<see cref="CobolKeywords.Comparer"/>; ISO §8.1.3.2 3) a), SR2/GR1 — case-insensitive), a synonym by the
-    /// Annex C fold of the fresh user word that stands for it (<see cref="CobolNames.Comparer"/>; §8.1.3.2 4) b)).</param>
+    /// alone (<see cref="CobolKeywords.Comparer"/>; ISO §2023:8.1.3.2 3) a), SR2/GR1 — case-insensitive), a synonym by the
+    /// Annex C fold of the fresh user word that stands for it (<see cref="CobolNames.Comparer"/>; §2023:8.1.3.2 4) b)).</param>
     /// <returns>The canonical word, or <paramref name="written"/> in its KEYWORD SPELLING
     /// (<see cref="CobolKeywords.Spelling"/>: the basic letters raised, every other character as written) when the
     /// directives leave it alone, so a caller that compares the result with an upper-case keyword is handed the word
@@ -294,15 +294,15 @@ public sealed class CobolWordsMap
     /// True when the word WRITTEN in the source denotes the keyword <paramref name="keyword"/> under this
     /// group's directives — <b>the comparison every by-name classifier makes</b>, so <see cref="Resolve"/>'s
     /// GR2/GR3/GR4 reading is applied once and no caller re-implements it. Used by the parser's text predicates
-    /// (<c>CobolParserCoreBase.Word</c>) and by every binder site that recognizes a §8.9/§8.10 word the lexer
+    /// (<c>CobolParserCoreBase.Word</c>) and by every binder site that recognizes a §2023:8.9/§2023:8.10 word the lexer
     /// does not tokenize — the SET-statement locale categories, the ALPHABET coded-set names, CALL … AS NESTED.
     /// <para>The comparison with the keyword is on the BASIC LETTERS ALONE (<see cref="CobolKeywords.Same"/>; ISO
-    /// §8.1.3.2 3) a), 4): the Annex C fold governs user-defined words only), so a word written with an extended letter is
+    /// §2023:8.1.3.2 3) a), 4): the Annex C fold governs user-defined words only), so a word written with an extended letter is
     /// not a keyword (<c>CLASSİFİCATİON</c>, U+0130, is no CLASSIFICATION; kb/Work PB4240, PB4420).
     /// Allocation-free (it never takes <see cref="Resolve"/>'s spelled copy): these run inside ANTLR's speculative prediction.</para>
     /// </summary>
     /// <remarks>⛔ Give this a word AS WRITTEN, and only for a word the LEXER does not tokenize (the
-    /// §8.9/§8.10 words that arrive as bare IDENTIFIERs). For a word that may arrive as a keyword TOKEN use
+    /// §2023:8.9/§2023:8.10 words that arrive as bare IDENTIFIERs). For a word that may arrive as a keyword TOKEN use
     /// <c>CobolWordsRewriter.TokenIs</c> instead: the lexer's retype already resolved those, and resolving
     /// them again loses the synonym the user wrote.</remarks>
     public bool Is(string? written, string keyword)

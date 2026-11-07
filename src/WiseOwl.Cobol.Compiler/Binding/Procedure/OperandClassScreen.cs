@@ -7,8 +7,8 @@ using WiseOwl.Cobol.Editions.Diagnostics;
 namespace WiseOwl.Cobol.Binding.Procedure;
 
 /// <summary>The operand CLASSES a statement's identifier-position syntax rule can enumerate. Each member is one
-/// phrase the standard writes, read through the ONE §8.5.2.1 Table-2 classifier
-/// (<see cref="IntrinsicArgumentRules.ClassOfItem"/>) and the ONE §5.5 integer primitive
+/// phrase the standard writes, read through the ONE §2023:8.5.2.1 Table-2 classifier
+/// (<see cref="IntrinsicArgumentRules.ClassOfItem"/>) and the ONE §2023:5.5 integer primitive
 /// (<see cref="PicInfo.IsIntegerDescription"/>) — never a private category switch at the call site.</summary>
 [Flags]
 internal enum OperandClasses
@@ -16,13 +16,13 @@ internal enum OperandClasses
     None = 0,
 
     /// <summary>"an integer data item" · "a data item that is an integer" · "a numeric elementary data item that
-    /// is an integer": a fixed-point numeric ELEMENTARY item of scale zero (§5.5 2)b)2 through
+    /// is an integer": a fixed-point numeric ELEMENTARY item of scale zero (§2023:5.5 2)b)2 through
     /// <see cref="PicInfo.IsIntegerDescription"/>; a floating-point item and an index data item are excluded
     /// there, a group has no PICTURE and is excluded by its class).</summary>
     IntegerItem = 1 << 0,
 
-    /// <summary>"a data item whose usage is index" · "a data item of class index" — §8.5.2.1 Table 2's class
-    /// INDEX, which is the index DATA item (never an index-name: that is not a data item at all, §13.18.38.3
+    /// <summary>"a data item whose usage is index" · "a data item of class index" — §2023:8.5.2.1 Table 2's class
+    /// INDEX, which is the index DATA item (never an index-name: that is not a data item at all, §2023:13.18.38.3
     /// SR7).</summary>
     IndexDataItem = 1 << 1,
 
@@ -49,52 +49,52 @@ internal sealed record OperandPosition(
 /// its drift test (<c>OperandClassScreenDriftTests</c>) run against every class shape automatically; a new
 /// class-closed position is one row and one call.</para>
 /// <para>What is NOT a row: a position whose rule is not a class closure over an IDENTIFIER — the
-/// arithmetic-expression positions (§8.8.1.1, <c>OperandContextRules</c>), the arithmetic resultants
-/// (<c>ExpressionBinder.ScreenResultant</c>, whose numeric-edited axis §8.8.1.1 does not have), the PERFORM … TIMES
+/// arithmetic-expression positions (§2023:8.8.1.1, <c>OperandContextRules</c>), the arithmetic resultants
+/// (<c>ExpressionBinder.ScreenResultant</c>, whose numeric-edited axis §2023:8.8.1.1 does not have), the PERFORM … TIMES
 /// count and the STOP/GOBACK status operand (each admits a LITERAL or a function as well, so it is screened on
 /// the bound shape by its own binder). DESIGN-binder-bound-tree.md §3.6 lists every position of both kinds.</para></summary>
 internal static class OperandPositions
 {
-    /// <summary>ISO §14.9.17.3 SR1 — GO TO … DEPENDING ON identifier-1 (kb/Work PB210).</summary>
+    /// <summary>ISO §2023:14.9.17.3 SR1 — GO TO … DEPENDING ON identifier-1 (kb/Work PB210).</summary>
     public static readonly OperandPosition GoToDependingSelector = new(
-        "GO TO DEPENDING ON", "identifier-1", "§14.9.17.3 SR1",
+        "GO TO DEPENDING ON", "identifier-1", "§2023:14.9.17.3 SR1",
         "a numeric elementary data item that is an integer",
         OperandClasses.IntegerItem, DiagnosticCatalog.GoToDependingSelectorClass);
 
-    /// <summary>ISO §14.9.37.3 SR5 first sentence — SEARCH … VARYING identifier-2 (kb/Work PB211). The rule's second
+    /// <summary>ISO §2023:14.9.37.3 SR5 first sentence — SEARCH … VARYING identifier-2 (kb/Work PB211). The rule's second
     /// sentence is a subscript prohibition, not a class, and is asked by <c>SearchBinder</c> under the same
     /// diagnostic.</summary>
     public static readonly OperandPosition SearchVaryingIdentifier = new(
-        "SEARCH VARYING", "identifier-2", "§14.9.37.3 SR5",
+        "SEARCH VARYING", "identifier-2", "§2023:14.9.37.3 SR5",
         "a data item whose usage is index or a data item that is an integer",
         OperandClasses.IntegerItem | OperandClasses.IndexDataItem, DiagnosticCatalog.SearchVaryingOperand);
 
-    /// <summary>ISO §14.9.39.3 SR1 — the SET Format-1 receiving identifier-1 (kb/Work PB212). An index-name-1
+    /// <summary>ISO §2023:14.9.39.3 SR1 — the SET Format-1 receiving identifier-1 (kb/Work PB212). An index-name-1
     /// receiver is the brace's OTHER alternative and is not screened here.</summary>
     public static readonly OperandPosition SetIndexAssignmentReceiver = new(
-        "SET TO (Format 1, index-assignment)", "identifier-1", "§14.9.39.3 SR1",
+        "SET TO (Format 1, index-assignment)", "identifier-1", "§2023:14.9.39.3 SR1",
         "a data item of class index or an integer data item",
         OperandClasses.IntegerItem | OperandClasses.IndexDataItem, DiagnosticCatalog.SetIndexAssignmentOperand);
 
-    /// <summary>ISO §14.9.28.3 SR2 first sentence over the varied identifier of the VARYING / AFTER phrase — "Each
+    /// <summary>ISO §2023:14.9.28.3 SR2 first sentence over the varied identifier of the VARYING / AFTER phrase — "Each
     /// identifier shall reference a numeric elementary item described in the data division" (found by the
     /// PB210–PB212 sibling sweep: a <c>PIC X</c> induction variable compiled and threw at run time).</summary>
     public static readonly OperandPosition PerformVaryingIdentifier = new(
-        "PERFORM VARYING / AFTER", "the varied identifier", "§14.9.28.3 SR2",
+        "PERFORM VARYING / AFTER", "the varied identifier", "§2023:14.9.28.3 SR2",
         "a numeric elementary item described in the data division",
         OperandClasses.NumericElementaryItem, DiagnosticCatalog.PerformVaryingOperandRule);
 
-    /// <summary>ISO §14.9.28.3 SR5 a) — the varied identifier when an index-name is in the FROM phrase.</summary>
+    /// <summary>ISO §2023:14.9.28.3 SR5 a) — the varied identifier when an index-name is in the FROM phrase.</summary>
     public static readonly OperandPosition PerformVaryingIdentifierFromIndex = new(
-        "PERFORM VARYING / AFTER with an index-name FROM", "the varied identifier", "§14.9.28.3 SR5 a)",
+        "PERFORM VARYING / AFTER with an index-name FROM", "the varied identifier", "§2023:14.9.28.3 SR5 a)",
         "an integer data item",
         OperandClasses.IntegerItem, DiagnosticCatalog.PerformVaryingOperandRule);
 
-    /// <summary>ISO §14.9.51.3 SR14 — WRITE … ADVANCING identifier-2 (kb/Work PB1023). The brace's OTHER
+    /// <summary>ISO §2023:14.9.51.3 SR14 — WRITE … ADVANCING identifier-2 (kb/Work PB1023). The brace's OTHER
     /// alternative, integer-1 (SR15 — "positive or zero"), is a literal and is screened beside this row by
     /// <c>SequentialIoBinder.BindAdvancing</c> under the same diagnostic.</summary>
     public static readonly OperandPosition WriteAdvancingIdentifier = new(
-        "WRITE ADVANCING", "identifier-2", "§14.9.51.3 SR14",
+        "WRITE ADVANCING", "identifier-2", "§2023:14.9.51.3 SR14",
         "an integer data item",
         OperandClasses.IntegerItem, DiagnosticCatalog.WriteAdvancingOperand);
 
@@ -108,7 +108,7 @@ internal static class OperandPositions
 }
 
 /// <summary>⛔ THE ONE OPERAND-CLASS SCREEN for the positions <see cref="OperandPositions"/> registers.
-/// <see cref="ClassesOf"/> answers "which of the enumerable classes is this operand in" from the §8.5.2.1 Table-2
+/// <see cref="ClassesOf"/> answers "which of the enumerable classes is this operand in" from the §2023:8.5.2.1 Table-2
 /// classifier; <see cref="Screen(EditionContext,OperandPosition,BoundOperand,string)"/> asks it for a position and
 /// reports the position's own rule, in both dialect lanes — an identifier slot has no coercion to offer, and every
 /// shape it refuses either threw at run time or stored a value the standard defines for no such operand.</summary>
@@ -120,7 +120,7 @@ internal static class OperandClassScreen
     /// rather than re-diagnosing an item the compile has already reported.</summary>
     public static OperandClasses ClassesOf(Place p)
     {
-        // §8.4.3.3.4 GR6 c): reference modification makes a numeric item "class and category national if the usage
+        // §2023:8.4.3.3.4 GR6 c): reference modification makes a numeric item "class and category national if the usage
         // is national; otherwise … class and category alphanumeric" — never integer, numeric or index. A
         // reference-modified place is the one kind that denotes no declared item (Place.DenotedItem).
         if (p.DenotedItem is null) return OperandClasses.None;
@@ -146,15 +146,15 @@ internal static class OperandClassScreen
     }
 
     /// <summary>Screen a BOUND operand at <paramref name="pos"/>. Every row is an IDENTIFIER position that closes
-    /// the operand to data items, so a literal a constant-name substitutes (§13.10.4 GR1) or a figurative constant
+    /// the operand to data items, so a literal a constant-name substitutes (§2023:13.10.4 GR1) or a figurative constant
     /// is refused by the same rule; a <see cref="BoundOperandError"/> was reported where it was made and is not
     /// reported again.
-    /// <para>A FUNCTION-IDENTIFIER is an identifier (§8.4.3.1.2 Format 1), and §8.4.3.2.4 GR1 says it "references a
+    /// <para>A FUNCTION-IDENTIFIER is an identifier (§2023:8.4.3.1.2 Format 1), and §2023:8.4.3.2.4 GR1 says it "references a
     /// temporary data item" — an elementary item of the function's category — so it is classed by its RESULT
     /// (<see cref="FunctionResultClasses"/>), never refused as "not a data item" (kb/Work PB1421: an integer
     /// function was refused at GO TO … DEPENDING). A user-defined function's or an inline method invocation's
     /// temporary arrives as a <see cref="BoundFieldOperand"/> over its returning item and takes the data-item
-    /// arm. A RECEIVING row never sees one: §8.4.3.2.3 SR1 keeps a function-identifier out of a receiving
+    /// arm. A RECEIVING row never sees one: §2023:8.4.3.2.3 SR1 keeps a function-identifier out of a receiving
     /// operand, and those slots do not parse one.</para></summary>
     public static bool Screen(EditionContext edition, OperandPosition pos, BoundOperand op, string text)
     {
@@ -173,8 +173,8 @@ internal static class OperandClassScreen
     }
 
     /// <summary>The enumerable classes of the temporary item an intrinsic function-identifier (or a counter
-    /// register, "a temporary unsigned integer data item", §8.4.3.15.4 GR1) references: the ONE integer classifier
-    /// (§15.2 type 5, <see cref="IntrinsicResultType.IsIntegerOperand(BoundOperand)"/>) and the ONE operand
+    /// register, "a temporary unsigned integer data item", §2023:8.4.3.15.4 GR1) references: the ONE integer classifier
+    /// (§2023:15.2 type 5, <see cref="IntrinsicResultType.IsIntegerOperand(BoundOperand)"/>) and the ONE operand
     /// category reader. A temporary item is never of class index.</summary>
     private static OperandClasses FunctionResultClasses(BoundOperand op) =>
         IntrinsicResultType.IsIntegerOperand(op) ? OperandClasses.IntegerItem | OperandClasses.NumericElementaryItem
@@ -184,7 +184,7 @@ internal static class OperandClassScreen
     private static string DescribeFunctionResult(BoundOperand op) =>
         IntrinsicResultType.OperandCategory(op) is PicCategory.Numeric
             ? "a numeric function-identifier, and \"A numeric function shall not be specified where an integer "
-              + "operand is required\" (ISO §8.4.3.2.3 SR11)"
+              + "operand is required\" (ISO §2023:8.4.3.2.3 SR11)"
             : $"a function-identifier of category {IntrinsicResultType.OperandCategory(op)?.ToString().ToLowerInvariant() ?? "unknown"}";
 
     private static void Report(EditionContext edition, OperandPosition pos, string text, string what) =>
@@ -194,7 +194,7 @@ internal static class OperandClassScreen
 
     private static string Describe(Place p)
     {
-        if (p.DenotedItem is null) return "reference-modified, which makes it alphanumeric or national (ISO §8.4.3.3.4 GR6)";
+        if (p.DenotedItem is null) return "reference-modified, which makes it alphanumeric or national (ISO §2023:8.4.3.3.4 GR6)";
         if (p.Item.IsGroup) return "a group item";
         return IntrinsicArgumentRules.ClassOfItem(p.Item) switch
         {

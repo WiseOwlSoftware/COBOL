@@ -5,18 +5,18 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §8.4.6.2.1 3) a) - INITIALIZE of a name a contained
+      *> ISO §2023:8.4.6.2.1 3) a) - INITIALIZE of a name a contained
       *> program declares itself initializes ITS item, never a
       *> container's GLOBAL dynamic-capacity table of the same name
       *> (kb/Work PB1047, wave 69 Z: the whole-table arm picked the
       *> first DYNAMIC candidate across every tier, so the local item
       *> kept its value and the container's table was cleared)
-      *> RULE §8.4.6.2.1 3) a): "If the name is declared in source
+      *> RULE §2023:8.4.6.2.1 3) a): "If the name is declared in source
       *>   element B, the item in source element B is the referenced
       *>   item."  cite.py --check 8.4.6.2.1 "If the name is declared in
       *>   source element B, the item in source element B is the
-      *>   referenced item" -> OK §8.4.6.2.1 3) a)
-      *> RULE §8.4.6.2.2: "All data-names and screen-names subordinate
+      *>   referenced item" -> OK §2023:8.4.6.2.1 3) a)
+      *> RULE §2023:8.4.6.2.2: "All data-names and screen-names subordinate
       *>   to a global name are global names" (cite.py --check
       *>   8.4.6.2.2 -> OK) - so where no local declaration hides it,
       *>   D-TAB names the container's table.

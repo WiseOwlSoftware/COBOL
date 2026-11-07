@@ -7,14 +7,14 @@
 *>---
       *> PB59 / RV-15.12.4-1, RV-15.18.4-1 — a numeric literal is a LEGAL string-channel argument for
       *> exactly the functions whose §15.x.3 rules admit one, and it renders as its own characters.
-      *> §15.18.3 r1 lists class NUMERIC among CONCAT's argument classes and §15.18.4 r1 concatenates
-      *> "all of the characters"; §15.12.3 r1 admits "an unsigned integer ... literal" as BASECONVERT
+      *> §2023:15.18.3 r1 lists class NUMERIC among CONCAT's argument classes and §2023:15.18.4 r1 concatenates
+      *> "all of the characters"; §2023:15.12.3 r1 admits "an unsigned integer ... literal" as BASECONVERT
       *> argument-1 below base 11. Both shapes used to compile CLEAN and abort at RUN TIME with
       *> NotImplementedCobolFeatureException (the wrong-stage family): the renderer's string channel
       *> had no numeric-literal arm, pinned as designed by a drift test — the pin moved WITH the fix.
       *> The admission is PER-FUNCTION: NUMVAL and friends still refuse a numeric literal (the NUMVAL
-      *> §15.67.3 and NUMVAL-F §15.69.3 rules exclude it). A nested FUNCTION LENGTH is no such literal: it is an
-      *> integer function, which §8.4.3.2.3 SR12 bars from CONCAT's unsigned-integer position (kb/Work PB4830).
+      *> §2023:15.67.3 and NUMVAL-F §2023:15.69.3 rules exclude it). A nested FUNCTION LENGTH is no such literal: it is an
+      *> integer function, which §2023:8.4.3.2.3 SR12 bars from CONCAT's unsigned-integer position (kb/Work PB4830).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB59NUMLIT.
        DATA DIVISION.

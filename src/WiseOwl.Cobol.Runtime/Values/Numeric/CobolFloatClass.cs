@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 namespace WiseOwl.Cobol.Runtime;
 
-/// <summary>The questions ISO/IEC 1989:2023 §8.8.4.4.4 GR3 asks of the CONTENT of a floating-point carrier.</summary>
+/// <summary>The questions ISO/IEC 1989:2023 §2023:8.8.4.4.4 GR3 asks of the CONTENT of a floating-point carrier.</summary>
 public enum FloatClassTest
 {
     /// <summary>GR3 n) 1. b. — NUMERIC over a standard floating-point usage: "represents a finite numeric value".
@@ -24,7 +24,7 @@ public enum FloatClassTest
 }
 
 /// <summary>
-/// ⛔ THE ONE PLACE a floating-point class condition is decided (ISO §8.8.4.4.4 GR3 g)–m) and n) 1. b.; kb/Work
+/// ⛔ THE ONE PLACE a floating-point class condition is decided (ISO §2023:8.8.4.4.4 GR3 g)–m) and n) 1. b.; kb/Work
 /// PB225), and it decides every question on the carrier's RAW ISO/IEC 60559:2020 bits — never on a
 /// <c>double</c> the value was converted to. That is not a style choice: a binary32 → binary64 widening QUIETS a
 /// signaling NaN, so GR3 j)/k) cannot be answered after one; and the extremes of g)/m) are exact bit patterns of
@@ -32,7 +32,7 @@ public enum FloatClassTest
 /// binary32 (3.4028235E+38 is not <c>(double)float.MaxValue</c>). The encodings are the ones
 /// <c>WiseOwl.Cobol.Binding.IeeeSpecials</c> writes (SET Format 15), read back: exponent all ones with a zero
 /// significand is an infinity, with a nonzero one a NaN, and the LEADING significand bit tells quiet (set) from
-/// signaling (clear) — ISO/IEC 60559:2020 §6.2.1.
+/// signaling (clear) — ISO/IEC 60559:2020 §2023:6.2.1.
 /// </summary>
 public static class CobolFloatClass
 {

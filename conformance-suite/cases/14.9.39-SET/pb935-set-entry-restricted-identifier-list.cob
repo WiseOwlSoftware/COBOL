@@ -4,10 +4,10 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §13.18.60.4 GR25 over the vendor SET … TO ENTRY spelling, identifier operand and a receiving LIST
+      *> ISO §2023:13.18.60.4 GR25 over the vendor SET … TO ENTRY spelling, identifier operand and a receiving LIST
       *> (kb/Work PB935). "A restricted program-pointer shall contain only the predefined address NULL or the address
       *> of a program with the same signature as that identified by the specified program-prototype-name."
-      *> cite.py: OK  §13.18.60.4 25)  (General rules)
+      *> cite.py: OK  §2023:13.18.60.4 25)  (General rules)
       *> The ENTRY operand NM is an identifier whose content names the program (a value), so the sender is an
       *> unrestricted program-address however it is spelled. UPP is unrestricted and is written FIRST; RP is
       *> restricted to PB935Y and is the SECOND receiver of the list, so the verdict is asked of every receiver

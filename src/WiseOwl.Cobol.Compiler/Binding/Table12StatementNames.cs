@@ -9,8 +9,8 @@ namespace WiseOwl.Cobol.Binding;
 using Core = CobolParserCore;
 
 /// <summary>
-/// ISO Table 12 statement names (§14.5.1: "Statement names are identified in Table 12, Procedural statements"),
-/// resolved from the statement KIND — the parse rule — never from the source's leading tokens. §15.32.3 r3 makes
+/// ISO Table 12 statement names (§2023:14.5.1: "Statement names are identified in Table 12, Procedural statements"),
+/// resolved from the statement KIND — the parse rule — never from the source's leading tokens. §2023:15.32.3 r3 makes
 /// this the answer FUNCTION EXCEPTION-STATEMENT must give: "The names of the statements are given in Table 12,
 /// Procedural statements, in the column labeled 'Statement name'."
 ///
@@ -23,7 +23,7 @@ using Core = CobolParserCore;
 /// mechanism), so a newly added statement rule gets a correct name automatically.</para>
 ///
 /// <para>The exception map carries only rules whose NAME differs from their Table 12 row: finer-grained formats
-/// (§14.9.10.1 — DELETE FILE is a format of the DELETE statement; §14.9.37 — SEARCH ALL is Format 2 of the
+/// (§2023:14.9.10.1 — DELETE FILE is a format of the DELETE statement; §2023:14.9.37 — SEARCH ALL is Format 2 of the
 /// SEARCH statement) and the Wave-H facility arms, whose rule names carry disambiguating prefixes/suffixes the
 /// statement name does not. Rules with no 2023 Table 12 row at all (ALTER · ENABLE · DISABLE · PURGE · ENTRY · ENTER · USE · NEXT SENTENCE
 /// · the 2023 inline method invocation) keep their projected names as this implementation's DOCUMENTED answer —
@@ -35,7 +35,7 @@ using Core = CobolParserCore;
 /// </summary>
 internal static class Table12StatementNames
 {
-    /// <summary>The §15.32.3 r3 statement name for a parsed statement. Every <c>statement</c> alternative is a
+    /// <summary>The §2023:15.32.3 r3 statement name for a parsed statement. Every <c>statement</c> alternative is a
     /// single rule reference, so the kind is child 0's rule — asserted loudly, because a grammar restructure
     /// that breaks the shape must fail here, never record a wrong name into the last-exception state.</summary>
     public static string NameOf(Core.StatementContext s) =>
@@ -60,11 +60,11 @@ internal static class Table12StatementNames
         ["acceptMessageCount"] = "ACCEPT",  // ISO/IEC 1989:2002 A.2.1 — the communication facility's format of ACCEPT
         ["communicationReceive"] = "RECEIVE", // ISO/IEC 1989:2002 A.2.5
         ["communicationSend"] = "SEND",     // ISO/IEC 1989:2002 A.2.6
-        ["deleteFile"] = "DELETE",          // §14.9.10.1 — the DELETE FILE format of the DELETE statement
-        ["searchAll"] = "SEARCH",           // §14.9.37 — SEARCH Format 2 (binary search) of the SEARCH statement
+        ["deleteFile"] = "DELETE",          // §2023:14.9.10.1 — the DELETE FILE format of the DELETE statement
+        ["searchAll"] = "SEARCH",           // §2023:14.9.37 — SEARCH Format 2 (binary search) of the SEARCH statement
         ["messagingReceive"] = "RECEIVE",   // facility arms: the messaging/facility affixes disambiguate the
-        ["messagingSend"] = "SEND",         // GRAMMAR rules (the asynchronous messaging facility, §14.9.31 and §14.9.38; the Wave-H
-                                            // recognize-and-name band, §4.2.7 for VALIDATE), not the statement names
+        ["messagingSend"] = "SEND",         // GRAMMAR rules (the asynchronous messaging facility, §2023:14.9.31 and §2023:14.9.38; the Wave-H
+                                            // recognize-and-name band, §2023:4.2.7 for VALIDATE), not the statement names
         ["validateFacility"] = "VALIDATE",
         ["commitFacility"] = "COMMIT",
         ["rollbackFacility"] = "ROLLBACK",

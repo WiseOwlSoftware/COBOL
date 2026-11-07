@@ -12,14 +12,14 @@ using CnFrontend = WiseOwl.Cobol.Frontend.Frontend;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// kb/Work PB941 — <c>&gt;&gt;PUSH</c> (ISO §7.3.22) and <c>&gt;&gt;POP</c> (§7.3.20) SAVE AND RESTORE directive
+/// kb/Work PB941 — <c>&gt;&gt;PUSH</c> (ISO §2023:7.3.22) and <c>&gt;&gt;POP</c> (§2023:7.3.20) SAVE AND RESTORE directive
 /// state, through the ONE <see cref="DirectiveStateStack"/> every state-holding stage runs.
 /// <list type="bullet">
-/// <item>§7.3.22.4 GR1 — "If directive-name is specified, the state of the directive is saved."</item>
-/// <item>§7.3.22.4 GR2 — "If ALL is specified, the state of all of the directives other than EVALUATE, IF, PAGE,
+/// <item>§2023:7.3.22.4 GR1 — "If directive-name is specified, the state of the directive is saved."</item>
+/// <item>§2023:7.3.22.4 GR2 — "If ALL is specified, the state of all of the directives other than EVALUATE, IF, PAGE,
 /// POP, or PUSH are saved."</item>
-/// <item>§7.3.20.4 GR1 / GR3 — the named directive's, or every directive's, stored state is restored.</item>
-/// <item>§7.3.20.4 GR2 — a named POP with nothing stored is unsuccessful, and "the implementor shall provide a
+/// <item>§2023:7.3.20.4 GR1 / GR3 — the named directive's, or every directive's, stored state is restored.</item>
+/// <item>§2023:7.3.20.4 GR2 — a named POP with nothing stored is unsuccessful, and "the implementor shall provide a
 /// warning mechanism" (COBOL2297; Annex A.1 item 140, REQUIRED).</item>
 /// </list>
 /// The DRIFT half holds the accounting: every pushable directive is in <see cref="DirectiveStateRegistry"/>, every
@@ -88,7 +88,7 @@ public sealed class DirectiveStateStackTests
     }
 
     /// <summary>kb/Work PB1119 — the PROPAGATE state a PUSH saves is the ON/OFF fold the binder asks at each
-    /// source element's first line (§7.3.22.4 GR1, §7.3.20.4 GR1).</summary>
+    /// source element's first line (§2023:7.3.22.4 GR1, §2023:7.3.20.4 GR1).</summary>
     private static void PropagateIsRestored()
     {
         var d = Directives("""
@@ -194,7 +194,7 @@ public sealed class DirectiveStateStackTests
         Assert.Contains(">>POP SOURCE", text);   // the POP line survives for DirectiveSiteProcessor
     }
 
-    // ── the unsuccessful POP (§7.3.20.4 GR2) ──────────────────────────────────────────────────────────────
+    // ── the unsuccessful POP (§2023:7.3.20.4 GR2) ──────────────────────────────────────────────────────────────
 
     [Fact]
     public void ANamedPopWithNothingStored_Warns_AndPopAllDoesNot()
@@ -215,7 +215,7 @@ public sealed class DirectiveStateStackTests
         Assert.Equal([1, 5, 7], warned);
         Assert.All(bag.Diagnostics.Where(x => x.Code == "COBOL2297"),
             x => Assert.Equal(DiagnosticSeverity.Warning, x.Severity));
-        Assert.Contains("§7.3.20.4 GR2", bag.Diagnostics.First(x => x.Code == "COBOL2297").Message);
+        Assert.Contains("§2023:7.3.20.4 GR2", bag.Diagnostics.First(x => x.Code == "COBOL2297").Message);
     }
 
     [Fact]
@@ -240,7 +240,7 @@ public sealed class DirectiveStateStackTests
     [Fact]
     public void APush_LeavesTheSavedStateInForce()
     {
-        // §7.3.22.4 GR3 — "The effects of the directive being pushed remain active."
+        // §2023:7.3.22.4 GR3 — "The effects of the directive being pushed remain active."
         var d = Directives("""
                    >>TURN EC-SIZE CHECKING ON
                    >>PUSH ALL
@@ -304,7 +304,7 @@ public sealed class DirectiveStateStackTests
     [Fact]
     public void ThePushableSet_IsTheCatalogMinusGr2sFive()
     {
-        // §7.3.22.4 GR2 names five: EVALUATE, IF, PAGE, POP, PUSH. Each names a directive ROW (EVALUATE's row also
+        // §2023:7.3.22.4 GR2 names five: EVALUATE, IF, PAGE, POP, PUSH. Each names a directive ROW (EVALUATE's row also
         // owns WHEN / END-EVALUATE), so the pushed set is every other row.
         var five = new[] { "EVALUATE", "IF", "PAGE", "POP", "PUSH" }
             .Select(w => CompilerDirectiveCatalog.Find(w)!.Id).ToHashSet();

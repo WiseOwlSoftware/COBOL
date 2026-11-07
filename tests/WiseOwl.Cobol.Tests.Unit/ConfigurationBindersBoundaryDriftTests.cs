@@ -11,8 +11,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ THE SPECIAL-NAMES BINDER (WHICH DECLARES INTO THE CONFIGURATION SLICE) AND THE FILE-CONTROL BINDER OWN WHAT THEY BIND, AND THE DATA BINDER KEEPS NO SECOND
 /// DOOR TO IT (kb/Work PB2355, PB2356; docs/rearchitecture/DESIGN-architecture-review.md §8.3 (1)).
-/// <para><c>SpecialNamesBinder</c> (the SPECIAL-NAMES facts, ISO §12.3.6-§12.3.7) and <c>FileControlBinder</c> (the
-/// FILE-CONTROL entries and the I-O-CONTROL paragraph, §12.4.5-§12.4.6) were partials of <c>DataBinder</c>. Each is now a
+/// <para><c>SpecialNamesBinder</c> (the SPECIAL-NAMES facts, ISO §2023:12.3.6-§2023:12.3.7) and <c>FileControlBinder</c> (the
+/// FILE-CONTROL entries and the I-O-CONTROL paragraph, §2023:12.4.5-§2023:12.4.6) were partials of <c>DataBinder</c>. Each is now a
 /// class of its own, reached through <c>DataBinder.SpecialNames</c> and <c>DataBinder.FileControl</c>, and the owner's rule
 /// is that a move leaves no forwarder behind (CLAUDE.md rule 4). The C# types hold the boundary except for two things
 /// they cannot say, which this test says:</para>

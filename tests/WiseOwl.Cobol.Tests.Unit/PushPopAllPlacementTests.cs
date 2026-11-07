@@ -12,12 +12,12 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// kb/Work PB1005 — the ALL form of <c>&gt;&gt;PUSH</c> / <c>&gt;&gt;POP</c> has a POSITION rule:
 /// <list type="bullet">
-/// <item>ISO §7.3.22.3 SR3 — "If ALL is specified, the PUSH directive shall be specified only in a compilation unit
+/// <item>ISO §2023:7.3.22.3 SR3 — "If ALL is specified, the PUSH directive shall be specified only in a compilation unit
 /// between clauses in divisions other than the procedure division and between statements in the procedure
 /// division."</item>
-/// <item>ISO §7.3.20.3 SR3 — the same for POP.</item>
+/// <item>ISO §2023:7.3.20.3 SR3 — the same for POP.</item>
 /// </list>
-/// Both arms (outside a unit; inside a clause or statement) draw the §4.2.2 warning COBOL2344, and each legal
+/// Both arms (outside a unit; inside a clause or statement) draw the §2023:4.2.2 warning COBOL2344, and each legal
 /// position is a control that draws nothing — the rule cannot be satisfied by warning everywhere.
 /// </summary>
 public sealed class PushPopAllPlacementTests
@@ -25,8 +25,8 @@ public sealed class PushPopAllPlacementTests
     private const string Code = "COBOL2344";
 
     [Theory]
-    [InlineData("PUSH", "§7.3.22.3 SR3")]
-    [InlineData("POP", "§7.3.20.3 SR3")]
+    [InlineData("PUSH", "§2023:7.3.22.3 SR3")]
+    [InlineData("POP", "§2023:7.3.20.3 SR3")]
     public void BeforeTheFirstUnit_IsOutsideEveryCompilationUnit(string word, string rule)
     {
         var w = Warnings($"""
@@ -40,14 +40,14 @@ public sealed class PushPopAllPlacementTests
         Assert.Contains(w, x => x.Contains(Code) && x.Contains("outside every compilation unit") && x.Contains(rule));
     }
 
-    /// <summary>kb/Work PB1065 (§7.3.14.3 SR1, §7.3.15.3 SR1) and PB1377 (§7.3.20.3 SR2, §7.3.22.3 SR2): FLAG-02 and
+    /// <summary>kb/Work PB1065 (§2023:7.3.14.3 SR1, §2023:7.3.15.3 SR1) and PB1377 (§2023:7.3.20.3 SR2, §2023:7.3.22.3 SR2): FLAG-02 and
     /// FLAG-14 "may be specified only between clauses … and only between statements", and a PUSH / POP NAMING one
     /// inherits the rule — each inside a MOVE draws the warning, each between statements draws none.</summary>
     [Theory]
-    [InlineData(">>FLAG-02 MOVE-TO-SAME-NAME ON", "§7.3.14.3 SR1")]
-    [InlineData(">>FLAG-14 ALL ON", "§7.3.15.3 SR1")]
-    [InlineData(">>PUSH FLAG-14", "§7.3.22.3 SR2")]
-    [InlineData(">>POP FLAG-02", "§7.3.20.3 SR2")]
+    [InlineData(">>FLAG-02 MOVE-TO-SAME-NAME ON", "§2023:7.3.14.3 SR1")]
+    [InlineData(">>FLAG-14 ALL ON", "§2023:7.3.15.3 SR1")]
+    [InlineData(">>PUSH FLAG-14", "§2023:7.3.22.3 SR2")]
+    [InlineData(">>POP FLAG-02", "§2023:7.3.20.3 SR2")]
     public void FlagDirectivesAndNamedPushPop_InsideAStatement_Warn_BetweenStatements_DoNot(string directive, string rule)
     {
         string Program(bool inside) => $"""

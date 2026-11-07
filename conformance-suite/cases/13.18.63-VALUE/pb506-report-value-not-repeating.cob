@@ -4,8 +4,8 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §13.18.63.3 SR35, sentence 1: "If the VALUE clause has more than one operand, the entry shall be a
-      *> repeating entry or shall be subordinate to a repeating entry."  §13.15.4 GR3 defines a repeating entry:
+      *> ISO §2023:13.18.63.3 SR35, sentence 1: "If the VALUE clause has more than one operand, the entry shall be a
+      *> repeating entry or shall be subordinate to a repeating entry."  §2023:13.15.4 GR3 defines a repeating entry:
       *> "An entry that contains either an OCCURS clause or a LINE or COLUMN clause with more than one operand is
       *> said to be a repeating entry … The number of repetitions of an entry that is not a repeating entry is
       *> defined to be 1."  The entry below has a SINGLE COLUMN operand, no OCCURS and no multiple LINE clause, so

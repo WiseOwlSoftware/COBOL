@@ -109,7 +109,7 @@ public sealed class PagedFileCrashMatrixTests
 
     /// <summary>2.2.1.16 for the page layer's paths, at EVERY operation: the next writer, a fresh OPEN and a power loss
     /// each find the last completed statement; the live reader never reads a torn tree; no stamp is ever reused. A write
-    /// the host refuses because the file cannot grow further is the BOUNDARY at a changing statement (2.2.1.9, §9.1.13.5
+    /// the host refuses because the file cannot grow further is the BOUNDARY at a changing statement (2.2.1.9, §2023:9.1.13.5
     /// item 4's '24': the file unchanged) and '30' at an OPEN, a CLOSE and a promotion, which have no '24'.</summary>
     [Theory]
     [MemberData(nameof(PathsAndFaults))]
@@ -195,7 +195,7 @@ public sealed class PagedFileCrashMatrixTests
     }
 
     /// <summary>2.2.1.16 "OPEN OUTPUT (creation)" over a previous store, at EVERY operation — the commit slot's write,
-    /// its sync, page 2, the other slot, the truncation, the last sync. The one durable write decides (§14.9.27.4 GR18,
+    /// its sync, page 2, the other slot, the truncation, the last sync. The one durable write decides (§2023:14.9.27.4 GR18,
     /// <i>"After the creation of the file, the file contains no records"</i>): a death before the commit slot was handed
     /// over leaves the previous store whole, after it the EMPTY store, and a power loss keeps the empty store only once the
     /// commit's sync ran. A REFUSAL is GR25's unsuccessful OPEN, <i>"the file is not affected"</i>: '30' with the previous
@@ -296,7 +296,7 @@ public sealed class PagedFileCrashMatrixTests
 
     /// <summary>Creation over a file with no store in it: no committed slot exists until the commit write, so a death
     /// before it leaves the file as it was (the next OPEN answers '30') and after it the EMPTY store; a refusal at any point
-    /// but the last sync is §14.9.27.4 GR25's unsuccessful OPEN, <i>"the file is not affected"</i>: every byte back AND the
+    /// but the last sync is §2023:14.9.27.4 GR25's unsuccessful OPEN, <i>"the file is not affected"</i>: every byte back AND the
     /// length to the byte (finding R2-1: the undo once kept the length in whole pages, so it cut a 5 000-byte file to
     /// 4 096 and never restored a partly held page), so an empty file stays empty.</summary>
     [Theory]
@@ -329,12 +329,12 @@ public sealed class PagedFileCrashMatrixTests
             }
     }
 
-    // ── A REFUSED READ at every read of every path: '30', never a verdict on the page (§9.1.13.6 item 1) ───────────
+    // ── A REFUSED READ at every read of every path: '30', never a verdict on the page (§2023:9.1.13.6 item 1) ───────────
 
     /// <summary>Every read the page layer makes — OPEN's three meta pages, R6 step 3's verification of a DESCENDANT's
     /// <c>fresh</c> pages, a statement's entry (page 2), the promotion's read of both slots, the retirement's ledger and
     /// FREE chains, a tree page through its stamped pointer — refused by the medium, one at a time: the path answers '30'
-    /// (§9.1.13.6 item 1, <i>"A permanent error exists and no further information is available concerning the
+    /// (§2023:9.1.13.6 item 1, <i>"A permanent error exists and no further information is available concerning the
     /// input-output operation"</i>) and decides NOTHING from the unread page — no rejection of a work slot, no slot chosen
     /// for a promotion — so the file is the last completed statement for the refused run unit's next statement, for the
     /// next writer and for a fresh OPEN.</summary>

@@ -5,10 +5,10 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// SORT / MERGE / RELEASE / RETURN (ISO/IEC 1989:2023 §14.9.40 / §14.9.24 / §14.9.32 / §14.9.34): file sort with
+/// SORT / MERGE / RELEASE / RETURN (ISO/IEC 1989:2023 §2023:14.9.40 / §2023:14.9.24 / §2023:14.9.32 / §2023:14.9.34): file sort with
 /// USING/GIVING and INPUT/OUTPUT PROCEDURE, key direction + significance (GR1/GR2), DUPLICATES IN ORDER stability
 /// (GR3), algebraic numeric keys (GR8), the GR5 collating precedence, MERGE's equal-key file order (GR4), RELEASE
-/// FROM (GR4 of §14.9.32), RETURN INTO (GR5 of §14.9.34) and the SR4 reversed AT END order, plus the COBOL-2002+
+/// FROM (GR4 of §2023:14.9.32), RETURN INTO (GR5 of §2023:14.9.34) and the SR4 reversed AT END order, plus the COBOL-2002+
 /// table sort (Format 2) edition gate. Pinned to the committed golden (NIST ST-suite green) except where the legacy
 /// is not authoritative (the SR4 reversed order, the per-edition gates) — those pin to the spec.
 /// </summary>
@@ -66,7 +66,7 @@ public sealed class SortMergeDifferentialTests
             IF WS-EOF = "N" GO TO DUMP-1.
         """;
 
-    // ── Key direction, significance, and the three phases (ISO §14.9.40 GR1/GR2/GR8/GR9/GR11/GR14) ──────────
+    // ── Key direction, significance, and the three phases (ISO §2023:14.9.40 GR1/GR2/GR8/GR9/GR11/GR14) ──────────
 
     /// <summary>GR1: ASCENDING/DESCENDING is transitive across the data-names of one phrase (S-K2 AND S-K3 both
     /// descend); GR2: key significance is statement order regardless of phrase grouping; GR8a/b: lower value first
@@ -117,7 +117,7 @@ public sealed class SortMergeDifferentialTests
             // GR3b stable within equal keys
             "R=AAA-1\nR=AAA-2\nR=BBB-1\nR=BBB-2\nR=BBB-3");
 
-    /// <summary>GR8 (→ §8.8.4.2.4): a NUMERIC key compares ALGEBRAICALLY by decoded value — the signed zoned
+    /// <summary>GR8 (→ §2023:8.8.4.2.4): a NUMERIC key compares ALGEBRAICALLY by decoded value — the signed zoned
     /// images of −10/−3/0/5 order numerically, never by their character (over-punch) images, and never through a
     /// collating sequence.</summary>
     [Fact]
@@ -138,7 +138,7 @@ public sealed class SortMergeDifferentialTests
             "R=1}MTEN\nR=0LMTRI\nR=0{ZERO\nR=0EPLUS");
 
     /// <summary>GR5a: the statement's COLLATING SEQUENCE phrase takes precedence over the native order — alphabet
-    /// SEQ-1 reorders "C" &lt; "A" &lt; "B" (ISO §12.3.7 GR7 literal-phrase positions), so the ascending result is
+    /// SEQ-1 reorders "C" &lt; "A" &lt; "B" (ISO §2023:12.3.7 GR7 literal-phrase positions), so the ascending result is
     /// C, A, B. Numeric keys would ignore the sequence (GR8); this key is alphanumeric.</summary>
     [Fact]
     public void Sort_StatementCollatingSequence_OverridesNative()
@@ -159,7 +159,7 @@ public sealed class SortMergeDifferentialTests
             // GR5a: C < A < B under SEQ-1 (12.3.7 GR7 positions)
             "R=CROWC\nR=AROWA\nR=BROWB");
 
-    // ── USING / GIVING — the implicit transfers (ISO §14.9.40 GR12/GR15/GR16) ───────────────────────────────
+    // ── USING / GIVING — the implicit transfers (ISO §2023:14.9.40 GR12/GR15/GR16) ───────────────────────────────
 
     /// <summary>GR12: USING is the implicit OPEN INPUT → READ → RELEASE loop → CLOSE; GR15: GIVING the implicit
     /// OPEN OUTPUT → RETURN → WRITE loop → CLOSE. The program writes the unsorted input itself, sorts, and reads
@@ -264,7 +264,7 @@ public sealed class SortMergeDifferentialTests
                 STOP RUN.
             """);
 
-    // ── MERGE (ISO §14.9.24 GR1/GR4) ────────────────────────────────────────────────────────────────────────
+    // ── MERGE (ISO §2023:14.9.24 GR1/GR4) ────────────────────────────────────────────────────────────────────────
 
     /// <summary>GR4: records with equal keys return in USING-file statement order — ALL of file-1's equal-key
     /// records before file-2's. The two inputs are written pre-sorted (GR6's ordering requirement).</summary>
@@ -317,9 +317,9 @@ public sealed class SortMergeDifferentialTests
                 STOP RUN.
             """);
 
-    // ── RELEASE FROM / RETURN INTO (ISO §14.9.32 GR4 / §14.9.34 GR5) ────────────────────────────────────────
+    // ── RELEASE FROM / RETURN INTO (ISO §2023:14.9.32 GR4 / §2023:14.9.34 GR5) ────────────────────────────────────────
 
-    /// <summary>§14.9.32 GR4: RELEASE … FROM identifier-1 ≡ MOVE identifier-1 TO record-name-1, then the same
+    /// <summary>§2023:14.9.32 GR4: RELEASE … FROM identifier-1 ≡ MOVE identifier-1 TO record-name-1, then the same
     /// RELEASE without FROM (the COBOL-85 form — a literal FROM operand is 2002+ gated).</summary>
     [Fact]
     public void Release_From_EquivalentToMoveThenRelease()
@@ -360,7 +360,7 @@ public sealed class SortMergeDifferentialTests
             // 14.9.32 GR4 - FROM = MOVE + RELEASE; asc key orders AA before ZZ
             "R=AAFRST\nR=ZZLAST");
 
-    /// <summary>§14.9.34 GR5: RETURN … INTO ≡ RETURN then MOVE record-area → identifier-1 (skipped at end); the
+    /// <summary>§2023:14.9.34 GR5: RETURN … INTO ≡ RETURN then MOVE record-area → identifier-1 (skipped at end); the
     /// record stays available in BOTH the record area and the INTO receiver.</summary>
     [Fact]
     public void Return_Into_MovesRecordToReceiver()
@@ -402,7 +402,7 @@ public sealed class SortMergeDifferentialTests
             // 14.9.34 GR5 - record in BOTH the area and INTO receiver
             "AREA=1ONE\nINTO=1ONE\nAREA=2TWO\nINTO=2TWO");
 
-    /// <summary>§14.9.34.3 SR4: the AT END and NOT AT END phrases may be written in REVERSED order. SPEC-PINNED —
+    /// <summary>§2023:14.9.34.3 SR4: the AT END and NOT AT END phrases may be written in REVERSED order. SPEC-PINNED —
     /// the former legacy engine's grammar predates this allowance, so the expected output derives from the spec: keys
     /// 2,1,3 ascending return ONE, TWO, THREE. (Depends on the shared conditionalPhrases rule admitting the
     /// reversed order, kb/Work PB3830.)</summary>
@@ -447,7 +447,7 @@ public sealed class SortMergeDifferentialTests
         Assert.Equal("R=ONE\nR=TWO\nR=THREE", output);
     }
 
-    // ── SORT Format 2 — the table sort (ISO §14.9.40 GR18–GR24; COBOL-2002+) ────────────────────────────────
+    // ── SORT Format 2 — the table sort (ISO §2023:14.9.40 GR18–GR24; COBOL-2002+) ────────────────────────────────
 
     private const string TableSortSource = """
         IDENTIFICATION DIVISION.

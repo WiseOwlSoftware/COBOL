@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
       *> kb/Work PB1308, decision R62 - a METHOD's WORKING-STORAGE SECTION is illegal at EVERY edition.
-      *> ISO §13.5.3 SR1 (cite.py --check 13.5.3 "only in a factory definition or an instance definition, but not
+      *> ISO §2023:13.5.3 SR1 (cite.py --check 13.5.3 "only in a factory definition or an instance definition, but not
       *> in a method definition" -> OK 13.5.3 1)): "Within a class definition, the working-storage section may be
       *> specified only in a factory definition or an instance definition, but not in a method definition."
       *> Annex E.2 lists no 2023 removal of it (it does list EXIT METHOD's), and the vendor documentation that

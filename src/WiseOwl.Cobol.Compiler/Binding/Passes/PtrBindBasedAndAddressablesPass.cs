@@ -47,7 +47,7 @@ internal sealed class PtrBindBasedAndAddressablesPass(Core.ProgramUnitContext pr
                 binder.Edition.Error(DiagnosticCatalog.BasedRecordSubstrate,
                     $"BASED item '{root.CobolName}' has a subordinate the shared byte cell cannot carry "
                     + $"({root.Class?.RejectReason ?? "unclassified"}) — ALLOCATE/ADDRESS bridging for it "
-                    + "is recognized but not yet implemented (kb/Work PB164; ISO §13.18.5 / §14.9.3)");
+                    + "is recognized but not yet implemented (kb/Work PB164; ISO §2023:13.18.5 / §2023:14.9.3)");
                 continue;
             }
             string addr = NamingConvention.AddressCarrierName(root.ClrName);
@@ -55,7 +55,7 @@ internal sealed class PtrBindBasedAndAddressablesPass(Core.ProgramUnitContext pr
             binder.State.StorageTier.AddBasedBridge(cls.BackingClrName, cls.BackingCellClrName, addr, cls.Width);
         }
 
-        // ⛔ A FORMAL WHOSE STORAGE IS AN AREA IS LAID OVER ITS ARGUMENT'S CELL (kb/Work PB2087). ISO §14.2.3 GR8: "If the
+        // ⛔ A FORMAL WHOSE STORAGE IS AN AREA IS LAID OVER ITS ARGUMENT'S CELL (kb/Work PB2087). ISO §2023:14.2.3 GR8: "If the
         // argument is passed by reference, the activated runtime element operates as if the formal parameter occupies the
         // same storage area as the argument." A non-resident formal — a group, a formal another LINKAGE entry REDEFINES,
         // a formal whose ADDRESS OF is taken (CallBindLinkage) — is therefore described exactly as a BASED item is: its
@@ -78,7 +78,7 @@ internal sealed class PtrBindBasedAndAddressablesPass(Core.ProgramUnitContext pr
 
         // The addressed names: this unit's own procedure division(s), plus — kb/Work PB1009 — every CONTAINED
         // program's, restricted to this unit's GLOBAL names (ResolveStorageClaimHead resolves a contained head among
-        // them alone, kb/Work PB3286). §13.18.27.4 GR2 lets a contained program reference
+        // them alone, kb/Work PB3286). §2023:13.18.27.4 GR2 lets a contained program reference
         // a global name "without describing it again", and the storage it references is THIS unit's, so the
         // decision that the storage must be addressable belongs here, where the storage is declared. (A name the
         // contained program also declares locally shadows the global one; forcing the global's cell anyway is
@@ -94,9 +94,9 @@ internal sealed class PtrBindBasedAndAddressablesPass(Core.ProgramUnitContext pr
         foreach (var (name, quals, method, contained) in targets)
         {
             // An unqualified head keeps the historical first-candidate pick (a duplicate-name mis-force is
-            // loud-caught at the SET bind's cell check); a QUALIFIED head resolves through the ONE §8.4.2.2
+            // loud-caught at the SET bind's cell check); a QUALIFIED head resolves through the ONE §2023:8.4.2.2
             // qualification machinery so the RIGHT record is forced. Inside a METHOD both lookups run in the
-            // method's own scope (§11.7.4 GR5 — a method-local name shadows object data and was never in the
+            // method's own scope (§2023:11.7.4 GR5 — a method-local name shadows object data and was never in the
             // unit-wide maps, kb/Work PB3192), exactly as the SET bind will resolve it.
             DataItem? hit = ResolveStorageClaimHead(binder, name, quals, method, contained, firstOfSeveral: true);
             if (hit is null)
@@ -109,7 +109,7 @@ internal sealed class PtrBindBasedAndAddressablesPass(Core.ProgramUnitContext pr
             binder.State.StorageTier.ClaimAddressableCell(cls);
         }
 
-        // ⛔ AN ITEM PASSED BY REFERENCE LIVES IN A CELL (kb/Work PB2087, PB2089) — the activating half of §14.2.3 GR8.
+        // ⛔ AN ITEM PASSED BY REFERENCE LIVES IN A CELL (kb/Work PB2087, PB2089) — the activating half of §2023:14.2.3 GR8.
         // An argument whose storage is a cell crosses with its AREA (CobolArg.Area: the cell and the offset the argument
         // begins at), and an area formal is laid over exactly those positions, so the two elements share ONE storage
         // area for the whole activation. EVERY item named as a BY REFERENCE operand is claimed by the same forcer ADDRESS
@@ -122,9 +122,9 @@ internal sealed class PtrBindBasedAndAddressablesPass(Core.ProgramUnitContext pr
         // carry, or that is ambiguous here (the CALL bind reports it), keeps its ordinary storage and crosses through its
         // carrier alone — an area formal then holds a copy, stored back at return.
         // A CLASS unit's statements live in its METHODS' procedure divisions, each resolved in its own method's scope
-        // (§11.7.4 GR5) — the ADDRESS OF scan's rule (PtrScanAddressOfTargets); the INVOKE operands are scanned with the
+        // (§2023:11.7.4 GR5) — the ADDRESS OF scan's rule (PtrScanAddressOfTargets); the INVOKE operands are scanned with the
         // CALL ones (the INVOKE arm of the same rule, kb/Work PB2087).
-        // §8.4.6.6: a REPOSITORY function-prototype-name or the containing FUNCTION definition's own name — a program's
+        // §2023:8.4.6.6: a REPOSITORY function-prototype-name or the containing FUNCTION definition's own name — a program's
         // own name is no user function (kb/Work PB3121: this test used to admit it whatever the unit's kind).
         bool IsUserFunction(string fn) => binder.State.Configuration.UserFunctionNames.Contains(fn) || binder.UnitIsFunction && binder.ContainingDefinitionNames.Contains(fn);
         var own = binder.Oo.IsClassUnit
@@ -140,14 +140,14 @@ internal sealed class PtrBindBasedAndAddressablesPass(Core.ProgramUnitContext pr
         {
             if (ResolveStorageClaimHead(binder, name, quals, method, contained, firstOfSeveral: false) is not { } hit) continue;
             // ⛔ A GROUP WHOSE VALUES RIDE MANAGED SLOTS CROSSES ONLY AS AN AREA (kb/Work PB1940): a strongly-typed group
-            // with an object-reference or pointer leaf has no character image, so its BY CONTENT record (§14.2.3 GR9) is
-            // a detached copy of its area and a CALL's RETURNING delivery (§14.6.5) is a store into its receiver's area.
+            // with an object-reference or pointer leaf has no character image, so its BY CONTENT record (§2023:14.2.3 GR9) is
+            // a detached copy of its area and a CALL's RETURNING delivery (§2023:14.6.5) is a store into its receiver's area.
             // Either needs the operand in a cell; every other BY CONTENT operand or RETURNING receiver crosses as a value.
             if (slotsOnly && !ActivationCrossing.LeafCarried(hit)) continue;
             DataItem root = hit.Root;
             if (contained && !binder.Linkage.GlobalRoots.Contains(root)) continue;
             if (binder.AlreadyInACell(root) || root.Section is EntrySection.Linkage || !DataBinder.CellCanCarry(root)) continue;
-            // Object data never crosses an INVOKE BY REFERENCE (§14.9.23.3 SR10: "Identifier-3 shall not reference a data
+            // Object data never crosses an INVOKE BY REFERENCE (§2023:14.9.23.3 SR10: "Identifier-3 shall not reference a data
             // item defined in the file or working-storage section of a factory or instance object"), so a bare one is
             // passed BY CONTENT (GR6 a) 2.) and needs no cell.
             if (invoke && binder.Oo.IsObjectData(root)) continue;
@@ -155,7 +155,7 @@ internal sealed class PtrBindBasedAndAddressablesPass(Core.ProgramUnitContext pr
         }
 
         // ⛔ THE ACTIVATED HALF FOR A RETURNING ITEM WHOSE VALUES RIDE MANAGED SLOTS (kb/Work PB1940): a strongly-typed
-        // group with an object-reference or pointer leaf is delivered as its AREA (§14.6.5 — "the content of the data item
+        // group with an object-reference or pointer leaf is delivered as its AREA (§2023:14.6.5 — "the content of the data item
         // referenced by that RETURNING phrase"; CobolArgAdapt.StoreReturnArea), its characters and its references into the
         // receiver's area, so the item itself lives in a cell.
         if (!binder.Oo.IsClassUnit && binder.Linkage.Returning is { } ret)
@@ -163,21 +163,21 @@ internal sealed class PtrBindBasedAndAddressablesPass(Core.ProgramUnitContext pr
     }
 
     /// <summary>⛔ THE ONE RESOLUTION OF A SCANNED STORAGE-CLAIM HEAD (an <c>ADDRESS OF</c> head or a BY REFERENCE operand;
-    /// kb/Work PB3286) in the scope its statement will bind in: the owning METHOD's (§11.7.4 GR5) when
+    /// kb/Work PB3286) in the scope its statement will bind in: the owning METHOD's (§2023:11.7.4 GR5) when
     /// <paramref name="method"/> is set, else the unit's. Null when it names nothing, or is ambiguous and
-    /// <paramref name="firstOfSeveral"/> is false: the statement's bind reports both (§8.4.2.2.3 SR1), and a storage
+    /// <paramref name="firstOfSeveral"/> is false: the statement's bind reports both (§2023:8.4.2.2.3 SR1), and a storage
     /// claim never guesses between candidates — except where the SET bind's own permissive reading takes the first
     /// declared survivor (the ADDRESS OF arm, whose mis-force is loud-caught at that bind's cell check).
-    /// <para>⛔ A CONTAINED program's head is resolved among this unit's GLOBAL names alone. §13.18.27.4 GR2 lets it
-    /// "reference that name without describing it again", and §8.4.6.2.1 admits a local name only in the source element
+    /// <para>⛔ A CONTAINED program's head is resolved among this unit's GLOBAL names alone. §2023:13.18.27.4 GR2 lets it
+    /// "reference that name without describing it again", and §2023:8.4.6.2.1 admits a local name only in the source element
     /// that declares it, so a container's LOCAL record that shares a name with a GLOBAL one is not a candidate: asking
     /// the whole container scope took the local one (candidate 0, or one of two) and dropped it as not global, so the
     /// global record was never put on a cell and the contained <c>SET P TO ADDRESS OF X</c> was refused with a reason
-    /// that was false. A qualified head resolves through the one §8.4.2.2 qualification machinery, which the written
+    /// that was false. A qualified head resolves through the one §2023:8.4.2.2 qualification machinery, which the written
     /// qualifiers already narrow to the record they name.</para>
     /// <para>⛔ A HEAD THAT NAMES A CONTAINER'S GLOBAL ITEM IS NOT THIS UNIT'S TO CLAIM. The containers' GLOBAL names are
     /// visible here before this pass runs (<see cref="DataBinder.InheritContainerGlobalData"/>, at the end of the declaration half,
-    /// kb/Work PB3766), but the storage they name is the container's (§13.18.27.4 GR2), and the container claims it from
+    /// kb/Work PB3766), but the storage they name is the container's (§2023:13.18.27.4 GR2), and the container claims it from
     /// its own scan of its contained programs (the <c>contained</c> arm above). Claiming it here as well declared the
     /// record's cell and backing a second time in this unit's C# type beside the GLOBAL bridge to the container's
     /// (CS0102 on <c>_scell_R2</c> / <c>_redef_R2</c>, merge group 41183181188), so the answer is the head's own
@@ -201,12 +201,12 @@ internal sealed class PtrBindBasedAndAddressablesPass(Core.ProgramUnitContext pr
         return hit is not null && binder.State.Forest.DeclaringDepth(hit) == 0 ? hit : null;
     }
 
-    /// <summary>The data-names taken by every §8.4.3.11 DATA-ADDRESS-IDENTIFIER in the unit's own procedure division(s)
+    /// <summary>The data-names taken by every §2023:8.4.3.11 DATA-ADDRESS-IDENTIFIER in the unit's own procedure division(s)
     /// (<see cref="StorageClaimScan.AddressTargets"/> — the head name + its OF/IN qualifiers, for EVERY operand shape: a
     /// subscripted operand forces the same containing record, the occurrence displacement being a bind-time offset over
     /// the ONE cell, never separate storage).
     /// <para>⛔ IT ASKS THE IDENTIFIER'S OWN RULE, NOT A STATEMENT (kb/Work PB239). It used to recognize only a
-    /// SET Format-7 sender, so the day a second surface took the identifier — the CALL argument §14.9.4.3
+    /// SET Format-7 sender, so the day a second surface took the identifier — the CALL argument §2023:14.9.4.3
     /// SR3/SR4 name — its record would have been left off cell storage and the bind would have refused it.
     /// Every surface now spells the identifier through the ONE <c>dataAddressIdentifier</c> rule, so every one
     /// of them is forced here by construction. The receiving <c>ADDRESS OF data-name-1</c> of SET Format 7 is a

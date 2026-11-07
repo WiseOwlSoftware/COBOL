@@ -8,8 +8,8 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 
 /// <summary>
 /// ⛔ THE TOKEN DECISIONS OF ONE COMPILATION GROUP — the ONE object every parse of that group's text applies: the
-/// <c>&gt;&gt;COBOL-WORDS</c> retype (<see cref="CobolWordsRewriter.Plan"/>, ISO §7.3.10.4 GR2/GR3/GR4), which the LEXER
-/// applies to each token as it emits it (<see cref="PrimeLexer"/> hands it over), and the §8.9 reservation gate
+/// <c>&gt;&gt;COBOL-WORDS</c> retype (<see cref="CobolWordsRewriter.Plan"/>, ISO §2023:7.3.10.4 GR2/GR3/GR4), which the LEXER
+/// applies to each token as it emits it (<see cref="PrimeLexer"/> hands it over), and the §2023:8.9 reservation gate
 /// (<see cref="ReservationGateRewriter"/>, kb/Work PB655), which retypes the filled stream between lexing and parsing.
 /// <para>It exists because the decisions have more than one reader. The main parse applies them in
 /// <c>Frontend.LexAndParse</c>, and the binder RE-LEXES source text for the D18 subscript / reference-modifier
@@ -19,7 +19,7 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// answers. Carrying one value makes the fragment's token stream the main parse's by construction.</para>
 /// </summary>
 /// <param name="CobolWords">The group's <c>&gt;&gt;COBOL-WORDS</c> override (empty when none).</param>
-/// <param name="FreedReservedWords">The reservation-gated words §8.9 leaves free at the compile edition that the
+/// <param name="FreedReservedWords">The reservation-gated words §2023:8.9 leaves free at the compile edition that the
 /// program declares — retyped to <c>IDENTIFIER</c> (upper-case spellings; empty when none).</param>
 public sealed record TokenRetypes(CobolWordsMap CobolWords, IReadOnlySet<string> FreedReservedWords)
 {
@@ -34,11 +34,11 @@ public sealed record TokenRetypes(CobolWordsMap CobolWords, IReadOnlySet<string>
     /// (PIC's mode switch, the FUNCTION argument region, the SUBSCRIPT trigger) reads the word the directive made of
     /// it — a de-reserved keyword is a data-name, so its '(' opens a SUBSCRIPT;</item>
     /// <item>a word <paramref name="edition"/> RESERVES is a data name only where the PROGRAM DECLARES it as one (ISO
-    /// §8.3.2.1 rule 1: reserved words shall not be user-defined words, and <c>--permissive</c> admits the word an
+    /// §2023:8.3.2.1 rule 1: reserved words shall not be user-defined words, and <c>--permissive</c> admits the word an
     /// edition added as the user-defined word an older program declared). Until a program declares it, a reserved
-    /// word's '(' is no subscript — the '(' after a boolean operator at 2002+ groups a boolean sub-expression (§8.8.2
+    /// word's '(' is no subscript — the '(' after a boolean operator at 2002+ groups a boolean sub-expression (§2023:8.8.2
     /// Table 4; kb/Work PB1465, PB1669). The declaration is the parser's own finding
-    /// (<see cref="FreedReservedWords"/>, the §8.9 gate), so the SAME decision serves the lexer, the parser's
+    /// (<see cref="FreedReservedWords"/>, the §2023:8.9 gate), so the SAME decision serves the lexer, the parser's
     /// <c>userWordHere</c> gate and the funnel; <see cref="LexesDifferentlyFrom"/> tells the frontend when a parse
     /// found a declaration that changes which '(' open a SUBSCRIPT, and the text is lexed again.</item>
     /// <item>the edition's Annex C (kb/Work PB1402): every word is emitted in <paramref name="edition"/>'s spelling
@@ -58,10 +58,10 @@ public sealed record TokenRetypes(CobolWordsMap CobolWords, IReadOnlySet<string>
     public bool LexesDifferentlyFrom(TokenRetypes other, EditionInfo edition) =>
         !ReservedNonDataNames(edition, FreedReservedWords).SetEquals(ReservedNonDataNames(edition, other.FreedReservedWords));
 
-    /// <summary>The SUBSCRIPT-trigger tokens whose word <paramref name="edition"/> RESERVES (§8.9 at the edition's year,
+    /// <summary>The SUBSCRIPT-trigger tokens whose word <paramref name="edition"/> RESERVES (§2023:8.9 at the edition's year,
     /// <b>both axes off</b>: <c>--permissive</c> does not make an undeclared reserved word a name) and the program has
     /// not declared (<paramref name="declared"/>, upper-case). An intrinsic-function-name token is never in it: its '('
-    /// opens a keyword-omitted function call's argument capture (§8.4.3.2.3 SR2) whatever the word's reservation, and
+    /// opens a keyword-omitted function call's argument capture (§2023:8.4.3.2.3 SR2) whatever the word's reservation, and
     /// the set of such tokens is read off the GENERATED parser's <c>intrinsicKeywordName</c> rule — the keyword-token arm
     /// of <c>functionName</c>, whose other arm (<c>cobolWord</c>, a function-prototype-name) names no intrinsic function
     /// (kb/Work PB2721) — never listed here.</summary>
@@ -102,7 +102,7 @@ public sealed record TokenRetypes(CobolWordsMap CobolWords, IReadOnlySet<string>
             ? name.TrimEnd('_').Replace('_', '-')
             : null;
 
-    /// <summary>Apply the §8.9 reservation-gate retype to the filled token stream (the <c>&gt;&gt;COBOL-WORDS</c> retype
+    /// <summary>Apply the §2023:8.9 reservation-gate retype to the filled token stream (the <c>&gt;&gt;COBOL-WORDS</c> retype
     /// is already done: the lexer applied it as it emitted each token). Byte-identical when <see cref="None"/>.</summary>
     public void Rewrite(CommonTokenStream tokens)
     {

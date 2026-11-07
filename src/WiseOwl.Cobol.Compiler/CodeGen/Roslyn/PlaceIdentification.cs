@@ -7,12 +7,12 @@ using WiseOwl.Cobol.CodeGen.Emit;
 namespace WiseOwl.Cobol.CodeGen;
 
 /// <summary>
-/// ⛔ ITEM IDENTIFICATION, DONE ONCE (ISO §14.6.4; kb/Work PB1123) — the ONE mechanism that turns a
+/// ⛔ ITEM IDENTIFICATION, DONE ONCE (ISO §2023:14.6.4; kb/Work PB1123) — the ONE mechanism that turns a
 /// <see cref="Place"/> whose address is computed from RUN-TIME values (a subscript, a reference-modification
 /// start/length, a Tier-B window offset) into a place whose address is FROZEN at the moment the statement begins.
-/// <para>§14.6.4 7) — "the identifiers within a statement are evaluated in left to right order as the first
+/// <para>§2023:14.6.4 7) — "the identifiers within a statement are evaluated in left to right order as the first
 /// operation of the execution of that statement" — and a verb whose own general rules add no other timing (INSPECT
-/// §14.9.22.4 GR6: "Item identification for any identifier is done only once as the first operation in the
+/// §2023:14.9.22.4 GR6: "Item identification for any identifier is done only once as the first operation in the
 /// execution of the INSPECT statement"; GR19 extends it across a format 3's two passes) owes exactly that. A
 /// <see cref="Place"/> carries its subscripts as RENDER-TIME text, so an emitter that simply renders it at each point
 /// of use re-evaluates the subscript there: <c>INSPECT YE(J) TALLYING J FOR ALL "A" REPLACING ALL "A" BY "Z"</c>
@@ -20,7 +20,7 @@ namespace WiseOwl.Cobol.CodeGen;
 /// statement identified.</para>
 /// <para><b>Freeze</b> hoists each such run-time fragment into a caller-supplied local (<c>hoist</c> emits
 /// <c>var __t = &lt;fragment&gt;;</c> and returns the local's name) and returns the place rewritten to read the
-/// locals. A caller freezes every operand of the statement in SOURCE order (left to right, §14.6.4), before the first
+/// locals. A caller freezes every operand of the statement in SOURCE order (left to right, §2023:14.6.4), before the first
 /// one is read or stored. A fragment that is a bare integer literal is left alone. A place kind this does not know
 /// how to rewrite — a leaf with no run-time address (a register place, a RENAMES span) or a decoration that answers
 /// a question about the operand's extent — is returned unchanged: the conservative answer is the pre-PB1123 one,
@@ -30,7 +30,7 @@ internal static class PlaceIdentification
 {
     /// <summary>The ONE hoist every verb emitter hands <see cref="Freeze(Place, Func{string, string})"/>: it writes
     /// <c>var __identN = &lt;fragment&gt;;</c> at the current point of the statement's emission and returns the local's
-    /// name. A verb freezes ALL of its operands before it reads or stores any (§14.6.4 7), so the locals are assigned
+    /// name. A verb freezes ALL of its operands before it reads or stores any (§2023:14.6.4 7), so the locals are assigned
     /// at the head of the statement. UNSTRING and INSPECT (kb/Work PB1123) share it, and so does any verb adopted
     /// next.</summary>
     public static Func<string, string> Hoister(EmitContext ctx) => fragment =>
@@ -44,12 +44,12 @@ internal static class PlaceIdentification
     /// store <paramref name="store"/> of <paramref name="value"/> (the rendered sending value) into
     /// <paramref name="receiver"/>, ordered so that every run-time step of evaluating the sender happens before any
     /// run-time step of identifying the receiver.
-    /// <para><b>The rule.</b> ISO §14.9.25.4 GR1: "If identifier-1 is reference-modified, subscripted, or is a
+    /// <para><b>The rule.</b> ISO §2023:14.9.25.4 GR1: "If identifier-1 is reference-modified, subscripted, or is a
     /// function-identifier, the reference modifier, subscript, or function-identifier is evaluated only once,
     /// immediately before data is moved to the first of the receiving operands", and "Item identification for
     /// identifier-2 is performed immediately before the data is moved to the respective data item" — the sender
     /// first, then each receiver. Which exception condition a statement raises when both sides fail is observable:
-    /// §14.9.49.4 GR11 selects the declarative by "the first one that occurs in the order of evaluation of the
+    /// §2023:14.9.49.4 GR11 selects the declarative by "the first one that occurs in the order of evaluation of the
     /// statement that causes the exception to exist".</para>
     /// <para><b>Why a store needs this at all.</b> A store renders as <c>&lt;receiver&gt; = &lt;value&gt;</c>, and C#
     /// evaluates the left operand's address first: <c>CobolTable.At(TB.T, CobolTable.Occ(I, …)) =
@@ -59,7 +59,7 @@ internal static class PlaceIdentification
     /// start and length are converted before the value argument, so the same inversion reached it by argument order.
     /// When both sides identify at run time the value is evaluated into a block-scoped local first; otherwise the
     /// order is unobservable and the store is rendered as it always was.</para>
-    /// <para>A caller whose verb identifies the receiver FIRST (§14.6.4 7)'s left-to-right default with the receiver
+    /// <para>A caller whose verb identifies the receiver FIRST (§2023:14.6.4 7)'s left-to-right default with the receiver
     /// written first, as INITIALIZE's identifier-1) does not call this.</para></summary>
     public static string SenderFirst(BoundOperand sender, Place receiver, string value, Func<string, string> store) =>
         IdentifiesAtRunTime(sender) && IdentifiesAtRunTime(receiver)
@@ -84,11 +84,11 @@ internal static class PlaceIdentification
 
     /// <summary>True when identifying <paramref name="place"/> evaluates something at run time: an address fragment
     /// <see cref="Freeze(Place, Func{string, string})"/> would hoist (a subscript, a reference modifier, a window
-    /// offset — asked of Freeze itself, so the two cannot drift), an occurs-depending length (§14.6.4 step 6, which
+    /// offset — asked of Freeze itself, so the two cannot drift), an occurs-depending length (§2023:14.6.4 step 6, which
     /// reads the DEPENDING ON item and may raise EC-BOUND-ODO), a reference modification's range test, or the guard
     /// of a formal that may be omitted (EC-PROGRAM-ARG-OMITTED).
     /// <para>⛔ A REFERENCE MODIFICATION IS RANGE-TESTED AT RUN TIME WHATEVER ITS POSITIONS (kb/Work PB3261 review
-    /// R1-1). ISO §8.4.3.3.4 5) c): "The sum of leftmost-position and length minus the value one shall be less than or
+    /// R1-1). ISO §2023:8.4.3.3.4 5) c): "The sum of leftmost-position and length minus the value one shall be less than or
     /// equal to the number of positions in the data item referenced by identifier-1", and every read and splice of a
     /// <see cref="RefModPlace"/> tests it when it executes (<c>StrRefMod</c> / <c>StrSpliceInto</c>), raising
     /// EC-BOUND-REF-MOD. Integer-literal positions are no exception: over a DYNAMIC LENGTH or ANY LENGTH identifier-1
@@ -107,11 +107,11 @@ internal static class PlaceIdentification
 
     /// <summary>The run-time steps of identification that leave no fragment for <see cref="Freeze(Place, Func{string,
     /// string})"/> to hoist. ⛔ A LITERAL SUBSCRIPT IS STILL TESTED AT RUN TIME WHERE THE TABLE'S EXTENT IS (kb/Work
-    /// PB370): §13.18.38.4 GR7 — "At the time the subject of entry is referenced or any data item subordinate or
+    /// PB370): §2023:13.18.38.4 GR7 — "At the time the subject of entry is referenced or any data item subordinate or
     /// superordinate to the subject of entry is referenced, the value of the data item referenced by data-name-1 shall
     /// fall within the bounds from integer-1 through integer-2" — is tested by the table step itself
     /// (<see cref="OdoReferenceCheck"/>), and an OCCURS DYNAMIC element is located against the table's current capacity
-    /// (§8.5.1.9.3), so <c>MOVE N (I) TO O (1)</c> over an occurs-depending O raised the receiver's EC-BOUND-ODO before
+    /// (§2023:8.5.1.9.3), so <c>MOVE N (I) TO O (1)</c> over an occurs-depending O raised the receiver's EC-BOUND-ODO before
     /// the sender's EC-BOUND-SUBSCRIPT while Freeze, which leaves a bare literal alone, answered "nothing".</summary>
     private static bool EvaluatesBesidesItsAddress(Place place) => place switch
     {
@@ -141,7 +141,7 @@ internal static class PlaceIdentification
         DynTablePlace d => d with { Path = FreezePath(d.Path, hoist) },
         RedefViewPlace v => FreezeView(v, hoist),
         // The decorations that carry an address of their own: the slice, and the occurs-depending wrapper whose INNER
-        // is the addressed storage. A reference modifier is evaluated AFTER its identifier's subscripts (§14.6.4
+        // is the addressed storage. A reference modifier is evaluated AFTER its identifier's subscripts (§2023:14.6.4
         // steps 6/7), so the inner is frozen first.
         RefModPlace r => FreezeRefMod(r, hoist),
         OdoGroupPlace o => o with { Inner = Freeze(o.Inner, hoist) },
@@ -154,16 +154,16 @@ internal static class PlaceIdentification
     /// ⛔ THE CELL A CLASS LIVES IN IS A RUN-TIME ADDRESS FRAGMENT TOO (kb/Work PB2087). The root that names it is a
     /// member the activation machinery RE-SEATS: a method's per-activation cell (LOCAL-STORAGE claimed onto a cell) and an
     /// area formal's data-address pointer are instance members saved and re-seeded at every activation of the method
-    /// (§8.6.4), and a BASED item's cell follows its pointer. A place that rendered the root at each access therefore
+    /// (§2023:8.6.4), and a BASED item's cell follows its pointer. A place that rendered the root at each access therefore
     /// followed it: an INVOKE of the same method, while the argument's view was still live as the formal of the
-    /// activated element, redirected the view to the INNER activation's storage — although ISO §14.2.3 GR8 makes the
-    /// formal occupy "the same storage area as the argument", the area identified when the statement began (§14.6.4 7;
-    /// §14.9.23.4 GR7a / §14.9.4.4 GR3a). So the cell is held in a statement-local, and the backing — the cell's image,
+    /// activated element, redirected the view to the INNER activation's storage — although ISO §2023:14.2.3 GR8 makes the
+    /// formal occupy "the same storage area as the argument", the area identified when the statement began (§2023:14.6.4 7;
+    /// §2023:14.9.23.4 GR7a / §2023:14.9.4.4 GR3a). So the cell is held in a statement-local, and the backing — the cell's image,
     /// <c>Ref</c>, in every cell-backed class — and every coding that names the same cell are re-anchored on it. A
-    /// formal's *-ARG-OMITTED guard stays on the new root (the hoist reads the cell without it, because §14.9.4.4 GR12 /
-    /// §14.9.23.4 GR10 exempt a reference "as an argument", and an omitted formal's cell is a real, blank one), so a
+    /// formal's *-ARG-OMITTED guard stays on the new root (the hoist reads the cell without it, because §2023:14.9.4.4 GR12 /
+    /// §2023:14.9.23.4 GR10 exempt a reference "as an argument", and an omitted formal's cell is a real, blank one), so a
     /// reference through the place is still checked where it was. A cell reached through a dynamic-capacity table's
-    /// element (more than a root) keeps its own rendering: its receiving accessor grows the table (§8.5.1.9.3). A cell
+    /// element (more than a root) keeps its own rendering: its receiving accessor grows the table (§2023:8.5.1.9.3). A cell
     /// rooted at a method LOCAL (<see cref="LocalRootSegment"/>: a cell this hoist already holds, a recreated table's
     /// element cell) is no member any activation re-seats, so it is the statement's own already and is not hoisted again
     /// (kb/Work PB4380).</summary>
@@ -206,8 +206,8 @@ internal static class PlaceIdentification
     /// <para>A <see cref="BitWindow"/>'s offset is not hoisted, because no verb that identifies its operands here can
     /// receive a USAGE BIT item with a run-time subscript: a BY REFERENCE bit argument's subscripts "consist of only
     /// fixed-point numeric literals or arithmetic expressions … in which all operands are numeric literals" (ISO
-    /// §14.9.4.3 SR6, COBOL1683; INVOKE's twin is §14.9.23.3 SR12), and INSPECT, STRING and UNSTRING take only
-    /// usage display or national operands (§14.9.22.3 SR1, §14.9.43.3 SR1, §14.9.48.3 SR4). The view's byte <see cref="RedefViewPlace.Offset"/>, which every other coding reads, is
+    /// §2023:14.9.4.3 SR6, COBOL1683; INVOKE's twin is §2023:14.9.23.3 SR12), and INSPECT, STRING and UNSTRING take only
+    /// usage display or national operands (§2023:14.9.22.3 SR1, §2023:14.9.43.3 SR1, §2023:14.9.48.3 SR4). The view's byte <see cref="RedefViewPlace.Offset"/>, which every other coding reads, is
     /// hoisted above.</para></summary>
     private static WindowCoding? FreezeCoding(WindowCoding? coding, Func<string, string> hoist) => coding switch
     {

@@ -13,15 +13,15 @@
       *>   python scripts/spec/cite.py --check 14.9.51.4 "If the
       *>   ADVANCING phrase is not used, automatic advancing shall be
       *>   provided by the implementor to act as if the user has
-      *>   specified AFTER ADVANCING 1 LINE"      -> OK  §14.9.51.4 25)
+      *>   specified AFTER ADVANCING 1 LINE"      -> OK  §2023:14.9.51.4 25)
       *>   python scripts/spec/cite.py --check 14.9.51.4 "If the
       *>   physical file does not support vertical positioning, the
       *>   ADVANCING and END-OF-PAGE phrases are ignored"
-      *>                                          -> OK  §14.9.51.4 25)
+      *>                                          -> OK  §2023:14.9.51.4 25)
       *>   python scripts/spec/cite.py --check 14.9.51.4 "If the BEFORE
       *>   phrase is used, the line is presented before the
       *>   representation of the printed page is advanced"
-      *>                                          -> OK  §14.9.51.4 25) e)
+      *>                                          -> OK  §2023:14.9.51.4 25) e)
       *> The 85 twin (85/pb1027_plain_write_is_after_advancing_85)
       *> derives the four expected strings for a record sequential
       *> file; a line sequential file ends its lines with the host
@@ -37,7 +37,7 @@
       *>      the advance past body line 1, AAA on body line 2, BBB on
       *>      body line 3, bottom margin, next top margin, CCC on body
       *>      line 1 of page 2 -- AFTER's overflow presents ON that
-      *>      line, §14.9.51.4 GR26 a)). => //AAA/BBB///CCC/
+      *>      line, §2023:14.9.51.4 GR26 a)). => //AAA/BBB///CCC/
       *>   D  the same with every WRITE spelled AFTER ADVANCING 1 LINE.
       *>      => //AAA/BBB///CCC/
       *>   E  A file with NO LINAGE clause that no ADVANCING phrase was

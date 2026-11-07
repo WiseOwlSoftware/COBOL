@@ -51,7 +51,7 @@ internal static class StorageFormPass
     /// <see cref="DataBindState.ImageForcedItems"/> records (Tier-B/CALL-cell/file-record/print-item at resolve,
     /// figurative-fill + ref-mod-store at procedure bind); (2) the compiler-temp re-sync (a temp mirrors its
     /// model's PRE-whole-group state — the fused pipeline's re-sync ordering); (3) the whole-group promotion
-    /// (§14.9.25.4 MOVE GR4) over <see cref="DataBindState.WholeGroupReferenced"/>.</summary>
+    /// (§2023:14.9.25.4 MOVE GR4) over <see cref="DataBindState.WholeGroupReferenced"/>.</summary>
     private static HashSet<DataItem> ComputePromotedSet(GroupBindContext ctx)
     {
         var promoted = new HashSet<DataItem>(ReferenceEqualityComparer.Instance);
@@ -76,7 +76,7 @@ internal static class StorageFormPass
             foreach (var item in d.State.CharacterChannelItems)
                 if (IsImagePromotable(item))
                     promoted.Add(item);
-        // (5) THE §14.6.2.3.2 ACTION-1 BACKGROUND (owner decision kb/Work R53; kb/Work PB1134): an OPTIONS
+        // (5) THE §2023:14.6.2.3.2 ACTION-1 BACKGROUND (owner decision kb/Work R53; kb/Work PB1134): an OPTIONS
         //     INITIALIZE clause sets "the storage allocated for the implied or associated sections" to the
         //     specified-fill-character, numeric items included, and a native carrier holds a decoded VALUE, not a
         //     run of fill characters or bytes. So a VALUE-less fixed-point numeric item of a governed section
@@ -94,9 +94,9 @@ internal static class StorageFormPass
                     if (init.Governs(root, workingStorageRoot: false, localStorageRoot: true))
                         AddBackgroundFilled(root, promoted);
             }
-        // (5b) THE SAME BACKGROUND OVER AN OO METHOD'S LOCAL-STORAGE (kb/Work PB1134, ISO §13.6.4 GR2 → §11.9.10): a
+        // (5b) THE SAME BACKGROUND OVER AN OO METHOD'S LOCAL-STORAGE (kb/Work PB1134, ISO §2023:13.6.4 GR2 → §2023:11.9.10): a
         //      method binds its LOCAL-STORAGE into its OWN roots, which the program's LocalStorageRoots never list,
-        //      and it may carry its OWN OPTIONS paragraph, which overrides the class's (§11.9.4 GR1; kb/Work PB1215).
+        //      and it may carry its OWN OPTIONS paragraph, which overrides the class's (§2023:11.9.4 GR1; kb/Work PB1215).
         //      The method's EFFECTIVE clause is the one the emitter seeds with (OoEmitter: MethodOptions, else the
         //      unit's), so the promotion decision and the seed read the same clause.
         foreach (var d in ctx.AllBindersAndInterfaces())
@@ -106,7 +106,7 @@ internal static class StorageFormPass
                     && methodInit.Governs(root, workingStorageRoot: false, localStorageRoot: true))
                     AddBackgroundFilled(root, promoted);
         // (6) THE TIER-A ALIAS CLOSURE (review round 1, R1-1 of PB4089): a Tier-A REDEFINES alias owns no storage of
-        //     its own, so Classify arm (2) forwards it to its CANONICAL's form (ISO §13.18.44.1: "the same computer storage area"; the
+        //     its own, so Classify arm (2) forwards it to its CANONICAL's form (ISO §2023:13.18.44.1: "the same computer storage area"; the
         //     alias and the canonical are the same carrier). A promotion decided on the alias — a character channel
         //     into it (STRING INTO / INSPECT / a group MOVE), the OPTIONS INITIALIZE background — must therefore
         //     reach the canonical, or the alias is classified native through the canonical while the channel stores
@@ -134,7 +134,7 @@ internal static class StorageFormPass
     {
         foreach (var child in item.Children)
         {
-            // A fixed-OCCURS subordinate is part of the whole-group image too (ISO §14.9 — every OCCURS
+            // A fixed-OCCURS subordinate is part of the whole-group image too (ISO §2023:14.9 — every OCCURS
             // position); same recursion as the legacy MarkStoreAsImage.
             if (child.IsGroup) AddImagePromotableLeaves(child, promoted);
             else if (IsImagePromotable(child))
@@ -147,8 +147,8 @@ internal static class StorageFormPass
     /// storage form IS the method's crossing type in the CLR signature (<c>ManagedPointer&lt;string&gt;</c> against
     /// <c>ManagedPointer&lt;long&gt;</c>), and the importing group's argument is built for the signature the assembly has. The decision is
     /// a function of the description alone: an elementary formal is a character channel's far end
-    /// (<see cref="UsageCollectionPass.MethodFormalChannels"/> — every method formal is BY REFERENCE, ISO §14.2.3 GR8) and a group formal
-    /// is a whole-group operand (§14.9.25.4 GR4), so each is promoted by the ONE eligibility test (<see cref="IsImagePromotable"/>); the
+    /// (<see cref="UsageCollectionPass.MethodFormalChannels"/> — every method formal is BY REFERENCE, ISO §2023:14.2.3 GR8) and a group formal
+    /// is a whole-group operand (§2023:14.9.25.4 GR4), so each is promoted by the ONE eligibility test (<see cref="IsImagePromotable"/>); the
     /// RETURNING item is neither and keeps its base form. The override/implements fixed point does not apply: it compares symbols of
     /// one group, and an imported signature is a fact of the assembly.</summary>
     internal static void ClassifyImportedMethod(OoMethodSymbol method)
@@ -170,8 +170,8 @@ internal static class StorageFormPass
     /// (<see cref="PicInfo.HasImageByteForm"/>) — usage DISPLAY, BINARY / COMP-5 / BINARY-CHAR…DOUBLE, or PACKED.
     /// <para>⛔ BINARY AND PACKED ARE PROMOTED, NOT DISPLAY ALONE (kb/Work PB1466). Content reaches such a leaf
     /// through a character channel — a group MOVE, a READ into its record, a BY REFERENCE crossing — "without
-    /// consideration for the individual elementary or group items" (§14.9.25.4 GR4), so it can be anything, and
-    /// ISO §8.8.4.4.4 GR3 n) 1. c. exists to ask about exactly that content: "the content … consists entirely of a
+    /// consideration for the individual elementary or group items" (§2023:14.9.25.4 GR4), so it can be anything, and
+    /// ISO §2023:8.8.4.4.4 GR3 n) 1. c. exists to ask about exactly that content: "the content … consists entirely of a
     /// valid representation for the usage and, if a PICTURE clause is specified, the numeric value is within the
     /// range of values implied by the PICTURE clause". A native carrier holds a DECODED value — a packed nibble
     /// A–F or a binary value past the PICTURE's range is normalized away on the way in — so the class condition
@@ -237,7 +237,7 @@ internal static class StorageFormPass
             // ⛔ EVERY BYTE-FORM NUMERIC, not the DISPLAY pair alone (kb/Work PB187). "Only the display-numeric pair
             // can diverge" was true while ComputeTier refused every float / COMP-5 / BINARY-* / INDEX leaf in a
             // REDEFINES / EXTERNAL / BASED class; the PB164 arm-1 dissolution admitted them, so a formal that is
-            // REDEFINED in its LINKAGE SECTION (§14.2.2 NOTE 2 — the clause is on the redefiner, never on the
+            // REDEFINED in its LINKAGE SECTION (§2023:14.2.2 NOTE 2 — the clause is on the redefiner, never on the
             // formal) is CharImage(Numeric) while its prototype/override twin stays native, and returning false
             // here left the two C# signatures disagreeing (`ref string` against `ref float`). Every
             // HasImageByteForm item HAS a byte image, so the one reconciliation is "promote the native side to
@@ -270,12 +270,12 @@ internal static class StorageFormPass
                     foreach (var field in line.Fields)
                     Walk(field.PrintItem, visited, promoted);
         // ⛔ A REPORT SUM COUNTER'S REGISTER IS IMAGE-CARRIED BY DETERMINATION, never by promotion (kb/Work PB2553).
-        // §13.18.54.4 GR1 makes the counter a numeric data item, docs/CONFORMANCE.md A.4.11 makes it signed USAGE
-        // DISPLAY, and §8.4.3.3.4 GR5 makes a reference-modified store "a subset of the data item referenced by
+        // §2023:13.18.54.4 GR1 makes the counter a numeric data item, docs/CONFORMANCE.md A.4.11 makes it signed USAGE
+        // DISPLAY, and §2023:8.4.3.3.4 GR5 makes a reference-modified store "a subset of the data item referenced by
         // identifier-1": a character it receives is IN the counter, a non-digit included, as in any stored item. The
         // engine's integer register cannot hold one, so the procedure division sees the counter as its character
         // image (CobolReport.SumImage / SetSumImage) and every consumer reads it as any image-carried numeric item —
-        // §14.6.13.2 rule 2's checked decode, the class condition's image test, a figurative fill's plain store.
+        // §2023:14.6.13.2 rule 2's checked decode, the class condition's image test, a figurative fill's plain store.
         foreach (var report in data.State.Reports.Declared)
             foreach (var family in report.SumFamilies)
                 family.Register.Storage = new StorageForm.CharImage(family.Register.ImageWidth, PicCategory.Numeric);
@@ -291,15 +291,15 @@ internal static class StorageFormPass
     /// <summary>The base + image-promoted <see cref="StorageForm"/> of one ELEMENTARY item.</summary>
     private static StorageForm Classify(DataItem item, HashSet<DataItem> promoted)
     {
-        // (1) OCCURS DYNAMIC — the out-of-line table wraps its element's own form (highest priority; §8.5.1.9.1, D9).
+        // (1) OCCURS DYNAMIC — the out-of-line table wraps its element's own form (highest priority; §2023:8.5.1.9.1, D9).
         // ⛔ THE ELEMENT IS PROMOTED BY THE SAME RULE AS ANY LEAF (kb/Work PB1939, PB2004). An occurrence receives
-        // characters exactly as a fixed-table occurrence does — §14.6.9.4's space fill ("each element of the
-        // dynamic table is space-filled"), a group MOVE's characters (§14.9.25.4 GR4), INSPECT's retained sign
-        // over a zero magnitude (§14.9.22.4 GR4 d), a negative zero) — and a native carrier holds a VALUE, so
+        // characters exactly as a fixed-table occurrence does — §2023:14.6.9.4's space fill ("each element of the
+        // dynamic table is space-filled"), a group MOVE's characters (§2023:14.9.25.4 GR4), INSPECT's retained sign
+        // over a zero magnitude (§2023:14.9.22.4 GR4 d), a negative zero) — and a native carrier holds a VALUE, so
         // the element whose item a channel writes stores its image: CobolDynTable<string>, not <long>.
         if (item.IsDynamicTable) return new StorageForm.DynamicTable(Promoted(item, BaseElementary(item), promoted));
 
-        // (1b) DYNAMIC LENGTH — a variable-length, min-0 native string (§8.5.1.10 / §13.18.19, COBOL-2014). The
+        // (1b) DYNAMIC LENGTH — a variable-length, min-0 native string (§2023:8.5.1.10 / §2023:13.18.19, COBOL-2014). The
         // category (X→Alphanumeric, N→National) comes from the PIC; the limit is the LIMIT phrase (-1 = implementor max).
         if (item.IsDynamicLength)
             return new StorageForm.DynamicString(item.Pic?.Category ?? PicCategory.Alphanumeric, item.DynMaxSize);
@@ -386,7 +386,7 @@ internal static class StorageFormPass
         StorageForm.MessageTagRef => "MessageTag",
         StorageForm.TierBWindow => "string",       // a Tier-B window is a string slice (a numeric Tier-B leaf is CharImage)
         StorageForm.DynamicTable dt => StorageElementType(dt.Element),
-        StorageForm.DynamicString => "string",      // a DYNAMIC LENGTH item IS a native string (§8.5.1.10)
+        StorageForm.DynamicString => "string",      // a DYNAMIC LENGTH item IS a native string (§2023:8.5.1.10)
         _ => "object",
     };
 

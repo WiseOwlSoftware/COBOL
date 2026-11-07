@@ -6,9 +6,9 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ A Format 2 (table) VALUE phrase's ELEMENT COUNT and its §13.18.63.4 GR12 odometer walk must agree
+/// ⛔ A Format 2 (table) VALUE phrase's ELEMENT COUNT and its §2023:13.18.63.4 GR12 odometer walk must agree
 /// (kb/Work PB1716). The count used to be absent, and a 64,000,000-element cap was the fill's only bound, so a
-/// phrase that violated §13.18.63.3 SR23 ran to the cap before being rejected (about 30 s for a 26-line program).
+/// phrase that violated §2023:13.18.63.3 SR23 ran to the cap before being rejected (about 30 s for a 26-line program).
 /// The count is a mixed-radix distance and the walk (<see cref="TableValueOdometer.Step"/>) is a carry chain: two
 /// statements of one order, so this class proves them equal over every tuple pair of a small table, and pins the
 /// three ways a phrase names no run (a subscript out of range, TO before FROM, and unequal subscripts above a
@@ -48,7 +48,7 @@ public sealed class TableValueElementCountTests
             }
     }
 
-    /// <summary>§13.18.63.3 SR20/SR21: a subscript outside 1..the dimension's ceiling names no element.</summary>
+    /// <summary>§2023:13.18.63.3 SR20/SR21: a subscript outside 1..the dimension's ceiling names no element.</summary>
     [Fact]
     public void OutOfRangeSubscript_NamesNoRun()
     {
@@ -59,7 +59,7 @@ public sealed class TableValueElementCountTests
         Assert.Null(TableValueOdometer.ElementCount(dims, S(1, 1), S(1)));   // wrong tuple length
     }
 
-    /// <summary>§13.18.63.3 SR23 — "the values of subscript-1 and subscript-2 corresponding to all levels higher
+    /// <summary>§2023:13.18.63.3 SR23 — "the values of subscript-1 and subscript-2 corresponding to all levels higher
     /// than that of the OCCURS clause, if applicable, shall be equal": an unbounded OUTER dimension may be spanned
     /// (nothing is above it), an unbounded INNER one may not be carried out of, and with two nested unbounded
     /// dimensions the rule binds the inner one too — the case the COBOL1946 screen used to miss.</summary>

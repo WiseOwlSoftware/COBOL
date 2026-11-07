@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>⛔ ONE DERIVATION OF "WHICH SYMBOLS OF AN EDITED MASK ARE DIGIT POSITIONS" (kb/Work PB2639). The render
 /// (<see cref="CobolEdit.Format"/>), the size-error bound (<see cref="CobolEdit.TryFormat"/>),
 /// <see cref="CobolEdit.MaskCapacity"/>, <see cref="CobolEdit.MaskScale"/> and <see cref="CobolEdit.DeEdit"/> must
-/// all answer it identically, because ISO §13.18.40.5 rule 6 makes the repetitions of a FLOATING extended editing
+/// all answer it identically, because ISO §2023:13.18.40.5 rule 6 makes the repetitions of a FLOATING extended editing
 /// sign control symbol digit positions exactly as it does a floating currency symbol's. Three of the five dropped
 /// the <see cref="CobolEdit.EditRule"/> array and counted such a symbol as an insertion character. These facts pin
 /// the AGREEMENT over every edits-bearing picture: the bound accepts exactly what the render can show, the render
@@ -25,7 +25,7 @@ public sealed class CobolEditMaskFactsTests
 
     /// <summary>The geometry counts a floating character-1's repetitions: the first is the symbol itself, so
     /// <c>LLLL9.99</c> holds 4 integer and 2 fraction digit positions (capacity 6), and a floating string that
-    /// reaches PAST the decimal point (<c>LLL.LL</c>, §13.18.40.3 SR29 asks only for one symbol to the LEFT of
+    /// reaches PAST the decimal point (<c>LLL.LL</c>, §2023:13.18.40.3 SR29 asks only for one symbol to the LEFT of
     /// it) has its fraction positions counted, so the scale is 2 and not 0.</summary>
     [Theory]
     [InlineData("LLLL9.99", 6, 2)]
@@ -52,7 +52,7 @@ public sealed class CobolEditMaskFactsTests
 
     /// <summary>The size-error bound is the render's capacity: <c>COMPUTE C = 10</c> into <c>LLLL9.99</c> is
     /// inside its four integer digits (a false size error before PB2639: the bound counted three), and the first
-    /// value past them, 10000, is the §14.7.5 case-3 size error.</summary>
+    /// value past them, 10000, is the §2023:14.7.5 case-3 size error.</summary>
     [Theory]
     [InlineData(1000, 2, true)]        // 10.00
     [InlineData(12345, 2, true)]       // 123.45 — Annex D.24's own value for this picture
@@ -67,7 +67,7 @@ public sealed class CobolEditMaskFactsTests
 
     /// <summary>The render aligns the sending value at the scale the geometry reports. <c>LLL.LL</c> with a
     /// width-1 literal: 1.5 is <c>01.50</c> with the sign on the second L, and 0.25 puts the sign immediately
-    /// before the point (§13.18.40.5 rule 6 a). A scale of 0 used to render the digits of 1 at the fraction
+    /// before the point (§2023:13.18.40.5 rule 6 a). A scale of 0 used to render the digits of 1 at the fraction
     /// positions (<c>   .01</c>).</summary>
     [Theory]
     [InlineData(15, 1, "  1.50")]

@@ -5,23 +5,23 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.21.4 GR1 c) — INITIATE sets each named report's
+      *> ISO §2023:14.9.21.4 GR1 c) — INITIATE sets each named report's
       *> PAGE-COUNTER to 1. GR1: "The INITIATE statement performs the
       *> following initialization functions for each specified
       *> report:" ... c) "PAGE-COUNTER is set to 1"
-      *>   cite.py: OK  §14.9.21.4 1)  (General rules)
+      *>   cite.py: OK  §2023:14.9.21.4 1)  (General rules)
       *> This is a SUPPORTING GR1 c) witness only. It does NOT witness
-      *> GR5 (cite.py: OK §14.9.21.4 5)): its one line is fixed by
+      *> GR5 (cite.py: OK §2023:14.9.21.4 5)): its one line is fixed by
       *> GR1 alone and is the same for either initiation order, so an
       *> implementation that broke GR5's written order would pass it.
       *> At 1985 GR5 has no observable separable from GR1 - without
       *> exception checking or RESUME no conforming program can see
       *> the order - so the 85 cell of GR5 is unwitnessed.
       *> Supporting (each cite.py --check OK):
-      *>  §8.4.3.15.3 1) PAGE-COUNTER may be referenced in the
+      *>  §2023:8.4.3.15.3 1) PAGE-COUNTER may be referenced in the
       *>    procedure division "in any context where an integer data
       *>    item may appear"; 3) bars only LINE-COUNTER as a receiver.
-      *>  §14.9.46.4 2) - a TERMINATE with no GENERATE since the
+      *>  §2023:14.9.46.4 2) - a TERMINATE with no GENERATE since the
       *>    INITIATE prints nothing.
       *> At 1985 there is no exception checking and no RESUME, so the
       *> ORDER is not observable; what is observable is that EVERY

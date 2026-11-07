@@ -13,8 +13,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// The grammar's <c>paragraphName</c> and <c>sectionName</c> are <c>procedureName</c>, which is <c>word ((OF | IN)
 /// word)?</c> because the references share it, so <c>P1 OF S1.</c> and <c>S1 OF X SECTION.</c> parse. A reader that
 /// asked the header for <c>GetText()</c> got the words glued — <c>P1OFS1</c> — and declared a procedure no source
-/// element wrote, which <c>PERFORM P1OFS1</c> then ran. ISO §14.2.1 prints the headers bare (<c>section-name-1
-/// SECTION.</c>, <c>paragraph-name-1.</c>) and §14.4.1 gives qualification to the procedure-name that refers to a
+/// element wrote, which <c>PERFORM P1OFS1</c> then ran. ISO §2023:14.2.1 prints the headers bare (<c>section-name-1
+/// SECTION.</c>, <c>paragraph-name-1.</c>) and §2023:14.4.1 gives qualification to the procedure-name that refers to a
 /// paragraph, so <c>ProcedureTableBuilder.HeaderName</c> is the one place that reads a header's name and refuses a
 /// qualifier (COBOL5716). A header slot read any other way — <c>.paragraphName().GetText()</c>, a child of it — is the
 /// regression this test names; the goldens prove today's readers, this proves the next one goes through

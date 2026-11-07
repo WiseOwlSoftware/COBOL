@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §7.3.10.4 1) — COBOL-WORDS literals, and the equated and
+      *> ISO §2023:7.3.10.4 1) — COBOL-WORDS literals, and the equated and
       *> substituted words, are case-insensitive
       *>
       *> "1) The content of each literal shall be processed as
@@ -13,18 +13,18 @@
       *> within a compilation group. Any use of an equated or
       *> substituted literal shall be case-insensitive when used
       *> syntactically as a COBOL word."
-      *>   cite.py: OK  §7.3.10.4 1)  (General rules)   (both sentences)
+      *>   cite.py: OK  §2023:7.3.10.4 1)  (General rules)   (both sentences)
       *> "2) Each literal ... shall be evaluated as case-insensitive."
-      *>   cite.py: OK  §7.3.10.3 2)  (Syntax rules)
+      *>   cite.py: OK  §2023:7.3.10.3 2)  (Syntax rules)
       *> The directives must precede the first IDENTIFICATION DIVISION
-      *> (§7.3.10.3 SR1), hence their position below this comment.
+      *> (§2023:7.3.10.3 SR1), hence their position below this comment.
       *>
       *> Half 1 (literal CONTENT): the literals are written in lower or
       *> mixed case - "display", "Move", "add" - yet each must act on
       *> the reserved word DISPLAY / MOVE / ADD:
       *>   UNDEFINE "add"  -> ADD is no longer reserved, so the
       *>   data-name
-      *>                      ADD below is legal (§7.3.10.4 GR3).
+      *>                      ADD below is legal (§2023:7.3.10.4 GR3).
       *>   SUBSTITUTE "Move" -> MOVE is no longer reserved, so the
       *>                      data-name MOVE below is legal (GR4).
       *> Half 2 (USE of the equated / substituted word): "show" and

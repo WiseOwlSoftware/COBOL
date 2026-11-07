@@ -4,13 +4,13 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.90 TEST-DATE-YYYYMMDD / §15.91 TEST-DAY-YYYYDDD / §15.93 TEST-NUMVAL / §15.94
-      *> TEST-NUMVAL-C / §15.95 TEST-NUMVAL-F are COBOL-2002 introductions (§15.90/§15.91 carry direct
+      *> ISO §2023:15.90 TEST-DATE-YYYYMMDD / §2023:15.91 TEST-DAY-YYYYDDD / §2023:15.93 TEST-NUMVAL / §2023:15.94
+      *> TEST-NUMVAL-C / §2023:15.95 TEST-NUMVAL-F are COBOL-2002 introductions (§2023:15.90/§2023:15.91 carry direct
       *> in-spec 2002 attribution, D.31.3.1; PHASE-11-scout-notes.md spec:validators). Below 2002 the D8
       *> catalog window rejects each reference BY NAME — COBOL1502 (IntrinsicBinder window gate).
       *> ⚠ TEST-NUMVAL-F was the one member of the quartet this fixture did not name, so its gate was
       *> unmeasured while its three siblings' was pinned (kb/Work PB256 — the edition-gate half of the
-      *> §15.95 rows' evidence).
+      *> §2023:15.95 rows' evidence).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. P11TESTV85.
        DATA DIVISION.

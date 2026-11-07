@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.7.7 rule 1 — operands of DIFFERENT descriptions need
+      *> ISO §2023:14.7.7 rule 1 — operands of DIFFERENT descriptions need
       *>   no user conversion; alignment is supplied by the statement.
       *> "The data descriptions of the operands need not be the same;
       *>  any necessary conversion and decimal point alignment is
@@ -13,7 +13,7 @@
       *> cite.py --check 14.7.7 "The data descriptions of the operands
       *>   need not be the same; any necessary conversion and decimal
       *>   point alignment is supplied throughout the calculation"
-      *>   -> OK §14.7.7 1)
+      *>   -> OK §2023:14.7.7 1)
       *> Four operands, four different descriptions (usage, scale,
       *> sign form): A S9(3)V9 DISPLAY = -12.5; B 9V99 BINARY = 3.75;
       *> C 99V999 PACKED-DECIMAL = 10.125; D S99 SIGN LEADING SEPARATE

@@ -16,14 +16,14 @@ using Core = CobolParserCore;
 /// capacity defined in the corresponding OCCURS clause").</param>
 /// <param name="MaxWhat">What <paramref name="Max"/> IS, in the standard's words.</param>
 /// <param name="Operand">The general format's own name for the literal — "integer-1", "integer-2".</param>
-/// <param name="Rule">The citation, e.g. <c>ISO §14.9.39.3 SR30</c>.</param>
+/// <param name="Rule">The citation, e.g. <c>ISO §2023:14.9.39.3 SR30</c>.</param>
 internal readonly record struct SetAmountBound(
     System.Int128 Min, System.Int128? Max, string MinWhat, string MaxWhat, string Operand, string Rule);
 
 /// <summary>⛔ THE ONE COMPILE-TIME SCREEN FOR A SET AMOUNT WRITTEN AS A LITERAL (kb/Work PB458).
-/// <para>§14.9.39.2 writes each amount-taking SET format as a CHOICE between a literal and an arithmetic
-/// expression, and puts a SYNTAX rule on the literal alternative (§14.9.39.3 SR30 for Format 14's integer-1,
-/// SR34 for Format 16's integer-2) beside a GENERAL rule on the expression alternative (§14.9.39.4 GR29/GR30,
+/// <para>§2023:14.9.39.2 writes each amount-taking SET format as a CHOICE between a literal and an arithmetic
+/// expression, and puts a SYNTAX rule on the literal alternative (§2023:14.9.39.3 SR30 for Format 14's integer-1,
+/// SR34 for Format 16's integer-2) beside a GENERAL rule on the expression alternative (§2023:14.9.39.4 GR29/GR30,
 /// GR37/GR38). Before this, only the general rules existed and the literal alternative fell through to them, so
 /// the compile-time REJECTION the standard requires was replaced by a run-time CLAMP that produces a DIFFERENT
 /// value: <c>SET WS-CAP TO 1</c> over <c>FROM 2 TO 10</c> ran and answered 2, and <c>SET SIZE OF D TO 99</c>
@@ -38,14 +38,14 @@ internal static class SetLiteralAmount
     /// <summary>The value of <paramref name="amount"/> when it is integer-1 / integer-2 — an operand that
     /// CONSISTS OF a single integer literal — or null when it is arithmetic-expression-4 / -5 and the format's
     /// general rule governs instead.
-    /// <para>§5.5 rule 1 is what makes this a literal test and not a value test: "When the term 'integer-n'
+    /// <para>§2023:5.5 rule 1 is what makes this a literal test and not a value test: "When the term 'integer-n'
     /// (n = 1, 2, …) is used in a general format and associated rules, it refers to a fixed-point integer
     /// literal that shall be unsigned and nonzero unless otherwise specified in the associated rules." SR30's
     /// "shall be nonnegative" and SR34's "shall be non-negative" are that otherwise-specification, which is why
     /// a negative literal is a VIOLATION of them rather than a non-match; and it is why an amount written as a
     /// DATA ITEM is arithmetic-expression-4/-5, governed by the general rule at run time, however small its
     /// value.</para>
-    /// <para>⛔ The literal test is <see cref="SoleOperand.NumericLiteral"/>, THE one §8.3.3.3.2 rule-2 reading
+    /// <para>⛔ The literal test is <see cref="SoleOperand.NumericLiteral"/>, THE one §2023:8.3.3.3.2 rule-2 reading
     /// shared with DEFINE, CONSTANT, EVALUATE and the relation condition: a sign ADJACENT to the digits is part
     /// of the literal (so <c>TO -1</c> IS integer-1 and violates "shall be nonnegative"), while a separated
     /// <c>TO - 1</c> is a unary operator over a literal — an arithmetic expression, which the format's general
@@ -57,7 +57,7 @@ internal static class SetLiteralAmount
         string t = text.Trim();
         bool negative = t.StartsWith('-');
         if (negative || t.StartsWith('+')) t = t[1..];
-        // §8.3.3.3.2 — an INTEGER literal has no decimal point (nor the DECIMAL-POINT IS COMMA spelling, nor an
+        // §2023:8.3.3.3.2 — an INTEGER literal has no decimal point (nor the DECIMAL-POINT IS COMMA spelling, nor an
         // exponent): those spell a non-integer literal, which is arithmetic-expression-4/-5 for these formats.
         if (t.Length == 0 || !System.Int128.TryParse(t, out var v)) return null;
         return negative ? -v : v;

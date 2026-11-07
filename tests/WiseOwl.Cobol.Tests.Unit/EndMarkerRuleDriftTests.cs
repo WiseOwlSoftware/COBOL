@@ -8,7 +8,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ ISO §10.7.3's end-marker rules are asked ONCE, by <c>Validation/EndMarkerPass</c>, of every source unit
+/// ⛔ ISO §2023:10.7.3's end-marker rules are asked ONCE, by <c>Validation/EndMarkerPass</c>, of every source unit
 /// (kb/Work PB988). Before it the name comparison was written five times — END CLASS and END METHOD twice in
 /// <c>OoClassTable.Build</c>, END INTERFACE there and again for parameterized skeletons in <c>OoExpansion</c> — while
 /// an interface's method prototypes, every GET/SET PROPERTY method and every PROGRAM / FUNCTION marker were asked by
@@ -41,7 +41,7 @@ public sealed class EndMarkerRuleDriftTests
             .Select(x => $"{Path.GetRelativePath(TestRepo.Root, x.f)}:{x.i + 1}: {x.l.Trim()}")
             .ToList();
         Assert.True(offenders.Count == 0,
-            "an end-marker name is compared outside Validation/EndMarkerPass (ISO §10.7.3 has one home):\n"
+            "an end-marker name is compared outside Validation/EndMarkerPass (ISO §2023:10.7.3 has one home):\n"
             + string.Join("\n", offenders));
     }
 

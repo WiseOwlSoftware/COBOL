@@ -11,8 +11,8 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ THE §4.2.10 REGISTER OF NONSTANDARD EXTENSIONS IS ONE TABLE, AND EVERYTHING THAT SAYS WHAT AN EXTENSION IS READS
-/// IT (kb/Work PB1525). ISO/IEC 1989:2023 §4.2.10 owes the user three things — documentation that identifies the
+/// ⛔ THE §2023:4.2.10 REGISTER OF NONSTANDARD EXTENSIONS IS ONE TABLE, AND EVERYTHING THAT SAYS WHAT AN EXTENSION IS READS
+/// IT (kb/Work PB1525). ISO/IEC 1989:2023 §2023:4.2.10 owes the user three things — documentation that identifies the
 /// extensions for which support is claimed and specifies the reserved words added for them, and a compile-time
 /// warning mechanism that flags only syntactically distinguishable ones — and
 /// <see cref="NonstandardExtensionRegister"/> is where all three are answered. This class keeps the five places that
@@ -41,7 +41,7 @@ public sealed class NonstandardExtensionRegisterDriftTests
             $"ExtensionIds constants [{string.Join(",", constants.Values.Order())}] != register ids [{string.Join(",", ids.Order())}]");
     }
 
-    /// <summary>§4.2.10: "documentation … shall specify any reserved words added for nonstandard extensions" — the
+    /// <summary>§2023:4.2.10: "documentation … shall specify any reserved words added for nonstandard extensions" — the
     /// words the lexer reserves on an extension's account (<c>cobol-words.json</c> <c>extensionReserved</c>) are
     /// exactly the words the register's rows carry, each on one row.</summary>
     [Fact]
@@ -69,7 +69,7 @@ public sealed class NonstandardExtensionRegisterDriftTests
         }
         Assert.False(NonstandardExtensionRegister.ReservesWord("JSÖN"));
         Assert.False(NonstandardExtensionRegister.ReservesWord("ZQXWORD"));
-        Assert.False(NonstandardExtensionRegister.ReservesWord("MOVE"));   // a standard word: §8.9's, not an extension's
+        Assert.False(NonstandardExtensionRegister.ReservesWord("MOVE"));   // a standard word: §2023:8.9's, not an extension's
     }
 
     /// <summary>The usage funnel (<c>PictureAnalyzer.ParseUsage</c>) recognizes a vendor spelling BY ROW, so a row's
@@ -110,7 +110,7 @@ public sealed class NonstandardExtensionRegisterDriftTests
 
     /// <summary>"A dead lookup is also an unverified one": every ACCEPTED, syntactically distinguishable row that is
     /// not a usage spelling is named by a binder site (<c>EditionContext.Extension(ExtensionIds.X, …)</c>); a row that
-    /// is not flaggable (not distinguishable, or refused by name) is named by none, because §4.2.10's mechanism
+    /// is not flaggable (not distinguishable, or refused by name) is named by none, because §2023:4.2.10's mechanism
     /// "shall flag only extensions that are syntactically distinguishable".</summary>
     [Fact]
     public void EveryFlaggableRowIsNamedByABinderSite_AndNoOtherRowIs()
@@ -149,13 +149,13 @@ public sealed class NonstandardExtensionRegisterDriftTests
         Assert.Empty(ed.Warnings);
     }
 
-    /// <summary>§4.2.10: "Documentation associated with an implementation shall identify nonstandard extensions for
+    /// <summary>§2023:4.2.10: "Documentation associated with an implementation shall identify nonstandard extensions for
     /// which support is claimed" — <c>docs/CONFORMANCE.md</c> §3.2 has one table row per register row, first column
     /// the row's id in backticks, and no other.</summary>
     [Fact]
     public void TheDocumentation_ListsExactlyTheRegisterRows()
     {
-        // §3.2 is held to the facts file's nonstandardExtensionIds by scripts/docchecks/facts.py
+        // §2023:3.2 is held to the facts file's nonstandardExtensionIds by scripts/docchecks/facts.py
         // (extension_register_findings); the file is held to the register here, so no compiler test opens the Markdown
         // (kb/Work PB4453).
         var documented = DocFacts.Load("compiler-facts.json").GetProperty("nonstandardExtensionIds").EnumerateArray()

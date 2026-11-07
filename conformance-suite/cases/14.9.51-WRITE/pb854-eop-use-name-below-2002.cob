@@ -5,7 +5,7 @@
       *> portable: unverified
       *>---
       *> The REJECT half of conformance:2002/pb854_write_eop_exception_
-      *> conditions. EC-I-O-EOP is the exception-name ISO §14.9.51.4
+      *> conditions. EC-I-O-EOP is the exception-name ISO §2023:14.9.51.4
       *> GR27 a) sets to exist for a GR26 b) end-of-page condition; it
       *> belongs to the exception-condition facility ISO/IEC 1989:2002
       *> introduced, so naming it in a declarative below COBOL-2002 is

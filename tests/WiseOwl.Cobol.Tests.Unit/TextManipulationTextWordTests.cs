@@ -11,9 +11,9 @@ using WiseOwl.Cobol.Tests.Shared;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The text-manipulation stage (COPY + REPLACE, ISO §7.2) over §7.2.2.5 text-words — kb/Work PB1350 (what a
-/// text-word is), PB1351 (how two text-words compare, §7.2.3.4 9) c) / §7.2.4.4 8) c)) and PB1354 (the COPY
-/// statement is PARSED from its §7.2.3.2 general format, not hand-scanned to the next '.'). Every expectation is
+/// The text-manipulation stage (COPY + REPLACE, ISO §2023:7.2) over §2023:7.2.2.5 text-words — kb/Work PB1350 (what a
+/// text-word is), PB1351 (how two text-words compare, §2023:7.2.3.4 9) c) / §2023:7.2.4.4 8) c)) and PB1354 (the COPY
+/// statement is PARSED from its §2023:7.2.3.2 general format, not hand-scanned to the next '.'). Every expectation is
 /// derived from the cited rule, and every case goes through the real merged driver
 /// (<see cref="ConditionalCompilationProcessor.ProcessWithCopy"/>), so COPY and REPLACE are exercised on the one path
 /// the compiler runs.
@@ -39,9 +39,9 @@ public sealed class TextManipulationTextWordTests : IDisposable
 
     private static void Clean(DiagnosticBag bag) => Assert.False(bag.HasErrors, string.Join("\n", bag.Diagnostics));
 
-    // ---- PB1350: text-word formation (§7.2.2.5, §8.3.5) ----
+    // ---- PB1350: text-word formation (§2023:7.2.2.5, §2023:8.3.5) ----
 
-    [Fact] // §7.2.2.5 1): the colon is a separator, so 1:5 holds the text-words 1 : 5 and ==5== matches.
+    [Fact] // §2023:7.2.2.5 1): the colon is a separator, so 1:5 holds the text-words 1 : 5 and ==5== matches.
     public void Colon_SeparatesTextWords()
     {
         var (text, bag) = Run("REPLACE ==5== BY ==2==.\n    MOVE WA(1:5) TO WB.\n");
@@ -49,7 +49,7 @@ public sealed class TextManipulationTextWordTests : IDisposable
         Assert.Contains("WA(1:2)", text);
     }
 
-    [Fact] // §8.3.5 3) / 2): a period or comma not followed by a space is no separator — ZZ.ZZ and Z,ZZ9 are ONE word.
+    [Fact] // §2023:8.3.5 3) / 2): a period or comma not followed by a space is no separator — ZZ.ZZ and Z,ZZ9 are ONE word.
     public void PictureStrings_AreSingleTextWords()
     {
         var (text, bag) = Run("REPLACE ==ZZ== BY ==99== ==ZZ9== BY ==999==.\n01 A PIC ZZ.ZZ.\n01 B PIC Z,ZZ9.\n01 C PIC ZZ9.\n");
@@ -59,7 +59,7 @@ public sealed class TextManipulationTextWordTests : IDisposable
         Assert.Contains("PIC 999.", text);   // the control: a whole text-word still matches
     }
 
-    [Fact] // §7.2.2.5 2): a literal INCLUDING its opening delimiter (X" N" per §8.3.5 5)) and its doubled quotes is one word.
+    [Fact] // §2023:7.2.2.5 2): a literal INCLUDING its opening delimiter (X" N" per §2023:8.3.5 5)) and its doubled quotes is one word.
     public void Literals_WithPrefixOrDoubledQuote_AreSingleTextWords()
     {
         var (text, bag) = Run("REPLACE ==\"41\"== BY ==\"42\"== ==\"PQ\"== BY ==\"RS\"== ==\"Q\"== BY ==\"Z\"==.\n"
@@ -68,7 +68,7 @@ public sealed class TextManipulationTextWordTests : IDisposable
         Assert.Contains("DISPLAY X\"41\" N\"PQ\" \"P\"\"Q\" nx\"0041\".", text);
     }
 
-    [Fact] // §7.2.3.4 9) c) 2.: each concatenation operand and operator is a separate text-word — a prefixed operand too.
+    [Fact] // §2023:7.2.3.4 9) c) 2.: each concatenation operand and operator is a separate text-word — a prefixed operand too.
     public void ConcatenationOperands_AreSeparateTextWords()
     {
         var (text, bag) = Run("REPLACE ==\"CD\"== BY ==\"ZZ\"== ==X\"42\"== BY ==X\"43\"==.\n    DISPLAY \"AB\"&\"CD\" \"A\"&X\"42\".\n");
@@ -76,7 +76,7 @@ public sealed class TextManipulationTextWordTests : IDisposable
         Assert.Contains("\"AB\"&\"ZZ\" \"A\"&X\"43\".", text);
     }
 
-    [Fact] // §7.2.3.4 9) c) 6.: a comment is a space — whatever its text, including a programmer's "*> DEBUG: …".
+    [Fact] // §2023:7.2.3.4 9) c) 6.: a comment is a space — whatever its text, including a programmer's "*> DEBUG: …".
     public void Comment_ReadingLikeTheDebugCarrier_IsASpace()
     {
         var (text, bag) = Run("REPLACE ==DISPLAY KK== BY ==DISPLAY W1==.\n    DISPLAY\n*> DEBUG: note to self\n    KK.\n");
@@ -97,7 +97,7 @@ public sealed class TextManipulationTextWordTests : IDisposable
         Assert.DoesNotContain("KK", text);
     }
 
-    [Fact] // §7.2.4.4 8) c) 1.: a separator comma or semicolon is a space — on either side of the comparison.
+    [Fact] // §2023:7.2.4.4 8) c) 1.: a separator comma or semicolon is a space — on either side of the comparison.
     public void SeparatorCommaAndSemicolon_AreSpaces()
     {
         var (text, bag) = Run("REPLACE ==MOVE A , B== BY ==MOVE C TO D==.\n    MOVE A; B.\n");
@@ -105,7 +105,7 @@ public sealed class TextManipulationTextWordTests : IDisposable
         Assert.Contains("MOVE C TO D.", text);
     }
 
-    [Theory] // §8.3.5 1) (kb/Work PB1543): only the COBOL space (with tab and line end) separates — a character that
+    [Theory] // §2023:8.3.5 1) (kb/Work PB1543): only the COBOL space (with tab and line end) separates — a character that
              // merely looks like one is a text-word character, so P<it>Q is ONE word and never the two words P Q.
     [InlineData((char)0x00A0)]
     [InlineData((char)0x2003)]
@@ -117,7 +117,7 @@ public sealed class TextManipulationTextWordTests : IDisposable
         Assert.Contains("DISPLAY P Q R.", text);
     }
 
-    [Fact] // §7.2.4.4 8) b): LEADING compares against ONE text-word — each side of a colon is its own.
+    [Fact] // §2023:7.2.4.4 8) b): LEADING compares against ONE text-word — each side of a colon is its own.
     public void LeadingPartialWord_AppliesOnEachSideOfAColon()
     {
         var (text, bag) = Run("REPLACE LEADING ==OLD-== BY ==NEW-==.\n    DISPLAY TBL(OLD-A:OLD-B).\n");
@@ -125,7 +125,7 @@ public sealed class TextManipulationTextWordTests : IDisposable
         Assert.Contains("TBL(NEW-A:NEW-B)", text);
     }
 
-    [Fact] // §7.2.3.4 9) f): a non-pseudo-text literal-4 (pre-2023) is read as ONE literal, doubled quote and all.
+    [Fact] // §2023:7.2.3.4 9) f): a non-pseudo-text literal-4 (pre-2023) is read as ONE literal, doubled quote and all.
     public void CopyReplacing_Literal4WithDoubledQuote_Before2023()
     {
         Copybook("bk4.cpy", "    DISPLAY ZZ-TXT.\n");
@@ -134,7 +134,7 @@ public sealed class TextManipulationTextWordTests : IDisposable
         Assert.Contains("DISPLAY \"A\"\"B\".", text);
     }
 
-    // ---- PB1351: text-word comparison (§7.2.3.4 9) c) 3.–4. / §7.2.4.4 8) c) 3.–4.) ----
+    // ---- PB1351: text-word comparison (§2023:7.2.3.4 9) c) 3.–4. / §2023:7.2.4.4 8) c) 3.–4.) ----
 
     [Fact] // c) 3.: letter case is significant in the content of "…" and N"…" — =="abc"== does not match "ABC".
     public void LiteralContent_IsCaseSensitive()
@@ -160,7 +160,7 @@ public sealed class TextManipulationTextWordTests : IDisposable
         Assert.Contains("DISPLAY \"RR\" \"OO\".", text);
     }
 
-    [Fact] // The COPY REPLACING arm shares the comparison (the same rules, §7.2.3.4 9) c)).
+    [Fact] // The COPY REPLACING arm shares the comparison (the same rules, §2023:7.2.3.4 9) c)).
     public void CopyReplacing_ComparesLiteralsByTheSameRules()
     {
         Copybook("lits.cpy", "01 LV PIC X(3) VALUE \"abc\".\n01 LQ PIC X(3) VALUE 'xyz'.\n01 HX PIC X VALUE X\"41\".\n");
@@ -171,7 +171,7 @@ public sealed class TextManipulationTextWordTests : IDisposable
         Assert.Contains("VALUE X\"41\"", text);
     }
 
-    // ---- PB1354: the COPY statement parsed from its general format (§7.2.3.2) ----
+    // ---- PB1354: the COPY statement parsed from its general format (§2023:7.2.3.2) ----
 
     [Theory] // [SUPPRESS [PRINTING]] precedes the REPLACING phrase — the phrase is applied, not lost.
     [InlineData("SUPPRESS PRINTING")]
@@ -219,7 +219,7 @@ public sealed class TextManipulationTextWordTests : IDisposable
         Assert.Contains(bag.Diagnostics, d => d.Code == "COBOL2449" && d.IsError);
     }
 
-    [Theory] // §7.2.3.3 SR4 (concatenation / figurative constant) and SR5 (alphanumeric literals only) — COBOL2450.
+    [Theory] // §2023:7.2.3.3 SR4 (concatenation / figurative constant) and SR5 (alphanumeric literals only) — COBOL2450.
     [InlineData("COPY \"BK\" & \"1\".")]
     [InlineData("COPY SPACE.")]
     [InlineData("COPY ALL \"X\".")]
@@ -245,7 +245,7 @@ public sealed class TextManipulationTextWordTests : IDisposable
         Assert.Contains("AA-X", text);
     }
 
-    [Theory] // §7.2.3.2: the literal forms of text-name-1 and library-name-1 are a COBOL-2002 introduction (kb/Work PB1601,
+    [Theory] // §2023:7.2.3.2: the literal forms of text-name-1 and library-name-1 are a COBOL-2002 introduction (kb/Work PB1601,
              // constructs row copy-literal-name-2002): COBOL0900 below 2002, clean from it — each literal written, so
              // both names of one statement report; a name written as a WORD is 1985's own form and draws nothing.
     [InlineData("COPY \"bk1\".", 85, 1)]
@@ -270,7 +270,7 @@ public sealed class TextManipulationTextWordTests : IDisposable
         Assert.All(gates, g => Assert.Contains("COBOL-2002", g.Message));
     }
 
-    [Theory] // §7.2.3.2 / §7.2.3.4 GR4: [SUPPRESS [PRINTING]] is a COBOL-2002 introduction (kb/Work PB1601, constructs row
+    [Theory] // §2023:7.2.3.2 / §2023:7.2.3.4 GR4: [SUPPRESS [PRINTING]] is a COBOL-2002 introduction (kb/Work PB1601, constructs row
              // copy-suppress-2002), asked once per phrase written; REPLACING after it is still applied (PB1354).
     [InlineData("COPY bk1 SUPPRESS.", 85, 1)]
     [InlineData("COPY bk1 SUPPRESS PRINTING.", 85, 1)]

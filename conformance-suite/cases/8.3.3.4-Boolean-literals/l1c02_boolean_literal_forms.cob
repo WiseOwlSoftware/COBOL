@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §8.3.3.4.2 FMT — all four boolean literal spellings, both
+      *> ISO §2023:8.3.3.4.2 FMT — all four boolean literal spellings, both
       *> delimiters of Format 1 and Format 2, with and without content.
       *> Rule (general format): Format 1 (boolean)
       *>   B"[boolean-character-1] ..." | B'[boolean-character-1] ...'
@@ -13,24 +13,24 @@
       *>   BX"[hexadecimal-digit-1] ..." | BX'[hexadecimal-digit-1] ...'
       *> The character sequence is OPTIONAL under both delimiters.
       *> cite.py OK lines:
-      *>  OK §8.3.3.4.2 (General format) Format 2 (hexadecimal-boolean)
-      *>  OK §8.3.3.4.4 1) The separators that delimit the boolean
+      *>  OK §2023:8.3.3.4.2 (General format) Format 2 (hexadecimal-boolean)
+      *>  OK §2023:8.3.3.4.4 1) The separators that delimit the boolean
       *>     literal are not included in the value of the boolean
       *>     literal.
-      *>  OK §8.3.3.4.4 3) If Boolean-character-1 is specified, the
+      *>  OK §2023:8.3.3.4.4 3) If Boolean-character-1 is specified, the
       *>     value of a boolean literal is the value of the sequence of
       *>     occurrences of boolean-character-1.
-      *>  OK §8.3.3.4.4 4) If boolean-character-1 is not specified, the
+      *>  OK §2023:8.3.3.4.4 4) If boolean-character-1 is not specified, the
       *>     literal is a zero-length literal.
-      *>  OK §8.3.3.4.4 5) Each hexadecimal digit has the following
+      *>  OK §2023:8.3.3.4.4 5) Each hexadecimal digit has the following
       *>     boolean equivalent value ...
-      *>  OK §8.3.3.4.4 6) ... replacing the leading BX" separator with
+      *>  OK §2023:8.3.3.4.4 6) ... replacing the leading BX" separator with
       *>     the B" separator.
-      *>  OK §8.3.3.4.4 7) If hexadecimal-digit-1 is not specified, the
+      *>  OK §2023:8.3.3.4.4 7) If hexadecimal-digit-1 is not specified, the
       *>     literal is a zero-length literal.
-      *>  OK §8.3.3.1 The hexadecimal digits are the basic digits '0'
+      *>  OK §2023:8.3.3.1 The hexadecimal digits are the basic digits '0'
       *>     through '9' and the basic letters 'A' through 'F'.
-      *>  OK §14.9.25.4 3) If literal-1 is a boolean zero-length literal
+      *>  OK §2023:14.9.25.4 3) If literal-1 is a boolean zero-length literal
       *>     and the receiving operand is other than a dynamic-length
       *>     elementary item, literal-1 is treated as if it were
       *>     the figurative constant ZERO.
@@ -44,7 +44,7 @@
       *>  VX VALUE BX'F' F=1111               -> VX=[1111]
       *>  Z1..Z4: each field first set to B"1111", then MOVE of B"",
       *>  B'', BX"", BX'' - GR4/GR7 make each a zero-length boolean
-      *>  literal, which §14.9.25.4 GR3 treats as figurative ZERO,
+      *>  literal, which §2023:14.9.25.4 GR3 treats as figurative ZERO,
       *>  so each receiver becomes all boolean zeros -> [0000]. An
       *>  implementation rejecting an empty spelling fails to compile;
       *>  one treating it as anything but a zero-length literal

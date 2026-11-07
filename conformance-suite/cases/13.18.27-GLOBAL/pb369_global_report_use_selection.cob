@@ -6,12 +6,12 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.18.27.3 SR1 e) permits GLOBAL on a report description
-      *> entry; §13.18.27.4 GR1 makes the report-name and every data-name
+      *> ISO §2023:13.18.27.3 SR1 e) permits GLOBAL on a report description
+      *> entry; §2023:13.18.27.4 GR1 makes the report-name and every data-name
       *> subordinate to it (its groups, its sum counter TOT-N) global
       *> names, and GR2 lets a directly OR indirectly contained program
       *> reference them without describing them again (kb/Work PB369).
-      *> §14.9.49.4 GR4 (FORMATS 1 AND 2) selects the USE BEFORE REPORTING
+      *> §2023:14.9.49.4 GR4 (FORMATS 1 AND 2) selects the USE BEFORE REPORTING
       *> declarative per STATEMENT: a) the qualifying declarative in the
       *> source element that contains the GENERATE / TERMINATE, else b) a
       *> qualifying declarative with the GLOBAL attribute in the next
@@ -26,11 +26,11 @@
       *>    GENERATE DET-2 -> A's is not GLOBAL, so b) finds none: nothing
       *> C: GENERATE DET-1 -> B's is not GLOBAL, so b) goes on to A
       *>                                          "A-GLOBAL DET-1 N=3"
-      *>    TOT-N = 1+1+2+2+3 = 09 (§13.18.54.4 GR7 c) 1. - WS-N is added
+      *>    TOT-N = 1+1+2+2+3 = 09 (§2023:13.18.54.4 GR7 c) 1. - WS-N is added
       *>    at every GENERATE for the report); PAGE-COUNTER OF R-1 = 1.
       *>    TERMINATE R-1 -> the CF FINAL group TOT: C none, B none, A's
       *>    GLOBAL one (GR4 b) twice removed)     "A-GLOBAL TOT   T=09"
-      *> The FD is GLOBAL too: §14.9.16.3 SR3 and §14.9.46.3 SR2 require it
+      *> The FD is GLOBAL too: §2023:14.9.16.3 SR3 and §2023:14.9.46.3 SR2 require it
       *> of a contained GENERATE / TERMINATE (the refused shape is
       *> conformance:cases/14.9.16-GENERATE/pb369-contained-report-file-not-global).
       *> The report file is not read back: the LINE SEQUENTIAL

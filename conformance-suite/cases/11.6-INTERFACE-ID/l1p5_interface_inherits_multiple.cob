@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §11.6.4 GR2 — INHERITS names several interfaces and the
+      *> ISO §2023:11.6.4 GR2 — INHERITS names several interfaces and the
       *> inheriting interface has every method specification of each,
       *> transitively (9.3.10).
       *> 11.6.4 GR2: "The INHERITS clause specifies the names of

@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §12.4.5.13.4 GR1 — relative record numbers start at 1 and
+      *> ISO §2023:12.4.5.13.4 GR1 — relative record numbers start at 1 and
       *> give each record's logical ordinal position in the file
       *> "All records stored in a relative file are uniquely identified
       *> by relative record numbers. The relative record number of a
@@ -14,24 +14,24 @@
       *> number of 1, and subsequent logical records have relative
       *> record numbers of 2, 3, 4, ... ."
       *>   cite.py --check 12.4.5.13.4 "The first logical record has a
-      *>   relative record number of 1" -> OK §12.4.5.13.4 1)
+      *>   relative record number of 1" -> OK §2023:12.4.5.13.4 1)
       *> Supporting rules:
       *>   cite.py --check 14.9.51.4 "If the open mode of the write
       *>   file connector is output, the first record released after
-      *>   the OPEN is 1" -> OK §14.9.51.4 29) a)
+      *>   the OPEN is 1" -> OK §2023:14.9.51.4 29) a)
       *>   cite.py --check 14.9.30.4 "the execution of a READ statement
       *>   moves the relative record number of the record made
-      *>   available to the relative key data item" -> OK §14.9.30.4 25)
+      *>   available to the relative key data item" -> OK §2023:14.9.30.4 25)
       *>   cite.py --check 14.9.30.4 "the record whose relative record
       *>   number equals the file position indicator is made
-      *>   available" -> OK §14.9.30.4 29)
+      *>   available" -> OK §2023:14.9.30.4 29)
       *>   cite.py --check 14.9.30.4 "Comparisons for records in
       *>   relative files relate to the relative key number"
-      *>     -> OK §14.9.30.4 21) a)
+      *>     -> OK §2023:14.9.30.4 21) a)
       *> DERIVATION
       *> A: sequential-access OPEN OUTPUT, RELATIVE KEY preset to 77.
       *>    The first record released is RRN 1 and the next ones are
-      *>    2, 3 (GR1; §14.9.51.4 29) a) moves each into the key):
+      *>    2, 3 (GR1; §2023:14.9.51.4 29) a) moves each into the key):
       *>    W1 0001 / W2 0002 / W3 0003 - never 0077, 0078 or 0000.
       *> B: the same physical file through a DYNAMIC connector; key 2
       *>    READ selects the record at ordinal position 2, the second

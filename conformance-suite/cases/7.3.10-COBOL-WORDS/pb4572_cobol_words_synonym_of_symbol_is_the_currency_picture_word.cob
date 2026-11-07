@@ -9,9 +9,9 @@
 *> content of literal-2 shall be treated as a synonym for the COBOL word that is the content of literal-1, and may
 *> be used in any syntax requiring the use of the reserved word, context-sensitive word, or intrinsic function name
 *> that is the content of literal-1."
-*>   cite.py: OK  §7.3.10.4 2)  (General rules)
+*>   cite.py: OK  §2023:7.3.10.4 2)  (General rules)
 *> 12.3.7.2 general format: [ CURRENCY SIGN IS literal-7 [ WITH PICTURE SYMBOL literal-8 ] ] ...
-*>   cite.py: OK  §12.3.7.2 (General format)  (the SIGN IS literal-7 line)
+*>   cite.py: OK  §2023:12.3.7.2 (General format)  (the SIGN IS literal-7 line)
 *> 12.3.7.3 SR23: "If the PICTURE SYMBOL phrase is specified, literal-7 is the currency string and literal-8 is the
 *> associated currency symbol."
 *> SYMBOL is a context-sensitive word (8.10, CURRENCY clause) the lexer has no token for, and the word after PICTURE

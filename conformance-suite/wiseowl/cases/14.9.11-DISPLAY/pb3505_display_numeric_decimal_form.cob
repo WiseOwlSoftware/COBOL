@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.11.4 GR1 - "Any conversion of data required between literal-1 or the data item
+      *> ISO §2023:14.9.11.4 GR1 - "Any conversion of data required between literal-1 or the data item
       *> referenced by identifier-1 and the device is defined by the implementor" (Annex A.1 item 56,
       *> docs/CONFORMANCE.md DOC-A.1-56; kb/Work PB3505, owner decision PB3467).
       *>
@@ -22,7 +22,7 @@
       *> Three things keep the form from being a coincidence of one item: the SCALE (U1, V1, V2, PP1,
       *> PP3), the SIGN in each of its five presentations (S1P/S1N overpunch, SLEAD, SLS, STS, the
       *> COMP and COMP-3 usages that have no zoned overpunch at all), and the operands the form must
-      *> NOT reach: the edited item ED, the group G (its storage image, §14.9.25.4 GR4's characters)
+      *> NOT reach: the edited item ED, the group G (its storage image, §2023:14.9.25.4 GR4's characters)
       *> and the literals, which are shown as written (DOC-A.1-56, kb/Work PB1643).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3505D.

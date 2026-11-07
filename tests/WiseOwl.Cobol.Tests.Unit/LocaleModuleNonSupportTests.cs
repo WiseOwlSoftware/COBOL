@@ -13,7 +13,7 @@ using WiseOwl.Cobol.Tests.Shared;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The §A.4.9 locale-module EDITION GATING, arm by arm as the module went live (fix-queue PB27 §③ opened this
+/// The §2023:A.4.9 locale-module EDITION GATING, arm by arm as the module went live (fix-queue PB27 §③ opened this
 /// class when the elements were documented non-support and their edition claims were SUPPRESSED; every
 /// suppression has now lifted): the four locale FUNCTIONS' D8 window is enforced since kb/Work PB64 T4
 /// (COBOL1502 below it, binding at and after it), the case functions' LOCALE phrase is a 2002 construct gate
@@ -21,7 +21,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// since T6 — the LAST arm, with which COBOL1518 itself was deleted.
 /// <para>
 /// ⛔ THE FORCING FUNCTION, ANSWERED (the class summary once demanded it): the introduction years these gates
-/// assert were unverifiable from the 2023 text alone — §8.11 lists intrinsic NAMES with no edition data, Annex E
+/// assert were unverifiable from the 2023 text alone — §2023:8.11 lists intrinsic NAMES with no edition data, Annex E
 /// covers only 2014→2023, the repo holds no 2002/2014 text. The construct-gate rows carry the answer the
 /// catalog settled on: the LOCALE keyword and phrases ride the 2002 locale facility (Annex A.4.9's home
 /// edition), LOCALE-TIME-FROM-SECONDS the provisional 2014 window (kb/Work R28 — WG4 CD 1.2 Annex D.2), all
@@ -101,7 +101,7 @@ public sealed class LocaleModuleNonSupportTests
     }
 
     /// <summary>⛔ THE FAILING DIRECTION, which is what keeps the suppression scoped to non-support rather than
-    /// quietly disabling the D8 edition window for every function. TRIM is §15.90, IntroducedIn 2014 and fully
+    /// quietly disabling the D8 edition window for every function. TRIM is §2023:15.90, IntroducedIn 2014 and fully
     /// SUPPORTED, so below 2014 it must still be rejected BY EDITION.</summary>
     [Theory]
     [InlineData(85)]

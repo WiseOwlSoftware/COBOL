@@ -2,42 +2,42 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 namespace WiseOwl.Cobol.Runtime.Exceptions;
 
-/// <summary>The fatality category of an exception condition (ISO/IEC 1989:2023 §14.6.13.1.6 Table 13, the
+/// <summary>The fatality category of an exception condition (ISO/IEC 1989:2023 §2023:14.6.13.1.6 Table 13, the
 /// "Cat" column): nonfatal, fatal, or implementor-defined. A level-1/level-2 name has no category of its own
-/// (only level-3 names carry exception status indicators — §14.6.13.1.1).</summary>
+/// (only level-3 names carry exception status indicators — §2023:14.6.13.1.1).</summary>
 public enum EcFatality
 {
-    /// <summary>Nonfatal (Table 13 "NF") — handled per §14.6.13.1.4 (continue when unhandled).</summary>
+    /// <summary>Nonfatal (Table 13 "NF") — handled per §2023:14.6.13.1.4 (continue when unhandled).</summary>
     Nonfatal,
-    /// <summary>Fatal — handled per §14.6.13.1.3 (abnormal run-unit termination when unhandled).</summary>
+    /// <summary>Fatal — handled per §2023:14.6.13.1.3 (abnormal run-unit termination when unhandled).</summary>
     Fatal,
     /// <summary>Implementor-defined ("Imp") — this implementation treats every raised EC-*-IMP as fatal
-    /// (loud-failure doctrine, DESIGN §1.4; the implementor latitude of §14.6.13.1.1).</summary>
+    /// (loud-failure doctrine, DESIGN §1.4; the implementor latitude of §2023:14.6.13.1.1).</summary>
     Imp,
-    /// <summary>A level-1/level-2 hierarchy name — enables/selects only, never raised itself (§14.6.13.1.1:
+    /// <summary>A level-1/level-2 hierarchy name — enables/selects only, never raised itself (§2023:14.6.13.1.1:
     /// "Only the lowest level exception-names are associated with exception status indicators").</summary>
     Hierarchy,
 }
 
-/// <summary>One exception-name row (ISO §14.6.13.1.6 Table 13): the canonical name, its level (1/2/3), its
+/// <summary>One exception-name row (ISO §2023:14.6.13.1.6 Table 13): the canonical name, its level (1/2/3), its
 /// level-2 parent (level-3 rows only), its fatality, and the ISO edition that introduced it (the binder's D8-style
 /// edition gate; 2002 = the EC model's introduction, 2023 = the VCR row-40/61 additions).</summary>
 public readonly record struct EcInfo(string Name, int Level, string? Level2Parent, EcFatality Fatality, int IntroducedIn)
 {
-    /// <summary>Is a raise of this condition processed as FATAL (ISO §14.6.13.1.3) rather than nonfatal
-    /// (§14.6.13.1.4)? Table 13's "F" rows, plus the "Imp" rows this implementation defines as fatal
+    /// <summary>Is a raise of this condition processed as FATAL (ISO §2023:14.6.13.1.3) rather than nonfatal
+    /// (§2023:14.6.13.1.4)? Table 13's "F" rows, plus the "Imp" rows this implementation defines as fatal
     /// (<see cref="EcFatality.Imp"/>). The ONE spelling of that test — every emitter and binder that needs a
     /// condition's disposition asks here rather than re-deriving it from <see cref="Fatality"/>.</summary>
     public bool IsFatal => Fatality is EcFatality.Fatal or EcFatality.Imp;
 }
 
 /// <summary>
-/// The exception-name catalog — the ONE machine form of ISO/IEC 1989:2023 §14.6.13.1.6 Table 13 plus the
-/// three-level hierarchy of §14.6.13.1.1: level-1 <c>EC-ALL</c>; the level-2 family names; level-3 = level-2 +
+/// The exception-name catalog — the ONE machine form of ISO/IEC 1989:2023 §2023:14.6.13.1.6 Table 13 plus the
+/// three-level hierarchy of §2023:14.6.13.1.1: level-1 <c>EC-ALL</c>; the level-2 family names; level-3 = level-2 +
 /// suffix (only level-3 names carry exception status indicators). The catalog is NAME-keyed (not an enum): the
-/// open-ended <c>EC-USER-*</c> family (§14.6.13.1.1 — always nonfatal, user-defined by mention) makes the NAME the
+/// open-ended <c>EC-USER-*</c> family (§2023:14.6.13.1.1 — always nonfatal, user-defined by mention) makes the NAME the
 /// canonical identity of an EC; a closed enum would need a parallel name channel — two representations for one
-/// concept (the singular-pattern rule). The implementor-defined <c>EC-IMP-*suffix</c> family is CLOSED: §14.6.13.1.1
+/// concept (the singular-pattern rule). The implementor-defined <c>EC-IMP-*suffix</c> family is CLOSED: §2023:14.6.13.1.1
 /// leaves "the implementor [to define] the action to be taken, the fatality, and when any of these exceptions are
 /// raised", and this implementation defines none (docs/CONFORMANCE.md DOC-A.1-99), so no EC-IMP-suffix name exists
 /// to resolve (kb/Work PB1531). Compile-time consumers
@@ -46,22 +46,22 @@ public readonly record struct EcInfo(string Name, int Level, string? Level2Paren
 /// </summary>
 public static class ExceptionCatalog
 {
-    /// <summary>The level-1 name (§14.6.13.1.1).</summary>
+    /// <summary>The level-1 name (§2023:14.6.13.1.1).</summary>
     public const string EcAll = "EC-ALL";
 
-    /// <summary>ISO §13.18.34.4 GR6 b) 2's exception-name — <i>"the EC-I-O-LINAGE exception condition is set to
+    /// <summary>ISO §2023:13.18.34.4 GR6 b) 2's exception-name — <i>"the EC-I-O-LINAGE exception condition is set to
     /// exist"</i> (Table 13: Fatal). ⛔ It is the ONE EC-I-O level-3 name a rule NAMES OUTRIGHT rather than
-    /// leaving to §9.1.13.1's status→EC correspondence, which has no entry for it, so the connector that detects
+    /// leaving to §2023:9.1.13.1's status→EC correspondence, which has no entry for it, so the connector that detects
     /// the violation has to say the NAME (<c>FileConnector.IoConditionName</c>) and not only the status. Spelled
     /// once, here, because the raise site (<c>SequentialConnector</c>) and the mask
     /// (<see cref="IoMaskNames"/>) must agree on it exactly.</summary>
     public const string IoLinage = "EC-I-O-LINAGE";
 
-    /// <summary>ISO §14.9.51.4 GR27 a)'s two exception-names — <i>"If the end-of-page condition was caused by the
+    /// <summary>ISO §2023:14.9.51.4 GR27 a)'s two exception-names — <i>"If the end-of-page condition was caused by the
     /// action in General rule 26a, the EC-I-O-EOP-OVERFLOW exception condition is set to exist. If the end-of-page
     /// condition was caused by the action in General rule 26b, the EC-I-O-EOP exception condition is set to
     /// exist."</i> (Table 13: both Nonfatal.) Named outright by the rule, like <see cref="IoLinage"/>, and riding a
-    /// SUCCESSFUL status ("the WRITE statement is successful"), so §9.1.13.1's correspondence could never reach
+    /// SUCCESSFUL status ("the WRITE statement is successful"), so §2023:9.1.13.1's correspondence could never reach
     /// them; spelled once here for the raise site (<c>SequentialConnector.PositionOnLogicalPage</c>), the mask
     /// (<see cref="IoMaskNames"/>) and the hook's END-OF-PAGE suppression (<see cref="IsEndOfPage"/>) — kb/Work
     /// PB854.</summary>
@@ -83,13 +83,13 @@ public static class ExceptionCatalog
     internal const string McsImp = "EC-MCS-IMP";
 
     /// <summary>Is <paramref name="ecName"/> one of GR27 a)'s end-of-page conditions — the conditions a WRITE's
-    /// own END-OF-PAGE phrase takes precedence over (§14.9.51.4 GR27 b)-d))?</summary>
+    /// own END-OF-PAGE phrase takes precedence over (§2023:14.9.51.4 GR27 b)-d))?</summary>
     public static bool IsEndOfPage(string? ecName) =>
         CobolNames.Same(ecName, IoEop)
         || CobolNames.Same(ecName, IoEopOverflow);
 
-    // ── The level-2 family names (§14.6.13.1.1, 23 names + EC-CONTINUE) ───────────────────────────────────────
-    // NOTE: the §14.6.13.1.1 prose lists 23 level-2 names and omits EC-CONTINUE, yet Table 13 carries the
+    // ── The level-2 family names (§2023:14.6.13.1.1, 23 names + EC-CONTINUE) ───────────────────────────────────────
+    // NOTE: the §2023:14.6.13.1.1 prose lists 23 level-2 names and omits EC-CONTINUE, yet Table 13 carries the
     // EC-CONTINUE family (EC-CONTINUE-IMP / EC-CONTINUE-LESS-THAN-ZERO, the 2023 CONTINUE AFTER addition —
     // VERSION_CHANGE_REFERENCE row 40). The table governs (it names the conditions); EC-CONTINUE is treated as a
     // level-2 name introduced in 2023.
@@ -109,10 +109,10 @@ public static class ExceptionCatalog
         foreach (string l2 in Level2Names)
             t[l2] = new EcInfo(l2, 2, null, EcFatality.Hierarchy, l2 is "EC-CONTINUE" or "EC-MCS" or "EC-EXTERNAL" ? 2023 : 2002);
 
-        // Level-3 rows — ISO §14.6.13.1.6 Table 13 in table order. IntroducedIn: 2002 = the EC model's
+        // Level-3 rows — ISO §2023:14.6.13.1.6 Table 13 in table order. IntroducedIn: 2002 = the EC model's
         // introduction edition; 2023 = the names VERSION_CHANGE_REFERENCE rows 40/61 record as new in 2023
         // (EC-MCS-*, EC-FLOW-APPLY-COMMIT/-COMMIT/-ROLLBACK, EC-CONTINUE-*, EC-EXTERNAL-*, EC-I-O-WARNING,
-        // EC-I-O-RECORD-CONTENT). 2014 = the dynamic-capacity-table EC names (§8.5.1.9 is a COBOL-2014 feature):
+        // EC-I-O-RECORD-CONTENT). 2014 = the dynamic-capacity-table EC names (§2023:8.5.1.9 is a COBOL-2014 feature):
         // EC-BOUND-OVERFLOW. (EC-BOUND-SET, the explicit-SET twin, is raised by CobolDynTable.SetCapacity — kb/Work
         // PB460; its IntroducedIn is unaudited and left at the model's 2002.) The IntroducedIn is observably inert where the enabling construct is itself
         // edition-gated (a dyn table cannot exist below 2014 to overflow), but the metadata is kept correct.
@@ -124,7 +124,7 @@ public static class ExceptionCatalog
         L3("EC-BOUND-FUNC-RET-VALUE", EcFatality.Nonfatal);
         L3("EC-BOUND-IMP", EcFatality.Imp);
         L3("EC-BOUND-ODO", EcFatality.Fatal);
-        L3("EC-BOUND-OVERFLOW", EcFatality.Nonfatal, 2014);   // dynamic-capacity tables — §8.5.1.9 (COBOL-2014)
+        L3("EC-BOUND-OVERFLOW", EcFatality.Nonfatal, 2014);   // dynamic-capacity tables — §2023:8.5.1.9 (COBOL-2014)
         L3("EC-BOUND-PTR", EcFatality.Fatal);
         L3("EC-BOUND-REF-MOD", EcFatality.Fatal);
         L3("EC-BOUND-SET", EcFatality.Nonfatal);
@@ -257,7 +257,7 @@ public static class ExceptionCatalog
     }
 
     /// <summary>Look up a name's catalog row. Handles the Table 13 fixed names AND the one open family: an
-    /// <c>EC-USER-suffix</c> (always nonfatal — §14.6.13.1.1: "The name is defined by specifying it anywhere that an
+    /// <c>EC-USER-suffix</c> (always nonfatal — §2023:14.6.13.1.1: "The name is defined by specifying it anywhere that an
     /// exception-name may be specified") with a valid suffix (basic letters/digits/hyphen/underscore, not ending in
     /// hyphen or underscore) resolves to a synthesized level-3 row. ⛔ An <c>EC-IMP-suffix</c> does NOT: it is
     /// defined by the IMPLEMENTOR, this implementation defines none (DOC-A.1-99), so it names no exception condition
@@ -275,14 +275,14 @@ public static class ExceptionCatalog
     }
 
     /// <summary>Does <paramref name="name"/> have the FORM of an implementor-defined level-3 name — <c>EC-IMP-</c> then
-    /// a valid suffix (§14.6.13.1.1)? A statement about SPELLING only, never about existence: no such name is
+    /// a valid suffix (§2023:14.6.13.1.1)? A statement about SPELLING only, never about existence: no such name is
     /// catalogued (<see cref="TryGet"/> refuses it), but the standard still RESERVES the family in compiler
-    /// directives (§8.12 — "all of the exception-names specified in 14.6.13.1", which lists EC-IMP-<i>suffix</i>), so
+    /// directives (§2023:8.12 — "all of the exception-names specified in 14.6.13.1", which lists EC-IMP-<i>suffix</i>), so
     /// <c>CompilerDirectiveWords.IsReserved</c> asks this.</summary>
     public static bool IsImplementorSuffixForm(string name) =>
         CobolNames.StartsWith(name, "EC-IMP-") && ValidOpenSuffix(name["EC-IMP-".Length..]);
 
-    /// <summary>The §14.6.13.1.1 open-suffix character rule: basic letters, basic digits, hyphen and underscore;
+    /// <summary>The §2023:14.6.13.1.1 open-suffix character rule: basic letters, basic digits, hyphen and underscore;
     /// the hyphen or underscore shall not be the last character.</summary>
     private static bool ValidOpenSuffix(string suffix) =>
         suffix.Length > 0
@@ -292,7 +292,7 @@ public static class ExceptionCatalog
     /// <summary>The level-2 parent of a level-3 exception-name (longest-prefix match over the level-2 family
     /// names — so <c>EC-I-O-AT-END</c> → <c>EC-I-O</c>, not <c>EC-IMP</c>; <c>EC-SORT-MERGE-ACTIVE</c> →
     /// <c>EC-SORT-MERGE</c>). Null when the name is not under any family. Used by the generated
-    /// <c>__EcDispatch</c> selector's level-2 tiers (ISO §14.9.49.4 GR3d/GR3f).</summary>
+    /// <c>__EcDispatch</c> selector's level-2 tiers (ISO §2023:14.9.49.4 GR3d/GR3f).</summary>
     public static string? Level2OfName(string level3Name)
     {
         string? best = null;
@@ -304,21 +304,21 @@ public static class ExceptionCatalog
     }
 
     /// <summary>True when <paramref name="level3Name"/> falls under <paramref name="level2Name"/>
-    /// (§14.9.49.4 GR3d/f selection; case-insensitive, longest-family-prefix discipline).</summary>
+    /// (§2023:14.9.49.4 GR3d/f selection; case-insensitive, longest-family-prefix discipline).</summary>
     public static bool UnderLevel2(string level3Name, string level2Name) =>
         CobolNames.Same(Level2OfName(level3Name), level2Name);
 
     /// <summary>True when <paramref name="name"/> begins with the COBOL characters <c>EC-I-O</c>
-    /// (the §14.9.49.3 SR13 / §7.3.25.3 SR4 file-association test).</summary>
+    /// (the §2023:14.9.49.3 SR13 / §2023:7.3.25.3 SR4 file-association test).</summary>
     public static bool IsIoName(string name) => CobolNames.StartsWith(name, "EC-I-O");
 
     /// <summary>Does a <c>&gt;&gt;TURN</c> directive naming <paramref name="directiveName"/> cover level-3
-    /// <paramref name="level3"/> — the §7.3.25.4 hierarchy expansion, written ONCE. EC-ALL covers every name
+    /// <paramref name="level3"/> — the §2023:7.3.25.4 hierarchy expansion, written ONCE. EC-ALL covers every name
     /// except EC-I-O-WARNING (GR2); a level-2 name covers its level-3 children except EC-I-O-WARNING (GR3);
     /// EC-I-O-WARNING toggles only when named explicitly (GR4).
     /// <para>It lives in the CATALOG rather than in the compiler's <c>TurnState</c> because two folds ask it:
     /// the compile-time one (a statement whose raised name is known at bind) and the run-time one
-    /// (<see cref="EcCheckingProfile"/> — §14.9.18.4 GR1 b) asks the ACTIVATING element about a name a callee
+    /// (<see cref="EcCheckingProfile"/> — §2023:14.9.18.4 GR1 b) asks the ACTIVATING element about a name a callee
     /// chooses at run time). Two copies of an expansion rule is how the two answers would come to disagree
     /// (kb/Work PB408).</para></summary>
     public static bool DirectiveCovers(string directiveName, string level3)
@@ -332,16 +332,16 @@ public static class ExceptionCatalog
 
     /// <summary>All catalogued LEVEL-3 names (the >>TURN GR2/GR3 expansion universe). The open EC-USER-*
     /// family is not enumerable — TURN matching treats EC-ALL / a level-2 event as covering them by the
-    /// hierarchy predicate instead of by expansion (same observable behavior, ISO §7.3.25.4 GR2/GR3).</summary>
+    /// hierarchy predicate instead of by expansion (same observable behavior, ISO §2023:7.3.25.4 GR2/GR3).</summary>
     public static IEnumerable<EcInfo> Level3Rows => Table.Values.Where(i => i.Level == 3);
 
-    /// <summary>The EC-I-O level-3 exception-name for an I-O status value (ISO §9.1.13.1): first digit 1→AT-END,
+    /// <summary>The EC-I-O level-3 exception-name for an I-O status value (ISO §2023:9.1.13.1): first digit 1→AT-END,
     /// 2→INVALID-KEY, 3→PERMANENT-ERROR, 4→LOGIC-ERROR, 5→RECORD-OPERATION, 6→FILE-SHARING, 7→RECORD-CONTENT,
     /// 9→IMP; '0x' with x≠'0' → EC-I-O-WARNING; '00' (clean success) → null (no exception condition).
-    /// <para>⛔ THIS IS THE DEFAULT CORRESPONDENCE, NOT THE ONLY ANSWER. It is the map §9.1.13.1 prints, and it
+    /// <para>⛔ THIS IS THE DEFAULT CORRESPONDENCE, NOT THE ONLY ANSWER. It is the map §2023:9.1.13.1 prints, and it
     /// covers every condition the standard reaches THROUGH a status. A rule that NAMES its condition instead —
-    /// §13.18.34.4 GR6 b) 2's EC-I-O-LINAGE is the one such EC-I-O rule — wins over it for that operation
-    /// (§14.6.13.1.1: <i>"Unless otherwise specified, if more than one exception is detected during the execution
+    /// §2023:13.18.34.4 GR6 b) 2's EC-I-O-LINAGE is the one such EC-I-O rule — wins over it for that operation
+    /// (§2023:14.6.13.1.1: <i>"Unless otherwise specified, if more than one exception is detected during the execution
     /// of a statement, the one that is set to exist is undefined"</i> — the specific rule is the "otherwise
     /// specified"). The connector carries the named one on <c>FileConnector.IoConditionName</c> and
     /// <c>CobolFile.IoConditionName</c> is the ONE place the two are combined; never call this directly from a
@@ -364,7 +364,7 @@ public static class ExceptionCatalog
         };
     }
 
-    /// <summary>True when the I-O status value indicates a FATAL EC-I-O exception condition (ISO §9.1.13.1:
+    /// <summary>True when the I-O status value indicates a FATAL EC-I-O exception condition (ISO §2023:9.1.13.1:
     /// "any that begin with the digit 3, 4, or 7, and any that begin with the digit 9 that the implementor
     /// defines as fatal" — this implementation defines 9x as fatal, the loud-failure doctrine).</summary>
     public static bool IsFatalIoStatus(string status) =>
@@ -375,10 +375,10 @@ public static class ExceptionCatalog
     /// one order; never re-derive it elsewhere (singular-pattern rule). ⛔ ORDER IS APPEND-ONLY: the mask is a
     /// compile-time integer baked into the generated call and decoded at run time, so a reordering would make a
     /// program's enabled names mean a different set.
-    /// <para>The first nine are §9.1.13.1's status-derived names (first digit → name). <c>EC-I-O-LINAGE</c> is
-    /// NOT one of them — no I-O status value corresponds to it; §13.18.34.4 GR6 b) 2 names it directly — and it
+    /// <para>The first nine are §2023:9.1.13.1's status-derived names (first digit → name). <c>EC-I-O-LINAGE</c> is
+    /// NOT one of them — no I-O status value corresponds to it; §2023:13.18.34.4 GR6 b) 2 names it directly — and it
     /// is in the mask for the same reason the others are: a program enables checking for it by name, per file,
-    /// through <c>&gt;&gt;TURN</c>. <c>EC-I-O-EOP</c> and <c>EC-I-O-EOP-OVERFLOW</c> (§14.9.51.4 GR27 a)) are the
+    /// through <c>&gt;&gt;TURN</c>. <c>EC-I-O-EOP</c> and <c>EC-I-O-EOP-OVERFLOW</c> (§2023:14.9.51.4 GR27 a)) are the
     /// same shape and were ABSENT until kb/Work PB854 — catalogued and never raisable, so a program enabling them
     /// got a zero mask bit and its declarative never ran. <c>TurnStateTests</c> now asserts that EVERY level-3
     /// EC-I-O row of the catalog has a bit here, so a name cannot be catalogued without one again.</para></summary>

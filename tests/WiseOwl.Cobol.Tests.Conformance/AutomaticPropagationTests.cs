@@ -9,21 +9,21 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// <c>2002/w73d2_pb1119_propagate_on</c> cannot hold — a golden must exit 0, and two arms here end in abnormal
 /// termination — plus the METHOD, I-O and exception-OBJECT arms.
 /// <list type="bullet">
-/// <item>ISO §14.6.13.1.3 6): "If checking for the exception condition is enabled, and the exception condition is
+/// <item>ISO §2023:14.6.13.1.3 6): "If checking for the exception condition is enabled, and the exception condition is
 /// neither EC-FLOW-GLOBAL-EXIT nor EC-FLOW-GLOBAL-GOBACK, and there is an applicable PROPAGATE ON directive, the
 /// exception condition is propagated as if a GOBACK statement with the RAISING LAST EXCEPTION phrase were
 /// executed." It follows 5) — a declarative that completes normally still terminates the run unit.</item>
-/// <item>§7.3.21.1: the directive causes "propagation of exception conditions to the activating runtime element",
-/// and a main program has none (§14.9.18.4 GR3: its GOBACK is a STOP that ignores RAISING), so 7)'s termination
+/// <item>§2023:7.3.21.1: the directive causes "propagation of exception conditions to the activating runtime element",
+/// and a main program has none (§2023:14.9.18.4 GR3: its GOBACK is a STOP that ignores RAISING), so 7)'s termination
 /// stands there — the determination recorded in docs/CONFORMANCE.md.</item>
-/// <item>§14.6.13.1.5, EXIT/GOBACK item 3: under PROPAGATE ON the ACTIVATOR re-propagates an exception object no
+/// <item>§2023:14.6.13.1.5, EXIT/GOBACK item 3: under PROPAGATE ON the ACTIVATOR re-propagates an exception object no
 /// declarative took, as the object when its header's RAISING phrase names an applicable class, otherwise as
 /// EXCEPTION EC-OO-EXCEPTION.</item>
 /// </list>
 /// </summary>
 public sealed class AutomaticPropagationTests
 {
-    /// <summary>§14.6.13.1.3 5) precedes 6): the callee's own declarative runs and completes normally, so the run
+    /// <summary>§2023:14.6.13.1.3 5) precedes 6): the callee's own declarative runs and completes normally, so the run
     /// unit terminates abnormally even though the callee is under PROPAGATE ON — nothing reaches the caller.</summary>
     [Fact]
     public void DeclarativeCompletesNormally_TerminatesInsteadOfPropagating()
@@ -71,9 +71,9 @@ public sealed class AutomaticPropagationTests
         Assert.Contains("EC-BOUND-SUBSCRIPT", stderr);
     }
 
-    /// <summary>A MAIN program under PROPAGATE ON has no activating element to propagate to (§7.3.21.1), so an
-    /// unhandled fatal condition terminates the run unit (§14.6.13.1.3 7)) — never the normal STOP a literal
-    /// GOBACK would be (§14.9.18.4 GR3).</summary>
+    /// <summary>A MAIN program under PROPAGATE ON has no activating element to propagate to (§2023:7.3.21.1), so an
+    /// unhandled fatal condition terminates the run unit (§2023:14.6.13.1.3 7)) — never the normal STOP a literal
+    /// GOBACK would be (§2023:14.9.18.4 GR3).</summary>
     [Fact]
     public void MainProgram_HasNoActivator_Terminates()
     {
@@ -100,8 +100,8 @@ public sealed class AutomaticPropagationTests
         Assert.Contains("EC-BOUND-SUBSCRIPT", stderr);
     }
 
-    /// <summary>The METHOD arm (a method is one of §7.3.21.4 GR1's "functions, methods, and programs") and the EC-I-O
-    /// arm (§14.6.13.1.3 3) sends a fatal EC-I-O condition on to 6)): each propagates to its activator, whose
+    /// <summary>The METHOD arm (a method is one of §2023:7.3.21.4 GR1's "functions, methods, and programs") and the EC-I-O
+    /// arm (§2023:14.6.13.1.3 3) sends a fatal EC-I-O condition on to 6)): each propagates to its activator, whose
     /// declarative resumes.</summary>
     [Fact]
     public void MethodAndIoArms_PropagateToTheActivator()
@@ -181,7 +181,7 @@ public sealed class AutomaticPropagationTests
             stdout);
     }
 
-    /// <summary>§14.6.13.1.5 EXIT/GOBACK item 3, both halves: W73D2T4A's header RAISING names the object's class, so
+    /// <summary>§2023:14.6.13.1.5 EXIT/GOBACK item 3, both halves: W73D2T4A's header RAISING names the object's class, so
     /// it re-propagates the OBJECT (the main program's Format-4 declarative takes it); W73D2T4B's names none, so it
     /// propagates EXCEPTION EC-OO-EXCEPTION (the main program's Format-3 declarative takes it). Before kb/Work PB1119
     /// both fell to item 4 in the middle program and terminated the run unit there.</summary>

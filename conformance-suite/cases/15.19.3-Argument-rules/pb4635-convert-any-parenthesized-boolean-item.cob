@@ -5,10 +5,10 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> PB4635 review R2-1 - ISO §15.19.3 r7: "When the source-format is ANY, argument-1 shall be of any usage, except index,
+      *> PB4635 review R2-1 - ISO §2023:15.19.3 r7: "When the source-format is ANY, argument-1 shall be of any usage, except index,
       *> message-tag, object reference, pointer, function-pointer or program-pointer. It is not necessary for the contents to be
       *> valid according to the usage" (cite.py --check OK): CONVERT reads the argument's STORAGE. An item of class boolean
-      *> written in grouping parentheses is "a boolean expression enclosed in parentheses" (§8.8.2), which §8.4.3.2.3 r8 admits
+      *> written in grouping parentheses is "a boolean expression enclosed in parentheses" (§2023:8.8.2), which §2023:8.4.3.2.3 r8 admits
       *> as an argument; the parentheses leave the item's own bits or characters as they are, so each parenthesized spelling
       *> converts the same storage as the bare one.
       *>

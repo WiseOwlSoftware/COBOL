@@ -33,8 +33,8 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
         // pc let ControlFlowEmitter derive each handler's __useActive id (DeclCount + pc − base). Null base ⇒ no F3.
         dispatchState.DeclCount = bound.Declaratives?.Count ?? 0;
         dispatchState.F3HandlerBasePc = bound.F3HandlerBasePc;
-        dispatchState.UnitHasResume = bound.Ec?.HasResume ?? false;   // §14.9.33.4 GR2 b)'s PERFORM landing
-        // §14.9.18.4 GR6 (kb/Work PB409): the GLOBAL declaratives' __useActive slots, so a GOBACK can ask at run
+        dispatchState.UnitHasResume = bound.Ec?.HasResume ?? false;   // §2023:14.9.33.4 GR2 b)'s PERFORM landing
+        // §2023:14.9.18.4 GR6 (kb/Work PB409): the GLOBAL declaratives' __useActive slots, so a GOBACK can ask at run
         // time whether it is executing within one's RANGE. Empty for a program with no USE … GLOBAL, which keeps
         // such a program's generated source byte-identical.
         dispatchState.GlobalDeclIds = bound.Declaratives is { } gds
@@ -69,12 +69,12 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
         using (w.Block("public void __Activate()"))
         {
             if (ctx.Data.Configuration.Classification is { } cls)
-                // ISO §12.3.6.4 GR8 / §14.6.6 r2 — the classification is established at the module's activation.
+                // ISO §2023:12.3.6.4 GR8 / §2023:14.6.6 r2 — the classification is established at the module's activation.
                 w.Line(ObjectComputerEmit.ClassificationPrologue(cls));
             // Register this program's SELECTed files at FIRST ACTIVATION (the IC114A lesson: connectors
             // belong to the program's entry, not the run-unit Main; a fresh instance after CANCEL / an
-            // INITIAL activation re-registers — ISO §14.6.2.3.2). For a UnitStaticWs unit the guard is
-            // STATIC — one registration per run unit, §14.6.2.3.3 last-used across recursive activations,
+            // INITIAL activation re-registers — ISO §2023:14.6.2.3.2). For a UnitStaticWs unit the guard is
+            // STATIC — one registration per run unit, §2023:14.6.2.3.3 last-used across recursive activations,
             // reset only on the initial-state cases via __ResetStatics (kb/Work PB168). Run-unit CloseAll
             // lives in the runtime RunMain boundary.
             if (ctx.Data.Files.Declared.Count > 0)
@@ -100,22 +100,22 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
                         reportWriter.EmitReportConstruction(w);
                     }
             }
-            // The APPLY COMMIT clause becomes active with its element (ISO §12.4.6.3.4 GR5; kb/Work PB3338) — after the
+            // The APPLY COMMIT clause becomes active with its element (ISO §2023:12.4.6.3.4 GR5; kb/Work PB3338) — after the
             // registration, because commit control sets the connector's registered posture (FileRegistry.RegisterCommitControl).
             transactions.EmitActivation(w);
             communication.EmitActivation(w);   // ISO/IEC 1989:2002 A.1.2.3 GR6, GR28: before the first procedure division statement
-            // Execution begins at the first NONdeclarative procedure (ISO §14.2.3 GR1) — declarative sections
-            // occupy the pcs below EntryPc, entered only via __RunUse or an explicit PERFORM (ISO §14.9.49.3 SR4 —
+            // Execution begins at the first NONdeclarative procedure (ISO §2023:14.2.3 GR1) — declarative sections
+            // occupy the pcs below EntryPc, entered only via __RunUse or an explicit PERFORM (ISO §2023:14.9.49.3 SR4 —
             // no other statement may reference them from outside their section; kb/Work PB362).
             // X3.23-1985: the FIRST execution of the first nondeclarative procedure is DEBUG-CONTENTS "START PROGRAM".
             dispatchState.EmitDebugCause(w, "StartProgram");
             // The top-level run is bounded at the source element's LAST paragraph (the last MAIN paragraph,
             // F3HandlerBasePc − 1, when the unit has appended Format-3 handler pc-ranges above it): its completion is
             // the activation's own return, taken by the at-exit test, so this one call never reaches the dispatcher's
-            // implicit-GOBACK arm (§14.6.3; kb/Work PB3511) and never runs into the synthetic handlers. Every bounded
+            // implicit-GOBACK arm (§2023:14.6.3; kb/Work PB3511) and never runs into the synthetic handlers. Every bounded
             // __RunUse / out-of-line PERFORM passes its own exit pc.
             int topExit = LastElementPc(bound);
-            w.Line($"try {{ __Dispatch({bound.EntryPc}, {topExit}); }} catch (ProgramReturn) {{ }}   // GOBACK (an implicit one too, §14.6.3) / called-program EXIT PROGRAM returns to the activator here (ISO §14.9.18.4 GR2/GR3; §14.9.14.4 GR3)");
+            w.Line($"try {{ __Dispatch({bound.EntryPc}, {topExit}); }} catch (ProgramReturn) {{ }}   // GOBACK (an implicit one too, §2023:14.6.3) / called-program EXIT PROGRAM returns to the activator here (ISO §2023:14.9.18.4 GR2/GR3; §2023:14.9.14.4 GR3)");
         }
         w.Line();
         // The machinery also emits for a declarative-FREE program whose statements carry enabled EC-I-O checking
@@ -123,7 +123,7 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
         // EC-free program's source is unchanged.
         if (dispatchState.UseDecls || bound.Ec is { HasIoChecked: true } || bound.Ec is { HasF3Perform: true })
             EmitUseMachinery(bound.Declaratives ?? [], bound.F3HandlerBasePc is int hb0 ? bound.Paragraphs.Count - hb0 : 0,
-                bound.Ec is { HasIoChecked: true }, bound.Ec is { HasF3Perform: true }, w, asLocal: false);   // an F3 PERFORM needs __RunUse/__EcPerform even with no USE declaratives (§14.9.28)
+                bound.Ec is { HasIoChecked: true }, bound.Ec is { HasF3Perform: true }, w, asLocal: false);   // an F3 PERFORM needs __RunUse/__EcPerform even with no USE declaratives (§2023:14.9.28)
         if (dispatchState.DebugActive) EmitDebugRunner(w);
         // The source element's paragraphs are [0..LastElementPc]; the unit's appended Format-3 handler pc-ranges
         // (above them, entered only through __RunUse) are the second case set.
@@ -137,7 +137,7 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
     private static int LastElementPc(BoundProgram bound) => (bound.F3HandlerBasePc ?? bound.Paragraphs.Count) - 1;
 
     /// <summary>The return signal of the source element being emitted — the one its GOBACK throws and its activation
-    /// entry catches: <c>MethodReturn</c> in a method (§14.9.18.4 GR4), <c>ProgramReturn</c> in a program or a
+    /// entry catches: <c>MethodReturn</c> in a method (§2023:14.9.18.4 GR4), <c>ProgramReturn</c> in a program or a
     /// function (GR2, GR3, GR5).</summary>
     private static string ReturnSignal(bool inMethod) => inMethod ? "MethodReturn" : "ProgramReturn";
 
@@ -149,7 +149,7 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
     /// <c>__Dispatch</c>) and COBOL classes (<c>OoEmitMethod</c>: each METHOD-ID's contiguous slice of the
     /// class's ONE pc space as a local function; a pc outside the slice hits <c>default:</c> and exits — the
     /// emit-into-a-type parameterization of the OO deep-dive). <paramref name="toPc"/> is the LAST paragraph of the
-    /// source element, past which the §14.6.3 implicit GOBACK executes (<paramref name="inMethod"/> picks the
+    /// source element, past which the §2023:14.6.3 implicit GOBACK executes (<paramref name="inMethod"/> picks the
     /// method's return signal); [<paramref name="handlerFromPc"/>..<paramref name="handlerToPc"/>] is the element's
     /// appended Format-3 handler pc-range, empty by default.</summary>
     public void EmitDispatchMethod(BoundProgram bound, CodeWriter w, string header, int fromPc, int toPc,
@@ -158,11 +158,11 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
         void EmitCase(int i)
         {
             dispatchState.CurrentPc = i;
-            string paraName = bound.Paragraphs[i].CobolName;   // "" for the paragraph-name-OMITTED paragraph (§14.4.3)
+            string paraName = bound.Paragraphs[i].CobolName;   // "" for the paragraph-name-OMITTED paragraph (§2023:14.4.3)
             using (w.Block($"case {i}:   // {(paraName.Length == 0 ? "(sentences without a paragraph-name)" : paraName)}"))
             {
                 // An appended Format-3 handler pc-range (imp-2/3/4): mark the region so an EXIT PERFORM in
-                // its body throws ExitPerformSignal to the owning PERFORM boundary (§14.9.14.4 GR4), not a
+                // its body throws ExitPerformSignal to the owning PERFORM boundary (§2023:14.9.14.4 GR4), not a
                 // dispatcher break. Owner = F3HandlerOwners[i − base] (the PerformId).
                 bool isHandler = bound.F3HandlerBasePc is int hb && i >= hb;
                 var f3saved = isHandler
@@ -214,21 +214,21 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
                 // overwrite a target the statement set. Planted only when a transfer was rendered, so a
                 // transfer-free unit's generated source is unchanged.
                 if (dispatchState.TransferUsed)
-                    w.Line($"{dispatchState.TransferLabel}: ;   // a transfer of control out of a paragraph (ISO §14.9.14.4 GR6/GR7, §14.9.17.4, §14.9.19.4 GR4/GR6, §14.9.33.4 GR3)");
-                w.Line("if (__atExit && __pc == __exitPc + 1) return __pc;   // a named THRU exit paragraph COMPLETED (an explicit GO TO cleared __atExit — §14.6.3 rule 1)");
+                    w.Line($"{dispatchState.TransferLabel}: ;   // a transfer of control out of a paragraph (ISO §2023:14.9.14.4 GR6/GR7, §2023:14.9.17.4, §2023:14.9.19.4 GR4/GR6, §2023:14.9.33.4 GR3)");
+                w.Line("if (__atExit && __pc == __exitPc + 1) return __pc;   // a named THRU exit paragraph COMPLETED (an explicit GO TO cleared __atExit — §2023:14.6.3 rule 1)");
                 // ⛔ CONTROL THAT RUNS PAST THE ELEMENT'S LAST PARAGRAPH WITHOUT COMPLETING THIS CALL'S RANGE EXECUTES
-                // THE IMPLICIT GOBACK (kb/Work PB3511). §14.6.3: "There is also no next executable statement after the
+                // THE IMPLICIT GOBACK (kb/Work PB3511). §2023:14.6.3: "There is also no next executable statement after the
                 // last statement in a source element when the procedure in which it appears is not being executed under
                 // the control of some other COBOL statement … an implicit GOBACK statement without any optional phrases
                 // is executed." A nested call (an out-of-line PERFORM, a SORT/MERGE procedure, a __RunUse) whose range
-                // a GO TO left, or whose THRU exit lies before its start (§14.9.28.4 GR6), arrives here without the
+                // a GO TO left, or whose THRU exit lies before its start (§2023:14.9.28.4 GR6), arrives here without the
                 // at-exit return above: returning __pc would read as its range COMPLETING and resume after the
-                // performing statement, although the return mechanism (§14.9.28.4 GR5 b)) was never reached. It leaves
+                // performing statement, although the return mechanism (§2023:14.9.28.4 GR5 b)) was never reached. It leaves
                 // by the element's return signal instead, the path an explicit GOBACK takes, which unwinds every nested
                 // frame to the activation entry. Fall-through, EXIT PARAGRAPH / SECTION and NEXT SENTENCE all arrive
                 // here, so the test sits after the transfer label, not in the paragraph epilogue. The activation's
                 // own call is bounded at the last paragraph, so its fall-off returns above and never throws.
-                w.Line($"if (__pc == {toPc + 1}) throw new {ReturnSignal(inMethod)}();   // the implicit GOBACK past the source element's last paragraph (ISO §14.6.3)");
+                w.Line($"if (__pc == {toPc + 1}) throw new {ReturnSignal(inMethod)}();   // the implicit GOBACK past the source element's last paragraph (ISO §2023:14.6.3)");
             }
             w.Line("return __pc;");
         }
@@ -245,7 +245,7 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
         using (w.Block("private void __RunDebug(string __nm, int __subjLine, int __ds, int __de)"))
         {
             w.Line("if (!RunUnit.Current.DebugMode) return;   // the X3.23-1985 object-time debug switch (default ON)");
-            // ⛔ THIS RE-ENTRANCY GUARD IS NOT §14.9.49.4 GR2's, and deliberately raises no EC-FLOW-USE (kb/Work
+            // ⛔ THIS RE-ENTRANCY GUARD IS NOT §2023:14.9.49.4 GR2's, and deliberately raises no EC-FLOW-USE (kb/Work
             // PB368 asked the question of both guards). The two are EDITION-DISJOINT: USE FOR DEBUGGING is the
             // X3.23-1985 declarative ISO 2002 deleted (`use-for-debugging-removed-2002`, COBOL0902), and
             // EC-FLOW-USE is a 2002 EC-model name — at --std 85 there is no exception-name to set, and at 2002+
@@ -272,19 +272,19 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
         w.Line();
     }
 
-    /// <summary>Emit the USE-declaratives machinery (ISO §14.9.49; emitted ONLY when the program declares USE
+    /// <summary>Emit the USE-declaratives machinery (ISO §2023:14.9.49; emitted ONLY when the program declares USE
     /// procedures — a declarative-free program's generated source is byte-identical): the per-section
-    /// re-entrancy guards (GR2 — instance state, reset by a fresh activation instance §14.6.2.3.2), the
-    /// <c>__RunUse</c> bounded-dispatch invoker, and the <c>__IoCheck</c> selector (GR3/GR5/GR6 + §9.1.13.1:
+    /// re-entrancy guards (GR2 — instance state, reset by a fresh activation instance §2023:14.6.2.3.2), the
+    /// <c>__RunUse</c> bounded-dispatch invoker, and the <c>__IoCheck</c> selector (GR3/GR5/GR6 + §2023:9.1.13.1:
     /// after an unsuccessful I-O status not covered by the statement's own AT END / INVALID KEY phrase, run at
     /// most ONE declarative — file-scoped first, then the open-mode scope incl. a file in the process of being
     /// opened).
     /// <para>⛔ THE ONE SELECTION-MACHINERY EMITTER for a program AND an OO method (kb/Work PB1010): a method whose
-    /// own declaratives (§14.2.2 SR10 admits them) or Format-3 PERFORM give it a selection scope calls it with
+    /// own declaratives (§2023:14.2.2 SR10 admits them) or Format-3 PERFORM give it a selection scope calls it with
     /// <paramref name="asLocal"/> true, so every member below becomes a LOCAL FUNCTION of the emitted method —
     /// capturing the method's locals (its LINKAGE / LOCAL-STORAGE data, which its USE procedures reference) and
     /// shadowing any class-level funnel of the same name, which is how each raise site in the body reaches the
-    /// declaratives of the source element containing it (§14.9.49.4 GR4 a)) and never a sibling method's.
+    /// declaratives of the source element containing it (§2023:14.9.49.4 GR4 a)) and never a sibling method's.
     /// <paramref name="f3Handlers"/> is the handler slot count above the declarative slots — the unit's own
     /// appended handlers for a program, the CLASS total for a method (the ONE <c>HandlerUseId</c> formula).</para></summary>
     public void EmitUseMachinery(IReadOnlyList<BoundDeclarative> decls, int f3Handlers, bool hasIoChecked,
@@ -292,16 +292,16 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
     {
         string mod = EcEmitter.MemberMod(asLocal);
         // The exception-checking (Format-3) PERFORM handler bodies (imp-2/3/4) are appended pc-ranges invoked by the
-        // SAME __RunUse; each needs a __useActive slot above the declarative slots (§14.9.28.4 GR17). H is 0 until the
+        // SAME __RunUse; each needs a __useActive slot above the declarative slots (§2023:14.9.28.4 GR17). H is 0 until the
         // pc-range synthesis wave, so a non-F3-PERFORM unit's array is byte-identical.
         if (decls.Count > 0 || hasF3Perform)
         {
-            w.Line($"{(asLocal ? "" : "private readonly ")}bool[] __useActive = new bool[{decls.Count + f3Handlers}];   // §14.9.49.4 GR2 re-entrancy guards");
+            w.Line($"{(asLocal ? "" : "private readonly ")}bool[] __useActive = new bool[{decls.Count + f3Handlers}];   // §2023:14.9.49.4 GR2 re-entrancy guards");
             if (ecState.Active)
                 // The EC-model form: __RunUse RETURNS the declarative's resume action (the dispatch result
-                // protocol — EcEmitter): a RESUME statement unwinds via ResumeSignal (§14.9.33; the
+                // protocol — EcEmitter): a RESUME statement unwinds via ResumeSignal (§2023:14.9.33; the
                 // StopRun/ProgramReturn exception-as-control precedent) and __RunUse converts it to the
-                // action; normal completion is -1 (§14.6.13.1.2). Emitted ONLY when the group uses the
+                // action; normal completion is -1 (§2023:14.6.13.1.2). Emitted ONLY when the group uses the
                 // EC model — an EC-free build keeps the void form byte-identical.
                 using (w.Block($"{mod}int __RunUse(int __id, int __startPc, int __endPc)")) EmitRunUseBody(w, ecModel: true, inMethod: asLocal);
             else
@@ -311,7 +311,7 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
         if (decls.Any(d => d.EcEntries is not null)) ec.EmitDispatchSelector(decls, w, asLocal);
         if (decls.Any(d => d.Eo is not null)) ec.EmitObjDispatchSelector(decls, w, asLocal);   // F4 (EC-OO)
         if (hasIoChecked) ec.EmitIoCheckEc(decls, w, asLocal);
-        if (ecState.UnitHasF3Perform) ec.EmitPerformInterceptor(w, asLocal);   // __EcPerform + __RunF3 (§14.9.28 F3 interceptor)
+        if (ecState.UnitHasF3Perform) ec.EmitPerformInterceptor(w, asLocal);   // __EcPerform + __RunF3 (§2023:14.9.28 F3 interceptor)
         if (!dispatchState.UseDecls) return;   // an EC-only program (no F1/F2 declaratives) needs no plain __IoCheck hooks
         // Under the EC model __RunUse RETURNS the declarative's resume action, and __IoCheck must HAND IT BACK
         // to the verb site — the old `__RunUse(…); return;` discarded it, so a Format-1 declarative's RESUME AT
@@ -321,7 +321,7 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
         // ⛔ THE HOOK REPORTS WHETHER A PROCEDURE RAN (kb/Work PB993). Every explicit I-O statement treats "no
         // declarative applied" and "a declarative completed normally" alike — both fall through — but the SORT/MERGE
         // implicit transfers do not: MERGE's rules turn on "an applicable USE procedure that completes normally"
-        // (§14.9.24.4 GR7 a), GR12 a)/b)). So the EC-model form answers -3 (no procedure) apart from -1 (ran,
+        // (§2023:14.9.24.4 GR7 a), GR12 a)/b)). So the EC-model form answers -3 (no procedure) apart from -1 (ran,
         // completed normally), exactly as __IoCheckEc and __EcDispatch already do, and the EC-free form answers a
         // bool (a void __RunUse that returns HAS completed normally — RESUME is an EC-model statement, and every
         // other not-normal completion unwinds by its own signal). Callers that do not need the answer discard it.
@@ -330,9 +330,9 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
         using (w.Block($"{mod}{(ecInt ? "int" : "bool")} __IoCheck(string __f, bool __atEnd, bool __invKey)"))
         {
             w.Line($"string __st = {RuntimeApi.FileStatus("__f")};");
-            w.Line($"if (__st.Length == 0 || {IoStatusClass.Successful("__st")}) {none}   // successful — no declarative (ISO §14.9.49.4 GR6)");
-            w.Line($"if (__atEnd && {IoStatusClass.AtEnd("__st")}) {none}    // the statement's AT END phrase covers the at-end family (§9.1.13.1)");
-            w.Line($"if (__invKey && {IoStatusClass.InvalidKey("__st")}) {none}   // the statement's INVALID KEY phrase covers its family (§9.1.13.1)");
+            w.Line($"if (__st.Length == 0 || {IoStatusClass.Successful("__st")}) {none}   // successful — no declarative (ISO §2023:14.9.49.4 GR6)");
+            w.Line($"if (__atEnd && {IoStatusClass.AtEnd("__st")}) {none}    // the statement's AT END phrase covers the at-end family (§2023:9.1.13.1)");
+            w.Line($"if (__invKey && {IoStatusClass.InvalidKey("__st")}) {none}   // the statement's INVALID KEY phrase covers its family (§2023:9.1.13.1)");
             string run(int i) => ecInt
                 ? $"return {dispatchState.RunUseCall(i, decls[i].Range)};"
                 : $"{dispatchState.RunUseCall(i, decls[i].Range)}; return true;";
@@ -341,9 +341,9 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
             // the determination is written once, on UseTierEmitter itself (kb/Work PB344).
             UseTierEmitter.EmitScopeTiers(w, decls, run);
             // No local declarative qualified — walk OUTWARD to the nearest containing program with a USE GLOBAL
-            // declarative (ISO §14.9.49.4 GR4b: "a qualifying declarative with the GLOBAL attribute in the next
+            // declarative (ISO §2023:14.9.49.4 GR4b: "a qualifying declarative with the GLOBAL attribute in the next
             // inclusive directly containing source element", repeated outward). The declarative executes in the
-            // DECLARING program's instance — its data (§8.4.6.2) — via the container's __RunGlobalUse (whose
+            // DECLARING program's instance — its data (§2023:8.4.6.2) — via the container's __RunGlobalUse (whose
             // RESUME, if any, resolves in the DECLARING program's own dispatch, never this one's pc space).
             if (dispatchState.OuterGlobalUse)
                 w.Line(ecInt ? "if (__outer.__RunGlobalUse(__f)) return DispatchResult.Normal;" : "if (__outer.__RunGlobalUse(__f)) return true;");
@@ -352,13 +352,13 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
         w.Line();
     }
 
-    /// <summary>Emit the shared <c>__RunUse</c> body (bounded-dispatch invoker, ISO §14.9.49.4 GR2 re-entrancy guard).
+    /// <summary>Emit the shared <c>__RunUse</c> body (bounded-dispatch invoker, ISO §2023:14.9.49.4 GR2 re-entrancy guard).
     /// Renders <see cref="DispatchState.DispatchName"/> — <c>__Dispatch</c> as a class member (a program), <c>__MDispatch</c>
     /// as a method-local function (an OO method's F3 PERFORM, design SSOT §9.10) — so the ONE body serves both scopes
     /// (the C3 correction: the former literal <c>__Dispatch</c> hardcode would name a nonexistent method inside a class).
     /// <paramref name="ecModel"/> = the int RESUME-returning form (an EC-model group) vs the void form;
     /// <paramref name="inMethod"/> = the method-local form, whose EXIT/GOBACK signal is <c>MethodReturn</c>.
-    /// <para>⛔ <b>THE GUARD IS THE RAISE SITE</b> (kb/Work PB368). §14.9.49.4 GR2's sole normative content is
+    /// <para>⛔ <b>THE GUARD IS THE RAISE SITE</b> (kb/Work PB368). §2023:14.9.49.4 GR2's sole normative content is
     /// the condition, not the decline: "During the execution of a USE procedure, if a statement raises an
     /// exception condition that would cause the execution of a USE procedure that had previously been activated
     /// and had not yet returned control to the activating entity, the EC-FLOW-USE exception condition is set to
@@ -366,12 +366,12 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
     /// (<c>__IoCheck</c>, <c>__IoCheckEc</c>, <c>__EcDispatch</c>, <c>__EcObjDispatch</c>, <c>__RunGlobalUse</c>
     /// and the report engine's BEFORE REPORTING hook) reaches the active procedure only through here — so the
     /// raise is written here and every path inherits it. With checking enabled the fatal condition unwinds to
-    /// the RAISING statement's own guard for the §14.6.13.1.3 #5/#7 dispatch (a USE AFTER EC EC-FLOW-USE
+    /// the RAISING statement's own guard for the §2023:14.6.13.1.3 #5/#7 dispatch (a USE AFTER EC EC-FLOW-USE
     /// declarative, its RESUME, else abnormal termination); with checking off it is not raised
-    /// (§14.6.13.1.1) and the quiet decline below is the #8 implementor answer.</para>
+    /// (§2023:14.6.13.1.1) and the quiet decline below is the #8 implementor answer.</para>
     /// <para>⛔ Only a DECLARATIVE id is a USE procedure. The ids at and above <see cref="DispatchState.DeclCount"/>
     /// are the exception-checking PERFORM's imp-2/3/4 handler ranges, which share this array and this invoker but
-    /// are selected by §14.9.28.4 GR17 — they are not USE procedures and GR2 does not reach them. An OO method's
+    /// are selected by §2023:14.9.28.4 GR17 — they are not USE procedures and GR2 does not reach them. An OO method's
     /// method-local <c>__RunUse</c> is ALL handlers (DeclCount 0), so it emits the bare guard unchanged.</para></summary>
     internal void EmitRunUseBody(CodeWriter w, bool ecModel, bool inMethod)
     {
@@ -389,44 +389,44 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
                 string only = dispatchState.F3HandlerBasePc is not null ? $"if (__id < {decls}) " : "";
                 w.Line($"{only}ExceptionState.FlowUseError(\"USE declarative \" + __id + \" is already active"
                     + " (ISO 14.9.49.4 GR2 - a USE procedure activated during its own execution)\");");
-                w.Line($"return{ret};   // not re-invoked — the §14.6.13.1.3 #8 outcome when checking is off");
+                w.Line($"return{ret};   // not re-invoked — the §2023:14.6.13.1.3 #8 outcome when checking is off");
             }
         }
         else
-            w.Line($"if (__useActive[__id]) return{ret};   // ISO §14.9.49.4 GR2 — an active USE procedure is not re-invoked");
+            w.Line($"if (__useActive[__id]) return{ret};   // ISO §2023:14.9.49.4 GR2 — an active USE procedure is not re-invoked");
         w.Line("__useActive[__id] = true;");
         if (ecModel)
         {
             // The procedure's statements are OTHER source text than the statement whose raise selected it, and
             // that statement's guard flags are still standing here — so the procedure starts from all-off and each
-            // of its statements sets only what its own line enables (§7.3.25.4 GR6; kb/Work PB891). This is also
-            // §14.9.28.4 GR14's implicit PUSH ALL + TURN OFF ALL for the F3 handlers imp-2/3/4, which run here.
-            w.Line("var __ckU = ExceptionState.PushAllCheckingOff();   // the procedure's checking baseline (§7.3.25.4 GR6)");
-            // ⛔ THE FALL-OFF IS TWO-WAY (kb/Work PB1122 Task B). §14.6.13.1.2 1): a declarative does not complete normally
+            // of its statements sets only what its own line enables (§2023:7.3.25.4 GR6; kb/Work PB891). This is also
+            // §2023:14.9.28.4 GR14's implicit PUSH ALL + TURN OFF ALL for the F3 handlers imp-2/3/4, which run here.
+            w.Line("var __ckU = ExceptionState.PushAllCheckingOff();   // the procedure's checking baseline (§2023:7.3.25.4 GR6)");
+            // ⛔ THE FALL-OFF IS TWO-WAY (kb/Work PB1122 Task B). §2023:14.6.13.1.2 1): a declarative does not complete normally
             // when a RESUME / GOBACK / EXIT PROGRAM / STOP it specifies is executed "or a fatal exception occurs within
             // the scope of the declarative". The statements unwind (a RESUME returns its action below; the others leave
             // through the finally), so what is left to record is the fatal exception — and a RESUME that GR1 made a
             // CONTINUE, which fell through. Both land on the activation record this declarative opens here; falling
             // off the end answers by what the record says. Only a DECLARATIVE id opens one: the exception-checking
             // PERFORM's imp-2/3/4 handler ids share this invoker (ids at and above DeclCount) but are not
-            // declaratives, and §14.6.13.1.2 speaks of declaratives only. A unit with no declaratives never emits it.
+            // declaratives, and §2023:14.6.13.1.2 speaks of declaratives only. A unit with no declaratives never emits it.
             if (decls > 0)
             {
                 w.Line(dispatchState.F3HandlerBasePc is not null
-                    ? $"int __tok = __id < {decls} ? ExceptionState.EnterDeclarative(__useActive) : -1;   // the declarative's activation record (§14.6.13.1.2 1))"
-                    : "int __tok = ExceptionState.EnterDeclarative(__useActive);   // the declarative's activation record (§14.6.13.1.2 1))");
+                    ? $"int __tok = __id < {decls} ? ExceptionState.EnterDeclarative(__useActive) : -1;   // the declarative's activation record (§2023:14.6.13.1.2 1))"
+                    : "int __tok = ExceptionState.EnterDeclarative(__useActive);   // the declarative's activation record (§2023:14.6.13.1.2 1))");
                 w.Line("int __act;");
                 w.Line($"try {{ {dispatchState.DispatchName}(__startPc, __endPc);"
                     + " __act = ExceptionState.DeclarativeNotNormal(__tok) ? DispatchResult.NotNormal : DispatchResult.Normal; }"
-                    + "   // fell off its end: normal completion unless a fatal exception occurred within its scope (§14.6.13.1.2 1))");
-                w.Line("catch (ResumeSignal __rs) { __act = __rs.TargetPc; }   // RESUME (§14.9.33) — the resume action");
+                    + "   // fell off its end: normal completion unless a fatal exception occurred within its scope (§2023:14.6.13.1.2 1))");
+                w.Line("catch (ResumeSignal __rs) { __act = __rs.TargetPc; }   // RESUME (§2023:14.9.33) — the resume action");
                 // EXIT PROGRAM / GOBACK (and an automatic propagation's return) leave the declarative by the element's
-                // return signal — a completion that is not normal (§14.6.13.1.2 1)) that the §14.9.40.4 GR17 question
+                // return signal — a completion that is not normal (§2023:14.6.13.1.2 1)) that the §2023:14.9.40.4 GR17 question
                 // below never sees. The filter asks it on the way out and declines (CobolSort.UseProcedureExited):
                 // another element's active SORT is then terminated once this activation has returned (kb/Work PB1177).
                 w.Line(UseProcedureExitFilter(inMethod, dispatchState.F3HandlerBasePc is not null ? $"__id < {decls} && " : ""));
                 w.Line("finally { ExceptionState.LeaveDeclarative(__tok); __useActive[__id] = false; ExceptionState.RestoreChecking(__ckU); }");
-                // ⛔ §14.9.40.4 GR17 (kb/Work PB1177): "If a USE procedure invoked while a format 1 SORT statement is
+                // ⛔ §2023:14.9.40.4 GR17 (kb/Work PB1177): "If a USE procedure invoked while a format 1 SORT statement is
                 // active does not complete normally, the SORT statement is terminated." A declarative invoked by a
                 // statement of the SORT's INPUT or OUTPUT PROCEDURE is in that procedure's range (GR10, GR13) and runs
                 // below the procedure's nested dispatch, so no raise site can jump to the statement's end. The question
@@ -435,27 +435,27 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
                 // was not normal and a format 1 SORT is active in the run unit — this element's, or one whose range CALLed
                 // or INVOKEd it — and SortEmitter's landing ends the statement: one mechanism for every USE procedure
                 // the rule reaches, implicit transfers and other elements' declaratives included. Only
-                // a DECLARATIVE id asks: the exception-checking PERFORM's handlers are not USE procedures (§14.9.28.4
-                // GR17 selects them), and their RESUME keeps the §14.9.33.4 GR2 a) landing at the raise site.
+                // a DECLARATIVE id asks: the exception-checking PERFORM's handlers are not USE procedures (§2023:14.9.28.4
+                // GR17 selects them), and their RESUME keeps the §2023:14.9.33.4 GR2 a) landing at the raise site.
                 string gr17 = RuntimeApi.SortAfterUseProcedure("__useActive", "__act");
                 w.Line(dispatchState.F3HandlerBasePc is not null
-                    ? $"return __id < {decls} ? {gr17} : __act;   // §14.9.40.4 GR17 — a SORT procedure's USE procedure that did not complete normally terminates the SORT"
-                    : $"return {gr17};   // §14.9.40.4 GR17 — a SORT procedure's USE procedure that did not complete normally terminates the SORT");
+                    ? $"return __id < {decls} ? {gr17} : __act;   // §2023:14.9.40.4 GR17 — a SORT procedure's USE procedure that did not complete normally terminates the SORT"
+                    : $"return {gr17};   // §2023:14.9.40.4 GR17 — a SORT procedure's USE procedure that did not complete normally terminates the SORT");
             }
             else
             {
                 // No declarative id exists (an OO method's all-handlers invoker, or an F3-PERFORM-only unit): nothing
                 // to record, the fall-off is the handler's completion.
                 w.Line($"try {{ {dispatchState.DispatchName}(__startPc, __endPc); }}");
-                w.Line("catch (ResumeSignal __rs) { return __rs.TargetPc; }   // RESUME (§14.9.33) — the resume action");
+                w.Line("catch (ResumeSignal __rs) { return __rs.TargetPc; }   // RESUME (§2023:14.9.33) — the resume action");
                 w.Line("finally { __useActive[__id] = false; ExceptionState.RestoreChecking(__ckU); }");
-                w.Line("return DispatchResult.Normal;   // the handler completed (§14.6.13.1.2: only declaratives carry the fatal-in-scope half)");
+                w.Line("return DispatchResult.Normal;   // the handler completed (§2023:14.6.13.1.2: only declaratives carry the fatal-in-scope half)");
             }
         }
         else if (ctx.Data.DialectLevel >= 2002)
         {
             // An EC-FREE group's declarative completes not normally only by EXIT PROGRAM / GOBACK / STOP — RESUME and
-            // the fatal-in-scope mark are EC-model facts — and the first two are §14.9.40.4 GR17's question when another
+            // the fatal-in-scope mark are EC-model facts — and the first two are §2023:14.9.40.4 GR17's question when another
             // element's SORT is active (kb/Work PB1177). GR17 arrives with the 2002 exception model, so a 1985 program's
             // void form keeps its shape.
             w.Line($"try {{ {dispatchState.DispatchName}(__startPc, __endPc); }}");
@@ -467,16 +467,16 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
     }
 
     /// <summary>The declining exception filter a declarative's <c>__RunUse</c> puts on its element's return signal —
-    /// <c>MethodReturn</c> in a method, <c>ProgramReturn</c> otherwise — for §14.9.40.4 GR17 (kb/Work PB1177): an EXIT
-    /// PROGRAM, EXIT METHOD or GOBACK leaves the declarative not normally (§14.6.13.1.2 1)), and
+    /// <c>MethodReturn</c> in a method, <c>ProgramReturn</c> otherwise — for §2023:14.9.40.4 GR17 (kb/Work PB1177): an EXIT
+    /// PROGRAM, EXIT METHOD or GOBACK leaves the declarative not normally (§2023:14.6.13.1.2 1)), and
     /// <c>CobolSort.UseProcedureExited</c> records it when another element's format 1 SORT is active, which is then
     /// terminated once this activation has returned. <paramref name="idTest"/> limits it to DECLARATIVE ids.</summary>
     private static string UseProcedureExitFilter(bool inMethod, string idTest) =>
         $"catch ({ReturnSignal(inMethod)}) when ({idTest}{RuntimeApi.SortUseProcedureExited("__useActive")}) "
-        + "{ throw; }   // §14.9.40.4 GR17 — the filter declines (never runs): the return goes on";
+        + "{ throw; }   // §2023:14.9.40.4 GR17 — the filter declines (never runs): the return goes on";
 
     /// <summary>Emit a paragraph body SENTENCE by sentence. When the paragraph contains a NEXT SENTENCE anywhere,
-    /// each inter-sentence boundary gets a label (`__sentP_K:`) — the §14.9.19.4 GR4/GR6 implicit CONTINUE after the
+    /// each inter-sentence boundary gets a label (`__sentP_K:`) — the §2023:14.9.19.4 GR4/GR6 implicit CONTINUE after the
     /// separator period; NEXT SENTENCE in the LAST sentence is the paragraph fall-through. Returns whether the
     /// body ends by transferring control out of the case.</summary>
     private bool EmitParagraphBody(BoundParagraph para, int pc)

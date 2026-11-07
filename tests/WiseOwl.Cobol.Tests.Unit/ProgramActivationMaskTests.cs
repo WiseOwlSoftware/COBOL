@@ -7,7 +7,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The §14.8.4.1 EC-EXTERNAL "enabled in both" pairing at the activation boundaries. The ACTIVATING element's half is
+/// The §2023:14.8.4.1 EC-EXTERNAL "enabled in both" pairing at the activation boundaries. The ACTIVATING element's half is
 /// the statement guard's checking flags (<see cref="ExceptionEngine.ExternalActivatingMask"/>), read by the boundary
 /// BEFORE the activated element's own checking scope opens, and latched as <see cref="ExceptionEngine.ActivatorExternalMask"/>
 /// for the activated element's registrations. It replaced a pending CALL-site mask register that every failure path
@@ -60,7 +60,7 @@ public sealed class ProgramActivationMaskTests
     [Fact]
     public void MethodActivation_PairsTheInvokeFlagsWithTheMethodMask_AndFailsAsAFatalCondition()
     {
-        // §14.9.23.4 GR7 d) (kb/Work PB1138): the method twin of the CALL boundary. A conforming registration first,
+        // §2023:14.9.23.4 GR7 d) (kb/Work PB1138): the method twin of the CALL boundary. A conforming registration first,
         // then a nonconforming one: with EC-EXTERNAL-FORMAT-CONFLICT enabled in the INVOKE (the flag) AND in the method
         // (the self mask) the invocation is not successful — a CobolFatalException the INVOKE's guard selects on —
         // and the activator half is restored either way.

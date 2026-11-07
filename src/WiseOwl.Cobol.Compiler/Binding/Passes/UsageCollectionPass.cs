@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Binding.Passes;
 
 /// <summary>
 /// PHASE-05 Step 5 (DESIGN-data-model §2.5 step 9): the single owner of the "which groups are referenced as a WHOLE
-/// character-image operand" fact — the input to the numeric-DISPLAY-leaf image promotion (§14.9.25.4 MOVE GR4). It is
+/// character-image operand" fact — the input to the numeric-DISPLAY-leaf image promotion (§2023:14.9.25.4 MOVE GR4). It is
 /// collected here, AFTER binding, by an explicit walk of the bound tree, replacing <see cref="ReferenceResolver"/>'s
 /// mid-resolve mutation of <see cref="DataBindState.WholeGroupReferenced"/>.
 /// <para><b>Correctness (owner-directed redesign, 2026-07-10):</b> the bound tree is the CORRECT oracle — a group has
@@ -48,7 +48,7 @@ internal static class UsageCollectionPass
             Collect(ctx.Session.Binders.FactoryOf(cls).Data, [cls.FactoryBound], OoFormalGroups(cls.Symbol.FactoryMethods));
             // ⛔ An ELEMENTARY method formal is a character channel's far end — the method twin of Collect's
             // Linkage.Formals arm (kb/Work PB1064; PB992 built the program arm). Every method formal is BY REFERENCE
-            // (the METHOD-side BY VALUE phrase is refused, OoDataBinder.BindMethodData), so §14.2.3 GR8's "as if the formal parameter
+            // (the METHOD-side BY VALUE phrase is refused, OoDataBinder.BindMethodData), so §2023:14.2.3 GR8's "as if the formal parameter
             // occupies the same storage area as the argument" holds for each: the characters an argument carries into
             // it, or a group MOVE leaves in it for the argument, may be ones no numeric VALUE represents.
             AddFormalChannels(ctx.Session.Binders.ObjectOf(cls).Data, cls.Symbol.Methods);
@@ -66,7 +66,7 @@ internal static class UsageCollectionPass
     }
 
     /// <summary>The elementary formals of <paramref name="methods"/>: each is a character channel's far end (see
-    /// <see cref="Run"/>). A PROPERTY-clause accessor (§13.18.42) has no LINKAGE formal of its own — its "formal" IS the object's
+    /// <see cref="Run"/>). A PROPERTY-clause accessor (§2023:13.18.42) has no LINKAGE formal of its own — its "formal" IS the object's
     /// property subject, a direct field body (OoEmitter.EmitMethod's PropertySubject arm), never a boundary. The ONE statement of
     /// the rule: the class forests above and an imported method's items (<c>StorageFormPass.ClassifyImportedMethod</c>) read it.</summary>
     internal static IEnumerable<DataItem> MethodFormalChannels(IEnumerable<OoMethodSymbol> methods) =>
@@ -83,13 +83,13 @@ internal static class UsageCollectionPass
         IAppends<DataItem> set = data.State.WholeGroupReferenced;
         IAppends<DataItem> channels = data.State.CharacterChannelItems;
 
-        // Boundary-copied program formals — a group formal crosses as its character image (§14.2.3 GR8).
+        // Boundary-copied program formals — a group formal crosses as its character image (§2023:14.2.3 GR8).
         foreach (var lf in data.Linkage.Formals)
             if (!lf.CarrierResident && lf.Item.IsGroup) set.Add(lf.Item);
 
-        // ⛔ An ELEMENTARY BY REFERENCE formal is a character channel's far end (kb/Work PB992): ISO §14.2.3 GR8 —
+        // ⛔ An ELEMENTARY BY REFERENCE formal is a character channel's far end (kb/Work PB992): ISO §2023:14.2.3 GR8 —
         // "the activated runtime element operates as if the formal parameter occupies the same storage area as
-        // the argument" — and a Format-1 activator's argument need only be "of the same length" (§14.8.2.3.2
+        // the argument" — and a Format-1 activator's argument need only be "of the same length" (§2023:14.8.2.3.2
         // rule 1), so the characters the formal holds may be ones no numeric VALUE represents.
         foreach (var lf in data.Linkage.Formals)
             if (!lf.ByValue && !lf.Item.IsGroup) channels.Add(lf.Item);
@@ -97,7 +97,7 @@ internal static class UsageCollectionPass
         // The program/function PROCEDURE DIVISION RETURNING group item crosses the activation boundary as its image.
         if (data.Linkage.Returning is { IsGroup: true } ret) set.Add(ret);
 
-        // ⛔ AN APPLY COMMIT ITEM IS SAVED AND RESTORED AS ITS STORAGE IMAGE (§14.9.7.4 GR5, §14.9.36.4 GR3; kb/Work PB3338):
+        // ⛔ AN APPLY COMMIT ITEM IS SAVED AND RESTORED AS ITS STORAGE IMAGE (§2023:14.9.7.4 GR5, §2023:14.9.36.4 GR3; kb/Work PB3338):
         // the restore puts back the characters the COMMIT saved, which a numeric VALUE need not represent, so a group
         // takes the image round trip and an elementary item is a character channel, exactly as a boundary-copied formal.
         if (data.FileControl.ApplyCommit is { } apply)
@@ -137,7 +137,7 @@ internal static class UsageCollectionPass
         {
             Op(n.Source);
             foreach (var t in n.Targets) P(t);
-            // ISO §14.9.25.4 GR4: a group sender's move into an ELEMENTARY receiver "is treated exactly as if it
+            // ISO §2023:14.9.25.4 GR4: a group sender's move into an ELEMENTARY receiver "is treated exactly as if it
             // were an alphanumeric to alphanumeric elementary move, except that there is no conversion" — the
             // receiver takes the sending CHARACTERS (kb/Work PB992). The node's own kind decides, per receiver.
             for (int i = 0; i < n.Targets.Count; i++)
@@ -163,7 +163,7 @@ internal static class UsageCollectionPass
             // whole-GROUP references for the image mechanism, and a function's returned value is a temporary,
             // never a declared group.
             Op(n.Target);
-            // ⛔ REPLACING / CONVERTING WRITE CHARACTERS INTO identifier-1 (§14.9.22.4 GR7/GR20 — the replaced image is
+            // ⛔ REPLACING / CONVERTING WRITE CHARACTERS INTO identifier-1 (§2023:14.9.22.4 GR7/GR20 — the replaced image is
             // what the item then holds) AND GR4 d) RETAINS THE ORIGINAL SIGN OF A SIGNED NUMERIC ONE "upon completion
             // of the INSPECT statement" — over a zero magnitude too, which is a NEGATIVE ZERO (`00}`), a sign no native
             // value carrier holds. INSPECT is therefore a character channel of the elementary identifier-1 (kb/Work
@@ -180,7 +180,7 @@ internal static class UsageCollectionPass
         {
             P(n.Into); P(n.Pointer);
             // ⛔ STRING IS A CHARACTER CHANNEL OF ELEMENTARY identifier-3 (kb/Work PB4089), the twin of INSPECT's above.
-            // §14.9.43.3 SR1 admits a numeric item of usage display or national, and §14.9.43.4 GR6 moves the characters
+            // §2023:14.9.43.3 SR1 admits a numeric item of usage display or national, and §2023:14.9.43.4 GR6 moves the characters
             // "one at a time" into its character positions while GR7 leaves every position not written as it was:
             // `STRING "AB" … INTO N` over `PIC 9(6) VALUE 123456` leaves the characters AB3456, which no native numeric
             // carrier holds. The item stores its character image, the one representation that holds every content.
@@ -204,7 +204,7 @@ internal static class UsageCollectionPass
         public bool Visit(BoundKeyedStart n) { P(n.Operand); return false; }
         public bool Visit(BoundKeyedDeleteFile n) => false;
         public bool Visit(BoundReturn n) { P(n.RecordArea); return false; }
-        public bool Visit(BoundRelease n) { P(n.Record); return false; }   // RELEASE record FROM x ≡ MOVE x TO record (§14.9.32 GR4) — the MOVE is a CHILD node now (PB348), so Visit(BoundMove) collects both sides
+        public bool Visit(BoundRelease n) { P(n.Record); return false; }   // RELEASE record FROM x ≡ MOVE x TO record (§2023:14.9.32 GR4) — the MOVE is a CHILD node now (PB348), so Visit(BoundMove) collects both sides
         public bool Visit(BoundInitialize n) { foreach (var a in n.Actions) InitAct(a); return false; }
         public bool Visit(BoundCorresponding n)
         {
@@ -220,12 +220,12 @@ internal static class UsageCollectionPass
             foreach (var a in n.Args)
             {
                 P(a.Place); Op(a.Value);
-                // §14.2.3 GR8's shared storage — the formal's characters ARE the argument's (kb/Work PB992).
+                // §2023:14.2.3 GR8's shared storage — the formal's characters ARE the argument's (kb/Work PB992).
                 if (a.Mode is WiseOwl.Cobol.Runtime.CobolPassMode.Reference && !a.Omitted) Channel(a.Place);
             }
             P(n.Returning);
-            // §14.6.5: the result "is the content of the data item" the callee's RETURNING phrase references, and
-            // §14.9.4.4 GR4 places it into identifier-3 — a CONTENT transfer, whatever that content is. A
+            // §2023:14.6.5: the result "is the content of the data item" the callee's RETURNING phrase references, and
+            // §2023:14.9.4.4 GR4 places it into identifier-3 — a CONTENT transfer, whatever that content is. A
             // user-defined function's result temporary is exempt: it mirrors its model's storage form already
             // (the compiler-temp re-sync in StorageFormPass), which is the same answer reached structurally.
             if (!n.IsFunction) Channel(n.Returning);
@@ -233,8 +233,8 @@ internal static class UsageCollectionPass
         }
         public bool Visit(BoundCancel n) { foreach (var (_, dn) in n.Targets) Op(dn); return false; }
         // ⛔ THE INVOKE TWINS OF BoundCallProgram's CHANNELS (kb/Work PB1064 — the PB992 mechanism's missing arm): a
-        // method is an activated runtime element like a program, so §14.2.3 GR8's shared storage makes a BY REFERENCE
-        // argument's characters the formal's, and §14.9.23.4 GR8 places the RETURNING content into identifier-4.
+        // method is an activated runtime element like a program, so §2023:14.2.3 GR8's shared storage makes a BY REFERENCE
+        // argument's characters the formal's, and §2023:14.9.23.4 GR8 places the RETURNING content into identifier-4.
         public bool Visit(BoundInvoke n)
         {
             P(n.Receiver); P(n.Returning);
@@ -250,12 +250,12 @@ internal static class UsageCollectionPass
         public bool Visit(BoundInvokeUniversal n)
         {
             P(n.Receiver); P(n.MethodSource); P(n.Returning);
-            // §14.9.23.3 SR6: every argument through a universal receiver is BY REFERENCE.
+            // §2023:14.9.23.3 SR6: every argument through a universal receiver is BY REFERENCE.
             foreach (var a in n.Args) { P(a.Source); Channel(a.Source); }
             Channel(n.Returning);
             return false;
         }
-        public bool Visit(BoundInvokeNull n) => false;   // §14.9.23.4 GR5: nothing crosses, nothing is delivered
+        public bool Visit(BoundInvokeNull n) => false;   // §2023:14.9.23.4 GR5: nothing crosses, nothing is delivered
         public bool Visit(BoundGoToDepending n) { Op(n.Selector); return false; }
         public bool Visit(BoundGoback n) { P(n.ReturningSource); return false; }   // GOBACK RETURNING group ≡ a whole-group MOVE source
         public bool Visit(BoundSetTo n) { foreach (var t in n.Targets) SetT(t); return false; }
@@ -355,7 +355,7 @@ internal static class UsageCollectionPass
                 case InitializeStore x: P(x.Target); Op(x.Source); break;
                 case InitializeStoreValue x: P(x.Target); break;
                 case InitializeSetNull x: P(x.Target); break;
-                // §14.9.20.4 GR4/GR6b's implicit SET — BOTH operands are data references (the receiver and
+                // §2023:14.9.20.4 GR4/GR6b's implicit SET — BOTH operands are data references (the receiver and
                 // identifier-2), so both are recorded; only the receiver was, before the arm existed.
                 case InitializeSetFrom x: P(x.Target); P(x.Source); break;
                 // The loop's AllCount bound is deliberately NOT visited: this pass records WHOLE-GROUP image
@@ -363,7 +363,7 @@ internal static class UsageCollectionPass
                 // a dynamic table's capacity register), which P() ignores by construction.
                 case InitializeLoop x: foreach (var b in x.Body) InitAct(b); break;
                 // Every arm of a Format-2 (table) VALUE select is a store into the SAME receiver at a different
-                // occurrence (ISO §14.9.20.4 GR5c1c), so all of them are visited — the occurrence tests read only
+                // occurrence (ISO §2023:14.9.20.4 GR5c1c), so all of them are visited — the occurrence tests read only
                 // the enclosing loop variables, which are not data references at all.
                 case InitializeOccurrenceSelect x:
                     foreach (var arm in x.Arms) InitAct(arm.Do);
@@ -383,7 +383,7 @@ internal static class UsageCollectionPass
                 case BoundCondition88 x: P(x.Parent); break;
                 case BoundClassCondition x: Op(x.Operand); break;
                 case BoundUserClassCondition x: Op(x.Operand); break;
-                case BoundCodedSetClassCondition x: Op(x.Operand); break;   // §8.8.4.4.4 GR3 a (kb/Work PB109)
+                case BoundCodedSetClassCondition x: Op(x.Operand); break;   // §2023:8.8.4.4.4 GR3 a (kb/Work PB109)
                 default: break;   // sign/boolean/switch condition — numeric/boolean operand, no group
             }
         }
@@ -411,7 +411,7 @@ internal static class UsageCollectionPass
 
         /// <summary>Record the item a character channel writes through <paramref name="place"/> (kb/Work PB992).
         /// A Tier-B REDEFINES window already IS a character image; every other place — a reference-modified view
-        /// included, whose store splices into the item's own character positions (§8.4.3.3.4 GR6), and an OCCURS
+        /// included, whose store splices into the item's own character positions (§2023:8.4.3.3.4 GR6), and an OCCURS
         /// DYNAMIC element (<see cref="DynTablePlace"/>), whose occurrence is promoted by the same rule
         /// (<c>StorageFormPass.Classify</c>; kb/Work PB2004) — names the item whose storage it reaches.</summary>
         private void Channel(Place? place)
@@ -432,10 +432,10 @@ internal static class UsageCollectionPass
             if (place?.Item is { IsGroup: true } g) set.Add(g);
         }
 
-        /// <summary>⛔ A LEVEL-66 RENAMES ... THROUGH ALIAS IS A GROUP OPERAND TOO (kb/Work PB3563). ISO §13.18.45.4 GR2 —
+        /// <summary>⛔ A LEVEL-66 RENAMES ... THROUGH ALIAS IS A GROUP OPERAND TOO (kb/Work PB3563). ISO §2023:13.18.45.4 GR2 —
         /// "data-name-1 defines an alphanumeric group item that includes all elementary items starting with
         /// data-name-2 …" — so every operand position of the alias is a whole-group position
-        /// (<see cref="MoveClassifier"/> already answers so for a MOVE), and §14.9.25.4 GR4 makes a group move "an
+        /// (<see cref="MoveClassifier"/> already answers so for a MOVE), and §2023:14.9.25.4 GR4 makes a group move "an
         /// alphanumeric to alphanumeric elementary move, except that there is no conversion of data from one form of
         /// internal representation to another". The alias is not STRUCTURALLY a group — <see cref="DataItem.IsGroup"/>
         /// is false for a 66, which has no children — so <see cref="P"/> dropped it and the numeric leaves it spans kept

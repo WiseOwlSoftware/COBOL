@@ -5,25 +5,25 @@ using WiseOwl.Cobol.Binding.Bound;
 namespace WiseOwl.Cobol.CodeGen.Emit;
 
 /// <summary>
-/// Renders a bound boolean expression (<see cref="BoundBoolExpr"/>, ISO §8.8.2) to a side-effect-free C#
+/// Renders a bound boolean expression (<see cref="BoundBoolExpr"/>, ISO §2023:8.8.2) to a side-effect-free C#
 /// <see cref="string"/> expression over the runtime <c>CobolBool</c> — a '0'/'1' bit-string value (D-B1).
-/// Rule 4 (§8.8.2 :9364) guarantees at most one <see cref="BoundBoolAll"/> operand of a binary op, so the
+/// Rule 4 (§2023:8.8.2 :9364) guarantees at most one <see cref="BoundBoolAll"/> operand of a binary op, so the
 /// <c>…All</c> runtime forms take the concrete side ONCE (never double-rendered) and the positionless pattern
-/// as a literal. This is the boolean-operator half of Phase-4 track (a) increment 2. A boolean SHIFT (§8.8.2
+/// as a literal. This is the boolean-operator half of Phase-4 track (a) increment 2. A boolean SHIFT (§2023:8.8.2
 /// rule 8, 2023) carries an integer count, so the render is parameterized by a <see cref="NumericRenderer"/>
 /// (the count is a numeric operand, not a boolean one).
 /// </summary>
 internal static class BooleanRenderer
 {
-    /// <param name="sending">The §14.6.13.2 exempt context of the reads in this expression
+    /// <param name="sending">The §2023:14.6.13.2 exempt context of the reads in this expression
     /// (<see cref="SendingRef"/>). Rule 1's checked boolean read is emitted unless the context is one of that
     /// rule's TWO exemptions — a class condition or VALIDATE.</param>
     public static string Render(BoundBoolExpr e, NumericRenderer num, SendingRef sending = SendingRef.Normal) =>
         e.Accept(new RenderVisitor(num, sending, sized: false));
 
-    /// <summary>Render a boolean expression whose value is taken at ISO §14.9.8.4 GR3's width — "the number of
+    /// <summary>Render a boolean expression whose value is taken at ISO §2023:14.9.8.4 GR3's width — "the number of
     /// boolean positions in the largest boolean item referenced in the expression" — for every site that states
-    /// it: COMPUTE Format 2, and the BY CONTENT boolean-expression argument of CALL and INVOKE (§8.8.2 rule 10's
+    /// it: COMPUTE Format 2, and the BY CONTENT boolean-expression argument of CALL and INVOKE (§2023:8.8.2 rule 10's
     /// same width). ⛔ THE WIDTH IS A RUN-TIME QUANTITY, so it is carried at run time (kb/Work PB589): each ITEM
     /// leaf is wrapped <c>CobolBool.Item</c> (its own positions), each literal <c>CobolBool.Literal</c> (none),
     /// the operators' <c>CobolBoolSized</c> overloads keep the max, and <c>CobolBool.ToItemWidth</c> applies it
@@ -37,7 +37,7 @@ internal static class BooleanRenderer
 
     // Dispatch through the generated exhaustive IBoundBoolExprVisitor (PHASE-07 Step 6): a new BoundBoolExpr leaf
     // is a COMPILE error here (the loud `_ =>` is gone). The visitor carries the NumericRenderer for shift counts.
-    // `sized` selects the §14.9.8.4 GR3 item-width-carrying form (RenderAtItemWidth): only the LEAVES differ —
+    // `sized` selects the §2023:14.9.8.4 GR3 item-width-carrying form (RenderAtItemWidth): only the LEAVES differ —
     // the operators resolve to CobolBool's CobolBoolSized overloads by the operand type.
     private sealed class RenderVisitor(NumericRenderer num, SendingRef sending, bool sized) : IBoundBoolExprVisitor<string>
     {
@@ -45,9 +45,9 @@ internal static class BooleanRenderer
         private string Lit(string v) => sized ? RuntimeApi.BoolLiteral(v) : v;
 
         public string Visit(BoundBoolLiteral n) => Lit(EmitText.CsLiteral(n.Bits));
-        // ⛔ THE BOOLEAN SENDING-READ CHOKEPOINT — the third of §14.6.13.2's three, beside the fixed-point one in
+        // ⛔ THE BOOLEAN SENDING-READ CHOKEPOINT — the third of §2023:14.6.13.2's three, beside the fixed-point one in
         // NumericRenderer.FieldNumCore and the float one beside it (kb/Work PB230). A category-boolean item IS a
-        // '0'/'1' string (D-B1 — USAGE BIT takes the same character storage, §13.18.40.4 GR14's representation
+        // '0'/'1' string (D-B1 — USAGE BIT takes the same character storage, §2023:13.18.40.4 GR14's representation
         // license), and a REDEFINES window over it can therefore deposit a character that is not a boolean value:
         // `MOVE "1Q01" TO <X(4) window>` then `COMPUTE R = B` propagated the Q straight into the boolean RESULT.
         // Rule 1 makes that EC-DATA-INCOMPATIBLE under checking; with checking off CobolBool's operators keep
@@ -57,11 +57,11 @@ internal static class BooleanRenderer
         public string Visit(BoundBoolRef n) => Item(sending.FixedPointChecked()
             ? RuntimeApi.BoolSending(n.Place.Item.IsAsIfElementary ? OperandText.FieldImage(n.Place) : PlaceRenderer.Read(n.Place))
             : n.Place.Item.IsAsIfElementary ? OperandText.FieldImage(n.Place) : PlaceRenderer.Read(n.Place));
-        // A boolean FUNCTION's returned value lives in a fresh temporary (§15.4), not a stored item a window could
+        // A boolean FUNCTION's returned value lives in a fresh temporary (§2023:15.4), not a stored item a window could
         // have corrupted, so it carries no rule-1 wrap — the same reasoning OperandText applies to a numeric
         // intrinsic's text.
-        // It is an ITEM for GR3: a function-identifier "references a temporary data item" (§8.4.3.2.4 GR1), and
-        // BOOLEAN-OF-INTEGER "returns a boolean item" argument-2 positions long (§15.13).
+        // It is an ITEM for GR3: a function-identifier "references a temporary data item" (§2023:8.4.3.2.4 GR1), and
+        // BOOLEAN-OF-INTEGER "returns a boolean item" argument-2 positions long (§2023:15.13).
         public string Visit(BoundBoolCall n) => Item(OperandText.AsString(new BoundComputedOperand(n.Call), num, sending: sending));   // the boolean function's '0'/'1' image (kb/Work PB68)
         public string Visit(BoundBoolAll n) => Lit(EmitText.CsLiteral(n.Bits));     // materialized at the combine site (…All forms)
         public string Visit(BoundBoolNot n) => RenderNot(n.Operand);
@@ -87,7 +87,7 @@ internal static class BooleanRenderer
 
         private string RenderShift(BoundBoolShift s) =>
             // The count is a numeric operand rendered as an integer (m=0 implementor choice — a fractional count
-            // truncates, ISO §8.8.2 rule 8 "repeat until iterations == K"); the runtime kernel guards k ≤ 0 / k ≥ N.
+            // truncates, ISO §2023:8.8.2 rule 8 "repeat until iterations == K"); the runtime kernel guards k ≤ 0 / k ≥ N.
             RuntimeApi.BoolShift(s.Kind, s.Operand.Accept(this),
                 RuntimeApi.HostInt64(NumericRenderer.Align(num.Render(s.Count, ReceiverContext.None, sending), 0)));
     }

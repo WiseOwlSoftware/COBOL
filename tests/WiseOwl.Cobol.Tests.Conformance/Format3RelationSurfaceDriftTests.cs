@@ -6,12 +6,12 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
 /// ⛔ THE DRIFT TEST FOR "ONE RELATION CHECKPOINT" (kb/Work PB399).
-/// <para>ISO §8.8.4.2's operand rules belong to the relation CONDITION, not to the statement that writes one.
-/// For EVALUATE, §14.9.13.3 SR7 a) delegates to §8.8.4.2 by name (kb/Work PB1468 removed a "§14.9.13.4 GR2"
+/// <para>ISO §2023:8.8.4.2's operand rules belong to the relation CONDITION, not to the statement that writes one.
+/// For EVALUATE, §2023:14.9.13.3 SR7 a) delegates to §2023:8.8.4.2 by name (kb/Work PB1468 removed a "§2023:14.9.13.4 GR2"
 /// quotation here that is in no clause of the standard): the selection
 /// objects "shall be valid operands for comparison to the corresponding operand in the set of selection
 /// subjects in accordance with 8.8.4.2, Simple relation conditions."</para>
-/// <para>The §8.8.4.2.2 Format 3 band (message-tag / object / pointer operands) used to be written inside
+/// <para>The §2023:8.8.4.2.2 Format 3 band (message-tag / object / pointer operands) used to be written inside
 /// <c>ConditionBinder.BindComparison</c>'s relation arm — ONE caller of the
 /// <c>StatementValidation.CheckRelationalOperands</c> checkpoint — so it screened the pair written as an IF and
 /// said nothing about the identical pair written as an EVALUATE selection object, an EVALUATE range, a SEARCH
@@ -26,7 +26,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 public sealed class Format3RelationSurfaceDriftTests
 {
     /// <summary>One program per relation surface, all over the SAME pointer-against-alphanumeric pair, which
-    /// §8.8.4.2.3 SR5 refuses ("Identifier-3 and identifier-4 shall reference data items of class message-tag,
+    /// §2023:8.8.4.2.3 SR5 refuses ("Identifier-3 and identifier-4 shall reference data items of class message-tag,
     /// object, or pointer, and shall be of the same category").</summary>
     private static string Surface(string pid, string body) => $"""
         IDENTIFICATION DIVISION.
@@ -37,11 +37,11 @@ public sealed class Format3RelationSurfaceDriftTests
         01 WS-Q USAGE POINTER.
         01 WS-R USAGE POINTER.
         01 WS-X PIC X(3) VALUE "ABC".
-        *> ⚠ THE TABLE ELEMENT IS NUMERIC, NOT A POINTER, ON PURPOSE. ISO §13.18.60.3 SR14 admits a USAGE
+        *> ⚠ THE TABLE ELEMENT IS NUMERIC, NOT A POINTER, ON PURPOSE. ISO §2023:13.18.60.3 SR14 admits a USAGE
         *> POINTER item only "for an elementary data item at level 1 or an elementary data item subordinate to
         *> a type declaration that includes the STRONG phrase", so a table OF pointers is illegal source and a
-        *> SEARCH leg written over one would reject for §13.18.60.3's reason and look like evidence for
-        *> §8.8.4.2's (feedback_green_gates_arent_evidence). The SEARCH legs carry the pointer pair in the
+        *> SEARCH leg written over one would reject for §2023:13.18.60.3's reason and look like evidence for
+        *> §2023:8.8.4.2's (feedback_green_gates_arent_evidence). The SEARCH legs carry the pointer pair in the
         *> WHEN CONDITION instead, which is the surface under test.
         01 WS-T.
            05 WS-E OCCURS 3 TIMES INDEXED BY WS-I.
@@ -55,7 +55,7 @@ public sealed class Format3RelationSurfaceDriftTests
     [Theory]
     // The written relation condition — the ONE surface the band ever screened.
     [InlineData("PB399S1", "    IF WS-P = WS-X DISPLAY \"X\" END-IF.")]
-    // An EVALUATE selection pair (§14.9.13.3 SR7 a) — "valid operands for comparison … in accordance with 8.8.4.2").
+    // An EVALUATE selection pair (§2023:14.9.13.3 SR7 a) — "valid operands for comparison … in accordance with 8.8.4.2").
     [InlineData("PB399S2", "    EVALUATE WS-P WHEN WS-X DISPLAY \"X\" END-EVALUATE.")]
     // A PERFORM UNTIL condition.
     [InlineData("PB399S3", "    PERFORM UNTIL WS-P = WS-X CONTINUE END-PERFORM.")]
@@ -67,13 +67,13 @@ public sealed class Format3RelationSurfaceDriftTests
     public void EverySurface_ReportsTheFormat3OperandRule(string pid, string body)
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Surface(pid, body), 2023);
-        Assert.False(ok, $"{pid}: a pointer-against-alphanumeric relation is refused by ISO §8.8.4.2.3 SR5 at "
+        Assert.False(ok, $"{pid}: a pointer-against-alphanumeric relation is refused by ISO §2023:8.8.4.2.3 SR5 at "
             + "EVERY surface that lowers to a relation — this one compiled clean, so the band has moved back "
             + "into one caller of the checkpoint");
         EditionHarness.AssertHasDiagnostic(errors, "COBOL0869");
     }
 
-    /// <summary>The ORDERING half of Format 3, at the same surfaces. §8.8.4.2.2 Format 3 prints only
+    /// <summary>The ORDERING half of Format 3, at the same surfaces. §2023:8.8.4.2.2 Format 3 prints only
     /// <c>IS [NOT] EQUAL TO</c> / <c>=</c> / <c>&lt;&gt;</c>, so an ordering operator over a class-pointer
     /// operand is inadmissible wherever the relation is written.</summary>
     [Theory]
@@ -84,13 +84,13 @@ public sealed class Format3RelationSurfaceDriftTests
     public void EverySurface_ReportsTheFormat3OrderingRule(string pid, string body)
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Surface(pid, body), 2023);
-        Assert.False(ok, $"{pid}: ISO §8.8.4.2.2 Format 3 prints no ordering operator for a pointer relation");
+        Assert.False(ok, $"{pid}: ISO §2023:8.8.4.2.2 Format 3 prints no ordering operator for a pointer relation");
         EditionHarness.AssertHasDiagnostic(errors, "COBOL0869");
     }
 
     /// <summary>⛔ THE COMPLEMENT LEG, so the theories above cannot pass by rejecting everything
     /// (feedback_measure_the_selectors_complement). The SAME surfaces over a LEGAL Format 3 pair — two data
-    /// pointers, and a data pointer against the predefined NULL, which §8.4.3.10.3 SR1 a) admits by name "in a
+    /// pointers, and a data pointer against the predefined NULL, which §2023:8.4.3.10.3 SR1 a) admits by name "in a
     /// pointer-or-object-reference relation condition" — shall compile.</summary>
     [Theory]
     [InlineData("PB399L1", "    IF WS-P = WS-Q DISPLAY \"X\" END-IF.")]
@@ -102,11 +102,11 @@ public sealed class Format3RelationSurfaceDriftTests
     public void EverySurface_AdmitsALegalFormat3Pair(string pid, string body)
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Surface(pid, body), 2023);
-        Assert.True(ok, $"{pid}: a data-pointer equality is the relation §8.8.4.2.16 defines — "
+        Assert.True(ok, $"{pid}: a data-pointer equality is the relation §2023:8.8.4.2.16 defines — "
             + string.Join(" | ", errors));
     }
 
-    /// <summary>ISO §14.9.13.3 SR2's two directions, and the shape that made only one of them reportable: the
+    /// <summary>ISO §2023:14.9.13.3 SR2's two directions, and the shape that made only one of them reportable: the
     /// count is a property of the two SETS, not something a pairing loop notices when it runs out of subjects.
     /// The FEWER direction had no diagnostic at any stage before kb/Work PB399.</summary>
     [Theory]
@@ -128,7 +128,7 @@ public sealed class Format3RelationSurfaceDriftTests
                 STOP RUN.
             """;
         var (ok, errors, _) = EditionHarness.CompileFull(src, 2023);
-        Assert.False(ok, $"{pid}: ISO §14.9.13.3 SR2 is an EQUALITY — both directions are violations");
+        Assert.False(ok, $"{pid}: ISO §2023:14.9.13.3 SR2 is an EQUALITY — both directions are violations");
         EditionHarness.AssertHasDiagnostic(errors, "COBOL2106");
     }
 
@@ -159,11 +159,11 @@ public sealed class Format3RelationSurfaceDriftTests
                 STOP RUN.
             """;
         var (ok, errors, _) = EditionHarness.CompileFull(src, edition);
-        Assert.False(ok, $"ISO §14.9.13.3 SR2 is not edition-gated (--std {edition})");
+        Assert.False(ok, $"ISO §2023:14.9.13.3 SR2 is not edition-gated (--std {edition})");
         EditionHarness.AssertHasDiagnostic(errors, "COBOL2106");
     }
 
-    /// <summary>ISO §14.9.13.3 SR9 keys on §8.5.1.12.1's definition of a variable-length group — "a group item
+    /// <summary>ISO §2023:14.9.13.3 SR9 keys on §2023:8.5.1.12.1's definition of a variable-length group — "a group item
     /// whose data description has at least one dynamic-length elementary item or dynamic-capacity table as a
     /// subordinate item" — and an OCCURS DEPENDING ON group is NOT one, its size being its maximum.
     /// <para>⛔ THIS IS THE PREMISE LEG. kb/Work PB399's own repro program used an ODO group and called it a
@@ -207,10 +207,10 @@ public sealed class Format3RelationSurfaceDriftTests
                 STOP RUN.
             """;
         var (okOdo, odoErrors, _) = EditionHarness.CompileFull(odo, 2023);
-        Assert.True(okOdo, "an OCCURS DEPENDING ON group is a FIXED-length group (ISO §8.5.1.12.1), so ISO "
-            + "§14.9.13.3 SR9 does not reach it — " + string.Join(" | ", odoErrors));
+        Assert.True(okOdo, "an OCCURS DEPENDING ON group is a FIXED-length group (ISO §2023:8.5.1.12.1), so ISO "
+            + "§2023:14.9.13.3 SR9 does not reach it — " + string.Join(" | ", odoErrors));
         var (okDyn, dynErrors, _) = EditionHarness.CompileFull(dyn, 2023);
-        Assert.False(okDyn, "a group with a DYNAMIC LENGTH member IS a variable-length group (§8.5.1.12.1)");
+        Assert.False(okDyn, "a group with a DYNAMIC LENGTH member IS a variable-length group (§2023:8.5.1.12.1)");
         EditionHarness.AssertHasDiagnostic(dynErrors, "COBOL2107");
     }
 }

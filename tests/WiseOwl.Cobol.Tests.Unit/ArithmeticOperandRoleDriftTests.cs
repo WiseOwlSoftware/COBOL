@@ -17,14 +17,14 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ EVERY ARITHMETIC VERB ASKS ONE RECEIVER CLASSIFICATION, AND IT COVERS EVERY OPERAND ARM THE GRAMMAR WRITES
 /// (kb/Work PB1142, CLAUDE.md rule 5).
 ///
-/// <para><b>The defect this exists for.</b> ISO §14.9.2.2 / §14.9.44.2 / §14.9.26.2 / §14.9.12.2 print the
+/// <para><b>The defect this exists for.</b> ISO §2023:14.9.2.2 / §2023:14.9.44.2 / §2023:14.9.26.2 / §2023:14.9.12.2 print the
 /// TO / FROM / BY / INTO operand as a RECEIVER in Format 1 and as ONE sending operand in Format 2, and the grammar
 /// parses the union in mixed rules (four then; two once kb/Work PB2114 made ADD, SUBTRACT and DIVIDE share one; ONE,
 /// <c>arithmeticPhraseOperand</c>, since kb/Work PB2144 folded MULTIPLY's BY operand and DIVIDE's BY operand in).
 /// Each verb binder used to screen Format 1 with its own hand-written list of
 /// NON-receivers — <c>literal() || functionCall()</c> — and when kb/Work PB428 gave all four rules an
 /// <c>inlineMethodInvocation</c> alternative, none of the four lists grew: <c>ADD A TO O :: "M"</c> compiled clean
-/// with the receiver silently dropped, and the DIVIDE twin crashed the emitter. §8.4.3.4.3 SR1 ("Inline method
+/// with the receiver silently dropped, and the DIVIDE twin crashed the emitter. §2023:8.4.3.4.3 SR1 ("Inline method
 /// invocation shall not be specified as a receiving operand") was credited as holding STRUCTURALLY, but these
 /// rules are mixed-role, so the binder screen is the only enforcement.</para>
 ///
@@ -74,7 +74,7 @@ public sealed class ArithmeticOperandRoleDriftTests
     private static readonly string[] SendingIdentifierFormats = ["functionCall", "inlineMethodInvocation"];
 
     /// <summary>⛔ THE SET OF MIXED RULES IS THE GRAMMAR'S, NOT A HAND-KEPT LIST. A rule is mixed when it offers a
-    /// receiving rule beside a sending identifier format (§8.4.3.1.2 Format 1 or Format 4). A new one added to
+    /// receiving rule beside a sending identifier format (§2023:8.4.3.1.2 Format 1 or Format 4). A new one added to
     /// the grammar fails here until it joins <c>ArithmeticOperandRole.MixedRules</c> — the point at which its
     /// author is told the rule needs its verb binder's <c>Format1Receivers</c> call (this fact cannot see the call
     /// itself; <c>TheClassifier_PartitionsEveryOperandArm</c> and the Conformance matrix cover behaviour). Proved
@@ -95,7 +95,7 @@ public sealed class ArithmeticOperandRoleDriftTests
         Assert.True(fromGrammar.SequenceEqual(classified),
             $"the grammar's mixed-role operand rules [{string.Join(", ", fromGrammar)}] differ from "
             + $"ArithmeticOperandRole.MixedRules [{string.Join(", ", classified)}]. A rule that offers a receiver "
-            + "beside a sending identifier needs the Format-1 receiver screen (ISO §8.4.3.2.3 SR1 / §8.4.3.4.3 SR1), "
+            + "beside a sending identifier needs the Format-1 receiver screen (ISO §2023:8.4.3.2.3 SR1 / §2023:8.4.3.4.3 SR1), "
             + "or its sending arm is silently dropped as a receiver (kb/Work PB1142).");
     }
 

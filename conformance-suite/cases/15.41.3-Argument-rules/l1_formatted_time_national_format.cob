@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §15.41.3 1) — FORMATTED-TIME argument-1, national literal
+      *> ISO §2023:15.41.3 1) — FORMATTED-TIME argument-1, national literal
       *> "Argument-1 shall be a national or alphanumeric literal": the
       *> NATIONAL half, which no golden in the corpus exercised, and
       *> the alphanumeric half beside it as the control.

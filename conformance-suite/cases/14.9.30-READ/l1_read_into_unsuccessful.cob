@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.30.4 GR5 — "If the execution of a READ statement with
+      *> ISO §2023:14.9.30.4 GR5 — "If the execution of a READ statement with
       *> the INTO phrase is unsuccessful, the content of the data item
       *> referenced by identifier-1 is unchanged and item identification
       *> of the data item referenced by identifier-1 is not done."
@@ -20,7 +20,7 @@
       *>
       *> LEG C - ITEM IDENTIFICATION NOT DONE.  identifier-1 is TE(IDX)
       *> with IDX = 5 over a 3-occurrence table, so identifying the item
-      *> sets EC-BOUND-SUBSCRIPT (§8.4.2.3.4 GR2, Table 13 fatal).
+      *> sets EC-BOUND-SUBSCRIPT (§2023:8.4.2.3.4 GR2, Table 13 fatal).
       *> C1 is the SUCCESSFUL read: GR4b says "Item identification of
       *> the data item referenced by identifier-1 is done after the
       *> record has been read and immediately before it is moved", so

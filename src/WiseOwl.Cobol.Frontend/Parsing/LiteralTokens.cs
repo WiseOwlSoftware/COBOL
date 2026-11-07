@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// <summary>
 /// The token types that ARE a literal of class alphanumeric, boolean or national: the four DEFAULT-mode literal tokens
 /// and their SUBSCRIPT-mode twins. ONE set, read by both rules that are asked of every literal token — the literal's
-/// own §8.3.3 syntax rules (<c>LiteralScreen</c>) and its §8.3.5 5) delimiter separation
+/// own §2023:8.3.3 syntax rules (<c>LiteralScreen</c>) and its §2023:8.3.5 5) delimiter separation
 /// (<see cref="SeparatorRule"/>). Derived-and-pinned: <c>LiteralScreenDriftTests</c> reads the lexer grammar and
 /// requires this set to equal the tokens defined over a literal body fragment, so a new literal token joins both
 /// rules or fails there.
@@ -21,7 +21,7 @@ public static class LiteralTokens
         CobolLexer.STRINGLIT, CobolLexer.HEXLIT, CobolLexer.NATLIT, CobolLexer.BOOLLIT,
     };
 
-    /// <summary>Every token type that IS a floating-point numeric literal (ISO §8.3.3.3.3): the dot-decimal
+    /// <summary>Every token type that IS a floating-point numeric literal (ISO §2023:8.3.3.3.3): the dot-decimal
     /// <c>FLOATLIT</c> and its DECIMAL-POINT IS COMMA twin <c>COMMA_FLOATLIT</c>. The sign-adjacent lexer twins
     /// (<c>FN_SIGNED_FLOATLIT</c>, <c>FN_SIGNED_COMMA_FLOATLIT</c>) are RE-TYPED to these two by the lexer action
     /// <c>OnSignedLiteral</c>, so the parser, and the screen, only ever see these. Read by <c>LiteralScreen</c> for the
@@ -52,9 +52,9 @@ public static class LiteralTokens
         return set;
     }
 
-    /// <summary>The category of the literal token <paramref name="type"/> as ISO §8.3.3.1 names it ("Each literal
-    /// possesses a class and category: alphanumeric, boolean, national, or numeric"), a numeric one by its §8.3.3.3
-    /// form (the integer literal of §8.3.3.3.2, a fixed-point literal with a decimal point, a floating-point literal),
+    /// <summary>The category of the literal token <paramref name="type"/> as ISO §2023:8.3.3.1 names it ("Each literal
+    /// possesses a class and category: alphanumeric, boolean, national, or numeric"), a numeric one by its §2023:8.3.3.3
+    /// form (the integer literal of §2023:8.3.3.3.2, a fixed-point literal with a decimal point, a floating-point literal),
     /// as a noun phrase without its article; null for a token that is no literal. ⛔ Every token of
     /// <see cref="Whole"/> has one (<c>WrittenKindRefusalTests.EveryWholeLiteralToken_HasACategory</c>), so a literal
     /// token the lexer gains tomorrow is red until it is named here (kb/Work PB3861).</summary>

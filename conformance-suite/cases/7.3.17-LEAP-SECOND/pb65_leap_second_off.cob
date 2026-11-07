@@ -7,10 +7,10 @@
 *> portable: unverified
 *>---
        >>LEAP-SECOND OFF
-      *> kb/Work PB65 — the OFF twin of pb65_leap_second_on (§7.3.17.4 GR1: OFF
+      *> kb/Work PB65 — the OFF twin of pb65_leap_second_on (§2023:7.3.17.4 GR1: OFF
       *> is the implied default; GR5: standard numeric time form is [0, 86,400);
-      *> §15.3.3.3's seconds subfield is 00..59). "235960" is invalid — an
-      *> EC-ARGUMENT-FUNCTION and the §15.3 default returned value (0 / spaces),
+      *> §2023:15.3.3.3's seconds subfield is 00..59). "235960" is invalid — an
+      *> EC-ARGUMENT-FUNCTION and the §2023:15.3 default returned value (0 / spaces),
       *> and TEST-FORMATTED-DATETIME reports position 5 (the first character at
       *> which the error can be determined — a '6' in the tens of seconds).
        IDENTIFICATION DIVISION.

@@ -4,12 +4,12 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.81.3 rule 1 — "Argument-1 shall be of class numeric." Two violations, both refused by the
-      *> §15.3 argument-class screen with COBOL1627:
-      *>   (a) AN PIC X(5) — class alphanumeric (§8.5.2.1 Table 2).
-      *>   (b) NE PIC ZZ9.99 — CLASS, not category: §8.5.2.1 Table 2 files NUMERIC-EDITED under class
+      *> ISO §2023:15.81.3 rule 1 — "Argument-1 shall be of class numeric." Two violations, both refused by the
+      *> §2023:15.3 argument-class screen with COBOL1627:
+      *>   (a) AN PIC X(5) — class alphanumeric (§2023:8.5.2.1 Table 2).
+      *>   (b) NE PIC ZZ9.99 — CLASS, not category: §2023:8.5.2.1 Table 2 files NUMERIC-EDITED under class
       *>       ALPHANUMERIC when its usage is display, so a numeric-edited item is not of class numeric
-      *>       however numeric it looks. §15.3's type 10 (Numeric) admits "an arithmetic expression or a
+      *>       however numeric it looks. §2023:15.3's type 10 (Numeric) admits "an arithmetic expression or a
       *>       numeric data item", and this is neither.
       *>
       *> ⚠ WHY THIS FIXTURE EXISTS. SIGN's reject side had never been executed on a bad argument: it was

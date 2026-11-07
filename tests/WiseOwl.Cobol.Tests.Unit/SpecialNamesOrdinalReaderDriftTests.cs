@@ -6,7 +6,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ EVERY SPECIAL-NAMES ORDINAL IS READ BY THE ONE INTEGER READER (kb/Work PB1091, PB1557's sibling).
-/// <para>An ordinal — the unsigned integer that names a 1-based position in a character set (ISO §12.3.7.3 SR14 b1/c1
+/// <para>An ordinal — the unsigned integer that names a 1-based position in a character set (ISO §2023:12.3.7.3 SR14 b1/c1
 /// for an ALPHABET literal phrase, SR17 b2/c2 for CLASS, SR16 e/f for SYMBOLIC CHARACTERS) — can only be out of range:
 /// it is an INTEGER whatever its length. <c>int.TryParse</c> answers "is this an integer?" and "what is its value?" as
 /// one question and gets the first wrong for a literal too long for an <c>int</c>, which is how SYMBOLIC CHARACTERS

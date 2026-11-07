@@ -4,11 +4,11 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §13.8.3 1) — a REPORT SECTION in a METHOD definition
+      *> ISO §2023:13.8.3 1) — a REPORT SECTION in a METHOD definition
       *> Rule: "Within a class definition, the report section may be
       *>   specified only in a factory definition or an instance
       *>   definition, but not in a method definition."
-      *>   cite.py: OK  §13.8.3 1)  (Syntax rule)
+      *>   cite.py: OK  §2023:13.8.3 1)  (Syntax rule)
       *> Method RUNM of the instance definition declares an (empty)
       *> REPORT SECTION; nothing else in the program is wrong (the
       *> general format lets a REPORT SECTION hold no entries). The

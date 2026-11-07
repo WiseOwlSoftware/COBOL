@@ -6,8 +6,8 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.39.3 / §14.9.39.4 — SET format 5 with object-class-name-1 as the SENDER.
-      *> The sender is a class NAME, not identifier-4, and §14.9.39.4 GR10 says what it sends:
+      *> ISO §2023:14.9.39.3 / §2023:14.9.39.4 — SET format 5 with object-class-name-1 as the SENDER.
+      *> The sender is a class NAME, not identifier-4, and §2023:14.9.39.4 GR10 says what it sends:
       *> "If object-class-name-1 is specified, a reference to the factory object of the class
       *> identified by object-class-name-1 is placed into each data item referenced by
       *> identifier-3 in the order specified."  WHICH SYNTAX RULE THEN GOVERNS IS READ OFF THE
@@ -21,14 +21,14 @@
       *>    interface int-1, the factory object of object-class-name-1 shall be described with
       *>    an IMPLEMENTS clause that references int-1."  PB451B's FACTORY carries
       *>    IMPLEMENTS PB451I, so the assignment is legal, and GR10 puts PB451B's FACTORY
-      *>    OBJECT — not an instance — into IR.  §9.3.6 gives a class two separate method
+      *>    OBJECT — not an instance — into IR.  §2023:9.3.6 gives a class two separate method
       *>    interfaces, so INVOKE IR "PING" resolves on the FACTORY roster:   PING-B
       *>    DISCRIMINATOR: resolving the INSTANCE roster would print IPING-B.
       *>
       *> 2. SET IR TO PB451D — the same rule over the INHERITED leg.  PB451D's FACTORY carries
-      *>    NO IMPLEMENTS clause of its own; §11.4.4 GR2 c) makes its factory object implement
+      *>    NO IMPLEMENTS clause of its own; §2023:11.4.4 GR2 c) makes its factory object implement
       *>    PB451I anyway ("the class containing the factory object inherits a class whose
-      *>    factory object implements int-1"), which is the relation §11.4.4 GR1 says the
+      *>    factory object implements int-1"), which is the relation §2023:11.4.4 GR1 says the
       *>    IMPLEMENTS clause names ("the interfaces that are implemented … according to
       *>    9.3.11").  PB451D's FACTORY overrides PING, so the line is:                PING-D
       *>    DISCRIMINATOR: reading SR11 as a literal claim about the clause TEXT would refuse
@@ -39,7 +39,7 @@
       *>    identifier-3 is described with the ONLY phrase, object-class-name-1 shall be the
       *>    object-class-name specified in the description of the data item referenced by
       *>    identifier-3."  FO is described FACTORY OF PB451B ONLY and the sender names
-      *>    PB451B exactly, so it holds what §13.18.60.4 GR22 d)2.a. allows an ONLY factory
+      *>    PB451B exactly, so it holds what §2023:13.18.60.4 GR22 d)2.a. allows an ONLY factory
       *>    reference to hold — "the factory object of the specified class", that class and no
       *>    subclass.  INVOKE FO "TAG" is therefore:                                  FTAG-B
       *>    DISCRIMINATOR: the same receiver with PB451D as the sender is refused — fixture
@@ -47,7 +47,7 @@
       *>
       *> 4. SET F1 F2 TO PB451D — GR10's multi-receiver form, "placed into EACH data item
       *>    referenced by identifier-3 in the order specified", over receivers described
-      *>    FACTORY OF PB451B WITHOUT the ONLY phrase, which §13.18.60.4 GR22 d)1.a. lets hold
+      *>    FACTORY OF PB451B WITHOUT the ONLY phrase, which §2023:13.18.60.4 GR22 d)1.a. lets hold
       *>    "the factory object of the specified class OR OF A SUBCLASS".  SR13 b) permits the
       *>    subclass name.  Both receivers answer TAG with PB451D's override:
       *>                                                                       FTAG-D  FTAG-D

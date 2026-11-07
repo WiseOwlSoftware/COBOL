@@ -6,7 +6,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ THE ACTIVATION BOUNDARY'S §14.2.3 GR9 / GR10 LANDING (kb/Work PB2549): a numeric formal registered with its profile and
+/// ⛔ THE ACTIVATION BOUNDARY'S §2023:14.2.3 GR9 / GR10 LANDING (kb/Work PB2549): a numeric formal registered with its profile and
 /// its carrier (<see cref="BoundaryItem.Landing"/>) lands an argument by "a COMPUTE statement without the ROUNDED phrase"
 /// into "a data item with the same description and the same number of bytes as the formal parameter", the landing the
 /// activating element performs itself when it knows the formal (<see cref="CobolArgAdapt.LandForFormal{T}"/>). The golden
@@ -29,7 +29,7 @@ public sealed class BoundaryItemLandingTests
     [Fact]
     public void NumericFormal_TakesTheComputesLowOrderDigits_InItsOwnDescription()
     {
-        // 1234 into PIC 9(3): §14.7.5 with no SIZE ERROR phrase and checking off stores the low-order digits (DOC-A.1-70).
+        // 1234 into PIC 9(3): §2023:14.7.5 with no SIZE ERROR phrase and checking off stores the low-order digits (DOC-A.1-70).
         var formal = new BoundaryItem(Zoned(3), Landing: CarrierLanding<long>.Instance);
         var landed = formal.Land(Content(1234, Zoned(4)), checking: false);
         Assert.Equal(234L, Assert.IsType<ManagedPointer<long>>(landed.Carrier).Value);
@@ -63,7 +63,7 @@ public sealed class BoundaryItemLandingTests
         Assert.Equal(argument, new BoundaryItem(Zoned(3), 3).Land(argument, checking: false));
     }
 
-    // ── §14.2.3 GR9's MOVE leg (kb/Work PB2587) — golden 2002/pb2587_content_move_leg is the lane end to end ──
+    // ── §2023:14.2.3 GR9's MOVE leg (kb/Work PB2587) — golden 2002/pb2587_content_move_leg is the lane end to end ──
 
     /// <summary>A record builder standing in for the compiler's receiving half: X(6) JUSTIFIED RIGHT.</summary>
     private static readonly MoveLanding JustifiedSix = new(static s => s.Characters.PadLeft(6)[^6..]);
@@ -84,7 +84,7 @@ public sealed class BoundaryItemLandingTests
     [Fact]
     public void MoveFormal_LeavesAnArgumentThatStatesNoSendingOperand_AndAnOmittedOne()
     {
-        // A non-COBOL activator states no sending operand; an omitted argument (§14.9.4.4 GR11) has nothing to send.
+        // A non-COBOL activator states no sending operand; an omitted argument (§2023:14.9.4.4 GR11) has nothing to send.
         var plain = Content(1234, Zoned(4));
         Assert.Equal(plain, new BoundaryItem(null, Landing: JustifiedSix).Land(plain, checking: false));
         var omitted = new CobolArg(CobolPassMode.Content, ManagedPointer.Null, null) { Sending = new MoveSending("X") };
@@ -94,7 +94,7 @@ public sealed class BoundaryItemLandingTests
     [Fact]
     public void MoveSending_AlignsTheValue_ByTruncation()
     {
-        // §14.6.8.2 4): aligned by decimal point, truncated — a MOVE has no ROUNDED phrase.
+        // §2023:14.6.8.2 4): aligned by decimal point, truncated — a MOVE has no ROUNDED phrase.
         Assert.Equal((Int128)1234, new MoveSending("12345", Numeric: true, Unscaled: 12345, Scale: 3).AtScale(2));
         Assert.Equal((Int128)123, new MoveSending("1.239", Numeric: true, Real: 1.239).AtScale(2));
         Assert.Equal(CobolDec.From(1250, 2), new MoveSending("1250", Numeric: true, Unscaled: 1250, Scale: 2).ExactValue);
@@ -120,7 +120,7 @@ public sealed class BoundaryItemLandingTests
         Assert.True(sent.Numeric);
         Assert.Equal((Int128)(-1250), sent.Unscaled);
         Assert.Equal(2, sent.Scale);
-        Assert.DoesNotContain("-", sent.Characters);   // §14.9.25.4 GR6 a): the operational sign is not moved
+        Assert.DoesNotContain("-", sent.Characters);   // §2023:14.9.25.4 GR6 a): the operational sign is not moved
 
         var text = new CobolArg(CobolPassMode.Content, ManagedPointer<string>.Cell("ABC"), null);
         var chars = Assert.IsType<MoveSending>(CobolArgAdapt.WithValueSending(text).Sending);

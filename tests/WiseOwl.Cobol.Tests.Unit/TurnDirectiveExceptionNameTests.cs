@@ -9,10 +9,10 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ISO §7.3.25.3 SR2 — "Exception-name-1 shall be one of the exception names listed in 14.6.13.1, Exception
+/// ISO §2023:7.3.25.3 SR2 — "Exception-name-1 shall be one of the exception names listed in 14.6.13.1, Exception
 /// conditions" — is a syntax rule of the <c>&gt;&gt;TURN</c> directive, so it is asked by the directive stage, once, for
 /// a COMPILED line (<see cref="TurnDirectiveProcessor.Process"/>) and an OMITTED-branch line
-/// (<see cref="TurnDirectiveProcessor.CheckOperand"/>, §7.2.1) alike (kb/Work PB2740). The binder fold used to be the
+/// (<see cref="TurnDirectiveProcessor.CheckOperand"/>, §2023:7.2.1) alike (kb/Work PB2740). The binder fold used to be the
 /// rule's only home and reads compiled events alone, so an omitted branch compiled clean.
 /// </summary>
 public sealed class TurnDirectiveExceptionNameTests
@@ -46,7 +46,7 @@ public sealed class TurnDirectiveExceptionNameTests
         Assert.Equal([code], Omitted(operand, dialectLevel));
     }
 
-    /// <summary>A name ending on a hyphen is two faults, each its own rule: it is no COBOL word (§8.3.2.1: "The hyphen or
+    /// <summary>A name ending on a hyphen is two faults, each its own rule: it is no COBOL word (§2023:8.3.2.1: "The hyphen or
     /// underscore shall not appear as the first or last character in such words", COBOL2773, asked of every directive-carried
     /// word by <c>CobolWordRule.DirectiveWordViolations</c>, kb/Work PB4234) and, spelled so, no exception name (SR2, COBOL0711).</summary>
     [Fact]

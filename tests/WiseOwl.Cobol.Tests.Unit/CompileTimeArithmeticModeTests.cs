@@ -8,13 +8,13 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// kb/Work PB1592 — the compile-time arithmetic MODE is the edition's (ISO §7.3.6.3 GR2 + Annex E.2 items 6 and 21):
+/// kb/Work PB1592 — the compile-time arithmetic MODE is the edition's (ISO §2023:7.3.6.3 GR2 + Annex E.2 items 6 and 21):
 /// at 2002 and 2014 the previous standards PRESCRIBED standard arithmetic ("The previous COBOL Standard required the
 /// use of an arithmetic mode that is no longer supported", E.2 6); the one mode 2023 removed is Standard Arithmetic,
-/// E.2 21), which WiseOwl COBOL runs on the SDIDI decimal engine (34 digits, decimal128 range, §8.8.1.5.2) with the
-/// standard-decimal default intermediate rounding NEAREST-AWAY-FROM-ZERO (§11.9.11.2 GR3 a); from 2023 the mode is
+/// E.2 21), which WiseOwl COBOL runs on the SDIDI decimal engine (34 digits, decimal128 range, §2023:8.8.1.5.2) with the
+/// standard-decimal default intermediate rounding NEAREST-AWAY-FROM-ZERO (§2023:11.9.11.2 GR3 a); from 2023 the mode is
 /// the documented System.Decimal one (docs/CONFORMANCE.md DOC-A.1-29). Every expected value below is derived from
-/// those rules by hand, then §7.3.6.3 GR3 (truncate the final result to its integer part), never read off the
+/// those rules by hand, then §2023:7.3.6.3 GR3 (truncate the final result to its integer part), never read off the
 /// compiler.
 /// </summary>
 public sealed class CompileTimeArithmeticModeTests
@@ -84,7 +84,7 @@ public sealed class CompileTimeArithmeticModeTests
         }
     }
 
-    /// <summary>The standard-decimal default intermediate rounding is NEAREST-AWAY-FROM-ZERO (§11.9.11.2 GR3 a),
+    /// <summary>The standard-decimal default intermediate rounding is NEAREST-AWAY-FROM-ZERO (§2023:11.9.11.2 GR3 a),
     /// observed at a TIE. 1000000000000000000000000000001 × 10005 = 10005000000000000000000000000010005 exactly —
     /// 35 digits, so the 34-digit SDIDI drops a final 5 with nothing after it: away from zero keeps
     /// …0010010, nearest-even would keep …0010000. Subtracting the exact 10^30 × 10005 exposes the choice:
@@ -98,8 +98,8 @@ public sealed class CompileTimeArithmeticModeTests
         Assert.Equal("10010", r!.Value.Literal);
     }
 
-    /// <summary>§7.3.6.3 GR3 makes the final result "an integer numeric literal", and a fixed-point numeric literal
-    /// has at most 31 digits (§8.3.3.3.2). Standard arithmetic's 34-digit intermediates can carry a product no
+    /// <summary>§2023:7.3.6.3 GR3 makes the final result "an integer numeric literal", and a fixed-point numeric literal
+    /// has at most 31 digits (§2023:8.3.3.3.2). Standard arithmetic's 34-digit intermediates can carry a product no
     /// literal can spell — two 31-digit operands give about 1E62 — so the result is refused LOUDLY, never stored as a
     /// 62-digit "literal". At 2023 the same operands never enter System.Decimal's range (SR2).</summary>
     [Fact]
@@ -110,8 +110,8 @@ public sealed class CompileTimeArithmeticModeTests
         Assert.Null(r);
         Assert.Contains(diag.Reports, x => x.Code == CtDiagCode.ArithmeticRule
                                            && x.Message.Contains("62 digits", StringComparison.Ordinal)
-                                           && x.Message.Contains("§7.3.6.3 GR3", StringComparison.Ordinal)
-                                           && x.Message.Contains("§8.3.3.3.2", StringComparison.Ordinal));
+                                           && x.Message.Contains("§2023:7.3.6.3 GR3", StringComparison.Ordinal)
+                                           && x.Message.Contains("§2023:8.3.3.3.2", StringComparison.Ordinal));
 
         var (r23, diag23) = Eval(expr, 2023);
         Assert.Null(r23);
@@ -133,8 +133,8 @@ public sealed class CompileTimeArithmeticModeTests
         Assert.Contains(diag32.Reports, x => x.Message.Contains("32 digits", StringComparison.Ordinal));
     }
 
-    /// <summary>A SINGLE numeric literal is a literal, not an arithmetic expression (§7.3.11.4 GR5), so no arithmetic
-    /// mode bounds it: a legal 30-digit fixed-point literal (§8.3.3.3.2 allows 31) keeps its value at 2023 too. It
+    /// <summary>A SINGLE numeric literal is a literal, not an arithmetic expression (§2023:7.3.11.4 GR5), so no arithmetic
+    /// mode bounds it: a legal 30-digit fixed-point literal (§2023:8.3.3.3.2 allows 31) keeps its value at 2023 too. It
     /// used to be refused there as "exceeding the .NET decimal evaluation range" — a mode that never applied to it.</summary>
     [Theory]
     [InlineData(2002)]
@@ -147,7 +147,7 @@ public sealed class CompileTimeArithmeticModeTests
         Assert.Equal("123456789012345678901234567890", r.Value.Literal);
     }
 
-    /// <summary>An operand the mode cannot hold is the §7.3.6.2 SR2 limit, reported as SR2 — not as an SR1 b)
+    /// <summary>An operand the mode cannot hold is the §2023:7.3.6.2 SR2 limit, reported as SR2 — not as an SR1 b)
     /// "shall be fixed-point numeric literals" violation it is not (the operand IS a fixed-point literal).</summary>
     [Fact]
     public void OperandBeyondTheModesRange_IsReportedAsSr2()
@@ -162,7 +162,7 @@ public sealed class CompileTimeArithmeticModeTests
         Assert.Equal("123456789012345678901234567891", r02!.Value.Literal);
     }
 
-    /// <summary>An operand literal past the §8.3.3.3.2 digit capacity is refused by that rule, in every mode.</summary>
+    /// <summary>An operand literal past the §2023:8.3.3.3.2 digit capacity is refused by that rule, in every mode.</summary>
     [Theory]
     [InlineData(2002)]
     [InlineData(2023)]
@@ -171,10 +171,10 @@ public sealed class CompileTimeArithmeticModeTests
         var (r, diag) = Eval("12345678901234567890123456789012 + 1", edition);
         Assert.Null(r);
         Assert.Contains(diag.Reports, x => x.Message.Contains("32 digit positions", StringComparison.Ordinal)
-                                           && x.Message.Contains("§8.3.3.3.2", StringComparison.Ordinal));
+                                           && x.Message.Contains("§2023:8.3.3.3.2", StringComparison.Ordinal));
     }
 
-    /// <summary>Numeric value equality is by VALUE (§7.3.11.3 SR2 redefinition / §7.3.8 relation), so two carrier
+    /// <summary>Numeric value equality is by VALUE (§2023:7.3.11.3 SR2 redefinition / §2023:7.3.8 relation), so two carrier
     /// spellings of one value — 1 and 1.0 — are equal and hash alike.</summary>
     [Fact]
     public void CarrierEquality_IsByValue()

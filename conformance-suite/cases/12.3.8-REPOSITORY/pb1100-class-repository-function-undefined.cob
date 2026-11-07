@@ -4,20 +4,20 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §12.3.8.3 SR10 / §12.3.8.4 GR11 - a CLASS definition's
+      *> ISO §2023:12.3.8.3 SR10 / §2023:12.3.8.4 GR11 - a CLASS definition's
       *> REPOSITORY names a user-defined function that the compilation
       *> group neither defines nor prototypes (kb/Work PB1100). The
-      *> class REPOSITORY now reaches the method (§12.3.4 GR1), so the
+      *> class REPOSITORY now reaches the method (§2023:12.3.4 GR1), so the
       *> method's reference is resolved - and there is nothing to
       *> resolve it to: REPO-1 (COBOL5962) at the specifier (kb/Work PB2103).
-      *> RULE §12.3.8.3 SR10: literal-5 or function-prototype-name-1
+      *> RULE §2023:12.3.8.3 SR10: literal-5 or function-prototype-name-1
       *>   "shall be one of the following" - a function prototype of
       *>   this group, a function definition specified previously in
       *>   it, or a function for which information exists in the
       *>   external repository (this implementation holds none).
       *>   cite.py --check 12.3.8.3 "or function-prototype-name-1, if
       *>   literal-5 is not specified, shall be one of the following"
-      *>   -> OK §12.3.8.3 10) (positive twin:
+      *>   -> OK §2023:12.3.8.3 10) (positive twin:
       *>   2002/pb1100_class_repository_function_program).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1100NP.

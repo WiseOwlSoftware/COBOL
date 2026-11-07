@@ -12,7 +12,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ THE ONE RELATIONAL-OPERATOR RULE IS THE PRINTED SET OF ISO §8.8.4.2.2 FORMAT 1, AND NOTHING WIDER (kb/Work PB1034).
+/// ⛔ THE ONE RELATIONAL-OPERATOR RULE IS THE PRINTED SET OF ISO §2023:8.8.4.2.2 FORMAT 1, AND NOTHING WIDER (kb/Work PB1034).
 /// <para>The standard prints eleven alternatives, read off the RENDERED page (PDF p217, printed folio 187) because
 /// the diagram's brackets decide it: <c>IS [NOT] GREATER THAN</c>, <c>IS [NOT] &gt;</c>, <c>IS [NOT] LESS THAN</c>,
 /// <c>IS [NOT] &lt;</c>, <c>IS [NOT] EQUAL TO</c>, <c>IS [NOT] =</c>, <c>IS &lt;&gt;</c>, <c>IS GREATER THAN OR EQUAL
@@ -56,7 +56,7 @@ public sealed class RelationalOperatorFormatDriftTests
         return acc;
     }
 
-    /// <summary>§8.8.4.2.2 Format 1 as printed, in the grammar's own token names (EQUALS = '=', GT = '>', LT = '<',
+    /// <summary>§2023:8.8.4.2.2 Format 1 as printed, in the grammar's own token names (EQUALS = '=', GT = '>', LT = '<',
     /// NOTEQUAL = '&lt;&gt;', GTEQUAL = '&gt;=', LTEQUAL = '&lt;='). The brace group's eleven alternatives, with the
     /// [NOT] bracket on the first six only.</summary>
     private static readonly string[] Printed =
@@ -80,14 +80,14 @@ public sealed class RelationalOperatorFormatDriftTests
         var extra = grammar.Except(printed).Order(StringComparer.Ordinal).ToList();
         var missing = printed.Except(grammar).Order(StringComparer.Ordinal).ToList();
         Assert.True(extra.Count == 0,
-            "comparisonOperator admits spellings ISO §8.8.4.2.2 Format 1 does not print: " + string.Join(" | ", extra)
+            "comparisonOperator admits spellings ISO §2023:8.8.4.2.2 Format 1 does not print: " + string.Join(" | ", extra)
             + "\nThe optional [NOT] is bracketed on GREATER THAN, >, LESS THAN, <, EQUAL TO and = only, and EQUAL's "
             + "optional word is TO, never THAN.");
         Assert.True(missing.Count == 0,
             "comparisonOperator lacks printed spellings: " + string.Join(" | ", missing));
     }
 
-    /// <summary>The compile-time relation (§7.3.8.2 SR1 a)) is "formed according to the rules in 8.8.4.2", so it
+    /// <summary>The compile-time relation (§2023:7.3.8.2 SR1 a)) is "formed according to the rules in 8.8.4.2", so it
     /// takes comparisonOperator as it stands: a free <c>IS? NOT?</c> written before the operator is a second,
     /// unscreened NOT (`&gt;&gt;IF X NOT &gt;= 3`).</summary>
     [Fact]

@@ -5,20 +5,20 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §8.4.3.13.4 2) — ADDRESS OF PROGRAM names the OUTERMOST program by its EXTERNALIZED name
+      *> ISO §2023:8.4.3.13.4 2) — ADDRESS OF PROGRAM names the OUTERMOST program by its EXTERNALIZED name
       *> Rule: "For a COBOL program, the address is that of the outermost program identified by the
       *>   externalized program-name in its PROGRAM-ID paragraph."
-      *>   cite.py: OK  §8.4.3.13.4 2)  (General rules)
+      *>   cite.py: OK  §2023:8.4.3.13.4 2)  (General rules)
       *> Supporting rules:
-      *>   §8.4.3.13.4 4) "If the runtime system cannot locate the program, the EC-PROGRAM-NOT-FOUND
+      *>   §2023:8.4.3.13.4 4) "If the runtime system cannot locate the program, the EC-PROGRAM-NOT-FOUND
       *>   exception condition is set to exist and the value of the address-identifier is the predefined
-      *>   address NULL."            cite.py: OK  §8.4.3.13.4 4)  (General rules)
-      *>   §8.3.2.2 "For any externalized user-defined words for which the AS phrase is specified, the
+      *>   address NULL."            cite.py: OK  §2023:8.4.3.13.4 4)  (General rules)
+      *>   §2023:8.3.2.2 "For any externalized user-defined words for which the AS phrase is specified, the
       *>   content of the literal specified in that AS phrase is a name that is externalized to the
-      *>   operating environment."   cite.py: OK  §8.3.2.2 2)  (User-defined words)
-      *>   §8.3.2.2 2) a) (program-address-identifier naming a program) "the program-name is treated as a
+      *>   operating environment."   cite.py: OK  §2023:8.3.2.2 2)  (User-defined words)
+      *>   §2023:8.3.2.2 2) a) (program-address-identifier naming a program) "the program-name is treated as a
       *>   COBOL word that maps to the externalized name of the program"
-      *>                             cite.py: OK  §8.3.2.2 2) a)  (User-defined words)
+      *>                             cite.py: OK  §2023:8.3.2.2 2) a)  (User-defined words)
       *> EC-PROGRAM-NOT-FOUND is not enabled (no >>TURN), so a not-located program only yields NULL.
       *> EXPECTED OUTPUT, derived:
       *>   OUTER-S   "L1C23S" names an outermost program (externalized name = its program-name, no AS):

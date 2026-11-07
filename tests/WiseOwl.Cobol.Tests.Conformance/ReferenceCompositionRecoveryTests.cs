@@ -5,7 +5,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// ⛔ ONE VIOLATION, ONE DIAGNOSTIC (kb/Work PB4602). ISO §13.16.3 SR14 (TYPE) and SR12 (SAME AS) refuse a
+/// ⛔ ONE VIOLATION, ONE DIAGNOSTIC (kb/Work PB4602). ISO §2023:13.16.3 SR14 (TYPE) and SR12 (SAME AS) refuse a
 /// co-clause, and the recovery DROPS that co-clause and KEEPS the reference
 /// (<c>DataBinder.ScreenReferenceComposition</c>). The former recovery cleared the reference, so the entry reached the
 /// later screens as a PICTURE-less leaf and <c>01 X TYPE T ALIGNED.</c> drew COBOL1942 and COBOL0881 beside the one
@@ -35,7 +35,7 @@ public sealed class ReferenceCompositionRecoveryTests
     private static IReadOnlyList<string> Errors(string entry) =>
         EditionHarness.Compile($"{Prologue}\n{entry}\n{Epilogue}", 2023).Diagnostics;
 
-    /// <summary>§13.16.3 SR14: every co-clause outside the permitted set draws COBOL2150 and nothing else.</summary>
+    /// <summary>§2023:13.16.3 SR14: every co-clause outside the permitted set draws COBOL2150 and nothing else.</summary>
     [Theory]
     [InlineData("01 X TYPE TG ALIGNED.")]
     [InlineData("01 X TYPE TG PIC 9(5).")]
@@ -55,7 +55,7 @@ public sealed class ReferenceCompositionRecoveryTests
         EditionHarness.AssertHasDiagnostic(errors, "COBOL2150");
     }
 
-    /// <summary>§13.16.3 SR12: every co-clause outside the permitted set draws COBOL1555 and nothing else.</summary>
+    /// <summary>§2023:13.16.3 SR12: every co-clause outside the permitted set draws COBOL1555 and nothing else.</summary>
     [Theory]
     [InlineData("01 X SAME AS Z ALIGNED.")]
     [InlineData("01 X SAME AS Z1 PIC 9(5).")]
@@ -92,7 +92,7 @@ public sealed class ReferenceCompositionRecoveryTests
         EditionHarness.AssertHasDiagnostic(errors, "COBOL1555");
     }
 
-    /// <summary>⛔ A kept TYPEDEF entry whose SAME AS names a GROUP expands it (kb/Work PB4638, ISO §13.18.49.4 GR1):
+    /// <summary>⛔ A kept TYPEDEF entry whose SAME AS names a GROUP expands it (kb/Work PB4638, ISO §2023:13.18.49.4 GR1):
     /// <c>ExpandTemplate</c> expanded the declaration's TYPE clause and its members, never its own SAME AS, so the
     /// subordinates of the group never reached the type and every qualified reference to one drew COBOL1639 beside the
     /// one real refusal. The strong form and a target that is itself a SAME AS subject are the same arm; a SAME AS held by

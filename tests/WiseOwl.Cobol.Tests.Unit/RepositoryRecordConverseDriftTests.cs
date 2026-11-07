@@ -20,7 +20,7 @@ public sealed class RepositoryRecordConverseDriftTests
     /// <summary>The <see cref="PicInfo"/> members whose record field has another name, and that name.</summary>
     private static readonly Dictionary<string, string[]> PicRenamed = new(StringComparer.Ordinal)
     {
-        ["RestrictedTypeDecl"] = ["RestrictedTypeDeclaration"],   // an index into the record's TypeDeclarations (§6.2 rule 4)
+        ["RestrictedTypeDecl"] = ["RestrictedTypeDeclaration"],   // an index into the record's TypeDeclarations (§2023:6.2 rule 4)
         ["ObjectRef"] = ["ObjectRefKind", "ObjectRefName", "ObjectRefIdentity", "ObjectRefFactory", "ObjectRefOnly", "ObjectRefFormal"],
     };
 
@@ -32,7 +32,7 @@ public sealed class RepositoryRecordConverseDriftTests
         ["HasExternalClause"] = "External",
     };
 
-    /// <summary>The carried <see cref="DataItem"/> members a record does not hold, each with its reason (§6.3 "Not recorded").</summary>
+    /// <summary>The carried <see cref="DataItem"/> members a record does not hold, each with its reason (§2023:6.3 "Not recorded").</summary>
     private static readonly Dictionary<string, string> NotRecorded = new(StringComparer.Ordinal)
     {
         ["Pending"] = "binder-transient: the usage a PICTURE awaits from its group, resolved into Pic before binding completes",
@@ -42,12 +42,12 @@ public sealed class RepositoryRecordConverseDriftTests
         ["PicIsUsageSynthesized"] = "binder-transient: a group's synthesized usage PICTURE, shed by the usage walk",
         ["PicIsValueImplied"] = "the PICTURE a VALUE clause implied, whose effect is the analyzed Pic, which is recorded",
         ["PictureText"] = "the written character-string, whose analysis is Pic and whose identity is Pic.Clause, both recorded",
-        ["RawValue"] = "a VALUE clause: initial content, not a description a comparator reads (§6.3)",
-        ["TableValues"] = "a table's VALUE clauses: initial content (§6.3)",
-        ["ValueCopiedFrom"] = "the entry that wrote a VALUE clause (§6.3: VALUEs are not recorded)",
-        ["IndexNames"] = "INDEXED BY index-names (§6.3: index names are not recorded)",
+        ["RawValue"] = "a VALUE clause: initial content, not a description a comparator reads (§2023:6.3)",
+        ["TableValues"] = "a table's VALUE clauses: initial content (§2023:6.3)",
+        ["ValueCopiedFrom"] = "the entry that wrote a VALUE clause (§2023:6.3: VALUEs are not recorded)",
+        ["IndexNames"] = "INDEXED BY index-names (§2023:6.3: index names are not recorded)",
         ["DeclaredAt"] = "a source position of the publishing element",
-        ["Property"] = "the PROPERTY clause of an object's data (ISO §13.18.42), a class record's fact (slice 8), never a formal's",
+        ["Property"] = "the PROPERTY clause of an object's data (ISO §2023:13.18.42), a class record's fact (slice 8), never a formal's",
     };
 
     [Fact]

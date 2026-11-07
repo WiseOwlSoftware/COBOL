@@ -6,7 +6,7 @@
 *> portable: unverified
 *>---
       *> kb/Work PB1166 - the group-kind half of the CALL AS NESTED lane
-      *> (§14.8.2.2 / §14.8.3.2 through §14.9.4.3 SR25), the REJECT half.
+      *> (§2023:14.8.2.2 / §2023:14.8.3.2 through §2023:14.9.4.3 SR25), the REJECT half.
       *>   cite.py --check 14.8.2.1 "A bit group or national group is
       *>     treated as an elementary item"                        OK NOTE
       *>   cite.py --check 14.8.2.2 "shall be an alphanumeric group item or

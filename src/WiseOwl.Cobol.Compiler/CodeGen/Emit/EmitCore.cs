@@ -22,7 +22,7 @@ internal sealed class EmitContext(CodeWriter writer, DataBindResult data, NameAl
     /// <summary>The C# output writer.</summary>
     public CodeWriter Writer { get; } = writer;
 
-    /// <summary>The COMPILATION-scoped WHEN-COMPILED stamp (§15.99.3 r2) — captured ONCE per
+    /// <summary>The COMPILATION-scoped WHEN-COMPILED stamp (§2023:15.99.3 r2) — captured ONCE per
     /// <see cref="ProgramEmitter"/> (one compilation of one run unit), so every unit of the run unit — the
     /// containing compilation unit and its contained source units alike — bakes the SAME constant (r2's second
     /// sentence), while the next compilation in the same process gets a FRESH capture (kb/Work PB120: a
@@ -34,7 +34,7 @@ internal sealed class EmitContext(CodeWriter writer, DataBindResult data, NameAl
     /// <summary>The bound DATA DIVISION model.</summary>
     public DataBindResult Data { get; } = data;
 
-    /// <summary>The METHOD OPTIONS override of the code now emitted (ISO §11.9.4 GR1): a method's own OPTIONS model,
+    /// <summary>The METHOD OPTIONS override of the code now emitted (ISO §2023:11.9.4 GR1): a method's own OPTIONS model,
     /// which <c>OoEmitter.EmitMethod</c> pushes over the unit's (<see cref="ConfigurationFacts.Options"/>) around the
     /// method's LOCAL-STORAGE initializers (kb/Work PB1215) and its whole body (kb/Work PB2296: the arithmetic mode and the
     /// intermediate rounding the renderers read) — the emitter's own scope, as <see cref="ProcedureBindState.Options"/>
@@ -46,7 +46,7 @@ internal sealed class EmitContext(CodeWriter writer, DataBindResult data, NameAl
 
     /// <summary>⛔ THE LOCAL-STORAGE ROOTS OF THE ACTIVATION BEING INITIALIZED, when it is not the unit's own — an OO
     /// METHOD's (kb/Work PB1215). <see cref="Data"/> is the CLASS half's data model, whose <c>LocalStorageRoots</c>
-    /// never list a method's LOCAL-STORAGE (it binds into the method's own <c>Binding.LocalRoots</c>), so the §11.9.10.4
+    /// never list a method's LOCAL-STORAGE (it binds into the method's own <c>Binding.LocalRoots</c>), so the §2023:11.9.10.4
     /// GR2 section selection of OPTIONS INITIALIZE could never select one. <c>OoEmitter.EmitMethod</c> sets this
     /// around the method's LOCAL-STORAGE initializers and restores it; null everywhere else.</summary>
     public IReadOnlyList<DataItem>? ActivationLocalRoots { get; set; }
@@ -55,13 +55,13 @@ internal sealed class EmitContext(CodeWriter writer, DataBindResult data, NameAl
     /// context of one generated module, so minted temporaries never collide across units.</summary>
     public NameAllocator Names { get; } = names;
 
-    /// <summary>The RUN-UNIT-scoped table of §8.5.1.12 atom arrays (kb/Work PB2690) — the SAME instance rides every per-unit
+    /// <summary>The RUN-UNIT-scoped table of §2023:8.5.1.12 atom arrays (kb/Work PB2690) — the SAME instance rides every per-unit
     /// context of one generated module, and states each distinct array once as a static field instead of allocating it at
     /// every execution of the statement that names it.</summary>
     public GroupAtomTable Atoms { get; } = atoms;
 
     /// <summary>⛔ ONE EVALUATION, N STORES — the emitter half of every "… is stored in each data item referenced
-    /// by identifier-N <b>in the order specified</b>" rule (kb/Work PB394). ISO §14.9.39.4 GR12 / GR14 / GR16 /
+    /// by identifier-N <b>in the order specified</b>" rule (kb/Work PB394). ISO §2023:14.9.39.4 GR12 / GR14 / GR16 /
     /// GR18 each state it for a SET format: the address is "identified" once and then stored into every receiver,
     /// with only the RECEIVER's item identification repeated ("done immediately before the value of that data
     /// item is changed"). Declaring the sender's value in a local is what makes the emitted code say that;
@@ -69,8 +69,8 @@ internal sealed class EmitContext(CodeWriter writer, DataBindResult data, NameAl
     /// sender then poisons every store after it.
     /// <para>Returns the expression unchanged when there is at most one receiver — the text is emitted once
     /// anyway, so the local would be pure noise. The arithmetic family's <c>ArithmeticEmitter.Snapshot</c> is
-    /// the same rule for a §14.7.7 GR4 intermediate, and <c>Binding.Procedure.SendingValueTemp</c> is the same
-    /// rule for §14.9.25.4 GR1's intermediate result item, which needs a COBOL description rather than a C#
+    /// the same rule for a §2023:14.7.7 GR4 intermediate, and <c>Binding.Procedure.SendingValueTemp</c> is the same
+    /// rule for §2023:14.9.25.4 GR1's intermediate result item, which needs a COBOL description rather than a C#
     /// local because a MOVE's receivers each CONVERT from it.</para></summary>
     /// <param name="expr">The sender's C# expression. It must be a well-typed initializer (never the bare
     /// <c>null</c> literal — a <c>TO NULL</c> sender is a constant and needs no local).</param>
@@ -80,12 +80,12 @@ internal sealed class EmitContext(CodeWriter writer, DataBindResult data, NameAl
     {
         if (receivers <= 1) return expr;
         string tmp = $"__{stem}{Names.NextStoreTmp()}";
-        Writer.Line($"var {tmp} = {expr};   // ONE evaluation of the sending operand (ISO §14.9.39.4 GR16)");
+        Writer.Line($"var {tmp} = {expr};   // ONE evaluation of the sending operand (ISO §2023:14.9.39.4 GR16)");
         return tmp;
     }
 
     /// <summary>⛔ THE COMPILATION'S DISPLAY OVER-PUNCH CONVENTION (kb/Work PB803, owner decision 2026-09-09;
-    /// Annex A.1 items 177/178, ISO §13.18.52.4 GR4 / GR5 b) — the CLI's <c>--sign-encoding</c>, read from the ONE
+    /// Annex A.1 items 177/178, ISO §2023:13.18.52.4 GR4 / GR5 b) — the CLI's <c>--sign-encoding</c>, read from the ONE
     /// per-compilation context the driver set it on. EVERY emitted <c>NumProfile</c>
     /// (<c>PicInfo.ProfileInitializer</c>) and every emitted signed class condition
     /// (<c>ConditionRenderer.RenderClass</c>) states it, which is what makes the convention a property of the
@@ -94,19 +94,19 @@ internal sealed class EmitContext(CodeWriter writer, DataBindResult data, NameAl
     public SignEncoding SignEncoding => Data.SignEncoding;
 
     /// <summary>⛔ THE FORM THE COMPILATION'S DISPLAY STATEMENTS GIVE A NUMERIC OPERAND (kb/Work PB3505, owner decision
-    /// PB3467; ISO §14.9.11.4 GR1, Annex A.1 item 56) — the CLI's <c>--numeric-display</c>, read from the ONE
+    /// PB3467; ISO §2023:14.9.11.4 GR1, Annex A.1 item 56) — the CLI's <c>--numeric-display</c>, read from the ONE
     /// per-compilation context the driver set it on. Read by <c>AcceptDisplayEmitter</c> alone: it reaches DISPLAY's
-    /// device conversion and no other character rendering of a numeric item (MOVE's is §14.9.25.4 GR6's).</summary>
+    /// device conversion and no other character rendering of a numeric item (MOVE's is §2023:14.9.25.4 GR6's).</summary>
     public NumericDisplayForm NumericDisplay => Data.NumericDisplay;
 
     /// <summary>The trailing collation argument for collated comparison renders — <c>", __COLLATE"</c> (the program's
     /// ONE <c>CobolCollation</c> carrier — a literal-phrase table or a LOCALE sequence, kb/Work PB101) when a
-    /// PROGRAM COLLATING SEQUENCE is active (ISO §12.3.6 GR11 — relation and condition-name comparisons), else empty
+    /// PROGRAM COLLATING SEQUENCE is active (ISO §2023:12.3.6 GR11 — relation and condition-name comparisons), else empty
     /// (the native two-argument <c>CobolString.Compare</c> overload).</summary>
     public string CollateArg => Data.Configuration.Collating is null ? "" : ", __COLLATE";
 
     /// <summary>The NATIONAL twin of <see cref="CollateArg"/> — <c>", __COLLATE_NAT"</c> when a NON-native
-    /// NATIONAL program collating sequence is active (ISO §12.3.6 GR11 / §8.8.4.2.9 — an <c>ALPHABET … FOR
+    /// NATIONAL program collating sequence is active (ISO §2023:12.3.6 GR11 / §2023:8.8.4.2.9 — an <c>ALPHABET … FOR
     /// NATIONAL</c> literal phrase; the identity sequences NATIVE/UCS-4 stay null, D-N3), else empty. National
     /// comparisons NEVER take the alphanumeric <c>__COLLATE</c> table (its 256-entry domain would alias national
     /// characters through <c>&amp; 0xFF</c>).</summary>
@@ -115,16 +115,16 @@ internal sealed class EmitContext(CodeWriter writer, DataBindResult data, NameAl
     /// <summary>The trailing collation argument a relation between operands of categories
     /// <paramref name="leftCategory"/> and <paramref name="rightCategory"/> takes — <see cref="CollateArg"/>,
     /// <see cref="NatCollateArg"/> or nothing — chosen through the ONE comparison-class rule
-    /// (<c>CollatingSelection.ForComparison</c>): §8.8.4.2.7 collates an alphanumeric comparison, §8.8.4.2.9 a
-    /// national one under the national sequence, and §8.8.4.2.8 / §8.8.4.2.4 collate NEITHER a boolean nor a
+    /// (<c>CollatingSelection.ForComparison</c>): §2023:8.8.4.2.7 collates an alphanumeric comparison, §2023:8.8.4.2.9 a
+    /// national one under the national sequence, and §2023:8.8.4.2.8 / §2023:8.8.4.2.4 collate NEITHER a boolean nor a
     /// numeric comparison — a boolean operand under the alphanumeric weight table would let an alphabet that
     /// reorders '0' and '1' invert a boolean test.
-    /// <para>⛔ BOTH operands, always. A comparison's rule is not a property of one side: §8.8.4.2.5 makes a
+    /// <para>⛔ BOTH operands, always. A comparison's rule is not a property of one side: §2023:8.8.4.2.5 makes a
     /// numeric-DISPLAY operand compared with an alphanumeric one an ALPHANUMERIC comparison, so asking only the
     /// numeric side returns "no sequence" and silently drops the PROGRAM COLLATING SEQUENCE (kb/Work PB741 — NIST
     /// NC215A `IF NINE-DU-9V0-1 &lt; SPACE`). Pass each item's OPERAND picture's (<c>DataItem.OperandPic</c>)
-    /// category, so a bit / national GROUP is classified as the elementary operand §13.18.29.4 GR1b/GR2b makes
-    /// it; a figurative constant has no category of its own and takes its context's (§8.3.3.6.4 GR1).</para></summary>
+    /// category, so a bit / national GROUP is classified as the elementary operand §2023:13.18.29.4 GR1b/GR2b makes
+    /// it; a figurative constant has no category of its own and takes its context's (§2023:8.3.3.6.4 GR1).</para></summary>
     public string CollateArgFor(PicCategory? leftCategory, PicCategory? rightCategory) =>
         CollatingSelection.ForComparison(leftCategory, rightCategory) switch
         {
@@ -135,7 +135,7 @@ internal sealed class EmitContext(CodeWriter writer, DataBindResult data, NameAl
 
     /// <summary>The editing-config suffix for a generated <c>CobolEdit</c> call over <paramref name="pic"/>'s
     /// mask (named arguments, composing after any <c>blankWhenZero:</c>): the mask's currency STRING when it is
-    /// not the single character <c>$</c> (ISO §12.3.7.4 GR13 — the mask itself is canonical, its symbol already
+    /// not the single character <c>$</c> (ISO §2023:12.3.7.4 GR13 — the mask itself is canonical, its symbol already
     /// <c>$</c>; <c>PictureAnalyzer</c> recorded the string on <see cref="PicInfo.CurrencyString"/>, so a unit with
     /// SEVERAL currency signs edits each item with ITS string — kb/Work PB60 / AR-15.68.3-3) and DECIMAL-POINT IS
     /// COMMA when set (GR14). Empty under the default config, so the generated code of an ordinary program is
@@ -146,11 +146,11 @@ internal sealed class EmitContext(CodeWriter writer, DataBindResult data, NameAl
     /// <para>⛔ It also carries the item's PICTURE EDITING rules (<see cref="RuntimeApi.EditsArg"/>). They were a
     /// SEPARATE suffix every caller had to remember to append, and the two floating-point arms were exactly the
     /// callers that did not — harmless only while COBOL1658 refused every EDITING phrase on that form; once the
-    /// IS form is admitted (§13.18.40.3 SR12 bars only the FOR form's extended symbols; kb/Work PB866) a dropped
+    /// IS form is admitted (§2023:13.18.40.3 SR12 bars only the FOR form's extended symbols; kb/Work PB866) a dropped
     /// suffix renders the mask LETTER. One producer, so the next edited-store site cannot drop it.</para></summary>
     public string EditCfg(PicInfo? pic) =>
-        // A format-2 (LOCALE) item takes NEITHER argument: the currency string is the LOCALE's (§13.18.40.5 r9)
-        // and DECIMAL-POINT IS COMMA has no effect on locale editing (§12.3.7.4 GR14) — and CobolLocaleEdit's
+        // A format-2 (LOCALE) item takes NEITHER argument: the currency string is the LOCALE's (§2023:13.18.40.5 r9)
+        // and DECIMAL-POINT IS COMMA has no effect on locale editing (§2023:12.3.7.4 GR14) — and CobolLocaleEdit's
         // signature has no such parameters, so leaking either is a generated-code CS1739 (PB64 T6).
         pic?.LocaleEdit is not null ? ""
         : (pic?.CurrencyString is { } cur
@@ -163,29 +163,29 @@ internal sealed class EmitContext(CodeWriter writer, DataBindResult data, NameAl
 
 /// <summary>
 /// A rendered numeric expression: a C# <c>long</c>-valued expression holding the UNSCALED value, plus its fractional
-/// <see cref="Scale"/> (the implied decimal position). The pair lets the backend align scales (ISO §8.8.1).
+/// <see cref="Scale"/> (the implied decimal position). The pair lets the backend align scales (ISO §2023:8.8.1).
 /// </summary>
 /// <param name="Dec">True when <see cref="Expr"/> is a STANDARD-DECIMAL intermediate (<c>CobolDec</c>-typed,
-/// §8.8.1.5) — <see cref="Scale"/> is then meaningless (the SDIDI carries its own exponent).</param>
+/// §2023:8.8.1.5) — <see cref="Scale"/> is then meaningless (the SDIDI carries its own exponent).</param>
 /// <param name="Real">True when <see cref="Expr"/> is a C#-<c>double</c>-typed FLOATING-POINT intermediate (D16 —
 /// any expression with a float operand evaluates in IEEE binary64); <see cref="Scale"/> is 0 and unused. <c>Real</c>
 /// and <see cref="Dec"/> are mutually exclusive.</param>
 /// <param name="U">True when <see cref="Expr"/> is a <c>UInt128</c>-typed UNSIGNED-WIDE intermediate (kb/Work
 /// R10): a 16-byte unsigned COMP-5 item's field read, or a folded literal beyond <see cref="Int128.MaxValue"/>
-/// (the HIGHEST-ALGEBRAIC container bound, §15.43.4 r2). The VALUE paths (store, display, relation) keep the
+/// (the HIGHEST-ALGEBRAIC container bound, §2023:15.43.4 r2). The VALUE paths (store, display, relation) keep the
 /// full [0, 2^128) range via the runtime's <c>UInt128</c> overloads; the ARITHMETIC paths funnel through
 /// <c>CobolNum.Widen</c> (loud beyond the documented Int128 intermediate — CONFORMANCE.md §4.2.16), never a
 /// silent wrap. Mutually exclusive with <see cref="Dec"/> and <see cref="Real"/>.</param>
 /// <param name="Approximate">Only with <see cref="Real"/>: the binary64 is an implementor-defined APPROXIMATION the
-/// ENGINE produced — a floating-math function's returned value (§15.4.1: "the characteristics and representation of
-/// the returned value are defined by the implementor"), a non-integer native power (§8.8.1.3: under native arithmetic the method of evaluation is the implementor's) — and not the content
+/// ENGINE produced — a floating-math function's returned value (§2023:15.4.1: "the characteristics and representation of
+/// the returned value are defined by the implementor"), a non-integer native power (§2023:8.8.1.3: under native arithmetic the method of evaluation is the implementor's) — and not the content
 /// of a floating-point data item or a floating-point carrier literal. The distinction is the lane's whole
 /// question (kb/Work PB1641): an operand "described with usage float-long" brings its expression into IEEE binary64
-/// (§14.9.2.4 GR4's exemption for ADD, §14.9.44.4 GR4's for SUBTRACT, numeric design D16 for the rest), but a returned value is described with no usage at all, so
+/// (§2023:14.9.2.4 GR4's exemption for ADD, §2023:14.9.44.4 GR4's for SUBTRACT, numeric design D16 for the rest), but a returned value is described with no usage at all, so
 /// beside fixed-point operands nothing licenses binary64 (for ADD / SUBTRACT: "enough places shall be carried so as
 /// not to lose significant digits") and <c>NumericRenderer.CombineCore</c> lifts it to the SDIDI through the
 /// shortest-round-trip conversion (<c>CobolDec.FromApproximation</c>: an engine-produced approximation is not a float
-/// data item, whose own float→SDIDI conversion of §8.8.1.5.1 is <c>CobolDec.FromBinary64</c>) instead of
+/// data item, whose own float→SDIDI conversion of §2023:8.8.1.5.1 is <c>CobolDec.FromBinary64</c>) instead of
 /// dragging <c>13.2</c> into binary64 (where it is 13.199999999999999 and a truncating store gives 17.1 for
 /// <c>13.2 + FUNCTION SQRT(16)</c>).</param>
 /// <param name="Digits">An UPPER BOUND on the decimal digits of the UNSCALED value of an exact (non-<see cref="Dec"/>,
@@ -276,14 +276,14 @@ internal static class EmitText
     public static string CsLiteral(string value) => SymbolDisplay.FormatLiteral(value, quote: true);
 
     /// <summary>Render a char as a C# char literal, ALWAYS in the <c>'\uXXXX'</c> escape form. One form for every
-    /// character means the NUL, the space and U+FFFF — the three the §11.9.10.4 GR5 fill map produces — need no
+    /// character means the NUL, the space and U+FFFF — the three the §2023:11.9.10.4 GR5 fill map produces — need no
     /// per-character casing, and no emitted literal can ever contain a raw control character or a quote.</summary>
     public static string CsCharLiteral(char c) => $"'\\u{(int)c:X4}'";
 
     /// <summary>The C# expression evaluating to file <paramref name="f"/>'s runtime connector key — the ONE way a
     /// connector is addressed at OPEN/READ/WRITE/CLOSE/registration/STATUS/USE-selection (feedback_one_mechanism_per_job).
     /// For a program, EXTERNAL or SD file it is the qualified-name literal; for a per-object instance or factory file
-    /// (M2-OO-1i; ISO §9.3.9) it is the object's minted-key field <c>this.__fkey_X</c> (ISO §9.1.4 — one connector per object
+    /// (M2-OO-1i; ISO §2023:9.3.9) it is the object's minted-key field <c>this.__fkey_X</c> (ISO §2023:9.1.4 — one connector per object
     /// instance). Until an instance file sets <see cref="FileModel.InstanceKeyField"/> this is byte-identical to
     /// <c>CsLiteral(f.CobolName)</c>, so routing every connector-key site through this helper is behaviour-neutral
     /// for all existing files (the refactor is proven by the full battery, not a new golden).</summary>
@@ -293,7 +293,7 @@ internal static class EmitText
     // FigurativeFill lives in FigurativeConstants.Fill(kind, null) since P7 Step 4.
 
     /// <summary>The character value of a figurative <c>ALL literal-1</c> in a WIDTH-SPECIFIED context (a VALUE clause /
-    /// a fixed-length receiver / a compared-with operand; ISO §8.3.3.6.4 GR2): the literal is repeated character by
+    /// a fixed-length receiver / a compared-with operand; ISO §2023:8.3.3.6.4 GR2): the literal is repeated character by
     /// character until its length is ≥ <paramref name="width"/>, then truncated from the right to <paramref
     /// name="width"/> (or 1, whichever is greater). An empty literal yields spaces. (A length-UNSPECIFIED context —
     /// DISPLAY / STOP / STRING — uses the literal once per GR3c, NOT this.)
@@ -305,16 +305,16 @@ internal static class EmitText
     /// ratchet makes <c>RuntimeApi</c> the ONE CodeGen file that names the runtime.</para></summary>
     public static string RepeatToWidth(string literal, int width) => RuntimeApi.FigToWidthFold(literal, width);
 
-    // The ALL literal-1 form (ISO §8.3.3.6.2 Format 6 / §8.3.3.6.4 GR9) is no longer forwarded from here: every
+    // The ALL literal-1 form (ISO §2023:8.3.3.6.2 Format 6 / §2023:8.3.3.6.4 GR9) is no longer forwarded from here: every
     // CodeGen reader of a VALUE / level-88 operand now asks FigurativeConstants.Classify, which parts Formats 1-5
     // from Format 6 in ONE place and delegates the Format-6 half to CobolLiteral.AllLiteralRaw (kb/Work PB461).
     // A forward with no callers is a second name for a rule, and this rule had five of those.
 
     /// <summary>Render a numeric literal as a scaled integer: its digits as the unscaled value, its fractional
     /// digit count as the scale (e.g. <c>"3.5"</c> → <c>(35L, 1)</c>, <c>"-12"</c> → <c>(-12L, 0)</c>). A literal
-    /// wider than 18 digits (legal to 31, ISO §8.3.3.3.2 — the 2002+ wide tier) emits an <c>Int128.Parse</c>
+    /// wider than 18 digits (legal to 31, ISO §2023:8.3.3.3.2 — the 2002+ wide tier) emits an <c>Int128.Parse</c>
     /// since C# has no Int128 literal form.
-    /// <para>⛔ A FLOATING-POINT literal is a scaled integer TOO (<c>NumericLiteral.TryUnscaledParts</c>, ISO §8.3.3.3.3
+    /// <para>⛔ A FLOATING-POINT literal is a scaled integer TOO (<c>NumericLiteral.TryUnscaledParts</c>, ISO §2023:8.3.3.3.3
     /// rule 5) and this helper's contract IS that pair. It used to return the literal's own source text as a
     /// binary64 <c>Real</c> NumX, which is not a scaled integer at all, and the two consumers that render an
     /// OPERAND through this helper — the CALL argument lane and the INVOKE argument lane — then handed a C#
@@ -322,7 +322,7 @@ internal static class EmitText
     /// conforming source was rejected by a RAW ROSLYN CS1503 with no COBOL diagnostic at all (kb/Work PB263).</para>
     /// <para>⛔ THIS IS NOT THE ARITHMETIC LANE. <c>NumericRenderer.LiteralNum</c> takes a canonical
     /// floating-point literal onto the SDIDI (<c>Dec</c>) lane BEFORE it reaches here (owner decision D-B), so
-    /// the §8.8.1.3 intermediate-lane determination is untouched by this rendering; only a literal that is not
+    /// the §2023:8.8.1.3 intermediate-lane determination is untouched by this rendering; only a literal that is not
     /// canonical at all — which the binder has already diagnosed — still falls through to the <c>Real</c>
     /// form.</para></summary>
     public static NumX UnscaledLit(string text)
@@ -338,8 +338,8 @@ internal static class EmitText
     public static string IntLiteral(string signedDigits) => IntLiteralX(signedDigits).Text;
 
     /// <summary>The carrier-aware form of <see cref="IntLiteral"/>. A SOURCE literal never exceeds 31 digits
-    /// (ISO §8.3.3.3.2), but a COMPILER-SYNTHESIZED literal can: the HIGHEST-ALGEBRAIC fold of a 16-byte
-    /// unsigned COMP-5 container is 2^128−1 (39 digits, §15.43.4 r2 — kb/Work R10 F73; the old unconditional
+    /// (ISO §2023:8.3.3.3.2), but a COMPILER-SYNTHESIZED literal can: the HIGHEST-ALGEBRAIC fold of a 16-byte
+    /// unsigned COMP-5 container is 2^128−1 (39 digits, §2023:15.43.4 r2 — kb/Work R10 F73; the old unconditional
     /// <c>Int128.Parse</c> threw <c>OverflowException</c> at run time). A positive magnitude beyond
     /// <see cref="Int128.MaxValue"/> renders as <c>UInt128.Parse</c> and is flagged unsigned-wide (<c>U</c>) so
     /// the renderer routes it down the unsigned lane. (A NEGATIVE value never needs it — the most negative fold,

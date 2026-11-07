@@ -5,12 +5,12 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> REF-MOD-ZERO-LENGTH directive (ISO/IEC 1989:2023 §7.3.23; §8.4.3.3.4 item 5c;
+      *> REF-MOD-ZERO-LENGTH directive (ISO/IEC 1989:2023 §2023:7.3.23; §2023:8.4.3.3.4 item 5c;
       *> Annex E.3.3 item 23). When the directive is ON a reference-modification result
       *> MAY be zero-length: WS-X(3:0) is allowed WITHOUT raising EC-BOUND-REF-MOD, even
       *> under >>TURN EC-BOUND-REF-MOD CHECKING ON (the zero-length source MOVEd to the
       *> 5-char receiver space-fills it; EXCEPTION-STATUS stays clear). The directive
-      *> relaxes ONLY the zero-length aspect (§8.4.3.3.4 item 5c "the result may also be
+      *> relaxes ONLY the zero-length aspect (§2023:8.4.3.3.4 item 5c "the result may also be
       *> zero") — an out-of-range leftmost WS-X(7:2) (7 > the 5-position size) STILL
       *> raises the fatal EC-BOUND-REF-MOD, which the USE AFTER EXCEPTION declarative
       *> reports and RESUME AT NEXT STATEMENT continues past (WS-Z unchanged).

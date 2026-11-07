@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB1139 - A FILE-NAME REPEATED WITHIN A MERGE IS REFUSED.
       *>   cite.py --check 14.9.24.3 "File-names shall not be repeated within the MERGE statement." ->
-      *>     OK §14.9.24.3 7)
+      *>     OK §2023:14.9.24.3 7)
       *> F1 is named twice in USING (the rule covers file-name-2 through file-name-4 together). No set-membership test
       *> existed, so the statement compiled clean.
        IDENTIFICATION DIVISION.

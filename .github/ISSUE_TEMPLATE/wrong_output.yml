@@ -28,7 +28,7 @@ body:
     id: expected
     attributes:
       label: Expected behavior
-      description: What should happen, and the clause of the standard that requires it (for example `§14.9.25.4 GR1`).
+      description: What should happen, and the clause of the standard that requires it (for example `§2023:14.9.25.4 GR1`).
     validations:
       required: true
   - type: textarea

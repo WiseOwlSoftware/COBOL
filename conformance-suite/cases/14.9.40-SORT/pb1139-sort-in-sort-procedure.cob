@@ -7,7 +7,7 @@
       *> kb/Work PB1139 - A FILE SORT IN THE INPUT PROCEDURE OF ANOTHER FILE SORT IS REFUSED.
       *>   cite.py --check 14.9.40.3 "A SORT statement shall not appear in imperative-statement-1 of an
       *>     exception-checking PERFORM statement, in an input or output procedure, or in a declarative procedure."
-      *>     -> OK §14.9.40.3 3)
+      *>     -> OK §2023:14.9.40.3 3)
       *> No check asked the procedure ranges about a SORT (only MERGE and COMMIT/ROLLBACK, and only from 2023), so the
       *> statement compiled clean; SR3 holds at every edition ("SORT already disallowed it", Annex E.2 item 20).
        IDENTIFICATION DIVISION.

@@ -13,15 +13,15 @@
       *> and fractional, is derived from the corresponding number of
       *> digits, excluding insertion editing characters, in the PICTURE
       *> clause of the entry containing the SUM clause."
-      *>   cite.py: OK  §13.18.54.4 1)  (General rules)
+      *>   cite.py: OK  §2023:13.18.54.4 1)  (General rules)
       *> "Each addition is tested for size error; if a size error
       *> occurs, the EC-REPORT-SUM-SIZE exception condition is set to
       *> exist."
-      *>   cite.py: OK  §13.18.54.4 3)  (General rules)
+      *>   cite.py: OK  §2023:13.18.54.4 3)  (General rules)
       *> "If the associated size error indicator is set, an
       *> EC-REPORT-SUM-SIZE exception condition is set to exist and the
       *> printable item is filled with spaces."
-      *>   cite.py: OK  §13.18.54.4 4)  (General rules)
+      *>   cite.py: OK  §2023:13.18.54.4 4)  (General rules)
       *>
       *> DERIVATION. Two GENERATEs each add WS-K = 60, total 120.
       *> ZZ9, Z(3) and $$$9 are three-digit counters (every digit

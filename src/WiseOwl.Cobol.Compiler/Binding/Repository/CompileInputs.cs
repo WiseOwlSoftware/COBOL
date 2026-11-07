@@ -16,7 +16,7 @@ namespace WiseOwl.Cobol.Binding.Repository;
 /// <c>&gt;&gt;COBOL-WORDS</c> map and the four directive folds and the compilation-variable table that
 /// <see cref="BindSession"/> carries — gathered where the binder has them all, and asked for the state at one source line.
 /// <para>The state at a line is the state a source element that begins on that line is bound under: the directives fold
-/// strictly before the line (a directive occupies its own line and governs the text that follows, ISO §7.3.4 GR5), so a skeleton
+/// strictly before the line (a directive occupies its own line and governs the text that follows, ISO §2023:7.3.4 GR5), so a skeleton
 /// states the checking and propagation its definition was written under, not the group's last directive.</para>
 /// <para><c>CompileStateDriftTests</c> holds the members of <c>CompilerDriver.Options</c> and <c>BindSession</c> against this
 /// type and <see cref="CompileState"/>: a new option or directive state is red until it is a field here or is named as
@@ -31,7 +31,7 @@ internal sealed record CompileInputs(EditionContext Edition, CobolWordsMap Words
         RepositoryVocabulary.Persisted(Edition.NumericDisplay), Words.DirectiveText, FoldsAt(line), VariablesAt(line));
 
     /// <summary><c>&gt;&gt;TURN</c>, <c>&gt;&gt;PROPAGATE</c>, <c>&gt;&gt;REF-MOD-ZERO-LENGTH</c> and <c>&gt;&gt;LEAP-SECOND</c> in
-    /// force at <paramref name="line"/>, as the directive lines that state them (ISO §7.3.25, §7.3.21, §7.3.23, §7.3.17), in a
+    /// force at <paramref name="line"/>, as the directive lines that state them (ISO §2023:7.3.25, §2023:7.3.21, §2023:7.3.23, §2023:7.3.17), in a
     /// fixed order: replayed over a default state they leave this one.</summary>
     private string FoldsAt(int line)
     {
@@ -45,7 +45,7 @@ internal sealed record CompileInputs(EditionContext Edition, CobolWordsMap Words
         return text.ToString();
     }
 
-    /// <summary>The compilation variables defined at <paramref name="line"/> (ISO §7.3.11.4 GR1), as <c>&gt;&gt;DEFINE</c> lines in
+    /// <summary>The compilation variables defined at <paramref name="line"/> (ISO §2023:7.3.11.4 GR1), as <c>&gt;&gt;DEFINE</c> lines in
     /// the order their names were first defined: the value in force, as the operand that stated it.</summary>
     private string VariablesAt(int line)
     {

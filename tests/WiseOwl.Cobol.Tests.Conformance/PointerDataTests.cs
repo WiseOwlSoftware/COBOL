@@ -5,7 +5,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// USAGE POINTER data (ISO §8.5.2.6 / §13.18.60 / §14.9.39 Format 7 / §8.8.4.2.16) — Phase-4b increment 1
+/// USAGE POINTER data (ISO §2023:8.5.2.6 / §2023:13.18.60 / §2023:14.9.39 Format 7 / §2023:8.8.4.2.16) — Phase-4b increment 1
 /// (the ManagedPointer carrier; DEVLOG 613). Increment 1 holds only NULL: declaration, SET TO NULL /
 /// pointer, and [NOT] EQUAL comparison against NULL and another pointer. ADDRESS OF / BASED / ALLOCATE are
 /// increment 2+. The end-to-end behavior rides the pointer_data conformance golden; these lock the edition
@@ -29,7 +29,7 @@ public sealed class PointerDataTests
 
     private static string Prog(string body) => PtrProg.Replace("{0}", body);
 
-    /// <summary>The introduction gate: USAGE POINTER is COBOL-2002+ (§13.18.60) — at 85 the W1.5 mapping
+    /// <summary>The introduction gate: USAGE POINTER is COBOL-2002+ (§2023:13.18.60) — at 85 the W1.5 mapping
     /// names the edition (0900); at 2002 it binds and runs.</summary>
     [Fact]
     public void UsagePointer_IntroducedAt2002()
@@ -41,7 +41,7 @@ public sealed class PointerDataTests
         Assert.True(ok02, "USAGE POINTER + SET TO NULL must bind at 2002: " + string.Join("\n", e02));
     }
 
-    /// <summary>§14.9.39 Format 7 — a data-pointer SET target shall be USAGE POINTER; a non-pointer target
+    /// <summary>§2023:14.9.39 Format 7 — a data-pointer SET target shall be USAGE POINTER; a non-pointer target
     /// (or a non-pointer/non-NULL sender) is COBOL0869.</summary>
     [Theory]
     [InlineData("    SET N TO P.")]                 // pointer sender into a non-pointer target (routes to F4)
@@ -57,7 +57,7 @@ public sealed class PointerDataTests
     /// <c>SET IX TO P</c> re-routes to the data-pointer format on the SENDER's category, and the receiver
     /// resolution then answered for a DATA ITEM only — so the FIRST thing the user read was COBOL1639,
     /// "'IX' is not defined — no declaration in this source element gives the name 'IX'", about a name
-    /// INDEXED BY declared four lines up. The refusal is right (§14.9.39.3 SR17: identifier-5 shall reference
+    /// INDEXED BY declared four lines up. The refusal is right (§2023:14.9.39.3 SR17: identifier-5 shall reference
     /// a data item of category data-pointer); the statement about the program was not.</summary>
     /// <remarks>BOTH arms of the dispatch: the carrier re-route is selected by whichever operand HAS a carrier
     /// category, so an index-name reaches the receiving position AND the sending one (feedback_two_arm_dispatch
@@ -87,7 +87,7 @@ public sealed class PointerDataTests
         EditionHarness.AssertNoDiagnostic(errors, "is not defined");
     }
 
-    /// <summary>§8.8.4.2.16 — a data pointer is not ORDERED: only [NOT] EQUAL; an ordering operator or an
+    /// <summary>§2023:8.8.4.2.16 — a data pointer is not ORDERED: only [NOT] EQUAL; an ordering operator or an
     /// object/numeric mix is COBOL0869.</summary>
     [Theory]
     [InlineData("    IF P < Q DISPLAY \"X\" END-IF.")]   // ordering

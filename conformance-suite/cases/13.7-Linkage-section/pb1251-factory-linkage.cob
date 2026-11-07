@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB1251 - ISO §13.7.3 SR1 (cite.py --check 13.7.3 "The linkage section may be specified in a program definition" -> OK §13.7.3 1)):
+      *> kb/Work PB1251 - ISO §2023:13.7.3 SR1 (cite.py --check 13.7.3 "The linkage section may be specified in a program definition" -> OK §2023:13.7.3 1)):
       *> "The linkage section may be specified in a program definition, function definition, method definition, program prototype definition, or function prototype definition."
       *> A factory definition is none of those, so a LINKAGE SECTION written in the FACTORY
       *> paragraph's data division is a syntax-rule violation at EVERY edition with the OO facility.

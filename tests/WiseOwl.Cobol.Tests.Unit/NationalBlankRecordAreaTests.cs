@@ -8,10 +8,10 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// kb/Work PB1880 item 5 (the PB679 sibling of <see cref="IndexedNationalKeyPadTests"/>): the BLANK RECORD AREA an
-/// unsuccessful READ hands back, for the RELATIVE and the record SEQUENTIAL connectors. ISO §14.9.30.4 GR18 makes the
+/// unsuccessful READ hands back, for the RELATIVE and the record SEQUENTIAL connectors. ISO §2023:14.9.30.4 GR18 makes the
 /// content of the record area undefined after an unsuccessful READ, so this is WiseOwl COBOL's determination
 /// (docs/FILES_DESIGN.md D30: "the blank area an unsuccessful READ returns (<c>BlankRecordArea</c>)" is padded
-/// through the one <c>FileConnector.FitRecord</c>), and the determination is that a NATIONAL record area (§14.9.30.4 GR15:
+/// through the one <c>FileConnector.FitRecord</c>), and the determination is that a NATIONAL record area (§2023:14.9.30.4 GR15:
 /// "specified implicitly or explicitly as national") is blank with the NATIONAL space — the two bytes 00 20 (D-N1) —
 /// never with a string of U+2020 positions. The image is internal to the connector (the generated READ leaves the record
 /// area alone on an unsuccessful READ, which the <c>pb1880_national_pad_record_sequential_and_relative</c> golden
@@ -78,7 +78,7 @@ public sealed class NationalBlankRecordAreaTests
         {
             Assert.Equal("00", reg.ReadKeyedNext("X", out string first));
             Assert.Equal("ABCDEFGH", first);
-            Assert.Equal("10", reg.ReadKeyedNext("X", out string image));   // past the only record: §14.9.30.4 GR24
+            Assert.Equal("10", reg.ReadKeyedNext("X", out string image));   // past the only record: §2023:14.9.30.4 GR24
             Assert.Equal(expected, image);
         }
         finally { reg.Close("X"); FileHarness.TryDelete(host); }
@@ -109,7 +109,7 @@ public sealed class NationalBlankRecordAreaTests
         string host = FileHarness.Tmp("pb1880nb");
         reg.Register("S", host, 8, lineSequential: false, optional: false, -1, -1);
         if (national) reg.RegisterNationalArea("S");
-        Assert.Equal("47", reg.ReadShared("S", false, FileRecordLock.None, false, false, FileRetryKind.None, 0, out string image));   // §14.9.30.4 GR2
+        Assert.Equal("47", reg.ReadShared("S", false, FileRecordLock.None, false, false, FileRetryKind.None, 0, out string image));   // §2023:14.9.30.4 GR2
         Assert.Equal(expected, image);
     }
 }

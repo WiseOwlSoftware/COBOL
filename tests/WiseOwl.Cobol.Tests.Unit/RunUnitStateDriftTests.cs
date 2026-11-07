@@ -12,10 +12,10 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ RUN-UNIT STATE LIVES ON <see cref="RunUnit"/>, NEVER IN A PROCESS-GLOBAL MUTABLE STATIC (kb/Work PB307).
 /// </summary>
 /// <remarks>
-/// <para><see cref="RunUnit"/> is "the single owner of all run-unit-lifetime state (ISO §14.6.1)", replacing five
+/// <para><see cref="RunUnit"/> is "the single owner of all run-unit-lifetime state (ISO §2023:14.6.1)", replacing five
 /// process-global stores — and FUNCTION RANDOM's sequence was a SIXTH the consolidation missed:
 /// <c>private static Random _random</c> on <c>CobolIntrinsics</c>, whose own doc-comment said "ONE current
-/// pseudo-random sequence per run unit". §15.75.3 r4 scopes the implementor seed to "the first reference to this
+/// pseudo-random sequence per run unit". §2023:15.75.3 r4 scopes the implementor seed to "the first reference to this
 /// function in the run unit", so a second run unit in one .NET process (the <see cref="RunUnit.Run"/> /
 /// <see cref="RunUnit.Begin"/> host shape) must NOT continue the first's sequence — and it did.</para>
 /// <para>kb/Work PB1069 is the same defect on the INSTANCE side: the emitted driver's run-unit start reset a
@@ -32,7 +32,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 public sealed class RunUnitStateDriftTests
 {
     /// <summary>The note's witness. It needs no knowledge of the implementor seed: it is an INEQUALITY against a
-    /// value §15.75.4 r2 makes deterministic (draw 4 of the seed-7 sequence).</summary>
+    /// value §2023:15.75.4 r2 makes deterministic (draw 4 of the seed-7 sequence).</summary>
     [Fact]
     public void Random_DoesNotContinueAcrossARunUnitReset()
     {
@@ -50,7 +50,7 @@ public sealed class RunUnitStateDriftTests
     }
 
     /// <summary>The same through the host lifecycle boundary: a fresh <see cref="RunUnit.Run"/> scope begins its
-    /// own sequence, while INSIDE one run unit §15.75.3 r5 continues the current sequence and r3 restarts it.</summary>
+    /// own sequence, while INSIDE one run unit §2023:15.75.3 r5 continues the current sequence and r3 restarts it.</summary>
     [Fact]
     public void Random_IsScopedToTheRunUnit_AndContinuesWithinIt()
     {
@@ -67,7 +67,7 @@ public sealed class RunUnitStateDriftTests
         var reference = new Random(7);
         Assert.Equal(reference.NextDouble(), first[0]);
         Assert.Equal(reference.NextDouble(), first[1]);     // r5: the NEXT number of the current sequence
-        Assert.Equal(first[0], first[2]);                   // r3 + §15.75.4 r2: same seed, same sequence
+        Assert.Equal(first[0], first[2]);                   // r3 + §2023:15.75.4 r2: same seed, same sequence
         Assert.NotEqual(new Random(7).Skip(2), secondRunUnit);
     }
 
@@ -84,12 +84,12 @@ public sealed class RunUnitStateDriftTests
         RunUnit.Run(ru =>
         {
             first = ru;
-            ru.Switches.Set("SWITCH-1", true);             // §12.3.7 GR4 NOTE 1 — run-unit scope
+            ru.Switches.Set("SWITCH-1", true);             // §2023:12.3.7 GR4 NOTE 1 — run-unit scope
             int hostExitCode = Environment.ExitCode;
             ru.ExitStatus = 7;                            // a STOP RUN WITH STATUS 7
             ru.Clock = fixedClock;                        // host configuration: carried over
             ru.DebugMode = false;
-            _ = ru.FactoryObject<ProbeFactory>();         // §9.3.14.2 — created in THIS run unit
+            _ = ru.FactoryObject<ProbeFactory>();         // §2023:9.3.14.2 — created in THIS run unit
             second = RunUnit.Begin();                     // the emitted driver's ProgramRegistry.Reset()
             Assert.Same(second, RunUnit.Current);
             Assert.Equal(hostExitCode, Environment.ExitCode);   // a run unit's status is its own: the HOST's exit code is untouched (kb/Work PB3163)
@@ -125,8 +125,8 @@ public sealed class RunUnitStateDriftTests
 
     /// <summary>kb/Work PB1069's remainder — STATIC storage is the one kind of run-unit state a new
     /// <see cref="RunUnit"/> object cannot make fresh by construction, so the run unit ADOPTS each unit's static reset:
-    /// it runs at adoption (§14.6.2.3.2 1) — initial state at the first activation in a run unit), once per reset
-    /// however many factories on a subclass chain adopt it, and again at <see cref="RunUnit.Terminate"/> (§14.6.11 3/4/6 —
+    /// it runs at adoption (§2023:14.6.2.3.2 1) — initial state at the first activation in a run unit), once per reset
+    /// however many factories on a subclass chain adopt it, and again at <see cref="RunUnit.Terminate"/> (§2023:14.6.11 3/4/6 —
     /// what the static held is released). Both run-unit boundaries end in that one epilogue.</summary>
     [Fact]
     public void StaticStorage_IsResetAtAdoption_OnceEach_AndAgainAtTermination()
@@ -198,7 +198,7 @@ public sealed class RunUnitStateDriftTests
             }
         }
         Assert.True(offenders.Count == 0,
-            "writable static field(s) in WiseOwl.Cobol.Runtime — run-unit state belongs on RunUnit (ISO §14.6.1; "
+            "writable static field(s) in WiseOwl.Cobol.Runtime — run-unit state belongs on RunUnit (ISO §2023:14.6.1; "
             + "kb/Work PB307); a genuinely process-lifetime store is documented in ProcessLifetimeStatics:\n  "
             + string.Join("\n  ", offenders));
 
@@ -248,9 +248,9 @@ public sealed class RunUnitStateDriftTests
         ["WiseOwl.Cobol.Runtime.Exceptions.ExceptionCatalog::Table"] =
             "the standard's exception-condition table (Table 12), built once by the static initializer and never mutated",
         ["WiseOwl.Cobol.Runtime.CobolVarGroup::s_geometries"] =
-            "memo of a §8.5.1.12 atom array's carrier geometry, keyed weakly by the (immutable) array: derived data (kb/Work PB2690)",
+            "memo of a §2023:8.5.1.12 atom array's carrier geometry, keyed weakly by the (immutable) array: derived data (kb/Work PB2690)",
         ["WiseOwl.Cobol.Runtime.CobolVarGroup::s_pairPlans"] =
-            "memo of the §8.5.1.12 correspondence of two atom arrays, keyed weakly by the two (immutable) arrays: derived data (kb/Work PB2690)",
+            "memo of the §2023:8.5.1.12 correspondence of two atom arrays, keyed weakly by the two (immutable) arrays: derived data (kb/Work PB2690)",
         ["WiseOwl.Cobol.Runtime.GroupCompatibility::s_fixedRuns"] =
             "memo of the one-run atom array of each width, keyed by the width: derived data, the array is immutable (kb/Work PB2690)",
         ["WiseOwl.Cobol.Runtime.PointerImage::s_areaBases"] =
@@ -295,7 +295,7 @@ public sealed class RunUnitStateDriftTests
         }
         var offenders = found.Where(k => !ProcessLifetimeCollections.ContainsKey(k)).Order().ToList();
         Assert.True(offenders.Count == 0,
-            "static mutable collection(s) in WiseOwl.Cobol.Runtime — run-unit state belongs on RunUnit (ISO §14.6.1; "
+            "static mutable collection(s) in WiseOwl.Cobol.Runtime — run-unit state belongs on RunUnit (ISO §2023:14.6.1; "
             + "kb/Work PB1570); a genuinely process-lifetime store is documented in ProcessLifetimeCollections:\n  "
             + string.Join("\n  ", offenders));
         var stale = ProcessLifetimeCollections.Keys.Where(k => !found.Contains(k)).Order().ToList();

@@ -13,9 +13,9 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// (64 KiB — the records are about a hundred times that) with its own work directory, and again under the default
 /// limit, where everything fits in memory.
 /// <para>What the program reports is derived from the standard, not from a run: the SORT returns every record
-/// (30,000) with no key below its predecessor and, on equal keys, release order (§14.9.40.4 GR3 b) — "The order in
+/// (30,000) with no key below its predecessor and, on equal keys, release order (§2023:14.9.40.4 GR3 b) — "The order in
 /// which these records are released by an input procedure"); each GIVING file receives the whole result (GR15); the
-/// MERGE returns both files (60,000) in key order and, on equal keys, all of OUTA's records before OUTB's (§14.9.24.4
+/// MERGE returns both files (60,000) in key order and, on equal keys, all of OUTA's records before OUTB's (§2023:14.9.24.4
 /// GR4 a) "Follows the order of the associated input files as specified in the MERGE statement", b) "all records
 /// associated with one input file are returned prior to the return of records from another input file") — so within
 /// one key the release numbers rise, fall back ONCE where OUTB's part begins, and rise again: one fall per key group.
@@ -114,7 +114,7 @@ public sealed class SortWorkSpillConformanceTests
         END PROGRAM PB3339SP.
         """;
 
-    /// <summary>The program's lines, derived from §14.9.40.4 GR3 / GR15 and §14.9.24.4 GR4 (see the class summary).</summary>
+    /// <summary>The program's lines, derived from §2023:14.9.40.4 GR3 / GR15 and §2023:14.9.24.4 GR4 (see the class summary).</summary>
     private const string Expected = "MERGED 0060000 OUT-OF-ORDER 0000000\nONE FALL PER KEY GROUP";
 
     private static string Compile(string dir)

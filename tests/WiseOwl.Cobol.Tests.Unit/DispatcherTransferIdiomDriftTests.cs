@@ -21,9 +21,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <c>do</c> (<c>ControlFlowEmitter.EmitPerformLoop</c>), GO TO … DEPENDING is a <c>switch</c>. A <c>break</c>
 /// written for the dispatcher's <c>switch (__pc)</c> was therefore CAPTURED by whatever container the statement
 /// happened to sit in, and the paragraph's fall-through epilogue then overwrote the <c>__pc</c> the statement had
-/// set: EXIT PARAGRAPH silently degraded to EXIT PERFORM (ISO §14.9.14.4 GR6), EXIT SECTION's target was
+/// set: EXIT PARAGRAPH silently degraded to EXIT PERFORM (ISO §2023:14.9.14.4 GR6), EXIT SECTION's target was
 /// discarded so the rest of the section ran (GR7), NEXT SENTENCE in a last sentence resumed inside the sentence
-/// it was told to leave (§14.9.19.4 GR4/GR6), and GO TO did not transfer at all (§14.9.17.4 GR1/GR2). None of
+/// it was told to leave (§2023:14.9.19.4 GR4/GR6), and GO TO did not transfer at all (§2023:14.9.17.4 GR1/GR2). None of
 /// those is diagnosable by reading one emit site — the defect is the CONJUNCTION of a statement and a container,
 /// so it is measured here mechanically, over the generated C#, for every container the emitter lowers.</para>
 ///
@@ -249,7 +249,7 @@ public sealed class DispatcherTransferIdiomDriftTests
         var captured = CapturedTransfers(cs);
         Assert.True(captured.Count == 0,
             "a `__pc = …; break;` inside a lowered C# container — the break binds to THAT container, not to the "
-            + "dispatcher (ISO §14.9.14.4 GR6/GR7, §14.9.17.4 GR1/GR2, §14.9.19.4 GR4/GR6; kb/Work PB405):\n  "
+            + "dispatcher (ISO §2023:14.9.14.4 GR6/GR7, §2023:14.9.17.4 GR1/GR2, §2023:14.9.19.4 GR4/GR6; kb/Work PB405):\n  "
             + string.Join("\n  ", captured));
     }
 
@@ -295,13 +295,13 @@ public sealed class DispatcherTransferIdiomDriftTests
 
     /// <summary>⛔ kb/Work PB3491 — AN EXPLICIT TRANSFER CLEARS <c>__atExit</c> BEFORE IT JUMPS, AND IT CANNOT BE
     /// FORGOTTEN BY ONE ARM. The dispatcher's return test (<c>__atExit &amp;&amp; __pc == __exitPc + 1</c>) is the
-    /// §14.6.3 rule 1 implied return, for control that LEAVES the exit paragraph by completing it; a GO TO whose
+    /// §2023:14.6.3 rule 1 implied return, for control that LEAVES the exit paragraph by completing it; a GO TO whose
     /// target is the paragraph physically after the exit paragraph is an explicit transfer out of the range
-    /// (§14.9.28.4 GR5) and must not be mistaken for completion. The format-1 and ALTERed GO TO did that through
+    /// (§2023:14.9.28.4 GR5) and must not be mistaken for completion. The format-1 and ALTERed GO TO did that through
     /// <c>ExplicitTransferOut</c>; GO TO … DEPENDING left through the bare jump and silently ended the PERFORM.
     /// The bare <c>TransferJump()</c> is therefore the COMPLETION idiom: its callers are EmitterState itself (the
     /// two renderings built on it) and the one completion statement that needs a statement between the
-    /// <c>__pc</c> assignment and the jump (EXIT SECTION, §14.9.14.4 GR7). A new caller is a new arm of the
+    /// <c>__pc</c> assignment and the jump (EXIT SECTION, §2023:14.9.14.4 GR7). A new caller is a new arm of the
     /// dispatch and must say which kind of transfer it is.</summary>
     [Fact]
     public void OnlyACompletionCallsTheBareTransferJump()

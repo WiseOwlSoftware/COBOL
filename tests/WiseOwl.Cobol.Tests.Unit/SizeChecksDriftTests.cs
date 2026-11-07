@@ -8,7 +8,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// kb/Work PB4092, PB4093 — size error checking is PER EC-SIZE NAME (§14.6.13.1.1 NOTE 3: "An exception condition is set
+/// kb/Work PB4092, PB4093 — size error checking is PER EC-SIZE NAME (§2023:14.6.13.1.1 NOTE 3: "An exception condition is set
 /// to exist only if checking for that condition is enabled"), and "per name" has ONE table: <see cref="EcState.SizeCheckRows"/>
 /// pairs each Table 13 name with its <see cref="SizeChecks"/> bit and the run-time flag a presenting GENERATE or TERMINATE
 /// sets for the report compose. A condition that has a checked kernel with a continuing unchecked twin and no row here

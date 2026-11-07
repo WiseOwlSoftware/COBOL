@@ -5,14 +5,14 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> kb/Work PB3261 review R1-1. ISO §14.9.49.4 GR11: "The
+      *> kb/Work PB3261 review R1-1. ISO §2023:14.9.49.4 GR11: "The
       *> exception condition that is used to determine which USE
       *> statement to select is the first one that occurs in the order
       *> of evaluation of the statement that causes the exception to
       *> exist." Every failing leg below fails on BOTH sides, so the
       *> declarative that runs names the side evaluated first. The
       *> sending side's reference modifier has INTEGER-LITERAL
-      *> positions, and still fails at run time: ISO §8.4.3.3.4 5) c),
+      *> positions, and still fails at run time: ISO §2023:8.4.3.3.4 5) c),
       *> "The sum of leftmost-position and length minus the value one
       *> shall be less than or equal to the number of positions in the
       *> data item referenced by identifier-1", and
@@ -22,13 +22,13 @@
       *>     description - it binds, with its warning, because
       *>     EC-BOUND-REF-MOD checking is on.
       *> The receiving side is T(I) / N(I) with I = 9 into OCCURS 3.
-      *>   MOVE: §14.9.25.4 GR1 - identifier-1's reference modifier "is
+      *>   MOVE: §2023:14.9.25.4 GR1 - identifier-1's reference modifier "is
       *>     evaluated only once, immediately before data is moved to
       *>     the first of the receiving operands" (D1, D4, F1), and
       *>     the sender T(I) before the receiver DL(1:5) (R1).
-      *>   STRING: §14.6.4 7) - "the identifiers within a statement are
+      *>   STRING: §2023:14.6.4 7) - "the identifiers within a statement are
       *>     evaluated in left to right order" (D2).
-      *>   Arithmetic: §14.7.7 4) - the initial evaluation first, then
+      *>   Arithmetic: §2023:14.7.7 4) - the initial evaluation first, then
       *>     "Item identification for the receiving data items is done
       *>     as each data item is accessed" (D3).
       *> The V legs run the same shapes in range and check the values.

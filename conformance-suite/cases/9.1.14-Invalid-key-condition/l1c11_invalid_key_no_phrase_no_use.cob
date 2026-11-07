@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §9.1.14 1) and 4) — invalid key with no INVALID KEY phrase
+      *> ISO §2023:9.1.14 1) and 4) — invalid key with no INVALID KEY phrase
       *>   and no applicable exception processing statement; phrase
       *>   ignored when no invalid key condition exists
       *> Rules: "The I-O status of the file connector associated with
@@ -20,33 +20,33 @@
       *>   ignored, if specified."
       *>   cite.py --check 9.1.14 "The I-O status of the file connector
       *>   associated with the statement is set to a value indicating
-      *>   the invalid key condition" -> OK  §9.1.14 1)
+      *>   the invalid key condition" -> OK  §2023:9.1.14 1)
       *>   cite.py --check 9.1.14 "If the INVALID KEY phrase is not
       *>   specified in the input-output statement and there are no
       *>   applicable exception processing statements, control is
       *>   transferred to the end of the input-output statement"
-      *>   -> OK  §9.1.14 4)  (Invalid key condition)
+      *>   -> OK  §2023:9.1.14 4)  (Invalid key condition)
       *>   cite.py --check 9.1.14 "If the invalid key condition does not
       *>   exist after the execution of the input-output operation
       *>   specified by an input-output statement, the INVALID KEY
       *>   phrase is ignored, if specified"
-      *>   -> OK  §9.1.14 4)  (printed after item 4)
+      *>   -> OK  §2023:9.1.14 4)  (printed after item 4)
       *>   cite.py --check 9.1.14 "If the I-O status indicates a
       *>   successful completion, control is transferred to the end of
       *>   the input-output statement or to the imperative-statement
       *>   specified in the NOT INVALID KEY phrase if it is specified"
-      *>   -> OK  §9.1.14 2)  (second list)
+      *>   -> OK  §2023:9.1.14 2)  (second list)
       *>   cite.py --check 9.1.13.5 "to write a record that would create
       *>   a duplicate prime record key in a physical indexed file"
-      *>   -> OK  §9.1.13.5 2) b)   (status 22)
+      *>   -> OK  §2023:9.1.13.5 2) b)   (status 22)
       *>   cite.py --check 9.1.13.5 "an attempt is made to randomly
       *>   access a record that does not exist in the physical file"
-      *>   -> OK  §9.1.13.5 3) a)   (status 23)
+      *>   -> OK  §2023:9.1.13.5 3) a)   (status 23)
       *> The program has NO DECLARATIVES and no exception-checking
       *> PERFORM, so no applicable exception processing statement
-      *> exists (§9.1.12: cite.py --check 9.1.12 "Statements in a
+      *> exists (§2023:9.1.12: cite.py --check 9.1.12 "Statements in a
       *> file-exception or exception-name format of a USE declarative"
-      *> -> OK §9.1.12 2)). Each failing statement below has no phrase,
+      *> -> OK §2023:9.1.12 2)). Each failing statement below has no phrase,
       *> so control reaches the DISPLAY that follows it.
       *> Derivation:
       *>   W1=00       first WRITE of key K1 succeeds.

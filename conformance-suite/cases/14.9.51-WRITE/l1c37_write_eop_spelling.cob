@@ -5,30 +5,30 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.51.3 SR20 — EOP and END-OF-PAGE are equivalent
+      *> ISO §2023:14.9.51.3 SR20 — EOP and END-OF-PAGE are equivalent
       *> Rule: "The words END-OF-PAGE and EOP are equivalent."
       *>   cite.py --check 14.9.51.3 "The words END-OF-PAGE and EOP
-      *>   are equivalent" -> OK  §14.9.51.3 20)  (Syntax rules)
+      *>   are equivalent" -> OK  §2023:14.9.51.3 20)  (Syntax rules)
       *> Supporting rules (cite.py mislabels list items, PB1554; the
       *> numbers below were re-read from specs/ISO_COBOL_2023.md):
       *>   cite.py --check 14.9.51.4 "If the END-OF-PAGE phrase is
       *>   specified, control is transferred to imperative-statement-1"
-      *>   -> OK  §14.9.51.4 27) b)
+      *>   -> OK  §2023:14.9.51.4 27) b)
       *>   cite.py --check 14.9.51.4 "control is transferred to
       *>   imperative-statement-2 of the NOT END-OF-PAGE phrase"
-      *>   -> OK  §14.9.51.4 28)
+      *>   -> OK  §2023:14.9.51.4 28)
       *>   cite.py --check 14.9.51.4 "This occurs when the associated
       *>   LINAGE-COUNTER is equal to or exceeds the current value of
       *>   the footing start and is less than the page size"
-      *>   -> OK  §14.9.51.4 26) b)
+      *>   -> OK  §2023:14.9.51.4 26) b)
       *>   cite.py --check 13.18.34.4 "The value of LINAGE-COUNTER is
       *>   automatically set to one at the time an OPEN statement with
       *>   the OUTPUT phrase is executed for the associated file"
-      *>   -> OK  §13.18.34.4 7) d)  (cite.py prints "7) a)")
+      *>   -> OK  §2023:13.18.34.4 7) d)  (cite.py prints "7) a)")
       *>   cite.py --check 13.18.34.4 "When the ADVANCING phrase of the
       *>   WRITE statement is not specified, the LINAGE-COUNTER is
       *>   incremented by the value one"
-      *>   -> OK  §13.18.34.4 7) c) 3.  (cite.py prints "7) a)")
+      *>   -> OK  §2023:13.18.34.4 7) c) 3.  (cite.py prints "7) a)")
       *> DERIVATION. LINAGE 5 WITH FOOTING AT 3: OPEN OUTPUT sets the
       *> counter to 1; each WRITE (no ADVANCING) adds one. The counter
       *> never reaches the page size 5, so only GR26 b) can raise EOP

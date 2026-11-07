@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Binding.Model;
 public interface IPlaceFacts
 {
     /// <summary>True when the compilation group can enable EC-BOUND-ODO at all (an enabling <c>&gt;&gt;TURN</c>): a
-    /// subscripted reference through an OCCURS DEPENDING level then carries the §13.18.38.4 GR7 check
+    /// subscripted reference through an OCCURS DEPENDING level then carries the §2023:13.18.38.4 GR7 check
     /// (<see cref="OdoReferenceCheck"/>); false keeps the zero-scaffolding invariant.</summary>
     bool OdoReferenceChecking { get; }
 

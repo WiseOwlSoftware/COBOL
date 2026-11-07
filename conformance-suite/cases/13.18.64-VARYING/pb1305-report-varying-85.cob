@@ -4,7 +4,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> kb/Work PB1305 - the report VARYING clause (§13.18.64) is a
+      *> kb/Work PB1305 - the report VARYING clause (§2023:13.18.64) is a
       *> COBOL-2002 introduction; COBOL-85 has no VARYING clause in a
       *> report group description entry, so the clause is refused at
       *> 85 by its introduction gate (COBOL0900). The positive twins
@@ -13,7 +13,7 @@
       *> "Each entry containing a VARYING clause establishes an
       *> independent temporary integer data item that shall be large
       *> enough to contain the maximum expected value."
-      *>   cite.py: OK  §13.18.64.4 1)  (General rules)
+      *>   cite.py: OK  §2023:13.18.64.4 1)  (General rules)
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1305R.
        ENVIRONMENT DIVISION.

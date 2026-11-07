@@ -7,8 +7,8 @@
       *> kb/Work PB1173 — A FILE SORT KEY THAT IS A GROUP HOLDING AN OCCURS DEPENDING TABLE IS REFUSED.
       *>   cite.py --check 14.9.40.3 "A key data item shall not be a variable-length group, an occurs-depending-on
       *>     data item, a dynamic-length elementary item or an item subordinate to a dynamic-capacity table."
-      *>     -> OK §14.9.40.3 6) d)
-      *>   cite.py --check 13.18.38.4 "is an occurs-depending group item" -> OK §13.18.38.4 8)
+      *>     -> OK §2023:14.9.40.3 6) d)
+      *>   cite.py --check 13.18.38.4 "is an occurs-depending group item" -> OK §2023:13.18.38.4 8)
       *> KODO has an entry subordinate to it that specifies DEPENDING, so it is an occurs-depending group item and its
       *> length varies with CNT; SR6 e) takes "the same byte positions" as the key in every record, which no varying
       *> window can be. The statement used to compile clean.

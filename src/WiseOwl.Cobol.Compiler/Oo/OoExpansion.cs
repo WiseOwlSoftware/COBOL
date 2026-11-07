@@ -18,37 +18,37 @@ using WiseOwl.Cobol.Runtime;
 /// <summary>
 /// ⛔ PARAMETERIZED CLASSES AND INTERFACES ARE EXPANDED, NOT GENERIC (kb/Work PB759; OO deep-dive D12).
 ///
-/// <para><b>The rule.</b> ISO §9.3.12: "A parameterized class is a generic or skeleton class that has formal
+/// <para><b>The rule.</b> ISO §2023:9.3.12: "A parameterized class is a generic or skeleton class that has formal
 /// parameters that will be replaced by one or more object-class-names or interface-names. When it is expanded by
 /// substituting specific object-class-names or interface-names as actual parameters, a class is created that
 /// functions as a non-parameterized class", and "An expansion of a parameterized class is treated in all respects
-/// the same as if it were a class that is not a parameterized class". §12.3.8.4 GR5 says how: "The class
+/// the same as if it were a class that is not a parameterized class". §2023:12.3.8.4 GR5 says how: "The class
 /// object-class-name-1 is created from the parameterized class object-class-name-2 by replacing each specification
-/// of the formal parameter by the corresponding actual parameter" (GR8 is the interface twin; §9.3.13 its
+/// of the formal parameter by the corresponding actual parameter" (GR8 is the interface twin; §2023:9.3.13 its
 /// concept).</para>
 ///
-/// <para><b>Why a re-parse and not a C# generic.</b> The binder resolves method names, conformance (§9.3.8.2.4),
+/// <para><b>Why a re-parse and not a C# generic.</b> The binder resolves method names, conformance (§2023:9.3.8.2.4),
 /// typed object-reference descriptions and INVOKE lookups STATICALLY, keyed on a class NAME; a formal parameter is
 /// unconstrained, so none of those can be answered inside the definition, only inside an expansion. So each
 /// expansion becomes an ORDINARY class definition: the parameterized definition's own tokens, re-parsed with each
 /// formal replaced by its actual (GR5's own words) and the header renamed to the expansion's name. From
 /// <see cref="OoClassTable.Build"/> onward nothing can tell an expansion from a written class — which is exactly
-/// the "in all respects" of §9.3.12, and makes every later OO rule apply to expansions with no new code.</para>
+/// the "in all respects" of §2023:9.3.12, and makes every later OO rule apply to expansions with no new code.</para>
 ///
-/// <para><b>Why token substitution is the rule and not an approximation.</b> §11.3.4 GR6 (§11.6.4 GR4 for an
+/// <para><b>Why token substitution is the rule and not an approximation.</b> §2023:11.3.4 GR6 (§2023:11.6.4 GR4 for an
 /// interface): "Parameter-name-1 may be specified within this class definition only where an object-class-name
 /// or an interface-name is permitted." Every occurrence of a formal's word inside its definition therefore IS a
 /// class-name or interface-name position, so replacing every user-defined-word occurrence is GR5's "each
 /// specification of the formal parameter" — the substitution cannot hit a data-name, because a formal cannot be
 /// spelled as one.</para>
 ///
-/// <para><b>Identity.</b> §9.3.12: "two classes with the same externalized object-class-name that are created by
+/// <para><b>Identity.</b> §2023:9.3.12: "two classes with the same externalized object-class-name that are created by
 /// expanding the same parameterized class with the same actual parameters are the same class instance", and
 /// expansions with different actuals "shall not have the same externalized object-class-name". The expansion
 /// name is its identity: specifiers repeating one (name, definition, actuals) triple across source elements
 /// create ONE class; a name reused with a different definition or actuals is COBOL2240.</para>
 ///
-/// <para><b>The definition itself emits nothing.</b> It is a skeleton, and §12.3.8.4 GR1 ("If object-class-name-1
+/// <para><b>The definition itself emits nothing.</b> It is a skeleton, and §2023:12.3.8.4 GR1 ("If object-class-name-1
 /// is a class described with the USING phrase, object-class-name-1 may be specified only in the REPOSITORY
 /// paragraph") leaves it no other use. It is kept out of the class table and recorded as parameterized, so
 /// <see cref="OoNameResolution.Resolve"/> can name GR1 when some other position writes it. It is still a class or
@@ -67,7 +67,7 @@ internal static class OoExpansion
 {
     /// <summary>The group's definitions after expansion: the written NON-parameterized definitions in source order,
     /// then one synthesized definition per distinct expansion (in first-specifier order), plus the names of the
-    /// parameterized definitions (class and interface names share one namespace, §8.3.2.2) and the parameterized
+    /// parameterized definitions (class and interface names share one namespace, §2023:8.3.2.2) and the parameterized
     /// definitions themselves — kept out of the class table, but still class and interface definitions that every
     /// rule of their own text governs (kb/Work PB1505, PB2051): <c>OoClassTable.Build</c> screens their headers and the
     /// binder binds each as itself (<c>OoDriver.BindParameterized</c>), emitting nothing — and the names of the
@@ -101,15 +101,15 @@ internal static class OoExpansion
     private sealed record Skeleton(ParserRuleContext Ctx, string Name, bool IsInterface,
         IReadOnlyList<Core.OoParameterNameContext> Formals, IReadOnlyList<bool?> FormalIsInterface, SkeletonSource? Source = null);
 
-    /// <summary>One distinct expansion (§9.3.12 identity): the expansion name, its skeleton and the actuals, and the REPOSITORY
+    /// <summary>One distinct expansion (§2023:9.3.12 identity): the expansion name, its skeleton and the actuals, and the REPOSITORY
     /// entry that asked for it.</summary>
     private sealed record Expansion(string Name, Skeleton Of, IReadOnlyList<string> Actuals, Core.RepositoryEntryContext Entry);
 
     private static readonly IReadOnlyDictionary<ParserRuleContext, ExpansionOrigin> NoOrigins =
         new Dictionary<ParserRuleContext, ExpansionOrigin>(ReferenceEqualityComparer.Instance);
 
-    /// <param name="importer">Where a skeleton another group published comes from (ISO §12.3.8.3 SR4 / SR7: the parameterized
-    /// definition "shall be defined in the same REPOSITORY paragraph", and §12.3.8.3 SR6 b requires information in the external
+    /// <param name="importer">Where a skeleton another group published comes from (ISO §2023:12.3.8.3 SR4 / SR7: the parameterized
+    /// definition "shall be defined in the same REPOSITORY paragraph", and §2023:12.3.8.3 SR6 b requires information in the external
     /// repository for a class a group does not define), or null when there is no repository.</param>
     /// <param name="inputs">The compile-time inputs of the group, from which the state a skeleton is published under is read.</param>
     public static Result Expand(Core.CompilationUnitContext tree,
@@ -127,25 +127,25 @@ internal static class OoExpansion
             var id = c.classIdParagraph();
             if (id.ooParameterName().Length == 0) { plainClasses.Add(c); continue; }
             AddSkeleton(c, id.className(0).GetText(), false, id.ooParameterName(), c.environmentDivision(), id.externalizedNamePhrase(),
-                "CLASS-ID", "ISO §11.3.3 SR8", "ISO §11.3.3 SR9");
+                "CLASS-ID", "ISO §2023:11.3.3 SR8", "ISO §2023:11.3.3 SR9");
         }
         foreach (var i in interfaces)
         {
             if (i.ooParameterName().Length == 0) { plainInterfaces.Add(i); continue; }
             var names = i.interfaceName();
             AddSkeleton(i, names[0].GetText(), true, i.ooParameterName(), i.environmentDivision(), i.externalizedNamePhrase(),
-                "INTERFACE-ID", "ISO §11.6.3 SR4", "ISO §11.6.3 SR7");
+                "INTERFACE-ID", "ISO §2023:11.6.3 SR4", "ISO §2023:11.6.3 SR7");
         }
         var entries = new List<Core.RepositoryEntryContext>();
         CollectExpandsEntries(tree, entries);
         if (skeletons.Count == 0 && entries.Count == 0)
             return new Result(classes, interfaces, new HashSet<string>(), [], [], new HashSet<string>(), [], NoOrigins);   // the overwhelmingly common path
-        // §12.3.8.3 SR3 — an EXPANDS phrase inside a parameterized definition is reported once, on the definition
+        // §2023:12.3.8.3 SR3 — an EXPANDS phrase inside a parameterized definition is reported once, on the definition
         // (AddSkeleton), and is otherwise inert: it creates nothing.
         entries.RemoveAll(e => EnclosingSkeleton(e) is not null);
 
         // Every name an actual parameter may resolve to: the written plain definitions and every expansion NAME
-        // (an actual may itself be an expansion, declared in the same paragraph — §12.3.8.3 SR4).
+        // (an actual may itself be an expansion, declared in the same paragraph — §2023:12.3.8.3 SR4).
         var classNames = new HashSet<string>(plainClasses.Select(c => c.classIdParagraph().className(0).GetText()),
             CobolNames.Comparer);
         var ifaceNames = new HashSet<string>(plainInterfaces.Select(i => i.interfaceName(0).GetText()),
@@ -156,7 +156,7 @@ internal static class OoExpansion
                 using var _ = edition.At(sk.Ctx);
                 edition.Error(DiagnosticCatalog.OoDefinitionNameNotUnique,
                     $"duplicate {Kind(sk)} definition '{sk.Name}' — class and interface definitions within a compilation "
-                    + "group shall have unique names, and a class and an interface cannot share one (ISO §8.4.6.4 / §8.3.2.2)");
+                    + "group shall have unique names, and a class and an interface cannot share one (ISO §2023:8.4.6.4 / §2023:8.3.2.2)");
             }
         foreach (var e in entries)
         {
@@ -167,7 +167,7 @@ internal static class OoExpansion
                 edition.Error(DiagnosticCatalog.ExpandsPhraseInvalid,
                     $"REPOSITORY {(e.INTERFACE() is not null ? "INTERFACE" : "CLASS")} '{en}' EXPANDS: '{en}' is the "
                     + $"name of the parameterized {Kind(clash)} definition itself, so no expansion can be created "
-                    + "under it (ISO §12.3.8.4 GR1/GR5; §8.3.2.2)");
+                    + "under it (ISO §2023:12.3.8.4 GR1/GR5; §2023:8.3.2.2)");
                 continue;
             }
             (e.INTERFACE() is not null ? ifaceNames : classNames).Add(en);
@@ -188,7 +188,7 @@ internal static class OoExpansion
                         + $"the name '{x.Name}' is already given to the expansion of {prior.Of.Name} USING "
                         + $"{string.Join(" ", prior.Actuals)} — expansions {(ReferenceEquals(prior.Of, x.Of) ? "with different actual parameters" : "of different parameterized definitions")} "
                         + $"are not the same {Kind(x.Of)} instance and shall not have the same externalized name "
-                        + (x.Of.IsInterface ? "(ISO §9.3.13)" : "(ISO §9.3.12)"));
+                        + (x.Of.IsInterface ? "(ISO §2023:9.3.13)" : "(ISO §2023:9.3.12)"));
                 }
             }
 
@@ -228,8 +228,8 @@ internal static class OoExpansion
             Core.EnvironmentDivisionContext? env, Core.ExternalizedNamePhraseContext? asPhrase, string header, string sr8, string sr9)
         {
             using var _ = edition.At(ctx);
-            // The definition's OWN REPOSITORY paragraph (§11.3.3 SR8 / §11.6.3 SR4 say "of this class
-            // definition" / "of this interface definition" — never a factory's or object's, which §12.3.3 SR3
+            // The definition's OWN REPOSITORY paragraph (§2023:11.3.3 SR8 / §2023:11.6.3 SR4 say "of this class
+            // definition" / "of this interface definition" — never a factory's or object's, which §2023:12.3.3 SR3
             // forbids to carry one anyway).
             var repo = IdentityScope.SpecifierEntries(env).ToList();
             var kinds = new List<bool?>();
@@ -251,14 +251,14 @@ internal static class OoExpansion
                         + $"definition ({sr8})");
                 kinds.Add(kind);
             }
-            // §12.3.8.3 SR12 / SR13 (kb/Work PB1744): a parameter-name is a user-defined word (§8.3.2.2) in the scope
+            // §2023:12.3.8.3 SR12 / SR13 (kb/Work PB1744): a parameter-name is a user-defined word (§2023:8.3.2.2) in the scope
             // of this definition's REPOSITORY paragraph, so one its FUNCTION … INTRINSIC specifier identifies is
             // refused — through the one declaration funnel, in a scope of its own: the binder that binds the definition
             // as itself (OoDriver.BindParameterized, kb/Work PB2051) declares the formal's class-specifier as an
-            // object-class-name, and one word is only one type of user-defined word in a scope (§8.3.2.2).
+            // object-class-name, and one word is only one type of user-defined word in a scope (§2023:8.3.2.2).
             new DataBinder(edition) { CobolWords = words }
                 .DeclareParameterNames(IdentityScope.RepositoryEntries(env), formals);
-            // §11.3.4 GR6 / §11.6.4 GR4: a parameter-name may be specified "only where an object-class-name or an
+            // §2023:11.3.4 GR6 / §2023:11.6.4 GR4: a parameter-name may be specified "only where an object-class-name or an
             // interface-name is permitted". Every occurrence is substituted (that is GR5), so a formal written in
             // a DECLARATION slot would silently rename a data item, paragraph, method or file in every expansion;
             // one written in a data REFERENCE is caught downstream (the actual names no data item). The
@@ -270,16 +270,16 @@ internal static class OoExpansion
                 edition.Error(DiagnosticCatalog.ParameterizedDefinitionUsing,
                     $"{header} '{name}': the parameter-name '{w.GetText()}' is written as a {SlotKind(w)} — a "
                     + "parameter-name may be specified within the definition only where an object-class-name or an "
-                    + $"interface-name is permitted ({(isInterface ? "ISO §11.6.4 GR4" : "ISO §11.3.4 GR6")})");
+                    + $"interface-name is permitted ({(isInterface ? "ISO §2023:11.6.4 GR4" : "ISO §2023:11.3.4 GR6")})");
             }
             foreach (var r in repo.Where(r => r.expandsPhrase() is not null))
             {
                 using var __ = edition.At(r);
                 edition.Error(DiagnosticCatalog.ParameterizedDefinitionUsing,
                     $"{header} '{name}' is parameterized (it has a USING clause), so its REPOSITORY paragraph shall "
-                    + $"not specify the EXPANDS phrase of '{DeclaredName(r)}' (ISO §12.3.8.3 SR3)");
+                    + $"not specify the EXPANDS phrase of '{DeclaredName(r)}' (ISO §2023:12.3.8.3 SR3)");
             }
-            // The skeleton's own END CLASS / END INTERFACE name (§10.7.3 SR4 / SR6) is asked with every other end
+            // The skeleton's own END CLASS / END INTERFACE name (§2023:10.7.3 SR4 / SR6) is asked with every other end
             // marker by Validation.EndMarkerPass, over the written tree, before any expansion renames it.
             // What this group publishes for the definition (DESIGN-external-repository §10.5): its text, the state it is compiled
             // under and the specifiers of its own REPOSITORY paragraph that are not its formals.
@@ -291,11 +291,11 @@ internal static class OoExpansion
                 edition.Error(DiagnosticCatalog.OoDefinitionNameNotUnique,
                     $"duplicate {(isInterface ? "interface" : "class")} definition '{name}' — class and interface "
                     + "definitions within a compilation group shall have unique names, and a class and an interface cannot "
-                    + "share one (ISO §8.4.6.4 / §8.3.2.2)");
+                    + "share one (ISO §2023:8.4.6.4 / §2023:8.3.2.2)");
         }
 
-        // The externalized name a definition or a specifier states: the AS literal, else the declared word (ISO §12.3.8.4 GR2 for a
-        // specifier, §11.3.4 GR1 for a CLASS-ID; the literal is screened by §11.3.3 SR1). Read by the pure peek the identity scope uses, so a rejected literal resolves by the word it falls back to.
+        // The externalized name a definition or a specifier states: the AS literal, else the declared word (ISO §2023:12.3.8.4 GR2 for a
+        // specifier, §2023:11.3.4 GR1 for a CLASS-ID; the literal is screened by §2023:11.3.3 SR1). Read by the pure peek the identity scope uses, so a rejected literal resolves by the word it falls back to.
         string SkeletonIdentity(Core.ExternalizedNamePhraseContext? asPhrase, string word) =>
             asPhrase is null ? word
             : ExternalizedName.Peek(asPhrase, k => PreBindConstants.Read(asPhrase, k, inputs.Variables), edition.DialectLevel) ?? word;
@@ -311,9 +311,9 @@ internal static class OoExpansion
             var actuals = ph.expandsActual().Select(a => a.GetText()).ToList();
             string where = $"REPOSITORY {kind} '{name}' EXPANDS {target}";
 
-            // §12.3.8.3 SR4 / SR7: the parameterized name and every actual "shall be defined in the same
+            // §2023:12.3.8.3 SR4 / SR7: the parameterized name and every actual "shall be defined in the same
             // REPOSITORY paragraph where object-class-name-1 [interface-name-2] is defined".
-            string sr = isInterface ? "ISO §12.3.8.3 SR7" : "ISO §12.3.8.3 SR4";
+            string sr = isInterface ? "ISO §2023:12.3.8.3 SR7" : "ISO §2023:12.3.8.3 SR4";
             var paragraph = ((Core.RepositoryParagraphContext)e.Parent).repositoryEntry();
             bool ok = true;
             foreach (string n in actuals.Prepend(target))
@@ -325,7 +325,7 @@ internal static class OoExpansion
                     ok = false;
                 }
 
-            string gr = isInterface ? "ISO §12.3.8.4 GR8" : "ISO §12.3.8.4 GR5";
+            string gr = isInterface ? "ISO §2023:12.3.8.4 GR8" : "ISO §2023:12.3.8.4 GR5";
             skeletons.TryGetValue(target, out var sk);
             var usable = sk is not null && sk.IsInterface == isInterface ? sk : ImportedSkeleton(target, isInterface, paragraph);
             if (usable is null)
@@ -354,7 +354,7 @@ internal static class OoExpansion
             {
                 string a = actuals[i];
                 // A class or interface of this group, else the one its specifier names for the external repository to answer
-                // (ISO §12.3.8.3 SR6 b / SR9): whether the repository does is the specifier's own REPO-1, not this phrase's.
+                // (ISO §2023:12.3.8.3 SR6 b / SR9): whether the repository does is the specifier's own REPO-1, not this phrase's.
                 bool? actualIsInterface = skeletons.ContainsKey(a) || importedSkeletons.ContainsKey(a) ? null
                     : classNames.Contains(a) ? false : ifaceNames.Contains(a) ? true
                     : importer is not null && paragraph.FirstOrDefault(r => r.expandsPhrase() is null && CobolNames.Same(DeclaredName(r), a)) is { } spec
@@ -364,7 +364,7 @@ internal static class OoExpansion
                     edition.Error(DiagnosticCatalog.ExpandsPhraseInvalid,
                         $"{where}: the actual parameter '{a}' is " + (skeletons.ContainsKey(a) || importedSkeletons.ContainsKey(a)
                             ? "itself a parameterized definition, which is a skeleton and not a class or interface "
-                              + "(ISO §9.3.12/§9.3.13); expand it in the REPOSITORY and pass the expansion"
+                              + "(ISO §2023:9.3.12/§2023:9.3.13); expand it in the REPOSITORY and pass the expansion"
                             : "not a class or interface of this compilation group")
                         + $" ({gr})");
                     ok = false;
@@ -382,8 +382,8 @@ internal static class OoExpansion
             return ok ? new Expansion(name, sk, actuals, e) : null;
         }
 
-        // A parameterized definition another group published (ISO §12.3.8.3 SR4 / SR6 b): the class-specifier or interface-specifier
-        // of the EXPANDS target names it by identity, and a definition of this group wins a tie as everywhere (§8.4). Re-lexed from the
+        // A parameterized definition another group published (ISO §2023:12.3.8.3 SR4 / SR6 b): the class-specifier or interface-specifier
+        // of the EXPANDS target names it by identity, and a definition of this group wins a tie as everywhere (§2023:8.4). Re-lexed from the
         // text it recorded, under the edition and words map it recorded, so the expansion is made from the definition that was
         // published and not from this group's reading of the same words.
         Skeleton? ImportedSkeleton(string target, bool isInterface, IReadOnlyList<Core.RepositoryEntryContext> paragraph)
@@ -407,7 +407,7 @@ internal static class OoExpansion
                 edition.Error(DiagnosticCatalog.ExpandsPhraseInvalid,
                     $"REPOSITORY {(isInterface ? "INTERFACE" : "CLASS")} '{target}': the parameterized {(isInterface ? "interface" : "class")} '{identity}' that "
                     + $"'{found.From.AssemblyFile}' publishes does not parse from the source it recorded, so it cannot be expanded: recompile that "
-                    + "assembly (ISO §12.3.8.4 GR5/GR8)");
+                    + "assembly (ISO §2023:12.3.8.4 GR5/GR8)");
                 return null;
             }
             var formals = definition is Core.ClassDefinitionContext cd ? cd.classIdParagraph().ooParameterName() : ((Core.InterfaceDefinitionContext)definition).ooParameterName();
@@ -426,7 +426,7 @@ internal static class OoExpansion
             using var _ = edition.At(x.Of.Ctx);
             edition.Error(DiagnosticCatalog.ExpandsPhraseInvalid,
                 $"the expansion '{x.Name}' of {x.Of.Name} USING {string.Join(" ", x.Actuals)} does not parse once its "
-                + "formal parameters are replaced (ISO §12.3.8.4 GR5/GR8) — an actual parameter's spelling is not "
+                + "formal parameters are replaced (ISO §2023:12.3.8.4 GR5/GR8) — an actual parameter's spelling is not "
                 + "usable in every position its formal occupies");
         }
 
@@ -462,7 +462,7 @@ internal static class OoExpansion
     /// <summary>Every word the definition writes in a DECLARATION slot — a data-name, condition-name,
     /// paragraph- or section-name, method-name, file-name, report-name, screen-name or property-name. None of
     /// those positions admits an object-class-name or interface-name, so a formal parameter found in one breaks
-    /// §11.3.4 GR6 / §11.6.4 GR4.</summary>
+    /// §2023:11.3.4 GR6 / §2023:11.6.4 GR4.</summary>
     private static IEnumerable<Core.CobolWordContext> DeclarationSlotWords(ParserRuleContext root)
     {
         var stack = new Stack<IParseTree>([root]);
@@ -523,13 +523,13 @@ internal static class OoExpansion
     /// <summary>The expansion's token run: the skeleton's own on-channel tokens, copied (a fresh stream renumbers
     /// them, and the originals belong to the live tree), with — (a) the header's and the end marker's name
     /// replaced by the expansion's name; (b) the USING clause dropped, since the expansion is not parameterized
-    /// ("a class is created that functions as a non-parameterized class", §9.3.12); (c) the header's
-    /// <c>AS literal-1</c> dropped: it externalizes the SKELETON, and §9.3.12 forbids two expansions with
+    /// ("a class is created that functions as a non-parameterized class", §2023:9.3.12); (c) the header's
+    /// <c>AS literal-1</c> dropped: it externalizes the SKELETON, and §2023:9.3.12 forbids two expansions with
     /// different actuals to share an externalized name, so carrying it into every expansion would make each
     /// program with two expansions non-conforming by construction — the expansion's externalized name is its
-    /// specifier's object-class-name-1 (§12.3.8.4 GR5 "a class object-class-name-1 is created"); and (d) every
-    /// user-defined-word occurrence of a formal replaced by its actual (§12.3.8.4 GR5/GR8, sound by §11.3.4 GR6 /
-    /// §11.6.4 GR4 — see the type summary).</summary>
+    /// specifier's object-class-name-1 (§2023:12.3.8.4 GR5 "a class object-class-name-1 is created"); and (d) every
+    /// user-defined-word occurrence of a formal replaced by its actual (§2023:12.3.8.4 GR5/GR8, sound by §2023:11.3.4 GR6 /
+    /// §2023:11.6.4 GR4 — see the type summary).</summary>
     private static HashSet<string> ClientWrittenTexts(IEnumerable<IToken> tokens) =>
         [.. tokens.OfType<ExpansionToken>().Where(t => t.ClientWritten).Select(t => t.Text)];
 
@@ -538,7 +538,7 @@ internal static class OoExpansion
         var skel = x.Of;
         var map = new Dictionary<string, string>(CobolNames.Comparer);
         for (int i = 0; i < skel.Formals.Count; i++) map[skel.Formals[i].GetText()] = x.Actuals[i];
-        // The identity an actual stands for is its specifier's (`AS literal-1`, ISO §12.3.8.4 GR2), not its word: the formal's own
+        // The identity an actual stands for is its specifier's (`AS literal-1`, ISO §2023:12.3.8.4 GR2), not its word: the formal's own
         // specifier in the definition's REPOSITORY paragraph becomes the actual's, so the expansion names the class the actual
         // names wherever it is made (DESIGN-external-repository §10.5: "substitutes the ACTUALS' identities (not the importer's words)").
         var actualSpecifier = ((Core.RepositoryParagraphContext)x.Entry.Parent).repositoryEntry();
@@ -600,7 +600,7 @@ internal static class OoExpansion
                 if (text is not null)
                 {
                     copy.Text = text;
-                    // An actual is an ordinary user-defined word wherever its formal stood (§11.3.4 GR6).
+                    // An actual is an ordinary user-defined word wherever its formal stood (§2023:11.3.4 GR6).
                     copy.Type = CobolLexer.IDENTIFIER;
                 }
                 // The text is another group's, recorded as one line; its positions are places in a text this group never read as a file.
@@ -613,7 +613,7 @@ internal static class OoExpansion
                 if (text is not null && FormalSpecifierName(t) is { } formalSpecifier && formalSpecifier.externalizedNamePhrase() is null
                     && actualSpecifier.FirstOrDefault(r => CobolNames.Same(DeclaredName(r), text))?.externalizedNamePhrase() is { } actualAs)
                     foreach (var asToken in Terminals(actualAs)) result.Add(new ExpansionToken(asToken, region) { ClientWritten = true });
-                // (e) the specifier's own `AS literal-1` externalizes the EXPANSION (§12.3.8.4 GR2), right after the name it follows.
+                // (e) the specifier's own `AS literal-1` externalizes the EXPANSION (§2023:12.3.8.4 GR2), right after the name it follows.
                 if (ReferenceEquals(tok, headerName) && x.Entry.externalizedNamePhrase() is { } entryAs)
                     foreach (var asToken in Terminals(entryAs)) result.Add(new ExpansionToken(asToken, region) { ClientWritten = true });
                 return;

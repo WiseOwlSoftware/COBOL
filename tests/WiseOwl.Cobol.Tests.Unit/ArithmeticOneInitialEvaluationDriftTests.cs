@@ -9,15 +9,15 @@ using WiseOwl.Cobol.Tests.Shared;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ AN ARITHMETIC STATEMENT EVALUATES ITS RIGHT-HAND SIDE ONCE, AND §14.7.4.3 r7 IS ASKED BY THE LANDING OF THAT ONE
+/// ⛔ AN ARITHMETIC STATEMENT EVALUATES ITS RIGHT-HAND SIDE ONCE, AND §2023:14.7.4.3 r7 IS ASKED BY THE LANDING OF THAT ONE
 /// INTERMEDIATE (kb/Work PB654, PB3990). <c>ArithmeticEmitter.StoreArith</c> wrote <c>value.Expr</c> into the
-/// PROHIBITED representability test and AGAIN into the store that follows. ISO §14.7.7 rule 4 a) — "The
+/// PROHIBITED representability test and AGAIN into the store that follows. ISO §2023:14.7.7 rule 4 a) — "The
 /// initial evaluation of the statement is done and the result of this operation is placed in an intermediate
 /// data item" — and rule 4 b) — "the intermediate data item is stored in or combined with and then stored in
 /// each single resulting data item" — admit exactly one evaluation, and rule 7's test is a test on THAT
 /// intermediate.
 /// <para>The cost was a wrong answer, not merely a wasted multiply: for a function whose successive references
-/// are not the same value (§15.75.3 rule 5 — "In each case, subsequent references without specifying
+/// are not the same value (§2023:15.75.3 rule 5 — "In each case, subsequent references without specifying
 /// argument-1 return the next number in the current sequence") the test examined one returned value and the
 /// store landed the NEXT one, and the statement consumed two elements of the pseudo-random sequence.</para>
 /// <para>This class reads the EMITTED C# because that is where the defect lives: the corpus golden
@@ -79,7 +79,7 @@ public sealed class ArithmeticOneInitialEvaluationDriftTests
 
     /// <summary>
     /// INVARIANT 1 — THE EMITTED C# SPELLS EACH RIGHT-HAND SIDE EXACTLY AS OFTEN AS THE SOURCE WROTE IT.
-    /// A second spelling IS a second evaluation (§14.7.7 rule 4 a)), and for <c>FUNCTION RANDOM</c> a second
+    /// A second spelling IS a second evaluation (§2023:14.7.7 rule 4 a)), and for <c>FUNCTION RANDOM</c> a second
     /// evaluation is a different value. Counting the CALL TEXT rather than reasoning about the branch shape is
     /// deliberate: it catches the defect wherever a future arm reintroduces it.
     /// </summary>
@@ -93,7 +93,7 @@ public sealed class ArithmeticOneInitialEvaluationDriftTests
 
     /// <summary>
     /// INVARIANT 2 — NO SEPARATE EXACTNESS TEST IS WRITTEN BESIDE THE LANDING (kb/Work PB3990, replacing PB654's gate).
-    /// §14.7.4.3 rule 7 is answered by the landing's own rounding decision on every receiver category, checked or not
+    /// §2023:14.7.4.3 rule 7 is answered by the landing's own rounding decision on every receiver category, checked or not
     /// (<c>CobolSizeError.ProhibitedInexact</c>), so the value is read once by construction. A test written beside the
     /// store is a second read of the intermediate (invariant 1's defect) and a second rule that can disagree with the
     /// landing: PB654's gate covered the checked statement only, and the unchecked one stored the value cut.
@@ -118,8 +118,8 @@ public sealed class ArithmeticOneInitialEvaluationDriftTests
         Assert.Single(Regex.Matches(cs, @"catch \(CobolSizeError (__cse\d+)\) when \(\1\.IsProhibitedInexact\) \{ \}"));
     }
 
-    /// <summary>A report whose printable items take the §13.18.53.4 GR2 implicit COMPUTE: two PROHIBITED SOURCE
-    /// entries — one single placement, one multiple COLUMN entry of two placements (§13.18.53.4 GR4) — beside a
+    /// <summary>A report whose printable items take the §2023:13.18.53.4 GR2 implicit COMPUTE: two PROHIBITED SOURCE
+    /// entries — one single placement, one multiple COLUMN entry of two placements (§2023:13.18.53.4 GR4) — beside a
     /// NEAREST-EVEN one and a no-phrase MOVE.</summary>
     private const string ReportProgram = """
         IDENTIFICATION DIVISION.
@@ -151,7 +151,7 @@ public sealed class ArithmeticOneInitialEvaluationDriftTests
     /// PB3990 review finding R1-1). The compose is emitted outside every statement's EC-SIZE checking, and every landing
     /// raises <c>CobolSizeError.ProhibitedInexact</c>, so each PROHIBITED PLACEMENT — three in <see cref="ReportProgram"/>
     /// — forms its image inside <c>ArithmeticEmitter.EmitProhibitedInexactKeep</c>, over a local that starts as the
-    /// printable item's unchanged content (spaces, §13.8.6.2.3). Uncaught, the raise ended the run unit; the other modes
+    /// printable item's unchanged content (spaces, §2023:13.8.6.2.3). Uncaught, the raise ended the run unit; the other modes
     /// pay for no try.
     /// </summary>
     [Fact]

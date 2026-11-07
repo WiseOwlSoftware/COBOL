@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.39.3 syntax rule 10 a): when the receiver (identifier-3) is described with an interface-name that
+      *> ISO §2023:14.9.39.3 syntax rule 10 a): when the receiver (identifier-3) is described with an interface-name that
       *> identifies the interface int-1, the data item referenced by identifier-4 shall be "an object reference described
       *> with an interface-name that identifies int-1 or an interface inheriting from int-1".  RI is described with the
       *> interface P9A1I; RZ is described with the interface P9A1Z, which neither is P9A1I nor INHERITS FROM it, so

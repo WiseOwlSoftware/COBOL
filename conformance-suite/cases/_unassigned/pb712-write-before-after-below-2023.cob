@@ -4,8 +4,8 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> The PRINTED spelling of the combination — one ADVANCING, one operand, both words (ISO §14.9.51.2
-*> Format 1, measured off PDF page 815 / printed folio 785). It is a COBOL-2023 INTRODUCTION: Annex §E.3.3
+*> The PRINTED spelling of the combination — one ADVANCING, one operand, both words (ISO §2023:14.9.51.2
+*> Format 1, measured off PDF page 815 / printed folio 785). It is a COBOL-2023 INTRODUCTION: Annex §2023:E.3.3
 *> item 2, "BEFORE and AFTER phrases. Both BEFORE and AFTER are allowed together in WRITE ADVANCING", and
 *> docs/VERSION_CHANGE_REFERENCE.md row 45 records the 2014->2023 delta (old: the two could not both be
 *> specified). So COBOL-85, COBOL-2002 and COBOL-2014 must REFUSE it by edition, with COBOL0900 naming

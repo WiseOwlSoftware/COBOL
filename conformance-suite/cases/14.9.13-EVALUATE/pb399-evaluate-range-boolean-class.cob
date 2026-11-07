@@ -4,9 +4,9 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.13.3 SR4's first excluded class: "The two operands in a range-expression shall be of the
+      *> ISO §2023:14.9.13.3 SR4's first excluded class: "The two operands in a range-expression shall be of the
       *> same class and shall not be of class boolean, message-tag, object, or pointer."  A PIC 1 item is of
-      *> class and category boolean (§8.5.2.1 Table 2), and §8.8.4.2.2 Format 2 admits boolean operands for
+      *> class and category boolean (§2023:8.5.2.1 Table 2), and §2023:8.8.4.2.2 Format 2 admits boolean operands for
       *> EQUALITY only — a range has no boolean meaning to lower to.
       *>
       *> ⚠ The operand rule and the COMPARISON rule are two different rules and this case is the operand

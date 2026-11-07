@@ -10,9 +10,9 @@ using WiseOwl.Cobol.Runtime;
 namespace WiseOwl.Cobol.Binding;
 
 /// <summary>
-/// The compile-time <c>&gt;&gt;TURN</c> resolution (ISO/IEC 1989:2023 §7.3.25; deep-dive D10): the source-ordered
+/// The compile-time <c>&gt;&gt;TURN</c> resolution (ISO/IEC 1989:2023 §2023:7.3.25; deep-dive D10): the source-ordered
 /// directive events, folded per query to decide WHETHER an EC guard is emitted at a statement at all — checking
-/// OFF (the §7.3.25.4 GR1 default) compiles to NOTHING, the zero-scaffolding invariant (SSOT §18.16). A query
+/// OFF (the §2023:7.3.25.4 GR1 default) compiles to NOTHING, the zero-scaffolding invariant (SSOT §18.16). A query
 /// names a LEVEL-3 exception-name; an event matches it per the hierarchy expansion rules: EC-ALL covers every
 /// name except EC-I-O-WARNING (GR2), a level-2 name covers its level-3 children except EC-I-O-WARNING (GR3),
 /// EC-I-O-WARNING toggles only explicitly (GR4); a file-scoped event applies only to that file (GR6/GR8). The
@@ -32,7 +32,7 @@ public sealed class TurnState
     /// start. Both synthetics must cover their own line or the same-line statement silently escapes checking
     /// — measured: the one-line form raised nothing while the two-line form raised and caught.
     /// <paramref name="RevokedAt"/> is the line of the <c>&gt;&gt;POP</c> that restored the checking state saved
-    /// before this directive (§7.3.20.4 GR1/GR3; kb/Work PB941) — from that line on the event is as though it had
+    /// before this directive (§2023:7.3.20.4 GR1/GR3; kb/Work PB941) — from that line on the event is as though it had
     /// never been written. <see cref="int.MaxValue"/> for a directive no POP undid, and for every synthetic.</summary>
     private readonly record struct Ev(int Line, string Ec, string? File, bool On, bool WithLocation,
         bool Inclusive = false, int RevokedAt = int.MaxValue)
@@ -43,7 +43,7 @@ public sealed class TurnState
         public bool After(int statementLine) => Line >= statementLine && !(Inclusive && Line == statementLine);
 
         /// <summary>Has a POP revoked this event before the statement starting on <paramref name="statementLine"/>
-        /// (§7.3.20.4 GR1/GR3)? A revoked event is skipped, never a stopping point — later events still apply.</summary>
+        /// (§2023:7.3.20.4 GR1/GR3)? A revoked event is skipped, never a stopping point — later events still apply.</summary>
         public bool RevokedFor(int statementLine) => statementLine >= RevokedAt;
     }
 
@@ -55,7 +55,7 @@ public sealed class TurnState
     private TurnState() { }
 
     /// <summary>Build the state from the frontend's directive events. The names in an event are ALREADY resolved:
-    /// §7.3.25.3 SR2 (a name shall be one of the §14.6.13.1 names, here or in an edition that has it) is a syntax
+    /// §2023:7.3.25.3 SR2 (a name shall be one of the §2023:14.6.13.1 names, here or in an edition that has it) is a syntax
     /// rule of the directive, asked by the directive stage for a compiled line and an omitted-branch line alike
     /// (<c>TurnDirectiveProcessor</c> through <see cref="ExceptionNameRule"/>; kb/Work PB2740), so this fold reports
     /// no COBOL0711/0878. What it still asks is the policy half of the funnel
@@ -85,7 +85,7 @@ public sealed class TurnState
 
     /// <summary>Return a NEW state = the base events with a synthetic ENABLING event at <paramref name="imp1Line"/>
     /// spliced in for each named exception that is NOT already enabled there — the GR14 implicit TURN of an
-    /// exception-checking PERFORM over imperative-statement-1 (§14.9.28.4 GR14): "if checking … is NOT enabled for
+    /// exception-checking PERFORM over imperative-statement-1 (§2023:14.9.28.4 GR14): "if checking … is NOT enabled for
     /// imperative-statement-1 by a TURN directive, an implicit TURN directive … is assumed BEFORE the first
     /// statement in imperative-statement-1" (WITH LOCATION iff the PERFORM specified LOCATION). Correctness of the
     /// fold demands the event list stay LINE-SORTED (Fold keeps the last match with <c>Line &lt; statementLine</c>),
@@ -112,10 +112,10 @@ public sealed class TurnState
 
     /// <summary>Return a NEW state = the base events with a synthetic <c>EC-ALL OFF</c> floor spliced in at
     /// <paramref name="handlerLine"/> — the GR14 implicit disable that governs an exception-checking PERFORM's
-    /// HANDLER bodies (§14.9.28.4 GR14): "An implicit PUSH ALL followed by TURN OFF ALL is assumed AT THE END OF
+    /// HANDLER bodies (§2023:14.9.28.4 GR14): "An implicit PUSH ALL followed by TURN OFF ALL is assumed AT THE END OF
     /// imperative-statement-1. Immediately preceding the END PERFORM phrase, there is an implicit POP ALL …".
     /// imp-2/3/4 (WHEN / OTHER / COMMON) and imp-5 (FINALLY) all execute between those two points, so NO exception
-    /// checking is in effect inside them and §14.6.13.1.1 applies — "if checking for an exception that occurs is
+    /// checking is in effect inside them and §2023:14.6.13.1.1 applies — "if checking for an exception that occurs is
     /// not enabled, no exception condition is raised".
     /// <para>⚠ GR21 is NOT the governing rule here, though the binder used to cite it: it says only that an
     /// exception raised in imp-2..5 "will not cause transfer of control to any of these imperative-statements"
@@ -136,7 +136,7 @@ public sealed class TurnState
 
     /// <summary>The 1-based lines of every <c>&gt;&gt;TURN</c> directive that NAMES one of <paramref name="ecNames"/>
     /// (matched on the canonical exception-name, ON or OFF alike) — the FLAG-02 b EC-PROGRAM-EXCEPTIONS detector
-    /// flags such a directive when its source element calls a function or invokes a method (§7.3.14.4 GR4 b). A
+    /// flags such a directive when its source element calls a function or invokes a method (§2023:7.3.14.4 GR4 b). A
     /// directive naming several of the set contributes its line once per name; the caller de-duplicates.</summary>
     public IEnumerable<int> DirectiveLinesNaming(IReadOnlySet<string> ecNames)
         => _events.Where(e => ecNames.Contains(e.Ec)).Select(e => e.Line);
@@ -156,7 +156,7 @@ public sealed class TurnState
     /// <summary>True when any enabling event ANYWHERE in the group covers level-3 <paramref name="level3"/> —
     /// the group-level gate for machinery that must exist wherever the condition COULD pair (the EC-EXTERNAL
     /// descriptor registrations: an element whose own mask is zero must still register its descriptions when a
-    /// LATER element in the group can check against them, §14.8.4 — TURN events are line-scoped across the
+    /// LATER element in the group can check against them, §2023:14.8.4 — TURN events are line-scoped across the
     /// whole group text).</summary>
     public bool AnyEnabledFor(string level3) => _events.Any(e => e.On && NameMatches(e.Ec, level3));
 
@@ -166,19 +166,19 @@ public sealed class TurnState
         Fold(level3, file, statementLine) is { On: true };
 
     /// <summary>⛔ THE ACTIVATED ELEMENT'S HALF OF AN "ENABLED IN BOTH" GATE — asked at its PROCEDURE DIVISION HEADER
-    /// (kb/Work PB1381). The parameter-conformance conditions §14.9.4.4 GR3 d) (EC-PROGRAM-ARG-MISMATCH) and
-    /// §14.9.23.4 GR7 c) (EC-OO-UNIVERSAL) are set "if checking for it is enabled in both the activated program
-    /// [method] and activating runtime element", and a TURN reaches the activated side through its header: §7.3.25.4
+    /// (kb/Work PB1381). The parameter-conformance conditions §2023:14.9.4.4 GR3 d) (EC-PROGRAM-ARG-MISMATCH) and
+    /// §2023:14.9.23.4 GR7 c) (EC-OO-UNIVERSAL) are set "if checking for it is enabled in both the activated program
+    /// [method] and activating runtime element", and a TURN reaches the activated side through its header: §2023:7.3.25.4
     /// GR6 / GR8 enable or disable checking "for the procedure division statements and procedure division headers
     /// that follow in the compilation group". So the fold point is the header's line — NOT the Environment division
-    /// line §14.8.4.1 fixes for the EC-EXTERNAL conditions alone (a TURN between the DATA DIVISION and the header
+    /// line §2023:14.8.4.1 fixes for the EC-EXTERNAL conditions alone (a TURN between the DATA DIVISION and the header
     /// used to be ignored), and NOT the METHOD-ID line. <paramref name="header"/> is the element's
     /// <c>procedureDivision</c>; <paramref name="absentLine"/> answers for an element that has none.</summary>
     public bool EnabledAtHeader(string level3, Antlr4.Runtime.ParserRuleContext? header, int absentLine) =>
         Enabled(level3, null, header?.Start.Line ?? absentLine);
 
     /// <summary>Did the event that ENABLED <paramref name="level3"/> at this statement carry WITH LOCATION
-    /// (§7.3.25.4 GR7 — the EXCEPTION-LOCATION/-STATEMENT information capture)?</summary>
+    /// (§2023:7.3.25.4 GR7 — the EXCEPTION-LOCATION/-STATEMENT information capture)?</summary>
     public bool WithLocation(string level3, string? file, int statementLine) =>
         Fold(level3, file, statementLine) is { On: true, WithLocation: true };
 
@@ -200,21 +200,21 @@ public sealed class TurnState
     }
 
     /// <summary>Does directive name <paramref name="evName"/> cover level-3 <paramref name="level3"/>?
-    /// The §7.3.25.4 GR2/GR3/GR4 expansion, owned by <see cref="ExceptionCatalog.DirectiveCovers"/> — the
+    /// The §2023:7.3.25.4 GR2/GR3/GR4 expansion, owned by <see cref="ExceptionCatalog.DirectiveCovers"/> — the
     /// RUNTIME fold (<see cref="EcCheckingProfile"/>, which answers the same question about a name chosen at
     /// run time) walks the identical rule, and a second copy here is how the two would drift (kb/Work PB408).
     /// </summary>
     private static bool NameMatches(string evName, string level3) =>
         ExceptionCatalog.DirectiveCovers(evName, level3);
 
-    /// <summary>The §7.3.25 checking state that governs the statement starting on <paramref name="statementLine"/>,
-    /// as a RUNTIME-queryable profile — the carrier for §14.9.18.4 GR1 b), whose enablement question is asked in
+    /// <summary>The §2023:7.3.25 checking state that governs the statement starting on <paramref name="statementLine"/>,
+    /// as a RUNTIME-queryable profile — the carrier for §2023:14.9.18.4 GR1 b), whose enablement question is asked in
     /// the ACTIVATING runtime element about an exception-name a callee may not choose until run time
     /// (<c>GOBACK … RAISING LAST EXCEPTION</c>). It is the same event prefix <see cref="Fold"/> walks, so
     /// <c>profile.Enabled(n)</c> and <c>Enabled(n, null, statementLine)</c> agree for every level-3 <c>n</c> —
     /// asserted by <c>ExceptionCheckingProfileDriftTests</c>.
     /// <para>FILE-SCOPED events are excluded, matching the <c>file: null</c> fold: an activating statement
-    /// references no file, and §7.3.25.4 GR6/GR8 scope a FILE-phrase directive to the statements that do.</para>
+    /// references no file, and §2023:7.3.25.4 GR6/GR8 scope a FILE-phrase directive to the statements that do.</para>
     /// </summary>
     public EcCheckingProfile ProfileAt(int statementLine)
     {

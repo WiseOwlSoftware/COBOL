@@ -6,7 +6,7 @@ using WiseOwl.Cobol.Runtime;
 namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>
-/// The type forest of ONE bound unit and the name tables over it (ISO §8.4.6.2.1 3): the roots of its WORKING-STORAGE,
+/// The type forest of ONE bound unit and the name tables over it (ISO §2023:8.4.6.2.1 3): the roots of its WORKING-STORAGE,
 /// LOCAL-STORAGE and the rest of the forest, every referenceable data-name, condition-name, index-name and named CAPACITY
 /// register, the type declarations, the screen-names and the inheritance tier of each GLOBAL name a container offered
 /// (docs/rearchitecture/DESIGN-architecture-review.md §8.3 (1); kb/Work PB2296, step 1 of the <see cref="DataBinder"/>
@@ -17,7 +17,7 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// read-only views below. <c>DataBindStateBoundaryDriftTests</c> pins the writers.
 /// <para>A lookup that must see a METHOD's own names first asks the method's <see cref="OoMethodDataScope"/> before it asks
 /// this slice (<see cref="Model.SymbolTable"/>); the mutators here take that scope, because a name joins the index of the
-/// source element that owns its record (§11.7.4 GR5; kb/Work PB3192).</para>
+/// source element that owns its record (§2023:11.7.4 GR5; kb/Work PB3192).</para>
 /// <para>A model-layer value: it names no binder type, so <see cref="DataBindResult"/> hands it to a backend as it is (kb/Work
 /// PB2361). The one gated read, <see cref="CapacityRegisters"/>, asks <paramref name="requireRegisters"/>, which the owning
 /// <see cref="DataBindState"/> answers with its <see cref="PassPhase.OccursResolved"/> watermark.</para>
@@ -39,14 +39,14 @@ public sealed class ForestSlice(Action<string> requireRegisters)
     public IReadOnlyList<DataItem> Roots => _roots;
 
     /// <summary>The unit's WORKING-STORAGE SECTION roots, in source order — the subset of <see cref="Roots"/> whose storage
-    /// class is decided by §13.5.4 (static/initial data), captured at bind so the static-WS routing
+    /// class is decided by §2023:13.5.4 (static/initial data), captured at bind so the static-WS routing
     /// (<see cref="RouteStaticUnitStoragePass.Run"/>) and the emitter's <c>__ResetStatics</c> never guess from the mixed
     /// forest (FILE records and compiler temps share <see cref="Roots"/>). The ONE walk <c>__ResetStatics</c> emits from; each
     /// arm there is gated on the static-channel membership, so an automatic-storage root in this list contributes nothing.</summary>
     public IReadOnlyList<DataItem> WorkingStorageRoots => _workingStorageRoots;
 
-    /// <summary>The unit's LOCAL-STORAGE SECTION roots, in source order (ISO §13.6 — automatic data, §13.6.4 GR1). Emitted as
-    /// ordinary INSTANCE fields: for an INITIAL or RECURSIVE unit the fresh instance per activation IS the §14.6.2.3.2
+    /// <summary>The unit's LOCAL-STORAGE SECTION roots, in source order (ISO §2023:13.6 — automatic data, §2023:13.6.4 GR1). Emitted as
+    /// ordinary INSTANCE fields: for an INITIAL or RECURSIVE unit the fresh instance per activation IS the §2023:14.6.2.3.2
     /// per-activation initial state; for a cached-singleton unit the emitted <c>Call</c> entry re-initializes them
     /// (ProgramEmitter) — automatic data is in initial state on EVERY activation regardless of the unit's attributes.</summary>
     public IReadOnlyList<DataItem> LocalStorageRoots => _localStorageRoots;
@@ -65,13 +65,13 @@ public sealed class ForestSlice(Action<string> requireRegisters)
 
     /// <summary>THE UNIT'S INDEX-NAME NAMESPACE (kb/Work PB919): every INDEXED BY declaration of this unit's own data division
     /// (<see cref="IndexNameRegistry.Own"/> — the <c>long</c> cells it emits, 1-based occurrence numbers, DESIGN §3.5), plus
-    /// the GLOBAL tables' declarations of every containing program (§8.4.6.2.3), registered beside their tables' data-names
+    /// the GLOBAL tables' declarations of every containing program (§2023:8.4.6.2.3), registered beside their tables' data-names
     /// by <see cref="Inherit"/>. A reference resolves through <see cref="Model.SymbolTable.IndexCandidates"/> — counted,
     /// never keyed by spelling alone. Declared into only by <c>DataBinder.RegisterIndexes</c> and <see cref="Inherit"/>.</summary>
     public IndexNameRegistry IndexNames { get; } = new();
 
     /// <summary>OCCURS DYNAMIC <c>CAPACITY IN data-name-3</c> register-names (case-insensitive) → the owning dynamic-table
-    /// <see cref="DataItem"/> (ISO §13.18.38 GR15 / §8.5.1.9.1; data-model D9). The register is IMPLICITLY defined at the OCCURS
+    /// <see cref="DataItem"/> (ISO §2023:13.18.38 GR15 / §2023:8.5.1.9.1; data-model D9). The register is IMPLICITLY defined at the OCCURS
     /// entry (SR30) — it is NOT in <see cref="ByName"/>; the resolver consults this map to build a
     /// <see cref="CapacityRegisterPlace"/> (a view over the table's <c>Capacity</c>). Populated by the post-build
     /// <see cref="DynamicResolvePass.Run"/> pass; the getter carries the P6 Step-6 watermark gate — a read before
@@ -79,11 +79,11 @@ public sealed class ForestSlice(Action<string> requireRegisters)
     /// structural.
     /// <para>⛔ A LIST PER NAME, NEAREST DECLARING SOURCE ELEMENT FIRST (kb/Work PB1674). The register of a dynamic table in a
     /// GLOBAL record is subordinate to a global name — SR30 places it "at the same level as the entry containing the OCCURS
-    /// clause" — so it is a global name too (§8.4.6.2.2: "All data-names and screen-names subordinate to a global name are
+    /// clause" — so it is a global name too (§2023:8.4.6.2.2: "All data-names and screen-names subordinate to a global name are
     /// global names"), and a contained program inherits it with the rest of the record (<see cref="Inherit"/>). This
     /// element's own registers come first (one written definition per spelling: SR30's "shall not be defined elsewhere in the
     /// source element", reproduced once per TYPE / SAME AS copy of its entry, kb/Work PB2988), then each container's, so
-    /// <c>ReferenceResolver.CapacityRegisterFor</c> can apply §8.4.6.2.1 3)'s nearest-element rule. The one reader of a name
+    /// <c>ReferenceResolver.CapacityRegisterFor</c> can apply §2023:8.4.6.2.1 3)'s nearest-element rule. The one reader of a name
     /// in this map is <see cref="Model.SymbolTable.CapacityCandidates"/>. The OWN registers alone are the tables whose
     /// <see cref="DeclaringDepth"/> is 0.</para></summary>
     public IReadOnlyDictionary<string, List<DataItem>> CapacityRegisters
@@ -96,7 +96,7 @@ public sealed class ForestSlice(Action<string> requireRegisters)
     /// funnel's "is this word declared nearer" question, which runs while they are still being minted).</summary>
     internal IReadOnlyDictionary<string, List<DataItem>> CapacityRegistersSoFar => _capacityRegisters;
 
-    /// <summary>TYPEDEF type declarations (case-insensitive) → the template root <see cref="DataItem"/> (ISO §13.18.58;
+    /// <summary>TYPEDEF type declarations (case-insensitive) → the template root <see cref="DataItem"/> (ISO §2023:13.18.58;
     /// data-model D17) — THIS source element's own: a METHOD's declarations are its own source element's, in
     /// <see cref="OoMethodDataScope.TypeDecls"/> (kb/Work PB3192), and <c>DataBinder.AllTypeDecls</c> walks both. The template
     /// is built by <c>BindEntries</c> but kept OFF <see cref="Roots"/> and <see cref="ByName"/> (it allocates no storage; its
@@ -108,7 +108,7 @@ public sealed class ForestSlice(Action<string> requireRegisters)
     /// <summary>Names DECLARED in the SCREEN SECTION, which is REFUSED as the declined Annex A.4.2 module
     /// (COBOL1560; <see cref="ScreenFacility"/>). Two consumers, both still needed after the refusal:
     /// <list type="number">
-    /// <item>kb/Work R32 — a reference to such a name is exempt from the §8.4.2.1 UNDEFINED diagnostic
+    /// <item>kb/Work R32 — a reference to such a name is exempt from the §2023:8.4.2.1 UNDEFINED diagnostic
     /// (COBOL1639). The compile already fails on the section; adding "SG is not defined" on top would send
     /// the user hunting a declaration that is right there. "Not defined" and "declared in a refused section"
     /// are different verdicts, and only the second is true.</item>
@@ -123,7 +123,7 @@ public sealed class ForestSlice(Action<string> requireRegisters)
 
     /// <summary>How many containment levels out <paramref name="item"/> is declared: 0 for an item this source element
     /// declares (or any item of a unit that inherits nothing), n for a GLOBAL item of its n-th container. ⛔ THE NESTING
-    /// DISTANCE OF EVERY INHERITED GLOBAL DECLARATION (kb/Work PB1047 / PB1243) — the tier ISO §8.4.6.2.1 3) selects on. Keyed
+    /// DISTANCE OF EVERY INHERITED GLOBAL DECLARATION (kb/Work PB1047 / PB1243) — the tier ISO §2023:8.4.6.2.1 3) selects on. Keyed
     /// by identity, because the SAME container item is inherited into every contained program at a different distance.</summary>
     public int DeclaringDepth(DataItem item) =>
         _inheritedGlobalDepth.Count != 0 && _inheritedGlobalDepth.TryGetValue(item, out int depth) ? depth : 0;
@@ -133,17 +133,17 @@ public sealed class ForestSlice(Action<string> requireRegisters)
     public bool InheritsGlobalData => _inheritedGlobalDepth.Count != 0;
 
     /// <summary>⛔ THE ONE QUESTION "IS THIS WORD A DATA-NAME THIS SOURCE ELEMENT ITSELF DEFINES?" — the test behind every rule
-    /// that reads "shall not be defined elsewhere in the source element" (§13.18.38.3 SR30 for a CAPACITY register,
-    /// §13.18.64.3 SR2 for a report VARYING counter) and behind the report section's "also declared in ordinary storage"
-    /// screens (§8.4.2.1). A container's GLOBAL data-name is inherited into <see cref="ByName"/> before the resolve passes run
+    /// that reads "shall not be defined elsewhere in the source element" (§2023:13.18.38.3 SR30 for a CAPACITY register,
+    /// §2023:13.18.64.3 SR2 for a report VARYING counter) and behind the report section's "also declared in ordinary storage"
+    /// screens (§2023:8.4.2.1). A container's GLOBAL data-name is inherited into <see cref="ByName"/> before the resolve passes run
     /// (<see cref="Inherit"/>), but it is defined in ANOTHER source element: this element's own declaration of the spelling
-    /// hides it (§8.4.6.2.1 3), so it can neither duplicate nor be duplicated by it. Asking <c>ByName.ContainsKey</c> instead
+    /// hides it (§2023:8.4.6.2.1 3), so it can neither duplicate nor be duplicated by it. Asking <c>ByName.ContainsKey</c> instead
     /// refuses a legal program (kb/Work PB3766, review finding R2-1).</summary>
     public bool DeclaresOwnDataName(string name) =>
         _byName.TryGetValue(name, out var items) && items.Any(i => DeclaringDepth(i) == 0);
 
     /// <summary>The type declarations of the source element <paramref name="scope"/> names: a METHOD's own table when the scope
-    /// is a method's (§8.4.6.2.2; kb/Work PB3192), else this unit's.</summary>
+    /// is a method's (§2023:8.4.6.2.2; kb/Work PB3192), else this unit's.</summary>
     public IReadOnlyDictionary<string, DataItem> TypeDeclsOf(Scope scope) => scope.Method?.TypeDecls ?? _typeDecls;
 
     // ── The writers (internal: the data binder's declaration walk, its passes and its inheritance of a container's GLOBALs) ──
@@ -188,7 +188,7 @@ public sealed class ForestSlice(Action<string> requireRegisters)
         (method?.IndexNames ?? IndexNames).Declare(decl);
 
     /// <summary>Declare a TYPEDEF template in the declaring source element's table (a method's type-name is local to the
-    /// method, §8.4.6.2.2; kb/Work PB3192); false when the spelling is already declared there.</summary>
+    /// method, §2023:8.4.6.2.2; kb/Work PB3192); false when the spelling is already declared there.</summary>
     internal bool TryDeclareType(DataItem template, string name, Scope scope) =>
         (scope.Method?.TypeDecls ?? _typeDecls).TryAdd(name, template);
 
@@ -199,7 +199,7 @@ public sealed class ForestSlice(Action<string> requireRegisters)
     }
 
     /// <summary>Make ONE container GLOBAL item (no recursion: the caller walks the subtree) visible here,
-    /// <paramref name="depth"/> containment levels out (ISO §13.18.27.4 GR2 — "may reference that name without describing it
+    /// <paramref name="depth"/> containment levels out (ISO §2023:13.18.27.4 GR2 — "may reference that name without describing it
     /// again"): its data-name, the condition-names associated with it, its index-names and its CAPACITY register.</summary>
     internal void Inherit(DataItem item, int depth)
     {

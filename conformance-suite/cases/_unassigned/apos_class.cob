@@ -6,7 +6,7 @@
 *> portable: unverified
 *>---
       *> Audit regression (PHASE-05 Step-1 sweep completion): a SPECIAL-NAMES CLASS defined with APOSTROPHE-delimited
-      *> literals (ISO §8.3.3.1 — apostrophe and quotation-mark forms are equal-standing). Before the fix, DataBinder
+      *> literals (ISO §2023:8.3.3.1 — apostrophe and quotation-mark forms are equal-standing). Before the fix, DataBinder
       *> LiteralChars guarded on '"' only, so '0' THRU '9' populated the class with APOSTROPHE characters instead of
       *> the digit range — a silent miscompile of a valid CLASS clause.
        IDENTIFICATION DIVISION.

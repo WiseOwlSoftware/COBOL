@@ -17,9 +17,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ A REPORT PRINTABLE ITEM'S VALUE/SOURCE OPERANDS ARE A LIST, CYCLED BY ONE READER, AND A VALUE IS NOT A
 /// MOVE (kb/Work PB506) — and this keeps all three true.
 ///
-/// <para>ISO writes the same two rules twice, once per clause: §13.18.63.3 SR35 / §13.18.53.3 SR6 (a
+/// <para>ISO writes the same two rules twice, once per clause: §2023:13.18.63.3 SR35 / §2023:13.18.53.3 SR6 (a
 /// multi-operand clause requires a repeating entry and an operand count that matches its repetitions) and
-/// §13.18.63.4 GR23 / §13.18.53.4 GR4 ("successive operands are assigned to successive repeating printable
+/// §2023:13.18.63.4 GR23 / §2023:13.18.53.4 GR4 ("successive operands are assigned to successive repeating printable
 /// items … If no further operands remain, assignment begins again from the first operand"). The compiler holds
 /// ONE operand list (<see cref="ReportFieldModel.Sources"/>), ONE cycling reader
 /// (<see cref="ReportFieldModel.SourceAt"/>) and ONE syntax screen
@@ -41,7 +41,7 @@ public sealed class ReportOperandListDriftTests
         Sources = sources,
     };
 
-    /// <summary>ISO §13.18.63.4 GR23 / §13.18.53.4 GR4, sentence 1: successive operands go to successive
+    /// <summary>ISO §2023:13.18.63.4 GR23 / §2023:13.18.53.4 GR4, sentence 1: successive operands go to successive
     /// repetitions, in order.</summary>
     [Fact]
     public void SuccessiveOperands_GoToSuccessiveRepetitions()
@@ -51,7 +51,7 @@ public sealed class ReportOperandListDriftTests
             Enumerable.Range(0, 3).Select(r => ((FieldValueSource)f.SourceAt(r)).Raw).ToArray());
     }
 
-    /// <summary>ISO §13.18.63.4 GR23 / §13.18.53.4 GR4, sentence 2: "If no further operands remain, assignment
+    /// <summary>ISO §2023:13.18.63.4 GR23 / §2023:13.18.53.4 GR4, sentence 2: "If no further operands remain, assignment
     /// begins again from the first operand." Unreachable from COBOL source while the higher-level repetition
     /// vehicles stage loud — asserted on the model so the day one lands, this is already right.</summary>
     [Fact]
@@ -83,8 +83,8 @@ public sealed class ReportOperandListDriftTests
     }
 
     /// <summary>⛔ THE REGRESSION THAT WAS THE BUG: a format-4 VALUE operand pushed through the SOURCE clause's
-    /// implicit MOVE (§13.18.53.4 GR1). §13.18.63.4 GR21 imports GR7 ("initialization is not affected by a
-    /// JUSTIFIED clause and no editing takes place") and GR8, and §13.18.63.3 SR34 imports SR11 — the MOVE
+    /// implicit MOVE (§2023:13.18.53.4 GR1). §2023:13.18.63.4 GR21 imports GR7 ("initialization is not affected by a
+    /// JUSTIFIED clause and no editing takes place") and GR8, and §2023:13.18.63.3 SR34 imports SR11 — the MOVE
     /// applies exactly those three excluded transforms, and applying them printed `AB  C` for
     /// `PIC XXBXX VALUE "AB CD"`, `   AB` for a JUSTIFIED item and spaces for a BLANK-WHEN-ZERO one, while the
     /// identical WORKING-STORAGE entry was right. No compiler source may name a
@@ -103,8 +103,8 @@ public sealed class ReportOperandListDriftTests
             RegexOptions.Singleline | RegexOptions.Compiled);
         var hits = sources.Where(s => routed.IsMatch(s.Text)).Select(s => s.Rel).ToList();
         Assert.True(hits.Count == 0,
-            "A format-4 VALUE operand is being converted by the MOVE path again (ISO §13.18.63.4 GR21/GR7/GR8, "
-            + "§13.18.63.3 SR34/SR11 exclude JUSTIFIED, editing and BLANK WHEN ZERO from initialization). "
+            "A format-4 VALUE operand is being converted by the MOVE path again (ISO §2023:13.18.63.4 GR21/GR7/GR8, "
+            + "§2023:13.18.63.3 SR34/SR11 exclude JUSTIFIED, editing and BLANK WHEN ZERO from initialization). "
             + "Route it through ValueInitializer.InitializerFrom, the ONE VALUE recipe: " + string.Join(", ", hits));
     }
 
@@ -121,7 +121,7 @@ public sealed class ReportOperandListDriftTests
             .Where(rel => !rel.EndsWith(Path.Combine("Binding", "ReportModel.cs"), StringComparison.Ordinal))
             .ToList();
         Assert.True(hits.Count == 0,
-            "ReportFieldModel.Sources is indexed outside its own model file; ISO §13.18.63.4 GR23 / §13.18.53.4 "
+            "ReportFieldModel.Sources is indexed outside its own model file; ISO §2023:13.18.63.4 GR23 / §2023:13.18.53.4 "
             + "GR4's per-repetition assignment is ReportFieldModel.SourceAt and nothing else: "
             + string.Join(", ", hits));
     }

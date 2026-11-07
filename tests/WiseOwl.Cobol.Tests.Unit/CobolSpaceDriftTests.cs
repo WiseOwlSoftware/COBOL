@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ A SPACE IN SOURCE TEXT IS <see cref="CobolSpace"/>'S, AND THE TEXT STAGES NEVER ASK .NET WHAT WHITE SPACE IS
-/// (kb/Work PB1543, PB1660). ISO §8.3.5 1): "The COBOL character space is a separator" — the only one — and §6.3.6: "A
+/// (kb/Work PB1543, PB1660). ISO §2023:8.3.5 1): "The COBOL character space is a separator" — the only one — and §2023:6.3.6: "A
 /// blank line is one that contains only space characters between margin C and margin R". .NET's Unicode
 /// <c>White_Space</c> set (<c>char.IsWhiteSpace</c>, a parameterless <c>Trim</c> / <c>TrimStart</c> / <c>TrimEnd</c>,
 /// <c>Split()</c>, <c>string.IsNullOrWhiteSpace</c>) adds U+00A0, U+2000–U+200A, U+3000 and more, so a stage that uses it
@@ -56,8 +56,8 @@ public sealed class CobolSpaceDriftTests
         var offenders = StageFiles().SelectMany(CodeLines).Where(l => UnicodeWhiteSpace.IsMatch(l.Text))
             .Select(l => $"{l.File}:{l.Line}: {l.Text.Trim()}").ToList();
         Assert.True(offenders.Count == 0,
-            "A text stage splits, trims or classifies on .NET's Unicode White_Space set. ISO §8.3.5 1) makes only the COBOL "
-            + "character space a separator and §6.3.6 a blank line only spaces, so U+00A0 and its kin are characters of the "
+            "A text stage splits, trims or classifies on .NET's Unicode White_Space set. ISO §2023:8.3.5 1) makes only the COBOL "
+            + "character space a separator and §2023:6.3.6 a blank line only spaces, so U+00A0 and its kin are characters of the "
             + "word they stand in. Ask CobolSpace (IsSeparator, IsBlank, TrimSpaces / TrimSpacesStart / TrimSpacesEnd, "
             + "SplitSpaces) instead — kb/Work PB1660. Offending sites:\n  " + string.Join("\n  ", offenders));
     }

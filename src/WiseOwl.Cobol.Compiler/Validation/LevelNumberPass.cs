@@ -8,61 +8,61 @@ using WiseOwl.Cobol.Frontend.Generated;     // CobolParserCore
 namespace WiseOwl.Cobol.Validation;
 
 /// <summary>
-/// The arms of the level-number syntax rules — ISO §13.18.33.3's four, plus the 2002 communication-record arm
+/// The arms of the level-number syntax rules — ISO §2023:13.18.33.3's four, plus the 2002 communication-record arm
 /// (ISO/IEC 1989:2002 13.16.31 SR2) — the rules that state, PER DATA DIVISION SECTION, which level-numbers
 /// an entry may carry. The arm is a property of the entry's SECTION, never of the entry itself, which is why the
 /// screen classifies from the parse-tree ancestry instead of trusting any one binder's local knowledge.
 /// </summary>
 internal enum LevelNumberArm
 {
-    /// <summary>§13.18.33.3 SR2 — a data description entry subordinate to an FD or SD entry. Note 77 is NOT in
-    /// this set: a noncontiguous item has no meaning in a record area (§13.18.33.4 GR2a).</summary>
+    /// <summary>§2023:13.18.33.3 SR2 — a data description entry subordinate to an FD or SD entry. Note 77 is NOT in
+    /// this set: a noncontiguous item has no meaning in a record area (§2023:13.18.33.4 GR2a).</summary>
     FileRecord,
 
     /// <summary>ISO/IEC 1989:2002 13.16.31 SR2 — a data description entry subordinate to a CD entry (the rule's
-    /// subject list is "a CD, FD, or SD entry"; 2023 removed the communication facility, so §13.18.33.3 SR2 names
+    /// subject list is "a CD, FD, or SD entry"; 2023 removed the communication facility, so §2023:13.18.33.3 SR2 names
     /// only FD and SD). Same permitted set as <see cref="FileRecord"/>, its own sentence and citation.</summary>
     CommunicationRecord,
 
-    /// <summary>§13.18.33.3 SR5 — a data description entry in the WORKING-STORAGE, LOCAL-STORAGE or LINKAGE
+    /// <summary>§2023:13.18.33.3 SR5 — a data description entry in the WORKING-STORAGE, LOCAL-STORAGE or LINKAGE
     /// section. The only arm that admits 77.</summary>
     NoncontiguousCapable,
 
-    /// <summary>§13.18.33.3 SR4 — a report group description entry subordinate to an RD entry.</summary>
+    /// <summary>§2023:13.18.33.3 SR4 — a report group description entry subordinate to an RD entry.</summary>
     ReportGroup,
 
-    /// <summary>§13.18.33.3 SR6 — a screen description entry.</summary>
+    /// <summary>§2023:13.18.33.3 SR6 — a screen description entry.</summary>
     ScreenItem,
 }
 
 /// <summary>
-/// Which of the four ISO §13.16.2 general formats a DATA DESCRIPTION entry's BODY is written in. Decided from the
-/// BODY alone and never from the level-number, because the level-number is precisely what §13.18.33.4 GR2 and
-/// §13.16.3 SR1 constrain — using it as the evidence would make every one of those rules vacuous.
+/// Which of the four ISO §2023:13.16.2 general formats a DATA DESCRIPTION entry's BODY is written in. Decided from the
+/// BODY alone and never from the level-number, because the level-number is precisely what §2023:13.18.33.4 GR2 and
+/// §2023:13.16.3 SR1 constrain — using it as the evidence would make every one of those rules vacuous.
 /// </summary>
 internal enum EntryBodyForm
 {
-    /// <summary>The §13.10 constant entry (<c>01 name CONSTANT AS literal</c>) — not a §13.16 data description
-    /// entry at all; its level rule is §13.10.2 and lives with the constant bind.</summary>
+    /// <summary>The §2023:13.10 constant entry (<c>01 name CONSTANT AS literal</c>) — not a §2023:13.16 data description
+    /// entry at all; its level rule is §2023:13.10.2 and lives with the constant bind.</summary>
     Constant,
 
-    /// <summary>§13.16.2 Format 2, the renames format: a <c>RENAMES</c> clause body.</summary>
+    /// <summary>§2023:13.16.2 Format 2, the renames format: a <c>RENAMES</c> clause body.</summary>
     Renames,
 
-    /// <summary>§13.16.2 Formats 3 and 4, the condition-name and validation formats: <c>88 [condition-name]
+    /// <summary>§2023:13.16.2 Formats 3 and 4, the condition-name and validation formats: <c>88 [condition-name]
     /// value-clause .</c> — a body whose clauses are ALL value clauses, and at least one.</summary>
     ValueOnly,
 
-    /// <summary>§13.16.2 Format 1, the data-description format: anything else.</summary>
+    /// <summary>§2023:13.16.2 Format 1, the data-description format: anything else.</summary>
     DataDescription,
 }
 
 /// <summary>
 /// THE level-number rule, written down ONCE. Two axes constrain a level-number and they are independent:
 /// <list type="bullet">
-/// <item>the SECTION the entry lives in — ISO §13.18.33.3 SR2 / SR4 / SR5 / SR6, four different permitted sets;</item>
-/// <item>the general FORMAT the entry is written in — §13.18.33.4 GR2b/GR2c ("may be used only as described by …")
-/// and §13.16.3 SR1 ("Level-number may be 77 or 1 through 49" for a format-1 entry), plus §13.16.3 SR2's
+/// <item>the SECTION the entry lives in — ISO §2023:13.18.33.3 SR2 / SR4 / SR5 / SR6, four different permitted sets;</item>
+/// <item>the general FORMAT the entry is written in — §2023:13.18.33.4 GR2b/GR2c ("may be used only as described by …")
+/// and §2023:13.16.3 SR1 ("Level-number may be 77 or 1 through 49" for a format-1 entry), plus §2023:13.16.3 SR2's
 /// obligation that a 77 entry name itself.</item>
 /// </list>
 /// Four grammar rules spell a level-number (<c>dataDescriptionEntry</c>, <c>reportGroupEntry</c>, the report
@@ -71,45 +71,45 @@ internal enum EntryBodyForm
 /// </summary>
 internal static class LevelNumberRules
 {
-    /// <summary>One SECTION arm: the verbatim §13.18.33.3 requirement sentence, its rule number, and the SPECIAL
-    /// level-numbers it admits on top of the universal 1–49 range (§13.18.33.1).</summary>
+    /// <summary>One SECTION arm: the verbatim §2023:13.18.33.3 requirement sentence, its rule number, and the SPECIAL
+    /// level-numbers it admits on top of the universal 1–49 range (§2023:13.18.33.1).</summary>
     /// <param name="Citation">The rule's printed citation, edition-qualified, as the diagnostic quotes it.</param>
-    /// <param name="Requirement">The rule sentence, verbatim from §13.18.33.3 but for its leading capital — the
+    /// <param name="Requirement">The rule sentence, verbatim from §2023:13.18.33.3 but for its leading capital — the
     /// diagnostic quotes the standard rather than paraphrasing it.</param>
-    /// <param name="Specials">The special level-numbers this arm admits (§13.18.33.4 GR2). 1–49 is universal.</param>
+    /// <param name="Specials">The special level-numbers this arm admits (§2023:13.18.33.4 GR2). 1–49 is universal.</param>
     internal readonly record struct Arm(string Citation, string Requirement, int[] Specials)
     {
-        /// <summary>§13.18.33.1: "Level numbers 1 through 49 indicate the position of a data item or screen item
+        /// <summary>§2023:13.18.33.1: "Level numbers 1 through 49 indicate the position of a data item or screen item
         /// within the hierarchical structure … In addition, level numbers 66, 77, and 88 are used to identify
         /// special entries." The 1–49 range is common to every arm; <see cref="Specials"/> is the difference.</summary>
         internal bool Permits(int level) => level is >= 1 and <= 49 || Array.IndexOf(Specials, level) >= 0;
     }
 
-    /// <summary>The §13.18.33.3 table. §13.18.33.3 SR3 ("A level-number in the range of 1 through 9 may be
+    /// <summary>The §2023:13.18.33.3 table. §2023:13.18.33.3 SR3 ("A level-number in the range of 1 through 9 may be
     /// specified as 01 through 09") needs no row: it is a SPELLING permission, honoured by the VALUE screen, and the
-    /// two-digit bound on the spelling (§8.3.2.2.13) is <see cref="LevelNumberPass.VisitLevelNumber"/>'s length test.</summary>
+    /// two-digit bound on the spelling (§2023:8.3.2.2.13) is <see cref="LevelNumberPass.VisitLevelNumber"/>'s length test.</summary>
     private static readonly Dictionary<LevelNumberArm, Arm> Table = new()
     {
-        [LevelNumberArm.FileRecord] = new("ISO §13.18.33.3 SR2",
+        [LevelNumberArm.FileRecord] = new("ISO §2023:13.18.33.3 SR2",
             "data description entries subordinate to a FD or SD entry shall have level-numbers with the values "
             + "66, 88, or 1 through 49", [66, 88]),
         [LevelNumberArm.CommunicationRecord] = new("ISO/IEC 1989:2002 13.16.31 SR2",
             "data description entries subordinate to a CD entry shall have level-numbers with the values "
             + "66, 88, or 1 through 49", [66, 88]),
-        [LevelNumberArm.NoncontiguousCapable] = new("ISO §13.18.33.3 SR5",
+        [LevelNumberArm.NoncontiguousCapable] = new("ISO §2023:13.18.33.3 SR5",
             "data description entries in the working-storage section, local-storage section, and linkage section "
             + "shall have level-numbers 66, 77, 88, or 1 through 49", [66, 77, 88]),
-        [LevelNumberArm.ReportGroup] = new("ISO §13.18.33.3 SR4",
+        [LevelNumberArm.ReportGroup] = new("ISO §2023:13.18.33.3 SR4",
             "report group description entries that are subordinate to an RD entry shall have level-numbers with "
             + "the values 1 through 49", []),
-        [LevelNumberArm.ScreenItem] = new("ISO §13.18.33.3 SR6",
+        [LevelNumberArm.ScreenItem] = new("ISO §2023:13.18.33.3 SR6",
             "screen description entries shall have level-numbers 1 through 49", []),
     };
 
     /// <summary>The rule for <paramref name="arm"/>.</summary>
     internal static Arm For(LevelNumberArm arm) => Table[arm];
 
-    /// <summary>Which §13.18.33.3 arm governs this <c>levelNumber</c> node — decided by the entry rule that spells
+    /// <summary>Which §2023:13.18.33.3 arm governs this <c>levelNumber</c> node — decided by the entry rule that spells
     /// it and, for a data description entry, by the SECTION that contains the entry. A <see langword="null"/>
     /// result means the grammar grew an arm this table does not know; the screen then stays silent (never
     /// over-rejects) and <c>LevelNumberArmDriftTests</c> fails, which is the mechanism that keeps this current.</summary>
@@ -126,8 +126,8 @@ internal static class LevelNumberRules
             _ => null,
         },
         CobolParserCore.ReportGroupEntryContext => LevelNumberArm.ReportGroup,
-        // A constant entry standing in the REPORT SECTION (§13.8.2, kb/Work PB1226) is a §13.10 entry, not a
-        // report group description entry, so §13.18.33.3 SR4 does not speak about it; its level rule is §13.10.2's
+        // A constant entry standing in the REPORT SECTION (§2023:13.8.2, kb/Work PB1226) is a §2023:13.10 entry, not a
+        // report group description entry, so §2023:13.18.33.3 SR4 does not speak about it; its level rule is §2023:13.10.2's
         // `{1 | 01}` and is reported where the constant is bound (ConstantEntryBinder.BindConstantEntry), exactly as for a
         // constant in any other section (CheckEntryFormat's Constant arm).
         CobolParserCore.ConstantEntryContext => null,
@@ -135,7 +135,7 @@ internal static class LevelNumberRules
         _ => null,
     };
 
-    /// <summary>Which §13.16.2 general format the entry's BODY is written in. Read from the body only — see
+    /// <summary>Which §2023:13.16.2 general format the entry's BODY is written in. Read from the body only — see
     /// <see cref="EntryBodyForm"/> for why the level-number may not participate.</summary>
     internal static EntryBodyForm BodyForm(CobolParserCore.DataDescriptionEntryContext entry)
     {
@@ -143,7 +143,7 @@ internal static class LevelNumberRules
         if (body?.constantEntryBody() is not null) return EntryBodyForm.Constant;
         if (body?.renamesClause() is not null) return EntryBodyForm.Renames;
         var clauses = body?.dataDescriptionClauses()?.dataDescriptionClause();
-        // §13.16.2 Formats 3 and 4 are `88 [condition-name] value-clause .` — a value clause and nothing else.
+        // §2023:13.16.2 Formats 3 and 4 are `88 [condition-name] value-clause .` — a value clause and nothing else.
         // The grammar folds the condition-name, table and content-validation VALUE spellings into one
         // `valueClause` rule, so "every clause is a value clause" is the whole test. An entry with NO clauses is
         // not format 3 or 4 either: both formats require the value-clause.
@@ -152,8 +152,8 @@ internal static class LevelNumberRules
             : EntryBodyForm.DataDescription;
     }
 
-    /// <summary>Does this entry's VALUE clause carry §13.18.63.2 format 5's <c>{ INVALID | VALID }</c> phrase —
-    /// the phrase that makes the entry a §13.16.2 FORMAT 4 (validation) entry rather than a format 3?
+    /// <summary>Does this entry's VALUE clause carry §2023:13.18.63.2 format 5's <c>{ INVALID | VALID }</c> phrase —
+    /// the phrase that makes the entry a §2023:13.16.2 FORMAT 4 (validation) entry rather than a format 3?
     /// <para>It is what decides whether the condition-name may be omitted, because format 4 is the only one of
     /// the two that brackets the name, and format 4's value-clause is format 5 (a required choice per the
     /// printed figure). The A.4.14 validation facility itself is DECLINED and refused by name at bind
@@ -166,21 +166,21 @@ internal static class LevelNumberRules
             && Array.Exists(clauses, c => c.valueClause()?.validateValidPhrase() is not null);
     }
 
-    /// <summary>The NAME obligation of the §13.16.2 format this entry is written in — the requirement text when
+    /// <summary>The NAME obligation of the §2023:13.16.2 format this entry is written in — the requirement text when
     /// the entry's name slot breaks it, <see langword="null"/> when it does not. The ONE place the rule lives
-    /// (kb/Work PB849): every format is read off its printed figure (§13.16.2, PDF p394 rendered), so a new
+    /// (kb/Work PB849): every format is read off its printed figure (§2023:13.16.2, PDF p394 rendered), so a new
     /// level-number format is one more arm here, not one more hand-written case in the pass.
     /// <list type="bullet">
     /// <item>Format 1 is <c>level-number [ entry-name-clause ]</c>: the entry-name clause — data-name OR FILLER
-    /// (§13.18.20.3 SR3) — and it may be omitted (§13.16.3 SR4). Only level 77 narrows it: §13.16.3 SR2, "The
+    /// (§2023:13.18.20.3 SR3) — and it may be omitted (§2023:13.16.3 SR4). Only level 77 narrows it: §2023:13.16.3 SR2, "The
     /// data-name format of the entry-name clause shall be specified if level-number is 77", and an omitted
     /// entry-name is the filler format by SR4.</item>
-    /// <item>Format 2 is <c>66 data-name-1 RENAMES …</c> (also §13.18.45.2) — data-name-1 printed UNBRACKETED and
+    /// <item>Format 2 is <c>66 data-name-1 RENAMES …</c> (also §2023:13.18.45.2) — data-name-1 printed UNBRACKETED and
     /// NOT as an entry-name clause, so neither omission nor FILLER (the entry-name clause's filler format,
-    /// §13.18.20.2 format 3, which only format 1 carries) is the format.</item>
+    /// §2023:13.18.20.2 format 3, which only format 1 carries) is the format.</item>
     /// <item>Format 3 is <c>88 condition-name-1 value-clause .</c> — the name unbracketed; format 4 is
-    /// <c>88 [ condition-name-2 ] value-clause .</c>, whose value-clause is §13.18.63.2 format 5 with its
-    /// required <c>{ INVALID | VALID }</c> choice. So a nameless 88 is legal only with that phrase (§13.16.3
+    /// <c>88 [ condition-name-2 ] value-clause .</c>, whose value-clause is §2023:13.18.63.2 format 5 with its
+    /// required <c>{ INVALID | VALID }</c> choice. So a nameless 88 is legal only with that phrase (§2023:13.16.3
     /// SR24, "Format 3 or 4 is used for each condition-name"), and FILLER is never a condition-name in
     /// either.</item>
     /// </list></summary>
@@ -192,22 +192,22 @@ internal static class LevelNumberRules
         {
             77 when name is null || isFiller =>
                 "the data-name format of the entry-name clause shall be specified if level-number is 77 — a "
-                + "noncontiguous item cannot be FILLER, explicitly or by omission (ISO §13.16.3 SR2, SR4)",
+                + "noncontiguous item cannot be FILLER, explicitly or by omission (ISO §2023:13.16.3 SR2, SR4)",
             66 when name is null || isFiller =>
                 "the renames format of the data description entry is written `66 data-name-1 RENAMES …` and "
                 + "names data-name-1 unconditionally; it carries no entry-name clause, so the entry can be "
-                + "neither unnamed nor FILLER (ISO §13.16.2 format 2, §13.18.45.2, §13.18.33.4 GR2b)",
+                + "neither unnamed nor FILLER (ISO §2023:13.16.2 format 2, §2023:13.18.45.2, §2023:13.18.33.4 GR2b)",
             88 when isFiller =>
                 "a condition-name entry names a condition-name — `88 condition-name-1 value-clause .` or "
                 + "`88 [condition-name-2] value-clause .` — and carries no entry-name clause, so FILLER, the "
                 + "entry-name clause's filler format, is not a name either format admits "
-                + "(ISO §13.16.2 formats 3 and 4, §13.18.20.2 format 3, §13.16.3 SR24)",
+                + "(ISO §2023:13.16.2 formats 3 and 4, §2023:13.18.20.2 format 3, §2023:13.16.3 SR24)",
             88 when name is null && !HasContentValidationPhrase(entry) =>
                 "the condition-name format of the data description entry is written `88 condition-name-1 "
                 + "value-clause .` and names condition-name-1 unconditionally; only the validation format, "
                 + "`88 [condition-name-2] value-clause .`, may omit it, and its value clause requires the "
                 + "INVALID or VALID phrase, which this entry has not got — so this entry is neither format "
-                + "(ISO §13.16.2 formats 3 and 4, §13.18.63.2 format 5, §13.16.3 SR24)",
+                + "(ISO §2023:13.16.2 formats 3 and 4, §2023:13.18.63.2 format 5, §2023:13.16.3 SR24)",
             _ => null,
         };
     }
@@ -225,7 +225,7 @@ internal static class LevelNumberRules
 }
 
 /// <summary>
-/// The LEVEL-NUMBER pass — ISO §13.18.33 (the level-number clause) and the two §13.16.3 rules that state the same
+/// The LEVEL-NUMBER pass — ISO §2023:13.18.33 (the level-number clause) and the two §2023:13.16.3 rules that state the same
 /// obligation at the data description entry. A SIBLING to <see cref="ExpressionFormationPass"/> on that pass's own
 /// stated precedent ("giving non-edition syntax-rule conformance its own home is also what makes the NEXT such rule
 /// automatic instead of adding a fourth place to remember").
@@ -234,16 +234,16 @@ internal static class LevelNumberRules
 /// <c>DataBinder</c> read the number with a bare <c>int.TryParse</c> and no test of any kind, so <c>78 K VALUE 5.</c>
 /// (a MicroFocus/GnuCOBOL extension ISO does not define) bound as a memberless GROUP nested under whatever entry
 /// preceded it — because 78 exceeds every open level — compiled clean in the strict <c>--std 2023</c> lane, and
-/// threw <c>NotImplementedCobolFeatureException</c> at RUN time on any numeric use. §4.2.2 requires "a warning
+/// threw <c>NotImplementedCobolFeatureException</c> at RUN time on any numeric use. §2023:4.2.2 requires "a warning
 /// mechanism … to indicate violations of the general formats and the explicit syntax rules" at COMPILE time; a
 /// run-time abort is not that. <c>50 BAD PIC X(3).</c> and a twelve-digit level ran clean too, and on the FORMAT
 /// axis <c>05 R RENAMES A THRU B.</c> reached the emitter and produced uncompilable C#. kb/Work PB485.</para>
 ///
 /// <para><b>Two axes, one screen.</b> A level-number is constrained by the SECTION its entry lives in
-/// (§13.18.33.3, four different sets — 77 is legal in working-storage and illegal in a record area) and,
-/// independently, by the general FORMAT the entry is written in (§13.18.33.4 GR2b/GR2c: 66 "may be used only as
-/// described by the renames format", 88 "only … the condition-name format or the validation format"; §13.16.3 SR1:
-/// a format-1 entry's "Level-number may be 77 or 1 through 49"; §13.16.3 SR2: a 77 entry shall carry the data-name
+/// (§2023:13.18.33.3, four different sets — 77 is legal in working-storage and illegal in a record area) and,
+/// independently, by the general FORMAT the entry is written in (§2023:13.18.33.4 GR2b/GR2c: 66 "may be used only as
+/// described by the renames format", 88 "only … the condition-name format or the validation format"; §2023:13.16.3 SR1:
+/// a format-1 entry's "Level-number may be 77 or 1 through 49"; §2023:13.16.3 SR2: a 77 entry shall carry the data-name
 /// format of the entry-name clause). Both axes ask one question about one token, so both live here. The format
 /// axis is decided from the entry BODY and never from the level-number — see <see cref="EntryBodyForm"/>.</para>
 ///
@@ -272,15 +272,15 @@ internal static class LevelNumberRules
 /// </summary>
 internal sealed class LevelNumberPass(IDiagnosticSink sink) : CursorFollowingVisitor(sink)
 {
-    /// <summary>ISO §8.3.2.2.13 — "A level-number, expressed as a one-digit or two-digit number".</summary>
+    /// <summary>ISO §2023:8.3.2.2.13 — "A level-number, expressed as a one-digit or two-digit number".</summary>
     private const int MaxLevelNumberDigits = 2;
 
     /// <summary>Screen every level-number in the group's raw parse tree.</summary>
     internal static void Run(CobolParserCore.CompilationUnitContext tree, IDiagnosticSink sink) =>
         new LevelNumberPass(sink).VisitPositioned(tree);
 
-    /// <summary>ISO §13.18.33.3 SR2 / SR4 / SR5 / SR6 (the section axis) and, for a data description entry,
-    /// §13.18.33.4 GR2b/GR2c + §13.16.3 SR1/SR2 (the format axis).</summary>
+    /// <summary>ISO §2023:13.18.33.3 SR2 / SR4 / SR5 / SR6 (the section axis) and, for a data description entry,
+    /// §2023:13.18.33.4 GR2b/GR2c + §2023:13.16.3 SR1/SR2 (the format axis).</summary>
     public override object? VisitLevelNumber(CobolParserCore.LevelNumberContext ctx)
     {
         if (LevelNumberRules.Classify(ctx) is { } armKind)
@@ -291,15 +291,15 @@ internal sealed class LevelNumberPass(IDiagnosticSink sink) : CursorFollowingVis
             // unparseable case takes the same diagnostic rather than a second mechanism.
             bool known = int.TryParse(text, out int level);
             var arm = LevelNumberRules.For(armKind);
-            // ⛔ THE SPELLING IS PART OF THE RULE (kb/Work PB1246). §8.3.2.2.13: "A level-number, expressed as a
-            // one-digit or two-digit number" — and §13.18.33.3 SR3 grants exactly one leading-zero form, "A
+            // ⛔ THE SPELLING IS PART OF THE RULE (kb/Work PB1246). §2023:8.3.2.2.13: "A level-number, expressed as a
+            // one-digit or two-digit number" — and §2023:13.18.33.3 SR3 grants exactly one leading-zero form, "A
             // level-number in the range of 1 through 9 may be specified as 01 through 09". `001` has the VALUE 1
             // and is no level-number at all, so the value test below cannot see it; the grammar's INTEGERLIT takes
             // any digit run, which is why the length is asked here, in the one place every arm's level-number passes.
             if (text.Length > MaxLevelNumberDigits)
                 Report(ctx, DiagnosticCatalog.LevelNumberOutOfRange, text,
                     "a level-number is expressed as a one-digit or two-digit number, and a level-number in the "
-                    + "range of 1 through 9 may be specified as 01 through 09 (ISO §8.3.2.2.13, §13.18.33.3 SR3)");
+                    + "range of 1 through 9 may be specified as 01 through 09 (ISO §2023:8.3.2.2.13, §2023:13.18.33.3 SR3)");
             else if (!known || !arm.Permits(level))
                 Report(ctx, DiagnosticCatalog.LevelNumberOutOfRange, text,
                     $"{arm.Requirement} ({arm.Citation})");
@@ -309,22 +309,22 @@ internal sealed class LevelNumberPass(IDiagnosticSink sink) : CursorFollowingVis
         return base.VisitChildren(ctx);
     }
 
-    /// <summary>The data description entry is the only one of the four arms §13.16.3 and §13.18.33.4 GR2 speak
+    /// <summary>The data description entry is the only one of the four arms §2023:13.16.3 and §2023:13.18.33.4 GR2 speak
     /// about — a report group entry, a screen entry and a procedure parameter are not data description entries,
     /// so the format axis stops here rather than being asserted of constructs the clauses never name.</summary>
     private void CheckEntryFormat(CobolParserCore.LevelNumberContext ctx, CobolParserCore.DataDescriptionEntryContext entry, string text, int level)
     {
         switch (LevelNumberRules.BodyForm(entry), level)
         {
-            // A §13.10 CONSTANT entry is NOT a §13.16 data description entry — it allocates no storage and is a
+            // A §2023:13.10 CONSTANT entry is NOT a §2023:13.16 data description entry — it allocates no storage and is a
             // compile-time substitution — so none of the format rules below speak about it. Its own level rule is
-            // §13.10.2, enforced where the constant is bound (ConstantEntryBinder.cs). Without this arm a
+            // §2023:13.10.2, enforced where the constant is bound (ConstantEntryBinder.cs). Without this arm a
             // mis-leveled constant entry would draw a RENAMES-format message about a construct that has no
             // formats, which is a worse diagnostic than none.
             case (EntryBodyForm.Constant, _):
                 break;
 
-            // §13.16.2 Format 2 is written `66 data-name-1 RENAMES …`, and §13.18.33.4 GR2b: "Level-number 66 is
+            // §2023:13.16.2 Format 2 is written `66 data-name-1 RENAMES …`, and §2023:13.18.33.4 GR2b: "Level-number 66 is
             // assigned to identify RENAMES entries and may be used only as described by the renames format of the
             // data description entry." A renames body under any other level reached the EMITTER and produced
             // uncompilable C# (`_T_0 does not contain a definition for 'R'`) — kb/Work PB485.
@@ -332,20 +332,20 @@ internal sealed class LevelNumberPass(IDiagnosticSink sink) : CursorFollowingVis
                 Report(ctx, DiagnosticCatalog.LevelNumberEntryFormat, text,
                     "level-number 66 is assigned to identify RENAMES entries and may be used only as described "
                     + "by the renames format of the data description entry, which is written `66 data-name-1 "
-                    + "RENAMES …` (ISO §13.18.33.4 GR2b, §13.16.2 format 2)");
+                    + "RENAMES …` (ISO §2023:13.18.33.4 GR2b, §2023:13.16.2 format 2)");
                 break;
 
-            // §13.18.33.4 GR2b again, the other direction: a level-66 entry that is not a renames entry is a
-            // format-1 entry at 66, which §13.16.3 SR1 ("Level-number may be 77 or 1 through 49") forbids.
+            // §2023:13.18.33.4 GR2b again, the other direction: a level-66 entry that is not a renames entry is a
+            // format-1 entry at 66, which §2023:13.16.3 SR1 ("Level-number may be 77 or 1 through 49") forbids.
             case (not EntryBodyForm.Renames, 66):
                 Report(ctx, DiagnosticCatalog.LevelNumberEntryFormat, text,
                     "level-number 66 is assigned to identify RENAMES entries and may be used only as described "
                     + "by the renames format of the data description entry; this entry has no RENAMES clause, so "
                     + "it is a format-1 entry, whose level-number may be 77 or 1 through 49 "
-                    + "(ISO §13.18.33.4 GR2b, §13.16.3 SR1)");
+                    + "(ISO §2023:13.18.33.4 GR2b, §2023:13.16.3 SR1)");
                 break;
 
-            // §13.18.33.4 GR2c: "Level-number 88 … may be used only as described by the condition-name format or
+            // §2023:13.18.33.4 GR2c: "Level-number 88 … may be used only as described by the condition-name format or
             // the validation format of the data description entry." Both formats are `88 [condition-name]
             // value-clause .` — a value clause and nothing else.
             case (not EntryBodyForm.ValueOnly, 88):
@@ -354,20 +354,20 @@ internal sealed class LevelNumberPass(IDiagnosticSink sink) : CursorFollowingVis
                     + "validation format of the data description entry, and both are written `88 "
                     + "[condition-name] value-clause .`; this entry's body is not a value clause alone, so it is "
                     + "a format-1 entry, whose level-number may be 77 or 1 through 49 "
-                    + "(ISO §13.18.33.4 GR2c, §13.16.2 formats 3 and 4, §13.16.3 SR1)");
+                    + "(ISO §2023:13.18.33.4 GR2c, §2023:13.16.2 formats 3 and 4, §2023:13.16.3 SR1)");
                 break;
 
-            // §13.16.2 Format 3, THE OTHER HALF OF THE ARM ABOVE (kb/Work PB501). That arm asks whether the body
+            // §2023:13.16.2 Format 3, THE OTHER HALF OF THE ARM ABOVE (kb/Work PB501). That arm asks whether the body
             // is a value clause and nothing else; this asks whether the entry has the NAME its format requires.
             // RENDERED from the printed page (folio 364 / PDF p394, `scripts/render-spec-page.py 394`), because
             // the whole verdict turns on a bracket:
             //     Format 3 (condition-name):  88 condition-name-1 value-clause .      ← NOT bracketed: required
             //     Format 4 (validation):      88 [ condition-name-2 ] value-clause .  ← bracketed: optional
-            // Format 4's licence to omit the name is not free-standing: its value-clause is §13.18.63.2's
+            // Format 4's licence to omit the name is not free-standing: its value-clause is §2023:13.18.63.2's
             // format 5 (content-validation-entry), whose figure ends in a REQUIRED `{ INVALID | VALID }` choice
             // (the transcription's figure note says so in those words, and the phrase has its own grammar rule,
             // `validateValidPhrase`). So a nameless 88 whose VALUE clause carries no VALID/INVALID phrase is
-            // neither format, and §13.16.3 SR24 — "Format 3 or 4 is used for each condition-name" — leaves no
+            // neither format, and §2023:13.16.3 SR24 — "Format 3 or 4 is used for each condition-name" — leaves no
             // third possibility.
             // It was accepted at every edition and the entry then EVAPORATED: DataBinder.BindCondition's first
             // statement returns on a missing data-name, so `88 VALUE 1.` parsed (VALUE opens the value clause,

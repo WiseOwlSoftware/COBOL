@@ -16,7 +16,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ EVERY FILE DESCRIPTION ENTRY THAT CAN BE OPENED WITH DATA HAS A RECORD AREA — including the one ISO
-/// §13.4.5.3 SR3 lets you write with NO record description entries. §14.9.30.4 GR6 says what that area is: a READ
+/// §2023:13.4.5.3 SR3 lets you write with NO record description entries. §2023:14.9.30.4 GR6 says what that area is: a READ
 /// INTO on such a file "proceeds as though there were one record description entry describing an alphanumeric
 /// group item of the maximum size established by the RECORD clause", and
 /// <c>FileControlBinder.MaterializeImpliedRecord</c> makes that entry real at bind time
@@ -31,11 +31,11 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 public sealed class ImpliedRecordDescriptionDriftTests
 {
-    /// <summary>The §14.9.30.4 GR6 entry, on BOTH organizations SR7 leaves it legal for (sequential and
+    /// <summary>The §2023:14.9.30.4 GR6 entry, on BOTH organizations SR7 leaves it legal for (sequential and
     /// relative), for each of the three RECORD clause formats that establish a maximum: format 1's integer-1,
     /// format 2's integer-3 and format 3's integer-5.</summary>
     [Theory]
-    [InlineData("SEQUENTIAL", "RECORD CONTAINS 20 CHARACTERS", 20)]              // §13.18.43.2 format 1
+    [InlineData("SEQUENTIAL", "RECORD CONTAINS 20 CHARACTERS", 20)]              // §2023:13.18.43.2 format 1
     [InlineData("SEQUENTIAL", "RECORD IS VARYING IN SIZE FROM 1 TO 30", 30)]     // format 2, integer-3
     [InlineData("SEQUENTIAL", "RECORD CONTAINS 5 TO 20 CHARACTERS", 20)]         // format 3, integer-5
     [InlineData("RELATIVE", "RECORD CONTAINS 5 CHARACTERS", 5)]
@@ -44,14 +44,14 @@ public sealed class ImpliedRecordDescriptionDriftTests
         var file = Single(Bind(org, recordClause));
         var area = file.AreaRecord;
         Assert.NotNull(area);
-        // GR6 says "an alphanumeric GROUP item", and the word is observable: §14.9.25.4 GR4's second paragraph
+        // GR6 says "an alphanumeric GROUP item", and the word is observable: §2023:14.9.25.4 GR4's second paragraph
         // makes a group sender's implicit MOVE an alphanumeric-to-alphanumeric elementary move, where an
         // elementary alphanumeric sender to a numeric receiver would instead convert. So a group it must be.
         Assert.False(area!.IsElementary);
         Assert.True(area.IsGroup);
         Assert.Equal(width, file.RecordWidth);
         // The entry is IMPLIED, so it carries no record-name and the program cannot reference it — which is
-        // exactly why §13.4.5.3 SR3 b) and c) require the FILE … FROM and INTO phrases on the verbs.
+        // exactly why §2023:13.4.5.3 SR3 b) and c) require the FILE … FROM and INTO phrases on the verbs.
         Assert.Null(area.CobolName);
     }
 

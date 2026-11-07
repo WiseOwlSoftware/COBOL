@@ -5,25 +5,25 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.44.4 GR6 (SUBTRACT) is a POINTER rule — "The following specifications apply: 14.7.4 ROUNDED
+      *> ISO §2023:14.9.44.4 GR6 (SUBTRACT) is a POINTER rule — "The following specifications apply: 14.7.4 ROUNDED
       *> phrase, 14.7.5 SIZE ERROR phrase and size error condition, 14.7.6 CORRESPONDING phrase, 14.7.7 Arithmetic
       *> statements, 14.6.13.2 Incompatible data" — so it is verified by verifying that each referenced
-      *> specification applies ON SUBTRACT. §14.7.4 / §14.7.5 / §14.7.6 / §14.7.7 are pinned elsewhere
-      *> (conformance:cases/14.9.2-ADD/optional_on_size_error for the SIZE ERROR leg); THIS golden is the §14.6.13.2 leg, which
+      *> specification applies ON SUBTRACT. §2023:14.7.4 / §2023:14.7.5 / §2023:14.7.6 / §2023:14.7.7 are pinned elsewhere
+      *> (conformance:cases/14.9.2-ADD/optional_on_size_error for the SIZE ERROR leg); THIS golden is the §2023:14.6.13.2 leg, which
       *> had no covering case for any verb.
       *>
-      *> §14.6.13.2 rule 2: "When the content of a numeric sending item that is not described with a standard
+      *> §2023:14.6.13.2 rule 2: "When the content of a numeric sending item that is not described with a standard
       *> floating-point usage is referenced during the execution of a statement and the content of that sending
       *> operand would evaluate to false in a numeric class condition, the result of the reference is undefined
       *> and an EC-DATA-INCOMPATIBLE exception condition is set to exist" — the rule hangs on the SENDING-OPERAND
       *> REFERENCE, not on a statement kind, so SUBTRACT raises it exactly as MOVE does. Table 13 makes it FATAL;
-      *> the declarative's RESUME AT NEXT STATEMENT (§14.9.33.4 GR2) abandons the SUBTRACT and keeps the run unit
+      *> the declarative's RESUME AT NEXT STATEMENT (§2023:14.9.33.4 GR2) abandons the SUBTRACT and keeps the run unit
       *> alive. The rule leaves the result undefined, so T is NOT displayed until it is re-established.
       *>
       *> The second SUBTRACT is the control: the same window holding a valid numeric image raises nothing and
       *> stores 100 - 7 = 93, so a compiler that simply raised on every SUBTRACT would fail here.
       *>
-      *> 2002 is the introducing edition of the observable (>>TURN is a COBOL-2002 introduction, §7.3.25); see
+      *> 2002 is the introducing edition of the observable (>>TURN is a COBOL-2002 introduction, §2023:7.3.25); see
       *> conformance:cases/14.9.17-GO-TO/pb395-turn-data-incompatible-below-2002 for that gate.
        >>TURN EC-DATA-INCOMPATIBLE CHECKING ON
        IDENTIFICATION DIVISION.

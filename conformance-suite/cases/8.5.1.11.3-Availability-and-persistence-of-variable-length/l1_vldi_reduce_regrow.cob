@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §8.5.1.11.3 6) — freeing on reduction never alters results
+      *> ISO §2023:8.5.1.11.3 6) — freeing on reduction never alters results
       *> A dynamic-capacity table reduced explicitly (SET) and then
       *>     grown
       *> again, explicitly (SET UP) and implicitly (a receiving
@@ -19,29 +19,29 @@
       *> branch).
       *>
       *> THE RULES.
-      *> §8.5.1.11.3: resources "may be freed automatically when: ...
+      *> §2023:8.5.1.11.3: resources "may be freed automatically when: ...
       *>   6) the variable-length data item is explicitly or implicitly
       *>   reduced in size; 7) the variable-length data item is
       *>   overwritten with a new value.  The actual time when the
       *>   resources used by a variable-length data item are freed is
       *>   implementor-defined." with "this has no effect on the results
       *>   of the execution of the program."
-      *>   OK  §8.5.1.11.3 6) / 7) / persistence paragraph
-      *> §8.5.1.9.4: "If the capacity of the table is thereby reduced,
+      *>   OK  §2023:8.5.1.11.3 6) / 7) / persistence paragraph
+      *> §2023:8.5.1.9.4: "If the capacity of the table is thereby reduced,
       *>   the appropriate number of higher occurrences is deleted and
-      *>   any resources they were using are freed."    OK  §8.5.1.9.4
-      *> §14.9.39.4 GR30: a) TO sets the new capacity; b) UP adds;
+      *>   any resources they were using are freed."    OK  §2023:8.5.1.9.4
+      *> §2023:14.9.39.4 GR30: a) TO sets the new capacity; b) UP adds;
       *>   c) DOWN subtracts; "If the new capacity of the table is
       *>     greater
       *>   than the previous current capacity, new occurrences are
       *>     created
-      *>   and are initialized as described in 8.5.1.9.5". OK §14.9.39.4
+      *>   and are initialized as described in 8.5.1.9.5". OK §2023:14.9.39.4
       *>     30)
-      *> §8.5.1.9.3: a receiving subscript past the capacity creates the
+      *> §2023:8.5.1.9.3: a receiving subscript past the capacity creates the
       *>   element and raises the capacity; "new intermediate
       *>     occurrences
-      *>   are implicitly created."                       OK  §8.5.1.9.3
-      *> §8.5.1.9.5: with INITIALIZED, items "not referenced as
+      *>   are implicitly created."                       OK  §2023:8.5.1.9.3
+      *> §2023:8.5.1.9.5: with INITIALIZED, items "not referenced as
       *>     receiving
       *>   operands in a statement that creates new elements ... are
       *>     first
@@ -49,15 +49,15 @@
       *>     statement
       *>   of the form INITIALIZE ... WITH FILLER ALL TO VALUE THEN TO
       *>   DEFAULT".                                       OK
-      *>     §8.5.1.9.5
-      *> §14.9.20.4 GR5 c) 3. (DEFAULT is specified) / GR6 c): TE has
+      *>     §2023:8.5.1.9.5
+      *> §2023:14.9.20.4 GR5 c) 3. (DEFAULT is specified) / GR6 c): TE has
       *>   no VALUE clause, so it does not qualify through the VALUE
       *>   phrase, and its sender is the numeric default, figurative
       *>   ZEROES -> 000.
-      *> §8.5.1.9.1: FROM 1 makes the initial capacity 1 and the minimum
-      *>   1 (§13.18.38.4 GR16); no TO phrase, so no EC-BOUND-SET.
-      *> §8.5.1.10.4: "The new length of the dynamic-length elementary
-      *>   item is determined by the length of new content"; §15.50.4
+      *> §2023:8.5.1.9.1: FROM 1 makes the initial capacity 1 and the minimum
+      *>   1 (§2023:13.18.38.4 GR16); no TO phrase, so no EC-BOUND-SET.
+      *> §2023:8.5.1.10.4: "The new length of the dynamic-length elementary
+      *>   item is determined by the length of new content"; §2023:15.50.4
       *>   GR6: FUNCTION LENGTH returns that current length.
       *>
       *> DERIVATION (N is PIC 99).

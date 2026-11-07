@@ -5,15 +5,15 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO/IEC 1989:2023 §13.18.60.4 GR1 + GR11 — the USAGE clause's WITH NO SIGN phrase reaches an elementary
+      *> ISO/IEC 1989:2023 §2023:13.18.60.4 GR1 + GR11 — the USAGE clause's WITH NO SIGN phrase reaches an elementary
       *> item BY GROUP INHERITANCE exactly as it does when the entry writes the clause itself. GR1: "If the USAGE
       *> clause is specified or implied at a group level, it applies only to each elementary item in the group";
       *> GR11: "If the WITH NO SIGN phrase is specified the representation of the data item in the storage of the
       *> computer reserves no storage for representing any sign value ... the data item is always considered to
-      *> have a zero, or positive value". The phrase is part of the clause, not a clause of its own — §13.18.60.2
+      *> have a zero, or positive value". The phrase is part of the clause, not a clause of its own — §2023:13.18.60.2
       *> prints it inside one alternative, `PACKED-DECIMAL [ WITH NO SIGN ]` — so it travels wherever that clause
       *> travels: down the group (EG, and EG2 two levels down), through a TYPE reference to a TYPEDEF that wrote
-      *> it (§13.18.57.4 GR1), and through the §13.18.49.4 GR3 SAME-AS ancestor transform (SA).
+      *> it (§2023:13.18.57.4 GR1), and through the §2023:13.18.49.4 GR3 SAME-AS ancestor transform (SA).
       *> Widths DERIVED FROM THE RULE, not measured: PACKED-DECIMAL packs two digits per byte with a trailing sign
       *> nibble, so plain packed 9(n) is n/2+1 bytes and NO SIGN, reserving no sign storage, is ceil(n/2).
       *>   9(4): plain 3, NO SIGN 2.   9(6): NO SIGN 3.

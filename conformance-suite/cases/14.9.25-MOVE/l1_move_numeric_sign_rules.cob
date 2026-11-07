@@ -5,29 +5,29 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.25.4 GR6 d) 2. a. and b. MOVE statement — the SIGN rules for a numeric sending
+      *> ISO §2023:14.9.25.4 GR6 d) 2. a. and b. MOVE statement — the SIGN rules for a numeric sending
       *> operand ("When the sending operand is numeric, or is the numeric value produced by
       *> de-editing").
       *>   python scripts/spec/cite.py --check 14.9.25.4 "When a signed numeric item is the
       *>   receiving item, the sign of the numeric value shall be represented in the receiving
-      *>   operand."  ->  OK  §14.9.25.4 6) 1.  (General rules)
+      *>   operand."  ->  OK  §2023:14.9.25.4 6) 1.  (General rules)
       *>   python scripts/spec/cite.py --check 14.9.25.4 "When an unsigned numeric item is the
       *>   receiving item, the absolute value of the sending value is used, and no operational sign
-      *>   is generated for the receiving item."  ->  OK  §14.9.25.4 6) 1.  (General rules)
+      *>   is generated for the receiving item."  ->  OK  §2023:14.9.25.4 6) 1.  (General rules)
       *> (cite.py prints an APPROXIMATE rule path below two levels of nesting — the printed rule is
       *> 6) d) 2. a. / b., which is what the quoted text above pins.)
       *>
       *> ⛔ THE SIGN IS READ THROUGH AN EDITED ITEM, NEVER THROUGH A DISPLAY OF THE SIGNED ITEM.
       *> The representation of an operational sign on a USAGE DISPLAY item is an implementor
-      *> determination (§13.18.52, SIGN clause — the overpunch that move_group_overpunch pins), so a
+      *> determination (§2023:13.18.52, SIGN clause — the overpunch that move_group_overpunch pins), so a
       *> DISPLAY of a signed item would measure that choice and not this rule. PIC -999 is the
-      *> standard's own instrument: §13.18.40.5 rule 5, fixed insertion editing, Table 8 "Results of
+      *> standard's own instrument: §2023:13.18.40.5 rule 5, fixed insertion editing, Table 8 "Results of
       *> fixed insertion editing" gives the editing symbol '-' the result "space" for a positive or
       *> zero value and the minus character for a negative value.
       *>   python scripts/spec/cite.py --check 13.18.40.5 "Table 8, Results of fixed insertion
       *>   editing, shows the character(s) produced by an editing sign control symbol, depending on
-      *>   the value of the data item."  ->  OK  §13.18.40.5 5)  (Editing rules)
-      *> The §8.8.4.7 simple sign condition is the second, independent instrument: it "determines
+      *>   the value of the data item."  ->  OK  §2023:13.18.40.5 5)  (Editing rules)
+      *> The §2023:8.8.4.7 simple sign condition is the second, independent instrument: it "determines
       *> whether or not the algebraic value of an arithmetic expression is less than, greater than,
       *> or equal to zero", so it reads the stored VALUE rather than any rendering. Both are
       *> reported for each arm; a stored sign that failed to survive would break both.

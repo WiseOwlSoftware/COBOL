@@ -11,14 +11,14 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// replacing the late-mutated <c>StoreAsImage</c> flag and the recursive image-fact properties. A new representation
 /// is a NEW case (an exhaustive switch makes a missing arm a compile error, not a runtime loud-stmt).
 /// <para>The <c>Width</c> carried on the native cases is the item's CHARACTER-IMAGE width
-/// (<c>ElementaryImageWidth</c> = digit count + a separate-sign position, ISO §13.18.52) — precomputed at
+/// (<c>ElementaryImageWidth</c> = digit count + a separate-sign position, ISO §2023:13.18.52) — precomputed at
 /// construction so <see cref="ImageWidth"/> reproduces <c>DataItem.ImageWidth</c> from the form alone (the D0
 /// amendment, DEVLOG 749).</para>
 /// </summary>
 public abstract record StorageForm
 {
     /// <summary>Does this leaf contribute character positions to an enclosing group's image codec
-    /// (<c>AsImage()</c>/<c>FromImage()</c>, §14.4)? (An item-level query short-circuits on OCCURS DYNAMIC and
+    /// (<c>AsImage()</c>/<c>FromImage()</c>, §2023:14.4)? (An item-level query short-circuits on OCCURS DYNAMIC and
     /// recurses <c>Children.All</c> for a group — see <c>StorageFacts</c>.)</summary>
     public abstract bool IsCharacterImage { get; }
 
@@ -43,7 +43,7 @@ public abstract record StorageForm
 
     /// <summary>A C# <c>string</c> of exactly <paramref name="Width"/> characters — the ONE string-stored case:
     /// alphanumeric / numeric-edited / national / boolean, OR a numeric-DISPLAY (or Tier-B BINARY/PACKED) leaf
-    /// promoted to its zoned image because it is used under a whole-group operand (§14.9.25.4 GR4). <paramref
+    /// promoted to its zoned image because it is used under a whole-group operand (§2023:14.9.25.4 GR4). <paramref
     /// name="Category"/> is retained so the numeric pipeline decodes/encodes zoned images and so the promoted-numeric
     /// sub-case (<c>Category is Numeric</c>) equals the legacy <c>StoreAsImage</c>.</summary>
     public sealed record CharImage(int Width, PicCategory Category) : StorageForm
@@ -75,19 +75,19 @@ public abstract record StorageForm
         public override int ImageWidth => Element.ImageWidth;
     }
 
-    /// <summary>A DYNAMIC LENGTH elementary item (ISO §8.5.1.10 / §13.18.19; COBOL-2014) — a variable-length,
+    /// <summary>A DYNAMIC LENGTH elementary item (ISO §2023:8.5.1.10 / §2023:13.18.19; COBOL-2014) — a variable-length,
     /// minimum-length-zero native <c>string</c> whose current length varies at runtime. Never a fixed character
-    /// image: a dynamic-length item makes its enclosing group a VARIABLE-LENGTH group (§8.5.1.12), so an item-level
+    /// image: a dynamic-length item makes its enclosing group a VARIABLE-LENGTH group (§2023:8.5.1.12), so an item-level
     /// query short-circuits on it just like <see cref="DynamicTable"/>. <paramref name="Category"/> is Alphanumeric
-    /// (PIC X) or National (PIC N), §13.18.19.4 GR1. <paramref name="Limit"/> is the maximum character count from
-    /// the LIMIT phrase (§13.18.19.4 GR2), or -1 for the implementor-defined maximum (no explicit LIMIT).</summary>
+    /// (PIC X) or National (PIC N), §2023:13.18.19.4 GR1. <paramref name="Limit"/> is the maximum character count from
+    /// the LIMIT phrase (§2023:13.18.19.4 GR2), or -1 for the implementor-defined maximum (no explicit LIMIT).</summary>
     public sealed record DynamicString(PicCategory Category, int MaxSize) : StorageForm
     {
         public override bool IsCharacterImage => false;
         public override int ImageWidth => 0;
     }
 
-    /// <summary>A .NET object reference. Carries the WHOLE §13.18.60.2 description (kind × FACTORY × ONLY ×
+    /// <summary>A .NET object reference. Carries the WHOLE §2023:13.18.60.2 description (kind × FACTORY × ONLY ×
     /// name) rather than a class name, so the storage form and <c>PicInfo.ClrType</c> derive the emitted type
     /// from ONE place — <c>ObjectRefDescriptor.ClrTypeName</c> (kb/Work PB389; before it, the derivation was
     /// written twice and the FACTORY singleton type could not be spelled at all). Zero character positions.</summary>
@@ -104,7 +104,7 @@ public abstract record StorageForm
         public override int ImageWidth => 0;
     }
 
-    /// <summary>A program pointer (<c>ProgramPointer</c> — the address of an OUTERMOST program, ISO §13.18.60
+    /// <summary>A program pointer (<c>ProgramPointer</c> — the address of an OUTERMOST program, ISO §2023:13.18.60
     /// GR24; P10 Step 7). Zero character positions (representation is implementor-defined — this
     /// implementation's is the managed identity carrier, never storage bytes).</summary>
     public sealed record ProgramPointerRef : StorageForm
@@ -113,7 +113,7 @@ public abstract record StorageForm
         public override int ImageWidth => 0;
     }
 
-    /// <summary>A function pointer (<c>FunctionPointer</c> — the address of a function, ISO §13.18.60.4 GR26;
+    /// <summary>A function pointer (<c>FunctionPointer</c> — the address of a function, ISO §2023:13.18.60.4 GR26;
     /// kb/Work PB452/PB817). Zero character positions, exactly like its ProgramPointerRef twin (GR26 leaves the
     /// representation implementor-defined — this implementation's is the managed identity carrier).</summary>
     public sealed record FunctionPointerRef : StorageForm
@@ -122,7 +122,7 @@ public abstract record StorageForm
         public override int ImageWidth => 0;
     }
 
-    /// <summary>A message tag (<c>MessageTag</c> — ISO §13.18.60.4 GR9; kb/Work PB4740). Zero character positions, like
+    /// <summary>A message tag (<c>MessageTag</c> — ISO §2023:13.18.60.4 GR9; kb/Work PB4740). Zero character positions, like
     /// its function-pointer sibling (GR9 leaves the representation implementor-defined, DOC-A.1-212: the managed slot).</summary>
     public sealed record MessageTagRef : StorageForm
     {

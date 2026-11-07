@@ -4,11 +4,11 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.39.3 syntax rule 12 c)3.: "if the data item referenced by identifier-3 is
+      *> ISO §2023:14.9.39.3 syntax rule 12 c)3.: "if the data item referenced by identifier-3 is
       *> described without a FACTORY phrase, the method containing the SET statement shall be
       *> defined in the instance definition of its containing class."  Inside a FACTORY method
       *> SELF is the class's FACTORY object, and a receiver described with a bare
-      *> object-class-name holds an INSTANCE object (§13.18.60.4 GR22 d)1.b.).  SR12 c)2. is
+      *> object-class-name holds an INSTANCE object (§2023:13.18.60.4 GR22 d)1.b.).  SR12 c)2. is
       *> deliberately SATISFIED here — the containing class IS the receiver's class — so the
       *> class-relation test cannot be what rejects it.
       *> This is the arm that used to escape the binder entirely and die in the BACKEND with a

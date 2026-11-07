@@ -11,7 +11,7 @@ using CnFrontend = WiseOwl.Cobol.Frontend.Frontend;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The declaratives' STRUCTURAL syntax rules — ISO §14.9.49.3 SR1 (placement of USE), SR3/SR4 (the reference
+/// The declaratives' STRUCTURAL syntax rules — ISO §2023:14.9.49.3 SR1 (placement of USE), SR3/SR4 (the reference
 /// boundary between the declaratives portion and the rest), SR10/SR11 (the two restrictions on a USE BEFORE
 /// REPORTING procedure). kb/Work PB361, PB362, PB363: each compiled clean at every <c>--std</c> before, the
 /// misplaced USE then aborting the run unit as a "not implemented" feature.
@@ -195,7 +195,7 @@ public sealed class DeclarativesStructuralRulesTests
                    NONDECL-P.
                        ADD 1 TO N.
             """), level);
-        Assert.Equal(2, d.Count(x => x.Contains("COBOL2375") && x.Contains("§14.9.49.3 SR3")));
+        Assert.Equal(2, d.Count(x => x.Contains("COBOL2375") && x.Contains("§2023:14.9.49.3 SR3")));
         Assert.DoesNotContain(d, x => x.Contains("COBOL2376"));
     }
 
@@ -221,7 +221,7 @@ public sealed class DeclarativesStructuralRulesTests
     public void AReportWriterVerbInABeforeReportingProcedure_IsRefused(string statement)
     {
         var d = BindDiagnostics(ReportProgram(statement), 2023);
-        Assert.Single(d, x => x.Contains("COBOL2378") && x.Contains("§14.9.49.3 SR10"));
+        Assert.Single(d, x => x.Contains("COBOL2378") && x.Contains("§2023:14.9.49.3 SR10"));
     }
 
     [Theory]
@@ -234,7 +234,7 @@ public sealed class DeclarativesStructuralRulesTests
     public void AStoreIntoAControlDataItem_IsRefused(string statement)
     {
         var d = BindDiagnostics(ReportProgram(statement), 2023);
-        Assert.Single(d, x => x.Contains("COBOL2378") && x.Contains("§14.9.49.3 SR11"));
+        Assert.Single(d, x => x.Contains("COBOL2378") && x.Contains("§2023:14.9.49.3 SR11"));
     }
 
     /// <summary>The SR11 control: stores into other items conform, and a BY REFERENCE CALL argument is not an

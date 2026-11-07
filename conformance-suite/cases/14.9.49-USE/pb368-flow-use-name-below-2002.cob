@@ -5,13 +5,13 @@
       *> portable: unverified
       *>---
       *> The REJECT half of conformance:cases/14.9.49-USE/pb368_flow_use_reentrancy.
-      *> EC-FLOW-USE is the exception-name ISO §14.9.49.4 GR2 sets to
-      *> exist, and §14.6.13.1.6 Table 13 carries it as Fatal; both
+      *> EC-FLOW-USE is the exception-name ISO §2023:14.9.49.4 GR2 sets to
+      *> exist, and §2023:14.6.13.1.6 Table 13 carries it as Fatal; both
       *> belong to the exception-condition facility ISO/IEC 1989:2002
       *> introduced, so naming it in a declarative below COBOL-2002 is
       *> refused with the introduction-band diagnostic COBOL0878.
       *> This fixture carries NO >>TURN directive on purpose: that would
-      *> be refused first (COBOL0900 — the §7.3 directive facility is
+      *> be refused first (COBOL0900 — the §2023:7.3 directive facility is
       *> itself 2002+) and the case would pin the directive's gate
       *> instead of the NAME's, which is the thing kb/Work PB368 made
       *> raisable.  The USE format-3 header takes COBOL0877 on the

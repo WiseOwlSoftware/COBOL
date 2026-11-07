@@ -7,7 +7,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The invariant that keeps §14.9.28.4 GR14's "implicit PUSH ALL followed by TURN OFF ALL" COMPLETE as
+/// The invariant that keeps §2023:14.9.28.4 GR14's "implicit PUSH ALL followed by TURN OFF ALL" COMPLETE as
 /// exception conditions are added.
 ///
 /// <para><b>Why this test exists.</b> GR14 disables EVERY ambient checking flag for the duration of an
@@ -77,8 +77,8 @@ public sealed class ExceptionCheckingFlagsDriftTests
 
     /// <summary>kb/Work PB2745 — the AMBIENT STATEMENT CONTEXT has the flags' scope because it is part of the same value:
     /// a checking baseline (an activation, a USE procedure, a PERFORMed range) starts with no context, so a raise there
-    /// answers §15.32.3 r1's spaces rather than the activating statement's name, and the restore brings the activating
-    /// statement's context back. ISO §15.32.3 r2 (cite.py OK): "the name of the statement that caused the exception
+    /// answers §2023:15.32.3 r1's spaces rather than the activating statement's name, and the restore brings the activating
+    /// statement's context back. ISO §2023:15.32.3 r2 (cite.py OK): "the name of the statement that caused the exception
     /// condition to be raised".</summary>
     [Fact]
     public void PushAllCheckingOff_ClearsTheStatementContext_AndRestoreBringsItBack()

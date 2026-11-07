@@ -15,18 +15,18 @@
       *> integer-1. If the RESERVE clause is not specified, the number
       *> of input-output areas allocated is specified by the
       *> implementor."
-      *>   cite.py: OK  §12.4.5.14.3 1)  (General rule)
+      *>   cite.py: OK  §2023:12.4.5.14.3 1)  (General rule)
       *> "The successful execution of a WRITE statement releases a
       *> logical record to the operating environment."
-      *>   cite.py: OK  §14.9.51.4 12)  (General rules)
+      *>   cite.py: OK  §2023:14.9.51.4 12)  (General rules)
       *>
       *> "The successful execution of a WRITE statement releases a
       *> logical record to the operating environment."
-      *>   cite.py: OK  §14.9.51.4 12)  (General rules)
+      *>   cite.py: OK  §2023:14.9.51.4 12)  (General rules)
       *> "The sharing with read only mode restricts concurrent access
       *> to a physical file through file connectors other than this
       *> one, to input mode."
-      *>   cite.py: OK  §9.1.15 2)  (Sharing mode)
+      *>   cite.py: OK  §2023:9.1.15 2)  (Sharing mode)
       *>
       *> WiseOwl COBOL's determination (docs/CONFORMANCE.md
       *> DOC-A.1-164): an input-output area is 4,096 bytes of buffer

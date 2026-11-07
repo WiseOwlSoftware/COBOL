@@ -21,14 +21,14 @@ internal sealed class OoClassUnit
     /// <summary>The Places of the OBJECT data items, built once binding is done (<c>PlaceTablePass</c>, kb/Work PB2375).</summary>
     public PlaceTable Places = null!;
     public BoundProgram Bound = null!;
-    // The FACTORY half (§11.4; brief D11 — a sibling singleton class): its OWN data forest (factory and
-    // instance data are separate source elements, §10.6 :12752-12770 — name separation is structural).
+    // The FACTORY half (§2023:11.4; brief D11 — a sibling singleton class): its OWN data forest (factory and
+    // instance data are separate source elements, §2023:10.6 :12752-12770 — name separation is structural).
     /// <summary>What the FACTORY half's data binding hands a backend (kb/Work PB2361).</summary>
     public DataBindResult FactoryData = null!;
     /// <summary>The Places of the FACTORY data items, built once binding is done (<c>PlaceTablePass</c>, kb/Work PB2375).</summary>
     public PlaceTable FactoryPlaces = null!;
     public BoundProgram FactoryBound = null!;
-    /// <summary>The class's external-repository record (ISO §8.13; DESIGN-external-repository §6.1): its facts, both method
+    /// <summary>The class's external-repository record (ISO §2023:8.13; DESIGN-external-repository §6.1): its facts, both method
     /// rosters and their tables, written by the binder at the end of the bind for a class this module emits when the
     /// compilation updates the repository (<see cref="BoundCompilation.PublishesSignatures"/>); null otherwise (kb/Work PB4319).</summary>
     public RepositoryRecord? Record;

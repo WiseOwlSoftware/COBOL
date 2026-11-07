@@ -36,7 +36,7 @@ false conformance claim rather than a mere gap. Mapping the differential's rejec
 |---|---|---|---|
 | A.4.2 ACCEPT/DISPLAY screen handling | Not claimed | 57 | Bucket 2 — refusing is conforming |
 | A.4.11 Report Writer | **Partial** | 35 | Mixed — the staged legs are known (COBOL0899 band); needs itemizing against the design doc's §5 |
-| A.4.7 File sharing / record locking | **Claimed** | 6 | ✅ **Investigated 2026-07-20 — no bug.** `LOCK MODE IS EXCLUSIVE` is refused, but ISO §12.4.5.9 admits exactly `MANUAL` / `AUTOMATIC`; **EXCLUSIVE is not an ISO lock mode** (bucket 1). The `SHARING WITH …` forms all compile. |
+| A.4.7 File sharing / record locking | **Claimed** | 6 | ✅ **Investigated 2026-07-20 — no bug.** `LOCK MODE IS EXCLUSIVE` is refused, but ISO §2023:12.4.5.9 admits exactly `MANUAL` / `AUTOMATIC`; **EXCLUSIVE is not an ISO lock mode** (bucket 1). The `SHARING WITH …` forms all compile. |
 | A.4.9 Locale support | **Claimed** (PB64 T1–T7; the claim completed by T6, 2026-08-28) | 4 | Implemented — the four GnuCOBOL LOCALE-function cases flipped to agreement at T4 |
 | A.4.13 REWRITE FILE / WRITE FILE | Not claimed | 1 | Bucket 2 |
 | A.4.14 VALIDATE | Not claimed | 1 | Bucket 2 |
@@ -69,20 +69,20 @@ regenerate with `--write-baseline` and attribute every changed row in that commi
 
 | # | Construct / family | What it is | Our behaviour today | Confidence |
 |---|---|---|---|---|
-| 1 | `BINARY-INT`, `BINARY-LONG` (GnuCOBOL spellings), `COMP-4` no-truncate semantics, `COMP-6` | Additional binary/packed usages beyond the ISO `BINARY-CHAR/SHORT/LONG/DOUBLE` set. `COMP-6` is an unsigned packed-decimal with no sign nibble. | Parse error at the usage keyword | **CONFIRMED** non-ISO (ISO §13.18.60.4 enumerates the standard usages; these are not among them) |
-| 2 | `ASSIGN EXTERNAL name` / `ASSIGN DYNAMIC` in the file-control entry | GnuCOBOL file-assignment forms binding a file to an external/environment-supplied name | Parse error in FILE-CONTROL | **CONFIRMED** non-ISO (§12.4.5.2 ASSIGN has `TO`/`USING` forms only) |
+| 1 | `BINARY-INT`, `BINARY-LONG` (GnuCOBOL spellings), `COMP-4` no-truncate semantics, `COMP-6` | Additional binary/packed usages beyond the ISO `BINARY-CHAR/SHORT/LONG/DOUBLE` set. `COMP-6` is an unsigned packed-decimal with no sign nibble. | Parse error at the usage keyword | **CONFIRMED** non-ISO (ISO §2023:13.18.60.4 enumerates the standard usages; these are not among them) |
+| 2 | `ASSIGN EXTERNAL name` / `ASSIGN DYNAMIC` in the file-control entry | GnuCOBOL file-assignment forms binding a file to an external/environment-supplied name | Parse error in FILE-CONTROL | **CONFIRMED** non-ISO (§2023:12.4.5.2 ASSIGN has `TO`/`USING` forms only) |
 | 3 | `EXTFH` external file handler callbacks | Third-party ISAM/file-handler interface (Micro Focus EXTFH ABI) | Parse error | **CONFIRMED** non-ISO — an interop ABI, not a language feature |
 | 4 | `CBL_*` system routines (`CBL_ERROR_PROC`, directory/file routines, …) | GnuCOBOL's built-in callable runtime library, reached by `CALL "CBL_…"` | The CALL parses; the routine is simply not provided at run time | **CONFIRMED** non-ISO (implementor-supplied library) |
-| 5 | `$SET`, `$DISPLAY`, `$IF` … (`$`-prefixed directives) | Micro-Focus-style directive syntax accepted by GnuCOBOL alongside ISO `>>` directives | Parse error at `$` | **CONFIRMED** non-ISO (ISO §7.3 directives are `>>`-led) |
-| 6 | `>>LISTING` directive | Controls listing generation | Parse error | **NEEDS VERIFICATION** — confirm it is absent from the ISO §7.3 directive set |
-| 7 | `ACCEPT … OMITTED` | Accept with no receiving item (screen/keyboard wait) | Parse error at `OMITTED` | **BUCKET 2 (likely)** — the ACCEPT/DISPLAY **screen** module is ISO **A.4.2**, dispositioned *Not claimed* in CONFORMANCE.md §5. If `OMITTED` is part of that module this is a documented optional non-support, not an extension. Verify against §14.9.1. |
-| 7a | `LOCK MODE IS EXCLUSIVE` | A third lock mode beyond the ISO pair | Parse error at `EXCLUSIVE` | **CONFIRMED** vendor extension — ISO §12.4.5.9 admits exactly `MANUAL` / `AUTOMATIC`. Notable because A.4.7 is **Claimed**: verified 2026-07-20 that this is *not* a false claim. |
+| 5 | `$SET`, `$DISPLAY`, `$IF` … (`$`-prefixed directives) | Micro-Focus-style directive syntax accepted by GnuCOBOL alongside ISO `>>` directives | Parse error at `$` | **CONFIRMED** non-ISO (ISO §2023:7.3 directives are `>>`-led) |
+| 6 | `>>LISTING` directive | Controls listing generation | Parse error | **NEEDS VERIFICATION** — confirm it is absent from the ISO §2023:7.3 directive set |
+| 7 | `ACCEPT … OMITTED` | Accept with no receiving item (screen/keyboard wait) | Parse error at `OMITTED` | **BUCKET 2 (likely)** — the ACCEPT/DISPLAY **screen** module is ISO **A.4.2**, dispositioned *Not claimed* in CONFORMANCE.md §5. If `OMITTED` is part of that module this is a documented optional non-support, not an extension. Verify against §2023:14.9.1. |
+| 7a | `LOCK MODE IS EXCLUSIVE` | A third lock mode beyond the ISO pair | Parse error at `EXCLUSIVE` | **CONFIRMED** vendor extension — ISO §2023:12.4.5.9 admits exactly `MANUAL` / `AUTOMATIC`. Notable because A.4.7 is **Claimed**: verified 2026-07-20 that this is *not* a false claim. |
 | 8 | `DISPLAY … UPON ENVIRONMENT-NAME` / `ACCEPT … FROM ENVIRONMENT` | Read/write process environment variables through the SPECIAL-NAMES device mechanism | Parse error | **NEEDS VERIFICATION** — ISO has `ACCEPT … FROM` device forms; confirm whether the ENVIRONMENT device is ISO or GnuCOBOL |
 | 9 | Non-ISO intrinsic functions (`CONTENT-LENGTH`, `CURRENCY-SYMBOL`, `CONCAT`, …) | GnuCOBOL-supplied intrinsics outside ISO §15 | Rejected with **COBOL1501** (unknown intrinsic) — already a *named* diagnostic, not a bare parse error | **CONFIRMED** non-ISO for the ones outside §15; the §15 set must be cross-checked case by case |
 | 10 | `JSON GENERATE` / `JSON PARSE`, `XML GENERATE` / `XML PARSE` | Document-format serialization statements (IBM-originated) | Rejected with **COBOL0313**, which names them explicitly as vendor-dialect constructs | **CONFIRMED** non-ISO |
 | 11 | OSVS/IBM special registers: `CURRENT-DATE`, `TIME-OF-DAY`, `WHEN-COMPILED`, `LIN`, `COL` | Vendor special registers, gated in GnuCOBOL by `-std=ibm/osvs/mf` | Rejected | **CONFIRMED** vendor-dialect (GnuCOBOL itself gates them behind a non-ISO `-std`) |
-| 12 | `CALL … BY VALUE literal SIZE IS n` | Explicit operand size on a BY VALUE argument | Parse error | **NEEDS VERIFICATION** — check §14.9.4 for a SIZE phrase |
-| 13 | Reference modification applied to an intrinsic function result, e.g. `FUNCTION CONCATENATE(a b)(1:3)` | Ref-mod directly on a function result | Parse error at `(` | ⚠ **NEEDS VERIFICATION — LIKELY OUR BUG.** ISO §8.4.2.3 permits reference modification of a function identifier; if so this is a conformance gap, not an extension. **Triage first.** |
+| 12 | `CALL … BY VALUE literal SIZE IS n` | Explicit operand size on a BY VALUE argument | Parse error | **NEEDS VERIFICATION** — check §2023:14.9.4 for a SIZE phrase |
+| 13 | Reference modification applied to an intrinsic function result, e.g. `FUNCTION CONCATENATE(a b)(1:3)` | Ref-mod directly on a function result | Parse error at `(` | ⚠ **NEEDS VERIFICATION — LIKELY OUR BUG.** ISO §2023:8.4.2.3 permits reference modification of a function identifier; if so this is a conformance gap, not an extension. **Triage first.** |
 | 14 | `SPECIAL-NAMES CLASS` extended forms, extended `SHARING` phrases | Dialect variations on SPECIAL-NAMES / file sharing | Parse error | **NEEDS VERIFICATION** |
 
 ## Constructs initially bucketed here that turned out to be OUR bugs
@@ -91,8 +91,8 @@ Kept deliberately: they are the evidence that this bucket must be triaged, never
 
 | Construct | Verdict | Resolution |
 |---|---|---|
-| Paragraph-less PROCEDURE DIVISION (sentences with no paragraph-name) | **OUR BUG** — ISO §14.4.3 permits it explicitly | Fixed 2026-07-20 (grammar + `AddAnonymousParagraph`); DEVLOG 931 |
-| Fixed-form comment line with a blank sequence area (`*` in column 7, columns 1–6 blank) | **OUR BUG** — §6.3.2 makes the sequence area optional | Fixed 2026-07-20 (`IsFixedForm` heuristic); DEVLOG 931 |
+| Paragraph-less PROCEDURE DIVISION (sentences with no paragraph-name) | **OUR BUG** — ISO §2023:14.4.3 permits it explicitly | Fixed 2026-07-20 (grammar + `AddAnonymousParagraph`); DEVLOG 931 |
+| Fixed-form comment line with a blank sequence area (`*` in column 7, columns 1–6 blank) | **OUR BUG** — §2023:6.3.2 makes the sequence area optional | Fixed 2026-07-20 (`IsFixedForm` heuristic); DEVLOG 931 |
 
 ## Constructs where WE are too lax (the opposite direction)
 
@@ -101,8 +101,8 @@ bugs of ours**, tracked here only until they move to the fix queue; they are not
 
 | Construct | Rule violated | Status |
 |---|---|---|
-| `OCCURS` on a level 01/66/77/88 entry | §13.18.38.3 SR1(a) — "shall not be specified in a data description entry that … has a level-number of 01, 66, 77, or 88" | Accepted at **all four** editions — unenforced SR (seed finding for §11 A2) |
-| `RENAMES` naming a level 1/66/77/88 entry | §13.18.45.3 SR5 — "Neither data-name-2 nor data-name-3 shall refer to an entry that is described with level-number 1, 66, 77, or 88" | Accepted at **all four** editions — unenforced SR (seed finding for §11 A2) |
+| `OCCURS` on a level 01/66/77/88 entry | §2023:13.18.38.3 SR1(a) — "shall not be specified in a data description entry that … has a level-number of 01, 66, 77, or 88" | Accepted at **all four** editions — unenforced SR (seed finding for §11 A2) |
+| `RENAMES` naming a level 1/66/77/88 entry | §2023:13.18.45.3 SR5 — "Neither data-name-2 nor data-name-3 shall refer to an entry that is described with level-number 1, 66, 77, or 88" | Accepted at **all four** editions — unenforced SR (seed finding for §11 A2) |
 
 ## Maintenance
 

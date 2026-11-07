@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.41.4 GR9 a) (RELATIVE FILES): "If the relational
+      *> ISO §2023:14.9.41.4 GR9 a) (RELATIVE FILES): "If the relational
       *> operator is EQUAL, GREATER, NOT LESS, or GREATER OR EQUAL, the
       *> file position indicator is set to the relative record number of
       *> the first logical record in the file whose key satisfies the

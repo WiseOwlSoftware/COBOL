@@ -5,11 +5,11 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// ISO §12.4.5.7 — the file control entry's COLLATING SEQUENCE clause, per edition.
-/// <para>The subject is §12.4.5.7.3 SR8 — <i>"Neither data-name-1 nor record-key-name-1 shall be specified in
-/// more than one COLLATING SEQUENCE clause"</i> — and specifically the BOUNDARY it draws. §12.4.5.7.2's Format-2
+/// ISO §2023:12.4.5.7 — the file control entry's COLLATING SEQUENCE clause, per edition.
+/// <para>The subject is §2023:12.4.5.7.3 SR8 — <i>"Neither data-name-1 nor record-key-name-1 shall be specified in
+/// more than one COLLATING SEQUENCE clause"</i> — and specifically the BOUNDARY it draws. §2023:12.4.5.7.2's Format-2
 /// figure is <c>COLLATING SEQUENCE OF { data-name-1 | record-key-name-1 } … IS alphabet-name-3</c>, with the
-/// ellipsis printed immediately right of the closing brace; by §5.2.7 the repeated portion is therefore the
+/// ellipsis printed immediately right of the closing brace; by §2023:5.2.7 the repeated portion is therefore the
 /// BRACE GROUP, and no rule adds a distinctness requirement to the repetition. So one clause may list the same
 /// key twice, and one clause is never "more than one" — the rule counts CLAUSES, not occurrences.</para>
 /// <para>Both arms are pinned here because the defect this class was opened for (kb/Work PB703) satisfied the
@@ -99,18 +99,18 @@ public sealed class FileCollatingSequenceSpecTests
     }
 
     [Theory]   // The complement of the register's scope: DIFFERENT keys in different clauses is the very thing
-    [MemberData(nameof(KeyLevelEditions))]   // §12.4.5.7.1 exists for — "Multiple collating sequences may be used
+    [MemberData(nameof(KeyLevelEditions))]   // §2023:12.4.5.7.1 exists for — "Multiple collating sequences may be used
     // by specifying a collating sequence clause unique to the primary key or to specific alternate record keys."
     public void KeyLevel_DifferentKeyPerClause_IsAccepted(int edition)
     {
         var (ok, diagnostics) = EditionHarness.Compile(Program("FCS004",
             "COLLATING SEQUENCE OF IX-KEY IS REV",
             "COLLATING SEQUENCE OF IX-ALT IS DREV"), edition);
-        Assert.True(ok, $"[--std {edition}] one clause per key is what §12.4.5.7.1 describes: "
+        Assert.True(ok, $"[--std {edition}] one clause per key is what §2023:12.4.5.7.1 describes: "
             + string.Join("\n", diagnostics));
     }
 
-    [Theory]   // §12.4.5.7.3 SR3: "Only one file-level format COLLATING SEQUENCE clause may be specified in one
+    [Theory]   // §2023:12.4.5.7.3 SR3: "Only one file-level format COLLATING SEQUENCE clause may be specified in one
     [MemberData(nameof(KeyLevelEditions))]   // file control entry." The file-level format is Format 1 (the IS /
                                              // FOR forms), counted separately from the key-level clauses above.
     public void FileLevel_TwoClausesInOneFileControlEntry_Diagnosed(int edition)
@@ -118,7 +118,7 @@ public sealed class FileCollatingSequenceSpecTests
             "COLLATING SEQUENCE IS REV",
             "COLLATING SEQUENCE IS DREV"), edition), "at most one file-level");
 
-    [Theory]   // §12.4.5.7.3 SR4: "Data-name-1 shall be a name specified as the data-name in an ALTERNATE RECORD
+    [Theory]   // §2023:12.4.5.7.3 SR4: "Data-name-1 shall be a name specified as the data-name in an ALTERNATE RECORD
     [MemberData(nameof(KeyLevelEditions))]   // KEY clause or in a RECORD KEY clause in the file control entry."
                                              // IX-DATA is a record item of IXF but no key of it, so the clause
                                              // has nothing to apply alphabet-name-3 to.

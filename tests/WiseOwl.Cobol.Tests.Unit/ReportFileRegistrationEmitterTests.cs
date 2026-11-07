@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ A REPORT FILE REGISTERS THROUGH <c>CobolFile.RegisterReport</c>, AND ONLY A REPORT FILE DOES (kb/Work PB677,
-/// PB1880 item 1). A report file has no record description (ISO §13.4.5.3 SR8; §9.1.22), so its connector's width is the
+/// PB1880 item 1). A report file has no record description (ISO §2023:13.4.5.3 SR8; §2023:9.1.22), so its connector's width is the
 /// widest report's LINE WIDTH, not a record length, and the connector must be told it has no record description
 /// (<c>recordDescribed: false</c>): otherwise the V59 layout notice ("not a whole multiple of the record length", which
 /// compares the file's bytes with a record length) fires on every OPEN EXTEND of a report written by an earlier run,
@@ -20,7 +20,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// records — the control, which must NOT take the report registration), so that a record-less FD that falls back to the
 /// record arm, or a record FD that takes the report arm, fails here even if no golden crosses it.
 /// <para>The conformance witness of the same behavior is <c>pb1880_report_file_open_extend</c> (OPEN EXTEND of a report
-/// file answers '00', §9.1.13.2 item 1).</para>
+/// file answers '00', §2023:9.1.13.2 item 1).</para>
 /// </summary>
 public sealed class ReportFileRegistrationEmitterTests
 {

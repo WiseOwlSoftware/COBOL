@@ -5,35 +5,35 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.18.14.4 GR1 and GR11 - an entry with no COLUMN clause
+      *> ISO §2023:13.18.14.4 GR1 and GR11 - an entry with no COLUMN clause
       *> is not printed; a LINE with no printable item is a blank line
       *>
       *> "1) The COLUMN clause defines one or more printable items. If a
       *> COLUMN clause is not specified, the items are not printed."
-      *>   cite.py: OK  §13.18.14.4 1)  (General rules)
+      *>   cite.py: OK  §2023:13.18.14.4 1)  (General rules)
       *> "11) If an entry containing a LINE clause has no subordinate
       *> entry defining a printable item, the resultant report line
       *> will be blank."
-      *>   cite.py: OK  §13.18.14.4 11)  (General rules)
+      *>   cite.py: OK  §2023:13.18.14.4 11)  (General rules)
       *> Placement (RD with no PAGE clause = one page of indefinite
       *> length, every LINE clause relative):
       *>   "If integer-1 is not specified, the report consists of a
       *>   single page of indefinite length"
-      *>   cite.py: OK  §13.18.39.4 2) a)  (General rules)
+      *>   cite.py: OK  §2023:13.18.39.4 2) a)  (General rules)
       *>   "If the report is not divided into pages, all its LINE
       *>   clauses shall be relative."
-      *>   cite.py: OK  §13.18.35.3 5)  (Syntax rules)
+      *>   cite.py: OK  §2023:13.18.35.3 5)  (Syntax rules)
       *>   "If the first LINE NUMBER clause of the report group is
       *>   relative and the report is not divided into pages, the report
       *>   group's first line number is obtained by adding integer-2 to
       *>   the current value of the report's LINE-COUNTER"
-      *>   cite.py: OK  §13.18.35.4 5) 5. c)  (General rules)
+      *>   cite.py: OK  §2023:13.18.35.4 5) 5. c)  (General rules)
       *>   subsequent relative LINE: "the new line number is determined
       *>   by adding integer-2 to the report's LINE-COUNTER"
-      *>   cite.py: OK  §13.18.35.4 7) b)  (General rules)
+      *>   cite.py: OK  §2023:13.18.35.4 7) b)  (General rules)
       *>   "Any unoccupied columns in each print line are filled with
       *>   space characters."
-      *>   cite.py: OK  §13.18.14.4 10)  (General rules)
+      *>   cite.py: OK  §2023:13.18.14.4 10)  (General rules)
       *>
       *> DERIVATION. LINE-COUNTER starts at 0 (INITIATE); DET is one
       *> report group of four relative lines, so lines 1, 2, 3, 4.

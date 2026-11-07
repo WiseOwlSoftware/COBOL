@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ THE METHOD ABI IS A PAIR PER FORMAL, AND ONLY TWO PLACES MAY SPELL IT (kb/Work PB757; OO_DESIGN D6).
-/// <para>Every method formal crosses as <c>ref T value, bool omitted</c> — the omitted state §14.9.23.4 GR9
+/// <para>Every method formal crosses as <c>ref T value, bool omitted</c> — the omitted state §2023:14.9.23.4 GR9
 /// requires, which a C# <c>ref T</c> does not have. <c>OoEmitter.OoSignatureOf</c> DECLARES the pair and
 /// <c>OoEmitter.OoArgPair</c> RENDERS it at every caller (the typed INVOKE, the covariant adapter, the universal
 /// switch, the PROPERTY setter's signature). Before PB757 the adapter, the universal switch and the property setter

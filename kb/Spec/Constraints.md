@@ -20,8 +20,8 @@ distinct from the project's engineering doctrine (which lives in [[kb/Context/Do
 ## The conformance clause (§4)
 
 §4 defines what "conforming" means: a conforming processor accepts and correctly processes the mandatory language of
-its claimed edition, documents every processor-dependent choice (§4.2.16 → [[docs/CONFORMANCE]]), and rejects or
-warns on unsupported syntactically-detectable elements. The owner target (**D13**) is 100% conformance per §4.2.1
+its claimed edition, documents every processor-dependent choice (§2023:4.2.16 → [[docs/CONFORMANCE]]), and rejects or
+warns on unsupported syntactically-detectable elements. The owner target (**D13**) is 100% conformance per §2023:4.2.1
 across editions 1985/2002/2014/2023. See [[kb/Spec/Overview]].
 
 ## Reference format (§6)
@@ -35,10 +35,10 @@ indicator-dependent gates (VCR rows 2/94) fire there. See [[kb/Compiler/Phases]]
 ## The compiler-directing facility (§7)
 
 - **COPY** (with `REPLACING`) and **REPLACE** — text manipulation before the grammar sees the source.
-- **`>>` directives** — `>>DEFINE`, `>>IF`/`>>ELSE`/`>>END-IF`, `>>EVALUATE` (conditional compilation, §7.2.1;
-  processed *inside* copybooks), `>>SET`, `>>TURN` (EC checking), `>>COBOL-WORDS` (§7.3.10 reserved-word table
-  modification), `>>FLAG-02`/`>>FLAG-14` (§7.3.14/.15 migration flagging).
-- Compile-time expression evaluation (§7.3.6 arithmetic / §7.3.7 boolean / §7.3.8 constant-conditional) is shared by
+- **`>>` directives** — `>>DEFINE`, `>>IF`/`>>ELSE`/`>>END-IF`, `>>EVALUATE` (conditional compilation, §2023:7.2.1;
+  processed *inside* copybooks), `>>SET`, `>>TURN` (EC checking), `>>COBOL-WORDS` (§2023:7.3.10 reserved-word table
+  modification), `>>FLAG-02`/`>>FLAG-14` (§2023:7.3.14/.15 migration flagging).
+- Compile-time expression evaluation (§2023:7.3.6 arithmetic / §2023:7.3.7 boolean / §2023:7.3.8 constant-conditional) is shared by
   the conditional-compilation stage and the CONSTANT-entry binder.
 
 ## Documented non-support facilities
@@ -55,7 +55,7 @@ layer violations, scattered dialect flags, primitive obsession, exception-as-con
 session rituals. These are captured in [[kb/Context/Doctrine & Anti-Patterns]].
 
 ## Key concepts
-- §4 conformance; §4.2.16 user-documentation obligation.
+- §4 conformance; §2023:4.2.16 user-documentation obligation.
 - Fixed vs free reference format; preprocessor normalizes before lex.
 - §7 compiler-directing facility: COPY/REPLACE + the `>>` directive family.
 - Five documented non-support facilities (warn vs reject).

@@ -8,7 +8,7 @@
        IDENTIFICATION DIVISION.
        PROGRAM-ID. OOOF1.
       *> M2-OO-1i inc 4: an OBJECT-paragraph FILE-CONTROL + FILE SECTION.
-      *> An object owns one per-instance file connector (ISO §9.1.4),
+      *> An object owns one per-instance file connector (ISO §2023:9.1.4),
       *> registered per object in the emitted ctor; a method round-trips it.
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.

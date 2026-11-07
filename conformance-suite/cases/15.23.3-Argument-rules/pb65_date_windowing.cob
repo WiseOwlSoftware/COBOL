@@ -6,7 +6,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.100.3 / §15.23 / §15.25 — omitted-ness is the ARITY, never a value (fix-queue PB65).
+      *> ISO §2023:15.100.3 / §2023:15.23 / §2023:15.25 — omitted-ness is the ARITY, never a value (fix-queue PB65).
       *> An EXPLICIT argument-3 of 0 violates r4 ("greater than 1600") and takes the EC-ARGUMENT-
       *> FUNCTION path with the documented default 0 — the old in-band sentinel silently windowed it
       *> against the execution year. And an errored delegation returns the default WHOLE: the

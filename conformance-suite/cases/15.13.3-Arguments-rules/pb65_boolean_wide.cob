@@ -6,11 +6,11 @@
 *> portable: unverified
 *>---
       *> PB65 / RV-15.13.4-1 D1 — BOOLEAN-OF-INTEGER's argument-1 rides the WIDE (Int128) bridge.
-      *> ISO §15.13.4 r1: the returned value "has the same bit configuration as the binary
+      *> ISO §2023:15.13.4 r1: the returned value "has the same bit configuration as the binary
       *> representation of the value of argument-1" — a mathematical configuration (its NOTE), so
-      *> 2^63 and 2^64+5 are legal values with bits 63 / 64 set; §15.13.3 r1 admits any positive
+      *> 2^63 and 2^64+5 are legal values with bits 63 / 64 set; §2023:15.13.3 r1 admits any positive
       *> integer. The previous long carrier EC'd values at/above 2^63 to the checking-off default 0
-      *> (seventy zeros, silently). 544 at length 6 is the §15.13.4 r1 left-truncation branch
+      *> (seventy zeros, silently). 544 at length 6 is the §2023:15.13.4 r1 left-truncation branch
       *> (544 mod 2^6 = 100000b — Annex D.10's worked example).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB65BOOLWIDE.

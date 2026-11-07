@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §8.8.2 rule 8 — boolean shift operators (COBOL-2023). Logical B-SHIFT-L/R fill boolean 0; circular
+      *> ISO §2023:8.8.2 rule 8 — boolean shift operators (COBOL-2023). Logical B-SHIFT-L/R fill boolean 0; circular
       *> B-SHIFT-LC/RC rotate. The result length = the first operand's length (rule 9). Annex A Table A.2 oracle
       *> (A = 1100): B-SHIFT-L 3 = 0000, B-SHIFT-R 3 = 0001, B-SHIFT-LC 3 = 0110, B-SHIFT-RC 3 = 1001.
        IDENTIFICATION DIVISION.

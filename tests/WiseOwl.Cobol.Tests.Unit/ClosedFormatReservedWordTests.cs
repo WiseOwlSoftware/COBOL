@@ -43,16 +43,16 @@ public sealed class ClosedFormatReservedWordTests
         // still the one refusal (no level-3 entry `3 TIMES` is made of its tail).
         { "data-entry-misspelled-occurs-before-integer", Head + "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-X PIC 9(3) OCURS 3 TIMES.\n" + Proc,
           "COBOL1941", "'OCURS' is not a clause of the data description entry for 'W-X'" },
-        // §13.16.2 Format 1 — after a complete entry, so the clause list has already ended when BLOCK fails.
+        // §2023:13.16.2 Format 1 — after a complete entry, so the clause list has already ended when BLOCK fails.
         { "data-entry", Head + "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-X PIC X BLOCK CONTAINS 10.\n" + Proc,
           "COBOL1941", "'BLOCK' is not a clause of the data description entry for 'W-X'" },
-        // §13.16.2 again, on a level-88 entry: its clauses are the same alternative list.
+        // §2023:13.16.2 again, on a level-88 entry: its clauses are the same alternative list.
         { "condition-entry", Head + "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-X PIC X.\n          88 W-C VALUE \"A\" BLOCK.\n" + Proc,
           "COBOL1941", "'BLOCK' is not a clause of the data description entry for 'W-C'" },
-        // §13.4.5.2 — the FD.
+        // §2023:13.4.5.2 — the FD.
         { "fd", Head + Select + "       DATA DIVISION.\n       FILE SECTION.\n       FD SF DUPLICATES.\n       01 R PIC X.\n" + Proc,
           "COBOL1970", "'DUPLICATES' is not a clause of the file description entry for 'SF'" },
-        // §13.4.6.2 — the SD, with no clause written (the note's repro) ...
+        // §2023:13.4.6.2 — the SD, with no clause written (the note's repro) ...
         { "sd-global", Head + Select + "       DATA DIVISION.\n       FILE SECTION.\n       SD SF GLOBAL.\n       01 R PIC X.\n" + Proc,
           "COBOL1970", "'GLOBAL' is not a clause of the sort-merge file description entry for 'SF'" },
         // ... and after a complete RECORD clause, where the list may end and the base Sync let the word pass.
@@ -61,22 +61,22 @@ public sealed class ClosedFormatReservedWordTests
         // A multi-word residue is ONE refusal: the recovery consumes it to the period.
         { "sd-block-contains", Head + Select + "       DATA DIVISION.\n       FILE SECTION.\n       SD SF BLOCK CONTAINS 10 RECORDS.\n       01 R PIC X.\n" + Proc,
           "COBOL1970", "'BLOCK' is not a clause of the sort-merge file description entry for 'SF'" },
-        // §12.4.5.1 — the file control entry.
+        // §2023:12.4.5.1 — the file control entry.
         { "select", Head + "       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n           SELECT SF ASSIGN TO \"f.dat\" GLOBAL.\n"
             + "       DATA DIVISION.\n       FILE SECTION.\n       FD SF.\n       01 R PIC X.\n" + Proc,
           "COBOL1970", "'GLOBAL' is not a clause of the file control entry for 'SF'" },
-        // §12.4.6.2 — the I-O-CONTROL paragraph.
+        // §2023:12.4.6.2 — the I-O-CONTROL paragraph.
         { "io-control", Head + Select + "       I-O-CONTROL.\n           GLOBAL.\n       DATA DIVISION.\n       FILE SECTION.\n       FD SF.\n       01 R PIC X.\n" + Proc,
           "COBOL1970", "'GLOBAL' is not a clause of the I-O-CONTROL paragraph" },
-        // §12.3.7.2 — the SPECIAL-NAMES paragraph: the INNERMOST open list names it, not the configuration section's.
+        // §2023:12.3.7.2 — the SPECIAL-NAMES paragraph: the INNERMOST open list names it, not the configuration section's.
         { "special-names", Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       SPECIAL-NAMES.\n           GLOBAL.\n" + Proc,
           "COBOL1970", "'GLOBAL' is not a clause of the SPECIAL-NAMES paragraph" },
-        // §12.3.6.2 — the OBJECT-COMPUTER paragraph, whose clauses may follow its period with no computer-name.
+        // §2023:12.3.6.2 — the OBJECT-COMPUTER paragraph, whose clauses may follow its period with no computer-name.
         // (SOURCE-COMPUTER prints nothing but the name there, so `SOURCE-COMPUTER. GLOBAL.` reads as a configuration
         // section paragraph — the configuration-section case below.)
         { "object-computer", Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       OBJECT-COMPUTER. GLOBAL.\n" + Proc,
           "COBOL1970", "'GLOBAL' is not a clause of the OBJECT-COMPUTER paragraph" },
-        // §12.3.5.2 / §12.3.6.2 AFTER the computer-name (kb/Work PB3370): XYZ could be the name or an unrecognized
+        // §2023:12.3.5.2 / §2023:12.3.6.2 AFTER the computer-name (kb/Work PB3370): XYZ could be the name or an unrecognized
         // configuration paragraph, both readings fail at GLOBAL, and the error-time prediction used to take the
         // configuration section's (a bare COBOL0307). The paragraphs' superset-parsed second period makes the name win.
         { "source-computer-after-name", Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       SOURCE-COMPUTER. XYZ GLOBAL.\n" + Proc,
@@ -88,12 +88,12 @@ public sealed class ClosedFormatReservedWordTests
         // run's OPENING, WIBBLE, as ClosedFormatPass quotes it, never the GLOBAL that ended the run (kb/Work PB4301).
         { "source-computer-after-residue", Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       SOURCE-COMPUTER. XYZ WIBBLE GLOBAL.\n" + Proc,
           "COBOL1970", "'WIBBLE' is not a clause of the SOURCE-COMPUTER paragraph" },
-        // §12.3.2 — the configuration section's PARAGRAPH list.
+        // §2023:12.3.2 — the configuration section's PARAGRAPH list.
         { "configuration-section", Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       GLOBAL.\n" + Proc,
           "COBOL1971", "'GLOBAL' is not a paragraph of the CONFIGURATION SECTION" },
         { "configuration-section-after-residue", Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       WIBBLE GLOBAL.\n" + Proc,
           "COBOL1971", "'WIBBLE' is not a paragraph of the CONFIGURATION SECTION" },
-        // §11.2.1 — the identification division's PARAGRAPH list.
+        // §2023:11.2.1 — the identification division's PARAGRAPH list.
         { "identification", Head + "       GLOBAL.\n" + Proc,
           "COBOL1971", "'GLOBAL' is not a paragraph of the IDENTIFICATION DIVISION" },
         { "identification-after-residue", Head + "       WIBBLE GLOBAL.\n" + Proc,
@@ -142,7 +142,7 @@ public sealed class ClosedFormatReservedWordTests
         { "data-entry", Head + "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-X PIC X \"A\".\n" + Proc,
           "COBOL1941", "'\"A\"' is not a clause of the data description entry for 'W-X'" },
         // A LITERAL OF MORE THAN ONE TOKEN is a literal too (kb/Work PB3373, review finding R1-1): a sign-led numeric
-        // literal (ISO §8.3.3.3.2 2), MINUS INTEGERLIT outside the list regions), a concatenation expression (§8.8.3.3
+        // literal (ISO §2023:8.3.3.3.2 2), MINUS INTEGERLIT outside the list regions), a concatenation expression (§2023:8.8.3.3
         // 3)) and a DECIMAL-POINT IS COMMA literal. The run opens at a sign-led one and continues through all three,
         // where it used to end at the sign, the `&` or the comma with a bare parse error and a false missing period.
         { "source-computer-signed-after-name", Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       SOURCE-COMPUTER. XYZ +1.5.\n" + Proc,
@@ -231,7 +231,7 @@ public sealed class ClosedFormatReservedWordTests
     }
 
     /// <summary>A sign SEPARATED from its digits at the run's opening is screened as it is in every other signed literal
-    /// slot (COBOL2155, ISO §8.3.3.3.2 2) — the run's tail holds <c>signedNumericLiteral</c>, which LiteralScreen
+    /// slot (COBOL2155, ISO §2023:8.3.3.3.2 2) — the run's tail holds <c>signedNumericLiteral</c>, which LiteralScreen
     /// already screened), and the run is still refused once, quoting the literal as written.</summary>
     [Fact]
     public void SeparatedSignAtTheOpening_IsScreenedAndRefused()
@@ -262,7 +262,7 @@ public sealed class ClosedFormatReservedWordTests
     /// prediction's sole survivor, and ANTLR throws NoViableAlt at the word when its predicate refuses it: a bare
     /// COBOL0001 "cannot parse construct near 'FOO'", and a second refusal of the next token against an enclosing
     /// list's format. The word is now refused in its own format, and the run is ONE refusal. Every edition: the
-    /// standard prints none of these words as a clause (ISO §12.3.6.2, §12.3.7.2, §13.16.2), and at COBOL-85, where
+    /// standard prints none of these words as a clause (ISO §2023:12.3.6.2, §2023:12.3.7.2, §2023:13.16.2), and at COBOL-85, where
     /// SEGMENT-LIMIT and MEMORY SIZE were clauses, FOO is still neither.</summary>
     public static TheoryData<string, int, string, string, string> PredicateRefusedWord() => new()
     {
@@ -361,7 +361,7 @@ public sealed class ClosedFormatReservedWordTests
     }
 
     /// <summary>An unsigned integer the data division's run never holds keeps the missing-period diagnosis where it may
-    /// be the next entry's level-number (ISO §8.3.2.2.13): <c>01 W-X PIC X</c> then <c>05 W-Y PIC X.</c> is a forgotten
+    /// be the next entry's level-number (ISO §2023:8.3.2.2.13): <c>01 W-X PIC X</c> then <c>05 W-Y PIC X.</c> is a forgotten
     /// period, never "'05' is not a clause". One case per list a level-number follows.</summary>
     [Fact]
     public void LevelNumberAfterAMissingPeriod_IsNotCalledAClause()
@@ -512,9 +512,9 @@ public sealed class ClosedFormatReservedWordTests
         Assert.DoesNotContain(errors, e => e.Contains("COBOL1970"));
     }
 
-    /// <summary>⛔ A RESERVED WORD WHERE THE ENTRY'S NAME IS DUE IS THE NAME THE SOURCE WROTE (kb/Work PB4604). ISO §13.16.3 SR4
+    /// <summary>⛔ A RESERVED WORD WHERE THE ENTRY'S NAME IS DUE IS THE NAME THE SOURCE WROTE (kb/Work PB4604). ISO §2023:13.16.3 SR4
     /// puts the entry-name directly after the level-number, so the first word of <c>01 MOVE PIC X.</c> is read as the
-    /// name and as the first clause, and a word that is no clause is §8.3.2.1 1)'s violation. It used to draw COBOL1941
+    /// name and as the first clause, and a word that is no clause is §2023:8.3.2.1 1)'s violation. It used to draw COBOL1941
     /// "'MOVE' is not a clause of the data description entry". Every level-number of the one entry rule, a verb, a
     /// word no statement begins with, a figurative constant and a word reserved for an extension; the ONLY diagnostic,
     /// at every edition.</summary>
@@ -563,7 +563,7 @@ public sealed class ClosedFormatReservedWordTests
     }
 
     /// <summary>⛔ A WORD THAT BEGINS WHAT FOLLOWS THE ENTRY IS A MISSING PERIOD, NOT A RESERVED WORD WRITTEN AS ITS NAME (kb/Work
-    /// PB4646). ISO §13.16.2 ends the entry with a separator period; <c>01</c> with its period forgotten and the next
+    /// PB4646). ISO §2023:13.16.2 ends the entry with a separator period; <c>01</c> with its period forgotten and the next
     /// section's header on the next line draws COBOL0307 at the header word, as it did before the entry-name slot named
     /// reserved words (PB4604). The word AND the one after it must begin something the grammar lets follow the entry:
     /// <c>LINKAGE PIC X.</c> is not a header, so the reserved word is a name written and keeps COBOL0901.</summary>
@@ -585,9 +585,9 @@ public sealed class ClosedFormatReservedWordTests
 
     /// <summary>⛔ A HEADER WRITTEN AFTER A LEVEL-NUMBER IS NEVER A NAME AND A CLAUSE (kb/Work PB4706). SECTION and DIVISION
     /// close a header, and no format follows a data-name with either. Where a period lets the header follow, the fault is
-    /// that period (ISO §13.16.2 ends the entry with one), one report, with no cascade from the header it used to swallow:
+    /// that period (ISO §2023:13.16.2 ends the entry with one), one report, with no cascade from the header it used to swallow:
     /// the second-report rows prove the recovery resumes in the procedure division. Where none does, the report is the plain
-    /// one at the word it fails, as after a complete entry. PROCEDURE is reserved at every edition (§8.3.2.1 1)), so it
+    /// one at the word it fails, as after a complete entry. PROCEDURE is reserved at every edition (§2023:8.3.2.1 1)), so it
     /// names no entry whatever follows it.</summary>
     [Theory]
     [InlineData("01\n" + Proc, 85, "COBOL0307: unexpected 'PROCEDURE'. A period may be missing")]
@@ -666,7 +666,7 @@ public sealed class ClosedFormatReservedWordTests
     /// <summary>⛔ A HEADER OUT OF ORDER AFTER A DANGLING LEVEL-NUMBER IS THE SAME REPORT AT EVERY ENTRY SLOT (kb/Work PB4788,
     /// PB4706). A section's entry loop fails its prediction at the header's first word with the parser still before the
     /// level-number, so no entry context exists; the slot is read from the walk (<c>OffendingPosition.FollowsALevelNumber</c>).
-    /// §13.2.1 prints the LINKAGE SECTION before the REPORT SECTION and the SCREEN SECTION last, so neither section can be
+    /// §2023:13.2.1 prints the LINKAGE SECTION before the REPORT SECTION and the SCREEN SECTION last, so neither section can be
     /// followed by LINKAGE SECTION (the screen section by REPORT SECTION either): no period lets the header follow, and the word is no kind "expected" at the
     /// slot (it drew COBOL5506 listing every clause), the plain report <c>01 FILE SECTION.</c> draws in the working-storage
     /// section.</summary>
@@ -686,8 +686,8 @@ public sealed class ClosedFormatReservedWordTests
     /// <summary>⛔ A SECTION'S ENTRY LOOP NAMES NO ENTRY AFTER A HEADER'S FIRST WORD (kb/Work PB4818). The report section's loop
     /// chooses between its two entry kinds before the level-number, where adaptive prediction reads
     /// <c>noHeaderWrittenHere</c> as true, so it took a gated word as the name and died at SECTION. Each line is the report the
-    /// same words draw in the working-storage section where §8.9 reserves the word and §13.2.1 lets the header follow, the
-    /// out-of-order report where it does not, and the plain report at SECTION where §8.9 frees the word (85), and each is one
+    /// same words draw in the working-storage section where §2023:8.9 reserves the word and §2023:13.2.1 lets the header follow, the
+    /// out-of-order report where it does not, and the plain report at SECTION where §2023:8.9 frees the word (85), and each is one
     /// report, at whichever entry precedes the line and at any level-number.</summary>
     [Theory]
     [InlineData("01 SCREEN SECTION.", 2023, "(6,11): error COBOL0307: unexpected 'SCREEN'. A period may be missing")]
@@ -708,7 +708,7 @@ public sealed class ClosedFormatReservedWordTests
     }
 
     /// <summary>The legal readings the header rule leaves alone (kb/Work PB4706): a word that only STARTS like a header, a word
-    /// §8.9 leaves free as an entry-name, and a gated word as an unnamed clause. NC205A's <c>77 PROCEDURE</c>, continued on its
+    /// §2023:8.9 leaves free as an entry-name, and a gated word as an unnamed clause. NC205A's <c>77 PROCEDURE</c>, continued on its
     /// next line, is one word (the 1985 word continuation, which COBOL-2023 removed), not the reserved word.</summary>
     [Theory]
     [InlineData("77 PROCEDURE-DIVISION PIC X.", 2023)]

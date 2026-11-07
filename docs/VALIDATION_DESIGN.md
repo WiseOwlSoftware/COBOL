@@ -3,7 +3,7 @@
 > **Status: LIVE. The ONE `VersionConformancePass`
 > (`src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs`) is the SOLE edition gate — a TWO-ARM pass
 > (parse-tree arm + bound-tree arm) over the bound run unit that runs after bind and before emit, so the binder
-> is edition-AGNOSTIC (save the documented exception ledger, DESIGN-version-conformance-pipeline §1.1). It owns the §8.9 reserved-word funnel and routes every version-gated construct through the
+> is edition-AGNOSTIC (save the documented exception ledger, DESIGN-version-conformance-pipeline §1.1). It owns the §2023:8.9 reserved-word funnel and routes every version-gated construct through the
 > ONE `ConstructRegistry.Check`; the reserved-word tables + both drift disciplines are its inputs. The plan it
 > implements is `docs/VERSION_TEST_MATRIX_DESIGN.md` "Phase-2 implementation plan" P2.1–P2.7 + the roadmap
 > `docs/COMPLETION_ROADMAP_COUNCIL.md` Phase-1/2 amendments; the canonical edition-gating mechanism doc is
@@ -32,7 +32,7 @@ semantics).
   result already carries every edition diagnostic and the driver HALTs before emit if errors are present (no
   codegen on an errored tree). The **parse-tree arm** (`ParseArm`, a visitor over the generated
   `CobolParserCoreBaseVisitor<object?>` — no listener is generated) fires every SYNTACTIC introduction/removal/
-  phrase gate + the `VisitCobolWord` §8.9 reserved-word funnel on the construct's RECOGNITION; the **bound-tree
+  phrase gate + the `VisitCobolWord` §2023:8.9 reserved-word funnel on the construct's RECOGNITION; the **bound-tree
   arm** fires only the genuinely-SEMANTIC gates whose identity is a RESOLVED bound fact (MOVE figurative-category,
   plus the gates conditioned on file-organization / access-mode / USAGE / pointer-category). Recognition-based
   syntactic gating is required so an introduction gate names its edition even when the below-edition construct
@@ -87,9 +87,9 @@ semantics).
   0903 obsolete-archaic. Pinned pre-band codes kept: 0801/0802 (digit capacity), 0873 (DATA RECORDS),
   0810/0811 (ALTER / bare GO TO), 0882 (CALL ON OVERFLOW) — their sites route through `Removed()` unrenumbered.
 - **Reserved words**: `scripts/gen-reserved-words.ps1` derives the
-  per-edition table from its sources — the in-repo ISO 2023 §8.9 list (authoritative for 2023), VCR row 32
-  (the Annex E.2 item-25 additions), the transcribed ISO 2002 §8.9 list (`tests/version-matrix/reserved-words-2002.json`,
-  authoritative for 2002), the 2009 committee draft's §8.9/§8.10 lists (`words-2009-cd.json`, one 2014 correction,
+  per-edition table from its sources — the in-repo ISO 2023 §2023:8.9 list (authoritative for 2023), VCR row 32
+  (the Annex E.2 item-25 additions), the transcribed ISO 2002 §2002:8.9 list (`tests/version-matrix/reserved-words-2002.json`,
+  authoritative for 2002), the 2009 committee draft's 8.9/8.10 lists (`words-2009-cd.json`, one 2014 correction,
   kb/Work PB4297), and GnuCOBOL's per-standard 85/2014 word lists (curl disk-to-disk into the gitignored `.cache/`;
   GPL files stay out — only derived FACTS with provenance are committed).
   Outputs: `WiseOwl.Cobol.Editions/ReservedWords.Table.cs` + `tests/version-matrix/reserved-words.json`, drift-tested
@@ -114,7 +114,7 @@ semantics).
 - **The DECLINED-OPTIONAL-ELEMENT pass** (`Validation/DeclinedFacilityPass.cs` + the grammar fragment
   `Frontend/Grammar/Core/CobolDeclined.g4`): THE one place an Annex **A.4** optional element whose support
   `docs/CONFORMANCE.md` §5 records as *Not claimed* is **refused by name** — COBOL1708 (the VALIDATE
-  facility's §13.16.2 *validation-clauses* group and the §13.18.63 format-5 content-validation entry),
+  facility's §2023:13.16.2 *validation-clauses* group and the §2023:13.18.63 format-5 content-validation entry),
   COBOL1710 (a declined module's
   exception-names, emitted from the `EcNameResolution` funnel rather than from the pass). A **third sibling** to
   `VersionConformancePass` and `FlagConformancePass`, run right after them from `BinderDriver`, over the shared
@@ -127,10 +127,10 @@ semantics).
     the shape `DESIGN-version-conformance-pipeline.md` exists to prevent.
   - **Why a parse-tree walk, not a binder hook.** A declined clause has NO bound node — that is what declining
     it means — and the binder's own entry paths drop it exactly where it matters: `DataBinder.BindEntry` returns
-    early for levels 66/88 and `BindCondition` returns early for an UNNAMED level-88, which IS the §13.16.2
+    early for levels 66/88 and `BindCondition` returns early for an UNNAMED level-88, which IS the §2023:13.16.2
     format-4 validation entry.
   - **⛔ ERROR, not Warning — the distinction from the ACCEPT-INERT band.** COBOL1578/1778 cover
-    PROCESSOR-DEPENDENT elements (Annex A.3), where §4.2.6 ¶3 requires only a compile-time warning and the
+    PROCESSOR-DEPENDENT elements (Annex A.3), where §2023:4.2.6 ¶3 requires only a compile-time warning and the
     construct may be accepted-inert. A.4.1 is stronger: syntax is accepted "only when support … is claimed", so
     accepting a declined optional element's syntax IS the non-conformance. All three route through the ONE
     `Removed()` seam (Error strict / Warning `--permissive`) and share the `declined-optional-element`
@@ -148,7 +148,7 @@ semantics).
     words are user-defined words below the edition that introduced them) and, if it is an ENTRY POINT there — a
     rule no other rule in that file references — add a `VisitXxx` override. An alternative added *under*
     `validationClause` needs no code: the message names the clause from its own leading keywords, minus the
-    §5.2.3 optional connectives. `DeclinedFacilityDriftTests` derives that obligation FROM the grammar file, so
+    §2023:5.2.3 optional connectives. `DeclinedFacilityDriftTests` derives that obligation FROM the grammar file, so
     a new entry-point rule with no override fails rather than parsing into silence.
   - **The declined-EC-name table** (`EcNameResolution.DeclinedEcFamilies`): prefix → facility / annex /
     documentation, matched on a `-` boundary so a family's level-2 name, its level-3 names and the open
@@ -193,7 +193,7 @@ COMMIT@2023, RAISING@2002, RECEIVE + END-RECEIVE (85-reserved → free 2002/2014
 5. **Drift:** both drift disciplines green (registry↔constructs.json; word table↔reserved-words.json).
 6. **Negative corpus:** every registry gate ≥1 enabled negative case (Phase-2 W2 seeds; Phase-8 completes
    with the registry-coverage unit test).
-7. **§4.2.2:** the selectable conformance-checking suboption ships with OO interfaces (roadmap Phase 3) /
+7. **§2023:4.2.2:** the selectable conformance-checking suboption ships with OO interfaces (roadmap Phase 3) /
    prototypes (Phase 4c) and joins these criteria then.
 
 ## 5. Performance

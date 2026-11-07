@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO 1989:2023 §11.2/§11.7 (OO COBOL) — typed-native object data is PER-INSTANCE (ADR §7): a class's
+      *> ISO 1989:2023 §2023:11.2/§2023:11.7 (OO COBOL) — typed-native object data is PER-INSTANCE (ADR §7): a class's
       *> OBJECT WORKING-STORAGE becomes per-instance .NET fields, so two objects hold INDEPENDENT state. BOX has
       *> object datum V (PIC X(3) VALUE "---"); BUMP displays V then mutates it to "XYZ". The sequence
       *> b1.BUMP, b2.BUMP, b1.BUMP must print  ---/---/XYZ  (a single shared/static field would print ---/XYZ/XYZ).

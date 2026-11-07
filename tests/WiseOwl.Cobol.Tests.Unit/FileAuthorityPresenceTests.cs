@@ -10,9 +10,9 @@ using Xunit.Abstractions;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ISO §14.9.27.4 GR3 — <i>"If the file associated with file-name-1 is present and insufficient authority
+/// ISO §2023:14.9.27.4 GR3 — <i>"If the file associated with file-name-1 is present and insufficient authority
 /// exists to open the file, the execution of the OPEN statement is unsuccessful, and the I-O status value in
-/// the file connector referenced by file-name-1 is set to '37'."</i> (§9.1.13.6 item 6 b) restates it for OPEN
+/// the file connector referenced by file-name-1 is set to '37'."</i> (§2023:9.1.13.6 item 6 b) restates it for OPEN
 /// and DELETE FILE together and adds <i>"The ability to detect this is processor dependent"</i>.)
 /// <para>These are the arms no conformance golden can reach: the corpus runner compiles a <c>.cob</c> and
 /// compares its output, with nowhere to express "and first make this file unreadable", so the ONLY place the
@@ -60,7 +60,7 @@ public sealed class FileAuthorityPresenceTests : IDisposable
 
     /// <summary>⛔ THE PRECONDITION WAS NOT ESTABLISHED, AND THAT IS NOT ALLOWED TO BE SILENT (kb/Work PB795).
     /// <para>Every one of these sites used to be a bare <c>return</c>. A host on which the deny helper failed
-    /// therefore turned twenty §14.9.27.4 GR3 assertions into vacuous passes and exactly ONE test red — and
+    /// therefore turned twenty §2023:14.9.27.4 GR3 assertions into vacuous passes and exactly ONE test red — and
     /// that one test named the helper as the cause from a claim about the platform, not from anything it had
     /// measured. Both halves of that are the defect: the twenty silent passes AND the unmeasured verdict.</para>
     /// <para>A test that could not establish its precondition now goes RED here, carrying the host's own
@@ -85,13 +85,13 @@ public sealed class FileAuthorityPresenceTests : IDisposable
 
     // ── The presence probe itself (HostFile.Probe) ───────────────────────────────────────────────────────────
 
-    /// <summary>§9.1.13.6 item 5's "the physical file is not present" — the answer that earns '35'.</summary>
+    /// <summary>§2023:9.1.13.6 item 5's "the physical file is not present" — the answer that earns '35'.</summary>
     [Fact]
     public void Probe_MissingFile_IsAbsent() =>
         Assert.Equal(FilePresence.Absent, HostFile.Probe(Path.Combine(_root, "nothing.dat")));
 
     /// <summary>A path the host will not accept as a file name is a statement about the PATH, not an
-    /// input-output failure: it names no present file, so it is Absent (§9.1.13.6 item 5) and not §9.1.13.6
+    /// input-output failure: it names no present file, so it is Absent (§2023:9.1.13.6 item 5) and not §2023:9.1.13.6
     /// item 1's '30'. This is also the answer <c>File.Exists</c> gave, so no OPEN changed behaviour when the
     /// probe replaced it — the pin is here because <c>File.GetAttributes</c>, unlike <c>File.Exists</c>,
     /// THROWS for these and the mapping had to be chosen rather than inherited.</summary>
@@ -114,7 +114,7 @@ public sealed class FileAuthorityPresenceTests : IDisposable
         Assert.Equal(FilePresence.Present, HostFile.Probe(p));
     }
 
-    /// <summary>A DIRECTORY at the ASSIGN path is not the §9.1.6 <i>physical file</i>, so "the physical file is
+    /// <summary>A DIRECTORY at the ASSIGN path is not the §2023:9.1.6 <i>physical file</i>, so "the physical file is
     /// not present" is the true statement about it — the same answer <c>File.Exists</c> gave, which is why the
     /// PB323 refactor left every OPEN of such a path at '35'.</summary>
     [Fact]
@@ -194,7 +194,7 @@ public sealed class FileAuthorityPresenceTests : IDisposable
     }
 
     /// <summary>⛔ THE OVER-FIRE GUARD, and the reason GR3's short-circuit deliberately excludes OUTPUT.
-    /// §14.9.27.4 GR18 makes OUTPUT a CREATION that never consults presence, and §9.1.13.6 item 5's '35' is
+    /// §2023:14.9.27.4 GR18 makes OUTPUT a CREATION that never consults presence, and §2023:9.1.13.6 item 5's '35' is
     /// defined only <i>"for an OPEN statement with the INPUT, I-O, or EXTEND phrase"</i> — so a directory this
     /// process may WRITE but not LIST legitimately accepts a new file. The probe answers Unauthorized for that
     /// path; a blanket '37' would reject an OPEN OUTPUT the operating environment carries out perfectly.</summary>
@@ -224,10 +224,10 @@ public sealed class FileAuthorityPresenceTests : IDisposable
 
     // ── GR16's write capability: the SAME file, the SAME answer, every organization (kb/Work PB328) ──────────
 
-    /// <summary>⛔ THE NINE CELLS. §14.9.27.4 GR16 — <i>"If the I-O phrase is specified, the file shall support
+    /// <summary>⛔ THE NINE CELLS. §2023:14.9.27.4 GR16 — <i>"If the I-O phrase is specified, the file shall support
     /// the input and output statements that are permitted for the organization of that file when opened in the
     /// I-O mode. If the file does not support those statements, the I-O status value for file-name-1 is set to
-    /// '37' and the execution of the OPEN statement is unsuccessful."</i> §9.1.13.6 item 6 a) prices the other
+    /// '37' and the execution of the OPEN statement is unsuccessful."</i> §2023:9.1.13.6 item 6 a) prices the other
     /// two write modes identically: 1. <i>"the EXTEND or OUTPUT phrase is specified but the file will not
     /// support write operations"</i>, 2. the I-O restatement of GR16.
     /// <para>Neither rule names an organization, and Table 20 is why they cannot: REWRITE sits under the I-O
@@ -255,7 +255,7 @@ public sealed class FileAuthorityPresenceTests : IDisposable
         Assert.Equal("37", reg.Status("F"));
     }
 
-    /// <summary>The OPTIONAL clause does not enter GR16 or §9.1.13.6 item 6 a) at all, and that is the silent
+    /// <summary>The OPTIONAL clause does not enter GR16 or §2023:9.1.13.6 item 6 a) at all, and that is the silent
     /// half: GR17's creation arm opens with <i>"If the file is NOT present"</i>, so a file that IS present and
     /// merely unwritable must never be treated as one to create.</summary>
     [Theory]
@@ -270,7 +270,7 @@ public sealed class FileAuthorityPresenceTests : IDisposable
         Assert.Equal("37", reg.Status("F"));
     }
 
-    /// <summary>§14.9.27.4 GR25 — <i>"If the execution of the OPEN statement is unsuccessful, the file is not
+    /// <summary>§2023:14.9.27.4 GR25 — <i>"If the execution of the OPEN statement is unsuccessful, the file is not
     /// affected"</i>. The capability answer is obtained by really asking the host for a writable handle, so the
     /// probe itself has to be provably inert: <c>FileMode.Open</c> with no bytes written leaves content AND
     /// last-write time exactly as they were.</summary>
@@ -288,7 +288,7 @@ public sealed class FileAuthorityPresenceTests : IDisposable
     }
 
     /// <summary>⛔ THE OVER-FIRE GUARD. A read-only file supports every statement Table 20 permits in the INPUT
-    /// mode, and §9.1.13.6 item 6 a) 3. asks only whether <i>"the file will not support read operations"</i>.
+    /// mode, and §2023:9.1.13.6 item 6 a) 3. asks only whether <i>"the file will not support read operations"</i>.
     /// Probing WRITE capability for an INPUT open would refuse an OPEN the operating environment carries out
     /// perfectly — and reading a write-protected master file is one of the oldest idioms there is.</summary>
     [Theory]
@@ -344,7 +344,7 @@ public sealed class FileAuthorityPresenceTests : IDisposable
         Assert.True(HostFile.PermitsWrite(p));
     }
 
-    /// <summary>§9.1.13.6 item 6 a) 3. — <i>"the INPUT phrase is specified but the file will not support read
+    /// <summary>§2023:9.1.13.6 item 6 a) 3. — <i>"the INPUT phrase is specified but the file will not support read
     /// operations"</i>, the third face of the same '37'. Its answer is NOT the write probe (which excludes
     /// INPUT on purpose) and NOT GR3's presence short-circuit (the file here is fully observable: the
     /// DIRECTORY is readable and only the FILE is refused, so <c>HostFile.Probe</c> says Present). It is the
@@ -367,7 +367,7 @@ public sealed class FileAuthorityPresenceTests : IDisposable
         Assert.Equal("37", reg.Status("F"));
     }
 
-    /// <summary>⛔ GR16'S OTHER HALF, AND THE ANSWER TO "WHICH ARM DID YOU FIX?". §14.9.27.4 GR16 requires the
+    /// <summary>⛔ GR16'S OTHER HALF, AND THE ANSWER TO "WHICH ARM DID YOU FIX?". §2023:14.9.27.4 GR16 requires the
     /// file to support <i>"the input AND output statements that are permitted for the organization of that
     /// file when opened in the I-O mode"</i> — Table 20 lists READ under the I-O column alongside REWRITE — so
     /// a file this process may WRITE but not READ is '37' on OPEN I-O just as surely as a read-only one is.
@@ -390,7 +390,7 @@ public sealed class FileAuthorityPresenceTests : IDisposable
     }
 
     /// <summary>⛔ kb/Work PB2848 — a record-locking OUTPUT writer on a file this process may WRITE but not READ
-    /// is successful. §14.9.27.4 GR3's '37' is "insufficient authority … to open the file" for the mode, and the
+    /// is successful. §2023:14.9.27.4 GR3's '37' is "insufficient authority … to open the file" for the mode, and the
     /// mode here is OUTPUT: the connector's handle asks for READ as well only so a Linux host accepts the lock
     /// presence announcement (<c>SequentialConnector.HostAccess</c>), which is a preference of the lock, not a
     /// need of the open. The connector keeps a write-only handle and numbers its records by the run unit's mint,
@@ -415,7 +415,7 @@ public sealed class FileAuthorityPresenceTests : IDisposable
     }
 
     /// <summary>The other side of the same boundary: EXTEND on that file stays '37'. A record-locking EXTEND writer
-    /// numbers the records already in the file (§9.1.16's identity is the ordinal), which it cannot do without
+    /// numbers the records already in the file (§2023:9.1.16's identity is the ordinal), which it cannot do without
     /// reading them, so for EXTEND the read half is the open's need and not a preference.</summary>
     [Fact]
     public void OpenExtend_RecordLockingWriterOnAWriteOnlyFile_Is37()
@@ -428,11 +428,11 @@ public sealed class FileAuthorityPresenceTests : IDisposable
     }
 
     /// <summary>⛔ kb/Work PB3372 — an EXTEND OPEN that SETS NO record lock needs only WRITE access, so on a file this
-    /// process may write but not read it is successful. §9.1.13.6 item 6) a) 1. makes EXTEND need only write support
+    /// process may write but not read it is successful. §2023:9.1.13.6 item 6) a) 1. makes EXTEND need only write support
     /// from the file, and the read half of <c>HostAccess</c> and the record count it feeds exist only to number the
     /// records a LOCK is published under (<see cref="OpenExtend_RecordLockingWriterOnAWriteOnlyFile_Is37"/>), which
     /// <c>FileRegistry.RecordLocksSetUnder</c> says this connector never sets: (1) a SHARING clause with no LOCK MODE
-    /// clause (§12.4.5.9.4 GR1 a)), (2) a SHARING phrase on the OPEN and no clause (GR1 b) 1.), (3) a LOCK MODE clause
+    /// clause (§2023:12.4.5.9.4 GR1 a)), (2) a SHARING phrase on the OPEN and no clause (GR1 b) 1.), (3) a LOCK MODE clause
     /// under the NO OTHER default of EXTEND (GR3: "the LOCK MODE clause has no effect"). Before PB3372 each registered
     /// a posture, asked for the read and answered '37'. The appended record is in the file.</summary>
     [Theory]
@@ -470,7 +470,7 @@ public sealed class FileAuthorityPresenceTests : IDisposable
 
     /// <summary>⛔ kb/Work PB2848 — the host path of an ASSIGN target the host cannot make absolute is data, not a
     /// crash. <see cref="CobolFile.ResolveHostPath"/> runs at registration and before the OPEN body, outside every
-    /// I-O-status catch, and the content of a data-name-1 is an arbitrary string (§12.4.5.3 GR3 b)): a path longer
+    /// I-O-status catch, and the content of a data-name-1 is an arbitrary string (§2023:12.4.5.3 GR3 b)): a path longer
     /// than the host allows or a NUL threw <see cref="PathTooLongException"/> / <see cref="ArgumentException"/>
     /// out of the run unit. The spelling is returned as written and the OPEN reports what the host says.
     /// <para>A NUL is refused by every host. A 40,000-character spelling is refused where the host bounds a path's
@@ -506,7 +506,7 @@ public sealed class FileAuthorityPresenceTests : IDisposable
     /// <summary>⛔ kb/Work PB4097 (review round 1, R1-2) — a dynamic target that names a file system ROOT (<c>C:/</c>, <c>/</c>) is a
     /// directory, not a file: the OPEN's entry step looks for a lock directory beside the file, and a root has no directory to
     /// hold one, so it names no transaction (<c>SequentialJournal.Enter</c>) and the OPEN's own probe answers, an I-O status like
-    /// every other open failure (§12.4.5.3 GR3 b): data-name-1 holds an arbitrary string; §9.1.13.6 1)). The OPEN INPUT of the
+    /// every other open failure (§2023:12.4.5.3 GR3 b): data-name-1 holds an arbitrary string; §2023:9.1.13.6 1)). The OPEN INPUT of the
     /// file, which no entry step touched before the reader's OPEN settled dead transactions, must answer what it answered then:
     /// '35' for a file not found, '05' for an OPTIONAL one.</summary>
     [Theory]
@@ -520,7 +520,7 @@ public sealed class FileAuthorityPresenceTests : IDisposable
     }
 
     /// <summary>The writable arms of the same entry step (<c>SequentialJournal.Enter</c>) reached the same throw before PB4097's
-    /// review. A root is a directory in the way of the file an OUTPUT would create (§14.9.27.4 GR3's '37') and no file for an
+    /// review. A root is a directory in the way of the file an OUTPUT would create (§2023:14.9.27.4 GR3's '37') and no file for an
     /// EXTEND or I-O OPEN to find ('35').</summary>
     [Theory]
     [InlineData(FileOpenMode.Output, "37")]
@@ -544,7 +544,7 @@ public sealed class FileAuthorityPresenceTests : IDisposable
     /// <summary>The escape hatch for the two capability helpers, classified exactly as
     /// <see cref="TheDenyHelperWorksOnThisHost"/> is. Each is measured separately, because they establish
     /// different preconditions through different mechanisms — a read-only attribute or mode bit for GR16's
-    /// unwritable file, a deny-read ACE or a write-only mode for §9.1.13.6 item 6 a) 3.'s unreadable one — and
+    /// unwritable file, a deny-read ACE or a write-only mode for §2023:9.1.13.6 item 6 a) 3.'s unreadable one — and
     /// a host may defeat either one alone.</summary>
     [Fact]
     public void TheCapabilityHelpersWorkOnThisHost()
@@ -559,9 +559,9 @@ public sealed class FileAuthorityPresenceTests : IDisposable
         Assert.False(read.Verdict == HostCapability.DenialVerdict.ToolFailed, read.Because);
     }
 
-    // ── The DELETE FILE twin, now on the same probe (§14.9.10.4 GR14/GR16) ───────────────────────────────────
+    // ── The DELETE FILE twin, now on the same probe (§2023:14.9.10.4 GR14/GR16) ───────────────────────────────────
 
-    /// <summary>§14.9.10.4 GR16's '37'. Correct since kb/Work PB140; pinned here because PB323 moved it onto
+    /// <summary>§2023:14.9.10.4 GR16's '37'. Correct since kb/Work PB140; pinned here because PB323 moved it onto
     /// the shared <see cref="HostFile.Probe"/> — the refactor has to preserve it.</summary>
     [Fact]
     public void DeleteFile_PresentButRefused_Is37()
@@ -571,8 +571,8 @@ public sealed class FileAuthorityPresenceTests : IDisposable
         Assert.Equal("37", reg.DeleteFile("F"));
     }
 
-    /// <summary>§14.9.10.4 GR14's '05' — a SUCCESSFUL completion for a file that is not present. A DIRECTORY at
-    /// the path is not the §9.1.6 physical file, so it takes the absent arm; before PB323 unified the probe,
+    /// <summary>§2023:14.9.10.4 GR14's '05' — a SUCCESSFUL completion for a file that is not present. A DIRECTORY at
+    /// the path is not the §2023:9.1.6 physical file, so it takes the absent arm; before PB323 unified the probe,
     /// <c>File.Delete</c>'s refusal made this a factually wrong '37' ("insufficient authority").</summary>
     [Fact]
     public void DeleteFile_DirectoryAtThePath_Is05()
@@ -599,7 +599,7 @@ public sealed class FileAuthorityPresenceTests : IDisposable
         return reg;
     }
 
-    /// <summary>Establish §14.9.27.4 GR3's precondition on <c>locked/secret.dat</c> — a file that IS present
+    /// <summary>Establish §2023:14.9.27.4 GR3's precondition on <c>locked/secret.dat</c> — a file that IS present
     /// and that this process may not read — and return the file's path, or <c>null</c> when this host did not
     /// refuse the read. Either way <see cref="_denial"/> carries the CLASSIFICATION (kb/Work PB795): the denial
     /// was applied and worked, was applied and the host granted the access anyway, or was never applied at all.
@@ -677,7 +677,7 @@ public sealed class FileAuthorityPresenceTests : IDisposable
     }
 
     /// <summary>Create <c>readonly.dat</c>, make it unwritable to this process while leaving it PRESENT and
-    /// fully observable, and return its path — the precondition of §14.9.27.4 GR16 and §9.1.13.6 item 6 a),
+    /// fully observable, and return its path — the precondition of §2023:14.9.27.4 GR16 and §2023:9.1.13.6 item 6 a),
     /// actually established — or <c>null</c> when this host did not refuse the write. <see cref="_denial"/>
     /// carries the classification either way.
     /// <para>This is deliberately NOT <see cref="Refused"/>'s denial: that one hides the file from the presence
@@ -690,13 +690,13 @@ public sealed class FileAuthorityPresenceTests : IDisposable
     /// <summary>⛔ THE WITNESS HAS TO BE A FILE THE ORGANIZATION UNDER TEST CAN ACTUALLY INTERPRET, or the test
     /// establishes TWO contradictions and measures the wrong one. Every witness here used to be the plain text
     /// <c>"HELLO-RECORD-0001"</c>, shared by all three organizations; since kb/Work PB802 a RELATIVE or INDEXED
-    /// connector reads its §9.1.6 fixed file attributes from the framed store's own HEADER, so a plain text file
-    /// opened through one of those descriptions is a §14.9.27.4 GR10 file attribute conflict — '39' — and GR10
+    /// connector reads its §2023:9.1.6 fixed file attributes from the framed store's own HEADER, so a plain text file
+    /// opened through one of those descriptions is a §2023:14.9.27.4 GR10 file attribute conflict — '39' — and GR10
     /// is answered BEFORE GR16's capability question, which is what these tests are about. So a keyed witness is
     /// CREATED THROUGH ITS OWN ORGANIZATION first (an OPEN OUTPUT establishes the attributes, GR18) and only
     /// then denied; the ACL is then the only thing wrong with it, which is the whole point of the fixture.
     /// <para>A record-sequential witness stays plain text, because plain bytes ARE that organization's format
-    /// (§9.1.7.2) — nothing about it can contradict a description.</para>
+    /// (§2023:9.1.7.2) — nothing about it can contradict a description.</para>
     /// <para>The geometry matches <see cref="Register"/>'s exactly (17-byte records; relative key digits 4;
     /// indexed prime key at 0 for 4), so the record sizes and the key table agree too and the ONLY question the
     /// OPEN can fail on is the capability one.</para></summary>
@@ -738,7 +738,7 @@ public sealed class FileAuthorityPresenceTests : IDisposable
 
     /// <summary>Create <c>unreadable.dat</c> as a WRITE-ONLY file — refused read, still writable, and with its
     /// directory listable so the presence probe answers <c>Present</c>. It is the exact complement of
-    /// <see cref="NotWritable"/>, and having both is what keeps §14.9.27.4 GR16's two halves separable: GR16
+    /// <see cref="NotWritable"/>, and having both is what keeps §2023:14.9.27.4 GR16's two halves separable: GR16
     /// requires the file to support <i>"the input AND output statements"</i> the I-O mode permits, so a file
     /// that fails EITHER half is '37' and a probe that only asked about writing would answer half a rule.
     /// <para>Deliberately not <see cref="Refused"/>'s shape: there the file is denied its ATTRIBUTES too and

@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// <para>
 /// ⛔ WHY THESE EXIST. The F2 family computes in exact base-10 <see cref="Int128"/> at a known decimal scale,
 /// which is right and is the design (deep-dive D1). But a floating-point ARGUMENT is legal for every one of these
-/// functions — ISO §15.7.3 r1 and its siblings require class NUMERIC, and a COMP-2 item is class numeric — and
+/// functions — ISO §2023:15.7.3 r1 and its siblings require class NUMERIC, and a COMP-2 item is class numeric — and
 /// there was no path for one. The emitter dispatched on the FUNCTION's family (<c>sig.Float</c>) rather than on
 /// the ARGUMENT's type, so a double expression was handed to an <c>Int128</c> parameter and the user saw a raw
 /// Roslyn error escape the compiler:
@@ -27,7 +27,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// </para>
 /// <para>
 /// <b>Why a double body is the CONFORMING answer here, not a shortcut.</b> Under native arithmetic — the default —
-/// §15.4.1 makes "the characteristics and representation of the returned value … defined by the implementor", and
+/// §2023:15.4.1 makes "the characteristics and representation of the returned value … defined by the implementor", and
 /// each of these functions is defined by an equivalent arithmetic expression evaluated in that same native
 /// arithmetic. With a floating-point argument the EAE's own operands are binary64, so evaluating it in binary64 IS
 /// the equivalent expression. Nothing exact is being given up: there was no exact value to preserve once the
@@ -48,7 +48,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// reachable with a real argument has its counterpart — so the convention is enforced rather than remembered.
 /// </para>
 /// <para>
-/// ⛔ <b>NO BODY HERE TAKES A §15.3 TYPE-6 (INTEGER) ARGUMENT AS A DOUBLE</b> (kb/Work PB651). An integer has no
+/// ⛔ <b>NO BODY HERE TAKES A §2023:15.3 TYPE-6 (INTEGER) ARGUMENT AS A DOUBLE</b> (kb/Work PB651). An integer has no
 /// binary64-ness: the renderer's one argument entry (<c>IntrinsicRenderer.RawArg</c>) takes a type-6 operand's
 /// INTEGER through the one type-6 intake before any lane is chosen, so a float there no longer moves a call to this
 /// lane, and the integer-only functions' bodies (the date family, the TEST- validators, the windowing trio, MOD) were
@@ -58,10 +58,10 @@ namespace WiseOwl.Cobol.Runtime;
 /// </remarks>
 public static partial class CobolIntrinsics
 {
-    // ── NATIVE EXPONENTIATION (ISO §8.8.1.2 rule 6; fix-queue PB18 + PB28) ──────────────────────────────────────
+    // ── NATIVE EXPONENTIATION (ISO §2023:8.8.1.2 rule 6; fix-queue PB18 + PB28) ──────────────────────────────────────
 
     /// <summary>
-    /// ⛔ THE §8.8.1.2 RULE-6 SCREEN, WRITTEN ONCE FOR EVERY NATIVE ARM (fix-queue PB28).
+    /// ⛔ THE §2023:8.8.1.2 RULE-6 SCREEN, WRITTEN ONCE FOR EVERY NATIVE ARM (fix-queue PB28).
     /// </summary>
     /// <remarks>
     /// Rule 6 is a GENERAL rule of arithmetic-expression evaluation — its own title is "Native, standard-binary,
@@ -87,14 +87,14 @@ public static partial class CobolIntrinsics
         if (b == 0 && e <= 0)
             throw new CobolSizeError(
                 $"exponentiation: a zero base requires an exponent greater than zero, not {e} "
-                + "(ISO §8.8.1.2 rule 6a)", "EC-SIZE-EXPONENTIATION");
+                + "(ISO §2023:8.8.1.2 rule 6a)", "EC-SIZE-EXPONENTIATION");
         if (b < 0 && e != Math.Floor(e))
             throw new CobolSizeError(
                 $"exponentiation: a negative base ({b}) requires an integer exponent, not {e} "
-                + "(ISO §8.8.1.2 rule 6c)", "EC-SIZE-EXPONENTIATION");
+                + "(ISO §2023:8.8.1.2 rule 6c)", "EC-SIZE-EXPONENTIATION");
     }
 
-    /// <summary>Native <c>**</c> on the FLOATING arm — the §8.8.1.3 implementor-defined approximation, screened by
+    /// <summary>Native <c>**</c> on the FLOATING arm — the §2023:8.8.1.3 implementor-defined approximation, screened by
     /// <see cref="CheckPowRule6"/> first so the two mandatory legs of rule 6 hold on this arm too (PB28).</summary>
     public static double PowNativeReal(double b, double e)
     {
@@ -103,7 +103,7 @@ public static partial class CobolIntrinsics
     }
 
     /// <summary><see cref="PowNativeReal"/> where a range condition's checking is ENABLED — the power is an operation on
-    /// the binary64 intermediate, so its result's range is §14.7.5 case 5 through the ONE check the other checked native
+    /// the binary64 intermediate, so its result's range is §2023:14.7.5 case 5 through the ONE check the other checked native
     /// operators use (<see cref="CobolFloat.InBinary64Range"/>, kb/Work PB1581): <c>C ** 2</c> over a COMP-2 holding
     /// 1.0E+300 is EC-SIZE-OVERFLOW, not +Infinity. A nonzero base's power is never zero. <paramref name="taken"/>: the
     /// conditions whose checking is enabled (kb/Work PB4092).</summary>
@@ -113,40 +113,40 @@ public static partial class CobolIntrinsics
         return double.IsFinite(b) && double.IsFinite(e) ? CobolFloat.InBinary64Range(r, nonzero: b != 0, "exponentiation", taken) : r;
     }
 
-    /// <summary>§15.7 ABS — the absolute value of a floating-point argument.</summary>
+    /// <summary>§2023:15.7 ABS — the absolute value of a floating-point argument.</summary>
     public static double AbsReal(double v) => Math.Abs(v);
 
-    /// <summary>§15.81 SIGN — −1 / 0 / +1. Mirrors the exact body: only a value that IS zero returns 0, so a
+    /// <summary>§2023:15.81 SIGN — −1 / 0 / +1. Mirrors the exact body: only a value that IS zero returns 0, so a
     /// negative zero reports 0 rather than −1 (IEEE −0.0 compares equal to 0.0).</summary>
     public static long SignOfReal(double v) => v > 0 ? 1 : v < 0 ? -1 : 0;
 
-    /// <summary>§15.44 INTEGER — the greatest integer not greater than the argument (a FLOOR, so −3.5 gives −4).</summary>
+    /// <summary>§2023:15.44 INTEGER — the greatest integer not greater than the argument (a FLOOR, so −3.5 gives −4).</summary>
     public static double FloorReal(double v) => Math.Floor(v);
 
-    /// <summary>§15.49 INTEGER-PART — truncation toward zero (so −3.5 gives −3, unlike §15.44).</summary>
+    /// <summary>§2023:15.49 INTEGER-PART — truncation toward zero (so −3.5 gives −3, unlike §2023:15.44).</summary>
     public static double TruncateReal(double v) => Math.Truncate(v);
 
-    /// <summary>§15.42 FRACTION-PART — argument minus its integer part, keeping the argument's sign.</summary>
+    /// <summary>§2023:15.42 FRACTION-PART — argument minus its integer part, keeping the argument's sign.</summary>
     public static double FractionPartReal(double v) => v - Math.Truncate(v);
 
-    /// <summary>§15.77 REM — the TRUNCATED remainder, whose result takes the sign of argument-1
-    /// (§15.77.4: <c>argument-1 − (argument-2 × FUNCTION INTEGER-PART (argument-1 / argument-2))</c>).
+    /// <summary>§2023:15.77 REM — the TRUNCATED remainder, whose result takes the sign of argument-1
+    /// (§2023:15.77.4: <c>argument-1 − (argument-2 × FUNCTION INTEGER-PART (argument-1 / argument-2))</c>).
     /// ⚠ Distinct from MOD exactly as the two exact bodies are: REM(−7, 3) is −1 where MOD(−7, 3) is 2. MOD has no
-    /// binary64 body: both its positions are §15.3 type 6, so the renderer takes their integers first and the call
+    /// binary64 body: both its positions are §2023:15.3 type 6, so the renderer takes their integers first and the call
     /// never reaches this lane (kb/Work PB651). Shares <see cref="RemZeroDivisor"/> with the exact carrier (one raise
     /// site per rule, fix-queue PB32), and computes C#'s <c>%</c> on the two doubles — IEC 60559's exact truncated
-    /// remainder, which IS §15.77.4's value; the literal <c>a − (b × truncate(a / b))</c> cancels catastrophically
+    /// remainder, which IS §2023:15.77.4's value; the literal <c>a − (b × truncate(a / b))</c> cancels catastrophically
     /// once <c>b·⌊a/b⌋</c> passes 2⁵³ (fix-queue PB65's sweep).</summary>
     public static double RemReal(double a, double b) => b == 0 ? RemZeroDivisor() : a % b;
 
-    /// <summary>§15.59 MAX — the greatest argument value.</summary>
+    /// <summary>§2023:15.59 MAX — the greatest argument value.</summary>
     public static double MaxReal(params double[] xs) { RequireArguments(xs.Length, "MAX"); return xs.Max(); }
 
-    /// <summary>§15.63 MIN — the least argument value.</summary>
+    /// <summary>§2023:15.63 MIN — the least argument value.</summary>
     public static double MinReal(params double[] xs) { RequireArguments(xs.Length, "MIN"); return xs.Min(); }
 
     // ⛔ THE binary64 LIST BODIES FORM THEIR EQUIVALENT ARITHMETIC EXPRESSION IN THE binary64 INTERMEDIATE (kb/Work
-    // PB1581), so a sum or a half-sum that leaves binary64's range is §14.7.5 case 5 — EC-SIZE-OVERFLOW, or
+    // PB1581), so a sum or a half-sum that leaves binary64's range is §2023:14.7.5 case 5 — EC-SIZE-OVERFLOW, or
     // EC-SIZE-UNDERFLOW for a nonzero value rounded to zero — through the ONE check the checked native operators
     // and FUNCTION EXP use (CobolFloat.InBinary64Range), never a silent ±Infinity: SUM(C C) over a COMP-2 C
     // holding 1.0E+308 printed Infinity. A list with a NON-FINITE argument keeps its DOC-A.1-70 disposition
@@ -167,7 +167,7 @@ public static partial class CobolIntrinsics
         return ListInRange(s / 2.0, xs, nonzero: s != 0, function);
     }
 
-    /// <summary>§15.88 SUM.</summary>
+    /// <summary>§2023:15.88 SUM.</summary>
     public static double SumReal(params double[] xs)
     {
         RequireArguments(xs.Length, "SUM");
@@ -176,15 +176,15 @@ public static partial class CobolIntrinsics
         return ListInRange(t, xs, nonzero: false, "SUM");
     }
 
-    /// <summary>§15.76 RANGE — MAX minus MIN.</summary>
+    /// <summary>§2023:15.76 RANGE — MAX minus MIN.</summary>
     public static double RangeReal(params double[] xs)
     {
         RequireArguments(xs.Length, "RANGE");
         return ListInRange(xs.Max() - xs.Min(), xs, nonzero: false, "RANGE");
     }
 
-    /// <summary>§15.61 MEDIAN — the middle value of the sorted arguments; the mean of the two middle values when
-    /// the count is even (§15.61.4).</summary>
+    /// <summary>§2023:15.61 MEDIAN — the middle value of the sorted arguments; the mean of the two middle values when
+    /// the count is even (§2023:15.61.4).</summary>
     public static double MedianReal(params double[] xs)
     {
         RequireArguments(xs.Length, "MEDIAN");
@@ -194,14 +194,14 @@ public static partial class CobolIntrinsics
         return (s.Length & 1) == 1 ? s[m] : HalfSumInRange(s[m - 1], s[m], xs, "MEDIAN");
     }
 
-    /// <summary>§15.62 MIDRANGE — the mean of the greatest and least arguments.</summary>
+    /// <summary>§2023:15.62 MIDRANGE — the mean of the greatest and least arguments.</summary>
     public static double MidrangeReal(params double[] xs)
     {
         RequireArguments(xs.Length, "MIDRANGE");
         return HalfSumInRange(xs.Max(), xs.Min(), xs, "MIDRANGE");
     }
 
-    /// <summary>§15.60 MEAN — the arithmetic mean of the arguments.</summary>
+    /// <summary>§2023:15.60 MEAN — the arithmetic mean of the arguments.</summary>
     public static double MeanReal(params double[] xs)
     {
         RequireArguments(xs.Length, "MEAN");
@@ -211,8 +211,8 @@ public static partial class CobolIntrinsics
         return ListInRange(t / xs.Length, xs, nonzero: t != 0, "MEAN");
     }
 
-    /// <summary>§15.71 ORD-MAX — the 1-based ORDINAL POSITION of the greatest argument, leftmost on a tie
-    /// (§15.71.4 r3). Returns a position, never a value, so the count — not the arguments — bounds the result.</summary>
+    /// <summary>§2023:15.71 ORD-MAX — the 1-based ORDINAL POSITION of the greatest argument, leftmost on a tie
+    /// (§2023:15.71.4 r3). Returns a position, never a value, so the count — not the arguments — bounds the result.</summary>
     public static double OrdMaxReal(params double[] xs)
     {
         RequireArguments(xs.Length, "ORD-MAX");
@@ -222,19 +222,19 @@ public static partial class CobolIntrinsics
     }
 
     /// <summary>
-    /// §15.17 COMBINED-DATETIME — <c>argument-1 + (argument-2 / 100000)</c> exactly as §15.17.4 r1 writes it.
+    /// §2023:15.17 COMBINED-DATETIME — <c>argument-1 + (argument-2 / 100000)</c> exactly as §2023:15.17.4 r1 writes it.
     /// </summary>
     /// <remarks>
-    /// Argument-2 is "in standard numeric time form" (§15.17.3 r2) and §15.6 types it <c>Num2</c>, so it may
+    /// Argument-2 is "in standard numeric time form" (§2023:15.17.3 r2) and §2023:15.6 types it <c>Num2</c>, so it may
     /// legitimately be a floating-point item — which is why this body is needed even though argument-1 is an
     /// integer date. The exact twin in <c>CobolDate</c> expresses the same expression as a scale shift
     /// (<c>date × 10^(scale+5) + secUnscaled</c> read at scale+5), and the two agree by construction.
-    /// <para>⛔ AND IT ASKS THE ONE §15.17.3 SCREEN, like its two exact-carrier twins (kb/Work PB620). This body
+    /// <para>⛔ AND IT ASKS THE ONE §2023:15.17.3 SCREEN, like its two exact-carrier twins (kb/Work PB620). This body
     /// had no argument rule at all, so a COMP-2 argument-2 of 86400 computed a fabricated 1.8639999999999 in
     /// silence where the identical VALUE in a fixed-point item terminated the run unit with
     /// EC-ARGUMENT-FUNCTION — a rule about a VALUE answering differently for each CARRIER, which is the PB32
-    /// shape. The substituted result is §15.3's documented default 0, the one both other carriers return, and
-    /// the LEAP-SECOND state reaches here for the same reason it reaches them: §7.3.17.4 GR4/GR5 is what sets
+    /// shape. The substituted result is §2023:15.3's documented default 0, the one both other carriers return, and
+    /// the LEAP-SECOND state reaches here for the same reason it reaches them: §2023:7.3.17.4 GR4/GR5 is what sets
     /// the bound.</para>
     /// </remarks>
     public static double CombinedDatetimeReal(double integerDate, double seconds, bool leapSecond = false) =>
@@ -242,7 +242,7 @@ public static partial class CobolIntrinsics
             ? 0
             : integerDate + (seconds / 100000.0);
 
-    /// <summary>§15.72 ORD-MIN — the 1-based ordinal position of the least argument, leftmost on a tie.</summary>
+    /// <summary>§2023:15.72 ORD-MIN — the 1-based ordinal position of the least argument, leftmost on a tie.</summary>
     public static double OrdMinReal(params double[] xs)
     {
         RequireArguments(xs.Length, "ORD-MIN");

@@ -5,19 +5,19 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.18.40.4 GR19 (PICTURE format 2) — "The PICTURE clause
+      *> ISO §2023:13.18.40.4 GR19 (PICTURE format 2) — "The PICTURE clause
       *> takes effect during the format validation stage of the
       *> execution of a VALIDATE statement that refers directly or
       *> indirectly to the subject of the entry. The validation is
       *> carried out in accordance with the character classification and
       *> monetary specification in the locale."
-      *> CITE GR19 BY BOTH SENTENCES: §13.18.40.4 rule 15 (FORMAT 1)
+      *> CITE GR19 BY BOTH SENTENCES: §2023:13.18.40.4 rule 15 (FORMAT 1)
       *> opens with the same first sentence, so a shortened quote
       *> resolves to the Format-1 twin. The locale sentence is unique
       *> to rule 19, which sits under the printed FORMAT 2 heading.
       *> The rule's whole trigger is the VALIDATE statement, and the
-      *> VALIDATE facility is DECLINED: OPTIONAL (§4.2.7, Annex A.4.14)
-      *> and, at COBOL-2023, also OBSOLETE (§4.2.13, Annex F.2 item 5) —
+      *> VALIDATE facility is DECLINED: OPTIONAL (§2023:4.2.7, Annex A.4.14)
+      *> and, at COBOL-2023, also OBSOLETE (§2023:4.2.13, Annex F.2 item 5) —
       *> docs/CONFORMANCE.md §4 item 3. No format validation stage ever
       *> executes, so GR19 has no occasion to apply.
       *> WITNESS: the named COBOL1580 non-support warning, which is
@@ -25,11 +25,11 @@
       *> DocumentedNonSupportWitnessTests). The .out pins INERTNESS
       *> ONLY — control passes through the VALIDATE and N reaches 1.
       *> AN UNCHANGED SUBJECT IS NOT EVIDENCE THAT NO FORMAT VALIDATION
-      *> STAGE RAN. §14.9.50.4 GR5 — "the execution of the VALIDATE
+      *> STAGE RAN. §2023:14.9.50.4 GR5 — "the execution of the VALIDATE
       *> statement does not terminate and the content of the invalid
-      *> data item does not change" — and §13.18.17.4 GR1 — "The data
+      *> data item does not change" — and §2023:13.18.17.4 GR1 — "The data
       *> item itself remains unchanged" — make an unchanged subject the
-      *> CONFORMING outcome too, and §14.9.50.4 GR6 writes into an
+      *> CONFORMING outcome too, and §2023:14.9.50.4 GR6 writes into an
       *> operand only through a DESTINATION clause (stage two) and a
       *> VALIDATE-STATUS item (stage five), neither of which this entry
       *> declares. A behavioural discriminator would have to be GR6

@@ -7,7 +7,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// ACOS and ASIN of an argument expression whose exact value passes the <see cref="Int128"/> carrier (a nested product of 39 to
 /// 77 digits, <see cref="CobolWide"/>). They are the exact-intake overloads of <c>CobolIntrinsics.Float.cs</c> (kb/Work PB999,
 /// PB1041) on the wider carrier, with the same contracts and the same domain screen.
-/// <para>WHY THEY EXIST. §15.82.4 r1 / §15.20.4 r1 / §15.89.4 r1 return an approximation of the sine / cosine / tangent OF
+/// <para>WHY THEY EXIST. §2023:15.82.4 r1 / §2023:15.20.4 r1 / §2023:15.89.4 r1 return an approximation of the sine / cosine / tangent OF
 /// argument-1, and argument-1 is the exact value its expression has. The argument used to arrive as the 34-digit round-to-odd
 /// image of that value, and the image of a 39-digit product is some 999 radians from the product: <c>FUNCTION SIN (BIG * BIG *
 /// K3)</c> of 18-, 18- and 3-digit items printed the sine of the image. LOG, LOG10, ACOS and ASIN are ill-conditioned at 1 and
@@ -33,7 +33,7 @@ public static partial class CobolIntrinsics
         return null;
     }
 
-    /// <summary>§15.82 SIN of an exact wide argument: sin(q·π/2 + r) over the residue r of the 39-to-77-digit magnitude itself
+    /// <summary>§2023:15.82 SIN of an exact wide argument: sin(q·π/2 + r) over the residue r of the 39-to-77-digit magnitude itself
     /// (<see cref="ReduceQuarterTurns(CobolWide, int)"/>); below π/4 the double body.</summary>
     public static double SinWide(CobolWide x, int scale)
     {
@@ -41,29 +41,29 @@ public static partial class CobolIntrinsics
         return Math.Abs(d) <= QuarterPi ? Math.Sin(d) : SinReduced(ReduceQuarterTurns(x, scale), x.Sign < 0);
     }
 
-    /// <summary>§15.20 COS of an exact wide argument.</summary>
+    /// <summary>§2023:15.20 COS of an exact wide argument.</summary>
     public static double CosWide(CobolWide x, int scale)
     {
         double d = x.ToDouble(scale);
         return Math.Abs(d) <= QuarterPi ? Math.Cos(d) : CosReduced(ReduceQuarterTurns(x, scale));
     }
 
-    /// <summary>§15.89 TAN of an exact wide argument.</summary>
+    /// <summary>§2023:15.89 TAN of an exact wide argument.</summary>
     public static double TanWide(CobolWide x, int scale)
     {
         double d = x.ToDouble(scale);
         return Math.Abs(d) <= QuarterPi ? Math.Tan(d) : TanReduced(ReduceQuarterTurns(x, scale), x.Sign < 0);
     }
 
-    /// <summary>§15.55 LOG of an exact wide argument: ln(1 + u) of the EXACT u = x − 1 within ½ of 1
+    /// <summary>§2023:15.55 LOG of an exact wide argument: ln(1 + u) of the EXACT u = x − 1 within ½ of 1
     /// (<see cref="NearOneWide"/>), the logarithm of the value elsewhere, where its relative error is the image's 10^−34.
-    /// <c>null</c> = rejected by §15.55.3 r2.</summary>
+    /// <c>null</c> = rejected by §2023:15.55.3 r2.</summary>
     public static double LogWide(CobolWide? x, int scale) =>
         x is not { } v ? double.NaN
         : NearOneWide(v, scale, out double u) ? LogOnePlus(u) : Math.Log(v.ToDouble(scale));
 
-    /// <summary>§15.56 LOG10 of an exact wide argument (<see cref="LogWide"/>'s formulation over log10). <c>null</c> = rejected by
-    /// §15.56.3 r2.</summary>
+    /// <summary>§2023:15.56 LOG10 of an exact wide argument (<see cref="LogWide"/>'s formulation over log10). <c>null</c> = rejected by
+    /// §2023:15.56.3 r2.</summary>
     public static double Log10Wide(CobolWide? x, int scale) =>
         x is not { } v ? double.NaN
         : NearOneWide(v, scale, out double u) ? Log10OnePlus(u) : Math.Log10(v.ToDouble(scale));
@@ -78,8 +78,8 @@ public static partial class CobolIntrinsics
         return true;
     }
 
-    /// <summary>§15.8 ACOS of an exact wide argument (<see cref="Acos(CobolDec?)"/>'s half-angle identity over the EXACT wide
-    /// 1 − |x|). <c>null</c> = rejected by §15.8.3 r2.</summary>
+    /// <summary>§2023:15.8 ACOS of an exact wide argument (<see cref="Acos(CobolDec?)"/>'s half-angle identity over the EXACT wide
+    /// 1 − |x|). <c>null</c> = rejected by §2023:15.8.3 r2.</summary>
     public static double AcosWide(CobolWide? x, int scale)
     {
         if (x is not { } v) return double.NaN;
@@ -89,7 +89,7 @@ public static partial class CobolIntrinsics
         return v.Sign > 0 ? fromOne : (PiHi - fromOne) + PiLo;
     }
 
-    /// <summary>§15.10 ASIN of an exact wide argument. <c>null</c> = rejected by §15.10.3 r2.</summary>
+    /// <summary>§2023:15.10 ASIN of an exact wide argument. <c>null</c> = rejected by §2023:15.10.3 r2.</summary>
     public static double AsinWide(CobolWide? x, int scale)
     {
         if (x is not { } v) return double.NaN;

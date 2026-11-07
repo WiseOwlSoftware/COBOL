@@ -10,9 +10,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// kb/Work PB1532 — AN UNREACHABLE OBJECT'S INSTANCE FILES ARE CLOSED IN THE RUN UNIT THAT CREATED IT.
-/// <para>ISO §9.3.14.3 (cite.py --check OK): "An instance object is destroyed either when it is determined that the
+/// <para>ISO §2023:9.3.14.3 (cite.py --check OK): "An instance object is destroyed either when it is determined that the
 /// object cannot take part in the continued execution of the run unit, or when the run unit terminates, whichever
-/// occurs first", and §9.1.4's implicit-CLOSE list (cite.py --check OK): "For file connectors in an object when the
+/// occurs first", and §2023:9.1.4's implicit-CLOSE list (cite.py --check OK): "For file connectors in an object when the
 /// object is deleted." docs/CONFORMANCE.md DOC-A.1-113 determines the timing: the .NET garbage collector decides
 /// unreachability, and the finalizer closes the object's files "in the run unit that created the object".</para>
 /// <para>The finalizer runs on the GC finalizer thread, where the ambient <see cref="RunUnit.Current"/> (an

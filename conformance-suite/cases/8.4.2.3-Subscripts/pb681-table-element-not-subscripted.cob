@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> ISO 1989:2023 §8.4.2.3.3 SR5: "Each table element reference shall be subscripted except when such reference
+*> ISO 1989:2023 §2023:8.4.2.3.3 SR5: "Each table element reference shall be subscripted except when such reference
 *> appears" - as a SEARCH subject, in a REDEFINES clause, in an OCCURS KEY IS phrase, in a SORT key or table
 *> subject, in a screen FROM/TO/USING clause, or as a SUM addend. A MOVE sending operand is none of them. The
 *> reference resolver returned an UNREPORTED null for the omitted list, so `MOVE E TO B` over a two-dimensional

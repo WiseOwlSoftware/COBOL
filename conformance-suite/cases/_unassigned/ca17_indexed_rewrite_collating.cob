@@ -6,8 +6,8 @@
 *> portable: unverified
 *>---
       *> CA17 (CONFORMANCE-FIX-QUEUE): a sequential-access INDEXED REWRITE checks that the replaced record's prime
-      *> key EQUALS the last record read (ISO §14.9.35 GR22, '21' if not). That equality is COLLATING-SEQUENCE-based
-      *> per §12.4.5.12.4 GR1 ("according to the rules for a relation condition"), NOT a byte compare. Under ALPHABET
+      *> key EQUALS the last record read (ISO §2023:14.9.35 GR22, '21' if not). That equality is COLLATING-SEQUENCE-based
+      *> per §2023:12.4.5.12.4 GR1 ("according to the rules for a relation condition"), NOT a byte compare. Under ALPHABET
       *> ALPHA (A ALSO a) the keys "A123" and "a123" collate EQUAL, so a REWRITE that reads "A123" then rewrites with
       *> "a123" is a legal same-key replacement -> FS='00' and the record is replaced. Pre-fix the connector compared
       *> the prime key with C# ordinal '!=', so "a123" != "A123" wrongly yielded '21' and the REWRITE failed while

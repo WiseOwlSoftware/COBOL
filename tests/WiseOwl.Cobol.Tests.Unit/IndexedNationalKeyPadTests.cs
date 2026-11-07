@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// kb/Work PB679 — a short record is extended with the RECORD AREA's own space wherever a connector pads one to a
-/// span, and on a NATIONAL record area that space is the two bytes 0x00 0x20 (ISO §14.9.30.4 GR15: "If the
+/// span, and on a NATIONAL record area that space is the two bytes 0x00 0x20 (ISO §2023:14.9.30.4 GR15: "If the
 /// record-area associated with file-name-1 is specified implicitly or explicitly as national, a trailing space is
 /// defined to be the national space character"). The byte-level <c>PadRight(' ')</c> an indexed key slice used
 /// manufactured U+2020 positions inside a national key window, which no space-padded key equals.
@@ -72,7 +72,7 @@ public sealed class IndexedNationalKeyPadTests
         finally { FileHarness.TryDelete(host); }
     }
 
-    /// <summary>The blank record area an UNSUCCESSFUL READ hands back (§14.9.30.4 GR18) is the area's own space
+    /// <summary>The blank record area an UNSUCCESSFUL READ hands back (§2023:14.9.30.4 GR18) is the area's own space
     /// too: national spaces on a national area, never a string of U+2020 positions.</summary>
     [Fact]
     public void UnsuccessfulRead_NationalRecordArea_IsBlankedWithNationalSpaces()

@@ -9,19 +9,19 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 /// variable (<see cref="DefineParameterValue.Classify"/>).</summary>
 internal enum ParameterValueForm
 {
-    /// <summary>The environment makes no value available (§7.3.11.4 GR4, second sentence): the name is not defined.</summary>
+    /// <summary>The environment makes no value available (§2023:7.3.11.4 GR4, second sentence): the name is not defined.</summary>
     NoValue,
     /// <summary>The text is the SPELLING of one fixed-point numeric literal: the variable is numeric, and the text is that
-    /// literal (§7.3.11.4 GR8).</summary>
+    /// literal (§2023:7.3.11.4 GR8).</summary>
     NumericLiteral,
-    /// <summary>The text is exactly ONE quoted nonnumeric literal: the variable is that literal (§7.3.11.4 GR8).</summary>
+    /// <summary>The text is exactly ONE quoted nonnumeric literal: the variable is that literal (§2023:7.3.11.4 GR8).</summary>
     QuotedLiteral,
     /// <summary>Any other text: the variable is alphanumeric, its value the text exactly as given.</summary>
     Alphanumeric,
 }
 
 /// <summary>
-/// ⛔ THE ONE RULE FOR WHAT A <c>&gt;&gt;DEFINE … PARAMETER</c> VALUE IS (DOC-A.1-49, kb/Work PB1626). ISO §7.3.11.4 GR4 —
+/// ⛔ THE ONE RULE FOR WHAT A <c>&gt;&gt;DEFINE … PARAMETER</c> VALUE IS (DOC-A.1-49, kb/Work PB1626). ISO §2023:7.3.11.4 GR4 —
 /// "If the PARAMETER phrase is specified, the value referenced by compilation-variable-name-1 is obtained from the
 /// operating environment by an implementor-defined method when the DEFINE directive is processed. If no value is made
 /// available from the operating environment, compilation-variable-name-1 is not defined" — leaves the FORM of that value to
@@ -30,12 +30,12 @@ internal enum ParameterValueForm
 /// <list type="bullet">
 /// <item>An empty value, or one that begins with a space, is no value.</item>
 /// <item>A value that begins with a quotation symbol is a quoted literal when a closing delimiter of that quotation symbol
-/// ends it (§8.3.3.2.3 3): a doubled one is content); one that is not so closed is no value. GnuCOBOL tests only the first and
+/// ends it (§2023:8.3.3.2.3 3): a doubled one is content); one that is not so closed is no value. GnuCOBOL tests only the first and
 /// last characters; this compiler holds the value to ONE literal, so <c>"a" &amp; "b"</c> and <c>"a"b"</c> are no value.</item>
-/// <item>A value that is the spelling of a fixed-point numeric literal (§8.3.3.3.2, <see cref="NumericLiteral.IsFixedPointLiteralForm"/>)
+/// <item>A value that is the spelling of a fixed-point numeric literal (§2023:8.3.3.3.2, <see cref="NumericLiteral.IsFixedPointLiteralForm"/>)
 /// is that numeric literal, of ANY length: its digit capacity is the literal's own limit, enforced where the literal is
 /// evaluated (<c>CompileTimeExpressionEvaluator</c>), exactly as for <c>&gt;&gt;DEFINE X AS 12…</c>. GnuCOBOL's test also
-/// calls <c>5.</c> numeric; §8.3.3.3.2 3) forbids the decimal point as the rightmost character, so it is alphanumeric here.</item>
+/// calls <c>5.</c> numeric; §2023:8.3.3.3.2 3) forbids the decimal point as the rightmost character, so it is alphanumeric here.</item>
 /// <item>Anything else — <c>1,000</c>, <c>1E5</c>, <c>7x</c>, <c>5 </c> — is alphanumeric, the text as given.</item>
 /// </list>
 /// The classification names a form; the VALUE of a numeric or quoted one is made by the same compile-time operand path as a

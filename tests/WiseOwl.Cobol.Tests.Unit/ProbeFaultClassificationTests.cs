@@ -7,7 +7,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>kb/Work PB2101 review finding R1-1 — every fault of the sibling-module probe's load-and-register step is the CALL's
-/// "not located" condition (ISO/IEC 1989:2023 §14.9.4.4 GR3 b), cite.py OK: "If the program cannot be located ... the
+/// "not located" condition (ISO/IEC 1989:2023 §2023:14.9.4.4 GR3 b), cite.py OK: "If the program cannot be located ... the
 /// EC-PROGRAM-NOT-FOUND exception condition is set to exist"), including the <see cref="PlatformNotSupportedException"/> a
 /// native-AOT application's <c>AssemblyLoadContext.LoadFromAssemblyPath</c> throws when it left the
 /// <c>WiseOwl.Cobol.Runtime.DynamicProbe</c> switch on (DESIGN-external-repository §15.5). A native-AOT host cannot be run

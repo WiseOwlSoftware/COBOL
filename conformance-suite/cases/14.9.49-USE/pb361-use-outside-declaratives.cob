@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> ISO §14.9.49.3 SR1: "A USE statement, when present, shall immediately follow a section header in
+*> ISO §2023:14.9.49.3 SR1: "A USE statement, when present, shall immediately follow a section header in
 *> the declaratives portion of the procedure division and shall appear in a sentence by itself." This
 *> program has no DECLARATIVES; its USE statement is in an ordinary paragraph (kb/Work PB361). It used
 *> to compile clean and abort the run unit as a "not implemented" feature when reached.

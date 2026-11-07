@@ -6,8 +6,8 @@
 *>---
       *> kb/Work PB1173 — A FILE SORT KEY OF CLASS POINTER IS THE SOURCE'S ERROR, NOT THE COMPILER'S GAP.
       *>   cite.py --check 14.9.40.3 "Key data items shall not be of the class boolean, message-tag, object, or
-      *>     pointer." -> OK §14.9.40.3 6) c)
-      *> SPR is a level-1 USAGE POINTER record (the only place a pointer may be declared in an SD, §13.18.60.3 SR14).
+      *>     pointer." -> OK §2023:14.9.40.3 6) c)
+      *> SPR is a level-1 USAGE POINTER record (the only place a pointer may be declared in an SD, §2023:13.18.60.3 SR14).
       *> A record with a pointer leaf has no image the sort store can hold, which the binder used to answer first
       *> (a COBOL1756 deferral that aborted the run unit) — hiding that the KEY is illegal at every edition.
       *> The key rules are asked of the key phrase before the record's image is.

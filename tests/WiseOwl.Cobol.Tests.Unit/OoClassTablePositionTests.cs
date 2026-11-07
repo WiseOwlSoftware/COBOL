@@ -75,8 +75,8 @@ public sealed class OoClassTablePositionTests
                 CLASS PB2.
             END CLASS PT5.
             """ },
-        // kb/Work PB1505 / PB1020: the §11.3.3 INHERITS rules (COBOL2791) land on the INHERITS name, the
-        // parameterized definition's included; kb/Work PB1503: the §11.7.3 property-method rules (COBOL2790) on the
+        // kb/Work PB1505 / PB1020: the §2023:11.3.3 INHERITS rules (COBOL2791) land on the INHERITS name, the
+        // parameterized definition's included; kb/Work PB1503: the §2023:11.7.3 property-method rules (COBOL2790) on the
         // METHOD-ID and on the subject entry.
         { "INHERITS-RULES", """
             IDENTIFICATION DIVISION.
@@ -153,7 +153,7 @@ public sealed class OoClassTablePositionTests
             END CLASS PC3.
             """ },
         // kb/Work PB4459: the implementation of an interface prototype is found through the roster key, so it may be a method NO METHOD-ID
-        // of the group wrote — a PROPERTY clause's accessor (ISO §13.18.42), the standard class BASE's New (ISO §16.2). The §9.3.8.2.3
+        // of the group wrote — a PROPERTY clause's accessor (ISO §2023:13.18.42), the standard class BASE's New (ISO §2023:16.2). The §2023:9.3.8.2.3
         // conformance error about it (COBOL0841) stands at the class that must implement the prototype, not at a stale cursor.
         { "IMPLEMENTS-GENERATED-ACCESSOR", """
             IDENTIFICATION DIVISION.
@@ -182,7 +182,7 @@ public sealed class OoClassTablePositionTests
             END OBJECT.
             END CLASS PG1.
             """ },
-        // kb/Work PB4459 (review R1-1): the §8.4.3.9.3 SR7 accessor-pair error stands at the METHOD-ID the class wrote; a pair whose class-owned
+        // kb/Work PB4459 (review R1-1): the §2023:8.4.3.9.3 SR7 accessor-pair error stands at the METHOD-ID the class wrote; a pair whose class-owned
         // half is a PROPERTY clause's generated accessor (no METHOD-ID) stands at the class name, for a generated GET over an inherited SET ...
         { "PAIR-GENERATED-GET-INHERITED-SET", """
             IDENTIFICATION DIVISION.

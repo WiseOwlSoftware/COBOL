@@ -21,8 +21,8 @@ namespace WiseOwl.Cobol.Runtime;
 ///         product: rounded ONCE into a fixed-point resultant (<see cref="ToUnscaled"/>), compared exactly by a relation
 ///         (<see cref="Compare"/>), lowered to the SDIDI by round-to-odd where a consumer has no exact form (<see cref="Image"/>).</item>
 /// </list>
-/// <para>WHY (ISO/IEC 1989:2023 §8.8.1.3: native arithmetic is "an implementor-defined method of evaluating an arithmetic
-/// expression, an arithmetic statement, … and all integer and numeric functions"; §15.4.1: "When native arithmetic is in effect and
+/// <para>WHY (ISO/IEC 1989:2023 §2023:8.8.1.3: native arithmetic is "an implementor-defined method of evaluating an arithmetic
+/// expression, an arithmetic statement, … and all integer and numeric functions"; §2023:15.4.1: "When native arithmetic is in effect and
 /// an equivalent arithmetic expression is specified, the value returned is an implementor-defined approximation of the value of
 /// that expression"). For that latitude CLAUDE.md rule 1 makes GnuCOBOL the answer, and GnuCOBOL 3.2.0 evaluates these from the
 /// exact values (<c>cob_decimal</c>, an arbitrary-precision integer at a scale) at every size. The SDIDI took each wide value as its
@@ -32,7 +32,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// arbitrary-precision ban for this one fallback; DESIGN §1.2 invariant 2). The work is tried on the 256-bit form
 /// (<see cref="TryAt"/> and the <c>Try…</c> operations of <see cref="CobolWide"/>) and, where a step leaves its range, formed
 /// exactly by <see cref="CobolBig"/>; a result that fits the 256-bit form again returns to it, so the fast path has no new
-/// code. The published bound is the SDIDI's range: <c>|value| &lt; 10^6145</c> (EC-SIZE-OVERFLOW past it, ISO §14.7.5 5)). A
+/// code. The published bound is the SDIDI's range: <c>|value| &lt; 10^6145</c> (EC-SIZE-OVERFLOW past it, ISO §2023:14.7.5 5)). A
 /// comparison never needs more: <see cref="Compare"/> is exact for every pair.</para>
 /// <para>⛔ IT CARRIES ITS PRECISION (numeric design D2, kb/Work PB3538): the fraction digits its operands carry, which a nested
 /// quotient above it reads (<see cref="ImageWithPrecision"/>) and which is NOT its scale when an operand is a nested quotient held
@@ -99,8 +99,8 @@ public readonly struct CobolExact
 
     /// <summary>⛔ A FLOAT ITEM'S CONTENT, EXACTLY (kb/Work PB4730): the binary64's own value <c>m × 2^e</c> written out in full — 0.1 is
     /// its 55-place expansion, DP = 2.5E+40 the 41-digit integer 25000000000000000155002161260194579873792 — not the SDIDI's 34-digit
-    /// rounding of it (§8.8.1.5.1 leaves that conversion to the implementor). MAX, MIN and an odd MEDIAN return "the content of the
-    /// argument" (§15.59.4 1), §15.63.4 1), §15.61.1), and a list that mixes a float item with a fixed-point one selects among exact
+    /// rounding of it (§2023:8.8.1.5.1 leaves that conversion to the implementor). MAX, MIN and an odd MEDIAN return "the content of the
+    /// argument" (§2023:15.59.4 1), §2023:15.63.4 1), §2023:15.61.1), and a list that mixes a float item with a fixed-point one selects among exact
     /// values. A NaN is the IEC 60559 invalid-operation state and an infinity exceeds the range, as <see cref="CobolDec.FromBinary64"/>
     /// reports them.</summary>
     public static CobolExact FromBinary64(double value)
@@ -201,14 +201,14 @@ public readonly struct CobolExact
     /// the one rule of every native lane: exact on the wide form while the dividend's alignment fits it
     /// (<see cref="CobolWide.DivTruncated"/>), else exact on the arbitrary-precision form (<see cref="CobolBig.DivTruncated"/>), never
     /// the quotient of the operands' 34-digit images. It carries that precision, not the working scale. A zero divisor raises
-    /// <see cref="CobolSizeError.ZeroDivide"/> (ISO §14.7.5 case 2).</summary>
+    /// <see cref="CobolSizeError.ZeroDivide"/> (ISO §2023:14.7.5 case 2).</summary>
     public static CobolExact DivTruncated(CobolExact a, CobolExact b, int receiverScale)
     {
         int precision = Math.Max(a._precision, b._precision);
         return TruncatedQuotient(a, b, CobolNum.NestedQuotientScale(receiverScale, precision), precision);
     }
 
-    /// <summary>⛔ THE SUBSIDIARY QUOTIENT OF A NATIVE <c>DIVIDE ... GIVING ... REMAINDER</c> OVER EXACT OPERANDS (ISO §14.9.12.4 6) c),
+    /// <summary>⛔ THE SUBSIDIARY QUOTIENT OF A NATIVE <c>DIVIDE ... GIVING ... REMAINDER</c> OVER EXACT OPERANDS (ISO §2023:14.9.12.4 6) c),
     /// kb/Work PB4640, PB4702; DOC-A.1-70, DOC-A.1-123): the exact quotient TRUNCATED toward zero at <paramref name="scale"/>,
     /// identifier-3's decimal point location, with EVERY integer digit — "derived from the quotient by truncation of digits at the least
     /// significant end". It is formed from the operands' exact values, not from the final transfer's 34-digit quotient
@@ -216,7 +216,7 @@ public readonly struct CobolExact
     /// GnuCOBOL 3.2's <c>cob_div_quotient</c> / <c>cob_div_remainder</c> by CLAUDE.md rule 1) lost its low-order digits there, so
     /// <c>dividend − subsidiary × divisor</c> was not the remainder. The truncation is the nested quotient's
     /// (<see cref="DivTruncated"/>), at the receiver's own scale and not the working scale derived from it, and the precision is that
-    /// scale. A zero divisor raises <see cref="CobolSizeError.ZeroDivide"/> (ISO §14.7.5 case 2).</summary>
+    /// scale. A zero divisor raises <see cref="CobolSizeError.ZeroDivide"/> (ISO §2023:14.7.5 case 2).</summary>
     public static CobolExact SubsidiaryQuotient(CobolExact a, CobolExact b, int scale) =>
         TruncatedQuotient(a, b, scale, scale);
 
@@ -242,11 +242,11 @@ public readonly struct CobolExact
     /// dividend entered the SDIDI as its 34-digit image and <c>A * A * A / (A * A)</c> of a 15-digit A stored 999999999999998.
     /// <para><paramref name="intermediate"/> is the program's INTERMEDIATE ROUNDING mode where the statement reaches this quotient through
     /// the SDIDI lane (a floating-point literal beside the exact operand, CONFORMANCE.md DOC-A.1-82): PROHIBITED screens the quotient
-    /// as every SDIDI intermediate is, and a quotient not exact in 34 digits raises EC-SIZE-TRUNCATION (ISO §11.9.11.2 r3d); any other
+    /// as every SDIDI intermediate is, and a quotient not exact in 34 digits raises EC-SIZE-TRUNCATION (ISO §2023:11.9.11.2 r3d); any other
     /// mode leaves the round-to-odd value, which no later rounding sees as other than the exact quotient. The plain native lane passes
     /// <see cref="CobolRounding.Truncation"/>: it has no SDIDI intermediate to screen. A final transfer into a fixed-point
     /// resultant that has no such intermediate lands from <see cref="QuotientAtScale"/> instead.</para>
-    /// A zero divisor raises <see cref="CobolSizeError.ZeroDivide"/> (ISO §14.7.5 case 2).</summary>
+    /// A zero divisor raises <see cref="CobolSizeError.ZeroDivide"/> (ISO §2023:14.7.5 case 2).</summary>
     public static CobolDec DivToOdd(CobolExact a, CobolExact b, CobolRounding intermediate) =>
         Quotient(a, b, intermediate, jam: intermediate != CobolRounding.Prohibited);
 
@@ -263,10 +263,10 @@ public readonly struct CobolExact
 
     /// <summary>⛔ THE FINAL TRANSFER OF A NATIVE QUOTIENT INTO A FIXED-POINT RESULTANT, LANDED FROM THE EXACT QUOTIENT (kb/Work PB4701):
     /// <c>a / b</c> rounded ONCE at <paramref name="toScale"/> in the receiver's <paramref name="mode"/> from the true remainder
-    /// (PROHIBITED raises on an inexact quotient, §14.7.4.3 r7) and landed as <see cref="ToUnscaled"/> lands a value. A quotient the
+    /// (PROHIBITED raises on an inexact quotient, §2023:14.7.4.3 r7) and landed as <see cref="ToUnscaled"/> lands a value. A quotient the
     /// receiver cannot hold keeps the exact quotient's own low-order digits — GnuCOBOL's <c>cob_decimal_div</c> then
     /// <c>cob_decimal_get_field</c> — and not the low-order digits of the 34-digit round-to-odd image (<c>REMD</c> stored
-    /// 000003000100000000 for 000003000000000000). A zero divisor raises <see cref="CobolSizeError.ZeroDivide"/> (ISO §14.7.5 case 2).</summary>
+    /// 000003000100000000 for 000003000000000000). A zero divisor raises <see cref="CobolSizeError.ZeroDivide"/> (ISO §2023:14.7.5 case 2).</summary>
     public static Int128 QuotientAtScale(CobolExact a, CobolExact b, int toScale, CobolRounding mode, bool checkedTransfer)
     {
         if (b.Sign == 0) throw CobolSizeError.ZeroDivide();
@@ -317,8 +317,8 @@ public readonly struct CobolExact
     /// fits (<see cref="CobolWide.TryPow"/>), else on the arbitrary-precision form (<see cref="CobolBig.Pow"/>) — and reduced to the
     /// SDIDI's 34 digits ONCE, by round-to-odd, wherever a consumer lowers it (<see cref="Image"/>): <c>1.01 ** 119</c> into
     /// <c>PIC 9V9(30)</c> is …851 as GnuCOBOL and the exact value give, where the chain of round-to-odd products it replaces drifted to
-    /// …852. A zero exponent is 1 and a negative one is §8.8.1.5.4 r3's reciprocal <c>1 / (b ** |e|)</c>, one rounding of the exact
-    /// quotient. The §8.8.1.2 rule-6 screen is <see cref="CobolIntrinsics.CheckPowRule6"/>'s, written once. The precision is the base's
+    /// …852. A zero exponent is 1 and a negative one is §2023:8.8.1.5.4 r3's reciprocal <c>1 / (b ** |e|)</c>, one rounding of the exact
+    /// quotient. The §2023:8.8.1.2 rule-6 screen is <see cref="CobolIntrinsics.CheckPowRule6"/>'s, written once. The precision is the base's
     /// times a non-negative exponent (the multiple, numeric design D2), and the reciprocal's own fraction digits.</summary>
     public static CobolExact Pow(CobolExact b, Int128 e)
     {
@@ -399,7 +399,7 @@ public readonly struct CobolExact
         return true;
     }
 
-    /// <summary>⛔ THE ALGEBRAIC COMPARISON OF TWO EXACT VALUES (−1/0/+1; ISO §8.8.4.2.4: "a comparison is made with respect to the
+    /// <summary>⛔ THE ALGEBRAIC COMPARISON OF TWO EXACT VALUES (−1/0/+1; ISO §2023:8.8.4.2.4: "a comparison is made with respect to the
     /// algebraic value of the operands"), never of an image, and exact for every pair: two SDIDI values by their own compare, two wide
     /// values on the wide form at their own scales (<see cref="CobolWide.Compare"/>, which never aligns past the range), a mixed
     /// pair with the SDIDI value written on the wide form at its own exponent — or, when its integer is past the 256-bit range, on the
@@ -432,7 +432,7 @@ public readonly struct CobolExact
         Of(CobolBig.Remainder(a.AsBig(), b.AsBig(), floored), 0);
 
     /// <summary>The integer part of an arbitrary-precision value (truncation toward zero, or the floor) held at precision 0, and whether
-    /// a fraction was dropped (§15.3 type 6's integrality test).</summary>
+    /// a fraction was dropped (§2023:15.3 type 6's integrality test).</summary>
     internal CobolExact IntegerPartBig(bool floor, out bool hadFraction) =>
         Of(AsBig().IntegerPart(floor, out hadFraction), 0);
 

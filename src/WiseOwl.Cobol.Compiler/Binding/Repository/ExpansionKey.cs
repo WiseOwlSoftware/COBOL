@@ -9,9 +9,9 @@ using WiseOwl.Cobol.Binding.Model;
 namespace WiseOwl.Cobol.Binding.Repository;
 
 /// <summary>
-/// ⛔ WHAT AN EXPANSION MEANS, AS A NUMBER (ISO §9.3.12: two classes "created by expanding the same parameterized class with the same
+/// ⛔ WHAT AN EXPANSION MEANS, AS A NUMBER (ISO §2023:9.3.12: two classes "created by expanding the same parameterized class with the same
 /// actual parameters are the same class instance"; DESIGN-external-repository §10.5; kb/Work PB2104). The key is a SHA-256, in lower-case
-/// hexadecimal, over the canonical encoding (§6.5) of everything that decides what the expansion IS: the definition's identity, the
+/// hexadecimal, over the canonical encoding (§2023:6.5) of everything that decides what the expansion IS: the definition's identity, the
 /// skeleton (its source, formals with their kinds, <see cref="CompileState"/> and resolutions), the record of the class or interface each
 /// resolution names, and the identity and record of each actual. Bytes, module version ids, file names and the compiler's version are not
 /// in it, so a rebuild by a later compiler with nothing else changed keeps its key, and two expansions with one key are the same class
@@ -19,7 +19,7 @@ namespace WiseOwl.Cobol.Binding.Repository;
 /// <para>A named class's record enters in its SURFACE form: <c>Expansion</c> removed and an expansion's kind read as a class's, so the
 /// record a group computes for its own class equals the record read back from the assembly that published it, and an actual that is
 /// itself an expansion contributes what it is and not how it was placed. A word that only names (a unit's, a formal's, a data item's)
-/// is dropped from every record: no comparator reads one (§6.3), and the CLR names that code is generated against stay in.</para>
+/// is dropped from every record: no comparator reads one (§2023:6.3), and the CLR names that code is generated against stay in.</para>
 /// </summary>
 internal static class ExpansionKey
 {
@@ -30,7 +30,7 @@ internal static class ExpansionKey
     /// <summary>The key of the expansion of <paramref name="definitionIdentity"/> made from <paramref name="skeleton"/> with
     /// <paramref name="resolutions"/> (what the skeleton's own specifiers name, in the skeleton's order) and <paramref name="actuals"/>,
     /// and the labeled digest of each component the key is made of (<c>label=digest</c>): the expansion publishes them beside its key, so
-    /// a later compilation that finds the expansion stale can say which component changed (REPO-9, §10.5).</summary>
+    /// a later compilation that finds the expansion stale can say which component changed (REPO-9, §2023:10.5).</summary>
     public static (string Key, IReadOnlyList<string> Parts) Of(string definitionIdentity, SkeletonRecord skeleton,
         IReadOnlyList<Named> resolutions, IReadOnlyList<Named> actuals)
     {

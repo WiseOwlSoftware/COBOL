@@ -8,22 +8,22 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// <summary>
 /// ⛔ THE KEYED STORE ENGINE'S '30' THROUGH A COMPILED PROGRAM (kb/Work PB3333, review finding R1-3;
 /// docs/rearchitecture/DESIGN-runtime-library.md section 2.2.1.12's tree row "a record statement whose tree read meets a
-/// torn or stale page"). The engine answers a record statement whose tree read meets a TORN page with §9.1.13.6 item 1's
+/// torn or stale page"). The engine answers a record statement whose tree read meets a TORN page with §2023:9.1.13.6 item 1's
 /// '30' — <i>"A permanent error exists and no further information is available concerning the input-output operation"</i>
 /// — and the unit cases (<c>RelativeEngineTests</c>) see only the status. These run the program: a relative file is
 /// built and its record's leaf torn, then a program reads, reads next and writes through it, and each combination of a
 /// USE procedure and a FILE STATUS clause is checked against the rules for what happens next.
 ///
 /// <para><b>Every expected value is derived from the rules, not observed.</b> '30' is not the invalid key condition, so
-/// §9.1.14 applies its second list: <i>"If the invalid key condition does not exist after the execution of the
+/// §2023:9.1.14 applies its second list: <i>"If the invalid key condition does not exist after the execution of the
 /// input-output operation specified by an input-output statement, the INVALID KEY phrase is ignored, if specified"</i>,
 /// and <i>"If the I-O status indicates an unsuccessful completion that is not an invalid key condition, control is
 /// transferred according to the rules of any applicable exception processing statements"</i> — the USE procedure, and
 /// then the end of the statement: neither INVALID KEY nor NOT INVALID KEY runs. '30' is not the at end condition either,
-/// so §14.9.30.4 GR13 ignores AT END likewise (<i>"If neither an at end nor an invalid key condition occurs during the
-/// execution of a READ statement, the AT END phrase or the INVALID KEY phrase is ignored"</i>). §9.1.13.1's permanent
+/// so §2023:14.9.30.4 GR13 ignores AT END likewise (<i>"If neither an at end nor an invalid key condition occurs during the
+/// execution of a READ statement, the AT END phrase or the INVALID KEY phrase is ignored"</i>). §2023:9.1.13.1's permanent
 /// error stays in effect for the connector's later statements ('30' replayed, the USE procedure run again), and the
-/// CLOSE ends it ('00', DOC-A.1-105). Whether the run unit continues is §9.1.13.1's choice (<i>"The implementor may
+/// CLOSE ends it ('00', DOC-A.1-105). Whether the run unit continues is §2023:9.1.13.1's choice (<i>"The implementor may
 /// either continue or terminate the execution of the run unit"</i>), which docs/CONFORMANCE.md DOC-A.1-103 makes: with
 /// EC-I-O checking not enabled it continues when a FILE STATUS clause or a USE procedure covers the statement and
 /// terminates abnormally when neither does (the INVALID KEY phrase covers only the invalid key condition); with checking
@@ -131,7 +131,7 @@ public sealed class RelativeEnginePermanentErrorWitnessTests
         Assert.Equal("OPEN --", stdout);
     }
 
-    [Fact]   // Checking enabled and no USE procedure: §14.6.13.1.3 applies after the I-O rules, and the FILE STATUS clause does not continue it.
+    [Fact]   // Checking enabled and no USE procedure: §2023:14.6.13.1.3 applies after the I-O rules, and the FILE STATUS clause does not continue it.
     public void TornPage_CheckingEnabled_FileStatusWithoutUse_TerminatesAtTheRead()
     {
         var (ok, stdout, detail) = Run("RLTORNE", fileStatus: true, use: false, checking: true);

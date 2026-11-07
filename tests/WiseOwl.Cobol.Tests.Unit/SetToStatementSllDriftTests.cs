@@ -16,7 +16,7 @@ using Core = CobolParserCore;
 ///
 /// <para><b>Why it exists.</b> <c>Frontend.ParsePass</c> parses with SLL prediction and <c>BailErrorStrategy</c> first and
 /// re-parses the WHOLE file under full LL when that pass bails. The grammar used to split the one shape
-/// <c>SET receivers TO sender</c> of ISO §14.9.39.2 across three <c>setStatement</c> alternatives by the sender's form,
+/// <c>SET receivers TO sender</c> of ISO §2023:14.9.39.2 across three <c>setStatement</c> alternatives by the sender's form,
 /// and all three could consume <c>NULL</c>: after <c>SET X TO NULL</c> SLL held them at shared ATN states, ANTLR's
 /// conflict heuristic took the lowest (the arithmetic one, which needs <c>AS</c> or <c>::</c> after NULL), and the
 /// parse died at the next token. 75 of the corpus's legal programs took the LL pass for that alone, and decision

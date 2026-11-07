@@ -5,7 +5,7 @@ using System.Text;
 namespace WiseOwl.Cobol.Frontend.Common;
 
 /// <summary>Where a line of RESULTANT text came from (kb/Work PB82): the file it was read from and its 1-based
-/// physical line in that file — the main source file, or a copybook incorporated by COPY (ISO §7.2 text
+/// physical line in that file — the main source file, or a copybook incorporated by COPY (ISO §2023:7.2 text
 /// manipulation: the compiler compiles the resultant text; the user edits the source files). A LINE only: the column
 /// a resultant position stands at in that line is the <see cref="LineOrigin"/>'s to say.</summary>
 public readonly record struct SourceOrigin(string File, int Line)
@@ -29,8 +29,8 @@ public readonly record struct OriginSpan(int ResultColumn, SourceOrigin Origin, 
 /// <summary>
 /// THE ORIGIN OF ONE RESULTANT LINE PIECE (kb/Work PB1801): its spans in resultant-column order. The resultant text is
 /// not the text the user wrote — the fixed-form logical conversion drops positions 1–7 and joins a continuation line's
-/// text onto the latest logical line (§6.5), COPY splices library text into a line, REPLACE substitutes text of another
-/// length (§7.2) — so a resultant line maps to its source as a list of stretches, each at its own physical line and
+/// text onto the latest logical line (§2023:6.5), COPY splices library text into a line, REPLACE substitutes text of another
+/// length (§2023:7.2) — so a resultant line maps to its source as a list of stretches, each at its own physical line and
 /// column, and the LINE that names the piece (<see cref="Origin"/>) is the origin of its FIRST stretch (kb/Work PB82).
 /// The spans are born where the reference format reads the physical lines and carried by <see cref="OriginWriter"/>
 /// through every later stage; <see cref="Locate"/> is the one place a resultant column becomes a physical one.
@@ -61,7 +61,7 @@ public sealed class LineOrigin
 
     /// <summary>Whether a text stage OMITTED the line this piece stands for (kb/Work PB4412): the stage dropped it from the
     /// resultant text, which holds an empty piece in its place — the lines of a false <c>&gt;&gt;IF</c> or <c>&gt;&gt;WHEN</c>
-    /// branch (ISO §7.3.16.4 GR 3). The compiler never read what the line holds, so a question about the line is asked of
+    /// branch (ISO §2023:7.3.16.4 GR 3). The compiler never read what the line holds, so a question about the line is asked of
     /// nothing: a diagnostic that explains a syntax error by the text of a line (<c>IMarginRCutLocator</c>) skips it. The
     /// stage that omits a line BORN-marks its origin (<see cref="AsOmitted"/>) and every stage after carries it with the origin
     /// (<see cref="From"/>), so a new kind of omission is one call at the stage that drops, and no reader keeps a list.</summary>
@@ -253,7 +253,7 @@ public sealed class OriginWriter
 
     /// <summary>Append <paramref name="s"/>, text this stage writes itself: every piece of it originates at
     /// <paramref name="at"/> (<see cref="MappedText.PointAt"/>, one stretch), its characters a CHARACTER POSITION further
-    /// each (<see cref="CharacterPositions"/>, §6.1 1) c): a supplementary-plane character is two resultant units and one
+    /// each (<see cref="CharacterPositions"/>, §2023:6.1 1) c): a supplementary-plane character is two resultant units and one
     /// position, so the span splits at its second unit exactly as the reference-format stage's <c>TextSite.Spans</c> does
     /// for text it reads (kb/Work PB3031) — a column the parser reports inside the written text names the position the
     /// programmer counts, whatever the characters.</summary>

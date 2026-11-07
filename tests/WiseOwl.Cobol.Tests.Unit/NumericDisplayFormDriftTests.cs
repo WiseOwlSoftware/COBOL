@@ -10,15 +10,15 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ THE FORM A DISPLAY STATEMENT GIVES A NUMERIC OPERAND IS DISPLAY'S AND NOBODY ELSE'S, AND ONE PLACE CHOOSES IT
-/// (kb/Work PB3505, owner decision PB3467; ISO §14.9.11.4 GR1, Annex A.1 item 56). <c>--numeric-display</c> selects
+/// (kb/Work PB3505, owner decision PB3467; ISO §2023:14.9.11.4 GR1, Annex A.1 item 56). <c>--numeric-display</c> selects
 /// between the decimal device form and the digit image for DISPLAY's GR1 conversion ONLY: a MOVE of the same item to an
-/// alphanumeric receiver is §14.9.25.4 GR6's, a comparison's text is §8.8.4.2's, a record image is the item's storage -
+/// alphanumeric receiver is §2023:14.9.25.4 GR6's, a comparison's text is §2023:8.8.4.2's, a record image is the item's storage -
 /// none of them may change with the option. So the option is read by the DISPLAY emitter alone
 /// (<c>AcceptDisplayEmitter</c> asks <c>OperandText.AsDeviceString</c>), the device-form flag reaches <c>FieldAsString</c>
 /// from that one entry, and the runtime's decimal formatter is named from one façade method. A second reader of the option
 /// would make a MOVE's result depend on it - the wrong answer this guard exists to keep out. And every value of the option
 /// is pinned by a WiseOwl conformance test, so a form added to the enum cannot ship untested.
-/// <para>ACCEPT's GR1 conversion of a numeric receiver (§14.9.1.4 GR1; kb/Work PB3513) is the same latitude's other
+/// <para>ACCEPT's GR1 conversion of a numeric receiver (§2023:14.9.1.4 GR1; kb/Work PB3513) is the same latitude's other
 /// direction and takes the same option from the same emitter file: <c>decimal</c> reads DISPLAY's decimal form back
 /// (<c>AcceptSource.DeviceNumeric</c>, named from one façade method), <c>digits</c> keeps the digit window.</para>
 /// </summary>

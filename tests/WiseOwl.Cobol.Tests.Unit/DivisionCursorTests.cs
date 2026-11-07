@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// kb/Work PB2739: "which division is this text in" is ONE rule (<see cref="DivisionCursor"/>), read off text-words wherever
-/// they begin (ISO §6.3.1: the program-text area has no Area A / Area B line), shared by the fixed-form converter's line
+/// they begin (ISO §2023:6.3.1: the program-text area has no Area A / Area B line), shared by the fixed-form converter's line
 /// walk and the COPY driver's walk over logical text.
 /// </summary>
 public sealed class DivisionCursorTests
@@ -38,7 +38,7 @@ public sealed class DivisionCursorTests
         Assert.Equal("", lines[3]);
     }
 
-    [Theory] // §11.2.1: the header is optional, so the unit's first paragraph enters the division — a word that merely
+    [Theory] // §2023:11.2.1: the header is optional, so the unit's first paragraph enters the division — a word that merely
              // ENDS in -ID is a user's name (CUSTOMER-ID), not that paragraph
     [InlineData("MOVE 2 TO CUSTOMER-ID.", false)]
     [InlineData("PROGRAM-ID. P.", true)]
@@ -103,7 +103,7 @@ public sealed class DivisionCursorTests
     }
 
     [Theory] // kb/Work PB4281: … but a reader of the text AS WRITTEN knows a replacing action can write or take away the very
-             // words it reads (§7.2.4.4 2)), so a statement that names one makes the division unknown
+             // words it reads (§2023:7.2.4.4 2)), so a statement that names one makes the division unknown
     [InlineData("COPY BOOK REPLACING ==A== BY ==PROCEDURE DIVISION==.\nREMARKS.")]
     [InlineData("COPY BOOK\n    REPLACING ==A== BY ==PROCEDURE DIVISION==.\nREMARKS.")]
     [InlineData("REPLACE ==PROCEDURE DIVISION== BY ==X==.\nREMARKS.")]
@@ -158,7 +158,7 @@ public sealed class DivisionCursorTests
         Assert.False(cursor.InIdentificationDivision);
     }
 
-    [Fact] // §6.5: a header continued onto a second line (fixed form: hyphen in column 7) is ONE word once joined, so it
+    [Fact] // §2023:6.5: a header continued onto a second line (fixed form: hyphen in column 7) is ONE word once joined, so it
            // leaves the division the same as one written whole; each half read alone would not
     public void ContinuedDivisionHeader_LeavesTheIdentificationDivision()
     {
@@ -169,8 +169,8 @@ public sealed class DivisionCursorTests
         Assert.Contains(lines, l => l.Trim() == "DISPLAY \"X\".");
     }
 
-    [Theory] // R1-1: a blank line or a comment line is logically discarded (§6.5 2)) and the continuation line after it still
-             // joins the latest logical line (§6.5 6) b)), so the cursor must not read that line before the join
+    [Theory] // R1-1: a blank line or a comment line is logically discarded (§2023:6.5 2)) and the continuation line after it still
+             // joins the latest logical line (§2023:6.5 6) b)), so the cursor must not read that line before the join
     [InlineData("")]
     [InlineData("      ")]
     [InlineData("      *> a floating comment line")]
@@ -199,7 +199,7 @@ public sealed class DivisionCursorTests
         Assert.Equal("SECURITY. .", finished[4]);
     }
 
-    [Theory] // kb/Work PB4241, PB4281: §6.5 converts BEFORE conditional compilation, so which branch of a >>IF the text keeps is
+    [Theory] // kb/Work PB4241, PB4281: §2023:6.5 converts BEFORE conditional compilation, so which branch of a >>IF the text keeps is
              // not known to the converter. A division word in a group's branches counts only when every branch (the one no
              // condition selects included, when there is no >>ELSE or >>WHEN OTHER) ends in the same division; otherwise
              // which division the text is in depends on a condition and the cursor says NOT KNOWN (null): the converter
@@ -236,20 +236,20 @@ public sealed class DivisionCursorTests
         Assert.Null(cursor.InIdentificationDivision);   // a spelling it does read cannot make it sure: it cannot tell the others
     }
 
-    [Theory] // kb/Work PB4281 (review finding R1-1): only a directive that names a word the cursor reads (§7.3.10.2: an option keyword
+    [Theory] // kb/Work PB4281 (review finding R1-1): only a directive that names a word the cursor reads (§2023:7.3.10.2: an option keyword
              // and its literals) leaves the division unknown, as a REPLACE statement that names one does; the rest changes nothing it reads
     [InlineData("EQUATE \"DISPLAY\" WITH \"SHOW\"", false)]
     [InlineData("RESERVE \"ZQX\"", false)]
     [InlineData("UNDEFINE \"STOP\"", false)]
     [InlineData("SUBSTITUTE \"COUNT\" BY \"TALLY-IT\"", false)]
-    [InlineData("EQUATE \"DISPLAY\", WITH \"SHOW\"", false)]               // a separator comma is a space (§8.3.5 2)
+    [InlineData("EQUATE \"DISPLAY\", WITH \"SHOW\"", false)]               // a separator comma is a space (§2023:8.3.5 2)
     [InlineData("EQUATE X\"41\" WITH \"SHOW\"", false)]                      // a literal's prefix is no name
     [InlineData("EQUATE \"DIVISION\" WITH \"DIV\"", true)]                   // the word to respell
     [InlineData("EQUATE \"DIV\" WITH \"division\"", true)]                   // the word written, in any letter case
     [InlineData("EQUATE \"IDENT\" WITH \"IDENTIFICATION\"", true)]
     [InlineData("EQUATE \"ID\" WITH \"IDENT\"", true)]
     [InlineData("UNDEFINE \"PROGRAM-ID\"", true)]                            // the paragraph that begins an identification division
-    [InlineData("EQUATE LITERAL-VAR WITH \"SHOW\"", true)]                   // a compilation-variable-name: its value is not known here (§7.3.11.4 1))
+    [InlineData("EQUATE LITERAL-VAR WITH \"SHOW\"", true)]                   // a compilation-variable-name: its value is not known here (§2023:7.3.11.4 1))
     public void CobolWordsDirective_MakesTheDivisionUnknown_OnlyWhenItNamesAWordTheCursorReads(string operand, bool unknown)
     {
         var cursor = new DivisionCursor(startsInIdentificationDivision: false);
@@ -280,7 +280,7 @@ public sealed class DivisionCursorTests
         Assert.Null(cursor.InIdentificationDivision);
     }
 
-    [Theory] // kb/Work PB4281: given the group's word map the cursor reads the finished text as the lexer will (ISO §7.3.10.4 GR2:
+    [Theory] // kb/Work PB4281: given the group's word map the cursor reads the finished text as the lexer will (ISO §2023:7.3.10.4 GR2:
              // a synonym is used wherever the word it stands for is; GR4: a substituted word is a user word)
     [InlineData("EQUATE \"DIVISION\" WITH \"DIV\"", true, "PROCEDURE DIV.", false)]
     [InlineData("EQUATE \"IDENTIFICATION\" WITH \"IDENT\"", false, "IDENT DIVISION.", true)]

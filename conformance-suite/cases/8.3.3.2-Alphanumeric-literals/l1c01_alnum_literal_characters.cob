@@ -5,24 +5,24 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §8.3.3.2.3 r2 and r4 — format 1 literal content: any
+      *> ISO §2023:8.3.3.2.3 r2 and r4 — format 1 literal content: any
       *> source character; the doubled delimiter is the opener's own
       *> THE RULES:
       *>   cite.py --check 8.3.3.2.3 "Character-1 may be any character
       *>     in the coded character set that the implementor has chosen
-      *>     for source code representation" -> OK §8.3.3.2.3 2)
+      *>     for source code representation" -> OK §2023:8.3.3.2.3 2)
       *>   cite.py --check 8.3.3.2.3 "The two contiguous quotation
       *>     symbols used to represent a single quotation symbol
       *>     character shall be in the same coded character set
       *>     representation as the opening quotation symbol"
-      *>     -> OK §8.3.3.2.3 4)
+      *>     -> OK §2023:8.3.3.2.3 4)
       *>   cite.py --check 8.3.3.2.3 "Two contiguous quotation symbol
       *>     characters matching the quotation symbol used in the
       *>     opening delimiter represent a single occurrence"
-      *>     -> OK §8.3.3.2.3 3)
+      *>     -> OK §2023:8.3.3.2.3 3)
       *>   cite.py --check 15.70.1 "The ORD function returns an integer
       *>     value that is the ordinal position of argument-1 in the
-      *>     program collating sequence" -> OK §15.70.1
+      *>     program collating sequence" -> OK §2023:15.70.1
       *> The source and compile-time alphanumeric set is UTF-16, one
       *> character per code unit; a native ordinal is the code unit + 1
       *> (docs/CONFORMANCE.md DOC-A.1-8). This file is UTF-8 source.

@@ -4,15 +4,15 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.18.38.3 SR32 / §13.18.38.4 GR15 — the CAPACITY
+      *> ISO §2023:13.18.38.3 SR32 / §2023:13.18.38.4 GR15 — the CAPACITY
       *> register data-name-3 used as an arithmetic resultant.
       *> "32) Data-name-3 shall not be referenced as a receiving item,
       *>   except as the operand of a variable-table format SET
       *>   statement."
-      *>   OK  §13.18.38.3 32)  (Syntax rules)
+      *>   OK  §2023:13.18.38.3 32)  (Syntax rules)
       *> "15) ... Data-name-3 shall not be referenced as a receiving
       *>   operand."
-      *>   OK  §13.18.38.4 15)  (General rules)
+      *>   OK  §2023:13.18.38.4 15)  (General rules)
       *> ADD 1 TO T-CAP names T-CAP as the ADD receiving item (its
       *> resultant identifier).
       *> The statement is not a SET statement, so the exception does

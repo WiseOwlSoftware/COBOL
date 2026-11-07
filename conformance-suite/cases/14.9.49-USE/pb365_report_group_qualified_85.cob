@@ -6,13 +6,13 @@
       *> portable: unverified
       *>---
       *> THE OLDEST EDITION'S ARM of the same rule its 2023 twin (2023/pb365_report_group_qualified) proves.
-      *> §8.4.2.2 qualification and §14.9.16.3 SR1's "It may be qualified by a report-name" are edition-invariant
+      *> §2023:8.4.2.2 qualification and §2023:14.9.16.3 SR1's "It may be qualified by a report-name" are edition-invariant
       *> — neither the uniqueness rule nor the report-group qualifier has an introduction edition — so the
       *> qualified spelling shall parse and bind identically at --std 85, and the declarative shall attach to the
       *> report its qualifier names.  There is NO gating diagnostic to check: nothing here is edition-gated.
       *>
       *> DERIVATION OF THE EXPECTED OUTPUT is the 2023 twin's, unchanged: the declarative names DET-A OF R-B, so
-      *> only R-B's presentation runs it (§14.9.49.4 GR8/GR9 c)-d)).  Expected: GEN-A, GEN-B, HOOK, N=1.
+      *> only R-B's presentation runs it (§2023:14.9.49.4 GR8/GR9 c)-d)).  Expected: GEN-A, GEN-B, HOOK, N=1.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB365RG85.
        ENVIRONMENT DIVISION.

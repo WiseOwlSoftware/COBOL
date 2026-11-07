@@ -51,7 +51,7 @@ namespace WiseOwl.Cobol.Benchmarks.Collation;
 /// <para>
 /// The COBOL layer is measured too: <see cref="Compare_ShortStrings_LocaleCollation"/> drives
 /// <see cref="WiseOwl.Cobol.Runtime.LocaleCollation.Current"/> — the <c>CobolCollation</c> carrier a program's
-/// <c>ALPHABET … IS LOCALE</c> comparisons reach (DESIGN-locale-facility §4.4): the §8.8.4.2.11 trailing-space
+/// <c>ALPHABET … IS LOCALE</c> comparisons reach (DESIGN-locale-facility §4.4): the §2023:8.8.4.2.11 trailing-space
 /// trim, the well-formedness check, the per-use resolution of the run unit's current locale, then the engine — so
 /// the carrier's dispatch overhead is separable from the engine's cost.
 /// </para>

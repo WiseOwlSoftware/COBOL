@@ -4,13 +4,13 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.35.3 SR4 — WITH NO LOCK on a REWRITE of a file whose
+      *> ISO §2023:14.9.35.3 SR4 — WITH NO LOCK on a REWRITE of a file whose
       *> LOCK MODE clause specifies AUTOMATIC.
       *> "If automatic locking has been specified for the rewrite file,
       *> neither the WITH LOCK phrase nor the WITH NO LOCK phrase shall
       *> be specified."
-      *> cite.py: OK  §14.9.35.3 4)  (Syntax rules)
-      *> cite.py: OK  §12.4.5.9.4 4)  (General rules) - "If the
+      *> cite.py: OK  §2023:14.9.35.3 4)  (Syntax rules)
+      *> cite.py: OK  §2023:12.4.5.9.4 4)  (General rules) - "If the
       *> AUTOMATIC phrase is specified, the lock mode is automatic."
       *> The LOCK MODE clause and the lock phrase are COBOL 2002
       *> facilities, so the rejection applies from 2002 on. The file is

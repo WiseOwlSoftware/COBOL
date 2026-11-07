@@ -9,24 +9,24 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// The witness for owner decision R48 and Annex A.1 item 167 (<c>docs/CONFORMANCE.md</c> DOC-A.1-167): under a .NET host,
 /// a STOP RUN or a fatal exception condition that terminates the run unit ends the RUN UNIT only. The host activates
 /// each program through its generated host entry (<c>Cobol.&lt;assembly&gt;.&lt;NAME&gt;.Call()</c>, DESIGN-external-repository
-/// §4.3), whose activation is the outermost boundary, <c>ProgramTable.CallProgram</c> with <c>callerPath: null</c> (an
-/// activator outside every program; §4.1, §4.3 "The exception contract" item 3), which performs the §14.6.11 actions and
+/// §2023:4.3), whose activation is the outermost boundary, <c>ProgramTable.CallProgram</c> with <c>callerPath: null</c> (an
+/// activator outside every program; §2023:4.1, §2023:4.3 "The exception contract" item 3), which performs the §2023:14.6.11 actions and
 /// hands the host ONE documented exception, <c>RunUnitEndedException</c>, carrying the exit status and whether the
 /// termination was abnormal. The host process continues, and its next activation is in a new run unit that inherits
 /// nothing.
-/// <para>ISO/IEC 1989:2023 §14.2.3 13) (cite.py OK): "When either the activating or the activated runtime element is
+/// <para>ISO/IEC 1989:2023 §2023:14.2.3 13) (cite.py OK): "When either the activating or the activated runtime element is
 /// other than a COBOL runtime element, the implementor shall specify the restrictions and mechanisms for all supported
-/// language products". §14.9.42.4 1) and 6) (cite.py OK): STOP performs "The operations described in 14.6.11, Normal run
+/// language products". §2023:14.9.42.4 1) and 6) (cite.py OK): STOP performs "The operations described in 14.6.11, Normal run
 /// unit termination" and "Execution of the run unit terminates and control is transferred to the operating system"; a
-/// host is that system's counterpart here. §14.6.11 2) (cite.py OK): "An implicit CLOSE statement without any phrases is
-/// executed for each file that is in the open mode". §14.6.12 (cite.py OK): "The operating system shall indicate an
+/// host is that system's counterpart here. §2023:14.6.11 2) (cite.py OK): "An implicit CLOSE statement without any phrases is
+/// executed for each file that is in the open mode". §2023:14.6.12 (cite.py OK): "The operating system shall indicate an
 /// abnormal termination of the run unit if such a capability exists within the operating system".</para>
 /// <para>The non-COBOL element is real: a C# host compiled here with Roslyn and run as its own process beside the COBOL
 /// modules, as a user's host would be (<see cref="NonCobolElement"/>).</para>
 /// </summary>
 public sealed class HostRunUnitEndingTests
 {
-    /// <summary>Counts its activations in WORKING-STORAGE (last-used state within one run unit, §14.6.2.3.3), so the
+    /// <summary>Counts its activations in WORKING-STORAGE (last-used state within one run unit, §2023:14.6.2.3.3), so the
     /// count shows whether a later activation is in the same run unit or a new one.</summary>
     private const string Counter = """
         IDENTIFICATION DIVISION.
@@ -42,7 +42,7 @@ public sealed class HostRunUnitEndingTests
         END PROGRAM R48CNT.
         """;
 
-    /// <summary>Opens a file, writes a record and never closes it, then STOP RUN with a status: the §14.6.11 2) implicit
+    /// <summary>Opens a file, writes a record and never closes it, then STOP RUN with a status: the §2023:14.6.11 2) implicit
     /// CLOSE is what puts the record on disk, and the status is what the host receives.</summary>
     private const string Stopper = """
         IDENTIFICATION DIVISION.
@@ -67,7 +67,7 @@ public sealed class HostRunUnitEndingTests
         """;
 
     /// <summary>A NULL BASED-item reference raises EC-DATA-PTR-NULL, a fatal condition, unconditionally: the run unit
-    /// terminates abnormally (§14.6.12).</summary>
+    /// terminates abnormally (§2023:14.6.12).</summary>
     private const string Fatal = """
         IDENTIFICATION DIVISION.
         PROGRAM-ID. R48FTL.
@@ -138,11 +138,11 @@ public sealed class HostRunUnitEndingTests
                 "COUNT 1\n" +
                 "COUNT 2\n" +                                   // the same run unit: last-used state
                 "IN STOP SUB\n" +
-                "ENDED STATUS=7 ABNORMAL=False\n" +             // §14.9.42.4 5): the status reaches the host
-                "FILE HELLO\n" +                                // §14.6.11 2): the implicit CLOSE ran
+                "ENDED STATUS=7 ABNORMAL=False\n" +             // §2023:14.9.42.4 5): the status reaches the host
+                "FILE HELLO\n" +                                // §2023:14.6.11 2): the implicit CLOSE ran
                 "COUNT 1\n" +                                   // a new run unit: initial state
                 "IN FATAL SUB\n" +
-                "ENDED STATUS=1 ABNORMAL=True\n" +              // §14.6.12: the abnormal termination is indicated
+                "ENDED STATUS=1 ABNORMAL=True\n" +              // §2023:14.6.12: the abnormal termination is indicated
                 "REASON NAMES EC-DATA-PTR-NULL=True\n" +
                 "COUNT 1\n" +
                 "COUNT 1\n" +                                   // RunUnit.Run begins a fresh run unit

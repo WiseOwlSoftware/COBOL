@@ -7,7 +7,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// kb/Work PB2630 - the SDIDI INTEGER (ISO §15.44.4 r1), INTEGER-PART (§15.49.4 r1) and FRACTION-PART (§15.42.4 r1)
+/// kb/Work PB2630 - the SDIDI INTEGER (ISO §2023:15.44.4 r1), INTEGER-PART (§2023:15.49.4 r1) and FRACTION-PART (§2023:15.42.4 r1)
 /// are computed ON THE DECIMAL: <c>CobolDec.FloorToInteger</c> / <c>TruncateToInteger</c> never land the value on the
 /// Int128 carrier, so a magnitude of 10^38 or more keeps every digit. The unchecked final-transfer arm they used
 /// kept only the low-order digits (INTEGER(10^40) answered 0, INTEGER(-10^40) answered -1).
@@ -86,7 +86,7 @@ public sealed class CobolDecIntegerPartTests
         Assert.Equal(0, CobolDec.Compare(r, new CobolDec(-75, -2)));
     }
 
-    /// <summary>MOD/REM on past-the-carrier operands ride the same two bodies: the §15.64.4 / §15.77.4 equivalent
+    /// <summary>MOD/REM on past-the-carrier operands ride the same two bodies: the §2023:15.64.4 / §2023:15.77.4 equivalent
     /// arithmetic expressions with the 34-digit quotient. 10^40 / 3 = 3.333...3E+39 (34 digits), times 3 is
     /// 9.999...9E+39 and 10^40 less that is 10^6; both quotients are positive integers, so MOD and REM agree.</summary>
     [Fact]
@@ -99,7 +99,7 @@ public sealed class CobolDecIntegerPartTests
         Assert.Equal(0, CobolDec.Compare(CobolIntrinsics.RemDec(CobolRounding.NearestEven, ten40, three), million));
     }
 
-    /// <summary>The compile-time §7.3.6.3 GR3 truncation reads this same method (it was a second copy of the rule).</summary>
+    /// <summary>The compile-time §2023:7.3.6.3 GR3 truncation reads this same method (it was a second copy of the rule).</summary>
     [Fact]
     public void TruncateToInteger_DropsTheFractionDigitsOfANegativeValue()
     {

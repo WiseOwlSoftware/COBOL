@@ -6,7 +6,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The CONSTRUCT POPULATION of the migration-flagging detectors (ISO §7.3.14.4 / §7.3.15.4 GR4): which constructs each
+/// The CONSTRUCT POPULATION of the migration-flagging detectors (ISO §2023:7.3.14.4 / §2023:7.3.15.4 GR4): which constructs each
 /// FLAG-02 / FLAG-14 option flags is the rule's own population, not whatever a syntactic proxy happens to see
 /// (kb/Work PB1375, PB1376). One test per population edge, each paired with the neighbour it must NOT flag; every
 /// expected warning is derived from the cited clause and asserted at its own source line, because a warning that names
@@ -32,10 +32,10 @@ public sealed class FlagPopulationTests
     private static int WarningLine(string warning) =>
         int.Parse(Regex.Match(warning, @"flag\.cob\((\d+),").Groups[1].Value);
 
-    // ── FLAG-02 b EC-PROGRAM-EXCEPTIONS (§7.3.14.4 GR4 b): "A TURN directive for EC-ALL, EC-PROGRAM,
+    // ── FLAG-02 b EC-PROGRAM-EXCEPTIONS (§2023:7.3.14.4 GR4 b): "A TURN directive for EC-ALL, EC-PROGRAM,
     //    EC-PROGRAM-ARG-OMITTED, or EC-PROGRAM-NOT-FOUND shall be flagged if 1. the source element calls any
     //    function, or 2. the source element invokes any method." A source element is "source unit excluding any
-    //    contained source units" (§3.164). ──
+    //    contained source units" (§2023:3.164). ──
 
     private const string FlagB = ">>FLAG-02 EC-PROGRAM-EXCEPTIONS ON";
 
@@ -59,7 +59,7 @@ public sealed class FlagPopulationTests
     [Fact]
     public void EcProgram_ATurnBeforeTheIdentificationDivision_BelongsToTheUnitThatFollowsIt()
     {
-        // PB1376: a TURN before IDENTIFICATION DIVISION is in no unit's span, so it was never flagged. §7.3.25.4 GR6:
+        // PB1376: a TURN before IDENTIFICATION DIVISION is in no unit's span, so it was never flagged. §2023:7.3.25.4 GR6:
         // a TURN applies to the text that follows it — the element it governs is the one it is flagged for.
         string body = "IDENTIFICATION DIVISION.|PROGRAM-ID. TURNFIRST.|DATA DIVISION.|WORKING-STORAGE SECTION.|"
             + "01 X PIC X(3) VALUE \"abc\".|01 Y PIC X(3).|PROCEDURE DIVISION.|{STMT}|    DISPLAY Y.|    STOP RUN.";
@@ -76,7 +76,7 @@ public sealed class FlagPopulationTests
     [Fact]
     public void EcProgram_ContainedProgramIsItsOwnSourceElement()
     {
-        // §3.164: the contained program is a source element of its own, so the container's TURN is not flagged for a
+        // §2023:3.164: the contained program is a source element of its own, so the container's TURN is not flagged for a
         // call that only the containee makes — and the containee's TURN is. This also compiled to a crash (the pass
         // read the Start token of the synthetic context a contained program is bound over) before PB1376.
         string source = Src(
@@ -97,7 +97,7 @@ public sealed class FlagPopulationTests
     [Fact]
     public void EcProgram_AFunctionWrittenWithoutTheKeyword_IsStillACall()
     {
-        // §12.3.8.4 GR13 / §8.4.3.2.3 SR2: "intrinsic-function-name-1 may be specified as a function-identifier without
+        // §2023:12.3.8.4 GR13 / §2023:8.4.3.2.3 SR2: "intrinsic-function-name-1 may be specified as a function-identifier without
         // being preceded by the keyword FUNCTION" — a function reference all the same. Only the binder can tell it
         // from a subscripted data item.
         string Program(string stmt) => Src(
@@ -136,7 +136,7 @@ public sealed class FlagPopulationTests
     [Fact]
     public void EcProgram_EachMethodIsItsOwnSourceElement()
     {
-        // §3.164 + §7.3.14.4 GR4 b 2: GO1 invokes a method, GO2 invokes nothing. The old walk recorded calls only inside
+        // §2023:3.164 + §2023:7.3.14.4 GR4 b 2: GO1 invokes a method, GO2 invokes nothing. The old walk recorded calls only inside
         // a programUnit, so a method's call and invoke were invisible and neither TURN was flagged.
         string source = Src(
             "IDENTIFICATION DIVISION.", "CLASS-ID. FLGMETH.", "FACTORY.", "PROCEDURE DIVISION.",
@@ -173,7 +173,7 @@ public sealed class FlagPopulationTests
     [Fact]
     public void EcProgram_AnObjectPropertyReference_InvokesTheAccessorMethod()
     {
-        // §8.4.3.9.4 GR1: a property reference occurrence IS an invocation of the get (or set) property method, though the
+        // §2023:8.4.3.9.4 GR1: a property reference occurrence IS an invocation of the get (or set) property method, though the
         // text `BAL OF A` is a qualified data reference. The program invokes nothing else (the object arrives as a
         // parameter), so the property reference alone makes its TURN qualify.
         string Program(string stmt) => Src(
@@ -195,9 +195,9 @@ public sealed class FlagPopulationTests
         Assert.Empty(Warnings(Program("    MOVE 1 TO N."), "COBOL1620"));
     }
 
-    // ── FLAG-02 d MOVE-TO-SAME-NAME (§7.3.14.4 GR4 d): flagged when the operands are described by the same DDE and
+    // ── FLAG-02 d MOVE-TO-SAME-NAME (§2023:7.3.14.4 GR4 d): flagged when the operands are described by the same DDE and
     //    1. "the operands are of category alphanumeric-edited" — a reference-modified operand is category alphanumeric
-    //    (§8.4.3.3.4 GR6 a), or 2. the DDE has a subordinate OCCURS … DEPENDING whose object is subordinate to it. ──
+    //    (§2023:8.4.3.3.4 GR6 a), or 2. the DDE has a subordinate OCCURS … DEPENDING whose object is subordinate to it. ──
 
     private static string MoveProgram(string entries, string stmt) => Src([
         "IDENTIFICATION DIVISION.", "PROGRAM-ID. FLGMVR.", "DATA DIVISION.", "WORKING-STORAGE SECTION.",
@@ -236,9 +236,9 @@ public sealed class FlagPopulationTests
         Assert.True(AtLine(warnings[0], LineOf(source, "MOVE AE TO AE")), warnings[0]);
     }
 
-    // ── FLAG-14 b COMPILE-TIME-ARITHMETIC-EXPRESSIONS (§7.3.15.4 GR4 b): a compile-time arithmetic expression "may be
+    // ── FLAG-14 b COMPILE-TIME-ARITHMETIC-EXPRESSIONS (§2023:7.3.15.4 GR4 b): a compile-time arithmetic expression "may be
     //    specified in the DEFINE and EVALUATE directives, in a constant conditional expression, and in a constant
-    //    entry" (§7.3.6.1). ──
+    //    entry" (§2023:7.3.6.1). ──
 
     [Fact]
     public void CompileTimeArithmetic_ConstantEntryExpression_IsFlagged_ALiteralIsNot()
@@ -264,7 +264,7 @@ public sealed class FlagPopulationTests
         Assert.Empty(Warnings(source, "COBOL1621"));
     }
 
-    // ── FLAG-14 i REF-MOD-ZERO-LENGTH (§7.3.15.4 GR4 i): "A reference modification of a data-item shall be flagged" — the
+    // ── FLAG-14 i REF-MOD-ZERO-LENGTH (§2023:7.3.15.4 GR4 i): "A reference modification of a data-item shall be flagged" — the
     //    reference modification of a function's RESULT is not a data item's. ──
 
     [Theory]
@@ -283,9 +283,9 @@ public sealed class FlagPopulationTests
         Assert.True(AtLine(warnings[0], LineOf(source, "MOVE ")), warnings[0]);
     }
 
-    // ── FLAG-14 d I-O-DECLARATIVE (§7.3.15.4 GR4 d): "An input-output statement that can be specified with an INVALID
-    //    KEY phrase" — REWRITE shall not specify it for a relative file in sequential access mode (§14.9.35.3 SR2) and
-    //    DELETE RECORD shall not for a file in sequential access mode (§14.9.10.3 SR2). ──
+    // ── FLAG-14 d I-O-DECLARATIVE (§2023:7.3.15.4 GR4 d): "An input-output statement that can be specified with an INVALID
+    //    KEY phrase" — REWRITE shall not specify it for a relative file in sequential access mode (§2023:14.9.35.3 SR2) and
+    //    DELETE RECORD shall not for a file in sequential access mode (§2023:14.9.10.3 SR2). ──
 
     private static string InvalidKeyProgram(string selectTail, string stmt) => Src([
         "IDENTIFICATION DIVISION.", "PROGRAM-ID. FLGINV.", "ENVIRONMENT DIVISION.", "INPUT-OUTPUT SECTION.",
@@ -306,14 +306,14 @@ public sealed class FlagPopulationTests
         "    ORGANIZATION IS INDEXED ACCESS MODE IS DYNAMIC|    RECORD KEY IS F-KEY.";
 
     [Theory]
-    [InlineData(RelativeSequential, "    REWRITE F-REC.", false)]   // §14.9.35.3 SR2: no INVALID KEY on this file
-    [InlineData(RelativeSequential, "    DELETE F.", false)]        // §14.9.10.3 SR2: sequential access mode
-    [InlineData(IndexedSequential, "    DELETE F.", false)]        // §14.9.10.3 SR2: sequential access mode
+    [InlineData(RelativeSequential, "    REWRITE F-REC.", false)]   // §2023:14.9.35.3 SR2: no INVALID KEY on this file
+    [InlineData(RelativeSequential, "    DELETE F.", false)]        // §2023:14.9.10.3 SR2: sequential access mode
+    [InlineData(IndexedSequential, "    DELETE F.", false)]        // §2023:14.9.10.3 SR2: sequential access mode
     [InlineData(IndexedSequential, "    REWRITE F-REC.", true)]    // an indexed file may take the phrase in any access mode
     [InlineData(RelativeDynamic, "    REWRITE F-REC.", true)]
     [InlineData(RelativeDynamic, "    DELETE F.", true)]
     [InlineData(IndexedDynamic, "    DELETE F.", true)]
-    [InlineData(IndexedSequential, "    WRITE F-REC.", true)]      // §14.9.51.3 SR3: format 2 for every keyed file
+    [InlineData(IndexedSequential, "    WRITE F-REC.", true)]      // §2023:14.9.51.3 SR3: format 2 for every keyed file
     public void IoDeclarative_FlagsOnlyTheStatementsThatCanTakeAnInvalidKeyPhrase(string selectTail, string stmt, bool flagged)
     {
         string source = InvalidKeyProgram(selectTail, stmt);
@@ -323,10 +323,10 @@ public sealed class FlagPopulationTests
         Assert.True(AtLine(warnings[0], LineOf(source, stmt.Trim())), warnings[0]);
     }
 
-    // ── FLAG-14 e I-O-STATUS-04 / f I-O-STATUS-07 (§7.3.15.4 GR4 e/f): "A reference to a data item specified in a FILE
+    // ── FLAG-14 e I-O-STATUS-04 / f I-O-STATUS-07 (§2023:7.3.15.4 GR4 e/f): "A reference to a data item specified in a FILE
     //    STATUS clause that tests for '04'" / "that specifies '07'" — every place a condition can test it: the relation,
-    //    the abbreviated combined relation (§8.8.4.12.4 GR1: the last preceding stated subject is inserted), a level-88
-    //    condition-name, and an EVALUATE selection subject/object pair (§14.9.13.3 SR8). ──
+    //    the abbreviated combined relation (§2023:8.8.4.12.4 GR1: the last preceding stated subject is inserted), a level-88
+    //    condition-name, and an EVALUATE selection subject/object pair (§2023:14.9.13.3 SR8). ──
 
     private static string StatusProgram(params string[] statements) => Src([
         "IDENTIFICATION DIVISION.", "PROGRAM-ID. FLGSTAT.", "ENVIRONMENT DIVISION.", "INPUT-OUTPUT SECTION.",
@@ -356,11 +356,11 @@ public sealed class FlagPopulationTests
     [InlineData("    EVALUATE FS|        WHEN \"04\" CONTINUE|    END-EVALUATE.", "I-O-STATUS-07", 0)]  // per-option gating
     [InlineData("    IF FS-EOF|        CONTINUE|    END-IF.", "I-O-STATUS-04", 0)]                       // an 88 for '10'
     // kb/Work PB3234: the literal's VALUE is decoded once (CobolLiteral.Decode), not its text with every quote deleted.
-    [InlineData("    IF FS = X\"3034\"|        CONTINUE|    END-IF.", "I-O-STATUS-04", 1)]       // §8.3.3.2.4 GR4: X"3034" is '04'
+    [InlineData("    IF FS = X\"3034\"|        CONTINUE|    END-IF.", "I-O-STATUS-04", 1)]       // §2023:8.3.3.2.4 GR4: X"3034" is '04'
     [InlineData("    IF FS = X\"3034\"|        CONTINUE|    END-IF.", "I-O-STATUS-07", 0)]
     [InlineData("    IF FS = N\"04\"|        CONTINUE|    END-IF.", "I-O-STATUS-04", 1)]         // a national '04'
-    [InlineData("    IF FS = \"0'4\"|        CONTINUE|    END-IF.", "I-O-STATUS-04", 0)]         // §8.3.3.2.4 GR1: three characters 0'4
-    [InlineData("    IF FS = '0''4'|        CONTINUE|    END-IF.", "I-O-STATUS-04", 0)]           // §8.3.3.2.3 SR3: a doubled delimiter is ONE character
+    [InlineData("    IF FS = \"0'4\"|        CONTINUE|    END-IF.", "I-O-STATUS-04", 0)]         // §2023:8.3.3.2.4 GR1: three characters 0'4
+    [InlineData("    IF FS = '0''4'|        CONTINUE|    END-IF.", "I-O-STATUS-04", 0)]           // §2023:8.3.3.2.3 SR3: a doubled delimiter is ONE character
     [InlineData("    IF FS-HEX04|        CONTINUE|    END-IF.", "I-O-STATUS-04", 1)]              // an 88 VALUE X"3034"
     [InlineData("    IF FS-HEX07|        CONTINUE|    END-IF.", "I-O-STATUS-07", 1)]
     [InlineData("    IF FS-HEX07|        CONTINUE|    END-IF.", "I-O-STATUS-04", 0)]
@@ -382,9 +382,9 @@ public sealed class FlagPopulationTests
         Assert.True(AtLine(warnings[0], LineOf(source, "OR \"04\"")), warnings[0]);
     }
 
-    // ── FLAG-14 g NUM-ED-ZERO-FIGCONST / j VALUE-EDITING / l VALUE-ZERO (§7.3.15.4 GR4 g/j/l) concern a "numeric-edited
+    // ── FLAG-14 g NUM-ED-ZERO-FIGCONST / j VALUE-EDITING / l VALUE-ZERO (§2023:7.3.15.4 GR4 g/j/l) concern a "numeric-edited
     //    data item". "If the subject of the entry is described by its picture character-string as category numeric,
-    //    the BLANK WHEN ZERO clause defines the item as numeric-edited" (§13.18.8.4 GR2). ──
+    //    the BLANK WHEN ZERO clause defines the item as numeric-edited" (§2023:13.18.8.4 GR2). ──
 
     private static string ValueProgram(string specialNames, params string[] entries) => Src([
         "IDENTIFICATION DIVISION.", "PROGRAM-ID. FLGNED.",
@@ -423,8 +423,8 @@ public sealed class FlagPopulationTests
         Assert.Equal(2, Warnings(source, "COBOL1621").Count);   // g and l
     }
 
-    // ── FLAG-14 m WRITE-END-OF-PAGE (§7.3.15.4 GR4 m): "A WRITE statement that allows an END-OF-PAGE phrase when the
-    //    END-OF-PAGE phrase is not specified shall be flagged." §14.9.51.3 SR19 names the END-OF-PAGE phrase and the NOT
+    // ── FLAG-14 m WRITE-END-OF-PAGE (§2023:7.3.15.4 GR4 m): "A WRITE statement that allows an END-OF-PAGE phrase when the
+    //    END-OF-PAGE phrase is not specified shall be flagged." §2023:14.9.51.3 SR19 names the END-OF-PAGE phrase and the NOT
     //    END-OF-PAGE phrase separately, so a WRITE with only the NOT phrase does not specify the END-OF-PAGE phrase. ──
 
     private static string WriteProgram(string stmt) => Src(
@@ -448,8 +448,8 @@ public sealed class FlagPopulationTests
         Assert.True(AtLine(warnings[0], LineOf(source, "WRITE OUT-REC")), warnings[0]);
     }
 
-    // ── FLAG-02 f TERMINATE-WITH-VARYING (§7.3.14.4 GR4 f): "if the report being terminated contains a VARYING clause" —
-    //    any VARYING clause of the report description, on a group entry included (§13.18.64.3 SR1). ──
+    // ── FLAG-02 f TERMINATE-WITH-VARYING (§2023:7.3.14.4 GR4 f): "if the report being terminated contains a VARYING clause" —
+    //    any VARYING clause of the report description, on a group entry included (§2023:13.18.64.3 SR1). ──
 
     [Fact]
     public void TerminateWithVarying_AVaryingClauseOnAGroupEntry_FlagsTheTerminate()
@@ -504,7 +504,7 @@ public sealed class FlagPopulationTests
     public void IoStatus_ANameSharedByAnotherGroupOfTheSameProgram_IsNotAReference()
     {
         // FS OF G1 is the FILE STATUS item; FS OF G2 and the level-88 IS-04 OF FS OF G2 are other items that merely
-        // share the spelling (§8.4.2.2: qualification selects the item), so only G1's two references are flagged.
+        // share the spelling (§2023:8.4.2.2: qualification selects the item), so only G1's two references are flagged.
         string source = Src(
             "IDENTIFICATION DIVISION.", "PROGRAM-ID. FLGGRP.", "ENVIRONMENT DIVISION.", "INPUT-OUTPUT SECTION.",
             "FILE-CONTROL.", "    SELECT F ASSIGN TO \"f.dat\" FILE STATUS IS FS OF G1.",
@@ -527,7 +527,7 @@ public sealed class FlagPopulationTests
     [Fact]
     public void IoStatus_AContainedProgramReferencingAContainersGlobalFileStatusItem_IsFlagged()
     {
-        // The FILE STATUS item and the LINAGE file are the container's, GLOBAL (§13.18.27.4 GR1), and the contained
+        // The FILE STATUS item and the LINAGE file are the container's, GLOBAL (§2023:13.18.27.4 GR1), and the contained
         // program's references to them resolve there: both the data item and its level-88, and both WRITE spellings.
         string source = Src(
             "IDENTIFICATION DIVISION.", "PROGRAM-ID. FLGOUT.", "ENVIRONMENT DIVISION.", "INPUT-OUTPUT SECTION.",
@@ -570,7 +570,7 @@ public sealed class FlagPopulationTests
     public void WriteEndOfPage_AQualifiedRecordNameResolvesToItsOwnFile()
     {
         // Two files, one record spelling: `WRITE REC IN LF` writes the LINAGE file's record (flagged), `WRITE REC IN PLAINF`
-        // the other's (§8.4.2.2.2 Format 1: the FD is the outermost qualifier). Matching the written text `RECINLF`
+        // the other's (§2023:8.4.2.2.2 Format 1: the FD is the outermost qualifier). Matching the written text `RECINLF`
         // never found either.
         string source = Src(
             "IDENTIFICATION DIVISION.", "PROGRAM-ID. FLGQREC.", "ENVIRONMENT DIVISION.", "INPUT-OUTPUT SECTION.",
@@ -599,7 +599,7 @@ public sealed class FlagPopulationTests
     public void TerminateWithVarying_AReportNameSharedWithAnotherProgramsVaryingReport_IsNotFlagged(bool varyingFirst)
     {
         // Report R has a VARYING clause in PV and none in PN: only the TERMINATE of PV's R is flagged, whichever
-        // program comes first (§7.3.14.4 GR4 f: "the report being terminated contains a VARYING clause").
+        // program comes first (§2023:7.3.14.4 GR4 f: "the report being terminated contains a VARYING clause").
         string[] first = ReportUnit(varyingFirst ? "PV" : "PN", varying: varyingFirst);
         string[] second = ReportUnit(varyingFirst ? "PN" : "PV", varying: !varyingFirst);
         string source = "       >>FLAG-02 TERMINATE-WITH-VARYING ON\n" + Src(first.Concat(second).ToArray());
@@ -612,7 +612,7 @@ public sealed class FlagPopulationTests
     [Fact]
     public void ValueEditing_AHexadecimalLiteralIsScannedByItsValue()
     {
-        // §7.3.15.4 GR4 j: a VALUE literal "that does not contain any editing symbols" is flagged. X"3132" is the
+        // §2023:7.3.15.4 GR4 j: a VALUE literal "that does not contain any editing symbols" is flagged. X"3132" is the
         // value "12" (flagged); X"312E" is "1." and carries an editing symbol (kb/Work PB3234: a hexadecimal literal
         // was scanned as the text X312E, never as its value).
         string source = ValueProgram("",

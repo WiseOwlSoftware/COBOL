@@ -6,11 +6,11 @@
 *> portable: unverified
 *>---
       *> kb/Work PB4635 review R2-2 (DOC-A.1-92). The selecting functions (ABS, MAX, MIN, MEDIAN, MEAN) return a copy of the
-      *> argument they select, and the description of that temporary is implementor-defined (§15.4.1: "the characteristics
-      *> and representation of the returned value are defined by the implementor"; §14.9.11.4 GR1), which CLAUDE.md rule 1 and
+      *> argument they select, and the description of that temporary is implementor-defined (§2023:15.4.1: "the characteristics
+      *> and representation of the returned value are defined by the implementor"; §2023:14.9.11.4 GR1), which CLAUDE.md rule 1 and
       *> DOC-A.1-92 give to GnuCOBOL 3.2.0. Its parser makes a parenthesized sole item or literal the identifier or literal
       *> it encloses, so the temporary is the item's: ABS((I3)) shows what ABS(I3) shows. This compiler binds (I3) as the
-      *> arithmetic expression it is (§8.8.1.1; it is refused where a data item is required, pb4635-findstr-parenthesized-item),
+      *> arithmetic expression it is (§2023:8.8.1.1; it is refused where a data item is required, pb4635-findstr-parenthesized-item),
       *> and the image of the returned value must not follow: an expression such as I3 + 0 is a value-described temporary
       *> (000000003), which GnuCOBOL's identifier is not.
       *>

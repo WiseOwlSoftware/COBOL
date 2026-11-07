@@ -115,7 +115,7 @@ public sealed class CompileStateDriftTests
             PropagateState.Build([new PropagateEvent(3, true)]), RefModZeroLengthState.Build([new RefModZeroLengthEvent(4, false)]),
             LeapSecondState.Build([new LeapSecondEvent(5, true)]), DirectiveTimeline<CompilationVariableEvent>.Empty);
 
-        var before = inputs.At(3);   // a directive governs the text that FOLLOWS it (ISO §7.3.4 GR5)
+        var before = inputs.At(3);   // a directive governs the text that FOLLOWS it (ISO §2023:7.3.4 GR5)
         var after = inputs.At(10);
 
         Assert.Equal(new CompileState(2014, true, SignEncoding.Ascii, true, RepositoryNumericDisplay.Digits,

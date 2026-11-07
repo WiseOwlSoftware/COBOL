@@ -47,7 +47,7 @@ internal sealed class BinderContext(DataBinder data, ReferenceResolver refs)
     /// <summary>Compilation options (arithmetic mode for the composite cap, DEFAULT ROUNDED mode).</summary>
     public OptionsModel Options => data.Procedure.Options.Over(data.State.Configuration.Options);
 
-    /// <summary>The group's <c>&gt;&gt;COBOL-WORDS</c> override (ISO §7.3.10) — the intrinsic binder resolves a
+    /// <summary>The group's <c>&gt;&gt;COBOL-WORDS</c> override (ISO §2023:7.3.10) — the intrinsic binder resolves a
     /// function-name synonym / removal through it. <c>Empty</c> when there is no directive.</summary>
     public WiseOwl.Cobol.Editions.CobolWordsMap CobolWords => data.CobolWords;
 
@@ -67,33 +67,33 @@ internal sealed class BinderContext(DataBinder data, ReferenceResolver refs)
     /// EcFeatures accumulator bits), shared by <c>EcBinder</c> and the Declaratives half.</summary>
     public EcBindState EcState { get; } = new();
 
-    /// <summary>The out-of-line half of ISO §14.9.28.3 SR8 (kb/Work PB434): the UNTIL EXIT statements and the
+    /// <summary>The out-of-line half of ISO §2023:14.9.28.3 SR8 (kb/Work PB434): the UNTIL EXIT statements and the
     /// VARYING / TEST PERFORM ranges recorded while the unit binds, answered once its procedures are bound.</summary>
     public UntilExitPlacement UntilExit { get; } = new();
 
-    /// <summary>The pc whose sentences are being bound (RESUME SR1/SR2 declarative context + the §15.30.3 r2
+    /// <summary>The pc whose sentences are being bound (RESUME SR1/SR2 declarative context + the §2023:15.30.3 r2
     /// location anchoring; 10r — the host's <c>_currentBindPc</c> relocated). −1 outside the bind loop.</summary>
     public int BindCursor { get; set; } = -1;
 
-    /// <summary>The section whose paragraph is being bound (ISO §8.4.2.2 — unqualified procedure names
+    /// <summary>The section whose paragraph is being bound (ISO §2023:8.4.2.2 — unqualified procedure names
     /// resolve in-section first; 10s — the host's <c>_currentSection</c> relocated). Set through
     /// <see cref="EnterMethodScope"/> during the bind loops; the SetAlter prepass saves/restores it.</summary>
     public SectionInfo? CurrentSection { get; set; }
 
-    /// <summary>The OWNING method's paragraph/data scope while its statements bind (ISO §11.7 — method-local
+    /// <summary>The OWNING method's paragraph/data scope while its statements bind (ISO §2023:11.7 — method-local
     /// procedure names; 10s — the host's <c>_currentMethodScope</c> relocated). Also the COLLECTION cursor
     /// while a method's paragraphs register. Null outside a method.</summary>
     public OoMethodScope? CurrentMethodScope { get; set; }
 
     /// <summary>The per-unit procedure table (paragraphs ∥ sections ∥ method scopes ∥ declaratives — ONE
-    /// pc space) and its §8.4.2.2 resolver (10t — table ownership relocated per the AS-BUILT plan).</summary>
+    /// pc space) and its §2023:8.4.2.2 resolver (10t — table ownership relocated per the AS-BUILT plan).</summary>
     private ProcedureTableBuilder? _table;
     public ProcedureTableBuilder Table => _table ??= new(this);
 
     // ── The placement-rule context (kb/Work PB403): ONE "where am I bound?" probe, read by every syntax rule
     //    that says a statement "may be specified only in …". See EnclosingContext for the rule inventory. ──
 
-    /// <summary>The kind of source element whose procedure division this binder binds (ISO §14.2.2 SR10) — set
+    /// <summary>The kind of source element whose procedure division this binder binds (ISO §2023:14.2.2 SR10) — set
     /// once per unit by <c>BinderDriver.BindUnitProcedure</c> from the unit's own facts, beside the
     /// <c>UdfSelfName</c> it is derived from, so the two cannot disagree. A METHOD body overrides it through
     /// <see cref="CurrentMethodScope"/> (see <see cref="SourceElement"/>), because a method's statements bind on
@@ -144,7 +144,7 @@ internal sealed class BinderContext(DataBinder data, ReferenceResolver refs)
     }
 
     /// <summary>Enter a per-pc bind position as ONE scoped operation (10s — replaces the ambient ordered
-    /// quadruple mutation): section → method scope → the §11.7 GR5 data shadowing
+    /// quadruple mutation): section → method scope → the §2023:11.7 GR5 data shadowing
     /// (<c>Data.Procedure.ActiveMethodScope</c>) → cursor, set coherently and restored together on dispose.</summary>
     public BindPositionScope EnterMethodScope(SectionInfo? section, OoMethodScope? scope, int pc)
     {

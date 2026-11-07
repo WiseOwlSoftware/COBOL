@@ -24,9 +24,9 @@ public sealed class ModelAccessStructureTests
 {
     private static readonly Regex Identifier = new("^[A-Za-z_][A-Za-z0-9_]*$", RegexOptions.CultureInvariant);
 
-    // PB4320A: a carrier-resident GLOBAL linkage formal (§13.18.27.3 SR1 b admits GLOBAL in the linkage section) that
-    // the contained PB4320B references (§13.18.27.4 GR2), and a Format-2 table SORT whose key lies two members down
-    // the element (§14.9.40.3 SR14 a). PB4320C: a RECURSIVE program, whose working-storage is static data (§13.5.4 GR1),
+    // PB4320A: a carrier-resident GLOBAL linkage formal (§2023:13.18.27.3 SR1 b admits GLOBAL in the linkage section) that
+    // the contained PB4320B references (§2023:13.18.27.4 GR2), and a Format-2 table SORT whose key lies two members down
+    // the element (§2023:14.9.40.3 SR14 a). PB4320C: a RECURSIVE program, whose working-storage is static data (§2023:13.5.4 GR1),
     // with a GLOBAL item the contained PB4320D references — reached through the container's class, not an instance.
     private const string Source = """
                IDENTIFICATION DIVISION.
@@ -109,7 +109,7 @@ public sealed class ModelAccessStructureTests
         Assert.Equal(["G", "K"], chain.Select(d => d.CobolName));
     }
 
-    // PB4380K: a METHOD whose elementary USING formal is carrier-resident (§14.2.3 GR8), the method arm of PB4320A's L-X.
+    // PB4380K: a METHOD whose elementary USING formal is carrier-resident (§2023:14.2.3 GR8), the method arm of PB4320A's L-X.
     private const string MethodSource = """
                IDENTIFICATION DIVISION.
                CLASS-ID. PB4380K.
@@ -146,7 +146,7 @@ public sealed class ModelAccessStructureTests
         Assert.Equal(OmittedFormalGuard.Of(formal.Item), root.Guard);
     }
 
-    // PB4416K: a METHOD whose data roots the method holds as locals of its own — a LOCAL-STORAGE group (§8.6.4: "Data items
+    // PB4416K: a METHOD whose data roots the method holds as locals of its own — a LOCAL-STORAGE group (§2023:8.6.4: "Data items
     // defined in the local-storage section are automatic items"), a LOCAL-STORAGE Tier-B REDEFINES class (a binary view
     // over characters), the RETURNING item and an unattached LINKAGE record — beside an AREA formal (a FLOAT-LONG formal,
     // laid over its argument's cell, whose backing is the class's member bridge over that cell) and OBJECT data, which are

@@ -4,12 +4,12 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §8.4.3.4.3 SR2: "Identifier-1 shall be of class object; neither
+      *> ISO §2023:8.4.3.4.3 SR2: "Identifier-1 shall be of class object; neither
       *> the predefined object reference NULL nor a universal object reference
-      *> shall be specified."  Identifier is defined recursively (§8.4.3.1.3
+      *> shall be specified."  Identifier is defined recursively (§2023:8.4.3.1.3
       *> SR1), so in `A1 :: "UNIV" :: "GETNAME"` the inline invocation
       *> `A1 :: "UNIV"` IS identifier-1 of the second invocation, and UNIV
-      *> returns a UNIVERSAL object reference (§8.4.3.4.4 GR1 b): the temporary
+      *> returns a UNIVERSAL object reference (§2023:8.4.3.4.4 GR1 b): the temporary
       *> has the description of the RETURNING item).  SR2 refuses that receiver
       *> with the same named diagnostic, COBOL2138, that a written universal
       *> identifier-1 draws.  kb/Work PB1429: the chained segment's receiver was

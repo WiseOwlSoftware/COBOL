@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO/IEC 1989:2023 §12.3.8.3 SR12 with §12.3.4 GR1 (kb/Work PB1083):
+      *> ISO/IEC 1989:2023 §2023:12.3.8.3 SR12 with §2023:12.3.4 GR1 (kb/Work PB1083):
       *> the program-name MOD of a CONTAINED program is a user-defined word
       *> declared within the scope of its container's REPOSITORY paragraph,
       *> which identifies the intrinsic-function-name MOD (FUNCTION MOD

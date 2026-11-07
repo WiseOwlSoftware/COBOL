@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB1074 — ISO §12.4.5.7.3 SR1 "Alphabet-name-1 shall reference an alphabet that defines an
+      *> kb/Work PB1074 — ISO §2023:12.4.5.7.3 SR1 "Alphabet-name-1 shall reference an alphabet that defines an
       *> alphanumeric collating sequence", SR2 "Alphabet-name-2 shall reference an alphabet that defines a
       *> national collating sequence", SR7 "When the class of data-name-1 or record-key-name-1 is national,
       *> alphabet-name-3 shall reference an alphabet that defines a national collating sequence". They are rules

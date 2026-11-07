@@ -5,22 +5,22 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.36.4 r1 — FACTORIAL's equivalent arithmetic expression, ALL THREE lettered arms:
+      *> ISO §2023:15.36.4 r1 — FACTORIAL's equivalent arithmetic expression, ALL THREE lettered arms:
       *>   a) when the value of argument-1 is 0 or 1,   (1)
       *>   b) when the value of argument-1 is 2,        (2)
       *>   c) when the value of argument-1 is n,        (n * (n - 1) * (n - 2) * ... * 1)
       *>
       *> --check validated:
       *>   cite.py --check 15.36.4 "The equivalent arithmetic expression is as follows"
-      *>     -> OK §15.36.4 1)
-      *>   cite.py --check 15.36.1 "The type of this function is integer." -> OK §15.36.1
+      *>     -> OK §2023:15.36.4 1)
+      *>   cite.py --check 15.36.1 "The type of this function is integer." -> OK §2023:15.36.1
       *>   cite.py --check 15.36.3 "Argument-1 shall be an integer greater than or equal to zero."
-      *>     -> OK §15.36.3 1) - every argument written below is a nonnegative integer, so each
+      *>     -> OK §2023:15.36.3 1) - every argument written below is a nonnegative integer, so each
       *>     reference is conforming source and r1's arms are what decide the value.
       *>   cite.py --check 15.4.1 "the returned value shall equal the value of the equivalent
-      *>     arithmetic expression" -> OK §15.4.1 1)
+      *>     arithmetic expression" -> OK §2023:15.4.1 1)
       *>
-      *> ⛔ WHY STANDARD-DECIMAL. §15.4.1 r1's "shall EQUAL" is scoped "When standard-decimal
+      *> ⛔ WHY STANDARD-DECIMAL. §2023:15.4.1 r1's "shall EQUAL" is scoped "When standard-decimal
       *> arithmetic or standard-binary arithmetic is in effect and an equivalent arithmetic
       *> expression is specified"; under NATIVE the same subclause gives only "an
       *> implementor-defined approximation of the value of that expression". Under ARITHMETIC IS

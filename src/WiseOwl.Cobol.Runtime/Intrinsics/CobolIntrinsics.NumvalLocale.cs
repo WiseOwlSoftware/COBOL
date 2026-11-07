@@ -6,8 +6,8 @@ using WiseOwl.Cobol.Runtime.Globalization;
 namespace WiseOwl.Cobol.Runtime;
 
 /// <summary>
-/// NUMVAL-C / TEST-NUMVAL-C — the LOCALE arm (ISO/IEC 1989:2023 §15.68.3 rule 5, imported whole into
-/// TEST-NUMVAL-C by §15.94.3 r1; DESIGN-locale-facility §4.6; kb/Work PB64 T6). ⛔ §15.68.3 rule 4 opens "If the
+/// NUMVAL-C / TEST-NUMVAL-C — the LOCALE arm (ISO/IEC 1989:2023 §2023:15.68.3 rule 5, imported whole into
+/// TEST-NUMVAL-C by §2023:15.94.3 r1; DESIGN-locale-facility §4.6; kb/Work PB64 T6). ⛔ §2023:15.68.3 rule 4 opens "If the
 /// LOCALE keyword is not specified", so NOTHING of the r4 arm is inherited here: the two fixed formats, CR/DB as
 /// sign indicators, the period/comma roles and their DECIMAL-POINT IS COMMA swap, and the invariant ANYCASE fold
 /// are all r4-only — the admissible language is generated from the locale's LC_MONETARY snapshot
@@ -16,13 +16,13 @@ namespace WiseOwl.Cobol.Runtime;
 /// <para>The admissible token orders come from the locale's two placement conventions
 /// (<see cref="MonetaryPlacement"/>): each convention's layout with the currency string present (either
 /// <c>currency_symbol</c> or the first three characters of <c>int_curr_symbol</c> — r5b.3) or absent (r5b.3 "may
-/// contain"), the sign present or absent (r5b.4 "may contain" — absent ⇒ nonnegative, §15.68.4 r3), spaces
+/// contain"), the sign present or absent (r5b.4 "may contain" — absent ⇒ nonnegative, §2023:15.68.4 r3), spaces
 /// admitted at every token adjacency (a superset of the three <c>sep_by_space</c> values — the field ISO 1989
-/// never names; §8.2.1's ISO 9945 import) plus leading/trailing (r5b.7). The only OBLIGATION is one digit
-/// (r5b.7). Grouping separators stand between digits, never right of <c>mon_decimal_point</c> (§8.2.2 /
-/// §15.68.4 r2), and where <c>mon_grouping</c> puts them (r5b.6 names the field — kb/Work PB835): none at all, or
+/// never names; §2023:8.2.1's ISO 9945 import) plus leading/trailing (r5b.7). The only OBLIGATION is one digit
+/// (r5b.7). Grouping separators stand between digits, never right of <c>mon_decimal_point</c> (§2023:8.2.2 /
+/// §2023:15.68.4 r2), and where <c>mon_grouping</c> puts them (r5b.6 names the field — kb/Work PB835): none at all, or
 /// every one (⚖ DETERMINATION, <see cref="MonetaryFacts.GroupingAdmits"/>). ⚖ Documented determinations: the
-/// fraction-digit count is not constrained by <c>frac_digits</c> — §15.68.1 names "the grouping separator and
+/// fraction-digit count is not constrained by <c>frac_digits</c> — §2023:15.68.1 names "the grouping separator and
 /// the decimal separator permitted" and r5b.5 is a permission;
 /// argument-1 is compared with the snapshot under the ONE L12 equivalence (<see cref="LocaleFacts.TryFoldLocaleChar"/>:
 /// a Cf character is ignorable, U+00A0/U+202F/U+2009 is a space wherever a space is admitted or matched — a typed
@@ -33,9 +33,9 @@ namespace WiseOwl.Cobol.Runtime;
 /// </summary>
 public static partial class CobolIntrinsics
 {
-    /// <summary>NUMVAL-C LOCALE's §15.68.4 r1 value as an SDIDI, exact at the parsed scale (the same lift as
+    /// <summary>NUMVAL-C LOCALE's §2023:15.68.4 r1 value as an SDIDI, exact at the parsed scale (the same lift as
     /// <see cref="NumvalCDec"/>) — the projection EVERY arithmetic mode uses (kb/Work PB251); the omitted
-    /// <paramref name="digitCap"/> is the family's one convention, the NATIVE §15.67.3 r3 cap.</summary>
+    /// <paramref name="digitCap"/> is the family's one convention, the NATIVE §2023:15.67.3 r3 cap.</summary>
     public static CobolDec NumvalCLocaleDec(string text, string? localeTag, bool anycase = false, int digitCap = 31)
     {
         NvParse p = NvScanLocale(text, localeTag, anycase, digitCap, "NUMVAL-C");
@@ -43,7 +43,7 @@ public static partial class CobolIntrinsics
         return CobolDec.From(p.Neg ? -p.Unscaled : p.Unscaled, p.Frac);
     }
 
-    /// <summary>TEST-NUMVAL-C with the LOCALE keyword (§15.94.4 over the §15.68.3 r5 language): 0, the first
+    /// <summary>TEST-NUMVAL-C with the LOCALE keyword (§2023:15.94.4 over the §2023:15.68.3 r5 language): 0, the first
     /// error position (r1 b — under a template ALTERNATION the reported position is 1 + the longest prefix any
     /// admissible template consumes, which realizes r1 b.1's "first non-space character following the spaces"
     /// example verbatim), or LENGTH+1 (r1 c — every character admissible but the scan ran off the end).
@@ -54,11 +54,11 @@ public static partial class CobolIntrinsics
 
     private static Int128 NumvalCLocaleReject(NvParse p, string text, int digitCap) =>
         p.CapHit
-            ? DigitCapExceeded("NUMVAL-C", digitCap + 1, digitCap, "ISO §15.68.3 rules 6-7")
+            ? DigitCapExceeded("NUMVAL-C", digitCap + 1, digitCap, "ISO §2023:15.68.3 rules 6-7")
             : Exceptions.ExceptionState.ArgumentError(
                 $"NUMVAL-C argument-1 \"{text}\" is not in a format consistent with locale category LC_MONETARY "
-                + $"in the locale in use (ISO §15.68.3 rule 5 b; first character in error at position {p.ErrPos}; "
-                + "§15.94 TEST-NUMVAL-C reports the same position)");
+                + $"in the locale in use (ISO §2023:15.68.3 rule 5 b; first character in error at position {p.ErrPos}; "
+                + "§2023:15.94 TEST-NUMVAL-C reports the same position)");
 
     /// <summary>One template's token kinds — the layout order comes from the convention, spaces are admitted at
     /// every adjacency.</summary>
@@ -66,10 +66,10 @@ public static partial class CobolIntrinsics
 
     private readonly record struct LocTemplate(LocTok[] Tokens, bool Negative, string Sign, string? Cs);
 
-    /// <summary>The ONE §15.68.3 r5 scan — validates positionally AND accumulates the value in the same pass over
+    /// <summary>The ONE §2023:15.68.3 r5 scan — validates positionally AND accumulates the value in the same pass over
     /// the argument folded by DETERMINATION L12 (<see cref="LocaleFacts.NormalizeLocaleText(string, out int[])"/>,
     /// the snapshot's own equivalence; every position is mapped back to its ordinal in the ORIGINAL argument). The
-    /// ANYCASE fold happens only at the currency-comparison site, never by rewriting the string — §15.57.4 r5's
+    /// ANYCASE fold happens only at the currency-comparison site, never by rewriting the string — §2023:15.57.4 r5's
     /// non-1:1 warning. Template set: the negative
     /// convention first when it is distinguishable (parentheses or a nonempty negative_sign), then the positive,
     /// then the unsigned reduction; each × currency-present (both r5b.3 candidates, longer preferred) /
@@ -79,19 +79,19 @@ public static partial class CobolIntrinsics
         string tag = localeTag ?? RunUnit.Current.Locale.Current(LocaleCategory.Monetary);
         var lf = LocaleFacts.For(tag).Require(LocaleCategory.Monetary,
             $"FUNCTION {fn}{(localeTag is not null ? " (LOCALE locale-name-1)" : " (LOCALE)")}",
-            "ISO §15.68.3 r5a") ?? LocaleFacts.Root;
+            "ISO §2023:15.68.3 r5a") ?? LocaleFacts.Root;
         if (anycase)
             // r5b.3 ¶2 — the fold is "as specified in the rules for the LOWER-CASE function with LOCALE
-            // locale-name-1 specified": LC_CTYPE of the SAME locale, so the §8.2.1 gate covers it too.
-            lf.Require(LocaleCategory.Ctype, $"FUNCTION {fn} ANYCASE", "ISO §15.68.3 r5b.3 / §15.57.4 r2");
+            // locale-name-1 specified": LC_CTYPE of the SAME locale, so the §2023:8.2.1 gate covers it too.
+            lf.Require(LocaleCategory.Ctype, $"FUNCTION {fn} ANYCASE", "ISO §2023:15.68.3 r5b.3 / §2023:15.57.4 r2");
         var f = MonetaryFacts.Of(lf);
         var ti = anycase && lf.HasCultureData ? lf.TextInfo : null;   // ANYCASE with no culture data folds invariant
 
-        // Degenerate locale content makes the model ambiguous — §8.2.1 "invalid or incomplete".
+        // Degenerate locale content makes the model ambiguous — §2023:8.2.1 "invalid or incomplete".
         if (f.ThousandsSep.Length > 0 && f.ThousandsSep == f.DecimalPoint)
             Exceptions.ExceptionState.LocaleInvalidError(
                 $"FUNCTION {fn}: the locale '{lf.Collate}' defines mon_thousands_sep and mon_decimal_point as "
-                + "the same string, which makes the monetary format ambiguous (ISO §8.2.1)");
+                + "the same string, which makes the monetary format ambiguous (ISO §2023:8.2.1)");
 
         var templates = new List<LocTemplate>();
         void Add(MonetaryConvention c, bool negative, string sign)
@@ -126,7 +126,7 @@ public static partial class CobolIntrinsics
         if (negDistinct) Add(f.Negative, negative: true, f.Negative.SignPosn == 0 ? "" : f.NegativeSign);
         if (f.PositiveSign.Length > 0 && f.Positive.SignPosn != 0)
             Add(f.Positive, negative: false, f.PositiveSign);
-        // The unsigned reduction (r5b.4 "may contain" — enumerated once, nonnegative per §15.68.4 r3):
+        // The unsigned reduction (r5b.4 "may contain" — enumerated once, nonnegative per §2023:15.68.4 r3):
         // the nonnegative layout with no sign token.
         LocTok[] unsignedOrder = f.Positive.CsPrecedes
             ? [LocTok.Cs, LocTok.Num]
@@ -200,12 +200,12 @@ public static partial class CobolIntrinsics
                 case LocTok.Num:
                 {
                     // NUM ::= digits [sep digits]… [dec [digits]] | dec digits — a separator is digit-flanked, left
-                    // of the decimal (§15.68.4 r2), AND stands where mon_grouping puts one (r5b.6 "in accordance
+                    // of the decimal (§2023:15.68.4 r2), AND stands where mon_grouping puts one (r5b.6 "in accordance
                     // with locale fields mon_thousands_sep and mon_grouping" — kb/Work PB835): the integer runs
                     // are checked as a PREFIX at every character, so the first character no grouped completion
-                    // admits is the §15.94.4 r1 b) position, and as a WHOLE where the integer part ends (a valid
+                    // admits is the §2023:15.94.4 r1 b) position, and as a WHOLE where the integer part ends (a valid
                     // but incomplete grouping ends at the next character, or at LENGTH + 1 — r1 c).
-                    // ⛔ no commaMode, no CR/DB (§15.68.3 r4 is not inherited).
+                    // ⛔ no commaMode, no CR/DB (§2023:15.68.3 r4 is not inherited).
                     int start = i;
                     bool sawDec = false;
                     List<int>? groups = null;                              // integer runs, once a separator appears
@@ -267,7 +267,7 @@ public static partial class CobolIntrinsics
     /// <summary>Compare <paramref name="candidate"/> against <paramref name="text"/> at <paramref name="at"/>, per
     /// character: both sides are already L12-folded (the snapshot by <see cref="MonetaryFacts"/>, the argument by
     /// <see cref="NvScanLocale"/>), so the comparison is ordinal unless <paramref name="anycase"/> asks for the
-    /// ANYCASE currency comparison (§15.68.3 r5b.1/3) — the locale's simple LC_CTYPE lowercase correspondence
+    /// ANYCASE currency comparison (§2023:15.68.3 r5b.1/3) — the locale's simple LC_CTYPE lowercase correspondence
     /// through <paramref name="fold"/> (L9; length-preserving, so positions stay ordinal).</summary>
     private static bool MatchAt(string text, int at, string candidate, System.Globalization.TextInfo? fold,
         bool anycase = false)

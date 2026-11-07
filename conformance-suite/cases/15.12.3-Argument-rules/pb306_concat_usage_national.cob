@@ -5,23 +5,23 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB306 - ISO §15.18.4 r2, THE USAGE LIMB: "If argument-1 is of class or usage national, the
-      *> function will return a national value." The §15.18.1 table states the same in two rows, "Boolean usage
-      *> National -> National" and "Numeric usage National -> National". §13.18.60.3 SR12 makes both shapes
+      *> kb/Work PB306 - ISO §2023:15.18.4 r2, THE USAGE LIMB: "If argument-1 is of class or usage national, the
+      *> function will return a national value." The §2023:15.18.1 table states the same in two rows, "Boolean usage
+      *> National -> National" and "Numeric usage National -> National". §2023:13.18.60.3 SR12 makes both shapes
       *> legal data: "An elementary data item with usage national shall be described with a picture
       *> character-string that describes a boolean, national, national-edited, numeric, or numeric-edited data
       *> item." Their CATEGORY is numeric / boolean, which is why a category-only reader labelled the result
       *> alphanumeric (the companion negative golden pb306-concat-usage-national-to-an is the MOVE guard).
       *>
       *> EXPECTED VALUES, DERIVED FROM THE RULES:
-      *>   §15.18.4 r1 - "all of the characters in argument-1 followed by all of the characters in argument-2":
+      *>   §2023:15.18.4 r1 - "all of the characters in argument-1 followed by all of the characters in argument-2":
       *>       NN1 1234 + NN2 5678 = 12345678; NB1 1010 + NB2 0011 = 10100011.
       *>   THE DISCRIMINATOR IS THE RECEIVER. Each result moves to a PIC N receiver - national-to-national,
-      *>       valid in Table 16 (§14.9.25.3 SR10) - and pads with spaces. The same MOVE to a PIC X receiver
+      *>       valid in Table 16 (§2023:14.9.25.3 SR10) - and pads with spaces. The same MOVE to a PIC X receiver
       *>       is INVALID for a national sender and must be diagnosed; the companion negative golden
       *>       pb306-concat-usage-national-to-an pins that half. (BYTE-LENGTH cannot observe the result
-      *>       directly: §15.14.3 r1 admits a literal, based entry, type-name or DATA ITEM, not a function.)
-      *>   §15.12.1's table (BASECONVERT, "National -> National") over §15.12.3 r1's "usage display or national
+      *>       directly: §2023:15.14.3 r1 admits a literal, based entry, type-name or DATA ITEM, not a function.)
+      *>   §2023:15.12.1's table (BASECONVERT, "National -> National") over §2023:15.12.3 r1's "usage display or national
       *>       data item" argument: 1234 in base 10 is 4D2 in base 16 (4*256 + 13*16 + 2 = 1234), a national
       *>       value.
        IDENTIFICATION DIVISION.

@@ -5,13 +5,13 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §12.2.1 FMT — ENVIRONMENT DIVISION. with each optional
+      *> ISO §2023:12.2.1 FMT — ENVIRONMENT DIVISION. with each optional
       *> section: neither, configuration only, input-output only, both
       *> Format: "ENVIRONMENT DIVISION." followed by
       *>   "[ configuration-section ]" then "[ input-output-section ]"
       *> cite.py:
-      *>   OK  §12.2.1   (General format)  [ configuration-section ]
-      *>   OK  §12.2.1   (General format)  [ input-output-section ]
+      *>   OK  §2023:12.2.1   (General format)  [ configuration-section ]
+      *>   OK  §2023:12.2.1   (General format)  [ input-output-section ]
       *> Both sections are optional and, when both appear, the
       *> configuration section comes first. Four programs cover the
       *> four legal shapes; each section that is present is shown to be

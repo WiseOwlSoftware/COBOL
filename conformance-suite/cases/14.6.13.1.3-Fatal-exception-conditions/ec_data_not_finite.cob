@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> EC-DATA-NOT-FINITE (ISO §14.6.13.2 item 3, spec :24571; Table 13 Fatal): a standard-float SENDING operand
+      *> EC-DATA-NOT-FINITE (ISO §2023:14.6.13.2 item 3, spec :24571; Table 13 Fatal): a standard-float SENDING operand
       *> whose content is NaN or ±Infinity is referenced. Raised at BOTH float read chokepoints — the numeric-value
       *> read (relation/arithmetic) and the string-image read (DISPLAY, or a
       *> different-usage float MOVE source). The four exemptions do NOT raise: class condition, sign condition, a
@@ -19,8 +19,8 @@
       *> green only while SR1 was unenforced at the sending position; it is REMOVED rather than re-spelled,
       *> because the DISPLAY leg below reaches the same string-image read from source the standard admits.
       *> same-usage MOVE (FLOAT-BINARY-64 -> FLOAT-BINARY-64), and VALIDATE (not yet emitted). Under >>TURN … CHECKING ON the USE
-      *> declarative reports the condition via FUNCTION EXCEPTION-STATUS (§15.33) and RESUME AT NEXT STATEMENT
-      *> (§14.9.33) continues, so every leg is observable in one run. With checking OFF nothing raises.
+      *> declarative reports the condition via FUNCTION EXCEPTION-STATUS (§2023:15.33) and RESUME AT NEXT STATEMENT
+      *> (§2023:14.9.33) continues, so every leg is observable in one run. With checking OFF nothing raises.
       >>TURN EC-DATA-NOT-FINITE CHECKING ON
        IDENTIFICATION DIVISION.
        PROGRAM-ID. EC-DNF.

@@ -7,7 +7,7 @@
       *>---
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB2556RL.
-      *> ISO/IEC 1989:2023 §13.4.5 FD entry GR4 (§13.4.5.4: the report
+      *> ISO/IEC 1989:2023 §2023:13.4.5 FD entry GR4 (§2023:13.4.5.4: the report
       *> writer logical record structure is defined by the implementor,
       *> Annex A.1 item 159), with the file coded character set of
       *> Annex A.1 item 31 (owner decision kb/Work R47) and kb/Work
@@ -18,9 +18,9 @@
       *> status the refusal sets in the report file's connector is '91'
       *> for EVERY report file, whatever ORGANIZATION it names - a
       *> report file is never a line sequential file to its connector,
-      *> so the '71' of §14.9.51.4 GR23 (a line sequential file's WRITE)
+      *> so the '71' of §2023:14.9.51.4 GR23 (a line sequential file's WRITE)
       *> is never the report writer's answer. A program cannot observe
-      *> either value: GENERATE is not among the statements §9.1.13.1
+      *> either value: GENERATE is not among the statements §2023:9.1.13.1
       *> lists as setting an I-O status, so the FILE STATUS item is not
       *> stored by it, and the refusal raises no exception condition, so
       *> no USE procedure of the file runs. What a program CAN observe,
@@ -29,7 +29,7 @@
       *> AFTER STANDARD ERROR procedure:
       *>  - FILE STATUS reads '00' after every GENERATE and after CLOSE;
       *>  - the USE procedure never runs;
-      *>  - the refused line leaves a BLANK line (§14.9.51.4 GR15: the
+      *>  - the refused line leaves a BLANK line (§2023:14.9.51.4 GR15: the
       *>    unsuccessful write does not take place, its advance
       *>    included, so the next line's advance covers its slot).
        ENVIRONMENT DIVISION.

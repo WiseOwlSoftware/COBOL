@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §13.18.60.4 / §8.4.3.10 / §14.9.39 — COBOL-2002 POINTER data (Phase 1).
+      *> ISO §2023:13.18.60.4 / §2023:8.4.3.10 / §2023:14.9.39 — COBOL-2002 POINTER data (Phase 1).
       *> A USAGE POINTER item is an 8-byte opaque machine-address handle. NULL is the predefined null
       *> address (the all-zero handle). Phase 1 covers: declaration, SET p TO NULL, SET p TO another
       *> pointer, and equality comparison (= / NOT =) against NULL and against another pointer.

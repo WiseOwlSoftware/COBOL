@@ -292,7 +292,7 @@ HYPHENS = {0x2010: "-", 0x2011: "-"}
 #: verbal-forms paragraph (unnumbered, so `cite.py` cannot address it — `--find` reports no numbered clause):
 #: "Information marked as 'NOTE' is intended to assist the understanding or use of the document." A NOTE creates
 #: no requirement, so it can neither SELECT a rule into a determination nor EXCLUDE one from it. The catalog
-#: keeps the NOTE inside the rule's text, and before kb/Work R43 (2026-09-24) the selectors read it: §11.9.5.2
+#: keeps the NOTE inside the rule's text, and before kb/Work R43 (2026-09-24) the selectors read it: §2023:11.9.5.2
 #: GR2 — "If the STANDARD-BINARY phrase is specified, the techniques used … shall be as described for
 #: standard-binary arithmetic" — sat outside `standard-binary-only` because its NOTE 1 encourages implementors to
 #: support STANDARD-DECIMAL, and that informative sentence tripped the mixed-rule exclusion (kb/Work PB1517).

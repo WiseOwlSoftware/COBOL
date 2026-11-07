@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Binding.Procedure;
 using Core = CobolParserCore;
 
 /// <summary>
-/// ⛔ THE ONE §8.4.3.11.3 OPERAND SCREEN of a data-address-identifier (<c>ADDRESS OF identifier-1</c>, ISO §8.4.3.11) —
+/// ⛔ THE ONE §2023:8.4.3.11.3 OPERAND SCREEN of a data-address-identifier (<c>ADDRESS OF identifier-1</c>, ISO §2023:8.4.3.11) —
 /// every surface that takes the identifier (the SET Format-7 sender, the CALL and INVOKE argument, the relation
 /// operand) reaches it through <c>PtrBinder.BindDataAddress</c>, so each prohibited operand is refused ONCE, with the
 /// rule it breaks, and a new surface cannot forget one (kb/Work PB1407, PB1062). Before it, the binder checked only
@@ -49,7 +49,7 @@ internal sealed class AddressOfOperandScreen(BinderContext ctx)
         {
             Report(DiagnosticCatalog.AddressOfObjectData, text,
                 "is defined in the working-storage or file section of an object or a factory object, so it shall not "
-                + "be the identifier-1 of ADDRESS OF (ISO §8.4.3.11.3 SR1)");
+                + "be the identifier-1 of ADDRESS OF (ISO §2023:8.4.3.11.3 SR1)");
             ok = false;
         }
 
@@ -57,7 +57,7 @@ internal sealed class AddressOfOperandScreen(BinderContext ctx)
         if (item.Pic?.Category is PicCategory.ObjectReference)
         {
             Report(DiagnosticCatalog.AddressOfOperandKind, text,
-                "is an object reference, so it shall not be the identifier-1 of ADDRESS OF (ISO §8.4.3.11.3 SR2)");
+                "is an object reference, so it shall not be the identifier-1 of ADDRESS OF (ISO §2023:8.4.3.11.3 SR2)");
             ok = false;
         }
         else if (!item.IsGroup && StrongTypeModel.StrongRoot(item) is { } strong && !ReferenceEquals(strong, item))
@@ -65,7 +65,7 @@ internal sealed class AddressOfOperandScreen(BinderContext ctx)
             Report(DiagnosticCatalog.AddressOfOperandKind, text,
                 $"is an elementary item subordinate to the strongly-typed group item '{strong.CobolName}', so it shall "
                 + "not be the identifier-1 of ADDRESS OF — the address of the group is the restricted data-pointer "
-                + "§8.4.3.11.4 GR2 defines (ISO §8.4.3.11.3 SR2)");
+                + "§2023:8.4.3.11.4 GR2 defines (ISO §2023:8.4.3.11.3 SR2)");
             ok = false;
         }
 
@@ -74,7 +74,7 @@ internal sealed class AddressOfOperandScreen(BinderContext ctx)
         {
             Report(DiagnosticCatalog.AddressOfOperandKind, text,
                 "is described with, or is subordinate to an item described with, the CONSTANT RECORD clause, so it "
-                + "shall not be the identifier-1 of ADDRESS OF — a pointer could write the constant (ISO §8.4.3.11.3 SR3)");
+                + "shall not be the identifier-1 of ADDRESS OF — a pointer could write the constant (ISO §2023:8.4.3.11.3 SR3)");
             ok = false;
         }
 
@@ -82,7 +82,7 @@ internal sealed class AddressOfOperandScreen(BinderContext ctx)
         if (DynamicCapacityKind(item) is { } kind)
         {
             Report(DiagnosticCatalog.AddressOfOperandKind, text,
-                $"is {kind}, so it shall not be the identifier-1 of ADDRESS OF (ISO §8.4.3.11.3 SR6)");
+                $"is {kind}, so it shall not be the identifier-1 of ADDRESS OF (ISO §2023:8.4.3.11.3 SR6)");
             ok = false;
         }
 
@@ -97,13 +97,13 @@ internal sealed class AddressOfOperandScreen(BinderContext ctx)
                 case ParameterConformance.BitStartFault.NonLiteralRefMod:
                     Report(DiagnosticCatalog.AddressOfBitAlignment, text,
                         "is a bit item whose reference-modification leftmost position is not a fixed-point numeric "
-                        + "literal or an arithmetic expression of such literals without exponentiation (ISO §8.4.3.11.3 SR4 a))");
+                        + "literal or an arithmetic expression of such literals without exponentiation (ISO §2023:8.4.3.11.3 SR4 a))");
                     ok = false;
                     break;
                 case ParameterConformance.BitStartFault.NonLiteralSubscript:
                     Report(DiagnosticCatalog.AddressOfBitAlignment, text,
                         "is a bit item whose subscripts are not fixed-point numeric literals or arithmetic "
-                        + "expressions of such literals without exponentiation (ISO §8.4.3.11.3 SR4 a))");
+                        + "expressions of such literals without exponentiation (ISO §2023:8.4.3.11.3 SR4 a))");
                     ok = false;
                     break;
                 default:
@@ -111,7 +111,7 @@ internal sealed class AddressOfOperandScreen(BinderContext ctx)
                     {
                         Report(DiagnosticCatalog.AddressOfBitAlignment, text,
                             $"is a bit item that starts at bit {bits} of its record, so it is not aligned on a byte "
-                            + "boundary (ISO §8.4.3.11.3 SR4 b) and §8.5.1.6.3)");
+                            + "boundary (ISO §2023:8.4.3.11.3 SR4 b) and §2023:8.5.1.6.3)");
                         ok = false;
                     }
                     break;
@@ -120,7 +120,7 @@ internal sealed class AddressOfOperandScreen(BinderContext ctx)
         return ok;
     }
 
-    /// <summary>What §8.4.3.11.3 SR6 calls <paramref name="item"/> when it forbids its address — a dynamic-length
+    /// <summary>What §2023:8.4.3.11.3 SR6 calls <paramref name="item"/> when it forbids its address — a dynamic-length
     /// elementary item, an element of a dynamic-capacity table, an item subordinate to one, or an item subordinate
     /// to a group that contains a dynamic-length elementary item — or null. Read literally: the 01 group that
     /// CONTAINS a dynamic-length item is itself none of the four (it is not subordinate to anything), and the rule

@@ -5,7 +5,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// <summary>⛔ THE NATIVE COLLATING SEQUENCE'S EXTREMES — the ONE answer to "which character is HIGH-VALUE / LOW-VALUE
 /// in the native sequence", read by every site that answers it (the compiler's figurative fill, the SPECIAL-NAMES
 /// HIGH-VALUE, the collating-table extremes, the runtime collation defaults, the no-PCS initial fill, the storage
-/// byte law below). ISO/IEC 1989:2023 §8.3.3.6.4 GR6: <i>"the high-value format represents the character, or
+/// byte law below). ISO/IEC 1989:2023 §2023:8.3.3.6.4 GR6: <i>"the high-value format represents the character, or
 /// multiple-character combination, that has the highest ordinal position in the runtime collating sequence"</i>;
 /// GR7 the same for LOW-VALUE at the lowest. The native alphanumeric and national character sets are the 65,536
 /// UTF-16 code units in code-unit order (implementor items 31/188, D-N1/D-N3), so both classes answer
@@ -32,7 +32,7 @@ public static class NativeCollatingSequence
 /// (U+00FF, U+FFFF) and one BYTE (0xFF) — not between text and binary. If a byte-form leaf imaged 0xFF as U+00FF,
 /// <c>MOVE HIGH-VALUES TO REC</c> followed by <c>IF REC = HIGH-VALUES</c> would turn FALSE for any record with a
 /// binary field: storing the group through the leaf would CHANGE its content (measured, kb/Work PB1759 step 0),
-/// where §14.9.25.4 GR4 moves a group "without conversion of data from one form of internal representation to
+/// where §2023:14.9.25.4 GR4 moves a group "without conversion of data from one form of internal representation to
 /// another" and nothing alters the characters afterwards. With one law the image of every byte
 /// is the character a byte medium reads back, so the medium needs no knowledge of the record layout — a record
 /// struct, a Tier-B REDEFINES backing, a multi-01 FD area and an elementary record cross it identically, and a
@@ -41,7 +41,7 @@ public static class NativeCollatingSequence
 /// through a byte — the record medium or a byte-form storage position — returns as HIGH-VALUE. In an alphanumeric
 /// leaf in memory it stays U+00FF (the literal <c>"ÿ"</c>, <c>FUNCTION CHAR(256)</c>).</para>
 /// <para><b>A hexadecimal literal is a byte too</b> (kb/Work PB2919). <c>X"hh"</c> is the character whose bit
-/// configuration is hh (§8.3.3.2.4 GR4), so <c>CobolLiteral.DecodeHex</c> images each pair through
+/// configuration is hh (§2023:8.3.3.2.4 GR4), so <c>CobolLiteral.DecodeHex</c> images each pair through
 /// <see cref="ToChar"/>: <c>X"FF"</c> is U+FFFF, the HIGH-VALUE character — the same character a binary item's byte
 /// 0xFF has through a REDEFINES, which is what makes <c>IF GX = X"FFFFFFFE"</c> true for the view of a binary -2.</para></summary>
 public static class StorageByte
@@ -52,8 +52,8 @@ public static class StorageByte
     /// <summary>The byte a character occupies — its low-order byte (U+00FF and U+FFFF are both <c>0xFF</c>), and for a
     /// character with NO byte image (<see cref="HasByte"/> false: a code unit above U+00FF other than HIGH-VALUE) the
     /// substitute byte <see cref="SubstituteByte"/> (<c>?</c>), never its truncated low-order byte: a character
-    /// admitted to a DISPLAY item must not turn into an unrelated one at a byte channel (ISO/IEC 1989:2023 §8.1.2 1):
-    /// every character of the alphanumeric coded character set occupies the same number of bytes; §13.18.44.4 GR1: a
+    /// admitted to a DISPLAY item must not turn into an unrelated one at a byte channel (ISO/IEC 1989:2023 §2023:8.1.2 1):
+    /// every character of the alphanumeric coded character set occupies the same number of bytes; §2023:13.18.44.4 GR1: a
     /// REDEFINES view is the same storage area; docs/CONFORMANCE.md DOC-A.1-31, -33, -46). Total and PURE, so a
     /// numeric view over any content decodes deterministically and a compile-time caller may ask it; a RUNTIME
     /// storage-image reader asks <see cref="ImageByte"/>, which also sets EC-DATA-CONVERSION.</summary>
@@ -76,7 +76,7 @@ public static class StorageByte
     {
         if (c == NativeCollatingSequence.HighValue) return 0xFF;
         Exceptions.ExceptionState.DataConversionError(
-            "the code unit has no one-byte image in the 8-bit usage-DISPLAY storage image (§8.1.2 1; CONFORMANCE.md items 31, 46, 209)");
+            "the code unit has no one-byte image in the 8-bit usage-DISPLAY storage image (§2023:8.1.2 1; CONFORMANCE.md items 31, 46, 209)");
         return SubstituteByte;
     }
 

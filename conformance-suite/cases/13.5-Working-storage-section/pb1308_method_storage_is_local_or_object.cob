@@ -6,9 +6,9 @@
 *> portable: unverified
 *>---
       *> kb/Work PB1308, decision R62 - what a method DOES have, now that its WORKING-STORAGE is illegal at every edition.
-      *> ISO §13.5.3 SR1: the working-storage section "may be specified only in a factory definition or an instance
+      *> ISO §2023:13.5.3 SR1: the working-storage section "may be specified only in a factory definition or an instance
       *> definition, but not in a method definition" (negative: pb1308-method-working-storage-every-edition).
-      *> A method's own storage is LOCAL-STORAGE (ISO §8.6.4: "allocated and set to initial state each time the
+      *> A method's own storage is LOCAL-STORAGE (ISO §2023:8.6.4: "allocated and set to initial state each time the
       *> runtime element containing them is activated") and LINKAGE; state that persists across activations lives in
       *> the instance definition's working-storage (object data, one copy per instance).
       *> Derivation (two instances A and B, TICK invoked A, A, B):

@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ A KEYED CLOSE THAT ANSWERS '30', THROUGH A COMPILED PROGRAM (kb/Work PB3335, review w1118-a5 lead R2-L1; the owner's
 /// standing rule, MANDATORY-PRACTICES I11: the exception paths of file I/O are tested as fully as its success paths). The
-/// keyed store engine answers a CLOSE §9.1.13.6 item 1's '30' — <i>"A permanent error exists and no further information
+/// keyed store engine answers a CLOSE §2023:9.1.13.6 item 1's '30' — <i>"A permanent error exists and no further information
 /// is available concerning the input-output operation"</i> — in two ways (docs/rearchitecture/DESIGN-runtime-library.md
 /// 2.2.1.16): the PROMOTION of a writable connector that changed the file is refused (2.2.1.6 R5), or the last writable
 /// connector's CLOSE re-adopts the store for the INPUT sibling it leaves open and the host refuses that re-adoption's read
@@ -34,19 +34,19 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// reader's adoption reads all three meta pages, so that read is the CLOSE's (<see cref="Probe"/> measures it through the
 /// registry, on a copy of the same file, before the program runs).</para>
 ///
-/// <para><b>Every expected value is derived from the rules, not observed.</b> §14.9.6.4 GR4: <i>"The execution of the
+/// <para><b>Every expected value is derived from the rules, not observed.</b> §2023:14.9.6.4 GR4: <i>"The execution of the
 /// CLOSE statement causes the value of the I-O status associated with file-name-1 to be updated as specified in 9.1.13,
-/// I-O status"</i>, so the FILE STATUS item holds '30'. A status beginning with 3 is fatal (§9.1.13.1), and <i>"the
+/// I-O status"</i>, so the FILE STATUS item holds '30'. A status beginning with 3 is fatal (§2023:9.1.13.1), and <i>"the
 /// implementor determines what action is taken after the execution of any applicable exception processing statement"</i>:
 /// the USE procedure runs, and then <i>"The implementor may either continue or terminate the execution of the run unit"</i>,
 /// which docs/CONFORMANCE.md DOC-A.1-103 makes: with EC-I-O checking not enabled the run unit continues when a FILE STATUS
 /// clause or a USE procedure covers the statement and terminates abnormally when neither does. With checking enabled the
-/// fatal-exception rules follow the §9.1.13 processing (§14.6.13.1.3 rule 3), and the run unit terminates abnormally even
+/// fatal-exception rules follow the §2023:9.1.13 processing (§2023:14.6.13.1.3 rule 3), and the run unit terminates abnormally even
 /// with a FILE STATUS clause: with no USE procedure by rule 7, <i>"If checking for the exception condition is enabled,
 /// execution of the run unit is terminated abnormally"</i>; after a format 1 USE procedure on the file has run (rule 3's
-/// §9.1.13 processing) by the same rule 7; and after a declarative for the condition by rule 5, <i>"If execution of the
+/// §2023:9.1.13 processing) by the same rule 7; and after a declarative for the condition by rule 5, <i>"If execution of the
 /// declarative completes normally the execution of the run unit is terminated abnormally"</i>; so the declarative's trace
-/// entry is the last (DOC-A.1-218). §14.9.6.4 GR8 takes the connector OUT of its open mode after a SUCCESSFUL CLOSE —
+/// entry is the last (DOC-A.1-218). §2023:14.9.6.4 GR8 takes the connector OUT of its open mode after a SUCCESSFUL CLOSE —
 /// <i>"Following the successful execution of a CLOSE statement without the UNIT phrase, … the open mode of that file
 /// connector is set such that it is no longer in an open mode"</i> — and says nothing of an unsuccessful one;
 /// docs/CONFORMANCE.md DOC-A.1-105 documents that an unsuccessful CLOSE leaves the connector closed too, so the next OPEN
@@ -70,7 +70,7 @@ public sealed class KeyedClosePermanentErrorWitnessTests : WiseOwlCobolTestBase
 
     /// <summary>What covers the writer's statements: a USE procedure, a FILE STATUS clause, both, neither; or, with EC-I-O
     /// checking enabled, a FILE STATUS clause alone, a format 1 USE procedure on the file (<c>USE AFTER STANDARD ERROR
-    /// PROCEDURE ON KW</c>, §14.6.13.1.3 rule 3, then rule 7) with and without a FILE STATUS clause, or a declarative for
+    /// PROCEDURE ON KW</c>, §2023:14.6.13.1.3 rule 3, then rule 7) with and without a FILE STATUS clause, or a declarative for
     /// the condition (<c>USE AFTER EXCEPTION CONDITION EC-I-O</c>, rule 5) with one.</summary>
     public enum Cover
     {
@@ -292,7 +292,7 @@ public sealed class KeyedClosePermanentErrorWitnessTests : WiseOwlCobolTestBase
         bool fileStatus = HasFileStatus(cover);
         string ok = fileStatus ? "00" : "--", failed = fileStatus ? "30" : "--";
         var before = refusal == Refusal.Promotion ? new[] { $"OPEN {ok}", $"WRITE {ok}" } : [$"OPEN {ok}", "ROPEN 00"];
-        // The declarative runs before the run unit's fate is decided (§9.1.13.1; §14.6.13.1.3 rules 3 and 5).
+        // The declarative runs before the run unit's fate is decided (§2023:9.1.13.1; §2023:14.6.13.1.3 rules 3 and 5).
         string[] use = DeclarativeRuns(cover) ? [$"USE {failed}"] : [];
         if (!Continues(cover)) return [.. before, .. use];
         string[] close = [.. use, $"CLOSE {failed}"];

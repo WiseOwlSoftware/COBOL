@@ -13,16 +13,16 @@
       *>   literal-1, or the record referenced by record-name-1 is not
       *>   equal to the number of bytes in the record being replaced,
       *>   the execution of the REWRITE statement is unsuccessful"
-      *>                                          -> OK  §14.9.35.4 16)
+      *>                                          -> OK  §2023:14.9.35.4 16)
       *>   python scripts/spec/cite.py --check 13.18.43.4 "Integer-1
       *>   specifies the number of bytes contained in each record in
-      *>   the file."                             -> OK  §13.18.43.4 6)
+      *>   the file."                             -> OK  §2023:13.18.43.4 6)
       *>   python scripts/spec/cite.py --check 14.9.35.4 "If the
       *>   execution of the REWRITE statement is unsuccessful, no
-      *>   logical record updating takes place"   -> OK  §14.9.35.4 14)
+      *>   logical record updating takes place"   -> OK  §2023:14.9.35.4 14)
       *> F has no RECORD clause and no variable-length record, so its
       *> implicit clause is format 1 with integer-1 = 20, the largest
-      *> record (§13.18.43.4 GR5 a)): every record in the file is 20
+      *> record (§2023:13.18.43.4 GR5 a)): every record in the file is 20
       *> bytes. REWRITE R1 sends a 10-byte record-name-1 over the
       *> 20-byte record 2 -- not equal -- so it is unsuccessful with
       *> '44' and record 2 keeps its 20 B's (GR16, GR14). REWRITE R2

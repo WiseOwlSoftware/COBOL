@@ -32,7 +32,7 @@ PLACEHOLDER = re.compile(r"[0-9]\.x(?![0-9A-Za-z])", re.IGNORECASE)
 A3_REFERENCE = re.compile(r"A\.3 items? (?P<list>[0-9]+(?:–[0-9]+)?(?:(?:,| and) [0-9]+(?:–[0-9]+)?)*)")
 A3_ITEM = re.compile(r"[0-9]+(?:–[0-9]+)?")
 A4_REFERENCE = re.compile(r"A\.4\.[0-9]+")
-#: Annex A.3 lists 46 numbered items (ISO Annex A.3), and §2 documents every one (§4.2.6).
+#: Annex A.3 lists 46 numbered items (ISO Annex A.3), and §2 documents every one (§2023:4.2.6).
 A3_ITEMS = range(1, 47)
 #: The characters of a §7 determination the extract keeps. The C# selector (`DerivedVerdictDriftTests`, `said.StartsWith(p)`)
 #: reads this lead while the Python engine (`inventory_schema.DerivedSelector`) reads the whole determination, so a schema
@@ -151,7 +151,7 @@ def register_extract_fresh(root: Path) -> list[str]:
 # ── §2 shape (AnnexA3RegisterDriftTests) ──────────────────────────────────────────────────────────────────────────
 
 def a3_covers_every_item(rows: list[dict[str, str]]) -> list[str]:
-    """§4.2.6: the implementor shall document every processor-dependent element, claimed or absent."""
+    """§2023:4.2.6: the implementor shall document every processor-dependent element, claimed or absent."""
     findings: list[str] = []
     need(findings, len(rows) >= 40, f"{common.CONFORMANCE} §2 parsed to only {len(rows)} row(s): the table scanner is broken")
     covered: set[int] = set()

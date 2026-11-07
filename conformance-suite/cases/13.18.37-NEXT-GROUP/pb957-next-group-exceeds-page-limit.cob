@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
       *> A NEXT GROUP INTEGER BEYOND THE PAGE LIMIT (kb/Work PB957).
-      *> ISO/IEC 1989:2023 §13.18.37.3 SR1: "Integer-1 and integer-2 shall not exceed the page limit, or
+      *> ISO/IEC 1989:2023 §2023:13.18.37.3 SR1: "Integer-1 and integer-2 shall not exceed the page limit, or
       *> 9999 if the report is not divided into pages." PAGE LIMIT 20, integer-2 30.
       *> Drawn on COBOL2284 (report-next-group-clause-rule).
        IDENTIFICATION DIVISION.

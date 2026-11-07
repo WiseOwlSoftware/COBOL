@@ -5,13 +5,13 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.18.40.4 GR5 PICTURE clause — "To define an item as
+      *> ISO §2023:13.18.40.4 GR5 PICTURE clause — "To define an item as
       *> alphabetic, character-string-1 shall contain only one or more
       *> occurrences of the symbol 'A'."
       *>   python scripts/spec/cite.py --check 13.18.40.4 "To define an
       *>   item as alphabetic, character-string-1 shall contain only
       *>   one or more occurrences of the symbol 'A'."
-      *>   -> OK  §13.18.40.4 5)  (General rules)
+      *>   -> OK  §2023:13.18.40.4 5)  (General rules)
       *>
       *> HOW A CATEGORY IS OBSERVED. GR5 assigns a CATEGORY, and the
       *> INITIALIZE statement selects its receiving operands BY
@@ -20,14 +20,14 @@
       *>   python scripts/spec/cite.py --check 14.9.20.4 "The REPLACING
       *>   phrase is specified and the category of the elementary data
       *>   item is one of the categories specified in the REPLACING
-      *>   phrase"   -> OK  §14.9.20.4 5) c) 1.  [item 2.]
+      *>   phrase"   -> OK  §2023:14.9.20.4 5) c) 1.  [item 2.]
       *>   python scripts/spec/cite.py --check 14.9.20.4 "the
       *>   sending-operand is the literal-1 or identifier-2 associated
       *>   with the category specified in the REPLACING phrase."
-      *>   -> OK  §14.9.20.4 6)  (General rules)  [b]
+      *>   -> OK  §2023:14.9.20.4 6)  (General rules)  [b]
       *> An elementary item is a receiving operand of REPLACING
       *> ALPHABETIC exactly when its category is alphabetic, and then
-      *> literal-1 is moved to it (§14.9.20.4 GR4's implicit MOVE).
+      *> literal-1 is moved to it (§2023:14.9.20.4 GR4's implicit MOVE).
       *>
       *> ⛔ GR5 IS AN "ONLY" TEST AND BOTH HALVES ARE PINNED HERE.
       *>   G-A  PIC AAA  — three occurrences of 'A' and nothing else,
@@ -35,7 +35,7 @@
       *>   G-S  PIC A    — a single occurrence, still alphabetic: the
       *>                   "one" boundary.
       *>   G-M  PIC AA9  — contains 'A' but NOT ONLY 'A', so it is NOT
-      *>                   alphabetic; §13.18.40.4 GR6 makes it
+      *>                   alphabetic; §2023:13.18.40.4 GR6 makes it
       *>                   alphanumeric ("a combination of symbols from
       *>                   the set 'A', 'X', and '9', that includes ...
       *>                   at least two different symbols from this
@@ -46,7 +46,7 @@
       *> Line 1 (after REPLACING ALPHABETIC DATA BY "ZZZ") therefore
       *> reads A1=[ZZZ] S1=[Z] X1=[STU] M1=[VW7]: only the two
       *> all-'A' items are written, and G-S is one character so
-      *> §14.6.8.5 truncates "ZZZ" on the right to Z.
+      *> §2023:14.6.8.5 truncates "ZZZ" on the right to Z.
       *> Line 2 (after REPLACING ALPHANUMERIC DATA BY "###") reads
       *> A2=[ZZZ] S2=[Z] X2=[###] M2=[###]: the complement is written
       *> and the alphabetic items are untouched.
@@ -55,7 +55,7 @@
       *> put ### into M on line 1, and one that classified PIC AAA as
       *> alphanumeric would overwrite A on line 2.
       *>
-      *> §14.9.20.3 SR4 is satisfied for both arms: Table 16 (§14.9.25)
+      *> §2023:14.9.20.3 SR4 is satisfied for both arms: Table 16 (§2023:14.9.25)
       *> gives Yes for an alphanumeric sending operand into both an
       *> alphabetic and an alphanumeric receiving operand, so both
       *> literals are valid MOVE senders for their category.

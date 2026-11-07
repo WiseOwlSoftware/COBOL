@@ -12,7 +12,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ A COBOL WORD IS COMPARED BY ONE FOLD, ANNEX C, AND BY NOTHING ELSE (kb/Work PB1402; ISO §8.1.3.2 GR3 b) and
+/// ⛔ A COBOL WORD IS COMPARED BY ONE FOLD, ANNEX C, AND BY NOTHING ELSE (kb/Work PB1402; ISO §2023:8.1.3.2 GR3 b) and
 /// GR4 b)), AND A KEYWORD ON THE BASIC LETTERS ALONE (kb/Work PB4240: 4) folds extended letters in user-defined words
 /// only). Every name table and every comparison of two words in EVERY project under <c>src</c> goes through
 /// <see cref="CobolNames"/> (kb/Work PB1965, PB2845), every comparison of a word with a keyword through
@@ -201,7 +201,7 @@ public sealed class CobolNameFoldDriftTests
     }
 
     /// <summary>An exception-name is a COBOL word compared by the Annex C fold, and its open <c>EC-USER-</c> suffix is
-    /// basic characters only (§14.6.13.1.1): long s has no Annex C mapping, so it is not the basic letter s
+    /// basic characters only (§2023:14.6.13.1.1): long s has no Annex C mapping, so it is not the basic letter s
     /// (the host's upper-casing made <c>EC-USER-ſ</c> the name <c>EC-USER-S</c>, kb/Work PB2845).</summary>
     [Theory]
     [InlineData("EC-USER-S", true)]
@@ -231,7 +231,7 @@ public sealed class CobolNameFoldDriftTests
         else Assert.Contains(expected, v);
     }
 
-    /// <summary>A KEYWORD matches on the basic letters alone (kb/Work PB4240; ISO §8.1.3.2 3) a) and 4): the Annex C fold
+    /// <summary>A KEYWORD matches on the basic letters alone (kb/Work PB4240; ISO §2023:8.1.3.2 3) a) and 4): the Annex C fold
     /// of an extended letter governs user-defined words only, owner decision 2026-10-31): a word written with one of the
     /// three letters Annex C folds to a BASIC letter is an IDENTIFIER, never the keyword its fold spells, at every edition,
     /// and so is the primed directive expression's DEFINED. <c>#</c> in <paramref name="word"/> stands for
@@ -242,7 +242,7 @@ public sealed class CobolNameFoldDriftTests
     [InlineData("D#SPLAY", 0x0131, 2014, false, "IDENTIFIER")] // dotless i: no keyword at any edition (its pair is applied at none, kb/Work PB4420)
     [InlineData("D#SPLAY", 0x0131, 2023, false, "IDENTIFIER")]
     [InlineData("D#SPLAY", 0x0069, 2023, false, "DISPLAY")]    // the basic i, either case, is the keyword
-    [InlineData("DEF#NED", 0x0130, 2023, true, "IDENTIFIER")]  // the directive expression's DEFINED (§7.3.8.4.4) too
+    [InlineData("DEF#NED", 0x0130, 2023, true, "IDENTIFIER")]  // the directive expression's DEFINED (§2023:7.3.8.4.4) too
     [InlineData("DEF#NED", 0x0131, 2014, true, "IDENTIFIER")]  // ... its source text as written
     [InlineData("def#ned", 0x0069, 2023, true, "DEFINED")]
     [InlineData("DEF#NED", 0x0049, 2023, false, "IDENTIFIER")] // ... a user word everywhere else
@@ -296,11 +296,11 @@ public sealed class CobolNameFoldDriftTests
     }
 
     /// <summary>⛔ THE BY-NAME CLASSIFIER'S ONE COMPARISON (kb/Work PB4240, review finding R2-1): the words the lexer leaves
-    /// an IDENTIFIER (§8.10's CLASSIFICATION, SEGMENT-LIMIT, STEP, …, the §15 phrase words, the SET locale categories) are
+    /// an IDENTIFIER (§2023:8.10's CLASSIFICATION, SEGMENT-LIMIT, STEP, …, the §15 phrase words, the SET locale categories) are
     /// recognised by their text through <see cref="CobolWordsMap.Is"/> and <see cref="CobolWordsMap.Resolve"/>, with and
     /// without a <c>&gt;&gt;COBOL-WORDS</c> directive, and they match on the basic letters alone: a word written with
     /// U+0130 or the Kelvin sign is not the keyword the Annex C fold would make of it, while a SYNONYM (a fresh user-defined
-    /// word, §7.3.10.3 SR4) is found by the fold.</summary>
+    /// word, §2023:7.3.10.3 SR4) is found by the fold.</summary>
     [Fact]
     public void TheWordsMap_MatchesAKeywordOnTheBasicLettersAlone()
     {
@@ -362,7 +362,7 @@ public sealed class CobolNameFoldDriftTests
             .Select(l => $"{l.Rel}:{l.Line}: {l.Text}").ToList();
         Assert.True(hits.Count == 0,
             "a keyword is matched on the basic letters alone (CobolKeywords.Same / StartsWith / Spelling / Comparer; ISO "
-            + "§8.1.3.2 4) folds extended letters in user-defined words only); a word folded on purpose carries "
+            + "§2023:8.1.3.2 4) folds extended letters in user-defined words only); a word folded on purpose carries "
             + "'// Annex C: <why>':\n" + string.Join("\n", hits));
     }
 
@@ -380,8 +380,8 @@ public sealed class CobolNameFoldDriftTests
         Assert.Contains("U+1E900, which is not a character", CobolCharacterRepertoire.Violation(upper, 2014));
     }
 
-    /// <summary>§8.3.2.1's 63 characters are counted per character: a supplementary letter is one, a combining
-    /// character is one of its own (§8.1.3.2 GR4 c).</summary>
+    /// <summary>§2023:8.3.2.1's 63 characters are counted per character: a supplementary letter is one, a combining
+    /// character is one of its own (§2023:8.1.3.2 GR4 c).</summary>
     [Fact]
     public void WordLength_CountsCharacters_NotUtf16Units()
     {

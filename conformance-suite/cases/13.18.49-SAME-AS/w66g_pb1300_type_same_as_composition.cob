@@ -12,21 +12,21 @@
       *> its rules name.
       *> cite.py --check 13.18.57.4 "excluding the level-number, name,
       *>   alignment, and the GLOBAL, SELECT WHEN, and TYPEDEF clauses
-      *>   specified for type-name-1" -> OK §13.18.57.4 1)
+      *>   specified for type-name-1" -> OK §2023:13.18.57.4 1)
       *> cite.py --check 13.18.58.4 "All other data description clauses
       *>   and subordinate data descriptions are assumed by data defined
-      *>   using the type-name" -> OK §13.18.58.4 3)
+      *>   using the type-name" -> OK §2023:13.18.58.4 3)
       *> cite.py --check 13.18.57.4 "When the description of type-name-1
       *>   includes an implicit PICTURE clause derived from a VALUE
       *>   clause, that implicit PICTURE clause becomes part of the
-      *>   description of the subject of the entry" -> OK §13.18.57.4 3)
+      *>   description of the subject of the entry" -> OK §2023:13.18.57.4 3)
       *> cite.py --check 13.18.49.4 "If an alphanumeric group item or
       *>   strongly-typed group item to which data-name-1 is subordinate
-      *>   contains a USAGE clause" -> OK §13.18.49.4 3)
+      *>   contains a USAGE clause" -> OK §2023:13.18.49.4 3)
       *> cite.py --check 13.18.49.4 "If an alphanumeric group item,
       *>   national group item, or strongly-typed group item to which
       *>   data-name-1 is subordinate contains a SIGN clause"
-      *>   -> OK §13.18.49.4 5)
+      *>   -> OK §2023:13.18.49.4 5)
       *> DERIVATION:
       *>  BASED is in neither GR-1 exclusion list, so X (TYPE T, T BASED)
       *>  and S (SAME AS B, B BASED) are based: after SET ADDRESS OF they
@@ -37,14 +37,14 @@
       *>  V (no own VALUE) -> V=[ABCD] LEN 4.
       *>  TG's member M implies X(2); R reproduces it -> R=[XY7] LEN 3.
       *>  U2 implies X(2). W2's own literal "QRSTUV" is 6 characters;
-      *>  §13.18.63.3 SR4 bounds a literal by "the size indicated by an
+      *>  §2023:13.18.63.3 SR4 bounds a literal by "the size indicated by an
       *>  explicit PICTURE clause" and W2's is implicit, so no syntax
       *>  rule applies and the value initializes the 2-character item
       *>  (DETERMINATION, kb/Work PB1300) -> W2=[QR] LEN 2.
       *>  AE is under an ALPHANUMERIC group with USAGE COMP-5, so GR3
       *>  gives SA that usage: PIC 9(4) COMP-5 -> BYTE-LENGTH 2.
       *>  E is under H, a group subordinate to a GROUP-USAGE NATIONAL
-      *>  group, so H is a NATIONAL group (§13.18.29.3 SR3) and GR3 does
+      *>  group, so H is a NATIONAL group (§2023:13.18.29.3 SR3) and GR3 does
       *>  not carry its USAGE: ES is E's own PIC 9(3), usage display
       *>  -> BYTE-LENGTH 3 (E itself is national: 6).
       *>  NE is under a NATIONAL group with SIGN LEADING SEPARATE; GR5

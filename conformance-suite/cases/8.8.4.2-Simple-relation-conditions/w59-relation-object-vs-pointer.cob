@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §8.8.4.2.3 SR5 (kb/Work R43 / PB1198, the LIVE halves of SR-8.8.4.2.3-5): "Identifier-3 and
+      *> ISO §2023:8.8.4.2.3 SR5 (kb/Work R43 / PB1198, the LIVE halves of SR-8.8.4.2.3-5): "Identifier-3 and
       *> identifier-4 shall reference data items of class message-tag, object, or pointer, and shall be of the
       *> same category." An object reference and a data-pointer are of different classes and so of different
       *> categories; the relation is refused. The message-tag third of the rule is message-tag-refused-relation-with-pointer.

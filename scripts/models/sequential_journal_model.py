@@ -1152,8 +1152,8 @@ def execute(sc: Scenario) -> Outcome:
             out.statuses.append(st)
             if st == "30":
                 # a fatal I-O condition on a file under APPLY COMMIT: item 8 executes a ROLLBACK unconditionally
-                # (§14.6.13.1.3), and the run unit terminates abnormally, whose path retries an owed rollback once
-                # (§14.6.12) and then exits — its locks and handles go, its cached writes stay
+                # (§2023:14.6.13.1.3), and the run unit terminates abnormally, whose path retries an owed rollback once
+                # (§2023:14.6.12) and then exits — its locks and handles go, its cached writes stay
                 fault.boundary()
                 a.rollback()
                 if a.rollback_owed or a.marked:

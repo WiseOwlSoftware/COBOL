@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
       *> A RESERVE CLAUSE ON A LINE SEQUENTIAL FILE (kb/Work PB781).
-      *> ISO/IEC 1989:2023 §12.4.5.2 SR12: "If the LINE SEQUENTIAL phrase of the
+      *> ISO/IEC 1989:2023 §2023:12.4.5.2 SR12: "If the LINE SEQUENTIAL phrase of the
       *> ORGANIZATION clause is specified, the RESERVE clause shall not be specified."
       *> The RESERVE clause is written BEFORE the ORGANIZATION clause here, so the screen
       *> must read the whole entry first. LINE SEQUENTIAL is new in ISO/IEC 1989:2023, so

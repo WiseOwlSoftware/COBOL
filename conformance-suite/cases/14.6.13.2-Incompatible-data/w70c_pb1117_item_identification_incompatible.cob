@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB1117 — ISO §14.6.13.2 rule 2 ON THE ITEM-IDENTIFICATION LANE: a numeric data item used as a
+      *> kb/Work PB1117 — ISO §2023:14.6.13.2 rule 2 ON THE ITEM-IDENTIFICATION LANE: a numeric data item used as a
       *> SUBSCRIPT, a REFERENCE-MODIFICATION position, or the OCCURS DEPENDING object is a numeric SENDING item
       *> referenced during the execution of the statement, so invalid content in it sets EC-DATA-INCOMPATIBLE —
       *> and it does so INSIDE a class condition too, because the class-condition exemption covers the item the
@@ -14,16 +14,16 @@
       *> THE RULES, --check validated:
       *>   cite.py --check 14.6.13.2 "When the content of a numeric sending item that is not described with a
       *>     standard floating-point usage is referenced during the execution of a statement and the content of
-      *>     that sending operand would evaluate to false in a numeric class condition" -> OK §14.6.13.2 2)
+      *>     that sending operand would evaluate to false in a numeric class condition" -> OK §2023:14.6.13.2 2)
       *>   cite.py --check 14.6.13.2 "The EC-DATA-INCOMPATIBLE exception condition is set to exist for a class
       *>     condition and a VALIDATE statement when invalid data is detected during item identification"
-      *>     -> OK §14.6.13.2 1)  (NOTE 1: "a subscript reference during a class test could cause the
+      *>     -> OK §2023:14.6.13.2 1)  (NOTE 1: "a subscript reference during a class test could cause the
       *>     EC-DATA-INCOMPATIBLE exception condition to exist")
       *>   cite.py --check 8.4.2.3.4 "the subscript is the result of the evaluation of arithmetic-expression-1"
-      *>     -> OK §8.4.2.3.4 1) b) — the subscript is the item's VALUE: its sign and its P scaling count.
+      *>     -> OK §2023:8.4.2.3.4 1) b) — the subscript is the item's VALUE: its sign and its P scaling count.
       *>
       *> The group MOVEs plant character content in G, so N/K/S/NP are stored as their character images (the
-      *> only storage that can hold content failing the class test). >>TURN is COBOL-2002 (§7.3.25);
+      *> only storage that can hold content failing the class test). >>TURN is COBOL-2002 (§2023:7.3.25);
       *> negative/w70c-pb1117-turn-below-2002 pins its refusal below that.
       *>
       *> WHY EACH LEG CAN FAIL (the pre-PB1117 build decoded every one of these images through a tolerant digit
@@ -33,7 +33,7 @@
       *>   3  MOVE X(N:1) TO X                         -> RAISED EC-DATA-INCOMPATIBLE.
       *>   4  MOVE OG TO X with the ODO object K = "A" -> RAISED EC-DATA-INCOMPATIBLE.
       *>   5  valid N = 3, K = 2: DISPLAY TE(N) -> C, and OG's current two occurrences -> [AB   ]; no raise.
-      *>   6  S = -1: DISPLAY TE(S) -> RAISED EC-BOUND-SUBSCRIPT (§8.4.2.3.4 2): "less than one").
+      *>   6  S = -1: DISPLAY TE(S) -> RAISED EC-BOUND-SUBSCRIPT (§2023:8.4.2.3.4 2): "less than one").
       *>   7  NP PIC 9P = 20: DISPLAY TE(NP) -> T, the twentieth occurrence.
       *>   8  CNT = 05 — five conditions, exactly one per raising leg.
        >>TURN EC-DATA-INCOMPATIBLE EC-BOUND-SUBSCRIPT CHECKING ON

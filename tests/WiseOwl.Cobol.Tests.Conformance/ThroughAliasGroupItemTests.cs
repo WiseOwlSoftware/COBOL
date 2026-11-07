@@ -5,10 +5,10 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// ⛔ <b>A level-66 THROUGH alias IS A GROUP ITEM for ISO §14.9.25.3 SR9 / §14.9.25.4 GR9</b> (kb/Work PB907).
-/// §13.18.45.4 GR2 — "When the THROUGH phrase is specified, data-name-1 defines an alphanumeric group item that
+/// ⛔ <b>A level-66 THROUGH alias IS A GROUP ITEM for ISO §2023:14.9.25.3 SR9 / §2023:14.9.25.4 GR9</b> (kb/Work PB907).
+/// §2023:13.18.45.4 GR2 — "When the THROUGH phrase is specified, data-name-1 defines an alphanumeric group item that
 /// includes all elementary items starting with data-name-2 …" — so a MOVE between an alias and a variable-length
-/// group is a move between two group items, and §8.5.1.12's compatibility relation decides it. The screen asked
+/// group is a move between two group items, and §2023:8.5.1.12's compatibility relation decides it. The screen asked
 /// the STRUCTURAL <c>IsGroup</c> instead and told the user "the sending operand is not a group item".
 /// <para>Every assertion is an EQUIVALENCE with the alias's STRUCTURAL TWIN — a plain group with the alias's
 /// layout — which is what GR2 requires, so no case pins a rendering this implementation merely happens to
@@ -44,7 +44,7 @@ public sealed class ThroughAliasGroupItemTests
                    STOP RUN.
         """;
 
-    /// <summary>The incompatible pair, in BOTH directions: the alias draws exactly the §8.5.1.12.2 reason its
+    /// <summary>The incompatible pair, in BOTH directions: the alias draws exactly the §2023:8.5.1.12.2 reason its
     /// structural twin draws, and never the false kind claim.</summary>
     [Theory]
     [InlineData("MOVE SALIAS TO DST")]

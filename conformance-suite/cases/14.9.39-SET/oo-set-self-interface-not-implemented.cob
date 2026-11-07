@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> ISO §14.9.39.3 SR10d2: when the receiver of a SET … TO SELF is described with an interface-name that
+*> ISO §2023:14.9.39.3 SR10d2: when the receiver of a SET … TO SELF is described with an interface-name that
 *> identifies int-1, and the SET statement is contained in a method within the INSTANCE definition of the
 *> class, "that instance definition shall be described with an IMPLEMENTS clause that references int-1".
 *> CSELFN's OBJECT implements nothing, so SET R TO SELF — with R described as OBJECT REFERENCE ISELFN —

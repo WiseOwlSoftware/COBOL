@@ -8,9 +8,9 @@ namespace WiseOwl.Cobol.Runtime.IO;
 /// <summary>One record as it travels with its EXTENT TABLE (determination D-FRA (v); kb/Work PB1053) — between a
 /// keyed store and its connector, and through the sort store: the record's characters and, when the
 /// variable-length group that sent it had them, where each variable-length component ended. The table is framing
-/// information, never part of the record (§12.4.5.11.4 GR1).
+/// information, never part of the record (§2023:12.4.5.11.4 GR1).
 /// <para><paramref name="Ordinals"/> is an INDEXED record's release-ordinal vector (the prime key's slot first, then
-/// one per alternate key, as the prime tree of <c>IndexedStore</c> holds it): the §14.9.30.4 GR26 order of its duplicates
+/// one per alternate key, as the prime tree of <c>IndexedStore</c> holds it): the §2023:14.9.30.4 GR26 order of its duplicates
 /// under every key, carried with the record (kb/Work PB2693, PB3334). Null for every other frame.</para>
 /// <para><paramref name="Carried"/> is a SORT/MERGE record's TICKET for its managed slots (a message tag, an object
 /// reference or a pointer in a strongly-typed record has no byte form — the managed slots of D-SLOT, DOC-A.1-210; kb/Work PB4772): the
@@ -60,13 +60,13 @@ internal interface IFrameMedium
 /// followed by that many Latin-1 payload bytes. Explicit length framing carries a record soundly — the legacy's
 /// fixed-format all-0x00/0xFF heuristic could vanish a legitimate all-zero binary record — and the physical format is
 /// implementor-defined by the spec, so only self-consistency matters: producer and consumer both run on this framing.
-/// <para>⛔ THE LICENCE IS §9.1.7.2, NOT §9.1.13.6, and the correction matters (kb/Work PB292). This comment
-/// cited §9.1.13.6's "externally-defined boundaries" until 2026-09-05 — a real sentence about a DIFFERENT
+/// <para>⛔ THE LICENCE IS §2023:9.1.7.2, NOT §2023:9.1.13.6, and the correction matters (kb/Work PB292). This comment
+/// cited §2023:9.1.13.6's "externally-defined boundaries" until 2026-09-05 — a real sentence about a DIFFERENT
 /// question: it is the I-O status 34 rule for writing past a physical FILE's boundary, not a statement about
 /// record framing (feedback_a_real_clause_can_answer_a_different_question). The clause that actually grants
-/// this is §9.1.7.2: "In record sequential files the length of each record is determined by any information the
+/// this is §2023:9.1.7.2: "In record sequential files the length of each record is determined by any information the
 /// implementor may add to the record on the physical storage medium (such as record length headers)" — this
-/// prefix IS that header. §12.4.5.11.4 GR5 makes the same grant for the variable-length case where no RECORD
+/// prefix IS that header. §2023:12.4.5.11.4 GR5 makes the same grant for the variable-length case where no RECORD
 /// DELIMITER clause governs, which for WiseOwl COBOL is EVERY case (the clause is declined whole — COBOL1778,
 /// docs/CONFORMANCE.md §2 row 26), and the determination is filed as Annex A.1 item 151 in
 /// docs/CONFORMANCE.md §7. §12.4.5.11.4 GR1 is what this framing must not violate — "Any method used shall not
@@ -91,9 +91,9 @@ internal interface IFrameMedium
 /// torn tail ends the data, so the record count, the backward-READ index, the forward READ and the OPEN's framing check
 /// cannot disagree about which records a file holds (<c>FrameDecoderDriftTests</c>).</para>
 /// <para>⛔ A FRAME MAY CARRY ITS RECORD'S EXTENT TABLE (determination D-FRA (v); kb/Work PB1053), on both media and
-/// in the same way. A variable-length group record is sent as its contiguous image (§8.5.1.11.2), and with two or
+/// in the same way. A variable-length group record is sent as its contiguous image (§2023:8.5.1.11.2), and with two or
 /// more variable-length components the characters alone cannot say where each ended, so the frame carries that
-/// beside the payload — the same §9.1.7.2 licence as the length itself. Bit 31 of the length word says a table
+/// beside the payload — the same §2023:9.1.7.2 licence as the length itself. Bit 31 of the length word says a table
 /// follows it (a payload of 2^31 characters is not representable), and the table precedes the payload:</para>
 /// <code>
 ///   word    4  payload length | 0x80000000
@@ -103,12 +103,12 @@ internal interface IFrameMedium
 ///   payload    the record, exactly as before
 /// </code>
 /// <para>Like the prefix, the table is stripped before the record area is filled and never counts in a record size
-/// (§12.4.5.11.4 GR1): it reaches the program only as <c>FileConnector.CurrentRecordExtents</c>, which the
+/// (§2023:12.4.5.11.4 GR1): it reaches the program only as <c>FileConnector.CurrentRecordExtents</c>, which the
 /// generated decomposition of a CORRESPONDING variable-length group reads (<c>CobolContiguousLayout.Decompose</c>).
 /// A line sequential line and a fixed-length block have no frame and therefore carry no table.</para>
 /// <para>⛔ AN INDEXED VALUE CARRIES ITS RECORD'S RELEASE ORDINALS (kb/Work PB2693): key count × 8 bytes, the prime
-/// key's slot first, after the length word and the extent table and before the payload. §14.9.30.4 GR26 orders an
-/// alternate key's duplicates by release, and §14.9.35.4 GR24 b) moves a rewritten record last under each key it
+/// key's slot first, after the length word and the extent table and before the payload. §2023:14.9.30.4 GR26 orders an
+/// alternate key's duplicates by release, and §2023:14.9.35.4 GR24 b) moves a rewritten record last under each key it
 /// changed, independently per key — so the order is one number per record PER KEY, which no single physical order of
 /// the records can carry.</para>
 /// </summary>
@@ -131,7 +131,7 @@ internal static class RecordFraming
     /// <summary>⛔ ONE RECORD'S FRAME AS BYTES — its head (<see cref="EncodeFrameHead"/>) and its payload in the file's
     /// channel character set — the value a keyed store engine's leaf entry holds (docs/rearchitecture/DESIGN-runtime-library.md
     /// section 2.2.1.3, decision 3: <i>"The leaf entry's value is the ONE frame shape"</i>). The payload is converted by the
-    /// file's §13.18.13 CODE-SET (<paramref name="codeSet"/>, null for the native character set); the head is the §9.1.7.2
+    /// file's §2023:13.18.13 CODE-SET (<paramref name="codeSet"/>, null for the native character set); the head is the §2023:9.1.7.2
     /// information this processor adds and is never converted (2.2.1.5).
     /// <para>The file coded character set's STRICT encoding (kb/Work PB690): the keyed WRITE/REWRITE refused any record
     /// holding a character with no byte image ('91'), so an exception here is a missed refusal — loud, raised before the
@@ -152,9 +152,9 @@ internal static class RecordFraming
     }
 
     /// <summary>The record a keyed store engine's leaf value holds (<see cref="EncodeFrame"/>'s inverse), decoded by the
-    /// ONE frame decoder (<see cref="ReadFrame"/>) and returned in the NATIVE character set (§13.18.13.4 GR6 a)); null
+    /// ONE frame decoder (<see cref="ReadFrame"/>) and returned in the NATIVE character set (§2023:13.18.13.4 GR6 a)); null
     /// when the value is not exactly one record's frame — a value this writer cannot have produced, which its reader
-    /// answers as the torn page it is ('30', §9.1.13.6 item 1).</summary>
+    /// answers as the torn page it is ('30', §2023:9.1.13.6 item 1).</summary>
     public static StoredFrame? DecodeFrame(byte[] value, int ordinalSlots, CodeSetConversion? codeSet)
     {
         var medium = new ValueMedium(value);
@@ -220,15 +220,15 @@ internal static class RecordFraming
     }
 
     /// <summary>Does the STREAM-LEVEL record-length framing at <paramref name="path"/> PARSE — the whole of
-    /// §14.9.27.4 GR10 for a RECORD VARYING record-sequential file, and the only §9.1.6 attribute such a file's
+    /// §2023:14.9.27.4 GR10 for a RECORD VARYING record-sequential file, and the only §2023:9.1.6 attribute such a file's
     /// format encodes.
-    /// <para>§9.1.7.2 makes the prefix the file's own statement of its record type: "In record sequential files
+    /// <para>§2023:9.1.7.2 makes the prefix the file's own statement of its record type: "In record sequential files
     /// the length of each record is determined by any information the implementor may add to the record on the
     /// physical storage medium (such as record length headers)". A first frame that the one decoder cannot read
     /// (<see cref="ReadStreamFrame"/>: a head naming more bytes than the file holds, a table this writer cannot have
     /// produced) is not a framed file at all, so a connector declaring the VARIABLE record type contradicts the medium
-    /// and the OPEN is unsuccessful with '39' (§9.1.13.6 item 7). ⛔ THE BOUND IS THE FILE, NOT THE RECORD CLAUSE: a
-    /// prefix that parses but falls outside the connector's VaryMin/VaryMax is exactly §9.1.13.2 item 3's '04' — "A READ
+    /// and the OPEN is unsuccessful with '39' (§2023:9.1.13.6 item 7). ⛔ THE BOUND IS THE FILE, NOT THE RECORD CLAUSE: a
+    /// prefix that parses but falls outside the connector's VaryMin/VaryMax is exactly §2023:9.1.13.2 item 3's '04' — "A READ
     /// statement is successfully executed but the physical record from the file is shorter than or longer than the
     /// minimum or maximum length of records allowed for the fixed file attributes for that file" — a SUCCESSFUL
     /// completion that a '39' at the OPEN would make unreachable.</para>
@@ -289,8 +289,8 @@ internal static class RecordFraming
     /// count or a length is checked against what the medium still holds (<see cref="IFrameMedium.Holds"/>) BEFORE
     /// anything is sized by it. ⛔ THE FRAMED DATA ENDS HERE, for every reader of every medium: the record count, the
     /// backward-READ index, the forward READ and the OPEN's framing check all stop at this frame.
-    /// The framing is the §9.1.7.2 information "the implementor may add to the record on the physical storage medium";
-    /// none of it reaches the record area (§12.4.5.11.4 GR1).</summary>
+    /// The framing is the §2023:9.1.7.2 information "the implementor may add to the record on the physical storage medium";
+    /// none of it reaches the record area (§2023:12.4.5.11.4 GR1).</summary>
     public static bool ReadFrame<TMedium>(ref TMedium medium, int ordinalSlots, out FrameHead head)
         where TMedium : struct, IFrameMedium
     {
@@ -363,7 +363,7 @@ internal static class RecordFraming
     /// <summary>A VOID table of <paramref name="count"/> components: every fixed-run offset is -1, which no record
     /// layout has, so it corresponds to no receiving record (<see cref="RecordExtents.Describes"/>) and the record it
     /// frames reads back by the take step. What an in-place REWRITE leaves in a frame whose table cannot hold the
-    /// replacing record's — the frame's size is fixed (§14.9.35.4 GR16), and keeping the replaced record's table
+    /// replacing record's — the frame's size is fixed (§2023:14.9.35.4 GR16), and keeping the replaced record's table
     /// would describe characters that are no longer there.</summary>
     public static RecordExtents VoidExtents(int count)
     {

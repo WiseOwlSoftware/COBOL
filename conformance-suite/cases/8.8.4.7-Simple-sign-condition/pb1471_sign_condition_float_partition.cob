@@ -8,17 +8,17 @@
 *>---
       *> kb/Work PB1471 — the Format 1 / Format 2 partition of the simple sign condition is keyed
       *> on the STANDARD floating-point usages, not on "any float":
-      *>   §8.8.4.7.3 SR1: arithmetic-expression-1 "shall be any single numeric data item
+      *>   §2023:8.8.4.7.3 SR1: arithmetic-expression-1 "shall be any single numeric data item
       *>     described with a usage other than a standard floating-point usage, or any form of
-      *>     arithmetic expression."                       cite.py: OK  §8.8.4.7.3 1)
-      *>   §8.8.4.7.3 SR2: data-name-1 "described with a standard floating-point usage, and that
-      *>     name shall not be enclosed in parentheses."   cite.py: OK  §8.8.4.7.3 2)
-      *>   §3.166 "usages float-binary-32, float-binary-64, and float-binary-128"; §3.167
-      *>     "usages float-decimal-16 and float-decimal-34"  cite.py: OK  §3.166 / §3.167
-      *>   §8.8.4.7.4 GR2 a) (Format 2): POSITIVE is "true if the sign of the content of the data
-      *>     item identified by data-name-1 is positive"   cite.py: OK  §8.8.4.7.4 2)
-      *>   §8.8.4.7.4 GR1 a)/b) (Format 1): POSITIVE "false if the value is zero or less than
-      *>     zero"; NEGATIVE "false if it is zero or greater than zero"  cite.py: OK §8.8.4.7.4 1)
+      *>     arithmetic expression."                       cite.py: OK  §2023:8.8.4.7.3 1)
+      *>   §2023:8.8.4.7.3 SR2: data-name-1 "described with a standard floating-point usage, and that
+      *>     name shall not be enclosed in parentheses."   cite.py: OK  §2023:8.8.4.7.3 2)
+      *>   §2023:3.166 "usages float-binary-32, float-binary-64, and float-binary-128"; §2023:3.167
+      *>     "usages float-decimal-16 and float-decimal-34"  cite.py: OK  §2023:3.166 / §2023:3.167
+      *>   §2023:8.8.4.7.4 GR2 a) (Format 2): POSITIVE is "true if the sign of the content of the data
+      *>     item identified by data-name-1 is positive"   cite.py: OK  §2023:8.8.4.7.4 2)
+      *>   §2023:8.8.4.7.4 GR1 a)/b) (Format 1): POSITIVE "false if the value is zero or less than
+      *>     zero"; NEGATIVE "false if it is zero or greater than zero"  cite.py: OK §2023:8.8.4.7.4 1)
       *> Directory 2014: FLOAT-BINARY-* (and so Format 2) enter with ISO/IEC 1989:2014.
       *>
       *> DERIVATION — one +0.0 / -0.0 pair per usage:
@@ -33,8 +33,8 @@
       *>   FL NEGATIVE -> F (GR1 b);                FL ZERO -> T (GR1 c)
       *> The NOTE's non-finite edges — GR2 answers "regardless of whether the content of that
       *> item would evaluate to true in a NUMERIC class test or a ZERO sign test" (cite.py: OK
-      *> §8.8.4.7.4 2)); SET CONTENT (§14.9.39.4 GR33/34: "otherwise the sign is positive",
-      *> cite.py: OK §14.9.39.4 33)) builds them:
+      *> §2023:8.8.4.7.4 2)); SET CONTENT (§2023:14.9.39.4 GR33/34: "otherwise the sign is positive",
+      *> cite.py: OK §2023:14.9.39.4 33)) builds them:
       *>   -Inf : POSITIVE F, NEGATIVE T, ZERO F
       *>   +NaN : POSITIVE T, NEGATIVE F, ZERO F  (sign bit clear; a NaN is no zero)
       *>   -NaN : POSITIVE F, NEGATIVE T

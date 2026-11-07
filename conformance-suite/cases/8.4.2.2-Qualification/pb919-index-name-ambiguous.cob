@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO/IEC 1989:2023 §8.4.2.2.3 SR1: "For each non unique user-defined name that is explicitly referenced,
+      *> ISO/IEC 1989:2023 §2023:8.4.2.2.3 SR1: "For each non unique user-defined name that is explicitly referenced,
       *> uniqueness shall be established through a sequence of qualifiers that precludes any ambiguity of
       *> reference." TA and TB each declare INDEXED BY IX; the bare SET IX names neither uniquely, so it is
       *> refused (COBOL1639) - SR6's IX OF EA / IX OF EB is the conforming spelling (the positive companion

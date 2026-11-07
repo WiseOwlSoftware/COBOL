@@ -4,12 +4,12 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.26.3 2) — MULTIPLY GIVING into an alphanumeric item
+      *> ISO §2023:14.9.26.3 2) — MULTIPLY GIVING into an alphanumeric item
       *>   is refused
       *> "Identifier-3 shall reference a data item of category numeric
       *>   or
       *> numeric-edited."
-      *> OK  §14.9.26.3 2)  (Syntax rules)
+      *> OK  §2023:14.9.26.3 2)  (Syntax rules)
       *> Identifier-3 is the GIVING resultant (format 2). R-X is PIC
       *>   X(6),
       *> category alphanumeric, so the source shall be rejected in every

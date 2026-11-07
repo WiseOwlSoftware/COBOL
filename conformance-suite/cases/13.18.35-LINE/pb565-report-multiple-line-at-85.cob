@@ -5,8 +5,8 @@
 *> portable: unverified
 *>---
 *> ⛔ THE MULTIPLE LINE CLAUSE ENTERED AT COBOL-2002 (kb/Work PB565), WITH THE REST OF THE REPEATING-ENTRY
-*> FAMILY. ISO/IEC 1989:2023 §13.18.35.3 SR10 defines it — "If more than one integer-1 or integer-2 operand is
-*> specified, the clause is referred to as a multiple LINE clause" — and §13.18.35.4 GR9 makes it "functionally
+*> FAMILY. ISO/IEC 1989:2023 §2023:13.18.35.3 SR10 defines it — "If more than one integer-1 or integer-2 operand is
+*> specified, the clause is referred to as a multiple LINE clause" — and §2023:13.18.35.4 GR9 makes it "functionally
 *> equivalent to a LINE clause with a single operand, together with a simple OCCURS clause whose integer is
 *> equal to the number of operands of the LINE clause, except that the multiple LINE clause allows the report
 *> lines to be defined at unequal vertical intervals". The COBOL-85 LINE clause took ONE operand, which is why

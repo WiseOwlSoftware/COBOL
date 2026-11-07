@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO 1989:2023 §8.4.3.8 (SUPER) — an override calls the base class's version via INVOKE SUPER. DOG.SPEAK
+      *> ISO 1989:2023 §2023:8.4.3.8 (SUPER) — an override calls the base class's version via INVOKE SUPER. DOG.SPEAK
       *> overrides ANIMAL.SPEAK, first INVOKE SUPER "SPEAK" (the base runs, prints ANIMAL) then prints DOG.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. OOSUP.

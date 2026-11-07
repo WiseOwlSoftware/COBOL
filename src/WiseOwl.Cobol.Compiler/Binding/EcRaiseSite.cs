@@ -4,8 +4,8 @@ namespace WiseOwl.Cobol.Binding;
 
 /// <summary>
 /// ⛔ THE STATEMENT AND THE CLAUSE THAT GOVERNS IT TRAVEL AS ONE VALUE (kb/Work PB388; CLAUDE.md rule 1).
-/// RAISE (§14.9.29), the GOBACK RAISING phrase (§14.9.18) and the EXIT PROGRAM / FUNCTION / METHOD RAISING
-/// phrase (§14.9.14) are bound by ONE code path — <see cref="Procedure.EcBinder.EcBindRaising"/> over
+/// RAISE (§2023:14.9.29), the GOBACK RAISING phrase (§2023:14.9.18) and the EXIT PROGRAM / FUNCTION / METHOD RAISING
+/// phrase (§2023:14.9.14) are bound by ONE code path — <see cref="Procedure.EcBinder.EcBindRaising"/> over
 /// <see cref="EcNameResolution.TryResolve"/> — and every rule that path enforces is written down THREE TIMES in
 /// the standard, once per statement, under a DIFFERENT ordinal each time:
 /// <list type="table">
@@ -25,7 +25,7 @@ namespace WiseOwl.Cobol.Binding;
 /// physically unable to name another statement's rule.
 ///
 /// <para>⚠ The ordinals are pinned to the standard by <c>EcRaiseSiteDriftTests</c>, which re-derives each one
-/// from <c>spec-rule-catalog.json</c> by matching the rule TEXT — so an edition that renumbers §14.9.14.3 fails
+/// from <c>spec-rule-catalog.json</c> by matching the rule TEXT — so an edition that renumbers §2023:14.9.14.3 fails
 /// a test instead of silently misdirecting a reader.</para>
 /// </summary>
 /// <param name="Verb">The statement as the user wrote it, and as every message names it ("RAISE", "GOBACK",
@@ -45,15 +45,15 @@ namespace WiseOwl.Cobol.Binding;
 internal readonly record struct EcRaiseSite(string Verb, string Clause, int Level3Rule, int ObjectRule,
                                             int LastRule, int GlobalDeclarativeRule = 0)
 {
-    /// <summary>RAISE (ISO §14.9.29.3). It has no RAISING phrase and therefore no EC-USER/LAST rules, and it does
-    /// not return from the source element, so §14.9.29.3 states no GLOBAL-declarative prohibition either.</summary>
+    /// <summary>RAISE (ISO §2023:14.9.29.3). It has no RAISING phrase and therefore no EC-USER/LAST rules, and it does
+    /// not return from the source element, so §2023:14.9.29.3 states no GLOBAL-declarative prohibition either.</summary>
     public static readonly EcRaiseSite Raise = new("RAISE", "14.9.29.3", Level3Rule: 1, ObjectRule: 2, LastRule: 0);
 
-    /// <summary>GOBACK RAISING (ISO §14.9.18.3) — including the method-context GOBACK.</summary>
+    /// <summary>GOBACK RAISING (ISO §2023:14.9.18.3) — including the method-context GOBACK.</summary>
     public static readonly EcRaiseSite Goback = new("GOBACK", "14.9.18.3", Level3Rule: 2, ObjectRule: 4, LastRule: 5,
                                                     GlobalDeclarativeRule: 1);
 
-    /// <summary>An EXIT statement's RAISING phrase (ISO §14.9.14.3): EXIT PROGRAM, EXIT FUNCTION, EXIT METHOD.
+    /// <summary>An EXIT statement's RAISING phrase (ISO §2023:14.9.14.3): EXIT PROGRAM, EXIT FUNCTION, EXIT METHOD.
     /// One clause, one set of ordinals — the format differs, the syntax rules do not.</summary>
     public static EcRaiseSite Exit(string verb) =>
         new(verb, "14.9.14.3", Level3Rule: 3, ObjectRule: 5, LastRule: 6, GlobalDeclarativeRule: 2);
@@ -62,7 +62,7 @@ internal readonly record struct EcRaiseSite(string Verb, string Clause, int Leve
     /// RAISING" for the phrase forms.</summary>
     public string Context => this == Raise ? Verb : $"{Verb} RAISING";
 
-    /// <summary>This site's citation of one of its own rules — <c>Cite(Level3Rule)</c> → "ISO §14.9.14.3 SR3".
+    /// <summary>This site's citation of one of its own rules — <c>Cite(Level3Rule)</c> → "ISO §2023:14.9.14.3 SR3".
     /// <paramref name="sub"/> spells a sub-item ("a", "d").</summary>
-    public string Cite(int rule, string sub = "") => $"ISO §{Clause} SR{rule}{sub}";
+    public string Cite(int rule, string sub = "") => $"ISO §2023:{Clause} SR{rule}{sub}";
 }

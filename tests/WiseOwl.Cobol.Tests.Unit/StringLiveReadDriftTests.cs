@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ A STRING READS AN OPERAND IN PLACE WHEN A TRANSFER OF THE STATEMENT CAN REACH IT, AND ONLY THEN, AND THE QUESTION
-/// "CAN A TRANSFER REACH IT?" IS ANSWERED IN ONE PLACE (kb/Work PB1908). ISO §14.9.43.4 GR10 (Annex A.2 item 60)
+/// "CAN A TRANSFER REACH IT?" IS ANSWERED IN ONE PLACE (kb/Work PB1908). ISO §2023:14.9.43.4 GR10 (Annex A.2 item 60)
 /// leaves a STRING whose sending or delimiter operand shares storage with the receiving item undefined;
 /// WiseOwl COBOL runs it in place, as GnuCOBOL's <c>cob_string_append</c> does (docs/CONFORMANCE.md D-STR1 to D-STR4),
 /// so the emitter stores the receiver image back and reads the operand again when its transfer begins.
@@ -21,7 +21,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// This class reads the EMITTED C# over each arm of the predicate (the same record, REDEFINES, LINKAGE, a level-66
 /// alias, a function argument) and over the operands that are never in reach (a literal, a sibling field, the first
 /// sending), so a new arm that forgets the re-read fails here even if no golden crosses it. (3) Every function
-/// operand is identified up front in statement order (§14.6.4 7, kb/Work PB3261), so its range tests precede
+/// operand is identified up front in statement order (§2023:14.6.4 7, kb/Work PB3261), so its range tests precede
 /// identifier-3's; one of a later sending that may share identifier-3's storage is then evaluated again at its
 /// transfer (D-STR4), except FUNCTION RANDOM and a shape the walk does not know, which run ONCE, inline, at their
 /// transfer.</para>
@@ -177,7 +177,7 @@ public sealed class StringLiveReadDriftTests
     [Fact]
     public void RepeatableFunctionOverTheReceiver_IsIdentifiedUpFront_AndEvaluatedAgainAtItsTransfer()
     {
-        // §14.6.4 7) identifies the function first (its range tests run before identifier-3's); D-STR4 evaluates it
+        // §2023:14.6.4 7) identifies the function first (its range tests run before identifier-3's); D-STR4 evaluates it
         // again from the storage the earlier transfers stored. Review r1: a LATER sending's LINKAGE argument must not
         // let "XY" be transferred before the function's own failure interrupts the statement.
         string cs = EmitCSharp(Program(Disjoint, """STRING "XY" DELIMITED BY SIZE FUNCTION UPPER-CASE(R1) DELIMITED BY SIZE INTO R1 END-STRING"""));
@@ -190,7 +190,7 @@ public sealed class StringLiveReadDriftTests
     [Fact]
     public void RandomOverTheReceiver_IsEvaluatedOnce_InlineAtItsTransfer()
     {
-        // FUNCTION RANDOM returns the next number of its sequence each time it runs (§15.75.3 5)): never twice.
+        // FUNCTION RANDOM returns the next number of its sequence each time it runs (§2023:15.75.3 5)): never twice.
         const string data = """
             01 REC.
                05 CNT PIC 9 VALUE 2.
@@ -213,8 +213,8 @@ public sealed class StringLiveReadDriftTests
     [Fact]
     public void AFunctionInTheFirstSending_IsEvaluatedUpFront_EvenOverTheReceiver()
     {
-        // Review R1-1: no store precedes the first transfer, so §14.9.43.4 GR10 cannot reach it and its function is
-        // identified in statement order (§14.6.4 7), before identifier-3 is read - not inline in the transfer after that read.
+        // Review R1-1: no store precedes the first transfer, so §2023:14.9.43.4 GR10 cannot reach it and its function is
+        // identified in statement order (§2023:14.6.4 7), before identifier-3 is read - not inline in the transfer after that read.
         string cs = EmitCSharp(Program(Disjoint, """STRING FUNCTION UPPER-CASE(R1) DELIMITED BY SIZE INTO R1 END-STRING"""));
         Assert.Equal(1, Stores(cs));
         Assert.Matches(new Regex(@"string __strSrc\d+_0 = ", RegexOptions.Multiline), cs);

@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.28.3 SR11: "When procedure-name-1 and procedure-name-2 are both specified and either is the
+      *> ISO §2023:14.9.28.3 SR11: "When procedure-name-1 and procedure-name-2 are both specified and either is the
       *> name of a procedure in the declaratives portion of the procedure division, both shall be
       *> procedure-names in the same declarative section." Unchanged since X3.23-1985, so every --std rejects.
       *>

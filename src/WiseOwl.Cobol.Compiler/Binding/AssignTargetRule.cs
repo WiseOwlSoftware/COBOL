@@ -11,9 +11,9 @@ using Core = CobolParserCore;
 using WiseOwl.Cobol.Runtime;
 
 /// <summary>
-/// ⛔ THE ONE READER OF THE ASSIGN CLAUSE'S TO-PHRASE LIST — ISO/IEC 1989:2023 §12.4.5.1 (every format writes
+/// ⛔ THE ONE READER OF THE ASSIGN CLAUSE'S TO-PHRASE LIST — ISO/IEC 1989:2023 §2023:12.4.5.1 (every format writes
 /// <c>ASSIGN [TO] {device-name-1 | literal-1} …</c>, the ellipsis on the inner brace pair) under WiseOwl COBOL's
-/// §12.4.5.2 SR5 determination, <c>docs/CONFORMANCE.md</c> §7 row <c>DOC-A.1-71</c> (kb/Work PB829).
+/// §2023:12.4.5.2 SR5 determination, <c>docs/CONFORMANCE.md</c> §7 row <c>DOC-A.1-71</c> (kb/Work PB829).
 /// <para><b>What the standard leaves open.</b> SR5: "The meaning and rules for the allowable specification of
 /// device-name-1 and the value of literal-1 are defined by the implementor." The general format admits a LIST,
 /// and SR5 is the only rule that says which lists are allowable and what one means — so a list the determination
@@ -56,7 +56,7 @@ internal static class AssignTargetRule
         using (edition.At(targets[1]))
             edition.Error(DiagnosticCatalog.AssignTargetListNotAllowed,
                 $"SELECT {fileName}: the ASSIGN clause's TO phrase lists {targets.Length} operands ("
-                + string.Join(" ", targets.Select(t => t.GetText())) + "); ISO §12.4.5.2 SR5 leaves the "
+                + string.Join(" ", targets.Select(t => t.GetText())) + "); ISO §2023:12.4.5.2 SR5 leaves the "
                 + "allowable specification of device-name-1 and literal-1 to the implementor, and this "
                 + "implementation allows ONE operand naming the file, or a device class ("
                 + string.Join(" or ", DeviceClasses.Order(StringComparer.Ordinal)) + ") followed by ONE operand "
@@ -67,16 +67,16 @@ internal static class AssignTargetRule
         return Text(edition, env, targets[^1]);
     }
 
-    /// <summary>The physical name one operand gives. literal-1 is screened against §12.4.5.2 SR4 — "an alphanumeric
-    /// literal ... neither a figurative constant nor a zero-length literal" — and decoded (a §8.8.3 concatenation
-    /// expression folds to its equivalent literal, §8.8.3.3 GR3; the hexadecimal-alphanumeric X"..." is an alphanumeric
-    /// literal, §8.3.3.2.2). A refused literal yields "" under an already-failed compile. A WORD is read by
+    /// <summary>The physical name one operand gives. literal-1 is screened against §2023:12.4.5.2 SR4 — "an alphanumeric
+    /// literal ... neither a figurative constant nor a zero-length literal" — and decoded (a §2023:8.8.3 concatenation
+    /// expression folds to its equivalent literal, §2023:8.8.3.3 GR3; the hexadecimal-alphanumeric X"..." is an alphanumeric
+    /// literal, §2023:8.3.3.2.2). A refused literal yields "" under an already-failed compile. A WORD is read by
     /// <see cref="WordText"/>.</summary>
     private static string Text(EditionContext edition, LiteralEnvironment env, Core.AssignTargetContext t)
     {
         if (t.nonNumericLiteral() is not { } nn) return WordText(edition, env, t.cobolWord());
         void Refuse(string why) =>
-            Report(edition, nn, $"ASSIGN TO {nn.GetText()}: literal-1 {why} (ISO §12.4.5.2 SR4)");
+            Report(edition, nn, $"ASSIGN TO {nn.GetText()}: literal-1 {why} (ISO §2023:12.4.5.2 SR4)");
         string value;
         if (nn.concatenationExpression() is { } ce)
         {
@@ -86,10 +86,10 @@ internal static class AssignTargetRule
         }
         else if (nn.predefinedNull() is not null)
         {
-            // NULL is an identifier, not a literal (§8.4.3.10.3 SR1) — the ONE refusal, not the literal-shape verdict.
+            // NULL is an identifier, not a literal (§2023:8.4.3.10.3 SR1) — the ONE refusal, not the literal-shape verdict.
             using var _ = edition.At(nn);
             PredefinedNullRule.Report(edition, "literal-1 of the ASSIGN clause, which shall be an alphanumeric "
-                + "literal (ISO §12.4.5.2 SR4),");
+                + "literal (ISO §2023:12.4.5.2 SR4),");
             return "";
         }
         else if (nn.figurativeConstant() is not null)
@@ -113,17 +113,17 @@ internal static class AssignTargetRule
     }
 
     /// <summary>⛔ ONE WORD, TWO ADMISSIBLE READINGS (kb/Work PB2500). A word at an ASSIGN operand is device-name-1 — a
-    /// system-name — and is ALSO literal-1 when it names a constant entry (§13.10.3 SR2: "constant-name-1 may be used
-    /// anywhere that a format specifies a literal of the class and category of constant-name-1"). §8.3.2.1 4) lets one
-    /// word be a system-name and a user-defined word, and §12.4.5.2 SR5 leaves "the meaning and rules for the allowable
+    /// system-name — and is ALSO literal-1 when it names a constant entry (§2023:13.10.3 SR2: "constant-name-1 may be used
+    /// anywhere that a format specifies a literal of the class and category of constant-name-1"). §2023:8.3.2.1 4) lets one
+    /// word be a system-name and a user-defined word, and §2023:12.4.5.2 SR5 leaves "the meaning and rules for the allowable
     /// specification of device-name-1 and the value of literal-1" to the implementor; neither says which reading wins.
     /// <para>⚠ DETERMINATION (CLAUDE.md rule 1: ISO leaves it to the implementor → GnuCOBOL, which substitutes the
     /// declared constant for an ASSIGN operand): <b>the program's own declaration of the word wins</b> — the answer the
     /// SPECIAL-NAMES positions that admit both readings already give (the LOCALE clause's external-locale-name-1,
     /// <c>SpecialNamesBinder.LocaleBind</c>; the ALPHABET clause's code-name, <c>SpecialNamesBinder.AlphabetCodeName</c>). A word that
     /// names no constant entry is device-name-1: its own spelling. The constant is "as if literal-1 … were written"
-    /// (§13.10.4 GR1), so it meets §12.4.5.2 SR4 as a written literal does: alphanumeric, not zero-length (a constant
-    /// never stands for a figurative constant: §13.10.3 SR6 refuses that at the entry). A constant whose own entry was
+    /// (§2023:13.10.4 GR1), so it meets §2023:12.4.5.2 SR4 as a written literal does: alphanumeric, not zero-length (a constant
+    /// never stands for a figurative constant: §2023:13.10.3 SR6 refuses that at the entry). A constant whose own entry was
     /// refused reported there, so the operand recovers silently.</para></summary>
     private static string WordText(EditionContext edition, LiteralEnvironment env, Core.CobolWordContext word)
     {
@@ -140,8 +140,8 @@ internal static class AssignTargetRule
             : reading.Value.Value.Length == 0 ? $"shall not be a zero-length literal; the constant-name '{spelling}' stands for a zero-length literal"
             : null;
         if (fault is null) return reading.Value.Value;
-        Report(edition, word, $"ASSIGN TO {spelling}: literal-1 {fault} (ISO §12.4.5.2 SR4; §13.10.3 SR2 admits a "
-            + "constant-name only where a literal of its class and category is specified, and §13.10.4 GR1 makes it "
+        Report(edition, word, $"ASSIGN TO {spelling}: literal-1 {fault} (ISO §2023:12.4.5.2 SR4; §2023:13.10.3 SR2 admits a "
+            + "constant-name only where a literal of its class and category is specified, and §2023:13.10.4 GR1 makes it "
             + "\"as if literal-1 … were written\")");
         return "";
     }

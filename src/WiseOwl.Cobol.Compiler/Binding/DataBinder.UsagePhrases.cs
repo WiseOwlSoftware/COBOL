@@ -8,23 +8,23 @@ namespace WiseOwl.Cobol.Binding;
 
 using Core = CobolParserCore;
 
-/// <summary>The optional phrases of one USAGE clause (ISO §13.18.60.2) as the binder ADMITS them: each field holds
+/// <summary>The optional phrases of one USAGE clause (ISO §2023:13.18.60.2) as the binder ADMITS them: each field holds
 /// what the program wrote only when the phrase is legal on the clause's usage, and its default otherwise, so a
 /// refused phrase can never go on to change a representation.</summary>
-/// <param name="Unsigned">UNSIGNED on a fixed-width binary usage (SIGNED is the default, §13.18.60.4 GR12).</param>
-/// <param name="NoSign">WITH NO SIGN on PACKED-DECIMAL (§13.18.60.4 GR11). Its effect and its §13.18.40.3 SR31
-/// screen are adjudicated per elementary item in <c>UsageInheritancePass</c>, because §13.18.60.4 GR1 hands a
+/// <param name="Unsigned">UNSIGNED on a fixed-width binary usage (SIGNED is the default, §2023:13.18.60.4 GR12).</param>
+/// <param name="NoSign">WITH NO SIGN on PACKED-DECIMAL (§2023:13.18.60.4 GR11). Its effect and its §2023:13.18.40.3 SR31
+/// screen are adjudicated per elementary item in <c>UsageInheritancePass</c>, because §2023:13.18.60.4 GR1 hands a
 /// group-level clause, phrase included, to each elementary item in the group (kb/Work PB570).</param>
-/// <param name="Endianness">The item's own endianness-phrase (§13.18.60.4 GR19a/b), which wins over the OPTIONS
-/// FLOAT-BINARY clause's implied one by §11.9.8.3 SR2/SR3's own wording.</param>
-/// <param name="Encoding">The item's own encoding-phrase (§13.18.60.4 GR20). Applicable only to FLOAT-DECIMAL-16/-34,
+/// <param name="Endianness">The item's own endianness-phrase (§2023:13.18.60.4 GR19a/b), which wins over the OPTIONS
+/// FLOAT-BINARY clause's implied one by §2023:11.9.8.3 SR2/SR3's own wording.</param>
+/// <param name="Encoding">The item's own encoding-phrase (§2023:13.18.60.4 GR20). Applicable only to FLOAT-DECIMAL-16/-34,
 /// which are documented non-support (COBOL1564, Annex A.3 item 19), so nothing consumes it yet.</param>
 internal readonly record struct UsageClausePhrases(
     bool Unsigned, bool NoSign, FloatEndianness Endianness, FloatEncoding Encoding);
 
 public sealed partial class DataBinder
 {
-    /// <summary>⛔ THE ONE READER OF A USAGE CLAUSE'S OPTIONAL PHRASES (ISO §13.18.60.2; kb/Work PB174, PB3517).
+    /// <summary>⛔ THE ONE READER OF A USAGE CLAUSE'S OPTIONAL PHRASES (ISO §2023:13.18.60.2; kb/Work PB174, PB3517).
     /// The grammar parses <c>binarySign? noSignPhrase? floatFormatPhrase*</c> after every usage word, so this
     /// method decides, for each phrase the clause carries, whether the usage's line of the general format prints
     /// it — by asking <see cref="UsagePhraseRules"/>, the one table of that fact — and refuses it by name when it
@@ -33,12 +33,12 @@ public sealed partial class DataBinder
     /// the written clause.
     /// <para>It is asked at every grammar host of <c>usageClause</c> the binder accepts: a data description entry
     /// (<c>BindEntry</c>) and a report group description entry (<c>DescribeReportItem</c>), whose USAGE clause
-    /// §13.15.4 GR2 makes "the same clauses as those that are described under the general format for a data
+    /// §2023:13.15.4 GR2 makes "the same clauses as those that are described under the general format for a data
     /// description entry". The third host, a screen description entry, is declined with its whole module
     /// (<c>ScreenFacility</c>, COBOL1560). <c>UsageClausePhraseDriftTests</c> reads every host out of the
     /// grammar and probes each, so a fourth cannot ship unscreened (branch review R1-1 of kb/Work PB3517).</para>
     /// <para>The FLOAT-DECIMAL-16/-34 tail is a bracketed choice-indicator group, and the FLOAT-BINARY-* tail a
-    /// single bracket, so the float phrases are also screened for REPEAT: §5.2.6.4, "any single alternative may
+    /// single bracket, so the float phrases are also screened for REPEAT: §2023:5.2.6.4, "any single alternative may
     /// be specified only once" (COBOL1718). The same clause makes their order free ("The alternatives may be
     /// specified in any order"), which the grammar's <c>floatFormatPhrase*</c> already is. A phrase on
     /// FLOAT-BINARY-128 / FLOAT-DECIMAL-16 / -34 is applicable even though those usages are documented
@@ -83,13 +83,13 @@ public sealed partial class DataBinder
             var rule = UsagePhraseRules.Of(written);
             if (rule.Admits.Contains(usage)) return true;
             Edition.Error(rule.Refusal, $"{entryWhere}: the {rule.Words} is written only with {rule.AdmittedOn}, "
-                + $"not USAGE {usageText} (ISO §13.18.60.2 general format; {rule.Rule})");
+                + $"not USAGE {usageText} (ISO §2023:13.18.60.2 general format; {rule.Rule})");
             return false;
         }
 
         void Repeated(string words) =>
             Edition.Error(DiagnosticCatalog.UsageFloatFormatPhraseRepeated, $"{entryWhere}: the {words} is "
-                + "specified more than once on this USAGE clause (ISO §5.2.6.4 — any single alternative may be "
+                + "specified more than once on this USAGE clause (ISO §2023:5.2.6.4 — any single alternative may be "
                 + "specified only once)");
     }
 }

@@ -11,18 +11,18 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ TWO RELATIONS OVER RESTRICTED CLASS POINTERS, EACH WHERE THE STANDARD ASKS IT (kb/Work PB4107, overturning the
 /// one-verdict reading of PB3162 / PB3686).
 /// <list type="bullet">
-/// <item>The SET relation — §14.9.39.3 SR19 ("restricted to the same type"), SR20 / SR22 ("the same signature") — over
+/// <item>The SET relation — §2023:14.9.39.3 SR19 ("restricted to the same type"), SR20 / SR22 ("the same signature") — over
 /// what each pointer may CONTAIN (<see cref="ActivationDescription.ContentRestriction"/>: a prototype pointer's signature
-/// class; every prototype has one, the external repository entry's for §12.3.8.4 GR10 c), kb/Work PB2103): a SET of the
-/// pair (<see cref="ActivationRelations.ReturningMatches"/>, §9.3.6 rule 6) and a BY CONTENT argument (§14.8.2.3.3).</item>
-/// <item>The identity rules — "both shall be restricted and of the same type" (§14.8.2.3.2, read through §8.5.3.1: the
+/// class; every prototype has one, the external repository entry's for §2023:12.3.8.4 GR10 c), kb/Work PB2103): a SET of the
+/// pair (<see cref="ActivationRelations.ReturningMatches"/>, §2023:9.3.6 rule 6) and a BY CONTENT argument (§2023:14.8.2.3.3).</item>
+/// <item>The identity rules — "both shall be restricted and of the same type" (§2023:14.8.2.3.2, read through §2023:8.5.3.1: the
 /// TYPE clause's declaration, <see cref="ActivationDescription.PointerType"/>, and its USAGE clause) for a BY REFERENCE argument, and
-/// §14.8.3.3's "the same ... USAGE clauses" for a returning item — over the TO phrase as it NAMES its prototype
+/// §2023:14.8.3.3's "the same ... USAGE clauses" for a returning item — over the TO phrase as it NAMES its prototype
 /// (<see cref="ActivationDescription.Clauses"/>), never its signature.</item>
 /// </list>
 /// So two pointers restricted to two prototypes of one signature, or alike under two type-names, are admitted by the
 /// first and refused by the second — the standard's split, as an object reference of a subclass is. The pair-mode
-/// identity of §9.3.8.2.3 rules 3 and 6 (<see cref="ActivationRelations.SignatureDifference"/>) is a second identity rule:
+/// identity of §2023:9.3.8.2.3 rules 3 and 6 (<see cref="ActivationRelations.SignatureDifference"/>) is a second identity rule:
 /// it asks the TO phrase's name too (kb/Work PB4442).
 /// </summary>
 public sealed class PointerRestrictionRelationsTests
@@ -51,7 +51,7 @@ public sealed class PointerRestrictionRelationsTests
     {
         // One prototype, one type: every relation admits.
         { "TO p1", "SIG s", "ta", "TO p1", "SIG s", "ta", true, true },
-        // Two prototypes of ONE signature: the SET admits, the identity rules refuse (§9.3.6 3 e), §14.8.3.3).
+        // Two prototypes of ONE signature: the SET admits, the identity rules refuse (§2023:9.3.6 3 e), §2023:14.8.3.3).
         { "TO p2", "SIG s", "tb", "TO p1", "SIG s", "ta", true, false },
         // Two prototypes of two signatures: neither admits.
         { "TO p2", "SIG t", "tb", "TO p1", "SIG s", "ta", false, false },
@@ -92,7 +92,7 @@ public sealed class PointerRestrictionRelationsTests
         END PROGRAM H4107X.
         """;
 
-    /// <summary>⛔ The run-time "of the same type" compares two compilations' §8.5.3.1 keys (kb/Work PB4107, branch review
+    /// <summary>⛔ The run-time "of the same type" compares two compilations' §2023:8.5.3.1 keys (kb/Work PB4107, branch review
     /// R1-1): a key built from a prototype's signature class differs between two compilations that saw P4107X with two
     /// signatures (a callee rebuilt between them), and would refuse one type declaration against itself. The key reads the
     /// TO phrase by the prototype it names, so both compilations spell the pointer's type and the strong group's type with
@@ -141,7 +141,7 @@ public sealed class PointerRestrictionRelationsTests
     [Fact]
     public void ByReference_TwoTypeNamesRestrictingAlike_AreNotOfTheSameType()
     {
-        // §8.5.3.1: the same USAGE clause under two type-names is two types, so BY REFERENCE refuses, while the
+        // §2023:8.5.3.1: the same USAGE clause under two type-names is two types, so BY REFERENCE refuses, while the
         // returning item (the same USAGE clauses) and the SET (the same signature) admit.
         var formal = Pointer(ActivationCategory.ProgramPointer, "TO p1", "SIG s", "tb");
         var argument = Pointer(ActivationCategory.ProgramPointer, "TO p1", "SIG s", "tc");
@@ -150,7 +150,7 @@ public sealed class PointerRestrictionRelationsTests
             CobolPassMode.Reference, argument, formal, specifiedProgram: true));
         Assert.True(Returning(formal, argument));
         Assert.True(Set(formal, argument));
-        // A method §9.3.6 bound asks it too (3 e) proved only the USAGE clause).
+        // A method §2023:9.3.6 bound asks it too (3 e) proved only the USAGE clause).
         Assert.Null(ActivationRelations.MatchViolation(argument, formal));
         Assert.NotNull(ActivationRelations.ParameterViolation(argument, formal));
     }
@@ -187,8 +187,8 @@ public sealed class PointerRestrictionRelationsTests
     [Fact]
     public void AnUntypedRestrictedPointer_IsOfTheTypeItsUsageClauseStates()
     {
-        // §8.5.3.1 defines "the same type" for TYPED items only: an untyped FUNCTION-POINTER TO entry, or the unique item an
-        // address-identifier creates (which INVOKE passes BY REFERENCE, §14.9.23.3 SR9), is compared by its USAGE clause.
+        // §2023:8.5.3.1 defines "the same type" for TYPED items only: an untyped FUNCTION-POINTER TO entry, or the unique item an
+        // address-identifier creates (which INVOKE passes BY REFERENCE, §2023:14.9.23.3 SR9), is compared by its USAGE clause.
         var untyped = Pointer(ActivationCategory.FunctionPointer, "TO f1", "SIG s");
         var alsoUntyped = Pointer(ActivationCategory.FunctionPointer, "TO f1", "SIG s");
         var typed = Pointer(ActivationCategory.FunctionPointer, "TO f1", "SIG s", "tf");
@@ -209,9 +209,9 @@ public sealed class PointerRestrictionRelationsTests
         Assert.NotNull(ActivationRelations.SignatureDifference(program, function));
     }
 
-    /// <summary>⛔ THE DESCRIPTION OF A RESTRICTED POINTER IS ITS TO PHRASE, FOR EVERY ASKER (kb/Work PB4442, PB4491). §9.3.8.2.3
-    /// rules 3 and 6 — an override, an IMPLEMENTS pair, an interface pair, a property accessor pair — and §13.7.3 SR2 /
-    /// §10.6.2 SR2 — a prototype and its definition — ask "the same ... USAGE clauses" of the formals, so two
+    /// <summary>⛔ THE DESCRIPTION OF A RESTRICTED POINTER IS ITS TO PHRASE, FOR EVERY ASKER (kb/Work PB4442, PB4491). §2023:9.3.8.2.3
+    /// rules 3 and 6 — an override, an IMPLEMENTS pair, an interface pair, a property accessor pair — and §2023:13.7.3 SR2 /
+    /// §2023:10.6.2 SR2 — a prototype and its definition — ask "the same ... USAGE clauses" of the formals, so two
     /// program-pointers restricted to two prototypes of ONE signature are two descriptions, as the same pair is as members of
     /// a strongly-typed group (rule 7). What each may contain is the SET relation's question alone, and it admits them.</summary>
     [Theory]

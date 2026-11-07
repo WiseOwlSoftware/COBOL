@@ -6,7 +6,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
 /// kb/Work PB1091 — THE SPECIAL-NAMES ORDINAL HAS ONE READER, so the three clauses that write one answer alike for
-/// every magnitude: ISO §12.3.7.3 SR14 b1/c1 (ALPHABET literal phrase), SR17 b2/c2 (CLASS) and SR16 e/f (SYMBOLIC
+/// every magnitude: ISO §2023:12.3.7.3 SR14 b1/c1 (ALPHABET literal phrase), SR17 b2/c2 (CLASS) and SR16 e/f (SYMBOLIC
 /// CHARACTERS). An ordinal is an unsigned INTEGER naming a 1-based position in a character set; its magnitude can only
 /// be out of range. Each site used to read it with <c>int.TryParse</c>, which answers "not an integer" for one too long
 /// for an <c>int</c>, and the sites then diverged: SYMBOLIC CHARACTERS skipped the name WITHOUT a diagnostic (a later
@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// now read through <c>IntegerOperandRules.HostValue</c>, which saturates; <c>SpecialNamesOrdinalReaderDriftTests</c>
 /// holds the paragraph to that one reader.
 /// <para>Every expected diagnostic below is derived from the rule it names, never from a run: the native alphanumeric and
-/// national sets have 65,536 characters (DOC-A.1-188), STANDARD-1 has 128 (§12.3.7.4 GR7 c) and UCS-4 has 1,112,064
+/// national sets have 65,536 characters (DOC-A.1-188), STANDARD-1 has 128 (§2023:12.3.7.4 GR7 c) and UCS-4 has 1,112,064
 /// scalar values (GR7 f), so an ordinal above the set's count does not exist in it.</para>
 /// </summary>
 public sealed class SpecialNamesOrdinalTests
@@ -47,7 +47,7 @@ public sealed class SpecialNamesOrdinalTests
     }
 
     /// <summary>The same ordinal text, at the six sites that read one — every magnitude from just past the class's own
-    /// range to a 31-digit literal (§8.3.3.3.2's maximum) — is refused under the ORDINAL range rule of ITS clause and
+    /// range to a 31-digit literal (§2023:8.3.3.3.2's maximum) — is refused under the ORDINAL range rule of ITS clause and
     /// class. 2147483647 is the last <c>int</c>, 2147483648 the first that <c>int.TryParse</c> refused.</summary>
     [Theory]
     [InlineData("a", "65537")]
@@ -59,13 +59,13 @@ public sealed class SpecialNamesOrdinalTests
     public void OneOrdinalText_IsOutOfRange_AtEverySite(string tag, string ordinal)
     {
         Rejects("PB1091AB" + tag, $"ALPHABET AX IS {ordinal}.",
-            $"the ordinal {ordinal} does not exist in the native alphanumeric character set", "ISO §12.3.7.3 SR14 b1");
+            $"the ordinal {ordinal} does not exist in the native alphanumeric character set", "ISO §2023:12.3.7.3 SR14 b1");
         Rejects("PB1091AC" + tag, $"ALPHABET AX FOR NATIONAL IS {ordinal}.",
-            $"the ordinal {ordinal} does not exist in the native national character set", "ISO §12.3.7.3 SR14 c1");
+            $"the ordinal {ordinal} does not exist in the native national character set", "ISO §2023:12.3.7.3 SR14 c1");
         Rejects("PB1091CB" + tag, $"CLASS CX IS {ordinal}.",
-            $"the ordinal {ordinal} does not exist in the native alphanumeric character set", "ISO §12.3.7.3 SR17 b2");
+            $"the ordinal {ordinal} does not exist in the native alphanumeric character set", "ISO §2023:12.3.7.3 SR17 b2");
         Rejects("PB1091CC" + tag, $"CLASS CX FOR NATIONAL IS {ordinal}.",
-            $"the ordinal {ordinal} does not exist in the native national character set", "ISO §12.3.7.3 SR17 c2");
+            $"the ordinal {ordinal} does not exist in the native national character set", "ISO §2023:12.3.7.3 SR17 c2");
         Rejects("PB1091SE" + tag, $"SYMBOLIC CHARACTERS SX IS {ordinal}.",
             $"SYMBOLIC CHARACTERS SX IS {ordinal}: the ordinal position does not exist in the native character set", "SR16 e2");
         Rejects("PB1091SF" + tag, $"SYMBOLIC CHARACTERS FOR NATIONAL SX IS {ordinal}.",
@@ -75,10 +75,10 @@ public sealed class SpecialNamesOrdinalTests
     /// <summary>SR16 e)1 / f)1 — under IN, "the ordinal position specified by integer-1 shall exist in that character
     /// set": STANDARD-1 has 128 characters, UCS-4 1,112,064. The IN arms shared the silent <c>continue</c>.</summary>
     [Theory]
-    [InlineData("PB1091E1A", "SYMBOLIC CHARACTERS SX IS 129 IN S1.", "(STANDARD-1, 128 characters) — ISO §12.3.7.3 SR16 e1")]
-    [InlineData("PB1091E1B", "SYMBOLIC CHARACTERS SX IS 99999999999 IN S1.", "(STANDARD-1, 128 characters) — ISO §12.3.7.3 SR16 e1")]
-    [InlineData("PB1091F1A", "SYMBOLIC CHARACTERS FOR NATIONAL SX IS 1112065 IN U4.", "(UCS-4, 1112064 characters) — ISO §12.3.7.3 SR16 f1")]
-    [InlineData("PB1091F1B", "SYMBOLIC CHARACTERS FOR NATIONAL SX IS 4294967297 IN U4.", "(UCS-4, 1112064 characters) — ISO §12.3.7.3 SR16 f1")]
+    [InlineData("PB1091E1A", "SYMBOLIC CHARACTERS SX IS 129 IN S1.", "(STANDARD-1, 128 characters) — ISO §2023:12.3.7.3 SR16 e1")]
+    [InlineData("PB1091E1B", "SYMBOLIC CHARACTERS SX IS 99999999999 IN S1.", "(STANDARD-1, 128 characters) — ISO §2023:12.3.7.3 SR16 e1")]
+    [InlineData("PB1091F1A", "SYMBOLIC CHARACTERS FOR NATIONAL SX IS 1112065 IN U4.", "(UCS-4, 1112064 characters) — ISO §2023:12.3.7.3 SR16 f1")]
+    [InlineData("PB1091F1B", "SYMBOLIC CHARACTERS FOR NATIONAL SX IS 4294967297 IN U4.", "(UCS-4, 1112064 characters) — ISO §2023:12.3.7.3 SR16 f1")]
     public void SymbolicOrdinalUnderIn_MustExistInTheInSet(string pid, string clause, string expected) =>
         Rejects(pid, clause, "COBOL1670", expected);
 

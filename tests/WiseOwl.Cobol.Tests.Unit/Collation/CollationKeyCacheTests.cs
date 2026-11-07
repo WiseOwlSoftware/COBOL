@@ -222,7 +222,7 @@ public sealed class CollationKeyCacheTests
     {
         var seq = new LocaleCollation("da");
         Assert.True(seq.SupportsKeys);
-        var k1 = seq.KeyOf("Åse   ");                       // §8.8.4.2.11: trailing spaces trimmed before keying
+        var k1 = seq.KeyOf("Åse   ");                       // §2023:8.8.4.2.11: trailing spaces trimmed before keying
         var k2 = seq.KeyOf("Åse");
         Assert.Same(k1, k2);
         string[] words = ["Aase", "Åse", "aase", "øl", "Øl", "z", "æble", "a", "A", "AA", "Aa", "aa", "", "   "];
@@ -240,7 +240,7 @@ public sealed class CollationKeyCacheTests
         string[] records = ["ölm  ", "zed  ", "åsa  ", "abc  ", "ärlig", "Zoe  ", "øre  ", "aa   ", "ÅSA  ", "zed  "];
         const string name = "SD-CACHE-TEST";
         var keys = new[] { new CobolSort.Key(0, 5, Descending: false, Class: CobolSort.KeyClass.Alphanumeric, default) };
-        CobolSort.Init(name, keys, seq, national: null);   // §14.6.6 r5 — Init IS the statement-start snapshot
+        CobolSort.Init(name, keys, seq, national: null);   // §2023:14.6.6 r5 — Init IS the statement-start snapshot
         foreach (var r in records) CobolSort.Release(name, r, 0, 0, int.MaxValue);
         var before = CollationKeyCache.For(seq.Resolve()).Misses;
         CobolSort.Sort(name, duplicatesInOrder: true);

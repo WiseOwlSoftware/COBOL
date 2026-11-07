@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.96.4 r1 (LEADING) and r2 (TRAILING) READ THROUGH r5's NESTING — the two returned-value
+      *> ISO §2023:15.96.4 r1 (LEADING) and r2 (TRAILING) READ THROUGH r5's NESTING — the two returned-value
       *> rules this row is about, each measured with ONE argument-2 and then with SEVERAL.
       *>   r1 "If LEADING is specified, the returned value is a character string that consists of the
       *>      characters in argument-1 beginning from the leftmost character position that does not contain

@@ -16,8 +16,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ THE USAGES BLANK WHEN ZERO NAMES ARE ONE SET, ASKED OF ONE PREDICATE, BY ITS SCREEN AND ITS PROMOTION ALIKE
-/// (kb/Work PB508). ISO §13.18.8.3 SR2 ("The subject of the entry shall be implicitly or explicitly described as
-/// usage display or usage national") is the clause's SCREEN, and §13.18.8.4 GR2 ("If the subject of the entry is
+/// (kb/Work PB508). ISO §2023:13.18.8.3 SR2 ("The subject of the entry shall be implicitly or explicitly described as
+/// usage display or usage national") is the clause's SCREEN, and §2023:13.18.8.4 GR2 ("If the subject of the entry is
 /// described by its picture character-string as category numeric, the BLANK WHEN ZERO clause defines the item as
 /// numeric-edited") is its PROMOTION. The promotion once spelled the pair as the single <c>Usage.Display</c> the
 /// screen had been widened beyond, so a national-usage numeric item passed the screen and was never defined
@@ -67,7 +67,7 @@ public sealed class BlankWhenZeroUsagePairDriftTests
             bool admitted = UsageFamilies.IsDisplayOrNational(usage);
             Assert.True(promoted == admitted,
                 $"USAGE {usage}: BLANK WHEN ZERO on PIC 9(5) {(promoted ? "defined" : "did not define")} the item numeric-edited, "
-                + $"but §13.18.8.3 SR2 / §13.18.8.4 GR2 admit that usage {(admitted ? "" : "not ")}as display or national.");
+                + $"but §2023:13.18.8.3 SR2 / §2023:13.18.8.4 GR2 admit that usage {(admitted ? "" : "not ")}as display or national.");
         }
 
         // The measurement must reach both members of the pair and a usage outside it, or it proves nothing.

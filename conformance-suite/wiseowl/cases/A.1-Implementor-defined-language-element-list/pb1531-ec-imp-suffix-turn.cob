@@ -5,10 +5,10 @@
       *> portable: unverified
       *>---
       *> kb/Work PB1531 - the >>TURN form of the EC-IMP-suffix refusal.
-      *> §7.3.25.3 SR2: "Exception-name-1 shall be one of the exception
+      *> §2023:7.3.25.3 SR2: "Exception-name-1 shall be one of the exception
       *> names listed in 14.6.13.1, Exception conditions."
-      *>   OK  §7.3.25.3 2)
-      *> §14.6.13.1.1 makes an EC-IMP-suffix name the IMPLEMENTOR's to
+      *>   OK  §2023:7.3.25.3 2)
+      *> §2023:14.6.13.1.1 makes an EC-IMP-suffix name the IMPLEMENTOR's to
       *> define, and this implementation defines none (DOC-A.1-99), so
       *> no exception-name EC-IMP-WIBBLE is listed and the directive is
       *> refused with COBOL0711, positioned at the directive's line.

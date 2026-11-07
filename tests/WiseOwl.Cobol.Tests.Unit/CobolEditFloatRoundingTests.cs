@@ -6,10 +6,10 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>A store into a FLOATING-POINT numeric-edited item rounds its significand by the statement's mode
-/// (kb/Work PB2638). §14.7.4.3 rule 4: "the arithmetic value is rounded to the nearest value that can be
+/// (kb/Work PB2638). §2023:14.7.4.3 rule 4: "the arithmetic value is rounded to the nearest value that can be
 /// represented in the resultant identifier" — for <c>+9.99E+99</c> a three-digit significand — and rules 3, 5, 6, 8 and 9
 /// give the other modes; rule 7: PROHIBITED and an inexact value is the size error condition with the resultant
-/// unchanged. A MOVE passes TRUNCATION (§14.6.8.4 rule 2). §14.7.5 case 3 is tested "after … any applicable
+/// unchanged. A MOVE passes TRUNCATION (§2023:14.6.8.4 rule 2). §2023:14.7.5 case 3 is tested "after … any applicable
 /// rounding", so a carry out of the last digit is renormalized and its exponent re-checked.</summary>
 public sealed class CobolEditFloatRoundingTests
 {
@@ -66,7 +66,7 @@ public sealed class CobolEditFloatRoundingTests
         Assert.Equal("+1.23E+00", CobolEdit.FormatFloatStore(1230, 3, Mask, CobolRounding.Prohibited));
     }
 
-    /// <summary>The rounding precedes the range test (§14.7.5 case 3, "after … any applicable rounding"): a value
+    /// <summary>The rounding precedes the range test (§2023:14.7.5 case 3, "after … any applicable rounding"): a value
     /// that rounds past the exponent's capacity is a size error and the same value truncated is not.</summary>
     [Fact]
     public void ACarryPastTheExponentCapacity_IsASizeErrorAfterRounding()

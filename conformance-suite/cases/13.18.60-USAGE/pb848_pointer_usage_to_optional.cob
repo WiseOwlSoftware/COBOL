@@ -5,18 +5,18 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO/IEC 1989:2023 §13.18.60.2 — TO is an OPTIONAL word in all three pointer usages. kb/Work PB848.
+      *> ISO/IEC 1989:2023 §2023:13.18.60.2 — TO is an OPTIONAL word in all three pointer usages. kb/Work PB848.
       *>
       *> The printed general format (folio 503, RENDERED) reads `POINTER [ TO type-name-1 ]`,
       *> `FUNCTION-POINTER TO function-prototype-name-1` and `PROGRAM-POINTER [ TO program-prototype-name-1 ]`
-      *> with the underline rule under POINTER / FUNCTION-POINTER / PROGRAM-POINTER only. §5.2.3 — an optional
+      *> with the underline rule under POINTER / FUNCTION-POINTER / PROGRAM-POINTER only. §2023:5.2.3 — an optional
       *> word "may be written to add clarity" and its omission changes nothing, so each TO-less entry below
       *> declares EXACTLY the restriction its TO-full twin declares:
-      *> §13.18.60.4 GR23 — "If type-name-1 is specified, this data item is a restricted data-pointer."
-      *> §13.18.60.4 GR25 — "If program-prototype-name-1 is specified, this data item is a restricted
-      *>   program-pointer."  §13.18.60.3 SR18/SR19 — the TYPEDEF clause is specified for those subjects.
-      *> §13.18.60.4 GR26 — a function-pointer is restricted to the prototype its operand names.
-      *> The observable proof of "the same restriction" is assignment between the twins: §14.9.39.3 SR19
+      *> §2023:13.18.60.4 GR23 — "If type-name-1 is specified, this data item is a restricted data-pointer."
+      *> §2023:13.18.60.4 GR25 — "If program-prototype-name-1 is specified, this data item is a restricted
+      *>   program-pointer."  §2023:13.18.60.3 SR18/SR19 — the TYPEDEF clause is specified for those subjects.
+      *> §2023:13.18.60.4 GR26 — a function-pointer is restricted to the prototype its operand names.
+      *> The observable proof of "the same restriction" is assignment between the twins: §2023:14.9.39.3 SR19
       *> (data-pointers restricted to the same type), SR22 (program-pointers whose prototypes have the same
       *> signature) and SR20 (function-pointers likewise) each ADMIT the copy only because the TO-less and
       *> TO-full declarations name the same type / prototype; a TO-less operand that parsed as nothing would
@@ -26,7 +26,7 @@
       *>
       *> EXPECTED OUTPUT, derived line by line:
       *>   DP-SAME      DP1 (POINTER REC-T) took W's address; DP2 (POINTER TO REC-T) copied it (SR19), so the
-      *>                two are equal (§8.8.4.2.16 — pointers are equal when they address the same item).
+      *>                two are equal (§2023:8.8.4.2.16 — pointers are equal when they address the same item).
       *>   FP-SAME      FP1 (FUNCTION-POINTER PBF848) holds PBF848's address; FP2 (… TO PBF848) copied it.
       *>   FP-CALL 42   FUNCTION PBF848(21) doubles its argument (the prototype both pointers are restricted to).
       *>   PP-SAME      PP1 (PROGRAM-POINTER PBT848) took the program's address; PP2 (… TO PBT848) copied it.

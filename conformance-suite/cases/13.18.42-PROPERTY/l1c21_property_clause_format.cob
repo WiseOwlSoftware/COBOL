@@ -5,29 +5,29 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.18.42.2 format — every PROPERTY clause spelling works
+      *> ISO §2023:13.18.42.2 format — every PROPERTY clause spelling works
       *> General format: PROPERTY [ WITH NO { GET | SET } ] [ IS FINAL ]
       *> with PROPERTY, NO, GET, SET, FINAL underlined (required) and
-      *> WITH, IS not underlined (optional words, §5.2.3;
-      *> cite.py --check 5.2.3 -> OK  §5.2.3 (Optional words)).
+      *> WITH, IS not underlined (optional words, §2023:5.2.3;
+      *> cite.py --check 5.2.3 -> OK  §2023:5.2.3 (Optional words)).
       *>   cite.py --check 13.18.42.2 "PROPERTY" -> OK (General format)
       *> Semantics each spelling must carry:
-      *>   §13.18.42.4 GR1 "If the GET phrase is not specified, the
+      *>   §2023:13.18.42.4 GR1 "If the GET phrase is not specified, the
       *>   PROPERTY clause causes a method to be defined for the
       *>   containing object." (the get property method)
-      *>   cite.py --check 13.18.42.4 -> OK  §13.18.42.4 1)  (General
+      *>   cite.py --check 13.18.42.4 -> OK  §2023:13.18.42.4 1)  (General
       *>   rules)
-      *>   §13.18.42.4 GR2 "If the SET phrase is not specified, the
+      *>   §2023:13.18.42.4 GR2 "If the SET phrase is not specified, the
       *>   PROPERTY clause causes a method to be defined for the
       *>   containing object." (the set property method)
-      *>   cite.py --check 13.18.42.4 -> OK  §13.18.42.4 2)  (General
+      *>   cite.py --check 13.18.42.4 -> OK  §2023:13.18.42.4 2)  (General
       *>   rules)
-      *>   §8.4.3.9.3 SR1 "Property-name-1 shall be an object property
+      *>   §2023:8.4.3.9.3 SR1 "Property-name-1 shall be an object property
       *>   specified in the REPOSITORY paragraph." (hence the four
       *>   PROPERTY entries in L1C21L's REPOSITORY)
-      *>   cite.py --check 8.4.3.9.3 -> OK  §8.4.3.9.3 1)  (Syntax
+      *>   cite.py --check 8.4.3.9.3 -> OK  §2023:8.4.3.9.3 1)  (Syntax
       *>   rules)
-      *> The properties live in the FACTORY working-storage (§13.18.42.3
+      *> The properties live in the FACTORY working-storage (§2023:13.18.42.3
       *> SR1 permits it), so the factory object is used and no instance
       *> is ever created. The four spellings:
       *>   PGET  PROPERTY NO SET              (WITH omitted)   get only

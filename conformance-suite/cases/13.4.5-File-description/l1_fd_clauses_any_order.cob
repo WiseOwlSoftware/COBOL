@@ -5,15 +5,15 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §13.4.5.3 SR2 — the clauses that follow file-name-1 may appear in any order (reverse of the printed order)
-      *> RULE (§13.4.5.3 2), cite.py OK): "The clauses that follow
+      *> ISO §2023:13.4.5.3 SR2 — the clauses that follow file-name-1 may appear in any order (reverse of the printed order)
+      *> RULE (§2023:13.4.5.3 2), cite.py OK): "The clauses that follow
       *> file-name-1 may appear in any order." Both FDs below write their
-      *> clauses in the REVERSE of the §13.4.5.2 Format 1 order (EXTERNAL,
+      *> clauses in the REVERSE of the §2023:13.4.5.2 Format 1 order (EXTERNAL,
       *> GLOBAL, BLOCK, record, LINAGE, CODE-SET). The program must compile
       *> strict and each clause must still take effect:
       *>  L1FDO-P  LINAGE / RECORD / GLOBAL (reversed).
       *>    GLOBAL is witnessed by the contained program L1FDORN writing
-      *>    PF-REC. LINAGE is witnessed by LINAGE-COUNTER: §13.18.34.4 7) d)
+      *>    PF-REC. LINAGE is witnessed by LINAGE-COUNTER: §2023:13.18.34.4 7) d)
       *>    "set to one at the time an OPEN statement with the OUTPUT phrase
       *>    is executed" and 7) c) 3. "When the ADVANCING phrase of the
       *>    WRITE statement is not specified, the LINAGE-COUNTER is
@@ -31,9 +31,9 @@
       *>    written and read back -> Q1=QRST.
       *>  L1FDO-R  (Format 3, report) REPORT / GLOBAL, the reverse of the
       *>    printed GLOBAL ... REPORT order (REPORT is printed last). No
-      *>    record description entry (§13.4.5.3 8)). OPEN OUTPUT, INITIATE,
+      *>    record description entry (§2023:13.4.5.3 8)). OPEN OUTPUT, INITIATE,
       *>    GENERATE, TERMINATE, CLOSE, then RPT-DONE. The report file's
-      *>    content is not compared (§13.4.5.4 4)).
+      *>    content is not compared (§2023:13.4.5.4 4)).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1FDORD.
        ENVIRONMENT DIVISION.

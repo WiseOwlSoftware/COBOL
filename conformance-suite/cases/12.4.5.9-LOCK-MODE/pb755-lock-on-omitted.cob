@@ -4,11 +4,11 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §12.4.5.9.2 general format — ON is a REQUIRED word of the LOCK MODE clause (kb/Work PB755):
+      *> ISO §2023:12.4.5.9.2 general format — ON is a REQUIRED word of the LOCK MODE clause (kb/Work PB755):
       *>   LOCK MODE IS { MANUAL | AUTOMATIC } [ [WITH] LOCK ON [MULTIPLE] { RECORD | RECORDS } ]
-      *>   cite.py --check 12.4.5.9.2 "LOCK ON" -> OK §12.4.5.9.2 (figure notes: `LOCK` (both occurrences),
+      *>   cite.py --check 12.4.5.9.2 "LOCK ON" -> OK §2023:12.4.5.9.2 (figure notes: `LOCK` (both occurrences),
       *>     `MANUAL`, `AUTOMATIC`, `ON`, `MULTIPLE`, `RECORD`, and `RECORDS` are underlined)
-      *>   cite.py --check 5.2.2 "They are shown in uppercase and underlined in general formats" -> OK §5.2.2
+      *>   cite.py --check 5.2.2 "They are shown in uppercase and underlined in general formats" -> OK §2023:5.2.2
       *> Measured on printed page 355 / folio 325: ON's box 311.09-325.35 carries a rule at 312.52-324.43
       *> (83.5% cover). Only the outer bracket makes the whole phrase omittable and only the inner one
       *> makes MULTIPLE omittable; neither touches ON, so `WITH LOCK MULTIPLE RECORDS` is a syntax error at

@@ -5,37 +5,37 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> kb/Work PB242 - ISO §14.9.10.4 GR7 on an INDEXED file, under
+      *> kb/Work PB242 - ISO §2023:14.9.10.4 GR7 on an INDEXED file, under
       *> LOCK MODE IS AUTOMATIC, through BOTH ways a DELETE identifies
       *> its record: the prime record key (random/dynamic access, GR3)
       *> and the last record read (sequential access, GR2). The lock
       *> a READ set must be found and released under the SAME record
       *> identity the DELETE computes; the relative twin is
       *> pb242_delete_record_lock_release (single AND multiple locking).
-      *> cite.py: OK  §14.9.10.4 7) a) 1.  (General rules) - "A lock
+      *> cite.py: OK  §2023:14.9.10.4 7) a) 1.  (General rules) - "A lock
       *>   held by that file connector on the deleted record is
       *>   released at the completion of the successful execution of
       *>   the DELETE RECORD statement."
-      *> cite.py: OK  §14.9.10.4 7) a) 2.  (General rules) - "A lock
+      *> cite.py: OK  §2023:14.9.10.4 7) a) 2.  (General rules) - "A lock
       *>   held by that file connector on another record is released
       *>   at the beginning of the execution of the DELETE RECORD
       *>   statement."
-      *> cite.py: OK  §14.9.10.4 3)  (General rules) - indexed, random
+      *> cite.py: OK  §2023:14.9.10.4 3)  (General rules) - indexed, random
       *>   or dynamic: "the record identified by the content of the
       *>   prime record key data item"
-      *> cite.py: OK  §14.9.10.4 2)  (General rules) - sequential
+      *> cite.py: OK  §2023:14.9.10.4 2)  (General rules) - sequential
       *>   access: the last I-O statement "shall have been a
       *>   successfully executed READ statement"; that record goes
-      *> cite.py: OK  §12.4.5.9.4 4)  (General rules) - AUTOMATIC:
+      *> cite.py: OK  §2023:12.4.5.9.4 4)  (General rules) - AUTOMATIC:
       *>   "Records are locked when any READ statement is executed."
-      *> cite.py: OK  §12.4.5.9.4 5)  (General rules) - MANUAL (the
+      *> cite.py: OK  §2023:12.4.5.9.4 5)  (General rules) - MANUAL (the
       *>   observer Q): "Records locks are obtained only when the LOCK
       *>   phrase is explicitly specified on an I-O statement."
-      *> cite.py: OK  §14.9.30.4 9)  (General rules) - a READ of "the
+      *> cite.py: OK  §2023:14.9.30.4 9)  (General rules) - a READ of "the
       *>   record identified for access is locked by another file
       *>   connector" -> record operation conflict condition (51,
-      *>   §9.1.13.8 1))
-      *> cite.py: OK  §14.9.51.4 36)  (General rules) - a WRITE of a
+      *>   §2023:9.1.13.8 1))
+      *> cite.py: OK  §2023:14.9.51.4 36)  (General rules) - a WRITE of a
       *>   prime key no record has (the deleted one's) inserts it
       *> Derivation of the expected lines (Q never locks; 51 = locked
       *> by another connector, 00 = free):

@@ -7,7 +7,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// kb/Work PB357 — §14.9.41.4 GR14: "If arithmetic-expression-1 does not evaluate to a positive nonzero integer that
+/// kb/Work PB357 — §2023:14.9.41.4 GR14: "If arithmetic-expression-1 does not evaluate to a positive nonzero integer that
 /// is less than or equal to the length of the associated key, the I-O status value in the file connector
 /// referenced by file-name-1 is set to '23'". The predicate is asked of the value the expression PRODUCED, so the
 /// emitter must hand the connector that value (a scaled Int128 + scale, or a double) and never an
@@ -53,7 +53,7 @@ public sealed class StartKeyLengthTests
     [Fact]
     public void NationalCount_IsPositions_ScaledToStorageAfterTheTest()
     {
-        // §14.9.41.4 GR13 — a count of national character positions; a 4-position national key is 8 storage units.
+        // §2023:14.9.41.4 GR13 — a count of national character positions; a 4-position national key is 8 storage units.
         Assert.True(StartKeyLength.OfScaled(3, 0, 2).TryCompareLength(8, out int len));
         Assert.Equal(6, len);
         Assert.False(StartKeyLength.OfScaled(5, 0, 2).TryCompareLength(8, out _));
@@ -86,7 +86,7 @@ public sealed class StartKeyLengthTests
         Assert.False(EmitStartNarrowsTheLength(src),
             "KeyedIoEmitter.EmitStart must hand the WITH LENGTH count to the connector as a StartKeyLength built from "
             + "the exact lane (RuntimeApi.StartKeyLengthScaled / StartKeyLengthReal), never `(int)(Align(…, 0))`: "
-            + "§14.9.41.4 GR14 is a predicate on arithmetic-expression-1 itself (kb/Work PB357).");
+            + "§2023:14.9.41.4 GR14 is a predicate on arithmetic-expression-1 itself (kb/Work PB357).");
         // ⛔ the failure proof — the PB357 shape must be caught.
         const string defective = "    public void EmitStart(BoundKeyedStart sta)\n    {\n"
             + "        string len = $\"{natBytes} * (int)({NumericRenderer.Align(num.Render(le, ReceiverContext.None), 0)})\";\n    }\n";

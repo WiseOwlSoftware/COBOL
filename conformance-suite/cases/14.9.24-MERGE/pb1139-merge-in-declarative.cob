@@ -8,7 +8,7 @@
       *>   cite.py --check 14.9.24.3 "A MERGE statement may appear anywhere in the procedure division except in
       *>     imperative-statement-1 of an exception-checking PERFORM statement, or in an output procedure of another
       *>     MERGE statement, or an input or output procedure of a file format SORT statement, or in a declarative
-      *>     procedure." -> OK §14.9.24.3 1)
+      *>     procedure." -> OK §2023:14.9.24.3 1)
       *> The declarative half of the rule holds at every edition (Annex E.2 item 20 changed only the SORT/MERGE
       *> procedure half, at 2023).
        IDENTIFICATION DIVISION.

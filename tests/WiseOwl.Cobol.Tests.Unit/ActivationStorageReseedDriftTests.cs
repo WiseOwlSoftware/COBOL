@@ -13,8 +13,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// kb/Work PB1132 — <b>every storage channel of automatic data is re-seeded at every activation, by the ONE seed.</b>
-/// ISO §8.6.4: local-storage items are "allocated and set to initial state each time the runtime element containing
-/// them is activated", and §14.6.2.3.2 action 5 sets "The address of each based item" to null. A cached-singleton
+/// ISO §2023:8.6.4: local-storage items are "allocated and set to initial state each time the runtime element containing
+/// them is activated", and §2023:14.6.2.3.2 action 5 sets "The address of each based item" to null. A cached-singleton
 /// program (neither INITIAL nor RECURSIVE) re-enters the SAME instance, so its <c>Call</c> entry re-initializes its
 /// LOCAL-STORAGE — and a CELL-BACKED root has no root field: a BASED item's storage is its implicit data-address
 /// pointer, an ADDRESS-OF-taken record's is its <c>StorageCell</c>. The field loop skipped both, so the second CALL saw
@@ -23,7 +23,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <para>What is measured, over the generated C# (so a channel added to that seed later is covered without editing
 /// this test): every per-instance <c>ManagedPointer</c> / <c>StorageCell</c> member the program declares for a
 /// LOCAL-STORAGE or non-formal LINKAGE root is ASSIGNED inside <c>Call</c>; the WORKING-STORAGE twin — static data,
-/// last-used between activations (§8.6.4) — is NOT; and no such LOCAL-STORAGE member is <c>readonly</c> (a readonly
+/// last-used between activations (§2023:8.6.4) — is NOT; and no such LOCAL-STORAGE member is <c>readonly</c> (a readonly
 /// cell could not be re-seeded at all).</para>
 /// </summary>
 public sealed class ActivationStorageReseedDriftTests

@@ -4,13 +4,13 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §11.9.3 SR1 — an OPTIONS paragraph clause without the
+      *> ISO §2023:11.9.3 SR1 — an OPTIONS paragraph clause without the
       *> terminating separator period.
       *> "1) If any of the clauses are specified, then there shall be
       *>   a terminating separator period."
-      *>   OK  §11.9.3 1)  (Syntax rule)
+      *>   OK  §2023:11.9.3 1)  (Syntax rule)
       *> The ARITHMETIC IS NATIVE clause (a clause of every edition
-      *> that has the OPTIONS paragraph, §11.9.5.1) is written and no
+      *> that has the OPTIONS paragraph, §2023:11.9.5.1) is written and no
       *> separator period follows it before the DATA DIVISION header,
       *> so SR1 is violated. This is a pure general-format rule, so the
       *> expected rejection is the parser's missing-period diagnostic

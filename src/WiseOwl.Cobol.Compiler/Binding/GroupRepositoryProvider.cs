@@ -7,7 +7,7 @@ namespace WiseOwl.Cobol.Binding;
 
 /// <summary>
 /// ⛔ THE ONE SEARCH OF THE COMPILATION GROUP THAT A REPOSITORY SPECIFIER RESOLVES THROUGH (kb/Work PB989; ISO
-/// §12.3.8.4 GR10 for a program-prototype-name, GR11 for a function-prototype-name — one sentence written twice,
+/// §2023:12.3.8.4 GR10 for a program-prototype-name, GR11 for a function-prototype-name — one sentence written twice,
 /// which is why it is one function here, <see cref="Find"/>; DESIGN-external-repository §8.0, §8.2, §8.3). It is the
 /// group's <see cref="IRepositoryProvider"/>: <see cref="RepositoryResolver"/> asks it first and applies the rules that
 /// span providers (determination D-R3) once, over every provider.
@@ -16,7 +16,7 @@ namespace WiseOwl.Cobol.Binding;
 /// <item>a) the externalized name of the prototype is the externalized name of a DEFINITION "specified PREVIOUSLY in
 /// the same compilation group" — the details come from that definition;</item>
 /// <item>b) otherwise, it is the externalized name of a PROTOTYPE definition "specified in the same compilation
-/// group" (NOT "previously": §10.6.2 SR1 puts every prototype ahead of every other unit anyway) — the details come
+/// group" (NOT "previously": §2023:10.6.2 SR1 puts every prototype ahead of every other unit anyway) — the details come
 /// from the prototype definition;</item>
 /// <item>c) otherwise the details come from the external repository — another provider's answer, never this one's.</item>
 /// </list>
@@ -24,14 +24,14 @@ namespace WiseOwl.Cobol.Binding;
 /// source element, so a REPOSITORY entry naming a definition that FOLLOWS the element took a)'s details from it
 /// (the order-blind tables this class replaced). The search now takes the position of the referencing element
 /// (<see cref="BoundUnit.SourcePosition"/>, or a class's own start) and reads only the definitions that start strictly
-/// before it. A prototype and its definition must have the same signature (§10.6.2 SR2/SR3, COBOL1513), so a) and
+/// before it. A prototype and its definition must have the same signature (§2023:10.6.2 SR2/SR3, COBOL1513), so a) and
 /// b) never disagree on the details; the observable difference is a definition WITHOUT a prototype that follows its
 /// caller, which is c).</para>
 /// <para><b>Matched by EXTERNALIZED name</b> for a) and b) (GR10 a) / GR11 a) say "the externalized name" three
 /// times). The user-function table used to merge a prototype with a definition of the same WORD, which dropped the
-/// prototype's <c>AS literal-1</c> (§11.5.4 GR2: literal-1 "is the name of the function prototype that is
+/// prototype's <c>AS literal-1</c> (§2023:11.5.4 GR2: literal-1 "is the name of the function prototype that is
 /// externalized to the operating environment") whenever a definition happened to share its word. The WORD has one
-/// job, for functions only: the candidates <see cref="FunctionsByWord"/> lists for D-R3 steps 2 and 3 (§8.4.6.7).</para>
+/// job, for functions only: the candidates <see cref="FunctionsByWord"/> lists for D-R3 steps 2 and 3 (§2023:8.4.6.7).</para>
 /// </summary>
 internal sealed class GroupRepositoryProvider : IRepositoryProvider
 {
@@ -42,9 +42,9 @@ internal sealed class GroupRepositoryProvider : IRepositoryProvider
     private static readonly IReadOnlyDictionary<string, UserFunctionSignature> NoFunctions =
         new Dictionary<string, UserFunctionSignature>(CobolNames.Comparer);
 
-    /// <summary>The group's FUNCTION-ID units (definitions and prototypes — §9.4 puts them in the function namespace)
+    /// <summary>The group's FUNCTION-ID units (definitions and prototypes — §2023:9.4 puts them in the function namespace)
     /// and its OUTERMOST PROGRAM-ID units (a contained program is part of its container's definition and is reachable
-    /// only through §14.9.4.3 SR15's AS NESTED, which has its own table), in source order.</summary>
+    /// only through §2023:14.9.4.3 SR15's AS NESTED, which has its own table), in source order.</summary>
     public GroupRepositoryProvider(IReadOnlyList<BoundUnit> units, ElementBinders binders)
     {
         _binders = binders;
@@ -93,7 +93,7 @@ internal sealed class GroupRepositoryProvider : IRepositoryProvider
     /// step 2's search, unspecified). The entries of the element's own specifiers replace these
     /// (<c>BinderDriver.UserFunctionsOf</c>); the rest is what lets a reference to a function the element did not
     /// declare say which function it could have meant. The group's alone: a later-compiled unit reaches a repository
-    /// function only through a REPOSITORY specifier (§8.4.6.7), so no other provider has a counterpart.</summary>
+    /// function only through a REPOSITORY specifier (§2023:8.4.6.7), so no other provider has a counterpart.</summary>
     public IReadOnlyDictionary<string, UserFunctionSignature> FunctionsAt(int position)
     {
         if (_functions.Count == 0) return NoFunctions;

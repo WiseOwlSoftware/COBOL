@@ -6,7 +6,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.41.4 GR11 and GR12 (RELATIVE FILES).
+      *> ISO §2023:14.9.41.4 GR11 and GR12 (RELATIVE FILES).
       *> GR11 — "If FIRST is specified, the file position indicator is
       *> set to the relative record number of the first existing
       *> logical record in the file. If no records exist in the file,
@@ -25,7 +25,7 @@
       *> SPARSE: its records are at relative record numbers 3, 7 and 9,
       *> so "first existing" is 3 (not 1, the lowest number the file
       *> could hold) and "last existing" is 9 (not 3, the count).
-      *>   FK  START FIRST, then READ NEXT. §14.9.30.4 GR21b makes the
+      *>   FK  START FIRST, then READ NEXT. §2023:14.9.30.4 GR21b makes the
       *>       record the START selected available and GR25 moves its
       *>       relative record number into the RELATIVE KEY item, so
       *>       the indicator's value prints outright: 0003, with R003.
@@ -36,7 +36,7 @@
       *>       0003 at that point, so again the answer cannot have come
       *>       from the key item.
       *>   EF/EL  A relative file with no records at all. Both phrases
-      *>       take the INVALID KEY imperative and set '23': §9.1.13.5
+      *>       take the INVALID KEY imperative and set '23': §2023:9.1.13.5
       *>       lists the invalid-key values, and '21', '22' and '24'
       *>       are all WRITE or REWRITE conditions, so '23' is the only
       *>       one a START can produce — the value the standard states

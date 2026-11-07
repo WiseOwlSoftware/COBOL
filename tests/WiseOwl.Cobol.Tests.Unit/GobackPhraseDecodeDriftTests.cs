@@ -20,10 +20,10 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <c>CallBinder.BindGoback</c> forked to <c>OoBinder.OoBindMethodGoback</c> when the statement was inside a
 /// METHOD, handing the whole <c>GobackStatementContext</c> to a second binder that re-decided which phrases
 /// existed — and read only <c>dataReference()</c> and <c>raisingPhrase()</c>. The COBOL-2023 status phrase was
-/// discarded in silence, so ISO §14.9.18.3 SR6/SR7/SR8 and the 2023 introduction gate never ran in a method
+/// discarded in silence, so ISO §2023:14.9.18.3 SR6/SR7/SR8 and the 2023 introduction gate never ran in a method
 /// (kb/Work PB411: <c>GOBACK WITH ERROR STATUS ""</c> inside a method compiled and ran clean at --std 2023).
 /// <para>The repair was structural: <c>CallBinder.DecodeGobackPhrases</c> reads the rule ONCE, before the
-/// §14.9.18.4 GR2/GR4 fork, and the method arm now takes the decoded <c>GobackPhrases</c> instead of the parse
+/// §2023:14.9.18.4 GR2/GR4 fork, and the method arm now takes the decoded <c>GobackPhrases</c> instead of the parse
 /// node. These three facts are what keep that true when the grammar gains its next phrase.</para>
 /// <para><b>What this test can and cannot see.</b> Facts 1 and 2 are source scans over comment-stripped text,
 /// so they see what the code NAMES, not what it does with it; fact 3 is reflection over the generated parser and
@@ -46,7 +46,7 @@ public sealed class GobackPhraseDecodeDriftTests
     /// <para>⛔ A REPEATED sub-rule counts too, and its accessor has a DIFFERENT SHAPE: for
     /// <c>(raisingPhrase | statusPhrase)*</c> ANTLR emits <c>RaisingPhraseContext[] raisingPhrase()</c> plus an
     /// indexed <c>raisingPhrase(int)</c>, neither of which is a zero-argument <c>ParserRuleContext</c> return.
-    /// Matching only the singular shape made this probe BLIND to exactly the phrases §14.9.18.2's choice
+    /// Matching only the singular shape made this probe BLIND to exactly the phrases §2023:14.9.18.2's choice
     /// indicators put on the statement (kb/Work PB407) — the element type is what the set is keyed on, so the
     /// probe answers the same question whether a phrase is written once or repeated.</para></summary>
     private static IReadOnlyList<string> SubRuleAccessors() =>
@@ -66,7 +66,7 @@ public sealed class GobackPhraseDecodeDriftTests
     {
         var accessors = SubRuleAccessors();
         Assert.True(accessors.Count >= 3,
-            "gobackStatement exposes fewer sub-rule accessors than the three phrases §14.9.18.2 gives it "
+            "gobackStatement exposes fewer sub-rule accessors than the three phrases §2023:14.9.18.2 gives it "
             + $"(found: {string.Join(", ", accessors)}) — the reflection in this test is stale.");
 
         string body = MethodBody(CallBinderSource(), "private GobackPhrases DecodeGobackPhrases");
@@ -75,7 +75,7 @@ public sealed class GobackPhraseDecodeDriftTests
         Assert.True(missing.Count == 0,
             $"CallBinder.DecodeGobackPhrases never reads {missing.Count} sub-rule(s) of gobackStatement: "
             + $"{string.Join(", ", missing)}. A phrase the ONE decode does not read is a phrase BOTH arms of the "
-            + "§14.9.18.4 GR2/GR4 fork silently ignore — its syntax rules and its edition gate stop running "
+            + "§2023:14.9.18.4 GR2/GR4 fork silently ignore — its syntax rules and its edition gate stop running "
             + "(kb/Work PB411). Decode it and give it a GobackPhrases member.");
     }
 

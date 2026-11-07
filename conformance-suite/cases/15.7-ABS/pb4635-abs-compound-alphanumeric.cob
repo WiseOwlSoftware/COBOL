@@ -4,8 +4,8 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> PB4635 review R1-1 (sibling) - ISO §15.7.3 r1: "Argument-1 shall be of class numeric." (cite.py --check 15.7.3 OK). X9 + 1 is
-      *> an arithmetic expression (§8.4.3.2.3 SR8), and §8.8.1.1 admits "an identifier referencing a numeric data item" in one: the
+      *> PB4635 review R1-1 (sibling) - ISO §2023:15.7.3 r1: "Argument-1 shall be of class numeric." (cite.py --check 15.7.3 OK). X9 + 1 is
+      *> an arithmetic expression (§2023:8.4.3.2.3 SR8), and §2023:8.8.1.1 admits "an identifier referencing a numeric data item" in one: the
       *> alphanumeric X9 is refused, not digit-decoded, as in COMPUTE T = X9 + 1.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. NEGABSCOMPALPHA.

@@ -5,9 +5,9 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// The ON SIZE ERROR phrase and the size error condition (ISO/IEC 1989:2023 §14.7.5), two-phase: a per-receiver
+/// The ON SIZE ERROR phrase and the size error condition (ISO/IEC 1989:2023 §2023:14.7.5), two-phase: a per-receiver
 /// capacity overflow leaves only that receiver unchanged and the others stored (rule 2), a zero divisor (case 2) or
-/// a ROUNDED MODE IS PROHIBITED inexact result (§14.7.4.3 r7) raises the condition with no receiver changed, and the
+/// a ROUNDED MODE IS PROHIBITED inexact result (§2023:14.7.4.3 r7) raises the condition with no receiver changed, and the
 /// ON / NOT ON SIZE ERROR imperative runs once afterward. Pinned to hand-computed spec values; the former legacy engine
 /// (NIST-exercised for ON SIZE ERROR) is cross-checked. The "receiver unchanged" cases are the silent-corruption
 /// class — each asserts the receiver's post-value, not just the imperative output.
@@ -16,7 +16,7 @@ public sealed class OnSizeErrorDifferentialTests
 {
     private static readonly WiseOwlCobolCompiler WiseOwlCobol = new();
 
-    // ROUNDED MODE IS is an ISO-2014+ phrase (§14.7.4) — the PROHIBITED facts compile at 2014.
+    // ROUNDED MODE IS is an ISO-2014+ phrase (§2023:14.7.4) — the PROHIBITED facts compile at 2014.
     private static readonly WiseOwlCobolCompiler WiseOwlCobol2014 = new(dialectLevel: 2014);
 
     private static void AssertOutput(string source, string expected, bool needs2014 = false)
@@ -40,7 +40,7 @@ public sealed class OnSizeErrorDifferentialTests
             STOP RUN.
         """;
 
-    // ── Capacity overflow → ON SIZE ERROR fires, receiver UNCHANGED (§14.7.5 rule 1/case 3). ────────────────────
+    // ── Capacity overflow → ON SIZE ERROR fires, receiver UNCHANGED (§2023:14.7.5 rule 1/case 3). ────────────────────
     [Fact]
     public void Overflow_FiresOnSizeError_ReceiverUnchanged()
     {
@@ -71,7 +71,7 @@ public sealed class OnSizeErrorDifferentialTests
             "    ADD 1 2 GIVING R ON SIZE ERROR DISPLAY \"E\" NOT ON SIZE ERROR DISPLAY \"N\".\n    DISPLAY R."),
             "N\n03");
 
-    // ── ROUNDED MODE IS PROHIBITED: an inexact result is a size error (§14.7.4.3 r7); an exact result is not. ────
+    // ── ROUNDED MODE IS PROHIBITED: an inexact result is a size error (§2023:14.7.4.3 r7); an exact result is not. ────
     [Fact]
     public void ProhibitedInexact_FiresOnSizeError_ReceiverUnchanged()
     {
@@ -88,14 +88,14 @@ public sealed class OnSizeErrorDifferentialTests
             "    COMPUTE R ROUNDED MODE IS PROHIBITED = 9 / 3 ON SIZE ERROR DISPLAY \"P\" NOT ON SIZE ERROR DISPLAY \"OK\".\n    DISPLAY R."),
             "OK\n03", needs2014: true);
 
-    // ── Divide by zero → ON SIZE ERROR fires, receiver UNCHANGED (§14.7.5 case 2). ──────────────────────────────
+    // ── Divide by zero → ON SIZE ERROR fires, receiver UNCHANGED (§2023:14.7.5 case 2). ──────────────────────────────
     [Fact]
     public void DivideByZero_FiresOnSizeError_ReceiverUnchanged()
         => AssertOutput(Program("01 R PIC 9(2) VALUE 7.",
             "    DIVIDE 5 BY 0 GIVING R ON SIZE ERROR DISPLAY \"D0\".\n    DISPLAY R."),
             "D0\n07");   // R keeps 07
 
-    // ── Multiple receivers: only the overflowing one is unchanged; the others ARE stored (§14.7.5 rule 2). ──────
+    // ── Multiple receivers: only the overflowing one is unchanged; the others ARE stored (§2023:14.7.5 rule 2). ──────
     [Fact]
     public void MultiReceiver_PartialStore_OnlyOverflowingUnchanged()
     {
@@ -106,7 +106,7 @@ public sealed class OnSizeErrorDifferentialTests
         AssertMatchesGolden(src);
     }
 
-    // ── Intermediate overflow of the long engine → ON SIZE ERROR fires (§14.7.5 case 5; the phrase ENABLES the
+    // ── Intermediate overflow of the long engine → ON SIZE ERROR fires (§2023:14.7.5 case 5; the phrase ENABLES the
     //    check). 9999999999 × 9999999999 ≈ 9.9e19 overflows long; the checked(...) the store wraps the value in
     //    throws, caught as the size error. The legacy reaches the same outcome via its wider intermediate then a
     //    capacity overflow — both leave R unchanged and run the imperative. ───────────────────────────────────────
@@ -125,7 +125,7 @@ public sealed class OnSizeErrorDifferentialTests
         => AssertMatchesGolden(Program("01 R PIC 9(2).", "    ADD 1 2 GIVING R.\n    DISPLAY R."));
 
     // ── ROUNDED MODE IS PROHIBITED into a numeric-EDITED receiver: an inexact transfer is a size error
-    //    (§14.7.4.3 r7 → EC-SIZE-TRUNCATION), receiver UNCHANGED. The DEVLOG-610-audited leak: the edited-store
+    //    (§2023:14.7.4.3 r7 → EC-SIZE-TRUNCATION), receiver UNCHANGED. The DEVLOG-610-audited leak: the edited-store
     //    path used plain CobolNum.Rescale (silent truncation) while the numeric path's TryStore checked it; the
     //    RescaleChecked cure makes all three receiver categories agree. 2014-only (ROUNDED MODE is 2014+). The
     //    fix lives in the ONE shared StoreArith edited branch, so it holds across COMPUTE / ADD-GIVING / DIVIDE. ──

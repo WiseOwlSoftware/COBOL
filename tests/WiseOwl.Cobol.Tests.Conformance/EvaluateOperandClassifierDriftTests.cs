@@ -7,7 +7,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// <summary>
 /// ⛔ THE EVALUATE OPERAND CLASSIFIER IS SYMMETRIC, AND THIS IS WHAT MEASURES IT.
 ///
-/// <para>ISO §14.9.13.3 Table 15 names the same operand kinds on both axes, and §14.9.13.3 SR6 a)/b) are printed
+/// <para>ISO §2023:14.9.13.3 Table 15 names the same operand kinds on both axes, and §2023:14.9.13.3 SR6 a)/b) are printed
 /// as a mirrored pair — so every shape that can be a selection SUBJECT in a given cell can be the selection
 /// OBJECT in that cell's transpose. <c>EvaluateOperandCombinationsDriftTests</c> pins the TABLE against the spec;
 /// nothing pinned the CLASSIFIER in front of it, and that is exactly where the defect lived: two independently
@@ -17,7 +17,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// spelling of the subject worked too, which is what proved it a classifier hole rather than a Table-15 fact
 /// (kb/Work PB400).</para>
 ///
-/// <para>Each row below is ONE source shape that §14.9.13.4 GR3 e) gives a truth value, written into BOTH
+/// <para>Each row below is ONE source shape that §2023:14.9.13.4 GR3 e) gives a truth value, written into BOTH
 /// positions of the same program. The assertion is not "it compiles": it is that the two positions AGREE, and
 /// that they agree on the value the standard assigns. A classifier arm added to one side and not the other
 /// fails here even though Table 15 itself is untouched.</para>
@@ -63,15 +63,15 @@ public sealed class EvaluateOperandClassifierDriftTests
         """;
 
     /// <summary>Every bare-operand shape the standard makes a condition, in both selection positions, in both
-    /// polarities. The expected text is derived, never observed: §14.9.13.4 GR3 e) assigns the subject a truth
+    /// polarities. The expected text is derived, never observed: §2023:14.9.13.4 GR3 e) assigns the subject a truth
     /// value and GR4 a) 4. selects the WHEN whose TRUE/FALSE matches it, while GR4 a) 3. does the mirror for a
     /// condition OBJECT under a TRUE subject.</summary>
     [Theory]
-    // A level-88 condition-name — §8.8.4.2.7 rule 2 makes the bare name a complete condition. W-F holds 1, so
+    // A level-88 condition-name — §2023:8.8.4.2.7 rule 2 makes the bare name a complete condition. W-F holds 1, so
     // the membership test is true.
     [InlineData("EVC01", "", "01 W-F PIC 9 VALUE 1.\n           88 W-IS-ONE VALUE 1.", "", "W-IS-ONE", "SUBJ=T\nOBJ=T")]
     [InlineData("EVC02", "", "01 W-F PIC 9 VALUE 2.\n           88 W-IS-ONE VALUE 1.", "", "W-IS-ONE", "SUBJ=F\nOBJ=F")]
-    // A switch-status condition-name — §8.8.4.6. SET … TO ON makes SW-ON true (§14.9.39.4 GR5: the external
+    // A switch-status condition-name — §2023:8.8.4.6. SET … TO ON makes SW-ON true (§2023:14.9.39.4 GR5: the external
     // switch is modified "such that the truth value resultant from evaluation of a condition-name associated
     // with that switch will reflect an on status"). THIS is the pair PB400 found broken on the subject side.
     [InlineData("EVC03", SwitchEnv, "", "SET SWM-A TO ON.", "SW-ON", "SUBJ=T\nOBJ=T")]
@@ -81,7 +81,7 @@ public sealed class EvaluateOperandClassifierDriftTests
     // arms of one printed rule; only a) existed.
     [InlineData("EVC06", "", "01 W-B PIC 1 USAGE BIT VALUE B\"1\".", "", "W-B", "SUBJ=T\nOBJ=T")]
     [InlineData("EVC07", "", "01 W-B PIC 1 USAGE BIT VALUE B\"0\".", "", "W-B", "SUBJ=F\nOBJ=F")]
-    // A one-boolean-character boolean LITERAL — the same SR6 pair over §8.8.2's "a boolean literal" operand.
+    // A one-boolean-character boolean LITERAL — the same SR6 pair over §2023:8.8.2's "a boolean literal" operand.
     [InlineData("EVC08", "", "", "", "B\"1\"", "SUBJ=T\nOBJ=T")]
     [InlineData("EVC09", "", "", "", "B\"0\"", "SUBJ=F\nOBJ=F")]
     public void EveryConditionShape_ClassifiesTheSameAsSubjectAndAsObject(
@@ -94,7 +94,7 @@ public sealed class EvaluateOperandClassifierDriftTests
 
     /// <summary>Table 15's OTHER 'Y' in the Condition row — Condition × Condition — over all four truth
     /// combinations, so "the truth values match" cannot pass as "always true" or as "the subject alone".
-    /// §14.9.13.4 GR4 a) 3. and a) 4. state that analysis in one shared sentence, and GR3 e) is what makes it
+    /// §2023:14.9.13.4 GR4 a) 3. and a) 4. state that analysis in one shared sentence, and GR3 e) is what makes it
     /// meaningful for a condition-1 subject. Every spelling of condition-1 reaches this cell, so a classifier
     /// that recognises a form on one side only fails here as well as in the TRUE/FALSE test above.</summary>
     [Theory]
@@ -151,14 +151,14 @@ public sealed class EvaluateOperandClassifierDriftTests
                 STOP RUN.
             """;
         var (ok, _, detail) = new WiseOwlCobolCompiler(2002).CompileAndRun(src);
-        Assert.False(ok, "ISO §14.9.13.3 SR6 reclassifies a boolean operand to a condition only when it results "
+        Assert.False(ok, "ISO §2023:14.9.13.3 SR6 reclassifies a boolean operand to a condition only when it results "
             + "in ONE boolean character; otherwise it is boolean-expression-1/-2, and Table 15 leaves that cell "
             + "blank against a TRUE-or-FALSE counterpart");
         Assert.Contains("COBOL1634", detail, StringComparison.Ordinal);
     }
 
-    /// <summary>§14.9.13.4 GR1 — "If an operand of the EVALUATE statement consists of a single literal, that
-    /// operand is treated as a literal, not as an expression" — read together with §8.3.3.3.2 rule 2, which puts
+    /// <summary>§2023:14.9.13.4 GR1 — "If an operand of the EVALUATE statement consists of a single literal, that
+    /// operand is treated as a literal, not as an expression" — read together with §2023:8.3.3.3.2 rule 2, which puts
     /// an ADJACENT sign inside the literal. So a signed literal is a LITERAL on both sides of the pair (Table 15
     /// leaves literal × literal blank), while the SEPARATED spelling is a unary operator applied to one and is a
     /// perfectly legal arithmetic-expression operand. The sign is the only thing that differs between the two
@@ -192,7 +192,7 @@ public sealed class EvaluateOperandClassifierDriftTests
         }
         else
         {
-            Assert.False(ok, "ISO §14.9.13.3 SR10 Table 15 leaves the literal × literal cell blank");
+            Assert.False(ok, "ISO §2023:14.9.13.3 SR10 Table 15 leaves the literal × literal cell blank");
             Assert.Contains("COBOL1634", detail, StringComparison.Ordinal);
         }
     }

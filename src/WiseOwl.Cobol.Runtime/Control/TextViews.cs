@@ -14,11 +14,11 @@ internal sealed record AnyLengthView(ManagedPointer<string> Base);
 internal sealed record DynamicView(ManagedPointer<string> Base, int Limit);
 
 /// <summary>
-/// The ONE builder of the character views a BY REFERENCE formal reads its argument through (ISO §14.2.3 GR8: the
+/// The ONE builder of the character views a BY REFERENCE formal reads its argument through (ISO §2023:14.2.3 GR8: the
 /// formal "operates as if" it occupies the argument's storage area; kb/Work PB4768; docs/INTERPROGRAM_DESIGN.md).
 /// A view over a view never collapses on its own: a formal passed on BY REFERENCE through N activations would be a
 /// chain of N closures, each access costing N delegate calls and a deep recursion exhausting the .NET stack outside
-/// the activation-stack check (§14.9.4.4 GR3 c) and h)). Every view here is built over the UNDERLYING storage and
+/// the activation-stack check (§2023:14.9.4.4 GR3 c) and h)). Every view here is built over the UNDERLYING storage and
 /// composes the windows of the views it would have wrapped, so the depth is one however many activations pass the
 /// formal on.
 /// <para>The composition: a window of width w over a window (Trunc a, Width w1) reads
@@ -47,7 +47,7 @@ internal static class TextViews
             new TextWindow(b, a, width));
     }
 
-    /// <summary>The ANY LENGTH view (§13.18.2 GR1): the full string, every store re-fitted to its length. A window and
+    /// <summary>The ANY LENGTH view (§2023:13.18.2 GR1): the full string, every store re-fitted to its length. A window and
     /// an ANY LENGTH view already show a fixed-length string and re-fit stores to it, so the view over either is
     /// that carrier itself.</summary>
     public static ManagedPointer<string> AnyLength(ManagedPointer<string> argument) =>
@@ -58,7 +58,7 @@ internal static class TextViews
                 v => argument.Value = CobolString.Store(v, argument.Value?.Length ?? 0),
                 new AnyLengthView(argument));
 
-    /// <summary>The dynamic-length view (§13.18.19; §8.5.1.10.4): the full string, stores truncated at
+    /// <summary>The dynamic-length view (§2023:13.18.19; §2023:8.5.1.10.4): the full string, stores truncated at
     /// <paramref name="limit"/>; over another dynamic view the limits compose by their minimum.</summary>
     public static ManagedPointer<string> Dynamic(ManagedPointer<string> argument, int limit)
     {

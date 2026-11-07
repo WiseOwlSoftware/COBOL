@@ -5,25 +5,25 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §8.4.3.8.4 GR1/GR3 — SELF and SUPER reference the invoking
+      *> ISO §2023:8.4.3.8.4 GR1/GR3 — SELF and SUPER reference the invoking
       *> object; SUPER resolution skips the containing class AND every
       *> subclass of it. Chain: A=L1C28CA <- B=L1C28CB <- C=L1C28CC.
-      *> The root inherits the standard class BASE (§16.1), whose New creates
+      *> The root inherits the standard class BASE (§2023:16.1), whose New creates
       *> every object below (kb/Work PB1548 made INHERITS FROM BASE bind).
       *> GR1: "SELF and SUPER both reference the object that was used
       *>   to invoke the method in which the reference to SELF or SUPER
       *>   appears."
-      *>   cite.py: OK  §8.4.3.8.4 1)  (General rules)
+      *>   cite.py: OK  §2023:8.4.3.8.4 1)  (General rules)
       *> GR2 (the SELF legs): "If SELF is specified for a method
       *>   invocation, the method resolution is based upon the set of
       *>   methods defined for the runtime class of the object
       *>   referenced by SELF."
-      *>   cite.py: OK  §8.4.3.8.4 2)  (General rules)
+      *>   cite.py: OK  §2023:8.4.3.8.4 2)  (General rules)
       *> GR3: "If SUPER is specified for a method invocation, ...
       *>   ignores all the methods defined in the class containing the
       *>   invocation and all the methods defined in any subclass of
       *>   that class."
-      *>   cite.py: OK  §8.4.3.8.4 3)  (General rules)
+      *>   cite.py: OK  §2023:8.4.3.8.4 3)  (General rules)
       *> M is defined in A, overridden in B and in C; WHO is defined in
       *> A and overridden only in C; BUMP (A only) counts in A's
       *> per-object datum CNT. OC is an object of C, OB of B.

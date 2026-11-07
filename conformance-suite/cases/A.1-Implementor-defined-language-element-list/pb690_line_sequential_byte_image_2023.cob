@@ -7,19 +7,19 @@
       *>---
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB690LSQ.
-      *> ISO/IEC 1989:2023 §12.4.5.10.3 GR2 ("The range of allowable
+      *> ISO/IEC 1989:2023 §2023:12.4.5.10.3 GR2 ("The range of allowable
       *> characters in a line sequential file is implementor-defined")
-      *> with §8.1.2 (the encoding is the implementor's): a LINE
+      *> with §2023:8.1.2 (the encoding is the implementor's): a LINE
       *> SEQUENTIAL file with no CODE-SET clause is UTF-8 TEXT (owner
       *> decision kb/Work R51, which supersedes R47 for this
       *> organization; kb/Work PB1760; docs/CONFORMANCE.md DOC-A.1-31
       *> and DOC-A.1-115). Every character a record area can hold
       *> round-trips; what stays OUTSIDE the set is the C0 controls and
       *> a lone surrogate, which is not a character and has no UTF-8
-      *> form - §14.9.51.4 GR23: "the execution of the WRITE statement
+      *> form - §2023:14.9.51.4 GR23: "the execution of the WRITE statement
       *> is unsuccessful and the I-O status ... is set to '71'".
       *>
-      *> §14.9.35.4 GR17 b) compares BYTES - "If the number of bytes in
+      *> §2023:14.9.35.4 GR17 b) compares BYTES - "If the number of bytes in
       *> ... the record referenced by record-name-1 is greater than the
       *> number of bytes in the record being replaced, the execution of
       *> the REWRITE statement is unsuccessful" ('44'). A line is

@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §8.3.2.2: A user-defined word is a COBOL word that is supplied by the user to satisfy the format of a
+      *> ISO §2023:8.3.2.2: A user-defined word is a COBOL word that is supplied by the user to satisfy the format of a
       *>   clause or statement. (cite.py --check 8.3.2.2 -> OK) A word the program supplies is a user-defined word
       *>   whatever the .NET runtime calls one of its own types: nothing in the standard reserves CobolString,
       *>   ProgramRegistry, HostLanding, CobolFile, Int128, Version ... (kb/Work PB3270).
@@ -16,7 +16,7 @@
       *>   would capture the simple name for the whole namespace.
       *> Each leg can fail: an unrenamed item does not compile; the CALL passes ProgramRegistry and CobolRec (a
       *>   group with members CobolNum and StorageCell) by reference, so the callee's changes are the caller's.
-      *> Derivation (ISO §14.9.11.4 GR1 and GR6, cite.py --check -> OK: the operands are transferred in order, their
+      *> Derivation (ISO §2023:14.9.11.4 GR1 and GR6, cite.py --check -> OK: the operands are transferred in order, their
       *>   conversion to characters being the implementor's, docs/CONFORMANCE.md): CobolString PIC X(5) VALUE AB
       *>   -> AB and 3 spaces; ProgramRegistry CD and 3 spaces; CobolNum 007; StorageCell Q and 2 spaces. The
       *>   callee shows IN, then the three values with separating spaces; it moves EF to the first formal, adds 1 to

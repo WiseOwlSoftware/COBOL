@@ -9,8 +9,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ EVERY HOST OF THE REGION LOCKS KEEPS ONE CONTRACT, AND THE LOCK-FILE HOST IS HELD TO IT ON EVERY MACHINE (kb/Work
-/// PB2936). ISO §9.1.16: <i>"While locked by a given file connector, a record is not accessible to another file
-/// connector in the same or a different run unit"</i>, and §9.1.13.8 1) answers I-O status 51 for it. The record locks
+/// PB2936). ISO §2023:9.1.16: <i>"While locked by a given file connector, a record is not accessible to another file
+/// connector in the same or a different run unit"</i>, and §2023:9.1.13.8 1) answers I-O status 51 for it. The record locks
 /// and the store mutex of a shared RELATIVE or INDEXED file are bytes of the map in <see cref="HostRegionLocks"/>, held
 /// through a <see cref="RegionLocks"/> endpoint; before PB2936 they had no expression on macOS, so two run units sharing
 /// a keyed file under <c>SHARING WITH ALL OTHER</c> there both read '00' for a record one held and lost each other's
@@ -163,7 +163,7 @@ public sealed class RegionLocksDriftTests
         Assert.Equal(RegionLockResult.Ok, b.Hold(Byte2, exclusive: true, wait: false));
     }
 
-    /// <summary>A waiting hold gets the byte when the holder gives it back (the store mutex, §14.7.9.3's statement
+    /// <summary>A waiting hold gets the byte when the holder gives it back (the store mutex, §2023:14.7.9.3's statement
     /// boundary).</summary>
     [Theory]
     [MemberData(nameof(Hosts))]
@@ -209,7 +209,7 @@ public sealed class RegionLocksDriftTests
             foreach (var t in threads) t.Start();
             foreach (var t in threads) t.Join();
             Assert.False(results[0] == RegionLockResult.Ok && results[1] == RegionLockResult.Ok,
-                $"Round {round}: both endpoints hold byte {Byte1:x} exclusively — §9.1.16 'not accessible to another file connector'.");
+                $"Round {round}: both endpoints hold byte {Byte1:x} exclusively — §2023:9.1.16 'not accessible to another file connector'.");
             Assert.DoesNotContain(RegionLockResult.Unavailable, results);
             foreach (var endpoint in endpoints) endpoint.Release(Byte1);
         }
@@ -457,7 +457,7 @@ public sealed class RegionLocksDriftTests
     /// <summary>⛔ A HOLD WHOSE EVERY PUBLICATION TRY LOST ITS RACE STILL SEES THE HOLDERS ALREADY THERE (kb/Work PB3632, the region
     /// twin of the column host's PB3632 witness): a null from <c>Publish</c> covered both "this host takes no lock" and
     /// "every try collided", and the hold answered <see cref="RegionLockResult.Unavailable"/> for both, which a caller reads
-    /// as a host with no such lock, so a record lock another run unit holds (§9.1.16) was taken as if free. With a conflicting
+    /// as a host with no such lock, so a record lock another run unit holds (§2023:9.1.16) was taken as if free. With a conflicting
     /// holder standing, the non-waiting hold is <see cref="RegionLockResult.Held"/> (a conflict); the waiting hold waits for it
     /// (here the holder lets go before the third round, and the hold is <see cref="RegionLockResult.Ok"/>, not Unavailable);
     /// shared beside shared conflicts with nothing, and a hold nothing is in the way of is Unavailable, as no host that
@@ -683,7 +683,7 @@ public sealed class RegionLocksDriftTests
 
     /// <summary>⛔ A LOCK DIRECTORY THIS USER MAY ENTER BUT NOT LIST HIDES EVERY HOLDER (the train 1056b review): the
     /// listing's "access denied" was read as a lock the host cannot hold, so a READ WITH LOCK got the record another run
-    /// unit may hold, where §9.1.13.8 1) answers '51'. It is unobservable as a whole: held for the non-waiting and the
+    /// unit may hold, where §2023:9.1.13.8 1) answers '51'. It is unobservable as a whole: held for the non-waiting and the
     /// asker, unavailable for the waiting. Another endpoint really holds the byte, and only then is the directory's mode
     /// narrowed to write and search, so the holder is hidden and its file keeps the directory alive across the asker's
     /// own publications. Unix modes only; the test witnesses nothing as root.</summary>

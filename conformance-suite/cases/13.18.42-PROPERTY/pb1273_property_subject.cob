@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB1273 — the PROPERTY clause's subject is the entry that carries it, and §13.18.42.3's syntax
+      *> kb/Work PB1273 — the PROPERTY clause's subject is the entry that carries it, and §2023:13.18.42.3's syntax
       *> rules admit exactly these shapes:
       *>   N  — an elementary item SUBORDINATE to a group, uniquely named, not subject to OCCURS: SR2 ("shall not be
       *>        specified for data items subject to an OCCURS clause") and SR3 ("only for an elementary item whose
@@ -16,7 +16,7 @@
       *>   M  — R1's other member, no clause: no accessor; N2 — a method's LOCAL-STORAGE item, which SR1 ("only in
       *>        the working-storage section of a factory definition or an instance definition") keeps out of the
       *>        object's property name space.
-      *> Hand-derived stdout (§13.18.42.4 GR1/GR2 — the implicit GET returns the item, the implicit SET moves to it):
+      *> Hand-derived stdout (§2023:13.18.42.4 GR1/GR2 — the implicit GET returns the item, the implicit SET moves to it):
       *>   N=7 K=4
       *>   N=3 K=4
       *>   SHOW N=3 N2=9

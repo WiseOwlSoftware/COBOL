@@ -4,7 +4,7 @@ namespace WiseOwl.Cobol.Frontend.Common;
 
 /// <summary>
 /// The part of a compilation's ambient-input record (<see cref="CompilationInputs"/>, the one gateway, kb/Work PB985) that
-/// the external repository's reader uses (ISO §8.13; DESIGN-external-repository §8.0, §16): the existence probes of the
+/// the external repository's reader uses (ISO §2023:8.13; DESIGN-external-repository §8.0, §16): the existence probes of the
 /// places named on the command line, each recorded with its answer, and the mark that the compilation consulted the
 /// repository. The binder sees the record through this interface because it sits below the front end's pipeline
 /// (docs/rearchitecture/architecture-edges.json: compiler.binding may read frontend.common, never frontend.pipeline).

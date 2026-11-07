@@ -4,15 +4,15 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §13.18.57.3 SR11 — "Following CONTROL HEADING or CONTROL
+      *> ISO §2023:13.18.57.3 SR11 — "Following CONTROL HEADING or CONTROL
       *> FOOTING, data-name-1, data-name-2, or FINAL may be omitted only
       *> if the CONTROL clause in the corresponding report description
       *> entry contains exactly one operand." R-1's CONTROL clause has
       *> TWO operands (CX major, CY minor), so the operand-less TYPE CH
       *> cannot select a control level and shall be refused. Everything
       *> else is conforming: both controls are working-storage items with
-      *> no OCCURS (§13.18.16.3 SR2/SR3), and the report has a DETAIL body
-      *> group (§13.18.57.3 SR15). Writing TYPE CH CX (or CY) is legal.
+      *> no OCCURS (§2023:13.18.16.3 SR2/SR3), and the report has a DETAIL body
+      *> group (§2023:13.18.57.3 SR15). Writing TYPE CH CX (or CY) is legal.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1TCH2.
        ENVIRONMENT DIVISION.

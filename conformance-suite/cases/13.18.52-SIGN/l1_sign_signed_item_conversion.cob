@@ -5,11 +5,11 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §13.18.52.4 GR7 — a picture containing 'S' makes the item a
+      *> ISO §2023:13.18.52.4 GR7 — a picture containing 'S' makes the item a
       *> SIGNED item, and where a SIGN clause applies, conversion needed for
       *> computation or comparison happens AUTOMATICALLY.
       *>
-      *> THE RULE. §13.18.52.4 GR7: "Each numeric item whose picture
+      *> THE RULE. §2023:13.18.52.4 GR7: "Each numeric item whose picture
       *> character-string contains the symbol 'S' is a signed item. If a SIGN
       *> clause applies to such an item and conversion is necessary for
       *> purposes of computation or comparisons, conversion takes place
@@ -20,7 +20,7 @@
       *>
       *> HOW THE SECOND OBLIGATION IS MADE OBSERVABLE. A conversion claim is
       *> vacuous unless the two operands really are stored differently, so A1
-      *> and B1 carry the SAME value in two layouts that §13.18.52.4 GR6
+      *> and B1 carry the SAME value in two layouts that §2023:13.18.52.4 GR6
       *> defines completely and differently:
       *>   GR6 a) "The operational sign is presumed to be the leading (or,
       *>          respectively, trailing) character position of the data item
@@ -30,7 +30,7 @@
       *>          basic special characters '+' and '-', respectively." (The
       *>          printed standard sets that second character as an en dash;
       *>          the basic special character it names is Table 1's "minus
-      *>          sign (hyphen)", §8.1.3.1 — U+002D HYPHEN-MINUS.)
+      *>          sign (hyphen)", §2023:8.1.3.1 — U+002D HYPHEN-MINUS.)
       *> so A1 (LEADING SEPARATE) is [-012] and B1 (TRAILING SEPARATE) is
       *> [012-] — the sign character sits at opposite ends. Both are 4 bytes:
       *> 3 digit positions plus the separate sign character position, at one
@@ -38,14 +38,14 @@
       *> IMG leg prints both images, so the later legs cannot be satisfied by
       *> two items that happened to be stored identically.
       *> The unseparate (over-punch) form is deliberately avoided: its
-      *> representation is the §13.18.52.4 GR4 implementor determination and
+      *> representation is the §2023:13.18.52.4 GR4 implementor determination and
       *> has no docs/CONFORMANCE.md A.1 row yet.
       *>
       *> THE LEGS.
       *> IMG — the two layouts, derived above. This leg alone would pass with
       *>       no conversion machinery at all; it exists to make EQ/NEG/SUM
       *>       non-vacuous.
-      *> EQ  — GR7's COMPARISON half, and §8.8.4.2.4 is the clause that makes
+      *> EQ  — GR7's COMPARISON half, and §2023:8.8.4.2.4 is the clause that makes
       *>       the conversion NECESSARY: "For operands whose class is numeric,
       *>       a comparison is made with respect to the algebraic value of the
       *>       operands regardless of the manner in which their usage is
@@ -62,7 +62,7 @@
       *>       sign layouts take part in one statement with no source-level
       *>       conversion written anywhere.
       *> Every image is read through a GROUP move to an alphanumeric item,
-      *> which §14.9.25.4 GR4 makes a byte transfer rather than a numeric
+      *> which §2023:14.9.25.4 GR4 makes a byte transfer rather than a numeric
       *> conversion, so the printed characters are the stored ones.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1SGN02.

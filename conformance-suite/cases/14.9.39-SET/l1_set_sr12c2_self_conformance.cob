@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.39.3 SR12 c)2. — SET format 5 with the predefined
+      *> ISO §2023:14.9.39.3 SR12 c)2. — SET format 5 with the predefined
       *> object reference SELF as identifier-4 and an
       *> object-class-name receiver: "the class containing the SET
       *> statement shall be the same class or a subclass of the class
@@ -22,11 +22,11 @@
       *>     L1C2B, L1C2D INHERITS FROM L1C2B — the SUBCLASS leg.
       *>
       *> EXPECTED OUTPUT, DERIVED FROM THE RULE TEXT AND ITS
-      *> NEIGHBOURS.  §8.4.3.8.4 GR1: "SELF and SUPER both reference
+      *> NEIGHBOURS.  §2023:8.4.3.8.4 GR1: "SELF and SUPER both reference
       *> the object that was used to invoke the method in which the
-      *> reference to SELF or SUPER appears."  §14.9.39.4 GR9: a
+      *> reference to SELF or SUPER appears."  §2023:14.9.39.4 GR9: a
       *> reference to the object identified by identifier-4 is placed
-      *> into the data item referenced by identifier-3.  §14.9.23.4
+      *> into the data item referenced by identifier-3.  §2023:14.9.23.4
       *> GR2: the invoked method is a method OF THAT OBJECT.  So
       *> INVOKE O "GRAB" runs in an L1C2B object and prints BASE, and
       *> INVOKE P "GRABD" runs in an L1C2D object whose SPEAK is the

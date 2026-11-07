@@ -19,19 +19,19 @@ using Core = CobolParserCore;
 /// </summary>
 internal sealed class OoDriver(BindSession session)
 {
-    /// <summary>Bind one INTERFACE's prototype formals (§10.6.2 SR4 — LINKAGE-only data divisions; the
+    /// <summary>Bind one INTERFACE's prototype formals (§2023:10.6.2 SR4 — LINKAGE-only data divisions; the
     /// prototypes reuse the whole OoDataBinder.BindMethodData machinery with no bodies).</summary>
     public void BindInterfaceData(OoInterfaceSymbol iface) => session.Binders.AddInterface(iface, BindInterface(iface));
 
     /// <summary>⛔ A PARAMETERIZED definition binds AS ITSELF, for its own rules, and nothing emits the result
-    /// (kb/Work PB2051, PB2937; OO deep-dive D12). §9.3.12 makes it a skeleton whose expansions are the classes, but it
+    /// (kb/Work PB2051, PB2937; OO deep-dive D12). §2023:9.3.12 makes it a skeleton whose expansions are the classes, but it
     /// is a class definition all the same: every syntax rule of its data, environment and method headers — a BASED
-    /// entry's level (§13.16.3 SR16), a data-division section's placement (§13.7.3 SR1), a duplicate METHOD-ID, a USAGE
+    /// entry's level (§2023:13.16.3 SR16), a data-division section's placement (§2023:13.7.3 SR1), a duplicate METHOD-ID, a USAGE
     /// the targeted edition does not have — governs its text whether or not anything expands it, and until this bind
     /// those rules were asked of an expansion only, so an unexpanded definition compiled whatever its body held. Its
     /// parameter-names resolve through the one funnel as formals (<c>OoNameResolution.Result.IsFormal</c>), and a
     /// reference typed by a formal takes the alternative its REPOSITORY specifier declares, marked
-    /// <see cref="ObjectRefDescriptor.Formal"/>: what the formal names is known only in an expansion, where §9.3.8.2.4
+    /// <see cref="ObjectRefDescriptor.Formal"/>: what the formal names is known only in an expansion, where §2023:9.3.8.2.4
     /// asks every question that turns on it "as if the actual parameter classes or interfaces were substituted". The
     /// uid band it draws is its own and comes after every emitted class's, so emission is unchanged. The bound forests
     /// are KEPT (<see cref="SkeletonClasses"/>, <see cref="SkeletonInterfaceData"/>); no pass that produces code sees
@@ -66,7 +66,7 @@ internal sealed class OoDriver(BindSession session)
         var definition = session.Sources.Of(iface);
         var data = ElementBinder(definition, definition, ownerClassName: null);
         data.CallSeedUids(session.TakeUidBand());
-        // §10.6.1 / §11.9.4 GR1: the INTERFACE skeleton carries its own OPTIONS paragraph, and nothing bound it
+        // §2023:10.6.1 / §2023:11.9.4 GR1: the INTERFACE skeleton carries its own OPTIONS paragraph, and nothing bound it
         // — so its clauses had no effect on the prototypes AND, because OptionsBinder is where the
         // processor-dependence screens live, an interface could select a declined arithmetic mode in silence
         // (kb/Work PB197: the second hollow arm, found by sweeping all six optionsParagraph-bearing productions
@@ -101,25 +101,25 @@ internal sealed class OoDriver(BindSession session)
         OoEnvironmentRules.Screen(OoDefinition.Instance, $"class '{cls.Name}' OBJECT paragraph",
             classCtx.objectParagraph()?.environmentDivision(), edition);
         // The DATA-division twin: a factory or instance definition carries no LINKAGE or LOCAL-STORAGE SECTION
-        // (§13.7.3 SR1, §13.6.3 SR1; kb/Work PB1251) and no GLOBAL clause in any entry (§13.18.27.3 SR4; kb/Work
+        // (§2023:13.7.3 SR1, §2023:13.6.3 SR1; kb/Work PB1251) and no GLOBAL clause in any entry (§2023:13.18.27.3 SR4; kb/Work
         // PB1045). Its methods' own data divisions are asked in OoDataBinder.BindMethodData.
         OoDefinitionRules.Screen(OoDefinition.Factory, $"class '{cls.Name}' FACTORY paragraph",
             classCtx.factoryParagraph()?.dataDivision(), edition);
         OoDefinitionRules.Screen(OoDefinition.Instance, $"class '{cls.Name}' OBJECT paragraph",
             classCtx.objectParagraph()?.dataDivision(), edition);
-        // ⛔ THE CLASS DEFINITION IS A SOURCE ELEMENT OF ITS OWN (kb/Work PB3154). §10.5: "A source element is a source
+        // ⛔ THE CLASS DEFINITION IS A SOURCE ELEMENT OF ITS OWN (kb/Work PB3154). §2023:10.5: "A source element is a source
         // unit excluding any contained source units", and the factory and instance definitions are source units the
-        // class definition contains (§3.165). So the words of the class definition's environment division (its
+        // class definition contains (§2023:3.165). So the words of the class definition's environment division (its
         // REPOSITORY specifiers, its SPECIAL-NAMES names) and its CLASS-ID are declared ONCE, here, in the class's
-        // §8.3.2.2 census, and the factory and instance binders INHERIT the configuration they establish (§12.3.4
+        // §2023:8.3.2.2 census, and the factory and instance binders INHERIT the configuration they establish (§2023:12.3.4
         // GR1; ConfigurationStep.Produce, the contained-program model of kb/Work PB990) without declaring a word
-        // of it: §8.4.6.1 lets a contained source element "use identical user-defined words to name items independent
+        // of it: §2023:8.4.6.1 lets a contained source element "use identical user-defined words to name items independent
         // of the use of these user-defined words by other source elements". Both halves used to bind the class's
         // environment division as their own, so a factory or object data item spelled like a class the REPOSITORY
         // names, an alphabet SPECIAL-NAMES declares or the CLASS-ID itself was refused COBOL2692 on legal source.
         // Nothing here draws a uid (the division declares names, never data items), so it takes no uid band.
         var classData = ElementBinder(classCtx, classCtx, cls.Name);
-        // §10.6.1 / §11.9.4 GR1 (kb/Work PB135): the class skeleton's OPTIONS paragraph is the contained
+        // §2023:10.6.1 / §2023:11.9.4 GR1 (kb/Work PB135): the class skeleton's OPTIONS paragraph is the contained
         // definitions' baseline (ConfigurationStep carries the class OPTIONS model to them); the OBJECT and FACTORY
         // paragraphs' own override it clause by clause. Each binds in its binder's BindDeclarations, after the
         // definition's constant entries are declared (kb/Work PB780).
@@ -134,7 +134,7 @@ internal sealed class OoDriver(BindSession session)
         var obj = classCtx.objectParagraph();
         var data = ElementBinder(obj, classCtx, cls.Name);
         data.CallSeedUids(session.TakeUidBand());
-        // The class's configuration and OPTIONS model (the §11.9.4 GR1 baseline), then the half's own OPTIONS paragraph.
+        // The class's configuration and OPTIONS model (the §2023:11.9.4 GR1 baseline), then the half's own OPTIONS paragraph.
         ConfigurationStep.Produce(new ConfigurationSource.ClassHalf(classConfiguration, obj?.optionsParagraph()), data.State.Configuration);
         var synthetic = OoReparent(obj?.environmentDivision(), obj?.dataDivision());
         data.Oo.ReserveClassMemberNames(cls.Symbol.ClrName, cls.Symbol.Methods);   // one C# class holds the object data AND the methods
@@ -143,18 +143,18 @@ internal sealed class OoDriver(BindSession session)
             data.Oo.BindMethodData(m, session.Sources.Of(m));
         data.Oo.BindPropertyClauses(cls.Symbol, factory: false);
         data.BindResolve(synthetic);
-        // The class's symbolic-characters an OBJECT data-name of the spelling hides (§8.4.6.1; kb/Work PB3154 R1-1).
+        // The class's symbolic-characters an OBJECT data-name of the spelling hides (§2023:8.4.6.1; kb/Work PB3154 R1-1).
         InheritStep.DropShadowed(data);
         session.Binders.AddObject(cls, data);
 
-        // The FACTORY half (§11.4; brief D11/D13): its OWN forest + uid band — factory data names are
-        // invisible to instance methods and vice versa (separate source elements, §10.6), realized exactly
+        // The FACTORY half (§2023:11.4; brief D11/D13): its OWN forest + uid band — factory data names are
+        // invisible to instance methods and vice versa (separate source elements, §2023:10.6), realized exactly
         // like method scoping: a second binder, never a merged namespace. SR 10 (INVOKE-argument ban on
         // factory WS) works free: the factory binder's WS roots are not method-scoped → OoDataBinder.IsObjectData.
         var fac = classCtx.factoryParagraph();
         var fdata = ElementBinder(fac, classCtx, cls.Name);
         fdata.CallSeedUids(session.TakeUidBand());
-        ConfigurationStep.Produce(new ConfigurationSource.ClassHalf(classConfiguration, fac?.optionsParagraph()), fdata.State.Configuration);   // §11.9.4 GR1 (kb/Work PB135)
+        ConfigurationStep.Produce(new ConfigurationSource.ClassHalf(classConfiguration, fac?.optionsParagraph()), fdata.State.Configuration);   // §2023:11.9.4 GR1 (kb/Work PB135)
         var fsynthetic = OoReparent(fac?.environmentDivision(), fac?.dataDivision());
         fdata.Oo.ReserveClassMemberNames(cls.Symbol.FactoryClrName, cls.Symbol.FactoryMethods);   // the factory class holds both, likewise
         fdata.BindDeclarations(fsynthetic);
@@ -167,34 +167,34 @@ internal sealed class OoDriver(BindSession session)
     }
 
     /// <summary>Phase B — the method BODIES bind into the class's one pc space (per-method paragraph AND data
-    /// scopes — §11.7; <c>StatementBinder.BindMethodRoster</c>). Runs after every program unit's DATA division and
+    /// scopes — §2023:11.7; <c>StatementBinder.BindMethodRoster</c>). Runs after every program unit's DATA division and
     /// the group's REPOSITORY tables (<see cref="BindSession.Repository"/>): the class definition's REPOSITORY
-    /// paragraph applies to its factory, its object and every method (ISO §12.3.4 GR1: "The entries explicitly or
+    /// paragraph applies to its factory, its object and every method (ISO §2023:12.3.4 GR1: "The entries explicitly or
     /// implicitly specified in the configuration section of a source unit that contains other source units apply to
     /// each directly or indirectly contained source unit"), so a method's function-identifier and CALL
     /// program-prototype-name resolve through the SAME two lookups a program's do (kb/Work PB1100).</summary>
     public void BindClassBody(OoClassUnit cls)
     {
         var repository = session.Repository;
-        // §12.3.8.4 GR10 a) / GR11 a): "specified PREVIOUSLY" is relative to the class definition whose REPOSITORY
+        // §2023:12.3.8.4 GR10 a) / GR11 a): "specified PREVIOUSLY" is relative to the class definition whose REPOSITORY
         // paragraph holds the specifier (kb/Work PB989) — an expansion's text starts where its skeleton does.
         int position = session.Sources.Of(cls.Symbol).Start.StartIndex;
         var (data, refs) = session.Binders.ObjectOf(cls);
         var binder = new StatementBinder(data, refs)
         {
             OoClasses = session.OoClasses,
-            OoCurrentClass = cls.Symbol,   // the SELF/SUPER resolution root (§8.4.3.8; slice 3b)
+            OoCurrentClass = cls.Symbol,   // the SELF/SUPER resolution root (§2023:8.4.3.8; slice 3b)
             UserFunctions = Binding.BinderDriver.UserFunctionsOf(data, unit: null, repository, position, session.Binders),
             ProgramPrototypes = Binding.BinderDriver.ProgramPrototypesOf(data, unit: null, repository, position, session.Binders),
         };
-        binder.ConfigureEc(session.Turn, session.DirectiveSites, cls.Name);   // methods fold the same source-ordered >>TURN state (§7.3.25 GR6)
-        // kb/Work PB971 — the method formals' EC-OO-ARG-OMITTED guards (§14.9.23.4 GR10), before any body binds.
+        binder.ConfigureEc(session.Turn, session.DirectiveSites, cls.Name);   // methods fold the same source-ordered >>TURN state (§2023:7.3.25 GR6)
+        // kb/Work PB971 — the method formals' EC-OO-ARG-OMITTED guards (§2023:14.9.23.4 GR10), before any body binds.
         Binding.Procedure.EcBinder.MarkFormals(cls.Symbol.Methods, session.Turn);
         Binding.Procedure.EcBinder.MarkFormals(cls.Symbol.FactoryMethods, session.Turn);
         cls.Bound = binder.BindMethodRoster(cls.Symbol, cls.Symbol.Methods);
 
         // The FACTORY roster binds through a SEPARATE binder over the factory forest, with the factory
-        // SELF/SUPER context (§14.9.23.3 SR4f/h; §16.2.1 SELF|SUPER "NEW" — OoInFactory).
+        // SELF/SUPER context (§2023:14.9.23.3 SR4f/h; §2023:16.2.1 SELF|SUPER "NEW" — OoInFactory).
         var (fdata, frefs) = session.Binders.FactoryOf(cls);
         var fbinder = new StatementBinder(fdata, frefs)
         {
@@ -212,7 +212,7 @@ internal sealed class OoDriver(BindSession session)
     /// per-element DataBinder (the CallReparent pattern — the generated accessors scan DIRECT children only, so the
     /// binder sees exactly this element's environment and data divisions): a class, factory, instance or interface
     /// definition. A containing definition's environment division is never one of them: its configuration reaches
-    /// the element through <c>ConfigurationStep.Produce</c> (§12.3.4 GR1; kb/Work PB3154).</summary>
+    /// the element through <c>ConfigurationStep.Produce</c> (§2023:12.3.4 GR1; kb/Work PB3154).</summary>
     private static Core.ProgramUnitContext OoReparent(Core.EnvironmentDivisionContext? environmentDivision,
         Core.DataDivisionContext? dataDivision)
     {
@@ -222,12 +222,12 @@ internal sealed class OoDriver(BindSession session)
         return unit;
     }
 
-    /// <summary>A DataBinder for one OO source element (§10.5): <paramref name="element"/> is the parse node whose
-    /// §8.3.2.2 census the binder declares into (<see cref="OoClassTable.CensusOf"/>, the census the element's
+    /// <summary>A DataBinder for one OO source element (§2023:10.5): <paramref name="element"/> is the parse node whose
+    /// §2023:8.3.2.2 census the binder declares into (<see cref="OoClassTable.CensusOf"/>, the census the element's
     /// class-name references record into too; a null node, an absent FACTORY or OBJECT paragraph, gets a census of
     /// its own), <paramref name="definition"/> the class or interface definition whose first line decides the
     /// >>LEAP-SECOND state, and <paramref name="ownerClassName"/> what USAGE OBJECT REFERENCE [FACTORY OF]
-    /// ACTIVE-CLASS binds to — §13.18.60.4 GR22 e), the class of the object that invoked the containing method
+    /// ACTIVE-CLASS binds to — §2023:13.18.60.4 GR22 e), the class of the object that invoked the containing method
     /// (kb/Work PB389); null for an interface.</summary>
     private DataBinder ElementBinder(Antlr4.Runtime.RuleContext? element, Antlr4.Runtime.ParserRuleContext definition,
         string? ownerClassName) => new(session.Edition)

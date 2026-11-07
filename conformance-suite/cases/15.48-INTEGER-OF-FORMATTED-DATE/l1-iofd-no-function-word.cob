@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.48.2 general format — FUNCTION INTEGER-OF-FORMATTED-DATE
+      *> ISO §2023:15.48.2 general format — FUNCTION INTEGER-OF-FORMATTED-DATE
       *> ( argument-1 argument-2 ): FUNCTION is UNDERLINED, so it is a required word
       *> of this format, exactly as INTEGER-OF-FORMATTED-DATE itself is.
       *>
@@ -16,7 +16,7 @@
       *> precise omission, and this row's own recorded evidence rests partly on the
       *> keyword-omitted routing.
       *>
-      *> §8.4.3.2.3 SR2 grants the only omission permission — "If intrinsic-
+      *> §2023:8.4.3.2.3 SR2 grants the only omission permission — "If intrinsic-
       *> function-name-1 or the ALL phrase is specified in the REPOSITORY paragraph
       *> … the word FUNCTION may be omitted from the function-identifier; otherwise
       *> the word FUNCTION is required" — and this unit has NO REPOSITORY paragraph,
@@ -24,7 +24,7 @@
       *> item of this name is declared either, so the parenthesised group is not a
       *> subscript on anything.
       *>
-      *> ⚠ 2014 AND UP because that is where §15.48 itself begins; below it the NAME
+      *> ⚠ 2014 AND UP because that is where §2023:15.48 itself begins; below it the NAME
       *> is rejected first (COBOL1502, pinned elsewhere), which is a different
       *> rule about a different clause.
       *> The accepting side of the PERMISSION is

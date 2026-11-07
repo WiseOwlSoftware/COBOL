@@ -65,7 +65,7 @@ A cell is *green* when the actual outcome equals `f(case, V)`.
   > the naive "unless `removedIn ≤ V`" form would wrongly flag it as a regression. In the NC corpus `RECEIVE` occurs
   > only as `SPACING-RECEIVE` (hyphenated — a word-boundary occurrence, not a bare user-word collision), and the
   > continuity sweep finds **zero** NC breaks at 2023, so class (b) has no live NC witness. It is instead exercised by
-  > synthetic negative-corpus cases: the `VersionConformancePass` reserves words per edition (§8.9) via `ReservedWords`,
+  > synthetic negative-corpus cases: the `VersionConformancePass` reserves words per edition (§2023:8.9) via `ReservedWords`,
   > so a bare 2023-reserved word used as a user-defined name is rejected at 2023 and accepted below.
 - **INV-2 — Introduction-gating.** ∀ construct C introduced in edition E and ∀ V < E: C is **rejected** at V with the
   edition diagnostic. (A word newly reserved in 2023 is still usable as a user-defined name at 85/2002/2014.)
@@ -216,7 +216,7 @@ test for the gating implementation (TDD). "Done" = the row's cells are green at 
   breaks** (117 don't compile at 85 yet — feature gaps, outside the witness set; re-run as features land).
   The JSON/XML statement grammar rules carry the real seam-level GENERATE/PARSE surface (statement heads + COUNT +
   PROCESSING PROCEDURE + exception phrases; detail phrases ride the subsystem wave). `DialectLevel` threads into the
-  binder (bind-side only — see §6.1) via `EditionContext`, and grammar-gate rejections carry edition-NAMING
+  binder (bind-side only — see §2023:6.1) via `EditionContext`, and grammar-gate rejections carry edition-NAMING
   diagnostics asserted via `AssertHasDiagnostic`.
 - **Phase 1 — seed + continuity.** ✅ Done as above.
 - **Phase 2 — backfill + implement gating ✅ DONE.** The catalogue grew across the mechanically-testable rows; edition
@@ -249,7 +249,7 @@ untouched); `Program.cs` prints warnings to stderr always.
 ### P2.2 The conformance pass (`src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs`)
 
 - **Two arms.** The gate is the two-arm `VersionConformancePass`: a **parse-tree arm** (the edition validator — it
-  fires the syntactic introduction/removal/phrase gates + the §8.9 reserved-word funnel on RECOGNITION) and a
+  fires the syntactic introduction/removal/phrase gates + the §2023:8.9 reserved-word funnel on RECOGNITION) and a
   **bound-tree arm** (the genuinely-semantic statement-level gates).
 - **Walk (parse-tree arm):** NO listener is generated (ANTLR runs `-no-listener -visitor`) — the arm derives from the
   generated `CobolParserCoreBaseVisitor<object?>` (namespace `WiseOwl.Cobol.Frontend.Generated`); overrides return
@@ -268,14 +268,14 @@ untouched); `Program.cs` prints warnings to stderr always.
 | Code | Meaning | Severity |
 |---|---|---|
 | COBOL0900 | construct requires COBOL-YYYY (introduction gating, validator-visible) | error |
-| COBOL0901 | word reserved in COBOL-YYYY used as a user-defined word (ISO §8.9) | error strict / warning permissive |
+| COBOL0901 | word reserved in COBOL-YYYY used as a user-defined word (ISO §2023:8.9) | error strict / warning permissive |
 | COBOL0902 | construct removed in COBOL-YYYY | error strict / warning permissive (via `Removed`) |
 | COBOL0903 | obsolete/archaic-element flag | warning (always) |
 
 Existing codes are KEPT where tests/history pin them: 0873 (DATA RECORDS, FD+SD), 0810/0811 (ALTER / bare
 GO TO), 0882 (CALL ON OVERFLOW).
 
-### P2.4 Per-edition reserved words (ISO §8.9; the INV-2-inverted obligation)
+### P2.4 Per-edition reserved words (ISO §2023:8.9; the INV-2-inverted obligation)
 
 - **The funnel:** every user-defined word reaches the tree through the `cobolWord` rule (CobolParserCore.g4:25 —
   `IDENTIFIER` + an allowlist of context keywords). 2023-new words (COMMIT, ROLLBACK, FINALLY, RECEIVE, SEND,
@@ -283,17 +283,17 @@ GO TO), 0882 (CALL ON OVERFLOW).
   IDENTIFIER, so the check is TEXT-based: `VisitCobolWord` tests `ctx.Start.Text` (upper) against
   `ReservedWords.IsReservedAt(word, edition)`, deduped to ONE diagnostic per distinct word per compilation.
   This also correctly rejects the allowlisted context keywords (RAISE/RAISING/RESUME/CONDITION/LENGTH/SUM…) at
-  editions where §8.9 reserves them — the grammar's "legal user word at every edition" posture stays (permissive
+  editions where §2023:8.9 reserves them — the grammar's "legal user word at every edition" posture stays (permissive
   superset), the validator enforces per edition.
 - **Tables:** per-word 4-edition flags `(r85, r2002, r2014, r2023)` + confidence + provenance. Generation is
-  scripted (`scripts/gen-reserved-words.ps1`): parse the in-repo spec §8.9 (`specs/ISO_COBOL_2023.md` lines
+  scripted (`scripts/gen-reserved-words.ps1`): parse the in-repo spec §2023:8.9 (`specs/ISO_COBOL_2023.md` lines
   10306–10788; strip the 15 symbol entries; OCR fixes: EMD-START→END-START, `i-O`→I-O, I-OICONTROL→I-O-CONTROL,
   en-dash minus; METHOD is NOT added: the printed 2023 list does not contain it, kb/Work PB2623) ⊕ a small authored delta file
   (`tests/version-matrix/reserved-word-deltas.json`: the authoritative 16-word 2023 additions = VCR row 32; the
   hand-authored X3.23-1985 list; a medium-confidence 2014 IEEE-754 family). Derivation: ∈2023 ∧ ∈85 ∧ ∉added2023
   ⇒ continuous; ∈added2023 ⇒ 2023-only EXCEPT RECEIVE/SEND/END-RECEIVE (85/2002-reserved → unreserved 2014 →
   re-reserved 2023; kb/Work PB656); ∈85 ∧ ∉2023 ⇒ 85-only (removed 2002, flagged); remainder ⇒ added 2002. ROUNDED-mode words etc. are
-  §8.10 CONTEXT-SENSITIVE in 2023 — not reserved, not in the table. Script emits BOTH the C# table
+  §2023:8.10 CONTEXT-SENSITIVE in 2023 — not reserved, not in the table. Script emits BOTH the C# table
   (`src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs`) AND the canonical `tests/version-matrix/reserved-words.json`; a
   drift test compares them.
 - **Conservative policy:** only `confidence: high` rows REJECT; lower-confidence rows are present but inert
@@ -344,8 +344,8 @@ interval encoding — `user-word-commit-2023` (intro 85 / removedIn 2023 / 0901)
 
 > **As built (deltas from the plan above).** The reserved-word 85/2014 lists come from GnuCOBOL's per-standard
 > `config/*.words` (curl disk-to-disk, gitignored `.cache/`, facts-only into the repo), the 2002 list from the 2002
-> standard's own §8.9 (`reserved-words-2002.json`), and the 2014 list loses the 1985 and draft words neither the 2009
-> draft's §8.9 nor 2023's reserves (`words-2009-cd.json`; kb/Work PB4297) ⊕ the in-repo spec §8.9 ⊕ VCR row 32: the re-reservation set is THREE words incl. the END- scope terminator; the EC words are reserved since 2002
+> standard's own §2023:8.9 (`reserved-words-2002.json`), and the 2014 list loses the 1985 and draft words neither the 2009
+> draft's 8.9 nor 2023's reserves (`words-2009-cd.json`; kb/Work PB4297) ⊕ the in-repo spec §2023:8.9 ⊕ VCR row 32: the re-reservation set is THREE words incl. the END- scope terminator; the EC words are reserved since 2002
 > (not 2023-only); Annex E.2 item 25 decides only the 2014 edge (E.1 compares with the previous standard), where the GnuCOBOL 2014
 > list already agrees; at 2002 the trio stays reserved like the rest of the communication vocabulary (kb/Work PB656). ORDER is
 > reserved at 85 (kb/Work PB3957: the 2002 Annex F.1 item 6 does not name it among the words 2002 added; the earlier CCVS-proof
@@ -360,7 +360,7 @@ interval encoding — `user-word-commit-2023` (intro 85 / removedIn 2023 / 0901)
 W2 (parallel agents, disjoint files): the MOVE rows (VCR 1 — alphanumeric-figurative→numeric `Removed` ≥2023
 with the digit-only-ALL exception; VCR 92/128 — ALL-digit→integer obsolete 0903 @2023) + fix the two latent
 bugs found by the inventory (STOP literal silently binds as STOP RUN, in `ControlFlowBinder` (the STOP verb) → runtime-loud or
-implement; MOVE ALL "5" TO integer fails loud though valid at EVERY edition, §14.9.25 GR5); the `_negative/`
+implement; MOVE ALL "5" TO integer fails loud though valid at EVERY edition, §2023:14.9.25 GR5); the `_negative/`
 corpus discovery (→ Phase 3); VCR Status flips; adversarial review.
 W3 (frontend/grammar — FULL legacy guard + committed regen): the XOR/EXCLUSIVE-OR
 hole (unconditional lexer tokens wrongly commented "COBOL-2002" — they are 2023, VCR rows 41/32; not in
@@ -376,19 +376,19 @@ threaded into `CopyProcessor`/`ReferenceFormatProcessor` today). The COMMUNICATI
 > single-character ALL → integer numeric elementary receiver rides `move-all-digit-integer-obsolete-2023`
 > (0903 ≥2023, VCR 92/128); every other alphanumeric-figurative/ALL → numeric/numeric-edited elementary move
 > rides `move-alphanumeric-figurative-removed-2023` (0902 @2023, VCR 1) with the §-mandated exemptions (ZERO
-> §8.3.3.6.4 GR4; group receivers §14.9.25.4 GR4; ref-mod receivers §8.4.3.3.4).
+> §2023:8.3.3.6.4 GR4; group receivers §2023:14.9.25.4 GR4; ref-mod receivers §2023:8.4.3.3.4).
 > ALL-digit folds to its GR6d3b/GR2 value compile-time (`AllDigitFill` in `MoveEmitter`, `CodeGen/Verbs/MoveEmitter.cs`;
 > ALL "5"→9(3)=555, →9V9=5.5); non-digit fills deposit the character image via the `StoreAsImage` character-image
 > storage form (legacy-oracle-adjudicated, provisional per ratified decision 1). Two legacy NON-conformances
 > documented and not mirrored (legacy CBL0906 compile-rejects QUOTE/HIGH/LOW→numeric at every standard;
 > legacy DISPLAYs a space-filled numeric as empty). A multi-character ALL literal
-> is NOT on these rows: §8.3.3.6.3 SR3 bars its association with a numeric/numeric-edited item, removed 2002
+> is NOT on these rows: §2023:8.3.3.6.3 SR3 bars its association with a numeric/numeric-edited item, removed 2002
 > (`all-literal-multichar-numeric-removed-2002`, VCR Table 7 row 7.13 — a derived edge; kb/Work PB422).
 > **(b) The loud-guard sweep** — `PictureAnalyzer.ParseUsage`/`Analyze` take `(EditionContext, where)`: the silent
 > Display catch-all is dead; the 2002+ recognized-but-unimplemented inventory (NATIONAL, BIT, POINTER, OBJECT
 > REFERENCE, BINARY-CHAR family, FLOAT-SHORT/LONG/EXTENDED, PIC N/1/E) routes its registry row (0900 below
 > 2002) + a COBOL0899 not-implemented error at ≥2002 naming the owning phase; an unknown usage keyword or
-> PICTURE symbol is loud (new COBOL0808 invalid-PICTURE-symbol; §13.18.40.3 SR2 whitelist honoring the
+> PICTURE symbol is loud (new COBOL0808 invalid-PICTURE-symbol; §2023:13.18.40.3 SR2 whitelist honoring the
 > program currency symbol). `UsageKeyword` reads tokens, not stripped text (bare `BINARY-CHAR SIGNED` gates
 > identically to the full form). Skeleton enum members (PicCategory.National/.Boolean + 11 Usage members) throw
 > loud from every storage-mapping member if reached. `CallCollectUnits` no longer silently drops a
@@ -405,10 +405,10 @@ threaded into `CopyProcessor`/`ReferenceFormatProcessor` today). The COMMUNICATI
 > the three `programName` sites (`VersionConformancePass.IsProvableUserWordPosition`, grammar-proved per slot). The
 > mis-parse-prone optional entry-name slots (`dataName` under `reportGroupEntry` — the RW104A COLUMN hazard — and `screenName`)
 > and all reference positions stay unchecked (conservative false-negative, never false-positive). Of the 34
-> excluded band tokens only 7 have §8.9 table rows (2 continuous-since-85
-> incl. COLUMN, 5 added-2002); the other 27 are §8.10 context-sensitive words with no reservation to enforce —
+> excluded band tokens only 7 have §2023:8.9 table rows (2 continuous-since-85
+> incl. COLUMN, 5 added-2002); the other 27 are §2023:8.10 context-sensitive words with no reservation to enforce —
 > the position machinery closes the ENTIRE real gap. New correct strictness: a data item/paragraph/SELECT
-> file/program named with a continuously-reserved band word now rejects 0901 even at 85 strict (§8.3.2.1 rule
+> file/program named with a continuously-reserved band word now rejects 0901 even at 85 strict (§2023:8.3.2.1 rule
 > 1); corpus-swept clean (the only corpus band-word hits are RW102A/103A/104A report-group COLUMN clause
 > keywords — excluded positions by construction). ⚠ Standing hazard, flagged in the slot comments: a future
 > grammar change adding a data-description clause that BEGINS with a cobolWord-admitted token would silently
@@ -428,7 +428,7 @@ threaded into `CopyProcessor`/`ReferenceFormatProcessor` today). The COMMUNICATI
 > COBOL0900` on 21 rows — the matrix reject cells assert the CODE.
 > QUOTE→numeric rides its own dual row `move-quote-numeric-obsolete-2014` (Annex E.2 item 21: 0903@2014,
 > 0902@2023 — the ObsoleteMatrix theory is bounded below `removedIn` and asserts the FIXED 0903 band code);
-> the version-invariant §14.9.25.3 SR1 class-index MOVE check is COBOL0809 (every edition, both operands);
+> the version-invariant §2023:14.9.25.3 SR1 class-index MOVE check is COBOL0809 (every edition, both operands);
 > ref-mod slice stores on numeric-DISPLAY items image-back the item at bind time for EVERY sender
 > (`MarkRefModStoreImage` — the round-trip-loss fix). ⚠ KNOWN MISBIND queued to W3: the trailing `,`
 > clause-separator twin of the fixed `;` over-capture (VCR Table 7 row 7.14 — needs the lexer-mode cure).
@@ -450,7 +450,7 @@ threaded into `CopyProcessor`/`ReferenceFormatProcessor` today). The COMMUNICATI
 > reset per top-level unit so nested programs inherit), and a DEBUG-* register reference under the switch
 > diagnoses 0899 not-implemented instead of the false 0901 (DB101A). New coverage: 4 registry+json rows,
 > 4 negative-corpus cases, `Ansi85AcceptanceTests` (23 facts: inert runs, operand forms, the SAME+RERUN
-> one-period adjacency, DB residue compiles, per-word §8.9 freeing editions per ReservedWords.Table —
+> one-period adjacency, DB residue compiles, per-word §2023:8.9 freeing editions per ReservedWords.Table —
 > RERUN/ENTER 2002, DEBUGGING 2014, EVERY/CLOCK-UNITS/REFERENCES/PROCEDURES 2023).
 
 ## 9. Reuse / do-not-duplicate map

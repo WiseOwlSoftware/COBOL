@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.27.4 GR13 — "If the file is not present, and the
+      *> ISO §2023:14.9.27.4 GR13 — "If the file is not present, and the
       *> INPUT phrase is specified in the OPEN statement, and the
       *> OPTIONAL clause is specified in the file control entry for
       *> file-name-1, the file position indicator in the file connector
@@ -14,28 +14,28 @@
       *> The rule sets a STATE, so it is observed through the three
       *> statements the standard defines over that state, on all three
       *> organizations (the rule names none, so it holds for each):
-      *>   OPEN itself — §9.1.13.2 item 4a: "For an OPEN statement, it
+      *>   OPEN itself — §2023:9.1.13.2 item 4a: "For an OPEN statement, it
       *>     is successfully executed but the file is described as
       *>     optional and the physical file is not present" ⇒ '05'.
-      *>   a sequential READ — §14.9.30.4 GR21: "If the file position
+      *>   a sequential READ — §2023:14.9.30.4 GR21: "If the file position
       *>     indicator indicates that an optional input file is not
       *>     present … the I-O status value … is set to '10', the at
-      *>     end condition exists"; also §9.1.13.4 item 1c.
-      *>   a START — §14.9.41.4 GR5: "If, at the time of the execution
+      *>     end condition exists"; also §2023:9.1.13.4 item 1c.
+      *>   a START — §2023:14.9.41.4 GR5: "If, at the time of the execution
       *>     of the START statement, the file position indicator
       *>     indicates that an optional input file is not present, the
       *>     invalid key condition exists and the execution of the
-      *>     START statement is unsuccessful", and §9.1.13.5 item 3b
+      *>     START statement is unsuccessful", and §2023:9.1.13.5 item 3b
       *>     names the value: "a START or random READ statement is
       *>     attempted on a file described as optional and the physical
       *>     file is not present" ⇒ '23'.
       *> GR13 vs GR17: the INPUT phrase does NOT create the file — GR17
       *> gives creation to EXTEND and I-O only. Q-AGAIN re-opens the
       *> same file-name and gets '05' a second time; had the first OPEN
-      *> created it, §9.1.13.2 item 4a could not apply and the value
+      *> created it, §2023:9.1.13.2 item 4a could not apply and the value
       *> would be '00'.
-      *> Each observation starts from a fresh OPEN, because §14.9.41.4
-      *> GR7 and §14.9.30.4 GR24b overwrite the file position indicator
+      *> Each observation starts from a fresh OPEN, because §2023:14.9.41.4
+      *> GR7 and §2023:14.9.30.4 GR24b overwrite the file position indicator
       *> once a START or READ has failed.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1OPN13.

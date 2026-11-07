@@ -8,23 +8,23 @@
       *> kb/Work PB1400 — a GROUP-USAGE BIT group is an operand of class boolean and a GROUP-USAGE NATIONAL group
       *> an operand of class national, the subordinate group of each included.
       *>
-      *> THE RULE. ISO §8.5.2.1: "a bit group item has class and category boolean" and "a national group item has
-      *> class and category national". §8.5.2.5 3) puts in category boolean "A group item explicitly or implicitly
-      *> described with a GROUP-USAGE clause with the BIT phrase", and §8.5.2.10 3) the same with the NATIONAL
-      *> phrase in category national, so the subordinate groups GBS and GNS (implicitly described, §13.18.29.3
+      *> THE RULE. ISO §2023:8.5.2.1: "a bit group item has class and category boolean" and "a national group item has
+      *> class and category national". §2023:8.5.2.5 3) puts in category boolean "A group item explicitly or implicitly
+      *> described with a GROUP-USAGE clause with the BIT phrase", and §2023:8.5.2.10 3) the same with the NATIONAL
+      *> phrase in category national, so the subordinate groups GBS and GNS (implicitly described, §2023:13.18.29.3
       *> SR2/SR3) are boolean and national operands exactly as their records are. The negative half, the same
-      *> groups refused as ARITHMETIC operands (§8.8.1.1 admits only a numeric data item there), is
+      *> groups refused as ARITHMETIC operands (§2023:8.8.1.1 admits only a numeric data item there), is
       *> negative/pb1400-group-usage-arithmetic-operand.
       *>
       *> EXPECTED VALUES, DERIVED — never measured.
-      *>   GB = B"110011" (GB1 1100, GB2 11). B-XOR B"101010" (§8.7.2) = 011001.
+      *>   GB = B"110011" (GB1 1100, GB2 11). B-XOR B"101010" (§2023:8.7.2) = 011001.
       *>   GBS = B"11". B-AND B"01" = 01.
-      *>   MOVE N"PQR" TO GN: §13.18.29.4 GR2 b) treats a national group as an elementary national item of
+      *>   MOVE N"PQR" TO GN: §2023:13.18.29.4 GR2 b) treats a national group as an elementary national item of
       *>   PICTURE N(3), so the move is national to national: GN1 = PQ, GN2 = R.
       *>   GN = N"PQR" compares two national operands of equal length: equal.
       *>   MOVE GNS TO NX (PIC N(3)): GNS is a national operand of one position, R, aligned left with space
-      *>   fill (§14.6.8.5), so NX = "R  "; NX = N"R" is true because the shorter national operand is
-      *>   extended with national spaces (§8.8.4.2.10 2)).
+      *>   fill (§2023:14.6.8.5), so NX = "R  "; NX = N"R" is true because the shorter national operand is
+      *>   extended with national spaces (§2023:8.8.4.2.10 2)).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1400GU.
        DATA DIVISION.

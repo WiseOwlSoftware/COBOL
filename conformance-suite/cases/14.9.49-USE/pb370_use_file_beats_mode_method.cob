@@ -5,11 +5,11 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.49.4 GR5 inside a METHOD: "Within a given procedure
+      *> ISO §2023:14.9.49.4 GR5 inside a METHOD: "Within a given procedure
       *> division, a USE statement specifying file-name-1 takes
       *> precedence over any USE statements specifying an INPUT, OUTPUT,
       *> I-O, or EXTEND phrase." A method definition's procedure
-      *> division is one such procedure division: §14.2.2 SR10 admits
+      *> division is one such procedure division: §2023:14.2.2 SR10 admits
       *> the DECLARATIVES format in "a method definition", and GR4 a)
       *> selects the declaratives of the element containing the failing
       *> statement. The twin of

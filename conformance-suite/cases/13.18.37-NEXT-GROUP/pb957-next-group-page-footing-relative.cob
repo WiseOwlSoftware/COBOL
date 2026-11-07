@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
       *> A RELATIVE NEXT GROUP OF A PAGE FOOTING BEYOND THE PAGE LIMIT (kb/Work PB957).
-      *> ISO/IEC 1989:2023 §13.18.37.3 SR7 b): "If the current report group is a page footing, the
+      *> ISO/IEC 1989:2023 §2023:13.18.37.3 SR7 b): "If the current report group is a page footing, the
       *> minimum last line number of the report group plus integer-2 shall not exceed the page limit."
       *> The footing's last line is 19, integer-2 is 2, the page limit is 20.
       *> Drawn on COBOL2284 (report-next-group-clause-rule).

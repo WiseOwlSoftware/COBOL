@@ -7,8 +7,8 @@ namespace WiseOwl.Cobol.Frontend.Expressions;
 using Core = CobolParserCore;
 
 /// <summary>
-/// The ONE boolean-expression precedence resolver (ISO/IEC 1989:2023 §8.8.2). It walks a parsed
-/// <c>booleanExpression</c> and combines its operands in the order §8.8.2 rule 7 requires, returning a caller-typed
+/// The ONE boolean-expression precedence resolver (ISO/IEC 1989:2023 §2023:8.8.2). It walks a parsed
+/// <c>booleanExpression</c> and combines its operands in the order §2023:8.8.2 rule 7 requires, returning a caller-typed
 /// result. It exists because the <b>context-inherited precedence of the shift operators cannot be expressed by a
 /// context-free grammar</b>: rule 7b makes a boolean shift take the precedence of the operator immediately
 /// preceding it (B-AND if none), so the grouping of e.g. <c>A B-AND B B-SHIFT-L 2</c> depends on a token that a CFG
@@ -17,7 +17,7 @@ using Core = CobolParserCore;
 /// resolver re-derives the correct grouping from that sequence.
 ///
 /// It is generic over the combine operations (<c>leaf</c> / <c>not</c> / <c>binary</c> / <c>shift</c>) so the SAME
-/// grouping serves every consumer of §8.8.2 (the singular-pattern rule):
+/// grouping serves every consumer of §2023:8.8.2 (the singular-pattern rule):
 /// <list type="bullet">
 /// <item>the compile-time boolean evaluator folds constant bit strings (<c>T = BitString</c>);</item>
 /// <item>the runtime COMPUTE-Format-2 boolean binder builds bound nodes (<c>T = BoundBoolExpr</c>).</item>
@@ -32,16 +32,16 @@ using Core = CobolParserCore;
 public static class BooleanExpressionResolver
 {
     /// <summary>Boolean operation precedence (higher binds tighter): B-NOT(4) &gt; B-AND(3) &gt; B-XOR(2) &gt;
-    /// B-OR(1) — §8.8.2 rule 7b's 1st…4th. A shift is assigned the precedence of the operation preceding it,
+    /// B-OR(1) — §2023:8.8.2 rule 7b's 1st…4th. A shift is assigned the precedence of the operation preceding it,
     /// defaulting to B-AND's when it is first (rule 7b tail). <see cref="PrecNot"/> is never stacked (B-NOT is
     /// folded at the factor); it exists because a B-NOT IS an operation a following shift inherits from.</summary>
     private const int PrecNot = 4, PrecAnd = 3, PrecXor = 2, PrecOr = 1, PrecShiftDefault = PrecAnd;
 
     /// <summary>Resolve <paramref name="ctx"/> to a single value of type <typeparamref name="T"/>, combining its
-    /// operands per §8.8.2 rule 7.</summary>
+    /// operands per §2023:8.8.2 rule 7.</summary>
     /// <param name="leaf">Resolve a leaf boolean operand — a <c>valueOperand</c> (boolean literal / figurative /
     /// category-boolean item). B-NOT and parentheses are handled by the resolver, not this callback.</param>
-    /// <param name="not">Apply the unary <c>B-NOT</c> (§8.8.2 rule 7b, 1st precedence).</param>
+    /// <param name="not">Apply the unary <c>B-NOT</c> (§2023:8.8.2 rule 7b, 1st precedence).</param>
     /// <param name="binary">Combine two operands with a binary operator: <c>'&amp;'</c> (B-AND), <c>'^'</c>
     /// (B-XOR), or <c>'|'</c> (B-OR). Rule 4 (both operands not both <c>ALL</c> literal) is the callback's to
     /// enforce.</param>
@@ -61,7 +61,7 @@ public static class BooleanExpressionResolver
         FlattenExpr(ctx, items, leaf, not, binary, shift);
 
         // 2) Precedence-climb the flat sequence (a shunting-yard over an operand stack and an operator stack),
-        //    assigning each shift the precedence of the operator that preceded it (§8.8.2 rule 7b), popping
+        //    assigning each shift the precedence of the operator that preceded it (§2023:8.8.2 rule 7b), popping
         //    equal-or-higher precedence first (left-to-right at equal precedence, rule 7c).
         var operands = new Stack<T>();
         var ops = new Stack<PendingOp>();
@@ -191,7 +191,7 @@ public static class BooleanExpressionResolver
 
     /// <summary>One element of the flattened lexical sequence: a resolved operand, a binary operator, or a shift
     /// suffix. <see cref="Negated"/> marks an operand whose factor is a B-NOT — the operation a following shift
-    /// inherits its precedence from (§8.8.2 rule 7b).</summary>
+    /// inherits its precedence from (§2023:8.8.2 rule 7b).</summary>
     private readonly struct Item<T>
     {
         public bool IsOperand { get; private init; }

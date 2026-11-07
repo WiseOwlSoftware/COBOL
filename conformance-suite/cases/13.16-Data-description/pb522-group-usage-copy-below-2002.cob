@@ -6,8 +6,8 @@
 *>---
       *> kb/Work PB522 — the NEGATIVE twin of conformance-suite/cases/8.5.2.5-Boolean-category/pb522_group_usage_travels_with_the_description.
       *> The clause whose travel that golden pins is a COBOL-2002 introduction, so the whole construct is refused
-      *> below it: GROUP-USAGE (ISO §13.18.29) with the TYPEDEF/TYPE family (§13.18.58 / §13.18.57) and SAME AS
-      *> (§13.18.49) — none of which exists in COBOL-85 — each gated by COBOL0900 at --std 85.
+      *> below it: GROUP-USAGE (ISO §2023:13.18.29) with the TYPEDEF/TYPE family (§2023:13.18.58 / §2023:13.18.57) and SAME AS
+      *> (§2023:13.18.49) — none of which exists in COBOL-85 — each gated by COBOL0900 at --std 85.
       *> The description copy is what the positive measures; this fixture keeps the copy from silently becoming
       *> reachable one edition too early.
        IDENTIFICATION DIVISION.

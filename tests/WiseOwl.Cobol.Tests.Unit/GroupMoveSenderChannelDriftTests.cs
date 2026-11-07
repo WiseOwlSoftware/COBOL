@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ <b>EVERY CHANNEL THAT SENDS A VALUE INTO A PLAIN GROUP ASKS THE ONE SENDING CODEC FOR THE ALPHABET IT SENDS IN</b>
-/// (kb/Work PB3562, PB3570, PB3587; docs/CONFORMANCE.md D-B3, D-B4). §14.9.25.4 GR4 makes a move to a group "an
+/// (kb/Work PB3562, PB3570, PB3587; docs/CONFORMANCE.md D-B3, D-B4). §2023:14.9.25.4 GR4 makes a move to a group "an
 /// alphanumeric to alphanumeric elementary move, except that there is no conversion of data from one form of internal
 /// representation to another", so what a sender deposits is decided by <c>OperandText.NonElementaryMoveSender</c> alone:
 /// a numeric literal's digits, a national value's UTF-16BE pairs, a bit value's packed bits, an item's storage image.
@@ -98,7 +98,7 @@ public sealed class GroupMoveSenderChannelDriftTests
 
     /// <summary>⛔ A FUNCTION-IDENTIFIER'S VALUE IS A MOVE SENDER, WHATEVER TREE THE BINDER LOWERED IT TO, AND THE ONE READER IS
     /// <c>BoundComputedOperand.IsNumericFunctionValue</c> (kb/Work PB3613). FUNCTION LENGTH of a variable-length group is lowered to
-    /// a <c>BoundBinary</c> sum, which an arithmetic expression (no MOVE sender, §14.8.2.2 rule 2) is too; the binder states the
+    /// a <c>BoundBinary</c> sum, which an arithmetic expression (no MOVE sender, §2023:14.8.2.2 rule 2) is too; the binder states the
     /// difference once, in <c>IntrinsicBinder.OperandOf(expr, functionValue)</c> - a required parameter, so a new position that makes
     /// an operand from a bound expression must say which it is - and the activation description, the CALL arm, the INVOKE binder
     /// guard and the sending codec all ask the one property, never a node shape.</summary>
@@ -141,7 +141,7 @@ public sealed class GroupMoveSenderChannelDriftTests
     }
 
     /// <summary>⛔ A WRITTEN NUMERIC LITERAL IS STATED BY THE OPERAND'S KIND, AND NO READER RECOVERS ONE FROM A COMPUTED OPERAND
-    /// (kb/Work PB3760; §14.9.4.4 GR8, §8.4.3.2.4 GR5). The expression binder drops grouping parentheses, so a reader that took a
+    /// (kb/Work PB3760; §2023:14.9.4.4 GR8, §2023:8.4.3.2.4 GR5). The expression binder drops grouping parentheses, so a reader that took a
     /// <c>BoundComputedOperand</c> over a <c>BoundNumLiteral</c> (or its negation) for "the literal" read <c>(3)</c> as 3: a CALL
     /// and a user function stored it into a plain-group formal, and the INVOKE lane passed bind and failed in the code generator.
     /// Each lane binds the parse tree's sole numeric literal as a <c>BoundNumericLiteral</c> instead - the CALL BY VALUE arm (its
@@ -250,7 +250,7 @@ public sealed class GroupMoveSenderChannelDriftTests
     }
 
     /// <summary>The activated unit's adapter for a PLAIN-GROUP formal (<c>groupAtoms</c> non-null) reads the argument's
-    /// <c>Sending.StorageImage</c> when it states one, BY CONTENT only: BY REFERENCE has no MOVE (§14.2.3 GR8) and an
+    /// <c>Sending.StorageImage</c> when it states one, BY CONTENT only: BY REFERENCE has no MOVE (§2023:14.2.3 GR8) and an
     /// elementary formal reads the characters (kb/Work PB3587).</summary>
     [Fact]
     public void GroupFormalAdapter_ReadsTheSendingStorageImage_ByContentOnly()
@@ -263,7 +263,7 @@ public sealed class GroupMoveSenderChannelDriftTests
     }
 
     /// <summary>An INVOKE literal crosses as the BOUND literal, never its decoded string: a national literal is usage
-    /// NATIONAL (§8.3.3.5.4 GR3 a)), which only the literal's category states (kb/Work PB3587).</summary>
+    /// NATIONAL (§2023:8.3.3.5.4 GR3 a)), which only the literal's category states (kb/Work PB3587).</summary>
     [Fact]
     public void InvokeLiteralArgument_KeepsItsCategory()
     {

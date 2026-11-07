@@ -11,7 +11,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The §13.18.60.3 declaration-placement screen's SHAPE, held against drift (kb/Work PB183).
+/// The §2023:13.18.60.3 declaration-placement screen's SHAPE, held against drift (kb/Work PB183).
 ///
 /// <para><b>Why this test exists, and why it is the non-negotiable half of PB183.</b> The screen rejects source.
 /// Its failure mode is therefore NOT a missing diagnostic — it is a compiler that refuses a legal program, and
@@ -39,18 +39,18 @@ public sealed class UsageDeclarationPlacementDriftTests
         new[] { typeof(CheckUsageDeclarationsPass), typeof(ClassifyRedefinesClassesPass), typeof(DataBinder) }
             .Select(t => t.GetMethod(name, BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static))
             .FirstOrDefault(m => m is not null)
-        ?? throw new InvalidOperationException($"{name} is gone — the §13.18.60.3 screen was "
+        ?? throw new InvalidOperationException($"{name} is gone — the §2023:13.18.60.3 screen was "
             + "restructured without updating its drift test. Re-derive the rule before re-shaping the test.");
 
     // ⛔ THE TWO PHRASE READERS LIVE ON ItemCategory (kb/Work PB391), not on DataBinder: SR4's population is
-    // also §14.7.6 rule 4's CLASS exclusion and §13.16.3 SR24 e)'s, and CorrespondingBinder — the third asker —
+    // also §2023:14.7.6 rule 4's CLASS exclusion and §2023:13.16.3 SR24 e)'s, and CorrespondingBinder — the third asker —
     // is outside DataBinder. They are public there, so these are direct calls rather than reflection.
     private static string? Sr14PhraseOf(Usage? u) => ItemCategory.Sr14PhraseOf(u);
     private static string? Sr4PhraseOf(Usage? u) => ItemCategory.Sr4PhraseOf(u);
     private static bool PointerObjectClass(DataItem d) => (bool)M("PointerObjectClass").Invoke(null, [d])!;
     private static string? Sr14PhraseOf(DataItem d) => (string?)M("Sr14PhraseOf").Invoke(null, [d]);
 
-    /// <summary>The recorded §13.18.60.3 verdict for EVERY <see cref="Usage"/> member: the SR14 phrase name the
+    /// <summary>The recorded §2023:13.18.60.3 verdict for EVERY <see cref="Usage"/> member: the SR14 phrase name the
     /// screen must report, or null when the rule does not name that usage. Keyed by the enum member's NAME so
     /// that adding a member — the MESSAGE-TAG arm when it lands, a future usage — fails
     /// <see cref="EveryUsageMemberCarriesAnSr14Verdict"/> until a verdict is recorded here. That is the whole
@@ -100,7 +100,7 @@ public sealed class UsageDeclarationPlacementDriftTests
         var members = Enum.GetNames<Usage>().ToHashSet();
         var recorded = Sr14Verdict.Keys.ToHashSet();
         Assert.True(members.SetEquals(recorded),
-            "Every USAGE member needs a recorded ISO §13.18.60.3 SR14 verdict. Missing a verdict: ["
+            "Every USAGE member needs a recorded ISO §2023:13.18.60.3 SR14 verdict. Missing a verdict: ["
             + string.Join(", ", members.Except(recorded)) + "]; recorded for a member that no longer exists: ["
             + string.Join(", ", recorded.Except(members)) + "]. Do not delete the row — derive the rule's "
             + "verdict for the new usage and record it, or the screen quietly stops covering the clause.");
@@ -124,7 +124,7 @@ public sealed class UsageDeclarationPlacementDriftTests
         var sr14 = Enum.GetValues<Usage>().Where(u => Sr14PhraseOf(u) is not null).ToHashSet();
         var sr4 = Enum.GetValues<Usage>().Where(u => Sr4PhraseOf(u) is not null).ToHashSet();
 
-        Assert.True(sr4.IsSupersetOf(sr14), "ISO §13.18.60.3 SR4's list contains SR14's whole list.");
+        Assert.True(sr4.IsSupersetOf(sr14), "ISO §2023:13.18.60.3 SR4's list contains SR14's whole list.");
         Assert.Equal(new HashSet<Usage> { Usage.Index }, sr4.Except(sr14).ToHashSet());
         Assert.Empty(sr14.Except(sr4));
         Assert.DoesNotContain(Usage.Index, sr14);
@@ -132,7 +132,7 @@ public sealed class UsageDeclarationPlacementDriftTests
     }
 
     /// <summary>⛔ SR14's SUBJECT IS A USAGE PHRASE, READ FROM THE WRITTEN CLAUSE OR THE RESOLVED PROFILE'S USAGE
-    /// (kb/Work PB819) — never the resolved CATEGORY. The REDEFINES screen of §13.18.44.3 SR12/SR14 (PB179) names
+    /// (kb/Work PB819) — never the resolved CATEGORY. The REDEFINES screen of §2023:13.18.44.3 SR12/SR14 (PB179) names
     /// CLASSES ("class object, message-tag, or pointer") and asks <c>PointerObjectClass</c>; the placement screen
     /// names the five PHRASES that produce those classes and asks <c>Sr14PhraseOf</c>. On every profile the two agree (message-tag included since kb/Work PB4740, when the usage gained a class).
     /// A written clause on an item with no profile at all is seen by the phrase reader alone.</summary>
@@ -178,8 +178,8 @@ public sealed class UsageDeclarationPlacementDriftTests
     }
 
     /// <summary>SR14's "at level 1" arm, as ONE named predicate — and the recorded determination that a level-77
-    /// entry satisfies it. §8.5.1.3.2 puts a 77 entry outside the level system ("three types of entries exist
-    /// for which there is no true concept of level"), and §13.11.1 declares the level-1 and level-77 spellings
+    /// entry satisfies it. §2023:8.5.1.3.2 puts a 77 entry outside the level system ("three types of entries exist
+    /// for which there is no true concept of level"), and §2023:13.11.1 declares the level-1 and level-77 spellings
     /// ALTERNATIVES for one data element that "bear[s] no hierarchical relationship to any other data item" —
     /// which is precisely the property SR14's first arm stands for. The predicate is named so this determination
     /// is a one-line change if it is ever re-read the other way, and this test is where it is written down.
@@ -202,18 +202,18 @@ public sealed class UsageDeclarationPlacementDriftTests
     /// report inline rather than through a <c>Screen…</c> helper.</summary>
     private static readonly Dictionary<string, string> WrittenOnlyArms = new()
     {
-        // §13.18.60.3 SR15's TYPE twin is a rule of its own, §13.18.57.3 SR8 (COBOL2960, DataBinder.cs).
-        ["UsageObjectReferenceFileSection"] = "§13.18.57.3 SR8 is the TYPE twin",
+        // §2023:13.18.60.3 SR15's TYPE twin is a rule of its own, §2023:13.18.57.3 SR8 (COBOL2960, DataBinder.cs).
+        ["UsageObjectReferenceFileSection"] = "§2023:13.18.57.3 SR8 is the TYPE twin",
         // SR14 arm A judges a GROUP that WROTE one of the phrases; a TYPE entry writes no USAGE clause.
         ["UsageDeclarationPlacement"] = "SR14 arm A: a group's own written USAGE",
     };
 
     /// <summary>⛔ EVERY WRITTEN-ENTRY SCREEN IS ASKED OF THE TYPE ENTRY TOO, IN THE SAME ORDER (kb/Work PB3129 and
     /// its review finding R1-1). <c>ConformanceForest</c> prunes every entry that carries a TYPE clause together with
-    /// its clones, so a rule the first loop asks of an entry's COMPOSED shape (§13.18.57.4 GR1: "as though the data
+    /// its clones, so a rule the first loop asks of an entry's COMPOSED shape (§2023:13.18.57.4 GR1: "as though the data
     /// description identified by type-name-1 had been coded in place of the TYPE clause") is blind to the TYPE
     /// spelling unless the composed-entry loop asks it too. That blind spot was closed one rule at a time (PB1212:
-    /// EXTERNAL and BASED; PB3129: SR14) and the review found SR4 and §13.18.5.3 SR2 still open: so the list is
+    /// EXTERNAL and BASED; PB3129: SR14) and the review found SR4 and §2023:13.18.5.3 SR2 still open: so the list is
     /// read from the source here, and a new first-loop screen fails this test until the second loop asks it or
     /// <see cref="WrittenOnlyArms"/> records why it need not.</summary>
     [Fact]

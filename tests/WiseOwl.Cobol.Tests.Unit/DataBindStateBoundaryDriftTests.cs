@@ -57,7 +57,7 @@ public sealed class DataBindStateBoundaryDriftTests
             + "(codegen owns no TurnState, and one fold per element is the rule):\n  " + string.Join("\n  ", offenders));
     }
 
-    /// <summary>The configuration slice is SEEDED in one place (kb/Work PB2296 M5; ISO §12.3.4 GR1, §11.9.4 GR1): what a
+    /// <summary>The configuration slice is SEEDED in one place (kb/Work PB2296 M5; ISO §2023:12.3.4 GR1, §2023:11.9.4 GR1): what a
     /// container hands a contained unit or a class hands its halves (<c>ConfigurationNames.InheritFrom</c>, the OPTIONS
     /// baseline and skeleton paragraph, the mnemonic container) is written only by <c>ConfigurationStep</c>, and the step is
     /// run only by the two drivers that bind units (<c>BinderDriver</c>, <c>OoDriver</c>).</summary>
@@ -91,7 +91,7 @@ public sealed class DataBindStateBoundaryDriftTests
             $"the scan found {seeds} seeding writes and {produced} step runs — the patterns no longer match the code");
         Assert.True(offenders.Count == 0,
             "A unit's configuration slice is seeded outside ConfigurationStep — a contained program's and a class half's "
-            + "configuration has ONE producer (ISO §12.3.4 GR1):\n  " + string.Join("\n  ", offenders));
+            + "configuration has ONE producer (ISO §2023:12.3.4 GR1):\n  " + string.Join("\n  ", offenders));
     }
 
     [Fact]
@@ -113,7 +113,7 @@ public sealed class DataBindStateBoundaryDriftTests
         Assert.True(found >= 3, $"the scan found only {found} inherited-globals writes — the pattern no longer matches the code");
         Assert.True(offenders.Count == 0,
             "The inherited-globals slice is written outside InheritStep — a contained program's inheritance has ONE "
-            + "producer (ISO §13.18.27.4 GR1–GR2):\n  " + string.Join("\n  ", offenders));
+            + "producer (ISO §2023:13.18.27.4 GR1–GR2):\n  " + string.Join("\n  ", offenders));
     }
 
     /// <summary>⛔ A FACT THE BINDER'S PHASES PRODUCE IS A SLICE OF <c>DataBindState</c>, NEVER A TABLE ON THE BINDER (kb/Work

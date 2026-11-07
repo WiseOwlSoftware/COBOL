@@ -11,15 +11,15 @@
       *> compiled and then died at activation with a run-time
       *> "not implemented" for conforming source.
       *>
-      *> No syntax rule of §13.18.16.3 excludes a floating-point
+      *> No syntax rule of §2023:13.18.16.3 excludes a floating-point
       *> data-name-1.
       *> "For each data-name-1 an internal data item, known as a prior
       *> control, is implicitly defined, having the same data
       *> description as the corresponding data item"
-      *>   cite.py: OK  §13.18.16.4 3)  (General rules)
+      *>   cite.py: OK  §2023:13.18.16.4 3)  (General rules)
       *> "the control data items are restored from the prior controls
       *> to their new current values"
-      *>   cite.py: OK  §13.18.16.4 4) a)  (General rules)
+      *>   cite.py: OK  §2023:13.18.16.4 4) a)  (General rules)
       *> GR4 a) stores the prior values into the control items while
       *> the control footings print, then restores the new current
       *> values - a same-usage copy each way, so the restored value is

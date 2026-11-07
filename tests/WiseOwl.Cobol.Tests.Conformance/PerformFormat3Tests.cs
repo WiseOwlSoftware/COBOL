@@ -6,7 +6,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// PERFORM Format 3 (exception-checking, ISO §14.9.28 Format 3, COBOL-2023) conformance tests: the §14.9.28.3
+/// PERFORM Format 3 (exception-checking, ISO §2023:14.9.28 Format 3, COBOL-2023) conformance tests: the §2023:14.9.28.3
 /// syntax rules + cross-statement bans (COBOL1597-1617), the COBOL0900 introduction gate, and the LANDED
 /// runtime interceptor (the pc-range interceptor — at 2023 a well-formed F3 PERFORM compiles clean and runs, in a
 /// program AND inside an OO method [design §9.10]; the open-mode WHEN operand + F3-in-a-method sub-GAPs are LANDED).
@@ -36,7 +36,7 @@ public sealed class PerformFormat3Tests
         EditionHarness.AssertHasDiagnostic(diag, code);
     }
 
-    // ── §14.9.28.3 structural + operand syntax rules ──
+    // ── §2023:14.9.28.3 structural + operand syntax rules ──
 
     [Fact] // PF3-STRUCT-WHEN-REQUIRED
     public void NoWhenPhrase_Rejected1597() =>
@@ -63,8 +63,8 @@ public sealed class PerformFormat3Tests
     public void OpenDupInImp1_Rejected1616() =>
         AssertRejects(ProgFiles("    PERFORM\n        OPEN INPUT F1 F1\n    WHEN EC-SIZE DISPLAY \"x\"\n    END-PERFORM.\n    STOP RUN."), "COBOL1616");
 
-    // kb/Work PB330 / PB417 — §14.9.27.3 SR3 and §14.9.20.3 SR2 ban the MULTI-OPERAND statement (their own
-    // §14.9.27.4 GR20 / §14.9.20.4 GR3 say "more than one file-name / identifier-1 is specified"), so two
+    // kb/Work PB330 / PB417 — §2023:14.9.27.3 SR3 and §2023:14.9.20.3 SR2 ban the MULTI-OPERAND statement (their own
+    // §2023:14.9.27.4 GR20 / §2023:14.9.20.4 GR3 say "more than one file-name / identifier-1 is specified"), so two
     // DIFFERENT operands are rejected too, across open-mode groups as well as inside one.
     [Fact]
     public void MultiFileOpenInImp1_Rejected1616() =>
@@ -108,7 +108,7 @@ public sealed class PerformFormat3Tests
     public void MultiIdentifierValidate_Rejected1607() =>
         AssertRejects(Prog("    PERFORM\n        VALIDATE N M\n    WHEN EC-SIZE DISPLAY \"x\"\n    END-PERFORM.\n    STOP RUN."), "COBOL1607");
 
-    [Fact] // XS-DELETE-FILE-MULTI (region A) — went LIVE with PB134's Format-2 DELETE FILE grammar (§14.9.10.3 SR4)
+    [Fact] // XS-DELETE-FILE-MULTI (region A) — went LIVE with PB134's Format-2 DELETE FILE grammar (§2023:14.9.10.3 SR4)
     public void MultiFileDeleteInImp1_Rejected1613() =>
         AssertRejects(ProgFiles("    PERFORM\n        DELETE FILE F1 F2\n    WHEN EC-SIZE DISPLAY \"x\"\n    END-PERFORM.\n    STOP RUN."), "COBOL1613");
 
@@ -170,7 +170,7 @@ public sealed class PerformFormat3Tests
     public void WellFormedF3_At2023_CompilesClean_NoSyntaxRuleFires()
     {
         // A fully well-formed F3 PERFORM (no SR / cross-statement-ban violation) compiles clean at 2023 — none of the
-        // §14.9.28.3 rules fire on legal source, and the runtime interceptor has landed (no 0899).
+        // §2023:14.9.28.3 rules fire on legal source, and the runtime interceptor has landed (no 0899).
         var (ok, diag) = EditionHarness.Compile(
             Prog("    PERFORM WITH LOCATION\n        ADD 1 TO N\n    WHEN EC-SIZE DISPLAY \"s\"\n    WHEN OTHER EXCEPTION DISPLAY \"o\"\n    FINALLY DISPLAY \"f\"\n    END-PERFORM.\n    STOP RUN."), 2023);
         Assert.True(ok, string.Join("\n", diag));

@@ -133,8 +133,8 @@ was the **#1 work item of the pre-PIVOT byte-engine era. Do NOT do it now:** the
     1175/481/364.
   - **PROGRESS — Stage 0 character substrate `CobolString` LANDED (DEVLOG 399), guard 1184/481/364:** ☑
     `legacy-runtime/Text/CobolString.cs` — the typed-string analogue of `CobolNum`: COBOL alphanumeric
-    MOVE value semantics (`Store` — width/justify/space-fill, ISO §14.9.25/§13.18.36) + ordinal space-extended
-    comparison (`Compare`, ISO §8.8.4.2.7 r2) + the Latin-1 `IDataSlot` boundary codec (`FromWindow`/`ToWindow`, ADR
+    MOVE value semantics (`Store` — width/justify/space-fill, ISO §2023:14.9.25/§2023:13.18.36) + ordinal space-extended
+    comparison (`Compare`, ISO §2023:8.8.4.2.7 r2) + the Latin-1 `IDataSlot` boundary codec (`FromWindow`/`ToWindow`, ADR
     R10/§2.5). ☑ a **differential oracle** (`CobolStringDifferentialTests`, +9) proves it byte-identical to the
     legacy `StorageHelpers` path (MOVE over binary/LOW-/HIGH-VALUE × widths × left/justified; window round-trip;
     compare sign-identical). Additive/unwired (guard green by construction). Surfaced (and deliberately left for
@@ -193,10 +193,10 @@ was the **#1 work item of the pre-PIVOT byte-engine era. Do NOT do it now:** the
   - **PROGRESS — record-struct numeric members + OCCURS + nested groups (DEVLOG 419–427), guard 1196/506/364:** ☑
     record structs gain `long`/`decimal` members (419); ☑ **OCCURS** char tables → `string[]` (422, the first
     cross-cutting increment — abstract `IrTypedLocation` base + `IrTypedElementLocation` + 3 generalized value-access
-    primitives + classifier whole-table demotion §9.3) and numeric tables → `long[]`/`decimal[]` (425, unblocked by
+    primitives + classifier whole-table demotion §2023:9.3) and numeric tables → `long[]`/`decimal[]` (425, unblocked by
     424); ☑ PERFORM VARYING over a typed table works, SEARCH safely stays byte (426); ☑ **nested groups → nested
     `record struct`s** via a member-path walk (427). **BYTE-ENGINE CONFORMANCE FIX (424):** a VALUE on an OCCURS item
-    now initializes EVERY occurrence (ISO §13.18.63.4 GR 9 — was only the last); zero baseline shifts; conformance
+    now initializes EVERY occurrence (ISO §2023:13.18.63.4 GR 9 — was only the last); zero baseline shifts; conformance
     test `conformance-suite/cases/13.18.63-VALUE/table_value_occurs`.
   - **PROGRESS — Stage-3 "definition of done" (DEVLOG 428), guard 1196/507/364:** ☑ a representative ordinary
     business program flips its **WHOLE data division** (nested group + numeric OCCURS table + standalone longs;
@@ -224,7 +224,7 @@ was the **#1 work item of the pre-PIVOT byte-engine era. Do NOT do it now:** the
     `pointer_arith`); ☑ **slice 3** `ALLOCATE {n CHARACTERS | based-item} [INITIALIZED] [RETURNING p]` (`IrAllocate`
     + `ManagedPointer.Allocate`, new lexer tokens ALLOCATE/FREE/INITIALIZED) / `FREE p` (reuses pointer-store-NULL;
     conf `pointer_alloc`). **All pointers are ONE managed `ManagedPointer`, always-typed, no 8-byte handle.** Pointer
-    follow-ups (PROGRAM-/FUNCTION-POINTER, pointer in a typed record/table, EC exception checks) tracked in §10.4.
+    follow-ups (PROGRAM-/FUNCTION-POINTER, pointer in a typed record/table, EC exception checks) tracked in §2023:10.4.
   - **TOOLING (DEVLOG 435): `scripts/guard-fast.sh` — the parallel guard (~3.3 min vs ~11 min), PROVEN byte-identical
     to `scripts/guard.sh` via `scripts/guard-verify.sh`.** Use it for iteration; the serial guard remains the authority.
   - **Stage-4 OO → .NET classes: SLICE 1 DONE (DEVLOG 447)** — CLASS/NEW/INVOKE/OBJECT REFERENCE end-to-end (a
@@ -283,10 +283,10 @@ was the **#1 work item of the pre-PIVOT byte-engine era. Do NOT do it now:** the
   - **M2-DATA-3** National (UTF-16) data — CORE COMPLETE (383): `PIC N`/`USAGE NATIONAL`, `N"…"`, MOVE/VALUE/
     INITIALIZE/SPACE/DISPLAY/compare + national↔alpha/numeric conversion. Conformance `national_data`.
     An adversarial review caught + fixed silent corruption in the first slice before commit.
-    **P10 national wave (2026-07-16): FUNCTION DISPLAY-OF (§15.26) + NATIONAL-OF (§15.66) implemented** on the
+    **P10 national wave (2026-07-16): FUNCTION DISPLAY-OF (§2023:15.26) + NATIONAL-OF (§2023:15.66) implemented** on the
     greenfield (`CobolIntrinsics.DisplayOf/NationalOf`, riding CONVERT's ONE repertoire translator + the ambient
     EC-DATA-CONVERSION channel). Argument-2 is a one-character SUBSTITUTION character per the 2023 text
-    (§15.26.3 r2 / §15.66.3 r2 — the format names no CCSID/codeset facility), so BOTH argument forms are fully
+    (§2023:15.26.3 r2 / §2023:15.66.3 r2 — the format names no CCSID/codeset facility), so BOTH argument forms are fully
     implemented — nothing staged. The N"…" Latin-1-only literal guard was lifted (full UTF-16 repertoire,
     D-N1); binder SR checks = COBOL1546. Conformance `national_intrinsics` (greenfield-only — the legacy
     oracle's DISPLAY-OF is a pass-through approximation).
@@ -306,7 +306,7 @@ was the **#1 work item of the pre-PIVOT byte-engine era. Do NOT do it now:** the
     `ON SIZE ERROR` now fires on an inexact PROHIBITED result and the receiver is left unchanged (conformance
     `rounded_mode_prohibited`). The named-EC exception object (EC-SIZE-TRUNCATION) + USE framework remains future
     work under M2-PROC-4.
-  - **Bug fix (392):** `IS ALPHABETIC` restricted to ISO §8.8.4.4 {A–Z, a–z, space} (was `char.IsLetter`,
+  - **Bug fix (392):** `IS ALPHABETIC` restricted to ISO §2023:8.8.4.4 {A–Z, a–z, space} (was `char.IsLetter`,
     Unicode-wide). Both 392 fixes were surfaced by the data-model ADR review.
   - **🏗 DATA-MODEL RE-ARCHITECTURE designed + adversarially reviewed (393)** — the ADR + review docs (see §0.5).
   - **🏗 DATA-MODEL MIGRATION STARTED — Stage 0/1 substrate (394) + Stage-1 first wiring (395):** the `BigInteger`
@@ -386,20 +386,20 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
   (M2-UDF-1 + M2-UDF-2) is closed for numeric functions** — and, in the GREENFIELD (P10 Step 9, DEVLOG 859),
   the **category-carrying RETURNING channel** extends it to alphanumeric / numeric-edited / national /
   image-form-group results (every leaf `DataItem.ElementImageCapable` — character-stored or a pinned numeric
-  byte form: zoned DISPLAY, binary, packed, COMP-5, IEEE float, INDEX) (§8.4.3.2.4 GR1; golden
+  byte form: zoned DISPLAY, binary, packed, COMP-5, IEEE float, INDEX) (§2023:8.4.3.2.4 GR1; golden
   `udf_returning_categories`, greenfield-only — the legacy carries only numeric results);
   every other RETURNING category — float, boolean, index, data-pointer, object-reference and strong-typed /
   REDEFINES / variable-length groups — is carried too (kb/Work PB1419 deleted the per-shape COBOL1510 residues).
 - ☐ **M2-UDF-3 — Separate-compilation user functions (prototypes).** Caller + function in different translation
-  units. *Medium.* §8.13 external repository + function-prototype. *Current:* caller and function must share one
+  units. *Medium.* §2023:8.13 external repository + function-prototype. *Current:* caller and function must share one
   compilation group. *Recipe:* function-prototype definitions in the caller (or an external repository registry).
 - ☐ **M2-UDF-4 — Bind REPOSITORY FUNCTION specifiers.** Enable `REPOSITORY. FUNCTION ALL INTRINSIC` (call
   intrinsics without the `FUNCTION` keyword) + named function specifiers. *Medium (parser ambiguity: `name(args)`
-  vs subscript).* *Current:* REPOSITORY parses but specifiers are inert. §12.3.8.
+  vs subscript).* *Current:* REPOSITORY parses but specifiers are inert. §2023:12.3.8.
 
 ### 3.2 M2 — Data types
 
-- ☑ 🐛 **M2-DATA-1 — `USAGE BINARY-CHAR/SHORT/LONG/DOUBLE [SIGNED|UNSIGNED]` (DONE — DEVLOG 380).** §13.18.60.
+- ☑ 🐛 **M2-DATA-1 — `USAGE BINARY-CHAR/SHORT/LONG/DOUBLE [SIGNED|UNSIGNED]` (DONE — DEVLOG 380).** §2023:13.18.60.
   4 new `UsageKind` markers (BinaryChar/Short/Long/Double) + `SIGNED`/`UNSIGNED` reserved words + `binarySign`
   grammar; FieldSizeCalculator 1/2/4/8 bytes; `StorageLocation` synthesizes a COMP-5 descriptor (explicit width
   + TotalDigits 3/5/10/19-or-20 + sign); `DataSymbol.IsUnsignedBinary`/`IsFixedWidthBinary`; PicUsageResolver/
@@ -429,9 +429,9 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
 - ☑ **M2-DATA-4 — Boolean & bit data (CORE DONE — DEVLOG 386).** `PIC 1(n)` / `USAGE BIT` (one byte/position,
   ASCII `'0'`/`'1'`), `B"…"`/`b'…'` literals, and the full data surface: MOVE boolean←boolean (`'0'` fill / right
   truncate / JUSTIFIED), literal/figurative-ZERO **VALUE**, **MOVE ZERO / INITIALIZE** (boolean zero), **DISPLAY**,
-  **comparison** (field=field, field=literal), and **JUSTIFIED RIGHT** (§13.18.32 — the fix also un-deadened
+  **comparison** (field=field, field=literal), and **JUSTIFIED RIGHT** (§2023:13.18.32 — the fix also un-deadened
   national JUSTIFIED). A 2-agent adversarial review caught + fixed three defects before commit: non-boolean VALUE
-  corruption (§13.18.63 GR10 → CBL1002), a boolean nested in a COMPUTE tree read as numeric (→ CBL2601, recursed),
+  corruption (§2023:13.18.63 GR10 → CBL1002), a boolean nested in a COMPUTE tree read as numeric (→ CBL2601, recursed),
   and JUSTIFIED wrongly rejected on boolean/national (CBL0803). Conformance `conformance-suite/cases/13.18.32-JUSTIFIED/boolean_data`.
   **Deferred:** bit operators B-AND/B-OR/B-XOR/B-NOT (reserved-word collision; needs the XOR wiring pattern),
   `BX"…"`, true bit-packing, GROUP-USAGE BIT, boolean↔non-boolean compare strictness, boolean ref-mod, the broader
@@ -439,8 +439,8 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
   - **Investigated first-slice recipe (workflow `m2-data4-boolean-investigation`, 2026-06-05) — mirrors the
     National build (DEVLOG 383) almost exactly.** Corpus-checked clean: NIST has no `PIC 1`, no `USAGE BIT`, no
     real `B"…"` (only `"B"` strings → STRINGLIT). **Storage model:** 1 byte per boolean position holding ASCII
-    `'0'`/`'1'` — spec-permitted (§13.18.40.4 R14: a boolean char "may be represented … as an alphanumeric
-    character"); simplest correct; true bit-packing (§8.5.1.6.3) deferred. So boolean ≈ "alphanumeric with `'0'`
+    `'0'`/`'1'` — spec-permitted (§2023:13.18.40.4 R14: a boolean char "may be represented … as an alphanumeric
+    character"); simplest correct; true bit-packing (§2023:8.5.1.6.3) deferred. So boolean ≈ "alphanumeric with `'0'`
     fill + a distinct category + no DISPLAY trim". **Touch (mirror National):** (1) `PicDescriptor.cs` add
     `CobolCategory.Boolean` + `IsBooleanLike()` + `UsageKind.Bit`; (2) `PicDescriptorFactory.cs` add a
     `hasBooleanChars` flag + `case '1'` (integerDigits += count) + category lattice (Boolean when only `'1'`);
@@ -460,13 +460,13 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
     INITIALIZE/DISPLAY/compare. **Defer:** `BX"…"` hex, **bit operators B-AND/B-OR/B-XOR/B-NOT** (corpus-collision
     risk — `B-NOT` seen as an identifier in a unit test; needs careful reserved-word handling + the XOR-operator
     wiring pattern, DEVLOG 375), true bit-packing, GROUP-USAGE BIT, SET cond-name interplay.
-- ☑ **M2-DATA-4b — `&` concatenation expressions (GREENFIELD DONE — P10 Step 14, 2026-07-16).** ISO §8.8.3:
+- ☑ **M2-DATA-4b — `&` concatenation expressions (GREENFIELD DONE — P10 Step 14, 2026-07-16).** ISO §2023:8.8.3:
   the `&` operator joins alphanumeric (incl. `X"…"` hex) / national / boolean literals and figurative
-  constants into ONE literal; §8.8.3.3 GR3 makes the result a compile-time literal usable anywhere a literal
+  constants into ONE literal; §2023:8.8.3.3 GR3 makes the result a compile-time literal usable anywhere a literal
   of its class may appear — implemented in the greenfield `src/WiseOwl.Cobol.*` as the `Binding/ConcatFolder.cs`
   fold (NO runtime operator; no emitter leg) — operands include a constant-name and a symbolic-character, and the
-  class is folded pairwise per §8.8.3.3 GR1 (kb/Work PB1406) — with the §8.8.3.2 SRs as `COBOL1540/1541/1545`
-  (a word standing for no literal `COBOL2473`; §12.3.7.3 SR11's symbolic-character operand `COBOL2474`), the
+  class is folded pairwise per §2023:8.8.3.3 GR1 (kb/Work PB1406) — with the §2023:8.8.3.2 SRs as `COBOL1540/1541/1545`
+  (a word standing for no literal `COBOL2473`; §2023:12.3.7.3 SR11's symbolic-character operand `COBOL2474`), the
   `concat-operator-2002` VersionConformancePass parse-arm gate (0900 at `--std 85`), the enabled
   `conformance-suite/cases/8.8.3-Concatenation-expressions/literal_concat` golden (+ `concat_below_2002` / `concat_class_mismatch` negatives)
   and the active version-matrix row. Never existed in the legacy engine (GreenfieldOnly).
@@ -482,7 +482,7 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
   pinning / native memory.
   Also deferred: ordering-operator rejection on pointers (`< >` compile to a byte-compare today; invalid input),
   PROGRAM-/FUNCTION-POINTER distinctions, and updating/removing the orphaned `LoweringTable` (no Pointer cases).
-  **Phase-1 is thin standalone** — every pointer can only be NULL until ADDRESS OF/ALLOCATE exist. §13.18, §14.9.
+  **Phase-1 is thin standalone** — every pointer can only be NULL until ADDRESS OF/ALLOCATE exist. §2023:13.18, §2023:14.9.
   - **Investigated first slice (handoff audit, 2026-06-05) — the audit's RECOMMENDED next pick** (foundational +
     smallest Phase-1, no grammar ambiguity). Current state: `UsageKind.Pointer` enum value exists but is **inert**
     (no grammar for ADDRESS OF/SET ADDRESS OF/BASED/NULL, no bound pointer node); `ManagedPointer` exists but is
@@ -496,7 +496,7 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
     (POINTER 8-byte handle + NULL + SET p TO NULL + SET p TO q + `= NULL`/`= q` equality) is standalone; Phase-2
     dereference (ADDRESS OF/BASED) uses **managed .NET references** (`ManagedPointer`) in the data-model Stage 4 — the
     `PointerRegistry` design is REJECTED (settled, NOT gated; DEVLOG 428). NULL = handle 0 = 8 zero bytes. **Spec corrections to the slice above:** (a) **`VALUE NULL` is PROHIBITED on
-    pointer items** (§13.18.26 SR9) — do NOT implement it; instead REJECT a VALUE clause on a pointer (mirror the
+    pointer items** (§2023:13.18.26 SR9) — do NOT implement it; instead REJECT a VALUE clause on a pointer (mirror the
     boolean VALUE check). (b) Comparison is **equality only** (= / NOT =), operands same category or NULL.
     **Lean approach — reuse existing machinery, minimal new code:** model pointer as `CobolCategory.Pointer`
     (8 bytes); **SET p TO NULL / SET p TO q → lower as a MOVE** in `BindSetToValue` when the target is a pointer
@@ -536,40 +536,40 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
   `SemanticModel.DefaultRoundingMode`, `BindRounded` (now instance) returns it for a bare ROUNDED; per-statement
   `MODE IS` still overrides. Conformance `options_default_rounded`. (2) ☐ PROHIBITED → raise EC-SIZE-TRUNCATION
   on an inexact result — **blocked on the EC framework (M2-PROC-4)**; needs the arithmetic store paths to detect
-  precision loss. §14.9.4, §11.9.6.
+  precision loss. §2023:14.9.4, §2023:11.9.6.
 - ◑ **M2-ARITH-2 — Apply remaining OPTIONS clauses.** `DEFAULT ROUNDED MODE` is now **applied** (DEVLOG 391, see
   M2-ARITH-1 follow-up #1 — the OPTIONS token-scan + `SemanticModel.DefaultRoundingMode` infrastructure is in
   place). Still recognize-and-ignore: `ARITHMETIC IS STANDARD/STANDARD-BINARY/STANDARD-DECIMAL`,
   `INTERMEDIATE ROUNDING`, `FLOAT-BINARY/DECIMAL DEFAULT`, `ENTRY-CONVENTION`. *Medium–large* (standard arithmetic
-  is a real intermediate-precision change). §11.9.
+  is a real intermediate-precision change). §2023:11.9.
 
 ### 3.4 M2 — Procedure-division statements
 
-- ☑ 🐛 **M2-PROC-1 — `INITIALIZE … TO VALUE` / `THEN TO DEFAULT` / `WITH FILLER` (DONE — DEVLOG 381).** §14.9.20.
+- ☑ 🐛 **M2-PROC-1 — `INITIALIZE … TO VALUE` / `THEN TO DEFAULT` / `WITH FILLER` (DONE — DEVLOG 381).** §2023:14.9.20.
   Binder now captures all three phrases (`BoundInitializeStatement.WithFiller/ToValue/ToValueCategory/ToDefault`);
   the lowerer applies per-item precedence TO VALUE → REPLACING → default, includes FILLER under WITH FILLER, and
   suppresses the default for non-VALUE items under TO VALUE unless TO DEFAULT. `EmitValueClauseInit` emits each
   item's declared VALUE (figurative / ALL-literal / numeric / string). Conformance
   `conformance-suite/cases/14.9.11-DISPLAY/initialize_phrases`.
-- ☑ **M2-PROC-2 — `INSPECT … BACKWARD` (DONE — DEVLOG 378).** §14.9.21. New `BACKWARD` reserved word +
+- ☑ **M2-PROC-2 — `INSPECT … BACKWARD` (DONE — DEVLOG 378).** §2023:14.9.21. New `BACKWARD` reserved word +
   grammar `INSPECT BACKWARD? …` + a `bool Backward` threaded Bound→IR→emit→runtime. Implemented as a
   reverse-wrapper: reverse the target + every multi-char operand/delimiter, run the existing forward
   TALLYING/REPLACING/CONVERTING cycle, reverse the result buffer back (TALLYING needs none; FROM/TO sets
   unreversed). Verified backward = exact forward mirror (FIRST→rightmost, LEADING→trailing-run, BEFORE-region
   flips side). Conformance `tests/conformance/2002/inspect_backward`.
 - ☐ **M2-PROC-3 — `VALIDATE` statement + validation clauses.** CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/
-  VARYING + error handling. *Large (new facility).* §14.9 VALIDATE, §13.
+  VARYING + error handling. *Large (new facility).* §2023:14.9 VALIDATE, §13.
 - ☐ **M2-PROC-4 — Exception handling: `RAISE`, EC framework, `>>TURN` runtime checking, `RESUME`,
   `USE … AFTER EXCEPTION`.** **[A] medium, large.** *Recipe:* an EC-condition catalog, a TURN on/off map, a
   condition register, and runtime guards on checked operations. **Backbone for RAISE/RESUME/USE and
-  exception-checking PERFORM.** §14.6, §14.9.
-- ☑ **M2-PROC-5 — `ALLOCATE` / `FREE` (based storage).** *Medium.* **Depends on M2-DATA-5 (pointers).** §14.9.
-  **LANDED greenfield (DEVLOG 617; the §14.9.3 GR7 based-INITIALIZED lowering completed P10 Step-6 slice,
+  exception-checking PERFORM.** §2023:14.6, §2023:14.9.
+- ☑ **M2-PROC-5 — `ALLOCATE` / `FREE` (based storage).** *Medium.* **Depends on M2-DATA-5 (pointers).** §2023:14.9.
+  **LANDED greenfield (DEVLOG 617; the §2023:14.9.3 GR7 based-INITIALIZED lowering completed P10 Step-6 slice,
   2026-07-16, DEVLOG 858):** both formats + FREE on `ManagedPointer`/`StorageCell`; INITIALIZED = GR6
   binary-zero fill (CHARACTERS) / the GR7 `INITIALIZE … WITH FILLER ALL TO VALUE THEN TO DEFAULT` expansion
   (based form, the ONE InitializeBinder mechanism); goldens `2002/pointer_alloc` + `2002/allocate_initialized`.
 - ◑ **M2-PROC-6 — `GOBACK RETURNING` (DONE — DEVLOG 387); EXIT variants verified; `CONTINUE AFTER` deferred.**
-  §14.9.16. `GOBACK RETURNING|GIVING identifier` (dialect-gated 2002+) lowers to a synthetic MOVE into the
+  §2023:14.9.16. `GOBACK RETURNING|GIVING identifier` (dialect-gated 2002+) lowers to a synthetic MOVE into the
   PROCEDURE DIVISION RETURNING item + `IrGoBack` (reuses the CALL…RETURNING wiring); conformance
   `conformance-suite/cases/14.9.4-CALL/goback_returning`. EXIT PROGRAM/PERFORM[ CYCLE]/SECTION/PARAGRAPH/METHOD/FUNCTION
   grammar present and EXIT PROGRAM/PERFORM green across NIST — no gap. **Remaining:** `CONTINUE AFTER expr SECONDS`
@@ -584,19 +584,19 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
   - **(a) mid-file `>>SOURCE FORMAT` switching — MIS-PARSE (real).** `ReferenceFormatProcessor` honors only the
     FIRST directive, whole-file ("first wins", `ReferenceFormatProcessor.cs:86-111`). A genuinely fixed-form
     region after a `>>SOURCE FORMAT IS FREE` keeps its column-1-6 sequence numbers → stray tokens; a later
-    FIXED switch is silently ignored. Spec **§7.3.24.3 R1/R5**: a SOURCE FORMAT directive governs the text
+    FIXED switch is silently ignored. Spec **§2023:7.3.24.3 R1/R5**: a SOURCE FORMAT directive governs the text
     *following it until the next directive* (and reverts at end of COPY'd library text). Fix needs **per-line
     format state** in the normalizer (or a new region-wise pass). Non-trivial.
   - **(b) conditional-compilation directives inside copied library text — CLEAN-ERROR (real).** `Compilation.cs:
     279-301` runs `ConditionalCompilationProcessor` (285) BEFORE `CopyProcessor` (295), so `>>IF`/`>>DEFINE` in a
-    copybook pass through as text → stray `>` parse error. Spec **§7.2** order is: COPY *inclusion* (Step 1) →
+    copybook pass through as text → stray `>` parse error. Spec **§2023:7.2** order is: COPY *inclusion* (Step 1) →
     DEFINE/IF/EVALUATE (Step 2a) → COPY REPLACING (2d) → REPLACE (Step 3), i.e. **COPY-inclusion-then-CC**. Fix =
     swap so COPY runs before CC (low NIST risk — CC is a no-op on directive-free source). **CAUTION: the current
-    order is a DELIBERATE decision** (its comment cites §7.3.16 GR1 to let `>>IF` gate a COPY); reconcile
-    §7.3.16 vs §7.2 first — gating still works COPY-first (the expanded text falls in the IF false path, §7.2
+    order is a DELIBERATE decision** (its comment cites §2023:7.3.16 GR1 to let `>>IF` gate a COPY); reconcile
+    §2023:7.3.16 vs §2023:7.2 first — gating still works COPY-first (the expanded text falls in the IF false path, §2023:7.2
     line 3314 "may be omitted"). Verify the `conditional_compilation` conformance test + add a copybook-CC test.
   - **(c) unknown/`>>`-directive handling — ALREADY CORRECT (no fix needed).** Known-ignored directives are
-    consumed; an unknown `>>X` surfaces as a clean COBOL0001 by design (typo-catching). Spec §7.3.3/§7.3.4 leave
+    consumed; an unknown `>>X` surfaces as a clean COBOL0001 by design (typo-catching). Spec §2023:7.3.3/§2023:7.3.4 leave
     unknown-directive behavior implementor-defined (only `>>IMP` reserved). The proposed directive-skip lexer
     rule is at most diagnostic polish — **dropped from the trio**.
 - ☐ **M2-PRE-2 — Directive semantics depth.** Does `>>TURN` actually toggle EC checks (pairs with M2-PROC-4); is
@@ -605,7 +605,7 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
 
 ### 3.6 M2 — File & I/O (2002+ deltas only; the 85 file I/O is done)
 
-- ☐ **M2-FILE-1 — `SHARING`, `LOCK MODE`/`LOCK ON`, `RETRY`.** *Medium.* §13 FILE-CONTROL, §14.9 OPEN.
+- ☐ **M2-FILE-1 — `SHARING`, `LOCK MODE`/`LOCK ON`, `RETRY`.** *Medium.* §13 FILE-CONTROL, §2023:14.9 OPEN.
 - ☐ **M2-FILE-2 — Line-sequential organization** + 2002 FILE STATUS codes. *Medium.*
 
 ### 3.7 M2 — Object-Oriented COBOL (the single largest sub-project)
@@ -635,7 +635,7 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
   **Remaining (each its own guard-green + conformance-tested slice):** slice 3b subclass own OBJECT data (extend
   the shared State) + multi-method classes + `INVOKE SELF`; slice 4 `FACTORY` (static) methods/data; slice 5 `PROPERTY` (GET/SET); slice 6 polymorphism
   + universal object reference + `EC-OO-*`; plus multi-method classes (a richer per-class IrModule) and per-instance
-  OBJECT REFERENCE / typed-native OBJECT fields. INTERFACE-ID is post-slice-6. §11 OO source units, §14.9.23 INVOKE.
+  OBJECT REFERENCE / typed-native OBJECT fields. INTERFACE-ID is post-slice-6. §11 OO source units, §2023:14.9.23 INVOKE.
 
 ### 3.8 M3 — COBOL-2014
 
@@ -645,11 +645,11 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
 - ◑ **M3-2 — `TYPEDEF` / `SAME AS` / `TYPE TO`.** *Medium.* **TYPEDEF + the `TYPE` clause DONE** (data-model D17,
   DEVLOG 659–663 — inc 1 weak-TYPE spine, inc 2 STRONG typing, inc 3 level-88s, inc 4 staged-loud residue; goldens
   `typedef_weak_elem`/`typedef_weak_group`/`typedef_strong_ok`/`typedef_88`/`typedef_indexed`). **`SAME AS` DONE**
-  (P10 Step 16 — §13.18.49 on the ONE `CloneItem`/`ExpandSameAs` machinery; the `AS` token landed with the CONSTANT
+  (P10 Step 16 — §2023:13.18.49 on the ONE `CloneItem`/`ExpandSameAs` machinery; the `AS` token landed with the CONSTANT
   wave; golden `typedef_same_as`, matrix row `same-as-clause-2002` ACTIVE, SR bands 1555/1556/1557). **EXTERNAL type
-  declarations DONE** (P10 Step 16 — §13.18.22 GR2/GR3/SR5 = 1558; the 1534 stage lifted; golden `typedef_external`).
-  The RESTRICTED data-pointer `USAGE POINTER TO type-name` (ISO §13.18.60.2 general format / Annex D.9.2.2) is LIVE
-  (kb/Work PB153) and a COBOL-2002 construct (plain `TYPE TO` is the TYPE clause's OPTIONAL word, §13.18.57.2 Format 1
+  declarations DONE** (P10 Step 16 — §2023:13.18.22 GR2/GR3/SR5 = 1558; the 1534 stage lifted; golden `typedef_external`).
+  The RESTRICTED data-pointer `USAGE POINTER TO type-name` (ISO §2023:13.18.60.2 general format / Annex D.9.2.2) is LIVE
+  (kb/Work PB153) and a COBOL-2002 construct (plain `TYPE TO` is the TYPE clause's OPTIONAL word, §2023:13.18.57.2 Format 1
   `TYPE [TO] type-name`); it has no matrix row, since the TYPEDEF, TYPE and BASED rows already gate it below 2002
   (kb/Work PB4612 deleted the unwired row `usage-pointer-to-type-2014`).
   Diagnostic band 15xx = 1529–1533, 1535, 1555–1558.
@@ -673,12 +673,12 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
   `IrLogicalOp.Xor` → CIL `xor`. ⚠ CORRECTION (the W3 chair adjudication, roadmap §2 Phase 2): the former NOTE
   here claimed XOR is "2002-era, not a 2023 delta" — that parenthetical was UNSOURCED and is WRONG: Annex E.2
   item 25 / E.3.2 item 4 (the spec's own change annex) list XOR and EXCLUSIVE-OR among the words newly reserved
-  by 2023 (they were user-defined words before), and presence in the 2023 body (§8.8.4.9) proves nothing about
+  by 2023 (they were user-defined words before), and presence in the 2023 body (§2023:8.8.4.9) proves nothing about
   2002. The operator is `{is2023()}?`-gated; conformance re-editioned to `conformance-suite/cases/8.8.4.11-Complex-Combined-conditions/logical_xor`
   (VCR rows 32/41; constructs.json rows `logical-xor-operator-2023` + the two user-word interval rows).
-- ☑ **M4-2b — `SMALLEST-ALGEBRAIC` + `EXCEPTION-FILE-N` intrinsics — BOTH LANDED.** SMALLEST-ALGEBRAIC (§15.83)
+- ☑ **M4-2b — `SMALLEST-ALGEBRAIC` + `EXCEPTION-FILE-N` intrinsics — BOTH LANDED.** SMALLEST-ALGEBRAIC (§2023:15.83)
   is a compile-time PICTURE fold (`IntrinsicBind.Fold`, the HIGHEST/LOWEST `BindAlgebraicFold` family;
-  `smallest_algebraic` ENABLED). EXCEPTION-FILE-N (§15.29) + EXCEPTION-LOCATION-N (§15.31) landed with the P10
+  `smallest_algebraic` ENABLED). EXCEPTION-FILE-N (§2023:15.29) + EXCEPTION-LOCATION-N (§2023:15.31) landed with the P10
   Step-11 EC-N wave (2026-07-16) once national data unblocked: `EcFunctions.FileN/LocationN` = the base
   renderings projected through the ONE `NationalOf` repertoire translator, result category National (Table-16
   legality); `exception_file_n` ENABLED + the `exception-file-n-2002` matrix row + the 85-window negative.
@@ -691,18 +691,18 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
 
 ---
 
-### `>>PROPAGATE` directive semantics (§7.3.21)
+### `>>PROPAGATE` directive semantics (§2023:7.3.21)
 
 The PROPAGATE compiler directive (automatic propagation of unhandled exception conditions to the activating
-runtime element, §7.3.21 + §14.6.13.1.3 6)'s "as if a GOBACK statement with the RAISING LAST EXCEPTION phrase" rule)
+runtime element, §2023:7.3.21 + §2023:14.6.13.1.3 6)'s "as if a GOBACK statement with the RAISING LAST EXCEPTION phrase" rule)
 is implemented (kb/Work PB1119; the mechanism is CONDITIONS_EXCEPTIONS_DESIGN "Automatic propagation", the
 readings CONFORMANCE.md D-PROP). The deliberate GOBACK/EXIT ... RAISING propagation path it reuses is
 `oo_ec_goback_raising`. Note the spec
-correction recorded with this finding: USE Formats 3/4 carry NO [GLOBAL] phrase (§14.9.49.2) — only the
+correction recorded with this finding: USE Formats 3/4 carry NO [GLOBAL] phrase (§2023:14.9.49.2) — only the
 file-exception Format 1 and reporting Format 2 do — so there is no "GLOBAL exception declarative walk" to
 implement; PROPAGATE is the only cross-element automatic path.
 
-### Recorded deferral — GOBACK status-phrase (2023; §14.9.18.2) → PHASE-13
+### Recorded deferral — GOBACK status-phrase (2023; §2023:14.9.18.2) → PHASE-13
 
 `GOBACK [WITH {ERROR|NORMAL} STATUS [identifier|literal]]` is a COBOL-2023 addition (the STOP RUN twin is
 LANDED — the `stop-run-status` construct row). As of P9 Step 14 (2026-07-16) the grammar's `gobackStatement`
@@ -808,10 +808,10 @@ A commercial compiler needs more than spec checkboxes. Track these in parallel:
   "preprocessor crashes on valid source" claim (nothing crashes); the two real-but-rare defects + a spec caution
   are documented, item dropped to ◐. **M2-DATA-4 Boolean data CORE COMPLETE** (385 recipe, 386 implementation):
   `PIC 1`/`USAGE BIT`, `B"…"`, MOVE/VALUE/INITIALIZE/ZERO/DISPLAY/compare/JUSTIFIED; conformance `boolean_data`.
-  A 2-agent adversarial review caught + fixed VALUE corruption (§13.18.63 GR10), a boolean-in-COMPUTE
+  A 2-agent adversarial review caught + fixed VALUE corruption (§2023:13.18.63 GR10), a boolean-in-COMPUTE
   silent-numeric read, and JUSTIFIED wrongly rejected on boolean/national (the last also un-deadened national
   JUSTIFIED). Guard 1047/476/364. Next: M2-DATA-5 Pointers (needs the PointerRegistry design decision).
-- **2026-06-05 (session DEVLOG 387)** — **M2-PROC-6 `GOBACK RETURNING`** (ISO §14.9.16, dialect-gated 2002+):
+- **2026-06-05 (session DEVLOG 387)** — **M2-PROC-6 `GOBACK RETURNING`** (ISO §2023:14.9.16, dialect-gated 2002+):
   lowers to a synthetic MOVE into the PROCEDURE DIVISION RETURNING item + `IrGoBack` (reuses CALL…RETURNING);
   conformance `goback_returning`. EXIT variants verified present/green; `CONTINUE AFTER` deferred. Guard
   1047/477/364. Still next: **M2-DATA-5 Pointers** (needs the PointerRegistry design decision — owner to confirm).
@@ -840,7 +840,7 @@ A commercial compiler needs more than spec checkboxes. Track these in parallel:
   numeric) → `T[]` with subscripted + PERFORM-VARYING access, SEARCH safely byte (422–426); **nested groups** →
   nested `record struct`s (427); end-to-end "definition of done" — a representative business program flips its whole
   data division byte-identically (428). Plus a **byte-engine ISO-2023 conformance fix**: a VALUE on an OCCURS item
-  now initializes EVERY occurrence (§13.18.63.4 GR 9; 424; conformance `table_value_occurs`; zero baseline shifts).
+  now initializes EVERY occurrence (§2023:13.18.63.4 GR 9; 424; conformance `table_value_occurs`; zero baseline shifts).
   24 differential tests; guard **1196 unit / 507 integration / 364 NIST** (all green). **CORRECTION (428): pointers
   use MANAGED .NET REFERENCES (`ManagedPointer`); the `PointerRegistry` design is REJECTED — SETTLED, NOT owner-gated.**
   **NEXT (all autonomous-eligible): Stage-4 pointers (managed refs) + OO; Stage-5 Roslyn backend; Stage-6 finalize +

@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ THE DESCRIPTION OF A NUMERIC FUNCTION'S RETURNED-VALUE ITEM IS ONE CATALOG COLUMN, AND THE NEXT FUNCTION IS AUTOMATIC
-/// (kb/Work PB3514; ISO/IEC 1989:2023 §15.4 and §15.4.1; docs/CONFORMANCE.md DOC-A.1-92). DISPLAY shows a numeric function's value
+/// (kb/Work PB3514; ISO/IEC 1989:2023 §2023:15.4 and §2023:15.4.1; docs/CONFORMANCE.md DOC-A.1-92). DISPLAY shows a numeric function's value
 /// by the description GnuCOBOL 3.2.0 gives its temporary: derived from the value (<see cref="FunctionDeviceForm.Value"/>, the default
 /// of every row, so a function added tomorrow needs no edit), a copy of an argument's item (<see cref="FunctionDeviceForm.Argument"/>), an
 /// unsigned DISPLAY integer of fixed width (<see cref="FunctionDeviceForm.FixedDigits"/>), or the literal the binder folds the call to

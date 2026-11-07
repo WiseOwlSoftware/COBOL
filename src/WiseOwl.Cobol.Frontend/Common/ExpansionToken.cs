@@ -6,7 +6,7 @@ using WiseOwl.Cobol.Editions;
 namespace WiseOwl.Cobol.Frontend.Common;
 
 /// <summary>
-/// ⛔ A TOKEN OF AN EXPANSION'S TEXT, WHICH NAMES THE EXPANSION IT BELONGS TO (ISO §12.3.8.4 GR5; kb/Work PB4469). An expansion is the
+/// ⛔ A TOKEN OF AN EXPANSION'S TEXT, WHICH NAMES THE EXPANSION IT BELONGS TO (ISO §2023:12.3.8.4 GR5; kb/Work PB4469). An expansion is the
 /// skeleton's tokens with each formal replaced by its actual and the header renamed (<c>OoExpansion.SubstitutedTokens</c>); every token
 /// that text holds is one of these, copied from the skeleton's, so the parse nodes built over it start at one and the diagnostic cursor
 /// (<see cref="CursorOf"/>) reads the <see cref="Region"/> off the token it is positioned at. That is the one place a diagnostic

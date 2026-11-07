@@ -4,15 +4,15 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.40.3 SR1 — FOR ALPHANUMERIC IS names a FOR NATIONAL alphabet
+      *> ISO §2023:14.9.40.3 SR1 — FOR ALPHANUMERIC IS names a FOR NATIONAL alphabet
       *> Rule: "Alphabet-name-1 shall reference an alphabet that defines an
       *> alphanumeric collating sequence."
       *> cite.py --check 14.9.40.3 "Alphabet-name-1 shall reference an
       *>   alphabet that defines an alphanumeric collating sequence"
-      *>   -> OK  §14.9.40.3 1)  (Syntax rules)
-      *> §12.3.7.4 GR7 b) -> OK  §12.3.7.4 7): a FOR NATIONAL alphabet's
+      *>   -> OK  §2023:14.9.40.3 1)  (Syntax rules)
+      *> §2023:12.3.7.4 GR7 b) -> OK  §2023:12.3.7.4 7): a FOR NATIONAL alphabet's
       *> collating sequence is national. The FOR ALPHANUMERIC operand is
-      *> alphabet-name-1 (§14.9.40.2 Format 1), so SR1 is violated.
+      *> alphabet-name-1 (§2023:14.9.40.2 Format 1), so SR1 is violated.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1C29D.
        ENVIRONMENT DIVISION.

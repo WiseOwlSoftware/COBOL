@@ -4,15 +4,15 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.28.2 Format 3 (the exception-checking PERFORM) prints
+      *> ISO §2023:14.9.28.2 Format 3 (the exception-checking PERFORM) prints
       *> imperative-statement-1 WITHOUT brackets, ahead of the WHEN group.
-      *>   cite.py: OK  §14.9.28.2   (General formats)
-      *> ISO §5.2.6.2 licenses an omission only for a BRACKETED portion and
-      *> §5.2.6.3 requires one alternative of a brace group to be specified,
+      *>   cite.py: OK  §2023:14.9.28.2   (General formats)
+      *> ISO §2023:5.2.6.2 licenses an omission only for a BRACKETED portion and
+      *> §2023:5.2.6.3 requires one alternative of a brace group to be specified,
       *> so a Format-3 PERFORM whose WHEN follows PERFORM directly omits a
       *> required statement.
-      *>   cite.py: OK  §5.2.6.2   (Brackets)
-      *>   cite.py: OK  §5.2.6.3   (Braces)
+      *>   cite.py: OK  §2023:5.2.6.2   (Brackets)
+      *>   cite.py: OK  §2023:5.2.6.3   (Braces)
       *> The statement is the only violation; the program is otherwise legal.
       *> Expected: COBOL2072 at the WHEN, the one diagnostic the Format-2
       *> spelling of the same omission draws (kb/Work PB911); the recovery

@@ -6,7 +6,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.27.4 GR15 — "When the EXTEND phrase is specified,
+      *> ISO §2023:14.9.27.4 GR15 — "When the EXTEND phrase is specified,
       *> the OPEN statement positions the file immediately after the
       *> last logical record for that file. The last logical record for
       *> a sequential file is the last record written in the file. The
@@ -14,7 +14,7 @@
       *> existing record with the highest relative record number. The
       *> last logical record for an indexed file is the currently
       *> existing record with the highest prime key value."
-      *> One leg per sentence. §14.9.27.3 SR2 confines EXTEND to
+      *> One leg per sentence. §2023:14.9.27.3 SR2 confines EXTEND to
       *> sequential access mode, so every EXTEND connector below is
       *> ACCESS SEQUENTIAL.
       *> SEQUENTIAL. SEQ001, SEQ002 exist; the EXTEND session writes
@@ -23,18 +23,18 @@
       *> RELATIVE. The file is seeded SPARSE — records at relative
       *> record numbers 1 and 4 — through a DYNAMIC connector, so
       *> "highest existing relative record number" (4) and "number of
-      *> records" (2) differ. §14.9.51.4 GR29a: in extend mode "the
+      *> records" (2) differ. §2023:14.9.51.4 GR29a: in extend mode "the
       *> first record released after the OPEN is assigned a record
       *> number that is one greater than the highest relative record
       *> number existing in the physical file", moved into the RELATIVE
       *> KEY item — so RK must read 0005, not 0003. The read-back walks
       *> 1, 4, 5.
-      *> INDEXED. K002 and K006 exist. §14.9.51.4 GR38: under extend
+      *> INDEXED. K002 and K006 exist. §2023:14.9.51.4 GR38: under extend
       *> "the first record released … shall have a prime record key
       *> whose value is greater than the highest prime record key value
       *> existing in the physical file when it was opened", else the
       *> WRITE "is unsuccessful, the invalid key condition exists, and
-      *> the I-O status … is set to '21'" (§9.1.13.5 item 1). K008 is
+      *> the I-O status … is set to '21'" (§2023:9.1.13.5 item 1). K008 is
       *> accepted; a SECOND extend session then offers K004 as its
       *> FIRST released record and is refused with '21', which is only
       *> possible if that OPEN positioned after K008 — the highest

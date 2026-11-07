@@ -46,15 +46,15 @@ public sealed class CobolWordsDriftTests
 
     /// <summary>⛔ THE DERIVED RESERVATION GATE (kb/Work PB693). The set of <c>cobolWord</c> alternatives that
     /// MUST carry <c>{userWordHere("W")}?</c>, computed here the way <c>gen-cobol-words.ps1</c> step 4b computes
-    /// it: a name-slot word that ISO §8.9 reserves at ANY edition. §8.3.2.1 rule 1 — "Reserved words shall not be
+    /// it: a name-slot word that ISO §2023:8.9 reserves at ANY edition. §2023:8.3.2.1 rule 1 — "Reserved words shall not be
     /// used as user-defined words or system-names" — and <c>cobolWord</c> IS the user-defined-word slot, so an
     /// ungated admission lets an operand list absorb the word at the editions that reserve it.
     /// <para>Recomputed from <c>reserved-words.json</c> rather than read off a flag ON PURPOSE: the gate used to
-    /// be a hand-set <c>reservationGated</c> row property and fifty-one §8.9-straddling words never got one, so
+    /// be a hand-set <c>reservationGated</c> row property and fifty-one §2023:8.9-straddling words never got one, so
     /// this test would have been asserting the mistake against itself.</para>
     /// <para>⛔ WITH NO EXCLUSION (kb/Work PB845). LENGTH, NATIONAL and BIT were exempt as "function names" and so
-    /// were names in every slot at every edition; ISO §8.3.2.1 5) names LENGTH among the intrinsic function names that
-    /// may not be user-defined words, and NATIONAL and BIT are no §8.11 names. The keyword-omitted <c>LENGTH (A)</c>
+    /// were names in every slot at every edition; ISO §2023:8.3.2.1 5) names LENGTH among the intrinsic function names that
+    /// may not be user-defined words, and NATIONAL and BIT are no §2023:8.11 names. The keyword-omitted <c>LENGTH (A)</c>
     /// parses through <c>reservedIntrinsicArgFn</c>, never through <c>cobolWord</c>.</para></summary>
     internal static HashSet<string> DerivedGateSet()
     {
@@ -85,12 +85,12 @@ public sealed class CobolWordsDriftTests
             + $"g4-only=[{string.Join(",", onlyG4)}] in-both-rules=[{string.Join(",", both)}]");
     }
 
-    /// <summary>⛔ THE §8.3.2.1 INVARIANT (kb/Work PB693) — every name-slot word that ISO §8.9 reserves at ANY
+    /// <summary>⛔ THE §2023:8.3.2.1 INVARIANT (kb/Work PB693) — every name-slot word that ISO §2023:8.9 reserves at ANY
     /// edition carries the reservation gate. "Reserved words shall not be used as user-defined words or
-    /// system-names" (§8.3.2.1 rule 1) and <c>cobolWord</c> IS the user-defined-word slot, so an UNGATED
+    /// system-names" (§2023:8.3.2.1 rule 1) and <c>cobolWord</c> IS the user-defined-word slot, so an UNGATED
     /// admission of a reserved word lets an operand list absorb it: <c>MOVE "ZZ" TO FS</c> followed by a
     /// period-less <c>UNLOCK F1</c> parsed as a three-receiver MOVE and legal COBOL-2002 source was rejected.
-    /// Fifty-one further words had the same §8.9 straddle and the same ungated admission.
+    /// Fifty-one further words had the same §2023:8.9 straddle and the same ungated admission.
     /// <para>The gate was a hand-set <c>reservationGated</c> JSON flag; it is now DERIVED by
     /// <c>gen-cobol-words.ps1</c> step 4b from <c>reserved-words.json</c> (CLAUDE.md rule 5 — never a
     /// hand-maintained list where a structure belongs). This test recomputes the derivation independently.</para>
@@ -110,7 +110,7 @@ public sealed class CobolWordsDriftTests
         var missing = expected.Where(w => !declaration.ContainsKey(w)).OrderBy(w => w, StringComparer.Ordinal).ToList();
         var stray = declaration.Keys.Where(w => !expected.Contains(w)).OrderBy(w => w, StringComparer.Ordinal).ToList();
         Assert.True(missing.Count == 0 && stray.Count == 0,
-            $"reservedGatedWord drift: §8.9 derives {expected.Count} gated words, the rule has {declaration.Count}. "
+            $"reservedGatedWord drift: §2023:8.9 derives {expected.Count} gated words, the rule has {declaration.Count}. "
             + $"Missing ({missing.Count}): [{string.Join(",", missing.Take(8))}{(missing.Count > 8 ? ",…" : "")}]; "
             + $"never reserved ({stray.Count}): [{string.Join(",", stray.Take(8))}{(stray.Count > 8 ? ",…" : "")}]. "
             + "Re-run scripts/gen-cobol-words.ps1.");
@@ -126,7 +126,7 @@ public sealed class CobolWordsDriftTests
         Assert.Contains("{ gatedDeclaration(TokenStream.LT(-1)); }", g4);
 
         // Confidence alignment (the generator's RW-3 throw, asserted from the other side): the token-level gate
-        // keys on userWordHere() = !IsReservedAt (outside the migration mode), which is confidence-blind, while the §8.9 funnel only REPORTS
+        // keys on userWordHere() = !IsReservedAt (outside the migration mode), which is confidence-blind, while the §2023:8.9 funnel only REPORTS
         // high-confidence rows. A gated lower-confidence word would be rejected with a bare parse error and no
         // COBOL0901 to explain it.
         var confidence = LoadConfidence();
@@ -155,7 +155,7 @@ public sealed class CobolWordsDriftTests
         return parts[0] + string.Concat(parts.Skip(1).Select(p => char.ToUpperInvariant(p[0]) + p[1..])) + "Keyword";
     }
 
-    /// <summary>⛔ A GATED WORD A FORMAT SPELLS WHERE §8.9 LEAVES IT FREE READS ITS KEYWORD THROUGH ONE GENERATED RULE
+    /// <summary>⛔ A GATED WORD A FORMAT SPELLS WHERE §2023:8.9 LEAVES IT FREE READS ITS KEYWORD THROUGH ONE GENERATED RULE
     /// (kb/Work PB2623, PB3794). The token-level gate retypes EVERY occurrence of a declared free word to IDENTIFIER, so
     /// such a format's keyword position must accept the retyped spelling: <c>01 MESSAGE PIC 9.</c> then <c>CONTINUE
     /// AFTER MESSAGE RECEIVED</c> at 2023 was a parse error. The generated rules are exactly the
@@ -179,14 +179,14 @@ public sealed class CobolWordsDriftTests
         var gated = DerivedGateSet();
         var ungated = rows.Where(t => !gated.Contains(t)).Order(StringComparer.Ordinal).ToList();
         Assert.True(ungated.Count == 0, $"keywordWhereFree on word(s) the gate never retypes: [{string.Join(",", ungated)}]");
-        // A word §8.9 reserves at EVERY edition is never free: the one way to free it, >>COBOL-WORDS UNDEFINE, withdraws
-        // "any syntax requiring the use of" it (§7.3.10.4 GR3), so its keyword rule would accept what GR3 makes
+        // A word §2023:8.9 reserves at EVERY edition is never free: the one way to free it, >>COBOL-WORDS UNDEFINE, withdraws
+        // "any syntax requiring the use of" it (§2023:7.3.10.4 GR3), so its keyword rule would accept what GR3 makes
         // unavailable (kb/Work PB3957: ORDER, whose r85=false the row's determination once rested on).
         var reserved = LoadReservedIntervals();
         var neverFree = rows.Where(t => reserved.TryGetValue(ToWord(t), out var f) && f.All(x => x))
             .Order(StringComparer.Ordinal).ToList();
         Assert.True(neverFree.Count == 0,
-            $"keywordWhereFree on word(s) §8.9 reserves at every edition: [{string.Join(",", neverFree)}] — no edition leaves them free");
+            $"keywordWhereFree on word(s) §2023:8.9 reserves at every edition: [{string.Join(",", neverFree)}] — no edition leaves them free");
     }
 
     /// <summary>The (rule, token) pairs of <paramref name="grammar"/> that spell one of <paramref name="tokens"/> as
@@ -235,7 +235,7 @@ public sealed class CobolWordsDriftTests
     }
 
     /// <summary>⛔ THE LEXER'S <c>IsKeywordWhereFree</c> SET IS THE ROWS' DETERMINATIONS, BOTH WAYS (kb/Work PB4174). The
-    /// COBOL5506 sentence (<c>AdmittedKinds</c>) keeps a keyword the §8.9 table would hide at an edition when a format
+    /// COBOL5506 sentence (<c>AdmittedKinds</c>) keeps a keyword the §2023:8.9 table would hide at an edition when a format
     /// spells it there; that set is generated beside the keyword rules from the same <c>keywordWhereFree</c> rows, so
     /// it can neither miss a word whose keyword rule exists nor name one that has none.</summary>
     [Fact]
@@ -252,8 +252,8 @@ public sealed class CobolWordsDriftTests
     }
 
     /// <summary>⛔ THE DETERMINATIONS ARE RE-DERIVED FROM THE STANDARD WHERE THE STANDARD IS IN THE REPOSITORY. A gated
-    /// word that COBOL-2023 does not reserve (§8.9) yet underlines in a general format of <c>specs/ISO_COBOL_2023.md</c>, and a
-    /// gated word §8.10 lists as context-sensitive ("If a context-sensitive word is used where the context-sensitive word
+    /// word that COBOL-2023 does not reserve (§2023:8.9) yet underlines in a general format of <c>specs/ISO_COBOL_2023.md</c>, and a
+    /// gated word §2023:8.10 lists as context-sensitive ("If a context-sensitive word is used where the context-sensitive word
     /// is permitted in the general format, the word is treated as a keyword; otherwise it is treated as a user-defined
     /// word"), is a word a program may declare AND write in its format, so its row must carry
     /// <c>keywordWhereFree</c>. METHOD, MESSAGE and MULTIPLE are found this way; the earlier editions' texts are not in
@@ -273,8 +273,8 @@ public sealed class CobolWordsDriftTests
         var rows = KeywordWhereFreeTokens();
         var lacking = underlinedFree.Union(contextSensitive).Where(t => !rows.Contains(t)).Order(StringComparer.Ordinal).ToList();
         Assert.True(lacking.Count == 0,
-            $"gated word(s) [{string.Join(",", lacking)}] are spelled by a 2023 general format (or are §8.10 context-sensitive) "
-            + "where §8.9 leaves them free, but their cobol-words.json row carries no keywordWhereFree determination — a "
+            $"gated word(s) [{string.Join(",", lacking)}] are spelled by a 2023 general format (or are §2023:8.10 context-sensitive) "
+            + "where §2023:8.9 leaves them free, but their cobol-words.json row carries no keywordWhereFree determination — a "
             + "program that declares the word cannot write that format (kb/Work PB3794)");
     }
 
@@ -300,7 +300,7 @@ public sealed class CobolWordsDriftTests
     /// <summary>Reconciliation + reserved-words cross-check. The two documented asymmetries are pinned, and the
     /// SOUND reserved-words linkage (RW-1) holds. See the DESIGN-DEVIATION note in <c>gen-cobol-words.ps1</c> for
     /// why the plan's naive "every trigger word is user-legal at >=1 edition" predicate was rejected as unsound
-    /// (COLUMN/LENGTH are §8.9-reserved at all editions yet name-slot-admitted; the six functionName collisions
+    /// (COLUMN/LENGTH are §2023:8.9-reserved at all editions yet name-slot-admitted; the six functionName collisions
     /// are reserved keywords).</summary>
     [Fact]
     public void Reconciliation_And_ReservedWords_CrossCheck()
@@ -313,7 +313,7 @@ public sealed class CobolWordsDriftTests
         // currently-SHARED word is drift. Without the subscriptTrigger-only pin, flipping a shared+2023-reserved word
         // (COLUMN/LENGTH/SCREEN) to nameSlot=false would silently drop its cobolWord admission yet pass RW-1 (it stays
         // reserved) — the false-green gap the adversarial review flagged.
-        // AS joined BIT at P10 Step 15 BY DESIGN: the §13.10 constant entry's `AS (arith-expr)` must lex its
+        // AS joined BIT at P10 Step 15 BY DESIGN: the §2023:13.10 constant entry's `AS (arith-expr)` must lex its
         // parenthesized expression in NORMAL mode, so AS cannot be a subscript trigger (the FU-1 ledger).
         var nameSlotOnly = nameSlot.Where(w => !subTrig.Contains(w)).OrderBy(w => w, StringComparer.Ordinal).ToList();
         Assert.True(nameSlotOnly.SequenceEqual(new[] { "AS", "BIT" }),
@@ -332,16 +332,16 @@ public sealed class CobolWordsDriftTests
 
     /// <summary>⛔ NO LEXER TOKEN MAY COST THE USER A WORD ISO LEAVES FREE (kb/Work PB655). A word the lexer
     /// tokenizes never reaches <c>IDENTIFIER</c>, so unless <c>cobolWord</c> admits its token it is refused as a
-    /// user-defined word at EVERY edition — a raw COBOL0001, never a §8.9 diagnostic. §8.3.2.1 3) makes a §8.10
-    /// context-sensitive word a legal user-defined word outside its context, and a word §8.9 does not reserve at
+    /// user-defined word at EVERY edition — a raw COBOL0001, never a §2023:8.9 diagnostic. §2023:8.3.2.1 3) makes a §2023:8.10
+    /// context-sensitive word a legal user-defined word outside its context, and a word §2023:8.9 does not reserve at
     /// edition E is one at E; 99 tokens once broke that (<c>01 GOBACK PIC X.</c> at COBOL-85, <c>01 PAGE PIC X.</c>
     /// at COBOL-2023, <c>01 SIGNED PIC X.</c> anywhere).
     /// <para>The join reads the COMPILED lexer vocabulary — every default-mode token whose rule is a single word
     /// literal — so the next token the grammar adds is checked with no edit here. It must be admitted by a
-    /// <c>nameSlot</c> row (the derived gate of step 4b then keeps it out wherever §8.9 reserves it), be §8.9-reserved
-    /// at all four editions (a pure keyword), or be one of the <c>extensionReserved</c> words ISO §4.2.10 lets an
+    /// <c>nameSlot</c> row (the derived gate of step 4b then keeps it out wherever §2023:8.9 reserves it), be §2023:8.9-reserved
+    /// at all four editions (a pure keyword), or be one of the <c>extensionReserved</c> words ISO §2023:4.2.10 lets an
     /// implementation reserve for a nonstandard extension — and that list must name only words ISO reserves
-    /// nowhere, and must equal the §4.2.10 documentation in <c>docs/CONFORMANCE.md</c> D-RW1.</para></summary>
+    /// nowhere, and must equal the §2023:4.2.10 documentation in <c>docs/CONFORMANCE.md</c> D-RW1.</para></summary>
     [Fact]
     public void LexerWordTokens_Cost_The_User_No_Word_Iso_Leaves_Free()
     {
@@ -361,7 +361,7 @@ public sealed class CobolWordsDriftTests
         var contextSensitive = LoadContextSensitive();
         var extension = LoadExtensionReserved();
 
-        // No residual: the §8.9 gate is TOKEN-LEVEL (ReservationGateRewriter), so a word that is also an operand-
+        // No residual: the §2023:8.9 gate is TOKEN-LEVEL (ReservationGateRewriter), so a word that is also an operand-
         // position keyword (NULL, SELF, ADDRESS, …) is admitted like every other — prediction never sees a gate.
         var leaks = wordTokens.Where(kv => !admitted.Contains(kv.Key))
             .Where(kv => !(reserved.TryGetValue(kv.Value, out var f) && f.All(x => x)))
@@ -369,7 +369,7 @@ public sealed class CobolWordsDriftTests
             .Select(kv => kv.Value).OrderBy(w => w, StringComparer.Ordinal).ToList();
         Assert.True(leaks.Count == 0,
             $"{leaks.Count} lexer token(s) refuse a word ISO leaves free at >=1 edition: [{string.Join(",", leaks.Take(8))}"
-            + $"{(leaks.Count > 8 ? ",…" : "")}] — add a cobol-words.json nameSlot row (the §8.9 gate is derived) and "
+            + $"{(leaks.Count > 8 ? ",…" : "")}] — add a cobol-words.json nameSlot row (the §2023:8.9 gate is derived) and "
             + "re-run scripts/gen-cobol-words.ps1, or, for a vendor-only word, an extensionReserved entry + CONFORMANCE.md D-RW1");
 
         // The exemption is only for words ISO reserves NOWHERE and that the lexer really tokenizes, unadmitted.
@@ -380,7 +380,7 @@ public sealed class CobolWordsDriftTests
         Assert.True(badExt.Count == 0,
             $"extensionReserved word(s) that are ISO words, not lexer tokens, or admitted anyway: [{string.Join(",", badExt)}]");
 
-        // §4.2.10: "Documentation … shall specify any reserved words added for nonstandard extensions." CONFORMANCE.md's D-RW1
+        // §2023:4.2.10: "Documentation … shall specify any reserved words added for nonstandard extensions." CONFORMANCE.md's D-RW1
         // determination lists exactly cobol-words.json's extensionReserved words: held by scripts/docchecks/facts.py
         // (reserved_word_findings), so no compiler test opens the Markdown (kb/Work PB4453).
     }
@@ -441,7 +441,7 @@ public sealed class CobolWordsDriftTests
     private static HashSet<string> ParseCobolWordAlternatives() =>
         ParseRuleAlternatives("cobolWord").Keys.ToHashSet(StringComparer.Ordinal);
 
-    /// <summary>word → its four §8.9 reservation flags, in edition order {85, 2002, 2014, 2023}.</summary>
+    /// <summary>word → its four §2023:8.9 reservation flags, in edition order {85, 2002, 2014, 2023}.</summary>
     internal static Dictionary<string, bool[]> LoadReservedIntervals()
     {
         string path = TestRepo.VersionMatrix("reserved-words.json");

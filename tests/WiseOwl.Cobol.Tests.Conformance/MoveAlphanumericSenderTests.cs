@@ -6,7 +6,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// ISO §14.9.25.4 GR6 d) — AN ALPHANUMERIC OR NATIONAL SENDING OPERAND MOVING TO A NUMERIC OR NUMERIC-EDITED
+/// ISO §2023:14.9.25.4 GR6 d) — AN ALPHANUMERIC OR NATIONAL SENDING OPERAND MOVING TO A NUMERIC OR NUMERIC-EDITED
 /// RECEIVER. GR6 d) 3 makes it "an unsigned integer of category numeric" whose SIZE the standard caps at the
 /// rightmost 31 character positions (sub-rule a for a data item, sub-rule c for a literal); GR6 d) 1's closing
 /// sentence sets EC-DATA-INCOMPATIBLE when its content "would result in a false value in a numeric class
@@ -18,7 +18,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// sweep below, which is what proves the rule is not accidentally gated — the standard states it identically at
 /// all four editions, and the wrap it replaced was measured at all four.</para>
 ///
-/// <para>The RAISE half can only live here: EC-DATA-INCOMPATIBLE is fatal (§14.6.13.1.1 Table 13), so the run
+/// <para>The RAISE half can only live here: EC-DATA-INCOMPATIBLE is fatal (§2023:14.6.13.1.1 Table 13), so the run
 /// unit terminates abnormally and no <c>.out</c> file can record it. Its positive control — checking ON, all-digit
 /// content, nothing raised — is 2002/pb426_alnum_sender_data_incompatible, so the raise is never pinned by a test
 /// that has only ever seen the failing case.</para>
@@ -51,7 +51,7 @@ public sealed class MoveAlphanumericSenderTests
     {
         var (ok, stdout, detail) = new WiseOwlCobolCompiler(std).CompileAndRun(
             Prog(id, ws, proc, ">>TURN EC-DATA-INCOMPATIBLE CHECKING ON"));
-        Assert.False(ok, $"[--std {std}] §14.9.25.4 GR6 d) 1 requires EC-DATA-INCOMPATIBLE to be set to exist; "
+        Assert.False(ok, $"[--std {std}] §2023:14.9.25.4 GR6 d) 1 requires EC-DATA-INCOMPATIBLE to be set to exist; "
                          + $"the run completed with stdout:\n{stdout}");
         Assert.Contains("EC-DATA-INCOMPATIBLE", detail);
     }
@@ -59,7 +59,7 @@ public sealed class MoveAlphanumericSenderTests
     // ── GR6 d) 3 · the size rule, at every edition ───────────────────────────────────────────────────────────
 
     // A 40-character all-digit sender into PIC 9(9): the operand is the rightmost 31 character positions,
-    // "0123456789012345678901234567890", and §14.6.8.2 GR4 truncates high-order into nine digit positions ->
+    // "0123456789012345678901234567890", and §2023:14.6.8.2 GR4 truncates high-order into nine digit positions ->
     // 234567890. Uncapped, the accumulator consumed all forty and WRAPPED the signed Int128 -> 838277934.
     // Run at ALL FOUR editions: the clause is edition-invariant and the defect was measured at all four, so a
     // fix that reached only the default edition would be a fix for a quarter of the compiler.
@@ -90,7 +90,7 @@ public sealed class MoveAlphanumericSenderTests
 
     // THE WINDOW IS OVER CHARACTER POSITIONS, NOT OVER DIGIT CHARACTERS. S40's rightmost 31 positions hold only
     // "1234"; reading all forty (or capping at 31 DIGITS, which never fires for a 13-digit operand) answers
-    // 543211234. §14.6.13.2's "a non-digit position contributes no digit" is what makes the two readings differ.
+    // 543211234. §2023:14.6.13.2's "a non-digit position contributes no digit" is what makes the two readings differ.
     [Fact]
     public void TheCapCountsCharacterPositions_NotDigitCharacters()
         => AssertRuns(2023, "PB426CHR",
@@ -112,9 +112,9 @@ public sealed class MoveAlphanumericSenderTests
             "    MOVE A31 TO R31\n    DISPLAY R31",
             "1234567890123456789012345678901");
 
-    // The reference-modified sender is another shape of the SAME operand through another emit site (§8.4.3.3.4
+    // The reference-modified sender is another shape of the SAME operand through another emit site (§2023:8.4.3.3.4
     // GR6 — a reference-modified result is category alphanumeric), and the numeric-EDITED receiver is a third
-    // (§14.9.25.3 Table 16 admits alphanumeric -> numeric-edited; §14.9.25.4 GR5 edits the unsigned integer into
+    // (§2023:14.9.25.3 Table 16 admits alphanumeric -> numeric-edited; §2023:14.9.25.4 GR5 edits the unsigned integer into
     // the mask). Both windowed.
     [Fact]
     public void ReferenceModifiedAndNumericEditedArms_TakeTheSameWindow()
@@ -132,9 +132,9 @@ public sealed class MoveAlphanumericSenderTests
             """,
             "000001234\n     1234");
 
-    // §14.9.48.4 GR11 c) transfers UNSTRING's examined characters "according to the rules for the MOVE
+    // §2023:14.9.48.4 GR11 c) transfers UNSTRING's examined characters "according to the rules for the MOVE
     // statement", so the window reaches the UNSTRING receiver dispatch too. (Only the plain-numeric arm is
-    // reachable: §14.9.48.3 SR4 screens a numeric-edited INTO receiver out before emit.)
+    // reachable: §2023:14.9.48.3 SR4 screens a numeric-edited INTO receiver out before emit.)
     [Fact]
     public void UnstringIntoANumericReceiver_TakesTheSameWindow()
         => AssertRuns(2023, "PB426UNSTR",
@@ -172,7 +172,7 @@ public sealed class MoveAlphanumericSenderTests
     // ── GR6 d) 1 · the exception condition ──────────────────────────────────────────────────────────────────
 
     // The three shapes kb/Work PB844 measured answering "   0" / "000" in silence. Every one is a VALID move
-    // (§14.9.25.3 Table 16), so a diagnostic would be wrong; what the standard requires is the condition.
+    // (§2023:14.9.25.3 Table 16), so a diagnostic would be wrong; what the standard requires is the condition.
     [Fact]
     public void AlphanumericLiteralWithNonNumericContent_IntoNumericEdited_RaisesDataIncompatible()
         => AssertFatalIncompatible("PB844LIT", "01 NE PIC ZZZ9.", "    MOVE \"Q\" TO NE\n    DISPLAY NE");
@@ -205,7 +205,7 @@ public sealed class MoveAlphanumericSenderTests
             01 R9  PIC 9(9).
             """, "    MOVE QLO TO R9\n    DISPLAY R9");
 
-    // The UNSTRING channel raises for the same reason it windows — §14.9.48.4 GR11 c).
+    // The UNSTRING channel raises for the same reason it windows — §2023:14.9.48.4 GR11 c).
     [Fact]
     public void UnstringIntoANumericReceiver_RaisesOnNonNumericContent()
         => AssertFatalIncompatible("PB844UNS",
@@ -222,7 +222,7 @@ public sealed class MoveAlphanumericSenderTests
     // subscript, and it was VACUOUS: none of those three reaches the alphanumeric-to-numeric decode at all, so
     // it passed with the checked read wired in unconditionally (MEASURED — `AlphanumericChecked => true` left it
     // green). Under STRICT conformance every remaining reader of that decode IS a MOVE-rules channel, because
-    // §8.8.1.1 bars an alphanumeric arithmetic operand outright; the leniency behind --permissive is the one
+    // §2023:8.8.1.1 bars an alphanumeric arithmetic operand outright; the leniency behind --permissive is the one
     // reachable non-MOVE site, and that is what this measures. It FAILS with the unconditional reading.
     [Fact]
     public void AnArithmeticOperandIsNotAMove_AndRaisesNothing()
@@ -234,7 +234,7 @@ public sealed class MoveAlphanumericSenderTests
             """,
             "    COMPUTE R = AQ + 1\n    DISPLAY \"R=\" R",
             ">>TURN EC-DATA-INCOMPATIBLE CHECKING ON"), 2023, permissive: true);
-        Assert.True(ok, "§14.9.25.4 GR6 d) 1 is a MOVE rule — an arithmetic operand is outside its scope and "
+        Assert.True(ok, "§2023:14.9.25.4 GR6 d) 1 is a MOVE rule — an arithmetic operand is outside its scope and "
                         + $"must not raise: {detail}\nstdout:\n{stdout}");
         Assert.Equal("R=000001", stdout.Trim());
     }

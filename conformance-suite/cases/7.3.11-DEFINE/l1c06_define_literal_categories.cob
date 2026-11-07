@@ -5,23 +5,23 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §7.3.11.4 GR8 DEFINE directive — literal-1 of every
+      *> ISO §2023:7.3.11.4 GR8 DEFINE directive — literal-1 of every
       *>   category is what the name references
       *> Rule: "If literal-1 is specified, compilation-variable-name-1
       *>   references literal-1."
       *>   cite.py --check 7.3.11.4 "If literal-1 is specified,
       *>     compilation-variable-name-1
-      *>   references literal-1."  -> OK  §7.3.11.4 8)  (General rules)
+      *>   references literal-1."  -> OK  §2023:7.3.11.4 8)  (General rules)
       *>   cite.py --check 7.3.11.4 "If the operand of the DEFINE
       *>     directive consists of a
       *>   single numeric literal, that operand is treated as a literal,
       *>     not as an
-      *>   arithmetic-expression."  -> OK  §7.3.11.4 5)  (General rules)
+      *>   arithmetic-expression."  -> OK  §2023:7.3.11.4 5)  (General rules)
       *>   cite.py --check 7.3.11.4 "compilation-variable-name-1 may be
       *>     used in the
       *>   compilation group in any compiler directive where a literal
       *>     of the category
-      *>   associated with the name is permitted"  -> OK  §7.3.11.4 1)
+      *>   associated with the name is permitted"  -> OK  §2023:7.3.11.4 1)
       *>     (General rules)
       *> The observable is a constant conditional expression, whose
       *>   operands must be of the
@@ -29,10 +29,10 @@
       *>   (in)equality:
       *>   cite.py --check 7.3.8.2 "The operands shall be of the same
       *>     category."
-      *>   -> OK  §7.3.8.2 1) a) 1.  (Syntax rules)
+      *>   -> OK  §2023:7.3.8.2 1) a) 1.  (Syntax rules)
       *>   cite.py --check 7.3.8.2 "If literals are specified and they
       *>     are not numeric
-      *>   literals, the relational operator shall be"  -> OK  §7.3.8.2
+      *>   literals, the relational operator shall be"  -> OK  §2023:7.3.8.2
       *>     1) a) 2.
       *> Derivation of each expected line (each name must equal ITS
       *>   literal and differ

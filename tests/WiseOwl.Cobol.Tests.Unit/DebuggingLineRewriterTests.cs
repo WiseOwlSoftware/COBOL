@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <see cref="ReferenceFormatProcessor.DebugLineCarrier"/> plus its program text, and <see cref="DebuggingLineRewriter"/>
 /// keeps its tokens (the line is SOURCE) or moves them to the <see cref="CobolLexer.ABSENT_DEBUG_LINE"/> channel (the line
 /// is a COMMENT) according to the program's SOURCE-COMPUTER … WITH DEBUGGING MODE clause. The scope of the clause is
-/// ISO §12.3.5.4 GR1: "All clauses of the SOURCE-COMPUTER paragraph apply to the source unit in which they are
+/// ISO §2023:12.3.5.4 GR1: "All clauses of the SOURCE-COMPUTER paragraph apply to the source unit in which they are
 /// explicitly or implicitly specified and to any source unit contained within that source unit" — the source unit, so a
 /// sibling program does not inherit it and a contained one does.
 /// </summary>
@@ -89,7 +89,7 @@ public sealed class DebuggingLineRewriterTests
             D("DISPLAY AFTERINNER."), "END PROGRAM OUTER.",
             "PROGRAM-ID. SIBLING.", D("DISPLAY SIBLINGLINE."), "END PROGRAM SIBLING."]);
         AssertSource(tokens, "OUTERLINE");
-        AssertSource(tokens, "INNERLINE");        // §12.3.5.4 GR1: any source unit contained within it
+        AssertSource(tokens, "INNERLINE");        // §2023:12.3.5.4 GR1: any source unit contained within it
         AssertSource(tokens, "AFTERINNER");       // back in the container once the contained unit ended
         AssertComment(tokens, "SIBLINGLINE");     // a separate unit names no clause
     }
@@ -116,13 +116,13 @@ public sealed class DebuggingLineRewriterTests
     [Fact]
     public void AnEmptySourceComputerParagraph_DoesNotReadTheNextParagraphsWords()
     {
-        // §12.3.5.3 SR1 lets the second period go with no computer-name: the scan ends at the next header word.
+        // §2023:12.3.5.3 SR1 lets the second period go with no computer-name: the scan ends at the next header word.
         var tokens = Rewritten(["PROGRAM-ID. P.", "SOURCE-COMPUTER.", "OBJECT-COMPUTER. IBM-PC DEBUGGING MODE.", D("DISPLAY SPILL.")]);
         AssertComment(tokens, "SPILL");
     }
 
     /// <summary>kb/Work PB1915: the rewriter finds a unit's boundaries and its SOURCE-COMPUTER clause by token TYPE, so it must
-    /// see the words ISO §7.3.10.4 made of them — a SUBSTITUTE literal-5 for SOURCE-COMPUTER is that paragraph header
+    /// see the words ISO §2023:7.3.10.4 made of them — a SUBSTITUTE literal-5 for SOURCE-COMPUTER is that paragraph header
     /// (GR4), and a unit headed by a synonym of PROGRAM-ID is a unit. The lexer applies the directive as it emits each token,
     /// so the filled stream the rewriter reads already carries the effective types.</summary>
     [Fact]
@@ -182,7 +182,7 @@ public sealed class DebuggingLineRewriterTests
     /// <summary>kb/Work PB2113: a subscript is no lexer region of its own any more (the SUBSCRIPT mode is gone), so a
     /// debugging line inside one is lexed like any other — the DEFAULT <see cref="CobolLexer.DEBUG_LINE"/> marker, its text
     /// as tokens behind it — and the rewriter decides it in place: SOURCE under the clause, the absent channel without it
-    /// (ISO §12.3.5.4 GR1; kb/Work PB1705). Nothing is named for a second lex: that is the PICTURE region's need alone
+    /// (ISO §2023:12.3.5.4 GR1; kb/Work PB1705). Nothing is named for a second lex: that is the PICTURE region's need alone
     /// (kb/Work PB1913, below).</summary>
     [Theory]
     [InlineData(true)]

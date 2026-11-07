@@ -12,8 +12,8 @@ namespace WiseOwl.Cobol.Tests.Unit.Store;
 /// ⛔ THE ENGINE'S SECOND CLIENT: THE MESSAGE STORE IS A KIND OF PAGED STORE, AND ITS STATEMENT LANDS THROUGH THE SAME CORE AS
 /// A KEYED FILE'S (docs/rearchitecture/DESIGN-communication-facility.md §8; DESIGN-runtime-library.md 2.2.1.19; kb/Work
 /// PB4734). The meta page's organization byte is the store's <see cref="StoreKind"/>: <c>R</c> and <c>I</c> for the files of
-/// ISO/IEC 1989:2023 §9.1.6's organizations and <c>M</c> for the message store, which records no fixed file attributes.
-/// §14.9.27.4 GR10 makes a physical file whose attributes conflict with the description a conflict at OPEN, so a COBOL OPEN of
+/// ISO/IEC 1989:2023 §2023:9.1.6's organizations and <c>M</c> for the message store, which records no fixed file attributes.
+/// §2023:14.9.27.4 GR10 makes a physical file whose attributes conflict with the description a conflict at OPEN, so a COBOL OPEN of
 /// an <c>M</c> store answers '39' (<see cref="StoreFormat.Message"/>), and the engine refuses a store of the other family
 /// rather than misread it. The shared core (<see cref="StatementLanding.Complete"/>) completes, refuses and discards for a
 /// client with no transaction, and a fresh <see cref="PagedFile.Open"/> over the same medium after a refusal adopts the

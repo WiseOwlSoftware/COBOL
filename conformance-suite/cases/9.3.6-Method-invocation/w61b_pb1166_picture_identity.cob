@@ -41,7 +41,7 @@
       *>  BG   the bit twin: GROUP-USAGE BIT of 8 boolean positions against
       *>       PIC 1(8) USAGE BIT, "Additionally" b).
       *>  RN   a national group RETURNING into a PIC N(5) receiver and the
-      *>       reverse, §14.8.3.3 "Additionally" 3), CALL ... AS NESTED.
+      *>       reverse, §2023:14.8.3.3 "Additionally" 3), CALL ... AS NESTED.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. W61BPB1166.
        ENVIRONMENT DIVISION.

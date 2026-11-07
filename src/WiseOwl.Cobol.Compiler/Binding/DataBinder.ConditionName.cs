@@ -7,7 +7,7 @@ using WiseOwl.Cobol.Editions;
 namespace WiseOwl.Cobol.Binding;
 
 /// <summary>
-/// THE §13.16.3 SR24 CONDITION-NAME ASSOCIATION SCREEN (kb/Work PB488) — which entry a level-88 condition-name
+/// THE §2023:13.16.3 SR24 CONDITION-NAME ASSOCIATION SCREEN (kb/Work PB488) — which entry a level-88 condition-name
 /// entry may be associated with, and whether it follows one at all. Partial-class extension over
 /// <c>DataBinder</c>, run as the declared <c>CheckConditionNameAssociations</c> pass (see <c>BindPipeline</c>).
 ///

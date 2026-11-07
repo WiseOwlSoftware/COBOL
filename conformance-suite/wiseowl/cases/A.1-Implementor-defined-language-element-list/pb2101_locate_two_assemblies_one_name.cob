@@ -7,8 +7,8 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §8.3.2.2 2): one externalized name identifies ONE instance in a
-      *> run unit, and §14.9.4.4 GR3 b): a program that "cannot be located"
+      *> ISO §2023:8.3.2.2 2): one externalized name identifies ONE instance in a
+      *> run unit, and §2023:14.9.4.4 GR3 b): a program that "cannot be located"
       *> is EC-PROGRAM-NOT-FOUND (docs/CONFORMANCE.md DOC-A.1-14,
       *> DESIGN-external-repository §7.4, §11.3, kb/Work PB2101).
       *>   cite.py --check 8.3.2.2 "when two or more source elements identify

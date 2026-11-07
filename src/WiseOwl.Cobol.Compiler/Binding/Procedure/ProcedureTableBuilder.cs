@@ -14,19 +14,19 @@ using WiseOwl.Cobol.Runtime;
 /// <summary>
 /// The ONE procedure table + its builders (P7 Step 10t — the plan's `ProcedureTableBuilder`, per-unit on
 /// <see cref="BinderContext.Table"/>): the pc space (`_paras ∥ _paraSection ∥ _paraMethod` in LOCKSTEP —
-/// every AddParagraph appends to all three), the section map (ISO §14.4.3), the method-local scope maps
-/// (a method definition is its own source element — §3.164 with §3.165 and §11.7.1 — so §8.4.6.1 confines
+/// every AddParagraph appends to all three), the section map (ISO §2023:14.4.3), the method-local scope maps
+/// (a method definition is its own source element — §2023:3.164 with §2023:3.165 and §2023:11.7.1 — so §2023:8.4.6.1 confines
 /// its paragraph-names to it; registered through the ambient
-/// <see cref="BinderContext.CurrentMethodScope"/> collection cursor), <see cref="ResolveProcedureOperand"/> (§8.4.2.2 — explicit OF/IN → in-section → global → section-name,
-/// method-confined inside a method), and the DECLARATIVES half (ISO §14.3 / §14.9.49 USE — each
+/// <see cref="BinderContext.CurrentMethodScope"/> collection cursor), <see cref="ResolveProcedureOperand"/> (§2023:8.4.2.2 — explicit OF/IN → in-section → global → section-name,
+/// method-confined inside a method), and the DECLARATIVES half (ISO §2023:14.3 / §2023:14.9.49 USE — each
 /// declarative section joins the same pc space; the USE sentence binds into a <see cref="BoundDeclarative"/>
 /// scope, never a bound statement; the use procedure's range IS that section's own
-/// <see cref="SectionInfo.Range"/>, §14.9.49.3 SR1 + §14.4.2).
+/// <see cref="SectionInfo.Range"/>, §2023:14.9.49.3 SR1 + §2023:14.4.2).
 /// </summary>
 internal sealed class ProcedureTableBuilder(BinderContext ctx)
 {
     private readonly List<(string Cobol, string Method, Core.SentenceContext[] Sentences)> _paras = [];
-    // ⛔ ProcedureNameMap, never a bare Dictionary + TryAdd: §8.4.2.2.1 asks whether a spelling is UNIQUE, and
+    // ⛔ ProcedureNameMap, never a bare Dictionary + TryAdd: §2023:8.4.2.2.1 asks whether a spelling is UNIQUE, and
     // TryAdd's contract is to discard the evidence (kb/Work PB466).
     private readonly ProcedureNameMap<int> _paraIndex = new();
     private readonly ProcedureNameMap<SectionInfo> _sections = new();
@@ -40,24 +40,24 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     private readonly List<int> _paraLine = [];   // per-pc source line (parallel to _paras) — the X3.23-1985
                                                  // DEBUG-LINE register value for a debug-subject procedure (VCR 7.17)
 
-    // ── Procedure table (paragraphs + sections, ISO §14.4.3 / §8.4.2.2) ─────────────────────────────────────
+    // ── Procedure table (paragraphs + sections, ISO §2023:14.4.3 / §2023:8.4.2.2) ─────────────────────────────────────
 
     /// <summary>Register one paragraph (name + uniquified method key + its sentences) at the next pc. Inside a
     /// METHOD body (<see cref="_currentMethodScope"/> set — the class-body collection) the name declares
-    /// METHOD-LOCALLY (ISO §8.4.6.1 over the method's own source element, §3.164 — sibling methods may reuse
+    /// METHOD-LOCALLY (ISO §2023:8.4.6.1 over the method's own source element, §2023:3.164 — sibling methods may reuse
     /// names and cross-method resolution must FAIL), so it registers in the method's own map, never the
     /// program-global fallback.</summary>
     public void AddParagraph(string name, Core.SentenceContext[] sentences, SectionInfo? section, HashSet<string> used)
     {
-        ctx.Data.DeclareUserWord(name, UserWordKind.ParagraphName);   // §8.3.2.2 — the one declaration funnel (kb/Work PB65, PB1083)
+        ctx.Data.DeclareUserWord(name, UserWordKind.ParagraphName);   // §2023:8.3.2.2 — the one declaration funnel (kb/Work PB65, PB1083)
         string baseName = "P_" + DataItem.IdentifierCharacters(name);   // extended letters too (PB1402)
         string method = baseName;
         for (int n = 2; !used.Add(method); n++) method = $"{baseName}_{n}";
-        // ⛔ DECLARE, never TryAdd (kb/Work PB466): a repeated spelling is KEPT, so §8.4.2.2.1's "No other name
+        // ⛔ DECLARE, never TryAdd (kb/Work PB466): a repeated spelling is KEPT, so §2023:8.4.2.2.1's "No other name
         // has the identical spelling" stays answerable at the reference. The FIRST definition is still what an
         // unambiguous lookup returns; what changed is that the map now knows there was a second.
         if (ctx.CurrentMethodScope is { } ms)
-            ms.Paras.Declare(name, _paras.Count);   // method-local declaration (§8.4.6.1 / §3.164)
+            ms.Paras.Declare(name, _paras.Count);   // method-local declaration (§2023:8.4.6.1 / §2023:3.164)
         else
             _paraIndex.Declare(name, _paras.Count); // the program-wide paragraph declarations
         section?.Paras.Declare(name, _paras.Count); // in-section map for qualified / same-section resolution
@@ -67,10 +67,10 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         _paras.Add((name, method, sentences));
     }
 
-    /// <summary>Add the ISO §14.4.3 paragraph-name-OMITTED paragraph — "one or more successive sentences
+    /// <summary>Add the ISO §2023:14.4.3 paragraph-name-OMITTED paragraph — "one or more successive sentences
     /// following the procedure division header or a section header". It takes a pc like any other paragraph so
     /// the dispatcher executes it, but it is DELIBERATELY registered in NO name map: having no paragraph-name it
-    /// can never be the target of PERFORM / GO TO (§8.4.2.2 resolves procedure-NAMES only), and inventing a
+    /// can never be the target of PERFORM / GO TO (§2023:8.4.2.2 resolves procedure-NAMES only), and inventing a
     /// synthetic name would make it referenceable and collide with a user word. The display name carries spaces
     /// so it is not a well-formed COBOL word; the C# method name is generated independently.</summary>
     public void AddAnonymousParagraph(Core.SentenceContext[] sentences, SectionInfo? section, HashSet<string> used)
@@ -79,8 +79,8 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         AddUnnamedParagraph(sentences, section, used);
     }
 
-    /// <summary>The ONE pc a declarative section with ZERO paragraphs owns (§14.9.49.3 SR1: "zero, one, or more
-    /// procedural paragraphs" — the section is still SELECTED, §14.9.49.4 GR3, so it needs a pc to dispatch to). It
+    /// <summary>The ONE pc a declarative section with ZERO paragraphs owns (§2023:14.9.49.3 SR1: "zero, one, or more
+    /// procedural paragraphs" — the section is still SELECTED, §2023:14.9.49.4 GR3, so it needs a pc to dispatch to). It
     /// is a paragraph-name-OMITTED paragraph with no sentences: like <see cref="AddAnonymousParagraph"/> it is named
     /// nowhere (kb/Work PB990 — it used to be registered under the SECTION's own name, so every such section declared
     /// a paragraph its source never wrote, and <c>PERFORM</c> of the section was ambiguous with it).</summary>
@@ -94,15 +94,15 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         _paraSection.Add(section);
         _paraMethod.Add(ctx.CurrentMethodScope);
         _paraLine.Add(sentences.Length > 0 ? ctx.SourceLine(sentences[0]) : 0);
-        // The paragraph-name-OMITTED paragraph (§14.4.3) has NO name — the empty string, never a display
+        // The paragraph-name-OMITTED paragraph (§2023:14.4.3) has NO name — the empty string, never a display
         // placeholder (kb/Work PB63 / RV-15.30.3-2: EXCEPTION-LOCATION's r2b2 field printed the placeholder where
         // the standard defines an empty procedure field or the bare section-name).
         _paras.Add(("", method, sentences));
     }
 
-    // ── Exception-checking (Format-3) PERFORM handler pc-ranges (ISO §14.9.28.4 GR17) ───────────────────────
+    // ── Exception-checking (Format-3) PERFORM handler pc-ranges (ISO §2023:14.9.28.4 GR17) ───────────────────────
     // The WHEN / WHEN OTHER / WHEN COMMON handler bodies (imp-2/3/4) are bound IN LEXICAL CONTEXT (in
-    // EcBindExceptionPerform — correct §8.4.2.2 scope + the GR14 overlay already popped) and registered here as
+    // EcBindExceptionPerform — correct §2023:8.4.2.2 scope + the GR14 overlay already popped) and registered here as
     // synthetic, UNREFERENCEABLE pc-range paragraphs. They are APPENDED ABOVE the whole main pc space by
     // StatementBinder after the main bind loop (so `_paras.Count` is the frozen main count throughout binding),
     // then walled off the top-level fall-through by the dispatcher (design §9.5.3). imp-1 and imp-5 (FINALLY) stay
@@ -141,17 +141,17 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// and a method's (<c>StatementBinder.BindClassBody</c>, with <see cref="BinderContext.CurrentMethodScope"/> set, so
     /// every name registers method-locally): the unnamed lead sentences at the next pc, then each paragraph and section
     /// at its header's position, every procedure-name declared through the one funnel. The method arm kept its own copy
-    /// of this walk, which declared no section-name and reported a procedure-name's §8.3.2.2 conflict without a
+    /// of this walk, which declared no section-name and reported a procedure-name's §2023:8.3.2.2 conflict without a
     /// position (kb/Work PB2921).</summary>
     public void CollectNondeclaratives(Core.ProcedureDivisionContext pd, HashSet<string> used)
     {
-        // §14.4.3 — sentences written directly after the PROCEDURE DIVISION header, with no paragraph-name.
+        // §2023:14.4.3 — sentences written directly after the PROCEDURE DIVISION header, with no paragraph-name.
         // They form the first nondeclarative paragraph, so they must take the ENTRY pc (execution begins with
-        // the first nondeclarative procedure, §14.2.3 GR1) — hence before the paragraph and section walks.
+        // the first nondeclarative procedure, §2023:14.2.3 GR1) — hence before the paragraph and section walks.
         AddAnonymousParagraph(pd.sentence(), null, used);
 
         // The grammar writes the division's own paragraphs ahead of its sections, because every paragraph after a
-        // section header is that section's (§14.4.2; kb/Work PB4230), so the two walks below run in source order.
+        // section header is that section's (§2023:14.4.2; kb/Work PB4230), so the two walks below run in source order.
         foreach (var para in pd.paragraphDefinition())
         {
             using var _ = ctx.Edition.At(para);   // the paragraph header's position (kb/Work PB82)
@@ -161,17 +161,17 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         {
             using var _ = ctx.Edition.At(section);   // the section header's position (kb/Work PB82)
             // A section's paragraphs are contiguous in the pc sequence, so the section IS a pc range:
-            // GO TO section transfers to its first paragraph (ISO §14.9.17), PERFORM section runs first
-            // statement of its first paragraph through last statement of its last (ISO §14.9.28).
+            // GO TO section transfers to its first paragraph (ISO §2023:14.9.17), PERFORM section runs first
+            // statement of its first paragraph through last statement of its last (ISO §2023:14.9.28).
             string sectionName = HeaderName(section.sectionName().procedureName(), "section");
-            ctx.Data.DeclareUserWord(sectionName, UserWordKind.SectionName);   // §8.3.2.2 — the one declaration funnel (kb/Work PB65, PB1083)
+            ctx.Data.DeclareUserWord(sectionName, UserWordKind.SectionName);   // §2023:8.3.2.2 — the one declaration funnel (kb/Work PB65, PB1083)
             var info = new SectionInfo(sectionName, _paras.Count);
-            // §14.4.3 — a section header may likewise be followed directly by unnamed sentences; they are
-            // the section's first paragraph, so GO TO / PERFORM <section> enters them (§14.9.17/§14.9.28).
+            // §2023:14.4.3 — a section header may likewise be followed directly by unnamed sentences; they are
+            // the section's first paragraph, so GO TO / PERFORM <section> enters them (§2023:14.9.17/§2023:14.9.28).
             AddAnonymousParagraph(section.sentence(), info, used);
             foreach (var p in section.paragraphDefinition())
                 AddParagraph(HeaderName(p.paragraphName().procedureName(), "paragraph"), p.sentence(), info, used);
-            info.CloseAt(_paras.Count - 1);   // zero paragraphs ⇒ the range stays EMPTY (§14.4.2)
+            info.CloseAt(_paras.Count - 1);   // zero paragraphs ⇒ the range stays EMPTY (§2023:14.4.2)
             (ctx.CurrentMethodScope?.Sections ?? _sections).Declare(info.Name, info);
         }
     }
@@ -179,8 +179,8 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// <summary>⛔ THE ONE READER OF A PROCEDURE HEADER'S NAME (kb/Work PB4238): the bare paragraph-name or section-name
     /// every header declaration and every pc-space entry is keyed on. The grammar's <c>paragraphName</c> /
     /// <c>sectionName</c> share <c>procedureName</c> with the references, so the parse admits <c>P1 OF S1.</c> and
-    /// <c>S1 OF X SECTION.</c>; ISO §14.2.1's general formats print <c>section-name-1 SECTION.</c> and
-    /// <c>paragraph-name-1.</c>, and §14.4.1 gives qualification ("a paragraph-name (that may be qualified)") to the
+    /// <c>S1 OF X SECTION.</c>; ISO §2023:14.2.1's general formats print <c>section-name-1 SECTION.</c> and
+    /// <c>paragraph-name-1.</c>, and §2023:14.4.1 gives qualification ("a paragraph-name (that may be qualified)") to the
     /// procedure-name that REFERS to a procedure. A qualified header is refused here (COBOL5716), by name and as
     /// written; the head word is still returned and declared so the one error is not followed by a "not defined" for
     /// every reference to the procedure. Reading the node's text instead glued the words into one name
@@ -192,9 +192,9 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         using (ctx.Edition.At(pn))   // the HEADER's position — a paragraph in a section is collected under its section's At
             ctx.Edition.Error(DiagnosticCatalog.QualifiedProcedureHeader,
                 $"{kind}-name '{ProcedureNameShape.AsWritten(pn)}' is written qualified in its "
-                + $"{kind} header — a {kind}-name that is being defined is written alone (ISO §14.2.1: "
-                + "\"section-name-1 SECTION.\", \"paragraph-name-1.\"); qualification (§8.4.2.2.2) belongs to a "
-                + "reference, and §14.4.1 gives it to the procedure-name that refers to a paragraph. Write "
+                + $"{kind} header — a {kind}-name that is being defined is written alone (ISO §2023:14.2.1: "
+                + "\"section-name-1 SECTION.\", \"paragraph-name-1.\"); qualification (§2023:8.4.2.2.2) belongs to a "
+                + "reference, and §2023:14.4.1 gives it to the procedure-name that refers to a paragraph. Write "
                 + $"'{ProcedureNameShape.Head(pn)}' in the header and qualify the references.");
         return ProcedureNameShape.Head(pn);
     }
@@ -203,9 +203,9 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     {
         var used = new HashSet<string>(StringComparer.Ordinal);
 
-        // DECLARATIVES first (ISO §14.2.3 GR1 — execution begins with the first NONdeclarative procedure; the
+        // DECLARATIVES first (ISO §2023:14.2.3 GR1 — execution begins with the first NONdeclarative procedure; the
         // declarative sections share the ONE pc space, entered only via the USE dispatch or an explicit PERFORM —
-        // §14.9.49.3 SR4 admits no other reference into a declarative section from outside it, and
+        // §2023:14.9.49.3 SR4 admits no other reference into a declarative section from outside it, and
         // ResolveProcedureOperand enforces it, kb/Work PB362). The walk records the BoundDeclarative scopes
         // (StatementBinder.Declaratives.cs).
         foreach (var dp in pd.declarativePart())
@@ -232,18 +232,18 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// <para>⛔ THIS EXISTS BECAUSE THE SILENT TWIN WAS USED EIGHT TIMES. Each site turned the null into a
     /// <c>BoundUnsupported</c> — which the emitter renders as <c>NotImplemented.Run(...)</c> — so a misspelled
     /// PERFORM COMPILED, produced an assembly, and aborted the run unit claiming WiseOwl COBOL had not implemented a
-    /// feature; on a path the flow skipped it said nothing at all. ISO §4.2.2 ¶2 requires the compile-time
+    /// feature; on a path the flow skipped it said nothing at all. ISO §2023:4.2.2 ¶2 requires the compile-time
     /// mechanism. The message itself lives in the ONE syntax-rule catalog
     /// (<see cref="Validation.StatementValidation.RejectProcedureName"/>), never here.</para>
-    /// <para>⛔ THE DECLARATIVES BOUNDARY IS TESTED HERE, ONCE, FOR EVERY STATEMENT (kb/Work PB362). ISO §14.9.49.3
+    /// <para>⛔ THE DECLARATIVES BOUNDARY IS TESTED HERE, ONCE, FOR EVERY STATEMENT (kb/Work PB362). ISO §2023:14.9.49.3
     /// SR3 and SR4 restrict every procedure-name REFERENCE, and this is the funnel every statement reference passes
     /// through, so a verb that takes a procedure-name inherits both rules by construction. The quiet prescan
     /// (<see cref="ResolveProcedureQuiet"/>) is not a reference of its own and is not tested.</para></summary>
     /// <param name="pn">The procedure-name as written.</param>
     /// <param name="verb">The statement or phrase for the message, e.g. "PERFORM", "SORT INPUT PROCEDURE".</param>
-    /// <param name="rule">The caller's OWN syntax rule quoted with its citation (PERFORM §14.9.28.3 SR12/SR13);
-    /// "" where the statement states none and §8.4.2.1 alone decides (GO TO, ALTER, RESUME AT).</param>
-    /// <param name="kind">Which statement writes the reference, for the declaratives boundary (ISO §14.9.49.3
+    /// <param name="rule">The caller's OWN syntax rule quoted with its citation (PERFORM §2023:14.9.28.3 SR12/SR13);
+    /// "" where the statement states none and §2023:8.4.2.1 alone decides (GO TO, ALTER, RESUME AT).</param>
+    /// <param name="kind">Which statement writes the reference, for the declaratives boundary (ISO §2023:14.9.49.3
     /// SR3/SR4). Only PERFORM and RESUME pass anything but the default — see
     /// <see cref="ProcedureReferenceKind"/>.</param>
     public ResolvedProcedure? ResolveProcedureOperand(
@@ -255,7 +255,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             return ctx.Validation.CheckDeclarativesBoundary(procedure, ctx.CurrentSection, ProcedureNameShape.AsWritten(pn), verb, kind)
                 ? procedure : null;
         string head = ProcedureNameShape.Head(pn);
-        // ⛔ "IDENTIFIES MORE THAN ONE" IS NOT "IDENTIFIES NONE" (kb/Work PB466). Both fail §8.4.2.1's "a
+        // ⛔ "IDENTIFIES MORE THAN ONE" IS NOT "IDENTIFIES NONE" (kb/Work PB466). Both fail §2023:8.4.2.1's "a
         // reference that uniquely identifies that resource", but they are different rules with different
         // repairs, so the ambiguous case gets its own message and its own code rather than being folded into
         // COBOL1639's "no paragraph or section carries that name", which would be a false statement about
@@ -269,7 +269,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         return null;
     }
 
-    /// <summary>Resolve a procedure-name reference to its inclusive pc range (ISO §8.4.2.2): a section name is its
+    /// <summary>Resolve a procedure-name reference to its inclusive pc range (ISO §2023:8.4.2.2): a section name is its
     /// paragraph range; a paragraph is (pc, pc). The head/qualifier are taken from the context's CHILDREN — never
     /// <c>GetText()</c> of the whole context, which concatenates <c>PAR-1A OF SEC-1</c> into an unmatchable key.
     /// Resolution order: explicit <c>OF/IN section</c> qualifier → the named section's own map; unqualified → a
@@ -285,25 +285,25 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// fails the compile either way (kb/Work PB466).</para></summary>
     public PcRange? ResolveProcedureQuiet(Core.ProcedureNameContext pn) => Resolve(pn).Range;
 
-    /// <summary>⛔ THE ONE §8.4.2.2 procedure-name resolution algorithm — <b>one body, not one per scope</b>.
+    /// <summary>⛔ THE ONE §2023:8.4.2.2 procedure-name resolution algorithm — <b>one body, not one per scope</b>.
     /// It runs over whichever pair of name maps the reference stands in: a METHOD body's own maps when one is
     /// current, the program's otherwise. Inside a method resolution is CONFINED to the method's maps because a
-    /// method definition begins with an identification division (ISO §11.7.1), so it is a contained SOURCE UNIT
-    /// (§3.165) and thus its own SOURCE ELEMENT (§3.164), and §8.4.6.1 confines paragraph-names and
+    /// method definition begins with an identification division (ISO §2023:11.7.1), so it is a contained SOURCE UNIT
+    /// (§2023:3.165) and thus its own SOURCE ELEMENT (§2023:3.164), and §2023:8.4.6.1 confines paragraph-names and
     /// section-names to the source element that declares them — the legacy trap-#10 cross-method reject made
-    /// structural. (NOT §11.7 alone, which the old comment cited: that is the METHOD-ID paragraph, whose GR5
+    /// structural. (NOT §2023:11.7 alone, which the old comment cited: that is the METHOD-ID paragraph, whose GR5
     /// scoping rule is about the method's DATA DIVISION words — kb/Work PB390.)
     /// <para>⛔ THE TWO SCOPES WERE TWO COPIES OF THIS ALGORITHM, and the second inherited every defect of the
     /// first — which is exactly how the method scope came to have the SAME uniqueness hole one level down
     /// (kb/Work PB466). Selecting the maps and running one body is what keeps them equal.</para>
     /// <para><b>The order, and the rule each step implements.</b> An explicit <c>IN/OF section-name</c>
-    /// qualifier resolves against that section's own map (§8.4.2.2.2 format 4). Unqualified: first a paragraph
-    /// of the CURRENT section — §8.4.2.2.1 rule 6, "The name is a paragraph-name and the section containing the
+    /// qualifier resolves against that section's own map (§2023:8.4.2.2.2 format 4). Unqualified: first a paragraph
+    /// of the CURRENT section — §2023:8.4.2.2.1 rule 6, "The name is a paragraph-name and the section containing the
     /// reference also contains the named paragraph", the one excuse a duplicated paragraph-name gets — then the
-    /// whole source element, where §8.4.2.2.1 rule 1 ("No other name has the identical spelling") decides: the
+    /// whole source element, where §2023:8.4.2.2.1 rule 1 ("No other name has the identical spelling") decides: the
     /// reference is unique only if the spelling is carried by EXACTLY ONE procedure, counting paragraphs and
-    /// sections together, because §14.4.1 makes a procedure-name "a word used to refer to a paragraph or
-    /// section". Two or more and the reference identifies no one resource: §8.4.2.2.3 SR1 requires
+    /// sections together, because §2023:14.4.1 makes a procedure-name "a word used to refer to a paragraph or
+    /// section". Two or more and the reference identifies no one resource: §2023:8.4.2.2.3 SR1 requires
     /// qualification, and this returns the ambiguity instead of an arbitrary pick.</para>
     /// <para>The head/qualifier are taken from the context's CHILDREN — never <c>GetText()</c> of the whole
     /// context, which concatenates <c>PAR-1A OF SEC-1</c> into an unmatchable key.</para></summary>
@@ -316,7 +316,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// through this method and not through a second copy of it.</summary>
     /// <param name="head">The procedure-name.</param>
     /// <param name="qualifier">The <c>IN/OF section-name</c> qualifier, or null.</param>
-    /// <param name="referencingSection">The section CONTAINING the reference — what §8.4.2.2.1 rule 6 is
+    /// <param name="referencingSection">The section CONTAINING the reference — what §2023:8.4.2.2.1 rule 6 is
     /// measured against. Passed in rather than read from the ambient cursor, because the debug subject is
     /// resolved after collection, when the cursor no longer stands where the reference was written.</param>
     private ProcedureResolution ResolveProcedureWord(string head, string? qualifier, SectionInfo? referencingSection)
@@ -329,7 +329,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         {
             if (!sections.TryResolve(qualifier, out var q)) return default;   // no such section → COBOL1639
             // The QUALIFIER itself has to identify one section, and a section-name takes no qualifier of its
-            // own (§8.4.2.2.2 format 4), so a duplicated one cannot be repaired by writing more.
+            // own (§2023:8.4.2.2.2 format 4), so a duplicated one cannot be repaired by writing more.
             if (sections.IsDuplicated(qualifier))
                 return Ambiguous(ProcedureAmbiguityRule.Qualification, qualifier, DescribeSections(sections, qualifier));
             if (!q.Paras.TryResolve(head, out int qpc)) return default;
@@ -338,7 +338,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             return Found(PcRange.At(qpc), q);
         }
 
-        // §8.4.2.2.1 rule 6 — and §8.4.2.2.3 SR7 is its other half: the excuse holds only while the containing
+        // §2023:8.4.2.2.1 rule 6 — and §2023:8.4.2.2.3 SR7 is its other half: the excuse holds only while the containing
         // section declares the name ONCE ("If explicitly referenced, a paragraph-name shall not be duplicated
         // within a section"), which is why the SR7 test sits here, at the reference, rather than at the
         // declaration — an unreferenced duplicate is legal.
@@ -349,7 +349,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             return Found(PcRange.At(local), cur);
         }
 
-        int candidates = paras.CountOf(head) + sections.CountOf(head);   // §8.4.2.2.1 rule 1, over §14.4.1's
+        int candidates = paras.CountOf(head) + sections.CountOf(head);   // §2023:8.4.2.2.1 rule 1, over §2023:14.4.1's
         if (candidates == 0) return default;                             // "paragraph or section"
         if (candidates > 1)
             return Ambiguous(ProcedureAmbiguityRule.Qualification, head, DescribeCandidates(paras, sections, head));
@@ -427,13 +427,13 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// ProcedureTableBuilder at 10t and these host edges delete).</summary>
     public int EntryPc => _entryPc;
     public IReadOnlyList<BoundDeclarative> Declaratives => _declaratives;
-    // ── The USE duplicate-operand screens (ISO §14.9.49.3 SR7, SR8, SR9, SR14) ──────────────────────────────
+    // ── The USE duplicate-operand screens (ISO §2023:14.9.49.3 SR7, SR8, SR9, SR14) ──────────────────────────────
     // Four instances of ONE sentence — "the same X shall not be specified in more than one USE statement within
     // the same procedure division" — so ONE mechanism enforces all four (ConstructOperandRegister{TKey} holds
     // the construct-vs-operand boundary those rules draw; the USE STATEMENT is the construct here, the Format-2
     // COLLATING SEQUENCE CLAUSE is the construct for its second consumer). ⛔ PER PROCEDURE DIVISION: a
     // ProcedureTableBuilder is built per bound unit, and a CLASS unit's one builder collects EVERY method's
-    // procedure division (kb/Work PB1010 — a method definition takes Format 1, §14.2.2 SR10), so
+    // procedure division (kb/Work PB1010 — a method definition takes Format 1, §2023:14.2.2 SR10), so
     // CollectMethodDeclaratives re-makes these four for each method's declaratives: a file named in one
     // method's USE is not "more than one USE statement within the same procedure division" as another's.
     private ConstructOperandRegister<int> _useModes = new();                                      // SR7
@@ -441,13 +441,13 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     private ConstructOperandRegister<ReportGroupModel> _useReportGroups = new();                   // SR9
     private ConstructOperandRegister<string> _useEcPairs = new(CobolNames.Comparer);  // SR14
 
-    /// <summary>Collect a METHOD's declaratives portion (kb/Work PB1010; ISO §14.2.2 SR10 — "Formats 1 and 2 may be
+    /// <summary>Collect a METHOD's declaratives portion (kb/Work PB1010; ISO §2023:14.2.2 SR10 — "Formats 1 and 2 may be
     /// specified in a source element if and only if that source element is a function definition, a function
     /// prototype definition, a method definition, a program definition, or a program prototype definition"), at
     /// the current end of the class's ONE pc space and under the method scope the caller has entered
     /// (<see cref="BinderContext.CurrentMethodScope"/>), through the SAME <see cref="DeclCollectSection"/> a
     /// program's declaratives take. Returns the method's own <see cref="BoundDeclarative"/>s in source order —
-    /// §14.9.49.4 GR3 analyzes "the USE statements in the source element", and a method IS the source element
+    /// §2023:14.9.49.4 GR3 analyzes "the USE statements in the source element", and a method IS the source element
     /// that contains its statements (GR4 a)), so the emitter selects over exactly this list for them.</summary>
     public IReadOnlyList<BoundDeclarative> CollectMethodDeclaratives(Core.ProcedureDivisionContext pd, HashSet<string> used)
     {
@@ -482,8 +482,8 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     private void DeclCollectSection(Core.DeclarativeSectionContext sec, HashSet<string> used)
     {
         string name = HeaderName(sec.sectionName().procedureName(), "section");
-        ctx.Data.DeclareUserWord(name, UserWordKind.SectionName);   // §8.3.2.2 — the one declaration funnel (kb/Work PB65, PB1083)
-        // isDeclarative: THE fact §14.9.28.3 SR11 (and GO TO's / ALTER's analogous constraints) asks about,
+        ctx.Data.DeclareUserWord(name, UserWordKind.SectionName);   // §2023:8.3.2.2 — the one declaration funnel (kb/Work PB65, PB1083)
+        // isDeclarative: THE fact §2023:14.9.28.3 SR11 (and GO TO's / ALTER's analogous constraints) asks about,
         // recorded where it is known rather than re-derived from pc arithmetic later.
         var info = new SectionInfo(name, _paras.Count, isDeclarative: true);
 
@@ -494,7 +494,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             || leading[0].statement() is not { Length: 1 } first
             || first[0].useStatement() is not { } use)
             ctx.Edition.Error(DiagnosticCatalog.DeclarativeUseRule, $"declarative section '{name}': the first sentence shall consist "
-                + "of a single USE statement (ISO §14.3 / §14.9.49.3 SR1)");
+                + "of a single USE statement (ISO §2023:14.3 / §2023:14.9.49.3 SR1)");
         else if (use.DEBUGGING() is not null)
         {
             // X3.23-1985 USE FOR DEBUGGING (the '85 debug facility, deleted by ISO 2002 — 0902-gated ≥2002 by
@@ -514,22 +514,22 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         {
             scope = DeclBindUse(use, name);
             // The USE statement is COMPLETE — fold its operands into the procedure division's registers. Until
-            // this point a repeated operand belongs to the statement being bound, and §14.9.49.3 SR7/SR8/SR9/
+            // this point a repeated operand belongs to the statement being bound, and §2023:14.9.49.3 SR7/SR8/SR9/
             // SR14 each forbid the repeat only across "more than one USE statement".
             DeclEndUseStatement();
         }
 
         // Leading sentences past the USE form an anonymous paragraph at the section start (handler bodies that
-        // CCVS writes directly under the section header) — §14.4.3's paragraph-name-OMITTED paragraph, named
+        // CCVS writes directly under the section header) — §2023:14.4.3's paragraph-name-OMITTED paragraph, named
         // NOWHERE. ⛔ It used to be registered through AddParagraph under the SECTION's own name (kb/Work PB990), which
         // declared a paragraph the source never wrote: a legal `PERFORM handler-section` drew COBOL2121 "declared 2
-        // times (paragraph 'H' in section 'H'; section 'H')", and §8.3.2.2's one-type-per-word census found the section
+        // times (paragraph 'H' in section 'H'; section 'H')", and §2023:8.3.2.2's one-type-per-word census found the section
         // name used as a paragraph-name.
         AddAnonymousParagraph(leading.Skip(1).ToArray(), info, used);
         foreach (var p in sec.declarativeParagraph())
             AddParagraph(HeaderName(p.paragraphName().procedureName(), "paragraph"), p.sentence(), info, used);
-        // A declarative section with ZERO paragraphs is legal (§14.9.49.3 SR1 — "zero, one, or more procedural
-        // paragraphs"; §14.4.2), and it is still SELECTED: §14.9.49.4 GR3 says "the first declarative that
+        // A declarative section with ZERO paragraphs is legal (§2023:14.9.49.3 SR1 — "zero, one, or more procedural
+        // paragraphs"; §2023:14.4.2), and it is still SELECTED: §2023:14.9.49.4 GR3 says "the first declarative that
         // satisfies the selection criteria is executed and no other declaratives are executed", so the search
         // stops at it and nothing else may run. Giving it ONE no-op pc keeps that a plain bounded dispatch
         // rather than a second selector shape — and it is the invariant DispatchState.RunUseCall asserts when it
@@ -539,15 +539,15 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             AddEmptyAnonymousParagraph(info, used);
 
         info.CloseAt(_paras.Count - 1);
-        // A METHOD's declarative section is a name in the METHOD's procedure division (§8.3.2.2.28 — "A section-name
+        // A METHOD's declarative section is a name in the METHOD's procedure division (§2023:8.3.2.2.28 — "A section-name
         // identifies a section in the procedure division"), declared where the method's other sections are — the
         // same split AddParagraph makes for paragraph-names (kb/Work PB1010).
         (ctx.CurrentMethodScope?.Sections ?? _sections).Declare(info.Name, info);
 
         if (scope is { } s)
-            // ISO §14.9.49.3 SR1: "The remainder of the section shall consist of zero, one, or more procedural
+            // ISO §2023:14.9.49.3 SR1: "The remainder of the section shall consist of zero, one, or more procedural
             // paragraphs that define the procedures to be used" — so the use procedure IS the section, whose
-            // extent §14.4.2 fixes at the next section header or END DECLARATIVES. The range is taken whole;
+            // extent §2023:14.4.2 fixes at the next section header or END DECLARATIVES. The range is taken whole;
             // nothing inspects paragraph shape to shorten it (kb/Work PB367).
             _declaratives.Add(new BoundDeclarative(
                 name, info.Range, s.Files, s.ModeIndex, s.Global, s.Report, s.EcEntries, s.Eo));
@@ -604,7 +604,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                         {
                             ctx.Edition.Error(DiagnosticCatalog.DebugAllOperandIsProcedure, $"declarative section "
                                 + $"'{section.Name}': USE FOR DEBUGGING ON ALL REFERENCES OF '{anm}' names a paragraph or "
-                                + "section, and identifier-1 of ALL [REFERENCES OF] identifier-1 is a data item (ISO §14.4.1: a "
+                                + "section, and identifier-1 of ALL [REFERENCES OF] identifier-1 is a data item (ISO §2023:14.4.1: a "
                                 + $"procedure-name refers to a paragraph or section); write ON {anm} for a procedure-name subject");
                             continue;
                         }
@@ -615,10 +615,10 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                 else if (t.dataReference() is { } dr)    // bare name: procedure-name, else file/data/cd (staged)
                 {
                     string nm = DebugOperandAsWritten(dr);
-                    // ⛔ THE SAME §8.4.2.2 RESOLUTION AS EVERY OTHER PROCEDURE-NAME REFERENCE, through the same
+                    // ⛔ THE SAME §2023:8.4.2.2 RESOLUTION AS EVERY OTHER PROCEDURE-NAME REFERENCE, through the same
                     // method (kb/Work PB466) — USE FOR DEBUGGING ON procedure-name is an explicit reference, so
                     // an ambiguous spelling owes the same diagnostic here as it does at GO TO. The referencing
-                    // section is THIS declarative section, which is what §8.4.2.2.1 rule 6 is measured against.
+                    // section is THIS declarative section, which is what §2023:8.4.2.2.1 rule 6 is measured against.
                     // A range covers both cases the leg needs: a paragraph is (pc, pc), a section is its whole
                     // paragraph range, and every pc in the range becomes a trigger point either way.
                     var subject = ResolveDebugProcedure(dr, section);
@@ -677,8 +677,8 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
 
     /// <summary>⛔ THE ONE PLACE A USE FOR DEBUGGING OPERAND IS READ AS A <c>procedure-name</c> (kb/Work PB4363). The
     /// grammar spells the operand as a dataReference because the phrase also admits file-, cd- and data-names, so
-    /// the procedure-name shapes <c>word</c> and <c>word OF section</c> (ISO §14.4.1: "a paragraph-name (that may be
-    /// qualified) or a section-name") are recognized here and handed to the §8.4.2.2 algorithm; any other suffix (a
+    /// the procedure-name shapes <c>word</c> and <c>word OF section</c> (ISO §2023:14.4.1: "a paragraph-name (that may be
+    /// qualified) or a section-name") are recognized here and handed to the §2023:8.4.2.2 algorithm; any other suffix (a
     /// subscript, a reference modifier, a property) cannot be a procedure-name and resolves to nothing. Both operand
     /// arms of <see cref="FinalizeDebug"/> ask it, so a qualified procedure-name is a procedure-name in either.</summary>
     private ProcedureResolution ResolveDebugProcedure(Core.DataReferenceContext operand, SectionInfo section)
@@ -692,12 +692,12 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             : default;
     }
 
-    /// <summary>Whether the operand names a data item the program declares, or a special register — the §8.4.2.2
+    /// <summary>Whether the operand names a data item the program declares, or a special register — the §2023:8.4.2.2
     /// lookup alone, asked silently (<see cref="ReferenceResolver.ProbeDeclaration"/>), so the answer is about the
     /// DECLARATION. The reference SHAPE screens that <see cref="ReferenceResolver.Probe"/> applies are left out on
     /// purpose: the debug identifier of a table element is written without its subscripts (the DEBUG-SUB-n items
     /// report them, X3.23-1985), so that operand is the data item the trigger watches, not one the
-    /// COBOL2270 "shall be subscripted" rule (ISO §8.4.2.3.3 SR5) judges (kb/Work PB4363, review round 1).</summary>
+    /// COBOL2270 "shall be subscripted" rule (ISO §2023:8.4.2.3.3 SR5) judges (kb/Work PB4363, review round 1).</summary>
     private bool NamesDataItem(Core.DataReferenceContext operand) =>
         new DataReferenceCst(operand).Register != SpecialRegister.None || ctx.Refs.ProbeDeclaration(operand) is not null
         || SumCounterOf(operand) is not null;
@@ -729,8 +729,8 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// and is reported as every other procedure-name operand is (<c>RejectProcedureName</c>, COBOL1639): the data
     /// resolver's "no declaration gives the name P1" would send the user hunting for a declaration that is there.
     /// Any other operand is asked of the ONE reference resolver, which says why — "'X' is not defined" for a name
-    /// nothing declares (COBOL1639, ISO §8.4.2.1: "a statement shall contain a reference that uniquely identifies
-    /// that resource"), the ambiguity for a name several declarations share (§8.4.2.2.3 SR1). True when it
+    /// nothing declares (COBOL1639, ISO §2023:8.4.2.1: "a statement shall contain a reference that uniquely identifies
+    /// that resource"), the ambiguity for a name several declarations share (§2023:8.4.2.2.3 SR1). True when it
     /// reported; false when it found nothing to say, and the caller falls back to the staged COBOL1571 rather than
     /// let an operand through in silence.</summary>
     private bool ReportUnresolvedDebugOperand(Core.DataReferenceContext operand, SectionInfo section)
@@ -778,7 +778,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         section is not null && _pendingDebug.Any(p => ReferenceEquals(p.Section, section));
 
     /// <summary>Record one data-name or ALL REFERENCES OF target. The operand is resolved to its DATA ITEM (a qualified name is the one
-    /// item its qualifiers pick, §8.4.2.2), written without subscripts or a reference modifier (syntax rules 10 and 12: the trigger watches
+    /// item its qualifiers pick, §2023:8.4.2.2), written without subscripts or a reference modifier (syntax rules 10 and 12: the trigger watches
     /// the item, and DEBUG-SUB-n report which occurrence a statement referenced) and named once (syntax rule 6). A report sum counter is its
     /// register item (syntax rule 9); LINAGE-COUNTER, LINE-COUNTER and PAGE-COUNTER are runtime-sourced references no place stands for and stay staged.</summary>
     private void AddDebugDataTarget(Core.DataReferenceContext operand, SectionInfo section, DebugTargetKind kind)
@@ -878,15 +878,15 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     }
 
     /// <summary>One USE statement's bound trigger scope: Format 1's files/mode (+GLOBAL), Format 2's report
-    /// group, Format 3's (exception-name, file) entries, or Format 4's single operand (ISO §14.9.49).</summary>
+    /// group, Format 3's (exception-name, file) entries, or Format 4's single operand (ISO §2023:14.9.49).</summary>
     private readonly record struct DeclScope(
         IReadOnlyList<FileModel> Files, int? ModeIndex, bool Global, ReportGroupModel? Report,
         IReadOnlyList<(string Ec, FileModel? File)>? EcEntries = null, BoundEoOperand? Eo = null);
 
-    /// <summary>Bind the USE statement's trigger scope (ISO §14.9.49): Format 1's file list or open mode; the
+    /// <summary>Bind the USE statement's trigger scope (ISO §2023:14.9.49): Format 1's file list or open mode; the
     /// GLOBAL phrase drives the cross-program GR4b dispatch (the emitter's <c>__RunGlobalUse</c> containment
     /// walk). <c>ON file-name</c> resolves against <c>DataBindState.VisibleFiles</c>, which includes containers' GLOBAL FDs
-    /// (§13.18.27.4 GR1; IC234A's contained USE names the outer's GLOBAL file).
+    /// (§2023:13.18.27.4 GR1; IC234A's contained USE names the outer's GLOBAL file).
     /// Format 2 (BEFORE REPORTING, SR9) names a report group — the section becomes the group's
     /// before-reporting hook, invoked by the report engine just before the group is produced (GR8; wired in
     /// <c>CSharpEmitter.ReportWriter.cs</c>). The same group shall not appear in two such statements (SR9).</summary>
@@ -897,7 +897,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             return DeclBindUseF3(ecEntries, sectionName);
         if (use.OBJECT() is not null || use.EO() is not null)
         {
-            // Format 4 (§14.9.49.2 — a brace group requiring exactly one of TWO alternatives,
+            // Format 4 (§2023:14.9.49.2 — a brace group requiring exactly one of TWO alternatives,
             // {object-class-name-1 | interface-name-1}; SR15 EO ≡ EXCEPTION OBJECT). GR3: for an OBJECT raise,
             // F4 selection REPLACES the F1/F3 tiers (the generated __EcObjDispatch, D-EO7).
             // use-after-exception-object-2002: the pass owns the edition gate (Exec Step E).
@@ -905,13 +905,13 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             string cname = use.cobolWord().GetText();
             // SR16 and SR17 are ONE rule with two operand kinds, and both scope the name to the REPOSITORY
             // paragraph — never to the compilation group, which is what OoClassTable holds. Both halves go
-            // through the §8.4.6.4 funnel; before kb/Work PB365 this site called `OoClasses.Find` directly, so a
+            // through the §2023:8.4.6.4 funnel; before kb/Work PB365 this site called `OoClasses.Find` directly, so a
             // program with NO REPOSITORY compiled clean (SR16 unenforced) and the interface alternative had no
             // resolution path at all and died on SR16's diagnostic (SR17 unimplemented).
             var r = Compiler.Oo.OoNameResolution.Resolve(ctx.Data.OoClasses, ctx.Edition, use, cname,
                 Compiler.Oo.OoNameResolution.Want.Either,
                 $"declarative section '{sectionName}': USE AFTER EXCEPTION OBJECT",
-                DiagnosticCatalog.UseExceptionObjectName.Code, "ISO §14.9.49.3 SR16/SR17");
+                DiagnosticCatalog.UseExceptionObjectName.Code, "ISO §2023:14.9.49.3 SR16/SR17");
             if (!r.Ok) return null;
             // The bound operand carries the RESOLVED SYMBOL, never a C# type name: how many emitted types one
             // COBOL name selects is GR14's question and the emitter's answer (kb/Work PB366 — a class is TWO).
@@ -922,9 +922,9 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         if (use.REPORTING() is not null)
         {
             // Format 2: USE [GLOBAL] BEFORE REPORTING identifier-1 — identifier-1 references a report group
-            // (SR9), optionally qualified by its report-name (§8.4.2.2.2 Format 1's file-report-qualifier).
+            // (SR9), optionally qualified by its report-name (§2023:8.4.2.2.2 Format 1's file-report-qualifier).
             // Resolution is the ONE funnel's: it collects EVERY candidate and diagnoses an ambiguous reference
-            // (§8.4.2.2.1 / §8.4.2.2.3 SR1) where this arm used to `return` inside the loop on the first match
+            // (§2023:8.4.2.2.1 / §2023:8.4.2.2.3 SR1) where this arm used to `return` inside the loop on the first match
             // and therefore could never observe a second (kb/Work PB365).
             var (head, qualifier) = ReportGroupResolution.Parts(use.reportGroupReference());
             var match = ReportGroupResolution.Resolve(ctx.Edition, ctx.Data.State.Reports.Visible, head, qualifier,
@@ -932,7 +932,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             if (match == ReportGroupResolution.Match.None || group is null)
             {
                 ctx.Edition.Error(DiagnosticCatalog.DeclarativeUseRule, $"declarative section '{sectionName}': USE BEFORE REPORTING "
-                    + $"'{head}' does not name a report group (ISO §14.9.49.3 SR9)");
+                    + $"'{head}' does not name a report group (ISO §2023:14.9.49.3 SR9)");
                 return null;
             }
             // SR9: the same identifier-1 shall not appear in more than one USE BEFORE REPORTING
@@ -941,7 +941,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             if (_useReportGroups.Register(group) == ConstructOperand.Duplicate)
                 ctx.Edition.Error(DiagnosticCatalog.DeclarativeUseRule, $"declarative section '{sectionName}': report group "
                     + $"'{head}' already has a USE BEFORE REPORTING procedure in this procedure "
-                    + "division (ISO §14.9.49.3 SR9)");
+                    + "division (ISO §2023:14.9.49.3 SR9)");
             return new DeclScope([], null, global, group);
         }
         var target = use.useOnTarget();
@@ -961,7 +961,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             // alternative per statement, so only the Duplicate verdict is reachable here.
             if (_useModes.Register(m) == ConstructOperand.Duplicate)
                 ctx.Edition.Error(DiagnosticCatalog.DeclarativeUseRule, $"declarative section '{sectionName}': this open mode already "
-                    + "has a USE procedure in this procedure division (ISO §14.9.49.3 SR7)");
+                    + "has a USE procedure in this procedure division (ISO §2023:14.9.49.3 SR7)");
             return new DeclScope([], m, global, null);
         }
 
@@ -972,13 +972,13 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             if (!ctx.Data.State.VisibleFiles.TryGetValue(fname, out var file))
             {
                 ctx.Edition.Error(DiagnosticCatalog.DeclarativeUseRule, $"declarative section '{sectionName}': USE names unknown "
-                    + $"file '{fname}' (ISO §14.9.49)");
+                    + $"file '{fname}' (ISO §2023:14.9.49)");
                 continue;
             }
             if (file.IsSortMerge)
             {
                 ctx.Edition.Error(DiagnosticCatalog.DeclarativeUseRule, $"declarative section '{sectionName}': USE may not name the "
-                    + $"sort/merge file '{fname}' (ISO §14.9.49.3 SR2)");
+                    + $"sort/merge file '{fname}' (ISO §2023:14.9.49.3 SR2)");
                 continue;
             }
             // SR8: "The same file-name shall not appear in more than one USE AFTER EXCEPTION statement within
@@ -993,17 +993,17 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                     continue;
                 case ConstructOperand.Duplicate:
                     ctx.Edition.Error(DiagnosticCatalog.DeclarativeUseRule, $"declarative section '{sectionName}': file '{fname}' "
-                        + "already has a USE procedure in this procedure division (ISO §14.9.49.3 SR8)");
-                    continue;   // §14.9.49.4 GR3 recovery — the FIRST declarative keeps the file
+                        + "already has a USE procedure in this procedure division (ISO §2023:14.9.49.3 SR8)");
+                    continue;   // §2023:14.9.49.4 GR3 recovery — the FIRST declarative keeps the file
             }
             files.Add(file);
         }
         return new DeclScope(files, null, global, null);
     }
 
-    /// <summary>Bind a Format-3 USE statement's scope (ISO §14.9.49.2 — <c>USE AFTER {EXCEPTION CONDITION | EC}
+    /// <summary>Bind a Format-3 USE statement's scope (ISO §2023:14.9.49.2 — <c>USE AFTER {EXCEPTION CONDITION | EC}
     /// {exception-name-1 | exception-name-2 {FILE file-name-2}…}…</c>): validate every exception-name against
-    /// the §14.6.13.1 catalog (level 1/2/3 all legal — the §14.9.49.4 GR3c–g tiers select by level), SR13 (a file-scoped
+    /// the §2023:14.6.13.1 catalog (level 1/2/3 all legal — the §2023:14.9.49.4 GR3c–g tiers select by level), SR13 (a file-scoped
     /// name shall begin EC-I-O), SR14 (the same (exception-name-2, file-name-2) PAIR in more than one USE
     /// statement of this procedure division — a bare exception-name-1 is outside that rule and is bound as
     /// written), and the per-name edition window. The whole format is 2002+ (the EC model's introduction).</summary>
@@ -1024,14 +1024,14 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             if (fileNames.Length > 0 && !Runtime.Exceptions.ExceptionCatalog.IsIoName(info.Name))
             {
                 ctx.Edition.Error(DiagnosticCatalog.UseFileExceptionNameNotIo, $"declarative section '{sectionName}': FILE may be specified "
-                    + $"only with an exception-name beginning 'EC-I-O' — '{info.Name}' does not (ISO §14.9.49.3 SR13)");
+                    + $"only with an exception-name beginning 'EC-I-O' — '{info.Name}' does not (ISO §2023:14.9.49.3 SR13)");
                 continue;
             }
             if (fileNames.Length == 0)
             {
-                // A BARE name is exception-name-1, not exception-name-2 (§14.9.49.2's Format-3 figure puts
+                // A BARE name is exception-name-1, not exception-name-2 (§2023:14.9.49.2's Format-3 figure puts
                 // exception-name-2 only in the `exception-name-2 { FILE file-name-2 } …` alternative, and
-                // §14.9.49.4 GR3 c)–d) against e)–g) split on the same axis). SR14 governs PAIRS, so nothing
+                // §2023:14.9.49.4 GR3 c)–d) against e)–g) split on the same axis). SR14 governs PAIRS, so nothing
                 // screens a repeated exception-name-1 — GR3 gives it its OUTCOME instead: "The first
                 // declarative that satisfies the selection criteria is executed and no other declaratives are
                 // executed." It therefore never enters the SR14 register.
@@ -1044,13 +1044,13 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                 if (!ctx.Data.State.VisibleFiles.TryGetValue(fname, out var file))
                 {
                     ctx.Edition.Error(DiagnosticCatalog.DeclarativeUseRule, $"declarative section '{sectionName}': USE names unknown "
-                        + $"file '{fname}' (ISO §14.9.49)");
+                        + $"file '{fname}' (ISO §2023:14.9.49)");
                     continue;
                 }
                 if (file.IsSortMerge)
                 {
                     ctx.Edition.Error(DiagnosticCatalog.DeclarativeUseRule, $"declarative section '{sectionName}': USE may not name "
-                        + $"the sort/merge file '{fname}' (ISO §14.9.49.3 SR2)");
+                        + $"the sort/merge file '{fname}' (ISO §2023:14.9.49.3 SR2)");
                     continue;
                 }
                 AddPair(info.Name, file);
@@ -1066,7 +1066,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             // and outer `…` both let ONE statement write a pair twice, which is not more than one statement.
             // The '|' separator is unambiguous — neither part can contain it: every character of a COBOL word
             // "shall be selected from the set of basic letters, basic digits, extended letters, and the basic
-            // special characters hyphen and underscore" (§8.3.2.1).
+            // special characters hyphen and underscore" (§2023:8.3.2.1).
             switch (_useEcPairs.Register(ec + "|" + file.CobolName))
             {
                 case ConstructOperand.Repeated:
@@ -1074,8 +1074,8 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                 case ConstructOperand.Duplicate:
                     ctx.Edition.Error(DiagnosticCatalog.UseExceptionFilePairRepeated, $"declarative section '{sectionName}': the exception-name/"
                         + $"file pair '{ec} FILE {file.CobolName}' is already specified in another USE statement "
-                        + "of this procedure division (ISO §14.9.49.3 SR14)");
-                    return;   // §14.9.49.4 GR3 recovery — the FIRST declarative keeps the pair
+                        + "of this procedure division (ISO §2023:14.9.49.3 SR14)");
+                    return;   // §2023:14.9.49.4 GR3 recovery — the FIRST declarative keeps the pair
             }
             pairs.Add((ec, file));
         }
@@ -1086,9 +1086,9 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     // paragraphs backwards and, whenever ANY later paragraph terminated the run unit, ended the bounded USE
     // dispatch at the last trivial EXIT/CONTINUE paragraph before it — so a user declarative written in that
     // ordinary shape (a common exit point, then a paragraph that STOPs the run) executed only in part, on every
-    // invocation path (§14.9.49.4 GR7/GR12/GR13 and the Format-2 BEFORE REPORTING hook alike). The standard
-    // leaves no room for it: §14.9.49.3 SR1 makes the use procedure the WHOLE remainder of the section, §14.4.2
-    // ends the section only at the next section header or END DECLARATIVES, §14.6.3 rule 1 puts the implied
+    // invocation path (§2023:14.9.49.4 GR7/GR12/GR13 and the Format-2 BEFORE REPORTING hook alike). The standard
+    // leaves no room for it: §2023:14.9.49.3 SR1 makes the use procedure the WHOLE remainder of the section, §2023:14.4.2
+    // ends the section only at the next section header or END DECLARATIVES, §2023:14.6.3 rule 1 puts the implied
     // transfer back to the controlling USE at "the last statement" of "the last procedure in the range", and
-    // §14.9.14.4 GR7's NOTE names USE among the return mechanisms that sit AFTER the section's last paragraph.
+    // §2023:14.9.14.4 GR7's NOTE names USE among the return mechanisms that sit AFTER the section's last paragraph.
 }

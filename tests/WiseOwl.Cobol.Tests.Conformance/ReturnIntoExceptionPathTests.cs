@@ -7,11 +7,11 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// <summary>
 /// The exception paths of RETURN ... INTO that need no USE declarative or end in a terminated run unit (kb/Work PB722,
 /// campaign PB3353: sort and file I/O tests cover the abnormal and exception paths as fully as the success paths). ISO
-/// §14.9.34.4 GR1: a RETURN executed outside an output procedure being executed by a SORT/MERGE that references the
+/// §2023:14.9.34.4 GR1: a RETURN executed outside an output procedure being executed by a SORT/MERGE that references the
 /// file sets the EC-FLOW-RETURN exception condition; GR3: a RETURN executed in the current output procedure after the
 /// AT END phrase ran sets EC-SORT-MERGE-RETURN; both are Table 13 fatal, so with checking enabled and no handler
-/// "execution of the run unit is terminated abnormally" (§14.6.13.1.3 7)) and with checking not enabled the
-/// continuation is the implementor's (§14.6.13.1.3 8)). Then §14.9.34.4 GR5 b): "The implied MOVE statement does not occur if the
+/// "execution of the run unit is terminated abnormally" (§2023:14.6.13.1.3 7)) and with checking not enabled the
+/// continuation is the implementor's (§2023:14.6.13.1.3 8)). Then §2023:14.9.34.4 GR5 b): "The implied MOVE statement does not occur if the
 /// execution of the RETURN statement was unsuccessful", so the INTO receiver keeps its value in every arm. Golden
 /// <c>2023/pb722_return_into_flow_ec</c> is the declarative (RESUME) twin; <c>2023/pb722_return_into_unsuccessful</c>
 /// the AT END and item-identification witnesses.
@@ -95,12 +95,12 @@ public sealed class ReturnIntoExceptionPathTests
     private static void AssertAbnormal(int exit, string stdout, string stderr, string expectedStdout, string ecName)
     {
         Assert.Equal(expectedStdout, Normalized(stdout));                    // nothing after the failing RETURN runs
-        Assert.Equal(1, exit);                                      // §14.6.12 — the abnormal-termination exit
+        Assert.Equal(1, exit);                                      // §2023:14.6.12 — the abnormal-termination exit
         Assert.Contains("abnormal run-unit termination", stderr);
         Assert.Contains(ecName, stderr);
     }
 
-    /// <summary>GR3 + §14.6.13.1.3 7): a second RETURN INTO after AT END, checking ON, no declarative — the run unit
+    /// <summary>GR3 + §2023:14.6.13.1.3 7): a second RETURN INTO after AT END, checking ON, no declarative — the run unit
     /// terminates at the RETURN, before its INTO move (and before either phrase).</summary>
     [Fact]
     public void SortMergeReturn_AfterAtEnd_NoDeclarative_TerminatesAbnormally()
@@ -110,7 +110,7 @@ public sealed class ReturnIntoExceptionPathTests
         AssertAbnormal(exit, stdout, stderr, Lines("AT-END-1", "BEFORE-2"), "EC-SORT-MERGE-RETURN");
     }
 
-    /// <summary>§14.6.13.1.3 5): the declarative runs and completes normally, the run unit still terminates, and the
+    /// <summary>§2023:14.6.13.1.3 5): the declarative runs and completes normally, the run unit still terminates, and the
     /// receiver the declarative sees is untouched (the raise precedes the INTO move, GR5 b)).</summary>
     [Fact]
     public void SortMergeReturn_AfterAtEnd_DeclarativeCompletesNormally_TerminatesAbnormally()
@@ -129,7 +129,7 @@ public sealed class ReturnIntoExceptionPathTests
             "EC-SORT-MERGE-RETURN");
     }
 
-    /// <summary>§14.6.13.1.3 8) with the checking NOT enabled: no raise, the store reports the end again (CobolSort
+    /// <summary>§2023:14.6.13.1.3 8) with the checking NOT enabled: no raise, the store reports the end again (CobolSort
     /// output-procedure state), the AT END phrase runs, the INTO move does not, and the run unit ends normally.</summary>
     [Fact]
     public void SortMergeReturn_AfterAtEnd_CheckingOff_ReportsAtEndAgainAndLeavesTheReceiver()
@@ -141,7 +141,7 @@ public sealed class ReturnIntoExceptionPathTests
         Assert.Equal(0, exit);
     }
 
-    /// <summary>GR1 + §14.6.13.1.3 7): RETURN INTO executed with no SORT/MERGE active, checking ON, no declarative —
+    /// <summary>GR1 + §2023:14.6.13.1.3 7): RETURN INTO executed with no SORT/MERGE active, checking ON, no declarative —
     /// the run unit terminates at the RETURN; neither phrase runs and the receiver is untouched.</summary>
     [Fact]
     public void FlowReturn_OutsideOutputProcedure_NoDeclarative_TerminatesAbnormally()
@@ -164,8 +164,8 @@ public sealed class ReturnIntoExceptionPathTests
         AssertAbnormal(exit, stdout, stderr, Lines("BEFORE"), "EC-FLOW-RETURN");
     }
 
-    /// <summary>§14.9.34.4 GR5 b) with identifier-1 = TE (IDX), IDX out of bounds: item identification happens after
-    /// the record has been read, so a SUCCESSFUL RETURN raises the fatal EC-BOUND-SUBSCRIPT (§8.4.2.3.4 GR2) and with
+    /// <summary>§2023:14.9.34.4 GR5 b) with identifier-1 = TE (IDX), IDX out of bounds: item identification happens after
+    /// the record has been read, so a SUCCESSFUL RETURN raises the fatal EC-BOUND-SUBSCRIPT (§2023:8.4.2.3.4 GR2) and with
     /// no declarative the run unit terminates.</summary>
     [Fact]
     public void ItemIdentification_BoundSubscript_NoDeclarative_TerminatesAbnormally()

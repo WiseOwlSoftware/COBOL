@@ -12,12 +12,12 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// describes its operands", end to end on the arm the manifest goldens cannot observe: EC-PROGRAM-ARG-MISMATCH is fatal and
 /// a function reference has no ON EXCEPTION phrase, so the run unit ends abnormally (the golden harness requires exit 0).
 /// The CALL arm is the golden <c>conformance:wiseowl/cases/14.9.4-CALL/pb2103_prototype_callee_compiled_elsewhere</c>.
-/// <para>ISO §12.3.8.4 GR11 b): with a function prototype definition in the group, "the details are taken from that
-/// function prototype definition", so §8.4.3.2.3 SR13's conformance is checked at bind time against the PROTOTYPE. The
-/// definition is compiled in another group and may differ; §14.9.4.4 GR3 d) — "the rules for conformance specified in
+/// <para>ISO §2023:12.3.8.4 GR11 b): with a function prototype definition in the group, "the details are taken from that
+/// function prototype definition", so §2023:8.4.3.2.3 SR13's conformance is checked at bind time against the PROTOTYPE. The
+/// definition is compiled in another group and may differ; §2023:14.9.4.4 GR3 d) — "the rules for conformance specified in
 /// 14.8.2, Parameters and 14.8.3, Returning items apply. If a violation of these rules is detected, the
 /// EC-PROGRAM-ARG-MISMATCH exception condition is set to exist if checking for it is enabled in both the activated
-/// program and activating runtime element" — is therefore asked again at the activation, and §14.8.2.3.2 rule 2 ("a
+/// program and activating runtime element" — is therefore asked again at the activation, and §2023:14.8.2.3.2 rule 2 ("a
 /// function") compares the clauses. Before the fix a function reference never described its arguments, so the stale
 /// definition read a PIC 9(4) argument as PIC X(4) with no diagnostic.</para>
 /// </summary>
@@ -97,7 +97,7 @@ public sealed class FunctionCompiledElsewhereTests
 
     /// <summary>The definition compiled elsewhere describes its formal PIC X(4) where the prototype the reference was
     /// checked against says PIC 9(4): the activation is not successful, the function never runs, and the unhandled fatal
-    /// condition ends the run unit (§14.6.12).</summary>
+    /// condition ends the run unit (§2023:14.6.12).</summary>
     [Fact]
     public void AFunctionDefinedElsewhere_WithAnotherFormal_IsEcProgramArgMismatch_AtTheActivation()
     {
@@ -110,7 +110,7 @@ public sealed class FunctionCompiledElsewhereTests
             Assert.Equal("BEFORE", stdout);
             Assert.Equal(1, exit);
             Assert.Contains("EC-PROGRAM-ARG-MISMATCH", stderr, StringComparison.Ordinal);
-            Assert.Contains("ISO §14.8.2.3.2 rule 2", stderr, StringComparison.Ordinal);
+            Assert.Contains("ISO §2023:14.8.2.3.2 rule 2", stderr, StringComparison.Ordinal);
         }
         finally { ScratchDirectory.Remove(dir); }
     }

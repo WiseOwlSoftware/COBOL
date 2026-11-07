@@ -5,16 +5,16 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.37.4 GR2 — "The comparison associated with each WHEN
+      *> ISO §2023:14.9.37.4 GR2 — "The comparison associated with each WHEN
       *> phrase is executed in accordance with the rules specified for
       *> conditional expressions." GR2 is an ALL FORMATS rule, so both
       *> formats are exercised, and the legs are chosen so that only a
-      *> §8.8.4-conformant comparison lands on the printed occurrence.
-      *> N1  §8.8.4.2.4 — numeric comparison is algebraic "regardless of
+      *> §2023:8.8.4-conformant comparison lands on the printed occurrence.
+      *> N1  §2023:8.8.4.2.4 — numeric comparison is algebraic "regardless of
       *>     the manner in which their usage is described" and the
       *>     literal's digit count "is not significant": a BINARY
       *>     S9(4) holding 0001 equals the literal 1 (occurrence 2).
-      *> A1  §8.8.4.2.7 2) — unequal-length alphanumeric comparison
+      *> A1  §2023:8.8.4.2.7 2) — unequal-length alphanumeric comparison
       *>     extends the shorter operand on the right with spaces, so
       *>     X(5) "ZZ   " equals the 2-character literal (occurrence 2).
       *> K1  the Format-2 WHEN, relation form (occurrence 3).

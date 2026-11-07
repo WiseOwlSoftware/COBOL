@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.37.4 GR3 a) — "If the VARYING phrase is not
+      *> ISO §2023:14.9.37.4 GR3 a) — "If the VARYING phrase is not
       *> specified, the search index is the index referenced by the
       *> first (or only) index-name specified in the INDEXED phrase in
       *> the OCCURS clause associated with identifier-1", together with

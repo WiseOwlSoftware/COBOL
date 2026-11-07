@@ -5,14 +5,14 @@ using System.Globalization;
 namespace WiseOwl.Cobol.Runtime.Globalization;
 
 /// <summary>One POSIX LC_MONETARY placement convention (ISO/IEC 9945:2009 clause 7, incorporated normatively by
-/// ISO/IEC 1989:2023 §8.2.1 — "Locale category names, the details of locale-categories, and locale field names
+/// ISO/IEC 1989:2023 §2023:8.2.1 — "Locale category names, the details of locale-categories, and locale field names
 /// shall be as specified in ISO/IEC 9945:2009, Clause 7"): whether the currency string precedes the value
 /// (<c>*_cs_precedes</c>), where the space sits (<c>*_sep_by_space</c> — 0 none; 1 between the currency-and-sign
 /// unit and the value; 2 inside the currency/sign junction, else between the sign and the value), and the sign's
 /// position (<c>*_sign_posn</c> — 0 parentheses enclose quantity AND currency string; 1 sign before both; 2 after
 /// both; 3 immediately before the currency string; 4 immediately after it). ⚠ Neither <c>sep_by_space</c> nor the
-/// <c>sign_posn</c> value semantics appear in ISO 1989 itself (the field table §8.2.2 lists neither) — they reach
-/// COBOL only through §8.2.1's ISO 9945 reference, and were verified OPERATIONALLY: <see cref="Render"/> built
+/// <c>sign_posn</c> value semantics appear in ISO 1989 itself (the field table §2023:8.2.2 lists neither) — they reach
+/// COBOL only through §2023:8.2.1's ISO 9945 reference, and were verified OPERATIONALLY: <see cref="Render"/> built
 /// from them reproduces every .NET currency-pattern layout exactly (the static derivation below proves it at
 /// process start).</summary>
 public readonly record struct MonetaryConvention(bool CsPrecedes, int SepBySpace, int SignPosn);
@@ -48,7 +48,7 @@ public static class MonetaryPlacement
 
     /// <summary>As <see cref="Render(MonetaryConvention, string, string, string)"/>, also reporting where
     /// <paramref name="val"/> starts in the result — <c>CobolLocaleEdit</c> needs the offset to carry each
-    /// hypothetical-item position's role through §13.18.40.5 r15 suppression into r14 b)'s per-character
+    /// hypothetical-item position's role through §2023:13.18.40.5 r15 suppression into r14 b)'s per-character
     /// truncation test, and computing it HERE keeps the layout written once.</summary>
     public static string Render(MonetaryConvention c, string cs, string sign, string val, out int valStart)
     {

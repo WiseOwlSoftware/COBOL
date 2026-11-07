@@ -7,7 +7,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ THE FIXED FORM OF A VARIABLE-LENGTH RECORD in a file of FIXED-length records (docs/CONFORMANCE.md §3
-/// determination D-FRA (vi); kb/Work PB1562). ISO §13.18.43.4 GR6 makes a Format 1 file's records one size and §9.1.6
+/// determination D-FRA (vi); kb/Work PB1562). ISO §2023:13.18.43.4 GR6 makes a Format 1 file's records one size and §2023:9.1.6
 /// makes the record type and size fixed attributes every program shares, so such a file can neither be framed nor
 /// carry an extent table: each member sits at the position it has at its MAXIMUM size, space padded
 /// (<see cref="CobolContiguousLayout.ToFixedForm"/>), and a READ takes it back at that width and drops the padding
@@ -90,7 +90,7 @@ public sealed class FixedFormRecordTests
         Assert.Equal(longer, Pb1562.ToFixedForm(longer, extents));
         var other = new CobolContiguousLayout(3, [0, 2], [1, 1], [9L, 8L]);
         string untouched = Pb1562.ToFixedForm(image, other.ExtentsOf(new CobolVarGroup("KEY", ["AAA", "CCCC"])));
-        Assert.Equal(image, untouched);   // another layout's table does not describe THIS record (§8.5.1.12.2)
+        Assert.Equal(image, untouched);   // another layout's table does not describe THIS record (§2023:8.5.1.12.2)
     }
 
     [Fact]

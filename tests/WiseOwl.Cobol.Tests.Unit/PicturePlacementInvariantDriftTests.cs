@@ -24,10 +24,10 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// total only if the binder guarantees two things about the forest it hands on, and the guarantees are the two
 /// halves of the picture-PLACEMENT rule:</para>
 /// <list type="bullet">
-///   <item>NEITHER — an entry with no PICTURE and no subordinates. ISO §13.16.3 SR8's last sentence forbids it;
+///   <item>NEITHER — an entry with no PICTURE and no subordinates. ISO §2023:13.16.3 SR8's last sentence forbids it;
 ///   <c>CheckPictureRequiredPass</c> reports it and gives the entry a recovery profile (kb/Work PB487).</item>
-///   <item>BOTH — an entry with a PICTURE clause AND subordinates. ISO §13.18.40.3 SR1 forbids it ("The PICTURE
-///   clause may be specified only at the elementary level", read with §8.5.1.3.1's "those not further
+///   <item>BOTH — an entry with a PICTURE clause AND subordinates. ISO §2023:13.18.40.3 SR1 forbids it ("The PICTURE
+///   clause may be specified only at the elementary level", read with §2023:8.5.1.3.1's "those not further
 ///   subdivided, are called elementary items"); <c>CheckPictureRequiredPass.CheckElementaryOnlyClauses</c> (the table's PICTURE row) reports it and
 ///   clears the PICTURE so the entry becomes the group its hierarchy declares (kb/Work PB527).</item>
 /// </list>
@@ -59,7 +59,7 @@ public sealed class PicturePlacementInvariantDriftTests
         { "GROUPUSAGE", "       01  G  USAGE PACKED-DECIMAL.\r\n           05  A  PIC 9(4).\r\n" },
         { "TYPEDEF", "       01  T  TYPEDEF.\r\n           05  A  PIC X(3).\r\n       01  R  TYPE T.\r\n" },
         { "SAMEAS", "       01  G.\r\n           05  A  PIC X(3).\r\n       01  S  SAME AS G.\r\n" },
-        { "VALUEIMPLIED", "       01  W  VALUE \"AB\".\r\n" },   // §13.16.3 SR9's implied PICTURE (kb/Work PB504)
+        { "VALUEIMPLIED", "       01  W  VALUE \"AB\".\r\n" },   // §2023:13.16.3 SR9's implied PICTURE (kb/Work PB504)
     };
 
     [Theory]
@@ -69,18 +69,18 @@ public sealed class PicturePlacementInvariantDriftTests
         var binder = Bind(label, ws);
         foreach (var item in Walk(binder.State.Forest.Roots))
         {
-            // Levels 66 and 88 are not Format-1 data description entries (§13.16.2 formats 2 and 3): a
-            // condition-name has no storage of its own (§13.16.4 GR3) and a RENAMES entry is a re-description.
+            // Levels 66 and 88 are not Format-1 data description entries (§2023:13.16.2 formats 2 and 3): a
+            // condition-name has no storage of its own (§2023:13.16.4 GR3) and a RENAMES entry is a re-description.
             if (item.Level is 66 or 88) continue;
             string where = $"{label}: '{item.CobolName ?? "FILLER"}' (level {item.Level})";
             Assert.True(item.IsGroup ^ item.IsElementary,
                 $"{where} is {(item.IsGroup ? "BOTH a group and elementary" : "NEITHER a group nor elementary")} — "
                 + $"Pic {(item.Pic is null ? "null" : "set")}, {item.Children.Count} subordinate entries. The data "
-                + "model's classification must be total (ISO §13.16.3 SR8 and §13.18.40.3 SR1 together).");
+                + "model's classification must be total (ISO §2023:13.16.3 SR8 and §2023:13.18.40.3 SR1 together).");
         }
     }
 
-    /// <summary>The ILLEGAL shape §13.18.40.3 SR1 forbids: reported, AND repaired — the recovery is what keeps
+    /// <summary>The ILLEGAL shape §2023:13.18.40.3 SR1 forbids: reported, AND repaired — the recovery is what keeps
     /// the invariant above true for a program that violates the rule, so nothing downstream of the binder can
     /// meet an unclassifiable entry even under an already-failed compile.
     /// <para>⛔ Both halves are asserted. A guard that only REPORTS would leave the model holding the shape it
@@ -96,7 +96,7 @@ public sealed class PicturePlacementInvariantDriftTests
         foreach (var item in Walk(binder.State.Forest.Roots))
             Assert.False(item.Pic is not null && item.Children.Count > 0,
                 $"'{item.CobolName ?? "FILLER"}' still carries BOTH a PICTURE and {item.Children.Count} "
-                + "subordinate entries after the §13.18.40.3 SR1 screen ran — the recovery did not repair the model.");
+                + "subordinate entries after the §2023:13.18.40.3 SR1 screen ran — the recovery did not repair the model.");
     }
 
     // ── harness ─────────────────────────────────────────────────────────────────────────────────────────────

@@ -18,7 +18,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ THE STORAGE-CLAIM OPERANDS OF A COMPILATION ARE FOUND BY ONE WALK OF ITS PARSE TREE AND SLICED PER SOURCE ELEMENT
 /// (kb/Work PB4302). A container asks which <c>ADDRESS OF</c> heads and which BY REFERENCE operands every program it
-/// contains takes (ISO §13.18.27.4 GR2: a contained program references a GLOBAL name "without describing it again", so the
+/// contains takes (ISO §2023:13.18.27.4 GR2: a contained program references a GLOBAL name "without describing it again", so the
 /// storage it names is the container's), and the question used to be a fresh recursive walk of each contained subtree from
 /// every container above it — N(N+1)/2 program walks for a chain of N, each charging a node its depth in MoveNext calls
 /// (bind 558 ms at depth 100, 3,640 ms at 200). The answers below are the operands the standard's rules name, in document
@@ -86,7 +86,7 @@ public sealed class StorageClaimScanTests
         var inner = mid.nestedProgram().Single();
         var scan = new StorageClaimScan();
 
-        // §8.4.3.11 — a data-address-identifier is ADDRESS OF's own surface; SET PTR TO ADDRESS OF GA is TOPP's, and
+        // §2023:8.4.3.11 — a data-address-identifier is ADDRESS OF's own surface; SET PTR TO ADDRESS OF GA is TOPP's, and
         // SET PTR TO ADDRESS OF GC is INNP's, which MIDP contains.
         Assert.Equal(["GA"], scan.AddressTargets(top.procedureDivision()).Select(Show));
         Assert.Empty(scan.AddressTargets(mid.procedureDivision()));
@@ -104,8 +104,8 @@ public sealed class StorageClaimScanTests
 
         Assert.Equal(["GB"], scan.ByReferenceOperands(top.procedureDivision(), _ => false).Select(Show));
 
-        // MIDP: §14.9.4.4 GR5 — a BY CONTENT operand (claimed only when its values ride managed slots), then BY REFERENCE GA;
-        // BY VALUE GC GB passes neither (the phrase is transitive); GA, then the RETURNING receiver GB (§14.6.5); and — with
+        // MIDP: §2023:14.9.4.4 GR5 — a BY CONTENT operand (claimed only when its values ride managed slots), then BY REFERENCE GA;
+        // BY VALUE GC GB passes neither (the phrase is transitive); GA, then the RETURNING receiver GB (§2023:14.6.5); and — with
         // UF a user-defined function — the function argument GA. INNP's CALL (inside MIDP's subtree): GA OF GB, then TBL (the
         // subscript IDX is a sending operand, never passed), and no operand for the arithmetic expression GA + GB.
         Assert.Equal(

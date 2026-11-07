@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ THE STANDARD-NUMERIC-TIME-FORM FLOOR IS ENFORCED ON EVERY CARRIER (kb/Work PB1379).
-/// <para>§7.3.17.4 GR4/GR5: a standard numeric time form value "shall be greater than or equal to zero and less than
+/// <para>§2023:7.3.17.4 GR4/GR5: a standard numeric time form value "shall be greater than or equal to zero and less than
 /// 86,401 / 86,400". The formatted-time family screens the LANDED (unscaled, scale) pair, and the float and SDIDI
 /// landings used to truncate toward zero first — a COMP-2 <c>−1.0E−10</c> became 0 and was formatted as midnight.
 /// <c>CobolDate.SecondsOfReal</c> / <c>SecondsOfDec</c> round toward negative infinity instead, so a negative value
@@ -64,7 +64,7 @@ public sealed class CobolDateSecondsLandingTests
         Assert.Equal(Int128.MinValue, CobolDate.SecondsOfDec(new CobolDec(-1, 40)));
     }
 
-    /// <summary>End to end through the formatted-time body: the landed negative takes the §15.3 out-of-range path
+    /// <summary>End to end through the formatted-time body: the landed negative takes the §2023:15.3 out-of-range path
     /// (the substituted zero-length result with checking off, the fatal EC-ARGUMENT-FUNCTION with it on) — under
     /// LEAP-SECOND OFF and ON alike — where it used to format as midnight.</summary>
     [Theory]
@@ -84,8 +84,8 @@ public sealed class CobolDateSecondsLandingTests
         finally { ExceptionState.ArgumentFunctionChecking = saved; }
     }
 
-    /// <summary>§15.54.4 r2 — "a character-string containing hours, minutes, and seconds of the time specified by
-    /// argument-1" (the leap second's seconds subfield is 60 under ON, §15.3.3.3): the ONE reading
+    /// <summary>§2023:15.54.4 r2 — "a character-string containing hours, minutes, and seconds of the time specified by
+    /// argument-1" (the leap second's seconds subfield is 60 under ON, §2023:15.3.3.3): the ONE reading
     /// of whole seconds as a time of day makes the leap second (86 400 under ON) the time 23:59:60, and every other
     /// value the ordinary hh:mm:ss — shared by FORMATTED-TIME, FORMATTED-DATETIME and LOCALE-TIME-FROM-SECONDS.</summary>
     [Theory]

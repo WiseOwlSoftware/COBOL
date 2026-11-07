@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ THE TWO INVARIANTS THAT KEEP THE INITIALIZE EXPANSION AUTOMATIC (kb/Work PB418, CLAUDE.md rule 5).
-/// <para>The INITIALIZE lane expands ISO §14.9.20.4 GR4's "series of implicit MOVE or SET statements" at BIND
+/// <para>The INITIALIZE lane expands ISO §2023:14.9.20.4 GR4's "series of implicit MOVE or SET statements" at BIND
 /// time, so two things about it can rot silently, and both did.</para>
 /// <para><b>1. The VALUE carrier.</b> A receiver's sending-operand under the VALUE phrase (GR6a3) and its
 /// qualification under GR5c1b/GR5c1c are the SAME question — "what does this item's VALUE clause give THIS
@@ -47,7 +47,7 @@ public sealed class InitializeLaneDriftTests
         return Regex.Replace(text, @"//[^\r\n]*", "");
     }
 
-    /// <summary>ISO §14.9.20.4 GR5c1b/GR5c1c and GR6a3 are answered for BOTH VALUE carriers by
+    /// <summary>ISO §2023:14.9.20.4 GR5c1b/GR5c1c and GR6a3 are answered for BOTH VALUE carriers by
     /// <c>DataItem.ValueAt</c>, so the INITIALIZE binder must never reach past it to a carrier property. Reading
     /// one directly is how the Format-2 carrier went unseen (kb/Work PB418 / PB499); it is also how a third one
     /// would.</summary>
@@ -57,7 +57,7 @@ public sealed class InitializeLaneDriftTests
         string code = CodeOf(BinderPath);
 
         Assert.True(code.Contains(".ValueAt(", StringComparison.Ordinal),
-            "InitializeBinder no longer calls DataItem.ValueAt — §14.9.20.4 GR6a3's sending operand has to come "
+            "InitializeBinder no longer calls DataItem.ValueAt — §2023:14.9.20.4 GR6a3's sending operand has to come "
             + "from the one carrier-agnostic reader, or a VALUE carrier it does not know about is silently lost.");
 
         // TableValuePlan is the Format-2 carrier the per-occurrence arm legitimately walks (GR5c1c needs the
@@ -67,7 +67,7 @@ public sealed class InitializeLaneDriftTests
             Assert.False(code.Contains(carrier, StringComparison.Ordinal),
                 $"InitializeBinder reads DataItem{carrier} directly. Ask DataItem.ValueAt(subscripts) instead — "
                 + "it is the ONE reader of \"what initializes this item at this occurrence\" and the reason the "
-                + "declaration lane and the INITIALIZE lane cannot disagree (§14.9.20.4 GR6a3).");
+                + "declaration lane and the INITIALIZE lane cannot disagree (§2023:14.9.20.4 GR6a3).");
     }
 
     /// <summary>Every <c>InitializeAction</c> the bound tree declares has an arm in the emitter. The emitter's
@@ -85,11 +85,11 @@ public sealed class InitializeLaneDriftTests
         Assert.True(missing.Count == 0,
             "InitializeEmitter.EmitAction has no arm for: " + string.Join(", ", missing)
             + ". Its switch carries no default, so the action is dropped silently and the implicit MOVE/SET "
-            + "§14.9.20.4 GR4 requires never happens. Add the arm, and the matching visit in "
+            + "§2023:14.9.20.4 GR4 requires never happens. Add the arm, and the matching visit in "
             + "UsageCollectionPass.InitAct and BoundStores.InitStores.");
     }
 
-    /// <summary>⛔ AN <c>InitializeSetFrom</c> IS THE IMPLICIT SET OF §14.9.20.4 GR4, SO IT IS BUILT ONLY BEHIND THE
+    /// <summary>⛔ AN <c>InitializeSetFrom</c> IS THE IMPLICIT SET OF §2023:14.9.20.4 GR4, SO IT IS BUILT ONLY BEHIND THE
     /// ONE SET-RULE SCREEN OF ITS RECEIVER (kb/Work PB3817). The phrase-level category check cannot see a restricted
     /// pointer's type or signature, or an object reference's class; those are the receiver's, so each construction
     /// site has to ask <c>ScreenImplicitSet</c> in the same expression. A second construction site that skips it is
@@ -106,7 +106,7 @@ public sealed class InitializeLaneDriftTests
             string before = code[Math.Max(0, site.Index - 400)..site.Index];
             Assert.True(before.Contains("ScreenImplicitSet(", StringComparison.Ordinal),
                 "an InitializeSetFrom is constructed without SetBinder.ScreenImplicitSet in the same expression: the implicit "
-                + "SET of §14.9.20.4 GR4 must be held to its receiver's §14.9.39.3 SR12/SR19/SR20/SR22 rules (kb/Work PB3817).");
+                + "SET of §2023:14.9.20.4 GR4 must be held to its receiver's §2023:14.9.39.3 SR12/SR19/SR20/SR22 rules (kb/Work PB3817).");
         }
     }
 
@@ -136,12 +136,12 @@ public sealed class InitializeLaneDriftTests
     }
 
     // ── 3. THE CATEGORY-NAME SET (kb/Work PB415) ──────────────────────────────────────────────────────────────
-    //    ISO §14.9.20.2's figure lists THIRTEEN category names and §5.2.6.4 makes a category-name one or more of
+    //    ISO §2023:14.9.20.2's figure lists THIRTEEN category names and §2023:5.2.6.4 makes a category-name one or more of
     //    them. The grammar carried FIVE for years behind a comment claiming the rest "require lexer tokens not
     //    yet defined" — stale the day three of those tokens landed for other reasons, and invisible because
     //    nothing compared the two lists. These three facts make the FOURTEENTH word automatic instead: the
     //    grammar rule, the bound enum and the per-word edition band all have to agree, with reserved-words.json
-    //    (which the §8.9 funnel already owns) as the edition authority.
+    //    (which the §2023:8.9 funnel already owns) as the edition authority.
 
     private static readonly string GrammarPath =
         TestRepo.Src("WiseOwl.Cobol.Frontend", "Grammar", "Core", "CobolData.g4");
@@ -155,7 +155,7 @@ public sealed class InitializeLaneDriftTests
         string g4 = File.ReadAllText(GrammarPath);
         var m = Regex.Match(g4, @"^initializeCategoryName\s*\r?\n(?<body>.*?)^\s*;\s*$",
             RegexOptions.Multiline | RegexOptions.Singleline);
-        Assert.True(m.Success, "no initializeCategoryName rule in CobolData.g4 — ISO §14.9.20.2's category-name "
+        Assert.True(m.Success, "no initializeCategoryName rule in CobolData.g4 — ISO §2023:14.9.20.2's category-name "
             + "list moved and this whole section is measuring nothing.");
         return Regex.Matches(m.Groups["body"].Value, @"^\s*[:|]\s*(?<tok>[A-Z][A-Z0-9_]*)\s*$",
                 RegexOptions.Multiline)
@@ -165,7 +165,7 @@ public sealed class InitializeLaneDriftTests
             .ToList();
     }
 
-    /// <summary>ISO §14.9.20.2 prints THIRTEEN category names, the grammar shall spell all thirteen and nothing
+    /// <summary>ISO §2023:14.9.20.2 prints THIRTEEN category names, the grammar shall spell all thirteen and nothing
     /// else, and <c>InitializeCategory</c> shall carry one member per word. A word the grammar cannot spell is
     /// legal source the compiler refuses; a member the grammar has no word for is a dead decoder arm.</summary>
     [Fact]
@@ -196,8 +196,8 @@ public sealed class InitializeLaneDriftTests
             + "int — widen the mask before adding the 32nd.");
     }
 
-    /// <summary>Each post-85 category-name is gated at the edition ISO §8.9 reserves its WORD, and that edition
-    /// is read from <c>reserved-words.json</c> — the same table the §8.9 funnel and <c>reservedHere()</c> read.
+    /// <summary>Each post-85 category-name is gated at the edition ISO §2023:8.9 reserves its WORD, and that edition
+    /// is read from <c>reserved-words.json</c> — the same table the §2023:8.9 funnel and <c>reservedHere()</c> read.
     /// The three <c>initialize-category-*</c> construct rows are the bands; this pins that no word is banded
     /// against a different edition from the one that made its word reserved, and that the five COBOL-85 words
     /// are gated by nothing.</summary>
@@ -208,7 +208,7 @@ public sealed class InitializeLaneDriftTests
         var m = Regex.Match(pass, @"VisitInitializeCategoryName\b.*?return base\.VisitChildren",
             RegexOptions.Singleline);
         Assert.True(m.Success, "VersionConformancePass has no VisitInitializeCategoryName — the per-word edition "
-            + "gate for ISO §14.9.20.2's category-name list is gone.");
+            + "gate for ISO §2023:14.9.20.2's category-name list is gone.");
         string arm = m.Value;
 
         var bandOf = new Dictionary<string, int>(StringComparer.Ordinal);
@@ -232,15 +232,15 @@ public sealed class InitializeLaneDriftTests
             {
                 Assert.False(bandOf.ContainsKey(word),
                     $"{word} is reserved at COBOL-85 (reserved-words.json r85=true) and is one of ISO "
-                    + "§14.9.20.2's five classic category names — gating it rejects conforming COBOL-85 source.");
+                    + "§2023:14.9.20.2's five classic category names — gating it rejects conforming COBOL-85 source.");
                 continue;
             }
             Assert.True(bandOf.TryGetValue(word, out int banded),
-                $"{word} is an ISO §14.9.20.2 category-name that §8.9 reserves only from COBOL-{introduced}, and "
+                $"{word} is an ISO §2023:14.9.20.2 category-name that §2023:8.9 reserves only from COBOL-{introduced}, and "
                 + "VisitInitializeCategoryName gates it at no edition — it would be accepted below its own "
                 + "introduction, which is the per-edition hole the VERSION TEST MATRIX exists to close.");
             Assert.True(banded == introduced,
-                $"{word} is gated at COBOL-{banded} but §8.9 reserves it from COBOL-{introduced} "
+                $"{word} is gated at COBOL-{banded} but §2023:8.9 reserves it from COBOL-{introduced} "
                 + "(reserved-words.json). The word and its category entered together; band it with its word.");
         }
     }
@@ -277,7 +277,7 @@ public sealed class InitializeLaneDriftTests
         Assert.Equal(5, words.Count(w => reserved[w] <= 85));
     }
 
-    // ── 4. THE FOUR §14.9.20.3 OPERAND SCREENS (kb/Work PB416) ────────────────────────────────────────────────
+    // ── 4. THE FOUR §2023:14.9.20.3 OPERAND SCREENS (kb/Work PB416) ────────────────────────────────────────────────
     //    SR1 (identifier-1's class), SR4 (the implied MOVE's validity), SR5 (no RENAMES on identifier-1) and SR7
     //    (identifier-1 IS the receiving operand) were ALL unasked at the one place identifier-1 and its REPLACING
     //    operands are resolved. Two of the four repairs are STRUCTURAL rather than local — SR7 is a routing
@@ -285,11 +285,11 @@ public sealed class InitializeLaneDriftTests
     //    value of that shape is that the NEXT prohibition and the NEXT category word are automatic. These three
     //    facts are what keeps "automatic" true.
 
-    /// <summary>⛔ ISO §14.9.20.3 SR7 IS A FUNNEL, NOT A CHECK. "The data item referenced by identifier-1 is the
+    /// <summary>⛔ ISO §2023:14.9.20.3 SR7 IS A FUNNEL, NOT A CHECK. "The data item referenced by identifier-1 is the
     /// receiving operand", so identifier-1 is subject to every receiving-operand prohibition the standard states
-    /// — a growing set, already six deep in <c>ExpressionBinder.ResolveReceiving</c> (LINE-COUNTER §8.4.3.15.3
-    /// SR3, a constant-name §13.10.4 GR1, PAGE-COUNTER, an unimplemented receiver shape, the OCCURS DYNAMIC
-    /// CAPACITY register §13.18.38 SR30–32, and a CONSTANT RECORD §13.18.15.3 SR2). INITIALIZE used to resolve
+    /// — a growing set, already six deep in <c>ExpressionBinder.ResolveReceiving</c> (LINE-COUNTER §2023:8.4.3.15.3
+    /// SR3, a constant-name §2023:13.10.4 GR1, PAGE-COUNTER, an unimplemented receiver shape, the OCCURS DYNAMIC
+    /// CAPACITY register §2023:13.18.38 SR30–32, and a CONSTANT RECORD §2023:13.18.15.3 SR2). INITIALIZE used to resolve
     /// identifier-1 with the plain reference resolver, which answers only "where does this live", so NONE of them
     /// was asked and a structured constant was destroyed at run time in silence. Routing is what makes the
     /// seventh prohibition free; a re-introduced direct resolve would make it a seventh copy.</summary>
@@ -299,7 +299,7 @@ public sealed class InitializeLaneDriftTests
         string code = CodeOf(BinderPath);
 
         Assert.True(code.Contains("ResolveReceiving(", StringComparison.Ordinal),
-            "InitializeBinder no longer calls ExpressionBinder.ResolveReceiving. ISO §14.9.20.3 SR7 makes "
+            "InitializeBinder no longer calls ExpressionBinder.ResolveReceiving. ISO §2023:14.9.20.3 SR7 makes "
             + "identifier-1 the RECEIVING operand, and the receiving-operand prohibitions live behind that one "
             + "chokepoint — resolving identifier-1 any other way silently opts out of all of them (kb/Work "
             + "PB416: a CONSTANT RECORD was overwritten at run time with no diagnostic).");
@@ -307,13 +307,13 @@ public sealed class InitializeLaneDriftTests
         Assert.False(Regex.IsMatch(code, @"Refs\.Resolve\(\s*dref\s*\)"),
             "InitializeBinder resolves identifier-1's own dataReference through ctx.Refs.Resolve again. That is "
             + "the sending-side resolver: it answers where the item lives and screens nothing. identifier-1 is a "
-            + "receiving operand (ISO §14.9.20.3 SR7) and shall go through host.Expr.ResolveReceiving.");
+            + "receiving operand (ISO §2023:14.9.20.3 SR7) and shall go through host.Expr.ResolveReceiving.");
     }
 
-    /// <summary>⛔ ISO §14.9.20.3 SR4's MOVE half IS ASKED OF THE ONE TABLE-16 SCREEN. "a MOVE statement with
+    /// <summary>⛔ ISO §2023:14.9.20.3 SR4's MOVE half IS ASKED OF THE ONE TABLE-16 SCREEN. "a MOVE statement with
     /// identifier-2 or literal-1 as the sending item and an item of the specified category as the receiving
     /// operand shall be valid" is the same question <c>MoveBinder</c> asks of <c>MoveTable16</c>, and
-    /// §14.9.20.4 GR4 ("a series of implicit MOVE or SET statements") is what makes it INITIALIZE's question
+    /// §2023:14.9.20.4 GR4 ("a series of implicit MOVE or SET statements") is what makes it INITIALIZE's question
     /// too. A private re-implementation here is how the implicit MOVE and the explicit one come to disagree —
     /// which is exactly what happened while INITIALIZE was not among <c>MoveTable16.Refusal</c>'s call sites and
     /// <c>InitializeEmitter</c> synthesised its <c>BoundMove</c> past <c>MoveBinder</c> entirely.</summary>
@@ -325,13 +325,13 @@ public sealed class InitializeLaneDriftTests
         // hand composition of the per-rule readers, which is how SR9 went unasked here.
         foreach (string member in new[] { "MoveTable16.Validity", "MoveTable16.SenderClassRefusal" })
             Assert.True(code.Contains(member, StringComparison.Ordinal),
-                $"InitializeBinder no longer calls {member}. ISO §14.9.20.3 SR4 makes the validity of the "
+                $"InitializeBinder no longer calls {member}. ISO §2023:14.9.20.3 SR4 makes the validity of the "
                 + "implicit MOVE a condition on the REPLACING phrase, and MoveTable16 is the ONE place that "
-                + "answers it — for MOVE, for the INVOKE argument crossing (§14.8.2.3.3 rule 2d) and for this.");
+                + "answers it — for MOVE, for the INVOKE argument crossing (§2023:14.8.2.3.3 rule 2d) and for this.");
     }
 
     /// <summary>⛔ EVERY CATEGORY-NAME EITHER TAKES THE SET FORM OR HAS A TABLE-16 RECEIVING POSITION — never
-    /// neither, never both. ISO §14.9.20.3 SR4 is written in two paragraphs over exactly that partition: the
+    /// neither, never both. ISO §2023:14.9.20.3 SR4 is written in two paragraphs over exactly that partition: the
     /// first governs "data-pointer, function-pointer, message-tag, object-reference, and program-pointer" and
     /// asks about a SET statement, the second governs "each of the other categories" and asks about a MOVE. A
     /// category-name with neither answer is a REPLACING pair no rule screens; one with both is two rules
@@ -347,8 +347,8 @@ public sealed class InitializeLaneDriftTests
             Assert.True(set ^ move,
                 $"category-name {WiseOwl.Cobol.Binding.Bound.InitializeCategories.Spelling(cat)} is "
                 + (set ? "BOTH a SET-form category and carries a Table-16 receiving position — two halves of "
-                       + "ISO §14.9.20.3 SR4 would screen the same REPLACING pair"
-                       : "screened by NEITHER half of ISO §14.9.20.3 SR4: it is not one of GR4's five SET-form "
+                       + "ISO §2023:14.9.20.3 SR4 would screen the same REPLACING pair"
+                       : "screened by NEITHER half of ISO §2023:14.9.20.3 SR4: it is not one of GR4's five SET-form "
                        + "categories and InitializeCategories.Table16Receiver gives it no receiving position, "
                        + "so `INITIALIZE … REPLACING <it> BY <anything>` is accepted unscreened."));
         }

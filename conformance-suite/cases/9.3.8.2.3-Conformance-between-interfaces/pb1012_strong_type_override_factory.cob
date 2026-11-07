@@ -6,8 +6,8 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §9.3.8.2.3 rule 7 over its two other askers — an OVERRIDE
-      *>   (§11.7.3 SR9) and a FACTORY IMPLEMENTS (§11.4.3 SR2) — with
+      *> ISO §2023:9.3.8.2.3 rule 7 over its two other askers — an OVERRIDE
+      *>   (§2023:11.7.3 SR9) and a FACTORY IMPLEMENTS (§2023:11.4.3 SR2) — with
       *>   strongly-typed formal and returning items of the SAME type
       *> Rule: "If either of the corresponding formal parameters or
       *>   returning items in interface-1 or interface-2 is a
@@ -15,29 +15,29 @@
       *> cite.py --check 9.3.8.2.3 "If either of the corresponding
       *>   formal parameters or returning items in interface-1 or
       *>   interface-2 is a strongly-typed group item, both are of the
-      *>   same type" -> OK  §9.3.8.2.3 7)  (Conformance between
+      *>   same type" -> OK  §2023:9.3.8.2.3 7)  (Conformance between
       *>   interfaces)
       *> cite.py --check 8.5.3.1 "Two type declarations are considered
       *>   equivalent when they have the same type-name, both have the
       *>   same presence or absence of the EXTERNAL clause and the
-      *>   STRONG phrase" -> OK  §8.5.3.1   (General)
+      *>   STRONG phrase" -> OK  §2023:8.5.3.1   (General)
       *> cite.py --check 11.7.3 "the parameter declarations, returning
       *>   item, and exceptions that may be raised on the procedure
       *>   division header shall obey the rules of conformance
-      *>   according to 9.3.8.2.3" -> OK  §11.7.3 9)  (Syntax rules)
+      *>   according to 9.3.8.2.3" -> OK  §2023:11.7.3 9)  (Syntax rules)
       *> cite.py --check 11.4.3 "Each method prototype in each
       *>   implemented interface shall be such that the factory
       *>   interface of this class conforms to all implemented
-      *>   interfaces" -> OK  §11.4.3 2)  (Syntax rules)
+      *>   interfaces" -> OK  §2023:11.4.3 2)  (Syntax rules)
       *> cite.py --check 10.6.2 "The data division may contain only a
-      *>   linkage section" -> OK  §10.6.2 4) e)  (Syntax rules)
+      *>   linkage section" -> OK  §2023:10.6.2 4) e)  (Syntax rules)
       *> The IMPLEMENTS-on-OBJECT asker is
       *>   conformance:cases/9.3.8.2.3-Conformance-between-interfaces/l1c05_oo_strong_type_same_type. Here:
       *>   1) the FACTORY of PB1012A IMPLEMENTS PB1012I, whose FSWAP
       *>      prototype takes and returns the strong type TT (declared
       *>      in the prototype's linkage section, the only data section
-      *>      §10.6.2 SR4 e) allows); the factory method declares an
-      *>      EQUIVALENT TT (§8.5.3.1: same type-name, STRONG on both,
+      *>      §2023:10.6.2 SR4 e) allows); the factory method declares an
+      *>      EQUIVALENT TT (§2023:8.5.3.1: same type-name, STRONG on both,
       *>      no EXTERNAL, one PIC X(4) at the same position), so the
       *>      factory interface conforms;
       *>   2) PB1012B's SHOW overrides PB1012A's with an equivalent TT

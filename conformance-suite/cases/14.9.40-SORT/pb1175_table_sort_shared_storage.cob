@@ -10,12 +10,12 @@
       *>
       *> THE RULES, --check validated:
       *>   cite.py --check 14.9.40.4 "The SORT statement sorts the table referenced by data-name-2 and presents the
-      *>     sorted table in data-name-2" -> OK §14.9.40.4 18)
+      *>     sorted table in data-name-2" -> OK §2023:14.9.40.4 18)
       *>   cite.py --check 14.9.40.4 "The sorted table elements of the table referenced by data-name-2 are placed in
-      *>     the table referenced by data-name-2" -> OK §14.9.40.4 24)
+      *>     the table referenced by data-name-2" -> OK §2023:14.9.40.4 24)
       *>   cite.py --check 13.18.44.4 "Storage association for the subject of the entry starts at the first bit of the
-      *>     data item referenced by data-name-2" -> OK §13.18.44.4 1)
-      *> §14.9.40.3 SR13 asks only that data-name-2 "have an OCCURS clause"; no rule excepts a table whose storage is
+      *>     data item referenced by data-name-2" -> OK §2023:13.18.44.4 1)
+      *> §2023:14.9.40.3 SR13 asks only that data-name-2 "have an OCCURS clause"; no rule excepts a table whose storage is
       *> shared with another description, and GR18/GR24 sort the table and present it in data-name-2, so the sorted
       *> elements ARE the storage the other views read. A compiler that cannot sort such a table must refuse the
       *> source; one that accepts it and aborts at run time (the pre-PB1175 build: COBOL1756, then
@@ -30,7 +30,7 @@
       *>        DESCENDING KEY LTR -> 04D03C02B01A
       *>   3  DUPLICATES IN ORDER (GR3 c): "02X01Y02Z01W" ASCENDING NUM -> 01Y01W02X02Z   (equal keys keep their order)
       *>   4  a COMP-3 key table PV PIC S9(3) COMP-3 OCCURS 3 holding 3, -1, 2:
-      *>        ASCENDING -> -001 +002 +003 (algebraic value, GR19 -> §8.8.4.2.4 — never the packed bytes' order)
+      *>        ASCENDING -> -001 +002 +003 (algebraic value, GR19 -> §2023:8.8.4.2.4 — never the packed bytes' order)
       *>        DESCENDING -> +003 +002 -001
       *>   5  a table nested in another table inside the view: ROW OCCURS 4 / E PIC X OCCURS 3 over "CBAFEDIHGLKJ":
       *>        SORT E(3) ASCENDING touches ROW 3 only -> CBAFEDGHILKJ

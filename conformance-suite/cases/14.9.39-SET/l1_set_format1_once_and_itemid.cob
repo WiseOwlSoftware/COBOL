@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.39.4 GR2 (SET statement, format 1, the rule head) —
+      *> ISO §2023:14.9.39.4 GR2 (SET statement, format 1, the rule head) —
       *> "The value of the sending operand is determined once at the
       *> beginning of the execution of the statement. However, item
       *> identification of the data item referenced by identifier-1 is
@@ -14,7 +14,7 @@
       *>
       *> LINE 1 (ONCE) pins the FIRST sentence.  `SET IX IY TO T(IX)+1`
       *> is a legal format 1: every receiver is an index-name-1, so
-      *> §14.9.39.3 SR3 (no arithmetic-expression-1 when identifier-1
+      *> §2023:14.9.39.3 SR3 (no arithmetic-expression-1 when identifier-1
       *> is of class index) and SR4 (a numeric identifier-1 requires
       *> index-name-2) cannot bite.  IX refers to occurrence 1 and
       *> T(1) = 3, so arithmetic-expression-1 evaluates to 4 — ONCE.
@@ -25,7 +25,7 @@
       *> DISCRIMINATOR: a per-receiver re-evaluation of the sender
       *> would read T(IX) again AFTER IX had become 4, and T(4) is
       *> seeded to 8 for exactly that reason — it would print M=9.
-      *> Every value stays inside OCCURS 9, so §14.9.39.4 GR2 a)1.b's
+      *> Every value stays inside OCCURS 9, so §2023:14.9.39.4 GR2 a)1.b's
       *> EC-RANGE-INDEX leg is not reached on either reading and the
       *> two readings differ only in the printed number.
       *>

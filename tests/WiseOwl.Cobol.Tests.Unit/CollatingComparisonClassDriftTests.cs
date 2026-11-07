@@ -11,17 +11,17 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ TWO QUESTIONS, TWO CLASSIFIERS — the guard that keeps them from being folded onto one again (kb/Work PB741).
 ///
 /// <para><b>What happened.</b> <c>CollatingSelection.Of(PicCategory?)</c> answers a ONE-OPERAND question: what
-/// class is this SORT/MERGE KEY, and which of §14.9.40.4 GR5 / §14.9.24.4 GR5's two separately-determined
+/// class is this SORT/MERGE KEY, and which of §2023:14.9.40.4 GR5 / §2023:14.9.24.4 GR5's two separately-determined
 /// sequences does it take? A key of class numeric takes NEITHER. kb/Work PB678 (<c>6b47703e</c>) then routed the
 /// RELATION-CONDITION renderer's collating argument through that same classifier — but a relation asks a
-/// TWO-OPERAND question, and §8.8.4.2.5 makes a numeric integer operand compared with an ALPHANUMERIC operand an
-/// ALPHANUMERIC comparison, which §8.8.4.2.7 collates under the alphanumeric program collating sequence. Asking
+/// TWO-OPERAND question, and §2023:8.8.4.2.5 makes a numeric integer operand compared with an ALPHANUMERIC operand an
+/// ALPHANUMERIC comparison, which §2023:8.8.4.2.7 collates under the alphanumeric program collating sequence. Asking
 /// only the numeric side returned "no sequence", so <c>IF NINE-DU-9V0-1 &lt; SPACE</c> silently ignored
 /// <c>PROGRAM COLLATING SEQUENCE</c> and NIST NC215A's SEQ-TEST-GF-6/-7 went PASS → FAIL*.</para>
 ///
 /// <para><b>What this pins.</b> (1) the comparison-class matrix, as literal data rather than re-derived code, so a
 /// future edit to any arm is deliberate; (2) the exact pair where the two classifiers MUST disagree — the fold
-/// that caused PB741 cannot come back without turning this red; (3) that the reference categories §8.8.4.2.14/.15
+/// that caused PB741 cannot come back without turning this red; (3) that the reference categories §2023:8.8.4.2.14/.15
 /// /.16 govern are answered by identity BEFORE any category is classified, which is why the comparison-class rule
 /// has no arm for them; (4) the end-to-end answer, over the NC215A shape, that a numeric-DISPLAY operand compared
 /// with a figurative constant and with the equivalent alphanumeric literal give the SAME answer under a declared
@@ -37,7 +37,7 @@ public sealed class CollatingComparisonClassDriftTests : WiseOwlCobolTestBase
     [
         null,                        // an ordinary alphanumeric GROUP, or a category-less operand
         PicCategory.Group,
-        PicCategory.Alphanumeric,    // PIC X and PIC A both land here (§8.8.4.2.1 — alphabetic is "treated as" alphanumeric)
+        PicCategory.Alphanumeric,    // PIC X and PIC A both land here (§2023:8.8.4.2.1 — alphabetic is "treated as" alphanumeric)
         PicCategory.NumericEdited,
         PicCategory.Numeric,
         PicCategory.National,
@@ -45,10 +45,10 @@ public sealed class CollatingComparisonClassDriftTests : WiseOwlCobolTestBase
     ];
 
     /// <summary>The expected class per (row = left, column = right) pair, in <see cref="Axis"/> order.
-    /// <c>A</c> = alphanumeric (§8.8.4.2.7), <c>N</c> = national (§8.8.4.2.9), <c>B</c> = boolean (§8.8.4.2.8),
-    /// <c>#</c> = numeric (§8.8.4.2.4). ⛔ The ONE <c>#</c> is the whole rule: only BOTH operands numeric is an
+    /// <c>A</c> = alphanumeric (§2023:8.8.4.2.7), <c>N</c> = national (§2023:8.8.4.2.9), <c>B</c> = boolean (§2023:8.8.4.2.8),
+    /// <c>#</c> = numeric (§2023:8.8.4.2.4). ⛔ The ONE <c>#</c> is the whole rule: only BOTH operands numeric is an
     /// algebraic, sequence-free comparison. Every other cell in the Numeric row and column is <c>A</c> or <c>N</c>
-    /// because §8.8.4.2.5 moves the numeric integer operand to "the same class and usage as the alphanumeric or
+    /// because §2023:8.8.4.2.5 moves the numeric integer operand to "the same class and usage as the alphanumeric or
     /// national operand" and compares by THAT class's rules.</summary>
     private static readonly string[] Matrix =
     [
@@ -83,7 +83,7 @@ public sealed class CollatingComparisonClassDriftTests : WiseOwlCobolTestBase
             {
                 var want = Expected(cells[j][0]);
                 Assert.Equal(want, CollatingSelection.ForComparison(Axis[i], Axis[j]));
-                // A relation's comparison rule does not depend on which operand is the subject (§8.8.4.2.1 names
+                // A relation's comparison rule does not depend on which operand is the subject (§2023:8.8.4.2.1 names
                 // the subject and object only for the RELATIONAL OPERATOR's direction), so the rule is symmetric.
                 Assert.Equal(want, CollatingSelection.ForComparison(Axis[j], Axis[i]));
             }
@@ -91,9 +91,9 @@ public sealed class CollatingComparisonClassDriftTests : WiseOwlCobolTestBase
     }
 
     /// <summary>⛔ THE PB741 ASSERTION. The two classifiers answer the same category differently, on purpose: a
-    /// numeric SORT KEY takes no sequence (§14.9.40.4 GR5 names one for class alphabetic/alphanumeric and one for
+    /// numeric SORT KEY takes no sequence (§2023:14.9.40.4 GR5 names one for class alphabetic/alphanumeric and one for
     /// class national, and none for class numeric), while a numeric operand COMPARED with an alphanumeric one is an
-    /// alphanumeric comparison that §8.8.4.2.7 collates. Folding the second onto the first is the regression.</summary>
+    /// alphanumeric comparison that §2023:8.8.4.2.7 collates. Folding the second onto the first is the regression.</summary>
     [Fact]
     public void TheSortKeyClassifier_AndTheComparisonClassifier_DisagreeOnANumericOperand()
     {
@@ -108,7 +108,7 @@ public sealed class CollatingComparisonClassDriftTests : WiseOwlCobolTestBase
     }
 
     /// <summary>The comparison-class rule has no arm for the reference categories because a message-tag, object or
-    /// pointer relation is a reference-IDENTITY comparison (§8.8.4.2.14/.15/.16) that the relation renderer answers
+    /// pointer relation is a reference-IDENTITY comparison (§2023:8.8.4.2.14/.15/.16) that the relation renderer answers
     /// and returns from BEFORE it classifies anything. This reads the renderer's source order, because the property
     /// being guarded is exactly that ordering — a behavioural probe would pass on a renderer that classified first
     /// and happened not to use the answer.</summary>
@@ -127,7 +127,7 @@ public sealed class CollatingComparisonClassDriftTests : WiseOwlCobolTestBase
             int at = src.IndexOf(identity, StringComparison.Ordinal);
             Assert.True(at > 0, $"the identity relation '{identity}' is gone from the relation renderer");
             Assert.True(at < classify,
-                $"'{identity}' must be answered BEFORE the comparison class is asked — §8.8.4.2.14/.15/.16 "
+                $"'{identity}' must be answered BEFORE the comparison class is asked — §2023:8.8.4.2.14/.15/.16 "
                 + "relations have no collating sequence, and the class rule has no arm for their categories");
         }
     }
@@ -136,7 +136,7 @@ public sealed class CollatingComparisonClassDriftTests : WiseOwlCobolTestBase
     // `NoNewCategoryRead_GoesThroughPic_WhereAGroupCanReachIt` used to scan ConditionRenderer.cs for raw
     // `Item.Pic?.Category` reads, permitting four group-proof categories (object reference, pointer,
     // program-pointer, numeric) plus ONE named exemption: `IsNationalOperand`'s field arm, the class-condition
-    // classification test, whose national blind spot this file documented as a hole owned by the §8.8.4.4
+    // classification test, whose national blind spot this file documented as a hole owned by the §2023:8.8.4.4
     // mechanism. kb/Work PB728's landing CLOSED that hole and routed the four group-proof tests through
     // `OperandPic` as well, so ConditionRenderer.cs now contains ZERO raw picture category reads — and the rule
     // became ABSOLUTE. An absolute source-text rule is a semgrep invariant in this project (one mechanism per
@@ -148,15 +148,15 @@ public sealed class CollatingComparisonClassDriftTests : WiseOwlCobolTestBase
     // group-vs-elementary agreement facts.
 
     /// <summary>END TO END, over the NC215A shape. <c>ALPHABET AL IS "9"</c> puts '9' at ordinal position 1 and,
-    /// by §12.3.7.4 GR7 k)3 ("Any characters of the native collating sequence that are not specified in the literal
+    /// by §2023:12.3.7.4 GR7 k)3 ("Any characters of the native collating sequence that are not specified in the literal
     /// phrase shall assume a position in the collating sequence that is greater than that of the highest character
     /// specified in this literal phrase"), every other character — the space and the quotation mark included —
-    /// above it. §12.3.6.4 GR9 makes AL the alphanumeric program collating sequence. So each leg below is TRUE:
-    /// §8.3.3.6.4 GR1 makes SPACE/QUOTE alphanumeric character values, §8.8.4.2.5 makes the comparison alphanumeric
-    /// (the one-digit integer moved to a one-position alphanumeric item — "9"), and §8.8.4.2.7 collates it under AL.
-    /// <para>The figurative legs and their literal twins MUST agree: they are the same §8.8.4.2.5 comparison
+    /// above it. §2023:12.3.6.4 GR9 makes AL the alphanumeric program collating sequence. So each leg below is TRUE:
+    /// §2023:8.3.3.6.4 GR1 makes SPACE/QUOTE alphanumeric character values, §2023:8.8.4.2.5 makes the comparison alphanumeric
+    /// (the one-digit integer moved to a one-position alphanumeric item — "9"), and §2023:8.8.4.2.7 collates it under AL.
+    /// <para>The figurative legs and their literal twins MUST agree: they are the same §2023:8.8.4.2.5 comparison
     /// written two ways. Before the fix FIG/QUO/SIG answered N while LIT/SLI answered Y.</para>
-    /// <para>SIG/SLI additionally pin §14.9.25.4 GR6a through §8.8.4.2.5's move: "If the sending operand is
+    /// <para>SIG/SLI additionally pin §2023:14.9.25.4 GR6a through §2023:8.8.4.2.5's move: "If the sending operand is
     /// described as being signed numeric, the operational sign is not moved" — so PIC S9 compares "9".</para></summary>
     [Fact]
     public void ANumericDisplayOperandAgainstAFigurative_ReadsTheProgramCollatingSequence()
@@ -187,10 +187,10 @@ public sealed class CollatingComparisonClassDriftTests : WiseOwlCobolTestBase
         Assert.Equal("FIG=Y\r\nLIT=Y\r\nQUO=Y\r\nALL=Y\r\nSIG=Y\r\nSLI=Y", stdout);
     }
 
-    /// <summary>The same rule on the LEVEL-88 surface (§8.8.4.5.3 GR2 — "The rules for comparing a conditional
+    /// <summary>The same rule on the LEVEL-88 surface (§2023:8.8.4.5.3 GR2 — "The rules for comparing a conditional
     /// variable with a condition-name value are the same as those specified for relation conditions") and on the
     /// EVALUATE THRU surface. A NATIONAL GROUP conditional variable carries its as-if PICTURE on
-    /// <c>OperandPic</c> (§13.18.29.4 GR2b) and has <c>Pic</c> null, so reading <c>Pic</c> handed it the
+    /// <c>OperandPic</c> (§2023:13.18.29.4 GR2b) and has <c>Pic</c> null, so reading <c>Pic</c> handed it the
     /// ALPHANUMERIC weight table: under <c>ALPHABET AL IS "A" ALSO "B"</c> the national 'A' and 'B' share one
     /// position, and the group answered TRUE where its elementary twin — correctly under the NATIONAL sequence,
     /// where they are positions 0 and 1 — answered FALSE (measured, kb/Work PB741 sweep).</summary>
@@ -229,17 +229,17 @@ public sealed class CollatingComparisonClassDriftTests : WiseOwlCobolTestBase
     }
 
     /// <summary>⛔ THE PB649 ASSERTION — one comparison-class decision per relation, made from BOTH operands and
-    /// consumed by BOTH legs. §8.8.4.2.6 makes ONE class-national operand enough: "The alphanumeric operand is
+    /// consumed by BOTH legs. §2023:8.8.4.2.6 makes ONE class-national operand enough: "The alphanumeric operand is
     /// treated as though it were converted and moved in accordance with the rules of the MOVE statement from an
     /// alphanumeric elementary data item to a temporary elementary data item of class national", after which
-    /// §8.8.4.2.9's national sequence governs and the alphanumeric program collating sequence does not apply.
-    /// §8.3.3.6.3 SR2 gives <c>ALL literal-1</c> its literal's class, so the FIG and ITEM lines below are the
+    /// §2023:8.8.4.2.9's national sequence governs and the alphanumeric program collating sequence does not apply.
+    /// §2023:8.3.3.6.3 SR2 gives <c>ALL literal-1</c> its literal's class, so the FIG and ITEM lines below are the
     /// same comparison written two ways and MUST agree.
     /// <para>They did not: the figurative branch derived the class from the non-figurative anchor alone and fed
     /// that answer back as the figurative's own category, so the pair rule saw one operand twice and
     /// <c>ALL N"AB" &lt; XA</c> took the ALPHANUMERIC program collating sequence — measured 0 against the
     /// national item's 1. AN is the CONTROL: an alphanumeric pair still reads the PCS, where "AB" collates AFTER
-    /// "AC" because AL lists Z first (§12.3.7.4 GR7 k) 2., successive ascending positions in the order
+    /// "AC" because AL lists Z first (§2023:12.3.7.4 GR7 k) 2., successive ascending positions in the order
     /// written).</para></summary>
     [Fact]
     public void ANationalFigurativeAgainstAnAlphanumericOperand_TakesTheNationalRules_LikeItsItemTwin()
@@ -273,7 +273,7 @@ public sealed class CollatingComparisonClassDriftTests : WiseOwlCobolTestBase
     /// cannot see it — the wrong answer only shows up for the operand pairing that happens to differ. So the
     /// SOURCE is read: in <c>ConditionRenderer</c>, every <c>CollateArgFor</c> call site is either the pair
     /// <c>ConditionRenderer.RelationCategories</c> produced or the THROUGH-range / level-88 reader, whose two
-    /// arguments are the conditional variable's category twice — legitimately, because §13.18.63.3
+    /// arguments are the conditional variable's category twice — legitimately, because §2023:13.18.63.3
     /// SR2/SR4/SR5/SR10 make its VALUE literals its own category.</summary>
     [Fact]
     public void EveryCollatingArgumentInTheRelationRenderer_ComesFromTheOnePairReader()
@@ -295,7 +295,7 @@ public sealed class CollatingComparisonClassDriftTests : WiseOwlCobolTestBase
         Assert.True(strays.Count == 0,
             $"a relation leg derives its own collating category instead of reading the pair: "
             + $"CollateArgFor({string.Join("), CollateArgFor(", strays)}).{Environment.NewLine}"
-            + $"§8.8.4.2's comparison class is a property of the PAIR (kb/Work PB649/PB741). Take the categories "
+            + $"§2023:8.8.4.2's comparison class is a property of the PAIR (kb/Work PB649/PB741). Take the categories "
             + $"from RelationCategories and pass them both, or state here why this site's pair is one category "
             + $"twice as the level-88 site does.");
     }

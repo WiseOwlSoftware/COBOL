@@ -7,7 +7,7 @@
 *>---
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB346RT4.
-      *> kb/Work PB346 — §14.9.30.4 GR9 bound to §14.7.9, on the RECORD
+      *> kb/Work PB346 — §2023:14.9.30.4 GR9 bound to §2023:14.7.9, on the RECORD
       *> OPERATION conflict class, through BOTH READ formats.
       *>
       *> GR9: "If the RETRY phrase is specified, additional attempts may be
@@ -149,7 +149,7 @@
            MOVE 1 TO RB-RRN
            READ RB RETRY FOREVER INVALID KEY CONTINUE END-READ
            DISPLAY "R2FVR=" RB-ST
-      *> §14.9.47 GR1 — once RA releases, the same READ succeeds: the
+      *> §2023:14.9.47 GR1 — once RA releases, the same READ succeeds: the
       *> conflict was the lock, not a wedged connector.
            UNLOCK RA RECORDS
            MOVE 1 TO RB-RRN
@@ -190,7 +190,7 @@
                AT END CONTINUE
            END-READ
            DISPLAY "S1FVR=" SB-ST
-      *> §14.9.30.4 GR10 a) — every conflict above left the file position
+      *> §2023:14.9.30.4 GR10 a) — every conflict above left the file position
       *> indicator unchanged, so once the lock is gone SB still reads
       *> ordinal 1, not ordinal 2.
            UNLOCK SA RECORDS

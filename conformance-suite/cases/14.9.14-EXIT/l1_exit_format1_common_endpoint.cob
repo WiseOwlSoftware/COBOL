@@ -5,11 +5,11 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.14.4 GR1 — "An EXIT statement serves only to enable
+      *> ISO §2023:14.9.14.4 GR1 — "An EXIT statement serves only to enable
       *> the user to assign a procedure-name to a given point in a
       *> procedure division. Such an EXIT statement has no other effect
       *> on the compilation or execution."
-      *> P-EXIT holds a bare EXIT alone in its paragraph (§14.9.14.3
+      *> P-EXIT holds a bare EXIT alone in its paragraph (§2023:14.9.14.3
       *> SR1) and is the common end point of PERFORM P1 THRU P-EXIT.
       *> It is reached two ways — by fall-through from P2 and by GO TO
       *> from P1 — and in NEITHER case may it contribute a line of its

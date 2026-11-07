@@ -6,7 +6,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ THE AMBIENT STATEMENT CONTEXT CONTRACT (kb/Work R14 — ISO §15.32.3 r1/r2, §15.30.3 r1/r2). The
+/// ⛔ THE AMBIENT STATEMENT CONTEXT CONTRACT (kb/Work R14 — ISO §2023:15.32.3 r1/r2, §2023:15.30.3 r1/r2). The
 /// (Table-12 statement name, location) pair is a property of the RAISING STATEMENT and travels ambiently:
 /// the emitted checked-statement wrapper enters it with EXACTLY the names whose enabling TURN carried WITH
 /// LOCATION, and the 2-argument <c>Set</c> — the form every raise site an emitter cannot thread uses —
@@ -32,7 +32,7 @@ public sealed class AmbientExceptionContextTests
     [Fact]
     public void TwoArgSet_OfAnUncoveredName_AnswersR1Spaces()
     {
-        // §15.32.3 r1 is PER-CONDITION (kb/Work R06): a sibling condition's WITH LOCATION must not
+        // §2023:15.32.3 r1 is PER-CONDITION (kb/Work R06): a sibling condition's WITH LOCATION must not
         // contaminate a name whose own enabling TURN did not carry it.
         var e = Fresh();
         var sv = e.EnterStatement("COMPUTE", "PROG; PARA; 30", ["EC-BOUND-SUBSCRIPT"]);

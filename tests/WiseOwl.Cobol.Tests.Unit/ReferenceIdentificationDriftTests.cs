@@ -11,11 +11,11 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// (kb/Work PB3287, PB3232).
 /// <para><b>PB3287.</b> <c>ReferenceResolver.ResolveForAddressOf</c> re-sequenced the front half of
 /// <c>ResolveImplCore</c> by hand (the ref-mod count, the name lookup, the subscript screen) and dropped two of its
-/// screens: ADDRESS OF a LINKAGE record the procedure division may not reference (ISO §13.7.3 SR4) compiled clean, and
+/// screens: ADDRESS OF a LINKAGE record the procedure division may not reference (ISO §2023:13.7.3 SR4) compiled clean, and
 /// an ambiguous or index-name operand was told it "names none". The sequence is now ONE method,
 /// <c>Identify</c>; the two entries differ only by what they build after it. A screen added to it reaches both, and a
 /// third entry that re-wrote the sequence would be red here.</para>
-/// <para><b>PB3232.</b> A REPORT SECTION sum counter is a data-name (§13.18.54.4 GR5), so for §8.4.2.2.3 SR1 it is one
+/// <para><b>PB3232.</b> A REPORT SECTION sum counter is a data-name (§2023:13.18.54.4 GR5), so for §2023:8.4.2.2.3 SR1 it is one
 /// candidate among the ordinary data items of its spelling. <c>SumCounterFamilyFor</c> counted the counters alone, and
 /// consulted the ordinary lookup only when the written qualifiers reached no counter, so the counter silently won
 /// every collision it had no qualifier for.</para>
@@ -64,8 +64,8 @@ public sealed class ReferenceIdentificationDriftTests
                        "ScreenRefModCount(", "ScreenLinkageReference(", "ReportUnidentified(" })
                 Assert.False(body.Contains(owned, StringComparison.Ordinal),
                     $"ReferenceResolver.{entry} calls {owned} itself — that belongs to ReferenceResolver.Identify, the ONE "
-                    + "identification step of a data reference (kb/Work PB3287); a second sequence drops screens (§13.7.3 SR4, "
-                    + "§8.4.2.2.3 SR1) the first one has.");
+                    + "identification step of a data reference (kb/Work PB3287); a second sequence drops screens (§2023:13.7.3 SR4, "
+                    + "§2023:8.4.2.2.3 SR1) the first one has.");
     }
 
     [Fact]
@@ -77,7 +77,7 @@ public sealed class ReferenceIdentificationDriftTests
                    "ResolveQualified(", "ResolveUnqualified(", "ReportUnidentified(", "ScreenLinkageReference(", "ReadSubscripts(" })
             Assert.True(identify.Contains(screen, StringComparison.Ordinal),
                 $"ReferenceResolver.Identify no longer asks {screen} — the screen moved out of the one identification step.");
-        // §13.7.3 SR4 is asked at exactly two sites of the resolver — the identification step (every identifier) and the
+        // §2023:13.7.3 SR4 is asked at exactly two sites of the resolver — the identification step (every identifier) and the
         // reported lookup of a TABLE name (FindReportedItem) — besides the definition.
         Assert.Equal(3, Regex.Matches(Code(ReferenceResolver), @"\bScreenLinkageReference\(").Count);
     }
@@ -102,14 +102,14 @@ public sealed class ReferenceIdentificationDriftTests
         string text = File.ReadAllText(Path.Combine(TestRepo.Src("WiseOwl.Cobol.Compiler"),
             "Binding", "Procedure", "Verbs", "IntrinsicBinder.cs"));
         Assert.Contains("ctx.Refs.Counters.SumCounterFamilyFor(dref, name, quals, report: true)", text, StringComparison.Ordinal);
-        // ... and its table lookup is the REPORTED one (the §8.4.2.2 report and the §13.7.3 SR4 screen), not a bare FindItem.
+        // ... and its table lookup is the REPORTED one (the §2023:8.4.2.2 report and the §2023:13.7.3 SR4 screen), not a bare FindItem.
         Assert.Contains("ctx.Refs.Names.FindReportedItem(dref, name, quals)", text, StringComparison.Ordinal);
         Assert.DoesNotContain("Names.FindItem(", text, StringComparison.Ordinal);
     }
 
     /// <summary>The two references that name a TABLE rather than a place — the SEARCH / SORT table operand and the
     /// table(ALL) intrinsic argument — look their item up through <c>FindReportedItem</c>, which reports an unidentified
-    /// name and screens a LINKAGE item the procedure division may not reference (§13.7.3 SR4). A bare
+    /// name and screens a LINKAGE item the procedure division may not reference (§2023:13.7.3 SR4). A bare
     /// <c>FindItem</c> there is the pre-PB3287 shape: <c>SEARCH L-TABLE</c> compiled clean over such a record.</summary>
     [Fact]
     public void TheTableOperand_LooksItsItemUpThroughTheReportedLookup()

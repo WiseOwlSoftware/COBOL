@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB2512 (review R1-3) - A MERGE KEY OF CLASS BOOLEAN IS REFUSED BY SR4 c).
       *>   cite.py --check 14.9.24.3 "Key data items shall not be of the class boolean, message-tag, object, or
-      *>     pointer." -> OK §14.9.24.3 4) c)
+      *>     pointer." -> OK §2023:14.9.24.3 4) c)
       *> The MERGE twin of pb1173-sort-file-key-boolean: KB is PIC 1 USAGE BIT, class boolean (USAGE BIT is a
       *> COBOL-2002 construct, so the rule can only fire from 2002). Before this golden no MERGE case witnessed the
       *> boolean arm of the class screen.

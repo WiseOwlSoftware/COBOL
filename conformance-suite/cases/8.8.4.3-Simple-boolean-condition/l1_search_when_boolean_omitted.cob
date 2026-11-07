@@ -5,10 +5,10 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.37.3 SR6 — the two §8.8.4 sub-forms that need a
+      *> ISO §2023:14.9.37.3 SR6 — the two §2023:8.8.4 sub-forms that need a
       *> carrier the one-table breadth golden cannot supply: the simple
-      *> boolean condition (§8.8.4.3) and the simple omitted-argument
-      *> condition (§8.8.4.8, whose SR1 requires a formal parameter of
+      *> boolean condition (§2023:8.8.4.3) and the simple omitted-argument
+      *> condition (§2023:8.8.4.8, whose SR1 requires a formal parameter of
       *> the source element the condition is written in).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1SRWBO.
@@ -26,7 +26,7 @@
            MOVE B"1" TO WS-B (3).
            MOVE B"0" TO WS-B (4).
            MOVE B"0" TO WS-B (5).
-      *> §8.8.4.3.4 GR1: the boolean expression IS the condition and is
+      *> §2023:8.8.4.3.4 GR1: the boolean expression IS the condition and is
       *> true where the position holds 1 — occurrence 3.
            SET IX TO 1.
            SEARCH WS-E
@@ -35,7 +35,7 @@
                    SET WS-N TO IX
                    DISPLAY "B1=" WS-N
            END-SEARCH.
-      *> §8.8.4.3.4 GR2: NOT reverses it — true at occurrence 1.
+      *> §2023:8.8.4.3.4 GR2: NOT reverses it — true at occurrence 1.
            SET IX TO 1.
            SEARCH WS-E
                AT END DISPLAY "B2=ATEND"
@@ -60,7 +60,7 @@
            MOVE 1 TO WS-Z (1).
            MOVE 2 TO WS-Z (2).
            MOVE 3 TO WS-Z (3).
-      *> §8.8.4.8.4 GR1a: true when the activating statement wrote
+      *> §2023:8.8.4.8.4 GR1a: true when the activating statement wrote
       *> OMITTED for this formal parameter. On the first activation the
       *> condition is true on the first evaluation (occurrence 1); on
       *> the second an argument was supplied, so it is false at every

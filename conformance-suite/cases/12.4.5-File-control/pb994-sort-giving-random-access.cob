@@ -6,8 +6,8 @@
 *>---
       *> kb/Work PB994 - AN INDEXED FILE DESCRIBED WITH ACCESS MODE RANDOM IS REFUSED AS A SORT GIVING FILE.
       *>   cite.py --check 12.4.5.5.2 "The RANDOM clause shall not be specified for file-names specified in the USING or
-      *>     GIVING phrase of a SORT or MERGE statement" -> OK §12.4.5.5.2 1)
-      *> §14.9.40.3 SR12 speaks of USING only; §12.4.5.5.2 SR1 covers GIVING as well.
+      *>     GIVING phrase of a SORT or MERGE statement" -> OK §2023:12.4.5.5.2 1)
+      *> §2023:14.9.40.3 SR12 speaks of USING only; §2023:12.4.5.5.2 SR1 covers GIVING as well.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB994E.
        ENVIRONMENT DIVISION.

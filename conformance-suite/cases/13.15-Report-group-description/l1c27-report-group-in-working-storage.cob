@@ -4,14 +4,14 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.15.3 1) — a report group entry outside the report
+      *> ISO §2023:13.15.3 1) — a report group entry outside the report
       *> section
       *> "Report group description entries may appear only in the report
       *> section."
       *> cite.py --check 13.15.3 "Report group description entries may
-      *>   appear only in the report section" -> OK §13.15.3 1)
+      *>   appear only in the report section" -> OK §2023:13.15.3 1)
       *> WX is a complete, well-formed report group description entry
-      *> (TYPE clause Format 2, §13.18.57.2 "TYPE IS ... DETAIL"; a LINE
+      *> (TYPE clause Format 2, §2023:13.18.57.2 "TYPE IS ... DETAIL"; a LINE
       *> entry; a COLUMN/PIC/SOURCE entry beneath it) written in the
       *> WORKING-STORAGE SECTION. In the report section it would be
       *> legal, so its placement is the only reason to reject it. DETAIL

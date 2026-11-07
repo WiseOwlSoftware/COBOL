@@ -6,12 +6,12 @@ using WiseOwl.Cobol.Editions.Diagnostics;
 namespace WiseOwl.Cobol.Frontend.Common;
 
 /// <summary>
-/// ⛔ THE §8.3.2.1 WORD-LENGTH CEILING, IN ONE PLACE — because it was in one place (the VersionConformancePass
+/// ⛔ THE §2023:8.3.2.1 WORD-LENGTH CEILING, IN ONE PLACE — because it was in one place (the VersionConformancePass
 /// <c>VisitCobolWord</c> funnel, which walks the MAIN parse tree) and that place cannot see DIRECTIVE-carried
 /// words: a 44-character exception-name in <c>&gt;&gt;TURN</c> and a 44-character compilation-variable-name in
 /// <c>&gt;&gt;DEFINE</c> both compiled clean at <c>--std 2002</c> while the same word in a RAISE statement was
 /// correctly rejected (found by kb/Work R05's own conformance fact — the evidence ledger's "correctly rejected
-/// with COBOL1567" was measured on the statement spelling only). §8.3.2.1 covers every COBOL word — "a
+/// with COBOL1567" was measured on the statement spelling only). §2023:8.3.2.1 covers every COBOL word — "a
 /// compiler-directive word, a context-sensitive word, an intrinsic-function-name, a reserved word, a
 /// system-name, or a user-defined word" — so the directive stages enforce the SAME rule through the SAME text,
 /// reporting on their own channels. (&gt;&gt;COBOL-WORDS asks it of the fresh word of each entry — SR4 requires "a
@@ -20,7 +20,7 @@ namespace WiseOwl.Cobol.Frontend.Common;
 ///
 /// <para>The ceiling: 63 at COBOL-2023 (Annex E.3.3 item 11 — a RELAXATION, so firing below 2023 for a 32..63
 /// word is a length error, not an introduction gate), 31 at 2002/2014, 30 at 1985. Above 63 is a hard cap at
-/// every edition. The CHARACTER half of §8.3.2.1 is here too (kb/Work PB1402): from 2002 each character outside the
+/// every edition. The CHARACTER half of §2023:8.3.2.1 is here too (kb/Work PB1402): from 2002 each character outside the
 /// basic repertoire must be where the edition's Annex B.3 permits it, and at every edition one that no Annex B holds is
 /// refused (<see cref="CharacterViolation"/>, COBOL2773; kb/Work PB4130); the below-2002 gates of the underscore and
 /// the extended letters are asked with it by <see cref="Parsing.WordCharacterScreen"/> over the lexer's words (parse or
@@ -29,25 +29,25 @@ namespace WiseOwl.Cobol.Frontend.Common;
 /// </summary>
 public static class CobolWordRule
 {
-    /// <summary>The §8.3.2.1 maximum COBOL-word length for a targeted edition.</summary>
+    /// <summary>The §2023:8.3.2.1 maximum COBOL-word length for a targeted edition.</summary>
     public static int MaxLength(int dialectLevel) =>
         dialectLevel >= 2023 ? 63 : dialectLevel >= 2002 ? 31 : 30;
 
     /// <summary>The COBOL1567 message when <paramref name="word"/> exceeds the ceiling; null when legal.
     /// One text for every reporting channel — the tree funnel and the directive stages. The length is counted in
     /// CHARACTERS, not UTF-16 units (<see cref="CobolCharacterRepertoire.LengthInCharacters"/>): a supplementary-plane
-    /// letter is one character, a combining character is one of its own (§8.1.3.2 GR4 c), kb/Work PB1402).</summary>
+    /// letter is one character, a combining character is one of its own (§2023:8.1.3.2 GR4 c), kb/Work PB1402).</summary>
     public static string? LengthViolation(string word, int dialectLevel)
     {
         int length = CobolCharacterRepertoire.LengthInCharacters(word);
         return length > MaxLength(dialectLevel)
             ? $"the COBOL word '{word}' is {length} characters, exceeding the "
               + $"{MaxLength(dialectLevel)}-character maximum for COBOL-{dialectLevel} "
-              + "(ISO §8.3.2.1 — COBOL-2023 raised the limit to 63)"
+              + "(ISO §2023:8.3.2.1 — COBOL-2023 raised the limit to 63)"
             : null;
     }
 
-    /// <summary>The COBOL2773 message when a character of <paramref name="word"/> is not where §8.3.2.1 permits it: a
+    /// <summary>The COBOL2773 message when a character of <paramref name="word"/> is not where §2023:8.3.2.1 permits it: a
     /// hyphen or underscore as the first or last character (<see cref="CobolCharacterRepertoire.SeparatorPositionViolation"/>,
     /// every edition, kb/Work PB4234), or a character the edition's Annex B does not permit where it stands
     /// (<see cref="CobolCharacterRepertoire.Violation"/>); null when every character is legal. From COBOL
@@ -70,7 +70,7 @@ public static class CobolWordRule
     public static bool RemovedAt2023(string word, int dialectLevel) =>
         dialectLevel >= 2023 && CharacterViolation(word, 2014) is null;
 
-    /// <summary>Every §8.3.2.1 violation of a DIRECTIVE-carried word (a <c>&gt;&gt;DEFINE</c> name, a <c>&gt;&gt;TURN</c>
+    /// <summary>Every §2023:8.3.2.1 violation of a DIRECTIVE-carried word (a <c>&gt;&gt;DEFINE</c> name, a <c>&gt;&gt;TURN</c>
     /// operand) — the length and the Annex B characters — as (code, message), for the directive stages to report on
     /// their own channels. Every directive is itself a COBOL-2002 introduction, so the below-2002 extended-letter gate
     /// never applies to one. A 2023 removal (<see cref="RemovedAt2023"/>) carries the removed-construct code, as the

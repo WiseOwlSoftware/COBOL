@@ -62,8 +62,8 @@ public sealed class MethodOmittedArgumentTests
             END CLASS {0}.
             """;
 
-    /// <summary>§8.4.3.4.2 prints OMITTED in the inline form's argument brace, and §8.4.3.4.4 GR1 makes those the
-    /// arguments of the equivalent INVOKE — so §14.9.23.4 GR9 holds: the condition is true in the method.</summary>
+    /// <summary>§2023:8.4.3.4.2 prints OMITTED in the inline form's argument brace, and §2023:8.4.3.4.4 GR1 makes those the
+    /// arguments of the equivalent INVOKE — so §2023:14.9.23.4 GR9 holds: the condition is true in the method.</summary>
     [Fact]
     public void InlineInvocation_Omitted_ConditionTrueInMethod()
         => Assert.Equal("O=O\nG=G", Run($$"""
@@ -89,8 +89,8 @@ public sealed class MethodOmittedArgumentTests
             {{string.Format(TakeClass, "CMOA1")}}
             """, 2023));
 
-    /// <summary>§8.4.3.4.4 GR1 c) through a UNIVERSAL receiver: the forwarded formal's presence rides the
-    /// <c>CobolInvokeArg</c> box (§14.9.23.4 GR7c's runtime path), so omission stays transitive.</summary>
+    /// <summary>§2023:8.4.3.4.4 GR1 c) through a UNIVERSAL receiver: the forwarded formal's presence rides the
+    /// <c>CobolInvokeArg</c> box (§2023:14.9.23.4 GR7c's runtime path), so omission stays transitive.</summary>
     [Fact]
     public void UniversalForward_OmittedFormal_StaysOmitted()
         => Assert.Equal("FWDU=O\nFWDU=G", Run($$"""
@@ -113,7 +113,7 @@ public sealed class MethodOmittedArgumentTests
             {{string.Format(TakeClass, "CMOA2")}}
             """, 2002));
 
-    /// <summary>§14.8.2.1: only TRAILING formals "specified with an OPTIONAL phrase" may be omitted from the
+    /// <summary>§2023:14.8.2.1: only TRAILING formals "specified with an OPTIONAL phrase" may be omitted from the
     /// argument list — B is not OPTIONAL, so one argument for two formals is an arity violation (0828).</summary>
     [Fact]
     public void TrailingOmission_OfNonOptionalFormal_0828()
@@ -154,7 +154,7 @@ public sealed class MethodOmittedArgumentTests
             END CLASS CMOA3.
             """), "is not OPTIONAL");
 
-    /// <summary>§9.3.8.2.3 rule 8: "The presence or absence of the OPTIONAL phrase is the same for corresponding
+    /// <summary>§2023:9.3.8.2.3 rule 8: "The presence or absence of the OPTIONAL phrase is the same for corresponding
     /// parameters" — an IMPLEMENTS whose method drops the prototype's OPTIONAL does not conform (0841).</summary>
     [Fact]
     public void Implements_OptionalPresenceDiffers_0841()
@@ -189,7 +189,7 @@ public sealed class MethodOmittedArgumentTests
             END CLASS CMOA4.
             """), "rule 8");
 
-    /// <summary>§11.7.3 SR9 holds an overriding method's parameter declarations to §9.3.8.2.3 — rule 8 included
+    /// <summary>§2023:11.7.3 SR9 holds an overriding method's parameter declarations to §2023:9.3.8.2.3 — rule 8 included
     /// (0829).</summary>
     [Fact]
     public void Override_OptionalPresenceDiffers_0829()
@@ -226,11 +226,11 @@ public sealed class MethodOmittedArgumentTests
             END METHOD OV.
             END OBJECT.
             END CLASS CMOA5.
-            """), "§9.3.8.2.3 rule 8");
+            """), "§2023:9.3.8.2.3 rule 8");
 
-    /// <summary>§9.3.6 match rule 3 b) through a universal receiver: a spelled OMITTED needs an OPTIONAL formal, so a
+    /// <summary>§2023:9.3.6 match rule 3 b) through a universal receiver: a spelled OMITTED needs an OPTIONAL formal, so a
     /// method whose formal is not OPTIONAL does not MATCH the invocation and is never bound; with no matching method
-    /// in the hierarchy, §9.3.6 6) sets EC-OO-METHOD (§14.9.23.4 GR7 b); kb/Work PB1500) — the run unit stops before
+    /// in the hierarchy, §2023:9.3.6 6) sets EC-OO-METHOD (§2023:14.9.23.4 GR7 b); kb/Work PB1500) — the run unit stops before
     /// the method runs.</summary>
     [Fact]
     public void Universal_OmittedIntoNonOptionalFormal_StopsAtRuntime()
@@ -278,7 +278,7 @@ public sealed class MethodOmittedArgumentTests
         Assert.Contains("EC-OO-METHOD", all);
     }
 
-    /// <summary>§8.8.4.8.3 SR1 inside a METHOD: data-name-1 shall be a formal parameter of THAT source element —
+    /// <summary>§2023:8.8.4.8.3 SR1 inside a METHOD: data-name-1 shall be a formal parameter of THAT source element —
     /// a method LINKAGE item that is not in its USING phrase is not one (1686).</summary>
     [Fact]
     public void OmittedCondition_OnMethodNonFormal_1686()
@@ -301,7 +301,7 @@ public sealed class MethodOmittedArgumentTests
             END CLASS CMOA7.
             """), "COBOL1686");
 
-    /// <summary>§14.8.2.1 on the FUNCTION arm: a trailing argument may be omitted only when its formal is
+    /// <summary>§2023:14.8.2.1 on the FUNCTION arm: a trailing argument may be omitted only when its formal is
     /// OPTIONAL — B is not (1506).</summary>
     [Fact]
     public void Function_TrailingOmissionOfNonOptional_1506()

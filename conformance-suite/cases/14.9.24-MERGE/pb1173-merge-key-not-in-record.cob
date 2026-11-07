@@ -7,10 +7,10 @@
       *> kb/Work PB2512 (review R1-1) - A MERGE KEY MUST BE DESCRIBED IN A RECORD OF THE MERGE FILE, AND THE REFUSAL
       *> CITES MERGE'S RULE, NOT SORT'S.
       *>   cite.py --check 14.9.24.3 "The data items identified by key data-names shall be described in records
-      *>     associated with file-name-1." -> OK §14.9.24.3 4) a)
+      *>     associated with file-name-1." -> OK §2023:14.9.24.3 4) a)
       *> WK is a WORKING-STORAGE item, not part of any record of SW, so it cannot be a key. The MERGE twin of
-      *> pb1173-sort-file-key-not-in-record: the refusal used to read "(ISO §14.9.40.3 SR6a)", SORT's clause, for a
-      *> MERGE statement; the golden's expect pins "§14.9.24.3 SR4 a)".
+      *> pb1173-sort-file-key-not-in-record: the refusal used to read "(ISO §2023:14.9.40.3 SR6a)", SORT's clause, for a
+      *> MERGE statement; the golden's expect pins "§2023:14.9.24.3 SR4 a)".
       *> The USING and GIVING records are sized to the SD record (one byte), so the record-size rules (MERGE SR3,
       *> SR12) hold and the key rule is the ONE reason the program is refused.
        IDENTIFICATION DIVISION.

@@ -52,10 +52,10 @@ C# mapping with worked examples + hard problems + edge cases + ISO citations):
 | §14 | Report Writer (RWCS) | `docs/REPORT_WRITER_DESIGN.md` |
 | §12/§7 | The LOCALE facility (Annex A.4.9 — locale state, collation, classification, monetary editing, the locale intrinsics, STANDARD-COMPARE) | `docs/rearchitecture/DESIGN-locale-facility.md` (adopted 2026-08-18, implemented whole — T6 completed the A.4.9 claim 2026-08-28; owner decisions Q1–Q4 in its header) |
 | §7/§12 | The collation ENGINE (the derived CLDR/UCA table, keys, streaming compare, tailoring — the substrate the locale facility's `CobolCollation` carrier and STANDARD-COMPARE run on; kb/Work PB101), the CLDR LOCALE LOADER (every CLDR locale's rules → its table + settings; PB105), the KEY CACHE (PB106), and the runtime's text-processing overview | `src/WiseOwl.Cobol.Runtime/README.md` (the overview: the six subsystems and their pipelines, 2026-08-19); `src/WiseOwl.Cobol.Runtime/Collation/README.md` (2026-08-18/19; generator `scripts/collation/`, data provenance `data/unicode/SOURCES.md`); `Collation/CLDR/README.md`; `Collation/Cache/README.md`; `Unicode/README.md` (normalization); `Unicode/Segmentation/README.md` (grapheme clusters, PB104) |
-| §9/§10 | The §8.13 EXTERNAL REPOSITORY — the compiled assembly's metadata + the `WiseOwl.Cobol.Runtime.Repository` attribute family as the repository; the ONE `RepositoryResolver` (group provider, then metadata provider, documented search order) every REPOSITORY specifier kind resolves through; name-scoped facts recorded as externalized identities; `--repository-update` / `--repository-check` / `--repository DIR` / `--reference`; cross-assembly classes, interfaces, parameterized definitions and expansions; the locator shared with the run-time probe and the deployment contract; the TYPED ACTIVATION BOUNDARY (`Enter<TProto>`/`Leave`, a prototype interface per signature in its carrier, `ref T + bool` parameters, the dynamic door as a generated adapter onto the typed `Entry`, per-assembly namespaces) and the .NET-platform evaluation the owner requested | `docs/rearchitecture/DESIGN-external-repository.md` (adopted 2026-10-05, owner decision kb/Work PB1099 Q3; slices 1–7 landed — the metadata provider, REPO-1 … -12 and the four options with kb/Work PB2103 — and slice 8, OO across assemblies, is kb/Work PB2104) |
+| §9/§10 | The §2023:8.13 EXTERNAL REPOSITORY — the compiled assembly's metadata + the `WiseOwl.Cobol.Runtime.Repository` attribute family as the repository; the ONE `RepositoryResolver` (group provider, then metadata provider, documented search order) every REPOSITORY specifier kind resolves through; name-scoped facts recorded as externalized identities; `--repository-update` / `--repository-check` / `--repository DIR` / `--reference`; cross-assembly classes, interfaces, parameterized definitions and expansions; the locator shared with the run-time probe and the deployment contract; the TYPED ACTIVATION BOUNDARY (`Enter<TProto>`/`Leave`, a prototype interface per signature in its carrier, `ref T + bool` parameters, the dynamic door as a generated adapter onto the typed `Entry`, per-assembly namespaces) and the .NET-platform evaluation the owner requested | `docs/rearchitecture/DESIGN-external-repository.md` (adopted 2026-10-05, owner decision kb/Work PB1099 Q3; slices 1–7 landed — the metadata provider, REPO-1 … -12 and the four options with kb/Work PB2103 — and slice 8, OO across assemblies, is kb/Work PB2104) |
 | tooling | The differential fuzz and its morning triage (the harness, the night wrapper, `scripts/fuzz_triage.py`, the triage Workflow, and the filing of GnuCOBOL-side defects as `upstream` notes; kb/Work PB3972) | `docs/rearchitecture/DESIGN-differential-fuzz.md` |
 | §8/§9 | The communication facility of COBOL-85 and 2002 (ISO/IEC 1989:2002 Annex A): the COMMUNICATION SECTION, its statements and WiseOwl COBOL's message control system, a paged store with a socket bell (kb/Work PB4677, PB4734-PB4738) | `docs/rearchitecture/DESIGN-communication-facility.md` |
-| §8/§9 | The asynchronous messaging facility of COBOL 2023 (§14.9.38 SEND, §14.9.31 RECEIVE, USAGE MESSAGE-TAG): the language, the message-tag type, binding, code generation and its peer transport over AF_UNIX sockets (kb/Work PB4700, PB4739-PB4745) | `docs/rearchitecture/DESIGN-message-control.md` |
+| §8/§9 | The asynchronous messaging facility of COBOL 2023 (§2023:14.9.38 SEND, §2023:14.9.31 RECEIVE, USAGE MESSAGE-TAG): the language, the message-tag type, binding, code generation and its peer transport over AF_UNIX sockets (kb/Work PB4700, PB4739-PB4745) | `docs/rearchitecture/DESIGN-message-control.md` |
 | §17 | Project organization & rename | `docs/PROJECT_ORG_DESIGN.md` |
 
 This SSOT stays authoritative for the **locked invariants (§1)**, the **cross-cutting consistency (§14)**, the
@@ -72,7 +72,7 @@ internal detail. Where a deep-dive conflicts with §1/§14/§18, the SSOT wins.
 source.cob
   → Frontend  (REUSED ANTLR, SUPERSET grammar: Preprocess[reference-format, >>directives, COPY, NIST placeholders]
                → Lex → Parse; construct introduction is gated post-bind, so the constructs parse at every --std
-               except where a parse-time edition read decides (§8.9 word-status reads, and three recorded construct
+               except where a parse-time edition read decides (§2023:8.9 word-status reads, and three recorded construct
                gates on the declined A.4 surface; defined by rule in DESIGN-architecture-review §8.4, adjudicated in
                kb/Work PB2291, pinned by EditionReadDriftTests); each
                version-gated rule stamps its construct-id — DESIGN-version-conformance-pipeline.md)
@@ -94,7 +94,7 @@ Edition gating is ONE mechanism: the grammar declares construct *identity* (a co
 version-gated rule; version *numbers* live only in `constructs.json`), the binder is edition-agnostic (save the documented exception ledger, DESIGN-version-conformance-pipeline §1.1), and the
 `VersionConformancePass` over the bound tree is the sole gate — rejecting strict / accepting-inert permissive, and
 HALTING before emit so codegen never runs on an errored tree. Construct introduction is gated there, post-bind, but parser-grammar
-predicates still read the compile edition, under several names. **The sanctioned read is §8.9 WORD STATUS** — whether a
+predicates still read the compile edition, under several names. **The sanctioned read is §2023:8.9 WORD STATUS** — whether a
 word that is a user-defined word in an earlier edition is reserved here, which no post-bind gate can decide because the
 parse itself depends on it: `reservedHere`, `facilityWord`, `screenPositionAhead`, `entryNameHere`, `procedureHeaderHere`, `setLocaleAhead`
 (LOCALE and USER-DEFAULT are 1985 user words), the `gatedDeclaration` action, the `NoteGatedOffender` listener call and the error strategy's
@@ -147,7 +147,7 @@ other, not just against the committed goldens.
    (`CobolWide`, 77 digits) is an arbitrary-precision integer at a scale, `CobolBig`, reached only through `CobolExact` and only where
    the first two forms fail (GnuCOBOL's `cob_decimal` is exact at every size, CLAUDE.md rule 1). It lives in the ONE file
    `src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolBig.cs`, which `scripts/semgrep/invariants.yml` exempts from
-   `wiseowl-cobol-no-biginteger`; its published bound is the SDIDI's range, `|value| < 10^6145` (EC-SIZE-OVERFLOW, ISO §14.7.5 5)).
+   `wiseowl-cobol-no-biginteger`; its published bound is the SDIDI's range, `|value| < 10^6145` (EC-SIZE-OVERFLOW, ISO §2023:14.7.5 5)).
 3. **Control flow is a single program-counter dispatcher.** Paragraphs/sections are LABELS (PC cases) in one flow,
    NOT separate methods. `GO TO` sets the PC; fall-through is PC++; a `PERFORM` range is a recursive bounded
    dispatch.
@@ -192,15 +192,15 @@ builds its node FROM the answer (`Refusal` / `OperandError` / `ExprError` / `Boo
 caller cannot carry a deferral, which reports it as recognized-not-implemented, COBOL0899). The receiving
 chokepoint `ResolveReceiving` consumes the answer itself and still returns `Place?`, null meaning reported. A data
 reference is IDENTIFIED in one place, `ReferenceResolver.Identify` (kb/Work PB3287): the registers and implicit names,
-the §8.4.2.2 lookup with its one report, the §13.7.3 SR4 LINKAGE screen and the written subscripts; `Resolve` builds the
+the §2023:8.4.2.2 lookup with its one report, the §2023:13.7.3 SR4 LINKAGE screen and the written subscripts; `Resolve` builds the
 item's place after it and `ResolveForAddressOf` the ADDRESS OF operand, so a screen added to the step reaches both
 (`ReferenceIdentificationDriftTests` holds the entries to it). Every
 receiving grammar slot is a `receivingIdentifier` (`setReceivingIdentifier` in SET, which lacks the data-address
 alternative so Format 7 keeps its own `ADDRESS OF data-name-1` receiver), and so is the BY REFERENCE argument of CALL and
-INVOKE (§14.9.4.3 SR5, §14.9.23.3 SR20; an address-identifier there is a sending operand and keeps its own arm; a
+INVOKE (§2023:14.9.4.3 SR5, §2023:14.9.23.3 SR20; an address-identifier there is a sending operand and keeps its own arm; a
 keyword-less SELF, SUPER or view whose BY REFERENCE is implied reaches the same table): a data reference, or one of the identifier
 formats that are never a receiving operand (an object-view, SELF, SUPER, NULL, an address-identifier) parsed only so
-`ResolveReceiving` can refuse it by the row of `ReceivingOperandForms` that names its §8.4.3 rule — the same table the
+`ResolveReceiving` can refuse it by the row of `ReceivingOperandForms` that names its §2023:8.4.3 rule — the same table the
 data-reference screens (LINAGE-COUNTER, LINE-COUNTER, EXCEPTION-OBJECT, the view of a qualified item) report from
 (kb/Work PB1551; `ReceivingOperandFormDriftTests`). The computed formats (function-identifier, inline invocation) stay
 out of the purely receiving rules by construction.
@@ -325,32 +325,32 @@ The grammar gives `dataReference : cobolWord dataReferenceSuffix*`, and subscrip
   flattened-1-D-with-multipliers model — it IS the byte-offset arithmetic the owner abolished.)*
 - **Index-names (`INDEXED BY`) → a C# `long` holding a 1-based OCCURRENCE NUMBER**, not a byte displacement. `SET TO`
   → the guarded store; `SET UP/DOWN BY k` → the guarded augment; subscript use → `[idx - 1]`; SEARCH/SEARCH ALL →
-  integer loops. That carrier IS the implementor's index range (ISO §13.18.38.4 GR2; `docs/CONFORMANCE.md` §7 row
-  `DOC-A.1-128`), so every value that reaches an index goes through `CobolIndex` — the ONE place §14.9.39.4's
+  integer loops. That carrier IS the implementor's index range (ISO §2023:13.18.38.4 GR2; `docs/CONFORMANCE.md` §7 row
+  `DOC-A.1-128`), so every value that reaches an index goes through `CobolIndex` — the ONE place §2023:14.9.39.4's
   integrality, sign and range guards are written (D3 deep dive). *(Rejected: the legacy byte-displacement index —
   leaks table-element width into a program-visible value.)*
   **Each INDEXED BY DECLARATION owns its cell** — an `IndexDeclaration(name, table, cell)` minted when the table is
   registered (`DataBinder.RegisterIndexes`; cell `_IX_<table uid>[_k]`), held by the scope's `IndexNameRegistry`
-  (the unit, a method's §11.7.4 GR5 overlay, and — by §8.4.6.2.3 — a containing program's GLOBAL tables, tagged
-  with their nesting depth for §8.4.6.2.1 3)). A WRITTEN index-name, bare or qualified through its table
-  (§8.4.2.2.2 Format 3; §8.4.2.2.3 SR6 — `IX OF T`), resolves through ONE resolution
+  (the unit, a method's §2023:11.7.4 GR5 overlay, and — by §2023:8.4.6.2.3 — a containing program's GLOBAL tables, tagged
+  with their nesting depth for §2023:8.4.6.2.1 3)). A WRITTEN index-name, bare or qualified through its table
+  (§2023:8.4.2.2.2 Format 3; §2023:8.4.2.2.3 SR6 — `IX OF T`), resolves through ONE resolution
   (`NameResolution.ResolveIndexName` over `SymbolTable.IndexCandidates`) whose candidate count meets the same
-  §8.4.2.2.3 SR1 verdict as a data-name (`DataBinder.UniqueOrReportAmbiguous<T>` over `NameCandidates<T>`,
+  §2023:8.4.2.2.3 SR1 verdict as a data-name (`DataBinder.UniqueOrReportAmbiguous<T>` over `NameCandidates<T>`,
   COBOL1639). A table's OWN index (SEARCH's first index-name) is read off `DataItem.Indexes` — a declaration,
   not a reference. *(Rejected: a `name → cell` map de-duplicated on insert — two tables' `INDEXED BY IX` silently
   shared one cell and the qualified form was "not defined", kb/Work PB919.)*
 - **Level-88 → C# `bool` properties** over the parent Place (`Ok => St == 1`); SET cond TO TRUE moves the 88's first
-  VALUE (low bound of a THRU range) into the parent (ISO §14.9.34/§14.9.39). The binder must **stop skipping 88s**
+  VALUE (low bound of a THRU range) into the parent (ISO §2023:14.9.34/§2023:14.9.39). The binder must **stop skipping 88s**
   (currently dropped) and capture the full multi-literal + THRU value list. *(Rejected: stored bools kept in sync on
   every parent write — redundant state, sync bugs.)*
 - **Level-66 RENAMES** folds into the REDEFINES/RENAMES tiers (§4) as a COMPOSED view over existing fields (adds no
   storage). The binder must **stop skipping 66s.**
 - **VALUE init** is one recursive object-initializer composed from the leaves, emitted in the static field decl
   (program) or the instance ctor (OO). Extensions: group VALUE, OCCURS VALUE, figurative constants (§11), and the
-  **Format 2 (table) VALUE** (§13.18.63.2 — literals keyed to occurrence ranges by a mandatory `FROM (subscript)`
+  **Format 2 (table) VALUE** (§2023:13.18.63.2 — literals keyed to occurrence ranges by a mandatory `FROM (subscript)`
   phrase). Its resolution (GR12's odometer over the whole subscript tuple, GR13 cyclic reuse under TO, GR14 no-TO =
   fill to the maximum, GR15 later-FROM-wins, GR16's dynamic initial capacity) is done in the BINDER —
-  `ResolveTableValuesPass`, a post-forest pass that also enforces §13.18.63.3 SR18–SR23 — and stored as a
+  `ResolveTableValuesPass`, a post-forest pass that also enforces §2023:13.18.63.3 SR18–SR23 — and stored as a
   `TableValuePlan` on the entry: its well-formed PHRASES, never an element map (kb/Work PB1722).
   **⛔ A table's initial state is emitted from its OCCURRENCE RUNS, never element by element** (kb/Work PB1722):
   `TableValueRuns.Of` answers which occurrences of a level initialize alike (one uniform run without a table VALUE
@@ -364,10 +364,10 @@ The grammar gives `dataReference : cobolWord dataReferenceSuffix*`, and subscrip
   the record-struct elements and `GroupImageCodec.ImageInitOf` composes the per-occurrence character images (kb/Work PB208 — the image lane read
   only `item.RawValue`, which is null for a table VALUE, and repeated ONE occurrence image, so a format-2 VALUE was
   silently discarded for every image-stored leaf). Both lanes thread the OCCURRENCE CONTEXT — the subscripts of
-  the OCCURS levels already entered — so the VALUE may sit on an entry SUBORDINATE to the OCCURS (§13.18.63.3 SR18)
-  or span several dimensions, and a GROUP entry's table VALUE deposits §13.18.63.4 GR5's area per occurrence
+  the OCCURS levels already entered — so the VALUE may sit on an entry SUBORDINATE to the OCCURS (§2023:13.18.63.3 SR18)
+  or span several dimensions, and a GROUP entry's table VALUE deposits §2023:13.18.63.4 GR5's area per occurrence
   (kb/Work PB505 — one staged COBOL0899 used to refuse all three, conforming source included).
-  **Its literals ride the same screen as a format-1 one**: §13.18.63.3 SR2 is an ALL FORMATS rule and SR16 carries
+  **Its literals ride the same screen as a format-1 one**: §2023:13.18.63.3 SR2 is an ALL FORMATS rule and SR16 carries
   SRs 10–15 into format 2, so `DataBinder.ScreenTableValueLiterals` calls `DataBinder.ScreenValueLiteral` per
   occurrence-literal at ENTRY BIND — beside the format-1 call site — and stores the text it returns (the
   `--permissive` numeric rewrite therefore reaches the emitter's per-occurrence override exactly as it reaches
@@ -376,49 +376,49 @@ The grammar gives `dataReference : cobolWord dataReferenceSuffix*`, and subscrip
   the collapsed `valueItem` (not "first-only") — a data-item VALUE with >1 operand and no FROM is now rejected
   (COBOL1585); 88s bind through `BindCondition`'s own per-operand loop (never `ExtractValue`).
 - **A GROUP-level VALUE initializes the AREA, and there is ONE rule that says what the area contains.**
-  ISO §13.18.63.4 GR5 — "the group area is initialized without consideration for the individual elementary or group
+  ISO §2023:13.18.63.4 GR5 — "the group area is initialized without consideration for the individual elementary or group
   items contained within this group" — so the operand's characters are deposited positionally across the group's
-  storage (GR7 aligns them per §14.6.8: left-justified, space fill, no editing, JUSTIFIED inert) and each
+  storage (GR7 aligns them per §2023:14.6.8: left-justified, space fill, no editing, JUSTIFIED inert) and each
   subordinate is then whatever its own description makes of the characters under it. That rule is
   **`GroupValueSlicer.AreaOf`**, and it covers all three operand forms — a quoted literal, `ALL "literal"`,
-  and a **figurative constant word** — under ONE rule, **§8.3.3.6.4 GR2**: it is the branch for the case "the
+  and a **figurative constant word** — under ONE rule, **§2023:8.3.3.6.4 GR2**: it is the branch for the case "the
   length of the string is specified in the rules for the context", it names the VALUE clause explicitly, and it
   carries both the repeat-to-width and the truncate-from-the-right. (GR3 is the complementary branch — the length
   *not* specified — and its sub-rule a is scoped to a concatenation expression, which is `ConcatFolder`'s rule and
-  not this one. §13.18.63.4 GR5 makes the group area the receiving field, so the length is always specified here.
+  not this one. §2023:13.18.63.4 GR5 makes the group area the receiving field, so the length is always specified here.
   The fill CHARACTER is GR1's, with the per-format GR4–GR8 identities.)
   TWO lanes consume it and neither may re-derive it: `GroupValueSlicer.ComposedInit` distributes the area into
   the typed-native record-struct fields, and **`GroupImageCodec.ImageInitOf`** — THE seeder for every
   character-image backing (Tier-B REDEFINES, EXTERNAL run-unit cells, BASED/ADDRESS-OF cells, OO backings) —
   emits it as the backing's initial image.
 - **The area has TWO UNITS, and the rule reports which one** (`GroupArea(Text, Bits)`; kb/Work PB207). A
-  **BIT GROUP**'s area is not made of characters: §13.18.29.4 GR1a makes a `GROUP-USAGE BIT` group "a bit group
+  **BIT GROUP**'s area is not made of characters: §2023:13.18.29.4 GR1a makes a `GROUP-USAGE BIT` group "a bit group
   and also a bit data item; its class and category are boolean", and GR1b describes it "as though it were an
   elementary data item of usage bit … described with PICTURE 1(m), where m is the bit length of the group" — so
-  GR5 deposits **m boolean positions** laid out by the §8.5.1.6.3 walk, where `DataItem.ImageWidth` reports the
+  GR5 deposits **m boolean positions** laid out by the §2023:8.5.1.6.3 walk, where `DataItem.ImageWidth` reports the
   `ceil(m/8)` characters it OCCUPIES. The two are different numbers and the members do not tile the character
   count (two `PIC 1(2)` members are one character between them and `ceil(2/8)` = one character *each*), which is
-  why a positional character slice over such a group crashed the slicer. GR7's §14.6.8 arm follows the unit:
-  §14.6.8.6 for a boolean area — "with **zero fill** or truncation to the right" — and §14.6.8.5's space fill for
+  why a positional character slice over such a group crashed the slicer. GR7's §2023:14.6.8 arm follows the unit:
+  §2023:14.6.8.6 for a boolean area — "with **zero fill** or truncation to the right" — and §2023:14.6.8.5's space fill for
   every other category. The record-struct lane takes `SliceBitInit` (members placed by
   `BitLayout.StartBitWithin`) and the image lane packs the same area through `CobolBits.Pack`. A group that is
   NOT a bit group but has a `USAGE BIT` descendant returns no area at all: it is never conforming source
-  (§13.18.63.3 SR14 requires usage DISPLAY of every item subordinate to an alphanumeric group item carrying a
-  VALUE — COBOL1702; §13.18.29.3 SR3 requires usage national under a national group), and both lanes stay
+  (§2023:13.18.63.3 SR14 requires usage DISPLAY of every item subordinate to an alphanumeric group item carrying a
+  VALUE — COBOL1702; §2023:13.18.29.3 SR3 requires usage national under a national group), and both lanes stay
   total over that residue.
 - **A bit group's IMAGE is its packed area, never its members' images concatenated**
   (`GroupImageCodec.BitAreaOf` — ONE composition, ridden by the generated `AsBits()`/`FromBits`, by the
   compile-time image seed, and by the GR5 arm above). Each member sits where `BitLayout.StartBitWithin` puts it,
-  with §8.5.1.6.3's implicit-filler zeros between and after; the width is `BitLayout.ExtentBits`, never a sum of
+  with §2023:8.5.1.6.3's implicit-filler zeros between and after; the width is `BitLayout.ExtentBits`, never a sum of
   the members' widths — a member whose LEVEL NUMBER differs from its predecessor's is not "of the same level" and
   starts at the next byte.
 - **The group-level VALUE SYNTAX rules are screened at bind time, in one place**
-  (`CheckGroupValueDeclarationsPass` → COBOL1702 / COBOL1703; ISO §13.18.63.3 SR1 + SR13/SR14, and
+  (`CheckGroupValueDeclarationsPass` → COBOL1702 / COBOL1703; ISO §2023:13.18.63.3 SR1 + SR13/SR14, and
   SR16 extends SR13/SR14 to the format 2 table VALUE). SR1 bars a strongly-typed group item or a variable-length
   group from BEING the subject; SR14 forbids a JUSTIFIED or SYNCHRONIZED subordinate **and** requires every data
   item subordinate to an *alphanumeric* group item carrying a VALUE to be explicitly or implicitly usage DISPLAY;
   SR13 sentence 2 forbids a VALUE at subordinate levels within that group. "Alphanumeric group item" is
-  §13.18.29.4 GR3's, in FULL — no GROUP-USAGE clause specified or implied, **and** not strongly typed, **and** not
+  §2023:13.18.29.4 GR3's, in FULL — no GROUP-USAGE clause specified or implied, **and** not strongly typed, **and** not
   a variable-length group; dropping the last two qualifiers made SR1's own population answer the SR14 usage arm.
   ⛔ **SR14 is why the area rule needs no character-vs-byte width question**: for the whole conforming population
   every subordinate is usage DISPLAY, so the character image IS the byte image. A COMP/COMP-3/COMP-5/float/INDEX/
@@ -427,14 +427,14 @@ The grammar gives `dataReference : cobolWord dataReferenceSuffix*`, and subscrip
   "implicitly" sees an inherited group USAGE.
 - ⛔ **The group-level VALUE's LITERAL is screened by the SAME method every elementary subject uses —
   `DataBinder.ValidateValueCategory` — because the rules are the same rules** (kb/Work PB206). SR4, SR5 and SR10
-  say "the item" / "the subject of the entry", never "the elementary item", and §8.5.2.1 gives a group a class and
+  say "the item" / "the subject of the entry", never "the elementary item", and §2023:8.5.2.1 gives a group a class and
   category of its own ("an alphanumeric group item has class and category alphanumeric"; "a bit group item …
-  boolean"; "a national group item … national"); §13.18.63.3 SR13 sentence 1 — "literal-1 shall be of the same
+  boolean"; "a national group item … national"); §2023:13.18.63.3 SR13 sentence 1 — "literal-1 shall be of the same
   category as the group item or shall be a figurative constant that is permitted in a MOVE statement to a
   receiving item of that category" — is those rules restated for a group subject. So the screen takes the
-  subject's category PICTURE (`GroupSubjectPic` — §13.18.29.4 GR1b/GR2b's as-if picture for a bit / national
+  subject's category PICTURE (`GroupSubjectPic` — §2023:13.18.29.4 GR1b/GR2b's as-if picture for a bit / national
   group, GR3's alphanumeric residue at `ImageWidth` otherwise) and asks the one method. It is NOT
-  `DataItem.OperandPic`, which is deliberately null for an alphanumeric group because §14.9.25.4 GR4 makes such a
+  `DataItem.OperandPic`, which is deliberately null for an alphanumeric group because §2023:14.9.25.4 GR4 makes such a
   group a conversion-free character copy Table 16 does not describe; as the SUBJECT OF A VALUE CLAUSE the group
   has a category outright.
   **Three structural consequences, all of them landed defects:**
@@ -442,16 +442,16 @@ The grammar gives `dataReference : cobolWord dataReferenceSuffix*`, and subscrip
      size a caller computed. SR4/SR5/SR10 each carry the size sentence TWICE — once for an elementary item ("the
      size indicated by an **explicit** PICTURE clause") and once for a group ("the size of the group item") — and
      a **DYNAMIC LENGTH** (or ANY LENGTH) subject indicates NO size at all:
-     its picture is "one instance of the picture symbol 'N', or 'X'" (§13.18.19.3 SR1)
-     and "the picture symbol determines the class" (§13.18.19.4 GR1).
+     its picture is "one instance of the picture symbol 'N', or 'X'" (§2023:13.18.19.3 SR1)
+     and "the picture symbol determines the class" (§2023:13.18.19.4 GR1).
      Passing `pic.Length` there REJECTED LEGAL SOURCE — `01 UN PIC N DYNAMIC LENGTH VALUE
      N"SEED".` drew COBOL0898 while its alphanumeric twin compiled and ran (pinned by
      `2014/pb206_value_size_categories`).
   2. **The size belongs to the subject KIND, and there are THREE kinds, not two** (kb/Work PB598). Those size
-     sentences name an elementary item and a group item; the third subject §13.18.63.3 addresses is a
+     sentences name an elementary item and a group item; the third subject §2023:13.18.63.3 addresses is a
      CONDITION-NAME (SR33 — "Formats 3 and 5 may be specified only when the level-number of the subject of the
      entry is 88"), and it has no size sentence at all: a Format-3 entry is `88 condition-name-1 value-clause .`
-     (§13.16.2), which admits no PICTURE clause, so nothing EXPLICIT indicates a size, and §13.18.63.4 GR19 gives
+     (§2023:13.16.2), which admits no PICTURE clause, so nothing EXPLICIT indicates a size, and §2023:13.18.63.4 GR19 gives
      a condition-name its conditional variable's characteristics only IMPLICITLY. While the size was an
      `int? sizePositions` parameter the three level-88 call sites each computed the CONDITIONAL VARIABLE's size
      and handed it over, so `01 XV PIC X. 88 XC VALUE "cd".` was COBOL1740 — legal source rejected, and a
@@ -464,7 +464,7 @@ The grammar gives `dataReference : cobolWord dataReferenceSuffix*`, and subscrip
      a 4-character group → `ABCD`). It is now **COBOL1740**, error at every edition; the same sentence on a
      NUMERIC-EDITED item is its sibling arm **COBOL1570**, also at every edition (kb/Work PB4610: the sentence is
      in the 2002 text too, so Annex E.2 item 27 is no size change). A FIGURATIVE operand is exempt by
-     rule, not omission: §8.3.3.6.4 GR2 repeats it to the subject's size and truncates from the right.
+     rule, not omission: §2023:8.3.3.6.4 GR2 repeats it to the subject's size and truncates from the right.
   The one asymmetry is deliberate: the SR4-sentence-1 vendor leniency that stores a numeric literal's digits on an
   alphanumeric subject under `--permissive` is withheld from a group subject, because GR5's area deposit is
   defined over the operand's CHARACTERS and a numeric literal has none (measured: the group seeded SPACES). The
@@ -481,9 +481,9 @@ The grammar gives `dataReference : cobolWord dataReferenceSuffix*`, and subscrip
   reference site wrote and a usage the template wrote, and neither entry carries it alone — that program compiled
   clean on the screen's first landing while its byte-identical inline spelling was rejected. Provenance keeps the
   verdict count honest: `DataItem.ValueCopiedFrom` names the entry a VALUE this entry only ASSUMED was copied from
-  (§13.18.57.4 GR1 / §13.18.49 GR1), so SR13/SR14 answer once per WRITTEN VALUE clause rather than once per reference
+  (§2023:13.18.57.4 GR1 / §2023:13.18.49 GR1), so SR13/SR14 answer once per WRITTEN VALUE clause rather than once per reference
   site. SR1 is the exception that proves why it names the entry and not a flag (kb/Work PB2517): a TYPEDEF STRONG
-  template's group is not a typed item (§8.5.3.1), so SR1 is false there and becomes true only when a TYPE reference
+  template's group is not a typed item (§2023:8.5.3.1), so SR1 is false there and becomes true only when a TYPE reference
   composes it; `ScreenAssumedGroupValueSubject` asks SR1 of every assumed group VALUE and stays silent only when the
   source entry was already in the same shape (a chained declaration, a SAME AS of an already-reported entry).
 - **A staged loud beats a silent wrong answer, and a crash is neither — and a refusal is retired the moment the
@@ -538,10 +538,10 @@ and EVERY other view is a **computed accessor (a C# property)** over it. Never t
   leaf's PINNED `NumericByteForm` BYTES, not its digits** (V59 — *bytes are not text*): zoned characters for
   DISPLAY, radix-2 two's complement for BINARY/COMP-5/BINARY-*, BCD for PACKED-DECIMAL, the big-endian IEEE
   interchange encoding for the float family, and the 8-byte big-endian occurrence number for USAGE INDEX. ISO
-  §13.18.60.4 GR4/GR11/GR13–GR15 leave each representation, including its sign, to the implementor; ours is pinned
+  §2023:13.18.60.4 GR4/GR11/GR13–GR15 leave each representation, including its sign, to the implementor; ours is pinned
   once in `NumericByteForm` and documented in CONFORMANCE.md items 205–215. A read decodes that window and
   re-renders the item's DISPLAY image, so a windowed leaf prints exactly what its natively-carried twin prints
-  (§13.18.44.4 GR1 gives them one storage). **This is the dominant real case and covers the ENTIRE NIST path**
+  (§2023:13.18.44.4 GR1 gives them one storage). **This is the dominant real case and covers the ENTIRE NIST path**
   (incl. SAME RECORD AREA / multi-01 FD classes with COMP leaves), and since the Step D arm-1 dissolution it also
   covers every MIXED-USAGE pun — float, COMP-5 and INDEX included.
   <br>⚠ It once read "a fixed-point COMP/COMP-3 leaf's window IS its zoned digit image", with a classification-time
@@ -607,7 +607,7 @@ private static int Dispatch(int startPc, int exitPc) {
       default: pc = N; break;
     }
     if (atExit && pc == exitPc + 1) return pc;   // named THRU exit paragraph fell off its end
-    if (pc == LAST + 1) throw new ProgramReturn(); // past the element's last paragraph: the implicit GOBACK (§14.6.3)
+    if (pc == LAST + 1) throw new ProgramReturn(); // past the element's last paragraph: the implicit GOBACK (§2023:14.6.3)
   }
   return pc;
 }
@@ -619,7 +619,7 @@ This realizes the legacy's PROVEN **return-address / exit-bounded** dispatch in 
 Control is followed by **pc value, never by physical block extent** — which is why inverted THRU ranges and
 GO-TO-out-of-and-back-into a PERFORM range are correct *for free*. A nested call (out-of-line PERFORM, SORT/MERGE
 procedure, `__RunUse`) whose range a GO TO left, or whose inverted THRU exit is never reached, can run past the
-source element's last paragraph without completing its range; that is the implicit GOBACK of §14.6.3, so it throws
+source element's last paragraph without completing its range; that is the implicit GOBACK of §2023:14.6.3, so it throws
 the element's return signal (`MethodReturn` in a method's `__MDispatch`) instead of returning `pc`, which the
 performer would read as its range completing (kb/Work PB3511; `LAST` is below a unit's appended Format-3 handler
 pcs, docs/CONFORMANCE.md D-PTHRU for the inverted THRU).
@@ -633,7 +633,7 @@ pcs, docs/CONFORMANCE.md D-PTHRU for the inverted THRU).
 | `GO TO p1 p2 … DEPENDING ON sel` | `switch ((int)sel) { case 1: pc=idx1; break; … default: /* no transfer → fall-through */ }` |
 | `ALTER g TO PROCEED TO t` | `_alter_g = idxT;` (a mutable `private static int _alter_g = <defaultTarget>;`); the alterable GO TO emits `pc = _alter_g; break;` |
 | out-of-line `PERFORM p [THRU q]` | `Dispatch(idxP, idxQ); pc=i+1; break;` (recursive bounded dispatch; idxQ=idxP if no THRU) |
-| out-of-line `PERFORM` of an EMPTY range | the control-phrase loop with an EMPTY body and NO `Dispatch` call — a zero-paragraph section (§14.4.2) makes GR4's specified set empty, and GR4's "function identically" makes that the inline emission minus the body |
+| out-of-line `PERFORM` of an EMPTY range | the control-phrase loop with an EMPTY body and NO `Dispatch` call — a zero-paragraph section (§2023:14.4.2) makes GR4's specified set empty, and GR4's "function identically" makes that the inline emission minus the body |
 | `PERFORM p n TIMES` | `for (long i=0;i<n;i++) Dispatch(idxP, idxQ);` |
 | inline `PERFORM … END-PERFORM` | a REAL C# loop INSIDE the case (`for`/`while`/`do…while`), never a Dispatch call |
 | `EXIT PERFORM` / `EXIT PERFORM CYCLE` | `break;` / `continue;` (scoped to the nearest inline PERFORM) |
@@ -658,7 +658,7 @@ pcs, docs/CONFORMANCE.md D-PTHRU for the inverted THRU).
 - **DECLARATIVES/USE:** ONE pc index space over ALL paragraphs INCLUDING declaratives (so every pc value agrees), but
   `Main` starts at `EntryParagraphIndex` (first paragraph after END DECLARATIVES, ISO §14.4). A declarative is
   reached ONLY via a `Dispatch(declStart, declEnd)` call from the runtime I/O/error path, never main fall-through.
-  The declaratives' STRUCTURAL syntax rules live at three funnels, never per verb (kb/Work PB361–PB363): §14.9.49.3
+  The declaratives' STRUCTURAL syntax rules live at three funnels, never per verb (kb/Work PB361–PB363): §2023:14.9.49.3
   SR1's USE placement — the legal first sentence is consumed by `DeclCollectSection`, so any `useStatement` that
   reaches `BindStatementCore` is misplaced (COBOL2377); SR3/SR4's reference boundary — asked of section identity
   in `ResolveProcedureOperand`, the one procedure-name funnel, with only PERFORM (SR4) and RESUME (SR3) exempt
@@ -666,11 +666,11 @@ pcs, docs/CONFORMANCE.md D-PTHRU for the inverted THRU).
   restrictions — `ctx.Enclosing.InBeforeReportingProcedure`, read by GENERATE/INITIATE/TERMINATE and by
   `BindStatement`'s store check over `BoundStores.StoresInto` (COBOL2378).
   (Avoid the legacy off-by-N: dispatch order excluding declaratives while pc values include them.)
-- **EVALUATE → a chained if/else-if/else, NOT a C# switch** (ISO §14.9.13.4 GR4: process each WHEN left-to-right,
+- **EVALUATE → a chained if/else-if/else, NOT a C# switch** (ISO §2023:14.9.13.4 GR4: process each WHEN left-to-right,
   first match). WHEN arms are ranges/conditions/multiple-ALSO/ANY/partial-expressions — not constant case labels.
   Selection subjects hoisted into locals (evaluated once, GR3).
 - **PERFORM VARYING…AFTER:** each outer increment RESETS all inner (AFTER) identifiers to their FROM values before
-  re-testing the outer UNTIL (ISO §14.9.28 + Annex D.26 figs D.11–D.14 — the #1 VARYING gotcha).
+  re-testing the outer UNTIL (ISO §2023:14.9.28 + Annex D.26 figs D.11–D.14 — the #1 VARYING gotcha).
 - **Dead-code suppression:** track a `terminated` flag; once an unconditional transfer is emitted (GO TO/STOP/GOBACK/
   EXIT *), stop emitting the rest of that case (unreachable-but-legal COBOL would fail warnings-as-errors).
 
@@ -710,18 +710,18 @@ digits) — `Int128` (38 digits) covers every legal fixed-point picture and its 
 keep long-only — silently wrong; `decimal`/`BigInteger` intermediates — owner-locked out; generic
 `INumber<T>` monomorphized per width — JIT-bloat + reintroduces width-typed overflow.)*
 
-### 6.2 Intermediate precision (ISO §8.8.1; mined from the legacy `decimal` path)
+### 6.2 Intermediate precision (ISO §2023:8.8.1; mined from the legacy `decimal` path)
 
 - ADD/SUBTRACT result scale = `max(scales)`; MULTIPLY = `sum(scales)`.
 - **DIVIDE/COMPUTE-division** quotient at an explicit `guardScale = max(all receiver scales, all operand scales) +
   DIV_GUARD_DIGITS`, **`DIV_GUARD_DIGITS = 14`** (reproducing the legacy `decimal` accumulator's ~28-sig-digit
   headroom — the one scale `decimal` auto-picked that `Int128` forces explicit); the final per-receiver store rounds
   ONCE to the receiver scale per the ROUNDED mode.
-- EXPONENTIATION integer powers expand to repeated multiply (§8.8.1.5.4).
+- EXPONENTIATION integer powers expand to repeated multiply (§2023:8.8.1.5.4).
 - **Statement arithmetic** (ADD/SUB/MUL/DIV with GIVING) enforces the 31-digit composite-of-operands limit at COMPILE
-  time (guaranteed to fit `Int128`); **COMPUTE expressions have NO composite limit** (§8.8.1.2 rule 7) — `Int128` is
+  time (guaranteed to fit `Int128`); **COMPUTE expressions have NO composite limit** (§2023:8.8.1.2 rule 7) — `Int128` is
   the cap, EC-SIZE-OVERFLOW past ~38 digits.
-- **v1 arithmetic mode = NATIVE** (§8.8.1.3, implementor-defined = `Int128` fixed-point) — the corpus default.
+- **v1 arithmetic mode = NATIVE** (§2023:8.8.1.3, implementor-defined = `Int128` fixed-point) — the corpus default.
   STANDARD-DECIMAL (decimal128) and STANDARD-BINARY (spec-obsolete) are owner-gated/deferred (§15).
 
 ### 6.3 Usages & store
@@ -732,16 +732,16 @@ keep long-only — silently wrong; `decimal`/`BigInteger` intermediates — owne
   REDEFINES backing), ③ the SIGN PRESENTATION (`SignKind`). DISPLAY and BINARY share ONE capacity discipline and
   occupy entirely different bytes, so the discipline can never stand in for the representation — that substitution
   is exactly how `PIC 9(4) COMP` came to reach a file as the four ASCII bytes `31 32 33 34`.
-- **The pinned representation table (`NumericByteForm`) — implementor-defined by §13.18.60.4 GR4/GR7/GR11/GR12
-  and therefore ours to state, with the §4.2.16 / Annex A.1 items 205 and 215 documentation obligation attached:**
+- **The pinned representation table (`NumericByteForm`) — implementor-defined by §2023:13.18.60.4 GR4/GR7/GR11/GR12
+  and therefore ours to state, with the §2023:4.2.16 / Annex A.1 items 205 and 215 documentation obligation attached:**
   `Zoned` = USAGE DISPLAY, one byte per digit position, sign per `SignKind` · `Binary` = BINARY/COMP/COMP-5/
   BINARY-CHAR..DOUBLE, two's complement, BIG-ENDIAN, `StorageLength` bytes (1-2-4-8 by digit count; the survey is
   unanimous — IBM, Micro Focus and GnuCOBOL all write big-endian for USAGE BINARY) · `Packed` = PACKED-DECIMAL,
   BCD two digits per byte with a trailing sign nibble (`0xC` positive, `0xD` negative, `0xF` for an unsigned
   item) · `PackedNoSign` = the 2023 WITH NO SIGN form, digit nibbles only · `None` = reaches no byte image at all
-  (USAGE INDEX, §13.18.60.4 GR10 — a codec handed one must reject it LOUDLY, never invent bytes). The width each
-  implies IS `PicInfo.StorageWidth`, which is the same width `FUNCTION BYTE-LENGTH` reports (§15.14.4 r1) and
-  the same width the item occupies in a group image (§15.50.4 r3). **One width, one representation, everywhere**
+  (USAGE INDEX, §2023:13.18.60.4 GR10 — a codec handed one must reject it LOUDLY, never invent bytes). The width each
+  implies IS `PicInfo.StorageWidth`, which is the same width `FUNCTION BYTE-LENGTH` reports (§2023:15.14.4 r1) and
+  the same width the item occupies in a group image (§2023:15.50.4 r3). **One width, one representation, everywhere**
   (§14.4). `NumericByteFormDriftTests` pins the whole table, so a new usage cannot inherit a representation
   nobody chose.
 - DISPLAY/COMP/COMP-4/BINARY → DigitCount discipline; COMP-3/PACKED → 2n−1; COMP-5/BINARY-* → native
@@ -764,14 +764,14 @@ verified NIST-exact against the legacy: positive `0→'{',1→'A'…9→'I'`; ne
 clause is TRAILING overpunch. Under `ascii` (the compile option `--sign-encoding=ascii`) a positive digit is left
 alone and a negative digit is digit+0x40: `PIC S9(4)` −1234→`"123t"`, SIGN LEADING→`"q234"`.
 **The digit image above is not what DISPLAY shows by default** (kb/Work PB3505, owner decision PB3467): DISPLAY of a
-fixed-point numeric item is ISO §14.9.11.4 GR1's implementor-defined conversion, and the compile option
+fixed-point numeric item is ISO §2023:14.9.11.4 GR1's implementor-defined conversion, and the compile option
 `--numeric-display decimal|digits` (default `decimal`, at every `--std`) selects it per compiled program, as
 `--sign-encoding` selects the overpunch. `decimal` is GnuCOBOL 3.2.0's default form — `PIC 9(5)V99` holding 12.5 shows
 `00012.50`, `PIC S9(5)V99` holding −12.5 `-00012.50`, a P scaling's zeros written, the program's decimal separator, a
 BINARY-CAPACITY item's container digits — and `digits` is the image of this section. ONE composition
 (`CobolNum.DisplayDecimal`, `CobolNum.DeviceDecimal.cs`) serves the native carriers and the character image;
 `OperandText.AsDeviceString` is the one entry the DISPLAY emitter asks (every other character use of a numeric item,
-MOVE's included, keeps the digit image, §14.9.25.4 GR6), and `NumericDisplayFormDriftTests` holds the reach. ACCEPT of a
+MOVE's included, keeps the digit image, §2023:14.9.25.4 GR6), and `NumericDisplayFormDriftTests` holds the reach. ACCEPT of a
 numeric item reads the same form back (`CobolNum.ParseDeviceDecimal`, through `AcceptSource.DeviceNumeric`; kb/Work
 PB3513, docs/CONFORMANCE.md DOC-A.1-1): under `digits` it keeps the digit window of this section. The
 survey table and the divergences are `docs/CONFORMANCE.md` item 56.
@@ -789,11 +789,11 @@ battle-tested 364-NIST oracle; .NET format strings — can't express floating in
 ### 6.6 Hard problems / edge cases
 
 - MOVE rescale is value-preserving with TRUNCATION rounding (never ROUNDED); a scaled→integer MOVE drops the
-  fraction; an unsigned receiver stores the magnitude (§14.9.25.4 GR6 d) 2. b.; watch `long.MinValue`).
+  fraction; an unsigned receiver stores the magnitude (§2023:14.9.25.4 GR6 d) 2. b.; watch `long.MinValue`).
 - Comparisons align scales then compare the `Int128` unscaled values; `+0 == −0`.
 - IS NUMERIC on a typed numeric field folds to `true` (it can't hold non-digits) UNLESS the field aliases external
   bytes (REDEFINES/file/ACCEPT) — then validate the char image (`CobolNum.IsNumericClass(image, profile)`).
-- ON SIZE ERROR is two-phase (ISO §14.7.5 rule 4): (a) intermediate-evaluation error → no receiver changes; (b) per-
+- ON SIZE ERROR is two-phase (ISO §2023:14.7.5 rule 4): (a) intermediate-evaluation error → no receiver changes; (b) per-
   receiver store error → only THAT receiver unchanged; the phrase fires if ANY failed (generated C# accumulates a
   `bool __sizeErr`).
 - P-scaling (leading adds to FractionScale; trailing rounds to the 10^P grid); divide-by-zero → SIZE ERROR (guard
@@ -819,12 +819,12 @@ banned substrate.)* See §14.8 for the `CobolString` vs `CobolStrings` roster sp
 - **Ref-mod write:** `RESULT = CobolString.SpliceInto(dst, leftmost, length, newSlice)` rebuilds the string;
   positions evaluated once. Editing is NOT re-applied (spec NOTE 21209).
 - **INSPECT** marshals operands into parallel arrays and calls ONE method per statement (per comparison cycle —
-  TALLYING/REPLACING share a single left-to-right cycle, ISO §14.9.22.4 GR8). Counters/COUNT route through
+  TALLYING/REPLACING share a single left-to-right cycle, ISO §2023:14.9.22.4 GR8). Counters/COUNT route through
   `CobolNum` + `NumProfile` (a counter is NOT initialized, GR11). BACKWARD = reverse target+patterns, run forward,
   reverse back.
 - **STRING** seeds the working buffer from the dest's current value (GR7: only written positions change); pointer is
   a C# `int` round-tripped via `CobolNum`; overflow when pointer<1 or >len before a char move (GR8). Overlapping
-  operands (§14.9.43.4 GR10, Annex A.2 item 60) run IN PLACE, as libcob does (CONFORMANCE.md D-STR1 to D-STR4):
+  operands (§2023:14.9.43.4 GR10, Annex A.2 item 60) run IN PLACE, as libcob does (CONFORMANCE.md D-STR1 to D-STR4):
   `StringEmitter` stores the working image into identifier-3 and reads a sender, an identifier delimiter or a function
   argument again when its transfer begins, but only where `StorageOverlap.MayShareStorage` cannot prove it disjoint
   from identifier-3 and only for a sending after the first; the POINTER is read once and stored last.
@@ -832,12 +832,12 @@ banned substrate.)* See §14.8 for the `CobolString` vs `CobolStrings` roster sp
   the matched delimiter's list position returned; two contiguous delimiters → empty extract → space/zero fill via
   `CobolString.Store`/`CobolNum.Store`) and, for an ALL delimiter, a `UnstringSkipRun` after that INTO store that
   consumes the contiguous repeats (GR7) over the delimiter and sender as the store left them.
-  Overlapping operands (§14.9.48.4 GR18, Annex A.2 item 61) run IN PLACE, as libcob does (CONFORMANCE.md D-UNS1 to
+  Overlapping operands (§2023:14.9.48.4 GR18, Annex A.2 item 61) run IN PLACE, as libcob does (CONFORMANCE.md D-UNS1 to
   D-UNS4): `StringEmitter` re-reads the sender and each identifier delimiter before every receiving area after the
   first, but only where `StorageSharing.MayShare` says a store (INTO, DELIMITER IN, COUNT IN) can reach it; the TALLYING
   item receives its content at the end plus the count, stored before the POINTER item.
 - **National (PIC N)** uses the IDENTICAL string helpers with NO surrogate-aware handling — one COBOL char = one
-  UTF-16 code unit (ISO §8.5.1.4: "each two-octet code element of UTF-16 is treated as though it were itself a
+  UTF-16 code unit (ISO §2023:8.5.1.4: "each two-octet code element of UTF-16 is treated as though it were itself a
   character"). C# string indexing IS per-code-unit, so .NET `string` is the exact COBOL national model.
 
 ### 7.3 Key decisions
@@ -848,21 +848,21 @@ banned substrate.)* See §14.8 for the `CobolString` vs `CobolStrings` roster sp
 - **Figurative constants** map: SPACE→`' '`, ZERO→`'0'`/`0L` (by receiver category), QUOTE→`'"'`, **HIGH-VALUE →
   U+FFFF, LOW-VALUE → U+0000, in both classes** (the cross-subsystem settlement — §14.9; owner decision kb/Work R52), ALL "x"
   repeat-to-width.
-- **The predefined NULL is an IDENTIFIER, never a figurative constant** (kb/Work PB1427). §8.4.3.1.2 lists it as
-  identifier Format 8 (predefined-address) and the NULL arm of Format 6 (predefined-object); §8.3.3.6.2's seven
+- **The predefined NULL is an IDENTIFIER, never a figurative constant** (kb/Work PB1427). §2023:8.4.3.1.2 lists it as
+  identifier Format 8 (predefined-address) and the NULL arm of Format 6 (predefined-object); §2023:8.3.3.6.2's seven
   figurative formats do not include it. The grammar gives it its own rule, `predefinedNull`, carried by
   `nonNumericLiteral` (every operand slot that parsed it while it was a `figurativeConstant` arm still parses it —
   superset parse) and by the SET senders, `callByReference` and `invokeArgument`'s BY REFERENCE arm. It binds to
-  ONE node, `BoundPredefinedNull`, produced ONLY by `ExpressionBinder.NullAdmittingOperand` in a §8.4.3.10.3 SR1
+  ONE node, `BoundPredefinedNull`, produced ONLY by `ExpressionBinder.NullAdmittingOperand` in a §2023:8.4.3.10.3 SR1
   context (INITIALIZE REPLACING, a program-prototype CALL / function-prototype activation / method-invocation
   argument, a relation or EVALUATE operand); every other slot binds through `NonNumericLiteralOperand`, which refuses
   it — **COBOL2576**, the one SR1 screen — so a slot nobody thought about is refused by construction instead of
   running NULL as LOW-VALUE. Admission is not acceptance: each context then decides NULL against its other operand
-  or formal (the Format-3 relation band, §14.8.2 conformance, INITIALIZE's SET-form category agreement). The
+  or formal (the Format-3 relation band, §2023:14.8.2 conformance, INITIALIZE's SET-form category agreement). The
   renderers throw on it outside those contexts. The positions that decode a literal WITHOUT the operand model — a
   constant entry's AS operand, every VALUE clause operand (data item, condition-name, report group; the one
   `DataBinder.IsLiteralValueOperand` predicate, which does not count NULL a literal), a concatenation operand, an
-  externalized name — refuse it with the same code and the same text, `PredefinedNullRule.Report`; §13.16.3 SR10's
+  externalized name — refuse it with the same code and the same text, `PredefinedNullRule.Report`; §2023:13.16.3 SR10's
   class-pointer VALUE screen (COBOL2168) keys on the clause being WRITTEN, so `USAGE POINTER VALUE NULL` draws
   both rules. `PredefinedNullContextDriftTests` pins the producer and its callers, the one reporter, and that every
   literal decoder outside the PROCEDURE DIVISION binders decides the `predefinedNull` arm.
@@ -882,13 +882,13 @@ single-write-back.
 ### 8.1 The model
 
 The FD/SD record IS a `record struct` (the record area is a typed field, not a byte buffer). **Every FD has one**,
-including the entry §13.4.5.3 SR3 lets you write with NO record description entries: §14.9.30.4 GR6's implied
+including the entry §2023:13.4.5.3 SR3 lets you write with NO record description entries: §2023:14.9.30.4 GR6's implied
 "alphanumeric group item of the maximum size established by the RECORD clause" is synthesized at bind time
 (`FILES_DESIGN` D18), so `FileModel.AreaRecord` is null only for a REPORT file and an FD-less SELECT. The
 only bytes are at
 the on-disk edge, produced by a compiler-GENERATED per-layout codec (`Serialize`/`Deserialize`) running only at READ
 and WRITE. **CODE-SET is one `Encoding` parameter threaded into that codec.** The proven 364-NIST legacy handlers are
-ported VERBATIM for *control logic* (open-mode tables, ISO §9.1.13 status codes, the file-position-indicator +
+ported VERBATIM for *control logic* (open-mode tables, ISO §2023:9.1.13 status codes, the file-position-indicator +
 key-of-reference + duplicate-ordering state machines) but re-substrated from a byte array to a generic
 `FileConnector<TRec>` + an `IRecordCodec`.
 
@@ -915,99 +915,99 @@ value of the typed RECORD KEY / RELATIVE KEY field.
   duplicate ordering). The in-memory PAYLOAD is the serialized image (exactly the form persisted on CLOSE; bounded
   memory), deserialized to the typed record only on hand-back. *(This is owner-flagged — §15 Q-file-2.)*
 - **The indexed duplicate order is per KEY OF REFERENCE, and the file position indicator is a KEY VALUE.** ISO
-  §14.9.30.4 GR26 scopes the release order to "an alternate record key that is the key of reference" and
-  §14.9.35.4 GR24 a) freezes an untouched key's order across a REWRITE, so the release ordinal is a VECTOR — one
+  §2023:14.9.30.4 GR26 scopes the release order to "an alternate record key that is the key of reference" and
+  §2023:14.9.35.4 GR24 a) freezes an untouched key's order across a REWRITE, so the release ordinal is a VECTOR — one
   slot per key, slot 0 the prime (assigned at release, never re-stamped, so it doubles as the record's physical
-  release order). §14.9.41.4 GR17 e) 1. puts only a KEY VALUE in the file position indicator, so a START-seeded
+  release order). §2023:14.9.41.4 GR17 e) 1. puts only a KEY VALUE in the file position indicator, so a START-seeded
   walk enters a duplicate set at the end GR26 names for its direction; the duplicate-set position of a prior READ
-  is separate connector state, which is what §14.9.30.4 GR21 rules e)/f) name instead of the FPI. The store
+  is separate connector state, which is what §2023:14.9.30.4 GR21 rules e)/f) name instead of the FPI. The store
   PERSISTS each record's ordinal vector with the record, and the release mint in its header (store format 4), so a
   reload — at the next OPEN, or a coherent connector's reload after another run unit's change — keeps every key's
   order and every connector's position within a duplicate set (kb/Work PB341, PB342, PB2693).
 - **Multiple 01s under one FD (and SAME RECORD AREA) = a discriminated record-area wrapper:** READ deserializes the
   raw bytes into EVERY 01 view; WRITE serializes the named view. This is the file-edge analogue of REDEFINES (ISO
-  §9.1.2 NOTE / §13.18.33 GR3).
+  §2023:9.1.2 NOTE / §2023:13.18.33 GR3).
 - **SORT/MERGE:** SD record is a typed struct; the sort store holds serialized images ordered by the same `CobolKey`
   policy; key offsets AND WIDTHS are BYTE windows into the deterministic serialized image, computed at compile time
-  (a national position is two of those bytes — §13.18.60.4 GR8, D-N1). Format-2 in-place table SORT operates on the
+  (a national position is two of those bytes — §2023:13.18.60.4 GR8, D-N1). Format-2 in-place table SORT operates on the
   typed array directly (the one place the two SORT forms diverge — a typed comparer), over the table's CURRENT
-  occurrences only (§14.9.40.4 GR20): `CobolTable.SortInPlace` receives the span the one
+  occurrences only (§2023:14.9.40.4 GR20): `CobolTable.SortInPlace` receives the span the one
   `PlaceBuilder.CurrentOccurrenceCount` model names — an OCCURS DEPENDING data-name-1's count, a
   dynamic-capacity table's `CurrentOccurrences`, a fixed table's whole array (kb/Work PB1174). **The subject's
   STORAGE FORM is decided once, by the binder, as `BoundTableSort.Storage`** (kb/Work PB1175, PB1055): a table with
   its own element array is `TableSortStorage.TypedArray` (the structural whole-table path `BuildTablePath(table,
-  outer)`, one index for each ENCLOSING table — §14.9.40.3 SR13 with §8.4.2.3.3 SR3, SR5 e), SR6: the subject writes
+  outer)`, one index for each ENCLOSING table — §2023:14.9.40.3 SR13 with §2023:8.4.2.3.3 SR3, SR5 e), SR6: the subject writes
   the enclosing tables' subscripts, a rightmost ALL standing for its own level; `ReadTableSubjectSubscripts`), and a
   table whose storage is a shared byte area — a REDEFINES class, a record area shared by several 01s, a BASED or
   EXTERNAL record — is `TableSortStorage.SharedArea`: it has no array, so the statement sorts the element NUMBERS
   with the same key comparer (`EmitKeyComparer`, every key read through its own window, `ResolveItemAt`) and places
-  the element images back through the class's windows, every image read before the first write (§14.9.40.4 GR24;
-  §13.18.44.4 GR1) — and the managed SLOTS of the element's pointer-class members (a pointer's value is not in the
+  the element images back through the class's windows, every image read before the first write (§2023:14.9.40.4 GR24;
+  §2023:13.18.44.4 GR1) — and the managed SLOTS of the element's pointer-class members (a pointer's value is not in the
   bytes, `SlotWindow.MembersOf`) are read with each element and written back by the same permutation (kb/Work PB1922),
   one slot per occurrence of every OCCURS level between the element and the member (`SlotWindow.InnerLevelsOf`; a
   dynamic-capacity level at the source element's current capacity — kb/Work PB1951). An element holding a
   variable-length component in a cell-backed class (an EXTERNAL element with a dynamic-length item or a
-  dynamic-capacity table — `VarGroupWindow`) moves as its §8.5.1.12 component CARRIER rather than its contiguous image,
+  dynamic-capacity table — `VarGroupWindow`) moves as its §2023:8.5.1.12 component CARRIER rather than its contiguous image,
   which cannot be cut back into components (kb/Work PB1951): the element placed back is the element that was read.
   A typed-array table whose KEY has no stored field on the element struct (a member of a REDEFINES view of the
   element) is `TypedArray` with `KeyWindowOuter` set: every key is then read through its window at an element number,
   the NUMBERS are sorted and the elements permuted (kb/Work PB599) — one comparer, the member-path form kept for the
   common case. **The record sizes of the files of one SORT or MERGE are ONE screen**, `SortBinder.ScreenTransferRecordSizes`
-  over `FileModel.RecordSizeRange` (§14.9.40.3 SR5 / SR11, §14.9.24.3 SR3 / SR12: a variable-length file bounds both ends
+  over `FileModel.RecordSizeRange` (§2023:14.9.40.3 SR5 / SR11, §2023:14.9.24.3 SR3 / SR12: a variable-length file bounds both ends
   of the other's records, a fixed-length file only the upper one; USING bounded by the SD, the SD bounded by GIVING;
   kb/Work PB995). **A fixed-length SD's record is the largest record description's** (the implied Format 1,
-  §13.18.43.4 GR5 a)), so a RELEASE of a shorter record description sends the record area's image like WRITE does
+  §2023:13.18.43.4 GR5 a)), so a RELEASE of a shorter record description sends the record area's image like WRITE does
   (D-WRT1; `SequentialIoEmitter.SentRecordImage`, kb/Work PB322 F). **WHICH items may be a key is ONE predicate** — `SortKeyAdmission.Violation(key, rules)`
-  (kb/Work PB1173, PB1052), asked of the data description by all three key-naming statements (SORT Format 1 §14.9.40.3
-  SR6, Format 2 SR14, MERGE §14.9.24.3 SR4): a key subject to OCCURS (file verbs; Format 2's own is SR14 e) over the walk
+  (kb/Work PB1173, PB1052), asked of the data description by all three key-naming statements (SORT Format 1 §2023:14.9.40.3
+  SR6, Format 2 SR14, MERGE §2023:14.9.24.3 SR4): a key subject to OCCURS (file verbs; Format 2's own is SR14 e) over the walk
   to data-name-2), of class boolean / object / pointer (message-tag has no representation yet), a dynamic-length
   elementary item, a variable-length group or an occurs-depending group item is refused BY NAME, COBOL1757, before
   the record's image or the key's window is asked about. The file verbs read SR6 d)'s "occurs-depending-on data item" as
-  including the occurs-depending GROUP (§13.18.38.4 GR8): a key whose length varies cannot be "the same byte positions"
+  including the occurs-depending GROUP (§2023:13.18.38.4 GR8): a key whose length varies cannot be "the same byte positions"
   of SR6 e). The refusal quotes the copy of the rule printed for ITS statement, verbatim (MERGE SR4 d) has a comma before
   "or an item subordinate" that SORT SR6 d) lacks; `cite.py` ignores punctuation, so the goldens `pb1173-merge-key-odo-group`
   and `pb1173-sort-file-key-variable-group` pin each form), and the occurs-depending arm is not edition-gated: it also refuses
   at `--std 85` (CONFORMANCE.md D-SKE). `RecordLayout.OffsetInRecord` bails on OCCURS ahead of its REDEFINES-class branch, so a multi-01 SD no
   longer places a table key at its first occurrence. **The USING and GIVING files are of ANY organization**
-  (kb/Work PB994): the as-if OPEN / READ NEXT / WRITE / CLOSE of §14.9.40.4 GR12 / GR15 and §14.9.24.4 GR7 / GR12 run
+  (kb/Work PB994): the as-if OPEN / READ NEXT / WRITE / CLOSE of §2023:14.9.40.4 GR12 / GR15 and §2023:14.9.24.4 GR7 / GR12 run
   through the one runtime file facade, which dispatches to the sequential, relative and indexed connectors, so
-  `SortMapIoFiles` admits a relative or indexed file unless its access mode is RANDOM (§12.4.5.5.2 SR1, §14.9.40.3 SR12 /
-  §14.9.24.3 SR13). A relative GIVING file's records are relative records 1..n and its RELATIVE KEY item indicates the last
+  `SortMapIoFiles` admits a relative or indexed file unless its access mode is RANDOM (§2023:12.4.5.5.2 SR1, §2023:14.9.40.3 SR12 /
+  §2023:14.9.24.3 SR13). A relative GIVING file's records are relative records 1..n and its RELATIVE KEY item indicates the last
   one returned (GR15 b); an indexed GIVING file is written in the sort's order, which `ScreenIndexedGivingKey` makes the
-  prime-key order (§14.9.40.3 SR9 / §14.9.24.3 SR10: first key ASCENDING, on the prime key's bytes). **A key's COMPARATOR is
-  selected by the key's CLASS, never by the statement** (§14.9.40.4 GR5 / §14.9.24.4 GR5 resolve TWO sequences and
+  prime-key order (§2023:14.9.40.3 SR9 / §2023:14.9.24.3 SR10: first key ASCENDING, on the prime key's bytes). **A key's COMPARATOR is
+  selected by the key's CLASS, never by the statement** (§2023:14.9.40.4 GR5 / §2023:14.9.24.4 GR5 resolve TWO sequences and
   each key takes the one its class names): the bound key carries a `CollatingClass`, the file sort passes it to the
   runtime as `CobolSort.KeyClass` and the table sort picks the comparer's carrier argument from it. A NATIONAL key
-  decodes its UTF-16BE byte pairs back to national POSITIONS before comparing (§8.8.4.2.9 compares national
-  character positions), and a NUMERIC key decodes algebraically through its own profile (§8.8.4.2.4); a BOOLEAN key
-  does not exist — §14.9.40.3 SR6 c) / SR14 c) / §14.9.24.3 SR4 c) refuse it (`SortKeyAdmission`).
+  decodes its UTF-16BE byte pairs back to national POSITIONS before comparing (§2023:8.8.4.2.9 compares national
+  character positions), and a NUMERIC key decodes algebraically through its own profile (§2023:8.8.4.2.4); a BOOLEAN key
+  does not exist — §2023:14.9.40.3 SR6 c) / SR14 c) / §2023:14.9.24.3 SR4 c) refuse it (`SortKeyAdmission`).
 - **The SORT/MERGE procedure PHASE lives in the sort store (kb/Work PB349).** A store exists only while its
   SORT/MERGE statement executes (`Init` → `Close`) and belongs to the RUN UNIT that executes it (`RunUnit.SortFiles`,
-  kb/Work PB1570 — ISO §14.6.1: a run unit shares nothing with another but messages, process files and switches, so
+  kb/Work PB1570 — ISO §2023:14.6.1: a run unit shares nothing with another but messages, process files and switches, so
   the EC-SORT-MERGE-ACTIVE scan sees only its own run unit's procedures); the emitter marks the INPUT and OUTPUT procedure ranges with
   `CobolSort.EnterProcedure`, `Sort` ends the input phase, and an output-procedure at-end sets the GR3 latch. The
   program's RELEASE and RETURN STATEMENTS render the checked entries `ReleaseStatement` / `ReturnStatement`, which
-  test that phase before acting — §14.9.32.4 GR1 EC-FLOW-RELEASE, §14.9.34.4 GR1 EC-FLOW-RETURN, §14.9.34.4 GR3
+  test that phase before acting — §2023:14.9.32.4 GR1 EC-FLOW-RELEASE, §2023:14.9.34.4 GR1 EC-FLOW-RETURN, §2023:14.9.34.4 GR3
   EC-SORT-MERGE-RETURN, each a `FatalAmbientGates` row whose `EcBinder.NodeKindRaises` row is the bound RELEASE / RETURN node —
   while the implicit USING release and GIVING return keep the unchecked `Release` / `Return` primitives, because
   each verb's GR1 governs the statement the program writes. With checking off nothing is raised and the statement
   proceeds (a RELEASE with no SORT executing has no store to release to).
 - **The sort-merge STATEMENT conditions are raised by the store too (kb/Work PB1036).** EC-SORT-MERGE-ACTIVE reads
-  the same phase: `Init` raises it while ANY store is in a procedure phase (§14.9.40.4 GR10/GR13, §14.9.24.4 GR8 —
+  the same phase: `Init` raises it while ANY store is in a procedure phase (§2023:14.9.40.4 GR10/GR13, §2023:14.9.24.4 GR8 —
   before the store is touched, so an enclosing statement on the same file survives), `ReleaseStatement` while one is
   in an output phase and `ReturnStatement` while one is in an input phase, ahead of the EC-FLOW-* test
   (docs/CONFORMANCE.md §3 D-SMA). EC-SORT-MERGE-FILE-OPEN is `FileNotOpen`, emitted per file where the rule places it
-  — SORT at the start of phase a) for USING and of phase c) for GIVING (§14.9.40.4 GR9), MERGE at statement start for
-  both (§14.9.24.4 GR7/GR12) — and only when the name is enabled there. EC-SORT-MERGE-RELEASE is the record-range
-  test of `ReleaseStatement` (§13.18.43.4 GR14 b)/GR19 b), which also slices the DEPENDING ON size itself so no
-  reference modification can raise EC-BOUND-REF-MOD first) and of the implicit `Release` (§14.9.40.4 GR12 b),
-  §14.9.24.4 GR7 b) — the READ size against the SD's range, min 0 for a fixed SD). EC-SORT-MERGE-SEQUENCE is a
+  — SORT at the start of phase a) for USING and of phase c) for GIVING (§2023:14.9.40.4 GR9), MERGE at statement start for
+  both (§2023:14.9.24.4 GR7/GR12) — and only when the name is enabled there. EC-SORT-MERGE-RELEASE is the record-range
+  test of `ReleaseStatement` (§2023:13.18.43.4 GR14 b)/GR19 b), which also slices the DEPENDING ON size itself so no
+  reference modification can raise EC-BOUND-REF-MOD first) and of the implicit `Release` (§2023:14.9.40.4 GR12 b),
+  §2023:14.9.24.4 GR7 b) — the READ size against the SD's range, min 0 for a fixed SD). EC-SORT-MERGE-SEQUENCE is a
   per-stream scan in `Merge` over the SAME key columns the merge compares with, run only while enabled
-  (§14.9.24.4 GR6). The statement's body after `Init` is a `try … finally { Close }`, so every way out — including
+  (§2023:14.9.24.4 GR6). The statement's body after `Init` is a `try … finally { Close }`, so every way out — including
   a raise the guard disposes of after the unwind — releases the store. `EcBinder.NodeKindRaises`' SORT/MERGE rows ask
   these names AND the EC-I-O family per USING/GIVING file, which is what arms the implicit transfers'
   `__IoCheckEc` hooks. The disposition is `EcEmitter.VerbDisposes`: a condition the SORT/MERGE statement itself
-  raised is disposed of by the verb (§14.6.13.1.3 2) — declarative, then the statement ends, the run unit
+  raised is disposed of by the verb (§2023:14.6.13.1.3 2) — declarative, then the statement ends, the run unit
   continues). "Itself" is MARKED by the store: `Init`, `FileNotOpen`, the implicit `Release`, `Sort` and `Merge` run
   under an exception filter that sets `CobolFatalException.RaisedBySortMerge` (an EC-LOCALE-* from a locale-collated
   key included), and the SORT/MERGE guard re-throws only unmarked conditions — a RELEASE or RETURN statement's raise
@@ -1021,13 +1021,13 @@ value of the typed RECORD KEY / RELATIVE KEY field.
   table, and the decoded key columns the chunk's sort builds); when the next record would pass the limit, a SORT
   sorts the chunk stably (the one `SortKeyColumns` comparison, a tie broken by release order) and writes it as a run,
   and a MERGE appends each USING stream's part of the chunk to that stream's run (a USING file is already ordered,
-  §14.9.24.4 GR6). Runs of one level are merged F at a time into one run of the next level (the fan-in F is the limit
+  §2023:14.9.24.4 GR6). Runs of one level are merged F at a time into one run of the next level (the fan-in F is the limit
   over four 64 KiB read buffers, between 2 and 16), and only CONSECUTIVE runs are ever merged, so the run list stays in
   release order. The sequence phase (`Sort` / `Merge`) sorts or merges in memory when nothing was written, so a file
   that fits pays no disk cost; otherwise the last chunk is written too, runs are merged until at most F remain, and the
   return phase is a k-way merge of them. ⛔ ONE ORDERING RULE for every merge: the lowest key, and on equal keys the
   EARLIEST run. Runs are in release order (SORT) or input-file order (MERGE) and each is stable, so the result keeps
-  §14.9.40.4 GR3 a)/b) (DUPLICATES IN ORDER) and §14.9.24.4 GR4 a)/b). RETURN and the GIVING transfer read the merge
+  §2023:14.9.40.4 GR3 a)/b) (DUPLICATES IN ORDER) and §2023:14.9.24.4 GR4 a)/b). RETURN and the GIVING transfer read the merge
   cursor; `Rewind` restarts it, so each GIVING file still receives the whole result. A run file holds each record's
   UTF-16 code units exactly and its extent table with the record type's layout (interned per statement), so a run
   round-trips every image, HIGH-VALUE U+FFFF and a lone surrogate included. The files are opened delete-on-close on
@@ -1035,10 +1035,10 @@ value of the typed RECORD KEY / RELATIVE KEY field.
   releases every one: `SortWork` registers each file in ONE owner set before its first record is written and a merge
   closes its inputs only after its output is complete, so a failure at any point leaves every open file in the set. The incremental sequencing runs under the statement's own mark, so a condition it raises while
   a RELEASE or RETURN statement executes (an EC-LOCALE-* from a locale-collated key) is still the SORT's or MERGE's
-  (§14.6.13.1.3 2)). `SortWorkBoundDriftTests` refuses a record collection anywhere in the store but the bounded chunk.
+  (§2023:14.6.13.1.3 2)). `SortWorkBoundDriftTests` refuses a record collection anywhere in the store but the bounded chunk.
 - **The SD/FD record codec IS the generated `AsImage()`/`FromImage()` pair (Phase 1E):** for every image-capable
   record — including mixed-usage records with fixed-point BINARY/PACKED leaves, which serialize each such leaf as
-  its TRUE BYTES (§14.4: radix-2 two's complement or BCD, width = `PicInfo.StorageWidth`; ISO §13.18.60.4 GR4/GR11
+  its TRUE BYTES (§14.4: radix-2 two's complement or BCD, width = `PicInfo.StorageWidth`; ISO §2023:13.18.60.4 GR4/GR11
   implementor representation) — WRITE/RELEASE send `AsImage()`, READ/RETURN distribute via `FromImage()`.
   `IRecordCodec` for these records is realized by that pair; no separate serializer exists (singular-pattern). A signed
   COMP/COMP-3 SORT/MERGE key is decoded from its byte window through the key leaf's own profile, so it orders
@@ -1053,26 +1053,26 @@ value of the typed RECORD KEY / RELATIVE KEY field.
 
 Variable-length REWRITE must equal the replaced length (status 44; remember last-read length); the read-position
 state machine (READ NEXT after AT END = 46; sequential REWRITE/DELETE without a preceding READ = 43; START =
-inclusive FPI); EXTERNAL FDs — **IMPLEMENTED (IC227A; §13.18.22.4 GR4a/GR4b/GR5)**: the connector keys
+inclusive FPI); EXTERNAL FDs — **IMPLEMENTED (IC227A; §2023:13.18.22.4 GR4a/GR4b/GR5)**: the connector keys
 the run-unit registry by `"::EXT::" + externalized-name` (= the FD name, GR5) instead of the per-program
 `PROG::FILE` qualification, so every describer's verbs converge on ONE connector (`CobolFile.Register` keeps an
 existing `::EXT::` key — a later describer's activation never clobbers the live connector; CANCEL's `CloseFiles`
-skips external connectors, §14.9.5 GR8/GR9), and the record area re-bases onto ONE run-unit `ExternalStore` cell
+skips external connectors, §2023:14.9.5 GR8/GR9), and the record area re-bases onto ONE run-unit `ExternalStore` cell
 keyed `"FD::" + externalized-name` via the same Tier-B string-canonical machinery WS EXTERNAL 01s use
 (`LinkageBinder.cs::CallBindExternalAndGlobal`); FILE STATUS items stay per-program; the GR6 same-byte-count
-cross-describer check is §14.8.4 EC-band work (documented-deferred). GLOBAL FD inheritance — **IMPLEMENTED
-(IC233A/IC234A; §13.18.27.4 GR1)**: ancestors' GLOBAL FileModels merge into a contained unit's `FilesByName`
+cross-describer check is §2023:14.8.4 EC-band work (documented-deferred). GLOBAL FD inheritance — **IMPLEMENTED
+(IC233A/IC234A; §2023:13.18.27.4 GR1)**: ancestors' GLOBAL FileModels merge into a contained unit's `FilesByName`
 ONLY (never `Files` — no re-registration/re-qualification/CANCEL-close; the shared FileModel reference keys the
 child's verbs to the owner's connector), the GLOBAL FD's records join `LinkageBinder.GlobalRoots` (record-names are global
 names → the standard `__outer` ref-bridges), `StatementValidation.ResolveRecordName` — the ONE `record-name-1`
-operand rule, shared by WRITE §14.9.51.3 SR5, REWRITE §14.9.35.3 SR1 and RELEASE §14.9.32.3 SR1, and the
+operand rule, shared by WRITE §2023:14.9.51.3 SR5, REWRITE §2023:14.9.35.3 SR1 and RELEASE §2023:14.9.32.3 SR1, and the
 successor to `SequentialIoBinder.FileOfRecord`, which tested CONTAINMENT where the rule says IDENTITY
 (`FILES_DESIGN.md` §"The `record-name-1` operand") — resolves a contained WRITE/REWRITE of the owner's
-record through the merge, and the I-O status routes to the owner's local status item (§12.4.5.8.4 GR1 NOTE 1). The owner's FILE STATUS, RELATIVE KEY, ASSIGN USING, RECORD VARYING DEPENDING ON and LINAGE items are the FILE's operands, not names the contained program writes (§8.4.5: an implicit reference resolves in the element that holds the clause; §13.18.27.4 GR2 lets a contained program name only the global names): `FileModel.ClauseOperandItems` is the one list, and the roots on it (`DataBinder.GlobalFileOperandRoots`) are bridged and placed in the contained unit like a global root and offered as no name (`InheritStep.ContainerBridgedRootsOf`; kb/Work PB4454; `FileClauseOperandDriftTests`).
-A record may be GLOBAL when its FD is not (§13.18.27.3 SR1 b)): the record-name is visible in a contained program
+record through the merge, and the I-O status routes to the owner's local status item (§2023:12.4.5.8.4 GR1 NOTE 1). The owner's FILE STATUS, RELATIVE KEY, ASSIGN USING, RECORD VARYING DEPENDING ON and LINAGE items are the FILE's operands, not names the contained program writes (§2023:8.4.5: an implicit reference resolves in the element that holds the clause; §2023:13.18.27.4 GR2 lets a contained program name only the global names): `FileModel.ClauseOperandItems` is the one list, and the roots on it (`DataBinder.GlobalFileOperandRoots`) are bridged and placed in the contained unit like a global root and offered as no name (`InheritStep.ContainerBridgedRootsOf`; kb/Work PB4454; `FileClauseOperandDriftTests`).
+A record may be GLOBAL when its FD is not (§2023:13.18.27.3 SR1 b)): the record-name is visible in a contained program
 and its FILE is not, so the container's non-global FileModels are kept in `InheritedGlobals.ContainerLocalFiles` for ONE
-question — `ResolveRecordName` refuses a contained WRITE / REWRITE of such a record by WRITE §14.9.51.3 SR21 /
-REWRITE §14.9.35.3 SR3 (COBOL1757; kb/Work PB1193), never by the false "not a logical record" arm;
+question — `ResolveRecordName` refuses a contained WRITE / REWRITE of such a record by WRITE §2023:14.9.51.3 SR21 /
+REWRITE §2023:14.9.35.3 SR3 (COBOL1757; kb/Work PB1193), never by the false "not a logical record" arm;
 OPTIONAL files (OPEN INPUT missing → 05 + EOF; non-optional missing → 35);
 sequential RELATIVE WRITE assigns the next slot and MOVEs it into the RELATIVE KEY field; LINAGE (LINAGE-COUNTER,
 page reset/overflow, footing area, END-OF-PAGE). After each I/O verb the compiler stores `LastStatus` into the FILE
@@ -1101,8 +1101,8 @@ ManagedRef<long>.Null
 > VALUES are a third concrete carrier, `CellPointer(StorageCell, byteOffset)` — a window position inside ONE
 > shared character-storage cell (`StorageCell` = the Tier-B string backing lifted onto the heap; EXTERNAL
 > records, ADDRESS-OF-taken items, and ALLOCATEd areas all use it). WHY not the closures: an accessor pair has
-> no address identity for §8.8.4.2 STRUCTURAL pointer equality (two independent `ADDRESS OF X` must compare
-> EQUAL) and no byte offset for §14.9.39 Format-10 arithmetic. `OverField`/`Cell` stay exactly what they are —
+> no address identity for §2023:8.8.4.2 STRUCTURAL pointer equality (two independent `ADDRESS OF X` must compare
+> EQUAL) and no byte offset for §2023:14.9.39 Format-10 arithmetic. `OverField`/`Cell` stay exactly what they are —
 > the CALL-ABI carriers.
 
 Crucially the carrier does NOT box WORKING-STORAGE: an ordinary `01 WS-X PIC 9(4)` stays a native `long`; a carrier
@@ -1139,7 +1139,7 @@ current single `static class Program` cannot host multiple/nested programs or re
   fully typed.
 - **Group BY REFERENCE:** the carrier round-trips the WHOLE struct per access (a value type; a closure copies on
   read) so subordinate mutations propagate as a unit; OCCURS args pass the `T[]` reference directly.
-- **Args evaluated once at CALL time** (§14.9.4.4 GR3a): capture subscript/ref-mod into locals BEFORE building lazy
+- **Args evaluated once at CALL time** (§2023:14.9.4.4 GR3a): capture subscript/ref-mod into locals BEFORE building lazy
   carriers.
 - **GOBACK in a called program = `ProgramReturn` caught at `Entry`** (§5.3 / §14.5) — not a competing mechanism; OO's
   "method return" and this "called-program return" are both just *what the `Entry` catch does*.
@@ -1167,7 +1167,7 @@ single reflection-free home for universal/dynamic dispatch, NULL/`IS class` sema
 
 ### 10.2 Storage scopes (two counterintuitive)
 
-OBJECT-para WORKING-STORAGE → **INSTANCE** fields; METHOD WORKING-STORAGE → **STATIC** fields (ISO §11.7 GR5/§11.8:
+OBJECT-para WORKING-STORAGE → **INSTANCE** fields; METHOD WORKING-STORAGE → **STATIC** fields (ISO §2023:11.7 GR5/§2023:11.8:
 method WS persists across activations, shared across instances — NOT per-instance); METHOD LOCAL-STORAGE → C# locals
 (re-init each call); LINKAGE → method parameters; a method-local name SHADOWS object data. FACTORY → static
 members/methods + static data.
@@ -1175,20 +1175,20 @@ members/methods + static data.
 ### 10.3 INVOKE + attributes
 
 `Class "New" RETURNING o`→`o = (C?)__FACTORY_C.__Instance.__New()` (New is the standard class BASE's factory method,
-§16.2 — present only in a class that INHERITS FROM BASE, COBOL2448 otherwise; its creation step is the generated
+§2023:16.2 — present only in a class that INHERITS FROM BASE, COBOL2448 otherwise; its creation step is the generated
 ctor: base ctor first, then VALUE-init own instance fields — OO deep-dive D4); `obj "M"`→`obj.M(args)` (virtual); `SELF "M"`→`this.M()` (virtual — runtime-class dispatch,
-§8.4.3.8 GR2); `SUPER "M"`→`base.M()`; `Class "M"` (non-NEW)→static call; dynamic/universal (method-name in a data
+§2023:8.4.3.8 GR2); `SUPER "M"`→`base.M()`; `Class "M"` (non-NEW)→static call; dynamic/universal (method-name in a data
 item, or a universal `object?` receiver)→`recv.__CobolInvoke(name, args)` (a per-class switch — reflection-free).
-Instance methods are `virtual` by default (COBOL forbids implicit hiding, §11.7 SR4a → never emit C# `new`); OVERRIDE→
-`override`; FINAL→`sealed override`; ABSTRACT→`abstract`. BY REFERENCE → typed `ref` (§9.3.6 match-rule 3c requires
+Instance methods are `virtual` by default (COBOL forbids implicit hiding, §2023:11.7 SR4a → never emit C# `new`); OVERRIDE→
+`override`; FINAL→`sealed override`; ABSTRACT→`abstract`. BY REFERENCE → typed `ref` (§2023:9.3.6 match-rule 3c requires
 same class/category — so `ref` is conformant); RETURNING → C# return value. **Parametric polymorphism is DECLINED, not
-merely deferred** — an OPTIONAL element (ISO **§9.3.5.3**, rule 7 "Parametric polymorphism is an optional feature in
+merely deferred** — an OPTIONAL element (ISO **§2023:9.3.5.3**, rule 7 "Parametric polymorphism is an optional feature in
 this Working Draft International Standard"; Annex **A.4.10 item 3**) whose support WiseOwl COBOL does not claim: a duplicate
 method name is refused BY NAME with `COBOL0822`, naming the facility and its A.4.10 item. (`PIC 9(4)`/`PIC 9(8)`
 both map to `long`, so a signature-keyed resolution would collide in the emitted type anyway.) ⚠ The `§12063` this
 paragraph and the two `COBOL0822` emit sites used to cite is **not a clause** — ISO/IEC 1989:2023 ends at §16 and
 that number was a stray line anchor (`DESIGN-SPEC-RECONCILIATION.md` finding 44); all three now carry the
-`cite.py --check`ed §9.3.5.3.
+`cite.py --check`ed §2023:9.3.5.3.
 
 ### 10.4 The correctness blocker (resolved)
 
@@ -1219,7 +1219,7 @@ except instance-vs-static.
 into `if`/`while(!(…))`/`?:`/EVALUATE arms/88 bool properties. The grammar's rule cascade (Or→Xor→And→unary→primary)
 already encodes COBOL precedence NOT > AND > XOR > OR — preserved by construction. (2) The EC exception model is
 stateful runtime + emitted guards that appear ONLY when a program uses the feature — **EC checking is OFF by default**
-(ISO §14.6.13.1.1), so the typed-native fast path emits zero exception scaffolding in the common case.
+(ISO §2023:14.6.13.1.1), so the typed-native fast path emits zero exception scaffolding in the common case.
 
 ### 11.2 Key decisions
 
@@ -1229,12 +1229,12 @@ stateful runtime + emitted guards that appear ONLY when a program uses the featu
 - **Short-circuit `&&`/`||`** (the §7.3 corpus-safe divergence).
 - **EVALUATE → chained if/else-if** (§5.3).
 - **Level-88 → expression-bodied `bool` properties** derived from the live parent value (§3.5); SET cond TO TRUE
-  moves the first VALUE; SET TO FALSE moves the WHEN SET TO FALSE literal (§14.9.39.4 GR6/GR7 — ONE store path
-  with a `ToTrue` selector; COBOL2049 when the FALSE phrase is absent, COBOL2048 when §13.18.63.3 SR27
+  moves the first VALUE; SET TO FALSE moves the WHEN SET TO FALSE literal (§2023:14.9.39.4 GR6/GR7 — ONE store path
+  with a `ToTrue` selector; COBOL2049 when the FALSE phrase is absent, COBOL2048 when §2023:13.18.63.3 SR27
   makes literal-4 a TRUE value).
 - **Class conditions** run over the character image via a new `CobolClass` runtime; for a pure numeric `long`,
   IS NUMERIC folds to `true` (revisit when REDEFINES/file aliasing lets it hold non-digits). ALPHABETIC is the closed
-  Latin set `{A-Z,a-z,space}` (ISO §8.8.4.4) — NOT `char.IsLetter`.
+  Latin set `{A-Z,a-z,space}` (ISO §2023:8.8.4.4) — NOT `char.IsLetter`.
 - **Conditional phrases (ON SIZE ERROR / AT END / INVALID KEY / ON OVERFLOW / ON EXCEPTION) are ALWAYS active when
   written** and do NOT require `>>TURN`; `>>TURN` is resolved at COMPILE time (a `TurnState` walking the procedure
   division) and decides WHETHER an EC guard is emitted at all — OFF compiles to nothing.
@@ -1264,16 +1264,16 @@ receiver UNCHANGED, ROUNDED before the size test (§6.6); whole-group comparison
 
 ### 12.1 Intrinsic catalog (the graded spine)
 
-Reject porting the legacy `decimal`-typed signatures. Build ONE declarative `IntrinsicCatalog`: name → {ISO §15.2
+Reject porting the legacy `decimal`-typed signatures. Build ONE declarative `IntrinsicCatalog`: name → {ISO §2023:15.2
 function-type, result category, arity (fixed/optional-trailing/variadic), per-arg category, binding =
-compile-time-fold | runtime-method}. §15.2's six types ARE the return-type column, mapped to the substrate:
+compile-time-fold | runtime-method}. §2023:15.2's six types ARE the return-type column, mapped to the substrate:
 
 - **integer-function → `long`** (`Int128` past 18 digits — FACTORIAL);
 - **floating-point math (SQRT, trig, LOG/EXP, PI, STANDARD-DEVIATION, VARIANCE, ANNUITY, PRESENT-VALUE, RANDOM) →
   `double`**;
 - **exact numeric (SUM, MEAN, MEDIAN, MAX/MIN-numeric, MOD, REM, INTEGER, INTEGER-PART, FRACTION-PART, ABS, SIGN,
   NUMVAL, NUMVAL-C, NUMVAL-F) → `CobolInt`** (so it flows straight into `TryStore` with the receiver's ROUNDED);
-- **alphanumeric/national (UPPER-CASE, LOWER-CASE, REVERSE, TRIM, CONCAT [§15.18, 2023 — CONCATENATE is NOT an
+- **alphanumeric/national (UPPER-CASE, LOWER-CASE, REVERSE, TRIM, CONCAT [§2023:15.18, 2023 — CONCATENATE is NOT an
   ISO function at any edition, PHASE-11 Step 7], SUBSTITUTE, CHAR, NATIONAL-OF, DISPLAY-OF, date strings) →
   `string`**; **boolean → `bool`** (BOOLEAN-OF-INTEGER on the D-B1 substrate).
 
@@ -1291,7 +1291,7 @@ SORT-RETURN → static `long`; WHEN-COMPILED → a compile-time constant string 
 LENGTH OF/BYTE-LENGTH → a folded `long` byte-size from PIC+USAGE; ADDRESS OF → `ManagedPointer`; LINAGE-COUNTER/
 LINE-COUNTER/PAGE-COUNTER + XML-*/JSON-* register NAMES are reserved by the registry but attach to their (scope-flagged)
 subsystems. **The run-unit exit code is ONE canonical field** (`RunUnit.ExitStatus`) — written by the STOP RUN /
-main-program GOBACK **WITH {NORMAL|ERROR} STATUS** phrase (§14.9.42.4 GR5 / §14.9.18.4 GR10) and by RETURN-CODE
+main-program GOBACK **WITH {NORMAL|ERROR} STATUS** phrase (§2023:14.9.42.4 GR5 / §2023:14.9.18.4 GR10) and by RETURN-CODE
 when implemented. It is the RUN UNIT's state and writes no process-wide cell: a status set by a separately-compiled
 CALLed module crosses the assembly boundary because every module of the run unit writes this one shared field (STOP
 RUN terminates the whole run unit from anywhere — the delivery cannot live in the main group's generated `Main`,
@@ -1304,30 +1304,30 @@ result does not feed it — decision 20.
 ### 12.3 Smaller surfaces
 
 - **Figurative constants** = context-materialized sentinels resolved at each use site against the ASSOCIATED
-  operand's category+width (§8.3.3.6.4 GR2, whose NOTE 1 makes a comparison an association exactly as a MOVE is;
+  operand's category+width (§2023:8.3.3.6.4 GR2, whose NOTE 1 makes a comparison an association exactly as a MOVE is;
   GR3 b/c is the complementary length-unspecified branch — one character, or literal-1's length); HIGH/LOW-VALUE
   per §14.9. The sizing itself is ONE function, `CobolString.FigToWidth`: the VALUE-clause and fixed-receiver
   sites fold it at compile time through `EmitText.RepeatToWidth`, and a RELATION CONDITION calls it at runtime
   through `CobolString.CompareFig`, because there the associated operand may be a reference-modified item
-  (§8.4.3.3.4 GR5 — the unique data item's own positions) or a function result, whose character-position count is
+  (§2023:8.4.3.3.4 GR5 — the unique data item's own positions) or a function result, whose character-position count is
   not a compile-time property of any PICTURE (kb/Work PB297).
 - **INITIALIZE** = a compile-time tree-walk to per-elementary typed stores (default/VALUE/REPLACING; FILLER skipped;
-  OCCURS → a for-loop). §14.9.20.4 GR4's "series of implicit MOVE or SET statements" is expanded at BIND time, and
+  OCCURS → a for-loop). §2023:14.9.20.4 GR4's "series of implicit MOVE or SET statements" is expanded at BIND time, and
   the lane keeps the standard's TWO rules apart: `Qualify` answers GR5c ("is this a receiving-operand, and WHY")
   and `SenderFor` answers GR6, whose three arms are keyed on that answer (kb/Work PB418).
-  **The §14.9.20.3 OPERAND SCREENS are asked where the operands are resolved, and three of the four are ROUTINGS
+  **The §2023:14.9.20.3 OPERAND SCREENS are asked where the operands are resolved, and three of the four are ROUTINGS
   rather than checks** (kb/Work PB416). SR7 — "the data item referenced by identifier-1 is the receiving operand" —
   is a consequence, not a designation: identifier-1 therefore resolves through `ExpressionBinder.ResolveReceiving`,
   the ONE receiving chokepoint, and collects every receiving-operand prohibition living there (a CONSTANT RECORD's
-  content §13.18.15.3 SR2, a constant-name §13.10.4 GR1, LINE-COUNTER, PAGE-COUNTER, the OCCURS DYNAMIC CAPACITY
+  content §2023:13.18.15.3 SR2, a constant-name §2023:13.10.4 GR1, LINE-COUNTER, PAGE-COUNTER, the OCCURS DYNAMIC CAPACITY
   register, and an unimplemented receiver shape) so the NEXT prohibition is free. SR4's MOVE half —
   "a MOVE statement with identifier-2 or literal-1 as the sending item and an item of the specified category as the
   receiving operand shall be valid" — is asked of **`MoveTable16`, the one home of the whole MOVE
-  validity question** (§14.9.25.3 SR1's sending half, SR6, SR7, SR8, SR9 and SR10's Table 16), over
+  validity question** (§2023:14.9.25.3 SR1's sending half, SR6, SR7, SR8, SR9 and SR10's Table 16), over
   `InitializeCategories.Table16Receiver`, which is the category-name's Table-16 receiving position; the rule needs
   no receiver walk because its receiving operand is the CATEGORY.
   **A THIRD STATEMENT ASKS THE SAME QUESTION OVER TWO DATA ITEMS, so the home has a composite item-keyed entry**
-  (kb/Work PB391): §14.7.6 rule 2 — "In a MOVE statement, at least one of the data items is an elementary data
+  (kb/Work PB391): §2023:14.7.6 rule 2 — "In a MOVE statement, at least one of the data items is an elementary data
   item and the resulting move is valid according to the rules for the MOVE statement" — makes MOVE / ADD /
   SUBTRACT CORRESPONDING's pairing decision the MOVE statement's own validity, with no bound operand in hand (none
   exists for a pair until after the decision) and, crucially, NO DIAGNOSTIC: a pair whose move would be invalid
@@ -1344,9 +1344,9 @@ result does not feed it — decision 20.
   namesake paired with an elementary one and reached the run time. SR4's SET half stays
   `CheckInitializeReplacingSetCategoryAgrees`, and `InitializeLaneDriftTests` pins that every category-name is
   screened by exactly one of SR4's two paragraphs. SR1 (identifier-1's class) is one predicate over the one
-  §8.5.2.1 Table-2 classifier — class INDEX is the single exclusion — written as its OWN screen because GR5a1's
+  §2023:8.5.2.1 Table-2 classifier — class INDEX is the single exclusion — written as its OWN screen because GR5a1's
   exclusion of an index item *contained in* identifier-1 is a different rule that must keep its silence. SR5's
-  RENAMES check runs on the RESOLVED item. ⚠ One residue: §14.9.25.3 SR5's figurative→numeric prohibition is an
+  RENAMES check runs on the RESOLVED item. ⚠ One residue: §2023:14.9.25.3 SR5's figurative→numeric prohibition is an
   EDITION row in `VersionConformancePass.GateMove`, re-derived from a bound MOVE this statement never builds, so
   `INITIALIZE … REPLACING NUMERIC DATA BY SPACE` is un-gated at 2023 where the explicit MOVE is COBOL0902.
   A receiver whose category
@@ -1354,32 +1354,32 @@ result does not feed it — decision 20.
   implicit **SET** rather than the MOVE path: `InitializeSetNull` for GR6a1/GR6a2 and GR6c's NULL rows,
   `InitializeSetFrom` for GR6b's `SET receiver TO identifier-2`, each rendered exactly as the explicit SET statement
   renders that operand pair. A GR6b `InitializeSetFrom` is held to the SET rules of its RECEIVING OPERAND, asked at
-  the receiver (kb/Work PB3817): `SetBinder.ScreenImplicitSet` applies §14.9.39.3 SR19 (restricted data-pointer),
-  SR20 (function-pointer signature), SR22 (restricted program-pointer, §13.18.60.4 GR25) and SR12 (an object
+  the receiver (kb/Work PB3817): `SetBinder.ScreenImplicitSet` applies §2023:14.9.39.3 SR19 (restricted data-pointer),
+  SR20 (function-pointer signature), SR22 (restricted program-pointer, §2023:13.18.60.4 GR25) and SR12 (an object
   reference's class) per elementary receiver, because `INITIALIZE g REPLACING PROGRAM-POINTER DATA BY x` reaches
   every program-pointer of `g`, each restricted on its own; the phrase-level check (SR4) only sees the category.
   **A VALUE-phrase receiver a MOVE would transform stores the VALUE recipe's image** (kb/Work PB4512): GR6 a) 3.'s
   sending-operand "produces the same result as the initial value of the data item", and for an alphanumeric-edited,
   national-edited or numeric-edited receiver, or a JUSTIFIED one, the MOVE of the raw literal edits, right-aligns or
-  blanks what the VALUE clause did not (§13.18.63.4 GR7/GR8, §13.18.63.3 SR11): `PIC XXBXX VALUE "AB CD"` became
+  blanks what the VALUE clause did not (§2023:13.18.63.4 GR7/GR8, §2023:13.18.63.3 SR11): `PIC XXBXX VALUE "AB CD"` became
   `AB  C`. Those receivers (`InitializeBinder.ValueIsNotAMoveResult`) bind an `InitializeStoreValue`, which
-  `InitializeEmitter` renders through `DataEmitter.ValueImageOf` — the ONE §13.18.63 recipe the declaration, a
+  `InitializeEmitter` renders through `DataEmitter.ValueImageOf` — the ONE §2023:13.18.63 recipe the declaration, a
   report field and `SET condition-name TO TRUE` already share. Every other receiver keeps the MOVE of
   `InitializeValueOperand`.
-  **`category-name` IS A SET, not a word** (kb/Work PB415): §14.9.20.2's figure encloses THIRTEEN category names in
-  a brace carrying CHOICE INDICATORS, so §5.2.6.4 makes a category-name one or more of them, each at most once —
+  **`category-name` IS A SET, not a word** (kb/Work PB415): §2023:14.9.20.2's figure encloses THIRTEEN category names in
+  a brace carrying CHOICE INDICATORS, so §2023:5.2.6.4 makes a category-name one or more of them, each at most once —
   `REPLACING NUMERIC ALPHANUMERIC DATA BY …` is conforming COBOL-85 source. `InitializeCategorySet` (a bitmask over
-  `InitializeCategory`) is that set, so §14.9.20.3 SR6's "the same category shall not be repeated in a REPLACING
-  phrase" and §5.2.6.4's "only once" are ONE check over ONE accumulator, and the fourteenth word would be one enum
-  member. The `{ALL | category-name}` before TO VALUE is a plain BRACE — mandatory (§5.2.6.3), COBOL1981 when
+  `InitializeCategory`) is that set, so §2023:14.9.20.3 SR6's "the same category shall not be repeated in a REPLACING
+  phrase" and §2023:5.2.6.4's "only once" are ONE check over ONE accumulator, and the fourteenth word would be one enum
+  member. The `{ALL | category-name}` before TO VALUE is a plain BRACE — mandatory (§2023:5.2.6.3), COBOL1981 when
   omitted; `TO` and `THEN` are optional words in both phrases (not underlined). The eight post-85 category names are
-  gated per word at the edition §8.9 reserves the word (`initialize-category-2002/-2014/-2023`), and
+  gated per word at the edition §2023:8.9 reserves the word (`initialize-category-2002/-2014/-2023`), and
   `InitializeLaneDriftTests` pins the grammar rule, the enum and those bands against `reserved-words.json`.
 - **SET** = dispatch by target kind (index→long, pointer→`ManagedPointer`/NULL, switch→bool, cond-name TO TRUE→store
   the 88's first VALUE) — depends on the §3.5 88/INDEXED-BY binding.
-  **Format 15 (numeric-content, §14.9.39.2, 2014) is a STATEMENT SURFACE OVER AN EXISTING COMPUTATION, not a new
+  **Format 15 (numeric-content, §2023:14.9.39.2, 2014) is a STATEMENT SURFACE OVER AN EXISTING COMPUTATION, not a new
   value calculator** (kb/Work PB452). `SET CONTENT OF x … TO FARTHEST-FROM-ZERO / NEAREST-TO-ZERO` names exactly the
-  quantity §15.43/§15.58/§15.83's HIGHEST-/LOWEST-/SMALLEST-ALGEBRAIC name — Annex D.32 says so outright — so the
+  quantity §2023:15.43/§2023:15.58/§2023:15.83's HIGHEST-/LOWEST-/SMALLEST-ALGEBRAIC name — Annex D.32 says so outright — so the
   extremes live in **ONE evaluator, `AlgebraicRanges.Of`** (`Binding/AlgebraicRange.cs`), and both surfaces read it;
   the `AlgebraicRange` record carries `Farthest` / `FarthestNegative` / `Nearest` / `Zero` because the two surfaces
   select *different* members of the same computation (an unsigned item's LOWEST-ALGEBRAIC is 0, but its
@@ -1391,14 +1391,14 @@ result does not feed it — decision 20.
   used here.
 - **ACCEPT/DISPLAY system sources** = a `CobolSystem` runtime with an INJECTABLE clock (DATE/DAY/TIME/DAY-OF-WEEK/
   YYYYMMDD/YYYYDDD; DAY-OF-WEEK remap `((int)DayOfWeek + 6) % 7 + 1` = 1=Mon..7=Sun) + console UPON SYSOUT/SYSERR.
-- **SPECIAL-NAMES implementor system-names** (§12.3.7.3 SR8; A.1 items 189/190/191) = ONE table,
-  `WiseOwl.Cobol.Editions/ImplementorNames.cs` (kb/Work PB862): each row is a name, its ONE type (§8.3.2.3.1 — device / feature /
+- **SPECIAL-NAMES implementor system-names** (§2023:12.3.7.3 SR8; A.1 items 189/190/191) = ONE table,
+  `WiseOwl.Cobol.Editions/ImplementorNames.cs` (kb/Work PB862): each row is a name, its ONE type (§2023:8.3.2.3.1 — device / feature /
   switch), a device's input/output capability and a feature's WRITE ADVANCING rule. Both walkers of the
   switch-name/feature-name/device-name entry — `SpecialNamesBinder.BindImplementorNameEntry` (switch mnemonics + status
   condition-names) and `Procedure.MnemonicRegistry` (the per-unit mnemonic map, OO scopes included) — classify
   through ONE reader, `ImplementorNameEntry`; an unavailable name is COBOL2241 at the declaration. The mnemonic
   map's value is the ROW, so every use is decided by the name's KIND: ACCEPT/DISPLAY (`MnemonicDevice`, SR7 +
-  capability, COBOL0817), SET (switch only, §14.9.39.3 SR5), WRITE ADVANCING (feature only, §14.9.51.3 SR16,
+  capability, COBOL0817), SET (switch only, §2023:14.9.39.3 SR5), WRITE ADVANCING (feature only, §2023:14.9.51.3 SR16,
   COBOL2243 — C01 = the PAGE advance, CSP = zero lines). A new name is a ROW; `ImplementorNamesDriftTests`
   keeps docs/CONFORMANCE.md §7 and the diagnostic text in step with the table. The entry's SHAPE (a required
   continuation; ON/OFF in either order, each once) is the grammar's (kb/Work PB716).
@@ -1479,10 +1479,10 @@ the same class — Tier A/B accessors share the canonical; Tier C shares the cla
 > `ImageWidthIsStorageWidthTests`. The zoned digit image described below survives ONLY as USAGE DISPLAY's own byte
 > form, and the image carries no sign convention of its own — a binary leaf's sign lives in its bytes, so the
 > leaf's `PicInfo.SignKind` (a DISPLAY-form concern) is never consulted by an image consumer. **What is NOT the record image: an item's DISPLAY-statement text.**
-> An ELEMENTARY numeric operand used as text still renders its DIGITS (§14.9.25.4 GR6 / §8.8.4.2.2 — "as though it
+> An ELEMENTARY numeric operand used as text still renders its DIGITS (§2023:14.9.25.4 GR6 / §2023:8.8.4.2.2 — "as though it
 > were moved to an alphanumeric data item"), which is why `DataItem.DisplayTextWidth` exists beside `ImageWidth` and
 > why `OperandText` decodes a non-zoned stored image before rendering it. A GROUP operand is the opposite case:
-> §8.5.2.1 gives an alphanumeric group class and category alphanumeric and a usage of DISPLAY, so its character
+> §2023:8.5.2.1 gives an alphanumeric group class and category alphanumeric and a usage of DISPLAY, so its character
 > positions are the items' REPRESENTATIONS and its text IS the record image, bytes and all.
 > **⚠ MIGRATION — THE ON-DISK RECORD LAYOUT CHANGED.** A data file written by a build BEFORE this carries a
 > BINARY/PACKED field as its zoned digit characters; this build reads that window as radix-2 / BCD bytes. A
@@ -1503,13 +1503,13 @@ mixed-usage (DISPLAY+BINARY+PACKED) groups — the byte path remains only for th
 usages (see the total rule below).
 
 **Mixed-usage (COMP-leaf) groups — the TOTAL rule.** The
-standard leaves a binary item's representation to the implementor (§13.18.60.4 GR4 — "Each implementor specifies
+standard leaves a binary item's representation to the implementor (§2023:13.18.60.4 GR4 — "Each implementor specifies
 the precise effect of the USAGE BINARY clause upon the … representation of the data item …, including the
-representation of any algebraic sign"; GR11 the same for PACKED-DECIMAL; §8.5.2.1 — an alphanumeric group
+representation of any algebraic sign"; GR11 the same for PACKED-DECIMAL; §2023:8.5.2.1 — an alphanumeric group
 item "has class and category alphanumeric" and "is treated as though it had a usage of display", so its
-character positions are its leaves' representations, and §8.8.4.2.1 — "For comparison, an alphanumeric group
+character positions are its leaves' representations, and §2023:8.8.4.2.1 — "For comparison, an alphanumeric group
 item shall be treated as an elementary alphanumeric data item"). ⚠ The third premise USED to cite §8.8.4.1.1,
-a clause the standard does not have; kb/Work PB182 re-derived it as the §8.5.2.1 + §8.8.4.2.1 pair above, and
+a clause the standard does not have; kb/Work PB182 re-derived it as the §2023:8.5.2.1 + §2023:8.8.4.2.1 pair above, and
 the rule is unchanged by the correction — both real clauses say what the phantom was standing in for. The typed-native backend DEFINES that representation, totally, and
 it is ONE representation everywhere: **a fixed-point leaf's image IS its bytes** — zoned digits for USAGE DISPLAY,
 radix-2 two's complement (big-endian) for BINARY, BCD with a `0xC`/`0xD`/`0xF` sign nibble for PACKED — of exactly
@@ -1521,8 +1521,8 @@ a binary leaf's sign is in its bytes, so `SignKind` (a DISPLAY concern) is not c
 CONSEQUENCE (the one statement; §8.2 and FILES D7 point here):** a numeric key's compile-time descriptor carries the key
 LEAF (`BoundSortMergeKey.Item`, bound in `SortBinder`) and the runtime decodes the key's BYTE window through that
 leaf's own profile (`CobolSort.Key.Profile` → `CobolNum.ParseImage`, in `SortKeyColumns`), so a signed COMP / COMP-3 key
-orders ALGEBRAICALLY — §14.9.40.4 GR8 and §14.9.24.4 GR3 a)/b), both through §8.8.4.2.4 — and the MERGE sequence check
-(§14.9.24.4 GR6, EC-SORT-MERGE-SEQUENCE) judges on that same order. The failure mode of any other decode is SILENT:
+orders ALGEBRAICALLY — §2023:14.9.40.4 GR8 and §2023:14.9.24.4 GR3 a)/b), both through §2023:8.8.4.2.4 — and the MERGE sequence check
+(§2023:14.9.24.4 GR6, EC-SORT-MERGE-SEQUENCE) judges on that same order. The failure mode of any other decode is SILENT:
 everything sorts, but a byte-wise compare orders a negative COMP key (two's complement, high bit set) after every
 positive and a packed COMP-3 key by MAGNITUDE (its sign nibble is the last half-byte, so +12 `00 01 2C` follows
 -3 `00 00 3D` and precedes -500), and a sequence check reads valid input as out of order and the reverse. Witnesses:
@@ -1530,21 +1530,21 @@ positive and a packed COMP-3 key by MAGNITUDE (its sign nibble is the last half-
 EC-SORT-MERGE-SEQUENCE path over a signed BINARY key in both verdicts, both directions, with and without a USE
 declarative). DISPLAY-statement
 output of the same leaf is unchanged (`OperandText` decodes a non-zoned stored image and renders the digits —
-§14.9.25.4 GR6 treats an elementary numeric operand used as text as though it were MOVED to an alphanumeric item).
+§2023:14.9.25.4 GR6 treats an elementary numeric operand used as text as though it were MOVED to an alphanumeric item).
 **Named losers:** (a) `OperandText.MixedGroupImage` (an inline concat) — RETIRED: it formatted a signed leaf with
 its own `BinaryMinus` profile, a latent VARIABLE-WIDTH bug that would shift every following leaf for a negative
 value, and it bailed on fixed-OCCURS children the generated codec handles; (b) leading-separate-sign images (buying
 only debuggability); (c) **the fixed-width ZONED DIGIT image with a trailing-overpunch sign — the form this design
-carried through P13 and V59 retired.** It was defensible on §13.18.60.4 GR4's representation latitude alone, but it
+carried through P13 and V59 retired.** It was defensible on §2023:13.18.60.4 GR4's representation latitude alone, but it
 contradicted the compiler's OWN pinned widths: `BYTE-LENGTH(G) = 5` while `LENGTH(G) = 8` for one group
-(§15.14.4 r1 vs §15.50.4 r3, which cannot disagree in a single-byte-character model), it made a conforming
+(§2023:15.14.4 r1 vs §2023:15.50.4 r3, which cannot disagree in a single-byte-character model), it made a conforming
 program observe the disagreement with no file and no byte pun, and it put a `PIC 9(4) COMP` on disk as the ASCII
 bytes `31 32 33 34`. The float family (IEEE 32/64 big-endian), COMP-5 and BINARY-CHAR..DOUBLE (the binary byte form) and
 USAGE INDEX (the 8-byte big-endian occurrence number, R40) are inside the codec too (kb/Work PB164); only a
 pointer/object-reference leaf and a dynamic-length or dynamic-capacity item stay outside it (`DataItem.IsImageCapable`).
 A whole-group **MOVE between two mixed groups with
 positionally IDENTICAL leaf layouts** (same usage/digits/scale/sign leaf-by-leaf) is still emitted as a **memberwise
-leaf copy** (`MoveEmitter.AlignedLeafPairs`, tried FIRST) — for identical layouts the §14.9.25.4 GR4
+leaf copy** (`MoveEmitter.AlignedLeafPairs`, tried FIRST) — for identical layouts the §2023:14.9.25.4 GR4
 representation copy and the memberwise copy are indistinguishable, and the memberwise path skips the encode/decode
 round trip (the locked NC107A shape: `MOVE U5 TO U9`, `IF U22 > U12`). Non-aligned receivers fall through to
 `FromImage` (ST127A's 10→11-leaf MOVE; ST134A's class-view→SD MOVE). Conformance:
@@ -1568,13 +1568,13 @@ round trip (the locked NC107A shape: `MOVE U5 TO U9`, `IF U22 > U12`). Non-align
   no runtime registry for local dispatch. The return is VOID only in an EC-FREE group (continue after the failing
   statement, GR7b); a group that uses the EC model gets the int-returning `__RunUse` and an int `__IoCheck` that hand
   the dispatch result back to the verb site (kb/Work PB141). One settled deviation: a successful
-  CLOSE resets the connector's open-mode view to none (§9.1.4) — a failed OPEN records the ATTEMPTED mode for
+  CLOSE resets the connector's open-mode view to none (§2023:9.1.4) — a failed OPEN records the ATTEMPTED mode for
   GR6b "being opened" scoping.
   **⛔ THE PAIR HANDED TO `__RunUse` IS THE DECLARATIVE SECTION'S OWN `PcRange`, AND NOTHING SHORTENS IT**
-  (`BoundDeclarative.Range`, rendered at the ONE site `DispatchState.RunUseCall`). §14.9.49.3 SR1 makes the use
-  procedure "the remainder of the section", §14.4.2 ends that section only at the next section header or END
-  DECLARATIVES, §14.6.3 rule 1 puts the implied transfer back to the controlling USE at the last statement of the
-  last procedure IN THE RANGE, and §14.9.14.4 GR7's NOTE places the USE return mechanism after the section's last
+  (`BoundDeclarative.Range`, rendered at the ONE site `DispatchState.RunUseCall`). §2023:14.9.49.3 SR1 makes the use
+  procedure "the remainder of the section", §2023:14.4.2 ends that section only at the next section header or END
+  DECLARATIVES, §2023:14.6.3 rule 1 puts the implied transfer back to the controlling USE at the last statement of the
+  last procedure IN THE RANGE, and §2023:14.9.14.4 GR7's NOTE places the USE return mechanism after the section's last
   paragraph. There WAS a "CCVS termination-tail accommodation" here — a trivial EXIT/CONTINUE paragraph followed
   anywhere later in the section by a STOP RUN / EXIT PROGRAM / GOBACK paragraph capped the handler end at the
   exit paragraph, so a user declarative written in that ordinary shape executed only in part on every selection
@@ -1587,9 +1587,9 @@ round trip (the locked NC107A shape: `MOVE U5 TO U9`, `IF U22 > U12`). Non-align
   (local dispatch uses no runtime registry; ONE pattern): `__IoCheck`'s fallthrough (no
   local match, GR4a) calls `__outer.__RunGlobalUse(fileKey)`, which examines that container's `USE … GLOBAL`
   declaratives (file scope before mode scope, GR5), on a match runs the handler via its own `__RunUse` — in the
-  DECLARING program's instance, its data (§8.4.6.2) — else forwards to ITS `__outer` ("repeated with the next
+  DECLARING program's instance, its data (§2023:8.4.6.2) — else forwards to ITS `__outer` ("repeated with the next
   higher directly containing source element", GR4b) or stops at the outermost. A contained program with NO local
-  declaratives still emits `__IoCheck` + hooks when an ancestor has GLOBAL ones. The §12.4.5.8.4 GR1 NOTE-1
+  declaratives still emits `__IoCheck` + hooks when an ancestor has GLOBAL ones. The §2023:12.4.5.8.4 GR1 NOTE-1
   corollary is implemented with it: a contained program's I-O on an inherited GLOBAL file stores the I-O status
   into the OWNER's (local-name) FILE STATUS item through the `__outer` chain (the item is one of the file's clause
   operands, `FileModel.ClauseOperandItems`, bridged like a global root; kb/Work PB4454).
@@ -1621,7 +1621,7 @@ UNSTRING. **Named loser:** the data-model design's `CobolString.RefMod/SpliceInt
 ### 14.9 Figurative HIGH-VALUE/LOW-VALUE + the byte↔char codepage (settled)
 
 - **HIGH-VALUE → U+FFFF, LOW-VALUE → U+0000, in both classes** (owner decision kb/Work R52; kb/Work PB1093): the extremes of the native
-  sequence, which is the 65,536 UTF-16 code units for alphanumeric and national alike (§8.3.3.6.4 GR6/GR7), read from
+  sequence, which is the 65,536 UTF-16 code units for alphanumeric and national alike (§2023:8.3.3.6.4 GR6/GR7), read from
   ONE member, `WiseOwl.Cobol.Runtime.NativeCollatingSequence`.
 - **The storage-byte law is the ONE byte↔char mapping** (`WiseOwl.Cobol.Runtime.StorageByte`; FILES_DESIGN D29):
   byte 0xFF is U+FFFF (HIGH-VALUE), every other byte k is U+00kk, a character's byte is its low byte. Every byte-form
@@ -1718,7 +1718,7 @@ everywhere (§11.1); conditional phrases are always active. The differential har
     compiler: the engine is deleted from `main` (`docs/rearchitecture/LEGACY-ARCHIVE.md`), and the committed goldens plus the
     NIST `.txt` oracles are the regression nets.
 
-14. **Fatal-EC termination policy.** ISO §14.6.13.1.3 lets the implementor continue or terminate an unhandled fatal
+14. **Fatal-EC termination policy.** ISO §2023:14.6.13.1.3 lets the implementor continue or terminate an unhandled fatal
     EC. Recommendation: terminate the run unit with a diagnostic + nonzero exit (commercial-quality, safest).
 
 15. **Out-of-range / zero / non-integer reference modification.** Default = THROW (raise EC-BOUND-REF-MOD →
@@ -1792,11 +1792,11 @@ ISO-conforming output under the `LEGACY_DIVERGENT` protocol (`scripts/guard.sh` 
 
 ### G6 — Deferred data cases (the byte-boundary islands) ✅ COMPLETE
 - REDEFINES/RENAMES 4-tier model (§4) — Tiers A/B (no bytes) first; Tier C resolved as the ZONED DIGIT-IMAGE
-  codec (§4.2 — no `RedefCodec` byte plan needed; ISO §13.18.60 GR4 implementor latitude; Q1 thereby settled:
+  codec (§4.2 — no `RedefCodec` byte plan needed; ISO §2023:13.18.60 GR4 implementor latitude; Q1 thereby settled:
   the island narrowed to float/COMP-5 puns, which stay loud).
 - The whole-group **`AsImage()`/`FromImage()`** facility (§14.4) — wired into whole-group MOVE/compare, file
   records, and SORT, including fixed-point BINARY/PACKED leaves.
-- File-record serialization edge cases (variable-length §13.18.43 end-to-end with length framing, multi-01
+- File-record serialization edge cases (variable-length §2023:13.18.43 end-to-end with length framing, multi-01
   overlay, SAME RECORD AREA) finalized; CODE-SET remains accepted-inert (no NIST exercise).
 **Checkpoint MET:** the REDEFINES/RENAMES/whole-group-compare programs + all deferred file cases green.
 
@@ -1820,7 +1820,7 @@ ISO-conforming output under the `LEGACY_DIVERGENT` protocol (`scripts/guard.sh` 
 > ✔ **G7 execution detail is now `docs/COMPLETION_ROADMAP_COUNCIL.md` (RATIFIED 2026-07-03;
 > ISO-VALIDATED against the spec — 0 refuted claims; its Appendix carries the audit + the
 > amendments: boolean operations, `&`-concatenation, CONSTANT entries, DYNAMIC-LENGTH items,
-> the §4.2.16 full conformance-documentation set, >>PROPAGATE re-editioned ≤2014)** —
+> the §2023:4.2.16 full conformance-documentation set, >>PROPAGATE re-editioned ≤2014)** —
 > Phases 0–8 with exit criteria. Ratified amendments to THIS section: **JSON/XML is removed from the ISO
 > catalog** (zero hits in the 2023 spec — re-tagged vendor-dialect, deferred post-G8; the Q5 JSON-XML leg is
 > thereby resolved, SCREEN = documented non-support per the A.4 line, RW stays as implemented); a behavioral leg at
@@ -1868,7 +1868,7 @@ follows §16.*
 | T1 | **`WiseOwl.Cobol.Tests.Unit`** | xUnit | `WiseOwl.Cobol.Tests.Unit` | — | Unit tests for the new compiler + runtime. |
 | T2 | **`WiseOwl.Cobol.Tests.Conformance`** | xUnit | `WiseOwl.Cobol.Tests.Conformance` | — | NIST + post-85 conformance corpus, run against the new compiler. |
 
-**Decision — name form (owner, kb/Work PB3837, 2026-10-26).** The code takes the product's name. Assemblies, projects, folders and the solution are **`WiseOwl.Cobol.*`** (`WiseOwl.Cobol.sln`), and so are the namespaces: the compiler's root namespace is `WiseOwl.Cobol` (e.g. `WiseOwl.Cobol.CodeGen`), and the front end's, the editions leaf's, the CLI's and the runtime's roots ARE their project names (`WiseOwl.Cobol.Frontend`, `WiseOwl.Cobol.Editions`, `WiseOwl.Cobol.Cli`, `WiseOwl.Cobol.Runtime`). The NuGet id stays `WiseOwl.COBOL` and the executable `cobol`; the implementor's environment variables are `WISEOWL_COBOL_*` (never `COBOL_*`, the external-switch family `SwitchStore.Prefix` names, §12.3.7.4 GR2 "Switch-name-1 identifies an implementor-defined external switch"). The product's earlier names are retired outside history: `scripts/rename_retired_names.py` is both the one rename and the RETIRED NAMES audit that keeps them out. **Named loser:** `WiseOwl.COBOL` as the code's root (the NuGet id's casing), against .NET's casing of an acronym of three letters or more.
+**Decision — name form (owner, kb/Work PB3837, 2026-10-26).** The code takes the product's name. Assemblies, projects, folders and the solution are **`WiseOwl.Cobol.*`** (`WiseOwl.Cobol.sln`), and so are the namespaces: the compiler's root namespace is `WiseOwl.Cobol` (e.g. `WiseOwl.Cobol.CodeGen`), and the front end's, the editions leaf's, the CLI's and the runtime's roots ARE their project names (`WiseOwl.Cobol.Frontend`, `WiseOwl.Cobol.Editions`, `WiseOwl.Cobol.Cli`, `WiseOwl.Cobol.Runtime`). The NuGet id stays `WiseOwl.COBOL` and the executable `cobol`; the implementor's environment variables are `WISEOWL_COBOL_*` (never `COBOL_*`, the external-switch family `SwitchStore.Prefix` names, §2023:12.3.7.4 GR2 "Switch-name-1 identifies an implementor-defined external switch"). The product's earlier names are retired outside history: `scripts/rename_retired_names.py` is both the one rename and the RETIRED NAMES audit that keeps them out. **Named loser:** `WiseOwl.COBOL` as the code's root (the NuGet id's casing), against .NET's casing of an acronym of three letters or more.
 
 **Decision — CLI split (P2/P3).** Today `Program.cs` lives *inside* the exe project, so tests cannot reference the compiler without referencing an exe. Split it: `WiseOwl.Cobol.Compiler` (library, everything except the CLI shell) + `WiseOwl.Cobol.Cli` (exe, `<AssemblyName>cobol</AssemblyName>`, ~120-line driver). This lets the test projects reference a library.
 
@@ -1914,7 +1914,7 @@ src/WiseOwl.Cobol.Runtime/                (role-based folders — DESIGN-runtime
     Text/      CobolString.cs, CobolBool.cs, CobolClass.cs
     Tables/    CobolTable.cs, CobolDynTable.cs
   Verbs/       CobolStringOps.cs (STRING/UNSTRING), CobolInspect.cs (INSPECT)
-  IO/          FileConnector.cs (abstract base: §9.1.13 status machine + read-position pair) +
+  IO/          FileConnector.cs (abstract base: §2023:9.1.13 status machine + read-position pair) +
                SequentialConnector/RelativeConnector/IndexedConnector, FileRegistry.cs (ONE polymorphic
                registry), RecordFraming.cs (the ONE 4-byte-LE framing), CobolFile.cs (static facade →
                RunUnit.Current.Files), FileStatus.cs, FileSupport.cs, Clock.cs (IClock/SystemClock),
@@ -2058,7 +2058,7 @@ identical stdout; now the committed goldens, R69). The remaining items below sta
    stay 100% typed. This honors "no byte substrate for program data" without rejecting common production layouts
    (X-over-COMP records). **OWNER-VETOABLE:** if you want zero `byte[]` anywhere, mixed-USAGE REDEFINES and
    non-typed file formats are instead rejected loudly (Tier C → Tier D).
-2. **Arithmetic mode.** Native arithmetic only (ISO §8.8.1.3) — fully conformant as the default and what the 364
+2. **Arithmetic mode.** Native arithmetic only (ISO §2023:8.8.1.3) — fully conformant as the default and what the 364
    NIST corpus uses. `ARITHMETIC IS STANDARD-DECIMAL` (decimal128) would require a banned software decimal-float
    type; not implemented (documented). `STANDARD-BINARY` is spec-obsolete — not implemented.
 3. **Numeric carrier + division guard.** `long` (≤18 digits), `Int128` (19–38); a picture/intermediate needing
@@ -2081,9 +2081,9 @@ identical stdout; now the committed goldens, R69). The remaining items below sta
 10. **ALTER / GOBACK / UNTIL EXIT.** ALTER + the target-less GO TO are **85-ONLY**: obsolete in ANSI X3.23-1985
     (accepted at `--std 85`, no failing diagnostic), DELETED by ISO/IEC 1989:2002 → REJECTED at 2002/2014/2023
     (COBOL0810/0811) — the earlier "gated ON through 2014" was reconciled against the ISO history (the 2023
-    standard has no ALTER; §14.9.17 GO TO has only Formats 1–2). Realization: the D4 per-paragraph mutable field.
+    standard has no ALTER; §2023:14.9.17 GO TO has only Formats 1–2). Realization: the D4 per-paragraph mutable field.
     `PERFORM UNTIL EXIT` in scope (`while(true)` + EXIT PERFORM=`break`); a STOP RUN / main-program `GOBACK` WITH
-    {NORMAL|ERROR} STATUS (§14.9.42.4 GR5 / §14.9.18.4 GR10) writes the termination status into the run-unit
+    {NORMAL|ERROR} STATUS (§2023:14.9.42.4 GR5 / §2023:14.9.18.4 GR10) writes the termination status into the run-unit
     `RunUnit.ExitStatus` field, which the process-entry boundary (`ProgramTable.RunModule`) delivers to
     `Environment.ExitCode` when the run unit has ended (the status rides the run-unit field, NOT a
     `ProgramReturn`/`StopRun` payload — `ProgramReturn` is caught at the dispatcher, never reaching `Main`; the one shared
@@ -2099,15 +2099,15 @@ identical stdout; now the committed goldens, R69). The remaining items below sta
     image and the one-byte record medium (`FileCharacterSet`, which encodes the channel as strict ISO/IEC 8859-1). A
     LINE SEQUENTIAL file is UTF-8 text (`LineSequentialEncoding`). Design WISEOWL_COBOL_FILES D29; kb/Work PB1759, PB1760.
 14. **Figurative HIGH/LOW-VALUE + collating.** No PCS ⇒ `HIGH-VALUE`=U+FFFF / `LOW-VALUE`=U+0000 in BOTH classes —
-    the extremes of the 65,536-position native sequence (§8.3.3.6.4 GR6/GR7; owner decision kb/Work R52, which
+    the extremes of the 65,536-position native sequence (§2023:8.3.3.6.4 GR6/GR7; owner decision kb/Work R52, which
     retired the former alphanumeric U+00FF pin — kb/Work PB1093; `WiseOwl.Cobol.Runtime.NativeCollatingSequence`). With a
-    PROGRAM COLLATING SEQUENCE they are the sequence's EXTREME characters (ISO §8.3.3.6 GR6/7 +
-    §12.3.7 GR8/9 — character identity, ties: highest→last-specified, lowest→first-specified). The custom-`ALPHABET`
-    subsystem is LIVE in BOTH classes (§12.3.7.2 two-branch format, the FOR phrase in its ISO position between the
+    PROGRAM COLLATING SEQUENCE they are the sequence's EXTREME characters (ISO §2023:8.3.3.6 GR6/7 +
+    §2023:12.3.7 GR8/9 — character identity, ties: highest→last-specified, lowest→first-specified). The custom-`ALPHABET`
+    subsystem is LIVE in BOTH classes (§2023:12.3.7.2 two-branch format, the FOR phrase in its ISO position between the
     name and IS; a FOR phrase written after the definition — once an accepted "historical superset" on ALPHABET and a
     bare parse error on CLASS — is the grammar's `misplacedSpecialNamesForPhrase` error production, refused by name
     (COBOL2315) for ALPHABET, CLASS and SYMBOLIC CHARACTERS alike in `ClosedFormatPass`, kb/Work PB977):
-    - **⛔ ONE literal-operand decoder for the ALPHABET and CLASS clauses** (kb/Work PB976). §12.3.7.3 states the
+    - **⛔ ONE literal-operand decoder for the ALPHABET and CLASS clauses** (kb/Work PB976). §2023:12.3.7.3 states the
       same operand rules twice — SR14 b/c for the ALPHABET literal phrase, SR17 b/c for the CLASS clause, under
       different item numbers — so `SpecialNamesBinder.LiteralPhraseOperand` decodes every operand of both, held to a
       per-clause `LiteralPhraseRules` value (the clause's descriptor, rule number and item numbers, its class, and
@@ -2115,20 +2115,20 @@ identical stdout; now the committed goldens, R69). The remaining items below sta
       SR17's class-dependent half (the IN alphabet's class, each literal's class, one character under THROUGH) went
       unenforced and figurative constants decoded as their own spelling. The FOR phrase of all three clauses is read
       by ONE helper, `ForPhraseIsNational`; a user class records its class (`UserClassDef.National`).
-    - **⛔ ONE table, ONE builder, ONE runtime carrier for BOTH classes** (kb/Work PB770). §12.3.7.4 GR7 k states its
+    - **⛔ ONE table, ONE builder, ONE runtime carrier for BOTH classes** (kb/Work PB770). §2023:12.3.7.4 GR7 k states its
       six sub-rules ONCE, "where the native coded character set is the type of coded character set or collating
       sequence being defined, either alphanumeric or national", and both native sets are the 65,536 UTF-16 code units
       here (implementor item 188 / D-N1) — so `CollatingTable` (binder), `LiteralPhraseCollation` (runtime, with
       `AlphanumericCollation` / `NationalCollation` as its two named arms) and `SpecialNamesBinder`'s
       `AlphabetLiteralPhrase` / `AlphabetOperands` each exist exactly once and take a `national` flag that reaches
       only the diagnostics and the per-operand literal CLASS. The arms drifted for as long as they were separate:
-      the alphanumeric one implemented NONE of §12.3.7.3 SR14 (duplicates, the ordinal range, the literal class, the
+      the alphanumeric one implemented NONE of §2023:12.3.7.3 SR14 (duplicates, the ordinal range, the literal class, the
       one-character THROUGH/ALSO operand) and masked every operand into a 256-wide Latin-1 block, so
       `ALPHABET A IS 305 THRU 300` — legal source naming U+012B..U+0130 — silently reversed `'+'`…`'0'`.
     - **The table is SPARSE in both classes**: only the SPECIFIED characters are tabulated; every unspecified one
       takes its GR7 k3 position arithmetically, and the runtime materializes an O(1) weight cache up to the highest
       specified character so the comparison hot path costs one array index. The width is therefore the REPERTOIRE,
-      not a block — §12.3.7.4 GR7 1., whose sub-rule **3** places the unspecified tail:
+      not a block — §2023:12.3.7.4 GR7 1., whose sub-rule **3** places the unspecified tail:
       "Any characters of the native collating sequence that are not specified in the literal phrase shall assume a
       position in the collating sequence that is greater than that of the highest character specified in this
       literal phrase. The relative order within the set of these unspecified characters is unchanged from the
@@ -2136,26 +2136,26 @@ identical stdout; now the committed goldens, R69). The remaining items below sta
       the generated `__COLLATE` field (declared by `ObjectComputerEmit.EmitMembers` for EVERY runtime-module
       type — a program class and a CLASS-ID's instance/factory classes alike, kb/Work PB111, beside the
       `__COLLATE_NAT` and `__CLASSIFY` members), consumed by the settled seam `CobolString.Compare(a,b,weights)` at every
-      relation/condition-name comparison site (§12.3.6 GR11), by CHAR/ORD (H5 flag), and by the PCS-aware
+      relation/condition-name comparison site (§2023:12.3.6 GR11), by CHAR/ORD (H5 flag), and by the PCS-aware
       figurative fills.
     - **National** (P10 Step 4): the SAME `CollatingTable` over the 65,536 UTF-16 code units — built by
       `AlphabetBindNational` through the shared `AlphabetLiteralPhrase` (`NationalAlphabets`/`NationalCollating`),
       rendered as the generated `__COLLATE_NAT` `NationalCollation` instance, consumed by
-      `CobolString.Compare(a,b,national)` at national relation/condition-name sites (§8.8.4.2.9 / §12.3.6 GR11),
-      by CHAR-NATIONAL/ORD-over-national (`CollateNat`, §15.16.4/§15.70.4 r2), and by the national figurative
-      fills (§12.3.7 GR8/9). Code-set phrases: **UCS-4** names the ISO 10646 collating sequence — on the D-N1
-      one-code-unit-per-position substrate that IS the native code-unit order (§8.5.1.4 denies surrogate-pair
+      `CobolString.Compare(a,b,national)` at national relation/condition-name sites (§2023:8.8.4.2.9 / §2023:12.3.6 GR11),
+      by CHAR-NATIONAL/ORD-over-national (`CollateNat`, §2023:15.16.4/§2023:15.70.4 r2), and by the national figurative
+      fills (§2023:12.3.7 GR8/9). Code-set phrases: **UCS-4** names the ISO 10646 collating sequence — on the D-N1
+      one-code-unit-per-position substrate that IS the native code-unit order (§2023:8.5.1.4 denies surrogate-pair
       recognition, so the supplementary-plane codepoint/code-unit divergence is unreachable; the correspondence is
-      the BMP identity, implementor item 188) — and **UTF-8/UTF-16** name coded character sets ONLY (§12.3.7 GR7
+      the BMP identity, implementor item 188) — and **UTF-8/UTF-16** name coded character sets ONLY (§2023:12.3.7 GR7
       Table 6): referencing them as a collating sequence is rejected (0898), and their coded-set role reaches the
       medium only as the documented A.3 item 27 non-support — a variable-width medium encoding is not a code this
       processor writes (item 14a below; the CODE-SET boundary codec itself is LIVE, kb/Work PB793).
-    **§12.3.7.3 SR14/SR15 are enforced once, for both arms** (`COBOL1906` / `COBOL1907`): a) no character
+    **§2023:12.3.7.3 SR14/SR15 are enforced once, for both arms** (`COBOL1906` / `COBOL1907`): a) no character
     twice (recovery keeps the first), b1/c1 BOTH halves of its one sentence -- an UNSIGNED integer AND the 1..65,536 range, b2/c2 the operand's literal class,
     b3/c3 one character under THROUGH/ALSO, and SR15 — **a TABLE, `Binding/ImplementorCodeNames.cs`, not a pair of
     arms** (kb/Work PB793). SR15 says "The implementor shall specify the names supported for code-name-1 and
     code-name-2 in the ALPHABET clause, if any", and the answer is one row per supported name carrying everything
-    §12.3.7.4 GR7 i/j obliges the implementor to supply for it — the coded character set's ordinal count, the
+    §2023:12.3.7.4 GR7 i/j obliges the implementor to supply for it — the coded character set's ordinal count, the
     collating positions, and the correspondence with the native set. `SpecialNamesBinder.AlphabetCodeName` is a LOOKUP
     keyed by (spelling, class) with the refusal on miss, so **the next supported code-name is a row and no code
     path at all**, and the diagnostic names the supported set FROM the table. The set (owner decision, PB793;
@@ -2164,40 +2164,40 @@ identical stdout; now the committed goldens, R69). The remaining items below sta
     and **`EBCDIC`** (IBM CCSID 37 — 256 ordinals, collating position = the page's code unit, correspondence = the
     page, DERIVED from `Encoding.GetEncoding(37)` at bind time and never transcribed); code-name-2 = none. Both
     columns of Table 6 are live for a code-name: the sequence rides the SAME sparse `CollatingTable` (built through
-    the shared `CollatingTable.Build`, which is also where §12.3.7.4 GR8/GR9's extremes are computed for the
+    the shared `CollatingTable.Build`, which is also where §2023:12.3.7.4 GR8/GR9's extremes are computed for the
     literal-phrase arm), and the set rides `CodedCharacterSet`, whose `OrdinalCount` and new `Medium` read the row.
-    A bare word that is NOT in the table and is not a general-format keyword or a §12.3.7.4 GR10 figurative
+    A bare word that is NOT in the table and is not a general-format keyword or a §2023:12.3.7.4 GR10 figurative
     constant is a diagnostic and never (as it was) the characters of its own spelling. b4/c4 needs no check: a) makes every specified character
     distinct, and distinct characters of a set cannot outnumber the set. `LiteralChars` — the general helper whose
     ordinal branch carried the CLASS clause's descriptor, message and rule number into the ALPHABET and CURRENCY
     clauses — is now `ClassLiteralChars` with a REQUIRED class-name, beside an ordinal-free `LiteralCharsOf`.
-    SORT/MERGE: the statement resolves BOTH sequences as a `SortCollation` PAIR — §14.9.40.4 GR5 / §14.9.24.4 GR5
+    SORT/MERGE: the statement resolves BOTH sequences as a `SortCollation` PAIR — §2023:14.9.40.4 GR5 / §2023:14.9.24.4 GR5
     determine them SEPARATELY, alphabet-name-1 (GR5a) or the alphanumeric program collating sequence (GR5b) for keys
     of class alphabetic and alphanumeric, alphabet-name-2 / the FOR NATIONAL form (GR5a) or the national program
     collating sequence (GR5b) for keys of class national — and each KEY takes the one its class names, through the
     ONE classifier `CollatingSelection.Of` (kb/Work PB678). A key of class boolean or numeric takes NEITHER: GR5
-    names no sequence for those classes, and §8.8.4.2.8 / §8.8.4.2.4 compare them by value.
+    names no sequence for those classes, and §2023:8.8.4.2.8 / §2023:8.8.4.2.4 compare them by value.
     RELATION CONDITIONS ask a **different question with a different classifier**, `CollatingSelection.ForComparison`
-    (kb/Work PB741): which of §8.8.4.2's per-class comparison clauses does this relation select, given **BOTH**
-    operands' categories — boolean if either is boolean (§8.8.4.2.8), else national if either is national
-    (§8.8.4.2.9, which §8.8.4.2.6 and §8.8.4.2.5 both route into), else numeric only if **both** are numeric
-    (§8.8.4.2.4), else alphanumeric (§8.8.4.2.7, carrying §8.8.4.2.1's normalizations — an alphanumeric group and a
-    class alphabetic operand are "treated as" elementary alphanumeric — and §8.8.4.2.5's numeric integer against an
+    (kb/Work PB741): which of §2023:8.8.4.2's per-class comparison clauses does this relation select, given **BOTH**
+    operands' categories — boolean if either is boolean (§2023:8.8.4.2.8), else national if either is national
+    (§2023:8.8.4.2.9, which §2023:8.8.4.2.6 and §2023:8.8.4.2.5 both route into), else numeric only if **both** are numeric
+    (§2023:8.8.4.2.4), else alphanumeric (§2023:8.8.4.2.7, carrying §2023:8.8.4.2.1's normalizations — an alphanumeric group and a
+    class alphabetic operand are "treated as" elementary alphanumeric — and §2023:8.8.4.2.5's numeric integer against an
     alphanumeric operand). `EmitContext.CollateArgFor(left, right)` takes the PAIR, so a caller cannot supply half a
     comparison, and all four relation surfaces go through it: the direct relation, the figurative relation, the
-    level-88 membership test (§8.8.4.5.3 GR2) and the EVALUATE THRU range (§14.7.8 rule 2). ⛔ The two classifiers
+    level-88 membership test (§2023:8.8.4.5.3 GR2) and the EVALUATE THRU range (§2023:14.7.8 rule 2). ⛔ The two classifiers
     must stay separate: folding the comparison onto `Of` made `IF numeric-item < SPACE` take the SORT-key answer
     ("numeric ⇒ no sequence") and silently drop the PROGRAM COLLATING SEQUENCE — NIST NC215A SEQ-TEST-GF-6/-7.
     `CollatingComparisonClassDriftTests` pins the whole category matrix and the exact pair where they disagree.
-14a. **The alphabet as a CODED CHARACTER SET (ISO §12.3.7.4 GR7 Table 6 — kb/Work PB110 / PB109).** An
+14a. **The alphabet as a CODED CHARACTER SET (ISO §2023:12.3.7.4 GR7 Table 6 — kb/Work PB110 / PB109).** An
     alphabet-name references a collating sequence, a coded character set, or both; NOTE 2 of GR7 names the four
     sites that reference the CODED CHARACTER SET — "*the class condition, the CLASS clause …, a SYMBOLIC CHARACTERS
     clause, or the CODE-SET clause*" — and Table 6 which phrases define one (every phrase but LOCALE). ONE model
     serves all four: `Binding/CodedCharacterSet.cs` — `CodedCharacterSet.Of(AlphabetDef)` / `Of(NationalAlphabetDef)`
     (null for a LOCALE alphabet, and the ONE refusal `SpecialNamesBinder.CodedCharacterSetOf(name, site, rule)` → COBOL1669
-    at every site — §8.8.4.4.3 SR2, §12.3.7.3 SR16g / SR17d, §13.18.13.3 SR1/SR2), with `CharAt(ordinal)` (the
-    character at an ORDINAL POSITION — GR11 b/c, GR12 a), `Contains(rune)` (the class test, §8.8.4.4.4 GR3 a) and
-    `Medium` + `MediumCorrespondence` (the medium codec, §13.18.13.4 GR2/GR6 — the ONE classifier that says whether
+    at every site — §2023:8.8.4.4.3 SR2, §2023:12.3.7.3 SR16g / SR17d, §2023:13.18.13.3 SR1/SR2), with `CharAt(ordinal)` (the
+    character at an ORDINAL POSITION — GR11 b/c, GR12 a), `Contains(rune)` (the class test, §2023:8.8.4.4.4 GR3 a) and
+    `Medium` + `MediumCorrespondence` (the medium codec, §2023:13.18.13.4 GR2/GR6 — the ONE classifier that says whether
     a set crosses the storage boundary as the identity, through a conversion, or not at all: `CodeSetMedium`
     `Identity` / `Translated` / `NotProvided`, the last being the documented A.3 item 27 non-support. A `Translated`
     set — a code-name's GR7 i correspondence (EBCDIC, 256 entries) or the 128-entry identity of an ISO/IEC 646
@@ -2206,7 +2206,7 @@ identical stdout; now the committed goldens, R69). The remaining items below sta
     applies as
     `WiseOwl.Cobol.Runtime.IO.CodeSetConversion` at the ONE physical boundary of each organization —
     `SequentialConnector.NextFrame` and its `EmitRecord`/`EmitRecordLine`/`OverwriteInPlace` twins, and
-    `RecordFraming`'s store payload for RELATIVE and INDEXED. The §9.1.7.2 framing this processor adds AROUND a
+    `RecordFraming`'s store payload for RELATIVE and INDEXED. The §2023:9.1.7.2 framing this processor adds AROUND a
     record — the length prefix, the line delimiter — is not data of the record and stays native, kb/Work PB793). **Determinations (implementor items per GR7 c/d/f–k; documented
     in CONFORMANCE.md):** the native ALPHANUMERIC set is the UTF-16 repertoire in code-unit order — ordinal n is
     code unit n−1, 1 ≤ n ≤ 65 536 (the same ordinal FUNCTION CHAR / ORD use — one correspondence, never two);
@@ -2226,12 +2226,12 @@ identical stdout; now the committed goldens, R69). The remaining items below sta
     the phrase name. **Consumers:** (a) `SYMBOLIC CHARACTERS` — each symbolic-character-1 defines a FIGURATIVE CONSTANT
     (GR11 a) whose value is the character at ordinal integer-1 in the native set or the `IN` alphabet's set (GR11 b/c;
     SR16 a/c/e/f/g checked); it is carried as `SpecialNamesBinder.SymbolicCharacters` (name → the one-character literal and
-    its class) and SUBSTITUTED where a figurative constant may stand (§8.3.3.6.2 Format 7 `[ALL] symbolic-character-1`;
-    §8.3.3.6.4 GR2 — it FILLS a fixed-length receiver / VALUE like SPACE, GR3 b — one character in DISPLAY / STRING):
+    its class) and SUBSTITUTED where a figurative constant may stand (§2023:8.3.3.6.2 Format 7 `[ALL] symbolic-character-1`;
+    §2023:8.3.3.6.4 GR2 — it FILLS a fixed-length receiver / VALUE like SPACE, GR3 b — one character in DISPLAY / STRING):
     the substituted form IS the ALL-literal NODE of that one character (`BoundAllLiteral` — the fill semantics of
-    §8.3.3.6.4 GR2/GR10 in every context; the VALUE path's raw text `ALL"c"`), carrying `BeginsWithAll = false`
+    §2023:8.3.3.6.4 GR2/GR10 in every context; the VALUE path's raw text `ALL"c"`), carrying `BeginsWithAll = false`
     for the BARE form so the screens that bar "a figurative constant that begins with the word ALL" (STRING /
-    UNSTRING §14.9.43.3 SR2, INSPECT §14.9.22.3 SR3) fire only on the written word; `ALL symbolic-character-1`
+    UNSTRING §2023:14.9.43.3 SR2, INSPECT §2023:14.9.22.3 SR3) fire only on the written word; `ALL symbolic-character-1`
     is the grammar arm `figurativeConstant : … | ALL cobolWord` (LAST, so the keyword and literal forms win);
     the bare form parses as a data reference and substitutes at the SAME hooks a constant-name does
     (`ExpressionBinder.FieldOperand` → `SymbolicOperand`, the VALUE capture, INSPECT's operand arm) — ONE
@@ -2241,8 +2241,8 @@ identical stdout; now the committed goldens, R69). The remaining items below sta
     and SYMBOLIC CHARACTERS bind AFTER the SPECIAL-NAMES walk (the clauses are order-free; the ALPHABET they name may
     follow them — the `ResolveProgramCollating` shape). The walk is DEPENDENCY-ordered throughout: ALPHABET itself
     binds after the paragraph's other clauses, because its `IS LOCALE locale-name-2` names a LOCALE clause the
-    §12.3.7.2 format prints AFTER it (kb/Work PB1558). (c) The class condition `identifier IS alphabet-name-1`
-    (§8.8.4.4.4 GR3 a — kb/Work PB109): `BoundCodedSetClassCondition` → `CobolClass.IsInCodedSet(s, kind)` — STANDARD-1/2
+    §2023:12.3.7.2 format prints AFTER it (kb/Work PB1558). (c) The class condition `identifier IS alphabet-name-1`
+    (§2023:8.8.4.4.4 GR3 a — kb/Work PB109): `BoundCodedSetClassCondition` → `CobolClass.IsInCodedSet(s, kind)` — STANDARD-1/2
     ⇒ every code unit ≤ U+007F; NATIVE / a literal phrase ⇒ every native character (TRUE for any content — GR7 k4 puts
     the whole native set in the code set); the national sets ⇒ well-formed UTF-16 (an unpaired surrogate is not a
     character of UCS-4 / UTF-8 / UTF-16). (d) `CODE-SET` — PB110 part 2 (`FILES_DESIGN.md`): the 2002 format
@@ -2266,16 +2266,16 @@ identical stdout; now the committed goldens, R69). The remaining items below sta
     boundary: every module writes the one shared field) that the process-entry boundary `ProgramTable.RunModule`
     delivers to `Environment.ExitCode` once, when the run unit has ended — runtime-side, never per-`Main` scaffolding,
     upholding §18.16; an embedding host's own exit code is never written, kb/Work PB3163). It is written by the STOP RUN / GOBACK
-    **WITH {NORMAL|ERROR} STATUS** phrase (§14.9.42.4 GR5 / §14.9.18.4 GR10 — the OS termination status) and, when
+    **WITH {NORMAL|ERROR} STATUS** phrase (§2023:14.9.42.4 GR5 / §2023:14.9.18.4 GR10 — the OS termination status) and, when
     implemented, by the RETURN-CODE special register; a single cross-subsystem owner AND a single delivery, never duplicated. NOTE:
-    RETURNING / GIVING is the **activation result** (§14.9.18.4 GR2 — moved into the caller's RETURNING item), a
+    RETURNING / GIVING is the **activation result** (§2023:14.9.18.4 GR2 — moved into the caller's RETURNING item), a
     DISTINCT mechanism from the OS status — it does NOT feed the exit code.
 21. **Whole-group-as-alphanumeric.** A generated `string AsImage()` / `FromImage()` per record struct is the
     PERMANENT typed-native mechanism for whole-group MOVE/compare of **DISPLAY-homogeneous** groups; a group with a
     COMP/COMP-3/COMP-5/float (non-character) leaf is the genuine mixed-USAGE byte-island routed to the Tier-C/file
     codec (#1). **Numeric-DISPLAY leaves are INCLUDED in the AsImage path (spec-grounded):** ISO §14.9
     MOVE GR4 fills a group with no conversion (a numeric-DISPLAY subordinate may legitimately hold spaces — using it
-    numerically is then incompatible data, §14.6.13.2), so a numeric-DISPLAY leaf *under a whole-referenced group* is
+    numerically is then incompatible data, §2023:14.6.13.2), so a numeric-DISPLAY leaf *under a whole-referenced group* is
     stored as its character image (`DataItem.StoreAsImage`; numeric use via `CobolNum.ParseDisplay`/`FormatDisplay`) —
     byte-faithful with NO byte[]. A numeric-DISPLAY leaf never referenced as part of a whole group stays a native
     `long` (invariant #2).

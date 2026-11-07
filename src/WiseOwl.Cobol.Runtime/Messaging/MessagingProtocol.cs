@@ -5,11 +5,11 @@ using WiseOwl.Cobol.Runtime.Exceptions;
 namespace WiseOwl.Cobol.Runtime.Messaging;
 
 /// <summary>
-/// ⛔ THE 2023 MESSAGE CONTROL PROTOCOL AS A STATE MACHINE (docs/rearchitecture/DESIGN-message-control.md design 5.2 to design 5.6; ISO §14.9.38.4 SEND, §14.9.31.4
-/// RECEIVE, §14.6.11 item 7). It takes the current statement (<see cref="BeginSend"/>, <see cref="BeginSendResponse"/>, <see cref="BeginReceive"/>) and
+/// ⛔ THE 2023 MESSAGE CONTROL PROTOCOL AS A STATE MACHINE (docs/rearchitecture/DESIGN-message-control.md design 5.2 to design 5.6; ISO §2023:14.9.38.4 SEND, §2023:14.9.31.4
+/// RECEIVE, §2023:14.6.11 item 7). It takes the current statement (<see cref="BeginSend"/>, <see cref="BeginSendResponse"/>, <see cref="BeginReceive"/>) and
 /// the events of <see cref="ProtocolEvent"/> (<see cref="Handle"/>), and answers each with the <see cref="ProtocolAction"/>s its peer executes on an
 /// <see cref="IPeerTransport"/>. It calls nothing, owns no thread and reads no clock, so one scripted scheduler can drive every interleaving the
-/// design lists (§7.2 "Protocol"). It runs on the run unit's thread only; at most one statement is current.
+/// design lists (§2023:7.2 "Protocol"). It runs on the run unit's thread only; at most one statement is current.
 /// <para><b>State, in memory only</b> (design 5.2). A requestor holds <c>Pending</c> (<see cref="SendState"/>, its one SEND in flight), <c>Sent</c> (messages whose
 /// reply is still due) and <c>Replies</c> (per serial: a reply, or "server ended"); a server holds <c>Offers</c> (per link, oldest first) and <c>Active</c>
 /// (per message taken: requestor, serial, receiving size). A run unit may be both. Links are kept per server across SENDs.</para>
@@ -203,7 +203,7 @@ internal sealed class MessagingProtocol
             if (!string.Equals(from.Mcs, _mcs, StringComparison.Ordinal)) return Done(StatementResult.Failed(ExceptionCatalog.McsInvalidTag));
             if (from.Party == MessageParty.Requestor)
             {
-                // §14.9.31.4 GR1 b: a missing or ended link is EC-MCS-REQUESTOR-FAILED.
+                // §2023:14.9.31.4 GR1 b: a missing or ended link is EC-MCS-REQUESTOR-FAILED.
                 if (!_inByRequestor.ContainsKey(from.Name!)) return Done(StatementResult.Failed(ExceptionCatalog.McsRequestorFailed));
                 receive = new ReceiveState(++_token, ReceiveKind.FromRequestor, capacity) { RequestorRunId = from.Name };
             }
@@ -225,7 +225,7 @@ internal sealed class MessagingProtocol
 
     /// <summary>The run unit ends (design 5.6): each active message is answered with EC-MCS-NORMAL-TERMINATION or EC-MCS-ABNORMAL-TERMINATION and spaces of the
     /// size its RECEIVE recorded, because "temp is a temporary data item that is the size of the receiving data item in the associated RECEIVE statement"
-    /// (ISO §14.6.11 item 7) that no statement set; then the links, the listener and the pending bell are closed, in that order. No statement completes.</summary>
+    /// (ISO §2023:14.6.11 item 7) that no statement set; then the links, the listener and the pending bell are closed, in that order. No statement completes.</summary>
     internal IReadOnlyList<ProtocolAction> End(bool abnormal)
     {
         if (_ended) return [];
@@ -442,7 +442,7 @@ internal sealed class MessagingProtocol
             _actions.Add(new Activate(send.Name));
             return;
         }
-        FinishSend(send, StatementResult.Failed(ExceptionCatalog.McsNoServer));      // §14.9.38.4 GR5
+        FinishSend(send, StatementResult.Failed(ExceptionCatalog.McsNoServer));      // §2023:14.9.38.4 GR5
     }
 
     /// <summary>Step 9: no link remains while the SEND waits, so it repeats step 3 once; the scan's answer decides.</summary>

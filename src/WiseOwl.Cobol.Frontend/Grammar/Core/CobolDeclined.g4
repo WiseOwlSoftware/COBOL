@@ -23,30 +23,30 @@
 // DATA DIVISION half, which is where 56 of A.4.14's 73 conditioned rules live.
 //
 // ⛔ THE PARSE IS DELIBERATELY PERMISSIVE INSIDE THE DECLINED CONSTRUCT, EXACT AT ITS EDGES. The licence is
-// §4.2.7 and A.4.1, NOT §4.2.6 (kb/Work PB709): §4.2.6's "it is not required to diagnose syntax errors within
+// §2023:4.2.7 and A.4.1, NOT §2023:4.2.6 (kb/Work PB709): §2023:4.2.6's "it is not required to diagnose syntax errors within
 // this unsupported syntax" is written of Annex A.3 PROCESSOR-DEPENDENT elements, and nothing in this file is one
 // — VALIDATE is A.4.14 and does not appear in A.3 at all. What licenses the permissive interior here is that an
-// unclaimed OPTIONAL element is not part of this implementation's syntax to begin with: §4.2.7 makes it one an
+// unclaimed OPTIONAL element is not part of this implementation's syntax to begin with: §2023:4.2.7 makes it one an
 // implementor "may, but need not, implement" and A.4.1 admits its syntax "only when support for that language
 // element is claimed", so there is no syntax of ours inside the construct for anything to diagnose. Nothing
 // excuses us from leaving the surrounding program parseable — so every rule here consumes its operands for real and
 // terminates on a token that cannot continue it, and none of them swallows to the period. The corollary is
-// that these rules do NOT enforce the declined clauses' own syntax rules (e.g. §13.18.62.3 SR7's subscript
+// that these rules do NOT enforce the declined clauses' own syntax rules (e.g. §2023:13.18.62.3 SR7's subscript
 // arithmetic): those rules are optional WITH the facility (A.4.1), and a second, unreachable enforcement of
 // them would be code nothing can ever exercise.
 //
 // ⛔ EVERY RULE HERE IS EDITION-GATED AT ITS LEFT EDGE, for TWO different reasons — and conflating them is how a
 // gate gets removed as redundant, or kept for the wrong one. kb/Work PB2291 adjudicated each gate against D7
-// (DESIGN §1.1: the parse reads the edition only for §8.9 word status; every construct gate is the
+// (DESIGN §1.1: the parse reads the edition only for §2023:8.9 word status; every construct gate is the
 // post-bind VersionConformancePass's):
-//   (a) WORD STATUS — sanctioned. The arms whose LEADING word is a §8.9 user-defined word below the edition that
+//   (a) WORD STATUS — sanctioned. The arms whose LEADING word is a §2023:8.9 user-defined word below the edition that
 //       reserves it (DEFAULT, PRESENT, VALIDATE-STATUS, VAL-STATUS and the VALID phrase, all reserved from 2002): an
 //       ungated arm would report "the declined VALIDATE facility" for a COBOL-85 program that is merely using a
 //       legal name — the wrong answer under the four-editions mandate.
 //   (b) A CONSTRUCT GATE — a D7 defect. The arms whose words have NO other reading below the introducing edition:
 //       CLASS, DESTINATION, INVALID and VARYING are reserved at all four editions (MEASURED against
-//       tests/version-matrix/reserved-words.json; CLASS because §12.3.7's SPECIAL-NAMES CLASS clause has always
-//       existed), and the data-description CLASS clause (§13.18.11) arrived with VALIDATE at COBOL-2002. Below its
+//       tests/version-matrix/reserved-words.json; CLASS because §2023:12.3.7's SPECIAL-NAMES CLASS clause has always
+//       existed), and the data-description CLASS clause (§2023:13.18.11) arrived with VALIDATE at COBOL-2002. Below its
 //       introduction such a construct does not exist, and the gate refuses it with a bare COBOL0001 where D7 wants
 //       the conformance pass to name the edition (COBOL0900). (kb/Work PB375 stated (a) for CLASS; the
 //       measurement says (b).)
@@ -65,18 +65,18 @@ options {
     tokenVocab = CobolLexer;
 }
 
-// ── A.4.14 item list, the DATA DIVISION half: the §13.16.2 "validation-clauses" group of the data
-//    description entry, plus the §13.18.63 format-5 content-validation entry (hooked into valueClause,
+// ── A.4.14 item list, the DATA DIVISION half: the §2023:13.16.2 "validation-clauses" group of the data
+//    description entry, plus the §2023:13.18.63 format-5 content-validation entry (hooked into valueClause,
 //    not here, because it is a TAIL of the VALUE clause rather than a clause of its own).
 //
-//    ⚖ THE §13.18.11 CLASS CLAUSE IS HERE BY OWNER DECISION, 2026-09-02 (kb/Work PB375) — it is DECLINED
+//    ⚖ THE §2023:13.18.11 CLASS CLAUSE IS HERE BY OWNER DECISION, 2026-09-02 (kb/Work PB375) — it is DECLINED
 //    WITH VALIDATE. It was held out until then because Annex A.4 NEVER LISTS IT — not under A.4.14, not
 //    anywhere — and it is the only clause of the group carrying no "obsolete feature" NOTE, so two readings
 //    were open and neither is decidable from the text: if the clause is NOT optional, A.4.1 obliges us to
 //    ACCEPT `CLASS IS NUMERIC`, and declining it would reject legal source. The owner decided the other way,
-//    on the ground the §13.16.2 group itself supplies: the printed Format-1 `validation-clauses` block opens
+//    on the ground the §2023:13.16.2 group itself supplies: the printed Format-1 `validation-clauses` block opens
 //    with `[ class-clause ]` and its meta-language table maps class-clause → "13.18.11, CLASS clause"
-//    (RENDERED, PDF p394 / folio 364 — not read from the OCR alone), and §13.18.11.1 gives the clause no
+//    (RENDERED, PDF p394 / folio 364 — not read from the OCR alone), and §2023:13.18.11.1 gives the clause no
 //    content outside the module: "The CLASS clause specifies a range of values for each character of a data
 //    item, to be checked during the content validation stage of the execution of a VALIDATE statement."
 //    A.4.1's second sentence carries the licence to an optional element's unlisted associated rules.
@@ -95,7 +95,7 @@ options {
 // the LEFT EDGE of that alternative, where a semantic predicate steers PREDICTION: mid-alternative it lets
 // the alternative be chosen and then throws a raw parse error (the `left_edge_predicates` lesson). WHY the
 // gate is needed is the file header's two-reason split — (a) word status, for the clause words that are ordinary
-// user-defined words at COBOL-85 (§8.9), (b) a construct gate (a recorded D7 defect), for CLASS, DESTINATION,
+// user-defined words at COBOL-85 (§2023:8.9), (b) a construct gate (a recorded D7 defect), for CLASS, DESTINATION,
 // INVALID and VARYING, which are reserved at every edition and whose data-description clauses do not exist below
 // 2002. Stated once, there; do not restate it here.
 validationClause
@@ -108,28 +108,28 @@ validationClause
     | validateStatusClause
     ;
 
-// ISO §13.18.11.2 — CLASS IS { NUMERIC | ALPHABETIC | ALPHABETIC-LOWER | ALPHABETIC-UPPER | BOOLEAN |
+// ISO §2023:13.18.11.2 — CLASS IS { NUMERIC | ALPHABETIC | ALPHABETIC-LOWER | ALPHABETIC-UPPER | BOOLEAN |
 //                              alphabet-name-1 | class-name-1 }
-// RENDERED (PDF p412 / folio 382): CLASS and the five class-name keywords are underlined; IS is not (§5.2.3
+// RENDERED (PDF p412 / folio 382): CLASS and the five class-name keywords are underlined; IS is not (§2023:5.2.3
 // optional word); the braces are a plain required choice with NO choice indicators — exactly one alternative.
 // ⛔ EVERY PRINTED KEYWORD IS AN ARM, BOOLEAN INCLUDED (kb/Work PB3831). BOOLEAN used to be left out, on the
 // premise that a syntax error inside a declined construct costs nothing. It did cost something: BOOLEAN has a
 // lexer token and is reserved at 2002+, so cobolWord does not admit it there, the parse failed at the operand,
 // and the error listener answered COBOL0901 ("'BOOLEAN' is a reserved word ... cannot be used as a
-// user-defined word") — a FALSE statement, since §13.18.11.2 prints BOOLEAN as the clause's own keyword —
+// user-defined word") — a FALSE statement, since §2023:13.18.11.2 prints BOOLEAN as the clause's own keyword —
 // instead of the declined-facility refusal COBOL1708 every other operand draws. A keyword the arms omit
 // does not fall into "permissive inside": it falls to cobolWord, and cobolWord refuses a reserved word. The
 // same mechanism hit FORMAT in validateStatusStage (kb/Work PB693) and the class condition's BOOLEAN (kb/Work
 // PB857). DeclinedFacilityDriftTests.EveryPrintedKeyword_IsAnArmOfItsRule derives each declined rule's keywords
 // from its cited general format in specs/ISO_COBOL_2023.md on every run, so the next omission fails there.
-// ⚠ THIS IS NOT THE CLASS CONDITION'S LIST. §13.18.11.2's brace group and §8.8.4.4.2's are different formats
+// ⚠ THIS IS NOT THE CLASS CONDITION'S LIST. §2023:13.18.11.2's brace group and §2023:8.8.4.4.2's are different formats
 // of different constructs that happen to share four keywords — `className` (Core/CobolExpressions.g4) is the
 // condition's ONE list, and ClassConditionTableDriftTests exempts this rule BY NAME with that reason.
 validateClassClause
     : CLASS IS? validateClassOperand
     ;
 
-// The printed brace group. alphabet-name-1 and class-name-1 are user-defined words (§8.9 reserves neither),
+// The printed brace group. alphabet-name-1 and class-name-1 are user-defined words (§2023:8.9 reserves neither),
 // so they ride cobolWord; the five keywords are reserved at every edition the clause exists in and need
 // explicit arms because cobolWord does not admit them. Order follows the printed column.
 validateClassOperand
@@ -141,25 +141,25 @@ validateClassOperand
     | cobolWord
     ;
 
-// ISO §13.18.17.2 — DEFAULT IS { literal-1 | identifier-1 | NONE }. NONE is a §8.10 context-sensitive word
+// ISO §2023:13.18.17.2 — DEFAULT IS { literal-1 | identifier-1 | NONE }. NONE is a §2023:8.10 context-sensitive word
 // ("DEFAULT clause") and needs no token of its own: it rides dataReference, and the binder names the clause
-// either way. IS is not underlined in the printed format (an optional word, §5.2.3).
+// either way. IS is not underlined in the printed format (an optional word, §2023:5.2.3).
 validateDefaultClause
     : DEFAULT IS? (literal | dataReference)
     ;
 
-// ISO §13.18.18.2 — DESTINATION IS { identifier-1 } … (DESTINATION underlined, IS not).
+// ISO §2023:13.18.18.2 — DESTINATION IS { identifier-1 } … (DESTINATION underlined, IS not).
 validateDestinationClause
     : DESTINATION IS? dataReference+
     ;
 
-// ISO §13.18.31.2 — INVALID WHEN condition-1 (both words underlined). §13.16.2 prints this clause inside a
+// ISO §2023:13.18.31.2 — INVALID WHEN condition-1 (both words underlined). §2023:13.16.2 prints this clause inside a
 // `{ … } …` repetition group, so an entry may carry several.
 validateInvalidClause
     : INVALID WHEN condition
     ;
 
-// ISO §13.18.41.2 FORMAT 2 (validation) — PRESENT WHEN condition-2. Format 1 (report-writer) has the SAME
+// ISO §2023:13.18.41.2 FORMAT 2 (validation) — PRESENT WHEN condition-2. Format 1 (report-writer) has the SAME
 // spelling and is SUPPORTED (Annex A.4.11 item 14; §5 records report writer as Partial with it implemented):
 // the two are told apart by WHERE they are written, not by how, so format 1 keeps its own rule
 // (reportPresentWhenClause, CobolReportWriter.g4) and this arm reaches only data description entries.
@@ -167,7 +167,7 @@ validatePresentWhenClause
     : PRESENT WHEN condition
     ;
 
-// ISO §13.18.64.2 — VARYING { data-name-1 [ FROM arith-1 ] [ BY arith-2 ] } … The report-writer leg is the
+// ISO §2023:13.18.64.2 — VARYING { data-name-1 [ FROM arith-1 ] [ BY arith-2 ] } … The report-writer leg is the
 // same shape and IS supported (A.4.11 item 20 / reportVaryingClause); same split as PRESENT WHEN.
 validateVaryingClause
     : VARYING validateVaryingSpec+
@@ -177,38 +177,38 @@ validateVaryingSpec
     : cobolWord (FROM arithmeticExpression)? (BY arithmeticExpression)?
     ;
 
-// ISO §13.18.62.2 — { VALIDATE-STATUS | VAL-STATUS } IS { identifier-1 | literal-1 }
+// ISO §2023:13.18.62.2 — { VALIDATE-STATUS | VAL-STATUS } IS { identifier-1 | literal-1 }
 //                   WHEN { ERROR | NO ERROR } [ ON { |FORMAT| |CONTENT| |RELATION| } ] FOR { identifier-2 } …
-// §13.18.62.3 SR9: the two leading words are EQUIVALENT ("The words VAL-STATUS and VALIDATE-STATUS are
-// equivalent"). The printed ON group carries CHOICE INDICATORS (§5.2.6.4 — "one or more of the alternatives
+// §2023:13.18.62.3 SR9: the two leading words are EQUIVALENT ("The words VAL-STATUS and VALIDATE-STATUS are
+// equivalent"). The printed ON group carries CHOICE INDICATORS (§2023:5.2.6.4 — "one or more of the alternatives
 // contained within the choice indicators shall be specified, but any single alternative shall be specified
 // only once", "in any order"), which is why the stage list is a repetition rather than a single alternation.
 // The loop terminates on FOR, a hard token.
 //
-// ⛔ FORMAT, CONTENT and RELATION ARE KEYWORDS HERE — all three are UNDERLINED in §13.18.62.2's printed
-// diagram (KEYWORDS, §5.2.2 — "shown in uppercase and underlined"), NOT user-defined words — so each
-// needs an arm that survives the §8.9 RESERVATION GATE on cobolWord (kb/Work PB693). That gate enforces
-// §8.3.2.1 rule 1 ("Reserved words shall not be used as user-defined words or system-names") by removing a
+// ⛔ FORMAT, CONTENT and RELATION ARE KEYWORDS HERE — all three are UNDERLINED in §2023:13.18.62.2's printed
+// diagram (KEYWORDS, §2023:5.2.2 — "shown in uppercase and underlined"), NOT user-defined words — so each
+// needs an arm that survives the §2023:8.9 RESERVATION GATE on cobolWord (kb/Work PB693). That gate enforces
+// §2023:8.3.2.1 rule 1 ("Reserved words shall not be used as user-defined words or system-names") by removing a
 // reserved word's cobolWord alternative at the editions that reserve it — so a KEYWORD slot that borrows
-// cobolWord is broken by construction there. FORMAT is §8.9-reserved from 2002 and DOES have a lexer
-// token (CobolLexer.g4 FORMAT, serving the FD FORMAT clause §13.18.24) — the comment that stood here
+// cobolWord is broken by construction there. FORMAT is §2023:8.9-reserved from 2002 and DOES have a lexer
+// token (CobolLexer.g4 FORMAT, serving the FD FORMAT clause §2023:13.18.24) — the comment that stood here
 // claimed it had none, and that false premise is exactly what left it riding cobolWord and made
 // `ON FORMAT …` a parse error at 2002+ (with a FALSE
 // "'FORMAT' is a reserved word … cannot be used as a user-defined word" from the error listener) instead of
 // the declined-facility COBOL1708. It gets its own arm, the CONTENT precedent in this rule and the
-// validateClassOperand precedent above. RELATION keeps the cobolWord sink: §8.10 makes it CONTEXT-SENSITIVE
+// validateClassOperand precedent above. RELATION keeps the cobolWord sink: §2023:8.10 makes it CONTEXT-SENSITIVE
 // ("VALIDATE-STATUS clause"), so it is reserved at no edition, has no lexer token, arrives as IDENTIFIER and
 // no gate can reach it. Leaving that arm a word SINK rather than a text predicate is this file's declared
-// posture (permissive INSIDE the declined construct, exact at its edges — §4.2.7): the clause is refused as
+// posture (permissive INSIDE the declined construct, exact at its edges — §2023:4.2.7): the clause is refused as
 // a whole whichever arm matched, so no operand distinction is observable.
 //
-// ⛔ WHEN IS AN OPTIONAL WORD (§8.3.2.4.3; kb/Work PB695 family 3), so `VALIDATE-STATUS IS "E" ERROR FOR X` is
+// ⛔ WHEN IS AN OPTIONAL WORD (§2023:8.3.2.4.3; kb/Work PB695 family 3), so `VALIDATE-STATUS IS "E" ERROR FOR X` is
 // conforming source this rule used to refuse with COBOL0001 instead of the documented COBOL1708 refusal —
-// which is the whole point of a DECLINED construct's grammar being exact (§4.2.7): a declined feature must be
+// which is the whole point of a DECLINED construct's grammar being exact (§2023:4.2.7): a declined feature must be
 // REFUSED BY NAME, never mis-diagnosed as a syntax error. MEASURED on printed page 543 / folio 513: WHEN's box
 // 312.75–343.36 has NO horizontal rule in its band, and neither does IS (already optional here), while ERROR
 // (93.3%), NO (83.5%) and ON (83.5%) all carry one. ERROR stays the required anchor of the phrase.
-// ⚠ WHEN IS UNDERLINED in the VALUE clause's format 5 (§13.18.63.2), whose `[ WHEN condition-1 ]` is a
+// ⚠ WHEN IS UNDERLINED in the VALUE clause's format 5 (§2023:13.18.63.2), whose `[ WHEN condition-1 ]` is a
 // DIFFERENT phrase on a different page — validateValidPhrase below keeps VALUE's WHEN required. Two formats,
 // two verdicts, both measured.
 validateStatusClause
@@ -219,13 +219,13 @@ validateStatusClause
 validateStatusStage
     : CONTENT
     | FORMAT
-    | cobolWord      // RELATION (§8.10 context-sensitive — no token, arrives as IDENTIFIER)
+    | cobolWord      // RELATION (§2023:8.10 context-sensitive — no token, arrives as IDENTIFIER)
     ;
 
-// ISO §13.18.63.2 FORMAT 5 (content-validation-entry) — the tail that turns a level-88 VALUE list into a
+// ISO §2023:13.18.63.2 FORMAT 5 (content-validation-entry) — the tail that turns a level-88 VALUE list into a
 // content-validation entry: [ IS | ARE ] { INVALID | VALID } [ WHEN condition-1 ]. Hooked onto valueClause's
 // condition-name arm, so the literal/THRU list ahead of it is the arm the supported formats 1/3/4 already
-// parse. §13.16.2 Format 4 (`88 [ condition-name-2 ] value-clause .`) makes the condition-name OPTIONAL in
+// parse. §2023:13.16.2 Format 4 (`88 [ condition-name-2 ] value-clause .`) makes the condition-name OPTIONAL in
 // this format; the entry-name slot is already optional in dataDescriptionEntry, so no change is needed for it.
 validateValidPhrase
     : (IS | ARE)? (VALID | INVALID) (WHEN condition)?

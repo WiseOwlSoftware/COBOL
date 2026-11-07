@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB432 — the §14.9.28.2 varying-phrase prints a BRACE GROUP in each operand slot:
+      *> kb/Work PB432 — the §2023:14.9.28.2 varying-phrase prints a BRACE GROUP in each operand slot:
       *> FROM { identifier-3 | index-name-2 | literal-1 }, BY { identifier-4 | literal-2 } (rendered from the
       *> printed page 683 / PDF 713). An arithmetic expression is not one of them. Both slots used to be typed
       *> `arithmeticExpression`, so this program compiled and ran at every --std with no diagnostic.

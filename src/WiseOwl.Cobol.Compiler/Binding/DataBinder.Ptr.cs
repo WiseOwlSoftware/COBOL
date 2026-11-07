@@ -7,13 +7,13 @@ using WiseOwl.Cobol.Binding.Model;
 namespace WiseOwl.Cobol.Binding;
 
 /// <summary>
-/// The data-pointer half of the data binder (Phase-4b increment 2 — ISO §13.18.5 BASED / §8.4.3.11 ADDRESS OF;
+/// The data-pointer half of the data binder (Phase-4b increment 2 — ISO §2023:13.18.5 BASED / §2023:8.4.3.11 ADDRESS OF;
 /// the PHASE4_RECONCILIATION "M2-DATA-5 / M2-PROC-5 — increment 2" design). Both jobs are instances of the ONE
 /// cell-backing mechanism (<see cref="ForceStringCanonical"/>, the factored EXTERNAL re-basing): a BASED 01/77
 /// becomes a storage TEMPLATE whose backing is a pointer-deref bridge (<c>ref CobolPtr.Deref(__addr_X, w).Ref</c>
 /// — every reference windows the ADDRESSED cell at the pointer's runtime offset); an ADDRESS-OF-taken item's
 /// record moves onto a per-instance <see cref="WiseOwl.Cobol.Runtime.StorageCell"/> so a
-/// <see cref="WiseOwl.Cobol.Runtime.CellPointer"/> can alias its storage with structural (§8.8.4.2) equality.
+/// <see cref="WiseOwl.Cobol.Runtime.CellPointer"/> can alias its storage with structural (§2023:8.8.4.2) equality.
 /// </summary>
 public sealed partial class DataBinder
 {
@@ -23,10 +23,10 @@ public sealed partial class DataBinder
     /// test construction) walks for itself.</summary>
     internal StorageClaimScan ClaimScans { get; init; } = new();
 
-    /// <summary>⛔ WHO ENDS A CELL'S LIFE, ONE CLASSIFICATION (kb/Work PB1216). ISO §13.18.5.4 GR4 raises EC-BOUND-PTR for a
-    /// reference through an address that is "not a valid address of storage", and §8.6.5 says the association "may cease
+    /// <summary>⛔ WHO ENDS A CELL'S LIFE, ONE CLASSIFICATION (kb/Work PB1216). ISO §2023:13.18.5.4 GR4 raises EC-BOUND-PTR for a
+    /// reference through an address that is "not a valid address of storage", and §2023:8.6.5 says the association "may cease
     /// to exist because the actual data no longer exists, as specified 8.6.4" — so every cell-backed record's storage
-    /// duration (§8.6.4) decides which event ENDS the cell, and this is the one place the three are told apart:
+    /// duration (§2023:8.6.4) decides which event ENDS the cell, and this is the one place the three are told apart:
     /// <list type="bullet">
     /// <item><see cref="CellLifetime.Static"/> — a RECURSIVE unit's static WORKING-STORAGE and a method's WORKING-STORAGE
     /// (<see cref="StorageTierSlice.StaticAddressableCells"/>): one copy, re-seeded IN PLACE by <c>__ResetStatics</c> at a CANCEL, which
@@ -64,7 +64,7 @@ public sealed partial class DataBinder
     }
 
     /// <summary>⛔ THE LATE DOOR OF <see cref="StorageTierSlice"/> (design §8.3 (1)): the same claim for a user-defined
-    /// function's caller-side result temporary (§8.4.3.2.4 GR1 — the receiver of the function's RETURNING delivery), which
+    /// function's caller-side result temporary (§2023:8.4.3.2.4 GR1 — the receiver of the function's RETURNING delivery), which
     /// exists only once the function-identifier binds, in the PROCEDURE phase, after the cell claims were made and the static
     /// channels routed. The temporary is the procedure binders' own and per-activation, so the claim never reaches a static
     /// channel; <see cref="StorageTierSlice.ClaimTemporaryCell"/> says so, and <c>UdfBinder</c> is its one caller.</summary>
@@ -81,7 +81,7 @@ public sealed partial class DataBinder
             ? ForceStringCanonical(root, what) : null;
 
     /// <summary>True when <paramref name="root"/>'s storage is ALREADY a cell (or the pointer-routed window over one), so
-    /// no claim may re-base it: a BASED item or an area formal (its implicit data-address pointer — §8.6.5), a record
+    /// no claim may re-base it: a BASED item or an area formal (its implicit data-address pointer — §2023:8.6.5), a record
     /// another claim already put on a per-instance cell, or an EXTERNAL record (the run-unit <c>ExternalStore</c> cell).</summary>
     internal bool AlreadyInACell(DataItem root) =>
         root.IsBased
@@ -101,7 +101,7 @@ public sealed partial class DataBinder
     /// carriage gate, shared with the REDEFINES classifier (kb/Work PB231).</para></summary>
     internal RedefinesClass? ForceStringCanonical(DataItem item, string what)
     {
-        // ⛔ ONLY THE DECLARING ELEMENT DECIDES WHERE ITS STORAGE LIVES (§13.18.27.4 GR2: a contained program references a
+        // ⛔ ONLY THE DECLARING ELEMENT DECIDES WHERE ITS STORAGE LIVES (§2023:13.18.27.4 GR2: a contained program references a
         // container's GLOBAL item "without describing it again"). An inherited item's class is the container's, already
         // classified and emitted there; re-basing it from here would re-classify the container's storage and declare its
         // cell a second time in this unit's type (merge group 41183181188). Every caller asks with storage it owns.
@@ -123,9 +123,9 @@ public sealed partial class DataBinder
         // dissolution widened both (the eighth two-arm instance — ComputeTier admitted COMP/PACKED while this
         // gate refused every non-DISPLAY leaf), but PB203's USAGE BIT widening reached only ComputeTier, so a
         // BASED / EXTERNAL / ADDRESS-OF record with a bit leaf still rejected while its REDEFINES twin ran.
-        // §13.18.5.3 SR1/SR2 restrict a BASED subject to "shall not be of class object" and "shall not be a
-        // dynamic-length elementary item or a variable-length group"; §14.9.3.3 SR1 asks only for the BASED
-        // clause; §13.18.22 conditions EXTERNAL on nothing subordinate at all. A bit leaf is admitted by all
+        // §2023:13.18.5.3 SR1/SR2 restrict a BASED subject to "shall not be of class object" and "shall not be a
+        // dynamic-length elementary item or a variable-length group"; §2023:14.9.3.3 SR1 asks only for the BASED
+        // clause; §2023:13.18.22 conditions EXTERNAL on nothing subordinate at all. A bit leaf is admitted by all
         // three, so the reject was rejects-legal-source — the same argument that retired the negative fixture
         // pb151-based-comp-leaf at the PB164 landing. Its residue clause now names the ACTUAL leaf.
         if (CellResidueOf(leaves) is { } residue)
@@ -136,11 +136,11 @@ public sealed partial class DataBinder
         }
 
         // The sanctioned RE-classification (see RedefinesClass.Classify): the cell re-base overrides any prior
-        // stored-member verdict with the cell-backed Tier-B form (§13.18.22.4 GR5).
-        // The cell's area is the members' maximum STORAGE extent, in BYTES — §14.9.3.4 GR3's "the amount of
+        // stored-member verdict with the cell-backed Tier-B form (§2023:13.18.22.4 GR5).
+        // The cell's area is the members' maximum STORAGE extent, in BYTES — §2023:14.9.3.4 GR3's "the amount of
         // storage to be allocated is the number of BYTES required to hold an item as described by data-name-1",
-        // and §13.18.44.4 GR1's larger-of-the-two for a multi-member class. Character positions are NOT that
-        // number for a NATIONAL leaf (two bytes per position, §13.18.60.4 GR8 / D-N1) — kb/Work PB231.
+        // and §2023:13.18.44.4 GR1's larger-of-the-two for a multi-member class. Character positions are NOT that
+        // number for a NATIONAL leaf (two bytes per position, §2023:13.18.60.4 GR8 / D-N1) — kb/Work PB231.
         cls.Classify(RedefinesTier.StringCanonical, cls.Members.Max(m => m.ByteWidth * (m.Occurs ?? 1)),
             rejectReason: null);
         // ⛔ THE CELL CLAIM, made HERE because this method IS the one cell-backing forcer and its three callers
@@ -159,7 +159,7 @@ public sealed partial class DataBinder
         // one per occurrence of every enclosing fixed table, and a table's element is a scope of its own
         // (AssignCellComponents). A dynamic-length item occupies zero bytes of the backing — its ByteWidth — and a
         // table reserves its one-element ByteWidth, so the class walk above has already laid out the FIXED RUN every
-        // variable-length group view of the class composes over. §8.5.1.9.1 3) — "it may be defined in any place,
+        // variable-length group view of the class composes over. §2023:8.5.1.9.1 3) — "it may be defined in any place,
         // other than the file section, in which a fixed-capacity table may be defined" — is why an EXTERNAL or
         // ADDRESS-OF-taken record carries the table rather than refusing it.
         int dynOrdinal = 0;
@@ -192,9 +192,9 @@ public sealed partial class DataBinder
     /// <para>⛔ A VARIABLE-LENGTH GROUP RIDES THE CELL TOO (kb/Work PB2094). Its dynamic-length items and dynamic-capacity
     /// tables are the cell's components (<see cref="AssignCellComponents"/>), and an area formal laid over its argument
     /// numbers its components from the area's component ordinal as it displaces its characters by the area's offset
-    /// (<c>CellPointer.DynBase</c>, <c>PlaceBuilder.CellOrdinalBase</c>), so §14.2.3 GR8 — "the activated runtime
+    /// (<c>CellPointer.DynBase</c>, <c>PlaceBuilder.CellOrdinalBase</c>), so §2023:14.2.3 GR8 — "the activated runtime
     /// element operates as if the formal parameter occupies the same storage area as the argument" — holds for it as
-    /// for any group. §13.18.5.3 SR2 bars a variable-length group only as the subject of a WRITTEN BASED clause.</para></summary>
+    /// for any group. §2023:13.18.5.3 SR2 bars a variable-length group only as the subject of a WRITTEN BASED clause.</para></summary>
     internal static bool CellCanCarry(DataItem root)
     {
         var members = root.Class?.Members ?? [root];
@@ -210,7 +210,7 @@ public sealed partial class DataBinder
     /// dynamic-capacity table's ELEMENT is a scope of its own — each occurrence is an element cell
     /// (<c>StorageCell.DynTableAt</c>) — so the element's members are re-laid out from offset zero and numbered from
     /// zero, which is what makes a table, or a dynamic-length item, inside a table element the same mechanism one
-    /// level down (§8.5.1.9.1 3): "may be nested in any combination to the same number of levels as a fixed-capacity
+    /// level down (§2023:8.5.1.9.1 3): "may be nested in any combination to the same number of levels as a fixed-capacity
     /// table").</summary>
     private static int AssignCellComponents(DataItem node, int next)
     {

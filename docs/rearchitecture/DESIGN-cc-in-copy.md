@@ -1,7 +1,7 @@
-# DESIGN — conditional-compilation directives inside COPY (merged text-manipulation driver, ISO §7.2.1)
+# DESIGN — conditional-compilation directives inside COPY (merged text-manipulation driver, ISO §2023:7.2.1)
 
 > **STATUS: IMPLEMENTED (DEVLOG 966).** Subsystem deep-dive for merging the conditional-compilation (CC) and
-> COPY text-manipulation stages so directives INSIDE copybooks are processed (ISO §7.2.1). Design SSOT; the plan
+> COPY text-manipulation stages so directives INSIDE copybooks are processed (ISO §2023:7.2.1). Design SSOT; the plan
 > (`REARCHITECTURE_PLAN.md` §0) points here. Keep current with the code (rule 4). The merged
 > `ConditionalCompilationProcessor.ProcessWithCopy` driver is wired into `Frontend`; the legacy `Process`/COPY
 > paths stay byte-identical. Gate: characterization 33/33 · CC/COPY unit 26/26 · CopyConditional 8/8 · the
@@ -9,7 +9,7 @@
 
 ## §1 The defect
 
-ISO §7.2.1 orders the text-manipulation stage: **Step 1** incorporate COPY library text (false-path IF/EVALUATE
+ISO §2023:7.2.1 orders the text-manipulation stage: **Step 1** incorporate COPY library text (false-path IF/EVALUATE
 lines, *including* COPY'd text, may be omitted); **Step 2** process DEFINE/IF/EVALUATE + variable substitution +
 PUSH/POP + COPY REPLACING, in encounter order over the expanded group; **Step 3** REPLACE; **Step 4** COBOL-WORDS.
 
@@ -64,7 +64,7 @@ multi-line), resolve, normalize, apply REPLACING — and returns the copybook te
 merged driver recurses so nested COPY *and* nested CC both process). `alreadyIncluded` + `depth` thread through
 for the GR12 circular / depth-20 guards.
 
-### §3.2b A directive never stands inside a COPY or REPLACE statement (kb/Work PB1384, §7.3.3 SR8 b)
+### §3.2b A directive never stands inside a COPY or REPLACE statement (kb/Work PB1384, §2023:7.3.3 SR8 b)
 
 The driver ends its text block at every directive line, which is also the only place it can SEE the violation: before it
 flushes, `Render` asks `CopyProcessor.OpenStatementAt` whether the text since a COPY or REPLACE keyword has reached its
@@ -73,38 +73,38 @@ statement's text is carried from its keyword across further directive lines, so 
 each (COBOL2697, `DirectiveDiag.WithinStatement`). The directive then takes effect like any other (superset-continue),
 and a truncated COPY still draws its own COBOL2449 after it.
 
-A `>>SOURCE FORMAT` line never reaches `Render` (kb/Work PB1353): logical conversion DISCARDS it (§6.5 1)) and leaves a blank
+A `>>SOURCE FORMAT` line never reaches `Render` (kb/Work PB1353): logical conversion DISCARDS it (§2023:6.5 1)) and leaves a blank
 line, with its physical line recorded in the text's `ReferenceFormatMap.DirectiveLines`. `Render` therefore asks, of each
 BLANK line, `CopyProcessor.IsDiscardedFormatDirective(origin)` — the map registered under the line's file, which is the
 main source's or the library text's own — and puts the same `OpenStatementAt` question over the pending block WITHOUT
 flushing it (the discarded line takes nothing from the text). One question, one answer, whichever stage consumed the
-directive. Inside pseudo-text the diagnostic also quotes §7.2.3.3 SR10 / §7.2.4.3 SR10 (`OpenStatementAt`'s `InPseudoText`).
+directive. Inside pseudo-text the diagnostic also quotes §2023:7.2.3.3 SR10 / §2023:7.2.4.3 SR10 (`OpenStatementAt`'s `InPseudoText`).
 
 ### §3.2a Text-words — the one scanner under COPY and REPLACE (kb/Work PB1350 / PB1351 / PB1354)
 
-Everything the text-manipulation stage does is decided over §7.2.2.5 TEXT-WORDS, and ONE type forms them:
+Everything the text-manipulation stage does is decided over §2023:7.2.2.5 TEXT-WORDS, and ONE type forms them:
 `TextWordScanner` (`src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs`). A space or a comment is no text-word; the
 colon and parentheses are separator text-words outside literals; a period, comma or semicolon separates only when
-a space (or a line end, or a closing `==`) follows (§8.3.5 2)/3)), so `Z,ZZ9` and `ZZ.ZZ` are one word; a literal
+a space (or a line end, or a closing `==`) follows (§2023:8.3.5 2)/3)), so `Z,ZZ9` and `ZZ.ZZ` are one word; a literal
 is ONE word from its prefix (`X" N" NX" B" BX"`) through its closing delimiter with doubled quotes inside; `&` is a
 word of its own; `==` is the pseudo-text delimiter. Its three consumers:
 
 - **Locating COPY and REPLACE** — `FindStatementKeyword(text, pos, keyword, onGlued)` returns the next text-word
   `COPY` / `REPLACE`, so it cannot fire in a literal, a comment, a directive line or a longer word, and a REPLACE is
-  found wherever it stands, not only first on a line (§7.2.4.3 SR1, kb/Work PB1358); a keyword glued behind
+  found wherever it stands, not only first on a line (§2023:7.2.4.3 SR1, kb/Work PB1358); a keyword glued behind
   `.`/`,`/`;` forms no text-word and is reported (SR2: COBOL2451 for COPY, COBOL2449 for REPLACE).
-- **Parsing the statements** — `ParseCopyStatement` reads the §7.2.3.2 general format in order
+- **Parsing the statements** — `ParseCopyStatement` reads the §2023:7.2.3.2 general format in order
   (`{text-name-1 | literal-1} [{OF|IN} …] [SUPPRESS [PRINTING]] [REPLACING …] .`) through a `StatementCursor`, and
   the REPLACE statement uses the same cursor and the same `ParseReplacingOperands`. A statement ends at its
-  SEPARATOR period (§7.2.3.4 GR6), never at a `.` inside pseudo-text or a literal; a word out of order is
+  SEPARATOR period (§2023:7.2.3.4 GR6), never at a `.` inside pseudo-text or a literal; a word out of order is
   COBOL2449, SR4/SR5 literal forms COBOL2450, a COPY within a COPY statement COBOL2451 (SR1), and a literal its
   line ends inside COBOL5563, named by the cursor as it consumes the text-word and standing as the statement's one
   error (`LiteralScreen.ReportUnterminated`, the lexer's own question; kb/Work PB4176). Each operand
-  pair is screened by ONE `ScreenOperandPair` against its statement's `OperandRules` row — the §7.2.3.3 / §7.2.4.3
-  content rules are word-for-word twins (COBOL2572) — and `ReadOperand` checks the §8.3.5 6) separation of each
+  pair is screened by ONE `ScreenOperandPair` against its statement's `OperandRules` row — the §2023:7.2.3.3 / §2023:7.2.4.3
+  content rules are word-for-word twins (COBOL2572) — and `ReadOperand` checks the §2023:8.3.5 6) separation of each
   `==` (COBOL2573) (kb/Work PB1353). A directive line CONSUMED before the operand is read leaves only a blank
-  line, so the operand screen cannot see it; §3.2b's driver check does (§7.3.3 SR8 b), and names §7.2.3.3 SR10 /
-  §7.2.4.3 SR10 when the open statement stands inside pseudo-text. The LEADING / TRAILING phrases are gated at their
+  line, so the operand screen cannot see it; §3.2b's driver check does (§2023:7.3.3 SR8 b), and names §2023:7.2.3.3 SR10 /
+  §2023:7.2.4.3 SR10 when the open statement stands inside pseudo-text. The LEADING / TRAILING phrases are gated at their
   introducing edition by constructs row `replacing-partial-word-2002` — ONE check, `OperandScreen.PartialWord`, asked
   by `ParseReplacingOperands` for both statements, once per statement (kb/Work PB1670). The statement's OWN phrases
   that 1985's `COPY text-name [{OF | IN} library-name] [REPLACING …]` did not have are gated by ONE method,
@@ -112,17 +112,17 @@ word of its own; `==` is the pseudo-text delimiter. Its three consumers:
   asked by `ReadCopyName`) and the SUPPRESS phrase (`copy-suppress-2002`, asked by `ParseCopyStatement`) —
   COBOL0900 below 2002, an error under `--permissive` too (kb/Work PB1601; VCR row 7.44).
 - **The REPLACE states** — `ApplyReplaceStatements` parses format 1 `REPLACE [ALSO] …` and format 2
-  `REPLACE [LAST] OFF` and drives `ReplaceStates` (§7.2.4.4 GR4–GR7): the active operands plus a LIFO stack of
+  `REPLACE [LAST] OFF` and drives `ReplaceStates` (§2023:7.2.4.4 GR4–GR7): the active operands plus a LIFO stack of
   inactive ones; ALSO pushes and activates current-then-pushed operands, LAST OFF pops, a plain format 1 or OFF
   cancels the queue (kb/Work PB1357). ALSO/LAST are gated by constructs row `replace-also-last-2002`.
 - **Matching** — `ApplyReplacements` compares text-words with `TextWord.MatchesForReplacing`, the ONE
-  implementation of §7.2.3.4 9) c) / §7.2.4.4 8) c): character-strings case-insensitively; literals by prefix
+  implementation of §2023:7.2.3.4 9) c) / §2023:7.2.4.4 8) c): character-strings case-insensitively; literals by prefix
   (case-insensitive), content un-doubled, the quotation symbol not compared, content case-SENSITIVE in `"…"` and
   `N"…"` and insensitive in the hexadecimal and boolean formats. Separator commas/semicolons are dropped (c) 1.).
-  What a match PRODUCES is screened in the same pass by the statement's `ResultRule` (`ForbiddenIn`: §7.2.3.4 GR13 /
-  §7.2.4.4 GR9 — no COPY statement, REPLACE statement (REPLACE only), SOURCE FORMAT directive or comment, the
+  What a match PRODUCES is screened in the same pass by the statement's `ResultRule` (`ForbiddenIn`: §2023:7.2.3.4 GR13 /
+  §2023:7.2.4.4 GR9 — no COPY statement, REPLACE statement (REPLACE only), SOURCE FORMAT directive or comment, the
   comment asked of the produced TEXT by `TextWordScanner.HoldsComment` since the scanner skips a comment; a blank
-  line cannot arise, §6.5 2) discarded it; COBOL2574), and a COPY with REPLACING met inside library text is COBOL1640 (GR12) (kb/Work PB1356).
+  line cannot arise, §2023:6.5 2) discarded it; COBOL2574), and a COPY with REPLACING met inside library text is COBOL1640 (GR12) (kb/Work PB1356).
 - **Locating library text** — `FindCopybook` over `LibraryPlaces()` (the working directory, then each configured
   search path) and `LocateInLibrary` (as spelled, then — unless the FILE NAME holds a period —
   `.CPY .CBL .COB .cpy .cbl .cob`): the DOC-A.1-40
@@ -142,9 +142,9 @@ options b/c update the shared `FlagScanState`. REPLACE (Step 3) runs after the w
 (`CopyProcessor.ApplyReplaceStatements` over the merged text); the five collection stages + COBOL-WORDS run
 unchanged on the final text.
 
-### §3.4 Copybook reference format (§7.3.24.3 GR3 / GR5 — kb/Work PB1067)
+### §3.4 Copybook reference format (§2023:7.3.24.3 GR3 / GR5 — kb/Work PB1067)
 
-`NormalizeCopybookMapped` runs library text through the ONE §6.5 walker the main source uses
+`NormalizeCopybookMapped` runs library text through the ONE §2023:6.5 walker the main source uses
 (`ReferenceFormatProcessor.NormalizeToFreeFormMapped`), starting in the format in effect for the COPY statement (GR3).
 Every normalization reports a `ReferenceFormatMap` (the format of each physical line); `Frontend.Preprocess` registers
 the compilation group's map with `CopyProcessor.RegisterReferenceFormat`, each library text's map is registered as it
@@ -177,7 +177,7 @@ rebased to the column it lands on; text a stage writes itself takes one stretch 
 - the CC driver's `Render(MappedText)`: an omitted or directive line keeps its own origin (a blank output line), a
   block keeps its lines', a copybook expansion the copybook's (through `RenderCopybook(MappedText, depth,
   lineOffset)` — the offset is where `ExpandCopiesOneLevel` splices the expansion, which lets the driver name the
-  output-frame line of every directive it meets, the DIRECTIVE ENCOUNTERS the §14.9.28.4 GR14 fixed point keys its
+  output-frame line of every directive it meets, the DIRECTIVE ENCOUNTERS the §2023:14.9.28.4 GR14 fixed point keys its
   implicit PUSH ALL / POP ALL to; `DESIGN-frontend-grammar.md`, kb/Work PB1066);
 - `CopyProcessor.ExpandCopiesOneLevel(MappedText)`: the text before a COPY keeps its origins, the two framing
   newlines belong to the COPY statement's own line, the incorporated text carries the copybook's path and physical

@@ -12,16 +12,16 @@ using Core = CobolParserCore;
 
 /// <summary>
 /// ⛔ <b>THE OBJECT OF AN OBJECT PROPERTY WHEN A WORD CANNOT SPELL IT</b> (kb/Work PB1425, PB1783) — the procedure
-/// binder's half of §8.4.3.1.2 Format 7 (<c>property-name-1 OF identifier-3</c>), reached through the resolver's
+/// binder's half of §2023:8.4.3.1.2 Format 7 (<c>property-name-1 OF identifier-3</c>), reached through the resolver's
 /// <c>BindPropertyObject</c> edge for the <c>propertyObject</c> suffix: SELF, SUPER and <c>object-class-name-1 OF
-/// SUPER</c> (§8.4.3.8.3 SR3 names "the object in an object-property identifier" as one of SUPER's two homes), an
+/// SUPER</c> (§2023:8.4.3.8.3 SR3 names "the object in an object-property identifier" as one of SUPER's two homes), an
 /// object-view, a function-identifier, NULL. The word chains (a qualified or subscripted data name, a chained property)
 /// never reach here: the resolver reads them itself.
 /// <para>SELF and SUPER select the accessor exactly as an INVOKE through them selects a method — the ONE
 /// <see cref="OoPredefinedSearchRoot"/>, so SR1 (a method only), SR4 (the qualifier names the INHERITS class) and GR3 / GR4
 /// (where the search starts) are asked once for both — and the accessor is invoked on the current object
 /// (<see cref="InvokeForm.Self"/> / <see cref="InvokeForm.Super"/>: <c>this</c> / <c>base</c>), the object "used to invoke
-/// the method" (§8.4.3.8.4 GR1). A view or a function is bound by its own binder to the temporary it references, which
+/// the method" (§2023:8.4.3.8.4 GR1). A view or a function is bound by its own binder to the temporary it references, which
 /// is then an ordinary instance receiver.</para>
 /// </summary>
 internal sealed partial class OoBinder
@@ -44,17 +44,17 @@ internal sealed partial class OoBinder
                 if (!probe) ctx.Edition.NoteExpansionDeferred($"an object property of {(superQualifier is null ? "SUPER" : superQualifier.GetText() + " OF SUPER")}");
                 return null;
             }
-            // §14.9.23.3 SR4 f)–i): a factory method's SELF / SUPER resolve over the FACTORY interface.
+            // §2023:14.9.23.3 SR4 f)–i): a factory method's SELF / SUPER resolve over the FACTORY interface.
             return new(isSuper ? InvokeForm.Super : InvokeForm.Self, null, root.SearchRoot, null, host.OoInFactory);
         }
         if (po.predefinedNull() is not null)
         {
-            // §8.4.3.9.3 SR2: "Identifier-1 shall be an object reference; neither a universal object reference nor the
+            // §2023:8.4.3.9.3 SR2: "Identifier-1 shall be an object reference; neither a universal object reference nor the
             // predefined object reference NULL shall be specified."
             if (!probe)
                 ctx.Edition.Error(DiagnosticCatalog.PropertyObject,
                     $"'{DataBinder.WrittenText(po.Parent.Parent as Antlr4.Runtime.ParserRuleContext ?? po)}': its object "
-                    + "shall not be the predefined object reference NULL (ISO §8.4.3.9.3 SR2)");
+                    + "shall not be the predefined object reference NULL (ISO §2023:8.4.3.9.3 SR2)");
             return null;
         }
         if (probe)
@@ -63,7 +63,7 @@ internal sealed partial class OoBinder
 
         BoundExpr bound = po.objectView() is { } ov ? OoBindObjectView(ov) : host.Intrinsic.BindIntrinsic(ObjectPropertyResolver.WithoutResultRefMods(po).functionCall()!);
         return OoObjectReferenceTemporary(bound, po, DiagnosticCatalog.PropertyObject.Code,
-                "identifier-1 of an object property shall be an object reference (ISO §8.4.3.9.3 SR2)") is { } temp
+                "identifier-1 of an object property shall be an object reference (ISO §2023:8.4.3.9.3 SR2)") is { } temp
             ? new(InvokeForm.Instance, temp, null, null, false)
             : null;
 
@@ -77,7 +77,7 @@ internal sealed partial class OoBinder
         }
 
         // A probe's reading of a function-identifier (kb/Work PB2073): activating it is a side effect, so the probe takes
-        // the description its result temporary WOULD carry — §8.4.3.2.4 GR1: "the description, class, and category of
+        // the description its result temporary WOULD carry — §2023:8.4.3.2.4 GR1: "the description, class, and category of
         // the temporary data item is that specified by the description in the linkage section of the item specified in
         // the RETURNING phrase" of the function (prototype) — and the resolver reads the roster off it, the same fact
         // the committing arm reads off the bound temporary. An intrinsic function, or one that returns no object

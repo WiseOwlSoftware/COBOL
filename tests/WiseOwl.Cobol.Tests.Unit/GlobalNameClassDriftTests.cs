@@ -11,11 +11,11 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ EVERY NAME CLASS A DATA DESCRIPTION ENTRY DECLARES REACHES A CONTAINED PROGRAM (kb/Work PB1674, PB1243).
-/// <para>ISO §8.4.6.2.2 — "All data-names and screen-names subordinate to a global name are global names … All
-/// condition-names associated with a global name are global names" — and §8.4.6.2.3 for index-names: a GLOBAL record
+/// <para>ISO §2023:8.4.6.2.2 — "All data-names and screen-names subordinate to a global name are global names … All
+/// condition-names associated with a global name are global names" — and §2023:8.4.6.2.3 for index-names: a GLOBAL record
 /// hands every name it declares to the programs it contains. <c>DataBinder.InheritGlobalSubtree</c> is the ONE place
 /// that inheritance is written, and it once carried data-names, condition-names, RENAMES and index-names but not the
-/// OCCURS DYNAMIC CAPACITY register (§13.18.38.3 SR30 defines it at the OCCURS entry's level, so it is subordinate to
+/// OCCURS DYNAMIC CAPACITY register (§2023:13.18.38.3 SR30 defines it at the OCCURS entry's level, so it is subordinate to
 /// the record): <c>DISPLAY D-CAP</c> in a contained program was COBOL1639 "is not defined" — legal source rejected.
 /// The register lives in its own name index because it is a view, not storage, and nothing tied that index to the
 /// inheritance list.</para>
@@ -33,24 +33,24 @@ public sealed class GlobalNameClassDriftTests
     /// item of a GLOBAL subtree) reaches it by.</summary>
     private static readonly Dictionary<string, string> Inherited = new()
     {
-        ["ForestSlice._byName"] = "_byName",                    // data-names and RENAMES (§8.4.6.2.2)
-        ["ForestSlice._conditions"] = "_conditions",            // condition-names (§8.4.6.2.2)
-        ["ForestSlice.IndexNames"] = "IndexNames.Inherit(",     // index-names (§8.4.6.2.3)
-        ["ForestSlice._capacityRegisters"] = "AddCapacityRegister(",   // CAPACITY registers (§13.18.38.3 SR30, PB1674)
+        ["ForestSlice._byName"] = "_byName",                    // data-names and RENAMES (§2023:8.4.6.2.2)
+        ["ForestSlice._conditions"] = "_conditions",            // condition-names (§2023:8.4.6.2.2)
+        ["ForestSlice.IndexNames"] = "IndexNames.Inherit(",     // index-names (§2023:8.4.6.2.3)
+        ["ForestSlice._capacityRegisters"] = "AddCapacityRegister(",   // CAPACITY registers (§2023:13.18.38.3 SR30, PB1674)
     };
 
     /// <summary>Name indexes that are NOT names a GLOBAL data description entry hands to a contained program.</summary>
     private static readonly Dictionary<string, string> NotPerEntryGlobalNames = new()
     {
-        ["ForestSlice._typeDecls"] = "a type-name is inherited BEFORE Bind by InheritStep.Seed (§13.18.58.4 GR3; kb/Work PB1303), "
+        ["ForestSlice._typeDecls"] = "a type-name is inherited BEFORE Bind by InheritStep.Seed (§2023:13.18.58.4 GR3; kb/Work PB1303), "
             + "and a template's subordinate names are kept off the name index",
         ["InheritedGlobals._typeDecls"] = "the inherited half of the type-name index itself (InheritStep.Seed; kb/Work PB2296)",
-        ["ClauseFacts.LapsedTypeMembers"] = "the members of THIS element's referenced type declarations, which COUNT for §8.4.2.2.1 "
+        ["ClauseFacts.LapsedTypeMembers"] = "the members of THIS element's referenced type declarations, which COUNT for §2023:8.4.2.2.1 "
             + "rule 4 and never resolve (kb/Work PB1476) — a derived view of TypeDecls, declaring no name of its own",
         ["ImplicitRegisters._debugRegisters"] = "the X3.23-1985 DEBUG-ITEM special register of the element's own debugging declaratives, "
             + "never declared by a data description entry",
         ["ConstantEntryBinder._constants"] = "a constant entry occupies no storage, so a GLOBAL constant is inherited BEFORE Bind by "
-            + "InheritStep.Seed (InheritedGlobals.Constants; §13.18.27.4 GR1-GR2; kb/Work PB1009), not bridged by InheritGlobalSubtree",
+            + "InheritStep.Seed (InheritedGlobals.Constants; §2023:13.18.27.4 GR1-GR2; kb/Work PB1009), not bridged by InheritGlobalSubtree",
     };
 
     /// <summary>The types whose instances hold a source element's name indexes: the binder, and every slice of its
@@ -110,7 +110,7 @@ public sealed class GlobalNameClassDriftTests
         var unclassified = found.Where(n => !Inherited.ContainsKey(n) && !NotPerEntryGlobalNames.ContainsKey(n)).ToList();
         Assert.True(unclassified.Count == 0,
             "DataBinder gained a name index that neither InheritGlobalSubtree reaches nor this test excludes — decide "
-            + "whether a GLOBAL record hands that name class to a contained program (ISO §8.4.6.2.2):\n  "
+            + "whether a GLOBAL record hands that name class to a contained program (ISO §2023:8.4.6.2.2):\n  "
             + string.Join("\n  ", unclassified));
         var stale = Inherited.Keys.Concat(NotPerEntryGlobalNames.Keys).Where(n => !found.Contains(n)).ToList();
         Assert.True(stale.Count == 0, "Rows name a name index DataBinder no longer has:\n  " + string.Join("\n  ", stale));
@@ -144,7 +144,7 @@ public sealed class GlobalNameClassDriftTests
     };
 
     /// <summary>⛔ THE SAME LIST DECIDES SHADOWING (kb/Work PB3154 review R2-1). An inherited constant-name or
-    /// symbolic-character is hidden by a NEARER declaration of its spelling in ANY name class (ISO §8.4.6.1 — "even
+    /// symbolic-character is hidden by a NEARER declaration of its spelling in ANY name class (ISO §2023:8.4.6.1 — "even
     /// when it is a different type of user-defined word, is to the item which that source element describes"), and
     /// <c>DeclaredNearerThan</c> is the one predicate that asks. It asked <c>ByName</c>, <c>Conditions</c> and
     /// <c>IndexNames</c> but not the CAPACITY register index, so a contained program's register spelled like its
@@ -184,9 +184,9 @@ public sealed class GlobalNameClassDriftTests
     private static readonly string[] AskedByMethodConstants = ["Declared.ContainsKey(", "OtherWords.Contains("];
 
     /// <summary>⛔ THE METHOD TIER ASKS EVERY NAME INDEX OF THE METHOD (the kb/Work PB3165 merge-queue bounce). A method
-    /// is a source element of its own (§10.5), its names the NEAREST tier a reference in it can reach, so a method's
+    /// is a source element of its own (§2023:10.5), its names the NEAREST tier a reference in it can reach, so a method's
     /// declaration of a spelling in ANY name class hides the class's constant-name or symbolic-character of it
-    /// (§8.4.6.1, §8.4.6.2.1 3) a)). When PB3165 moved a method's CAPACITY registers out of the binder's index into
+    /// (§2023:8.4.6.1, §2023:8.4.6.2.1 3) a)). When PB3165 moved a method's CAPACITY registers out of the binder's index into
     /// <see cref="OoMethodDataScope.CapacityRegisters"/>, the binder's hand-written method predicate kept asking the
     /// old index, and <c>conformance-suite/cases/_unassigned/pb3154_half_capacity_register_hides_symbolic.cob</c> displayed the
     /// figurative <c>CCC</c> for the method's own register. The model scope's name indexes are found by REFLECTION, so an
@@ -224,8 +224,8 @@ public sealed class GlobalNameClassDriftTests
     }
 
     /// <summary>⛔ EVERY SYMBOL-TABLE LOOKUP WITH A METHOD TIER ASKS THE METHOD'S WHOLE DECLARATION (kb/Work PB3165 branch
-    /// review R2-1). ISO §11.7.4 GR5 is about the WORD: a method's declaration of a spelling in any name class makes
-    /// the object's declaration of it, of any class, "inaccessible to this method" (§8.4.6.1 "even when it is a
+    /// review R2-1). ISO §2023:11.7.4 GR5 is about the WORD: a method's declaration of a spelling in any name class makes
+    /// the object's declaration of it, of any class, "inaccessible to this method" (§2023:8.4.6.1 "even when it is a
     /// different type of user-defined word"). <c>CapacityCandidates</c> asked the method's whole declaration,
     /// but <c>IndexCandidates</c>, <c>TryResolve</c> and <c>TryResolveCondition</c> each asked only their own class's
     /// method index and then fell through to the object's: a method CAPACITY register spelled like an object
@@ -247,11 +247,11 @@ public sealed class GlobalNameClassDriftTests
         foreach (var m in tiered)
             Assert.True(Regex.IsMatch(m.Groups["rest"].Value, @"\b_data\.MethodDeclares\(m, name\)"),
                 $"SymbolTable.{m.Groups["name"].Value} opens a method tier but never asks _data.MethodDeclares(m, name): a "
-                + "method-local name of the spelling in another name class would not hide the object's (ISO §11.7.4 GR5).");
+                + "method-local name of the spelling in another name class would not hide the object's (ISO §2023:11.7.4 GR5).");
     }
 
-    /// <summary>⛔ A REPORT SECTION ENTRY TAKES PART IN §8.4.6.2.1 3) IN THE ONE NARROWING, NEVER IN A CALLER (kb/Work
-    /// PB4196). A report entry is a data-name of the source element that declares its report (§8.4.2.2.3 SR1), so "if the
+    /// <summary>⛔ A REPORT SECTION ENTRY TAKES PART IN §2023:8.4.6.2.1 3) IN THE ONE NARROWING, NEVER IN A CALLER (kb/Work
+    /// PB4196). A report entry is a data-name of the source element that declares its report (§2023:8.4.2.2.3 SR1), so "if the
     /// name is declared in source element B, the item in source element B is the referenced item" ranks it with the data
     /// items: a contained program's report entry <c>PV</c> hides its container's GLOBAL <c>PV</c>. The lookup took a lone
     /// GLOBAL data item without asking, so <c>MOVE PV TO W</c> and <c>FILE STATUS IS PV</c> used another program's data.
@@ -274,7 +274,7 @@ public sealed class GlobalNameClassDriftTests
             .ToList();
         Assert.True(bare.Count == 0,
             "a lookup outside SymbolTable calls NearestDeclaring directly, skipping the report entries a nearer source element "
-            + $"declares (use NearestDeclaringData / NearestDeclaringConditions, ISO §8.4.6.2.1 3) a)): "
+            + $"declares (use NearestDeclaringData / NearestDeclaringConditions, ISO §2023:8.4.6.2.1 3) a)): "
             + string.Join(", ", bare.Select(Path.GetFileName)));
 
         string table = File.ReadAllText(symbolTable);

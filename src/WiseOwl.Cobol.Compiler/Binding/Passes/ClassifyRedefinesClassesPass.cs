@@ -23,27 +23,27 @@ internal sealed class ClassifyRedefinesClassesPass : IBindPass
     /// <inheritdoc/>
     public PassViews Views => PassViews.Appends(FactSetKind.ImageForcedItems);
 
-    /// <summary>⛔ THE CLAUSE SCREENS SCREEN THE CLAUSE (kb/Work PB836) — §13.18.44.3 SR5 (sentence 1), SR12, SR14 and
+    /// <summary>⛔ THE CLAUSE SCREENS SCREEN THE CLAUSE (kb/Work PB836) — §2023:13.18.44.3 SR5 (sentence 1), SR12, SR14 and
     /// SR17, asked once per WRITTEN REDEFINES clause over its subject <paramref name="item"/> and its DIRECT
-    /// data-name-2 <paramref name="target"/>, never the chained anchor. An FD/SD's later level-1 records (§13.18.33.4
-    /// GR3) and a SAME RECORD AREA file's record (§12.4.6.4.4 GR2) share the area IMPLICITLY: no clause, no operand,
+    /// data-name-2 <paramref name="target"/>, never the chained anchor. An FD/SD's later level-1 records (§2023:13.18.33.4
+    /// GR3) and a SAME RECORD AREA file's record (§2023:12.4.6.4.4 GR2) share the area IMPLICITLY: no clause, no operand,
     /// and none of these rules. Asked of a storage item by <see cref="Run"/> before it builds the
     /// item's class, and of a TYPEDEF template member, which has no class (kb/Work PB2071).</summary>
     private static void ScreenRedefinesClause(DataBinder binder, DataItem item, DataItem target)
     {
-        // §13.18.44.3 SR12/SR14 (kb/Work PB179; the skeptic round moved this screen HERE, per WRITTEN
+        // §2023:13.18.44.3 SR12/SR14 (kb/Work PB179; the skeptic round moved this screen HERE, per WRITTEN
         // ENTRY and BEFORE dissolution — ClassifyRedefinesClasses' dissolve loop removes nested classes, so a per-class
         // screen let an inner entry's violation escape the diagnostic and fall to the outer class's
         // staged-loud arm: same verdict, wrong posture): SR12 bars the SUBJECT being of class
         // object/message-tag/pointer or a strongly-typed group; SR14 bars data-name-2 (the DIRECT
         // target as written) likewise, plus "subordinate to a strongly-typed group item". These are the
         // rules' LETTER — the drafting contrast with SR9's "nor any entry subordinate to it" shows they
-        // name the entry-level items only; a NESTED pointer leaf is §13.18.60.3 SR14's territory — now
+        // name the entry-level items only; a NESTED pointer leaf is §2023:13.18.60.3 SR14's territory — now
         // screened at its own declaration by CheckUsageDeclarations (kb/Work PB183, COBOL1724), with
         // ComputeTier's backstop arm kept as the recovery-path guard behind it.
         if (Sr12Sr14Violation(item, target) is { } srv)
             binder.Edition.Error(DiagnosticCatalog.RedefinesPointerObject, srv);
-        // §13.18.44.3 SR17, the SAME per-written-entry posture and for the same reason (kb/Work PB177 arm C):
+        // §2023:13.18.44.3 SR17, the SAME per-written-entry posture and for the same reason (kb/Work PB177 arm C):
         // "Neither data-name-2 nor the subject of the entry shall be a variable-length group or a
         // dynamic-length elementary item." A SYMMETRIC rule, so BOTH sides are tested — the two-arm
         // discipline applied to the screen itself. It must run HERE, before the dissolve loop, or a nested
@@ -51,7 +51,7 @@ internal sealed class ClassifyRedefinesClassesPass : IBindPass
         // finding, which is why SR12/SR14 sit here).
         // ⛔ AND IT CLOSES A SILENT MIS-MODEL, not just an under-rejection: StorageFormPass.Classify returns
         // DynamicString for an IsDynamicLength item BEFORE reaching its Tier-B view arm, so such a view got
-        // its OWN disjoint native string — two storages for one shared area (§13.18.44.4 GR1 says one), with
+        // its OWN disjoint native string — two storages for one shared area (§2023:13.18.44.4 GR1 says one), with
         // no diagnostic. Rejecting the entry makes that path unreachable.
         foreach (var (side, sideItem) in new[]
                  { ("the subject of the REDEFINES entry", item), ("data-name-2 of a REDEFINES entry", target) })
@@ -59,11 +59,11 @@ internal sealed class ClassifyRedefinesClassesPass : IBindPass
                 binder.Edition.Error(DiagnosticCatalog.RedefinesVariableLength,
                     $"'{sideItem.CobolName ?? sideItem.ClrName}' is {side} but is {shape}: neither "
                     + "data-name-2 nor the subject of the entry shall be a variable-length group or a "
-                    + "dynamic-length elementary item (ISO §13.18.44.3 SR17)");
-        // §13.18.44.3 SR5 SENTENCE 1 — the OBJECT side, per written entry like its two neighbours above.
+                    + "dynamic-length elementary item (ISO §2023:13.18.44.3 SR17)");
+        // §2023:13.18.44.3 SR5 SENTENCE 1 — the OBJECT side, per written entry like its two neighbours above.
         // "The data description entry for data-name-2 shall not contain an OCCURS clause." ANY format: the
         // fixed OCCURS of Format 1, Format 2's occurs-depending table, and Format 4's dynamic-capacity table
-        // are all THE OCCURS CLAUSE (§13.18.38), so the predicate is `IsTable` — the union. ⛔ NEITHER half
+        // are all THE OCCURS CLAUSE (§2023:13.18.38), so the predicate is `IsTable` — the union. ⛔ NEITHER half
         // alone works, and each is a live trap this repo has already sprung once: `Occurs is not null` is
         // the FIXED physical capacity and is NULL for a Format-4 table (the CONTROL SR3 arm's defect), while
         // `OccursSpec is not null` is NULL for a plain keyless fixed table, which OdoBindOccursSpec
@@ -81,7 +81,7 @@ internal sealed class ClassifyRedefinesClassesPass : IBindPass
             binder.Edition.Error(DiagnosticCatalog.RedefinesTargetOccurs,
                 $"'{item.CobolName ?? item.ClrName}' REDEFINES '{target.CobolName ?? target.ClrName}', "
                 + "whose data description entry contains an OCCURS clause: the data description entry for "
-                + "data-name-2 shall not contain an OCCURS clause (ISO §13.18.44.3 SR5) — data-name-2 may be "
+                + "data-name-2 shall not contain an OCCURS clause (ISO §2023:13.18.44.3 SR5) — data-name-2 may be "
                 + "SUBORDINATE to an item that has one, but shall not carry one itself");
     }
 
@@ -115,7 +115,7 @@ internal sealed class ClassifyRedefinesClassesPass : IBindPass
             item.IsCanonical = false;
         }
         // A TYPEDEF template member's REDEFINES clause answers the same clause rules (kb/Work PB2071) and builds NO
-        // class: a type declaration has no storage associated with it (ISO §13.18.58.4 GR2).
+        // class: a type declaration has no storage associated with it (ISO §2023:13.18.58.4 GR2).
         foreach (var item in binder.TemplateItems())
             if (item.RedefinesKind is RedefinitionKind.Clause && item.RedefinesTarget is { } target)
             {
@@ -123,7 +123,7 @@ internal sealed class ClassifyRedefinesClassesPass : IBindPass
                 ScreenRedefinesClause(binder, item, target);
             }
 
-        // ONE shared area per overlay nest (ISO §13.18.44 — a REDEFINES nested under another class's member
+        // ONE shared area per overlay nest (ISO §2023:13.18.44 — a REDEFINES nested under another class's member
         // shares THAT storage): a class whose ANCHOR lies inside another class's subtree — its ancestor chain
         // crosses a redefining member or another class's anchor (NC252A's `RDEF8 REDEFINES RDF8` under the view
         // `REDEF11 REDEFINES REDEF10`) — DISSOLVES into the outer class. The outer subtree walk below assigns
@@ -147,25 +147,25 @@ internal sealed class ClassifyRedefinesClassesPass : IBindPass
             bool implicitArea = cls.Members.Any(m => m.RedefinesImplicitly);
             // ⛔ CITATION REPAIRED **TWO-SIDEDLY**, AND THE SCREEN NARROWED TO THE SUBJECT SIDE (kb/Work PB177
             // arm C, then its follow-up). Three moves, and the middle one was itself wrong on one side:
-            //  1. The arm used to cite "§13.18.44 SR5" for BOTH sides.
+            //  1. The arm used to cite "§2023:13.18.44 SR5" for BOTH sides.
             //  2. The repair read SR5's FOURTH sentence ("Neither the original definition nor the redefinition
             //     shall include an occurs-depending table" — COBOL0855's rule) and concluded the whole rule
             //     was about something else, so it wrote "which NO syntax rule literally names". ⛔ THAT IS TRUE
             //     ONLY OF THE SUBJECT SIDE. SR5's FIRST sentence is "The data description entry for data-name-2
             //     shall not contain an OCCURS clause", and OCCURS DYNAMIC is Format 4 OF the OCCURS clause
-            //     (§13.18.38) — so the OBJECT side is named outright, and is now COBOL1701 per written entry.
+            //     (§2023:13.18.38) — so the OBJECT side is named outright, and is now COBOL1701 per written entry.
             //     Reading one sentence of a four-sentence rule and generalising is the same inheritance failure
             //     CLAUDE.md rule 1 names, one level down: the clause NUMBER was right and the SENTENCE was not.
-            //  3. The dynamic-capacity SUBORDINATE case is §13.18.44.3 SR17's (a group with such a table
-            //     subordinate IS a "variable-length group", §8.5.1.12.1) and is screened per WRITTEN ENTRY above
+            //  3. The dynamic-capacity SUBORDINATE case is §2023:13.18.44.3 SR17's (a group with such a table
+            //     subordinate IS a "variable-length group", §2023:8.5.1.12.1) and is screened per WRITTEN ENTRY above
             //     as COBOL1698.
             // WHAT REMAINS HERE IS THE SUBJECT THAT IS ITSELF A DYNAMIC-CAPACITY TABLE, and for THAT side the
-            // "no syntax rule names it" reading holds: §13.18.38.3 carries no REDEFINES restriction, and SR17
-            // does not reach an ELEMENTARY dynamic table (§8.5.1.12.1's "variable-length group" is defined over
-            // items SUBORDINATE to the group). So cite what actually decides it — §13.18.44.4 GR1 ("Storage
+            // "no syntax rule names it" reading holds: §2023:13.18.38.3 carries no REDEFINES restriction, and SR17
+            // does not reach an ELEMENTARY dynamic table (§2023:8.5.1.12.1's "variable-length group" is defined over
+            // items SUBORDINATE to the group). So cite what actually decides it — §2023:13.18.44.4 GR1 ("Storage
             // association for the subject of the entry starts at the first bit of the data item referenced by
             // data-name-2 and continues over an area sufficient to contain the number of bits required by the
-            // data item referenced by the subject of the entry") against §8.5.1.9.1's dynamic-capacity model,
+            // data item referenced by the subject of the entry") against §2023:8.5.1.9.1's dynamic-capacity model,
             // whose "physical and logical capacities may vary during execution": there is no fixed area to
             // associate. A WiseOwl COBOL storage-model rejection, honestly labelled, not a borrowed rule number.
             // (The message names the OFFENDING MEMBER, not the class canonical — it used to say "the
@@ -177,12 +177,12 @@ internal sealed class ClassifyRedefinesClassesPass : IBindPass
                 using var dynamicSubjectAt = binder.Edition.At(dynSubject);   // the REDEFINES entry as written; this pass runs post-build (kb/Work PB2034)
                 binder.Edition.Error(DiagnosticCatalog.RedefinesSubjectIsDynamicTable, $"REDEFINES entry '{dynSubject.CobolName ?? dynSubject.ClrName}' is "
                     + "itself a dynamic-capacity table: its capacity \"may vary during execution\" (ISO "
-                    + "§8.5.1.9.1), so it has no fixed area for the storage association §13.18.44.4 GR1 requires; "
+                    + "§2023:8.5.1.9.1), so it has no fixed area for the storage association §2023:13.18.44.4 GR1 requires; "
                     + "it shall not be the subject of a REDEFINES");
                 tier = RedefinesTier.Rejected;
-                reject ??= "REDEFINES subject is a dynamic-capacity table (§13.18.44.4 GR1 / §8.5.1.9.1, D9)";
+                reject ??= "REDEFINES subject is a dynamic-capacity table (§2023:13.18.44.4 GR1 / §2023:8.5.1.9.1, D9)";
             }
-            // The §13.18.44.3 SR5 sentence-1 TIER verdict, same posture as SR12/SR14's and SR17's below (the
+            // The §2023:13.18.44.3 SR5 sentence-1 TIER verdict, same posture as SR12/SR14's and SR17's below (the
             // DIAGNOSTIC fired per written entry, before dissolution — no second diagnostic here). The tier
             // matters on its own: without it the class model is built as though the OCCURS-bearing object were
             // a legal single area, and the offsets/width walk below lays a view over one occurrence's worth of
@@ -193,7 +193,7 @@ internal sealed class ClassifyRedefinesClassesPass : IBindPass
                 {
                     tier = RedefinesTier.Rejected;
                     reject = $"REDEFINES over '{occTarget.CobolName ?? occTarget.ClrName}', whose data "
-                        + "description entry contains an OCCURS clause (ISO §13.18.44.3 SR5)";
+                        + "description entry contains an OCCURS clause (ISO §2023:13.18.44.3 SR5)";
                 }
             // The SR12/SR14 TIER verdict for a retained class (the DIAGNOSTIC fired per written entry in the
             // grouping loop above, before dissolution — no second diagnostic here): the class rejects with
@@ -206,7 +206,7 @@ internal sealed class ClassifyRedefinesClassesPass : IBindPass
                     tier = RedefinesTier.Rejected;
                     reject = srReason;
                 }
-            // The §13.18.44.3 SR17 TIER verdict, same posture as SR12/SR14's above (the DIAGNOSTIC fired per
+            // The §2023:13.18.44.3 SR17 TIER verdict, same posture as SR12/SR14's above (the DIAGNOSTIC fired per
             // written entry, before dissolution — no second diagnostic here).
             // ⛔ THE TIER IS BELT-AND-BRACES, AND THE COMMENT HERE USED TO OVERCLAIM IT. It said "Rejecting the
             // CLASS makes that path structurally unreachable rather than merely unreached because a diagnostic
@@ -226,38 +226,38 @@ internal sealed class ClassifyRedefinesClassesPass : IBindPass
                     {
                         tier = RedefinesTier.Rejected;
                         reject = $"REDEFINES entry side '{m.CobolName ?? m.ClrName}' is {vlShape} "
-                            + "(ISO §13.18.44.3 SR17)";
+                            + "(ISO §2023:13.18.44.3 SR17)";
                     }
             // ⛔ THE IMPLICIT-AREA ARM (kb/Work PB836, narrowed by PB981). No syntax rule forbids a file's records
-            // from being a dynamic-length item, a variable-length group or a pointer — §13.18.33.4 GR3 simply makes
+            // from being a dynamic-length item, a variable-length group or a pointer — §2023:13.18.33.4 GR3 simply makes
             // them share one area — and since PB981 none of those reaches a class at all: they are OUT-OF-LINE
             // records (FileModel.IsOutOfLineRecord, determination D-FRA), which LinkImplicitRecordArea never links,
             // and they share the area at the transfer boundary (FileModel.OutOfLineRecords). What can still reach
             // here Rejected is a ComputeTier residue of a CHARACTER-window record (ByteWindowResidueOf), staged
-            // LOUD rather than let through. The reason names the rule the program DID use, never §13.18.44.
+            // LOUD rather than let through. The reason names the rule the program DID use, never §2023:13.18.44.
             if (implicitArea)
             {
                 if (tier is RedefinesTier.Rejected)
                 {
                     var rule = cls.Members.Any(m => m.RedefinesKind is RedefinitionKind.SameRecordArea)
                         ? "a record-area SAME clause makes its files' records an implicit redefinition of one area "
-                          + "(ISO §12.4.6.4.4 GR2)"
+                          + "(ISO §2023:12.4.6.4.4 GR2)"
                         : cls.Members.Any(m => m.RedefinesKind is RedefinitionKind.ImplicitCommunicationRecord)
                         ? "the record description entries following a CD entry implicitly redefine its record area "
                           + "(ISO/IEC 1989:2002 A.1.2.2)"
                         : "multiple level 1 entries of one FD or SD are implicit redefinitions of the same area "
-                          + "(ISO §13.18.33.4 GR3)";
+                          + "(ISO §2023:13.18.33.4 GR3)";
                     using var __ = binder.Edition.At(cls.Members.FirstOrDefault(m => m.RedefinesImplicitly) ?? cls.Canonical);
                     binder.Edition.Error(DiagnosticCatalog.ImplicitRecordAreaShape,
                         $"the record area of '{cls.Canonical.CobolName ?? cls.Canonical.ClrName}' is shared — {rule} — "
                         + $"and {reject}: a shared record area of that shape is recognized but not yet implemented");
                 }
             }
-            // The width is a member table's FULL STORAGE extent (every occurrence) — §13.18.44.4 GR1: when the
+            // The width is a member table's FULL STORAGE extent (every occurrence) — §2023:13.18.44.4 GR1: when the
             // subject "requires more bits than the data item referenced by data-name-2, the storage area
             // allocated … is the number of bits required by the data item referenced by the subject", i.e. the
             // maximum over the members. In BYTES, never character positions (kb/Work PB231): the two differ for
-            // a NATIONAL member, whose §13.18.60.4 GR8 size is two bytes per position under D-N1, and a
+            // a NATIONAL member, whose §2023:13.18.60.4 GR8 size is two bytes per position under D-N1, and a
             // character-position maximum would under-size the shared backing by half of it.
             // ONE verdict application (P5.11d).
             cls.Classify(tier, cls.Members.Max(m => m.ByteWidth * (m.Occurs ?? 1)), reject);
@@ -279,7 +279,7 @@ internal sealed class ClassifyRedefinesClassesPass : IBindPass
                     else if (leaf.Pic is { HasImageByteForm: true, Usage: not Usage.Display })   // the ONE image predicate (kb/Work PB164 — COMP-5/BINARY-* windows included)
                         // A fixed-point BINARY/PACKED leaf of a Tier-B class is image-stored too: its window over
                         // the one string backing IS its BYTES — radix-2 two's complement or BCD, of exactly
-                        // PicInfo.StorageWidth (ISO §13.18.60.4 GR4/GR11 implementor representation;
+                        // PicInfo.StorageWidth (ISO §2023:13.18.60.4 GR4/GR11 implementor representation;
                         // DESIGN §14.4, V59). Every accessor threads the leaf's OWN `_P_` profile
                         // through CobolNum.FormatImage/ParseImage, so no profile rewrite is needed or wanted:
                         // the sign lives in the bytes (two's complement / the sign nibble), and SignKind — a
@@ -295,15 +295,15 @@ internal sealed class ClassifyRedefinesClassesPass : IBindPass
     /// cascade D &gt; B &gt; A — Tier C dissolved into B: every numeric leaf kind's byte form is pinned, so a
     /// mixed-USAGE pun is an ordinary byte-window class. D rejects the nested pointer/object backstop and the
     /// NATIONAL residue.</summary>
-    // (ContainsDynamicTable was deleted with kb/Work PB177 arm C: its SUBORDINATE half is §13.18.44.3 SR17's,
-    // now screened per written entry through DataItem.HasVariableLengthSubordinate — §8.5.1.12.1's own
+    // (ContainsDynamicTable was deleted with kb/Work PB177 arm C: its SUBORDINATE half is §2023:13.18.44.3 SR17's,
+    // now screened per written entry through DataItem.HasVariableLengthSubordinate — §2023:8.5.1.12.1's own
     // definition of "variable-length group" — and its SELF half is the narrowed `m.IsDynamicTable` test at the
     // COBOL1525 arm. Two spellings of one walk collapsed into the predicate the standard actually defines.)
 
-    /// <summary>The §13.18.44.3 SR12/SR14 class test (kb/Work PB179): object, message-tag and pointer classes occupy no
+    /// <summary>The §2023:13.18.44.3 SR12/SR14 class test (kb/Work PB179): object, message-tag and pointer classes occupy no
     /// character positions and can neither overlay nor be overlaid.
-    /// <para>⛔ CLASS INDEX IS NOT HERE and must never be added: §13.18.60.3 SR4 is the rule whose list includes
-    /// INDEX, and it has its own predicate. §13.18.60.3 SR14's declaration-placement screen
+    /// <para>⛔ CLASS INDEX IS NOT HERE and must never be added: §2023:13.18.60.3 SR4 is the rule whose list includes
+    /// INDEX, and it has its own predicate. §2023:13.18.60.3 SR14's declaration-placement screen
     /// (<c>DataBinder.UsageDeclaration.cs</c>) does NOT ask this CLASS question: SR14 is written over the five USAGE
     /// PHRASES, so it reads the phrase (<c>Sr14PhraseOf</c>), which sees a usage the compiler refuses by name
     /// where a class cannot (kb/Work PB819). <c>UsageDeclarationPlacementDriftTests</c> pins the two readers'
@@ -316,7 +316,7 @@ internal sealed class ClassifyRedefinesClassesPass : IBindPass
     /// first two either.</para></summary>
     private static bool PointerObjectClass(DataItem d) => SlotWindow.CarriedBySlot(d);
 
-    /// <summary>ONE §13.18.44.3 SR12/SR14 verdict per WRITTEN entry — <paramref name="subject"/> is the item
+    /// <summary>ONE §2023:13.18.44.3 SR12/SR14 verdict per WRITTEN entry — <paramref name="subject"/> is the item
     /// carrying the REDEFINES clause, <paramref name="target"/> its DIRECT data-name-2 (never the chained
     /// anchor). Returns the violation text (the diagnostic message AND the class RejectReason), or null.
     /// Each arm's message names the arm that actually fired (the skeptic round: a subordinate-to-strong
@@ -325,32 +325,32 @@ internal sealed class ClassifyRedefinesClassesPass : IBindPass
     /// PB1282). It once fired only when the subject sat OUTSIDE the target's strong subtree, which no entry can
     /// do — a subject and its data-name-2 are siblings, so they share one parent and therefore one strong root —
     /// so the disjunct was vacuous. The way to meet it is a REDEFINES written inside a STRONG typedef template:
-    /// §13.18.58.4 GR3 makes every subordinate description of the type "assumed by data defined using the
-    /// type-name" (and §13.18.57.4 GR1 codes it "as though" in the TYPE subject), and §8.5.3.1 makes that subject
+    /// §2023:13.18.58.4 GR3 makes every subordinate description of the type "assumed by data defined using the
+    /// type-name" (and §2023:13.18.57.4 GR1 codes it "as though" in the TYPE subject), and §2023:8.5.3.1 makes that subject
     /// strongly typed ("described with a TYPE clause that references a type declaration specifying the STRONG
     /// phrase"), so in each TYPE subject data-name-2 is "an item subordinate to a strongly-typed group item".
     /// In the template itself it is not: the template root carries TYPEDEF, not a TYPE clause, so an unused STRONG
     /// template holding such a REDEFINES conforms (kb/Work PB2071). PB183's companion derivation answered
-    /// §13.18.57.3 SR4 — the subject of the TYPE entry — which is a different rule from this one;
+    /// §2023:13.18.57.3 SR4 — the subject of the TYPE entry — which is a different rule from this one;
     /// <c>CheckStrongTypeDeclarations</c> still leaves the internal case to this screen so it is reported once.</para></summary>
     private static string? Sr12Sr14Violation(DataItem subject, DataItem target)
     {
         if (PointerObjectClass(subject))
             return $"'{subject.CobolName ?? subject.ClrName}' is the subject of a REDEFINES entry but is of "
-                + "class object, message-tag, or pointer (ISO §13.18.44.3 SR12)";
+                + "class object, message-tag, or pointer (ISO §2023:13.18.44.3 SR12)";
         if (StrongTypeModel.IsStrongGroup(subject))
             return $"'{subject.CobolName ?? subject.ClrName}' is the subject of a REDEFINES entry but is a "
-                + "strongly-typed group item (ISO §13.18.44.3 SR12)";
+                + "strongly-typed group item (ISO §2023:13.18.44.3 SR12)";
         if (PointerObjectClass(target))
             return $"'{target.CobolName ?? target.ClrName}' is redefined (data-name-2) but is of class "
-                + "object, message-tag, or pointer (ISO §13.18.44.3 SR14)";
+                + "object, message-tag, or pointer (ISO §2023:13.18.44.3 SR14)";
         if (StrongTypeModel.IsStrongGroup(target))
             return $"'{target.CobolName ?? target.ClrName}' is redefined (data-name-2) but is a strongly-typed "
-                + "group item (ISO §13.18.44.3 SR14)";
+                + "group item (ISO §2023:13.18.44.3 SR14)";
         if (StrongTypeModel.StrongRoot(target) is { } tRoot)
             return $"'{target.CobolName ?? target.ClrName}' is redefined (data-name-2) but is subordinate to "
                 + "the strongly-typed group item "
-                + $"'{tRoot.CobolName ?? tRoot.ClrName}' (ISO §13.18.44.3 SR14)";
+                + $"'{tRoot.CobolName ?? tRoot.ClrName}' (ISO §2023:13.18.44.3 SR14)";
         return null;
     }
 
@@ -361,7 +361,7 @@ internal sealed class ClassifyRedefinesClassesPass : IBindPass
 
         // ⛔ THE TIER-C ARM IS GONE (the Step D arm-1 dissolution — DESIGN-data-model §2.3; kb/Work PB164's
         // LAST codegen half): every NUMERIC leaf kind carries a pinned byte form (NumericByteForm — waves
-        // 1–2 + R40), the Tier-B geometry has been byte-form since V59 (§13.18.44.4 GR1 associates storage
+        // 1–2 + R40), the Tier-B geometry has been byte-form since V59 (§2023:13.18.44.4 GR1 associates storage
         // at the bit over "the number of bits required"; GR2 grants every entry's name reference to that
         // storage), and the StoreAsImage loop's HasImageByteForm mark goes LIVE for float/COMP-5/BINARY-*/
         // INDEX leaves — each lane it feeds carries its own byte-level pin (the windowed-float read/store
@@ -369,8 +369,8 @@ internal sealed class ClassifyRedefinesClassesPass : IBindPass
         // A mixed class is simply Tier B: one string backing IS the shared storage area, every member an
         // (offset, StorageWidth) byte window.
         // Tier D backstop — a pointer/object-class LEAF nested inside a member (kb/Work PB179): NOT
-        // §13.18.44.3 SR12/SR14's letter (those bar the ENTRY-level items — screened per written entry in
-        // ClassifyRedefinesClasses). The skeptic round derived that §13.18.60.3 SR14 makes the nested
+        // §2023:13.18.44.3 SR12/SR14's letter (those bar the ENTRY-level items — screened per written entry in
+        // ClassifyRedefinesClasses). The skeptic round derived that §2023:13.18.60.3 SR14 makes the nested
         // declaration itself NONCONFORMING (a pointer/object USAGE is legal only at level 1 or under a
         // STRONG type — and the strong case trips the entry-level screen via its enclosing group).
         // ⛔ THAT SCREEN NOW EXISTS — CheckUsageDeclarations (DataBinder.UsageDeclaration.cs, COBOL1724,
@@ -406,14 +406,14 @@ internal sealed class ClassifyRedefinesClassesPass : IBindPass
         // of the CARRIER, not of the leaf, so it is asked here rather than smuggled back into the shared gate —
         // which would re-create the very two-arm divergence PB231's collapse removed.
         // ⚠ UNREACHABLE THROUGH A REDEFINES CLAUSE on conforming source, by three rules that were re-derived
-        // rather than inherited: §13.18.44.3 SR12 — "The REDEFINES clause shall not be specified for a data item
+        // rather than inherited: §2023:13.18.44.3 SR12 — "The REDEFINES clause shall not be specified for a data item
         // of class object, message-tag, or pointer or a strongly-typed group item"; SR14 — "Data-name-2 shall not
         // be of class object, message-tag, or pointer, a strongly-typed group item, or an item subordinate to a
-        // strongly-typed group item"; and §13.18.60.3 SR14, which admits a pointer USAGE "only for an elementary
+        // strongly-typed group item"; and §2023:13.18.60.3 SR14, which admits a pointer USAGE "only for an elementary
         // data item at level 1 or an elementary data item subordinate to a type declaration that includes the
         // STRONG phrase". The FILE SECTION's implicit area, which used to reach it (kb/Work PB836 — a level-1
         // `USAGE POINTER` record beside another record of the same FD, legal by that third rule and joined by
-        // §13.18.33.4 GR3 with no REDEFINES clause for SR12/SR14 to bar), no longer does: since kb/Work PB981 a
+        // §2023:13.18.33.4 GR3 with no REDEFINES clause for SR12/SR14 to bar), no longer does: since kb/Work PB981 a
         // pointer-class record is an OUT-OF-LINE record (FileModel.IsOutOfLineRecord, determination D-FRA) that
         // LinkImplicitRecordArea never links. The arm stays the loud guard for any path that would alias a
         // managed slot over a stored string backing — never a silent alias of reserved bytes.
@@ -426,13 +426,13 @@ internal sealed class ClassifyRedefinesClassesPass : IBindPass
         }
         // ⛔ THE SAME CARRIER QUESTION FOR A DYNAMIC-LENGTH LEAF (kb/Work PB1026): its content rides the cell's
         // dynamic slots (Place.DynSlotWindow), which a stored backing does not have. Unreachable through a REDEFINES
-        // clause on conforming source — §13.18.44.3 SR17: "Neither data-name-2 nor the subject of the entry shall be
+        // clause on conforming source — §2023:13.18.44.3 SR17: "Neither data-name-2 nor the subject of the entry shall be
         // a variable-length group or a dynamic-length elementary item" — and a file's implicit area never links an
         // out-of-line record (D-FRA). Kept as the loud guard: never a zero-width alias of a dynamic item.
         if (!cls.IsCellBacked && leaves.FirstOrDefault(DynSlotWindow.CarriedBySlot) is { } dynLeaf)
         {
             reject = $"'{dynLeaf.CobolName ?? "FILLER"}' is a dynamic-length item, whose content rides a storage "
-                + "cell's dynamic slots (ISO §8.5.1.10.3), and a shared area's stored backing has none "
+                + "cell's dynamic slots (ISO §2023:8.5.1.10.3), and a shared area's stored backing has none "
                 + $"— {where}";
             return RedefinesTier.Rejected;
         }
@@ -441,7 +441,7 @@ internal sealed class ClassifyRedefinesClassesPass : IBindPass
         // one stored field, the rest pass-throughs (a numeric view reinterprets the shared value via its own scale).
         // ⛔ AND THE SAME STORAGE UNIT (kb/Work PB203). CLR type + image width is not enough to prove ONE FIELD
         // SERVES BOTH: a `USAGE BIT` leaf's stored carrier is its PICTURE 1(n) boolean positions while its
-        // ImageWidth is the ceil(n/8) BYTES it occupies (§13.18.60.4 GR5 — "bits shall be used"; D19/PB43), so
+        // ImageWidth is the ceil(n/8) BYTES it occupies (§2023:13.18.60.4 GR5 — "bits shall be used"; D19/PB43), so
         // `01 A PIC X(1). 01 B REDEFINES A PIC 1(8) USAGE BIT.` matched on both counts (string, width 1) and B
         // aliased A's one-CHARACTER field — measured: `DISPLAY B` printed `A` where the eight boolean positions
         // of 0x41 are `01000001`. Two members share one field only when they agree on the UNIT (both bit or
@@ -450,7 +450,7 @@ internal sealed class ClassifyRedefinesClassesPass : IBindPass
         // ⛔ AND THE SAME UNIT FOR NATIONAL TOO (kb/Work PB231 — the PB203 defect re-run one category over, and
         // the reason this arm is written as an agreement per UNIT rather than a bit special case). A national
         // leaf's stored carrier is its PICTURE N(n) character positions while it OCCUPIES 2n bytes
-        // (§13.18.60.4 GR8 / D-N1), so `01 A PIC X(4). 01 B REDEFINES A PIC N(4).` matched on CLR type (string)
+        // (§2023:13.18.60.4 GR8 / D-N1), so `01 A PIC X(4). 01 B REDEFINES A PIC N(4).` matched on CLR type (string)
         // and on ImageWidth (4) and B would have aliased A's four-CHARACTER field — reading alphanumeric
         // characters as national ones, the exact shape `01 A PIC X(1). 01 B REDEFINES A PIC 1(8) USAGE BIT.`
         // took. Two members share one field only when they agree on the UNIT (all three of bit, national and

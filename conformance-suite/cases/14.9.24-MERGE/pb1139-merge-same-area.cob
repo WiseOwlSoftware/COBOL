@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB1139 - TWO FILE-NAMES OF ONE MERGE IN THE SAME SAME AREA CLAUSE ARE REFUSED.
       *>   cite.py --check 14.9.24.3 "No pair of file-names in a MERGE statement may be specified in the same SAME
-      *>     AREA, SAME SORT AREA, or SAME SORT-MERGE AREA clause." -> OK §14.9.24.3 11)
+      *>     AREA, SAME SORT AREA, or SAME SORT-MERGE AREA clause." -> OK §2023:14.9.24.3 11)
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1139I.
        ENVIRONMENT DIVISION.

@@ -5,12 +5,12 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// kb/Work PB759 — parameterized classes and interfaces (ISO §9.3.12 / §9.3.13) and their REPOSITORY expansion
-/// (§12.3.8.2 EXPANDS; §12.3.8.4 GR5 / GR8), realized as a RE-PARSE of the definition's own tokens with each
+/// kb/Work PB759 — parameterized classes and interfaces (ISO §2023:9.3.12 / §2023:9.3.13) and their REPOSITORY expansion
+/// (§2023:12.3.8.2 EXPANDS; §2023:12.3.8.4 GR5 / GR8), realized as a RE-PARSE of the definition's own tokens with each
 /// formal replaced by its actual (<c>Oo/OoExpansion.cs</c>). The end-to-end run — an expansion's own factory
 /// object, a formal in the INHERITS position, an interface expanded under one name in two source elements, and
 /// an expansion whose actual is itself an expansion — is the golden <c>2002/pb759_parameterized_class</c>. These
-/// cases pin every rejection the syntax and general rules own, the §12.3.8.4 GR1 confinement of the
+/// cases pin every rejection the syntax and general rules own, the §2023:12.3.8.4 GR1 confinement of the
 /// parameterized name, and the one-report-per-fact rule that keeps a defect in the definition from being
 /// reported once per expansion.
 /// </summary>
@@ -66,8 +66,8 @@ public sealed class ParameterizedClassTests
         END PROGRAM PCDRV.
         """;
 
-    /// <summary>§11.3.2 / §11.6.2 — the USING clause PARSES on both definitions; a skeleton that nothing expands
-    /// compiles and emits nothing (§9.3.12: it is a "generic or skeleton class").</summary>
+    /// <summary>§2023:11.3.2 / §2023:11.6.2 — the USING clause PARSES on both definitions; a skeleton that nothing expands
+    /// compiles and emits nothing (§2023:9.3.12: it is a "generic or skeleton class").</summary>
     [Fact]
     public void UnexpandedSkeletons_Compile()
         => Compiles(Holder + """
@@ -80,7 +80,7 @@ public sealed class ParameterizedClassTests
             END INTERFACE PCIHOLD.
             """ + Driver("CLASS PCHOLD"));
 
-    /// <summary>§11.3.3 SR8: "Parameter-name-1 shall be a name specified in a class-specifier or an
+    /// <summary>§2023:11.3.3 SR8: "Parameter-name-1 shall be a name specified in a class-specifier or an
     /// interface-specifier in the REPOSITORY paragraph of this class definition."</summary>
     [Fact]
     public void ClassParameterNotInRepository_2239()
@@ -90,7 +90,7 @@ public sealed class ParameterizedClassTests
             END CLASS PCSR8.
             """), "COBOL2239");
 
-    /// <summary>§11.3.3 SR9 / §11.6.3 SR7: "A given parameter-name shall not appear more than once in a USING
+    /// <summary>§2023:11.3.3 SR9 / §2023:11.6.3 SR7: "A given parameter-name shall not appear more than once in a USING
     /// clause."</summary>
     [Fact]
     public void RepeatedParameterName_2239()
@@ -104,7 +104,7 @@ public sealed class ParameterizedClassTests
             END INTERFACE PCSR7.
             """), "more than once");
 
-    /// <summary>§11.3.4 GR6: "Parameter-name-1 may be specified within this class definition only where an
+    /// <summary>§2023:11.3.4 GR6: "Parameter-name-1 may be specified within this class definition only where an
     /// object-class-name or an interface-name is permitted." A data-name is not such a position — and since every
     /// occurrence is substituted, accepting it would silently rename the item in each expansion.</summary>
     [Fact]
@@ -122,9 +122,9 @@ public sealed class ParameterizedClassTests
             01 ELEM PIC X.
             END OBJECT.
             END CLASS PCGR6.
-            """), "ISO §11.3.4 GR6");
+            """), "ISO §2023:11.3.4 GR6");
 
-    /// <summary>§12.3.8.3 SR3: "The EXPANDS phrase shall not be specified in the REPOSITORY paragraph of a class
+    /// <summary>§2023:12.3.8.3 SR3: "The EXPANDS phrase shall not be specified in the REPOSITORY paragraph of a class
     /// definition that contains a USING clause in its CLASS-ID paragraph".</summary>
     [Fact]
     public void ExpandsInsideParameterizedDefinition_2239()
@@ -139,36 +139,36 @@ public sealed class ParameterizedClassTests
                 CLASS PCSR3
                 CLASS PCSR3B EXPANDS PCSR3 USING PCBOX.
             END CLASS PCSR3.
-            """), "ISO §12.3.8.3 SR3");
+            """), "ISO §2023:12.3.8.3 SR3");
 
-    /// <summary>§12.3.8.4 GR5: "The number of parameters in the USING phrase of the EXPANDS phrase of the
+    /// <summary>§2023:12.3.8.4 GR5: "The number of parameters in the USING phrase of the EXPANDS phrase of the
     /// class-specifier shall be the same as the number of parameters in the USING clause of the CLASS-ID
     /// paragraph of object-class-name-2."</summary>
     [Fact]
     public void ParameterCountMismatch_2240()
         => EditionHarness.AssertHasDiagnostic(ErrorsOf(Box + Holder
-            + Driver("CLASS PCBOX CLASS PCHOLD CLASS PCHB EXPANDS PCHOLD USING PCBOX PCBOX")), "ISO §12.3.8.4 GR5");
+            + Driver("CLASS PCBOX CLASS PCHOLD CLASS PCHB EXPANDS PCHOLD USING PCBOX PCBOX")), "ISO §2023:12.3.8.4 GR5");
 
-    /// <summary>§12.3.8.3 SR4: the parameterized name and each actual "shall be defined in the same REPOSITORY
+    /// <summary>§2023:12.3.8.3 SR4: the parameterized name and each actual "shall be defined in the same REPOSITORY
     /// paragraph where object-class-name-1 is defined" — here the actual is not.</summary>
     [Fact]
     public void ActualNotDeclaredInSameParagraph_2240()
         => EditionHarness.AssertHasDiagnostic(ErrorsOf(Box + Holder
-            + Driver("CLASS PCHOLD CLASS PCHB EXPANDS PCHOLD USING PCBOX")), "ISO §12.3.8.3 SR4");
+            + Driver("CLASS PCHOLD CLASS PCHB EXPANDS PCHOLD USING PCBOX")), "ISO §2023:12.3.8.3 SR4");
 
-    /// <summary>§12.3.8.4 GR5 creates a class "from the parameterized class object-class-name-2": a class with no
+    /// <summary>§2023:12.3.8.4 GR5 creates a class "from the parameterized class object-class-name-2": a class with no
     /// USING clause has no formal to replace.</summary>
     [Fact]
     public void ExpandsANonParameterizedClass_2240()
         => EditionHarness.AssertHasDiagnostic(ErrorsOf(Box
             + Driver("CLASS PCBOX CLASS PCX EXPANDS PCBOX USING PCBOX")), "no formal parameter to replace");
 
-    /// <summary>§12.3.8.4 GR8 — an INTERFACE specifier expands a parameterized INTERFACE; naming a parameterized
+    /// <summary>§2023:12.3.8.4 GR8 — an INTERFACE specifier expands a parameterized INTERFACE; naming a parameterized
     /// class there creates nothing.</summary>
     [Fact]
     public void InterfaceSpecifierExpandsAClass_2240()
         => EditionHarness.AssertHasDiagnostic(ErrorsOf(Box + Holder
-            + Driver("CLASS PCBOX CLASS PCHOLD INTERFACE PCIX EXPANDS PCHOLD USING PCBOX")), "ISO §12.3.8.4 GR8");
+            + Driver("CLASS PCBOX CLASS PCHOLD INTERFACE PCIX EXPANDS PCHOLD USING PCBOX")), "ISO §2023:12.3.8.4 GR8");
 
     /// <summary>The formal ELEM is declared by a class-specifier, so the GR5 substitution of an interface for it
     /// would write `CLASS PCIFC` — a class-specifier naming an interface.</summary>
@@ -177,7 +177,7 @@ public sealed class ParameterizedClassTests
         => EditionHarness.AssertHasDiagnostic(ErrorsOf(Box + Holder
             + Driver("INTERFACE PCIFC CLASS PCHOLD CLASS PCHB EXPANDS PCHOLD USING PCIFC")), "is an interface but the formal");
 
-    /// <summary>§9.3.12: expansions with different actual parameters "shall not have the same externalized
+    /// <summary>§2023:9.3.12: expansions with different actual parameters "shall not have the same externalized
     /// object-class-name".</summary>
     [Fact]
     public void OneNameTwoExpansions_2240()
@@ -186,9 +186,9 @@ public sealed class ParameterizedClassTests
             CLASS-ID. PCBOX2.
             END CLASS PCBOX2.
             """ + Driver("CLASS PCBOX CLASS PCBOX2 CLASS PCHOLD "
-                + "CLASS PCHB EXPANDS PCHOLD USING PCBOX CLASS PCHB EXPANDS PCHOLD USING PCBOX2")), "ISO §9.3.12");
+                + "CLASS PCHB EXPANDS PCHOLD USING PCBOX CLASS PCHB EXPANDS PCHOLD USING PCBOX2")), "ISO §2023:9.3.12");
 
-    /// <summary>§9.3.12: two specifiers with the same name, definition and actuals are "the same class instance"
+    /// <summary>§2023:9.3.12: two specifiers with the same name, definition and actuals are "the same class instance"
     /// — ONE class, so the program compiles (a second emitted type of the same name would be a Roslyn error).</summary>
     [Fact]
     public void OneNameOneExpansion_InTwoSourceElements_Compiles()
@@ -205,7 +205,7 @@ public sealed class ParameterizedClassTests
             """ + Driver("CLASS PCBOX CLASS PCHOLD CLASS PCHB EXPANDS PCHOLD USING PCBOX",
                 "01 R USAGE OBJECT REFERENCE PCHB."));
 
-    /// <summary>§12.3.8.4 GR1: "If object-class-name-1 is a class described with the USING phrase,
+    /// <summary>§2023:12.3.8.4 GR1: "If object-class-name-1 is a class described with the USING phrase,
     /// object-class-name-1 may be specified only in the REPOSITORY paragraph" — a typed reference to the
     /// skeleton itself is refused through the referring construct's own code, naming GR1.</summary>
     [Fact]
@@ -213,7 +213,7 @@ public sealed class ParameterizedClassTests
     {
         var errors = ErrorsOf(Box + Holder + Driver("CLASS PCHOLD", "01 R USAGE OBJECT REFERENCE PCHOLD."));
         EditionHarness.AssertHasDiagnostic(errors, "COBOL0813");
-        EditionHarness.AssertHasDiagnostic(errors, "ISO §12.3.8.4 GR1");
+        EditionHarness.AssertHasDiagnostic(errors, "ISO §2023:12.3.8.4 GR1");
     }
 
     /// <summary>The expansion RE-BINDS the definition's own lines, so a defect in a line no formal touches is

@@ -4,12 +4,12 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.11.3 SR1 — "Identifier-1 shall not reference a data item of class message-tag, object,
+      *> ISO §2023:14.9.11.3 SR1 — "Identifier-1 shall not reference a data item of class message-tag, object,
       *> or pointer."
       *> (cite.py --check 14.9.11.3 "Identifier-1 shall not reference a data item of class message-tag,
-      *> object, or pointer." -> OK, §14.9.11.3 rule 1.)
+      *> object, or pointer." -> OK, §2023:14.9.11.3 rule 1.)
       *>
-      *> DERIVED BEFORE MEASURING. §8.5.2.1 Table 2 puts category object-reference in CLASS OBJECT, the
+      *> DERIVED BEFORE MEASURING. §2023:8.5.2.1 Table 2 puts category object-reference in CLASS OBJECT, the
       *> second of the three classes SR1 names, so a USAGE OBJECT REFERENCE item is not a legal
       *> identifier-1 and this program shall be REJECTED at 2002+ (usage-object-reference-2002).
       *> Before kb/Work PB148 it compiled clean and printed the CLR object's ToString().

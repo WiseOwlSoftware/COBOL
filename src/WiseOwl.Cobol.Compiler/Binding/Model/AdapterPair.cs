@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 namespace WiseOwl.Cobol.Binding.Model;
 
-/// <summary>One covariant-return adapter pair (§9.3.8.2.3 rules 5a/5c2 — conforming COBOL that C# interface
+/// <summary>One covariant-return adapter pair (§2023:9.3.8.2.3 rules 5a/5c2 — conforming COBOL that C# interface
 /// implementation cannot express directly, because interface implementations demand the EXACT return type):
 /// the emitter renders an EXPLICIT interface implementation <c>PROTO_RET I_CS.M(…) =&gt; this.M(…);</c> per
 /// pair; <paramref name="Factory"/> marks the FACTORY side. Model data (kb/Work PB2403): it names only the OO symbols,

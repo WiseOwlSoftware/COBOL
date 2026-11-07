@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 namespace WiseOwl.Cobol.Runtime.Messaging;
 
-/// <summary>How a RECEIVE waits (ISO §14.9.31.4 GR2; §0 Q5).</summary>
+/// <summary>How a RECEIVE waits (ISO §2023:14.9.31.4 GR2; §0 Q5).</summary>
 internal enum MessageWaitKind
 {
     /// <summary>No CONTINUE phrase: until a message or an exception arrives.</summary>
@@ -33,7 +33,7 @@ internal sealed record ServerDefinition(int? MaxLength, bool HasStart);
 /// <paramref name="ExceptionName"/> is null exactly when the statement is successful; an unsuccessful RECEIVE of a reply that raised, or of a message
 /// longer than identifier-1, still carries its <paramref name="Image"/> (§0 Q6, Q7). <paramref name="Length"/> is what data-name-2 receives, or null
 /// when it stays unchanged. A RECEIVE that timed out or polled with nothing waiting is successful with the empty image, zero length and a null
-/// <paramref name="Tag"/> (§14.9.31.4 GR2: identifier-1 becomes spaces); <paramref name="Detail"/> explains an EC-MCS-IMP.
+/// <paramref name="Tag"/> (§2023:14.9.31.4 GR2: identifier-1 becomes spaces); <paramref name="Detail"/> explains an EC-MCS-IMP.
 /// </summary>
 internal sealed record StatementResult(
     string? ExceptionName, MessageTag Tag, string? Image, RecordExtents? Extents, object?[]? Slots, long? Length, string? Detail = null)

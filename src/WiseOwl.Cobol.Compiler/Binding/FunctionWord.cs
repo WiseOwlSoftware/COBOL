@@ -7,7 +7,7 @@ using WiseOwl.Cobol.Frontend.Parsing;
 namespace WiseOwl.Cobol.Binding;
 
 /// <summary>
-/// ⛔ A FUNCTION-NAME WORD AS THE <c>&gt;&gt;COBOL-WORDS</c> DIRECTIVE LEFT IT, RESOLVED EXACTLY ONCE (ISO §7.3.10.4
+/// ⛔ A FUNCTION-NAME WORD AS THE <c>&gt;&gt;COBOL-WORDS</c> DIRECTIVE LEFT IT, RESOLVED EXACTLY ONCE (ISO §2023:7.3.10.4
 /// GR2/GR3/GR4; kb/Work PB1372). The binder classifies a name by what the directive made of it — a synonym denotes its
 /// canonical intrinsic, a de-reserved word denotes none — and the lexer ALREADY applied the directive to every token it
 /// could reach (<see cref="CobolWordsRewriter.Plan"/>: a synonym of a keyword token arrives respelled canonically, a

@@ -5,10 +5,10 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §7.3.25.3 SR5, whole: "A TURN directive shall not be specified within an exception processing
+      *> ISO §2023:7.3.25.3 SR5, whole: "A TURN directive shall not be specified within an exception processing
       *> PERFORM statement." Owner decision D20 (2026-07-19) settles the treatment: a FLAT ban — the whole
       *> statement, imperative-statement-1 included — reported as a SUPPRESSIBLE conformance warning
-      *> (COBOL2187), with the program still compiling and still running, because §4.2.2 requires for a
+      *> (COBOL2187), with the program still compiling and still running, because §2023:4.2.2 requires for a
       *> violation of the syntax rules only "a warning mechanism that optionally may be invoked by the user at
       *> compile time to indicate violations of the general formats" (kb/Work PB595).
       *>
@@ -17,7 +17,7 @@
       *> pinned by unit:ExceptionCheckingPerformDirectiveBanDriftTests.
       *>
       *> LEG 1 — the banned directive is written inside imperative-statement-1, and the statement's OWN semantics
-      *> are unaffected: §14.9.28.4 GR14 sentence 1 implicitly enables checking for the WHEN-named exception over
+      *> are unaffected: §2023:14.9.28.4 GR14 sentence 1 implicitly enables checking for the WHEN-named exception over
       *> imperative-statement-1 ("If checking for exception-name-1 … is not enabled for imperative-statement-1 by
       *> a TURN directive, an implicit TURN directive … is assumed before the first statement in
       *> imperative-statement-1"), so the STRING overflow raises EC-OVERFLOW-STRING and GR17 executes

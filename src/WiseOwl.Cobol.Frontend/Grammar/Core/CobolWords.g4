@@ -81,7 +81,7 @@ cobolWord
 
 // The USER-WORD home of every reservation-gated word (kb/Work PB300/PB137/PB693/PB655/PB4206). A gated word
 // is never a cobolWord; the TOKEN-LEVEL gate (ReservationGateRewriter) retypes it to IDENTIFIER where
-// §8.9 leaves it free AND a user-defined-word slot below matched it. Where §8.9 reserves it, the match
+// §2023:8.9 leaves it free AND a user-defined-word slot below matched it. Where §2023:8.9 reserves it, the match
 // stands and VersionConformancePass.VisitReservedGatedWord — the ONE funnel arm — answers COBOL0901: every
 // use of this rule is a user-defined-word slot (every definition slot, and procedureName, references
 // included; kb/Work PB4206), so a new slot needs no new C#.
@@ -234,19 +234,19 @@ reservedGatedWord
       ) { gatedDeclaration(TokenStream.LT(-1)); }
     ;
 
-// The keyword MESSAGE where a format spells it and §8.9 may leave it free: ISO 14.9.31.2 prints CONTINUE AFTER MESSAGE RECEIVED in the RECEIVE statement of COBOL-2023, and the 2023 8.9 list does not reserve MESSAGE, so a 2023 program may declare it AND write the phrase (kb/Work PB3794).
+// The keyword MESSAGE where a format spells it and §2023:8.9 may leave it free: ISO 14.9.31.2 prints CONTINUE AFTER MESSAGE RECEIVED in the RECEIVE statement of COBOL-2023, and the 2023 8.9 list does not reserve MESSAGE, so a 2023 program may declare it AND write the phrase (kb/Work PB3794).
 messageKeyword
     : MESSAGE
     | {wordAhead("MESSAGE")}? IDENTIFIER
     ;
 
-// The keyword METHOD where a format spells it and §8.9 may leave it free: ISO 10.6.1 prints END METHOD (and 10.7.2 the METHOD end marker) at COBOL-2023, and the 2023 8.9 list does not reserve METHOD (it names METHOD-ID); EXIT METHOD, removed at 2023 by Annex E.2 item 1, still spells it under --permissive (kb/Work PB2623).
+// The keyword METHOD where a format spells it and §2023:8.9 may leave it free: ISO 10.6.1 prints END METHOD (and 10.7.2 the METHOD end marker) at COBOL-2023, and the 2023 8.9 list does not reserve METHOD (it names METHOD-ID); EXIT METHOD, removed at 2023 by Annex E.2 item 1, still spells it under --permissive (kb/Work PB2623).
 methodKeyword
     : METHOD
     | {wordAhead("METHOD")}? IDENTIFIER
     ;
 
-// The keyword MULTIPLE where a format spells it and §8.9 may leave it free: ISO 12.4.5.9.2 prints WITH LOCK ON [MULTIPLE] RECORDS in the LOCK MODE clause, a 2002 introduction, and 8.9 reserves MULTIPLE at 85 only: 8.10 lists it as the context-sensitive word of the LOCK ON phrase (kb/Work PB3794).
+// The keyword MULTIPLE where a format spells it and §2023:8.9 may leave it free: ISO 12.4.5.9.2 prints WITH LOCK ON [MULTIPLE] RECORDS in the LOCK MODE clause, a 2002 introduction, and 8.9 reserves MULTIPLE at 85 only: 8.10 lists it as the context-sensitive word of the LOCK ON phrase (kb/Work PB3794).
 multipleKeyword
     : MULTIPLE
     | {wordAhead("MULTIPLE")}? IDENTIFIER

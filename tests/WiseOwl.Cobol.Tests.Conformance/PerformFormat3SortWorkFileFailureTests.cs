@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// <c>SF</c> of the SD entry, whose storage is the implementor's: docs/CONFORMANCE.md §3 D-SWK) while the SORT sits in
 /// a WHEN phrase of an exception-checking PERFORM, beside <c>PerformFormat3IoConflictAndSortTests</c> (the USING-file
 /// failures: status 35, a file open, a MERGE out of sequence).
-/// <para>What the standard says and what it leaves to the implementor. A SORT may sit in a WHEN phrase (§14.9.40.3
+/// <para>What the standard says and what it leaves to the implementor. A SORT may sit in a WHEN phrase (§2023:14.9.40.3
 /// SR3: "A SORT statement shall not appear in imperative-statement-1 of an exception-checking PERFORM statement, in
 /// an input or output procedure, or in a declarative procedure" — a WHEN phrase is none of those). The standard raises no exception
 /// condition for the sort-merge file's own storage, so no WHEN, WHEN OTHER, FINALLY or USE declarative can answer
@@ -19,7 +19,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// reason and the variable that sets it (<c>WISEOWL_COBOL_SORT_TMPDIR</c>), "no record is dropped silently". This class pins
 /// that the Format-3 PERFORM's frame does not turn the stop into anything else: no later WHEN phrase, no WHEN OTHER,
 /// no FINALLY and not the statements after END-PERFORM run, the exit status is not zero, and the GIVING file was
-/// never created: the run file fails while the input procedure releases records, and §14.9.40.4 GR15 a) initiates the
+/// never created: the run file fails while the input procedure releases records, and §2023:14.9.40.4 GR15 a) initiates the
 /// GIVING file only after the execution of any input procedure, so a stop there leaves no GIVING file behind, empty or
 /// half written. The same program with a usable work directory sorts, which is what makes the stop attributable to
 /// the work file and not to the program.</para>
@@ -118,8 +118,8 @@ public sealed class PerformFormat3SortWorkFileFailureTests
             string work = Directory.CreateDirectory(Path.Combine(dir, "sortwork")).FullName;
             var (ok, stdout, detail) = Run(dir, work);
             Assert.True(ok, $"WiseOwl COBOL failed: {detail}\nstdout:\n{stdout}");
-            // ascending 1 .. 5000 (§14.9.40.4 GR3: the records are returned in key order); the FINALLY phrase runs
-            // after the WHEN phrase has completed (§14.9.28.4 GR16: "the end of the PERFORM statement begins at imperative-statement-5")
+            // ascending 1 .. 5000 (§2023:14.9.40.4 GR3: the records are returned in key order); the FINALLY phrase runs
+            // after the WHEN phrase has completed (§2023:14.9.28.4 GR16: "the end of the PERFORM statement begins at imperative-statement-5")
             Assert.Equal("IN-WHEN 35\nSORTED 00\nAFTER-OPEN\nFINALLY\nRANGE 00000001 00005000\nDONE", stdout);
             Assert.Empty(Directory.EnumerateFileSystemEntries(work));   // D-SWK (b): no run file outlives the statement
         }
@@ -138,7 +138,7 @@ public sealed class PerformFormat3SortWorkFileFailureTests
             Assert.Equal("IN-WHEN 35", stdout);   // everything before the SORT ran; nothing after it did
             Assert.Contains(DirectoryVariable, detail, StringComparison.Ordinal);
             Assert.Contains("no-such-directory", detail, StringComparison.Ordinal);
-            // §14.9.40.4 GR15 a): the GIVING file is initiated only after the input procedure, so it was never opened
+            // §2023:14.9.40.4 GR15 a): the GIVING file is initiated only after the input procedure, so it was never opened
             Assert.False(File.Exists(GivingPath(dir)), "the stopped SORT left its GIVING file behind");
         }
         finally { ScratchDirectory.Remove(dir); }

@@ -13,10 +13,10 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ AN IMPLICIT REDEFINITION IS NOT A REDEFINES CLAUSE (kb/Work PB836).
 ///
-/// <para><b>The rules.</b> ISO §13.18.33.4 GR3 — "Multiple level 1 entries subordinate to a FD or SD entry represent
-/// implicit redefinitions of the same area" — and §12.4.6.4.4 GR2, a record-area SAME clause being "equivalent to an
+/// <para><b>The rules.</b> ISO §2023:13.18.33.4 GR3 — "Multiple level 1 entries subordinate to a FD or SD entry represent
+/// implicit redefinitions of the same area" — and §2023:12.4.6.4.4 GR2, a record-area SAME clause being "equivalent to an
 /// implicit redefinition of the area with records aligned on the leftmost byte position". The REDEFINES-clause syntax
-/// rules (§13.18.44.3 SR5/SR12/SR14/SR17) are rules about a written clause and its data-name-2 operand; §13.18.57.3
+/// rules (§2023:13.18.44.3 SR5/SR12/SR14/SR17) are rules about a written clause and its data-name-2 operand; §2023:13.18.57.3
 /// SR4 — "the subject of the entry shall not be implicitly or explicitly redefined in whole or in part" — is the one
 /// that reaches the implicit case.</para>
 ///
@@ -33,7 +33,7 @@ public sealed class ImplicitRecordRedefinitionTests
         """;
 
     /// <summary>The TWO ARMS of a symmetric sharing: a strong record is implicitly redefined whichever of the two
-    /// records the binder anchors the area on, so §13.18.57.3 SR4 fires for both orders — and neither order may
+    /// records the binder anchors the area on, so §2023:13.18.57.3 SR4 fires for both orders — and neither order may
     /// borrow a REDEFINES-clause rule (before the fix the first order drew SR14 + SR4, the second SR12 alone).</summary>
     [Theory]
     [InlineData("01 F-BIG TYPE T1.\n       01 F-OTHER PIC X(4).")]
@@ -43,12 +43,12 @@ public sealed class ImplicitRecordRedefinitionTests
         var (_, ed) = Compile(Fd(records, Strong));
         var sr4 = Assert.Single(ed.Diagnostics, x => x.Contains("COBOL5991", StringComparison.Ordinal));
         Assert.Contains("'F-BIG' is a strongly-typed item", sr4);
-        Assert.Contains("§13.18.33.4 GR3", sr4);
-        Assert.Contains("§13.18.57.3 SR4", sr4);
-        Assert.DoesNotContain(ed.Diagnostics, x => x.Contains("§13.18.44", StringComparison.Ordinal));
+        Assert.Contains("§2023:13.18.33.4 GR3", sr4);
+        Assert.Contains("§2023:13.18.57.3 SR4", sr4);
+        Assert.DoesNotContain(ed.Diagnostics, x => x.Contains("§2023:13.18.44", StringComparison.Ordinal));
     }
 
-    /// <summary>§12.4.6.4.4 GR2's implicit redefinition reaches SR4 the same way, and the diagnostic names the
+    /// <summary>§2023:12.4.6.4.4 GR2's implicit redefinition reaches SR4 the same way, and the diagnostic names the
     /// SAME clause as the construct that shares the area.</summary>
     [Fact]
     public void StrongRecord_InASameRecordArea_IsSr4_CitingTheSameClause()
@@ -77,20 +77,20 @@ public sealed class ImplicitRecordRedefinitionTests
         var (d, ed) = Compile(src);
         Assert.Equal(RedefinitionKind.SameRecordArea, d.Forest.ByName["R2"][0].RedefinesKind);
         var sr4 = Assert.Single(ed.Diagnostics, x => x.Contains("COBOL5991", StringComparison.Ordinal));
-        Assert.Contains("§12.4.6.4.4 GR2", sr4);
-        Assert.DoesNotContain(ed.Diagnostics, x => x.Contains("§13.18.44", StringComparison.Ordinal));
+        Assert.Contains("§2023:12.4.6.4.4 GR2", sr4);
+        Assert.DoesNotContain(ed.Diagnostics, x => x.Contains("§2023:13.18.44", StringComparison.Ordinal));
     }
 
     /// <summary>⛔ AN OUT-OF-LINE RECORD IS NEVER LINKED (kb/Work PB981 — determination D-FRA, docs/CONFORMANCE.md
-    /// §3). A level-1 <c>USAGE POINTER</c> record is legal (§13.18.60.3 SR14 admits a pointer "only for an
-    /// elementary data item at level 1"), and so are a dynamic-length record and a variable-length group; §13.18.33.4
+    /// §3). A level-1 <c>USAGE POINTER</c> record is legal (§2023:13.18.60.3 SR14 admits a pointer "only for an
+    /// elementary data item at level 1"), and so are a dynamic-length record and a variable-length group; §2023:13.18.33.4
     /// GR3 makes each an implicit redefinition of the FD's area. None of them has a window over the character area,
     /// so the binder does NOT link it into the area's class (which staged every one of them loud as COBOL0899,
     /// and before PB836 drew the REDEFINES-clause rules SR12/SR17). It shares the area at the transfer boundary
     /// instead: <see cref="FileModel.OutOfLineRecords"/> is what a READ reaches, and the character-window record is
     /// the <see cref="FileModel.AreaRecord"/>. One row per out-of-line shape, so a new shape added to
     /// <see cref="FileModel.IsOutOfLineRecord"/> without its binder half fails here. (A dynamic-capacity table is
-    /// never one: it "may be defined in any place, other than the file section", §8.5.1.9.1 3) — COBOL1526.)</summary>
+    /// never one: it "may be defined in any place, other than the file section", §2023:8.5.1.9.1 3) — COBOL1526.)</summary>
     [Theory]
     [InlineData("01 R3 USAGE POINTER.")]
     [InlineData("01 R3 USAGE PROGRAM-POINTER.")]
@@ -109,7 +109,7 @@ public sealed class ImplicitRecordRedefinitionTests
         Assert.Same(r3, Assert.Single(file.OutOfLineRecords));
     }
 
-    /// <summary>The record-area SAME clause twin (§12.4.6.4.4 GR2): an out-of-line record of one file is reached by
+    /// <summary>The record-area SAME clause twin (§2023:12.4.6.4.4 GR2): an out-of-line record of one file is reached by
     /// a READ of the OTHER file — each sharing file learns its peers, and only the character-window records are
     /// linked into one class.</summary>
     [Fact]

@@ -5,22 +5,22 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.51.4 GR26 a)/b) AT THE BOUNDARY — THE COBOL-85 TWIN
+      *> ISO §2023:14.9.51.4 GR26 a)/b) AT THE BOUNDARY — THE COBOL-85 TWIN
       *> of conformance-suite/cases/13.18.34-LINAGE/pb686_linage_gr26_boundary.cob.
       *>
       *> ⚖ THE DETERMINATION IS EDITION-INDEPENDENT, AND THIS FIXTURE
       *> IS WHAT MAKES THAT A MEASUREMENT RATHER THAN AN ASSERTION.
-      *> docs/CONFORMANCE.md §4, "DETERMINATION — the §14.9.51.4 GR26
+      *> docs/CONFORMANCE.md §4, "DETERMINATION — the §2023:14.9.51.4 GR26
       *> a)/b) boundary at LINAGE-COUNTER = page size" (kb/Work PB686)
       *> resolves a contradiction between GR26's printed arms and
-      *> §13.18.34.4 GR1/GR2/GR3/GR7. The 2023 twin carries the full
+      *> §2023:13.18.34.4 GR1/GR2/GR3/GR7. The 2023 twin carries the full
       *> derivation with its cite.py --check lines; it is not repeated
       *> here, because one rule belongs in one place. What is asserted
       *> HERE is that the boundary answers identically at --std 85.
       *>
       *> WHY IT SHOULD. docs/VERSION_CHANGE_REFERENCE.md records every
       *> edition delta on this material, and there is NO entry for
-      *> GR26 a)/b), for the footing area of §13.18.34.4 GR3, or for
+      *> GR26 a)/b), for the footing area of §2023:13.18.34.4 GR3, or for
       *> the LINAGE-COUNTER rules of GR7. The one WRITE/END-OF-PAGE
       *> delta it does record is Table 1 item 37 (2014→2023): what
       *> happens when an end-of-page condition occurs and NO
@@ -32,19 +32,19 @@
       *> fixture is the evidence for the 85 end of that claim.
       *>
       *> The PLN file repeats the FTG boundary through the PLAIN-WRITE
-      *> entry point (§13.18.34.4 GR7 c) 3 — an omitted ADVANCING
+      *> entry point (§2023:13.18.34.4 GR7 c) 3 — an omitted ADVANCING
       *> phrase increments the counter by one), because the boundary
       *> comparison is reachable from more than one WRITE entry point
       *> and a one-arm fix is this repo's most reproducible defect.
       *>
       *> EXPECTED VALUES. Byte-identical to the 2023 twin's .out apart
       *> from nothing at all — the same seventeen lines, derived from
-      *> §13.18.34.4 GR7d (1 at OPEN OUTPUT), GR7 c) 2 (+1 per
+      *> §2023:13.18.34.4 GR7d (1 at OPEN OUTPUT), GR7 c) 2 (+1 per
       *> ADVANCING 1 LINE), GR7 c) 4 (reset to 1 on the overflow
-      *> reposition), §13.18.34.4 GR3 (the footing area includes the
-      *> page-size line), §13.18.34.4 GR1 (no FOOTING phrase ⇒ no
+      *> reposition), §2023:13.18.34.4 GR3 (the footing area includes the
+      *> page-size line), §2023:13.18.34.4 GR1 (no FOOTING phrase ⇒ no
       *> end-of-page condition independent of page overflow) and
-      *> §14.9.51.4 GR26 as the determination reads it (arm a) at
+      *> §2023:14.9.51.4 GR26 as the determination reads it (arm a) at
       *> counter > page size, arm b) over [footing start, page size]).
       *> The two ⚖ lines are F3 (EOP with LC=004, not LC=001) and N3
       *> (NO-EOP with LC=004): under the rejected literal reading of

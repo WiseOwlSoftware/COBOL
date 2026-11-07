@@ -8,22 +8,22 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// <summary>
 /// The witnesses for two Annex A.1 locale determinations (kb/Work PB2671), each pinned through an observable that
 /// cannot drift with CLDR's date or number formats: the COLLATION ORDER of "ñu" and "nz" under
-/// <c>ALPHABET … IS LOCALE</c> with no locale-name, which §12.3.7.4 7) e) (cite.py OK) defines "by the locale that is
+/// <c>ALPHABET … IS LOCALE</c> with no locale-name, which §2023:12.3.7.4 7) e) (cite.py OK) defines "by the locale that is
 /// current". Spanish has sorted ñ as a letter of its own after n in every CLDR release, so "nz" precedes "ñu"; German,
 /// and the root collation, treat ñ as n with a secondary (accent) difference, so the primary letters u and z decide and
 /// "ñu" precedes "nz".
 /// <list type="bullet">
 /// <item><b>DOC-A.1-118</b> — "Locale specification (how user and system defaults defined; at least one user and one
-/// system default)" (cite.py OK §A.1 118)). §8.2.1 (cite.py OK): "The implementor shall specify the manner in which
+/// system default)" (cite.py OK §2023:A.1 118)). §2023:8.2.1 (cite.py OK): "The implementor shall specify the manner in which
 /// the user default locale is defined and shall provide at least one user default locale for use in computing
 /// environments that do not provide a user default locale", and the same of the system default. DETERMINATION: the user
 /// default is <c>COBOL_USER_LOCALE</c> when it is set, else the process culture, else the root; the system default is
 /// <c>COBOL_SYSTEM_LOCALE</c>, else the host's installed UI culture, else the root; a variable's value is a locale name
 /// in the item-119 notation (trimmed; <c>C</c> names the root). The current locale starts as the user default
-/// (§14.6.6 1), cite.py OK), and <c>SET LOCALE LC_ALL TO SYSTEM-DEFAULT</c> / <c>USER-DEFAULT</c> switch it
-/// (§14.9.39.4).</item>
+/// (§2023:14.6.6 1), cite.py OK), and <c>SET LOCALE LC_ALL TO SYSTEM-DEFAULT</c> / <c>USER-DEFAULT</c> switch it
+/// (§2023:14.9.39.4).</item>
 /// <item><b>DOC-A.1-120</b> — "Locale switch (whether a switch by a non-COBOL runtime module is recognized by COBOL)"
-/// (cite.py OK §A.1 120)). §8.2.1 (cite.py OK): "It is implementor-defined whether, and for which locale categories, a
+/// (cite.py OK §2023:A.1 120)). §2023:8.2.1 (cite.py OK): "It is implementor-defined whether, and for which locale categories, a
 /// switch of current locale by a non-COBOL runtime module is utilized by COBOL." DETERMINATION: no, for every category:
 /// the run unit reads the process culture once, when it starts, and a later change of <c>CultureInfo.CurrentCulture</c>
 /// by the .NET host is not utilized, not even by <c>SET LOCALE … TO USER-DEFAULT</c>, whose user default is the one the

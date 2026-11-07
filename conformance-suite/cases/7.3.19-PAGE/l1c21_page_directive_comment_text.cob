@@ -5,20 +5,20 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §7.3.19.3 SR1 — PAGE comment-text-1 may hold any character
+      *> ISO §2023:7.3.19.3 SR1 — PAGE comment-text-1 may hold any character
       *> "Comment-text-1 may contain any character in the compile-time
       *> computer's coded character set except for control characters
       *> as specified in Clause 6, Reference format, rule 3b."
-      *>   cite.py --check 7.3.19.3 -> OK  §7.3.19.3 1)  (Syntax rules)
+      *>   cite.py --check 7.3.19.3 -> OK  §2023:7.3.19.3 1)  (Syntax rules)
       *> Companion rules the program leans on (context, not the row):
-      *>   §7.3.19.3 SR2 "Comment-text-1 is not checked syntactically."
-      *>   cite.py --check 7.3.19.3 -> OK  §7.3.19.3 2)  (Syntax rules)
-      *>   §7.3.19.4 GR3 "If a source listing is not being produced, a
+      *>   §2023:7.3.19.3 SR2 "Comment-text-1 is not checked syntactically."
+      *>   cite.py --check 7.3.19.3 -> OK  §2023:7.3.19.3 2)  (Syntax rules)
+      *>   §2023:7.3.19.4 GR3 "If a source listing is not being produced, a
       *>   PAGE directive shall have no effect."
-      *>   cite.py --check 7.3.19.4 -> OK  §7.3.19.4 3)  (General rules)
-      *>   §6.1 3b) (the excluded characters are the implementor's
+      *>   cite.py --check 7.3.19.4 -> OK  §2023:7.3.19.4 3)  (General rules)
+      *>   §2023:6.1 3b) (the excluded characters are the implementor's
       *>   line-TERMINATING control characters)
-      *>   cite.py --check 6.1 -> OK  §6.1 b)  (General)
+      *>   cite.py --check 6.1 -> OK  §2023:6.1 b)  (General)
       *> The three >>PAGE lines below carry, as comment-text-1, lower
       *> case letters, every printable ASCII special character (an
       *> unbalanced quotation mark and apostrophe, < > \ | ~ ` ^ { } [ ]
@@ -30,7 +30,7 @@
       *> Expected output, derived:
       *>   "BEFORE PAGE" — the first DISPLAY.
       *>   "AFTER PAGE"  — the directive between the two DISPLAYs is
-      *>     documentation only (§7.3.19.4 GR1/GR3; WiseOwl COBOL produces
+      *>     documentation only (§2023:7.3.19.4 GR1/GR3; WiseOwl COBOL produces
       *>     no source listing), so its "STOP RUN." text is not a
       *>     statement and execution reaches the second DISPLAY.
        >>PAGE Start: "unbalanced quote; 'apos (a+b)=c/d*e-f, x.y

@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ THE DRIFT TEST for the SET-family AMOUNT landing and the guarded index store (kb/Work PB459).
-/// <para>§14.9.39.4 states the SAME integrality guard once per amount-taking format — GR2 a) 1. a (Format 1),
+/// <para>§2023:14.9.39.4 states the SAME integrality guard once per amount-taking format — GR2 a) 1. a (Format 1),
 /// GR3 (Format 2), GR19 (Format 10, the data pointer) and GR29 (Format 14, the dynamic capacity) — each time
 /// with the same three consequents (the condition is set to exist · the SET is unsuccessful · the receiving
 /// operand is unchanged) and only the exception-condition NAME differing. Exactly ONE of the four was
@@ -145,7 +145,7 @@ public sealed class SetIndexAmountLandingDriftTests
             }
     }
 
-    /// <summary>The population is CLOSED, not sampled. §14.9.39.4 states the integrality guard in exactly FOUR
+    /// <summary>The population is CLOSED, not sampled. §2023:14.9.39.4 states the integrality guard in exactly FOUR
     /// general rules; if a future revision of the transcription grows a fifth, this fails and the new rule has to
     /// be given the one landing rather than a fifth hand-written test.</summary>
     [Fact]

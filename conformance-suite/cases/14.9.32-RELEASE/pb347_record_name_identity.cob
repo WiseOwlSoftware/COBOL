@@ -6,10 +6,10 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO 1989:2023 §14.9.32.3 SR1 / §14.9.51.3 SR5 / §14.9.35.3 SR1 - the ACCEPT side of the
+      *> ISO 1989:2023 §2023:14.9.32.3 SR1 / §2023:14.9.51.3 SR5 / §2023:14.9.35.3 SR1 - the ACCEPT side of the
       *> record-name-1 operand rule: the operand IS a logical record of a file description entry, and all
       *> three rules end "and it may be qualified", so the OF form binds. Each RELEASE releases exactly the
-      *> record named (§14.9.32.4 GR2), so the count is the number of RELEASE statements executed and
+      *> record named (§2023:14.9.32.4 GR2), so the count is the number of RELEASE statements executed and
       *> nothing else reaches the sort (kb/Work PB347).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB347RI.

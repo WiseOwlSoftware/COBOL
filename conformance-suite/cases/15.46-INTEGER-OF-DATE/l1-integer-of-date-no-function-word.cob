@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.46.2 general format — FUNCTION INTEGER-OF-DATE ( argument-1 ): the
+      *> ISO §2023:15.46.2 general format — FUNCTION INTEGER-OF-DATE ( argument-1 ): the
       *> word FUNCTION is UNDERLINED, so it is a required word of this format.
       *>
       *> THIS IS THE OTHER HALF OF THAT ONE-LINE FORMAT. l1-integer-of-date-arity2
@@ -13,7 +13,7 @@
       *> sibling row FMT-15.25.2 was overturned CONFORMS -> PARTIAL for exactly this
       *> omission.
       *>
-      *> The one permission to leave the word out is §8.4.3.2.3 SR2 — "If
+      *> The one permission to leave the word out is §2023:8.4.3.2.3 SR2 — "If
       *> intrinsic-function-name-1 or the ALL phrase is specified in the REPOSITORY
       *> paragraph … the word FUNCTION may be omitted from the function-identifier;
       *> otherwise the word FUNCTION is required" — and this compilation unit has NO
@@ -23,7 +23,7 @@
       *>
       *> ⚠ 2002 AND UP, NOT 85, and the reason is a rule and not a convenience: the
       *> REPOSITORY FUNCTION specifier SR2 depends on is a COBOL-2002 introduction
-      *> (§12.3.8). Below 2002 the omission draws the ordinary unresolved-name
+      *> (§2023:12.3.8). Below 2002 the omission draws the ordinary unresolved-name
       *> diagnostic instead — a different rule about a different clause, which a
       *> negative pinning THIS one must not silently absorb.
       *> The accepting side of the word (written) is 2023/l1_integer_date_form_

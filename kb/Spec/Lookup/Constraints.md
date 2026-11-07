@@ -25,13 +25,13 @@ enforces limits) and **engineering constraints** (the development doctrine from 
 |---|---|---|---|---|---|
 | Edition availability | a construct exists only in editions ≥ its `introducedIn` | Annex E / editions | `VersionConformancePass` (0900) | intro gating | [[kb/Semantics/Passes]] |
 | Removed constructs | a removed construct rejects (strict) / warns (permissive) | Annex F / VCR | `VersionConformancePass` (0902) | removal gating | [[kb/Spec/Version Targeting]] |
-| Reserved words | a reserved word cannot be a user-defined word | §8.9 | §8.9 reserved-word funnel (0901) | position-aware check | [[kb/Semantics/Validation Rules]] |
-| Digit capacity | max 18 digits pre-2002, 31 after | §8.8 / editions | `EditionContext.CheckDigitCapacity` (0801/0802) | `MaxDigits` | [[kb/Semantics/Validation Rules]] |
-| MOVE category compatibility | operand classes must be move-compatible | §14.9.25.3 SR1 | `MoveBinder` (0809) | category matrix | [[kb/Semantics/Validation Rules]] |
+| Reserved words | a reserved word cannot be a user-defined word | §2023:8.9 | §2023:8.9 reserved-word funnel (0901) | position-aware check | [[kb/Semantics/Validation Rules]] |
+| Digit capacity | max 18 digits pre-2002, 31 after | §2023:8.8 / editions | `EditionContext.CheckDigitCapacity` (0801/0802) | `MaxDigits` | [[kb/Semantics/Validation Rules]] |
+| MOVE category compatibility | operand classes must be move-compatible | §2023:14.9.25.3 SR1 | `MoveBinder` (0809) | category matrix | [[kb/Semantics/Validation Rules]] |
 | Reference format | fixed-form column areas / free-form rules | §6 | preprocessor normalize | indicator gates | [[kb/Compiler/Phases]] |
-| External-file consistency | matching SELECTs share external status/key items | §12.4 / §9.1 | binder + pass (1573/1575/1624) | cross-connector | [[kb/Semantics/Validation Rules]] |
-| REDEFINES legality | no VALUE on a redefiner; SYNC/type puns limited | §13.16 REDEFINES | data binder (4-tier reject-D) | overlay rules | [[kb/IR/Data Flow]] |
-| Documented non-support | MCS / COMMIT-ROLLBACK / VALIDATE / SCREEN (the LOCALE module is CLAIMED since PB64 T6) | §4 / Annex A.4 | recognize+warn (1560 band) | §4.2.6 | [[kb/Spec/Overview]] |
+| External-file consistency | matching SELECTs share external status/key items | §2023:12.4 / §2023:9.1 | binder + pass (1573/1575/1624) | cross-connector | [[kb/Semantics/Validation Rules]] |
+| REDEFINES legality | no VALUE on a redefiner; SYNC/type puns limited | §2023:13.16 REDEFINES | data binder (4-tier reject-D) | overlay rules | [[kb/IR/Data Flow]] |
+| Documented non-support | MCS / COMMIT-ROLLBACK / VALIDATE / SCREEN (the LOCALE module is CLAIMED since PB64 T6) | §4 / Annex A.4 | recognize+warn (1560 band) | §2023:4.2.6 | [[kb/Spec/Overview]] |
 | Loud-failure | a recognized-but-unimplemented case fails loudly, never silently | project rule (D8) | `BoundUnsupported` / ICE | no silent no-op | [[kb/Architecture/High-Level Design]] |
 
 ## Engineering constraints (anti-patterns)

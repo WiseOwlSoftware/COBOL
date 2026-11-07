@@ -60,7 +60,7 @@ internal static class BackendContract
             "Model.PublishedSkeleton.ExternalizedName", "Model.PublishedSkeleton.Name",
             "Model.ResolutionRecord.Identity", "Model.ResolutionRecord.Word", "Model.SkeletonRecord.Formals",
             // each published unit's repository record, written at bind time (kb/Work PB4319): the words the publishing element
-            // wrote, the externalized names (identities, ISO §8.13) and the entry convention's name, in the persisted vocabulary
+            // wrote, the externalized names (identities, ISO §2023:8.13) and the entry convention's name, in the persisted vocabulary
             "Model.RepositoryRecord.Name", "Model.RepositoryRecord.ExternalizedName", "Model.RepositoryRecord.EntryConvention",
             "Model.RepositoryRecord.CobolEntryConvention", "Model.RaisingRecord.Identity", "Model.FormalRecord.Name",
             "Model.ClassRecord.BaseIdentity", "Model.ClassRecord.Implements", "Model.ClassRecord.FactoryImplements",
@@ -72,7 +72,7 @@ internal static class BackendContract
             "Model.PicRecord.RestrictedTypeName", "Model.PicRecord.RestrictedPrototypeName", "Model.PicRecord.ObjectRefName",
             "Model.PicRecord.ObjectRefIdentity", "Model.LocaleEditRecord.LocaleName",
             // the OO symbols and a method's name scope, in compiler.model since kb/Work PB2402: the words the source wrote,
-            // the externalized names (ISO §8.13) and the rosters and name indexes keyed by them
+            // the externalized names (ISO §2023:8.13) and the rosters and name indexes keyed by them
             "Model.OoClassSymbol.Name", "Model.OoClassSymbol.ExternalizedName", "Model.OoClassSymbol.BaseName",
             "Model.OoClassSymbol.FormalBaseName", "Model.OoClassSymbol.Bases", "Model.OoClassSymbol._methods",
             "Model.OoClassSymbol._factoryMethods", "Model.OoInterfaceSymbol.Name", "Model.OoInterfaceSymbol.ExternalizedName",
@@ -80,7 +80,7 @@ internal static class BackendContract
             "Model.OoMethodSymbol.ExternalizedName", "Model.OoMethodSymbol._externalizedName", "Model.OoMethodSymbol.PropertyName",
             "Model.OoMethodSymbol.SourceName", "Model.OoMethodDataScope.ByName", "Model.OoMethodDataScope.Conditions",
             "Model.OoMethodDataScope.CapacityRegisters", "Model.OoMethodDataScope.TypeDecls",
-            // the standard class BASE and its two §16.2 method-names, in compiler.model since kb/Work PB2403
+            // the standard class BASE and its two §2023:16.2 method-names, in compiler.model since kb/Work PB2403
             "Model.OoStandardClasses.BaseName", "Model.OoStandardClasses.NewMethodName",
             "Model.OoStandardClasses.FactoryObjectMethodName",
             // the name tables of the frozen data binding a backend reads (DataBindResult, kb/Work PB2361): data-, condition-,
@@ -151,7 +151,7 @@ internal static class BackendContract
             "Model.PictureClauseRecord.CurrencyString", "Model.PictureClauseRecord.Editing",
             "Model.TableValueSpec.FromText", "Model.TableValueSpec.FromWritten", "Model.TableValueSpec.Literals",
             "Model.TableValueSpec.ToText", "Model.TableValueSpec.ToWritten",
-            // the OPTIONS paragraph's INITIALIZE ... TO literal (ISO §11.9.10), in compiler.model since kb/Work PB2402
+            // the OPTIONS paragraph's INITIALIZE ... TO literal (ISO §2023:11.9.10), in compiler.model since kb/Work PB2402
             "Model.OptionsInitialize.FillLiteral",
         ]),
         new(NeutralKind.RuntimeDatum,
@@ -166,7 +166,7 @@ internal static class BackendContract
             "Model.ObjectRefDescriptor.Spelled", "Model.LocaleEditRecord.External",
             // the assemblies an expansion is imported from or written to: file paths the backend references (kb/Work PB2104)
             "Model.ExpansionPlacement.HoldingFile", "Model.ExpansionPlacements.ReferencedAssemblies",
-            // the assemblies the compilation imported a class or interface from, and an external file connector's §12.4.5.3
+            // the assemblies the compilation imported a class or interface from, and an external file connector's §2023:12.4.5.3
             // GR1 identity, which the runtime compares across describers: answers the binder writes (kb/Work PB2403)
             "Model.ImportedTypes.Assemblies", "Model.FileModel.SelectFingerprint",
             // a class's run-unit keys and file-connector key bands, which the runtime recognizes, and the assembly an imported
@@ -174,7 +174,7 @@ internal static class BackendContract
             "Model.OoClassSymbol.RunUnitKey", "Model.OoClassSymbol.HalfKey()", "Model.NamingConvention.ExternalFileBand",
             "Model.NamingConvention.InstanceFileBand", "Model.NamingConvention.FactoryFileBand", "Model.ImportedFrom.AssemblyFile",
             // the externalized names of a source element's REPOSITORY program-specifiers, which a CALL hands the program table
-            // (ISO §12.3.8.4 GR10; DataBindResult, kb/Work PB2361)
+            // (ISO §2023:12.3.8.4 GR10; DataBindResult, kb/Work PB2361)
             "Model.ConfigurationFacts.ProgramSpecifierNames",
         ]),
         new(NeutralKind.DiagnosticText,

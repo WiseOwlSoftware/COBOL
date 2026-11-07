@@ -4,18 +4,18 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §8.4.3.11.3 SR5 — ADDRESS OF identifier-1 as the receiving
+      *> ISO §2023:8.4.3.11.3 SR5 — ADDRESS OF identifier-1 as the receiving
       *> operand of INITIALIZE.
       *> SR5: "This identifier format shall not be specified as a
       *>   receiving operand."
       *>   cite.py --check 8.4.3.11.3 "This identifier format shall not
-      *>     be specified as a receiving operand" -> OK §8.4.3.11.3 5)
+      *>     be specified as a receiving operand" -> OK §2023:8.4.3.11.3 5)
       *> Why SR5 is the ONLY rule broken: INITIALIZE accepts an
-      *> identifier-1 "of class ... pointer" (§14.9.20.3 SR1, cite.py
-      *> OK), ADDRESS OF W is of class pointer (§8.4.3.11.4 GR1,
+      *> identifier-1 "of class ... pointer" (§2023:14.9.20.3 SR1, cite.py
+      *> OK), ADDRESS OF W is of class pointer (§2023:8.4.3.11.4 GR1,
       *> cite.py OK), and "The data item referenced by identifier-1 is
-      *> the receiving operand" (§14.9.20.3 SR7, cite.py OK). W is
-      *> BASED, so ADDRESS OF W satisfies every other §8.4.3.11.3 rule.
+      *> the receiving operand" (§2023:14.9.20.3 SR7, cite.py OK). W is
+      *> BASED, so ADDRESS OF W satisfies every other §2023:8.4.3.11.3 rule.
       *> Measured control: the same program with INITIALIZE P (P a
       *> data-pointer item) compiles and runs at 2002 and 2023.
       *> Expected: REJECTED, at every edition with

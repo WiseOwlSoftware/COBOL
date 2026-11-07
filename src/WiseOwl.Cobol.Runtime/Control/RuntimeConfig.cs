@@ -58,7 +58,7 @@ public sealed record ConfigEntry(string Name, string Subsystem, string Purpose, 
 /// (<see cref="SwitchStore.VariableNameFor"/>) — is a PATTERN entry.</para>
 /// <para>The runtime is dependency-free and stays so: there is no appsettings file, no configuration framework
 /// and no second source of these values; the environment is the facility ISO/IEC 1989:2023 leaves to the
-/// implementor for external switches (§12.3.7, implementor-defined item 191) and the locale defaults
+/// implementor for external switches (§2023:12.3.7, implementor-defined item 191) and the locale defaults
 /// (owner decision Q2), and the rest are the collation subsystem's site/diagnostic knobs.</para>
 /// </summary>
 public static class RuntimeConfig
@@ -128,9 +128,9 @@ public static class RuntimeConfig
             "the path of a Unix domain socket the starter listens on; unset or blank = this server was not started by a requestor",
             typeof(Messaging.MessagingSettings), "Messaging/MessagingSettings.cs"),
 
-        // ── file I-O (IO/FileRegistry.cs — the §14.9.27.4 GR10 / A.1 item 129 key-check opt-out) ──
+        // ── file I-O (IO/FileRegistry.cs — the §2023:14.9.27.4 GR10 / A.1 item 129 key-check opt-out) ──
         new(FileRegistry.KeyCheckVariable, "files",
-            "whether an INDEXED file's KEY TABLE is part of the §14.9.27.4 GR10 fixed-file-attribute set the OPEN statement validates (docs/CONFORMANCE.md DOC-A.1-129; GnuCOBOL's COB_KEYCHECK) — off means an OPEN whose declared keys disagree with the store header's succeeds instead of answering '39', and the organization, record type and record sizes are still validated",
+            "whether an INDEXED file's KEY TABLE is part of the §2023:14.9.27.4 GR10 fixed-file-attribute set the OPEN statement validates (docs/CONFORMANCE.md DOC-A.1-129; GnuCOBOL's COB_KEYCHECK) — off means an OPEN whose declared keys disagree with the store header's succeeds instead of answering '39', and the organization, record type and record sizes are still validated",
             "OFF | 0 | FALSE | NO (case-insensitive) = the key table is not validated; unset or anything else = it is; read once per run unit (FileRegistry.Reset)",
             typeof(FileRegistry), "IO/FileRegistry.cs"),
 
@@ -146,7 +146,7 @@ public static class RuntimeConfig
 
         // ── external switches (Control/SwitchStore.cs — the ONE computed family) ──
         new(SwitchStore.Prefix + "<SWITCH-NAME>", "switches",
-            "the initial status of an implementor-defined external switch named in SPECIAL-NAMES (ISO/IEC 1989:2023 §12.3.7.4 GR4, implementor-defined item 191): SWITCH-1 reads COBOL_SWITCH_1 (hyphens become underscores, upper-cased; SwitchStore.VariableNameFor)",
+            "the initial status of an implementor-defined external switch named in SPECIAL-NAMES (ISO/IEC 1989:2023 §2023:12.3.7.4 GR4, implementor-defined item 191): SWITCH-1 reads COBOL_SWITCH_1 (hyphens become underscores, upper-cased; SwitchStore.VariableNameFor)",
             "ON | 1 | TRUE (case-insensitive) = on; anything else, empty or unset = off; read once, at the switch's first interrogation in the run unit, then SET governs; the switch-names are SWITCH-0 … SWITCH-36 and UPSI-0 … UPSI-7 (SwitchStore.Names)",
             typeof(SwitchStore), "Control/SwitchStore.cs", IsPattern: true) { FamilyMember = SwitchStore.IsVariableName },
     ];

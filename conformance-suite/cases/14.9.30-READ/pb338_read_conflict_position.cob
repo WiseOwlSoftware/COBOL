@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.30.4 GR10 a) — "If the record operation conflict
+      *> ISO §2023:14.9.30.4 GR10 a) — "If the record operation conflict
       *> condition exists as a result of the READ statement: a) The file
       *> position indicator is unchanged."  GR13 a) says it from the
       *> other side: "The I-O status associated with file-name-1 is
@@ -17,31 +17,31 @@
       *> ORGANIZATION clause.  Each seeds three records through a plain
       *> connector, opens two SHARING WITH ALL OTHER / LOCK MODE MANUAL
       *> connectors A and B on it, has A lock the FIRST record with
-      *> READ ... WITH LOCK (§12.4.5.9.4 GR5 — a manual lock is obtained
+      *> READ ... WITH LOCK (§2023:12.4.5.9.4 GR5 — a manual lock is obtained
       *> only with the explicit phrase), then walks B.
       *>
-      *> B1.  §14.9.30.4 GR9 — "If record locking is enabled for the
+      *> B1.  §2023:14.9.30.4 GR9 — "If record locking is enabled for the
       *> file connector referenced by file-name-1 and the record
       *> identified for access is locked by another file connector ...
       *> If the RETRY phrase is not specified ... the record operation
-      *> conflict condition exists."  §9.1.13.8 item 1 prices it '51'.
+      *> conflict condition exists."  §2023:9.1.13.8 item 1 prices it '51'.
       *> The record identified for access is the FIRST existing record:
       *> B's file position indicator was established by its own OPEN, so
-      *> §14.9.30.4 GR21 selects "the first existing record that is
+      *> §2023:14.9.30.4 GR21 selects "the first existing record that is
       *> selected ... regardless of whether NEXT or PREVIOUS is
       *> specified" (relative rule b, sequential rule b) / indexed rule
       *> d) 1.).  GR10 c) makes the record area undefined, so B1 shows
       *> the STATUS only.
       *>
       *> B2 — THE POINT OF THE TEST.  After the lock is released
-      *> (UNLOCK, §14.9.47.4 GR1), B's very next sequential READ shall
+      *> (UNLOCK, §2023:14.9.47.4 GR1), B's very next sequential READ shall
       *> deliver THAT SAME FIRST RECORD, because GR10 a) left B's file
       *> position indicator exactly where its OPEN put it.  '46' is NOT
-      *> the answer: §9.1.13.7 item 6 requires BOTH that "a sequential
+      *> the answer: §2023:9.1.13.7 item 6 requires BOTH that "a sequential
       *> READ statement is attempted referencing a file connector open
       *> in the input or I-O mode AND NO VALID NEXT RECORD HAS BEEN
       *> ESTABLISHED" and one of its two causes, and GR10 a) is exactly
-      *> §14.9.30.4 GR18's "Unless otherwise specified" — GR18's blanket
+      *> §2023:14.9.30.4 GR18's "Unless otherwise specified" — GR18's blanket
       *> invalidation of the position on an unsuccessful READ is
       *> displaced here, so a valid next record IS still established.
       *> (Read the other way, GR10 a) and GR10 d) would have no
@@ -54,15 +54,15 @@
       *> stalled indicator.
       *>
       *> LEG P - THE OTHER DIRECTION.  The record identified for access
-      *> is direction-sensitive: §14.9.30.4 GR21 relative rule c)
+      *> is direction-sensitive: §2023:14.9.30.4 GR21 relative rule c)
       *> selects the record "greater than the file position indicator if
       *> NEXT is specified or implied or is less than the file position
       *> indicator if PREVIOUS is specified", so GR10 a) has to hold for
       *> a READ PREVIOUS as well.  The relative pair is reopened (which
-      *> resets both indicators, §14.9.27.4 GR14); B walks forward to
+      *> resets both indicators, §2023:14.9.27.4 GR14); B walks forward to
       *> the third record, A then locks the SECOND with two
       *> READ ... WITH LOCK - single record locking releases the first
-      *> (§12.4.5.9.4 GR6) so A holds exactly that one - and B's
+      *> (§2023:12.4.5.9.4 GR6) so A holds exactly that one - and B's
       *> READ PREVIOUS is refused '51'.  After the UNLOCK the SAME
       *> statement delivers the SECOND record, because B's indicator is
       *> still on the third.  Were the refused read to have moved it,

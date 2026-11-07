@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB1273 — ISO/IEC 1989:2023 §13.18.42.3 SR3: "The PROPERTY clause may be specified only for an
+      *> kb/Work PB1273 — ISO/IEC 1989:2023 §2023:13.18.42.3 SR3: "The PROPERTY clause may be specified only for an
       *> elementary item whose name does not require qualification for uniqueness of reference." N names two items.
       *> Before the fix the accessor bound the FIRST N in tree order — R1's, the one WITHOUT the clause.
        IDENTIFICATION DIVISION.

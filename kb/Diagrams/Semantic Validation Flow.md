@@ -19,7 +19,7 @@ diagnostics path.
 flowchart TD
     BIND["BIND (edition-agnostic)\nBoundProgram + raw parse tree"] --> VCP
     subgraph VCP["VersionConformancePass — the SOLE edition gate"]
-        A1["Parse-tree arm (ParseArm)\nsyntactic intro/removal/phrase gates\n+ §8.9 reserved-word funnel"]
+        A1["Parse-tree arm (ParseArm)\nsyntactic intro/removal/phrase gates\n+ §2023:8.9 reserved-word funnel"]
         A2["Bound-tree arm (GateStatement/GateMove/GateData)\nresolved semantic facts:\nMOVE category · USAGE · file-org · pointer"]
     end
     A1 --> CHK
@@ -31,7 +31,7 @@ flowchart TD
     POL -->|"Removed (strict)"| E0902["Error 0902"]
     POL -->|"Removed (permissive)"| W0902["Warning 0902"]
     POL -->|Obsolete| W0903["Warning 0903"]
-    POL -->|reserved word §8.9| E0901["Error 0901"]
+    POL -->|reserved word §2023:8.9| E0901["Error 0901"]
     E0900 --> SINK
     E0902 --> SINK
     W0902 --> SINK
@@ -44,14 +44,14 @@ flowchart TD
     FLAG --> EMIT["EMIT"]
 ```
 
-## The reserved-word funnel (§8.9)
+## The reserved-word funnel (§2023:8.9)
 
 ```
 every user word ──► cobolWord rule ──► ParseArm.VisitCobolWord
                                           │
               position-blind (CheckedTokenTypes)  ── OR ──  position-aware (IsProvableUserWordPosition)
                                           │
-                     ReservedWordSet  (4 sources: ISO §8.9 · VCR row32/Annex E.2 · GnuCOBOL 85/2002/2014)
+                     ReservedWordSet  (4 sources: ISO §2023:8.9 · VCR row32/Annex E.2 · GnuCOBOL 85/2002/2014)
                        + >>COBOL-WORDS overlay
                                           │
                    Confidence == "high"  ─► reject (0901)     (no-false-reject policy)
@@ -64,7 +64,7 @@ every user word ──► cobolWord rule ──► ParseArm.VisitCobolWord
 | `Code` | emitted, may repeat | `COBOL0900` |
 | `Id` | stable kebab-case, survives renumber | `construct-requires-edition` |
 | `Severity` | Error / Warning / Info | Error |
-| `IsoSection` | citation | §8.9 |
+| `IsoSection` | citation | §2023:8.9 |
 | `SuppressKey?` | suppress family | `recognized-not-implemented` |
 
 ## See also

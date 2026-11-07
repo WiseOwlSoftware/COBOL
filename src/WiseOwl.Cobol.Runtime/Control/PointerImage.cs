@@ -9,14 +9,14 @@ namespace WiseOwl.Cobol.Runtime;
 /// (kb/Work PB970 arm 2; <c>docs/CONFORMANCE.md</c> §7 DOC-A.1-216). A pointer's VALUE is a managed reference
 /// (<see cref="ManagedPointer"/> / <see cref="ProgramPointer"/> / <see cref="FunctionPointer"/>) and its STORAGE
 /// is 8 character positions; this is the one place that says what those 8 positions hold, for every consumer
-/// that must see the bytes rather than the reference — today the CALL boundary's BY CONTENT record (ISO §14.2.3
+/// that must see the bytes rather than the reference — today the CALL boundary's BY CONTENT record (ISO §2023:14.2.3
 /// GR9 — "That argument is moved to this allocated record without conversion"; <c>CobolArgAdapt</c>) and the byte
 /// view of a pointer MEMBER of a shared storage area (a BASED, EXTERNAL or ADDRESS-OF cell, or an ALLOCATEd one):
 /// <c>CobolPtr.SlotWrite</c> keeps the member's positions equal to its slot's image, the cell seeds and ALLOCATE
 /// start them at <see cref="NullImage"/>, and the one-way group image of a record struct renders it (kb/Work
 /// PB1071). The slot holds the VALUE, the positions hold this image of it, and this codec is the only author.
 /// <para>THE DETERMINATION (CLAUDE.md rule 1's ISO → GnuCOBOL → IBM/Micro Focus precedence; the standard leaves
-/// size and representation to the implementor, §13.18.60.4 GR23/GR24/GR26): GnuCOBOL stores a pointer as the
+/// size and representation to the implementor, §2023:13.18.60.4 GR23/GR24/GR26): GnuCOBOL stores a pointer as the
 /// machine address — an unsigned integer in the byte order of the platform's native binary integers, so a
 /// pointer passed BY CONTENT to a BINARY-DOUBLE formal reads as its address — and the predefined NULL as the zero
 /// address, which is also IBM's and Micro Focus's NULL. This implementation has no machine address to store, so
@@ -30,12 +30,12 @@ namespace WiseOwl.Cobol.Runtime;
 /// base is k × 2^32, so two areas' images never meet while a displacement stays inside ±2^31, and
 /// <c>SET P UP BY n</c> moves the image by exactly n — the address arithmetic GnuCOBOL programs expect.</item>
 /// <item>A program-pointer / function-pointer → a base drawn from the SAME allocator, one per (category,
-/// case-folded externalized name) — so equal pointers (§8.8.4.2.16) have equal images and no image of one
+/// case-folded externalized name) — so equal pointers (§2023:8.8.4.2.16) have equal images and no image of one
 /// category is ever an image of another.</item>
 /// </list>
 /// The token is stable for the run unit and never reused; it is not decodable back into a reference, and needs
 /// not be — every conforming pairing that delivers a pointer's BYTES to a non-pointer item is a one-way copy
-/// (§14.8.2.3.2 forbids the BY REFERENCE pairing; §14.8.2.3.3 1) admits BY CONTENT into a same-length item).
+/// (§2023:14.8.2.3.2 forbids the BY REFERENCE pairing; §2023:14.8.2.3.3 1) admits BY CONTENT into a same-length item).
 /// </summary>
 public static class PointerImage
 {
@@ -97,7 +97,7 @@ public static class PointerImage
 
     private static long NameBase(char category, string name)
     {
-        // §8.3.2.2 — externalized names compare by the Annex C fold, the key ProgramTable's ExternalizedNames.Comparer
+        // §2023:8.3.2.2 — externalized names compare by the Annex C fold, the key ProgramTable's ExternalizedNames.Comparer
         // compares by (kb/Work PB1965): never the host's ToUpperInvariant, which merges what the fold keeps apart
         // (final sigma and sigma at 2023) and splits what it merges (the capital sharp s and the sharp s).
         string key = category + CobolNames.UpperFold(name);

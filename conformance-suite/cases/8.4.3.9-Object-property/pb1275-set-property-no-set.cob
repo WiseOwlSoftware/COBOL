@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §8.4.3.9.3 SR4: "If the object property is used as a receiving
+      *> ISO §2023:8.4.3.9.3 SR4: "If the object property is used as a receiving
       *> item, a set property method shall exist for property-name-1 in the
       *> object referenced by identifier-1".  R is PROPERTY WITH NO SET, so
       *> as the receiver of a Format 5 SET it has no set property method.

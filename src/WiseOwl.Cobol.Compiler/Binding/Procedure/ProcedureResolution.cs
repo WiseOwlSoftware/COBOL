@@ -9,18 +9,18 @@ namespace WiseOwl.Cobol.Binding.Procedure;
 /// (kb/Work PB466).</summary>
 internal enum ProcedureAmbiguityRule
 {
-    /// <summary>ISO §8.4.2.2.1 rule 1 is false and no rule 2-6 excuse applies, so §8.4.2.2.3 SR1 requires
+    /// <summary>ISO §2023:8.4.2.2.1 rule 1 is false and no rule 2-6 excuse applies, so §2023:8.4.2.2.3 SR1 requires
     /// qualification: more than one procedure in the source element carries the spelling, and the reference
     /// wrote no qualifier (or wrote one that is itself duplicated).</summary>
     Qualification,
 
-    /// <summary>ISO §8.4.2.2.3 SR7 — "If explicitly referenced, a paragraph-name shall not be duplicated within
-    /// a section." No qualifier exists that could separate the two, since §8.4.2.2.2 format 4 offers a
+    /// <summary>ISO §2023:8.4.2.2.3 SR7 — "If explicitly referenced, a paragraph-name shall not be duplicated within
+    /// a section." No qualifier exists that could separate the two, since §2023:8.4.2.2.2 format 4 offers a
     /// paragraph-name only its section-name and both declarations share it.</summary>
     InSectionDuplicate,
 }
 
-/// <summary>What KIND of statement writes a procedure-name reference — the one fact ISO §14.9.49.3 SR3 and SR4
+/// <summary>What KIND of statement writes a procedure-name reference — the one fact ISO §2023:14.9.49.3 SR3 and SR4
 /// turn on. The declaratives boundary may be crossed by a reference only in two directions and only by one verb
 /// each: SR3 ("Within a declarative procedure, there shall be no reference to any nondeclarative procedures except
 /// in a RESUME statement") lets a RESUME reach OUT of a declarative, and SR4 ("Procedure-names within a
@@ -61,7 +61,7 @@ internal readonly record struct ProcedureAmbiguity(
 /// procedure (the section itself for a section-name; the containing section for a paragraph; null for a
 /// paragraph written outside every section).
 /// <para>⛔ THE SECTION TRAVELS WITH THE RESOLUTION (kb/Work PB433). A pc pair has already discarded which
-/// section the name came from, and several rules are written about exactly that — ISO §14.9.28.3 SR11 ("When
+/// section the name came from, and several rules are written about exactly that — ISO §2023:14.9.28.3 SR11 ("When
 /// procedure-name-1 and procedure-name-2 are both specified and either is the name of a procedure in the
 /// declaratives portion of the procedure division, both shall be procedure-names in the same declarative
 /// section") and the analogous constraints on GO TO, ALTER and the SORT/MERGE procedure phrases. A check bolted
@@ -69,8 +69,8 @@ internal readonly record struct ProcedureAmbiguity(
 /// again.</para></summary>
 internal readonly record struct ResolvedProcedure(PcRange Range, SectionInfo? Section)
 {
-    /// <summary>Is the denoted procedure in the DECLARATIVES portion (ISO §14.3)? A paragraph outside every
-    /// section cannot be: the declaratives portion consists of sections (§14.3 format).</summary>
+    /// <summary>Is the denoted procedure in the DECLARATIVES portion (ISO §2023:14.3)? A paragraph outside every
+    /// section cannot be: the declaratives portion consists of sections (§2023:14.3 format).</summary>
     public bool IsDeclarative => Section is { IsDeclarative: true };
 }
 

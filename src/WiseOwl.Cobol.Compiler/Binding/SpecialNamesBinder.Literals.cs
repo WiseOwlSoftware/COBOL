@@ -13,23 +13,23 @@ namespace WiseOwl.Cobol.Binding;
 using Core = CobolParserCore;
 using WiseOwl.Cobol.Runtime;
 
-/// <summary>The literal-operand screens every SPECIAL-NAMES clause shares (ISO §12.3.7.3 SR11, SR14; §12.3.7.4 GR10): the one decoder of an alphabet or class operand, the zero-length test and the figurative-constant mapping.
+/// <summary>The literal-operand screens every SPECIAL-NAMES clause shares (ISO §2023:12.3.7.3 SR11, SR14; §2023:12.3.7.4 GR10): the one decoder of an alphabet or class operand, the zero-length test and the figurative-constant mapping.
 /// A partial of <see cref="SpecialNamesBinder"/>.</summary>
 public sealed partial class SpecialNamesBinder
 {
-    /// <summary>The ONE rule for a SPECIAL-NAMES clause's TEXT literal (ISO §12.3.7.3 SR10 — "shall be alphanumeric or
+    /// <summary>The ONE rule for a SPECIAL-NAMES clause's TEXT literal (ISO §2023:12.3.7.3 SR10 — "shall be alphanumeric or
     /// national"; SR11 — "shall specify neither a symbolic-character figurative constant nor a zero-length literal"),
     /// shared by the ORDER TABLE clause's literal-9 and the LOCALE clause's literal-4: decodes the literal (a
-    /// concatenation expression folds first — §8.8.3.3 GR3 makes it usable anywhere a literal of its class is),
+    /// concatenation expression folds first — §2023:8.8.3.3 GR3 makes it usable anywhere a literal of its class is),
     /// reporting COBOL0898 and returning false on a violation. <paramref name="what"/> names the clause for the
     /// message; <paramref name="operand"/> the literal's role ("literal-9").
-    /// <para>⛔ SR11 bars ONE kind of figurative constant — the symbolic-character one — and §8.3.3.6.3 SR1 admits every
+    /// <para>⛔ SR11 bars ONE kind of figurative constant — the symbolic-character one — and §2023:8.3.3.6.3 SR1 admits every
     /// other as a literal of its class, so <c>ORDER TABLE T1 IS SPACE</c> and <c>LOCALE LA IS SPACE</c> are legal:
     /// SPACE then names an ordering table / a locale this implementation does not provide, which is the RUN-TIME
     /// answer (the COBOL1662 advice and EC-ORDER-NOT-SUPPORTED / EC-LOCALE-MISSING), not a syntax error. This screen
     /// used to refuse every figurative constant under a rule that quotes only the symbolic-character one (kb/Work
-    /// PB1537), and the NULL it also refused was not a figurative constant at all (§8.4.3.10.3 SR1).</para>
-    /// <para>A WORD at the position is a constant-name (§13.10.3 SR2, kb/Work PB1942 — <see cref="DataBinder.SpecialNamesConstant"/>):
+    /// PB1537), and the NULL it also refused was not a figurative constant at all (§2023:8.4.3.10.3 SR1).</para>
+    /// <para>A WORD at the position is a constant-name (§2023:13.10.3 SR2, kb/Work PB1942 — <see cref="DataBinder.SpecialNamesConstant"/>):
     /// its literal-1 meets the same two rules.</para></summary>
     private bool TryClauseTextLiteral(Antlr4.Runtime.Tree.IParseTree written, string what, string operand, out string text)
     {
@@ -40,8 +40,8 @@ public sealed partial class SpecialNamesBinder
             if (constant.Category is not (PicCategory.Alphanumeric or PicCategory.National))
             {
                 ReportClass($"{what}: {operand} shall be an alphanumeric or national literal (ISO "
-                    + $"§12.3.7.3 SR10); the constant-name '{word.GetText()}' stands for {constant.StandsFor}, of "
-                    + $"class {constant.Category} (§13.10.4 GR1/GR2)");
+                    + $"§2023:12.3.7.3 SR10); the constant-name '{word.GetText()}' stands for {constant.StandsFor}, of "
+                    + $"class {constant.Category} (§2023:13.10.4 GR1/GR2)");
                 return false;
             }
             text = constant.Text;
@@ -52,7 +52,7 @@ public sealed partial class SpecialNamesBinder
         if (nn?.predefinedNull() is not null)
         {
             PredefinedNullRule.Report(Edition, $"{what}: {operand} — an alphanumeric or national literal "
-                + "(ISO §12.3.7.3 SR10)");
+                + "(ISO §2023:12.3.7.3 SR10)");
             return false;
         }
         if (nn?.figurativeConstant() is { } fig)
@@ -65,23 +65,23 @@ public sealed partial class SpecialNamesBinder
             text = figurative;
             return Sr11ZeroLength(text.Length == 0);
         }
-        // §8.8.3.3 GR3 makes a concatenation expression "equivalent to a literal of the same class and value,
+        // §2023:8.8.3.3 GR3 makes a concatenation expression "equivalent to a literal of the same class and value,
         // [usable] anywhere a literal of that class may be used", so `IS "ISO " & "14651_2020_TABLE1"` is legal
         // here and folds to the one literal SR10 then classes. Refusing it would reject conforming source.
         // ⛔ THE ONE DECODE (kb/Work PB3218): the literal's class is OperandLiteralClass's (a concatenation's by the
-        // §8.8.3.3 GR1 fold, a plain literal's by its prefix) and its characters LiteralCharsOf's — the pair the
+        // §2023:8.8.3.3 GR1 fold, a plain literal's by its prefix) and its characters LiteralCharsOf's — the pair the
         // ALPHABET / CLASS operands decode through — where this screen kept an inline copy of both. A figurative
-        // HIGH-/LOW-VALUE written INSIDE SPECIAL-NAMES takes the NATIVE extremes (§12.3.7.4 GR10 — one pair for both
+        // HIGH-/LOW-VALUE written INSIDE SPECIAL-NAMES takes the NATIVE extremes (§2023:12.3.7.4 GR10 — one pair for both
         // classes, owner R52) and SR11 forbids a symbolic-character operand in literal-9 (the posture this screen
         // gives literal-4 as well). SR10: CobolLiteral.ClassOf answers from the PREFIX, so a plain literal admits both
-        // quoting forms and both hexadecimal spellings (X"…" is one FORM of an alphanumeric literal, §8.3.3.2) and
+        // quoting forms and both hexadecimal spellings (X"…" is one FORM of an alphanumeric literal, §2023:8.3.3.2) and
         // refuses a boolean one; a NUMERIC literal is not a quoted literal and lands here too.
         var literalClass = OperandLiteralClass(lit);
         if (literalClass is not (LiteralClass.Alphanumeric or LiteralClass.National))
         {
-            ReportClass($"{what}: {operand} shall be an alphanumeric or national literal (ISO §12.3.7.3 SR10)"
+            ReportClass($"{what}: {operand} shall be an alphanumeric or national literal (ISO §2023:12.3.7.3 SR10)"
                 + (nn?.concatenationExpression() is not null
-                    ? $"; this concatenation expression is class {literalClass} (§8.8.3.3 GR1/GR3)" : ""));
+                    ? $"; this concatenation expression is class {literalClass} (§2023:8.8.3.3 GR1/GR3)" : ""));
             return false;
         }
         text = LiteralCharsOf(lit, sr11: true);
@@ -92,7 +92,7 @@ public sealed partial class SpecialNamesBinder
         {
             if (!zeroLength) return true;
             ReportEmpty($"{what}: {operand} shall specify neither a "
-                + "symbolic-character figurative constant nor a zero-length literal (ISO §12.3.7.3 SR11)");
+                + "symbolic-character figurative constant nor a zero-length literal (ISO §2023:12.3.7.3 SR11)");
             return false;
         }
 
@@ -102,16 +102,16 @@ public sealed partial class SpecialNamesBinder
     }
 
     /// <summary>One decoded operand of a literal phrase: the characters it stands for AND the parse node it was
-    /// WRITTEN as. The SYNTAX RULES that speak of "each alphanumeric / national LITERAL" (§12.3.7.3 SR14 b3/c3,
+    /// WRITTEN as. The SYNTAX RULES that speak of "each alphanumeric / national LITERAL" (§2023:12.3.7.3 SR14 b3/c3,
     /// SR17 b4/c4 — one character under THROUGH) are asked of the operand as written, never of the decoded characters:
     /// a NUMERIC literal is an ordinal (SR14 b1/c1, SR17 b2/c2), names one character of its set by construction, and
     /// is no national literal (kb/Work PB1091's L7.4 measurement — a numeric ordinal naming a supplementary
     /// character decodes to a two-code-unit surrogate pair and was refused under c4).</summary>
     /// <param name="Members">How many CHARACTERS of a coded set the operand names — more than one only for a numeric
-    /// ordinal under a CLASS clause's IN phrase that lands on an ALSO group (§12.3.7.4 GR7 k6; kb/Work PB1095). It is a
+    /// ordinal under a CLASS clause's IN phrase that lands on an ALSO group (§2023:12.3.7.4 GR7 k6; kb/Work PB1095). It is a
     /// count of characters, never of code units, so a supplementary character (two code units) is still one member.</param>
     /// <param name="IsOrdinal">True when the operand is an ORDINAL: written as a numeric literal that is an integer, or a
-    /// constant-name standing for an integer (§13.10.3 SR2; kb/Work PB1942) — decided where the operand is decoded.</param>
+    /// constant-name standing for an integer (§2023:13.10.3 SR2; kb/Work PB1942) — decided where the operand is decoded.</param>
     private readonly record struct PhraseOperand(
         Antlr4.Runtime.Tree.IParseTree Node, string Characters, int Members = 1, bool IsOrdinal = false)
     {
@@ -122,7 +122,7 @@ public sealed partial class SpecialNamesBinder
     /// <summary>⛔ THE SYNTAX RULES A SPECIAL-NAMES CLAUSE HOLDS ITS LITERAL OPERANDS TO — one value per clause, so
     /// <see cref="LiteralPhraseOperand"/> can never report one clause's rule under another's name (the PB770 leg d
     /// misfiling: a general helper with OPTIONAL arguments defaulted every caller to the CLASS clause's identity).
-    /// §12.3.7.3 states the same four operand rules twice, once per clause, under different item numbers:
+    /// §2023:12.3.7.3 states the same four operand rules twice, once per clause, under different item numbers:
     /// <list type="bullet">
     /// <item>SR14 (ALPHABET literal-phrase) — b1/c1 the numeric-literal ordinal, b2/c2 the noninteger literal's
     /// class, b3/c3 one character "when a THROUGH or ALSO phrase is specified", b4/c4 the count;</item>
@@ -152,15 +152,15 @@ public sealed partial class SpecialNamesBinder
     }
 
     /// <summary>The symbolic-character names the SPECIAL-NAMES paragraph being bound declares (see
-    /// <c>SpecialNamesBinder.BindSpecialNames</c>) — read by the §12.3.7.3 SR11 arm of <see cref="LiteralPhraseOperand"/>.</summary>
+    /// <c>SpecialNamesBinder.BindSpecialNames</c>) — read by the §2023:12.3.7.3 SR11 arm of <see cref="LiteralPhraseOperand"/>.</summary>
     private HashSet<string> _paragraphSymbolicNames = new(CobolNames.Comparer);
 
-    /// <summary>⛔ THE ONE SPECIAL-NAMES literal-operand decoder (ISO §12.3.7.3 SR14 b/c for the ALPHABET clause,
+    /// <summary>⛔ THE ONE SPECIAL-NAMES literal-operand decoder (ISO §2023:12.3.7.3 SR14 b/c for the ALPHABET clause,
     /// SR17 b/c for the CLASS clause — see <see cref="LiteralPhraseRules"/>): the characters one operand stands
     /// for, or null when it violates its clause's rule (the diagnostic is already reported).</summary>
     /// <remarks>The ordinal rule — "<i>Each numeric literal shall be an unsigned integer and shall have a value
     /// within the range of one through the maximum number of characters in the native … character set</i>" — is
-    /// 1-based, so it names code unit <c>ordinal − 1</c> of the 65,536-character repertoire (§12.3.7.4 GR7 k1a),
+    /// 1-based, so it names code unit <c>ordinal − 1</c> of the 65,536-character repertoire (§2023:12.3.7.4 GR7 k1a),
     /// or, for a CLASS clause with an IN phrase, the character at that ordinal of alphabet-name-4's set (GR12 a).
     /// The class rule — "<i>Each noninteger literal shall be an alphanumeric / a national literal</i>" — is decided
     /// by the literal's own prefix. GR10 — the figurative words written inside SPECIAL-NAMES are the NATIVE
@@ -183,22 +183,22 @@ public sealed partial class SpecialNamesBinder
                 return Of(SpecialNamesFigurative(fig, FigurativeSlotOf(r)));
             case Core.LiteralContext lit:
                 string text = lit.GetText();
-                // The predefined NULL is no literal and no figurative constant (§8.4.3.10.3 SR1): the one refusal.
+                // The predefined NULL is no literal and no figurative constant (§2023:8.4.3.10.3 SR1): the one refusal.
                 if (lit.nonNumericLiteral()?.predefinedNull() is not null)
                 {
                     PredefinedNullRule.Report(Edition, $"{r.What}: an operand of the literal phrase — each operand is a "
                         + $"numeric literal, {(r.National ? "a NATIONAL" : "an alphanumeric")} literal or a figurative "
-                        + $"constant (ISO §12.3.7.3 {r.Rule(r.ClassItem)})");
+                        + $"constant (ISO §2023:12.3.7.3 {r.Rule(r.ClassItem)})");
                     return null;
                 }
-                // §12.3.7.3 SR11 — literal-1 … literal-6 "shall specify neither a symbolic-character figurative
+                // §2023:12.3.7.3 SR11 — literal-1 … literal-6 "shall specify neither a symbolic-character figurative
                 // constant nor a zero-length literal" (a symbolic character is no literal token here, so only the
                 // second half can be written). Asked of the literal AS DECODED (IsZeroLengthOperand, kb/Work PB3218): a
-                // concatenation of zero-length literals IS one (§8.8.3.3 GR2) though its tokens are not.
+                // concatenation of zero-length literals IS one (§2023:8.8.3.3 GR2) though its tokens are not.
                 if (IsZeroLengthOperand(lit))
                 {
                     Edition.Error(r.Code, $"{r.What}: {ConcatFolder.Spelling(lit)} — an operand shall not be a zero-length "
-                        + "literal (ISO §12.3.7.3 SR11)");
+                        + "literal (ISO §2023:12.3.7.3 SR11)");
                     return null;
                 }
                 // ⛔ WHICH RULE is decided by the literal's FORM — an integer literal is held to the ordinal rule
@@ -216,10 +216,10 @@ public sealed partial class SpecialNamesBinder
                 ClassRule(text);
                 return Of(CobolLiteral.IsStringLiteral(text) ? CobolLiteral.Decode(text) : null);
             case Core.CobolWordContext w when _host.NamesConstant(w.GetText()):
-                // A CONSTANT-NAME (§13.10.3 SR2, kb/Work PB1942): "as if literal-1 … were written where constant-name-1
-                // is written" (§13.10.4 GR1), so its literal-1 meets every rule above — the ordinal rule for an integer
+                // A CONSTANT-NAME (§2023:13.10.3 SR2, kb/Work PB1942): "as if literal-1 … were written where constant-name-1
+                // is written" (§2023:13.10.4 GR1), so its literal-1 meets every rule above — the ordinal rule for an integer
                 // (GR3's integer forms included), the class rule otherwise, SR11's zero-length half. Its literal-1 is
-                // never a figurative constant (§13.10.3 SR6).
+                // never a figurative constant (§2023:13.10.3 SR6).
                 if (_host.SpecialNamesConstant(w, m => Edition.Error(r.Code, m), r.What, "a literal-phrase operand") is not { } k) return null;
                 string spec = $"{w.GetText()} (the constant-name for {k.StandsFor})";
                 if (k.Category is PicCategory.Numeric && k.IntegerText is { } integer)
@@ -227,7 +227,7 @@ public sealed partial class SpecialNamesBinder
                 if (IsZeroLengthConstant(k))
                 {
                     Edition.Error(r.Code, $"{r.What}: {spec} — an operand shall not be a zero-length literal "
-                        + "(ISO §12.3.7.3 SR11)");
+                        + "(ISO §2023:12.3.7.3 SR11)");
                     return null;
                 }
                 LiteralClass? constantClass = k.Category switch
@@ -246,19 +246,19 @@ public sealed partial class SpecialNamesBinder
                 // the only shape it can legally take, and inside a multi-operand phrase it is a class-rule
                 // violation — never the characters of its own spelling (kb/Work PB770 leg e).
                 if (AlphabetFigurative(w.GetText()) is { } wordValue) return Of(wordValue);
-                // §12.3.7.3 SR11 — literal-1 … literal-6 "shall specify neither a symbolic-character figurative
+                // §2023:12.3.7.3 SR11 — literal-1 … literal-6 "shall specify neither a symbolic-character figurative
                 // constant nor a zero-length literal": a symbolic-character name reaches here as a word, and it is
                 // THAT rule it breaks, not the class rule below (kb/Work PB226).
                 if (IsSymbolicCharacterName(w.GetText()))
                 {
                     Edition.Error(r.Code, $"{r.What}: {w.GetText()} — an operand shall not be a symbolic-character "
-                        + "figurative constant (ISO §12.3.7.3 SR11)");
+                        + "figurative constant (ISO §2023:12.3.7.3 SR11)");
                     return null;
                 }
                 Edition.Error(r.Code, $"{r.What}: {w.GetText()} is not a literal — each operand shall be a numeric "
                     + $"literal, {(r.National ? "a NATIONAL" : "an alphanumeric")} literal, a figurative constant or a "
-                    + $"constant-name standing for a literal (ISO §12.3.7.3 {r.Rule(r.ClassItem)}; §12.3.7.4 GR10; "
-                    + "§13.10.3 SR2)");
+                    + $"constant-name standing for a literal (ISO §2023:12.3.7.3 {r.Rule(r.ClassItem)}; §2023:12.3.7.4 GR10; "
+                    + "§2023:13.10.3 SR2)");
                 return null;
         }
         return null;
@@ -270,7 +270,7 @@ public sealed partial class SpecialNamesBinder
             if (signed)
             {
                 Edition.Error(r.Code, $"{r.What}: {spelling} — each numeric literal shall be an UNSIGNED integer "
-                    + $"(ISO §12.3.7.3 {r.Rule(r.OrdinalItem)})");
+                    + $"(ISO §2023:12.3.7.3 {r.Rule(r.OrdinalItem)})");
                 return null;
             }
             int ordinal = WiseOwl.Cobol.Validation.IntegerOperandRules.HostValue(digits);
@@ -281,14 +281,14 @@ public sealed partial class SpecialNamesBinder
                 if (inSet.CharactersAt(ordinal) is { } named) return Of(string.Concat(named), named.Count, ordinal: true);
                 Edition.Error(r.Code, $"{r.What}: the ordinal {spelling} does not exist in the character set "
                     + $"referenced by the IN alphabet ({inSet.Phrase}, {inSet.OrdinalCount} characters) — ISO "
-                    + $"§12.3.7.3 {r.Rule(r.OrdinalItem)}");
+                    + $"§2023:12.3.7.3 {r.Rule(r.OrdinalItem)}");
                 return null;
             }
             if (ordinal is >= 1 and <= CollatingTable.Repertoire) return Of(((char)(ordinal - 1)).ToString(), ordinal: true);
             Edition.Error(r.Code, $"{r.What}: the ordinal {spelling} does not exist in the native "
                 + $"{(r.National ? "national" : "alphanumeric")} character set ({CollatingTable.Repertoire} "
                 + "characters) — each numeric literal shall be an unsigned integer with a value from one "
-                + $"through the maximum number of characters in that set (ISO §12.3.7.3 {r.Rule(r.OrdinalItem)})");
+                + $"through the maximum number of characters in that set (ISO §2023:12.3.7.3 {r.Rule(r.OrdinalItem)})");
             return null;
         }
 
@@ -296,12 +296,12 @@ public sealed partial class SpecialNamesBinder
         void ClassRule(string spelling) =>
             Edition.Error(r.Code, $"{r.What}: {spelling} — each noninteger literal shall be "
                 + $"{(r.National ? "a NATIONAL literal (N\"…\")" : "an alphanumeric literal")} "
-                + $"(ISO §12.3.7.3 {r.Rule(r.ClassItem)})");
+                + $"(ISO §2023:12.3.7.3 {r.Rule(r.ClassItem)})");
     }
 
     /// <summary>The digits and sign of a numeric literal that is an INTEGER — a fixed-point integer core with an
-    /// optional sign (§8.3.3.3.2) — or null for a noninteger one (decimal, floating-point). The SPECIAL-NAMES
-    /// ordinal rule (ISO §12.3.7.3 SR14 b1/c1, SR17 b2/c2) is asked of the PARSE, not of the text:
+    /// optional sign (§2023:8.3.3.3.2) — or null for a noninteger one (decimal, floating-point). The SPECIAL-NAMES
+    /// ordinal rule (ISO §2023:12.3.7.3 SR14 b1/c1, SR17 b2/c2) is asked of the PARSE, not of the text:
     /// <c>int.TryParse</c> accepts a sign and FAILS on an integer too long for an <c>int</c>, so it answered
     /// "is this an integer?" and "what is its value?" as one question and got the first wrong whenever the second
     /// overflowed. The VALUE is read by THE one ordinal reader, <c>IntegerOperandRules.HostValue</c> — the same one
@@ -322,13 +322,13 @@ public sealed partial class SpecialNamesBinder
 
     /// <summary>⛔ WHERE A FIGURATIVE CONSTANT STANDS IN A SPECIAL-NAMES LITERAL SLOT, as data — what the slot is
     /// called, how it reports a refusal, what class it demands of an <c>ALL literal-1</c> operand and how it phrases
-    /// the §12.3.7.3 SR11 symbolic-character bar. One value per CLAUSE KIND (kb/Work PB1537): the ALPHABET / CLASS
+    /// the §2023:12.3.7.3 SR11 symbolic-character bar. One value per CLAUSE KIND (kb/Work PB1537): the ALPHABET / CLASS
     /// operands (<see cref="FigurativeSlotOf"/>) and the ORDER TABLE / LOCALE text literals
     /// (<see cref="TryClauseTextLiteral"/>) read their figurative constants through the ONE
     /// <see cref="SpecialNamesFigurative"/>, which had been written only for the first two — the third screen refused
     /// EVERY figurative constant under a rule that bars only one kind of them.</summary>
     /// <param name="What">The clause, for the message ("ALPHABET AL", "ORDER TABLE T1 IS SPACE").</param>
-    /// <param name="ClassCode">The diagnostic of a refusal of the operand's class or character (§12.3.7.3 SR10 / the clause's class rule).</param>
+    /// <param name="ClassCode">The diagnostic of a refusal of the operand's class or character (§2023:12.3.7.3 SR10 / the clause's class rule).</param>
     /// <param name="SymbolicCode">The diagnostic of the SR11 symbolic-character refusal.</param>
     /// <param name="ClassClause">The slot's class rule in its own words (appended to the operand).</param>
     /// <param name="ClassRule">The syntax rule it is, e.g. "SR14 b2".</param>
@@ -337,17 +337,17 @@ public sealed partial class SpecialNamesBinder
     private readonly record struct FigurativeSlot(string What, DiagnosticDescriptor ClassCode, DiagnosticDescriptor SymbolicCode, string ClassClause,
         string ClassRule, Func<PicCategory, bool> Admits, string SymbolicClause);
 
-    /// <summary>The ALPHABET / CLASS clause's figurative slot (§12.3.7.3 SR14 b2/c2, SR17 b3/c3, SR11).</summary>
+    /// <summary>The ALPHABET / CLASS clause's figurative slot (§2023:12.3.7.3 SR14 b2/c2, SR17 b3/c3, SR11).</summary>
     private FigurativeSlot FigurativeSlotOf(LiteralPhraseRules r) => new(r.What, r.Code, r.Code,
         $"each noninteger literal shall be {(r.National ? "a NATIONAL literal (N\"…\")" : "an alphanumeric literal")}",
         r.Rule(r.ClassItem),
         category => category == (r.National ? PicCategory.National : PicCategory.Alphanumeric),
         "an operand shall not be a symbolic-character figurative constant");
 
-    /// <summary>⛔ THE ONE DECODING of a figurative constant written in a SPECIAL-NAMES literal slot (ISO §12.3.7.4
-    /// GR10; §8.3.3.6.3 SR1 — "<i>A figurative constant may be used whenever 'literal' appears in a format</i>"): the
-    /// characters it stands for, or null after a refusal. SPACE, QUOTE and ZERO are their §8.3.3.6.4 GR1 characters;
-    /// HIGH-VALUE and LOW-VALUE are the NATIVE extremes (GR10); <c>ALL literal-1</c> is literal-1 itself (§8.3.3.6.4
+    /// <summary>⛔ THE ONE DECODING of a figurative constant written in a SPECIAL-NAMES literal slot (ISO §2023:12.3.7.4
+    /// GR10; §2023:8.3.3.6.3 SR1 — "<i>A figurative constant may be used whenever 'literal' appears in a format</i>"): the
+    /// characters it stands for, or null after a refusal. SPACE, QUOTE and ZERO are their §2023:8.3.3.6.4 GR1 characters;
+    /// HIGH-VALUE and LOW-VALUE are the NATIVE extremes (GR10); <c>ALL literal-1</c> is literal-1 itself (§2023:8.3.3.6.4
     /// GR3 c, "<i>the length of the string is the length of literal-1</i>"), <c>ALL SPACE</c> and its kin one
     /// character (GR3 b). The ONE refusal the slots share is SR11's "<i>neither a symbolic-character figurative
     /// constant nor a zero-length literal</i>": <c>ALL symbolic-character-1</c> is the symbolic-character figurative
@@ -359,7 +359,7 @@ public sealed partial class SpecialNamesBinder
         if (fig.ALL() is null) return AlphabetFigurative(fig.GetText()) ?? FigurativeNotACharacter(fig, slot);
         if (fig.cobolWord() is { } word && IsSymbolicCharacterName(word.GetText()))
         {
-            Edition.Error(slot.SymbolicCode, $"{slot.What}: {ConcatFolder.Spelling(fig)} — {slot.SymbolicClause} (ISO §12.3.7.3 SR11)");
+            Edition.Error(slot.SymbolicCode, $"{slot.What}: {ConcatFolder.Spelling(fig)} — {slot.SymbolicClause} (ISO §2023:12.3.7.3 SR11)");
             return null;
         }
         return ConcatFolder.FoldAllLiteral(fig, LiteralEnvironment.SpecialNames(_host, refusesSymbolicCharacters: true),
@@ -369,37 +369,37 @@ public sealed partial class SpecialNamesBinder
     }
 
     /// <summary>A figurative constant that names no character (<c>ALL</c> over a word that is neither a literal nor
-    /// a constant) — never an operand of these clauses: §12.3.7.4 GR10 maps HIGH-VALUE and LOW-VALUE, §8.3.3.6.4 GR1
+    /// a constant) — never an operand of these clauses: §2023:12.3.7.4 GR10 maps HIGH-VALUE and LOW-VALUE, §2023:8.3.3.6.4 GR1
     /// SPACE, QUOTE and ZERO, and nothing maps the rest. (The predefined NULL is no figurative constant at all —
-    /// §8.4.3.10.3 SR1, <see cref="PredefinedNullRule"/>.)</summary>
+    /// §2023:8.4.3.10.3 SR1, <see cref="PredefinedNullRule"/>.)</summary>
     private string? FigurativeNotACharacter(Core.FigurativeConstantContext fig, FigurativeSlot slot)
     {
         Edition.Error(slot.ClassCode, $"{slot.What}: {ConcatFolder.Spelling(fig)} — the figurative constant is not a character of the native "
-            + "character set, so it cannot be an operand of this clause (ISO §12.3.7.4 GR10 names HIGH-VALUE and "
-            + "LOW-VALUE; §8.3.3.6.4 GR1 SPACE, QUOTE and ZERO)");
+            + "character set, so it cannot be an operand of this clause (ISO §2023:12.3.7.4 GR10 names HIGH-VALUE and "
+            + "LOW-VALUE; §2023:8.3.3.6.4 GR1 SPACE, QUOTE and ZERO)");
         return null;
     }
 
-    /// <summary>The characters of an <c>ALL literal-1</c> operand: literal-1 itself (§8.3.3.6.4 GR3 c, "the length
+    /// <summary>The characters of an <c>ALL literal-1</c> operand: literal-1 itself (§2023:8.3.3.6.4 GR3 c, "the length
     /// of the string is the length of literal-1"), folded by the ONE Format 6 reader
     /// (<see cref="ConcatFolder.FoldAllLiteral"/> — a quoted literal, a concatenation expression classed by the
-    /// pairwise §8.8.3.3 GR1 fold, or a constant-name) and held to the slot's class rule as ONE literal: a
-    /// concatenation expression is "equivalent to a literal of the same class and value" (§8.8.3.3 GR3).</summary>
+    /// pairwise §2023:8.8.3.3 GR1 fold, or a constant-name) and held to the slot's class rule as ONE literal: a
+    /// concatenation expression is "equivalent to a literal of the same class and value" (§2023:8.8.3.3 GR3).</summary>
     private string? AllLiteralCharacters(Core.FigurativeConstantContext fig, ConcatFolder.Folded literal1,
         FigurativeSlot slot)
     {
         if (slot.Admits(literal1.Category)) return literal1.Value;
-        Edition.Error(slot.ClassCode, $"{slot.What}: {ConcatFolder.Spelling(fig)} — {slot.ClassClause} (ISO §12.3.7.3 {slot.ClassRule})");
+        Edition.Error(slot.ClassCode, $"{slot.What}: {ConcatFolder.Spelling(fig)} — {slot.ClassClause} (ISO §2023:12.3.7.3 {slot.ClassRule})");
         return null;
     }
 
-    /// <summary>The CLASS of a noninteger literal operand — alphanumeric (§8.3.3.2, incl. the hexadecimal format
-    /// X"hh…"), national (§8.3.3.5 — N"…" / NX"…") or boolean — as §12.3.7.3 SR14 b2/c2 and SR17 b3/c3 ask it; null for a
+    /// <summary>The CLASS of a noninteger literal operand — alphanumeric (§2023:8.3.3.2, incl. the hexadecimal format
+    /// X"hh…"), national (§2023:8.3.3.5 — N"…" / NX"…") or boolean — as §2023:12.3.7.3 SR14 b2/c2 and SR17 b3/c3 ask it; null for a
     /// word that is no quoted literal. ⛔ ONE classifier, <see cref="CobolLiteral.ClassOf"/>, keyed on the parsed
     /// PREFIX: the former alphanumeric test asked <c>CobolLiteral.IsStringLiteral</c>, which answers true for EVERY
     /// prefixed quoted literal, so N"A" and B"1" passed as alphanumeric and <c>ALPHABET A IS N"A"</c> /
-    /// <c>CLASS C IS N"0" THRU N"9"</c> compiled clean (kb/Work PB976). A §8.8.3.3 concatenation expression is of
-    /// the class §8.8.3.3 GR1 folds pairwise — THE ConcatFolder answer, never the leading operand's prefix, which
+    /// <c>CLASS C IS N"0" THRU N"9"</c> compiled clean (kb/Work PB976). A §2023:8.8.3.3 concatenation expression is of
+    /// the class §2023:8.8.3.3 GR1 folds pairwise — THE ConcatFolder answer, never the leading operand's prefix, which
     /// called <c>SPACE &amp; N"A"</c> alphanumeric (kb/Work PB1406).</summary>
     internal LiteralClass? OperandLiteralClass(Core.LiteralContext lit)
     {
@@ -413,9 +413,9 @@ public sealed partial class SpecialNamesBinder
         return CobolLiteral.ClassOf(lit.GetText());
     }
 
-    /// <summary>⛔ THE ONE QUESTION "IS THIS SPECIAL-NAMES LITERAL OPERAND ZERO-LENGTH?" (ISO §12.3.7.3 SR11 — literal-1
+    /// <summary>⛔ THE ONE QUESTION "IS THIS SPECIAL-NAMES LITERAL OPERAND ZERO-LENGTH?" (ISO §2023:12.3.7.3 SR11 — literal-1
     /// … literal-6 and literal-9 "shall specify neither a symbolic-character figurative constant nor a zero-length
-    /// literal"; kb/Work PB3218). It is asked of the literal AS DECODED, never of its tokens: §8.8.3.3 GR2 makes a
+    /// literal"; kb/Work PB3218). It is asked of the literal AS DECODED, never of its tokens: §2023:8.8.3.3 GR2 makes a
     /// concatenation of zero-length literals a zero-length literal, and GR3 makes any concatenation expression usable
     /// "anywhere a literal of that class may be used", so <c>"" &amp; ""</c> is the zero-length literal SR11 bars. The
     /// ALPHABET / CLASS operands (<see cref="LiteralPhraseOperand"/>) tested the raw token (not zero-length as written)
@@ -430,7 +430,7 @@ public sealed partial class SpecialNamesBinder
             : CobolLiteral.IsZeroLength(lit.GetText());
 
     /// <summary>The constant-name arm of <see cref="IsZeroLengthOperand"/>: a constant-name is "as if literal-1 … were
-    /// written" (§13.10.4 GR1), so a nonnumeric constant whose literal-1 is zero-length is the zero-length literal SR11
+    /// written" (§2023:13.10.4 GR1), so a nonnumeric constant whose literal-1 is zero-length is the zero-length literal SR11
     /// bars. The same structural test <c>ConcatFolder</c> takes of a constant operand (its re-quoted
     /// <see cref="ConstantDef.RawText"/>).</summary>
     private static bool IsZeroLengthConstant(ConstantDef constant) =>
@@ -438,13 +438,13 @@ public sealed partial class SpecialNamesBinder
 
     /// <summary>Whether <paramref name="word"/> is a symbolic-character name of this paragraph — declared by any
     /// SYMBOLIC CHARACTERS clause, read syntactically because the clauses are order-free (kb/Work PB226), or already
-    /// bound. The ONE recognition §12.3.7.3 SR11 asks, of a bare operand and of a concatenation operand alike.</summary>
+    /// bound. The ONE recognition §2023:12.3.7.3 SR11 asks, of a bare operand and of a concatenation operand alike.</summary>
     internal bool IsSymbolicCharacterName(string word) =>
         _paragraphSymbolicNames.Contains(word) || Cfg.SymbolicCharacters.Declares(word);
 
-    /// <summary>The characters of an alphabet-entry string literal: a §8.8.3.3 GR3 concatenation folded first — in
-    /// the SPECIAL-NAMES environment (§12.3.7.4 GR10's native extremes), with §12.3.7.3 SR11's
-    /// symbolic-character prohibition when <paramref name="sr11"/> —, the §8.3.3.2 hexadecimal format decoded
+    /// <summary>The characters of an alphabet-entry string literal: a §2023:8.8.3.3 GR3 concatenation folded first — in
+    /// the SPECIAL-NAMES environment (§2023:12.3.7.4 GR10's native extremes), with §2023:12.3.7.3 SR11's
+    /// symbolic-character prohibition when <paramref name="sr11"/> —, the §2023:8.3.3.2 hexadecimal format decoded
     /// pairwise, otherwise the literal's own characters. ⛔ It never resolves an ORDINAL — that is SR14 b1/c1's job
     /// and it lives in <see cref="AlphabetOperands"/>, so the ALPHABET path can no longer inherit the CLASS clause's
     /// descriptor, message and rule number (kb/Work PB770 leg d).
@@ -466,12 +466,12 @@ public sealed partial class SpecialNamesBinder
     }
 
     /// <summary>The one-character rule a THROUGH (or, in an alphabet, ALSO) phrase imposes on its operands —
-    /// §12.3.7.3 SR14 b3/c3 for the ALPHABET clause, SR17 b4/c4 for the CLASS clause, one check for both. False,
+    /// §2023:12.3.7.3 SR14 b3/c3 for the ALPHABET clause, SR17 b4/c4 for the CLASS clause, one check for both. False,
     /// with each offending operand reported, when any is not exactly one character.
     /// <para>⛔ The syntax rule governs "each alphanumeric / national LITERAL", so it is asked of the operand AS WRITTEN
     /// (<see cref="PhraseOperand.IsOrdinal"/>): a NUMERIC literal is an ordinal, names exactly one character of its set,
     /// and is held to the ordinal rule instead (SR14 b1/c1, SR17 b2/c2). What a THROUGH phrase then needs of that
-    /// character is a POSITION in the native set: §12.3.7.4 GR12 (CLASS) expands "the contiguous characters in the native
+    /// character is a POSITION in the native set: §2023:12.3.7.4 GR12 (CLASS) expands "the contiguous characters in the native
     /// character set" between the bounds and GR7 k5 (ALPHABET) "the set of consecutive characters in the native character
     /// set", and the native national set is the 65,536 UTF-16 code units (DOC-A.1-188; docs/CONFORMANCE.md) — so a
     /// numeric ordinal under <c>IN</c> UCS-4 / UTF-8 that names a SUPPLEMENTARY character (two code units) is a character
@@ -493,8 +493,8 @@ public sealed partial class SpecialNamesBinder
                     // is ONE character: the specification defines no run that begins at, or ends at, a group.
                     Edition.Error(r.Code, $"{r.What}: the ordinal {op.Spelling} names {op.Members} characters of the "
                         + "character set referenced by the IN alphabet (an ALSO group shares one ordinal position, "
-                        + "ISO §12.3.7.4 GR7 k6), so it is no single character to begin or end the run of native "
-                        + "characters a THROUGH phrase expands (ISO §12.3.7.4 GR12)");
+                        + "ISO §2023:12.3.7.4 GR7 k6), so it is no single character to begin or end the run of native "
+                        + "characters a THROUGH phrase expands (ISO §2023:12.3.7.4 GR12)");
                     ok = false;
                     continue;
                 }
@@ -503,9 +503,9 @@ public sealed partial class SpecialNamesBinder
                     + "16-bit code units), so it has no position in "
                     + (through
                         ? "the run of native characters a THROUGH phrase expands "
-                          + $"(ISO §12.3.7.4 {(r.RuleNumber == "SR17" ? "GR12" : "GR7 k5")}"
+                          + $"(ISO §2023:12.3.7.4 {(r.RuleNumber == "SR17" ? "GR12" : "GR7 k5")}"
                         : "the native character set whose characters an ALSO phrase gives one shared ordinal position "
-                          + "(ISO §12.3.7.4 GR7 k6")
+                          + "(ISO §2023:12.3.7.4 GR7 k6")
                     + "; the native set is the 65,536 UTF-16 code units — docs/CONFORMANCE.md DOC-A.1-188)");
                 ok = false;
                 continue;
@@ -515,7 +515,7 @@ public sealed partial class SpecialNamesBinder
             {
                 Edition.Error(r.Code, $"{r.What}: the operand '{chars}' is {chars.Length} characters — each "
                     + $"{(r.National ? "national" : "alphanumeric")} literal, when {r.LengthPhrases} is specified, shall "
-                    + $"be one character in length (ISO §12.3.7.3 {r.Rule(r.LengthItem)})");
+                    + $"be one character in length (ISO §2023:12.3.7.3 {r.Rule(r.LengthItem)})");
                 ok = false;
             }
         }

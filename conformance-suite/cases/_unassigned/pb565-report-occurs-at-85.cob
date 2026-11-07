@@ -5,12 +5,12 @@
 *> portable: unverified
 *>---
 *> ⛔ THE REPORT GROUP DESCRIPTION ENTRY GAINED ITS OCCURS CLAUSE AT COBOL-2002 (kb/Work PB565).
-*> ISO/IEC 1989:2023 §13.18.38.2 prints the report-writer OCCURS as format 3 — "OCCURS [ integer-1 TO ]
-*> integer-2 TIMES [ DEPENDING ON data-name-1 ] [ STEP integer-3 ]" — and §13.15.2's report group description
+*> ISO/IEC 1989:2023 §2023:13.18.38.2 prints the report-writer OCCURS as format 3 — "OCCURS [ integer-1 TO ]
+*> integer-2 TIMES [ DEPENDING ON data-name-1 ] [ STEP integer-3 ]" — and §2023:13.15.2's report group description
 *> entry general format carries it. The COBOL-85 report group description entry had no OCCURS clause at all,
 *> which is why its whole repeating-entry family enters at 2002 together: the multiple LINE clause and the
-*> multiple/relative COLUMN forms (§13.18.35.3 / §13.18.14.3 SR10), the VARYING clause (§13.18.64), the
-*> PRESENT WHEN clause (§13.18.41) — each already a `*-2002` construct row here — and this.
+*> multiple/relative COLUMN forms (§2023:13.18.35.3 / §2023:13.18.14.3 SR10), the VARYING clause (§2023:13.18.64), the
+*> PRESENT WHEN clause (§2023:13.18.41) — each already a `*-2002` construct row here — and this.
 *>
 *> So a COBOL-85 compilation shall name the edition rather than silently repeat the item: construct
 *> `report-occurs-2002`, diagnostic COBOL0900. Above 85 the same source compiles and prints OK OK OK.

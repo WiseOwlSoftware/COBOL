@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Binding;
 using Core = CobolParserCore;
 
 /// <summary>
-/// ISO §14.5.1's classification of a written statement as CONDITIONAL or IMPERATIVE (kb/Work PB351): "An imperative
+/// ISO §2023:14.5.1's classification of a written statement as CONDITIONAL or IMPERATIVE (kb/Work PB351): "An imperative
 /// statement specifies an unconditional action to be taken by the runtime element or is a conditional statement that
 /// is delimited by its explicit scope terminator, as specified in Table 12, Procedural statements" and "Any statement
 /// with a conditional phrase that is not terminated by its explicit scope terminator is a conditional statement."
@@ -46,7 +46,7 @@ internal static class ConditionalStatements
     internal static int? TerminatorFor(string table12Name) =>
         Terminators.TryGetValue(table12Name, out int t) ? t : null;
 
-    /// <summary>§14.5.1: whether <paramref name="s"/> is a CONDITIONAL statement — a conditional phrase is written and
+    /// <summary>§2023:14.5.1: whether <paramref name="s"/> is a CONDITIONAL statement — a conditional phrase is written and
     /// the statement's explicit scope terminator is not.</summary>
     public static bool IsConditional(Core.StatementContext s)
     {
@@ -59,7 +59,7 @@ internal static class ConditionalStatements
     }
 
     /// <summary>Walk the statement's OWN syntax: a <c>statementBlock</c> is a conditional phrase's operand and is not
-    /// descended into (the statements inside it are other statements, whose terminators are theirs — §14.5.3.2 1)).</summary>
+    /// descended into (the statements inside it are other statements, whose terminators are theirs — §2023:14.5.3.2 1)).</summary>
     private static void Scan(IParseTree node, int? terminator, ref bool phrase, ref bool terminated)
     {
         for (int i = 0; i < node.ChildCount; i++)

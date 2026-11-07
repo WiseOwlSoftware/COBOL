@@ -5,10 +5,10 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO 1989:2023 §14.9.32.3 SR1 / §14.9.51.3 SR5 at the OLDEST supported edition. The rules are
+      *> ISO 1989:2023 §2023:14.9.32.3 SR1 / §2023:14.9.51.3 SR5 at the OLDEST supported edition. The rules are
       *> written identically in ANSI X3.23-1985, so there is no edition gate: a qualified record-name-1
       *> binds at --std 85 exactly as at 2023, and the SD returns exactly the records RELEASE named
-      *> (§14.9.32.4 GR2). This is the acceptance twin of the pb347-* negative corpus (kb/Work PB347).
+      *> (§2023:14.9.32.4 GR2). This is the acceptance twin of the pb347-* negative corpus (kb/Work PB347).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB347R8.
        ENVIRONMENT DIVISION.

@@ -5,26 +5,26 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO 1989:2014 §13.18.43 (RECORD clause Format 1) over a VARIABLE-LENGTH GROUP record (§8.5.1.12.1) in a RELATIVE
+      *> ISO 1989:2014 §2023:13.18.43 (RECORD clause Format 1) over a VARIABLE-LENGTH GROUP record (§2023:8.5.1.12.1) in a RELATIVE
       *> file: the relative sibling of pb1562_variable_group_under_fixed_record_clause (record sequential). The record holds
       *> two DYNAMIC LENGTH members around a fixed one, in a file described with the fixed-length clause RECORD CONTAINS 20
-      *> CHARACTERS. It is LEGAL: §13.18.43.3 SR3 - "No record description entry for the file may specify a number of bytes
-      *> greater than integer-1" - bounds the description by its MAXIMUM (§13.18.43.4 GR8 b), by D-FRA (iv): a
-      *> dynamic-length item counts at its maximum size), and that maximum is its LIMIT (§8.5.1.10.1): 9 + 3 + 8 = 20
+      *> CHARACTERS. It is LEGAL: §2023:13.18.43.3 SR3 - "No record description entry for the file may specify a number of bytes
+      *> greater than integer-1" - bounds the description by its MAXIMUM (§2023:13.18.43.4 GR8 b), by D-FRA (iv): a
+      *> dynamic-length item counts at its maximum size), and that maximum is its LIMIT (§2023:8.5.1.10.1): 9 + 3 + 8 = 20
       *> bytes, exactly integer-1. A variable-length group "behaves in all respects as though it were in fact contiguous
-      *> with its neighbors" (§8.5.1.11.2), so every record is the concatenation of its members as they stand at the WRITE,
+      *> with its neighbors" (§2023:8.5.1.11.2), so every record is the concatenation of its members as they stand at the WRITE,
       *> and a READ makes that very record available again: each member takes back exactly the characters it was written
-      *> with. The physical form is the implementor's (§13.18.43.4 GR2); docs/CONFORMANCE.md D-FRA (vi) fixes it for a
+      *> with. The physical form is the implementor's (§2023:13.18.43.4 GR2); docs/CONFORMANCE.md D-FRA (vi) fixes it for a
       *> FIXED-length file of ANY organization - each member at the position it has at its maximum size, space padded, read
       *> back without the padding - because a relative record is 20 bytes whatever it holds (GR6).
-      *> The relative record number is the record's identity (§9.1.7.3; §14.9.51.4 GR29), and the ARMS below pin what the
+      *> The relative record number is the record's identity (§2023:9.1.7.3; §2023:14.9.51.4 GR29), and the ARMS below pin what the
       *> record number does and does not change:
       *>   W1 W3 W2  three records written out of order into slots 1, 3 and 2: '00' each.
       *>   R3 R1     random READ of slot 3 then slot 1 with the members overwritten with junk first: every member comes back.
       *>   RW1       REWRITE of slot 1 with other lengths in the same three members: '00', and R1B reads the new members.
       *>   R2        the empty-member record (both variable members empty, the minimum the description describes).
       *> and the exception paths of the same statements, because the fixed form must not hide them:
-      *>   W1D       a WRITE of slot 1 again: the invalid key condition (§14.9.51.4 GR33 a): the record number names a record that already exists), '22', INVALID KEY runs.
+      *>   W1D       a WRITE of slot 1 again: the invalid key condition (§2023:14.9.51.4 GR33 a): the record number names a record that already exists), '22', INVALID KEY runs.
       *>   R4        a READ of slot 4, never written: '23', INVALID KEY runs and NOT INVALID KEY does not.
       *>   D2 R2B    DELETE of slot 2, then READ of slot 2: '23' (the fixed form leaves nothing behind in the slot).
       *> WHY EACH LEG CAN FAIL: the members are overwritten with junk before every READ, so a value that is right can only

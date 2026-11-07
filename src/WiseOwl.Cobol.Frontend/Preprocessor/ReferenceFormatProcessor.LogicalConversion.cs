@@ -15,18 +15,18 @@ public static partial class ReferenceFormatProcessor
     private enum CommentEntryText { None, Header, Body, CandidateHeader, CandidateBody }
 
     /// <summary>
-    /// The fixed-form CLASSIFIER of the ISO §6.5 logical conversion of one fixed-form text — a whole file, one SOURCE
+    /// The fixed-form CLASSIFIER of the ISO §2023:6.5 logical conversion of one fixed-form text — a whole file, one SOURCE
     /// FORMAT segment, or a copybook (kb/Work PB1491). It reads the indicator area and the program-text area of each
     /// physical line and hands the program text to the <see cref="LogicalLineBuilder"/>, which owns the resultant lines,
     /// the latest logical line and the literal state (kb/Work PB1804):
     /// <list type="bullet">
-    /// <item>§6.5 2) "If the line is a comment line or a blank line, that line is logically discarded" — a comment line is
+    /// <item>§2023:6.5 2) "If the line is a comment line or a blank line, that line is logically discarded" — a comment line is
     /// a fixed <c>*</c> or <c>/</c> indicator or a line whose first character-string is the floating comment indicator;
     /// the builder keeps its slot as an EMPTY line.</item>
     /// <item>The program-text area is ALWAYS character positions 8–72: a physical line shorter than margin R is read as if
-    /// space-filled to it (docs/CONFORMANCE.md DOC-A.1-157, §6.1 1) c) "The implementor shall specify the meaning of lines
+    /// space-filled to it (docs/CONFORMANCE.md DOC-A.1-157, §2023:6.1 1) c) "The implementor shall specify the meaning of lines
     /// and character positions"), so a literal continued by the fixed continuation indicator carries every position up
-    /// to margin R — §6.3.5: "any spaces at the end of the fixed-form continued line are part of the literal".</item>
+    /// to margin R — §2023:6.3.5: "any spaces at the end of the fixed-form continued line are part of the literal".</item>
     /// </list>
     /// </summary>
     private sealed class FixedFormConverter(ReferenceFormatDiagnostics? gates, string file, bool ccvsIndicators,
@@ -66,9 +66,9 @@ public static partial class ReferenceFormatProcessor
             return _builder.Result;
         }
 
-        /// <summary>The kind of line an indicator-area character marks (§6.3.3 "The indicator area identifies the type
+        /// <summary>The kind of line an indicator-area character marks (§2023:6.3.3 "The indicator area identifies the type
         /// of a source line in accordance with the indicators specified in 6.2.2"). The NIST CCVS conventions — letters
-        /// §6.2.2 does not list — are a dialect, honored only under <c>--nist</c> (kb/Work PB1494).</summary>
+        /// §2023:6.2.2 does not list — are a dialect, honored only under <c>--nist</c> (kb/Work PB1494).</summary>
         private enum LineKind { Source, Comment, Continuation, Debugging, CcvsExcluded, NotAnIndicator }
 
         private LineKind KindOf(int indicator) => indicator switch
@@ -116,12 +116,12 @@ public static partial class ReferenceFormatProcessor
 
             switch (kind)
             {
-                case LineKind.Comment:   // a comment line (§6.2.2 fixed comment indicators; §6.5 2))
+                case LineKind.Comment:   // a comment line (§2023:6.2.2 fixed comment indicators; §2023:6.5 2))
                     _builder.Discard(site);
                     break;
 
                 case LineKind.Debugging:
-                    // §6.2.2 lists no debugging indicator at COBOL-2023: the facility is obsolete at 2002 and removed at
+                    // §2023:6.2.2 lists no debugging indicator at COBOL-2023: the facility is obsolete at 2002 and removed at
                     // 2014 (kb/Work R61, row debugging-line-removed-2014). Whether the line is SOURCE or COMMENT is the
                     // program's SOURCE-COMPUTER ... WITH DEBUGGING MODE clause's to say, and the clause is further down the
                     // text than any stage that has read this line, so the line is CARRIED: DebuggingLineRewriter decides
@@ -132,7 +132,7 @@ public static partial class ReferenceFormatProcessor
                     _builder.EmitDebugging(DebugLineCarrier, area, site, FixedFormLine.IndicatorColumn);
                     break;
 
-                // 'S' and 'Y' (the CCVS debug-suite letters, §6.2.2 lists neither) are excluded the same way: they are the
+                // 'S' and 'Y' (the CCVS debug-suite letters, §2023:6.2.2 lists neither) are excluded the same way: they are the
                 // --nist dialect, not the D indicator, so the WITH DEBUGGING MODE clause that keeps a D line (PB1705) never
                 // keeps them — they were comment lines before the D line's carrier became a rewritable one, and stay so.
                 //
@@ -164,9 +164,9 @@ public static partial class ReferenceFormatProcessor
                 // the configuration of an implementor WITH external switches (the SPECIAL-NAMES switch entries and the
                 // IF on their status condition-names), the 'B' lines what a processor WITHOUT them substitutes ("SWITCHES
                 // NOT IMPLEMENTED", and in NC211A level-88 entries spelling the very condition-names the A lines declare
-                // as switch status names). WiseOwl COBOL implements switches (§12.3.7.4 GR2), so 'A' is the active
+                // as switch status names). WiseOwl COBOL implements switches (§2023:12.3.7.4 GR2), so 'A' is the active
                 // configuration (kept as ordinary code) and 'B' the excluded alternate: kept, NC211A's B level-88s and
-                // its SPECIAL-NAMES switch names are one condition-name declared twice, which §8.4.2.2.1 refuses on an
+                // its SPECIAL-NAMES switch names are one condition-name declared twice, which §2023:8.4.2.2.1 refuses on an
                 // unqualified reference (kb/Work PB3347).
                 case LineKind.CcvsExcluded:
                     _builder.Discard(site);
@@ -203,14 +203,14 @@ public static partial class ReferenceFormatProcessor
         {
             if (kind == LineKind.Continuation) return _inCommentEntry ? BodyOfParagraph() : CommentEntryText.None;
             if (kind is not (LineKind.Source or LineKind.NotAnIndicator)) return CommentEntryText.None;
-            // The latest logical line awaits a floating-indicator continuation (§6.5 8)): this line is its continuation
+            // The latest logical line awaits a floating-indicator continuation (§2023:6.5 8)): this line is its continuation
             // line, whatever it spells, and neither opens nor ends a comment-entry.
             if (_builder.AwaitsFloatingContinuation) return CommentEntryText.None;
             // COBOL-85's comment-entry paragraph begins at an Area-A word and ends at the next one — the only place the
             // Area A / Area B line matters here. WHERE the text is (the division) is read from the words of the LOGICAL
-            // lines before this one, wherever they begin (§6.3.1: the program-text area has no such line), by the one
+            // lines before this one, wherever they begin (§2023:6.3.1: the program-text area has no such line), by the one
             // DivisionCursor rule.
-            // A blank or comment line is a new logical line of nothing (§6.5 2)): a continuation line after it still joins
+            // A blank or comment line is a new logical line of nothing (§2023:6.5 2)): a continuation line after it still joins
             // the latest logical line, so that line is not complete and the cursor must not read it yet (kb/Work PB4241).
             if (LogicalLineBuilder.TryFirstText(area, out _)) _builder.ReadInto(_division);
             string? firstAreaAWord = FirstAreaAWord(line, area);
@@ -266,10 +266,10 @@ public static partial class ReferenceFormatProcessor
         if (positions > FreeFormMaxPositions) gates?.OnFreeFormLineTooLong(file, line.Number, positions);
     }
 
-    /// <summary>The free-form CLASSIFIER of the ISO §6.5 logical conversion — a whole text, one SOURCE FORMAT segment of
-    /// it, or a copybook. A free-form line is "copied to the resultant compilation group" (§6.5 7)) once its comment is
-    /// removed (§6.5 2) and 3)); the only line that is not copied as a new logical line is the continuation line of a
-    /// literal continued with a floating literal continuation indicator (§6.5 8), kb/Work PB1359), which the
+    /// <summary>The free-form CLASSIFIER of the ISO §2023:6.5 logical conversion — a whole text, one SOURCE FORMAT segment of
+    /// it, or a copybook. A free-form line is "copied to the resultant compilation group" (§2023:6.5 7)) once its comment is
+    /// removed (§2023:6.5 2) and 3)); the only line that is not copied as a new logical line is the continuation line of a
+    /// literal continued with a floating literal continuation indicator (§2023:6.5 8), kb/Work PB1359), which the
     /// <see cref="LogicalLineBuilder"/> joins to its latest logical line. A discarded or joined line keeps its slot as an
     /// empty line only when discarded; each resultant line's origin is the physical line and column it was read from.
     /// <para>⛔ A COMMENT-ENTRY IS COMMENTARY IN FREE FORM TOO (docs/CONFORMANCE.md D-CE1; kb/Work PB3245, review finding
@@ -301,10 +301,10 @@ public static partial class ReferenceFormatProcessor
             foreach (var line in physicalLines)
             {
                 var site = new TextSite(line.Number, Index: 0, line.Columns);
-                // A comment line (§6.5 2)) is neither a header nor words of a division, as in fixed form.
+                // A comment line (§2023:6.5 2)) is neither a header nor words of a division, as in fixed form.
                 var entry = LogicalLineBuilder.TryFirstText(line.Text, out int first) ? BeginsCommentEntry(line.Text, first, line.Number) : CommentEntryText.None;
                 // The 255-position gate is asked of EVERY physical line, here and once: this conversion runs before conditional
-                // compilation, so a line of an omitted branch is gated as any other (§6.1 3) a)), a carried candidate's too, and
+                // compilation, so a line of an omitted branch is gated as any other (§2023:6.1 3) a)), a carried candidate's too, and
                 // CommentEntryResolver, which converts the candidate later, never asks it again (kb/Work PB4281, review findings
                 // R1-2 and R2-1).
                 if (gatesLineLength) ReportLineLength(gates, file, line);
@@ -326,7 +326,7 @@ public static partial class ReferenceFormatProcessor
 
         /// <summary>Whether the line whose first character-string begins at <paramref name="first"/> opens a comment-entry
         /// paragraph: its first word is one of <see cref="CommentEntryParagraphs"/>, the line is not the continuation line a
-        /// floating literal continuation indicator asks for (§6.5 8), whose text is the literal's whatever it spells), and the
+        /// floating literal continuation indicator asks for (§2023:6.5 8), whose text is the literal's whatever it spells), and the
         /// text stands in an IDENTIFICATION DIVISION (<see cref="CommentEntryText.Header"/>) or in none the division could tell
         /// (<see cref="CommentEntryText.CandidateHeader"/>).</summary>
         private CommentEntryText BeginsCommentEntry(string text, int first, int lineNumber)
@@ -343,7 +343,7 @@ public static partial class ReferenceFormatProcessor
         }
     }
 
-    /// <summary>The most character positions a free-form line may have (§6.1 3) a): "ranging from a minimum of 0 to a
+    /// <summary>The most character positions a free-form line may have (§2023:6.1 3) a): "ranging from a minimum of 0 to a
     /// maximum of 255") — positions as DOC-A.1-157 counts them, so on the expanded line. Asked in the free-form arm
     /// because a fixed-form line may run past margin R and only its program-text area counts.</summary>
     internal const int FreeFormMaxPositions = 255;

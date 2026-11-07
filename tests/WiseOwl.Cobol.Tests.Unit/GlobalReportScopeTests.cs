@@ -13,8 +13,8 @@ using CnFrontend = WiseOwl.Cobol.Frontend.Frontend;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The GLOBAL clause on a report description entry (ISO §13.18.27.3 SR1 e), §13.18.27.4 GR1/GR2) and the Format-2
-/// half of §14.9.49.4 GR4 — the USE BEFORE REPORTING declarative is selected per STATEMENT, from the source element
+/// The GLOBAL clause on a report description entry (ISO §2023:13.18.27.3 SR1 e), §2023:13.18.27.4 GR1/GR2) and the Format-2
+/// half of §2023:14.9.49.4 GR4 — the USE BEFORE REPORTING declarative is selected per STATEMENT, from the source element
 /// containing the GENERATE / TERMINATE and then from the GLOBAL declaratives of its containers (kb/Work PB369). The
 /// run-time selection is witnessed by conformance:cases/13.18.27-GLOBAL/pb369_global_report_use_selection; this class pins the bind
 /// rules and the shape the emitter gives the selection.
@@ -65,13 +65,13 @@ public sealed class GlobalReportScopeTests
                END PROGRAM PB369UA.
         """;
 
-    // ── §14.9.16.3 SR3/SR4 · §14.9.21.3 SR2 · §14.9.46.3 SR2 — the report's FD must be GLOBAL too ──────────────
+    // ── §2023:14.9.16.3 SR3/SR4 · §2023:14.9.21.3 SR2 · §2023:14.9.46.3 SR2 — the report's FD must be GLOBAL too ──────────────
 
     [Theory]
-    [InlineData("GENERATE DET-1.", "§14.9.16.3 SR3")]
-    [InlineData("GENERATE R-1.", "§14.9.16.3 SR4")]
-    [InlineData("INITIATE R-1.", "§14.9.21.3 SR2")]
-    [InlineData("TERMINATE R-1.", "§14.9.46.3 SR2")]
+    [InlineData("GENERATE DET-1.", "§2023:14.9.16.3 SR3")]
+    [InlineData("GENERATE R-1.", "§2023:14.9.16.3 SR4")]
+    [InlineData("INITIATE R-1.", "§2023:14.9.21.3 SR2")]
+    [InlineData("TERMINATE R-1.", "§2023:14.9.46.3 SR2")]
     public void AContainedReportVerbOnAGlobalReportWhoseFileIsNotGlobal_IsRefused(string stmt, string rule)
     {
         var d = BindDiagnostics(Group(rdGlobal: true, fdGlobal: false, "", "", "           " + stmt), 85);
@@ -89,7 +89,7 @@ public sealed class GlobalReportScopeTests
         Assert.DoesNotContain(d, x => x.Contains("error"));
     }
 
-    /// <summary>§13.18.27.4 GR2 — a report WITHOUT the GLOBAL clause is not a name the contained program can
+    /// <summary>§2023:13.18.27.4 GR2 — a report WITHOUT the GLOBAL clause is not a name the contained program can
     /// reference, whatever its file says.</summary>
     [Theory]
     [InlineData("GENERATE DET-1.")]
@@ -100,9 +100,9 @@ public sealed class GlobalReportScopeTests
         Assert.Contains(d, x => x.Contains("COBOL1757"));
     }
 
-    /// <summary>§13.18.27.4 GR1 — the sum counter TOT-N is a data-name subordinate to the global report, so a
+    /// <summary>§2023:13.18.27.4 GR1 — the sum counter TOT-N is a data-name subordinate to the global report, so a
     /// contained program reads it (through the declaring program's engine); a LOCAL declaration of the same name
-    /// hides it (§8.4.6).</summary>
+    /// hides it (§2023:8.4.6).</summary>
     [Fact]
     public void AGlobalReportsSumCounter_IsVisibleInAContainedProgram_UnlessHidden()
     {
@@ -114,7 +114,7 @@ public sealed class GlobalReportScopeTests
         Assert.DoesNotContain(".SumImage(", Inner(hidden));
     }
 
-    /// <summary>§8.4.6.2.1 rule 3 a) — "If the name is declared in source element B, the item in source element B
+    /// <summary>§2023:8.4.6.2.1 rule 3 a) — "If the name is declared in source element B, the item in source element B
     /// is the referenced item": a contained program's OWN report group DET-1 and its own report's PAGE-COUNTER are
     /// referenced, not the same-named group and counter of the container's GLOBAL report — no ambiguity, and the
     /// statement drives the contained program's own engine.</summary>
@@ -167,7 +167,7 @@ public sealed class GlobalReportScopeTests
         Assert.DoesNotContain("__outer.__RPT_", inner);
     }
 
-    // ── §14.9.49.4 GR4, Format 2 — the selection travels with the statement ─────────────────────────────────
+    // ── §2023:14.9.49.4 GR4, Format 2 — the selection travels with the statement ─────────────────────────────────
 
     /// <summary>GR4 b) admits only a GLOBAL declarative of a container, so a container's NON-global USE BEFORE
     /// REPORTING gives a contained GENERATE no selector at all; the container's own GENERATE keeps one (GR4 a)).</summary>
@@ -203,8 +203,8 @@ public sealed class GlobalReportScopeTests
     }
 
     /// <summary>A USE BEFORE REPORTING procedure of the contained program may name a group of the container's
-    /// GLOBAL report (§14.9.49.3 SR9 — identifier-1 references a report group, and GR2 makes it referenceable), and
-    /// its SUPPRESS statement drives the DECLARING program's engine (§14.9.45).</summary>
+    /// GLOBAL report (§2023:14.9.49.3 SR9 — identifier-1 references a report group, and GR2 makes it referenceable), and
+    /// its SUPPRESS statement drives the DECLARING program's engine (§2023:14.9.45).</summary>
     [Fact]
     public void AContainedDeclarativeOnAGlobalGroup_SuppressesTheContainersEngine()
     {
@@ -216,7 +216,7 @@ public sealed class GlobalReportScopeTests
             """, "           GENERATE DET-1."));
         string inner = Inner(cs);
         // The engine is told WHICH group — DET-1, ordinal 0, the same key the selector's `case 0` switches on —
-        // because §14.9.45.4 GR1 inhibits only the group the USE procedure names (kb/Work PB1186).
+        // because §2023:14.9.45.4 GR1 inhibits only the group the USE procedure names (kb/Work PB1186).
         Assert.Contains("__outer.__RPT_0.SuppressPrinting(0);", inner);
         Assert.Matches(new Regex(@"case 0: if \(!__globalOnly\) \{ __RunUse\(0, "), inner);
         Assert.Contains("return false;", inner);   // no GLOBAL declarative outward — the walk ends here

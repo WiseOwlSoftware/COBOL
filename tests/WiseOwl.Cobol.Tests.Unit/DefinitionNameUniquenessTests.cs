@@ -12,10 +12,10 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 /// <remarks>
 /// <para>
-/// ISO §8.3.2.2 states the group-wide rule twice over one population — "Within a run unit, all instances of a
+/// ISO §2023:8.3.2.2 states the group-wide rule twice over one population — "Within a run unit, all instances of a
 /// given name that is externalized to the operating environment shall identify the same kind of entity or item.
 /// Except for method-names and property-names, when two or more source elements identify something with the same
-/// externalized name, they refer to the same instance" — and §8.4.6.3 states the contained-scope rule once: "The
+/// externalized name, they refer to the same instance" — and §2023:8.4.6.3 states the contained-scope rule once: "The
 /// names assigned to programs that are contained directly or indirectly within the same outermost program shall
 /// be unique within that outermost program."  NEITHER was enforced for programs. Measured on the tree this test
 /// landed against: two outermost <c>PROGRAM-ID. P3DND.</c> definitions ran the SECOND, the same pair under one
@@ -24,8 +24,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </para>
 /// <para>
 /// The ACCEPT half is not decoration. Each of its three shapes is legal source that a coarser check — "no two
-/// program-names alike in a compilation group" — would reject: §8.4.6.3's scope is ONE outermost program, a
-/// containee's name is not externalized at all, and what §8.3.2.2 makes unique is the EXTERNALIZED name, which
+/// program-names alike in a compilation group" — would reject: §2023:8.4.6.3's scope is ONE outermost program, a
+/// containee's name is not externalized at all, and what §2023:8.3.2.2 makes unique is the EXTERNALIZED name, which
 /// the AS phrase decouples from the declared word. A rule that only ever gets tested on its refusals cannot tell
 /// anyone it has grown too wide.
 /// </para>
@@ -48,7 +48,7 @@ public sealed class DefinitionNameUniquenessTests : WiseOwlCobolTestBase
 
     // ── REJECT ────────────────────────────────────────────────────────────────────────────────────────────
 
-    /// <summary>§8.3.2.2, the SAME-KIND sentence: two outermost program definitions under one externalized
+    /// <summary>§2023:8.3.2.2, the SAME-KIND sentence: two outermost program definitions under one externalized
     /// name. Both spellings — the declared word (no AS phrase maps it to itself) and two AS literals that
     /// coincide — are ONE fault, because the rule is about the externalized name in both cases.</summary>
     [Theory]
@@ -71,7 +71,7 @@ public sealed class DefinitionNameUniquenessTests : WiseOwlCobolTestBase
         Assert.Contains("COBOL2213", errors);
     }
 
-    /// <summary>§8.3.2.2, the CROSS-KIND sentence: a program definition and a function definition are not the
+    /// <summary>§2023:8.3.2.2, the CROSS-KIND sentence: a program definition and a function definition are not the
     /// same kind of entity, and its list item 1 puts both in the externalized population.</summary>
     [Fact]
     public void AProgramAndAFunctionMayNotShareAnExternalizedName()
@@ -95,7 +95,7 @@ public sealed class DefinitionNameUniquenessTests : WiseOwlCobolTestBase
         Assert.Contains("COBOL2213", errors);
     }
 
-    /// <summary>§8.4.6.3: two programs contained within ONE outermost program. A DIFFERENT code from the
+    /// <summary>§2023:8.4.6.3: two programs contained within ONE outermost program. A DIFFERENT code from the
     /// group-wide one, because a containee's name is not externalized and its scope is its container.</summary>
     [Fact]
     public void TwoProgramsInOneContainerMayNotShareAName()
@@ -121,10 +121,10 @@ public sealed class DefinitionNameUniquenessTests : WiseOwlCobolTestBase
         Assert.Contains("COBOL2214", errors);
     }
 
-    /// <summary>The SIBLING SWEEP arm: §8.3.2.2's list item 1 puts object-class-names in the SAME externalized
+    /// <summary>The SIBLING SWEEP arm: §2023:8.3.2.2's list item 1 puts object-class-names in the SAME externalized
     /// population as program-names, so a CLASS-ID and an outermost PROGRAM-ID under one name are two kinds under
     /// one name. Before kb/Work PB660 each namespace policed only itself — class-vs-class by COBOL0820 under
-    /// §8.4.6.4, function-vs-function by COBOL1508, program-vs-program by nothing — and nothing ever compared
+    /// §2023:8.4.6.4, function-vs-function by COBOL1508, program-vs-program by nothing — and nothing ever compared
     /// a definition of one kind against a definition of another.</summary>
     [Fact]
     public void AClassAndAProgramMayNotShareAnExternalizedName()
@@ -143,7 +143,7 @@ public sealed class DefinitionNameUniquenessTests : WiseOwlCobolTestBase
         Assert.Contains("COBOL2213", errors);
     }
 
-    /// <summary>§8.4.6.4 owns class-name and interface-name uniqueness and the OO class table enforces it on the
+    /// <summary>§2023:8.4.6.4 owns class-name and interface-name uniqueness and the OO class table enforces it on the
     /// declared WORD (COBOL0820, for classes and interfaces alike). The group-wide externalized check must not RESTATE that
     /// sentence — one fault, one diagnostic — so a duplicate CLASS-ID draws 0820 and NOT 2213.</summary>
     [Fact]
@@ -169,7 +169,7 @@ public sealed class DefinitionNameUniquenessTests : WiseOwlCobolTestBase
 
     // ── ACCEPT (the complement — legal source a wider check would refuse) ──────────────────────────────────
 
-    /// <summary>§8.4.6.3's scope is ONE outermost program: two different containers may each contain a program
+    /// <summary>§2023:8.4.6.3's scope is ONE outermost program: two different containers may each contain a program
     /// of the same name, and rule 1 of the same clause is what keeps the two references apart.</summary>
     [Fact]
     public void TwoContainersMayEachContainOneName()
@@ -206,7 +206,7 @@ public sealed class DefinitionNameUniquenessTests : WiseOwlCobolTestBase
         Assert.Equal("A-INNER\r\nB-INNER", stdout);
     }
 
-    /// <summary>§8.3.2.2 makes the EXTERNALIZED name unique, and the AS phrase decouples it from the declared
+    /// <summary>§2023:8.3.2.2 makes the EXTERNALIZED name unique, and the AS phrase decouples it from the declared
     /// word — so two outermost programs may share the word while externalizing different names, and both stay
     /// callable by their own literal.</summary>
     [Fact]
@@ -234,7 +234,7 @@ public sealed class DefinitionNameUniquenessTests : WiseOwlCobolTestBase
         Assert.Equal("W-ONE\r\nW-TWO", stdout);
     }
 
-    /// <summary>A PROTOTYPE beside its same-name definition is the INTENDED shape, not a duplicate: §10.6.2
+    /// <summary>A PROTOTYPE beside its same-name definition is the INTENDED shape, not a duplicate: §2023:10.6.2
     /// SR3 legislates FOR it: "If a compilation group contains both a function definition and a function
     /// prototype definition with the same externalized name, the signatures of these two compilation units
     /// shall be the same."</summary>

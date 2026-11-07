@@ -4,9 +4,9 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB1173 — A MERGE KEY OF CLASS POINTER IS REFUSED BY §14.9.24.3 SR4 c).
+      *> kb/Work PB1173 — A MERGE KEY OF CLASS POINTER IS REFUSED BY §2023:14.9.24.3 SR4 c).
       *>   cite.py --check 14.9.24.3 "Key data items shall not be of the class boolean, message-tag, object, or
-      *>     pointer." -> OK §14.9.24.3 4) c)
+      *>     pointer." -> OK §2023:14.9.24.3 4) c)
       *> The MERGE twin of negative/pb1173-sort-file-key-pointer: SPR is a level-1 USAGE POINTER record of the SD, and
       *> the key rule is asked before the record's image is.
       *> kb/Work PB2512 - the USING and GIVING records are sized to the SD record (its largest record, or its

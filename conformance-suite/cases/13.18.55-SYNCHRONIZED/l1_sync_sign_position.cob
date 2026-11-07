@@ -5,20 +5,20 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §13.18.55.4 GR7 — with ANY form of the SYNCHRONIZED clause, the
+      *> ISO §2023:13.18.55.4 GR7 — with ANY form of the SYNCHRONIZED clause, the
       *> operational sign still appears in the position the SIGN clause
       *> specifies, explicitly or implicitly.
       *>
-      *> THE RULE. §13.18.55.4 GR7: "If the data description of an item
+      *> THE RULE. §2023:13.18.55.4 GR7: "If the data description of an item
       *> contains an operational sign and any form of the SYNCHRONIZED clause,
       *> the sign of the item appears in the sign position explicitly or
       *> implicitly specified by the SIGN clause."
       *> "Any form" is GR3/GR4/GR5's three: bare SYNCHRONIZED, SYNCHRONIZED
       *> LEFT, SYNCHRONIZED RIGHT — all three name a natural boundary, and
-      *> GR7 says none of them may move the sign off the position §13.18.52
+      *> GR7 says none of them may move the sign off the position §2023:13.18.52
       *> put it on.
       *>
-      *> THE EXPLICIT HALF, DERIVED FROM §13.18.52.4 GR6 ALONE.
+      *> THE EXPLICIT HALF, DERIVED FROM §2023:13.18.52.4 GR6 ALONE.
       *>   GR6 a) "The operational sign is presumed to be the leading (or,
       *>          respectively, trailing) character position of the data item
       *>          to which it applies; this character position is not a digit
@@ -27,7 +27,7 @@
       *>          basic special characters '+' and '-', respectively." (The
       *>          printed standard sets that second character as an en dash;
       *>          the basic special character it names is Table 1's "minus
-      *>          sign (hyphen)", §8.1.3.1 — U+002D HYPHEN-MINUS.)
+      *>          sign (hyphen)", §2023:8.1.3.1 — U+002D HYPHEN-MINUS.)
       *> So PIC S9(4) SIGN IS ... SEPARATE is 5 character positions, at one
       *> byte each (docs/CONFORMANCE.md DOC-A.1-209), and VALUE -42 gives the
       *> digit string "0042":
@@ -42,7 +42,7 @@
       *> would break CTRL even if it kept a self-consistent layout.
       *>
       *> THE IMPLICIT HALF — WHICH IS NOT THE NO-SIGN-CLAUSE CASE.
-      *> §13.18.52.4 GR4 removes that case from this rule's reach entirely:
+      *> §2023:13.18.52.4 GR4 removes that case from this rule's reach entirely:
       *> "A numeric item whose picture character-string contains the symbol
       *> 'S', and to which no SIGN clause applies ... The implementor shall
       *> specify the position and representation of the operational sign.
@@ -51,14 +51,14 @@
       *> by the SIGN clause" for GR7's consequent to name, so a bare
       *> PIC S9(4) SYNC with no SIGN clause anywhere would not exercise GR7 at
       *> all. The position a SIGN clause specifies IMPLICITLY is the one it
-      *> applies by INHERITANCE from a containing group — §13.18.52.4 GR1,
+      *> applies by INHERITANCE from a containing group — §2023:13.18.52.4 GR1,
       *> "or for each numeric item subordinate to the group to which it
       *> applies" — and, secondarily, the position a written clause fixes
       *> WITHOUT the SEPARATE CHARACTER phrase (GR5 a) rather than with it.
       *> This golden takes both arms:
       *>   IMPL / IMPLEQ — I1V carries no SIGN clause of its own; the clause
       *>     sits on the containing group `01 I1 SIGN IS TRAILING SEPARATE`
-      *>     (legal by §13.18.52.3 SR1's third bullet, "an alphanumeric group
+      *>     (legal by §2023:13.18.52.3 SR1's third bullet, "an alphanumeric group
       *>     item"), and GR1 applies it to I1V. That inherited position is
       *>     fully spec-defined by GR6 a/b, so the image is printed
       *>     character-exact — [0042-] — and IMPLEQ pairs it against the
@@ -79,7 +79,7 @@
       *> with the SYNC clause and without it.
       *>
       *> Every image is read through a GROUP move to an alphanumeric item,
-      *> which §14.9.25.4 GR4 makes a byte transfer rather than a numeric
+      *> which §2023:14.9.25.4 GR4 makes a byte transfer rather than a numeric
       *> conversion; the one-byte prefix in each group is what gives a
       *> boundary adjustment something to do, and the printed slice skips it.
       *> The prefixes of the compared groups carry a VALUE so that no

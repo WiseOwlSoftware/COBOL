@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> The RETRY phrase (ISO §14.7.9) is a COBOL-2002 introduction. Residue migration #4
+      *> The RETRY phrase (ISO §2023:14.7.9) is a COBOL-2002 introduction. Residue migration #4
       *> (DESIGN-version-conformance-pipeline.md): the parse-time {is2002()}? predicates AND the reverse-signature
       *> ReservedWordEditionHints arm are GONE — RETRY parses at all editions (superset; the OPEN site via the
       *> retryPhraseAhead() forward-detect) and the introduction gate is enforced at BIND (GateRetryIntro ->

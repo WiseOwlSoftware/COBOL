@@ -4,21 +4,21 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.26.3 4) — MULTIPLY's native composite counts the
+      *> ISO §2023:14.9.26.3 4) — MULTIPLY's native composite counts the
       *>   GIVING operand
       *> "When native arithmetic is in effect, the composite of operands
       *>   described
       *> in 14.7.7, Arithmetic statements, is determined by using all of
       *>   the
       *> operands in the statement."
-      *> OK  §14.9.26.3 4)  (Syntax rules)
+      *> OK  §2023:14.9.26.3 4)  (Syntax rules)
       *> 14.7.7 2) a): "the composite of operands shall not contain more
       *>   than 31
-      *> digits."  OK  §14.7.7 2) a)  (Arithmetic statements)
+      *> digits."  OK  §2023:14.7.7 2) a)  (Arithmetic statements)
       *> 11.9.5.2 4): "If the ARITHMETIC clause is not specified ... it
       *>   is as if
       *> the ARITHMETIC clause were specified with the NATIVE phrase."
-      *> OK  §11.9.5.2 4)  (General rules)
+      *> OK  §2023:11.9.5.2 4)  (General rules)
       *> No ARITHMETIC clause, so native arithmetic is in effect.
       *> A is V9(12) (0 integer, 12 decimal digits), B is 9(10).
       *> MULTIPLY A BY B GIVING R19 (R19 is 9(19)): composite = 19

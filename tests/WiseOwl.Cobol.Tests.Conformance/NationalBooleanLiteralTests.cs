@@ -5,20 +5,20 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// N"…" / B"…" literal BINDING at every operand funnel (ISO §8.3.3.5 national literals / §8.3.3.4 boolean
+/// N"…" / B"…" literal BINDING at every operand funnel (ISO §2023:8.3.3.5 national literals / §2023:8.3.3.4 boolean
 /// literals; Phase 4a M2-DATA-3/4). Before this increment every funnel silently misbound the token text
 /// (the leading N/B and the quotes leaked into the value); now each funnel either DECODES the literal with its
 /// category tag (string-legal contexts — DISPLAY, MOVE, EVALUATE selection, INSPECT args, CALL USING) or
-/// rejects COBOL0844 (numeric contexts — §8.8.1: a boolean/national literal is not a numeric operand).
-/// The literal guard rides COBOL0814: length &gt; 8,191 positions (§8.3.3.4.3 SR1 / §8.3.3.5.3 SR1; asked of every literal token by LiteralScreen — kb/Work PB1393). The
+/// rejects COBOL0844 (numeric contexts — §2023:8.8.1: a boolean/national literal is not a numeric operand).
+/// The literal guard rides COBOL0814: length &gt; 8,191 positions (§2023:8.3.3.4.3 SR1 / §2023:8.3.3.5.3 SR1; asked of every literal token by LiteralScreen — kb/Work PB1393). The
 /// content repertoire is the FULL national set (one UTF-16 char per position, D-N1) — the former
-/// Latin-1-only staged guard was LIFTED by the P10 national wave when the §8.1.2 alphanumeric↔national
-/// correspondence landed (FUNCTION DISPLAY-OF / NATIONAL-OF, §15.26/§15.66).
+/// Latin-1-only staged guard was LIFTED by the P10 national wave when the §2023:8.1.2 alphanumeric↔national
+/// correspondence landed (FUNCTION DISPLAY-OF / NATIONAL-OF, §2023:15.26/§2023:15.66).
 /// </summary>
 public sealed class NationalBooleanLiteralTests
 {
-    /// <summary>DISPLAY of a national literal (ISO §14.9.11 SR1 — a national literal is a legal DISPLAY
-    /// operand; §8.3.3.5 GR1 — the value is the literal's characters, prefix and quotes stripped).</summary>
+    /// <summary>DISPLAY of a national literal (ISO §2023:14.9.11 SR1 — a national literal is a legal DISPLAY
+    /// operand; §2023:8.3.3.5 GR1 — the value is the literal's characters, prefix and quotes stripped).</summary>
     [Fact]
     public void Display_NationalLiteral_DecodesPrefixAndQuotes()
     {
@@ -35,7 +35,7 @@ public sealed class NationalBooleanLiteralTests
         Assert.Equal("N=AB", stdout);
     }
 
-    /// <summary>DISPLAY of a boolean literal (ISO §14.9.11 SR1; §8.3.3.4 GR1 — the value is the boolean
+    /// <summary>DISPLAY of a boolean literal (ISO §2023:14.9.11 SR1; §2023:8.3.3.4 GR1 — the value is the boolean
     /// characters themselves, prefix and quotes stripped).</summary>
     [Fact]
     public void Display_BooleanLiteral_DecodesPrefixAndQuotes()
@@ -54,7 +54,7 @@ public sealed class NationalBooleanLiteralTests
     }
 
     /// <summary>EVALUATE selection objects take the decode arm (the SoleNumLiteral funnel): a WHEN national
-    /// literal compares under the national relation rules (ISO §14.9.13; §8.8.4.2.9 — equality under the
+    /// literal compares under the national relation rules (ISO §2023:14.9.13; §2023:8.8.4.2.9 — equality under the
     /// national collating sequence).</summary>
     [Fact]
     public void Evaluate_NationalLiteralSelection_Matches()
@@ -79,7 +79,7 @@ public sealed class NationalBooleanLiteralTests
         Assert.Equal("W=AB", stdout);
     }
 
-    /// <summary>EVALUATE with a boolean subject and boolean-literal WHEN objects (ISO §14.9.13; §8.8.4.2.8 —
+    /// <summary>EVALUATE with a boolean subject and boolean-literal WHEN objects (ISO §2023:14.9.13; §2023:8.8.4.2.8 —
     /// boolean equality by VALUE regardless of usage).</summary>
     [Fact]
     public void Evaluate_BooleanLiteralSelection_Matches()
@@ -104,7 +104,7 @@ public sealed class NationalBooleanLiteralTests
         Assert.Equal("W=10", stdout);
     }
 
-    /// <summary>INSPECT REPLACING with national-literal arguments over a national item (ISO §14.9.22 — the
+    /// <summary>INSPECT REPLACING with national-literal arguments over a national item (ISO §2023:14.9.22 — the
     /// all-national operand rule; the Inspect funnel's decode arm).</summary>
     [Fact]
     public void Inspect_NationalLiteralArgs_Replace()
@@ -126,7 +126,7 @@ public sealed class NationalBooleanLiteralTests
         Assert.Equal("R=ZZBBZ", stdout);
     }
 
-    /// <summary>INSPECT REPLACING with boolean-literal arguments over a boolean item (ISO §14.9.22; under
+    /// <summary>INSPECT REPLACING with boolean-literal arguments over a boolean item (ISO §2023:14.9.22; under
     /// D-B1 a boolean position is a character position, so the character INSPECT machinery carries it).</summary>
     [Fact]
     public void Inspect_BooleanLiteralArgs_Replace()
@@ -148,10 +148,10 @@ public sealed class NationalBooleanLiteralTests
         Assert.Equal("R=0000", stdout);
     }
 
-    /// <summary>CALL USING with national and boolean LITERAL arguments (ISO §14.9.4 — a literal argument
+    /// <summary>CALL USING with national and boolean LITERAL arguments (ISO §2023:14.9.4 — a literal argument
     /// passes BY CONTENT: spelled explicitly here, though Format 2's keyword-less literal binds the same
-    /// mode per §14.9.4.4 GR9 a)2 since kb/Work PB130/PB131; the callee is CONTAINED because AS NESTED
-    /// requires it, §14.9.4.3 SR15): the formals see the decoded values, never the prefixed token text.</summary>
+    /// mode per §2023:14.9.4.4 GR9 a)2 since kb/Work PB130/PB131; the callee is CONTAINED because AS NESTED
+    /// requires it, §2023:14.9.4.3 SR15): the formals see the decoded values, never the prefixed token text.</summary>
     [Fact]
     public void Call_UsingNationalAndBooleanLiterals_PassesDecodedContent()
     {
@@ -180,8 +180,8 @@ public sealed class NationalBooleanLiteralTests
         Assert.Equal("SUB=AB/01", stdout);
     }
 
-    /// <summary>MOVE of national/boolean literals to same-category receivers (ISO §14.9.25 Table 16;
-    /// receivers fill right with national spaces §14.6.8.5 / boolean zeros §14.6.8.6).</summary>
+    /// <summary>MOVE of national/boolean literals to same-category receivers (ISO §2023:14.9.25 Table 16;
+    /// receivers fill right with national spaces §2023:14.6.8.5 / boolean zeros §2023:14.6.8.6).</summary>
     [Fact]
     public void Move_NationalAndBooleanLiterals_StoreWithCategoryFill()
     {
@@ -206,7 +206,7 @@ public sealed class NationalBooleanLiteralTests
     }
 
     /// <summary>A national literal longer than 8,191 national positions is rejected COBOL0814
-    /// (ISO §8.3.3.5.3 SR1 — "shall be less than or equal to 8,191 national character positions"). The source is built programmatically —
+    /// (ISO §2023:8.3.3.5.3 SR1 — "shall be less than or equal to 8,191 national character positions"). The source is built programmatically —
     /// an 8,192-character literal never belongs in a checked-in file.</summary>
     [Fact]
     public void NationalLiteral_Over8191Positions_Rejects0814()
@@ -219,13 +219,13 @@ public sealed class NationalBooleanLiteralTests
                 DISPLAY N"{new string('A', 8192)}".
                 STOP RUN.
             """;
-        var (ok, errors, _) = EditionHarness.CompileFull(FixedFormLayout.Source(src), 2002);   // §6.1 3) a): not one free-form line
-        Assert.False(ok, "an 8,192-position national literal must be rejected (ISO §8.3.3.5.3 SR1)");
+        var (ok, errors, _) = EditionHarness.CompileFull(FixedFormLayout.Source(src), 2002);   // §2023:6.1 3) a): not one free-form line
+        Assert.False(ok, "an 8,192-position national literal must be rejected (ISO §2023:8.3.3.5.3 SR1)");
         EditionHarness.AssertHasDiagnostic(errors, "COBOL0814");
     }
 
     /// <summary>A boolean literal longer than 8,191 boolean positions is rejected COBOL0814
-    /// (ISO §8.3.3.4.3 SR1 — "shall be less than or equal to 8,191 boolean character positions").</summary>
+    /// (ISO §2023:8.3.3.4.3 SR1 — "shall be less than or equal to 8,191 boolean character positions").</summary>
     [Fact]
     public void BooleanLiteral_Over8191Positions_Rejects0814()
     {
@@ -237,12 +237,12 @@ public sealed class NationalBooleanLiteralTests
                 DISPLAY B"{new string('0', 8192)}".
                 STOP RUN.
             """;
-        var (ok, errors, _) = EditionHarness.CompileFull(FixedFormLayout.Source(src), 2002);   // §6.1 3) a): not one free-form line
-        Assert.False(ok, "an 8,192-position boolean literal must be rejected (ISO §8.3.3.4.3 SR1)");
+        var (ok, errors, _) = EditionHarness.CompileFull(FixedFormLayout.Source(src), 2002);   // §2023:6.1 3) a): not one free-form line
+        Assert.False(ok, "an 8,192-position boolean literal must be rejected (ISO §2023:8.3.3.4.3 SR1)");
         EditionHarness.AssertHasDiagnostic(errors, "COBOL0814");
     }
 
-    /// <summary>A boolean literal in a numeric context is COBOL0844 (ISO §8.8.1 — an arithmetic operand
+    /// <summary>A boolean literal in a numeric context is COBOL0844 (ISO §2023:8.8.1 — an arithmetic operand
     /// is a numeric item or numeric literal; class boolean is neither).</summary>
     [Fact]
     public void BooleanLiteral_InNumericContext_Rejects0844()
@@ -259,11 +259,11 @@ public sealed class NationalBooleanLiteralTests
                 STOP RUN.
             """;
         var (ok, errors, _) = EditionHarness.CompileFull(src, 2002);
-        Assert.False(ok, "ADD of a boolean literal must be rejected (ISO §8.8.1)");
+        Assert.False(ok, "ADD of a boolean literal must be rejected (ISO §2023:8.8.1)");
         EditionHarness.AssertHasDiagnostic(errors, "COBOL0844");
     }
 
-    /// <summary>A national literal in a numeric-expression position is COBOL0844 (ISO §8.8.1).</summary>
+    /// <summary>A national literal in a numeric-expression position is COBOL0844 (ISO §2023:8.8.1).</summary>
     [Fact]
     public void NationalLiteral_InNumericContext_Rejects0844()
     {
@@ -280,16 +280,16 @@ public sealed class NationalBooleanLiteralTests
             """;
         // (An INNER-expression position — COMPUTE X = N"12" + 1 — never reaches the binder: the
         // primaryExpression grammar admits numeric literals only, so it is a structural parse rejection.
-        // The ADD-operand shape exercises the binder's §8.8.1.1 0844 arm, like the boolean twin.)
+        // The ADD-operand shape exercises the binder's §2023:8.8.1.1 0844 arm, like the boolean twin.)
         var (ok, errors, _) = EditionHarness.CompileFull(src, 2002);
-        Assert.False(ok, "a national literal in an arithmetic context must be rejected (ISO §8.8.1)");
+        Assert.False(ok, "a national literal in an arithmetic context must be rejected (ISO §2023:8.8.1)");
         EditionHarness.AssertHasDiagnostic(errors, "COBOL0844");
     }
 
-    /// <summary>A non-Latin-1 character in an N"…" literal is LEGAL (§8.3.3.5 — the content repertoire is the
+    /// <summary>A non-Latin-1 character in an N"…" literal is LEGAL (§2023:8.3.3.5 — the content repertoire is the
     /// full national set, one UTF-16 char per position, D-N1; the P10 national wave lifted the staged
     /// Latin-1-only 0814 guard). FUNCTION DISPLAY-OF carries it UNCHANGED: the alphanumeric↔national
-    /// correspondence is the Annex A.1 item-33 TOTAL UTF-16 identity (PB59), so §15.26.4 r2/r3's substitution
+    /// correspondence is the Annex A.1 item-33 TOTAL UTF-16 identity (PB59), so §2023:15.26.4 r2/r3's substitution
     /// machinery is vacuous — argument-2 is accepted and inert, and no EC-DATA-CONVERSION is set from any
     /// character pathway. The standard display device writes UTF-8 (CONFORMANCE.md item 59), which is what
     /// makes the wide character assertable in stdout at all.

@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §12.3.7.4 GR7 (cite.py --check 12.3.7.4 "An alphabet-name referenced in the class condition, in the CLASS
+      *> ISO §2023:12.3.7.4 GR7 (cite.py --check 12.3.7.4 "An alphabet-name referenced in the class condition, in the CLASS
       *> clause in the data division, in a SYMBOLIC CHARACTERS clause, or in the CODE-SET clause of a file description
       *> entry references a coded character set" -> OK 7)): the alphabet-name of the IN phrase of a SYMBOLIC CHARACTERS
       *> clause references a coded character set, so it shall be an alphabet-name the ALPHABET clause declares.

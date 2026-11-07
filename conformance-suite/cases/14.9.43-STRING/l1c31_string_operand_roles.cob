@@ -5,15 +5,15 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.43.3 10) — literal-1/identifier-1 send, identifier-3
+      *> ISO §2023:14.9.43.3 10) — literal-1/identifier-1 send, identifier-3
       *> receives.
       *> Rule: "Literal-1 or the data item referenced by identifier-1 is
       *> the sending operand. The data item referenced by identifier-3
       *> is the receiving operand."
       *> cite.py --check 14.9.43.3 "Literal-1 or the data item
       *>   referenced by identifier-1 is the sending operand."
-      *>   -> OK  §14.9.43.3 10)  (Syntax rules)
-      *> Supporting: §14.9.43.4 GR3 a) (characters go FROM the sending
+      *>   -> OK  §2023:14.9.43.3 10)  (Syntax rules)
+      *> Supporting: §2023:14.9.43.4 GR3 a) (characters go FROM the sending
       *> operand TO identifier-3), GR7 (only the referenced portion of
       *> identifier-3 changes).
       *> SND (identifier-1) = "ABCD", RCV (identifier-3) = 8 '-'.

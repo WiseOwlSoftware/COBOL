@@ -6,9 +6,9 @@
 *>---
 *> The SECOND arm of COBOL1836, and the one a RECORD-clause-presence test alone would
 *> miss: the clause is written, and still establishes no maximum. ISO/IEC 1989:2023
-*> §14.9.30.4 GR6 sizes the implied record description by "the maximum size established
+*> §2023:14.9.30.4 GR6 sizes the implied record description by "the maximum size established
 *> by the RECORD clause"; a format-2 RECORD IS VARYING with no TO phrase leaves that to
-*> §13.18.43.4 GR10 -- "If integer-3 is not specified, the maximum number of bytes to be
+*> §2023:13.18.43.4 GR10 -- "If integer-3 is not specified, the maximum number of bytes to be
 *> contained in any record of the file is equal to the greatest number of bytes described
 *> for a record in that file." -- and this file describes no record at all.
 *> kb/Work PB345 -> COBOL1836.

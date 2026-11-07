@@ -4,11 +4,11 @@ namespace WiseOwl.Cobol.CodeGen;
 
 /// <summary>
 /// ⛔ THE ONE WAY THE COMPILER REPLACES A FILE IT PRODUCES (DESIGN-external-repository §7.5; kb/Work PB2103). An output
-/// directory is a repository directory (§7.4, §9.3): another compilation may be reading an entry there while this one
+/// directory is a repository directory (§7.4, §2023:9.3): another compilation may be reading an entry there while this one
 /// writes it, and the run-time probe of a running program may be reading it too. So a produced file is never written in
 /// place: it is written to <c>{target}.{Guid:N}.tmp</c> beside the target and then renamed over it
 /// (<see cref="File.Move(string, string, bool)"/> with overwrite), which a reader never sees half-written — every reader
-/// holds a prefetched copy and no handle (<c>RepositoryIndex.Open</c>, §15.1). The rename is retried a bounded number of
+/// holds a prefetched copy and no handle (<c>RepositoryIndex.Open</c>, §2023:15.1). The rename is retried a bounded number of
 /// times (<see cref="Attempts"/> × <see cref="RetryDelay"/>) while another process holds the target open (a
 /// <see cref="IOException"/> or <see cref="UnauthorizedAccessException"/>, which Windows raises for a file being read), then
 /// fails LOUDLY with an <see cref="IOException"/> naming the file. A write that fails leaves no temporary behind.

@@ -10,14 +10,14 @@ namespace WiseOwl.Cobol.Compiler.Oo;
 
 /// <summary>
 /// The OO conformance SERVICE (P9 — R3: validation moved OFF the pass-1 symbol table, which stays a pure
-/// lookup structure): the §9.3.8.2 override-signature check, the §9.3.11 IMPLEMENTS pass (returning the
+/// lookup structure): the §2023:9.3.8.2 override-signature check, the §2023:9.3.11 IMPLEMENTS pass (returning the
 /// covariant <see cref="AdapterPair"/>s instead of mutating table state), the ONE strict identical-description
-/// check (§14.8.2.3.2) and the §14.8.3.3-rule-1 object-reference
+/// check (§2023:14.8.2.3.2) and the §2023:14.8.3.3-rule-1 object-reference
 /// widening direction. Stateless — every entry takes the <see cref="OoClassTable"/> it validates over.
 /// </summary>
 public static class OoConformance
 {
-    /// <summary>Validate every override against the method it overrides — ISO §11.7.3 SR9: "If method-name-1 or
+    /// <summary>Validate every override against the method it overrides — ISO §2023:11.7.3 SR9: "If method-name-1 or
     /// literal-1 is the same as a method-name inherited or implemented by the containing definition, the parameter
     /// declarations, returning item, and exceptions that may be raised on the procedure division header shall obey
     /// the rules of conformance according to 9.3.8.2.3, Conformance between interfaces, such that the interface
@@ -39,21 +39,21 @@ public static class OoConformance
                 string where = $"class '{cls.Name}', method '{m.Name}' overriding '{baseM.Owner.Name}'.'{baseM.Name}'";
                 foreach (var err in MethodConformanceMismatches(table, m, baseM,
                              $"the overridden method of class '{baseM.Owner.Name}'", cls.Name, baseM.Owner.Name))
-                    edition.Error(DiagnosticCatalog.OverrideSignatureMismatch, $"{where}: {err}; ISO §11.7.3 SR9");
+                    edition.Error(DiagnosticCatalog.OverrideSignatureMismatch, $"{where}: {err}; ISO §2023:11.7.3 SR9");
             }
     }
 
-    /// <summary>⛔ ISO §8.4.3.9.3 SR7 — THE TWO ACCESSORS OF ONE PROPERTY DESCRIBE IT THE SAME (kb/Work PB1450): "The
+    /// <summary>⛔ ISO §2023:8.4.3.9.3 SR7 — THE TWO ACCESSORS OF ONE PROPERTY DESCRIBE IT THE SAME (kb/Work PB1450): "The
     /// data description of the item specified in the RETURNING phrase of the get property method shall be the same as
     /// the data description of the item specified as the USING parameter of the set property method." Nothing
-    /// compared them, so a GET RETURNING PIC 9(5) with a SET USING PIC X(3) compiled and the §8.4.3.9.4 temp (modelled
+    /// compared them, so a GET RETURNING PIC 9(5) with a SET USING PIC X(3) compiled and the §2023:8.4.3.9.4 temp (modelled
     /// on the GET's item) crossed a SET formal of another description. The comparison is the ONE pair-mode identity
-    /// (<see cref="SignatureDifference"/> — the relation the override and IMPLEMENTS signatures use, §9.3.8.2.3 rules 2/3
+    /// (<see cref="SignatureDifference"/> — the relation the override and IMPLEMENTS signatures use, §2023:9.3.8.2.3 rules 2/3
     /// and 6), asked of each (GET, SET) pair AS THE CLASS SEES IT:
-    /// the roster lookup walks INHERITS (§9.3.6), so a GET inherited from a superclass and a SET written in the
+    /// the roster lookup walks INHERITS (§2023:9.3.6), so a GET inherited from a superclass and a SET written in the
     /// subclass form a pair at the subclass, and a pair already complete in a superclass is the superclass's own.
     /// Runs AFTER every class's data has bound (the formals resolve at data-bind time). The instance and the
-    /// FACTORY roster are separate interfaces (§11.4), so each is its own pairing.</summary>
+    /// FACTORY roster are separate interfaces (§2023:11.4), so each is its own pairing.</summary>
     internal static void ValidatePropertyAccessorPairs(OoClassTable table, SourceMap sources, EditionContext edition)
     {
         foreach (var cls in table.Classes)
@@ -70,7 +70,7 @@ public static class OoConformance
                 if (accessor.PropertyName is not { } prop || !seen.Add(prop)) continue;
                 if (find(NamingConvention.GetAccessorName(prop)) is not { Binding.Returning: { } returning } get
                     || find(NamingConvention.SetAccessorName(prop)) is not { Binding.Formals: [{ } setFormal] } set)
-                    continue;   // a missing accessor is §8.4.3.9.3 SR3/SR4's, decided where the polarity is known
+                    continue;   // a missing accessor is §2023:8.4.3.9.3 SR3/SR4's, decided where the polarity is known
                 if (SignatureDifference(returning, setFormal.Item, "RETURNING item of the get property method",
                         "USING parameter of the set property method") is not { } why) continue;
                 // The diagnostic stands at the METHOD-ID THIS class wrote, the later of the pair when it wrote both; a PROPERTY clause's
@@ -80,17 +80,17 @@ public static class OoConformance
                     : sources.Of(cls).classIdParagraph().className(0));
                 edition.Error(DiagnosticCatalog.PropertyAccessorDescriptionMismatch,
                     $"class '{cls.Name}', property '{prop}' (get property method of '{get.Owner.Name}', set property "
-                    + $"method of '{set.Owner.Name}'): {why} (ISO §8.4.3.9.3 SR7)");
+                    + $"method of '{set.Owner.Name}'): {why} (ISO §2023:8.4.3.9.3 SR7)");
             }
         }
     }
 
-    /// <summary>The §9.3.11 IMPLEMENTS conformance pass (via §9.3.8.2.3 — D-I1: the BINDER is the authority;
+    /// <summary>The §2023:9.3.11 IMPLEMENTS conformance pass (via §2023:9.3.8.2.3 — D-I1: the BINDER is the authority;
     /// Roslyn satisfaction is provably insufficient BOTH directions: the C# projection is lossy for
     /// non-object descriptions [PIC 9(4) and 9(8) both emit `ref long` — Roslyn under-rejects], and C#
     /// interface implementations forbid covariant returns that rules 5a/5c2 PERMIT [Roslyn over-rejects
     /// conforming COBOL — cured by the explicit-implementation adapters]). Runs AFTER all class AND
-    /// interface formals resolve. The check runs over the §11.8.4 GR2 transitive CLOSURE (direct IMPLEMENTS
+    /// interface formals resolve. The check runs over the §2023:11.8.4 GR2 transitive CLOSURE (direct IMPLEMENTS
     /// + interface-INHERITed + class-INHERITed) per class; each violation is COBOL0841 citing the
     /// numbered rule. RETURNS the covariant-return <see cref="AdapterPair"/>s (P9 R3 — a validation pass
     /// reports its findings; it does not mutate the symbol table).</summary>
@@ -116,7 +116,7 @@ public static class OoConformance
                         using var atClass = edition.At(sources.Of(cls).classIdParagraph().className(0));
                         edition.Error(DiagnosticCatalog.InterfaceNotImplemented,
                             $"class '{cls.Name}': the {side}interface '{iface.Name}' requires a method "
-                            + $"'{proto.SourceName}' and none is defined or inherited (ISO §9.3.11 — a class "
+                            + $"'{proto.SourceName}' and none is defined or inherited (ISO §2023:9.3.11 — a class "
                             + "shall implement ALL the method prototypes of its interfaces, including "
                             + "inherited ones)");
                         continue;
@@ -147,7 +147,7 @@ public static class OoConformance
         }
     }
 
-    /// <summary>§9.3.8.2.3 rule 8: "The presence or absence of the OPTIONAL phrase is the same for corresponding
+    /// <summary>§2023:9.3.8.2.3 rule 8: "The presence or absence of the OPTIONAL phrase is the same for corresponding
     /// parameters." (kb/Work PB757 — the phrase is carried on <see cref="OoFormal.Optional"/> since the method arm of
     /// the OPTIONAL formal landed.) Null when the pair agrees.</summary>
     internal static string? OptionalMismatch(OoFormal f1, OoFormal f2) =>
@@ -156,7 +156,7 @@ public static class OoConformance
             + $"{(f2.Optional ? "specified" : "absent")} on the corresponding parameter";
 
     /// <summary>
-    /// ⛔ ISO §9.3.8.2.3 FOR ONE METHOD PAIR — the ONE place the per-method conformance rules are written: does
+    /// ⛔ ISO §2023:9.3.8.2.3 FOR ONE METHOD PAIR — the ONE place the per-method conformance rules are written: does
     /// method <paramref name="m1"/> (of interface-1, the CONFORMING side — a class's implementation, or another
     /// interface's prototype) satisfy the conditions for method <paramref name="m2"/> of interface-2 (named
     /// <paramref name="counterpart"/> in the messages — "the 'I' prototype", "the overridden method of class 'B'")?
@@ -172,11 +172,11 @@ public static class OoConformance
     /// phrase (<see cref="RaisingMismatches"/>); and the clause's closing sentence, the mutual-reference ban between
     /// the two RETURNING descriptions (<see cref="ReturningCircularity"/>, kb/Work PB1498 — which is why the askers name
     /// <paramref name="interface1"/> and <paramref name="interface2"/>).
-    /// <para>Its three askers: §9.3.11 IMPLEMENTS (<see cref="ValidateImplements"/> — the class is interface-1),
-    /// §11.7.3 SR9 overrides (<see cref="ValidateOverrideSignatures"/> — the override is interface-1), and the
+    /// <para>Its three askers: §2023:9.3.11 IMPLEMENTS (<see cref="ValidateImplements"/> — the class is interface-1),
+    /// §2023:11.7.3 SR9 overrides (<see cref="ValidateOverrideSignatures"/> — the override is interface-1), and the
     /// interface-to-interface relation (<see cref="InterfaceConformsTo"/>).</para>
-    /// <para>Extracted from <see cref="ValidateImplements"/> (kb/Work PB814) so that §9.3.11 IMPLEMENTS
-    /// conformance and the interface-to-interface conformance GOBACK §14.9.18.3 SR4 b) asks
+    /// <para>Extracted from <see cref="ValidateImplements"/> (kb/Work PB814) so that §2023:9.3.11 IMPLEMENTS
+    /// conformance and the interface-to-interface conformance GOBACK §2023:14.9.18.3 SR4 b) asks
     /// (<see cref="InterfaceConformsTo"/>) run the SAME comparisons — two copies of one rule set is the shape
     /// under which one arm silently drifts.</para>
     /// </summary>
@@ -192,7 +192,7 @@ public static class OoConformance
         if (m1.Binding!.Formals.Count != m2.Binding!.Formals.Count)
         {
             yield return $"{m1.Binding!.Formals.Count} formal(s) vs {counterpart}'s "
-                + $"{m2.Binding!.Formals.Count} (ISO §9.3.8.2.3 rule 1)";
+                + $"{m2.Binding!.Formals.Count} (ISO §2023:9.3.8.2.3 rule 1)";
             yield break;
         }
         for (int i = 0; i < m1.Binding!.Formals.Count; i++)
@@ -200,16 +200,16 @@ public static class OoConformance
             if (m1.Binding!.Formals[i].ByValue != m2.Binding!.Formals[i].ByValue)
                 yield return $"formal #{i + 1}: {(m1.Binding!.Formals[i].ByValue ? "BY VALUE" : "BY REFERENCE")} here but "
                     + $"{(m2.Binding!.Formals[i].ByValue ? "BY VALUE" : "BY REFERENCE")} on the corresponding parameter of "
-                    + $"{counterpart} (ISO §9.3.8.2.3 rule 1 — consistent BY REFERENCE and BY VALUE specifications)";
+                    + $"{counterpart} (ISO §2023:9.3.8.2.3 rule 1 — consistent BY REFERENCE and BY VALUE specifications)";
             // Rules 2 / 3 / 7, which the C# projection cannot check: PIC 9(4) and PIC 9(8) both cross as a long.
             if (SignatureDifference(m1.Binding!.Formals[i].Item, m2.Binding!.Formals[i].Item, "formal parameter",
                     $"corresponding parameter of {counterpart}") is { } err)
                 yield return $"formal #{i + 1}: {err}";
             if (OptionalMismatch(m1.Binding!.Formals[i], m2.Binding!.Formals[i]) is { } oerr)
-                yield return $"formal #{i + 1}: {oerr} vs {counterpart} (ISO §9.3.8.2.3 rule 8)";
+                yield return $"formal #{i + 1}: {oerr} vs {counterpart} (ISO §2023:9.3.8.2.3 rule 8)";
         }
         if ((m1.Binding!.Returning is null) != (m2.Binding!.Returning is null))
-            yield return $"RETURNING presence differs from {counterpart} (ISO §9.3.8.2.3 rule 4)";
+            yield return $"RETURNING presence differs from {counterpart} (ISO §2023:9.3.8.2.3 rule 4)";
         else if (m1.Binding!.Returning is { } r && m2.Binding!.Returning is { } pr)
         {
             if (r.Pic is { Category: PicCategory.ObjectReference } rp
@@ -217,7 +217,7 @@ public static class OoConformance
             {
                 if (ObjectRefAssignmentMismatch(table, rp, prp, activeClassSenderAdmitted: false) is { } werr)
                     // Rule 5 d) governs interface-2's ACTIVE-CLASS returning item; 5 a)–c) every other description.
-                    yield return $"RETURNING: {werr} (ISO §9.3.8.2.3 "
+                    yield return $"RETURNING: {werr} (ISO §2023:9.3.8.2.3 "
                         + $"{(prp.ObjectRef is { Kind: ObjectRefKind.ActiveClass } ? "rule 5 d)" : "rules 5a/5c2")})";
             }
             else if (SignatureDifference(r, pr, "returning item", $"returning item of {counterpart}") is { } rerr)
@@ -226,7 +226,7 @@ public static class OoConformance
     }
 
     /// <summary>
-    /// ISO §9.3.8.2.3 rule 9: "If the RAISING phrase is specified in the procedure division header of the method in
+    /// ISO §2023:9.3.8.2.3 rule 9: "If the RAISING phrase is specified in the procedure division header of the method in
     /// interface-1, the corresponding method in interface-2 specifies the RAISING phrase following these rules" —
     /// EVERY element of <paramref name="m1"/>'s phrase needs a covering element in <paramref name="m2"/>'s:
     /// <list type="bullet">
@@ -235,13 +235,13 @@ public static class OoConformance
     ///     identified by that object-class-name, including the FACTORY phrase if and only if the RAISING phrase in
     ///     interface-1 specifies the FACTORY phrase", or "the name of an interface implemented by the factory
     ///     object of that class" (FACTORY) / "by the instance object of that class" (no FACTORY) — implemented in
-    ///     the §11.8.4 GR2 sense, <see cref="OoClassTable.ImplementsClosure"/>;</item>
+    ///     the §2023:11.8.4 GR2 sense, <see cref="OoClassTable.ImplementsClosure"/>;</item>
     ///   <item>c) an interface-name — "the same interface-name or the name of an interface inherited by that
-    ///     interface" (the INHERITS closure, §9.3.10).</item>
+    ///     interface" (the INHERITS closure, §2023:9.3.10).</item>
     /// </list>
     /// The direction matters: an interface-2 RAISING phrase with nothing in interface-1 conforms (interface-1 may
     /// raise LESS). Every name here was scope-checked where it was written (<c>RaisingPhrase.Partition</c>, the
-    /// §8.4.6.4 funnel), so the table lookups below are symbol lookups on validated names.
+    /// §2023:8.4.6.4 funnel), so the table lookups below are symbol lookups on validated names.
     /// </summary>
     internal static IEnumerable<string> RaisingMismatches(OoClassTable table, OoMethodSymbol m1, OoMethodSymbol m2,
         string counterpart)
@@ -266,10 +266,10 @@ public static class OoConformance
             };
             yield return m2.Raising.Count == 0
                 ? $"RAISING {t.Spelled}: {counterpart} specifies no RAISING phrase, and it shall specify {need} "
-                    + $"(ISO §9.3.8.2.3 rule 9 {arm}))"
+                    + $"(ISO §2023:9.3.8.2.3 rule 9 {arm}))"
                 : $"RAISING {t.Spelled}: the RAISING phrase of {counterpart} "
                     + $"({string.Join(", ", m2.Raising.Select(u => u.Spelled))}) does not specify {need} "
-                    + $"(ISO §9.3.8.2.3 rule 9 {arm}))";
+                    + $"(ISO §2023:9.3.8.2.3 rule 9 {arm}))";
         }
     }
 
@@ -307,7 +307,7 @@ public static class OoConformance
     }
 
     /// <summary>
-    /// ⛔ ISO §9.3.8.2.3's CLOSING SENTENCE (kb/Work PB1498): "If the description of the returning item of a method in
+    /// ⛔ ISO §2023:9.3.8.2.3's CLOSING SENTENCE (kb/Work PB1498): "If the description of the returning item of a method in
     /// interface-1 directly or indirectly references interface-2, the description of the returning item of the
     /// corresponding method in interface-2 shall not directly or indirectly reference interface-1." Null when the pair
     /// satisfies it. Nothing examined it before: a pair whose RETURNING descriptions referenced each other's interface
@@ -329,7 +329,7 @@ public static class OoConformance
         return Reaches(table, r1, interface2) && Reaches(table, r2, interface1)
             ? $"the returning item of this method references '{interface2}' (through '{r1}') and the returning item of "
               + $"the corresponding method references '{interface1}' (through '{r2}'), directly or indirectly (ISO "
-              + "§9.3.8.2.3: the description of the returning item of the corresponding method in interface-2 \"shall "
+              + "§2023:9.3.8.2.3: the description of the returning item of the corresponding method in interface-2 \"shall "
               + "not directly or indirectly reference interface-1\")"
             : null;
     }
@@ -373,16 +373,16 @@ public static class OoConformance
     }
 
     /// <summary>
-    /// ISO §9.3.8.2.3, the interface relation itself: "If two interfaces are of the same interface, they conform
+    /// ISO §2023:9.3.8.2.3, the interface relation itself: "If two interfaces are of the same interface, they conform
     /// to each other. If interface-1 and interface-2 are different interfaces, interface-1 conforms to interface-2
     /// if and only if the entry conventions for interface-1 and interface-2 are the same and for every method in
     /// interface-2 there is a method in interface-1 with the same name that satisfies the following
     /// conditions" — the conditions being <see cref="MethodConformanceMismatches"/>. "Every method in" an
-    /// interface includes the inherited ones (§9.3.10: "The inheriting interface has all the method
+    /// interface includes the inherited ones (§2023:9.3.10: "The inheriting interface has all the method
     /// specifications defined for the inherited interface definition or definitions"), hence
     /// <see cref="OoInterfaceSymbol.AllPrototypes"/> on both sides. One implementation, one entry convention
     /// (every method of the group is emitted to the same .NET calling convention), so that clause holds. Asked by
-    /// GOBACK §14.9.18.3 SR4 b) / EXIT §14.9.14.3 SR5 b) (kb/Work PB814); runs after every interface's prototype
+    /// GOBACK §2023:14.9.18.3 SR4 b) / EXIT §2023:14.9.14.3 SR5 b) (kb/Work PB814); runs after every interface's prototype
     /// formals have bound (<c>BinderDriver</c> binds interface data before any procedure body).
     /// </summary>
     public static bool InterfaceConformsTo(OoClassTable table, OoInterfaceSymbol interface1, OoInterfaceSymbol interface2)
@@ -398,12 +398,12 @@ public static class OoConformance
         return true;
     }
 
-    /// <summary>⛔ ISO §11.6.3 SR5 — AN INTERFACE THAT INHERITS ONE METHOD-NAME FROM SEVERAL INTERFACES CONFORMS TO ALL OF
+    /// <summary>⛔ ISO §2023:11.6.3 SR5 — AN INTERFACE THAT INHERITS ONE METHOD-NAME FROM SEVERAL INTERFACES CONFORMS TO ALL OF
     /// THEM (kb/Work PB1502): "If a given method-name is inherited from more than one interface, the method prototype in
-    /// each inherited interface shall be such that this interface conforms to all inherited interfaces", with §9.3.10's
+    /// each inherited interface shall be such that this interface conforms to all inherited interfaces", with §2023:9.3.10's
     /// "The inheriting interface shall always conform to each of the inherited interfaces". The inheriting interface
-    /// presents ONE method of that name (it may declare none of its own, §11.7.3 SR4 b)), so the rule is satisfied exactly
-    /// when ONE inherited prototype conforms (<see cref="MethodConformanceMismatches"/>, the §9.3.8.2.3 rule set every
+    /// presents ONE method of that name (it may declare none of its own, §2023:11.7.3 SR4 b)), so the rule is satisfied exactly
+    /// when ONE inherited prototype conforms (<see cref="MethodConformanceMismatches"/>, the §2023:9.3.8.2.3 rule set every
     /// asker shares) to every other — identical prototypes inherited twice trivially, and a covariant RETURNING pair
     /// (rule 5) through the more specific one. That prototype is recorded as the interface's own presentation
     /// (<see cref="OoInterfaceSymbol.ChooseInheritedPrototype"/>), so <see cref="OoInterfaceSymbol.AllPrototypes"/>, the
@@ -441,21 +441,21 @@ public static class OoConformance
                     $"interface '{isym.Name}': method '{first.Proto.Name}' is inherited from interfaces "
                     + $"{string.Join(", ", protos.Select(p => $"'{p.Iface.Name}'"))} whose prototypes do not all conform "
                     + $"to one another, so '{isym.Name}' cannot conform to all inherited interfaces — "
-                    + $"{string.Join("; ", Mismatches(first, second))} (ISO §11.6.3 SR5; §9.3.10)");
+                    + $"{string.Join("; ", Mismatches(first, second))} (ISO §2023:11.6.3 SR5; §2023:9.3.10)");
             }
         }
     }
 
     /// <summary>⛔ THE PAIR-MODE ENTRY (kb/Work PB3101; OO_DESIGN D6 item 7): are <paramref name="first"/> and
-    /// <paramref name="second"/> described the same, as ISO §9.3.8.2.3 rules 2, 3, 6 and 7 ask of two interfaces'
+    /// <paramref name="second"/> described the same, as ISO §2023:9.3.8.2.3 rules 2, 3, 6 and 7 ask of two interfaces'
     /// corresponding items? It describes both through the ONE builder (<see cref="ActivationDescriptions.Of"/>) and asks
     /// the ONE relation over the descriptions (<see cref="ActivationRelations.SignatureDifference"/>), the description
-    /// identity the §9.3.6 match and the activation conformance read too, so a pair-mode rule cannot mean one thing here
+    /// identity the §2023:9.3.6 match and the activation conformance read too, so a pair-mode rule cannot mean one thing here
     /// and another there. An item with no description (a group with no crossing form, a PICTURE-less item) is the same
     /// description as nothing (<see cref="ActivationDescriptions.NoDescriptionReason"/>). Asked by every pair-mode asker:
     /// <see cref="MethodConformanceMismatches"/> (override, IMPLEMENTS, interface to interface),
-    /// <see cref="ValidatePropertyAccessorPairs"/> (§8.4.3.9.3 SR7), the prototype signature comparison
-    /// (<see cref="PrototypeSignatures.Same"/>: §13.7.3 SR2, §10.6.2 SR2 / SR3, the SET pointer pairs and the signature
+    /// <see cref="ValidatePropertyAccessorPairs"/> (§2023:8.4.3.9.3 SR7), the prototype signature comparison
+    /// (<see cref="PrototypeSignatures.Same"/>: §2023:13.7.3 SR2, §2023:10.6.2 SR2 / SR3, the SET pointer pairs and the signature
     /// classes of restricted prototype pointers) and the identity conversion of a variable-length MOVE's corresponding
     /// elementary tables (<c>MoveBinder.ElementMovesOf</c>). There is no <c>DataItem</c> comparator beside it (kb/Work
     /// PB3101). A restricted program- or function-pointer is compared by the prototype its TO phrase names, by every asker
@@ -472,26 +472,26 @@ public static class OoConformance
 
     // ══ ACTIVE-CLASS — CONFORMANCE THAT DEPENDS ON HOW THE METHOD IS INVOKED (kb/Work PB1112) ═══════════════════════
     // An ACTIVE-CLASS formal or returning item means "the class of the object the method runs on", so the standard
-    // states its conformance in terms of the INVOCATION: §14.8.2.3.2 rule 4 and §14.8.2.3.3's ACTIVE-CLASS paragraph
-    // for a formal, §14.8.3.3 rule 2 for a returning item. The INVOKE binder describes that invocation ONCE as an
-    // ObjectRefDescriptor — "invoked with" — the four cases §14.8.3.3 rule 2 b) enumerates: a class-name is that
+    // states its conformance in terms of the INVOCATION: §2023:14.8.2.3.2 rule 4 and §2023:14.8.2.3.3's ACTIVE-CLASS paragraph
+    // for a formal, §2023:14.8.3.3 rule 2 for a returning item. The INVOKE binder describes that invocation ONCE as an
+    // ObjectRefDescriptor — "invoked with" — the four cases §2023:14.8.3.3 rule 2 b) enumerates: a class-name is that
     // object-class-name with ONLY (1.), SELF and SUPER are ACTIVE-CLASS (2.), an object reference is its own description
     // (3./4.). Before kb/Work PB1112 the formal was screened as a plain description (BY REFERENCE: identity; BY CONTENT:
     // SET SR14 into the formal) with the invocation never consulted, so rule 4 b)'s ONLY argument was refused and rule
     // 4 a)'s invocation condition never checked; the returning item was sent as ACTIVE-CLASS whatever the invocation.
 
-    /// <summary>§14.8.2.3.2 rule 4 a) / §14.8.2.3.3 1): the method "shall be invoked with the predefined object
+    /// <summary>§2023:14.8.2.3.2 rule 4 a) / §2023:14.8.2.3.3 1): the method "shall be invoked with the predefined object
     /// references SELF or SUPER, or with an object reference described with the ACTIVE-CLASS phrase".</summary>
     public static bool InvokedThroughActiveClass(ObjectRefDescriptor invokedWith) =>
         invokedWith.Kind is ObjectRefKind.ActiveClass;
 
-    /// <summary>§14.8.2.3.2 rule 4 b) / §14.8.2.3.3 2): the method "shall be invoked with an object-class-name or with
+    /// <summary>§2023:14.8.2.3.2 rule 4 b) / §2023:14.8.2.3.3 2): the method "shall be invoked with an object-class-name or with
     /// an object reference described with an object-class-name and the ONLY phrase" — which class is
     /// <paramref name="invokedWith"/>'s name.</summary>
     public static bool InvokedThroughOnlyClass(ObjectRefDescriptor invokedWith) =>
         invokedWith is { Kind: ObjectRefKind.ObjectClass, Only: true };
 
-    /// <summary>ISO §14.8.2.3.2 rule 4 (BY REFERENCE) and §14.8.2.3.3's ACTIVE-CLASS paragraph (BY CONTENT / BY
+    /// <summary>ISO §2023:14.8.2.3.2 rule 4 (BY REFERENCE) and §2023:14.8.2.3.3's ACTIVE-CLASS paragraph (BY CONTENT / BY
     /// VALUE) for an argument DESCRIPTION <paramref name="arg"/> meeting an ACTIVE-CLASS <paramref name="formal"/> of a
     /// method invoked with <paramref name="invokedWith"/>. Null when one of the two alternatives holds.
     /// <list type="bullet">
@@ -502,7 +502,7 @@ public static class OoConformance
     ///     object-class-name or with an object reference described with that object-class-name and the ONLY
     ///     phrase".</item>
     ///   <item>BY CONTENT 1) — invoked through ACTIVE-CLASS, and a SET of the argument into an ACTIVE-CLASS receiver
-    ///     with the formal's FACTORY presence is valid (§14.9.39.3 SR14); 2) — invoked through an object-class-name
+    ///     with the formal's FACTORY presence is valid (§2023:14.9.39.3 SR14); 2) — invoked through an object-class-name
     ///     (ONLY), and a SET of the argument into "an object reference described with that object-class-name and the
     ///     ONLY phrase" with the formal's FACTORY presence is valid (SR12 a)1.).</item>
     /// </list>
@@ -519,7 +519,7 @@ public static class OoConformance
                 return null;
             if (arg is { Kind: ObjectRefKind.ObjectClass, Only: true } && arg.Factory == formal.Factory
                 && InvokedThroughOnlyClass(invokedWith)
-                // A parameter-name may be substituted by that very class (§9.3.8.2.4; kb/Work PB2937).
+                // A parameter-name may be substituted by that very class (§2023:9.3.8.2.4; kb/Work PB2937).
                 && (arg.Formal || CobolNames.Same(arg.Name, invokedWith.Name)))
                 return null;
             return $"the formal parameter is described ACTIVE-CLASS ({factory} FACTORY) and the argument is "
@@ -527,7 +527,7 @@ public static class OoConformance
                 + $"ACTIVE-CLASS reference {factory} FACTORY, with the method invoked with SELF, SUPER or an "
                 + $"ACTIVE-CLASS reference, or b) described with an object-class-name and ONLY, {factory} FACTORY, with "
                 + "the method invoked with that object-class-name or a reference described with it and ONLY "
-                + "(ISO §14.8.2.3.2 rule 4)";
+                + "(ISO §2023:14.8.2.3.2 rule 4)";
         }
         string? why1 = !InvokedThroughActiveClass(invokedWith)
             ? "the method is not invoked with SELF, SUPER or an ACTIVE-CLASS reference"
@@ -542,10 +542,10 @@ public static class OoConformance
         if (why2 is null) return null;
         return $"the formal parameter is described ACTIVE-CLASS ({factory} FACTORY) and the argument is "
             + $"{arg.Spelled}, invoked with {invokedWith.Spelled} — neither alternative holds: 1) {why1}; "
-            + $"2) {why2} (ISO §14.8.2.3.3)";
+            + $"2) {why2} (ISO §2023:14.8.2.3.3)";
     }
 
-    /// <summary>ISO §14.8.3.3 rule 2 — the SENDING operand of a returning item's delivery. A returning item not
+    /// <summary>ISO §2023:14.8.3.3 rule 2 — the SENDING operand of a returning item's delivery. A returning item not
     /// described ACTIVE-CLASS sends itself (rule 1). One described ACTIVE-CLASS sends "an object reference described
     /// as follows" (rule 2 b)): 1. invoked with an object-class-name — "that same object-class-name and an ONLY
     /// phrase"; 2. with SELF or SUPER — "an ACTIVE-CLASS phrase"; 3. with a reference described with an
@@ -558,7 +558,7 @@ public static class OoConformance
             ? invokedWith with { Factory = returning.Factory }
             : ObjectRefDescriptor.Universal;
 
-    /// <summary>ISO §14.8.2.3.3 for an OBJECT-REFERENCE argument BY CONTENT / BY VALUE into an object-reference formal —
+    /// <summary>ISO §2023:14.8.2.3.3 for an OBJECT-REFERENCE argument BY CONTENT / BY VALUE into an object-reference formal —
     /// the one pair the activation entry (<c>ParameterConformance.ContentConformanceReason</c>) does not ask the run-time
     /// relation of, because its answer reads the class table AS A PAIR (<see cref="OoClassTable.SetOperands"/>) and, for an
     /// ACTIVE-CLASS formal, how the method is invoked. "If the formal parameter is of class pointer or an object reference
@@ -577,14 +577,14 @@ public static class OoConformance
 
 
     /// <summary>
-    /// ⛔ ISO §14.9.39.3 SR8 / SR10 / SR12 / SR14 (SET Format 5) for a pair of object-reference descriptions this
-    /// compilation can see — a SET, §14.8.3.3 rule 1 (RETURNING delivery follows the SET rules), §14.8.2.3.3 (BY CONTENT
-    /// object-reference arguments) and §9.3.8.2.3 rule 5 (covariant override / implements RETURNING). The table itself
+    /// ⛔ ISO §2023:14.9.39.3 SR8 / SR10 / SR12 / SR14 (SET Format 5) for a pair of object-reference descriptions this
+    /// compilation can see — a SET, §2023:14.8.3.3 rule 1 (RETURNING delivery follows the SET rules), §2023:14.8.2.3.3 (BY CONTENT
+    /// object-reference arguments) and §2023:9.3.8.2.3 rule 5 (covariant override / implements RETURNING). The table itself
     /// is the runtime's <see cref="ObjectReferenceSet.Refusal"/>, the ONE copy the run time asks too for the pairs no
-    /// single compilation sees (§9.3.6 match rule 6 across a universal invocation, a CALL located at run time; kb/Work
+    /// single compilation sees (§2023:9.3.6 match rule 6 across a universal invocation, a CALL located at run time; kb/Work
     /// PB2463); this resolves each description's class facts through the group's class table
     /// (<see cref="OoClassTable.SetOperand"/>) and asks it.
-    /// <para><paramref name="activeClassSenderAdmitted"/> false is §9.3.8.2.3 rule 5's reading, which enumerates no
+    /// <para><paramref name="activeClassSenderAdmitted"/> false is §2023:9.3.8.2.3 rule 5's reading, which enumerates no
     /// ACTIVE-CLASS sender into an interface-typed or class-typed receiver (see <see cref="ObjectReferenceSet"/>).</para>
     /// <para>Null-tolerant on <paramref name="table"/> (no class table in the group ⇒ no OO checking — preserving the
     /// former <c>OoClasses?.</c> call shape). Returns null when the pair conforms, else the clause it violated.</para>
@@ -608,8 +608,8 @@ public static class OoConformance
     }
 
     /// <summary>
-    /// Which §14.9.39.3 syntax rule governs a SET format-5 statement whose sender is <b>object-class-name-1</b>
-    /// (a class NAME, not identifier-4), given the RECEIVER's §13.18.60.2 kind. Every one of those rules names
+    /// Which §2023:14.9.39.3 syntax rule governs a SET format-5 statement whose sender is <b>object-class-name-1</b>
+    /// (a class NAME, not identifier-4), given the RECEIVER's §2023:13.18.60.2 kind. Every one of those rules names
     /// the receiver's description in its own precondition, so the answer is read off the receiver and never
     /// hard-coded:
     /// <list type="bullet">
@@ -626,15 +626,15 @@ public static class OoConformance
     ///   <item><b>universal receiver</b> — SR8 only, which constrains nothing; the table returns null and this
     ///     label is never rendered.</item>
     /// </list>
-    /// <para>⚠ kb/Work PB451: the SET site used to print "(ISO §14.9.39.3 SR13)" for ALL FOUR, so a program
+    /// <para>⚠ kb/Work PB451: the SET site used to print "(ISO §2023:14.9.39.3 SR13)" for ALL FOUR, so a program
     /// refused under SR11 or SR14 was told it had broken a rule whose own precondition was false for it — and
-    /// the sender's identity, which is §14.9.39.4 GR10, was attributed to SR13 as well.</para>
+    /// the sender's identity, which is §2023:14.9.39.4 GR10, was attributed to SR13 as well.</para>
     /// </summary>
     public static string ClassNameSenderRule(ObjectRefKind receiverKind) => receiverKind switch
     {
-        ObjectRefKind.Interface => "ISO §14.9.39.3 SR11",
-        ObjectRefKind.ObjectClass => "ISO §14.9.39.3 SR13",
-        ObjectRefKind.ActiveClass => "ISO §14.9.39.3 SR14",
-        _ => "ISO §14.9.39.3 SR8",
+        ObjectRefKind.Interface => "ISO §2023:14.9.39.3 SR11",
+        ObjectRefKind.ObjectClass => "ISO §2023:14.9.39.3 SR13",
+        ObjectRefKind.ActiveClass => "ISO §2023:14.9.39.3 SR14",
+        _ => "ISO §2023:14.9.39.3 SR8",
     };
 }

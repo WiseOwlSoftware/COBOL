@@ -5,20 +5,20 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §8.4.6.2.1 3) a) - function-pointer-name-1 resolves by
+      *> ISO §2023:8.4.6.2.1 3) a) - function-pointer-name-1 resolves by
       *> the nearest-declaring-element rule like every other data-name
       *> (kb/Work PB1047, wave 69 Z: a contained program's own
       *> FUNCTION-POINTER beside a container's GLOBAL one of the same
       *> name drew COBOL1501, and a contained data item hid nothing)
-      *> RULE §8.4.3.2.3 SR4: "Function-pointer-name-1 shall be defined
+      *> RULE §2023:8.4.3.2.3 SR4: "Function-pointer-name-1 shall be defined
       *>   as a function-pointer data item."  cite.py --check 8.4.3.2.3
       *>   "Function-pointer-name-1 shall be defined as a function-
-      *>   pointer data item" -> OK §8.4.3.2.3 4)
-      *> RULE §8.4.6.2.1 3) a): "If the name is declared in source
+      *>   pointer data item" -> OK §2023:8.4.3.2.3 4)
+      *> RULE §2023:8.4.6.2.1 3) a): "If the name is declared in source
       *>   element B, the item in source element B is the referenced
       *>   item."  cite.py --check 8.4.6.2.1 "If the name is declared in
       *>   source element B, the item in source element B is the
-      *>   referenced item" -> OK §8.4.6.2.1 3) a)
+      *>   referenced item" -> OK §2023:8.4.6.2.1 3) a)
       *> So the name is resolved FIRST, and SR4 is asked of the item it
       *>   names: W69ZFI's FP is its own function-pointer (FP(5) calls
       *>   W69ZF3), and W69ZFI's FQ is its own table, so FQ(2) is a

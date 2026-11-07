@@ -37,7 +37,7 @@ Both are *canonical* forms — same equivalence class, no information gained or 
 - **NFD — canonical decomposition.** Replace every character by its full canonical decomposition (recursively:
   U+1EC7 → U+0065 U+0323 U+0302), decompose Hangul syllables into their jamo, then put every run of combining
   marks into a fixed order by their canonical combining class (the Unicode Standard's Canonical Ordering
-  Algorithm, §3.11). The result is the longest canonical spelling — and the useful one, because two equivalent
+  Algorithm, §2023:3.11). The result is the longest canonical spelling — and the useful one, because two equivalent
   texts become *identical code point sequences*.
 - **NFC — canonical composition.** Decompose first, then recompose the pairs Unicode says may be recomposed (the
   composition mappings, minus the `Full_Composition_Exclusion` set — which is why NFC is not simply "the inverse

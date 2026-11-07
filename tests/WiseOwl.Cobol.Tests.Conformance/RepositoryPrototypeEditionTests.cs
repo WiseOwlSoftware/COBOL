@@ -5,8 +5,8 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// EXACT-COUNT witnesses for the Step-14g.5 gates — the FUNCTION-ID … IS PROTOTYPE unit (§11.5, bound-arm over
-/// <c>CallUnit.IsPrototype</c>), the REPOSITORY CLASS/INTERFACE/PROPERTY specifiers (§12.3.8, parse-arm), and the two
+/// EXACT-COUNT witnesses for the Step-14g.5 gates — the FUNCTION-ID … IS PROTOTYPE unit (§2023:11.5, bound-arm over
+/// <c>CallUnit.IsPrototype</c>), the REPOSITORY CLASS/INTERFACE/PROPERTY specifiers (§2023:12.3.8, parse-arm), and the two
 /// PICTURE-shape gates — the floating-point numeric-edited picture (symbol E; LIVE since data-model design D21 /
 /// kb/Work PB66, keyed on <c>PicInfo.IsFloatEdited</c>) and the recognized-but-unimplemented national-edited skeleton
 /// (<c>PicInfo.SkeletonGate</c>; its category is recovered to Alphanumeric) — which gate BOUND-arm through the ONE
@@ -87,7 +87,7 @@ public sealed class RepositoryPrototypeEditionTests
         => Assert.Equal(1, Count0900(Prog("01 WS-EF PIC +9.99E+99."), 85, "floating-point numeric-edited PICTURE"));
 
     /// <summary>A national-edited PICTURE gates EXACTLY ONCE at 85 — and "once" is the load-bearing word, because
-    /// a national-edited item is ALSO class and category national (§8.5.2.1 Table 2), so the picture-shape gate
+    /// a national-edited item is ALSO class and category national (§2023:8.5.2.1 Table 2), so the picture-shape gate
     /// (national-edited-2002) and the usage gate (national-data-2002) both answer for it. <c>GateDataItem</c>
     /// takes the FINER one and stops (kb/Work PB492).</summary>
     [Fact]

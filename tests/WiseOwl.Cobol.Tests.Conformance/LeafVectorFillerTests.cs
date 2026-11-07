@@ -9,13 +9,13 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// <summary>
 /// ⛔ THE IMPLICIT FILLER OF A LEAF-CARRIED STRONGLY-TYPED GROUP TRAVELS WITH IT (kb/Work PB3598). A strongly-typed group with a
 /// POINTER leaf has no character image, so a group MOVE, a CALL and a RETURNING delivery carry it as a vector of its members
-/// (<c>ActivationCrossing.LeafCarried</c>); ISO §8.5.1.6.3 makes the bits that advance alignment "within a strongly-typed group item"
+/// (<c>ActivationCrossing.LeafCarried</c>); ISO §2023:8.5.1.6.3 makes the bits that advance alignment "within a strongly-typed group item"
 /// "implicitly described as a filler elementary bit data item", so they are data of the group, and the vector, built by the
 /// record struct (<c>RecordStructEmitter.EmitLeafMethods</c>) and by the storage-area twin (<c>PlaceRenderer.CellLeaves</c>)
 /// from the one enumeration <c>BitLayout.FillersOf</c> / <c>WindowFillersOf</c>, carries them after the members.
 ///
 /// <para>The witness is a unit test, not a conformance case: the only portable reading of the filler of such a group is DISPLAY
-/// of the group, whose pointer positions are implementor-defined, and a comparison of two groups (§8.8.4.2.12) is not required to
+/// of the group, whose pointer positions are implementor-defined, and a comparison of two groups (§2023:8.8.4.2.12) is not required to
 /// look at the filler. The expectation is the round trip itself: the sender's display equals the receiver's after a MOVE and after
 /// a CALL that copies the group to a callee's own group and back through a by-reference formal (the storage-area lane).</para>
 /// </summary>

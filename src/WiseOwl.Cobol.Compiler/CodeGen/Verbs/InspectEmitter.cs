@@ -16,7 +16,7 @@ using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
 internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, ArithmeticEmitter arith)
 {
     /// <summary>
-    /// INSPECT (ISO §14.9.22) → one image snapshot + runtime cycle calls. Identifier-1's character image is read
+    /// INSPECT (ISO §2023:14.9.22) → one image snapshot + runtime cycle calls. Identifier-1's character image is read
     /// ONCE (GR6 item identification; GR4 — an edited/unsigned-numeric DISPLAY item inspects as its redefined
     /// character image, GR4d — a signed numeric item inspects de-signed); a format 3 then runs the tallying pass
     /// FOLLOWED by the replacing pass over that same image (GR19 — two successive statements; tallying never
@@ -48,7 +48,7 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, Arith
         string readImage = OperandText.AsString(ins.Target, num, deSign: true);
         w.Line($"string {img} = {readImage};");
         // ⛔ GR2 — a ZERO-LENGTH identifier-1 (a dynamic-length item at length 0, an occurs-depending group at count
-        // 0, a function returning a zero-length value — §8.5.4) leaves identifier-1 AND identifier-2 unchanged and
+        // 0, a function returning a zero-length value — §2023:8.5.4) leaves identifier-1 AND identifier-2 unchanged and
         // "control is immediately transferred to the end of the INSPECT statement" (kb/Work PB1128). Without the
         // test the tallying pass still ran `counter := counter + 0`, which is not a no-op: the arithmetic store
         // re-encodes identifier-2, so a counter holding a non-canonical image ("7 " in a PIC 99) came back "07".
@@ -57,7 +57,7 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, Arith
             EmitBody(ins, id, img, readImage);
     }
 
-    /// <summary>§14.9.22.4 GR6 / §14.6.4 7): identify every identifier of the statement once, in SOURCE order —
+    /// <summary>§2023:14.9.22.4 GR6 / §2023:14.6.4 7): identify every identifier of the statement once, in SOURCE order —
     /// identifier-1, then each TALLYING counter with its pattern and delimiters, each REPLACING pattern / replacement /
     /// delimiters, then CONVERTING's operands — by freezing each <see cref="Place"/>'s run-time address into locals
     /// (<see cref="PlaceIdentification"/>). The returned statement addresses the locals; nothing after this reads a
@@ -103,7 +103,7 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, Arith
     {
         var w = ctx.Writer;
         string back = ins.Backward ? "true" : "false";
-        // The character CONTEXT a figurative operand is read in: identifier-1's §8.5.2.1 Table 2 CLASS, never its raw
+        // The character CONTEXT a figurative operand is read in: identifier-1's §2023:8.5.2.1 Table 2 CLASS, never its raw
         // PICTURE category (kb/Work PB1414 — a GROUP-USAGE NATIONAL identifier-1 took the alphanumeric collating
         // sequence; kb/Work PB442 — the one projection, so a numeric-edited USAGE NATIONAL one is national too).
         var cat = IntrinsicArgumentRules.CharacterContext(IntrinsicArgumentRules.ClassOf(ins.Target));
@@ -120,7 +120,7 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, Arith
             // One add per operand, in source order — the same counter may appear under several operands and
             // accumulates each count (GR11 — INSPECT adds, it never initializes).
             // ⛔ A COUNTER THAT SHARES STORAGE WITH WHAT THE NEXT OPERAND READS (docs/CONFORMANCE.md D-INS1; the
-            // standard leaves it undefined, §14.9.22.4 GR13 / Annex A.2 item 21 d)) CHANGES THAT READ: each operand's
+            // standard leaves it undefined, §2023:14.9.22.4 GR13 / Annex A.2 item 21 d)) CHANGES THAT READ: each operand's
             // count is taken from the statement's state AFTER the preceding operands stored theirs, so the image
             // and every operand value are read again and the cycle re-run. When no counter can overlap anything the
             // statement reads (the proof is conservative, StorageOverlap) the state never changes, the re-run would
@@ -142,7 +142,7 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, Arith
                 w.Line($"{img} = {readImage};");
         }
 
-        // REPLACING / CONVERTING over an operand that shares identifier-1's storage (§14.9.22.4 GR18 / GR21, Annex A.2
+        // REPLACING / CONVERTING over an operand that shares identifier-1's storage (§2023:14.9.22.4 GR18 / GR21, Annex A.2
         // item 21 e) / f), undefined): docs/CONFORMANCE.md D-INS3 / D-INS4 — every operand value is read as the call's
         // arguments (the start of THIS pass), the cycle matches the pass's image, and the one write-back is the only
         // store, so an operand never observes the replacement.
@@ -171,7 +171,7 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, Arith
         }
 
         // ⛔ THE INVARIANT, ASSERTED RATHER THAN ASSUMED (PB10). `mutated` is true exactly for Formats 2/3/4 —
-        // the formats in which §14.9.22.4 GR7/GR20 make identifier-1 a RECEIVING operand — and §8.4.3.2.3 SR1
+        // the formats in which §2023:14.9.22.4 GR7/GR20 make identifier-1 a RECEIVING operand — and §2023:8.4.3.2.3 SR1
         // bars a function-identifier from precisely those. So a non-field target reaching here means the
         // binder's COBOL1632 screen was bypassed, not that this statement needs a fallback: fail loud rather
         // than silently dropping the write-back, which would compute the replacement and discard it.
@@ -180,7 +180,7 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, Arith
             if (ins.Target is not BoundFieldOperand fieldTarget)
             {
                 ctx.Writer.Line(EmitText.LoudStmt(
-                    "INSPECT REPLACING/CONVERTING over a non-field identifier-1 (ISO §8.4.3.2.3 SR1 — the "
+                    "INSPECT REPLACING/CONVERTING over a non-field identifier-1 (ISO §2023:8.4.3.2.3 SR1 — the "
                     + "InspectBinder screen should have rejected this with COBOL1632)"));
                 return;
             }
@@ -188,13 +188,13 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, Arith
         }
     }
 
-    /// <summary>Can storing <paramref name="counter"/> change what identifier-1 reads (§14.9.22.4 GR13's identifier-1
+    /// <summary>Can storing <paramref name="counter"/> change what identifier-1 reads (§2023:14.9.22.4 GR13's identifier-1
     /// overlap, GR19's format 3 hand-over)? A function-identifier identifier-1 is derived from its arguments at each
     /// read, which this cannot see through, so it answers yes.</summary>
     private static bool CounterMayOverlapTarget(BoundInspect ins, Place counter) => MayReadStorageOf(ins.Target, counter);
 
     /// <summary>Can storing <paramref name="counter"/> change anything the TALLYING cycle reads — identifier-1 or any
-    /// operand's pattern or BEFORE/AFTER delimiter (§14.9.22.4 GR13: identifier-1, identifier-3 or identifier-4 in the
+    /// operand's pattern or BEFORE/AFTER delimiter (§2023:14.9.22.4 GR13: identifier-1, identifier-3 or identifier-4 in the
     /// storage of identifier-2)?</summary>
     private static bool CounterMayChangeInputs(BoundInspect ins, Place counter) =>
         CounterMayOverlapTarget(ins, counter)
@@ -215,18 +215,18 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, Arith
     /// ONE group value writer in the alphabet it was read in (a Tier-B view group splices its window); an elementary
     /// item (alphanumeric / numeric-edited / a numeric item's character image) takes the image directly — except a
     /// SIGNED numeric item, whose replaced digits are re-signed with the RETAINED original sign, a zero magnitude
-    /// included (§14.9.22.4 GR4 d, <see cref="CobolNum.RetainSign"/>). A replacement that left a non-digit in a signed
-    /// item decodes by digit positions only — deterministic where the spec leaves the result undefined (§14.6.13.2
+    /// included (§2023:14.9.22.4 GR4 d, <see cref="CobolNum.RetainSign"/>). A replacement that left a non-digit in a signed
+    /// item decodes by digit positions only — deterministic where the spec leaves the result undefined (§2023:14.6.13.2
     /// incompatible data).</summary>
     private void EmitStore(Place p, string img)
     {
         var w = ctx.Writer;
-        // A reference-modified identifier-1 is the elementary alphanumeric unique item of §8.4.3.3.4 GR6 — the
+        // A reference-modified identifier-1 is the elementary alphanumeric unique item of §2023:8.4.3.3.4 GR6 — the
         // replaced image splices into it (kb/Work PB70: over a GROUP inner it used to fall into the group arm).
         if (p is RefModPlace) { w.Line(PlaceRenderer.Write(p, img)); return; }
-        // A group identifier-1 (§14.9.22.3 SR1 — "an alphanumeric or national group item"): the ONE group VALUE
+        // A group identifier-1 (§2023:14.9.22.3 SR1 — "an alphanumeric or national group item"): the ONE group VALUE
         // writer, in the alphabet the read used (a national group's national positions, never its byte image —
-        // kb/Work PB1128), over the SENDING extent — §14.9.22.4 GR1 sizes identifier-1 "as a sending data item", so
+        // kb/Work PB1128), over the SENDING extent — §2023:14.9.22.4 GR1 sizes identifier-1 "as a sending data item", so
         // an occurs-depending group splices back over exactly its current-count part, positions past it unmodified.
         if (p.Item.IsGroup)
         {
@@ -247,10 +247,10 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, Arith
                 throw new InvalidOperationException(
                     $"INSPECT identifier-1 '{p.Item.ClrName}' is a numeric item stored natively; UsageCollectionPass must have promoted it to its character image (PB1128)");
             // ⛔ THE REPLACED IMAGE OF A NUMERIC ITEM IS NOT AN ALPHANUMERIC SENDING OPERAND. The signed arm takes
-            // CobolNum.DigitMagnitude, never the §14.9.25.4 GR6 d) 3 capped FromAlphanumeric: this image is the ITEM'S
+            // CobolNum.DigitMagnitude, never the §2023:14.9.25.4 GR6 d) 3 capped FromAlphanumeric: this image is the ITEM'S
             // OWN and its PICTURE already fixes the size, so GR6 d) 3 asks nothing here (kb/Work PB426 split the two
             // decodes for that reason). A replacement that left a non-digit in a SIGNED item decodes by digit
-            // positions only — deterministic where the spec leaves the result undefined (§14.6.13.2 incompatible data);
+            // positions only — deterministic where the spec leaves the result undefined (§2023:14.6.13.2 incompatible data);
             // an unsigned item holds the replaced characters as they are.
             if (pic.Signed)
             {
@@ -258,7 +258,7 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, Arith
                 // convention (GR4 d). The sign is read off the image and handed to the formatter APART from the
                 // magnitude: a value cannot carry one over a zero, so formatting `parse(image) < 0 ? -mag : mag` turned
                 // a negative item whose digits became zeros into +0. The sign read is the STORE side re-deriving the
-                // ORIGINAL's sign, not INSPECT's sending read of the operand (§14.6.13.2 rule 2 attaches to the
+                // ORIGINAL's sign, not INSPECT's sending read of the operand (§2023:14.6.13.2 rule 2 attaches to the
                 // reference of the content, which is the image read above; a second check inside one statement
                 // would report one reference as two).
                 w.Line(PlaceRenderer.Write(p, RuntimeApi.NumRetainSign(img, PlaceRenderer.Read(p), p.Item.ProfileName)));
@@ -275,7 +275,7 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, Arith
     /// <para>⛔ <paramref name="cat"/> IS THE INSPECTED ITEM'S CATEGORY (kb/Work PB1414): an INSPECT operand's
     /// context is identifier-1's characters, so a figurative HIGH-/LOW-VALUE operand is read from the NATIONAL
     /// program collating sequence when identifier-1 is national and from the alphanumeric one otherwise
-    /// (§8.3.3.6.4 GR6/GR7 — the same rule <c>OperandText.AsString</c>'s characterCategory answers for STRING and
+    /// (§2023:8.3.3.6.4 GR6/GR7 — the same rule <c>OperandText.AsString</c>'s characterCategory answers for STRING and
     /// UNSTRING, kb/Work PB1185).</para></summary>
     private string OperandTextOf(BoundOperand? op, PicCategory? cat) =>
         op is null ? "null" : OperandText.AsString(op, num, deSign: true, characterCategory: cat);

@@ -4,10 +4,10 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> ISO §7.2.3.4 GR1 "Text-name-1 or literal-1 identifies the library
+*> ISO §2023:7.2.3.4 GR1 "Text-name-1 or literal-1 identifies the library
 *> text to be processed by the COPY statement" and GR2 "Library-name-1
 *> names a resource that shall be available to the compiler and shall
-*> provide access to the library text" (cite.py --check: OK §7.2.3.4 1)
+*> provide access to the library text" (cite.py --check: OK §2023:7.2.3.4 1)
 *> and 2)). No library text PB1355NONE exists anywhere the default COBOL
 *> library looks (DOC-A.1-40), so the COPY is CBL3620 at every edition
 *> (kb/Work PB1355). Before, the COPY became a comment with no

@@ -8,11 +8,11 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>kb/Work PB1570 — the sort-merge file stores belong to the RUN UNIT that executes the SORT/MERGE
-/// statement (ISO §14.6.1: "A run unit is an independent entity that may be executed without communicating with, or
+/// statement (ISO §2023:14.6.1: "A run unit is an independent entity that may be executed without communicating with, or
 /// being coordinated with, any other run unit except that it may communicate via messages with other run units,
 /// process files, and set and test switches" — a sort-merge file is none of those). The store used to be one
 /// process-wide static <c>Dictionary</c>, so a second run unit — concurrent, or following an abandoned statement —
-/// shared and mutated the first one's sort files, and EC-SORT-MERGE-ACTIVE (§14.9.40.4 GR10 / GR13, §14.9.24.4 GR8:
+/// shared and mutated the first one's sort files, and EC-SORT-MERGE-ACTIVE (§2023:14.9.40.4 GR10 / GR13, §2023:14.9.24.4 GR8:
 /// the procedures of "an executing SORT/MERGE statement") fired in one run unit because of another's procedure
 /// phase. The two interleavings below are ordered by events, never by time.</summary>
 public sealed class SortFileRunUnitScopeTests
@@ -74,8 +74,8 @@ public sealed class SortFileRunUnitScopeTests
     }
 
     /// <summary>A statement abandoned inside its input procedure (the run unit ended before CLOSE) leaves nothing
-    /// behind: the NEXT run unit's SORT is not within the range of any executing input procedure (§14.9.40.4 GR10) and its
-    /// RELEASE is not allowed outside one (§14.9.32.4 GR1) exactly as in a fresh process.</summary>
+    /// behind: the NEXT run unit's SORT is not within the range of any executing input procedure (§2023:14.9.40.4 GR10) and its
+    /// RELEASE is not allowed outside one (§2023:14.9.32.4 GR1) exactly as in a fresh process.</summary>
     [Fact]
     public void AbandonedStatement_DoesNotOutliveItsRunUnit()
     {

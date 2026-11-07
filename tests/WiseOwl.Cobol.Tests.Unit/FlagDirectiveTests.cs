@@ -8,7 +8,7 @@ using WiseOwl.Cobol.Tests.Shared;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The <c>&gt;&gt;FLAG-02</c> / <c>&gt;&gt;FLAG-14</c> migration-flagging subsystem (ISO §7.3.14 / §7.3.15;
+/// The <c>&gt;&gt;FLAG-02</c> / <c>&gt;&gt;FLAG-14</c> migration-flagging subsystem (ISO §2023:7.3.14 / §2023:7.3.15;
 /// Increment 0 — the core + the two syntactic detectors READ-PREVIOUS and I-O-STATUS-07/CLOSE). Covers the ONE
 /// directive-line parser (<see cref="FlagDirectiveLine"/>), the per-option source-line fold
 /// (<see cref="FlagState"/>), and the end-to-end warning emission through <see cref="CompilerDriver"/>. Design
@@ -16,7 +16,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 public sealed class FlagDirectiveTests
 {
-    // ── The directive-line parser (§7.3.14.2 / §7.3.15.2) ───────────────────────────────────────────────────
+    // ── The directive-line parser (§2023:7.3.14.2 / §2023:7.3.15.2) ───────────────────────────────────────────────────
 
     [Fact]
     public void Parse_Flag14_SingleOption_On()
@@ -51,11 +51,11 @@ public sealed class FlagDirectiveTests
     {
         Assert.True(FlagDirectiveLine.TryParse(FlagDirective.Flag02, "I-O-STATUS-07",
             out var options, out bool on, out _));
-        Assert.True(on);   // ON is not underlined: the implicit default (§5.2.6.3, §7.3.14.2)
+        Assert.True(on);   // ON is not underlined: the implicit default (§2023:5.2.6.3, §2023:7.3.14.2)
         Assert.Equal([FlagOption.Flag02IoStatus07], options);
     }
 
-    // §7.3.14.2 / §7.3.15.2 print ALL and ON NOT underlined: optional words (§5.2.3), so §5.2.6.3 makes each the
+    // §2023:7.3.14.2 / §2023:7.3.15.2 print ALL and ON NOT underlined: optional words (§2023:5.2.3), so §2023:5.2.6.3 makes each the
     // DEFAULT of its braces. The rendered pages (ISO PDF p.100 / p.102), not the OCR, decide the underlining.
     [Theory]
     [InlineData(FlagDirective.Flag14, "READ-PREVIOUS", "READ-PREVIOUS", true)]    // ON omitted  -> ON
@@ -77,7 +77,7 @@ public sealed class FlagDirectiveTests
         else Assert.Equal([FlagOptions.TryOption(directive, expectedWord)!.Value], options);
     }
 
-    // §5.2.6.4: within choice indicators enclosed by braces "any single alternative shall be specified only once"
+    // §2023:5.2.6.4: within choice indicators enclosed by braces "any single alternative shall be specified only once"
     // — a repeat is a syntax error, never a silent merge; ALL is one alternative of the outer braces.
     [Theory]
     [InlineData(FlagDirective.Flag14, "VALUE-ZERO VALUE-ZERO ON")]
@@ -128,7 +128,7 @@ public sealed class FlagDirectiveTests
         Assert.Equal([FlagOption.Flag02IoStatus07], f02);
     }
 
-    // ── The per-option source-line fold (§7.3.14.4 / §7.3.15.4 GR2/GR3/GR5) ─────────────────────────────────
+    // ── The per-option source-line fold (§2023:7.3.14.4 / §2023:7.3.15.4 GR2/GR3/GR5) ─────────────────────────────────
 
     [Fact]
     public void Fold_DefaultsOff_AndIsStickyForwardStrictlyAfterTheDirective()
@@ -230,9 +230,9 @@ public sealed class FlagDirectiveTests
         Assert.DoesNotContain(warnings, w => w.Contains("COBOL1621", StringComparison.Ordinal));
     }
 
-    // §7.3.14.4 GR4 c flags "the WITH NO REWIND phrase or the UNIT phrase" — and §14.9.6.3 SR2 makes REEL
+    // §2023:7.3.14.4 GR4 c flags "the WITH NO REWIND phrase or the UNIT phrase" — and §2023:14.9.6.3 SR2 makes REEL
     // the SAME phrase as UNIT, so all three spellings flag (the REEL arm was deliberately excluded before —
-    // kb/Work PB141). The file must be SEQUENTIAL: §14.9.6.3 SR1 restricts the phrases to sequential
+    // kb/Work PB141). The file must be SEQUENTIAL: §2023:14.9.6.3 SR1 restricts the phrases to sequential
     // organization, and PB140's COBOL1693 rejects them elsewhere (this fixture previously rode the
     // INDEXED ReadPreviousProgram).
     [Theory]
@@ -262,7 +262,7 @@ public sealed class FlagDirectiveTests
         Assert.Contains(warnings, w => w.Contains("warning COBOL1620", StringComparison.Ordinal));
     }
 
-    // ── PB1374: the printed defaults, end to end — ALL and ON omitted (§5.2.6.3) ─────────────────────────────
+    // ── PB1374: the printed defaults, end to end — ALL and ON omitted (§2023:5.2.6.3) ─────────────────────────────
 
     private static bool FlaggedValueZero(string directives) =>
         CompileWarnings(ValueProgram(directives, "01 NE PIC ZZ9.99 VALUE ZERO."))
@@ -307,7 +307,7 @@ public sealed class FlagDirectiveTests
         Assert.Equal(flagged, CompileWarnings(program).Any(w => w.Contains("COBOL1620", StringComparison.Ordinal)));
     }
 
-    // ── Incr 1a: the VALUE-clause data options g NUM-ED-ZERO-FIGCONST + l VALUE-ZERO (§7.3.15.4 GR4 g/l) ──
+    // ── Incr 1a: the VALUE-clause data options g NUM-ED-ZERO-FIGCONST + l VALUE-ZERO (§2023:7.3.15.4 GR4 g/l) ──
 
     private static string ValueProgram(string directives, string entry) =>
         "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. FLGVAL.\n       DATA DIVISION.\n" +
@@ -350,7 +350,7 @@ public sealed class FlagDirectiveTests
         Assert.DoesNotContain(warnings, w => w.Contains("COBOL1621", StringComparison.Ordinal));
     }
 
-    // ── Incr 3: FLAG-14 i REF-MOD-ZERO-LENGTH (§7.3.15.4 GR4 i) — a ref-mod flagged when the >>REF-MOD-ZERO-LENGTH
+    // ── Incr 3: FLAG-14 i REF-MOD-ZERO-LENGTH (§2023:7.3.15.4 GR4 i) — a ref-mod flagged when the >>REF-MOD-ZERO-LENGTH
     //    directive is UNSPECIFIED at the site AND EC-BOUND-REF-MOD checking is on. ──
 
     private static string RefModProgram(string directives) =>
@@ -385,7 +385,7 @@ public sealed class FlagDirectiveTests
 
     // ── Incr 2: the frontend-inline options (emitted in ConditionalCompilationProcessor, never reach the bound tree) ──
 
-    // c EVALUATE (§7.3.15.4 GR4 c) — a >>EVALUATE directive carrying both a >>WHEN and a >>WHEN OTHER.
+    // c EVALUATE (§2023:7.3.15.4 GR4 c) — a >>EVALUATE directive carrying both a >>WHEN and a >>WHEN OTHER.
     private static string EvaluateDirectiveProgram(string otherArm) =>
         "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. FLGEV.\n       PROCEDURE DIVISION.\n       MAIN.\n" +
         "       >>DEFINE N AS 1\n       >>FLAG-14 EVALUATE ON\n       >>EVALUATE N\n       >>WHEN 1\n" +
@@ -408,7 +408,7 @@ public sealed class FlagDirectiveTests
         Assert.DoesNotContain(warnings, w => w.Contains("COBOL1621", StringComparison.Ordinal));
     }
 
-    // b COMPILE-TIME-ARITHMETIC-EXPRESSIONS (§7.3.15.4 GR4 b) — a compile-time arithmetic expression with an operator.
+    // b COMPILE-TIME-ARITHMETIC-EXPRESSIONS (§2023:7.3.15.4 GR4 b) — a compile-time arithmetic expression with an operator.
     private static string DefineArithmeticProgram(string expr) =>
         "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. FLGB.\n       PROCEDURE DIVISION.\n       MAIN.\n" +
         "       >>FLAG-14 COMPILE-TIME-ARITHMETIC-EXPRESSIONS ON\n       >>DEFINE X AS " + expr + "\n           STOP RUN.\n";
@@ -429,7 +429,7 @@ public sealed class FlagDirectiveTests
         Assert.DoesNotContain(warnings, w => w.Contains("COBOL1621", StringComparison.Ordinal));
     }
 
-    // ── Incr 1b: FLAG-14 j VALUE-EDITING (§7.3.15.4 GR4 j) — numeric-edited VALUE literal without editing symbols ──
+    // ── Incr 1b: FLAG-14 j VALUE-EDITING (§2023:7.3.15.4 GR4 j) — numeric-edited VALUE literal without editing symbols ──
 
     [Fact]
     public void Compile_ValueEditingOn_Flags_NumericLiteralOnNumericEdited()
@@ -464,7 +464,7 @@ public sealed class FlagDirectiveTests
         Assert.DoesNotContain(warnings, w => w.Contains("COBOL1621", StringComparison.Ordinal));
     }
 
-    // ── Incr 1b: FLAG-14 k VALUE-FIG-CON-LENGTH (§7.3.15.4 GR4 k) — figurative VALUE on an item with no length ──
+    // ── Incr 1b: FLAG-14 k VALUE-FIG-CON-LENGTH (§2023:7.3.15.4 GR4 k) — figurative VALUE on an item with no length ──
 
     [Fact]
     public void Compile_ValueFigConLengthOn_Flags_FigurativeValueNoPictureNoUsage()
@@ -501,13 +501,13 @@ public sealed class FlagDirectiveTests
     [Fact]
     public void Compile_ValueFigConLength_NotFlagged_OnGroupItem()
     {
-        // A group's figurative VALUE is filled to the subordinates' length (§13.18.63 SR13) — length is specified.
+        // A group's figurative VALUE is filled to the subordinates' length (§2023:13.18.63 SR13) — length is specified.
         var warnings = CompileWarnings(ValueProgram("       >>FLAG-14 VALUE-FIG-CON-LENGTH ON\n",
             "01 G VALUE SPACE.\n          05 GA PIC X."));
         Assert.DoesNotContain(warnings, w => w.Contains("COBOL1621", StringComparison.Ordinal));
     }
 
-    // ── Incr 1c: FLAG-14 m WRITE-END-OF-PAGE (§7.3.15.4 GR4 m) — WRITE + file has LINAGE + no AT EOP ──
+    // ── Incr 1c: FLAG-14 m WRITE-END-OF-PAGE (§2023:7.3.15.4 GR4 m) — WRITE + file has LINAGE + no AT EOP ──
 
     private static string WriteProgram(bool linage, string directive, string writeStmt) =>
         "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. FLGWR.\n       ENVIRONMENT DIVISION.\n" +
@@ -537,13 +537,13 @@ public sealed class FlagDirectiveTests
     [Fact]
     public void Compile_WriteEndOfPage_NotFlagged_OnNonLinageFile()
     {
-        // The file has no LINAGE clause, so a WRITE to it does not "allow" an END-OF-PAGE phrase (§14.9.51).
+        // The file has no LINAGE clause, so a WRITE to it does not "allow" an END-OF-PAGE phrase (§2023:14.9.51).
         var warnings = CompileWarnings(WriteProgram(linage: false,
             "       >>FLAG-14 WRITE-END-OF-PAGE ON\n", "WRITE OUT-REC."));
         Assert.DoesNotContain(warnings, w => w.Contains("COBOL1621", StringComparison.Ordinal));
     }
 
-    // ── Incr 1c: FLAG-02 f TERMINATE-WITH-VARYING (§7.3.14.4 GR4 f) — TERMINATE of a report with a VARYING clause ──
+    // ── Incr 1c: FLAG-02 f TERMINATE-WITH-VARYING (§2023:7.3.14.4 GR4 f) — TERMINATE of a report with a VARYING clause ──
 
     private static string ReportProgram(bool varying, string directive) =>
         "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. FLGT.\n       ENVIRONMENT DIVISION.\n" +
@@ -572,7 +572,7 @@ public sealed class FlagDirectiveTests
         Assert.DoesNotContain(warnings, w => w.Contains("COBOL1620", StringComparison.Ordinal));
     }
 
-    // ── Incr 3: FLAG-02 d MOVE-TO-SAME-NAME (§7.3.14.4 GR4 d) — a MOVE whose sending and receiving operands are the
+    // ── Incr 3: FLAG-02 d MOVE-TO-SAME-NAME (§2023:7.3.14.4 GR4 d) — a MOVE whose sending and receiving operands are the
     //    SAME data description entry, when that DDE is (1) category alphanumeric-edited, or (2) has a subordinate
     //    OCCURS…DEPENDING whose DEPENDING item is subordinate to it. ──
 
@@ -624,7 +624,7 @@ public sealed class FlagDirectiveTests
     [Fact]
     public void Compile_MoveToSameName_NotFlagged_OdoDependingItemOutsideTheGroup()
     {
-        // The DEPENDING item CNT is declared OUTSIDE G (§13.18.38 SR20 permits this), so it is NOT subordinate to
+        // The DEPENDING item CNT is declared OUTSIDE G (§2023:13.18.38 SR20 permits this), so it is NOT subordinate to
         // the moved DDE — GR4 d (2) requires the DEPENDING item be subordinate to the DDE.
         var warnings = CompileWarnings(MoveProgram(
             "       01 CNT PIC 9.\n       01 G.\n          05 T OCCURS 1 TO 5 DEPENDING ON CNT PIC X.\n",
@@ -632,8 +632,8 @@ public sealed class FlagDirectiveTests
         Assert.DoesNotContain(warnings, w => w.Contains("COBOL1620", StringComparison.Ordinal));
     }
 
-    /// <summary>kb/Work PB1952 — §7.3.14.4 GR4 d) and e) are asked of every source element, a METHOD included: its
-    /// operands resolve in its own name scope (§11.7.4 GR5) over its class half's forest. The method-local AE and IX
+    /// <summary>kb/Work PB1952 — §2023:7.3.14.4 GR4 d) and e) are asked of every source element, a METHOD included: its
+    /// operands resolve in its own name scope (§2023:11.7.4 GR5) over its class half's forest. The method-local AE and IX
     /// and the object's OAE and OX are each flagged once; before the fix the pass resolved nothing in a method and
     /// none of the four warned.</summary>
     [Fact]
@@ -665,9 +665,9 @@ public sealed class FlagDirectiveTests
         Assert.DoesNotContain(warnings, w => w.Contains("COBOL1620", StringComparison.Ordinal));
     }
 
-    // ── Incr 3: FLAG-02 e RANGE-EXCEPTION-FOR-INDEX (§7.3.14.4 GR4 e) — a Format-1 index-assignment (SET … TO) or
+    // ── Incr 3: FLAG-02 e RANGE-EXCEPTION-FOR-INDEX (§2023:7.3.14.4 GR4 e) — a Format-1 index-assignment (SET … TO) or
     //    Format-2 index-arithmetic (SET … UP/DOWN BY) whose receiver is an INDEX-NAME, flagged when EC-RANGE-INDEX
-    //    checking is enabled. Only index-names range-check (§14.9.39.4 Format-1 GR2b copies a class-index DATA item
+    //    checking is enabled. Only index-names range-check (§2023:14.9.39.4 Format-1 GR2b copies a class-index DATA item
     //    unchanged), so a USAGE INDEX data item / plain numeric receiver is NOT flagged. ──
 
     private static string SetIndexProgram(string extraEntries, string directive, string setStmt) =>
@@ -716,7 +716,7 @@ public sealed class FlagDirectiveTests
     [Fact]
     public void Compile_RangeExceptionForIndex_NotFlagged_OnUsageIndexDataItemReceiver()
     {
-        // A class-index DATA item (USAGE INDEX) receiver copies its value UNCHANGED (§14.9.39.4 Format-1 GR2b) and
+        // A class-index DATA item (USAGE INDEX) receiver copies its value UNCHANGED (§2023:14.9.39.4 Format-1 GR2b) and
         // never raises EC-RANGE-INDEX, so it is NOT flagged — only an index-NAME receiver range-checks.
         var warnings = CompileWarnings(SetIndexProgram("       01 IXD USAGE INDEX.\n",
             "       >>TURN EC-RANGE-INDEX CHECKING ON\n       >>FLAG-02 RANGE-EXCEPTION-FOR-INDEX ON\n", "SET IXD TO IDX."));
@@ -727,7 +727,7 @@ public sealed class FlagDirectiveTests
     public void Compile_RangeExceptionForIndex_NotFlagged_OnPlainNumericReceiver()
     {
         // SET of a plain numeric item is not an index-assignment into an index — no flag. The sender is
-        // index-name-2, the ONLY sender ISO §14.9.39.3 SR4 admits for a numeric receiver ("If identifier-1
+        // index-name-2, the ONLY sender ISO §2023:14.9.39.3 SR4 admits for a numeric receiver ("If identifier-1
         // references a numeric data item, index-name-2 shall be specified"); this fixture used to write
         // `SET N TO 3.`, source SR4 forbids and COBOL2326 now refuses (kb/Work PB212).
         var warnings = CompileWarnings(SetIndexProgram("       01 N PIC 9(4).\n",
@@ -743,7 +743,7 @@ public sealed class FlagDirectiveTests
         Assert.DoesNotContain(warnings, w => w.Contains("COBOL1620", StringComparison.Ordinal));
     }
 
-    // ── Incr 4: FLAG-14 e I-O-STATUS-04 / f I-O-STATUS-07 (§7.3.15.4 GR4 e/f) — a reference to a FILE STATUS data
+    // ── Incr 4: FLAG-14 e I-O-STATUS-04 / f I-O-STATUS-07 (§2023:7.3.15.4 GR4 e/f) — a reference to a FILE STATUS data
     //    item that tests for '04'/'07': a relation comparing it to the literal, or a level-88 condition-name whose
     //    VALUE is '04'/'07'. ──
 
@@ -822,7 +822,7 @@ public sealed class FlagDirectiveTests
         Assert.DoesNotContain(warnings, w => w.Contains("COBOL1621", StringComparison.Ordinal));
     }
 
-    // ── Incr 4: FLAG-14 d I-O-DECLARATIVE (§7.3.15.4 GR4 d; E.2 item 19) — an INVALID-KEY-capable I-O statement
+    // ── Incr 4: FLAG-14 d I-O-DECLARATIVE (§2023:7.3.15.4 GR4 d; E.2 item 19) — an INVALID-KEY-capable I-O statement
     //    without INVALID KEY (or an AT-END-capable READ without AT END) while an open-mode USE declarative is
     //    present in the unit (it now executes on the exception at 2023). ──
 
@@ -900,7 +900,7 @@ public sealed class FlagDirectiveTests
         Assert.DoesNotContain(warnings, w => w.Contains("COBOL1621", StringComparison.Ordinal));
     }
 
-    // ── Incr 4: FLAG-02 b EC-PROGRAM-EXCEPTIONS (§7.3.14.4 GR4 b) — a >>TURN for an EC-PROGRAM-family exception in a
+    // ── Incr 4: FLAG-02 b EC-PROGRAM-EXCEPTIONS (§2023:7.3.14.4 GR4 b) — a >>TURN for an EC-PROGRAM-family exception in a
     //    source element that calls a function or invokes a method. ──
 
     private static string EcProgramProgram(string directive, string turn, string stmt) =>

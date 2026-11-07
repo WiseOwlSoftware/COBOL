@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §7.3.11.4 GR3 DEFINE directive — OVERRIDE unconditionally
+      *> ISO §2023:7.3.11.4 GR3 DEFINE directive — OVERRIDE unconditionally
       *>   rebinds the compilation variable
       *> Rule: "If the OVERRIDE phrase is specified,
       *>   compilation-variable-name-1 is
@@ -15,7 +15,7 @@
       *>     specified,
       *>   compilation-variable-name-1 is unconditionally set to
       *>     reference the value of the
-      *>   specified operand."  -> OK  §7.3.11.4 3)  (General rules)
+      *>   specified operand."  -> OK  §2023:7.3.11.4 3)  (General rules)
       *> Context: without OVERRIDE (and without OFF) a redefinition must
       *>   repeat the value
       *> of the last previous DEFINE of the name:
@@ -23,14 +23,14 @@
       *>     referring to
       *>   compilation-variable-name-1 shall have specified the same
       *>     value"
-      *>   -> OK  §7.3.11.3 2)  (Syntax rules)
+      *>   -> OK  §2023:7.3.11.3 2)  (Syntax rules)
       *> and the name may then be used wherever a literal of its
       *>   category is permitted:
       *>   cite.py --check 7.3.11.4 "compilation-variable-name-1 may be
       *>     used in the
       *>   compilation group in any compiler directive where a literal
       *>     of the category
-      *>   associated with the name is permitted"  -> OK  §7.3.11.4 1)
+      *>   associated with the name is permitted"  -> OK  §2023:7.3.11.4 1)
       *>     (General rules)
       *> Derivation of each expected line:
       *>   A V=2  V is 1, then "AS 2 OVERRIDE": GR3 sets V to 2

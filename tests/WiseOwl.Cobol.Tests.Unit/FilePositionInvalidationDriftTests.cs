@@ -14,11 +14,11 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 /// <remarks>
 /// <para>
-/// ISO §14.9.41.4 GR7 — "Following the unsuccessful execution of a START statement, the file position indicator is
-/// set to indicate that no valid record position has been established" — and §14.9.30.4 GR18, its READ twin ("Unless
+/// ISO §2023:14.9.41.4 GR7 — "Following the unsuccessful execution of a START statement, the file position indicator is
+/// set to indicate that no valid record position has been established" — and §2023:14.9.30.4 GR18, its READ twin ("Unless
 /// otherwise specified, at the completion of any unsuccessful execution of a READ statement, … the file position
 /// indicator is set to indicate that no valid record position has been established"), are unconditional on the KIND
-/// of failure. On the connector base that state is the <c>LastReadUnsuccessful</c> flag §9.1.13.7 item 6 reads back
+/// of failure. On the connector base that state is the <c>LastReadUnsuccessful</c> flag §2023:9.1.13.7 item 6 reads back
 /// as '46'; a keyed connector's indicator is a key value PLUS a validity bit (<c>_fpiValid</c>), which only its
 /// override of the <c>InvalidateFilePosition</c> virtual clears.
 /// </para>
@@ -96,7 +96,7 @@ public sealed class FilePositionInvalidationDriftTests
 
     /// <summary>The places in <paramref name="source"/> where a READ or START entry assigns <c>Status</c> itself —
     /// <c>return Status = …;</c> or <c>Status = …; return false;</c> — instead of returning through a terminal.
-    /// That is the shape that can report a failure without §14.9.30.4 GR18 / §14.9.41.4 GR7's invalidation.</summary>
+    /// That is the shape that can report a failure without §2023:14.9.30.4 GR18 / §2023:14.9.41.4 GR7's invalidation.</summary>
     internal static IEnumerable<string> EntryAssignsStatus(string source) =>
         from m in Methods(source).Where(IsReadOrStartEntry)
         from a in m.DescendantNodes().OfType<AssignmentExpressionSyntax>().Where(AssignsStatus)
@@ -161,7 +161,7 @@ public sealed class FilePositionInvalidationDriftTests
             .ToList();
         Assert.True(offenders.Count == 0,
             "A READ/START entry assigns Status itself, so a failing exit can skip the file position indicator's "
-            + "invalidation (§14.9.30.4 GR18 / §14.9.41.4 GR7) — return Unsuccessful(status) for a failure, "
+            + "invalidation (§2023:14.9.30.4 GR18 / §2023:14.9.41.4 GR7) — return Unsuccessful(status) for a failure, "
             + "ReadSucceeded/StartPositioned for a success:\n" + string.Join("\n", offenders));
 
         foreach (var (file, methods) in KnownEntries)
@@ -179,7 +179,7 @@ public sealed class FilePositionInvalidationDriftTests
         string fileConnector = IoSources().Single(s => s.File == "FileConnector.cs").Source;
         Assert.True(TheFailureTerminalInvalidates(fileConnector),
             "FileConnector.Unsuccessful must call InvalidateFilePosition() before it assigns Status "
-            + "(§14.9.30.4 GR18 / §14.9.41.4 GR7).");
+            + "(§2023:14.9.30.4 GR18 / §2023:14.9.41.4 GR7).");
 
         var offenders = ConnectorSources()
             .SelectMany(s => ImpureGuard(s.Source).Select(o => $"{s.File}: {o}"))
@@ -200,7 +200,7 @@ public sealed class FilePositionInvalidationDriftTests
             .ToList();
         Assert.True(offenders.Count == 0,
             "An unsuccessful READ/START sets the '46' flag by hand, skipping a keyed connector's validity bit "
-            + "(§14.9.41.4 GR7 / §14.9.30.4 GR18) — return Unsuccessful(status):\n" + string.Join("\n", offenders));
+            + "(§2023:14.9.41.4 GR7 / §2023:14.9.30.4 GR18) — return Unsuccessful(status):\n" + string.Join("\n", offenders));
         Assert.Contains(IoSources(), s => s.File == "FileConnector.cs"
             && s.Source.Contains("void InvalidateFilePosition() => LastReadUnsuccessful = true;", StringComparison.Ordinal));
     }

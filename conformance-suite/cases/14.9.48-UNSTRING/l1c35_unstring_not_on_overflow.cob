@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.48.4 GR17 — no overflow: ON OVERFLOW ignored, NOT ON
+      *> ISO §2023:14.9.48.4 GR17 — no overflow: ON OVERFLOW ignored, NOT ON
       *>   runs
       *> "If, at the time of execution of an UNSTRING statement, the
       *> conditions described in General rule 15 are not encountered,
@@ -20,13 +20,13 @@
       *> control is returned from imperative-statement-2, control is
       *>   then
       *> transferred to the end of the UNSTRING statement."
-      *> OK  §14.9.48.4 17)  (General rules)
+      *> OK  §2023:14.9.48.4 17)  (General rules)
       *> Sibling (the overflow branch, V5 only, for contrast):
-      *> OK  §14.9.48.4 15) b) "all receiving areas have been acted
+      *> OK  §2023:14.9.48.4 15) b) "all receiving areas have been acted
       *>   upon,
       *>     and the data item referenced by identifier-1 contains
       *>     characters that have not been examined"
-      *> OK  §14.9.48.4 16) e) "The NOT ON OVERFLOW phrase, if
+      *> OK  §2023:14.9.48.4 16) e) "The NOT ON OVERFLOW phrase, if
       *>   specified, is
       *>     ignored."
       *> GR13: P = initial value + characters examined; GR14: T =

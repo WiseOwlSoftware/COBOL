@@ -3,10 +3,10 @@
 namespace WiseOwl.Cobol.Runtime;
 
 /// <summary>
-/// ⛔ THE RETURNED VALUE OF A NUMERIC OR INTEGER FUNCTION, AS A DATA ITEM THAT DISPLAY SHOWS (ISO/IEC 1989:2023 §15.4 —
-/// "The evaluation of a function produces a returned value in a temporary elementary data item"; §15.4.1 — "When
+/// ⛔ THE RETURNED VALUE OF A NUMERIC OR INTEGER FUNCTION, AS A DATA ITEM THAT DISPLAY SHOWS (ISO/IEC 1989:2023 §2023:15.4 —
+/// "The evaluation of a function produces a returned value in a temporary elementary data item"; §2023:15.4.1 — "When
 /// native arithmetic is in effect, the characteristics and representation of the returned value are defined by the
-/// implementor"; §14.9.11.4 GR1 — "Any conversion of data required between literal-1 or the data item referenced by
+/// implementor"; §2023:14.9.11.4 GR1 — "Any conversion of data required between literal-1 or the data item referenced by
 /// identifier-1 and the device is defined by the implementor"; docs/CONFORMANCE.md DOC-A.1-92, kb/Work PB3514).
 /// <para>WHAT THE FIELD IS. A function's temporary has a DESCRIPTION - digit positions, fraction digits, a sign - and
 /// DISPLAY shows it exactly as it shows any other numeric item of that description
@@ -16,8 +16,8 @@ namespace WiseOwl.Cobol.Runtime;
 /// function's temporary, and it is one of THREE shapes:</para>
 /// <list type="bullet">
 ///   <item><b>The argument's own description</b> (<see cref="OfItem"/>, <see cref="OfLiteral"/>): ABS, MAX, MIN, an odd
-///         count's MEDIAN and a single argument's MEAN RETURN THE CONTENT of an argument (§15.7.1 for ABS, §15.59.4 1)
-///         and §15.63.4 1) for the selections), so the temporary is a copy of that argument's item: <c>FUNCTION MAX(U S)</c>
+///         count's MEDIAN and a single argument's MEAN RETURN THE CONTENT of an argument (§2023:15.7.1 for ABS, §2023:15.59.4 1)
+///         and §2023:15.63.4 1) for the selections), so the temporary is a copy of that argument's item: <c>FUNCTION MAX(U S)</c>
 ///         shows the greater item exactly as <c>DISPLAY</c> of that item does, and ABS keeps the argument's description with
 ///         the sign made positive.</item>
 ///   <item><b>The description of the value</b> (<see cref="OfValue"/>): every other exact function, and an arithmetic
@@ -28,9 +28,9 @@ namespace WiseOwl.Cobol.Runtime;
 ///         floating-point item has (kb/Work PB3505 declined GnuCOBOL's 100-digit float image).</item>
 /// </list>
 /// <para>⛔ THE SAME ITEM IS WHAT <c>FUNCTION LENGTH</c> AND <c>FUNCTION BYTE-LENGTH</c> MEASURE (<see cref="Length"/>, <see cref="ByteLength"/>, kb/Work PB3951):
-/// a function-identifier "references the unique data item that results from the evaluation of a function" (§8.4.3.2.1), so both
+/// a function-identifier "references the unique data item that results from the evaluation of a function" (§2023:8.4.3.2.1), so both
 /// functions measure the temporary by the description above and never a fixed width of the implementation's own. They measure it in
-/// different units: BYTE-LENGTH in bytes (§15.14.4 r1), LENGTH in national character positions for a usage-national item (§15.50.4 r2)
+/// different units: BYTE-LENGTH in bytes (§2023:15.14.4 r1), LENGTH in national character positions for a usage-national item (§2023:15.50.4 r2)
 /// and in alphanumeric character positions otherwise (r3). The two differ only for the copy of a USAGE NATIONAL argument.</para>
 /// <para>ONE struct carries all three so that a function nested in another function's argument list (<c>ABS(INTEGER(X))</c>,
 /// <c>MAX(ABS(X) 3)</c>) hands its CALLER its description and not only its value - the selection picks a description
@@ -73,7 +73,7 @@ public readonly struct FunctionValueField
         : this(shape, value, item, bytes, bytes, image) { }
 
     /// <summary>⛔ THE TEMPORARY'S LENGTH IN BYTES - what <c>FUNCTION BYTE-LENGTH</c> of the function call answers (ISO/IEC 1989:2023
-    /// §15.14.4 r1 - "the length of argument-1 in number of bytes"; §8.4.3.2.4 r1 - "A function-identifier references a temporary data
+    /// §2023:15.14.4 r1 - "the length of argument-1 in number of bytes"; §2023:8.4.3.2.4 r1 - "A function-identifier references a temporary data
     /// item"; docs/CONFORMANCE.md DOC-A.1-92, kb/Work PB3951). <c>FUNCTION LENGTH</c> reads <see cref="Length"/>, which is the same
     /// number for every temporary but the copy of a USAGE NATIONAL argument. It is the SAME item DISPLAY shows (<see cref="DeviceText"/>), so the two cannot
     /// disagree: a copy of an argument is the bytes of that argument's item (a packed argument's, a binary one's), an item the value
@@ -81,14 +81,14 @@ public readonly struct FunctionValueField
     /// binary64 result is the 8-byte floating-point item (the 100-digit image GnuCOBOL gives it is not copied, kb/Work PB3505).</summary>
     public long ByteLength => _bytes;
 
-    /// <summary>⛔ THE TEMPORARY'S LENGTH IN POSITIONS - what <c>FUNCTION LENGTH</c> of the function call answers (ISO/IEC 1989:2023 §15.50.4 r2 - a
+    /// <summary>⛔ THE TEMPORARY'S LENGTH IN POSITIONS - what <c>FUNCTION LENGTH</c> of the function call answers (ISO/IEC 1989:2023 §2023:15.50.4 r2 - a
     /// usage-national item is measured in national character positions; r3 - any other item that is neither national nor boolean in alphanumeric
     /// character positions; kb/Work PB3951). It differs from <see cref="ByteLength"/> for exactly one temporary, the copy of a USAGE NATIONAL
     /// argument (a position is two bytes); the two are stated by the compiler from the argument item's own facts (<see cref="OfItem"/>).</summary>
     public long Length => _positions;
 
     /// <summary>The temporary is a copy of the data item <paramref name="item"/> (an argument that is a field). <paramref name="positions"/> and
-    /// <paramref name="bytes"/> are the item's own length by §15.50.4 and §15.14.4 - the compiler's one reading of the item
+    /// <paramref name="bytes"/> are the item's own length by §2023:15.50.4 and §2023:15.14.4 - the compiler's one reading of the item
     /// (<c>ItemLength.Positions</c>, <c>DataItem.ByteWidth</c>), never re-derived from the profile, which does not say a national item's
     /// position is two bytes.</summary>
     public static FunctionValueField OfItem(CobolDec value, in NumProfile item, int positions, int bytes) => new(Shape.Item, value, item, positions, bytes);
@@ -152,7 +152,7 @@ public readonly struct FunctionValueField
     /// <summary>This temporary's value exactly: its own exact value, or its SDIDI value at its own exponent.</summary>
     private CobolExact Exact() => _shape == Shape.Exact ? _exact : CobolExact.FromDec(_value);
 
-    /// <summary>⛔ THE ONE ORDERING OF TWO TEMPORARIES (§8.8.4.2.4 - a comparison of the algebraic values; §15.59.4, §15.63.4, §15.61.4
+    /// <summary>⛔ THE ONE ORDERING OF TWO TEMPORARIES (§2023:8.8.4.2.4 - a comparison of the algebraic values; §2023:15.59.4, §2023:15.63.4, §2023:15.61.4
     /// compare "according to the rules for simple conditions"). Two temporaries neither of which is a wide value are ordered by their
     /// SDIDI values, which ARE their values. ⛔ When EITHER is a wide value the pair is ordered by the EXACT values, never by the wide
     /// value's 34-digit image (kb/Work PB3953): the image orders it only against another 34-digit image, and the other temporary may
@@ -184,7 +184,7 @@ public readonly struct FunctionValueField
     public static FunctionValueField OfFloatItem(CobolDec exactValue, in NumProfile item, string image, int bytes) =>
         new(Shape.Float, exactValue, item, bytes, image);
 
-    /// <summary>The same description holding the magnitude of the value (§15.7.1 - ABS returns the absolute value of its
+    /// <summary>The same description holding the magnitude of the value (§2023:15.7.1 - ABS returns the absolute value of its
     /// argument; GnuCOBOL stores it in a copy of the argument's item, so the sign stays a position of the item and shows
     /// <c>+</c> in a signed one).</summary>
     public FunctionValueField Abs() => _shape switch
@@ -194,18 +194,18 @@ public readonly struct FunctionValueField
         _ => new(_shape, new CobolDec(Int128.Abs(_value.Sig), _value.Exp), _item, _positions, _bytes),
     };
 
-    /// <summary>§15.59.4 1) - the content of the argument having the greatest value; 2) - the leftmost one when several are equal
+    /// <summary>§2023:15.59.4 1) - the content of the argument having the greatest value; 2) - the leftmost one when several are equal
     /// (a later argument of equal value does not replace it, so the temporary is the first one's item).</summary>
     public static FunctionValueField Max(params FunctionValueField[] arguments)
     {
-        CobolIntrinsics.RequireArguments(arguments.Length, "MAX");   // an ALL subscript over no occurrence (§15.3)
+        CobolIntrinsics.RequireArguments(arguments.Length, "MAX");   // an ALL subscript over no occurrence (§2023:15.3)
         FunctionValueField best = arguments[0];
         for (int i = 1; i < arguments.Length; i++)
             if (Compare(arguments[i], best) > 0) best = arguments[i];
         return best;
     }
 
-    /// <summary>§15.63.4 1) - the content of the argument having the least value; 2) - the leftmost one when several are equal.</summary>
+    /// <summary>§2023:15.63.4 1) - the content of the argument having the least value; 2) - the leftmost one when several are equal.</summary>
     public static FunctionValueField Min(params FunctionValueField[] arguments)
     {
         CobolIntrinsics.RequireArguments(arguments.Length, "MIN");
@@ -215,14 +215,14 @@ public readonly struct FunctionValueField
         return best;
     }
 
-    /// <summary>§15.61.4 - an odd count returns the content of the middle argument of the sorted list (equal values keep their
+    /// <summary>§2023:15.61.4 - an odd count returns the content of the middle argument of the sorted list (equal values keep their
     /// written order, so the first of a run is the earlier one); an even count returns the arithmetic mean of the two middle
     /// values, a value with no item of its own.</summary>
     public static FunctionValueField Median(params FunctionValueField[] arguments)
     {
         (FunctionValueField low, FunctionValueField high, bool even) = MedianMiddles(arguments);
         if (!even) return low;
-        // ⛔ THE MEAN IS THE ONE VALUE EVERY NATIVE CHANNEL GIVES (§15.61.4 2), §15.4.1; kb/Work PB3953, PB4750, PB4826 review R1-2, PB4859),
+        // ⛔ THE MEAN IS THE ONE VALUE EVERY NATIVE CHANNEL GIVES (§2023:15.61.4 2), §2023:15.4.1; kb/Work PB3953, PB4750, PB4826 review R1-2, PB4859),
         // so DISPLAY shows what COMPUTE stores. When a MIDDLE value is binary64 the function's equivalent expression is evaluated in
         // binary64 (docs/CONFORMANCE.md DOC-A.1-92b), as the renderer's float lane and CobolIntrinsics.MedianBinary64Exact form it: the mean
         // of the two middles, each as its double; a binary64 elsewhere in the list is no operand of the mean. Otherwise it is the exact sum
@@ -237,8 +237,8 @@ public readonly struct FunctionValueField
     /// <summary>This temporary's value as a binary64, nearest-even (a float temporary's own double, whose SDIDI lift round-trips).</summary>
     private double Double() => FloatResultant.FromExact(Exact(), CobolRounding.NearestEven, single: false);
 
-    /// <summary>MEDIAN under a STANDARD arithmetic mode (§15.61.4 2): the mean of the two middle values is the arithmetic expression
-    /// <c>(A + B) / 2</c> whose every step is an SDIDI (§15.4.1), rounded by the mode's intermediate rounding
+    /// <summary>MEDIAN under a STANDARD arithmetic mode (§2023:15.61.4 2): the mean of the two middle values is the arithmetic expression
+    /// <c>(A + B) / 2</c> whose every step is an SDIDI (§2023:15.4.1), rounded by the mode's intermediate rounding
     /// (<paramref name="mode"/>) exactly as <c>CobolIntrinsics.MedianDec</c> forms it for COMPUTE, so DISPLAY shows what COMPUTE stores
     /// (kb/Work PB4827, review R2-1: the exact mean of <see cref="Median"/> showed a 35th digit the standard form cannot hold).</summary>
     public static FunctionValueField MedianStandard(CobolRounding mode, params FunctionValueField[] arguments)
@@ -265,7 +265,7 @@ public readonly struct FunctionValueField
     }
 
     /// <summary>The characters DISPLAY writes for this temporary. <paramref name="commaMode"/> is the unit's decimal separator
-    /// (§12.3.7.4 GR14 a); a binary64 image keeps its period, as a floating-point item's does.</summary>
+    /// (§2023:12.3.7.4 GR14 a); a binary64 image keeps its period, as a floating-point item's does.</summary>
     public string DeviceText(bool commaMode) => _shape switch
     {
         Shape.Float => _image!,

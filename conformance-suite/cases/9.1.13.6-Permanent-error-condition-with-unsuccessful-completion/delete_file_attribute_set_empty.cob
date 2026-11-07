@@ -8,7 +8,7 @@
       *>---
        IDENTIFICATION DIVISION.
        PROGRAM-ID. DELFAES19.
-      *> §14.9.10.4 GR19: "The implementor shall define which of the
+      *> §2023:14.9.10.4 GR19: "The implementor shall define which of the
       *> fixed-file attributes are validated during the execution of the
       *> DELETE FILE statement." WiseOwl COBOL's definition is THE EMPTY SET
       *> (docs/CONFORMANCE.md §7, Annex A.1 item 50 — required and
@@ -25,7 +25,7 @@
       *> through a connector whose attributes contradict the physical
       *> file's must still succeed.
       *>
-      *> F-KILL contradicts F-MAKE in TWO of the attributes §9.1.6 names
+      *> F-KILL contradicts F-MAKE in TWO of the attributes §2023:9.1.6 names
       *> as fixed: the ORGANIZATION ("the primary attribute") and the
       *> logical record size in bytes (20 vs 40).
        ENVIRONMENT DIVISION.
@@ -49,7 +49,7 @@
        PROCEDURE DIVISION.
        MAIN.
       *> Create the physical file through the 20-byte record-sequential
-      *> connector. §9.1.13.2: successful completion is '00'.
+      *> connector. §2023:9.1.13.2: successful completion is '00'.
            OPEN OUTPUT F-MAKE. DISPLAY "OPENOUT=" MK-ST.
            MOVE "EMPTY ATTRIBUTE SET " TO MK-REC. WRITE MK-REC.
            DISPLAY "WRITE=" MK-ST.
@@ -61,7 +61,7 @@
            DELETE FILE F-KILL. DISPLAY "DELMISMATCH=" KL-ST.
       *> The deletion was real, not merely reported: GR14's '05' is the
       *> SUCCESSFUL status for an absent file, and an OPEN INPUT of a
-      *> non-optional absent file is '35' (§9.1.13.4).
+      *> non-optional absent file is '35' (§2023:9.1.13.4).
            DELETE FILE F-KILL. DISPLAY "DELAGAIN=" KL-ST.
            OPEN INPUT F-MAKE. DISPLAY "OPENGONE=" MK-ST.
            STOP RUN.

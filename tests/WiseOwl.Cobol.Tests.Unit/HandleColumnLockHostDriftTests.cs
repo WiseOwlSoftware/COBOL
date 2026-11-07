@@ -7,7 +7,7 @@ using WiseOwl.Cobol.Tests.Shared;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ WINDOWS ARBITRATES A SECOND RUN UNIT BY TABLE 19 TOO, NOT BY ITS SHARE MODES ALONE (kb/Work PB3482). ISO §9.1.15 2):
+/// ⛔ WINDOWS ARBITRATES A SECOND RUN UNIT BY TABLE 19 TOO, NOT BY ITS SHARE MODES ALONE (kb/Work PB3482). ISO §2023:9.1.15 2):
 /// <i>"The sharing with read only mode restricts concurrent access to a physical file through file connectors other than
 /// this one, to input mode"</i> — and an INPUT connector can still owe writes, which a share mode cannot say, so a
 /// <see cref="FileShare.Read"/> connector was refused ('61') by the HOST beside an INPUT opener that Table 19 prints
@@ -79,7 +79,7 @@ public sealed class HandleColumnLockHostDriftTests
         finally { Clean(dir); }
     }
 
-    /// <summary>§9.1.15: <i>"The file lock is removed by an explicit or implicit CLOSE statement"</i>, so the refusal is not
+    /// <summary>§2023:9.1.15: <i>"The file lock is removed by an explicit or implicit CLOSE statement"</i>, so the refusal is not
     /// sticky: the holder's disposal gives its column back, and disposing twice is harmless.</summary>
     [Fact]
     public void TheCloseGivesTheColumnBack()
@@ -128,7 +128,7 @@ public sealed class HandleColumnLockHostDriftTests
     /// <summary>⛔ A KEPT LOCK'S RE-OPEN UNDER SHARING WITH NO OTHER GIVES ITS HOLDER HANDLE WAY (the class remarks of
     /// <see cref="HandleColumnLockHost"/>): the connector's own <see cref="FileShare.None"/> handle, which the holder's read
     /// handle would refuse, then opens; but only after the NO OTHER row's test passed — another holder of any column refuses
-    /// the request and leaves the kept column exactly as it was (§14.9.27.4 GR25) — and <see cref="RunUnitFileLock.Revert"/>
+    /// the request and leaves the kept column exactly as it was (§2023:14.9.27.4 GR25) — and <see cref="RunUnitFileLock.Revert"/>
     /// publishes the kept column again once the connector's handle is gone, so a request it refuses is refused again.</summary>
     [Fact]
     public void ANoOtherReplacementGivesWayToTheShareModeOnlyWhenTheTableAdmitsIt()
@@ -291,7 +291,7 @@ public sealed class HandleColumnLockHostDriftTests
 
     /// <summary>The owed-writes byte is one fact about the holder and changes no answer of the table: for every request, a
     /// holder that owes writes (an INPUT re-OPEN under ALL OTHER) refuses it exactly as the same holder that owes none does
-    /// (§14.9.27.4 GR4, Table 19 is the arbiter between connectors).</summary>
+    /// (§2023:14.9.27.4 GR4, Table 19 is the arbiter between connectors).</summary>
     [Theory]
     [MemberData(nameof(EveryRequest))]
     public void OwingWritesChangesNoAnswerOfTheTable(FileSharing sharing, FileOpenMode mode)
@@ -390,10 +390,10 @@ public sealed class HandleColumnLockHostDriftTests
     /// range after each collision with a holder or a tester, a bounded number of times, and a range an outside program
     /// holds exclusively collides every one. With no held column Table 19 refuses it, the outcome is
     /// <see cref="RunUnitFileLock.Outcome.Unavailable"/> (the OPEN goes on without a column; the share modes it falls back on
-    /// are the host's own), never <see cref="RunUnitFileLock.Outcome.Refused"/> ('61' is another connector's, §9.1.13.9 1)) and
+    /// are the host's own), never <see cref="RunUnitFileLock.Outcome.Refused"/> ('61' is another connector's, §2023:9.1.13.9 1)) and
     /// never an exception; a first request leaves nothing published (no handle stays on the file: a
     /// <see cref="FileShare.None"/> open is admitted), and a superseding request leaves the superseded column standing exactly
-    /// as it was (§14.9.27.4 GR25, <i>"If the execution of the OPEN statement is unsuccessful, the file is not affected"</i>),
+    /// as it was (§2023:14.9.27.4 GR25, <i>"If the execution of the OPEN statement is unsuccessful, the file is not affected"</i>),
     /// refusing what it refused, and the outside program's range given back, the same requests are held. A held column the
     /// request IS refused by turns the same exhaustion into '61'
     /// (<see cref="APublicationThatEveryTryCollidesInIsRefusedByAHeldColumnTable19Refuses"/>, kb/Work PB3518).</summary>
@@ -438,12 +438,12 @@ public sealed class HandleColumnLockHostDriftTests
     }
 
     /// <summary>⛔ AN EXHAUSTED PUBLICATION DOES NOT HIDE A CONFLICT THE HOST CAN SEE (kb/Work PB3518, the review lead of
-    /// PB3498): Table 19 (§14.9.27.4) prints <i>Unsuccessful open</i> for a SHARING WITH ALL OTHER I-O request beside a
-    /// READ ONLY INPUT connector, and §9.1.13.9 1) makes that '61'. When every try of the request's own publication collides
+    /// PB3498): Table 19 (§2023:14.9.27.4) prints <i>Unsuccessful open</i> for a SHARING WITH ALL OTHER I-O request beside a
+    /// READ ONLY INPUT connector, and §2023:9.1.13.9 1) makes that '61'. When every try of the request's own publication collides
     /// (an outside program holds its column's range exclusively), the request cannot be held, but the column the other run
     /// unit has published is still there to be seen, so the answer is <see cref="RunUnitFileLock.Outcome.Refused"/> and
     /// not <see cref="RunUnitFileLock.Outcome.Unavailable"/>, which would let the OPEN go on beside a connector the table
-    /// refuses it. The same holds for a superseding request (the kept column stands, §14.9.27.4 GR25 <i>"the file is not
+    /// refuses it. The same holds for a superseding request (the kept column stands, §2023:14.9.27.4 GR25 <i>"the file is not
     /// affected"</i>) and for an owed-writes byte that cannot be published after the column was (the column byte is given
     /// back). A request nothing refuses stays unavailable
     /// (<see cref="APublicationThatEveryTryCollidesInIsUnavailableAndLeavesWhatWasHeldStanding"/>).</summary>
@@ -501,11 +501,11 @@ public sealed class HandleColumnLockHostDriftTests
 
     /// <summary>⛔ A HANDLE THAT CARRIES NO BYTE-RANGE LOCK IS UNAVAILABLE, NEVER REFUSED, WHATEVER IS HELD (kb/Work PB3518, review
     /// round 1): <see cref="IColumnLockHost.Establish"/> answers <i>a host failure to publish or test</i> as
-    /// <see cref="RunUnitFileLock.Outcome.Unavailable"/>, and §9.1.13.9 1) makes '61' another file connector's conflict, which a
+    /// <see cref="RunUnitFileLock.Outcome.Unavailable"/>, and §2023:9.1.13.9 1) makes '61' another file connector's conflict, which a
     /// filesystem that cannot lock proves nothing of. The publication loop tells the two failures apart
     /// (<see cref="RegionLockResult.Unavailable"/> at the first try, <see cref="RegionLockResult.Held"/> only when every one of
     /// its tries collided), and only the second goes on to look at the held columns: with a READ ONLY INPUT holder that
-    /// Table 19 refuses a SHARING WITH ALL OTHER I-O request (§14.9.27.4), the exhausted publication is Refused and the
+    /// Table 19 refuses a SHARING WITH ALL OTHER I-O request (§2023:14.9.27.4), the exhausted publication is Refused and the
     /// unlockable handle is Unavailable.</summary>
     [Fact]
     public void AHandleThatCarriesNoLockIsUnavailableWhileAnExhaustedPublicationBesideAHolderIsRefused()
@@ -544,8 +544,8 @@ public sealed class HandleColumnLockHostDriftTests
     /// ADDED (kb/Work PB3499, review round 1, MANDATORY-PRACTICES I11 exception path): the request publishes its column first
     /// and the owed-writes byte second, so an outside program that holds the whole owed-writes range exclusively collides every
     /// try of the second publication. The outcome is <see cref="RunUnitFileLock.Outcome.Unavailable"/> (a lock this host cannot
-    /// hold, never '61' for the failure itself: §9.1.13.9 1) names another file connector; a held column Table 19 refuses is
-    /// a '61' of its own, <see cref="APublicationThatEveryTryCollidesInIsRefusedByAHeldColumnTable19Refuses"/>), and it leaves nothing behind (§14.9.27.4 GR25, <i>"If the
+    /// hold, never '61' for the failure itself: §2023:9.1.13.9 1) names another file connector; a held column Table 19 refuses is
+    /// a '61' of its own, <see cref="APublicationThatEveryTryCollidesInIsRefusedByAHeldColumnTable19Refuses"/>), and it leaves nothing behind (§2023:14.9.27.4 GR25, <i>"If the
     /// execution of the OPEN statement is unsuccessful, the file is not affected"</i>): a first request leaves no stray byte in
     /// its column's range and no handle on the file, and a superseding request leaves the superseded column standing, the
     /// column it asked for unpublished.</summary>

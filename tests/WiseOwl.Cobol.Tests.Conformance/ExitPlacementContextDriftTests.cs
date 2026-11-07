@@ -5,20 +5,20 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// ⛔ THE §14.9.14.3 PLACEMENT MATRIX — the drift net under kb/Work PB403's mechanism: every EXIT format's
+/// ⛔ THE §2023:14.9.14.3 PLACEMENT MATRIX — the drift net under kb/Work PB403's mechanism: every EXIT format's
 /// enclosing-CONTEXT rule, asked of the ONE bind-position probe (<c>BinderContext.Enclosing</c>), with the
 /// expected verdict COMPUTED FROM THE RULE TEXT and never from an oracle.
 ///
 /// <para>The rules, each <c>cite.py --check</c>ed:
 /// <list type="bullet">
 ///   <item>SR7 — "An EXIT PROGRAM statement may be specified only in a program procedure division"; the source
-///         elements that may carry a Format-1/2 procedure division are §14.2.2 SR10's five.</item>
+///         elements that may carry a Format-1/2 procedure division are §2023:14.2.2 SR10's five.</item>
 ///   <item>SR8 — "The EXIT PERFORM statement may be specified only in an inline or exception-checking PERFORM
 ///         statement. The CYCLE phrase shall not be specified within an exception-checking PERFORM
 ///         statement."</item>
 ///   <item>SR9 — "The EXIT statement with the SECTION phrase may be specified only in a section."</item>
 ///   <item>SR10 — "The EXIT statement with the PARAGRAPH phrase may be specified only in a paragraph." ⛔ It
-///         admits no violating program: §14.4.3 makes sentences written after a section header (with no
+///         admits no violating program: §2023:14.4.3 makes sentences written after a section header (with no
 ///         paragraph-name) a paragraph too, so the only checkable half is that the admitted case is
 ///         ADMITTED — which is what the SR10 fact below pins.</item>
 /// </list></para>
@@ -30,7 +30,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// tested at the EXIT site. Each row below names the enclosing context it varies, so adding a sixth placement
 /// rule with no asker shows up as a missing row rather than as silence.</para>
 ///
-/// <para>The last class of facts pins the EXTRACTION itself: RESUME's §14.9.33.3 SR1/SR2 verdicts are unchanged
+/// <para>The last class of facts pins the EXTRACTION itself: RESUME's §2023:14.9.33.3 SR1/SR2 verdicts are unchanged
 /// by moving its "am I in a WHEN phrase / which declarative?" question onto the shared probe. RESUME was the one
 /// verb in the family that already asked, so it is the control.</para>
 /// </summary>
@@ -40,23 +40,23 @@ public sealed class ExitPlacementContextDriftTests
     private const string ExitPerformCycleInF3 = "COBOL1604";   // SR8 sentence 2
     private const string ResumePlacement = "COBOL0712";
     private const string ResumeOperandInWhen = "COBOL1610";
-    private const string ReturnInGlobalDecl = "COBOL2102";   // §14.9.14.3 SR2 / §14.9.18.3 SR1
-    private const string RaisingLastOutOfPlace = "COBOL2103";   // §14.9.14.3 SR6 / §14.9.18.3 SR5
+    private const string ReturnInGlobalDecl = "COBOL2102";   // §2023:14.9.14.3 SR2 / §2023:14.9.18.3 SR1
+    private const string RaisingLastOutOfPlace = "COBOL2103";   // §2023:14.9.14.3 SR6 / §2023:14.9.18.3 SR5
 
     // ── SR8 sentence 1: "only in an inline or exception-checking PERFORM statement" ──────────────────────
 
     /// <summary>Every position that IS "an inline or exception-checking PERFORM statement" — imperative-statement-1
-    /// of either format, a WHEN / WHEN OTHER handler body, and the FINALLY phrase (§14.9.14.4 GR4 gives an EXIT
+    /// of either format, a WHEN / WHEN OTHER handler body, and the FINALLY phrase (§2023:14.9.14.4 GR4 gives an EXIT
     /// PERFORM written in any of them the same meaning: the implicit CONTINUE at the PERFORM's end).</summary>
     [Theory]
     [InlineData("PBEP01", "PERFORM 2 TIMES\n    EXIT PERFORM\nEND-PERFORM")]
     [InlineData("PBEP02", "PERFORM UNTIL W-N > 2\n    ADD 1 TO W-N\n    EXIT PERFORM\nEND-PERFORM")]
     [InlineData("PBEP03", "PERFORM VARYING W-N FROM 1 BY 1 UNTIL W-N > 2\n    EXIT PERFORM\nEND-PERFORM")]
-    // A nested inline PERFORM: the EXIT PERFORM belongs to the INNER one (§14.9.14.4 GR5 a) "the most closely
+    // A nested inline PERFORM: the EXIT PERFORM belongs to the INNER one (§2023:14.9.14.4 GR5 a) "the most closely
     // preceding, and as yet unterminated, inline PERFORM statement") — either way it is inside one.
     [InlineData("PBEP04", "PERFORM 2 TIMES\n    PERFORM 2 TIMES\n        EXIT PERFORM\n    END-PERFORM\nEND-PERFORM")]
     // ⛔ EVERY FORMAT-3 ROW BELOW WRITES A BARE `PERFORM` HEAD, AND HAS TO (kb/Work PB431). These rows used to
-    // spell `PERFORM UNTIL W-N > 2 … WHEN EC-SIZE …`, which §14.9.28.2 Format 3 does not print: its head is
+    // spell `PERFORM UNTIL W-N > 2 … WHEN EC-SIZE …`, which §2023:14.9.28.2 Format 3 does not print: its head is
     // [ WITH LOCATION ] and nothing else, so an exception-checking PERFORM carries NO loop-control phrase. The
     // until-phrase was incidental scaffolding — these rows measure where EXIT PERFORM and RESUME may be written,
     // not how the PERFORM repeats — and it compiled only because the Format-3 binder silently dropped every
@@ -81,7 +81,7 @@ public sealed class ExitPlacementContextDriftTests
         Assert.True(ok, string.Join("\n", diagnostics));
     }
 
-    /// <summary>Every position that is NOT one — each is a §14.9.14.3 SR8 violation, and each of them compiled
+    /// <summary>Every position that is NOT one — each is a §2023:14.9.14.3 SR8 violation, and each of them compiled
     /// CLEAN before PB403. The first row is the one that HUNG: the emitted <c>break;</c> left the dispatcher's
     /// <c>switch (__pc)</c> without advancing <c>__pc</c>, so the paragraph ran again, forever.</summary>
     [Theory]
@@ -110,7 +110,7 @@ public sealed class ExitPlacementContextDriftTests
     // ── SR8 sentence 2: "The CYCLE phrase shall not be specified within an exception-checking PERFORM" ────
 
     /// <summary>CYCLE is measured against the NEAREST enclosing PERFORM, because that is the one it would cycle
-    /// (§14.9.14.4 GR5 b). So it is legal in an ordinary inline PERFORM even when that PERFORM is itself written
+    /// (§2023:14.9.14.4 GR5 b). So it is legal in an ordinary inline PERFORM even when that PERFORM is itself written
     /// inside an exception-checking one — the row that a "does any ancestor check exceptions?" reading would get
     /// wrong.</summary>
     [Theory]
@@ -155,12 +155,12 @@ public sealed class ExitPlacementContextDriftTests
         Assert.True(ok, string.Join("\n", diagnostics));
     }
 
-    /// <summary>SR7's program-PROTOTYPE arm, pinned for real now that §11.10.2 Format 2 parses (kb/Work PB894 —
-    /// this fact used to pin the COBOL0901 parse refusal so that closing the gap would be loud). §14.2.2 SR10's
+    /// <summary>SR7's program-PROTOTYPE arm, pinned for real now that §2023:11.10.2 Format 2 parses (kb/Work PB894 —
+    /// this fact used to pin the COBOL0901 parse refusal so that closing the gap would be loud). §2023:14.2.2 SR10's
     /// fifth source element is a program prototype definition and its procedure division is a PROGRAM's, so
-    /// §14.9.14.3 SR7 ("An EXIT PROGRAM statement may be specified only in a program procedure division") does NOT
+    /// §2023:14.9.14.3 SR7 ("An EXIT PROGRAM statement may be specified only in a program procedure division") does NOT
     /// refuse EXIT PROGRAM there — <c>SourceElementKind.ProgramPrototype</c> is admitted beside
-    /// <c>Program</c>. What refuses it is §10.6.2 SR4 f), "The procedure division shall contain only a procedure
+    /// <c>Program</c>. What refuses it is §2023:10.6.2 SR4 f), "The procedure division shall contain only a procedure
     /// division header": the statement is not an SR7 placement error but a prototype-body error (COBOL2272).
     /// Both halves are asserted, so neither can hold for the wrong reason.</summary>
     [Fact]
@@ -188,7 +188,7 @@ public sealed class ExitPlacementContextDriftTests
         EditionHarness.AssertNoDiagnostic(diagnostics, ExitPlacement);
     }
 
-    /// <summary>The three §14.2.2 SR10 source elements that are NOT a program: a function definition, a function
+    /// <summary>The three §2023:14.2.2 SR10 source elements that are NOT a program: a function definition, a function
     /// prototype definition and a method definition. Exactly ONE of the three (the method) was refused before
     /// PB403 — a function definition's EXIT PROGRAM was accepted AND handed the program-activation machinery
     /// (<c>__asCalled</c> + <c>ProgramReturn</c>).</summary>
@@ -222,14 +222,14 @@ public sealed class ExitPlacementContextDriftTests
 
     // ── SR9 / SR10: the Format-4 procedure rules ─────────────────────────────────────────────────────────
 
-    /// <summary>SR9's only violating position: a paragraph that precedes every section header (§14.4.2 — a
+    /// <summary>SR9's only violating position: a paragraph that precedes every section header (§2023:14.4.2 — a
     /// section is a section header plus its paragraphs), so there is no current section.</summary>
     [Fact]
     public void ExitSection_OutsideEverySection_IsRejected() =>
         EditionHarness.AssertHasDiagnostic(EditionHarness.GetDiagnostics(MainProgram("PBES01", "EXIT SECTION"), 2023),
             ExitPlacement);
 
-    /// <summary>SR10 admits no violating program — §14.4.3 makes the sentences written directly after a section
+    /// <summary>SR10 admits no violating program — §2023:14.4.3 makes the sentences written directly after a section
     /// header a (paragraph-name-omitted) PARAGRAPH — so the checkable half is that EXIT PARAGRAPH is accepted
     /// there. A screen for SR10 could only ever reject this legal program.</summary>
     [Fact]
@@ -249,13 +249,13 @@ public sealed class ExitPlacementContextDriftTests
             """;
         var (ok, stdout, detail) = EditionHarness.CompileAndRun(src, 2023);
         Assert.True(ok, detail);
-        // §14.9.14.4 GR6 — control passes to an implicit CONTINUE after the paragraph's last explicit statement.
+        // §2023:14.9.14.4 GR6 — control passes to an implicit CONTINUE after the paragraph's last explicit statement.
         Assert.Equal("A", stdout.Replace("\r\n", "\n").TrimEnd('\n'));
     }
 
     // ── The extraction's own control: RESUME's verdicts are unchanged ────────────────────────────────────
 
-    /// <summary>§14.9.33.3 SR1 — RESUME "may be specified only in a declarative or in an imperative statement in
+    /// <summary>§2023:14.9.33.3 SR1 — RESUME "may be specified only in a declarative or in an imperative statement in
     /// a WHEN phrase of an exception-checking PERFORM statement. In the latter case, the NEXT STATEMENT phrase
     /// shall be specified." RESUME was the ONE verb of the placement family that already asked "where am I
     /// bound?", so these rows are the regression net for moving that question onto the shared probe: the WHEN
@@ -286,7 +286,7 @@ public sealed class ExitPlacementContextDriftTests
             MainProgram("PBRS06", "PERFORM\n    ADD 1 TO W-N\n  WHEN EC-SIZE\n    RESUME AT MAIN-PARA\nEND-PERFORM"), 2023),
             ResumeOperandInWhen);
 
-    /// <summary>The declarative arm of RESUME's SR1, and §14.9.33.3 SR2's GLOBAL refusal beside it — the two
+    /// <summary>The declarative arm of RESUME's SR1, and §2023:14.9.33.3 SR2's GLOBAL refusal beside it — the two
     /// verdicts that come from the probe's declarative lookup, which is now the ONE copy of that lookup.</summary>
     [Theory]
     [InlineData("PBRS07", false, null)]
@@ -298,7 +298,7 @@ public sealed class ExitPlacementContextDriftTests
         else EditionHarness.AssertHasDiagnostic(diagnostics, expected);
     }
 
-    // ── §14.9.14.3 SR2 / §14.9.18.3 SR1 — the GLOBAL-declarative prohibition, over TWO verbs ─────────────
+    // ── §2023:14.9.14.3 SR2 / §2023:14.9.18.3 SR1 — the GLOBAL-declarative prohibition, over TWO verbs ─────────────
     //
     // "The {EXIT | GOBACK} statement shall not be specified in a declarative procedure for which the GLOBAL
     // phrase is specified in the associated USE statement." One sentence, printed twice under two ordinals, and
@@ -321,18 +321,18 @@ public sealed class ExitPlacementContextDriftTests
         else EditionHarness.AssertHasDiagnostic(diagnostics, expected);
     }
 
-    // ── The LAST phrase's position: §14.9.14.3 SR6 and §14.9.18.3 SR5 ───────────────────────────────────
+    // ── The LAST phrase's position: §2023:14.9.14.3 SR6 and §2023:14.9.18.3 SR5 ───────────────────────────────────
     //
     // ⚠ The two clauses word the SAME rule differently, and each fragment below is quoted from its own:
-    //   §14.9.14.3 SR6 — "The LAST phrase may be specified only in a declarative procedure or a WHEN phrase
+    //   §2023:14.9.14.3 SR6 — "The LAST phrase may be specified only in a declarative procedure or a WHEN phrase
     //                     in a PERFORM statement."
-    //   §14.9.18.3 SR5 — "The LAST phrase may be specified only in a declarative procedure or WHEN phrase of
+    //   §2023:14.9.18.3 SR5 — "The LAST phrase may be specified only in a declarative procedure or WHEN phrase of
     //                     a PERFORM statement."
     //
-    // The same two positions §14.9.33.3 SR1 names for RESUME, over the RAISING LAST phrase of two more verbs,
+    // The same two positions §2023:14.9.33.3 SR1 names for RESUME, over the RAISING LAST phrase of two more verbs,
     // through the SAME EnclosingContext predicate (InDeclarativeOrPerformWhen). Before kb/Work PB410 the rule
     // was enforced nowhere it applies; the WHEN-phrase half of the admitted set is pinned in
-    // GobackStatusArmParityTests, where both arms of the §14.9.18.4 GR2/GR4 fork are compared.
+    // GobackStatusArmParityTests, where both arms of the §2023:14.9.18.4 GR2/GR4 fork are compared.
 
     /// <summary>A declarative procedure IS one of the two admitted positions, for both verbs.</summary>
     [Theory]
@@ -357,16 +357,16 @@ public sealed class ExitPlacementContextDriftTests
         => EditionHarness.AssertHasDiagnostic(
             EditionHarness.GetDiagnostics(MainProgram(pid, body), 2023), RaisingLastOutOfPlace);
 
-    // ── §14.9.18.4 GR6 — the RUN-TIME half of the pair, over LEGAL source ────────────────────────────────
+    // ── §2023:14.9.18.4 GR6 — the RUN-TIME half of the pair, over LEGAL source ────────────────────────────────
 
     /// <summary>"If a GOBACK statement is executed within the RANGE of a declarative procedure whose USE
     /// statement contains the GLOBAL phrase and that USE statement is specified in the same program as the
     /// GOBACK statement, the EC-FLOW-GLOBAL-GOBACK exception condition is set to exist." The GOBACK here is
     /// written in an ORDINARY paragraph that the global declarative PERFORMs — SR1 does not reach it, so this is
     /// legal source and GR6 alone governs it. Table 13 makes the condition Fatal and there is no applicable USE,
-    /// so §14.6.13.1.3 rule 7 terminates the run unit abnormally; the declarative's statement AFTER the PERFORM
-    /// must therefore not run. With checking OFF the condition is not raised at all (§14.6.13.1.1) and the
-    /// GOBACK proceeds — which in this main program is a STOP (§14.9.18.4 GR3), so the output is the same
+    /// so §2023:14.6.13.1.3 rule 7 terminates the run unit abnormally; the declarative's statement AFTER the PERFORM
+    /// must therefore not run. With checking OFF the condition is not raised at all (§2023:14.6.13.1.1) and the
+    /// GOBACK proceeds — which in this main program is a STOP (§2023:14.9.18.4 GR3), so the output is the same
     /// prefix and the exit code is what distinguishes them.</summary>
     [Theory]
     [InlineData("PBG601", ">>TURN EC-FLOW-GLOBAL-GOBACK CHECKING ON\n", false)]
@@ -406,7 +406,7 @@ public sealed class ExitPlacementContextDriftTests
         var (exit, stdout, detail) = new WiseOwlCobolCompiler(2023).CompileAndRunExit(src);
         Assert.Equal(ok, exit == 0);
         // Either way the declarative's PERFORM reaches GB-P and the GOBACK never returns to it: raised, the
-        // fatal condition unwinds; unraised, a main program's GOBACK is a STOP (§14.9.18.4 GR3).
+        // fatal condition unwinds; unraised, a main program's GOBACK is a STOP (§2023:14.9.18.4 GR3).
         Assert.StartsWith("IN-DECL", stdout.ReplaceLineEndings("\n"), StringComparison.Ordinal);
         Assert.DoesNotContain("BACK-IN-DECL", stdout, StringComparison.Ordinal);
         if (!ok) Assert.Contains("EC-FLOW-GLOBAL-GOBACK", detail + stdout, StringComparison.Ordinal);

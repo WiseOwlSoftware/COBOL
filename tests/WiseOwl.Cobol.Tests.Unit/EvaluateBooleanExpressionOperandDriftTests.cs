@@ -13,8 +13,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ AN EVALUATE SELECTION OPERAND THAT CARRIES A BOOLEAN OPERATOR IS TABLE 15's BOOLEAN-EXPRESSION KIND, NOT A
-/// CONDITION (kb/Work PB1412). ISO §14.9.13.2 prints <c>boolean-expression-1</c> as a selection subject and
-/// <c>[ NOT ] boolean-expression-2</c> as a selection object, and §14.9.13.3 SR10's Table 15 has a Boolean-expression
+/// CONDITION (kb/Work PB1412). ISO §2023:14.9.13.2 prints <c>boolean-expression-1</c> as a selection subject and
+/// <c>[ NOT ] boolean-expression-2</c> as a selection object, and §2023:14.9.13.3 SR10's Table 15 has a Boolean-expression
 /// column and row. The grammar's <c>evaluateSubject</c> and <c>evaluateWhenItem</c> had no such alternative, so
 /// <c>EVALUATE A B-AND C WHEN B"1000"</c> parsed as a <c>condition</c> and was refused (COBOL1511 + COBOL1634) on
 /// legal source.
@@ -38,7 +38,7 @@ public sealed class EvaluateBooleanExpressionOperandDriftTests
     private static string Binder() => File.ReadAllText(Path.Combine(TestRepo.Root,
         "src", "WiseOwl.Cobol.Compiler", "Binding", "Procedure", "Verbs", "EvaluateBinder.cs"));
 
-    /// <summary>The rule's alternatives, comments stripped, as written — less the bracketed <c>NOT?</c> §14.9.13.2
+    /// <summary>The rule's alternatives, comments stripped, as written — less the bracketed <c>NOT?</c> §2023:14.9.13.2
     /// prints on five selection-object alternatives (which ones may carry it is
     /// <c>EvaluateSelectionObjectArityDriftTests</c>' rule, kb/Work PB2722), so each names its operand shape.</summary>
     private static string[] Alternatives(string rule)
@@ -61,7 +61,7 @@ public sealed class EvaluateBooleanExpressionOperandDriftTests
         int value = Array.IndexOf(alts, "valueOperand"), boolean = Array.IndexOf(alts, Gate),
             condition = Array.IndexOf(alts, "condition");
         Assert.True(value >= 0 && boolean >= 0 && condition >= 0,
-            $"{rule} must carry valueOperand, `{Gate}` and condition (ISO §14.9.13.2 prints boolean-expression-1/-2 "
+            $"{rule} must carry valueOperand, `{Gate}` and condition (ISO §2023:14.9.13.2 prints boolean-expression-1/-2 "
             + $"beside condition-1/-2); got [{string.Join(" | ", alts)}]");
         Assert.True(value < boolean && boolean < condition,
             $"{rule}: the booleanExpression alternative must follow valueOperand (an operator-free operand keeps its "

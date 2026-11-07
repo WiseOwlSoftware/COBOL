@@ -4,11 +4,11 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.24.3 SR2 — MERGE file-name-1 described by an
+      *> ISO §2023:14.9.24.3 SR2 — MERGE file-name-1 described by an
       *> ordinary FD (not a sort-merge file description entry).
       *> Rule: "File-name-1 shall be described in a sort-merge file
       *> description entry in the data division."
-      *> cite.py: OK  §14.9.24.3 2)  (Syntax rules)
+      *> cite.py: OK  §2023:14.9.24.3 2)  (Syntax rules)
       *> F3 is a sequential FD; its key F3-REC is in F3's record
       *> (SR4 a) satisfied), F1/F2/FO are ordinary FDs as SR9 wants,
       *> no name repeats (SR7), so only SR2 is violated.  Diagnostic

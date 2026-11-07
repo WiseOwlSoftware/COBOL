@@ -4,11 +4,11 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §8.8.2 SR4 — both operands of a binary boolean operation
+      *> ISO §2023:8.8.2 SR4 — both operands of a binary boolean operation
       *> are the figurative constant ALL literal.
       *> Rule: "The two operands in a binary boolean operation shall
       *> not both be the figurative constant ALL literal."
-      *> cite.py: OK  §8.8.2 4)  (Boolean expressions)
+      *> cite.py: OK  §2023:8.8.2 4)  (Boolean expressions)
       *> The COMPUTE below is otherwise legal (B-AND of two boolean
       *> operands into a boolean receiver); the only defect is that
       *> BOTH operands of B-AND are ALL literals. Its sibling line with

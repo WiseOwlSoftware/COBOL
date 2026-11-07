@@ -6,13 +6,13 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// TEST-NUMVAL-F's §15.95.4 position legs (kb/Work PB121). Two defects pinned here: (1) the r1b/r1c
+/// TEST-NUMVAL-F's §2023:15.95.4 position legs (kb/Work PB121). Two defects pinned here: (1) the r1b/r1c
 /// misdispatch — a scan that BROKE on a real character with no significand digit yet returned LENGTH+1
 /// (leg c) where leg b requires that character's own position ("Otherwise, if one or more characters are in
 /// error, the position of the first character in error"; leg c's NOTE lists only no-character-in-error
 /// shapes — zero-length, all-spaces, valid-but-incomplete); (2) the absent r1b sub-note 6 capacity leg —
 /// under standard-decimal arithmetic a conforming argument whose magnitude exceeds the SDIDI's range
-/// (±9.999…E+6144, §8.8.1.5.2 NOTE 2) must return the position of the FIRST DIGIT of the exponent, and
+/// (±9.999…E+6144, §2023:8.8.1.5.2 NOTE 2) must return the position of the FIRST DIGIT of the exponent, and
 /// NvfScan checked only the significand digit cap and the exponent digit count, so "1E+9999" reported 0.
 /// Native arithmetic has NO capacity leg — r1b.6 names only the standard modes — and underflow is not
 /// "exceeds the capacity" (the value twin's subnormal re-round disposes of it).
@@ -32,7 +32,7 @@ public sealed class TestNumvalFPositionTests
     [InlineData(" +.", 4)]
     [InlineData("1E", 3)]       // dangling E — incomplete, length+1
     [InlineData("1E+", 4)]      // E-sign with no digit — incomplete, length+1
-    // kb/Work PB4096 — r1b after `E{+|-}`: a character that is not a digit or a space IS in error (§15.69.3 r1:
+    // kb/Work PB4096 — r1b after `E{+|-}`: a character that is not a digit or a space IS in error (§2023:15.69.3 r1:
     // n is 1..4 digits); only text that ENDS there is r1c. The exponent arm returned LENGTH+1 for all of these.
     [InlineData("12.34E+AB", 8)]
     [InlineData("1E++2", 4)]
@@ -42,16 +42,16 @@ public sealed class TestNumvalFPositionTests
     [InlineData("1E+ ", 5)]     // ends after the sign and its legal space-string: r1c, LENGTH+1
     // r1b after digits — unchanged behavior, guarded here.
     [InlineData("1.5X", 4)]
-    [InlineData("1E2", 3)]      // §15.69.3: the sign is REQUIRED once E is written
+    [InlineData("1E2", 3)]      // §2023:15.69.3: the sign is REQUIRED once E is written
     [InlineData("1.5E2", 5)]    // kb/Work PB3952: GnuCOBOL reads this as 150; the standard refuses it, and NUMVAL-F rides this same scan
     [InlineData("1.5e2", 5)]    // the same with a lowercase e
     [InlineData("0 1E+2", 3)]   // r1b.1 — the spec's own embedded-space example
     [InlineData("1 2E+3", 3)]   // the same, one position along
-    // ⛔ THE EXPONENT-SPACE DETERMINATION (kb/Work PB256; docs/CONFORMANCE.md §3). §15.69.3 r1's figure draws n
-    // as ONE contiguous 1..4-digit run with [space-string] only before and after it, and §15.95.4 r1 b) 1 is
+    // ⛔ THE EXPONENT-SPACE DETERMINATION (kb/Work PB256; docs/CONFORMANCE.md §3). §2023:15.69.3 r1's figure draws n
+    // as ONE contiguous 1..4-digit run with [space-string] only before and after it, and §2023:15.95.4 r1 b) 1 is
     // unqualified as to WHICH digit run ("a string of numeric characters") where sub-notes 2/3/4 all say "of
     // the significand" — so an interior space ends n and the next non-space is the first character in error.
-    // Under the rejected reading (§15.69.3 r5's "ignored" as ELIDE-AND-JOIN) the first case would be 0 and the
+    // Under the rejected reading (§2023:15.69.3 r5's "ignored" as ELIDE-AND-JOIN) the first case would be 0 and the
     // second 9, so these two are the discriminating pair. conformance:cases/15.95.4-Returned-value-rule/pb256_test_numval_f_spaces is the
     // end-to-end witness.
     [InlineData("1E+1 234", 6)]

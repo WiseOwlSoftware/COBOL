@@ -51,13 +51,13 @@ internal sealed class DataEmitter
         _codec.CellDynSeeds(item, useValues, firstOrdinal);
 
     /// <summary>⛔ THE ONE STATEMENT OF WHAT AN AREA FORMAL BRINGS TO ITS AREA DECISION (kb/Work PB2094, PB2671), for the
-    /// program ABI and the method ABI alike: its §8.5.1.12 atoms when it is a VARIABLE-LENGTH group
+    /// program ABI and the method ABI alike: its §2023:8.5.1.12 atoms when it is a VARIABLE-LENGTH group
     /// (<c>CobolArgAdapt.Area</c> lays it over its argument's area only when the two have the same storage; "null" for
     /// every other area formal), and the factory of the fresh cell it takes whenever it is NOT laid over an argument's
     /// area — an omitted argument, an argument whose storage is not a cell, BY CONTENT / BY VALUE, and (through
     /// <c>CobolArgAdapt.Unbound</c>) the main-program entry that binds no argument. That cell is
     /// <see cref="UnboundFormalRecord"/>: the description's category-default RECORD image (a fresh area holds every
-    /// dynamic-capacity table at its FROM capacity, §8.5.1.9.1, so a reference through it never meets a missing
+    /// dynamic-capacity table at its FROM capacity, §2023:8.5.1.9.1, so a reference through it never meets a missing
     /// table). Before kb/Work PB2671 a fixed-shape area formal took a SPACE-filled cell, which an omitted national or
     /// numeric formal read as byte pairs and invalid data — the record image is the one composition its own codec
     /// reads.</summary>
@@ -79,8 +79,8 @@ internal sealed class DataEmitter
 
     /// <summary>⛔ THE UNBOUND VALUE OF A LINKAGE FORMAL (kb/Work PB2671; docs/CONFORMANCE.md DOC-A.1-116): what a formal
     /// refers to when no activation bound an argument to it — the main-program entry <c>ICobolProgram.Activate</c>, or
-    /// an omitted argument's storage. ISO §13.7.4 GR3 and GR5 leave the access and the initial value to the implementor
-    /// when a non-COBOL element activates the program, and §13.18.63.4 GR3 lets a linkage VALUE take effect only during
+    /// an omitted argument's storage. ISO §2023:13.7.4 GR3 and GR5 leave the access and the initial value to the implementor
+    /// when a non-COBOL element activates the program, and §2023:13.18.63.4 GR3 lets a linkage VALUE take effect only during
     /// INITIALIZE, so it is the CATEGORY-DEFAULT value with no VALUE applied: spaces for a character item, the zero
     /// encoding for a numeric item of every usage, length zero for a dynamic-length item, a group's composed from its
     /// elementary items'. ⛔ ITS SHAPE FOLLOWS THE STORAGE, NEVER THE ITEM'S KIND: a CARRIER-resident elementary formal
@@ -99,7 +99,7 @@ internal sealed class DataEmitter
     public string UnboundFormalCarrier(DataItem formal, int width) =>
         formal.IsElementary ? _values.InitializerFrom(formal, effRaw: null) : UnboundFormalRecord(formal, width);
 
-    /// <summary>See <see cref="ValueInitializer.InitializerFrom"/> — the §13.18.63 VALUE recipe over an operand
+    /// <summary>See <see cref="ValueInitializer.InitializerFrom"/> — the §2023:13.18.63 VALUE recipe over an operand
     /// the caller supplies (the report section's format-4 lane; kb/Work PB506).</summary>
     public string ValueImageOf(DataItem item, string raw) => _values.InitializerFrom(item, raw);
 
@@ -108,8 +108,8 @@ internal sealed class DataEmitter
     /// agree: the backing property (<c>OoEmitter.EmitExternalBackings</c>) and the ADDRESS-OF cell reference
     /// (<c>PtrEmitter</c>). Whichever runs first CREATES the cell, so a divergence between them would make the
     /// record's initial content depend on statement order. A plain external item seeds with the category
-    /// DEFAULT image (§13.18.63 GR4a — its VALUE takes effect only during INITIALIZE); a CONSTANT RECORD seeds
-    /// with its §13.18.15.4 GR1 INITIALIZE-composed image (§11.9.10.4 GR7, the one external item initialized at
+    /// DEFAULT image (§2023:13.18.63 GR4a — its VALUE takes effect only during INITIALIZE); a CONSTANT RECORD seeds
+    /// with its §2023:13.18.15.4 GR1 INITIALIZE-composed image (§2023:11.9.10.4 GR7, the one external item initialized at
     /// initial state; the recipe is chosen at the root by <see cref="ValueInitializer.RecipeFor"/>, kb/Work PB1233).</summary>
     public string ExternalCellSeed(CallExternalBacking ext) =>
         RuntimeApi.StrStore(ImageInitOf(ext.Record, useValues: ext.Record.IsConstantRecord), $"{ext.Width}");

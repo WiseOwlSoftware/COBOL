@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// kb/Work PB1079 — an external file connector's entry identity (<c>FileEntryIdentity.Of</c>, the string two
-/// describers compare for EC-EXTERNAL-FILE-MISMATCH) is the WHOLE of ISO §12.4.5.3 GR1: §14.8.4.4 says "the rules
+/// describers compare for EC-EXTERNAL-FILE-MISMATCH) is the WHOLE of ISO §2023:12.4.5.3 GR1: §2023:14.8.4.4 says "the rules
 /// specified in 12.4.5, File control entry General rule 1 apply", and GR1 lists a) through m). The fingerprint used to
 /// omit c) RECORD DELIMITER, d) RESERVE, g) COLLATING SEQUENCE and k)'s SUPPRESS WHEN phrase, so an entry differing
 /// only in one of them activated with no condition. Each row below changes ONE clause-level GR1 item on an otherwise
@@ -65,7 +65,7 @@ public sealed class ExternalFileEntryIdentityTests
         var changed = Entry();
         change(changed);
         Assert.True(FileEntryIdentity.Of(Entry()) != FileEntryIdentity.Of(changed),
-            $"§12.4.5.3 GR1 {item}: an entry differing only in it has the same identity '{FileEntryIdentity.Of(changed)}'");
+            $"§2023:12.4.5.3 GR1 {item}: an entry differing only in it has the same identity '{FileEntryIdentity.Of(changed)}'");
     }
 
     [Fact]
@@ -94,7 +94,7 @@ public sealed class ExternalFileEntryIdentityTests
     public void Source_operand_order_is_part_of_the_identity()
     {
         // GR1 j) "each data-name-6 as well as their relative location": the key IS the concatenation in the order
-        // specified (§12.4.5.12.4 GR2), so XB XC and XC XB are different keys.
+        // specified (§2023:12.4.5.12.4 GR2), so XB XC and XC XB are different keys.
         var a = Entry(); a.RecordKeySource = Source("XK", "XB", "XC");
         var b = Entry(); b.RecordKeySource = Source("XK", "XC", "XB");
         Assert.NotEqual(FileEntryIdentity.Of(a), FileEntryIdentity.Of(b));

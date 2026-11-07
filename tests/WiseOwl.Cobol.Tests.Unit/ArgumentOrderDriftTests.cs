@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ EVERY FUNCTION-IDENTIFIER'S ARGUMENT LIST IS EVALUATED LEFT TO RIGHT THROUGH ONE WINDOW (kb/Work PB1423,
 /// CLAUDE.md rule 5).
-/// <para>ISO §8.4.3.2.4 GR2: "its arguments are evaluated individually in the order specified in the list of
+/// <para>ISO §2023:8.4.3.2.4 GR2: "its arguments are evaluated individually in the order specified in the list of
 /// arguments, from left to right". A user-defined function activation is hoisted as a statement pre-op, so an
 /// earlier argument that merely READS state was rendered after a later argument's activation had changed it
 /// (<c>FUNCTION SUM(A, FUNCTION BUMP(A))</c> summed the changed A). The repair is one mechanism —
@@ -49,7 +49,7 @@ public sealed class ArgumentOrderDriftTests
         string code = Verb("IntrinsicBinder.cs");
         Assert.True(Regex.IsMatch(code, @"BindArgOperand\([^)]*\)\s*\{[^}]*ArgOrder\.Record\("),
             "IntrinsicBinder.BindArgOperand no longer records the operand it bound into ArgumentOrder — an argument "
-            + "would be invisible to the §8.4.3.2.4 GR2 left-to-right settlement.");
+            + "would be invisible to the §2023:8.4.3.2.4 GR2 left-to-right settlement.");
     }
 
     [Fact]
@@ -106,9 +106,9 @@ public sealed class ArgumentOrderDriftTests
             reads);
     }
 
-    /// <summary>⛔ A table(ALL) ARGUMENT IS AN ARGUMENT OF THE LIST LIKE ANY OTHER, AND HAS A HELD FORM (kb/Work PB4162). ISO §15.3 14)
+    /// <summary>⛔ A table(ALL) ARGUMENT IS AN ARGUMENT OF THE LIST LIKE ANY OTHER, AND HAS A HELD FORM (kb/Work PB4162). ISO §2023:15.3 14)
     /// makes <c>T (ALL)</c> "as if each table element associated with that subscript position were specified", each evaluated at its
-    /// place in the list (§8.4.3.2.4 GR2). The enumeration the backend renders where the call renders would read the table AFTER a later
+    /// place in the list (§2023:8.4.3.2.4 GR2). The enumeration the backend renders where the call renders would read the table AFTER a later
     /// argument's activation, so the operand is recorded in the window where it is built (<c>IntrinsicBinder.TryBindAllArgument</c>) and
     /// held by the one holder (<c>ArgumentOrder</c> to <c>SendingValueTemp.MaterializeTableAll</c>); a third place that builds a
     /// <c>TableAllPlace</c> would build one the window never sees.</summary>
@@ -141,6 +141,6 @@ public sealed class ArgumentOrderDriftTests
         Assert.True(openers.Count == 0,
             $"{string.Join(", ", openers)} binds function arguments or opens an ArgumentOrder window outside the two "
             + "entries that settle it — its arguments would evaluate in registration order, not left to right "
-            + "(ISO §8.4.3.2.4 GR2; kb/Work PB1423).");
+            + "(ISO §2023:8.4.3.2.4 GR2; kb/Work PB1423).");
     }
 }

@@ -16,7 +16,7 @@ using CnFrontend = WiseOwl.Cobol.Frontend.Frontend;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// PARSE-level pins for the INVOKE <c>BY CONTENT</c> operand group (ISO §14.9.23.2 — <c>arithmetic-expression-1 |
+/// PARSE-level pins for the INVOKE <c>BY CONTENT</c> operand group (ISO §2023:14.9.23.2 — <c>arithmetic-expression-1 |
 /// boolean-expression-1 | identifier-5 | literal-2</c>), fix-queue PB46.
 /// <para>⛔ WHY THESE EXIST AS PARSE TESTS RATHER THAN OUTPUT ASSERTIONS. The boolean alternative is gated by
 /// <c>{boolExprAhead()}?</c>, the SHARED condition predicate, whose scan runs to the statement's period — so in
@@ -125,17 +125,17 @@ public sealed class InvokeContentOperandChannelTests
         Assert.NotNull(args[0].literal()?.nonNumericLiteral()?.BOOLLIT());
     }
 
-    /// <summary>BY VALUE does NOT gain the boolean arm — the §14.9.23.2 format's BY VALUE branch is
+    /// <summary>BY VALUE does NOT gain the boolean arm — the §2023:14.9.23.2 format's BY VALUE branch is
     /// <c>arithmetic-expression-1 | identifier-5 | literal-2</c>, and the two phrases genuinely differ. The SAME
     /// operand text is asserted against BOTH phrases so the contrast IS the assertion: under BY CONTENT the
     /// operator is consumed and the whole thing is ONE boolean-expression argument; under BY VALUE it is not
     /// consumed at all, and at COBOL-2023 <c>B-AND</c> then stands where only an identifier or literal may stand,
-    /// which §8.9 reserves — so the statement is refused by name with COBOL0901 rather than parsed.
+    /// which §2023:8.9 reserves — so the statement is refused by name with COBOL0901 rather than parsed.
     /// <para>⚠ THAT LAST HALF USED TO READ "spills into further argument positions", and it did, because the
-    /// §8.9 reservation gate on <c>cobolWord</c> was silently INOPERATIVE for every hyphenated word: the
+    /// §2023:8.9 reservation gate on <c>cobolWord</c> was silently INOPERATIVE for every hyphenated word: the
     /// generator emitted <c>userWordHere("B_AND")</c>, the ANTLR token name, into a predicate that looks its
     /// argument up in <c>reserved-words.json</c> by SPELLING (kb/Work PB792). With the gate working the operand
-    /// list stops at the reserved word and the error strategy's §8.9 report names it — the same sentence
+    /// list stops at the reserved word and the error strategy's §2023:8.9 report names it — the same sentence
     /// the funnel used to produce, now at the offending token.</para></summary>
     [Fact]
     public void ByValue_HasNoBooleanAlternative_UnlikeByContent()
@@ -151,10 +151,10 @@ public sealed class InvokeContentOperandChannelTests
             d => d.IsError && d.Code == "COBOL0901" && d.Message.Contains("B-AND"));
     }
 
-    /// <summary>⛔ THE EDITION SWEEP ON THE SAME LINE (feedback_edition_gate_sweep). <c>B-AND</c> is §8.9-reserved
+    /// <summary>⛔ THE EDITION SWEEP ON THE SAME LINE (feedback_edition_gate_sweep). <c>B-AND</c> is §2023:8.9-reserved
     /// only from COBOL-2002 (<c>reserved-words.json</c> r85 false), so at <c>--std 85</c> it IS an ordinary
     /// user-defined word: the BY VALUE operand list may legitimately take it as one more <c>identifier-5</c>, the
-    /// statement parses, and NO §8.9 diagnostic is due. The reservation gate has to make exactly this distinction,
+    /// statement parses, and NO §2023:8.9 diagnostic is due. The reservation gate has to make exactly this distinction,
     /// and before kb/Work PB792 it made none — the 2023 arm behaved like this one.
     /// <para>The program DECLARES B-AND: the gate is token-level since kb/Work PB655, and a free word is a user word
     /// exactly when the program declares it (an undeclared one keeps its keyword reading — the only other reading

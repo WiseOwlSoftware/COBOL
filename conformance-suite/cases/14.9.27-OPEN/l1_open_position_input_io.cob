@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.27.4 GR14 — "When the organization of the file
+      *> ISO §2023:14.9.27.4 GR14 — "When the organization of the file
       *> referenced by file-name-1 is sequential or relative and the
       *> INPUT or I-O phrase is specified in the OPEN statement, the
       *> file position indicator for that file connector is set to 1.
@@ -14,24 +14,24 @@
       *> in the collating sequence associated with the file, and the
       *> prime record key is established as the key of reference."
       *> Three organizations, both phrases the rule names.
-      *> SEQUENTIAL / RELATIVE, "set to 1". §14.9.30.4 GR21b: "If the
+      *> SEQUENTIAL / RELATIVE, "set to 1". §2023:14.9.30.4 GR21b: "If the
       *> file position indicator was established by a prior successful
       *> OPEN or START statement, the first existing record that is
       *> selected is made available" — so a position of 1 shows as the
       *> FIRST record. Q1/Q2 walk two records; Q3 re-opens and gets the
       *> FIRST one again (the OPEN reset the indicator, it did not
       *> resume); Q4 does the same through the I-O phrase. R1/R2/R3 are
-      *> the relative twin, and §14.9.30.4 GR25 moves the relative
+      *> the relative twin, and §2023:14.9.30.4 GR25 moves the relative
       *> record number of the record made available into the RELATIVE
       *> KEY item, so the indicator's value is printed outright: 0001.
       *> INDEXED, "lowest ordinal position … and the prime record key
       *> is established as the key of reference". The three records are
       *> WRITTEN K005, K003, K007 — out of prime order, which
-      *> §14.9.51.4 GR39 permits in dynamic access — so "first written"
+      *> §2023:14.9.51.4 GR39 permits in dynamic access — so "first written"
       *> and "lowest key" differ. X1 = K003 is the lowest prime key.
       *> The alternate key values are A on K005, C on K003, B on K007,
       *> so the two orderings are different sequences. A START on the
-      *> alternate makes it the key of reference (§14.9.41.4 GR16) and
+      *> alternate makes it the key of reference (§2023:14.9.41.4 GR16) and
       *> the walk follows alternate order: K007 (B) then K003 (C).
       *> After CLOSE and a fresh OPEN INPUT the walk is K003 then K005
       *> — prime order — which is only true if the OPEN re-established

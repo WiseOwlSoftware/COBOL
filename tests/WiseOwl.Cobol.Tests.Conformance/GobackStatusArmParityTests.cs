@@ -8,7 +8,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// ⛔ THE TWO ARMS OF THE §14.9.18.4 GR2/GR4 FORK OWE THE STATUS PHRASE THE SAME SYNTAX RULES — the parity fact,
+/// ⛔ THE TWO ARMS OF THE §2023:14.9.18.4 GR2/GR4 FORK OWE THE STATUS PHRASE THE SAME SYNTAX RULES — the parity fact,
 /// asserted by compiling the SAME statement in a program and in a method and comparing the verdicts.
 /// <para>WHY IT IS WRITTEN THIS WAY. kb/Work PB411's second mechanism was not a missing rule, it was a missing
 /// CALLER: <c>CallBinder.BindGoback</c> forked to the OO binder when the GOBACK was inside a METHOD, and that
@@ -17,7 +17,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// nothing. Comparing the arms is what makes the defect visible, and what keeps the next phrase from being
 /// dropped on one of them (<c>feedback_two_arm_dispatch</c>). The measured pre-fix state: the four rows below
 /// each compiled CLEAN inside a method — three syntax rules and an edition gate, all four unenforced.</para>
-/// <para>THE RULES ARE CONTEXT-FREE AND THE SPEC SAYS SO. §14.9.18.3's syntax rules carry no qualifier of any
+/// <para>THE RULES ARE CONTEXT-FREE AND THE SPEC SAYS SO. §2023:14.9.18.3's syntax rules carry no qualifier of any
 /// kind. The context restriction the standard DOES write appears only in the general rules — GR7, GR8, GR9 and
 /// GR10 each open "If the GOBACK … is executing in a main program" — and that is about the phrase's EFFECT, not
 /// its legality. A method is never a main program, so <see cref="TheMethodArmsStatus_IsInertNotErroneous"/> pins
@@ -25,7 +25,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// </summary>
 public sealed class GobackStatusArmParityTests
 {
-    /// <summary>The same GOBACK statement in a PROGRAM (the §14.9.18.4 GR2 activation-return arm).</summary>
+    /// <summary>The same GOBACK statement in a PROGRAM (the §2023:14.9.18.4 GR2 activation-return arm).</summary>
     private static string InProgram(string goback) => $"""
         IDENTIFICATION DIVISION.
         PROGRAM-ID. PB411ARMP.
@@ -40,7 +40,7 @@ public sealed class GobackStatusArmParityTests
             {goback}
         """;
 
-    /// <summary>The same GOBACK statement in a METHOD (the §14.9.18.4 GR4 method-return arm), reached through an
+    /// <summary>The same GOBACK statement in a METHOD (the §2023:14.9.18.4 GR4 method-return arm), reached through an
     /// INVOKE so the method is genuinely bound and emitted rather than merely parsed.</summary>
     private static string InMethod(string goback) => $"""
         IDENTIFICATION DIVISION.
@@ -85,13 +85,13 @@ public sealed class GobackStatusArmParityTests
         """;
 
     [Theory]
-    // §14.9.18.3 SR8 — "Literal-1 shall not be a zero-length literal."
+    // §2023:14.9.18.3 SR8 — "Literal-1 shall not be a zero-length literal."
     [InlineData("GOBACK WITH ERROR STATUS \"\".", 2023, "COBOL1704")]
-    // §14.9.18.3 SR7 — "If literal-1 is numeric, it shall be an integer."
+    // §2023:14.9.18.3 SR7 — "If literal-1 is numeric, it shall be an integer."
     [InlineData("GOBACK WITH ERROR STATUS 1.5.", 2023, "COBOL1704")]
-    // §14.9.18.3 SR6 — a BIT group is neither an integer item nor a display/national one (§13.18.29.4 GR1 b).
+    // §2023:14.9.18.3 SR6 — a BIT group is neither an integer item nor a display/national one (§2023:13.18.29.4 GR1 b).
     [InlineData("GOBACK WITH ERROR STATUS WS-BITG.", 2023, "COBOL1704")]
-    // The COBOL-2023 introduction of the phrase itself (§14.9.18.2; Annex E.3.3 item 32).
+    // The COBOL-2023 introduction of the phrase itself (§2023:14.9.18.2; Annex E.3.3 item 32).
     [InlineData("GOBACK WITH ERROR STATUS 5.", 2014, "COBOL0900")]
     [InlineData("GOBACK WITH ERROR STATUS 5.", 2002, "COBOL0900")]
     public void AStatusRuleBrokenInAMethod_IsRejectedExactlyAsInAProgram(string goback, int edition, string code)
@@ -107,18 +107,18 @@ public sealed class GobackStatusArmParityTests
 
         Assert.False(progOk, $"the program arm must reject '{goback}' at {edition}");
         Assert.False(methOk,
-            $"the METHOD arm accepted '{goback}' at {edition} while the program arm rejected it. §14.9.18.3's "
-            + "syntax rules carry no context qualifier and §14.9.18.2 is the ONE general format both arms are "
+            $"the METHOD arm accepted '{goback}' at {edition} while the program arm rejected it. §2023:14.9.18.3's "
+            + "syntax rules carry no context qualifier and §2023:14.9.18.2 is the ONE general format both arms are "
             + "written in — the fork may differ in what it DOES with a phrase, never in whether the phrase's "
             + "rules run (kb/Work PB411).");
         EditionHarness.AssertHasDiagnostic(progErrors, code);
         EditionHarness.AssertHasDiagnostic(methErrors, code);
     }
 
-    // ── §14.9.18.3 SR5 — the LAST phrase's PLACEMENT, on BOTH arms (kb/Work PB410) ───────────────────────
+    // ── §2023:14.9.18.3 SR5 — the LAST phrase's PLACEMENT, on BOTH arms (kb/Work PB410) ───────────────────────
     //
     // SR5: "The LAST phrase may be specified only in a declarative procedure or WHEN phrase of a PERFORM
-    // statement." It carries NO method qualifier, and §14.9.18.4 GR4 makes a method's GOBACK a GOBACK — so the
+    // statement." It carries NO method qualifier, and §2023:14.9.18.4 GR4 makes a method's GOBACK a GOBACK — so the
     // two arms owe the same verdict, which is exactly what this class exists to assert. The measured pre-fix
     // state was the rule enforced NOWHERE it applies and enforced EVERYWHERE it does not: the program arm
     // accepted `GOBACK RAISING LAST EXCEPTION.` written in an ordinary paragraph, and the method arm refused it
@@ -128,10 +128,10 @@ public sealed class GobackStatusArmParityTests
     /// <summary>A WHEN phrase of an exception-checking PERFORM is one of SR5's two admitted positions, so the
     /// statement is LEGAL on both arms. This is the row that was RED on the method arm (COBOL0899).
     /// <para>⛔ THE HEAD IS A BARE `PERFORM`, AND HAS TO BE (kb/Work PB431). This fixture used to spell it
-    /// `PERFORM UNTIL 1 = 1 … WHEN EC-SIZE …`, which ISO §14.9.28.2 Format 3 does not print: Format 3's head is
+    /// `PERFORM UNTIL 1 = 1 … WHEN EC-SIZE …`, which ISO §2023:14.9.28.2 Format 3 does not print: Format 3's head is
     /// `PERFORM [ WITH LOCATION ]` and nothing else, so an exception-checking PERFORM carries NO loop-control
     /// phrase. The until-phrase was incidental scaffolding — this fact measures WHERE a GOBACK RAISING LAST may
-    /// be written (§14.9.18.3 SR5), not how the PERFORM repeats — and it compiled only because the Format-3
+    /// be written (§2023:14.9.18.3 SR5), not how the PERFORM repeats — and it compiled only because the Format-3
     /// binder silently DROPPED the phrase. PB431's COBOL2118 now refuses it, which is why the same correction
     /// was made to twelve <c>ExitPlacementContextDriftTests</c> rows in the same change set.</para></summary>
     [Fact]
@@ -149,7 +149,7 @@ public sealed class GobackStatusArmParityTests
         Assert.True(progOk, string.Join("\n", progErrors));
         Assert.True(methOk,
             "the METHOD arm rejected a GOBACK RAISING LAST EXCEPTION written in a PERFORM WHEN phrase — one of "
-            + "the two positions ISO §14.9.18.3 SR5 admits, with no method qualifier anywhere in the clause "
+            + "the two positions ISO §2023:14.9.18.3 SR5 admits, with no method qualifier anywhere in the clause "
             + "(kb/Work PB410):\n" + string.Join("\n", methErrors));
     }
 
@@ -161,17 +161,17 @@ public sealed class GobackStatusArmParityTests
         const string body = "GOBACK RAISING LAST EXCEPTION.";
         var (progOk, progErrors, _) = EditionHarness.CompileFull(InProgram(body), 2023);
         var (methOk, methErrors, _) = EditionHarness.CompileFull(InMethod(body), 2023);
-        Assert.False(progOk, "the program arm accepted a RAISING LAST outside both of ISO §14.9.18.3 SR5's positions");
-        Assert.False(methOk, "the method arm accepted a RAISING LAST outside both of ISO §14.9.18.3 SR5's positions");
+        Assert.False(progOk, "the program arm accepted a RAISING LAST outside both of ISO §2023:14.9.18.3 SR5's positions");
+        Assert.False(methOk, "the method arm accepted a RAISING LAST outside both of ISO §2023:14.9.18.3 SR5's positions");
         EditionHarness.AssertHasDiagnostic(progErrors, "COBOL2103");
         EditionHarness.AssertHasDiagnostic(methErrors, "COBOL2103");
     }
 
     /// <summary>THE OTHER HALF OF THE RULE, and the reason the fix is a SCREEN and not a new behaviour: a legal
-    /// status phrase in a method is accepted and then has no effect. §14.9.18.4 GR7/GR8/GR9/GR10 give the phrase
+    /// status phrase in a method is accepted and then has no effect. §2023:14.9.18.4 GR7/GR8/GR9/GR10 give the phrase
     /// its whole force only "in a main program", and a method is never one — so the INVOKE returns normally, the
     /// statement after it runs, and the run unit's own STOP RUN decides the termination indication (0).
-    /// <para>The operand is an ALPHANUMERIC GROUP, which is mechanism 1 of the same note: §8.5.2.1 — "An
+    /// <para>The operand is an ALPHANUMERIC GROUP, which is mechanism 1 of the same note: §2023:8.5.2.1 — "An
     /// alphanumeric group item is treated as though it had a usage of display" — makes it one of the two shapes
     /// SR6 admits, and it was rejected on both verbs before the fix.</para></summary>
     [Fact]

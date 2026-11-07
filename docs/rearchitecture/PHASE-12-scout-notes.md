@@ -33,14 +33,14 @@ spec/code citation, but confirm at step start).
 
 1. **IEEE-754 fidelity claim is INVERTED — a spec-faithfulness error (Step 7). [SELF-VERIFIED]**
    The plan says "backing FLOAT-BINARY-128 by `double` and FLOAT-DECIMAL-16/34 by `System.Decimal` is a conforming
-   implementor choice per §13.18.60.4 GR13". **Wrong.** GR13 (spec:22824) makes ONLY `FLOAT-SHORT/LONG/EXTENDED`
+   implementor choice per §2023:13.18.60.4 GR13". **Wrong.** GR13 (spec:22824) makes ONLY `FLOAT-SHORT/LONG/EXTENDED`
    implementor-defined; **GR14-18 (spec:22826-22867) PIN** `FLOAT-BINARY-32/64/128` to ISO/IEC 60559:2020
    binary32/64/128 and `FLOAT-DECIMAL-16/34` to decimal64/decimal128. `double`-backed binary128 / `System.Decimal`-
    backed decimals are **non-conforming representations**. The only spec escape is **Annex A.3 items 17/19**
    (spec:40154/40158): these usages are *processor-dependent* — a processor may not support them at all, but if it
    does, the format is IEEE-pinned. Honest Step-7 options: (a) implement binary32/64 natively (`float`/`double`) and
    declare binary128 + decimal16/34 **processor-dependent non-support** per A.3 17/19; or (b) implement the pinned
-   formats for real. **Do NOT cite GR13/§4.2.15 as a licence for the standard usages.** (This is the P11-CONCATENATE
+   formats for real. **Do NOT cite GR13/§2023:4.2.15 as a licence for the standard usages.** (This is the P11-CONCATENATE
    class of finding — a plan premise that contradicts the spec.)
 
 2. **PROGRAM-POINTER is fully DONE as a COBOL-2002 feature — Step 8 is largely already landed. [VERIFIED]**
@@ -52,7 +52,7 @@ spec/code citation, but confirm at step start).
    ("2014", row `program-pointer-2014`, test `2014/program_pointer`) and its `{is2014()}?` gate would be a
    **regression** (rejecting valid `--std 2002`). Step 8's real remaining PROGRAM-POINTER scope = only the **restricted
    `TO program-prototype-name` form** (GR25, staged loud on COBOL0899) and the ISO **`ADDRESS OF PROGRAM`** spelling
-   (§8.4.3.13 — only the non-ISO `SET … TO ENTRY` spelling exists today).
+   (§2023:8.4.3.13 — only the non-ISO `SET … TO ENTRY` spelling exists today).
 
 3. **FUNCTION-POINTER surface is DONE too; only its SEMANTICS remain (genuinely 2014). [VERIFIED]**
    Token, `functionPointerUsage` (superset-parsed at every edition), `Usage.FunctionPointer`, the 0900-below-2014
@@ -60,13 +60,13 @@ spec/code citation, but confirm at step start).
    `usage-function-pointer-2014`, and the negative test all exist. The planned new code **COBOL1552 is unnecessary**
    (duplicates the live 0899 gate). Remaining Step-8 work = the runtime function-address carrier + SET **Format 8** +
    **mandatory `TO`** enforcement (ISO requires `FUNCTION-POINTER TO proto`, no brackets — grammar currently parses
-   `TO` optional) + `ADDRESS OF FUNCTION` (§8.4.3.12). **Compile-time function prototypes already exist**
+   `TO` optional) + `ADDRESS OF FUNCTION` (§2023:8.4.3.12). **Compile-time function prototypes already exist**
    (`BinderDriver.BuildUserFunctionTable` name-keyed protos + REPOSITORY `UserFunctionNames` + the
    `FunctionPrototype2002` gate) — the blocker is the runtime side, not prototypes.
 
 4. **Diagnostic band 1540-1559 COLLIDES — 17 of 20 codes are already live. [VERIFIED]**
    The plan's "1538 is the current TYPEDEF high-water" is stale; the live 15xx high-water is **1559**. `1540/1541/1545`=
-   concat §8.8.3.2 (P10), `1542`=ANY LENGTH (P9), `1543/1544/1546`=P11 intrinsics, `1547/1548/1549`=CONSTANT (P10),
+   concat §2023:8.8.3.2 (P10), `1542`=ANY LENGTH (P9), `1543/1544/1546`=P11 intrinsics, `1547/1548/1549`=CONSTANT (P10),
    `1553`=linkage, `1554`=UDF, `1555-1557`=SAME AS (P10 — the plan's own Step 10 admits this, self-contradicting its
    band table), `1558`=EXTERNAL type, `1559`=RW PRESENT WHEN/VARYING. **Only 1550/1551/1552 are free** inside the band
    (and `DiagnosticCatalog.cs:93,176` already earmark exactly those three for P12). **P12 must keep 1550/1551/1552 and
@@ -75,7 +75,7 @@ spec/code citation, but confirm at step start).
    renumbered** — those codes are live concat diagnostics with goldens pinning their text.
 
 5. **`>>PROPAGATE` is LIVE in 2023, not removed — the "≤2014" span is wrong (Step 9). [VERIFIED]**
-   §7.3.21 is a current 2023 section, listed in the §7.1 directive table and load-bearing in §14.6.13 EC default
+   §2023:7.3.21 is a current 2023 section, listed in the §2023:7.1 directive table and load-bearing in §2023:14.6.13 EC default
    handling; Annex E/F carry no removal. The correct action is an **INTRODUCTION gate** (reject below its introducing
    edition, almost certainly **2002** — same EC-directive era as `>>TURN`, which is gated at 2002+ via COBOL0875;
    confirm against the 1989:2002 text, not in-repo) with **no top-end gate**. The code claim is also inverted: the
@@ -84,20 +84,20 @@ spec/code citation, but confirm at step start).
    `>>PROPAGATE` SEMANTICS to P13, but the P13 doc has no owning step and its Depends-on line labels it as P12 scope.
 
 6. **TYPE TO is NOT a pointer form — Step 10 mis-identifies it. [VERIFIED]**
-   In the 2023 spec, "TYPE TO" is Format 1 of the ordinary TYPE clause: §13.18.57.2 `TYPE TO type-name-1` where `TO`
+   In the 2023 spec, "TYPE TO" is Format 1 of the ordinary TYPE clause: §2023:13.18.57.2 `TYPE TO type-name-1` where `TO`
    is a plain **optional word** (i.e. `TYPE [TO] type-name-1`). A literal `TYPE TO` grep returns zero because the
    underline markup splits the phrase — that is likely how the "pointer-target form" mislabel arose. The real
-   pointer-target constructs are `USAGE POINTER [TO type-name-1]` (restricted data-pointer, §13.18.60.2 / Annex
-   D.9.2.2), which dovetails with Step 8. The §7 table also has swapped citations: **SAME AS = §13.18.49** (not
-   §13.18.57), **TYPE = §13.18.57**, **TYPEDEF = §13.18.58** (the table inverts the last pair). Same mislabel lives in
+   pointer-target constructs are `USAGE POINTER [TO type-name-1]` (restricted data-pointer, §2023:13.18.60.2 / Annex
+   D.9.2.2), which dovetails with Step 8. The §7 table also has swapped citations: **SAME AS = §2023:13.18.49** (not
+   §2023:13.18.57), **TYPE = §2023:13.18.57**, **TYPEDEF = §2023:13.18.58** (the table inverts the last pair). Same mislabel lives in
    `ISO2023_CONFORMANCE_PLAN.md:644` and `DATA_MODEL_DESIGN.md:434` — fix all three.
 
 7. **DYNAMIC LENGTH: the real work is genuinely unlanded, but the plan's SEMANTIC anchors drift (Steps 4/5). [VERIFIED]**
    No `DynamicLength`/`CobolDynString` handling exists anywhere in `src/` or `tests/` — Steps 4/5 are real. But: (a) the
-   master exclusion rule is **§13.16.3 SR18** (only level-number/entry-name/PICTURE/USAGE/**VALUE** permitted), not the
-   plan's §13.18.19.3; (b) **VALUE is permitted and sets a NON-ZERO initial length** (§8.6.4) — the plan's "emit a field
-   initialized to empty" is wrong for VALUE'd entries; (c) truncation-on-overflow is **§8.5.1.10.4**, not GR2; (d)
-   `FUNCTION LENGTH` on a dynamic-length item returns the current length **in BYTES** (§15.50.4 rule 6) — a PIC N
+   master exclusion rule is **§2023:13.16.3 SR18** (only level-number/entry-name/PICTURE/USAGE/**VALUE** permitted), not the
+   plan's §2023:13.18.19.3; (b) **VALUE is permitted and sets a NON-ZERO initial length** (§2023:8.6.4) — the plan's "emit a field
+   initialized to empty" is wrong for VALUE'd entries; (c) truncation-on-overflow is **§2023:8.5.1.10.4**, not GR2; (d)
+   `FUNCTION LENGTH` on a dynamic-length item returns the current length **in BYTES** (§2023:15.50.4 rule 6) — a PIC N
    naive character count would be wrong.
 
 8. **VersionMatrixTests method names in the plan are fictional. [VERIFIED]**
@@ -141,25 +141,25 @@ spec/code citation, but confirm at step start).
 
 ### Drift the executor must correct
 
-- **[VERIFIED]** Plan Step 12 "reject REDEFINES/OCCURS per §13.18.19.3" points at the wrong §. The rejection authority
-  is **§13.16.3 SR18** (whole-clause allowlist). Reinforced by: §13.18.32.3 SR4 (JUSTIFIED, 19266), §13.18.44.3 SR17
-  (REDEFINES, 21533), §13.18.5.3 SR2 (BASED, 17718), §13.16.3 SR13 (CONSTANT RECORD, 17251).
+- **[VERIFIED]** Plan Step 12 "reject REDEFINES/OCCURS per §2023:13.18.19.3" points at the wrong §. The rejection authority
+  is **§2023:13.16.3 SR18** (whole-clause allowlist). Reinforced by: §2023:13.18.32.3 SR4 (JUSTIFIED, 19266), §2023:13.18.44.3 SR17
+  (REDEFINES, 21533), §2023:13.18.5.3 SR2 (BASED, 17718), §2023:13.16.3 SR13 (CONSTANT RECORD, 17251).
 - **[VERIFIED]** Plan Step 5 "emit a field initialized to empty (min length 0, GR1)" is wrong for VALUE'd entries.
-  VALUE is permitted (SR18) and sets a non-zero initial length (§8.6.4). Initial length is 0 only absent VALUE (always
-  in the FILE SECTION per §13.4.4 GR1:16189; INITIALIZE §14.9.20.4 GR7:28011 and program init §14.6.2.3.2 rule 7:24104
+  VALUE is permitted (SR18) and sets a non-zero initial length (§2023:8.6.4). Initial length is 0 only absent VALUE (always
+  in the FILE SECTION per §2023:13.4.4 GR1:16189; INITIALIZE §2023:14.9.20.4 GR7:28011 and program init §2023:14.6.2.3.2 rule 7:24104
   set it to 0).
-- **[VERIFIED]** Truncation is §8.5.1.10.4, not GR2. GR2 is only the limit definition.
+- **[VERIFIED]** Truncation is §2023:8.5.1.10.4, not GR2. GR2 is only the limit definition.
 - Lexer tokens exist (line numbers drifted +22 from the plan): `DYNAMIC` CobolLexer.g4:388, `LIMIT` :432, `LENGTH`
   :466. **LL-disjoint** from OCCURS DYNAMIC (occursClause CobolData.g4:414-423 always leads with `OCCURS`; `DYNAMIC`
   appears nowhere else in CobolData.g4) — no lexer change needed. Watch the optional structure-name slot not swallowing
   a following clause keyword.
 
-### Interaction inventory an implementation must cover (from §8.5.1.10.4 + siblings)
-MOVE §14.9.25.4 GR2/GR3 (zero-length literals NOT space/zero-substituted for dynamic-length receivers, 28895);
-INITIALIZE §14.9.20.4 GR7 (length→0); intrinsics LENGTH/BYTE-LENGTH (bytes); UNSTRING §14.9.43.4 (current length);
-group comparison §8.8.4.2.17 / §8.5.1.12 (variable-length group); parameter conformance §14.2.3 (same category AND
-same structure-name); prohibitions: ADDRESS OF §8.4.3.11.3 SR6, FILE STATUS §12.4.5.8.3 SR3, CONSTANT §13.10.3 SR12,
-SORT/MERGE keys §14.9.40.3 / §14.9.24.3.
+### Interaction inventory an implementation must cover (from §2023:8.5.1.10.4 + siblings)
+MOVE §2023:14.9.25.4 GR2/GR3 (zero-length literals NOT space/zero-substituted for dynamic-length receivers, 28895);
+INITIALIZE §2023:14.9.20.4 GR7 (length→0); intrinsics LENGTH/BYTE-LENGTH (bytes); UNSTRING §2023:14.9.43.4 (current length);
+group comparison §2023:8.8.4.2.17 / §2023:8.5.1.12 (variable-length group); parameter conformance §2023:14.2.3 (same category AND
+same structure-name); prohibitions: ADDRESS OF §2023:8.4.3.11.3 SR6, FILE STATUS §2023:12.4.5.8.3 SR3, CONSTANT §2023:13.10.3 SR12,
+SORT/MERGE keys §2023:14.9.40.3 / §2023:14.9.24.3.
 
 ---
 
@@ -169,7 +169,7 @@ SORT/MERGE keys §14.9.40.3 / §14.9.24.3.
 
 | § | Title | spec line | verdict |
 |---|---|---|---|
-| 13.18.60 | **USAGE clause** (all eight float usages in the .2 general format) | 22636 | DRIFT — plan cites §13.18.59 |
+| 13.18.60 | **USAGE clause** (all eight float usages in the .2 general format) | 22636 | DRIFT — plan cites §2023:13.18.59 |
 | 13.18.59 | UNDERLINE clause (the plan's wrong citation) | 22605 | — |
 | 13.18.60.4 GR13 | float-short/long/extended = "format suitable for the machine … defined by the implementor" | 22824 | CONFIRMED |
 | 13.18.60.4 GR14 | **FLOAT-BINARY-32 = binary32 per ISO/IEC 60559:2020, 3.4** (PINNED) | 22826 | SELF-VERIFIED |
@@ -186,7 +186,7 @@ SORT/MERGE keys §14.9.40.3 / §14.9.24.3.
 
 - **[SELF-VERIFIED] The IEEE-754 fidelity inversion (TL;DR #1).** GR13/GR21 cover only the trio; GR14-18 pin the
   standard usages to ISO/IEC 60559:2020. `double`/`System.Decimal` backing of binary128/decimal is non-conforming.
-  Route unimplementable formats through Annex A.3 17/19 processor-dependent non-support. The wrong `§13.18.59` citation
+  Route unimplementable formats through Annex A.3 17/19 processor-dependent non-support. The wrong `§2023:13.18.59` citation
   also lives in `constructs.json` rows and `PicInfo.cs:103` comments — sweep them.
 - **[SCOUT-ONLY] FLOAT-BINARY-32 lexes as ONE IDENTIFIER.** `caseInsensitive` (CobolLexer.g4:7) + `NAME_BODY` alpha
   alt (`[a-z][a-z0-9-]*[a-z0-9]`, :638) matches the full 15-char `FLOAT-BINARY-32` by maximal munch, while
@@ -233,7 +233,7 @@ SORT/MERGE keys §14.9.40.3 / §14.9.24.3.
 | 13.18.60.2 | USAGE general format: `PROGRAM-POINTER [TO proto]` (TO optional); `FUNCTION-POINTER TO proto` (**TO REQUIRED**) | 22684-22686 | CONFIRMED (plan sketch wrong) |
 | 13.18.60.3 SR14 | pointer phrases only on an elementary item at level 1 or under a STRONG type | 22752 | CONFIRMED |
 | 13.18.60.4 GR24/25/26 | program-pointer / restricted program-pointer / function-pointer semantics | 22945/22949/22960 | CONFIRMED |
-| 14.9.39 | **SET statement** (plan's "§14.9.31" is RECEIVE); Format 8 function-ptr-assign 31179, Format 9 program-ptr-assign 31183 | 31107 | DRIFT |
+| 14.9.39 | **SET statement** (plan's "§2023:14.9.31" is RECEIVE); Format 8 function-ptr-assign 31179, Format 9 program-ptr-assign 31183 | 31107 | DRIFT |
 | 14.9.39.3 SR20/21 | Format 8/9 operand-category rules (signature conformance for function-pointers) | 31414 | CONFIRMED |
 | 8.4.3.13 | `ADDRESS OF PROGRAM {identifier\|literal\|program-prototype-name}` (unimplemented; only `SET … TO ENTRY` exists) | 7568 | CONFIRMED |
 | 8.4.3.12 | `ADDRESS OF FUNCTION {function-prototype-name\|identifier}` (unimplemented) | — | CONFIRMED |
@@ -261,11 +261,11 @@ SORT/MERGE keys §14.9.40.3 / §14.9.24.3.
   not exist" to "compile-time prototypes exist; build the runtime side".
 
 ### Code-comment §-errors to fix while in the area (P10 residue)
-`ProgramPointer.cs:6` and `PicInfo.cs:41/96` cite **§8.5.2.7** (function-pointer category) for PROGRAM-pointer — should
-be **§8.5.2.15**. The stale grammar comment moved to `CobolData.g4:529-531` and now (falsely) says pointer tokens are
+`ProgramPointer.cs:6` and `PicInfo.cs:41/96` cite **§2023:8.5.2.7** (function-pointer category) for PROGRAM-pointer — should
+be **§2023:8.5.2.15**. The stale grammar comment moved to `CobolData.g4:529-531` and now (falsely) says pointer tokens are
 "not yet defined" — it belongs to `initializeCategory`; the real residue there is that **INITIALIZE REPLACING** still
 lacks the 2002+ category names (DATA-POINTER/FUNCTION-POINTER/PROGRAM-POINTER/OBJECT-REFERENCE/BOOLEAN/NATIONAL,
-spec §14.9.20) — a separate gap, note it.
+spec §2023:14.9.20) — a separate gap, note it.
 
 ---
 
@@ -279,7 +279,7 @@ spec §14.9.20) — a separate gap, note it.
 | 7.1 | directives/stage table lists `PROPAGATE \| Compilation` (still current) | 3272 | CONFIRMED |
 | 14.6.13.1.3 rule 6 | EC default handling references an applicable PROPAGATE ON directive | 24546 | CONFIRMED |
 | 8.8.4 | Conditional expressions | 9478 | CONFIRMED |
-| 8.8.4.2.17 | variable-length-group comparison (the ONLY plausibly-2014 §8.8.4 delta — rides DYNAMIC LENGTH, belongs to Steps 4/5) | 9777 | PARTIAL |
+| 8.8.4.2.17 | variable-length-group comparison (the ONLY plausibly-2014 §2023:8.8.4 delta — rides DYNAMIC LENGTH, belongs to Steps 4/5) | 9777 | PARTIAL |
 | 8.8.4.12 | abbreviated combined relation conditions — already FULLY implemented edition-invariant (`ConditionBinder.cs:274-495`) | — | CONFIRMED |
 | 4.2.15 | "Limits" — delegates size limits to the implementor → "increased limits" is a safe no-op | 2523 | CONFIRMED |
 
@@ -300,11 +300,11 @@ spec §14.9.20) — a separate gap, note it.
   Decide the semantics owner (P12 Step 9 is viable — the directive is live-in-2023 and the EC engine is DONE — or add
   the missing P13 step) and fix the edition span in whichever doc owns it.
 - **[VERIFIED] The conditional-expression half of Step 9 is unsatisfiable as written.** The VCR has ZERO 2014
-  conditional-expression rows (no 2002→2014 introduction table exists in-repo; its scope note says so). §8.8.4.12
+  conditional-expression rows (no 2002→2014 introduction table exists in-repo; its scope note says so). §2023:8.8.4.12
   abbreviated relations are already edition-invariant; boolean conditions landed 2002-gated in P10/P11. The only
-  plausible 2014 §8.8.4 delta is §8.8.4.2.17 (variable-length-group comparison), which belongs to the DYNAMIC LENGTH
+  plausible 2014 §2023:8.8.4 delta is §2023:8.8.4.2.17 (variable-length-group comparison), which belongs to the DYNAMIC LENGTH
   work. Naming anything more requires the 1989:2014 text.
-- **[VERIFIED] "Increased limits" drop is sound** (§4.2.15). WiseOwl COBOL imposes no artificial translator limits;
+- **[VERIFIED] "Increased limits" drop is sound** (§2023:4.2.15). WiseOwl COBOL imposes no artificial translator limits;
   nothing concrete is skipped. One-line DEVLOG note per the plan.
 
 ---
@@ -317,7 +317,7 @@ spec §14.9.20) — a separate gap, note it.
 |---|---|---|---|
 | 13.18.57 | **TYPE clause** (Format 1 `TYPE TO type-name` — `TO` is an OPTIONAL word, i.e. `TYPE [TO]`) | 22321 | DRIFT — plan calls TYPE TO a pointer form |
 | 13.18.58 | **TYPEDEF clause** | 22557 | CONFIRMED (plan §7 table inverts 57/58) |
-| 13.18.49 | **SAME AS clause** (plan §7 table wrongly cites §13.18.57) | 21731 | CONFIRMED |
+| 13.18.49 | **SAME AS clause** (plan §7 table wrongly cites §2023:13.18.57) | 21731 | CONFIRMED |
 | 13.18.60.2 / D.9.2.2 | the REAL pointer-target form: `USAGE POINTER [TO type-name]` (restricted data-pointer) | 22684 / 44426 | CONFIRMED |
 | 13.18.38.2 Format 4 | OCCURS DYNAMIC `[CAPACITY IN dn][FROM i][TO i][INITIALIZED]` | 19854 | CONFIRMED |
 | 8.5.1.9 | Dynamic-capacity tables | 8184 | CONFIRMED |
@@ -325,9 +325,9 @@ spec §14.9.20) — a separate gap, note it.
 ### Reality vs the plan
 
 - **[VERIFIED] TYPE TO is not a pointer form** (TL;DR #6). Re-anchor the Step-10 `type-to` row to either (a) the TYPE
-  clause's optional word `TO` (§13.18.57.2 Format 1 — a trivial grammar addition, arguably already part of the live
+  clause's optional word `TO` (§2023:13.18.57.2 Format 1 — a trivial grammar addition, arguably already part of the live
   TYPE clause; current `typeClause : TYPE IS? IDENTIFIER` at CobolData.g4:299 even accepts an `IS` the 2023 Format 1
-  doesn't show), or (b) what the plan likely meant — restricted pointers `USAGE POINTER [TO type-name]` (§13.18.60.2),
+  doesn't show), or (b) what the plan likely meant — restricted pointers `USAGE POINTER [TO type-name]` (§2023:13.18.60.2),
   which belongs with Step 8. No `TYPE TO`/restricted-pointer handling exists in `src/`. Fix the same mislabel in
   `ISO2023_CONFORMANCE_PLAN.md:644` + `DATA_MODEL_DESIGN.md:434`.
 - **[VERIFIED] SAME AS is DONE** (P10 Step 16): `ExpandSameAs` DataBinder.cs:1210 on the ONE `CloneItem` (:1118);
@@ -354,15 +354,15 @@ The plan's `1540-1559` sub-allocation collides wholesale:
 
 | plan sub-band | plan's intent | ACTUAL live owner | file:line |
 |---|---|---|---|
-| 1540/1541 | DYNAMIC LENGTH | concat §8.8.3.2 SR1/ALL-figurative (P10) | ConcatFolder.cs:28/30 |
-| 1542 | (DYNAMIC LENGTH) | ANY LENGTH §13.18.2 SR (P9) | DataBinder.cs:1923 |
+| 1540/1541 | DYNAMIC LENGTH | concat §2023:8.8.3.2 SR1/ALL-figurative (P10) | ConcatFolder.cs:28/30 |
+| 1542 | (DYNAMIC LENGTH) | ANY LENGTH §2023:13.18.2 SR (P9) | DataBinder.cs:1923 |
 | 1543/1544/1546 | float/E-symbol | P11 intrinsic validators | IntrinsicBinder.cs:96/808/494 |
-| 1545 | external float | concat result >8191 §8.8.3.2 SR2-4 (P10) | ConcatFolder.cs:32 |
+| 1545 | external float | concat result >8191 §2023:8.8.3.2 SR2-4 (P10) | ConcatFolder.cs:32 |
 | 1547/1548/1549 | (float) | CONSTANT entry / CONSTANT RECORD (P10) | VersionConformancePass.cs:633/645, DataBinder.Constants.cs:33 |
 | 1550/1551/1552 | pointers | **FREE — earmarked P12** | (catalog comments :93,176) |
 | 1553/1554 | pointers | linkage BY VALUE / UDF | DataBinder.Linkage.cs:177, UdfBinder.cs:137 |
-| 1555/1556/1557 | conditional-expr | SAME AS §13.18.49 (P10 — plan Step 10 admits this) | DiagnosticCatalog.cs:178/185/192 |
-| 1558 | (conditional-expr) | EXTERNAL type §13.18.22 | DiagnosticCatalog.cs:212 |
+| 1555/1556/1557 | conditional-expr | SAME AS §2023:13.18.49 (P10 — plan Step 10 admits this) | DiagnosticCatalog.cs:178/185/192 |
+| 1558 | (conditional-expr) | EXTERNAL type §2023:13.18.22 | DiagnosticCatalog.cs:212 |
 | 1559 | (conditional-expr) | RW PRESENT WHEN/VARYING (P10) | VersionConformancePass.cs:686 |
 
 **Correction:** keep **1550/1551/1552** (already earmarked P12 in `DiagnosticCatalog.cs:93,176`); take the rest from

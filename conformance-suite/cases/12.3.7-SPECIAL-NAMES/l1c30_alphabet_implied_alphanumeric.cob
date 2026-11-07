@@ -5,35 +5,35 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §12.3.7.3 SR13 — no class phrase implies ALPHANUMERIC
+      *> ISO §2023:12.3.7.3 SR13 — no class phrase implies ALPHANUMERIC
       *>   "13) When the ALPHABET clause is specified with neither the
       *>   ALPHANUMERIC phrase nor the NATIONAL phrase, the
       *>   ALPHANUMERIC phrase is implied."
       *>   cite.py --check 12.3.7.3 "When the ALPHABET clause is
       *>     specified with neither the ALPHANUMERIC phrase nor the
       *>     NATIONAL phrase, the ALPHANUMERIC phrase is implied."
-      *>     -> OK §12.3.7.3 13)
+      *>     -> OK §2023:12.3.7.3 13)
       *> The unmarked alphabet AL is used at three sites that each
       *> accept ONLY an alphanumeric alphabet and give it meaning only
       *> as one:
       *>   cite.py --check 12.3.6.3 "Alphabet-name-1 shall reference an
       *>     alphabet that defines an alphanumeric collating sequence."
-      *>     -> OK §12.3.6.3 1)  (PCS FOR ALPHANUMERIC IS AL)
+      *>     -> OK §2023:12.3.6.3 1)  (PCS FOR ALPHANUMERIC IS AL)
       *>   cite.py --check 12.3.7.3 "When the IN phrase is specified,
       *>     alphabet-name-3 shall reference an alphabet that defines
-      *>     an alphanumeric character set" -> OK §12.3.7.3 16)
+      *>     an alphanumeric character set" -> OK §2023:12.3.7.3 16)
       *>     (SYMBOLIC CHARACTERS FOR ALPHANUMERIC ... IN AL)
       *>   cite.py --check 12.3.7.4 "the value of figurative constant
       *>     symbolic-character-1 is the representation of the coded
       *>     character at ordinal position integer-1"
-      *>     -> OK §12.3.7.4 11)
+      *>     -> OK §2023:12.3.7.4 11)
       *>   cite.py --check 12.3.7.4 "The order in which the literals
       *>     appear in the ALPHABET clause specifies, in ascending
       *>     sequence, the ordinal number of the character within the
-      *>     collating sequence being specified." -> OK §12.3.7.4 7) 2.
+      *>     collating sequence being specified." -> OK §2023:12.3.7.4 7) 2.
       *> GR7 a) then makes AL's sequence the ALPHANUMERIC one, so it
       *> governs alphanumeric comparisons and NOT national ones (the
-      *> national program collating sequence stays native, §12.3.6.4).
+      *> national program collating sequence stays native, §2023:12.3.6.4).
       *> 2002 dir: the FOR ALPHANUMERIC / FOR NATIONAL phrases and
       *> national literals enter at 2002.
       *> DERIVATION (AL IS "C" "B" "A": positions C=1 B=2 A=3):

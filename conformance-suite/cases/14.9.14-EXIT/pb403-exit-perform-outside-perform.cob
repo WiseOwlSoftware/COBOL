@@ -4,11 +4,11 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> ISO §14.9.14.3 SR8, first sentence: "The EXIT PERFORM statement may be specified only in an inline or
+*> ISO §2023:14.9.14.3 SR8, first sentence: "The EXIT PERFORM statement may be specified only in an inline or
 *> exception-checking PERFORM statement." This program writes one in an ordinary paragraph with no PERFORM of
 *> any kind anywhere in it, so the statement has no PERFORM to exit.
 *>
-*> WHY THE RULE IS A REJECTION AND NOT A NO-OP. §14.9.14.4 GR5 a) defines the statement's meaning ONLY relative
+*> WHY THE RULE IS A REJECTION AND NOT A NO-OP. §2023:14.9.14.4 GR5 a) defines the statement's meaning ONLY relative
 *> to a matching END-PERFORM -- control passes "to an implicit CONTINUE statement immediately following the
 *> END-PERFORM phrase that matches the most closely preceding, and as yet unterminated, inline PERFORM
 *> statement" -- so outside one there is nothing for it to mean.

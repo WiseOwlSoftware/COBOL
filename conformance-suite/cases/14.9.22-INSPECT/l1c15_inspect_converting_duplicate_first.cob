@@ -5,12 +5,12 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.22.4 GR23 — CONVERTING: a character repeated in
+      *> ISO §2023:14.9.22.4 GR23 — CONVERTING: a character repeated in
       *> the FROM operand is replaced per its FIRST occurrence.
       *> Rule: "If the same character appears more than once in the
       *> data item referenced by identifier-6 or in literal-4, the
       *> first occurrence of the character is used for replacement."
-      *> cite.py: OK  §14.9.22.4 23)  (General rules)
+      *> cite.py: OK  §2023:14.9.22.4 23)  (General rules)
       *> DERIVATION (both FROM arms, literal-4 and identifier-6):
       *>  L1: V1 = "abcabc" CONVERTING "aab" TO "XYZ".  'a' occurs at
       *>   FROM positions 1 and 2; the first (1) pairs with 'X'.  'b'

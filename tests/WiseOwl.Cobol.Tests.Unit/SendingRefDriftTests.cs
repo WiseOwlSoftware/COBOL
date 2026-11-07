@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// the enum is small, so the tempting spelling of a four-entry list is its complement — <c>r is Normal</c> — and
 /// that spelling is a trap with a delay fuse: it is correct only while those four members are the WHOLE enum, and
 /// it silently EXEMPTS every member added afterwards. kb/Work PB844 added <see cref="SendingRef.MoveToNumeric"/>
-/// for §14.9.25.4 GR6 d) 1, and under the old <c>r is Normal</c> reading of §14.6.13.2 rule 3 that member would
+/// for §2023:14.9.25.4 GR6 d) 1, and under the old <c>r is Normal</c> reading of §2023:14.6.13.2 rule 3 that member would
 /// have turned OFF the EC-DATA-NOT-FINITE check for <c>MOVE &lt;COMP-2&gt; TO &lt;PIC 9(5)&gt;</c> — a raise the
 /// standard requires, lost to an enum member that never mentioned floating point.</para>
 ///
@@ -25,11 +25,11 @@ namespace WiseOwl.Cobol.Tests.Unit;
 ///
 /// <para>The lists, from the clauses themselves:</para>
 /// <list type="bullet">
-/// <item>§14.6.13.2 <b>rule 2</b> (EC-DATA-INCOMPATIBLE, a fixed-point numeric sending item) — exempt in a class
+/// <item>§2023:14.6.13.2 <b>rule 2</b> (EC-DATA-INCOMPATIBLE, a fixed-point numeric sending item) — exempt in a class
 /// condition and in VALIDATE.</item>
-/// <item>§14.6.13.2 <b>rule 3</b> (EC-DATA-NOT-FINITE, a standard-float sending operand) — those two, plus a sign
+/// <item>§2023:14.6.13.2 <b>rule 3</b> (EC-DATA-NOT-FINITE, a standard-float sending operand) — those two, plus a sign
 /// condition and a same-usage MOVE.</item>
-/// <item>§14.9.25.4 <b>GR6 d) 1</b> (EC-DATA-INCOMPATIBLE, an alphanumeric or national sending operand) — the one
+/// <item>§2023:14.9.25.4 <b>GR6 d) 1</b> (EC-DATA-INCOMPATIBLE, an alphanumeric or national sending operand) — the one
 /// rule whose list is an opt-IN, because GR6 d)'s own scope is the single context "when a numeric or
 /// numeric-edited item is the receiving item".</item>
 /// </list>
@@ -38,7 +38,7 @@ public sealed class SendingRefDriftTests
 {
     private static readonly SendingRef[] All = Enum.GetValues<SendingRef>();
 
-    /// <summary>§14.6.13.2 rule 2's exemption list, as the clause states it — "a sending item is referenced in a
+    /// <summary>§2023:14.6.13.2 rule 2's exemption list, as the clause states it — "a sending item is referenced in a
     /// class condition, or … a sending item is processed in a VALIDATE statement".</summary>
     private static readonly SendingRef[] Rule2Exempt = [SendingRef.ClassCondition, SendingRef.Validate];
 
@@ -46,20 +46,20 @@ public sealed class SendingRefDriftTests
     private static readonly SendingRef[] Rule3Exempt =
         [SendingRef.ClassCondition, SendingRef.Validate, SendingRef.SignCondition, SendingRef.SameUsageMove];
 
-    /// <summary>§14.9.25.4 GR6 d) 1 applies in GR6 d)'s scope and nowhere else.</summary>
+    /// <summary>§2023:14.9.25.4 GR6 d) 1 applies in GR6 d)'s scope and nowhere else.</summary>
     private static readonly SendingRef[] Gr6d1Applies = [SendingRef.MoveToNumeric];
 
     [Fact]
     public void FixedPointChecked_ExemptsExactlyRule2sList_AndChecksEveryOtherContext()
-        => AssertPartition(Rule2Exempt, r => r.FixedPointChecked(), "§14.6.13.2 rule 2 (EC-DATA-INCOMPATIBLE)");
+        => AssertPartition(Rule2Exempt, r => r.FixedPointChecked(), "§2023:14.6.13.2 rule 2 (EC-DATA-INCOMPATIBLE)");
 
     [Fact]
     public void FloatChecked_ExemptsExactlyRule3sList_AndChecksEveryOtherContext()
-        => AssertPartition(Rule3Exempt, r => r.FloatChecked(StandardFloat), "§14.6.13.2 rule 3 (EC-DATA-NOT-FINITE)");
+        => AssertPartition(Rule3Exempt, r => r.FloatChecked(StandardFloat), "§2023:14.6.13.2 rule 3 (EC-DATA-NOT-FINITE)");
 
     private static readonly PicInfo StandardFloat = new(PicCategory.Numeric, Usage.FloatBinary64, Length: 8, Digits: 0, Scale: 0, Signed: true);
 
-    /// <summary>kb/Work PB1684: §14.6.13.2 3) scopes EC-DATA-NOT-FINITE to a STANDARD floating-point usage — an
+    /// <summary>kb/Work PB1684: §2023:14.6.13.2 3) scopes EC-DATA-NOT-FINITE to a STANDARD floating-point usage — an
     /// implementor float (COMP-2, FLOAT-LONG) is never checked, in any context.</summary>
     [Fact]
     public void FloatChecked_IsFalseForAnImplementorFloatUsage()
@@ -77,7 +77,7 @@ public sealed class SendingRefDriftTests
     {
         foreach (var r in All)
             Assert.True(Gr6d1Applies.Contains(r) == r.AlphanumericChecked(),
-                $"§14.9.25.4 GR6 d) 1 must be checked in {string.Join("/", Gr6d1Applies)} and nowhere else; "
+                $"§2023:14.9.25.4 GR6 d) 1 must be checked in {string.Join("/", Gr6d1Applies)} and nowhere else; "
                 + $"SendingRef.{r} answered {r.AlphanumericChecked()}");
     }
 

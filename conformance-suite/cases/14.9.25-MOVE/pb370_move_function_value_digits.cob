@@ -5,14 +5,14 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.25.4 GR1 writes a MOVE with several receiving
+      *> ISO §2023:14.9.25.4 GR1 writes a MOVE with several receiving
       *> operands out as an equivalence - "MOVE a (b) TO b, c (b)" is
       *> "equivalent to: MOVE a (b) TO temp / MOVE temp TO b / MOVE temp
       *> to c (b)", where 'temp' is "an intermediate result item provided
       *> by the implementor" - so each receiver of a multi-receiver MOVE
       *> holds what a single-receiver MOVE of the same sender stores in
       *> it. For a numeric function-identifier the intermediate is the
-      *> §15.4 temporary, and it must keep every digit a receiver takes
+      *> §2023:15.4 temporary, and it must keep every digit a receiver takes
       *> (kb/Work PB370):
       *>   F  MOVE FUNCTION PI TO S1 S2 S3 E1: each receiver equals the
       *>      single-receiver MOVE into its twin - twelve fraction digits
@@ -20,7 +20,7 @@
       *>      numeric-edited PIC 9.9(14).
       *>   I  MOVE FUNCTION NUMVAL (25 digits) TO B1 B2: each receiver
       *>      holds the 25-digit value NUMVAL returns, "the numeric
-      *>      value represented by argument-1" (§15.67.4 1), as the
+      *>      value represented by argument-1" (§2023:15.67.4 1), as the
       *>      single receiver B3 does.
       *>   O  MOVE FUNCTION PI TO S (I) S (3) with EC-BOUND checking
       *>      enabled: two subscripted receivers store the same twelve
@@ -41,7 +41,7 @@
       *>      the same edited image their twin DQ takes, +2.688117141E+43.
       *>   Z  MOVE FUNCTION NUMVAL ("1.2345678901234567890123") TO W (I)
       *>      W (3), PIC +9.9(20)E+99: an exact-valued function into a 21-digit
-      *>      edited significand, truncated there (§14.6.8.4 2) to
+      *>      edited significand, truncated there (§2023:14.6.8.4 2) to
       *>      +1.23456789012345678901E+00 as its twin WQ is - more digits
       *>      than a binary64 intermediate carries.
       *>   K  The same value TO WQ WS, a 21-digit and a 6-digit edited

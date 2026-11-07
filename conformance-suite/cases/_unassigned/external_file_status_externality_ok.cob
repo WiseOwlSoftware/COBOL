@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.8.4.2 conjunct 1 positive control: a SINGLE-program external file whose FILE STATUS names an
+      *> ISO §2023:14.8.4.2 conjunct 1 positive control: a SINGLE-program external file whose FILE STATUS names an
       *> IS EXTERNAL item compiles clean at 2023 strict (guards the dropped conns.Count<2 early-out against
       *> over-firing on a lone, correctly-external describer).
        IDENTIFICATION DIVISION.

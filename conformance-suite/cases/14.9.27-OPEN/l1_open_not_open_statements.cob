@@ -5,17 +5,17 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.27.4 GR6 — "When a file connector is not open, no
+      *> ISO §2023:14.9.27.4 GR6 — "When a file connector is not open, no
       *> statement shall be executed that references the associated
       *> file-name, either explicitly or implicitly, except for a MERGE
       *> or SORT statement with the USING or GIVING phrase, the COMMIT
       *> and ROLLBACK statements, a DELETE FILE statement, or an OPEN
       *> statement."
       *> The rule prohibits the PROGRAM; an implementation honours it by
-      *> giving each forbidden statement that statement's §9.1.13.7
+      *> giving each forbidden statement that statement's §2023:9.1.13.7
       *> logic-error status and leaving the file alone. F is never
       *> opened before the four attempts below; the expected values are
-      *> quoted from §9.1.13.7:
+      *> quoted from §2023:9.1.13.7:
       *>   CLOSE   item 2 — "A CLOSE or UNLOCK statement is attempted
       *>           for a file connector that is not in an open mode" =
       *>           '42'.
@@ -29,24 +29,24 @@
       *>           I-O mode" = '49'. (Item 3's '43' presupposes an OPEN
       *>           connector whose LAST I-O statement was not a
       *>           successful READ; with no open mode at all only item
-      *>           9 applies, so §9.1.13.1's "if more than one value
-      *>           applies" tie-break is not reached.) §14.9.35.4 GR3
+      *>           9 applies, so §2023:9.1.13.1's "if more than one value
+      *>           applies" tie-break is not reached.) §2023:14.9.35.4 GR3
       *>           states the same value outright, without needing the
       *>           elimination: "If the open mode is some other value
       *>           or the file is not open, the I-O status in the
       *>           rewrite file connector is set to '49'".
       *> Then the EXEMPT statement: OPEN is the one verb the rule
       *> permits on a not-open connector, and it succeeds ('00',
-      *> §9.1.13.2 item 1). The read-back proves the file holds exactly
+      *> §2023:9.1.13.2 item 1). The read-back proves the file holds exactly
       *> the ONE record written after that OPEN. The one forbidden
       *> statement that could have added a record is the WRITE, and its
-      *> own rule says it did not — §14.9.51.4 GR15: "If the execution
+      *> own rule says it did not — §2023:14.9.51.4 GR15: "If the execution
       *> of a WRITE statement is unsuccessful, the write operation does
       *> not take place, the content of the record area is unaffected".
-      *> (§14.9.27.4 GR25 is NOT the authority for this: its stem is
+      *> (§2023:14.9.27.4 GR25 is NOT the authority for this: its stem is
       *> scoped to "If the execution of the OPEN statement is
       *> unsuccessful", and none of the four forbidden statements is an
-      *> OPEN.) The trailing '10' is §9.1.13.4 item 1a — "NEXT was
+      *> OPEN.) The trailing '10' is §2023:9.1.13.4 item 1a — "NEXT was
       *> specified or implied and the end of the physical file has been
       *> reached".
        IDENTIFICATION DIVISION.

@@ -7,10 +7,10 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
 /// The witness for Annex A.1 item 116 — "Linkage section (whether access to linkage section items is meaningful when
-/// called from a non-COBOL program)" (cite.py OK §A.1 116)) — and the determination <c>docs/CONFORMANCE.md</c>
-/// DOC-A.1-116 records for it (kb/Work PB2671). ISO/IEC 1989:2023 §13.7.4 3) (cite.py OK): "If a program is activated
+/// called from a non-COBOL program)" (cite.py OK §2023:A.1 116)) — and the determination <c>docs/CONFORMANCE.md</c>
+/// DOC-A.1-116 records for it (kb/Work PB2671). ISO/IEC 1989:2023 §2023:13.7.4 3) (cite.py OK): "If a program is activated
 /// by a non-COBOL runtime element, the implementor defines whether access to formal parameters and the returning item
-/// is guaranteed"; §13.7.4 5) (cite.py OK): "If the runtime element containing the linkage section is activated by a
+/// is guaranteed"; §2023:13.7.4 5) (cite.py OK): "If the runtime element containing the linkage section is activated by a
 /// non-COBOL runtime element, the initial value of a linkage section data item is defined by the implementor".
 /// <para>DETERMINATION PINNED: the only non-COBOL activator is a .NET host (item 141), and its one interface is the
 /// program's generated host entry, <c>Cobol.&lt;assembly&gt;.&lt;NAME&gt;.Call(...)</c> (DESIGN-external-repository §4.3),
@@ -18,18 +18,18 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// Access IS guaranteed, exactly as under a COBOL CALL with a USING phrase: each <c>Call</c> parameter is the formal in
 /// its position, whose initial value is the host's value landed into storage of the formal's description (a group's,
 /// its published record's image) and whose stores reach the host's variable when the call ends; an OPTIONAL formal
-/// whose parameter is <c>null</c> is OMITTED (§14.9.4.4 11), cite.py OK); and the RETURNING item is <c>Call</c>'s
-/// return value. The RETURNING item's initial value is not this item's to define: §14.2.3 7) (cite.py OK) makes it
+/// whose parameter is <c>null</c> is OMITTED (§2023:14.9.4.4 11), cite.py OK); and the RETURNING item is <c>Call</c>'s
+/// return value. The RETURNING item's initial value is not this item's to define: §2023:14.2.3 7) (cite.py OK) makes it
 /// "undefined" for every activator, so the program below stores into LR before the host reads it.</para>
 /// <para>Expected output, derived from the determination: the first call passes every argument, so each formal shows
 /// the host's value — LA and the group LG (AB12) as given, LN 007, LB nonzero, LP the NULL the host passed, the
 /// national LK the spaces the host passed (read through ADDRESS OF, the AREA arm of kb/Work PB2671), LF zero — and the
 /// host reads back the program's stores (LA ZZZZ, LG GG13 after MOVE "GG" and ADD 1) and the RETURNING value RRRR. The
 /// second call passes <c>null</c> for every OPTIONAL formal, so each is OMITTED. A linkage VALUE clause is not applied
-/// (§13.18.63.4 3), cite.py OK: "In the linkage section, VALUE clauses take effect only during the execution of an
+/// (§2023:13.18.63.4 3), cite.py OK: "In the linkage section, VALUE clauses take effect only during the execution of an
 /// explicit or implicit INITIALIZE statement"): LA shows the host's value, never VVVV.</para>
 /// <para>A program activated by the operating system (the <c>Main</c> of a <c>cobol</c> executable) is the other
-/// §13.7.4 3) case, whose effect is undefined; WiseOwl COBOL gives each formal its category default there, which the
+/// §2023:13.7.4 3) case, whose effect is undefined; WiseOwl COBOL gives each formal its category default there, which the
 /// golden <c>conformance:cases/A.1-Implementor-defined-language-element-list/pb2671_omitted_formal_category_default</c> pins.</para>
 /// </summary>
 public sealed class NonCobolActivatorLinkageTests

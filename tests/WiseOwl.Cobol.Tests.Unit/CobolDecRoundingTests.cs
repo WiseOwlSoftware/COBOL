@@ -6,7 +6,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The SDIDI final transfer's rounding decision (<c>CobolDec.ToUnscaled</c>, ISO §14.7.4.3) and the §8.8.1.5.2 r2
+/// The SDIDI final transfer's rounding decision (<c>CobolDec.ToUnscaled</c>, ISO §2023:14.7.4.3) and the §2023:8.8.1.5.2 r2
 /// range check (<c>CobolDec.FromParsed</c> → <c>Clamp</c>) for values FAR BELOW the target precision — the
 /// remainder-marker shape (kb/Work PB76): past the Int128 carrier the true remainder is unavailable, so
 /// <c>DivRemPow10</c> returns a marker, and that marker must read as a signed, below-half, inexact remainder —
@@ -16,7 +16,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// lifted a sub-precision value to one unit (<c>COMPUTE R9 ROUNDED = 10 ** -20</c> stored 0.000000001 into
 /// <c>V9(9)</c>), and the unsigned remainder sent AWAY-FROM-ZERO / TOWARD-GREATER of a NEGATIVE value toward +∞.
 /// The 34-digit significand makes the shape common: 1/10²⁰ is 10³³×10⁻⁵³, 44 places below scale 9. Expected
-/// values are §14.7.4.3's own: r4 nearest (tie ⇒ away), r5 nearest-even, r3 away-from-zero, r8 toward-greater,
+/// values are §2023:14.7.4.3's own: r4 nearest (tie ⇒ away), r5 nearest-even, r3 away-from-zero, r8 toward-greater,
 /// r9 toward-lesser, r10 truncation, r6 nearest-toward-zero, r7 prohibited ⇒ size error.</remarks>
 public sealed class CobolDecRoundingTests
 {
@@ -49,7 +49,7 @@ public sealed class CobolDecRoundingTests
     public void SubPrecision_Prohibited_IsInexact() =>
         Assert.Throws<CobolSizeError>(() => TinyPos.ToUnscaled(9, CobolRounding.Prohibited));   // r7
 
-    /// <summary>The same marker feeds the decimal128 subnormal re-round (§8.8.1.5.2 r2): a value far below the
+    /// <summary>The same marker feeds the decimal128 subnormal re-round (§2023:8.8.1.5.2 r2): a value far below the
     /// 10⁻⁶¹⁷⁶ quantum rounds to zero under a NEAREST mode and is EC-SIZE-UNDERFLOW — the half-tie marker had
     /// returned it as one quantum instead.</summary>
     [Fact]
@@ -71,7 +71,7 @@ public sealed class CobolDecRoundingTests
         var huge = new CobolDec(1, 100);                                                   // 10¹⁰⁰ — inside decimal128, past Int128
         Assert.Equal((Int128)0, huge.ToUnscaled(0, CobolRounding.Truncation));            // unchecked: the low-order digits (0)
         var ex = Assert.Throws<CobolSizeError>(() => huge.ToUnscaledChecked(0, CobolRounding.Truncation));
-        Assert.Equal("EC-SIZE-TRUNCATION", ex.EcName);                                    // §14.7.5 no-phrase rule 4
+        Assert.Equal("EC-SIZE-TRUNCATION", ex.EcName);                                    // §2023:14.7.5 no-phrase rule 4
         var fits = new CobolDec(12345, 33);                                                // 1.2345×10³⁷ — 38 digits, fits
         Assert.Equal(Int128.Parse("12345" + new string('0', 33)), fits.ToUnscaledChecked(0, CobolRounding.Truncation));
     }

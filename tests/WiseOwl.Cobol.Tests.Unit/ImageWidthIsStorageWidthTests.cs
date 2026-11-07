@@ -14,8 +14,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <c>PicInfo.StorageWidth</c> pinned BINARY at 1-2-4-8 and PACKED at <c>Digits/2+1</c> BCD, <c>ByteWidth</c>
 /// documented them and <c>FUNCTION BYTE-LENGTH</c> reported them, while the image used <c>Pic.Digits</c>. For
 /// <c>05 G-COMP PIC 9(4) COMP. 05 G-PACK PIC 9(4) COMP-3.</c> the compiler answered BYTE-LENGTH(G) = 5 and
-/// LENGTH(G) = 8 and accepted <c>REDEFINES G PIC X(8)</c>. ISO §15.14.4 r1 returns the length in BYTES and
-/// §15.50.4 r3 in ALPHANUMERIC CHARACTER POSITIONS; in a single-byte-character model those cannot disagree, and
+/// LENGTH(G) = 8 and accepted <c>REDEFINES G PIC X(8)</c>. ISO §2023:15.14.4 r1 returns the length in BYTES and
+/// §2023:15.50.4 r3 in ALPHANUMERIC CHARACTER POSITIONS; in a single-byte-character model those cannot disagree, and
 /// a CONFORMING program observes the disagreement with no file, no REDEFINES and no byte pun at all. Nothing in
 /// the battery said so, because nothing compared the two.
 /// </para>
@@ -24,7 +24,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <list type="bullet">
 /// <item>NATIONAL is excluded because it is deliberately 2 bytes per character POSITION (D-N1/D-N3) — the two
 /// views legitimately differ by exactly that factor, which this test asserts rather than skips.</item>
-/// <item>BOOLEAN is excluded because its unit is a boolean position, not a character position (§15.50.4 r1).</item>
+/// <item>BOOLEAN is excluded because its unit is a boolean position, not a character position (§2023:15.50.4 r1).</item>
 /// <item>Everything NOT <see cref="DataItem.IsImageCapable"/> is excluded because it never reaches an image at
 /// all — USAGE INDEX is the loud Tier-C island (floats and COMP-5 joined the image in kb/Work PB164 waves
 /// 1–2 and are enumerated below). An item outside the image cannot contradict it.</item>
@@ -67,8 +67,8 @@ public sealed class ImageWidthIsStorageWidthTests
     }
 
     /// <summary>The pinned widths themselves, stated as a table so a silent change to the representation is a
-    /// RED TEST rather than a surprise on disk. These ARE the documented on-disk form (ISO §13.18.60.4 GR4 leaves
-    /// BINARY's representation and GR11 PACKED's to the implementor; §4.2.16 obliges us to document the choice).
+    /// RED TEST rather than a surprise on disk. These ARE the documented on-disk form (ISO §2023:13.18.60.4 GR4 leaves
+    /// BINARY's representation and GR11 PACKED's to the implementor; §2023:4.2.16 obliges us to document the choice).
     /// BINARY = 1-2-4-8 by digit count; PACKED = <c>Digits/2 + 1</c> BCD bytes (sign nibble included).</summary>
     [Theory]
     [InlineData(Usage.Binary, 1, 1)]
@@ -79,7 +79,7 @@ public sealed class ImageWidthIsStorageWidthTests
     [InlineData(Usage.Binary, 9, 4)]
     [InlineData(Usage.Binary, 10, 8)]
     [InlineData(Usage.Binary, 18, 8)]
-    // The 16-byte tier: §13.18.60.4 GR4 requires storage SUFFICIENT for the range the picture implies, and a
+    // The 16-byte tier: §2023:13.18.60.4 GR4 requires storage SUFFICIENT for the range the picture implies, and a
     // signed 19-digit picture (10^19−1) does not fit 2^63−1. Legal at COBOL-2002+ and stored as Int128.
     [InlineData(Usage.Binary, 19, 16)]
     [InlineData(Usage.Binary, 31, 16)]
@@ -89,7 +89,7 @@ public sealed class ImageWidthIsStorageWidthTests
     [InlineData(Usage.Packed, 4, 3)]
     [InlineData(Usage.Packed, 9, 5)]
     [InlineData(Usage.Packed, 18, 10)]
-    // The IEEE interchange widths (kb/Work PB164 wave 2 — §13.18.60.4 GR13–GR15): 4 bytes binary32,
+    // The IEEE interchange widths (kb/Work PB164 wave 2 — §2023:13.18.60.4 GR13–GR15): 4 bytes binary32,
     // 8 bytes binary64, independent of the (inert) digit axis.
     [InlineData(Usage.Float, 1, 4)]
     [InlineData(Usage.FloatShort, 1, 4)]
@@ -128,7 +128,7 @@ public sealed class ImageWidthIsStorageWidthTests
     /// <summary>THE RULE FOR A USAGE-NATIONAL LEAF (kb/Work PB546; D-N1): an ELEMENTARY item's <c>ImageWidth</c> counts
     /// its character positions and its <c>ByteWidth</c> the storage they occupy, so the storage is
     /// <see cref="PicInfo.BytesPerPosition"/> × positions — for EVERY category a usage-national item can have
-    /// (ISO §13.18.60.3 SR12: boolean, national, national-edited, numeric, numeric-edited), because §13.18.60.4 GR8
+    /// (ISO §2023:13.18.60.3 SR12: boolean, national, national-edited, numeric, numeric-edited), because §2023:13.18.60.4 GR8
     /// makes the representation a matter of usage. Under an alphanumeric group the two widths are one (the next
     /// tests); under a national group the group counts positions.</summary>
     [Theory]
@@ -159,7 +159,7 @@ public sealed class ImageWidthIsStorageWidthTests
     /// comes from the pinned byte form by construction — this test states the fact that makes any future
     /// re-introduction of a <c>pic.Length</c>-wide numeric seed wrong.</para>
     /// <para>The last row is the case that shows the axis is not only about COMP: a SIGN SEPARATE zoned DISPLAY
-    /// item carries a sign POSITION that its picture's digit count does not (§13.18.52), so digits and stored
+    /// item carries a sign POSITION that its picture's digit count does not (§2023:13.18.52), so digits and stored
     /// characters differ there too.</para>
     /// </summary>
     [Theory]
@@ -221,7 +221,7 @@ public sealed class ImageWidthIsStorageWidthTests
 
     /// <summary>⛔ kb/Work PB1665 — THE GROUP ARM OF THE ONE-WIDTH INVARIANT. A usage-national leaf's two widths
     /// are its positions and the bytes they occupy (the unit reader's rule, asserted above), but an
-    /// ALPHANUMERIC group is a string of storage characters (§8.5.2.1; §14.9.25.4 GR4 moves it as an alphanumeric
+    /// ALPHANUMERIC group is a string of storage characters (§2023:8.5.2.1; §2023:14.9.25.4 GR4 moves it as an alphanumeric
     /// item), so a national position counts as the two it occupies and the group's ImageWidth IS its ByteWidth —
     /// the quantity every group MOVE, comparison and boundary window is sized by. Counting the leaf once made
     /// <c>MOVE G5 TO G6</c> drop the trailing members.</summary>
@@ -236,7 +236,7 @@ public sealed class ImageWidthIsStorageWidthTests
         Assert.Equal(8, group.ImageWidth);
     }
 
-    /// <summary>A GROUP-USAGE NATIONAL group is as-if PICTURE N(m) (§13.18.29.4 GR2b): m is NATIONAL POSITIONS, so
+    /// <summary>A GROUP-USAGE NATIONAL group is as-if PICTURE N(m) (§2023:13.18.29.4 GR2b): m is NATIONAL POSITIONS, so
     /// its ImageWidth stays the position count and only its ByteWidth doubles. A group nested in it is counted the
     /// same way even before the usage-inheritance walk has stamped its own GroupUsage.</summary>
     [Fact]
@@ -253,7 +253,7 @@ public sealed class ImageWidthIsStorageWidthTests
     }
 
     /// <summary>A national group INSIDE an alphanumeric group is an elementary national item to its parent
-    /// (§13.18.29.4 GR2b), so it contributes the storage characters its positions occupy.</summary>
+    /// (§2023:13.18.29.4 GR2b), so it contributes the storage characters its positions occupy.</summary>
     [Fact]
     public void NationalGroupInsideAnAlphanumericGroup_ContributesItsBytes()
     {

@@ -8,7 +8,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ THE TWO-ARM PIN FOR ISO §14.9.25.3 SR1 (kb/Work PB423).
+/// ⛔ THE TWO-ARM PIN FOR ISO §2023:14.9.25.3 SR1 (kb/Work PB423).
 ///
 /// <para>SR1 — <i>"The class of identifier-1 or identifier-2 shall not be index, message-tag, object, or
 /// pointer"</i> — is ONE sentence about BOTH operand positions, and the compiler implemented it as two arms of
@@ -20,15 +20,15 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <c>CS0029</c> about generated C# in place of a COBOL diagnostic.</para>
 ///
 /// <para><b>What this pins that a golden cannot.</b> The negatives prove the two shapes are refused today. This
-/// asserts the PROPERTY that was lost: every usage §13.18.60.3 SR4 names — <i>"The INDEX, MESSAGE-TAG, OBJECT
+/// asserts the PROPERTY that was lost: every usage §2023:13.18.60.3 SR4 names — <i>"The INDEX, MESSAGE-TAG, OBJECT
 /// REFERENCE, POINTER, FUNCTION-POINTER, and PROGRAM-POINTER phrases"</i>, exactly the six that produce SR1's
-/// four classes (§8.5.2) — is refused in BOTH positions, and the two positions return the SAME text for the
+/// four classes (§2023:8.5.2) — is refused in BOTH positions, and the two positions return the SAME text for the
 /// same item. A usage going live can never again leave one arm stale, because
 /// <c>ItemCategory.Sr4PhraseOf</c> drives the population instead of a hand-written list.</para>
 /// </summary>
 public sealed class MoveOperandClassDriftTests
 {
-    /// <summary>The six USAGE phrases ISO §13.18.60.3 SR4 names. Read from <c>ItemCategory.Sr4PhraseOf</c> — the
+    /// <summary>The six USAGE phrases ISO §2023:13.18.60.3 SR4 names. Read from <c>ItemCategory.Sr4PhraseOf</c> — the
     /// compiler's ONE reader of that list — so this test cannot hold a seventh copy of it.</summary>
     public static TheoryData<Usage> Sr4Usages()
     {
@@ -67,8 +67,8 @@ public sealed class MoveOperandClassDriftTests
     {
         DataItem item = ItemOf(u);
         if (!ItemCategory.IsIndexMessageTagObjectOrPointer(item))
-            Assert.Fail($"USAGE {ItemCategory.Sr4PhraseOf(u)} is one of §13.18.60.3 SR4's six phrases, so the "
-                + "§14.9.25.3 SR1 class population must contain it.");
+            Assert.Fail($"USAGE {ItemCategory.Sr4PhraseOf(u)} is one of §2023:13.18.60.3 SR4's six phrases, so the "
+                + "§2023:14.9.25.3 SR1 class population must contain it.");
         var place = new MemberPlace(new AccessPath([]), item);
         string? receiving = MoveTable16.ReceiverClassRefusal(place);
         string? sending = MoveTable16.SenderClassRefusal(new BoundFieldOperand(place));

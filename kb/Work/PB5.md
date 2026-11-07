@@ -26,15 +26,15 @@ tags: [wiseowl-cobol, work, defect]
 >
 > ```cobol
 > 01 R PIC 9(12)V99.
->     COMPUTE R = FUNCTION ANNUITY(10000000000 1)      *> §15.9.4 r1b ⇒ exactly 1 + argument-1 = 10000000001.00
+>     COMPUTE R = FUNCTION ANNUITY(10000000000 1)      *> §2023:15.9.4 r1b ⇒ exactly 1 + argument-1 = 10000000001.00
 >       ON SIZE ERROR ... NOT ON SIZE ERROR ...        *> printed NO SIZE ERROR
 >     R = 00922337203685                                *> wrong by 8%
 > ```
 > `SQRT(1e20)`, `EXP(23.3)`, `ABS` and `MAX` over a COMP-2 all produced that same constant. **A twelve-digit
-> money field is routine COBOL**, so this was not an edge case; and there was no diagnostic, because §14.7.4
+> money field is routine COBOL**, so this was not an edge case; and there was no diagnostic, because §2023:14.7.4
 > never saw an overflow — the value had already been clamped to something that fits.
 >
-> ⛔ §15.4.1 licenses an implementor-defined **approximation** of the equivalent arithmetic expression under
+> ⛔ §2023:15.4.1 licenses an implementor-defined **approximation** of the equivalent arithmetic expression under
 > native arithmetic. **9223372036.85 is not an approximation of 10000000001.**
 >
 > **THE FIX IS A TYPE, AND IT IS A CORRECTNESS FIX RATHER THAN A WIDENING FOR COMFORT.** The scaled domain of
@@ -48,10 +48,10 @@ tags: [wiseowl-cobol, work, defect]
 > the clamp never bites. That is the second time this session the adversarial pass paid for itself on a defect
 > the first pass had looked straight at.
 >
-> **AND A CITATION DEFECT AT THE SAME SITE:** the `FromDouble` comment cited **§14.6.13.1.1 Table 13** for
+> **AND A CITATION DEFECT AT THE SAME SITE:** the `FromDouble` comment cited **§2023:14.6.13.1.1 Table 13** for
 > EC-ARGUMENT-FUNCTION being fatal. `cite.py --check` FAILS on it (that clause is titled "General"); the real
-> one is **§14.6.13.1.6**. It had propagated from the source comment into an agent's adjudication — the
+> one is **§2023:14.6.13.1.6**. It had propagated from the source comment into an agent's adjudication — the
 > inherited-citation shape again, and one the quoted-fragment audit could not see because it carries no quote.
 >
 > **GOLDEN** `conformance:2023/pb5_float_quantize_range` — pins the saturation, deliberately NOT the binary64
-> cent that the §15.4.1 approximation legitimately produces on ANNUITY's division.
+> cent that the §2023:15.4.1 approximation legitimately produces on ANNUITY's division.

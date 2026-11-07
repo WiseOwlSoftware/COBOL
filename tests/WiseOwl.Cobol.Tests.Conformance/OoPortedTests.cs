@@ -40,7 +40,7 @@ public sealed class OoPortedTests
     //       SUPPORTED (the legacy COBOL0113 staging reject is retired); the positive guard is
     //       OoSpineTests.SubclassOwnObjectData_IndependentPerInstance
     //   Inherits_CaseMismatchedOverride_StillOverrides -> OoSpineTests.Trap2_CaseMismatchedOverride_
-    //       StillDispatches (COBOL names are case-insensitive — one C# slot, §8.3.2.2)
+    //       StillDispatches (COBOL names are case-insensitive — one C# slot, §2023:8.3.2.2)
     //   Inherits_UnknownBase_FailsLoudly           -> OoSpineTests.InheritsUnknownBase_0821_KnownBaseCompiles
     //       (COBOL0821; the legacy code was COBOL0114)
     // ────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -118,9 +118,9 @@ public sealed class OoPortedTests
     /// <summary>Legacy bug (adversarial review, DEVLOG 448): each grammar-legal-but-then-unsupported USING
     /// form had to be rejected loudly (COBOL0111), never SILENTLY DROPPED — a silent drop shifts the trailing
     /// RETURNING slot into an argument position (wrong binding / runtime crash). Greenfield: the bare-literal
-    /// and BY CONTENT forms are now SUPPORTED (§14.8.2.3.3 COMPUTE-rule conversion — see
+    /// and BY CONTENT forms are now SUPPORTED (§2023:14.8.2.3.3 COMPUTE-rule conversion — see
     /// OoSpineTests.ByContentNumeric_ComputeRuleConversion), so the no-silent-drop contract is proven by the
-    /// CORRECT delivered value instead; the BY VALUE form (no BY VALUE formals yet — §14.9.23.3 SR5b) stays a
+    /// CORRECT delivered value instead; the BY VALUE form (no BY VALUE formals yet — §2023:14.9.23.3 SR5b) stays a
     /// loud compile-time COBOL0828, never a drop.</summary>
     [Fact]
     public void Ported_Invoke_UnsupportedArgForm_FailsLoudly()
@@ -138,7 +138,7 @@ public sealed class OoPortedTests
         Assert.Equal("R=0007", CutRunner.Normalize(outCont));
 
         // Legacy InlineData 3 — BY VALUE: every formal is BY REFERENCE today, so this is the loud
-        // compile-time 0828 (ISO §14.9.23.3 SR5b) — a clean reject, never a silent miscompile.
+        // compile-time 0828 (ISO §2023:14.9.23.3 SR5b) — a clean reject, never a silent miscompile.
         var (okVal, errsVal, _) = EditionHarness.CompileFull(
             ArgFormDriver("OODRVP9C", "ACCP9C", @"INVOKE A ""ADDTO"" USING BY VALUE AMT RETURNING R."), 2002);
         Assert.False(okVal, "a BY VALUE argument against a BY REFERENCE formal must be rejected loudly, "
@@ -153,8 +153,8 @@ public sealed class OoPortedTests
     /// not trip the legacy subclass-own-data reject (COBOL0113). Greenfield: subclass-own data is fully
     /// supported (no 0113 analog exists), so this port asserts the combination compiles AND runs.
     /// PORTED NOTE: the legacy driver passed an elementary <c>PIC X(3)</c> to the method's 3-character group formal LK,
-    /// which ISO §9.3.6 match rule 3 e) refuses (the argument has a PICTURE clause the group lacks; kb/Work PB2077,
-    /// decision PB3098) — so the driver's T is a 3-character group, which matches and conforms (§14.8.2.2 rule 1).</summary>
+    /// which ISO §2023:9.3.6 match rule 3 e) refuses (the argument has a PICTURE clause the group lacks; kb/Work PB2077,
+    /// decision PB3098) — so the driver's T is a 3-character group, which matches and conforms (§2023:14.8.2.2 rule 1).</summary>
     [Fact]
     public void Ported_Inherits_SubclassMethodLinkageIndex_Allowed()
     {
@@ -217,7 +217,7 @@ public sealed class OoPortedTests
         var (ok, stdout, detail) = CompileAndRun(src);
         Assert.True(ok, detail);   // must NOT false-fire a subclass-data (or any other) reject
         // (Port adjudication: the legacy passed a nonconforming PIC 9 argument its lax checker accepted; the
-        //  greenfield's SPEC-CORRECT §14.8.2.3.2 strict check rejects that, so the argument here is the
+        //  greenfield's SPEC-CORRECT §2023:14.8.2.3.2 strict check rejects that, so the argument here is the
         //  conforming X(3) — the guarded bug [a LINKAGE INDEXED BY table inside a subclass method] is intact.)
         Assert.Equal("", CutRunner.Normalize(stdout));
     }
@@ -229,7 +229,7 @@ public sealed class OoPortedTests
     /// (COBOL0116) rather than emit wrong output. Greenfield: a section inside a method is a method-local pc
     /// range (StatementBinder — "the legacy COBOL0116 reject is superseded"), so the correct assertion is now
     /// the POSITIVE one: MAIN-SEC's paragraph MAIN falls through into DRIVE-SEC's paragraph and both DISPLAYs run.
-    /// (MAIN sits in a section of its own: §14.4.1 — once one paragraph is in a section all shall be, kb/Work PB1146.)</summary>
+    /// (MAIN sits in a section of its own: §2023:14.4.1 — once one paragraph is in a section all shall be, kb/Work PB1146.)</summary>
     [Fact]
     public void Ported_Method_WithSection_FailsLoudly()
     {

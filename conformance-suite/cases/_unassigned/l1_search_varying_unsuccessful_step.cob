@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.37.4 GR3 b) 1 and b) 2 on the branch the successful
+      *> ISO §2023:14.9.37.4 GR3 b) 1 and b) 2 on the branch the successful
       *> legs cannot reach: how many times identifier-2 is incremented
       *> when the scan ends UNSUCCESSFULLY by exhaustion.
       *> GR4 fixes the count: "If none of the conditions is satisfied,
@@ -19,7 +19,7 @@
       *> producing occurrence 6, which ends the search.
       *> Leg A (GR3b2, integer item): 20 + 5 = 25.
       *> Leg B (GR3b1, index data item): occurrence 1 + 5 = 6, which is
-      *> inside the range §13.18.38.4 GR2 requires an index to accept
+      *> inside the range §2023:13.18.38.4 GR2 requires an index to accept
       *> for a 5-element table ((1 - 5) through (2 * 5)).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1SRVUS.

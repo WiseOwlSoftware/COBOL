@@ -44,12 +44,12 @@ int Dispatch(int startPc, int exitPc) {
 ## Verbs mapped onto the PC
 - **Fall-through** = `pc = i+1; break;` (paragraphs run into the next textually).
 - **GO TO** = `pc = idxTarget; break;`. **GO TO … DEPENDING ON** = an inner `switch(selector)`; an out-of-range
-  selector sets no pc, so the trailing fall-through runs (ISO §14.9.17 GR2).
+  selector sets no pc, so the trailing fall-through runs (ISO §2023:14.9.17 GR2).
 - **Out-of-line PERFORM p THRU q** = recursive `Dispatch(idxP, idxQ)` — the C# call stack *is* the return stack, so
   overlapping/recursive ranges, inverted THRU (q physically before p), and GO-TO-out-and-back work **for free**.
 - **PERFORM TIMES/UNTIL/VARYING** wrap that call in a real loop; **inline PERFORM** becomes a native `for`/`while`/
   `do-while` (EXIT PERFORM→`break`, EXIT PERFORM CYCLE→`continue`). VARYING…AFTER re-inits inner indices each outer
-  increment (ISO §14.9.28).
+  increment (ISO §2023:14.9.28).
 - **ALTER** = a mutable field `_alter_<para>`; the alterable GO TO emits `pc = _alter_<para>`. ALTER is `--std 85`-only.
 - **EXIT PARAGRAPH** = `pc = myIdx+1`. **EXIT SECTION** fires the section's return mechanism (GR7).
 - **STOP RUN** throws `StopRun` (caught only at run-unit Main); **GOBACK / EXIT PROGRAM** throw `ProgramReturn` (caught

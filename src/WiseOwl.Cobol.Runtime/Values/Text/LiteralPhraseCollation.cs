@@ -3,12 +3,12 @@
 namespace WiseOwl.Cobol.Runtime;
 
 /// <summary>
-/// ⛔ THE ONE implementation of ISO §12.3.7.4 GR7 k — an <c>ALPHABET</c> LITERAL PHRASE's collating sequence and
+/// ⛔ THE ONE implementation of ISO §2023:12.3.7.4 GR7 k — an <c>ALPHABET</c> LITERAL PHRASE's collating sequence and
 /// coded character set — over a native character set of 65,536 characters (the UTF-16 code units: the native
-/// ALPHANUMERIC repertoire and, per D-N1/§8.5.1.4, the native NATIONAL one alike). Both classes' sequences obey
+/// ALPHANUMERIC repertoire and, per D-N1/§2023:8.5.1.4, the native NATIONAL one alike). Both classes' sequences obey
 /// the SAME six sub-rules, so both classes' carriers are this class; <see cref="AlphanumericCollation"/> and
 /// <see cref="NationalCollation"/> are its two named arms and add nothing but their identity and their
-/// §12.3.7.4 GR8/GR9 defaults.
+/// §2023:12.3.7.4 GR8/GR9 defaults.
 /// <para>⛔ WHY IT IS SPARSE. The clause positions the characters it NAMES; everything else follows in native
 /// relative order (GR7 k3). Tabulating only the named characters keeps the emitted carrier proportional to the
 /// SOURCE — a dense 65,536-entry array would be emitted into every generated program for a handful of remapped
@@ -27,23 +27,23 @@ namespace WiseOwl.Cobol.Runtime;
 public abstract class LiteralPhraseCollation : CobolCollation
 {
     /// <summary>The number of characters in the native character set (D-N1: the 65,536 UTF-16 code units, for
-    /// the alphanumeric and the national repertoire alike — §12.3.7.3 SR14 b1/c1's ordinal bound and SR14 b4/c4's
+    /// the alphanumeric and the national repertoire alike — §2023:12.3.7.3 SR14 b1/c1's ordinal bound and SR14 b4/c4's
     /// character-count bound, and the divisor of GR7 k3's tail).</summary>
     public const int Repertoire = 0x10000;
 
     private readonly ushort[] _codes;      // the SPECIFIED code units, sorted ascending by code (the search key)
     private readonly ushort[] _positions;  // parallel to _codes: each specified code's 0-based position (ALSO shares one)
-    private readonly ushort[] _repByPos;   // per specified position: the FIRST character defined there (§15.15.4 r2 / §15.16.4 r2)
-    private readonly int _nextFree;        // the first position after the specified block (§12.3.7.4 GR7 k3)
+    private readonly ushort[] _repByPos;   // per specified position: the FIRST character defined there (§2023:15.15.4 r2 / §2023:15.16.4 r2)
+    private readonly int _nextFree;        // the first position after the specified block (§2023:12.3.7.4 GR7 k3)
     private readonly int[] _fast;          // code → weight, for every code up to the highest SPECIFIED one (the cache)
 
     /// <param name="codes">The specified code units, ascending.</param>
     /// <param name="positions">Parallel to <paramref name="codes"/>: 0-based collating positions.</param>
     /// <param name="repByPos">Per position 0..<paramref name="nextFree"/>−1: the first character defined there.</param>
     /// <param name="nextFree">The first position after the specified block.</param>
-    /// <param name="highValue">The sequence's HIGH-VALUE character (§12.3.7.4 GR8 — computed by the binder, which
+    /// <param name="highValue">The sequence's HIGH-VALUE character (§2023:12.3.7.4 GR8 — computed by the binder, which
     /// alone knows the source order the GR8 tie rule needs).</param>
-    /// <param name="lowValue">The sequence's LOW-VALUE character (§12.3.7.4 GR9).</param>
+    /// <param name="lowValue">The sequence's LOW-VALUE character (§2023:12.3.7.4 GR9).</param>
     protected LiteralPhraseCollation(ushort[] codes, ushort[] positions, ushort[] repByPos, int nextFree,
         char highValue, char lowValue)
     {
@@ -72,9 +72,9 @@ public abstract class LiteralPhraseCollation : CobolCollation
     public override char LowValue { get; }
 
     /// <summary>
-    /// Compare two values under this sequence (ISO §8.8.4.2.7 for the alphanumeric arm — "with respect to the
+    /// Compare two values under this sequence (ISO §2023:8.8.4.2.7 for the alphanumeric arm — "with respect to the
     /// collating sequence of characters specified for the current alphanumeric program collating sequence" — and
-    /// §8.8.4.2.9 for the national one): the shorter operand space-extends on the right (§8.8.4.2.1 — the pad
+    /// §2023:8.8.4.2.9 for the national one): the shorter operand space-extends on the right (§2023:8.8.4.2.1 — the pad
     /// SPACE itself weighs through the sequence), and the first position whose WEIGHTS differ decides.
     /// </summary>
     public override int Compare(string? left, string? right)
@@ -90,22 +90,22 @@ public abstract class LiteralPhraseCollation : CobolCollation
         return 0;
     }
 
-    /// <summary>The standard comparison of §8.8.4.2.7 1): <see cref="Compare"/> above, position by position.</summary>
+    /// <summary>The standard comparison of §2023:8.8.4.2.7 1): <see cref="Compare"/> above, position by position.</summary>
     internal override bool UsesStandardComparison => true;
 
     /// <summary>The total number of collating positions: the specified block plus one DISTINCT position per
-    /// unspecified character (ISO §12.3.7.4 GR7 k3 — never a shared bucket). Under an ALSO collapse the block has
+    /// unspecified character (ISO §2023:12.3.7.4 GR7 k3 — never a shared bucket). Under an ALSO collapse the block has
     /// FEWER positions than characters, so this is smaller than <see cref="Repertoire"/>.</summary>
     public override int PositionCount => _nextFree + (Repertoire - _codes.Length);
 
-    /// <summary>The 0-based collating position of <paramref name="c"/> — the ORD arithmetic (§15.70.4 r1/r2): a
+    /// <summary>The 0-based collating position of <paramref name="c"/> — the ORD arithmetic (§2023:15.70.4 r1/r2): a
     /// specified character's tabulated position, else <c>NextFree + (c − |specified codes below c|)</c>, the
-    /// §12.3.7.4 GR7 k3 ascending-native-order placement above the specified block. Above the cached block every
+    /// §2023:12.3.7.4 GR7 k3 ascending-native-order placement above the specified block. Above the cached block every
     /// specified code is below <paramref name="c"/>, so the count is the whole specified set.</summary>
     public override int Weight(char c) => c < _fast.Length ? _fast[c] : _nextFree + (c - _codes.Length);
 
     /// <summary>The character at 0-based <paramref name="position"/> — the CHAR / CHAR-NATIONAL inverse
-    /// (§15.15.4 r2 / §15.16.4 r2): a specified position returns the FIRST character defined for it (source
+    /// (§2023:15.15.4 r2 / §2023:15.16.4 r2): a specified position returns the FIRST character defined for it (source
     /// order — literal-1 of an ALSO group, GR7 k6); an unspecified position returns the rank-th unspecified code
     /// unit in ascending code order (GR7 k3). Returns −1 outside the sequence. Exact inverse of
     /// <see cref="Weight"/> by construction.</summary>

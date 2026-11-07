@@ -7,7 +7,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ THE IMPLEMENTOR-DEFINED EXCEPTION-NAME DOCUMENTATION (docs/CONFORMANCE.md §7, Annex A.1 items 99 and 100) IS HELD TO
-/// THE CATALOG IT DOCUMENTS (kb/Work PB1531, PB4453). ISO §14.6.13.1.1 leaves "the action to be taken, the fatality, and when any of
+/// THE CATALOG IT DOCUMENTS (kb/Work PB1531, PB4453). ISO §2023:14.6.13.1.1 leaves "the action to be taken, the fatality, and when any of
 /// these exceptions are raised" of an implementor-defined exception-name to the implementor, and A.1 requires what the
 /// implementor provides to be documented; the catalog (<see cref="ExceptionCatalog"/>) is the one machine form of the names
 /// a program can write. Item 99 says no <c>EC-IMP-suffix</c> exists and item 100 lists the level-2 <c>-IMP</c> names Table 13
@@ -36,6 +36,6 @@ public sealed class EcImplementorNamesDocumentationDriftTests
     {
         Assert.DoesNotContain(ExceptionCatalog.Level3Rows, i => i.Name.StartsWith("EC-IMP-", StringComparison.Ordinal));
         Assert.False(ExceptionCatalog.TryGet("EC-IMP-WIBBLE", out _));
-        Assert.True(ExceptionCatalog.IsImplementorSuffixForm("EC-IMP-WIBBLE"));   // the SPELLING stays reserved (§8.12)
+        Assert.True(ExceptionCatalog.IsImplementorSuffixForm("EC-IMP-WIBBLE"));   // the SPELLING stays reserved (§2023:8.12)
     }
 }

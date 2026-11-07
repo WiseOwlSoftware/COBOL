@@ -1,5 +1,5 @@
 ---
-title: "PB6 — LANDED (DEVLOG 1126) — CALL BY VALUE quoted §8.8.1.1 at a programmer w"
+title: "PB6 — LANDED (DEVLOG 1126) — CALL BY VALUE quoted §2023:8.8.1.1 at a programmer w"
 id: PB6
 kind: defect
 status: landed
@@ -18,12 +18,12 @@ closes_rows_reason: "no inventory row is attributable to this landing — derive
 tags: [wiseowl-cobol, work, defect]
 ---
 
-# PB6 — LANDED (DEVLOG 1126) — CALL BY VALUE quoted §8.8.1.1 at a programmer who broke §14.9.4.3 SR22
+# PB6 — LANDED (DEVLOG 1126) — CALL BY VALUE quoted §2023:8.8.1.1 at a programmer who broke §2023:14.9.4.3 SR22
 
 > Found by the pre-merge GnuCOBOL differential, which no other gate leg could have caught: the VERDICT was right,
 > so nothing failed anywhere — only the rule quoted was wrong. `CALL … USING BY VALUE <alphanumeric>` was refused
-> by DA6's §8.8.1.1 ARITHMETIC screen because the grammar production is named `arithmeticExpression` and the
-> binder called `BindExpr` on it. §14.9.4.3 SR22 is the governing rule ("identifier-4 shall be of class numeric,
+> by DA6's §2023:8.8.1.1 ARITHMETIC screen because the grammar production is named `arithmeticExpression` and the
+> binder called `BindExpr` on it. §2023:14.9.4.3 SR22 is the governing rule ("identifier-4 shall be of class numeric,
 > object, or pointer"), so the operand IS illegal — but a diagnostic naming the wrong clause sends the programmer
 > to the wrong place. **A production's NAME is not its operand's rule.**
 > `COBOL1628` + `OperandContext.CallByValue`; golden `pb6-call-by-value-alphanumeric`.

@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <c>CobolWide.ToDec</c> (a product) / <c>CobolDec.DivToOdd</c> reduce by ROUND-TO-ODD: an inexact result keeps an odd last digit, so
 /// rounding it to a coarser precision (a receiver holds ≤ 31 digit positions) in ANY mode equals rounding the exact
 /// value. The rows below are products whose exact value has digits beyond the 34th, rounded at scale 30 by every mode
-/// the §14.7.4.3 ROUNDED phrase offers; each expected value is the exact product rounded once, by Python
+/// the §2023:14.7.4.3 ROUNDED phrase offers; each expected value is the exact product rounded once, by Python
 /// <c>fractions</c> / <c>decimal</c> — an independent implementation of the rounding rules.</para>
 /// </summary>
 public sealed class CobolDecRoundToOddTests
@@ -54,7 +54,7 @@ public sealed class CobolDecRoundToOddTests
         var two = new CobolDec(2, 0);
         var half = new CobolDec(5, -1);
         Assert.Equal(0, CobolDec.Compare(new CobolDec(1, 0), Product(two, half)));            // exactly 1, no jam
-        // 1 + 2e-30 + 1e-60 is not representable at scale 30: PROHIBITED (§14.7.4.3 r7) must see that.
+        // 1 + 2e-30 + 1e-60 is not representable at scale 30: PROHIBITED (§2023:14.7.4.3 r7) must see that.
         var ex = Assert.Throws<CobolSizeError>(() => Product(One1, One1).ToUnscaled(30, CobolRounding.Prohibited));
         Assert.Equal("EC-SIZE-TRUNCATION", ex.EcName);
         // …while the exactly-representable product 1.5 × 2.25 = 3.375 is accepted at scale 30 under PROHIBITED.

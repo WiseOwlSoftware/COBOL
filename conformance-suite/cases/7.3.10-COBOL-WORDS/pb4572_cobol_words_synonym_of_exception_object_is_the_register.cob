@@ -9,13 +9,13 @@
 *> content of literal-2 shall be treated as a synonym for the COBOL word that is the content of literal-1, and may
 *> be used in any syntax requiring the use of the reserved word, context-sensitive word, or intrinsic function name
 *> that is the content of literal-1."
-*>   cite.py: OK  §7.3.10.4 2)  (General rules)
+*>   cite.py: OK  §2023:7.3.10.4 2)  (General rules)
 *> 8.4.3.6.3 SR2: "EXCEPTION-OBJECT is implicitly described as class object and category object reference, as an
 *> external data item, and as a universal object reference."
-*>   cite.py: OK  §8.4.3.6.3 2)  (Syntax rules)
+*>   cite.py: OK  §2023:8.4.3.6.3 2)  (Syntax rules)
 *> 8.4.3.6.4 GR1: "EXCEPTION-OBJECT references the current exception object. If an exception object is not
 *> associated with the current exception, EXCEPTION-OBJECT is set to null."
-*>   cite.py: OK  §8.4.3.6.4 1)  (General rules)
+*>   cite.py: OK  §2023:8.4.3.6.4 1)  (General rules)
 *> EXCEPTION-OBJECT is a reserved word the lexer has no token for (the grammar reads it as an ordinary word), so the
 *> directive reaches a synonym of it only by name. The compiler asked the written spelling and read EXO as an
 *> undefined name (COBOL1639) AND as a reserved word used as a user-defined word (COBOL0901), though GR2 makes EXO the

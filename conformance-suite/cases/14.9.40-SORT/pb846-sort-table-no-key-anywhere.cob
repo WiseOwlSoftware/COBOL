@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO/IEC 1989:2023 §14.9.40.3 SR15 - "The KEY phrase may be omitted only if the description of the table
+      *> ISO/IEC 1989:2023 §2023:14.9.40.3 SR15 - "The KEY phrase may be omitted only if the description of the table
       *> referenced by data-name-2 contains a KEY phrase." TE's OCCURS clause has no KEY phrase and the SORT
       *> statement omits its own, so neither source can supply GR21's sequence. kb/Work PB846: the omission is
       *> a named syntax-rule diagnostic, not the parse error it was while the grammar required the phrase.

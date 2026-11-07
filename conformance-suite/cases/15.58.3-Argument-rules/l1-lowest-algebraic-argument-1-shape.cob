@@ -4,18 +4,18 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.58.3 rule 1 — "Argument-1 shall be a data item of category numeric or numeric-edited and
+      *> ISO §2023:15.58.3 rule 1 — "Argument-1 shall be a data item of category numeric or numeric-edited and
       *> shall not be an integer function or numeric function." FOUR violations, one for each clause of the
       *> rule; every one draws COBOL1516.
-      *>   (a) AN PIC X(5) — category alphanumeric (§8.5.2.1 Table 2), neither category the rule admits.
-      *>   (b) FUNCTION LENGTH — "The type of this function is integer" (§15.50.1): an INTEGER FUNCTION.
-      *>   (c) FUNCTION ABS over a NON-integer numeric argument — §15.7.1's type table gives function type
+      *>   (a) AN PIC X(5) — category alphanumeric (§2023:8.5.2.1 Table 2), neither category the rule admits.
+      *>   (b) FUNCTION LENGTH — "The type of this function is integer" (§2023:15.50.1): an INTEGER FUNCTION.
+      *>   (c) FUNCTION ABS over a NON-integer numeric argument — §2023:15.7.1's type table gives function type
       *>       Numeric for a Numeric argument (Integer only for an Integer one): a NUMERIC FUNCTION.
       *>   (d) FUNCTION L1-LOWFN — a user-defined function's returned value. The exclusion has to be WRITTEN
-      *>       because §8.5.2.12 items 6/7 put "a numeric function" and "an integer function" in category
+      *>       because §2023:8.5.2.12 items 6/7 put "a numeric function" and "an integer function" in category
       *>       numeric, so the category half alone would admit exactly what the second half forbids.
       *> ⚠ TWO-ARM NOTE: conformance:cases/15.43.3-Argument-rules/algebraic-udf-argument pins (d) for the HIGHEST-ALGEBRAIC twin
-      *> (§15.43.3 r1) only. The LOWEST-ALGEBRAIC arm of the same rule had no fixture of its own.
+      *> (§2023:15.43.3 r1) only. The LOWEST-ALGEBRAIC arm of the same rule had no fixture of its own.
       *> The ADMIT side is conformance:cases/15.58.3-Argument-rules/l1_lowest_algebraic_value_rule (one numeric and two
       *> numeric-edited arguments folding), so a compiler that refused every argument would fail there while
       *> passing here.

@@ -5,18 +5,18 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB415 — ISO §14.9.20.4 GR1, SECOND SENTENCE: "When identifier-2 references a bit group item or
+      *> kb/Work PB415 — ISO §2023:14.9.20.4 GR1, SECOND SENTENCE: "When identifier-2 references a bit group item or
       *> a national group item, identifier-2 is processed as an elementary data item."
       *>
-      *> ⛔ THIS SENTENCE WAS UNREACHABLE, NOT UNIMPLEMENTED. §14.9.20.3 SR4 admits identifier-2 only where a
+      *> ⛔ THIS SENTENCE WAS UNREACHABLE, NOT UNIMPLEMENTED. §2023:14.9.20.3 SR4 admits identifier-2 only where a
       *> MOVE (or SET) from it to an item of the named category would be valid, so a NATIONAL GROUP sender needs
-      *> the category-name NATIONAL — and NATIONAL was one of the eight of §14.9.20.2's thirteen category names
+      *> the category-name NATIONAL — and NATIONAL was one of the eight of §2023:14.9.20.2's thirteen category names
       *> the grammar could not spell. With the words landed the rule can be measured for the first time.
       *>
       *> EXPECTED, DERIVED BEFORE THE RUN:
       *>   NG is `GROUP-USAGE NATIONAL` with two national children holding N"ab" and N"cde" — five national
       *>   character positions in total. GR1 sentence 2 makes it ONE elementary national sending item, so the
-      *>   implicit MOVE of §14.9.20.4 GR4 moves all five positions into N1 (PIC N(5)) → "abcde". A1 is category
+      *>   implicit MOVE of §2023:14.9.20.4 GR4 moves all five positions into N1 (PIC N(5)) → "abcde". A1 is category
       *>   alphanumeric, names no category in the phrase, and GR5c therefore leaves it at "xyz".
       *>   (GR1 sentence 1 — identifier-1 as a bit/national GROUP is processed as a GROUP — is pinned elsewhere;
       *>   this file is the sentence-2 witness.)

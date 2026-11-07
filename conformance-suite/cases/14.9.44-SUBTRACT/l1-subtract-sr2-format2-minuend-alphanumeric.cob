@@ -4,15 +4,15 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.44.3 SR2 (FORMATS 1 AND 2) — "Identifier-1 and
+      *> ISO §2023:14.9.44.3 SR2 (FORMATS 1 AND 2) — "Identifier-1 and
       *> identifier-2 shall reference numeric data items."
       *> THE FORMAT-2 IDENTIFIER-2 ARM.  SR2's heading names FORMATS 1
       *> AND 2, and identifier-2 is not the same POSITION in the two:
       *> in format 1 it is the in-place RECEIVER, while in format 2's
       *> `SUBTRACT … FROM {identifier-2 | literal-2} GIVING …`
-      *> (§14.9.44.2) it is the SENDING minuend.  XM is described
-      *> PIC X(4), which §8.5.2.3 makes a data item of category
-      *> ALPHANUMERIC and which §8.5.2.12's closed list of numeric data
+      *> (§2023:14.9.44.2) it is the SENDING minuend.  XM is described
+      *> PIC X(4), which §2023:8.5.2.3 makes a data item of category
+      *> ALPHANUMERIC and which §2023:8.5.2.12's closed list of numeric data
       *> items does not contain, so `SUBTRACT 1 FROM XM GIVING G`
       *> violates SR2 at that third position.
       *> Literal-1 is the numeric literal 1, so SR3 holds; G is
@@ -32,7 +32,7 @@
       *> Reject-at names every edition: SR2 carries no edition
       *> condition and the screen it drives has no edition axis.
       *> NOTE ON THE DIAGNOSTIC.  As with the sending arm, the compiler
-      *> reports this through the §8.8.1.1 operand-class screen
+      *> reports this through the §2023:8.8.1.1 operand-class screen
       *> (COBOL0844) rather than by SR2's number; the REJECTION is
       *> what SR2 obliges.
        IDENTIFICATION DIVISION.

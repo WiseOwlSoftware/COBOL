@@ -16,10 +16,10 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// against a second copy of themselves (kb/Work PB388; CLAUDE.md rule 1 — "the failure mode is not inventing a
 /// citation, it is INHERITING one").
 ///
-/// <para>RAISE (§14.9.29), GOBACK RAISING (§14.9.18) and EXIT … RAISING (§14.9.14) are bound by ONE path, and
+/// <para>RAISE (§2023:14.9.29), GOBACK RAISING (§2023:14.9.18) and EXIT … RAISING (§2023:14.9.14) are bound by ONE path, and
 /// each rule that path enforces is written down once per statement under a different ordinal. A table of those
 /// ordinals is only as good as the day it was typed: this test looks each one up by the rule's OWN TEXT in
-/// <c>spec-rule-catalog.json</c> and asserts the match is UNIQUE, so an edition that renumbers §14.9.14.3 — or a
+/// <c>spec-rule-catalog.json</c> and asserts the match is UNIQUE, so an edition that renumbers §2023:14.9.14.3 — or a
 /// hand edit that "corrects" one of them — fails here instead of misdirecting a reader to the wrong rule.</para>
 ///
 /// <para>The catalog is the generated enumeration of the standard's numbered rules; <c>CatalogCoverageDriftTests</c>
@@ -159,8 +159,8 @@ public sealed class EcRaiseSiteDriftTests
     public void Cite_RendersTheClauseAndOrdinalOfThisSite()
     {
         var exit = EcRaiseSite.Exit("EXIT PROGRAM");
-        Assert.Equal("ISO §14.9.14.3 SR3", exit.Cite(exit.Level3Rule));
-        Assert.Equal("ISO §14.9.14.3 SR5d", exit.Cite(exit.ObjectRule, "d"));
-        Assert.Equal("ISO §14.9.18.3 SR4a", EcRaiseSite.Goback.Cite(EcRaiseSite.Goback.ObjectRule, "a"));
+        Assert.Equal("ISO §2023:14.9.14.3 SR3", exit.Cite(exit.Level3Rule));
+        Assert.Equal("ISO §2023:14.9.14.3 SR5d", exit.Cite(exit.ObjectRule, "d"));
+        Assert.Equal("ISO §2023:14.9.18.3 SR4a", EcRaiseSite.Goback.Cite(EcRaiseSite.Goback.ObjectRule, "a"));
     }
 }

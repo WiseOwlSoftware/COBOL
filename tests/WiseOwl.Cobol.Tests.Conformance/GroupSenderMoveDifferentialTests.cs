@@ -5,12 +5,12 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// MOVE with a GROUP sender into an ELEMENTARY receiver — a GROUP MOVE (ISO/IEC 1989:2023 §14.9.25.4 GR4: a move
+/// MOVE with a GROUP sender into an ELEMENTARY receiver — a GROUP MOVE (ISO/IEC 1989:2023 §2023:14.9.25.4 GR4: a move
 /// is elementary only when the sender is a literal or elementary item AND the receiver is elementary; "Any move
 /// that is not an elementary move … is treated exactly as if it were an alphanumeric to alphanumeric elementary
 /// move, except that there is no conversion of data from one form of internal representation to another. In such
 /// a move, the receiving area will be filled without consideration for the individual elementary or group items").
-/// Alignment is §14.6.8 (left-justified, right space-fill / right truncation). Version-invariant — the identical
+/// Alignment is §2023:14.6.8 (left-justified, right space-fill / right truncation). Version-invariant — the identical
 /// rule is ANSI X3.23-1985 VI-102 6.18.2 (the rule the NC105A CCVS FAIL rows cite), so the NIST-green legacy is a
 /// sound oracle; the receiver-JUSTIFIED case is spec-pinned (no NIST coverage). The five differential shapes
 /// mirror NC105A MOVE-TEST-F1-16/-17/-20/-36/-38, each through a different mis-routable ConvertSource arm.
@@ -95,7 +95,7 @@ public sealed class GroupSenderMoveDifferentialTests
                 IF RCV-NE EQUAL TO "123ABC" DISPLAY "PASS" ELSE DISPLAY "FAIL " RCV-NE "]".
             """));
 
-    /// <summary>Group → plain alphanumeric receiver wider than the sender: §14.6.8 left-justify + right
+    /// <summary>Group → plain alphanumeric receiver wider than the sender: §2023:14.6.8 left-justify + right
     /// space-fill (the baseline group-move alignment).</summary>
     [Fact]
     public void GroupToWiderAlphanumeric_LeftJustifiedSpaceFilled()
@@ -108,7 +108,7 @@ public sealed class GroupSenderMoveDifferentialTests
 
     /// <summary>SPEC-PINNED (no NIST coverage): the receiver's JUSTIFIED clause still applies — GR4 reads
     /// "exactly as if it were an alphanumeric to alphanumeric elementary move" and the JUSTIFIED clause is the
-    /// receiver's own alignment rule (§14.6.8 exception; §14.9.25.4 GR6c): left space-fill into the wider
+    /// receiver's own alignment rule (§2023:14.6.8 exception; §2023:14.9.25.4 GR6c): left space-fill into the wider
     /// JUSTIFIED RIGHT receiver.</summary>
     [Fact]
     public void GroupToJustifiedReceiver_RightJustified()
@@ -119,7 +119,7 @@ public sealed class GroupSenderMoveDifferentialTests
                 DISPLAY "[" RCV-J "]".
             """), "[   123ABC]");
 
-    /// <summary>The implicit-MOVE funnel (§14.9.30 GR24 READ INTO is "the equivalent of … MOVE"): READ … INTO an
+    /// <summary>The implicit-MOVE funnel (§2023:14.9.30 GR24 READ INTO is "the equivalent of … MOVE"): READ … INTO an
     /// elementary numeric receiver from a (group) record area follows the same GR4 group-move rule — raw
     /// characters, no numeric conversion.</summary>
     [Fact]

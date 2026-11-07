@@ -13,8 +13,8 @@ using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
 
 /// <summary>
 /// The RUN-UNIT emission orchestrator (P7 Step 9n — the inter-program half formerly on the
-/// <c>CSharpEmitter.Call</c> partial; INTERPROGRAM_DESIGN D1–D5; ISO §14.9.4 / §14.9.5 / §14.2 /
-/// §8.4.6.3): the module preamble, the MULTI-UNIT unit loop (every top-level program unit and every contained
+/// <c>CSharpEmitter.Call</c> partial; INTERPROGRAM_DESIGN D1–D5; ISO §2023:14.9.4 / §2023:14.9.5 / §2023:14.2 /
+/// §2023:8.4.6.3): the module preamble, the MULTI-UNIT unit loop (every top-level program unit and every contained
 /// program compiles — one instantiable C# class per program, nested programs as nested classes, ONE
 /// <c>.g.cs</c> / ONE assembly, the first unit as entry — design D3, SSOT §18 #8), the program-class plumbing
 /// (the <see cref="ICobolProgram"/> ABI, LINKAGE carrier mapping, GLOBAL bridges, EXTERNAL backings), and the
@@ -36,7 +36,7 @@ internal sealed class ProgramEmitter
     private readonly CallUnitState _callState = new();
     private OoEmitter _oo = null!;
 
-    /// <summary>The WHEN-COMPILED stamp for THIS compilation (§15.99.3 r2 — "the date and time of compilation
+    /// <summary>The WHEN-COMPILED stamp for THIS compilation (§2023:15.99.3 r2 — "the date and time of compilation
     /// of the compilation unit that contains this function"), captured once per <c>EmitBound</c> through the
     /// injectable <see cref="Binding.Procedure.IntrinsicBinder.CompileClock"/> seam (deep-dive D6) and shared
     /// by every unit of the run unit — contained source units bake the CONTAINING compilation's stamp (r2's
@@ -74,7 +74,7 @@ internal sealed class ProgramEmitter
     /// touches the bind host's session state.</summary>
     /// <param name="assemblySimpleName">The emitted assembly's simple name: every emitted type lives in its
     /// one-segment namespace <c>Cobol.&lt;S&gt;</c> (<see cref="CsNames.ModuleNamespaceOf"/>; DESIGN-external-repository
-    /// §4.5).</param>
+    /// §2023:4.5).</param>
     internal string Emit(BoundCompilation comp, string assemblySimpleName)
     {
         _ecState.Active = comp.EcActive;
@@ -112,12 +112,12 @@ internal sealed class ProgramEmitter
             // The EC model, OR any class (D10): every class's generated __CobolInvoke switch raises
             // CobolFatalException (EC-OO-UNIVERSAL, GR7c). A class-less EC-free program keeps the
             // zero-scaffolding invariant byte-exact (SSOT §18.16 — the test greps the namespace).
-            w.Line("using global::WiseOwl.Cobol.Runtime.Exceptions; // CobolFatalException — the EC signal type (ISO §14.6.13) + the D10 universal-INVOKE raises (§14.9.23.4 GR7c)");
+            w.Line("using global::WiseOwl.Cobol.Runtime.Exceptions; // CobolFatalException — the EC signal type (ISO §2023:14.6.13) + the D10 universal-INVOKE raises (§2023:14.9.23.4 GR7c)");
         if (UnitsOf(comp).Any(u => u.Data.Configuration.Classification is not null)
             || classes.Any(c => c.Data.Configuration.Classification is not null || c.FactoryData.Configuration.Classification is not null))
             // A CHARACTER CLASSIFICATION clause anywhere in the compilation group — a program, or a CLASS-ID whose methods
             // carry it as an activation local: the Globalization types (kb/Work PB64 T5 / PB111). Zero-scaffolding otherwise.
-            w.Line("using global::WiseOwl.Cobol.Runtime.Globalization; // CharacterClassification / LocalePhraseKind — OBJECT-COMPUTER CHARACTER CLASSIFICATION (ISO §12.3.6)");
+            w.Line("using global::WiseOwl.Cobol.Runtime.Globalization; // CharacterClassification / LocalePhraseKind — OBJECT-COMPUTER CHARACTER CLASSIFICATION (ISO §2023:12.3.6)");
         // An expansion that lives in another assembly (imported, or written to one of its own; DESIGN-external-repository §10.5) is named
         // here by its simple name, as one of this module's classes is, so the code bound against it needs no second spelling.
         foreach (var placement in comp.Expansions.All.Where(e => e.Where is not ExpansionWhere.InGroup))
@@ -131,7 +131,7 @@ internal sealed class ProgramEmitter
 
         // Interfaces first (readability only — Roslyn needs no ordering), then classes (source order), then
         // the program classes and the run-unit entry wrapper. A class-only/interface-only compilation unit is
-        // legal (§10.6) — its module emits the types, a registrar with nothing to register (the record names it), and an
+        // legal (§2023:10.6) — its module emits the types, a registrar with nothing to register (the record names it), and an
         // empty Main.
         foreach (var iface in comp.Interfaces)
             if (comp.Expansions.EmittedHere(iface.ClrName)) _oo.EmitInterfaceUnit(iface, w);
@@ -150,7 +150,7 @@ internal sealed class ProgramEmitter
         }
 
         foreach (var unit in units)
-            if (unit.Parent is null && !unit.IsPrototype)   // a prototype has no body (§10.6.2 SR4f) — no class
+            if (unit.Parent is null && !unit.IsPrototype)   // a prototype has no body (§2023:10.6.2 SR4f) — no class
                 EmitProgramClass(unit, w);
         // The .NET host surface (DESIGN-external-repository §4.3; kb/Work PB2099): one public class per outermost unit, named
         // in the module namespace's type scope beside every type the module already declares there. The over-punch convention
@@ -164,7 +164,7 @@ internal sealed class ProgramEmitter
                 .Concat(comp.Expansions.Skeletons.Select(s => s.ClrName))
                 .Append(ModuleNamespace.RegistrarClass).Append("Program").Append(GroupAtomTable.ClassName), w);
         EmitEntryWrapper(units, w, anyFiles, ns);
-        _atoms.Emit(w);   // every §8.5.1.12 atom array a unit named, once (kb/Work PB2690)
+        _atoms.Emit(w);   // every §2023:8.5.1.12 atom array a unit named, once (kb/Work PB2690)
         return w.ToString();
     }
 
@@ -173,19 +173,19 @@ internal sealed class ProgramEmitter
     /// <summary>⛔ THE ONE PLACE A CHARACTER-CARRIED LINKAGE FORMAL'S LENGTH REGIME IS DECIDED — and the
     /// standard describes THREE of them, where this dispatch used to have two (kb/Work PB165).
     /// <list type="bullet">
-    ///   <item><b>ANY LENGTH</b> (ISO §13.18.2 GR1) — the formal's length IS the argument's, fixed for the
+    ///   <item><b>ANY LENGTH</b> (ISO §2023:13.18.2 GR1) — the formal's length IS the argument's, fixed for the
     ///     activation: the full-string view, width sentinel −1.</item>
-    ///   <item><b>DYNAMIC LENGTH</b> (ISO §13.18.19.4 GR1/GR2) — the length VARIES during execution, minimum
-    ///     zero, maximum the LIMIT phrase: the full-string view whose store carries §8.5.1.10.4's replace-and-
-    ///     truncate rule. This arm was MISSING, and §13.18.19.3 SR1 makes its absence maximally destructive —
+    ///   <item><b>DYNAMIC LENGTH</b> (ISO §2023:13.18.19.4 GR1/GR2) — the length VARIES during execution, minimum
+    ///     zero, maximum the LIMIT phrase: the full-string view whose store carries §2023:8.5.1.10.4's replace-and-
+    ///     truncate rule. This arm was MISSING, and §2023:13.18.19.3 SR1 makes its absence maximally destructive —
     ///     the PICTURE of a dynamic-length item is exactly ONE symbol, so the fixed arm below delivered a
     ///     ONE-CHARACTER formal for every such crossing (measured: a 7-character argument arrived as
     ///     <c>LEN=1</c>, and the callee's store spliced one character into the caller's seven).</item>
-    ///   <item><b>fixed</b> — the declared width window (§14.2.3 GR8: the callee touches only its formal's
+    ///   <item><b>fixed</b> — the declared width window (§2023:14.2.3 GR8: the callee touches only its formal's
     ///     character positions).</item>
     /// </list>
-    /// The BY VALUE leg is the detached value copy (§14.2.3 GR10). A BY VALUE dynamic-length formal cannot
-    /// arise — §14.2.2 SR2 admits only class numeric, message-tag, object or pointer BY VALUE — so the dynamic
+    /// The BY VALUE leg is the detached value copy (§2023:14.2.3 GR10). A BY VALUE dynamic-length formal cannot
+    /// arise — §2023:14.2.2 SR2 admits only class numeric, message-tag, object or pointer BY VALUE — so the dynamic
     /// arm is stated first without a mode test rather than duplicated under both.</summary>
     private string FormalTextCarrier(LinkageFormal f, int fixedWidth, DataEmitter seeds) =>
         f.Item.IsDynamicLength
@@ -202,28 +202,28 @@ internal sealed class ProgramEmitter
                 GroupFormalAtoms(f.Item), UnboundFactory(f, fixedWidth, seeds));
 
     /// <summary>The factory of a character-carried formal's UNBOUND value (kb/Work PB992, PB2671), which an unchecked
-    /// reference to the formal reads when its argument is OMITTED (the documented §14.9.4.4 GR12 leniency,
+    /// reference to the formal reads when its argument is OMITTED (the documented §2023:14.9.4.4 GR12 leniency,
     /// docs/CONFORMANCE.md DOC-A.1-141): the same category-default value its declared carrier starts with at the
     /// main-program entry (<see cref="DataEmitter.UnboundFormalCarrier"/>), so an omitted formal and an unbound one
     /// read alike — spaces, boolean zeros, a numeric zero image — in every arm.</summary>
     private string UnboundFactory(LinkageFormal f, int width, DataEmitter seeds) =>
         $"static () => {seeds.UnboundFormalCarrier(f.Item, Math.Max(1, width))}";
 
-    /// <summary>A fixed-length GROUP formal's §8.5.1.12 atoms, the one fact a VARIABLE-LENGTH group argument
-    /// needs to meet it (ISO §14.8.2.2 / §8.5.1.12.2; kb/Work PB965, PB2280) — its atoms literal when it has a table,
+    /// <summary>A fixed-length GROUP formal's §2023:8.5.1.12 atoms, the one fact a VARIABLE-LENGTH group argument
+    /// needs to meet it (ISO §2023:14.8.2.2 / §2023:8.5.1.12.2; kb/Work PB965, PB2280) — its atoms literal when it has a table,
     /// <see cref="RuntimeApi.NoTableGroupAtoms"/> when it has none (its length is then the whole description),
     /// and null for a formal that is not a group, which no variable-length group is compatible with
-    /// (§8.5.1.12.1).</summary>
+    /// (§2023:8.5.1.12.1).</summary>
     private string? GroupFormalAtoms(DataItem formal) =>
         // A bit / national group crosses as its ELEMENTARY value (kb/Work PB1166 — CallEmitter.CallStringRead),
-        // which has no §8.5.1.12 image layout to meet.
+        // which has no §2023:8.5.1.12 image layout to meet.
         !ItemCategory.IsGroupItem(formal) || formal.IsAsIfElementary
             || VariableLengthCompatibility.GroupAtoms(formal) is not { } atoms ? null
         : VariableLengthCompatibility.HasTableOrVariable(atoms) ? _atoms.Ref(atoms)
         : RuntimeApi.NoTableGroupAtoms;
 
     /// <summary>⛔ THE ONE ADOPTION EXPRESSION for a formal's carrier at the activation boundary — one arm per
-    /// <see cref="CallCrossing"/>, each with its BY REFERENCE (§14.2.3 GR8 aliasing) and BY VALUE (GR10
+    /// <see cref="CallCrossing"/>, each with its BY REFERENCE (§2023:14.2.3 GR8 aliasing) and BY VALUE (GR10
     /// detached copy) form. The RESIDENT and the ROUND-TRIP loops call THIS rather than each spelling the
     /// dispatch out: they had two copies of it and both were missing the managed arm (kb/Work PB663), which is
     /// this repo's two-arm-dispatch shape with the arms one method apart.
@@ -235,17 +235,17 @@ internal sealed class ProgramEmitter
             CallCrossing.Native => f.ByValue
                 ? RuntimeApi.ArgAdaptNumValue("__args", f.Position, f.Item.ProfileName, $"{f.Item.Pic!.Scale}", carrier)
                 : RuntimeApi.ArgAdaptNum("__args", f.Position, f.Item.ProfileName, $"{f.Item.Pic!.Scale}", carrier),
-            // The managed slot aliases (or, BY VALUE, copies) the caller's REFERENCE — §14.2.3 GR10 makes that
+            // The managed slot aliases (or, BY VALUE, copies) the caller's REFERENCE — §2023:14.2.3 GR10 makes that
             // copy "a SET statement" for a formal of class object or pointer, which is the reference copy
-            // itself; §14.8.2.3.2 forces both sides to the same category and class, so the carrier type is the
+            // itself; §2023:14.8.2.3.2 forces both sides to the same category and class, so the carrier type is the
             // same T on both ends and the adoption needs no conversion machinery at all.
             CallCrossing.Managed => f.ByValue
                 ? RuntimeApi.ArgAdaptSlotValue("__args", f.Position, carrier)
                 : RuntimeApi.ArgAdaptSlot("__args", f.Position, carrier),
-            // §8.5.1.12's component carrier, adopted whole — there is no width window to apply, because the
+            // §2023:8.5.1.12's component carrier, adopted whole — there is no width window to apply, because the
             // receiving group's own FromVarImage is what re-fits both halves (kb/Work PB204). The formal's own
-            // §8.5.1.12 atoms ride along so a FIXED-length group argument can be met at the spans the pair
-            // corresponds at (§14.8.2.2; kb/Work PB965) and a variable-length one of another shape is rebuilt in the
+            // §2023:8.5.1.12 atoms ride along so a FIXED-length group argument can be met at the spans the pair
+            // corresponds at (§2023:14.8.2.2; kb/Work PB965) and a variable-length one of another shape is rebuilt in the
             // formal's (kb/Work PB2280).
             CallCrossing.VarGroup => f.ByValue
                 ? RuntimeApi.ArgAdaptVarGroupValue("__args", f.Position, FormalAtoms(f.Item))
@@ -279,7 +279,7 @@ internal sealed class ProgramEmitter
     /// formal used to get a <c>ManagedPointer&lt;long&gt;</c> cell its carrier-typed reads could not compile
     /// against, and a pointer/object-reference formal got a <c>ManagedPointer&lt;string&gt;</c> SPACE IMAGE
     /// that every reference to it was a Roslyn CS1503 against. A VARIABLE-LENGTH group formal takes the
-    /// §8.5.1.12 component carrier (kb/Work PB204): its storage has no fixed record window.
+    /// §2023:8.5.1.12 component carrier (kb/Work PB204): its storage has no fixed record window.
     /// <para>⛔ THE INVARIANT <c>LinkageCarrierDriftTests</c> pins: a formal crosses as a CHARACTER IMAGE only
     /// when its own storage IS a C# string. Any class the data model gives a non-string carrier and this
     /// dispatch does not name is therefore a RED TEST, not a silently space-filled cell.</para></summary>
@@ -292,7 +292,7 @@ internal sealed class ProgramEmitter
 
     /// <summary>Emit one program's instantiable class (design D3 — a static class cannot recurse or hold the
     /// per-activation copies INITIAL/RECURSIVE need; the registry's cached singleton realizes last-used state,
-    /// §14.6.2.3.3), its <see cref="ICobolProgram"/> ABI surface, and its contained programs as nested classes.</summary>
+    /// §2023:14.6.2.3.3), its <see cref="ICobolProgram"/> ABI surface, and its contained programs as nested classes.</summary>
     private void EmitProgramClass(BoundUnit unit, CodeWriter w)
     {
         var data = unit.Data;
@@ -300,25 +300,25 @@ internal sealed class ProgramEmitter
         var places = Current.Places;
         _callState.SelfPath = unit.RegistryKey;
         _callState.ReturningPlace = data.Linkage.Returning is { } ret ? places.Of(ret) : null;
-        // §8.8.4.8.4 GR1c forwarding (kb/Work PB165) — of this unit's own formals AND of every container formal it sees
+        // §2023:8.8.4.8.4 GR1c forwarding (kb/Work PB165) — of this unit's own formals AND of every container formal it sees
         // as a GLOBAL name, whose forward passes on the same carrier, presence and argument area (kb/Work PB2096).
         _callState.Formals = [.. data.Linkage.Formals, .. unit.InheritedFormals];
         _ecState.UnitHasF3 = unit.Bound.Declaratives?.Any(d => d.EcEntries is not null) ?? false;   // → __EcDispatch exists
-        _ecState.UnitHasF3Perform = unit.Bound.Ec?.HasF3Perform ?? false;   // → __EcPerform + the F3-frame interceptor (§14.9.28)
+        _ecState.UnitHasF3Perform = unit.Bound.Ec?.HasF3Perform ?? false;   // → __EcPerform + the F3-frame interceptor (§2023:14.9.28)
         _ecState.UnitHasF4 = unit.Bound.Declaratives?.Any(d => d.Eo is not null) ?? false;   // → __EcObjDispatch exists (EC-OO F4)
-        // §7.3.21.4 GR1 — this program or function's automatic propagation (kb/Work PB1119), read at its fatal default.
+        // §2023:7.3.21.4 GR1 — this program or function's automatic propagation (kb/Work PB1119), read at its fatal default.
         _ecState.Propagation = AutomaticPropagation.Of(data.UnitChecking.AutomaticPropagation, inMethod: false);
-        // §14.6.13.1.5 items 1 and 3 — this element's header RAISING census (kb/Work PB1121), read by every GOBACK /
+        // §2023:14.6.13.1.5 items 1 and 3 — this element's header RAISING census (kb/Work PB1121), read by every GOBACK /
         // EXIT … RAISING LAST EXCEPTION and by the activator's pickup, PROPAGATE ON or not.
         _ecState.PdRaisingObjectCsTypes = EcState.RaisingObjectCsTypes(unit.RaisingObjects);
         // A containing program with USE … GLOBAL declaratives makes this unit's I-O hooks walk outward on a
-        // no-local-match (ISO §14.9.49.4 GR4b) — consumed by EmitDispatcher/EmitUseMachinery.
+        // no-local-match (ISO §2023:14.9.49.4 GR4b) — consumed by EmitDispatcher/EmitUseMachinery.
         _dispatchState.OuterGlobalUse = ChainHasGlobalUse(unit.Parent);
 
         // Per-formal carrier shape, resolved once: a carrier-resident formal aliases per access; an AREA formal (a
         // group / redefined / addressed one) is laid over its argument's cell, and its crossing names the carrier it
         // is FILLED from when the argument has no cell (kb/Work PB2087) — a variable-length group formal's is its
-        // §8.5.1.12 component carrier (kb/Work PB2094).
+        // §2023:8.5.1.12 component carrier (kb/Work PB2094).
         var formals = data.Linkage.Formals
             .Select(f =>
             {
@@ -332,20 +332,20 @@ internal sealed class ProgramEmitter
         {
             if (unit.Parent is { } parent)
             {
-                w.Line($"private readonly {parent.ClassName} __outer;   // the containing program's instance (GLOBAL storage lives there, ISO §13.18.27)");
+                w.Line($"private readonly {parent.ClassName} __outer;   // the containing program's instance (GLOBAL storage lives there, ISO §2023:13.18.27)");
                 using (w.Block($"public {unit.ClassName}({parent.ClassName} __o)")) w.Line("__outer = __o;");
             }
-            w.Line("private bool __asCalled;   // true during a CALL activation — EXIT PROGRAM is CONTINUE otherwise (ISO §14.9.14.4 GR2)");
+            w.Line("private bool __asCalled;   // true during a CALL activation — EXIT PROGRAM is CONTINUE otherwise (ISO §2023:14.9.14.4 GR2)");
             if (data.Files.Declared.Count > 0)
-                // The guard's storage duration IS the connector's scope (kb/Work PB168): §14.6.2.3.2
+                // The guard's storage duration IS the connector's scope (kb/Work PB168): §2023:14.6.2.3.2
                 // action 3 puts internal connectors in no open mode only when data enters the INITIAL
-                // state — for a non-INITIAL unit's static data that is cases 1–3 — and §14.6.2.3.3 keeps
+                // state — for a non-INITIAL unit's static data that is cases 1–3 — and §2023:14.6.2.3.3 keeps
                 // them LAST-USED otherwise. A RECURSIVE unit's fresh per-activation instances therefore
                 // share ONE registration (static; __ResetStatics returns it to false on the initial-state
                 // cases), while an INITIAL/canceled unit re-registers per fresh instance as before.
                 w.Line(data.UnitStaticWs
-                    ? "private static bool __filesRegistered;   // connectors register once per RUN UNIT — last-used across recursive activations (ISO §14.6.2.3.2 cases 1–3 / §14.6.2.3.3; kb/Work PB168); reset by __ResetStatics"
-                    : "private bool __filesRegistered;   // connectors register once per INSTANCE — a canceled/INITIAL program gets fresh connectors (ISO §14.6.2.3.2)");
+                    ? "private static bool __filesRegistered;   // connectors register once per RUN UNIT — last-used across recursive activations (ISO §2023:14.6.2.3.2 cases 1–3 / §2023:14.6.2.3.3; kb/Work PB168); reset by __ResetStatics"
+                    : "private bool __filesRegistered;   // connectors register once per INSTANCE — a canceled/INITIAL program gets fresh connectors (ISO §2023:14.6.2.3.2)");
             // The report ENGINES are per-INSTANCE objects and get their own per-INSTANCE guard — the PB168
             // review fleet caught them riding the (now sometimes static) registration guard: a RECURSIVE
             // unit's second activation skipped the block and NRE'd on a null __RPT_n. One guard per scope.
@@ -362,10 +362,10 @@ internal sealed class ProgramEmitter
                 switch (b.Kind)
                 {
                     case CallBridgeKind.Presence:
-                        w.Line($"private bool {b.MemberClrName} => {target};   // a GLOBAL formal's omitted-argument presence (ISO §8.8.4.8.4 GR1; kb/Work PB971)");
+                        w.Line($"private bool {b.MemberClrName} => {target};   // a GLOBAL formal's omitted-argument presence (ISO §2023:8.8.4.8.4 GR1; kb/Work PB971)");
                         continue;
                     case CallBridgeKind.Cell:
-                        w.Line($"private StorageCell {b.MemberClrName} => {target};   // the cell behind a GLOBAL cell-backed item of a containing program (ISO §13.18.27.4 GR2; kb/Work PB1009)");
+                        w.Line($"private StorageCell {b.MemberClrName} => {target};   // the cell behind a GLOBAL cell-backed item of a containing program (ISO §2023:13.18.27.4 GR2; kb/Work PB1009)");
                         continue;
                 }
                 string type = b.Kind switch
@@ -379,7 +379,7 @@ internal sealed class ProgramEmitter
                     CallBridgeKind.Carrier => $"ManagedPointer<{FormalCarrierType(b.Formal!, FormalCrossing(b.Formal!, null))}>",
                     _ => b.Item!.Occurs is not null ? b.Item.ElementType + "[]" : b.Item.ElementType,
                 };
-                w.Line($"private ref {type} {b.MemberClrName} => ref {target};   // GLOBAL item of a containing program (ISO §13.18.27.4 GR2 — container storage, contained visibility)");
+                w.Line($"private ref {type} {b.MemberClrName} => ref {target};   // GLOBAL item of a containing program (ISO §2023:13.18.27.4 GR2 — container storage, contained visibility)");
             }
             _oo.EmitExternalBackings(data, w);
 
@@ -404,19 +404,19 @@ internal sealed class ProgramEmitter
                 {
                     if (f.Item.OmittedGuard is { } aog)
                         w.Line($"private bool {aog.Presence} => {f.CarrierField}.IsNull;   "
-                            + "// the omitted-argument condition of this formal (ISO §8.8.4.8.4 GR1; §14.9.4.4 GR11)");
+                            + "// the omitted-argument condition of this formal (ISO §2023:8.8.4.8.4 GR1; §2023:14.9.4.4 GR11)");
                     continue;
                 }
-                // The UNBOUND seed (ISO §13.7.4 GR3 and GR5 — a linkage item referenced outside an activation that
+                // The UNBOUND seed (ISO §2023:13.7.4 GR3 and GR5 — a linkage item referenced outside an activation that
                 // supplied it; docs/CONFORMANCE.md DOC-A.1-116). Native AND Managed default through the item's OWN
                 // PicInfo.DefaultInitializer (0L / 0UL / (Int128)0 / (UInt128)0 / ManagedPointer.Null /
                 // ProgramPointer.Null / FunctionPointer.Null / null), so the cell type and the seed cannot drift
-                // (kb/Work R12 + PB663 — the managed seed IS §13.18.63's initial state for its class). A character
+                // (kb/Work R12 + PB663 — the managed seed IS §2023:13.18.63's initial state for its class). A character
                 // carrier seeds the CATEGORY-DEFAULT value of its description with no VALUE applied
                 // (DataEmitter.UnboundFormalCarrier — the carrier's shape of the one unbound value an AREA formal's
                 // record-shaped cell takes too, DataEmitter.UnboundFormalRecord; kb/Work PB2671): spaces for a character item, the zero ENCODING for an image-stored numeric of any usage — a
                 // space image read as binary or packed data is a nonzero, invalid value — and EMPTY for a
-                // dynamic-length item (§14.6.2.3.2 GR7: "The length of each dynamic-length elementary item that is
+                // dynamic-length item (§2023:14.6.2.3.2 GR7: "The length of each dynamic-length elementary item that is
                 // specified without a VALUE clause is set to zero"). A variable-length carrier seeds EMPTY — a
                 // space image of its collapsed width would be a wrong-shaped value, not a benign one (kb/Work PB204).
                 string init = crossing switch
@@ -427,20 +427,20 @@ internal sealed class ProgramEmitter
                     _ => $"ManagedPointer<string>.Cell({dataEmitter.UnboundFormalCarrier(f.Item, Math.Max(1, f.Item.ImageWidth))})",
                 };
                 w.Line($"private ManagedPointer<{carrier}> {f.CarrierField} = {init};   "
-                    + $"// LINKAGE formal #{f.Position + 1} — the caller-storage carrier (ISO §13.7.1; design D1)");
+                    + $"// LINKAGE formal #{f.Position + 1} — the caller-storage carrier (ISO §2023:13.7.1; design D1)");
                 if (f.KeepsArgumentArea)
                     w.Line($"private {nameof(CellPointer)}? {f.ArgumentAreaField};   "
-                        + "// the argument's storage area this formal occupies, passed on by a forward (ISO §14.2.3 GR8; kb/Work PB2089)");
+                        + "// the argument's storage area this formal occupies, passed on by a forward (ISO §2023:14.2.3 GR8; kb/Work PB2089)");
                 // The presence member every guarded reference to this formal reads (kb/Work PB971): Uid-keyed, so
                 // a contained program's GLOBAL bridge of it (BinderDriver) cannot collide with its own formals.
                 if (f.Item.OmittedGuard is { } og)
                     w.Line($"private bool {og.Presence} => {f.CarrierField}.IsNull;   "
-                        + "// the omitted-argument condition of this formal (ISO §8.8.4.8.4 GR1; §14.9.4.4 GR11)");
+                        + "// the omitted-argument condition of this formal (ISO §2023:8.8.4.8.4 GR1; §2023:14.9.4.4 GR11)");
             }
             w.Line();
 
             EmitCallMethod(unit, formals, dataEmitter, w);
-            // ⛔ THE MAIN-PROGRAM ENTRY BINDS NO FORMAL (ISO §13.7.4 GR3 and GR5; docs/CONFORMANCE.md DOC-A.1-116; kb/Work
+            // ⛔ THE MAIN-PROGRAM ENTRY BINDS NO FORMAL (ISO §2023:13.7.4 GR3 and GR5; docs/CONFORMANCE.md DOC-A.1-116; kb/Work
             // PB2671): an AREA formal no earlier Call laid over an argument still holds its class's never-set NULL
             // data-address pointer, so it takes the same category-default cell an omitted argument gives it
             // (DataEmitter.AreaFormalShape) — the value an elementary formal's carrier is declared with above — instead
@@ -457,9 +457,9 @@ internal sealed class ProgramEmitter
                         var (shape, fresh) = dataEmitter.AreaFormalShape(f.Item);
                         w.Line($"{f.CarrierField} = {RuntimeApi.ArgAdaptUnboundArea(f.CarrierField, f.Item.Class!.Width, shape, fresh)};");
                     }
-                    // §14.8.4: the main-program activation registers its external descriptions too (the ACTIVATOR
+                    // §2023:14.8.4: the main-program activation registers its external descriptions too (the ACTIVATOR
                     // mask is zero there — store-only). A CALLed activation gets it from the activation BOUNDARY,
-                    // which calls DescribeExternals() before Call() (§14.9.4.4 GR3e precedes GR3g — kb/Work PB233).
+                    // which calls DescribeExternals() before Call() (§2023:14.9.4.4 GR3e precedes GR3g — kb/Work PB233).
                     if (describes) w.Line("DescribeExternals();");
                     w.Line("__Activate();");
                 }
@@ -469,21 +469,21 @@ internal sealed class ProgramEmitter
             else
                 w.Line("void ICobolProgram.Activate() => __Activate();");
             // The INSTANCE-owned ADDRESS-OF cells (WORKING-STORAGE of a non-recursive program) end when the instance is
-            // discarded — an INITIAL program's activation exit, any other program's CANCEL (ISO §8.6.4; ICobolProgram.
+            // discarded — an INITIAL program's activation exit, any other program's CANCEL (ISO §2023:8.6.4; ICobolProgram.
             // EndStorage; kb/Work PB1216). Emitted only when the unit owns such a cell (zero scaffolding).
             var instanceCells = data.CellFieldsOf(CellLifetime.Instance).ToList();
             if (instanceCells.Count > 0 || Current.Transactions.NeedsEndStorage)
-                using (w.Block("public void EndStorage(StorageEnd __why)   // §8.6.4 / §8.6.5: the instance's storage ends — pointers into it are no longer valid (§13.18.5.4 GR4)"))
+                using (w.Block("public void EndStorage(StorageEnd __why)   // §2023:8.6.4 / §2023:8.6.5: the instance's storage ends — pointers into it are no longer valid (§2023:13.18.5.4 GR4)"))
                 {
                     foreach (string cell in instanceCells) w.Line($"{cell}.End(__why);");
                     Current.Transactions.EmitRetire(w);   // a canceled or returned-INITIAL element's APPLY COMMIT clause (kb/Work PB3338)
                 }
             Current.Transactions.EmitMembers(w);
             Current.Communication.EmitMembers(w);
-            using (w.Block("public void CloseFiles()"))   // CANCEL §14.9.5 GR9 / run-unit close §14.6.11
+            using (w.Block("public void CloseFiles()"))   // CANCEL §2023:14.9.5 GR9 / run-unit close §2023:14.6.11
                 foreach (var file in data.Files.Declared)
-                    // CANCEL closes INTERNAL connectors only (§14.9.5 GR9); an EXTERNAL connector persists
-                    // (GR8 / §13.18.22.4 GR4a). An SD is not a file connector at all — it never registers
+                    // CANCEL closes INTERNAL connectors only (§2023:14.9.5 GR9); an EXTERNAL connector persists
+                    // (GR8 / §2023:13.18.22.4 GR4a). An SD is not a file connector at all — it never registers
                     // (the same skip every registration/IO loop takes), so closing it would Require() a
                     // name the registry cannot hold.
                     if (!file.IsExternal && !file.IsSortMerge)
@@ -492,17 +492,17 @@ internal sealed class ProgramEmitter
                         // maps to '30' inside FileConnector.Close (PB140), so the loop never abandons the
                         // remaining files ("executed for ALL such files, even when an error occurs").
                         w.Line($"{RuntimeApi.FileCloseIfOpen(FileKeyExpr(file))};");
-            // §14.6.13.1.4 #3 for a condition raised at a RUNTIME site: the ABI face of this unit's Format-3
+            // §2023:14.6.13.1.4 #3 for a condition raised at a RUNTIME site: the ABI face of this unit's Format-3
             // selection, so the raise site — which has no statement-level node to hang a dispatch on — reaches
             // the declaratives of the ACTIVATION that is executing (kb/Work PB367b; the activation boundary in
             // ProgramTable installs it). A unit with no F3 machinery emits nothing and takes the interface
             // default's "no qualifying declarative", which is what keeps the zero-scaffolding invariant.
             if (Current.Ec.UnitHasDispatchFunnel)
                 w.Line($"int INonfatalSelector.NonfatalDispatch(string __ec) => {Current.Ec.EcDispatchExpr("__ec", "\"\"")};"
-                    + "   // ISO §14.6.13.1.4 #3 / §14.9.49.4 GR3");
+                    + "   // ISO §2023:14.6.13.1.4 #3 / §2023:14.9.49.4 GR3");
             if (unit.Children.Count > 0 && ChainHasGlobalUse(unit))
                 EmitRunGlobalUse(unit, w);
-            // The Format-2 half of §14.9.49.4 GR4 (kb/Work PB369): per visible report, the selector its GENERATE
+            // The Format-2 half of §2023:14.9.49.4 GR4 (kb/Work PB369): per visible report, the selector its GENERATE
             // and TERMINATE statements hand the engine. Emitted BEFORE the dispatcher, which emits the statements.
             Current.ReportWriter.EmitBeforeReportingSelectors(unit, w);
             w.Line();
@@ -537,7 +537,7 @@ internal sealed class ProgramEmitter
     private static string ClassRef(BoundUnit u) => u.Parent is { } p ? $"{ClassRef(p)}.{u.ClassName}" : u.ClassName;
 
     /// <summary>True when <paramref name="u"/> or any of its containers declares a FORMAT 1 <c>USE GLOBAL AFTER …</c>
-    /// declarative (ISO §14.9.49.4 GR4b — the containment chain a contained program's I-O check walks outward). A
+    /// declarative (ISO §2023:14.9.49.4 GR4b — the containment chain a contained program's I-O check walks outward). A
     /// Format-2 <c>USE GLOBAL BEFORE REPORTING</c> is GR4's other half and has its own walk, the per-report selector
     /// (<c>ReportWriterEmitter.EmitBeforeReportingSelectors</c>; kb/Work PB369) — it never reaches an I-O check.</summary>
     private static bool ChainHasGlobalUse(BoundUnit? u)
@@ -547,11 +547,11 @@ internal sealed class ProgramEmitter
         return false;
     }
 
-    /// <summary>Emit the cross-program GLOBAL USE dispatch member (ISO §14.9.49.4 GR4b): a contained program's
+    /// <summary>Emit the cross-program GLOBAL USE dispatch member (ISO §2023:14.9.49.4 GR4b): a contained program's
     /// <c>__IoCheck</c> fallthrough (no local match, GR4a) calls the container instance's
     /// <c>__RunGlobalUse</c>, which examines THIS program's <c>USE … GLOBAL</c> declaratives — file-name scope
     /// before open-mode scope (GR5) — and on a match runs the handler in THIS instance (the declaring program's
-    /// data, §8.4.6.2); otherwise the walk continues to the next container ("repeated with the next higher
+    /// data, §2023:8.4.6.2); otherwise the walk continues to the next container ("repeated with the next higher
     /// directly containing source element", GR4b) or stops false at the outermost. Emitted only on classes a
     /// contained program can actually reach (children exist + the chain has GLOBAL declaratives), so a
     /// declarative-free compilation group's generated source is unchanged.</summary>
@@ -564,8 +564,8 @@ internal sealed class ProgramEmitter
         {
             // ⛔ __RunUse CAN NEVER HAND A RESUME ACTION BACK HERE, SO THERE IS NOTHING TO DISCARD (kb/Work PB1160).
             // Every declarative this selector can run is a GLOBAL one (globalOnly). A RESUME written in it is
-            // refused (§14.9.33.3 SR2), and a RESUME in a procedure it PERFORMs is executed "within the scope of
-            // execution of a global declarative", which ISO §14.9.33.4 GR1 makes "the equivalent of the execution
+            // refused (§2023:14.9.33.3 SR2), and a RESUME in a procedure it PERFORMs is executed "within the scope of
+            // execution of a global declarative", which ISO §2023:14.9.33.4 GR1 makes "the equivalent of the execution
             // of a CONTINUE statement" — EcEmitter.EmitResume renders that as a no-op while this program's
             // __useActive[global ids] is set, so the action is never produced. That is the rule's REALIZATION; it
             // is not this call site's decision, and a declarative's action is not "discarded by GR1" (the raiser
@@ -574,13 +574,13 @@ internal sealed class ProgramEmitter
             UseTierEmitter.EmitScopeTiers(w, decls,
                 i => $"{_dispatchState.RunUseCall(i, decls[i].Range)}; return true;", globalOnly: true);
             w.Line(unit.Parent is { } p && ChainHasGlobalUse(p)
-                ? "return __outer.__RunGlobalUse(__f);   // continue outward (§14.9.49.4 GR4b)"
+                ? "return __outer.__RunGlobalUse(__f);   // continue outward (§2023:14.9.49.4 GR4b)"
                 : "return false;   // outermost source element reached — no qualifying GLOBAL declarative (GR4b)");
         }
         w.Line();
     }
 
-    /// <summary>Emit the opaque-ABI <c>Call</c> body: positional formal mapping (ISO §14.2.3 GR2), the
+    /// <summary>Emit the opaque-ABI <c>Call</c> body: positional formal mapping (ISO §2023:14.2.3 GR2), the
     /// activation, boundary copy-out for image formals, and RETURNING delivery (GR7). <paramref name="seeds"/> is the
     /// program class's one DataEmitter, which composes the formals' unbound values (kb/Work PB2671).</summary>
     private void EmitCallMethod(
@@ -589,24 +589,24 @@ internal sealed class ProgramEmitter
     {
         using (w.Block("public void Call(CobolArg[] __args, CobolArg? __ret)"))
         {
-            // §14.9.4.4 GR3e runs OUTSIDE this method: the external-conformance check is an activation-ATTEMPT
+            // §2023:14.9.4.4 GR3e runs OUTSIDE this method: the external-conformance check is an activation-ATTEMPT
             // step that precedes GR3g's transfer of control, so the activation boundary calls
             // ICobolProgram.DescribeExternals() before Call() (kb/Work PB233). Keeping it here made every
             // EC-EXTERNAL raise indistinguishable from an exception escaping the callee's BODY, which is the
             // fact GR3i turns on — the ordering guarantee (before LOCAL-STORAGE re-initialization and formal
             // adoption) is strictly stronger now, not weaker.
-            // LOCAL-STORAGE is AUTOMATIC data (ISO §13.6.4 GR1): "placed in the initial state every time the
-            // … program … is activated" (§14.6.2.3.2) — for an INITIAL or RECURSIVE unit the fresh instance
+            // LOCAL-STORAGE is AUTOMATIC data (ISO §2023:13.6.4 GR1): "placed in the initial state every time the
+            // … program … is activated" (§2023:14.6.2.3.2) — for an INITIAL or RECURSIVE unit the fresh instance
             // per activation already IS that state, but a cached-singleton unit (neither attribute) re-enters
             // the SAME instance, so its LS roots re-initialize HERE, at every CALL activation entry, through
             // the SAME composed initializers the field declarations carry (the ONE ValueInitializer channel —
-            // §13.18.63 VALUE semantics; the OoEmitMethod LS-local pattern, program-class edition). An LS
+            // §2023:13.18.63 VALUE semantics; the OoEmitMethod LS-local pattern, program-class edition). An LS
             // table's INDEXED BY cell resets with its table. Emitted only when an LS section EXISTS.
             // ⛔ A CELL-BACKED root has no root field — a BASED item's storage is its implicit data-address pointer and an
             // ADDRESS-OF-taken record's is its StorageCell — so the field loop below skips it, and those channels are
             // re-seeded by the ONE per-activation seed the method arm uses (OoEmitter.ActivationPointerSeeds; kb/Work
-            // PB1132): §14.6.2.3.2 action 5 "The address of each based item is set to null", and the record's cell starts
-            // at its initial image. The activation's non-formal LINKAGE roots join it: §8.6.5 ends a linkage-section
+            // PB1132): §2023:14.6.2.3.2 action 5 "The address of each based item is set to null", and the record's cell starts
+            // at its initial image. The activation's non-formal LINKAGE roots join it: §2023:8.6.5 ends a linkage-section
             // based association "at the end of the execution of the runtime element", so the next activation starts
             // with none — NULL, the method arm's answer (a formal's storage is the activator's, adopted below, and the
             // RETURNING item keeps the last-used state every other program RETURNING item keeps).
@@ -614,7 +614,7 @@ internal sealed class ProgramEmitter
                 foreach (var (member, _, fresh, _) in _oo.ActivationPointerSeeds(unit.Data, unit.Data.Forest.LocalStorageRoots
                              .Concat(unit.Data.Linkage.Roots.Where(r => !ReferenceEquals(r, unit.Data.Linkage.Returning)
                                  && !unit.Data.Linkage.Formals.Any(f => ReferenceEquals(f.Item, r))))))
-                    w.Line($"{member} = {fresh};   // per-activation data-pointer storage (ISO §14.6.2.3.2 action 5; §8.6.4; §8.6.5)");
+                    w.Line($"{member} = {fresh};   // per-activation data-pointer storage (ISO §2023:14.6.2.3.2 action 5; §2023:8.6.4; §2023:8.6.5)");
             if (!unit.Initial && !unit.Recursive && unit.Data.Forest.LocalStorageRoots.Count > 0)
             {
                 var fields = new DataEmitter(Current.Ctx);
@@ -623,11 +623,11 @@ internal sealed class ProgramEmitter
                     if (unit.Data.Linkage.SuppressedRootFields.Contains(root.ClrName)) continue;
                     if (root.Class is { Tier: RedefinesTier.Alias } && !root.IsCanonical) continue;   // Tier-A view — no field
                     if (fields.MethodRedefinesBackingDecl(root) is { } bkl)   // Tier-B canonical → the ONE string backing
-                        w.Line($"{bkl.Name} = {bkl.Init};   // LOCAL-STORAGE {root.CobolName} (Tier-B backing) — initial state each activation (§13.6.4 GR1 / §14.6.2.3.2)");
+                        w.Line($"{bkl.Name} = {bkl.Init};   // LOCAL-STORAGE {root.CobolName} (Tier-B backing) — initial state each activation (§2023:13.6.4 GR1 / §2023:14.6.2.3.2)");
                     else if (root.Class is { Tier: RedefinesTier.StringCanonical })
                         continue;   // a non-canonical Tier-B member — a window over the backing, no field
                     else
-                        w.Line($"{root.ClrName} = {fields.RootDecl(root).Init};   // LOCAL-STORAGE {root.CobolName ?? "FILLER"} — initial state each activation (§13.6.4 GR1 / §14.6.2.3.2)");
+                        w.Line($"{root.ClrName} = {fields.RootDecl(root).Init};   // LOCAL-STORAGE {root.CobolName ?? "FILLER"} — initial state each activation (§2023:13.6.4 GR1 / §2023:14.6.2.3.2)");
                     foreach (var idx in IndexDeclaration.Under(root))
                         if (!unit.Data.Linkage.SuppressedRootFields.Contains(idx.Cell))
                             w.Line($"{idx.Cell} = 1;   // INDEX-NAME {idx.Name} (LOCAL-STORAGE table cell)");
@@ -637,12 +637,12 @@ internal sealed class ProgramEmitter
             {
                 if (f.CarrierResident)
                 {
-                    // Per-access aliasing of the caller's storage (§14.2.3 GR8): every reference to the formal
+                    // Per-access aliasing of the caller's storage (§2023:14.2.3 GR8): every reference to the formal
                     // reads/writes through this carrier (every access path to it starts at the carrier,
-                    // DataItem.ResidentCarrier). An ANY LENGTH formal (ISO §13.18.2 GR1 — its length IS the caller's argument length) takes the FULL-STRING
+                    // DataItem.ResidentCarrier). An ANY LENGTH formal (ISO §2023:13.18.2 GR1 — its length IS the caller's argument length) takes the FULL-STRING
                     // view (the width -1 sentinel), never a Pic.Length=1 window that would truncate the caller.
-                    // A BY VALUE formal adopts the DETACHED value-copy cell instead (§14.2.3 GR10 — the
-                    // activated element's stores reach only the copy, never the caller; §14.2.2 SR2 restricts
+                    // A BY VALUE formal adopts the DETACHED value-copy cell instead (§2023:14.2.3 GR10 — the
+                    // activated element's stores reach only the copy, never the caller; §2023:14.2.2 SR2 restricts
                     // the carried shape to class numeric, object or pointer, so the text leg has no BY VALUE
                     // arm while the managed one does).
                     w.Line($"{f.CarrierField} = {FormalAdopt(f, crossing, carrier, CallEmitter.ElementaryFormalWindow(f.Item), seeds)};");
@@ -650,7 +650,7 @@ internal sealed class ProgramEmitter
                         w.Line($"{f.ArgumentAreaField} = {RuntimeApi.ArgAdaptArgumentArea("__args", f.Position)};");
                     continue;
                 }
-                // ⛔ AN AREA FORMAL IS LAID OVER ITS ARGUMENT'S STORAGE (kb/Work PB2087; §14.2.3 GR8 — "the activated
+                // ⛔ AN AREA FORMAL IS LAID OVER ITS ARGUMENT'S STORAGE (kb/Work PB2087; §2023:14.2.3 GR8 — "the activated
                 // runtime element operates as if the formal parameter occupies the same storage area as the
                 // argument"): its carrier is its class's data-address pointer, set to the argument's own cell area,
                 // so nothing is copied and every store either element makes is the other's. Only an argument with no
@@ -693,22 +693,22 @@ internal sealed class ProgramEmitter
                         w.Line($"{copyCarrier}.{nameof(ManagedPointer<string>.Watch)}({f.CarrierField});");
                 }
             }
-            // An ANY LENGTH RETURNING item (§13.18.2.3 SR3 b)) has no length of its own: §13.18.2.4 GR1 b) makes it
+            // An ANY LENGTH RETURNING item (§2023:13.18.2.3 SR3 b)) has no length of its own: §2023:13.18.2.4 GR1 b) makes it
             // "the length of the corresponding … returning item of the activating runtime element", which only the
             // activator's receiver (__ret) states. The item is seeded with that length before the first statement runs,
             // so FUNCTION LENGTH, a MOVE and the delivery below all see n (kb/Work PB1167).
             if (_callState.ReturningPlace is { DenotedItem: { IsAnyLength: true, Pic: { } anyPic } } anyRet)
                 w.Line(PlaceRenderer.Write(anyRet, RuntimeApi.ArgAdaptReturningSeed("__ret", anyPic)));
             w.Line("__asCalled = true;");
-            // The activation's LOCAL-STORAGE cells end with it (ISO §8.6.4 — "persists while that instance of the runtime
+            // The activation's LOCAL-STORAGE cells end with it (ISO §2023:8.6.4 — "persists while that instance of the runtime
             // element is in active state"), for EVERY kind of unit: a fresh INITIAL / RECURSIVE instance and the cached
             // singleton alike. A pointer returned past this point names storage that is no longer a valid address
-            // (§8.6.5; §13.18.5.4 GR4 — kb/Work PB1216). The same DataBindResult.LifetimeOfCell answer the cell's declaration
+            // (§2023:8.6.5; §2023:13.18.5.4 GR4 — kb/Work PB1216). The same DataBindResult.LifetimeOfCell answer the cell's declaration
             // modifier reads, so a cell cannot be declared per-activation and never ended.
             string endCells = string.Concat(unit.Data.CellFieldsOf(CellLifetime.Activation)
                 .Select(c => $" {c}.End(StorageEnd.ActivationEnded);"));
-            // Store a COPIED formal back into the caller's storage at activation end (§14.2.3 GR8/GR9; a BY CONTENT cell
-            // absorbs it invisibly; a BY VALUE formal is SKIPPED — its stores must never reach the caller, §14.2.3 GR10).
+            // Store a COPIED formal back into the caller's storage at activation end (§2023:14.2.3 GR8/GR9; a BY CONTENT cell
+            // absorbs it invisibly; a BY VALUE formal is SKIPPED — its stores must never reach the caller, §2023:14.2.3 GR10).
             // An area formal laid over its argument's own cell has no copy: its local carrier was never set, so its guard
             // is false (kb/Work PB2087).
             var copyOuts = formals.Where(x => !x.Formal.CarrierResident && x.Place is not null && !x.Formal.ByValue).ToList();
@@ -717,12 +717,12 @@ internal sealed class ProgramEmitter
             else
             {
                 // ⛔ THE ACTIVATION ENDS TWO WAYS THAT OWE THE COPY-OUT (kb/Work PB1177): it returns, or a USE procedure
-                // that did not complete normally terminated the format 1 SORT whose range activated it (§14.9.40.4 GR17;
+                // that did not complete normally terminated the format 1 SORT whose range activated it (§2023:14.9.40.4 GR17;
                 // GR10/GR13 put this activation in that range), and the SORT's signal unwinds it to the statement's
                 // landing. The activator resumes after that SORT, so the stores this element made through a copied
-                // BY REFERENCE formal must reach it either way — "the same storage area as the argument" (§14.2.3 GR8).
+                // BY REFERENCE formal must reach it either way — "the same storage area as the argument" (§2023:14.2.3 GR8).
                 // A condition that terminates the run unit owes nothing, so it is not noted.
-                w.Line("bool __ended = false;   // returned, or ended with a terminated SORT's range (§14.9.40.4 GR17)");
+                w.Line("bool __ended = false;   // returned, or ended with a terminated SORT's range (§2023:14.9.40.4 GR17)");
                 w.Line("try { __Activate(); __ended = true; }");
                 w.Line($"catch ({RuntimeApi.SortTerminationSignalType}) when ({RuntimeApi.SortTerminationEndsActivation("__ended")}) {{ throw; }}   // the filter declines (never runs): the signal goes on");
                 using (w.Block("finally"))
@@ -753,16 +753,16 @@ internal sealed class ProgramEmitter
     /// PB2087) — read at entry to fill the area and, BY REFERENCE, written at return.</summary>
     private static string AreaCopyCarrier(LinkageFormal f) => $"__lc{f.Position}";
 
-    /// <summary>⛔ THE RETURNING DELIVERY (ISO §14.6.5 — "The result of the execution of a program, function, or
+    /// <summary>⛔ THE RETURNING DELIVERY (ISO §2023:14.6.5 — "The result of the execution of a program, function, or
     /// method that specifies a RETURNING phrase in its procedure division header, is the content of the data
     /// item referenced by that RETURNING phrase"), with the SENDING item's description beside its content
     /// (kb/Work PB962/PB965) — the receiver's arrives on <c>__ret</c> itself (<c>CobolArg</c>):
     /// <list type="bullet">
-    /// <item>a variable-length group — its §8.5.1.12 carrier plus its layout (§14.8.3.2's compatibility
+    /// <item>a variable-length group — its §2023:8.5.1.12 carrier plus its layout (§2023:14.8.3.2's compatibility
     /// sentence admits a FIXED-length receiver, which the runtime meets at the corresponding spans);</item>
     /// <item>a fixed-length group with a table — its image plus its layout (the same sentence, other way
     /// round);</item>
-    /// <item>a fixed-point numeric item — its content plus its <c>NumProfile</c>: §14.8.3.3 gives a conforming
+    /// <item>a fixed-point numeric item — its content plus its <c>NumProfile</c>: §2023:14.8.3.3 gives a conforming
     /// receiver the same PICTURE and USAGE, so the delivery is a content transfer under that one description,
     /// never a re-parse of the text as a number (which aborted on spaces);</item>
     /// <item>anything else — its content alone.</item>
@@ -787,14 +787,14 @@ internal sealed class ProgramEmitter
         return RuntimeApi.ArgAdaptStoreReturn("__ret", PlaceRenderer.Read(ret), profile);
     }
 
-    /// <summary>A variable-length group formal's §8.5.1.12 atoms, emitted for its adapter (kb/Work PB965, PB2280).</summary>
+    /// <summary>A variable-length group formal's §2023:8.5.1.12 atoms, emitted for its adapter (kb/Work PB965, PB2280).</summary>
     private string FormalAtoms(DataItem formal) =>
         _atoms.Ref(VariableLengthCompatibility.GroupAtoms(formal)
-            ?? throw new InvalidOperationException($"variable-length formal '{formal.CobolName}' has no §8.5.1.12 atoms"));
+            ?? throw new InvalidOperationException($"variable-length formal '{formal.CobolName}' has no §2023:8.5.1.12 atoms"));
 
     /// <summary>Emit the module registrar + the run-unit entry wrapper (<see cref="EmitModuleRegistrar"/>, then
-    /// <c>Main</c>). <c>Main</c> runs the first program as main and performs the §14.6.11 implicit CLOSE at run-unit
-    /// termination; STOP RUN unwinds to here (§14.9.42.4 GR1); a main-program GOBACK already returned normally through its
+    /// <c>Main</c>). <c>Main</c> runs the first program as main and performs the §2023:14.6.11 implicit CLOSE at run-unit
+    /// termination; STOP RUN unwinds to here (§2023:14.9.42.4 GR1); a main-program GOBACK already returned normally through its
     /// activation entry.</summary>
     private void EmitEntryWrapper(IReadOnlyList<BoundUnit> units, CodeWriter w, bool anyFiles, ModuleNamespace ns)
     {
@@ -809,7 +809,7 @@ internal sealed class ProgramEmitter
     /// it registers the module into the current run unit ONCE, refusing it when the runtime major or call ABI it was
     /// compiled against differs from the running runtime's, or when another module already registered one of its
     /// outermost names. Every route reaches a module through it — the own run unit's <c>Main</c>, a CALLing run unit's
-    /// sibling-assembly probe (the implementor-defined §14.9.4.4 GR3b locate step; §14.6.1: a run unit contains one or
+    /// sibling-assembly probe (the implementor-defined §2023:14.9.4.4 GR3b locate step; §2023:14.6.1: a run unit contains one or
     /// more runtime modules), and a host composing a run unit — so no path registers a module twice. The private
     /// <c>Register()</c> registers every program unit, containers before containees.</summary>
     private void EmitModuleRegistrar(IReadOnlyList<BoundUnit> units, CodeWriter w, ModuleNamespace ns)
@@ -821,34 +821,34 @@ internal sealed class ProgramEmitter
             using (w.Block("private static void Register()"))
             foreach (var u in units)
             {
-                if (u.IsPrototype) continue;   // a prototype has no body to register as a runtime module; the information §10.6.3 GR1 requires of its compilation is its host entry (BoundCompilation.EntryUnits)
+                if (u.IsPrototype) continue;   // a prototype has no body to register as a runtime module; the information §2023:10.6.3 GR1 requires of its compilation is its host entry (BoundCompilation.EntryUnits)
                 string parentPath = u.Parent is { } p ? CsLiteral(p.RegistryKey) : "null";
                 string factory = u.Parent is { } pp
                     ? $"static __o => new {ClassRef(u)}(({ClassRef(pp)})__o!)"
                     : $"static __o => new {ClassRef(u)}()";
                 // A RECURSIVE unit with static WS storage OR unit-scoped file connectors registers its
-                // __ResetStatics — the runtime's §14.6.2.3.2 initial-state hook (run-unit start / CANCEL /
+                // __ResetStatics — the runtime's §2023:14.6.2.3.2 initial-state hook (run-unit start / CANCEL /
                 // INITIAL-container cascade). ⛔ THE ONE condition is DataBindResult.EmitsStaticReset, shared
                 // with RecordStructEmitter's emission so the pair cannot diverge (kb/Work PB168). The
                 // optional argument is OMITTED for every other unit, keeping their lines byte-identical.
                 string reset = u.Data.EmitsStaticReset ? $", {ClassRef(u)}.__ResetStatics" : "";
-                // §14.8.2.1 / §14.9.4.4 GR3d (kb/Work PB133 wave C2b): EVERY unit registers its count facts and
+                // §2023:14.8.2.1 / §2023:14.9.4.4 GR3d (kb/Work PB133 wave C2b): EVERY unit registers its count facts and
                 // its ACTIVATED-half checking bit; the required count excludes the trailing OPTIONAL run
-                // (§14.8.2.1's omissible tail). A unit with NO formals is the case of zero formals, not of no
+                // (§2023:14.8.2.1's omissible tail). A unit with NO formals is the case of zero formals, not of no
                 // facts: it used to register nothing, so `CALL "NOFORMALS" USING A` ran silently under enabled
-                // EC-PROGRAM-ARG-MISMATCH checking where §14.8.2.1 says the argument count shall equal the
+                // EC-PROGRAM-ARG-MISMATCH checking where §2023:14.8.2.1 says the argument count shall equal the
                 // formal count (kb/Work PB1040's sweep). The RETURNING item's fixed character length rides the
-                // same registration (§14.8.3.3 via GR3d), when it has one.
+                // same registration (§2023:14.8.3.3 via GR3d), when it has one.
                 int fc = u.Data.Linkage.Formals.Count;
                 int rq = fc;
                 while (rq > 0 && u.Data.Linkage.Formals[rq - 1].Optional) rq--;
                 bool describe = u.Data.UnitChecking.ArgMismatchChecking;
                 string? retItem = u.Data.Linkage.Returning is { } ri && u.Places.Of(ri) is { } retPlace
                     ? Current.Call.RegisteredReturning(retPlace, describe ? u.ReturningDescription : null) : null;
-                // Each FORMAL's registered description (kb/Work PB165), for §14.8.2's argument comparison at a dynamic
+                // Each FORMAL's registered description (kb/Work PB165), for §2023:14.8.2's argument comparison at a dynamic
                 // CALL — the whole description only by a unit that checks EC-PROGRAM-ARG-MISMATCH itself (GR3d's activated
                 // half) — and each NUMERIC formal's carrier and each non-numeric ELEMENTARY formal's record builder from every
-                // unit, for §14.2.3 GR9's second regime and GR10 at a CALL whose activating element did not know it (kb/Work
+                // unit, for §2023:14.2.3 GR9's second regime and GR10 at a CALL whose activating element did not know it (kb/Work
                 // PB2549, PB2587). Emitted only when some formal states anything, so a unit whose formals are all groups,
                 // pointers or ANY LENGTH items and that does not check keeps its Register line as it was. The record builder
                 // reads only the formal's own description (its PicInfo carries its currency sign and decimal point), so the
@@ -862,13 +862,13 @@ internal sealed class ProgramEmitter
                     + (retItem is null ? "" : $", returning: {retItem}") + formalsText;
                 string resetNamed = reset.Length > 0 && argMeta.Length > 0
                     ? reset.Replace(", ", ", staticReset: ") : reset;
-                // A FUNCTION-ID registers with its discriminator (kb/Work PB154 — §8.4.6.3's first paragraph:
+                // A FUNCTION-ID registers with its discriminator (kb/Work PB154 — §2023:8.4.6.3's first paragraph:
                 // a function-name is not a program-name, so CALL/CANCEL/SET TO ENTRY must not see it and a
                 // FUNCTION reference must not see a program). Program lines stay byte-identical.
                 string fnFlag = u.IsFunction ? ", isFunction: true" : "";
-                // PROGRAM-ID/FUNCTION-ID … AS literal (§11.10.4 GR1 / §11.5.4 GR1): the unit registers under BOTH
-                // names — Name for what MODULE-NAME reports (§15.65.4 r4), the externalized one for what
-                // CALL/CANCEL/ENTRY resolve (§14.9.4.4 GR3b → §8.3.2.2). OMITTED when they coincide, so every
+                // PROGRAM-ID/FUNCTION-ID … AS literal (§2023:11.10.4 GR1 / §2023:11.5.4 GR1): the unit registers under BOTH
+                // names — Name for what MODULE-NAME reports (§2023:15.65.4 r4), the externalized one for what
+                // CALL/CANCEL/ENTRY resolve (§2023:14.9.4.4 GR3b → §2023:8.3.2.2). OMITTED when they coincide, so every
                 // AS-less unit's Register line stays byte-identical (kb/Work PB303).
                 string extName = string.Equals(u.ExternalizedName, u.Name, StringComparison.Ordinal)
                     ? "" : $", externalizedName: {CsLiteral(u.ExternalizedName)}";
@@ -878,12 +878,12 @@ internal sealed class ProgramEmitter
         }
     }
 
-    /// <summary>⛔ THE RUN-UNIT MAIN of a compilation group: its first top-level PROGRAM definition (§8.3.1), or null for a
+    /// <summary>⛔ THE RUN-UNIT MAIN of a compilation group: its first top-level PROGRAM definition (§2023:8.3.1), or null for a
     /// group with none — a LIBRARY (DESIGN-external-repository §7.2), which the backend builds as
     /// <c>OutputKind.DynamicallyLinkedLibrary</c> with no <c>Main</c> and no <c>runtimeconfig.json</c>, reached through its
-    /// host entries (§4.3) and, by a COBOL CALL, through <c>EnsureRegistered()</c> from the sibling probe. A prototype
-    /// precedes every other unit (§10.6.2 SR1), so units[0] may be a prototype; a PROGRAM prototype (§11.10.2 Format 2,
-    /// kb/Work PB894) is not a program definition and has no body (§10.6.2 SR4 f), so it is never the main — the same
+    /// host entries (§2023:4.3) and, by a COBOL CALL, through <c>EnsureRegistered()</c> from the sibling probe. A prototype
+    /// precedes every other unit (§2023:10.6.2 SR1), so units[0] may be a prototype; a PROGRAM prototype (§2023:11.10.2 Format 2,
+    /// kb/Work PB894) is not a program definition and has no body (§2023:10.6.2 SR4 f), so it is never the main — the same
     /// exclusion the Register loop applies. One function, read by <see cref="EmitMain"/> and by the backend's output
     /// kind, so the two cannot disagree.</summary>
     internal static BoundUnit? MainUnit(IReadOnlyList<BoundUnit> units) =>
@@ -893,7 +893,7 @@ internal sealed class ProgramEmitter
     /// registration member, and run the main program — nothing for a library (<see cref="MainUnit"/> null).</summary>
     private static void EmitMain(IReadOnlyList<BoundUnit> units, CodeWriter w, bool anyFiles)
     {
-        if (MainUnit(units) is not { } mainUnit) return;   // a library: no Main (§7.2)
+        if (MainUnit(units) is not { } mainUnit) return;   // a library: no Main (§2023:7.2)
         using (w.Block("internal static class Program"))
         using (w.Block("private static void Main()"))
         {
@@ -903,10 +903,10 @@ internal sealed class ProgramEmitter
             // (ProgramTable.RunModule): the module's OWN registration (EnsureRegistered, which the run unit may refuse,
             // PB2097 — kb/Work PB2846: it used to run before the boundary, so a version-skew refusal of the main module
             // escaped as an unhandled .NET exception), the delivery of the run unit's STOP status to the process exit code
-            // (§14.9.42.4 GR5: RunModule alone writes Environment.ExitCode, once, when the run unit has ended; the
+            // (§2023:14.9.42.4 GR5: RunModule alone writes Environment.ExitCode, once, when the run unit has ended; the
             // RunUnit.ExitStatus setter is plain run-unit state and a host entry's activation writes nothing, so a second
-            // process entry must call RunModule, kb/Work PB3163), the §14.6.12 abnormal-termination diagnostic + nonzero exit on a fatal EC, and
-            // the §14.6.11 implicit CLOSE of ALL run-unit connectors. Runtime-side so each applies to the WHOLE run unit —
+            // process entry must call RunModule, kb/Work PB3163), the §2023:14.6.12 abnormal-termination diagnostic + nonzero exit on a fatal EC, and
+            // the §2023:14.6.11 implicit CLOSE of ALL run-unit connectors. Runtime-side so each applies to the WHOLE run unit —
             // incl. a separately-compiled CALLed module whose EC/file descriptors this compilation group never
             // saw — not just this group (SSOT §18.16 keeps the wrapper scaffolding-free). The entry wrapper only
             // catches StopRun, the normal STOP RUN / main-program-GOBACK unwind boundary.

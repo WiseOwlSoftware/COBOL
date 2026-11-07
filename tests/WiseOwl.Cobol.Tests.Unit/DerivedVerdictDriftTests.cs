@@ -47,7 +47,7 @@ public sealed class DerivedVerdictDriftTests
 
     /// <summary>⛔ A NOTE is not part of the rule, so no predicate sees one — the standard's Introduction
     /// (unnumbered, verbal-forms paragraph): "Information marked as 'NOTE' is intended to assist the understanding
-    /// or use of the document." It kept §11.9.5.2 GR2 out of <c>standard-binary-only</c> until kb/Work R43: its
+    /// or use of the document." It kept §2023:11.9.5.2 GR2 out of <c>standard-binary-only</c> until kb/Work R43: its
     /// NOTE 1 encourages STANDARD-DECIMAL support and tripped the mixed-rule exclusion (PB1517). The Python twin
     /// is <c>inventory_schema.NOTE_MARK</c>; measured when it landed, the cut changed exactly that one row.</summary>
     private static readonly Regex NoteMark = new(@"\bNOTE(?:\s+\d+)?\s+(?=[A-Z(])", RegexOptions.Compiled);
@@ -82,8 +82,8 @@ public sealed class DerivedVerdictDriftTests
     }
 
     /// <summary>⛔ A clause number is a dotted PATH, not a string, and this is the one rule that must never be a
-    /// raw <c>StartsWith</c>. Both engines used one until 2026-09-02, under which §13.18.30 falls inside
-    /// §13.18.3 and §13.18.40 (PICTURE) inside §13.18.4 (BACKGROUND-COLOR). Measured on the screen selector,
+    /// raw <c>StartsWith</c>. Both engines used one until 2026-09-02, under which §2023:13.18.30 falls inside
+    /// §2023:13.18.3 and §2023:13.18.40 (PICTURE) inside §2023:13.18.4 (BACKGROUND-COLOR). Measured on the screen selector,
     /// whose clause arm names five such prefixes: raw selects 543 rules where component-wise selects 156 — 387
     /// extra, 33 of them already adjudicated (32 CONFORMS + 1 DOCUMENTED-NON-SUPPORT), i.e. a silent flip of
     /// thirty-two verified rows to non-support. A trailing dot in the data is accepted and ignored, so the
@@ -145,14 +145,14 @@ public sealed class DerivedVerdictDriftTests
     /// Four modules of the 2026-09-02 A.4 landing needed four different scoping mechanisms, and the flat
     /// requires-sections/requires-pattern pair could express only two of them:</para>
     /// <list type="bullet">
-    /// <item><c>sections</c> alone — §8.8.1.4 is TITLED for the declined mode and its rules never repeat the
+    /// <item><c>sections</c> alone — §2023:8.8.1.4 is TITLED for the declined mode and its rules never repeat the
     /// phrase (GR-8.8.1.4.2-1 is just "Any operand of an arithmetic expression that is not already in SBIDI is
     /// converted into SBIDI form"), so a text-only predicate missed all six.</item>
     /// <item><c>pattern</c> alone — a rule stating the facility's own functionality from inside a MANDATORY
     /// clause, e.g. GR-14.6.11-1's implicit COMMIT over all active APPLY COMMIT clauses.</item>
-    /// <item>both together, an AND-gate — <c>file-name-1</c> is STATEMENT-LOCAL (in §13.4.5.4 it is the file
+    /// <item>both together, an AND-gate — <c>file-name-1</c> is STATEMENT-LOCAL (in §2023:13.4.5.4 it is the file
     /// description entry's own subject), so A.4.13's text ungated selects 176 rules instead of 12. The same gate
-    /// is the only reach to a rule scoped by OPERAND NAME: §12.3.7.3's data-name-1/-2 ARE the CURSOR and CRT
+    /// is the only reach to a rule scoped by OPERAND NAME: §2023:12.3.7.3's data-name-1/-2 ARE the CURSOR and CRT
     /// STATUS operands, and those rules carry no screen vocabulary at all.</item>
     /// <item><c>xref-sections</c> + <c>kinds</c> — an Annex A.1 obligation citing a declined clause, keyed on the
     /// SAME clause numbers as the clause arm so the next module gets it free instead of needing a second copy.
@@ -338,7 +338,7 @@ public sealed class DerivedVerdictDriftTests
     // ── The engine ────────────────────────────────────────────────────────────────────────────────────────────
 
     /// <summary>⛔ THE COMPONENT-WISE PREFIX RULE, ASSERTED DIRECTLY, INCLUDING THE COLLISION THAT WOULD HAVE
-    /// SHIPPED. A raw <c>StartsWith</c> puts §13.18.30 inside §13.18.3 and §13.18.40 (PICTURE) inside §13.18.4.
+    /// SHIPPED. A raw <c>StartsWith</c> puts §2023:13.18.30 inside §2023:13.18.3 and §2023:13.18.40 (PICTURE) inside §2023:13.18.4.
     /// The screen selector names both of those prefixes, so under the old matcher it selected 543 rules instead
     /// of 156 and flipped 32 CONFORMS rows to non-support. The predicate below fails on a dotless collision by
     /// construction, in both languages.</summary>
@@ -386,7 +386,7 @@ public sealed class DerivedVerdictDriftTests
                                          "GR-8.8.1.4.4-2", "GR-8.8.1.4.4-3", "GR-8.8.1.4.4-4"])
             Assert.Contains(id, ids);
 
-        // And it must still be MODE-sense, not word-sense: the FLOAT-BINARY usage rules of §11.9.8 name
+        // And it must still be MODE-sense, not word-sense: the FLOAT-BINARY usage rules of §2023:11.9.8 name
         // "standard-binary" and have nothing to do with the arithmetic mode. They were selected by the first
         // draft of this predicate; if they ever come back, the exclusion has lost the usage/mode distinction.
         Assert.DoesNotContain("SR-11.9.8.3-1", ids);
@@ -394,14 +394,14 @@ public sealed class DerivedVerdictDriftTests
         Assert.DoesNotContain("SR-11.9.8.3-3", ids);
 
         // Conversely, a rule with BOTH arms keeps its own verdict — it still has reachable content under a mode
-        // we support. §15.67.3 r4 caps digits at 35 under standard-binary AND at 34 under standard-decimal.
+        // we support. §2023:15.67.3 r4 caps digits at 35 under standard-binary AND at 34 under standard-decimal.
         Assert.DoesNotContain("AR-15.67.3-4", ids);
 
         // And the rule whose only "standard decimal" is a USAGE must still be IN — dropping it was the bug in
         // the second draft of this predicate.
         Assert.Contains("AR-15.43.3-3", ids);
 
-        // ⛔ A NOTE CANNOT EXCLUDE A RULE (kb/Work R43 / PB1517). §11.9.5.2 GR2 IS the mode; only its NOTE 1 —
+        // ⛔ A NOTE CANNOT EXCLUDE A RULE (kb/Work R43 / PB1517). §2023:11.9.5.2 GR2 IS the mode; only its NOTE 1 —
         // "Implementors are strongly encouraged to provide support for the STANDARD-DECIMAL phrase" — mentions
         // standard-decimal, and until the NOTE cut that informative sentence tripped the mixed-rule exclusion.
         Assert.Contains("GR-11.9.5.2-2", ids);
@@ -425,7 +425,7 @@ public sealed class DerivedVerdictDriftTests
                                          "GR-11.9.10.4-3", "GR-14.6.2.3.2-L2.4", "SR-14.9.39.3-16"])
             Assert.Contains(id, ids);
         // The OPERAND arms — the third scoping mechanism, and the five rows the first draft could not see.
-        // §12.3.7's data-name-1/-2 ARE the CURSOR and CRT STATUS operands; MINUS and identifier-1 exist only in
+        // §2023:12.3.7's data-name-1/-2 ARE the CURSOR and CRT STATUS operands; MINUS and identifier-1 exist only in
         // the screen format of COLUMN and LINE. The LINE pair is feedback_two_arm_dispatch verbatim: the COLUMN
         // arm was inspected and the LINE arm was not.
         foreach (string id in (string[])["SR-12.3.7.3-4", "SR-12.3.7.3-29", "SR-12.3.7.3-30",
@@ -450,7 +450,7 @@ public sealed class DerivedVerdictDriftTests
         // THE FORMAT-BAND ARMS AND THE ACCEPT OPERAND ARM (kb/Work PB284). ACCEPT format 3 and DISPLAY format 2
         // ARE the screen formats, so their rules need not say "screen": SR-14.9.11.3-3 is 'Identifier-2 and
         // identifier-3 shall be unsigned integer data items' and GR-14.9.11.4-12 is about character positions.
-        // §14.9.1.3 prints no band, so SR-14.9.1.3-5 ('Identifier-3 and identifier-4 ...') is reached by the operand
+        // §2023:14.9.1.3 prints no band, so SR-14.9.1.3-5 ('Identifier-3 and identifier-4 ...') is reached by the operand
         // names, which neither the band arm nor the text arm can see.
         foreach (string id in (string[])["SR-14.9.11.3-3", "GR-14.9.11.4-12", "SR-14.9.1.3-5"])
             Assert.Contains(id, ids);
@@ -470,7 +470,7 @@ public sealed class DerivedVerdictDriftTests
         Assert.DoesNotContain("SR-13.18.20.3-3", ids);
         Assert.DoesNotContain("GR-11.9.10.4-1", ids);
         // SR-12.3.7.3-2's CONTENT is what it FORBIDS — every clause other than CURSOR and CRT STATUS — which
-        // survives entirely. It is the one §12.3.7.3 rule the operand arm must NOT take.
+        // survives entirely. It is the one §2023:12.3.7.3 rule the operand arm must NOT take.
         Assert.DoesNotContain("SR-12.3.7.3-2", ids);
         // The Annex A.1 arms — owner decision R42 (2026-09-24): an A.1 item of the DECLINED screen module is
         // withdrawn by A.1's preamble, exactly as A.4.8's items 84/85/173 are. Ten items, by two arms: the
@@ -478,14 +478,14 @@ public sealed class DerivedVerdictDriftTests
         foreach (string id in (string[])["DOC-A.1-3", "DOC-A.1-4", "DOC-A.1-11", "DOC-A.1-27", "DOC-A.1-41",
                                          "DOC-A.1-45", "DOC-A.1-83", "DOC-A.1-91", "DOC-A.1-172", "DOC-A.1-199"])
             Assert.Contains(id, ids);
-        // ⛔ ACCEPT's DEVICE and temporal formats are claimed and share §14.9.1 with the screen format: their A.1
+        // ⛔ ACCEPT's DEVICE and temporal formats are claimed and share §2023:14.9.1 with the screen format: their A.1
         // items (conversion, transfer size, …) must never be withdrawn. If one appears, the screen-format arm
         // lost its `pattern` and is keying on the bare cross-reference.
         foreach (string id in (string[])["DOC-A.1-1", "DOC-A.1-2", "DOC-A.1-5", "DOC-A.1-111"])
             Assert.DoesNotContain(id, ids);
         // And the clause arm must not have widened past its own paths (the dotless collision).
         Assert.DoesNotContain("GR-13.18.40.4-1", ids);   // PICTURE, inside "13.18.4" only under a raw prefix
-        Assert.DoesNotContain("SR-13.18.30.3-1", ids);   // HIGHLIGHT SR1 is real; §13.18.30 is not §13.18.3
+        Assert.DoesNotContain("SR-13.18.30.3-1", ids);   // HIGHLIGHT SR1 is real; §2023:13.18.30 is not §2023:13.18.3
     }
 
     [Fact]
@@ -533,7 +533,7 @@ public sealed class DerivedVerdictDriftTests
             Assert.Contains(id, ids);
 
         // ⛔ ITEM 2 IS SUPPORTED AND THIS IS NOW THE OWNER'S ROW, NOT AN AGENT'S READING (kb/Work PB285).
-        // CobolOO.g4:77 parses `INHERITS FROM interfaceName+`; OoClassTable enforces §11.6.3 SR2 (COBOL0840) and
+        // CobolOO.g4:77 parses `INHERITS FROM interfaceName+`; OoClassTable enforces §2023:11.6.3 SR2 (COBOL0840) and
         // SR3/SR6 (COBOL2791). SR-11.6.3-6's text is verbatim parallel to SR-11.3.3-7 and matches the pattern, so the
         // `interface-name` exclusion is the only thing holding it out; if it returns, an implemented, shipping
         // facility is being documented as unsupported. SR-11.6.3-5 is ordinary work to adjudicate.
@@ -545,10 +545,10 @@ public sealed class DerivedVerdictDriftTests
         // Mixed blocks keep their own verdicts: SR-11.3.3-6's second sentence has a satisfiable antecedent in a
         // LINEAR chain, and GR-9.3.6-L4.3 absorbs the overload tie-break — the sharpest trap for a widening.
         Assert.DoesNotContain("SR-11.3.3-6", ids);
-        // ITEM 3 (kb/Work R43 / PB1519): §9.3.6's exact-match criteria, reached by the sentence that introduces
+        // ITEM 3 (kb/Work R43 / PB1519): §2023:9.3.6's exact-match criteria, reached by the sentence that introduces
         // them — they carry no vocabulary of their own. L4.2 names "an interface-name", so the item-2 exclusion
         // must stay on the ITEM-1 arm (`excludes-pattern`); as a global exclusion it silently dropped it. (L5 until
-        // kb/Work PB55 folded §9.3.6 3) e)'s nested list, the sub-list numbered before this one.)
+        // kb/Work PB55 folded §2023:9.3.6 3) e)'s nested list, the sub-list numbered before this one.)
         foreach (string id in (string[])["GR-9.3.6-L4.1", "GR-9.3.6-L4.2", "GR-9.3.6-L4.3"])
             Assert.Contains(id, ids);
         // The introducing rule is half live (its MOVE-sender sentence), so R43 item 2 gives it the live verdict.
@@ -622,7 +622,7 @@ public sealed class DerivedVerdictDriftTests
         // by one exclusion; if either returns, two supported rules have been declared unsupported.
         Assert.DoesNotContain("SR-14.9.35.3-9", ids);
         Assert.DoesNotContain("SR-14.9.51.3-11", ids);
-        // ⛔ THE SCOPE GATE. `file-name-1` is STATEMENT-LOCAL: in §13.4.5.4 it is the FD's own subject. This row
+        // ⛔ THE SCOPE GATE. `file-name-1` is STATEMENT-LOCAL: in §2023:13.4.5.4 it is the FD's own subject. This row
         // is a genuine ungated match, so it is the anchor that actually proves the AND-gate is still there —
         // ungated the selector takes 176 rules of DELETE, OPEN, CLOSE, READ, START, UNLOCK and every FD clause.
         Assert.DoesNotContain("GR-13.4.5.4-1", ids);
@@ -660,18 +660,18 @@ public sealed class DerivedVerdictDriftTests
         // The Report Writer arm of VARYING, which §5 records as implemented under A.4.11.
         Assert.DoesNotContain("GR-13.18.64.4-3", ids);
         Assert.DoesNotContain("GR-13.18.64.4-5", ids);
-        // ⚖ THE §13.18.11 CLASS CLAUSE IS IN, by OWNER DECISION 2026-09-02 (kb/Work PB375) — these three
+        // ⚖ THE §2023:13.18.11 CLASS CLAUSE IS IN, by OWNER DECISION 2026-09-02 (kb/Work PB375) — these three
         // assertions were `DoesNotContain` while the question was open. Its content is entirely VALIDATE, yet
         // Annex A.4 never lists it and it carries no obsolete-feature NOTE, so the alternative reading (not
         // optional ⇒ A.4.1 obliges us to ACCEPT `CLASS IS NUMERIC`) was live and an agent could not settle it.
-        // The deciding ground is §13.16.2 itself: its printed Format-1 validation-clauses group opens with
+        // The deciding ground is §2023:13.16.2 itself: its printed Format-1 validation-clauses group opens with
         // `[ class-clause ]` and maps it to "13.18.11, CLASS clause".
         foreach (string id in (string[])
                  ["SR-13.18.11.3-1", "GR-13.18.11.4-1", "GR-13.18.11.4-2", "GR-13.18.11.4-3",
                   "GR-13.18.11.4-4", "FMT-13.18.11.2"])
             Assert.Contains(id, ids);
         // ⛔ AND THE WORD IS NOT THE CLAUSE — the arm keys on the SECTION, so the two CLAIMED constructs that
-        // spell CLASS are untouched: §12.3.7's SPECIAL-NAMES CLASS clause and §8.8.4.4's simple class
+        // spell CLASS are untouched: §2023:12.3.7's SPECIAL-NAMES CLASS clause and §2023:8.8.4.4's simple class
         // condition. This is what fails if someone re-expresses the arm as a text pattern on "CLASS clause".
         // (Both ids are real catalog rows — a DoesNotContain on a rule-id that does not exist is vacuously
         // green, which is how a control stops being evidence.)
@@ -712,7 +712,7 @@ public sealed class DerivedVerdictDriftTests
 
         // ⛔ AND THE ROW THAT LEFT, asserted rather than silently dropped (2026-09-09, owner decision Q30 /
         // kb/Work PB592). Item 206 was the selector's second row on the premise that the BINARY-CHAR family
-        // holds "exactly the GR12 minimum range". §13.18.60.4 GR12's table is asymmetric — the SIGNED rows
+        // holds "exactly the GR12 minimum range". §2023:13.18.60.4 GR12's table is asymmetric — the SIGNED rows
         // print a STRICT `<` on BOTH sides — so -2**(w-1) is outside the minimum band, and this compiler
         // stores it; the element IS provided. Its §7 cell now opens "Provided", the selector no longer takes
         // it, and the row carries an adjudicated CONFORMS. This is the paragraph in `$selector` running

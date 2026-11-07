@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// BODY per shape (integer, decimal, comma decimal, float, comma float), every shape the parser assembles from
 /// contiguous tokens has one too, and a sign-adjacent form must exist for each — the <c>FN_SIGNED_*</c> twins, whose
 /// <c>OnSignedLiteral</c> action keeps the signed literal only inside a list region (an argument list or, since kb/Work
-/// PB2113 removed the SUBSCRIPT lexer mode, a reference's subscript list) where §8.3.3.3.2 makes the sign part of it,
+/// PB2113 removed the SUBSCRIPT lexer mode, a reference's subscript list) where §2023:8.3.3.3.2 makes the sign part of it,
 /// and otherwise splits the sign off as the operator.
 /// The float shape was the one signed-capable body with NO twins, so <c>FUNCTION EXP(-1.5E3)</c> lexed as
 /// TWO arguments (the signed-decimal rule won maximal munch at "-1.5" and orphaned "E3") and drew a false
@@ -77,8 +77,8 @@ public sealed class SignedLiteralShapeDriftTests
         }
     }
 
-    /// <summary>⛔ A FLOATING-POINT SIGNIFICAND IS A FIXED-POINT LITERAL, SPELLED ONCE (kb/Work PB2729). §8.3.3.3.3 1) forms
-    /// the floating-point literal "from two fixed-point numeric literals separated by the letter 'E'", and §8.3.3.3.2 3)
+    /// <summary>⛔ A FLOATING-POINT SIGNIFICAND IS A FIXED-POINT LITERAL, SPELLED ONCE (kb/Work PB2729). §2023:8.3.3.3.3 1) forms
+    /// the floating-point literal "from two fixed-point numeric literals separated by the letter 'E'", and §2023:8.3.3.3.2 3)
     /// keeps a fixed-point literal's decimal point off its rightmost character. FLOAT_BODY used to spell its own wider
     /// significand (<c>[0-9]+ '.' [0-9]*</c>) beside DEC_BODY, so <c>VALUE 3.E2</c> reached the backend as C#
     /// <c>3.E2d</c> (CS1061). Every FLOAT*_BODY must therefore BEGIN with a DEC*_BODY reference and spell no digit or
@@ -92,7 +92,7 @@ public sealed class SignedLiteralShapeDriftTests
         foreach (Match m in floats)
             Assert.True(Regex.IsMatch(m.Groups["alts"].Value.Trim(), @"^DEC\w*_BODY\s+'E'\s+\[-\+\]\?\s+INT_BODY$"),
                 $"{m.Groups["b"].Value} is `{m.Groups["alts"].Value.Trim()}` — its significand must be a DEC*_BODY reference "
-                + "and its exponent INT_BODY (§8.3.3.3.3 1) and 3)), never a second spelling of the fixed-point shape");
+                + "and its exponent INT_BODY (§2023:8.3.3.3.3 1) and 3)), never a second spelling of the fixed-point shape");
     }
 
     [Fact]

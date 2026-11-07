@@ -9,9 +9,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ TWO RUN UNITS SHARING A SEQUENTIAL FILE UNDER <c>SHARING WITH ALL OTHER</c> SEE EACH OTHER'S RECORD LOCKS, NAME
 /// EACH RECORD ALIKE AND READ THE RECORDS THE FILE HOLDS NOW (kb/Work PB2692, the sequential arm of PB2660). ISO
-/// §9.1.16: <i>"While locked by a given file connector, a record is not accessible to another file connector in the
+/// §2023:9.1.16: <i>"While locked by a given file connector, a record is not accessible to another file connector in the
 /// same or a different run unit, except by the execution of a READ statement with the IGNORING LOCK phrase"</i>;
-/// §9.1.13.8 1): <i>"I-O status = 51. The input-output statement is unsuccessful due to an attempt to access a record
+/// §2023:9.1.13.8 1): <i>"I-O status = 51. The input-output statement is unsuccessful due to an attempt to access a record
 /// that is currently locked by another file connector"</i>.
 /// <para>Before PB2692 the sequential connector published no record lock (it had no <c>RecordLocks</c> endpoint), so a
 /// second run unit's READ WITH LOCK of a record the first held answered '00'; its reader served a record another run
@@ -85,9 +85,9 @@ public sealed class CrossRunUnitSequentialLockDriftTests
 
             Assert.Equal("00", Read(a, "A", FileRecordLock.WithLock, out string first));   // A's buffer now holds the file
             Assert.Equal("AAAA", first);
-            // §9.1.16 / §9.1.13.8 1) — record 1 is not accessible to B, in another run unit.
+            // §2023:9.1.16 / §2023:9.1.13.8 1) — record 1 is not accessible to B, in another run unit.
             Assert.Equal("51", Read(b, "B", FileRecordLock.WithLock, out _));
-            // §14.9.30.4 GR12 — IGNORING LOCK makes it available "even if it is locked".
+            // §2023:14.9.30.4 GR12 — IGNORING LOCK makes it available "even if it is locked".
             Assert.Equal("00", Read(b, "B", FileRecordLock.None, out string ignored, ignoringLock: true));
             Assert.Equal("AAAA", ignored);
             // Record 2 nobody holds: B rewrites it, and A's next READ delivers the record the file holds now.

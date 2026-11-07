@@ -19,7 +19,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <item>no <c>DataBinder.Oo*.cs</c> partial comes back, and <see cref="DataBinder"/> declares no <c>Oo…</c> member beyond
 /// the OO configuration it is made with and the one door, <c>Oo</c> — a new OO fact goes on <see cref="OoDataBinder"/>;</item>
 /// <item>the OO binder is made in exactly one place, by <see cref="DataBinder"/>, from the role the driver gave it;</item>
-/// <item>a compiler temporary (<c>IsCompilerTemp = true</c>) is built only by <c>CompilerTemps.Create</c>, so §8.4.3.2.4
+/// <item>a compiler temporary (<c>IsCompilerTemp = true</c>) is built only by <c>CompilerTemps.Create</c>, so §2023:8.4.3.2.4
 /// GR1's "the description, class, and category" copy has one constructor.</item>
 /// </list>
 /// </summary>

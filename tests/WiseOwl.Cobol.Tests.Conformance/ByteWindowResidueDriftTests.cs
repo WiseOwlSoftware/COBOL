@@ -9,15 +9,15 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// PB231). Four surfaces ask the SAME question — "may this leaf ride a shared byte-window storage area?" —
 /// and each has its own statement of the law:
 /// <list type="bullet">
-/// <item>REDEFINES — ISO §13.18.44.4 GR1, "Storage association for the subject of the entry starts at the
+/// <item>REDEFINES — ISO §2023:13.18.44.4 GR1, "Storage association for the subject of the entry starts at the
 /// first bit of the data item referenced by data-name-2 and continues over an area sufficient to contain the
 /// number of bits required" (<c>ComputeTier</c>);</item>
-/// <item>EXTERNAL — §13.18.22, the run-unit cell (<c>CallMakeExternal</c>);</item>
-/// <item>BASED + ALLOCATE — §13.18.5.3 SR1/SR2 restrict the subject to "shall not be of class object" and
-/// "shall not be a dynamic-length elementary item or a variable-length group", §14.9.3.3 SR1 asks only for
-/// the BASED clause, and §14.9.3.4 GR3 makes the area "the number of bytes required to hold an item as
+/// <item>EXTERNAL — §2023:13.18.22, the run-unit cell (<c>CallMakeExternal</c>);</item>
+/// <item>BASED + ALLOCATE — §2023:13.18.5.3 SR1/SR2 restrict the subject to "shall not be of class object" and
+/// "shall not be a dynamic-length elementary item or a variable-length group", §2023:14.9.3.3 SR1 asks only for
+/// the BASED clause, and §2023:14.9.3.4 GR3 makes the area "the number of bytes required to hold an item as
 /// described by data-name-1" (<c>PtrBindBasedAndAddressables</c>);</item>
-/// <item>ADDRESS OF — §8.4.3.11, the per-instance cell (same forcer).</item>
+/// <item>ADDRESS OF — §2023:8.4.3.11, the per-instance cell (same forcer).</item>
 /// </list>
 /// <para>They were TWO hand-written lists — a deny-list in <c>ComputeTier</c>, an allow-list in
 /// <c>ForceStringCanonical</c> — and they drifted. kb/Work PB203 opened the REDEFINES one to USAGE BIT leaves
@@ -41,7 +41,7 @@ public sealed class ByteWindowResidueDriftTests
     /// <param name="tag">A unique PROGRAM-ID stem (kb/Work — .NET serves a stale same-named assembly).</param>
     /// <param name="leaf">The leaf's description, written after the data-name.</param>
     /// <param name="bytes">The leaf's storage extent in bytes — the alias width the REDEFINES spelling needs
-    /// and the byte quantity §14.9.3.4 GR3 allocates.</param>
+    /// and the byte quantity §2023:14.9.3.4 GR3 allocates.</param>
     /// <param name="carried">The settled verdict: true when a shared byte-window area carries the leaf.</param>
     public static TheoryData<string, string, int, bool> Leaves() => new()
     {
@@ -49,32 +49,32 @@ public sealed class ByteWindowResidueDriftTests
         { "BWR01", "PIC X(4)", 4, true },
         { "BWR02", "PIC ZZZ9", 4, true },
         // Every NUMERIC usage carries a pinned byte form since the Step D dissolution (kb/Work PB164):
-        // §13.18.60.4 GR4 radix-2, GR11 BCD, the wave-2 IEEE pin.
+        // §2023:13.18.60.4 GR4 radix-2, GR11 BCD, the wave-2 IEEE pin.
         { "BWR03", "PIC S9(4) COMP", 2, true },
         { "BWR04", "PIC S9(3) COMP-3", 2, true },
         { "BWR05", "USAGE COMP-1", 4, true },
         // BOOLEAN, both representations. A DISPLAY boolean is one '0'/'1' character per position (D-B1);
-        // ⛔ a USAGE BIT run is the §13.18.60.4 GR5 sub-byte packing laid out by §8.5.1.6.3 and windowed by
+        // ⛔ a USAGE BIT run is the §2023:13.18.60.4 GR5 sub-byte packing laid out by §2023:8.5.1.6.3 and windowed by
         // CobolBits.ReadWindow/WriteWindow — THE kb/Work PB231 ARM, carried on every surface or none.
         { "BWR06", "PIC 1(8)", 8, true },
         { "BWR07", "PIC 1(8) USAGE BIT", 1, true },
         { "BWR08", "PIC 1(4) USAGE BIT", 1, true },
         // NATIONAL, in BOTH its spellings — the category (PIC N / USAGE NATIONAL) and the national-form
-        // NUMERIC (PIC 9 USAGE NATIONAL, §13.18.60.3 SR12). ⛔ CARRIED since kb/Work PB231 discharged
-        // RESIDUE-11: §13.18.60.4 GR8 leaves the size to the implementor ("characters of a uniform size equal
+        // NUMERIC (PIC 9 USAGE NATIONAL, §2023:13.18.60.3 SR12). ⛔ CARRIED since kb/Work PB231 discharged
+        // RESIDUE-11: §2023:13.18.60.4 GR8 leaves the size to the implementor ("characters of a uniform size equal
         // to or a multiple of the size of characters in the computer's alphanumeric character set") and D-N1
         // pins TWO bytes, so the leaf's storage extent is 2n and the window transcodes the UTF-16BE pair
         // (Place.NationalWindow / CobolBits.NatReadWindow). The BYTES column is what proves it: an alias of
-        // 2n is what the REDEFINES spelling needs and what §14.9.3.4 GR3 allocates.
+        // 2n is what the REDEFINES spelling needs and what §2023:14.9.3.4 GR3 allocates.
         { "BWR09", "PIC N(4)", 8, true },
-        // ⛔ AND THE OTHER FOUR SPELLINGS §13.18.60.3 SR12 ADMITS — ROWS AT LAST (kb/Work PB646). The
+        // ⛔ AND THE OTHER FOUR SPELLINGS §2023:13.18.60.3 SR12 ADMITS — ROWS AT LAST (kb/Work PB646). The
         // national-form NUMERIC, NUMERIC-EDITED and BOOLEAN forms used to be a comment here saying why they
         // could not be rows: `PictureAnalyzer` staged each loud at COBOL0899 before storage classification
         // ran, so the gate's arm for them was a derived answer nothing could contradict
         // ([[a_dead_lookup_is_also_unverified]]). The staging is gone and the arm is now MEASURED on all four
-        // surfaces. The BYTES column is the §13.18.60.4 GR8 / D-N1 determination applied to §13.18.40.4 GR1's
+        // surfaces. The BYTES column is the §2023:13.18.60.4 GR8 / D-N1 determination applied to §2023:13.18.40.4 GR1's
         // count of NATIONAL character positions: three digits → 6, a three-symbol edited mask → 6, four boolean
-        // positions → 8. A SIGN IS SEPARATE position counts too (§13.18.52.4 GR6a — a character position that
+        // positions → 8. A SIGN IS SEPARATE position counts too (§2023:13.18.52.4 GR6a — a character position that
         // is not a digit position), which is the row that would have caught PicInfo.SignKindFor's missing
         // national arm.
         { "BWR10", "PIC 9(3) USAGE NATIONAL", 6, true },
@@ -128,11 +128,11 @@ public sealed class ByteWindowResidueDriftTests
     /// (feedback_measure_the_selectors_complement — a green that looked at nothing).
     /// <para>What must stay true is a THREE-PART fact, and each part fails independently:</para>
     /// <list type="number">
-    /// <item>the level-1 <c>USAGE POINTER BASED</c> shape — §13.18.60.3 SR14's first arm, the one PB231's
-    /// pointer third implements — COMPILES AND RUNS, and reads NULL after a plain ALLOCATE (§14.9.3.4 GR9);</item>
-    /// <item><c>USAGE OBJECT REFERENCE BASED</c> is REFUSED, by §13.18.5.3 SR1 ("The subject of the entry shall
+    /// <item>the level-1 <c>USAGE POINTER BASED</c> shape — §2023:13.18.60.3 SR14's first arm, the one PB231's
+    /// pointer third implements — COMPILES AND RUNS, and reads NULL after a plain ALLOCATE (§2023:14.9.3.4 GR9);</item>
+    /// <item><c>USAGE OBJECT REFERENCE BASED</c> is REFUSED, by §2023:13.18.5.3 SR1 ("The subject of the entry shall
     /// not be of class object") — COBOL1797, not a residue;</item>
-    /// <item><c>USAGE POINTER EXTERNAL</c> is REFUSED, by §13.18.22.3 SR4 ("The EXTERNAL clause shall not be
+    /// <item><c>USAGE POINTER EXTERNAL</c> is REFUSED, by §2023:13.18.22.3 SR4 ("The EXTERNAL clause shall not be
     /// specified for a data item of class object or pointer") — COBOL1796.</item>
     /// </list>
     /// <para>Parts 2 and 3 are the ones the landing could most easily have broken: both shapes used to be
@@ -157,10 +157,10 @@ public sealed class ByteWindowResidueDriftTests
                 FREE WS-P
                 STOP RUN.
             """);
-        Assert.True(carried, "a level-1 USAGE POINTER BASED item is legal source — §13.18.5.3 SR1 bars only "
-            + "class OBJECT from a BASED entry, and §14.9.3.3 SR1 asks only for the BASED clause. It rides the "
+        Assert.True(carried, "a level-1 USAGE POINTER BASED item is legal source — §2023:13.18.5.3 SR1 bars only "
+            + "class OBJECT from a BASED entry, and §2023:14.9.3.3 SR1 asks only for the BASED clause. It rides the "
             + $"storage area's managed slot (kb/Work PB231): {carriedOut}");
-        Assert.Contains("NULL", carriedOut, StringComparison.Ordinal);   // §14.9.3.4 GR9
+        Assert.Contains("NULL", carriedOut, StringComparison.Ordinal);   // §2023:14.9.3.4 GR9
 
         var (objOk, objDetail) = Run("""
             IDENTIFICATION DIVISION.
@@ -172,7 +172,7 @@ public sealed class ByteWindowResidueDriftTests
             MAIN.
                 STOP RUN.
             """);
-        Assert.False(objOk, "§13.18.5.3 SR1: the subject of a BASED entry shall not be of class object");
+        Assert.False(objOk, "§2023:13.18.5.3 SR1: the subject of a BASED entry shall not be of class object");
         Assert.Contains("COBOL1797", objDetail, StringComparison.Ordinal);
 
         var (extOk, extDetail) = Run("""
@@ -185,7 +185,7 @@ public sealed class ByteWindowResidueDriftTests
             MAIN.
                 STOP RUN.
             """);
-        Assert.False(extOk, "§13.18.22.3 SR4: the EXTERNAL clause shall not be specified for a data item of "
+        Assert.False(extOk, "§2023:13.18.22.3 SR4: the EXTERNAL clause shall not be specified for a data item of "
             + "class object or pointer");
         Assert.Contains("COBOL1796", extDetail, StringComparison.Ordinal);
     }
@@ -197,7 +197,7 @@ public sealed class ByteWindowResidueDriftTests
     }
 
     /// <summary>The run's STDOUT — for the one assertion that needs the program's own output rather than the
-    /// compiler's verdict text (§14.9.3.4 GR9's null seeding, observed).</summary>
+    /// compiler's verdict text (§2023:14.9.3.4 GR9's null seeding, observed).</summary>
     private static (bool Ok, string Out) RunOut(string src)
     {
         var (ok, stdout, _) = new WiseOwlCobolCompiler(2023).CompileAndRun(src);

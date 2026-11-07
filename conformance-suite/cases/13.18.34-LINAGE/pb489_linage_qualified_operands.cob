@@ -5,30 +5,30 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.18.34.2 — the LINAGE clause's general format prints
+      *> ISO §2023:13.18.34.2 — the LINAGE clause's general format prints
       *> data-name-1 … data-name-4, and a data-name in a general format
-      *> is a QUALIFIED-DATA-NAME (§8.4.2.2.2 Format 1):
+      *> is a QUALIFIED-DATA-NAME (§2023:8.4.2.2.2 Format 1):
       *>   python scripts/spec/cite.py --check 8.4.2.2.3 "A name may be
       *>   qualified even though it does not need qualification"
-      *>   -> OK  §8.4.2.2.3 2)  (Syntax rules)
+      *>   -> OK  §2023:8.4.2.2.3 2)  (Syntax rules)
       *>   python scripts/spec/cite.py --check 8.4.2.2.3 "For each non
       *>   unique user-defined name that is explicitly referenced,
       *>   uniqueness shall be established through a sequence of
       *>   qualifiers that precludes any ambiguity of reference."
-      *>   -> OK  §8.4.2.2.3 1)  (Syntax rules)
+      *>   -> OK  §2023:8.4.2.2.3 1)  (Syntax rules)
       *> so `LINAGE IS PG-SZ OF R-GRP LINES` is legal — and, in THIS
       *> program, where W-GRP and R-GRP each declare PG-SZ, FT-AT, TP-MG
       *> and BT-MG, the qualified form is the ONLY legal way to name any
       *> of the eight items.
       *>
-      *> WHAT THE VALUE IS. §13.18.34.4 GR6:
+      *> WHAT THE VALUE IS. §2023:13.18.34.4 GR6:
       *>   python scripts/spec/cite.py --check 13.18.34.4 "If a literal
       *>   is specified, the value is always that literal."
-      *>   -> OK  §13.18.34.4 6) a)
+      *>   -> OK  §2023:13.18.34.4 6) a)
       *>   python scripts/spec/cite.py --check 13.18.34.4 "If a data-name
       *>   is specified, the value is the content of the data item
       *>   referenced by the associated data-name"
-      *>   -> OK  §13.18.34.4 6) b)
+      *>   -> OK  §2023:13.18.34.4 6) b)
       *> GR6 a) and GR6 b) are two routes to ONE number, so a clause
       *> written with four literals and a clause written with four
       *> qualified data-names HOLDING THOSE LITERALS describe the SAME
@@ -53,14 +53,14 @@
       *> three single-line advances) and so do the line numbers.
       *>
       *> OBSERVABLE 1 — THE END-OF-PAGE BRANCH PER WRITE, which is what
-      *> makes the FOOTING operand visible at all (§13.18.34.4 GR1: the
+      *> makes the FOOTING operand visible at all (§2023:13.18.34.4 GR1: the
       *> footing start is the one phrase that is NOT part of the logical
       *> page size, so it can only be seen through the end-of-page
-      *> condition). §13.18.34.4 GR7 d) sets LINAGE-COUNTER to one at
+      *> condition). §2023:13.18.34.4 GR7 d) sets LINAGE-COUNTER to one at
       *> OPEN OUTPUT and GR7 c) 2 adds each advance, so on a 2-line body
       *> with the footing start at 2 every one of the three writes leaves
       *> the counter in the footing area or past the page size — the
-      *> §14.9.51.4 GR26 b) and GR26 a) arms respectively, both of which
+      *> §2023:14.9.51.4 GR26 b) and GR26 a) arms respectively, both of which
       *> raise the end-of-page condition. All six branches are therefore
       *> EOP, on both files.
       *>
@@ -80,30 +80,30 @@
       *> the FOOTING phrase."
       *>   python scripts/spec/cite.py --check 13.18.34.4 "The logical
       *>   page size is the sum of the values referenced by each phrase
-      *>   except the FOOTING phrase."   -> OK  §13.18.34.4 1)
+      *>   except the FOOTING phrase."   -> OK  §2023:13.18.34.4 1)
       *>
-      *> EDITION. The LINAGE clause, its four operands and §8.4.2.2's
+      *> EDITION. The LINAGE clause, its four operands and §2023:8.4.2.2's
       *> qualification rules are present in all four supported editions,
       *> so there is ONE copy of this fixture and it sits at the earliest
       *> of them; the behaviour does not differ by edition. The reader is
       *> a plain record-sequential FD over a one-character record, not
       *> ORGANIZATION LINE SEQUENTIAL, because that phrase is COBOL-2023
-      *> (§12.4.5.10.3 GR2) and would not compile here.
+      *> (§2023:12.4.5.10.3 GR2) and would not compile here.
       *>
-      *> THE OPTIONAL WORDS, IN THE SAME COMPARISON. §13.18.34.2's figure
+      *> THE OPTIONAL WORDS, IN THE SAME COMPARISON. §2023:13.18.34.2's figure
       *> underlines LINAGE, FOOTING, TOP and BOTTOM and NOTHING else, so
       *> IS, LINES, WITH, AT and the two `LINES AT` are optional words:
       *>   python scripts/spec/cite.py --check 8.3.2.4.3 "uppercase words
       *>   that are not underlined are called optional words and may be
       *>   specified at the user's option with no effect on the semantics
-      *>   of the format"   -> OK  §8.3.2.4.3 (Optional words)
+      *>   of the format"   -> OK  §2023:8.3.2.4.3 (Optional words)
       *> PRTL therefore
       *> writes the MINIMUM spelling — `LINAGE 2 FOOTING 2 TOP 3 BOTTOM 2`
       *> — while PRTQ writes every optional word, so the two files also
       *> assert that the two spellings are the SAME clause. A grammar that
       *> required any of those words would not compile this fixture at all.
       *>
-      *> ⛔ WHY EACH WRITE IS PRECEDED BY ITS OWN MOVE — §14.9.51.4 GR4
+      *> ⛔ WHY EACH WRITE IS PRECEDED BY ITS OWN MOVE — §2023:14.9.51.4 GR4
       *> makes the released record no longer available in the record area
       *> unless the file is named in a SAME RECORD AREA clause, and
       *> neither file is.

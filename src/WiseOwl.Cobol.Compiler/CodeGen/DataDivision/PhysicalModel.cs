@@ -45,7 +45,7 @@ internal sealed class PhysicalModel(EmitContext ctx)
 
     /// <summary>A field that physically appears in the emitted C# — an item's own field, OR a REDEFINES class's single
     /// string backing (which replaces ALL the class's members). A REDEFINES <i>view</i> yields no physical field
-    /// (ISO §13.18.44; DESIGN §4.1 — never two stored fields per storage area).</summary>
+    /// (ISO §2023:13.18.44; DESIGN §4.1 — never two stored fields per storage area).</summary>
     /// <summary>One emitted struct field. <paramref name="Width"/> is the field's TOTAL contribution to its group's
     /// character image — element-image-width × <paramref name="Occurs"/> for a fixed-OCCURS table, else the item's own
     /// image width. <paramref name="Occurs"/> is the fixed occurrence count (0 = not a table), so the image facility
@@ -55,7 +55,7 @@ internal sealed class PhysicalModel(EmitContext ctx)
     /// leaf's IMAGE profile (<see cref="ImageProfileOf"/>); null for every string-shaped field (alphanumeric, edited,
     /// <see cref="DataItem.StoreAsImage"/>, a Tier-B class backing) and for nested group structs.</summary>
     /// <param name="BitRun">⛔ Set ONLY on the FIRST field of a <c>USAGE BIT</c> run, and it is what lets a run
-    /// span several FIELDS while occupying ONE image slice (design D19, fix-queue PB43). §8.5.1.6.3 puts two
+    /// span several FIELDS while occupying ONE image slice (design D19, fix-queue PB43). §2023:8.5.1.6.3 puts two
     /// same-level bit items at successive BIT positions — they SHARE a byte — so their image cannot be composed
     /// field-by-field the way every other member is. The run's leaves are listed here, the first field carries the
     /// whole run's <see cref="Width"/> (<c>ceil(bits/8)</c>) and emits one <c>CobolBits.Pack</c> over the
@@ -63,25 +63,25 @@ internal sealed class PhysicalModel(EmitContext ctx)
     /// group's image width still falls out of a plain sum and no caller needs to know runs exist. Null on every
     /// non-bit field and on the continuation fields of a run.</param>
     /// <param name="NatLeaf">⛔ Set on a NATIONAL leaf, and it is what makes the field's slice of the group
-    /// image its UTF-16BE BYTES rather than its carrier characters (kb/Work PB327; ISO §13.18.60.4 GR8 leaves the
+    /// image its UTF-16BE BYTES rather than its carrier characters (kb/Work PB327; ISO §2023:13.18.60.4 GR8 leaves the
     /// size of a national character to the implementor and D-N1 pins two bytes, high-order first). The predicate is
     /// <see cref="NationalWindow.PositionsOf"/> — THE ONE national test, shared with the byte-window carriage gate
     /// (<c>DataBinder.ByteWindowResidueOf</c>) and with the Tier-B window geometry, so the codec cannot disagree
     /// with them about which leaves are national. ⛔ It COMPOSES with <paramref name="NumLeaf"/> rather than
     /// excluding it (design D-N7, kb/Work PB646): this flag decides how a CHARACTER is serialized, NumLeaf decides
-    /// how the CARRIER becomes characters, and §13.18.60.3 SR12's national-form numeric is both at once — a
+    /// how the CARRIER becomes characters, and §2023:13.18.60.3 SR12's national-form numeric is both at once — a
     /// native fixed-point carrier whose zoned digit run is written in national characters. Null on every
     /// non-national field.</param>
     /// <param name="SlotLeaf">Set on a class pointer / class object leaf (<see cref="SlotWindow.CarriedBySlot"/>; kb/Work
     /// PB244): the item whose slice of the one-way transfer image <c>GroupImageCodec.AsImageOf</c> renders — the
     /// pointer's storage image (<c>PointerImage</c>, DOC-A.1-216; kb/Work PB1071) when
     /// <see cref="SlotWindow.CarriesPointerImage"/>, else the reserved placeholder positions. Null on every other field.</param>
-    /// <param name="FillerBits">⛔ Non-zero ONLY on a STORED IMPLICIT FILLER (ISO §8.5.1.6.3, kb/Work PB3564): the hidden string
+    /// <param name="FillerBits">⛔ Non-zero ONLY on a STORED IMPLICIT FILLER (ISO §2023:8.5.1.6.3, kb/Work PB3564): the hidden string
     /// field of boolean positions that holds <c>BitLayout.FillersOf</c>'s entry — the bits after a run's last member, or
     /// between a strided table's occurrences — whose value is data of the owner group (a group move writes it, the next
     /// read gives it back). It is a FIELD and no part of the image: <see cref="Width"/> is 0 and the run leader's packed
     /// slice (<c>GroupImageCodec.AsImageOf</c>) is what carries its positions; every walk that is one-to-one with the
-    /// group's MEMBERS (a leaf vector) skips it. Initialized to zero positions, §13.18.63's boolean initial state.</param>
+    /// group's MEMBERS (a leaf vector) skips it. Initialized to zero positions, §2023:13.18.63's boolean initial state.</param>
     internal readonly record struct Physical(string Name, string Type, int Width, bool IsGroupStruct, string Init, string Comment, int Occurs = 0, DataItem? NumLeaf = null, IReadOnlyList<DataItem>? BitRun = null, DataItem? NatLeaf = null, DataItem? SlotLeaf = null, int FillerBits = 0);
 
     /// <summary>The memoized physical fields of a group's children (the root forest under the sentinel).
@@ -141,14 +141,14 @@ internal sealed class PhysicalModel(EmitContext ctx)
     /// field. The class's numeric <c>NumProfile</c>s are still emitted elsewhere (EmitProfiles — D9).</summary>
     private IEnumerable<Physical> BuildPhysicals(IEnumerable<DataItem> items, Subscripts subs, SeedRecipe recipe)
     {
-        // D19/PB43 — the §8.5.1.6.3 bit RUNS in this sibling list, keyed by the leaf that starts each one. A run is
+        // D19/PB43 — the §2023:8.5.1.6.3 bit RUNS in this sibling list, keyed by the leaf that starts each one. A run is
         // a maximal stretch of consecutive USAGE BIT leaves at the SAME level: exactly the items the standard puts
         // at successive bit positions, i.e. the ones that share bytes. Computed once so the emit loop below can
         // stay a straight per-child walk — and computed by BitLayout, because the compile-time image SEED needs
         // the same answer and used to have none (kb/Work PB584).
         var siblings = items as IList<DataItem> ?? items.ToList();
         var runs = BitLayout.RunsOf(siblings);
-        // The owner's stored implicit filler (§8.5.1.6.3, kb/Work PB3564): the root forest has no owner and no filler.
+        // The owner's stored implicit filler (§2023:8.5.1.6.3, kb/Work PB3564): the root forest has no owner and no filler.
         var fillers = !ReferenceEquals(runs, BitRunMap.Empty) && siblings[0].Parent is { } owner ? BitLayout.FillersOf(owner) : [];
 
         foreach (var c in siblings)
@@ -161,8 +161,8 @@ internal sealed class PhysicalModel(EmitContext ctx)
                 if (c.IsCanonical)
                 {
                     string backingInit = RuntimeApi.StrStore(Codec.ImageInitOf(c, subs: subs, recipe: recipe), $"{cls.Width}");
-                    // ⛔ A BIT ITEM THAT SHARES ITS BYTE (§8.5.1.6.3) STAYS IN ITS RUN, whoever stores it. The class is
-                    // one string backing of the canonical's own bits (§13.18.44.4 GR1 — the subject's storage starts
+                    // ⛔ A BIT ITEM THAT SHARES ITS BYTE (§2023:8.5.1.6.3) STAYS IN ITS RUN, whoever stores it. The class is
+                    // one string backing of the canonical's own bits (§2023:13.18.44.4 GR1 — the subject's storage starts
                     // "at the first bit of the data item referenced by data-name-2"), so the backing is the run
                     // MEMBER's field: it leads the run's slice when it leads the run, and contributes none when it
                     // continues one (GroupImageCodec.BitCarrierOf / EmitRunMemberFromBits read the bits out of and
@@ -188,13 +188,13 @@ internal sealed class PhysicalModel(EmitContext ctx)
             string comment = c.CobolName is { } n ? $"{n}{(c.Occurs is { } o ? $" OCCURS {o}" : "")}" : "FILLER";
             // For a group child, use its PHYSICAL image width (skips its own redefines views, counts a contained
             // backing once) — the raw DataItem.ImageWidth over-counts a group that contains a redefines class. A fixed
-            // OCCURS table contributes its per-occurrence image width × the count to the group image (ISO §14.9).
+            // OCCURS table contributes its per-occurrence image width × the count to the group image (ISO §2023:14.9).
             // ⛔ BYTES, NOT CARRIER POSITIONS (kb/Work PB327): AsImage()/FromImage() is the STORAGE face of a
             // group — a numeric leaf contributes its radix-2 / BCD / IEEE bytes, a USAGE BIT run its packed bytes —
-            // and a NATIONAL position occupies TWO of those bytes (ISO §13.18.60.4 GR8 leaves the size to the
+            // and a NATIONAL position occupies TWO of those bytes (ISO §2023:13.18.60.4 GR8 leaves the size to the
             // implementor; D-N1 pins two, UTF-16BE). ByteWidth IS ImageWidth for every other leaf kind, so this is
             // byte-identical for national-free programs. The CARRIER face of a national group is AsNat()
-            // (§13.18.29.4 GR2b), exactly as a bit group's carrier face is AsBits().
+            // (§2023:13.18.29.4 GR2b), exactly as a bit group's carrier face is AsBits().
             int elemWidth = c.IsGroup ? PhysicalImageWidth(c) : c.ByteWidth;
             int occurs = c.Occurs ?? 0;
             int width = occurs > 0 ? elemWidth * occurs : elemWidth;
@@ -213,7 +213,7 @@ internal sealed class PhysicalModel(EmitContext ctx)
             // byte-window gate and the Tier-B window geometry share one answer about which leaves are national.
             // ⛔ THE TWO ARE ORTHOGONAL, AND COMPOSE (design D-N7, kb/Work PB646): natLeaf says how a
             // CHARACTER is serialized (UTF-16BE pairs), numLeaf says how the CARRIER becomes characters (the
-            // zoned/radix-2/BCD/IEEE image). §13.18.60.3 SR12's national-form NUMERIC is both, and asking
+            // zoned/radix-2/BCD/IEEE image). §2023:13.18.60.3 SR12's national-form NUMERIC is both, and asking
             // numLeaf only where natLeaf was null made them mutually exclusive — sound only while that shape
             // was staged loud and unreachable.
             DataItem? natLeaf = !c.IsGroup && NationalWindow.PositionsOf(c) is not null ? c : null;
@@ -228,7 +228,7 @@ internal sealed class PhysicalModel(EmitContext ctx)
                 // for the standalone (record) case — but inside the run its slice is the run's (D20/PB79).
                 yield return new Physical(c.ClrName, c.FieldType, run is null ? 0 : BitLayout.RunCharacters(run),
                     c.IsGroup, Values.FieldInit(c, subs, recipe), comment, occurs, null, run);
-                // ⛔ THE IMPLICIT FILLER THIS MEMBER OPENS OR PADS HAS A FIELD OF ITS OWN (§8.5.1.6.3, kb/Work PB3564) — see
+                // ⛔ THE IMPLICIT FILLER THIS MEMBER OPENS OR PADS HAS A FIELD OF ITS OWN (§2023:8.5.1.6.3, kb/Work PB3564) — see
                 // Physical.FillerBits: the positions after the run's last member (asked of its LEADER) and the ones
                 // between a strided table's occurrences (asked of the table).
                 foreach (var filler in FillerFieldsOf(fillers, c, comment))
@@ -254,7 +254,7 @@ internal sealed class PhysicalModel(EmitContext ctx)
                     // hundred-million-occurrence table is a repeat, never a literal (kb/Work PB1722).
                     filler.Bits <= 64 ? EmitText.CsLiteral(new string('0', filler.Bits))
                         : RuntimeApi.StrRepeat(EmitText.CsLiteral("0"), $"{filler.Bits}"),
-                    $"implicit filler bits after {comment} (§8.5.1.6.3)", 0, null, null, null, null, filler.Bits);
+                    $"implicit filler bits after {comment} (§2023:8.5.1.6.3)", 0, null, null, null, null, filler.Bits);
     }
 
     /// <summary>The emitted character-image width of an item: a leaf's own width; a group's = the sum of its physical

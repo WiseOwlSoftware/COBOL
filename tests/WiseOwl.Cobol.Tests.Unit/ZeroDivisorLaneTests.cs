@@ -6,7 +6,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ EVERY VALUE LANE'S QUOTIENT KERNEL RAISES A ZERO DIVISOR, CHECKED OR NOT (kb/Work PB1605). ISO §14.7.5 case 2 —
+/// ⛔ EVERY VALUE LANE'S QUOTIENT KERNEL RAISES A ZERO DIVISOR, CHECKED OR NOT (kb/Work PB1605). ISO §2023:14.7.5 case 2 —
 /// "if the divisor in a divide operation or in a DIVIDE statement is zero" — is the size error condition in every
 /// context, and no-phrase rule 2 names it EC-SIZE-ZERO-DIVIDE (a Fatal condition in Table 13). Whether checking is
 /// enabled decides only the DISPOSITION (the SIZE ERROR phrase, a declarative, or — checking off — CONFORMANCE.md

@@ -17,7 +17,7 @@ public sealed class ExpressionDifferentialTests
     private static void AssertMatchesGolden(string source) => DifferentialGolden.Assert(source);
 
     /// <summary>Pin WiseOwl COBOL output to the spec-correct value where the legacy is non-conforming (its DISPLAY
-    /// trims an alphanumeric operand's trailing spaces, contra ISO §14.9.11.4 GR6).</summary>
+    /// trims an alphanumeric operand's trailing spaces, contra ISO §2023:14.9.11.4 GR6).</summary>
     private static void AssertSpec(string source, string expected)
     {
         var (cok, cout, cdetail) = WiseOwlCobol.CompileAndRun(source);
@@ -100,7 +100,7 @@ public sealed class ExpressionDifferentialTests
 
     [Fact]
     public void Display_MixedOperandKinds()
-        // TXT (X(4)="HI") sits mid-DISPLAY, so its 2 trailing spaces are transferred per ISO §14.9.11.4 GR6 (the
+        // TXT (X(4)="HI") sits mid-DISPLAY, so its 2 trailing spaces are transferred per ISO §2023:14.9.11.4 GR6 (the
         // legacy trims them — non-conforming — so this is spec-pinned). NUM→0042, SGN -7→-007 (the decimal device form: a leading sign).
         => AssertSpec(Program("""
             01 NUM PIC 9(4) VALUE 42.

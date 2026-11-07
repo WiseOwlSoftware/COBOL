@@ -9,19 +9,19 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ A WEEK DATE CAN SATISFY EVERY SUBFIELD RULE AND STILL HAVE NO INTEGER DATE FORM (fix-queue PB23).
 ///
-/// <para><b>ISO §15.3.1.7</b> constrains a week date's subfields <i>individually</i> — year 1601–9999, week 01–52
-/// (01–53 in a long ISO year), day-of-week 1–7 — while <b>§15.5.2</b> caps the integer date form itself at
+/// <para><b>ISO §2023:15.3.1.7</b> constrains a week date's subfields <i>individually</i> — year 1601–9999, week 01–52
+/// (01–53 in a long ISO year), day-of-week 1–7 — while <b>§2023:15.5.2</b> caps the integer date form itself at
 /// "the value of FUNCTION INTEGER-OF-DATE (99991231), which is 3,067,671". Because 9999-12-31 <i>is</i> ISO
 /// 9999-W52-5, the values 9999-W52-6 and 9999-W52-7 pass every subfield check and denote 10000-01-01/02. No
 /// per-subfield range table can catch them, because no subfield is wrong.</para>
 ///
 /// <para><b>What it did:</b> <c>ISOWeek.ToDateTime</c> threw <c>ArgumentOutOfRangeException</c> from inside the
 /// SHARED analyzer, so the raw CLR fault escaped THREE intrinsics — INTEGER-OF-FORMATTED-DATE,
-/// TEST-FORMATTED-DATETIME and SECONDS-FROM-FORMATTED-TIME. §15.3 rule 14 permits only EC-ARGUMENT-FUNCTION or the
+/// TEST-FORMATTED-DATETIME and SECONDS-FROM-FORMATTED-TIME. §2023:15.3 rule 14 permits only EC-ARGUMENT-FUNCTION or the
 /// implementor-defined result.</para>
 ///
 /// <para>⚠ These run with EC-ARGUMENT-FUNCTION checking OFF, so an argument/returned-value error surfaces as the
-/// §15.3 default result 0 rather than a raise. The RAISE is pinned end-to-end by the golden
+/// §2023:15.3 default result 0 rather than a raise. The RAISE is pinned end-to-end by the golden
 /// <c>pb23_week_date_beyond_integer_date_form</c>.</para>
 /// </summary>
 public sealed class CobolDateIntegerDateRangeTests
@@ -29,7 +29,7 @@ public sealed class CobolDateIntegerDateRangeTests
     private static readonly DateTime Epoch = new(1601, 1, 1);
     private const long MaxIntegerDate = 3_067_671;
 
-    /// <summary>§15.5.2 states the ceiling as a NUMBER; this proves our epoch arithmetic actually produces it, so
+    /// <summary>§2023:15.5.2 states the ceiling as a NUMBER; this proves our epoch arithmetic actually produces it, so
     /// the constant and the calendar cannot drift apart.</summary>
     [Fact]
     public void TheSpecsStatedCeiling_IsWhatTheEpochArithmeticProduces()
@@ -60,9 +60,9 @@ public sealed class CobolDateIntegerDateRangeTests
     }
 
     /// <summary>⛔ THE OTHER TWO INTRINSICS MUST NOT FOLLOW. They share the analyzer, so the crash reached them —
-    /// but their rules do not. §15.92.4 requires any non-zero TEST answer to be "the ordinal character position at
+    /// but their rules do not. §2023:15.92.4 requires any non-zero TEST answer to be "the ordinal character position at
     /// which the first error … was detected", and no CHARACTER of "9999W526" is in error (the identical '6' in
-    /// "2009W526" is valid), so it is 0. §15.79.4 reads only the TIME subfields.</summary>
+    /// "2009W526" is valid), so it is 0. §2023:15.79.4 reads only the TIME subfields.</summary>
     [Fact]
     public void ValidityAndSeconds_AreUnaffectedByAnUnrepresentableDate()
     {
@@ -74,7 +74,7 @@ public sealed class CobolDateIntegerDateRangeTests
     }
 
     /// <summary>…and TEST still reports the right POSITION for genuinely invalid data, so the new arm did not
-    /// swallow the old one. Week 53 in a common ISO year is detectable at the second week digit (§15.92.4).</summary>
+    /// swallow the old one. Week 53 in a common ISO year is detectable at the second week digit (§2023:15.92.4).</summary>
     [Theory]
     [InlineData("YYYYWwwD", "9999W531", 7L)]    // 9999 is a 52-week ISO year
     [InlineData("YYYYWwwD", "1601W531", 7L)]    // matches the external GnuCOBOL corpus' own expectation
@@ -85,10 +85,10 @@ public sealed class CobolDateIntegerDateRangeTests
         => Assert.Equal(expected, CobolDate.TestFormattedDatetime(format, data));
 
     /// <summary>⛔ THE EQUIVALENCE PROOF FOR REPLACING <c>ISOWeek.ToDateTime</c> WITH INTEGER ARITHMETIC. The fix
-    /// swapped a library call for a hand-derived computation (week 1 is the week containing Jan 4, §15.3.1.7), and
+    /// swapped a library call for a hand-derived computation (week 1 is the week containing Jan 4, §2023:15.3.1.7), and
     /// a hand-derived calendar is exactly the kind of thing that is right at the boundary tested and wrong three
     /// centuries away. This asserts our result equals <c>ISOWeek</c>'s for EVERY (year, week, day) it can express —
-    /// and that ours merely returns the §15.3 default where <c>ISOWeek</c> throws, rather than throwing too.</summary>
+    /// and that ours merely returns the §2023:15.3 default where <c>ISOWeek</c> throws, rather than throwing too.</summary>
     [Fact]
     public void TheIntegerWeekArithmetic_AgreesWithISOWeek_Everywhere()
     {

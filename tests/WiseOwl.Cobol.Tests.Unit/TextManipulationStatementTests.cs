@@ -12,10 +12,10 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// kb/Work PB1357 / PB1358 / PB1353 / PB1356 — the COPY and REPLACE statements as the text-manipulation stage reads
-/// them: the §7.2.4.4 GR4–GR7 REPLACE state machine (ALSO pushes, LAST pops, OFF cancels), a REPLACE statement
-/// recognized wherever REPLACE is a text-word (§7.2.4.3 SR1), the operand content rules shared word for word by
-/// §7.2.3.3 and §7.2.4.3 (one screen), the §8.3.5 6) pseudo-text delimiter separation, and the rules on the text a
-/// replacing action produces (§7.2.3.4 GR12 / GR13, §7.2.4.4 GR9). Every case runs the real merged driver.
+/// them: the §2023:7.2.4.4 GR4–GR7 REPLACE state machine (ALSO pushes, LAST pops, OFF cancels), a REPLACE statement
+/// recognized wherever REPLACE is a text-word (§2023:7.2.4.3 SR1), the operand content rules shared word for word by
+/// §2023:7.2.3.3 and §2023:7.2.4.3 (one screen), the §2023:8.3.5 6) pseudo-text delimiter separation, and the rules on the text a
+/// replacing action produces (§2023:7.2.3.4 GR12 / GR13, §2023:7.2.4.4 GR9). Every case runs the real merged driver.
 /// </summary>
 public sealed class TextManipulationStatementTests : IDisposable
 {
@@ -45,7 +45,7 @@ public sealed class TextManipulationStatementTests : IDisposable
         => text.Split('\n').Select(l => l.Trim()).Where(l => l.StartsWith("SHOW ", StringComparison.Ordinal))
             .Select(l => l[5..].Trim()).ToArray();
 
-    // ── PB1357: §7.2.4.4 GR4–GR7 ─────────────────────────────────────────────────────────────────────────────────
+    // ── PB1357: §2023:7.2.4.4 GR4–GR7 ─────────────────────────────────────────────────────────────────────────────────
 
     [Fact] // GR7 a) ALSO: current operands first, then the pushed statement's; GR7 c) LAST OFF pops it back.
     public void AlsoStacks_CurrentFirst_AndLastOffPops()
@@ -108,14 +108,14 @@ public sealed class TextManipulationStatementTests : IDisposable
         Assert.DoesNotContain(bag.Diagnostics, d => d.Code == "COBOL0900");
     }
 
-    [Fact] // §7.2.4.2 format 2: LAST is followed by OFF.
+    [Fact] // §2023:7.2.4.2 format 2: LAST is followed by OFF.
     public void LastWithoutOff_IsASyntaxError()
     {
         var (_, bag) = Run(" REPLACE LAST ==X1== BY ==A1==.\n");
         Rejects(bag, "COBOL2449", "REPLACE LAST is followed by OFF");
     }
 
-    // ── PB1358: §7.2.4.3 SR1 / SR2 ───────────────────────────────────────────────────────────────────────────────
+    // ── PB1358: §2023:7.2.4.3 SR1 / SR2 ───────────────────────────────────────────────────────────────────────────────
 
     [Fact] // SR1: a REPLACE statement after another statement on the same line, and inside a statement.
     public void Replace_IsRecognizedMidLine()
@@ -140,7 +140,7 @@ public sealed class TextManipulationStatementTests : IDisposable
     public void ReplaceAfterAParenthesis_IsNotPrecededByASpace()
     {
         var (_, bag) = Run(" MOVE (REPLACE ==X1== BY ==A1==.\n");
-        Rejects(bag, "COBOL2449", "§7.2.4.3 SR2");
+        Rejects(bag, "COBOL2449", "§2023:7.2.4.3 SR2");
     }
 
     [Fact] // SR2: REPLACE glued behind a period forms no statement, and says so.
@@ -150,17 +150,17 @@ public sealed class TextManipulationStatementTests : IDisposable
         Rejects(bag, "COBOL2449", "REPLACE is glued");
     }
 
-    // ── PB1353: the operand content rules (§7.2.3.3 / §7.2.4.3 — one screen) and §8.3.5 6) ──────────────────────
+    // ── PB1353: the operand content rules (§2023:7.2.3.3 / §2023:7.2.4.3 — one screen) and §2023:8.3.5 6) ──────────────────────
 
     [Theory]
-    [InlineData(" REPLACE ==,== BY ==AAA==.\n", "§7.2.4.3 SR3")]
-    [InlineData(" REPLACE ==== BY ==AAA==.\n", "§7.2.4.3 SR3")]
-    [InlineData(" REPLACE LEADING ==OLD- XYZ== BY ==NEW-==.\n", "§7.2.4.3 SR5")]
-    [InlineData(" REPLACE LEADING ==== BY ==NEW-==.\n", "§7.2.4.3 SR5")]
-    [InlineData(" REPLACE LEADING ==OLD-== BY ==NEW- X==.\n", "§7.2.4.3 SR6")]
-    [InlineData(" REPLACE LEADING ==\"AB\"== BY ==XY==.\n", "§7.2.4.3 SR7")]
-    [InlineData(" REPLACE TRAILING ==AB== BY ==\"XY\"==.\n", "§7.2.4.3 SR7")]
-    [InlineData(" REPLACE ==XX1\n >>TURN EC-ALL CHECKING OFF\n== BY ==AAA==.\n", "§7.2.4.3 SR10")]
+    [InlineData(" REPLACE ==,== BY ==AAA==.\n", "§2023:7.2.4.3 SR3")]
+    [InlineData(" REPLACE ==== BY ==AAA==.\n", "§2023:7.2.4.3 SR3")]
+    [InlineData(" REPLACE LEADING ==OLD- XYZ== BY ==NEW-==.\n", "§2023:7.2.4.3 SR5")]
+    [InlineData(" REPLACE LEADING ==== BY ==NEW-==.\n", "§2023:7.2.4.3 SR5")]
+    [InlineData(" REPLACE LEADING ==OLD-== BY ==NEW- X==.\n", "§2023:7.2.4.3 SR6")]
+    [InlineData(" REPLACE LEADING ==\"AB\"== BY ==XY==.\n", "§2023:7.2.4.3 SR7")]
+    [InlineData(" REPLACE TRAILING ==AB== BY ==\"XY\"==.\n", "§2023:7.2.4.3 SR7")]
+    [InlineData(" REPLACE ==XX1\n >>TURN EC-ALL CHECKING OFF\n== BY ==AAA==.\n", "§2023:7.2.4.3 SR10")]
     public void ReplaceOperandContent_IsScreened(string source, string rule)
     {
         var (_, bag) = Run(source);
@@ -168,10 +168,10 @@ public sealed class TextManipulationStatementTests : IDisposable
     }
 
     [Theory]
-    [InlineData("COPY bk1 REPLACING ==,== BY ==BB==.", "§7.2.3.3 SR6")]
-    [InlineData("COPY bk1 REPLACING LEADING ==AA -X== BY ==CC==.", "§7.2.3.3 SR11")]
-    [InlineData("COPY bk1 REPLACING LEADING ==AA== BY ==CC DD==.", "§7.2.3.3 SR12")]
-    [InlineData("COPY bk1 REPLACING LEADING ==\"HE\"== BY ==XY==.", "§7.2.3.3 SR13")]
+    [InlineData("COPY bk1 REPLACING ==,== BY ==BB==.", "§2023:7.2.3.3 SR6")]
+    [InlineData("COPY bk1 REPLACING LEADING ==AA -X== BY ==CC==.", "§2023:7.2.3.3 SR11")]
+    [InlineData("COPY bk1 REPLACING LEADING ==AA== BY ==CC DD==.", "§2023:7.2.3.3 SR12")]
+    [InlineData("COPY bk1 REPLACING LEADING ==\"HE\"== BY ==XY==.", "§2023:7.2.3.3 SR13")]
     public void CopyOperandContent_IsScreened(string statement, string rule)
     {
         Copybook("bk1.cpy", " 01 AA-X PIC X(5) VALUE \"HELLO\".\n");
@@ -179,7 +179,7 @@ public sealed class TextManipulationStatementTests : IDisposable
         Rejects(bag, "COBOL2572", rule);
     }
 
-    /// <summary>kb/Work PB4176 — a literal its line ends inside (§6.3.5 1), §6.4.2: open at a line's end only where a
+    /// <summary>kb/Work PB4176 — a literal its line ends inside (§2023:6.3.5 1), §2023:6.4.2: open at a line's end only where a
     /// continuation line continues it), consumed by a COPY or REPLACE statement, is named as not closed (COBOL5563) and is
     /// the statement's ONE diagnostic: not "not an alphanumeric literal" (COBOL2450), and nothing for the next line's
     /// words, which the open literal swallowed.</summary>
@@ -203,10 +203,10 @@ public sealed class TextManipulationStatementTests : IDisposable
     {
         string word = new('Q', 70_000);
         var (_, bag) = Run(" REPLACE ==" + word + "== BY ==A==.\n");
-        Rejects(bag, "COBOL2572", "§7.2.4.3 SR9");
+        Rejects(bag, "COBOL2572", "§2023:7.2.4.3 SR9");
         Copybook("bklong.cpy", " 01 " + word + " PIC X.\n");
         var (_, bag2) = Run(" COPY bklong.\n");
-        Rejects(bag2, "COBOL2572", "§7.2.3.3 SR9");
+        Rejects(bag2, "COBOL2572", "§2023:7.2.3.3 SR9");
     }
 
     [Fact] // The legal forms stay legal: a comma beside a word, an empty pseudo-text-2, '==' inside a literal.
@@ -218,7 +218,7 @@ public sealed class TextManipulationStatementTests : IDisposable
         Assert.Equal("A1 \"A==B\" Q", string.Join(' ', Shown(text).Single().Split(' ', StringSplitOptions.RemoveEmptyEntries)));
     }
 
-    [Theory] // §8.3.5 6): an opening == is preceded by a space; a closing == is followed by a space, ',' ';' or '.'.
+    [Theory] // §2023:8.3.5 6): an opening == is preceded by a space; a closing == is followed by a space, ',' ';' or '.'.
     [InlineData(" REPLACE ==XX==BY ==DISPLAY==.\n", "closing ==")]
     [InlineData(" REPLACE ==XX== BY==DISPLAY==.\n", "opening ==")]
     public void PseudoTextDelimiters_AreSeparated(string source, string which)
@@ -229,7 +229,7 @@ public sealed class TextManipulationStatementTests : IDisposable
 
     // ── PB1356: the text a replacing action produces ─────────────────────────────────────────────────────────────
 
-    [Fact] // §7.2.4.4 GR9: REPLACE shall not produce a REPLACE statement or (via a partial-word) a COPY statement.
+    [Fact] // §2023:7.2.4.4 GR9: REPLACE shall not produce a REPLACE statement or (via a partial-word) a COPY statement.
     public void ReplaceResult_ShallNotHoldCopyOrReplace()
     {
         var (_, bag) = Run(" REPLACE ==YY== BY ==REPLACE==.\n YY\n");
@@ -238,7 +238,7 @@ public sealed class TextManipulationStatementTests : IDisposable
         Rejects(bag2, "COBOL2574", "a COPY statement");
     }
 
-    [Fact] // §7.2.4.4 GR9 "shall not contain … a comment": a partial-word result that SPELLS a comment indicator — the
+    [Fact] // §2023:7.2.4.4 GR9 "shall not contain … a comment": a partial-word result that SPELLS a comment indicator — the
            // text-word scanner skips a comment, so this is asked of the produced TEXT, never of a word; a *> inside a
            // produced literal is literal content, not a comment.
     public void ReplaceResult_ShallNotHoldAComment_ButALiteralMayHoldItsCharacters()
@@ -252,12 +252,12 @@ public sealed class TextManipulationStatementTests : IDisposable
         Assert.Equal(["\"*>\""], Shown(text));
     }
 
-    [Fact] // §7.2.3.4 GR13 "shall not introduce … a comment" — the COPY twin of the REPLACE rule, through the one screen.
+    [Fact] // §2023:7.2.3.4 GR13 "shall not introduce … a comment" — the COPY twin of the REPLACE rule, through the one screen.
     public void CopyResult_ShallNotHoldAComment()
     {
         Copybook("bkcm.cpy", " SHOW Q>1 \"B\".\n");
         var (_, bag) = Run(" COPY bkcm REPLACING LEADING ==Q== BY ==*==.\n");
-        Rejects(bag, "COBOL2574", "§7.2.3.4 GR13");
+        Rejects(bag, "COBOL2574", "§2023:7.2.3.4 GR13");
     }
 
     [Fact] // DOC-A.1-40: only a period in the FILE NAME is an extension; a period in a directory part ("../lib/BOOK",
@@ -278,7 +278,7 @@ public sealed class TextManipulationStatementTests : IDisposable
         Assert.Contains(missing.Diagnostics, d => d.Code == "CBL3620");
     }
 
-    [Fact] // §6.5 2): a blank line written inside pseudo-text-2 was logically discarded before text manipulation, so the
+    [Fact] // §2023:6.5 2): a blank line written inside pseudo-text-2 was logically discarded before text manipulation, so the
            // replacement produces no blank line (the NIST SM208A shape); an operand that never matches produces nothing.
     public void ReplaceResult_ABlankLineInPseudoText2_IsDiscarded_AndAnUnmatchedOperandProducesNothing()
     {
@@ -290,20 +290,20 @@ public sealed class TextManipulationStatementTests : IDisposable
         Clean(bag2);
     }
 
-    [Fact] // §7.2.3.4 GR13: the COPY replacing action shall not introduce a COPY statement (here via LEADING); a
-           // REPLACE statement it produces is legal (§7.2.1: REPLACE is read after COPY's replacing action).
+    [Fact] // §2023:7.2.3.4 GR13: the COPY replacing action shall not introduce a COPY statement (here via LEADING); a
+           // REPLACE statement it produces is legal (§2023:7.2.1: REPLACE is read after COPY's replacing action).
     public void CopyResult_ShallNotHoldCopy_ButMayHoldReplace()
     {
         Copybook("bkr.cpy", " ZZPY bkx.\n");
         var (_, bag) = Run(" COPY bkr REPLACING LEADING ==ZZ== BY ==CO==.\n");
-        Rejects(bag, "COBOL2574", "§7.2.3.4 GR13");
+        Rejects(bag, "COBOL2574", "§2023:7.2.3.4 GR13");
         Copybook("bkrep.cpy", " YY ==X1== BY ==A1==.\n SHOW X1\n");
         var (text, bag2) = Run(" COPY bkrep REPLACING ==YY== BY ==REPLACE==.\n");
         Clean(bag2);
         Assert.Equal(["A1"], Shown(text));
     }
 
-    [Fact] // §7.2.3.4 GR12: a COPY inside library text shall not have a REPLACING phrase.
+    [Fact] // §2023:7.2.3.4 GR12: a COPY inside library text shall not have a REPLACING phrase.
     public void NestedCopyWithReplacing_IsRejected()
     {
         Copybook("p6in.cpy", " 01 IN-A PIC X(2) VALUE \"IN\".\n");

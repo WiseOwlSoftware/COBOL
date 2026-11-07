@@ -5,9 +5,9 @@ using WiseOwl.Cobol.Editions.Diagnostics;
 namespace WiseOwl.Cobol.Binding;
 
 /// <summary>
-/// ⛔ THE ONE STATEMENT OF THE §8.4.3.10.3 SR1 REFUSAL (kb/Work PB1427) — COBOL2576, for the predefined NULL written
-/// in a position the rule does not list. NULL is an IDENTIFIER (§8.4.3.1.2 Format 8, predefined-address; the NULL arm
-/// of Format 6, predefined-object — §8.4.3.7.3 SR2), never a literal or a figurative constant, and SR1 enumerates the
+/// ⛔ THE ONE STATEMENT OF THE §2023:8.4.3.10.3 SR1 REFUSAL (kb/Work PB1427) — COBOL2576, for the predefined NULL written
+/// in a position the rule does not list. NULL is an IDENTIFIER (§2023:8.4.3.1.2 Format 8, predefined-address; the NULL arm
+/// of Format 6, predefined-object — §2023:8.4.3.7.3 SR2), never a literal or a figurative constant, and SR1 enumerates the
 /// only places it may be written: "it may be used only as a sending operand in an INITIALIZE or a SET statement; as an
 /// argument in a program-prototype format CALL statement, a function-prototype format function activation, or a
 /// method invocation; or in a pointer-or-object-reference relation condition".
@@ -23,12 +23,12 @@ namespace WiseOwl.Cobol.Binding;
 /// </summary>
 internal static class PredefinedNullRule
 {
-    /// <summary>Report the §8.4.3.10.3 SR1 refusal for NULL written in <paramref name="position"/> — a phrase
+    /// <summary>Report the §2023:8.4.3.10.3 SR1 refusal for NULL written in <paramref name="position"/> — a phrase
     /// naming the slot and, where the slot's own format says what it admits, that format (e.g. "the AS operand of
-    /// constant entry 'K' — literal-1 or an arithmetic expression of literals (ISO §13.10.2)").
-    /// <para>⛔ ONLY WHERE THE EDITION HAS A PREDEFINED NULL (kb/Work PB1673). §8.9 reserves NULL from COBOL 2002, and
+    /// constant entry 'K' — literal-1 or an arithmetic expression of literals (ISO §2023:13.10.2)").
+    /// <para>⛔ ONLY WHERE THE EDITION HAS A PREDEFINED NULL (kb/Work PB1673). §2023:8.9 reserves NULL from COBOL 2002, and
     /// the predefined NULL is that edition's facility; at COBOL-85 the word is a user-defined word, so a NULL token
-    /// the parse kept (no entry declares it) names nothing declared — the §8.4.2.1 undefined reference every other
+    /// the parse kept (no entry declares it) names nothing declared — the §2023:8.4.2.1 undefined reference every other
     /// reservation-gated word draws there (<see cref="UnreservedKeywordReference"/>), never a rule of a facility the
     /// edition does not have.</para></summary>
     public static void Report(EditionContext edition, string position)
@@ -39,8 +39,8 @@ internal static class PredefinedNullRule
             return;
         }
         edition.Error(DiagnosticCatalog.PredefinedNullContext,
-            "NULL is the predefined address / object reference — an identifier (ISO §8.4.3.1.2 Format 8; §8.4.3.7), "
-            + "not a literal or a figurative constant — and ISO §8.4.3.10.3 SR1 admits it only as a sending operand in "
+            "NULL is the predefined address / object reference — an identifier (ISO §2023:8.4.3.1.2 Format 8; §2023:8.4.3.7), "
+            + "not a literal or a figurative constant — and ISO §2023:8.4.3.10.3 SR1 admits it only as a sending operand in "
             + "an INITIALIZE or a SET statement, as an argument in a program-prototype CALL, a function-prototype "
             + "activation or a method invocation, or in a pointer-or-object-reference relation condition; "
             + position + " is none of these");

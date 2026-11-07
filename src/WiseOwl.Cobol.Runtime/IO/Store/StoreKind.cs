@@ -3,12 +3,12 @@
 namespace WiseOwl.Cobol.Runtime.IO.Store;
 
 /// <summary>⛔ WHAT A PAGED STORE IS, the meta page's organization byte (docs/rearchitecture/DESIGN-runtime-library.md 2.2.1.4;
-/// DESIGN-communication-facility.md §8): <c>R</c> and <c>I</c> for the RELATIVE and INDEXED files of §9.1.6's organizations,
+/// DESIGN-communication-facility.md §8): <c>R</c> and <c>I</c> for the RELATIVE and INDEXED files of §2023:9.1.6's organizations,
 /// whose <see cref="File"/> attributes the meta records, and <c>M</c> for the message control system's store, which is
 /// no file, has no record frames or keys, and so carries no <see cref="FixedFileAttributes"/>. The engine is one for every
 /// kind (pages, ledger, statement, adoption rule); only the meta page's layout of the kind differs.
-/// <para>A message store is never a file of §9.1.6's organizations: <see cref="MetaPage.Describes"/> answers
-/// <see cref="StoreFormat.Message"/> for it, so a COBOL OPEN of the path answers '39' (§14.9.27.4 GR10's conflict), and
+/// <para>A message store is never a file of §2023:9.1.6's organizations: <see cref="MetaPage.Describes"/> answers
+/// <see cref="StoreFormat.Message"/> for it, so a COBOL OPEN of the path answers '39' (§2023:14.9.27.4 GR10's conflict), and
 /// <see cref="PagedFile.Open"/> refuses a store of the other family.</para></summary>
 internal sealed record StoreKind
 {
@@ -20,7 +20,7 @@ internal sealed record StoreKind
     /// <summary>The RELATIVE or INDEXED file store recording <paramref name="attributes"/>.</summary>
     public static StoreKind Of(FixedFileAttributes attributes) => new(attributes);
 
-    /// <summary>The §9.1.6 attributes a file store records; null for the message store.</summary>
+    /// <summary>The §2023:9.1.6 attributes a file store records; null for the message store.</summary>
     public FixedFileAttributes? File { get; }
 
     /// <summary>Whether this is the message store.</summary>

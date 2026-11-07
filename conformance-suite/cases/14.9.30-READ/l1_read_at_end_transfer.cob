@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.30.4 GR24 — what happens, in the order specified,
+      *> ISO §2023:14.9.30.4 GR24 — what happens, in the order specified,
       *> when the at end condition exists during a READ.
       *> a) "The I-O status ... is set to '10' to indicate the at end
       *>    condition" (the EC half of a) is pinned by the companion
@@ -18,7 +18,7 @@
       *>    statement, any applicable at end exception processing
       *>    statements are executed."
       *> A USE AFTER STANDARD ERROR declarative per file stands in for
-      *> "exception processing statements" (§9.1.12 item 2); its DISPLAY
+      *> "exception processing statements" (§2023:9.1.12 item 2); its DISPLAY
       *> is the observable for whether they ran.
       *>
       *> LEG A (file F, AT END written).  A2 is the at end read: the

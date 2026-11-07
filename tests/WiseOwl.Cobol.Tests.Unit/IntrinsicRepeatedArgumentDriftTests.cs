@@ -8,7 +8,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// Keeps <see cref="IntrinsicSig.RepeatsAnArgument"/> — the ISO §15.3 precondition for the ALL subscript in an
+/// Keeps <see cref="IntrinsicSig.RepeatsAnArgument"/> — the ISO §2023:15.3 precondition for the ALL subscript in an
 /// argument ("When the definition of a function permits an argument to be repeated a variable number of times, a
 /// table may be referenced by … ALL"; kb/Work PB62) — DERIVED FROM THE STANDARD rather than from a hand-kept list.
 /// </summary>

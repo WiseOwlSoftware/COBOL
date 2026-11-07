@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.83 SMALLEST-ALGEBRAIC — the smallest positive value that can increment argument-1 = 10^(-scale),
+      *> ISO §2023:15.83 SMALLEST-ALGEBRAIC — the smallest positive value that can increment argument-1 = 10^(-scale),
       *> a compile-time PICTURE fold independent of digit count / sign / container. S999→+1; S9PP→+100 (scale -2);
       *> 99V9(3)→+.001; S9(4) COMP→+1.
        IDENTIFICATION DIVISION.

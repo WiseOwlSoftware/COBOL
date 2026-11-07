@@ -31,7 +31,7 @@ single PC dispatcher; idiomatic/readable C# where the construct allows. **Uphold
 2. **Make the seam real: `ICodeGenBackend`.** `CSharpEmitter`+`RoslynBackend` become `RoslynBackend : ICodeGenBackend`;
    a future `CilBackend : ICodeGenBackend` (Mono.Cecil) is additive. The enabler is #3.
 3. **Backend-neutralize the bound tree and `Place`.** Today `Place.Read()/Write()` and several bound nodes carry
-   **pre-rendered C# strings** — a direct violation of the G4 invariant the design doc already states (§3.3 note). The
+   **pre-rendered C# strings** — a direct violation of the G4 invariant the design doc already states (§2023:3.3 note). The
    target: `Place` becomes a **structural** description (accessor chain + subscript expression nodes + ref-mod span);
    the Roslyn backend owns a `PlaceRenderer` that turns structure→C#; the CIL backend lowers the *same* structure to
    load/store. No C# fragment survives in a bound node.
@@ -132,7 +132,7 @@ a LIBRARY: `OutputKind.DynamicallyLinkedLibrary`, no `Main`, no `runtimeconfig.j
 `library`), reached through its host entries and, from a COBOL CALL, through the sibling probe's `EnsureRegistered()`.
 `BackendArtifact.Library` / `CompilerDriver.Result.Library` carry it, and `cobol --run` refuses a library.
 
-**Deterministic PE (kb/Work PB120, §15.99.3 r3):** `RoslynBackend.Compile` sets `deterministic: true` — the COFF `TimeDateStamp` is a content hash and the MVID is content-derived, so the generated object code provides NO compilation date and time and §15.99.3 r3's “if provided in … the generated object code” condition is not engaged (there is no listing facility either; the only compilation time a produced program carries is WHEN-COMPILED's own baked constant). Identical source + references → a byte-identical assembly (the module name embeds the output FILE name, so “identical” includes the output name). The WHEN-COMPILED stamp itself is COMPILATION-scoped, not process-scoped: `ProgramEmitter` captures it once per `EmitBound` through the injectable `IntrinsicBinder.CompileClock` seam and threads it via `EmitContext.WhenCompiledStamp`, so a container and its contained units bake the SAME constant (§15.99.3 r2) while each successive compilation in a long-lived process gets its own.
+**Deterministic PE (kb/Work PB120, §2023:15.99.3 r3):** `RoslynBackend.Compile` sets `deterministic: true` — the COFF `TimeDateStamp` is a content hash and the MVID is content-derived, so the generated object code provides NO compilation date and time and §2023:15.99.3 r3's “if provided in … the generated object code” condition is not engaged (there is no listing facility either; the only compilation time a produced program carries is WHEN-COMPILED's own baked constant). Identical source + references → a byte-identical assembly (the module name embeds the output FILE name, so “identical” includes the output name). The WHEN-COMPILED stamp itself is COMPILATION-scoped, not process-scoped: `ProgramEmitter` captures it once per `EmitBound` through the injectable `IntrinsicBinder.CompileClock` seam and threads it via `EmitContext.WhenCompiledStamp`, so a container and its contained units bake the SAME constant (§2023:15.99.3 r2) while each successive compilation in a long-lived process gets its own.
 
 ---
 
@@ -237,11 +237,11 @@ binding**. The bind orchestration lives in the binder phase (`BinderDriver.Bind`
 
 **Invariant C-1 — THE ONE GROUP-IMAGE CHANNEL.** The character image of a group operand has exactly four arms,
 and they are stated once, in `PlaceRenderer`: a Tier-B / BASED string-canonical view's `Read` ALREADY IS the
-image (§13.18.44.4 GR1 — one storage area, so a second encoding would be a second storage); an `OdoGroupPlace`
-is unwrapped first, and sliced to §13.18.38.4 GR8's CURRENT extent exactly when `UsesCurrentExtent(odo, dir)` says
+image (§2023:13.18.44.4 GR1 — one storage area, so a second encoding would be a second storage); an `OdoGroupPlace`
+is unwrapped first, and sliced to §2023:13.18.38.4 GR8's CURRENT extent exactly when `UsesCurrentExtent(odo, dir)` says
 so — the direction law written once (GR8a and GR8b agree on the SENDING direction; only a depending-INSIDE group as a
 RECEIVING operand takes the maximum), asked by every channel (`AsImage` / `AsBits` / `AsNat`), by the reference-
-modification READ (a sending reference, §8.4.3.3.4 GR5) and by the ref-mod receiver's splice BASE (`SpliceBase`, the
+modification READ (a sending reference, §2023:8.4.3.3.4 GR5) and by the ref-mod receiver's splice BASE (`SpliceBase`, the
 receiving direction — kb/Work PB202); an imageless OPERAND (`Place.ImageCapable` false — asked of the referenced
 operand, never of the declaring entry, so a subscripted dynamic-capacity-table element is image-capable although its
 table entry is not, kb/Work PB189) stages the Tier-C loud; otherwise it is the struct's generated `AsImage()`. `GroupImage` / `SendingGroupImage` /
@@ -299,7 +299,7 @@ internal sealed class PlaceRenderer(EmitContext ctx, RuntimeApi rt)
 {
     public string Read(Place p);                 // rvalue C# expression
     public string Write(Place p, string rhs);    // C# store statement
-    public string WriteFill(RefModPlace p, string seed);   // figurative seed repeated over the slice (§8.3.3.6.4 GR2)
+    public string WriteFill(RefModPlace p, string seed);   // figurative seed repeated over the slice (§2023:8.3.3.6.4 GR2)
 }
 ```
 
@@ -364,7 +364,7 @@ the API boundary. One render tree serves exactly one receiver, so field-vs-param
 the recursion. The mutually-recursive `IntrinsicRenderer` reads the live receiver via `NumericRenderer.Receiver`.
 `EmitArith` threads the size-error flag into its store closure as `Action<bool>`; the CONDITIONS the statement takes ride
 `ReceiverContext.Checks` (a `SizeChecks` value: every condition for the phrase, else the names `>>TURN EC-SIZE-*`
-enables — checking is per level-3 NAME, §14.6.13.1.1, kb/Work PB4092) — and receiver-less sites pass `ReceiverContext.None`,
+enables — checking is per level-3 NAME, §2023:14.6.13.1.1, kb/Work PB4092) — and receiver-less sites pass `ReceiverContext.None`,
 whose renders take the enclosing statement's `EcState.EnabledChecks`.)*
 
 This closes the H1 staleness class by construction and made `IntrinsicRenderer`'s "static channel" unnecessary —
@@ -386,10 +386,10 @@ call is re-entrant), and `NumStatic/NumStaticExpr/StaticAdditive/StaticMul` are 
 | `ConditionRenderer` | `IBoundConditionVisitor<string>` |
 | `IntrinsicRenderer` | §15 FUNCTION dispatch — single channel |
 | `PlaceRenderer` | `Place`+`AccessSegment` → C# read/write |
-| `FigurativeConstants` | ONE figurative service (word/kind + PicCategory + collate → {runtime char, C# char literal, C# string literal}) — the string form is the SEED an ISO §8.3.3.6.4 GR2 sizing repeats; it carries no width, because a figurative's width is the associated operand's and belongs to `CobolString.FigToWidth`/`CompareFig` at runtime (kb/Work PB297). It is also the ONE OPERAND CLASSIFIER (`Classify` → `FigurativeOperand{Kind, AllLiteral}`, kb/Work PB461): §8.3.3.6.2's Formats 1–5, where the word `ALL` is OPTIONAL, versus Format 6 `ALL literal-1`, where it is required — in both the glued spelling `GetText()` produces and the spaced one. Every reader of a VALUE-clause / level-88 operand text asks it (the VALUE initializer, the group-VALUE slicer, the SET store, the condition test, the SR9 implied picture, the §13.18.63.3 class validator, and — since kb/Work PB933 — `InitializeBinder.InitializeValueOperand`, the §14.9.20.4 GR6a3 sender, whose private word map sent `NULL` to a pointer-class `'N'` where the shared one sends it to `'L'`); the five private ALL-strips that preceded it each recognized a different subset of the spellings, so the store and the test of ONE condition-name disagreed |
+| `FigurativeConstants` | ONE figurative service (word/kind + PicCategory + collate → {runtime char, C# char literal, C# string literal}) — the string form is the SEED an ISO §2023:8.3.3.6.4 GR2 sizing repeats; it carries no width, because a figurative's width is the associated operand's and belongs to `CobolString.FigToWidth`/`CompareFig` at runtime (kb/Work PB297). It is also the ONE OPERAND CLASSIFIER (`Classify` → `FigurativeOperand{Kind, AllLiteral}`, kb/Work PB461): §2023:8.3.3.6.2's Formats 1–5, where the word `ALL` is OPTIONAL, versus Format 6 `ALL literal-1`, where it is required — in both the glued spelling `GetText()` produces and the spaced one. Every reader of a VALUE-clause / level-88 operand text asks it (the VALUE initializer, the group-VALUE slicer, the SET store, the condition test, the SR9 implied picture, the §2023:13.18.63.3 class validator, and — since kb/Work PB933 — `InitializeBinder.InitializeValueOperand`, the §2023:14.9.20.4 GR6a3 sender, whose private word map sent `NULL` to a pointer-class `'N'` where the shared one sends it to `'L'`); the five private ALL-strips that preceded it each recognized a different subset of the spellings, so the store and the test of ONE condition-name disagreed |
 | `RuntimeApi` | typed façade over the runtime API (§3) |
 | `NameAllocator` | C#-identifier generation (SSOT §2 — already planned) |
-| `GroupAtomTable` | the ONE place an ISO §8.5.1.12 atom array enters emitted C# (kb/Work PB2690): one per run unit, on `EmitContext.Atoms`; each distinct array is a `static readonly` field of the module's `__GroupAtoms` class, every use names the field, and the runtime caches its pair plans on the arrays' references |
+| `GroupAtomTable` | the ONE place an ISO §2023:8.5.1.12 atom array enters emitted C# (kb/Work PB2690): one per run unit, on `EmitContext.Atoms`; each distinct array is a `static readonly` field of the module's `__GroupAtoms` class, every use names the field, and the runtime caches its pair plans on the arrays' references |
 
 `OO orchestration` (`CallEmitRunUnit`'s 8-step OO sequence) leaves the codegen layer entirely — it is bind
 orchestration and moves to the OO-pass/`BindPipeline` (OO dimension). `ProgramEmitter` just emits the already-bound

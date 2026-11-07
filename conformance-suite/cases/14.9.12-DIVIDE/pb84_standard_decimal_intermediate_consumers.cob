@@ -7,10 +7,10 @@
 *>---
       *> kb/Work PB84 — the STANDARD-DECIMAL twin. Under ARITHMETIC IS
       *> STANDARD-DECIMAL every arithmetic expression is an SDIDI intermediate
-      *> (§8.8.1.5.2), so the same consumers — the sign condition (§8.8.4.7),
-      *> SET pointer UP/DOWN BY (§14.9.39 Format 10), ALLOCATE … CHARACTERS
-      *> (§14.9.3), CALL … BY VALUE (§14.9.4), INVOKE … BY CONTENT (§14.9.23),
-      *> and DIVIDE … REMAINDER over a float sender (§14.9.12.4 GR7, PB85) —
+      *> (§2023:8.8.1.5.2), so the same consumers — the sign condition (§2023:8.8.4.7),
+      *> SET pointer UP/DOWN BY (§2023:14.9.39 Format 10), ALLOCATE … CHARACTERS
+      *> (§2023:14.9.3), CALL … BY VALUE (§2023:14.9.4), INVOKE … BY CONTENT (§2023:14.9.23),
+      *> and DIVIDE … REMAINDER over a float sender (§2023:14.9.12.4 GR7, PB85) —
       *> were Roslyn errors on every expression here before the ONE landing.
       *> Expected values are exact: 12 × 5 − 60 = 0; 12 / 5 = 2.4 > 0; 5 − 12
       *> < 0; 12 / 8 − 1.5 = 0 exactly on the SDIDI; 12 / 8 = 1.5; 7.5 / 2 →
@@ -67,7 +67,7 @@
            DISPLAY "S11 Q=" Q " R=" R.
            STOP RUN.
 
-      *> kb/Work PB131 - AS NESTED requires CONTAINMENT (§14.9.4.3 SR15 sentence 2, enforced at bind).
+      *> kb/Work PB131 - AS NESTED requires CONTAINMENT (§2023:14.9.4.3 SR15 sentence 2, enforced at bind).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB84SDSUB.
        DATA DIVISION.

@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.18.63.3 SR17 — "The words VALUE and VALUES are
+      *> ISO §2023:13.18.63.3 SR17 — "The words VALUE and VALUES are
       *> equivalent." — THE GATE-BOUNDARY COPY, compiled at --std 2002.
       *>
       *> The rule is printed in the FORMAT 2 (table) block and SR24
@@ -19,18 +19,18 @@
       *> position with no version predicate on either side.
       *>
       *> DERIVED EXPECTATIONS — from the rule text, not from a run:
-      *>  T1 §13.18.63.4 GR12 initializes the element named by
+      *>  T1 §2023:13.18.63.4 GR12 initializes the element named by
       *>     subscript-1 (= 1) to "AB"; GR13 reuses the literal until
       *>     the element named by subscript-2 (= 3) is initialized, so
       *>     all three elements hold "AB"  =>  "ABABAB".
       *>  T2 Two literals over four elements: GR12 gives element 1
       *>     "A" and element 2 "B"; GR13 reuses the list in order
       *>     through element 4  =>  "ABAB".
-      *>  C-IN / C-OUT §8.8.4.5.3 GR3 — the test is true if one of the
+      *>  C-IN / C-OUT §2023:8.8.4.5.3 GR3 — the test is true if one of the
       *>     values of the condition-name equals its conditional
       *>     variable. CV = 3 is one of {1,2,3} => T; 7 is not => F.
       *>
-      *> §5.2.3 (Optional words) makes IS and ARE optional, so G-C vs
+      *> §2023:5.2.3 (Optional words) makes IS and ARE optional, so G-C vs
       *> G-D differ in EXACTLY the one word the rule is about.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1VAL72.

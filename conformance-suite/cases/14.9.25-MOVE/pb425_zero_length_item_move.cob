@@ -5,23 +5,23 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO/IEC 1989:2023 §14.9.25.4 GR2's EXCLUSION and GR1's ZERO-LENGTH-ITEM clause (kb/Work PB425).
-      *> This is the 2014 half of the rule only because its two probes need a DYNAMIC LENGTH item (§13.18.19,
+      *> ISO/IEC 1989:2023 §2023:14.9.25.4 GR2's EXCLUSION and GR1's ZERO-LENGTH-ITEM clause (kb/Work PB425).
+      *> This is the 2014 half of the rule only because its two probes need a DYNAMIC LENGTH item (§2023:13.18.19,
       *> a COBOL-2014 addition); the RULE does not differ by edition.
       *>
       *> (1) THE EXCLUSION, and that it is PER RECEIVING OPERAND.  GR2 substitutes SPACE only when "the
       *>     receiving operand is other than a dynamic-length elementary item", so a dynamic-length receiver
-      *>     keeps the zero-length value and its current length is 0 (§8.5.1.10.4: "If the length of the
+      *>     keeps the zero-length value and its current length is 0 (§2023:8.5.1.10.4: "If the length of the
       *>     sending operand is zero, no data is moved and the new length ... is set to zero").  One MOVE with
       *>     BOTH kinds of receiver proves the qualifier is read per receiver: LEN=0 for the dynamic-length
       *>     item AND the substituted SPACE fill for the numeric one, from one statement.
       *> (2) GR1: "If identifier-1 is a zero-length item, it is as if literal-1 were specified as a zero-length
       *>     literal" — which lands back in GR2.  A DYNAMIC LENGTH sending item at current length zero
-      *>     (§8.5.4 item 4) therefore stores the SPACE fill into a numeric receiver, and the SAME item at a
+      *>     (§2023:8.5.4 item 4) therefore stores the SPACE fill into a numeric receiver, and the SAME item at a
       *>     non-zero length converts normally; both are shown so the runtime test is measured as a test.
-      *> (3) The same route through a FUNCTION-IDENTIFIER sender (§8.5.4 item 6, "an intrinsic function that
+      *> (3) The same route through a FUNCTION-IDENTIFIER sender (§2023:8.5.4 item 6, "an intrinsic function that
       *>     returns a zero-length value").  FUNCTION TRIM of an all-space argument is zero-length by
-      *>     §15.96.4 r4 ("If argument-1 contains only characters that are argument-2, spaces if argument-2 is
+      *>     §2023:15.96.4 r4 ("If argument-1 contains only characters that are argument-2, spaces if argument-2 is
       *>     not specified, ... the returned value is of length zero"), and GR1's other sentence, "the ...
       *>     function-identifier is evaluated only once", is what lets the length be read without a second call.
       *> Expected values are computed from the rule: the SPACE fill into PIC 9(3) is three spaces — the same

@@ -5,9 +5,9 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// OPTIONS ARITHMETIC IS STANDARD-DECIMAL (ISO §8.8.1.5): operations evaluate in SDIDI form — decimal128
-/// semantics, 34 significant digits, per-operation INTERMEDIATE ROUNDING (§11.9.11, default
-/// NEAREST-AWAY-FROM-ZERO) — with the statement's ROUNDED applied only at the final transfer (§14.7 NOTE 1).
+/// OPTIONS ARITHMETIC IS STANDARD-DECIMAL (ISO §2023:8.8.1.5): operations evaluate in SDIDI form — decimal128
+/// semantics, 34 significant digits, per-operation INTERMEDIATE ROUNDING (§2023:11.9.11, default
+/// NEAREST-AWAY-FROM-ZERO) — with the statement's ROUNDED applied only at the final transfer (§2023:14.7 NOTE 1).
 /// SPEC-PINNED (expectations verified against an IEEE decimal128 reference computation; the legacy has no
 /// standard-decimal mode). Also pins the per-edition gates (P10 Step 12): the OPTIONS paragraph is 2002+
 /// (rejected at 85 naming 2002, accepted at 2002 with its 2002 ARITHMETIC clause); STANDARD-BINARY
@@ -48,13 +48,13 @@ public sealed class StandardDecimalTests
         => Assert.Equal("2.00000", Run("    ARITHMETIC IS STANDARD-DECIMAL.",
             "01 W PIC 9V9(5).", "COMPUTE W = 2 / 7 * 7.\n    DISPLAY W."));
 
-    /// <summary>1/3 × 3 = 0.9999…(34 nines) in decimal128 — NOT 1 (§8.8.1.5; verified vs the reference).</summary>
+    /// <summary>1/3 × 3 = 0.9999…(34 nines) in decimal128 — NOT 1 (§2023:8.8.1.5; verified vs the reference).</summary>
     [Fact]
     public void OneThirdTimesThree_IsNotOne()
         => Assert.Equal("NE", Run("    ARITHMETIC IS STANDARD-DECIMAL.",
             "01 W PIC 9.", "IF 1 / 3 * 3 = 1 DISPLAY \"EQ\" ELSE DISPLAY \"NE\"."));
 
-    /// <summary>INTERMEDIATE ROUNDING IS PROHIBITED + an inexact intermediate ⇒ EC-SIZE-TRUNCATION (§11.9.11),
+    /// <summary>INTERMEDIATE ROUNDING IS PROHIBITED + an inexact intermediate ⇒ EC-SIZE-TRUNCATION (§2023:11.9.11),
     /// surfaced through the ON SIZE ERROR phrase until the EC model lands.</summary>
     [Fact]
     public void IntermediateProhibited_InexactQuotient_RaisesSizeError()
@@ -135,7 +135,7 @@ public sealed class StandardDecimalTests
                 STOP RUN.
             """;
         var (ok, diags) = EditionHarness.Compile(src, 2023);
-        Assert.False(ok, "a 40-digit composite must be REJECTED (ISO §14.7.7 rule 2 a) caps at 31)");
+        Assert.False(ok, "a 40-digit composite must be REJECTED (ISO §2023:14.7.7 rule 2 a) caps at 31)");
         EditionHarness.AssertHasDiagnostic(diags, "COBOL0805");
     }
 }

@@ -4,16 +4,16 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.39.3 SR22 over a receiving LIST (kb/Work PB3224). identifier-7 is written `{ identifier-7 } ...`
+      *> ISO §2023:14.9.39.3 SR22 over a receiving LIST (kb/Work PB3224). identifier-7 is written `{ identifier-7 } ...`
       *> and the rule's condition is EACH receiver's own restriction:
       *>   "If identifier-7 references a restricted program-pointer, identifier-8 shall be the predefined address
       *>   NULL or shall reference a program-pointer and the program-prototypes associated with identifier-7 and
-      *>   identifier-8 shall have the same signature."   cite.py: OK  §14.9.39.3 22)  (Syntax rules)
+      *>   identifier-8 shall have the same signature."   cite.py: OK  §2023:14.9.39.3 22)  (Syntax rules)
       *> RP is restricted to PB3224X (one USING formal); UPP is unrestricted and is written FIRST.
       *> The sender ADDRESS OF PROGRAM PB3224Y is restricted to PB3224Y (two USING formals, GR3), whose
       *> signature differs from RP's.
       *> Every other rule is met: both prototypes precede the program and are named in its REPOSITORY
-      *> (§8.4.3.13.3 SR3), RPT is a TYPEDEF (§13.18.60.3 SR19). The same statement with RP written first was always
+      *> (§2023:8.4.3.13.3 SR3), RPT is a TYPEDEF (§2023:13.18.60.3 SR19). The same statement with RP written first was always
       *> refused, so the verdict must not depend on the order: COBOL1959 (prototype-pointer-signature) at
       *> every edition that has ADDRESS OF PROGRAM.
        IDENTIFICATION DIVISION.

@@ -5,16 +5,16 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.49.4 GR11: "The exception condition that is used to
+      *> ISO §2023:14.9.49.4 GR11: "The exception condition that is used to
       *> determine which USE statement to select is the first one that
       *> occurs in the order of evaluation of the statement that causes
-      *> the exception to exist." For a MOVE the order is §14.9.25.4
+      *> the exception to exist." For a MOVE the order is §2023:14.9.25.4
       *> GR1's: identifier-1's "reference modifier, subscript, or
       *> function-identifier is evaluated only once, immediately before
       *> data is moved to the first of the receiving operands", and
       *> "Item identification for identifier-2 is performed immediately
       *> before the data is moved to the respective data item" - the
-      *> sender is evaluated FIRST, as §14.6.4's left-to-right order
+      *> sender is evaluated FIRST, as §2023:14.6.4's left-to-right order
       *> also has it (kb/Work PB370). Every leg below makes BOTH
       *> operands raise a fatal condition, and the two conditions
       *> differ, so the declarative that runs names the operand that was
@@ -24,7 +24,7 @@
       *>   B  MOVE T (I) TO X (1:L): the sender's subscript
       *>      (EC-BOUND-SUBSCRIPT) before the receiver's slice.
       *>   C  MOVE N (I) TO O (1): the sender's subscript before the
-      *>      receiver's occurs-depending reference, which §13.18.38.4
+      *>      receiver's occurs-depending reference, which §2023:13.18.38.4
       *>      GR7 checks (EC-BOUND-ODO: D lies outside 1 TO 3).
       *>   D  MOVE O (1) TO N (I): the mirror - EC-BOUND-ODO.
       *>   E  MOVE X (1:L) TO T (I) (1:2): a receiving slice of a
@@ -36,15 +36,15 @@
       *>   G  MOVE FUNCTION SQRT (NEG) TO N (I): the mirror - the
       *>      sending function-identifier's EC-ARGUMENT-FUNCTION.
       *>   I  MOVE X (1:L) TO BX: BX is BASED with its address NULL, so
-      *>      identifying it raises EC-DATA-PTR-NULL (§13.18.5.4 GR3);
+      *>      identifying it raises EC-DATA-PTR-NULL (§2023:13.18.5.4 GR3);
       *>      the sender's EC-BOUND-REF-MOD is first.
       *>   J  MOVE BX TO X (1:L): the mirror - EC-DATA-PTR-NULL.
       *>   H  EVALUATE V WHEN "Z" THRU "A" ... WHEN T (I): the first
-      *>      condition is NONFATAL - §14.7.8 2) sets EC-RANGE-INVALID
+      *>      condition is NONFATAL - §2023:14.7.8 2) sets EC-RANGE-INVALID
       *>      for a range whose start is greater than its end, and
       *>      "upon completion of any exception processing, execution
       *>      proceeds as if the range of values were empty" - so its
-      *>      declarative runs first (§14.6.13.1.4 3)), and the second
+      *>      declarative runs first (§2023:14.6.13.1.4 3)), and the second
       *>      WHEN's EC-BOUND-SUBSCRIPT runs the other one after it.
       *> Each fatal declarative resumes at the next statement, so a
       *> leg's second fatal condition is never reached. The control leg moves the

@@ -10,28 +10,28 @@
       *> consumer below used to narrow it with a C# cast that WRAPS: a value
       *> of 2**32 + 1 = 4294967297 became 1, 2**64 + 3 became 3. Each rule
       *> asks about the VALUE, so each wrapped value took a wrong answer.
-      *> - GO TO ... DEPENDING, ISO §14.9.17.4 GR2: control goes to
+      *> - GO TO ... DEPENDING, ISO §2023:14.9.17.4 GR2: control goes to
       *>   procedure-name-1, etc., "depending on the value of identifier-1
       *>   being 1, 2, ..., n"; any other value: "no transfer occurs". So
       *>   G = 4294967297 FALLS THROUGH (the wrap went to P1) and G = 2 goes
       *>   to P2.
-      *> - Reference modification, §8.4.3.3.4 GR5 c): "a value that
+      *> - Reference modification, §2023:8.4.3.3.4 GR5 c): "a value that
       *>   references a position outside the area of identifier-1" raises
       *>   EC-BOUND-REF-MOD. X is 5 positions: leftmost 4294967297 (the wrap
       *>   read position 1), length 4294967297, and leftmost 2 with length
       *>   2147483647 (its end position 2147483648 overflowed a 32-bit sum
       *>   and passed the test) all raise it; the declarative catches each.
-      *> - PERFORM TIMES, §14.9.28.4 GR9: "performed the number of times
+      *> - PERFORM TIMES, §2023:14.9.28.4 GR9: "performed the number of times
       *>   specified by integer-1 or by the value of the data item". A
       *>   20-digit literal (a backend CS1021 before) and C = 2**64 + 1 (the
       *>   wrap performed ONCE) both run past 3 iterations; EXIT PERFORM ends
       *>   each at 3.
-      *> - STRING POINTER, §14.9.43.4 GR8: before each move, a pointer that
+      *> - STRING POINTER, §2023:14.9.43.4 GR8: before each move, a pointer that
       *>   "exceeds the number of character positions" of identifier-3 is an
       *>   overflow; GR6: the pointer "is changed ... only by the behavior
       *>   specified above". P = 2**64 + 3 (the wrap wrote at position 3 and
       *>   stored P = 5) takes ON OVERFLOW, leaves OUT1 and P unchanged.
-      *> - UNSTRING, §14.9.48.4 GR15 a): a pointer "greater than the number
+      *> - UNSTRING, §2023:14.9.48.4 GR15 a): a pointer "greater than the number
       *>   of character positions" of identifier-1 is an overflow and GR16 a)
       *>   terminates the statement, so Q = 2**64 + 3 is unchanged. GR14: the
       *>   TALLYING item ends at "its value at the beginning of the execution

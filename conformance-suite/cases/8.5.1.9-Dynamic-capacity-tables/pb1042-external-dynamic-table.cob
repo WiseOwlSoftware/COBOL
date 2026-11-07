@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
       *> kb/Work PB1042 — a dynamic-capacity table in an EXTERNAL record is legal from COBOL 2014,
-      *> the edition that introduced OCCURS DYNAMIC (ISO/IEC 1989:2023 §8.5.1.9.1 3)); below it the
+      *> the edition that introduced OCCURS DYNAMIC (ISO/IEC 1989:2023 §2023:8.5.1.9.1 3)); below it the
       *> Format 4 OCCURS clause does not exist and the entry is refused.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1042NG.

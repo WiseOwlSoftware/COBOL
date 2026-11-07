@@ -5,13 +5,13 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.4.4 GR3b names TWO DISTINCT conditions for a CALL that cannot proceed: "If the data item
+      *> ISO §2023:14.9.4.4 GR3b names TWO DISTINCT conditions for a CALL that cannot proceed: "If the data item
       *> referenced by identifier-1 contains the predefined address NULL, the EC-PROGRAM-PTR-NULL exception
       *> condition is set to exist. If the program cannot be located or identifier-1 references a zero-length
       *> item, the EC-PROGRAM-NOT-FOUND exception condition is set to exist." A NULL program-pointer is the
       *> FIRST of them. (GR3g's "invalid program address … undefined" governs a NON-null bad address.)
-      *> Table 13: EC-PROGRAM-PTR-NULL is Fatal, so RESUME AT NEXT STATEMENT (§14.9.33) is what keeps the run
-      *> unit alive past the failed CALL — without it §14.6.13.1.3 #5 terminates abnormally after the
+      *> Table 13: EC-PROGRAM-PTR-NULL is Fatal, so RESUME AT NEXT STATEMENT (§2023:14.9.33) is what keeps the run
+      *> unit alive past the failed CALL — without it §2023:14.6.13.1.3 #5 terminates abnormally after the
       *> declarative. That no-RESUME arm is covered by
       *> ExceptionConditionConformanceTests.CallPointerNull_Enabled_NoHandler_FatalTerminates.
       *>

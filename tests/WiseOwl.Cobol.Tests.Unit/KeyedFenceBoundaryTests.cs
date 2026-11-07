@@ -10,9 +10,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ AN OPEN'S FENCE AT THE END OF THE KEYED FORMAT IS REFUSED ONLY FOR THE PAGES IT WRITES (kb/Work PB3396;
 /// docs/rearchitecture/DESIGN-runtime-library.md 2.2.1.9). An OPEN I-O of a relative or indexed file retires the file's
 /// adopted state before its first statement (2.2.1.6 R5, R6), and the retirement is a promotion, which has no '24'
-/// (§9.1.13.5 item 4 is a record WRITE's; docs/rearchitecture/DESIGN-runtime-library.md 2.2.1.9). Its reservation is an
+/// (§2023:9.1.13.5 item 4 is a record WRITE's; docs/rearchitecture/DESIGN-runtime-library.md 2.2.1.9). Its reservation is an
 /// upper bound (R2), and the format ends at 2^32 pages (<see cref="PagedFile.FormatPages"/>), so a store a few pages
-/// short of the end was once refused its OPEN I-O with §9.1.13.6 item 1's '30' <i>"A permanent error exists and no
+/// short of the end was once refused its OPEN I-O with §2023:9.1.13.6 item 1's '30' <i>"A permanent error exists and no
 /// further information is available concerning the input-output operation"</i> although the fence would have written
 /// one page. These cases run the OPEN through the registry, as a program declares the file, over a file that WROTE one
 /// record and was never closed (the fence then writes ONE page, the ledger's) and whose meta pages record the format's
@@ -98,7 +98,7 @@ public sealed class KeyedFenceBoundaryTests : WiseOwlCobolTestBase
 
     private string NewFile(string tag) => Path.Combine(TempDir, $"{tag}.dat");
 
-    [Fact]   // §9.1.13.6 item 1: no page for the fence's one write is '30'; OPEN INPUT writes nothing and reads the record.
+    [Fact]   // §2023:9.1.13.6 item 1: no page for the fence's one write is '30'; OPEN INPUT writes nothing and reads the record.
     public void Indexed_OpenIo_With_No_Page_For_The_Fence_Answers_30_And_OpenInput_Reads_The_File()
     {
         string host = UnclosedIndexed(NewFile("fence-ix-0"), headroom: 0);

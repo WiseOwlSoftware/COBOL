@@ -28,7 +28,7 @@ internal enum OwnerLiveness
 /// changes, then page 2 (2.2.1.6), in ONE statement of the page layer however many trees it changes
 /// (<see cref="Change"/>).
 /// <para>It also carries what the run unit knows about the CROSS-RUN-UNIT MUTEX of its physical file (kb/Work PB2660;
-/// ISO §9.1.15, <i>"Multiple paths of access may exist in the same runtime element, contained elements, separate runtime
+/// ISO §2023:9.1.15, <i>"Multiple paths of access may exist in the same runtime element, contained elements, separate runtime
 /// elements within the same run unit, or runtime elements in different run units"</i>): whether a statement of this run
 /// unit is already inside it (<see cref="StatementDepth"/>) and through which endpoint it is held
 /// (<see cref="MutexHolder"/>). Within the run unit the store IS the truth (kb/Work PB143); across run units the file is,
@@ -51,11 +51,11 @@ internal abstract class KeyedStore
     internal RegionLocks? MutexHolder { get; set; }
 
     /// <summary>The paged store, or null while the file holds no store: an absent OPTIONAL file opened INPUT, or a present
-    /// file of no bytes opened INPUT (both hold no records, §14.9.27.4 GR13).</summary>
+    /// file of no bytes opened INPUT (both hold no records, §2023:14.9.27.4 GR13).</summary>
     public PagedFile? File { get; private set; }
 
-    /// <summary>Attach a connector's handle (its §9.1.15 file lock) and its input-output areas, the page cache's floor
-    /// (§12.4.5.14.3 GR1: <i>"If the RESERVE clause is specified, the number of input-output areas allocated is equal to
+    /// <summary>Attach a connector's handle (its §2023:9.1.15 file lock) and its input-output areas, the page cache's floor
+    /// (§2023:12.4.5.14.3 GR1: <i>"If the RESERVE clause is specified, the number of input-output areas allocated is equal to
     /// the value of integer-1"</i>; 2.2.1.13).</summary>
     public void AttachHandle(SafeFileHandle handle, bool writable, int areaPages)
     {
@@ -69,7 +69,7 @@ internal abstract class KeyedStore
     /// and the store was opened through no writable handle, or its writable handles all detached and the reader's
     /// re-adoption was refused (<see cref="_fenceOwed"/>): then the store is opened again through it, which FENCES as
     /// every writable OPEN does. A file of no bytes holds no store yet: a writable connector creates the empty one (three
-    /// meta pages, §14.9.27.4 GR17's creation), a reader reads no records.</summary>
+    /// meta pages, §2023:14.9.27.4 GR17's creation), a reader reads no records.</summary>
     public StoreStatus Open(bool writable, bool coherent, FixedFileAttributes attributes, IKeyOrder holdingsOrder)
     {
         _coherent = coherent;
@@ -90,19 +90,19 @@ internal abstract class KeyedStore
     }
 
     /// <summary>⛔ A STORE THAT HOLDS A STANDING TRANSACTION AND NO FILE, THROUGH A WRITABLE HANDLE, ADOPTS ITS FILE AGAIN BEFORE THE
-    /// COMMIT OR THE ROLLBACK REACHES IT (kb/Work PB3630; §14.9.7.4 GR3, §14.9.36.4 GR3): a re-OPEN that gave the kept handle back
+    /// COMMIT OR THE ROLLBACK REACHES IT (kb/Work PB3630; §2023:14.9.7.4 GR3, §2023:14.9.36.4 GR3): a re-OPEN that gave the kept handle back
     /// detached the store's last handle, and its unsuccessful end retook the handle though the medium refused the store's
     /// adoption (<c>KeyedConnector.RetakeKeptHandle</c>, kb/Work PB3497) — so the state a CLOSE kept has its handle, its file lock, its
     /// liveness byte and its record locks, and its store has no file until the connector's next OPEN reads it. Neither statement
     /// depends on that OPEN: it adopts through the writable handle the way <see cref="Open"/> does, and answers the medium's own
-    /// refusal if the medium still refuses ('30', §9.1.13.6 item 1). Nothing to do while the store holds its file, holds no
+    /// refusal if the medium still refuses ('30', §2023:9.1.13.6 item 1). Nothing to do while the store holds its file, holds no
     /// transaction, has no writable handle (the refusal the statements already answer) or the medium holds no bytes (a file lost
     /// outside the run unit holds no store to promote or restore). The caller holds the store mutex.</summary>
     private StoreStatus AdoptAgainForTransaction(IKeyOrder holdingsOrder) =>
         File is not null || Transaction == 0 || !_handles.HasWritable || _medium.Length == 0
             ? StoreStatus.Ok : Adopt(writable: true, holdingsOrder);
 
-    /// <summary><c>OPEN OUTPUT</c>'s creation (§14.9.27.4 GR18, <i>"After the creation of the file, the file contains no
+    /// <summary><c>OPEN OUTPUT</c>'s creation (§2023:14.9.27.4 GR18, <i>"After the creation of the file, the file contains no
     /// records"</i>), and the creation of a file of no bytes: <see cref="PagedFile.Create"/> through the connector's own
     /// handle, the one truncation.</summary>
     public StoreStatus Create(FixedFileAttributes attributes, bool coherent, IKeyOrder holdingsOrder)
@@ -118,7 +118,7 @@ internal abstract class KeyedStore
 
     /// <summary>Whether the last <see cref="Create"/> left the physical file other than the previous one, successful or not
     /// (<see cref="PagedFile.Create"/>'s <c>replaced</c>): false only for a creation refused and undone, which leaves the
-    /// previous file as it was (§14.9.27.4 GR25); true for one that landed, one whose final sync was refused after the
+    /// previous file as it was (§2023:14.9.27.4 GR25); true for one that landed, one whose final sync was refused after the
     /// truncation, and one whose undo the medium refused too — the previous store is gone in all three, so what was kept
     /// over it ends with it (<c>KeyedConnector.Recreate</c>; kb/Work PB3493, review finding R1-1).</summary>
     public bool FileReplaced { get; private set; }
@@ -157,7 +157,7 @@ internal abstract class KeyedStore
     /// INDEXED record is n + 1 entries, one per tree"</i>). The statement's entry first, unless the caller's coherent entry
     /// already read page 2 for it (<paramref name="entered"/>), so every tree the edit builds is rooted in the file as it is
     /// now; then <paramref name="edit"/> edits the trees in memory, handed the file and the first release ordinal the
-    /// statement mints (<see cref="PagedFile.ReleaseMint"/>; <paramref name="ordinals"/> of them, §14.9.51.4 GR40); then
+    /// statement mints (<see cref="PagedFile.ReleaseMint"/>; <paramref name="ordinals"/> of them, §2023:14.9.51.4 GR40); then
     /// <see cref="StatementLanding.Complete"/>, the transaction-free core every client of the engine shares, lands the edits as
     /// one page statement: sized to exactly the pages they write, every edit flushed, every root set and the statement
     /// completed — page 2 last. A torn page or a refused write answers '30' and a boundary '24'
@@ -309,7 +309,7 @@ internal abstract class KeyedStore
     /// store adopts the restored file again (2.2.1.6 R6, through a writable handle), and then the DEAD-OWNER step runs on it
     /// (<see cref="RollBackDeadOwners"/>): the restored file holds, as it stood at the capture, the run unit's own uncommitted
     /// changes of before the capture — whose liveness byte went with the handle the capture's verb gave back, so its owner reads
-    /// as dead to <paramref name="prober"/> — and any dead run unit's, and §14.9.36.4 GR3 restores <i>"the state they were in at
+    /// as dead to <paramref name="prober"/> — and any dead run unit's, and §2023:14.9.36.4 GR3 restores <i>"the state they were in at
     /// the execution of the last COMMIT statement"</i>. Run under the journal's entry mutex, BEFORE the journal's decision
     /// <c>D R</c> (a death between them leaves the journal open, and the next settle restores the file again and the next writable
     /// OPEN's dead-owner step reads it). <paramref name="through"/> is attached for the adoption alone when no connector of the
@@ -391,7 +391,7 @@ internal abstract class KeyedStore
         _ => throw new InvalidOperationException("an owner liveness the dead-owner step does not read"),
     };
 
-    /// <summary>⛔ THE ROLLBACK STATEMENT (§14.9.36.4 GR3; 2.2.1.10): transaction <paramref name="id"/>'s UNDO tree walked
+    /// <summary>⛔ THE ROLLBACK STATEMENT (§2023:14.9.36.4 GR3; 2.2.1.10): transaction <paramref name="id"/>'s UNDO tree walked
     /// once — every R before-image written back under its identity through the organization's
     /// <paramref name="restoring"/> trees, every key the walk met removed from the HOLDINGS tree, the entry removed, the
     /// UNDO pages released — as ONE statement of the page layer (one generation, atomic under 2.2.1.6). No promotion: lost
@@ -422,7 +422,7 @@ internal abstract class KeyedStore
         return flushed != StoreStatus.Ok ? StoreStatus.PermanentError : completed;
     }
 
-    /// <summary>⛔ THE DEAD-OWNER STEP (§9.1.18.5: <i>"When a run unit terminates abnormally, all file changes made since
+    /// <summary>⛔ THE DEAD-OWNER STEP (§2023:9.1.18.5: <i>"When a run unit terminates abnormally, all file changes made since
     /// the previous commit or, if none, the beginning of the run unit are rolled back for all files for which there are
     /// active APPLY COMMIT clauses."</i>; 2.2.1.10, finding R3-1): at the coherent entry of every statement through a
     /// writable handle and at a writable OPEN (R6 step 5), under the mutex, once a PROMOTING flag has been resolved — when
@@ -439,7 +439,7 @@ internal abstract class KeyedStore
         return StoreStatus.Ok;
     }
 
-    /// <summary>Whether page 2 names a transaction of ANOTHER run unit whose owner is dead — a rollback §9.1.18.5 owes the file
+    /// <summary>Whether page 2 names a transaction of ANOTHER run unit whose owner is dead — a rollback §2023:9.1.18.5 owes the file
     /// (kb/Work PB4097) — asked through a READ-ONLY handle too: nothing is written, so a reader that finds one settles it
     /// through a handle of its own for the purpose (<c>KeyedConnector.SettleDeadOwnersBeside</c>) before it reads on. The caller
     /// holds the store mutex and has entered. Nothing to read while page 2's transactions root is empty, which is every file no
@@ -467,10 +467,10 @@ internal abstract class KeyedStore
         return status;
     }
 
-    /// <summary>⛔ COMMIT this run unit's transaction on the file (§14.9.7.4 GR3; 2.2.1.10): the promotion that decides it
+    /// <summary>⛔ COMMIT this run unit's transaction on the file (§2023:14.9.7.4 GR3; 2.2.1.10): the promotion that decides it
     /// (<see cref="PagedFile.Commit"/>). Committed, or reversed by a refused sync 2: the transaction is over and its byte
     /// given back. Refused before the slot write: the transaction stands, intact, for the unconditional ROLLBACK
-    /// (§14.6.13.1.3 item 8). The reversal refused too: the file is MARKED UNACKNOWLEDGED. The caller holds the mutex.</summary>
+    /// (§2023:14.6.13.1.3 item 8). The reversal refused too: the file is MARKED UNACKNOWLEDGED. The caller holds the mutex.</summary>
     internal CommitOutcome Commit(RestoringTreesFactory reverse, IKeyOrder holdingsOrder)
     {
         if (Transaction == 0) return CommitOutcome.Committed;
@@ -486,7 +486,7 @@ internal abstract class KeyedStore
         return outcome;
     }
 
-    /// <summary>⛔ ROLLBACK this run unit's transaction on the file (§14.9.36.4 GR3, <i>"restored to the state they were in at
+    /// <summary>⛔ ROLLBACK this run unit's transaction on the file (§2023:14.9.36.4 GR3, <i>"restored to the state they were in at
     /// the execution of the last COMMIT statement or the start of the run unit if no COMMIT statements had previously been
     /// executed"</i>; 2.2.1.10): the ROLLBACK statement, or on a file MARKED UNACKNOWLEDGED the reversal again and a
     /// promotion answered by its sync (<see cref="PagedFile.RollBackUnacknowledged"/>). Success ends the transaction and
@@ -640,7 +640,7 @@ internal sealed class RelativeStore : KeyedStore
     }
 
     /// <summary>The lowest (<paramref name="last"/> false) or highest record number the file holds; null when none — the
-    /// highest is §14.9.51.4 GR29 a)'s <i>"the highest relative record number existing in the physical file"</i>.</summary>
+    /// highest is §2023:14.9.51.4 GR29 a)'s <i>"the highest relative record number existing in the physical file"</i>.</summary>
     public StoreStatus Edge(bool last, out long? rrn)
     {
         rrn = null;
@@ -667,7 +667,7 @@ internal sealed class RelativeStore : KeyedStore
     public StoreStatus Replace(long rrn, byte[] value, bool entered, out bool done, TransactionWork? work = null) =>
         OneTree(tree => (tree.Replace(Key(rrn), value, out bool d), d), entered, out done, work);
 
-    /// <summary>Remove record <paramref name="rrn"/> (§14.9.10.4 GR5, <i>"the identified record has been logically removed
+    /// <summary>Remove record <paramref name="rrn"/> (§2023:14.9.10.4 GR5, <i>"the identified record has been logically removed
     /// from the physical file and can no longer be accessed"</i>; <paramref name="done"/> false when it does not exist).</summary>
     public StoreStatus Delete(long rrn, bool entered, out bool done, TransactionWork? work = null) =>
         OneTree(tree => (tree.Delete(Key(rrn), out bool d), d), entered, out done, work);
@@ -713,8 +713,8 @@ internal sealed record IndexedKeyOrders(IKeyOrder Prime, IKeyOrder[] Alternates,
 /// prime key's channel bytes → the record's frame, which carries its ordinal vector) at root[0], and per alternate key a
 /// COMPOSITE tree ((the alternate key's bytes, its 8-byte big-endian release ordinal) → the prime key's bytes) whose root
 /// follows that key's descriptor in the meta page. A record is n + 1 entries, one per tree — none in an alternate tree
-/// whose key equals its SUPPRESS WHEN value (§12.4.5.6.4 GR6) — and every change to them is ONE statement of the page
-/// layer (<see cref="KeyedStore.Change"/>). The release mint (§14.9.51.4 GR40) is the meta page's
+/// whose key equals its SUPPRESS WHEN value (§2023:12.4.5.6.4 GR6) — and every change to them is ONE statement of the page
+/// layer (<see cref="KeyedStore.Change"/>). The release mint (§2023:14.9.51.4 GR40) is the meta page's
 /// (<see cref="PagedFile.ReleaseMint"/>), so a WRITE in either run unit takes the next ordinal of the FILE.
 /// <para>⛔ THE FILE'S KEY TABLE IS THE TREES' (DOC-A.1-129): a store has exactly one alternate tree per alternate key its
 /// meta page records (<see cref="AlternateTrees"/>) and every frame carries one ordinal per recorded key
@@ -727,7 +727,7 @@ internal sealed class IndexedStore : KeyedStore
     public int AlternateTrees => File?.Meta.AlternateRoots.Count ?? 0;
 
     /// <summary>The release ordinals each record's frame carries: one per key the meta page records (the prime key's
-    /// first, §14.9.30.4 GR26, §14.9.35.4 GR24; kb/Work PB341).</summary>
+    /// first, §2023:14.9.30.4 GR26, §2023:14.9.35.4 GR24; kb/Work PB341).</summary>
     public int FrameSlots => File?.Meta.Kind.RequireAttributes().Keys.Count ?? 1;
 
     /// <summary>The tree of key <paramref name="key"/> (<see cref="TreeChange.PrimeRoot"/> the prime key, else an
@@ -745,8 +745,8 @@ internal sealed class IndexedStore : KeyedStore
 
     /// <summary>⛔ The frame of the record whose prime key is <paramref name="prime"/> AND the key image its prime tree holds
     /// it under (<paramref name="stored"/>): under a collating sequence that makes two key images one, the record is named
-    /// by the spelling it was WRITTEN with, whichever spelling a statement asked for it by (§12.4.5.12.4 GR1). It is the
-    /// record's identity for the transactions' holdings and the §9.1.16 record lock; null with no record.</summary>
+    /// by the spelling it was WRITTEN with, whichever spelling a statement asked for it by (§2023:12.4.5.12.4 GR1). It is the
+    /// record's identity for the transactions' holdings and the §2023:9.1.16 record lock; null with no record.</summary>
     public StoreStatus Get(IndexedKeyOrders orders, ReadOnlySpan<byte> prime, out byte[]? stored, out byte[]? frame)
     {
         stored = frame = null;
@@ -755,7 +755,7 @@ internal sealed class IndexedStore : KeyedStore
 
     /// <summary>A cursor of tree <paramref name="key"/> positioned by <paramref name="relation"/> against
     /// <paramref name="probe"/> — with <paramref name="prefix"/> the leading positions of each entry's KEY PART (a START's
-    /// partial key, §14.9.41.4 GR17 c) to e); an alternate tree's whole key value, which leaves out the ordinal) — or null
+    /// partial key, §2023:14.9.41.4 GR17 c) to e); an alternate tree's whole key value, which leaves out the ordinal) — or null
     /// when there is no such tree.</summary>
     public StoreStatus Seek(int key, IndexedKeyOrders orders, ReadOnlySpan<byte> probe, SeekRelation relation, bool prefix,
         out BTree.Cursor? cursor)
@@ -785,8 +785,8 @@ internal sealed class IndexedStore : KeyedStore
 
     // ── Changes: one statement each, n + 1 entries ──────────────────────────────────────────────────────────────
 
-    /// <summary>⛔ RELEASE a record (§14.9.51.4 GR40): its frame under its prime key and, for every alternate key with a
-    /// value in <paramref name="alternates"/> (null: the key's SUPPRESS WHEN value, §12.4.5.6.4 GR6, or a key the file has
+    /// <summary>⛔ RELEASE a record (§2023:14.9.51.4 GR40): its frame under its prime key and, for every alternate key with a
+    /// value in <paramref name="alternates"/> (null: the key's SUPPRESS WHEN value, §2023:12.4.5.6.4 GR6, or a key the file has
     /// no tree for), the entry (that value, the ONE fresh ordinal) → the prime key — n + 1 inserts in one statement, the
     /// ordinal minted with it. <paramref name="frameOf"/> builds the frame from the ordinal; <paramref name="done"/> is
     /// false when the prime key is present (nothing changes).</summary>
@@ -810,7 +810,7 @@ internal sealed class IndexedStore : KeyedStore
             return new Edit(StoreStatus.Ok, true, trees);
         }, out done, work);
 
-    /// <summary>⛔ REPLACE a record (§14.9.35.4 GR24): its prime entry's frame and, per alternate key the REWRITE changed
+    /// <summary>⛔ REPLACE a record (§2023:14.9.35.4 GR24): its prime entry's frame and, per alternate key the REWRITE changed
     /// (<paramref name="moves"/>), the old entry deleted (null: there was none — the old value was suppressed) and the new
     /// one inserted under the ONE fresh ordinal when <paramref name="ordinals"/> mints it (null: the new value is
     /// suppressed). A key the REWRITE did not change keeps its entry and its place among its duplicates (GR24 a)) because
@@ -837,7 +837,7 @@ internal sealed class IndexedStore : KeyedStore
             return new Edit(StoreStatus.Ok, true, trees);
         }, out done, work);
 
-    /// <summary>⛔ REMOVE a record (§14.9.10.4 GR5): its prime entry and every alternate entry it has
+    /// <summary>⛔ REMOVE a record (§2023:14.9.10.4 GR5): its prime entry and every alternate entry it has
     /// (<paramref name="entries"/>, each an alternate tree's whole entry key) — n + 1 deletes in one statement.
     /// <paramref name="done"/> is false when the record does not exist.</summary>
     public StoreStatus Remove(bool entered, IndexedKeyOrders orders, byte[] prime, IReadOnlyList<(int Key, byte[] Entry)> entries,
@@ -861,7 +861,7 @@ internal sealed class IndexedStore : KeyedStore
     /// <summary>⛔ A ROLLBACK's view of an indexed file (2.2.1.10): the prime tree and the alternate trees under
     /// <paramref name="orders"/>. A before-image is written back under its prime key with its OLD ordinal vector, and the
     /// alternate trees' composite entries are rebuilt from that vector — the record's current entries removed (found from
-    /// its current frame) and the image's inserted — so the duplicate order of §14.9.35.4 GR24 is the one at the last
+    /// its current frame) and the image's inserted — so the duplicate order of §2023:14.9.35.4 GR24 is the one at the last
     /// COMMIT (the release mint only ever grows). <paramref name="entriesOf"/> is the connector's: a frame's alternate
     /// entries (its key values and ordinals, suppression applied) given the number of release ordinals the FILE's frames
     /// carry (its meta page's key table, which the file being restored states), null for a frame it cannot decode ('30').</summary>

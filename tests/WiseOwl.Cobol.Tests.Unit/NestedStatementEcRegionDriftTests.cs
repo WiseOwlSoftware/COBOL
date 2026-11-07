@@ -13,11 +13,11 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// kb/Work PB441 — <b>a nested source statement list is an EC REGION BOUNDARY.</b> Enablement is keyed on the
-/// statement's own position in the compilation group (ISO §7.3.25.4 GR6: "checking … is enabled for the procedure
+/// statement's own position in the compilation group (ISO §2023:7.3.25.4 GR6: "checking … is enabled for the procedure
 /// division statements and procedure division headers that follow in the compilation group"), so the region an
 /// emitter consults must be the region of the statement it is guarding — never the enclosing statement's.
 ///
-/// <para><b>What leaving it ambient cost.</b> §14.9.28.4 GR14 assumes "an implicit PUSH ALL followed by TURN OFF
+/// <para><b>What leaving it ambient cost.</b> §2023:14.9.28.4 GR14 assumes "an implicit PUSH ALL followed by TURN OFF
 /// ALL … at the end of imperative-statement-1" and the matching POP "immediately preceding the END PERFORM
 /// phrase", and GR16 places imperative-statement-5 (FINALLY) inside that window. The binder's GR14 floor
 /// (<c>TurnState.WithAllDisabledFrom</c>) bound the FINALLY body with EC-ALL off, and the run-time
@@ -95,7 +95,7 @@ public sealed class NestedStatementEcRegionDriftTests
     }
 
     /// <summary>The boundary is NOT a Format-3 special case. A <c>&gt;&gt;TURN … CHECKING OFF</c> written inside an
-    /// IF branch disables checking for the statements that follow it (§7.3.25.4 GR8), and the ADD after it must
+    /// IF branch disables checking for the statements that follow it (§2023:7.3.25.4 GR8), and the ADD after it must
     /// compile to a bare store although the enclosing IF's own line still has the family enabled.</summary>
     [Fact]
     public void ANestedBranch_BindsItsOwnRegion_NotTheEnclosingStatements()
@@ -140,7 +140,7 @@ public sealed class NestedStatementEcRegionDriftTests
             var tree = frontend.Parse(path, diags);
             Assert.False(diags.HasErrors, string.Join("\n", diags.Diagnostics));
             var emitter = new CSharpEmitter();
-            // ⛔ The >>TURN events ride frontend.Directives — without them the group binds under the §7.3.25.4
+            // ⛔ The >>TURN events ride frontend.Directives — without them the group binds under the §2023:7.3.25.4
             // GR1 default (EC-ALL CHECKING OFF) and every assertion below passes for the wrong reason.
             return emitter.EmitBound(new BinderDriver().Bind(tree!, new EditionContext(2023), frontend.Directives), "DRIFTPROBE");
         }

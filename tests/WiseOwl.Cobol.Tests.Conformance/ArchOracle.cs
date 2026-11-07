@@ -219,7 +219,7 @@ public static class ArchOracle
 
         // A driver that names a .g.cs it did not write is a capture failure, never "no C#": the read throws.
         string? csharp = r.GeneratedCsPath is { } path ? File.ReadAllText(path) : null;
-        // ISO §15.99.3 2): WHEN-COMPILED's "returned value is the date and time of compilation" — the one output a
+        // ISO §2023:15.99.3 2): WHEN-COMPILED's "returned value is the date and time of compilation" — the one output a
         // correct compiler changes run to run. Masked only in a compilation that recorded reading the clock (kb/Work PB985's input record).
         if (csharp is not null && r.Inputs.ReadsCompilationTime)
             csharp = WhenCompiledStamp.Replace(csharp, "<when-compiled>");

@@ -12,14 +12,14 @@ namespace WiseOwl.Cobol.Tests.Unit.Store;
 
 /// <summary>
 /// ⛔ A DEAD APPLY COMMIT OWNER'S UNCOMMITTED CHANGES ARE NOT IN THE FILE FOR ANY READER (kb/Work PB4097; DESIGN-runtime-library.md
-/// 2.2.1.10 "The dead owner's rollback is every reader's too"). §9.1.18.5: <i>"When a run unit terminates abnormally, all file
+/// 2.2.1.10 "The dead owner's rollback is every reader's too"). §2023:9.1.18.5: <i>"When a run unit terminates abnormally, all file
 /// changes made since the previous commit or, if none, the beginning of the run unit are rolled back for all files for which there
 /// are active APPLY COMMIT clauses."</i> — and only then <i>"In both cases all file and record locks are then released"</i>; so no
-/// interval exists in which the dead run unit's locks are gone and its uncommitted change is still in the file (§9.1.17, §9.1.16;
-/// §9.1.18.3: the changes <i>"remain in that state even in the event of subsequent abnormal termination"</i> are the committed
+/// interval exists in which the dead run unit's locks are gone and its uncommitted change is still in the file (§2023:9.1.17, §2023:9.1.16;
+/// §2023:9.1.18.3: the changes <i>"remain in that state even in the event of subsequent abnormal termination"</i> are the committed
 /// ones). The OPEN of a connector with no writable handle settles the dead owners through a handle opened for the purpose, and so
 /// does a reader's statement entry when an owner dies beside an open reader; the IGNORING LOCK read ignores a LIVE owner's lock
-/// (§14.9.30.4 GR12), never a rollback that is owed.
+/// (§2023:14.9.30.4 GR12), never a rollback that is owed.
 /// <para>The death is the witness of the rest of 2.2.1.12: the run unit's writes after <see cref="DyingPageMedium.DieAfter"/> never
 /// reach the file and <c>CloseAll</c> frees its handles and liveness byte as the operating environment does. Expected values are
 /// the file as of the dead run unit's last COMMIT (<see cref="CommitRollbackRuntimeHarness.Seeded"/>).</para>
@@ -79,7 +79,7 @@ public sealed class DeadOwnerReaderTests : CommitRollbackRuntimeHarness
     }
 
     /// <summary>The IGNORING LOCK read after the death returns the rolled-back state too: it bypasses a LIVE owner's locks
-    /// (§14.9.30.4 GR12), not a rollback §9.1.18.5 already owes.</summary>
+    /// (§2023:14.9.30.4 GR12), not a rollback §2023:9.1.18.5 already owes.</summary>
     [Theory]
     [MemberData(nameof(Orgs))]
     public void The_ignoring_lock_read_after_the_death_reads_the_rolled_back_file(FileOrg org)
@@ -98,8 +98,8 @@ public sealed class DeadOwnerReaderTests : CommitRollbackRuntimeHarness
     }
 
     /// <summary>The owner dies BESIDE an open reader (SHARING WITH ALL OTHER on both): while it lives the reader is refused its
-    /// record ('51', §9.1.16's implementor-specified circumstance, DOC-A.1-152) and an IGNORING LOCK read sees the live change
-    /// (§14.9.30.4 GR12); once the owner is dead the next statement of the reader — READ, IGNORING LOCK READ — enters, finds the
+    /// record ('51', §2023:9.1.16's implementor-specified circumstance, DOC-A.1-152) and an IGNORING LOCK read sees the live change
+    /// (§2023:14.9.30.4 GR12); once the owner is dead the next statement of the reader — READ, IGNORING LOCK READ — enters, finds the
     /// dead transaction, settles it, and reads the rolled-back file.</summary>
     [Theory]
     [MemberData(nameof(Orgs))]
@@ -126,7 +126,7 @@ public sealed class DeadOwnerReaderTests : CommitRollbackRuntimeHarness
         }
     }
 
-    /// <summary>The owner LIVES: the reader's OPEN is refused as before ('61', §9.1.13.9 1) a): the owner's SHARING WITH NO OTHER
+    /// <summary>The owner LIVES: the reader's OPEN is refused as before ('61', §2023:9.1.13.9 1) a): the owner's SHARING WITH NO OTHER
     /// holds the file), and nothing of the owner is rolled back — its transaction stands for its own COMMIT.</summary>
     [Theory]
     [MemberData(nameof(Orgs))]
@@ -156,7 +156,7 @@ public sealed class DeadOwnerReaderTests : CommitRollbackRuntimeHarness
 
     /// <summary>A reader that cannot perform the rollback is refused, never shown the dead change: the file is read-only to this
     /// process, so the settle's writable handle is refused by the host and the OPEN answers the authority it lacks ('37',
-    /// §14.9.27.4 GR3). The check skips a host where the process may write a read-only file anyway (a superuser).</summary>
+    /// §2023:14.9.27.4 GR3). The check skips a host where the process may write a read-only file anyway (a superuser).</summary>
     [Theory]
     [MemberData(nameof(Orgs))]
     public void A_reader_that_cannot_write_the_file_is_refused_not_shown_the_dead_change(FileOrg org)
@@ -184,8 +184,8 @@ public sealed class DeadOwnerReaderTests : CommitRollbackRuntimeHarness
 
     /// <summary>The same refusal at a STATEMENT's entry (review round 1, R1-4): the reader is open (SHARING WITH ALL OTHER) when the
     /// owner dies and the file becomes read-only to this process, so the reader's next READ finds the dead transaction and cannot
-    /// settle it. The entry's host failure is a permanent error ('30', §9.1.13.6 1); <c>KeyedConnector.Enter</c>), in effect for the
-    /// file's later statements (§9.1.13.1); the dead change is never returned, the IGNORING LOCK read (§14.9.30.4 GR12) included.</summary>
+    /// settle it. The entry's host failure is a permanent error ('30', §2023:9.1.13.6 1); <c>KeyedConnector.Enter</c>), in effect for the
+    /// file's later statements (§2023:9.1.13.1); the dead change is never returned, the IGNORING LOCK read (§2023:14.9.30.4 GR12) included.</summary>
     [Theory]
     [MemberData(nameof(OrgsByIgnoring))]
     public void A_reader_whose_statement_entry_cannot_settle_the_dead_owner_answers_30_not_the_dead_change(FileOrg org, bool ignoringLock)

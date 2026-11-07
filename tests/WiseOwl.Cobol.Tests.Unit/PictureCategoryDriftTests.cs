@@ -12,13 +12,13 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ALPHABET RATHER THAN OVER A LIST OF CASES (kb/Work PB535).
 /// <para>Every picture character-string the compiler ACCEPTS shall satisfy both:</para>
 /// <list type="number">
-///   <item><b>ISO §13.18.40.4 GR3 — it defines a category</b>, and the category the analyzer assigned is the one
+///   <item><b>ISO §2023:13.18.40.4 GR3 — it defines a category</b>, and the category the analyzer assigned is the one
 ///     whose defining general rule (GR5 alphabetic, GR6 alphanumeric, GR7 alphanumeric-edited, GR8 boolean,
 ///     GR9 national, GR10 national-edited, GR11 fixed-point numeric, GR13 numeric-edited) the character-string
 ///     actually satisfies. The defect this pins is the FALL-THROUGH: <c>Analyze</c> reaches "pure numeric" by
 ///     exhaustion, so before the composition validator existed <c>PIC S</c>, <c>PIC PPP</c>, <c>PIC SV</c> and
 ///     <c>PIC SPPP</c> each bound a ZERO-LENGTH category-numeric item at every edition, silently.</item>
-///   <item><b>ISO §13.18.40.4 GR4 — its size is the symbol count</b>: "the number of symbols in character-string-1
+///   <item><b>ISO §2023:13.18.40.4 GR4 — its size is the symbol count</b>: "the number of symbols in character-string-1
 ///     that represent either boolean positions or character positions". GR14 names the three symbols that
 ///     represent none — 'P' ("not counted in the size of the item"), 'S' (counted "only when the subject of the
 ///     entry is described with a SIGN clause with the SEPARATE phrase") and 'V' ("not counted in the size of the
@@ -37,13 +37,13 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 public sealed class PictureCategoryDriftTests
 {
-    /// <summary>The Format-1 picture symbols of ISO §13.18.40.3 SR2 / §13.18.40.6 Table 10, one representative of
+    /// <summary>The Format-1 picture symbols of ISO §2023:13.18.40.3 SR2 / §2023:13.18.40.6 Table 10, one representative of
     /// each row: the two-character symbols 'CR' and 'DB' enter through <see cref="LongerShapes"/> because an
     /// enumeration over single characters cannot spell them.</summary>
     private const string Alphabet = "AXN91ZP SV0B/,.+-*$";
 
     /// <summary>Shapes an exhaustive 1..3 walk cannot reach: the two-character editing sign control symbols, the
-    /// floating strings (§13.18.40.5 rule 6 needs two adjacent occurrences), the repeat form, the currency-string
+    /// floating strings (§2023:13.18.40.5 rule 6 needs two adjacent occurrences), the repeat form, the currency-string
     /// widening of GR14 and the floating-point form of GR13 b.</summary>
     private static readonly string[] LongerShapes =
     [
@@ -60,7 +60,7 @@ public sealed class PictureCategoryDriftTests
         return (pic, ed.Diagnostics.ToArray());
     }
 
-    /// <summary>The repeat expansion of a character-string this walk has already ACCEPTED, so ISO §13.18.40.3
+    /// <summary>The repeat expansion of a character-string this walk has already ACCEPTED, so ISO §2023:13.18.40.3
     /// SR6's factor validation (kb/Work PB531) cannot fail here — the assert is the drift guard that says
     /// so.</summary>
     private static string Expand(string picture)
@@ -152,7 +152,7 @@ public sealed class PictureCategoryDriftTests
         }
         Assert.True(wrong.Count == 0,
             $"{wrong.Count} accepted picture character-string(s) bind a category whose defining general rule "
-            + $"(ISO §13.18.40.4 GR5-GR13) they do not satisfy:{Environment.NewLine}"
+            + $"(ISO §2023:13.18.40.4 GR5-GR13) they do not satisfy:{Environment.NewLine}"
             + string.Join(Environment.NewLine, wrong.Take(40)));
     }
 
@@ -165,7 +165,7 @@ public sealed class PictureCategoryDriftTests
             var (pic, diags) = Analyze(picture);
             if (diags.Length > 0) continue;
             string expanded = Expand(picture);
-            // §13.18.40.4 GR4 with GR14: every symbol represents a character position except 'P', 'V', and 'S'
+            // §2023:13.18.40.4 GR4 with GR14: every symbol represents a character position except 'P', 'V', and 'S'
             // without SIGN SEPARATE. The currency string is the default one character here, so GR14's
             // "the first occurrence adds the number of characters in the currency string" adds nothing.
             int expect = expanded.Count(c => c is not ('P' or 'S' or 'V'));
@@ -173,7 +173,7 @@ public sealed class PictureCategoryDriftTests
                 wrong.Add($"PIC {picture} → {Describe(pic)}: size {pic.Length}, GR4 gives {expect}");
         }
         Assert.True(wrong.Count == 0,
-            $"{wrong.Count} accepted picture character-string(s) have a size other than ISO §13.18.40.4 GR4's "
+            $"{wrong.Count} accepted picture character-string(s) have a size other than ISO §2023:13.18.40.4 GR4's "
             + $"count of the symbols representing a character position:{Environment.NewLine}"
             + string.Join(Environment.NewLine, wrong.Take(40)));
     }
@@ -219,7 +219,7 @@ public sealed class PictureCategoryDriftTests
         return (pic, ed.Diagnostics.ToArray());
     }
 
-    /// <summary>⛔ ISO §13.18.40.4 GR4 + GR14 'es', over the EDITING walk: the size the analyzer binds is the
+    /// <summary>⛔ ISO §2023:13.18.40.4 GR4 + GR14 'es', over the EDITING walk: the size the analyzer binds is the
     /// width of the image the editing rules render, for the IS form (the literal at every occurrence), for a FOR
     /// form with FIXED occurrences (the literal at every occurrence) and for a FOR form's FLOATING string (one
     /// literal plus one character per repetition). The renderer is the oracle here because GR14 states the size
@@ -252,14 +252,14 @@ public sealed class PictureCategoryDriftTests
                     }
         Assert.True(wrong.Count == 0,
             $"{wrong.Count} accepted EDITING picture(s) bind a size other than the width of the image they render "
-            + $"(ISO §13.18.40.4 GR4, GR14 'es'):{Environment.NewLine}" + string.Join(Environment.NewLine, wrong.Take(40)));
+            + $"(ISO §2023:13.18.40.4 GR4, GR14 'es'):{Environment.NewLine}" + string.Join(Environment.NewLine, wrong.Take(40)));
         // The population guard: the walk must have SEEN the shapes the property exists for.
         Assert.True(fixedRepeated > 0 && floating > 0 && comma > 0 && mixed > 0,
             $"the editing walk accepted {accepted} but saw {fixedRepeated} repeated-fixed, {floating} floating, "
             + $"{comma} DECIMAL-POINT IS COMMA comma pictures, {mixed} mixed floating-and-fixed");
     }
 
-    /// <summary>⛔ ISO §13.18.40.4 GR14 'es' with a floating string AND a fixed occurrence of ONE character-1
+    /// <summary>⛔ ISO §2023:13.18.40.4 GR14 'es' with a floating string AND a fixed occurrence of ONE character-1
     /// (<c>PIC LL9L</c>; kb/Work PB3220, review round 1). The oracle is GR14's own arithmetic, written out per
     /// occurrence and independent of the renderer the walk above compares against: the floating string is one
     /// literal plus one character per repetition, each fixed occurrence is the literal, every other symbol is one
@@ -295,7 +295,7 @@ public sealed class PictureCategoryDriftTests
         "9.9.9.9E+99", "9,9,9,9E+99", "9.99,99E+99", "9,99.99E+99", "9.99E+99", "9,99E+99", "$$$.$$9,99", "$$$,$$9.99",
     ];
 
-    /// <summary>⛔ ISO §13.18.40.3 SR13 as a CLOSURE property, over the plain walk, the float-edited shapes and the
+    /// <summary>⛔ ISO §2023:13.18.40.3 SR13 as a CLOSURE property, over the plain walk, the float-edited shapes and the
     /// EDITING walk: "The rules for the symbol period apply to the symbol comma, and the rules for the symbol comma
     /// apply to the symbol period" - so a character-string under DECIMAL-POINT IS COMMA is accepted, and means what
     /// it means, exactly when the string with the two symbols interchanged is accepted and means the same without
@@ -403,7 +403,7 @@ public sealed class PictureCategoryDriftTests
                     ? null
                     : "GR13 a defines no numeric-edited item for this character-string";
             default:
-                return $"category {pic.Category} is not one of ISO §13.18.40.4 GR3's eight";
+                return $"category {pic.Category} is not one of ISO §2023:13.18.40.4 GR3's eight";
         }
     }
 }

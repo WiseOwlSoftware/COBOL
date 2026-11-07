@@ -5,17 +5,17 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB256 — §15.93.4 r1 c) / §15.95.4 r1 c), the THIRD leg of the returned value, with its NOTE's
-      *> three error kinds; and the NATIONAL alternative of §15.93.3 r1 / §15.95.3 r1, which no fixture had
+      *> kb/Work PB256 — §2023:15.93.4 r1 c) / §2023:15.95.4 r1 c), the THIRD leg of the returned value, with its NOTE's
+      *> three error kinds; and the NATIONAL alternative of §2023:15.93.3 r1 / §2023:15.95.3 r1, which no fixture had
       *> exercised in EITHER direction. Leg c) had been argued on a record whose rule text stops at leg b) and
       *> recorded on a record whose cited test is a digit-cap unit test, so its own text had no covering
       *> evidence anywhere; the national alternative was held as "correct by construction", which is reasoning.
       *>
-      *> THE RULE (cite.py --check OK on each): §15.93.4 r1 "(FUNCTION LENGTH (argument-1) + 1)" with
+      *> THE RULE (cite.py --check OK on each): §2023:15.93.4 r1 "(FUNCTION LENGTH (argument-1) + 1)" with
       *>   "NOTE These errors include, but are not limited to: - argument-1 is zero-length, - argument-1
       *>   contains only spaces, - argument-1 contains valid characters but is incomplete, such as the string
-      *>   ' +.'." §15.95.4 r1 c) carries the identical leg and the identical NOTE for TEST-NUMVAL-F.
-      *> §15.93.3 r1 / §15.95.3 r1: "Argument-1 shall be an alphanumeric or national literal or a data item of
+      *>   ' +.'." §2023:15.95.4 r1 c) carries the identical leg and the identical NOTE for TEST-NUMVAL-F.
+      *> §2023:15.93.3 r1 / §2023:15.95.3 r1: "Argument-1 shall be an alphanumeric or national literal or a data item of
       *> class alphanumeric or national."
       *>
       *> ⛔ LEG c) IS THE LEG WHOSE VALUE IS AN ARITHMETIC EXPRESSION OVER ANOTHER FUNCTION, so the fixture
@@ -37,15 +37,15 @@
       *> NATIONAL — positions are NATIONAL CHARACTER POSITIONS, one per position, which is why NB's verdict
       *> discriminates: a byte-counted image of N"12 34" would answer 7, not 4.
       *>   NA   TEST-NUMVAL(NA)   N"123.45  " -> 0  conforms; the trailing national spaces are r2's
-      *>   NB   TEST-NUMVAL(NB)   N"12 34"    -> 4  §15.93.4 r1 b) 1 — first non-space after the space
-      *>   NC   TEST-NUMVAL(NC)   N"123cr"    -> 0  §15.67.3 r1's national CR bullet, "uppercase or
+      *>   NB   TEST-NUMVAL(NB)   N"12 34"    -> 4  §2023:15.93.4 r1 b) 1 — first non-space after the space
+      *>   NC   TEST-NUMVAL(NC)   N"123cr"    -> 0  §2023:15.67.3 r1's national CR bullet, "uppercase or
       *>                                            lowercase, or a combination"
       *>   NL   TEST-NUMVAL(N"12.5")          -> 0  the national LITERAL form of the argument rule
       *>   LEN  FUNCTION LENGTH(NSP)          -> 4  leg c)'s own operand, on national character positions
       *>   NS   TEST-NUMVAL(NSP)  N"    "     -> 5  leg c) over a NATIONAL item: LENGTH 4 + 1
-      *>   NF   TEST-NUMVAL-F(N"1.5E+3")      -> 0  the E-form over a national literal (§15.69.3 r1's
+      *>   NF   TEST-NUMVAL-F(N"1.5E+3")      -> 0  the E-form over a national literal (§2023:15.69.3 r1's
       *>                                            national-E bullet)
-      *>   NFB  TEST-NUMVAL-F(NFB) N"1 2E+3"  -> 3  §15.95.4 r1 b) 1 over national positions
+      *>   NFB  TEST-NUMVAL-F(NFB) N"1 2E+3"  -> 3  §2023:15.95.4 r1 b) 1 over national positions
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB256LGC.
        DATA DIVISION.

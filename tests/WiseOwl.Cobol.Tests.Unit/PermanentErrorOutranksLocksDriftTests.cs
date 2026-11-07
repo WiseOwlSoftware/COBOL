@@ -7,9 +7,9 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ A PERMANENT ERROR IN EFFECT ASKS NO §9.1.16 LOCK QUESTION, AND THAT RULE IS WRITTEN IN ONE PLACE,
+/// ⛔ A PERMANENT ERROR IN EFFECT ASKS NO §2023:9.1.16 LOCK QUESTION, AND THAT RULE IS WRITTEN IN ONE PLACE,
 /// <c>FileRegistry.PermanentErrorOutranksLocks</c>, WHICH THE READ PEEKS AND THE REWRITE / DELETE TARGET BOTH BEGIN WITH
-/// (kb/Work PB3416). §9.1.13.1 keeps the condition <i>"in effect for all subsequent input-output operations on the file"</i>
+/// (kb/Work PB3416). §2023:9.1.13.1 keeps the condition <i>"in effect for all subsequent input-output operations on the file"</i>
 /// and docs/CONFORMANCE.md DOC-A.1-105 makes it outrank the '51' a record another connector holds would answer. The rule
 /// was first written for the READ peeks (<c>NoLockQuestion</c>) and then again, as a second guard beside
 /// <c>FileConnector.MutationTargetRecordId</c> (which already answers "" under the condition), in the REWRITE body and in the

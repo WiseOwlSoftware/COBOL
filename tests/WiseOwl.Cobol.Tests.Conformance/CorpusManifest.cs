@@ -24,7 +24,7 @@ public sealed record CorpusRow(string Name, string Suite, string Status, string[
     /// <summary>The exception-name a <c>divergent</c> row declares its program TERMINATES on: a note beginning
     /// <c>TERMINATES EC-…</c> (the marker, like <c>CCVS-DEFECT</c>, is a token of the note, and the row's ISO §
     /// citation is still enforced). The program depends on an implementor-defined continuation after a fatal I-O
-    /// status (§9.1.13.1: "The implementor may either continue or terminate the execution of the run unit"; Annex A.1
+    /// status (§2023:9.1.13.1: "The implementor may either continue or terminate the execution of the run unit"; Annex A.1
     /// item 103 is WiseOwl COBOL's documented choice), so its golden records a run that continued and the run
     /// unit now ends abnormally instead. <c>null</c> for every other row.</summary>
     public string? ExpectedTermination =>

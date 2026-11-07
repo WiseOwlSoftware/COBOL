@@ -5,17 +5,17 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.12.4 GR7 — "When native arithmetic is in effect, the remainder is the result of
+      *> ISO §2023:14.9.12.4 GR7 — "When native arithmetic is in effect, the remainder is the result of
       *> multiplying the subsidiary quotient and the divisor and subtracting the product from the
       *> dividend."
       *> (cite.py --check 14.9.12.4 "the remainder is the result of multiplying the subsidiary quotient and
-      *> the divisor and subtracting the product from the dividend" -> OK, §14.9.12.4 General rules 7.)
+      *> the divisor and subtracting the product from the dividend" -> OK, §2023:14.9.12.4 General rules 7.)
       *>
-      *> THE PRODUCT GR7 NAMES IS AN INTERMEDIATE, AND §14.7.5 GOVERNS IT. Case 5 of the SIZE ERROR
+      *> THE PRODUCT GR7 NAMES IS AN INTERMEDIATE, AND §2023:14.7.5 GOVERNS IT. Case 5 of the SIZE ERROR
       *> phrase's list raises the size error condition "if native arithmetic is in effect and the
       *> implementor defines that the range of values allowed for the intermediate data item is to be
       *> checked" - and the range is the VALUE's (CONFORMANCE.md DOC-A.1-179, kb/Work PB3538). The
-      *> operands satisfy §14.7.7 rule 2's composite of 12 + 14 = 26 digits. The product
+      *> operands satisfy §2023:14.7.7 rule 2's composite of 12 + 14 = 26 digits. The product
       *> of 14.9.12.4 rule 7, (subsidiary quotient) x (divisor), is about 10**12, carried at 14 + 14 = 28 fraction digits. Its
       *> UNSCALED form is of the order 10**40, past any 128-bit integer, but its value is not: the
       *> back-multiply is formed exactly on the 256-bit lane, so no size error is raised.

@@ -6,7 +6,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ THE PB443 INVARIANT: a SEARCH operand is a WRITTEN REFERENCE, resolved by ISO §8.4.2.2 — never a BASE WORD
+/// ⛔ THE PB443 INVARIANT: a SEARCH operand is a WRITTEN REFERENCE, resolved by ISO §2023:8.4.2.2 — never a BASE WORD
 /// looked up and tie-broken by declaration order. Two lines did that (<c>SearchBinder.BindSearch</c> and
 /// <c>BindSearchAll</c>, two copies of the same eight), and a third did it for the Format-2 condition-name
 /// operand, so the compiler could pick a DIFFERENT table, and a different level-88, from the one the programmer
@@ -18,8 +18,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// program and reads what it printed.</para>
 /// <para>⛔ AND WHY EVERY ROW COMES IN A PAIR WITH THE DECLARATION ORDER SWAPPED. A single qualified search that
 /// happens to name the first-declared table passes under the defect. The pair is the isolation: swapping two 01
-/// entries and nothing else must not change the answer, because §8.4.2.2 says the QUALIFIER establishes
-/// uniqueness and §14.9.37.4 GR1 says the statement varies "the first or only index associated with
+/// entries and nothing else must not change the answer, because §2023:8.4.2.2 says the QUALIFIER establishes
+/// uniqueness and §2023:14.9.37.4 GR1 says the statement varies "the first or only index associated with
 /// identifier-1" — the qualified one.</para>
 /// </summary>
 public sealed class SearchOperandResolutionDriftTests : WiseOwlCobolTestBase
@@ -82,13 +82,13 @@ MAIN.
 """;
         var (ok, detail, stdout) = Run(TwoTables(id, stmt, decoyFirst));
         Assert.True(ok, detail);
-        // §14.9.37.4 GR1a — the index is left at the occurrence whose WHEN was satisfied, occurrence 3 of G2's E.
+        // §2023:14.9.37.4 GR1a — the index is left at the occurrence whose WHEN was satisfied, occurrence 3 of G2's E.
         Assert.Equal("HIT 13", stdout.Trim());
     }
 
-    /// <summary>§8.4.2.2 Format 2 for the Format-2 WHEN's condition-name operand, in both SR11 directions —
+    /// <summary>§2023:8.4.2.2 Format 2 for the Format-2 WHEN's condition-name operand, in both SR11 directions —
     /// the arm where the compiler REJECTED legal source. With <c>ASCENDING KEY IS K2 K1</c>, K2 is the most
-    /// significant key (§13.18.38.4 GR3), so a WHEN naming only K2's condition-name satisfies SR11 ("all
+    /// significant key (§2023:13.18.38.4 GR3), so a WHEN naming only K2's condition-name satisfies SR11 ("all
     /// preceding data-names … shall also be referenced" — there are none); with <c>K1 K2</c> the same written
     /// reference skips K1 and violates it. The screen used to pick the level-88 by base word with the tie broken
     /// by declaration order, so it got BOTH verdicts backwards.</summary>
@@ -131,11 +131,11 @@ MAIN.
         {
             Assert.False(ok, stdout);
             Assert.Contains("COBOL1965", detail, StringComparison.Ordinal);
-            Assert.Contains("§14.9.37.3 SR11", detail, StringComparison.Ordinal);
+            Assert.Contains("§2023:14.9.37.3 SR11", detail, StringComparison.Ordinal);
         }
     }
 
-    /// <summary>§14.9.37.4 GR1 — "The subscript that is used to determine the occurrence of each superordinate
+    /// <summary>§2023:14.9.37.4 GR1 — "The subscript that is used to determine the occurrence of each superordinate
     /// table to search is specified by the user in the WHEN phrases." The superordinate subscript SR3 requires on
     /// identifier-1 is therefore not decoration: the search runs inside the outer occurrence the WHEN names, and
     /// only identifier-1's own index is varied. With OX set to 2, the match is the SECOND row's.</summary>
@@ -193,8 +193,8 @@ MAIN.
     }
 
     /// <summary>⛔ THE PB3365 INVARIANT: a SEARCH or SEARCH ALL of a dynamic-capacity table nested under another table
-    /// is bounded by the CURRENT CAPACITY of the one enclosing occurrence the statement names (ISO §8.5.1.9.1,
-    /// §8.5.1.9.2) — in identifier-1 or, as §14.9.37.4 GR1 puts it, in the WHEN phrases — in BOTH formats and BOTH
+    /// is bounded by the CURRENT CAPACITY of the one enclosing occurrence the statement names (ISO §2023:8.5.1.9.1,
+    /// §2023:8.5.1.9.2) — in identifier-1 or, as §2023:14.9.37.4 GR1 puts it, in the WHEN phrases — in BOTH formats and BOTH
     /// spellings. It used to compile clean (COBOL1756) and abort the run unit. The row runs the program and reads
     /// the answer, with the capacities chosen so that a bound taken from the wrong occurrence changes it: E(1) holds
     /// three occurrences (A B C), E(2) one (X), E(3) four (P Q R S) — a too-small bound loses "S" at 4, a too-large

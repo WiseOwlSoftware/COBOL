@@ -5,10 +5,10 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> kb/Work PB415 — ISO §14.9.20.2 category-name at COBOL-85, where the CHOICE INDICATORS matter most.
+      *> kb/Work PB415 — ISO §2023:14.9.20.2 category-name at COBOL-85, where the CHOICE INDICATORS matter most.
       *>
       *> The printed general format (licensed PDF p667 / folio 637) encloses the thirteen category names in a
-      *> BRACE carrying choice indicators, and §5.2.6.4 reads them: "one or more of the alternatives contained
+      *> BRACE carrying choice indicators, and §2023:5.2.6.4 reads them: "one or more of the alternatives contained
       *> within the choice indicators shall be specified, but any single alternative shall be specified only
       *> once". FIVE of the thirteen — ALPHABETIC, ALPHANUMERIC, ALPHANUMERIC-EDITED, NUMERIC, NUMERIC-EDITED —
       *> are COBOL-85 words (tests/version-matrix/reserved-words.json r85=true for each), and the REPLACING
@@ -22,15 +22,15 @@
       *>
       *> EXPECTED, DERIVED BEFORE THE RUN:
       *>   T1  REPLACING ALPHABETIC ALPHANUMERIC DATA BY "Q" — ONE category-name naming TWO categories.
-      *>       §14.9.20.4 GR5c2 qualifies AB (§8.5.2.2) and AN (§8.5.2.3); GR6b's sender is literal-1 "Q";
+      *>       §2023:14.9.20.4 GR5c2 qualifies AB (§2023:8.5.2.2) and AN (§2023:8.5.2.3); GR6b's sender is literal-1 "Q";
       *>       GR4's implicit MOVE left-justifies and space-fills each to 3 → "Q  ". NU and NE name no
       *>       category in the phrase, so GR5c leaves them unchanged (GR5c4's premise is false — a REPLACING
       *>       phrase IS specified).
       *>   T2  REPLACING NUMERIC NUMERIC-EDITED DATA BY 7 — a second two-category category-name, this one
       *>       pairing a plain and an edited '85 category. NU → 007; NE takes the numeric literal through the
       *>       ordinary MOVE editing path, PIC ZZZ9 suppressing the leading zeros → "   7".
-      *>       §14.9.20.3 SR6 is satisfied: no category is repeated across the two statements' phrases, and
-      *>       none is repeated within either category-name (§5.2.6.4's "only once").
+      *>       §2023:14.9.20.3 SR6 is satisfied: no category is repeated across the two statements' phrases, and
+      *>       none is repeated within either category-name (§2023:5.2.6.4's "only once").
       *>   T3  the bare COBOL-85 form (GR5c4 + GR6c's fill table): "Figurative constant alphanumeric SPACES"
       *>       for alphabetic and alphanumeric, ZEROES for numeric, and the numeric-edited receiver takes the
       *>       EDITED zero through the same MOVE path → "   0" for PIC ZZZ9.

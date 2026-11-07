@@ -11,11 +11,11 @@ using Core = CobolParserCore;
 using WiseOwl.Cobol.Runtime;
 
 /// <summary>
-/// The Report Writer half of the statement binder (ISO/IEC 1989:2023 §14.9.21 INITIATE / §14.9.16 GENERATE /
-/// §14.9.46 TERMINATE; REPORT_WRITER_DESIGN §5): the three verb binders over the bound
-/// <see cref="ReportModel"/>s, the LINE-COUNTER / PAGE-COUNTER reference interception (§8.4.3.15 — the
+/// The Report Writer half of the statement binder (ISO/IEC 1989:2023 §2023:14.9.21 INITIATE / §2023:14.9.16 GENERATE /
+/// §2023:14.9.46 TERMINATE; REPORT_WRITER_DESIGN §5): the three verb binders over the bound
+/// <see cref="ReportModel"/>s, the LINE-COUNTER / PAGE-COUNTER reference interception (§2023:8.4.3.15 — the
 /// registers are RWCS state, never storage; the <c>BoundLinageCounterRef</c> precedent), and the report-section
-/// PRESENT WHEN / VARYING expression binding (§13.18.41/§13.18.64 — parse contexts captured at data bind,
+/// PRESENT WHEN / VARYING expression binding (§2023:13.18.41/§2023:13.18.64 — parse contexts captured at data bind,
 /// bound HERE through the host's ONE condition/expression binders). P7 Step 10f collaborator; the host is
 /// consumed only by <see cref="BindReportGroupClauses"/> (the standard (ctx, host) collaborator shape). The
 /// receiving-side counter guard (<c>ResolveReceiving</c>) did NOT ride along — it is the shared receiving
@@ -23,20 +23,20 @@ using WiseOwl.Cobol.Runtime;
 /// </summary>
 internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host)
 {
-    /// <summary>Bind every report-section PRESENT WHEN condition (ISO §13.18.41 Format 1) and VARYING FROM/BY
-    /// expression (§13.18.64) captured on this unit's report models — once per unit bind, through the ONE
+    /// <summary>Bind every report-section PRESENT WHEN condition (ISO §2023:13.18.41 Format 1) and VARYING FROM/BY
+    /// expression (§2023:13.18.64) captured on this unit's report models — once per unit bind, through the ONE
     /// <c>ConditionBinder</c> / expression binder. Each DISTINCT condition context binds exactly once (an
     /// entry's condition appears in every subordinate chain — the memo keeps diagnostics single-shot).
     /// <para>⛔ EVERY CLAUSE OPERAND IS A PER-EVALUATION WINDOW (kb/Work PB4517). These clauses bind BEFORE the first
     /// statement and outside every statement, yet a function-identifier, a function-bearing subscript or an inline
-    /// invocation in them registers an operand-evaluation step (a user-function activation, a §15.4 subscript temporary
+    /// invocation in them registers an operand-evaluation step (a user-function activation, a §2023:15.4 subscript temporary
     /// store) on the statement-scoped pending list. Undrained, the FIRST procedure statement hoisted those steps, so the
     /// function ran once, at that statement, and every presentation read its stale result: <c>SOURCE WS-T (FUNCTION MOD
     /// (WS-N, 2) + 1)</c> and <c>SOURCE FUNCTION user-fn (WS-N)</c> printed one value for every line, and a FUNCTION in
     /// PRESENT WHEN was refused outright (COBOL0899) to keep it from doing the same. The clauses are evaluated when a
     /// GENERATE or TERMINATE presents the group — condition-1 "before the processing of any LINE clauses for the report
-    /// group" (§13.18.41.4 GR2), the SOURCE COMPUTE "whenever the associated item is printed" (§13.18.53.4 GR2) — and a
-    /// function's value "is determined when the function is referenced at runtime" (§8.4.3.2.4 GR1), so each operand
+    /// group" (§2023:13.18.41.4 GR2), the SOURCE COMPUTE "whenever the associated item is printed" (§2023:13.18.53.4 GR2) — and a
+    /// function's value "is determined when the function is referenced at runtime" (§2023:8.4.3.2.4 GR1), so each operand
     /// drains its OWN steps (<see cref="PerEvaluation(Func{BoundCondition})"/> and its two twins) and the report emitter
     /// runs them at each evaluation.</para></summary>
     public void BindReportGroupClauses()
@@ -45,11 +45,11 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         var entry = host.Udf.Mark;
         BoundCondition Bind(Core.ConditionContext c)
         {
-            // A condition §13.15.3 SR16 refused at data bind was reported there, under its rule; binding it would word
-            // the same report-section reference again under §13.8.6.2.3 (kb/Work PB4226).
+            // A condition §2023:13.15.3 SR16 refused at data bind was reported there, under its rule; binding it would word
+            // the same report-section reference again under §2023:13.8.6.2.3 (kb/Work PB4226).
             if (!memo.TryGetValue(c, out var b))
                 memo[c] = b = ctx.Data.State.Reports.PresentWhenRefused(c)
-                    ? host.Cond.Refused("a PRESENT WHEN condition refused by ISO §13.15.3 SR16")
+                    ? host.Cond.Refused("a PRESENT WHEN condition refused by ISO §2023:13.15.3 SR16")
                     : PerEvaluation(() => host.Cond.BindCondition(c));
             return b;
         }
@@ -80,15 +80,15 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     }
 
     /// <summary>One report's clause expressions, bound with the scope the REPORT SECTION gives them: the RD in whose
-    /// description they are written (§8.4.2.2.3 SR9/SR10 — "In the report section, an unqualified reference to the
+    /// description they are written (§2023:8.4.2.2.3 SR9/SR10 — "In the report section, an unqualified reference to the
     /// PAGE-COUNTER is qualified implicitly by the name of the report in whose report description entry the reference
-    /// is made"; §13.18.53.3 SR4 — a sum counter "defined in the current report") and the VARYING counters of the
-    /// entry being bound (§13.18.64.3 SR2 — "only within the current entry or a subordinate entry").</summary>
+    /// is made"; §2023:13.18.53.3 SR4 — a sum counter "defined in the current report") and the VARYING counters of the
+    /// entry being bound (§2023:13.18.64.3 SR2 — "only within the current entry or a subordinate entry").</summary>
     private void BindReportClauses(ReportModel r, Func<Core.ConditionContext, BoundCondition> Bind)
     {
         ctx.Refs.EnclosingReport = r;
         ctx.Refs.VaryingScope = null;
-        // The RD CODE clause's identifier-1 (§13.18.12.2): the place the engine reads at each body group (GR3), through
+        // The RD CODE clause's identifier-1 (§2023:13.18.12.2): the place the engine reads at each body group (GR3), through
         // the same ONE sending-operand resolution a SOURCE identifier takes. Asked only of a base item the data phase
         // resolved (ReportSectionBinder.ResolveReportCode): an unresolved or ambiguous one was reported there, once (kb/Work PB4226).
         if (r.Code is { Reference: { } codeRef, Item: not null } code)
@@ -104,10 +104,10 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
                 foreach (var f in ln.Fields)
                 {
                     foreach (var c in f.PresentWhenCtxs) f.PresentWhen.Add(Bind(c));
-                    // §13.18.64.2 writes FROM/BY as plain arithmetic-expression-1/-2, and the RW VARYING is on NEITHER
-                    // index clause's list (§13.18.38.3 r7 names only PERFORM's and SEARCH's VARYING; §13.18.60.3 SR10
+                    // §2023:13.18.64.2 writes FROM/BY as plain arithmetic-expression-1/-2, and the RW VARYING is on NEITHER
+                    // index clause's list (§2023:13.18.38.3 r7 names only PERFORM's and SEARCH's VARYING; §2023:13.18.60.3 SR10
                     // names no VARYING) — so both screens apply (kb/Work PB215). A counter's expressions may name the
-                    // counters of the entries above it, and its BY the counters of its own entry (§13.18.64.3 SR3),
+                    // counters of the entries above it, and its BY the counters of its own entry (§2023:13.18.64.3 SR3),
                     // so each binds with exactly those in scope — once, whichever field reaches the counter first.
                     foreach (var use in f.Varyings)
                     {
@@ -115,7 +115,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
                         if (v.Bound) continue;
                         v.Bound = true;
                         using var at = ctx.Edition.At(v.Entry);
-                        // (A FROM naming a counter of its own clause is §13.18.64.3 SR3's prohibition, reported ONCE per
+                        // (A FROM naming a counter of its own clause is §2023:13.18.64.3 SR3's prohibition, reported ONCE per
                         // written entry by ScreenReportVaryingClauses; it binds in the same scope so the refusal is
                         // not followed by a second, misleading "not defined".)
                         ctx.Refs.VaryingScope = ScopeOf(v.Enclosing.Concat(v.Group));
@@ -129,7 +129,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
                 }
             }
         // The SOURCE operand of an entry with NO printable item has no field to be bound by, and a rolled total still adds
-        // it (§13.18.54.4 GR6; §13.18.53.4 GR3 — "the SOURCE clause causes no action, except where the entry is referred
+        // it (§2023:13.18.54.4 GR6; §2023:13.18.53.4 GR3 — "the SOURCE clause causes no action, except where the entry is referred
         // to by means of a SUM clause"), so every recorded occurrence binds its own (kb/Work PB1294). Each entry's
         // PRESENT WHEN chain binds here too: GR11 asks whether data-name-1 is "declared to be absent". (A SUM entry's
         // occurrence shares its counter's chain, bound below.)
@@ -144,8 +144,8 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         foreach (var s in r.Sums)
         {
             foreach (var c in s.PresentWhenCtxs) s.PresentWhen.Add(Bind(c));
-            // SUM addends (§13.18.54.3 SR5 — kb/Work PB482). An addend written as identifier-1 is an
-            // ORDINARY IDENTIFIER (§8.4.3.1.2 Format 2, qualified-data-name-with-subscripts), so its VALUE
+            // SUM addends (§2023:13.18.54.3 SR5 — kb/Work PB482). An addend written as identifier-1 is an
+            // ORDINARY IDENTIFIER (§2023:8.4.3.1.2 Format 2, qualified-data-name-with-subscripts), so its VALUE
             // is bound HERE, through the same `BindExpr` a procedure-division reference takes — which is
             // what makes `SUM WS-CELL(2)`, `SUM WS-CELL(IX)` and `SUM WS-CELL(IX + 1)` resolve at all: a
             // subscript may be an arithmetic expression or an index-name, and neither has a value at data
@@ -158,26 +158,26 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
                         using var at = ctx.Edition.At(a.Ctx);
                         a.Value = PerEvaluation(() => host.Expr.BindExpr(a.Ctx));
                     }
-            // The SUM clause's own ROUNDED phrase (§13.18.54.2's trailing rounded-phrase) — §13.18.54.4 GR4
+            // The SUM clause's own ROUNDED phrase (§2023:13.18.54.2's trailing rounded-phrase) — §2023:13.18.54.4 GR4
             // computes the counter's delivery to the printable item "according to the general rules for the
-            // COMPUTE statement with the ROUNDED phrase". Same §14.7.4 reader as SOURCE's (kb/Work PB852).
+            // COMPUTE statement with the ROUNDED phrase". Same §2023:14.7.4 reader as SOURCE's (kb/Work PB852).
             s.Rounding = host.Expr.RoundingOf(s.Rounded);
         }
     }
 
     /// <summary>Bind the SOURCE operands of one report entry, each ONCE (an operand an earlier pass bound is left alone —
     /// a printable entry's field binds them first, a rolled total's unprintable entry here; kb/Work PB1294).
-    /// <para>A SOURCE identifier-1 is §13.18.53.4 GR1's implicit MOVE sender: bound through the ONE operand binder a
+    /// <para>A SOURCE identifier-1 is §2023:13.18.53.4 GR1's implicit MOVE sender: bound through the ONE operand binder a
     /// MOVE's sending operand takes, which is what knows a subscript, a reference modification, a counter of this or
     /// another report, a sum counter of the current report, a VARYING counter and a constant-name (kb/Work PB1292 ×
     /// PB1306 × PB1316 × PB1456).</para>
     /// <para>A SOURCE operand written as arithmetic-expression-1, or as identifier-1 under the clause's ROUNDED phrase
-    /// (§13.18.53.3 SR5) — §13.18.53.4 GR2's implicit COMPUTE — binds through the same <c>BindExpr</c> a
+    /// (§2023:13.18.53.3 SR5) — §2023:13.18.53.4 GR2's implicit COMPUTE — binds through the same <c>BindExpr</c> a
     /// procedure-division reference takes (the kb/Work PB482 argument: a subscript may be an index-name or an
-    /// expression and has no value at data bind), and the ROUNDED phrase resolves through the ONE §14.7.4
+    /// expression and has no value at data bind), and the ROUNDED phrase resolves through the ONE §2023:14.7.4
     /// rounding-mode reader (kb/Work PB852).</para>
     /// <para><paramref name="printable"/> is the entry's printable item — the implicit MOVE's receiving operand
-    /// (§13.18.53.4 GR1) — or null for an entry that defines none (no COLUMN clause: §13.18.53.4 GR3, "the SOURCE
+    /// (§2023:13.18.53.4 GR1) — or null for an entry that defines none (no COLUMN clause: §2023:13.18.53.4 GR3, "the SOURCE
     /// clause causes no action", so SR2's "the printable item as the receiving operand" has no receiver).</para></summary>
     private void BindSourceOperands(ReportModel r, IEnumerable<ReportFieldSource> sources, DataItem? printable = null)
     {
@@ -189,8 +189,8 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
                     using var at = ctx.Edition.At(rs.Ref);
                     var (operand, steps) = WithSteps(() => host.Expr.FieldOperand(rs.Ref));
                     rs.Steps = steps;
-                    // identifier-1 is a data item, so an index-name is no sender (§13.18.53.3 SR2 — a MOVE shall be
-                    // valid, and §13.18.38.3 r7 admits an index-name in no MOVE).
+                    // identifier-1 is a data item, so an index-name is no sender (§2023:13.18.53.3 SR2 — a MOVE shall be
+                    // valid, and §2023:13.18.38.3 r7 admits an index-name in no MOVE).
                     if (host.Expr.ScreenIndexNameOperand(operand, rs.Written, $"RD '{r.Name}': SOURCE")
                         || ScreenSourceIdentifier(r, rs, operand, printable)) rs.Rejected = true;
                     else rs.Value = operand;
@@ -237,12 +237,12 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     /// <summary>⛔ THE SOURCE CLAUSE'S identifier-1 RULES THAT NEED ITS BOUND ITEM (kb/Work PB1293), reported under
     /// COBOL2770 and returned as "refused" so the operand is neither bound nor reported twice.
     /// <list type="bullet">
-    /// <item>ISO §13.18.53.3 SR8 — "Identifier-1 shall not reference a variable-length group", asked of every
+    /// <item>ISO §2023:13.18.53.3 SR8 — "Identifier-1 shall not reference a variable-length group", asked of every
     /// identifier-1, printable entry or not.</item>
-    /// <item>ISO §13.18.53.3 SR2 — "If identifier-1 is specified without the ROUNDED phrase, identifier-1 shall be
+    /// <item>ISO §2023:13.18.53.3 SR2 — "If identifier-1 is specified without the ROUNDED phrase, identifier-1 shall be
     /// described such that a MOVE statement is valid with identifier-1 as the sending operand and the printable item
-    /// as the receiving operand" (the ROUNDED spelling is a <see cref="FieldComputeSource"/>, SR5). It is §13.18.53.4
-    /// GR1's implicit MOVE, so it is the ONE §14.9.25.3 validity chain every other MOVE asker uses
+    /// as the receiving operand" (the ROUNDED spelling is a <see cref="FieldComputeSource"/>, SR5). It is §2023:13.18.53.4
+    /// GR1's implicit MOVE, so it is the ONE §2023:14.9.25.3 validity chain every other MOVE asker uses
     /// (<see cref="MoveTable16.Validity(BoundOperand, Table16Operand, DataItem)"/>: SR2, SR6-SR9 and Table 16), asked
     /// of the entry's printable item. An entry with no COLUMN clause has no printable item (<paramref name="printable"/>
     /// null), hence no receiving operand and nothing to ask.</item>
@@ -254,18 +254,18 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         {
             ctx.Edition.Error(DiagnosticCatalog.ReportSourceOperandRule, $"{where}: identifier-1 references the "
                 + $"variable-length group '{item.CobolName ?? item.ClrName}', which a SOURCE clause shall not name "
-                + "(ISO §13.18.53.3 SR8)");
+                + "(ISO §2023:13.18.53.3 SR8)");
             return true;
         }
         if (printable is null || MoveTable16.Validity(operand, Table16Operand.Of(printable), printable) is not { } refusal)
             return false;
-        ctx.Edition.Error(DiagnosticCatalog.ReportSourceOperandRule, $"{where}: the implicit MOVE of §13.18.53.4 GR1 "
-            + $"from identifier-1 to the printable item is invalid — {refusal.Reason} (ISO §13.18.53.3 SR2)");
+        ctx.Edition.Error(DiagnosticCatalog.ReportSourceOperandRule, $"{where}: the implicit MOVE of §2023:13.18.53.4 GR1 "
+            + $"from identifier-1 to the printable item is invalid — {refusal.Reason} (ISO §2023:13.18.53.3 SR2)");
         return true;
     }
 
-    /// <summary>⛔ THE VALUE EACH ROLLED ADDITION ADDS (ISO §13.18.54.4 GR6; kb/Work PB1294) — bound once every
-    /// report's own clauses are, because a rolled total may name an entry of ANOTHER report (§13.18.54.3 SR4 g)).
+    /// <summary>⛔ THE VALUE EACH ROLLED ADDITION ADDS (ISO §2023:13.18.54.4 GR6; kb/Work PB1294) — bound once every
+    /// report's own clauses are, because a rolled total may name an entry of ANOTHER report (§2023:13.18.54.3 SR4 g)).
     /// "If data-name-1 specifies an item whose entry contains a SUM clause, the value added is that of the
     /// corresponding sum counter. … If data-name-1 specifies an item whose entry has a SOURCE or VALUE clause, the
     /// value added is that of the operand of the SOURCE or VALUE clause" — as a number, because GR3 adds it
@@ -297,14 +297,14 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         if (value is null && o.Source is not (FieldComputeSource { Rejected: true } or FieldReferenceSource { Rejected: true }))
             ctx.Edition.Error(DiagnosticCatalog.ReportSumDataNameRule, $"RD '{report.Name}': the entry '{o.Family.Name}' is the data-name-1 of "
                 + "a SUM clause, but the operand of its SOURCE or VALUE clause is not a number a sum counter can add "
-                + "(ISO §13.18.54.4 GR6 — the value added is that of the operand; GR3 — added by the ADD statement's rules)");
+                + "(ISO §2023:13.18.54.4 GR6 — the value added is that of the operand; GR3 — added by the ADD statement's rules)");
         // The SOURCE operand's own steps (kb/Work PB4517) run again at the rolled addition: GR6 adds "the value of the
         // operand" when the entry's group is processed, which is an evaluation of its own.
         return value is not null && o.Source?.Steps is { } steps ? new BoundUdfEvaluatedExpr(steps, value) : value;
     }
 
     /// <summary>A bound SOURCE operand as the number an ADD adds, or null when it is no number — a numeric item, a numeric
-    /// literal, a computed value or the figurative ZERO (§8.8.1.1's list of what an arithmetic operand may be).</summary>
+    /// literal, a computed value or the figurative ZERO (§2023:8.8.1.1's list of what an arithmetic operand may be).</summary>
     private static BoundExpr? NumberOf(BoundOperand operand) => operand switch
     {
         BoundFieldOperand { Place: var place } when IntrinsicArgumentRules.IsArithmeticOperandClass(operand) => new BoundNumRef(place),
@@ -315,7 +315,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     };
 
     /// <summary>The number a VALUE clause operand's raw text writes — a numeric literal as written, or the figurative
-    /// ZERO — else null (a numeric item's VALUE is numeric, §13.18.63.3 SR4/SR5, so null means a refused operand).</summary>
+    /// ZERO — else null (a numeric item's VALUE is numeric, §2023:13.18.63.3 SR4/SR5, so null means a refused operand).</summary>
     private static BoundExpr? RawNumber(string raw)
     {
         string text = raw.Trim();
@@ -332,9 +332,9 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         return scope;
     }
 
-    /// <summary>A bare reference to a VARYING counter in scope (ISO §13.18.64.4 GR3/GR4 — "this allows data-name-1 to be
+    /// <summary>A bare reference to a VARYING counter in scope (ISO §2023:13.18.64.4 GR3/GR4 — "this allows data-name-1 to be
     /// used as a source data item, as a subscript to a source data item …"): the compose-local integer the placement
-    /// declares. Null for any other reference, and always outside a report entry's clause (§13.18.64.3 SR2 — a counter
+    /// declares. Null for any other reference, and always outside a report entry's clause (§2023:13.18.64.3 SR2 — a counter
     /// may be referenced only within its entry or a subordinate entry). Asked by the operand and expression binders
     /// right after the report counters, ahead of name resolution: a counter is "not defined elsewhere in the source
     /// element" (SR2), so no ordinary name can answer the word.</summary>
@@ -343,8 +343,8 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
             && dref.cobolWord() is { } w && scope.TryGetValue(w.GetText(), out var counter)
             ? new BoundReportVaryingRef(counter.Local) : null;
 
-    /// <summary><c>INITIATE report-name…</c> (ISO §14.9.21): each name shall be an RD entry (SR1); a multi-name
-    /// statement IS a separate INITIATE statement per report-name in written order (§14.9.21.4 GR5) — one
+    /// <summary><c>INITIATE report-name…</c> (ISO §2023:14.9.21): each name shall be an RD entry (SR1); a multi-name
+    /// statement IS a separate INITIATE statement per report-name in written order (§2023:14.9.21.4 GR5) — one
     /// <see cref="BoundInitiate"/> per name inside a <see cref="BoundImplicitSeries"/>, so GR5's second sentence
     /// ("processing resumes at the next implicit INITIATE statement, if any") has a boundary to land on.</summary>
     public BoundStatement BindInitiate(Core.InitiateStatementContext stmt)
@@ -355,51 +355,51 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         {
             if (RwFindReport(rn.GetText()) is not { } r)
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule, $"INITIATE '{rn.GetText()}': report-name-1 shall be defined by a report "
-                    + "description entry in the report section (ISO §14.9.21.3 SR1)");
-            if (RejectContainedReportFile(r, $"INITIATE {r.Name}", "ISO §14.9.21.3 SR2") is { } notGlobal) return notGlobal;
+                    + "description entry in the report section (ISO §2023:14.9.21.3 SR1)");
+            if (RejectContainedReportFile(r, $"INITIATE {r.Name}", "ISO §2023:14.9.21.3 SR2") is { } notGlobal) return notGlobal;
             members.Add(new BoundInitiate([r]));
         }
         return BoundImplicitSeries.Of(members);
     }
 
-    /// <summary><c>GENERATE {data-name | report-name}</c> (ISO §14.9.16): a detail report group (SR1 — detail
+    /// <summary><c>GENERATE {data-name | report-name}</c> (ISO §2023:14.9.16): a detail report group (SR1 — detail
     /// reporting) or a report-name whose RD has a CONTROL clause (SR2 — summary reporting, GR2).</summary>
     public BoundStatement BindGenerate(Core.GenerateStatementContext stmt)
     {
         if (RejectInBeforeReporting("GENERATE") is { } refused) return refused;
         var (name, qualifier) = ReportGroupResolution.Parts(stmt.reportGroupReference());
-        // The report-name form (SR2, summary reporting) has NO qualifier — §8.4.2.2 gives a report-name no
+        // The report-name form (SR2, summary reporting) has NO qualifier — §2023:8.4.2.2 gives a report-name no
         // qualifier at all — so a qualified operand can only be the data-name form and skips this arm.
         if (qualifier is null && RwFindReport(name) is { } summary)
         {
             if (summary.Controls.Count == 0)
                 ctx.Edition.Error(DiagnosticCatalog.ReportGenerateNeedsControl, $"GENERATE {name}: the report-name form requires a CONTROL "
-                    + "clause in the report description entry (ISO §14.9.16.3 SR2)");
-            if (RejectContainedReportFile(summary, $"GENERATE {name}", "ISO §14.9.16.3 SR4") is { } notGlobal) return notGlobal;
+                    + "clause in the report description entry (ISO §2023:14.9.16.3 SR2)");
+            if (RejectContainedReportFile(summary, $"GENERATE {name}", "ISO §2023:14.9.16.3 SR4") is { } notGlobal) return notGlobal;
             return Presenting(new BoundGenerate(summary, null));   // summary reporting (GR2)
         }
         // SR1's data-name form, through the ONE funnel: it owns the qualified spelling ("It may be qualified by
-        // a report-name") AND the §8.4.2.2.3 SR1 ambiguity this loop used to resolve by writing order (PB365).
+        // a report-name") AND the §2023:8.4.2.2.3 SR1 ambiguity this loop used to resolve by writing order (PB365).
         string where = $"GENERATE {name}{(qualifier is null ? "" : $" OF {qualifier}")}";
         if (ReportGroupResolution.Resolve(ctx.Edition, ctx.Data.State.Reports.Visible, name, qualifier, where,
                 out var report, out var group, ctx.Data) != ReportGroupResolution.Match.None)
         {
             if (group!.Kind != ReportGroupKindModel.Detail)
                 ctx.Edition.Error(DiagnosticCatalog.ReportGenerateNotDetail, $"{where}: the named report group is not a "
-                    + "DETAIL group (ISO §14.9.16.3 SR1)");
+                    + "DETAIL group (ISO §2023:14.9.16.3 SR1)");
             // SR3's REPORT half ("the report description entry in which data-name-1 is specified ... shall contain a
             // GLOBAL clause") holds by construction — a container's non-GLOBAL report is not visible here at all,
-            // so its groups resolve to nothing (§13.18.27.4 GR2). The FILE half is asked here.
-            if (RejectContainedReportFile(report!, where, "ISO §14.9.16.3 SR3") is { } notGlobal) return notGlobal;
+            // so its groups resolve to nothing (§2023:13.18.27.4 GR2). The FILE half is asked here.
+            if (RejectContainedReportFile(report!, where, "ISO §2023:14.9.16.3 SR3") is { } notGlobal) return notGlobal;
             return Presenting(new BoundGenerate(report!, group));
         }
         // Match.None is UNDIAGNOSED by contract ("leaves the 'this is not a report group' diagnostic to the
         // caller") — so this is the report, never a deferral (kb/Work PB909).
-        return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule, $"{where}: '{name}' names neither a detail report group (ISO §14.9.16.3 SR1) "
+        return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule, $"{where}: '{name}' names neither a detail report group (ISO §2023:14.9.16.3 SR1) "
             + "nor a report description entry (SR2)");
     }
 
-    /// <summary><c>TERMINATE report-name…</c> (ISO §14.9.46 SR1; §14.9.46.4 GR4) — one <see cref="BoundTerminate"/> per
+    /// <summary><c>TERMINATE report-name…</c> (ISO §2023:14.9.46 SR1; §2023:14.9.46.4 GR4) — one <see cref="BoundTerminate"/> per
     /// report-name inside a <see cref="BoundImplicitSeries"/>, GR4's "as though a separate TERMINATE statement had
     /// been executed for each report-name-1" and its per-implicit-statement resumption point.</summary>
     public BoundStatement BindTerminate(Core.TerminateStatementContext stmt)
@@ -410,8 +410,8 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         {
             if (RwFindReport(rn.GetText()) is not { } r)
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule, $"TERMINATE '{rn.GetText()}': report-name-1 shall be defined by a report "
-                    + "description entry in the report section (ISO §14.9.46.3 SR1)");
-            if (RejectContainedReportFile(r, $"TERMINATE {r.Name}", "ISO §14.9.46.3 SR2") is { } notGlobal) return notGlobal;
+                    + "description entry in the report section (ISO §2023:14.9.46.3 SR1)");
+            if (RejectContainedReportFile(r, $"TERMINATE {r.Name}", "ISO §2023:14.9.46.3 SR2") is { } notGlobal) return notGlobal;
             members.Add(Presenting(new BoundTerminate([r])));
         }
         return BoundImplicitSeries.Of(members);
@@ -420,9 +420,9 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     /// <summary>A GENERATE or TERMINATE — the two statements that present report groups — is the statement a report
     /// clause's operand-evaluation steps run inside (kb/Work PB4517; see <see cref="BindReportGroupClauses"/>), so it
     /// counts as having evaluated such steps when ANY report it can reach carries them (a GENERATE of one report runs
-    /// the SUM UPON additions and the rolled totals of another, §13.18.54.4 GR6/GR7). The count is what makes
-    /// <c>StatementBinder.BindStatement</c> give the statement its <see cref="BoundActivationSite"/>: ISO §14.9.33.4 GR2
-    /// a) 1./2. makes the statement an activation or a §15.4 subscript store was evaluated in the one a RESUME AT NEXT
+    /// the SUM UPON additions and the rolled totals of another, §2023:13.18.54.4 GR6/GR7). The count is what makes
+    /// <c>StatementBinder.BindStatement</c> give the statement its <see cref="BoundActivationSite"/>: ISO §2023:14.9.33.4 GR2
+    /// a) 1./2. makes the statement an activation or a §2023:15.4 subscript store was evaluated in the one a RESUME AT NEXT
     /// STATEMENT lands after.</summary>
     private T Presenting<T>(T statement) where T : BoundStatement
     {
@@ -431,24 +431,24 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         return statement;
     }
 
-    /// <summary><c>SUPPRESS PRINTING</c> (ISO §14.9.45): inhibit the current instance's printing of the report
-    /// group named by the USE BEFORE REPORTING procedure in which this SUPPRESS lexically appears. §14.9.45.4 GR1
+    /// <summary><c>SUPPRESS PRINTING</c> (ISO §2023:14.9.45): inhibit the current instance's printing of the report
+    /// group named by the USE BEFORE REPORTING procedure in which this SUPPRESS lexically appears. §2023:14.9.45.4 GR1
     /// makes that group a STATIC property of the enclosing declarative, so it is resolved HERE at bind time: the
     /// declarative whose pc range covers the current bind cursor (a Format-2 <c>ReportGroup</c> scope) fixes the
-    /// group, and its owning report drives the emitted engine call. §14.9.45.3 SR1 — a SUPPRESS outside any USE
+    /// group, and its owning report drives the emitted engine call. §2023:14.9.45.3 SR1 — a SUPPRESS outside any USE
     /// BEFORE REPORTING procedure has no group to inhibit and is rejected (the per-instance suppression itself is
     /// the runtime half, GR2 — the report engine's one-shot flag).</summary>
     public BoundStatement BindSuppress(Core.SuppressStatementContext stmt)
     {
         // The containing declarative comes from the ONE bind-position probe (kb/Work PB403) — SUPPRESS's
-        // §14.9.45.3 SR1 is a placement rule like §14.9.14.3 SR2 and §14.9.33.3 SR1/SR2, and each of them used to
+        // §2023:14.9.45.3 SR1 is a placement rule like §2023:14.9.14.3 SR2 and §2023:14.9.33.3 SR1/SR2, and each of them used to
         // walk ctx.Table.Declaratives itself. Ranges are disjoint, so "the declarative containing the cursor,
         // if it is a USE BEFORE REPORTING one" is the same set as the old "first declarative that has a report
         // group AND contains the cursor".
         if (ctx.Enclosing.Declarative?.ReportGroup is not { } group)
         {
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ReportSuppressContext,
-                "SUPPRESS PRINTING may appear only in a USE BEFORE REPORTING procedure (ISO §14.9.45.3 SR1)");
+                "SUPPRESS PRINTING may appear only in a USE BEFORE REPORTING procedure (ISO §2023:14.9.45.3 SR1)");
         }
         var report = ctx.Data.State.Reports.Visible.First(r => r.Groups.Contains(group));
         return new BoundSuppress(report, group);
@@ -456,10 +456,10 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
 
     /// <summary>⛔ THE ONE CHECK of the rule the three report-driving verbs each restate (kb/Work PB369): "If
     /// report-name-1 is defined in a containing program, the file description entry associated with report-name-1
-    /// shall contain a GLOBAL clause" — §14.9.21.3 SR2 (INITIATE), §14.9.46.3 SR2 (TERMINATE), §14.9.16.3 SR4
-    /// (GENERATE report-name) and the file half of §14.9.16.3 SR3 (GENERATE data-name). The report itself is
+    /// shall contain a GLOBAL clause" — §2023:14.9.21.3 SR2 (INITIATE), §2023:14.9.46.3 SR2 (TERMINATE), §2023:14.9.16.3 SR4
+    /// (GENERATE report-name) and the file half of §2023:14.9.16.3 SR3 (GENERATE data-name). The report itself is
     /// visible only because it is GLOBAL (<see cref="ReportScope.Visible"/>); the statement drives output to
-    /// its FILE, which a contained program may reference only when the FD is GLOBAL too (§13.18.27.3 SR3). Null
+    /// its FILE, which a contained program may reference only when the FD is GLOBAL too (§2023:13.18.27.3 SR3). Null
     /// when the statement may proceed — the report is this unit's own, or its file is GLOBAL.</summary>
     private BoundStatement? RejectContainedReportFile(ReportModel report, string where, string rule) =>
         ctx.Data.State.Reports.Depth(report) > 0 && report.File is { IsGlobal: false } file
@@ -469,21 +469,21 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
                 + $"containing program's report shall contain a GLOBAL clause ({rule})")
             : null;
 
-    /// <summary>ISO §14.9.49.3 SR10 (kb/Work PB363): "The GENERATE, INITIATE, or TERMINATE statements shall not
+    /// <summary>ISO §2023:14.9.49.3 SR10 (kb/Work PB363): "The GENERATE, INITIATE, or TERMINATE statements shall not
     /// appear in a paragraph within a USE BEFORE REPORTING procedure." ONE guard read by all three verbs, over the
-    /// ONE bind-position probe SUPPRESS's converse rule (§14.9.45.3 SR1) reads, so the three cannot drift apart.
+    /// ONE bind-position probe SUPPRESS's converse rule (§2023:14.9.45.3 SR1) reads, so the three cannot drift apart.
     /// The rule is lexical ("appear in a paragraph"); the same question asked of a statement REACHED through a
-    /// PERFORM at run time is §14.9.49.4 GR10's EC-FLOW-REPORT (kb/Work PB326). Null when the statement may
+    /// PERFORM at run time is §2023:14.9.49.4 GR10's EC-FLOW-REPORT (kb/Work PB326). Null when the statement may
     /// proceed.</summary>
     private BoundStatement? RejectInBeforeReporting(string verb) =>
         ctx.Enclosing.InBeforeReportingProcedure
             ? BoundRejected.Report(ctx.Edition, DiagnosticCatalog.UseBeforeReportingRestriction,
                 $"{verb}: this statement is in USE BEFORE REPORTING declarative section "
                 + $"'{ctx.Enclosing.Declarative!.SectionName}' — \"The GENERATE, INITIATE, or TERMINATE statements "
-                + "shall not appear in a paragraph within a USE BEFORE REPORTING procedure\" (ISO §14.9.49.3 SR10)")
+                + "shall not appear in a paragraph within a USE BEFORE REPORTING procedure\" (ISO §2023:14.9.49.3 SR10)")
             : null;
 
-    /// <summary>ISO §14.9.49.3 SR11 (kb/Work PB363): "A USE BEFORE REPORTING procedure shall not alter the value of
+    /// <summary>ISO §2023:14.9.49.3 SR11 (kb/Work PB363): "A USE BEFORE REPORTING procedure shall not alter the value of
     /// any control data item." Asked of one BOUND statement, through the ONE store classification
     /// (<see cref="BoundStores.StoresInto"/>), by <c>StatementBinder.BindStatement</c> for every statement bound in a
     /// USE BEFORE REPORTING procedure — so every verb that can store is covered by the classification's
@@ -512,7 +512,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         ctx.Edition.Error(DiagnosticCatalog.UseBeforeReportingRestriction,
             $"this statement alters control data item '{hit!.CobolName}' in USE BEFORE REPORTING declarative section "
             + $"'{ctx.Enclosing.Declarative!.SectionName}' — \"A USE BEFORE REPORTING procedure shall not alter the "
-            + "value of any control data item\" (ISO §14.9.49.3 SR11)");
+            + "value of any control data item\" (ISO §2023:14.9.49.3 SR11)");
         return true;
     }
 
@@ -528,10 +528,10 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     private ReportModel? RwFindReport(string name) =>
         ctx.Data.State.Reports.Visible.FirstOrDefault(r => CobolNames.Same(r.Name, name));
 
-    /// <summary>Intercept a LINE-COUNTER / PAGE-COUNTER data reference (ISO §8.4.3.15) ahead of normal name
+    /// <summary>Intercept a LINE-COUNTER / PAGE-COUNTER data reference (ISO §2023:8.4.3.15) ahead of normal name
     /// resolution (the LINAGE-COUNTER idiom in <c>FieldOperand</c>/<c>RefExpr</c>). Returns null when the
     /// reference is NOT a counter; a <see cref="BoundReportCounterRef"/> when it resolves (the OF/IN
-    /// <c>cobolWord</c> is the report-name qualifier, SR2/§8.4.2.2 — unqualified resolves only against a sole
+    /// <c>cobolWord</c> is the report-name qualifier, SR2/§2023:8.4.2.2 — unqualified resolves only against a sole
     /// report); a <see cref="BoundExprError"/> (with a bind diagnostic) for a counter that cannot resolve.</summary>
     public BoundExpr? CounterExpr(Core.DataReferenceContext dref)
     {
@@ -543,7 +543,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
             : BoundExprError.Refused(ctx.Edition, $"{reg} reference '{DataBinder.WrittenText(dref)}'");
     }
 
-    /// <summary>The <see cref="ReportPageCounterPlace"/> for a PAGE-COUNTER RECEIVING reference (ISO §8.4.3.15.3
+    /// <summary>The <see cref="ReportPageCounterPlace"/> for a PAGE-COUNTER RECEIVING reference (ISO §2023:8.4.3.15.3
     /// SR1 — "In the procedure division, PAGE-COUNTER and LINE-COUNTER may be referenced in any context where an
     /// integer data item may appear"; SR3 removes LINE-COUNTER, and only LINE-COUNTER, from the receiving side,
     /// which <c>ExpressionBinder.ResolveReceiving</c> screens before it reaches here). Null when the reference
@@ -556,7 +556,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
 
     /// <summary>⛔ THE ONE RESOLUTION OF A COUNTER REFERENCE TO ITS REPORT, read by the SENDING
     /// (<see cref="CounterExpr"/>) and RECEIVING (<see cref="CounterPlace"/>) directions alike: the OF/IN
-    /// <c>cobolWord</c> is the report-name qualifier (ISO §8.4.3.15 SR2 / §8.4.2.2), and an unqualified counter
+    /// <c>cobolWord</c> is the report-name qualifier (ISO §2023:8.4.3.15 SR2 / §2023:8.4.2.2), and an unqualified counter
     /// resolves only when the program has exactly one report. Null — with the diagnostic already raised — when
     /// the qualifier names no report, when no report description entry exists, or when an unqualified reference
     /// is ambiguous. Written once so a program cannot be told the qualification rule on one side of a statement
@@ -569,19 +569,19 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
             ctx.Edition.Error(DiagnosticCatalog.ReportCounterQualification, $"{reg} OF '{q.GetText()}': the qualifier shall name a report "
                 + $"description entry — a counter of a DIFFERENT report is referenced \"qualified explicitly by the report-name "
                 + $"associated with the different report\" (ISO {CounterQualificationRule(reg)}; the qualification requirements "
-                + "for the counters are those of §8.4.2.2, §8.4.3.15.3 SR2)");
+                + "for the counters are those of §2023:8.4.2.2, §2023:8.4.3.15.3 SR2)");
             return null;
         }
-        // §8.4.2.2.3 SR9/SR10 — "In the report section, an unqualified reference to the [LINE-COUNTER | PAGE-COUNTER] is
+        // §2023:8.4.2.2.3 SR9/SR10 — "In the report section, an unqualified reference to the [LINE-COUNTER | PAGE-COUNTER] is
         // qualified implicitly by the name of the report in whose report description entry the reference is made": the
         // enclosing RD answers, whatever number of reports the program has (kb/Work PB1456).
         if (ctx.Refs.EnclosingReport is { } enclosing) return enclosing;
-        // §8.4.6.2.5 — the counters of a GLOBAL report are global; §8.4.6.2.1 rule 3 — the nearest declaring
+        // §2023:8.4.6.2.5 — the counters of a GLOBAL report are global; §2023:8.4.6.2.1 rule 3 — the nearest declaring
         // source element's reports hide a container's, so "exactly one report" is asked of the nearest ones.
         var nearest = ctx.Data.State.Reports.NearestInScope(ctx.Data.State.Reports.Visible, r => r);
         if (nearest.Count == 1) return nearest[0];
         ctx.Edition.Error(DiagnosticCatalog.ReportCounterQualification, nearest.Count == 0
-            ? $"{reg} referenced, but the program has no report description entry (ISO §8.4.3.15.1 — the "
+            ? $"{reg} referenced, but the program has no report description entry (ISO §2023:8.4.3.15.1 — the "
               + "counters are generated per report)"
             : $"unqualified {reg} with more than one report description entry: {reg} shall be qualified each time it is "
               + $"referenced in the procedure division if more than one report description entry is specified in the "
@@ -590,7 +590,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     }
 
     /// <summary>The syntax rule that qualifies the register <paramref name="reg"/> — one rule per counter, written as
-    /// the standard writes it (§8.4.2.2.3 SR9 for LINE-COUNTER, SR10 for PAGE-COUNTER).</summary>
+    /// the standard writes it (§2023:8.4.2.2.3 SR9 for LINE-COUNTER, SR10 for PAGE-COUNTER).</summary>
     private static string CounterQualificationRule(string reg) =>
-        reg == "PAGE-COUNTER" ? "§8.4.2.2.3 SR10" : "§8.4.2.2.3 SR9";
+        reg == "PAGE-COUNTER" ? "§2023:8.4.2.2.3 SR10" : "§2023:8.4.2.2.3 SR9";
 }

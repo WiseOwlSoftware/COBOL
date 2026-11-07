@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ A COBOL-85 COMMENT-ENTRY CANDIDATE THE LOGICAL CONVERSION CANNOT PLACE IS DECIDED AFTER EVERY STAGE THAT CAN CHANGE
-/// WHAT THE DIVISION IS (docs/CONFORMANCE.md D-CE2; kb/Work PB4281). §6.5 converts "before the application of replacing and
+/// WHAT THE DIVISION IS (docs/CONFORMANCE.md D-CE2; kb/Work PB4281). §2023:6.5 converts "before the application of replacing and
 /// conditional compilation actions", so the conversion carries what it cannot place (<see cref="CommentEntryCarrier"/>) and
 /// <see cref="CommentEntryResolver"/> decides it on the finished text, reading the words through the group's
 /// <c>&gt;&gt;COBOL-WORDS</c> map. The order is a fact of <c>Frontend.Preprocess</c> that no behavioral test can see failing

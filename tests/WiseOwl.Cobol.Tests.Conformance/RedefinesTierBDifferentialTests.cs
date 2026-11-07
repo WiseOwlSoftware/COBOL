@@ -5,7 +5,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// REDEFINES Tier B (ISO/IEC 1989:2023 §13.18.44; DESIGN §4.2): a DISPLAY-homogeneous class (alphanumeric /
+/// REDEFINES Tier B (ISO/IEC 1989:2023 §2023:13.18.44; DESIGN §4.2): a DISPLAY-homogeneous class (alphanumeric /
 /// DISPLAY-numeric / numeric-edited views over one storage area). The canonical is ONE <see cref="string"/> backing of
 /// class-max width; each view is a typed <c>(offset,width)</c> window over it — a numeric view decodes/encodes via
 /// <c>CobolNum.ParseDisplay</c>/<c>FormatDisplay</c>. A write through any view is visible through every other (one
@@ -88,7 +88,7 @@ public sealed class RedefinesTierBDifferentialTests
 
     [Fact]
     public void FixedOccursValue_SeedsEveryOccurrence()
-        // §13.18.63 GR9: every occurrence of a fixed-OCCURS entry takes the VALUE — the Tier-B backing seeds the
+        // §2023:13.18.63 GR9: every occurrence of a fixed-OCCURS entry takes the VALUE — the Tier-B backing seeds the
         // WHOLE canonical image ("ABABAB"), not one occurrence padded ("AB    "). Regression for ImageInitOf.
         => AssertMatchesGolden(Program(
             "01 WS-G.\n   05 WS-E PIC XX OCCURS 3 VALUE \"AB\".\n01 WS-V REDEFINES WS-G PIC X(6).",

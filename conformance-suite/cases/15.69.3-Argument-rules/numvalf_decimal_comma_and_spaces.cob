@@ -5,14 +5,14 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.69 NUMVAL-F — two argument-side rules that need DISTINCT source units:
-      *> NUMVALFSPC (no DECIMAL-POINT IS COMMA) pins §15.69.4 r1 — "Leading, trailing, and embedded
-      *> spaces are ignored" — with every space sitting in a slot the §15.69.3 r1 format licenses
+      *> ISO §2023:15.69 NUMVAL-F — two argument-side rules that need DISTINCT source units:
+      *> NUMVALFSPC (no DECIMAL-POINT IS COMMA) pins §2023:15.69.4 r1 — "Leading, trailing, and embedded
+      *> spaces are ignored" — with every space sitting in a slot the §2023:15.69.3 r1 format licenses
       *> (after the sign, after E, around the exponent sign and n): " + 1.5E + 1 " is +1.5×10¹ = 15.
-      *> ⚠ The exponent SIGN is REQUIRED: the §15.69.3 r1 format (verified on printed page 898) puts
+      *> ⚠ The exponent SIGN is REQUIRED: the §2023:15.69.3 r1 format (verified on printed page 898) puts
       *> the exponent's +/− in BRACES (a required choice), unlike the OPTIONAL square-bracket leading
       *> sign — "2.5E2" is not a legal argument, so every exponent below is written signed.
-      *> DPCPROG (DECIMAL-POINT IS COMMA) pins §15.69.3 r4 — "the character comma shall be used in
+      *> DPCPROG (DECIMAL-POINT IS COMMA) pins §2023:15.69.3 r4 — "the character comma shall be used in
       *> argument-1 instead of the character period to represent the decimal separator" — so "1,5E+1"
       *> is 15 and "2,25E+2" is 225. Integer receivers keep the output free of separator editing.
        IDENTIFICATION DIVISION.

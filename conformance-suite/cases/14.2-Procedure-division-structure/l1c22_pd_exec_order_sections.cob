@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.2.3 GR1 — Format 1: execution skips the declaratives,
+      *> ISO §2023:14.2.3 GR1 — Format 1: execution skips the declaratives,
       *> starts at the first statement, then follows presentation order.
       *> RULE (14.2.3 GR1): "Execution begins with the first statement
       *> of the procedure division, excluding declaratives. Statements
@@ -13,10 +13,10 @@
       *> compilation, except where the rules indicate some other order."
       *> cite.py --check 14.2.3 "Execution begins with the first
       *>   statement of the procedure division, excluding declaratives"
-      *>   -> OK  §14.2.3 1)  (General rules)
+      *>   -> OK  §2023:14.2.3 1)  (General rules)
       *> cite.py --check 14.2.3 "Statements are then executed in the
       *>   order in which they are presented for compilation"
-      *>   -> OK  §14.2.3 1)  (General rules)
+      *>   -> OK  §2023:14.2.3 1)  (General rules)
       *> Format 1 (14.2.1) lets a section hold zero sentences and lets
       *> sentences precede the section's first paragraph.
       *> DERIVATION of every output line:

@@ -74,7 +74,7 @@ public sealed class ReservedWordsDriftTests
         Assert.Equal(16, high.Count(e => !e.R2014 && e.R2023));
         // The 1985 RE-reservations among the 16 — the communication trio incl. the END- scope terminator
         // (mechanically derived, DEVLOG 585; the recall-based classification knew only two of them), still reserved
-        // at 2002 by the ISO 2002 §8.9 list like the rest of that facility's vocabulary (obsolete there; kb/Work PB656,
+        // at 2002 by the ISO 2002 §2002:8.9 list like the rest of that facility's vocabulary (obsolete there; kb/Work PB656,
         // PB4297).
         Assert.Equal(3, high.Count(e => e.R85 && e.R2002 && !e.R2014 && e.R2023));
         Assert.True(high.Count(e => e.R85 && !e.R2023) >= 20, "the removed-post-85 group should be substantial");
@@ -86,7 +86,7 @@ public sealed class ReservedWordsDriftTests
 
     /// <summary>⛔ THE 85 FLAG IS HELD TO THE 2002 TEXT (kb/Work PB3957). No 1985 text is in the repository, but the 2002
     /// standard's Annex F.1 item 6 ("The following reserved words have been added") names every reserved word 2002 added
-    /// to the previous standard's, so a word of the 2002 §8.9 list that the item does not name was already reserved at
+    /// to the previous standard's, so a word of the 2002 §2002:8.9 list that the item does not name was already reserved at
     /// 1985. ORDER sat outside that on a "CCVS proof" that misread ST127A (the SORT keyword, not a data-name), and
     /// COBOL-85 accepted <c>01 ORDER PIC 9.</c>. One direction only: the item also names LAST, which the 85 source holds.
     /// The generator asserts the same of its input; this test holds the committed table to the text.</summary>
@@ -103,7 +103,7 @@ public sealed class ReservedWordsDriftTests
         var notAt85 = words.Where(w => !added.Contains(w) && !(table.TryGetValue(w, out var t) && t.R85))
             .Order(StringComparer.Ordinal).ToList();
         Assert.True(notAt85.Count == 0,
-            $"{notAt85.Count} 2002 §8.9 word(s) the Annex F.1 item does not name as added are not reserved at 85 (first: {notAt85.FirstOrDefault()}) — "
+            $"{notAt85.Count} 2002 §2002:8.9 word(s) the Annex F.1 item does not name as added are not reserved at 85 (first: {notAt85.FirstOrDefault()}) — "
             + "they were reserved at 1985; fix scripts/gen-reserved-words.ps1 and regenerate");
         Assert.True(table["ORDER"].R85, "ORDER is reserved at COBOL-85: SORT's WITH DUPLICATES IN ORDER prints it and F.1 does not add it");
     }

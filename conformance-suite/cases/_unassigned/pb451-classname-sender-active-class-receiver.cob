@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.39.3 syntax rule 14: "If the data item referenced by identifier-3 is
+      *> ISO §2023:14.9.39.3 syntax rule 14: "If the data item referenced by identifier-3 is
       *> described with an ACTIVE-CLASS phrase, the data item referenced by identifier-4 shall
       *> be one of the following: a) an object reference described with the ACTIVE-CLASS
       *> phrase …; b) the predefined object SELF …; c) the predefined object reference NULL."

@@ -5,7 +5,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// G2-1c: reference modification <c>item(start:length)</c> (ISO §8.4.3.3.4) — read (DISPLAY / MOVE source /
+/// G2-1c: reference modification <c>item(start:length)</c> (ISO §2023:8.4.3.3.4) — read (DISPLAY / MOVE source /
 /// comparison) and write (MOVE into a slice), with literal and data-name start/length and the "to the end" form.
 /// Pinned to the committed golden.
 /// </summary>
@@ -48,7 +48,7 @@ public sealed class RefModDifferentialTests
     public void Write_ShorterSource_SpaceFills()
     {
         // MOVE "Z" TO X(4:3) → positions 4-6 = "Z  "; the trailing fill is exposed by the "]", so this is spec-pinned
-        // (wiseowl-cobol emits the full field per ISO §14.9.11.4 GR6; the legacy trims the trailing spaces — non-conforming).
+        // (wiseowl-cobol emits the full field per ISO §2023:14.9.11.4 GR6; the legacy trims the trailing spaces — non-conforming).
         var (cok, cout, cdetail) = WiseOwlCobol.CompileAndRun(Program(Six, "    MOVE \"Z\" TO X(4:3).\n    DISPLAY \"[\" X \"]\"."));
         Assert.True(cok, cdetail);
         Assert.Equal(CutRunner.Normalize("[ABCZ  ]"), cout);

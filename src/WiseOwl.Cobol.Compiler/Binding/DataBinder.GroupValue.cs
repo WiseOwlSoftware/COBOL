@@ -5,7 +5,7 @@ using WiseOwl.Cobol.Binding.Model;
 namespace WiseOwl.Cobol.Binding;
 
 /// <summary>
-/// THE group-level VALUE declaration screen (ISO §13.18.63.3 SR13/SR14; kb/Work PB184) — the syntax rules that
+/// THE group-level VALUE declaration screen (ISO §2023:13.18.63.3 SR13/SR14; kb/Work PB184) — the syntax rules that
 /// restrict what may sit UNDER an entry carrying a group-level VALUE clause. Partial-class extension over
 /// <c>DataBinder</c>, run as the declared <c>CheckGroupValueDeclarations</c> pass (see <c>BindPipeline</c>).
 ///
@@ -19,13 +19,13 @@ namespace WiseOwl.Cobol.Binding;
 ///   <item><c>01 GV VALUE "ABCD". 05 B PIC X(2) VALUE "ZZ".</c> — accepted silently, B's own VALUE discarded.</item>
 /// </list>
 ///
-/// <para><b>⚠ PB184's premise, corrected.</b> The note registered PB184 as a §13.18.63.4 GR5 DISTRIBUTION gap —
+/// <para><b>⚠ PB184's premise, corrected.</b> The note registered PB184 as a §2023:13.18.63.4 GR5 DISTRIBUTION gap —
 /// GR5 initializes "the group area … without consideration for the individual elementary or group items
 /// contained within this group", so (the reasoning went) a COMP-5 leaf should take its slice of the literal's
 /// BYTES and the <c>GroupValueSlicer</c> screen that excludes byte-form leaves was predicate drift left over
 /// from the Tier-C boundary. SR14 refutes that premise: an alphanumeric group item is a group for which no
 /// GROUP-USAGE clause is specified or implied, that is not strongly typed and is not a variable-length group
-/// (§13.18.29.4 GR3; §8.5.2.1 — "an alphanumeric group item has class and category alphanumeric"), and SR14
+/// (§2023:13.18.29.4 GR3; §2023:8.5.2.1 — "an alphanumeric group item has class and category alphanumeric"), and SR14
 /// requires EVERY data item subordinate to such a group carrying a VALUE to be usage
 /// DISPLAY. The measured program is therefore NOT CONFORMING; there is no conforming area for the byte-form
 /// distribution to exist over. GR5 is already implemented, correctly, for the whole population SR14 admits —
@@ -33,7 +33,7 @@ namespace WiseOwl.Cobol.Binding;
 /// character slice IS the area deposit. What was missing was the DIAGNOSTIC on the complement.</para>
 ///
 /// <para>A syntax rule is a "shall", so the only conforming response to a violation is a compile-time
-/// diagnostic (the same posture as the §13.18.63.3 SR2/SR3 numeric-VALUE screen, COBOL1625) — never a
+/// diagnostic (the same posture as the §2023:13.18.63.3 SR2/SR3 numeric-VALUE screen, COBOL1625) — never a
 /// silent member-wise substitute, and it is NOT dialect-gated: no edition of the standard permitted this.</para>
 /// </summary>
 public sealed partial class DataBinder

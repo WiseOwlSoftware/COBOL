@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO 1989:2023 §13.18.2 ANY LENGTH — a METHOD's LINKAGE formal whose length tracks each
+      *> ISO 1989:2023 §2023:13.18.2 ANY LENGTH — a METHOD's LINKAGE formal whose length tracks each
       *> activation's argument (GR1): INVOKEd BY REFERENCE with an X(3) and an X(8) argument, the
       *> method's FUNCTION LENGTH and the item's content prove n = 3 then n = 8.
        IDENTIFICATION DIVISION.

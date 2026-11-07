@@ -5,32 +5,32 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §8.5.1.9.1 2) Dynamic-capacity tables — a table with no TO
+      *> ISO §2023:8.5.1.9.1 2) Dynamic-capacity tables — a table with no TO
       *>   phrase has no declared ceiling
       *> Rule: "A dynamic-capacity table differs from an
       *>   occurs-depending table in that:
       *> ... 2) it may have an unlimited capacity, and"
       *>   cite.py --check 8.5.1.9.1 "it may have an unlimited capacity,
       *>     and"
-      *>   -> OK  §8.5.1.9.1 2)  (General)
+      *>   -> OK  §2023:8.5.1.9.1 2)  (General)
       *>   cite.py --check 8.5.1.9.1 "If neither is specified, the
       *>     current capacity is
-      *>   initialized to zero."  -> OK  §8.5.1.9.1 3)  (General)
+      *>   initialized to zero."  -> OK  §2023:8.5.1.9.1 3)  (General)
       *>   cite.py --check 8.5.1.9.1 "The actual limit for the current
       *>     capacity imposed by
       *>   the implementor and by current resource availability is
       *>     referred to as the
-      *>   maximum capacity."  -> OK  §8.5.1.9.1 3)  (General)
+      *>   maximum capacity."  -> OK  §2023:8.5.1.9.1 3)  (General)
       *>   cite.py --check 8.5.1.9.3 "a new element is automatically
       *>     created and the
       *>   capacity of the table is increased to the value given by the
       *>     subscript"
-      *>   -> OK  §8.5.1.9.3  (Implicit changes in capacity)
+      *>   -> OK  §2023:8.5.1.9.3  (Implicit changes in capacity)
       *>   cite.py --check 8.5.1.9.4 "the capacity of the
       *>     dynamic-capacity table may be
       *>   increased or decreased explicitly by means of the
       *>     dynamic-capacity-table format
-      *>   SET statement"  -> OK  §8.5.1.9.4  (Explicit changes in
+      *>   SET statement"  -> OK  §2023:8.5.1.9.4  (Explicit changes in
       *>     capacity)
       *> The table below has neither FROM nor TO: nothing in the
       *>   declaration bounds it, so

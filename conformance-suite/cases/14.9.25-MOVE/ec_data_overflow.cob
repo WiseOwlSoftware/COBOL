@@ -5,14 +5,14 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> EC-DATA-OVERFLOW (ISO §14.9.25.4 GR6 d)4.a; Table 13 Fatal): "If the algebraic value of the sending
+      *> EC-DATA-OVERFLOW (ISO §2023:14.9.25.4 GR6 d)4.a; Table 13 Fatal): "If the algebraic value of the sending
       *> operand is farther from zero than is permitted by the usage specifications of the receiving data item,
       *> the EC-DATA-OVERFLOW exception condition is set to exist, and the content of the receiving data item is
-      *> undefined."  MOVE-only (an arithmetic ±Inf result is the valid §14.6.8.3 GR1 value, never this EC), and
+      *> undefined."  MOVE-only (an arithmetic ±Inf result is the valid §2023:14.6.8.3 GR1 value, never this EC), and
       *> an underflow to zero is not this EC.  Observed via a USE declarative + RESUME AT NEXT STATEMENT.
       *>
       *> The rule binds a receiver "described with a standard floating-point usage" — FLOAT-BINARY-32/-64 here
-      *> (§13.18.60.4 GR14/GR15).  For COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED §14.6.8.3 rule 1 leaves the
+      *> (§2023:13.18.60.4 GR14/GR15).  For COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED §2023:14.6.8.3 rule 1 leaves the
       *> conversion exceptions to the implementor, and WiseOwl COBOL's determination is the SAME condition — one
       *> rule for every float receiver (CONFORMANCE.md §7).
       *>

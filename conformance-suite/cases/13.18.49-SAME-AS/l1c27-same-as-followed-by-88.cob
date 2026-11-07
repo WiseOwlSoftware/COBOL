@@ -4,7 +4,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.18.49.3 2) — a SAME AS entry followed by a level 88
+      *> ISO §2023:13.18.49.3 2) — a SAME AS entry followed by a level 88
       *> entry
       *> "A data description entry that specifies the SAME AS clause
       *> shall not be immediately followed by a subordinate data
@@ -13,7 +13,7 @@
       *>   specifies the SAME AS clause shall not be immediately
       *>   followed by a subordinate data description entry or level 88
       *>   entry"
-      *>   -> OK §13.18.49.3 2)
+      *>   -> OK §2023:13.18.49.3 2)
       *> THE LEVEL-88 ARM. E is elementary (SR7 and SR8 hold) and W is
       *> level 1 in working-storage; only the 88 entry under W is wrong
       *> (removing it compiles clean). The subordinate-entry arm is the

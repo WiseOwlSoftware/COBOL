@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// WRITTEN REFERENCE (kb/Work PB457). The register is not in <c>ByName</c> — it is a view over the table's
 /// capacity, never storage — so whatever <c>ReferenceResolver.CapacityRegisterFor</c> refuses is not handed to a
 /// slower path: it is the END of resolution, and the general resolver then said COBOL1639 "is not defined"
-/// about a name ISO §13.18.38.3 SR30 declares. The old hook refused on two PARSE-shape conjuncts —
+/// about a name ISO §2023:13.18.38.3 SR30 declares. The old hook refused on two PARSE-shape conjuncts —
 /// <c>DataReferenceCst.HasNoSuffix</c> (since deleted, kb/Work PB2193; <c>dataReferenceSuffix</c> made it false
 /// for QUALIFICATION as well as for subscripts, so the legal <c>SET WS-CAP OF WS-TABLE TO 7</c> failed it) and the
 /// zero-index
@@ -39,7 +39,7 @@ public sealed class CapacityRegisterReferenceDriftTests
 
     /// <summary>⛔ ONE lookup path. The register name tables are <c>ForestSlice.CapacityRegisters</c> (the unit's) and
     /// <c>OoMethodDataScope.CapacityRegisters</c> (a method's own, kb/Work PB3165). Only
-    /// <c>SymbolTable.CapacityCandidates</c> — the one scope-aware name resolver, where §11.7.4 GR5's
+    /// <c>SymbolTable.CapacityCandidates</c> — the one scope-aware name resolver, where §2023:11.7.4 GR5's
     /// method-over-object visibility is applied — reads a name in them
     /// (<see cref="TheOneLookup_HoldsEveryRead_AndHasOneCaller"/>). A reader in any file other than
     /// <c>ForestSlice.cs</c> (the maps' owner: the one insert) and
@@ -59,7 +59,7 @@ public sealed class CapacityRegisterReferenceDriftTests
     }
 
     /// <summary>The two SHADOWING predicates (kb/Work PB3154 review R2-1): a named register is a data-name
-    /// (§13.18.38.3 SR30), so it hides an inherited constant-name or symbolic-character of its spelling (§8.4.6.1), and
+    /// (§2023:13.18.38.3 SR30), so it hides an inherited constant-name or symbolic-character of its spelling (§2023:8.4.6.1), and
     /// each predicate asks whether a register of the word is DECLARED at its tier — the unit's
     /// (<c>DataBinder.DeclaredNearerThan</c>) and a method's own (<c>OoMethodDataScope.IndexesDeclare</c>). Neither answers a
     /// reference. Their files may read a register map only inside them.</summary>
@@ -137,7 +137,7 @@ public sealed class CapacityRegisterReferenceDriftTests
     /// <summary>⛔ The hook judges the WRITTEN reference, never the parse shape. A read of
     /// <c>dataReferenceSuffix()</c> back in <c>CapacityRegisterFor</c> (the old façade <c>HasNoSuffix</c> test,
     /// deleted by kb/Work PB2193, was exactly that read) is the regression that deleted the qualified form: it
-    /// cannot tell a subscript (§13.18.38.3 SR31, refused) from a qualification (§8.4.2.2.3 SR2, legal).</summary>
+    /// cannot tell a subscript (§2023:13.18.38.3 SR31, refused) from a qualification (§2023:8.4.2.2.3 SR2, legal).</summary>
     [Fact]
     public void TheCapacityRegisterHook_ReadsTheWrittenReference_NotTheParseShape()
     {
@@ -145,7 +145,7 @@ public sealed class CapacityRegisterReferenceDriftTests
         Assert.DoesNotContain("dataReferenceSuffix(", body, StringComparison.Ordinal);
         Assert.DoesNotContain("HasNoSuffix", body, StringComparison.Ordinal);
         Assert.Contains("ReadWritten(", body, StringComparison.Ordinal);
-        // The §8.4.2.2 qualifier rule is the binder's ONE matcher, not a copy (kb/Work PB489).
+        // The §2023:8.4.2.2 qualifier rule is the binder's ONE matcher, not a copy (kb/Work PB489).
         Assert.Contains("QualifierChainMatches(", body, StringComparison.Ordinal);
     }
 
@@ -169,7 +169,7 @@ public sealed class CapacityRegisterReferenceDriftTests
                 $"CapacityRefFault.{m} has no diagnostic arm in CapacityPlaceOf.");
     }
 
-    /// <summary>⛔ The register carries its §13.18.38.3 SR30 position. "If qualifiers are required for uniqueness,
+    /// <summary>⛔ The register carries its §2023:13.18.38.3 SR30 position. "If qualifiers are required for uniqueness,
     /// it shall be treated as though implicitly defined at the same level as the entry containing the OCCURS
     /// clause" is ONE assignment where the register is minted — <c>Parent = item.Parent</c> — and it is what makes
     /// both the qualifier match and the nested-table fault (SubscriptArity &gt; 0) derive themselves.</summary>

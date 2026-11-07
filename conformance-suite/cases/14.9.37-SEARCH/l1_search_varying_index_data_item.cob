@@ -5,16 +5,16 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.37.4 GR3 b) 1 — "If identifier-2 references an index
+      *> ISO §2023:14.9.37.4 GR3 b) 1 — "If identifier-2 references an index
       *> data item, that data item is incremented by the same amount as,
       *> and at the same time as, the search index."
       *> GR4 increments the search index by ONE OCCURRENCE NUMBER per
       *> unsuccessful pass, so "the same amount" is one occurrence
-      *> number per pass. §13.18.60.4 GR10 (USAGE) fixes the only
+      *> number per pass. §2023:13.18.60.4 GR10 (USAGE) fixes the only
       *> portable reading of an index data item's content: it "contains
       *> a value that shall correspond to an occurrence number", the
       *> stored representation being implementor-defined — so the item
-      *> is seeded and read back through an index-name (§14.9.39.4 GR2
+      *> is seeded and read back through an index-name (§2023:14.9.39.4 GR2
       *> b) and c)), never displayed directly.
       *> Leg A: index data item at occurrence 2, search index at 1,
       *>        match at occurrence 4 = THREE passes -> 2 + 3 = 5.

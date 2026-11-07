@@ -5,8 +5,8 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §11.7 / §13.18.38 — OCCURS … DEPENDING ON in a METHOD's LOCAL-STORAGE (M2-OO-1h step 2). The
-      *> DEPENDING data-name-1 (CNT) resolves in the METHOD's own scope (§11.7.4 GR5), and a whole-group send of
+      *> ISO §2023:11.7 / §2023:13.18.38 — OCCURS … DEPENDING ON in a METHOD's LOCAL-STORAGE (M2-OO-1h step 2). The
+      *> DEPENDING data-name-1 (CNT) resolves in the METHOD's own scope (§2023:11.7.4 GR5), and a whole-group send of
       *> the table honors the CURRENT extent (GR8) — 3 elements, then 2 after CNT is lowered.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. OOODO.

@@ -4,14 +4,14 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> ISO §13.18.34.2 prints the LINAGE clause's three optional phrases in ONE order — WITH FOOTING AT, then
+*> ISO §2023:13.18.34.2 prints the LINAGE clause's three optional phrases in ONE order — WITH FOOTING AT, then
 *> LINES AT TOP, then LINES AT BOTTOM — as three separate brackets on the page, and the order of a general
 *> format's elements is what the format states. Writing `LINES AT TOP 2 WITH FOOTING AT 4` is therefore not a
 *> spelling of this clause in any edition. The figure was rendered from the canonical PDF (printed folio 417)
 *> when this was adjudicated, so the printed order is the standard's own and not a transcription artifact.
 *> ⛔ THE POSITIVE TWIN IS conformance-suite/cases/13.18.34-LINAGE/pb489_linage_qualified_operands.cob, which writes all three
 *> phrases in the printed order with every optional word OMITTED from one file and every optional word WRITTEN
-*> on the other. Together they pin the format from both sides: the words are optional (§8.3.2.4.3) and the
+*> on the other. Together they pin the format from both sides: the words are optional (§2023:8.3.2.4.3) and the
 *> PHRASES are not reorderable — which is the distinction a grammar can silently lose in either direction.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB489N6.

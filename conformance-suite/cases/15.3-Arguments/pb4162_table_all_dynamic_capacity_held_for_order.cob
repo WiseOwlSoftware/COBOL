@@ -5,16 +5,16 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB4162 - the dynamic-capacity leg of pb4162_table_all_argument_held_for_order. ISO §8.4.3.2.4 GR2 evaluates a
+      *> kb/Work PB4162 - the dynamic-capacity leg of pb4162_table_all_argument_held_for_order. ISO §2023:8.4.3.2.4 GR2 evaluates a
       *> function's arguments "individually in the order specified in the list of arguments, from left to right" (cite.py: OK
-      *> 8.4.3.2.4 2)), and §15.3 14) makes T (ALL) a sequence of arguments, each evaluated at its place in the list; "If the
+      *> 8.4.3.2.4 2)), and §2023:15.3 14) makes T (ALL) a sequence of arguments, each evaluated at its place in the list; "If the
       *> subscript ALL is specified for a dynamic-capacity table, the range of values of the subscript is from 1 to the current
       *> capacity of the table" (cite.py: OK 15.3 14)). The range is read when the argument is evaluated, so a later argument's
-      *> user-defined function activation that lowers the capacity (SET CAP TO 1, §14.9.39 Format 14) cannot shorten it.
+      *> user-defined function activation that lowers the capacity (SET CAP TO 1, §2023:14.9.39 Format 14) cannot shorten it.
       *> The activation (PB4162D) adds 100 to the first three occurrences of D and 5 to the occurrences of the nested table ND,
       *> and sets the capacity of D to 1; the answers are over the occurrences the tables held when the call was reached:
       *>   DYN-SUM  SUM (D (ALL), 0) = 10 + 20 + 30 = 60;  afterwards CAP = 1 and D (1) = 110
-      *>   DYN-OMAX ORD-MAX (D (ALL), 0) = 3 (§15.71.4 1), cite.py: OK 15.71.4 1)) - the third occurrence is the greatest
+      *>   DYN-OMAX ORD-MAX (D (ALL), 0) = 3 (§2023:15.71.4 1), cite.py: OK 15.71.4 1)) - the third occurrence is the greatest
       *>   DYN-NEST MAX (MAX (D (ALL), 1), 0) = 30, the nested call naming ALL held as the call it is
       *>   NEST     SUM (ND (ALL, ALL), 0) with ND = 1 2 / 3 (a dynamic-capacity table nested in a fixed table has a capacity PER
       *>            OUTER OCCURRENCE: row 1 holds two, row 2 one) = 6;  afterwards ND (1, 1) = 6

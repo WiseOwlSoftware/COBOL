@@ -5,23 +5,23 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.6.4 2) 4) — function evaluation and subscript
+      *> ISO §2023:14.6.4 2) 4) — function evaluation and subscript
       *>            evaluation
       *> both precede reference modification in item identification.
-      *> Rule (§14.6.4): "The item identification steps that are
+      *> Rule (§2023:14.6.4): "The item identification steps that are
       *> applicable to that identifier are evaluated in the following
       *> order: ... 2) function evaluation ... 4) subscript evaluation
       *> ... 7) reference modification", and "If a step in the
       *> evaluation of an identifier requires evaluation of another
       *> identifier or an arithmetic expression, that evaluation is
       *> done in full before proceeding to the next step."
-      *> cite.py: OK  §14.6.4 2)  (Item identification) function
+      *> cite.py: OK  §2023:14.6.4 2)  (Item identification) function
       *>            evaluation
-      *> cite.py: OK  §14.6.4 4)  (Item identification) subscript
+      *> cite.py: OK  §2023:14.6.4 4)  (Item identification) subscript
       *>            evaluation
-      *> cite.py: OK  §14.6.4 7)  (Item identification) reference
+      *> cite.py: OK  §2023:14.6.4 7)  (Item identification) reference
       *>            modification
-      *> cite.py: OK  §14.6.4   (Item identification) "that evaluation
+      *> cite.py: OK  §2023:14.6.4   (Item identification) "that evaluation
       *>            is
       *>          done in full before proceeding to the next step"
       *> L1C09F (CTR) adds 1 to the EXTERNAL counter K and returns K;

@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §9.3.8.2.3 rule 5 c) 1. — prototype returns X ONLY;
+      *> ISO §2023:9.3.8.2.3 rule 5 c) 1. — prototype returns X ONLY;
       *>   implementation X ONLY conforms
       *> Rule: "If the returning item in interface-2 is described with
       *>   the ONLY phrase, the returning item in interface-1 shall be
@@ -14,12 +14,12 @@
       *> cite.py --check 9.3.8.2.3 "If the returning item in interface-2
       *>   is described with the ONLY phrase, the returning item in
       *>   interface-1 shall be described with the ONLY phrase and the
-      *>   same object-class-name" -> OK  §9.3.8.2.3 5) 2. c)
+      *>   same object-class-name" -> OK  §2023:9.3.8.2.3 5) 2. c)
       *>   (Conformance between interfaces)
       *> cite.py --check 11.8.3 "Each method prototype in each
       *>   implemented interface shall be such that the object interface
       *>   of this class conforms to all implemented interfaces" -> OK
-      *>   §11.8.3 2)  (Syntax rules)
+      *>   §2023:11.8.3 2)  (Syntax rules)
       *> The admitting arm: interface-2 = the interface L1C05RI, whose
       *>   GETX returns OBJECT REFERENCE L1C05RX ONLY; interface-1 = the
       *>   object interface of L1C05RC, which IMPLEMENTS L1C05RI and

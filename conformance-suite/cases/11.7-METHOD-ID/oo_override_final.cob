@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO 1989:2023 §11.7 SR3/SR4a/GR3 + §11.3 (OVERRIDE / IS FINAL — the attribute wave, DEVLOG 605):
+      *> ISO 1989:2023 §2023:11.7 SR3/SR4a/GR3 + §2023:11.3 (OVERRIDE / IS FINAL — the attribute wave, DEVLOG 605):
       *> DOG overrides SPEAK with OVERRIDE IS FINAL (emits C# `sealed override`; virtual dispatch through an
       *> ANIMAL-typed reference still reaches it); KEEPER IS FINAL holds a fresh method GREET (a sealed C#
       *> class with a NON-virtual member — the CS0549 emitted-code regression trap).

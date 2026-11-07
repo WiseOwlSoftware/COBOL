@@ -4,7 +4,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.18.49.3 4) — data-name-1 has a TYPE naming the
+      *> ISO §2023:13.18.49.3 4) — data-name-1 has a TYPE naming the
       *> enclosing record
       *> "The description of data-name-1, including its subordinate data
       *> items, shall not contain a TYPE clause that references the
@@ -12,7 +12,7 @@
       *> cite.py --check 13.18.49.3 "shall not contain a TYPE clause
       *>   that references the record to which this entry is
       *>   subordinate"
-      *>   -> OK §13.18.49.3 4)
+      *>   -> OK §2023:13.18.49.3 4)
       *> The SAME AS entry is B, subordinate to the record T (a
       *> TYPEDEF). Its data-name-1 is X, a level 1 group (SR7 holds)
       *> described by TYPE T: a TYPE clause that references T, the

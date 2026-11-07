@@ -8,7 +8,7 @@
       *> kb/Work PB994 - THE EXECUTED WITNESS FOR THE SUCCESSFUL AS-IF WRITE'S EC-I-O-WARNING HOOK OF A SORT GIVING
       *> FILE (kb/Work PB749 emitted the hook; no sequential GIVING file can produce a nonzero successful status).
       *>   cite.py --check 14.9.40.4 "Each record is written as if a WRITE statement without any optional phrases had
-      *>     been executed." -> OK §14.9.40.4 15) b)
+      *>     been executed." -> OK §2023:14.9.40.4 15) b)
       *> 9.1.13.1: "Any I-O status associated with an unsuccessful completion or a nonzero successful completion is
       *> associated with an exception condition" - for a successful completion that is EC-I-O-WARNING - and 14.9.40.4
       *> GR15's closing paragraph performs the implicit functions "such that any associated USE AFTER EXCEPTION/ERROR

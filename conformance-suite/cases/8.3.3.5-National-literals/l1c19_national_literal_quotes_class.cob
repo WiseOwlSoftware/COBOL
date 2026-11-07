@@ -5,18 +5,18 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §8.3.3.5.3 3) — doubled quotation symbol in a national
+      *> ISO §2023:8.3.3.5.3 3) — doubled quotation symbol in a national
       *>   literal
-      *> Also pins §8.3.3.5.4 2) (class and category national, both
+      *> Also pins §2023:8.3.3.5.4 2) (class and category national, both
       *>   formats).
       *> SR3: "Two contiguous quotation symbol characters matching the
       *>   quotation
       *> symbol used in the opening delimiter represent a single
       *>   occurrence of
       *> that quotation symbol character in the content of the literal."
-      *> OK  §8.3.3.5.3 3)  (Syntax rules)
+      *> OK  §2023:8.3.3.5.3 3)  (Syntax rules)
       *> GR2: "National literals are of the class and category national"
-      *> OK  §8.3.3.5.4 2)  (General rules)
+      *> OK  §2023:8.3.3.5.4 2)  (General rules)
       *> 15.26.3 1) DISPLAY-OF: "Argument-1 shall be of class national."
       *> 15.26.4 r1/r4: each national character converts to its
       *>   alphanumeric

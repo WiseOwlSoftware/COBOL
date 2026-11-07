@@ -5,7 +5,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// kb/Work PB94 — the VALUE clause's literal-class rules for numeric (ISO §13.18.63.3 SR2) and alphabetic /
+/// kb/Work PB94 — the VALUE clause's literal-class rules for numeric (ISO §2023:13.18.63.3 SR2) and alphabetic /
 /// alphanumeric / alphanumeric-edited (SR4) subjects: an error strict at every edition; under <c>--permissive</c>
 /// the REPRESENTABLE vendor leniency is a COBOL1657 warning plus the value (a digits-only alphanumeric literal on a
 /// numeric item is that number, ALL "digits" repeated to the digit width; a numeric literal on an alphanumeric item

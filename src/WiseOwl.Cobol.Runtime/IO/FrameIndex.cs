@@ -4,7 +4,7 @@ namespace WiseOwl.Cobol.Runtime.IO;
 
 /// <summary>
 /// ⛔ WHERE A RECORD VARYING FILE'S FRAME N STARTS, IN MEMORY THAT DOES NOT GROW WITH THE FILE (kb/Work PB3350;
-/// docs/rearchitecture/DESIGN-runtime-library.md 2.2.3). The sequential connector's backward READ — §14.9.30.4 GR21
+/// docs/rearchitecture/DESIGN-runtime-library.md 2.2.3). The sequential connector's backward READ — §2023:14.9.30.4 GR21
 /// rule c)'s decreasing arm, and the COBOL-85 <c>OPEN INPUT … REVERSED</c> standing reversal — asks for the START of an
 /// ordinal, and the frames of a RECORD VARYING file are not uniformly wide the way a fixed record-sequential file's
 /// blocks are, so the start of frame N is found by walking. The index it answers from holds
@@ -23,7 +23,7 @@ namespace WiseOwl.Cobol.Runtime.IO;
 /// walk the connector already makes (<see cref="Observe"/>), and by one counting walk (<see cref="Extend"/>) for a target
 /// beyond the frames walked so far — OPEN REVERSED's first READ targets the last record of a file nothing has read,
 /// and the same walk measures the REVERSED count.</para>
-/// <para><b>Never stale within an OPEN.</b> The layout cannot change while a connector is open — §14.9.35.4 GR16 makes a
+/// <para><b>Never stale within an OPEN.</b> The layout cannot change while a connector is open — §2023:14.9.35.4 GR16 makes a
 /// record sequential REWRITE size-preserving — and a sibling's appends (ALL OTHER sharing) lie past every walked frame:
 /// the walk resumes where it stopped, so a target that reaches them finds them. One index per OPEN; the connector drops
 /// it at the next.</para>
@@ -84,7 +84,7 @@ internal sealed class FrameIndex(int stride = FrameIndex.DefaultStride)
     }
 
     /// <summary>The byte offset at which record <paramref name="ordinal"/> (1-based) starts, walking only as far as it
-    /// takes; false when the framed data holds no such record — §14.9.30.4 GR21's "no record is found", which the caller
+    /// takes; false when the framed data holds no such record — §2023:14.9.30.4 GR21's "no record is found", which the caller
     /// answers as the end of the data. The walk moves <paramref name="fs"/>'s position; the caller repositions it.</summary>
     public bool TryStartOf(Stream fs, long ordinal, out long start)
     {

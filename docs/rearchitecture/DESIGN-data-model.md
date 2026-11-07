@@ -36,7 +36,7 @@ facts scattered across three layers and, for the pivotal case, **mutated late**:
 ### 1.1 The pivotal defect: `StoreAsImage` is a late-mutated, cross-layer flag
 
 A numeric `USAGE DISPLAY` leaf is stored as a native `long`/`Int128` **unless** it lives under a group referenced as
-a whole operand — then it must become a `string` (ISO §14.9.25.4 MOVE GR4 fills a group "without consideration for the
+a whole operand — then it must become a `string` (ISO §2023:14.9.25.4 MOVE GR4 fills a group "without consideration for the
 individual elementary items", so the leaf can receive spaces a `long` cannot hold). That fact is only known **after
 PROCEDURE DIVISION binding**. Today it is realized by mutating `DataItem.StoreAsImage` (`DataItem.cs:169`, a public
 `get; set;`) from **7+ sites across three layers**:
@@ -112,24 +112,24 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// and every switch over it is exhaustive (a missing arm is a COMPILE error, not a runtime LoudStmt).
 public abstract record StorageForm
 {
-    /// Does this leaf contribute character positions to an enclosing group's AsImage()/FromImage() codec (§14.4)?
+    /// Does this leaf contribute character positions to an enclosing group's AsImage()/FromImage() codec (§2023:14.4)?
     public abstract bool IsCharacterImage { get; }
     /// Character-image width contributed (meaningful only when IsCharacterImage); 0 otherwise.
     public abstract int ImageWidth { get; }
 
     // ── The cases ─────────────────────────────────────────────────────────────────────────────────────────
     // NativeInt/NativeFloat/IndexCell carry a precomputed `Width` = ElementaryImageWidth(Pic)
-    // = Digits + (1 if SIGN IS SEPARATE, ISO §13.18.52). A bare (Wide, Digits) shape cannot reproduce the
+    // = Digits + (1 if SIGN IS SEPARATE, ISO §2023:13.18.52). A bare (Wide, Digits) shape cannot reproduce the
     // separate-sign +1, and that width is load-bearing even for a NON-promoted native leaf (a group's image
     // sums its native children's widths), so the width is carried explicitly on each native case.
     /// Native scaled integer: long (≤18 digits) or Int128 (>18). NOT character-imageable as itself, but IS
     /// image-CAPABLE (its zoned digit image is derived on demand). Width = digits + separate-sign.
     public sealed record NativeInt(bool Wide, int Digits, int Width) : StorageForm { … }
     /// Native IEEE float (COMP-1/FLOAT-SHORT) or double. Its record-image bytes are the big-endian IEEE
-    /// interchange encoding (kb/Work PB164 wave 2, §13.18.60.4 GR13-GR15) — it participates like any other leaf.
+    /// interchange encoding (kb/Work PB164 wave 2, §2023:13.18.60.4 GR13-GR15) — it participates like any other leaf.
     public sealed record NativeFloat(bool Single, int Width) : StorageForm { … }
     /// A C# string of exactly Width characters: alphanumeric / numeric-edited / national / boolean, OR a
-    /// numeric-DISPLAY leaf promoted to its zoned image because it is used under a whole-group operand (§14.9.25.4 GR4).
+    /// numeric-DISPLAY leaf promoted to its zoned image because it is used under a whole-group operand (§2023:14.9.25.4 GR4).
     /// Category is retained so the numeric pipeline decodes/encodes zoned images (ParseDisplay/FormatDisplay).
     public sealed record CharImage(int Width, PicCategory Category) : StorageForm { … }
     /// A Tier-B REDEFINES view: a typed (offset, width) window over the class's ONE shared string backing.
@@ -150,26 +150,26 @@ public abstract record StorageForm
 **A dynamic-capacity table's ELEMENT is promoted by the same rule as any leaf (kb/Work PB1939, PB2004).**
 `DynamicTable(Element)` wraps the element's PROMOTED form: an elementary numeric table whose item a character channel
 writes, or that sits under a whole-group operand, is `DynamicTable(CharImage(Numeric))` — a `CobolDynTable<string>`
-— so an occurrence holds the spaces §14.6.9.2 2) / §14.6.9.4 leave in it and the negative zero §14.9.22.4 GR4 d)
+— so an occurrence holds the spaces §2023:14.6.9.2 2) / §2023:14.6.9.4 leave in it and the negative zero §2023:14.9.22.4 GR4 d)
 retains. `DataItem.StoreAsImage` asks the element form (a per-occurrence question, like `ElementType`), a
 `DynTablePlace` is a channel and a whole-group operand like any other place (`UsageCollectionPass`), and a group
 element's members are promoted through the ordinary whole-group recursion.
 
-**A dynamic-length elementary item (§8.5.1.10) is `StorageForm.DynamicString(Category, MaxSize)` — a native
-`string`, never a byte image.** Its MAXIMUM SIZE is §8.5.1.10.1's "smallest of" three candidates — the LIMIT phrase,
+**A dynamic-length elementary item (§2023:8.5.1.10) is `StorageForm.DynamicString(Category, MaxSize)` — a native
+`string`, never a byte image.** Its MAXIMUM SIZE is §2023:8.5.1.10.1's "smallest of" three candidates — the LIMIT phrase,
 the largest integer the PREFIXED length field of its dynamic-length-structure-name can hold, and the implementor
 maximum (`docs/CONFORMANCE.md` §7 DOC-A.1-62) — computed by the ONE producer `CobolDynString.MaxSizeOf` and carried
 as `DataItem.DynMaxSize` to every store, SET SIZE and argument adapter. The structure the DYNAMIC LENGTH clause names
-is a SPECIAL-NAMES declaration (§12.3.7.2 dynamic-length-structure-clause; kb/Work PB829), bound into
-`ConfigurationSlice.DynamicLengthStructures` (inherited by contained source elements, §8.4.6.1) as a
+is a SPECIAL-NAMES declaration (§2023:12.3.7.2 dynamic-length-structure-clause; kb/Work PB829), bound into
+`ConfigurationSlice.DynamicLengthStructures` (inherited by contained source elements, §2023:8.4.6.1) as a
 `Model/DynamicLengthStructure` and linked from the item as `DataItem.DynStructure`: it decides the PREFIXED candidate
-(§12.3.7.4 GR18 — SHORT PREFIXED 65535, SIGNED SHORT PREFIXED 32767, the 32-bit fields past the implementor
-maximum), §13.18.19.3 SR4's bound on the LIMIT phrase, and — as part of the DYNAMIC LENGTH clause — §8.5.3.1's
+(§2023:12.3.7.4 GR18 — SHORT PREFIXED 65535, SIGNED SHORT PREFIXED 32767, the 32-bit fields past the implementor
+maximum), §2023:13.18.19.3 SR4's bound on the LIMIT phrase, and — as part of the DYNAMIC LENGTH clause — §2023:8.5.3.1's
 same-type test. The layout itself (length field, GR19's binary-zero delimiter) is RECORDED on the model, not
-materialized: §8.5.1.10.3 leaves the item's location to the implementor, and no WiseOwl COBOL operation gives the item a
+materialized: §2023:8.5.1.10.3 leaves the item's location to the implementor, and no WiseOwl COBOL operation gives the item a
 byte image a program can address (a variable-length group has no fixed record window — the record-area image of
 one is the loud `TierCIsland` stage). A physical-structure-name is an implementor set WiseOwl COBOL leaves EMPTY
-(§12.3.7.3 SR32; determination D-DL3 in `docs/CONFORMANCE.md` §3), refused as COBOL2257.
+(§2023:12.3.7.3 SR32; determination D-DL3 in `docs/CONFORMANCE.md` §3), refused as COBOL2257.
 
 **Key rule (unifies invariant #1 + #2):** `CharImage` is the ONE case that subsumes *every* string-stored leaf,
 including a numeric-DISPLAY leaf promoted by whole-group use and an image-stored Tier-B binary/packed view. The
@@ -191,20 +191,20 @@ consolidation:
    `abstract record PlaceDecorator(Place Inner) : Place` forwarding `Pic`/`Item` (and, as the default, `Read`/`Write`);
    make `NumericImagePlace`, `RefModPlace`, `OdoGroupPlace` derive from it. Leaf places (`MemberPlace`, `DynTablePlace`,
    `RedefViewPlace`, `CapacityRegisterPlace`) stay direct. *(`RenamesPlace` stays direct too: it composes N spanned
-   leaves with no single inner, and its `Pic`/`Item` are the level-66 ALIAS's own (§13.18.45 — the alias is its own
+   leaves with no single inner, and its `Pic`/`Item` are the level-66 ALIAS's own (§2023:13.18.45 — the alias is its own
    elementary view), so a forwarding base fits nothing it does; deriving it would have meant overriding every
    forwarded member, i.e. inheritance without reuse.)*
-   **A `Place` answers TWO questions about the item, and they are not the same question.** ISO §13.18.45.4 GR1
+   **A `Place` answers TWO questions about the item, and they are not the same question.** ISO §2023:13.18.45.4 GR1
    writes them as two clauses of one sentence — "all of the data attributes of data-name-2 become the data
    attributes of data-name-1 **and the storage area occupied by data-name-2 becomes the storage area occupied by
    data-name-1**". `Place.Item` answers the attributes-and-storage half (what a decoration forwards).
    `Place.DenotedItem` answers WHICH DATA ITEM, and is `null` when the reference denotes one no data description
-   entry declares: `RefModPlace` overrides it by §8.4.3.3.4 GR5 ("Reference modification creates a unique data
+   entry declares: `RefModPlace` overrides it by §2023:8.4.3.3.4 GR5 ("Reference modification creates a unique data
    item that is a subset of the data item referenced by identifier-1"), and the non-THROUGH level-66 alias — which
    resolves to the RENAMED item's own place, because GR1 shares both attributes and storage — records itself in the
    init-only `Place.DenotesAs`, set by the ONE resolver. It is a property rather than another `Place` kind because
    nothing about the ACCESS changes; a new kind would have to be re-handled in every renderer arm to render
-   identically. **Every rule of the form "shall BE the data item …" asks `DenotedItem`** (§14.9.41.3 SR5's RELATIVE
+   identically. **Every rule of the form "shall BE the data item …" asks `DenotedItem`** (§2023:14.9.41.3 SR5's RELATIVE
    KEY identity and SR6's record key are the measured ones), and so does every "is this a WHOLE item" test, which
    is the same question negated — twenty callers had written that out by hand as `p is not RefModPlace` beside a
    `p.Item` test. `PlaceDenotedItemDriftTests` holds the roster of which kinds forward and which override, with the
@@ -243,8 +243,8 @@ build; there was a predicate that stopped short.
   is its PICTURE 1(n) boolean positions while its `ImageWidth` is the `ceil(n/8)` bytes it occupies, so
   `01 A PIC X(1). 01 B REDEFINES A PIC 1(8) USAGE BIT.` matched on both and aliased A's one CHARACTER. The arm now
   also requires bit-ness agreement and, between two bit leaves, an equal boolean-position count.
-- **A Tier-B member that is a BIT item takes a BIT window, not a byte one** (kb/Work PB203; §13.18.44.4 GR1 states
-  the association in BITS and §14.6.8.6's NOTE says a usage-bit item "need not occupy an integral number of
+- **A Tier-B member that is a BIT item takes a BIT window, not a byte one** (kb/Work PB203; §2023:13.18.44.4 GR1 states
+  the association in BITS and §2023:14.6.8.6's NOTE says a usage-bit item "need not occupy an integral number of
   bytes"). `RedefViewPlace.Bit` carries the absolute bit offset + boolean-position count and
   `CobolBits.ReadWindow`/`WriteWindow` touch only those bits, which is what makes two same-level bit members that
   SHARE a byte independent receivers. The offsets come from `DataItem.ClassBitOffset`, and every window — in the
@@ -254,7 +254,7 @@ build; there was a predicate that stopped short.
 - `RedefinesClass.Tier`/`.Width` become **init-only**, set once by `RedefinesClassifier` (§2.5) — no set-then-overwrite.
 - **Tier-C decision — AS BUILT (Step D, LANDED):** there is no Tier C. A genuine mixed-USAGE REDEFINES pun is
   ADMITTED as Tier B, and `ComputeTier`'s remaining reason arms carry only the boundaries that survive — the
-  2-byte national overlay (D-N1/D-N2) and the dynamic-table reject (§13.18.44 SR5). `RedefinesTier.ByteCanonical`
+  2-byte national overlay (D-N1/D-N2) and the dynamic-table reject (§2023:13.18.44 SR5). `RedefinesTier.ByteCanonical`
   and `StorageForm.TierCWindow` are deleted outright rather than left quarantined, since a name nothing can
   return is a name the next reader has to re-derive. There is **no** `RedefinesClassifier` type; classification
   lives in `ClassifyRedefinesClassesPass` + `ComputeTier`, applied through the ONE
@@ -272,7 +272,7 @@ build; there was a predicate that stopped short.
     context-specific messages by design. ⚠ The scout's risk-3 note recorded one such variant as deliberate —
     *"UDF rejects Binary/Packed too"* — and that is NO LONGER TRUE: it was a hand-rolled DISPLAY-only usage
     union, not a decision, and PB164's F8 replaced it with the derived `DataItem.ElementImageCapable`
-    predicate (§14.2.2 SR5 imposes no usage restriction on a RETURNING item). Its one surviving LEAF screen, the
+    predicate (§2023:14.2.2 SR5 imposes no usage restriction on a RETURNING item). Its one surviving LEAF screen, the
     pointer/object class (kb/Work PB199), went with the whole RETURNING screen (kb/Work PB1419).
 - **Step D — RE-BASED 2026-08-30 (the four-reader design scout; kb/Work PB164's last codegen half). THE
   PREMISE INVERTED: there is NO byte codec to build.** The earlier sketch ("a confined `byte[]` codec,
@@ -281,27 +281,27 @@ build; there was a predicate that stopped short.
   `NumericByteForm`, `AssignClassOffsets`/`RecordLayout` advance in those units, the backing seeds from
   `ImageInitOf` (byte images), and a promoted member reads/writes through `FormatImage`/`ParseImage` windows
   (pinned by `RedefinesClassificationTests.TierB_BinaryLeafPun_StringCanonicalOverItsTrueBytes` and the
-  `v59_byte_image` golden). The spec derivation is one-directional: §13.18.44.4 GR1 associates storage AT THE
+  `v59_byte_image` golden). The spec derivation is one-directional: §2023:13.18.44.4 GR1 associates storage AT THE
   BIT ("the number of bits required by the data item"), GR2 grants EVERY entry's name unconditioned reference
-  to that storage, §13.18.60.4 GR2 makes representation a function of THE USAGE CLAUSE alone, §13.18.44 and
-  Annex A.2 contain NO undefined-result escape, and §14.6.13.2 r2 (EC-DATA-INCOMPATIBLE) presupposes the
+  to that storage, §2023:13.18.60.4 GR2 makes representation a function of THE USAGE CLAUSE alone, §2023:13.18.44 and
+  Annex A.2 contain NO undefined-result escape, and §2023:14.6.13.2 r2 (EC-DATA-INCOMPATIBLE) presupposes the
   alias wrote the item's REAL storage — so one representation per item, REDEFINES views included, exactly
   what CONFORMANCE items 205/207/208/211 already promise. **Step D is therefore a WIDENING + LANE
   COMPLETION, in this order:**
-  1. **The spec-required Tier-D arm FIRST** ([[PB179]]): `ComputeTier` gains the §13.18.44.3 SR12/SR14
+  1. **The spec-required Tier-D arm FIRST** ([[PB179]]): `ComputeTier` gains the §2023:13.18.44.3 SR12/SR14
      rejection for pointer/object/strongly-typed leaves — today they classify Tier B with ZERO-WIDTH windows
      (the "no such items exist" comment is stale). A bind diagnostic, negative fixtures per side.
-  1b. **§13.18.44.3 SR17, the same posture** ([[PB177]] arm C, LANDED): "Neither data-name-2 nor the subject of
+  1b. **§2023:13.18.44.3 SR17, the same posture** ([[PB177]] arm C, LANDED): "Neither data-name-2 nor the subject of
      the entry shall be a variable-length group or a dynamic-length elementary item" — a SYMMETRIC rule, so
      `DataBinder.Sr17Shape` is tested on BOTH sides per WRITTEN ENTRY, beside the SR12/SR14 screen and before
      the dissolve loop (a per-class screen lets a nested entry's violation escape into the outer class's
-     staged-loud arm). "Variable-length group" is §8.5.1.12.1's defined term — a group with a dynamic-length
+     staged-loud arm). "Variable-length group" is §2023:8.5.1.12.1's defined term — a group with a dynamic-length
      elementary item or a dynamic-CAPACITY table subordinate — so the predicate is
      `DataItem.HasVariableLengthSubordinate`, the standard's own definition, not a second walk.
      COBOL1698, two negative fixtures (one per side), and the class TIER is set Rejected as well as the
      diagnostic raised. The underlying defect was not merely an under-rejection: `StorageFormPass.Classify`
      returns `DynamicString` for an `IsDynamicLength` item BEFORE reaching its Tier-B view arm, so such a view
-     kept its OWN disjoint native string — two storages for the one area §13.18.44.4 GR1 defines, MEASURED as a
+     kept its OWN disjoint native string — two storages for the one area §2023:13.18.44.4 GR1 defines, MEASURED as a
      silent wrong answer (`MOVE "ZZ"` into the view left the redefined item unchanged).
      ⛔ **THE TIER VERDICT IS BELT-AND-BRACES, NOT THE STRUCTURAL BARRIER** — this paragraph and the two code
      comments claimed "rejecting the class makes that path structurally unreachable", and the regression test
@@ -319,8 +319,8 @@ build; there was a predicate that stopped short.
      4 OF the OCCURS clause, so the OBJECT side is named outright — it is now **COBOL1701** per written
      entry, over EVERY OCCURS format (the fixed-OCCURS object had been screened nowhere and compiled clean).
      COBOL1525 is NARROWED to the SUBJECT that is itself a dynamic-capacity table — the one side of the
-     family no syntax rule names — and cites what actually decides it, §13.18.44.4 GR1's storage association
-     against §8.5.1.9.1's "may vary during execution".
+     family no syntax rule names — and cites what actually decides it, §2023:13.18.44.4 GR1's storage association
+     against §2023:8.5.1.9.1's "may vary during execution".
   2. **The live Tier-B lane defects** ([[PB180]] ACCEPT's DisplayTextWidth store into a StorageWidth window;
      [[PB181]] the CALL boundary's text-reader corruption of window bytes) — they corrupt TODAY's shipping
      Tier B and the widened members inherit them.
@@ -353,14 +353,14 @@ build; there was a predicate that stopped short.
      char-window overlay") dissolves under byte-form windows, but D-N1's 2-byte-per-position REDEFINES
      layout is an undischarged A.1 obligation of its own — reject with the honest reason, tracked residue.
   6. **Truth maintenance in the same change set**: `ComputeTier`'s stale "ZONED digit-image" comment and its
-     §12.4.6.4.4 GR2 miscitation (the clause DERIVES same-record-area FROM redefinition and its only
+     §2023:12.4.6.4.4 GR2 miscitation (the clause DERIVES same-record-area FROM redefinition and its only
      representational content — "aligned on the leftmost byte position" — argues FOR bytes);
      `StorageForm.CharImage`'s pre-V59 doc; `RedefinesTier.Rejected`/`ByteCanonical`'s docs (`ByteCanonical`
      and `StorageForm.TierCWindow` are DELETED — dissolving the tier removes `TierCWindow`'s only stated
      parity obligation, and a quarantined form nothing assigns is the zero-fan-out trap); item 208's
      unqualified REDEFINES promise gains its truth; the phantom §8.8.4.1.1 sweep ([[PB182]] — 18 sites,
-     §8.8.4.2.1 is the real clause — "For comparison, an alphanumeric group item shall be treated as an
-     elementary alphanumeric data item"; §8.8.4.2.3 SR2, which that sweep first named, is the identifier-CLASS
+     §2023:8.8.4.2.1 is the real clause — "For comparison, an alphanumeric group item shall be treated as an
+     elementary alphanumeric data item"; §2023:8.8.4.2.3 SR2, which that sweep first named, is the identifier-CLASS
      syntax rule and says nothing about groups ([[PB741]])).
   7. **Migration + goldens**: the corpus applies ZERO pressure — and that claim is now stated in the units
      that can carry it. ⛔ "No `.cob` under `tests/`" is the WRONG INSTRUMENT ([[PB209]]): that glob finds two
@@ -400,7 +400,7 @@ Split the god-struct into a **mostly-immutable declared core** plus **init-only 
 `SameType`/`TypeAnchor`/`EquivalentTypeDeclarations` move to a `StrongTypeModel` static helper — they are
 strong-typing logic, not core shape.
 
-**`StrongTypeModel` owns ISO §8.5.3.1's same-type test, whole, and every rule that spends it asks THAT.** The clause
+**`StrongTypeModel` owns ISO §2023:8.5.3.1's same-type test, whole, and every rule that spends it asks THAT.** The clause
 has two alternatives over typed ITEMS resting on one relation over type DECLARATIONS, so the model has two entry
 points and nothing else:
 
@@ -412,9 +412,9 @@ points and nothing else:
   SYNCHRONIZED / USAGE clauses. It takes a declaration in EITHER form the model holds one: a TYPE-clause SUBJECT
   (whose subtree `ExpandType` cloned through the ONE `CopyEntryDescription`, so it IS the declaration) or a
   `TypeDecls` TEMPLATE (also fully expanded — `ExpandTypes` completes every declaration first, kb/Work PB1302). Geometry comes from
-  `BitLayout.StartBitWithin`, the ONE §8.5.1.6.3 cursor walk; the clause list is §8.5.3.1's own, one conjunct each;
+  `BitLayout.StartBitWithin`, the ONE §2023:8.5.1.6.3 cursor walk; the clause list is §2023:8.5.3.1's own, one conjunct each;
   the PICTURE/SIGN/USAGE conjunct is `PicInfo`'s record equality (so a later analysis axis is included by
-  construction), with §8.5.3.1's currency / decimal-point / LOCALE exceptions falling out of the analysis the
+  construction), with §2023:8.5.3.1's currency / decimal-point / LOCALE exceptions falling out of the analysis the
   analyzer already performs.
 - `SameType(a, b)` — the two alternatives. An item that IS its own `TypeAnchor` is *"described with a TYPE clause"*
   (alternative 1: equivalent declarations, nothing more); one that is not is *"described as a subordinate item in a
@@ -422,22 +422,22 @@ points and nothing else:
   MIXED pair is covered by neither and is not of the same type.
 
 ⛔ **A TYPE-NAME MATCH IS ONE CONJUNCT OF ONE HALF, and a member-NAME PATH is no part of the rule at all.** The
-predicate was exactly those two things until kb/Work PB427, licensed by §8.5.3.1's informative NOTE read as the
+predicate was exactly those two things until kb/Work PB427, licensed by §2023:8.5.3.1's informative NOTE read as the
 criterion, and it was wrong in BOTH directions: it ADMITTED a MOVE between two non-equivalent same-named
 declarations in different source elements (alphabetic characters deposited into two `PIC 9(3)` items, silently) and
 REFUSED a legal move between two differently-named subgroups at the same relative position. Cross-source-element
 equivalence is therefore no longer deferred — it is what the walk decides.
 
-**The consumers, all on the one predicate:** §14.9.25.3 SR2 (`CheckStrongMove`, and through `MoveBinder` every
-implicit move — `… FROM`, `… INTO`), §8.8.4.2.3 SR1 (`CheckRelationalOperands`, the ONE relation chokepoint) and
-§8.8.4.2.12 (`RelationPair.Classify` → `StrongGroupComparison`, which pairs the two operands' elementary items by
-POSITION — the same correspondence this predicate proves — and compares them element by element), and the activation boundary's one sentence written three times — §14.8.2.2 (arguments), §14.8.3.2
-(returning items), §9.3.8.2.3 rule 7 (interface conformance) — for an activation in
-`ActivationRelations.StrongTypeViolation` over the descriptions' `StrongType` identity (the §8.5.3.1 key,
-`StrongTypeModel.TypeIdentityKey`), asked in BOTH modes because §14.8.2.2's sentence qualifies neither (kb/Work
+**The consumers, all on the one predicate:** §2023:14.9.25.3 SR2 (`CheckStrongMove`, and through `MoveBinder` every
+implicit move — `… FROM`, `… INTO`), §2023:8.8.4.2.3 SR1 (`CheckRelationalOperands`, the ONE relation chokepoint) and
+§2023:8.8.4.2.12 (`RelationPair.Classify` → `StrongGroupComparison`, which pairs the two operands' elementary items by
+POSITION — the same correspondence this predicate proves — and compares them element by element), and the activation boundary's one sentence written three times — §2023:14.8.2.2 (arguments), §2023:14.8.3.2
+(returning items), §2023:9.3.8.2.3 rule 7 (interface conformance) — for an activation in
+`ActivationRelations.StrongTypeViolation` over the descriptions' `StrongType` identity (the §2023:8.5.3.1 key,
+`StrongTypeModel.TypeIdentityKey`), asked in BOTH modes because §2023:14.8.2.2's sentence qualifies neither (kb/Work
 PB3101), and in pair mode in `ActivationRelations.SignatureDifference`'s strong arm, reached from `OoConformance.SignatureDifference` (override and
 prototype signatures). That last one also completes
-§8.5.1.12.1's *"Two fixed-length groups are always compatible, unless they are strongly typed and have different
+§2023:8.5.1.12.1's *"Two fixed-length groups are always compatible, unless they are strongly typed and have different
 type definitions"*, whose strong half `VariableLengthCompatibility` deliberately leaves to its caller.
 
 #### 2.4.1 Restricted data-pointers — the strong-typing overlay's pointer half
@@ -450,10 +450,10 @@ of addresses, pointers, and based items."
 
 **The model has TWO sources, and only one of them involves grammar** (Annex D.9.2.2 items 1 and 2):
 
-1. A data description entry `USAGE POINTER TO type-name-1` (§13.18.60.2 general format; §13.18.60.4 GR23). Carried
+1. A data description entry `USAGE POINTER TO type-name-1` (§2023:13.18.60.2 general format; §2023:13.18.60.4 GR23). Carried
    on `PicInfo.RestrictedTypeName`, read by `StrongTypeModel.PointerRestriction`.
 2. `ADDRESS OF identifier-1` where identifier-1 is a strongly-typed group item or another restricted data-pointer.
-   Normative at §8.4.3.11.4 GR2. **This source needs no grammar at all** and was violable from the day strong
+   Normative at §2023:8.4.3.11.4 GR2. **This source needs no grammar at all** and was violable from the day strong
    TYPEDEF landed — `StrongTypeModel.AddressOfRestriction`. ⛔ "**The type of identifier-1**" is identifier-1's OWN
    type (`TypedItemType`): for a restricted data-pointer RP declared `TYPE PT` that is PT, never T-REC, the type the
    pointer's VALUE addresses (`PointerRestriction`, which answers a different question — what a pointer item may
@@ -461,36 +461,36 @@ of addresses, pointers, and based items."
    RP` (BS typed T-REC) is not, and SR19's data-name-1 side (`SET ADDRESS OF based …`) asks the same accessor
    (kb/Work PB1408).
 
-A restriction carries a **`TypeRestriction`** — the type NAME the restriction is spelled with (§13.18.60.4 GR23
+A restriction carries a **`TypeRestriction`** — the type NAME the restriction is spelled with (§2023:13.18.60.4 GR23
 states it as `type-name-1`) together with the type DECLARATION that name resolves to. A restriction is to a TYPE,
 so `SameRestriction` is declaration equivalence and deliberately NOT `SameType`, whose second alternative answers
 the different question of whether two OPERANDS occupy corresponding positions. The one exception is the type of
 an item DESCRIBED AS A SUBORDINATE of a type declaration rather than with a TYPE clause (a strongly-typed group nested in
-a strong record): by §8.5.3.1's second alternative its type is the declaration plus its relative position and
+a strong record): by §2023:8.5.3.1's second alternative its type is the declaration plus its relative position and
 length in it, carried as `TypeRestriction.Member`, and `SameRestriction` then also compares position and length
 (through the same `SamePosition` `SameType` asks), so the address of a nested group is never "of the type of the whole
 record" (kb/Work PB1408). Within one
-source element §8.3.2.2 lets a user-defined word be only one type of user-defined word, so the name alone decides; ACROSS source elements two
+source element §2023:8.3.2.2 lets a user-defined word be only one type of user-defined word, so the name alone decides; ACROSS source elements two
 declarations may share a name and differ, which is why the declaration travels with it —
 `ExpandTypesPass.ResolveRestrictedTypes` (the tail of the ONE `ExpandTypes` pass) attaches it to
 `PicInfo.RestrictedTypeDecl`, and `SameRestriction` compares names always and declarations whenever both sides
-resolved to one. Nothing about the restriction network is deferred any more (kb/Work PB427); §14.8.2.3.2's CALL
+resolved to one. Nothing about the restriction network is deferred any more (kb/Work PB427); §2023:14.8.2.3.2's CALL
 screen is consequently no longer scoped to the AS-NESTED loop, because the reason for that scoping was the
 name-only test.
 
-**The declaration shape is not the obvious one.** §13.18.60.3 SR18 — "If type-name-1 is specified, the TYPEDEF
+**The declaration shape is not the obvious one.** §2023:13.18.60.3 SR18 — "If type-name-1 is specified, the TYPEDEF
 clause shall be specified for the subject of the entry" — makes `01 P USAGE POINTER TO T.` itself nonconforming:
-the restricted pointer is declared as a **type declaration** and reached through a TYPE clause. With §8.5.3.1
+the restricted pointer is declared as a **type declaration** and reached through a TYPE clause. With §2023:8.5.3.1
 ("Elementary type definitions shall not be specified with the STRONG phrase") the only legal shape is a GROUP
 strong typedef, a TYPEDEF'd `USAGE POINTER TO` entry, and a `TYPE` item of it — pinned by
 `conformance-suite/cases/13.18.60-USAGE/pb153_restricted_pointer`.
 
-**Consumption screens** (all in the 0869 pointer band, where `PtrBinder` already reports every other §14.9.39 /
-§14.9.3 operand rule): `PtrBinder.BindAllocate` — §14.9.3.3 SR5 and its SR4 converse, in both the based form and
+**Consumption screens** (all in the 0869 pointer band, where `PtrBinder` already reports every other §2023:14.9.39 /
+§2023:14.9.3 operand rule): `PtrBinder.BindAllocate` — §2023:14.9.3.3 SR5 and its SR4 converse, in both the based form and
 the CHARACTERS form (SR5 asks `StrongGroupType`, SR4 the weaker `TypedItemType`: SR5's antecedent is a STRONGLY-TYPED
-GROUP, SR4's only a TYPED item, and conflating them rejects legal source); `PtrBinder.BindSetAddress` — §14.9.39.3
+GROUP, SR4's only a TYPED item, and conflating them rejects legal source); `PtrBinder.BindSetAddress` — §2023:14.9.39.3
 SR19 and SR20 in **both** of its arms (`SET ADDRESS OF based TO ptr` and `SET ptr TO ADDRESS OF x` are separate code
-paths); `CallBinder` — §14.8.2.3.2's "If either is a restricted pointer, both shall be restricted and of the same
+paths); `CallBinder` — §2023:14.8.2.3.2's "If either is a restricted pointer, both shall be restricted and of the same
 type", over EVERY Format-2 callee whose formals are bound (the clause carries no AS-NESTED qualification, and the
 restriction now resolves to its own element's declaration).
 
@@ -502,9 +502,9 @@ restriction — an untyped window would read the typed storage through no type. 
 (kb/Work PB816, `StrongTypeModel.IsRestrictedToStrongType`): `SET … UP BY / DOWN BY` over a pointer restricted to a
 type described with STRONG is refused; a pointer restricted to a weak type, or unrestricted, is legal.
 
-⛔ **A leaf of a strong record has NO address at all** (§8.4.3.11.3 SR2, kb/Work PB1407; this section used to say its
+⛔ **A leaf of a strong record has NO address at all** (§2023:8.4.3.11.3 SR2, kb/Work PB1407; this section used to say its
 address was "unrestricted and legal", the opposite of SR2). `StrongTypeModel.IsStrongGroup` is true of a GROUP only, so
-only the group's own address is a restricted data-pointer (§8.4.3.11.4 GR2). The operand rules of
+only the group's own address is a restricted data-pointer (§2023:8.4.3.11.4 GR2). The operand rules of
 `ADDRESS OF identifier-1` live in ONE screen, `AddressOfOperandScreen`, reached from `PtrBinder.BindDataAddress` —
 therefore from every surface (SET sender, CALL / INVOKE argument, relation operand): SR1 second sentence (object /
 factory working-storage and file section → COBOL2784, kb/Work PB1062), SR2/SR3/SR6 (object reference, leaf of a
@@ -513,12 +513,12 @@ subscripts and byte alignment → COBOL2786, through `ParameterConformance.BitSt
 CALL, INVOKE and the function-identifier share). A reference-modified identifier-1 is legal (SR4 a) names it): the
 resolver admits it through the same `ReadScreenedRefMod` as an ordinary reference, and the address is that of its
 leftmost position (`BoundAddressOf.RefMod`, emitted through `CobolString.RefModStartOffset`, the same range test as
-a read). The size that range test measures is identifier-1's CURRENT one (§8.4.3.3.4 5)): for a group holding an OCCURS
-DEPENDING ON table that is the run-time extent §13.18.38.4 GR8 gives it, carried as `AddressRefMod.CurrentExtent` (the
+a read). The size that range test measures is identifier-1's CURRENT one (§2023:8.4.3.3.4 5)): for a group holding an OCCURS
+DEPENDING ON table that is the run-time extent §2023:13.18.38.4 GR8 gives it, carried as `AddressRefMod.CurrentExtent` (the
 `OdoGroupPlace` the resolver built) and rendered by `PlaceRenderer.CurrentPositionsExpr`, whose three arms are the channels
 `SendingGroupValue` reads (kb/Work PB1969), so the address and a read of the same reference cannot disagree. A reference
 modifier with no leftmost-position is refused COBOL2876 by `RefModBinder.ReadRefMod`, the one reader of the captured
-form, on every surface (§8.4.3.3.2: only the length is bracketed); the receiving chokepoint records any unreported resolver
+form, on every surface (§2023:8.4.3.3.2: only the length is bracketed); the receiving chokepoint records any unreported resolver
 refusal on the refusal ledger, so a dropped receiver cannot compile clean (kb/Work PB1407).
 
 ### 2.5 The explicit bind pipeline (the pass contract)
@@ -533,12 +533,12 @@ interface IBindPass { string Name { get; } PassPhase Requires { get; } PassPhase
 
 Ordered, with the **data-model dependency chain made explicit**:
 
-0. **`SynthesizeImpliedPictures`** — ISO §13.16.3 SR9's VALUE-implied PICTURE (§2.7a). FIRST, and the placement
+0. **`SynthesizeImpliedPictures`** — ISO §2023:13.16.3 SR9's VALUE-implied PICTURE (§2.7a). FIRST, and the placement
     is load-bearing in both directions: **before** the clone, over the WRITTEN entries, so a TYPEDEF template owns
-    its implied PICTURE when its description is copied — §13.18.57.4 GR3: "that implicit PICTURE clause becomes
+    its implied PICTURE when its description is copied — §2023:13.18.57.4 GR3: "that implicit PICTURE clause becomes
     part of the description of the subject of the entry" (kb/Work PB1300: run after the clone, the subject's OWN
     VALUE implied its picture instead, `01 W TYPE U VALUE "Q"` over `U VALUE "ABCD"` binding as X(1)); and
-    **before** usage inheritance so the entry is already PICTURE-bearing when GR1 and the §13.18.60.3 screens
+    **before** usage inheritance so the entry is already PICTURE-bearing when GR1 and the §2023:13.18.60.3 screens
     reach it. An entry still pending a TYPE / SAME AS reference is not picture-less in SR9's sense and waits for
     the copy.
 1. `ExpandTypesPass` (TYPEDEF/TYPE clone; produces TypeName/StrongType; sets StrongRoot cache)
@@ -561,11 +561,11 @@ width/offset/form reads). This is where "implicit pass-ordering" — the prime s
 
 #### 2.5.1 The ONE data-description copy — a CLASSIFIED field set, never a hand list (landed; kb/Work PB522)
 
-⛔ **Both GR-1s state an EXCLUSION list, so the default is "carried".** ISO §13.18.57.4 GR1 — the TYPE clause's
+⛔ **Both GR-1s state an EXCLUSION list, so the default is "carried".** ISO §2023:13.18.57.4 GR1 — the TYPE clause's
 effect "is as though the data description identified by type-name-1 had been coded in place of the TYPE clause,
 *excluding* the level-number, name, alignment, and the GLOBAL, SELECT WHEN, and TYPEDEF clauses" — and
-§13.18.49.4 GR1, the same sentence for SAME AS excluding only the level-number, name, CONSTANT RECORD, EXTERNAL,
-GLOBAL, REDEFINES and SELECT WHEN. §13.18.58.4 GR1 then reproduces a type declaration's SUBORDINATE entries whole.
+§2023:13.18.49.4 GR1, the same sentence for SAME AS excluding only the level-number, name, CONSTANT RECORD, EXTERNAL,
+GLOBAL, REDEFINES and SELECT WHEN. §2023:13.18.58.4 GR1 then reproduces a type declaration's SUBORDINATE entries whole.
 
 **The shape that failed.** `ExpandTypesPass` had TWO copiers — `CopyEntryDescription` (the entry copy onto a
 subject) and `CloneItem` (the per-node subordinate clone) — and each spelled its own field list in an object
@@ -573,9 +573,9 @@ initializer. That inverts the standard's default: a clause absent from a list is
 omission, with no diagnostic and no site at which it can be read. `DataItem.GroupUsage` — the one field that
 makes an item a bit or national group — was in NEITHER, so `01 R TYPE T` over a `GROUP-USAGE NATIONAL` template
 bound as an ordinary alphanumeric group: wrong class, wrong category, `FUNCTION LENGTH` in alphanumeric instead
-of national positions (§15.50.4 r2 vs r3), and — because §13.16.4 GR1/GR2 imply the clause for every
-SUBORDINATE group — a false antecedent that silently re-categorized the whole subtree. SYNCHRONIZED (§13.18.55),
-ALIGNED (§13.18.1), ANY LENGTH (§13.18.2) and DYNAMIC LENGTH (§13.18.19) were lost the same way.
+of national positions (§2023:15.50.4 r2 vs r3), and — because §2023:13.16.4 GR1/GR2 imply the clause for every
+SUBORDINATE group — a false antecedent that silently re-categorized the whole subtree. SYNCHRONIZED (§2023:13.18.55),
+ALIGNED (§2023:13.18.1), ANY LENGTH (§2023:13.18.2) and DYNAMIC LENGTH (§2023:13.18.19) were lost the same way.
 
 **The shape now.**
 
@@ -584,18 +584,18 @@ ALIGNED (§13.18.1), ANY LENGTH (§13.18.2) and DYNAMIC LENGTH (§13.18.19) were
    compiler temporary's root and subtree (`CompilerTemps.Create` / `CompilerTemps.CloneNode`, kb/Work PB888). Each copier's
    initializer carries nothing but identity, the level and the `MemberOnly` fields. `scope` is a
    `DescriptionCopyScope` — `TypeSubject` · `Entry` · `CompilerTemp` — the one axis on which the rules make the
-   copies differ: §13.18.57.4 GR1 is the ONLY GR-1 that excludes "alignment" (its GR2d re-aligns the subject "as
+   copies differ: §2023:13.18.57.4 GR1 is the ONLY GR-1 that excludes "alignment" (its GR2d re-aligns the subject "as
    though it were a level 1 item"), and that word names both alignment clauses, SYNCHRONIZED *and* ALIGNED, so
-   only `TypeSubject` leaves them behind; a compiler temporary (§8.4.3.2.4 GR1 "the description, class, and
-   category", §8.4.3.4.4 GR1, §14.9.25.4 GR1's intermediate) takes the whole description except the
+   only `TypeSubject` leaves them behind; a compiler temporary (§2023:8.4.3.2.4 GR1 "the description, class, and
+   category", §2023:8.4.3.4.4 GR1, §2023:14.9.25.4 GR1's intermediate) takes the whole description except the
    `EntryOnly` clauses.
 2. **The classification lives on the field.** Every stored `DataItem` property carries
    `[DescriptionCopy(DescriptionCopyKind.…, "<the §/GR, or the pass that owns the fact>")]` —
    `Clause` (travels) · `Alignment` (travels except onto a TYPE subject) · `EntryOnly` (travels with every entry
    copy but not onto a compiler temporary — VALUE, which a temp stored by its pre-op before any read cannot
    observe and whose Format-2 FROM subscripts would address an OCCURS a temp's root never reproduces, ANY
-   LENGTH, §13.18.2.3 SR2's linkage-section parameter shape, and BASED — in neither GR-1 exclusion list, so a
-   TYPE / SAME AS subject of a based description is based, §13.18.57.4 GR4 only deciding whose clause applies;
+   LENGTH, §2023:13.18.2.3 SR2's linkage-section parameter shape, and BASED — in neither GR-1 exclusion list, so a
+   TYPE / SAME AS subject of a based description is based, §2023:13.18.57.4 GR4 only deciding whose clause applies;
    a composed BASED is placement-screened at the copy site by `ScreenComposedBased`, COBOL2510, kb/Work
    PB1300) · `MemberOnly` (a reproduced subordinate
    only — the name, OCCURS, REDEFINES, a nested TYPE/SAME AS reference, the declaration cursor) · `CopyWritten`
@@ -620,9 +620,9 @@ two-receiver MOVE of a national-group table element gives each receiver what the
 
 New `Binding/Model/RecordLayout.cs`: the single owner of character offset/width geometry over the record tree, reading
 `StorageForm.ImageWidth`. Exposes `ImageWidth(item)`, `PhysicalWidth(group)` (tier-aware), `OffsetOf(leaf)`,
-and the two key-operand rules — `KeyIndexOfKeyItem(...)` (ISO §12.4.5.12.4 GR4's identical-byte-position
-correspondence, which answers §14.9.30.3 SR11 and §14.9.41.3 SR6 a)) and `GenericKeyIndex(...)`
-(§14.9.41.3 SR6 b)'s three conditions), plus `IsSubjectToOccurs(item)`, the one predicate for the
+and the two key-operand rules — `KeyIndexOfKeyItem(...)` (ISO §2023:12.4.5.12.4 GR4's identical-byte-position
+correspondence, which answers §2023:14.9.30.3 SR11 and §2023:14.9.41.3 SR6 a)) and `GenericKeyIndex(...)`
+(§2023:14.9.41.3 SR6 b)'s three conditions), plus `IsSubjectToOccurs(item)`, the one predicate for the
 "shall not be subject to any OCCURS clauses" rules. Those two rules were ONE method until kb/Work PB354:
 the conflation is what kept SR6 b) 2.'s class/category/usage condition unwritable (it has no meaning for
 READ) and let SR11 accept a short item where the rule names the key itself.
@@ -647,7 +647,7 @@ Delete the four independent copies: `DataItem.ImageWidth` recursion (`:283`),
 - Rename `ResolveIndexItems` → fold into `UsageInheritancePass` (§2.5 step 2); it does USAGE-marker resolution, not
   index-only work.
 
-#### 2.7.1 `UsageInheritancePass` — ISO §13.18.60.4 GR1 as an EQUIVALENCE (landed; kb/Work PB495)
+#### 2.7.1 `UsageInheritancePass` — ISO §2023:13.18.60.4 GR1 as an EQUIVALENCE (landed; kb/Work PB495)
 
 ⛔ **The rule is not "a group's usage influences its leaves"; it is that the clause APPLIES TO each of them.** GR1
 therefore states an equivalence, and the pass is built to make it true by construction rather than case by case:
@@ -662,7 +662,7 @@ therefore states an equivalence, and the pass is built to make it true by constr
 **ONE derivation, three consumers.** The pass is one pre-order walk (`UsageInheritanceWalk` →
 `UsageInheritanceGroup` / `UsageInheritanceElementary`) over one derivation of an elementary item's EFFECTIVE
 usage — its own clause, else the nearest enclosing one (a `GROUP-USAGE` clause's implied BIT/NATIONAL included,
-§13.18.29.3 SR2/SR3). That derivation feeds:
+§2023:13.18.29.3 SR2/SR3). That derivation feeds:
 
 1. **the group-header shed** — GR1's "and not to the group itself". Entry bind cannot tell a picture-less
    elementary item from a group header (the subordinates are not parsed yet), so it synthesizes the usage's
@@ -670,19 +670,19 @@ usage — its own clause, else the nearest enclosing one (a `GROUP-USAGE` clause
    profile DOWN to each picture-less leaf and clears it from the header. **Derived from the fact, never from a
    list of shapes** — the previous shed tested four reference-identity/category patterns and the leaf application
    a disjoint three-member usage set, and every usage in neither fell through in SILENCE.
-2. **the leaf's representation** — `ApplyEffectiveUsage`, which is also the ONE site the §13.18.49.3 GR3 SAME-AS
+2. **the leaf's representation** — `ApplyEffectiveUsage`, which is also the ONE site the §2023:13.18.49.3 GR3 SAME-AS
    ancestor transform calls (it carried its own copy of the same three-member list).
-3. **the screens** — `PictureAnalyzer.ScreenUsageAgainstPicture` (§13.18.60.3 SR3 / SR5 / SR12 / SR20), extracted
-   from `Analyze` so the written-clause path and the inherited path run the SAME code, plus §13.16.3 SR8's
-   prohibition over the ONE set `UsageFamilies.IsPictureless` and §13.18.60.3 SR2's equality check
+3. **the screens** — `PictureAnalyzer.ScreenUsageAgainstPicture` (§2023:13.18.60.3 SR3 / SR5 / SR12 / SR20), extracted
+   from `Analyze` so the written-clause path and the inherited path run the SAME code, plus §2023:13.16.3 SR8's
+   prohibition over the ONE set `UsageFamilies.IsPictureless` and §2023:13.18.60.3 SR2's equality check
    (`COBOL1927`, against the nearest enclosing WRITTEN clause, comparing resolved `Usage` members so SR6's
    COMP/COMPUTATIONAL abbreviation and this implementation's BINARY identification are already folded).
-4. **the clause's PHRASES** — `ApplyEffectiveNoSign`, the §13.18.60.2 `PACKED-DECIMAL [ WITH NO SIGN ]` phrase.
+4. **the clause's PHRASES** — `ApplyEffectiveNoSign`, the §2023:13.18.60.2 `PACKED-DECIMAL [ WITH NO SIGN ]` phrase.
    ⛔ **A phrase is part of the USAGE clause, not a clause of its own**, so GR1 hands it down with the word and
-   the SAME site adjudicates both spellings: §13.18.40.3 SR31's `'S'` prohibition (`COBOL1566`) and
-   §13.18.60.4 GR11's sign-free width (`PicInfo.PackedNoSign`). It runs AFTER `ApplyEffectiveUsage`, because its
+   the SAME site adjudicates both spellings: §2023:13.18.40.3 SR31's `'S'` prohibition (`COBOL1566`) and
+   §2023:13.18.60.4 GR11's sign-free width (`PicInfo.PackedNoSign`). It runs AFTER `ApplyEffectiveUsage`, because its
    subject is the representation the item really takes. The phrase reaches it on `DataItem.OwnNoSign` — a
-   `DescriptionCopyKind.Clause` field, so the TYPE / SAME AS copy carries it and the §13.18.49.4 GR3 ancestor
+   `DescriptionCopyKind.Clause` field, so the TYPE / SAME AS copy carries it and the §2023:13.18.49.4 GR3 ancestor
    transform records it rather than applying it (one adjudication, in this pass, not two). Only the
    GENERAL-FORMAT half stays at entry bind: which usage WORD the phrase may be written on (`COBOL1565`),
    which is a fact about the written clause and needs no forest, decided with the clause's other optional phrases
@@ -693,28 +693,28 @@ usage — its own clause, else the nearest enclosing one (a `GROUP-USAGE` clause
 
 **What the shape buys.** A `Usage` member added to the enum inherits, sheds and is screened without anyone
 touching this pass. The one hand-written table left is `UsageFamilies.IsPictureless`, and because it drives BOTH
-arms a wrong entry in it is invisible to any behavioural test — so it is checked against §13.16.3 SR8's own
+arms a wrong entry in it is invisible to any behavioural test — so it is checked against §2023:13.16.3 SR8's own
 sentence, re-read out of `specs/ISO_COBOL_2023.md`, by `PicturelessUsageSetDriftTests` (Unit).
 `UsageInheritanceUsageDriftTests` asserts the equivalence over the usage WORD × picture matrix **and `UsageInheritancePhraseDriftTests` over the
-clause's keyword-only PHRASES** (`UsageClausePhrases`, read off the §13.18.60.2 figure; phrases carrying an
+clause's keyword-only PHRASES** (`UsageClausePhrases`, read off the §2023:13.18.60.2 figure; phrases carrying an
 operand are excluded by predicate, since the two arms would not be the same program). The phrase axis is what
 PB570's defect would have had to pass: the word-only matrix was green throughout, because it never wrote one.
 
 **Boundary.** A picture-less elementary item whose effective usage REQUIRES a picture (`01 G USAGE COMP. 05 A.`,
-and the clause-less `01 G. 05 A.`) is NOT this pass's rule: that is §13.16.3 SR8's second sentence, screened by
+and the clause-less `01 G. 05 A.`) is NOT this pass's rule: that is §2023:13.16.3 SR8's second sentence, screened by
 the `CheckPictureRequired` closing guard; its SR9 VALUE-implied exception is §2.7a, applied one pass EARLIER.
 
 **Every written tree — the TYPE declarations too — and a copy answers for its declaration (kb/Work PB3682).** A TYPEDEF
-template is off `Roots` but its clauses are source (§4.3), and §13.18.57.4 GR1 makes a TYPE subject "as though the data
+template is off `Roots` but its clauses are source (§2023:4.3), and §2023:13.18.57.4 GR1 makes a TYPE subject "as though the data
 description identified by type-name-1 had been coded in place", so the rules above hold of a declaration whether or not
 anything references it. `UsageInheritancePass` therefore walks the roots and then every `DataBinder.AllTypeDecls()`
-template; before this a `TYPEDEF GROUP-USAGE NATIONAL` over a `GROUP-USAGE BIT` subgroup (§13.18.29.3 SR3), a group usage
-its member contradicts (§13.18.60.3 SR2) or cannot describe (SR3), a `WITH NO SIGN` over a signed picture, a VALUE on an
+template; before this a `TYPEDEF GROUP-USAGE NATIONAL` over a `GROUP-USAGE BIT` subgroup (§2023:13.18.29.3 SR3), a group usage
+its member contradicts (§2023:13.18.60.3 SR2) or cannot describe (SR3), a `WITH NO SIGN` over a signed picture, a VALUE on an
 INDEX member compiled clean unreferenced, and a *valid* template with a picture-less group usage (`01 TG TYPEDEF USAGE
 BINARY-LONG. 05 A.`) was refused outright. The third spelling joins the equivalence above, and
 `UsageInheritanceUsageDriftTests` and `UsageInheritancePhraseDriftTests` assert it over the same matrix (both over `UsageInheritanceEquivalence`): `01 TG TYPEDEF USAGE u. 05 A ⟨pic⟩. 01 V TYPE TG.` gives the
 verdict and the width of the written spellings, and the unreferenced declaration the same refusal.
-A walked template and its subject are one description to the §8.5.3.1 comparison (`StrongTypeModel`), which asks the
+A walked template and its subject are one description to the §2023:8.5.3.1 comparison (`StrongTypeModel`), which asks the
 template form and the subject form of one declaration the same questions — a pointer restricted to a STRONG type holds the
 TEMPLATE, the subject holds the copy, and a template whose members missed their group's USAGE or SIGN was a different type
 from its own subject (`SET P TO ADDRESS OF W` refused, COBOL0869). `InheritSignClauses` walks the templates for
@@ -726,16 +726,16 @@ twice draws one diagnostic naming the declaration, not one per reference naming 
 (`AnsweredByTypeDeclaration`; the screens are muted through `EditionContext.Muted`, which drops the report and keeps the
 application). A fact whose clause came from OUTSIDE the copy (a group the subject is subordinate to, whose clause
 implied the subject's GROUP-USAGE: `GroupUsagePairIsTheDeclarations`) is a fact of its
-placement and the copy still reports it, and "not strongly typed" (§13.18.29.3 SR1) is the composed subject's alone — a
-TYPEDEF STRONG template is no typed item (§8.5.3.1).
+placement and the copy still reports it, and "not strongly typed" (§2023:13.18.29.3 SR1) is the composed subject's alone — a
+TYPEDEF STRONG template is no typed item (§2023:8.5.3.1).
 ⛔ **The copies run BEFORE this pass, so they ask the ENTRY, not the completed form.** `DataItem.IsGroup` means "no PICTURE";
 entry bind answers a picture-less usage with a profile before the subordinates are parsed, so `01 G USAGE BINARY-LONG.
 05 A. 05 B.` is not an `IsGroup` until this pass sheds the profile. `ExpandTemplate`, `ExpandType` and `ExpandSameAsEntry`
 ask `DataItem.HasSubordinates` (pinned by `TheDescriptionCopies_AskTheEntry_NotTheCompletedForm`): asking `IsGroup` made a
 SAME AS subject of such a group ONE elementary item a quarter of its source's size (a silent wrong answer), and the same
 read of a template refused it. The same copies read the ANCESTORS of what they copy, and a picture-less leaf has none to
-rewrite: `01 G USAGE BINARY-LONG. 05 E. 01 S SAME AS E.` is legal (§13.18.49.3 SR7: E is elementary, so SR7 asks
-`!HasSubordinates`, never `IsElementary`), and S takes G's usage by §13.18.49.4 GR3 together with the profile entry bind
+rewrite: `01 G USAGE BINARY-LONG. 05 E. 01 S SAME AS E.` is legal (§2023:13.18.49.3 SR7: E is elementary, so SR7 asks
+`!HasSubordinates`, never `IsElementary`), and S takes G's usage by §2023:13.18.49.4 GR3 together with the profile entry bind
 synthesized for G and its deferred NATIONAL / BIT mark (`PictureAsWrittenOf`, as the usage walk hands E them). The group
 kind of that ancestor is asked of `ItemCategory.GroupKindsOf`, which answers from `DataItem.IsGroupEntry` (subordinates and
 no PICTURE the program wrote), the same answer as `IsGroup` once this pass has run
@@ -743,7 +743,7 @@ no PICTURE the program wrote), the same answer as `IsGroup` once this pass has r
 container's GLOBAL declaration, whose bind finished first) arrives with the profile already on its picture-less leaves
 (`PicIsUsageSynthesized`), and the elementary arm leaves such an item alone.
 
-#### 2.7.2 `CheckSignClauses` — ISO §13.18.52.3 SR1/SR2, the SIGN clause's subject (landed; kb/Work PB537)
+#### 2.7.2 `CheckSignClauses` — ISO §2023:13.18.52.3 SR1/SR2, the SIGN clause's subject (landed; kb/Work PB537)
 
 SR1 admits a SIGN clause only on "a numeric data or screen description entry whose picture character-string
 contains the symbol 'S'", "a numeric report group description entry whose picture character-string contains the
@@ -751,22 +751,22 @@ symbol 'S'", or "an alphanumeric group item, national group item, or strongly-ty
 usage of an elementary item for which the SIGN clause is specified" to be display or national. **ONE
 elementary-subject test** (`DataBinder.SignClauseElementaryDefect`) is read by both entry kinds; the group bullet
 reads the one group-kind classifier (`ItemCategory.GroupKindsOf`, so a `GROUP-USAGE BIT` group — declared or
-inherited by §13.16.4 GR1 — and a variable-length group are refused). The data-description arm is a POST-FOREST
+inherited by §2023:13.16.4 GR1 — and a variable-length group are refused). The data-description arm is a POST-FOREST
 pass after `UsageInheritancePass` (group-ness, the group kind and an inherited usage are all settled there) and
 before `InheritSignClauses` (a refused clause is cleared and must not shed onto subordinates). ⛔ **Its subject is
 the entry that WROTE the clause** — entry bind records it (`_signClauseWritten`) — because `DataItem.OwnSign` is
-also written by the TYPE copy (§13.18.57.4 GR1) and the SAME AS ancestor transform (§13.18.49.4 GR5); screening
+also written by the TYPE copy (§2023:13.18.57.4 GR1) and the SAME AS ancestor transform (§2023:13.18.49.4 GR5); screening
 those would report a template once per reference site and refuse a SAME AS of an alphanumeric item under a signed
 group. The report arm screens the printable item where its picture is analyzed (`BindReportEntry`). The former
 float-edited special case (reported under the PICTURE code `COBOL1658`) was this rule's numeric-edited arm and
-is gone; the §13.16.3 SR19 LOCALE screen is a different rule and stays.
+is gone; the §2023:13.16.3 SR19 LOCALE screen is a different rule and stays.
 
-#### 2.7a `SynthesizeImpliedPictures` — ISO §13.16.3 SR9, the VALUE-implied PICTURE (landed; kb/Work PB504/PB831)
+#### 2.7a `SynthesizeImpliedPictures` — ISO §2023:13.16.3 SR9, the VALUE-implied PICTURE (landed; kb/Work PB504/PB831)
 
 ⛔ **SR9 is APPLIED, never excused.** The rule says the PICTURE clause *may be omitted* when the data-item format
 of the VALUE clause supplies a non-zero-length alphanumeric, boolean or national literal, and that a clause is
 then *implied* — `X(length)` / `1(length)` / `N(length)`. So the compiler's obligation is to SYNTHESIZE that
-clause, and the entry then stops being picture-less; the §13.16.3 SR8 guard downstream is left with exactly SR8's
+clause, and the entry then stops being picture-less; the §2023:13.16.3 SR8 guard downstream is left with exactly SR8's
 own population and needs no carve-out. (It once had one, for the figurative spellings, and that carve-out both
 mis-derived `ALL literal-1`'s length — a silent wrong answer, kb/Work PB831 — and admitted `ALL ""`, which SR9
 excludes by name.)
@@ -774,22 +774,22 @@ excludes by name.)
 **The design is one sentence: build the string the rule spells out, then go through the SAME door a written
 clause goes through.** `PictureAnalyzer.Analyze` is called with the entry's OWN usage and SIGN clause and
 `explicitUsage = "this entry wrote a USAGE clause"` — argument for argument what `BindEntry` passes — so from
-that moment the item is indistinguishable from one whose source wrote `PICTURE X(n)`. §13.18.60.4 GR1
-inheritance, the §13.18.60.3 SR3/SR5/SR12/SR20 screens, SIGN inheritance, the VALUE initializer and the emitter
+that moment the item is indistinguishable from one whose source wrote `PICTURE X(n)`. §2023:13.18.60.4 GR1
+inheritance, the §2023:13.18.60.3 SR3/SR5/SR12/SR20 screens, SIGN inheritance, the VALUE initializer and the emitter
 all reach it through their existing single sites, each firing ONCE. The standard licenses this reading directly:
-§13.18.60.3 SR13 a) and SR20 are both written over the "explicit or **implicit** picture character-string".
+§2023:13.18.60.3 SR13 a) and SR20 are both written over the "explicit or **implicit** picture character-string".
 
 **The two derivations it owns, and where they come from.**
 
 | question | rule | answer |
 |---|---|---|
-| which arm | §13.16.3 SR9 a/b/c | the literal's CLASS — `CobolLiteral.ClassOf`, the one §8.3.3.2/§8.3.3.4/§8.3.3.5 table |
-| what length | §13.16.3 SR9, "as specified in 8.3.3" | `CobolLiteral.Decode(…).Length`, i.e. the literal's CHARACTERS (2 hex digits per alphanumeric character, 4 per national, 4 boolean characters per hex digit) |
-| a figurative constant's length | §8.3.3.6.4 GR3 b/c | ONE character, except `ALL literal-1`, which takes literal-1's length |
-| a figurative constant's class | §8.3.3.6.4 GR1, GR4 | national in a national context, boolean for the ZERO format in a bit context, else alphanumeric |
+| which arm | §2023:13.16.3 SR9 a/b/c | the literal's CLASS — `CobolLiteral.ClassOf`, the one §2023:8.3.3.2/§2023:8.3.3.4/§2023:8.3.3.5 table |
+| what length | §2023:13.16.3 SR9, "as specified in 8.3.3" | `CobolLiteral.Decode(…).Length`, i.e. the literal's CHARACTERS (2 hex digits per alphanumeric character, 4 per national, 4 boolean characters per hex digit) |
+| a figurative constant's length | §2023:8.3.3.6.4 GR3 b/c | ONE character, except `ALL literal-1`, which takes literal-1's length |
+| a figurative constant's class | §2023:8.3.3.6.4 GR1, GR4 | national in a national context, boolean for the ZERO format in a bit context, else alphanumeric |
 
-The figurative admission itself is the kb/Work PB828 adjudication, ratified in that note: §8.3.3.1 makes a
-figurative constant a literal and §8.3.3.6 is a subclause OF §8.3.3, so SR9's length reference resolves for it.
+The figurative admission itself is the kb/Work PB828 adjudication, ratified in that note: §2023:8.3.3.1 makes a
+figurative constant a literal and §2023:8.3.3.6 is a subclause OF §2023:8.3.3, so SR9's length reference resolves for it.
 
 **Forest and idempotence.** The pass walks `CompositionForest()`, because SR9's subject is the entry AS COMPOSED:
 a TYPEDEF template's own entry needs the implied clause (the SR8 guard reports over it) and so does the `TYPE`
@@ -837,7 +837,7 @@ elementary / group / `ALL 'x'` / Report-Writer SOURCE VALUEs. This closes the co
 | create | — | `Binding/Passes/IBindPass.cs` + `BindPipeline.cs` | Declared, asserted pass order with Requires/Produces (§2.5); kills implicit ordering. |
 | create | — | `Binding/Model/RecordLayout.cs` | Single physical offset/width authority (§2.6). |
 | create | — | `Binding/PictureAnalyzer.cs` | The extracted 230-line PICTURE scanner; makes `PicInfo` a pure value record (§2.7). |
-| create | — | `Binding/Model/StrongTypeModel.cs` | Homes §8.5.3.1's `SameType`/`EquivalentTypeDeclarations`/`TypeAnchor` moved off `DataItem`. |
+| create | — | `Binding/Model/StrongTypeModel.cs` | Homes §2023:8.5.3.1's `SameType`/`EquivalentTypeDeclarations`/`TypeAnchor` moved off `DataItem`. |
 | create | — | `Common/CobolLiteral.cs` | One literal decoder; fixes the apostrophe-VALUE silent bug (§2.8). |
 | delete | `DataItem.StoreAsImage` setter (`DataItem.cs:169`) | — | Replaced by `Storage is CharImage` (§2.1); removes the late-mutated cross-layer flag. |
 | delete | `CSharpEmitter.MarkStoreAsImage` (`CSharpEmitter.cs:50-68`) | — | Cross-layer write-back eliminated; logic moves into StorageFormPass. |

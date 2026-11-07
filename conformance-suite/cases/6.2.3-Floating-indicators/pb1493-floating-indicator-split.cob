@@ -4,9 +4,9 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §6.2.3.2 SR3 "All the characters forming a multiple-
+      *> ISO §2023:6.2.3.2 SR3 "All the characters forming a multiple-
       *>   character floating indicator shall be specified on the same
-      *>   line" (cite.py --check: OK §6.2.3.2 3)). The continued line
+      *>   line" (cite.py --check: OK §2023:6.2.3.2 3)). The continued line
       *>   ends with * and its continuation line begins with >, so the
       *>   join spells *> that no line holds: COBOL2496 (kb/Work
       *>   PB1493). Before, the text after it vanished as a comment.

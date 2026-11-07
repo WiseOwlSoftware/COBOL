@@ -4,10 +4,10 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.21.3 SR3 — "An INITIATE statement that specifies
+      *> ISO §2023:14.9.21.3 SR3 — "An INITIATE statement that specifies
       *> more than one report-name-1 shall not be specified in an
       *> exception checking PERFORM statement."
-      *>   cite.py: OK  §14.9.21.3 3)  (Syntax rules)
+      *>   cite.py: OK  §2023:14.9.21.3 3)  (Syntax rules)
       *> INITIATE R-A R-B names two report-names inside the
       *> imperative-statement-1 of an exception-checking PERFORM
       *> (Format 3), which is exactly the forbidden placement.  The same

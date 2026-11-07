@@ -9,7 +9,7 @@ public static partial class CobolEdit
     /// size-error bound), <see cref="MaskCapacity"/>, <see cref="MaskScale"/> and <see cref="DeEdit"/> must all
     /// answer identically, and each used to re-derive it from the mask text: three of the five dropped the
     /// <see cref="EditRule"/> array, so a FLOATING extended editing sign control symbol — a digit position by
-    /// §13.18.40.5 rule 6 — was a digit in the render and not in the bound or the scale.
+    /// §2023:13.18.40.5 rule 6 — was a digit in the render and not in the bound or the scale.
     /// <para>The rule: 9, Z and * always; the currency symbol and the editing sign control symbols '+' and '-'
     /// when used as FLOATING insertion symbols (a string of at least two, rule 6); and a PICTURE EDITING
     /// character-1 whose <see cref="EditRule.Floating"/> bind decided. Rule 6's fourth paragraph — "The second
@@ -22,7 +22,7 @@ public static partial class CobolEdit
         int DigitSymbols = 0, bool FloatingChar1 = false)
     {
         /// <summary>A single '+' with no '-' (and the reverse) is FIXED insertion; two or more are a floating
-        /// string (§13.18.40.5 rule 6: "a string of at least two identical floating insertion editing symbols").
+        /// string (§2023:13.18.40.5 rule 6: "a string of at least two identical floating insertion editing symbols").
         /// The pair of counts is the classification the pre-scan has always used, moved here unchanged.</summary>
         public bool FixedPlus => Plus == 1 && Minus == 0;
 
@@ -35,7 +35,7 @@ public static partial class CobolEdit
         /// <summary>Does a floating insertion string of any kind exist in the mask?</summary>
         public bool HasFloating => Currency > 1 || Plus > 1 || Minus > 1 || FloatingChar1;
 
-        /// <summary>The mask's digit-position capacity — the §14.7.5 size-error bound and the width of the
+        /// <summary>The mask's digit-position capacity — the §2023:14.7.5 size-error bound and the width of the
         /// rendered digit string.</summary>
         public int Capacity => HasFloating ? DigitSymbols - 1 : DigitSymbols;
 
@@ -81,16 +81,16 @@ public static partial class CobolEdit
         /// <summary>The mask's fraction scale — digit positions right of the point (<c>V</c> or <c>.</c>), the
         /// negative P-run scale of a trailing P, or P-count plus digit positions for a leading P. A FLOATING
         /// extended editing sign control symbol is a digit position on exactly the same footing as a floating
-        /// currency symbol (rule 6 lists both among the floating insertion symbols), and §13.18.40.3 SR29 lets a
+        /// currency symbol (rule 6 lists both among the floating insertion symbols), and §2023:13.18.40.3 SR29 lets a
         /// floating string reach past the decimal point, so it counts in both branches (kb/Work PB491, PB2639).
         /// <paramref name="picture"/> is dot-canonical and still holds V and P.</summary>
         public int FractionDigits(string picture)
         {
-            // PICTURE P scaling positions (§13.18.40.3): trailing P → a NEGATIVE mask scale (the value is a multiple
+            // PICTURE P scaling positions (§2023:13.18.40.3): trailing P → a NEGATIVE mask scale (the value is a multiple
             // of 10^P — PIC ZZZPP aligns 900 to unscaled 9, NC124A PICTURE-TEST-30); leading P → every digit position
             // is fractional (scale = P-count + digit positions). P never coexists with V-fraction digits.
             // ⛔ The leading/trailing split anchors on EVERY digit position — 9/Z/* AND a FLOATING string's member
-            // occurrences (§13.18.40.6 Table 10 puts 'P (left of decimal point)' beside floating cs and +/−) — never
+            // occurrences (§2023:13.18.40.6 Table 10 puts 'P (left of decimal point)' beside floating cs and +/−) — never
             // on only the literal 9/Z/* (kb/Work PB155: `PIC $$$$PP` has no 9/Z/* at all, so its rightmost P run
             // read as LEADING and the mask scale came out +2 where the value is a multiple of 10^2, scale −2).
             // A FIXED single +/−/cs is not a digit position and must not anchor (a trailing fixed sign sits right

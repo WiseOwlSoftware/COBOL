@@ -7,8 +7,8 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ THE FREE-FORM LINES OF AN EXPANSION'S TEXT (ISO §6.4.2 "Continuation of lines"; DESIGN-external-repository §10.5; kb/Work PB4456).
-/// §6.4.2: "At least one alphanumeric character, national character, or hexadecimal digit of the literal content shall be specified on
+/// ⛔ THE FREE-FORM LINES OF AN EXPANSION'S TEXT (ISO §2023:6.4.2 "Continuation of lines"; DESIGN-external-repository §10.5; kb/Work PB4456).
+/// §2023:6.4.2: "At least one alphanumeric character, national character, or hexadecimal digit of the literal content shall be specified on
 /// the continued line and on each continuation line", and "A pair of quotation symbols indicating a single quotation symbol within a
 /// literal shall be specified on the same line". The writer (<see cref="ExpansionAssemblies.FreeForm"/>) must therefore leave no continued
 /// line without content at ANY column the literal opens at, for every kind of literal and every first content unit. The sweep puts the
@@ -26,8 +26,8 @@ public sealed class ExpansionFreeFormTests
 
     private static string Repeat(string unit, int times) => string.Concat(Enumerable.Repeat(unit, times));
 
-    /// <summary>The kinds the sweep covers: alphanumeric, national, boolean and the three hexadecimal forms (ISO §8.3.3.2, §8.3.3.4,
-    /// §8.3.3.5), each in the quotation mark and the apostrophe where it has both, with a doubled delimiter first, in the middle and with
+    /// <summary>The kinds the sweep covers: alphanumeric, national, boolean and the three hexadecimal forms (ISO §2023:8.3.3.2, §2023:8.3.3.4,
+    /// §2023:8.3.3.5), each in the quotation mark and the apostrophe where it has both, with a doubled delimiter first, in the middle and with
     /// a one-character first unit.</summary>
     public static TheoryData<Kind> Kinds()
     {
@@ -51,7 +51,7 @@ public sealed class ExpansionFreeFormTests
         return kinds;
     }
 
-    [Theory]   // §6.4.2: content on the continued line and on each continuation line, for a literal opened at every column
+    [Theory]   // §2023:6.4.2: content on the continued line and on each continuation line, for a literal opened at every column
     [MemberData(nameof(Kinds))]
     public void ALiteralOpenedAtEveryColumn_IsContinuedOnlyWithContentOnEveryLine(Kind kind)
     {
@@ -64,7 +64,7 @@ public sealed class ExpansionFreeFormTests
             Assert.All(lines.Split('\n'), line => Assert.True(line.Length <= 200, $"{where}: a line of {line.Length} positions"));
 
             // The reference-format stage joins a continued literal; it reports a continued or continuation line with no content
-            // (COBOL2690, §6.4.2) and a continuation line that does not open with the matching quotation symbol (COBOL2684).
+            // (COBOL2690, §2023:6.4.2) and a continuation line that does not open with the matching quotation symbol (COBOL2684).
             var bag = new DiagnosticBag();
             string joined = ReferenceFormatProcessor.NormalizeToFreeForm(lines + "\n", new ReferenceFormatDiagnostics(2023, false, bag),
                 "expansion.cob", InitialReferenceFormat.Free);

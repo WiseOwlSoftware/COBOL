@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// does not have: <c>MOVE 1 SET X TO 2</c> (MOVE lacks its TO) answered "This SET form may not be supported",
 /// <c>MOVE 1 SEARCH …</c> "SEARCH statement may not be fully supported", and <c>EVALUATE X ALSO ALSO X …</c>
 /// "EVALUATE with ALSO (multi-subject) may not be fully supported". Those hints are deleted, so each row is refused
-/// with no "may not be" claim. The misplaced-scope-terminator hint (ISO §14.5.3.2: an explicit scope terminator closes
+/// with no "may not be" claim. The misplaced-scope-terminator hint (ISO §2023:14.5.3.2: an explicit scope terminator closes
 /// the most recent unterminated statement having its statement-name) is keyed on the token TYPE and on the statement
 /// rules the ATN says can match it: END-SEARCH inside SEARCH ALL has its matching statement, so the hint is silent; an
 /// END-IF or END-SEARCH outside any IF or SEARCH names the statement it lacks; and a user-defined word spelled END-…
@@ -36,7 +36,7 @@ public sealed class ParseRecoveryHintTruthTests
 
     /// <summary>
     /// A literal whose text spells a verb after a period is a literal, not a paragraph name run into a statement: no COBOL
-    /// word can carry a period (ISO §8.3.2.1), so the deleted COBOL0304 hint, keyed on a token's text containing ".MOVE"
+    /// word can carry a period (ISO §2023:8.3.2.1), so the deleted COBOL0304 hint, keyed on a token's text containing ".MOVE"
     /// and its siblings, could only ever fire on a literal or a PICTURE string, and there it was false.
     /// </summary>
     [Theory]
@@ -52,7 +52,7 @@ public sealed class ParseRecoveryHintTruthTests
     }
 
     /// <summary>An explicit scope terminator terminates "the most-recently preceding unterminated statement having the
-    /// statement-name for which that scope terminator is defined" (ISO §14.5.3.2 1)), so one written where no such
+    /// statement-name for which that scope terminator is defined" (ISO §2023:14.5.3.2 1)), so one written where no such
     /// statement is unterminated draws COBOL0306 naming the statement it lacks, ONCE, on the fault's one report. The
     /// rows from PBHT13 are kb/Work PB3832's review R2-2: where the parse's prediction looked past the terminator (a
     /// statement follows it), the report reads the rules open at the terminator off a re-simulation of the parse, and
@@ -75,7 +75,7 @@ public sealed class ParseRecoveryHintTruthTests
         EditionHarness.AssertHasDiagnostic(diagnostics, message);
     }
 
-    /// <summary>A sentence's last statement "is terminated by a separator period" (ISO §14.5.1), so a section or
+    /// <summary>A sentence's last statement "is terminated by a separator period" (ISO §2023:14.5.1), so a section or
     /// paragraph header written after a statement with no period between draws COBOL0307 "A period may be missing",
     /// once, on the fault's FIRST report, at depth 0 and inside an open statement alike (kb/Work PB3832, review R2-1).
     /// The parse fails there as a failed prediction, whose report carried no expected set, so the hint spoke only on
@@ -120,7 +120,7 @@ public sealed class ParseRecoveryHintTruthTests
 
     /// <summary>A COMPLETE statement followed by a word its general formats do not print there is that statement written
     /// with an unprinted phrase, a bracket's second alternative, a repeated phrase or a phrase out of its sequence
-    /// (ISO §5.2.1), and the diagnostic says so: COBOL2269 naming the statement, never "A period may be missing" (kb/Work
+    /// (ISO §2023:5.2.1), and the diagnostic says so: COBOL2269 naming the statement, never "A period may be missing" (kb/Work
     /// PB906). The hint blamed punctuation wherever the word could ALSO be a paragraph-name (<c>WRITE R IGNORING
     /// LOCK.</c>: <c>. IGNORING</c> parses, and only the LOCK after it fails), so the period must let the whole next
     /// sentence follow before it is called missing. The statement named is the one whose own syntax prints the word

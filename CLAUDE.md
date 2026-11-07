@@ -99,7 +99,7 @@ substrate — never reintroduce one.** The legacy byte engine that had one is de
 kb/Work PB2110); `docs/rearchitecture/LEGACY-ARCHIVE.md` names the tag that preserves it.
 
 **Mission (owner decision D13):** a commercial-quality, decades-sustainable compiler that is **100% conforming to
-ISO/IEC 1989:2023 per §4.2.1, with correct support for 1985/2002/2014** — validated as four per-edition compilers
+ISO/IEC 1989:2023 per §2023:4.2.1, with correct support for 1985/2002/2014** — validated as four per-edition compilers
 by the VERSION TEST MATRIX (`docs/VERSION_TEST_MATRIX_DESIGN.md` + `docs/VERSION_CHANGE_REFERENCE.md`; the default
 `--std` is COBOL-2023). Done = the PHASE-14 Step-0 traceability inventory at zero GAP.
 

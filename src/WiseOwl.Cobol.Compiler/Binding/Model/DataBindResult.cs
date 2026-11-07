@@ -44,10 +44,10 @@ internal sealed class DataBindResult
     /// <summary>The LINKAGE / EXTERNAL facts the backend reads (<see cref="LinkageFacts"/>).</summary>
     public required LinkageFacts Linkage { get; init; }
 
-    /// <summary>The range-collation carriers of the ALPHABET clauses a relation reads (ISO §12.3.7.4; keyed by alphabet-name).</summary>
+    /// <summary>The range-collation carriers of the ALPHABET clauses a relation reads (ISO §2023:12.3.7.4; keyed by alphabet-name).</summary>
     public required IReadOnlyDictionary<string, RangeCollationCarrier> RangeCollations { get; init; }
 
-    /// <summary>The element's APPLY COMMIT clause (ISO §12.4.6.3), or null when it writes none.</summary>
+    /// <summary>The element's APPLY COMMIT clause (ISO §2023:12.4.6.3), or null when it writes none.</summary>
     public required ApplyCommitModel? ApplyCommit { get; init; }
 
     /// <summary>The edition the element was bound under (85, 2002, 2014 or 2023).</summary>
@@ -59,24 +59,24 @@ internal sealed class DataBindResult
     /// <summary>The run-time representation of a USAGE DISPLAY numeric item (<see cref="NumericDisplayForm"/>).</summary>
     public required NumericDisplayForm NumericDisplay { get; init; }
 
-    /// <summary>The <c>&gt;&gt;LEAP-SECOND</c> state at this element (ISO §7.3.17): every §15.3 date/time function that reads a
+    /// <summary>The <c>&gt;&gt;LEAP-SECOND</c> state at this element (ISO §2023:7.3.17): every §2023:15.3 date/time function that reads a
     /// seconds subfield is told it.</summary>
     public required bool LeapSecond { get; init; }
 
     /// <summary>The element's WORKING-STORAGE and FILE SECTION are STATIC (a RECURSIVE-and-not-INITIAL program or a function;
-    /// ISO §13.5.4 GR1, §14.6.2.3.3).</summary>
+    /// ISO §2023:13.5.4 GR1, §2023:14.6.2.3.3).</summary>
     public required bool UnitStaticWs { get; init; }
 
     /// <summary>⛔ THE ONE condition for both EMITTING <c>__ResetStatics</c> and REGISTERING it as the element's initial-state
     /// hook (kb/Work PB168): static storage exists, or the unit-scoped file-registration flag does, so a run-unit re-run and a
-    /// post-CANCEL activation re-register their connectors (§14.6.2.3.2).</summary>
+    /// post-CANCEL activation re-register their connectors (§2023:14.6.2.3.2).</summary>
     public required bool EmitsStaticReset { get; init; }
 
     /// <summary>The dynamic tables whose named CAPACITY register THIS element declares (its own and its methods'): the
-    /// registers its own class emits a profile for (ISO §13.18.38.4 GR15; kb/Work PB3165).</summary>
+    /// registers its own class emits a profile for (ISO §2023:13.18.38.4 GR15; kb/Work PB3165).</summary>
     public required IReadOnlyList<DataItem> DeclaredCapacityRegisterTables { get; init; }
 
-    /// <summary>The §8.6.4 storage duration of each cell of <see cref="StorageTierSlice.AddressableBackings"/>, keyed by its
+    /// <summary>The §2023:8.6.4 storage duration of each cell of <see cref="StorageTierSlice.AddressableBackings"/>, keyed by its
     /// cell field (kb/Work PB1216): classified once, when the result is made.</summary>
     public required IReadOnlyDictionary<string, CellLifetime> CellLifetimes { get; init; }
 
@@ -94,12 +94,12 @@ internal sealed class DataBindResult
 /// <summary>The configuration facts of one source element a backend reads (kb/Work PB2361), copied from its
 /// <c>ConfigurationSlice</c> when the result is made: the slice itself stays with the binder, because it also holds the
 /// declaration tables and the name-use recorder of the binding phases.</summary>
-/// <param name="Options">The element's OPTIONS model (ISO §11.9.4).</param>
-/// <param name="Classification">The OBJECT-COMPUTER CHARACTER CLASSIFICATION clause (ISO §12.3.6.4 GR5), or null.</param>
-/// <param name="Collating">The PROGRAM COLLATING SEQUENCE for alphanumeric comparisons (ISO §12.3.6.4 GR9), or null.</param>
+/// <param name="Options">The element's OPTIONS model (ISO §2023:11.9.4).</param>
+/// <param name="Classification">The OBJECT-COMPUTER CHARACTER CLASSIFICATION clause (ISO §2023:12.3.6.4 GR5), or null.</param>
+/// <param name="Collating">The PROGRAM COLLATING SEQUENCE for alphanumeric comparisons (ISO §2023:12.3.6.4 GR9), or null.</param>
 /// <param name="NationalCollating">The PROGRAM COLLATING SEQUENCE for national comparisons, or null.</param>
-/// <param name="DecimalPointIsComma">SPECIAL-NAMES DECIMAL-POINT IS COMMA (ISO §12.3.7.4 GR14).</param>
-/// <param name="ProgramSpecifierNames">The externalized names of the REPOSITORY program-specifiers (ISO §12.3.8.4 GR10), in
+/// <param name="DecimalPointIsComma">SPECIAL-NAMES DECIMAL-POINT IS COMMA (ISO §2023:12.3.7.4 GR14).</param>
+/// <param name="ProgramSpecifierNames">The externalized names of the REPOSITORY program-specifiers (ISO §2023:12.3.8.4 GR10), in
 /// the order they were written.</param>
 internal sealed record ConfigurationFacts(
     OptionsModel Options,
@@ -115,7 +115,7 @@ internal sealed record ConfigurationFacts(
 /// <param name="Formals">The USING formals, in header order.</param>
 /// <param name="Returning">The RETURNING item, or null.</param>
 /// <param name="SuppressedRootFields">The root fields the emitter must not declare.</param>
-/// <param name="ExternalBackings">The EXTERNAL records' run-unit backings (ISO §13.18.22).</param>
+/// <param name="ExternalBackings">The EXTERNAL records' run-unit backings (ISO §2023:13.18.22).</param>
 internal sealed record LinkageFacts(
     IReadOnlyList<DataItem> Roots,
     IReadOnlyList<LinkageFormal> Formals,

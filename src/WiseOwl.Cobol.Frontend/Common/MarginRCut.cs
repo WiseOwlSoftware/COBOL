@@ -5,13 +5,13 @@ using WiseOwl.Cobol.Editions;
 namespace WiseOwl.Cobol.Frontend.Common;
 
 /// <summary>
-/// WHERE A FIXED-FORM LINE'S PROGRAM TEXT WAS CUT (kb/Work PB2555; ISO §6.3.1 "Margin R is immediately to the right of the
+/// WHERE A FIXED-FORM LINE'S PROGRAM TEXT WAS CUT (kb/Work PB2555; ISO §2023:6.3.1 "Margin R is immediately to the right of the
 /// rightmost character position of the program-text area", Annex A.1 item 158): the non-blank text a line carries past margin
 /// R, which the reference format drops because it is not program text. The compiler is right to drop it, but a statement that
 /// ran past the margin then ends early, and the parse fails at the NEXT token, or at a word the margin cut in two, with nothing
 /// pointing at the truncation; the cut is the evidence a diagnostic of that syntax error cites (<c>CobolErrorListener</c>).
 /// <para>Only a cut that MAY have been program text is a cut: a line whose text past margin R is blank has none, and neither does
-/// a line whose program-text area ends in an inline comment (§6.3.7.3: "All characters following the floating comment
+/// a line whose program-text area ends in an inline comment (§2023:6.3.7.3: "All characters following the floating comment
 /// indicator up to margin R are comment-text", so what follows margin R is the rest of the comment) or a comment line. The
 /// ordinary uses of the positions past margin R that remain are <see cref="IsSequenceNumber"/> and a file's identification
 /// tags (<see cref="FitsIdentificationArea"/>).</para>
@@ -31,7 +31,7 @@ namespace WiseOwl.Cobol.Frontend.Common;
 public readonly record struct MarginRCut(int Column, int LastProgramTextPosition, string Text, bool HoldsProgramText)
 {
     /// <summary>Positions in the COBOL-85 card-image IDENTIFICATION AREA, positions 73–80 — the area a program's name and a
-    /// card's number were punched in. ISO/IEC 1989:2023 has no such area (§6.3.1 makes margin R the implementor's and says
+    /// card's number were punched in. ISO/IEC 1989:2023 has no such area (§2023:6.3.1 makes margin R the implementor's and says
     /// nothing of what follows it); it is the ordinary use of the positions past margin R that this stage must not mistake for
     /// a statement.</summary>
     public const int IdentificationAreaWidth = 8;

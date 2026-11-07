@@ -5,9 +5,9 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.64.3 rule 2 (MOD) and §15.77.3 rule 2 (REM) — "The value of argument-2 shall not be zero."
+      *> ISO §2023:15.64.3 rule 2 (MOD) and §2023:15.77.3 rule 2 (REM) — "The value of argument-2 shall not be zero."
       *>
-      *> WHAT THE RULE MAKES OBSERVABLE. §15.3: "The rules for a function may place constraints on the
+      *> WHAT THE RULE MAKES OBSERVABLE. §2023:15.3: "The rules for a function may place constraints on the
       *> permissible values for arguments … If the evaluation of an argument results in an incorrect value
       *> for that argument … according to the rules specified in the function definition and no exception
       *> condition was raised during item identification or expression evaluation, the EC-ARGUMENT-FUNCTION
@@ -17,14 +17,14 @@
       *>
       *> THE CONTROLS, derived from the returned-value rules so a body that never computes anything cannot
       *> pass by raising on everything:
-      *>   §15.64.4 r1 — MOD = ((a) - ((b) * FUNCTION INTEGER((a)/(b)))). a = -11, b = 5: -11/5 = -2.2 and
+      *>   §2023:15.64.4 r1 — MOD = ((a) - ((b) * FUNCTION INTEGER((a)/(b)))). a = -11, b = 5: -11/5 = -2.2 and
       *>       INTEGER returns the greatest integer not greater than it, -3, so -11 - (5 * -3) = 4. That is
-      *>       also the §15.64.4 NOTE's own row for argument-1 -11, argument-2 5.
-      *>   §15.77.4 r1 — REM = ((a) - ((b) * FUNCTION INTEGER-PART((a)/(b)))). INTEGER-PART truncates toward
+      *>       also the §2023:15.64.4 NOTE's own row for argument-1 -11, argument-2 5.
+      *>   §2023:15.77.4 r1 — REM = ((a) - ((b) * FUNCTION INTEGER-PART((a)/(b)))). INTEGER-PART truncates toward
       *>       zero, so INTEGER-PART(-2.2) = -2 and -11 - (5 * -2) = -1. MOD and REM therefore DIFFER on this
       *>       pair, which is what makes the two controls discriminating rather than decorative.
       *>   The floating-point control is the same REM computation on a class-numeric COMP-2 argument
-      *>       (§15.77.3 r1 admits class numeric; §8.5.2.1 Table 2 puts every floating-point usage in class
+      *>       (§2023:15.77.3 r1 admits class numeric; §2023:8.5.2.1 Table 2 puts every floating-point usage in class
       *>       numeric): 11 - (5 * INTEGER-PART(2.2)) = 11 - 10 = 1.
       *>
       *> ⛔ THE RULE HAS THREE CARRIERS AND ALL THREE MUST BE WITNESSED. Argument-2's zero-ness is a
@@ -34,7 +34,7 @@
       *> the exact pair, statements 6-7 the binary64 REM, statements 8-11 the SDIDI pair.
       *>
       *> ⚠ WHY STATEMENTS 8-11 WRITE ARGUMENT-1 AS `AM + 1` AND NOT AS A PLAIN ITEM — DO NOT "SIMPLIFY" IT.
-      *> §15.3 type 6 admits either form for an integer argument: "An arithmetic expression that will always
+      *> §2023:15.3 type 6 admits either form for an integer argument: "An arithmetic expression that will always
       *> result in an integer value or an integer data item shall be specified" — AM + 1 over PIC S9(9) is
       *> the first form, ordinary legal source, and the rule under test says nothing about how argument-1 is
       *> written. But the two forms do not travel the same road in this compiler: under a standard
@@ -46,7 +46,7 @@
       *> conformance:cases/15.81.4-Returned-value-rule/pb32_dec_carrier_intrinsic_argument already proves compiles and computes
       *> (`FUNCTION MOD(J + 10, 7)` under the same OPTIONS); here it carries the zero divisor.
       *>
-      *> §11.9.5.2 GR3 puts the ARITHMETIC clause of §11.9.5.1 in effect for the source element that writes
+      *> §2023:11.9.5.2 GR3 puts the ARITHMETIC clause of §2023:11.9.5.1 in effect for the source element that writes
       *> it, and GR4 makes the absence of the clause equivalent to NATIVE — which is why the two units are
       *> two source elements rather than one. The single >>TURN covers both (the same arrangement as
       *> conformance:cases/14.9.4-CALL/pb133_arg_mismatch_checked).
@@ -106,7 +106,7 @@
            ARITHMETIC IS STANDARD-DECIMAL.
        DATA DIVISION.
        WORKING-STORAGE SECTION.
-      *> AM + 1 is -11, written as a §15.3 type 6 arithmetic expression (see the header note).
+      *> AM + 1 is -11, written as a §2023:15.3 type 6 arithmetic expression (see the header note).
        01 AM   PIC S9(9) VALUE -12.
        01 NZ   PIC S9(9) VALUE 5.
        01 Z    PIC S9(9) VALUE 0.

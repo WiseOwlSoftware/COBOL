@@ -4,8 +4,8 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.38.2 prints "FUNCTION FORMATTED-CURRENT-DATE ( argument-1 )" with BOTH words UNDERLINED, and an
-      *> underlined word in a general format is a REQUIRED word. §8.4.3.2.3 SR2 states the one exception and its
+      *> ISO §2023:15.38.2 prints "FUNCTION FORMATTED-CURRENT-DATE ( argument-1 )" with BOTH words UNDERLINED, and an
+      *> underlined word in a general format is a REQUIRED word. §2023:8.4.3.2.3 SR2 states the one exception and its
       *> boundary: "If intrinsic-function-name-1 or the ALL phrase is specified in the REPOSITORY paragraph …
       *> the word FUNCTION may be omitted from the function-identifier; otherwise the word FUNCTION is required."
       *> No REPOSITORY paragraph is written here and no data item of that name is declared, so the bare name is

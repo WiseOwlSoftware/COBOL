@@ -39,7 +39,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 # THE EXPECTED VERDICT, in precedence order:
 #   TERMINATES row   -> TERMINATES <EC>  (a `divergent` row whose note begins `TERMINATES EC-…`, kb/Work PB1955: the
 #                                         golden records a run that continued past a fatal I-O status nothing
-#                                         covers, which WiseOwl COBOL's ISO §9.1.13.1 choice — Annex A.1 item 103 —
+#                                         covers, which WiseOwl COBOL's ISO §2023:9.1.13.1 choice — Annex A.1 item 103 —
 #                                         ends; the run must end naming that exception)
 #   golden == none   -> NO BASELINE      (no tests/nist/valid/<name>.txt to compare against)
 #   otherwise        -> MATCH            (a plain `divergent` row included: its golden IS the ISO-conforming output,

@@ -7,7 +7,7 @@
       *> kb/Work PB1139 - A FILE SORT IN A DECLARATIVE PROCEDURE IS REFUSED.
       *>   cite.py --check 14.9.40.3 "A SORT statement shall not appear in imperative-statement-1 of an
       *>     exception-checking PERFORM statement, in an input or output procedure, or in a declarative procedure."
-      *>     -> OK §14.9.40.3 3)
+      *>     -> OK §2023:14.9.40.3 3)
       *> No binder asked whether the bind position was inside a declarative, so the statement compiled clean at
       *> every edition.
        IDENTIFICATION DIVISION.

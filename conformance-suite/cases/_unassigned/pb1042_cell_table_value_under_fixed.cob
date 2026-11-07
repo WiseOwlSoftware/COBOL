@@ -6,11 +6,11 @@
 *> portable: unverified
 *>---
       *> A CELL-BACKED DYNAMIC TABLE UNDER A FIXED OCCURS KEEPS ITS TABLE VALUE (train 1021
-      *> review of PB1042). ISO/IEC 1989:2023 §13.18.63.3 SR20: one subscript-1 "for each
+      *> review of PB1042). ISO/IEC 1989:2023 §2023:13.18.63.3 SR20: one subscript-1 "for each
       *> OCCURS clause for the subject of the entry or superordinate to that entry", so
-      *> FROM (2 1) TO (2 2) names E(2 1) and E(2 2) under OUTER(2), and §13.18.63.4 GR12
+      *> FROM (2 1) TO (2 2) names E(2 1) and E(2 2) under OUTER(2), and §2023:13.18.63.4 GR12
       *> initializes them to "A" when the program is placed in its initial state (GR4 c).
-      *> ADDRESS OF R (§8.4.3.11) puts R on cell storage; that may not change E's initial
+      *> ADDRESS OF R (§2023:8.4.3.11) puts R on cell storage; that may not change E's initial
       *> value, so both programs print [AA]. PB1042CA: dynamic under a fixed OCCURS.
       *> PB1042CB: a fixed OCCURS between two dynamic tables, FROM (1 2 1) TO (1 2 2).
        IDENTIFICATION DIVISION.

@@ -42,7 +42,7 @@ public sealed class SequentialFileIoSpecTests
         finally { ScratchDirectory.Remove(dir); }
     }
 
-    /// <summary>CA15 — §14.9.30.4 GR15 + NOTE 3 / §9.1.13.2 item 5: an over-length LINE-SEQUENTIAL record is truncated
+    /// <summary>CA15 — §2023:14.9.30.4 GR15 + NOTE 3 / §2023:9.1.13.2 item 5: an over-length LINE-SEQUENTIAL record is truncated
     /// on the right to the record width, the READ is SUCCESSFUL with I-O status '06', the file position indicator
     /// references the next unread character in the record, and the following READ continues the remainder ('00'). The
     /// buggy path reported '00' on the truncated read and silently discarded the tail (the next READ skipped to the
@@ -79,7 +79,7 @@ public sealed class SequentialFileIoSpecTests
         Assert.Equal("1:ABCDE FS=06\n2:FGH   FS=00\nE FS=10", Run(prog, ("lslong.txt", "ABCDEFGH\n")));
     }
 
-    /// <summary>CA16 — §14.9.27 GR17 + §14.9.30.4 GR21 rule e / GR24: an ABSENT OPTIONAL file opened I-O is CREATED
+    /// <summary>CA16 — §2023:14.9.27 GR17 + §2023:14.9.30.4 GR21 rule e / GR24: an ABSENT OPTIONAL file opened I-O is CREATED
     /// (as if OPEN OUTPUT + CLOSE; OPEN returns '05'), the FPI is 1 (GR14), and the first READ on the now-empty file
     /// finds no record → AtEnd '10'. The buggy path created only a writer, so the first READ returned '47'
     /// (not-open-for-input) — which flips the AT END control flow (status[0] != '1'), running NOT AT END instead.</summary>
@@ -111,11 +111,11 @@ public sealed class SequentialFileIoSpecTests
         Assert.Equal("OPEN FS=05\nATEND FS=10", Run(prog));
     }
 
-    /// <summary>CA18 — §14.9.35.4 GR17 (line-sequential REWRITE in place): (equal) a record of as many bytes as the
+    /// <summary>CA18 — §2023:14.9.35.4 GR17 (line-sequential REWRITE in place): (equal) a record of as many bytes as the
     /// line replaces it, '00'; (b) a record of MORE bytes than the line ⇒ '44', the line unchanged. The byte count
     /// compared is record-name-1's — five bytes for every REWRITE REC here, whatever its trailing spaces (kb/Work
-    /// PB1168: GR17 has no trailing-space rule — the WRITE statement's is §14.9.51.4 GR21). The space-fill of
-    /// §14.9.35.4 GR17 c), for a record of FEWER bytes, needs a variable-length record and is the golden
+    /// PB1168: GR17 has no trailing-space rule — the WRITE statement's is §2023:14.9.51.4 GR21). The space-fill of
+    /// §2023:14.9.35.4 GR17 c), for a record of FEWER bytes, needs a variable-length record and is the golden
     /// 2023/pb1168_ls_rewrite_gr17.
     /// The buggy path returned '30' for every line-sequential REWRITE (the seekable in-place branch was guarded
     /// by !_lineSequential).</summary>
@@ -155,7 +155,7 @@ public sealed class SequentialFileIoSpecTests
             Run(prog, ("lsrew.txt", "HELLO\nAB\nCDEFG\n")));
     }
 
-    /// <summary>CA18 — §14.9.35.4 GR17a / §9.1.13.7 item 4d: a REWRITE of a record whose preceding READ transferred
+    /// <summary>CA18 — §2023:14.9.35.4 GR17a / §2023:9.1.13.7 item 4d: a REWRITE of a record whose preceding READ transferred
     /// only PART of it (an over-length line-sequential read that returned '06') is '44'.</summary>
     [Fact]
     public void LineSequential_RewriteAfterOverLengthRead_IsPartial44()
@@ -188,12 +188,12 @@ public sealed class SequentialFileIoSpecTests
 
     // ── The INVALID KEY phrase on a SEQUENTIAL organization (kb/Work PB691) ──────────────────────────────────
     //
-    // §14.9.51.3 SR2 — "If the organization of the write file is sequential, format 1 shall be specified" — and
-    // Format 1 of §14.9.51.2 carries no INVALID KEY bracket, so the phrase is illegal on a sequential WRITE;
-    // §14.9.35.3 SR2's first arm says the same for REWRITE. The strict compiler must therefore REJECT it, which
+    // §2023:14.9.51.3 SR2 — "If the organization of the write file is sequential, format 1 shall be specified" — and
+    // Format 1 of §2023:14.9.51.2 carries no INVALID KEY bracket, so the phrase is illegal on a sequential WRITE;
+    // §2023:14.9.35.3 SR2's first arm says the same for REWRITE. The strict compiler must therefore REJECT it, which
     // the two negative fixtures pin at all four editions. These tests pin the OTHER half, the half a rejection
     // test can never reach: under --permissive the compiler accepts the program, and having accepted it, it owes
-    // the phrase the meaning §9.1.14 gives it. Both statements dropped the phrase entirely before — the WRITE
+    // the phrase the meaning §2023:9.1.14 gives it. Both statements dropped the phrase entirely before — the WRITE
     // arm without even a diagnostic (PB691), the REWRITE arm with one but still no branch (PB144's residue).
 
     private const string SeqWriteInvalidKeyProgram = """
@@ -222,12 +222,12 @@ public sealed class SequentialFileIoSpecTests
             STOP RUN.
         """;
 
-    /// <summary>§9.1.14 final rule over a sequential WRITE that <c>--permissive</c> tolerated. The WRITE of a
-    /// 4-character record to a just-opened OUTPUT file succeeds, so the I-O status is '00' (§9.1.13.2 item 1 —
-    /// "the input-output statement is successfully executed and no further information is available"). §9.1.14's
+    /// <summary>§2023:9.1.14 final rule over a sequential WRITE that <c>--permissive</c> tolerated. The WRITE of a
+    /// 4-character record to a just-opened OUTPUT file succeeds, so the I-O status is '00' (§2023:9.1.13.2 item 1 —
+    /// "the input-output statement is successfully executed and no further information is available"). §2023:9.1.14's
     /// final rule then decides both branches: its opening sentence — "If the invalid key condition does not
     /// exist … the INVALID KEY phrase is ignored, if specified" — kills the INVALID arm (it can never fire on
-    /// this organization at all: §9.1.13.5's four invalid-key statuses '21'–'24' each name a relative or indexed
+    /// this organization at all: §2023:9.1.13.5's four invalid-key statuses '21'–'24' each name a relative or indexed
     /// file), and item 2 — "If the I-O status indicates a successful completion, control is transferred to the
     /// end of the input-output statement or to the imperative-statement specified in the NOT INVALID KEY phrase
     /// if it is specified" — runs the NOT arm. Expected stdout is therefore exactly "W-NIK" then "W=00": the
@@ -245,10 +245,10 @@ public sealed class SequentialFileIoSpecTests
             && x.Contains("WRITE") && x.Contains("14.9.51.3 SR2"));
     }
 
-    /// <summary>The REWRITE twin, one method away in the same binder (§14.9.35.3 SR2 first arm). PB144 landed
+    /// <summary>The REWRITE twin, one method away in the same binder (§2023:14.9.35.3 SR2 first arm). PB144 landed
     /// the COBOL1720 screen here but still dropped the phrase, reasoning that a sequential REWRITE has no
-    /// '2x' condition to carry — true of the INVALID arm, false of the NOT INVALID arm, which §9.1.14's final
-    /// rule item 2 runs on the SUCCESSFUL completion this REWRITE has ('00', §9.1.13.2 item 1). Expected stdout
+    /// '2x' condition to carry — true of the INVALID arm, false of the NOT INVALID arm, which §2023:9.1.14's final
+    /// rule item 2 runs on the SUCCESSFUL completion this REWRITE has ('00', §2023:9.1.13.2 item 1). Expected stdout
     /// is "R-NIK" then "R=00"; the pre-fix compiler warned and then printed only "R=00".</summary>
     [Fact]
     public void Permissive_SequentialRewriteInvalidKey_RunsTheNotArmOnSuccess_AndWarns()
@@ -285,7 +285,7 @@ public sealed class SequentialFileIoSpecTests
             && x.Contains("14.9.35.3 SR2"));
     }
 
-    /// <summary>The NOT-alone spelling reaches the SAME screen and the SAME §9.1.14 item 2 transfer. The phrases
+    /// <summary>The NOT-alone spelling reaches the SAME screen and the SAME §2023:9.1.14 item 2 transfer. The phrases
     /// are bound by ROLE (<c>PhraseBlocks.Bind</c>, kb/Work PB3830), and the screen names the FIRST written phrase,
     /// so the spelling a real --permissive program is most likely to write is exactly the one an INVALID-first
     /// fixture leaves unmeasured.</summary>
@@ -322,7 +322,7 @@ public sealed class SequentialFileIoSpecTests
     }
 
     /// <summary>The same transfer with NO FILE STATUS clause on the file — the axis every other test here holds
-    /// fixed. §9.1.14 speaks of "the I-O status of the file connector associated with the statement", not of the
+    /// fixed. §2023:9.1.14 speaks of "the I-O status of the file connector associated with the statement", not of the
     /// program's FILE STATUS item, and the two are different code paths: <c>EmitStoreFileStatus</c> returns
     /// immediately when there is no FILE STATUS clause, so a NOT-arm branch that read the user's status item
     /// would go dead here and nowhere else. The branch reads the CONNECTOR, so it still runs.</summary>
@@ -358,7 +358,7 @@ public sealed class SequentialFileIoSpecTests
     /// <summary>The screen is a REJECTION at every edition on the strict axis — the fixtures
     /// <c>write-invalid-key-sequential-org</c> / <c>write-not-invalid-key-sequential-org</c> assert the code, and
     /// this asserts the edition SWEEP (a gate landed on one edition breaks or misses the other three —
-    /// feedback_edition_gate_sweep). §14.9.51.3 SR2 is an all-editions rule: COBOL-85's WRITE likewise admitted
+    /// feedback_edition_gate_sweep). §2023:14.9.51.3 SR2 is an all-editions rule: COBOL-85's WRITE likewise admitted
     /// the INVALID KEY phrase only in its random format, so no edition may accept this program strict.</summary>
     [Theory]
     [InlineData(85)]
@@ -368,24 +368,24 @@ public sealed class SequentialFileIoSpecTests
     public void Strict_SequentialWriteInvalidKey_IsRejectedAtEveryEdition(int edition)
     {
         var (ok, errors, _) = EditionHarness.CompileFull(SeqWriteInvalidKeyProgram, edition);
-        Assert.False(ok, $"--std {edition} strict must REJECT the phrase (ISO §14.9.51.3 SR2)");
+        Assert.False(ok, $"--std {edition} strict must REJECT the phrase (ISO §2023:14.9.51.3 SR2)");
         Assert.Contains(errors, e => e.Contains("COBOL1720"));
     }
 
-    /// <summary>kb/Work PB737 — §13.18.43.4 GR16's CLOSING SENTENCE, the third obligation of the rule whose two
+    /// <summary>kb/Work PB737 — §2023:13.18.43.4 GR16's CLOSING SENTENCE, the third obligation of the rule whose two
     /// lettered arms `pb339_into_current_record` already pins: "If the number of bytes determined as above is
-    /// zero, the record is a zero-length item." §13.18.43.3 SR7 makes integer-2 zero legal ("Integer-2 shall be
+    /// zero, the record is a zero-length item." §2023:13.18.43.3 SR7 makes integer-2 zero legal ("Integer-2 shall be
     /// greater than or equal to zero"), so a zero-length current record is a REACHABLE shape, not a corner.
     /// <para>Derivation, stated before the program was run. WRITE side: GR13 a) — "If data-name-1 is specified,
     /// by the content of the data item referenced by data-name-1" — writes 0 bytes then 4. READ side: GR15 puts
     /// the just-read length back in data-name-1 (0, then 4) and GR16 a) makes exactly that many bytes the sending
-    /// operand. Record 1's sender is therefore ZERO bytes, and §14.6.8.5's alignment space-fills the whole X(5)
+    /// operand. Record 1's sender is therefore ZERO bytes, and §2023:14.6.8.5's alignment space-fills the whole X(5)
     /// receiver: the dots pre-loaded into it must be gone, and none of the record AREA's leftover "ZZZZZ" may
-    /// appear. Record 2's four bytes into an X(5) JUSTIFIED receiver are §13.18.32.4 GR2's right alignment with
+    /// appear. Record 2's four bytes into an X(5) JUSTIFIED receiver are §2023:13.18.32.4 GR2's right alignment with
     /// one leading space fill, which also proves the zero-length read left the file position indicator on the
     /// next record rather than consuming or skipping one.</para>
     /// <para>Edition-invariant, and asserted so rather than assumed: no `docs/VERSION_CHANGE_REFERENCE.md` row
-    /// touches §13.18.43, so the same bytes are required at all four editions.</para></summary>
+    /// touches §2023:13.18.43, so the same bytes are required at all four editions.</para></summary>
     [Theory]
     [InlineData(85)]
     [InlineData(2002)]

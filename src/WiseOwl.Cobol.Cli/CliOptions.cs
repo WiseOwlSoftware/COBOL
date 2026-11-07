@@ -17,23 +17,23 @@ namespace WiseOwl.Cobol.Cli;
 /// the documented migration mode (VERSION_TEST_MATRIX_DESIGN §10 #1; owner decision 4).</param>
 /// <param name="SignEncoding">The DISPLAY over-punch convention (<c>--sign-encoding</c>) for a signed item whose
 /// sign is not written SEPARATE CHARACTER — kb/Work PB803, owner decision 2026-09-09; Annex A.1 items 177 and 178
-/// (ISO §13.18.52.4 GR4 / GR5 b). A REPRESENTATION axis, orthogonal to <paramref name="DialectLevel"/> and
+/// (ISO §2023:13.18.52.4 GR4 / GR5 b). A REPRESENTATION axis, orthogonal to <paramref name="DialectLevel"/> and
 /// <paramref name="Permissive"/>: every edition grants the identical latitude. Defaults to
 /// <see cref="WiseOwl.Cobol.Runtime.SignEncoding.Ibm"/> — IBM / Micro Focus compatibility.</param>
 /// <param name="SourceFormat">The reference format the source starts in (<c>--source-format</c>; kb/Work PB1362):
-/// fixed form, ISO §7.3.24.3 2)'s default, unless <c>free</c> or <c>auto</c> is selected.</param>
-/// <param name="FlagExtensions">The §4.2.10 warning mechanism (<c>--flag-extensions</c>; kb/Work PB1525): name every
+/// fixed form, ISO §2023:7.3.24.3 2)'s default, unless <c>free</c> or <c>auto</c> is selected.</param>
+/// <param name="FlagExtensions">The §2023:4.2.10 warning mechanism (<c>--flag-extensions</c>; kb/Work PB1525): name every
 /// use of a nonstandard extension in the compilation group with a COBOL2894 warning.</param>
 /// <param name="NumericDisplay">The form DISPLAY gives a numeric operand (<c>--numeric-display</c>; kb/Work PB3505,
-/// owner decision PB3467; ISO §14.9.11.4 GR1, Annex A.1 item 56). Defaults to
+/// owner decision PB3467; ISO §2023:14.9.11.4 GR1, Annex A.1 item 56). Defaults to
 /// <see cref="WiseOwl.Cobol.Binding.NumericDisplayForm.Decimal"/> — the decimal point and a leading sign.</param>
 /// <param name="RepositoryUpdate">Whether the compilation updates the external repository (<c>--repository-update on|off</c>;
-/// ISO §8.13, DESIGN-external-repository §9.1). Defaults to on.</param>
+/// ISO §2023:8.13, DESIGN-external-repository §9.1). Defaults to on.</param>
 /// <param name="RepositoryPaths">The external repository directories (<c>--repository</c>, in order); null for the output
 /// directory (DESIGN-external-repository §9.3).</param>
 /// <param name="ReferencePaths">The assemblies searched after them (<c>--reference</c>, in order).</param>
 /// <param name="RepositoryCheck">Whether a signature differing from the repository's is flagged (<c>--repository-check
-/// on|off</c>; ISO §8.13, DESIGN-external-repository §9.2). Defaults to on.</param>
+/// on|off</c>; ISO §2023:8.13, DESIGN-external-repository §9.2). Defaults to on.</param>
 internal sealed record CliOptions(
     string SourcePath,
     string? OutputPath,

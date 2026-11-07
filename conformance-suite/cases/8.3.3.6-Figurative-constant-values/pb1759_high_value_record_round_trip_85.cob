@@ -9,7 +9,7 @@
        PROGRAM-ID. PB1759RT.
       *> kb/Work PB1759 (owner decisions R51/R52; design
       *> FILES_DESIGN D29) - HIGH-VALUE IS U+FFFF, THE
-      *> HIGHEST OF THE 65,536 NATIVE CHARACTERS (§8.3.3.6.4 GR6:
+      *> HIGHEST OF THE 65,536 NATIVE CHARACTERS (§2023:8.3.3.6.4 GR6:
       *> "the character ... that has the highest ordinal position in
       *> the runtime collating sequence"), AND IT CROSSES THE ONE-BYTE
       *> RECORD MEDIUM AS THE BYTE X'FF' BY THE STORAGE-BYTE LAW: BYTE
@@ -18,7 +18,7 @@
       *> WHY EACH LEG CAN FAIL:
       *>  WS-EQ    - MOVE HIGH-VALUES TO A GROUP WITH A COMP FIELD,
       *>             THEN IF GROUP = HIGH-VALUES: NOTHING ALTERED THE
-      *>             CHARACTERS THE MOVE STORED (§14.9.25), SO EQUAL.
+      *>             CHARACTERS THE MOVE STORED (§2023:14.9.25), SO EQUAL.
       *>             A BINARY LEAF THAT RE-IMAGED ITS FF BYTES AS
       *>             U+00FF WOULD PRINT WS-NE.
       *>  SQ-*     - SEQUENTIAL: WRITE, READ BACK, STILL HIGH-VALUES;
@@ -26,7 +26,7 @@
       *>  RL-*     - RELATIVE, WITH A REDEFINES NUMERIC VIEW OF THE
       *>             SAME RECORD AREA: -1.
       *>  IX-*     - INDEXED: A HIGH-VALUES KEY SORTS AFTER "ZZZZ"
-      *>             (§12.4.5.7 - THE KEY ORDER IS THE COLLATING
+      *>             (§2023:12.4.5.7 - THE KEY ORDER IS THE COLLATING
       *>             SEQUENCE), AND A RANDOM READ FINDS IT.
        ENVIRONMENT DIVISION.
        INPUT-OUTPUT SECTION.

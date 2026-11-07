@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO/IEC 1989:2023 §11.9.7.2: ENTRY-CONVENTION IS { COBOL | entry-convention-name-1 }, and §11.9.7.4 GR2:
+      *> ISO/IEC 1989:2023 §2023:11.9.7.2: ENTRY-CONVENTION IS { COBOL | entry-convention-name-1 }, and §2023:11.9.7.4 GR2:
       *> "When COBOL is specified, the naming convention and mapping of method-names and program-names are as
       *> specified in 8.3.2.2". The COBOL ALTERNATIVE is a COBOL-2014 addition: the 2014 FCD format lists it
       *> (t2014.txt:13144-13146) and ISO/IEC 1989:2002 (11.8.5) has only ENTRY-CONVENTION IS entry-convention-name-1.

@@ -5,10 +5,10 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// SPECIAL-NAMES DECIMAL-POINT IS COMMA + CURRENCY SIGN (ISO/IEC 1989:2023 §12.3.7 GR13/GR14, §13.18.40.2 SR13,
-/// §13.18.8 BLANK WHEN ZERO, §13.18.63 VALUE): spec-derived facts at COBOL-85, differential against the legacy
+/// SPECIAL-NAMES DECIMAL-POINT IS COMMA + CURRENCY SIGN (ISO/IEC 1989:2023 §2023:12.3.7 GR13/GR14, §2023:13.18.40.2 SR13,
+/// §2023:13.18.8 BLANK WHEN ZERO, §2023:13.18.63 VALUE): spec-derived facts at COBOL-85, differential against the legacy
 /// oracle (NIST NC107A/NC108M-green) except where the legacy deviates from the spec — zero suppression across
-/// comma-mode grouping periods (the legacy's edit-pattern pass ignores its comma flag; §13.18.40.5 + the SR13
+/// comma-mode grouping periods (the legacy's edit-pattern pass ignores its comma flag; §2023:13.18.40.5 + the SR13
 /// role exchange win) and the GR6 numeric-VALUE-on-edited conversion — those are SPEC-PINNED.
 /// </summary>
 public sealed class DecimalPointDifferentialTests
@@ -19,7 +19,7 @@ public sealed class DecimalPointDifferentialTests
 
     /// <summary>Spec-pinned (no oracle): asserted against the ISO-derived expected output directly. The optional
     /// <paramref name="dialect"/> targets a specific edition (a numeric literal VALUE on a numeric-edited item is a
-    /// COBOL-2023 feature, ISO §13.18.63 SR6 / Annex E.3.3 item 43 — such tests pin at 2023).</summary>
+    /// COBOL-2023 feature, ISO §2023:13.18.63 SR6 / Annex E.3.3 item 43 — such tests pin at 2023).</summary>
     private static void AssertSpecPinned(string source, string expected, int dialect = 85)
     {
         var (cok, cout, cdetail) = new WiseOwlCobolCompiler(dialect).CompileAndRun(source);
@@ -27,8 +27,8 @@ public sealed class DecimalPointDifferentialTests
         Assert.Equal(expected, cout);
     }
 
-    /// <summary>§12.3.7 GR14a: under the clause the comma is the literal decimal separator — a comma VALUE
-    /// initializes the scaled item; §13.18.40.2 SR13 + GR14b: the edited mask's comma is the decimal point and
+    /// <summary>§2023:12.3.7 GR14a: under the clause the comma is the literal decimal separator — a comma VALUE
+    /// initializes the scaled item; §2023:13.18.40.2 SR13 + GR14b: the edited mask's comma is the decimal point and
     /// its periods are grouping separators, INSERTED as written (NC107A's DATA-K → DATA-L shape).</summary>
     [Fact]
     public void CommaDecimal_ValueInit_And_GroupedEditedMask()
@@ -50,7 +50,7 @@ public sealed class DecimalPointDifferentialTests
                 STOP RUN.
             """);
 
-    /// <summary>§12.3.7 GR14a: comma literals in MOVE and in a relation condition (NC107A's 9116,44 shape).</summary>
+    /// <summary>§2023:12.3.7 GR14a: comma literals in MOVE and in a relation condition (NC107A's 9116,44 shape).</summary>
     [Fact]
     public void CommaDecimal_MoveAndCompareLiterals()
         => AssertMatchesGolden("""
@@ -72,7 +72,7 @@ public sealed class DecimalPointDifferentialTests
                 STOP RUN.
             """);
 
-    /// <summary>§12.3.7 GR13 + SR22: a bare CURRENCY SIGN literal is both currency string and PICTURE symbol —
+    /// <summary>§2023:12.3.7 GR13 + SR22: a bare CURRENCY SIGN literal is both currency string and PICTURE symbol —
     /// 'W' masks classify and edit exactly like '$' masks (NC107A's DATA-J/DATA-M shape).</summary>
     [Fact]
     public void CurrencySign_W_FloatingAndFixedMasks()
@@ -100,7 +100,7 @@ public sealed class DecimalPointDifferentialTests
             """);
 
     /// <summary>NC108M's shape: CURRENCY "&lt;" with DEFAULT separators — a floating &lt; string with ','
-    /// grouping and '.' decimal inserts per §13.18.40.4.</summary>
+    /// grouping and '.' decimal inserts per §2023:13.18.40.4.</summary>
     [Fact]
     public void CurrencySign_AngleBracket_DefaultSeparators()
         => AssertMatchesGolden("""
@@ -121,7 +121,7 @@ public sealed class DecimalPointDifferentialTests
                 STOP RUN.
             """);
 
-    /// <summary>§13.18.8 GR1/GR2: BLANK WHEN ZERO on a category-numeric picture defines the item numeric-edited;
+    /// <summary>§2023:13.18.8 GR1/GR2: BLANK WHEN ZERO on a category-numeric picture defines the item numeric-edited;
     /// a zero store sets ALL SPACES, and the item compares as alphanumeric (NC108M's FMT-TEST-GF-3 /
     /// ABR-TEST-GF-4 shapes).</summary>
     [Fact]
@@ -142,7 +142,7 @@ public sealed class DecimalPointDifferentialTests
                 STOP RUN.
             """);
 
-    /// <summary>SPEC-PINNED — §13.18.40.5 zero suppression + the §13.18.40.2 SR13 role exchange: a suppressed
+    /// <summary>SPEC-PINNED — §2023:13.18.40.5 zero suppression + the §2023:13.18.40.2 SR13 role exchange: a suppressed
     /// zone ABSORBS the comma-mode grouping PERIODS and suppression stops at the COMMA decimal position. The
     /// legacy's edit-pattern pass reads its comma flag and never uses it (hard-coded period-as-decimal), so the
     /// expectation derives from the spec: 12,34 in Z.ZZZ.ZZZ,99 → "       12,34" (7 suppressed positions —
@@ -167,7 +167,7 @@ public sealed class DecimalPointDifferentialTests
                 STOP RUN.
             """, "Z=       12,34=");
 
-    /// <summary>SPEC-PINNED — §13.18.63.3 SR6: a NUMERIC literal VALUE on a numeric-edited item is converted to
+    /// <summary>SPEC-PINNED — §2023:13.18.63.3 SR6: a NUMERIC literal VALUE on a numeric-edited item is converted to
     /// its edited form per the MOVE rules ("01.50", not the raw text).</summary>
     [Fact]
     public void NumericValue_OnEditedItem_ConvertsPerMoveRules_SpecPinned()
@@ -183,8 +183,8 @@ public sealed class DecimalPointDifferentialTests
                 STOP RUN.
             """, "E=01.50=", dialect: 2023);   // numeric literal VALUE on a numeric-edited item is 2023 (Annex E.3.3 item 43)
 
-    /// <summary>§12.3.7 GR14a (negative): a tight-comma decimal literal WITHOUT the clause is rejected with the
-    /// specific COBOL0895 diagnostic — §8.3.3.3.2 admits only the decimal point. (The legacy accepts it
+    /// <summary>§2023:12.3.7 GR14a (negative): a tight-comma decimal literal WITHOUT the clause is rejected with the
+    /// specific COBOL0895 diagnostic — §2023:8.3.3.3.2 admits only the decimal point. (The legacy accepts it
     /// unconditionally — a version-invariant non-conformance, not ported.)</summary>
     [Fact]
     public void CommaLiteral_WithoutClause_Rejected()
@@ -204,7 +204,7 @@ public sealed class DecimalPointDifferentialTests
         Assert.Contains("COBOL0895", cdetail);
     }
 
-    /// <summary>§13.18.60 GR1: a group-level USAGE applies to each subordinate elementary item, and the
+    /// <summary>§2023:13.18.60 GR1: a group-level USAGE applies to each subordinate elementary item, and the
     /// typed-native whole-group semantics hold for the all-binary aligned-layout shapes (NC107A's
     /// USAGE-TEST-4/6: MOVE U5 TO U9 copies positionally; IF U22 &gt; U12 compares the representation).</summary>
     [Fact]

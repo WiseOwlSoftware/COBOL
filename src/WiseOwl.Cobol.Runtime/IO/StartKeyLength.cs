@@ -5,17 +5,17 @@ namespace WiseOwl.Cobol.Runtime.IO;
 /// <summary>
 /// The GR17 b) length of an indexed START's temporary key area, carried to the connector AS THE SOURCE WROTE IT —
 /// arithmetic-expression-1's exact value, not an emit-time narrowing of it (kb/Work PB357).
-/// <para>⛔ §14.9.41.4 GR14 IS A PREDICATE ON arithmetic-expression-1 ITSELF: "If arithmetic-expression-1 does not
+/// <para>⛔ §2023:14.9.41.4 GR14 IS A PREDICATE ON arithmetic-expression-1 ITSELF: "If arithmetic-expression-1 does not
 /// evaluate to a positive nonzero integer that is less than or equal to the length of the associated key, the I-O
 /// status value in the file connector referenced by file-name-1 is set to '23', the invalid key condition exists,
-/// and the execution of the START statement is unsuccessful." §14.9.41.3 has no syntax rule confining the
+/// and the execution of the START statement is unsuccessful." §2023:14.9.41.3 has no syntax rule confining the
 /// expression to an integer, so <c>WITH LENGTH 2.5</c> and a 12-digit count are LEGAL source whose defined result
 /// is '23'. The emitter formerly rendered <c>(int)(Align(expr, 0))</c> — a TRUNCATION to scale 0 and an unchecked
 /// 32-bit narrowing — so 2.5 arrived as 2, 4294967297 as 1, and the connector's bound test was applied to a value
 /// already forced into range. The value now travels intact: the integrality question is answered by THE ONE
 /// carrier-neutral integrality landing, <see cref="SetAmount"/>, and the range question by
 /// <see cref="TryCompareLength"/>, which <see cref="IndexedConnector.Start"/> asks exactly once.</para>
-/// <para>§14.9.41.4 GR13 makes the count a number of CHARACTER POSITIONS of data-name-1's class ("if data-name-1
+/// <para>§2023:14.9.41.4 GR13 makes the count a number of CHARACTER POSITIONS of data-name-1's class ("if data-name-1
 /// or record-key-name-1 is of class national, arithmetic-expression-1 is the number of national character
 /// positions"); <see cref="UnitWidth"/> is the storage width of one such position (kb/Work PB327), applied only
 /// AFTER the GR14 test, on the exact integer, so the product can never wrap.</para>
@@ -48,7 +48,7 @@ public readonly record struct StartKeyLength
     /// <summary>No LENGTH phrase: GR17 b)'s "or else the length of data-name-1", already a storage width.</summary>
     public static StartKeyLength OfWidth(int storageWidth) => new(SetAmountLanding.Integer, storageWidth, 1);
 
-    /// <summary>§14.9.41.4 GR14 — true, with the storage width of the temporary area, when the length is a positive
+    /// <summary>§2023:14.9.41.4 GR14 — true, with the storage width of the temporary area, when the length is a positive
     /// nonzero integer no greater than the associated key's length (<paramref name="keyWidth"/>, a storage width);
     /// false is GR14's '23' leg.</summary>
     public bool TryCompareLength(int keyWidth, out int compareLength)

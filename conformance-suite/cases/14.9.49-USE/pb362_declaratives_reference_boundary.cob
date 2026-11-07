@@ -5,13 +5,13 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.49.3 SR4 (kb/Work PB362): "Procedure-names within a
+      *> ISO §2023:14.9.49.3 SR4 (kb/Work PB362): "Procedure-names within a
       *> declarative section may be referenced in a different declarative
       *> section or in a nondeclarative procedure only with a PERFORM
       *> statement." The LEGAL half of the boundary, executed:
       *>   1. PERFORM DP1 THRU DP2 from the nondeclarative portion. DP1's
       *>      GO TO DP2 is a reference WITHIN its own section, which SR4
-      *>      does not restrict. §14.9.28.4 runs DP2's ADD, then control
+      *>      does not restrict. §2023:14.9.28.4 runs DP2's ADD, then control
       *>      returns at the end of DP2: N = 1.
       *>   2. PERFORM D1 (the section): DP1, GO TO DP2, ADD: N = 2.
       *>   3. PERFORM DP3, a paragraph of declarative section D2, whose

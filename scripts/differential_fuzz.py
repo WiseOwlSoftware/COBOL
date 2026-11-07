@@ -366,8 +366,8 @@ def added_reserved_words(text: str) -> list[str]:
 
 #: The seed FAMILIES (kb/Work PB3523 item 1): a clause's family is the first entry whose prefix it is under, and a clause
 #: under none is a statement's. Each family has its own worked example in the system prompt, because the night of
-#: 2026-10-21 failed by family: data description clauses (§13.18: 61 % refused by both compilers), statements (§14.9: 58 %)
-#: and references and expressions (§8.4: 53 %), each with a shape one statement example did not show.
+#: 2026-10-21 failed by family: data description clauses (§2023:13.18: 61 % refused by both compilers), statements (§2023:14.9: 58 %)
+#: and references and expressions (§2023:8.4: 53 %), each with a shape one statement example did not show.
 FAMILIES: tuple[tuple[str, str], ...] = (("15", "function"), ("14", "statement"), ("13", "data"), ("8.5", "data"),
                                          ("8.8", "expression"), ("8.4", "expression"))
 DEFAULT_FAMILY = "statement"
@@ -567,8 +567,8 @@ STOP RUN.
 #: mnemonic-names (WiseOwl's COBOL0901 "is a reserved word in COBOL-2014", 294 programs both compilers refused: SCREEN 74,
 #: NULL 41, ADDRESS 34, DESTINATION 22, OBJECT 21, CONDITION 18, BOOLEAN 13, VALIDATE-STATUS 13, DEFAULT 10, then LENGTH,
 #: RETURNING and COLUMN), then the ones its first refusal most often stopped at as an unexpected word (COBOL0001 at CLASS 23,
-#: STATUS 22, TYPE 15, FUNCTION 13: a clause or phrase the model invented around them). §8.3.2.4.1: "Reserved words shall
-#: not be used as system-names or user-defined words". Named, not the whole §8.9 list of several hundred: the naming rule
+#: STATUS 22, TYPE 15, FUNCTION 13: a clause or phrase the model invented around them). §2023:8.3.2.4.1: "Reserved words shall
+#: not be used as system-names or user-defined words". Named, not the whole §2023:8.9 list of several hundred: the naming rule
 #: (a prefix and a hyphen on every name) is what keeps the rest out. The self-test holds each to `reserved_words`.
 MISUSED_RESERVED_WORDS = ("SCREEN", "NULL", "ADDRESS", "DESTINATION", "OBJECT", "CONDITION", "BOOLEAN", "VALIDATE-STATUS",
                           "DEFAULT", "LENGTH", "RETURNING", "COLUMN", "TYPE", "CLASS", "STATUS", "FUNCTION")
@@ -578,9 +578,9 @@ MISUSED_RESERVED_WORDS = ("SCREEN", "NULL", "ADDRESS", "DESTINATION", "OBJECT", 
 #: "unexpected 'WORKING-STORAGE'" 34), the general format as the whole of a statement's or clause's syntax (COBOL0307, an
 #: invented phrase, 315; COBOL1941, an invented data-description clause, 133), the naming rule and the misused reserved
 #: words (COBOL0901, 294), TRUE and FALSE as values (COBOL0001 at 'TRUE' 57, 'FALSE' 11), a table at level 01 (GnuCOBOL
-#: "01/77 OCCURS does not conform" 52, WiseOwl COBOL2404 33: §13.18.38.3 rule 1, "The OCCURS clause shall not be
+#: "01/77 OCCURS does not conform" 52, WiseOwl COBOL2404 33: §2023:13.18.38.3 rule 1, "The OCCURS clause shall not be
 #: specified in a data description entry that" has a level-number of 01, 66, 77 or 88), the SEARCH of a group rather than
-#: of its OCCURS entry (GnuCOBOL "not indexed": §14.9.37.3 rule 2, "The data description of identifier-1 shall contain an
+#: of its OCCURS entry (GnuCOBOL "not indexed": §2023:14.9.37.3 rule 2, "The data description of identifier-1 shall contain an
 #: OCCURS clause with an INDEXED phrase"), and B in a PICTURE taken for a bit (COBOL1934 on PIC B(8), GnuCOBOL's
 #: "PICTURE string must contain at least one of" 71).
 SYSTEM_PROMPT = """You write small, standalone COBOL test programs for a compiler differential. Rules:
@@ -1037,7 +1037,7 @@ class Settings:
                            # 7 model-seconds a round, three cost less than one discarded program)
     variations: int = 3    # programs asked per clause before the seed list wraps
     seed: int = 20261020   # shuffles the seed clauses deterministically, so a short run samples every area (the first
-                           # 40-program run walked the spec in order and never left §8.8); `in_order` keeps the spec's order
+                           # 40-program run walked the spec in order and never left §2023:8.8); `in_order` keeps the spec's order
     in_order: bool = False
     #: Ollama options per model tag (`--model-option MODEL:KEY=VALUE`, fuzz_ollama.MODEL_OPTION_TYPES): a sampler setting
     #: that damps a model's repetition belongs to that model, so a bake-off gives each its own (kb/Work PB3537)

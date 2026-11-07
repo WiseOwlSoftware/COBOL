@@ -16,15 +16,15 @@
       *> that the non-space characters of a relative line specified with
       *> an integer-2 of zero will overwrite the corresponding characters
       *> of the preceding line."
-      *>   cite.py: OK  §13.18.35.4 3)  (General rules)
+      *>   cite.py: OK  §2023:13.18.35.4 3)  (General rules)
       *> "If the first LINE NUMBER clause of the report group is relative
       *> and the report is not divided into pages, the report group's
       *> first line number is obtained by adding integer-2 to the current
       *> value of the report's LINE-COUNTER."
-      *>   cite.py: OK  §13.18.35.4 5) 5. c)  (General rules)
+      *>   cite.py: OK  §2023:13.18.35.4 5) 5. c)  (General rules)
       *> "The report's LINE-COUNTER identifier contains the line number
       *> within the page of the most recent line to have been printed."
-      *>   cite.py: OK  §13.18.35.4 1)  (General rules)
+      *>   cite.py: OK  §2023:13.18.35.4 1)  (General rules)
       *>
       *> DERIVATION (RD with no PAGE clause - one page of indefinite
       *> length; LINE-COUNTER 0 after INITIATE):

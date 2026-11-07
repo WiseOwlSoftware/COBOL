@@ -16,7 +16,7 @@ Visual models of the compiler — Mermaid flowcharts, ASCII sketches, and tables
 ## Pipeline & structure
 - [[kb/Diagrams/Compiler Pipeline Diagram]] — the 6-phase source→assembly flow; invariants (no lowered IR, edition-gate-halts-before-emit).
 - [[kb/Diagrams/IR Graph Overview]] — the bound-node hierarchy, the `Place` lvalue, the source-generated visitor.
-- [[kb/Diagrams/Semantic Validation Flow]] — the two-arm edition gate, the §8.9 reserved-word funnel, the diagnostic descriptor anatomy.
+- [[kb/Diagrams/Semantic Validation Flow]] — the two-arm edition gate, the §2023:8.9 reserved-word funnel, the diagnostic descriptor anatomy.
 
 ## Lookup diagrams (ISO cross-reference)
 - [[kb/Diagrams/Grammar Hierarchy]] — program→division→section→paragraph→statement; the 9 grammar fragments.

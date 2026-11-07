@@ -5,13 +5,13 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// ⛔ THE BASED-ITEM SCREEN FOLLOWS THE DECLARATION'S SCOPE (kb/Work PB467). ISO §14.9.39.3 SR18
-/// ("Data-name-1 shall be a based data item") and §14.9.3.3 SR1 ("The data item referenced by data-name-1 shall
+/// ⛔ THE BASED-ITEM SCREEN FOLLOWS THE DECLARATION'S SCOPE (kb/Work PB467). ISO §2023:14.9.39.3 SR18
+/// ("Data-name-1 shall be a based data item") and §2023:14.9.3.3 SR1 ("The data item referenced by data-name-1 shall
 /// be described with the BASED clause") are predicates over the item the reference IDENTIFIES, and inside a
-/// method definition that is the method's own declaration: §11.7.4 GR5 — "If a given user-defined word is
+/// method definition that is the method's own declaration: §2023:11.7.4 GR5 — "If a given user-defined word is
 /// defined in the data division of this method definition and in the data division of the containing object
 /// definition, the use of that word in this method refers to the declaration in this method. The declaration in
-/// the containing object definition is inaccessible to this method." §13.16.3 SR16 is what makes these programs
+/// the containing object definition is inaccessible to this method." §2023:13.16.3 SR16 is what makes these programs
 /// legal source at all: the BASED clause "may be specified only in data description entries in the linkage
 /// section, in the working-storage section, and in the local-storage section" — all three of which a method
 /// definition has.
@@ -67,8 +67,8 @@ public sealed class BasedItemScopeTests
         Assert.True(ok, string.Join("\n", errors));   // kb/Work PB956 — the class compiles, no 0899
     }
 
-    /// <summary>THE SAME DECLARATION, MOVED into the method's LOCAL-STORAGE. §13.16.3 SR16 admits BASED there
-    /// and §11.7.4 GR5 makes it the referenced item, so SR18 is satisfied exactly as at object level. This is
+    /// <summary>THE SAME DECLARATION, MOVED into the method's LOCAL-STORAGE. §2023:13.16.3 SR16 admits BASED there
+    /// and §2023:11.7.4 GR5 makes it the referenced item, so SR18 is satisfied exactly as at object level. This is
     /// the legal source the unit-wide lookup refused, because the method's own declaration was invisible to
     /// it.</summary>
     [Fact]
@@ -80,7 +80,7 @@ public sealed class BasedItemScopeTests
     }
 
     /// <summary>A method-local NON-based item legally shadowing an object-level BASED one of the same spelling.
-    /// §11.7.4 GR5 makes the METHOD's declaration the referenced item and it is not BASED, so SR18 is violated.
+    /// §2023:11.7.4 GR5 makes the METHOD's declaration the referenced item and it is not BASED, so SR18 is violated.
     /// The unit-wide lookup saw the object-level BASED item — an item that is not the referenced item — and
     /// admitted the statement: illegal source accepted, the opposite direction of the same defect.</summary>
     [Fact]
@@ -99,7 +99,7 @@ public sealed class BasedItemScopeTests
         EditionHarness.AssertHasDiagnostic(errors, "COBOL0869");
     }
 
-    /// <summary>ALLOCATE reaches the SAME helper, so §14.9.3.3 SR1 gets the same scoped verdict: the method's own
+    /// <summary>ALLOCATE reaches the SAME helper, so §2023:14.9.3.3 SR1 gets the same scoped verdict: the method's own
     /// BASED item is allocatable. A fix that repaired only SET ADDRESS OF would leave this arm wrong — the
     /// two-arm dispatch this repo produces most often.</summary>
     [Fact]
@@ -111,7 +111,7 @@ public sealed class BasedItemScopeTests
         Assert.True(ok, string.Join("\n", errors));   // kb/Work PB956 — the class compiles, no 0899
     }
 
-    /// <summary>ALLOCATE of the method-local non-based shadow violates §14.9.3.3 SR1, the other arm.</summary>
+    /// <summary>ALLOCATE of the method-local non-based shadow violates §2023:14.9.3.3 SR1, the other arm.</summary>
     [Fact]
     public void Allocate_OfAMethodLocalNonBasedShadow_ViolatesSr1()
     {
@@ -120,7 +120,7 @@ public sealed class BasedItemScopeTests
         EditionHarness.AssertHasDiagnostic(errors, "COBOL0869");
     }
 
-    /// <summary>A name NO declaration in scope carries is an ISO §8.4.2.1 failure, not a category failure: the
+    /// <summary>A name NO declaration in scope carries is an ISO §2023:8.4.2.1 failure, not a category failure: the
     /// reference "identifies no resource", and saying "the operand shall be a BASED level-01/77 item" sends the
     /// reader hunting a BASED clause on a name that is not declared at all.</summary>
     [Fact]

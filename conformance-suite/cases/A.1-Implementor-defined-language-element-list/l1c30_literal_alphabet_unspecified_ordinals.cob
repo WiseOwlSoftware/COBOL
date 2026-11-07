@@ -5,17 +5,17 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §12.3.7.4 GR7 k) 4. — ordinals of unspecified characters
+      *> ISO §2023:12.3.7.4 GR7 k) 4. — ordinals of unspecified characters
       *> THE RULE (Annex A.1 item 186, documented scheme):
       *>   cite.py --check 12.3.7.4 "the implementor defines the ordinal
       *>     number within the character code set being specified for
       *>     each character within the native character set that is not
-      *>     specified by the literal-1 phrase" -> OK §12.3.7.4 7) 2.
+      *>     specified by the literal-1 phrase" -> OK §2023:12.3.7.4 7) 2.
       *>     (cite.py mislabels the list item, PB1554: it is GR7 k) 4.)
       *>   cite.py --check 12.3.7.4 "the value of figurative constant
       *>     symbolic-character-1 is the representation of the coded
       *>     character at ordinal position integer-1"
-      *>     -> OK §12.3.7.4 11)  (GR11 b), read with and without IN)
+      *>     -> OK §2023:12.3.7.4 11)  (GR11 b), read with and without IN)
       *> DOCUMENTED SCHEME (docs/CONFORMANCE.md DOC-A.1-186): a
       *> character's ordinal is its collating position counting from 1;
       *> the n specified positions come first (an ALSO group is ONE

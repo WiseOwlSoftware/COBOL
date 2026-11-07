@@ -21,7 +21,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// passing mode — BY REFERENCE, BY CONTENT and bare alike — while the marshaling arms had carried all of them
 /// the whole time.
 /// <para>The failure was invisible to every gate because a "not yet carried" message READS like a deliberate
-/// staging decision (feedback_green_test_can_hold_a_gap_open). Nothing was staged: §14.8.2.3.2 states one rule
+/// staging decision (feedback_green_test_can_hold_a_gap_open). Nothing was staged: §2023:14.8.2.3.2 states one rule
 /// for every category, and its own lettered exceptions b and c pair a BIT GROUP and a NATIONAL GROUP with the
 /// matching elementary items — the standard contemplates exactly the categories the default arm refused.</para>
 /// <para>So this test asserts the property the switch must keep: <b>no PICTURE category may fall into a
@@ -45,7 +45,7 @@ public sealed class OoConformanceCategoryDriftTests
     };
 
     /// <summary>A minimal, self-consistent description per category — the point is only that the two sides are
-    /// IDENTICAL, which is precisely what §14.8.2.3.2 rule 2 requires ("the same ALIGN, BLANK WHEN ZERO,
+    /// IDENTICAL, which is precisely what §2023:14.8.2.3.2 rule 2 requires ("the same ALIGN, BLANK WHEN ZERO,
     /// DYNAMIC LENGTH, JUSTIFIED, PICTURE, SIGN, and USAGE clauses").</summary>
     private static PicInfo PicFor(PicCategory category) => category switch
     {
@@ -59,8 +59,8 @@ public sealed class OoConformanceCategoryDriftTests
         PicCategory.Pointer => new PicInfo(category, Usage.Pointer, Length: 0, Digits: 0, Scale: 0, Signed: false),
         PicCategory.ProgramPointer => new PicInfo(category, Usage.ProgramPointer, Length: 0, Digits: 0, Scale: 0, Signed: false),
         // A function-pointer is PICTURE-less like its two class-pointer siblings, and it is always
-        // RESTRICTED (§13.18.60.2's TO phrase is unbracketed), so the self-consistent description carries a
-        // prototype name — which is also the field §14.8.2.3.2's "both shall be restricted and of the same
+        // RESTRICTED (§2023:13.18.60.2's TO phrase is unbracketed), so the self-consistent description carries a
+        // prototype name — which is also the field §2023:14.8.2.3.2's "both shall be restricted and of the same
         // type" sentence compares. kb/Work PB452 + PB817.
         PicCategory.FunctionPointer => new PicInfo(category, Usage.FunctionPointer, Length: 0, Digits: 0, Scale: 0, Signed: false)
             { RestrictedPrototypeName = "FPROTO" },
@@ -68,14 +68,14 @@ public sealed class OoConformanceCategoryDriftTests
     };
 
     /// <summary>Two IDENTICALLY described elementary items conform — for EVERY category. This is the whole
-    /// §14.8.2.3.2 rule-2 identity case, and the arm that used to answer otherwise is the defect.</summary>
+    /// §2023:14.8.2.3.2 rule-2 identity case, and the arm that used to answer otherwise is the defect.</summary>
     [Theory]
     [MemberData(nameof(ElementaryCategories))]
     public void IdenticalDescriptions_Conform_InEveryCategory(PicCategory category)
     {
         string? why = OoConformance.SignatureDifference(Item(category), Item(category), "formal", "argument");
         Assert.True(why is null,
-            $"category {category} does not conform to ITSELF under §14.8.2.3.2 rule 2: {why}");
+            $"category {category} does not conform to ITSELF under §2023:14.8.2.3.2 rule 2: {why}");
     }
 
     /// <summary>The failing direction, so a vacuously-passing identity test cannot hide a rule that checks
@@ -104,7 +104,7 @@ public sealed class OoConformanceCategoryDriftTests
     }
 
     /// <summary>USAGE is a rule-2 clause in its own right, and for a BOOLEAN item it is genuinely free: PIC 1
-    /// is USAGE DISPLAY or USAGE BIT (§13.18.60.3 SR5) and both map to the same '0'/'1' character storage
+    /// is USAGE DISPLAY or USAGE BIT (§2023:13.18.60.3 SR5) and both map to the same '0'/'1' character storage
     /// (D-B1), so nothing but this compare keeps the two declarations identical.</summary>
     [Fact]
     public void BooleanFormal_RefusesADifferentUsage()

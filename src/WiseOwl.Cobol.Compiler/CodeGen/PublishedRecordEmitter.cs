@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.CodeGen;
 /// subordinate group, an array for OCCURS; a REDEFINES subordinate is not a member (the record is the first description;
 /// its other views are the image's), and FILLER is no member either.
 /// <para>⛔ <b>THE GEOMETRY IS THE STORAGE LAYOUT'S, NEVER RE-DERIVED.</b> Every member's place in the record image is
-/// <see cref="BitLayout.ChildStarts"/>, the one §8.5.1.6.3 placement walk — in BITS, so a USAGE BIT member that shares a
+/// <see cref="BitLayout.ChildStarts"/>, the one §2023:8.5.1.6.3 placement walk — in BITS, so a USAGE BIT member that shares a
 /// byte is placed exactly as the program places it, and a REDEFINES view starts at its target — which is also the walk
 /// the binder's class offsets (a group FORMAL is an area, read through windows) and the record-struct image codec (a
 /// RETURNING group is a record struct) are laid out by; an occurrence's stride is <see cref="BitLayout.StrideBits"/>, the
@@ -30,15 +30,15 @@ namespace WiseOwl.Cobol.CodeGen;
 internal sealed class PublishedRecordEmitter(Func<DataItem, string> profileOf)
 {
     /// <summary>Whether a host entry publishes a record for <paramref name="group"/>. A fixed group always: an OCCURS
-    /// DEPENDING ON table is held (its storage is the maximum allocation, ISO §8.5.1.8, the image the CALL lane's text
+    /// DEPENDING ON table is held (its storage is the maximum allocation, ISO §2023:8.5.1.8, the image the CALL lane's text
     /// crossing carries), and so is a pointer or object reference (its managed slot, <see cref="HoldsSlots"/>). A
     /// VARIABLE-LENGTH group (<see cref="HoldsComponents"/>) whenever the CALL lane carries it — its current extent
     /// composes (<see cref="DataItem.CurrentExtentTransferImageCapable"/>: the current-extent member law with a reference
-    /// leaf a fixed placeholder; for a group holding no reference it is the §8.5.1.12 carrier's own
+    /// leaf a fixed placeholder; for a group holding no reference it is the §2023:8.5.1.12 carrier's own
     /// <see cref="DataItem.CurrentExtentImageCapable"/>) — as the CALL lane's variable-length carrier (<c>CobolVarGroup</c>, <see cref="EmitVar"/>)
     /// or, when it also holds a pointer or object reference, as the CALL lane's cell AREA holding the references and the
     /// components together (<see cref="EmitArea"/>).
-    /// <para>⛔ <b>THERE IS NO GR13 RESTRICTION LEFT</b> (kb/Work PB3273; ISO §14.2.3 13) obliges the implementor to STATE
+    /// <para>⛔ <b>THERE IS NO GR13 RESTRICTION LEFT</b> (kb/Work PB3273; ISO §2023:14.2.3 13) obliges the implementor to STATE
     /// restrictions, not to have one): a group holding BOTH a variable-length component and a pointer or object-reference
     /// member once published no entry, because the COBOL boundary had no crossing form for it (kb/Work PB3139 gave it one:
     /// <c>ActivationCrossing.LeafCarried</c>, <c>StorageCell.CopyArea</c>) and this emitter composed no such area. The record now
@@ -50,7 +50,7 @@ internal sealed class PublishedRecordEmitter(Func<DataItem, string> profileOf)
         group.IsGroup && DataItem.DescendantsOf(group).Where(Occupies).All(d => !d.IsAnyLength)
         && (!HoldsComponents(group) || group.CurrentExtentTransferImageCapable);
 
-    /// <summary>Whether <paramref name="item"/> is or holds a §8.5.1.12 VARIABLE-LENGTH COMPONENT — a dynamic-length
+    /// <summary>Whether <paramref name="item"/> is or holds a §2023:8.5.1.12 VARIABLE-LENGTH COMPONENT — a dynamic-length
     /// elementary item or a dynamic-capacity table (<see cref="CellComponents"/>, the data model's one enumeration of
     /// them) — so a group of it crosses as the CALL lane's variable-length carrier, never as its image alone.</summary>
     internal static bool HoldsComponents(DataItem item) => CellComponents.PerOccurrence(item) > 0;
@@ -70,7 +70,7 @@ internal sealed class PublishedRecordEmitter(Func<DataItem, string> profileOf)
             .Sum(c => CellComponents.PerOccurrence(c) * (c.Occurs ?? 1));
 
     /// <summary>The minimum capacity of a dynamic-capacity table, integer-4 of its FROM phrase ("If integer-4 is absent,
-    /// a value of zero is assumed for it", ISO §13.18.38.4 16)).</summary>
+    /// a value of zero is assumed for it", ISO §2023:13.18.38.4 16)).</summary>
     private static int MinimumCapacity(DataItem table) => table.OccursSpec?.InitialCap ?? 0;
 
     /// <summary>Whether <paramref name="item"/> is or holds a member whose value rides a managed slot of its area rather
@@ -80,9 +80,9 @@ internal sealed class PublishedRecordEmitter(Func<DataItem, string> profileOf)
         SlotWindow.CarriedBySlot(item) || DataItem.DescendantsOf(item).Any(SlotWindow.CarriedBySlot);
 
     /// <summary>The DEPENDING ON item of an OCCURS DEPENDING ON member <paramref name="table"/> whose count the record
-    /// <paramref name="root"/> itself holds — data-name-1 inside the record, which §13.18.38.3 20) places before the
+    /// <paramref name="root"/> itself holds — data-name-1 inside the record, which §2023:13.18.38.3 20) places before the
     /// table — or null: a fixed table, or one whose data-name-1 is outside the record, whose property then holds the
-    /// table's whole area, every occurrence the storage has (§8.5.1.8; the image the boundary carries).</summary>
+    /// table's whole area, every occurrence the storage has (§2023:8.5.1.8; the image the boundary carries).</summary>
     private static DataItem? DependingInRecord(DataItem root, DataItem table) =>
         table.OccursSpec is { DependingName: not null, Depending: { } dep } && RelativeBits(root, dep) >= 0 ? dep : null;
 
@@ -90,7 +90,7 @@ internal sealed class PublishedRecordEmitter(Func<DataItem, string> profileOf)
     /// (0 for the ancestor itself), summed along the parent chain over the one placement walk
     /// (<see cref="BitLayout.StartBitWithin"/>); -1 when <paramref name="item"/> is not under it. Asked only of a
     /// DEPENDING ON item and of a group holding an OCCURS DEPENDING ON table, neither of which lies in a table
-    /// (§13.18.38.3 2) and 1) b)), so each is one place.</summary>
+    /// (§2023:13.18.38.3 2) and 1) b)), so each is one place.</summary>
     private static int RelativeBits(DataItem ancestor, DataItem item)
     {
         int bits = 0;
@@ -153,7 +153,7 @@ internal sealed class PublishedRecordEmitter(Func<DataItem, string> profileOf)
             members.Add(new Member(m, prop, type, type.Kind is HostTypeKind.Group ? CsNames.Allocate($"{word}_Record", scope) : null,
                 DependingInRecord(root, m), OrdinalWithin(group, m)));
         }
-        // A record whose storage holds variable-length components (ISO §8.5.1.12): they have no image, so the record
+        // A record whose storage holds variable-length components (ISO §2023:8.5.1.12): they have no image, so the record
         // presents them as members and composes the CALL lane's carrier of them (EmitVar).
         var components = ComponentsOf(group);
         bool variable = components.Count > 0;
@@ -165,7 +165,7 @@ internal sealed class PublishedRecordEmitter(Func<DataItem, string> profileOf)
                 counts[dep] = Math.Max(counts.GetValueOrDefault(dep), t.OccursSpec!.Min);
         int width = Width(group);
         w.Line($"/// <summary>{group.Level:00} {group.CobolName ?? "FILLER"} — the published record of the description (ISO "
-            + "§14.2.3 13), DESIGN-external-repository §4.3): one property per named subordinate, landed exactly into the "
+            + "§2023:14.2.3 13), DESIGN-external-repository §4.3): one property per named subordinate, landed exactly into the "
             + "record image and decoded from it by the class test NUMERIC.</summary>");
         using (w.Block($"public record struct {name}"))
         {
@@ -186,7 +186,7 @@ internal sealed class PublishedRecordEmitter(Func<DataItem, string> profileOf)
             }
             w.Line();
             // A variable-length record has no storage image to publish: its dynamic-length items "may be located elsewhere"
-            // (ISO §8.5.1.10.3) and its dynamic-capacity tables' items "are not required to be contiguous" (§8.5.1.9.1).
+            // (ISO §2023:8.5.1.10.3) and its dynamic-capacity tables' items "are not required to be contiguous" (§2023:8.5.1.9.1).
             if (!variable)
             {
                 w.Line("/// <summary>The record's image: every member landed exactly, or refused with "
@@ -212,7 +212,7 @@ internal sealed class PublishedRecordEmitter(Func<DataItem, string> profileOf)
                 foreach (var m in members) EmitPut(root, group, m, w);
             if (HoldsSlots(group))
             {
-                // A record whose pointer or object-reference members ride managed slots (§4.3's last table row): its
+                // A record whose pointer or object-reference members ride managed slots (§2023:4.3's last table row): its
                 // storage is the CALL lane's cell area (kb/Work PB2087) — the image, each reference in its slot and, for
                 // a variable-length record, its components in the cell's component slots (kb/Work PB3273).
                 if (ReferenceEquals(group, root)) EmitArea(group, name, variable, width, w);
@@ -238,7 +238,7 @@ internal sealed class PublishedRecordEmitter(Func<DataItem, string> profileOf)
 
     /// <summary>⛔ THE CELL AREA OF A PUBLISHED RECORD HOLDING REFERENCES (DESIGN-external-repository §4.3's last host-type
     /// row; kb/Work PB2087, PB3273): the storage the CALL lane passes a group whose pointers and object references ride
-    /// managed slots, and the one the activated program's formal is laid over (ISO §14.2.3 8): "operates as if the formal
+    /// managed slots, and the one the activated program's formal is laid over (ISO §2023:14.2.3 8): "operates as if the formal
     /// parameter occupies the same storage area as the argument"). <c>__Area</c> builds it and <c>__TryGetArea</c> reads it
     /// back, at the published ROOT only.
     /// <para>A record with no variable-length component is the landed image with each reference in its slot
@@ -246,7 +246,7 @@ internal sealed class PublishedRecordEmitter(Func<DataItem, string> profileOf)
     /// (<c>StorageCell.DynAt</c> / <c>DynTableAt</c>, numbered from zero in the scope), and these are composed, never
     /// re-derived: the cell starts as the DESCRIPTION'S fresh cell (<paramref name="variable"/>'s <c>__fresh</c>, the
     /// factory <c>DataEmitter.FreshArea</c> states for the formal — its dynamic-capacity tables present at their FROM
-    /// capacity with the element recipe a later statement creates occurrences from, §8.5.1.9.5), the record's carrier
+    /// capacity with the element recipe a later statement creates occurrences from, §2023:8.5.1.9.5), the record's carrier
     /// (<c>__Var</c>, the one landing of every component) is distributed into it (<c>StorageCell.StoreVarGroupAt</c>, the
     /// store a formal's copy-in makes), and the references are set on top (<c>__PutSlots</c>), a dynamic-capacity table's
     /// element cells included, because a reference is no part of the carrier. Reading is the inverse walk: the cell's
@@ -297,7 +297,7 @@ internal sealed class PublishedRecordEmitter(Func<DataItem, string> profileOf)
         bool text = m.Type.Kind is HostTypeKind.Text;
         if (m.IsTable)
         {
-            // A dynamic-capacity table starts at its minimum capacity (ISO §14.6.2.3.2 6)).
+            // A dynamic-capacity table starts at its minimum capacity (ISO §2023:14.6.2.3.2 6)).
             int n = m.Item.IsDynamicTable ? MinimumCapacity(m.Item) : m.Depending is { } dep ? counts[dep] : m.Occurs;
             w.Line($"{m.Name} = new {m.Element}[{n}];");
             if (text) w.Line($"global::System.Array.Fill({m.Name}, \"\");");
@@ -335,10 +335,10 @@ internal sealed class PublishedRecordEmitter(Func<DataItem, string> profileOf)
     private static string Characters(DataItem leaf, string storage) =>
         NationalWindow.PositionsOf(leaf) is { } positions ? RuntimeApi.NatReadWindow(storage, "0", $"{positions}") : storage;
 
-    /// <summary>⛔ THE CARRIER OF A VARIABLE-LENGTH RECORD (ISO §8.5.1.12; DESIGN-external-repository §4.3): a group with
+    /// <summary>⛔ THE CARRIER OF A VARIABLE-LENGTH RECORD (ISO §2023:8.5.1.12; DESIGN-external-repository §4.3): a group with
     /// dynamic-length items or dynamic-capacity tables crosses as the CALL lane's carrier of its description
     /// (<c>CobolVarGroup</c>, kb/Work PB204), never as an image, because those components have none: "all dynamic-length
-    /// elementary items are considered to be of zero length" in its byte accounting (§8.5.1.12.3). The record composes
+    /// elementary items are considered to be of zero length" in its byte accounting (§2023:8.5.1.12.3). The record composes
     /// the carrier in the description's own shape, so the activated program's formal takes it as a COBOL argument of the
     /// same description (<c>CobolArgAdapt.VarGroup</c>): its FIXED RUN is the landed image with each table's reservation
     /// cut out (<c>CobolVarGroup.RunOf</c>, the one fixed-run rule a cell-backed group's carrier is built by too), and
@@ -442,7 +442,7 @@ internal sealed class PublishedRecordEmitter(Func<DataItem, string> profileOf)
     }
 
     /// <summary>One member's components decoded from the carrier <c>__v</c> at its ordinals from <c>__dyn</c>: a
-    /// dynamic-length item its content, a dynamic-capacity table one entry per occurrence it carries (§14.6.9.2 recreates
+    /// dynamic-length item its content, a dynamic-capacity table one entry per occurrence it carries (§2023:14.6.9.2 recreates
     /// a receiving table at the sender's capacity), each decoded as a member of the element's description.</summary>
     private void EmitGetDyn(Member m, CodeWriter w)
     {
@@ -537,7 +537,7 @@ internal sealed class PublishedRecordEmitter(Func<DataItem, string> profileOf)
         using (w.Block(""))
         {
             // A table's array has its occurrences: the DEPENDING ON item's landed value for a count the record holds
-            // (ISO §13.18.38.4 7)), the declared count otherwise.
+            // (ISO §2023:13.18.38.4 7)), the declared count otherwise.
             string count = m.Depending is { } dep
                 ? $"HostLanding.LandedOccurrences({DependingImage(root, group, dep, "__b", buffer: true)}, {profileOf(dep)}, "
                     + $"{m.Minimum}, {m.Occurs}, __parameter, {path}, {CsLiteral(dep.CobolName!)})"
@@ -608,7 +608,7 @@ internal sealed class PublishedRecordEmitter(Func<DataItem, string> profileOf)
             return;
         }
         // The table's current occurrences are the DEPENDING ON item's content, decoded by the validity rule and within
-        // the table's bounds (ISO §13.18.38.4 7)); the occurrences past them are undefined there and are not decoded.
+        // the table's bounds (ISO §2023:13.18.38.4 7)); the occurrences past them are undefined there and are not decoded.
         w.Line($"{{ if (HostLanding.TryOccurrences({DependingImage(root, group, dep, "__s", buffer: false)}, {profileOf(dep)}, "
             + $"{m.Minimum}, {m.Occurs}, {name}, {CsLiteral(dep.CobolName!)}, ref __bad, out int __n)) "
             + $"{{ __r.{m.Name} = new {m.Element}[__n]; for (int __i = 0; __i < __n; __i++) {each} }} else __ok = false; }}");
@@ -638,12 +638,12 @@ internal sealed class PublishedRecordEmitter(Func<DataItem, string> profileOf)
             HostTypeKind.Integer or HostTypeKind.Decimal or HostTypeKind.Dec =>
                 HostEntryEmitter.NumericDecode(type, pic, chars, profileOf(leaf), name, target, "__bad", " else __ok = false;"),
             // An INDEX data item is of class index, of which no class condition may be asked ("Identifier-1 shall not
-            // reference a data item of class index", ISO §8.8.4.4.3 1)), so the validity rule does not apply: its eight
+            // reference a data item of class index", ISO §2023:8.8.4.4.3 1)), so the validity rule does not apply: its eight
             // bytes are the value the program stored, and the codec decodes them as the record struct's GroupImageCodec does.
             HostTypeKind.Index => $"{target} = (long){RuntimeApi.NumParseImage(chars, profileOf(leaf), sending: false)};",
             // The image codec's own decode (the record struct's GroupImageCodec decodes a float leaf the same way): the
             // record's bytes are the host's, not a windowed leaf a statement reads, so NumericRenderer.WindowedNum is not
-            // the reader here. A floating-point member's host type is its own carrier (§4.3's table), so the decode is
+            // the reader here. A floating-point member's host type is its own carrier (§2023:4.3's table), so the decode is
             // the codec's, exactly as an elementary floating-point formal's write-back takes its cell's value.
             HostTypeKind.Float =>
                 $"{target} = ({pic.ClrType}){RuntimeApi.NumParseImageFloat(chars, profileOf(leaf), pic.IsSingle)};",

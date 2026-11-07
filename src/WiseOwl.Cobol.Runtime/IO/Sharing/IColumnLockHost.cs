@@ -3,7 +3,7 @@
 namespace WiseOwl.Cobol.Runtime.IO;
 
 /// <summary>
-/// ⛔ THE HOST'S WORDS FOR ISO §9.1.15's FILE LOCK AGAINST OTHER RUN UNITS (kb/Work PB833, PB2484): publish a Table 19
+/// ⛔ THE HOST'S WORDS FOR ISO §2023:9.1.15's FILE LOCK AGAINST OTHER RUN UNITS (kb/Work PB833, PB2484): publish a Table 19
 /// column, and ask whether any OTHER holder has published a column the request row refuses. The POLICY — which column
 /// an OPEN publishes, which columns its row refuses, what a refusal means — is <see cref="RunUnitFileLock"/>'s and is
 /// read from <see cref="Table19"/>; a host only carries it. One host per process family
@@ -28,7 +28,7 @@ internal interface IColumnLockHost
     /// <summary>Publish <paramref name="own"/> on the physical file at <paramref name="hostPath"/>, then test every
     /// column in <paramref name="refused"/> for another holder. <paramref name="hold"/> is non-null exactly when the
     /// outcome is <see cref="RunUnitFileLock.Outcome.Held"/>; disposing it gives the lock back (the CLOSE's half of
-    /// §9.1.15). Never throws: a host failure to publish or test is <see cref="RunUnitFileLock.Outcome.Unavailable"/>.
+    /// §2023:9.1.15). Never throws: a host failure to publish or test is <see cref="RunUnitFileLock.Outcome.Unavailable"/>.
     /// <para>⛔ <paramref name="supersedes"/> is a hold THIS holder took from this host on the same file earlier
     /// (null: none) and the request REPLACES it with no instant in which the file is unlocked: the new column is
     /// published while the old stays published, the test ignores both (they are the asker's own), and only when the
@@ -36,7 +36,7 @@ internal interface IColumnLockHost
     /// the replacement, and <paramref name="supersedes"/> must not be disposed by the caller (the host may have reused
     /// it as <paramref name="hold"/>). On a refusal or an unavailable lock <paramref name="supersedes"/> is exactly as it
     /// was, still held (kb/Work PB3483: a connector's re-OPEN after a CLOSE under commit control must keep the file lock
-    /// the CLOSE kept until the COMMIT or ROLLBACK, §14.9.7.4 GR4, whatever the re-OPEN meets).</para>
+    /// the CLOSE kept until the COMMIT or ROLLBACK, §2023:14.9.7.4 GR4, whatever the re-OPEN meets).</para>
     /// <para>⛔ <paramref name="owesWrites"/> is the one fact about the holder that no Table 19 column carries (kb/Work PB3499):
     /// its connector is open in the INPUT mode with a handle open for WRITING, because its transaction still owes its COMMIT
     /// or ROLLBACK (2.2.1.10 in docs/rearchitecture/DESIGN-runtime-library.md). It is published with the column, as one

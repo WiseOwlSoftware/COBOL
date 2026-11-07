@@ -7,7 +7,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// The standard-decimal OPERAND lift of a fixed-point value wider than the SDIDI's 34 digits (kb/Work PB2918):
-/// ISO §8.8.1.5.2 r1 — "If the operand value cannot be expressed exactly in an SDIDI, the value is rounded
+/// ISO §2023:8.8.1.5.2 r1 — "If the operand value cannot be expressed exactly in an SDIDI, the value is rounded
 /// according to the rules in 11.9.11, INTERMEDIATE ROUNDING clause" (cite.py --check, OK 8.8.1.5.2 1)). A 16-byte
 /// binary container owns 39 digits, so <c>Int128.MinValue</c> (−2^127) and the whole unsigned range [0, 2^128) arrive
 /// at the lift. Expected values are computed from the rule with decimal arithmetic outside the runtime.
@@ -15,7 +15,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 public sealed class CobolDecWideLiftTests
 {
     // -2^127 = -170141183460469231731687303715884105728: dropped digits 05728, round digit 0, so every mode that
-    // rounds to nearest keeps -1701411834604692317316873037158841 × 10^5 (§11.9.11 admits only NEAREST-AWAY-FROM-ZERO,
+    // rounds to nearest keeps -1701411834604692317316873037158841 × 10^5 (§2023:11.9.11 admits only NEAREST-AWAY-FROM-ZERO,
     // NEAREST-EVEN, PROHIBITED and TRUNCATION).
     private static readonly Int128 Sig34Of2p127 = Int128.Parse("1701411834604692317316873037158841");
 
@@ -33,7 +33,7 @@ public sealed class CobolDecWideLiftTests
     public void SignedMinimum_Prohibited_IsTheTruncationCondition()
     {
         var e = Assert.Throws<CobolSizeError>(() => CobolDec.FromParsed(Int128.MinValue, 0, CobolRounding.Prohibited));
-        Assert.Equal("EC-SIZE-TRUNCATION", e.EcName);   // §11.9.11.2 r3d
+        Assert.Equal("EC-SIZE-TRUNCATION", e.EcName);   // §2023:11.9.11.2 r3d
     }
 
     // 3 × 2^124 = 63802943797675961899382738893456539648: dropped digits 9648, round digit 9.
@@ -108,7 +108,7 @@ public sealed class CobolDecWideLiftTests
     // ── The UNSIGNED 16-byte landing (kb/Work PB2966) ─────────────────────────────────────────────────────────────
     // An unsigned PIC 9(19) COMP-5 item owns [0, 2^128) (DOC-A.1-208, kb/Work R10), so a
     // standard-decimal result in [2^127, 2^128) is not "further from zero than permitted for the associated resultant
-    // data item" (§14.7.5 case 3, cite.py --check OK 14.7.5 3)). The Int128 landing could not carry it.
+    // data item" (§2023:14.7.5 case 3, cite.py --check OK 14.7.5 3)). The Int128 landing could not carry it.
 
     private static readonly NumProfile Unsigned16 = new()
     {
@@ -165,7 +165,7 @@ public sealed class CobolDecWideLiftTests
         Assert.Equal((UInt128)123, d.ToUnscaledMagnitude(0, CobolRounding.Truncation, checkedTransfer: true));
         Assert.Equal((UInt128)124, d.ToUnscaledMagnitude(0, CobolRounding.AwayFromZero, checkedTransfer: true));
         Assert.Equal((UInt128)123456, d.ToUnscaledMagnitude(3, CobolRounding.Prohibited, checkedTransfer: true));
-        Assert.Throws<CobolSizeError>(() => d.ToUnscaledMagnitude(0, CobolRounding.Prohibited, checkedTransfer: true));   // §14.7.4.3 r7
+        Assert.Throws<CobolSizeError>(() => d.ToUnscaledMagnitude(0, CobolRounding.Prohibited, checkedTransfer: true));   // §2023:14.7.4.3 r7
     }
 
     [Fact]

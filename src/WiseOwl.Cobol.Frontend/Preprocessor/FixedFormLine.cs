@@ -19,7 +19,7 @@ internal readonly struct FixedFormLine
     /// <summary>Positions in the sequence number area (positions 1–6).</summary>
     public const int SequenceAreaLength = 6;
 
-    /// <summary>The 0-based position of the indicator area (position 7; ISO §6.3.1: "The indicator area is the 7th
+    /// <summary>The 0-based position of the indicator area (position 7; ISO §2023:6.3.1: "The indicator area is the 7th
     /// character position of a line"). It is also THE PHYSICAL COLUMN of every indicator character a diagnostic can name
     /// (kb/Work PB2982): a tab of the sequence area (positions 1–6) or of position 7 fills through position 8
     /// (DOC-A.1-157), so an indicator that is not a space is never preceded by a tab, and positions are characters
@@ -40,12 +40,12 @@ internal readonly struct FixedFormLine
     /// <summary>Positions in AREA A (positions 8–11), the first positions of the program-text area. ANSI X3.23-1985 split
     /// the program-text area at margin B into area A and area B (positions 12 to margin R); ISO/IEC 1989:2002 removed the
     /// split — the 2023 program-text area "begins in character position 8 and terminates with the character position
-    /// immediately to the left of margin R" (ISO §6.3.1) and has no area — so the areas matter only to a COBOL-85
+    /// immediately to the left of margin R" (ISO §2023:6.3.1) and has no area — so the areas matter only to a COBOL-85
     /// reading: the comment-entry paragraph's end and the area-placement rules (kb/Work PB1494, PB3147).</summary>
     public const int AreaAWidth = 4;
 
-    /// <summary>The indicator-area character of a fixed continuation line (ISO §6.2.2: a hyphen). The ONE spelling of it:
-    /// the §6.5 line classifier and the reference-format detector both read it from here.</summary>
+    /// <summary>The indicator-area character of a fixed continuation line (ISO §2023:6.2.2: a hyphen). The ONE spelling of it:
+    /// the §2023:6.5 line classifier and the reference-format detector both read it from here.</summary>
     public const char ContinuationIndicator = '-';
 
     /// <summary>Whether the character at 0-based <paramref name="programTextOffset"/> of the program-text area (position
@@ -82,7 +82,7 @@ internal readonly struct FixedFormLine
     }
 
     /// <summary>Whether the line holds any position of the program-text area (it has at least eight positions) — the line
-    /// a compiler directive can stand on (§7.3.3 SR3).</summary>
+    /// a compiler directive can stand on (§2023:7.3.3 SR3).</summary>
     public bool HasProgramText => _programTextAt < _text.Length;
 
     /// <summary>The program-text area: positions 8 through margin R, a shorter line read as if space-filled to margin R

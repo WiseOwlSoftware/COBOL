@@ -54,7 +54,7 @@ first" as an ORDERING preference, never a gate; the v1.0 timing of Cut 3 (PB2349
 runtime namespaces); an external-repository slice whose RESULT a note needs (that note names the slice in `blocked_by`;
 a slice that only shares a file is no gate, PB4452); PB2417 first (the drift test and the edges file before any Move/rename or Extract);
 PB2350 before any grammar wave; PB2118's own approval before any R3 wave (given 2026-10-07 17:42 PDT). Why now: the remaining GAP rows land in the
-god classes (48 in §14.9, 22 in §13.18, 14 in §12.3 at 173 GAP), so every fix landed before the split enlarges the
+god classes (48 in §2023:14.9, 22 in §2023:13.18, 14 in §2023:12.3 at 173 GAP), so every fix landed before the split enlarges the
 extraction, and R1 lets those fixes be written into the target layout.
 R0 has landed (the census, oracle and baseline records §8 cites). R1 is §8, Draft 10, approved by the owner on 2026-10-07 17:42 PDT: the nine Opus
 refuters' findings against Drafts 1–9 (13+4, 10+3, 6+3, 4+0, 3+3, 3+1, 1+2, 1+1 and 3+5, blocking + non-blocking) are answered in the text
@@ -583,26 +583,26 @@ names as they are at the time the test runs):
 
 | # | Layer id | Namespaces (census `types` ids) | ISO anchor |
 |---|---|---|---|
-| 0 | `runtime` | `WiseOwl.Cobol.Runtime`, `.Collation`, `.Collation.Cache`, `.Collation.Cldr`, `.Collation.Locale`, `.Exceptions`, `.Globalization`, `.IO`, `.Unicode`, `.Unicode.Segmentation` | none: the standard defines no run-time library; its general rules assign duties to "the runtime system" (§8.4.3.2.4 GR6 b), "the runtime system attempts to locate the function being activated"), which this layer is part of. It is not a runtime module: "A runtime module results from compiling a compilation unit" (§14.6.1), which is the emitted `Cobol.<S>` assembly |
-| 1 | `editions` | `WiseOwl.Cobol.Editions`, `WiseOwl.Cobol.Editions.Diagnostics` | the editions' word lists (§8.9, Reserved words) and the conformance criteria (§4.2.1: "To conform to this Working Draft International Standard, an implementation of standard COBOL shall provide the required normative elements") |
+| 0 | `runtime` | `WiseOwl.Cobol.Runtime`, `.Collation`, `.Collation.Cache`, `.Collation.Cldr`, `.Collation.Locale`, `.Exceptions`, `.Globalization`, `.IO`, `.Unicode`, `.Unicode.Segmentation` | none: the standard defines no run-time library; its general rules assign duties to "the runtime system" (§2023:8.4.3.2.4 GR6 b), "the runtime system attempts to locate the function being activated"), which this layer is part of. It is not a runtime module: "A runtime module results from compiling a compilation unit" (§2023:14.6.1), which is the emitted `Cobol.<S>` assembly |
+| 1 | `editions` | `WiseOwl.Cobol.Editions`, `WiseOwl.Cobol.Editions.Diagnostics` | the editions' word lists (§2023:8.9, Reserved words) and the conformance criteria (§2023:4.2.1: "To conform to this Working Draft International Standard, an implementation of standard COBOL shall provide the required normative elements") |
 | 2 | `frontend.common` | `WiseOwl.Cobol.Frontend.Common`, `WiseOwl.Cobol.Common` (absorbed, R0-0221) | source text, spans, literals, compilation inputs |
 | 3 | `frontend.diagnostics` | `WiseOwl.Cobol.Frontend.Diagnostics` | the front end's diagnostic bag |
-| 4 | `frontend.parse` | `WiseOwl.Cobol.Frontend.Generated`, `WiseOwl.Cobol.Frontend.Cst`, `WiseOwl.Cobol.Frontend.Parsing`, `WiseOwl.Cobol.Frontend.Expressions` | the compilation stage's syntax: lexer, parser, parse tree, compile-time expressions (§7.1) |
-| 5 | `frontend.preprocessor` | `WiseOwl.Cobol.Frontend.Preprocessor` | the text manipulation stage (§7.1) |
+| 4 | `frontend.parse` | `WiseOwl.Cobol.Frontend.Generated`, `WiseOwl.Cobol.Frontend.Cst`, `WiseOwl.Cobol.Frontend.Parsing`, `WiseOwl.Cobol.Frontend.Expressions` | the compilation stage's syntax: lexer, parser, parse tree, compile-time expressions (§2023:7.1) |
+| 5 | `frontend.preprocessor` | `WiseOwl.Cobol.Frontend.Preprocessor` | the text manipulation stage (§2023:7.1) |
 | 6 | `frontend.pipeline` | `WiseOwl.Cobol.Frontend` | the front-end orchestrator |
 | 7 | `compiler.model` | `WiseOwl.Cobol.Binding.Model` | the compile-time facts: items, places, files, options, the symbol table, the bound unit; after §8.3 (1) and (4), `DataBindResult` and `PlaceBuilder` |
 | 8 | `compiler.bound` | `WiseOwl.Cobol.Binding.Bound` | the bound tree (the seven `[BoundNode]` roots and their leaves) |
-| 9 | `compiler.binding` | `WiseOwl.Cobol.Binding`, `WiseOwl.Cobol.Binding.Procedure`, `WiseOwl.Cobol.Binding.Passes`, `WiseOwl.Cobol.Binding.Validation`, `WiseOwl.Cobol.Compiler.Oo` | data and procedure binding (§10.3's source units; §13, §14) |
+| 9 | `compiler.binding` | `WiseOwl.Cobol.Binding`, `WiseOwl.Cobol.Binding.Procedure`, `WiseOwl.Cobol.Binding.Passes`, `WiseOwl.Cobol.Binding.Validation`, `WiseOwl.Cobol.Compiler.Oo` | data and procedure binding (§2023:10.3's source units; §13, §14) |
 | 10 | `compiler.validation` | `WiseOwl.Cobol.Validation` | the post-bind passes and the one edition gate |
-| 11 | `compiler.codegen` | `WiseOwl.Cobol.CodeGen`, `WiseOwl.Cobol.CodeGen.Emit` | the backends behind `ICodeGenBackend` (§14.1's statements rendered) |
+| 11 | `compiler.codegen` | `WiseOwl.Cobol.CodeGen`, `WiseOwl.Cobol.CodeGen.Emit` | the backends behind `ICodeGenBackend` (§2023:14.1's statements rendered) |
 | 12 | `compiler.pipeline` | `WiseOwl.Cobol` (root: `CompilerDriver`; `BinderDriver` and `BackendFactory` after §8.3) | the driver, a composition root |
 | 13 | `cli` | `WiseOwl.Cobol.Cli` | the command line, a composition root |
 | — | (tool) | `WiseOwl.Cobol.Compiler.SourceGen` | a build-time generator with no product reference; outside the graph by rule, not by omission |
 
-The ISO anchors are the seams the standard itself draws: §7.1 names the "two logical stages of compilation group
-processing — the text manipulation stage and the compilation stage" (layers 5 and 4); §10.3's source units are what
+The ISO anchors are the seams the standard itself draws: §2023:7.1 names the "two logical stages of compilation group
+processing — the text manipulation stage and the compilation stage" (layers 5 and 4); §2023:10.3's source units are what
 layer 9 binds ("A source unit begins with an identification division and ends with an end marker or the end of the
-compilation group"); §14.1's statements are what layer 11 renders ("The procedure division in a function, a method,
+compilation group"); §2023:14.1's statements are what layer 11 renders ("The procedure division in a function, a method,
 or a program contains statements that are to be executed").
 
 **The allowed edges — the whole list, and the file that holds it.** The rule lives in ONE place,
@@ -717,7 +717,7 @@ waves are therefore: PB2401 cuts what the symbols name that the model may not (t
 walk found too: LANDED, kb/Work PB2401, into the bind session's `SourceMap`); PB2402 moved the symbols with their closure
 (`NamingConvention`, `StandardMethod`, `OoMethodBinding`, `OoFormal`, `OoMethodDataScope` and `OptionsModel.cs`'s
 types) to `Binding/Model` (LANDED: `Binding.Model → Compiler.Oo` 5 → 2, `Binding.Bound → Compiler.Oo` 6 → 1, no row grew),
-after an Extract gave `OoMethodDataScope`'s binder working state a binder-side home: its §8.3.2.2 census is the class
+after an Extract gave `OoMethodDataScope`'s binder working state a binder-side home: its §2023:8.3.2.2 census is the class
 table's per method symbol (`OoClassTable.CensusOf(OoMethodSymbol)`), its constant tables the class half's
 `ConstantEntryBinder` keeps per method, and "does the method declare this word" is `DataBinder.MethodDeclares` over the
 model scope's `IndexesDeclare` and the binder's half, since moved with the scope they would have added
@@ -1068,9 +1068,9 @@ concern binder lands). No row keeps its rule code on `DataBinder`: four rows sch
 `LinkageBinder` and `OoDataBinder`), and `BindPassBoundaryDriftTests` fails on any method of a row's name left on the binder. The rows run under the
 `PassPhase` watermark (`Passes/IBindPass.cs:23`: None, TypesExpanded, UsageResolved, SignResolved,
 RedefinesClassified, StrongTypeChecked, OccursResolved, FilesResolved, ProcedureBound, UsageCollected, StorageComputed,
-EditionConformanceChecked); §12.3's configuration facts ("The configuration section specifies aspects of the data
-processing system that are dependent on the specific system", §12.3.1) in `Switches` (now `SpecialNamesBinder`) and the I-O-CONTROL
-paragraph's (§12.4.6, the input-output section, not §12.3) in `IoControl` (now `FileControlBinder`); §13.18's clauses
+EditionConformanceChecked); §2023:12.3's configuration facts ("The configuration section specifies aspects of the data
+processing system that are dependent on the specific system", §2023:12.3.1) in `Switches` (now `SpecialNamesBinder`) and the I-O-CONTROL
+paragraph's (§2023:12.4.6, the input-output section, not §2023:12.3) in `IoControl` (now `FileControlBinder`); §2023:13.18's clauses
 one partial each (`Aligned`, `SignClause`, `UsageDeclaration`, `ValuePlacement`, `TableValue`, `GroupValue`, `Odo`,
 `RedefinesEntry`, `RenamesEntry`, `ConditionName`, `ConstantRecord`/`Constants`, `ImpliedPicture`, `PictureRequired`,
 `Ptr`, `CodeSetRecords`, `Linkage`, `ClausePlacement`, `EntryOrder`); the report section (`Reports`); OO data (`Oo`);
@@ -1100,7 +1100,7 @@ know which of them has run. And four facts ACCUMULATE across phases, which no si
 And procedure binding itself keeps state on the binder that is no fact at all, in three shapes the data pipeline has
 no word for:
 - a **scoped override**: `Options` is swapped, per METHOD, to the method's own OPTIONS model for that method's
-  sentences and restored after (`Bound/StatementBinder.cs:350-374`; §11.9.4 GR1, kb/Work PB135), and read per
+  sentences and restored after (`Bound/StatementBinder.cs:350-374`; §2023:11.9.4 GR1, kb/Work PB135), and read per
   statement (`ExpressionBinder.cs:703`, the default rounding; `IntrinsicBinder.cs:2598`, the arithmetic mode). Frozen
   as a value slice, a method's bare ROUNDED would take the class's mode: different emitted C#, and a wrong answer;
 - an **ordered drain queue**: `PendingPreOps` and `PropertyOps` (`Binding/OoPendingPropertyOp.cs`, the queue's entry type) are
@@ -1118,23 +1118,23 @@ Draft 6 re-modelled them from the code after the fifth refuter, G2):
   sequences and classification; DEBUGGING MODE; the REPOSITORY specifiers) is copied into the child's OWN
   configuration fields, and the container's OPTIONS become the child's baseline, which the child's own OPTIONS
   paragraph overrides clause by clause at `Bind`. The standard makes this one producer per unit, not a merge: a
-  contained program has no configuration section of its own (§12.3.3 SR1: "The configuration section shall not be
+  contained program has no configuration section of its own (§2023:12.3.3 SR1: "The configuration section shall not be
   specified in a program that is contained within another program"), the container's entries "apply to each directly
-  or indirectly contained source unit" (§12.3.4 GR1), and OPTIONS clauses apply to contained elements "unless
-  overridden by a clause in an OPTIONS paragraph in a contained source element" (§11.9.4 GR1). That rule (§12.3.3 SR1)
+  or indirectly contained source unit" (§2023:12.3.4 GR1), and OPTIONS clauses apply to contained elements "unless
+  overridden by a clause in an OPTIONS paragraph in a contained source element" (§2023:11.9.4 GR1). That rule (§2023:12.3.3 SR1)
   governs contained PROGRAMS only. A class definition's OBJECT and FACTORY halves are the second producer the seed must
-  cover (the sixth refuter, H2): a half MAY carry its own configuration section, limited to SPECIAL-NAMES (§12.3.3
+  cover (the sixth refuter, H2): a half MAY carry its own configuration section, limited to SPECIAL-NAMES (§2023:12.3.3
   SR3: "The SOURCE-COMPUTER, OBJECT-COMPUTER, and REPOSITORY paragraphs shall not be specified in a factory definition
   or an instance definition"), and its own OPTIONS paragraph. `OoDriver.BindClassData` binds the class definition's
-  own ENVIRONMENT DIVISION once, in a binder of the class's own source element (§10.5), and seeds each half from it
+  own ENVIRONMENT DIVISION once, in a binder of the class's own source element (§2023:10.5), and seeds each half from it
   through the same `ConfigurationStep` (`ClassHalf`) before the half binds its own division (`OoDriver.OoReparent` hands a binder
   only its own element's divisions; kb/Work PB3154, which made the class's names inherited by the halves rather than
-  declared in their §8.3.2.2 censuses); it hands each binder its definition's skeleton OPTIONS paragraph
+  declared in their §2023:8.3.2.2 censuses); it hands each binder its definition's skeleton OPTIONS paragraph
   (`ConfigurationSource.Own.SkeletonOptions`: the class definition and an INTERFACE; the OBJECT and FACTORY halves take
   `ConfigurationSource.ClassHalf` and its `HalfOptions`), and every binder binds
   that paragraph in `BindDeclarations`, over the `ConfigurationSlice.InheritedOptions` baseline only `ConfigurationStep` writes,
   after the element's constant entries are declared (kb/Work PB780: the INITIALIZE clause's literal-1 may be a
-  constant-name, §13.10.3 SR2). A method declares no configuration section (§12.3.3 SR2: "The configuration
+  constant-name, §2023:13.10.3 SR2). A method declares no configuration section (§2023:12.3.3 SR2: "The configuration
   section shall not be specified in a method definition") and binds through its half's binder, so it reads the half's
   slice; its OPTIONS are the procedure-bind scoped override below. And `MnemonicRegistry.Of`
   (`Binding/Procedure/MnemonicRegistry.cs:35-60`) builds the device map by its OWN walk up the parse ancestors
@@ -1144,11 +1144,11 @@ Draft 6 re-modelled them from the code after the fifth refuter, G2):
   from the group's `TurnState` at the unit's own lines (`ExternalCheckMask`, `ArgMismatchChecking`, `ExternalDescribe`,
   `OdoReferenceChecking`, `AutomaticPropagation`; `BindUnitData`, `BinderDriver.cs:667-683`, writes them after
   `data.Bind` for the outermost unit too; the class loop writes `ExternalDescribe` and `OdoReferenceChecking` on both
-  halves and three flags on each method, `OoUniversalCheckingHere` (§14.9.23.4 GR7 c)'s method half, folded at the
+  halves and three flags on each method, `OoUniversalCheckingHere` (§2023:14.9.23.4 GR7 c)'s method half, folded at the
   procedure division header), `ExternalCheckMaskHere` and `AutomaticPropagationHere`, `BinderDriver.cs:112-147`; code
   generation reads them, `ProgramEmitter.cs:255,396,747,753` and `OoEmitter.cs:504,539,1212,1322`);
-- for a contained program, the **GLOBAL merge** (§13.18.27.4 GR1: "A constant-name, data-name, file-name, report-name,
-  or screen-name described using a GLOBAL clause is a global name"; §8.4.6.2), which writes the child's state after its
+- for a contained program, the **GLOBAL merge** (§2023:13.18.27.4 GR1: "A constant-name, data-name, file-name, report-name,
+  or screen-name described using a GLOBAL clause is a global name"; §2023:8.4.6.2), which writes the child's state after its
   data phases have frozen (`BinderDriver.cs:685-751`): it adds the containers' GLOBAL files to `FilesByName` by
   `TryAdd` (a local declaration shadows) and their other files to `ContainerLocalFiles`; inherits their GLOBAL reports
   (`InheritGlobalReport`) and GLOBAL subtrees with their depth (`InheritGlobalSubtree`: `ByName`, `Conditions`,
@@ -1182,7 +1182,7 @@ value, else the root its reader passes, so the override holds no reference to th
 `StatementBinder.BindClassBody`); an **ordered drain queue** (`DrainQueue<T>`: `Add`, `Mark()` and `DrainFrom(mark)`,
 which returns and removes the entries after the mark in registration order, plus the two operations the binders
 proved they need: `InsertAt(position, …)`, the evaluation-order placement a freeze makes ahead of a later operand's
-entries (`SendingValueTemp.Positioned`, `StatementBinder.FreezeOdoExtentBeforeRefMod`; §14.6.4), and `Since(mark)`,
+entries (`SendingValueTemp.Positioned`, `StatementBinder.FreezeOdoExtentBeforeRefMod`; §2023:14.6.4), and `Since(mark)`,
 the read of an operand's entries without taking them (the reference resolver's enclosing-occurrence capture); it holds
 `PendingPreOps` and `PropertyOps`, the former `OoPendingPropertyOps`); and a **scope cursor** (`Cursor<T>`:
 `Enter(value)` returns the restoring scope, and `Advance(value)` moves the cursor inside the open scope, which the
@@ -1194,7 +1194,7 @@ names they resolve, by the storage-claim resolution (`PtrBindBasedAndAddressable
 migration-flag pass (`FlagConformancePass`, after binding). The data phase has no scoped override: the method whose entries bind
 is already the data binder's cursor (`OoDataBinder.BindingMethod`), and `OoDataBinder.EntryOptions` (that method's
 `MethodOptions`, else the unit's slice) is the one answer for every OPTIONS fact an entry's description reads (the FLOAT-BINARY
-endianness, `BindEntry`; §11.9.4 GR1, kb/Work PB4464), pinned by `EntryOptionsReaderDriftTests`. Code generation has its own scoped override,
+endianness, `BindEntry`; §2023:11.9.4 GR1, kb/Work PB4464), pinned by `EntryOptionsReaderDriftTests`. Code generation has its own scoped override,
 `EmitContext.Options`: `OoEmitter.EmitMethod` pushes the method's OPTIONS model around the method's LOCAL-STORAGE
 initializers (kb/Work PB1215), which used to assign `DataBinder.Options` and restore it. The three shapes hold no
 binder type, so they live in compiler.model (`Binding/Model/RestoringScopes.cs`), below both of their users; so do
@@ -1204,18 +1204,18 @@ three shapes. The **configuration slice** is a value slice with ONE producer per
 the environment phase, before every data phase that reads it (today's literal and PICTURE reads), and its source is a
 closed union with three arms, one per kind of unit the standard gives a configuration: **Own** — an outermost program,
 function, class definition or interface binds its own CONFIGURATION SECTION; **Contained** — a contained program binds
-none (§12.3.3 SR1) and takes the container's slice, read through the container's binder (`BindSession.Binders`; the
-container's `DataBindResult` is made only after the group tail, PB2361) (§12.3.4 GR1); **ClassHalf** — an OBJECT or
-FACTORY half takes its class definition's configuration (§12.3.4 GR1: the class contains the half) overlaid clause by
-clause by the half's own SPECIAL-NAMES, the one configuration paragraph §12.3.3 SR3 leaves it. The class definition
+none (§2023:12.3.3 SR1) and takes the container's slice, read through the container's binder (`BindSession.Binders`; the
+container's `DataBindResult` is made only after the group tail, PB2361) (§2023:12.3.4 GR1); **ClassHalf** — an OBJECT or
+FACTORY half takes its class definition's configuration (§2023:12.3.4 GR1: the class contains the half) overlaid clause by
+clause by the half's own SPECIAL-NAMES, the one configuration paragraph §2023:12.3.3 SR3 leaves it. The class definition
 binds no data, so it has no `DataBindResult`: its arm's source is a `ClassConfiguration` value, bound once per class by
 the same step from the class's own section and OPTIONS paragraph and handed to both halves (`ConfigurationStep.ForClass`
 returns it, `ClassHalf` takes it; the halves hold the VALUE, never the class's binder). The class definition's own binder
 still binds the class's section (`SpecialNamesBinder` declares into that binder's slice, PB2355), so the class's `Own` arm
-is that binder's slice. A method is not a configuration unit (§12.3.3 SR2): it reads its
+is that binder's slice. A method is not a configuration unit (§2023:12.3.3 SR2): it reads its
 half's slice. The OPTIONS slice is produced by the same step and the same three arms from the baseline the arm names
 (none for Own; the container's for Contained; the class definition's for ClassHalf: `ConfigurationSlice.InheritedOptions`)
-overlaid by the unit's own OPTIONS paragraph clause by clause (§11.9.4 GR1; the OO skeleton's paragraph is
+overlaid by the unit's own OPTIONS paragraph clause by clause (§2023:11.9.4 GR1; the OO skeleton's paragraph is
 `ConfigurationSlice.OptionsParagraph`, carried by the `Own` and `ClassHalf` arms), so `BindDeclarations`' overlay of the
 unit's own paragraph (one bind point for every unit since kb/Work PB780) is the slice's single write of `Options`; a
 method's own OPTIONS stay the procedure-bind scoped override below, and the emitter's scoped override covers the method's
@@ -1229,7 +1229,7 @@ exists, so its REPOSITORY class- and interface-specifiers (each word and its AS 
 source elements' parse trees, memoized per source element. They stay with `OoRepositoryScope` until the external-repository
 design widens it into the per-source-element `IdentityScope` (its §8.7, slice 8): the slice owns the specifiers the binders
 read (user functions, program and function specifiers, intrinsics, properties), `IdentityScope` owns the word ↔ identity
-resolution (§12.3.8.3 SR5: a specifier naming the containing class definition "is ignored"), and it replaces
+resolution (§2023:12.3.8.3 SR5: a specifier naming the containing class definition "is ignored"), and it replaces
 `OoRepositoryScope` in slice 8, which PB2296 waits for. The **checking fold** is two value slices with ONE producer, `CheckingFold`: `UnitChecking`
 (the five unit flags) for every program unit and every class half, after the unit's data phases (where `BindUnitData`
 writes them today) and before ProcedureBound; and `MethodChecking` (`OoUniversalChecking`, `ExternalCheckMask`,
@@ -1291,7 +1291,7 @@ writes stay ordered by the explicit pass list, exactly as today, and the oracle 
 over where binding ends, because `DataBindResult` hands out the forest with `DataItem` immutable (R0-0028's row). One
 class per pass implements `IBindPass` (done, PB2352-PB2354: `BindPipeline.Build` is the explicit ordered list of those
 classes; no reflection; a pass still takes the binder in `Run` until step 11 gives it only its views); one binder per non-pass concern: `SpecialNamesBinder` (the former `Switches` partial: SPECIAL-NAMES and the
-OBJECT-COMPUTER alphabets and classification, §12.3.6–§12.3.7), `FileControlBinder` (FILE-CONTROL and I-O-CONTROL, §12.4.5–§12.4.6: the
+OBJECT-COMPUTER alphabets and classification, §2023:12.3.6–§2023:12.3.7), `FileControlBinder` (FILE-CONTROL and I-O-CONTROL, §2023:12.4.5–§2023:12.4.6: the
 former `IoControl` partial belongs to the input-output section with FILE-CONTROL, as `DESIGN-module-topology.md` §2 and §3 row 15 had it, not to the
 configuration section), `ReportSectionBinder` (`Reports`), `ConstantEntryBinder`, `LinkageBinder`, `OoDataBinder`.
 *`SpecialNamesBinder` as built (PB2355).* One sealed class per unit, `DataBinder.SpecialNames` (made with the data binder, from the
@@ -1299,7 +1299,7 @@ binder and its `EditionContext`), over six partial files by clause family (the s
 `Bind` walk in `SpecialNamesBinder.cs`; `.Alphabets`, `.Literals`, `.Classes` for CLASS and SYMBOLIC CHARACTERS, `.Currency`, `.Locales`). It
 declares the facts into the unit's `ConfigurationSlice` (`DataBindState.Configuration`: the `ConfigurationNames` tables, the program
 collating sequences and classification, the decimal point, the currency set, the mnemonic-names) and holds none of them, and it asks the data
-binder only for what is not SPECIAL-NAMES: the §8.3.2.2 declaration funnel, the constant-name readings, the method tier of a name lookup.
+binder only for what is not SPECIAL-NAMES: the §2023:8.3.2.2 declaration funnel, the constant-name readings, the method tier of a name lookup.
 Every reader of those facts (picture analysis, the literal binders, the procedure binders and the emitters) reads
 `Data.State.Configuration`; a contained unit's slice is seeded from its container's by `ConfigurationStep` (the one producer, step 5 of the
 extract, PB2296 M5), so the binder carries no `InheritFrom` and the data binder no `InheritConfiguration`. The REPOSITORY specifier
@@ -1310,11 +1310,11 @@ emitters' pairs onto `ConfigurationSlice`).
 entries, `BindFileControl`; the RECORD KEY and ALTERNATE RECORD KEY source phrase; the key-level and file-level COLLATING SEQUENCE
 clauses and their post-build resolution, `ResolveFileCollating`; the ORGANIZATION, ACCESS MODE, SHARING and LOCK MODE mappers),
 `FileControlBinder.IoControl.cs` (the I-O-CONTROL paragraph: the SAME clauses' membership model and syntax rules, APPLY COMMIT and the
-record-area link), `FileControlBinder.FileSection.cs` (the FD and SD entries, §13.4.5 and §13.4.6: `BindFileSection`, the RECORD,
+record-area link), `FileControlBinder.FileSection.cs` (the FD and SD entries, §2023:13.4.5 and §2023:13.4.6: `BindFileSection`, the RECORD,
 BLOCK CONTAINS, LINAGE and CODE-SET clauses, the implied record of a record-less FD, the implicit record-area link and the
-SELECT-has-a-description screen, §12.4.5.2 SR3) and `FileControlBinder.Resolve.cs` (the post-build half, `ResolveFiles`: FILE STATUS, LINAGE, ASSIGN USING and the
+SELECT-has-a-description screen, §2023:12.4.5.2 SR3) and `FileControlBinder.Resolve.cs` (the post-build half, `ResolveFiles`: FILE STATUS, LINAGE, ASSIGN USING and the
 key resolutions with the clause syntax rules each applies over the resolved item). It owns `SelectedFiles` (the SELECT-declared files,
-§12.4.5.2 SR2/SR3), `SuppressWhenOperands` and `ApplyCommit`; the files themselves are the `FileSlice` of `DataBindState`
+§2023:12.4.5.2 SR2/SR3), `SuppressWhenOperands` and `ApplyCommit`; the files themselves are the `FileSlice` of `DataBindState`
 (`State.Files`), where the FD, the report section and the file resolution reach them. What stays on the data binder is what is not a file
 concern: the clause-operand resolvers every section shares (`ResolveClauseOperand`, `ClauseDataName`, `KeyReference`), the entry
 walk (`BindEntries`) and the VALUE-literal readers. The COLLATING SEQUENCE alphabet class test, shared by the file clause, PROGRAM COLLATING SEQUENCE and SORT/MERGE, is an alphabet
@@ -1354,7 +1354,7 @@ change that adds it; a stale entry is refused too. A nested type is one member, 
 the fifteen members no other type read private (among them the constant binder's `ConstantScope`, `DeclaredConstant` and `ConstantBindState`, the
 file binder's `SelectedFiles`, `SuppressWhenOperands`, `ResolveApplyCommit` and `ResolveFileCollating`, and
 `DataBinder.InheritGlobalSubtree`, `SymbolicRaw` and `ImpliedReportPicture`) and moved one to its final owner: the
-§13.18.38.3 SR20 byte-range test `DependingInsideTableRange` is `DependingAdmission`'s, the one admission of an OCCURS
+§2023:13.18.38.3 SR20 byte-range test `DependingInsideTableRange` is `DependingAdmission`'s, the one admission of an OCCURS
 DEPENDING ON object and its only reader.
 **The data binder's own value slices (PB2296 M6, as built).** *The estimate above was wrong about what is left:* the usage facts,
 the sign facts, the REDEFINES classes and the OCCURS facts are fields of the `DataItem` forest (`item.Pic`, `item.OwnSign`,
@@ -1371,19 +1371,19 @@ public or internal collection of its own and when a slice's mutator is called fr
   so live beside it). Its writers are the declaration walk (`DataBinder.RegisterName`, `RegisterCondition`, `BindEntries`,
   `InheritGlobalSubtree`, the post-build TYPE copies through the same funnel) and `DynamicResolvePass`, and one LATE door,
   `AddTemporaryRoot`, which `CompilerTemps` uses for the temporaries the PROCEDURE binders mint (see below); every
-  insert takes the method scope that owns the record (§11.7.4 GR5; kb/Work PB3192), so a name still joins the index of the
+  insert takes the method scope that owns the record (§2023:11.7.4 GR5; kb/Work PB3192), so a name still joins the index of the
   source element that owns it.
 - `FileSlice` (`State.Files`): `Declared` and `FilesByName`, written by `Declare(name, file)` from the SELECT entry
-  (`FileControlBinder`) and from an FD or SD that no SELECT specified (§13.4.5.3 SR1, §13.4.6.3 SR1); `DataBindState.VisibleFiles`
+  (`FileControlBinder`) and from an FD or SD that no SELECT specified (§2023:13.4.5.3 SR1, §2023:13.4.6.3 SR1); `DataBindState.VisibleFiles`
   reads it with `InheritedGlobals.Files`.
-- `StorageTierSlice` (`State.StorageTier`): the four static channels and `IsStaticMember` (§13.5.4 GR1), and the pointer pass's
-  cell backings, BASED bridges and `AddressableCellOf` (§13.18.5); written by `PtrBindBasedAndAddressablesPass` and
+- `StorageTierSlice` (`State.StorageTier`): the four static channels and `IsStaticMember` (§2023:13.5.4 GR1), and the pointer pass's
+  cell backings, BASED bridges and `AddressableCellOf` (§2023:13.18.5); written by `PtrBindBasedAndAddressablesPass` and
   `RouteStaticUnitStoragePass`, and through one LATE door, `ClaimTemporaryCell` (see below).
 - **The two slices that are not frozen when the data phases end (review round 1, R1-1; the estimate "the binders read the frozen
   value slices" was wrong for them).** The PROCEDURE binders mint compiler temporaries, and a temporary is a root of the forest:
   `CompilerTemps.Create` appends it to `ForestSlice.Roots` (`AddTemporaryRoot`; the subscript, sending-value, ACCEPT and
   function-result temporaries), and the function-result temporary of a user-defined function whose RETURNING group rides managed
-  slots claims a cell (`DataBinder.ClaimTemporarySlotCarriedCell` from `UdfBinder`, §8.4.3.2.4 GR1 → `StorageTierSlice.ClaimTemporaryCell`),
+  slots claims a cell (`DataBinder.ClaimTemporarySlotCarriedCell` from `UdfBinder`, §2023:8.4.3.2.4 GR1 → `StorageTierSlice.ClaimTemporaryCell`),
   both after `RouteStaticUnitStoragePass` read the claims. A temporary is per-activation, so neither reaches a static channel.
   These are the slices' two LATE doors, each a method of its own so a drift test pins it by member and by caller
   (`DataBindStateBoundaryDriftTests.TheDataBindersSlices_AreWrittenOnlyByTheirWriters`: `AddTemporaryRoot` from `CompilerTemps` only,
@@ -1391,10 +1391,10 @@ public or internal collection of its own and when a slice's mutator is called fr
   `ClaimSlotCarriedCell` from `PtrBindBasedAndAddressablesPass` only), and `ForestSlice.Roots` / `StorageTierSlice.AddressableBackings`
   are complete only when the procedure binders are done. **As built (PB2361, step 11):** `DataBindResult` is made after the group
   tail (`ElementBinders.Freeze`), so the two doors are shut when the forest roots and the cell backings are frozen into it.
-- `ClauseFacts` (`State.Clauses`): the entries that WROTE a SIGN or a VALUE clause (§13.18.52.3 SR1/SR2, §13.16.3 SR10), the
-  clause operands the capture already refused, the written level-88s in source order (§13.16.3 SR24) and `LapsedTypeMembers`
-  (§8.4.2.2.1 rule 4, written once by `ExpandTypesPass`).
-- `ImplicitRegisters` (`State.Implicit`): the X3.23-1985 DEBUG-ITEM family and `EXCEPTION-OBJECT` (§8.4.3.6.3 SR2).
+- `ClauseFacts` (`State.Clauses`): the entries that WROTE a SIGN or a VALUE clause (§2023:13.18.52.3 SR1/SR2, §2023:13.16.3 SR10), the
+  clause operands the capture already refused, the written level-88s in source order (§2023:13.16.3 SR24) and `LapsedTypeMembers`
+  (§2023:8.4.2.2.1 rule 4, written once by `ExpandTypesPass`).
+- `ImplicitRegisters` (`State.Implicit`): the X3.23-1985 DEBUG-ITEM family and `EXCEPTION-OBJECT` (§2023:8.4.3.6.3 SR2).
 And `DataBindState` now holds `Reports` (the `ReportScope` of step 7), `SumCounters` (the `FilesResolved`-gated view of it) and the
 pass-completion watermark (`Watermark`, `MarkProduced`, `Require`, the P6 Step-6 gate), which the gated reads of the slices
 consult. What stays private to `DataBinder` is the entry walk's WORKING MEMORY (the not-yet-bound and bound-ahead entry maps of
@@ -1407,7 +1407,7 @@ model types) is three files and two classes. `ReportModel.cs` holds the model ty
 (`Binding/ReportSectionBinder.cs`, `DataBinder.ReportSection`) is the binder: it binds the RD entries
 (`BindReportSection`), resolves them after the data division is built (`ResolveReports`, the `FilesResolved` pass of that
 name), makes a container's GLOBAL reports visible (`InheritContainerReports`) and answers the report-item refusal
-(`ReportEntryReferenceRefused`, §13.8.6.2.3); it reaches the data binder's shared helpers (the clause-operand resolvers,
+(`ReportEntryReferenceRefused`, §2023:13.8.6.2.3); it reaches the data binder's shared helpers (the clause-operand resolvers,
 the picture screens, the unique-id counter) through the `DataBinder` it is built with, which the later steps that extract
 those helpers replace one by one. `ReportScope` (`Binding/ReportScope.cs`, `DataBindState.Reports`) is the read side the binder
 writes: `Declared`, `Visible`, `Depth`, the sum counters, the refused PRESENT WHEN conditions and the three name lookups over
@@ -1421,7 +1421,7 @@ carrier and leaves the type where it is; the `StatementBinder` pair keeps PB2347
 (`VersionConformancePass`, `IntegerOperandRules`).
 *`LinkageBinder` (step 9, PB2359).* `Binding/LinkageBinder.cs`, reached as `DataBinder.Linkage`, owns the LINKAGE /
 EXTERNAL / GLOBAL facts (the linkage roots, the USING formals, the RETURNING item, the EXTERNAL backings, the GLOBAL roots,
-the root fields the emitter must not declare, and the §13.7.3 SR4/SR5 referenceability sets) and every writer of them; it
+the root fields the emitter must not declare, and the §2023:13.7.3 SR4/SR5 referenceability sets) and every writer of them; it
 hands them out as read-only views and the emitter and the repository read them there. It binds over the forest its
 `DataBinder` owns, so it takes that binder as `SymbolTable` does (the name tables, `BindEntries` and the unit-kind facts
 stay the binder's). The old partial also held two concerns that were never the linkage binder's, and each went where its
@@ -1511,7 +1511,7 @@ PB28, PB32 and PB33 — a rule corrected in one arm. The families are `Select` (
 (the NUMVAL family), `TwoPi` (trigonometric argument reduction), the statistical and arithmetic functions, and
 `CobolDate` (already its own type, R0-0051).
 *Target types,* one per §15 family ("Each intrinsic function definition specifies: the name…, the type…, the
-arguments…, the returned value", §15.1): `NumericFunctions`, `TrigonometricFunctions`, `SelectionFunctions`,
+arguments…, the returned value", §2023:15.1): `NumericFunctions`, `TrigonometricFunctions`, `SelectionFunctions`,
 `NumvalFunctions`, `TextFunctions`, `DateTimeFunctions` (from `CobolDate`), each owning BOTH arms of each function
 adjacent behind one entry per function; the shared argument coercions become `NumericArguments`. *Seam:* one static
 entry per function on its family type, reached by emitted code through a `RuntimeMembers` handle (9); every rename
@@ -1520,23 +1520,23 @@ lands as one explained oracle difference (§4 item 1). *Steps:* PB2298, PB2365�
 **(4) `WiseOwl.Cobol.Binding.ReferenceResolver`** — R0-0004 (its partial and nested types). **LANDED (wave 20261827; steps
 PB2299, PB2371–PB2375 ran as one group, one checkpoint commit per step, each proven by `compare_oracle.py` IDENTICAL).**
 *Responsibilities, from the members.* Qualification ("Qualification is the specification of superordinate names from the
-hierarchy to which a user-defined name belongs", §8.4.2.2.1); subscripts ("Subscripts are used when reference is made to an
-individual element within a table of like elements", §8.4.2.3.1) including ALL and index-name subscripts; reference
+hierarchy to which a user-defined name belongs", §2023:8.4.2.2.1); subscripts ("Subscripts are used when reference is made to an
+individual element within a table of like elements", §2023:8.4.2.3.1) including ALL and index-name subscripts; reference
 modification ("Reference modification defines a unique data item by specifying an identifier, a leftmost position, and a
-length", §8.4.3.3.1); the item-to-`Place` construction (the ONE builder, `RenamesPlaceBuilderDriftTests`), whose boundary with the code generator `PlaceTableBoundaryDriftTests` pins; the report
+length", §2023:8.4.3.3.1); the item-to-`Place` construction (the ONE builder, `RenamesPlaceBuilderDriftTests`), whose boundary with the code generator `PlaceTableBoundaryDriftTests` pins; the report
 counters; object properties; and the closed answer `RefResolution` (`RefResolutionDriftTests`).
 *Target types, as built* (each `internal sealed class X(ReferenceResolver refs, DataBinder data)`, composed lazily by the
 funnel; the source-scan drift tests read the subsystem through `ResolverSources`, found by what a file declares):
-`NameResolution` (`Binding/NameResolution.cs`: §8.4.2.2 over `SymbolTable`, candidates in, uniqueness decided, the COBOL1639
-report, the index-name lookup, the §13.7.3 SR4 LINKAGE screens), `SubscriptBinder` (`Binding/SubscriptBinder.cs`: §8.4.2.3 to
+`NameResolution` (`Binding/NameResolution.cs`: §2023:8.4.2.2 over `SymbolTable`, candidates in, uniqueness decided, the COBOL1639
+report, the index-name lookup, the §2023:13.7.3 SR4 LINKAGE screens), `SubscriptBinder` (`Binding/SubscriptBinder.cs`: §2023:8.4.2.3 to
 typed `Position`s, PB2151's landing place, with the position binder reference modification shares), `RefModBinder`
-(`Binding/RefModBinder.cs`: §8.4.3.3), `ObjectPropertyResolver` (`Binding/ObjectPropertyResolver.cs`: §8.4.3.1.2 Format 7 and the
+(`Binding/RefModBinder.cs`: §2023:8.4.3.3), `ObjectPropertyResolver` (`Binding/ObjectPropertyResolver.cs`: §2023:8.4.3.1.2 Format 7 and the
 object views), `CounterResolver` (`Binding/CounterResolver.cs`) and `PlaceBuilder` (`Binding/Model/PlaceBuilder.cs`, in
 `compiler.model` over `IPlaceFacts`, with `PlaceTable`, `OccurrenceCounts` and `DeferredShape`), whose places `PlaceTablePass`
 builds at bind time so the backend reads finished `Place`s. *Estimate corrected:* the design text named LINAGE-COUNTER,
 PAGE-COUNTER and LINE-COUNTER for `CounterResolver`, but the resolver holds no arm for those three (the identification step
 stops at `SpecialRegister` and the statement binder routes them to `BoundLinageCounterRef` / `BoundReportCounterRef`); the code that
-was a counter in the resolver is the REPORT SECTION SUM counter (§13.18.54.4 GR5), which is what the type owns.
+was a counter in the resolver is the REPORT SECTION SUM counter (§2023:13.18.54.4 GR5), which is what the type owns.
 `ReferenceResolver` stays the funnel (`Identify`, the three `RefResolution` entries, the CAPACITY, EXCEPTION-OBJECT and DEBUG-ITEM
 register views, and the per-resolution state `Probing`, `Diagnosed`, `SegmentDeferred`). *Seams:* `RefResolution` and
 `PlaceBuilder` / `PlaceTable`. The Format-2 table SORT of shared storage still asks `PlaceTable.Window` and
@@ -1547,7 +1547,7 @@ builds those windows over `StatementLocal` positions. *Steps:* PB2299, PB2371–
 in PB2300); with `IntrinsicArgumentRules` (R0-0020) and `IntrinsicCatalog` (a table written as
 code).
 *Responsibilities.* FUNCTION-reference binding per §15 family: argument binding and the argument screens, result
-typing (`IntrinsicResultType`), the catalog lookup, the keyword-omitted routing below 2002 (§8.4.3.2 SR2, the
+typing (`IntrinsicResultType`), the catalog lookup, the keyword-omitted routing below 2002 (§2023:8.4.3.2 SR2, the
 sanctioned behavioural read of `DESIGN-version-conformance-pipeline.md` §1.1 item 3), and the per-function windows
 (TRIM's argument 2, the FORMATTED-* family, the NUMVAL family, RANDOM, LENGTH and BYTE-LENGTH, the EC-ARGUMENT
 functions).
@@ -1564,7 +1564,7 @@ arguments) → BoundIntrinsicCall`. *Steps:* PB2300, PB2376–PB2381.
 *Responsibilities.* The ONE edition gate (D7, `DESIGN-version-conformance-pipeline.md`): the bound arm over
 `BoundUnit` (STOP RUN status, CALL forms, prototypes), the parse arm (one `Visit` per construct family firing
 `ConstructRegistry.Check` with its `constructs.json` id), the word checks (`reservedWords` and `cobolWords` constructor
-parameters; "A COBOL word is a character-string of not more than 63 characters", §8.3.2.1, through `CobolWordRule`),
+parameters; "A COBOL word is a character-string of not more than 63 characters", §2023:8.3.2.1, through `CobolWordRule`),
 and the removed and obsolete flags.
 *Target types.* The parse arm stays ONE tree walk, and the walk dispatches each context to the gate of the grammar
 fragment that defines it — the modules of §8.4 (Identification, Environment with Special-Names, Data, Procedure,
@@ -1602,7 +1602,7 @@ asserts that no rule name is defined in two grammar files, which this map relies
 identification, environment and procedure fragments the core-defined contexts belong to (§8.4's regroup); the notes'
 `blocked_by` carry the order. Why
 this partition: a construct's grammar rule (§8.4), its gate and its `constructs.json` row then share one name, so a
-§14.9 GAP fix lands in the procedure gate's file only — the shape that makes the next case automatic. *Steps:*
+§2023:14.9 GAP fix lands in the procedure gate's file only — the shape that makes the next case automatic. *Steps:*
 PB2304, PB2385–PB2390, then PB2301 (the bound arm and `CobolWordGate`).
 
 **(7) `src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs`** — one file, three types: `ExceptionEngine` (R0-0014),
@@ -1681,7 +1681,7 @@ carries its order and blockers):
 |---|---|---|---|
 | `Binding.Procedure.OoBinder` (R0-0008) | inline invocation, object view, OO identifier, property object (the four partials) | `InlineInvocationBinder`; `ObjectViewBinder`; `OoIdentifierBinder`; `PropertyObjectBinder` | OoBinder keeps the dispatch over the OO operand forms; each extracted binder exposes its partial's entry Bind(context, BindSession) → Bound… node, unchanged |
 | `CodeGen.OoEmitter` (R0-0010) | class units, methods, universal object references (`Univ`), object cells, external classes | `ClassUnitEmitter`; `MethodEmitter`; `UniversalObjectEmitter`; `ObjectCellEmitter` | ClassUnitEmitter.Emit(OoClassUnit, EmitContext) and MethodEmitter.Emit(OoMethodSymbol, EmitContext); the universal object and object-cell renderers are called by both |
-| `Runtime.IO.SequentialConnector` (R0-0011) | record I-O (`Record`), LINAGE and page control (`Linage`), the §9.1.13 status machine | `LinageControl`; RecordCodec (fixed, variable, line-sequential) | RecordCodec, one implementation per record form, chosen at open; LinageControl exposes the LINAGE counters and the page advance; the connector keeps position and the §9.1.13 status |
+| `Runtime.IO.SequentialConnector` (R0-0011) | record I-O (`Record`), LINAGE and page control (`Linage`), the §2023:9.1.13 status machine | `LinageControl`; RecordCodec (fixed, variable, line-sequential) | RecordCodec, one implementation per record form, chosen at open; LinageControl exposes the LINAGE counters and the page advance; the connector keeps position and the §2023:9.1.13 status |
 | `CodeGen.Emit.IntrinsicRenderer` (R0-0012) | argument rendering per family (`Arg`, `Int`, `Dec`) | one renderer per intrinsic family of R0-0003 / R0-0005 | IIntrinsicFamilyRenderer.Render(BoundIntrinsicCall, EmitContext), mirroring the family binders |
 | `Runtime.IO.FileRegistry` (R0-0013) | the open-file table, keyed and relative access, sharing (`Shared`) | FileRegistry (the open-file table); SharingPolicy (the OPEN Table 19 rows as data); the keyed and relative access helpers move to their connector types | SharingPolicy.Admit(open mode, sharing mode, the file's current opens) → I-O status |
 | `Binding.Validation.StatementValidation` (R0-0015) | per-verb statement rules (`Inspect`, `Initialize`, `Write`, `Open`, `Search`) | `InspectRules`; `InitializeRules`; `WriteRules`; `OpenRules`; SearchRules (one per verb family) | each rule type a static Check(the statement's bound node, diagnostics) called by the verb binder that applies it |
@@ -1689,27 +1689,27 @@ carries its order and blockers):
 | `Binding.Procedure.EcBinder` (R0-0017) | exception-name sets and checking state, EXCEPTION PERFORM, omitted arguments (the partials); its hand arms (PB2312 carries the count) | `EcNameSetBinder`; `ExceptionPerformBinder`; `OmittedArgumentBinder`; `RaisingBinder` | the bound exception-name set (EcNameSetBinder's result) that the other three consume; each Bind(ctx, BindSession) |
 | `Binding.Procedure.ConditionBinder` (R0-0018) | relation, class, boolean (`Bool`, `Boolean`) and abbreviated (`Partial`) conditions | `RelationConditionBinder`; `ClassConditionBinder`; `BooleanExpressionBinder`; `AbbreviatedConditionBinder` | each returns a BoundCondition leaf (the §8.5 union); ConditionBinder keeps the dispatch |
 | `Binding.Procedure.SetBinder` (R0-0019) | every SET format (`Set`); the R0-0053 clone pair | one binder per SET format family | SetFormatSelection (existing) selects the SetFormat; each family binder Bind(SetFormat, ctx) → BoundStatement |
-| `Binding.IntrinsicArgumentRules` (R0-0020) | the §15.3 argument screens | the argument schema rows join intrinsics.json (R0-0005); the predicates stay one type | the generated IntrinsicArgumentSchema row of IntrinsicCatalog.g.cs |
+| `Binding.IntrinsicArgumentRules` (R0-0020) | the §2023:15.3 argument screens | the argument schema rows join intrinsics.json (R0-0005); the predicates stay one type | the generated IntrinsicArgumentSchema row of IntrinsicCatalog.g.cs |
 | `Runtime.IO.CobolReport` (R0-0021, `ReportWriter.cs`) | control breaks (`Control`), page advance (`Page`), group presentation, SUM counters | `ReportControlBreaks`; `PageAdvance`; `ReportGroupPresentation`; `SumCounters` | CobolReport keeps the INITIATE / GENERATE / TERMINATE entries the emitted code calls; the four are its owned collaborators (no emitted name changes) |
-| `Compiler.Oo.OoConformance` (R0-0022) | §9.3.8 conformance (`Mismatch`): prototypes, returning items, interfaces | `PrototypeConformance`; `ReturnConformance`; `InterfaceImplementationConformance` | one Conforms(left, right) → ConformanceResult per §9.3.8 rule family |
+| `Compiler.Oo.OoConformance` (R0-0022) | §2023:9.3.8 conformance (`Mismatch`): prototypes, returning items, interfaces | `PrototypeConformance`; `ReturnConformance`; `InterfaceImplementationConformance` | one Conforms(left, right) → ConformanceResult per §2023:9.3.8 rule family |
 | `Binding.PictureAnalyzer` (R0-0023) | the PICTURE string parse, editing phrases, the per-edition symbol rows | `PictureParser`; `EditingPhraseAnalyzer`; the per-edition PICTURE symbol rows as data | PicInfo (existing, the parse result) |
 | `CodeGen.CallEmitter` (R0-0024) | the one argument renderer (`ArgText`), call crossings, call sites | `CallArgumentRenderer`; `CallSiteEmitter` | CallArgumentRenderer.Render(argument, CallCrossing) (ArgText's successor; CallCrossing exists) |
 | `Binding.BinderDriver` (R0-0025) | the unit forest and scopes, the ordered pass schedule (the `Validation.*Pass.Run` calls) | `CompilationGroupBinder`; ValidationSchedule (both in compiler.pipeline) | CompilationGroupBinder.Bind(tree, edition, directives) → BoundCompilation; ValidationSchedule.Run(BoundCompilation) |
 | `CodeGen.Emit.NumericRenderer` (R0-0026) | the numeric visitor; the Dec/Real/Int128 arm choice (`Power` → `CobolDec.Pow` vs `Math.Pow`, PB28) | NumericCarrierRules (the one place the numeric arm is chosen); the visitor stays | NumericCarrierRules.Choose(…) → the NumXCarrier case (an enum today; the NumX re-model of §8.5, PB2411, then makes it the closed carrier) |
 | `Binding.Procedure.ExpressionBinder` (R0-0027) | operands (`Operand`), arithmetic expressions, index and literal operands | OperandContextRules to its own file; `ArithmeticExpressionBinder`; `OperandBinder` | OperandBinder.Bind(ctx, operand context) → BoundOperand (the one operand funnel of DESIGN-binder-bound-tree §3.6) |
 | `Binding.Model.DataItem` (R0-0028) | a record that grew methods; the most-depended-on type | DataItem (data only); DataItemQueries (category, usage, class); DataItemLayout (sizes, offsets) | DataItem's fields, immutable after binding; the queries and layout as types over it |
-| `Frontend.Preprocessor.CopyProcessor` (R0-0029) | text location and case probing, REPLACING matching (§7.2.3; R36), nesting | `CopyTextLocator`; `ReplacingMatcher`; CopyProcessor keeps the nesting driver | CopyTextLocator.Locate(text-name, library-name) → source text; ReplacingMatcher.Apply(text, REPLACING operands) |
+| `Frontend.Preprocessor.CopyProcessor` (R0-0029) | text location and case probing, REPLACING matching (§2023:7.2.3; R36), nesting | `CopyTextLocator`; `ReplacingMatcher`; CopyProcessor keeps the nesting driver | CopyTextLocator.Locate(text-name, library-name) → source text; ReplacingMatcher.Apply(text, REPLACING operands) |
 | `Binding.Procedure.CallBinder` (R0-0030) | arguments, the target (resolver-driven after slice 7), the statement | `CallArgumentBinder`; `CallTargetResolver`; `CallBinder` | CallTargetResolver.Resolve(ctx) → the call target (the slice-7 resolver's result) |
 | `CodeGen.SequentialIoEmitter` (R0-0031) | READ, WRITE, OPEN/CLOSE, RELEASE/RETURN (`Record`, `Read`, `Released`) | `ReadEmitter`; `WriteEmitter`; `OpenCloseEmitter`; `ReleaseReturnEmitter` | Emit(the statement's BoundStatement leaf, EmitContext), one emitter per leaf |
-| `Runtime.CobolEdit` (R0-0032) | §13.18.40 editing; the `Float` partial | `CobolEdit`; `FloatEdit` | CobolEdit keeps the emitted entries; FloatEdit is its owned floating-insertion editor |
-| `Frontend.Preprocessor.ReferenceFormatProcessor` (R0-0033) | the §6.5 logical conversion (one pass, PB1491) and the line builder (the partials) | `LogicalLineConverter`; `LogicalLineBuilder` | LogicalLineConverter.Convert(source text, reference format) → logical lines (§6.5, one pass) |
-| `Runtime.CobolArgAdapt` (R0-0034, `CallAbi.cs`) | one file holds the whole CALL ABI (`CobolPassMode`, `CobolArg`, `BoundaryItem`, `ICobolProgram`); adapters by boundary class | CallAbi.cs split one type per file (CobolPassMode, CobolArg, BoundaryItem, ICobolProgram); ArgumentAdapters, one per boundary class | a boundary-class selector picks an IArgumentAdapter (`BoundaryClass`, a §14.8.2.2 conformance class, was deleted by kb/Work PB165: `BoundaryItem.Description` carries those facts) |
+| `Runtime.CobolEdit` (R0-0032) | §2023:13.18.40 editing; the `Float` partial | `CobolEdit`; `FloatEdit` | CobolEdit keeps the emitted entries; FloatEdit is its owned floating-insertion editor |
+| `Frontend.Preprocessor.ReferenceFormatProcessor` (R0-0033) | the §2023:6.5 logical conversion (one pass, PB1491) and the line builder (the partials) | `LogicalLineConverter`; `LogicalLineBuilder` | LogicalLineConverter.Convert(source text, reference format) → logical lines (§2023:6.5, one pass) |
+| `Runtime.CobolArgAdapt` (R0-0034, `CallAbi.cs`) | one file holds the whole CALL ABI (`CobolPassMode`, `CobolArg`, `BoundaryItem`, `ICobolProgram`); adapters by boundary class | CallAbi.cs split one type per file (CobolPassMode, CobolArg, BoundaryItem, ICobolProgram); ArgumentAdapters, one per boundary class | a boundary-class selector picks an IArgumentAdapter (`BoundaryClass`, a §2023:14.8.2.2 conformance class, was deleted by kb/Work PB165: `BoundaryItem.Description` carries those facts) |
 | `CodeGen.Emit.ConditionRenderer` (R0-0035) | the condition visitor; range membership (`Membership` 4), class conditions | `MembershipRenderer`; `ClassConditionRenderer` | Render(a BoundCondition leaf, EmitContext), ConditionRenderer keeping the dispatch |
 | `Runtime.CobolDec` (R0-0036) | standard-decimal arithmetic; the unscaled helpers | `CobolDec`; `DecUnscaled` | DecUnscaled, the unscaled-Int128 helpers CobolDec owns; emitted names unchanged |
 | `Frontend.Preprocessor.ConditionalCompilationProcessor` (R0-0037) | `>>IF`/`>>EVALUATE` evaluation, `>>DISPLAY` (the partial), the line walk | `DirectiveEvaluator`; `DisplayDirective` | DirectiveEvaluator.Evaluate(expression, compilation variables) → value |
 | `Frontend.Generated.CobolParserCoreBase` (R0-0038) | the ANTLR superclass: the lookahead predicates (`…Ahead`, `Locale`) | `LookaheadPredicates`; `LocalePredicates`; EditionWordPredicates (every member that reads the compile edition, §8.4's pin, as one set); the type's namespace becomes its folder's (R0-0222) | static predicate types the grammar's predicate actions call directly (no forwarding member on the superclass); a grammar wave, so after the §4 item 3 token and parse-tree differential (PB2350) exists, and after PB2291 decides which edition reads stay |
 | `CodeGen.EcEmitter` (R0-0039) | per-statement checking state, declarative dispatch (`Dispatch`) | `EcCheckingEmitter`; `DeclarativeDispatchEmitter` | EcCheckingEmitter.Emit(EcStatementInfo, EmitContext); DeclarativeDispatchEmitter.Emit(the unit's declaratives) |
-| `Runtime.IO.FileConnector` (R0-0040) | the base of the three organizations: open modes (`Open`), the record area | OpenModeMachine (the §9.1.13 transitions); `RecordArea` | OpenModeMachine.Transition(open mode, operation) → I-O status |
+| `Runtime.IO.FileConnector` (R0-0040) | the base of the three organizations: open modes (`Open`), the record area | OpenModeMachine (the §2023:9.1.13 transitions); `RecordArea` | OpenModeMachine.Transition(open mode, operation) → I-O status |
 | `CodeGen.PlaceRenderer` (R0-0041) | rendering per `Place` kind (`Group`, `Image`); its `_ => throw` arms | one renderer per Place kind family | one visitor over the Place union (§8.5 step 3); each family renderer Render(a Place kind, EmitContext) |
 | `CodeGen.GroupImageCodec` (R0-0042) | AsImage/FromImage (`Image`), bit images, image initialization | `GroupImageCodec`; `BitImageCodec`; `ImageInitializer` | the AsImage / FromImage entries (existing) |
 | `Binding.Procedure.EvaluateBinder` (R0-0043) | subjects and objects (`Subject`), WHEN phrases | `EvaluateSubjectBinder`; `WhenPhraseBinder` | EvaluateOperandCombinations (existing) pairs subjects and objects |
@@ -1797,7 +1797,7 @@ states the verdict too.
 **Target: one fragment per division or facility; the core is the compilation group.** The rule: a grammar rule
 lives in the fragment of the clause or statement whose general format defines it, so the `spec-grammar-conformance`
 audit's address space (clause → rule) equals the file layout (clause → fragment). New fragments: `CobolIdentification`
-(§11), `CobolEnvironment` (§12; `CobolSpecialNames` folds in, because §12.3.1 lists SPECIAL-NAMES as a paragraph of
+(§11), `CobolEnvironment` (§12; `CobolSpecialNames` folds in, because §2023:12.3.1 lists SPECIAL-NAMES as a paragraph of
 the configuration section), `CobolProcedure` (§14's division header, declaratives, sentences, the statement
 dispatcher, the shared arithmetic rules, and the nucleus verbs the core holds today). `CobolData` (§13),
 `CobolControlFlow`, `CobolIO`, `CobolOO`, `CobolReportWriter`, `CobolScreen`, `CobolDeclined` and `CobolExpressions`
@@ -1824,7 +1824,7 @@ partials and the retype stage, nested and derived types included, derives the pr
 calls, and finds the call sites in every predicate and action body of every grammar and in every C# member of `src/`
 outside the read's own stage (a second top-level type in a stage's file included), every front-end hand-off of the edition to a parser and every
 caller that passes one on) and compares the result with the set PB2291's verdict records,
-per file and per rule, each site with its verdict (§8.9 word status, or a construct gate), so a new read under any
+per file and per rule, each site with its verdict (§2023:8.9 word status, or a construct gate), so a new read under any
 name (a new spelling, a new `reservedHere` site, a new member, a new action or listener call) fails until it is
 adjudicated and recorded (landed with PB2291's verdict; PB2333 moves those members as one set, so the pin names one
 type). The verdict: every read is word status except three construct gates on the declined A.4 surface
@@ -1872,7 +1872,7 @@ Approximate, int Digits)` (`EmitCore.cs:178-183`), and the enum's totality is al
 `BoundExpr`, `BoundCondition`, `BoundOperand` and `BoundBoolExpr` a statement holds directly, read from EVERY property
 of every case through the semantic model, `:126-244`), which walks THROUGH the two container roots
 `BoundPerformControl` and `BoundSetTarget` by the generated `Parts_<root>` helpers. `EcBinder` builds the ambient
-EC-ARGUMENT-FUNCTION gate on it (`EcBinder.cs:1000,1034`; §15.3 item 14), and it is generated because of kb/Work PB26,
+EC-ARGUMENT-FUNCTION gate on it (`EcBinder.cs:1000,1034`; §2023:15.3 item 14), and it is generated because of kb/Work PB26,
 a landed wrong-answer, silent defect: the gate was a hand-maintained switch over statement kinds, so the same FUNCTION
 reference raised in COMPUTE and was silent in STRING. A switch is total over CASES, not over a case's FIELDS: the day a
 statement record gains an operand property, a hand switch misses it and `FUNCTION LOG10(0)` there raises nothing —

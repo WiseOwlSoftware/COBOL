@@ -2,7 +2,7 @@
 (kb/Work PB4453; was the Conformance test VcrDriftTests and scripts/gen-vcr.ps1, which ran it with an environment variable).
 
 Four rules: every `<!-- gate:CONSTRUCT-ID -->` anchor names a construct constructs.json holds (forward coverage); every
-`§clause` and every `§clause `quoted text`` the document writes resolves in specs/ISO_COBOL_2023.md (the standard's text is
+`§2023:clause` and every `§2023:clause `quoted text`` the document writes resolves in specs/ISO_COBOL_2023.md (the standard's text is
 read HERE, never by a compiler test); the document cites no spec LINE number (it does not survive a spec edit); and the
 generated gating status index between the GEN:VCR-STATUS markers is what the anchors and constructs.json render.
 `python scripts/doc_audits.py --write-vcr` regenerates the index.
@@ -91,7 +91,7 @@ def citation_findings(vcr_lines: list[str], regions: dict[str, list[str]]) -> li
     for i, ln in enumerate(vcr_lines, 1):
         for c in citation.scan(ln):
             problem = c.error or (None if c.edition != 2023 else
-                                  None if c.locator in regions else f"§{c.locator} is not a clause of the standard")
+                                  None if c.locator in regions else f"§2023:{c.locator} is not a clause of the standard")
             if c.edition != 2023 and problem is None:
                 problem = citation.validate(c)
             if problem:
@@ -101,7 +101,7 @@ def citation_findings(vcr_lines: list[str], regions: dict[str, list[str]]) -> li
             if c is not None and c.edition == 2023 and c.locator in regions:
                 needle = normalize(m["quote"])
                 if not any(needle in line for line in regions[c.locator]):
-                    bad.append(f"line {i}: §{c.locator} exists but does not contain `{m['quote']}`")
+                    bad.append(f"line {i}: §2023:{c.locator} exists but does not contain `{m['quote']}`")
     return [f"VERSION_CHANGE_REFERENCE.md spec citation does not resolve (re-derive with `python scripts/spec/cite.py --find "
             f"\"<text>\"`): {b}" for b in bad]
 

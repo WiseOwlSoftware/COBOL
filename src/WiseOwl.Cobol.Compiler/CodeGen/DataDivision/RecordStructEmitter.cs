@@ -21,49 +21,49 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
         foreach (var root in ctx.Data.Forest.Roots) EmitProfiles(root, w);
         // An OCCURS DYNAMIC CAPACITY register is an implicit VIEW over the table's Capacity — it has NO storage
         // field, but DISPLAY / MOVE-to-alphanumeric of the register formats through its own NumProfile (ISO
-        // §13.18.38 GR15 / §8.5.1.9.1; data-model D9), so emit those profiles (not fields) too.
+        // §2023:13.18.38 GR15 / §2023:8.5.1.9.1; data-model D9), so emit those profiles (not fields) too.
         foreach (var tbl in ctx.Data.DeclaredCapacityRegisterTables)
             if (tbl.OccursSpec?.CapacityRegister is { } reg) EmitProfiles(reg, w);
         // Programs are instantiable classes (interprogram design D3): root + index fields are INSTANCE fields —
-        // a fresh instance IS the §14.6.2.3.2 initial state; the registry's cached singleton IS last-used state.
+        // a fresh instance IS the §2023:14.6.2.3.2 initial state; the registry's cached singleton IS last-used state.
         // EXCEPT the static channel (StaticRootFields/StaticIndexCells): a RECURSIVE unit's WS is STATIC data
-        // (ISO §13.5.4 GR1) — ONE copy in last-used state across all activations (§14.6.2.3.3) — while its
-        // fresh-per-activation instance carries the automatic data (LOCAL-STORAGE, §13.6.4 GR1) and formals.
+        // (ISO §2023:13.5.4 GR1) — ONE copy in last-used state across all activations (§2023:14.6.2.3.3) — while its
+        // fresh-per-activation instance carries the automatic data (LOCAL-STORAGE, §2023:13.6.4 GR1) and formals.
         // The suppression filter skips members another mechanism provides: a carrier-resident LINKAGE formal
-        // (it has no field: its storage is the caller's, reached through its carrier, ISO §13.7.1 /
+        // (it has no field: its storage is the caller's, reached through its carrier, ISO §2023:13.7.1 /
         // DataItem.ResidentCarrier). An inherited GLOBAL table's index cell
         // is never among the unit's OWN declarations — the container emits it and a ref-bridge reaches it
-        // (§13.18.27 GR2; kb/Work PB919).
+        // (§2023:13.18.27 GR2; kb/Work PB919).
         foreach (var idx in ctx.Data.Forest.IndexNames.Own)
             if (!ctx.Data.Linkage.SuppressedRootFields.Contains(idx.Cell))
                 // A RECURSIVE unit's WS table cell rides its table's static storage (RouteStaticUnitStorage —
                 // a last-used table with per-activation indexes would silently lose SET positions).
                 w.Line($"private {(ctx.Data.StorageTier.StaticIndexCells.Contains(idx.Cell) ? "static " : "")}long {idx.Cell} = 1;   // INDEX-NAME {idx.Name}");
-        // (A METHOD's table cells are never here: a method owns no WORKING-STORAGE, §13.5.3 SR1, and its LOCAL/LINKAGE
+        // (A METHOD's table cells are never here: a method owns no WORKING-STORAGE, §2023:13.5.3 SR1, and its LOCAL/LINKAGE
         // table cells are per-activation method locals, emitted in OoEmitMethod.)
         foreach (var f in phys.RootPhysicals())
             if (!ctx.Data.Linkage.SuppressedRootFields.Contains(f.Name))
-                // A static-channel root is a STATIC field: a RECURSIVE unit's WS (§13.5.4 GR1 — see
+                // A static-channel root is a STATIC field: a RECURSIVE unit's WS (§2023:13.5.4 GR1 — see
                 // RouteStaticUnitStorage).
                 w.Line($"private {(ctx.Data.StorageTier.StaticRootFields.Contains(f.Name) ? "static " : "")}{f.Type} {f.Name} = {f.Init};   // {f.Comment}");
         if (ctx.Data.EmitsStaticReset) EmitStaticReset(w);
     }
 
     /// <summary>Emit the <c>__ResetStatics</c> of a unit with STATIC data — a RECURSIVE program or a function
-    /// (static working-storage, §13.5.4 GR1) — the
-    /// §14.6.2.3.2 initial-state action for that static data AND a unit's file-registration guard. A program
+    /// (static working-storage, §2023:13.5.4 GR1) — the
+    /// §2023:14.6.2.3.2 initial-state action for that static data AND a unit's file-registration guard. A program
     /// registers it with the run-unit ProgramTable; a class's factory adopts it when the run unit first creates the
     /// factory object (<c>OoEmitter.EmitClassUnit</c>); either way the run unit runs it at its start AND at its
-    /// termination (<c>RunUnit.AdoptStaticStorage</c> / <c>RunUnit.Terminate</c>; §14.6.11 items 3, 4 and 6 — a
+    /// termination (<c>RunUnit.AdoptStaticStorage</c> / <c>RunUnit.Terminate</c>; §2023:14.6.11 items 3, 4 and 6 — a
     /// static POINTER, OBJECT REFERENCE or dynamic item no longer keeps storage alive past the run unit; kb/Work
     /// PB1069). It reassigns every static WS root field / Tier-B backing to the SAME composed
-    /// initializer its declaration carries (the ONE ValueInitializer channel — §13.18.63 VALUE semantics
+    /// initializer its declaration carries (the ONE ValueInitializer channel — §2023:13.18.63 VALUE semantics
     /// identical to first-load), every static WS index cell to 1, and <c>__filesRegistered</c> to false so
     /// the next activation re-registers fresh connectors in no open mode (action 3; kb/Work PB168). Invoked
-    /// by the runtime at run-unit start (§14.6.2.3.2 case 1 — robust to a re-run of the same loaded module),
-    /// after CANCEL (case 3 / §14.9.5 GR3), and via an INITIAL container's implicit cancel cascade (case 2).
+    /// by the runtime at run-unit start (§2023:14.6.2.3.2 case 1 — robust to a re-run of the same loaded module),
+    /// after CANCEL (case 3 / §2023:14.9.5 GR3), and via an INITIAL container's implicit cancel cascade (case 2).
     /// EXTERNAL records never enter the static channel (they are run-unit ExternalStore cells, untouched per
-    /// §14.9.5 GR8). Emission and hook registration read THE ONE shared condition
+    /// §2023:14.9.5 GR8). Emission and hook registration read THE ONE shared condition
     /// (<c>DataBindResult.EmitsStaticReset</c> — the caller's gate and ProgramEmitter's), so the pair cannot
     /// diverge into a CS0103 in generated code.</summary>
     private void EmitStaticReset(CodeWriter w)
@@ -71,7 +71,7 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
         var stmts = new List<string>();
         foreach (var root in ctx.Data.Forest.WorkingStorageRoots)
         {
-            // §14.6.2.3.2 action 5: "The address of each based item is set to null" — the static bridge
+            // §2023:14.6.2.3.2 action 5: "The address of each based item is set to null" — the static bridge
             // field (kb/Work PB154; the DATA lives in the allocated cell, so there is no value to re-seed).
             // FIRST in the chain: a BASED root's class can be any tier (a plain X(n) BASED is Tier-B), and
             // BASED-ness decides its reset shape before tier does. Emitted from THIS source-ordered walk,
@@ -79,7 +79,7 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
             // order is not generated-source-worthy).
             if (root.IsBased && root.Class?.BasedPointerField is { } bp
                 && ctx.Data.StorageTier.StaticBasedBridgeAddrs.Contains(bp))
-                stmts.Add($"{bp} = ManagedPointer.Null;   // {root.CobolName ?? "FILLER"} BASED address → NULL (§14.6.2.3.2 #5)");
+                stmts.Add($"{bp} = ManagedPointer.Null;   // {root.CobolName ?? "FILLER"} BASED address → NULL (§2023:14.6.2.3.2 #5)");
             else if (root.Class is { Tier: RedefinesTier.StringCanonical } cls)
             {
                 // The class's ONE string backing is the storage; members are windows. Reset once, at the canonical.
@@ -87,11 +87,11 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
                     stmts.Add($"{cls.BackingClrName} = {RuntimeApi.StrStore(codec.ImageInitOf(root), $"{cls.Width}")};   // {root.CobolName ?? "FILLER"} (Tier-B backing)");
                 // An ADDRESS-OF-taken record's static StorageCell (kb/Work PB234): re-seeded IN PLACE with the SAME
                 // image its declaration carries (ProgramEmitter's cell initializer — one composer, ImageInitOf), so
-                // a pointer taken before the CANCEL still names the unit's one copy (§13.5.4 GR1).
+                // a pointer taken before the CANCEL still names the unit's one copy (§2023:13.5.4 GR1).
                 else if (ReferenceEquals(cls.Canonical, root)
                          && ctx.Data.StorageTier.AddressableCellOf.TryGetValue(cls, out var cell)
                          && ctx.Data.StorageTier.StaticAddressableCells.Contains(cell))
-                    stmts.Add($"{cell}.Reinitialize({RuntimeApi.StrStore(codec.ImageInitOf(root), $"{cls.Width}")}){codec.CellDynSeeds(root)};   // {root.CobolName ?? "FILLER"} (ADDRESS-OF cell, §14.6.2.3.2 #2)");
+                    stmts.Add($"{cell}.Reinitialize({RuntimeApi.StrStore(codec.ImageInitOf(root), $"{cls.Width}")}){codec.CellDynSeeds(root)};   // {root.CobolName ?? "FILLER"} (ADDRESS-OF cell, §2023:14.6.2.3.2 #2)");
             }
             else if (!(root.Class is { Tier: RedefinesTier.Alias } && !root.IsCanonical)   // a Tier-A view has no field
                 && ctx.Data.StorageTier.StaticRootFields.Contains(root.ClrName))
@@ -101,18 +101,18 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
                     stmts.Add($"{idx.Cell} = 1;   // INDEX-NAME {idx.Name}");
         }
         // The unit-scoped file-registration guard returns to false on the initial-state cases so the next
-        // activation re-registers — §14.6.2.3.2 action 3's "not ... in any open mode" realized as fresh
+        // activation re-registers — §2023:14.6.2.3.2 action 3's "not ... in any open mode" realized as fresh
         // connectors; FileRegistry.Register closes anything it displaces (kb/Work PB168).
         if (ctx.Data.UnitStaticWs && ctx.Data.Files.Declared.Count > 0)
-            stmts.Add("__filesRegistered = false;   // internal file connectors → no open mode via re-registration (§14.6.2.3.2 #3; kb/Work PB168)");
+            stmts.Add("__filesRegistered = false;   // internal file connectors → no open mode via re-registration (§2023:14.6.2.3.2 #3; kb/Work PB168)");
         w.Line();
-        using (w.Block("internal static void __ResetStatics()   // static WS → initial state (ISO §14.6.2.3.2; §14.9.5.4 GR3)"))
+        using (w.Block("internal static void __ResetStatics()   // static WS → initial state (ISO §2023:14.6.2.3.2; §2023:14.9.5.4 GR3)"))
             foreach (var s in stmts) w.Line(s);
     }
 
     /// <summary>The C# (type, initializer) pair for declaring one root as a METHOD LOCAL (the OO slice-2
     /// LINKAGE/LOCAL-STORAGE mapping) — the same composed initializer a field declaration gets, so a group
-    /// local's OCCURS arrays and VALUE seeds are identical to field semantics (§8.6.4: LOCAL-STORAGE
+    /// local's OCCURS arrays and VALUE seeds are identical to field semantics (§2023:8.6.4: LOCAL-STORAGE
     /// re-initializes on every activation — a C# local declaration does exactly that).</summary>
     public (string Type, string Init) RootDecl(DataItem item) => (item.FieldType, vals.FieldInit(item));
 
@@ -150,9 +150,9 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
             // An image-capable group gets the whole-group image facility (DESIGN §14.4): AsImage
             // concatenates the leaves' character images — a string-stored leaf its characters, a NATIVE
             // fixed-point leaf (DISPLAY/BINARY/PACKED) its zoned digit image (trailing-overpunch sign, the
-            // §13.18.60 USAGE GR4 implementor representation) — and FromImage distributes a character image back
+            // §2023:13.18.60 USAGE GR4 implementor representation) — and FromImage distributes a character image back
             // into them. Used by whole-group MOVE / DISPLAY / compare / WRITE / RELEASE and the READ / RETURN
-            // record-area distribution; the SD/FD record codec IS this pair (§8.2). Only a variable-length
+            // record-area distribution; the SD/FD record codec IS this pair (§2023:8.2). Only a variable-length
             // group or a group with a pointer/object-class leaf stays outside the static codec
             // (DataItem.IsImageCapable; kb/Work PB164 + R40 — every NUMERIC leaf kind is in the image).
             // ⚠ Gated on the ELEMENT shape (ElementImageCapable), not IsImageCapable: a dynamic-capacity
@@ -162,11 +162,11 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
             // A group with a class pointer/object leaf gets the ONE-WAY AsImage only (kb/Work PB244 - the
             // DISPLAY / MOVE-sender transfer image; EmitImageMethods withholds FromImage).
             if (item.ElementTransferImageCapable) codec.EmitImageMethods(item, w);
-            // A VARIABLE-LENGTH group instead carries CurrentImage() — the §14.9.11.4 GR7 documented DISPLAY
+            // A VARIABLE-LENGTH group instead carries CurrentImage() — the §2023:14.9.11.4 GR7 documented DISPLAY
             // format (A.1 item 57; kb/Work PB164): fixed members by the ONE member-image law, dynamic members
             // at their current extent. DISPLAY-only — such a group stays out of the static record codec (D9).
-            // AND the AsVarImage()/FromVarImage() pair its ACTIVATION-BOUNDARY crossing needs (§14.8.2.2 /
-            // §14.8.3.2 admit such a group subject to §8.5.1.12 compatibility; kb/Work PB204). Both come from
+            // AND the AsVarImage()/FromVarImage() pair its ACTIVATION-BOUNDARY crossing needs (§2023:14.8.2.2 /
+            // §2023:14.8.3.2 admit such a group subject to §2023:8.5.1.12 compatibility; kb/Work PB204). Both come from
             // the same capability and the same member-image law, so a group that displays is a group that
             // crosses; it still stays out of the STATIC record codec (D9 — a record window has a fixed width
             // and this group does not).
@@ -197,23 +197,23 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
     /// elementary items as a copy of its array, a nested group by its own vector, a table of groups as an array of their
     /// vectors, a dynamic-capacity table as an array of its CURRENT occurrences in the same element forms (kb/Work PB3139)
     /// — and <c>WithLeaves</c> returns this struct with every field made from such a vector. Two record structs of one
-    /// strong type have corresponding physical fields (§8.5.3.1: the same elementary items at the same relative
+    /// strong type have corresponding physical fields (§2023:8.5.3.1: the same elementary items at the same relative
     /// positions with the same clauses), so a vector made by one is read by the other field for field — the copy-in
     /// and copy-out of a BY REFERENCE crossing, the copy of a BY CONTENT one, a RETURNING delivery and a group MOVE.
     /// <para>⛔ AN INSTANCE METHOD, BECAUSE A DYNAMIC-CAPACITY TABLE IS RECREATED IN ITS RECEIVER'S DESCRIPTION (kb/Work
-    /// PB3139; ISO §14.6.9.2: "The operation recreates or overwrites the receiving table with a copy of the sending table"):
+    /// PB3139; ISO §2023:14.6.9.2: "The operation recreates or overwrites the receiving table with a copy of the sending table"):
     /// the receiving struct's own table states the FROM minimum, the expected capacity and the seed of every element it
     /// creates, which a vector cannot carry, so the store asks the receiver's table for a recreated copy
     /// (<c>CobolDynTable.Recreated</c>) and never shares a table, an array or an element with the sender.</para></summary>
     private void EmitLeafMethods(DataItem item, CodeWriter w)
     {
-        // ⛔ A STORED IMPLICIT FILLER IS NO MEMBER (Physical.FillerBits, kb/Work PB3564) but it IS DATA OF THE GROUP (§8.5.1.6.3:
+        // ⛔ A STORED IMPLICIT FILLER IS NO MEMBER (Physical.FillerBits, kb/Work PB3564) but it IS DATA OF THE GROUP (§2023:8.5.1.6.3:
         // "implicitly described as a filler elementary bit data item"), so it rides the vector AFTER the members, one string of
         // boolean positions per entry of BitLayout.FillersOf, in that list's order (kb/Work PB3598): the cell-backed twin builds the
         // same entries from BitLayout.WindowFillersOf, which enumerates the same positions (PlaceRenderer.CellLeaves).
         var fillers = BitLayout.FillersOf(item);
         var fs = phys.PhysicalChildrenOf(item).Where(f => f.FillerBits == 0).ToList();
-        // A strongly-typed group holds no REDEFINES subject (§13.18.44.3 SR14), so its physical fields are its
+        // A strongly-typed group holds no REDEFINES subject (§2023:13.18.44.3 SR14), so its physical fields are its
         // subordinate groups and elementary items one for one (PlaceRenderer.LeafFieldsOf walks the same members).
         var members = item.Children.Where(c => c.IsGroup || c.IsElementary).ToList();
         if (members.Count != fs.Count)
@@ -231,7 +231,7 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
                 };
         string In(PhysicalModel.Physical f, DataItem m, string v) =>
             m.IsDynamicTable
-                // §14.6.9.2's recreation in the receiver's description; the occurrences the sender carried are at least
+                // §2023:14.6.9.2's recreation in the receiver's description; the occurrences the sender carried are at least
                 // the FROM minimum (the two tables are one type's), so the blank part is never asked for.
                 ? $"__s.{f.Name} = __s.{f.Name}.Recreated((object?[]){v}!, (object?)null, static (__e, __p) => __p is null ? __e : "
                   + (m.IsGroup ? "__e.WithLeaves((object?[])__p)" : $"({m.ElementType})__p") + ");"

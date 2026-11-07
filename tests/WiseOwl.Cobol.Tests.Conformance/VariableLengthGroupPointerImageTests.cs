@@ -6,7 +6,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
 /// kb/Work PB3358 - the CHARACTERS a strongly-typed variable-length group shows at a class pointer or object-reference
-/// leaf when it is DISPLAYed. ISO 1989:2023 §14.9.11.4 GR7 leaves the format to the implementor and DOC-A.1-57 defines
+/// leaf when it is DISPLAYed. ISO 1989:2023 §2023:14.9.11.4 GR7 leaves the format to the implementor and DOC-A.1-57 defines
 /// it: the members' images in declaration order at their current extents, a pointer leaf contributing the storage image
 /// of DOC-A.1-216 (NULL of every category is eight zero positions), an object leaf the D-SLOT placeholder of DOC-A.1-214
 /// (eight spaces). The golden <c>14.9.11-DISPLAY/pb3358_vlg_display_pointer_leaf</c> cannot pin a zero position (a
@@ -29,8 +29,8 @@ public sealed class VariableLengthGroupPointerImageTests
         return CutRunner.Normalize(stdout);
     }
 
-    /// <summary>A fixed pointer leaf and a fixed table of program-pointers (§13.18.60.3 SR14 admits both beneath a
-    /// STRONG type), at their initial NULL (§13.18.63.4 GR4: class pointer items "are initialized to null"), beside a
+    /// <summary>A fixed pointer leaf and a fixed table of program-pointers (§2023:13.18.60.3 SR14 admits both beneath a
+    /// STRONG type), at their initial NULL (§2023:13.18.63.4 GR4: class pointer items "are initialized to null"), beside a
     /// dynamic-length item: "hello" + 3 NULL images + "05".</summary>
     [Fact]
     public void FixedPointerLeaves_ShowTheNullImage()
@@ -56,7 +56,7 @@ public sealed class VariableLengthGroupPointerImageTests
     }
 
     /// <summary>An OCCURS DEPENDING table of pointers, its count inside the group: DISPLAY sends the group, so the table
-    /// is used to the count's value (§13.18.38.4 GR8 b) - two NULL images after "hello", "05" and the count "2".</summary>
+    /// is used to the count's value (§2023:13.18.38.4 GR8 b) - two NULL images after "hello", "05" and the count "2".</summary>
     [Fact]
     public void OccursDependingPointerTable_ShowsTheCountsNullImages()
     {
@@ -85,8 +85,8 @@ public sealed class VariableLengthGroupPointerImageTests
 
     /// <summary>A dynamic-capacity table of program-pointers, then of object references: each occurrence is its 8
     /// positions, the pointer's NULL image or the object's eight-space placeholder. SET of occurrence 2 creates it and
-    /// raises the capacity to 2 (§8.5.1.9.3); occurrence 1 is SET too, because an intermediate occurrence is otherwise
-    /// undefined (§8.5.1.9.5).</summary>
+    /// raises the capacity to 2 (§2023:8.5.1.9.3); occurrence 1 is SET too, because an intermediate occurrence is otherwise
+    /// undefined (§2023:8.5.1.9.5).</summary>
     [Fact]
     public void DynamicCapacityLeafTables_ShowEachOccurrencesEightPositions()
     {

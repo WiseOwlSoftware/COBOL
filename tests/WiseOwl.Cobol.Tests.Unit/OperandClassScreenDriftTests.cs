@@ -11,10 +11,10 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ THE DRIFT GUARD FOR THE ONE OPERAND-CLASS SCREEN (kb/Work PB210 · PB211 · PB212).
 ///
-/// <para><b>Why it exists.</b> GO TO … DEPENDING (§14.9.17.3 SR1), SEARCH … VARYING (§14.9.37.3 SR5) and the SET
-/// Format-1 receiver (§14.9.39.3 SR1) each close an identifier position to a set of classes, and each binder bound
+/// <para><b>Why it exists.</b> GO TO … DEPENDING (§2023:14.9.17.3 SR1), SEARCH … VARYING (§2023:14.9.37.3 SR5) and the SET
+/// Format-1 receiver (§2023:14.9.39.3 SR1) each close an identifier position to a set of classes, and each binder bound
 /// the position with a bare resolve and asked nothing — the SAME absence, found three times by three sweeps, and
-/// the PERFORM VARYING induction variable (§14.9.28.3 SR2) was a fourth. <see cref="OperandPositions"/> makes a
+/// the PERFORM VARYING induction variable (§2023:14.9.28.3 SR2) was a fourth. <see cref="OperandPositions"/> makes a
 /// class-closed position a ROW; these facts keep "one row and one call" true for the next one.</para>
 ///
 /// <para><b>What is pinned.</b> (1) <see cref="OperandPositions.All"/> holds every declared row. (2) Every row is
@@ -27,7 +27,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 [Trait("Sweep", "tree")]
 public sealed class OperandClassScreenDriftTests
 {
-    /// <summary>The class shapes, each with the classes ISO assigns it: §8.5.2.1 Table 2 for the class, §5.5
+    /// <summary>The class shapes, each with the classes ISO assigns it: §2023:8.5.2.1 Table 2 for the class, §2023:5.5
     /// 2)b)2 for "integer" (fixed-point, scale zero). A numeric-edited item is class ALPHANUMERIC in Table 2; a
     /// group is alphanumeric; a floating-point item is numeric and never an integer data item.</summary>
     private static readonly (string Name, string Decl, OperandClasses Classes)[] Shapes =
@@ -139,8 +139,8 @@ public sealed class OperandClassScreenDriftTests
     }
 
     /// <summary>The FUNCTION-IDENTIFIER shapes (kb/Work PB1421), each with the classes of the temporary item it
-    /// references (§8.4.3.2.4 GR1): an integer function's item is an integer numeric elementary item, a numeric
-    /// function's a numeric one that §8.4.3.2.3 SR11 keeps out of every integer position, an alphanumeric
+    /// references (§2023:8.4.3.2.4 GR1): an integer function's item is an integer numeric elementary item, a numeric
+    /// function's a numeric one that §2023:8.4.3.2.3 SR11 keeps out of every integer position, an alphanumeric
     /// function's neither.</summary>
     private static readonly (string Text, OperandClasses Classes)[] FunctionShapes =
     [
@@ -151,7 +151,7 @@ public sealed class OperandClassScreenDriftTests
     ];
 
     /// <summary>The SENDING rows — the identifier positions whose grammar slot admits a function-identifier
-    /// (§8.4.3.2.3 SR1 keeps one out of every receiving position, and those slots do not parse one).</summary>
+    /// (§2023:8.4.3.2.3 SR1 keeps one out of every receiving position, and those slots do not parse one).</summary>
     private static readonly OperandPosition[] SendingRows =
         [OperandPositions.GoToDependingSelector, OperandPositions.WriteAdvancingIdentifier];
 

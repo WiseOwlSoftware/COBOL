@@ -5,25 +5,25 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.18.38.4 GR1 — the USAGE clause of an OCCURS DYNAMIC
+      *> ISO §2023:13.18.38.4 GR1 — the USAGE clause of an OCCURS DYNAMIC
       *> (format 4) entry applies to each occurrence: every element of
       *> the dynamic-capacity table has the clause's storage form.
       *>
       *> THE RULES.
-      *> §13.18.38.4 GR1 (FORMATS 1, 2 AND 4): "Except for the OCCURS
+      *> §2023:13.18.38.4 GR1 (FORMATS 1, 2 AND 4): "Except for the OCCURS
       *>   clause itself, all data description clauses associated
       *>   with an item whose description includes an OCCURS clause
       *>   apply to each occurrence of the item described."
-      *>   OK  §13.18.38.4 1)  (General rules)
-      *> §8.5.1.9.2: a dynamic-capacity table element referenced as a
+      *>   OK  §2023:13.18.38.4 1)  (General rules)
+      *> §2023:8.5.1.9.2: a dynamic-capacity table element referenced as a
       *>   sending operand gives "the same [result] as for a
       *>   fixed-capacity table whose number of occurrences is the
       *>   current capacity of the table".
-      *>   OK  §8.5.1.9.2   (Operations on a single element)
-      *> §15.14.1: "The BYTE-LENGTH function returns an integer equal
+      *>   OK  §2023:8.5.1.9.2   (Operations on a single element)
+      *> §2023:15.14.1: "The BYTE-LENGTH function returns an integer equal
       *>   to the length of the argument in bytes."
-      *>   OK  §15.14.1   (General)
-      *> §13.18.40.5 Table 8: '-' gives space for a positive or zero
+      *>   OK  §2023:15.14.1   (General)
+      *> §2023:13.18.40.5 Table 8: '-' gives space for a positive or zero
       *>   value, '-' for a negative value.
       *> The storage one occurrence takes is the implementor's
       *>   determination, docs/CONFORMANCE.md DOC-A.1-205 (BINARY:

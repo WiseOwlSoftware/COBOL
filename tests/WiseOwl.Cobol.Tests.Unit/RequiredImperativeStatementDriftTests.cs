@@ -13,10 +13,10 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ AN IMPERATIVE-STATEMENT OPERAND THE GENERAL FORMAT LEAVES UNBRACKETED IS REQUIRED, AND THE QUANTIFIER IS
 /// WHERE THAT RULE LIVES (kb/Work PB396).
 ///
-/// <para><b>The rule, one sentence.</b> ISO §5.2.6.2 gives the omission licence to BRACKETED portions only —
+/// <para><b>The rule, one sentence.</b> ISO §2023:5.2.6.2 gives the omission licence to BRACKETED portions only —
 /// "Brackets, [ ], enclosing a portion of a general format indicate that the syntax element contained within the
-/// brackets … may be explicitly specified or that portion of the general format may be omitted" — and §5.2.6.3
-/// says a brace group "shall be explicitly specified". §14.9.19.3 SR1 states the same cardinality a second way
+/// brackets … may be explicitly specified or that portion of the general format may be omitted" — and §2023:5.2.6.3
+/// says a brace group "shall be explicitly specified". §2023:14.9.19.3 SR1 states the same cardinality a second way
 /// for IF: "Statement-1 and statement-2 represent either one or more imperative statements or a conditional
 /// statement optionally preceded by one or more imperative statements".</para>
 ///
@@ -61,7 +61,7 @@ public sealed class RequiredImperativeStatementDriftTests : WiseOwlCobolTestBase
 
         Assert.True(offenders.Count == 0,
             $"{offenders.Count} grammar reference(s) admit an EMPTY statement block: {string.Join(", ", offenders)}. "
-            + "ISO §5.2.6.2 licenses an omission only for a BRACKETED portion and §5.2.6.3 requires one alternative "
+            + "ISO §2023:5.2.6.2 licenses an omission only for a BRACKETED portion and §2023:5.2.6.3 requires one alternative "
             + "of a brace group to be explicitly specified, so an imperative-statement operand is required wherever "
             + "the printed general format leaves it outside brackets (kb/Work PB396).");
     }
@@ -79,7 +79,7 @@ public sealed class RequiredImperativeStatementDriftTests : WiseOwlCobolTestBase
     }
 
     /// <summary>⛔ WHEN OTHER IS ONE OPTIONAL PHRASE THAT FOLLOWS THE REPETITION, not a second alternative of the
-    /// repeated clause (ISO §14.9.13.2, with §5.2.7: an ellipsis "applies to the portion of the format between
+    /// repeated clause (ISO §2023:14.9.13.2, with §2023:5.2.7: an ellipsis "applies to the portion of the format between
     /// the determined pair of delimiters" — the brace group immediately to its left, which the OTHER phrase is
     /// outside of). Written as an alternative it was admissible any number of times at any position, and
     /// <c>EvaluateBinder</c>'s <c>other = body</c> silently discarded every earlier one.</summary>
@@ -102,7 +102,7 @@ public sealed class RequiredImperativeStatementDriftTests : WiseOwlCobolTestBase
         Assert.True(clausePos >= 0, $"evaluateStatement no longer repeats evaluateWhenClause: {body}");
         Assert.True(otherPos > clausePos,
             $"evaluateWhenOther? must follow evaluateWhenClause+ — the printed format puts it after the `{{ … }} …` "
-            + $"repetition, so it is admitted once and last (ISO §14.9.13.2 / §5.2.7). Body: {body}");
+            + $"repetition, so it is admitted once and last (ISO §2023:14.9.13.2 / §2023:5.2.7). Body: {body}");
     }
 
     // ── The nine operand positions, end to end ───────────────────────────────────────────────────────────
@@ -120,11 +120,11 @@ public sealed class RequiredImperativeStatementDriftTests : WiseOwlCobolTestBase
     /// COBOL2072 is the empty operand; COBOL2073 is the WHEN OTHER phrase written out of position, which is
     /// the same format read one level up.</summary>
     [Theory]
-    // IF Format 1 / Format 2 — statement-1 unbracketed, and a brace alternative (ISO §14.9.19.2).
+    // IF Format 1 / Format 2 — statement-1 unbracketed, and a brace alternative (ISO §2023:14.9.19.2).
     [InlineData("PB396A", "           IF X = 1\n           END-IF\n           DISPLAY \"A\"", "COBOL2072")]
     [InlineData("PB396B", "           IF X = 1\n               DISPLAY \"T\"\n           ELSE\n           END-IF", "COBOL2072")]
     [InlineData("PB396C", "           IF X = 1.\n           DISPLAY \"A\".", "COBOL2072")]
-    // EVALUATE — imperative-statement-1 inside the outer brace group (ISO §14.9.13.2).
+    // EVALUATE — imperative-statement-1 inside the outer brace group (ISO §2023:14.9.13.2).
     [InlineData("PB396D", "           EVALUATE X\n               WHEN 3\n           END-EVALUATE", "COBOL2072")]
     [InlineData("PB396E", "           EVALUATE X\n               WHEN 3 DISPLAY \"T\"\n               WHEN OTHER\n"
                         + "           END-EVALUATE", "COBOL2072")]
@@ -136,19 +136,19 @@ public sealed class RequiredImperativeStatementDriftTests : WiseOwlCobolTestBase
                         + "           END-EVALUATE", "COBOL2073")]
     // PERFORM Format 2 — imperative-statement-1 unbracketed between the phrase bracket and END-PERFORM.
     [InlineData("PB396H", "           PERFORM UNTIL X > 5\n           END-PERFORM", "COBOL2072")]
-    // SEARCH / SEARCH ALL — `{ imperative-statement-2 | NEXT SENTENCE }`, a brace alternation (ISO §14.9.37.2).
+    // SEARCH / SEARCH ALL — `{ imperative-statement-2 | NEXT SENTENCE }`, a brace alternation (ISO §2023:14.9.37.2).
     [InlineData("PB396J", "           SET I TO 1\n           SEARCH R\n               AT END DISPLAY \"NF\"\n"
                         + "               WHEN R (I) = 7\n           END-SEARCH", "COBOL2072")]
     public void AnEmptyRequiredImperative_IsRejected(string id, string body, string code)
     {
         var (ok, _, detail) = CompileAndRun(Program(id, body));
         Assert.False(ok, $"{id} compiled and ran: an imperative-statement the general format leaves unbracketed "
-            + "was accepted empty (ISO §5.2.6.2 / §5.2.6.3).");
+            + "was accepted empty (ISO §2023:5.2.6.2 / §2023:5.2.6.3).");
         Assert.Contains(code, detail, StringComparison.Ordinal);
     }
 
     /// <summary>The wholly empty inline PERFORM — no loop-control phrase, no body — is REJECTED with the named
-    /// COBOL2072, which is the rule (§14.9.28.2 Format 2 prints imperative-statement-1 unbracketed). It was the one
+    /// COBOL2072, which is the rule (§2023:14.9.28.2 Format 2 prints imperative-statement-1 unbracketed). It was the one
     /// shape that drew only the generic parse error: with no <c>performInlineHead</c> to commit the parse, the failure is
     /// a no-viable-alternative on <c>performStatement</c>'s own alternatives decision, with the parser still before
     /// PERFORM, and the old test read the PARSER's expected set there. The test now re-simulates the parse to the
@@ -157,7 +157,7 @@ public sealed class RequiredImperativeStatementDriftTests : WiseOwlCobolTestBase
     public void AWhollyEmptyInlinePerform_IsRejected_WithTheNamedDiagnostic()
     {
         var (ok, _, detail) = CompileAndRun(Program("PB396I", "           PERFORM\n           END-PERFORM"));
-        Assert.False(ok, "an inline PERFORM with no imperative-statement-1 was accepted (ISO §14.9.28.2 Format 2).");
+        Assert.False(ok, "an inline PERFORM with no imperative-statement-1 was accepted (ISO §2023:14.9.28.2 Format 2).");
         Assert.Contains("COBOL2072", detail, StringComparison.Ordinal);
         Assert.Contains("The PERFORM statement's general format", detail, StringComparison.Ordinal);
     }
@@ -172,7 +172,7 @@ public sealed class RequiredImperativeStatementDriftTests : WiseOwlCobolTestBase
         "           IF X = 1\n               DISPLAY \"A\"\n           ELSE IF X = 2\n               DISPLAY \"B\"\n"
         + "           END-IF\n";
 
-    /// <summary>A statement that fails INSIDE a block: LENGTH is reserved (§8.9), and `LENGTH OF` is no ISO
+    /// <summary>A statement that fails INSIDE a block: LENGTH is reserved (§2023:8.9), and `LENGTH OF` is no ISO
     /// register, so the condition fails at OF.</summary>
     private const string FailsInside = "IF LENGTH OF X = 4 DISPLAY \"C\" END-IF";
 
@@ -182,10 +182,10 @@ public sealed class RequiredImperativeStatementDriftTests : WiseOwlCobolTestBase
 
     /// <summary>⛔ A TRULY EMPTY BLOCK DRAWS COBOL2072 NAMING ITS OWN STATEMENT, AT DEPTH 0 AND INSIDE THE OPEN NEST.
     /// Before kb/Work PB3832 the nested rows named IF for every construct (the parser's rule stack at the dangling
-    /// END-IF), and the empty inline PERFORM drew only the generic error. ISO §5.2.6.2 licenses an omission only for a
-    /// bracketed portion; each block here is unbracketed in its format (§14.9.19.2 IF, §14.9.13.2 EVALUATE, §14.9.28.2
-    /// PERFORM, §14.9.37.2 SEARCH, §14.9.2.2 ADD's SIZE ERROR phrase), and each block's own scope terminator closes a
-    /// statement that IS open (§14.5.3.2). The WHEN OTHER row runs nested only: at depth 0 the parse fails at the WHEN,
+    /// END-IF), and the empty inline PERFORM drew only the generic error. ISO §2023:5.2.6.2 licenses an omission only for a
+    /// bracketed portion; each block here is unbracketed in its format (§2023:14.9.19.2 IF, §2023:14.9.13.2 EVALUATE, §2023:14.9.28.2
+    /// PERFORM, §2023:14.9.37.2 SEARCH, §2023:14.9.2.2 ADD's SIZE ERROR phrase), and each block's own scope terminator closes a
+    /// statement that IS open (§2023:14.5.3.2). The WHEN OTHER row runs nested only: at depth 0 the parse fails at the WHEN,
     /// where the WHEN OTHER arm names the phrase itself (row PB396E of <see cref="AnEmptyRequiredImperative_IsRejected"/>).
     /// The AH..AJ rows are review R1-1's: the block's statement stands more than sixteen tokens past the dangling END-IF
     /// decision, where the walk used to give up and the named diagnostic fell silent; the decision looks ahead to the
@@ -229,12 +229,12 @@ public sealed class RequiredImperativeStatementDriftTests : WiseOwlCobolTestBase
     /// <summary>⛔ A BLOCK THAT HOLDS A FAILING STATEMENT IS NOT EMPTY, AT ANY DEPTH (kb/Work PB3832). Each block below
     /// begins with a statement that fails inside its condition, and each nested row used to draw COBOL2072, "the IF
     /// statement's general format shows an imperative-statement here", where the IF has its statement. The condition
-    /// rows are the second witness: the fault of <c>IF X NOT &lt;&gt; 1</c> is the NOT that §8.8.4.2.2 Format 1 does
+    /// rows are the second witness: the fault of <c>IF X NOT &lt;&gt; 1</c> is the NOT that §2023:8.8.4.2.2 Format 1 does
     /// not print before <c>&lt;&gt;</c>, and the old test read the IF's next position, after the condition it had
     /// closed at X, as an empty block. None of these is a missing statement, so none draws COBOL2072; and since kb/Work
     /// PB3832's review (R1-2) each draws exactly the one diagnostic the lone failing statement draws, at the token where
     /// the parse dies, at both depths: the depth-0 SIZE ERROR row used to draw COBOL0307 "A period may be missing" at ON,
-    /// a phrase ISO §14.9.2.2 prints, because the parse closed the ADD before it.</summary>
+    /// a phrase ISO §2023:14.9.2.2 prints, because the parse closed the ADD before it.</summary>
     [Theory]
     [InlineData("PB3832N", false, "IF X = 1 " + FailsInside + " END-IF", "OF", FailsInsideCode)]
     [InlineData("PB3832O", true, "IF X = 1 " + FailsInside + " END-IF", "OF", FailsInsideCode)]
@@ -278,8 +278,8 @@ public sealed class RequiredImperativeStatementDriftTests : WiseOwlCobolTestBase
 
     /// <summary>⛔ EVERY PAIRED CONDITIONAL PHRASE DRAWS ONE DIAGNOSTIC FOR ITS FAULT, AT DEPTH 0 AND INSIDE THE OPEN NEST
     /// (kb/Work PB3832, review R1-2). Each Table 12 phrase family's imperative-statement is unbracketed inside its
-    /// phrase (§14.9.2.2 ADD, §14.9.4.2 CALL, §14.9.8.2 COMPUTE, §14.9.30.2 READ, §14.9.43.2 STRING, §14.9.51.2 WRITE), so
-    /// writing the phrase obliges the statement (§5.2.6.2). An optional phrase is a decision whose exit ENDS the statement, and ANTLR's SLL
+    /// phrase (§2023:14.9.2.2 ADD, §2023:14.9.4.2 CALL, §2023:14.9.8.2 COMPUTE, §2023:14.9.30.2 READ, §2023:14.9.43.2 STRING, §2023:14.9.51.2 WRITE), so
+    /// writing the phrase obliges the statement (§2023:5.2.6.2). An optional phrase is a decision whose exit ENDS the statement, and ANTLR's SLL
     /// prediction, not knowing what follows the statement, took the exit when the phrase's own alternative died later:
     /// at depth 0 the statement closed before the phrase word, and the report stood there with a period expected, "A
     /// period may be missing" (COBOL0307), while inside the open nest the same fault drew the named COBOL2072. The
@@ -336,7 +336,7 @@ public sealed class RequiredImperativeStatementDriftTests : WiseOwlCobolTestBase
 
     /// <summary>The empty-block witness of each grammar rule that calls <c>statementBlock</c>, by RULE name: a statement
     /// written with that rule's imperative-statement EMPTY and the owner's next token (its terminator or next phrase)
-    /// right after it. PERFORM carries four rules of Format 3 beside Format 2's (§14.9.28.2: imperative-statement-1 is
+    /// right after it. PERFORM carries four rules of Format 3 beside Format 2's (§2023:14.9.28.2: imperative-statement-1 is
     /// printed unbracketed, and so are the bodies of the WHEN, WHEN OTHER, WHEN COMMON and FINALLY phrases), which the
     /// first draft of this table lacked, so the Format-3 positions were never exercised (kb/Work PB911).</summary>
     private static readonly Dictionary<string, string[]> EmptyBlockWitnesses = new(StringComparer.Ordinal)
@@ -391,7 +391,7 @@ public sealed class RequiredImperativeStatementDriftTests : WiseOwlCobolTestBase
     /// (<c>STOP RUN</c> in <see cref="Program"/>) drew a second COBOL0001 at its period. The recovery deleted the stray
     /// END-PERFORM (single-token deletion: the token after it begins a statement), the next statement became the body, and
     /// the PERFORM, whose END-PERFORM is required, ran to the period without one. The terminators of IF, EVALUATE and
-    /// SEARCH are optional (§14.5.3.2), so the same recovery hid it there. The token that ends an empty block is the
+    /// SEARCH are optional (§2023:14.5.3.2), so the same recovery hid it there. The token that ends an empty block is the
     /// owner's own, and is never deleted (<c>CobolErrorStrategy.SingleTokenDeletion</c>).</summary>
     [Theory]
     [MemberData(nameof(EmptyBlockRows))]
@@ -441,9 +441,9 @@ public sealed class RequiredImperativeStatementDriftTests : WiseOwlCobolTestBase
         Assert.Equal(expected, stdout);
     }
 
-    // ── §14.5.1: an imperative-statement operand admits no CONDITIONAL statement (kb/Work PB351) ──────────
+    // ── §2023:14.5.1: an imperative-statement operand admits no CONDITIONAL statement (kb/Work PB351) ──────────
 
-    /// <summary>⛔ THE OPERAND IS AN IMPERATIVE-STATEMENT IN EVERY PHRASE BUT IF'S. §14.5.1: "Any statement with a
+    /// <summary>⛔ THE OPERAND IS AN IMPERATIVE-STATEMENT IN EVERY PHRASE BUT IF'S. §2023:14.5.1: "Any statement with a
     /// conditional phrase that is not terminated by its explicit scope terminator is a conditional statement", and an
     /// imperative statement may be a conditional statement only "delimited by its explicit scope terminator". The
     /// screen (<c>ProcedureFormatPass</c>) asks it of every <c>statementBlock</c> whose parent is not the IF statement,
@@ -461,12 +461,12 @@ public sealed class RequiredImperativeStatementDriftTests : WiseOwlCobolTestBase
     public void AnUndelimitedConditionalStatement_AsAnImperativeOperand_IsRejected(string id, string body)
     {
         var (ok, _, detail) = CompileAndRun(Program(id, body));
-        Assert.False(ok, $"{id} compiled: a conditional statement was accepted as an imperative-statement (§14.5.1).");
+        Assert.False(ok, $"{id} compiled: a conditional statement was accepted as an imperative-statement (§2023:14.5.1).");
         Assert.Contains("COBOL2796", detail, StringComparison.Ordinal);
     }
 
     /// <summary>The complement: the same inner statements DELIMITED by their END- terminators are imperative
-    /// statements and compile, and IF's statement-1 may END in an undelimited conditional statement (§14.9.19.3 SR1:
+    /// statements and compile, and IF's statement-1 may END in an undelimited conditional statement (§2023:14.9.19.3 SR1:
     /// "either one or more imperative statements or a conditional statement optionally preceded by one or more
     /// imperative statements"). X is 1, so ADD 9 TO X (PIC 9(4)) does not overflow and EVALUATE takes WHEN 1.</summary>
     [Theory]
@@ -481,11 +481,11 @@ public sealed class RequiredImperativeStatementDriftTests : WiseOwlCobolTestBase
         Assert.Equal(expected, stdout);
     }
 
-    // ── §14.9.13.4 GR3: the selection subject is evaluated at the BEGINNING of the statement ─────────────
+    // ── §2023:14.9.13.4 GR3: the selection subject is evaluated at the BEGINNING of the statement ─────────────
 
     /// <summary>⛔ GR3 IS AN OBLIGATION OF THE STATEMENT, NOT OF WHICHEVER ARM READS THE SUBJECT. "At the
     /// beginning of the execution of the EVALUATE statement, each selection subject is evaluated and assigned a
-    /// value, a range of values, or a truth value" (ISO §14.9.13.4 GR3). An <c>ANY</c> object makes the pair true
+    /// value, a range of values, or a truth value" (ISO §2023:14.9.13.4 GR3). An <c>ANY</c> object makes the pair true
     /// without consulting the subject (GR4 a) 1.), so before kb/Work PB396 an EVALUATE whose objects were all ANY
     /// bound the subject lazily — which is to say never — and the out-of-range reference it names raised nothing.
     /// The A/B pair differs ONLY in the object, so the subject's evaluation is the single variable.</summary>

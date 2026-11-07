@@ -35,9 +35,9 @@ internal static class PlaceTablePass
     }
 
     /// <summary>The units that contain <paramref name="unit"/>, nearest first. A contained program names its containers'
-    /// GLOBAL data (ISO §13.18.27.4 GR1) - a file's record area - and its I-O statements on a GLOBAL file read the file's own
-    /// clause operands - the FILE STATUS, RELATIVE KEY, ASSIGN USING, DEPENDING ON and LINAGE items (§8.4.5, kb/Work PB4454).
-    /// The place of such an item is built over THIS program's facts, so the containers' GLOBAL items (§8.4.6.2.2) and those
+    /// GLOBAL data (ISO §2023:13.18.27.4 GR1) - a file's record area - and its I-O statements on a GLOBAL file read the file's own
+    /// clause operands - the FILE STATUS, RELATIVE KEY, ASSIGN USING, DEPENDING ON and LINAGE items (§2023:8.4.5, kb/Work PB4454).
+    /// The place of such an item is built over THIS program's facts, so the containers' GLOBAL items (§2023:8.4.6.2.2) and those
     /// operands (<see cref="DataBinder.GlobalPlaceableItems"/>), and only those, join its table.</summary>
     private static IEnumerable<BoundUnit> ContainersOf(BoundUnit unit)
     {
@@ -48,8 +48,8 @@ internal static class PlaceTablePass
     {
         var builder = new PlaceBuilder(data);
         var table = PlaceTable.Build(builder, data.PlaceableItems().Concat(inherited));
-        // A report's CONTROL operand is saved and compared as it is written (§13.18.16.4 GR3): a reference-modified
-        // operand as its slice (§8.4.3.3.4 GR5), the others as the item. The positions are integer literals (SR4), so the
+        // A report's CONTROL operand is saved and compared as it is written (§2023:13.18.16.4 GR3): a reference-modified
+        // operand as its slice (§2023:8.4.3.3.4 GR5), the others as the item. The positions are integer literals (SR4), so the
         // view is the ONE reference-modification view builder reached by item (kb/Work PB205).
         foreach (var report in data.State.Reports.Declared)
             foreach (var control in report.Controls)

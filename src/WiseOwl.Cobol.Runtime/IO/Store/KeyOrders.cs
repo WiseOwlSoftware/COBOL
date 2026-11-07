@@ -37,7 +37,7 @@ internal static class KeyOrders
 
 /// <summary>The ORDINAL key order: unsigned bytes. With no CODE-SET clause the channel byte of a character position is
 /// its ISO/IEC 8859-1 code under the storage-byte law (<see cref="FileCharacterSet"/>; HIGH-VALUE is 0xFF), so this IS
-/// the native order of a key no COLLATING SEQUENCE clause names (§12.4.5.7.4 GR4: <i>"the native alphanumeric collating
+/// the native order of a key no COLLATING SEQUENCE clause names (§2023:12.4.5.7.4 GR4: <i>"the native alphanumeric collating
 /// sequence applies"</i>) — the order <c>IndexedConnector.KeyCompare</c> gives
 /// such a key with <see cref="string.CompareOrdinal(string, string)"/>.</summary>
 internal sealed class OrdinalKeyOrder : IKeyOrder
@@ -63,14 +63,14 @@ internal sealed class OrdinalKeyOrder : IKeyOrder
 }
 
 /// <summary>The WEIGHTED key order: the channel bytes decoded to the native character set — the medium's one byte per
-/// character position, then the CODE-SET conversion's input rule (§13.18.13.4 GR6 a)), then the storage-byte law
-/// (<see cref="FileCharacterSet.FromChannel"/>) — and compared under the key's collating sequence (§12.4.5.7.4) exactly as
+/// character position, then the CODE-SET conversion's input rule (§2023:13.18.13.4 GR6 a)), then the storage-byte law
+/// (<see cref="FileCharacterSet.FromChannel"/>) — and compared under the key's collating sequence (§2023:12.4.5.7.4) exactly as
 /// <c>IndexedConnector.KeyCompare</c> compares today: native ordinal with no sequence; a locale sequence through its
 /// materialized keys, which its collator's key cache builds once per distinct value (kb/Work PB106); any other declared
 /// sequence by its weights. A file with a CODE-SET clause and no COLLATING SEQUENCE takes this order with no collation,
 /// because its channel byte order is the coded set's and not the native one. <paramref name="keyLength"/> is the key's
 /// length in character positions (one byte each), the length of the record key a START's partial key is a prefix of
-/// (§14.9.41.4 GR14); a key or prefix longer than it is the caller's defect and is refused.</summary>
+/// (§2023:14.9.41.4 GR14); a key or prefix longer than it is the caller's defect and is refused.</summary>
 internal sealed class WeightedKeyOrder(CodeSetConversion? codeSet, CobolCollation? collation, int keyLength) : IKeyOrder
 {
     private readonly bool _positional = collation is null || collation.UsesStandardComparison;
@@ -78,7 +78,7 @@ internal sealed class WeightedKeyOrder(CodeSetConversion? codeSet, CobolCollatio
     /// <summary>The decoding is one character per byte position, so a prefix narrows at every length exactly when the
     /// comparison is positional — native ordinal, or a sequence compared by the standard comparison
     /// (<see cref="CobolCollation.UsesStandardComparison"/>) — and otherwise only at the key's whole length, where
-    /// §14.9.41.4 GR17 c) truncates nothing.</summary>
+    /// §2023:14.9.41.4 GR17 c) truncates nothing.</summary>
     public bool PrefixNarrows(int prefixLength) => _positional || prefixLength >= keyLength;
 
     /// <inheritdoc/>
@@ -114,8 +114,8 @@ internal sealed class WeightedKeyOrder(CodeSetConversion? codeSet, CobolCollatio
 }
 
 /// <summary>The COMPOSITE key order of an ALTERNATE tree's entry (2.2.1.4): the alternate key's own order over the key
-/// part, then the trailing 8-byte big-endian release ordinal (§14.9.51.4 GR40), so the duplicates of one key value are
-/// in the order their ordinals were minted (§14.9.35.4 GR24). A prefix compares the key part only.</summary>
+/// part, then the trailing 8-byte big-endian release ordinal (§2023:14.9.51.4 GR40), so the duplicates of one key value are
+/// in the order their ordinals were minted (§2023:14.9.35.4 GR24). A prefix compares the key part only.</summary>
 internal sealed class CompositeKeyOrder(IKeyOrder keyOrder) : IKeyOrder
 {
     /// <summary>The bytes of the trailing ordinal.</summary>

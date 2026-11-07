@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// kb/Work PB4281 (docs/CONFORMANCE.md D-CE2): a COBOL-85 comment-entry paragraph is decided on the division the COMPILED
-/// text stands in. The §6.5 conversion runs before conditional compilation, COPY, REPLACE and the <c>&gt;&gt;COBOL-WORDS</c>
+/// text stands in. The §2023:6.5 conversion runs before conditional compilation, COPY, REPLACE and the <c>&gt;&gt;COBOL-WORDS</c>
 /// stage, so where its own reading of the division is not certain (a conditional group whose branches disagree, a
 /// <c>&gt;&gt;COBOL-WORDS</c> directive) it CARRIES the candidate (<see cref="CommentEntryCarrier"/>) and
 /// <see cref="CommentEntryResolver"/> decides it after those stages. These tests drive the stages in their order:
@@ -129,7 +129,7 @@ public sealed class CommentEntryResolverTests
             + "       REMARKS. DISPLAY \"A\".\n           DISPLAY \"B\"\n      -    .\n       INSTALLATION. DISPLAY \"C\".\n");
         string[] trimmed = [.. lines.Select(l => l.Trim())];
         Assert.Contains("REMARKS. DISPLAY \"A\".", trimmed);
-        Assert.Contains("DISPLAY \"B\".", trimmed);   // the continuation line joined the line before it (§6.5 6)), its slot left empty
+        Assert.Contains("DISPLAY \"B\".", trimmed);   // the continuation line joined the line before it (§2023:6.5 6)), its slot left empty
         Assert.Contains("INSTALLATION. DISPLAY \"C\".", trimmed);
         Assert.DoesNotContain(lines, CommentEntryCarrier.Is);
     }
@@ -290,6 +290,6 @@ public sealed class CommentEntryResolverTests
         var bag = new DiagnosticBag();
         string[] lines = Finished("IDENTIFICATION DIVISION.\nPROGRAM-ID. P.\n>>IF X IS DEFINED\nID DIVISION.\n>>ELSE\nPROCEDURE DIVISION.\n>>END-IF\n"
             + "REMARKS. DISPLAY \"A\" *> trailing comment\n", bag: bag);
-        Assert.Contains("REMARKS. DISPLAY \"A\"", lines.Select(l => l.TrimEnd()));   // the inline comment was removed, §6.5 3)
+        Assert.Contains("REMARKS. DISPLAY \"A\"", lines.Select(l => l.TrimEnd()));   // the inline comment was removed, §2023:6.5 3)
     }
 }

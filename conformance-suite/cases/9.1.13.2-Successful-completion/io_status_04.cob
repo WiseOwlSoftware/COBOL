@@ -5,19 +5,19 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> I-O status '04' on a record-sequential READ (ISO §9.1.13.2 item 3 / §14.9.30
+      *> I-O status '04' on a record-sequential READ (ISO §2023:9.1.13.2 item 3 / §2023:14.9.30
       *> GR14; clarified COBOL-2023 Annex E.2 item 15, version-invariant behavior). A
       *> READ whose physical record length is outside the file's min/max record size
       *> is SUCCESSFUL but sets status '04' (the record is still delivered). A
       *> FIXED-length record sequential file carries no record length on the medium
-      *> (§9.1.7.2: the length is "determined by any information the implementor may
+      *> (§2023:9.1.7.2: the length is "determined by any information the implementor may
       *> add to the record on the physical storage medium", and this format adds none
       *> -- docs/CONFORMANCE.md DOC-A.1-146 (a), kb/Work PB1514), so its physical
       *> record is the next integer-1 bytes of the READING description. Here three
       *> 5-character records are written (a 15-byte physical file), then read back
       *> through a 10-character record description: the first physical record is
       *> bytes 1-10 ('00'), the second is the 5 bytes left at the end of the file --
-      *> shorter than the 10-byte fixed length, so '04' (§14.9.30.4 GR14), and the
+      *> shorter than the 10-byte fixed length, so '04' (§2023:14.9.30.4 GR14), and the
       *> record area to the right of the 5 bytes read is UNDEFINED by the same rule,
       *> so only those 5 bytes are shown -- and the third READ hits end-of-file.
       *> The L leg writes ONE 15-byte record and reads it through the same 10-byte
@@ -26,7 +26,7 @@
       *> and the 5-byte partial record '04' -- never one truncated '04' record.
       *>   python scripts/spec/cite.py --check 14.9.30.4 "the portion of the record
       *>   area that is to the right of the last valid character read is undefined"
-      *>                                          -> OK  §14.9.30.4 14)
+      *>                                          -> OK  §2023:14.9.30.4 14)
        IDENTIFICATION DIVISION.
        PROGRAM-ID. IOSTAT-04.
        ENVIRONMENT DIVISION.

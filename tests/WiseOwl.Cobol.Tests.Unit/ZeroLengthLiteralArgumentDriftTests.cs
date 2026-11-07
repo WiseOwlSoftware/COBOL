@@ -32,7 +32,7 @@ public sealed class ZeroLengthLiteralArgumentDriftTests
     {
         ["NATIONAL-OF"] =
             "enforced in IntrinsicBinder.CheckRepertoireArgs, where its NARROWER class rule already lives: "
-            + "§15.66.3 r1 admits argument-1 of class alphabetic or alphanumeric but NOT national, which no "
+            + "§2023:15.66.3 r1 admits argument-1 of class alphabetic or alphanumeric but NOT national, which no "
             + "single ArgKind code expresses ('s' spans national). Moving only the zero-length half into the "
             + "schema would split ONE function's argument rules across two mechanisms to unify one rule across "
             + "six — a worse trade. Verified enforced by SpecZeroLengthArguments below.",
@@ -40,13 +40,13 @@ public sealed class ZeroLengthLiteralArgumentDriftTests
         // "documented non-support, Bind = Unsupported, so COBOL1518 fires before any argument screen and the
         // row would be a dead lookup" — TRUE while support was declined under A.3 item 25, and FALSE the moment
         // it was claimed. An adjudication is a fact about the compiler, not a permanent exemption: leaving it
-        // would have kept this guard green while `FUNCTION STANDARD-COMPARE("" "AB")` — which §15.85.3 r4
+        // would have kept this guard green while `FUNCTION STANDARD-COMPARE("" "AB")` — which §2023:15.85.3 r4
         // forbids — compiled clean. The schema now declares the rule on positions 1 and 2.
     };
 
     /// <summary>Every §15 function whose ARGUMENT rules prohibit a zero-length literal, read off the spec.</summary>
     /// <remarks>
-    /// ⚠ Scoped to the ARGUMENT-RULES subclause on purpose. §15.93/§15.94/§15.95 (the TEST-NUMVAL family) mention
+    /// ⚠ Scoped to the ARGUMENT-RULES subclause on purpose. §2023:15.93/§2023:15.94/§2023:15.95 (the TEST-NUMVAL family) mention
     /// "argument-1 is zero-length" in their RETURNED-VALUE rules as one of the errors the function REPORTS — a
     /// value the function computes, the opposite of a prohibition. Matching the phrase anywhere in clause 15
     /// would have swept those three in and demanded a screen that rejects source the standard explicitly defines
@@ -68,7 +68,7 @@ public sealed class ZeroLengthLiteralArgumentDriftTests
                 RegexOptions.Singleline);
             if (!argRules.Success) continue;
             // ⛔ MATCH THE PHRASE, NOT ONE OF ITS SENTENCE SHAPES. The first cut of this scan looked for
-            // "shall not be a zero-length literal" and found FIVE of the six, because §15.85.3 r4 states the
+            // "shall not be a zero-length literal" and found FIVE of the six, because §2023:15.85.3 r4 states the
             // identical rule as "NEITHER argument-1 NOR argument-2 shall be a zero-length literal". A drift test
             // whose own pattern has a blind spot is worse than none — it reports coverage it does not have.
             // Inside an ARGUMENT-RULES subclause every mention of the term is a prohibition; the returned-value
@@ -119,7 +119,7 @@ public sealed class ZeroLengthLiteralArgumentDriftTests
         Assert.True(missing.Count == 0,
             $"§15 prohibits a zero-length literal argument for {string.Join(", ", missing)}, but the schema does "
             + $"not declare it — so `FUNCTION {missing.FirstOrDefault() ?? "X"}(\"\" …)` compiles clean at every "
-            + $"edition.{Environment.NewLine}Add `noZeroLen: \"§15.N.3 rM\"` to the row (the rule's OWN ordinal, "
+            + $"edition.{Environment.NewLine}Add `noZeroLen: \"§2023:15.<N>.3 r<M>\"` to the row (the rule's OWN ordinal, "
             + "which is NOT the class rule's), or adjudicate it into this test's Adjudicated map with its reason.");
 
         static bool DeclaresZeroLengthRule(ArgSchema schema) =>
@@ -128,7 +128,7 @@ public sealed class ZeroLengthLiteralArgumentDriftTests
     }
 
     /// <summary>⛔ THE CITED ORDINAL MUST BE THE ZERO-LENGTH RULE'S OWN, NOT THE CLASS RULE'S. MAX's class rule is
-    /// §15.59.3 r1 and its zero-length rule is r3; a diagnostic citing r1 for an r3 violation would pass
+    /// §2023:15.59.3 r1 and its zero-length rule is r3; a diagnostic citing r1 for an r3 violation would pass
     /// <c>cite.py --check</c> — the text is really in the standard — while pointing the reader at the wrong rule.
     /// That is why the schema carries a clause STRING here rather than a bool.</summary>
     [Fact]
@@ -142,7 +142,7 @@ public sealed class ZeroLengthLiteralArgumentDriftTests
                 Assert.True(zl != rule.Clause,
                     $"{name} cites the same clause ({zl}) for its zero-length rule as for its class rule — one of "
                     + "them is pointing at the wrong ordinal");
-                Assert.Matches(@"^§15\.\d+\.3 r\d+$", zl);
+                Assert.Matches(@"^§2023:15\.\d+\.3 r\d+$", zl);
             }
         }
     }

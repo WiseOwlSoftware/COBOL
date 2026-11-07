@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ THE OVERLAPPING-MOVE RULE IS DECIDED ONCE, AT BIND TIME, AND RENDERED BY ONE SWITCH (kb/Work PB1907;
 /// docs/CONFORMANCE.md §3 D-OVL1/D-OVL2).
-/// <para>ISO §14.6.10 1) leaves the result of an overlapping MOVE undefined (Annex A.2 item 36), so WiseOwl COBOL
+/// <para>ISO §2023:14.6.10 1) leaves the result of an overlapping MOVE undefined (Annex A.2 item 36), so WiseOwl COBOL
 /// documents what it does and the corpus golden <c>85/pb1907_overlap_move</c> pins it. This class pins the SHAPE
 /// that keeps the rule from spreading: <c>MoveOverlap.Classify</c> is the only place an
 /// <see cref="OverlapStore"/> is built, <c>StorageExtent</c> is the only static-overlap predicate, and

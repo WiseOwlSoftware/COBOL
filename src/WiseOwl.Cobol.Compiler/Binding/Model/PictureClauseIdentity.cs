@@ -7,9 +7,9 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// <summary>
 /// ⛔ WHAT "THE SAME PICTURE CLAUSE" MEANS — the ONE identity every identical-description rule of the standard
 /// compares (kb/Work PB1166). Five clauses demand that two elementary descriptions have "the same … PICTURE …
-/// clauses" and qualify it with the same two exceptions: §8.5.3.1 (type equivalence), §9.3.6 3) (method matching),
-/// §9.3.8.2.3 rules 3/6 (interface conformance, overrides and IMPLEMENTS), §14.8.2.3.2 rule 2 (BY REFERENCE
-/// arguments) and §14.8.3.3 (returning items):
+/// clauses" and qualify it with the same two exceptions: §2023:8.5.3.1 (type equivalence), §2023:9.3.6 3) (method matching),
+/// §2023:9.3.8.2.3 rules 3/6 (interface conformance, overrides and IMPLEMENTS), §2023:14.8.2.3.2 rule 2 (BY REFERENCE
+/// arguments) and §2023:14.8.3.3 (returning items):
 /// <list type="bullet">
 ///   <item>"Currency symbols match if and only if the corresponding currency strings are the same" — so the
 ///   identity carries the currency STRING (<see cref="CurrencyString"/>) and the character-string carries the
@@ -23,18 +23,18 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// </list>
 /// <para>Both facts are properties of the SOURCE ELEMENT, not of the character-string, which is why a raw
 /// character-string compare missed them: a CLASS definition and a program in one compilation group each carry
-/// their own SPECIAL-NAMES paragraph (§12.3.7.4 GR1 makes a CONTAINED unit inherit, so the difference is reachable
+/// their own SPECIAL-NAMES paragraph (§2023:12.3.7.4 GR1 makes a CONTAINED unit inherit, so the difference is reachable
 /// exactly across separately-defined units). The measured consequence before this type existed: a class returning
 /// <c>PIC Z9,99</c> under DECIMAL-POINT IS COMMA into a non-DPC <c>PIC Z9,99</c> receiver compiled clean, and the
 /// receiver read 1234 for the 12.34 the sender meant.</para>
 /// <para>The <see cref="CharacterString"/> is the EXPANDED character-string (repetition factors unrolled, letters
-/// uppercased — §8.1.3.2 GR3 a) makes a picture symbol case-insensitive), so <c>PIC X(3)</c> and <c>PIC XXX</c> are
+/// uppercased — §2023:8.1.3.2 GR3 a) makes a picture symbol case-insensitive), so <c>PIC X(3)</c> and <c>PIC XXX</c> are
 /// one clause while <c>PIC A(5)</c> and <c>PIC X(5)</c> — equal in length and in storage — are two.
-/// <see cref="Editing"/> is the resolved PICTURE EDITING phrase set (§13.18.40.2 Format 1), part of the clause.</para>
+/// <see cref="Editing"/> is the resolved PICTURE EDITING phrase set (§2023:13.18.40.2 Format 1), part of the clause.</para>
 /// <para>Computed ONCE, by <c>PictureAnalyzer.Analyze</c> — the one place the character-string, the unit's
 /// CURRENCY SIGN set and its DECIMAL-POINT IS COMMA state are all in hand — and carried on
 /// <see cref="PicInfo.Clause"/>. Being a value-equality record it is part of <see cref="PicInfo"/>'s own record
-/// equality, so the §8.5.3.1 profile compare (<c>StrongTypeModel</c>) and every activation and signature relation
+/// equality, so the §2023:8.5.3.1 profile compare (<c>StrongTypeModel</c>) and every activation and signature relation
 /// (<c>ActivationRelations</c>, over the <see cref="Key"/> an activation description's clauses carry) read the same
 /// identity by construction.</para>
 /// </summary>

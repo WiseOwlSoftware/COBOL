@@ -6,7 +6,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §7.2.3.4 GR11 — COPY REPLACING adds no space between
+      *> ISO §2023:7.2.3.4 GR11 — COPY REPLACING adds no space between
       *>   text-words that had none (pseudo-text and partial words)
       *> Rule: "The resultant text after replacement shall be in
       *>   logical free-form reference format. When copying text-words
@@ -15,22 +15,22 @@
       *>   or at the end of a source line."
       *>   cite.py --check 7.2.3.4 "The resultant text after
       *>     replacement shall be in logical free-form reference
-      *>     format. ..." -> OK  §7.2.3.4 11)  (General rules)
+      *>     format. ..." -> OK  §2023:7.2.3.4 11)  (General rules)
       *> Supporting rules (each run through cite.py --check):
-      *>   §7.2.2.5 1) "the colon, the right parenthesis, and the left
+      *>   §2023:7.2.2.5 1) "the colon, the right parenthesis, and the left
       *>     parenthesis characters, in any context except within
       *>     alphanumeric or national literals, are treated as
       *>     separators" -> OK: in the library text X(L1G2N) the word
       *>     L1G2N is its own text-word, so ==L1G2N== matches it.
-      *>   §7.2.3.4 GR9 b) LEADING / TRAILING partial-word matching and
+      *>   §2023:7.2.3.4 GR9 b) LEADING / TRAILING partial-word matching and
       *>     GR9 f) "the library text-word is placed into the resultant
       *>     text with the matched characters either replaced by
       *>     partial-word-2 ..." -> OK (cite.py labels both "9) a)",
       *>     the known sub-item labelling quirk).
-      *>   §8.3.5 4) "Except when appearing in a picture
+      *>   §2023:8.3.5 4) "Except when appearing in a picture
       *>     character-string, the COBOL characters right parenthesis
-      *>     and left parenthesis are separators." -> OK; §8.3.1 "A
-      *>     character-string is delimited by separators." -> OK; §8.3.5
+      *>     and left parenthesis are separators." -> OK; §2023:8.3.1 "A
+      *>     character-string is delimited by separators." -> OK; §2023:8.3.5
       *>     1) "The COBOL character space is a separator." -> OK.
       *> WHY EACH LEG CAN FAIL: the library text gl2m2sp.cpy holds no
       *>   space between "(" / ")" and L1G2N, nor inside PFX-NAME /

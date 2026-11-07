@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ THE ONE LIST THE BIND-TIME LANE PREDICTION RESTATES IS THE RENDERER'S OWN (kb/Work PB3268, review R1-1).
 /// <c>FunctionValueLane.ReturnsBinary64</c> answers, before the code generator has rendered anything, whether a
-/// numeric function's value arrives as a binary64 — the fact that decides whether the §14.9.25.4 GR1 intermediate
+/// numeric function's value arrives as a binary64 — the fact that decides whether the §2023:14.9.25.4 GR1 intermediate
 /// result item is a COMP-2 or a fixed-point item. It restates <c>IntrinsicRenderer.RenderNum</c>'s dispatch, and the
 /// ONE piece of it that is a list rather than a rule is the set of functions that have an SDIDI body under NATIVE
 /// arithmetic (<c>RenderDec</c>'s switch): given an SDIDI-carried argument (a floating-point literal), those functions
@@ -90,7 +90,7 @@ public sealed class FunctionValueLaneDriftTests
                 !l.TrimStart().StartsWith("//", StringComparison.Ordinal) && l.Contains(forbidden, StringComparison.Ordinal));
             if (named) offenders.Add($"{Path.GetRelativePath(compiler, file)} names {forbidden}");
         }
-        Assert.True(offenders.Count == 0, "a cross-layer edge §8.1 does not allow: " + string.Join("; ", offenders));
+        Assert.True(offenders.Count == 0, "a cross-layer edge DESIGN-architecture-review §8.1 does not allow: " + string.Join("; ", offenders));
         // The shared rules depend on nothing above compiler.bound.
         string rules = File.ReadAllText(Path.Combine(compiler, "Binding", "Bound", "IntrinsicCarrierRules.cs"));
         Assert.DoesNotContain("using WiseOwl.Cobol.CodeGen", rules, StringComparison.Ordinal);
@@ -114,7 +114,7 @@ public sealed class FunctionValueLaneDriftTests
                 $"CrossAligningFunctions names FUNCTION {fn}, which has no native SDIDI body in NativeSdidiBodies");
         foreach (string fn in new[] { "NUMVAL", "NUMVAL-C", "NUMVAL-F" })
         {
-            Assert.True(IntrinsicCarrierRules.ReturnsExactParse(fn), $"FUNCTION {fn} returns the exact parse of its argument (§15.67.4 r1 / §15.68.4 r1 by definition, §15.69.4 r2/r3 by the PB3839 determination)");
+            Assert.True(IntrinsicCarrierRules.ReturnsExactParse(fn), $"FUNCTION {fn} returns the exact parse of its argument (§2023:15.67.4 r1 / §2023:15.68.4 r1 by definition, §2023:15.69.4 r2/r3 by the PB3839 determination)");
             Assert.True(FunctionValueLane.NativeSdidiBodies.Contains(IntrinsicCarrierRuleKeyDriftTests.RuntimeMethodOf(fn)),
                 $"FUNCTION {fn} has no native SDIDI body in NativeSdidiBodies");
         }
@@ -154,7 +154,7 @@ public sealed class FunctionValueLaneDriftTests
     /// <summary>⛔ A FUNCTION'S BINARY64 VALUE IS AN APPROXIMATION OR A FLOAT ITEM'S CONTENT BY ONE PREDICATE, ASKED BY THE BINDER AND BY
     /// THE RENDERER (kb/Work PB4622): the floating-math family and a function of approximations only return an approximation, which
     /// lands by its shortest round-trip decimal; ABS, MAX, FRACTION-PART, SUM ... over a float ITEM return a value derived from the
-    /// item's exact binary64 (§15.59.4 1) "the content of the argument"), which lands as the item does.</summary>
+    /// item's exact binary64 (§2023:15.59.4 1) "the content of the argument"), which lands as the item does.</summary>
     [Theory]
     [InlineData(true, true, true)]
     [InlineData(true, false, true)]

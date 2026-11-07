@@ -67,7 +67,7 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     public bool HasErrors => Diagnostics.Count > 0;
 
     /// <summary>The fixed-point digit capacity of the targeted edition: 18 at COBOL-85, 31 at 2002+ (ISO
-    /// §8.3.3.3.2 fixed-point literals 1–31 digits; the §14.7 composite-of-operands rules; PICTURE digit
+    /// §2023:8.3.3.3.2 fixed-point literals 1–31 digits; the §2023:14.7 composite-of-operands rules; PICTURE digit
     /// positions) — delegated to <see cref="Edition"/>.</summary>
     public int MaxDigits => Edition.MaxDigits;
 
@@ -94,7 +94,7 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     public Frontend.Preprocessor.FixedFormAreas? Areas { get; set; }
 
     /// <summary>The compilation's DISPLAY over-punch convention — the CLI's <c>--sign-encoding</c> (kb/Work PB803,
-    /// owner decision 2026-09-09; Annex A.1 items 177/178, ISO §13.18.52.4 GR4 / GR5 b). NOT a dialect axis: every
+    /// owner decision 2026-09-09; Annex A.1 items 177/178, ISO §2023:13.18.52.4 GR4 / GR5 b). NOT a dialect axis: every
     /// edition leaves the representation to the implementor, so the option is orthogonal to <see cref="Edition"/>
     /// exactly as <see cref="LineMap"/> and <see cref="SourceFile"/> are. It rides here because this is the ONE
     /// per-compilation object <c>CompilerDriver</c> hands to bind, and <c>DataBinder.Edition</c> carries it on to
@@ -104,7 +104,7 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     public SignEncoding SignEncoding { get; set; } = SignEncoding.Ibm;
 
     /// <summary>The form the compilation's DISPLAY statements give a numeric operand — the CLI's
-    /// <c>--numeric-display</c> (kb/Work PB3505, owner decision PB3467; ISO §14.9.11.4 GR1, Annex A.1 item 56). Not a
+    /// <c>--numeric-display</c> (kb/Work PB3505, owner decision PB3467; ISO §2023:14.9.11.4 GR1, Annex A.1 item 56). Not a
     /// dialect axis, for the reason <see cref="SignEncoding"/> is not: every edition leaves the device conversion to the
     /// implementor. It rides this per-compilation object to the emitter (<c>EmitContext.NumericDisplay</c>), where
     /// <c>AcceptDisplayEmitter</c> chooses which runtime conversion the operand is emitted against. Defaults to
@@ -112,7 +112,7 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     public NumericDisplayForm NumericDisplay { get; set; } = NumericDisplayForm.Decimal;
 
     /// <summary>Whether the compilation updates the external repository — the CLI's <c>--repository-update on|off</c>
-    /// (ISO §8.13: "The implementor shall provide a mechanism that allows the user to specify whether to update the external
+    /// (ISO §2023:8.13: "The implementor shall provide a mechanism that allows the user to specify whether to update the external
     /// repository when a compilation unit is compiled"; DESIGN-external-repository §9.1): ON writes the signature attributes of
     /// every published unit (<c>HasSignatures</c>), OFF only the index, the unit identities, the registrar and the host
     /// entries. Not a dialect axis and not semantic (it decides what the build writes, never what a
@@ -127,7 +127,7 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     /// (<see cref="ClientWrittenTokens"/>).</summary>
     public ClientWrittenTokens ClientWritten { get; init; } = ClientWrittenTokens.FlaggedOnly;
 
-    /// <summary>The compilation's §4.2.10 warning mechanism is ON — the CLI's <c>--flag-extensions</c> (kb/Work
+    /// <summary>The compilation's §2023:4.2.10 warning mechanism is ON — the CLI's <c>--flag-extensions</c> (kb/Work
     /// PB1525): "An implementation shall provide a warning mechanism that optionally may be invoked by the user at
     /// compile time to indicate use of a nonstandard extension in a compilation group". Orthogonal to
     /// <see cref="Edition"/> and to <see cref="Permissive"/> (a user can flag extensions at any edition, strict or
@@ -189,7 +189,7 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     // harmless only when the compile FAILS (a refusal: its error was reported) or when the gap is ANNOUNCED (an
     // unbuilt shape: COBOL1756). Before this ledger nothing tied the node to either: ~140 sites reported and
     // then returned an ordinary no-op, and an operand error could be built with no report at all (a STRING
-    // sending ALL literal, §14.9.43.3 SR2, compiled clean and aborted the run unit). Every such node is now
+    // sending ALL literal, §2023:14.9.43.3 SR2, compiled clean and aborted the run unit). Every such node is now
     // obtainable only through a factory that records itself here, and StatementBinder.BindStatement — the ONE
     // funnel every statement passes — reads the ledger: a refusal with no error during the statement fails the
     // compile (COBOL2362), an unbuilt operand in a statement that drew no error is announced (COBOL1756).
@@ -245,7 +245,7 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     /// <summary>⛔ THE EXPANSION-DEFERRAL LEDGER (kb/Work PB2937). A site binding a parameterized definition AS ITSELF
     /// (OO deep-dive D12 determination 6) that meets a question only an expansion can answer — a method selected through a
     /// parameter-name, the description of what it returns — records it here and answers with no diagnostic, because
-    /// ISO §9.3.8.2.4 asks it "as if the actual parameter classes or interfaces were substituted", and every expansion
+    /// ISO §2023:9.3.8.2.4 asks it "as if the actual parameter classes or interfaces were substituted", and every expansion
     /// re-binds the line with its actual. The funnel (<c>StatementBinder.BindStatement</c>) takes the entry and keeps a
     /// <c>BoundDeferredToExpansion</c> for the statement; the refusal ledger's checks stand aside for it (the verb binder
     /// may have built a refusal node over the deferred operand). Reachable only from a formal description
@@ -280,7 +280,7 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
 
     /// <summary>A diagnostic is a FACT about a source position, and the same fact reported twice is one fact.
     /// The case that makes this reachable by construction is a PARAMETERIZED class or interface (kb/Work PB759):
-    /// each EXPANSION re-binds the definition's own source lines (§12.3.8.4 GR5 — the expansion IS the definition
+    /// each EXPANSION re-binds the definition's own source lines (§2023:12.3.8.4 GR5 — the expansion IS the definition
     /// with its formals replaced), so a defect in a line no formal touches is found once per expansion, at the
     /// same position with the same words. A diagnostic that DOES depend on the actual parameters differs in its
     /// text and is kept for each expansion — which is exactly the per-expansion report a user needs. The position is
@@ -335,7 +335,7 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
 
     /// <summary>⛔ RECORD NOTHING WHILE THE SCOPE IS OPEN, when <paramref name="when"/> — for a pass that must still APPLY
     /// the clauses of an entry whose facts another entry already answers for (kb/Work PB3682). A TYPE or SAME AS copy
-    /// reproduces a description that was screened where it is WRITTEN (ISO §13.18.57.4 GR1 and §13.18.49.4 GR1: "as
+    /// reproduces a description that was screened where it is WRITTEN (ISO §2023:13.18.57.4 GR1 and §2023:13.18.49.4 GR1: "as
     /// though … coded in place"), so a defect INSIDE the copy is the declaration's, reported once, at the declaration;
     /// the copy's own screens would repeat it at every reference, naming the subject where the declaration is named.
     /// The walk that screens and applies in one body (<c>DataBinder.UsageInheritanceWalk</c>) opens this scope around the
@@ -378,11 +378,11 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     /// <see cref="DiagnosticEmitFormDriftTests"/> keeps it from returning.</summary>
     public void Warning(DiagnosticDescriptor descriptor, string message) => Warning(descriptor.Code, message);
 
-    /// <summary>⛔ THE ONE SEAM FOR A NONSTANDARD EXTENSION IN USE (ISO §4.2.10; kb/Work PB1525) — every binder
+    /// <summary>⛔ THE ONE SEAM FOR A NONSTANDARD EXTENSION IN USE (ISO §2023:4.2.10; kb/Work PB1525) — every binder
     /// site that ACCEPTS a construct ISO does not define names it through here, with the register row's id
     /// (<see cref="ExtensionIds"/>), at the one place the construct is accepted. Under <see cref="FlagExtensions"/> it
     /// writes the named warning <see cref="DiagnosticCatalog.NonstandardExtensionUsed"/> (COBOL2894), once per
-    /// occurrence; otherwise it does nothing. The row, not the site, says whether the extension is flaggable: §4.2.10
+    /// occurrence; otherwise it does nothing. The row, not the site, says whether the extension is flaggable: §2023:4.2.10
     /// "shall flag only extensions that are syntactically distinguishable", so a row that is not
     /// <see cref="NonstandardExtension.Distinguishable"/> or is only <see cref="ExtensionSupport.RefusedByName"/> is a
     /// defect to name here (and throws, as an unknown id does — a compiler bug, not a user error).</summary>
@@ -397,10 +397,10 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
         if (row.Support != ExtensionSupport.Accepted || !row.Distinguishable)
             throw new InvalidOperationException(
                 $"nonstandard extension '{row.Id}' is not an accepted, syntactically distinguishable construct, so "
-                + "no binder site may flag it (ISO §4.2.10: the warning mechanism flags only those)");
+                + "no binder site may flag it (ISO §2023:4.2.10: the warning mechanism flags only those)");
         if (!FlagExtensions) return;
         Warning(DiagnosticCatalog.NonstandardExtensionUsed, $"{seen} is a nonstandard extension — {row.Display}; "
-            + $"from {row.Origin}. ISO/IEC 1989 does not define it (§4.2.10). Standard form: {row.Standard} "
+            + $"from {row.Origin}. ISO/IEC 1989 does not define it (§2023:4.2.10). Standard form: {row.Standard} "
             + "(docs/CONFORMANCE.md §3.2)");
     }
 
@@ -409,7 +409,7 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     /// <see cref="Permissive"/>. Every removed/reserved-word emit site routes its severity decision through
     /// here — never a local strictness test.</summary>
     // NOTE (the OVERRIDE/FINAL wave, DEVLOG 605): this seam now also carries DOCUMENTED-DIALECT-LENIENCY
-    // gating (e.g. §11.7 SR4a redefinition-without-OVERRIDE, 0837 — error strict, warning + the pre-wave
+    // gating (e.g. §2023:11.7 SR4a redefinition-without-OVERRIDE, 0837 — error strict, warning + the pre-wave
     // name-match inference under --permissive), not only removed-construct gating: ONE policy seam, never a
     // parallel Lenient() method or a local Permissive test (feedback_one_mechanism_per_job).
     public void Removed(string code, string message)
@@ -423,19 +423,19 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     /// <para>The DESCRIPTOR's <see cref="DiagnosticDescriptor.Severity"/> chooses the disposition, so the
     /// policy lives in the catalogue (where it is documented and drift-tested) and never in a local test at
     /// the site: <see cref="EditionSeverity.Warning"/> ⇒ ACCEPT-INERT (the facility is additive — the program
-    /// compiles, runs, and the facility does nothing: COBOL1578/1579/1778, satisfying §4.2.6 ¶3's
+    /// compiles, runs, and the facility does nothing: COBOL1578/1579/1778, satisfying §2023:4.2.6 ¶3's
     /// mandatory compile-time warning mechanism for their Annex A.3 elements, and COBOL1580, whose A.4.14
-    /// VALIDATE is instead a §4.2.7 element this implementation documents rather than is obliged to warn about
+    /// VALIDATE is instead a §2023:4.2.7 element this implementation documents rather than is obliged to warn about
     /// — kb/Work PB709; the descriptor's <c>Annex</c> datum is what tells the two apart);
     /// <see cref="EditionSeverity.Error"/> ⇒ REFUSE (an inert
     /// compile would change the ANSWER, so Annex A.4.1's "shall accept the syntax … only when support … is
-    /// claimed" applies to an optional element, and §4.2.6 ¶3's "The implementor is not required to produce
+    /// claimed" applies to an optional element, and §2023:4.2.6 ¶3's "The implementor is not required to produce
     /// executable code when unsupported processor-dependent language elements are used" to a
     /// processor-dependent one: COBOL1560/1584/1705/1706/1707).</para>
     /// <para>⛔ THE BAND SPLITS ON WHETHER AN INERT READING EXISTS, NOT ON WHICH ANNEX LISTS THE ELEMENT, and
     /// that is why there is ONE method and not two: a facility whose absence leaves every program-visible value
     /// unchanged is accepted-and-named, and one whose absence would change the ANSWER is refused-and-named.
-    /// ⚠ This paragraph read "an Annex A.3 processor-dependent facility is accepted-and-warned under §4.2.6,
+    /// ⚠ This paragraph read "an Annex A.3 processor-dependent facility is accepted-and-warned under §2023:4.2.6,
     /// while an Annex A.4 optional module that is Not claimed is refused" until 2026-09-09, which described a
     /// COINCIDENCE in the rows that existed — every refusal happened to be A.4 — as if it were the rule.
     /// COBOL1584 refutes it: a national key collating sequence defined by literals or LOCALE is Annex A.3
@@ -455,8 +455,8 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     /// STATEMENT is already accept-inert (the A.4.14 VALIDATE clauses beside COBOL1580) can be tolerated under
     /// <c>--permissive</c> and bound to a no-op. A declined
     /// module's exception-name (COBOL1710) is tolerated too, but it RESOLVES as an ordinary exception-name:
-    /// no statement of the declined facility sets its condition (§14.6.13.1.1), so only a RAISE of the name
-    /// raises it, exactly as written (§14.9.29.4 GR1), and its USE declarative or WHEN phrase then runs — an
+    /// no statement of the declined facility sets its condition (§2023:14.6.13.1.1), so only a RAISE of the name
+    /// raises it, exactly as written (§2023:14.9.29.4 GR1), and its USE declarative or WHEN phrase then runs — an
     /// observable result, but the one the source states (docs/CONFORMANCE.md §4). A decline that would REBIND the
     /// source to a different construct cannot: an inert A.4.2 screen ACCEPT is re-read as the device ACCEPT
     /// and moves the wrong data (COBOL1560/1707), an inert FORMAT clause changes which bytes reach the
@@ -500,10 +500,10 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
         else Warning(d.Code, d.Message);
     }
 
-    /// <summary>⛔ THE ONE HOME OF SR14's RANGE, BOTH ENDS (ISO §13.18.40.3 SR14: "the number of digit positions
+    /// <summary>⛔ THE ONE HOME OF SR14's RANGE, BOTH ENDS (ISO §2023:13.18.40.3 SR14: "the number of digit positions
     /// described by character-string-1 shall range from 1 through 31"; kb/Work PB529): fewer than one is
     /// <see cref="DiagnosticCatalog.DigitCapacityUnder1"/>, 19–31 digits require COBOL-2002+ (COBOL-85's own limit
-    /// is 18, §8.3.3.3.2), more than 31 is invalid at every edition. The lower bound used to be the CALLER's skip
+    /// is 18, §2023:8.3.3.3.2), more than 31 is invalid at every edition. The lower bound used to be the CALLER's skip
     /// guard (<c>DigitPositions &gt; 0</c>), which made the exact condition SR14 forbids the condition that skipped
     /// its check. The composition validator's SR12 a) (COBOL1934) stops most digit-position-less pictures first
     /// (<c>PIC S</c>, <c>PIC V</c>, a lone <c>$</c>), but not <c>PIC LL EDITING L IS ":"</c>: two simple insertion
@@ -516,14 +516,14 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
         {
             Error(DiagnosticCatalog.DigitCapacityUnder1, $"{what} has {digits} digit positions; the number of digit "
                 + "positions of a numeric or fixed-point numeric-edited item shall range from 1 through 31 "
-                + "(ISO §13.18.40.3 SR14)");
+                + "(ISO §2023:13.18.40.3 SR14)");
             return;
         }
         if (digits <= MaxDigits) return;
         if (digits > 31)
             Error(DiagnosticCatalog.DigitCapacityOver31, $"{what} has {digits} digit positions; ISO/IEC 1989 limits a numeric item to 31 "
-                + "digit positions (ISO §13.18.40.3 SR14) and this compiler limits a fixed-point literal to the 31 "
-                + "digits §8.3.3.3.2 requires an implementor to allow");
+                + "digit positions (ISO §2023:13.18.40.3 SR14) and this compiler limits a fixed-point literal to the 31 "
+                + "digits §2023:8.3.3.3.2 requires an implementor to allow");
         else
             Error(DiagnosticCatalog.DigitCapacityOver18Pre2002, $"{what} has {digits} digit positions; COBOL-85 limits fixed-point items and "
                 + $"literals to 18 digits — 19–31 digits require --std 2002 or later (targeting COBOL-{DialectLevel})");

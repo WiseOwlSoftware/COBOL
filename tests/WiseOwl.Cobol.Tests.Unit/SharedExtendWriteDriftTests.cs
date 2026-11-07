@@ -8,12 +8,12 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ TWO FILE CONNECTORS EXTENDING ONE SHARED PHYSICAL FILE KEEP BOTH RECORDS (kb/Work PB739).
-/// ISO §14.9.51.4 GR19: <i>"If two or more file connectors for a sequential file add records by sharing the
+/// ISO §2023:14.9.51.4 GR19: <i>"If two or more file connectors for a sequential file add records by sharing the
 /// physical file after opening it in extend mode, the added records follow the records present in the physical
 /// file when it was opened, but are otherwise in an undefined order."</i> Only the relative ORDER of the two
 /// connectors' records is undefined; that both are IN the file is not. GR12 makes the '00' a promise —
 /// <i>"The successful execution of a WRITE statement releases a logical record to the operating
-/// environment"</i> — and §9.1.15 item 3 with §14.9.27.4 Table 19 make the whole shape a Normal open.
+/// environment"</i> — and §2023:9.1.15 item 3 with §2023:14.9.27.4 Table 19 make the whole shape a Normal open.
 ///
 /// <para><b>What PB739 was.</b> The sequential connector's EXTEND writer was a .NET <c>FileMode.Append</c>
 /// handle, which seeks to the end ONCE, at open. Two connectors therefore anchored at the same offset, each
@@ -69,7 +69,7 @@ public sealed class SharedExtendWriteDriftTests
     // ── SEQUENTIAL: the record that used to be overwritten ───────────────────────────────────────────────────
 
     /// <summary>⛔ THE REGRESSION. Two participants open EXTEND over a one-record file and append one record
-    /// each; the file then holds THREE records — the pre-existing one and both additions (§14.9.51.4 GR19).
+    /// each; the file then holds THREE records — the pre-existing one and both additions (§2023:14.9.51.4 GR19).
     /// Before the fix the file held two: the second connector's buffered record landed on the first's offset.
     /// <para>The record ORDER is asserted as well as the count, and the assertion message says why that is not
     /// over-specification: GR19 leaves the two connectors' relative order undefined, but GR12 releases each
@@ -122,9 +122,9 @@ public sealed class SharedExtendWriteDriftTests
         return got;
     }
 
-    /// <summary>The §9.1.16 IDENTITY of each released record, which is the other half of the same defect: a
+    /// <summary>The §2023:9.1.16 IDENTITY of each released record, which is the other half of the same defect: a
     /// sequential record's lock identity is its ordinal in the physical file, and each connector used to count
-    /// from its own OPEN-time base, so BOTH called their first appended record ordinal 2. §9.1.16 —
+    /// from its own OPEN-time base, so BOTH called their first appended record ordinal 2. §2023:9.1.16 —
     /// <i>"While locked by a given file connector, a record is not accessible to another file connector in the
     /// same or a different run unit"</i> — is written over that identity, so two connectors agreeing on the
     /// wrong number locks one record twice and leaves the other unlocked.
@@ -158,7 +158,7 @@ public sealed class SharedExtendWriteDriftTests
             Assert.False(reg.IsLockedByOther("O", "1"),
                 "Ordinal 1 is the record that already existed; a lock on it means a base of 0.");
             Assert.True(reg.IsLockedByOther("O", "2"),
-                "§14.9.51.4 GR19 — the first record appended through the shared file is the successor of the "
+                "§2023:14.9.51.4 GR19 — the first record appended through the shared file is the successor of the "
                 + "one already present, so its ordinal is 2.");
             Assert.True(reg.IsLockedByOther("O", "3"),
                 "The SECOND connector's record follows the FIRST connector's, so its ordinal is 3. Ordinal 2 "
@@ -169,7 +169,7 @@ public sealed class SharedExtendWriteDriftTests
         finally { FileHarness.TryDelete(host); }
     }
 
-    /// <summary>The CONTROL: one connector, exclusive, two writes. §14.9.51.4 GR19's antecedent is absent, so
+    /// <summary>The CONTROL: one connector, exclusive, two writes. §2023:14.9.51.4 GR19's antecedent is absent, so
     /// nothing about the append discipline may have changed for it — the two records are still consecutive and
     /// in order, over the plain <c>FileMode.Append</c> handle it keeps.</summary>
     [Theory]
@@ -197,9 +197,9 @@ public sealed class SharedExtendWriteDriftTests
     }
 
     /// <summary>The THIRD write arm. A plain WRITE on a print or LINAGE file reroutes through
-    /// <c>WriteAdvancing</c>, and that arm never minted a release ordinal at all — §14.9.51.4 GR12 is an
+    /// <c>WriteAdvancing</c>, and that arm never minted a release ordinal at all — §2023:14.9.51.4 GR12 is an
     /// ALL-FILES rule, so a print file's records are released exactly like a data file's and carry the same
-    /// §9.1.16 identity. Measured on the connector rather than through the registry because the print-control
+    /// §2023:9.1.16 identity. Measured on the connector rather than through the registry because the print-control
     /// entry point is <c>FileRegistry.WriteAdvancing</c>, which carries no locking phrase.</summary>
     [Fact]
     public void ThePrintControlWriteArmAlsoMintsTheReleaseOrdinal()
@@ -210,7 +210,7 @@ public sealed class SharedExtendWriteDriftTests
             var shared = new PhysicalFileTable.State();
             var c = new SequentialConnector(host, recordWidth: 4, lineSequential: false);
             // The registry's one writer, spelled by hand for this focused connector-level measurement: the
-            // physical file's state goes to every connector and the flag is the §9.1.16 record-locking posture
+            // physical file's state goes to every connector and the flag is the §2023:9.1.16 record-locking posture
             // the mint reads through `SharedPhysical` (kb/Work PB753).
             c.AssociatePhysical(shared, "F", locksRecords: true);
             Assert.Equal(FileStatusCode.Success, c.Open(FileOpenMode.Output));
@@ -227,7 +227,7 @@ public sealed class SharedExtendWriteDriftTests
 
     // ── RELATIVE: the same defect one layer up ───────────────────────────────────────────────────────────────
 
-    /// <summary>§14.9.51.4 GR29 a) — <i>"If the open mode is extend, the first record released after the OPEN is
+    /// <summary>§2023:14.9.51.4 GR29 a) — <i>"If the open mode is extend, the first record released after the OPEN is
     /// assigned a record number that is one greater than the highest relative record number existing in the
     /// physical file … If the physical file is shared and the open mode is extend, the record numbers are not
     /// necessarily consecutive"</i>, and GR31: <i>"the relative key values returned are ascending, but not
@@ -278,8 +278,8 @@ public sealed class SharedExtendWriteDriftTests
     }
 
     /// <summary>The release number is read from the file at the release, after ANY change — the removal of the
-    /// maximum included (§14.9.10.4 GR5: a DELETE through a sibling connector genuinely lowers the highest record
-    /// number). §14.9.51.4 GR29 a): the first extend release is <i>"one greater than the highest relative record number
+    /// maximum included (§2023:14.9.10.4 GR5: a DELETE through a sibling connector genuinely lowers the highest record
+    /// number). §2023:14.9.51.4 GR29 a): the first extend release is <i>"one greater than the highest relative record number
     /// existing in the physical file"</i>. The highest number is the tree's last key (kb/Work PB3333), so there is no
     /// high-water mark to leave stale — the defect PB739 fixed, in a new place.</summary>
     [Fact]
@@ -301,7 +301,7 @@ public sealed class SharedExtendWriteDriftTests
             reg.SetRelativeKey("D", 7);
             Assert.Equal(FileStatusCode.Success, reg.DeleteRecord("D", ""));
             reg.SetRelativeKey("D", 7);
-            Assert.Equal(FileStatusCode.RecordNotFound, reg.DeleteRecord("D", ""));   // §14.9.10.4 GR4's invalid key
+            Assert.Equal(FileStatusCode.RecordNotFound, reg.DeleteRecord("D", ""));   // §2023:14.9.10.4 GR4's invalid key
             reg.SetRelativeKey("D", 1);
             Assert.Equal(FileStatusCode.Success, reg.DeleteRecord("D", ""));          // a non-maximum: the highest stays 3
             reg.Close("D");
@@ -317,7 +317,7 @@ public sealed class SharedExtendWriteDriftTests
 
     // ── INDEXED: already right, and pinned so it stays right ─────────────────────────────────────────────────
 
-    /// <summary>§14.9.51.4 GR38 measures the extend high key <i>"when it was opened THROUGH THAT FILE
+    /// <summary>§2023:14.9.51.4 GR38 measures the extend high key <i>"when it was opened THROUGH THAT FILE
     /// CONNECTOR"</i> and then against <i>"the highest prime record key value written referencing this file
     /// connector"</i> — PER CONNECTOR, which is why B, opened when the file held only K002, may release K004
     /// after A has released K006 and still be successful. The store is shared, so both records are in the file
@@ -363,7 +363,7 @@ public sealed class SharedExtendWriteDriftTests
     /// <summary>⛔ AN APPEND HANDLE IS BUILT IN EXACTLY ONE FILE, AND ASKED FOR THROUGH EXACTLY ONE ROLE.
     /// .NET's Append is not the host's atomic append — it seeks to the end once, at open — so a connector that
     /// takes one directly has silently declared that no other file connector will append to the same physical
-    /// file, which is a statement about §9.1.15 that no call site is entitled to make.
+    /// file, which is a statement about §2023:9.1.15 that no call site is entitled to make.
     /// <c>HostFile.OpenConnectorWriteStream</c> is where the posture chooses between the plain handle and
     /// <c>SharedAppendStream</c>; everything else asks for the role.
     /// <para>Two shapes are banned, and NAMING the mode is neither of them: the role serves both
@@ -409,14 +409,14 @@ public sealed class SharedExtendWriteDriftTests
 
         Assert.True(offenders.Count == 0,
             "A FileMode.Append handle outside HostFile. It seeks to the physical end ONCE, at open, so two "
-            + "§9.1.15 participants anchor at the same offset and the later flush overwrites the earlier "
+            + "§2023:9.1.15 participants anchor at the same offset and the later flush overwrites the earlier "
             + "record — on '00' from both WRITEs (kb/Work PB739). Call HostFile.OpenConnectorWriteStream. "
             + "Sites:\n  "
             + string.Join("\n  ", offenders));
     }
 
     /// <summary>The positive complement, for the reason a ban over a subsystem that appends NOTHING passes
-    /// exactly as green: the role still lives in its named home, still chooses on the §9.1.15 posture, and the
+    /// exactly as green: the role still lives in its named home, still chooses on the §2023:9.1.15 posture, and the
     /// shared arm still repositions at the physical end before each write.</summary>
     [Fact]
     public void TheAppendRoleStillLivesInItsNamedHome_AndStillRepositions()

@@ -7,27 +7,27 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §13.18.60.2 — the USAGE OBJECT REFERENCE general format is a TUPLE over four
+      *> ISO §2023:13.18.60.2 — the USAGE OBJECT REFERENCE general format is a TUPLE over four
       *> INDEPENDENT axes: kind (universal | interface-name-1 | [FACTORY OF] ACTIVE-CLASS |
       *> [FACTORY OF] object-class-name-1 [ONLY]) × FACTORY × ONLY × the name.  This program
-      *> writes FOUR of those shapes and exercises the §14.9.39.3 SET format-5 rules that
+      *> writes FOUR of those shapes and exercises the §2023:14.9.39.3 SET format-5 rules that
       *> DISCRIMINATE on the axes a single class-name could not express.  kb/Work PB389.
       *>
       *> EXPECTED OUTPUT, DERIVED FROM THE RULES — NOT FROM A RUN:
       *>
-      *> 1. INVOKE PB389B "NEW" RETURNING B-ONLY.  §16.2.1.2 GR1: "The New method allocates
+      *> 1. INVOKE PB389B "NEW" RETURNING B-ONLY.  §2023:16.2.1.2 GR1: "The New method allocates
       *>    storage for an object … and returns a reference to the created object" — an
       *>    INSTANCE object of exactly PB389B.  The receiver is described ONLY, and
-      *>    §13.18.60.4 GR22 d)2.b. makes that "an instance object of the specified class";
-      *>    the delivery follows the SET rules (§14.8.3.3 rule 1) and satisfies §14.9.39.3
-      *>    SR12 a)1.  INVOKE B-ONLY "WHO" then resolves on the OBJECT (§14.9.23.4 GR2 —
+      *>    §2023:13.18.60.4 GR22 d)2.b. makes that "an instance object of the specified class";
+      *>    the delivery follows the SET rules (§2023:14.8.3.3 rule 1) and satisfies §2023:14.9.39.3
+      *>    SR12 a)1.  INVOKE B-ONLY "WHO" then resolves on the OBJECT (§2023:14.9.23.4 GR2 —
       *>    "identifier-1 identifies an instance object … a method OF THAT OBJECT"), so the
       *>    line is  BASE.
       *>
       *> 2. SET B TO D — SR12 a)2., the subclass leg (neither side carries ONLY or FACTORY,
       *>    so a)1. and a)3. are satisfied by absence).  INVOKE B "MK" runs PB389B's MK on a
       *>    PB389D object.  MK's LOCAL-STORAGE item is described ACTIVE-CLASS, which
-      *>    §13.18.60.4 GR22 e) binds to "the same class as the object that was used to
+      *>    §2023:13.18.60.4 GR22 e) binds to "the same class as the object that was used to
       *>    invoke the method in which this data description entry is specified" — PB389D.
       *>    SET A TO SELF is SR14 b)1. (no FACTORY phrase, an instance definition), and
       *>    INVOKE A "WHO" again resolves on the object, so the line is  DERIVED.
@@ -39,12 +39,12 @@
       *>    "object-class-name-1 shall reference the same class or a subclass" (PB389D is a
       *>    subclass of PB389B).  F now holds PB389D's FACTORY object, which GR22 d)1.a.
       *>    expressly permits ("the factory object of the specified class or of a subclass").
-      *>    INVOKE F "TAG" resolves the FACTORY method interface — §9.3.6 gives a class two
+      *>    INVOKE F "TAG" resolves the FACTORY method interface — §2023:9.3.6 gives a class two
       *>    separate interfaces — so the line is  FTAG-D.
       *>    DISCRIMINATOR: resolving the INSTANCE roster would not find TAG at all; copying
       *>    the base's factory object would print FTAG-B.
       *>
-      *> 3b. SET B B2 TO D is the MULTI-RECEIVER form §14.9.39.4 GR9 states: "a reference to
+      *> 3b. SET B B2 TO D is the MULTI-RECEIVER form §2023:14.9.39.4 GR9 states: "a reference to
       *>    the object identified by identifier-4 is placed into EACH data item referenced by
       *>    identifier-3 in the order specified".  Both receivers then answer WHO with the
       *>    class of the object D holds — DERIVED twice.  DISCRIMINATOR: placing the
@@ -79,7 +79,7 @@
       *>    sender with an object-class-name AND a FACTORY phrase, so "the factory object of
       *>    the specified class shall implement int-1".  PB389B's FACTORY carries
       *>    IMPLEMENTS PB389I, so it does.  INVOKE R "PING" resolves over the interface
-      *>    (§14.9.23.3 SR4e) and dispatches on the object actually held — PB389D's factory —
+      *>    (§2023:14.9.23.3 SR4e) and dispatches on the object actually held — PB389D's factory —
       *>    so the line is  PING-D.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB389M.

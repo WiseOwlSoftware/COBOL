@@ -9,7 +9,7 @@ using WiseOwl.Cobol.Tests.Shared;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// A physical file's §9.1.6 fixed file attributes AS ITS OWN FORMAT RECORDS THEM, and the §14.9.27.4 GR10
+/// A physical file's §2023:9.1.6 fixed file attributes AS ITS OWN FORMAT RECORDS THEM, and the §2023:14.9.27.4 GR10
 /// comparison the OPEN statement performs against them — kb/Work PB802 (owner decision 2026-09-07: <i>"Let's
 /// match GNUCobol's implementation in spirit. No sidecar of any type."</i>), replacing kb/Work PB193's catalog.
 /// The end-to-end behaviour per organization rides the goldens (<c>85/open_fixed_attribute_conflict</c>,
@@ -38,8 +38,8 @@ public sealed class FixedFileAttributeFormatTests : IDisposable
 
     private string Host(string name) => Path.Combine(_dir, name);
 
-    /// <summary>Create a physical file through a RELATIVE connector of 10-byte records — §14.9.27.4 GR18 makes
-    /// the OPEN OUTPUT a creation, which is where §9.1.6 fixes a file's attributes.</summary>
+    /// <summary>Create a physical file through a RELATIVE connector of 10-byte records — §2023:14.9.27.4 GR18 makes
+    /// the OPEN OUTPUT a creation, which is where §2023:9.1.6 fixes a file's attributes.</summary>
     private static void MakeRelativeTenByteFile(string host)
     {
         CobolFile.Init();
@@ -95,7 +95,7 @@ public sealed class FixedFileAttributeFormatTests : IDisposable
                  (byte)'R', (byte)'F', 10, 0, 0, 0, 10, 0, 0, 0, 0, 0],
                 file[(page * PageSize + 32)..(page * PageSize + 52)]);
 
-        // §14.9.27.4 GR10 — organization and record size both differ: the OPEN is unsuccessful, '39'.
+        // §2023:14.9.27.4 GR10 — organization and record size both differ: the OPEN is unsuccessful, '39'.
         Assert.Equal(FileStatusCode.FixedAttributeConflict, OpenContradictingRelativeConnector(host));
     }
 
@@ -124,7 +124,7 @@ public sealed class FixedFileAttributeFormatTests : IDisposable
     [InlineData(39, (byte)9, FileStatusCode.FixedAttributeConflict)]
     // The format's magic and version over meta pages that do not validate — an ORGANIZATION byte outside the two a
     // keyed store can carry, a RECORD TYPE outside fixed/variable — is the store's own format DAMAGED: the adoption
-    // rule's '30' (§9.1.13.6 item 1; 2.2.1.6 R6 step 1), not GR10's '39' (2.2.1.4: "a page carrying this magic and
+    // rule's '30' (§2023:9.1.13.6 item 1; 2.2.1.6 R6 step 1), not GR10's '39' (2.2.1.4: "a page carrying this magic and
     // version whose committed slots both fail is StoreFormat.Damaged").
     [InlineData(40, (byte)'S', FileStatusCode.PermanentError)]
     [InlineData(41, (byte)'X', FileStatusCode.PermanentError)]
@@ -153,7 +153,7 @@ public sealed class FixedFileAttributeFormatTests : IDisposable
     public void AZeroByteFileIsNotAConflict()
     {
         // The ONE tolerated shape: a file with no bytes holds no records, so it can misread nothing, and it
-        // states no §9.1.6 attribute to contradict. A validated set must never MANUFACTURE a '39'.
+        // states no §2023:9.1.6 attribute to contradict. A validated set must never MANUFACTURE a '39'.
         string host = Host("ffa-empty.dat");
         File.WriteAllBytes(host, []);
         Assert.Equal(FileStatusCode.Success, OpenContradictingRelativeConnector(host));
@@ -189,16 +189,16 @@ public sealed class FixedFileAttributeFormatTests : IDisposable
     [Theory]
     [InlineData(30, false)]   // a WIDER record description over the same record-sequential file
     [InlineData(9, false)]    // a NARROWER one — the report-file read-back shape
-    [InlineData(30, true)]    // and a LINE SEQUENTIAL one: §9.1.6's record delimiter, also not recorded
+    [InlineData(30, true)]    // and a LINE SEQUENTIAL one: §2023:9.1.6's record delimiter, also not recorded
     public void ASequentialFilesRecordSizeAndDelimiterAreNotValidated(int width, bool lineSequential)
     {
-        // §9.1.7.2 puts a sequential file's record lengths in the DATA and in the READING program, not in the
+        // §2023:9.1.7.2 puts a sequential file's record lengths in the DATA and in the READING program, not in the
         // file: "In record sequential files the length of each record is determined by any information the
         // implementor may add to the record on the physical storage medium (such as record length headers)" —
         // WiseOwl COBOL adds none to a fixed-length one — and "In line sequential files the length of each record
         // is determined by the number of characters between the preceding line delimiter and the following
         // line delimiter or the end of file if no line delimiter is present". The standard answers the
-        // resulting disagreement with a SUCCESSFUL completion, §9.1.13.2 item 3's '04' and item 5's '06', so
+        // resulting disagreement with a SUCCESSFUL completion, §2023:9.1.13.2 item 3's '04' and item 5's '06', so
         // GR10's '39' must NOT fire first — writing a print or report file and reading it back under a
         // different record description is exactly the idiom those statuses exist for.
         string host = Host($"ffa-seq-{width}-{lineSequential}.dat");
@@ -285,7 +285,7 @@ public sealed class FixedFileAttributeFormatTests : IDisposable
     [Fact]
     public void ARelativeStoresRecordTypeIsValidated()
     {
-        // §9.1.6's "record type (fixed or variable)". The MAXIMUM agrees here and the type does not, so this
+        // §2023:9.1.6's "record type (fixed or variable)". The MAXIMUM agrees here and the type does not, so this
         // fails only if the type is genuinely compared rather than falling out of a size test.
         string host = Host("ffa-rel-type.dat");
         MakeRelativeTenByteFile(host);
@@ -296,14 +296,14 @@ public sealed class FixedFileAttributeFormatTests : IDisposable
         Assert.Equal(FileStatusCode.FixedAttributeConflict, CobolFile.Status("RD"));
     }
 
-    // ── The RECORD VARYING record-sequential arm: §9.1.7.2's record-length header must PARSE ─────────────────
+    // ── The RECORD VARYING record-sequential arm: §2023:9.1.7.2's record-length header must PARSE ─────────────────
 
     [Fact]
     public void AVaryingRecordSequentialFileWhoseFramingDoesNotParse_IsAConflict()
     {
         // The subject is a plain 20-byte text file: its first four bytes ("ABCD") read as a length prefix name
         // 0x44434241 bytes, ~1.1 GB, which the file does not hold. That is not a framed file, so a connector
-        // declaring the VARIABLE record type contradicts the medium — '39' (§9.1.13.6 item 7).
+        // declaring the VARIABLE record type contradicts the medium — '39' (§2023:9.1.13.6 item 7).
         // ⚖ Behaviourally GnuCOBOL's "variable-length SEQUENTIAL data integrity" case.
         string host = Host("ffa-vary-foreign.dat");
         MakeSequentialTwentyByteFile(host);
@@ -337,7 +337,7 @@ public sealed class FixedFileAttributeFormatTests : IDisposable
     public void AVaryingPrefixOutsideTheRecordClausesBounds_IsNotAConflict()
     {
         // ⛔ THE BOUNDARY OF THE RULE. The prefix PARSES — it names 5 bytes and the file holds them — but 5 is
-        // below the reader's VaryMin of 20. §9.1.13.2 item 3 makes that a SUCCESSFUL READ with '04' ("shorter
+        // below the reader's VaryMin of 20. §2023:9.1.13.2 item 3 makes that a SUCCESSFUL READ with '04' ("shorter
         // than or longer than the minimum or maximum length of records allowed for the fixed file attributes
         // for that file"), which a '39' at the OPEN would make unreachable. The OPEN must succeed.
         string host = Host("ffa-vary-bounds.dat");
@@ -358,7 +358,7 @@ public sealed class FixedFileAttributeFormatTests : IDisposable
     public void AFixedLengthSequentialConnectorNeverAsksAboutTheFraming()
     {
         // The guard on the arm above: the parse test applies to RECORD VARYING record-sequential files ALONE.
-        // A fixed-length connector over the same bytes reads them as plain data, which is what §9.1.7.2 says a
+        // A fixed-length connector over the same bytes reads them as plain data, which is what §2023:9.1.7.2 says a
         // record sequential file's fixed-length form is.
         string host = Host("ffa-vary-fixedreader.dat");
         CobolFile.Init();
@@ -403,9 +403,9 @@ public sealed class FixedFileAttributeFormatTests : IDisposable
     }
 
     [Theory]
-    // §12.4.5.12.4 GR3 — the PRIME key's window ("shall be the same as that used when the file was created").
+    // §2023:12.4.5.12.4 GR3 — the PRIME key's window ("shall be the same as that used when the file was created").
     [InlineData(0, 6, true, "ZZZZZ")]
-    // §12.4.5.6.4 GR3 — an ALTERNATE key's window, its DUPLICATES phrase, and its §12.4.5.6.4 GR6 SUPPRESS
+    // §2023:12.4.5.6.4 GR3 — an ALTERNATE key's window, its DUPLICATES phrase, and its §2023:12.4.5.6.4 GR6 SUPPRESS
     // WHEN value; each on its own, so no one of them can be riding another.
     [InlineData(0, 4, false, "ZZZZZ")]
     [InlineData(0, 4, true, "YYYYY")]
@@ -424,7 +424,7 @@ public sealed class FixedFileAttributeFormatTests : IDisposable
     [Fact]
     public void TheNumberOfAlternateKeysIsItsOwnRequirement()
     {
-        // §12.4.5.6.4 GR3's second sentence: "The number of alternate record keys for the file shall also be
+        // §2023:12.4.5.6.4 GR3's second sentence: "The number of alternate record keys for the file shall also be
         // the same as that used when the physical file was created." A description that simply omits the
         // alternate — every key it DOES declare agreeing — is still the conflict.
         // ⚖ Behaviourally GnuCOBOL's "INDEXED undeclared keys" case.
@@ -487,7 +487,7 @@ public sealed class FixedFileAttributeFormatTests : IDisposable
         Assert.NotNull(entry);
         Assert.Equal("files", entry!.Subsystem);
         // ⛔ WISEOWL_COBOL_, never COBOL_: SwitchStore.Prefix is COBOL_, so a COBOL_-named variable would be
-        // swallowed by the §12.3.7 external-switch FAMILY entry instead of getting its own.
+        // swallowed by the §2023:12.3.7 external-switch FAMILY entry instead of getting its own.
         Assert.StartsWith("WISEOWL_COBOL_", FileRegistry.KeyCheckVariable, StringComparison.Ordinal);
         Assert.False(entry.IsPattern);
     }
@@ -495,7 +495,7 @@ public sealed class FixedFileAttributeFormatTests : IDisposable
     [Fact]
     public void ASuppressValueCarryingArbitraryBytesRoundTrips()
     {
-        // §12.4.5.6.4 GR6 admits any figurative-constant or literal as the SUPPRESS WHEN value, including one
+        // §2023:12.4.5.6.4 GR6 admits any figurative-constant or literal as the SUPPRESS WHEN value, including one
         // holding a NUL or a line ending. The header stores it with an explicit LENGTH rather than a delimiter,
         // so a legal COBOL program cannot write a store its own next OPEN refuses.
         string host = Host("ffa-suppress.dat");
@@ -513,7 +513,7 @@ public sealed class FixedFileAttributeFormatTests : IDisposable
         CobolFile.Close("RD");
     }
 
-    // ── §9.1.6's "at the time it is created" — the two moments the OPEN statement creates a file ─────────────
+    // ── §2023:9.1.6's "at the time it is created" — the two moments the OPEN statement creates a file ─────────────
 
     [Fact]
     public void OpenOutputReestablishesTheAttributes_GR18()
@@ -521,8 +521,8 @@ public sealed class FixedFileAttributeFormatTests : IDisposable
         string host = Host("ffa-recreate.dat");
         MakeRelativeTenByteFile(host);
 
-        // §14.9.27.4 GR18: "If the OUTPUT phrase is specified, the successful execution of the OPEN statement
-        // creates the file" — and §9.1.6 fixes the attributes at creation. So OPEN OUTPUT is never judged
+        // §2023:14.9.27.4 GR18: "If the OUTPUT phrase is specified, the successful execution of the OPEN statement
+        // creates the file" — and §2023:9.1.6 fixes the attributes at creation. So OPEN OUTPUT is never judged
         // against the previous file's attributes; it replaces them, in the store header it writes.
         CobolFile.Init();
         CobolFile.RegisterRelative("WR", host, 40, false, 0, 0);
@@ -543,8 +543,8 @@ public sealed class FixedFileAttributeFormatTests : IDisposable
     [Fact]
     public void AnAbsentOptionalFileCreatedByOpenExtend_RecordsItsAttributes_GR17()
     {
-        // §14.9.27.4 GR17: an absent OPTIONAL file opened EXTEND (or I-O) is created "as if OPEN OUTPUT /
-        // CLOSE" were executed — the other moment §9.1.6's "at the time it is created" names. The subject is
+        // §2023:14.9.27.4 GR17: an absent OPTIONAL file opened EXTEND (or I-O) is created "as if OPEN OUTPUT /
+        // CLOSE" were executed — the other moment §2023:9.1.6's "at the time it is created" names. The subject is
         // RELATIVE because a sequential file records nothing that could prove the creation happened.
         string host = Host("ffa-optional.dat");
         CobolFile.Init();
@@ -590,7 +590,7 @@ public sealed class FixedFileAttributeFormatTests : IDisposable
         static bool Declares(Type t) => t.GetMethod("FixedAttributeConflict", Flags) is not null;
 
         Assert.True(Declares(typeof(FileConnector)), "the base states the 'this format encodes nothing' answer");
-        Assert.True(Declares(typeof(SequentialConnector)), "§9.1.7.2's record-length header is a sequential answer");
+        Assert.True(Declares(typeof(SequentialConnector)), "§2023:9.1.7.2's record-length header is a sequential answer");
         Assert.True(Declares(typeof(KeyedConnector)), "the framed store's header is the keyed answer");
 
         // And the base's answer really is "no conflict" — a guess there would manufacture a '39' for a file
@@ -604,7 +604,7 @@ public sealed class FixedFileAttributeFormatTests : IDisposable
     [Fact]
     public void DeclaredAttributesNamesEachConnectorsOwnOrganization()
     {
-        // ⛔ A DEAD LOOKUP IS ALSO UNVERIFIED. FileConnector.DeclaredAttributes is §14.9.27.4 GR10's own phrase
+        // ⛔ A DEAD LOOKUP IS ALSO UNVERIFIED. FileConnector.DeclaredAttributes is §2023:14.9.27.4 GR10's own phrase
         // — "the attributes of the file connector as specified in the file control paragraph and the file
         // description entry" — and GR10 states it for every organization, so it stays on the base. But since the
         // sequential formats record nothing, the OPEN path consults it only for RELATIVE and INDEXED, and
@@ -620,12 +620,12 @@ public sealed class FixedFileAttributeFormatTests : IDisposable
         Assert.Equal(FixedFileAttributes.Indexed,
             new IndexedConnector("i.dat", 20, KeyedAccess.Sequential, [new(0, 4)]).DeclaredAttributes.Organization);
 
-        // §9.1.6 names exactly three organizations — "There are three organizations: sequential, relative, and
+        // §2023:9.1.6 names exactly three organizations — "There are three organizations: sequential, relative, and
         // indexed" — so those three constants are the whole vocabulary, and each is distinct.
         Assert.Equal(3, new HashSet<string>(
             [FixedFileAttributes.Sequential, FixedFileAttributes.Relative, FixedFileAttributes.Indexed]).Count);
 
-        // The RECORD clause half, also assembled once on the base for every organization (§13.18.43 GR9/GR10):
+        // The RECORD clause half, also assembled once on the base for every organization (§2023:13.18.43 GR9/GR10):
         // a fixed connector reports its width for both bounds, a varying one its declared bounds.
         var fixedRec = new RelativeConnector("f.dat", 20, KeyedAccess.Sequential, 0).DeclaredAttributes;
         Assert.False(fixedRec.Varying);
@@ -641,7 +641,7 @@ public sealed class FixedFileAttributeFormatTests : IDisposable
     {
         Assert.Equal("NATIVE", FixedFileAttributes.Fingerprint(null));
         // A sequence's identity is its WEIGHTS, so the same sequence fingerprints identically every time and a
-        // reordered one does not (§9.1.6 — the collating sequence of the keys is a fixed file attribute).
+        // reordered one does not (§2023:9.1.6 — the collating sequence of the keys is a fixed file attribute).
         var a = OrdinalSequence(swapAB: false);
         var b = OrdinalSequence(swapAB: false);
         var c = OrdinalSequence(swapAB: true);
@@ -650,11 +650,11 @@ public sealed class FixedFileAttributeFormatTests : IDisposable
         Assert.NotEqual("NATIVE", FixedFileAttributes.Fingerprint(c));
     }
 
-    /// <summary>An ALPHABET-shaped sequence over the native ordinal positions (§12.3.7.4 GR7), optionally with
+    /// <summary>An ALPHABET-shaped sequence over the native ordinal positions (§2023:12.3.7.4 GR7), optionally with
     /// the positions of 'A' and 'B' exchanged — two sequences that order key values differently.</summary>
     private static AlphanumericCollation OrdinalSequence(bool swapAB)
     {
-        // The SPARSE §12.3.7.4 GR7 k table (kb/Work PB770): specify codes 0..255 at their own positions, so the
+        // The SPARSE §2023:12.3.7.4 GR7 k table (kb/Work PB770): specify codes 0..255 at their own positions, so the
         // sequence IS the native order except for the optional 'A'/'B' exchange; everything above follows natively.
         var codes = Enumerable.Range(0, 256).Select(c => (ushort)c).ToArray();
         var positions = Enumerable.Range(0, 256).Select(c => (ushort)c).ToArray();

@@ -9,8 +9,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ AN ARGUMENT EXPRESSION PAST THE <c>Int128</c> CARRIER REACHES THE ILL-CONDITIONED BINARY64 BODIES AND MEAN AS ITS EXACT VALUE,
-/// NOT AS THE 34-DIGIT ROUND-TO-ODD IMAGE (kb/Work PB4075; ISO/IEC 1989:2023 §15.82.4 / §15.20.4 / §15.89.4 / §15.55.4 / §15.56.4 /
-/// §15.8.4 / §15.10.4 return the approximation of the function OF argument-1, and §15.60.4 r1 one quotient of the exact sum).
+/// NOT AS THE 34-DIGIT ROUND-TO-ODD IMAGE (kb/Work PB4075; ISO/IEC 1989:2023 §2023:15.82.4 / §2023:15.20.4 / §2023:15.89.4 / §2023:15.55.4 / §2023:15.56.4 /
+/// §2023:15.8.4 / §2023:15.10.4 return the approximation of the function OF argument-1, and §2023:15.60.4 r1 one quotient of the exact sum).
 /// <para>Every expected value is an independent oracle's: Python <c>decimal</c> at 400 digits, π by Machin, the trigonometric
 /// functions by Taylor series over the argument reduced modulo 2π, the logarithm by <c>Decimal.ln</c>, the arc functions by the
 /// half-angle arctangent; the means by <c>Decimal</c> division in a 34-digit context of the rounding named. Binary64 results are
@@ -130,17 +130,17 @@ public sealed class WideArgumentBodiesTests
         try
         {
             ExceptionState.ArgumentFunctionChecking = false;
-            Assert.NotNull(CobolIntrinsics.DomainWideAdmitted(W(one), 45, closed, "ACOS", "§15.8.3 rule 2"));
-            Assert.NotNull(CobolIntrinsics.DomainWideAdmitted(W("-" + one), 45, closed, "ACOS", "§15.8.3 rule 2"));
-            Assert.Null(CobolIntrinsics.DomainWideAdmitted(W(past), 45, closed, "ACOS", "§15.8.3 rule 2"));
-            Assert.Null(CobolIntrinsics.DomainWideAdmitted(W("-" + past), 45, closed, "ACOS", "§15.8.3 rule 2"));
-            Assert.Null(CobolIntrinsics.DomainWideAdmitted(W("0"), 45, positive, "LOG", "§15.55.3 rule 2"));
-            Assert.NotNull(CobolIntrinsics.DomainWideAdmitted(W("1"), 45, positive, "LOG", "§15.55.3 rule 2"));
+            Assert.NotNull(CobolIntrinsics.DomainWideAdmitted(W(one), 45, closed, "ACOS", "§2023:15.8.3 rule 2"));
+            Assert.NotNull(CobolIntrinsics.DomainWideAdmitted(W("-" + one), 45, closed, "ACOS", "§2023:15.8.3 rule 2"));
+            Assert.Null(CobolIntrinsics.DomainWideAdmitted(W(past), 45, closed, "ACOS", "§2023:15.8.3 rule 2"));
+            Assert.Null(CobolIntrinsics.DomainWideAdmitted(W("-" + past), 45, closed, "ACOS", "§2023:15.8.3 rule 2"));
+            Assert.Null(CobolIntrinsics.DomainWideAdmitted(W("0"), 45, positive, "LOG", "§2023:15.55.3 rule 2"));
+            Assert.NotNull(CobolIntrinsics.DomainWideAdmitted(W("1"), 45, positive, "LOG", "§2023:15.55.3 rule 2"));
             Assert.True(double.IsNaN(CobolIntrinsics.AcosWide(null, 45)));
             Assert.True(double.IsNaN(CobolIntrinsics.LogWide(null, 45)));
             ExceptionState.ArgumentFunctionChecking = true;
             Assert.Throws<CobolFatalException>(() =>
-                CobolIntrinsics.DomainWideAdmitted(W(past), 45, closed, "ACOS", "§15.8.3 rule 2"));
+                CobolIntrinsics.DomainWideAdmitted(W(past), 45, closed, "ACOS", "§2023:15.8.3 rule 2"));
         }
         finally { ExceptionState.ArgumentFunctionChecking = saved; }
     }
@@ -201,7 +201,7 @@ public sealed class WideArgumentBodiesTests
         }
     }
 
-    /// <summary>INTERMEDIATE ROUNDING IS PROHIBITED (§11.9.11.2 r3d): an inexact exact-sum quotient raises EC-SIZE-TRUNCATION, an
+    /// <summary>INTERMEDIATE ROUNDING IS PROHIBITED (§2023:11.9.11.2 r3d): an inexact exact-sum quotient raises EC-SIZE-TRUNCATION, an
     /// exact one does not — the mode reaches the one rounding.</summary>
     [Fact]
     public void MeanWide_UnderProhibited_RaisesOnlyForAnInexactQuotient()
@@ -214,7 +214,7 @@ public sealed class WideArgumentBodiesTests
         Assert.Equal(7, exact.Exp);
     }
 
-    /// <summary>An empty argument list invents no value (§15.3 requires at least one argument; kb/Work PB257).</summary>
+    /// <summary>An empty argument list invents no value (§2023:15.3 requires at least one argument; kb/Work PB257).</summary>
     [Fact]
     public void MeanOfNothing_IsRefused() =>
         Assert.ThrowsAny<Exception>(() => CobolIntrinsics.MeanWide(CobolRounding.NearestAwayFromZero, 0));

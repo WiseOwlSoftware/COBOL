@@ -7,14 +7,14 @@ namespace WiseOwl.Cobol.Runtime;
 
 /// <summary>
 /// The runtime base class of every emitted COBOL class (OO deep-dive D2 — <c>class Foo : CobolObject</c>, or
-/// <c>: Base</c> whose own root is CobolObject; ISO/IEC 1989:2023 §11.2/§11.3). One reflection-free home for:
+/// <c>: Base</c> whose own root is CobolObject; ISO/IEC 1989:2023 §2023:11.2/§2023:11.3). One reflection-free home for:
 /// <list type="bullet">
 /// <item>universal/dynamic INVOKE (<see cref="__CobolInvoke"/> — D10: a method-name held in a data item, or a
 /// universal <c>OBJECT REFERENCE</c> receiver, cannot bind statically; each emitted class overrides with a
 /// switch over its own method roster and chains to <c>base.__CobolInvoke</c>, so the search follows the class
-/// hierarchy exactly like §9.3.6 method resolution — AOT/WASM-safe, no reflection);</item>
-/// <item>the null-receiver guard (<see cref="RequireNonNull"/> — §14.9.23.4 GR5: INVOKE on a null object
-/// reference raises EC-OO-NULL through the landed §14.6.13 EC engine, never a raw
+/// hierarchy exactly like §2023:9.3.6 method resolution — AOT/WASM-safe, no reflection);</item>
+/// <item>the null-receiver guard (<see cref="RequireNonNull"/> — §2023:14.9.23.4 GR5: INVOKE on a null object
+/// reference raises EC-OO-NULL through the landed §2023:14.6.13 EC engine, never a raw
 /// <see cref="NullReferenceException"/>);</item>
 /// <item>object identity/NULL/<c>IS class</c> semantics ride C# directly (<c>is null</c> /
 /// <c>ReferenceEquals</c> / <c>is Class</c>) — no members needed here.</item>
@@ -24,36 +24,36 @@ namespace WiseOwl.Cobol.Runtime;
 /// </summary>
 public abstract class CobolObject
 {
-    /// <summary>Dynamic/universal method dispatch (D10/D-U2; §14.9.23.3 SR6/SR7): each emitted class
+    /// <summary>Dynamic/universal method dispatch (D10/D-U2; §2023:14.9.23.3 SR6/SR7): each emitted class
     /// overrides with a switch over the methods it DECLARES that are not overrides (an override wins through
     /// C# virtual dispatch from the BASE class's case; inherited methods resolve through the <c>default:</c>
-    /// base chain — the chain IS §9.3.6 resolution order). A generated case first decides whether its method
-    /// MATCHES the invocation (§9.3.6 match rules: argument count, RETURNING presence both directions, each
+    /// base chain — the chain IS §2023:9.3.6 resolution order). A generated case first decides whether its method
+    /// MATCHES the invocation (§2023:9.3.6 match rules: argument count, RETURNING presence both directions, each
     /// <see cref="CobolInvokeArg"/>'s descriptor); a method that does not match hands the search to its base, and
-    /// only a BOUND method's residual violation is §14.9.23.4 GR7c's EC-OO-UNIVERSAL. Reaching THIS root means no
-    /// class in the hierarchy declares a MATCHING method of that name → EC-OO-METHOD (§9.3.6 6); GR7b).
+    /// only a BOUND method's residual violation is §2023:14.9.23.4 GR7c's EC-OO-UNIVERSAL. Reaching THIS root means no
+    /// class in the hierarchy declares a MATCHING method of that name → EC-OO-METHOD (§2023:9.3.6 6); GR7b).
     /// <paramref name="returning"/> is null exactly when the INVOKE had no RETURNING.</summary>
     public virtual void __CobolInvoke(string name, CobolInvokeArg[] args, CobolInvokeArg? returning) =>
         throw new CobolFatalException("EC-OO-METHOD",
             $"INVOKE: the runtime class '{GetType().Name}' implements no method named '{name}' that matches "
-            + "the invocation (ISO §9.3.6 6); §14.9.23.4 GR7b)");
+            + "the invocation (ISO §2023:9.3.6 6); §2023:14.9.23.4 GR7b)");
 
     /// <summary>The FACTORY type of the class this INSTANCE object belongs to — overridden by every emitted instance class,
     /// so the most-derived override is the object's run-time class's. Null for a factory object (whose own type is
-    /// its factory type). ISO §9.3.6 match rule 3 d) 5. asks it of the object a method is invoked on: an ACTIVE-CLASS
+    /// its factory type). ISO §2023:9.3.6 match rule 3 d) 5. asks it of the object a method is invoked on: an ACTIVE-CLASS
     /// FACTORY formal "shall evaluate to an object reference to the factory of the class specified in the invocation"
     /// (<see cref="ActivationRelations"/>; kb/Work PB1112).</summary>
     protected internal virtual Type? __FactoryClassType => null;
 
     /// <summary>The INSTANCE type of the class this FACTORY object belongs to — overridden by every emitted factory
-    /// class. Null for an instance object (whose own type is its class). §9.3.6 match rule 3 d) 4.: an ACTIVE-CLASS
+    /// class. Null for an instance object (whose own type is its class). §2023:9.3.6 match rule 3 d) 4.: an ACTIVE-CLASS
     /// formal "shall evaluate to an object reference of the same class specified in the invocation".</summary>
     protected internal virtual Type? __InstanceClassType => null;
 
-    /// <summary>Normalize an identifier-2 method-name value (§14.9.23.4 GR2a): the content IS a
+    /// <summary>Normalize an identifier-2 method-name value (§2023:14.9.23.4 GR2a): the content IS a
     /// user-defined word — formed by the one externalized-name rule (<see cref="ExternalizedNames.Form"/>: leading
     /// and trailing spaces, which include the PIC X padding, are not part of the name) and case-insensitive
-    /// (§8.3.2.2) by the ONE Annex C fold, <see cref="CobolNames.Fold(string)"/> (kb/Work PB1402 — this upper-cased by
+    /// (§2023:8.3.2.2) by the ONE Annex C fold, <see cref="CobolNames.Fold(string)"/> (kb/Work PB1402 — this upper-cased by
     /// the host's case mapping, which disagrees with Annex C on the extended letters). The ONE word mapping: the
     /// INVOKE literal is normalized through it at bind time, and every generated case label is the method's
     /// EXTERNALIZED name through it (<c>OoMethodSymbol.DispatchKey</c>). The fold is 2023's at every edition, so an
@@ -70,17 +70,17 @@ public abstract class CobolObject
     /// inherits this empty root.</summary>
     protected internal virtual void __AdoptRunUnitStorage(RunUnit runUnit) { }
 
-    /// <summary>The INVOKE null-receiver guard (§14.9.23.4 GR5): emitted before every instance dispatch —
+    /// <summary>The INVOKE null-receiver guard (§2023:14.9.23.4 GR5): emitted before every instance dispatch —
     /// <c>CobolObject.RequireNonNull(recv).M(args)</c> — so a null object reference raises EC-OO-NULL (fatal,
     /// Table 13) through the EC engine.</summary>
     public static T RequireNonNull<T>(T? receiver) where T : class =>
         receiver ?? throw new CobolFatalException("EC-OO-NULL",
-            "INVOKE: the object reference used as the receiver is null (ISO §14.9.23.4 GR5)");
+            "INVOKE: the object reference used as the receiver is null (ISO §2023:14.9.23.4 GR5)");
 
-    /// <summary>⛔ THE ACTIVE-CLASS RETURNING ITEM'S CONFORMANCE FOR A UNIVERSAL INVOCATION (ISO §14.9.23.4 GR7 c) with
-    /// §14.8.3.3 rule 2 b) 4.; kb/Work PB2985), asked BEFORE the bound method runs by every method whose returning item is
+    /// <summary>⛔ THE ACTIVE-CLASS RETURNING ITEM'S CONFORMANCE FOR A UNIVERSAL INVOCATION (ISO §2023:14.9.23.4 GR7 c) with
+    /// §2023:14.8.3.3 rule 2 b) 4.; kb/Work PB2985), asked BEFORE the bound method runs by every method whose returning item is
     /// described ACTIVE-CLASS — each emitted <c>__CobolInvoke</c> case that has one, and the standard class BASE's New and
-    /// FactoryObject (§16.2). The method was invoked through a universal reference, so its ACTIVE-CLASS item is sent as a
+    /// FactoryObject (§2023:16.2). The method was invoked through a universal reference, so its ACTIVE-CLASS item is sent as a
     /// universal object reference (<see cref="ActivationRelations.ActiveClassReturningViolation"/>) and a receiving item
     /// described with a class, an interface or ACTIVE-CLASS does not conform, whichever class the returned object has.
     /// EC-OO-UNIVERSAL is set to exist "if checking for it is enabled in both the activated method and the activating
@@ -97,12 +97,12 @@ public abstract class CobolObject
     {
         if (!enabledInMethod || !ExceptionState.OoUniversalChecking) return;
         if (ActivationRelations.ActiveClassReturningViolation(receiving, sending) is { } why)
-            throw new CobolFatalException("EC-OO-UNIVERSAL", $"{what}: {why} (ISO §14.9.23.4 GR7 c))");
+            throw new CobolFatalException("EC-OO-UNIVERSAL", $"{what}: {why} (ISO §2023:14.9.23.4 GR7 c))");
     }
 
-    /// <summary>⛔ THE ACTIVE-CLASS FORMAL'S CONFORMANCE FOR A UNIVERSAL INVOCATION (ISO §14.9.23.4 GR7 c) with §14.8.2.3.2
+    /// <summary>⛔ THE ACTIVE-CLASS FORMAL'S CONFORMANCE FOR A UNIVERSAL INVOCATION (ISO §2023:14.9.23.4 GR7 c) with §2023:14.8.2.3.2
     /// rule 4; kb/Work PB2985) — the formal half of <see cref="CheckActiveClassReturning"/>, asked by each emitted
-    /// <c>__CobolInvoke</c> case for each of its ACTIVE-CLASS formals, after §9.3.6's match bound the method and before
+    /// <c>__CobolInvoke</c> case for each of its ACTIVE-CLASS formals, after §2023:9.3.6's match bound the method and before
     /// it runs. The method was invoked through a universal reference, which rule 4 a) / b) do not admit, so the argument
     /// supplied for an ACTIVE-CLASS formal does not conform (<see cref="ActivationRelations.ActiveClassFormalViolation"/>).
     /// EC-OO-UNIVERSAL is set to exist "if checking for it is enabled in both the activated method and the activating
@@ -117,38 +117,38 @@ public abstract class CobolObject
     {
         if (!enabledInMethod || !ExceptionState.OoUniversalChecking) return;
         if (ActivationRelations.ActiveClassFormalViolation(argument, formal) is { } why)
-            throw new CobolFatalException("EC-OO-UNIVERSAL", $"{what}: {why} (ISO §14.9.23.4 GR7 c))");
+            throw new CobolFatalException("EC-OO-UNIVERSAL", $"{what}: {why} (ISO §2023:14.9.23.4 GR7 c))");
     }
 
     /// <summary>Deliver an object reference that crossed a UNIVERSAL invocation (D10) into a receiving item of type
-    /// <typeparamref name="T"/>. The delivery follows the SET rules (§14.8.3.3), and through a universal receiver the
-    /// class of the object is a RUNTIME fact: the §9.3.6 rule 6 match (<see cref="ActivationRelations.ReturningMatches"/>)
+    /// <typeparamref name="T"/>. The delivery follows the SET rules (§2023:14.8.3.3), and through a universal receiver the
+    /// class of the object is a RUNTIME fact: the §2023:9.3.6 rule 6 match (<see cref="ActivationRelations.ReturningMatches"/>)
     /// already refused a method whose returning item's DESCRIPTION a SET could not send into the receiving item (an
     /// unrelated class, an interface the class does not implement; kb/Work PB2463), but a returning item described
-    /// ACTIVE-CLASS — the standard class BASE's New and FactoryObject among them (§16.2) — references an object of the
-    /// class the method was invoked on (§13.18.60.4 GR22 e)), which only the object can answer. This is the FLOOR under
-    /// the conformance rules, never the rule: §14.8.3.3 rule 2 conformance of an ACTIVE-CLASS item is decided by how the
+    /// ACTIVE-CLASS — the standard class BASE's New and FactoryObject among them (§2023:16.2) — references an object of the
+    /// class the method was invoked on (§2023:13.18.60.4 GR22 e)), which only the object can answer. This is the FLOOR under
+    /// the conformance rules, never the rule: §2023:14.8.3.3 rule 2 conformance of an ACTIVE-CLASS item is decided by how the
     /// method was invoked, before the method runs (<see cref="CheckActiveClassReturning"/>; kb/Work PB2985), and this
     /// delivery runs for the invocation that proceeds because no checking was enabled. A non-conforming object
-    /// is §14.9.23.4 GR7c's EC-OO-UNIVERSAL when the activator checks for it,
+    /// is §2023:14.9.23.4 GR7c's EC-OO-UNIVERSAL when the activator checks for it,
     /// and otherwise still cannot proceed into typed code (<see cref="CobolImplementorFatalException"/>) — never an
     /// unchecked cast's InvalidCastException.</summary>
     public static T? NarrowUniversal<T>(object? value, string what) where T : class
     {
         if (value is null or T) return (T?)value;
         string detail = $"{what}: the object delivered is of class '{value.GetType().Name}', which does not conform "
-            + $"to the receiving item's class '{typeof(T).Name}' (ISO §14.9.23.4 GR7c; §14.8.3.3 rule 1)";
+            + $"to the receiving item's class '{typeof(T).Name}' (ISO §2023:14.9.23.4 GR7c; §2023:14.8.3.3 rule 1)";
         if (ExceptionState.OoUniversalChecking) throw new CobolFatalException("EC-OO-UNIVERSAL", detail);
         throw new CobolImplementorFatalException(detail);
     }
 
-    /// <summary>⛔ THE OBJECT-VIEW'S RUN-TIME CONFORMANCE CHECK (ISO §8.4.3.5.4 GR2–GR6; kb/Work PB1425): the object
+    /// <summary>⛔ THE OBJECT-VIEW'S RUN-TIME CONFORMANCE CHECK (ISO §2023:8.4.3.5.4 GR2–GR6; kb/Work PB1425): the object
     /// <paramref name="value"/> references, seen through an AS phrase whose description emits as
     /// <typeparamref name="T"/> — an instance class (GR2), a factory class (GR3, the D11 sibling singleton type), an
     /// interface (GR6) — and, with <paramref name="exactClass"/> (the ONLY phrase, GR4/GR5), of exactly that class.
     /// A null reference references no object, so there is nothing for GR2–GR6 to find non-conforming.
     /// <para>A non-conforming object sets EC-OO-CONFORMANCE (Table 13 fatal) when the condition is enabled
-    /// (§14.8.1 NOTE 3). With checking off the standard sets nothing and the view proceeds: an object that is
+    /// (§2023:14.8.1 NOTE 3). With checking off the standard sets nothing and the view proceeds: an object that is
     /// still a <typeparamref name="T"/> (it failed only ONLY's exact-class test) is viewed as one; an object of an
     /// unrelated class cannot be held by typed code at all, so the run unit stops with an implementor-defined fatal
     /// error — the <see cref="NarrowUniversal{T}"/> posture, never an unchecked cast's InvalidCastException.</para>
@@ -158,17 +158,17 @@ public abstract class CobolObject
         if (value is null) return null;
         if (value is T conforming && (!exactClass || value.GetType() == typeof(T))) return conforming;
         string detail = $"{what}: the object referenced is of class '{value.GetType().Name}', which does not conform to "
-            + $"the object-view's description ('{typeof(T).Name}'{(exactClass ? " ONLY" : "")}) (ISO §8.4.3.5.4)";
+            + $"the object-view's description ('{typeof(T).Name}'{(exactClass ? " ONLY" : "")}) (ISO §2023:8.4.3.5.4)";
         ExceptionState.OoConformanceError(detail);
         if (value is T lenient) return lenient;
         throw new CobolImplementorFatalException(detail);
     }
 
-    // ── Per-object instance-file connectors (M2-OO-1i, ISO §9.1.4) ──────────────────────────────────────────
-    // An OBJECT- or FACTORY-paragraph (non-EXTERNAL) file connector belongs to its object (an instance, or a factory object, §9.3.9): it is minted per object
+    // ── Per-object instance-file connectors (M2-OO-1i, ISO §2023:9.1.4) ──────────────────────────────────────────
+    // An OBJECT- or FACTORY-paragraph (non-EXTERNAL) file connector belongs to its object (an instance, or a factory object, §2023:9.3.9): it is minted per object
     // (CobolFile.MintInstanceKey), registered in the emitted ctor, tracked here, and implicitly CLOSED when the
-    // object is deleted (§9.1.4 — the runtime executes an implicit CLOSE "for file connectors in an object when
-    // the object is deleted"; the §9.1.4 NOTE licenses this happening during garbage collection). The run-unit
+    // object is deleted (§2023:9.1.4 — the runtime executes an implicit CLOSE "for file connectors in an object when
+    // the object is deleted"; the §2023:9.1.4 NOTE licenses this happening during garbage collection). The run-unit
     // CobolFile.CloseAll() at run-unit termination remains the backstop for objects not yet finalized.
 
     /// <summary>The minted connector keys of this object's instance files (null until the emitted ctor tracks the
@@ -186,11 +186,11 @@ public abstract class CobolObject
 
     /// <summary>Every COBOL object suppresses finalization by default — the overwhelming common case owns no files,
     /// and a finalizer on the universal object root would put EVERY object on the GC finalization queue. Only an
-    /// object that actually tracks an instance file re-registers (<see cref="__TrackInstanceFile"/>), so the §9.1.4
+    /// object that actually tracks an instance file re-registers (<see cref="__TrackInstanceFile"/>), so the §2023:9.1.4
     /// deletion-time CLOSE burdens the GC for exactly the objects that need it.</summary>
     protected CobolObject() => System.GC.SuppressFinalize(this);
 
-    /// <summary>Record a per-object instance-file connector key for the deletion-time implicit CLOSE (§9.1.4).
+    /// <summary>Record a per-object instance-file connector key for the deletion-time implicit CLOSE (§2023:9.1.4).
     /// Called from the emitted object constructor after the file registers; the FIRST tracked file re-arms the
     /// finalizer this object suppressed at construction.</summary>
     protected void __TrackInstanceFile(string key)
@@ -204,12 +204,12 @@ public abstract class CobolObject
         __instFiles.Add(key);
     }
 
-    /// <summary>The §9.1.4 implicit CLOSE at object deletion: request close of every instance-file connector this
+    /// <summary>The §2023:9.1.4 implicit CLOSE at object deletion: request close of every instance-file connector this
     /// object owns. This runs on the GC finalizer THREAD, so it must NOT touch the single-thread file registries
     /// directly — it only ENQUEUES each key on the OWNING run unit's registry (<see cref="__instFilesOwner"/>;
     /// <see cref="FileRegistry.EnqueueInstanceClose"/>, lock-free), never on whatever run unit the finalizer thread
     /// happens to resolve (kb/Work PB1532). The mutator thread performs the actual close when it next drains, at
-    /// its next OPEN or at run-unit termination (§9.1.4's NOTE licenses this GC-deferred timing). Reached only for
+    /// its next OPEN or at run-unit termination (§2023:9.1.4's NOTE licenses this GC-deferred timing). Reached only for
     /// file-owning objects (see the ctor's SuppressFinalize).</summary>
     ~CobolObject()
     {

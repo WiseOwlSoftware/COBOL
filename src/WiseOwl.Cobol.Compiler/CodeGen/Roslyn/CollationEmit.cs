@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.CodeGen;
 /// THE renderer of a runtime <see cref="CobolCollation"/> carrier from its bound description (kb/Work PB101;
 /// DESIGN-locale-facility §4.4): the ONE place that knows which runtime arm an <see cref="AlphabetDef"/> /
 /// <see cref="NationalAlphabetDef"/> becomes — an <see cref="AlphanumericCollation"/> / <see cref="NationalCollation"/>
-/// for a literal-phrase table (positions + the §15.15.4 r2 representative array + NextFree + the §12.3.7.4 GR8/GR9
+/// for a literal-phrase table (positions + the §2023:15.15.4 r2 representative array + NextFree + the §2023:12.3.7.4 GR8/GR9
 /// extremes), a <see cref="LocaleCollation"/> for the LOCALE phrase. The program emitter renders the PROGRAM COLLATING
 /// SEQUENCE once as <c>__COLLATE</c> / <c>__COLLATE_NAT</c>; the SORT/MERGE and indexed-file emitters render a
 /// statement or file alphabet that is NOT the PCS inline. Nothing else spells a carrier's constructor.
@@ -24,12 +24,12 @@ internal static class CollationEmit
     public static string New(NationalAlphabetDef def) => New(def.Table, def.Locale, national: true);
 
     /// <summary>⛔ THE carrier constructor, over the two components EVERY alphabet definition reduces to — the
-    /// §12.3.7.4 GR7 k table or the LOCALE arm — and the ONE bit that chooses the runtime class. The two overloads
+    /// §2023:12.3.7.4 GR7 k table or the LOCALE arm — and the ONE bit that chooses the runtime class. The two overloads
     /// above differed by exactly that bit and were otherwise identical text; a third caller
-    /// (<c>RangeCollationCarrier</c>, which holds the components rather than either def record — §14.7.8 rule 2's
+    /// (<c>RangeCollationCarrier</c>, which holds the components rather than either def record — §2023:14.7.8 rule 2's
     /// <c>IN alphabet-name-1</c> phrase) is what made the duplication a drift hazard instead of a curiosity.
     /// <para>⚠ ITS IN-PROCESS TWIN IS <c>CollatingTable.Collation(national)</c>, which constructs the SAME carrier
-    /// as an object rather than as text, for the compile-time orderings a syntax rule needs (§13.18.63.3 SR27 —
+    /// as an object rather than as text, for the compile-time orderings a syntax rule needs (§2023:13.18.63.3 SR27 —
     /// kb/Work PB555). The constructor's argument list is therefore spelled in two places and only two; a change
     /// to <c>LiteralPhraseCollation</c>'s signature has to visit both, and the compiler will say so at the twin
     /// while this one would only fail at run time.</para></summary>
@@ -45,7 +45,7 @@ internal static class CollationEmit
         throw new InvalidOperationException("an identity alphabet has no carrier — the native fast path emits nothing");
     }
 
-    /// <summary>The LOCALE arm: the shared current-locale instance (§12.3.7.4 GR7e — resolved at each use) or a
+    /// <summary>The LOCALE arm: the shared current-locale instance (§2023:12.3.7.4 GR7e — resolved at each use) or a
     /// carrier bound to one named locale.</summary>
     private static string Locale(LocaleCollatingSpec l) =>
         l.Locale.Tag is not { } tag

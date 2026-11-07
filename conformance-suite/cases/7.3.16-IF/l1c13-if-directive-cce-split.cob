@@ -4,9 +4,9 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §7.3.16.3 SR1 — ">>IF conditional-expression-1 shall begin
+      *> ISO §2023:7.3.16.3 SR1 — ">>IF conditional-expression-1 shall begin
       *> on a new line and shall be specified entirely on that line."
-      *>   cite.py: OK  §7.3.16.3 1)  (Syntax rules)
+      *>   cite.py: OK  §2023:7.3.16.3 1)  (Syntax rules)
       *> Here the conditional expression "V = 1" is split: ">>IF V ="
       *> on one line and "1" on the next, so it is NOT specified
       *> entirely on the >>IF line.  The >>IF line's operand is then

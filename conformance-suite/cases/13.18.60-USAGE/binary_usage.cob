@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §13.18.60 — COBOL-2002 fixed-width binary usages BINARY-CHAR/SHORT/LONG/DOUBLE.
+      *> ISO §2023:13.18.60 — COBOL-2002 fixed-width binary usages BINARY-CHAR/SHORT/LONG/DOUBLE.
       *> No PICTURE; native two's-complement of 1/2/4/8 bytes. SIGNED is the default; UNSIGNED
       *> widens the positive range. Realized as COMP-5 (full binary capacity) at runtime.
        IDENTIFICATION DIVISION.

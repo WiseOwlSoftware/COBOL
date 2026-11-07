@@ -7,7 +7,7 @@ using WiseOwl.Cobol.Runtime.Messaging;
 namespace WiseOwl.Cobol.Runtime;
 
 /// <summary>
-/// The single owner of all run-unit-lifetime state (ISO §14.6.1 run unit; DESIGN-runtime-library §2.1).
+/// The single owner of all run-unit-lifetime state (ISO §2023:14.6.1 run unit; DESIGN-runtime-library §2.1).
 /// Replaces the five independent process-global static stores: one instance per run unit owning the program
 /// table, the EC engine, the EXTERNAL store, the MODULE-NAME stack, the file registry, the clock, and the FUNCTION RANDOM
 /// sequence (kb/Work PB307 — the sixth store, which the consolidation first missed). The
@@ -19,8 +19,8 @@ namespace WiseOwl.Cobol.Runtime;
 /// NEW <see cref="RunUnit"/> object, on every path</b> (kb/Work PB1069): the emitted driver's
 /// <c>ProgramRegistry.Reset()</c> is <see cref="Begin"/>, and a host's <see cref="Run"/> constructs one too — so no
 /// member can be forgotten by a hand-written reset list (the switch, locale and report-flow state all were, and
-/// survived into the next run unit a host began in the same process). The §14.6.11 implicit CloseAll and the
-/// §14.6.12 abnormal-termination surface are runtime-side — <see cref="ProgramTable.RunMain"/> and <see cref="Terminate"/>.
+/// survived into the next run unit a host began in the same process). The §2023:14.6.11 implicit CloseAll and the
+/// §2023:14.6.12 abnormal-termination surface are runtime-side — <see cref="ProgramTable.RunMain"/> and <see cref="Terminate"/>.
 /// </summary>
 public sealed class RunUnit
 {
@@ -44,25 +44,25 @@ public sealed class RunUnit
         Collation.CollationRuntime.Initialize();
     }
 
-    /// <summary>The run-unit program registry (name resolution, §14.6.2.3 state model, CANCEL).</summary>
+    /// <summary>The run-unit program registry (name resolution, §2023:14.6.2.3 state model, CANCEL).</summary>
     public ProgramTable Programs { get; }
 
-    /// <summary>The run-unit-wide LAST EXCEPTION STATUS register + propagation slots (§14.6.13.1.1).</summary>
+    /// <summary>The run-unit-wide LAST EXCEPTION STATUS register + propagation slots (§2023:14.6.13.1.1).</summary>
     public ExceptionEngine Exceptions { get; }
 
-    /// <summary>The run-unit EXTERNAL data store (§8.6.7 / §13.18.22).</summary>
+    /// <summary>The run-unit EXTERNAL data store (§2023:8.6.7 / §2023:13.18.22).</summary>
     public ExternalTable External { get; } = new();
 
-    /// <summary>The FUNCTION MODULE-NAME call-name stack (§15.65).</summary>
+    /// <summary>The FUNCTION MODULE-NAME call-name stack (§2023:15.65).</summary>
     public ModuleStack Modules { get; } = new();
 
-    /// <summary>The external-switch store (§12.3.7 GR4 NOTE 1 — switch scope is the run unit).</summary>
+    /// <summary>The external-switch store (§2023:12.3.7 GR4 NOTE 1 — switch scope is the run unit).</summary>
     public SwitchStore Switches { get; } = new();
 
-    /// <summary>The run-unit file-connector registry (§9.1; owns the physical-file sharing table).</summary>
+    /// <summary>The run-unit file-connector registry (§2023:9.1; owns the physical-file sharing table).</summary>
     public FileRegistry Files { get; } = new();
 
-    /// <summary>The run unit's commit and rollback (§9.1.18; kb/Work PB3338): its active APPLY COMMIT clauses and the
+    /// <summary>The run unit's commit and rollback (§2023:9.1.18; kb/Work PB3338): its active APPLY COMMIT clauses and the
     /// COMMIT and ROLLBACK statements over them and <see cref="Files"/>.</summary>
     internal TransactionControl Transactions { get; }
 
@@ -70,7 +70,7 @@ public sealed class RunUnit
     /// it has begun to send or receive, which ISO/IEC 1989:2002 14.5.10 rule 2 eliminates when the run unit ends.</summary>
     internal Communication.MessageControlSession MessageControl { get; } = new();
 
-    /// <summary>The run unit's peer of the 2023 asynchronous messaging facility (ISO §14.9.38 SEND, §14.9.31 RECEIVE; docs/rearchitecture/DESIGN-message-control.md §5.5;
+    /// <summary>The run unit's peer of the 2023 asynchronous messaging facility (ISO §2023:14.9.38 SEND, §2023:14.9.31 RECEIVE; docs/rearchitecture/DESIGN-message-control.md §5.5;
     /// kb/Work PB4742): a cheap shell whose socket directory, transport and protocol exist from the run unit's first messaging statement, or from its beginning when
     /// <see cref="MessagingSettings.ServedName"/> is set. <see cref="Terminate"/> ends it (design 5.6). Independent of <see cref="MessageControl"/>,
     /// the communication facility's.</summary>
@@ -81,24 +81,24 @@ public sealed class RunUnit
     /// two run units of one process can differ, and the one <see cref="Begin"/> starts inherits it.</summary>
     public MessagingSettings MessagingSettings { get; set; } = new();
 
-    /// <summary>The run unit's sort-merge file stores (ISO §14.9.40 / §14.9.24; kb/Work PB1570) — the in-memory SD
+    /// <summary>The run unit's sort-merge file stores (ISO §2023:14.9.40 / §2023:14.9.24; kb/Work PB1570) — the in-memory SD
     /// buffers of the SORT/MERGE statements this run unit executes, which no other run unit can see or mutate.</summary>
     public SortFileTable SortFiles { get; } = new();
 
-    /// <summary>The run unit's ONE current FUNCTION RANDOM sequence (ISO §15.75.3 r4 — the implementor seed belongs
+    /// <summary>The run unit's ONE current FUNCTION RANDOM sequence (ISO §2023:15.75.3 r4 — the implementor seed belongs
     /// to "the first reference to this function in the run unit"; kb/Work PB307).</summary>
     public RandomSequence Random { get; } = new();
 
     /// <summary>The run unit's Report Writer control-flow state: the USE BEFORE REPORTING range
-    /// (ISO §14.9.49.4 GR10 — <see cref="ReportFlowState"/> records why the range is the RUN UNIT's).</summary>
+    /// (ISO §2023:14.9.49.4 GR10 — <see cref="ReportFlowState"/> records why the range is the RUN UNIT's).</summary>
     public ReportFlowState ReportFlow { get; } = new();
 
-    /// <summary>The run unit's clock (ISO §14.9.1.4 GR7; injectable — a test may set a fixed clock). HOST
+    /// <summary>The run unit's clock (ISO §2023:14.9.1.4 GR7; injectable — a test may set a fixed clock). HOST
     /// CONFIGURATION, not run-unit state: a run unit <see cref="Begin"/> starts inherits it from the ambient run unit
     /// it replaces (<see cref="HostConfiguration"/>).</summary>
     public IClock Clock { get; set; } = SystemClock.Instance;
 
-    /// <summary>The run unit's LOCALE state (ISO §8.2.1 / §14.6.6; DESIGN-locale-facility §4.3): the two implementor
+    /// <summary>The run unit's LOCALE state (ISO §2023:8.2.1 / §2023:14.6.6; DESIGN-locale-facility §4.3): the two implementor
     /// defaults (determination L2) and the locale current per category — what a LOCALE-based collating sequence
     /// resolves at each use (<see cref="LocaleCollation"/>).</summary>
     public LocaleState Locale { get; } = new();
@@ -120,19 +120,19 @@ public sealed class RunUnit
     public static IReadOnlyList<string> HostConfiguration { get; } = [nameof(Clock), nameof(DebugMode), nameof(MessagingSettings)];
 
     /// <summary>The run unit's FACTORY OBJECTS, one per class, created at the first reference in THIS run unit
-    /// (ISO §9.3.14.2: "A factory object is created before it is first referenced by a run unit", and "deleted
+    /// (ISO §2023:9.3.14.2: "A factory object is created before it is first referenced by a run unit", and "deleted
     /// after it is last referenced by a run unit" — both lifetimes are the RUN UNIT's; kb/Work PB1069). A factory
     /// used to be a process-lifetime <c>static readonly</c> singleton on its generated class, so its factory data —
     /// and every instance object, ALLOCATEd area and dynamic item reachable from it — outlived the run unit and was
-    /// visible to the next one a host began in the same process, contrary to §14.6.11 items 3, 4 and 6. Keyed by
+    /// visible to the next one a host began in the same process, contrary to §2023:14.6.11 items 3, 4 and 6. Keyed by
     /// the generated factory type; a run unit executes on one logical thread, so the table needs no lock.</summary>
     private readonly Dictionary<Type, CobolObject> _factoryObjects = [];
 
     /// <summary>The factory object of the class whose generated factory type is <typeparamref name="T"/> in this
     /// run unit, created on first reference (the emitted <c>__Instance</c> property reads it). Creation runs the
-    /// generated constructor — the factory's VALUE initialization and its file registrations (§9.1.4) — once per
+    /// generated constructor — the factory's VALUE initialization and its file registrations (§2023:9.1.4) — once per
     /// run unit.
-    /// <para>⛔ THE ONE RESOURCE AN INVOKE CHECKS (ISO §14.9.23.4 GR7 b): "If the method is not found or the resources
+    /// <para>⛔ THE ONE RESOURCE AN INVOKE CHECKS (ISO §2023:14.9.23.4 GR7 b): "If the method is not found or the resources
     /// necessary to execute the method are not available, the EC-OO-METHOD exception condition is set to exist". The
     /// implementor defines which resources are checked (Annex A.1 item 102; docs/CONFORMANCE.md DOC-A.1-102), and this is
     /// it: the class's type initialization, which the first reference to its factory object triggers, completes. A class
@@ -165,10 +165,10 @@ public sealed class RunUnit
     private static CobolFatalException InitializationFailure(Type factory, TypeInitializationException failure) =>
         new("EC-OO-METHOD",
             $"INVOKE: the class '{factory.Name}' could not be initialized, so its method cannot be executed "
-            + $"({failure.InnerException?.GetType().Name ?? failure.GetType().Name}; ISO §14.9.23.4 GR7b)");
+            + $"({failure.InnerException?.GetType().Name ?? failure.GetType().Name}; ISO §2023:14.9.23.4 GR7b)");
 
     /// <summary>The static-storage resets this run unit has ADOPTED, in adoption order (kb/Work PB1069). Static data
-    /// — a RECURSIVE program's or a function's WORKING-STORAGE (§13.5.4 GR1) and a class's METHOD WORKING-STORAGE (OO
+    /// — a RECURSIVE program's or a function's WORKING-STORAGE (§2023:13.5.4 GR1) and a class's METHOD WORKING-STORAGE (OO
     /// deep-dive D3) — is a C# static on its generated type, so it is the ONE kind of run-unit state that a new
     /// <see cref="RunUnit"/> object cannot make fresh by construction. The set is keyed by the reset delegate (two
     /// delegates of one static method are equal), so a class reached through several subclass factories adopts once.</summary>
@@ -176,7 +176,7 @@ public sealed class RunUnit
     private readonly HashSet<Action> _adoptedStaticStorage = [];
 
     /// <summary>Adopt one unit's static storage into this run unit: its <paramref name="reset"/> runs NOW — ISO
-    /// §14.6.2.3.2 case 1, "The first time the function, method, or program in which it is described is activated in
+    /// §2023:14.6.2.3.2 case 1, "The first time the function, method, or program in which it is described is activated in
     /// a run unit", holds even when the same loaded module served an earlier run unit in this process — and again at
     /// <see cref="Terminate"/>. Adopting the same reset twice is a no-op, and a reset that throws is not adopted.</summary>
     public void AdoptStaticStorage(Action reset)
@@ -189,9 +189,9 @@ public sealed class RunUnit
 
     /// <summary>Normal and abnormal run-unit termination's runtime epilogue — ONE method for every boundary
     /// (<see cref="ProgramTable.RunMain"/>'s, <see cref="Run"/>'s and a host activation's, <see cref="EndForHost"/>),
-    /// idempotent so a host that nests them runs it harmlessly twice. ISO §14.6.11 2): "An implicit CLOSE statement without any phrases is executed for each file
-    /// that is in the open mode" (also after an abnormal termination, §14.6.12). Then every adopted static storage
-    /// returns to its initial state, which RELEASES what it held — §14.6.11 3) "Any storage obtained with an ALLOCATE
+    /// idempotent so a host that nests them runs it harmlessly twice. ISO §2023:14.6.11 2): "An implicit CLOSE statement without any phrases is executed for each file
+    /// that is in the open mode" (also after an abnormal termination, §2023:14.6.12). Then every adopted static storage
+    /// returns to its initial state, which RELEASES what it held — §2023:14.6.11 3) "Any storage obtained with an ALLOCATE
     /// statement and not yet released by a FREE statement is released", 4) "All instance objects are destroyed" and
     /// 6) "Any resources occupied by dynamic-capacity tables or dynamic-length elementary items are freed": a static
     /// POINTER, OBJECT REFERENCE or dynamic item is managed memory that stays reachable exactly as long as the
@@ -203,10 +203,10 @@ public sealed class RunUnit
     {
         try
         {
-            // §14.6.12: "If commit and rollback is in effect, a rollback is executed. This rollback differs from user
+            // §2023:14.6.12: "If commit and rollback is in effect, a rollback is executed. This rollback differs from user
             // specified rollbacks in that only files and not any of the data items" are restored — the file-only
             // ROLLBACK of an abnormal ending, before the implicit CLOSE, whose own first step commits a NORMAL ending's
-            // transactions (§9.1.18.5; DESIGN-runtime-library.md 2.2.1.10, kb/Work PB3337).
+            // transactions (§2023:9.1.18.5; DESIGN-runtime-library.md 2.2.1.10, kb/Work PB3337).
             if (EndedAbnormally) Files.EndTransactions(abnormal: true);
             Files.CloseAll();
         }
@@ -225,7 +225,7 @@ public sealed class RunUnit
             }
             finally
             {
-                // ISO §14.6.11 item 7: each active message is answered EC-MCS-NORMAL-TERMINATION, and §14.6.12 has an abnormal ending perform the same
+                // ISO §2023:14.6.11 item 7: each active message is answered EC-MCS-NORMAL-TERMINATION, and §2023:14.6.12 has an abnormal ending perform the same
                 // operations after the rollback; the peer then closes its links and listeners and deletes its socket files (design 5.6). Last, and in its
                 // own finally, so no failed close above can skip it.
                 Messaging.End(EndedAbnormally);
@@ -233,9 +233,9 @@ public sealed class RunUnit
         }
     }
 
-    /// <summary>⛔ Whether this run unit is ending ABNORMALLY (§14.6.12): any exception but STOP RUN's unwind leaving its
+    /// <summary>⛔ Whether this run unit is ending ABNORMALLY (§2023:14.6.12): any exception but STOP RUN's unwind leaving its
     /// outermost boundary — a fatal exception condition, a CALL/CANCEL fatal, or a runtime failure no condition names.
-    /// <see cref="Terminate"/> reads it to choose §9.1.18.5's rollback over its commit (kb/Work PB3337).</summary>
+    /// <see cref="Terminate"/> reads it to choose §2023:9.1.18.5's rollback over its commit (kb/Work PB3337).</summary>
     internal bool EndedAbnormally { get; private set; }
 
     /// <summary>The exception FILTER every run-unit boundary runs over the exception leaving it (it never catches: false):
@@ -249,8 +249,8 @@ public sealed class RunUnit
     private long _exitStatus;
 
     /// <summary>The run unit's own termination status "passed to the operating system" by STOP RUN / a main-program
-    /// GOBACK with a status phrase (ISO §14.9.42.4 GR5 / §14.9.18.4 GR10), or 1 once the run unit ended abnormally
-    /// (§14.6.12). On .NET the single observable of that hand-over is the process exit code, so the STATUS value and the
+    /// GOBACK with a status phrase (ISO §2023:14.9.42.4 GR5 / §2023:14.9.18.4 GR10), or 1 once the run unit ended abnormally
+    /// (§2023:14.6.12). On .NET the single observable of that hand-over is the process exit code, so the STATUS value and the
     /// ERROR/NORMAL indication collapse into this ONE canonical integer (the documented implementor mapping —
     /// <c>docs/CONFORMANCE.md</c> §4.2.16; Annex A "required documented behavior" items 192/193): the STATUS value when
     /// specified, else ERROR ⇒ 1 / NORMAL ⇒ 0. <b>It is the RUN UNIT's state and nothing else's</b>: writing it touches no
@@ -259,7 +259,7 @@ public sealed class RunUnit
     /// kb/Work PB3163). The boundary that IS the process entry — the generated <c>Main</c>'s
     /// <see cref="ProgramTable.RunModule"/> — delivers it to <c>Environment.ExitCode</c> once, when the run unit has ended,
     /// and a host reads it here. The status still crosses assembly boundaries, because STOP RUN terminates the WHOLE run
-    /// unit from anywhere (§14.9.42.4 GR6) and every module of the run unit writes this ONE shared field through
+    /// unit from anywhere (§2023:14.9.42.4 GR6) and every module of the run unit writes this ONE shared field through
     /// <see cref="SetExitStatus"/>: a status set by a separately-compiled CALLed module reaches the entry boundary even
     /// though the run unit's MAIN program carries no status phrase of its own. Default 0 (a status-free run unit never
     /// writes this field, and the generated <c>Main</c> stays scaffolding-free — the zero-scaffolding invariant, DESIGN
@@ -278,12 +278,12 @@ public sealed class RunUnit
 
     /// <summary>The emitted-surface shim STOP RUN / GOBACK write (kept name-stable over <see cref="Current"/>,
     /// mirroring the <see cref="ExceptionState"/>/<see cref="ProgramRegistry"/> facades): set the ambient run unit's
-    /// termination status (ISO §14.9.42.4 GR5 / §14.9.18.4 GR10). Every module of the run unit shares that one run
+    /// termination status (ISO §2023:14.9.42.4 GR5 / §2023:14.9.18.4 GR10). Every module of the run unit shares that one run
     /// unit, so the status crosses assembly boundaries.</summary>
     public static void SetExitStatus(long status) => Current.ExitStatus = status;
 
     /// <summary>Establish a FRESH ambient run unit for the duration of <paramref name="body"/> — the host's
-    /// lifecycle boundary (begin = a new run unit, <see cref="StartAfter"/>; end = the §14.6.11 implicit CloseAll +
+    /// lifecycle boundary (begin = a new run unit, <see cref="StartAfter"/>; end = the §2023:14.6.11 implicit CloseAll +
     /// ambient restore). Hosts embedding several run units use it; the emitted driver uses <see cref="Begin"/>.</summary>
     public static void Run(Action<RunUnit> body)
     {
@@ -303,7 +303,7 @@ public sealed class RunUnit
 
     /// <summary>End this run unit for the .NET host whose activation it was running when a STOP RUN or a run-unit fatal
     /// reached the outermost boundary (<see cref="ProgramTable.CallProgram"/> with no caller; owner decision R48,
-    /// docs/CONFORMANCE.md DOC-A.1-167): the §14.6.11 actions (<see cref="Terminate"/>), then, when this run unit is the
+    /// docs/CONFORMANCE.md DOC-A.1-167): the §2023:14.6.11 actions (<see cref="Terminate"/>), then, when this run unit is the
     /// ambient one, a NEW ambient run unit in its place, so the host's next activation begins a run unit that inherits
     /// nothing (kb/Work PB1069: a new run unit is a new object) while the host process continues. The termination status
     /// travels in the <see cref="RunUnitEndedException"/> the boundary throws, and the new run unit's own
@@ -316,13 +316,13 @@ public sealed class RunUnit
 
     /// <summary>Begin a NEW run unit and make it the ambient one — the emitted run-unit driver's first statement
     /// (<c>ProgramRegistry.Reset()</c>). Every member of the new run unit is fresh (program table, EXTERNAL store,
-    /// MODULE-NAME stack, files, switches (§12.3.7.4 4) — the implementor-defined scope is the run unit), locale
-    /// (§14.6.11 5), FUNCTION RANDOM sequence
-    /// (§15.75.3 r4), report flow, exception status, factory objects (§9.3.14.2) and the termination status),
+    /// MODULE-NAME stack, files, switches (§2023:12.3.7.4 4) — the implementor-defined scope is the run unit), locale
+    /// (§2023:14.6.11 5), FUNCTION RANDOM sequence
+    /// (§2023:15.75.3 r4), report flow, exception status, factory objects (§2023:9.3.14.2) and the termination status),
     /// because it is a new object — only the <see cref="HostConfiguration"/> carries over. The run unit it
     /// replaces is not touched: its own termination (<see cref="ProgramTable.RunMain"/>'s finally, or
     /// <see cref="Run"/>'s) closed its files, and dropping the last reference to it releases everything it owned
-    /// (§14.6.11 items 3, 4 and 6 — ALLOCATEd storage, instance objects, dynamic items — are managed memory).</summary>
+    /// (§2023:14.6.11 items 3, 4 and 6 — ALLOCATEd storage, instance objects, dynamic items — are managed memory).</summary>
     public static RunUnit Begin()
     {
         var ru = StartAfter(_current.Value, serve: true);

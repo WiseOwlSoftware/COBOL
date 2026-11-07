@@ -11,7 +11,7 @@ using WiseOwl.Cobol.Editions;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The implementor system-name table (<see cref="ImplementorNames"/> — ISO §12.3.7.3 SR8, Annex A.1 items
+/// The implementor system-name table (<see cref="ImplementorNames"/> — ISO §2023:12.3.7.3 SR8, Annex A.1 items
 /// 189/190/191; kb/Work PB862) held against the three things that could drift from it, and the SPECIAL-NAMES entry
 /// shape (kb/Work PB716) held from both sides.
 /// <para>The table is the ONE place the names live; the documentation (docs/CONFORMANCE.md §7) and the COBOL2241
@@ -77,7 +77,7 @@ public sealed class ImplementorNamesDriftTests
             Assert.True(catalog.Contains(e, StringComparison.Ordinal), $"COBOL2241's text does not name {e}");
     }
 
-    /// <summary>§8.3.2.3.1 — "a given system-name shall not belong to more than one of the following types of
+    /// <summary>§2023:8.3.2.3.1 — "a given system-name shall not belong to more than one of the following types of
     /// system-names: device-name, feature-name, and switch-name". True by construction (one key per name); pinned so
     /// a second table can never be added beside this one without failing here first.</summary>
     [Fact]
@@ -93,7 +93,7 @@ public sealed class ImplementorNamesDriftTests
     }
 
     /// <summary>The COMPLEMENT: every row is accepted — in the mnemonic form, and for a switch-name in both
-    /// status-only orders (§5.2.6.4 choice indicators: any order, each once) — at the first and the last edition.</summary>
+    /// status-only orders (§2023:5.2.6.4 choice indicators: any order, each once) — at the first and the last edition.</summary>
     [Theory]
     [InlineData(85)]
     [InlineData(2023)]
@@ -115,7 +115,7 @@ public sealed class ImplementorNamesDriftTests
     }
 
     /// <summary>The REFUSALS, one per arm of the new shape: an unavailable name (SR8), ON STATUS on a device-name,
-    /// and a lone word — which is no entry at all (§12.3.7.2: every arm has a required continuation).</summary>
+    /// and a lone word — which is no entry at all (§2023:12.3.7.2: every arm has a required continuation).</summary>
     [Theory]
     [InlineData("           WIBBLE WOBBLE.", "COBOL2241")]
     [InlineData("           CONSOEL IS PRT.", "COBOL2241")]
@@ -130,7 +130,7 @@ public sealed class ImplementorNamesDriftTests
         Assert.Contains(errors, e => e.Contains(code, StringComparison.Ordinal));
     }
 
-    /// <summary>The mnemonic's USE is keyed on its name's KIND (§12.3.7.3 SR5/SR6/SR7, §14.9.51.3 SR16): a
+    /// <summary>The mnemonic's USE is keyed on its name's KIND (§2023:12.3.7.3 SR5/SR6/SR7, §2023:14.9.51.3 SR16): a
     /// switch's or a feature's mnemonic in DISPLAY and a device's in SET are refused (the WRITE ADVANCING leg, COBOL2243,
     /// is the negative golden pb862-write-advancing-device-mnemonic).</summary>
     [Theory]
@@ -139,7 +139,7 @@ public sealed class ImplementorNamesDriftTests
     [InlineData("           CONSOLE IS CON.", "           SET CON TO ON.", "COBOL1757")]
     [InlineData("           CSP IS NOSP.", "           SET NOSP TO ON.", "COBOL1757")]
     // kb/Work PB454 — an Option-2 switch entry (status phrases, no mnemonic) declares no name SET can take; the
-    // switch-NAME is an implementor-name (§8.3.2.3.11), never mnemonic-name-1 (§14.9.39.3 SR5).
+    // switch-NAME is an implementor-name (§2023:8.3.2.3.11), never mnemonic-name-1 (§2023:14.9.39.3 SR5).
     [InlineData("           SWITCH-1 ON STATUS IS SW-ON.", "           SET SWITCH-1 TO ON.", "COBOL1757")]
     public void MnemonicUse_IsKeyedOnTheNamesKind(string special, string procedure, string code)
     {
@@ -168,9 +168,9 @@ public sealed class ImplementorNamesDriftTests
             + "answered by Procedure.MnemonicRegistry alone (kb/Work PB454)");
     }
 
-    /// <summary>The CLASS clause's FOR phrase at its PRINTED position (§12.3.7.2, folio 290 — between class-name-1
+    /// <summary>The CLASS clause's FOR phrase at its PRINTED position (§2023:12.3.7.2, folio 290 — between class-name-1
     /// and IS), with and without the optional FOR, is accepted; the old postfix position is not (COBOL2315, kb/Work
-    /// PB977). A NATIONAL class's literals are national literals (§12.3.7.3 SR17 c3 — kb/Work PB976 made the phrase
+    /// PB977). A NATIONAL class's literals are national literals (§2023:12.3.7.3 SR17 c3 — kb/Work PB976 made the phrase
     /// load-bearing, and this row used to write alphanumeric ones).</summary>
     [Theory]
     [InlineData("           CLASS HEX FOR ALPHANUMERIC IS \"0\" THRU \"9\" \"A\" THRU \"F\".", true)]

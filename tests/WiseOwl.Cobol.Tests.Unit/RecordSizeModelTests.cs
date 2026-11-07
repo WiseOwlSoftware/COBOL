@@ -16,9 +16,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ ONE RECORD-SIZING MODEL, IN BYTES, READ BY EVERY CONSUMER (kb/Work PB1276, PB1277) — <see cref="FileModel"/>'s
-/// <see cref="FileModel.RecordWidth"/> (the record area, ISO §13.18.43.4 GR2), <see cref="FileModel.VaryMin"/> /
+/// <see cref="FileModel.RecordWidth"/> (the record area, ISO §2023:13.18.43.4 GR2), <see cref="FileModel.VaryMin"/> /
 /// <see cref="FileModel.VaryMax"/> (GR9 / GR10) and the per-record <c>MinRecordSize</c> / <c>MaxRecordSize</c>
-/// (GR8 a / b) that §13.18.43.3 SR3 / SR4 screen against.
+/// (GR8 a / b) that §2023:13.18.43.3 SR3 / SR4 screen against.
 /// <para>Each case is one of the ways the model used to give a second answer: a Format 1 RECORD CONTAINS integer-1
 /// that sized nothing (the descriptions sized the file), an explicit Format 2 clause without integer-3 whose maximum
 /// was the character AREA while the implied clause's was the descriptions' maximum, sizes counted in CHARACTER
@@ -29,8 +29,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 public sealed class RecordSizeModelTests
 {
-    /// <summary>§13.18.43.4 GR6 — "Integer-1 specifies the number of bytes contained in each record in the
-    /// file" — on an FD and an SD alike; §13.18.43.3 SR3 permits the smaller description.</summary>
+    /// <summary>§2023:13.18.43.4 GR6 — "Integer-1 specifies the number of bytes contained in each record in the
+    /// file" — on an FD and an SD alike; §2023:13.18.43.3 SR3 permits the smaller description.</summary>
     [Theory]
     [InlineData("FD")]
     [InlineData("SD")]
@@ -41,7 +41,7 @@ public sealed class RecordSizeModelTests
         Assert.False(file.RecordSizeVaries);
     }
 
-    /// <summary>§13.18.43.4 GR10 — the unstated maximum is "the greatest number of bytes described for a record
+    /// <summary>§2023:13.18.43.4 GR10 — the unstated maximum is "the greatest number of bytes described for a record
     /// in that file", with a dynamic-length member at its maximum size (GR8 b): 3 + 20 = 23 — for the explicit
     /// clause without integer-3 AND for the implied Format 2 clause (D-FRA (iv)); GR9's minimum is the member at
     /// zero length, 3.</summary>
@@ -59,7 +59,7 @@ public sealed class RecordSizeModelTests
 
     /// <summary>GR3 / GR8 / GR9 / GR10 in BYTES: an unstated range over a record is its own byte size, both ends.
     /// A national position is two bytes (D-N1); two <c>PIC 1(3) USAGE BIT</c> items share one byte (GR4, the
-    /// §8.5.1.6.3 walk); an occurs-depending table counts at its minimum occurrences for the minimum (GR8 a) and its
+    /// §2023:8.5.1.6.3 walk); an occurs-depending table counts at its minimum occurrences for the minimum (GR8 a) and its
     /// maximum for the maximum (GR8 b) — for a national element and for a bit element, whose occurrences pack.</summary>
     [Theory]
     [InlineData("       01  R1 PIC N(10).", 20, 20)]
@@ -70,7 +70,7 @@ public sealed class RecordSizeModelTests
     [InlineData("       01  R1.\r\n           05 A PIC X(1).\r\n"
         + "           05 T PIC 1(3) USAGE BIT OCCURS 1 TO 4 TIMES DEPENDING ON K.", 2, 3)]
     // kb/Work PB3253 — the VARIABLE-LENGTH record: GR8 b)'s maximum is ByteWidth (bits laid out by the one
-    // §8.5.1.6.3 walk, a dynamic-length leaf zero bytes) plus each dynamic-length leaf's maximum, the same fixed part
+    // §2023:8.5.1.6.3 walk, a dynamic-length leaf zero bytes) plus each dynamic-length leaf's maximum, the same fixed part
     // MinRecordSize starts from — never a re-summation giving every bit leaf a byte of its own.
     [InlineData("       01  R1.\r\n           05 B1 PIC 1(3) USAGE BIT.\r\n           05 B2 PIC 1(3) USAGE BIT.\r\n"
         + "           05 D PIC X DYNAMIC LENGTH LIMIT 10.", 1, 11)]
@@ -86,7 +86,7 @@ public sealed class RecordSizeModelTests
         Assert.Equal(max, file.VaryMax);
     }
 
-    /// <summary>A dynamic length structure inside a table is counted once per occurrence at both ends (§12.3.7.4
+    /// <summary>A dynamic length structure inside a table is counted once per occurrence at both ends (§2023:12.3.7.4
     /// GR18 / GR19: every occurrence of the item is delimited): a three-occurrence table of a 10-character DELIMITED
     /// item is 3 x (10 + 1) = 33 bytes at most and 3 x (0 + 1) = 3 at least (kb/Work PB3253 — the minimum counted
     /// the structure of a table's item once).
@@ -112,7 +112,7 @@ public sealed class RecordSizeModelTests
 
     /// <summary>Binds <paramref name="fileSection"/> and returns its one file. ⛔ The source must bind CLEAN, binder
     /// errors included: a size measured on source the compile refuses is not a record size (kb/Work PB1604 — e.g.
-    /// a dynamic-capacity table under an FD record, which COBOL1526 refuses per §8.5.1.9.1 3)).</summary>
+    /// a dynamic-capacity table under an FD record, which COBOL1526 refuses per §2023:8.5.1.9.1 3)).</summary>
     private static FileModel Single(string fileSection, string specialNames = "")
     {
         string src = "       IDENTIFICATION DIVISION.\r\n"

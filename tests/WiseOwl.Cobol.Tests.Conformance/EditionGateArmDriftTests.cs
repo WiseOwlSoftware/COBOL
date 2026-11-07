@@ -52,18 +52,18 @@ public sealed class EditionGateArmDriftTests
         ["SetObjectReference2002"] =
             "the Format-5 RE-ROUTE: `SET a TO b` reaches OoBinder as an object-reference SET only when both "
             + "operands RESOLVE to PicCategory.ObjectReference — setToStatement is the one shape every SET … TO "
-            + "format shares, NULL sender included (kb/Work PB4231), so no parse rule names Format 5 (ISO §14.9.39 Format 5)",
+            + "format shares, NULL sender included (kb/Work PB4231), so no parse rule names Format 5 (ISO §2023:14.9.39 Format 5)",
         ["SetFunctionPointer2014"] =
             "the Format-8 RE-ROUTE, the SetObjectReference2002 shape over the other carrier: `SET fp1 TO fp2` "
             + "and `SET fp TO NULL` parse as setToStatement, the shape every SET … TO format shares, and only the "
-            + "operands' RESOLVED PicCategory.FunctionPointer selects §14.9.39.2 Format 8 — the printed format "
+            + "operands' RESOLVED PicCategory.FunctionPointer selects §2023:14.9.39.2 Format 8 — the printed format "
             + "is `SET { identifier-12 } … TO identifier-13` and has no keyword a parse rule could recognize",
         ["SetProgramPointer2002"] =
             "the Format-9 RE-ROUTE, and the one the Format-8 entry above is modelled on: `SET pp1 TO pp2` "
             + "and `SET pp TO NULL` parse as setToStatement, the shape every SET … TO format shares, and only the "
-            + "operands' RESOLVED PicCategory.ProgramPointer selects §14.9.39.2 Format 9 — the printed format "
+            + "operands' RESOLVED PicCategory.ProgramPointer selects §2023:14.9.39.2 Format 9 — the printed format "
             + "is `SET { identifier-7 } … TO identifier-8` and has no keyword a parse rule could recognize. "
-            + "The two SENDER spellings that DO carry keywords (the ISO §8.4.3.13 ADDRESS OF PROGRAM rule and "
+            + "The two SENDER spellings that DO carry keywords (the ISO §2023:8.4.3.13 ADDRESS OF PROGRAM rule and "
             + "the Micro Focus / IBM TO ENTRY extension) bind to the same node and take the SAME id from this "
             + "one arm rather than a second, parse-arm gate — the Format-8 precedent exactly (kb/Work PB549)",
         ["CallUsingGroupAnyLevel2002"] =
@@ -72,11 +72,11 @@ public sealed class EditionGateArmDriftTests
             + "prints the same tokens for an elementary item, a level-01 record and a level-05 group",
         ["PointerArithmetic2002"] =
             "SET x UP/DOWN BY n is ONE printed shape for TWO constructs — the version-invariant index form "
-            + "(§14.9.39 Format 2, index-arithmetic) and the 2002 pointer form (Format 10). Only the operand's resolved USAGE "
+            + "(§2023:14.9.39 Format 2, index-arithmetic) and the 2002 pointer form (Format 10). Only the operand's resolved USAGE "
             + "separates them, so recognition would gate every SET of an index",
         ["SetDynLengthSize2023"] =
             "the bare `SET item TO n` re-routes to BoundSetSize only when the target resolves to a DYNAMIC LENGTH "
-            + "item (§14.9.39 Format 16); the explicit SIZE OF spelling and the re-routed one share one node and "
+            + "item (§2023:14.9.39 Format 16); the explicit SIZE OF spelling and the re-routed one share one node and "
             + "must share one gate",
         // The USAGE / PICTURE-category family (Step 14g.1): one gate per RESOLVED DataItem, keyed on
         // (OwnUsage, Pic.Category, Pic.Usage). A parse-arm home cannot work for any of them — a group header
@@ -95,7 +95,7 @@ public sealed class EditionGateArmDriftTests
         ["UsageFloatExtended2002"] = UsageFact("USAGE FLOAT-EXTENDED"),
         ["UsageFloatBinary322014"] = UsageFact("USAGE FLOAT-BINARY-32"),
         ["UsageFloatBinary642014"] = UsageFact("USAGE FLOAT-BINARY-64"),
-        // (The MOVE figurative-constant category rows, ISO §14.9.25.3 SR5, are NOT here since kb/Work PB3755: they are
+        // (The MOVE figurative-constant category rows, ISO §2023:14.9.25.3 SR5, are NOT here since kb/Work PB3755: they are
         // read by FigurativeAssociation.GateSr5, ONE body for the written MOVE, INITIALIZE REPLACING and a BY CONTENT
         // argument, none of which this pass alone reaches; Sr5EditionRowAskerDriftTests pins that.)
         ["PicExternalFloat2002"] =
@@ -105,7 +105,7 @@ public sealed class EditionGateArmDriftTests
         ["NationalEdited2002"] =
             "PicInfo's { Category: National, EditMask: not null } — the twin of PicExternalFloat2002 above, "
             + "and out of the same PictureConstructId function: national-edited is a shape of the ANALYSED "
-            + "picture string (ISO §13.18.40.4 GR10 — at least one symbol 'N' AND at least one instance of "
+            + "picture string (ISO §2023:13.18.40.4 GR10 — at least one symbol 'N' AND at least one instance of "
             + "character-1 or of B / 0 / '/'), which no token of the parse tree distinguishes from a plain "
             + "PIC N; and USAGE NATIONAL reaches the same category through TYPE / SAME AS / TYPEDEF as "
             + "readily as through its own written clause (kb/Work PB492 — until it, this gate rode "
@@ -325,7 +325,7 @@ public sealed class EditionGateArmDriftTests
             string n = m.Groups[1].Value;
             if (!n.Equals("FILLER", StringComparison.OrdinalIgnoreCase)) names.Add(n);
         }
-        // §8.3.2.1 caps a COBOL word; a rename that would breach the cap would draw a WORD-LENGTH error instead
+        // §2023:8.3.2.1 caps a COBOL word; a rename that would breach the cap would draw a WORD-LENGTH error instead
         // of the undefined-name one this mutation is for, so those names are left alone.
         names.RemoveWhere(n => n.Length + BreakSuffix.Length > 31);
         if (names.Count == 0) return null;

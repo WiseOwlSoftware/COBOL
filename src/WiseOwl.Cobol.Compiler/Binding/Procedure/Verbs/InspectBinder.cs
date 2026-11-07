@@ -18,7 +18,7 @@ using Core = CobolParserCore;
 /// <c>Binding/Bound/BoundInspect.cs</c> — the Tally/Replace enum ordinals are runtime ABI.</summary>
 internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
 {
-    /// <summary>Bind INSPECT (ISO §14.9.22): resolve identifier-1 (SR1 — an alphanumeric or national group or an elementary
+    /// <summary>Bind INSPECT (ISO §2023:14.9.22): resolve identifier-1 (SR1 — an alphanumeric or national group or an elementary
     /// usage display or national item), flatten the TALLYING/REPLACING operands across all counters in SOURCE order (the GR8a
     /// shared-cycle order), and bind CONVERTING to its from/to maps (GR20). BACKWARD is 2023-only
     /// (VERSION_CHANGE_REFERENCE row 77 / E.3.3 item 34); TRAILING and tallying FIRST are not in any ISO format —
@@ -26,9 +26,9 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
     public BoundStatement Bind(Core.InspectStatementContext ins)
     {
         // ── identifier-1 may be a FUNCTION-IDENTIFIER, but only where the statement does not MODIFY it (PB10).
-        // §8.4.3.1.2 Format 1 makes a function-identifier an IDENTIFIER, so this position admits one; §8.4.3.2.3
+        // §2023:8.4.3.1.2 Format 1 makes a function-identifier an IDENTIFIER, so this position admits one; §2023:8.4.3.2.3
         // SR1 bars it from a RECEIVING operand. INSPECT splits BY FORMAT, and the split is derived, not assumed:
-        // §14.9.22.4 GR1 concedes only that "for purposes of determining its length, identifier-1 is treated as a
+        // §2023:14.9.22.4 GR1 concedes only that "for purposes of determining its length, identifier-1 is treated as a
         // sending data item" (a scoped concession that would be pointless if it were generally sending); GR7 has
         // each match "tallied (format 1) or replaced by literal-3 (format 2)"; and GR20 makes format 4 execute AS
         // a format 2 over the same identifier-1. So Format 1 (TALLYING alone) SENDS and Formats 2/3/4 RECEIVE.
@@ -37,7 +37,7 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
         // not two representations of it.
         bool modifies = ins.inspectReplacingPhrase() is not null || ins.inspectConvertingPhrase() is not null;
         // Both function-identifier SPELLINGS funnel here — the keyword form (`FUNCTION F(…)`, PB10) and the
-        // §8.4.3.2.3 SR2 keyword-OMITTED form (kb/Work R15): SR2 makes them ONE reference, so they share one
+        // §2023:8.4.3.2.3 SR2 keyword-OMITTED form (kb/Work R15): SR2 makes them ONE reference, so they share one
         // SR1 screen and one bind. The omitted form used to fall through name resolution into the loud stage
         // ("INSPECT of unresolvable item"), compiling clean and dying at run time — the PB7 shape in the one
         // operand slot that never consulted the hook. KeywordOmittedFunction itself yields to a declared data
@@ -49,15 +49,15 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.FunctionIdentifierReceiving,
                     $"INSPECT identifier-1 is the function-identifier '{spelling}', but this INSPECT "
                     + (ins.inspectConvertingPhrase() is not null
-                        ? "CONVERTS it (ISO §14.9.22.2 Format 4, which §14.9.22.4 GR20 executes as a Format 2 "
+                        ? "CONVERTS it (ISO §2023:14.9.22.2 Format 4, which §2023:14.9.22.4 GR20 executes as a Format 2 "
                           + "over the same identifier-1)"
-                        : "REPLACES characters in it (ISO §14.9.22.2 Format 2/3, §14.9.22.4 GR7)")
-                    + " — a receiving operand, which ISO §8.4.3.2.3 SR1 bars a function-identifier from. A "
+                        : "REPLACES characters in it (ISO §2023:14.9.22.2 Format 2/3, §2023:14.9.22.4 GR7)")
+                    + " — a receiving operand, which ISO §2023:8.4.3.2.3 SR1 bars a function-identifier from. A "
                     + "function-identifier IS legal as INSPECT identifier-1 in Format 1 (TALLYING only)");
             }
             // Format 1: identifier-1 is only READ. It binds as an ordinary sending operand and flows to the
             // emitter's AsString read; nothing stores back, so no Place is needed. ⛔ SR1's usage constraint is NOT
-            // satisfied by construction (kb/Work PB3665): a function is described by its §15.2 type, and a numeric,
+            // satisfied by construction (kb/Work PB3665): a function is described by its §2023:15.2 type, and a numeric,
             // integer, index or boolean one (FUNCTION LENGTH folded to a literal included) is not usage display or
             // national, so identifier-1 asks the same ONE function reader identifier-3 ... identifier-n do (SR2).
             if (!ctx.Validation.CheckInspectIdentifier1FunctionUsage(fnOperand, spelling))
@@ -66,14 +66,14 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
         }
         if (ins.functionCall() is { } fnTarget)
             return BindFunctionTarget(host.Intrinsic.IntrinsicOperand(fnTarget), fnTarget.GetText());
-        // §8.4.3.1.2 Format 4 in the same SENDING position as Format 1 (kb/Work PB428): INSPECT's
+        // §2023:8.4.3.1.2 Format 4 in the same SENDING position as Format 1 (kb/Work PB428): INSPECT's
         // identifier-1 is a sending operand for TALLYING and a receiving one for REPLACING/CONVERTING,
         // which BindFunctionTarget already partitions — one reading, two identifier formats.
         if (ins.inlineMethodInvocation() is { } imiTarget)
             return BindFunctionTarget(host.Oo.OoInlineInvocationOperand(imiTarget), imiTarget.GetText());
         if (host.Intrinsic.KeywordOmittedFunction(ins.dataReference()) is { } kof)
             return BindFunctionTarget(IntrinsicBinder.OperandOf(kof, functionValue: true), ins.dataReference().GetText());
-        // An INDEX-NAME as identifier-1 (kb/Work R16): INSPECT is none of §13.18.38.3 r7's five index-name
+        // An INDEX-NAME as identifier-1 (kb/Work R16): INSPECT is none of §2023:13.18.38.3 r7's five index-name
         // contexts — a compile diagnostic, not the unresolvable-item runtime stage below.
         // ⛔ Both lanes, deliberately: identifier-1 is an IDENTIFIER SLOT, so there is no occurrence-number
         // coercion to offer under --permissive (the r7 lane split is written down at
@@ -82,12 +82,12 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
         {
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.IndexNameContext,
                 $"INSPECT identifier-1 is the index-name '{ins.dataReference().GetText()}', which is not an "
-                + "identifier (ISO §8.4.3.1.2); §13.18.38.3 r7 admits an index-name only as a subscript, in "
+                + "identifier (ISO §2023:8.4.3.1.2); §2023:13.18.38.3 r7 admits an index-name only as a subscript, in "
                 + "PERFORM/SEARCH VARYING, in SET, or in a relation condition");
         }
-        // ⛔ IDENTIFIER-1 IS A RECEIVING OPERAND EXACTLY WHEN THE STATEMENT MODIFIES IT (kb/Work PB881). §14.9.22.3
+        // ⛔ IDENTIFIER-1 IS A RECEIVING OPERAND EXACTLY WHEN THE STATEMENT MODIFIES IT (kb/Work PB881). §2023:14.9.22.3
         // SR8 makes it "a sending operand" in Format 1 (TALLYING only); REPLACING and CONVERTING store into it, so
-        // it is then a receiving data item and every receiving-operand prohibition applies — §13.18.15.3 SR2 above
+        // it is then a receiving data item and every receiving-operand prohibition applies — §2023:13.18.15.3 SR2 above
         // all: `INSPECT CA REPLACING ALL "a" BY "b"` over a CONSTANT RECORD rewrote the constant, where the
         // identical MOVE is refused. The SAME `modifies` fact BindFunctionTarget partitions on selects the entry,
         // so the function-identifier arm and the data-reference arm cannot disagree (feedback_two_arm_dispatch).
@@ -122,7 +122,7 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
                     ? $"one of the {ItemCategory.Spell(ItemCategory.GroupKindsOf(target.Item))}"
                     : $"an elementary item of USAGE {ItemCategory.UsageOf(target.Item)?.ToString() ?? "(none)"}")
                 + "; SR1 admits an alphanumeric or national GROUP item or an ELEMENTARY item described implicitly "
-                + "or explicitly as usage display or national (ISO §14.9.22.3 SR1)");
+                + "or explicitly as usage display or national (ISO §2023:14.9.22.3 SR1)");
         }
 
         return BindPhrases(new BoundFieldOperand(target), ins);
@@ -134,7 +134,7 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
     /// only in whether a Place exists to store back into.</summary>
     private BoundStatement BindPhrases(BoundOperand targetOperand, Core.InspectStatementContext ins)
     {
-        // ⛔ ISO §14.9.22.3 SR4 (kb/Work PB980; formerly "Phase-4a residue #12"): "If any of identifier-1,
+        // ⛔ ISO §2023:14.9.22.3 SR4 (kb/Work PB980; formerly "Phase-4a residue #12"): "If any of identifier-1,
         // identifier-3, identifier-4, identifier-5, identifier-6, identifier-7, literal-1, literal-2, literal-3,
         // literal-4, or literal-5 references an elementary data item or literal of class boolean or national,
         // then all shall reference a data item or literal of class boolean or national, respectively." The
@@ -153,7 +153,7 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
                     if (AllOrNothingClass.Violated(governing, all, triggers))
                     {
                         return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.CharacterOperandClassMix, $"INSPECT '{ins.dataReference()?.GetText() ?? "identifier-1"}' "
-                            + AllOrNothingClass.Offence(governing, "ISO §14.9.22.3 SR4") + " (ISO §14.9.22.3 SR4)");
+                            + AllOrNothingClass.Offence(governing, "ISO §2023:14.9.22.3 SR4") + " (ISO §2023:14.9.22.3 SR4)");
                     }
             }
             return bound;
@@ -170,12 +170,12 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
             foreach (var item in tallyPhrase.inspectTallyingItem())
             {
                 // ⛔ THE TALLYING COUNTER IS A RECEIVING OPERAND, SO IT RESOLVES AT THE RECEIVING CHOKEPOINT
-                // (kb/Work PB429). §14.9.22.4 GR12 a): "the content of the data item referenced by identifier-2
+                // (kb/Work PB429). §2023:14.9.22.4 GR12 a): "the content of the data item referenced by identifier-2
                 // is incremented by one for each occurrence of literal-1 matched" — which makes identifier-2 a
                 // receiver, and ExpressionBinder.ResolveReceiving is where every receiver-side
-                // rule is written down ONCE: §8.4.3.15.3 SR1 admits PAGE-COUNTER here ("any context where an
+                // rule is written down ONCE: §2023:8.4.3.15.3 SR1 admits PAGE-COUNTER here ("any context where an
                 // integer data item may appear") and SR3 refuses LINE-COUNTER, a constant-name is refused by
-                // §13.10.4 GR1, EXCEPTION-OBJECT by §8.4.3.6.3 SR1. The sending resolver used here before knew
+                // §2023:13.10.4 GR1, EXCEPTION-OBJECT by §2023:8.4.3.6.3 SR1. The sending resolver used here before knew
                 // none of them, so a legal PAGE-COUNTER counter fell out as an unresolved name and became a
                 // COBOL1756 run-time abort — the chokepoint's other arm, unfixed.
                 if (host.Expr.ResolveReceiving(item.receivingIdentifier()) is not { } counter)
@@ -195,7 +195,7 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
                     if (cp.FIRST() is not null || cp.TRAILING() is not null)
                         return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, "INSPECT TALLYING FOR "
                             + (cp.FIRST() is not null ? "FIRST" : "TRAILING")
-                            + ": the tallying-phrase of ISO §14.9.22.2 prints only CHARACTERS, ALL and LEADING");
+                            + ": the tallying-phrase of ISO §2023:14.9.22.2 prints only CHARACTERS, ALL and LEADING");
                     InspectTallyKind kind = cp.ALL() is not null ? InspectTallyKind.All : InspectTallyKind.Leading;
                     foreach (var operand in cp.inspectCountOperand())
                     {
@@ -221,7 +221,7 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
                     continue;
                 }
                 if (item.TRAILING() is not null)
-                    return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, "INSPECT REPLACING TRAILING: the replacing-phrase of ISO §14.9.22.2 "
+                    return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, "INSPECT REPLACING TRAILING: the replacing-phrase of ISO §2023:14.9.22.2 "
                         + "prints only CHARACTERS, ALL, LEADING and FIRST");
                 InspectReplaceKind kind = item.ALL() is not null ? InspectReplaceKind.All
                     : item.FIRST() is not null ? InspectReplaceKind.First
@@ -248,7 +248,7 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
         BoundInspectConvert? converting = null;
         if (ins.inspectConvertingPhrase() is { } conv)
         {
-            // §14.9.22.2 Format 4 (kb/Work R38, adjudicated 2026-08-08): CONVERTING's operands are
+            // §2023:14.9.22.2 Format 4 (kb/Work R38, adjudicated 2026-08-08): CONVERTING's operands are
             // {identifier-6 | literal-4} TO {identifier-7 | literal-5} — an ALPHABET-name is NEITHER (a
             // SPECIAL-NAMES name is not an identifier), so GnuCOBOL's CONVERTING-alphabet extension
             // (`INSPECT X CONVERTING BETA TO ALPHA` over `ALPHABET BETA IS EBCDIC`) is not ISO in any
@@ -261,7 +261,7 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
                     && ctx.Data.SpecialNames.IsAlphabetName(w))
                     ctx.Edition.Error(DiagnosticCatalog.UndefinedReference,
                         $"INSPECT CONVERTING references the ALPHABET-name '{w}' — Format 4's operands are "
-                        + "an identifier or a literal (ISO §14.9.22.2), and an alphabet-name is neither "
+                        + "an identifier or a literal (ISO §2023:14.9.22.2), and an alphabet-name is neither "
                         + "(the CONVERTING-alphabet form is a GnuCOBOL extension). Write the character "
                         + "strings, or a data item holding them");
             var from = InspectCharOperand(conv.sendingOperand(0));
@@ -278,7 +278,7 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
         return new BoundInspect(targetOperand, tallying, replacing, converting, backward);
     }
 
-    /// <summary>Bind a per-operand BEFORE/AFTER delimiter pair (ISO §14.9.22.2 after-before-phrase; both may
+    /// <summary>Bind a per-operand BEFORE/AFTER delimiter pair (ISO §2023:14.9.22.2 after-before-phrase; both may
     /// appear on one operand, in either order — disambiguated by token index, since the grammar's two alternatives
     /// share the merged BEFORE/AFTER accessors). INITIAL is a noise word.</summary>
     private (BoundOperand? Before, BoundOperand? After) InspectDelimiters(Core.InspectDelimitersContext? c)
@@ -297,7 +297,7 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>Bind an INSPECT operand (identifier-3..7 / literal-1..5 / figurative): a figurative constant is an
-    /// implicit ONE-character item (ISO §14.9.22.3 SR3 — and a figurative beginning with ALL is forbidden there);
+    /// implicit ONE-character item (ISO §2023:14.9.22.3 SR3 — and a figurative beginning with ALL is forbidden there);
     /// an identifier reads its FULL raw image at run time (GR5/GR6 — no trimming; GR4d de-signs a signed numeric
     /// operand at the read). <c>Figurative</c> reports the figurative origin so SR6/SR9 can expand a replacement
     /// to the pattern size.</summary>
@@ -310,8 +310,8 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
         if (_identifier1IsBoolean && bound.Figurative && bound.Op is not BoundFigurative { Kind: 'Z' })
             return (BoundOperandError.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule,
                 $"INSPECT operand '{c.GetText()}' is a figurative constant other than ZERO, but identifier-1 is of "
-                + "class boolean, and only the figurative constant ZERO may be specified there (ISO §14.9.22.3 SR3)",
-                $"INSPECT operand '{c.GetText()}' (ISO §14.9.22.3 SR3)"), false);
+                + "class boolean, and only the figurative constant ZERO may be specified there (ISO §2023:14.9.22.3 SR3)",
+                $"INSPECT operand '{c.GetText()}' (ISO §2023:14.9.22.3 SR3)"), false);
         // SR4's operand record (kb/Work PB980). A FIGURATIVE operand (and a bare symbolic character, which IS one)
         // takes identifier-1's class by SR3 — "When identifier-1 is of class national, the class of the figurative
         // constant is national; when identifier-1 is of class boolean, the figurative constant is of class
@@ -324,7 +324,7 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
         return bound;
     }
 
-    /// <summary>The operand classes of the INSPECT statement being bound, for ISO §14.9.22.3 SR4 — set for the
+    /// <summary>The operand classes of the INSPECT statement being bound, for ISO §2023:14.9.22.3 SR4 — set for the
     /// duration of <see cref="BindPhrases"/> and read once at its end. Every sending-operand position funnels
     /// through <see cref="InspectCharOperand"/>, so recording there reaches all of them without a per-phrase copy.</summary>
     private List<(CobolClass? Class, bool Triggers)>? _sr4Operands;
@@ -334,7 +334,7 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
     /// <see cref="_sr4Operands"/>.</summary>
     private bool _identifier1IsBoolean;
 
-    /// <summary>One SR4 entry: the operand's §8.5.2.1 class, and whether it can TRIGGER the rule — SR4 is written
+    /// <summary>One SR4 entry: the operand's §2023:8.5.2.1 class, and whether it can TRIGGER the rule — SR4 is written
     /// over an operand that "references an ELEMENTARY data item or literal of class boolean or national", while
     /// "all shall reference a data item or literal" of that class, so a group conforms by its class but never
     /// triggers.</summary>
@@ -349,8 +349,8 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
         literal is BoundStringLiteral { Value.Length: 0 }
             ? BoundOperandError.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule,
                 $"INSPECT operand '{c.GetText()}' is a zero-length literal, which literal-1 through literal-5 shall "
-                + "not be (ISO §14.9.22.3 SR3)",
-                $"INSPECT operand '{c.GetText()}' (ISO §14.9.22.3 SR3)")
+                + "not be (ISO §2023:14.9.22.3 SR3)",
+                $"INSPECT operand '{c.GetText()}' (ISO §2023:14.9.22.3 SR3)")
             : literal;
 
     private (BoundOperand Op, bool Figurative) InspectCharOperandOf(Core.SendingOperandContext c, bool literal5)
@@ -368,27 +368,27 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
                 if (!literal5)
                     return (BoundOperandError.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule,
                         $"INSPECT operand '{ConcatFolder.Spelling(fig)}' is a figurative constant that begins with the "
-                        + "word ALL, which literal-1, literal-2, literal-3 and literal-4 shall not be (ISO §14.9.22.3 SR3)",
-                        "INSPECT operand ALL figurative (ISO §14.9.22.3 SR3)"), false);
+                        + "word ALL, which literal-1, literal-2, literal-3 and literal-4 shall not be (ISO §2023:14.9.22.3 SR3)",
+                        "INSPECT operand ALL figurative (ISO §2023:14.9.22.3 SR3)"), false);
                 // Literal-5's ALL literal-1 / ALL symbolic-character-1, through THE ONE figurative binder (it folds a
-                // concatenated or constant-name literal-1 and reports §8.3.3.6.3 SR2/SR4): a BoundAllLiteral whose
-                // value the runtime repeats to identifier-6's / literal-4's size (GR22), exactly as §8.3.3.6.4 GR2
+                // concatenated or constant-name literal-1 and reports §2023:8.3.3.6.3 SR2/SR4): a BoundAllLiteral whose
+                // value the runtime repeats to identifier-6's / literal-4's size (GR22), exactly as §2023:8.3.3.6.4 GR2
                 // repeats any ALL literal to its associated size. ALL ZERO / SPACE / … binds as the bare word's
                 // BoundFigurative and takes the one-character arm below — the same figurative, filled to size.
                 var allFig = host.Expr.FigurativeOperand(fig);
                 if (allFig is BoundAllLiteral or BoundOperandError) return (allFig, allFig is BoundAllLiteral);
             }
             // A one-character figurative stays a BoundFigurative, so the emitter reads HIGH-/LOW-VALUE from the
-            // collating sequence of identifier-1's category (§8.3.3.6.4 GR6/GR7; kb/Work PB1414) — not the native pin.
+            // collating sequence of identifier-1's category (§2023:8.3.3.6.4 GR6/GR7; kb/Work PB1414) — not the native pin.
             return (host.Expr.FigurativeOperand(fig), true);
         }
-        // ⛔ A FUNCTION-IDENTIFIER OPERAND (ISO §8.4.3.1.2 Format 1; fix-queue PB45). §14.9.22.2 writes these as
+        // ⛔ A FUNCTION-IDENTIFIER OPERAND (ISO §2023:8.4.3.1.2 Format 1; fix-queue PB45). §2023:14.9.22.2 writes these as
         // `identifier-n | literal-n` and every one is a SENDING operand, so `INSPECT S TALLYING N FOR ALL
         // FUNCTION UPPER-CASE(P)` is conforming. It used to be a PARSE error; once the grammar admitted it, this
         // arm was still missing and the operand fell through to the not-implemented tail, which reported a
         // MISLEADING reason — "a numeric literal is not a valid INSPECT literal" — for something that is neither
         // numeric nor a literal. Routed through the ONE intrinsic-operand entry the other verbs use.
-        // ⛔ SR2 reaches it as it reaches a data item (kb/Work PB3665): the function is described by its §15.2 type, and a
+        // ⛔ SR2 reaches it as it reaches a data item (kb/Work PB3665): the function is described by its §2023:15.2 type, and a
         // numeric, integer, index or boolean one (FUNCTION LENGTH folded to a literal included) is not usage display
         // or national — `INSPECT … FOR ALL FUNCTION INTEGER(N)` compiled and examined the value's digits.
         if (c.functionCall() is { } fc)
@@ -397,13 +397,13 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
             ctx.Validation.CheckInspectFunctionUsage(function, DataBinder.WrittenText(c));   // SR2 — pure check
             return (function, false);
         }
-        if (c.inlineMethodInvocation() is { } imi)   // §8.4.3.1.2 Format 4; kb/Work PB428
+        if (c.inlineMethodInvocation() is { } imi)   // §2023:8.4.3.1.2 Format 4; kb/Work PB428
             return (host.Oo.OoInlineInvocationOperand(imi), false);
         // ⛔ THE ONE nonNumericLiteral MAPPING (kb/Work DA3), not a private copy of it (kb/Work PB1427). This arm
         // used to decode concatenation / STRINGLIT / NATLIT / BOOLLIT by hand — a copy with no HEXLIT arm, so
-        // `INSPECT … FOR ALL X"41"` (§8.3.3.2 Format 2 is the ALPHANUMERIC literal) fell to the tail below and was
+        // `INSPECT … FOR ALL X"41"` (§2023:8.3.3.2 Format 2 is the ALPHANUMERIC literal) fell to the tail below and was
         // refused as "a numeric literal", and with no NULL arm, so the predefined NULL — which is no INSPECT
-        // operand (§8.4.3.10.3 SR1) — drew the same wrong reason. The mapping folds a concatenation (§8.8.3.3
+        // operand (§2023:8.4.3.10.3 SR1) — drew the same wrong reason. The mapping folds a concatenation (§2023:8.8.3.3
         // GR3), decodes each literal class char-correct (the SR4 class mix is recorded by InspectCharOperand and
         // enforced in BindPhrases — kb/Work PB980), and refuses NULL by the ONE SR1 screen (COBOL2576).
         if (host.Expr.NonNumericLiteralOperand(c.literal()?.nonNumericLiteral()) is { } litOp)
@@ -411,22 +411,22 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
         if (c.dataReference() is { } dref)
         {
             // ⛔ A LITERAL ALIAS IS A LITERAL HERE, through the ONE alias resolution (kb/Work PB1127, PB110, PB1544). A
-            // constant-name: §13.10.3 SR2 "may be used anywhere that a format specifies a literal", §13.10.4 GR1 "as if
+            // constant-name: §2023:13.10.3 SR2 "may be used anywhere that a format specifies a literal", §2023:13.10.4 GR1 "as if
             // literal-1 ... were written" — so it substitutes BEFORE the identifier arm below, which would refuse it as
             // an undefined data-name, in the SAME bound shape the written literal produces, so SR3's class/zero-length
             // screens and SR4/SR6/SR7/SR9 all see it as one. A bare symbolic-character IS a figurative constant
-            // (§12.3.7.4 GR11 a)) — the bare figurative operand, one character, with the SR6 / GR14 figurative expansion
+            // (§2023:12.3.7.4 GR11 a)) — the bare figurative operand, one character, with the SR6 / GR14 figurative expansion
             // the literal figuratives get, and identifier-1's class (SR3), so SR4 does not record it.
             if (host.Expr.LiteralAliasOf(dref) is { } alias)
                 return alias.IsNumeric
                     ? (BoundOperandError.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule,
                         $"INSPECT operand '{dref.GetText()}' is a numeric constant-name; each INSPECT literal shall be an "
-                        + "alphanumeric, boolean, or national literal (ISO §14.9.22.3 SR3, §13.10.3 SR2)",
-                        $"INSPECT operand '{dref.GetText()}' (ISO §14.9.22.3 SR3)"), false)
+                        + "alphanumeric, boolean, or national literal (ISO §2023:14.9.22.3 SR3, §2023:13.10.3 SR2)",
+                        $"INSPECT operand '{dref.GetText()}' (ISO §2023:14.9.22.3 SR3)"), false)
                     : alias.Constant is not null
                         ? (ScreenZeroLength(host.Expr.AliasOperand(alias), c), false)
                         : (host.Expr.AliasOperand(alias), true);
-            // ⛔ A KEYWORD-OMITTED FUNCTION-IDENTIFIER IS A FUNCTION HERE TOO (§8.4.3.2.3 SR2; kb/Work PB3665, review
+            // ⛔ A KEYWORD-OMITTED FUNCTION-IDENTIFIER IS A FUNCTION HERE TOO (§2023:8.4.3.2.3 SR2; kb/Work PB3665, review
             // lead R1-2), as it is at identifier-1 above: SR2 makes `UPPER-CASE("b")` and `FUNCTION UPPER-CASE("b")` ONE
             // reference, and the arm below resolved it as a data name and refused legal source as undefined (COBOL1639).
             // KeywordOmittedFunction yields to a declared data item, so a genuine subscripted reference still binds as data.
@@ -444,7 +444,7 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
         // The grammar admits a numeric literal here; SR3 does not (alphanumeric/boolean/national literals only).
         return (BoundOperandError.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule,
             $"INSPECT operand '{c.GetText()}' is a numeric literal; each INSPECT literal shall be an alphanumeric, "
-            + "boolean, or national literal (ISO §14.9.22.3 SR3)",
-            $"INSPECT operand '{c.GetText()}' (ISO §14.9.22.3 SR3)"), false);
+            + "boolean, or national literal (ISO §2023:14.9.22.3 SR3)",
+            $"INSPECT operand '{c.GetText()}' (ISO §2023:14.9.22.3 SR3)"), false);
     }
 }

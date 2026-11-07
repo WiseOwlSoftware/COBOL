@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.30.4 GR10 a) and d) on the FORMAT-2 (random) READ —
+      *> ISO §2023:14.9.30.4 GR10 a) and d) on the FORMAT-2 (random) READ —
       *> "If the record operation conflict condition exists as a result
       *> of the READ statement: a) The file position indicator is
       *> unchanged. ... d) The key of reference for indexed files is
@@ -17,19 +17,19 @@
       *> whose order is the exact REVERSE (Z3/Z2/Z1), so the two walks
       *> diverge and the answer names which one ran.
       *>   I-ST : START B KEY IS NOT LESS THAN the alternate key makes
-      *>          the ALTERNATE the key of reference (§14.9.41.4 GR16).
+      *>          the ALTERNATE the key of reference (§2023:14.9.41.4 GR16).
       *>   I-N1 : the first READ NEXT then delivers the LOWEST alternate
       *>          key, Z1 — the record whose prime key is P3, CCCCC
-      *>          (§14.9.30.4 GR21 indexed rule d) 1.).
+      *>          (§2023:14.9.30.4 GR21 indexed rule d) 1.).
       *>   I-A  : the other connector locks the record whose PRIME key
-      *>          is P3 with a random READ ... WITH LOCK (§12.4.5.9.4
+      *>          is P3 with a random READ ... WITH LOCK (§2023:12.4.5.9.4
       *>          GR5 — manual locking obtains a lock only with the
       *>          explicit phrase).
       *>   I-R  : B now executes a FORMAT-2 random READ on its PRIME
-      *>          key P3.  §14.9.30.4 GR30/GR31 would establish the
+      *>          key P3.  §2023:14.9.30.4 GR30/GR31 would establish the
       *>          prime key as B's key of reference "for this retrieval"
       *>          — but the record is locked by another file connector,
-      *>          so GR9 + §9.1.13.8 item 1 make it '51' and 14.9.30.4 GR10 d)
+      *>          so GR9 + §2023:9.1.13.8 item 1 make it '51' and 14.9.30.4 GR10 d)
       *>          leaves the key of reference UNCHANGED: still the
       *>          alternate.  GR10 a) likewise leaves the file position
       *>          indicator at Z1.
@@ -45,7 +45,7 @@
       *>          order (kb/Work PB338).
       *>
       *> LEG R — THE FILE POSITION INDICATOR (GR10 a).  One relative
-      *> file, five records.  §14.9.30.4 GR29: "For a relative file,
+      *> file, five records.  §2023:14.9.30.4 GR29: "For a relative file,
       *> execution of a READ statement sets the file position indicator
       *> to the value contained in the data item referenced by the
       *> RELATIVE KEY clause for the file".

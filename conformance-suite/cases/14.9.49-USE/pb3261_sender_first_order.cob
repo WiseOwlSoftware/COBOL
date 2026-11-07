@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> kb/Work PB3261. ISO §14.9.49.4 GR11: "The exception condition
+      *> kb/Work PB3261. ISO §2023:14.9.49.4 GR11: "The exception condition
       *> that is used to determine which USE statement to select is the
       *> first one that occurs in the order of evaluation of the
       *> statement that causes the exception to exist." Every leg below
@@ -13,25 +13,25 @@
       *> (L = 50 into an 8-position X) and the receiving side with
       *> EC-BOUND-SUBSCRIPT (I = 9 into OCCURS 3), so the declarative
       *> that runs names the side the statement evaluates first.
-      *>   MOVE: §14.9.25.4 GR1, identifier-1's reference modifier "is
+      *>   MOVE: §2023:14.9.25.4 GR1, identifier-1's reference modifier "is
       *>     evaluated only once, immediately before data is moved to
       *>     the first of the receiving operands", and "Item
       *>     identification for identifier-2 is performed immediately
       *>     before the data is moved" - the sender first, whichever
       *>     side carries which failure (M1-M5).
-      *>   Arithmetic: §14.7.7 rule 4, the initial evaluation first,
+      *>   Arithmetic: §2023:14.7.7 rule 4, the initial evaluation first,
       *>     then "Item identification for the receiving data items is
       *>     done as each data item is accessed" (A1-A4).
-      *>   STRING: no timing of its own, so §14.6.4 7): "the
+      *>   STRING: no timing of its own, so §2023:14.6.4 7): "the
       *>     identifiers within a statement are evaluated in left to
       *>     right order" - identifier-1 and the delimiter before
       *>     identifier-3 (S1-S2).
-      *>   INITIALIZE: the same §14.6.4 7) order puts identifier-1, the
+      *>   INITIALIZE: the same §2023:14.6.4 7) order puts identifier-1, the
       *>     receiver, before the REPLACING sender (I1).
       *>   EVALUATE: the NONFATAL EC-RANGE-INVALID of the first WHEN's
       *>     reversed THRU range occurs before the second WHEN's
       *>     subscript fails, so its declarative runs first; it
-      *>     returns (§14.6.13.1.4) and the fatal EC-BOUND-SUBSCRIPT
+      *>     returns (§2023:14.6.13.1.4) and the fatal EC-BOUND-SUBSCRIPT
       *>     follows (E1).
       *> The V legs run the same shapes in range and check the values.
        IDENTIFICATION DIVISION.

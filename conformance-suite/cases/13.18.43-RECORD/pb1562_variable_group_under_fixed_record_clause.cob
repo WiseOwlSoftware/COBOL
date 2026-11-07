@@ -5,17 +5,17 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO 1989:2014 §13.18.43 (RECORD clause Format 1) over a VARIABLE-LENGTH GROUP record (§8.5.1.12.1).
+      *> ISO 1989:2014 §2023:13.18.43 (RECORD clause Format 1) over a VARIABLE-LENGTH GROUP record (§2023:8.5.1.12.1).
       *> The record below holds two DYNAMIC LENGTH members around a fixed one, inside a file described with the
-      *> fixed-length clause RECORD CONTAINS 20 CHARACTERS. It is LEGAL: §13.18.43.3 SR3 - "No record description entry
+      *> fixed-length clause RECORD CONTAINS 20 CHARACTERS. It is LEGAL: §2023:13.18.43.3 SR3 - "No record description entry
       *> for the file may specify a number of bytes greater than integer-1" - bounds the description by its
-      *> MAXIMUM (§13.18.43.4 GR8 b), by the determination D-FRA (iv) that a dynamic-length item counts at its maximum size) - that maximum is its LIMIT (§8.5.1.10.1): 9 + 3 + 8 = 20
+      *> MAXIMUM (§2023:13.18.43.4 GR8 b), by the determination D-FRA (iv) that a dynamic-length item counts at its maximum size) - that maximum is its LIMIT (§2023:8.5.1.10.1): 9 + 3 + 8 = 20
       *> bytes, EXACTLY integer-1 (the negative pb1562-record-contains-limit-one-over has 10 + 3 + 8 = 21). (Without the LIMIT phrases the maximum is the implementor's, 1,073,741,791 characters per
       *> item, and the entry is refused by SR3 - conformance-suite/cases/13.18.43-RECORD/pb1562-record-contains-unbounded-dynamic.cob.)
       *> A variable-length group "behaves in all respects as though it were in fact contiguous with its neighbors"
-      *> (§8.5.1.11.2), so each record is the concatenation of its members as they stand at the WRITE, and a READ
+      *> (§2023:8.5.1.11.2), so each record is the concatenation of its members as they stand at the WRITE, and a READ
       *> makes that very record available again: every member takes back exactly the characters it was written
-      *> with. The standard leaves the physical form to the implementor (§13.18.43.4 GR2: "The size of records on
+      *> with. The standard leaves the physical form to the implementor (§2023:13.18.43.4 GR2: "The size of records on
       *> physical storage media may be different due to control information required by the operating
       *> environment"); docs/CONFORMANCE.md D-FRA (vi) fixes it for a FIXED-length file. The contiguous image alone
       *> cannot be inverted with two variable members ("AAA" "KEY" "CCCC" and "AAAK" "EYC" "CCC" are the same ten

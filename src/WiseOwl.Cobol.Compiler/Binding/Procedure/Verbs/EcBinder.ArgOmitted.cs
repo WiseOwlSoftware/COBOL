@@ -6,7 +6,7 @@ using WiseOwl.Cobol.Runtime;
 namespace WiseOwl.Cobol.Binding.Procedure;
 
 /// <summary>
-/// ⛔ THE *-ARG-OMITTED RULE, BIND HALF (kb/Work PB971). ISO §14.9.4.4 GR12, §8.4.3.2.4 GR8 and §14.9.23.4 GR10 are
+/// ⛔ THE *-ARG-OMITTED RULE, BIND HALF (kb/Work PB971). ISO §2023:14.9.4.4 GR12, §2023:8.4.3.2.4 GR8 and §2023:14.9.23.4 GR10 are
 /// ONE rule written three times, keyed to the kind of the ACTIVATED element that owns the formal: "If a parameter
 /// for which the omitted-argument condition is true is referenced in [a called program | an activated function |
 /// an invoked method], except as an argument or in the omitted-argument condition, the [EC-PROGRAM | EC-FUNCTION
@@ -18,7 +18,7 @@ namespace WiseOwl.Cobol.Binding.Procedure;
 /// (<see cref="MarkFormals"/>), so every access path rooted at it renders through the runtime guard
 /// <see cref="OmittedFormal"/> — the raise site.</item>
 /// <item>THE CHECKING SCOPE: every statement of the element queries >>TURN for the kind's name
-/// (the per-element-kind rows of <see cref="AmbientRaises"/>), so the statement's §7.3.25.4 scope sets the flag the raise tests. Before PB971
+/// (the per-element-kind rows of <see cref="AmbientRaises"/>), so the statement's §2023:7.3.25.4 scope sets the flag the raise tests. Before PB971
 /// the name was queried only for a CALL / CANCEL (as if the ACTIVATOR raised it), so the callee's referencing
 /// statement never enabled it and the condition could not be raised at all, in any of the three kinds.</item>
 /// </list>
@@ -27,7 +27,7 @@ internal sealed partial class EcBinder
 {
     /// <summary>The activated-element kind of a source element — the ONE mapping from the binder's
     /// <see cref="SourceElementKind"/> to the runtime's key. A prototype's procedure division is its kind's
-    /// (§14.2.2 SR10's nouns).</summary>
+    /// (§2023:14.2.2 SR10's nouns).</summary>
     internal static ActivatedElementKind ElementKindOf(SourceElementKind kind) => kind switch
     {
         SourceElementKind.Program or SourceElementKind.ProgramPrototype => ActivatedElementKind.Program,
@@ -49,7 +49,7 @@ internal sealed partial class EcBinder
                 f.Item.CobolName ?? "", PassesCarrier: f.CarrierResident);
     }
 
-    /// <summary>Mark every method's formals (§14.9.23.4 GR10). The presence is the method's own omitted flag
+    /// <summary>Mark every method's formals (§2023:14.9.23.4 GR10). The presence is the method's own omitted flag
     /// parameter (<see cref="OoFormal.OmittedFlag"/>), in scope throughout the method body.</summary>
     internal static void MarkFormals(IEnumerable<OoMethodSymbol> methods, TurnState turn)
     {

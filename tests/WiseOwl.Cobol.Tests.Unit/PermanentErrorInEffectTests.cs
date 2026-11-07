@@ -7,7 +7,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// kb/Work PB1541 — ISO §9.1.13.1: a permanent error "remains in effect for all subsequent input-output operations
+/// kb/Work PB1541 — ISO §2023:9.1.13.1: a permanent error "remains in effect for all subsequent input-output operations
 /// on the file unless an implementor-defined technique is invoked to correct the permanent error condition"
 /// (Annex A.1 item 105; the technique this processor provides is CLOSE — docs/CONFORMANCE.md DOC-A.1-105).
 /// <para>The rule is one mechanism with one entry per VERB FAMILY (the shared READ/START/REWRITE-DELETE
@@ -19,7 +19,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 public sealed class PermanentErrorInEffectTests
 {
-    private const string Host = "30";   // §9.1.13.6 item 1 — "a permanent error exists and no further information is available"
+    private const string Host = "30";   // §2023:9.1.13.6 item 1 — "a permanent error exists and no further information is available"
 
     // ── sequential (record and line) ─────────────────────────────────────────────────────────────────────────
 
@@ -45,7 +45,7 @@ public sealed class PermanentErrorInEffectTests
             Assert.Equal(Host, c.Write("CCCC", -1, null));
             Assert.Equal(Host, c.WriteAdvancing("CCCC", 1, before: false, null));
             Assert.Equal(Host, c.StartFirstLast(last: false));
-            Assert.Equal(Host, c.Open(FileOpenMode.IO));   // §9.1.13.1 outranks the already-open '41'
+            Assert.Equal(Host, c.Open(FileOpenMode.IO));   // §2023:9.1.13.1 outranks the already-open '41'
             Assert.Equal(Host, c.PermanentErrorInEffect);
 
             Assert.Equal("00", c.Close());                 // the correction technique
@@ -124,7 +124,7 @@ public sealed class PermanentErrorInEffectTests
             reg.OpenStatic("F", FileOpenMode.IO);
 
             reg.SetRelativeKey("F", 0);
-            Assert.Equal("34", reg.WriteKeyed("F", "BBBB", -1));   // §14.9.51.4 GR29 b) — the real producer
+            Assert.Equal("34", reg.WriteKeyed("F", "BBBB", -1));   // §2023:14.9.51.4 GR29 b) — the real producer
             reg.SetRelativeKey("F", 2);
             Assert.Equal("34", reg.WriteKeyed("F", "CCCC", -1));   // would be '00': the condition is in effect
             Assert.Equal("34", reg.ReadKeyedNext("F", out _));
@@ -134,7 +134,7 @@ public sealed class PermanentErrorInEffectTests
             Assert.Equal("34", reg.StartFirstLast("F", last: false));
             reg.Unlock("F", records: false);
             Assert.Equal("34", reg.Status("F"));
-            Assert.Equal("34", reg.DeleteFile("F"));               // §14.9.10.4 GR13's '41' is outranked
+            Assert.Equal("34", reg.DeleteFile("F"));               // §2023:14.9.10.4 GR13's '41' is outranked
             Assert.True(File.Exists(host));
 
             reg.Close("F");
@@ -168,7 +168,7 @@ public sealed class PermanentErrorInEffectTests
     }
 
     /// <summary>Only a '3x' starts the condition: an invalid key ('22'/'23'), a logic error ('4x') and a
-    /// successful-with-information '0x' leave the connector usable (§9.1.13.5, §9.1.13.7, §9.1.13.2).</summary>
+    /// successful-with-information '0x' leave the connector usable (§2023:9.1.13.5, §2023:9.1.13.7, §2023:9.1.13.2).</summary>
     [Fact]
     public void OnlyAClassThreeStatusStartsTheCondition()
     {

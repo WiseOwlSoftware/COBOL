@@ -11,19 +11,19 @@
       *>   python scripts/spec/cite.py --check 14.9.51.4 "If the
       *>   ADVANCING phrase is not used, automatic advancing shall be
       *>   provided by the implementor to act as if the user has
-      *>   specified AFTER ADVANCING 1 LINE"      -> OK  §14.9.51.4 25)
+      *>   specified AFTER ADVANCING 1 LINE"      -> OK  §2023:14.9.51.4 25)
       *>   python scripts/spec/cite.py --check 14.9.51.4 "If the BEFORE
       *>   phrase is used, the line is presented before the
       *>   representation of the printed page is advanced"
-      *>                                          -> OK  §14.9.51.4 25) e)
+      *>                                          -> OK  §2023:14.9.51.4 25) e)
       *>   python scripts/spec/cite.py --check 14.9.51.4 "If the AFTER
       *>   phrase is specified or implied, the device is repositioned to
       *>   the first line that may be written on the next logical page"
-      *>                                          -> OK  §14.9.51.4 26)
+      *>                                          -> OK  §2023:14.9.51.4 26)
       *>   python scripts/spec/cite.py --check 13.18.34.4 "When the
       *>   ADVANCING phrase of the WRITE statement is not specified, the
       *>   LINAGE-COUNTER is incremented by the value one"
-      *>                                          -> OK  §13.18.34.4 7) c) 3
+      *>                                          -> OK  §2023:13.18.34.4 7) c) 3
       *> Four record sequential files, each written twice over: once
       *> with the plain WRITE and once with the phrase spelled out,
       *> and the two must hold the same bytes.

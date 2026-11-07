@@ -7,12 +7,12 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// <summary>
 /// kb/Work PB2847 — every not-found path tells the user WHY the module was not found, and a probe's reason belongs to
 /// the lookup that made it. The sibling-module probe (<c>ProgramTable.ProbeSiblingModule</c>, the implementor-defined
-/// part of how the runtime system "attempts to locate" a program, ISO §14.9.4.4 GR3b) finds <c>&lt;name&gt;.dll</c> beside
-/// the run; when that module is present but does not carry the name, the miss is "set to exist" (§8.4.3.13.4 GR4 for a
-/// program-address-identifier, §8.4.3.12.4 GR4 for a function-address-identifier, cite.py OK) and its reason rides the
-/// termination message the fatal default prints (§14.6.13.1.3 7)).
+/// part of how the runtime system "attempts to locate" a program, ISO §2023:14.9.4.4 GR3b) finds <c>&lt;name&gt;.dll</c> beside
+/// the run; when that module is present but does not carry the name, the miss is "set to exist" (§2023:8.4.3.13.4 GR4 for a
+/// program-address-identifier, §2023:8.4.3.12.4 GR4 for a function-address-identifier, cite.py OK) and its reason rides the
+/// termination message the fatal default prints (§2023:14.6.13.1.3 7)).
 /// <para>The companion <c>PROGRAM-ID. P2847Q AS "P2847R"</c> compiles to <c>P2847Q.dll</c> but registers only the
-/// externalized name P2847R (§11.10.4 GR1), so a lookup of P2847Q finds the module and then not the program: a reason
+/// externalized name P2847R (§2023:11.10.4 GR1), so a lookup of P2847Q finds the module and then not the program: a reason
 /// every surface must carry. CALL and ADDRESS OF PROGRAM carried it; <c>SET … TO ENTRY</c> and
 /// <c>ADDRESS OF FUNCTION</c> dropped it, and the probe's failure table was keyed by the name alone, so the reason of
 /// a FUNCTION lookup of a name could be printed for a PROGRAM lookup of it.</para>
@@ -66,7 +66,7 @@ public sealed class NotLocatedReasonTests
 
     /// <summary>One caller program: the working-storage every case needs, then <paramref name="procedure"/>. The function
     /// definition comes FIRST, because the caller's REPOSITORY names it, and a definition answers a function specifier
-    /// only when it is "specified previously in the same compilation group" (ISO §12.3.8.4 GR11 a)); the caller stays the main program, which is
+    /// only when it is "specified previously in the same compilation group" (ISO §2023:12.3.8.4 GR11 a)); the caller stays the main program, which is
     /// the first program definition.</summary>
     private static string Caller(string programId, string name, string procedure) => $"""
         {Function}
@@ -95,7 +95,7 @@ public sealed class NotLocatedReasonTests
     private static void AssertNotLocatedWithReason(
         (int exit, string stdout, string stderr) r, string ec, string surface, string kind, string name)
     {
-        Assert.Equal(1, r.exit);                                                        // §14.6.12 — the abnormal-termination exit
+        Assert.Equal(1, r.exit);                                                        // §2023:14.6.12 — the abnormal-termination exit
         Assert.Equal("BEFORE", r.stdout);                                               // nothing after the failing statement runs
         Assert.Contains("abnormal run-unit termination", r.stderr);
         Assert.Contains(ec, r.stderr);
@@ -104,7 +104,7 @@ public sealed class NotLocatedReasonTests
         Assert.Contains($"does not carry the {kind} {name}", r.stderr);                 // ... and it is the reason for THIS kind of lookup
     }
 
-    /// <summary>§8.4.3.13.4 GR4 — every surface of a program-address-identifier miss gives the probe's reason: the
+    /// <summary>§2023:8.4.3.13.4 GR4 — every surface of a program-address-identifier miss gives the probe's reason: the
     /// SET statement (identifier form of ADDRESS OF PROGRAM, and the vendor TO ENTRY), a relation operand and a CALL
     /// argument. The first two were the dropped-reason arms (kb/Work PB2847); the others are the arms that already
     /// carried it and stay pinned beside them.</summary>
@@ -125,7 +125,7 @@ public sealed class NotLocatedReasonTests
         AssertNotLocatedWithReason(Run(source, ProgramModule), "EC-PROGRAM-NOT-FOUND", surface, "program", "P2847Q");
     }
 
-    /// <summary>§8.4.3.12.4 GR4 — the function-address-identifier miss gives the probe's reason too (the dropped-reason
+    /// <summary>§2023:8.4.3.12.4 GR4 — the function-address-identifier miss gives the probe's reason too (the dropped-reason
     /// arm of kb/Work PB2847), and it is the FUNCTION lookup's reason: the file P2847PC.dll exists and carries a program
     /// of that name, not a function.</summary>
     [Fact]
@@ -142,9 +142,9 @@ public sealed class NotLocatedReasonTests
     }
 
     /// <summary>The probe's failure table is keyed by the externalized name AND the kind of unit asked for (kb/Work
-    /// PB2847; §8.4.6.3's first paragraph makes a program-name and a function-name different kinds of name). An
+    /// PB2847; §2023:8.4.6.3's first paragraph makes a program-name and a function-name different kinds of name). An
     /// UNCHECKED program lookup and an UNCHECKED function lookup of the one name each probe the module and record their
-    /// own reason (a miss is not raised while its checking is off, §14.6.13.1.4); the CALL that then misses, with the
+    /// own reason (a miss is not raised while its checking is off, §2023:14.6.13.1.4); the CALL that then misses, with the
     /// program lookup's probe already made and cached, must print the PROGRAM reason — before the fix the function
     /// lookup's reason, recorded last under the bare name, was printed for it.</summary>
     [Fact]

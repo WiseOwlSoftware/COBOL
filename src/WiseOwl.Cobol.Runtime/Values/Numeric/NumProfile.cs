@@ -4,7 +4,7 @@ namespace WiseOwl.Cobol.Runtime;
 
 /// <summary>
 /// How a numeric item's capacity (the SIZE ERROR boundary) is defined. COBOL distinguishes three
-/// overflow disciplines that <see cref="UsageKind"/> alone conflates (ISO §8.5.1.2 / §13.18.60).
+/// overflow disciplines that <see cref="UsageKind"/> alone conflates (ISO §2023:8.5.1.2 / §2023:13.18.60).
 /// </summary>
 public enum NumericTruncation
 {
@@ -27,12 +27,12 @@ public enum NumericTruncation
 /// is the CAPACITY discipline, and DISPLAY and BINARY share <see cref="NumericTruncation.DigitCount"/> while
 /// occupying entirely different bytes.
 /// <para>
-/// ISO/IEC 1989:2023 §13.18.60.4 leaves each of these representations to the implementor and §4.2.16 obliges us
+/// ISO/IEC 1989:2023 §2023:13.18.60.4 leaves each of these representations to the implementor and §2023:4.2.16 obliges us
 /// to document the choice (Annex A.1 items 205 and 215 make USAGE BINARY's and USAGE PACKED-DECIMAL's "computer
 /// storage allocation, alignment and representation of data" REQUIRED user-documentation items). These members
 /// ARE that documentation, and the width they imply is <c>PicInfo.StorageWidth</c> — the SAME width
-/// <c>FUNCTION BYTE-LENGTH</c> reports (§15.14.4 r1) and the SAME width the item occupies in a group's
-/// character image (§15.50.4 r3): one width, one representation, everywhere.
+/// <c>FUNCTION BYTE-LENGTH</c> reports (§2023:15.14.4 r1) and the SAME width the item occupies in a group's
+/// character image (§2023:15.50.4 r3): one width, one representation, everywhere.
 /// </para>
 /// </summary>
 public enum NumericByteForm
@@ -45,29 +45,29 @@ public enum NumericByteForm
     /// silently claiming to be DISPLAY.</summary>
     None = 0,
 
-    /// <summary>USAGE DISPLAY (ISO §13.18.60.4 GR7 — "an alphanumeric coded character set shall be used to
+    /// <summary>USAGE DISPLAY (ISO §2023:13.18.60.4 GR7 — "an alphanumeric coded character set shall be used to
     /// represent a data item … aligned on a character boundary"): ONE BYTE PER DIGIT POSITION, most significant
     /// first, the implied decimal point occupying no position, the sign carried per <see cref="NumProfile.SignKind"/>
     /// (an over-punch on the first/last digit, or a separate leading/trailing <c>+</c>/<c>-</c> byte that DOES
-    /// occupy a position, §13.18.52).</summary>
+    /// occupy a position, §2023:13.18.52).</summary>
     Zoned = 1,
 
-    /// <summary>USAGE BINARY / COMPUTATIONAL / COMP-5 / BINARY-CHAR..DOUBLE (ISO §13.18.60.4 GR4 "a radix of 2 is
+    /// <summary>USAGE BINARY / COMPUTATIONAL / COMP-5 / BINARY-CHAR..DOUBLE (ISO §2023:13.18.60.4 GR4 "a radix of 2 is
     /// used", GR6, GR12): a two's-complement integer of the UNSCALED value in exactly
     /// <see cref="NumProfile.StorageLength"/> bytes, MOST SIGNIFICANT BYTE FIRST (big-endian). The width table is
     /// pinned by digit count — 1-2-4-8 bytes for 1-2 / 3-4 / 5-9 / 10-18 digits — and the fixed-width usages own
-    /// their width directly (GR12). Big-endian is the implementor choice §13.18.60.4 GR4 asks for; it is what
+    /// their width directly (GR12). Big-endian is the implementor choice §2023:13.18.60.4 GR4 asks for; it is what
     /// IBM, Micro Focus and GnuCOBOL all write for USAGE BINARY, so a data file interchanges.</summary>
     Binary = 2,
 
-    /// <summary>USAGE PACKED-DECIMAL / COMP-3 (ISO §13.18.60.4 GR11 — "a radix of 10 … each digit position shall
+    /// <summary>USAGE PACKED-DECIMAL / COMP-3 (ISO §2023:13.18.60.4 GR11 — "a radix of 10 … each digit position shall
     /// occupy the minimum possible configuration"): binary-coded decimal, TWO DIGITS PER BYTE, most significant
     /// first, with a TRAILING SIGN NIBBLE in the low half of the last byte (<c>0x0C</c> positive, <c>0x0D</c>
     /// negative, and <c>0x0F</c> for an unsigned item's implied positive). The digit count is padded with a
     /// leading zero nibble when even, giving <c>Digits / 2 + 1</c> bytes.</summary>
     Packed = 3,
 
-    /// <summary>USAGE PACKED-DECIMAL WITH NO SIGN (ISO §13.18.60.4 GR11, a COBOL-2023 addition — "the
+    /// <summary>USAGE PACKED-DECIMAL WITH NO SIGN (ISO §2023:13.18.60.4 GR11, a COBOL-2023 addition — "the
     /// representation of the data item in the storage of the computer reserves no storage for representing any
     /// sign value"): <see cref="Packed"/> without the trailing sign nibble, so <c>ceil(Digits / 2)</c> bytes with
     /// a leading pad nibble when the digit count is odd. SR31 forbids an <c>S</c> in the picture; the value is
@@ -76,10 +76,10 @@ public enum NumericByteForm
 
     /// <summary>COMP-1 / FLOAT-SHORT / FLOAT-BINARY-32: the IEEE 754 binary32 interchange FORMAT, 4 bytes
     /// (kb/Work PB164 wave 2 — the byte-form pin that admits a float leaf to group images/records). The FORMAT
-    /// and the BYTE ORDER are separate spec channels: §13.18.60.4 GR14 pins FLOAT-BINARY-32 to the binary32
+    /// and the BYTE ORDER are separate spec channels: §2023:13.18.60.4 GR14 pins FLOAT-BINARY-32 to the binary32
     /// interchange format (ISO/IEC 60559) while GR13/GR21 leave COMP-1/FLOAT-SHORT to the implementor — one
-    /// form serves both. Byte order: §13.18.60.4 GR19 (HIGH-ORDER-LEFT = big-endian, HIGH-ORDER-RIGHT =
-    /// little-endian; for the STANDARD usages the implied phrase comes from §11.9.8, whose SR1 makes the
+    /// form serves both. Byte order: §2023:13.18.60.4 GR19 (HIGH-ORDER-LEFT = big-endian, HIGH-ORDER-RIGHT =
+    /// little-endian; for the STANDARD usages the implied phrase comes from §2023:11.9.8, whose SR1 makes the
     /// no-clause default OUR documented choice — HIGH-ORDER-LEFT, Annex A.1 item 48), carried per profile by
     /// <see cref="NumProfile.FloatLittleEndian"/>. The implementor-defined usages (COMP-1/FLOAT-SHORT) are
     /// PINNED big-endian, matching <see cref="Binary"/>'s byte order so a record interchanges.</summary>
@@ -87,14 +87,14 @@ public enum NumericByteForm
 
     /// <summary>COMP-2 / FLOAT-LONG / FLOAT-EXTENDED / FLOAT-BINARY-64: the IEEE 754 binary64 interchange
     /// FORMAT, 8 bytes (kb/Work PB164 wave 2; FLOAT-EXTENDED maps to binary64 — the documented GR13 subset
-    /// nesting, no .NET quad). Format pinned by §13.18.60.4 GR15 for FLOAT-BINARY-64, implementor-chosen
-    /// (GR13/GR21) for the rest; byte order per GR19 + §11.9.8 exactly as <see cref="Ieee32"/> documents —
+    /// nesting, no .NET quad). Format pinned by §2023:13.18.60.4 GR15 for FLOAT-BINARY-64, implementor-chosen
+    /// (GR13/GR21) for the rest; byte order per GR19 + §2023:11.9.8 exactly as <see cref="Ieee32"/> documents —
     /// big-endian unless <see cref="NumProfile.FloatLittleEndian"/>.</summary>
     Ieee64 = 6,
 }
 
 /// <summary>
-/// WHERE a signed numeric item presents its sign in its DISPLAY image (ISO §13.18.52 SIGN / §8.5.1.2): fused onto
+/// WHERE a signed numeric item presents its sign in its DISPLAY image (ISO §2023:13.18.52 SIGN / §2023:8.5.1.2): fused onto
 /// the leading or trailing digit position, or in a separate leading/trailing character position. For binary/packed
 /// usages the DISPLAY image carries a leading minus only when negative.
 /// <para>WHICH characters a fused sign uses is the ORTHOGONAL axis <see cref="NumProfile.SignEncoding"/> carries
@@ -134,7 +134,7 @@ public readonly record struct NumProfile
     public required int Digits { get; init; }
 
     /// <summary>The net signed fraction scale: V-fraction digits, plus leading-P positions, minus trailing-P
-    /// positions (ISO §13.18.40). MAY BE NEGATIVE — a trailing-P item (e.g. <c>99P</c>) stores digits that are
+    /// positions (ISO §2023:13.18.40). MAY BE NEGATIVE — a trailing-P item (e.g. <c>99P</c>) stores digits that are
     /// multiples of 10^|scale|; leading P (e.g. <c>P(4)9</c>) puts the point left of every digit. The runtime rescales
     /// to this scale natively (a single signed scale is the one canonical representation — no separate P fields).</summary>
     public required int FractionDigits { get; init; }
@@ -146,9 +146,9 @@ public readonly record struct NumProfile
     public NumericSign SignKind { get; init; }
 
     /// <summary>The OVER-PUNCH CONVENTION this item's compiled program uses (kb/Work PB803, owner decision
-    /// 2026-09-09; Annex A.1 items 177 and 178, ISO §13.18.52.4 GR4 / GR5 b). Consulted only for an
+    /// 2026-09-09; Annex A.1 items 177 and 178, ISO §2023:13.18.52.4 GR4 / GR5 b). Consulted only for an
     /// over-punched sign — <see cref="NumericSign.TrailingOverpunch"/> / <see cref="NumericSign.LeadingOverpunch"/>
-    /// — since §13.18.52.4 GR6 b) pins the SEPARATE signs to '+'/'-' with no latitude. Orthogonal to
+    /// — since §2023:13.18.52.4 GR6 b) pins the SEPARATE signs to '+'/'-' with no latitude. Orthogonal to
     /// <see cref="SignKind"/>, which is the sign's POSITION: the four combinations are all reachable.
     /// <para><see cref="Runtime.SignEncoding.Ibm"/> (value 0) is the default and the documented one, so a profile
     /// that does not state it — including the runtime's own hand-built decoders, which are all unsigned — is the
@@ -170,12 +170,12 @@ public readonly record struct NumProfile
     /// <summary>The effective FLOAT-BINARY endianness for a STANDARD binary floating-point item
     /// (<see cref="NumericByteForm.Ieee32"/>/<see cref="NumericByteForm.Ieee64"/> under USAGE
     /// FLOAT-BINARY-32/-64): <c>true</c> = HIGH-ORDER-RIGHT, the item's interchange bytes are LITTLE-endian
-    /// (ISO §13.18.60.4 GR19b); <c>false</c> = HIGH-ORDER-LEFT / big-endian — GR19a, and the documented
-    /// implied-phrase default when no OPTIONS FLOAT-BINARY clause is specified (§11.9.8.3 SR1 makes that
+    /// (ISO §2023:13.18.60.4 GR19b); <c>false</c> = HIGH-ORDER-LEFT / big-endian — GR19a, and the documented
+    /// implied-phrase default when no OPTIONS FLOAT-BINARY clause is specified (§2023:11.9.8.3 SR1 makes that
     /// default the implementor's REQUIRED-documented choice, Annex A.1 item 48). Always <c>false</c> for the
     /// implementor-defined float usages (COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED, GR13/GR21 — pinned
     /// big-endian regardless of the clause, which speaks only to the standard usages, GR19c). Set at bind by
-    /// <c>PicInfo.FloatItem</c> — the ONE place the §11.9.8 implied-phrase rule is applied.</summary>
+    /// <c>PicInfo.FloatItem</c> — the ONE place the §2023:11.9.8 implied-phrase rule is applied.</summary>
     public bool FloatLittleEndian { get; init; }
 
     /// <summary>Storage width in bytes — used for <see cref="NumericTruncation.PackedDecimal"/> capacity
@@ -200,8 +200,8 @@ public readonly record struct NumProfile
     public bool ImageExceedsInt128 => ByteForm == NumericByteForm.Binary && !Signed && StorageLength >= 16;
 
     /// <summary>⛔ THE RUN-TIME STATEMENT OF "THE SAME PICTURE, SIGN AND USAGE" for two numeric items (kb/Work PB1040):
-    /// §14.8.3.3 requires a RETURNING receiver to have "the same … PICTURE, SIGN, and USAGE clauses" as the sender and
-    /// §14.8.2.3.2 rule 2 the same for a BY REFERENCE formal; it is what a dynamic Format-1 CALL can compare, since
+    /// §2023:14.8.3.3 requires a RETURNING receiver to have "the same … PICTURE, SIGN, and USAGE clauses" as the sender and
+    /// §2023:14.8.2.3.2 rule 2 the same for a BY REFERENCE formal; it is what a dynamic Format-1 CALL can compare, since
     /// the two sides are compiled apart and the compile-time check (<c>PictureClauseIdentity</c>, over
     /// <c>PicInfo</c>) has nothing to read. The profile states exactly those three: the digit positions and the
     /// fraction (the PICTURE), the operational sign and where it sits (the SIGN, consulted only when signed) and the

@@ -24,7 +24,7 @@ public sealed class EditionGateDiagnosticTests
         EditionHarness.AssertHasDiagnostic(errors, $"targeting COBOL-{targeting}");
     }
 
-    /// <summary>Statement-keyword class — ALLOCATE (ISO §14.9.3, 2002) at 85 names both editions.</summary>
+    /// <summary>Statement-keyword class — ALLOCATE (ISO §2023:14.9.3, 2002) at 85 names both editions.</summary>
     [Fact]
     public void Allocate_At85_Names0900AndBothEditions()
         => AssertNames(ErrorsAt("""
@@ -39,7 +39,7 @@ public sealed class EditionGateDiagnosticTests
                 STOP RUN.
             """, 85), "2002", "85");
 
-    /// <summary>The single 2023-edge grammar gate — DELETE FILE (ISO 2023 §14.9.10 Format 2) at 2014.</summary>
+    /// <summary>The single 2023-edge grammar gate — DELETE FILE (ISO 2023 §2023:14.9.10 Format 2) at 2014.</summary>
     [Fact]
     public void DeleteFile_At2014_Names0900AndCobol2023()
         => AssertNames(ErrorsAt("""
@@ -59,7 +59,7 @@ public sealed class EditionGateDiagnosticTests
                 STOP RUN.
             """, 2014), "2023", "2014");
 
-    /// <summary>Optional-statement-tail class — GOBACK RETURNING (ISO §14.9.18, 2002) at 85: the enclosing
+    /// <summary>Optional-statement-tail class — GOBACK RETURNING (ISO §2023:14.9.18, 2002) at 85: the enclosing
     /// rule may have popped by report time, so the token-adjacency fallback carries the mapping.</summary>
     [Fact]
     public void GobackReturning_At85_Names0900()
@@ -74,7 +74,7 @@ public sealed class EditionGateDiagnosticTests
                 GOBACK RETURNING W.
             """, 85), "2002", "85");
 
-    /// <summary>Data-description-clause class — BASED (ISO §13.18.5, 2002) at 85.</summary>
+    /// <summary>Data-description-clause class — BASED (ISO §2023:13.18.5, 2002) at 85.</summary>
     [Fact]
     public void BasedClause_At85_Names0900()
         => AssertNames(ErrorsAt("""
@@ -88,8 +88,8 @@ public sealed class EditionGateDiagnosticTests
                 STOP RUN.
             """, 85), "2002", "85");
 
-    /// <summary>SPECIAL-NAMES class — the FOR NATIONAL phrase (ISO §12.3.7, 2002) at 85. The fixture is the
-    /// spec-valid national branch (§12.3.7.2 — the FOR phrase between the name and IS; STANDARD-1 belongs to
+    /// <summary>SPECIAL-NAMES class — the FOR NATIONAL phrase (ISO §2023:12.3.7, 2002) at 85. The fixture is the
+    /// spec-valid national branch (§2023:12.3.7.2 — the FOR phrase between the name and IS; STANDARD-1 belongs to
     /// the alphanumeric branch only, so the former <c>IS STANDARD-1 FOR NATIONAL</c> shape now also draws the
     /// P10 Step-4 branch-mismatch 0898).</summary>
     [Fact]
@@ -106,7 +106,7 @@ public sealed class EditionGateDiagnosticTests
                 STOP RUN.
             """, 85), "2002", "85");
 
-    /// <summary>Compilation-unit class — a CLASS-ID unit (ISO §11.2/§11.3, 2002) at 85: the failure reports
+    /// <summary>Compilation-unit class — a CLASS-ID unit (ISO §2023:11.2/§2023:11.3, 2002) at 85: the failure reports
     /// at the unit start, so the CLASS-ID lookahead scan carries the mapping.</summary>
     [Fact]
     public void ClassDefinition_At85_Names0900()
@@ -116,7 +116,7 @@ public sealed class EditionGateDiagnosticTests
             END CLASS EGD6.
             """, 85), "2002", "85");
 
-    /// <summary>CALL-argument class — BY VALUE (ISO §14.9.4, 2002) at 85.</summary>
+    /// <summary>CALL-argument class — BY VALUE (ISO §2023:14.9.4, 2002) at 85.</summary>
     [Fact]
     public void CallByValue_At85_Names0900()
         => AssertNames(ErrorsAt("""
@@ -131,7 +131,7 @@ public sealed class EditionGateDiagnosticTests
                 STOP RUN.
             """, 85), "2002", "85");
 
-    /// <summary>The 0860 collision migration: READ PREVIOUS (ISO §14.9.30 Format 1, 2002) at 85 now routes
+    /// <summary>The 0860 collision migration: READ PREVIOUS (ISO §2023:14.9.30 Format 1, 2002) at 85 now routes
     /// through the registry — 0900, never the WRITE-END-OF-PAGE-colliding COBOL0860.</summary>
     [Fact]
     public void ReadPrevious_At85_Registry0900_Not0860()
@@ -158,7 +158,7 @@ public sealed class EditionGateDiagnosticTests
         EditionHarness.AssertNoDiagnostic(errors, "COBOL0860");
     }
 
-    /// <summary>The 0861 collision migration: START FIRST (ISO §14.9.41, 2002) at 85 → registry 0900.</summary>
+    /// <summary>The 0861 collision migration: START FIRST (ISO §2023:14.9.41, 2002) at 85 → registry 0900.</summary>
     [Fact]
     public void StartFirst_At85_Registry0900_Not0861()
     {

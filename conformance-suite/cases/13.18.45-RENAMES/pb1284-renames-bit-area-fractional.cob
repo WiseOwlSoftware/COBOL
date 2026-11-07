@@ -4,9 +4,9 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB1284 — ISO/IEC 1989:2023 §13.18.45.3 SR10: "The area described by data-name-2 THROUGH data-name-3
+      *> kb/Work PB1284 — ISO/IEC 1989:2023 §2023:13.18.45.3 SR10: "The area described by data-name-2 THROUGH data-name-3
       *> shall define an integral number of bytes." A (3 bits) and B (2 bits) are same-level USAGE BIT items, which
-      *> §8.5.1.6.3 packs into one byte, so A THRU B is a 5-bit area. Before the fix it compiled and X2 displayed
+      *> §2023:8.5.1.6.3 packs into one byte, so A THRU B is a 5-bit area. Before the fix it compiled and X2 displayed
       *> 10111.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1284RB.

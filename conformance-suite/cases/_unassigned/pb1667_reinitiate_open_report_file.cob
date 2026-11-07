@@ -10,26 +10,26 @@
       *> first line of the NEXT run (a re-INITIATE of the report)
       *> belongs on the line BELOW it, never on it.
       *>   python scripts/spec/cite.py --check 14.9.21.4 "LINE-COUNTER
-      *>   is set to zero"                  -> OK  §14.9.21.4 1) b)
+      *>   is set to zero"                  -> OK  §2023:14.9.21.4 1) b)
       *>   python scripts/spec/cite.py --check 14.9.46.4 "The TERMINATE
       *>   statement does not close the file associated with
-      *>   report-name-1"                   -> OK  §14.9.46.4 6)
+      *>   report-name-1"                   -> OK  §2023:14.9.46.4 6)
       *>   python scripts/spec/cite.py --check 13.18.35.4 "no lines or
       *>   groups of lines overlap each other, except that the non-space
       *>   characters of a relative line specified with an integer-2 of
-      *>   zero will overwrite"             -> OK  §13.18.35.4 3)
+      *>   zero will overwrite"             -> OK  §2023:13.18.35.4 3)
       *>   python scripts/spec/cite.py --check 14.9.51.4 "If integer-1
       *>   or the value of the data item referenced by identifier-2 is
       *>   zero, no repositioning of the representation of the printed
-      *>   page is performed"               -> OK  §14.9.51.4 25) c)
+      *>   page is performed"               -> OK  §2023:14.9.51.4 25) c)
       *> DERIVATION. Each run prints its detail on its page's line 1 and
       *> its FINAL footing on line 2 (LINE PLUS 1, LINE-COUNTER starting
-      *> at zero - §14.9.21.4 1) b)). TERMINATE leaves the file open
-      *> (§14.9.46.4 6)), so the device stands on the footing line. The
-      *> only overlap §13.18.35.4 3) allows is a relative line with
+      *> at zero - §2023:14.9.21.4 1) b)). TERMINATE leaves the file open
+      *> (§2023:14.9.46.4 6)), so the device stands on the footing line. The
+      *> only overlap §2023:13.18.35.4 3) allows is a relative line with
       *> integer-2 of zero inside a report group, so a run's FIRST line
       *> is not one: a zero advance would overprint it on the last line
-      *> of the run before (§14.9.51.4 25) c): a zero advance is an
+      *> of the run before (§2023:14.9.51.4 25) c): a zero advance is an
       *> overprint), which the engine did by reading INITIATE's empty
       *> page model as an empty DEVICE. The file is read back through a
       *> one-character record sequential FD with no CLOSE of the report

@@ -10,17 +10,17 @@ using WiseOwl.Cobol.Frontend.Preprocessor;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// ⛔ THE OPERAND-CLASS PAIR MATRIX for ISO §8.8.4.2.1's closed "Comparisons are defined for the following:" list
+/// ⛔ THE OPERAND-CLASS PAIR MATRIX for ISO §2023:8.8.4.2.1's closed "Comparisons are defined for the following:" list
 /// over the GENERAL relation (kb/Work PB1468). Every ordered pair of the operand kinds below is written as a relation
 /// and its verdict is compared with the list as the standard writes it — item 1 (two numeric), items 2/3/5/7 (the
-/// character classes), item 6 with §8.8.4.2.5 ("The numeric integer operand shall be an integer literal or an integer
-/// numeric data item of usage display or national"), item 8 as §8.8.4.2.13 states it ("Relation tests may be made
+/// character classes), item 6 with §2023:8.8.4.2.5 ("The numeric integer operand shall be an integer literal or an integer
+/// numeric data item of usage display or national"), item 8 as §2023:8.8.4.2.13 states it ("Relation tests may be made
 /// only between" two index-names; an index-name and a numeric data item or numeric literal; an index data item and
 /// an index-name or another index data item).
 /// <para>The EXPECTED verdict is computed here from the spec's wording over each kind's declared properties, never
 /// read from the compiler's table, so a change to <c>RelationComparability</c> that drifts from the list fails one
 /// cell. Adding an operand kind is one row of <see cref="Kinds"/>; every pair it forms is then checked
-/// automatically. A pair of two literals / figuratives is skipped: §8.8.4.2.1's "A relation condition shall contain
+/// automatically. A pair of two literals / figuratives is skipped: §2023:8.8.4.2.1's "A relation condition shall contain
 /// at least one reference to an operand that is not a literal" is a different rule, whose own pair matrix is
 /// <see cref="RelationLiteralOperandTests"/> (kb/Work PB1470).</para>
 /// </summary>
@@ -30,19 +30,19 @@ public sealed class RelationComparabilityTests
 
     /// <param name="Name">The kind's key (used in the program-id and the failure message).</param>
     /// <param name="Operand">The operand as written in the relation.</param>
-    /// <param name="Cls">Its §8.5.2.1 class (Zero = the figurative ZERO, whose class the context picks, §8.3.3.6.4 GR4).</param>
-    /// <param name="NumericInteger">§8.8.4.2.5's admitted numeric operand: an integer literal or an integer numeric
+    /// <param name="Cls">Its §2023:8.5.2.1 class (Zero = the figurative ZERO, whose class the context picks, §2023:8.3.3.6.4 GR4).</param>
+    /// <param name="NumericInteger">§2023:8.8.4.2.5's admitted numeric operand: an integer literal or an integer numeric
     /// data item of usage display or national. A function-identifier is neither (kb/Work PB3691).</param>
     /// <param name="Literal">A literal or figurative constant (a literal-to-literal pair is PB1470's rule, skipped).</param>
-    /// <param name="IndexName">An index-name (§8.8.4.2.13 rows 1 and 2), as opposed to an index data item.</param>
-    /// <param name="NumericItemOrLiteral">§8.8.4.2.13 row 2's partner: "a numeric data item or numeric literal".</param>
+    /// <param name="IndexName">An index-name (§2023:8.8.4.2.13 rows 1 and 2), as opposed to an index data item.</param>
+    /// <param name="NumericItemOrLiteral">§2023:8.8.4.2.13 row 2's partner: "a numeric data item or numeric literal".</param>
     private sealed record Kind(string Name, string Operand, Cls Cls, bool NumericInteger = false, bool Literal = false,
         bool IndexName = false, bool NumericItemOrLiteral = false);
 
     private static readonly Kind[] Kinds =
     [
         new("XA", "XA", Cls.Character),                       // alphanumeric
-        new("XL", "XL", Cls.Character),                       // alphabetic (§8.8.4.2.1: treated as alphanumeric)
+        new("XL", "XL", Cls.Character),                       // alphabetic (§2023:8.8.4.2.1: treated as alphanumeric)
         new("XE", "XE", Cls.Character),                       // numeric-edited (Table 2: class alphanumeric)
         new("XN", "XN", Cls.Character),                       // national
         new("ND", "ND", Cls.Numeric, NumericInteger: true, NumericItemOrLiteral: true),   // PIC 9(4) DISPLAY
@@ -59,14 +59,14 @@ public sealed class RelationComparabilityTests
         new("ZR", "ZERO", Cls.Zero, Literal: true),
         new("EX", "ND + 1", Cls.Numeric),                                                 // arithmetic expression
         // A function-identifier references "the unique data item that results from the evaluation of a function"
-        // (§8.4.3.2.1), numeric by §15.2 items 4 and 5, so it is row 2's "numeric data item" (kb/Work PB1662).
-        // A function-identifier is NEVER item 6's numeric integer operand: §15.2 states no usage for the item a numeric,
-        // integer or index function returns, and §8.8.4.2.5 admits only "an integer literal or an integer numeric data
+        // (§2023:8.4.3.2.1), numeric by §2023:15.2 items 4 and 5, so it is row 2's "numeric data item" (kb/Work PB1662).
+        // A function-identifier is NEVER item 6's numeric integer operand: §2023:15.2 states no usage for the item a numeric,
+        // integer or index function returns, and §2023:8.8.4.2.5 admits only "an integer literal or an integer numeric data
         // item of usage display or national" (kb/Work PB3691, docs/CONFORMANCE.md D-FNUSE).
-        new("FI", "FUNCTION INTEGER(NF)", Cls.Numeric, NumericItemOrLiteral: true),                       // INTEGER function (§15.2 item 5)
-        new("FN", "FUNCTION SQRT(ND)", Cls.Numeric, NumericItemOrLiteral: true),                           // NUMERIC function (§15.2 item 4)
+        new("FI", "FUNCTION INTEGER(NF)", Cls.Numeric, NumericItemOrLiteral: true),                       // INTEGER function (§2023:15.2 item 5)
+        new("FN", "FUNCTION SQRT(ND)", Cls.Numeric, NumericItemOrLiteral: true),                           // NUMERIC function (§2023:15.2 item 4)
         new("FL", "FUNCTION LENGTH(XA)", Cls.Numeric, NumericItemOrLiteral: true),                         // an INTEGER function the binder FOLDS (kb/Work PB1662): the function it folds, not "an integer literal"
-        // The function-identifiers of a CHARACTER class (§15.2 1) and 3)): data items of usage display / national, so each
+        // The function-identifiers of a CHARACTER class (§2023:15.2 1) and 3)): data items of usage display / national, so each
         // is item 2/3/5/7's character operand and item 6's "other operand" (kb/Work PB3691).
         new("FA", "FUNCTION UPPER-CASE(XA)", Cls.Character),
         new("FU", "FUNCTION NATIONAL-OF(XA)", Cls.Character),
@@ -98,7 +98,7 @@ public sealed class RelationComparabilityTests
                MAIN-PARA.
         """;
 
-    /// <summary>The verdict §8.8.4.2.1 gives the pair: null = defined, else the diagnostic code of the rule it breaks.</summary>
+    /// <summary>The verdict §2023:8.8.4.2.1 gives the pair: null = defined, else the diagnostic code of the rule it breaks.</summary>
     private static string? Expected(Kind l, Kind r)
     {
         if (l.Cls == Cls.Index || r.Cls == Cls.Index)
@@ -109,7 +109,7 @@ public sealed class RelationComparabilityTests
             return ix.IndexName && (other.NumericItemOrLiteral || other.Cls == Cls.Zero) ? null : "COBOL2533";
         }
         if (l.Cls == Cls.Zero || r.Cls == Cls.Zero || l.Cls == r.Cls) return null;        // items 1, 2, 3, 5, 7
-        var num = l.Cls == Cls.Numeric ? l : r;                                            // item 6 + §8.8.4.2.5
+        var num = l.Cls == Cls.Numeric ? l : r;                                            // item 6 + §2023:8.8.4.2.5
         return num.NumericInteger ? null : "COBOL2532";
     }
 
@@ -153,11 +153,11 @@ public sealed class RelationComparabilityTests
                 wrong.Add($"{l.Operand} = {r.Operand}: expected {want ?? "no diagnostic"}, got "
                     + (got.Count == 0 ? "none" : string.Join(",", got)));
         }
-        Assert.True(wrong.Count == 0, $"ISO §8.8.4.2.1 / §8.8.4.2.5 / §8.8.4.2.13 verdicts differ:\n  "
+        Assert.True(wrong.Count == 0, $"ISO §2023:8.8.4.2.1 / §2023:8.8.4.2.5 / §2023:8.8.4.2.13 verdicts differ:\n  "
             + string.Join("\n  ", wrong));
     }
 
-    /// <summary>⛔ ONE CHECKPOINT: the same breaches at every surface that lowers to a relation (§14.9.13.3 SR7 a) — the
+    /// <summary>⛔ ONE CHECKPOINT: the same breaches at every surface that lowers to a relation (§2023:14.9.13.3 SR7 a) — the
     /// selection objects "shall be valid operands for comparison to the corresponding operand in the set of selection
     /// subjects in accordance with 8.8.4.2").</summary>
     [Theory]
@@ -175,8 +175,8 @@ public sealed class RelationComparabilityTests
     }
 
     /// <summary>⛔ A NUMERIC, INTEGER OR INDEX FUNCTION-IDENTIFIER IS NO ITEM-6 INTEGER OPERAND at ANY relation surface, in
-    /// either operand order (kb/Work PB3691; §8.8.4.2.5; docs/CONFORMANCE.md D-FNUSE): the one checkpoint refuses it with
-    /// COBOL2532, and an index function opposite a character operand was always §8.8.4.2.13's COBOL2533.</summary>
+    /// either operand order (kb/Work PB3691; §2023:8.8.4.2.5; docs/CONFORMANCE.md D-FNUSE): the one checkpoint refuses it with
+    /// COBOL2532, and an index function opposite a character operand was always §2023:8.8.4.2.13's COBOL2533.</summary>
     [Theory]
     [InlineData("RCMPF1", "IF FUNCTION INTEGER(ND) = XA CONTINUE END-IF", "COBOL2532")]
     [InlineData("RCMPF2", "IF XA = FUNCTION INTEGER(ND) CONTINUE END-IF", "COBOL2532")]
@@ -196,9 +196,9 @@ public sealed class RelationComparabilityTests
         EditionHarness.AssertHasDiagnostic(errors, code);
     }
 
-    /// <summary>The complement (feedback_measure_the_selectors_complement): the function relations §8.8.4.2.1 DOES define
+    /// <summary>The complement (feedback_measure_the_selectors_complement): the function relations §2023:8.8.4.2.1 DOES define
     /// still compile — a numeric or integer function against a numeric operand (item 1), an alphanumeric or national
-    /// function against a character operand (items 2, 3, 5, 7, §15.2 1) and 3)), and an integer display item against an
+    /// function against a character operand (items 2, 3, 5, 7, §2023:15.2 1) and 3)), and an integer display item against an
     /// alphanumeric function (item 6 with the integer operand a usage-display item).</summary>
     [Theory]
     [InlineData("RCMPG1", "IF FUNCTION INTEGER(ND) = 7 CONTINUE END-IF")]
@@ -218,7 +218,7 @@ public sealed class RelationComparabilityTests
 
     /// <summary>⛔ THE SIBLING ARM (kb/Work PB1468): a THROUGH range with an IN alphabet-name lowers to
     /// <c>BoundRangeMembership</c>, not the inclusive relation pair, and that node used to be built outside the
-    /// checkpoint — so the same breach compiled clean once the phrase was written. §14.9.13.4 GR4 a) 5. makes it
+    /// checkpoint — so the same breach compiled clean once the phrase was written. §2023:14.9.13.4 GR4 a) 5. makes it
     /// "selection-subject &gt;= left-part AND selection-subject &lt;= right-part" either way.</summary>
     [Theory]
     [InlineData("RCMPR1", "NB", "\"0001\"", "\"0020\"", "COBOL2532")]
@@ -234,8 +234,8 @@ public sealed class RelationComparabilityTests
     }
 
     /// <summary>⛔ THE WRITTEN OPERAND IS JUDGED, NOT THE IMPLEMENTOR'S INTERMEDIATE. A subject read by more than one
-    /// WHEN is materialized (§14.9.13.4 GR3), and an index-name subject's intermediate is a numeric item — so the
-    /// table, asked of the intermediate, refused these legal §8.8.4.2.13 pairs (rows 1, 2 and 3) as numeric-vs-index.
+    /// WHEN is materialized (§2023:14.9.13.4 GR3), and an index-name subject's intermediate is a numeric item — so the
+    /// table, asked of the intermediate, refused these legal §2023:8.8.4.2.13 pairs (rows 1, 2 and 3) as numeric-vs-index.
     /// The complement: the same subject against an alphanumeric object is still refused.</summary>
     [Fact]
     public void EvaluateSubjectIntermediate_IsScreenedAsWritten()
@@ -249,7 +249,7 @@ public sealed class RelationComparabilityTests
         EditionHarness.AssertHasDiagnostic(bad, "COBOL2533");
     }
 
-    /// <summary>§8.8.4.2.5's refusal is the DA6 disposition — an error, with the pair kept under --permissive as a
+    /// <summary>§2023:8.8.4.2.5's refusal is the DA6 disposition — an error, with the pair kept under --permissive as a
     /// WARNING and evaluated as the character comparison it always was (IDA-free, so it runs).</summary>
     [Fact]
     public void NumericNotInteger_IsAWarningUnderPermissive_AndRuns()
@@ -274,10 +274,10 @@ public sealed class RelationComparabilityTests
         EditionHarness.AssertHasDiagnostic(strictErrors, "COBOL2532");
     }
 
-    /// <summary>kb/Work PB1427 at the same checkpoint: NULL is class pointer (§8.4.3.10.1) and §8.4.3.10.3 SR1 a)
+    /// <summary>kb/Work PB1427 at the same checkpoint: NULL is class pointer (§2023:8.4.3.10.1) and §2023:8.4.3.10.3 SR1 a)
     /// admits it only "in a pointer-or-object-reference relation condition" — opposite a character or numeric operand
     /// it no longer borrows that operand's class (COBOL0869); and a boolean operand is compatible only with an
-    /// operand that may BE boolean (§8.3.3.6.4 GR4: ZERO may; SPACE may not — COBOL0844).</summary>
+    /// operand that may BE boolean (§2023:8.3.3.6.4 GR4: ZERO may; SPACE may not — COBOL0844).</summary>
     [Theory]
     [InlineData("RCMPN1", "IF XA = NULL CONTINUE END-IF", "COBOL0869")]
     [InlineData("RCMPN2", "IF ND = NULL CONTINUE END-IF", "COBOL0869")]

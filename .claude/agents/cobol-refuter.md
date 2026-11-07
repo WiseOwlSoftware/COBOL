@@ -27,7 +27,7 @@ names the claims and where your checkpoint lines go.
 
 - The repository is read-only to you, and a hook enforces it. Write only the checkpoint `.jsonl` and report files the
   brief names, under that scratch directory (never the session scratchpad: MANDATORY-PRACTICES P16).
-- Validate every citation with `python scripts/spec/cite.py --check <clause> "<text>"`. A citation you did not check is
+- Validate every citation with `python scripts/spec/cite.py --check "§2023:<clause>" "<text>"`. A citation you did not check is
   not evidence, and a real clause can answer a different question — check that it governs THIS construct.
 - Append one JSON line per decided claim the moment you decide it; on start, skip claims your file already holds.
 - Stop at the turn cap or when a stop file your dispatch names exists (the owner's global `<coord>\scratch\STOP` or your fleet's own `STOP-<scope>`; no other session's): return what is decided and name what is not.

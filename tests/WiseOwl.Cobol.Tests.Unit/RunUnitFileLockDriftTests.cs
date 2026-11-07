@@ -7,7 +7,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ A SECOND RUN UNIT IS ARBITRATED BY TABLE 19 TOO (kb/Work PB833). ISO §9.1.15: <i>"The successful opening of a
+/// ⛔ A SECOND RUN UNIT IS ARBITRATED BY TABLE 19 TOO (kb/Work PB833). ISO §2023:9.1.15: <i>"The successful opening of a
 /// file establishes a file lock for the applicable sharing rules, thereby preventing other run units from opening
 /// that file with incompatible sharing rules."</i> The "applicable sharing rules" are rules 1)–3), which Table 19
 /// prints cell by cell, so for EVERY (sharing mode × open mode) on the existing side crossed with every one on the
@@ -63,7 +63,7 @@ public abstract class RunUnitFileLockPairDriftTestsBase<TSlot>
             var runUnit1 = new FileRegistry();
             var runUnit2 = new FileRegistry();
             // Each connector is declared as a program that OPENs it in its mode declares it: EXTEND is sequential access's
-            // (§14.9.27.3 SR2; kb/Work PB3479).
+            // (§2023:14.9.27.3 SR2; kb/Work PB3479).
             FileHarness.Register(runUnit1, "A", host, org, sa, access: FileHarness.AccessFor(ma));
             FileHarness.Register(runUnit2, "B", host, org, sb, access: FileHarness.AccessFor(mb));
 
@@ -78,7 +78,7 @@ public abstract class RunUnitFileLockPairDriftTestsBase<TSlot>
             string got = runUnit2.Status("B");
             if (refused)
                 Assert.True(got == FileStatusCode.FileSharingConflict,
-                    $"Table 19 refuses {request} against {existing} ({org}) and §9.1.15 binds OTHER RUN UNITS to it, "
+                    $"Table 19 refuses {request} against {existing} ({org}) and §2023:9.1.15 binds OTHER RUN UNITS to it, "
                     + $"but the second run unit's OPEN answered '{got}'.");
             else
                 Assert.True(got[0] == '0',
@@ -98,7 +98,7 @@ public abstract class RunUnitFileLockPairDriftTestsBase<TSlot>
 [Trait("Host", "ReFS")]
 public sealed class RunUnitFileLockDriftTests
 {
-    /// <summary>§9.1.15: <i>"The file lock is removed by an explicit or implicit CLOSE statement executed for that
+    /// <summary>§2023:9.1.15: <i>"The file lock is removed by an explicit or implicit CLOSE statement executed for that
     /// file connector"</i> — so the refusal is not sticky: the CLOSE gives the lock back and the very next OPEN of
     /// the other run unit succeeds, in every organization.</summary>
     [Theory]
@@ -174,7 +174,7 @@ public sealed class RunUnitFileLockDriftTests
 
                 Assert.False(opened[0][0] == '0' && opened[1][0] == '0',
                     $"Round {round}: both run units opened {host} SHARING WITH NO OTHER ('{opened[0]}' and "
-                    + $"'{opened[1]}') — §9.1.15 1) 'specifies exclusive access to a physical file'.");
+                    + $"'{opened[1]}') — §2023:9.1.15 1) 'specifies exclusive access to a physical file'.");
                 a.CloseAll();
                 b.CloseAll();
             }

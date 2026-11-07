@@ -6,12 +6,12 @@
 *> portable: unverified
 *>---
       *> A TRAILING-P DEPENDING ITEM IS AN UNSIGNED INTEGER (train 1021 review, PB858).
-      *> ISO/IEC 1989:2023 §13.18.43.3 SR6: "Data-name-1 shall describe an elementary
-      *> unsigned integer"; §5.5 2) b) 2. makes "integer" "a fixed-point numeric data
+      *> ISO/IEC 1989:2023 §2023:13.18.43.3 SR6: "Data-name-1 shall describe an elementary
+      *> unsigned integer"; §2023:5.5 2) b) 2. makes "integer" "a fixed-point numeric data
       *> item ... whose description does not include any digit positions to the right of
-      *> the radix point", and §13.18.40.4 GR14 puts the assumed decimal point of PIC 9P
+      *> the radix point", and §2023:13.18.40.4 GR14 puts the assumed decimal point of PIC 9P
       *> "to the right of the string of 'P's". So LN PIC 9P is legal (no COBOL2922).
-      *> MOVE 20 TO LN gives LN the value 20; §13.18.43.4 GR13 a) writes a 20-byte record,
+      *> MOVE 20 TO LN gives LN the value 20; §2023:13.18.43.4 GR13 a) writes a 20-byte record,
       *> and after the READ GR15 makes LN "the number of bytes in the record just read",
       *> 20 again. Displayed through LN-SHOW PIC 99: [ABABABABABABABABABAB] 20.
        IDENTIFICATION DIVISION.

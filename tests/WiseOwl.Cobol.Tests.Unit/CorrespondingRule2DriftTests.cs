@@ -11,11 +11,11 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ THE ANTI-DUPLICATION PIN FOR ISO §14.7.6 RULE 2 (kb/Work PB391).
+/// ⛔ THE ANTI-DUPLICATION PIN FOR ISO §2023:14.7.6 RULE 2 (kb/Work PB391).
 ///
 /// <para>Rule 2 — <i>"In a MOVE statement, at least one of the data items is an elementary data item and the
 /// resulting move is valid according to the rules for the MOVE statement"</i> — sends the CORRESPONDING pairing
-/// decision to the MOVE statement's own rules, whose category half is §14.9.25.3 SR10, Table 16. That table has
+/// decision to the MOVE statement's own rules, whose category half is §2023:14.9.25.3 SR10, Table 16. That table has
 /// exactly ONE home, <see cref="MoveTable16"/>, whose own header says <i>"asking it in two places is how the two
 /// answers drift"</i>. <c>CorrespondingBinder</c> asked it in a second place for a year, and the two answers
 /// drifted in BOTH directions at once — five measured cells, three pairs moved that Table 16 refuses and two
@@ -28,7 +28,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// being a delegation. Re-introduce one private arm and this fails; it was verified to fail against the deleted
 /// <c>CorrMoveValid</c> on eight sender rows.</para>
 ///
-/// <para><b>And it pins the SECOND half, which is not Table 16 at all</b> (kb/Work PB391). §14.9.25.3 SR10 — the
+/// <para><b>And it pins the SECOND half, which is not Table 16 at all</b> (kb/Work PB391). §2023:14.9.25.3 SR10 — the
 /// rule that routes to the table — governs only <i>"all other cases not described in Syntax rules 8 and 9"</i>,
 /// so rule 2 also owes SR8 (a fixed-width binary sender needs a numeric or numeric-edited receiver) and SR9 (a
 /// variable-length group operand needs a compatible group opposite). Asking <see cref="MoveValidity.Table16Refusal"/>
@@ -47,14 +47,14 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 public sealed class CorrespondingRule2DriftTests
 {
-    /// <summary>The binder's §14.7.6 rule-2 filter, reached by reflection because it is a private detail of an
+    /// <summary>The binder's §2023:14.7.6 rule-2 filter, reached by reflection because it is a private detail of an
     /// internal binder. The throw names the rule rather than the member so a restructuring is told WHAT it has
     /// to keep true, not merely that a name moved.</summary>
     private static bool CorrRule2MoveValid(DataItem s, DataItem d) =>
         (bool)(typeof(CorrespondingBinder)
             .GetMethod("CorrRule2MoveValid", BindingFlags.NonPublic | BindingFlags.Static)
             ?? throw new InvalidOperationException(
-                "CorrespondingBinder.CorrRule2MoveValid is gone — ISO §14.7.6 rule 2 still has to be answered by "
+                "CorrespondingBinder.CorrRule2MoveValid is gone — ISO §2023:14.7.6 rule 2 still has to be answered by "
                 + "MoveTable16 and by nothing else. Re-point this test at whatever asks the table; do NOT delete "
                 + "the assertion (kb/Work PB391)."))
             .Invoke(null, [s, d])!;
@@ -67,12 +67,12 @@ public sealed class CorrespondingRule2DriftTests
         new(cat, usage, len, digits, scale, Signed: false) { IsAlphabetic = alphabetic, EditMask = edit };
 
     /// <summary>Every Table-16 position this data model can describe, named the way the printed table names its
-    /// rows and columns (<c>specs/ISO_COBOL_2023.md</c>, §14.9.25.3 Table 16). The numeric row's Integer/Noninteger
+    /// rows and columns (<c>specs/ISO_COBOL_2023.md</c>, §2023:14.9.25.3 Table 16). The numeric row's Integer/Noninteger
     /// split and the alphabetic / edited riders are separate entries because <see cref="Table16Operand"/> keys on
     /// them and <see cref="PicCategory"/> deliberately cannot.</summary>
     /// <para>The last two are NOT Table-16 positions: a <c>BINARY-LONG</c> item sits in the table's Numeric row
     /// like any other binary integer, and a variable-length group sits in no row at all. They are here because
-    /// §14.9.25.3 SR8 and SR9 key on those SHAPES and SR10 defers to both, so rule 2's delegation is only
+    /// §2023:14.9.25.3 SR8 and SR9 key on those SHAPES and SR10 defers to both, so rule 2's delegation is only
     /// complete if the filter answers them too.</para>
     private static readonly string[] AllPositions =
     [
@@ -95,10 +95,10 @@ public sealed class CorrespondingRule2DriftTests
         "Numeric-noninteger" => Elem("P", P(PicCategory.Numeric, digits: 4, scale: 2)),
         "Numeric-edited" => Elem("P", P(PicCategory.NumericEdited, digits: 4, edit: "ZZZ9")),
         "Group" => GroupOf("P"),
-        // §14.9.25.3 SR8's shape: usage binary-long. Its Table-16 POSITION is the Numeric/Integer row — SR8 is a
+        // §2023:14.9.25.3 SR8's shape: usage binary-long. Its Table-16 POSITION is the Numeric/Integer row — SR8 is a
         // rule ABOUT that row's members, not a row of its own, which is why the two answers can differ.
         "Binary-long" => Elem("P", P(PicCategory.Numeric, digits: 9, usage: Usage.BinaryLong)),
-        // §8.5.1.12.1's shape: a group with a dynamic-length elementary subordinate. Only COBOL-2014 can declare
+        // §2023:8.5.1.12.1's shape: a group with a dynamic-length elementary subordinate. Only COBOL-2014 can declare
         // one; the model carries it as a flag, so the test needs no edition.
         "Variable-length-group" => VarLenGroupOf("P"),
         _ => throw new ArgumentOutOfRangeException(nameof(position), position, "unmodelled Table-16 position"),
@@ -138,16 +138,16 @@ public sealed class CorrespondingRule2DriftTests
             DataItem d = At(receiver);
             bool moveRules = MoveTable16.DataItemRefusal(s, d) is null;
             Assert.True(moveRules == CorrRule2MoveValid(s, d),
-                $"ISO §14.7.6 rule 2 and the §14.9.25.3 MOVE rules disagree for {sender} -> {receiver}: the MOVE "
+                $"ISO §2023:14.7.6 rule 2 and the §2023:14.9.25.3 MOVE rules disagree for {sender} -> {receiver}: the MOVE "
                 + $"rules say {(moveRules ? "Yes" : "No")} and the CORRESPONDING filter says "
                 + $"{(!moveRules ? "Yes" : "No")}. Rule 2 is a delegation to the MOVE rules; a second copy of one "
                 + "of them has been reintroduced.");
         }
     }
 
-    /// <summary>⛔ THE TWO-ARM PIN on the two composite entries. The §14.9.25.3 chain is asked from two entries —
+    /// <summary>⛔ THE TWO-ARM PIN on the two composite entries. The §2023:14.9.25.3 chain is asked from two entries —
     /// <c>MoveTable16.Validity</c>, over a BOUND operand, which the written MOVE, INITIALIZE and the INVOKE screen
-    /// reach, and <c>MoveTable16.DataItemRefusal</c>, over two data items, which §14.7.6 rule 2 reaches (a
+    /// reach, and <c>MoveTable16.DataItemRefusal</c>, over two data items, which §2023:14.7.6 rule 2 reaches (a
     /// CORRESPONDING pair has no bound operand until after the pairing decision). Fixing one and not the other is
     /// exactly the defect kb/Work PB391 landed against, so for every modeled sender x receiver the two entries
     /// must return the SAME reason. They can only do that by running one chain (kb/Work PB878 made the per-rule
@@ -182,7 +182,7 @@ public sealed class CorrespondingRule2DriftTests
     public void TheFiveMeasuredCellsCarryTable16sPrintedVerdict(string sender, string receiver, bool corresponds)
         => Assert.Equal(corresponds, CorrRule2MoveValid(At(sender), At(receiver)));
 
-    /// <summary>The two rules §14.9.25.3 SR10 DEFERS to, as their own text reads, asserted through the same
+    /// <summary>The two rules §2023:14.9.25.3 SR10 DEFERS to, as their own text reads, asserted through the same
     /// filter. These are not Table-16 cells and the table cannot decide them: a <c>BINARY-LONG</c> item is an
     /// ordinary Numeric/Integer row member to the table, and a variable-length group has no row at all. SR8 —
     /// <i>"identifier-2 shall reference a numeric or numeric-edited item"</i> — is therefore the only thing
@@ -195,7 +195,7 @@ public sealed class CorrespondingRule2DriftTests
     [InlineData("Binary-long", "Group", false)]
     [InlineData("Binary-long", "Numeric-integer", true)]
     [InlineData("Binary-long", "Numeric-edited", true)]
-    // SR9 / §8.5.1.12.1: a variable-length group moves only to or from a COMPATIBLE GROUP, in either direction.
+    // SR9 / §2023:8.5.1.12.1: a variable-length group moves only to or from a COMPATIBLE GROUP, in either direction.
     [InlineData("Variable-length-group", "Alphanumeric", false)]
     [InlineData("Alphanumeric", "Variable-length-group", false)]
     [InlineData("Variable-length-group", "Group", false)]
@@ -203,7 +203,7 @@ public sealed class CorrespondingRule2DriftTests
     public void TheTwoRulesSr10DefersToCarryTheirOwnVerdict(string sender, string receiver, bool corresponds)
         => Assert.Equal(corresponds, CorrRule2MoveValid(At(sender), At(receiver)));
 
-    /// <summary>⛔ THE TRAP. §14.7.6 rule 4 — <i>"Neither data item ... is of class index, message-tag, object, or
+    /// <summary>⛔ THE TRAP. §2023:14.7.6 rule 4 — <i>"Neither data item ... is of class index, message-tag, object, or
     /// pointer"</i> — is the ONLY thing that keeps a pointer namesake pair out of the correspondence set: Table 16
     /// has no pointer row or column and <see cref="MoveValidity.Table16Refusal"/> therefore ADMITS the pair. Before
     /// kb/Work PB391 the exclusion was an ACCIDENT of the private copy's <c>_ =&gt; false</c> default, and
@@ -216,10 +216,10 @@ public sealed class CorrespondingRule2DriftTests
         Assert.True(CorrRule2MoveValid(ptr, ptr),
             "Table 16 has no pointer row — rule 2 cannot be what excludes a pointer pair.");
         Assert.True(ItemCategory.IsIndexMessageTagObjectOrPointer(ptr),
-            "ISO §14.7.6 rule 4's class exclusion is what excludes it, and CorrEligible asks exactly this.");
+            "ISO §2023:14.7.6 rule 4's class exclusion is what excludes it, and CorrEligible asks exactly this.");
 
         // The four classes rule 4 names, each reached the way the model actually carries it. INDEX is a
-        // NUMERIC PicInfo distinguished only by its usage (§8.5.2.1 Table 2), and MESSAGE-TAG / FUNCTION-POINTER
+        // NUMERIC PicInfo distinguished only by its usage (§2023:8.5.2.1 Table 2), and MESSAGE-TAG / FUNCTION-POINTER
         // never gain a PicInfo at all — only the written DataItem.OwnUsage sees them.
         foreach (var pic in new[]
                  {

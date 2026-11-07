@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// traceability inventory rows for those rules kept naming the old members, with notes about a record list and an
 /// index sort that no longer existed, and no row named SortWork.cs. A verdict is re-verified by reading the code its
 /// row names, so a row that names only the delegator leaves the rule's real code unchecked. The rules are the ones
-/// SortWork.cs cites itself (<c>§14.9.24.4 GRn</c>, <c>§14.9.40.4 GRn</c>), so a rule the file takes on later is
+/// SortWork.cs cites itself (<c>§2023:14.9.24.4 GRn</c>, <c>§2023:14.9.40.4 GRn</c>), so a rule the file takes on later is
 /// covered without editing this test.
 /// </summary>
 public sealed class SortWorkTraceabilityDriftTests
@@ -25,7 +25,7 @@ public sealed class SortWorkTraceabilityDriftTests
     public void EveryStatementRuleSortWorkCites_IsARowThatNamesSortWork()
     {
         string src = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Runtime", "IO", "SortWork.cs"));
-        var cited = Regex.Matches(src, @"§(14\.9\.(?:24|40)\.4) GR(\d+)")
+        var cited = Regex.Matches(src, @"§2023:(14\.9\.(?:24|40)\.4) GR(\d+)")
             .Select(m => $"GR-{m.Groups[1].Value}-{m.Groups[2].Value}")
             .ToHashSet(StringComparer.Ordinal);
         // Non-vacuity: the two tie-break rules the store exists to keep (MERGE GR4, SORT GR3).

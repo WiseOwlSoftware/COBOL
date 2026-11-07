@@ -4,19 +4,19 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.35.3 r1 — "Argument-1 shall be of class numeric." EXP10's OWN argument rule.
+      *> ISO §2023:15.35.3 r1 — "Argument-1 shall be of class numeric." EXP10's OWN argument rule.
       *>
       *> --check validated:
-      *>   cite.py --check 15.35.3 "Argument-1 shall be of class numeric." -> OK §15.35.3 1)
-      *> §8.5.2.1 Table 2 puts an alphanumeric PICTURE item in class ALPHANUMERIC, so PIC X(4) is
-      *> not of class numeric and this reference is illegal source; §4.2.2 obliges the indication.
+      *>   cite.py --check 15.35.3 "Argument-1 shall be of class numeric." -> OK §2023:15.35.3 1)
+      *> §2023:8.5.2.1 Table 2 puts an alphanumeric PICTURE item in class ALPHANUMERIC, so PIC X(4) is
+      *> not of class numeric and this reference is illegal source; §2023:4.2.2 obliges the indication.
       *> The diagnostic is COBOL1627 ("intrinsic-argument-class", docs/DIAGNOSTICS.md).
       *>
       *> ⛔ THE SIBLING THAT WAS NEVER WITNESSED. negative/pb12-exp-alphanumeric-argument pins the
-      *> IDENTICAL rule for EXP (§15.34.3 r1) and its header names EXP10 as carrying the same
+      *> IDENTICAL rule for EXP (§2023:15.34.3 r1) and its header names EXP10 as carrying the same
       *> text - but the fixture calls EXP alone. The only EXP10 negative in the corpus,
       *> negative/intrinsic-phrase-word-argument, rejects FUNCTION EXP10(LEADING) with
-      *> COBOL1638, which is the reserved-PHRASE-WORD screen and not the §15.3 class screen:
+      *> COBOL1638, which is the reserved-PHRASE-WORD screen and not the §2023:15.3 class screen:
       *> a reserved word never reaches the class question at all. So EXP10's class rule had a row
       *> in IntrinsicArgumentRules.Verified and no test - the two-arm shape where only one arm was
       *> ever measured.

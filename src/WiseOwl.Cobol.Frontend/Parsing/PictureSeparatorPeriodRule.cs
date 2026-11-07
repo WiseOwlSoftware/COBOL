@@ -6,11 +6,11 @@ using WiseOwl.Cobol.Frontend.Generated;
 namespace WiseOwl.Cobol.Frontend.Parsing;
 
 /// <summary>
-/// ISO §13.18.40.3 SR7 — "If the symbol ',' or the symbol '.' is the last symbol of character-string-1, the
+/// ISO §2023:13.18.40.3 SR7 — "If the symbol ',' or the symbol '.' is the last symbol of character-string-1, the
 /// PICTURE clause shall be the last clause of the data description entry and shall be followed immediately
 /// (without an intervening separator space) by the separator period." (kb/Work PB569.)
 /// <para><b>WHY A TOKEN-LEVEL RULE, AND WHY HERE.</b> The PICMODE lexer rule (<c>PIC_STRING</c>) is the one place
-/// character-string-1 is delimited, and it already decides two §8.3.5 questions at its right edge: a trailing '.'
+/// character-string-1 is delimited, and it already decides two §2023:8.3.5 questions at its right edge: a trailing '.'
 /// followed by a space is the separator period (rule 3) and backs up to become the entry's DOT, and a trailing
 /// ',' or ';' followed by a space is a separator (rule 2) and backs up to be skipped. After those trims the
 /// token's last symbol is ',' or '.' in exactly two situations — the separator period follows it (the legal SR7
@@ -42,7 +42,7 @@ public static class PictureSeparatorPeriodRule
     public static string Message(IToken t)
         => $"the PICTURE character-string {t.Text} ends in the symbol '{t.Text![^1]}', so the PICTURE clause shall "
            + "be the last clause of the entry and be followed immediately, with no intervening separator, by the "
-           + "separator period (ISO §13.18.40.3 SR7); a comma or semicolon followed by a space is a separator "
-           + "(ISO §8.3.5 rule 2), not the end of the entry. Write the clause last and end it with '.', or drop "
+           + "separator period (ISO §2023:13.18.40.3 SR7); a comma or semicolon followed by a space is a separator "
+           + "(ISO §2023:8.3.5 rule 2), not the end of the entry. Write the clause last and end it with '.', or drop "
            + "the trailing symbol.";
 }

@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 namespace WiseOwl.Cobol.Runtime.IO.Store;
 
-/// <summary>What a page-layer operation answered: success, or §9.1.13.6 item 1's '30' (<i>"A permanent error exists and
+/// <summary>What a page-layer operation answered: success, or §2023:9.1.13.6 item 1's '30' (<i>"A permanent error exists and
 /// no further information is available concerning the input-output operation"</i>).</summary>
 internal enum StoreStatus
 {
@@ -16,9 +16,9 @@ internal enum StoreStatus
     /// <summary>A changing statement would take the store past its BOUNDARY (2.2.1.9): its reservation would grow the
     /// file past the format's 2^32 pages, or the host refused one of its writes because the file cannot grow further
     /// (<see cref="MediumSizeLimitException"/>). Nothing the statement did is reachable (R1) and the file is unchanged.
-    /// The page layer does not know the statement; the connector answers by it: a WRITE or REWRITE as §9.1.13.5 item 4's
-    /// '24' with the invalid key condition (§9.1.14), a DELETE as §9.1.13.6 item 1's '30' with NO invalid key condition
-    /// (item 4 is an attempt to write; §14.9.10.4 GR3/GR4 give a DELETE that condition only for a record the file does
+    /// The page layer does not know the statement; the connector answers by it: a WRITE or REWRITE as §2023:9.1.13.5 item 4's
+    /// '24' with the invalid key condition (§2023:9.1.14), a DELETE as §2023:9.1.13.6 item 1's '30' with NO invalid key condition
+    /// (item 4 is an attempt to write; §2023:14.9.10.4 GR3/GR4 give a DELETE that condition only for a record the file does
     /// not contain). Only
     /// <see cref="PagedFile.Begin"/> and a statement's completion answer it: an OPEN, a CLOSE and a promotion have no
     /// '24' and answer <see cref="PermanentError"/>.</summary>
@@ -146,7 +146,7 @@ internal sealed class PagedFile
     /// <summary>The highest generation this store has claimed (or seen claimed).</summary>
     public ulong LastClaim => _stampMint;
 
-    /// <summary>The release ordinal (§14.9.51.4 GR40) the next statement that mints one takes: the higher of the meta's
+    /// <summary>The release ordinal (§2023:14.9.51.4 GR40) the next statement that mints one takes: the higher of the meta's
     /// <c>release mint</c> and what this store has claimed (<see cref="Begin"/> advances it by the statement's
     /// <c>ordinals</c>, before its first page write, and it never decreases: an ordinal a refused or dead statement drew
     /// is never issued again, 2.2.1.3 decision 4).</summary>
@@ -168,13 +168,13 @@ internal sealed class PagedFile
 
     // ── Creation and OPEN ───────────────────────────────────────────────────────────────────────────────────────
 
-    /// <summary><c>OPEN OUTPUT</c>'s creation (§14.9.27.4 GR18, <i>"After the creation of the file, the file contains no
+    /// <summary><c>OPEN OUTPUT</c>'s creation (§2023:14.9.27.4 GR18, <i>"After the creation of the file, the file contains no
     /// records"</i>), a promotion of the EMPTY store with ONE durable write that decides it (2.2.1.16's creation rows):
     /// the three meta pages are read (kept to undo a refusal) and the empty store's generation N is placed above every
     /// stamp the previous store can have issued (the fence's bound, R2); the empty meta at N is written into the slot that
     /// does NOT hold the previous store's committed meta and SYNCED — the commit point — then page 2, the other slot, the
     /// one TRUNCATION to three pages, and a sync. A death before the commit write was handed over leaves the previous file;
-    /// after it, the empty store. A REFUSAL is §14.9.27.4 GR25's unsuccessful OPEN, <i>"the file is not affected"</i>: the
+    /// after it, the empty store. A REFUSAL is §2023:14.9.27.4 GR25's unsuccessful OPEN, <i>"the file is not affected"</i>: the
     /// pages written so far get their previous bytes back and the file its previous length IN BYTES — a previous file need
     /// not be a whole number of pages (a format-5 whole store, any foreign file) — then one more sync ('30').
     /// <para>⛔ <paramref name="replaced"/> SAYS WHETHER THE FILE IS STILL THE PREVIOUS ONE, whatever the status (kb/Work PB3493,
@@ -230,7 +230,7 @@ internal sealed class PagedFile
         return StoreStatus.Ok;
     }
 
-    /// <summary>A refused creation (§14.9.27.4 GR25, <i>"the file is not affected"</i>): EVERY meta page it wrote that held
+    /// <summary>A refused creation (§2023:14.9.27.4 GR25, <i>"the file is not affected"</i>): EVERY meta page it wrote that held
     /// previous bytes gets them back, newest first — a page the previous file held only PART of too, its tail read as
     /// zeros and cut off again — then a file shorter than three pages its previous <paramref name="length"/> in BYTES, and
     /// one sync; '30' whatever the medium then does. A refused write does not stop the undo: the pages after it still go
@@ -343,7 +343,7 @@ internal sealed class PagedFile
         // A torn page 2 under a live store: a READER's entry — a read-only store's, or the shared entry of an INPUT
         // connector into the writable store its sibling opened — keeps the tree it holds (nothing it can follow moved; the
         // statement writes nothing), so its READ answers as any other run unit's reader would; an exclusive entry of a
-        // writable store cannot know what another run unit completed before it writes, so it answers '30' (§9.1.13.6
+        // writable store cannot know what another run unit completed before it writes, so it answers '30' (§2023:9.1.13.6
         // item 1; 2.2.1.7).
         if (work is null) return _writable && exclusive ? StoreStatus.PermanentError : StoreStatus.Ok;
         if (work.Generation != _lastSeen)
@@ -501,7 +501,7 @@ internal sealed class PagedFile
     }
 
     /// <summary>Raise the page cache's capacity to at least <paramref name="pages"/> — the input-output areas of a
-    /// connector attached with a RESERVE clause (§12.4.5.14.3 GR1, 2.2.1.13).</summary>
+    /// connector attached with a RESERVE clause (§2023:12.4.5.14.3 GR1, 2.2.1.13).</summary>
     public void ReserveCache(int pages) => _cache.Reserve(pages);
 
     /// <summary>The pages the cache holds at most.</summary>
@@ -524,7 +524,7 @@ internal sealed class PagedFile
     /// retirement's few pages and nothing else (R5); through an INPUT handle nothing. A store that completed no statement
     /// since its last promotion (its OPEN's fence, or an earlier CLOSE of the run unit's) owes none: page 2 is already
     /// the retirement of that promotion, and the sync alone makes it durable — so a connector that changed nothing never
-    /// fails its CLOSE over a page 2 another run unit left torn (kb/Work PB3333; §9.1.13.1's permanent error of the
+    /// fails its CLOSE over a page 2 another run unit left torn (kb/Work PB3333; §2023:9.1.13.1's permanent error of the
     /// statement that met it is that statement's, DOC-A.1-105).</summary>
     public StoreStatus Close()
     {
@@ -584,7 +584,7 @@ internal sealed class PagedFile
 
     // ── COMMIT and the UNACKNOWLEDGED file (2.2.1.10) ──────────────────────────────────────────────────────────────
 
-    /// <summary>⛔ COMMIT transaction <paramref name="id"/> on this file (§14.9.7.4 GR3: <i>"The execution of the COMMIT
+    /// <summary>⛔ COMMIT transaction <paramref name="id"/> on this file (§2023:14.9.7.4 GR3: <i>"The execution of the COMMIT
     /// statement permanently applies any changes made to the files specified in all the active APPLY COMMIT clauses and
     /// releases all record locks associated with those files."</i>; DESIGN-runtime-library.md 2.2.1.10): after the
     /// statement's entry, a PROMOTION (R5) whose claim carries <c>committing</c> = the id into the committed slot — the one

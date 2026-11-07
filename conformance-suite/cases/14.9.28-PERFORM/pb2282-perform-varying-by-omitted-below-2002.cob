@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
       *> kb/Work PB2282 - COBOL-85's PERFORM writes BY in its VARYING phrase and in every AFTER phrase; the
-      *> omission ISO §14.9.28.4 GR12 permits ("For any BY phrase that is omitted, the augment value is 1") is a
+      *> omission ISO §2023:14.9.28.4 GR12 permits ("For any BY phrase that is omitted, the augment value is 1") is a
       *> later form, stated in the 2002 text (VCR row 7.42 records the derived 1985 edge). The VARYING phrase writes
       *> BY and only the AFTER phrase omits it, which is where the gate reports (the constructs.json row's own
       *> source witnesses the VARYING site).

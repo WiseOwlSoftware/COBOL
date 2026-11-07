@@ -5,11 +5,11 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.49.3 SR14 - "The same pair of exception-name-2 and file-name-2 shall not be
+      *> ISO §2023:14.9.49.3 SR14 - "The same pair of exception-name-2 and file-name-2 shall not be
       *> specified in more than one USE statement within the same procedure division." The rule
       *> is scoped to PAIRS. A BARE exception-name in a Format-3 USE is exception-name-1, not
-      *> exception-name-2: the §14.9.49.2 Format-3 figure puts exception-name-2 only in the
-      *> `exception-name-2 { FILE file-name-2 } ...` alternative, and §14.9.49.4 GR3 splits on
+      *> exception-name-2: the §2023:14.9.49.2 Format-3 figure puts exception-name-2 only in the
+      *> `exception-name-2 { FILE file-name-2 } ...` alternative, and §2023:14.9.49.4 GR3 splits on
       *> the same axis - c) and d) read "file-name-2 is specified and exception-name-2 ...",
       *> e), f) and g) read "file-name-2 is not specified and exception-name-1 ...". No syntax
       *> rule forbids repeating exception-name-1; GR3 supplies its OUTCOME instead: "A
@@ -26,11 +26,11 @@
       *> DERIVATION - every expected line follows from the rule text, nothing from the compiler.
       *>  * The >>TURN directive enables the EC-I-O family so a format-3 declarative can be
       *>    selected at all.
-      *>  * OPEN OUTPUT of an absent, non-optional file is a normal open (§14.9.27.4 GR4's table,
+      *>  * OPEN OUTPUT of an absent, non-optional file is a normal open (§2023:14.9.27.4 GR4's table,
       *>    OUTPUT row); the WRITE and CLOSE complete successfully.
-      *>  * The second READ reaches end of file: §14.9.30.4 GR24 a) - "The I-O status of the file
+      *>  * The second READ reaches end of file: §2023:14.9.30.4 GR24 a) - "The I-O status of the file
       *>    connector associated with file-name-1 is set to '10' to indicate the at end condition,
-      *>    and, if enabled, the EC-I-O-AT-END exception condition is set to exist" (§9.1.13.4
+      *>    and, if enabled, the EC-I-O-AT-END exception condition is set to exist" (§2023:9.1.13.4
       *>    rule 1 a) gives the same 10).
       *>  * Neither USE names a file, so the file-scoped tiers GR3 c) and d) find nothing and the
       *>    search reaches GR3 e) - "All format 3 USE statements in which file-name-2 is not
@@ -42,8 +42,8 @@
       *>    would change even if the DISPLAY order were somehow preserved.
       *>  * RESUME AT NEXT STATEMENT transfers control to an implicit CONTINUE that "immediately
       *>    follows the end of the statement that was executing when control was transferred to
-      *>    the exception processing procedure" (§14.9.33.4 GR2 a)), so AFTER is reached.
-      *>  * "H1 S: EC-I-O-AT-END" also names the condition through §15.33.1's EXCEPTION-STATUS,
+      *>    the exception processing procedure" (§2023:14.9.33.4 GR2 a)), so AFTER is reached.
+      *>  * "H1 S: EC-I-O-AT-END" also names the condition through §2023:15.33.1's EXCEPTION-STATUS,
       *>    so the line proves WHICH exception selected the first section, not only that it ran.
 >>TURN EC-I-O CHECKING ON
        IDENTIFICATION DIVISION.

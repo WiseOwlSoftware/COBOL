@@ -13,39 +13,39 @@ namespace WiseOwl.Cobol.Runtime;
 // imported one) — the same precedence OoClassTable.Find gives a group definition over the standard class.
 //
 // ⛔ BASE AND __FACTORY_BASE ARE CONCRETE, AND __FACTORY_BASE HAS THE SAME __Instance SINGLETON EVERY GENERATED
-// FACTORY HAS (kb/Work PB2489). §16.2.1.2 GR1 makes New on BASE's own factory create "an object" — an instance of
+// FACTORY HAS (kb/Work PB2489). §2023:16.2.1.2 GR1 makes New on BASE's own factory create "an object" — an instance of
 // BASE itself — so `INVOKE BASE "NEW"` and `SET f TO FACTORY OF BASE` are legal source, and the emitter reaches them
 // as `__FACTORY_BASE.__Instance`, exactly as it reaches `__FACTORY_CLS.__Instance` for any class: one shape for every
 // factory, so no emit site has a BASE arm. A generated factory that inherits this one hides the accessor with `new`.
 #pragma warning disable CA1707 // the underscore is the emitted factory-type convention, not a style choice
 
 /// <summary>
-/// The OBJECT half of the standard class BASE — ISO/IEC 1989:2023 §16.1: "A standard class BASE shall be provided
+/// The OBJECT half of the standard class BASE — ISO/IEC 1989:2023 §2023:16.1: "A standard class BASE shall be provided
 /// by the implementation. It may be used as the root of a class hierarchy to provide standard object life-cycle
-/// function." Its §16.2 object interface, BaseInterface, is the one instance method FactoryObject. Every class that
+/// function." Its §2023:16.2 object interface, BaseInterface, is the one instance method FactoryObject. Every class that
 /// INHERITS FROM BASE (directly or through a superclass) derives from this type; a class that does not derives from
-/// <see cref="CobolObject"/> directly, and has neither New nor FactoryObject (§16.1: "This use is not required").
-/// §16.2's NOTE — "The standard class BASE need not be implemented in COBOL" — is what this class is.
+/// <see cref="CobolObject"/> directly, and has neither New nor FactoryObject (§2023:16.1: "This use is not required").
+/// §2023:16.2's NOTE — "The standard class BASE need not be implemented in COBOL" — is what this class is.
 /// </summary>
 public class BASE : CobolObject
 {
-    /// <summary>The factory object of THIS object's runtime class (§16.2.2.2 GR1: FactoryObject "determines the
+    /// <summary>The factory object of THIS object's runtime class (§2023:16.2.2.2 GR1: FactoryObject "determines the
     /// class of the object"). Every emitted BASE-derived class overrides it with its own factory singleton, so the
     /// most-derived override IS the runtime class's factory; a plain BASE object (created by New on BASE's own
     /// factory) is of class BASE.</summary>
     protected virtual __FACTORY_BASE __FactoryOfClass => __FACTORY_BASE.__Instance;
 
-    /// <summary>§9.3.6 match rule 3 d) 5.: the FACTORY type of a plain BASE object's class.</summary>
+    /// <summary>§2023:9.3.6 match rule 3 d) 5.: the FACTORY type of a plain BASE object's class.</summary>
     protected internal override Type? __FactoryClassType => typeof(__FACTORY_BASE);
 
-    /// <summary>FactoryObject (§16.2.2.2 GR1): "When invoked on an instance object, the FactoryObject method
+    /// <summary>FactoryObject (§2023:16.2.2.2 GR1): "When invoked on an instance object, the FactoryObject method
     /// determines the class of the object and returns a reference to the factory object associated with that
     /// class." Virtual, because BaseInterface's method is not FINAL — a COBOL subclass may override it
     /// (<c>METHOD-ID. FactoryObject OVERRIDE.</c>), and its emitted C# member then overrides this one by name. The name
     /// is one no class-name spells, so a class named FactoryObject can declare that override (kb/Work PB3342).</summary>
     public virtual CobolObject? __FactoryObject() => __FactoryOfClass;
 
-    /// <summary>The universal-receiver dispatch (D10; §14.9.23.3 SR6/SR7) for BaseInterface: an emitted class's
+    /// <summary>The universal-receiver dispatch (D10; §2023:14.9.23.3 SR6/SR7) for BaseInterface: an emitted class's
     /// switch falls through <c>default:</c> to here for a method no COBOL class of the hierarchy declares.</summary>
     public override void __CobolInvoke(string name, CobolInvokeArg[] args, CobolInvokeArg? returning)
     {
@@ -53,7 +53,7 @@ public class BASE : CobolObject
             && StandardMethodCrossing.Matches(args, returning, StandardMethodCrossing.FactoryObjectReturning))
         {
             CheckActiveClassReturning(true, "INVOKE 'FactoryObject'", returning!.Description,
-                StandardMethodCrossing.FactoryObjectReturning);   // §14.8.3.3 rule 2 b) 4. (kb/Work PB2985)
+                StandardMethodCrossing.FactoryObjectReturning);   // §2023:14.8.3.3 rule 2 b) 4. (kb/Work PB2985)
             returning!.Value = __FactoryObject();
             return;
         }
@@ -63,40 +63,40 @@ public class BASE : CobolObject
 
 /// <summary>
 /// The FACTORY half of the standard class BASE: the factory object of every BASE-derived class derives from this
-/// type, and its §16.2 factory interface, BaseFactoryInterface, is the one factory method New — "a factory method
-/// that provides a standard mechanism for creating instance objects of a class" (§16.2.1.1). §9.3.14.3: "An
+/// type, and its §2023:16.2 factory interface, BaseFactoryInterface, is the one factory method New — "a factory method
+/// that provides a standard mechanism for creating instance objects of a class" (§2023:16.2.1.1). §2023:9.3.14.3: "An
 /// instance object is created as the result of the NEW method being invoked on a factory object."
 /// </summary>
 public class __FACTORY_BASE : CobolObject
 {
     /// <summary>The factory object of the standard class BASE in the CURRENT run unit, created on first reference
-    /// (§9.3.14.2: "A factory object is created before it is first referenced by a run unit") — the same accessor,
+    /// (§2023:9.3.14.2: "A factory object is created before it is first referenced by a run unit") — the same accessor,
     /// by the same name and through the same <see cref="RunUnit.FactoryObject{T}"/>, every generated factory
     /// emits for its own class.</summary>
     public static __FACTORY_BASE __Instance => RunUnit.Current.FactoryObject<__FACTORY_BASE>();
 
-    /// <summary>§9.3.6 match rule 3 d) 4.: the INSTANCE type of the class this factory belongs to — BASE itself.</summary>
+    /// <summary>§2023:9.3.6 match rule 3 d) 4.: the INSTANCE type of the class this factory belongs to — BASE itself.</summary>
     protected internal override Type? __InstanceClassType => typeof(BASE);
 
-    /// <summary>Allocate and initialize one instance of this factory's class — §16.2.1.2 GR1's "allocates storage
+    /// <summary>Allocate and initialize one instance of this factory's class — §2023:16.2.1.2 GR1's "allocates storage
     /// for an object, initializes its instance data in accordance with 14.6.2.4". Every emitted BASE-derived factory
     /// overrides it covariantly with <c>new C()</c> (the generated constructor IS the initialization, OO deep-dive
     /// D4), so New invoked on a subclass's factory — or through SELF in an inherited factory method — creates the
     /// runtime factory's class. BASE's own factory creates a plain BASE.</summary>
     protected virtual BASE __Create() => new BASE();
 
-    /// <summary>New (§16.2.1.2): create an object through <see cref="__Create"/>, or — GR2 — "If resources needed to
+    /// <summary>New (§2023:16.2.1.2): create an object through <see cref="__Create"/>, or — GR2 — "If resources needed to
     /// create a new object are not available, the returned object reference is set to NULL, and the EC-OO-RESOURCE
     /// exception condition is set to exist and is propagated back to the runtime element that invoked the New
     /// method". An allocation failure is the one resource a managed object's creation can lack; the condition
     /// raises through the ordinary fatal path when checking for it is enabled (<see
     /// cref="ExceptionState.OoResourceError"/>), and otherwise NULL is returned. Every New form reaches it (the
     /// class-name, FACTORY OF, SELF/SUPER and universal forms), and the emitted delivery narrows the result to the
-    /// receiving item's type — a cast the binder's §14.8.3.3 conformance check has already proved safe.
-    /// <para>VIRTUAL, because §16.2 does not declare New FINAL: a BASE subclass may write <c>METHOD-ID. NEW
-    /// OVERRIDE.</c> (§11.7.3 SR3; kb/Work PB1582), whose emitted member overrides this one, and <c>INVOKE SUPER
+    /// receiving item's type — a cast the binder's §2023:14.8.3.3 conformance check has already proved safe.
+    /// <para>VIRTUAL, because §2023:16.2 does not declare New FINAL: a BASE subclass may write <c>METHOD-ID. NEW
+    /// OVERRIDE.</c> (§2023:11.7.3 SR3; kb/Work PB1582), whose emitted member overrides this one, and <c>INVOKE SUPER
     /// "NEW"</c> inside it reaches this body as <c>base.__New()</c>. Its result type is the universal object type
-    /// because that is how §16.2's returning item — <c>object reference active-class</c> — crosses the method ABI
+    /// because that is how §2023:16.2's returning item — <c>object reference active-class</c> — crosses the method ABI
     /// (an ACTIVE-CLASS item crosses as the universal type, OoEmitter.OoFormalCrossingType), so a COBOL override's
     /// emitted signature is this one.</para></summary>
     public virtual CobolObject? __New()
@@ -109,7 +109,7 @@ public class __FACTORY_BASE : CobolObject
         {
             ExceptionState.OoResourceError(
                 $"New: the resources needed to create an object of the class of factory '{GetType().Name}' are not "
-                + "available (ISO §16.2.1.2 GR2)");
+                + "available (ISO §2023:16.2.1.2 GR2)");
             return null;
         }
     }
@@ -122,7 +122,7 @@ public class __FACTORY_BASE : CobolObject
             && StandardMethodCrossing.Matches(args, returning, StandardMethodCrossing.NewReturning))
         {
             CheckActiveClassReturning(true, "INVOKE 'New'", returning!.Description,
-                StandardMethodCrossing.NewReturning);   // §14.8.3.3 rule 2 b) 4. (kb/Work PB2985)
+                StandardMethodCrossing.NewReturning);   // §2023:14.8.3.3 rule 2 b) 4. (kb/Work PB2985)
             returning!.Value = __New();
             return;
         }
@@ -130,30 +130,30 @@ public class __FACTORY_BASE : CobolObject
     }
 }
 
-/// <summary>ISO §9.3.6's MATCH for a universal invocation of a BASE method (kb/Work PB480). Both §16.2 methods take no
+/// <summary>ISO §2023:9.3.6's MATCH for a universal invocation of a BASE method (kb/Work PB480). Both §2023:16.2 methods take no
 /// parameters and return an object reference described ACTIVE-CLASS, so an invocation with an argument (match rule 1:
 /// "The number of invocation parameters shall be equal"), without a RETURNING item (rule 1: "if there is a returning item
 /// in the invoked method …"), or whose RETURNING item a SET cannot receive the method's returning item into (rule 6) does
-/// not match: the search goes on up the chain and ends in EC-OO-METHOD (§9.3.6 resolution step 6), exactly as for a
-/// method written in COBOL — it used to raise EC-OO-UNIVERSAL, which §14.9.23.4 GR7 c) reserves for a BOUND method.
-/// Rule 6 is the §14.9.39.3 table over the two descriptions (kb/Work PB2463): an ACTIVE-CLASS sender's class is "the
+/// not match: the search goes on up the chain and ends in EC-OO-METHOD (§2023:9.3.6 resolution step 6), exactly as for a
+/// method written in COBOL — it used to raise EC-OO-UNIVERSAL, which §2023:14.9.23.4 GR7 c) reserves for a BOUND method.
+/// Rule 6 is the §2023:14.9.39.3 table over the two descriptions (kb/Work PB2463): an ACTIVE-CLASS sender's class is "the
 /// class containing the data item" (SR12 b) 2.), here the standard class BASE, so New and FactoryObject match a
 /// universal receiving item, one described with BASE (FACTORY OF BASE for FactoryObject) and an ACTIVE-CLASS one of the
-/// same FACTORY presence (SR14 a)). The bound method's conformance is §14.8.3.3 rule 2 b) 4.: invoked through a universal
+/// same FACTORY presence (SR14 a)). The bound method's conformance is §2023:14.8.3.3 rule 2 b) 4.: invoked through a universal
 /// reference, the ACTIVE-CLASS item is sent as a universal reference, so a typed receiving item raises EC-OO-UNIVERSAL
 /// (<see cref="CobolObject.CheckActiveClassReturning"/>, asked by both methods; kb/Work PB2985) and the caller's delivery
 /// narrowing (<see cref="CobolObject.NarrowUniversal{T}"/>) is the floor when checking is off.</summary>
 internal static class StandardMethodCrossing
 {
-    /// <summary>The standard class BASE as an ACTIVE-CLASS description's class facts: §16.1 gives it no superclass, and
-    /// no source element can name the formal interfaces of §16.2, so it implements none a SET could relate — the
+    /// <summary>The standard class BASE as an ACTIVE-CLASS description's class facts: §2023:16.1 gives it no superclass, and
+    /// no source element can name the formal interfaces of §2023:16.2, so it implements none a SET could relate — the
     /// compiler's own symbol for BASE (<c>OoStandardClasses.BuildBase</c>) carries none either.</summary>
     private static readonly string[] BaseClass = [CobolNames.Fold("BASE")];
 
-    /// <summary>§16.2 BaseFactoryInterface's New: <c>01 outObject usage object reference active-class.</c></summary>
+    /// <summary>§2023:16.2 BaseFactoryInterface's New: <c>01 outObject usage object reference active-class.</c></summary>
     public static readonly ActivationDescription NewReturning = ActiveClass(factory: false);
 
-    /// <summary>§16.2 BaseInterface's FactoryObject: <c>01 outFactory usage object reference factory of
+    /// <summary>§2023:16.2 BaseInterface's FactoryObject: <c>01 outFactory usage object reference factory of
     /// active-class.</c> — FACTORY, so SR12 b) 3. and SR14 a) ask a FACTORY receiving item.</summary>
     public static readonly ActivationDescription FactoryObjectReturning = ActiveClass(factory: true);
 

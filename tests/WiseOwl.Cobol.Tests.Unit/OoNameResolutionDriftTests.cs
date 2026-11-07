@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ A WRITTEN object-class-name OR interface-name RESOLVES THROUGH ONE FUNNEL (<c>OoNameResolution</c> —
-/// kb/Work PB365), AND THIS KEEPS IT TRUE. ISO §8.4.6.4 scopes both to "the name of the containing object
+/// kb/Work PB365), AND THIS KEEPS IT TRUE. ISO §2023:8.4.6.4 scopes both to "the name of the containing object
 /// class definition or declared in the REPOSITORY paragraph of that or a containing source element";
 /// <c>OoClassTable</c> holds the COMPILATION GROUP's names, which is a strictly wider set. Every site that
 /// called <c>Find</c> / <c>FindInterface</c> directly therefore answered a different question than the one the
@@ -38,9 +38,9 @@ public sealed class OoNameResolutionDriftTests
                 + "that decide WHICH failure message to print (including whether the name is the standard class "
                 + "BASE, kb/Work PB1548)"),
         [Path.Combine("Oo", "OoConformance.cs")] =
-            (4, "the two §9.3.8.2.3 rule 9 b)/c) lookups of a RAISING element's class / interface, scope-checked "
+            (4, "the two §2023:9.3.8.2.3 rule 9 b)/c) lookups of a RAISING element's class / interface, scope-checked "
                 + "where the procedure division header WROTE it (RaisingPhrase.Partition, kb/Work PB972); plus the "
-                + "two node lookups of §9.3.8.2.3's closing-sentence reference walk (Reaches, kb/Work PB1498), whose "
+                + "two node lookups of §2023:9.3.8.2.3's closing-sentence reference walk (Reaches, kb/Work PB1498), whose "
                 + "nodes are the names of already-built returning-item descriptors and class/interface symbols"),
         [Path.Combine("Binding", "Procedure", "Verbs", "OoBinder.cs")] =
             (4, "re-lookup of a receiver's/target's declared ObjectClassName (scope-checked at its data "
@@ -49,7 +49,7 @@ public sealed class OoNameResolutionDriftTests
             (1, "InlineInvocationReturningItem (kb/Work PB4868): the diagnostic-free probe of an inline invocation's returned item re-looks-up "
                 + "the receiver's declared ObjectClassName (scope-checked at its data description entry, COBOL0813), as OoBinder's own lookups do"),
         [Path.Combine("Binding", "Procedure", "Verbs", "EcBinder.cs")] =
-            (3, "the GOBACK §14.9.18.3 SR4 / EXIT §14.9.14.3 SR5 identifier check (RaisingObjectMismatch, kb/Work "
+            (3, "the GOBACK §2023:14.9.18.3 SR4 / EXIT §2023:14.9.14.3 SR5 identifier check (RaisingObjectMismatch, kb/Work "
                 + "PB815/PB814): a) / c) the superclass walk from the operand's declared (or containing) class, "
                 + "b) the operand's interface and each header-listed interface — all names already scope-checked "
                 + "where they were WRITTEN (the data description entry, and RaisingPhrase.Partition's funnel "
@@ -59,7 +59,7 @@ public sealed class OoNameResolutionDriftTests
                 + "declared INTERFACE for an interface-typed receiver (kb/Work PB1449) — a descriptor name, scope-checked "
                 + "where the data description entry WROTE it"),
         [Path.Combine("Binding", "BackendAnswers.cs")] =
-            (2, "BackendAnswers.Resolve (kb/Work PB1119, PB2403; §14.6.13.1.5 EXIT/GOBACK items 1 and 3): the re-lookup of "
+            (2, "BackendAnswers.Resolve (kb/Work PB1119, PB2403; §2023:14.6.13.1.5 EXIT/GOBACK items 1 and 3): the re-lookup of "
                 + "each class / interface an element's PROCEDURE DIVISION header RAISING phrase names, resolved at the end "
                 + "of the bind into the RaisingObject the backend renders its type test from — scope-checked where the "
                 + "header WROTE it (RaisingPhrase.Partition's funnel lookup)"),
@@ -102,7 +102,7 @@ public sealed class OoNameResolutionDriftTests
         Assert.True(unadjudicated.Count == 0,
             "OoClassTable.Find / FindInterface call site(s) outside the adjudicated set (or an adjudicated "
             + "file whose call count changed) — resolve a WRITTEN class-name / interface-name through "
-            + "OoNameResolution so the ISO §8.4.6.4 REPOSITORY scope applies, or adjudicate the direct call "
+            + "OoNameResolution so the ISO §2023:8.4.6.4 REPOSITORY scope applies, or adjudicate the direct call "
             + "here WITH its reason (kb/Work PB365):\n  "
             + string.Join("\n  ", unadjudicated.Select(kv => $"{kv.Key} ({kv.Value} call(s))")));
     }
@@ -116,7 +116,7 @@ public sealed class OoNameResolutionDriftTests
                      Path.Combine("Oo", "OoClassTable.cs"),                          // INHERITS, IMPLEMENTS
                      Path.Combine("Binding", "Procedure", "ProcedureTableBuilder.cs"),// USE Format 4
                      // USAGE OBJECT REFERENCE lives in the DataBinder's Oo
-                     // partial: kb/Work PB389 moved the §13.18.60.2 adjudication into
+                     // partial: kb/Work PB389 moved the §2023:13.18.60.2 adjudication into
                      // OoDataBinder.BindObjectRefDescriptor, and the written name is resolved there. DataBinder.cs
                      // itself no longer references a class-name or interface-name — and if one ever
                      // reappears there, EveryClassOrInterfaceNameLookup_IsTheFunnel_OrAdjudicated is the
@@ -130,7 +130,7 @@ public sealed class OoNameResolutionDriftTests
             string text = File.ReadAllText(Path.Combine(TestRepo.Src("WiseOwl.Cobol.Compiler"), rel));
             Assert.True(text.Contains("OoNameResolution.", StringComparison.Ordinal),
                 $"{rel} no longer resolves its written class-name / interface-name through OoNameResolution "
-                + "(kb/Work PB365 — ISO §8.4.6.4 scopes the name to the referring source element)");
+                + "(kb/Work PB365 — ISO §2023:8.4.6.4 scopes the name to the referring source element)");
         }
     }
 }

@@ -168,7 +168,7 @@ public sealed class DebugFacilityTests
     }
 
     /// <summary>The removal gate: WITH DEBUGGING MODE + USE FOR DEBUGGING are rejected COBOL0902 at ≥2002 (the
-    /// '85 debug module deleted 2002 — §8.9 absence).</summary>
+    /// '85 debug module deleted 2002 — §2023:8.9 absence).</summary>
     [Theory]
     [InlineData(2002)]
     [InlineData(2014)]
@@ -406,8 +406,8 @@ public sealed class DebugFacilityTests
         """;
 
     /// <summary>In <c>ALL [REFERENCES OF] identifier-1</c> identifier-1 is a data item, and a word that names a
-    /// paragraph or a section is a procedure-name (ISO §14.4.1: "A procedure-name is a word used to refer to a
-    /// paragraph or section"), so it identifies none (§8.4.2.1). It is COBOL5848 naming the procedure, never the
+    /// paragraph or a section is a procedure-name (ISO §2023:14.4.1: "A procedure-name is a word used to refer to a
+    /// paragraph or section"), so it identifies none (§2023:8.4.2.1). It is COBOL5848 naming the procedure, never the
     /// COBOL1571 that calls it the legal-but-unmodeled data-item subject (kb/Work PB4363, which pinned the
     /// wrong message for <c>ALL P1</c> before).</summary>
     [Theory]
@@ -426,10 +426,10 @@ public sealed class DebugFacilityTests
     }
 
     /// <summary>A word nothing declares, in either operand arm, is the ONE undefined-reference diagnostic
-    /// (COBOL1639, ISO §8.4.2.1: "a statement shall contain a reference that uniquely identifies that resource"),
+    /// (COBOL1639, ISO §2023:8.4.2.1: "a statement shall contain a reference that uniquely identifies that resource"),
     /// which says the program is wrong and tells the user to check the spelling. COBOL1571 says the program is
     /// right and the compiler incomplete, and it was given for both (kb/Work PB4363). A qualifier under which the
-    /// item is not declared is the same refusal with its own text (§8.4.2.2.3 SR1).</summary>
+    /// item is not declared is the same refusal with its own text (§2023:8.4.2.2.3 SR1).</summary>
     [Theory]
     [InlineData("ALL NOSUCH", "'NOSUCH' is not defined")]
     [InlineData("ALL REFERENCES OF NOSUCH", "'NOSUCH' is not defined")]
@@ -499,7 +499,7 @@ public sealed class DebugFacilityTests
 
     /// <summary>A bare operand that names a cd-name the program declares is the cd-name subject (X3.23-1985 USE FOR DEBUGGING general rule
     /// 8; CCVS DB205A writes <c>ON CM-INQUE CM-OUTQUE</c>): it compiles, and the declared name is not "not defined" (COBOL1639, ISO
-    /// §8.4.2.1) — kb/Work PB4713 named it, kb/Work PB4759 models its trigger. The section runs after the ACCEPT ... MESSAGE COUNT that
+    /// §2023:8.4.2.1) — kb/Work PB4713 named it, kb/Work PB4759 models its trigger. The section runs after the ACCEPT ... MESSAGE COUNT that
     /// names the cd-name, DEBUG-NAME CM-IN.</summary>
     [Fact]
     public void BareOperandNamingACdName_At85_IsTheCdNameSubject()
@@ -522,7 +522,7 @@ public sealed class DebugFacilityTests
     }
 
     /// <summary>A cd-name after ALL is no identifier-1: a cd-name is declared, so the refusal says what it is declared as
-    /// (the resolver's file-name wording, now for the cd-name) and never "not defined" (ISO §8.4.2.1; kb/Work PB4713, the
+    /// (the resolver's file-name wording, now for the cd-name) and never "not defined" (ISO §2023:8.4.2.1; kb/Work PB4713, the
     /// reference resolver's sibling of the bare-name arm).</summary>
     [Theory]
     [InlineData("ALL CM-IN", "COBOL1639: 'CM-IN' is declared as a cd-name")]
@@ -546,7 +546,7 @@ public sealed class DebugFacilityTests
     /// <summary>A debug operand that names a table element is written WITHOUT its subscripts (the DEBUG-SUB-n items
     /// report them, X3.23-1985; CCVS DB201A writes <c>ON B-LEVEL-1 B-LEVEL-2 B-LEVEL-3</c> and <c>ALL REFERENCES OF
     /// AB1 OF A1</c> over OCCURS items), so it is the data item the trigger watches and not a reference
-    /// the §8.4.2.3.3 SR5 "shall be subscripted" screen (COBOL2270) judges: the operand is classified by its
+    /// the §2023:8.4.2.3.3 SR5 "shall be subscripted" screen (COBOL2270) judges: the operand is classified by its
     /// declaration, in both arms (kb/Work PB4363, review round 1), and it compiles (kb/Work PB4810).</summary>
     [Theory]
     [InlineData("ELEM")]
@@ -616,7 +616,7 @@ public sealed class DebugFacilityTests
     /// <summary>A paragraph-name qualified by a word that is not its section is a procedure-name that identifies
     /// nothing, and is told so in the procedure-name text every other procedure-name operand gets — not as the
     /// undeclared data name the data resolver would call it (the paragraph P1 IS declared; kb/Work PB4363, review
-    /// round 1, ISO §8.4.2.2.2 Format 4).</summary>
+    /// round 1, ISO §2023:8.4.2.2.2 Format 4).</summary>
     [Theory]
     [InlineData("P1 OF NOSEC", "P1 OF NOSEC")]
     [InlineData("ALL P1 OF NOSEC", "P1 OF NOSEC")]
@@ -631,8 +631,8 @@ public sealed class DebugFacilityTests
     }
 
     /// <summary>A qualified procedure-name is a procedure-name subject: <c>ON PARA-W OF SEC-A</c> debugs SEC-A's
-    /// paragraph and not SEC-B's of the same spelling (ISO §8.4.2.2.2, the paragraph-name qualified by a section-name;
-    /// §8.4.2.2.1 rule 6). It was refused as a staged data item, with its qualifier dropped from the message.
+    /// paragraph and not SEC-B's of the same spelling (ISO §2023:8.4.2.2.2, the paragraph-name qualified by a section-name;
+    /// §2023:8.4.2.2.1 rule 6). It was refused as a staged data item, with its qualifier dropped from the message.
     /// Performed once each, the debugging declarative runs once: HITS=1.</summary>
     [Fact]
     public void QualifiedProcedureNameSubject_At85_DebugsOnlyTheQualifiedParagraph()
@@ -717,7 +717,7 @@ public sealed class DebugFacilityTests
         EditionHarness.AssertEveryDiagnosticPositioned(diags, nameof(SortProcedureSubject_At85_StagedLoud1571));
     }
 
-    /// <summary>RESUME AT procedure-name is a GO TO (ISO §14.9.33.4 GR3), so it abandons the statements around it and the sections they owe run
+    /// <summary>RESUME AT procedure-name is a GO TO (ISO §2023:14.9.33.4 GR3), so it abandons the statements around it and the sections they owe run
     /// first (X3.23-1985 USE FOR DEBUGGING general rules 5 d and 6 c, kb/Work PB4857): the IF around a RAISE that a declarative resumes elsewhere,
     /// and the IF around the RESUME inside the declarative. RESUME AT NEXT STATEMENT continues after the lowest statement, so the IF around the
     /// RAISE completes and runs its section once. The statements are 2002 introductions and the facility is 1985's, so the one program that has

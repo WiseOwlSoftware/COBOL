@@ -17,31 +17,31 @@
       *> "If this rule is violated the EC-REPORT-COLUMN-OVERLAP
       *> exception condition is set to exist and the results are
       *> undefined."
-      *>   cite.py: OK  §13.18.14.4 4)  (General rules)
+      *>   cite.py: OK  §2023:13.18.14.4 4)  (General rules)
       *> "If this rule is violated the EC-REPORT-PAGE-WIDTH exception
       *> condition is set to exist, the report line is truncated, and
       *> the report line is printed."
-      *>   cite.py: OK  §13.18.14.4 5)  (General rules)
+      *>   cite.py: OK  §2023:13.18.14.4 5)  (General rules)
       *> "A report group shall never be split between two pages. If
       *> this rule is violated the EC-REPORT-PAGE-LIMIT exception
       *> condition is set to exist and the results are undefined."
-      *>   cite.py: OK  §13.18.35.4 2)  (General rules)
+      *>   cite.py: OK  §2023:13.18.35.4 2)  (General rules)
       *> "If a nonfatal exception condition is raised during the
       *> execution of a GENERATE statement, execution resumes at the
       *> next report item, line, or report group, whichever follows in
       *> logical order."
-      *>   cite.py: OK  §14.9.16.4 8)  (General rules)
+      *>   cite.py: OK  §2023:14.9.16.4 8)  (General rules)
       *> "If a nonfatal exception condition is raised during the
       *> execution of a TERMINATE statement, execution resumes at the
       *> next report item, line, or report group, whichever follows in
       *> logical order."
-      *>   cite.py: OK  §14.9.46.4 5)  (General rules)
+      *>   cite.py: OK  §2023:14.9.46.4 5)  (General rules)
       *> "If integer-2 is omitted, a value of 999 is assumed for the
       *> page width."
-      *>   cite.py: OK  §13.18.39.4 5)  (General rules)
+      *>   cite.py: OK  §2023:13.18.39.4 5)  (General rules)
       *>
       *> The two rules the programs below break at run time are also syntax
-      *> rules (§13.18.14.3 SR8 a), b), c); cite.py: OK 13.18.14.3 8)), each
+      *> rules (§2023:13.18.14.3 SR8 a), b), c); cite.py: OK 13.18.14.3 8)), each
       *> excusing items "subject to a different PRESENT WHEN clause" - and
       *> different clauses may both hold, which is how a legal program
       *> reaches the exception: R-C's overlapping items and R-W's two

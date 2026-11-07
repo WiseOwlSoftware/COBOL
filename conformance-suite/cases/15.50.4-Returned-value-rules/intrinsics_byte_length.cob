@@ -5,8 +5,8 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.14 BYTE-LENGTH — the byte-counting twin of FUNCTION LENGTH (§15.50); the D7 distinction
-      *> (P11 Step 7). A COMPILE-TIME FOLD. Per-usage byte widths are IMPLEMENTOR-DEFINED (§13.18.60);
+      *> ISO §2023:15.14 BYTE-LENGTH — the byte-counting twin of FUNCTION LENGTH (§2023:15.50); the D7 distinction
+      *> (P11 Step 7). A COMPILE-TIME FOLD. Per-usage byte widths are IMPLEMENTOR-DEFINED (§2023:13.18.60);
       *> WiseOwl COBOL's pinned widths (docs/rearchitecture/PHASE-11-scout-notes.md spec:byte-length +
       *> INTRINSICS_DESIGN): DISPLAY = 1 byte/position, NATIONAL = 2 bytes/position (UTF-16),
       *> BINARY(COMP) = StorageWidth (S9(4) -> 2), PACKED(COMP-3) = digits/2+1 (S9(5) -> 3), BINARY-CHAR = 1.
@@ -38,6 +38,6 @@
            DISPLAY "BL-BC=" FUNCTION BYTE-LENGTH(WS-BC)
       *> Group: 3 (X(3)) + 2*2 (N(2)) = 7 bytes.
            DISPLAY "BL-GRP=" FUNCTION BYTE-LENGTH(WS-GRP)
-      *> An alphanumeric literal (a valid §15.14.3 literal argument): 5 bytes.
+      *> An alphanumeric literal (a valid §2023:15.14.3 literal argument): 5 bytes.
            DISPLAY "BL-LIT=" FUNCTION BYTE-LENGTH("ABCDE")
            STOP RUN.

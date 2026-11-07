@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.24.4 GR3/GR4 + §14.9.24.3 SR8 — MERGE key order
+      *> ISO §2023:14.9.24.4 GR3/GR4 + §2023:14.9.24.3 SR8 — MERGE key order
       *> (major-to-minor, ASCENDING/DESCENDING transitive, KEY-phrase
       *> division irrelevant), equal-key return order across USING
       *> files, and THRU == THROUGH in the OUTPUT PROCEDURE range.
@@ -19,21 +19,21 @@
       *> DESCENDING are transitive across all occurrences of
       *> data-name-1 until another occurrence of the word ASCENDING or
       *> DESCENDING is encountered."
-      *>   cite.py: OK  §14.9.24.4 3)  (General rules)
-      *>   cite.py: OK  §14.9.24.4 3) b)  (General rules)
+      *>   cite.py: OK  §2023:14.9.24.4 3)  (General rules)
+      *>   cite.py: OK  §2023:14.9.24.4 3) b)  (General rules)
       *> GR4: equal-key records: "a) Follows the order of the
       *> associated input files as specified in the MERGE statement.
       *> b) Is such that all records associated with one input file
       *> are returned prior to the return of records from another
       *> input file."
-      *>   cite.py: OK  §14.9.24.4 4) a)  (General rules)
-      *>   cite.py: OK  §14.9.24.4 4) b)  (General rules)
+      *>   cite.py: OK  §2023:14.9.24.4 4) a)  (General rules)
+      *>   cite.py: OK  §2023:14.9.24.4 4) b)  (General rules)
       *> SR8: "The words THROUGH and THRU are equivalent."
-      *>   cite.py: OK  §14.9.24.3 8)  (Syntax rules)
+      *>   cite.py: OK  §2023:14.9.24.3 8)  (Syntax rules)
       *> Numeric keys compare "with respect to the algebraic value of
       *> the operands regardless of the manner in which their usage is
       *> described".
-      *>   cite.py: OK  §8.8.4.2.4   (Comparison of numeric operands)
+      *>   cite.py: OK  §2023:8.8.4.2.4   (Comparison of numeric operands)
       *>
       *> Record = S-A X, S-B S9 (signed DISPLAY), S-C X, S-TAG X(4).
       *> Every input file is already in (A asc, B desc, C desc) order
@@ -50,7 +50,7 @@
       *> Derivation of the 11 lines each merge shows:
       *>   A-group first (S-A ascending, GR3 a).  Within it S-B
       *>   descending (GR3 b): 9s, then 5, then 1, then -3 (algebraic,
-      *>   §8.8.4.2.4: -3 < 1, so a byte compare of the sign-carrying
+      *>   §2023:8.8.4.2.4: -3 < 1, so a byte compare of the sign-carrying
       *>   digit would misplace it).  Among S-B = 9, S-C descending by
       *>   transitivity: Z before Y.  The four A 9 Z records tie on
       *>   every key: GR4 a) F1 before F2 before F3; GR4 b) F2's two

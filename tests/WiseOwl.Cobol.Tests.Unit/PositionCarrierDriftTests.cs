@@ -10,8 +10,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ NO POSITION TRAVELS BETWEEN THE BINDER AND THE CODE GENERATOR AS C# TEXT (kb/Work PB2151, D10's second half;
-/// docs/rearchitecture/DESIGN-binder-bound-tree.md §3.9). A subscript (ISO §8.4.2.3.2 <c>arithmetic-expression-1</c>),
-/// a reference-modifier position (§8.4.3.3.3 SR4) and every offset or ordinal the place model computes from them is
+/// docs/rearchitecture/DESIGN-binder-bound-tree.md §3.9). A subscript (ISO §2023:8.4.2.3.2 <c>arithmetic-expression-1</c>),
+/// a reference-modifier position (§2023:8.4.3.3.3 SR4) and every offset or ordinal the place model computes from them is
 /// a typed <see cref="Position"/>, built by the binder and rendered by <c>CodeGen.PositionRenderer</c> alone. Before
 /// PB2151 the binder rendered each position to a string and spliced it into seven string carriers that codegen
 /// re-read as text — byte offsets computed as string arithmetic, constancy decided by a character scan, and a

@@ -12,7 +12,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ A COMMIT OR ROLLBACK THE MEDIUM REFUSES, AND §14.6.13.1.3 ITEM 8, THROUGH A COMPILED PROGRAM (kb/Work PB3338, review
+/// ⛔ A COMMIT OR ROLLBACK THE MEDIUM REFUSES, AND §2023:14.6.13.1.3 ITEM 8, THROUGH A COMPILED PROGRAM (kb/Work PB3338, review
 /// findings w1154a R1-1 and R1-3; the owner's standing rule, MANDATORY-PRACTICES I11: the exception paths of file I/O are
 /// tested as fully as its success paths). <see cref="Store.TransactionControlTests"/> drives the run unit's half with a
 /// hand-written clause; these compile the program, so the EMITTED half is checked: <c>TransactionEmitter.EmitStatement</c>'s
@@ -22,7 +22,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// rule; kb/Work PB3542). Each runs in both keyed organizations, with every combination
 /// of a USE procedure and a FILE STATUS clause, and with EC-I-O checking enabled with no declarative and with a
 /// declarative for the condition. The foreign-file arm also runs the executing element's format 1 declaratives, which
-/// §14.9.49.4 GR4 and GR6 a)-d) select by the file's I-O status and open mode with or without checking (kb/Work PB3554):
+/// §2023:14.9.49.4 GR4 and GR6 a)-d) select by the file's I-O status and open mode with or without checking (kb/Work PB3554):
 /// the open-mode tier and the file-name tier (the containing element's GLOBAL file), with and without a FILE STATUS item.
 ///
 /// <para>The refusal comes from 2.2.1.12's fault-injecting medium (<see cref="RefusingPageMedium"/> through
@@ -33,21 +33,21 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ROLLBACK) answer the file with '30', before the program runs.</para>
 ///
 /// <para><b>Every expected value is derived from the rules, not observed.</b> COMMIT and ROLLBACK have no I-O status
-/// (§9.1.13.1 names the statements that set it), so what a refused one raises is the implementor's, and
+/// (§2023:9.1.13.1 names the statements that set it), so what a refused one raises is the implementor's, and
 /// docs/CONFORMANCE.md §5, A.4.3 determination (a) makes it: <i>"a COMMIT or ROLLBACK the medium refuses raises the fatal
 /// EC-I-O-PERMANENT-ERROR for the refused file, with '30' in that file's FILE STATUS item, and with checking off item 8's
-/// ROLLBACK follows"</i>. Item 8 (§14.6.13.1.3): <i>"if there is a fatal exception condition for a file subject to an
+/// ROLLBACK follows"</i>. Item 8 (§2023:14.6.13.1.3): <i>"if there is a fatal exception condition for a file subject to an
 /// active APPLY COMMIT clause, then a ROLLBACK statement is executed unconditionally"</i>; that ROLLBACK restores the
-/// files and the data items to the last COMMIT, here the activation (§14.9.36.4 GR3: <i>"the state they were in at the
+/// files and the data items to the last COMMIT, here the activation (§2023:14.9.36.4 GR3: <i>"the state they were in at the
 /// execution of the last COMMIT statement or the start of the run unit"</i>), and the data items include the FILE STATUS
-/// item (§12.4.6.3.3 SR9; §14.9.36.4 GR3: <i>"It also includes the file status data items"</i>), so after item 8 the
+/// item (§2023:12.4.6.3.3 SR9; §2023:14.9.36.4 GR3: <i>"It also includes the file status data items"</i>), so after item 8 the
 /// FILE STATUS item holds its value at activation, '--', and W its value 'INIT'. The USE procedure runs before item 8 (it
 /// is the condition's exception processing; item 8's ROLLBACK follows it), so it sees '30' and 'CHGD'. With checking not
 /// enabled the run unit continues when a FILE STATUS clause or a USE procedure covers the statement and terminates
 /// abnormally when neither does (DOC-A.1-103); with checking enabled the run unit terminates abnormally, with no
-/// declarative by §14.6.13.1.3 rule 7, after a declarative naming the condition (format 3) by rule 5, and after a format 1
-/// declarative (selected by the I-O status, rule 3 and §9.1.13.1) by rule 7, whose trace entry is then the
-/// last. An abnormal termination's rollback restores the files (§14.6.12, §9.1.18.5), so in every case the record the
+/// declarative by §2023:14.6.13.1.3 rule 7, after a declarative naming the condition (format 3) by rule 5, and after a format 1
+/// declarative (selected by the I-O status, rule 3 and §2023:9.1.13.1) by rule 7, whose trace entry is then the
+/// last. An abnormal termination's rollback restores the files (§2023:14.6.12, §2023:9.1.18.5), so in every case the record the
 /// program wrote is absent from the file afterwards: the refused COMMIT committed nothing.</para>
 /// </summary>
 public sealed class CommitRollbackRefusalWitnessTests : WiseOwlCobolTestBase
@@ -223,7 +223,7 @@ public sealed class CommitRollbackRefusalWitnessTests : WiseOwlCobolTestBase
         string ok = fs ? "00" : "--";
         string[] before = [$"OPEN {ok}", $"WRITE {ok}"];
         // The declarative runs before item 8's ROLLBACK and before the run unit's fate is decided. A refused COMMIT saved
-        // nothing, so W is still the program's CHGD; a refused ROLLBACK has restored the items already (§14.9.36.4 GR3:
+        // nothing, so W is still the program's CHGD; a refused ROLLBACK has restored the items already (§2023:14.9.36.4 GR3:
         // every file but the refused one was rolled back, and the program is told of that one by its status).
         string w = verb == "COMMIT" ? "CHGD" : "INIT";
         string[] use = HasFileUse(cover) ? [$"USE {(fs ? "30" : "--")} {w}"]
@@ -271,16 +271,16 @@ public sealed class CommitRollbackRefusalWitnessTests : WiseOwlCobolTestBase
     /// describing element's FILE STATUS clause (no checking), nothing, EC-I-O checking by a directive naming no file in the
     /// executing element with the FILE STATUS clause, or with a declarative for the condition there; and (kb/Work PB3554)
     /// the executing element's FORMAT 1 declaratives, which apply to another element's refused file as to any input-output
-    /// statement's file, with or without checking (§14.9.49.4 GR4 a), GR6 a)-d)): the open-mode tier (<c>USE ... ON
+    /// statement's file, with or without checking (§2023:14.9.49.4 GR4 a), GR6 a)-d)): the open-mode tier (<c>USE ... ON
     /// I-O</c>, by the file's open mode), the file-name tier (<c>USE ... ON KF</c> for the containing element's GLOBAL
     /// file), each with and without the describing element's FILE STATUS clause, the open-mode tier with checking
     /// enabled (a format 1 declarative names no exception-name, so rule 5 does not select it: the I-O status selects it under
-    /// rule 3 and §9.1.13.1, then the fatal condition ends the run unit under rule 7, §14.6.13.1.3), and the open-mode tier ending
+    /// rule 3 and §2023:9.1.13.1, then the fatal condition ends the run unit under rule 7, §2023:14.6.13.1.3), and the open-mode tier ending
     /// in <c>RESUME AT</c> (item 8's ROLLBACK is before the transfer), the file-name tier with checking enabled by a
-    /// directive that NAMES the file (<c>&gt;&gt;TURN EC-I-O KF CHECKING ON</c>, §7.3.25.4 GR6: "if file-name-1 is
+    /// directive that NAMES the file (<c>&gt;&gt;TURN EC-I-O KF CHECKING ON</c>, §2023:7.3.25.4 GR6: "if file-name-1 is
     /// specified, checking is enabled only for exception conditions associated with that file-name") and with checking
     /// enabled for every file and disabled for the file by a directive naming it (GR8), and the containing element's own
-    /// <c>USE GLOBAL</c> declarative (§14.9.49.4 GR4 b)), which the executing element's refused COMMIT or ROLLBACK
+    /// <c>USE GLOBAL</c> declarative (§2023:14.9.49.4 GR4 b)), which the executing element's refused COMMIT or ROLLBACK
     /// reaches when the executing element has none.</summary>
     public enum ForeignCover
     {
@@ -292,12 +292,12 @@ public sealed class CommitRollbackRefusalWitnessTests : WiseOwlCobolTestBase
     }
 
     /// <summary>Checking for the EC-I-O condition is enabled at the statement for the refused file, by a directive naming
-    /// no file or naming the file (§7.3.25.4 GR6).</summary>
+    /// no file or naming the file (§2023:7.3.25.4 GR6).</summary>
     private static bool ForeignChecking(ForeignCover c) =>
         c is ForeignCover.CheckingWithStatusItem or ForeignCover.CheckingWithExceptionUse or ForeignCover.CheckingWithOpenModeUse
             or ForeignCover.NamedFileCheckingWithStatusItem or ForeignCover.NamedFileCheckingNoStatusItem;
 
-    /// <summary>The directives that precede the contained program: they govern only its statements (§7.3.25.4 GR5/GR6).</summary>
+    /// <summary>The directives that precede the contained program: they govern only its statements (§2023:7.3.25.4 GR5/GR6).</summary>
     private static string ForeignDirectives(ForeignCover c) => c switch
     {
         ForeignCover.CheckingWithStatusItem or ForeignCover.CheckingWithExceptionUse or ForeignCover.CheckingWithOpenModeUse =>
@@ -328,7 +328,7 @@ public sealed class CommitRollbackRefusalWitnessTests : WiseOwlCobolTestBase
 
     /// <summary>The element <c>id</c> with APPLY COMMIT ON KF W calls its contained <c>id</c>S, which has no clause and
     /// executes the statement; the TURN directive, when present, precedes the contained program, so it governs only that
-    /// program's statements (§7.3.25.4 GR5/GR6).</summary>
+    /// program's statements (§2023:7.3.25.4 GR5/GR6).</summary>
     private static string ForeignProgram(string id, string host, FileOrg org, string verb, ForeignCover cover)
     {
         string suse = UseNote("SUSE", true, items: false);
@@ -345,7 +345,7 @@ public sealed class CommitRollbackRefusalWitnessTests : WiseOwlCobolTestBase
                 Declaratives("USE AFTER STANDARD ERROR PROCEDURE ON I-O.", suse + "\nRESUME AT S-END."),
             _ => "",
         };
-        // The containing element's own GLOBAL declarative; the executing element has none (§14.9.49.4 GR4 b)).
+        // The containing element's own GLOBAL declarative; the executing element has none (§2023:14.9.49.4 GR4 b)).
         string containerDeclaratives = cover is ForeignCover.ContainerGlobalUseNoStatusItem or ForeignCover.ContainerGlobalUseWithStatusItem
             ? Declaratives("USE GLOBAL AFTER STANDARD ERROR PROCEDURE ON I-O.", suse)
             : "";
@@ -405,8 +405,8 @@ public sealed class CommitRollbackRefusalWitnessTests : WiseOwlCobolTestBase
             ForeignCover.CheckingWithExceptionUse or ForeignCover.CheckingWithOpenModeUse
                 or ForeignCover.NamedFileCheckingWithStatusItem or ForeignCover.NamedFileCheckingNoStatusItem =>
                 [.. before, "SUSE EC-I-O-PERMANENT-ERROR"],
-            // With checking off no condition is raised (EXCEPTION-STATUS is blank, §14.6.13.1.1) and the format 1 declarative
-            // runs by the file's status (§14.9.49.4 GR6); a declarative ran, so the run unit continues with or without a
+            // With checking off no condition is raised (EXCEPTION-STATUS is blank, §2023:14.6.13.1.1) and the format 1 declarative
+            // runs by the file's status (§2023:14.9.49.4 GR6); a declarative ran, so the run unit continues with or without a
             // FILE STATUS clause (DOC-A.1-103) and item 8's ROLLBACK follows it, before any transfer.
             ForeignCover.OpenModeUseWithStatusItem or ForeignCover.OpenModeUseNoStatusItem
                 or ForeignCover.GlobalFileUseWithStatusItem or ForeignCover.GlobalFileUseNoStatusItem
@@ -444,7 +444,7 @@ public sealed class CommitRollbackRefusalWitnessTests : WiseOwlCobolTestBase
 
     // ── Item 8 after an ordinary input-output statement ──────────────────────────────────────────────────────────────
 
-    /// <summary>§14.6.13.1.3 item 8 after a READ of the closed file ('47', EC-I-O-LOGIC-ERROR: fatal, §9.1.13.1) — the line
+    /// <summary>§2023:14.6.13.1.3 item 8 after a READ of the closed file ('47', EC-I-O-LOGIC-ERROR: fatal, §2023:9.1.13.1) — the line
     /// <c>EmitUseHook</c> appends for a file under commit control: the CLOSE kept the transaction (kb/Work PB3480), and the
     /// ROLLBACK removes record 3 and restores W and the FILE STATUS item to the activation's 'INIT' and '--'.</summary>
     [Theory]
@@ -490,9 +490,9 @@ public sealed class CommitRollbackRefusalWitnessTests : WiseOwlCobolTestBase
 
     // ── The SEQUENTIAL operand (kb/Work PB3340; review finding w1154a R1-4) ────────────────────────────────────────────
 
-    /// <summary>A SEQUENTIAL operand puts the file under commit control (§9.1.18.2; kb/Work PB3340), and with it its FILE STATUS
-    /// item (§12.4.6.3.3 SR9: <i>"the file status data items ... are automatically subject to the APPLY COMMIT clause"</i>), so
-    /// the ROLLBACK restores the item to its value at the last COMMIT (§14.9.36.4 GR3: <i>"It also includes the file status data
+    /// <summary>A SEQUENTIAL operand puts the file under commit control (§2023:9.1.18.2; kb/Work PB3340), and with it its FILE STATUS
+    /// item (§2023:12.4.6.3.3 SR9: <i>"the file status data items ... are automatically subject to the APPLY COMMIT clause"</i>), so
+    /// the ROLLBACK restores the item to its value at the last COMMIT (§2023:14.9.36.4 GR3: <i>"It also includes the file status data
     /// items"</i>): the AT END's '10' gives way to the '00' the COMMIT saved after the OPEN, and W to 'CHGD'.</summary>
     [Fact]
     public void A_sequential_operand_puts_the_file_and_its_status_item_under_commit_control()

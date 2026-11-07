@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ NO INTRINSIC GUARD SPELLS ITS OWN SUBSTITUTED TEXT RESULT (kb/Work PB383, PB470).
 ///
-/// <para><b>The rule.</b> ISO <b>§15.3 rule 14</b> — "If the EC-ARGUMENT-FUNCTION exception condition is set to
+/// <para><b>The rule.</b> ISO <b>§2023:15.3 rule 14</b> — "If the EC-ARGUMENT-FUNCTION exception condition is set to
 /// exist and checking for EC-ARGUMENT-FUNCTION is not enabled, the implementor defines the result of the function
 /// reference" — hands the substituted result to the implementor, and <c>docs/CONFORMANCE.md</c> row
 /// <c>DOC-A.1-90</c> writes the determination down ONCE. Its numeric half is
@@ -21,7 +21,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// one-position boolean <c>"0"</c> where its sibling <c>BaseConvert</c> answered the zero-length value for the
 /// SAME determination (PB383); <c>LOCALE-DATE</c>, <c>LOCALE-TIME</c> and <c>LOCALE-TIME-FROM-SECONDS</c>
 /// answered a ZERO-LENGTH value where row DOC-A.1-90's own words give SPACES, at four guards (PB470). Both were
-/// wrong answers in a user's program, and both were invisible through a MOVE (§14.6.8.5 space-fills the receiver
+/// wrong answers in a user's program, and both were invisible through a MOVE (§2023:14.6.8.5 space-fills the receiver
 /// from a zero-length sender), so no golden that MOVEd the result could contradict them.</para>
 ///
 /// <para>⚠ <b>What this file does and does not guard.</b> It bans the SHAPE — a substituted result spelled as a
@@ -80,7 +80,7 @@ public sealed class ArgumentSubstituteDriftTests
             $"{offenders.Count} intrinsic site(s) spell a substituted text result instead of reading its class "
             + $"from WiseOwl.Cobol.Runtime.Exceptions.ArgumentSubstitute:{Environment.NewLine}"
             + string.Join(Environment.NewLine, offenders.Select(o => "    " + o))
-            + $"{Environment.NewLine}ISO §15.3 rule 14 hands the result to the implementor and row DOC-A.1-90 of "
+            + $"{Environment.NewLine}ISO §2023:15.3 rule 14 hands the result to the implementor and row DOC-A.1-90 of "
             + "docs/CONFORMANCE.md states it once. Raise AND substitute in ONE expression — "
             + "ExceptionState.ArgumentErrorZeroLength(detail) or ExceptionState.ArgumentErrorSpaces(detail, n) — "
             + "or, where a bool screening predicate already raised, ArgumentSubstitute.ZeroLength / "
@@ -97,7 +97,7 @@ public sealed class ArgumentSubstituteDriftTests
         string[] banned =
         [
             "            return \" \";",                                   // CHAR / CHAR-NATIONAL, pre-PB470
-            "            return \" \";                                      // EC default (§15.3)",
+            "            return \" \";                                      // EC default (§2023:15.3)",
             "            return \"\";",                                     // LOCALE-DATE / LOCALE-TIME, pre-PB470
             "        if (SecondsOutOfStandardFormFor(\"LOCALE-TIME-FROM-SECONDS\", u, s, l)) return \"\";",
             "            ? \"\"",                                           // FORMATTED-TIME's ternary arm
@@ -110,9 +110,9 @@ public sealed class ArgumentSubstituteDriftTests
         string[] legal =
         [
             "        if (acc == 0) return \"0\";",                          // BASECONVERT's zero — a RESULT
-            "            return \"=\";   // §14.6.13.1.3 #8, a different determination",
-            "        return c < 0 ? \"<\" : c > 0 ? \">\" : \"=\";",        // §15.51.4 r5 / §15.86.4
-            "            \"LOCALE-DATE\" => \"ISO §15.52.4 r1\",",          // a switch arm carrying a citation
+            "            return \"=\";   // §2023:14.6.13.1.3 #8, a different determination",
+            "        return c < 0 ? \"<\" : c > 0 ? \">\" : \"=\";",        // §2023:15.51.4 r5 / §2023:15.86.4
+            "            \"LOCALE-DATE\" => \"ISO §2023:15.52.4 r1\",",          // a switch arm carrying a citation
             "                    sb.Append(run >= 2 ? des : des.Length > 0 ? des[..1] : \"\");",
             "            return ExceptionState.ArgumentErrorSpaces(detail, LocaleSubstitutePositions);",
             "            return Exceptions.ArgumentSubstitute.ZeroLength;",

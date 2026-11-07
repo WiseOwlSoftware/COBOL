@@ -7,7 +7,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ISO §15.75.4 r3 — "The implementor shall specify the subset of the domain of argument-1 values that will yield
+/// ISO §2023:15.75.4 r3 — "The implementor shall specify the subset of the domain of argument-1 values that will yield
 /// distinct sequences of pseudo-random numbers. This subset shall include the values from 0 through at least
 /// 32767." Annex A.1 item 145 requires that subset to be DOCUMENTED (docs/CONFORMANCE.md §7 item 145), and a
 /// documented determination is worth exactly what was measured (kb/Work PB65, RV-15.75.4-3): this test IS the
@@ -33,7 +33,7 @@ public sealed class RandomSeedSubsetTests
         {
             var key = FirstThree(seed);
             if (seen.TryGetValue(key, out long other))
-                Assert.Fail($"seeds {other} and {seed} yield the same first three draws — the §15.75.4 r3 subset must not contain both");
+                Assert.Fail($"seeds {other} and {seed} yield the same first three draws — the §2023:15.75.4 r3 subset must not contain both");
             seen[key] = seed;
         }
         Assert.Equal(65536, seen.Count);
@@ -49,9 +49,9 @@ public sealed class RandomSeedSubsetTests
     }
 
     /// <summary>
-    /// kb/Work PB636 — the seed is a TOTAL argument: §15.75.3 r2 constrains the SIGN alone and §15.75.4 r3
-    /// makes the distinct-sequence subset a FLOOR, not a domain, so §15.3's closing paragraph has no incorrect
-    /// value to raise on. A seed past <c>long</c> therefore has to ANSWER — in the §15.75.4 r1 range and
+    /// kb/Work PB636 — the seed is a TOTAL argument: §2023:15.75.3 r2 constrains the SIGN alone and §2023:15.75.4 r3
+    /// makes the distinct-sequence subset a FLOOR, not a domain, so §2023:15.3's closing paragraph has no incorrect
+    /// value to raise on. A seed past <c>long</c> therefore has to ANSWER — in the §2023:15.75.4 r1 range and
     /// reproducibly (r2) — with EC-ARGUMENT-FUNCTION checking ARMED, which is the leg that used to terminate
     /// the run unit. The mapping is the SAME documented one: the wide seed aliases to its low 31 bits.
     /// </summary>
@@ -59,16 +59,16 @@ public sealed class RandomSeedSubsetTests
     public void SeedsPastLong_AnswerInRange_AndRaiseNothingUnderChecking()
     {
         Int128 big19 = Int128.Parse("9999999999999999999");                    // > long.MaxValue
-        Int128 b31 = Int128.Parse("1234567890123456789012345678901");          // §13.18.40.3 r14's widest numeric item
+        Int128 b31 = Int128.Parse("1234567890123456789012345678901");          // §2023:13.18.40.3 r14's widest numeric item
         bool saved = ExceptionState.ArgumentFunctionChecking;
         ExceptionState.ArgumentFunctionChecking = true;
         try
         {
             foreach (Int128 seed in new[] { big19, b31, Int128.MaxValue })
             {
-                double v = CobolIntrinsics.Random(seed);                        // §15.75.4 r1 — [0, 1)
-                Assert.True(v >= 0 && v < 1, $"RANDOM({seed}) returned {v}, outside §15.75.4 r1's [0, 1)");
-                Assert.Equal(v, CobolIntrinsics.Random(seed));                  // §15.75.4 r2 — same seed, same sequence
+                double v = CobolIntrinsics.Random(seed);                        // §2023:15.75.4 r1 — [0, 1)
+                Assert.True(v >= 0 && v < 1, $"RANDOM({seed}) returned {v}, outside §2023:15.75.4 r1's [0, 1)");
+                Assert.Equal(v, CobolIntrinsics.Random(seed));                  // §2023:15.75.4 r2 — same seed, same sequence
                 // The documented reduction (A.1 item 145), asserted on the WIDE carrier too.
                 Assert.Equal(FirstThree(seed & 0x7FFFFFFF), FirstThree(seed));
             }
@@ -77,7 +77,7 @@ public sealed class RandomSeedSubsetTests
     }
 
     /// <summary>⛔ THE COMPLEMENT: widening the intake must not widen the one rule that DOES constrain this
-    /// argument. §15.75.3 r2's sign is still an incorrect value, so a negative seed — of any width — still sets
+    /// argument. §2023:15.75.3 r2's sign is still an incorrect value, so a negative seed — of any width — still sets
     /// EC-ARGUMENT-FUNCTION (fatal under checking; kb/Work PB65's raise site, PB636's guard against losing it).</summary>
     [Fact]
     public void ANegativeSeed_StillRaises_AtEveryWidth()

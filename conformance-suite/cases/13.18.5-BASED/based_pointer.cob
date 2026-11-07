@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §13.18.5 / §14.9.39 / §8.4.3 — BASED data + ADDRESS OF + SET ADDRESS OF (COBOL-2002).
+      *> ISO §2023:13.18.5 / §2023:14.9.39 / §2023:8.4.3 — BASED data + ADDRESS OF + SET ADDRESS OF (COBOL-2002).
       *> A BASED item has NO storage of its own; it is addressed at use time through its data-address
       *> pointer (a managed ManagedPointer, never an 8-byte handle). Slice 1b boundary 2:
       *>   SET p TO ADDRESS OF x   — take a managed pointer to x's storage (x becomes byte-backed).

@@ -4,7 +4,7 @@ using System.ComponentModel;
 
 namespace WiseOwl.Cobol.Runtime.Repository;
 
-// ⛔ THE SIGNATURE HALF OF THE REPOSITORY SCHEMA (ISO §8.13; docs/rearchitecture/DESIGN-external-repository.md §6.2;
+// ⛔ THE SIGNATURE HALF OF THE REPOSITORY SCHEMA (ISO §2023:8.13; docs/rearchitecture/DESIGN-external-repository.md §6.2;
 // kb/Work PB2100). A module compiled with --repository-update on carries, beside every unit's [CobolUnit], the
 // description of its formals and returning item (on the host entry's Call parameters and return value) and the rows of
 // the record's own tables (type declarations, dynamic-length structures, referenced prototypes) on the host-entry class;
@@ -13,13 +13,13 @@ namespace WiseOwl.Cobol.Runtime.Repository;
 // Every attribute applied here obeys §6's rules: sealed, not inherited, the identity in ONE constructor, every other fact a
 // named property of a primitive, string, one-dimensional array or int-backed enum type, none a System.Type, so a reader
 // decodes them from metadata without loading the assembly; a named argument is present only when the renderer wrote it
-// (§6.2 rule 2: nullability is presence), and a structured value is flattened into prefixed named arguments (rule 3). The
+// (§2023:6.2 rule 2: nullability is presence), and a structured value is flattened into prefixed named arguments (rule 3). The
 // writer is the compiler's RepositoryAttributeRenderer and the reader its RepositoryReader; the compiler's codec
 // (RepositoryRecord) is what both transcribe. The two abstract classes are never applied: CobolDescriptionFieldsAttribute
 // states the description fields once for the three sealed attributes that carry a description, CobolFormalFieldsAttribute
 // a formal's for the two that carry a formal.
 
-/// <summary>The fields of one data description entry (§6.1 <c>DescriptionRecord</c> and its <c>PicRecord</c>), stated
+/// <summary>The fields of one data description entry (§2023:6.1 <c>DescriptionRecord</c> and its <c>PicRecord</c>), stated
 /// ONCE for every attribute that carries a description: <see cref="CobolDescriptionAttribute"/> (a formal's or the
 /// returning item's tree), <see cref="CobolTypeDeclarationAttribute"/> and <see cref="CobolPrototypeDescriptionAttribute"/>.
 /// A non-nullable field the renderer does not write reads as its default; a nullable field of the record is written exactly
@@ -31,7 +31,7 @@ namespace WiseOwl.Cobol.Runtime.Repository;
 [EditorBrowsable(EditorBrowsableState.Never)]
 public abstract class CobolDescriptionFieldsAttribute(int ordinal, int parent) : Attribute
 {
-    /// <summary>The entry's preorder index within its tree (§6.2 "Anchoring").</summary>
+    /// <summary>The entry's preorder index within its tree (§2023:6.2 "Anchoring").</summary>
     public int Ordinal { get; } = ordinal;
 
     /// <summary>The preorder index of the entry's parent, -1 at the root.</summary>
@@ -184,7 +184,7 @@ public abstract class CobolDescriptionFieldsAttribute(int ordinal, int parent) :
     public bool ObjectRefFormal { get; set; }
 }
 
-/// <summary>The fields of one formal parameter (ISO §8.13 "the manner of receiving parameters (by reference or by value) and
+/// <summary>The fields of one formal parameter (ISO §2023:8.13 "the manner of receiving parameters (by reference or by value) and
 /// whether they are optional or not"), stated ONCE for the two attributes that carry a formal:
 /// <see cref="CobolFormalAttribute"/> (a unit's own) and <see cref="CobolPrototypeFormalAttribute"/> (a referenced
 /// prototype's). Never applied itself.</summary>
@@ -204,28 +204,28 @@ public abstract class CobolFormalFieldsAttribute(int position, string name) : At
 }
 
 /// <summary>One formal parameter of the unit, on the host entry's <c>Call</c> parameter that carries it; its description tree
-/// is the same parameter's <see cref="CobolDescriptionAttribute"/>s (§6.2 "Anchoring").</summary>
+/// is the same parameter's <see cref="CobolDescriptionAttribute"/>s (§2023:6.2 "Anchoring").</summary>
 /// <param name="position">The formal's position in the USING phrase.</param>
 /// <param name="name">The formal's data-name (diagnostics and the host surface; never compared).</param>
 [EditorBrowsable(EditorBrowsableState.Never)]
 [AttributeUsage(AttributeTargets.Parameter, Inherited = false, AllowMultiple = false)]
 public sealed class CobolFormalAttribute(int position, string name) : CobolFormalFieldsAttribute(position, name);
 
-/// <summary>Marks the host entry's return value as the RETURNING item (ISO §8.13 "the description of the returning item");
+/// <summary>Marks the host entry's return value as the RETURNING item (ISO §2023:8.13 "the description of the returning item");
 /// its description tree is the return value's <see cref="CobolDescriptionAttribute"/>s.</summary>
 [EditorBrowsable(EditorBrowsableState.Never)]
 [AttributeUsage(AttributeTargets.ReturnValue, Inherited = false, AllowMultiple = false)]
 public sealed class CobolReturningAttribute : Attribute;
 
 /// <summary>One entry of a formal's or the returning item's description tree, on the parameter or return value that
-/// carries it (§6.2 "Anchoring").</summary>
+/// carries it (§2023:6.2 "Anchoring").</summary>
 /// <param name="ordinal">The entry's preorder index within its tree.</param>
 /// <param name="parent">The preorder index of the entry's parent, -1 at the root.</param>
 [EditorBrowsable(EditorBrowsableState.Never)]
 [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.ReturnValue, Inherited = false, AllowMultiple = true)]
 public sealed class CobolDescriptionAttribute(int ordinal, int parent) : CobolDescriptionFieldsAttribute(ordinal, parent);
 
-/// <summary>One entry of a type declaration the record's descriptions name (ISO §8.13 "type declarations required for the
+/// <summary>One entry of a type declaration the record's descriptions name (ISO §2023:8.13 "type declarations required for the
 /// description of parameters and returning items"), on the unit's host-entry class.</summary>
 /// <param name="declaration">The row's index in the record's type declarations.</param>
 /// <param name="ordinal">The entry's preorder index within the declaration's tree.</param>
@@ -238,7 +238,7 @@ public sealed class CobolTypeDeclarationAttribute(int declaration, int ordinal, 
     public int Declaration { get; } = declaration;
 }
 
-/// <summary>A dynamic-length structure the record's descriptions name, by definition (ISO §12.3.7.2; §6.4).</summary>
+/// <summary>A dynamic-length structure the record's descriptions name, by definition (ISO §2023:12.3.7.2; §2023:6.4).</summary>
 /// <param name="index">The row's index in the record's structures.</param>
 /// <param name="name">The structure's name as the publisher wrote it.</param>
 [EditorBrowsable(EditorBrowsableState.Never)]
@@ -257,8 +257,8 @@ public sealed class CobolStructureAttribute(int index, string name) : Attribute
     public string? PhysicalStructureName { get; set; }
 }
 
-/// <summary>A prototype a restricted program- or function-pointer of the record names (ISO §13.18.60.4 GR25 / GR26: the
-/// pointer's type is that prototype's SIGNATURE; §6.4), its signature carried by the
+/// <summary>A prototype a restricted program- or function-pointer of the record names (ISO §2023:13.18.60.4 GR25 / GR26: the
+/// pointer's type is that prototype's SIGNATURE; §2023:6.4), its signature carried by the
 /// <see cref="CobolPrototypeFormalAttribute"/>s and <see cref="CobolPrototypeDescriptionAttribute"/>s of the same index.</summary>
 /// <param name="index">The row's index in the record's referenced prototypes.</param>
 /// <param name="kind">A program or a function prototype.</param>
@@ -308,15 +308,15 @@ public sealed class CobolPrototypeDescriptionAttribute(int prototype, int formal
     public int Formal { get; } = formal;
 }
 
-/// <summary>One method of a class or an interface (ISO §8.13 "the methods contained in the source unit, if any, and details
+/// <summary>One method of a class or an interface (ISO §2023:8.13 "the methods contained in the source unit, if any, and details
 /// about the method's externalized name, parameters, returning item, and entry convention"), on the CLR method that
 /// implements it: an object method on the class's type, a factory method on its factory type, a prototype on the
 /// interface. Its formals are the <see cref="CobolFormalAttribute"/>s on the parameters that carry them and its returning
-/// item the return value's <see cref="CobolDescriptionAttribute"/>s (§6.2 "Anchoring"); a CLR method without this attribute
+/// item the return value's <see cref="CobolDescriptionAttribute"/>s (§2023:6.2 "Anchoring"); a CLR method without this attribute
 /// is no COBOL method (a covariant-return adapter) and a reader skips it.</summary>
-/// <param name="name">The method-name, or the implementor-defined name of a property accessor (ISO §11.7.4 GR1 a)).</param>
-/// <param name="externalizedName">The method's externalized name (ISO §11.7.4 GR1 b)); an accessor's is its property's
-/// (ISO §12.3.8.4 GR2: "Literal-5 is the externalized name known to the operating environment for a method that implements
+/// <param name="name">The method-name, or the implementor-defined name of a property accessor (ISO §2023:11.7.4 GR1 a)).</param>
+/// <param name="externalizedName">The method's externalized name (ISO §2023:11.7.4 GR1 b)); an accessor's is its property's
+/// (ISO §2023:12.3.8.4 GR2: "Literal-5 is the externalized name known to the operating environment for a method that implements
 /// the named property").</param>
 [EditorBrowsable(EditorBrowsableState.Never)]
 [AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
@@ -326,20 +326,20 @@ public sealed class CobolMethodAttribute(string name, string externalizedName) :
     public string Name { get; } = name;
     /// <summary>The externalized name.</summary>
     public string ExternalizedName { get; } = externalizedName;
-    /// <summary>A factory method (ISO §11.4).</summary>
+    /// <summary>A factory method (ISO §2023:11.4).</summary>
     public bool IsFactory { get; set; }
-    /// <summary>A get or set property method (ISO §11.7.2), or neither.</summary>
+    /// <summary>A get or set property method (ISO §2023:11.7.2), or neither.</summary>
     public RepositoryAccessor Accessor { get; set; }
     /// <summary>The property an accessor gets or sets.</summary>
     public string? PropertyName { get; set; }
-    /// <summary>The method overrides a method of a superclass (ISO §11.7.2 OVERRIDE).</summary>
+    /// <summary>The method overrides a method of a superclass (ISO §2023:11.7.2 OVERRIDE).</summary>
     public bool Override { get; set; }
-    /// <summary>METHOD-ID … IS FINAL (ISO §11.7.2).</summary>
+    /// <summary>METHOD-ID … IS FINAL (ISO §2023:11.7.2).</summary>
     public bool Final { get; set; }
-    /// <summary>The method's entry convention (ISO §8.13).</summary>
+    /// <summary>The method's entry convention (ISO §2023:8.13).</summary>
     public string? EntryConvention { get; set; }
-    /// <summary>The kind of each element of the method's RAISING phrase (ISO §14.2.1); parallel to
-    /// <see cref="RaisingIdentity"/> and <see cref="RaisingFactory"/> (§6.2 rule 3).</summary>
+    /// <summary>The kind of each element of the method's RAISING phrase (ISO §2023:14.2.1); parallel to
+    /// <see cref="RaisingIdentity"/> and <see cref="RaisingFactory"/> (§2023:6.2 rule 3).</summary>
     public RepositoryRaisingKind[]? RaisingKind { get; set; }
     /// <summary>Each RAISING element's identity (DESIGN-external-repository §6.4).</summary>
     public string[]? RaisingIdentity { get; set; }
@@ -347,11 +347,11 @@ public sealed class CobolMethodAttribute(string name, string externalizedName) :
     public bool[]? RaisingFactory { get; set; }
 }
 
-/// <summary>One object property of a class or an interface (ISO §8.13 "the object properties of the source unit, if any";
-/// ISO §13.18.42), on the CLR type whose methods are its accessors: the class's type for an object property, the factory
+/// <summary>One object property of a class or an interface (ISO §2023:8.13 "the object properties of the source unit, if any";
+/// ISO §2023:13.18.42), on the CLR type whose methods are its accessors: the class's type for an object property, the factory
 /// type for a factory property.</summary>
 /// <param name="name">The property-name.</param>
-/// <param name="externalizedName">The property's externalized name, which its accessors carry (ISO §12.3.8.4 GR2).</param>
+/// <param name="externalizedName">The property's externalized name, which its accessors carry (ISO §2023:12.3.8.4 GR2).</param>
 [EditorBrowsable(EditorBrowsableState.Never)]
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface, Inherited = false, AllowMultiple = true)]
 public sealed class CobolPropertyAttribute(string name, string externalizedName) : Attribute
@@ -367,17 +367,17 @@ public sealed class CobolPropertyAttribute(string name, string externalizedName)
 }
 
 /// <summary>
-/// A PARAMETERIZED class or interface, published as a skeleton (ISO §9.3.12, §9.3.13, §11.3.3 SR8; DESIGN-external-repository
-/// §6.2, §10.5): the definition's own source and everything the expanding compilation needs to give an expansion the meaning it
+/// A PARAMETERIZED class or interface, published as a skeleton (ISO §2023:9.3.12, §2023:9.3.13, §2023:11.3.3 SR8; DESIGN-external-repository
+/// §2023:6.2, §2023:10.5): the definition's own source and everything the expanding compilation needs to give an expansion the meaning it
 /// has in the defining one. It sits on the <c>public static class</c> that carries the definition's <see cref="CobolUnitAttribute"/>
 /// (kind <see cref="RepositoryUnitKind.ParameterizedClass"/> or <see cref="RepositoryUnitKind.ParameterizedInterface"/>); the
 /// definition itself emits nothing else (OoExpansion).
 /// <para>The <see cref="Source"/> is the definition's on-channel token text after text manipulation, from <c>CLASS-ID</c> or
 /// <c>INTERFACE-ID</c> to the end marker, with the spacing the tokens had; the importer lexes it again under the recorded
 /// <see cref="Edition"/>, <see cref="Permissive"/> and <see cref="CobolWordsMap"/> and replaces each formal by its actual (ISO
-/// §12.3.8.4 GR5 / GR8). The remaining named arguments are the <c>CompileState</c> (every compile-time input that changes what
+/// §2023:12.3.8.4 GR5 / GR8). The remaining named arguments are the <c>CompileState</c> (every compile-time input that changes what
 /// the source means) and the specifier resolutions: both are part of the expansion's <see cref="CobolUnitAttribute.ExpansionKey"/>.
-/// A structured value is flattened into parallel arrays of one length (§6.2 rule 3).</para>
+/// A structured value is flattened into parallel arrays of one length (§2023:6.2 rule 3).</para>
 /// </summary>
 /// <param name="source">The definition's source text.</param>
 [EditorBrowsable(EditorBrowsableState.Never)]
@@ -387,7 +387,7 @@ public sealed class CobolSkeletonAttribute(string source) : Attribute
     /// <summary>The definition's source text after text manipulation.</summary>
     public string Source { get; } = source;
 
-    /// <summary>The formal parameter-names, in USING order (ISO §11.3.3 SR9); parallel to <see cref="FormalIsInterface"/>.</summary>
+    /// <summary>The formal parameter-names, in USING order (ISO §2023:11.3.3 SR9); parallel to <see cref="FormalIsInterface"/>.</summary>
     public string[]? Formals { get; set; }
 
     /// <summary>For each formal, whether its REPOSITORY specifier declares an interface (true) or a class (false).</summary>
@@ -400,7 +400,7 @@ public sealed class CobolSkeletonAttribute(string source) : Attribute
     /// <summary>Whether each resolution is an interface-specifier.</summary>
     public bool[]? ResolutionIsInterface { get; set; }
 
-    /// <summary>The externalized name each resolution stands for (ISO §12.3.8.4 GR2: the literal, else the word).</summary>
+    /// <summary>The externalized name each resolution stands for (ISO §2023:12.3.8.4 GR2: the literal, else the word).</summary>
     public string[]? ResolutionIdentity { get; set; }
 
     /// <summary>The ISO edition the definition was compiled under (<c>CompilerDriver.Options.DialectLevel</c>).</summary>
@@ -418,7 +418,7 @@ public sealed class CobolSkeletonAttribute(string source) : Attribute
     /// <summary>The form DISPLAY gives a numeric operand (<c>--numeric-display</c>).</summary>
     public RepositoryNumericDisplay NumericDisplay { get; set; }
 
-    /// <summary>The group's <c>&gt;&gt;COBOL-WORDS</c> operations, as the directive lines that state them (ISO §7.3.10).</summary>
+    /// <summary>The group's <c>&gt;&gt;COBOL-WORDS</c> operations, as the directive lines that state them (ISO §2023:7.3.10).</summary>
     public string? CobolWordsMap { get; set; }
 
     /// <summary>The directive folds in effect at the definition (<c>&gt;&gt;TURN</c>, <c>&gt;&gt;PROPAGATE</c>,

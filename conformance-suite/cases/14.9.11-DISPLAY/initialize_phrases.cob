@@ -6,10 +6,10 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.20 — COBOL-2002 INITIALIZE phrases: WITH FILLER, {ALL|category-name} TO VALUE,
+      *> ISO §2023:14.9.20 — COBOL-2002 INITIALIZE phrases: WITH FILLER, {ALL|category-name} TO VALUE,
       *> THEN TO DEFAULT. Per-item precedence: TO VALUE (item's VALUE clause) > REPLACING > default.
-      *> ⛔ `ALL TO VALUE` is spelled in full: §14.9.20.2 draws {ALL | category-name} inside a BRACE and
-      *> §5.2.6.3 makes one of the two alternatives mandatory, so the bare `TO VALUE` this line used to
+      *> ⛔ `ALL TO VALUE` is spelled in full: §2023:14.9.20.2 draws {ALL | category-name} inside a BRACE and
+      *> §2023:5.2.6.3 makes one of the two alternatives mandatory, so the bare `TO VALUE` this line used to
       *> carry is NOT conforming source (COBOL1981 today; kb/Work PB415). The .out is unchanged —
       *> ALL was always the meaning the omission was silently given.
        IDENTIFICATION DIVISION.

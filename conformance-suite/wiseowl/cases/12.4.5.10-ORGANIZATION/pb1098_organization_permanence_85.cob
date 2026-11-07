@@ -7,7 +7,7 @@
 *>---
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1098OP.
-      *> ISO/IEC 1989:2023 §12.4.5.10.3 GR1, GR4, GR5 — the file
+      *> ISO/IEC 1989:2023 §2023:12.4.5.10.3 GR1, GR4, GR5 — the file
       *> organization is permanent (kb/Work PB1098).
       *>
       *> GR1: "The ORGANIZATION clause specifies the logical structure
@@ -20,7 +20,7 @@
       *> GR5: "Indexed organization is a permanent logical file
       *> structure in which each record is identified by the value of
       *> one or more keys within that record."
-      *> §14.9.27.4 GR10 makes a disagreement with the physical file's
+      *> §2023:14.9.27.4 GR10 makes a disagreement with the physical file's
       *> fixed file attributes the file attribute conflict, '39', and
       *> leaves WHICH attributes are validated to the implementor
       *> (docs/CONFORMANCE.md DOC-A.1-129): a relative or indexed store
@@ -39,7 +39,7 @@
       *>  RL-*   - the store is intact: RRN 7 is read back by its key
       *>          (GR4's ordinal identity), RRN 5 holds no record ('23'),
       *>          a key of 0 is not a relative record number ('34',
-      *>          §14.9.51.4 GR29 b)).
+      *>          §2023:14.9.51.4 GR29 b)).
       *>  IX-OVER-RL / RL-OVER-IX - a relative store through an INDEXED
       *>          description and an indexed store through a RELATIVE
       *>          one: '39' both ways.

@@ -7,7 +7,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// <c>CobolTable.AllArgs</c>'s <c>lead</c> lambda renders the FIRST element the walk enumerates — argument-1 when
-/// the table(ALL) leads the list (ISO §15.3 rule 14: "The order of the implicit specification of each occurrence
+/// the table(ALL) leads the list (ISO §2023:15.3 rule 14: "The order of the implicit specification of each occurrence
 /// is from left to right") — so PRESENT-VALUE's rate is screened and turned into its discount base on the element's
 /// exact carrier, not on the enumerated binary64 (kb/Work PB1000). Which element is first is the walk's to say: an
 /// inner ALL level may range over NOTHING for the first outer occurrence.

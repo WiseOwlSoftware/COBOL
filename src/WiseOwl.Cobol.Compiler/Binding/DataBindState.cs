@@ -70,9 +70,9 @@ public sealed class DataBindState
     }
 
     /// <summary>⛔ THE ONE LOOKUP OF A FILE-NAME VISIBLE IN THIS SOURCE ELEMENT, at any point of the bind: its own file
-    /// (<see cref="FileSlice.FilesByName"/>), which hides a container's of the same spelling (§8.4.6.2.1 3) a)), else the
-    /// nearest container's GLOBAL file (§13.18.27.4 GR1; <see cref="InheritedGlobals.Files"/>, known before the unit binds). A
-    /// container's GLOBAL record qualified by its file (§8.4.2.2.2 Format 1's file-report-qualifier) resolves through it
+    /// (<see cref="FileSlice.FilesByName"/>), which hides a container's of the same spelling (§2023:8.4.6.2.1 3) a)), else the
+    /// nearest container's GLOBAL file (§2023:13.18.27.4 GR1; <see cref="InheritedGlobals.Files"/>, known before the unit binds). A
+    /// container's GLOBAL record qualified by its file (§2023:8.4.2.2.2 Format 1's file-report-qualifier) resolves through it
     /// too (kb/Work PB3557 review R2-1).</summary>
     public FileNameScope VisibleFiles => new(Files.FilesByName, Inherited.Files);
 
@@ -120,7 +120,7 @@ public sealed class DataBindState
     /// <c>MarkFileRecordImageLeavesPass</c> (the FILE record areas) and at UsageCollected by
     /// <see cref="Passes.UsageCollectionPass"/> (the boundary formals and the whole-group operands of the bound tree);
     /// read whole by <c>StorageFormPass</c>, which promotes the leaves of each group to their character image (ISO
-    /// §14.9.25.4 GR4: a whole-group move fills without conversion; see <see cref="DataItem.StoreAsImage"/>).</summary>
+    /// §2023:14.9.25.4 GR4: a whole-group move fills without conversion; see <see cref="DataItem.StoreAsImage"/>).</summary>
     public FactSet<DataItem> WholeGroupReferenced { get; }
 
     /// <summary>Every elementary item some bind-time rule forces to store its CHARACTER IMAGE: Tier-B REDEFINES leaves
@@ -136,19 +136,19 @@ public sealed class DataBindState
     /// <summary>ELEMENTARY items a CHARACTER CHANNEL can write (kb/Work PB992), appended at UsageCollected by
     /// <see cref="Passes.UsageCollectionPass"/> beside <see cref="WholeGroupReferenced"/> and promoted by
     /// <c>StorageFormPass</c> exactly as a whole-referenced group's leaves are. A channel that delivers CHARACTERS rather
-    /// than a value — §14.9.25.4 GR4's group move into an elementary receiver, and §14.2.3 GR8's shared storage between a
-    /// BY REFERENCE argument and its formal parameter, where §14.8.2.3.2 rule 1 admits a formal of any description "of
+    /// than a value — §2023:14.9.25.4 GR4's group move into an elementary receiver, and §2023:14.2.3 GR8's shared storage between a
+    /// BY REFERENCE argument and its formal parameter, where §2023:14.8.2.3.2 rule 1 admits a formal of any description "of
     /// the same length", and the CALL RETURNING receiver — can deposit content that is not a numeric value, and a native
     /// carrier holds only a value.</summary>
     public FactSet<DataItem> CharacterChannelItems { get; }
 
     /// <summary>The parse nodes (and subscript tokens) the binder RESOLVED to a function activation or an object-property
     /// accessor invocation although the text carries no syntactic marker of one: a function-identifier written without
-    /// the word FUNCTION (§8.4.3.2.3 SR2 — <c>UPPER-CASE (X)</c> under <c>REPOSITORY. FUNCTION ALL INTRINSIC</c>) and a
-    /// property reference (§8.4.3.9 — <c>prop OF obj</c>, whose get/set accessor is a METHOD invocation). Appended at
+    /// the word FUNCTION (§2023:8.4.3.2.3 SR2 — <c>UPPER-CASE (X)</c> under <c>REPOSITORY. FUNCTION ALL INTRINSIC</c>) and a
+    /// property reference (§2023:8.4.3.9 — <c>prop OF obj</c>, whose get/set accessor is a METHOD invocation). Appended at
     /// ProcedureBound, where the binder makes the decision (<c>IntrinsicBinder.KeywordOmittedFunction</c>,
     /// <c>SubscriptBinder.IsFunctionBearing</c>, <c>ObjectPropertyResolver.ResolveObjectProperty</c>), and read whole by
-    /// <see cref="Validation.FlagConformancePass"/> for ISO §7.3.14.4 GR4 b ("the source element calls any function, or
+    /// <see cref="Validation.FlagConformancePass"/> for ISO §2023:7.3.14.4 GR4 b ("the source element calls any function, or
     /// invokes any method") instead of re-deriving the rule from syntax. Identity-keyed: a node is a call site or it is
     /// not.</summary>
     public FactSet<object> ActivationSites { get; }

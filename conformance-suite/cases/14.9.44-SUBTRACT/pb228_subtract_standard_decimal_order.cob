@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.44.4 GR1 and GR2, SECOND PARAGRAPH of each - the
+      *> ISO §2023:14.9.44.4 GR1 and GR2, SECOND PARAGRAPH of each - the
       *> SUBTRACT twins of the ADD rules 2014/pb228_add_standard_decimal
       *> pins (kb/Work PB228's sibling sweep). GR1: "the result of the
       *> initial evaluation is equivalent to the result of the
@@ -19,10 +19,10 @@
       *> answer depends on the grouping. STANDARD-BINARY is a declared
       *> non-support (docs/CONFORMANCE.md A.3) and is not exercised.
       *>
-      *> An SDIDI holds 34 decimal digits (§8.8.1.5.2), each operation
-      *> is a correctly rounded decimal128 one (§8.8.1.5.3), rounding
+      *> An SDIDI holds 34 decimal digits (§2023:8.8.1.5.2), each operation
+      *> is a correctly rounded decimal128 one (§2023:8.8.1.5.3), rounding
       *> NEAREST-AWAY-FROM-ZERO when no INTERMEDIATE ROUNDING clause is
-      *> written (§11.9.11.2 GR3a); stores truncate (§14.7.4.3 GR2).
+      *> written (§2023:11.9.11.2 GR3a); stores truncate (§2023:14.7.4.3 GR2).
       *> X = 10**30, Y = -(10**30), Z = 0.0004: X + Z needs 35 digits
       *> and rounds to X, so the sum (X + Z) + Y is 0, not 0.0004.
       *>

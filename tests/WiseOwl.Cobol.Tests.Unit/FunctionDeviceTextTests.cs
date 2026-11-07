@@ -6,9 +6,9 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ WHAT DISPLAY WRITES FOR A NUMERIC FUNCTION'S RETURNED VALUE (kb/Work PB3514; ISO/IEC 1989:2023 §15.4 puts the value in
-/// "a temporary elementary data item", §15.4.1 leaves its characteristics to the implementor under native arithmetic, and
-/// §14.9.11.4 GR1 leaves the device conversion to the implementor; docs/CONFORMANCE.md DOC-A.1-92). The standard is silent on
+/// ⛔ WHAT DISPLAY WRITES FOR A NUMERIC FUNCTION'S RETURNED VALUE (kb/Work PB3514; ISO/IEC 1989:2023 §2023:15.4 puts the value in
+/// "a temporary elementary data item", §2023:15.4.1 leaves its characteristics to the implementor under native arithmetic, and
+/// §2023:14.9.11.4 GR1 leaves the device conversion to the implementor; docs/CONFORMANCE.md DOC-A.1-92). The standard is silent on
 /// the temporary's description, so CLAUDE.md rule 1's precedence adopts GnuCOBOL 3.2.0's: <c>cob_alloc_field</c> derives it from the
 /// value (<c>CobolNum.DeviceFunctionText</c>), and ABS, MAX, MIN, MEDIAN and MEAN of one argument return a COPY of an argument's
 /// item (<c>FunctionValueField</c>). The expected strings below are what <c>cobc -x -std=default</c> 3.2.0 printed for the same
@@ -72,7 +72,7 @@ public sealed class FunctionDeviceTextTests
     public void NoDigitIsCutAndNoneIsInvented(string value, string expected) =>
         Assert.Equal(expected, CobolNum.DeviceFunctionText(Dec(value), commaMode: false));
 
-    /// <summary>The decimal separator is the unit's (§12.3.7.4 GR14 a); a scaled integer carrier reaches the same text.</summary>
+    /// <summary>The decimal separator is the unit's (§2023:12.3.7.4 GR14 a); a scaled integer carrier reaches the same text.</summary>
     [Fact]
     public void TheSeparatorIsTheUnits_AndTheScaledCarrierReachesTheSameRule()
     {
@@ -104,7 +104,7 @@ public sealed class FunctionDeviceTextTests
         Assert.Equal("-014", FunctionValueField.Min(Copy("7", i), Copy("-14", si)).DeviceText(false));
     }
 
-    /// <summary>A tie keeps the FIRST argument (§15.59.4 r1 / §15.63.4 r1 take the leftmost of equal values), so its item is the temporary.</summary>
+    /// <summary>A tie keeps the FIRST argument (§2023:15.59.4 r1 / §2023:15.63.4 r1 take the leftmost of equal values), so its item is the temporary.</summary>
     [Fact]
     public void ATieKeepsTheFirstArgumentsItem()
     {
@@ -160,7 +160,7 @@ public sealed class FunctionDeviceTextTests
             Copy("5", new NumProfile { Digits = 10, FractionDigits = 0, Signed = false, Truncation = NumericTruncation.BinaryCapacity, ByteForm = NumericByteForm.Binary, StorageLength = 4 })).DeviceText(false));
     }
 
-    /// <summary>An ALL subscript over no occurrence leaves a selecting function with no argument (§15.3): the same EC-ARGUMENT-FUNCTION the
+    /// <summary>An ALL subscript over no occurrence leaves a selecting function with no argument (§2023:15.3): the same EC-ARGUMENT-FUNCTION the
     /// value bodies raise, never an index fault.</summary>
     [Fact]
     public void ASelectionOverNoArgumentsIsAnArgumentError()
@@ -179,7 +179,7 @@ public sealed class FunctionDeviceTextTests
     }
 
     // ── The temporary's LENGTH (kb/Work PB3951): FUNCTION LENGTH / BYTE-LENGTH of a numeric function measure the item DISPLAY shows ────────
-    // ISO §8.4.3.2.1 + §15.4 make the function-identifier that temporary data item, §15.50.4 r2 / r3 and §15.14.4 r1 measure it, and §15.4.1 leaves
+    // ISO §2023:8.4.3.2.1 + §2023:15.4 make the function-identifier that temporary data item, §2023:15.50.4 r2 / r3 and §2023:15.14.4 r1 measure it, and §2023:15.4.1 leaves
     // its representation to the implementor, so GnuCOBOL 3.2.0's sizes are the answers (the probe matrix of the PB3951 report; the rows
     // marked NOT COPIED are the same two deliberate departures as DISPLAY's).
 
@@ -204,7 +204,7 @@ public sealed class FunctionDeviceTextTests
     }
 
     /// <summary>R1-1 of the PB3951 review: a USAGE NATIONAL argument's copy is five national POSITIONS and ten BYTES (PIC S9(5) NATIONAL), a
-    /// SIGN SEPARATE one six and twelve; LENGTH reads the positions (§15.50.4 r2) and BYTE-LENGTH the bytes (§15.14.4 r1), through ABS too.</summary>
+    /// SIGN SEPARATE one six and twelve; LENGTH reads the positions (§2023:15.50.4 r2) and BYTE-LENGTH the bytes (§2023:15.14.4 r1), through ABS too.</summary>
     [Fact]
     public void ACopyOfANationalArgumentHasPositionsAndBytes()
     {
@@ -229,7 +229,7 @@ public sealed class FunctionDeviceTextTests
         FunctionValueField display = FunctionValueField.OfItem(Dec("-12.5"), Item(7, 2, signed: true), 7, 7);
         Assert.Equal(5, FunctionValueField.Max(packed, display).ByteLength);
         Assert.Equal(7, FunctionValueField.Min(packed, display).ByteLength);
-        Assert.Equal(7, FunctionValueField.Max(display, FunctionValueField.OfItem(Dec("-12.5"), Packed(9, 2), 5, 5)).ByteLength);   // equal: the leftmost wins (§15.59.4 2)
+        Assert.Equal(7, FunctionValueField.Max(display, FunctionValueField.OfItem(Dec("-12.5"), Packed(9, 2), 5, 5)).ByteLength);   // equal: the leftmost wins (§2023:15.59.4 2)
         Assert.Equal(5, FunctionValueField.Median(display, packed, FunctionValueField.OfLiteral(Dec("9"), 1, 0, signed: false)).ByteLength);
     }
 

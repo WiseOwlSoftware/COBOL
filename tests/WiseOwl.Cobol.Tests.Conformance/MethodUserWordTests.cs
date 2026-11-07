@@ -6,14 +6,14 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
 /// METHOD is a user-defined word at COBOL-2023 and a keyword where a format spells it (kb/Work PB2623). The printed
-/// §8.9 list of ISO/IEC 1989:2023 does not contain METHOD (it names METHOD-ID), so §4.2.8 leaves it free at 2023, while
-/// the END METHOD marker (§10.7.2) and the EXIT METHOD statement (removed at 2023 by Annex E.2 item 1 and
+/// §2023:8.9 list of ISO/IEC 1989:2023 does not contain METHOD (it names METHOD-ID), so §2023:4.2.8 leaves it free at 2023, while
+/// the END METHOD marker (§2023:10.7.2) and the EXIT METHOD statement (removed at 2023 by Annex E.2 item 1 and
 /// kept under <c>--permissive</c>) still spell it.
 /// </summary>
 /// <remarks>
 /// The END METHOD half is the corpus golden <c>2023/pb2623_method_is_a_user_word_at_2023</c>. This class holds the
 /// half the strict corpus cannot reach: EXIT METHOD survives only under <c>--permissive</c> at 2023, and a program
-/// that declares a data item METHOD has EVERY METHOD token retyped to a user word by the §8.9 reservation gate, so the
+/// that declares a data item METHOD has EVERY METHOD token retyped to a user word by the §2023:8.9 reservation gate, so the
 /// keyword position (<c>methodKeyword</c>, generated into CobolWords.g4 from the row's <c>keywordWhereFree</c> determination) must still read it.
 /// </remarks>
 public sealed class MethodUserWordTests
@@ -67,7 +67,7 @@ public sealed class MethodUserWordTests
         EditionHarness.AssertHasDiagnostic(warnings, "COBOL0902");
     }
 
-    /// <summary>THE ARM THAT PROVES THE PROBE CAN FAIL: the same program targeting COBOL-2014, where §8.9 reserves
+    /// <summary>THE ARM THAT PROVES THE PROBE CAN FAIL: the same program targeting COBOL-2014, where §2023:8.9 reserves
     /// METHOD, is refused at the data item (COBOL0901) — so the 2023 success above is the edition's, not the
     /// harness's.</summary>
     [Fact]

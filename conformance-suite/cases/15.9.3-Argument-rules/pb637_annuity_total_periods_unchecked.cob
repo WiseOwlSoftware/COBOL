@@ -6,18 +6,18 @@
 *> portable: unverified
 *>---
       *> kb/Work PB637 — the CHECKING-OFF half of pb637_annuity_total_periods. With EC-ARGUMENT-FUNCTION checking
-      *> not enabled, §15.3 r14 leaves "the result of the function reference" to the implementor ONLY when the
-      *> condition is set to exist, and §15.9.3 r3 ("Argument-2 shall be a positive integer") sets it for no count
+      *> not enabled, §2023:15.3 r14 leaves "the result of the function reference" to the implementor ONLY when the
+      *> condition is set to exist, and §2023:15.9.3 r3 ("Argument-2 shall be a positive integer") sets it for no count
       *> past the 64-bit window. The defect replaced the ARGUMENT with 0 silently - FUNCTION ANNUITY (0 N) then
-      *> divided by nothing and returned 0 where §15.9.4 r1a, "(1 / (argument-2))", is 1E-20 at n = 10^20 and
-      *> 1E-30 at n = 10^30. §15.4.1 makes the standard-decimal value equal the equivalent expression's.
+      *> divided by nothing and returned 0 where §2023:15.9.4 r1a, "(1 / (argument-2))", is 1E-20 at n = 10^20 and
+      *> 1E-30 at n = 10^30. §2023:15.4.1 makes the standard-decimal value equal the equivalent expression's.
       *>
       *>   T1  rate 0, n = 10^20: 1E-20.        T2  rate 0, n = 10^30 (a 31-digit item): 1E-30.
       *>   T3  rate 0, n = 9 999 999 999 999 999 999 (19 digits, past the 64-bit window): 1E-19 + 1E-38, so a
       *>       31-place receiver holds 1E-19.
       *>   T4  rate 1E-30, n = 10^20: 0.0000000000000000000100000000005 to 31 places (derived in the checked
       *>       program's header: rate / (x - x**2/2 + ...), x = n * ln(1 + rate) = 1E-10 - 5E-41).
-      *>   T5  rate 0, n = N30 * N20 = 10^50, past the 128-bit window: ANNUITY (0 n) = 1 / n, both SDIDI values (§15.4.1
+      *>   T5  rate 0, n = N30 * N20 = 10^50, past the 128-bit window: ANNUITY (0 n) = 1 / n, both SDIDI values (§2023:15.4.1
       *>       NOTE 2); the first fix narrowed the count to 128 bits (review R1-1) and ended the run unit.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB637UNC.

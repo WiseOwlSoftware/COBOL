@@ -9,23 +9,23 @@
       *> The two report-state preconditions of the RWCS verbs, both catalogued names with no raise site before
       *> kb/Work PB326 (the same shape as EC-REPORT-FILE-MODE — one funnel now serves all four).
       *>
-      *> §14.9.21.4 GR2: "An INITIATE statement shall not be executed if report-name-1 is in the active state.
+      *> §2023:14.9.21.4 GR2: "An INITIATE statement shall not be executed if report-name-1 is in the active state.
       *> If it is in the active state, the EC-REPORT-ACTIVE exception condition is set to exist and the
       *> execution of the INITIATE statement has no other effect."
-      *> §14.9.16.4 GR7: "The report associated with data-name-1 or report-name-1 shall be in the active state.
+      *> §2023:14.9.16.4 GR7: "The report associated with data-name-1 or report-name-1 shall be in the active state.
       *> If it is not, the EC-REPORT-INACTIVE exception condition is set to exist, if it is enabled."
-      *> §14.9.46.4 GR1: "The TERMINATE statement may be executed only for a report that is in the active state.
+      *> §2023:14.9.46.4 GR1: "The TERMINATE statement may be executed only for a report that is in the active state.
       *> If the report is not in the active state, the EC-REPORT-INACTIVE exception condition is set to exist
       *> and the execution of the statement is unsuccessful."
       *>
-      *> Both are Fatal in Table 13, so each declarative runs and RESUME AT NEXT STATEMENT (§14.9.33) continues.
+      *> Both are Fatal in Table 13, so each declarative runs and RESUME AT NEXT STATEMENT (§2023:14.9.33) continues.
       *>
       *> DERIVATION OF THE EXPECTED OUTPUT, statement by statement.  OPEN OUTPUT then INITIATE succeeds
-      *> (§14.9.21.4 GR4 — the report becomes active).  The SECOND INITIATE hits GR2: EC-REPORT-ACTIVE, and "no
+      *> (§2023:14.9.21.4 GR4 — the report becomes active).  The SECOND INITIATE hits GR2: EC-REPORT-ACTIVE, and "no
       *> other effect" — in particular GR1a-c do NOT re-run, so the sum counter keeps the 4 it accumulated and
       *> the second GENERATE's control footing prints S=008, not S=004.  GENERATE then TERMINATE run normally.
-      *> The SECOND TERMINATE hits §14.9.46.4 GR1 (EC-REPORT-INACTIVE, unsuccessful) and the GENERATE after it
-      *> hits §14.9.16.4 GR7 (EC-REPORT-INACTIVE) — neither adds a line.  Expected, in execution order:
+      *> The SECOND TERMINATE hits §2023:14.9.46.4 GR1 (EC-REPORT-INACTIVE, unsuccessful) and the GENERATE after it
+      *> hits §2023:14.9.16.4 GR7 (EC-REPORT-INACTIVE) — neither adds a line.  Expected, in execution order:
       *> HANDLED-A, HANDLED-I, HANDLED-I, DONE, then the two detail lines and the one control footing.
       >>TURN EC-REPORT-ACTIVE EC-REPORT-INACTIVE CHECKING ON
        IDENTIFICATION DIVISION.

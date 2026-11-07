@@ -15,7 +15,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ THE BYTES OF A SOURCE OR LIBRARY TEXT FILE BECOME CHARACTERS IN ONE PLACE, AND NO BYTE IS EVER REPLACED BY U+FFFD
-/// (docs/CONFORMANCE.md §7, Annex A.1 items 25 and 26; ISO §8.1.3.2 GR1 and GR2; kb/Work PB1397).
+/// (docs/CONFORMANCE.md §7, Annex A.1 items 25 and 26; ISO §2023:8.1.3.2 GR1 and GR2; kb/Work PB1397).
 /// <para>Before this class's subject existed, <c>File.ReadAllText</c> read every file and substituted U+FFFD for each byte
 /// it could not decode, so a Latin-1 <c>"é"</c> in a literal became <c>FUNCTION ORD</c> 65534 with no diagnostic. The
 /// determination (written in DOC-A.1-25 and DOC-A.1-26): a byte-order mark names the encoding; a marked file not

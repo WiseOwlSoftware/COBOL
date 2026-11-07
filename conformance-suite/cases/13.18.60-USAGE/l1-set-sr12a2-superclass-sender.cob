@@ -4,7 +4,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.39.3 SR12 a)2. — "if the data item referenced by
+      *> ISO §2023:14.9.39.3 SR12 a)2. — "if the data item referenced by
       *> identifier-3 is described without an ONLY phrase, the
       *> object-class-name specified in the description of the data
       *> item referenced by identifier-4 shall reference the same

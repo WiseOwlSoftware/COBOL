@@ -5,9 +5,9 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB4162 - ISO §8.4.3.2.4 GR2: "At the time reference is made to a function, its arguments are evaluated
+      *> kb/Work PB4162 - ISO §2023:8.4.3.2.4 GR2: "At the time reference is made to a function, its arguments are evaluated
       *> individually in the order specified in the list of arguments, from left to right." (cite.py: OK 8.4.3.2.4 2)).
-      *> §15.3 14): "When ALL is specified as a subscript, the effect is as if each table element associated with that
+      *> §2023:15.3 14): "When ALL is specified as a subscript, the effect is as if each table element associated with that
       *> subscript position were specified. The order of the implicit specification of each occurrence is from left to right,
       *> with ..." (cite.py: OK 15.3 14)): T (ALL) is a SEQUENCE of arguments, each evaluated where it stands in the list, so
       *> the elements are read BEFORE a later argument's user-defined function activation changes them.
@@ -22,24 +22,24 @@
       *>   MAX   MAX (F (ALL), 0)                        = 21.5
       *>   MIN   MIN (F (ALL), 99999999)                 = 5.0
       *>   SUM   SUM (F (ALL), 0) = 21.5 + 5.0 + 7.5     = 34.0
-      *>   MEAN  MEAN (F (ALL), 0) = 34.0 / 4 = 8.5 - "the arithmetic mean (average) of its arguments" (§15.60.1, cite.py: OK
+      *>   MEAN  MEAN (F (ALL), 0) = 34.0 / 4 = 8.5 - "the arithmetic mean (average) of its arguments" (§2023:15.60.1, cite.py: OK
       *>         15.60.1), the activation's 0 being the fourth argument
       *>   MEDIAN MEDIAN (F (ALL), 0): 0 5.0 7.5 21.5, an even count, "the arithmetic mean of the two middle values"
-      *>         (§15.61.4 2), cite.py: OK 15.61.4 2)) = 6.25
+      *>         (§2023:15.61.4 2), cite.py: OK 15.61.4 2)) = 6.25
       *>   G-SUM  SUM (G (ALL, ALL), 0) = 21;  G-ROW SUM (G (2, ALL), 0) = 4 + 5 + 6 = 15;  G-COL SUM (G (ALL, 1), 0) = 1 + 4 = 5
       *>   G-OMAX ORD-MAX (G (ALL, ALL), 0) = 6 - "the ordinal number that corresponds to the position of the argument-1 having the
-      *>         greatest value" (§15.71.4 1), cite.py: OK 15.71.4 1)): the sixth implicit specification, the rightmost ALL varying fastest
+      *>         greatest value" (§2023:15.71.4 1), cite.py: OK 15.71.4 1)): the sixth implicit specification, the rightmost ALL varying fastest
       *>   G-OMIN ORD-MIN (G (ALL, ALL), 0) = 7 - the least value is the activation's 0, the seventh argument, after the six
-      *>         elements (§15.72.4 1), cite.py: OK 15.72.4 1))
+      *>         elements (§2023:15.72.4 1), cite.py: OK 15.72.4 1))
       *>   ODO    SUM (OD (ALL), 0) = 10 + 20 + 30 = 60 - the range of the ALL subscript is CNT's value when the argument is
-      *>          evaluated (§15.3 14)), 3; read after the activation (CNT = 1) it would be 110
-      *>   TEXT   MIN (S (ALL), PB4162A) = AA - "the content of the argument-1 having the least value" (§15.63.4 1), cite.py: OK
+      *>          evaluated (§2023:15.3 14)), 3; read after the activation (CNT = 1) it would be 110
+      *>   TEXT   MIN (S (ALL), PB4162A) = AA - "the content of the argument-1 having the least value" (§2023:15.63.4 1), cite.py: OK
       *>          15.63.4 1)) of AA BB CC and the activation's QQ; read after the activation (S = ZZ ZZ ZZ) it would be QQ
       *>   NEST   MAX (MAX (F (ALL), 1), 0) = 21.5, the nested call naming ALL held as the call it is (the argument to its left)
       *>   NESTOD MIN (MAX (OD (ALL), 1), 99999999) = 30
       *> And the held call answers what the unheld one does: FUNCTION LENGTH of the nested MAX measured with a literal filler
       *> (nothing to hold) and with the activation as filler is the SAME length (the temporary's description is the
-      *> implementor's, §15.4.1 and docs/CONFORMANCE.md DOC-A.1-92, so no length is asserted, only that holding changes none).
+      *> implementor's, §2023:15.4.1 and docs/CONFORMANCE.md DOC-A.1-92, so no length is asserted, only that holding changes none).
        IDENTIFICATION DIVISION.
        FUNCTION-ID. PB4162B.
        DATA DIVISION.

@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.39 Format 10 (data-pointer-arithmetic) GR20: SET p UP|DOWN BY n increments/decrements the
+      *> ISO §2023:14.9.39 Format 10 (data-pointer-arithmetic) GR20: SET p UP|DOWN BY n increments/decrements the
       *> pointer's address by n BYTES. Here P is pointed at a 10-byte buffer; UP/DOWN BY moves it within the
       *> buffer, and a BASED 1-byte item rebased onto P reads the byte at the current address.
        IDENTIFICATION DIVISION.

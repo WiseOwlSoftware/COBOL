@@ -5,25 +5,25 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §13.18.55.3 SR2 — "SYNC is an abbreviation for SYNCHRONIZED."
+      *> ISO §2023:13.18.55.3 SR2 — "SYNC is an abbreviation for SYNCHRONIZED."
       *> The abbreviation is accepted EVERYWHERE the full word is, in every
       *> form of the clause, and produces the identical layout.
       *>
-      *> THE RULE. §13.18.55.3 SR2: "SYNC is an abbreviation for
+      *> THE RULE. §2023:13.18.55.3 SR2: "SYNC is an abbreviation for
       *> SYNCHRONIZED." An abbreviation is not a second clause with similar
       *> behaviour — it is the SAME clause spelled shorter, so every place
-      *> §13.18.55 reaches has to answer identically to both spellings, and
+      *> §2023:13.18.55 reaches has to answer identically to both spellings, and
       *> nowhere may accept one and refuse the other.
       *>
       *> WHERE THE CLAUSE CAN BE WRITTEN, and therefore what this golden has
       *> to pair.
-      *>   §13.18.55.3 SR1: "The SYNCHRONIZED clause may be specified for
+      *>   §2023:13.18.55.3 SR1: "The SYNCHRONIZED clause may be specified for
       *>   group and elementary items." — so both an elementary entry and a
-      *>   group entry, and a level-77 entry, which §8.5.1.3.2 GR3 makes an
+      *>   group entry, and a level-77 entry, which §2023:8.5.1.3.2 GR3 makes an
       *>   elementary item ("Entries that specify noncontiguous data items
       *>   that are not subdivisions of other items, and are not themselves
       *>   subdivided, have been assigned the special level-number 77").
-      *>   §13.18.55.2's general format offers the optional LEFT / RIGHT
+      *>   §2023:13.18.55.2's general format offers the optional LEFT / RIGHT
       *>   phrase, governed by GR4 and GR5 — so all three forms (bare, LEFT,
       *>   RIGHT) are written in both spellings.
       *> Group SYNCHRONIZED is a COBOL-2023 introduction, which is why the
@@ -33,7 +33,7 @@
       *> positive golden cannot show.
       *>
       *> THE NUMBERS, AND WHY THEY ARE NOT ARBITRARY.
-      *> The absolute answers come from the §13.18.55.4 GR9 implementor
+      *> The absolute answers come from the §2023:13.18.55.4 GR9 implementor
       *> determination, docs/CONFORMANCE.md DOC-A.1-195: WiseOwl COBOL performs
       *> NO physical alignment for SYNCHRONIZED and generates NO implicit
       *> FILLER for it. Combined with DOC-A.1-205 (a BINARY/COMP item of 3-4
@@ -52,7 +52,7 @@
       *> a COMPILE error on whichever spelling one of the five positions did
       *> not accept, which is exactly what this golden's five position-pairs
       *> are for. The IMG leg then compares the two byte images directly:
-      *> both groups hold "a", -1234 and "z", and §14.9.25.4 GR4 makes the
+      *> both groups hold "a", -1234 and "z", and §2023:14.9.25.4 GR4 makes the
       *> group move to an alphanumeric item a byte transfer, so X1 = X2 is a
       *> comparison of the stored bytes, not of the described values.
        IDENTIFICATION DIVISION.

@@ -7,7 +7,7 @@ using System.Text;
 namespace WiseOwl.Cobol.Runtime.Globalization;
 
 /// <summary>
-/// The ONE LC_TIME model (ISO/IEC 1989:2023 §8.2.1 — LC_TIME through ISO/IEC 9945:2009 clause 7; DESIGN-locale-facility
+/// The ONE LC_TIME model (ISO/IEC 1989:2023 §2023:8.2.1 — LC_TIME through ISO/IEC 9945:2009 clause 7; DESIGN-locale-facility
 /// §4.7/§8; kb/Work PB2764): the resolved snapshot of one locale's date and time formatting, and THE renderer of
 /// <c>d_fmt</c> and <c>t_fmt</c>, so that every LC_TIME string a COBOL result carries — the patterns, the date and time
 /// separators, the AM/PM designators, the era, the day and month names, the decimal separator of a seconds fraction —
@@ -23,8 +23,8 @@ namespace WiseOwl.Cobol.Runtime.Globalization;
 /// already cleaned (<see cref="LocaleFacts.DateFormat"/>, <see cref="LocaleFacts.TimeFormat"/>) still produced those
 /// bytes through the separator and the designator — the host-varying, character-position-consuming text DETERMINATION L10/L12 exist to remove.</para>
 /// <para>⚖ DETERMINATION L13 (CONFORMANCE.md §4 item 5): the DATE rendered is the Gregorian date argument-1 names
-/// (§15.52.3 r2: "a date in the same format as the year, month, and day returned in character positions 1 through 8
-/// by the CURRENT-DATE function"; §15.52.4 r2: <c>d_fmt</c> is a FORMAT of that date, ISO/IEC 9945 strftime, which
+/// (§2023:15.52.3 r2: "a date in the same format as the year, month, and day returned in character positions 1 through 8
+/// by the CURRENT-DATE function"; §2023:15.52.4 r2: <c>d_fmt</c> is a FORMAT of that date, ISO/IEC 9945 strftime, which
 /// formats a Gregorian broken-down time — its alternative-era formats are the separate <c>era_d_fmt</c>), never the
 /// culture's own calendar: .NET's default calendar for fa-*, ps-*, ckb-IR, lrc, mzn, uz-Arab (Persian), th-* (Thai
 /// Buddhist) and ar-SA (Umm al-Qura) made <c>LOCALE-DATE("20261008", fa-IR)</c> read 1405/7/16, a different date.
@@ -88,7 +88,7 @@ internal sealed class TimeFacts
     /// <summary>The LC_TIME snapshot of one locale's facts (cached per <see cref="LocaleFacts"/> instance).</summary>
     public static TimeFacts Of(LocaleFacts facts) => s_cache.GetValue(facts, static f => new TimeFacts(f));
 
-    /// <summary>The date <paramref name="date"/> (a Gregorian date) rendered in <c>d_fmt</c> (§15.52.4 r2; L10 + L13).</summary>
+    /// <summary>The date <paramref name="date"/> (a Gregorian date) rendered in <c>d_fmt</c> (§2023:15.52.4 r2; L10 + L13).</summary>
     public string FormatDate(DateTime date) => FormatDate(_dateFormat, date);
 
     /// <summary>Render <paramref name="pattern"/> over <paramref name="date"/> with this locale's separators, names
@@ -96,10 +96,10 @@ internal sealed class TimeFacts
     /// uses today (the unit tests drive them here, so a future ICU release that starts using one finds it rendered).</summary>
     internal string FormatDate(string pattern, DateTime date) => Render(pattern, new Moment(date, 0, 0, 0, null, HasTime: false));
 
-    /// <summary>The time of day rendered in <c>t_fmt</c> (§15.53.4 r2, §15.54.4 r2): hours, minutes and seconds, plus a
+    /// <summary>The time of day rendered in <c>t_fmt</c> (§2023:15.53.4 r2, §2023:15.54.4 r2): hours, minutes and seconds, plus a
     /// <paramref name="fraction"/> of the seconds (the digits after the decimal point; null for none). Done over the
     /// pattern's tokens rather than through <see cref="DateTime"/> because the standard's values are WIDER than a
-    /// DateTime can hold (§15.53.3 r3: hour 24, seconds up to 99 — a leap-second or end-of-day value renders as the
+    /// DateTime can hold (§2023:15.53.3 r3: hour 24, seconds up to 99 — a leap-second or end-of-day value renders as the
     /// number it is).</summary>
     public string FormatTime(int hh, int mm, int ss, string? fraction) =>
         Render(_timeFormat, new Moment(default, hh, mm, ss, fraction, HasTime: true));

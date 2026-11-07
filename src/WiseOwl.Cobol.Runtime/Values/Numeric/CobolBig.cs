@@ -11,9 +11,9 @@ namespace WiseOwl.Cobol.Runtime;
 /// SDIDI significand at its exponent (<see cref="CobolExact"/>); the value a step of the work leaves those forms is THIS: its exact
 /// integer and the scale it is written at, nothing rounded. GnuCOBOL 3.2's <c>cob_decimal</c> sum, difference, product, truncated
 /// quotient and integer power are exact over an arbitrary-precision integer at any size (CLAUDE.md rule 1 sends the latitude of
-/// ISO §8.8.1.3 and §11.9.11.2 1) to it), and so is this form: <c>(P*1.0E0) ** 2 / P - P</c> of a 39-digit P is 0, where the 34-digit
+/// ISO §2023:8.8.1.3 and §2023:11.9.11.2 1) to it), and so is this form: <c>(P*1.0E0) ** 2 / P - P</c> of a 39-digit P is 0, where the 34-digit
 /// image of the 78-digit P² left 99001.
-/// <para>THE PUBLISHED BOUND (§14.7.5 5): "if native arithmetic is in effect and the implementor defines that the range of values allowed
+/// <para>THE PUBLISHED BOUND (§2023:14.7.5 5): "if native arithmetic is in effect and the implementor defines that the range of values allowed
 /// for the intermediate data item is to be checked" — the range is the SDIDI's: <c>|value| &lt; 10^6145</c> (<see cref="MaxIntegerDigits"/>;
 /// decimal128's largest magnitude is 9.999…E+6144), plus a working-size cap of <see cref="MaxBits"/> bits on the integer, which holds the
 /// cost of <c>X ** N</c> finite. A value past either raises EC-SIZE-OVERFLOW at the operation that formed it; a <see cref="Working"/> value, a
@@ -25,7 +25,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// </summary>
 internal readonly struct CobolBig
 {
-    /// <summary>The largest integer-digit count a value may have: <c>|value| &lt; 10^6145</c>, the decimal128 range (§8.8.1.5.2 NOTE 2).</summary>
+    /// <summary>The largest integer-digit count a value may have: <c>|value| &lt; 10^6145</c>, the decimal128 range (§2023:8.8.1.5.2 NOTE 2).</summary>
     internal const int MaxIntegerDigits = 6145;
 
     /// <summary>The largest integer a value may hold, in bits (about 1.26 million digits): the working-size cap on a power or a product.</summary>
@@ -62,13 +62,13 @@ internal readonly struct CobolBig
     // ── construction ────────────────────────────────────────────────────────────────────────────────────────
 
     private static CobolSizeError Overflow() => new("a native intermediate exceeds the exact range "
-        + "(|value| >= 10^6145 or an integer past 2^22 bits; ISO §14.7.5 case 5 — the implementor-defined intermediate range is checked, "
+        + "(|value| >= 10^6145 or an integer past 2^22 bits; ISO §2023:14.7.5 case 5 — the implementor-defined intermediate range is checked, "
         + "A.1 item 179: EC-SIZE-OVERFLOW)", "EC-SIZE-OVERFLOW");
 
     /// <summary>A power of a base below one in magnitude whose integer would pass the working cap: far below the decimal128 range's
-    /// smallest magnitude, 10^-6176 (ISO §8.8.1.5.2 r2: a nonzero value too small to be contained is EC-SIZE-UNDERFLOW).</summary>
+    /// smallest magnitude, 10^-6176 (ISO §2023:8.8.1.5.2 r2: a nonzero value too small to be contained is EC-SIZE-UNDERFLOW).</summary>
     private static CobolSizeError Underflow() => new("a native power is too small to be contained "
-        + "(|value| below 10^-6176; ISO §8.8.1.5.2 r2, §14.7.5 case 5: EC-SIZE-UNDERFLOW)", "EC-SIZE-UNDERFLOW");
+        + "(|value| below 10^-6176; ISO §2023:8.8.1.5.2 r2, §2023:14.7.5 case 5: EC-SIZE-UNDERFLOW)", "EC-SIZE-UNDERFLOW");
 
     /// <summary>The value <c>value × 10^-scale</c>, range-checked: EC-SIZE-OVERFLOW past <see cref="MaxIntegerDigits"/> integer digits (a
     /// <paramref name="working"/> value is exempt) or <see cref="MaxBits"/> bits.</summary>
@@ -200,7 +200,7 @@ internal readonly struct CobolBig
     }
 
     /// <summary>The quotient TRUNCATED toward zero at <paramref name="scale"/> fraction digits (<c>trunc(a × 10^(bScale + scale − aScale) / b)</c>).
-    /// A zero divisor raises <see cref="CobolSizeError.ZeroDivide"/> (ISO §14.7.5 case 2).</summary>
+    /// A zero divisor raises <see cref="CobolSizeError.ZeroDivide"/> (ISO §2023:14.7.5 case 2).</summary>
     internal static CobolBig DivTruncated(CobolBig a, CobolBig b, int scale)
     {
         if (b.Value.IsZero) throw CobolSizeError.ZeroDivide();
@@ -400,7 +400,7 @@ internal readonly struct CobolBig
 
     /// <summary>An integer landed in the <see cref="Int128"/> carrier: itself when it fits (the carrier's magnitude limit is
     /// <see cref="Int128.MaxValue"/> on both signs, <c>CobolDec.TransferWide</c>'s), else EC-SIZE-TRUNCATION under a checked transfer
-    /// (§14.7.5 case 3) and the value's low-order 38 digits — what a store can use — otherwise.</summary>
+    /// (§2023:14.7.5 case 3) and the value's low-order 38 digits — what a store can use — otherwise.</summary>
     private static Int128 Land(BigInteger integer, bool checkedTransfer)
     {
         if (BigInteger.Abs(integer) <= (BigInteger)Int128.MaxValue) return (Int128)integer;
@@ -419,6 +419,6 @@ internal readonly struct CobolBig
     }
 
     private static CobolSizeError PastTheCarrier() =>
-        new("the value is further from zero than any fixed-point receiver permits (ISO §14.7.5 "
+        new("the value is further from zero than any fixed-point receiver permits (ISO §2023:14.7.5 "
             + "case 3 — EC-SIZE-TRUNCATION; the receiver is left unchanged)", "EC-SIZE-TRUNCATION");
 }

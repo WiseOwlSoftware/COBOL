@@ -45,13 +45,13 @@ public readonly record struct HostType(HostTypeKind Kind, string? CsType);
 /// kb/Work PB2099). A generated host entry presents every formal, RETURNING item and published record member to a .NET
 /// host as the type this function names, and lands and decodes it through <c>HostLanding</c> by the same row, so the
 /// emitter, the published record struct and (from slice 4) the repository record's decoder cannot disagree about it.
-/// ISO §14.2.3 13): "When either the activating or the activated runtime element is other than a COBOL runtime element,
+/// ISO §2023:14.2.3 13): "When either the activating or the activated runtime element is other than a COBOL runtime element,
 /// the implementor shall specify the restrictions and mechanisms for all supported language products"; this table is
 /// that specification's type mapping for .NET.
 /// <para>⛔ <b>DECODING NEVER NARROWS:</b> the host type of a description holds EVERY value its storage can hold, so a
 /// write-back never has a value it cannot return. A fixed-point item's storage holds what its capacity discipline
 /// admits — a DISPLAY, PACKED or plain COMPUTATIONAL item its PICTURE's digits, a binary item whose truncation is by
-/// capacity (COMP-5, BINARY-CHAR … BINARY-DOUBLE) its whole container (§13.18.60.4 GR12 / DOC-A.1-208; kb/Work R10) —
+/// capacity (COMP-5, BINARY-CHAR … BINARY-DOUBLE) its whole container (§2023:13.18.60.4 GR12 / DOC-A.1-208; kb/Work R10) —
 /// <see cref="PicInfo.UnscaledDigitBound"/>, the one statement of that bound. The one storage no exact .NET type holds,
 /// an UNSIGNED 16-byte container with a scale (a 19- or more-digit COMP-5 PICTURE with V or P positions), takes
 /// <see cref="CobolDec"/> under a stated GR13 restriction: content of 2^127 units or more is refused by the validity
@@ -65,7 +65,7 @@ public readonly record struct HostType(HostTypeKind Kind, string? CsType);
 /// </summary>
 public static class HostSurface
 {
-    /// <summary>The host type of <paramref name="description"/> (§4.3's table).</summary>
+    /// <summary>The host type of <paramref name="description"/> (§2023:4.3's table).</summary>
     public static HostType TypeOf(DataItem description)
     {
         if (description.IsGroup) return new HostType(HostTypeKind.Group, null);
@@ -98,7 +98,7 @@ public static class HostSurface
     {
         bool capacity = pic.Truncation == NumericTruncation.BinaryCapacity;
         // The digits the UNSCALED value can have: a capacity item's container (UnscaledDigitBound), every other item its
-        // PICTURE's 9 positions — "The symbol 'P' is not counted in the size of the item" (ISO §13.18.40.4 14)), so its P
+        // PICTURE's 9 positions — "The symbol 'P' is not counted in the size of the item" (ISO §2023:13.18.40.4 14)), so its P
         // positions scale the value and are counted by Scale, never twice (UnscaledDigitBound counts them, an upper bound
         // for its own use, which at worst gives a capacity item with P positions the wider of two exact types).
         int unscaledDigits = capacity ? pic.UnscaledDigitBound : pic.Digits;

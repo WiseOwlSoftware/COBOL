@@ -5,18 +5,18 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.51.4 GR2 — WRITE does not affect the file position
+      *> ISO §2023:14.9.51.4 GR2 — WRITE does not affect the file position
       *>   indicator (relative file, dynamic access, I-O mode)
       *> Rule: "The file position indicator is not affected by the
       *>   execution of a WRITE statement."
       *>   cite.py --check 14.9.51.4 "The file position indicator is
       *>   not affected by the execution of a WRITE statement"
-      *>   -> OK  §14.9.51.4 2)  (General rules)
+      *>   -> OK  §2023:14.9.51.4 2)  (General rules)
       *>   cite.py --check 14.9.30.4 "If the file position indicator
       *>   was established by a prior successful READ statement, the
       *>   first existing record in the physical file whose relative
       *>   key number is greater than the file position indicator"
-      *>   -> OK  §14.9.30.4 21) (relative-file list, item c); cite.py
+      *>   -> OK  §2023:14.9.30.4 21) (relative-file list, item c); cite.py
       *>   cannot tell the relative and sequential items apart, PB1554)
       *> DERIVATION. The file is loaded with records 1,2,3, reopened
       *> I-O, and a random READ of key 1 establishes the file position
@@ -28,7 +28,7 @@
       *> would print REL END first.
       *>   REL W 00 / REL N 0002 R02 / REL N 0003 R03 / REL N 0010 R10 /
       *>   REL END
-      *> No indexed leg: §14.9.30.4's indexed READ NEXT rules key on
+      *> No indexed leg: §2023:14.9.30.4's indexed READ NEXT rules key on
       *> "the previous operation on the file", which the intervening
       *> WRITE is, so the indexed successor is not decided by GR2 alone.
        IDENTIFICATION DIVISION.

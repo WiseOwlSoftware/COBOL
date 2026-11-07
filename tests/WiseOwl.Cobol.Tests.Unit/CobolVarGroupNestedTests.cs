@@ -6,11 +6,11 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ A DYNAMIC-CAPACITY TABLE WHOSE ELEMENTS ARE VARIABLE-LENGTH GROUPS IS ONE NESTED COMPONENT OF THE §8.5.1.12
+/// ⛔ A DYNAMIC-CAPACITY TABLE WHOSE ELEMENTS ARE VARIABLE-LENGTH GROUPS IS ONE NESTED COMPONENT OF THE §2023:8.5.1.12
 /// CARRIER (kb/Work PB2496). Its occurrences ride as their own carriers (<see cref="CobolVarGroup.Elements"/>), so the
-/// operations the standard defines over it are element by element: ISO §14.6.9.2 "Correspondingly numbered elements are
+/// operations the standard defines over it are element by element: ISO §2023:14.6.9.2 "Correspondingly numbered elements are
 /// moved according to the rules of the MOVE statement" (<see cref="CobolVarGroup.Reshape"/>,
-/// <see cref="CobolVarGroup.Overlay"/>) and §14.6.9.3's comparison, "each successive remaining element of the larger
+/// <see cref="CobolVarGroup.Overlay"/>) and §2023:14.6.9.3's comparison, "each successive remaining element of the larger
 /// table with spaces" (<see cref="CobolVarGroup.Compare"/>). Every expected value below is computed from those
 /// sentences, never read back from the implementation.
 /// </summary>
@@ -19,7 +19,7 @@ public sealed class CobolVarGroupNestedTests
     // One element: DD dynamic-length · IT one-character dynamic-capacity table (its atoms; element bytes 1 = one IT element).
     private static readonly GroupAtom[] ElemDyn =
         [new(GroupAtomKind.DynamicLength, 0, 0), new(GroupAtomKind.DynamicTable, 1, 1, 1, 1)];
-    // The same element with IT a FIXED one-occurrence table (§8.5.1.12.3 sentence 3 makes the two correspond).
+    // The same element with IT a FIXED one-occurrence table (§2023:8.5.1.12.3 sentence 3 makes the two correspond).
     private static readonly GroupAtom[] ElemFixed =
         [new(GroupAtomKind.DynamicLength, 0, 0), new(GroupAtomKind.Table, 1, 1, 1, 1)];
     // H X(1) · TD dynamic-capacity table of such elements · Z X(2)
@@ -39,7 +39,7 @@ public sealed class CobolVarGroupNestedTests
         Assert.Equal("hzz", got.Fixed);
         var elements = got.ElementsAt(0)!;
         Assert.Equal(2, elements.Length);
-        // IT's superfluous "q" is not moved into the ONE-occurrence table (§14.6.9.2 rule 1).
+        // IT's superfluous "q" is not moved into the ONE-occurrence table (§2023:14.6.9.2 rule 1).
         Assert.Equal(("p", "ab"), (elements[0].Fixed, elements[0].Dyn(0)));
         Assert.Equal(("r", "c"), (elements[1].Fixed, elements[1].Dyn(0)));
         // And back: the fixed table's one occurrence becomes a dynamic table of capacity 1.
@@ -57,7 +57,7 @@ public sealed class CobolVarGroupNestedTests
         var stored = CobolVarGroup.Overlay(argument, view, Group(ElemDyn), Group(ElemFixed), received: null).ElementsAt(0)!;
         // IT (1, 2) "q" survives: a fixed table of the formal is written over the argument's occurrences, never shrinking them.
         Assert.Equal(["ab", "wq"], stored[0].Dynamic);
-        // Occurrence 2 is CREATED in the argument's table (§8.5.1.9.3: "a new element is automatically created") and the
+        // Occurrence 2 is CREATED in the argument's table (§2023:8.5.1.9.3: "a new element is automatically created") and the
         // view's element stored over it (kb/Work PB2690, wave 1078 A review R1-1): its IT shows the space fill, which no
         // record and no effect marks as referenced, so it holds none of the formal's fixed occurrences (the store into
         // storage raises it to its FROM capacity), never the formal's element reshaped (" ").
@@ -79,9 +79,9 @@ public sealed class CobolVarGroupNestedTests
     {
         var shape = Group(ElemDyn);
         var two = Carrier("h", "zz", DynElement("ab", "p"), DynElement("c", "r"));
-        // §8.5.1.10.4 and §8.8.4.2.7: "ab" against "ac" decides at the second character, whatever follows.
+        // §2023:8.5.1.10.4 and §2023:8.8.4.2.7: "ab" against "ac" decides at the second character, whatever follows.
         Assert.True(CobolVarGroup.Compare(two, shape, Carrier("h", "aa", DynElement("ac", ""), DynElement("", "")), shape) < 0);
-        // A third element of spaces only (empty DD, IT one space) compares equal to "nothing" (§14.6.9.3).
+        // A third element of spaces only (empty DD, IT one space) compares equal to "nothing" (§2023:14.6.9.3).
         var three = Carrier("h", "zz", DynElement("ab", "p"), DynElement("c", "r"), DynElement("", " "));
         Assert.Equal(0, CobolVarGroup.Compare(two, shape, three, shape));
         var threeX = Carrier("h", "zz", DynElement("ab", "p"), DynElement("c", "r"), DynElement("", "x"));

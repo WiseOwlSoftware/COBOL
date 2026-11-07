@@ -5,8 +5,8 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// ⛔ LIBRARY TEXT IS READ BY THE SAME §6.5 WALKER AS THE SOURCE, WITH THE SAME DIAGNOSTICS (kb/Work PB1640).
-/// ISO §6.5 applies logical conversion to the lines "of source text and library text", so a rule of reference
+/// ⛔ LIBRARY TEXT IS READ BY THE SAME §2023:6.5 WALKER AS THE SOURCE, WITH THE SAME DIAGNOSTICS (kb/Work PB1640).
+/// ISO §2023:6.5 applies logical conversion to the lines "of source text and library text", so a rule of reference
 /// format broken in a copybook is reported exactly as it is in the main source — sited at the COPYBOOK's file and
 /// line — and a once-per-compilation gate fires once for the compilation, not once per file. Before, the copybook
 /// was converted with no diagnostics at all: <c>MOVE A TO X*&gt; c</c> compiled clean in a copybook and drew
@@ -27,14 +27,14 @@ public sealed class LibraryTextReferenceFormatDiagnosticsTests
         + "           COPY BK1.\n"
         + "           STOP RUN.\n";
 
-    [Theory] // §6.2.3.2 SR2: "The floating comment indicator of an inline comment shall be preceded by a separator space."
+    [Theory] // §2023:6.2.3.2 SR2: "The floating comment indicator of an inline comment shall be preceded by a separator space."
     [InlineData("           MOVE 1 TO N*> c\n")]                       // fixed form library text
     [InlineData(">>SOURCE FORMAT FREE\nMOVE 1 TO N*> c\n")]           // free form library text
     public void UnseparatedFloatingComment_InACopybook_IsDiagnosed_AtTheCopybooksOwnFile(string library)
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Program, 2023,
             copybooks: new Dictionary<string, string> { ["BK1.cpy"] = library });
-        Assert.False(ok, "the copybook breaks §6.2.3.2 SR2");
+        Assert.False(ok, "the copybook breaks §2023:6.2.3.2 SR2");
         string error = Assert.Single(errors, e => e.Contains("COBOL2495"));
         Assert.Contains("BK1.cpy", error, StringComparison.OrdinalIgnoreCase);   // sited at the copybook, not at the COPY statement of the main source
     }

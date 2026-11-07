@@ -336,7 +336,7 @@ public sealed class CollationTable
     /// builder refuses such a key outright.</summary>
     internal static bool MapsItsNfdSpelling(ReadOnlySpan<int> key) => !IsHangulSyllable(key[0]);
 
-    /// <summary>Algorithmic Hangul syllable → conjoining jamo (L V [T]) decomposition (The Unicode Standard §3.12) —
+    /// <summary>Algorithmic Hangul syllable → conjoining jamo (L V [T]) decomposition (The Unicode Standard §2023:3.12) —
     /// the NFD of a precomposed syllable, without a normalization call. Returns the jamo count (2 or 3; <paramref name="t"/>
     /// is 0 for an LV syllable).</summary>
     internal static int DecomposeHangul(int syllable, out int l, out int v, out int t)

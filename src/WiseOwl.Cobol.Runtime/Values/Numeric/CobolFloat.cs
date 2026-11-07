@@ -12,11 +12,11 @@ namespace WiseOwl.Cobol.Runtime;
 /// any float-bearing expression in binary64. This class is the boundary between that native-double world and the
 /// scaled-integer substrate (<see cref="CobolNum"/>): <see cref="ToScaled"/> lands a double into an unscaled
 /// <see cref="Int128"/> at a receiver's scale (so the existing store funnel applies ROUNDED + SIZE ERROR), and
-/// <see cref="Display(double)"/> renders the algebraic value for DISPLAY (ISO §14.9.11 GR1 — implementor-defined).
+/// <see cref="Display(double)"/> renders the algebraic value for DISPLAY (ISO §2023:14.9.11 GR1 — implementor-defined).
 /// </summary>
 public static class CobolFloat
 {
-    /// <summary>DISPLAY of a float item (§14.9.11 GR1, implementor-defined): the .NET shortest round-trippable
+    /// <summary>DISPLAY of a float item (§2023:14.9.11 GR1, implementor-defined): the .NET shortest round-trippable
     /// decimal in the invariant culture (a leading '-' only when negative; E-notation for extreme magnitudes, as
     /// .NET produces). The ONE float→string path — never a bare <c>.ToString()</c>.</summary>
     public static string Display(float v) => v.ToString(CultureInfo.InvariantCulture);
@@ -30,8 +30,8 @@ public static class CobolFloat
     /// either bound, the decimal-string round-trip (<see cref="double.Parse(string)"/> is IEEE correctly rounded
     /// in this runtime). It replaced <c>(double)(x) / 10^scale</c> with an emit-time repeated-multiplication
     /// divisor — exact only through 1e22, so at scale ≥ 23 the divisor sat one ulp low and a LEGAL
-    /// <c>ASIN(|x| ≤ 1)</c> argument (§15.10.3 r2) arrived above 1.0, evaluated NaN and drew the §15.3
-    /// EC-ARGUMENT-FUNCTION where §15.10.4 r1 requires an approximation of the arcsine; <c>CobolDec.ToDouble</c>'s
+    /// <c>ASIN(|x| ≤ 1)</c> argument (§2023:15.10.3 r2) arrived above 1.0, evaluated NaN and drew the §2023:15.3
+    /// EC-ARGUMENT-FUNCTION where §2023:15.10.4 r1 requires an approximation of the arcsine; <c>CobolDec.ToDouble</c>'s
     /// <c>(double)Sig * Math.Pow(10, Exp)</c> failed independently at other scales. A NEGATIVE scale (a PICTURE-P
     /// trailing-scaled operand, or an SDIDI with a positive exponent) multiplies: 10^(−scale).</summary>
     public static double ScaledToDouble(Int128 unscaled, int scale)
@@ -52,7 +52,7 @@ public static class CobolFloat
     }
 
     /// <summary>⛔ THE ONE scaled-value→binary32 conversion (kb/Work PB1110): the CORRECTLY-ROUNDED binary32 of the
-    /// algebraic value <c>unscaled × 10^(−scale)</c> in ONE rounding (ISO §14.6.8.3 rule 2: "in a manner consistent
+    /// algebraic value <c>unscaled × 10^(−scale)</c> in ONE rounding (ISO §2023:14.6.8.3 rule 2: "in a manner consistent
     /// with the specifications of ISO/IEC 60559:2020", one conversion under roundTiesToEven). Narrowing
     /// <see cref="ScaledToDouble"/> is a SECOND rounding: a value a hair above a binary32 midpoint rounds onto the
     /// midpoint in binary64 and the cast then ties to even, storing the lower neighbour. When the unscaled magnitude
@@ -76,7 +76,7 @@ public static class CobolFloat
     private static readonly float[] ExactPow10Single =
         [1f, 1e1f, 1e2f, 1e3f, 1e4f, 1e5f, 1e6f, 1e7f, 1e8f, 1e9f, 1e10f];
 
-    /// <summary>⛔ THE ONE WAY GENERATED CODE MATERIALIZES A FLOAT FROM ITS INTERCHANGE BITS (ISO §14.9.39.4 rules
+    /// <summary>⛔ THE ONE WAY GENERATED CODE MATERIALIZES A FLOAT FROM ITS INTERCHANGE BITS (ISO §2023:14.9.39.4 rules
     /// 33–35 — the SET Format-15 canonical values; kb/Work PB961). An OPAQUE call, deliberately: a
     /// <c>BitConverter.Int32BitsToSingle(&lt;constant&gt;)</c> written inline in the generated C# is a JIT
     /// constant, and RyuJIT carries a floating constant as a <c>double</c> — so an optimized build folded the
@@ -100,7 +100,7 @@ public static class CobolFloat
         1e12, 1e13, 1e14, 1e15, 1e16, 1e17, 1e18, 1e19, 1e20, 1e21, 1e22,
     ];
 
-    /// <summary>The checked read of a standard-float SENDING operand (ISO §14.6.13.2 item 3): return the value, but
+    /// <summary>The checked read of a standard-float SENDING operand (ISO §2023:14.6.13.2 item 3): return the value, but
     /// when EC-DATA-NOT-FINITE checking is enabled and the content is NaN or ±Infinity, raise the fatal
     /// EC-DATA-NOT-FINITE (via <see cref="ExceptionState.FloatNotFiniteError"/>). Always-emitted at the two float
     /// sending-read chokepoints (the numeric-value read and the string-image read), mirroring the always-emitted
@@ -111,7 +111,7 @@ public static class CobolFloat
     public static double Sending(double v)
     {
         if (!double.IsFinite(v))
-            ExceptionState.FloatNotFiniteError("a NaN or infinite standard-float sending operand was referenced (ISO §14.6.13.2 item 3)");
+            ExceptionState.FloatNotFiniteError("a NaN or infinite standard-float sending operand was referenced (ISO §2023:14.6.13.2 item 3)");
         return v;
     }
 
@@ -119,25 +119,25 @@ public static class CobolFloat
     public static float Sending(float v)
     {
         if (!float.IsFinite(v))
-            ExceptionState.FloatNotFiniteError("a NaN or infinite standard-float sending operand was referenced (ISO §14.6.13.2 item 3)");
+            ExceptionState.FloatNotFiniteError("a NaN or infinite standard-float sending operand was referenced (ISO §2023:14.6.13.2 item 3)");
         return v;
     }
 
     /// <summary>The checked store of a MOVE algebraic value that is a FIXED-POINT scaled sender into a SINGLE-precision
     /// receiver, converted ONCE by <see cref="ScaledToSingle"/> (kb/Work PB1110). A scaled value is never
-    /// ±Infinity, so an infinite result IS the overflow past the single-precision range (§14.9.25.4 GR6 d)4.a).</summary>
+    /// ±Infinity, so an infinite result IS the overflow past the single-precision range (§2023:14.9.25.4 GR6 d)4.a).</summary>
     public static float StoreScaledSingleChecked(float converted)
     {
         if (float.IsInfinity(converted))
-            ExceptionState.FloatOverflowError("a MOVE algebraic value overflows the single-precision float receiver (ISO §14.9.25.4 GR6 d)4.a)");
+            ExceptionState.FloatOverflowError("a MOVE algebraic value overflows the single-precision float receiver (ISO §2023:14.9.25.4 GR6 d)4.a)");
         return converted;
     }
 
     /// <summary>The checked store of a MOVE algebraic value into a SINGLE-precision float receiver (ISO
-    /// §14.9.25.4 GR6 d)4.a): cast to <see cref="float"/> and, when a FINITE source overflows the single-precision
+    /// §2023:14.9.25.4 GR6 d)4.a): cast to <see cref="float"/> and, when a FINITE source overflows the single-precision
     /// exponent range to ±Infinity and EC-DATA-OVERFLOW checking is enabled, raise the fatal EC-DATA-OVERFLOW (via
     /// <see cref="ExceptionState.FloatOverflowError"/>). The <c>double.IsFinite(src)</c> guard keeps a NaN/±Infinity
-    /// source out of overflow (that is EC-DATA-NOT-FINITE at the sending read, or the valid §14.6.8.3 GR1 result under
+    /// source out of overflow (that is EC-DATA-NOT-FINITE at the sending read, or the valid §2023:14.6.8.3 GR1 result under
     /// checking OFF). The test is cast-based — never <c>Math.Abs(src) &gt; float.MaxValue</c>, since a double in
     /// (float.MaxValue, ~3.4028235678e38] rounds to a FINITE <c>float.MaxValue</c>, not ±Infinity.
     /// <para>⛔ THIS OVERLOAD CANNOT SEE A DECIMAL SENDER'S MAGNITUDE — use <see cref="StoreChecked(CobolDec,bool)"/>
@@ -147,12 +147,12 @@ public static class CobolFloat
     {
         float r = (float)src;
         if (double.IsFinite(src) && float.IsInfinity(r))
-            ExceptionState.FloatOverflowError("a MOVE algebraic value overflows the single-precision float receiver (ISO §14.9.25.4 GR6 d)4.a)");
+            ExceptionState.FloatOverflowError("a MOVE algebraic value overflows the single-precision float receiver (ISO §2023:14.9.25.4 GR6 d)4.a)");
         return r;
     }
 
     /// <summary>The checked store of a MOVE algebraic value that is a STANDARD-DECIMAL intermediate into a float
-    /// receiver (ISO §14.9.25.4 GR6 d)4.a; kb/Work PB271).
+    /// receiver (ISO §2023:14.9.25.4 GR6 d)4.a; kb/Work PB271).
     /// <para>⛔ THE TEST IS ON THE ALGEBRAIC VALUE, WHICH MEANS IT MUST HOLD THE <see cref="CobolDec"/> — after
     /// <see cref="CobolDec.ToDouble"/> the magnitude is gone. An SDIDI reaches ±9.999…E+6144, twenty decades past
     /// binary64 and 6100 past binary32, so <c>MOVE 1.0E+400 TO F</c> collapsed to ±Infinity at the conversion and
@@ -167,8 +167,8 @@ public static class CobolFloat
     /// representable magnitude rounds back to that maximum and is NOT an overflow, which a
     /// <c>&gt; MaxValue</c> comparison would get wrong.</para>
     /// <para>SCOPE. GR6 d)4.a binds a receiver "described with a standard floating-point usage" — FLOAT-BINARY-32
-    /// and FLOAT-BINARY-64 here (§13.18.60.4 GR14/GR15). For COMP-1/COMP-2/FLOAT-SHORT/FLOAT-LONG/FLOAT-EXTENDED
-    /// §14.6.8.3 rule 1 instead says "the implementor specifies any exception conditions that might be set to
+    /// and FLOAT-BINARY-64 here (§2023:13.18.60.4 GR14/GR15). For COMP-1/COMP-2/FLOAT-SHORT/FLOAT-LONG/FLOAT-EXTENDED
+    /// §2023:14.6.8.3 rule 1 instead says "the implementor specifies any exception conditions that might be set to
     /// exist during data conversion" (cite.py-verified), and WiseOwl COBOL's determination is the SAME condition —
     /// one rule for every float receiver, published in CONFORMANCE.md. The single-precision arm has raised it for
     /// COMP-1 since D21, so this makes the family consistent rather than adding a second regime.</para></summary>
@@ -179,7 +179,7 @@ public static class CobolFloat
         if (double.IsInfinity(r))
             ExceptionState.FloatOverflowError("a MOVE algebraic value is farther from zero than the "
                 + (single ? "single" : "double") + "-precision float receiver's usage permits "
-                + "(ISO §14.9.25.4 GR6 d)4.a)");
+                + "(ISO §2023:14.9.25.4 GR6 d)4.a)");
         return r;
     }
 
@@ -187,7 +187,7 @@ public static class CobolFloat
 
     /// <summary>The EXACT value of a finite binary64 at <paramref name="scale"/> fraction digits, rounded per
     /// <paramref name="mode"/>, WHEN that value fits the <see cref="Int128"/> carrier — the ONE landing every
-    /// float→fixed transfer is defined by (kb/Work PB623). ISO §14.6.8.2 rule 1 makes it a rule and not a
+    /// float→fixed transfer is defined by (kb/Work PB623). ISO §2023:14.6.8.2 rule 1 makes it a rule and not a
     /// latitude: "If the sending operand is an intermediate data item or a data item described with a standard
     /// floating-point usage, the value is treated as if it had been converted to a fixed-point value"
     /// (cite.py-verified) — THE VALUE, which for a binary64 is the exact ±man·2^exp it holds and always a
@@ -200,7 +200,7 @@ public static class CobolFloat
     /// and the two entry points rounded that surrogate at different scales, which is how ONE returned value
     /// reached two receivers differently: <c>MOVE FUNCTION TAN(x) TO PIC S9(28)V99</c> stored 16331239353195368.96
     /// where <c>COMPUTE</c> of the same call stored 16331239353195369.92 and the returned value is exactly
-    /// 16331239353195370. §15.4.1 — "the returned value is the same for all instances of a given function within a
+    /// 16331239353195370. §2023:15.4.1 — "the returned value is the same for all instances of a given function within a
     /// single execution of the runtime element so long as the value and order of the arguments, the collating
     /// sequence, and the locale are unchanged" (cite.py-verified) — cannot survive two transfers that disagree,
     /// and its NATIVE latitude is over "the characteristics and representation of the returned value", not over
@@ -209,13 +209,13 @@ public static class CobolFloat
     /// exactly with man &lt; 2^53 (<see cref="Decompose"/>), so v·10^scale = ±man·5^scale·2^(exp+scale): ONE
     /// integer multiply and ONE shift, both exact in the carrier whenever man·5^scale fits it. man &lt; 2^53 and
     /// 5^31 &lt; 2^72 give man·5^scale &lt; 2^125 &lt; 2^127 for every scale ≤ 31 — which covers every PICTURE
-    /// fraction, since §13.18.40.3 rule 14 caps a PICTURE at 31 digit positions ("For data items of category
+    /// fraction, since §2023:13.18.40.3 rule 14 caps a PICTURE at 31 digit positions ("For data items of category
     /// numeric, and for fixed-point data items of category numeric-edited, the number of digit positions described
     /// by character-string-1 shall range from 1 through 31", cite.py-verified). A wider scale, a shift
     /// past the carrier, or a negative scale (a trailing-P receiver, whose 5^|scale| is a DIVISOR) falls to the
     /// same expansion over <see cref="BigInteger"/>. No binary64 multiply is left anywhere in the landing.</para>
     /// <para>ROUNDING MODE PROHIBITED is never landed cut: an inexact value raises
-    /// <see cref="CobolSizeError.ProhibitedInexact"/> from <c>RoundDiv</c>'s one rounding decision (§14.7.4.3 rule 7 —
+    /// <see cref="CobolSizeError.ProhibitedInexact"/> from <c>RoundDiv</c>'s one rounding decision (§2023:14.7.4.3 rule 7 —
     /// the resultant identifier is unchanged; kb/Work PB3990), for the checked, unchecked and intermediate forms alike.
     /// It is asked of the EXACT ratio (<see cref="ExactRatio"/>, kb/Work PB623), never of a binary64 product, which
     /// cannot answer it: the double nearest 0.1 does NOT fit one fraction digit, yet <c>0.1 * 10.0</c> is exactly 1.0
@@ -317,7 +317,7 @@ public static class CobolFloat
     /// SIZE ERROR check. NaN → 0 (implementor-defined; the resulting 0 is in range and exact, so the store commits
     /// it silently — NO SIZE ERROR / EC-SIZE is raised for a NaN source).
     /// <para>⛔ A VALUE THE <see cref="Int128"/> CARRIER CANNOT HOLD — ±Infinity included — RAISES
-    /// <see cref="CobolSizeError"/> EC-SIZE-TRUNCATION (§14.7.5 case 3 with no-phrase rule 4); it is NEVER a saturated
+    /// <see cref="CobolSizeError"/> EC-SIZE-TRUNCATION (§2023:14.7.5 case 3 with no-phrase rule 4); it is NEVER a saturated
     /// sentinel (kb/Work PB2967). The sentinel this landing used to hand the store (<c>Int128.MaxValue</c>, "so the
     /// capacity check fires") works only for a receiver whose capacity is SMALLER than the carrier. A 16-byte
     /// COMP-5 receiver's capacity IS the carrier (<c>CobolNum.InBinaryRange</c>: every <see cref="Int128"/> is in
@@ -328,7 +328,7 @@ public static class CobolFloat
     /// <c>CobolDec.ToUnscaledChecked</c> (kb/Work PB74), which has always raised here. The statement's size-error
     /// catch already maps it to the flag with the condition's name, and the receiver is left unchanged.</para>
     /// <para>The three float→fixed landings are the SDIDI lane's three, one for one: <see cref="ToScaledUnchecked"/>
-    /// (a MOVE (§14.6.8.2 r4: "truncation on either end"), the no-phrase store (§14.6.13.1.3 item 8, DOC-A.1-70),
+    /// (a MOVE (§2023:14.6.8.2 r4: "truncation on either end"), the no-phrase store (§2023:14.6.13.1.3 item 8, DOC-A.1-70),
     /// INVOKE BY CONTENT — the low-order digits), this one (a final transfer that RAISES), and
     /// <see cref="ToScaledIntermediate"/> (an INTERMEDIATE consumer — <c>CobolDec.ToUnscaledIntermediate</c>'s twin).
     /// The forms differ ONLY in what they do with a value the carrier cannot hold: the VALUE itself is
@@ -340,19 +340,19 @@ public static class CobolFloat
         throw BeyondCarrier();
     }
 
-    /// <summary>The §14.7.5 case-3 size error of a float→fixed FINAL TRANSFER whose value no fixed-point receiver can
+    /// <summary>The §2023:14.7.5 case-3 size error of a float→fixed FINAL TRANSFER whose value no fixed-point receiver can
     /// hold because the <see cref="Int128"/> carrier cannot (kb/Work PB2967) — the ONE raise
     /// <see cref="ToScaled"/> and the checked <c>CobolIntrinsics.FromDouble</c> landing share.
     /// EC-SIZE-TRUNCATION is the condition no-phrase rule 4 names; the SDIDI lane's
     /// <c>CobolDec.ToUnscaledChecked</c> raises the same one for the same fact.</summary>
     internal static CobolSizeError BeyondCarrier() =>
         new("a float result is further from zero than any fixed-point receiver permits "
-            + "(ISO §14.7.5 case 3 — EC-SIZE-TRUNCATION; the receiver is left unchanged)", "EC-SIZE-TRUNCATION");
+            + "(ISO §2023:14.7.5 case 3 — EC-SIZE-TRUNCATION; the receiver is left unchanged)", "EC-SIZE-TRUNCATION");
 
     /// <summary>The INTERMEDIATE landing of a binary64 — for a consumer that has no store and so no capacity check of
     /// its own to refuse a value: an alignment, an argument, a subscript, a count (kb/Work PB77, PB2967, PB3019).
     /// <see cref="ToScaled"/> with the intermediate's disposition for a value the carrier cannot hold: EC-SIZE-OVERFLOW,
-    /// §14.7.5 case 5 (an operation on an intermediate data item whose value would be farther from zero than the
+    /// §2023:14.7.5 case 5 (an operation on an intermediate data item whose value would be farther from zero than the
     /// intermediate allows; checked because the implementor defines the intermediate's range to be checked,
     /// DOC-A.1-179) — the twin of the SDIDI lane's <c>CobolDec.ToUnscaledIntermediate</c>, which raises the same
     /// condition for the same fact. NaN → 0.
@@ -369,18 +369,18 @@ public static class CobolFloat
         if (double.IsNaN(v)) return Int128.Zero;
         if (TryExactScaled(v, scale, mode, out Int128 landed)) return landed;
         throw new CobolSizeError("a float intermediate is further from zero than the native Int128 carrier holds at this scale "
-            + "(ISO §14.7.5 case 5 — the implementor-defined intermediate range is checked, A.1 item 179: EC-SIZE-OVERFLOW)",
+            + "(ISO §2023:14.7.5 case 5 — the implementor-defined intermediate range is checked, A.1 item 179: EC-SIZE-OVERFLOW)",
             "EC-SIZE-OVERFLOW");
     }
 
-    /// <summary>The UNCHECKED landing of a binary64 into a fixed-point receiver (kb/Work PB77) — a MOVE (§14.6.8.2
+    /// <summary>The UNCHECKED landing of a binary64 into a fixed-point receiver (kb/Work PB77) — a MOVE (§2023:14.6.8.2
     /// r1/r2/r4: the value converted to fixed point, aligned by decimal point, "zero fill or truncation on either
     /// end"), the no-phrase arithmetic store, INVOKE BY CONTENT. Within the Int128 carrier it is <see cref="ToScaled"/>
     /// exactly (ONE <see cref="TryExactScaled"/> call, so there is no second rounding rule to diverge); beyond it the
     /// value's exact decimal expansion keeps supplying the LOW-ORDER digits (<see cref="LowOrderDigits"/>) — never a
     /// saturation sentinel, which has no capacity check downstream to expose it. A non-finite value (NaN, ±Infinity —
-    /// EC-DATA-NOT-FINITE at the sending read under checking, §14.6.13.2 item 3; with checking off the receiving
-    /// operand's disposition is the implementor's, §14.6.13.1.3 item 8) lands as ZERO: not a number, no digits — the
+    /// EC-DATA-NOT-FINITE at the sending read under checking, §2023:14.6.13.2 item 3; with checking off the receiving
+    /// operand's disposition is the implementor's, §2023:14.6.13.1.3 item 8) lands as ZERO: not a number, no digits — the
     /// disposition <see cref="ToScaled"/> already gave NaN.</summary>
     public static Int128 ToScaledUnchecked(double v, int scale, CobolRounding mode)
     {
@@ -389,12 +389,12 @@ public static class CobolFloat
     }
 
     // ── THE APPROXIMATION'S THREE LANDINGS (kb/Work PB4516) ────────────────────────────────────────────────
-    // An engine-produced APPROXIMATION (a §15.4.1 function's returned value, a non-integer native power) is not a
+    // An engine-produced APPROXIMATION (a §2023:15.4.1 function's returned value, a non-integer native power) is not a
     // floating-point data item's content, so it lands by the value the implementor's determination gives it - its
     // SHORTEST ROUND-TRIP decimal (CobolDec.FromApproximation; docs/CONFORMANCE.md "An implementor-defined
     // APPROXIMATION is not a data item") - and not by the exact binary expansion the three landings above give a
-    // float ITEM. §15.4 gives a function ONE returned value ("a returned value in a temporary elementary data item")
-    // and §15.4.1 leaves its representation to the implementor: EXP10(-6) is 9.99999999999999955E-7 as a binary
+    // float ITEM. §2023:15.4 gives a function ONE returned value ("a returned value in a temporary elementary data item")
+    // and §2023:15.4.1 leaves its representation to the implementor: EXP10(-6) is 9.99999999999999955E-7 as a binary
     // expansion and 0.000001 as the approximation, and the operand lift beside an operator
     // (NumericRenderer.LiftApproximation) has always read the second, so a bare `COMPUTE R = FUNCTION EXP10(-6)`
     // stored 0.000000 where `COMPUTE R = 0 + FUNCTION EXP10(-6)` stored 0.000001. These three are the twins of the
@@ -433,7 +433,7 @@ public static class CobolFloat
     // ── THE binary64 INTERMEDIATE'S RANGE (kb/Work PB1566, PB1581, PB1147) ───────────────────────────────────
     // Under native arithmetic an expression with a floating-point operand — or whose resultants are all
     // floating-point — evaluates in binary64 (CONFORMANCE.md DOC-A.1-123), so binary64's range IS the intermediate
-    // data item's range, and §14.7.5 case 5 makes an operation leaving it the size error condition "if native
+    // data item's range, and §2023:14.7.5 case 5 makes an operation leaving it the size error condition "if native
     // arithmetic is in effect and the implementor defines that the range of values allowed for the intermediate
     // data item is to be checked" — which WiseOwl COBOL defines (DOC-A.1-179). The no-phrase rule 3 names the
     // condition: "farther from zero or nearer to zero than is allowed for the intermediate data item" —
@@ -444,22 +444,22 @@ public static class CobolFloat
 
     /// <summary>⛔ THE ONE range check of a binary64 intermediate whose exact value the caller KNOWS to be nonzero
     /// or not (<paramref name="nonzero"/>): ±∞ is EC-SIZE-OVERFLOW, a nonzero value rounded to zero is
-    /// EC-SIZE-UNDERFLOW (§14.7.5 case 5 / no-phrase rule 3), each the <see cref="CobolSizeError"/> the statement's
+    /// EC-SIZE-UNDERFLOW (§2023:14.7.5 case 5 / no-phrase rule 3), each the <see cref="CobolSizeError"/> the statement's
     /// SIZE ERROR phrase or EC-SIZE checking takes. <paramref name="what"/> names the operation for the message.
     /// Shared by the float-family returned values (FUNCTION EXP, the list bodies) and the checked native
     /// operations below, so an intrinsic and an operator cannot answer the same range question differently.
     /// <para><paramref name="taken"/> is the set of conditions whose checking is enabled where the operation runs
-    /// (kb/Work PB4092): a range condition NOT in it is the not-enabled disposition (§14.6.13.1.1 NOTE 3; DOC-A.1-70),
+    /// (kb/Work PB4092): a range condition NOT in it is the not-enabled disposition (§2023:14.6.13.1.1 NOTE 3; DOC-A.1-70),
     /// the unchecked kernel's value — the IEEE result — and execution continues. The float-family returned values pass
     /// <see cref="SizeChecks.Range"/>: their range error is raised wherever checking stands, as it always was.</para></summary>
     public static double InBinary64Range(double r, bool nonzero, string what, SizeChecks taken)
     {
         if (double.IsInfinity(r) && (taken & SizeChecks.Overflow) != 0)
             throw new CobolSizeError($"{what}: the result is farther from zero than the binary64 intermediate "
-                + "allows (ISO §14.7.5 case 5; CONFORMANCE.md DOC-A.1-179)", "EC-SIZE-OVERFLOW");
+                + "allows (ISO §2023:14.7.5 case 5; CONFORMANCE.md DOC-A.1-179)", "EC-SIZE-OVERFLOW");
         if (r == 0 && nonzero && (taken & SizeChecks.Underflow) != 0)
             throw new CobolSizeError($"{what}: the nonzero result is nearer to zero than the binary64 intermediate "
-                + "allows (ISO §14.7.5 case 5; CONFORMANCE.md DOC-A.1-179)", "EC-SIZE-UNDERFLOW");
+                + "allows (ISO §2023:14.7.5 case 5; CONFORMANCE.md DOC-A.1-179)", "EC-SIZE-UNDERFLOW");
         return r;
     }
 
@@ -490,7 +490,7 @@ public static class CobolFloat
     }
 
     /// <summary>The CHECKED native binary64 quotient (the twin of <c>CobolNum.Divide</c>): a zero divisor is
-    /// §14.7.5 case 2 — "if the divisor in a divide operation or in a DIVIDE statement is zero" (cite.py-verified),
+    /// §2023:14.7.5 case 2 — "if the divisor in a divide operation or in a DIVIDE statement is zero" (cite.py-verified),
     /// EC-SIZE-ZERO-DIVIDE by the no-phrase rule 2 — whatever the dividend holds (a zero of either sign is zero);
     /// then overflow, and the underflow of a nonzero dividend's quotient. Before it the floating arm rendered a bare
     /// <c>/</c>: <c>COMPUTE FR = FL / FZ ON SIZE ERROR</c> took NOT ON SIZE ERROR and stored +Infinity (kb/Work
@@ -502,7 +502,7 @@ public static class CobolFloat
     }
 
     /// <summary>The native binary64 quotient where size-error checking is NOT enabled — the IEEE operator, except that
-    /// a zero divisor (either sign) is still §14.7.5 case 2 and raises <see cref="CobolSizeError.ZeroDivide"/>: the
+    /// a zero divisor (either sign) is still §2023:14.7.5 case 2 and raises <see cref="CobolSizeError.ZeroDivide"/>: the
     /// condition exists whether or not checking is enabled, and CONFORMANCE.md DOC-A.1-70's disposition for it with
     /// checking off is abnormal termination, exactly as the scaled lane's <c>CobolNum.Divide</c> and the SDIDI lane's
     /// <c>CobolDec.Div</c> (kb/Work PB1605). The bare <c>/</c> this replaced stored +Infinity, or NaN for 0/0, and

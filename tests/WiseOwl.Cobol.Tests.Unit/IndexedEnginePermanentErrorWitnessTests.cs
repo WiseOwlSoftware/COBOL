@@ -17,26 +17,26 @@ namespace WiseOwl.Cobol.Tests.Unit;
 ///
 /// <para>Two files, each built through the registry exactly as the program declares it (an 8-character record, the
 /// prime key in 1-4, an alternate key WITH DUPLICATES in 5-8). The TORN file's record leaves carry one flipped byte,
-/// so a tree read meets a failed checksum (2.2.1.6 R3): §9.1.13.6 item 1's '30'. The BOUNDARY file's meta pages record
+/// so a tree read meets a failed checksum (2.2.1.6 R3): §2023:9.1.13.6 item 1's '30'. The BOUNDARY file's meta pages record
 /// every one of the format's 2^32 pages as used, and its FREE tree and LEDGER as empty
 /// (docs/rearchitecture/DESIGN-runtime-library.md 2.2.1.9: the boundary of the physical file is the format's 2^32 pages
 /// or the host's maximum size; the precondition is measured through the connector, <see cref="BoundaryFile"/>), so
-/// every changing statement needs a page past the boundary: a WRITE or REWRITE answers §14.9.51.4 GR42 d)'s '24'
-/// (§9.1.13.5 item 4, <i>"An
+/// every changing statement needs a page past the boundary: a WRITE or REWRITE answers §2023:14.9.51.4 GR42 d)'s '24'
+/// (§2023:9.1.13.5 item 4, <i>"An
 /// attempt is made to write outside the externally-defined boundaries of a physical relative or indexed file"</i>) and a
-/// DELETE '30' (DOC-A.1-107: §14.9.10.4 gives DELETE no boundary condition), while a READ needs no page and succeeds.</para>
+/// DELETE '30' (DOC-A.1-107: §2023:14.9.10.4 gives DELETE no boundary condition), while a READ needs no page and succeeds.</para>
 ///
 /// <para><b>Every expected value is derived from the rules, not observed.</b> '24' is the invalid key condition, so
-/// §9.1.14's first list applies: with the INVALID KEY phrase, item 2, <i>"any applicable exception processing statements
+/// §2023:9.1.14's first list applies: with the INVALID KEY phrase, item 2, <i>"any applicable exception processing statements
 /// are not executed, and control is transferred to the imperative-statement specified in the INVALID KEY phrase"</i>;
 /// without it, item 3, the USE procedure runs, and item 4, with neither, <i>"control is transferred to the end of the
 /// input-output statement"</i>. EC-I-O-INVALID-KEY is nonfatal, so the run unit continues in every combination, checking
-/// on or off. The file is not affected (§9.1.14's first paragraph): a later READ finds the records as they were. '30' is
-/// neither the invalid key nor the at end condition, so §9.1.14's second list and §14.9.30.4 GR13 ignore the phrases and
-/// the USE procedure runs; §9.1.13.1's permanent error stays in effect until the CLOSE ('00', DOC-A.1-105). Whether the
+/// on or off. The file is not affected (§2023:9.1.14's first paragraph): a later READ finds the records as they were. '30' is
+/// neither the invalid key nor the at end condition, so §2023:9.1.14's second list and §2023:14.9.30.4 GR13 ignore the phrases and
+/// the USE procedure runs; §2023:9.1.13.1's permanent error stays in effect until the CLOSE ('00', DOC-A.1-105). Whether the
 /// run unit continues after a '30' is DOC-A.1-103's: with checking off it continues when a FILE STATUS clause or a USE
 /// procedure covers the statement and terminates abnormally when neither does; with checking on and no USE procedure it
-/// terminates even with a FILE STATUS clause (§14.6.13.1.3).</para>
+/// terminates even with a FILE STATUS clause (§2023:14.6.13.1.3).</para>
 /// </summary>
 public sealed class IndexedEnginePermanentErrorWitnessTests : WiseOwlCobolTestBase
 {
@@ -146,7 +146,7 @@ public sealed class IndexedEnginePermanentErrorWitnessTests : WiseOwlCobolTestBa
     /// <summary>The boundary program: a READ that needs no page (NOT INVALID KEY taken); a WRITE with the INVALID KEY
     /// phrase and one without; a REWRITE with it; a READ of the record the WRITE did not release; a DELETE ('30'); the
     /// CLOSE; then the next OPEN reads the file as it was: READ NEXT onto the last record takes NOT AT END, and past it
-    /// AT END (§14.9.30.4 GR24's at end condition, '10').</summary>
+    /// AT END (§2023:14.9.30.4 GR24's at end condition, '10').</summary>
     private static string BoundaryProgram(string id, string host, bool fileStatus, bool use, bool checking) =>
         Header(id, host, fileStatus, use, checking) + """
 
@@ -204,7 +204,7 @@ public sealed class IndexedEnginePermanentErrorWitnessTests : WiseOwlCobolTestBa
         """;
 
     /// <summary>The fence program: the OPEN I-O whose fence the format's last page refuses (<see cref="Header"/>), then
-    /// an OPEN INPUT of the same file (the failed OPEN left it not open, §14.9.27.4 GR2's '41' is for an open one), which
+    /// an OPEN INPUT of the same file (the failed OPEN left it not open, §2023:14.9.27.4 GR2's '41' is for an open one), which
     /// writes nothing and so is not refused, a READ of the record and the CLOSE.</summary>
     private static string FenceProgram(string id, string host, bool fileStatus, bool use, bool checking) =>
         Header(id, host, fileStatus, use, checking) + """
@@ -271,7 +271,7 @@ public sealed class IndexedEnginePermanentErrorWitnessTests : WiseOwlCobolTestBa
         Assert.Equal("OPEN --", stdout);
     }
 
-    [Fact]   // Checking enabled and no USE procedure: §14.6.13.1.3 applies after the I-O rules; the FILE STATUS clause does not continue it.
+    [Fact]   // Checking enabled and no USE procedure: §2023:14.6.13.1.3 applies after the I-O rules; the FILE STATUS clause does not continue it.
     public void TornPage_CheckingEnabled_FileStatusWithoutUse_TerminatesAtTheRead()
     {
         var (ok, stdout, detail) = Torn("IXTORNE", fileStatus: true, use: false, checking: true);
@@ -316,7 +316,7 @@ public sealed class IndexedEnginePermanentErrorWitnessTests : WiseOwlCobolTestBa
         Assert.Equal("", stdout);
     }
 
-    [Fact]   // Checking enabled and no USE procedure: §14.6.13.1.3; the FILE STATUS clause does not continue the run unit.
+    [Fact]   // Checking enabled and no USE procedure: §2023:14.6.13.1.3; the FILE STATUS clause does not continue the run unit.
     public void FenceRefused_CheckingEnabled_FileStatusWithoutUse_TerminatesAtTheOpen()
     {
         var (ok, stdout, detail) = Fence("IXFENE", fileStatus: true, use: false, checking: true);
@@ -327,7 +327,7 @@ public sealed class IndexedEnginePermanentErrorWitnessTests : WiseOwlCobolTestBa
 
     // ── '24': the boundary of the physical file (and the DELETE's '30' there) ────────────────────────────────────
 
-    [Fact]   // §9.1.14 item 2: the INVALID KEY phrase runs and the USE procedure does not; item 3: without the phrase the USE procedure runs.
+    [Fact]   // §2023:9.1.14 item 2: the INVALID KEY phrase runs and the USE procedure does not; item 3: without the phrase the USE procedure runs.
     public void Boundary_UseAndFileStatus_InvalidKeyTakenOrUseRun_TheDeleteIs30_AndTheFileIsUnchanged()
     {
         var (ok, stdout, detail) = Boundary("IXBNDA", fileStatus: true, use: true);
@@ -347,7 +347,7 @@ public sealed class IndexedEnginePermanentErrorWitnessTests : WiseOwlCobolTestBa
             "AFTER 0001AAAA", "AFTER 0002BBBB NOTATEND", "END -- ATEND"), stdout);
     }
 
-    [Fact]   // A FILE STATUS clause alone: §9.1.14 item 4 for the WRITE without the phrase; the DELETE's '30' continues (DOC-A.1-103).
+    [Fact]   // A FILE STATUS clause alone: §2023:9.1.14 item 4 for the WRITE without the phrase; the DELETE's '30' continues (DOC-A.1-103).
     public void Boundary_FileStatusWithoutUse_StoresThe24_AndContinues()
     {
         var (ok, stdout, detail) = Boundary("IXBNDC", fileStatus: true, use: false);

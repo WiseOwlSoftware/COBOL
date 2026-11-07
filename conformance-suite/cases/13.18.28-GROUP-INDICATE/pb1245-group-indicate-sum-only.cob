@@ -5,13 +5,13 @@
 *> portable: unverified
 *>---
       *> GROUP INDICATE ON A SUM ENTRY WITH NO SOURCE OR VALUE (kb/Work PB1245 -- COBOL2519).
-      *> ISO/IEC 1989:2023 §13.18.28.3 SR1: "The GROUP INDICATE clause may be specified only within a
+      *> ISO/IEC 1989:2023 §2023:13.18.28.3 SR1: "The GROUP INDICATE clause may be specified only within a
       *> detail report group description, in an elementary entry that also contains a COLUMN clause and a
       *> SOURCE or VALUE clause."
       *>   cite.py --check 13.18.28.3 "in an elementary entry that also contains a COLUMN clause and a
-      *>     SOURCE or VALUE clause"  -> OK  §13.18.28.3 1)  (Syntax rule)
-      *> The printable item below has a COLUMN clause and a SUM clause, which satisfies §13.15.3 SR10, but
-      *> neither a SOURCE nor a VALUE clause, which §13.18.28.3 SR1 requires of an indicated item. It is
+      *>     SOURCE or VALUE clause"  -> OK  §2023:13.18.28.3 1)  (Syntax rule)
+      *> The printable item below has a COLUMN clause and a SUM clause, which satisfies §2023:13.15.3 SR10, but
+      *> neither a SOURCE nor a VALUE clause, which §2023:13.18.28.3 SR1 requires of an indicated item. It is
       *> the only diagnostic the program draws at every edition.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1245NS.

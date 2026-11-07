@@ -14,12 +14,12 @@
       *> and each flag is measured in BOTH directions, because a dead arm and a live one differ only on the
       *> case the other state would answer differently.
       *>
-      *> §15.67.3 r5 (imported into TEST-NUMVAL by §15.93.4 r1 a): "The character period in argument-1
+      *> §2023:15.67.3 r5 (imported into TEST-NUMVAL by §2023:15.93.4 r1 a): "The character period in argument-1
       *> represents the decimal separator. When the DECIMAL-POINT IS COMMA clause is specified, the
       *> character comma shall be used in argument-1 instead of the character period to represent the
-      *> decimal separator" — cite.py --check 15.67.3 -> OK, rule 5. §15.69.3 r4 says it for NUMVAL-F
-      *> (§15.95.4 r1 a) — same sentence, rule 4.
-      *> §15.93.4 r1 b) 2 / 4 and §15.95.4 r1 b) 2 / 4 condition the digit cap on the arithmetic mode:
+      *> decimal separator" — cite.py --check 15.67.3 -> OK, rule 5. §2023:15.69.3 r4 says it for NUMVAL-F
+      *> (§2023:15.95.4 r1 a) — same sentence, rule 4.
+      *> §2023:15.93.4 r1 b) 2 / 4 and §2023:15.95.4 r1 b) 2 / 4 condition the digit cap on the arithmetic mode:
       *> 31 native, 34 standard-decimal. ARITHMETIC IS STANDARD — the COBOL-2002 mode, obsolete 2014 and
       *> removed 2023, so 2002 is where it can be measured — is named by NONE of the sub-notes; WiseOwl COBOL's
       *> recorded determination is that it takes 34 because its standard intermediate data item IS the
@@ -32,14 +32,14 @@
       *>   P2 TEST-NUMVAL("1,5")        -> 2   a comma is not a NUMVAL character; the ',' is first in error
       *>   P3 TEST-NUMVAL-F("1.5E+1")   -> 0
       *>   P4 TEST-NUMVAL-F("1,5E+1")   -> 2
-      *>   P5 TEST-NUMVAL(32 '1's)      -> 32  §15.93.4 r1 b) 2 — the native 31 cap's 32nd digit
-      *>   P6 TEST-NUMVAL-C("$1,234.56") -> 0  §15.68.3 r4 d — period decimals, comma groups
+      *>   P5 TEST-NUMVAL(32 '1's)      -> 32  §2023:15.93.4 r1 b) 2 — the native 31 cap's 32nd digit
+      *>   P6 TEST-NUMVAL-C("$1,234.56") -> 0  §2023:15.68.3 r4 d — period decimals, comma groups
       *>   P7 TEST-NUMVAL-C("$1.234,56") -> 7  the SWAPPED spelling: the '.' takes the decimal role, so the
       *>                                       ',' at position 7 is a grouping separator AFTER it, which
       *>                                       r4 a)'s format does not admit
       *>   P8 NUMVAL-C("$1,234.56")     -> 1234.56  the value twin of P6
       *> Unit PB256DPC (DECIMAL-POINT IS COMMA) — every verdict is the MIRROR of PB256NAT's. ⛔ NUMVAL-C is
-      *> here because §15.68.3 r4 d swaps BOTH roles, not just one, so its mirror pair is the only shape that
+      *> here because §2023:15.68.3 r4 d swaps BOTH roles, not just one, so its mirror pair is the only shape that
       *> can tell a live compiler arm from a dead one:
       *>   D1 TEST-NUMVAL("1,5")        -> 0   the comma IS the separator now
       *>   D2 TEST-NUMVAL("1.5")        -> 2   and the period is no longer a NUMVAL character at all

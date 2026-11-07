@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Frontend.Cst;
 using Core = CobolParserCore;
 
 /// <summary>
-/// One bit per clause slot of the ISO §13.16.2 Format-1 data description entry — the vocabulary the §13.16.3
+/// One bit per clause slot of the ISO §2023:13.16.2 Format-1 data description entry — the vocabulary the §2023:13.16.3
 /// "…shall not be specified in the same data description entry with…" rules are written in.
 ///
 /// <para>⛔ <b>The general format is a CLOSED list</b> (rendered from the printed page, PDF p393 / printed folio
@@ -30,53 +30,53 @@ public enum DataClauseKind : uint
 {
     None = 0,
 
-    /// <summary>PICTURE (§13.18.40).</summary>
+    /// <summary>PICTURE (§2023:13.18.40).</summary>
     Picture = 1u << 0,
-    /// <summary>USAGE (§13.18.60).</summary>
+    /// <summary>USAGE (§2023:13.18.60).</summary>
     Usage = 1u << 1,
-    /// <summary>OCCURS (§13.18.38).</summary>
+    /// <summary>OCCURS (§2023:13.18.38).</summary>
     Occurs = 1u << 2,
-    /// <summary>REDEFINES (§13.18.44).</summary>
+    /// <summary>REDEFINES (§2023:13.18.44).</summary>
     Redefines = 1u << 3,
-    /// <summary>VALUE (§13.18.63).</summary>
+    /// <summary>VALUE (§2023:13.18.63).</summary>
     Value = 1u << 4,
-    /// <summary>SIGN (§13.18.52).</summary>
+    /// <summary>SIGN (§2023:13.18.52).</summary>
     Sign = 1u << 5,
-    /// <summary>SYNCHRONIZED / SYNC (§13.18.55).</summary>
+    /// <summary>SYNCHRONIZED / SYNC (§2023:13.18.55).</summary>
     Synchronized = 1u << 6,
-    /// <summary>JUSTIFIED / JUST (§13.18.32).</summary>
+    /// <summary>JUSTIFIED / JUST (§2023:13.18.32).</summary>
     Justified = 1u << 7,
-    /// <summary>BLANK WHEN ZERO (§13.18.8). ⛔ This cited §13.18.9, which is the BLINK clause — the same
+    /// <summary>BLANK WHEN ZERO (§2023:13.18.8). ⛔ This cited §2023:13.18.9, which is the BLINK clause — the same
     /// off-by-one-clause inheritance kb/Work PB932 measured in StrongTypeModel, found by its sweep.</summary>
     BlankWhenZero = 1u << 8,
-    /// <summary>ALIGNED (§13.18.1).</summary>
+    /// <summary>ALIGNED (§2023:13.18.1).</summary>
     Aligned = 1u << 9,
-    /// <summary>CONSTANT RECORD (§13.18.15).</summary>
+    /// <summary>CONSTANT RECORD (§2023:13.18.15).</summary>
     ConstantRecord = 1u << 10,
-    /// <summary>PROPERTY (§13.18.42).</summary>
+    /// <summary>PROPERTY (§2023:13.18.42).</summary>
     Property = 1u << 11,
-    /// <summary>IS EXTERNAL [AS literal-1] (§13.18.22).</summary>
+    /// <summary>IS EXTERNAL [AS literal-1] (§2023:13.18.22).</summary>
     External = 1u << 12,
-    /// <summary>IS GLOBAL (§13.18.27).</summary>
+    /// <summary>IS GLOBAL (§2023:13.18.27).</summary>
     Global = 1u << 13,
-    /// <summary>TYPE type-name-1 (§13.18.57).</summary>
+    /// <summary>TYPE type-name-1 (§2023:13.18.57).</summary>
     Type = 1u << 14,
-    /// <summary>IS TYPEDEF [STRONG] (§13.18.58).</summary>
+    /// <summary>IS TYPEDEF [STRONG] (§2023:13.18.58).</summary>
     Typedef = 1u << 15,
-    /// <summary>SAME AS data-name-2 (§13.18.49).</summary>
+    /// <summary>SAME AS data-name-2 (§2023:13.18.49).</summary>
     SameAs = 1u << 16,
-    /// <summary>BASED (§13.18.5).</summary>
+    /// <summary>BASED (§2023:13.18.5).</summary>
     Based = 1u << 17,
-    /// <summary>ANY LENGTH (§13.18.2).</summary>
+    /// <summary>ANY LENGTH (§2023:13.18.2).</summary>
     AnyLength = 1u << 18,
-    /// <summary>DYNAMIC LENGTH (§13.18.19).</summary>
+    /// <summary>DYNAMIC LENGTH (§2023:13.18.19).</summary>
     DynamicLength = 1u << 19,
-    /// <summary>GROUP-USAGE (§13.18.29).</summary>
+    /// <summary>GROUP-USAGE (§2023:13.18.29).</summary>
     GroupUsage = 1u << 20,
-    /// <summary>select-when-clause (§13.18.51).</summary>
+    /// <summary>select-when-clause (§2023:13.18.51).</summary>
     SelectWhen = 1u << 21,
     /// <summary>validation-clauses — CLASS, DEFAULT, DESTINATION, INVALID WHEN, PRESENT WHEN, VARYING and
-    /// validate-status, which §13.16.2 names as ONE meta-language term and §13.16.3 SR13/SR14 treat as one
+    /// validate-status, which §2023:13.16.2 names as ONE meta-language term and §2023:13.16.3 SR13/SR14 treat as one
     /// group.</summary>
     Validation = 1u << 22,
     /// <summary>⛔ NOT A CLAUSE — the shared error production, in its data division form <c>unrecognizedDataClause</c> (kb/Work PB487, generalized to eight closed general formats by kb/Work PB829; the form, kb/Work PB3390). It carries a
@@ -86,7 +86,7 @@ public enum DataClauseKind : uint
     Unrecognized = 1u << 23,
 }
 
-/// <summary>The grammar-alternative → <see cref="DataClauseKind"/> map, and the §13.16.3 permitted-set constants
+/// <summary>The grammar-alternative → <see cref="DataClauseKind"/> map, and the §2023:13.16.3 permitted-set constants
 /// derived from it. ⛔ ONE declaration: <see cref="DataDescriptionClauseCst.Kind"/> reads it and
 /// <c>DataClauseKindDriftTests</c> checks it against the generated parser, so there is no second copy to drift.</summary>
 public static class DataClauseKinds
@@ -155,7 +155,7 @@ public static class DataClauseKinds
         (DataClauseKind.Unrecognized, "an unrecognized word"),
     ];
 
-    /// <summary>The clause words present in <paramref name="set"/>, comma-separated in §13.16.2 format order —
+    /// <summary>The clause words present in <paramref name="set"/>, comma-separated in §2023:13.16.2 format order —
     /// the operand of "…shall not be specified…" made concrete. Empty string for <see cref="DataClauseKind.None"/>.</summary>
     public static string Name(DataClauseKind set)
     {
@@ -169,23 +169,23 @@ public static class DataClauseKinds
         return sb.ToString();
     }
 
-    // ── The §13.16.3 permitted / excluded sets, one constant per rule ──────────────────────────────────────
+    // ── The §2023:13.16.3 permitted / excluded sets, one constant per rule ──────────────────────────────────────
     // Each is transcribed from the rule's own sentence; level-number and entry-name are always permitted and
     // carry no bit. `Unrecognized` is in NO permitted set — an unrecognized word is never a permitted co-clause,
     // so an entry carrying one draws its own COBOL1941 and does not silently satisfy a permitted-set rule.
 
-    /// <summary>§13.16.3 SR12: "The SAME AS clause shall not be specified in the same data description entry
+    /// <summary>§2023:13.16.3 SR12: "The SAME AS clause shall not be specified in the same data description entry
     /// with any clauses except CONSTANT RECORD, entry-name, EXTERNAL, GLOBAL, level-number, and OCCURS."
     /// CO-permitted: the SAME AS bit itself is the subject and is OR-ed in at the check site.</summary>
     public const DataClauseKind SameAsCoPermitted =
         DataClauseKind.ConstantRecord | DataClauseKind.External
         | DataClauseKind.Global | DataClauseKind.Occurs;
 
-    /// <summary>§13.16.3 SR14: "The TYPE clause shall not be specified in the same data description entry with
+    /// <summary>§2023:13.16.3 SR14: "The TYPE clause shall not be specified in the same data description entry with
     /// any clauses except BASED, CLASS, CONSTANT RECORD, DEFAULT, DESTINATION, entry-name, EXTERNAL, GLOBAL,
     /// INVALID, level-number, OCCURS, PRESENT WHEN, PROPERTY, TYPEDEF, VALIDATE-STATUS, VALUE, and VARYING."
     /// <para>CLASS, DEFAULT, DESTINATION, INVALID, PRESENT WHEN, VALIDATE-STATUS and VARYING are exactly the
-    /// seven clauses §13.16.2's <c>validation-clauses</c> meta-term names, so they arrive here as the single
+    /// seven clauses §2023:13.16.2's <c>validation-clauses</c> meta-term names, so they arrive here as the single
     /// <see cref="DataClauseKind.Validation"/> bit — the same way SR13 ¶1 reads them.</para>
     /// <para>⛔ CO-permitted: the TYPE bit itself is the subject and is OR-ed in at the check site. This is
     /// SR12's twin, and the pair is the WARRANT for <c>DataBinder.CopyEntryDescription</c>'s receiver-wins
@@ -199,15 +199,15 @@ public static class DataClauseKinds
         | DataClauseKind.Typedef | DataClauseKind.Validation | DataClauseKind.Value;
 
     /// <summary>⛔ The clauses that give an ENTRY its ROLE rather than its DESCRIPTION: TYPEDEF makes it a type
-    /// declaration (§13.18.58), BASED a storage template (§13.18.5), PROPERTY an object property (§13.18.42). They are
+    /// declaration (§2023:13.18.58), BASED a storage template (§2023:13.18.5), PROPERTY an object property (§2023:13.18.42). They are
     /// the clauses a REFERENCE to the entry depends on (<c>TYPE x</c> needs the TYPEDEF, <c>ALLOCATE x</c> and
-    /// <c>SET ADDRESS OF x</c> the BASED), so the recovery from a §13.16.3 SR12 / SR14 refusal keeps them even where the
+    /// <c>SET ADDRESS OF x</c> the BASED), so the recovery from a §2023:13.16.3 SR12 / SR14 refusal keeps them even where the
     /// rule names them as refused: dropping one would cascade a new false diagnostic onto every reference to the entry
     /// (kb/Work PB4602). The recovery drops the DESCRIPTION clauses, which are what the referenced description replaces.</summary>
     public const DataClauseKind EntryRoleClauses =
         DataClauseKind.Typedef | DataClauseKind.Based | DataClauseKind.Property;
 
-    /// <summary>§13.16.3 SR13 ¶1: "The ANY LENGTH, BASED, BLANK WHEN ZERO, DYNAMIC LENGTH, select-when,
+    /// <summary>§2023:13.16.3 SR13 ¶1: "The ANY LENGTH, BASED, BLANK WHEN ZERO, DYNAMIC LENGTH, select-when,
     /// SYNCHRONIZED, and TYPEDEF clauses and validation-clauses shall not be specified in the same data
     /// description entry with the CONSTANT RECORD clause…"</summary>
     public const DataClauseKind ConstantRecordExcluded =
@@ -215,7 +215,7 @@ public static class DataClauseKinds
         | DataClauseKind.DynamicLength | DataClauseKind.SelectWhen | DataClauseKind.Synchronized
         | DataClauseKind.Typedef | DataClauseKind.Validation;
 
-    /// <summary>§13.16.3 SR17: "If the ANY LENGTH clause is specified, the only other clauses permitted are
+    /// <summary>§2023:13.16.3 SR17: "If the ANY LENGTH clause is specified, the only other clauses permitted are
     /// level-number, entry-name, PICTURE, USAGE, and VALUE." SR18 says the same of DYNAMIC LENGTH, so ONE
     /// constant serves both rules — they are the same set, and writing it twice is how the two drifted apart
     /// before (kb/Work PB487).

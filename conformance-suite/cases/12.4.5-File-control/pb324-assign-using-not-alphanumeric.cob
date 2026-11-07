@@ -4,8 +4,8 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> ISO 1989:2023 §12.4.5.2 syntax rule 7, first half: "Data-name-1 shall reference an alphanumeric data item
-*> and shall not be subordinate to the file description entry for file-name-1." §9.1.21 states the same
+*> ISO 1989:2023 §2023:12.4.5.2 syntax rule 7, first half: "Data-name-1 shall reference an alphanumeric data item
+*> and shall not be subordinate to the file description entry for file-name-1." §2023:9.1.21 states the same
 *> requirement in the concepts - "The USING phrase references an alphanumeric data item whose content at the
 *> time an OPEN, SORT, or MERGE statement for that file is executed uniquely identifies the specific physical
 *> file to be accessed". WS-NUM is a category-NUMERIC item, so it cannot be data-name-1: COBOL1810 at every

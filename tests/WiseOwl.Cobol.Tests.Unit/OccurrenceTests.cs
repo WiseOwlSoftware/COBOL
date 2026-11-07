@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// <see cref="Occurrence"/> — an occurrence number as a subscript reads it, with the exact value beside the
-/// saturated <c>long</c> (kb/Work PB2695). ISO §8.4.2.3.4 GR2 — "If the value of the subscript is not a positive
+/// saturated <c>long</c> (kb/Work PB2695). ISO §2023:8.4.2.3.4 GR2 — "If the value of the subscript is not a positive
 /// integer or is less than one or is greater than the highest permissible occurrence number, the EC-BOUND-SUBSCRIPT
 /// exception condition is set to exist" — needs an out-of-range subscript to STAY out of range through the narrowing
 /// (so <see cref="Occurrence.Value"/> saturates), and a diagnostic needs the value the program holds (so
@@ -64,7 +64,7 @@ public sealed class OccurrenceTests
         Assert.Equal("100000000000000000001", o.ToString());
     }
 
-    /// <summary>A trailing-P item stores digits that are multiples of 10^|scale| (§13.18.40.4 GR14): <c>5</c> at scale
+    /// <summary>A trailing-P item stores digits that are multiples of 10^|scale| (§2023:13.18.40.4 GR14): <c>5</c> at scale
     /// −20 is 5 × 10^20, past <c>long</c>, and the text says so.</summary>
     [Fact]
     public void TrailingP_NamesTheValueNotTheStorage()
@@ -136,7 +136,7 @@ public sealed class OccurrenceTests
 
     // ── The reference-modification chain (kb/Work PB2938): the same carrier, the same exactness ──
 
-    /// <summary>A reference-modifier position item reads exactly as a subscript does (§8.4.3.3.4 5) over §8.4.2.3.4 GR2):
+    /// <summary>A reference-modifier position item reads exactly as a subscript does (§2023:8.4.3.3.4 5) over §2023:8.4.2.3.4 GR2):
     /// the saturated <c>long</c> beside the value the program holds, for every carrier.</summary>
     [Fact]
     public void RefModPosition_WideItem_KeepsTheExactText()

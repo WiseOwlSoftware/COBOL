@@ -4,12 +4,12 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §13.15.3 4) — the first entry after an RD shall be level 1
+      *> ISO §2023:13.15.3 4) — the first entry after an RD shall be level 1
       *> Rule: "The first entry that follows a report description entry
       *>   shall be a level 1 entry."
-      *>   cite.py: OK  §13.15.3 4)  (Syntax rules)
+      *>   cite.py: OK  §2023:13.15.3 4)  (Syntax rules)
       *> The entry that follows RD R-1 is a level-03 LINE entry with a
-      *> level-05 COLUMN entry beneath it, so §13.15.3 9) ("Every
+      *> level-05 COLUMN entry beneath it, so §2023:13.15.3 9) ("Every
       *> elementary entry with a COLUMN clause but no LINE clause shall
       *> be subordinate to an entry with a LINE clause", OK 9)) and 10)
       *> (a SOURCE clause is present, OK 10)) hold. The level-01 detail

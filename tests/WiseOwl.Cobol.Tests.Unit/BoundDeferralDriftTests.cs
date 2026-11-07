@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ kb/Work PB909 — <c>BoundUnsupported</c>'s TWO JOBS, split into two TYPES. The deferral carrier meant both
 /// "WiseOwl COBOL has not built this" and "no general format prints this", so an ungrammatical statement and a
 /// missing feature looked the same: INSPECT … REPLACING TRAILING and SEARCH … NOT AT END compiled with a
-/// COBOL1756 warning and aborted the run unit, where ISO §4.2.2 ¶2 owes a compile-time indication of
+/// COBOL1756 warning and aborted the run unit, where ISO §2023:4.2.2 ¶2 owes a compile-time indication of
 /// "violations of the general formats and the explicit syntax rules of standard COBOL".
 /// <para>The split: <see cref="BoundRejected"/> is a REFUSAL, obtainable only through
 /// <see cref="BoundRejected.Report"/>, which records an error first — so a refusal can be neither silent nor
@@ -130,14 +130,14 @@ MAIN.
     }
 
     /// <summary>The three Report Writer operand rules that used to stage a deferral naming their own syntax rule:
-    /// INITIATE §14.9.21.3 SR1 and TERMINATE §14.9.46.3 SR1 ("Report-name-1 shall be defined by a report
-    /// description entry in the report section") and GENERATE §14.9.16.3 SR1/SR2 (a detail report group, or a
+    /// INITIATE §2023:14.9.21.3 SR1 and TERMINATE §2023:14.9.46.3 SR1 ("Report-name-1 shall be defined by a report
+    /// description entry in the report section") and GENERATE §2023:14.9.16.3 SR1/SR2 (a detail report group, or a
     /// report). <c>ReportGroupResolution.Match.None</c> is undiagnosed by contract, so the GENERATE arm is the
     /// report — each now an ERROR under COBOL1757, and never the deferral announce.</summary>
     [Theory]
-    [InlineData("INITIATE NO-SUCH-RPT.", "§14.9.21.3 SR1")]
-    [InlineData("TERMINATE NO-SUCH-RPT.", "§14.9.46.3 SR1")]
-    [InlineData("GENERATE NO-SUCH-GRP.", "§14.9.16.3 SR1")]
+    [InlineData("INITIATE NO-SUCH-RPT.", "§2023:14.9.21.3 SR1")]
+    [InlineData("TERMINATE NO-SUCH-RPT.", "§2023:14.9.46.3 SR1")]
+    [InlineData("GENERATE NO-SUCH-GRP.", "§2023:14.9.16.3 SR1")]
     public void ReportWriterOperand_NamingNoReport_IsARefusal(string stmt, string rule)
     {
         string src = $"""
@@ -191,7 +191,7 @@ PROCEDURE DIVISION.
     }
 
     /// <summary>The funnel's classification of an unresolvable operand: a subscript on a non-table item is
-    /// COBOL2096 (§8.4.2.3.3 SR2), and the INSPECT whose identifier-1 it was used to ALSO announce "not
+    /// COBOL2096 (§2023:8.4.2.3.3 SR2), and the INSPECT whose identifier-1 it was used to ALSO announce "not
     /// implemented". A statement whose bind already drew an error makes no claim about the compiler.</summary>
     [Fact]
     public void RefusedOperand_DrawsNoDeferralAnnounce()

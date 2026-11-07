@@ -6,22 +6,22 @@
 *> portable: unverified
 *>---
       *> kb/Work PB349 -- the sort-merge FLOW exception conditions, CHECKED.
-      *> ISO §14.9.32.4 GR1: "A RELEASE statement may be executed only when it is
+      *> ISO §2023:14.9.32.4 GR1: "A RELEASE statement may be executed only when it is
       *> within the range of an input procedure being executed by a SORT statement
       *> that references the file-name associated with record-name-1. If it is
       *> executed at any other time, the EC-FLOW-RELEASE exception condition is set
       *> to exist."
-      *> §14.9.34.4 GR1: "A RETURN statement may be executed only when it is within
+      *> §2023:14.9.34.4 GR1: "A RETURN statement may be executed only when it is within
       *> the range of an output procedure being executed by a MERGE or SORT
       *> statement that references file-name-1. If it is executed at any other
       *> time, the EC-FLOW-RETURN exception condition is set to exist."
-      *> §14.9.34.4 GR3: "After the execution of imperative-statement-1 in the AT
+      *> §2023:14.9.34.4 GR3: "After the execution of imperative-statement-1 in the AT
       *> END phrase, no RETURN statement may be executed as part of the current
       *> output procedure. If such a RETURN statement is executed, the
       *> EC-SORT-MERGE-RETURN exception condition is set to exist".
       *> All three are Table 13 Fatal; under >>TURN ... CHECKING ON the format-3
-      *> declarative runs (§14.6.13.1.3 item 5) and RESUME AT NEXT STATEMENT
-      *> (§14.9.33.4 GR2) continues after the offending statement, which is NOT
+      *> declarative runs (§2023:14.6.13.1.3 item 5) and RESUME AT NEXT STATEMENT
+      *> (§2023:14.9.33.4 GR2) continues after the offending statement, which is NOT
       *> executed: the raise precedes its action.
       *>
       *> DERIVATION OF THE EXPECTED OUTPUT, in execution order --
@@ -30,7 +30,7 @@
       *>                             RETURN is abandoned, so neither AT END nor
       *>                             NOT AT END runs (no "MAIN-AT-END" line).
       *>   R=AAA / R=BBB             OUT-P returns the two records IN-P released,
-      *>                             ascending on SR-KEY (§14.9.40.4 GR8 a);
+      *>                             ascending on SR-KEY (§2023:14.9.40.4 GR8 a);
       *>                             the stranded ZZZ is not among them.
       *>   AT-END                    the third RETURN finds no next record (GR3).
       *>   HANDLED=EC-SORT-MERGE-RETURN   the fourth RETURN, after AT END ran.

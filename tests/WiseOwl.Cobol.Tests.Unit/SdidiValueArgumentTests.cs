@@ -6,7 +6,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ AN SDIDI VALUE CROSSES A CALL AT ITS OWN EXPONENT (kb/Work PB3677; <c>CobolArgAdapt.SdidiValue</c>). ISO §14.2.3 GR9 moves
+/// ⛔ AN SDIDI VALUE CROSSES A CALL AT ITS OWN EXPONENT (kb/Work PB3677; <c>CobolArgAdapt.SdidiValue</c>). ISO §2023:14.2.3 GR9 moves
 /// the argument "without conversion" and fills a numeric formal by "a COMPUTE statement without the ROUNDED phrase", so no
 /// scale the activating element chose may cut the value before the formal does. The expected values are the VALUE's: its
 /// text is the text a MOVE of the function's value sends (<c>CobolDec.ToFunctionText</c>, the sign not moved, GR6 a)), and
@@ -72,7 +72,7 @@ public sealed class SdidiValueArgumentTests
         Assert.Equal("0" + new string('0', 28) + "12345678901234567", arg.Sending.Value.StorageImage);
     }
 
-    /// <summary>A magnitude the Int128 carrier cannot hold is the §14.7.5 case-5 size error of every intermediate landing.</summary>
+    /// <summary>A magnitude the Int128 carrier cannot hold is the §2023:14.7.5 case-5 size error of every intermediate landing.</summary>
     [Fact]
     public void AMagnitudePastTheCarrierRaisesTheIntermediateSizeError() =>
         Assert.Throws<CobolSizeError>(() => CobolArgAdapt.SdidiValue(CobolPassMode.Content, new CobolDec(1, 40), SignEncoding.Ibm));

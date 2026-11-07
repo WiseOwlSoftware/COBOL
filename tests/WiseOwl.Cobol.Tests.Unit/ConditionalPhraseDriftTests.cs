@@ -15,7 +15,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// (kb/Work PB3830; owner 2026-10-26: "all COBOL paired conditional phrases should be handled grammatically in the same
 /// consistent manner").
 ///
-/// <para><b>The rule.</b> ISO §14.5.1 Table 12 lists each statement's conditional phrases, and §14.5.3.3 gives ONE
+/// <para><b>The rule.</b> ISO §2023:14.5.1 Table 12 lists each statement's conditional phrases, and §2023:14.5.3.3 gives ONE
 /// association rule for all of them: "Any phrase encountered is the next phrase of the most-recently preceding
 /// unterminated statement with which that phrase may be syntactically associated." The grammar therefore spells every
 /// phrase keyword in ONE rule (<c>conditionalPhraseHead</c>), every owning statement writes the ONE
@@ -99,7 +99,7 @@ public sealed class ConditionalPhraseDriftTests
                 problems.Add($"{name}: Table 12 lists [{string.Join(", ", want.Select(k => k.Words).Order())}], the "
                     + $"owners print [{string.Join(", ", have.Select(k => k.Words).Order())}]");
         }
-        Assert.True(problems.Count == 0, "ConditionalPhraseAssociation.Owners drifted from ISO §14.5.1 Table 12 (kb/Work "
+        Assert.True(problems.Count == 0, "ConditionalPhraseAssociation.Owners drifted from ISO §2023:14.5.1 Table 12 (kb/Work "
             + "PB3830):\n  " + string.Join("\n  ", problems));
     }
 
@@ -141,11 +141,11 @@ public sealed class ConditionalPhraseDriftTests
     // ── Format selectors (kb/Work PB3830 branch review R1-1) ─────────────────────────────────────────────────────
 
     /// <summary>The [NOT]-pair families each printed general format of <paramref name="statement"/> prints, one set per
-    /// format, scraped from its §14.9.n.2 figures (the figure notes, which quote phrases, are not read).</summary>
+    /// format, scraped from its §2023:14.9.n.2 figures (the figure notes, which quote phrases, are not read).</summary>
     private static List<HashSet<ConditionalPhraseFamily>> FormatFamilies(string spec, string statement)
     {
         var heading = Regex.Match(spec, $@"^#### (14\.9\.\d+) {Regex.Escape(statement)} statement\s*$", RegexOptions.Multiline);
-        Assert.True(heading.Success, $"no §14.9 heading for the {statement} statement in specs/ISO_COBOL_2023.md");
+        Assert.True(heading.Success, $"no §2023:14.9 heading for the {statement} statement in specs/ISO_COBOL_2023.md");
         var formats = Regex.Match(spec[heading.Index..],
             @"^##### 14\.9\.\d+\.2 " + SpecClauseText.GeneralFormatNoun + @"\s*$(?<body>.*?)^##### ",
             RegexOptions.Multiline | RegexOptions.Singleline);
@@ -180,7 +180,7 @@ public sealed class ConditionalPhraseDriftTests
     /// <summary>⛔ HOW EACH STATEMENT WHOSE GENERAL FORMATS PRINT DIFFERENT PHRASE BRACKETS TELLS THEM APART. Either the
     /// grammar parses the formats with different rules ("rule": each owning rule then owns one bracket), or one rule
     /// parses several formats and the syntax elements only some of them print select among them ("selector": its
-    /// <see cref="ConditionalPhraseAssociation.Format.Unprinted"/>). §14.5.3.3 associates a phrase with a statement only
+    /// <see cref="ConditionalPhraseAssociation.Format.Unprinted"/>). §2023:14.5.3.3 associates a phrase with a statement only
     /// when a format of the statement prints it beside everything the statement wrote, so a "selector" statement whose
     /// selectors are missing lets an inner statement take its enclosing statement's phrase (review R1-1: READ g NEXT took
     /// the enclosing READ's NOT INVALID KEY). The population is scraped from the spec; a statement that joins it fails

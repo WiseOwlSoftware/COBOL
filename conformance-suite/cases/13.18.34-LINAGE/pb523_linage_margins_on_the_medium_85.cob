@@ -9,8 +9,8 @@
       *>---
       *> ⛔ THE LINAGE TOP AND BOTTOM MARGINS ARE LINES OF THE LOGICAL
       *> PAGE, ON THE MEDIUM — the COBOL-85 half of the kb/Work PB523
-      *> assertion. §13.18.34's LINAGE clause, its LINES AT TOP / LINES AT
-      *> BOTTOM phrases and §14.9.51.4's ADVANCING rules are unchanged
+      *> assertion. §2023:13.18.34's LINAGE clause, its LINES AT TOP / LINES AT
+      *> BOTTOM phrases and §2023:14.9.51.4's ADVANCING rules are unchanged
       *> across the 1985, 2002, 2014 and 2023 editions, so the SAME
       *> physical layout is owed at every one; this fixture and its 2023
       *> twin (conformance-suite/cases/13.18.34-LINAGE/pb523_linage_margins_on_the_medium
@@ -32,21 +32,21 @@
       *>   python scripts/spec/cite.py --check 13.18.34.4 "The logical
       *>   page size is the sum of the values referenced by each phrase
       *>   except the FOOTING phrase"
-      *>   -> OK  §13.18.34.4 1)  (General rules)
+      *>   -> OK  §2023:13.18.34.4 1)  (General rules)
       *>   python scripts/spec/cite.py --check 13.18.34.4 "Integer-3 or
       *>   the value of the data item referenced by data-name-3 specifies
       *>   the number of lines in the top margin on the logical page"
-      *>   -> OK  §13.18.34.4 4)  (General rules)
+      *>   -> OK  §2023:13.18.34.4 4)  (General rules)
       *>   python scripts/spec/cite.py --check 13.18.34.4 "Integer-4 or
       *>   the value of the data item referenced by data-name-4 specifies
       *>   the number of lines in the bottom margin on the logical page"
-      *>   -> OK  §13.18.34.4 5)  (General rules)
+      *>   -> OK  §2023:13.18.34.4 5)  (General rules)
       *>   python scripts/spec/cite.py --check 13.18.34.4 "Each logical
       *>   page is contiguous to the next with no additional spacing
-      *>   provided."   -> OK  §13.18.34.4 8)  (General rules)
+      *>   provided."   -> OK  §2023:13.18.34.4 8)  (General rules)
       *>   python scripts/spec/cite.py --check 14.9.51.4 "the device is
       *>   repositioned to the first line that may be written on the next
-      *>   logical page"   -> OK  §14.9.51.4 26)  (General rules)
+      *>   logical page"   -> OK  §2023:14.9.51.4 26)  (General rules)
       *>
       *> THE LOGICAL PAGE. LINAGE IS 2 LINES LINES AT TOP 3 LINES AT
       *> BOTTOM 2. GR1 makes the logical page size the sum of every phrase
@@ -58,10 +58,10 @@
       *> body lines 1-2 are physical lines 11-12. GR7 d) puts the device
       *> on body line 1 at OPEN OUTPUT.
       *>
-      *> THE THREE WRITES. §14.9.51.4 GR25 f) presents the line after the
-      *> advance and §13.18.34.4 GR7 c) 2 adds the advance to the counter:
+      *> THE THREE WRITES. §2023:14.9.51.4 GR25 f) presents the line after the
+      *> advance and §2023:13.18.34.4 GR7 c) 2 adds the advance to the counter:
       *>   W1: counter 1 -> 2, AAAA on page-1 body line 2  = line 5.
-      *>   W2: the counter would reach 3, past the page size — §14.9.51.4
+      *>   W2: the counter would reach 3, past the page size — §2023:14.9.51.4
       *>       GR26 a)'s page overflow — and with the AFTER phrase "the
       *>       device is repositioned to the first line that may be
       *>       written on the next logical page and the logical record is
@@ -79,12 +79,12 @@
       *> A@=0002, B@=0003, C@=0004 — every one of the four values differs,
       *> so no single arithmetic accident can make this fixture pass.
       *>
-      *> ⛔ WHY EACH WRITE IS PRECEDED BY ITS OWN MOVE. §14.9.51.4 GR4 —
+      *> ⛔ WHY EACH WRITE IS PRECEDED BY ITS OWN MOVE. §2023:14.9.51.4 GR4 —
       *>   python scripts/spec/cite.py --check 14.9.51.4 "The logical
       *>   record released by the successful execution of the WRITE
       *>   statement is no longer available in the record area unless the
       *>   file-name associated with record-name-1 is specified in a SAME
-      *>   RECORD AREA clause."   -> OK  §14.9.51.4 4)  (General rules)
+      *>   RECORD AREA clause."   -> OK  §2023:14.9.51.4 4)  (General rules)
       *> PRTA is not named in a SAME RECORD AREA clause, so the record
       *> area is unavailable after each WRITE and a second WRITE of the
       *> same item would release bytes the standard does not define.

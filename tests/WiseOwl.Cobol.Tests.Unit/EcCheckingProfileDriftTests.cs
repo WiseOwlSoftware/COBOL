@@ -11,7 +11,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ §14.9.18.4 GR1 b)'s ENABLEMENT QUESTION IS ASKED IN THE ACTIVATING RUNTIME ELEMENT, AND ONLY THERE
+/// ⛔ §2023:14.9.18.4 GR1 b)'s ENABLEMENT QUESTION IS ASKED IN THE ACTIVATING RUNTIME ELEMENT, AND ONLY THERE
 /// (kb/Work PB408).
 ///
 /// <para><b>The rule.</b> "If the RAISING phrase is specified, an exception condition is raised in the activating
@@ -19,7 +19,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// element, named twice. The compiler used to fold the <b>callee's</b> own <c>&gt;&gt;TURN</c> state into
 /// <c>BoundRaising.Enabled</c> at bind time and branch on it, so a declarative in an activator that had enabled
 /// the condition never ran when the callee had it off, and one in an activator that had disabled it ran when the
-/// callee had it on. §7.3.25.4 GR6/GR8 scope a directive to the statements "that follow in the compilation
+/// callee had it on. §2023:7.3.25.4 GR6/GR8 scope a directive to the statements "that follow in the compilation
 /// group", so the two elements differ inside ONE file and both wrong answers are reachable without separate
 /// compilation.</para>
 ///
@@ -28,7 +28,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// fix, not a value it happens to hold. (2) Every <see cref="IActivatingStatement"/> really carries and
 /// round-trips a profile, so the central stamp at the one <c>BindStatement</c> exit reaches it. (3) The RUNTIME
 /// fold and the COMPILE-TIME fold agree for every catalogued level-3 name over every directive shape — they are
-/// two readers of §7.3.25.4's expansion, and <c>ExceptionCatalog.DirectiveCovers</c> exists so the expansion is
+/// two readers of §2023:7.3.25.4's expansion, and <c>ExceptionCatalog.DirectiveCovers</c> exists so the expansion is
 /// written once; this test is what keeps the two ANSWERS equal after that.</para>
 /// </summary>
 [Trait("Sweep", "tree")]
@@ -47,7 +47,7 @@ public sealed class EcCheckingProfileDriftTests
                      || n.Contains("Checking", StringComparison.OrdinalIgnoreCase))
             .ToList();
         Assert.True(offenders.Count == 0,
-            "BoundRaising must carry no bind-time enablement decision (ISO §14.9.18.4 GR1 b) localises the test "
+            "BoundRaising must carry no bind-time enablement decision (ISO §2023:14.9.18.4 GR1 b) localises the test "
             + "in the ACTIVATING runtime element, which is unknown here). Found: " + string.Join(", ", offenders));
     }
 
@@ -76,7 +76,7 @@ public sealed class EcCheckingProfileDriftTests
 
     /// <summary>(3) THE AGREEMENT. For every directive shape and every catalogued level-3 name, the runtime
     /// profile answers exactly what the compile-time fold answers. Two folds over one rule is how a hierarchy
-    /// expansion (EC-ALL / a level-2 family / EC-I-O-WARNING's explicit-only carve-out, §7.3.25.4 GR2/GR3/GR4)
+    /// expansion (EC-ALL / a level-2 family / EC-I-O-WARNING's explicit-only carve-out, §2023:7.3.25.4 GR2/GR3/GR4)
     /// comes to mean different things on the two sides of an activation boundary.</summary>
     [Fact]
     public void TheRuntimeProfileAgreesWithTheCompileTimeFold_ForEveryCatalogedName()
@@ -125,7 +125,7 @@ public sealed class EcCheckingProfileDriftTests
             .Select(x => $"{Path.GetFileName(x.File)}:{x.Line}")
             .ToList();
         Assert.True(bare.Count == 0,
-            "a propagation pickup emitted with no activating statement cannot apply ISO §14.9.18.4 GR1 b)'s "
+            "a propagation pickup emitted with no activating statement cannot apply ISO §2023:14.9.18.4 GR1 b)'s "
             + "enablement test (kb/Work PB408). Found: " + string.Join(", ", bare));
     }
 }

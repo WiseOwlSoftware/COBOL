@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// A diagnostic that quotes a QUALIFIED procedure-name quotes it as written, <c>DP1 OF D1</c>, never the glued
 /// <c>DP1OFD1</c> of <c>GetText()</c> (kb/Work PB4277; the reader is <c>ProcedureNameShape.AsWritten</c> and
 /// <see cref="ProcedureNameReaderDriftTests"/> refuses the next <c>GetText()</c>). The two declaratives-boundary rules are
-/// ISO §14.9.49.3 SR4 (an error) and SR3 (a warning), and RESUME AT's target rule is §14.9.33.3 SR3; each message
+/// ISO §2023:14.9.49.3 SR4 (an error) and SR3 (a warning), and RESUME AT's target rule is §2023:14.9.33.3 SR3; each message
 /// names the target the program wrote.
 /// </summary>
 public sealed class ProcedureNameMessageTests
@@ -67,7 +67,7 @@ public sealed class ProcedureNameMessageTests
             STOP RUN.
         """;
 
-    // PB4368: the PERFORM THRU declaratives-range message (ISO §14.9.28.3 SR11) and the ALTER shape message quote the
+    // PB4368: the PERFORM THRU declaratives-range message (ISO §2023:14.9.28.3 SR11) and the ALTER shape message quote the
     // same ProcedureNameShape.AsWritten form as the arms above.
     private const string PerformThruStraddle = """
         IDENTIFICATION DIVISION.

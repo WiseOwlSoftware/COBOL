@@ -5,8 +5,8 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.19.4 GR3, GR5 and GR7 — the FORMAT 2 (historic)
-      *> rules. Format 2 has NO END-IF (§14.9.19.2): the IF statement is
+      *> ISO §2023:14.9.19.4 GR3, GR5 and GR7 — the FORMAT 2 (historic)
+      *> rules. Format 2 has NO END-IF (§2023:14.9.19.2): the IF statement is
       *> terminated by the terminal separator period of its sentence,
       *> and that is the only thing separating these three rules from
       *> their Format 1 twins — so no IF in this program is written
@@ -28,7 +28,7 @@
       *> GR3-T1/GR3-C=1 pin GR3; GR5-E1/GR5-E2/GR5-C=1 pin GR5; a
       *> GR7-C=0 with no GR7-T1 line pins GR7. The optional word THEN
       *> is written on the GR3 and GR5 sentences and omitted on the
-      *> GR7 one (§5.2.3).
+      *> GR7 one (§2023:5.2.3).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1IFF02.
        DATA DIVISION.

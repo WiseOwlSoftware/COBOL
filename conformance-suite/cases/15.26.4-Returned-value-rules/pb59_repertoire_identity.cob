@@ -12,8 +12,8 @@
       *> name the SAME character: pre-fix, ORD over the item gave the true ordinal while DISPLAY-OF
       *> substituted '?' (ordinal 64) — the one expression where the runtime contradicted the
       *> documented UTF-16 repertoire (CONFORMANCE.md item 188). U+0160 ordinal = 352+1 = 353.
-      *> Round trips both directions; argument-2 accepted-and-inert on both functions (§15.26.4 r2 /
-      *> §15.66.4 r2 have no character to substitute for under a total correspondence).
+      *> Round trips both directions; argument-2 accepted-and-inert on both functions (§2023:15.26.4 r2 /
+      *> §2023:15.66.4 r2 have no character to substitute for under a total correspondence).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB59REPID.
        DATA DIVISION.

@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> kb/Work PB421 — A CORRESPONDING PHRASE AFTER A MOVE SENDING OPERAND. §14.9.25.2 prints exactly two general
+*> kb/Work PB421 — A CORRESPONDING PHRASE AFTER A MOVE SENDING OPERAND. §2023:14.9.25.2 prints exactly two general
 *> formats (PDF page 694): Format 1 `MOVE { identifier-1 | literal-1 } TO { identifier-2 } …` and Format 2
 *> `MOVE { CORRESPONDING | CORR } identifier-3 TO identifier-4`. Both place the WHOLE sending specification
 *> directly after the verb, so neither admits a sending operand FOLLOWED by CORRESPONDING. Neither format

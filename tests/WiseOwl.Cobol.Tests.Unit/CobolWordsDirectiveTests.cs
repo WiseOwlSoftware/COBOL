@@ -14,7 +14,7 @@ using WiseOwl.Cobol.Tests.Shared;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The <c>&gt;&gt;COBOL-WORDS</c> directive (ISO §7.3.10) — Increment A: the text-stage parser
+/// The <c>&gt;&gt;COBOL-WORDS</c> directive (ISO §2023:7.3.10) — Increment A: the text-stage parser
 /// (<see cref="CobolWordsDirectiveProcessor"/>), the resulting <see cref="CobolWordsMap"/> composition, the
 /// SR1/SR2/SR5 syntax rules, and the introduction gate (COBOL0900 below 2023). Design SSOT:
 /// <c>docs/rearchitecture/DESIGN-cobol-words-directive.md</c>.
@@ -32,7 +32,7 @@ public sealed class CobolWordsDirectiveTests
             src, WiseOwl.Cobol.Frontend.Frontend.LeftDirectives, bag, "t.cob", std);
         // Then the site stage, which records the directive sites and consumes PUSH/POP into the ops the state stages
         // replay (kb/Work PB1377) — and, after this stage has read the unit boundary with the group's own synonyms, the
-        // ONE judge of §7.3.10.3 SR1's placement from the row's directivePlacement data (kb/Work PB1373).
+        // ONE judge of §2023:7.3.10.3 SR1's placement from the row's directivePlacement data (kb/Work PB1373).
         var (sited, sites, stackOps) = DirectiveSiteProcessor.Process(text, bag, "t.cob");
         var (_, map, firstUnitLine) = CobolWordsDirectiveProcessor.Process(sited, bag, "t.cob", stackOps: stackOps);
         DirectiveSiteProcessor.JudgeFirstUnitPlacement(sites, firstUnitLine, bag, "t.cob");
@@ -125,7 +125,7 @@ public sealed class CobolWordsDirectiveTests
         Assert.False(Has(diags, "COBOL1623"));   // the directive stage no longer writes the rule a second time
     }
 
-    [Fact] // §7.3.22.3 SR2 / §7.3.20.3 SR2 — a PUSH / POP NAMING COBOL-WORDS inherits its placement rule.
+    [Fact] // §2023:7.3.22.3 SR2 / §2023:7.3.20.3 SR2 — a PUSH / POP NAMING COBOL-WORDS inherits its placement rule.
     public void PushOrPopNamingCobolWords_AfterIdDivision_Rejected()
     {
         foreach (string op in (string[])["PUSH", "POP"])
@@ -147,9 +147,9 @@ public sealed class CobolWordsDirectiveTests
         Assert.Contains("FOO", map.Reserved);
     }
 
-    // ── kb/Work PB1373: the operand is read as §8.3.5 separators and SR2 literals, the boundary as the group's own words ─
+    // ── kb/Work PB1373: the operand is read as §2023:8.3.5 separators and SR2 literals, the boundary as the group's own words ─
 
-    [Theory] // §8.3.5 2) — a comma or semicolon followed by a space is a separator, usable wherever a space is.
+    [Theory] // §2023:8.3.5 2) — a comma or semicolon followed by a space is a separator, usable wherever a space is.
     [InlineData(">>COBOL-WORDS EQUATE \"DISPLAY\", WITH \"SHOW\"\n")]
     [InlineData(">>COBOL-WORDS EQUATE \"DISPLAY\"; WITH \"SHOW\"\n")]
     [InlineData(">>COBOL-WORDS EQUATE, \"DISPLAY\" WITH, \"SHOW\"\n")]
@@ -160,8 +160,8 @@ public sealed class CobolWordsDirectiveTests
         Assert.Equal("DISPLAY", map.Synonyms["SHOW"]);
     }
 
-    [Theory] // §7.3.3 SR3/SR4 — a comma or semicolon that ENDS the directive is not a space; and one glued to the
-    // next word separates nothing (§8.3.5 2) needs the space after it).
+    [Theory] // §2023:7.3.3 SR3/SR4 — a comma or semicolon that ENDS the directive is not a space; and one glued to the
+    // next word separates nothing (§2023:8.3.5 2) needs the space after it).
     [InlineData(">>COBOL-WORDS RESERVE \"ZQX\";\n")]
     [InlineData(">>COBOL-WORDS RESERVE \"ZQX\",\n")]
     [InlineData(">>COBOL-WORDS EQUATE \"DISPLAY\",WITH \"SHOW\"\n")]
@@ -172,7 +172,7 @@ public sealed class CobolWordsDirectiveTests
         Assert.True(map.IsEmpty);
     }
 
-    [Fact] // §8.3.3.2.3 — a comma INSIDE a literal is the literal's own character, never a separator.
+    [Fact] // §2023:8.3.3.2.3 — a comma INSIDE a literal is the literal's own character, never a separator.
     public void CommaInsideALiteral_IsNotASeparator()
     {
         var (_, diags) = Run(">>COBOL-WORDS RESERVE \"A, B\"\n");
@@ -181,7 +181,7 @@ public sealed class CobolWordsDirectiveTests
     }
 
     [Theory] // SR2 — "Each literal shall be an alphanumeric literal": no closing delimiter, or one the next character
-    // does not separate from what follows (§8.3.5 5)), is no literal at all.
+    // does not separate from what follows (§2023:8.3.5 5)), is no literal at all.
     [InlineData(">>COBOL-WORDS RESERVE \"FOO\n", "no closing quotation symbol")]
     [InlineData(">>COBOL-WORDS RESERVE 'FOO\n", "no closing quotation symbol")]
     [InlineData(">>COBOL-WORDS RESERVE \"FOO\"BAR\n", "followed by 'B'")]
@@ -193,14 +193,14 @@ public sealed class CobolWordsDirectiveTests
         Assert.True(map.IsEmpty);
     }
 
-    [Fact] // §8.3.3.2.3 3) — two contiguous quotation symbols are ONE character of the content.
+    [Fact] // §2023:8.3.3.2.3 3) — two contiguous quotation symbols are ONE character of the content.
     public void DoubledQuotationSymbol_IsOneCharacterOfTheLiteral()
     {
         var (_, diags) = Run(">>COBOL-WORDS RESERVE \"A\"\"B\"\n");
         Assert.Contains(diags.Diagnostics, d => d.Code == "COBOL1623" && d.Message.Contains("'A\"B'"));
     }
 
-    [Fact] // §8.3.2.1 + §8.3.2.2 — 63 characters is the ceiling of the fresh word; 64 is not a user-defined word.
+    [Fact] // §2023:8.3.2.1 + §2023:8.3.2.2 — 63 characters is the ceiling of the fresh word; 64 is not a user-defined word.
     public void FreshWord_IsHeldToTheSixtyThreeCharacterCeiling()
     {
         var (map, ok) = Run($">>COBOL-WORDS RESERVE \"{new string('A', 63)}\"\n");
@@ -211,7 +211,7 @@ public sealed class CobolWordsDirectiveTests
         Assert.Contains(tooLong.Diagnostics, d => d.Code == "COBOL1623" && d.Message.Contains("64 characters"));
     }
 
-    [Theory] // §8.3.2.1 — hyphen and underscore are word characters (not first or last); §8.3.2.2 wants a LETTER.
+    [Theory] // §2023:8.3.2.1 — hyphen and underscore are word characters (not first or last); §2023:8.3.2.2 wants a LETTER.
     [InlineData("MY_SHOW", true)]
     [InlineData("MY-SHOW", true)]
     [InlineData("A1", true)]
@@ -224,7 +224,7 @@ public sealed class CobolWordsDirectiveTests
         Assert.Equal(!legal, Has(diags, "COBOL1623"));
     }
 
-    [Theory] // §7.3.10.3 SR1 + §7.3.10.4 GR2 — the unit's header, spelled with a word the group's own EQUATE made a synonym,
+    [Theory] // §2023:7.3.10.3 SR1 + §2023:7.3.10.4 GR2 — the unit's header, spelled with a word the group's own EQUATE made a synonym,
     // IS the first IDENTIFICATION DIVISION: a directive after it is a placement violation, as after the spelled-out header.
     [InlineData(">>COBOL-WORDS EQUATE \"IDENTIFICATION\" WITH \"IDENT\"\nIDENT DIVISION.\n>>COBOL-WORDS RESERVE \"ZQX\"\nPROGRAM-ID. P.\n")]
     [InlineData(">>COBOL-WORDS EQUATE \"IDENTIFICATION\" WITH \"IDENT\"\nident division.\n>>COBOL-WORDS RESERVE \"ZQX\"\nPROGRAM-ID. P.\n")]
@@ -244,7 +244,7 @@ public sealed class CobolWordsDirectiveTests
         Assert.False(Has(diags, "COBOL2652"));   // (the IDENT line is a parse error of its own, not this stage's)
     }
 
-    [Fact] // §7.3.20.4 GR1 — a synonym a POP withdrew before the line is no synonym there: IDENT is no header.
+    [Fact] // §2023:7.3.20.4 GR1 — a synonym a POP withdrew before the line is no synonym there: IDENT is no header.
     public void Sr1_ASynonymThatAPopWithdrew_DoesNotCloseTheRegion()
     {
         var (_, diags) = Run(
@@ -255,7 +255,7 @@ public sealed class CobolWordsDirectiveTests
 
     // ── edition gate ────────────────────────────────────────────────────────────────────────────────────────
 
-    [Fact] // §7.3.10 is a COBOL-2023 addition — below 2023 the directive word is COBOL0900.
+    [Fact] // §2023:7.3.10 is a COBOL-2023 addition — below 2023 the directive word is COBOL0900.
     public void Below2023_Emits0900()
     {
         var (_, diags) = Run(">>COBOL-WORDS RESERVE \"FOO\"\n", std: 2014);
@@ -291,7 +291,7 @@ public sealed class CobolWordsDirectiveTests
 
     // ══ Increment B — RESERVE/UNDEFINE via the composed ReservedWordSet + SR3/SR4 category validation ══════════
 
-    // ── ReservedWordSet.Compose (ISO §7.3.10.4 GR3/GR5) ─────────────────────────────────────────────────────
+    // ── ReservedWordSet.Compose (ISO §2023:7.3.10.4 GR3/GR5) ─────────────────────────────────────────────────────
 
     [Fact] // an empty map composes to the Default set (byte-identical).
     public void Compose_EmptyMap_IsDefault()
@@ -344,13 +344,13 @@ public sealed class CobolWordsDirectiveTests
         finally { ScratchDirectory.Remove(dir); }
     }
 
-    /// <summary>kb/Work PB4360 (ISO §7.3.10.4 GR3, GR4): a verb a directive withdrew, written as a verb, is a user-defined
+    /// <summary>kb/Work PB4360 (ISO §2023:7.3.10.4 GR3, GR4): a verb a directive withdrew, written as a verb, is a user-defined
     /// word and the statement is a syntax error; COBOL5926 beside it names the directive, once, at the directive's line.</summary>
     [Theory]
-    [InlineData("UNDEFINE \"DISPLAY\"", "DISPLAY \"X\".", ">>COBOL-WORDS UNDEFINE \"DISPLAY\" withdrew DISPLAY (ISO §7.3.10.4 GR3)")]
+    [InlineData("UNDEFINE \"DISPLAY\"", "DISPLAY \"X\".", ">>COBOL-WORDS UNDEFINE \"DISPLAY\" withdrew DISPLAY (ISO §2023:7.3.10.4 GR3)")]
     [InlineData("SUBSTITUTE \"DISPLAY\" BY \"SHOW\"", "DISPLAY \"X\".",
-        ">>COBOL-WORDS SUBSTITUTE \"DISPLAY\" BY \"SHOW\" withdrew DISPLAY, and SHOW now stands for it (ISO §7.3.10.4 GR4)")]
-    [InlineData("UNDEFINE \"MOVE\"", "MOVE 1 TO R. MOVE 2 TO R.", ">>COBOL-WORDS UNDEFINE \"MOVE\" withdrew MOVE (ISO §7.3.10.4 GR3)")]
+        ">>COBOL-WORDS SUBSTITUTE \"DISPLAY\" BY \"SHOW\" withdrew DISPLAY, and SHOW now stands for it (ISO §2023:7.3.10.4 GR4)")]
+    [InlineData("UNDEFINE \"MOVE\"", "MOVE 1 TO R. MOVE 2 TO R.", ">>COBOL-WORDS UNDEFINE \"MOVE\" withdrew MOVE (ISO §2023:7.3.10.4 GR3)")]
     public void AWithdrawnVerbWrittenAsAVerb_IsNamedBesideTheSyntaxError(string directive, string statements, string named)
     {
         var r = Compile($"       >>COBOL-WORDS {directive}\n       IDENTIFICATION DIVISION.\n       PROGRAM-ID. CWPB4360.\n"
@@ -383,7 +383,7 @@ public sealed class CobolWordsDirectiveTests
         + "       PROCEDURE DIVISION.\n       MAIN.\n           STOP RUN.\n";
 
     /// <summary>kb/Work PB3119 — a literal slot that names a variable whose DEFINE was REFUSED adds nothing to the one
-    /// report that DEFINE made (§7.3.11.4 GR1 lets the name stand in the slot; the DEFINE already failed). The control is
+    /// report that DEFINE made (§2023:7.3.11.4 GR1 lets the name stand in the slot; the DEFINE already failed). The control is
     /// the same slot over a name nobody wrote, which still says it was never defined.</summary>
     [Fact]
     public void LiteralSlotNamingARefusedDefine_AddsNoSecondError()
@@ -429,8 +429,8 @@ public sealed class CobolWordsDirectiveTests
         + $"       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 {dataName} PIC X VALUE \"C\".\n"
         + $"       PROCEDURE DIVISION.\n       {paragraph}.\n           STOP RUN.\n";
 
-    /// <summary>kb/Work PB4488 (ISO §7.3.10.4 GR2, GR4; §8.3.2.1 1): a synonym of a RESERVED word is that reserved word and
-    /// no user-defined word, whether or not the lexer has a token to retype it to. The ten §8.9 words the lexer carries
+    /// <summary>kb/Work PB4488 (ISO §2023:7.3.10.4 GR2, GR4; §2023:8.3.2.1 1): a synonym of a RESERVED word is that reserved word and
+    /// no user-defined word, whether or not the lexer has a token to retype it to. The ten §2023:8.9 words the lexer carries
     /// no token for (COPY, REPLACE, LOCALE, NESTED, ANYCASE, SYSTEM-DEFAULT, USER-DEFAULT, EXCEPTION-OBJECT, COMMA, MINUS)
     /// by EQUATE, and COPY and LOCALE by SUBSTITUTE.</summary>
     [Theory]
@@ -469,7 +469,7 @@ public sealed class CobolWordsDirectiveTests
         + $"       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 {dataItem} PIC X.\n"
         + $"       PROCEDURE DIVISION.\n       MAIN.\n           {statement}.\n           STOP RUN.\n";
 
-    /// <summary>⛔ kb/Work PB4573 (ISO §7.3.10.4 GR2, GR4; §8.3.2.1 1): the COBOL0901 for a synonym of a reserved word is ONE
+    /// <summary>⛔ kb/Work PB4573 (ISO §2023:7.3.10.4 GR2, GR4; §2023:8.3.2.1 1): the COBOL0901 for a synonym of a reserved word is ONE
     /// sentence whichever stage reports it, naming the word the source WROTE and the reserved word it stands for
     /// (<see cref="ReservedWordSet.UserWordViolationMessage"/>). The funnel's report (a synonym the lexer has no token for:
     /// LOCALE, in a data-name slot) and the parser's two (a synonym the lexer retyped to its original's token, in an operand
@@ -506,24 +506,24 @@ public sealed class CobolWordsDirectiveTests
         + $"       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       SPECIAL-NAMES.\n           {clause}.\n"
         + "       PROCEDURE DIVISION.\n           STOP RUN.\n";
 
-    /// <summary>⛔ kb/Work PB4573 (ISO §7.3.10.4 GR3, GR4): a clause binder that finds the word its clause REQUIRES withdrawn by
+    /// <summary>⛔ kb/Work PB4573 (ISO §2023:7.3.10.4 GR3, GR4): a clause binder that finds the word its clause REQUIRES withdrawn by
     /// a directive names the directive through the one sentence <see cref="CobolWordsOp.Withdrew"/> builds, and says what is
     /// left of the clause: under UNDEFINE it "shall not be available" (GR3), under SUBSTITUTE it is written with literal-5
     /// (GR4), which is not "not available" (the DECIMAL-POINT arm said so for both). Whatever word follows IS draws the
     /// withdrawal, the cause of every refusal while COMMA is withdrawn.</summary>
     [Theory]
-    [InlineData("UNDEFINE \"COMMA\"", "DECIMAL-POINT IS COMMA", "COBOL0894", ">>COBOL-WORDS UNDEFINE \"COMMA\" withdrew COMMA (ISO §7.3.10.4 GR3)",
+    [InlineData("UNDEFINE \"COMMA\"", "DECIMAL-POINT IS COMMA", "COBOL0894", ">>COBOL-WORDS UNDEFINE \"COMMA\" withdrew COMMA (ISO §2023:7.3.10.4 GR3)",
         "so it is not available in this compilation group")]
     [InlineData("SUBSTITUTE \"COMMA\" BY \"CMA\"", "DECIMAL-POINT IS COMMA", "COBOL0894",
-        ">>COBOL-WORDS SUBSTITUTE \"COMMA\" BY \"CMA\" withdrew COMMA, and CMA now stands for it (ISO §7.3.10.4 GR4)",
+        ">>COBOL-WORDS SUBSTITUTE \"COMMA\" BY \"CMA\" withdrew COMMA, and CMA now stands for it (ISO §2023:7.3.10.4 GR4)",
         "so it is written with CMA in this compilation group")]
     [InlineData("SUBSTITUTE \"COMMA\" BY \"CMA\"", "DECIMAL-POINT IS XYZ", "COBOL0894",
-        ">>COBOL-WORDS SUBSTITUTE \"COMMA\" BY \"CMA\" withdrew COMMA, and CMA now stands for it (ISO §7.3.10.4 GR4)",
+        ">>COBOL-WORDS SUBSTITUTE \"COMMA\" BY \"CMA\" withdrew COMMA, and CMA now stands for it (ISO §2023:7.3.10.4 GR4)",
         "so it is written with CMA in this compilation group")]
     [InlineData("UNDEFINE \"SYMBOL\"", "CURRENCY SIGN IS \"EUR\" WITH PICTURE SYMBOL \"#\"", "COBOL0892",
-        ">>COBOL-WORDS UNDEFINE \"SYMBOL\" withdrew SYMBOL (ISO §7.3.10.4 GR3)", "so it is not available in this compilation group")]
+        ">>COBOL-WORDS UNDEFINE \"SYMBOL\" withdrew SYMBOL (ISO §2023:7.3.10.4 GR3)", "so it is not available in this compilation group")]
     [InlineData("SUBSTITUTE \"SYMBOL\" BY \"SYM\"", "CURRENCY SIGN IS \"EUR\" WITH PICTURE SYMBOL \"#\"", "COBOL0892",
-        ">>COBOL-WORDS SUBSTITUTE \"SYMBOL\" BY \"SYM\" withdrew SYMBOL, and SYM now stands for it (ISO §7.3.10.4 GR4)",
+        ">>COBOL-WORDS SUBSTITUTE \"SYMBOL\" BY \"SYM\" withdrew SYMBOL, and SYM now stands for it (ISO §2023:7.3.10.4 GR4)",
         "so it is written with SYM in this compilation group")]
     public void AClauseWordADirectiveWithdrew_NamesTheDirectiveAndWhatIsLeftOfTheClause(
         string directive, string clause, string code, string withdrew, string left)
@@ -557,7 +557,7 @@ public sealed class CobolWordsDirectiveTests
     }
 
     /// <summary>The controls of kb/Work PB4488: SUBSTITUTE de-reserves its literal-4, so the word it replaced is a user word
-    /// (GR4) and only the synonym is refused, and a synonym of a word §8.9 does not reserve (a §8.10 context-sensitive word,
+    /// (GR4) and only the synonym is refused, and a synonym of a word §2023:8.9 does not reserve (a §2023:8.10 context-sensitive word,
     /// an intrinsic function name) keeps the status of its original.</summary>
     [Theory]
     [InlineData("SUBSTITUTE \"LOCALE\" BY \"LOC\"", "LOCALE")]
@@ -568,7 +568,7 @@ public sealed class CobolWordsDirectiveTests
         Assert.Empty(CompileErrors(SynonymProgram(directive, dataName)));
     }
 
-    /// <summary>kb/Work PB4488 (ISO §7.3.10.4 GR6; §7.2.2.2; §7.2.1 Steps 1 to 4): a COBOL-WORDS directive does not affect a
+    /// <summary>kb/Work PB4488 (ISO §2023:7.3.10.4 GR6; §2023:7.2.2.2; §2023:7.2.1 Steps 1 to 4): a COBOL-WORDS directive does not affect a
     /// compiler directing statement, so a synonym of COPY or REPLACE begins no statement of the stage that finds them. The
     /// syntax error stands, now without the guess that a period is missing from a sentence that has one, and COBOL6085
     /// beside it names the directive and the rule, once, at the directive.</summary>
@@ -584,7 +584,7 @@ public sealed class CobolWordsDirectiveTests
         Assert.DoesNotContain("period may be missing", error);
         var note = Assert.Single(r.Warnings, w => w.Contains("COBOL6085"));
         Assert.Contains($">>COBOL-WORDS {directive}: a COBOL-WORDS directive does not affect a compiler directing statement "
-            + $"(ISO §7.3.10.4 GR6), so '{line.Split(' ')[0]}' begins no {original} statement", note);
+            + $"(ISO §2023:7.3.10.4 GR6), so '{line.Split(' ')[0]}' begins no {original} statement", note);
         Assert.Contains("(1,", note);   // at the directive's own line
     }
 
@@ -599,7 +599,7 @@ public sealed class CobolWordsDirectiveTests
         Assert.DoesNotContain(r.Warnings, w => w.Contains("COBOL6085"));
     }
 
-    /// <summary>⛔ kb/Work PB4573, review r1 R1-2 (ISO §7.3.10.4 GR2, GR4): the withdrawn-word note tests the word the SOURCE wrote.
+    /// <summary>⛔ kb/Work PB4573, review r1 R1-2 (ISO §2023:7.3.10.4 GR2, GR4): the withdrawn-word note tests the word the SOURCE wrote.
     /// A synonym of a lexer-token word is that word's token with the original's <c>Text</c>, so a listener that read the text
     /// named SHOW a withdrawn DISPLAY (<c>SUBSTITUTE "DISPLAY" BY "SHOW"</c>, then the statement <c>SHOW.</c>): COBOL5926 said
     /// DISPLAY was "a user-defined word in this compilation group" when the source wrote SHOW. The error stands (the lone word
@@ -613,7 +613,7 @@ public sealed class CobolWordsDirectiveTests
         Assert.DoesNotContain(r.Warnings, w => w.Contains("COBOL5926"));
     }
 
-    /// <summary>⛔ kb/Work PB4573, review r1 R1-1 (ISO §7.3.10.4 GR2): the parser's syntax-error sentence names the word the source
+    /// <summary>⛔ kb/Work PB4573, review r1 R1-1 (ISO §2023:7.3.10.4 GR2): the parser's syntax-error sentence names the word the source
     /// WROTE, not the original the retype spelled into the token: <c>MAIN SECT.</c> after <c>EQUATE "SECTION" WITH "SECT"</c>
     /// is a legal section header, and the SECT after <c>MOVE 1 TO W-X</c> is an unexpected SECT: no sentence of the compilation
     /// says SECTION was written there.</summary>
@@ -627,7 +627,7 @@ public sealed class CobolWordsDirectiveTests
         Assert.DoesNotContain(errors, e => e.Contains("unexpected 'SECTION'"));
     }
 
-    /// <summary>⛔ kb/Work PB4573, review r2 R2-1 (ISO §7.3.10.4 GR2; §8.8.4.7.2): the sign-condition spelling message quotes the
+    /// <summary>⛔ kb/Work PB4573, review r2 R2-1 (ISO §2023:7.3.10.4 GR2; §2023:8.8.4.7.2): the sign-condition spelling message quotes the
     /// word the source WROTE. After <c>EQUATE "ZEROS" WITH "NIX"</c> the condition <c>W-X IS NIX</c> is refused as a different
     /// reserved word than the keyword ZERO, and the sentence named ZEROS where the source wrote NIX.</summary>
     [Fact]
@@ -641,7 +641,7 @@ public sealed class CobolWordsDirectiveTests
         Assert.DoesNotContain("ZEROS is a different", error);
     }
 
-    /// <summary>⛔ kb/Work PB4590 (filed from PB4573's lead R3-1; ISO §7.3.10.4 GR2): the mnemonic-name-suffix sentence of DISPLAY ... UPON and
+    /// <summary>⛔ kb/Work PB4590 (filed from PB4573's lead R3-1; ISO §2023:7.3.10.4 GR2): the mnemonic-name-suffix sentence of DISPLAY ... UPON and
     /// ACCEPT ... FROM quotes the word the source WROTE: <c>UPON BEEP(1)</c> after <c>EQUATE "BELL" WITH "BEEP"</c> names BEEP,
     /// never the BELL the retype spelled into the token.</summary>
     [Fact]
@@ -678,7 +678,7 @@ public sealed class CobolWordsDirectiveTests
         "       " + directive + "\n       IDENTIFICATION DIVISION.\n       PROGRAM-ID. CWP.\n"
         + "       PROCEDURE DIVISION.\n       MAIN.\n           DISPLAY \"X\".\n           STOP RUN.\n";
 
-    [Theory] // §7.3.10.3 SR3 — the existing word is in the 2023 population (§8.9 ∪ §8.10 ∪ §8.11): a word §8.9 dropped
+    [Theory] // §2023:7.3.10.3 SR3 — the existing word is in the 2023 population (§2023:8.9 ∪ §2023:8.10 ∪ §2023:8.11): a word §2023:8.9 dropped
     // before 2023 (AUTHOR, MEMORY) is in none of them, however the lexer or an older edition treats it.
     [InlineData("UNDEFINE \"AUTHOR\"")]
     [InlineData("EQUATE \"MEMORY\" WITH \"RAM\"")]
@@ -689,7 +689,7 @@ public sealed class CobolWordsDirectiveTests
         Assert.Contains(errors, e => e.Contains("COBOL1623") && e.Contains("SR3"));
     }
 
-    [Theory] // SR4 — the fresh word is in none of the three 2023 lists: AUTHOR (a lexer keyword, not a §8.9 word) is legal.
+    [Theory] // SR4 — the fresh word is in none of the three 2023 lists: AUTHOR (a lexer keyword, not a §2023:8.9 word) is legal.
     [InlineData("RESERVE \"AUTHOR\"")]
     [InlineData("EQUATE \"DISPLAY\" WITH \"MEMORY\"")]
     public void Sr4_AWordNo2023ListHolds_IsAFreshWord(string option)
@@ -698,7 +698,7 @@ public sealed class CobolWordsDirectiveTests
         Assert.DoesNotContain(errors, e => e.Contains("COBOL1623"));
     }
 
-    [Theory] // SR3 admits each of the three lists: §8.9 (DISPLAY), §8.10 (HEX), §8.11 (SQRT, an intrinsic-function-name).
+    [Theory] // SR3 admits each of the three lists: §2023:8.9 (DISPLAY), §2023:8.10 (HEX), §2023:8.11 (SQRT, an intrinsic-function-name).
     [InlineData("EQUATE \"DISPLAY\" WITH \"SHOWIT\"")]
     [InlineData("EQUATE \"HEX\" WITH \"HEXIT\"")]
     [InlineData("EQUATE \"SQRT\" WITH \"ROOT\"")]
@@ -718,13 +718,13 @@ public sealed class CobolWordsDirectiveTests
         Assert.Contains(errors, e => e.Contains("COBOL1623") && e.Contains("SR4"));
     }
 
-    /// <summary>Every word the §4.2.10 register reserves (JSON, XML, COMP-3, ENTRY and the rest): the fourth list SR3 and SR4
+    /// <summary>Every word the §2023:4.2.10 register reserves (JSON, XML, COMP-3, ENTRY and the rest): the fourth list SR3 and SR4
     /// speak of. It is the REGISTER's rows, never a literal list, so a word added to a row is asked with no edit here
     /// (kb/Work PB4239: a fixed list of the three printed ones is what let fifteen words fall through).</summary>
     public static TheoryData<string> ExtensionReservedWords() =>
         new(NonstandardExtensionRegister.Entries.SelectMany(e => e.ReservedWords).Distinct(StringComparer.Ordinal));
 
-    [Theory] // §7.3.10.3 SR3 admits a §4.2.10 reserved word as the existing word (owner decision 2026-10-31, kb/Work PB4239).
+    [Theory] // §2023:7.3.10.3 SR3 admits a §2023:4.2.10 reserved word as the existing word (owner decision 2026-10-31, kb/Work PB4239).
     [MemberData(nameof(ExtensionReservedWords))]
     public void Sr3_AnExtensionReservedWord_IsAnExistingWord(string word)
     {
@@ -733,7 +733,7 @@ public sealed class CobolWordsDirectiveTests
         Assert.DoesNotContain(CompileErrors(NoOpProgram($">>COBOL-WORDS SUBSTITUTE \"{word}\" BY \"ZQXSUB\"")), e => e.Contains("COBOL1623"));
     }
 
-    [Theory] // SR4 refuses a §4.2.10 reserved word as the new word, and the sentence names the reservation that refuses it.
+    [Theory] // SR4 refuses a §2023:4.2.10 reserved word as the new word, and the sentence names the reservation that refuses it.
     [MemberData(nameof(ExtensionReservedWords))]
     public void Sr4_AnExtensionReservedWord_IsNotAFreshWord(string word)
     {
@@ -741,16 +741,16 @@ public sealed class CobolWordsDirectiveTests
         {
             var refusal = Assert.Single(CompileErrors(NoOpProgram(">>COBOL-WORDS " + option)), e => e.Contains("COBOL1623"));
             Assert.Contains("SR4", refusal);
-            Assert.Contains($"the new word '{word}' is a word this implementation reserves for a nonstandard extension (ISO §4.2.10", refusal);
+            Assert.Contains($"the new word '{word}' is a word this implementation reserves for a nonstandard extension (ISO §2023:4.2.10", refusal);
         }
     }
 
-    [Fact] // kb/Work PB4239 S1: a word of a standard list as the new word keeps the generic sentence (no §4.2.10 claim).
+    [Fact] // kb/Work PB4239 S1: a word of a standard list as the new word keeps the generic sentence (no §2023:4.2.10 claim).
     public void Sr4_AStandardWord_KeepsTheGenericSentence()
     {
         var refusal = Assert.Single(CompileErrors(NoOpProgram(">>COBOL-WORDS RESERVE \"DISPLAY\"")), e => e.Contains("COBOL1623"));
         Assert.Contains("is a reserved / context-sensitive / intrinsic-function word", refusal);
-        Assert.DoesNotContain("§4.2.10", refusal);
+        Assert.DoesNotContain("§2023:4.2.10", refusal);
     }
 
     [Theory] // kb/Work PB4586: the SR3 / SR4 verdict needs no parse tree, so a statement error beside it does not hide it.
@@ -776,8 +776,8 @@ public sealed class CobolWordsDirectiveTests
             + "       PROCEDURE DIVISION.\n       MAIN.\n           DISPLAY JS.\n           STOP RUN.\n");
         Assert.DoesNotContain(errors, e => e.Contains("COBOL1623"));   // the directive holds (SR3: JSON is reserved; SR4: JS is no word)
         var refusal = errors.First(e => e.Contains("COBOL0313") && e.Contains("unexpected 'JS'"));
-        Assert.Contains("JSON is a word this implementation reserves for a nonstandard extension (ISO §4.2.10; docs/CONFORMANCE.md D-RW1)", refusal);
-        Assert.Contains("'JS' is its synonym here (ISO §7.3.10.4 GR2), so neither is a user-defined word", refusal);
+        Assert.Contains("JSON is a word this implementation reserves for a nonstandard extension (ISO §2023:4.2.10; docs/CONFORMANCE.md D-RW1)", refusal);
+        Assert.Contains("'JS' is its synonym here (ISO §2023:7.3.10.4 GR2), so neither is a user-defined word", refusal);
         Assert.DoesNotContain("unexpected 'JSON'", string.Concat(errors));   // never the original, which the source did not write
     }
 
@@ -789,13 +789,13 @@ public sealed class CobolWordsDirectiveTests
             + "       PROCEDURE DIVISION.\n       MAIN.\n           DISPLAY JSON.\n           STOP RUN.\n");
         Assert.DoesNotContain(errors, e => e.Contains("COBOL1623"));   // the directive holds
         var refusal = errors.First(e => e.Contains("COBOL0313") && e.Contains("unexpected 'JSN'"));
-        Assert.Contains("SUBSTITUTE \"JSON\" BY \"JSN\" replaces it with 'JSN' (ISO §7.3.10.4 GR4)", refusal);
+        Assert.Contains("SUBSTITUTE \"JSON\" BY \"JSN\" replaces it with 'JSN' (ISO §2023:7.3.10.4 GR4)", refusal);
         Assert.DoesNotContain("GR2", refusal);
         Assert.DoesNotContain("neither is a user-defined word", refusal);
         Assert.DoesNotContain(errors, e => e.Contains("unexpected 'JSON'"));   // JSON is the data-name GR4 makes it
     }
 
-    /// <summary>⛔ kb/Work PB4589 (ISO §7.3.10.4 GR4, §8.3.2.1 rule 1): a SUBSTITUTE synonym of a reservation-gated word §8.9
+    /// <summary>⛔ kb/Work PB4589 (ISO §2023:7.3.10.4 GR4, §2023:8.3.2.1 rule 1): a SUBSTITUTE synonym of a reservation-gated word §2023:8.9
     /// reserves at the compile edition (RECEIVE, COBOL-2023) is that word, so it is no user-defined word; the original, which
     /// GR4 frees, is one. Only a DECLARATION is written, so the refusal is the funnel's (the parser draws none): it asked the
     /// group's overlay about the synonym's token text, the ORIGINAL's, which SUBSTITUTE had suppressed.</summary>
@@ -810,8 +810,8 @@ public sealed class CobolWordsDirectiveTests
         Assert.Contains("cw.cob(6,", refusal);   // the declaration of RCV, not the original's (line 7)
     }
 
-    /// <summary>⛔ kb/Work PB4589 (ISO §7.3.10.4 GR4, §8.3.2.1 rule 1): <c>--permissive</c> restores the pre-removal reading
-    /// of a word §8.9 took away, so the gate admits the synonym as a name, and the migration mode's shape is a WARNING for
+    /// <summary>⛔ kb/Work PB4589 (ISO §2023:7.3.10.4 GR4, §2023:8.3.2.1 rule 1): <c>--permissive</c> restores the pre-removal reading
+    /// of a word §2023:8.9 took away, so the gate admits the synonym as a name, and the migration mode's shape is a WARNING for
     /// it as for the word itself (COBOL0901), not silence: the admitted token is an IDENTIFIER with the original's text, and
     /// the funnel must tell the synonym from the freed original (which stays a plain name, with no diagnostic at all).</summary>
     [Fact]
@@ -830,7 +830,7 @@ public sealed class CobolWordsDirectiveTests
         Assert.DoesNotContain(original.Warnings, w => w.Contains("COBOL0901"));
     }
 
-    /// <summary>⛔ kb/Work PB4589 (ISO §7.3.10.4 GR4): the synonym stands wherever the original is "documented as required or
+    /// <summary>⛔ kb/Work PB4589 (ISO §2023:7.3.10.4 GR4): the synonym stands wherever the original is "documented as required or
     /// optional" - a SPECIAL-NAMES clause the parser recognizes by <c>reservedHere</c> as much as an operand list the
     /// reservation gate reads. <c>CRTX STATUS IS</c> after <c>SUBSTITUTE "CRT" BY "CRTX"</c> is the CRT STATUS clause (declined
     /// as the optional screen module, COBOL1560, as the unsubstituted clause is), not an unknown clause (COBOL1970), and a
@@ -850,8 +850,8 @@ public sealed class CobolWordsDirectiveTests
         Assert.Empty(statement.Errors);   // no item COMMIT is declared: were CMT an operand, the item COMMIT would be undefined
     }
 
-    /// <summary>⛔ kb/Work PB4589 (ISO §7.3.10.4 GR5): a <c>RESERVE</c> of a word the lexer has a keyword token for and no
-    /// gate retypes (REMARKS, PACKED, PARSE: §8.9 lists none of them at COBOL-2023) is reserved for the group, and a
+    /// <summary>⛔ kb/Work PB4589 (ISO §2023:7.3.10.4 GR5): a <c>RESERVE</c> of a word the lexer has a keyword token for and no
+    /// gate retypes (REMARKS, PACKED, PARSE: §2023:8.9 lists none of them at COBOL-2023) is reserved for the group, and a
     /// declaration of it is COBOL0901 like a RESERVE of any other fresh word. The funnel asks such a token of
     /// <see cref="ReservedWordSet.KeywordToken"/>, which drops the SUBSTITUTE/UNDEFINE suppressions (the token is no longer
     /// the word they freed) and keeps the RESERVE layer; asking the generated table alone let these through.</summary>
@@ -933,7 +933,7 @@ public sealed class CobolWordsDirectiveTests
         var refusal = Assert.Single(errors, e => e.Contains("COBOL5776"));
         Assert.Contains(">>COBOL-WORDS UNDEFINE \"MAX\"", refusal);
         Assert.Contains("line 1", refusal);   // the directive's own line, mapped to the user's source (CobolWordsOp.At)
-        Assert.Contains("§7.3.10.4 GR3", refusal);
+        Assert.Contains("§2023:7.3.10.4 GR3", refusal);
     }
 
     [Fact] // The control (kb/Work PB4309): a name that is no intrinsic function at all keeps COBOL1501 with a directive in force.
@@ -975,6 +975,6 @@ public sealed class CobolWordsDirectiveTests
         var refusal = Assert.Single(oldErrors, e => e.Contains("COBOL5776"));
         Assert.Contains(">>COBOL-WORDS SUBSTITUTE \"MAX\" BY \"MYMAX\"", refusal);
         Assert.Contains("FUNCTION MYMAX now denotes it", refusal);
-        Assert.Contains("§7.3.10.4 GR4", refusal);
+        Assert.Contains("§2023:7.3.10.4 GR4", refusal);
     }
 }

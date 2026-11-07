@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ THE NATIVE SDIDI LANE OVER EXACT ARGUMENTS (kb/Work PB4111, PB4568; docs/CONFORMANCE.md DOC-A.1-123): <see cref="CobolExact"/>
 /// and the <c>CobolIntrinsics.*Exact</c> bodies. Every expected value comes from the function's returned-value rule evaluated by an
 /// oracle the runtime does not use — <see cref="BigInteger"/> for integers, Python <c>fractions.Fraction</c> divided once by
-/// <c>decimal</c> at 34 digits, ROUND_HALF_UP (NEAREST-AWAY-FROM-ZERO, §11.9.11.2 3) a)) for quotients — and each body is also
+/// <c>decimal</c> at 34 digits, ROUND_HALF_UP (NEAREST-AWAY-FROM-ZERO, §2023:11.9.11.2 3) a)) for quotients — and each body is also
 /// driven past the 256-bit wide form, where it must answer exactly as the SDIDI body over the images does (DOC-A.1-123's
 /// determination past 77 digits). The last section drives <see cref="CobolExact"/> as the run-time-scaled ARITHMETIC carrier of an
 /// expression in which a wide value meets an SDIDI-carried operand (kb/Work PB4575), against the same oracle.
@@ -70,12 +70,12 @@ public sealed class CobolExactIntrinsicsTests
     [Fact]
     public void TheSelections_OrderExactly_AndTakeTheLeftmostTie()
     {
-        // §15.71.4 2) / §15.72.4 2): the simple-condition order; 3): the leftmost of equal values.
+        // §2023:15.71.4 2) / §2023:15.72.4 2): the simple-condition order; 3): the leftmost of equal values.
         Assert.Equal(2, CobolIntrinsics.OrdMaxExact(Wide(P - 1), Wide(P), Sdidi("20", -1)));
         Assert.Equal(2, CobolIntrinsics.OrdMinExact(Wide(P), Wide(P - 1), Sdidi("1", 50)));
         Assert.Equal(1, CobolIntrinsics.OrdMaxExact(Fixed(2), Sdidi("20", -1)));
         Assert.Equal(2, CobolIntrinsics.OrdMinExact(Fixed(3), Sdidi("-1", 6000), Sdidi("1", -6000)));
-        // MAX's content (§15.59.4 1)) is the selected argument ITSELF, every digit of it (kb/Work PB4730): an SDIDI as itself, a wide
+        // MAX's content (§2023:15.59.4 1)) is the selected argument ITSELF, every digit of it (kb/Work PB4730): an SDIDI as itself, a wide
         // value of 39 digits whole - its 34-digit rounding is a consumer's lowering (Image), never the selection's value.
         Assert.Equal(0, CobolExact.Compare(Sdidi("1", 50), CobolIntrinsics.MaxExact(Wide(P), Sdidi("1", 50))));
         Assert.Equal(0, CobolExact.Compare(Wide(P), CobolIntrinsics.MaxExact(Wide(P), Sdidi("20", -1))));
@@ -105,7 +105,7 @@ public sealed class CobolExactIntrinsicsTests
     [Fact]
     public void ModAndRem_TakeEveryDigit_WithTheirSignRules()
     {
-        // §15.64.4 1) floors (the divisor's sign), §15.77.4 1) truncates (the dividend's): P = 1024 × 975585937499999998048828125000000000 + 999.
+        // §2023:15.64.4 1) floors (the divisor's sign), §2023:15.77.4 1) truncates (the dividend's): P = 1024 × 975585937499999998048828125000000000 + 999.
         Assert.Equal(D("999"), CobolIntrinsics.ModExact(Away, Wide(P), Sdidi("1024")));
         Assert.Equal(D("999"), CobolIntrinsics.RemExact(Away, Wide(P), Sdidi("1024")));
         Assert.Equal(D("25"), CobolIntrinsics.ModExact(Away, Wide(-P), Sdidi("1024")));
@@ -143,14 +143,14 @@ public sealed class CobolExactIntrinsicsTests
         Assert.Equal(0, CobolDec.Compare(D("100000"), CobolIntrinsics.SumExact(Away, plus40, Sdidi("10", 4), minus40)));
         Assert.Equal(0, CobolDec.Compare(D("100000"), CobolIntrinsics.MeanExact(Away, plus40, Sdidi("30", 4), minus40)));
         Assert.Equal(0, CobolDec.Compare(D("150000"), CobolIntrinsics.MedianExact(Away, plus40, Sdidi("10", 4), Sdidi("20", 4), minus40).Image));
-        // §15.64.4 1) floored, §15.77.4 1) truncated: 10^40 mod 300000.
+        // §2023:15.64.4 1) floored, §2023:15.77.4 1) truncated: 10^40 mod 300000.
         int mod = (int)BigInteger.Remainder(e40, 300000);
         Assert.Equal(100000, mod);
         Assert.Equal(0, CobolDec.Compare(D("100000"), CobolIntrinsics.ModExact(Away, plus40, Sdidi("30", 4))));
         Assert.Equal(0, CobolDec.Compare(D("100000"), CobolIntrinsics.RemExact(Away, plus40, Sdidi("30", 4))));
         Assert.Equal(0, CobolDec.Compare(D("200000"), CobolIntrinsics.ModExact(Away, minus40, Sdidi("30", 4))));
         Assert.Equal(0, CobolDec.Compare(D("-100000"), CobolIntrinsics.RemExact(Away, minus40, Sdidi("30", 4))));
-        // §15.98.4 1): {10^43 + 10^10, 10^43} deviate by ±5·10^9 from the exact mean, so the variance is 2.5·10^19; the 34-digit
+        // §2023:15.98.4 1): {10^43 + 10^10, 10^43} deviate by ±5·10^9 from the exact mean, so the variance is 2.5·10^19; the 34-digit
         // mean of the images rounds 10^43 + 5·10^9 to 10^43 + 10^10 and answered 5·10^19.
         Assert.Equal(0, CobolDec.Compare(new CobolDec(25, 18),
             CobolIntrinsics.VarianceExact(Away, Sdidi("1000000000000000000000000000000001", 10), Sdidi("1", 43))));
@@ -165,7 +165,7 @@ public sealed class CobolExactIntrinsicsTests
         CobolExact e30 = Fixed(1, -30), e30p1 = CobolExact.From(Int128.Parse("1000000000000000000000000000001", CultureInfo.InvariantCulture), 0);
         Assert.Equal(D("0.2222222222222222222222222222222222"), CobolIntrinsics.VarianceExact(Away, e30, e30p1, e30p1));
         Assert.Equal(D("0"), CobolIntrinsics.VarianceExact(Away, Wide(P)));                 // one argument: no deviation
-        // §15.74.4 1): 100 / 1.05 + 100 / 1.05²; 1 / 1.5 − 2 / 1.5² + 0.7 / 1.5³; rate 0 sums the amounts.
+        // §2023:15.74.4 1): 100 / 1.05 + 100 / 1.05²; 1 / 1.5 − 2 / 1.5² + 0.7 / 1.5³; rate 0 sums the amounts.
         Assert.Equal(D("185.9410430839002267573696145124717"), CobolIntrinsics.PresentValueExact(Away, Fixed(5, 2), Fixed(100), Fixed(100)));
         Assert.Equal(D("-0.01481481481481481481481481481481481"),
             CobolIntrinsics.PresentValueExact(Away, Fixed(5, 1), Fixed(1), Fixed(-2), Fixed(7, 1)));
@@ -181,7 +181,7 @@ public sealed class CobolExactIntrinsicsTests
         ExceptionState.ArgumentFunctionChecking = false;
         try
         {
-            Assert.Equal(0, CobolIntrinsics.PresentValueExact(Away, Fixed(-1), Fixed(5)).Sig);                       // §15.74.3 r2: the §15.3 default
+            Assert.Equal(0, CobolIntrinsics.PresentValueExact(Away, Fixed(-1), Fixed(5)).Sig);                       // §2023:15.74.3 r2: the §2023:15.3 default
             Assert.Equal(0, CobolIntrinsics.PresentValueExact(Away, Sdidi("-1000000000000000000001", -21), Fixed(5)).Sig);
             Assert.NotEqual(0, CobolIntrinsics.PresentValueExact(Away, Sdidi("-999999999999999999999", -21), Fixed(5)).Sig);
         }
@@ -288,7 +288,7 @@ public sealed class CobolExactIntrinsicsTests
             CobolExact.DivToOdd(Wide(P, 3), Fixed(7000, 3), Away));
         Assert.Equal(new CobolDec(Int128.Parse("9999999999999989999999999999989999", CultureInfo.InvariantCulture), -19),
             CobolExact.DivToOdd(Wide(a * a * a), Wide(a * a + 1), Away));
-        // A zero dividend is zero at the preferred exponent; a zero divisor is the size error (§14.7.5 case 2).
+        // A zero dividend is zero at the preferred exponent; a zero divisor is the size error (§2023:14.7.5 case 2).
         Assert.Equal(0, CobolDec.Compare(D("0"), CobolExact.DivToOdd(Fixed(0), Wide(P), Away)));
         Assert.Throws<CobolSizeError>(() => CobolExact.DivToOdd(Wide(P), Sdidi("0"), Away));
         // An SDIDI operand is its significand at its own exponent, so a value of 10^6000 divides like any other (333...3 at 10^5966).
@@ -296,7 +296,7 @@ public sealed class CobolExactIntrinsicsTests
             CobolExact.DivToOdd(Sdidi("1", 6000), Fixed(3), Away));
     }
 
-    /// <summary>⛔ THE SUBSIDIARY QUOTIENT KEEPS EVERY INTEGER DIGIT OF AN EXACT QUOTIENT (kb/Work PB4640; ISO §14.9.12.4 6) c), 7)): the
+    /// <summary>⛔ THE SUBSIDIARY QUOTIENT KEEPS EVERY INTEGER DIGIT OF AN EXACT QUOTIENT (kb/Work PB4640; ISO §2023:14.9.12.4 6) c), 7)): the
     /// exact quotient truncated TOWARD ZERO at identifier-3's scale, whatever the digits of the quotient — the final transfer's
     /// quotient is held to 34 digits, and a 42-digit quotient lost eight. Expected values: <see cref="BigInteger"/> division, which
     /// truncates toward zero, on the operands' integers (the quotient at scale s of x/10^p over y/10^q is x × 10^(q + s − p) / y).</summary>
@@ -314,7 +314,7 @@ public sealed class CobolExactIntrinsicsTests
         // A quotient finer than the scale is cut, never rounded: 4321 / 1000 at scale 0 is 4, 4.321 at scale 2 is 4.32.
         Assert.Equal(0, CobolExact.Compare(Fixed(4), CobolExact.SubsidiaryQuotient(Fixed(4321), Fixed(1000), 0)));
         Assert.Equal(0, CobolExact.Compare(Fixed(432, 2), CobolExact.SubsidiaryQuotient(Fixed(4321), Fixed(1000), 2)));
-        // An SDIDI divisor beside the wide dividend, and a zero divisor (§14.7.5 case 2).
+        // An SDIDI divisor beside the wide dividend, and a zero divisor (§2023:14.7.5 case 2).
         Assert.Equal(0, CobolExact.Compare(Wide(n / 1000), CobolExact.SubsidiaryQuotient(Wide(n), Sdidi("1", 3), 0)));
         Assert.Throws<CobolSizeError>(() => CobolExact.SubsidiaryQuotient(Wide(n), Fixed(0), 0));
     }
@@ -340,7 +340,7 @@ public sealed class CobolExactIntrinsicsTests
         Assert.Throws<CobolSizeError>(() => CobolExact.DivToOdd(Wide(huge), Fixed(0), Away));
     }
 
-    /// <summary>⛔ A QUOTIENT THAT REACHES THE SDIDI LANE UNDER PROHIBITED IS SCREENED (kb/Work PB4599 review finding R1-5; ISO §11.9.11.2
+    /// <summary>⛔ A QUOTIENT THAT REACHES THE SDIDI LANE UNDER PROHIBITED IS SCREENED (kb/Work PB4599 review finding R1-5; ISO §2023:11.9.11.2
     /// r3d): an exact quotient passes, one not exact in 34 digits raises EC-SIZE-TRUNCATION. Under any other mode it is the round-to-odd
     /// value.</summary>
     [Fact]
@@ -364,7 +364,7 @@ public sealed class CobolExactIntrinsicsTests
         Assert.Equal(0, CobolExact.Compare(CobolExact.Sub(sum, Wide(P)), Sdidi("1", -50)));
     }
 
-    /// <summary>The §15.3 type-6 intake of an exact value keeps every digit on either carrier: P × 10 at scale 1 is the integer P on
+    /// <summary>The §2023:15.3 type-6 intake of an exact value keeps every digit on either carrier: P × 10 at scale 1 is the integer P on
     /// the wide form, 1.0E40 the SDIDI integer 10^40, and P × 1.0E5 (P at scale −5) the 44-digit integer written out at scale 0.</summary>
     [Fact]
     public void IntegerIntake_KeepsEveryDigit_OnEitherCarrier()
@@ -379,7 +379,7 @@ public sealed class CobolExactIntrinsicsTests
     /// mpz_pow_ui with scale × n): P ** 1 is P, (P + 2) ** 1 − P is 2, 2.5 ** 3 is 15.625 carrying 3 places, and ** 0 is 1. Past the
     /// form (P ** 2 has 78 digits) it is the SDIDI power of P lifted once to 34 digits, NEAREST-AWAY-FROM-ZERO
     /// (9989999999999999980020000000000000 × 10^5), squared and held by round-to-odd: 9980009999999999960079960000000001 × 10^44
-    /// (Python integers). A zero base to a non-positive exponent is §8.8.1.2 rule 6a's EC-SIZE-EXPONENTIATION.</summary>
+    /// (Python integers). A zero base to a non-positive exponent is §2023:8.8.1.2 rule 6a's EC-SIZE-EXPONENTIATION.</summary>
     [Fact]
     public void Pow_OfAnExactBase_IsExact_OnTheWideForm()
     {

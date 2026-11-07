@@ -5,7 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>A Format-2 (table) VALUE SUBSCRIPT TUPLE — one occurrence number per dimension, in the order
-/// ISO §13.18.63.3 SR20 fixes ("one subscript-1 specified for each OCCURS clause for the subject of the entry or
+/// ISO §2023:13.18.63.3 SR20 fixes ("one subscript-1 specified for each OCCURS clause for the subject of the entry or
 /// superordinate to that entry, specified in the same order as a subscripted reference to the subject of the entry
 /// would be specified"): the MOST inclusive dimension first. A value type with structural equality; its
 /// lexicographic order (<see cref="Compare"/>) is the odometer order a <see cref="TableValuePhrase"/> runs in.</summary>
@@ -54,9 +54,9 @@ public readonly struct Subscripts : IEquatable<Subscripts>
 
     public override string ToString() => Count == 0 ? "()" : "(" + string.Join(" ", _v) + ")";
 
-    /// <summary>ODOMETER (= lexicographic) ORDER, the order §13.18.63.4 GR12 initializes table elements in: the
+    /// <summary>ODOMETER (= lexicographic) ORDER, the order §2023:13.18.63.4 GR12 initializes table elements in: the
     /// LEAST inclusive (rightmost) subscript advances first and carries into the next MOST inclusive one, so a
-    /// tuple's position in the fill sequence is exactly its lexicographic rank. §13.18.63.3 SR21's "the table
+    /// tuple's position in the fill sequence is exactly its lexicographic rank. §2023:13.18.63.3 SR21's "the table
     /// element associated with subscript-2 is the same occurrence or a successive occurrence of the table element
     /// associated with the corresponding subscript-1" is therefore <c>Compare(to, from) &gt;= 0</c> — and it needs
     /// no dimension maxima, which matters because a DYNAMIC dimension may not have one.</summary>
@@ -69,27 +69,27 @@ public readonly struct Subscripts : IEquatable<Subscripts>
 }
 
 /// <summary>ONE DIMENSION of a Format-2 (table) VALUE's subscript tuple: the entry whose OCCURS clause creates it
-/// (<paramref name="Owner"/> — the subject of the entry itself, or an entry superordinate to it, ISO §13.18.63.3
+/// (<paramref name="Owner"/> — the subject of the entry itself, or an entry superordinate to it, ISO §2023:13.18.63.3
 /// SR20), and the maximum occurrence number the odometer counts to.
-/// <para><paramref name="Max"/> is §13.18.63.4 GR12's "the maximum number of occurrences, or, in the case of a
+/// <para><paramref name="Max"/> is §2023:13.18.63.4 GR12's "the maximum number of occurrences, or, in the case of a
 /// dynamic-capacity table, the expected number of occurrences, specified by its corresponding OCCURS clause" —
 /// NULL only for a DYNAMIC table declared without an OCCURS TO (expected) capacity, where the standard gives the
 /// dimension no ceiling. SR22 forbids a no-TO VALUE over such a dimension and SR23 forbids the odometer from
 /// carrying past it, so a null <paramref name="Max"/> is never a modulus the fill needs.</para></summary>
-/// <param name="Dynamic">True when <paramref name="Owner"/> is a Format-4 DYNAMIC-capacity table (§13.18.38).</param>
+/// <param name="Dynamic">True when <paramref name="Owner"/> is a Format-4 DYNAMIC-capacity table (§2023:13.18.38).</param>
 public sealed record TableValueDim(DataItem Owner, int? Max, bool Dynamic)
 {
-    /// <summary>The §13.18.63.3 SR22/SR23 subject: "an OCCURS clause with a DYNAMIC phrase but no TO phrase".</summary>
+    /// <summary>The §2023:13.18.63.3 SR22/SR23 subject: "an OCCURS clause with a DYNAMIC phrase but no TO phrase".</summary>
     public bool DynamicWithoutTo => Dynamic && Max is null;
 
-    /// <summary>The ceiling §13.18.63.3 SR20/SR21 measure a subscript against — <see cref="Max"/>, or, for a
-    /// DYNAMIC table the OCCURS clause gives no expected capacity, this implementation's §8.5.1.9.1 maximum
+    /// <summary>The ceiling §2023:13.18.63.3 SR20/SR21 measure a subscript against — <see cref="Max"/>, or, for a
+    /// DYNAMIC table the OCCURS clause gives no expected capacity, this implementation's §2023:8.5.1.9.1 maximum
     /// capacity (<see cref="TableValueOdometer.MaxDynamicCapacity"/>: the standard supplies no number there).</summary>
     public int Ceiling => Max ?? TableValueOdometer.MaxDynamicCapacity;
 }
 
 /// <summary>ONE WELL-FORMED Format-2 (table) VALUE phrase, resolved: the run of table elements it initializes in
-/// §13.18.63.4 GR12's odometer order, from <paramref name="From"/> (subscript-1) through <paramref name="To"/>
+/// §2023:13.18.63.4 GR12's odometer order, from <paramref name="From"/> (subscript-1) through <paramref name="To"/>
 /// (subscript-2, or GR14's table maximum), <paramref name="Count"/> elements long
 /// (<see cref="TableValueOdometer.ElementCount"/>), each taking the literal at its position in the run modulo the
 /// literal list (GR13's cyclic reuse).</summary>
@@ -104,7 +104,7 @@ public readonly record struct OccurrenceRun(int First, int Last, int Period)
     public int Length => Last - First + 1;
 }
 
-/// <summary>⛔ THE RESOLVED Format-2 (table) VALUE of one entry (ISO §13.18.63.4 GR12–GR15) — its well-formed
+/// <summary>⛔ THE RESOLVED Format-2 (table) VALUE of one entry (ISO §2023:13.18.63.4 GR12–GR15) — its well-formed
 /// PHRASES in source order, built ONCE by the binder's <c>ResolveTableValues</c> pass where the complete forest
 /// makes the OCCURS chain knowable.
 ///
@@ -122,11 +122,11 @@ public readonly record struct OccurrenceRun(int First, int Last, int Period)
 /// disagree about a table element's value (kb/Work PB505).</para></summary>
 public sealed class TableValuePlan
 {
-    /// <summary>The subject's OCCURS chain, MOST inclusive first (ISO §13.18.63.3 SR20's order). Never empty —
+    /// <summary>The subject's OCCURS chain, MOST inclusive first (ISO §2023:13.18.63.3 SR20's order). Never empty —
     /// an entry with no dimension violates SR18 and never gets a plan.</summary>
     public required IReadOnlyList<TableValueDim> Dims { get; init; }
 
-    /// <summary>The well-formed phrases in SOURCE order (§13.18.63.4 GR15: "the value defined by the last
+    /// <summary>The well-formed phrases in SOURCE order (§2023:13.18.63.4 GR15: "the value defined by the last
     /// specified FROM phrase in the VALUE clause is assigned to the table element"). A phrase the binder diagnosed
     /// (SR20/SR21/SR23) or one with no literal is absent — it must not seed any element.</summary>
     public required IReadOnlyList<TableValuePhrase> Phrases { get; init; }
@@ -202,7 +202,7 @@ public sealed class TableValuePlan
     /// matches them; from <c>Split</c> on, an element's rank is the mixed-radix sum of (subscript − 1) ×
     /// <c>Weights[i − Split]</c>, the run is ranks <c>Lo</c>..<c>Hi</c>, and an element's literal is the one at
     /// (rank − Lo) modulo the literal list (GR13). Every dimension less inclusive than <c>Split</c> has a maximum,
-    /// because §13.18.63.3 SR23 requires the subscripts above a dimension without one to be equal. A rank beyond
+    /// because §2023:13.18.63.3 SR23 requires the subscripts above a dimension without one to be equal. A rank beyond
     /// <see cref="long.MaxValue"/> saturates there; only a table with more elements than that can reach it.</summary>
     public (int Split, long[] Weights, long Lo, long Hi) RankForm(TableValuePhrase p)
     {
@@ -257,7 +257,7 @@ public sealed class TableValuePlan
 /// <summary>⛔ THE RUNS OF OCCURRENCES AN EMITTER COMPOSES ONCE (kb/Work PB1722) — the one answer to "which
 /// occurrences of this table level initialize alike", asked by every lane that writes a table's initial content
 /// (the record-struct arrays, the character-image seeds, the dynamic-capacity seed switch). With no table VALUE in
-/// the subtree every occurrence is alike: one run of period 1 (§13.18.63.4 GR9 gives each occurrence the same
+/// the subtree every occurrence is alike: one run of period 1 (§2023:13.18.63.4 GR9 gives each occurrence the same
 /// value). With one, the breaks are the union over every plan in the subtree (<see cref="TableValuePlan.AddBreaks"/>)
 /// and a run's period is the least common multiple of each plan's (<see cref="TableValuePlan.PeriodAt"/>), so a
 /// lane composes at most Period occurrences per run: O(phrases), never O(elements).</summary>
@@ -302,21 +302,21 @@ public static class TableValueRuns
     }
 }
 
-/// <summary>⛔ THE §13.18.63.4 GR12–GR16 ODOMETER, in ONE place: the pure resolution of a Format-2 (table) VALUE's
-/// phrases over a dimension list. The binder's <c>ResolveTableValues</c> pass validates §13.18.63.3 SR18–SR23 and
+/// <summary>⛔ THE §2023:13.18.63.4 GR12–GR16 ODOMETER, in ONE place: the pure resolution of a Format-2 (table) VALUE's
+/// phrases over a dimension list. The binder's <c>ResolveTableValues</c> pass validates §2023:13.18.63.3 SR18–SR23 and
 /// then calls this; nothing else computes a table element's initial value.</summary>
 public static class TableValueOdometer
 {
-    /// <summary>⛔ THE §8.5.1.9.1 MAXIMUM CAPACITY of a dynamic-capacity table, as this implementation defines it:
+    /// <summary>⛔ THE §2023:8.5.1.9.1 MAXIMUM CAPACITY of a dynamic-capacity table, as this implementation defines it:
     /// "The actual limit for the current capacity imposed by the implementor and by current resource availability
     /// is referred to as the maximum capacity." A DYNAMIC table declared without an OCCURS TO phrase specifies NO
-    /// maximum number of occurrences, so §13.18.63.3 SR21's ceiling sentence has no operand for that dimension —
+    /// maximum number of occurrences, so §2023:13.18.63.3 SR21's ceiling sentence has no operand for that dimension —
     /// this number stands in its place, and a Format-2 VALUE whose subscript-2 exceeds it is rejected rather than
-    /// silently materialized. (Without a ceiling the §13.18.63.4 GR12 fill has none either: the pre-existing
+    /// silently materialized. (Without a ceiling the §2023:13.18.63.4 GR12 fill has none either: the pre-existing
     /// single-dimension loop ran from subscript-1 to subscript-2 with no bound at all.)</summary>
     public const int MaxDynamicCapacity = 1_000_000;
 
-    /// <summary>§13.18.63.4 GR14 — "If the TO phrase is not specified, it is as if the TO phrase were specified
+    /// <summary>§2023:13.18.63.4 GR14 — "If the TO phrase is not specified, it is as if the TO phrase were specified
     /// with each subscript-2 as the maximum number of occurrences, or, in the case of a dynamic-capacity table,
     /// the expected number of occurrences, of the table associated with each corresponding subscript-1." Returns
     /// null when a dimension has no such number (a DYNAMIC table with no OCCURS TO) — SR22 rejects that source, so
@@ -332,7 +332,7 @@ public static class TableValueOdometer
         return new Subscripts(a);
     }
 
-    /// <summary>ONE odometer step (ISO §13.18.63.4 GR12): "Consecutive table elements are referenced by
+    /// <summary>ONE odometer step (ISO §2023:13.18.63.4 GR12): "Consecutive table elements are referenced by
     /// incrementing by 1 the subscript that represents the least inclusive dimension of the table. When any
     /// reference to a subscript, prior to incrementing it, is equal to the maximum number of occurrences … that
     /// subscript is set to 1 and the subscript for the next most inclusive dimension of the table is incremented
@@ -351,7 +351,7 @@ public static class TableValueOdometer
         return false;
     }
 
-    /// <summary>Resolve the phrases into the plan's §13.18.63.4 GR12–GR15 runs, in source order; GR15 is applied
+    /// <summary>Resolve the phrases into the plan's §2023:13.18.63.4 GR12–GR15 runs, in source order; GR15 is applied
     /// by the readers (the LAST phrase holding an element gives it its literal). Each phrase runs from its
     /// subscript-1 tuple through its subscript-2 tuple (GR14 supplies a missing one) and names exactly the
     /// <see cref="ElementCount"/> elements counted before anything is read. A phrase that names no well-formed run
@@ -371,7 +371,7 @@ public static class TableValueOdometer
         return phrases;
     }
 
-    /// <summary>§13.18.63.3 SR23's antecedent at one LEVEL: the index of the first dimension LESS inclusive than
+    /// <summary>§2023:13.18.63.3 SR23's antecedent at one LEVEL: the index of the first dimension LESS inclusive than
     /// <paramref name="level"/> whose OCCURS clause has "a DYNAMIC phrase but no TO phrase", or null when there is
     /// none. When it is not null, <paramref name="level"/> is one of "all levels higher than that of the OCCURS
     /// clause", where "the values of subscript-1 and subscript-2 … shall be equal". The rule's shape is written
@@ -383,14 +383,14 @@ public static class TableValueOdometer
         return null;
     }
 
-    /// <summary>⛔ HOW MANY table elements one phrase names: the length of the §13.18.63.4 GR12 fill from the
+    /// <summary>⛔ HOW MANY table elements one phrase names: the length of the §2023:13.18.63.4 GR12 fill from the
     /// <paramref name="from"/> tuple through the <paramref name="to"/> tuple in odometer order, known BEFORE any
     /// element is filled, so the fill is bounded by the phrase and never by a cap (kb/Work PB1716: a 64,000,000-
     /// element defensive cap was the only bound, and a phrase violating SR23 ran all the way to it — about 30 s
     /// to reject a 26-line program).
     /// <para>The count is the MIXED-RADIX distance between the tuples: one occurrence at dimension k spans the
     /// product of every less inclusive dimension's maximum. That product does not exist above a dimension with no
-    /// ceiling, which is exactly why §13.18.63.3 SR23 requires "the values of subscript-1 and subscript-2
+    /// ceiling, which is exactly why §2023:13.18.63.3 SR23 requires "the values of subscript-1 and subscript-2
     /// corresponding to all levels higher than that of the OCCURS clause" to be equal.</para>
     /// <para>Null when the phrase names no well-formed run: a subscript outside
     /// 1..<see cref="TableValueDim.Ceiling"/> (SR20/SR21), a TO tuple preceding the FROM tuple (SR21), or unequal
@@ -430,7 +430,7 @@ public static class TableValueOdometer
 
     private static long SaturatingAdd(long a, long b) => TableValuePlan.SaturatingAdd(a, b);
 
-    /// <summary>§13.18.63.4 GR16 — the INITIAL CAPACITY a Format-2 VALUE gives the dynamic-capacity table at
+    /// <summary>§2023:13.18.63.4 GR16 — the INITIAL CAPACITY a Format-2 VALUE gives the dynamic-capacity table at
     /// dimension <paramref name="dim"/>: (a) with a TO phrase, "the initial capacity is increased, if necessary,
     /// to the value of the corresponding subscript-2, provided that this value does not lie outside the range
     /// defined by the minimum and expected capacity specified in the OCCURS clause. If the value of subscript-2

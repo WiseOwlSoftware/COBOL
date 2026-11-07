@@ -4,22 +4,22 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.71.3 rule 2 (ORD-MAX): "Argument-1 shall not be a zero-length literal."
+      *> ISO §2023:15.71.3 rule 2 (ORD-MAX): "Argument-1 shall not be a zero-length literal."
       *>
       *> THE ORDINAL IS THE FUNCTION'S OWN. MAX states the identical prohibition at
-      *> §15.59.3 r3 and MIN at §15.63.3 r3, but ORD-MAX orders its argument rules
+      *> §2023:15.59.3 r3 and MIN at §2023:15.63.3 r3, but ORD-MAX orders its argument rules
       *> differently — r1 is the negative class list, r2 is THIS rule, r3 is the
-      *> all-same-class rule — so a diagnostic citing "§15.59.3 r3" here would be the
+      *> all-same-class rule — so a diagnostic citing "§2023:15.59.3 r3" here would be the
       *> inherited-citation failure, not a citation.
       *>
-      *> §15.71.2's general format is `FUNCTION ORD-MAX ( { argument-1 } ... )`, so
+      *> §2023:15.71.2's general format is `FUNCTION ORD-MAX ( { argument-1 } ... )`, so
       *> every written position IS argument-1 and carries the rule. This fixture puts
       *> the zero-length literal at POSITION 2 OF 3.
       *>
-      *> WHY THE DIAGNOSTIC IS EVIDENCE FOR RULE 2. §15.71.3's other two rules cannot
+      *> WHY THE DIAGNOSTIC IS EVIDENCE FOR RULE 2. §2023:15.71.3's other two rules cannot
       *> fire on this list: r1 excludes classes boolean, message-tag, object, pointer
       *> and a strongly-typed group item, and every argument here is class
-      *> alphanumeric (§8.5.2.1 Table 2); r3 wants all arguments of the same class and
+      *> alphanumeric (§2023:8.5.2.1 Table 2); r3 wants all arguments of the same class and
       *> all three are alphanumeric. Rule 2 is the only rule this program violates.
       *>
       *> The legal complement is 2023/pb35_zero_length_literal_legal_forms, whose

@@ -35,7 +35,7 @@ word is not evidence: do not re-derive what it measured, but DO re-run every pro
 reported DISCHARGED with the evidence (find the landing that fixed it with `git log -S`) — a real outcome, not a failure.
 
 ⛔ THE SPEC DECIDES: derive the expected behaviour from `specs/ISO_COBOL_2023.md` before you read or write code. When a general-format DIAGRAM is
-load-bearing, render the PDF page (`scripts/render-spec-page.py <page>`). ⛔ CITATIONS: `python scripts/spec/cite.py --check <clause> "<text>"` for EVERY § you write into
+load-bearing, render the PDF page (`scripts/render-spec-page.py <page>`). ⛔ CITATIONS: `python scripts/spec/cite.py --check "§2023:<clause>" "<text>"` for EVERY § you write into
 code, a golden or the report — including the ones the notes carry. A citation you did not --check is not a citation.
 
 ⛔ PUBLIC SKILLS (MANDATORY-PRACTICES P10): before work read E:\claude-skills\skills\engineering-standards\SKILL.md,

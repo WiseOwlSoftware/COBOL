@@ -13,15 +13,15 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// kb/Work PB595 — <b>ONE lexical-containment predicate for the three directive bans</b>, and the warning owner
 /// decision D20 (2026-07-19) specified:
 /// <list type="bullet">
-/// <item>ISO §7.3.25.3 SR5 — "A TURN directive shall not be specified within an exception processing PERFORM statement."</item>
-/// <item>ISO §7.3.22.3 SR4 — "The PUSH directive shall not be specified within an exception checking PERFORM statement."</item>
-/// <item>ISO §7.3.20.3 SR4 — "The POP directive shall not be specified within an exception checking PERFORM statement."</item>
+/// <item>ISO §2023:7.3.25.3 SR5 — "A TURN directive shall not be specified within an exception processing PERFORM statement."</item>
+/// <item>ISO §2023:7.3.22.3 SR4 — "The PUSH directive shall not be specified within an exception checking PERFORM statement."</item>
+/// <item>ISO §2023:7.3.20.3 SR4 — "The POP directive shall not be specified within an exception checking PERFORM statement."</item>
 /// </list>
 ///
 /// <para><b>Why a warning and not a rejection.</b> D20: a FLAT ban (the whole statement, imperative-statement-1
 /// included — Annex D.16.4 uses "exception-processing PERFORM statement" for the PUSH/POP ban that is stated
 /// normatively as "exception checking", so the two phrasings are drafting synonyms), reported as a SUPPRESSIBLE
-/// conformance warning; §4.2.2 requires for a syntax-rule violation only "a warning mechanism that optionally may
+/// conformance warning; §2023:4.2.2 requires for a syntax-rule violation only "a warning mechanism that optionally may
 /// be invoked by the user at compile time", so the program still compiles and still runs.</para>
 ///
 /// <para><b>What these pins hold.</b> A directive is not in the parse tree — it is removed by the preprocessor —
@@ -32,7 +32,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 public sealed class ExceptionCheckingPerformDirectiveBanDriftTests
 {
-    /// <summary>The TURN ban — the row PB595 opened. The warning names §7.3.25.3 SR5 and quotes it, and the
+    /// <summary>The TURN ban — the row PB595 opened. The warning names §2023:7.3.25.3 SR5 and quotes it, and the
     /// compile SUCCEEDS: a rejection here would be D20's explicitly rejected treatment.</summary>
     [Fact]
     public void ATurnInsideAnExceptionCheckingPerform_WarnsCitingSr5_AndStillCompiles()
@@ -40,15 +40,15 @@ public sealed class ExceptionCheckingPerformDirectiveBanDriftTests
         var edition = Bind(Inside(">>TURN EC-OVERFLOW-STRING CHECKING ON", "PB595TURNIN"));
         Assert.Empty(edition.Diagnostics);
         Assert.Contains(edition.Warnings, w =>
-            w.Contains("COBOL2187") && w.Contains("§7.3.25.3 SR5")
+            w.Contains("COBOL2187") && w.Contains("§2023:7.3.25.3 SR5")
             && w.Contains("A TURN directive shall not be specified within an exception processing PERFORM statement"));
     }
 
     /// <summary>The PUSH and POP bans — the two D20 required the SAME predicate to decide. Each quotes its OWN
     /// clause and its own words: they are three syntax rules, not one rule with three spellings.</summary>
     [Theory]
-    [InlineData(">>PUSH ALL", "§7.3.22.3 SR4", "The PUSH directive shall not be specified")]
-    [InlineData(">>POP ALL", "§7.3.20.3 SR4", "The POP directive shall not be specified")]
+    [InlineData(">>PUSH ALL", "§2023:7.3.22.3 SR4", "The PUSH directive shall not be specified")]
+    [InlineData(">>POP ALL", "§2023:7.3.20.3 SR4", "The POP directive shall not be specified")]
     public void APushOrPopInsideAnExceptionCheckingPerform_WarnsCitingItsOwnRule(
         string directive, string clause, string quoted)
     {
@@ -118,8 +118,8 @@ public sealed class ExceptionCheckingPerformDirectiveBanDriftTests
     }
 
     /// <summary>A banned directive inside an OMITTED conditional-compilation branch draws nothing: it is not
-    /// compiled at all (ISO §7.3.11 — the omitted lines are removed from the compilation group), so there is no
-    /// directive for §7.3.22.3 SR4 to be about. This is a property of WHERE the sites are recorded — after the
+    /// compiled at all (ISO §2023:7.3.11 — the omitted lines are removed from the compilation group), so there is no
+    /// directive for §2023:7.3.22.3 SR4 to be about. This is a property of WHERE the sites are recorded — after the
     /// conditional-compilation driver has already blanked the omitted lines — and it would be lost by a scanner
     /// that read the raw source instead.</summary>
     [Fact]
@@ -156,7 +156,7 @@ public sealed class ExceptionCheckingPerformDirectiveBanDriftTests
         string binder = File.ReadAllText(WiseOwl.Cobol.Tests.Shared.TestRepo.Src(
             "WiseOwl.Cobol.Compiler", "Binding", "Procedure", "Verbs", "EcBinder.ExceptionPerform.cs"));
         foreach (string word in DirectiveSiteProcessor.PositionRuled)
-            Assert.Contains($"(\"{word}\", \"§7.3.", binder);
+            Assert.Contains($"(\"{word}\", \"§2023:7.3.", binder);
         Assert.Equal(3, DirectiveSiteProcessor.PositionRuled.Count);
     }
 

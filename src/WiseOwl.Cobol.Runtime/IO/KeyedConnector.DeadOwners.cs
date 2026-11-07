@@ -6,7 +6,7 @@ namespace WiseOwl.Cobol.Runtime.IO;
 
 /// <summary>
 /// ⛔ THE DEAD-OWNER STEP OF A CONNECTOR THAT HAS NO WRITABLE HANDLE (DESIGN-runtime-library.md 2.2.1.10, "The dead owner's
-/// rollback is every reader's too"; kb/Work PB4097). §9.1.18.5: <i>"When a run unit terminates abnormally, all file changes made
+/// rollback is every reader's too"; kb/Work PB4097). §2023:9.1.18.5: <i>"When a run unit terminates abnormally, all file changes made
 /// since the previous commit or, if none, the beginning of the run unit are rolled back for all files for which there are
 /// active APPLY COMMIT clauses."</i> — and only <i>"In both cases all file and record locks are then released"</i>. A dead
 /// owner's locks are gone with its handles, so no run unit may observe the file between the death and the rollback: the
@@ -22,7 +22,7 @@ public abstract partial class KeyedConnector
     /// stands whose owner is dead (<see cref="KeyedStore.FindDeadOwner"/>; nothing is read while page 2 names no transaction).</summary>
     private StoreStatus ReaderEntryFindsDeadOwner(KeyedStore store, out bool found) => store.FindDeadOwner(_regions!, out found);
 
-    /// <summary>⛔ A READER'S STATEMENT SETTLES THE DEAD OWNERS BEFORE IT READS (§9.1.18.5): the shared mutex is let go — the settle
+    /// <summary>⛔ A READER'S STATEMENT SETTLES THE DEAD OWNERS BEFORE IT READS (§2023:9.1.18.5): the shared mutex is let go — the settle
     /// takes it exclusively through its own handle, which is another open file description than this connector's — the dead
     /// owners are rolled back (<see cref="SettleDeadOwnersBeside"/>), and the statement enters again, page 2 read anew: the settle
     /// moved it, so the store adopts it and drops its page cache (2.2.1.7). A host refusal of the settle is the entry's host
@@ -37,7 +37,7 @@ public abstract partial class KeyedConnector
         if (store.File is { } file && file.Enter(exclusive: false) != StoreStatus.Ok) SetStatus(FileStatusCode.PermanentError);
     }
 
-    /// <summary>⛔ THE OPEN OF A CONNECTOR WITH NO WRITABLE HANDLE SETTLES THE DEAD OWNERS BEFORE ANY RECORD IS READ (§9.1.18.5;
+    /// <summary>⛔ THE OPEN OF A CONNECTOR WITH NO WRITABLE HANDLE SETTLES THE DEAD OWNERS BEFORE ANY RECORD IS READ (§2023:9.1.18.5;
     /// kb/Work PB4097): the store the OPEN just attached is entered under the mutex (a live store another connector of the run unit
     /// holds is not re-read by the OPEN) and asked for a dead owner. None: the OPEN proceeds. One: the OPEN's own handle goes first
     /// (a host whose share modes are mandatory refuses a writer beside a handle that excludes writers, which INPUT's default
@@ -45,7 +45,7 @@ public abstract partial class KeyedConnector
     /// takes its handle and attaches again — the Table 19 column (the file lock between run units) stays held throughout, so no
     /// run unit the table refuses gets in between. A connector holding the handle a CLOSE under commit control kept keeps it
     /// (that handle is the transaction's file lock and liveness byte). A host refusal of the settle is the OPEN's own: '37' for
-    /// the authority it lacks (§14.9.27.4 GR3), '61' for a handle another run unit's share mode refuses, otherwise '30' — the
+    /// the authority it lacks (§2023:14.9.27.4 GR3), '61' for a handle another run unit's share mode refuses, otherwise '30' — the
     /// statuses of every OPEN whose host open is refused (<see cref="FileConnector.Open"/>). Returns the failing I-O status of the
     /// attach, or null.</summary>
     private string? SettleDeadOwnersOfTheOpen()
@@ -71,7 +71,7 @@ public abstract partial class KeyedConnector
         return Lock(FileTaking.Existing) ?? Attach(create: false);
     }
 
-    /// <summary>⛔ ROLL BACK EVERY DEAD OWNER'S TRANSACTION THROUGH A WRITABLE HANDLE OPENED FOR THE PURPOSE (§9.1.18.5; 2.2.1.10): a
+    /// <summary>⛔ ROLL BACK EVERY DEAD OWNER'S TRANSACTION THROUGH A WRITABLE HANDLE OPENED FOR THE PURPOSE (§2023:9.1.18.5; 2.2.1.10): a
     /// scratch store of this organization (<see cref="NewStore"/>, which no table and no connector holds) is adopted through the
     /// new handle as every writable OPEN adopts (2.2.1.6 R6 and its fence), under the exclusive store mutex taken through it, its
     /// dead-owner step runs with this connector's declared trees (<see cref="Restoring"/>), and its promotion lands (the

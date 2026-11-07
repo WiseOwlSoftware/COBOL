@@ -13,9 +13,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// kb/Work PB892 — <b>an activation written as an OPERAND has the statement it was written in, and one landing
-/// gives it that statement.</b> ISO §14.9.18.4 GR1 b) raises a condition an activated element propagates "in the
+/// gives it that statement.</b> ISO §2023:14.9.18.4 GR1 b) raises a condition an activated element propagates "in the
 /// activating runtime element if checking for that exception condition is enabled in the activating runtime
-/// element", and §14.9.33.4 GR2 a) 2. makes the applicable statement of a RESUME AT NEXT STATEMENT for it, "for an
+/// element", and §2023:14.9.33.4 GR2 a) 2. makes the applicable statement of a RESUME AT NEXT STATEMENT for it, "for an
 /// inline invocation or a function invocation, … the statement in which the inline invocation or function
 /// invocation was specified".
 ///
@@ -43,9 +43,9 @@ public sealed class OperandActivationDriftTests
     /// evaluates an OPERAND lives on the bound node (<c>BoundStatement.OperandEvaluation</c>, stamped at the two
     /// drain sites), the statement emitter opens the scope around such a step, and <c>DispatchState.ResumeTransfer</c>
     /// unwinds inside it — so no raise site chooses its own landing. Before PB1432 the choice was a per-emitter
-    /// <c>Resume(inExpression, …)</c> helper that only activations reached: a §15.4 subscript temporary store's
+    /// <c>Resume(inExpression, …)</c> helper that only activations reached: a §2023:15.4 subscript temporary store's
     /// size-error landing wrote <c>goto __xfer</c> inside a short-circuited operand's lambda (CS0159) and, hoisted,
-    /// fell back INTO the statement §14.9.33.4 GR2 a) 1. says to leave.</summary>
+    /// fell back INTO the statement §2023:14.9.33.4 GR2 a) 1. says to leave.</summary>
     [Fact]
     public void OperandEvaluationLanding_IsDecidedOnceByTheDispatchState()
     {
@@ -139,10 +139,10 @@ public sealed class OperandActivationDriftTests
         Assert.Equal(2, Regex.Matches(cs, @"TakeRaisedPropagation\(").Count);
     }
 
-    /// <summary>kb/Work PB1432 — a §15.4 subscript temporary STORE in a short-circuited operand is an
+    /// <summary>kb/Work PB1432 — a §2023:15.4 subscript temporary STORE in a short-circuited operand is an
     /// operand-evaluation step too: its size-error selection throws to the IF's landing from inside the lambda
     /// (it was <c>goto __xfer</c> there, CS0159), and hoisted before a first operand it throws as well rather than
-    /// falling back into the IF (§14.9.33.4 GR2 a) 1. and NOTE 1: "transfer would be after the END-IF").</summary>
+    /// falling back into the IF (§2023:14.9.33.4 GR2 a) 1. and NOTE 1: "transfer would be after the END-IF").</summary>
     [Fact]
     public void GeneratedCode_SubscriptTemporaryStoreLandsAtItsStatement()
     {

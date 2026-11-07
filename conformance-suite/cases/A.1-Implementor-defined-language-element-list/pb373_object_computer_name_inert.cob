@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §12.3.6.4 GR2 — computer-name-1 identifies NO equipment
+      *> ISO §2023:12.3.6.4 GR2 — computer-name-1 identifies NO equipment
       *> configuration (Annex A.1 item 127, optional): DOC-A.1-127.
       *>
       *> GR2: "Computer-name-1 may provide a means for identifying
@@ -15,7 +15,7 @@
       *> provided at the implementor's option") and conditions the
       *> documentation duty on provision ("If the element is provided
       *> by the implementor, the implementor's user documentation
-      *> shall document the element"); §4.2.5 is the conformance
+      *> shall document the element"); §2023:4.2.5 is the conformance
       *> clause that governs the A.1 list.
       *>
       *> CONFORMANCE.md §7 DOC-A.1-127 makes TWO claims and this file
@@ -35,7 +35,7 @@
       *>   L1OCW02  OBJECT-COMPUTER. ACME-4381.      a DIFFERENT name
       *>   L1OCW03  OBJECT-COMPUTER.                 no name (GR3)
       *>   L1OCW04  no OBJECT-COMPUTER paragraph     (GR4)
-      *> §12.3.6.3 SR4 lets L1OCW03's second period go.  A name-keyed
+      *> §2023:12.3.6.3 SR4 lets L1OCW03's second period go.  A name-keyed
       *> equipment configuration — exactly what GR2 permits an
       *> implementor to provide — is what would make L1OCW02 answer
       *> differently from L1OCW01.
@@ -46,12 +46,12 @@
       *>
       *> The signature holds the facts an implied equipment
       *> configuration fixes: FUNCTION BYTE-LENGTH of a group holding
-      *> BINARY-LONG and BINARY-DOUBLE (§13.18.60.4 GR21 — "The
+      *> BINARY-LONG and BINARY-DOUBLE (§2023:13.18.60.4 GR21 — "The
       *> representation and length ... is implementor-defined"),
       *> FUNCTION ORD of a native character, a runtime relation under
       *> the native alphanumeric program collating sequence
-      *> (§12.3.6.4 GR10) and a runtime class condition under the
-      *> character classification in effect (§12.3.6.4 GR6).  No
+      *> (§2023:12.3.6.4 GR10) and a runtime class condition under the
+      *> character classification in effect (§2023:12.3.6.4 GR6).  No
       *> implementor-defined VALUE is pinned — only that all four
       *> legs agree.
       *>
@@ -76,7 +76,7 @@
       *> clause off a REQUIRED name.  A name-keyed configuration
       *> would bite here first.
       *>
-      *> PCS legs — §12.3.6.4 GR9 ("When the PROGRAM COLLATING
+      *> PCS legs — §2023:12.3.6.4 GR9 ("When the PROGRAM COLLATING
       *> SEQUENCE clause is specified, the initial alphanumeric
       *> program collating sequence is the collating sequence
       *> associated with alphabet-name-1") and GR11 ("The
@@ -91,13 +91,13 @@
       *> prints NATIVE, and a CALL that never ran leaves the flag 0
       *> and also prints NATIVE, so the leg fails LOUDLY.
       *>
-      *> CC legs — §12.3.6.4 GR5 a ("If locale-name-1 is specified,
+      *> CC legs — §2023:12.3.6.4 GR5 a ("If locale-name-1 is specified,
       *> the initial alphanumeric character classification is the
       *> character classification associated with locale-name-1") and
       *> GR7 a ("the uppercase and lowercase mappings of characters
       *> for the UPPER-CASE and LOWER-CASE intrinsic functions").
       *> The two legs are compared to EACH OTHER, never to a pinned
-      *> Turkish value: §8.2.1 makes locale availability a runtime
+      *> Turkish value: §2023:8.2.1 makes locale availability a runtime
       *> property, so if "tr-TR" is absent both legs fall back
       *> identically and the invariance still holds.  That keeps the
       *> golden environment-independent while still measuring the
@@ -108,7 +108,7 @@
       *> deliberately perturbed copy, so a green run cannot be a
       *> comparison that never reports a difference.  SIG-NONZERO
       *> guards a signature that is vacuously equal because nothing
-      *> was computed; ALPHA-LOWER is pinned by §8.8.4.4.4 GR3c2
+      *> was computed; ALPHA-LOWER is pinned by §2023:8.8.4.4.4 GR3c2
       *> ("a" is a lowercase letter and no locale is in effect).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1OCW01.
@@ -249,7 +249,7 @@
            GOBACK.
        END PROGRAM L1OCW02.
       *> Leg (b) — the paragraph is present, computer-name-1 ABSENT
-      *> (§12.3.6.4 GR3; §12.3.6.3 SR4 drops the second period).
+      *> (§2023:12.3.6.4 GR3; §2023:12.3.6.3 SR4 drops the second period).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1OCW03.
        ENVIRONMENT DIVISION.
@@ -284,7 +284,7 @@
            GOBACK.
        END PROGRAM L1OCW03.
       *> Leg (c) — NO OBJECT-COMPUTER paragraph at all, and no
-      *> CONFIGURATION SECTION to inherit one from (§12.3.6.4 GR4).
+      *> CONFIGURATION SECTION to inherit one from (§2023:12.3.6.4 GR4).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1OCW04.
        DATA DIVISION.
@@ -363,10 +363,10 @@
        END PROGRAM L1OCW06.
       *> PART 2 leg — CHARACTER CLASSIFICATION follows a NAME.
       *> The value returned is FUNCTION ORD of the first character
-      *> of FUNCTION UPPER-CASE("i") (§12.3.6.4 GR7 a).  It is NEVER
+      *> of FUNCTION UPPER-CASE("i") (§2023:12.3.6.4 GR7 a).  It is NEVER
       *> compared with a pinned Turkish code point — only with the
       *> name-less leg's answer — so the leg is correct whether or
-      *> not the environment provides "tr-TR" (§8.2.1 makes locale
+      *> not the environment provides "tr-TR" (§2023:8.2.1 makes locale
       *> availability a RUNTIME property).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1OCW07.

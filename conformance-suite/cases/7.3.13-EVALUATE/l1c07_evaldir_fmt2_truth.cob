@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §7.3.13.4 GR8 GR9 GR10 — format 2 (EVALUATE TRUE)
+      *> ISO §2023:7.3.13.4 GR8 GR9 GR10 — format 2 (EVALUATE TRUE)
       *> directive: first TRUE WHEN only; WHEN OTHER when none; nothing
       *> when none and no WHEN OTHER.
       *> RULE 7.3.13.4 GR8: "For each WHEN phrase in turn, the
@@ -26,11 +26,11 @@
       *>   syntax evaluates TRUE if compilation-variable-name-1 is
       *>   currently defined."
       *> cite.py:
-      *>   OK  §7.3.13.4 8)  (General rules)
-      *>  OK  §7.3.13.4 5)  (General rules)  [GR9 = GR5 word for word;
+      *>   OK  §2023:7.3.13.4 8)  (General rules)
+      *>  OK  §2023:7.3.13.4 5)  (General rules)  [GR9 = GR5 word for word;
       *>                                     cite.py resolves to 5)]
-      *>   OK  §7.3.13.4 6)  (General rules)  [GR10 likewise = GR6]
-      *>   OK  §7.3.8.4.4 1)  (General rule)
+      *>   OK  §2023:7.3.13.4 6)  (General rules)  [GR10 likewise = GR6]
+      *>   OK  §2023:7.3.8.4.4 1)  (General rule)
       *> EXPECTED OUTPUT, DERIVED (L1C07VV defined as 3):
       *>   A-FIRST-TRUE-1  WHEN L1C07VV > 5 is FALSE; the next WHEN
       *>   A-FIRST-TRUE-2  (L1C07VV IS DEFINED AND L1C07VV = 3) is TRUE:

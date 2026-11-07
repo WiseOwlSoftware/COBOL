@@ -5,11 +5,11 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB437 — the §14.9.28.4 GR12 evaluation WINDOW of a varying-phrase operand, proved by
+      *> kb/Work PB437 — the §2023:14.9.28.4 GR12 evaluation WINDOW of a varying-phrase operand, proved by
       *> CARDINALITY: "Item identification for identifier-3, identifier-4, identifier-6, identifier-7,
       *> index-name-2, and index-name-4 is done each time the content of the data item referenced by the
       *> identifier or the index referenced by the index-name is used in a SETTING or AUGMENTING operation."
-      *> Each operand below carries a FUNCTION reference in its SUBSCRIPT (§15.4 — the temporary store is a
+      *> Each operand below carries a FUNCTION reference in its SUBSCRIPT (§2023:15.4 — the temporary store is a
       *> pre-op registered exactly like a user-function activation), so an operand read once per STATEMENT and
       *> one read once per OPERATION give DIFFERENT answers, which is what makes this a test.
       *>

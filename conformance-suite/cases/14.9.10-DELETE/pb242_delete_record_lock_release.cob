@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> kb/Work PB242 - ISO §14.9.10.4 GR7, the DELETE RECORD
+      *> kb/Work PB242 - ISO §2023:14.9.10.4 GR7, the DELETE RECORD
       *> record-lock release rules, observed end to end through a
       *> second connector (the statement's single- AND multiple-
       *> locking arms, on success and on failure).
@@ -24,34 +24,34 @@
       *>  connector associated with file-name-1, all locks held on the
       *>  deleted record are released at the completion of the
       *>  successful execution of the DELETE RECORD statement."
-      *> cite.py: OK  §14.9.10.4 7)  (General rules) - lead-in, a) 1.,
+      *> cite.py: OK  §2023:14.9.10.4 7)  (General rules) - lead-in, a) 1.,
       *>   a) 2. and b) each checked separately
-      *> cite.py: OK  §14.9.10.4 4)  (General rules) - relative,
+      *> cite.py: OK  §2023:14.9.10.4 4)  (General rules) - relative,
       *>   random: the record "identified by the content of the
       *>   relative key data item"; not present -> invalid key
-      *> cite.py: OK  §14.9.10.4 5)  (General rules) - "the identified
+      *> cite.py: OK  §2023:14.9.10.4 5)  (General rules) - "the identified
       *>   record has been logically removed from the physical file
       *>   and can no longer be accessed"
-      *> cite.py: OK  §14.9.10.4 6) a)  (General rules) - conflict:
+      *> cite.py: OK  §2023:14.9.10.4 6) a)  (General rules) - conflict:
       *>   "The record is not logically removed, and may be accessed."
-      *> cite.py: OK  §12.4.5.9.4 5)  (General rules) - MANUAL: "Records
+      *> cite.py: OK  §2023:12.4.5.9.4 5)  (General rules) - MANUAL: "Records
       *>   locks are obtained only when the LOCK phrase is explicitly
       *>   specified on an I-O statement."
-      *> cite.py: OK  §12.4.5.9.4 6)  (General rules) - single locking
+      *> cite.py: OK  §2023:12.4.5.9.4 6)  (General rules) - single locking
       *>   is implied by LOCK MODE without LOCK ON; "Execution of any
       *>   I-O statement except START releases any previously locked
       *>   record in that file for that file connector."
-      *> cite.py: OK  §12.4.5.9.4 7)  (General rules) - MULTIPLE: "a
+      *> cite.py: OK  §2023:12.4.5.9.4 7)  (General rules) - MULTIPLE: "a
       *>   file connector is permitted to have more than one record of
       *>   a file locked"
-      *> cite.py: OK  §14.9.30.4 9)  (General rules) - a READ of "the
+      *> cite.py: OK  §2023:14.9.30.4 9)  (General rules) - a READ of "the
       *>   record identified for access is locked by another file
       *>   connector" -> record operation conflict condition
-      *> cite.py: OK  §9.1.13.8 1)  (Record operation conflict condition
+      *> cite.py: OK  §2023:9.1.13.8 1)  (Record operation conflict condition
       *>   with unsuccessful completion) - "I-O status = 51."
-      *> cite.py: OK  §14.9.51.4 32)  (General rules) - a relative I-O
+      *> cite.py: OK  §2023:14.9.51.4 32)  (General rules) - a relative I-O
       *>   random WRITE inserts the record at the relative key's number
-      *> cite.py: OK  §9.1.16   (Record locking) - "all record locks
+      *> cite.py: OK  §2023:9.1.16   (Record locking) - "all record locks
       *>   established for a file are released by the execution of an
       *>   explicit or implicit CLOSE statement for the file."
       *> No APPLY COMMIT clause is written here, so GR7's antecedent
@@ -79,16 +79,16 @@
       *>  S4: P READ 2 WITH LOCK; R READ 4 WITH LOCK. P DELETE 4 ->
       *>      51 (GR6, no RETRY phrase). a) 2. ran first, at the
       *>      beginning -> Q2=00; R still locks 4 -> Q4=51. CLOSE R
-      *>      (§9.1.16) -> Q4=00 DDDDDDDDDD: GR6 a) left it present.
+      *>      (§2023:9.1.16) -> Q4=00 DDDDDDDDDD: GR6 a) left it present.
       *>  S5: M READ 2 WITH LOCK, READ 4 WITH LOCK (both kept,
-      *>      §12.4.5.9.4 GR7) -> Q2=51, Q4=51. M DELETE 4 -> 00. b)
+      *>      §2023:12.4.5.9.4 GR7) -> Q2=51, Q4=51. M DELETE 4 -> 00. b)
       *>      frees the deleted record's lock only: the lock on 2
       *>      survives -> Q2=51; Q WRITE 4 -> 00, Q READ 4 -> 00 with
       *>      Q's record.
       *>  S6: M READ 5 WITH LOCK -> Q5=51. M DELETE 9 -> 23 (GR4).
       *>      Multiple locking releases nothing at the beginning and b)
       *>      needs a successful DELETE -> Q2=51, Q5=51.
-      *>  S7: CLOSE M releases all its locks (§9.1.16) -> Q2=00,
+      *>  S7: CLOSE M releases all its locks (§2023:9.1.16) -> Q2=00,
       *>      Q5=00. Final contents: 1 = Q's, 2 = BBBB, 3 deleted,
       *>      4 = Q's, 5 = EEEE.
        IDENTIFICATION DIVISION.

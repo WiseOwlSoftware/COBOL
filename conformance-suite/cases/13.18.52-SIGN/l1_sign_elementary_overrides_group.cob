@@ -5,12 +5,12 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §13.18.52.4 GR3 — the SIGN clause of an ELEMENTARY numeric item
+      *> ISO §2023:13.18.52.4 GR3 — the SIGN clause of an ELEMENTARY numeric item
       *> subordinate to a group that carries its own SIGN clause takes
       *> precedence FOR THAT ELEMENTARY ENTRY, while the group's clause still
       *> governs its siblings.
       *>
-      *> THE RULE. §13.18.52.4 GR3: "If a SIGN clause is specified in an
+      *> THE RULE. §2023:13.18.52.4 GR3: "If a SIGN clause is specified in an
       *> elementary numeric item subordinate to a group item for which a SIGN
       *> clause is specified, the SIGN clause specified in that elementary
       *> entry takes precedence for that elementary entry."
@@ -21,7 +21,7 @@
       *> different sign layouts at once, and GR3 decides which entry gets
       *> which.
       *>
-      *> WHY THIS GOLDEN USES THE SEPARATE CHARACTER FORM ONLY. §13.18.52.4
+      *> WHY THIS GOLDEN USES THE SEPARATE CHARACTER FORM ONLY. §2023:13.18.52.4
       *> GR6 makes both halves of a SEPARATE sign SPEC-DEFINED, so nothing
       *> below depends on an implementor determination:
       *>   GR6 a) "The operational sign is presumed to be the leading (or,
@@ -35,9 +35,9 @@
       *>          basic special characters '+' and '-', respectively."
       *>          (The printed standard sets that second character as a
       *>          typographic en dash. The basic special character it names
-      *>          is Table 1's "minus sign (hyphen)", §8.1.3.1 — U+002D
+      *>          is Table 1's "minus sign (hyphen)", §2023:8.1.3.1 — U+002D
       *>          HYPHEN-MINUS — which is what is expected below.)
-      *> The unseparate (over-punch) form is deliberately NOT used: §13.18.52.4
+      *> The unseparate (over-punch) form is deliberately NOT used: §2023:13.18.52.4
       *> GR4/GR5 b) hand its representation to the implementor and that
       *> determination has no docs/CONFORMANCE.md A.1 row yet, so pinning a
       *> character here would pin an undocumented choice.

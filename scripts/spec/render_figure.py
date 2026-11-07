@@ -389,7 +389,7 @@ def build(page, lo, hi, extract, classify_page):
     # A LABEL IS IDENTIFIED BY WHAT IT ANNOTATES, never by where it merely sits. A row is snapped only when it
     # is the POINT row of a brace further out — one standing between the row's words and the inner brace, and
     # spanning that inner brace from hook to hook: the label of an ENCLOSURE. Sitting to the left of a brace
-    # and inside its height is not enough, and the report-writer LINE clause (§13.18.35.2 Format 1) is the
+    # and inside its height is not enough, and the report-writer LINE clause (§2023:13.18.35.2 Format 1) is the
     # case: `LINE NUMBER IS` and `LINES ARE` sit left of the tall `{ integer-1 … / … integer-2 / ON NEXT PAGE }`
     # brace and inside its height, but they are ALTERNATIVES of the three-way brace beside it, a sibling group
     # with hooks of its own. Snapping them as labels lifted `LINE NUMBER IS` onto `integer-1`'s row, above its
@@ -512,7 +512,7 @@ def build(page, lo, hi, extract, classify_page):
     #
     # BOTH families count. This used to consider vector stems only, so a two-alternative BRACE — which is
     # always glyph-drawn — came out two rows tall with no middle piece and therefore no POINT, losing the
-    # §5.2.6.3-vs-§5.2.6.2 distinction the point exists to carry. `where encoding-phrase is:` on folio 276 is
+    # §2023:5.2.6.3-vs-§2023:5.2.6.2 distinction the point exists to carry. `where encoding-phrase is:` on folio 276 is
     # the smallest case: two alternatives, one brace, and nowhere to put its point.
     spacers = {c[0] for s in stems for c in [covers(s)] if len(c) == 2 and c[1] - c[0] == 1}
     spacers |= {r0 for _, r0, r1, _ in glyph_raw if r1 - r0 == 1}
@@ -621,7 +621,7 @@ def build(page, lo, hi, extract, classify_page):
                 grid[r][c + j] = ch
             # `underlined` is True/False, or [(offset, length), …] when the rule covers only PART of the word.
             # The partial case is the compiler-directive indicator printed hard against its keyword —
-            # `>>CALL-CONVENTION` underlines only the keyword, because `>>` is not a word (§7.3 SR5 treats the
+            # `>>CALL-CONVENTION` underlines only the keyword, because `>>` is not a word (§2023:7.3 SR5 treats the
             # indicator as though a space followed it). Marking the whole token would state that `>>` is a
             # required WORD, which is a normative claim the printed page does not make.
             u = w["underlined"]

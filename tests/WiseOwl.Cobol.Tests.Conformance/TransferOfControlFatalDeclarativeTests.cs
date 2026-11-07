@@ -5,20 +5,20 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// ISO/IEC 1989:2023 §14.6.3 3) (Explicit and implicit transfers of control), the fatal-declarative sentence
+/// ISO/IEC 1989:2023 §2023:14.6.3 3) (Explicit and implicit transfers of control), the fatal-declarative sentence
 /// (<c>cite.py --check 14.6.3 "the run unit is terminated abnormally as specified in 14.6.12"</c> → OK):
 /// "In the declarative section for a fatal exception condition, there is no next executable statement after either
 /// the last statement when the paragraph in which it appears is not being executed under the control of some other
 /// COBOL statement, or ... In these cases, unless the exception occurs in a MERGE statement, a SORT statement, or an
 /// I-O statement for which the implementor specifies otherwise, the run unit is terminated abnormally as specified
-/// in 14.6.12, Abnormal run unit termination." (With §14.6.13.1.3 5): "If execution of the declarative completes
+/// in 14.6.12, Abnormal run unit termination." (With §2023:14.6.13.1.3 5): "If execution of the declarative completes
 /// normally the execution of the run unit is terminated abnormally", cite.py OK.)
 /// <para>An abnormal termination is observable only as the exit code, the stderr surface and the stdout that stops,
-/// and a corpus golden must exit 0, so this sentence is pinned here. The rest of §14.6.3 3) (empty procedures,
+/// and a corpus golden must exit 0, so this sentence is pinned here. The rest of §2023:14.6.3 3) (empty procedures,
 /// EXIT PROGRAM, the implicit GOBACK) is the golden <c>2023/l1_transfer_of_control_implicit</c>.</para>
-/// <para>The fatal condition is EC-SIZE-ZERO-DIVIDE (§14.7.5 2): "if the divisor in a divide operation ... is zero,
+/// <para>The fatal condition is EC-SIZE-ZERO-DIVIDE (§2023:14.7.5 2): "if the divisor in a divide operation ... is zero,
 /// the EC-SIZE-ZERO-DIVIDE exception condition is set to exist", Fatal in Table 13), raised by a COMPUTE with no
-/// SIZE ERROR phrase, so §14.6.13.1.3 1) does not apply and 5) selects the USE declarative. The declarative has no
+/// SIZE ERROR phrase, so §2023:14.6.13.1.3 1) does not apply and 5) selects the USE declarative. The declarative has no
 /// RESUME, so it completes normally and there is no next executable statement.</para>
 /// </summary>
 public sealed class TransferOfControlFatalDeclarativeTests
@@ -26,7 +26,7 @@ public sealed class TransferOfControlFatalDeclarativeTests
     private static void AssertAbnormal(int exit, string stdout, string stderr, string expectedStdout)
     {
         Assert.Equal(expectedStdout, stdout);                       // nothing after the declarative runs
-        Assert.Equal(1, exit);                                      // §14.6.12 — the abnormal-termination exit
+        Assert.Equal(1, exit);                                      // §2023:14.6.12 — the abnormal-termination exit
         Assert.Contains("abnormal run-unit termination", stderr);
         Assert.Contains("EC-SIZE-ZERO-DIVIDE", stderr);
     }

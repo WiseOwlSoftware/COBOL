@@ -125,7 +125,7 @@ public sealed class PageLayoutGoldenTests
         Assert.False(MetaPage.Fits(new FixedFileAttributes(FixedFileAttributes.Indexed, false, 8, 8, [wide, wide])));
     }
 
-    /// <summary><c>MetaPage.Describes</c>, the §14.9.27.4 GR10 read: Empty, Described, Foreign (a whole-store file of format
+    /// <summary><c>MetaPage.Describes</c>, the §2023:14.9.27.4 GR10 read: Empty, Described, Foreign (a whole-store file of format
     /// 5, whose magic sits at offset 0) and Damaged (this format's magic, neither committed slot valid: R6's '30').</summary>
     [Fact]
     public void Describes_tells_empty_described_foreign_and_damaged_files_apart()
@@ -235,7 +235,7 @@ public sealed class PageLayoutGoldenTests
     /// <summary>The PRODUCTION medium's length is the file's length in BYTES (finding R2-1): over a 5 000-byte file — a
     /// format-5 whole store, not a whole number of pages — <see cref="HandlePageMedium.Length"/> is 5 000, a read of the
     /// partly held page serves its bytes then zeros, and <see cref="HandlePageMedium.SetLength"/> after a write past the
-    /// end gives the file back exactly its 5 000 bytes — what a refused creation's undo relies on (§14.9.27.4 GR25,
+    /// end gives the file back exactly its 5 000 bytes — what a refused creation's undo relies on (§2023:14.9.27.4 GR25,
     /// <i>"the file is not affected"</i>). A creation over the same file then leaves the three-page empty store.</summary>
     [Fact]
     public void The_host_medium_keeps_a_previous_files_length_to_the_byte()

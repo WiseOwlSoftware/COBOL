@@ -9,23 +9,23 @@ namespace WiseOwl.Cobol.Runtime;
 /// all three, and the standard states it once per amount-taking format with a DIFFERENT exception-condition name
 /// and a different extra obligation; this enum is the only thing that varies, so the test itself is written once
 /// (<see cref="SetAmount.Land(System.Int128,int,out System.Int128)"/>) and each member below only maps its
-/// outcome. §14.9.39.4's FOURTH amount-taking format, GR19's data pointer, has no member here because its
+/// outcome. §2023:14.9.39.4's FOURTH amount-taking format, GR19's data pointer, has no member here because its
 /// receiver is not an index: it maps the same landing to EC-SIZE-ADDRESS and GR20's EC-RANGE-PTR in
 /// <see cref="CobolPtr.UpByAmount"/>.</summary>
 public enum SetAmountRule
 {
-    /// <summary>ISO §14.9.39.4 GR2 a) 1. — Format 1, <c>SET index-name-1 TO arithmetic-expression-1</c>:
-    /// a) non-integer ⇒ EC-BOUND-SUBSCRIPT; b) outside the §13.18.38.4 GR2 implementor index range ⇒
+    /// <summary>ISO §2023:14.9.39.4 GR2 a) 1. — Format 1, <c>SET index-name-1 TO arithmetic-expression-1</c>:
+    /// a) non-integer ⇒ EC-BOUND-SUBSCRIPT; b) outside the §2023:13.18.38.4 GR2 implementor index range ⇒
     /// EC-RANGE-INDEX. Both are "the execution of the SET statement is unsuccessful, and the content of the
     /// receiving operand is unchanged".</summary>
     IndexTo,
 
-    /// <summary>ISO §14.9.39.4 GR3 — Format 2, <c>SET index-name-3 UP/DOWN BY arithmetic-expression-2</c>:
+    /// <summary>ISO §2023:14.9.39.4 GR3 — Format 2, <c>SET index-name-3 UP/DOWN BY arithmetic-expression-2</c>:
     /// a non-integer amount ⇒ EC-BOUND-SUBSCRIPT, unsuccessful, receiving operand unchanged. GR4 a)'s range
     /// obligation is on the RESULT, not the amount, and lives in <see cref="CobolIndex.Augment"/>.</summary>
     IndexBy,
 
-    /// <summary>ISO §14.9.39.4 GR29 — Format 14, the dynamic-capacity amount: "If arithmetic-expression-4 does
+    /// <summary>ISO §2023:14.9.39.4 GR29 — Format 14, the dynamic-capacity amount: "If arithmetic-expression-4 does
     /// not evaluate to a NONNEGATIVE integer, the EC-BOUND-SUBSCRIPT exception condition is set to exist and the
     /// execution of the SET statement is unsuccessful." The sign test is GR29's own extra obligation; an amount
     /// past the 64-bit carrier is GR30's "exceeds the implementor's maximum capacity" ⇒
@@ -34,10 +34,10 @@ public enum SetAmountRule
 }
 
 /// <summary>
-/// THE ONE LANDING for every SET-family AMOUNT and for every modification of an index (ISO §14.9.39.4 GR2 a) 1.,
-/// GR3, GR4 a), GR29; §13.18.38.4 GR2). kb/Work PB459.
+/// THE ONE LANDING for every SET-family AMOUNT and for every modification of an index (ISO §2023:14.9.39.4 GR2 a) 1.,
+/// GR3, GR4 a), GR29; §2023:13.18.38.4 GR2). kb/Work PB459.
 ///
-/// <para><b>Why this type exists.</b> §14.9.39.4 states the SAME integrality guard once per amount-taking format
+/// <para><b>Why this type exists.</b> §2023:14.9.39.4 states the SAME integrality guard once per amount-taking format
 /// — GR2 a) 1. a (Format 1), GR3 (Format 2), GR19 (Format 10, the data pointer) and GR29 (Format 14) — each time
 /// with the same three consequents (the condition is set to exist · the SET is unsuccessful · the receiving
 /// operand is unchanged) and only the exception-condition NAME differing. Before PB459 exactly ONE of the four
@@ -50,7 +50,7 @@ public enum SetAmountRule
 /// magnitude guard folded into it; what remains here is the INDEX half — this format's conditions and this
 /// carrier's range.</para>
 ///
-/// <para><b>The implementor index range.</b> §13.18.38.4 GR2 leaves "the rules for the range of values allowed in
+/// <para><b>The implementor index range.</b> §2023:13.18.38.4 GR2 leaves "the rules for the range of values allowed in
 /// the index defined by index-name-1" to the implementor, requiring only that the range cover occurrence numbers
 /// (1 − integer-2) through (2 × integer-2). WiseOwl COBOL's index cell IS a C# <c>long</c> holding a 1-based
 /// occurrence number (data-model D3), so the range is the full signed 64-bit interval
@@ -61,16 +61,16 @@ public enum SetAmountRule
 /// raise. A table-bounds test here would reject conforming programs.</para>
 ///
 /// <para><b>Checking off.</b> Every raise routes through an <c>ExceptionState</c> helper that returns when
-/// checking for the condition is not enabled at this statement (§14.6.13.1.1). The callers here then still apply
+/// checking for the condition is not enabled at this statement (§2023:14.6.13.1.1). The callers here then still apply
 /// the standard's own named outcome — unsuccessful, receiving operand unchanged — which is the owner's decided
 /// rule for checking-off leniency: lenient WITH the outcome the standard states, never a fabricated one.</para>
 /// </summary>
 public static class CobolIndex
 {
-    /// <summary>The lowest occurrence number an index may hold (§13.18.38.4 GR2's implementor range; DOC-A.1-128).</summary>
+    /// <summary>The lowest occurrence number an index may hold (§2023:13.18.38.4 GR2's implementor range; DOC-A.1-128).</summary>
     public const long MinIndex = long.MinValue;
 
-    /// <summary>The highest occurrence number an index may hold (§13.18.38.4 GR2's implementor range; DOC-A.1-128).</summary>
+    /// <summary>The highest occurrence number an index may hold (§2023:13.18.38.4 GR2's implementor range; DOC-A.1-128).</summary>
     public const long MaxIndex = long.MaxValue;
 
     /// <summary>Land a SET-family amount that arrived as an EXACT scaled fixed-point value (the Int128 lane —
@@ -78,7 +78,7 @@ public static class CobolIndex
     /// is still present; a <c>(long)</c> narrowing at the emitter would have destroyed both the fraction and any
     /// magnitude past the carrier).
     /// <list type="bullet">
-    /// <item>Not an integer ⇒ EC-BOUND-SUBSCRIPT (§14.9.39.4 GR2 a) 1. a / GR3 / GR29) and <c>false</c>.</item>
+    /// <item>Not an integer ⇒ EC-BOUND-SUBSCRIPT (§2023:14.9.39.4 GR2 a) 1. a / GR3 / GR29) and <c>false</c>.</item>
     /// <item><see cref="SetAmountRule.Capacity"/> and negative ⇒ EC-BOUND-SUBSCRIPT (GR29's "nonnegative")
     /// and <c>false</c>.</item>
     /// <item>Outside the implementor index range ⇒ EC-RANGE-INDEX (GR2 a) 1. b) — or, for a capacity amount,
@@ -125,7 +125,7 @@ public static class CobolIndex
     {
         if (rule == SetAmountRule.Capacity && whole < 0)
         {
-            // §14.9.39.4 GR29 — "does not evaluate to a NONNEGATIVE integer". GR30's minimum-capacity clamp
+            // §2023:14.9.39.4 GR29 — "does not evaluate to a NONNEGATIVE integer". GR30's minimum-capacity clamp
             // cannot stand in for this: the clamp is the rule for a legal new capacity below the OCCURS
             // minimum, and GR29 rejects the operand BEFORE any new capacity is computed.
             ExceptionState.SubscriptError(
@@ -143,15 +143,15 @@ public static class CobolIndex
         return true;
     }
 
-    /// <summary>Modify an index by ±<paramref name="amount"/> occurrence numbers (ISO §14.9.39.4 GR4 — Format 2;
-    /// §14.9.28.4 GR13 — PERFORM VARYING, which §13.18.38.4 GR2 names alongside SET as a statement that may
+    /// <summary>Modify an index by ±<paramref name="amount"/> occurrence numbers (ISO §2023:14.9.39.4 GR4 — Format 2;
+    /// §2023:14.9.28.4 GR13 — PERFORM VARYING, which §2023:13.18.38.4 GR2 names alongside SET as a statement that may
     /// modify an index). GR4 a): if the incremented/decremented occurrence number "is outside the limit
     /// specified in General rule 2 of 13.18.38" the EC-RANGE-INDEX exception condition is set to exist, the SET
     /// is unsuccessful, and the content of the receiving operand is unchanged — so this returns
     /// <paramref name="index"/> itself on that leg. GR4 b) is the ordinary result, "even if that occurrence is
     /// not a valid occurrence within this table", so no table bound is consulted.</summary>
     /// <remarks>The amount is <see cref="Int128"/>, not <see cref="long"/>: a PERFORM VARYING BY operand is an
-    /// integer data item (§14.9.28.3 SR4 a) of up to 31 digits, and narrowing it at the emitter would wrap it
+    /// integer data item (§2023:14.9.28.3 SR4 a) of up to 31 digits, and narrowing it at the emitter would wrap it
     /// before this guard could see it — the very shape kb/Work PB459 is about.</remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static long Augment(long index, Int128 amount, bool down, string detail)
@@ -173,7 +173,7 @@ public static class CobolIndex
     private static void OutOfRange(SetAmountRule rule, string detail)
     {
         if (rule == SetAmountRule.Capacity)
-            // §14.9.39.4 GR30 — "If the new capacity of the table exceeds the implementor's maximum capacity for
+            // §2023:14.9.39.4 GR30 — "If the new capacity of the table exceeds the implementor's maximum capacity for
             // this dynamic-capacity table, the EC-BOUND-TABLE-LIMIT exception condition is set to exist and the
             // capacity of the table is unchanged." An amount past the 64-bit carrier is past every table's max.
             ExceptionState.BoundTableLimitError(

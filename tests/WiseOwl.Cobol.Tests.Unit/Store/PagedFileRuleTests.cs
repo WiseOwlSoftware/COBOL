@@ -418,7 +418,7 @@ public sealed class PagedFileRuleTests
     // ── A statement is atomic ──────────────────────────────────────────────────────────────────────────────────
 
     /// <summary>A medium that refuses the n-th write of a statement — for every n the statement has — leaves the file at
-    /// the previous statement and the statement at '30' (§9.1.13.6 item 1); the same run unit's next statement then
+    /// the previous statement and the statement at '30' (§2023:9.1.13.6 item 1); the same run unit's next statement then
     /// completes.</summary>
     [Fact]
     public void A_statement_refused_at_any_write_leaves_the_file_at_the_previous_statement()

@@ -4,19 +4,19 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §8.4.3.11.3 SR5 — ADDRESS OF identifier-1 as the receiving
+      *> ISO §2023:8.4.3.11.3 SR5 — ADDRESS OF identifier-1 as the receiving
       *> operand of SET Format 10 (data-pointer-arithmetic).
       *> SR5: "This identifier format shall not be specified as a
       *>   receiving operand."
       *>   cite.py --check 8.4.3.11.3 "This identifier format shall not
-      *>     be specified as a receiving operand" -> OK §8.4.3.11.3 5)
+      *>     be specified as a receiving operand" -> OK §2023:8.4.3.11.3 5)
       *> Why SR5 is the ONLY rule broken: ADDRESS OF W is "a unique data
-      *> item of class pointer and category data-pointer" (§8.4.3.11.4
+      *> item of class pointer and category data-pointer" (§2023:8.4.3.11.4
       *> GR1, cite.py OK), and SET Format 10's receiving identifier-9
-      *> "shall be of category data-pointer" (§14.9.39.3 SR23, cite.py
+      *> "shall be of category data-pointer" (§2023:14.9.39.3 SR23, cite.py
       *> OK) - so the category fits and only the receiving position is
       *> forbidden. W is BASED, so ADDRESS OF W satisfies SR1 (working-
-      *> storage) and every other §8.4.3.11.3 rule. Measured control:
+      *> storage) and every other §2023:8.4.3.11.3 rule. Measured control:
       *> the same program with SET P UP BY 1 (P a data-pointer item)
       *> compiles at 2002 and 2023. Expected: REJECTED at the UP of the
       *> SET statement, at every edition with data-address-identifiers.

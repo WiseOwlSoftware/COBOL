@@ -6,9 +6,9 @@
       *>---
       *> An identifier-1 described in the REPORT SECTION (a sum counter, SUM W), not in one of the four sections the
       *> rule lists. Expected: COBOL4777.
-      *> ISO §14.9.50.3 SR1 - "Identifier-1 shall reference a data item described in the file, linkage,
+      *> ISO §2023:14.9.50.3 SR1 - "Identifier-1 shall reference a data item described in the file, linkage,
       *> local-storage, or working-storage section. Identifier-1 shall not be reference-modified."
-      *>   cite.py: OK  §14.9.50.3 1)  (Syntax rules)
+      *>   cite.py: OK  §2023:14.9.50.3 1)  (Syntax rules)
       *> The VALIDATE facility is DECLINED (COBOL1580, docs/CONFORMANCE.md section 4 item 3): the statement is
       *> accepted inert. Declining the facility declines its BEHAVIOUR, never its syntax rules - the operand of the
       *> statement is still an identifier (kb/Work PB3568). The statement is the only violation; the program is

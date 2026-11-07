@@ -6,7 +6,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.17.2 / §15.38.2 / §15.39.2 general format — the printed FUNCTION <name> ( argument … ) forms of
+      *> ISO §2023:15.17.2 / §2023:15.38.2 / §2023:15.39.2 general format — the printed FUNCTION <name> ( argument … ) forms of
       *> COMBINED-DATETIME, FORMATTED-CURRENT-DATE and FORMATTED-DATE, plus the argument and returned-value rules
       *> that ride on them. Every expected value below is derived from the standard's own rule text; nothing is
       *> copied from what the compiler emits, and no clock reading is written down as a literal expectation.
@@ -16,36 +16,36 @@
       *>   CDT=                     FMT-15.17.2. The format is
       *>                            "FUNCTION COMBINED-DATETIME ( argument-1 argument-2 )" — both words
       *>                            UNDERLINED, therefore required, and two unbracketed arguments, therefore
-      *>                            exactly two. §15.17.4 r1 gives the equivalent arithmetic expression
+      *>                            exactly two. §2023:15.17.4 r1 gives the equivalent arithmetic expression
       *>                            "argument-1 + (argument-2 / 100000)", so 143951 + 45296/100000 =
       *>                            143951.45296, which a PIC 9(7)V9(5) receiver renders as 014395145296.
-      *>                            §15.17.3 r1/r2 are satisfied: 143951 is in integer date form (§15.5.2)
-      *>                            and 45296 is in standard numeric time form (§15.5.5).
+      *>                            §2023:15.17.3 r1/r2 are satisfied: 143951 is in integer date form (§2023:15.5.2)
+      *>                            and 45296 is in standard numeric time form (§2023:15.5.5).
       *>
       *>   FD-MIN= / FD-MAX=        FMT-15.39.2 (the printed two-argument form) and AR-15.39.3-3
-      *>                            ("Argument-2 shall be a value in integer date form"). §15.5.2 fixes that
+      *>                            ("Argument-2 shall be a value in integer date form"). §2023:15.5.2 fixes that
       *>                            form's interval: the starting date is Monday, 1 January 1601 — so integer
       *>                            date 1 IS 1601-01-01 — and a value "shall be greater than zero and shall
       *>                            be less than or equal to the value of FUNCTION INTEGER-OF-DATE (99991231),
-      *>                            which is 3,067,671", so 3067671 IS 9999-12-31. §15.3.1.2's basic calendar
-      *>                            date format is YYYYMMDD, so §15.39.4 r1 renders 16010101 and 99991231.
+      *>                            which is 3,067,671", so 3067671 IS 9999-12-31. §2023:15.3.1.2's basic calendar
+      *>                            date format is YYYYMMDD, so §2023:15.39.4 r1 renders 16010101 and 99991231.
       *>                            Both ENDS are here deliberately: a guard written as an upper-bound test
       *>                            passes a one-sided probe (kb/Work PB22's low-end lesson).
       *>
       *>   FCD-VALID=               FMT-15.38.2 (one argument — the format prints "( argument-1 )"),
       *>                            AR-15.38.3-1's alphanumeric-literal arm, and RV-15.38.4-1's SECOND
       *>                            sentence, "The returned value is formatted according to the format in
-      *>                            argument-1". §15.92.4 r1: TEST-FORMATTED-DATETIME returns zero "if no
+      *>                            argument-1". §2023:15.92.4 r1: TEST-FORMATTED-DATETIME returns zero "if no
       *>                            format problems or range problems occur during the evaluation of
       *>                            argument-2 according to the format in argument-1", so a correctly
       *>                            formatted current date and time answers 00 whatever the clock says.
-      *>                            §15.38.3 r2 requires a COMBINED date and time format, which
-      *>                            YYYY-MM-DDThh:mm:ss is (§15.3.3.7).
+      *>                            §2023:15.38.3 r2 requires a COMBINED date and time format, which
+      *>                            YYYY-MM-DDThh:mm:ss is (§2023:15.3.3.7).
       *>
-      *>   FCD-SEPARATORS=          RV-15.38.4-1's second sentence at the character level. §15.3.1.2: in the
+      *>   FCD-SEPARATORS=          RV-15.38.4-1's second sentence at the character level. §2023:15.3.1.2: in the
       *>                            extended calendar date format "The two hyphens appear in the data";
-      *>                            §15.3.3.7: the uppercase 'T' "appears in the data associated with the
-      *>                            format"; §15.3.3.1: in the extended common time format "The two colon
+      *>                            §2023:15.3.3.7: the uppercase 'T' "appears in the data associated with the
+      *>                            format"; §2023:15.3.3.1: in the extended common time format "The two colon
       *>                            characters appear in the data". Counting the format's own characters,
       *>                            YYYY-MM-DDThh:mm:ss puts '-' at 5 and 8, 'T' at 11, ':' at 14 and 17.
       *>
@@ -54,21 +54,21 @@
       *>                            evaluated". The sentence names TWO things, so it takes TWO assertions:
       *>                            an implementation returning today's date with a FROZEN time (say always
       *>                            000000) satisfies FCD-VALID, FCD-SEPARATORS and the date comparison
-      *>                            alone, and §15.38.4 r2 does NOT close that hole — r2 is the ACCURACY of
+      *>                            alone, and §2023:15.38.4 r2 does NOT close that hole — r2 is the ACCURACY of
       *>                            the time portion (implementor-defined), not whether the time comes from
       *>                            the system at all.
-      *>                            DATE: §15.21.3 r1 makes CURRENT-DATE character positions 1-4, 5-6 and
+      *>                            DATE: §2023:15.21.3 r1 makes CURRENT-DATE character positions 1-4, 5-6 and
       *>                            7-8 the year, month and day of the same system, so both values convert
       *>                            through INTEGER-OF-FORMATTED-DATE and the difference is 0 or 1.
       *>                            CLOCK: positions 10-15 of a YYYYMMDDThhmmss value are its basic common
-      *>                            time format portion (§15.3.3.7 — the uppercase 'T' at position 9
-      *>                            "appears in the data"; §15.3.3.1 — "The basic common time format with
-      *>                            integer seconds representation contains six characters"), and §15.21.3
+      *>                            time format portion (§2023:15.3.3.7 — the uppercase 'T' at position 9
+      *>                            "appears in the data"; §2023:15.3.3.1 — "The basic common time format with
+      *>                            integer seconds representation contains six characters"), and §2023:15.21.3
       *>                            r1 makes CURRENT-DATE positions 9-10 / 11-12 / 13-14 the hours, minutes
-      *>                            and seconds of the same system. §15.79.3 r1/r3 admit an alphanumeric
+      *>                            and seconds of the same system. §2023:15.79.3 r1/r3 admit an alphanumeric
       *>                            format literal with a same-type PIC X(6) argument-2 (r3 is "shall have
-      *>                            the same TYPE" — no data-item-only restriction, unlike §15.48.3 r3), and
-      *>                            §15.79.4 r1's equivalent arithmetic expression ((H * 3600) + (M * 60)
+      *>                            the same TYPE" — no data-item-only restriction, unlike §2023:15.48.3 r3), and
+      *>                            §2023:15.79.4 r1's equivalent arithmetic expression ((H * 3600) + (M * 60)
       *>                            + S) makes each value seconds past midnight.
       *>                            BOTH BOUNDS ARE DERIVED, NOT OBSERVED. The two reads are sequential, so
       *>                            the second cannot precede the first: the day difference cannot be
@@ -80,9 +80,9 @@
       *>                            could not do race-free. No clock value appears in the expected output.
       *>
       *>   FCD-NAT-SEPARATORS=      AR-15.38.3-1's OTHER arm — "a national or alphanumeric literal" — and with
-      *>                            it §15.38.1's National row ("Argument type National → Function type
-      *>                            National"). §15.26 DISPLAY-OF converts the national result back so the
-      *>                            same §15.3.1.2 / §15.3.3.7 / §15.3.3.1 separator positions can be read.
+      *>                            it §2023:15.38.1's National row ("Argument type National → Function type
+      *>                            National"). §2023:15.26 DISPLAY-OF converts the national result back so the
+      *>                            same §2023:15.3.1.2 / §2023:15.3.3.7 / §2023:15.3.3.1 separator positions can be read.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1DTFMT1.
        DATA DIVISION.
@@ -104,10 +104,10 @@
        01 W-EL    PIC S9(9).
        PROCEDURE DIVISION.
        MAIN.
-      *> FMT-15.17.2 — the printed two-argument form; §15.17.4 r1's EAE.
+      *> FMT-15.17.2 — the printed two-argument form; §2023:15.17.4 r1's EAE.
            COMPUTE W-CDT = FUNCTION COMBINED-DATETIME ( 143951 45296 )
            DISPLAY "CDT=" W-CDT
-      *> FMT-15.39.2 + AR-15.39.3-3 — both ends of §15.5.2's interval.
+      *> FMT-15.39.2 + AR-15.39.3-3 — both ends of §2023:15.5.2's interval.
            MOVE FUNCTION FORMATTED-DATE ( "YYYYMMDD" 1 ) TO W-FD8
            DISPLAY "FD-MIN=" W-FD8
            MOVE FUNCTION FORMATTED-DATE ( "YYYYMMDD" 3067671 ) TO W-FD8
@@ -154,7 +154,7 @@
            ELSE
                DISPLAY "FCD-TRACKS-SYSTEM-CLOCK=NO"
            END-IF
-      *> AR-15.38.3-1 — the NATIONAL literal arm; §15.38.1's National row.
+      *> AR-15.38.3-1 — the NATIONAL literal arm; §2023:15.38.1's National row.
            MOVE FUNCTION FORMATTED-CURRENT-DATE (
                N"YYYY-MM-DDThh:mm:ss" ) TO W-ND19
            MOVE FUNCTION DISPLAY-OF ( W-ND19 ) TO W-DT19

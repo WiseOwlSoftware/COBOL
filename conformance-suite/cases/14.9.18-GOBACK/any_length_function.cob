@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO 1989:2023 §13.18.2 ANY LENGTH — a FUNCTION's LINKAGE formal (SR4: a BY REFERENCE formal
+      *> ISO 1989:2023 §2023:13.18.2 ANY LENGTH — a FUNCTION's LINKAGE formal (SR4: a BY REFERENCE formal
       *> parameter): the user-defined function returns FUNCTION LENGTH of its ANY LENGTH argument, once
       *> for an X(3) and once for an X(8) argument (GR1 — n tracks each activation's argument).
        IDENTIFICATION DIVISION.

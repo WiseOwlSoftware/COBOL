@@ -7,9 +7,9 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The ONE float-data-item → standard-decimal-intermediate conversion (kb/Work PB1606): ISO §8.8.1.5.1 leaves "the
+/// The ONE float-data-item → standard-decimal-intermediate conversion (kb/Work PB1606): ISO §2023:8.8.1.5.1 leaves "the
 /// mechanisms for conversion of data items described with a usage of float-short, float-long, or float-extended into
-/// standard-decimal intermediate data items" to the implementor, and §8.8.1.5.2 r1 rounds an operand value that "cannot
+/// standard-decimal intermediate data items" to the implementor, and §2023:8.8.1.5.2 r1 rounds an operand value that "cannot
 /// be expressed exactly in an SDIDI" by the INTERMEDIATE ROUNDING rules (cite.py --check, both OK). WiseOwl COBOL's
 /// determination is the binary64's exact value rounded once to 34 digits under the mode
 /// (<see cref="CobolDec.FromBinary64"/>); an implementor-defined approximation is its shortest round-trip decimal
@@ -92,7 +92,7 @@ public sealed class CobolDecBinary64ConversionTests
         Assert.Equal(0, CobolDec.FromBinary64(-0.0, CobolRounding.NearestAwayFromZero).Sig);
     }
 
-    // §11.9.11.2 r3 d): PROHIBITED and a value "cannot be represented exactly in SDIDI form" -> EC-SIZE-TRUNCATION.
+    // §2023:11.9.11.2 r3 d): PROHIBITED and a value "cannot be represented exactly in SDIDI form" -> EC-SIZE-TRUNCATION.
     [Theory]
     [InlineData(0.1)]
     [InlineData(0.29)]

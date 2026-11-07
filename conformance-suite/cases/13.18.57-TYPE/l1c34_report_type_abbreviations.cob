@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.18.57.3 SR9 — RH/PH/CH/DE/CF/PF/RF abbreviate the
+      *> ISO §2023:13.18.57.3 SR9 — RH/PH/CH/DE/CF/PF/RF abbreviate the
       *>   seven types
       *> "RH is an abbreviation for REPORT HEADING. PH is an
       *>   abbreviation for
@@ -18,33 +18,33 @@
       *> REPORT FOOTING."
       *> cite.py --check 13.18.57.3 "RH is an abbreviation for REPORT
       *>   HEADING"
-      *>   -> OK §13.18.57.3 9) (Syntax rules)
+      *>   -> OK §2023:13.18.57.3 9) (Syntax rules)
       *> cite.py --check 13.18.57.3 "CF is an abbreviation for CONTROL
       *>   FOOTING"
-      *>   -> OK §13.18.57.3 9) (Syntax rules)
+      *>   -> OK §2023:13.18.57.3 9) (Syntax rules)
       *> Every report group below is typed ONLY by its abbreviation,
       *>   so the
       *> program is legal only if each abbreviation is accepted, and
       *>   the ORDER
-      *> in which the groups are presented is fixed by §13.18.57.4 GR6
+      *> in which the groups are presented is fixed by §2023:13.18.57.4 GR6
       *>   for the
       *> FULL type each abbreviation stands for. A USE BEFORE REPORTING
-      *> procedure per group (§14.9.49.3 SR9) DISPLAYs the group's
+      *> procedure per group (§2023:14.9.49.3 SR9) DISPLAYs the group's
       *>   name at each
       *> presentation, so an abbreviation mapped to the wrong type (CH
       *>   read as
       *> CF, PF as PH, ...) reorders or drops lines.
       *> cite.py --check 13.18.57.4 "The report heading, if defined,
       *>   is printed
-      *>   as the first report group in the report" -> OK §13.18.57.4
+      *>   as the first report group in the report" -> OK §2023:13.18.57.4
       *>     6) a)
       *> cite.py --check 13.18.57.4 "in order of controls from the
       *>   lowest up to
-      *>   the level of the control break" -> OK §13.18.57.4 6) e) 1.
+      *>   the level of the control break" -> OK §2023:13.18.57.4 6) e) 1.
       *> cite.py --check 13.18.57.4 "the page footing on the last page
       *>   is
       *>   immediately followed by the report footing" -> OK
-      *>     §13.18.57.4 6) f) 2.
+      *>     §2023:13.18.57.4 6) f) 2.
       *>   (cite.py labels this unnumbered sentence as item f) 2.; it
       *>     is the
       *>   closing sentence of GR6 f) - a known list-item mislabel,

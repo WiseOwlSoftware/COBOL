@@ -24,8 +24,8 @@ internal readonly record struct PropertyReceiver(InvokeForm Form, Place? Receive
     OoInterfaceSymbol? Interface, bool Factory, DataItem? Described = null);
 
 /// <summary>
-/// ⛔ <b>§8.4.3.1.2 FORMAT 7 — <c>property-name-1 OF identifier-3</c> — RESOLVED BY THE ORDINARY IDENTIFIER RESOLVER</b>
-/// (kb/Work PB1425, PB1783). §8.4.3.1.3 SR1 makes identifier-3 "any of the formats for an identifier", and §8.4.3.1.4
+/// ⛔ <b>§2023:8.4.3.1.2 FORMAT 7 — <c>property-name-1 OF identifier-3</c> — RESOLVED BY THE ORDINARY IDENTIFIER RESOLVER</b>
+/// (kb/Work PB1425, PB1783). §2023:8.4.3.1.3 SR1 makes identifier-3 "any of the formats for an identifier", and §2023:8.4.3.1.4
 /// GR1 fixes the order the components apply in: a) a qualified data name with its subscripts and the predefined object
 /// references, c) an object-view, d) "OF for object properties applies the property-name on the left to the identifier on
 /// the right", g) a reference modifier last. A property reference is therefore a qualifier chain whose head word is the
@@ -37,10 +37,10 @@ internal readonly record struct PropertyReceiver(InvokeForm Form, Place? Receive
 /// the resolver knows, and every one it learns later, is an identifier-3 with no arm of its own. It used to be a
 /// one-word special case (<c>qualifiers.Count != 1</c> → not a property), which named the compiler's temporary when the
 /// object was subscripted and refused every other form.</para>
-/// <para><b>The accessor is selected by identifier-3's description</b> (§8.4.3.9.3 SR3/SR4 — "in the object referenced
+/// <para><b>The accessor is selected by identifier-3's description</b> (§2023:8.4.3.9.3 SR3/SR4 — "in the object referenced
 /// by identifier-1 or in the factory object of the object class object-class-name-1"): a typed reference's class or
 /// interface, FACTORY OF's factory half, a class-name's factory, and for SELF / [object-class-name-1 OF] SUPER the same
-/// method-search root an INVOKE through them uses (§8.4.3.8.4), so the accessor is invoked on <c>this</c> / <c>base</c>.</para>
+/// method-search root an INVOKE through them uses (§2023:8.4.3.8.4), so the accessor is invoked on <c>this</c> / <c>base</c>.</para>
 /// </summary>
 internal sealed class ObjectPropertyResolver(ReferenceResolver refs, DataBinder data)
 {
@@ -51,18 +51,18 @@ internal sealed class ObjectPropertyResolver(ReferenceResolver refs, DataBinder 
     /// and those objects exist only in a method's procedure division.</summary>
     internal Func<Core.PropertyObjectContext, Core.CobolWordContext?, bool, PropertyReceiver?>? BindPropertyObject { get; set; }
 
-    /// <summary>The procedure binder's object-view (§8.4.3.5) over an already resolved identifier-1 — for
-    /// <c>A OF G AS C</c>, a view of the qualified data item <c>A OF G</c> (§8.4.3.1.4 GR1 a) before c)) that the grammar
+    /// <summary>The procedure binder's object-view (§2023:8.4.3.5) over an already resolved identifier-1 — for
+    /// <c>A OF G AS C</c>, a view of the qualified data item <c>A OF G</c> (§2023:8.4.3.1.4 GR1 a) before c)) that the grammar
     /// spells as a property chain (<see cref="ViewOfQualifiedItem"/>). Null having reported.</summary>
     internal Func<Place, Core.ObjectViewContext, string, Place?>? ApplyObjectView { get; set; }
 
-    /// <summary>True when <paramref name="dref"/> is an OBJECT-PROPERTY reference (§8.4.3.9.2) rather than an ordinary
+    /// <summary>True when <paramref name="dref"/> is an OBJECT-PROPERTY reference (§2023:8.4.3.9.2) rather than an ordinary
     /// data reference. The ONE such test, over the SAME <see cref="ResolveObjectProperty"/> the committing path runs, so
     /// the two can never disagree about what a property reference is.
-    /// <para>Its callers are §14.9.4.3 SR20's carve-out (kb/Work PB238): "BY CONTENT shall not be omitted when
+    /// <para>Its callers are §2023:14.9.4.3 SR20's carve-out (kb/Work PB238): "BY CONTENT shall not be omitted when
     /// identifier-4 is an identifier that is permitted as a receiving operand, EXCEPT that BY CONTENT may be omitted when
-    /// identifier-4 is an object property" — and §8.4.3.2.4 GR5 a)'s "other than an object property".</para>
-    /// <para>⛔ PURE — it runs the resolution under <c>Probing</c>, so no temp is synthesized, no pending §8.4.3.9.4 op
+    /// identifier-4 is an object property" — and §2023:8.4.3.2.4 GR5 a)'s "other than an object property".</para>
+    /// <para>⛔ PURE — it runs the resolution under <c>Probing</c>, so no temp is synthesized, no pending §2023:8.4.3.9.4 op
     /// is registered and no diagnostic is reported (the R30 probe contract). The ordinary-qualification test comes FIRST
     /// for the same reason the committing path orders it that way.</para></summary>
     public bool IsObjectPropertyReference(Core.DataReferenceContext dref)
@@ -78,24 +78,24 @@ internal sealed class ObjectPropertyResolver(ReferenceResolver refs, DataBinder 
         finally { refs.Probing = saved; }
     }
 
-    /// <summary>The <c>object-class-name-1</c> of a written <c>object-class-name-1 OF SUPER</c> (§8.4.3.8.2), or null.
+    /// <summary>The <c>object-class-name-1</c> of a written <c>object-class-name-1 OF SUPER</c> (§2023:8.4.3.8.2), or null.
     /// The grammar spells it as the chain <c>name OF SUPER</c>, which is equally the property <c>name</c> of SUPER
-    /// (§8.4.3.1.2 Format 7); only the declared names tell them apart, and this is the ONE place that does: a name that
-    /// is a class-name this source element may reference (§8.4.6.4) is the qualified SUPER.</summary>
+    /// (§2023:8.4.3.1.2 Format 7); only the declared names tell them apart, and this is the ONE place that does: a name that
+    /// is a class-name this source element may reference (§2023:8.4.6.4) is the qualified SUPER.</summary>
     internal Core.CobolWordContext? QualifiedSuperClass(Core.DataReferenceContext dref) =>
         dref.dataReferenceSuffix() is [var only] && only.propertyObject()?.SUPER() is not null
         && dref.cobolWord() is { } word && IsClassName(dref, word.Name())
             ? word : null;
 
-    /// <summary>A class-name this source element may reference (§8.4.6.4), or a parameter-name declared CLASS of the
-    /// parameterized definition bound as itself, which stands where an object-class-name does (§11.3.4 GR6; kb/Work
+    /// <summary>A class-name this source element may reference (§2023:8.4.6.4), or a parameter-name declared CLASS of the
+    /// parameterized definition bound as itself, which stands where an object-class-name does (§2023:11.3.4 GR6; kb/Work
     /// PB2937 — <c>B OF SUPER</c> over a formal superclass B).</summary>
     private bool IsClassName(RuleContext site, string name) =>
         data.OoClasses is { } table
         && OoNameResolution.Lookup(table, site, name, OoNameResolution.Want.Class) is { Class: not null } or { IsFormal: true };
 
     /// <summary>True when <paramref name="dref"/> is the object-view of a qualified data item written as one chain,
-    /// <c>A OF G AS C</c> — a view, which §8.4.3.5.3 SR2 forbids as a receiving operand. Pure.</summary>
+    /// <c>A OF G AS C</c> — a view, which §2023:8.4.3.5.3 SR2 forbids as a receiving operand. Pure.</summary>
     internal bool IsObjectViewOfQualifiedItem(Core.DataReferenceContext dref)
     {
         bool saved = refs.Probing;
@@ -104,7 +104,7 @@ internal sealed class ObjectPropertyResolver(ReferenceResolver refs, DataBinder 
         finally { refs.Probing = saved; }
     }
 
-    /// <summary>§8.4.3.1.4 GR1 a) before c): when the chain <c>head OF … OF subject</c> in front of a trailing object-view
+    /// <summary>§2023:8.4.3.1.4 GR1 a) before c): when the chain <c>head OF … OF subject</c> in front of a trailing object-view
     /// (<c>A OF G AS C</c>) is itself a qualified data name, the view applies to THAT item, not to the last word —
     /// the grammar reads the view as the property object (GR1 c) before d), the reading a property-name needs), so the
     /// data reading is decided here, by the symbols. Null when the chain is no qualified data name.</summary>
@@ -149,7 +149,7 @@ internal sealed class ObjectPropertyResolver(ReferenceResolver refs, DataBinder 
     }
 
     /// <summary>Resolve <paramref name="dref"/> (head word <paramref name="name"/>, already known NOT to be a data name)
-    /// as §8.4.3.1.2 Format 7. Returns <c>(temp, null)</c> for a property reference (the §8.4.3.9.4 temporary; a probe gets
+    /// as §2023:8.4.3.1.2 Format 7. Returns <c>(temp, null)</c> for a property reference (the §2023:8.4.3.9.4 temporary; a probe gets
     /// the accessor's MODEL item, with nothing synthesized or registered), <c>(null, answer)</c> when identifier-3 or the
     /// property was refused (reported), and <c>(null, null)</c> when the shape is no property reference at all — the
     /// caller keeps its generic unknown-name diagnosis.</summary>
@@ -169,7 +169,7 @@ internal sealed class ObjectPropertyResolver(ReferenceResolver refs, DataBinder 
         {
             // A subscript after a non-word object (`P OF U AS C (2)`) subscripts neither part: identifier-3 is no
             // qualified data name and the property's value is the get method's RETURNING item, no table element
-            // (§8.4.2.3.2 writes subscripts only after a qualified data name; §8.4.2.3.3 SR2). One BEFORE the object
+            // (§2023:8.4.2.3.2 writes subscripts only after a qualified data name; §2023:8.4.2.3.3 SR2). One BEFORE the object
             // (`P (2) OF SELF`) is ExpressionFormationPass's COBOL2776; a word chain keeps its subscripts in
             // identifier-3 (PropertyObjectReference), where the ordinary screen reads them.
             if (written.SubscriptGroup is { } sub && sub.Start.TokenIndex > terminal!.Stop.TokenIndex)
@@ -178,17 +178,17 @@ internal sealed class ObjectPropertyResolver(ReferenceResolver refs, DataBinder 
                     data.Edition.Error(DiagnosticCatalog.SubscriptOnNonTableItem,
                         $"'{DataBinder.WrittenText(dref)}': a subscript is written on the object property '{name}' OF "
                         + $"'{objWritten}', which is no table element, so no subscript may be written on it "
-                        + "(ISO §8.4.2.3.3 SR2; §8.4.3.9.3 SR5)");
+                        + "(ISO §2023:8.4.2.3.3 SR2; §2023:8.4.3.9.3 SR5)");
                 return (null, Refusal());
             }
-            // `name OF SUPER` with a class-name is the qualified SUPER (§8.4.3.8.2) written as an operand: §8.4.3.8.3 SR3
+            // `name OF SUPER` with a class-name is the qualified SUPER (§2023:8.4.3.8.2) written as an operand: §2023:8.4.3.8.3 SR3
             // admits it only as the object an invocation selects a method through (OoBinder.OoBindByReceiver).
             if (terminal!.SUPER() is not null && IsClassName(dref, name))
             {
                 if (!refs.Probing && refs.Diagnosed.Add(dref))
                     data.Edition.Error(DiagnosticCatalog.SuperPosition,
                         $"'{DataBinder.WrittenText(dref)}' is written as an operand: SUPER may be specified only as the object "
-                        + "in an object-property identifier or as the object used to invoke a method (ISO §8.4.3.8.3 SR3)");
+                        + "in an object-property identifier or as the object used to invoke a method (ISO §2023:8.4.3.8.3 SR3)");
                 return (null, Refusal());
             }
             if (BindPropertyObject?.Invoke(terminal, null, refs.Probing) is not { } bound)
@@ -199,7 +199,7 @@ internal sealed class ObjectPropertyResolver(ReferenceResolver refs, DataBinder 
                  && OoNameResolution.Lookup(table, dref, objRef.cobolWord()!.Name(), OoNameResolution.Want.Class).Class is { } cls)
         {
             // `prop OF class-name` — the FACTORY accessors (SR3/SR4 "or in the factory object of the object class
-            // object-class-name-1"). The class-name is a SOURCE reference and takes the §8.4.6.4 scope (kb/Work PB365).
+            // object-class-name-1"). The class-name is a SOURCE reference and takes the §2023:8.4.6.4 scope (kb/Work PB365).
             receiver = new PropertyReceiver(InvokeForm.Factory, null, cls, null, Factory: true);
         }
         else if (QualifiedSuperClass(objRef) is { } superClass)
@@ -213,7 +213,7 @@ internal sealed class ObjectPropertyResolver(ReferenceResolver refs, DataBinder 
             // identifier-3 by the ordinary identifier resolver: whatever it is, it shall be an object reference (SR2).
             if (refs.Probe(objRef) is not { Item.Pic.Category: PicCategory.ObjectReference } sniff) return default;
             // The roster is identifier-3's description AS RESOLVED: for a view of a qualified item (`A OF G AS C`) that
-            // is the view's (§8.4.3.5.4 GR1), which the probe's un-viewed item is not — the committed place carries it,
+            // is the view's (§2023:8.4.3.5.4 GR1), which the probe's un-viewed item is not — the committed place carries it,
             // and a probe reads it from the view's last phrase, as for a view written alone.
             bool answered = false;
             PropertyReceiver? typed;
@@ -243,8 +243,8 @@ internal sealed class ObjectPropertyResolver(ReferenceResolver refs, DataBinder 
             receiver = typed;
         }
 
-        // §12.3.8.2's property-specifier `PROPERTY property-name-1 [ AS literal-4 ]` (kb/Work PB974): the source writes
-        // property-name-1, and literal-4 — when written — is the property as the declared classes know it (§12.3.8.3
+        // §2023:12.3.8.2's property-specifier `PROPERTY property-name-1 [ AS literal-4 ]` (kb/Work PB974): the source writes
+        // property-name-1, and literal-4 — when written — is the property as the declared classes know it (§2023:12.3.8.3
         // SR16 a)), so the accessors are looked up under THAT name. Without a specifier the reference is still
         // reported below (SR1), under the name as written.
         string known = data.State.Configuration.OoRepositoryProperties.TryGetValue(name, out var specified) ? specified : name;
@@ -253,7 +253,7 @@ internal sealed class ObjectPropertyResolver(ReferenceResolver refs, DataBinder 
         if (get is null && set is null)
         {
             // Not in a definition bound as itself whose superclass is a parameter-name: the accessor may be the actual's
-            // (§9.3.9, §9.3.8.2.4; kb/Work PB2937) — each expansion's question, not "not a property".
+            // (§2023:9.3.9, §2023:9.3.8.2.4; kb/Work PB2937) — each expansion's question, not "not a property".
             if (receiver.Class?.FormalBaseName is not null && !refs.Probing)
             {
                 data.Edition.NoteExpansionDeferred($"the object property '{name}' OF '{objWritten}'");
@@ -268,22 +268,22 @@ internal sealed class ObjectPropertyResolver(ReferenceResolver refs, DataBinder 
         // that follows does all three exactly once.
         if (refs.Probing) return (model, null);
 
-        // A property reference invokes the get / set accessor METHOD (§8.4.3.9.4 GR1/GR2): the source element
-        // "invokes any method" for ISO §7.3.14.4 GR4 b, though the text is a qualified data reference.
+        // A property reference invokes the get / set accessor METHOD (§2023:8.4.3.9.4 GR1/GR2): the source element
+        // "invokes any method" for ISO §2023:7.3.14.4 GR4 b, though the text is a qualified data reference.
         data.State.ActivationSites.Add(dref);
 
         if (!data.State.Configuration.OoRepositoryProperties.ContainsKey(name))
             data.Edition.Error(DiagnosticCatalog.ObjectPropertyReferenceRule,
                 $"the object-property reference '{name}' OF '{objWritten}' requires a PROPERTY specifier in the "
-                + "REPOSITORY paragraph (ISO §8.4.3.9.3 SR1; §12.3.8)");
+                + "REPOSITORY paragraph (ISO §2023:8.4.3.9.3 SR1; §2023:12.3.8)");
 
         // identifier-3's own evaluation — a view's conformance check, a function's activation, a subscript's — travels
         // with the property, ahead of its accessor (OoPendingPropertyOp.Prelude).
         var prelude = data.Procedure.PendingPreOps.DrainFrom(preOpMark);
 
-        // ⛔ THE TEMP TAKES THE ACCESSOR'S WHOLE DESCRIPTION, A GROUP INCLUDED (kb/Work PB1448). §8.4.3.9.4 GR1: "The
+        // ⛔ THE TEMP TAKES THE ACCESSOR'S WHOLE DESCRIPTION, A GROUP INCLUDED (kb/Work PB1448). §2023:8.4.3.9.4 GR1: "The
         // data description of temp-1 is the same as the data description of the item specified in the RETURNING phrase
-        // of the get property method", GR2 gives temp-2 the USING parameter's, and §8.4.3.9.3 SR5/SR6 admit the property
+        // of the get property method", GR2 gives temp-2 the USING parameter's, and §2023:8.4.3.9.3 SR5/SR6 admit the property
         // "wherever a data item with that description would be valid" as a sending / receiving item.
         var temp = data.Temps.ForProperty(model, name);
         data.Procedure.PropertyOps.Add(new OoPendingPropertyOp(
@@ -292,9 +292,9 @@ internal sealed class ObjectPropertyResolver(ReferenceResolver refs, DataBinder 
         return (temp, null);
     }
 
-    /// <summary>The roster an object-reference item of <paramref name="item"/>'s description selects (§8.4.3.9.3 SR3/SR4):
+    /// <summary>The roster an object-reference item of <paramref name="item"/>'s description selects (§2023:8.4.3.9.3 SR3/SR4):
     /// FACTORY OF selects the factory half (kb/Work PB389), an interface-typed reference its prototype closure (kb/Work
-    /// PB1449, §11.8.4 GR2). A universal reference is SR2's refusal (reported unless probing), and a reference described
+    /// PB1449, §2023:11.8.4 GR2). A universal reference is SR2's refusal (reported unless probing), and a reference described
     /// with a parameter-name of the definition bound as itself has the actual's roster, each expansion's question (noted
     /// unless probing; kb/Work PB2937) — both set <paramref name="answered"/>, so the caller refuses rather than diagnose
     /// "not a property" again; null also for a class this
@@ -313,12 +313,12 @@ internal sealed class ObjectPropertyResolver(ReferenceResolver refs, DataBinder 
         }
         if (answered = described.IsUniversal)
         {
-            // §8.4.3.9.3 SR2: "Identifier-1 shall be an object reference; neither a universal object reference nor the
+            // §2023:8.4.3.9.3 SR2: "Identifier-1 shall be an object reference; neither a universal object reference nor the
             // predefined object reference NULL shall be specified."
             if (!refs.Probing)
                 data.Edition.Error(DiagnosticCatalog.PropertyObject,
                     $"the object-property reference '{name}' OF '{objWritten}': its object shall not be a universal "
-                    + "object reference (ISO §8.4.3.9.3 SR2)");
+                    + "object reference (ISO §2023:8.4.3.9.3 SR2)");
             return null;
         }
         if (described.Kind is ObjectRefKind.Interface)
@@ -332,7 +332,7 @@ internal sealed class ObjectPropertyResolver(ReferenceResolver refs, DataBinder 
             : receiver.Factory ? receiver.Class!.FindFactoryMethod(accessorName) : receiver.Class!.FindMethod(accessorName);
 
     /// <summary>Identifier-3 of a property reference written as a word chain: the written reference less its head word
-    /// (the property-name) and its reference modifiers (§8.4.3.1.4 GR1 g) applies them to the property's value, last),
+    /// (the property-name) and its reference modifiers (§2023:8.4.3.1.4 GR1 g) applies them to the property's value, last),
     /// keeping every qualifier, the subscripts and a trailing non-word object — the chain the ordinary resolver then
     /// reads (a qualified, subscripted data name, or a chained property). Null when no qualifier follows the head, so
     /// identifier-3 is the non-word object alone. The copy ADOPTS the original children (the
@@ -377,9 +377,9 @@ internal sealed class ObjectPropertyResolver(ReferenceResolver refs, DataBinder 
         }
     }
 
-    /// <summary>The reference modifiers a function object writes after its argument list (§8.4.3.1.4 GR1 g) applies them
-    /// to the whole identifier, last: the function returns an object reference, which §8.4.3.3.3 SR1 never lets one
-    /// modify). Without an argument list a '(' after the name is the function's own business (§8.4.3.2.3 SR6).</summary>
+    /// <summary>The reference modifiers a function object writes after its argument list (§2023:8.4.3.1.4 GR1 g) applies them
+    /// to the whole identifier, last: the function returns an object reference, which §2023:8.4.3.3.3 SR1 never lets one
+    /// modify). Without an argument list a '(' after the name is the function's own business (§2023:8.4.3.2.3 SR6).</summary>
     internal static Core.RefModPartContext[] ResultRefModsOf(Core.PropertyObjectContext po) =>
         po.functionCall() is { } fc && fc.FNARG_LPAREN() is not null ? fc.refModPart() : [];
 

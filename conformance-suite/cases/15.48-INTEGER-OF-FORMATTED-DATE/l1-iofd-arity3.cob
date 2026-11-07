@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.48.2 general format — FUNCTION INTEGER-OF-FORMATTED-DATE
+      *> ISO §2023:15.48.2 general format — FUNCTION INTEGER-OF-FORMATTED-DATE
       *> ( argument-1 argument-2 ). Nothing follows argument-2 and nothing is
       *> bracketed, so there is no third position: unlike the FORMATTED-TIME /
       *> FORMATTED-DATETIME siblings, this format carries no optional offset

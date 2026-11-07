@@ -6,7 +6,7 @@ namespace WiseOwl.Cobol.Runtime.IO.Store;
 
 /// <summary>⛔ ONE RUN UNIT'S PAGE I/O ON ONE PHYSICAL FILE (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.7,
 /// "Within a run unit"; kb/Work PB3333): the handles of every connector of the run unit attached to the file's store, each
-/// the connector's own §9.1.15 file lock (kb/Work PB771 — no second handle is ever taken), and the page I/O of the store
+/// the connector's own §2023:9.1.15 file lock (kb/Work PB771 — no second handle is ever taken), and the page I/O of the store
 /// goes through one of them positionally (<see cref="HandlePageMedium"/>). A WRITABLE handle is used whenever one is
 /// attached, so a store whose connectors are a reader and a writer writes through the writer's; every handle of a run
 /// unit names the same physical file, so which one carries a read changes nothing a page can show.

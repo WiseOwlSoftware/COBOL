@@ -5,10 +5,10 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §A.1 item 21 (§15.15.4 r2) — CHAR under an alphanumeric
+      *> ISO §2023:A.1 item 21 (§2023:15.15.4 r2) — CHAR under an alphanumeric
       *> LOCALE sequence returns the documented member of a tied rank.
       *> The alphanumeric twin of 2002/l1_char_national_locale_tie.
-      *> Rule (§15.15.4 r2): "If more than one character has the same
+      *> Rule (§2023:15.15.4 r2): "If more than one character has the same
       *> position in the alphanumeric program collating sequence, the
       *> character returned is the first character defined for that
       *> character position. If the order of multiple characters
@@ -18,18 +18,18 @@
       *> position, every invocation of the CHAR function shall return
       *> the same character."
       *> cite.py OK lines:
-      *>  OK §A.1 21) CHAR function (which one of the multiple
+      *>  OK §2023:A.1 21) CHAR function (which one of the multiple
       *>     characters is returned). This item is required.
-      *>  OK §15.15.4 2) If the order of multiple characters having the
+      *>  OK §2023:15.15.4 2) If the order of multiple characters having the
       *>     same position is undefined, the implementor shall define
       *>     which of those multiple characters is returned
-      *>  OK §15.15.4 2) every invocation of the CHAR function shall
+      *>  OK §2023:15.15.4 2) every invocation of the CHAR function shall
       *>     return the same character.
-      *>  OK §12.3.7.4 7) When the LOCALE phrase is specified, the
+      *>  OK §2023:12.3.7.4 7) When the LOCALE phrase is specified, the
       *>     collating sequence identified is defined by the locale
       *>     referenced by locale-name-2 when specified, otherwise by
       *>     the locale that is current
-      *>  OK §15.70.1 The ORD function returns an integer value that is
+      *>  OK §2023:15.70.1 The ORD function returns an integer value that is
       *>     the ordinal position of argument-1 in the program
       *>     collating sequence.
       *> Documented determination (docs/CONFORMANCE.md DOC-A.1-21,
@@ -41,7 +41,7 @@
       *> Derivation:
       *>  O00/O01/O1F: the three control characters are ignorable in
       *>    a locale collation, so they share the lowest rank; ORD
-      *>    gives that rank's ordinal, 1 (§15.70.1)  -> 001 each. This
+      *>    gives that rank's ordinal, 1 (§2023:15.70.1)  -> 001 each. This
       *>    shows the tie (r2's undefined-order branch) is reached.
       *>  C1: CHAR(1) is the documented lowest-coded member X"00";
       *>    its code is read through a BINARY-CHAR UNSIGNED redefinition

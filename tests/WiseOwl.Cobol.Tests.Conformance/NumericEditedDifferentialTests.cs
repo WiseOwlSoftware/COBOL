@@ -5,11 +5,11 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// The numeric-edited receiver stack (ISO §13.18.40.4 editing rules via <c>CobolEdit.Format</c>): zero
+/// The numeric-edited receiver stack (ISO §2023:13.18.40.4 editing rules via <c>CobolEdit.Format</c>): zero
 /// suppression/replacement (Z *), fixed and floating insertion (cs + - CR DB), simple/special insertion
-/// (B 0 / , .), MOVE editing (§14.9.25.4 GR5), arithmetic GIVING into edited receivers with ROUNDED applied
-/// BEFORE editing at the mask's scale (§14.7.4/§14.7.7), DIVIDE … REMAINDER (§14.9.12 GR7 — the remainder uses
-/// the TRUNCATED intermediate quotient), and the alphanumeric→numeric MOVE (§14.9.25.4 GR6 unsigned-integer
+/// (B 0 / , .), MOVE editing (§2023:14.9.25.4 GR5), arithmetic GIVING into edited receivers with ROUNDED applied
+/// BEFORE editing at the mask's scale (§2023:14.7.4/§2023:14.7.7), DIVIDE … REMAINDER (§2023:14.9.12 GR7 — the remainder uses
+/// the TRUNCATED intermediate quotient), and the alphanumeric→numeric MOVE (§2023:14.9.25.4 GR6 unsigned-integer
 /// treatment via <c>CobolNum.FromAlphanumeric</c>). Pinned to the committed golden (NIST-85 green).
 /// </summary>
 public sealed class NumericEditedDifferentialTests
@@ -45,8 +45,8 @@ public sealed class NumericEditedDifferentialTests
             """));
 
     /// <summary>SPEC-PINNED (not differential): a non-negative value renders CR as TWO SPACES — the positions stay
-    /// part of the field (ISO §13.18.40.4 fixed insertion: "…replaced by spaces"). The legacy trims the trailing
-    /// spaces on DISPLAY (its known §14.9.11.4 GR6 non-conformance), so it cannot oracle the full-width image.</summary>
+    /// part of the field (ISO §2023:13.18.40.4 fixed insertion: "…replaced by spaces"). The legacy trims the trailing
+    /// spaces on DISPLAY (its known §2023:14.9.11.4 GR6 non-conformance), so it cannot oracle the full-width image.</summary>
     [Fact]
     public void FixedCurrency_AndCreditDebit()
     {

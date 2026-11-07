@@ -8,14 +8,14 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The ISO §13.16.3 SR24 condition-name association screen's SHAPE, held against drift (kb/Work PB488).
+/// The ISO §2023:13.16.3 SR24 condition-name association screen's SHAPE, held against drift (kb/Work PB488).
 ///
 /// <para><b>Why this test exists.</b> The screen REJECTS source, so its failure mode is not a missing
 /// diagnostic — it is a compiler that refuses a legal program. SR24 is an EXCLUSION list, and every letter is
 /// one word away from a shape it does not exclude: c) says "an ALPHANUMERIC group" where d) says "a group";
-/// e) names four CLASSES where the neighbouring §13.18.60.3 SR4 names the six PHRASES that produce them;
+/// e) names four CLASSES where the neighbouring §2023:13.18.60.3 SR4 names the six PHRASES that produce them;
 /// g) says "a GROUP item subordinate to such a type declaration", which leaves an elementary member legal; and
-/// h) says "a variable-length group", which §8.5.1.12.1 defines as a group with a DYNAMIC-LENGTH item or a
+/// h) says "a variable-length group", which §2023:8.5.1.12.1 defines as a group with a DYNAMIC-LENGTH item or a
 /// DYNAMIC-CAPACITY table subordinate — not an occurs-depending-on group. Widening any of those by one word
 /// starts rejecting ordinary COBOL. The conformance goldens pin that end to end; this pins it at the table.</para>
 ///
@@ -25,8 +25,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 public sealed class ConditionNameAssociationDriftTests
 {
-    // ⛔ SR24 e)'s class test and SR4's phrase reader live on ItemCategory (kb/Work PB391) — the ONE §8.5.2
-    // class/category reader — because §14.7.6 rule 4 names the SAME four classes with the same words and its
+    // ⛔ SR24 e)'s class test and SR4's phrase reader live on ItemCategory (kb/Work PB391) — the ONE §2023:8.5.2
+    // class/category reader — because §2023:14.7.6 rule 4 names the SAME four classes with the same words and its
     // asker, CorrespondingBinder, is outside DataBinder. Public there, so no reflection.
     private static bool ExcludedClass(DataItem d) => ItemCategory.IsIndexMessageTagObjectOrPointer(d);
 
@@ -49,7 +49,7 @@ public sealed class ConditionNameAssociationDriftTests
         return g;
     }
 
-    /// <summary>ISO §13.16.3 SR24's exclusion list, transcribed from <c>specs/ISO_COBOL_2023.md</c> and validated
+    /// <summary>ISO §2023:13.16.3 SR24's exclusion list, transcribed from <c>specs/ISO_COBOL_2023.md</c> and validated
     /// with <c>python scripts/spec/cite.py --check 13.16.3</c>. The table under test must say exactly this.
     /// ⛔ If a row's words change, do not "fix" this string — re-read the clause and re-derive the predicate;
     /// the words are what the diagnostic quotes back to the programmer.</summary>
@@ -99,7 +99,7 @@ public sealed class ConditionNameAssociationDriftTests
         var sync = Elem("S", Alnum(), 5);
         sync.Synchronized = SynchronizedPhrase.Right;
         Assert.Equal('d', Excl(Group("G", 1, sync)));
-        // §13.18.55.3 SR1 permits SYNCHRONIZED on the GROUP and §13.18.55.4 GR1 makes that a description of its
+        // §2023:13.18.55.3 SR1 permits SYNCHRONIZED on the GROUP and §2023:13.18.55.4 GR1 makes that a description of its
         // members: DataBinder.InheritSynchronized writes the group's clause onto each member for which it is
         // permitted (kb/Work PB539), and d) reads the members — the shape that walk leaves is what fires here.
         var syncMember = Elem("A", Alnum(), 5);
@@ -107,7 +107,7 @@ public sealed class ConditionNameAssociationDriftTests
         var syncGroup = Group("G", 1, syncMember);
         syncGroup.Synchronized = SynchronizedPhrase.Unqualified;
         Assert.Equal('d', Excl(syncGroup));
-        // A group whose clause reached NO member (each is below a group-level VALUE, §13.18.63.3 SR14) contains no
+        // A group whose clause reached NO member (each is below a group-level VALUE, §2023:13.18.63.3 SR14) contains no
         // item described with the clause, so d) does not fire on the group's own flag.
         var unreached = Group("G", 1, Elem("B", Alnum(), 5));
         unreached.Synchronized = SynchronizedPhrase.Unqualified;
@@ -147,7 +147,7 @@ public sealed class ConditionNameAssociationDriftTests
         Assert.Null(CheckConditionNameAssociationsPass.ConditionalVariableExclusion(
             Group("AG", 1, Elem("X", Alnum(), 5), Elem("Y", Alnum(), 5))));
 
-        // c) reaches only an ALPHANUMERIC group. §13.18.29.4 GR2 makes a national group "an elementary item of
+        // c) reaches only an ALPHANUMERIC group. §2023:13.18.29.4 GR2 makes a national group "an elementary item of
         // usage national described with PICTURE N(m)", so its national members do not exclude it.
         var natGroup = Group("NG", 1,
             Elem("NF", new PicInfo(PicCategory.National, Usage.National, 2, 0, 0, false), 5));
@@ -166,11 +166,11 @@ public sealed class ConditionNameAssociationDriftTests
             new DataItem { Level = 1, CobolName = "W", ClrName = "W", IsTypedef = true }));
     }
 
-    /// <summary>⛔ c)'s SUBJECT IS §3.11's "ALPHANUMERIC GROUP ITEM", WHICH EXCLUDES FOUR KINDS (kb/Work PB947). The
+    /// <summary>⛔ c)'s SUBJECT IS §2023:3.11's "ALPHANUMERIC GROUP ITEM", WHICH EXCLUDES FOUR KINDS (kb/Work PB947). The
     /// predicate was "a group with no GROUP-USAGE clause" — two of the four — so a VARIABLE-LENGTH group holding a
     /// non-DISPLAY member answered c) and the first-match walk never reached h), the letter it violates; a
     /// STRONGLY-TYPED group instance answered c) too, though SR24 letter g) is the type DECLARATION's and the
-    /// instance is barred by §13.18.57.3 SR2. Both now come out of c), and the ONE spelling that says so is
+    /// instance is barred by §2023:13.18.57.3 SR2. Both now come out of c), and the ONE spelling that says so is
     /// <c>ItemCategory.IsAlphanumericGroup</c>.</summary>
     [Fact]
     public void LetterCAsksTheAlphanumericGroupNotTheGroupWithoutGroupUsage()
@@ -200,7 +200,7 @@ public sealed class ConditionNameAssociationDriftTests
         Assert.Equal('c', Excl(Group("AG", 1, Comp("X2"))));
     }
 
-    /// <summary>⛔ AN OCCURS DEPENDING ON GROUP IS NOT A VARIABLE-LENGTH GROUP. §8.5.1.12.1: "A variable-length
+    /// <summary>⛔ AN OCCURS DEPENDING ON GROUP IS NOT A VARIABLE-LENGTH GROUP. §2023:8.5.1.12.1: "A variable-length
     /// group is a group item whose data description has at least one dynamic-length elementary item or
     /// dynamic-capacity table as a subordinate item." The standard names the occurs-depending-on group
     /// separately wherever it means it, so reading ODO into h) would reject a shape COBOL-85 programs are full
@@ -218,7 +218,7 @@ public sealed class ConditionNameAssociationDriftTests
         Assert.Null(CheckConditionNameAssociationsPass.ConditionalVariableExclusion(g));
     }
 
-    /// <summary>SR24 e) names the CLASSES index, message-tag, object and pointer; §13.18.60.3 SR4 names the SIX
+    /// <summary>SR24 e) names the CLASSES index, message-tag, object and pointer; §2023:13.18.60.3 SR4 names the SIX
     /// USAGE PHRASES that produce exactly those classes. They are ONE population and are resolved through ONE
     /// predicate, so a usage added to either side cannot drift the other. (SR14's five-phrase set is the one
     /// that must stay DIFFERENT — it omits INDEX — and <c>UsageDeclarationPlacementDriftTests</c> pins that.)
@@ -238,7 +238,7 @@ public sealed class ConditionNameAssociationDriftTests
         Assert.False(ExcludedClass(new DataItem { Level = 1, CobolName = "G", ClrName = "G" }));
     }
 
-    /// <summary>Exclusion e)'s row carries the §13.18.60.3 SR11 cross-citation, because the two rules state the
+    /// <summary>Exclusion e)'s row carries the §2023:13.18.60.3 SR11 cross-citation, because the two rules state the
     /// same prohibition and a programmer who looks up one should find the other.</summary>
     [Fact]
     public void ExclusionERowCitesSr11AsWell()
@@ -253,5 +253,5 @@ public sealed class ConditionNameAssociationDriftTests
         CheckConditionNameAssociationsPass.ConditionalVariableExclusion(d) is { } row
             ? row.Letter
             : throw new InvalidOperationException(
-                $"ISO §13.16.3 SR24 excludes '{d.CobolName}' and the screen admitted it.");
+                $"ISO §2023:13.16.3 SR24 excludes '{d.CobolName}' and the screen admitted it.");
 }

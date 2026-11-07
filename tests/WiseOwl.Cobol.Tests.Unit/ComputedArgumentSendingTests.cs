@@ -7,8 +7,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ A COMPUTED NUMERIC VALUE IS MARKED AS HAVING NO REPRESENTATION OF ITS OWN (kb/Work PB3969; <c>MoveSending.Computed</c>). ISO
-/// §15.4.1 leaves "the characteristics and representation of the returned value" of a numeric function to the implementor, so
-/// §14.2.3 GR9's first regime has no image to move "without conversion": <c>ProgramTable.LandArguments</c> lands such a BY
+/// §2023:15.4.1 leaves "the characteristics and representation of the returned value" of a numeric function to the implementor, so
+/// §2023:14.2.3 GR9's first regime has no image to move "without conversion": <c>ProgramTable.LandArguments</c> lands such a BY
 /// CONTENT argument through the formal's own description, which these facts show end to end through the formal's registered
 /// landing (<c>BoundaryItem.Land</c>): <c>FUNCTION MAX(W 0)</c>, W = 1.25, reaches a PIC S9V99 formal as 1.25, not as the leading
 /// positions of its 38-digit container (+0.00).

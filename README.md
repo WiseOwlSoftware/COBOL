@@ -188,14 +188,14 @@ the compiler conforms. The open rows are the project's one progress number, and 
 `pwsh scripts/session-probe.ps1` prints the rows, the open rows and the corpus sizes for the commit you are on, and
 the gate's verdict line prints the tests it ran.
 
-What the compiler declines is documented as §4.2.6 and §4.2.7 require, in [docs/CONFORMANCE.md](docs/CONFORMANCE.md):
+What the compiler declines is documented as §2023:4.2.6 and §2023:4.2.7 require, in [docs/CONFORMANCE.md](docs/CONFORMANCE.md):
 its §2 dispositions every processor-dependent element of Annex A.3, its §5 every optional module of Annex A.4, and its
 §4 the facilities declined whole. Every element those two tables do not claim in full is named below by its Annex
 item, and a documentation audit (`scripts/doc_audits.py`, `scripts/docchecks/register.py`) fails when this list and the tables disagree:
 
-- The Message Control System (A.3 item 4) compiles with the warning §4.2.6 requires for a processor-dependent element
+- The Message Control System (A.3 item 4) compiles with the warning §2023:4.2.6 requires for a processor-dependent element
   (COBOL1578), and the program runs with the facility inert; the MESSAGE-TAG usage binds as a data item (kb/Work PB4740).
-- The VALIDATE statement (A.4.14) compiles with a warning by documented choice under §4.2.7 (COBOL1580); the
+- The VALIDATE statement (A.4.14) compiles with a warning by documented choice under §2023:4.2.7 (COBOL1580); the
   facility's data-division clauses (COBOL1708) and its EC-VALIDATE exception names (COBOL1710) are refused.
 - Screen handling (A.4.2; COBOL1560, COBOL1707), FORMAT and SELECT WHEN file handling (A.4.8, COBOL1705) and
   WRITE FILE and REWRITE FILE (A.4.13, COBOL1706) are refused with errors, which is how Annex A.4.1 reads for an

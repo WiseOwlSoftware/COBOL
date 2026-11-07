@@ -4,7 +4,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §9.3.8.2.3 rule 5 c) 1. — prototype returns X ONLY,
+      *> ISO §2023:9.3.8.2.3 rule 5 c) 1. — prototype returns X ONLY,
       *>   implementation drops ONLY
       *> Rule: "If the returning item in interface-2 is described with
       *>   the ONLY phrase, the returning item in interface-1 shall be
@@ -13,17 +13,17 @@
       *> cite.py --check 9.3.8.2.3 "If the returning item in interface-2
       *>   is described with the ONLY phrase, the returning item in
       *>   interface-1 shall be described with the ONLY phrase and the
-      *>   same object-class-name" -> OK  §9.3.8.2.3 5) 2. c)
+      *>   same object-class-name" -> OK  §2023:9.3.8.2.3 5) 2. c)
       *>   (Conformance between interfaces)
       *> cite.py --check 11.8.3 "Each method prototype in each
       *>   implemented interface shall be such that the object interface
       *>   of this class conforms to all implemented interfaces" -> OK
-      *>   §11.8.3 2)  (Syntax rules)
+      *>   §2023:11.8.3 2)  (Syntax rules)
       *> Interface-2 = L1C05SI (GETX RETURNING OBJECT REFERENCE L1C05SX
       *>   ONLY); interface-1 = the object interface of L1C05SC, whose
       *>   GETX returns OBJECT REFERENCE L1C05SX WITHOUT ONLY: the same
       *>   class, but not "described with the ONLY phrase", so it does
-      *>   not conform and §11.8.3 SR2 is violated: COBOL0841.
+      *>   not conform and §2023:11.8.3 SR2 is violated: COBOL0841.
       *>   Everything else is identical to the admitted
       *>   conformance:cases/9.3.8.2.3-Conformance-between-interfaces/l1c05_oo_returning_only_same_class.
        IDENTIFICATION DIVISION.

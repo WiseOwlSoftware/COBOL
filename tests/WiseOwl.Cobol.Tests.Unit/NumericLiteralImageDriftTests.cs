@@ -9,8 +9,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ A NUMERIC LITERAL THE PROGRAM WROTE KEEPS THE PROGRAM'S DECIMAL SEPARATOR — ONE PRODUCER (kb/Work PB1643).
-/// ISO §14.9.11.4 GR1 leaves the conversion of a literal to the device to the implementor (CONFORMANCE.md DOC-A.1-56:
-/// the literal as written), and §12.3.7.4 GR14 a) makes the comma the character "written in numeric literals to represent
+/// ISO §2023:14.9.11.4 GR1 leaves the conversion of a literal to the device to the implementor (CONFORMANCE.md DOC-A.1-56:
+/// the literal as written), and §2023:12.3.7.4 GR14 a) makes the comma the character "written in numeric literals to represent
 /// the decimal separator" under DECIMAL-POINT IS COMMA. The bound literal therefore carries two spellings: <c>Text</c>,
 /// the canonical dot-decimal value every numeric decoder reads, and <c>DecimalSeparator</c>, from which its character image
 /// is built. A producer that builds the node from <c>CheckLiteral</c>'s text and forgets the separator prints

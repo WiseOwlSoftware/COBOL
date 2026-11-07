@@ -5,7 +5,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// Data-description level-number structure (ISO/IEC 1989:2023 §13.18.38): level 77 is an INDEPENDENT elementary item —
+/// Data-description level-number structure (ISO/IEC 1989:2023 §2023:13.18.38): level 77 is an INDEPENDENT elementary item —
 /// always top-level (like 01), regardless of its numeric value. The binder's level-number stack must treat 77 as a
 /// root so a 77 that follows a group does NOT nest under the group's still-open subordinate item (which would
 /// mis-qualify every later reference — the NC102A `THREE`/`P-COUNT` bug). Pinned to the committed golden.

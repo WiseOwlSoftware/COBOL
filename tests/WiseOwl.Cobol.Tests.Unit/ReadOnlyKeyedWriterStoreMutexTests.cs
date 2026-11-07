@@ -14,9 +14,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <c>ALL OTHER</c> — MAKES EVERY PAGE WRITE OF A STATEMENT INSIDE THE STORE MUTEX, AND GIVES THE MUTEX BACK WHEN THE
 /// HOST REFUSES ONE (kb/Work PB3414; the behavioural witness of traceability row GR-14.9.51.4-12's keyed half).
 ///
-/// <para><b>The rule.</b> §9.1.15 1): <i>"The sharing with no other mode specifies exclusive access to a physical
-/// file"</i>; every other mode admits another run unit's connector, and §9.1.15 2) admits an INPUT one beside a
-/// <c>SHARING WITH READ ONLY</c> writer. §14.9.51.4 GR12 releases a written record to the operating environment at the
+/// <para><b>The rule.</b> §2023:9.1.15 1): <i>"The sharing with no other mode specifies exclusive access to a physical
+/// file"</i>; every other mode admits another run unit's connector, and §2023:9.1.15 2) admits an INPUT one beside a
+/// <c>SHARING WITH READ ONLY</c> writer. §2023:14.9.51.4 GR12 releases a written record to the operating environment at the
 /// WRITE. The keyed store engine writes the statement's tree pages and then page 2, which names the trees
 /// (docs/rearchitecture/DESIGN-runtime-library.md 2.2.1.6, 2.2.1.7); a reader that followed the tree between those
 /// writes could meet a page the ledger reuses, so the statement is ONE step to every other run unit, which is what the
@@ -36,10 +36,10 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// with no thread and no clock; the reader's reads at its two boundaries show the tree as it stood before and after.</para>
 ///
 /// <para><b>The exception paths.</b> A host that refuses the <i>k</i>-th write of the statement (a full or failing
-/// medium) answers '30' (§9.1.13.6 item 1: <i>"A permanent error exists and no further information is available
+/// medium) answers '30' (§2023:9.1.13.6 item 1: <i>"A permanent error exists and no further information is available
 /// concerning the input-output operation"</i>) for every <i>k</i>; the statement does not release its record, and the
 /// mutex is back on the host when it answers, so the other run unit's reader is not wedged and reads the tree as it stood.
-/// The permanent error stays in effect until the CLOSE (§9.1.13.1), the later statements replay it without touching the
+/// The permanent error stays in effect until the CLOSE (§2023:9.1.13.1), the later statements replay it without touching the
 /// file, and the CLOSE answers '00'.</para>
 /// </summary>
 [Trait("Host", "ReFS")]
@@ -96,7 +96,7 @@ public sealed class ReadOnlyKeyedWriterStoreMutexTests
     /// <summary>A WRITE, a REWRITE and a DELETE of a writer admitting another run unit — <c>READ ONLY</c> and
     /// <c>ALL OTHER</c> alike, on the machine's region host and on the lock-file host — make every page write and sync
     /// inside the store mutex: a WRITE of a new record writes at least its tree page and page 2, and the mutex is held at
-    /// each. The INPUT reader of another run unit open beside the writer (§9.1.15 2)) reads the tree as it stood before
+    /// each. The INPUT reader of another run unit open beside the writer (§2023:9.1.15 2)) reads the tree as it stood before
     /// each statement and as the statement left it, record by record.</summary>
     [Theory]
     [MemberData(nameof(Shapes))]
@@ -176,7 +176,7 @@ public sealed class ReadOnlyKeyedWriterStoreMutexTests
     /// <summary>A host refusal of EVERY page write and sync of a WRITE, one at a time, answers '30' and releases nothing:
     /// at the moment the statement answers, the mutex is back on the host (a reader of another run unit is not wedged
     /// behind a statement that died), that reader reads the tree as it stood — records 1 and 2, and no record 3 ('23') —
-    /// and the writer's permanent error (§9.1.13.1) is replayed by its next statement, which touches nothing, until its
+    /// and the writer's permanent error (§2023:9.1.13.1) is replayed by its next statement, which touches nothing, until its
     /// CLOSE answers '00'. Records 1 and 2 are in the file for the next OPEN. It runs on the machine's region host and on
     /// the lock-file host, like the case above (<see cref="Shapes"/>): the store mutex is a different object on each, and
     /// "the refused statement gave it back" is a claim about that object.</summary>
@@ -215,7 +215,7 @@ public sealed class ReadOnlyKeyedWriterStoreMutexTests
                 Assert.Equal("23", Read(b, "B", org, 3, out _));   // the refused WRITE released nothing
 
                 watch.Begin();
-                Assert.Equal("30", Write(a, "A", org, 4, "DDDD"));   // the permanent error in effect (§9.1.13.1) is replayed
+                Assert.Equal("30", Write(a, "A", org, 4, "DDDD"));   // the permanent error in effect (§2023:9.1.13.1) is replayed
                 watch.End();
                 Assert.Equal(0, watch.Operations);                   // and touches nothing
                 Assert.Equal("23", Read(b, "B", org, 4, out _));

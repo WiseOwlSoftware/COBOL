@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §12.3.6.4 10) — no PCS anywhere: the NATIVE collating
+      *> ISO §2023:12.3.6.4 10) — no PCS anywhere: the NATIVE collating
       *>   sequences
       *> "When the PROGRAM COLLATING SEQUENCE clause is not specified
       *>   and the
@@ -16,7 +16,7 @@
       *> sequences are the native alphanumeric collating sequence and
       *>   the native
       *> national collating sequence."
-      *> OK  §12.3.6.4 10)  (General rules)
+      *> OK  §2023:12.3.6.4 10)  (General rules)
       *> Documented native sequences (docs/CONFORMANCE.md DOC-A.1-8):
       *>   the
       *> ordinal of a native character is its UTF-16 code unit plus one,

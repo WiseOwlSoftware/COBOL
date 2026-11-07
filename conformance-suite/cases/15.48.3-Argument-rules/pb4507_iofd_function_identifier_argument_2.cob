@@ -5,14 +5,14 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> PB4507 - ISO §15.48.3 r3: "Argument-2 shall be a data item of the same type as argument-1." (cite.py --check
-      *> 15.48.3 OK) and §8.4.3.2.4 r1: "A function-identifier references a temporary data item whose value is
+      *> PB4507 - ISO §2023:15.48.3 r3: "Argument-2 shall be a data item of the same type as argument-1." (cite.py --check
+      *> 15.48.3 OK) and §2023:8.4.3.2.4 r1: "A function-identifier references a temporary data item whose value is
       *> determined when the function is referenced at runtime." (cite.py --check 8.4.3.2.4 OK). A function-identifier
       *> whose type is alphanumeric IS a data item of argument-1's alphanumeric type, so argument-2 may be one; the rule
       *> excludes a LITERAL (negative/pb58-iofd-literal), a figurative constant (negative/pb4507-iofd-figurative-argument-2)
       *> and an expression. The binder used to admit only a field operand and refused the function with COBOL1627.
       *>
-      *> EXPECTED VALUES, from §15.48.4 r1 over §15.5.2's integer date form (days succeeding December 31, 1600):
+      *> EXPECTED VALUES, from §2023:15.48.4 r1 over §2023:15.5.2's integer date form (days succeeding December 31, 1600):
       *> 2000-03-01 is 145792 (1601-01-01 is 1; the 399 years 1601 to 1999 hold 399 * 365 = 145635 days plus 96 leap
       *> days (99 multiples of 4 from 1604 to 1996, less 1700, 1800 and 1900), so 2000-01-01 is 145635 + 96 + 1 = 145732;
       *> 2000-03-01 adds January's 31 and February's 29 days). 1995-02-15 is 143951 (the

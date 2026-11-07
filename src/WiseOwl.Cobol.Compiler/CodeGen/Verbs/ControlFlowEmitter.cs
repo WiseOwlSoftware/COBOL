@@ -29,17 +29,17 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
     /// <summary>The EC raise-site dispatcher (property-wired by <see cref="UnitEmitters"/>, the same cyclic edge as
     /// <see cref="Statements"/>) — a SEARCH with EC-RANGE checking ON but NO AT END phrase dispatches the raised
     /// range EC to an applicable USE declarative / Format-3 WHEN via <see cref="EcEmitter.EcDispatchExpr"/>
-    /// (ISO §14.9.37.4 GR1b2; CA36).</summary>
+    /// (ISO §2023:14.9.37.4 GR1b2; CA36).</summary>
     internal EcEmitter Ec { get; set; } = null!;
 
-    /// <summary>Emit <c>GO TO … DEPENDING ON sel</c> (ISO §14.9.17 Format 2; GR2): a 1-based selector picks a pc;
+    /// <summary>Emit <c>GO TO … DEPENDING ON sel</c> (ISO §2023:14.9.17 Format 2; GR2): a 1-based selector picks a pc;
     /// an out-of-range value transfers nowhere and falls through to the next statement. (The clause number was
-    /// §14.9.20 here and at the selector read below — that is the INITIALIZE statement; GO TO is §14.9.17.)</summary>
+    /// §2023:14.9.20 here and at the selector read below — that is the INITIALIZE statement; GO TO is §2023:14.9.17.)</summary>
     public void EmitGoToDepending(BoundGoToDepending d)
     {
         var w = ctx.Writer;
         int id = ctx.Names.NextDep();
-        // The selector "shall reference a numeric elementary data item that is an integer" (§14.9.17.3 SR1) — read
+        // The selector "shall reference a numeric elementary data item that is an integer" (§2023:14.9.17.3 SR1) — read
         // through the ONE integer landing so a P-scaled or
         // unsigned-wide item selects by VALUE (kb/Work PB86's sweep of raw integer-identifier reads) — and narrowed through
         // the SATURATING HostInt32, so a value past `int` stays outside 1..n and falls through (GR2; kb/Work PB1033: a
@@ -56,7 +56,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
         // PERFORM, that loop) and the transfer was silently discarded (kb/Work PB405).
         // The in-range arm is the transfer: the after-statement debugging sections of the statements enclosing this one run here, on that arm
         // only (the fall-through arm reaches their ordinary fires; X3.23-1985 general rules 5 d and 6 c; DebugTriggerEmitter.LandBeforeTransfer).
-        using (w.Block($"if (__dep{id} >= 1 && __dep{id} <= {d.Targets.Count})   // in range → explicit transfer (ISO §14.9.17.4 GR2; §14.9.28.4 GR5)"))
+        using (w.Block($"if (__dep{id} >= 1 && __dep{id} <= {d.Targets.Count})   // in range → explicit transfer (ISO §2023:14.9.17.4 GR2; §2023:14.9.28.4 GR5)"))
         {
             Debug.LandBeforeTransfer();
             w.Line(dispatch.ExplicitTransferJump());
@@ -78,14 +78,14 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
 
     // EmitPerform(inline:true) brackets the body with a fresh F3Region.Inline(pid) + the __pcont/__pexit labels, so
     // an EXIT PERFORM here targets THIS loop and a nested inline PERFORM (setting its OWN Inline id) targets the inner
-    // loop — §14.9.14.4 GR5a "the most closely preceding, and as yet unterminated, inline PERFORM". No manual region reset needed.
+    // loop — §2023:14.9.14.4 GR5a "the most closely preceding, and as yet unterminated, inline PERFORM". No manual region reset needed.
     public void EmitInlinePerform(BoundInlinePerform p) =>
         EmitPerform(p.Control, () => Statements.EmitStatementList(p.Body), inline: true);
 
-    /// <summary>Emit a Format-3 (exception-checking) PERFORM (ISO §14.9.28 Format 3) via the pc-RANGE interceptor
+    /// <summary>Emit a Format-3 (exception-checking) PERFORM (ISO §2023:14.9.28 Format 3) via the pc-RANGE interceptor
     /// (design SSOT §9.3.3). imperative-statement-1 is emitted INLINE inside a try (under the bind-time GR14
     /// overlay); a raise site within it consults the installed <c>PerformFrame</c> (GR17). The frame's matcher does
-    /// tier-ordered WHEN selection (§14.9.49.4 GR3c-g) and runs the matching imp-2 (+ WHEN COMMON imp-4) as bounded
+    /// tier-ordered WHEN selection (§2023:14.9.49.4 GR3c-g) and runs the matching imp-2 (+ WHEN COMMON imp-4) as bounded
     /// pc-ranges via <c>__RunF3</c>/<c>__RunUse</c>. FINALLY (imp-5) is the INLINE trailing block, reached on every
     /// NON-fatal exit path (normal fall-off / imp-1 EXIT-PERFORM goto / a handler EXIT-PERFORM caught here); a fatal,
     /// unresumed EC throws PAST it (the chosen standard-defect default, §9.6 Q5). The frame pops in the finally
@@ -117,21 +117,21 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
             if (p.HandlerHasExit)
             {
                 using (w.Block("try")) EmitImp1();
-                w.Line($"catch (ExitPerformSignal __eps{n}) when (__eps{n}.Id == {n}) {{ }}   // handler EXIT PERFORM → §14.9.14.4 GR4");
+                w.Line($"catch (ExitPerformSignal __eps{n}) when (__eps{n}.Id == {n}) {{ }}   // handler EXIT PERFORM → §2023:14.9.14.4 GR4");
             }
             else EmitImp1();
         }
         w.Line("finally { ExceptionState.PopPerformFrame(); }");
-        w.Line($"__f3fin{n}: ;   // implicit CONTINUE preceding FINALLY (§14.9.14.4 GR4 / §14.9.28.4 GR16)");
+        w.Line($"__f3fin{n}: ;   // implicit CONTINUE preceding FINALLY (§2023:14.9.14.4 GR4 / §2023:14.9.28.4 GR16)");
         if (p.FinallyBody is { } fb)
         {
             var s = dispatch.SetF3Region(F3Region.Finally, n);
-            // §14.9.28.4 GR14 covers imp-5 too: the implicit POP ALL sits "immediately preceding the END PERFORM
+            // §2023:14.9.28.4 GR14 covers imp-5 too: the implicit POP ALL sits "immediately preceding the END PERFORM
             // phrase", so FINALLY runs inside the TURN OFF ALL window just as the WHEN bodies do. The binder bound
             // imp-5 under that window, and the run-time half is the nested-list checking scope every statement list
             // opens (EcEmitter.EnterNestedStatements — kb/Work PB891): its statements set only their own flags, and
             // a standing guard's flags are re-based to all-off around them. A `goto` out of that scope to __f3end is
-            // legal C#, so EXIT PERFORM in imp-5 (§14.9.28.4 GR16) still reaches the implicit CONTINUE.
+            // legal C#, so EXIT PERFORM in imp-5 (§2023:14.9.28.4 GR16) still reaches the implicit CONTINUE.
             Statements.EmitStatementList(fb);   // imp-5 inline; skipped on the fatal-throw path
             dispatch.RestoreF3Region(s);
         }
@@ -139,7 +139,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
     }
 
     /// <summary>Emit the F3 matcher body: one <c>if (test) return __RunF3(...)</c> per WHEN operand, SORTED into the
-    /// §14.9.49.4 GR3c-g tiers (file+L3 → file+L2 / bare-file → L3 → L2 → L1/EC-ALL; source order only within a
+    /// §2023:14.9.49.4 GR3c-g tiers (file+L3 → file+L2 / bare-file → L3 → L2 → L1/EC-ALL; source order only within a
     /// tier, GR17), then WHEN OTHER (imp-3, GR18) as the unconditional fallback, else <c>NoMatch</c> (fall to the USE
     /// declaratives). A tier-4 EC-ALL operand is the catch-all (its <c>true</c> test makes a following OTHER/NoMatch
     /// unreachable, so it terminates the body). Every handler runs with its WHEN COMMON (imp-4) via <c>__RunF3</c>.</summary>
@@ -173,7 +173,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
         foreach (var arm in arms)
         {
             string call = $"__RunF3({HandlerUseId(arm.Imp2Pc)}, {arm.Imp2Pc}, {cu}, {cpc})";
-            if (arm.Test == "true") { w.Line($"return {call};   // WHEN EC-ALL (§14.9.49.4 GR3g)"); catchAll = true; break; }
+            if (arm.Test == "true") { w.Line($"return {call};   // WHEN EC-ALL (§2023:14.9.49.4 GR3g)"); catchAll = true; break; }
             w.Line($"if ({arm.Test}) return {call};");
         }
         if (catchAll) return;
@@ -182,12 +182,12 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
         // nonfatal condition resumes in place, a fatal one terminates - so there is one destination rule, not one per
         // arm (docs/CONFORMANCE.md §3, "where control goes after WHEN OTHER's imperative-statement-3", kb/Work PB438).
         if (p.OtherPc is int opc)
-            w.Line($"return __RunF3({HandlerUseId(opc)}, {opc}, {cu}, {cpc});   // WHEN OTHER (imp-3, §14.9.28.4 GR18, then GR20)");
+            w.Line($"return __RunF3({HandlerUseId(opc)}, {opc}, {cu}, {cpc});   // WHEN OTHER (imp-3, §2023:14.9.28.4 GR18, then GR20)");
         else
             w.Line("return PerformFrame.NoMatch;   // no WHEN/OTHER selects → fall to __EcDispatch (USE), GR17 tail");
     }
 
-    /// <summary>Classify one WHEN operand into its §14.9.49.4 GR3a-g tier + the runtime match test (the EC-name
+    /// <summary>Classify one WHEN operand into its §2023:14.9.49.4 GR3a-g tier + the runtime match test (the EC-name
     /// tiers mirror <c>__EcDispatch</c>'s per-tier tests so the two never drift). GR17 selects across the WHEN
     /// operands by GR3's a→g priority: bare file-name (GR3a) > open-mode (GR3b, in the caller) > file+L3 (GR3c) >
     /// file+L2 (GR3d) > L3 (GR3e) > L2 (GR3f) > L1/EC-ALL (GR3g); source order only WITHIN a tier.</summary>
@@ -220,7 +220,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
     };
 
     /// <summary>The <c>__useActive</c> re-entrancy-array id of an appended handler pc — its slot sits above the
-    /// declarative slots (§9.1): <c>DeclCount + (pc − F3HandlerBasePc)</c>.</summary>
+    /// declarative slots (§2023:9.1): <c>DeclCount + (pc − F3HandlerBasePc)</c>.</summary>
     private int HandlerUseId(int pc) => dispatch.DeclCount + (pc - dispatch.F3HandlerBasePc!.Value);
 
     /// <summary>An out-of-line PERFORM is a recursive bounded <c>Dispatch(start, end)</c> over the target pc range
@@ -230,9 +230,9 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
     public void EmitOutOfLinePerform(BoundOutOfLinePerform p)
     {
         var w = ctx.Writer;
-        // ⛔ THE SCAFFOLD IS THE STATEMENT; THE RANGE IS ONLY THE BODY (ISO §14.9.28.4 GR4 — "an inline PERFORM
+        // ⛔ THE SCAFFOLD IS THE STATEMENT; THE RANGE IS ONLY THE BODY (ISO §2023:14.9.28.4 GR4 — "an inline PERFORM
         // statement and an out-of-line PERFORM statement function identically"). An EMPTY specified set (a
-        // zero-paragraph section, §14.4.2) therefore emits the SAME loop — GR13 a)'s induction-variable
+        // zero-paragraph section, §2023:14.4.2) therefore emits the SAME loop — GR13 a)'s induction-variable
         // initialization, GR9's once-only count, GR10's condition tests, GR13's augments and the return — around a
         // body that does nothing, and no transfer of control takes place (GR5). It must NOT reach the dispatcher:
         // the return test cannot fire on an empty range (kb/Work PB440), which is why DispatchCall refuses one.
@@ -259,7 +259,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
 
     /// <summary>One execution of an out-of-line PERFORM's range — the bounded dispatch, and, for a PERFORM that
     /// ENTERS A DECLARATIVE from the nondeclarative portion in a unit that has RESUME, the RESUME landing ISO
-    /// §14.9.33.4 GR2 b) gives that PERFORM:
+    /// §2023:14.9.33.4 GR2 b) gives that PERFORM:
     /// <list type="bullet">
     ///   <item>RESUME AT NEXT STATEMENT — "the implicit CONTINUE statement immediately follows the last statement
     ///         of the terminating procedure referenced in that PERFORM statement": the range's own end, so the
@@ -268,7 +268,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
     ///         other resume landing takes (<see cref="DispatchState.ResumeTransfer"/>).</item>
     /// </list>
     /// ⛔ THE SAME SIGNAL HAS TWO ENTRIES AND EACH NEEDS ITS LANDING (kb/Work PB892). A declarative is entered by
-    /// an exception (§14.9.49 — <c>__RunUse</c> catches the <c>ResumeSignal</c> and returns the action to the raise
+    /// an exception (§2023:14.9.49 — <c>__RunUse</c> catches the <c>ResumeSignal</c> and returns the action to the raise
     /// site) or by this PERFORM (SR4); only the first had a landing, so a performed declarative's RESUME escaped
     /// every frame and killed the run unit with an unhandled .NET exception.</summary>
     private void EmitPerformedRange(BoundOutOfLinePerform p)
@@ -283,7 +283,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
         using (w.Block("try"))
             Statements.EmitProcedureRange(p.Range);
         w.Line($"catch (ResumeSignal __rp{id}) {{ {dispatch.ResumeTransfer($"__rp{id}.TargetPc", "")} }}"
-            + "   // §14.9.33.4 GR2 b) NEXT STATEMENT → after the range's last statement; GR3 procedure-name → GO TO");
+            + "   // §2023:14.9.33.4 GR2 b) NEXT STATEMENT → after the range's last statement; GR3 procedure-name → GO TO");
     }
 
 
@@ -291,7 +291,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
     /// per-PERFORM EXIT-PERFORM machinery: a fresh <see cref="F3Region.Inline"/> region, a <c>__pcont{id}</c> label at
     /// the loop-control boundary (target of EXIT PERFORM CYCLE — falls through to the VARYING augment + re-test), and a
     /// <c>__pexit{id}</c> label just past the loop (target of EXIT PERFORM — leaves EVERY nested VARYING level).
-    /// §14.9.14.4 GR5/GR6 require leaving/continuing the WHOLE inline PERFORM, which a bare C# break/continue cannot do
+    /// §2023:14.9.14.4 GR5/GR6 require leaving/continuing the WHOLE inline PERFORM, which a bare C# break/continue cannot do
     /// across the nested loops a multi-level VARYING emits (CA31/CA32). An out-of-line PERFORM never contains its own
     /// EXIT PERFORM (SR8), so it takes the bare loop with no region/labels.</summary>
     private void EmitPerform(BoundPerformControl control, Action body, bool inline)
@@ -362,7 +362,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
         switch (control)
         {
             case PerformTimes t:
-                // The TIMES count is determined ONCE at the start of the PERFORM (ISO §14.9.28 GR7) — the body
+                // The TIMES count is determined ONCE at the start of the PERFORM (ISO §2023:14.9.28 GR7) — the body
                 // modifying the count item must not change the iteration count (NC102A PFM-TEST-F2-6); a zero or
                 // negative count runs the body zero times.
                 int id = ctx.Names.NextLoop();
@@ -388,7 +388,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
                 EmitVarying(v, body);
                 break;
             case PerformForever:
-                // UNTIL EXIT (§14.9.28.4 GR11, 2023): the condition never becomes true. An inline EXIT PERFORM leaves
+                // UNTIL EXIT (§2023:14.9.28.4 GR11, 2023): the condition never becomes true. An inline EXIT PERFORM leaves
                 // via `goto __pexit` (StatementEmitter.Visit(BoundExitPerform)); an out-of-line loop escapes only via GOBACK/STOP.
                 using (w.Block("while (true)")) body();
                 break;
@@ -399,7 +399,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
         }
     }
 
-    /// <summary>PERFORM VARYING … [AFTER …] (ISO §14.9.28.4 GR13), leftmost level outermost.
+    /// <summary>PERFORM VARYING … [AFTER …] (ISO §2023:14.9.28.4 GR13), leftmost level outermost.
     /// <para>TEST BEFORE (GR13 a/d/e) — the nested <c>while(!cond)</c> nest IS GR13 e)'s current-condition machine,
     /// one level per condition: e) 1 and e) 2's "evaluate the current condition" are the <c>while</c> tests; e) 2's
     /// FALSE arm a. ("another AFTER phrase to the right … becomes the current condition") is entering the next inner
@@ -443,7 +443,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
                     {
                         EmitBefore(k + 1);
                         // The inner while exited ⇒ the condition at k+1 is the current condition and it is TRUE, so
-                        // ISO §14.9.28.4 GR13 e) 2's true-branch runs, IN ITS ORDER:
+                        // ISO §2023:14.9.28.4 GR13 e) 2's true-branch runs, IN ITS ORDER:
                         //   a. "the induction variable associated with the current condition is set to its
                         //      initialization value"   — level k+1 RESETS FIRST, reading its FROM operand NOW, and
                         //   b. "the condition to the left of the current condition becomes the current condition"
@@ -503,19 +503,19 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
 
     /// <summary>Initialize a PERFORM VARYING (or AFTER) level's target from its FROM operand (GR13).
     /// <para>An INDEX-NAME target takes the FROM value through THE ONE SET-family amount landing
-    /// (<see cref="SetEmitter.LandAmount"/>) — §13.18.38.4 GR2 names PERFORM VARYING beside SET and SEARCH as a
+    /// (<see cref="SetEmitter.LandAmount"/>) — §2023:13.18.38.4 GR2 names PERFORM VARYING beside SET and SEARCH as a
     /// statement that "creates a value for the index", and makes a value outside the implementor's index range the
     /// EC-RANGE-INDEX case. The former bare <c>(long)(Align(…, 0))</c> narrowing WRAPPED such a value silently, and
-    /// §14.9.28.3 SR4 a) admits an integer data item of up to 31 digits as the FROM operand, so the wrap is
+    /// §2023:14.9.28.3 SR4 a) admits an integer data item of up to 31 digits as the FROM operand, so the wrap is
     /// reachable from conforming source (kb/Work PB459). The landing's own integrality test is satisfied by that
     /// same SR4 a)/b), so on legal source it never fires; the range test is the live one.</para>
-    /// <para>Inside that success leg, when EC-RANGE-PERFORM-VARYING checking is enabled (§14.9.28.4 GR3) and the
+    /// <para>Inside that success leg, when EC-RANGE-PERFORM-VARYING checking is enabled (§2023:14.9.28.4 GR3) and the
     /// FROM operand is a data item, the fatal EC is raised for a non-positive value (the runtime tests the
     /// DATA-ITEM value, GR3 — the throw is caught by the FatalAmbientGates guard for USE-F3 dispatch). GR3 governs
     /// FROM initialization only, so the BY/augment sites are unaffected; a literal FROM (BoundNumLiteral) and an
     /// index-name FROM (BoundIndexRef) are out of GR3 scope.</para>
-    /// <para>A NUMERIC induction variable (§14.9.28.3 SR2 — the only other legal VARYING identifier) is a PICTURE
-    /// store with its own §14.7 size rules and has no index range, so it keeps the plain store.</para></summary>
+    /// <para>A NUMERIC induction variable (§2023:14.9.28.3 SR2 — the only other legal VARYING identifier) is a PICTURE
+    /// store with its own §2023:14.7 size rules and has no index range, so it keeps the plain store.</para></summary>
     private void InitVaryingTarget(PerformVarying v, VaryingLevel lv)
     {
         NumX from = RenderPerEvaluation(lv.From);
@@ -528,7 +528,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
         using (ctx.Writer.Block($"if ({guard})"))
         {
             // ⛔ THE GUARD ASKS THE RULE'S QUESTION, NOT THE NODE'S C# TYPE (kb/Work PB439). GR3's premise is
-            // "an identifier is specified in the associated FROM phrase", and §8.4.3.1.2 prints THREE identifier
+            // "an identifier is specified in the associated FROM phrase", and §2023:8.4.3.1.2 prints THREE identifier
             // formats — a qualified-and-subscripted data-name, a function-identifier, and a reference-modified
             // identifier. This test used to be `lv.From is BoundNumRef`, which is the FIRST of those and nothing
             // else, so `FROM FUNCTION INTEGER(WS-Z)` over a zero silently took the unchecked path: the FATAL
@@ -552,10 +552,10 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
     }
 
     /// <summary>Render a varying-phrase operand AT the setting or augmenting operation that reads it, emitting
-    /// any function activations it carries as STATEMENTS immediately before that operation — ISO §14.9.28.4 GR12:
+    /// any function activations it carries as STATEMENTS immediately before that operation — ISO §2023:14.9.28.4 GR12:
     /// "Item identification for identifier-3, identifier-4, identifier-6, identifier-7, index-name-2, and
     /// index-name-4 is done each time the content of the data item referenced by the identifier or the index
-    /// referenced by the index-name is used in a setting or augmenting operation", and §8.4.3.2.4 GR1/GR6a makes
+    /// referenced by the index-name is used in a setting or augmenting operation", and §2023:8.4.3.2.4 GR1/GR6a makes
     /// a function-identifier's value "determined when the function is referenced at runtime". kb/Work PB437.
     /// <para>STATEMENTS, NOT AN IIFE. The condition twin (<c>ConditionRenderer.Visit(BoundUdfEvaluated)</c>) must
     /// render an immediately-invoked <c>Func&lt;bool&gt;</c> because a condition sits in a C# loop HEADER where no
@@ -573,7 +573,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
         return num.RenderOperandLike(w.Inner);
     }
 
-    /// <summary>The TIMES count as a C# <c>long</c> (§14.9.28.4 GR7 — determined once), narrowed only through the
+    /// <summary>The TIMES count as a C# <c>long</c> (§2023:14.9.28.4 GR7 — determined once), narrowed only through the
     /// saturating <c>RuntimeApi.HostInt64</c> / <c>HostInt64Literal</c> (kb/Work PB1033 — a cast wrapped 2^64 + 1 to ONE
     /// iteration, and a 20-digit literal was CS1021): a literal folded at compile time; an
     /// error operand loud; every other operand — an integer data item (a P-scaled or unsigned-wide read included),
@@ -587,7 +587,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
     };
 
 
-    /// <summary>SEARCH (ISO §14.9.37.4) — ONE frame, TWO lowerings, because the standard writes the scan twice.
+    /// <summary>SEARCH (ISO §2023:14.9.37.4) — ONE frame, TWO lowerings, because the standard writes the scan twice.
     /// Format 1 is the serial search of GR3/GR4; Format 2 (SEARCH ALL) is the implementor-chosen search of GR9,
     /// whose index is bounded where Format 1's is not (see <see cref="EmitSerialScan"/> / <see cref="EmitAllScan"/>
     /// — kb/Work PB447). Emitted as a LABEL loop — not a C# while — so a GO TO inside a WHEN/AT END body
@@ -600,7 +600,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
         var w = ctx.Writer;
         int id = ctx.Names.NextSearch();
         // An OCCURS DYNAMIC table brackets the scan with EnterSearch/ExitSearch so a SET Format 14 on that same
-        // table WHILE searching raises EC-FLOW-SEARCH (ISO §14.9.39 GR31; data-model D9). A try/finally is required
+        // table WHILE searching raises EC-FLOW-SEARCH (ISO §2023:14.9.39 GR31; data-model D9). A try/finally is required
         // because the WHEN/AT-END arms `goto __searchEnd` OUT of the scan — ExitSearch must run on every exit path.
         // The table is read ONCE into a local: a nested table's path is subscripted by the enclosing indices
         // identifier-1 writes (kb/Work PB3365), and a WHEN or AT END body that moves one of them must neither send
@@ -616,7 +616,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
         else EmitSearchScan(s, id, null);
     }
 
-    /// <summary>The SEARCH statement's shared frame (ISO §14.9.37.4): the scan BOUND, the EC-raise plumbing, the
+    /// <summary>The SEARCH statement's shared frame (ISO §2023:14.9.37.4): the scan BOUND, the EC-raise plumbing, the
     /// per-format scan, and the ONE AT-END emission every unsuccessful exit funnels into (GR1 b) — an ALL FORMATS
     /// rule, which is why it is shared).
     /// <para>⛔ THE SCAN ITSELF IS NOT SHARED, AND MUST NOT BE RE-MERGED (kb/Work PB447). The standard writes the
@@ -629,7 +629,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
     /// SEARCH ALL the overshoot only Format 1 is licensed for, and the AT END phrase — part of this statement's own
     /// execution (GR1 b) 1.) — could then read outside the table through the search index.</para>
     /// <para>The bound is the table's MAXIMUM occurrence count — or an occurs-depending table's CURRENT count, or
-    /// (D9) a dynamic table's current <c>Capacity</c> (§13.18.38 GR7/§8.5.1.9.1). Extracted so a dynamic table can
+    /// (D9) a dynamic table's current <c>Capacity</c> (§2023:13.18.38 GR7/§2023:8.5.1.9.1). Extracted so a dynamic table can
     /// wrap it in an EnterSearch/ExitSearch try/finally.</para></summary>
     private void EmitSearchScan(BoundSearch s, int id, string? dynTable)
     {
@@ -637,7 +637,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
         string bound = dynTable is not null ? $"{dynTable}.Capacity"
             : s.DependItem is { } dp ? PlaceRenderer.CountRead(dp)
             : $"{s.Count}L";
-        // CA36 (ISO §14.9.37.4 GR1b2): when the AT END phrase is ABSENT and EC-RANGE checking is ON, a raised
+        // CA36 (ISO §2023:14.9.37.4 GR1b2): when the AT END phrase is ABSENT and EC-RANGE checking is ON, a raised
         // EC-RANGE-SEARCH-INDEX/-NO-MATCH must transfer to an applicable exception-processing statement (a USE
         // AFTER EXCEPTION CONDITION declarative / Format-3 PERFORM WHEN) and, if control returns, to the end of the
         // SEARCH. Track which range EC was raised so the shared AT-END funnel can DISPATCH it (mirror
@@ -656,7 +656,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
             {
                 if (checking)
                 {
-                    Ec.EmitConditionSet(ecName, "the search operation is unsuccessful (§14.9.37.4 GR1 b))");
+                    Ec.EmitConditionSet(ecName, "the search operation is unsuccessful (§2023:14.9.37.4 GR1 b))");
                     if (dispatchEc) w.Line($"{ecVar} = \"{ecName}\";");
                 }
                 w.Line($"goto __searchAtEnd{id};");
@@ -669,7 +669,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
         // GR1b2: AT END absent + checking on → dispatch the raised range EC to an applicable USE declarative / F3
         // WHEN; >=0 = RESUME AT a procedure (the dispatcher transfer idiom — the `break` it used to emit was
         // captured by an inline PERFORM around the SEARCH, kb/Work PB405); -1/-2/-3 (declarative ran / RESUME
-        // NEXT / no handler) fall through to the end of the SEARCH (nonfatal — §14.6.13.1.4 #3/#4).
+        // NEXT / no handler) fall through to the end of the SEARCH (nonfatal — §2023:14.6.13.1.4 #3/#4).
         if (dispatchEc)
             using (w.Block($"if ({ecVar} != null)"))
                 Ec.EmitSelection(ecVar, terminate: null);   // EC-RANGE-SEARCH-INDEX / -NO-MATCH: both nonfatal (Table 13)
@@ -678,7 +678,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
         w.Line($"__searchEnd{id}: ;");
     }
 
-    /// <summary>FORMAT 1 — the serial search, ISO §14.9.37.4 GR4, with the GR3 index/VARYING augmentation.
+    /// <summary>FORMAT 1 — the serial search, ISO §2023:14.9.37.4 GR4, with the GR3 index/VARYING augmentation.
     /// <list type="number">
     /// <item>The INITIAL setting decides admission: "If, at the start of the execution, the search index contains
     /// a value that corresponds to an occurrence number that is negative, zero, or greater than the highest
@@ -705,14 +705,14 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
         w.Line($"__search{id}:");
         EmitSearchWhens(s, id);
         w.Line($"{s.IndexField} += 1;");
-        // §14.9.37.4 GR3 b): identifier-2 is incremented with the search index, so an object-property identifier-2 is SET with each
+        // §2023:14.9.37.4 GR3 b): identifier-2 is incremented with the search index, so an object-property identifier-2 is SET with each
         // increment, before the next WHEN evaluation can read it (kb/Work PB2078).
         if (s.AlsoVaried is { } also) brackets.Receive(also, () => set.AugmentSetTarget(also, down: false, new NumX("1", 0), "SEARCH VARYING"));
         unsuccessful($"{s.IndexField} > {bound}", "EC-RANGE-SEARCH-NO-MATCH", s.CheckSearchNoMatch);
         w.Line($"goto __search{id};");
     }
 
-    /// <summary>FORMAT 2 (<c>SEARCH ALL</c>) — ISO §14.9.37.4 GR9, the search whose index the standard BOUNDS.
+    /// <summary>FORMAT 2 (<c>SEARCH ALL</c>) — ISO §2023:14.9.37.4 GR9, the search whose index the standard BOUNDS.
     /// <list type="number">
     /// <item>"The initial setting of the search index is ignored" — the scan's first probe is occurrence 1
     /// whatever the program left there, so a SET before the statement cannot change the outcome.</item>
@@ -733,7 +733,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
     /// <item>An EMPTY table (an occurs-depending or DYNAMIC current count of 0) has no permissible setting at all,
     /// so no probe is made: the search is unsuccessful at once with the index at 1, and GR9's bound — worded over
     /// a first and a last element — has no occurrence to name.</item></list>
-    /// Format 2 has no VARYING phrase (§14.9.37.2 Format 2), so <c>AlsoVaried</c> is null by construction and
+    /// Format 2 has no VARYING phrase (§2023:14.9.37.2 Format 2), so <c>AlsoVaried</c> is null by construction and
     /// nothing is varied in step; Format 2 also cannot raise EC-RANGE-SEARCH-INDEX, because GR9 leaves it no
     /// initial setting to reject.</summary>
     private void EmitAllScan(BoundSearch s, int id, string bound, Action<string, string, bool> unsuccessful)
@@ -749,7 +749,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
     }
 
     /// <summary>The WHEN arms of one probe — the ALL FORMATS half of the statement, so ONE emission serves both
-    /// lowerings. ISO §14.9.37.4 GR1: the SEARCH statement "tests conditions specified in WHEN phrases … to
+    /// lowerings. ISO §2023:14.9.37.4 GR1: the SEARCH statement "tests conditions specified in WHEN phrases … to
     /// determine whether a table element satisfies these conditions", and "Any subscripting specified in a WHEN
     /// phrase is evaluated each time the conditions in that WHEN phrase are evaluated" — hence the conditions are
     /// rendered INSIDE the loop, once per probe. First true wins and the search is successful (GR1 a): the index

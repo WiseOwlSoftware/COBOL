@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.18 CONCAT + §15.12 BASECONVERT — 2023 intrinsic additions (VERSION_CHANGE_REFERENCE rows 65/68).
+      *> ISO §2023:15.18 CONCAT + §2023:15.12 BASECONVERT — 2023 intrinsic additions (VERSION_CHANGE_REFERENCE rows 65/68).
       *> CONCAT: all characters of every argument in order (rules 1/4) — the fixed-width images pad. BASECONVERT:
       *> an unsigned integer's digits re-expressed from one base into another (0-9/A-F).
        IDENTIFICATION DIVISION.

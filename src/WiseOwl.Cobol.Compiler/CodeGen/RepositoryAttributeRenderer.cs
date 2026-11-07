@@ -11,38 +11,38 @@ namespace WiseOwl.Cobol.CodeGen;
 /// <summary>
 /// ⛔ THE ONE PLACE REPOSITORY ATTRIBUTE SYNTAX IS WRITTEN (DESIGN-external-repository §3.9, §6.2, §12; kb/Work PB2100): the
 /// assembly-level <see cref="CobolRepositoryAttribute"/>, a unit's <see cref="CobolUnitAttribute"/> and, for a module built
-/// with <c>--repository-update on</c>, the SIGNATURE attributes of its record (§9.1): the formals' and the returning item's
+/// with <c>--repository-update on</c>, the SIGNATURE attributes of its record (§2023:9.1): the formals' and the returning item's
 /// description trees on the host entry's <c>Call</c> parameters and return value, and the rows of the record's own tables
 /// (type declarations, dynamic-length structures, referenced prototypes) on the host-entry class; for a class or an
 /// interface, its facts on the unit's <see cref="CobolUnitAttribute"/>, each method's <see cref="CobolMethodAttribute"/> on the
 /// CLR method that implements it with its formals and returning item anchored as a program's are, and each property's
-/// <see cref="CobolPropertyAttribute"/> on the type that holds its accessors (§6.2 "Anchoring") — as C# attribute text the
+/// <see cref="CobolPropertyAttribute"/> on the type that holds its accessors (§2023:6.2 "Anchoring") — as C# attribute text the
 /// Roslyn backend compiles (a direct-CIL backend would write the same facts through its own metadata builder, §17.4's
 /// backend-independence fixture). <c>RuntimeApi.ModuleRecordAttribute</c>, which wrote the assembly record when it carried a
 /// registrar and nothing else, moved here.
 /// <para><b>Two layers, so the encoding is stated once for every backend (§17.4).</b> Each record becomes
 /// <see cref="AttributeApplication"/>s — the attribute type, its constructor arguments and its named arguments as VALUES (the
 /// <c>…Attribute</c> / <c>…Attributes</c> members) — and only then C# text (the <c>…Record</c> members, through
-/// <see cref="CSharp"/>). Every rule of §6.2 (what is written, what is a presence marker, what is left to its default) lives
+/// <see cref="CSharp"/>). Every rule of §2023:6.2 (what is written, what is a presence marker, what is left to its default) lives
 /// in the first layer; a backend that writes metadata directly encodes the same applications with its own metadata builder
 /// (<c>RepositoryReaderTests</c>' <c>MetadataBuilder</c> fixture is that backend), and the reader decodes both equal.</para>
-/// <para>It is a pure TRANSCRIPTION of <see cref="RepositoryRecord"/> (§6.1): every value is already in the persisted
+/// <para>It is a pure TRANSCRIPTION of <see cref="RepositoryRecord"/> (§2023:6.1): every value is already in the persisted
 /// vocabulary, so nothing here translates a compiler type. The reader of what this writes is
 /// the binder's <c>RepositoryReader</c> over the runtime's <see cref="RepositoryIndex"/>; <see cref="RepositoryIndex.EncodeUnit"/>
 /// is the one encoding of an index row, so the writer calls it rather than restating it.</para>
-/// <para><b>Encoding (§6.2 rules 2 and 3).</b> A named argument is written only when it has something to say: a nullable
+/// <para><b>Encoding (§2023:6.2 rules 2 and 3).</b> A named argument is written only when it has something to say: a nullable
 /// value exactly when it has one (nullability is presence, whatever the value: <c>Occurs = 0</c> is written when the record
 /// holds 0), a non-nullable number, flag or enum only when it is not its default (the reader takes an absent one as the
 /// default), and a non-nullable string always. A structured value is flattened into named arguments prefixed by its member
 /// name, and one of them — its PRESENCE MARKER — is written whenever the structure exists: <c>Category</c> for an
 /// elementary entry's <c>Pic</c>, <c>OccursMax</c> for the OCCURS clause, <c>ClauseCharacterString</c> for the PICTURE
 /// clause identity, <c>LocalePicture</c> for a format-2 picture, and the five <c>EditRule…</c> arrays (an empty array is a
-/// present empty list). Every type is <c>global::</c>-qualified like every foreign name in emitted code (§4.5).</para>
+/// present empty list). Every type is <c>global::</c>-qualified like every foreign name in emitted code (§2023:4.5).</para>
 /// </summary>
 internal static class RepositoryAttributeRenderer
 {
-    /// <summary>The rows of the assembly's <c>Units</c> index, in the order the module emits the units (§6.5): every
-    /// interface, every class, each skeleton the group publishes, then one per host entry <paramref name="entryUnits"/> publishes (§7.2).
+    /// <summary>The rows of the assembly's <c>Units</c> index, in the order the module emits the units (§2023:6.5): every
+    /// interface, every class, each skeleton the group publishes, then one per host entry <paramref name="entryUnits"/> publishes (§2023:7.2).
     /// An expansion (<paramref name="expansions"/>) is published under kind <see cref="RepositoryUnitKind.Expansion"/>, and one placed in
     /// another assembly (imported, or written to an assembly of its own) is no unit of this module at all. The
     /// <c>[CobolUnit]</c> of each unit is written from the same lists by <see cref="UnitRecord"/>, so the index and the
@@ -57,7 +57,7 @@ internal static class RepositoryAttributeRenderer
             .Concat(entryUnits.Select(u => new RepositoryUnitRow(u.RepositoryKind, u.ExternalizedName, u.Name)))];
 
     /// <summary>The module's assembly-level record, <c>[assembly: CobolRepository(schema, runtimeVersion, callAbi, …)]</c>
-    /// (§6.2, §7.1): the versions it was compiled against (so a run unit can refuse a module whose runtime major or call ABI
+    /// (§2023:6.2, §2023:7.1): the versions it was compiled against (so a run unit can refuse a module whose runtime major or call ABI
     /// differs, <see cref="RuntimeAbi.Skew"/>), the compiler and edition that wrote it (diagnostics only), whether it carries
     /// signatures, its registrar and its unit index. Written before the module's namespace.</summary>
     /// <param name="registrarClrName">The module's registrar type, as metadata names it.</param>
@@ -80,10 +80,10 @@ internal static class RepositoryAttributeRenderer
         return Application<CobolRepositoryAttribute>(named, CobolRepositoryAttribute.CurrentSchemaVersion, RuntimeAbi.Version.ToString(), RuntimeAbi.CallAbi);
     }
 
-    /// <summary>A unit's <c>[CobolUnit(kind, name, externalizedName)]</c> (§6.2), written on its host-entry class, its class's
+    /// <summary>A unit's <c>[CobolUnit(kind, name, externalizedName)]</c> (§2023:6.2), written on its host-entry class, its class's
     /// type or its interface; with the unit's <paramref name="signature"/> (a module built with <c>--repository-update on</c>)
-    /// it also states the signature facts of §8.13 that belong to the unit rather than to a formal: the entry convention,
-    /// DECIMAL-POINT IS COMMA, the currency symbols and the RAISING phrase, the last two as parallel arrays (§6.2 rule 3), and
+    /// it also states the signature facts of §2023:8.13 that belong to the unit rather than to a formal: the entry convention,
+    /// DECIMAL-POINT IS COMMA, the currency symbols and the RAISING phrase, the last two as parallel arrays (§2023:6.2 rule 3), and
     /// for a class or an interface its <see cref="ClassRecord"/>'s own facts.</summary>
     internal static string UnitRecord(RepositoryUnitKind kind, string name, string externalizedName, RepositoryRecord? signature) =>
         $"[{CSharp(UnitAttribute(kind, name, externalizedName, signature))}]";
@@ -129,12 +129,12 @@ internal static class RepositoryAttributeRenderer
         return Application<CobolUnitAttribute>(named, Defined(kind), name, externalizedName);
     }
 
-    /// <summary>A skeleton's <c>[CobolSkeleton(source, …)]</c> (§6.2, §10.5), written on the <c>public static class</c> that carries
+    /// <summary>A skeleton's <c>[CobolSkeleton(source, …)]</c> (§2023:6.2, §2023:10.5), written on the <c>public static class</c> that carries
     /// the parameterized definition's <c>[CobolUnit]</c>, with the formals, the specifier resolutions and the
     /// <see cref="CompileState"/> it was compiled under (a module built with <c>--repository-update on</c>).</summary>
     internal static string SkeletonRecord(SkeletonRecord s) => $"[{CSharp(SkeletonAttribute(s))}]";
 
-    /// <summary>A skeleton's <c>[CobolUnit]</c> (§6.2): its kind, word and externalized name, and — with signatures — the entry
+    /// <summary>A skeleton's <c>[CobolUnit]</c> (§2023:6.2): its kind, word and externalized name, and — with signatures — the entry
     /// convention every unit states (the reader requires it of every unit).</summary>
     internal static string SkeletonUnitRecord(PublishedSkeleton skeleton, bool signatures)
     {
@@ -163,7 +163,7 @@ internal static class RepositoryAttributeRenderer
         return Application<CobolSkeletonAttribute>(named, s.Source);
     }
 
-    /// <summary>A method's <c>[CobolMethod(name, externalizedName, …)]</c> (§6.2), written before the CLR method that
+    /// <summary>A method's <c>[CobolMethod(name, externalizedName, …)]</c> (§2023:6.2), written before the CLR method that
     /// implements it; its formals and returning item are the method's parameter and return attributes
     /// (<see cref="FormalRecord"/>, <see cref="ReturningRecord"/>), as a program's are.</summary>
     internal static string MethodRecord(MethodRecord m) => $"[{CSharp(MethodAttribute(m))}]";
@@ -187,7 +187,7 @@ internal static class RepositoryAttributeRenderer
         return Application<CobolMethodAttribute>(named, m.Name, m.ExternalizedName);
     }
 
-    /// <summary>The <c>[CobolProperty(name, externalizedName, …)]</c> of each property of one half (§6.2): the object's on
+    /// <summary>The <c>[CobolProperty(name, externalizedName, …)]</c> of each property of one half (§2023:6.2): the object's on
     /// the class's type (or the interface), the factory's on the factory type.</summary>
     internal static IEnumerable<string> PropertyRecords(ClassRecord c, bool factory) =>
         PropertyAttributes(c, factory).Select(a => $"[{CSharp(a)}]");
@@ -202,7 +202,7 @@ internal static class RepositoryAttributeRenderer
             return Application<CobolPropertyAttribute>(named, p.Name, p.ExternalizedName);
         });
 
-    /// <summary>The record's own tables, as the attributes of the unit's host-entry class, in the order of §6.5: every type
+    /// <summary>The record's own tables, as the attributes of the unit's host-entry class, in the order of §2023:6.5: every type
     /// declaration's entries (<see cref="CobolTypeDeclarationAttribute"/>, preorder), every dynamic-length structure
     /// (<see cref="CobolStructureAttribute"/>), every referenced prototype with its formals and their description trees
     /// (<see cref="CobolPrototypeAttribute"/>, <see cref="CobolPrototypeFormalAttribute"/>,
@@ -238,7 +238,7 @@ internal static class RepositoryAttributeRenderer
         }
     }
 
-    /// <summary>The attribute lists of one formal, written before its <c>Call</c> parameter (§6.2 "Anchoring": the formal's
+    /// <summary>The attribute lists of one formal, written before its <c>Call</c> parameter (§2023:6.2 "Anchoring": the formal's
     /// <see cref="CobolFormalAttribute"/> and its <see cref="CobolDescriptionAttribute"/> tree sit on ONE CLR parameter).</summary>
     internal static string FormalRecord(FormalRecord formal) => string.Concat(FormalAttributes(formal).Select(a => $"[{CSharp(a)}]"));
 
@@ -248,7 +248,7 @@ internal static class RepositoryAttributeRenderer
             .Prepend(Application<CobolFormalAttribute>(FormalArguments(formal), formal.Position, formal.Name));
 
     /// <summary>The return value's attribute list (<c>[return: CobolReturning, CobolDescription…]</c>), written before the
-    /// <c>Call</c> method: the RETURNING item's description tree (§6.2 "Anchoring").</summary>
+    /// <c>Call</c> method: the RETURNING item's description tree (§2023:6.2 "Anchoring").</summary>
     internal static string ReturningRecord(DescriptionRecord returning) =>
         $"[return: {string.Join(", ", ReturningAttributes(returning).Select(CSharp))}]";
 
@@ -287,7 +287,7 @@ internal static class RepositoryAttributeRenderer
     }
 
     /// <summary>The named arguments of one description entry (<see cref="CobolDescriptionFieldsAttribute"/>): every field of
-    /// <see cref="DescriptionRecord"/> and of its <see cref="PicRecord"/>, by §6.2 rules 2 and 3.</summary>
+    /// <see cref="DescriptionRecord"/> and of its <see cref="PicRecord"/>, by §2023:6.2 rules 2 and 3.</summary>
     private static Arguments Description(DescriptionRecord d)
     {
         var a = new Arguments();
@@ -414,12 +414,12 @@ internal static class RepositoryAttributeRenderer
             : throw new InvalidOperationException($"RepositoryAttributeRenderer: {element.Name}[] is no attribute argument of the schema");
 
     /// <summary>A member of a persisted enum; a value no member names is an internal error (the vocabulary's translation is
-    /// total, §6.2 rule 1).</summary>
+    /// total, §2023:6.2 rule 1).</summary>
     private static TEnum Defined<TEnum>(TEnum value) where TEnum : struct, Enum =>
         Enum.IsDefined(value) ? value
             : throw new InvalidOperationException($"RepositoryAttributeRenderer: {typeof(TEnum).Name} value {value} is not a member of the persisted vocabulary");
 
-    /// <summary>The named arguments of one attribute, in the order written; each writer states §6.2 rule 2 for its type.</summary>
+    /// <summary>The named arguments of one attribute, in the order written; each writer states §2023:6.2 rule 2 for its type.</summary>
     private sealed class Arguments
     {
         public List<KeyValuePair<string, object>> Written { get; } = [];

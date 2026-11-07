@@ -7,19 +7,19 @@ namespace WiseOwl.Cobol.Runtime;
 /// <see cref="UInt128"/> pair of magnitude — that carries an UNSCALED value whose decimal scale the compiler tracks
 /// (exactly as it tracks the scale of the <see cref="Int128"/> lane). It exists so that a native product past the
 /// <see cref="Int128"/> carrier, NESTED in a larger expression, keeps every digit until the one final transfer
-/// (§14.7.7 rule 3 NOTE 1: ROUNDED governs only that transfer): <c>COMPUTE R = A * B - C * D</c> over
+/// (§2023:14.7.7 rule 3 NOTE 1: ROUNDED governs only that transfer): <c>COMPUTE R = A * B - C * D</c> over
 /// <c>PIC 9(21)</c> operands forms two 41-digit products and subtracts them EXACTLY. The 34-digit SDIDI
 /// (a product reduced by <see cref="CobolDec.FromWideToOdd"/>) it replaces rounded each product first, and the cancellation of the two nearly
 /// equal products left only the rounding error.
-/// <para>The implementor's choice (§8.8.1.3 — "Native arithmetic is an implementor-defined method of evaluating an
-/// arithmetic expression"; §14.7.7 4) a) — "an implementor-defined intermediate data item is used"; CONFORMANCE.md
+/// <para>The implementor's choice (§2023:8.8.1.3 — "Native arithmetic is an implementor-defined method of evaluating an
+/// arithmetic expression"; §2023:14.7.7 4) a) — "an implementor-defined intermediate data item is used"; CONFORMANCE.md
 /// DOC-A.1-123) follows GnuCOBOL (CLAUDE.md rule 1), whose <c>cob_decimal_mul</c>, <c>cob_decimal_add</c> and
 /// <c>cob_decimal_sub</c> are exact over an arbitrary-precision integer. This type is that integer, bounded: the
 /// compiler selects it only where its digit-bound analysis PROVES the exact value fits <see cref="MaxDigits"/>
 /// decimal digits (the bound is a property of the operands' PICTUREs, not of their values), and falls back to the
 /// SDIDI's round-to-odd beyond it. It also carries a NESTED quotient whose bound passes the <see cref="Int128"/> lane
 /// (<see cref="DivTruncated"/>, the same truncated value that lane forms; kb/Work PB3538). Every constructive operation
-/// (<see cref="Mul"/>, <see cref="Up"/>, <see cref="Add"/>, <see cref="Sub"/>) also checks its own overflow and raises EC-SIZE-OVERFLOW (§14.7.5 case 5, A.1 item 179), so the bound
+/// (<see cref="Mul"/>, <see cref="Up"/>, <see cref="Add"/>, <see cref="Sub"/>) also checks its own overflow and raises EC-SIZE-OVERFLOW (§2023:14.7.5 case 5, A.1 item 179), so the bound
 /// is a compile-time optimisation of a run-time guarantee: this type never wraps.</para>
 /// <para>It is NOT a carrier a consumer ever sees. <c>NumericRenderer</c> settles it at every public entry — into the
 /// receiver's own scale and mode at a final transfer (<see cref="ToUnscaled"/>), into the SDIDI otherwise
@@ -89,7 +89,7 @@ public readonly struct CobolWide
         return TryUp(From(value.Sig), value.Exp > 0 ? value.Exp : 0, out wide);
     }
 
-    /// <summary>The magnitude of the value (§15.7.4 ABS of the unscaled value; the caller keeps the scale).</summary>
+    /// <summary>The magnitude of the value (§2023:15.7.4 ABS of the unscaled value; the caller keeps the scale).</summary>
     internal static CobolWide Abs(CobolWide a) => new(false, a._hi, a._lo);
 
     /// <summary>10^<paramref name="digits"/> (0 ≤ <paramref name="digits"/> ≤ 76), the divisor that cuts a value at a scale.</summary>
@@ -97,7 +97,7 @@ public readonly struct CobolWide
 
     /// <summary>The quotient of <paramref name="a"/> by <paramref name="b"/> TRUNCATED toward zero, with the remainder, which has
     /// the dividend's sign (<c>a = b × quotient + remainder</c>, |remainder| &lt; |b|) — both unscaled values at one scale. A zero
-    /// divisor is the caller's own rule (§15.64.3 r2, §15.77.3 r2), so it is refused here as a defect.</summary>
+    /// divisor is the caller's own rule (§2023:15.64.3 r2, §2023:15.77.3 r2), so it is refused here as a defect.</summary>
     internal static CobolWide DivRem(CobolWide a, CobolWide b, out CobolWide remainder)
     {
         if (b.IsZero) throw new DivideByZeroException("CobolWide.DivRem with a zero divisor: the caller owns the zero-divisor rule");
@@ -156,7 +156,7 @@ public readonly struct CobolWide
     }
 
     /// <summary>⛔ THE EXACT QUOTIENT OF THIS VALUE (at <paramref name="scale"/>) BY A COUNT, ROUNDED ONCE TO THE SDIDI
-    /// (kb/Work PB4075): the single division of FUNCTION MEAN's <c>Σ / n</c> (ISO §15.60.4 r1, kb/Work PB3860) over an exact
+    /// (kb/Work PB4075): the single division of FUNCTION MEAN's <c>Σ / n</c> (ISO §2023:15.60.4 r1, kb/Work PB3860) over an exact
     /// wide sum, where <see cref="ToDec"/> then <see cref="CobolDec.Div"/> would round twice —
     /// <see cref="QuotientDec(int, CobolWide, int, CobolRounding, bool)"/>.</summary>
     internal CobolDec QuotientDec(int scale, int count, CobolRounding mode) =>
@@ -175,7 +175,7 @@ public readonly struct CobolWide
     /// (a divisor past 41 digits) the quotient digits past the integer part are drawn one at a time from the remainder
     /// (<see cref="NextQuotientDigit"/>), which never leaves it: no divisor within the form is refused. An exact quotient keeps the
     /// preferred exponent, the dividend's less the divisor's (ISO/IEC 60559 5.4.1, kb/Work PB3954). A zero divisor raises
-    /// <see cref="CobolSizeError.ZeroDivide"/> (ISO §14.7.5 case 2).</para></summary>
+    /// <see cref="CobolSizeError.ZeroDivide"/> (ISO §2023:14.7.5 case 2).</para></summary>
     internal CobolDec QuotientDec(int scale, CobolWide divisor, int divisorScale, CobolRounding mode, bool jam)
     {
         if (divisor.IsZero) throw CobolSizeError.ZeroDivide();
@@ -259,7 +259,7 @@ public readonly struct CobolWide
     }
 
     private static CobolSizeError Overflow() => new("a native intermediate exceeds the exact 256-bit range "
-        + "(ISO §14.7.5 case 5 — the implementor-defined intermediate range is checked, A.1 item 179: EC-SIZE-OVERFLOW)",
+        + "(ISO §2023:14.7.5 case 5 — the implementor-defined intermediate range is checked, A.1 item 179: EC-SIZE-OVERFLOW)",
         "EC-SIZE-OVERFLOW");
 
     public static CobolWide Negate(CobolWide a) => new(!a._negative, a._hi, a._lo);
@@ -365,8 +365,8 @@ public readonly struct CobolWide
     /// <see cref="CobolRounding.Truncation"/> on the <see cref="Int128"/> lane, for operands whose digit bounds do not prove
     /// that lane holds the quotient. The lane is a representation the compiler picks from bounds; the value is one rule
     /// (CONFORMANCE.md DOC-A.1-123), so `FUNCTION INTEGER(X) / 7 * 7` and `X / 7 * 7` are the same number.
-    /// <para>A zero divisor raises <see cref="CobolSizeError.ZeroDivide"/> (ISO §14.7.5 case 2). The dividend's radix
-    /// alignment is <see cref="Up"/>, which raises EC-SIZE-OVERFLOW past the 256-bit range (§14.7.5 case 5; the compiler's
+    /// <para>A zero divisor raises <see cref="CobolSizeError.ZeroDivide"/> (ISO §2023:14.7.5 case 2). The dividend's radix
+    /// alignment is <see cref="Up"/>, which raises EC-SIZE-OVERFLOW past the 256-bit range (§2023:14.7.5 case 5; the compiler's
     /// bound proves it cannot); a divisor aligned past that range is larger than any dividend, so the quotient is 0.</para></summary>
     public static CobolWide DivTruncated(CobolWide a, int aScale, CobolWide b, int bScale, int resultScale)
     {

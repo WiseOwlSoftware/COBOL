@@ -8,9 +8,9 @@
       *> kb/Work PB1139 - THE LEGAL SPELLINGS NEXT TO THE SAME-CLAUSE RULES COMPILE (compile-only; the refusals are the
       *> negatives pb1139-sort-same-sort-area, -sort-giving-same-area, -merge-same-area, -merge-same-record-area).
       *>   cite.py --check 14.9.24.3 "The only file-names in a MERGE statement that may be specified in the same SAME
-      *>     RECORD AREA clause are those associated with the GIVING phrase." -> OK §14.9.24.3 11)
+      *>     RECORD AREA clause are those associated with the GIVING phrase." -> OK §2023:14.9.24.3 11)
       *>   cite.py --check 14.9.40.3 "No pair of file-names in the same SORT statement may be specified in the same
-      *>     SAME SORT AREA or SAME SORT-MERGE AREA clause." -> OK §14.9.40.3 10)
+      *>     SAME SORT AREA or SAME SORT-MERGE AREA clause." -> OK §2023:14.9.40.3 10)
       *> LEGAL: (1) a MERGE whose two GIVING files share a record area; (2) a SORT whose USING and GIVING files share
       *> a record area (SR10 bars SAME SORT AREA / SAME SORT-MERGE AREA pairs and SAME AREA among GIVING files, not
       *> SAME RECORD AREA); (3) a SAME SORT AREA clause naming only ONE of the SORT's file-names (F5 is not in either

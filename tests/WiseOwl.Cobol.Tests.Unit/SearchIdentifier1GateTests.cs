@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>kb/Work PB4577 (review R1-2), PB4609: the COBOL0900 gate on a subscripted SEARCH identifier-1 quotes the operand as the
 /// programmer wrote it (<c>WrittenSource.Of</c>), never the token concatenation <c>GetText()</c> yields
-/// (<c>HOFG(GIHI)</c> for <c>H OF G (GI HI)</c>). ISO §14.9.37.3 SR2 and SR3 admit the enclosing tables' subscripts from
+/// (<c>HOFG(GIHI)</c> for <c>H OF G (GI HI)</c>). ISO §2023:14.9.37.3 SR2 and SR3 admit the enclosing tables' subscripts from
 /// COBOL-2023; the 2002 text, the 2009 committee draft and the 2014 FCD 1.0 refuse any subscript on identifier-1, so every
 /// edition below 2023 (85, 2002, 2014) draws the gate.</summary>
 public sealed class SearchIdentifier1GateTests

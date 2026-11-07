@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO 1989:2023 §11.7/§14.9.23 — INVOKE … USING … RETURNING: an OO instance method that takes a parameter,
+      *> ISO 1989:2023 §2023:11.7/§2023:14.9.23 — INVOKE … USING … RETURNING: an OO instance method that takes a parameter,
       *> mutates per-instance OBJECT data, and returns a value. Two independent objects prove per-instance state:
       *> each ACC accumulates its OWN balance (the whole point of the per-instance ProgramState model).
        IDENTIFICATION DIVISION.

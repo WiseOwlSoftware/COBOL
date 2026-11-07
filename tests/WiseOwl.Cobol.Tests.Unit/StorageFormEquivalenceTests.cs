@@ -36,7 +36,7 @@ internal static class StorageFormEquivalence
     /// <summary>Bind one .cob file and return (divergences, parsed-ok). A program that fails the FRONTEND (parse /
     /// missing COPY) is skipped (parsed-ok=false) — it exercises no StorageForm.</summary>
     /// <param name="nistTestName">A NIST CCVS program is read as the NIST harness reads it (<c>--nist</c>): its
-    /// column-7 letters are CCVS conventions only in that dialect (kb/Work PB1494), never §6.2.2 indicators.</param>
+    /// column-7 letters are CCVS conventions only in that dialect (kb/Work PB1494), never §2023:6.2.2 indicators.</param>
     internal static (List<string> Divergences, bool Ok) Analyze(string path, int dialect, string? nistTestName = null)
     {
         var diags = new DiagnosticBag();
@@ -168,7 +168,7 @@ internal static class StorageFormEquivalence
 public sealed class StorageFormEquivalenceTests
 {
     [Theory]
-    // A whole-group MOVE promotes the group's numeric-DISPLAY leaf to its string image (§14.9.25.4 GR4) — Storage must be
+    // A whole-group MOVE promotes the group's numeric-DISPLAY leaf to its string image (§2023:14.9.25.4 GR4) — Storage must be
     // CharImage(Numeric) (ElementType "string"), exactly as the legacy StoreAsImage flag makes it.
     [InlineData(StorageFormEquivalence.WholeGroupMove)]
     // A fixed-OCCURS numeric-DISPLAY element under a whole group is promoted per occurrence (element type string[]).

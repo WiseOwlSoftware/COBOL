@@ -6,7 +6,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The UNSTRING kernel's two calls (ISO/IEC 1989:2023 §14.9.48.4): <see cref="CobolStringOps.UnstringExtract"/>
+/// The UNSTRING kernel's two calls (ISO/IEC 1989:2023 §2023:14.9.48.4): <see cref="CobolStringOps.UnstringExtract"/>
 /// examines ONE receiving area and consumes ONE occurrence of the matched delimiter (GR7, GR9–GR11, GR13), and
 /// <see cref="CobolStringOps.UnstringSkipRun"/> consumes the contiguous repeats of an ALL delimiter (GR7) over the
 /// delimiter and sender the caller hands it — the emitter runs it after the receiving area's INTO store

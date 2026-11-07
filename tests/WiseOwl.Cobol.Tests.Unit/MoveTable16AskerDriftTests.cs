@@ -14,10 +14,10 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ ONE QUESTION, ONE ENTRY (kb/Work PB878). ISO §14.9.25.3's MOVE-validity question — SR2, SR6/SR7/SR8, SR9 and
+/// ⛔ ONE QUESTION, ONE ENTRY (kb/Work PB878). ISO §2023:14.9.25.3's MOVE-validity question — SR2, SR6/SR7/SR8, SR9 and
 /// SR10 (Table 16) — is asked by the written MOVE, by every implicit move <c>MoveBinder.BindMoveOf</c> binds, by
-/// §14.9.20.3 SR4 (INITIALIZE REPLACING's hypothetical MOVE), by §14.7.6 rule 2 (the CORRESPONDING pairing filter)
-/// and by §14.8.2.3.3 rule 2d (a BY CONTENT / BY VALUE argument). Each asker used to compose the rule readers by
+/// §2023:14.9.20.3 SR4 (INITIALIZE REPLACING's hypothetical MOVE), by §2023:14.7.6 rule 2 (the CORRESPONDING pairing filter)
+/// and by §2023:14.8.2.3.3 rule 2d (a BY CONTENT / BY VALUE argument). Each asker used to compose the rule readers by
 /// hand, and two of them composed a SUBSET: INITIALIZE never asked SR9 (a variable-length-group REPLACING operand
 /// compiled clean and aborted the run unit) and the INVOKE screen asked Table 16 alone (a BINARY-LONG argument at a
 /// PIC X formal arrived as <c>0000</c>).
@@ -38,7 +38,7 @@ public sealed class MoveTable16AskerDriftTests
             .Where(m => m.Name == reader).ToList();
         Assert.NotEmpty(methods);
         Assert.All(methods, m => Assert.True(m.IsPrivate,
-            $"MoveTable16.{reader} is {(m.IsPublic ? "public" : "internal")}. It answers ONE §14.9.25.3 rule; an asker "
+            $"MoveTable16.{reader} is {(m.IsPublic ? "public" : "internal")}. It answers ONE §2023:14.9.25.3 rule; an asker "
             + "that calls it directly composes the validity question by hand, which is how INITIALIZE came to skip "
             + "SR9 and INVOKE to skip SR8/SR9 (kb/Work PB878). Ask MoveTable16.Validity / DataItemRefusal."));
     }
@@ -55,14 +55,14 @@ public sealed class MoveTable16AskerDriftTests
             + "the lenient reading is defined against Table 16's cells alone",
         // ⛔ OoConformance is NOT here any more (kb/Work PB3101): its BY CONTENT literal and boolean-value arms asked Table
         // 16 alone; every BY CONTENT argument now asks the activation relation (ActivationRelations.CallArgumentViolation),
-        // whose MOVE question is the whole §14.9.25.3 chain over the two descriptions.
-        // ⛔ AcceptDisplayBinder is NOT here any more (kb/Work PB887): the §14.9.1.4 GR7–GR12 conceptual temporal
+        // whose MOVE question is the whole §2023:14.9.25.3 chain over the two descriptions.
+        // ⛔ AcceptDisplayBinder is NOT here any more (kb/Work PB887): the §2023:14.9.1.4 GR7–GR12 conceptual temporal
         // item used to be a bare Table16Operand "that is not a data item", so ACCEPT asked Table 16 alone. It is
         // now materialized as the data item GR7–GR12 describe, and ACCEPT asks Validity with it — see
         // TheAcceptTemporalTransfer_AsksTheWholeChain below.
     };
 
-    /// <summary>ACCEPT format 2 asks the WHOLE §14.9.25.3 chain, with the materialized conceptual item as its
+    /// <summary>ACCEPT format 2 asks the WHOLE §2023:14.9.25.3 chain, with the materialized conceptual item as its
     /// sender, and then binds the transfer through <c>BindMoveOf</c> (kb/Work PB887) — never Table 16 alone again.</summary>
     [Fact]
     public void TheAcceptTemporalTransfer_AsksTheWholeChain()
@@ -88,7 +88,7 @@ public sealed class MoveTable16AskerDriftTests
         }
         var unexpected = found.Keys.Where(f => !TableOnlyAskers.ContainsKey(f)).ToList();
         Assert.True(unexpected.Count == 0,
-            $"MoveValidity.Table16Refusal (Table 16 ALONE) is called from {string.Join(", ", unexpected)}. §14.9.25.3 SR10 "
+            $"MoveValidity.Table16Refusal (Table 16 ALONE) is called from {string.Join(", ", unexpected)}. §2023:14.9.25.3 SR10 "
             + "applies only \"for all other cases not described in Syntax rules 8 and 9\", so an asker holding a "
             + "data-item or bound-operand sender asks MoveTable16.Validity — the whole chain (kb/Work PB878).");
         var stale = TableOnlyAskers.Keys.Where(f => !found.ContainsKey(f)).ToList();

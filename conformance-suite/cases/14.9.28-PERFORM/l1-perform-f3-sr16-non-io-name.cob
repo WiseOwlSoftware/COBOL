@@ -4,9 +4,9 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.28.3 SR16 — "If file-name-2 is specified,
+      *> ISO §2023:14.9.28.3 SR16 — "If file-name-2 is specified,
       *> exception-name-2 shall begin with the COBOL characters
-      *> 'EC-I-O'." EC-BOUND-SUBSCRIPT is a catalogued §14.6.13.1
+      *> 'EC-I-O'." EC-BOUND-SUBSCRIPT is a catalogued §2023:14.6.13.1
       *> exception-name that does NOT begin with those characters, so
       *> pairing it with FILE violates the rule.
       *> The accept half is pinned by

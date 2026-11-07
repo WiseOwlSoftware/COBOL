@@ -6,10 +6,10 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
 /// ⛔ A CONDITION-ONLY POSITION WHOSE WORD A NEARER DATA ITEM TAKES NAMES THAT DATA ITEM (kb/Work PB4219 review R1-1).
-/// ISO §8.4.6.2.1 3) a): "If the name is declared in source element B, the item in source element B is the referenced
+/// ISO §2023:8.4.6.2.1 3) a): "If the name is declared in source element B, the item in source element B is the referenced
 /// item", so a contained program's own data item RELF hides its container's GLOBAL condition-name RELF, and
 /// <c>SymbolTable.NearestDeclaringConditions</c> leaves the condition lookup no survivor. The positions that admit only a
-/// condition-name (SET Format 4's condition-name-1, SEARCH ALL's bare WHEN, §14.9.37.2 Format 2) then asked the RAW
+/// condition-name (SET Format 4's condition-name-1, SEARCH ALL's bare WHEN, §2023:14.9.37.2 Format 2) then asked the RAW
 /// condition table and told the user the word "is a condition-name (a level-88 entry), which identifies no data item" —
 /// the inverse of both facts. <c>ConditionBinder.ReportMisqualifiedCondition</c> now asks
 /// <c>DataBinder.ConditionNameHiddenByNearerDataItem</c> and says the reference names a data item; the SEARCH ALL
@@ -46,7 +46,7 @@ public sealed class HiddenConditionNameTests
         Assert.False(ok);
         EditionHarness.AssertHasDiagnostic(errors, "COBOL1639");
         EditionHarness.AssertHasDiagnostic(errors, $"{written} names a data item, not a condition-name");
-        EditionHarness.AssertHasDiagnostic(errors, "§8.4.6.2.1 3) a)");
+        EditionHarness.AssertHasDiagnostic(errors, "§2023:8.4.6.2.1 3) a)");
         EditionHarness.AssertNoDiagnostic(errors, "is a condition-name (a level-88 entry)");
         EditionHarness.AssertNoDiagnostic(errors, "is not a condition-name: no level-88 entry");
     }
@@ -64,7 +64,7 @@ public sealed class HiddenConditionNameTests
     }
 
     /// <summary>⛔ A BARE OPERAND ADMITS A DATA ITEM (kb/Work PB4433). IF and EVALUATE take <c>RELF (1)</c> as the contained
-    /// program's own scalar data item (§8.4.6.2.1 3) a)), so the verdict is the subscript's §8.4.2.3.3 SR2 (COBOL2096), the
+    /// program's own scalar data item (§2023:8.4.6.2.1 3) a)), so the verdict is the subscript's §2023:8.4.2.3.3 SR2 (COBOL2096), the
     /// one the same reference draws when no level-88 of the spelling exists; the condition-only wording ("this position
     /// requires a condition-name") is for the positions that admit only a condition-name, and EVALUATE no longer adds a
     /// Table 15 pairing error about a condition the operand never was.</summary>
@@ -85,7 +85,7 @@ public sealed class HiddenConditionNameTests
     }
 
     /// <summary>The control: with no data item of the spelling in the contained program, the container's GLOBAL
-    /// condition-name is the referenced item (§8.4.6.2.1 3) b) 1.) and SET binds it.</summary>
+    /// condition-name is the referenced item (§2023:8.4.6.2.1 3) b) 1.) and SET binds it.</summary>
     [Fact]
     public void WithNoNearerDataItem_TheContainersGlobalConditionNameIsNamed()
     {

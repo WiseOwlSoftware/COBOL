@@ -49,7 +49,7 @@ public sealed record ResolvedLocaleCollation(string Tag, CollationTable Table, C
 /// </summary>
 public static class CollationEngine
 {
-    /// <summary>The name of the default ordering table STANDARD-COMPARE uses (ISO/IEC 1989:2023 §15.85.3 r5) — the
+    /// <summary>The name of the default ordering table STANDARD-COMPARE uses (ISO/IEC 1989:2023 §2023:15.85.3 r5) — the
     /// spelling the standard gives; matched case-insensitively with the space and the underscore interchangeable.</summary>
     public const string DefaultOrderingTableName = "ISO 14651_2020_TABLE1";
 
@@ -151,10 +151,10 @@ public static class CollationEngine
         CldrLocaleLoader.ClearCache();
     }
 
-    /// <summary>Resolve an <c>ORDER TABLE ordering-name IS literal</c> name (§12.3.7 / §15.85): the standard's
+    /// <summary>Resolve an <c>ORDER TABLE ordering-name IS literal</c> name (§2023:12.3.7 / §2023:15.85): the standard's
     /// default table name (→ the root table), or a locale tag — one with CLDR collation data (its file, or a parent's;
     /// a <c>-u-co-</c> type is honored), one with a site <c>.tailor</c>, or one .NET recognizes whose order is the root
-    /// order. Anything else is not a supported ordering table (→ EC-ORDER-NOT-SUPPORTED at the reference, §15.85.4 r2) —
+    /// order. Anything else is not a supported ordering table (→ EC-ORDER-NOT-SUPPORTED at the reference, §2023:15.85.4 r2) —
     /// and so is a locale whose site collation data cannot be used, whose reason is
     /// <c>ResolveLocale(name).</c><see cref="ResolvedLocaleCollation.Failure"/> (kb/Work PB2773).</summary>
     public static bool TryGetOrderingTable(string? name, out CollationTable table)

@@ -10,11 +10,11 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ <b>FORMAT 1 AND FORMAT 4 GO IN THE SAME POSITIONS, AND THAT IS A RULE OF THE STANDARD RATHER THAN A
 /// CONVENTION OF THIS GRAMMAR</b> (kb/Work PB428).
 ///
-/// <para>ISO §8.4.3.1.2 gives <i>identifier</i> eleven general formats. Two of them are not a data-name
+/// <para>ISO §2023:8.4.3.1.2 gives <i>identifier</i> eleven general formats. Two of them are not a data-name
 /// reference and therefore need their own grammar alternative at every operand site: Format 1, the
 /// function-identifier (<c>functionCall</c>), and Format 4, the inline method invocation
-/// (<c>inlineMethodInvocation</c>). Their exclusions are word-for-word twins — §8.4.3.2.3 SR1 "A
-/// function-identifier shall not be specified as a receiving operand" and §8.4.3.4.3 SR1 "Inline method
+/// (<c>inlineMethodInvocation</c>). Their exclusions are word-for-word twins — §2023:8.4.3.2.3 SR1 "A
+/// function-identifier shall not be specified as a receiving operand" and §2023:8.4.3.4.3 SR1 "Inline method
 /// invocation shall not be specified as a receiving operand" — so the set of positions that admits one
 /// admits the other, and the receiving rules admit neither.</para>
 ///
@@ -47,7 +47,7 @@ public sealed class InlineMethodInvocationOperandDriftTests
     /// built on it (<c>objectReference</c>) offers both, and the pairing fact holds there.</summary>
     private static readonly string[] Definitions = ["functionCall", "inlineMethodInvocation", "objectReferenceTerm"];
 
-    /// <summary>The rules whose slot ISO §8.4.3.1.4 GR1's ORDER makes Format 4 unspellable in, each with that reason —
+    /// <summary>The rules whose slot ISO §2023:8.4.3.1.4 GR1's ORDER makes Format 4 unspellable in, each with that reason —
     /// not an exclusion rule but a precedence: a Format-4 operand written there belongs to an enclosing identifier.
     /// <c>propertyObject</c> is Format 7's identifier-3 when a word cannot spell it (kb/Work PB1425): GR1 applies d) "OF
     /// for object properties" BEFORE e) "the inline method invocation operator", so <c>P OF X :: "M"</c> is the
@@ -94,9 +94,9 @@ public sealed class InlineMethodInvocationOperandDriftTests
             .Select(kv => kv.Key)
             .ToList();
         Assert.True(missing.Count == 0,
-            $"these grammar rules admit a function-identifier (ISO §8.4.3.1.2 Format 1) but not an inline "
+            $"these grammar rules admit a function-identifier (ISO §2023:8.4.3.1.2 Format 1) but not an inline "
             + $"method invocation (Format 4): {string.Join(", ", missing)}. Both are identifiers, and the two "
-            + "exclusions (§8.4.3.2.3 SR1 / §8.4.3.4.3 SR1) are the same sentence, so a SENDING position "
+            + "exclusions (§2023:8.4.3.2.3 SR1 / §2023:8.4.3.4.3 SR1) are the same sentence, so a SENDING position "
             + "admits both or neither. Add `| inlineMethodInvocation` and the binder arm that reads it.");
         // The guard is worthless if the pairing is vacuous, so assert the population it measured.
         int paired = rules.Count(kv => !Definitions.Contains(kv.Key) && Mentions(kv.Value, "functionCall"));
@@ -106,7 +106,7 @@ public sealed class InlineMethodInvocationOperandDriftTests
     }
 
     /// <summary>⛔ EVERY OBJECT-REFERENCE POSITION TAKES THE ONE OBJECT-REFERENCE OPERAND RULE, AND THAT RULE TAKES BOTH
-    /// COMPUTED IDENTIFIER FORMATS (kb/Work PB1425, PB1197). §14.9.23.3 SR1, §14.9.29.3 SR2 and §14.9.39.3 SR9 ask
+    /// COMPUTED IDENTIFIER FORMATS (kb/Work PB1425, PB1197). §2023:14.9.23.3 SR1, §2023:14.9.29.3 SR2 and §2023:14.9.39.3 SR9 ask
     /// the identifier's class, so an inline invocation (Format 4) or a function-identifier (Format 1) whose item is an
     /// object reference is a legal INVOKE receiver, RAISE operand and SET Format 5 sender. They were parse errors
     /// because <c>objectReference</c> offered neither — a position that the functionCall pairing above cannot see,
@@ -118,15 +118,15 @@ public sealed class InlineMethodInvocationOperandDriftTests
         var rules = LoadRules();
         Assert.True(rules.TryGetValue("objectReference", out string? operand), "the objectReference rule is gone");
         Assert.True(Mentions(operand, "inlineMethodInvocation"),
-            "objectReference does not offer an inline method invocation (ISO §8.4.3.1.2 Format 4)");
+            "objectReference does not offer an inline method invocation (ISO §2023:8.4.3.1.2 Format 4)");
         Assert.True(rules.TryGetValue("objectReferenceAtom", out string? atom), "the objectReferenceAtom rule is gone");
         Assert.True(rules.TryGetValue("objectReferenceTerm", out string? term), "the objectReferenceTerm rule is gone");
         Assert.True(Mentions(atom, "objectReferenceTerm") && Mentions(term, "functionCall"),
-            "objectReferenceAtom does not offer a function-identifier (ISO §8.4.3.1.2 Format 1)");
-        // Format 5, the object-view (§8.4.3.5), is an atom: §8.4.3.1.4 GR1 c) applies it before the inline
+            "objectReferenceAtom does not offer a function-identifier (ISO §2023:8.4.3.1.2 Format 1)");
+        // Format 5, the object-view (§2023:8.4.3.5), is an atom: §2023:8.4.3.1.4 GR1 c) applies it before the inline
         // invocation operator (e), so it is what an inline invocation's segments apply to (kb/Work PB1425).
         Assert.True(Mentions(atom, "objectView"),
-            "objectReferenceAtom does not offer an object-view (ISO §8.4.3.1.2 Format 5)");
+            "objectReferenceAtom does not offer an object-view (ISO §2023:8.4.3.1.2 Format 5)");
         foreach (string position in new[] { "invokeTarget", "raiseStatement" })
         {
             Assert.True(rules.TryGetValue(position, out string? body), $"the {position} rule is gone");
@@ -143,8 +143,8 @@ public sealed class InlineMethodInvocationOperandDriftTests
             "primaryExpression no longer offers both computed identifier formats, so SET Format 5's sender lost one");
     }
 
-    /// <summary>The purely receiving rules must admit NEITHER — for them §8.4.3.4.3 SR1 holds STRUCTURALLY, by
-    /// the construct's absence, exactly as §8.4.3.2.3 SR1 holds for a function-identifier. A guard that only
+    /// <summary>The purely receiving rules must admit NEITHER — for them §2023:8.4.3.4.3 SR1 holds STRUCTURALLY, by
+    /// the construct's absence, exactly as §2023:8.4.3.2.3 SR1 holds for a function-identifier. A guard that only
     /// checked the sending side would be satisfied by a careless edit that added it everywhere.
     /// <para>⚠ This does NOT cover the MIXED-ROLE arithmetic rule (<c>arithmeticPhraseOperand</c>, the TO / FROM /
     /// BY / INTO operand of ADD, SUBTRACT, MULTIPLY and DIVIDE), which admits both forms
@@ -163,39 +163,39 @@ public sealed class InlineMethodInvocationOperandDriftTests
         {
             if (!rules.TryGetValue(rule, out string? body)) continue;   // renamed — the sending guard still holds
             Assert.False(Mentions(body, "inlineMethodInvocation"),
-                $"'{rule}' is a RECEIVING position and admits an inline method invocation — ISO §8.4.3.4.3 "
+                $"'{rule}' is a RECEIVING position and admits an inline method invocation — ISO §2023:8.4.3.4.3 "
                 + "SR1: \"Inline method invocation shall not be specified as a receiving operand.\"");
         }
     }
 
-    /// <summary>The construct's own shape, pinned to the §8.4.3.4.2 general format rendered from the
+    /// <summary>The construct's own shape, pinned to the §2023:8.4.3.4.2 general format rendered from the
     /// canonical PDF (page 163 / printed folio 133): the receiver is INVOKE's own <c>objectReference</c> (one
-    /// activation mechanism — §8.4.3.4.4 GR1 defines the inline form AS that INVOKE), the operator is the
-    /// §8.7.4 <c>::</c> token, literal-1 is required, and the parenthesised argument list is optional — but a written
+    /// activation mechanism — §2023:8.4.3.4.4 GR1 defines the inline form AS that INVOKE), the operator is the
+    /// §2023:8.7.4 <c>::</c> token, literal-1 is required, and the parenthesised argument list is optional — but a written
     /// parenthesis pair holds at least one argument.</summary>
     [Fact]
     public void TheRuleMatchesThePrintedGeneralFormat()
     {
         var rules = LoadRules();
         Assert.True(rules.TryGetValue("inlineMethodInvocation", out string? body),
-            "the inlineMethodInvocation rule is gone — §8.4.3.1.2 Format 4 has no surface");
+            "the inlineMethodInvocation rule is gone — §2023:8.4.3.1.2 Format 4 has no surface");
         Assert.Contains("objectReferenceAtom", body);
         Assert.Contains("inlineInvocationSegment", body);
-        Assert.Contains("refModPart", body);        // §8.4.3.1.4 GR1 g)
+        Assert.Contains("refModPart", body);        // §2023:8.4.3.1.4 GR1 g)
         Assert.True(rules.TryGetValue("inlineInvocationSegment", out string? seg));
         Assert.Contains("COLONCOLON", seg);
         Assert.Contains("literal", seg);
-        // kb/Work PB1430: the argument BRACE repeats INSIDE the one parenthesis pair (§5.2.6.3, §5.2.7), so a written
+        // kb/Work PB1430: the argument BRACE repeats INSIDE the one parenthesis pair (§2023:5.2.6.3, §2023:5.2.7), so a written
         // pair holds at least one argument — the list is required inside the optional group, never `argumentList?`.
         Assert.Matches(@"\(\s*LPAREN\s+argumentList\s+RPAREN\s*\)\s*\?", seg);
 
-        // The §8.7.4 invocation operator is a LEXER token of its own — without it the construct is
+        // The §2023:8.7.4 invocation operator is a LEXER token of its own — without it the construct is
         // punctuation, which is precisely the state PB428 measured.
         string lexer = File.ReadAllText(Path.Combine(TestRepo.Root,
             "src", "WiseOwl.Cobol.Frontend", "Grammar", "Core", "CobolLexer.g4"));
         Assert.Matches(@"COLONCOLON\s*:\s*'::'", lexer);
 
-        // §8.4.3.4.2's argument brace, all five forms (OMITTED is the one underlined word).
+        // §2023:8.4.3.4.2's argument brace, all five forms (OMITTED is the one underlined word).
         Assert.True(rules.TryGetValue("argument", out string? arg));
         foreach (string form in new[] { "OMITTED", "booleanExpression", "literal", "arithmeticExpression" })
             Assert.Contains(form, arg);

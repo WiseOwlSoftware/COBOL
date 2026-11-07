@@ -5,11 +5,11 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> THE EARLIEST EDITION AT WHICH THIS PROGRAM CAN BE WRITTEN (kb/Work PB403). EXIT PERFORM (§14.9.14.2
-      *> Format 3) is a COBOL-2002 introduction, so COBOL-2002 is the oldest edition at which §14.9.14.3 SR8 --
+      *> THE EARLIEST EDITION AT WHICH THIS PROGRAM CAN BE WRITTEN (kb/Work PB403). EXIT PERFORM (§2023:14.9.14.2
+      *> Format 3) is a COBOL-2002 introduction, so COBOL-2002 is the oldest edition at which §2023:14.9.14.3 SR8 --
       *> "The EXIT PERFORM statement may be specified only in an inline or exception-checking PERFORM statement.
       *> The CYCLE phrase shall not be specified within an exception-checking PERFORM statement." -- has an
-      *> admitted position to pin at all. §14.9.14.3 SR7 ("An EXIT PROGRAM statement may be specified only in a
+      *> admitted position to pin at all. §2023:14.9.14.3 SR7 ("An EXIT PROGRAM statement may be specified only in a
       *> program procedure division") is edition-stable, but its NON-program arms are reachable only from 2002
       *> too, when user-defined functions arrive; the negative fixtures carry those.
       *>
@@ -20,7 +20,7 @@
       *> this program measures: EXIT PERFORM and EXIT PERFORM CYCLE in every inline-PERFORM shape, plus SR7's
       *> admitted position (a CALLed program's EXIT PROGRAM).
       *>
-      *> DERIVATION OF THE EXPECTED OUTPUT, from §14.9.14.4 only.
+      *> DERIVATION OF THE EXPECTED OUTPUT, from §2023:14.9.14.4 only.
       *>  1) GR5 a): EXIT PERFORM without CYCLE passes control "to an implicit CONTINUE statement immediately
       *>     FOLLOWING the END-PERFORM phrase". Loop A varies I from 1 by 1 until I > 5 and exits when I = 3, so
       *>     the DISPLAY runs for I = 1 and I = 2 only:      A=01, A=02.
@@ -32,7 +32,7 @@
       *>     ("the most closely preceding, and as yet unterminated, inline PERFORM statement"), not one level of
       *>     it. Loop C varies I 1..3 with J 1..3 inside and exits at I = 2, J = 2, so:
       *>                                       C=0101, C=0102, C=0103, C=0201.
-      *>  4) §14.9.14.4 GR3: an EXIT PROGRAM executed in a program under the control of a calling runtime element
+      *>  4) §2023:14.9.14.4 GR3: an EXIT PROGRAM executed in a program under the control of a calling runtime element
       *>     proceeds as GOBACK's GR3/GR4 -- control returns to the caller, so the statement after it in the
       *>     called program never executes:                  SUB-IN, SUB-BACK (never SUB-NEVER).
       *>  5) The final DISPLAY:                              DONE.

@@ -5,17 +5,17 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.39.4 GR31: "This statement shall not be executed during the execution of a SEARCH statement
+      *> ISO §2023:14.9.39.4 GR31: "This statement shall not be executed during the execution of a SEARCH statement
       *> referring to the same table. If this rule is violated, the EC-FLOW-SEARCH exception condition is set to
       *> exist AND THE SET STATEMENT IS NOT EXECUTED." Table 13: Fatal, so the declarative runs and RESUME AT
-      *> NEXT STATEMENT (§14.9.33) keeps the run unit alive.
+      *> NEXT STATEMENT (§2023:14.9.33) keeps the run unit alive.
       *>
       *> The SET CAPACITY sits inside the SEARCH's own WHEN body, so it targets the table being searched. GR31
       *> names the lenient outcome outright, which is why checking-OFF returns having done nothing instead of
       *> terminating: the SET is simply not executed. CAP is displayed afterwards to prove exactly that — the
       *> capacity is unchanged whether or not the condition was raised. The check is on the VALUE, not on a
       *> DISPLAY of the register: an implicitly-defined CAPACITY register's picture is implementor-defined
-      *> (§13.18.38 SR30), so its rendering width is not a spec-derived expectation and must not be asserted.
+      *> (§2023:13.18.38 SR30), so its rendering width is not a spec-derived expectation and must not be asserted.
       >>TURN EC-FLOW-SEARCH CHECKING ON
        IDENTIFICATION DIVISION.
        PROGRAM-ID. ECFLOWS.

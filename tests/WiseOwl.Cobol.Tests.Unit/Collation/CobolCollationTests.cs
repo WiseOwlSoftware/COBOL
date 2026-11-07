@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Tests.Unit.Collation;
 
 /// <summary>
 /// The ONE collating-sequence carrier <see cref="CobolCollation"/> (DESIGN-locale-facility §4.4; kb/Work PB101):
-/// the LOCALE arm's ISO §8.8.4.2.11 operand rule and engine comparison, its L7 materialized positions (ORD/CHAR,
+/// the LOCALE arm's ISO §2023:8.8.4.2.11 operand rule and engine comparison, its L7 materialized positions (ORD/CHAR,
 /// HIGH-/LOW-VALUE), the EC-LOCALE-INCOMPATIBLE determination (L6), the base class's single ThruMember, the table
 /// arms' unchanged answers through the carrier, and the DRIFT test that the overload set stays collapsed — no
 /// consumer may grow a raw-<c>ushort[]</c> or <c>NationalCollation</c>-typed collating slot again.
@@ -34,7 +34,7 @@ public sealed class CobolCollationTests
         Assert.True(CobolString.Compare("apple", "Zebra", Loc) < 0);
     }
 
-    /// <summary>§8.8.4.2.11 sentence 1: trailing spaces are truncated; an all-space operand becomes ONE space;
+    /// <summary>§2023:8.8.4.2.11 sentence 1: trailing spaces are truncated; an all-space operand becomes ONE space;
     /// two zero-length operands are equal. No padding — unlike every table arm.</summary>
     [Fact]
     public void LocaleArm_TruncatesTrailingSpaces_AllSpacesToOne()
@@ -58,7 +58,7 @@ public sealed class CobolCollationTests
     [Fact]
     public void LocaleArm_UnpairedSurrogate_SetsEcLocaleIncompatible()
     {
-        // Since kb/Work PB64 T1 the raise is CHECKING-GATED like every EC-LOCALE condition (§14.6.13.1.1: "if checking
+        // Since kb/Work PB64 T1 the raise is CHECKING-GATED like every EC-LOCALE condition (§2023:14.6.13.1.1: "if checking
         // for an exception that occurs is not enabled, no exception condition is raised"): nothing is recorded with
         // checking off and the comparison still answers a deterministic order; with checking on the statement guard's
         // flag makes it a fatal CobolFatalException the USE declarative can observe (LocaleStateTests pins the flag path).
@@ -66,7 +66,7 @@ public sealed class CobolCollationTests
         {
             ExceptionState.Clear();
             int c = Loc.Compare("a\uD800", "a");
-            Assert.Null(ExceptionState.LastName);                 // checking off: no condition (§14.6.13.1.1)
+            Assert.Null(ExceptionState.LastName);                 // checking off: no condition (§2023:14.6.13.1.1)
             Assert.Equal(c, Loc.Compare("a\uD800", "a"));        // deterministic
             ExceptionState.LocaleIncompatibleChecking = true;
             try
@@ -146,13 +146,13 @@ public sealed class CobolCollationTests
 
     // ---- the base class and the table arms ---------------------------------------------------------------------
 
-    /// <summary>ISO §14.7.8: ONE ThruMember on the base class serves every arm — the inclusive test, and lo > hi
+    /// <summary>ISO §2023:14.7.8: ONE ThruMember on the base class serves every arm — the inclusive test, and lo > hi
     /// raises the nonfatal EC-RANGE-INVALID (rule 2) and answers false.
     /// <para>The raise is GATED on the ambient checking flag, like every other condition the runtime detects:
-    /// §14.6.13.1.1's "if checking for an exception that occurs is not enabled, no exception condition is raised"
+    /// §2023:14.6.13.1.1's "if checking for an exception that occurs is not enabled, no exception condition is raised"
     /// is applied once, in <c>ExceptionEngine</c>, per (flag, exception-name) pair — this site used to write its
     /// own unconditional <c>Set</c>, which recorded a condition no TURN had enabled and could not reach the
-    /// §14.6.13.1.4 #3 declarative (kb/Work PB367b). The empty-range ANSWER does not depend on the flag.</para></summary>
+    /// §2023:14.6.13.1.4 #3 declarative (kb/Work PB367b). The empty-range ANSWER does not depend on the flag.</para></summary>
     [Fact]
     public void ThruMember_IsOneImplementationOnTheBase()
     {
@@ -164,7 +164,7 @@ public sealed class CobolCollationTests
             Assert.False(Loc.ThruMember("Z", "a", "y"));         // Z sorts after y under the locale order
             ExceptionState.Clear();
             Assert.False(Loc.ThruMember("m", "z", "a"));         // lo collates after hi — checking OFF
-            Assert.Null(ExceptionState.LastName);                // §14.6.13.1.1 — not enabled ⇒ not raised
+            Assert.Null(ExceptionState.LastName);                // §2023:14.6.13.1.1 — not enabled ⇒ not raised
             ExceptionState.RangeInvalidChecking = true;
             try
             {
@@ -204,7 +204,7 @@ public sealed class CobolCollationTests
     /// <summary>The overload set stays COLLAPSED (DESIGN-locale-facility §4.4.1's drift test): the comparison entries
     /// take a <c>char</c> pad (native) or the ONE <see cref="CobolCollation"/> — never a raw <c>ushort[]</c> or a
     /// concrete arm — and every collating slot of the sort / file / MAX-MIN / CHAR-ORD surface is carrier-typed.
-    /// <para>⛔ THE FIGURATIVE-AWARE TWINS ARE IN THE LIST TOO (kb/Work PB401). A §8.3.3.6.4 GR2 variant is a
+    /// <para>⛔ THE FIGURATIVE-AWARE TWINS ARE IN THE LIST TOO (kb/Work PB401). A §2023:8.3.3.6.4 GR2 variant is a
     /// different QUESTION, so it takes its own NAME — <c>CompareFig</c> beside <c>Compare</c>,
     /// <c>ThruMemberFig</c> beside <c>ThruMember</c> — and then owes the same collapsed pair of sequence
     /// channels. Adding it as a sixth <c>ThruMember</c> overload instead is what this test caught: the entry
@@ -237,7 +237,7 @@ public sealed class CobolCollationTests
         Assert.True(typeof(LocaleCollation).IsSubclassOf(typeof(CobolCollation)));
     }
 
-    /// <summary><c>ALPHABET IS "ZYX…A"</c> as the SPARSE §12.3.7.4 GR7 k table: the 26 SPECIFIED letters occupy
+    /// <summary><c>ALPHABET IS "ZYX…A"</c> as the SPARSE §2023:12.3.7.4 GR7 k table: the 26 SPECIFIED letters occupy
     /// positions 25..0 ('Z' first), and every UNSPECIFIED character follows in native relative order (GR7 k3),
     /// which the carrier computes arithmetically rather than tabulating (kb/Work PB770 — one table shape for both
     /// classes). GR8/GR9 make U+00FF the alphanumeric HIGH-VALUE pin and 'Z' the LOW-VALUE (position 0).</summary>

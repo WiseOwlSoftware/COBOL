@@ -5,11 +5,11 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.6.3 3) — explicit/implicit transfer of control: empty procedures, EXIT PROGRAM, implicit GOBACK
-      *> RULE (§14.6.3, cite.py OK, the paragraphs of item 3) pinned here):
+      *> ISO §2023:14.6.3 3) — explicit/implicit transfer of control: empty procedures, EXIT PROGRAM, implicit GOBACK
+      *> RULE (§2023:14.6.3, cite.py OK, the paragraphs of item 3) pinned here):
       *>  (A) "The procedure branching statement EXIT PROGRAM causes an
       *>      explicit transfer of control only when the statement is
-      *>      executed in a called program." (with §14.9.14.4 2) "treated
+      *>      executed in a called program." (with §2023:14.9.14.4 2) "treated
       *>      as if it were a CONTINUE statement", cite.py OK)
       *>  (B) "If control is transferred either implicitly or explicitly to
       *>      a procedure containing no statements, execution proceeds as

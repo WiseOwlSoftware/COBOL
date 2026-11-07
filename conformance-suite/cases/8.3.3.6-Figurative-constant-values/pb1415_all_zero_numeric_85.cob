@@ -6,11 +6,11 @@
       *> portable: unverified
       *>---
       *> ALL ZERO WHERE THE LITERAL IS NUMERIC-RESTRICTED, AT COBOL-85 (kb/Work PB1415).
-      *> ISO/IEC 1989:2023 §8.3.3.6.3 SR1 a) admits ZERO in a numeric-restricted
+      *> ISO/IEC 1989:2023 §2023:8.3.3.6.3 SR1 a) admits ZERO in a numeric-restricted
       *> position only "without the ALL phrase"; the edge is DERIVED at 2002 (VCR Table 7
       *> row 7.28), and at 85 the word ALL before a figurative word is redundant: CCVS-85
       *> writes VALUE ALL ZEROS on PIC 999 (NC201A). So each ALL ZERO below IS the
-      *> figurative ZERO (§8.3.3.6.4 GR4, the numeric value 0):
+      *> figurative ZERO (§2023:8.3.3.6.4 GR4, the numeric value 0):
       *>   V6 PIC 9(3) VALUE ALL ZEROES      -> 000
       *>   V7 packed VALUE ALL ZEROS          -> V7 ZERO
       *>   88 C4 VALUE ALL ZERO over V4 = 0   -> C4 TRUE

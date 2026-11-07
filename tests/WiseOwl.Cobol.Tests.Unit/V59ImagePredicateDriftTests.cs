@@ -21,7 +21,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <c>IsCharacterImage</c> — <c>MoveEmitter</c> ended up using BOTH. A guard left on the stricter predicate
 /// loud-stages a construct whose codec <c>RecordStructEmitter</c> actually generated, which is how
 /// <c>CALL "SUB" USING G</c> came to throw "no whole-group character image" for a group whose
-/// <c>FUNCTION BYTE-LENGTH</c> answered 5. That is rejecting conforming source (§14.2.3 GR8 — a BY REFERENCE
+/// <c>FUNCTION BYTE-LENGTH</c> answered 5. That is rejecting conforming source (§2023:14.2.3 GR8 — a BY REFERENCE
 /// formal "occupies the same storage area as the argument", which WiseOwl COBOL realizes through that very image
 /// round-trip).
 /// </para>
@@ -80,14 +80,14 @@ public sealed class V59ImagePredicateDriftTests
             $"Expected the CALL argument (read-half) group guard on BoundaryImageCapable; found {capable}.");
         // ⛔ THE PREDICATE WIDENED AT kb/Work PB204, AND THE NARROW ONE IS NOW ITSELF THE DEFECT. V59's lesson
         // was that guarding a CALL on IsCharacterImage rejected conforming source; PB204's is the same lesson
-        // one predicate further out. §14.8.2.2 and §14.8.3.2 ADMIT a VARIABLE-LENGTH group across a Format-2
+        // one predicate further out. §2023:14.8.2.2 and §2023:14.8.3.2 ADMIT a VARIABLE-LENGTH group across a Format-2
         // CALL / RETURNING / INVOKE boundary "subject to compatibility as described in 8.5.1.12", and
         // IsImageCapable is false for such a group BY DEFINITION — so a guard spelled that way refused every
         // one of them (COBOL1688 on legal source). BoundaryImageCapable is "fixed record window OR
         // current-extent carrier"; the ADMISSION itself is decided at bind by VariableLengthCompatibility.
         Assert.True(narrow == 0,
             "CallEmitter must not guard a group crossing on IsImageCapable: a variable-length group is never "
-            + "IsImageCapable and §14.8.2.2 admits it subject to §8.5.1.12 compatibility, so that predicate "
+            + "IsImageCapable and §2023:14.8.2.2 admits it subject to §2023:8.5.1.12 compatibility, so that predicate "
             + $"rejects conforming source (kb/Work PB204). Found {narrow} occurrence(s).");
         // The WRITE half delegates instead of testing: it must hand every group to the ONE writer.
         // ⛔ MEASURED WITH THE COMMENT-STRIPPER, NOT RAW TEXT. This was `Assert.Contains("WriteFullGroupImage",
@@ -102,14 +102,14 @@ public sealed class V59ImagePredicateDriftTests
         Assert.True(character == 0,
             "CallEmitter must not use the pre-V59 IsCharacterImage: a group whose only non-character leaf is "
             + "BINARY/PACKED has a whole-group image (V59), and RecordStructEmitter emits its codec. Guarding on "
-            + "the stricter predicate rejects conforming source — see §14.2.3 GR8. Found "
+            + "the stricter predicate rejects conforming source — see §2023:14.2.3 GR8. Found "
             + $"{character} occurrence(s).");
     }
 
     /// <summary>⛔ THE MIGRATION IS COMPLETE — this inventory is now a CLOSED set of ONE, and that one is not a
     /// guard at all. Every genuine Tier-C guard has moved to <c>IsImageCapable</c>: CALL (both halves), the
     /// table-SORT key, STRING/UNSTRING INTO, INSPECT REPLACING/CONVERTING, ACCEPT (device and temporal), and the
-    /// numeric-operand arm of <c>NumericRenderer</c> (that last one paired with DA6's §8.8.1.1 rejection, since it
+    /// numeric-operand arm of <c>NumericRenderer</c> (that last one paired with DA6's §2023:8.8.1.1 rejection, since it
     /// is reachable only under <c>--permissive</c>).
     /// <para>The test's job is now to keep the set closed: an ADDED use of the pre-V59 predicate is a regression
     /// toward the two-mechanism split that caused DA5, and a REMOVED one means the last non-guard use was touched.

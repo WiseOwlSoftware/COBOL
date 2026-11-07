@@ -4,8 +4,8 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB1452 — the negative twin of 2002/pb1452_program_address_identifier_operands. §8.4.3.13.3 SR1
-      *> "Identifier-1 shall be of category alphanumeric or national": a PIC A item is category ALPHABETIC (§8.5.2.1
+      *> kb/Work PB1452 — the negative twin of 2002/pb1452_program_address_identifier_operands. §2023:8.4.3.13.3 SR1
+      *> "Identifier-1 shall be of category alphanumeric or national": a PIC A item is category ALPHABETIC (§2023:8.5.2.1
       *> Table 2 lists alphabetic as its own category), outside SR1's list, though the storage model folds it into
       *> alphanumeric. The raw category test accepted it and located the program named by its content.
        IDENTIFICATION DIVISION.

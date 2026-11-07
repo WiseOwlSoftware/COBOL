@@ -10,9 +10,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ THE DRIFT CHECK THAT KEEPS <see cref="Condition88.CopyOnto"/> EXHAUSTIVE (kb/Work PB555).
 /// <para>A level-88 condition-name is COPIED onto a different conditional variable in two places — a TYPEDEF
-/// clone (ISO §13.18.58.4 GR1, "<i>the condition-names are part of the type</i>") and a SAME AS copy
-/// (§13.18.49.4 GR2a) — and the copier used to be a hand-written field list at the call site. It copied the
-/// VALUE set and nothing else, so a clone silently lost the <c>IN alphabet-name-1</c> phrase: §14.7.8 rule 2's
+/// clone (ISO §2023:13.18.58.4 GR1, "<i>the condition-names are part of the type</i>") and a SAME AS copy
+/// (§2023:13.18.49.4 GR2a) — and the copier used to be a hand-written field list at the call site. It copied the
+/// VALUE set and nothing else, so a clone silently lost the <c>IN alphabet-name-1</c> phrase: §2023:14.7.8 rule 2's
 /// collating sequence reverted to the program default, and every THRU range the clone tested could answer
 /// differently from the template's. That is a SILENT WRONG ANSWER produced by a field being ADDED to the model
 /// and not to the copier — the failure this class exists to make loud.</para>

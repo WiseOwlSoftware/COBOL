@@ -10,11 +10,11 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ THE EXTENT TABLE of a variable-length record (docs/CONFORMANCE.md §3 determination D-FRA (v); kb/Work PB1053).
 /// A record with dynamic-length members on BOTH sides of a fixed member — or side by side — is sent as its contiguous
-/// image (ISO §8.5.1.11.2), and no split of the characters alone recovers it: <c>"AA" "KEY" "CCCC"</c> and
+/// image (ISO §2023:8.5.1.11.2), and no split of the characters alone recovers it: <c>"AA" "KEY" "CCCC"</c> and
 /// <c>"AAKEY" "CCC" "C"</c> are the same characters. The table travels beside the record, and these pin the four
 /// things it owes: the decomposition is the exact inverse of the composer for every layout; a key the members
 /// precede is found where the decomposition puts it; a table that does not describe the record received (another
-/// layout under §8.5.1.12.2, or characters truncated on the way) is ignored in favour of the take step; and both
+/// layout under §2023:8.5.1.12.2, or characters truncated on the way) is ignored in favour of the take step; and both
 /// physical shapes of the framing carry it without it entering the record.
 /// </summary>
 public sealed class RecordExtentsTests
@@ -68,7 +68,7 @@ public sealed class RecordExtentsTests
     [Fact]
     public void ATableForAnotherLayout_DoesNotDescribeTheRecord()
     {
-        // §8.5.1.12.2: components correspond only at the same fixed-run positions.
+        // §2023:8.5.1.12.2: components correspond only at the same fixed-run positions.
         var other = new RecordExtents([0, 2], [2, 4]);
         Assert.False(other.Describes(Written.Length, 5, [0, 3], [1, 1]));
         Assert.Equal("AAKEY", BothSides.Decompose(Written, other).Dyn(0));   // the take step

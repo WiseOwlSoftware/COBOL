@@ -6,7 +6,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The run-unit EXTERNAL file-connector conformance check (ISO §14.8.4.2, <see cref="ExternalTable"/> DataMismatch,
+/// The run-unit EXTERNAL file-connector conformance check (ISO §2023:14.8.4.2, <see cref="ExternalTable"/> DataMismatch,
 /// §24 review V45-sentinel). Conjunct 1 — the FILE STATUS / RELATIVE KEY / LINAGE data items of an external file
 /// connector SHALL BE external data items — is encoded at codegen as the "!" sentinel on a describer ref when a
 /// present item is not external. Two non-external describers used to compare EQUAL (<c>"!" == "!"</c>) and silently

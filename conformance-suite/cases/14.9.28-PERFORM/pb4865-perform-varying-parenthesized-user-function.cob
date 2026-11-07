@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> PB4865 - ISO §8.8.1.1 makes a parenthesized operand an arithmetic expression, and §14.9.28.2 prints { identifier-4 | literal-2 } for BY
+      *> PB4865 - ISO §2023:8.8.1.1 makes a parenthesized operand an arithmetic expression, and §2023:14.9.28.2 prints { identifier-4 | literal-2 } for BY
       *> and { identifier-3 | index-name-2 | literal-1 } for FROM, so (FUNCTION TWO) is refused in BY, where the unparenthesized form is not.
        IDENTIFICATION DIVISION.
        FUNCTION-ID. TWO.

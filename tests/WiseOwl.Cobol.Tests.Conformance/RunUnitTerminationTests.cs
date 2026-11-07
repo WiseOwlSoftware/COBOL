@@ -8,12 +8,12 @@ using WiseOwl.Cobol.Frontend.Preprocessor;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// The run-unit TERMINATION epilogue (ISO §14.6.11 normal / §14.6.12 abnormal run-unit termination), owned by the
+/// The run-unit TERMINATION epilogue (ISO §2023:14.6.11 normal / §2023:14.6.12 abnormal run-unit termination), owned by the
 /// runtime's RunMain boundary (<c>ProgramTable.RunMain</c>) so it is RUN-UNIT-scoped — each observable applies to the
 /// whole run unit, incl. a separately-compiled CALLed module, not just the main compilation group (§24 review ledger
-/// V52/V53, the sibling class the V47 review surfaced). <b>V52</b>: a fatal exception condition (§14.6.13.1.3 #7)
+/// V52/V53, the sibling class the V47 review surfaced). <b>V52</b>: a fatal exception condition (§2023:14.6.13.1.3 #7)
 /// terminates the run unit with the documented abnormal surface — a stderr diagnostic + a nonzero exit — even when the
-/// MAIN group is EC-free (so a compile-time EC scan of the main group would never emit a catch). <b>V53</b>: §14.6.11(2)'s
+/// MAIN group is EC-free (so a compile-time EC scan of the main group would never emit a catch). <b>V53</b>: §2023:14.6.11(2)'s
 /// implicit CLOSE of ALL open run-unit connectors reaches a file opened by a sibling module even when the main declares
 /// no files. Both are asserted through separate processes (the exit code / on-disk file is the observable).
 /// </summary>
@@ -27,12 +27,12 @@ public sealed class RunUnitTerminationTests
         Assert.True(r.Success, $"compile {name}: {string.Join("; ", r.Errors)}");
     }
 
-    // ── V52: a fatal EC in an EC-free MAIN reaches the §14.6.12 abnormal-termination surface (not a raw CLR crash) ──
+    // ── V52: a fatal EC in an EC-free MAIN reaches the §2023:14.6.12 abnormal-termination surface (not a raw CLR crash) ──
 
-    /// <summary>V52: a null BASED-item dereference raises EC-DATA-PTR-NULL (Fatal, §13.18.5 GR3) UNCONDITIONALLY —
+    /// <summary>V52: a null BASED-item dereference raises EC-DATA-PTR-NULL (Fatal, §2023:13.18.5 GR3) UNCONDITIONALLY —
     /// it is not gated on the EC model, so this program declares no EC feature and its generated <c>Main</c> carries
     /// no fatal-EC catch. The runtime's RunMain boundary must still convert the fatal into the documented
-    /// abnormal-termination surface (§14.6.12: the OS "shall indicate an abnormal termination"): a stderr diagnostic
+    /// abnormal-termination surface (§2023:14.6.12: the OS "shall indicate an abnormal termination"): a stderr diagnostic
     /// + a nonzero exit — NOT an unhandled .NET exception. stdout shows only the pre-fatal line.</summary>
     [Fact]
     public void FatalEc_InEcFreeMain_RaisesAbnormalTerminationSurface()
@@ -51,7 +51,7 @@ public sealed class RunUnitTerminationTests
             """;
         var (exit, stdout, stderr) = new WiseOwlCobolCompiler(2023).CompileAndRunExit(source);
         Assert.Equal("before", stdout);                             // the fatal aborts before "after"
-        Assert.Equal(1, exit);                                      // §14.6.12 nonzero abnormal-termination exit
+        Assert.Equal(1, exit);                                      // §2023:14.6.12 nonzero abnormal-termination exit
         Assert.Contains("abnormal run-unit termination", stderr);  // the documented surface, not a raw CLR trace
         Assert.Contains("EC-DATA-PTR-NULL", stderr);
     }
@@ -97,9 +97,9 @@ public sealed class RunUnitTerminationTests
         finally { ScratchDirectory.Remove(dir); }
     }
 
-    // ── V53: the §14.6.11 implicit CLOSE reaches a file opened by a separately-compiled sub ──
+    // ── V53: the §2023:14.6.11 implicit CLOSE reaches a file opened by a separately-compiled sub ──
 
-    /// <summary>V53: §14.6.11(2) — "an implicit CLOSE … for each file that is in the open mode … for all open files
+    /// <summary>V53: §2023:14.6.11(2) — "an implicit CLOSE … for each file that is in the open mode … for all open files
     /// in the run unit". A file-less MAIN CALLs a separately-compiled sub that OPENs OUTPUT and WRITEs a record
     /// WITHOUT closing; the run-unit-termination implicit CLOSE (runtime-side, RunMain) must still flush and close
     /// the sub's connector so its output is on disk. Pre-fix the CloseAll was gated on the MAIN group's own file
@@ -150,9 +150,9 @@ public sealed class RunUnitTerminationTests
     // ── V52 (CALL/CANCEL family): a fatal CobolCallException reaches the same abnormal surface, not a raw crash ──
 
     /// <summary>V52 completion: a CALL to a program not in the run unit, with NO ON EXCEPTION phrase and no
-    /// EC-PROGRAM checking, is a fatal §14.9.4.4 GR3b failure (EC-PROGRAM-NOT-FOUND — Table 13 Fatal). It reaches the
+    /// EC-PROGRAM checking, is a fatal §2023:14.9.4.4 GR3b failure (EC-PROGRAM-NOT-FOUND — Table 13 Fatal). It reaches the
     /// run-unit boundary as a <c>CobolCallException</c> (a sibling of <c>CobolFatalException</c>, not a subclass), and
-    /// RunMain must convert it to the SAME §14.6.12 abnormal-termination surface — the CobolCallException docstring's
+    /// RunMain must convert it to the SAME §2023:14.6.12 abnormal-termination surface — the CobolCallException docstring's
     /// "the run unit terminates loudly (abnormal termination)" — not a raw CLR crash (exit 127). Covers the whole
     /// CALL/CANCEL fatal family, incl. V52's own cross-assembly sibling-module-not-located case.</summary>
     [Fact]
@@ -175,9 +175,9 @@ public sealed class RunUnitTerminationTests
         Assert.Contains("EC-PROGRAM-NOT-FOUND", stderr);
     }
 
-    // ── V52 × V53: the abnormal path still ATTEMPTS the §14.6.11 implicit CLOSE (both relocated pieces fire) ──
+    // ── V52 × V53: the abnormal path still ATTEMPTS the §2023:14.6.11 implicit CLOSE (both relocated pieces fire) ──
 
-    /// <summary>§14.6.12 requires the abnormal-termination path to ATTEMPT the §14.6.11 normal-termination operations
+    /// <summary>§2023:14.6.12 requires the abnormal-termination path to ATTEMPT the §2023:14.6.11 normal-termination operations
     /// ("performs all operations that are possible"). A program that OPENs OUTPUT + WRITEs an unclosed record and
     /// THEN hits a fatal EC must both exit 1 (abnormal) AND have its buffered record flushed/closed — RunMain's
     /// fatal catch and its finally-CloseAll must both fire, in order, on the abnormal path. Locks the interaction of
@@ -215,7 +215,7 @@ public sealed class RunUnitTerminationTests
             Assert.Contains("abnormal run-unit termination", stderr);
             string outFile = Path.Combine(dir, "v52f.dat");
             Assert.True(File.Exists(outFile), $"an open file must be flushed/closed even on abnormal termination (stderr: {stderr})");
-            Assert.Contains("HELLO", File.ReadAllText(outFile));       // §14.6.12 → §14.6.11(2) best-effort CLOSE
+            Assert.Contains("HELLO", File.ReadAllText(outFile));       // §2023:14.6.12 → §2023:14.6.11(2) best-effort CLOSE
         }
         finally { ScratchDirectory.Remove(dir); }
     }
@@ -223,8 +223,8 @@ public sealed class RunUnitTerminationTests
     // ── kb/Work PB2846: the main module's own registration is INSIDE the run-unit boundary ──
 
     /// <summary>A module of another runtime major is refused by the run unit's module registration (PB2097:
-    /// EC-PROGRAM-NOT-FOUND, ISO §14.9.4.4 GR3 "If the program cannot be located", cite.py OK). When that module is the
-    /// run unit's own MAIN, the refusal reaches the §14.6.12 abnormal-termination surface (a stderr diagnostic naming the
+    /// EC-PROGRAM-NOT-FOUND, ISO §2023:14.9.4.4 GR3 "If the program cannot be located", cite.py OK). When that module is the
+    /// run unit's own MAIN, the refusal reaches the §2023:14.6.12 abnormal-termination surface (a stderr diagnostic naming the
     /// condition and the skew, exit 1), never an unhandled .NET exception: the emitted <c>Main</c> hands its
     /// registration to the runtime boundary (<c>ProgramRegistry.RunModule</c>), so no statement of the entry runs
     /// outside the boundary that owns the termination surface. The skew is made real by rewriting the runtime version the

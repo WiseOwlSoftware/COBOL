@@ -4,9 +4,9 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> kb/Work PB1562 (the lower arm) - ISO 1989 §13.18.43.3 SR4: record descriptions "shall describe neither records that
+*> kb/Work PB1562 (the lower arm) - ISO 1989 §2023:13.18.43.3 SR4: record descriptions "shall describe neither records that
 *> contain a lesser number of bytes than that specified by integer-2". A record description's smallest size is GR8 a)'s
-*> sum with every variable member at its minimum, and a dynamic-length item may be zero length (§8.5.4 item 4: "A
+*> sum with every variable member at its minimum, and a dynamic-length item may be zero length (§2023:8.5.4 item 4: "A
 *> data item defined with the DYNAMIC LENGTH clause that is a zero-length item" - a data item "whose minimum length
 *> is zero") - so the record below can contain 3 bytes, fewer than integer-2 = 5. The screen used to skip every
 *> record holding a dynamic-length item.

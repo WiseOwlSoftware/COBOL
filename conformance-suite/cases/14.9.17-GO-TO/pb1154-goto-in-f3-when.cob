@@ -4,9 +4,9 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.17.3 SR3 — "A GO TO statement shall not be specified in a WHEN
+      *> ISO §2023:14.9.17.3 SR3 — "A GO TO statement shall not be specified in a WHEN
       *> phrase of an exception-checking PERFORM statement."
-      *>   cite.py: OK  §14.9.17.3 3)  (Syntax rules)
+      *>   cite.py: OK  §2023:14.9.17.3 3)  (Syntax rules)
       *> The statement is the only violation; the program is otherwise legal.
       *> Expected: COBOL1608, positioned at the offending statement (kb/Work PB1154).
       *> ONLY 2023 is named: the exception-checking PERFORM is new in

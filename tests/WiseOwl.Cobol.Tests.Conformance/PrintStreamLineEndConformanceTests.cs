@@ -8,8 +8,8 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// <summary>
 /// ⛔ THE LINE END OF A FILE'S MEDIUM IS A FUNCTION OF THE FILE'S SHAPE, IN THREE ARMS (kb/Work PB1664;
 /// docs/CONFORMANCE.md DOC-A.1-146 (c′), DOC-A.1-159, DOC-A.1-114). ISO leaves the on-medium form of a record to
-/// the implementor (§9.1.7.2 for a record sequential record, §13.4.5.4 GR4 for a report writer's logical record,
-/// §12.4.5.10.3 GR2 for a line sequential delimiter), so CLAUDE.md rule 1's precedence decides and GnuCOBOL 3.2
+/// the implementor (§2023:9.1.7.2 for a record sequential record, §2023:13.4.5.4 GR4 for a report writer's logical record,
+/// §2023:12.4.5.10.3 GR2 for a line sequential delimiter), so CLAUDE.md rule 1's precedence decides and GnuCOBOL 3.2
 /// answers:
 /// <list type="bullet">
 /// <item>a LINE SEQUENTIAL file, a file with a LINAGE clause (which GnuCOBOL reclassifies LINE SEQUENTIAL), and
@@ -20,7 +20,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// </list>
 /// Before PB1664 the second arm was CR LF on every host and a LINE SEQUENTIAL report file bypassed the first
 /// (<c>FileRegistry.RegisterReport</c> registers every report file as record sequential), so it was CR LF on Linux
-/// where GnuCOBOL writes LF. ADVANCING 0's bare carriage return (§14.9.51.4 GR25 c), owner decision R54) and
+/// where GnuCOBOL writes LF. ADVANCING 0's bare carriage return (§2023:14.9.51.4 GR25 c), owner decision R54) and
 /// ADVANCING PAGE's form feed (GR25 h)) are line CONTROLS, not line ends, and are asserted unchanged.
 /// </summary>
 public sealed class PrintStreamLineEndConformanceTests
@@ -87,8 +87,8 @@ public sealed class PrintStreamLineEndConformanceTests
         """;
 
     /// <summary>⛔ A RECORD SEQUENTIAL PRINT STREAM WRITES EACH FIXED-LENGTH RECORD AT ITS WHOLE SIZE (kb/Work PB2509;
-    /// DOC-A.1-146 (c′)). §14.9.51.4 GR21's trailing-space strip is stated for a LINE SEQUENTIAL file alone, §13.18.43.4
-    /// GR6 gives every record of a fixed-length file integer-1 bytes, and §9.1.7.2 leaves the on-medium form to the
+    /// DOC-A.1-146 (c′)). §2023:14.9.51.4 GR21's trailing-space strip is stated for a LINE SEQUENTIAL file alone, §2023:13.18.43.4
+    /// GR6 gives every record of a fixed-length file integer-1 bytes, and §2023:9.1.7.2 leaves the on-medium form to the
     /// implementor, so GnuCOBOL's whole record is the answer: <c>AA</c> in a 4-byte record is <c>AA</c> and two spaces.
     /// The controls (AFTER 1, ADVANCING 0's bare CR, PAGE's form feed) stand between whole records.</summary>
     [Fact]
@@ -137,7 +137,7 @@ public sealed class PrintStreamLineEndConformanceTests
         """;
 
     /// <summary>⛔ A RECORD VARYING RECORD SEQUENTIAL PRINT STREAM FRAMES EACH RECORD (kb/Work PB2509; DOC-A.1-151 (a)):
-    /// the 4-byte little-endian length prefix, then the record at its §13.18.43.4 GR13 length, trailing spaces
+    /// the 4-byte little-endian length prefix, then the record at its §2023:13.18.43.4 GR13 length, trailing spaces
     /// included (a record of <c>"A "</c> at length 2 is two bytes). The print controls stand between frames.</summary>
     [Fact]
     public void RecordSequentialVaryingPrintStream_FramesEachRecord()
@@ -153,7 +153,7 @@ public sealed class PrintStreamLineEndConformanceTests
                 WRITE R1
             """), "ple13.dat", "\n\u0003\0\0\0ABC\n\u0002\0\0\0A \n\u0004\0\0\0WXYZ\n");
 
-    /// <summary>§14.9.51.4 GR14/GR15 on the framed stream: a length outside the bounds is the size violation '44'
+    /// <summary>§2023:14.9.51.4 GR14/GR15 on the framed stream: a length outside the bounds is the size violation '44'
     /// and the record reaches the medium neither framed nor bare — the stream holds only the frames of the writes that
     /// succeeded, and the refused WRITE leaves no line feed behind either.</summary>
     [Fact]
@@ -181,7 +181,7 @@ public sealed class PrintStreamLineEndConformanceTests
     public void LinageAndLineSequentialFiles_EndLinesWithTheHostNewline(string org, string fd, string id, string file)
         => AssertMedium(Fd(org, fd, id, file, TwoAfterWrites), file, Host("{nl}AAAA{nl}BBBB{nl}"));
 
-    /// <summary>Arm 1 for the report writer: EVERY report file — a LINE SEQUENTIAL one included (§13.4.5.3 SR4
+    /// <summary>Arm 1 for the report writer: EVERY report file — a LINE SEQUENTIAL one included (§2023:13.4.5.3 SR4
     /// makes it legal) — ends its lines with the host newline.</summary>
     [Theory]
     [InlineData("SEQUENTIAL", "PLE6", "ple6.rpt")]

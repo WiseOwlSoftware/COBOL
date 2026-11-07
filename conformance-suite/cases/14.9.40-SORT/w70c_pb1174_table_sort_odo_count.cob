@@ -9,9 +9,9 @@
       *>
       *> THE RULES, --check validated:
       *>   cite.py --check 14.9.40.4 "The number of occurrences of table elements referenced by data-name-2 is
-      *>     determined by the rules in the OCCURS clause" -> OK §14.9.40.4 20)
+      *>     determined by the rules in the OCCURS clause" -> OK §2023:14.9.40.4 20)
       *>   cite.py --check 13.18.38.4 "The value of the data item referenced by data-name-1 represents the current
-      *>     number of occurrences of the subject of the entry" -> OK §13.18.38.4 7)
+      *>     number of occurrences of the subject of the entry" -> OK §2023:13.18.38.4 7)
       *> So with N = 3 the table ITM has three occurrences, and only {30, 10, 50} are sorted; occurrences 4..5 are
       *> not elements of the table at all, so they can never enter occurrences 1..3. (Their content after the
       *> statement is not an occurrence of the sorted table; this implementation leaves it untouched, which the
@@ -25,7 +25,7 @@
       *>   2  N = 4, DESCENDING       -> 50 30 10 05 | 01   (the count is read at the statement, not fixed)
       *>   3  N = 1                   -> 50 | 30 10 05 01   (one occurrence is already in order; nothing past it
       *>                                                    moves — pre-fix: 01 05 10 30 50)
-      *>   4  N = 7 (above integer-2) under EC-BOUND-ODO checking -> RAISED EC-BOUND-ODO (§13.18.38.4 GR7), and
+      *>   4  N = 7 (above integer-2) under EC-BOUND-ODO checking -> RAISED EC-BOUND-ODO (§2023:13.18.38.4 GR7), and
       *>      the declarative's RESUME NEXT STATEMENT abandons the SORT: 50 30 10 05 01 unchanged.
        >>TURN EC-BOUND-ODO CHECKING ON
        IDENTIFICATION DIVISION.

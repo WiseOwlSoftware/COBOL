@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.27.4 GR25: "If the execution of the OPEN statement is
+      *> ISO §2023:14.9.27.4 GR25: "If the execution of the OPEN statement is
       *> unsuccessful, the file is not affected and the following
       *> actions take place in the following order:
       *>   a) A value is placed in the I-O status associated with
@@ -23,18 +23,18 @@
       *>      procedure is executed as specified for the rules for the
       *>      USE statement."
       *> FN and FM are absent and not OPTIONAL, so OPEN INPUT is '35'
-      *> (§9.1.13.6 5)), a fatal EC-I-O-PERMANENT-ERROR (§9.1.13.1).
+      *> (§2023:9.1.13.6 5)), a fatal EC-I-O-PERMANENT-ERROR (§2023:9.1.13.1).
       *>   L1  checking OFF: a) '35', then d) the format 1 USE for FN
       *>       (F1-USE 35). b) does not apply ("If it is enabled").
       *>   L2  checking ON, FM: a), b) EC-I-O-PERMANENT-ERROR, d) the
       *>       format 3 USE (F3-USE 35 EC-I-O-PERMANENT-ERROR); its
       *>       RESUME AT NEXT STATEMENT continues past the fatal
-      *>       condition (§14.6.13.1.3 5) NOTE 2).
+      *>       condition (§2023:14.6.13.1.3 5) NOTE 2).
       *>   L3  checking ON, FN inside an exception-checking PERFORM: a),
       *>       b), then c) - the WHEN body runs (WHEN 35 + the status)
       *>       and the format 1 USE for FN, which d) would otherwise
       *>       run, does NOT. The WHEN body ends with STOP RUN:
-      *>       §14.6.13.1.3 4) would terminate the run unit abnormally
+      *>       §2023:14.6.13.1.3 4) would terminate the run unit abnormally
       *>       after it for this fatal condition.
       *> "The file is not affected": the failed OPEN INPUT of L1 does
       *> not create FN, so L3's OPEN of the same file is '35' again.

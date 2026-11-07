@@ -4,8 +4,8 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> ISO §14.9.14.3 SR7: "An EXIT PROGRAM statement may be specified only in a program procedure division."
-*> §14.2.2 SR10 names the five source elements that may carry a Format-1/2 procedure division -- "a function
+*> ISO §2023:14.9.14.3 SR7: "An EXIT PROGRAM statement may be specified only in a program procedure division."
+*> §2023:14.2.2 SR10 names the five source elements that may carry a Format-1/2 procedure division -- "a function
 *> definition, a function prototype definition, a method definition, a program definition, or a program
 *> prototype definition" -- so a FUNCTION definition's procedure division is not a program's, and this program
 *> ends UXSR07's with EXIT PROGRAM.

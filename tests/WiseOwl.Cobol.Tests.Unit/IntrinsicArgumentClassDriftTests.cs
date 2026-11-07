@@ -10,7 +10,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// Keeps the ISO §15.3 argument-class table WIRED IN (fix-queue PB1).
+/// Keeps the ISO §2023:15.3 argument-class table WIRED IN (fix-queue PB1).
 /// </summary>
 /// <remarks>
 /// <para>
@@ -73,7 +73,7 @@ public sealed class IntrinsicArgumentClassDriftTests
     {
         string binder = BinderSource();
         Assert.True(binder.Contains("CheckArgumentClasses", StringComparison.Ordinal),
-            "the ISO §15.3 argument-class screen is gone from IntrinsicBinder — every catalogued function's "
+            "the ISO §2023:15.3 argument-class screen is gone from IntrinsicBinder — every catalogued function's "
             + "argument rule is unenforced again (fix-queue PB1).");
         Assert.True(binder.Contains("IntrinsicArgumentRules.Verified", StringComparison.Ordinal),
             "IntrinsicBinder no longer consults IntrinsicArgumentRules.Verified. The `ArgKinds == \"p\"` "
@@ -84,7 +84,7 @@ public sealed class IntrinsicArgumentClassDriftTests
     /// <summary>
     /// ⛔ EVERY SCREENED FUNCTION CITES THE CLAUSE ITS RULE COMES FROM. This is the guard that keeps the table
     /// spec-derived rather than guessed, which is the distinction that cost 12 legal corpus programs to learn:
-    /// the catalog's own <c>ArgKinds</c> hint column is UNAUDITED (BYTE-LENGTH declares "s" where §15.14.3 admits
+    /// the catalog's own <c>ArgKinds</c> hint column is UNAUDITED (BYTE-LENGTH declares "s" where §2023:15.14.3 admits
     /// any class), so screening from it rejected valid COBOL.
     /// </summary>
     [Fact]
@@ -146,7 +146,7 @@ public sealed class IntrinsicArgumentClassDriftTests
                  {
                      "pb1-numeric-arg-alphanumeric",       // 's'-shaped rule violated by a numeric operand
                      "pb1-string-arg-numeric",             // 'n'-shaped rule violated by an alphanumeric operand
-                     "pb1-numeric-arg-numeric-edited",     // the §8.5.2.1 Table-2 row that reads the other way
+                     "pb1-numeric-arg-numeric-edited",     // the §2023:8.5.2.1 Table-2 row that reads the other way
                  })
         {
             Assert.True(File.Exists(TestRepo.SuiteCase(name)), $"{name}.cob missing");
@@ -157,7 +157,7 @@ public sealed class IntrinsicArgumentClassDriftTests
 
     /// <summary>
     /// The diagnostic cites the clauses the screen actually implements, and says CLASS — because the whole
-    /// defect turns on §8.5.2.1 Table 2 being a CLASS table, not a category one.
+    /// defect turns on §2023:8.5.2.1 Table 2 being a CLASS table, not a category one.
     /// </summary>
     [Fact]
     public void TheDiagnostic_CitesTheGoverningClauses()
@@ -167,7 +167,7 @@ public sealed class IntrinsicArgumentClassDriftTests
         int at = catalog.IndexOf("COBOL1627", StringComparison.Ordinal);
         Assert.True(at > 0, "COBOL1627 (intrinsic-argument-class) is not in the catalog");
         string block = catalog[at..Math.Min(catalog.Length, at + 2400)];
-        foreach (string cite in new[] { "§15.3", "§8.5.2.1", "§4.2.2" })
+        foreach (string cite in new[] { "§2023:15.3", "§2023:8.5.2.1", "§2023:4.2.2" })
             Assert.True(block.Contains(cite, StringComparison.Ordinal), $"COBOL1627 no longer cites {cite}");
     }
 
@@ -203,7 +203,7 @@ public sealed class IntrinsicArgumentClassDriftTests
         int next = src.IndexOf("    private BoundExpr Bind", at + 10, StringComparison.Ordinal);
         string body = next > 0 ? src[at..next] : src[at..];
         Assert.True(body.Contains("CheckArgumentClasses(sig, operands)", StringComparison.Ordinal),
-            $"{method} returns before the generic §15.3 screen and does not call it on its own operand list, so "
+            $"{method} returns before the generic §2023:15.3 screen and does not call it on its own operand list, so "
             + "every IntrinsicArgumentRules.Verified row for that function is DEAD — the 'structurally "
             + "unreachable' state PB12 recorded. Add CheckArgumentClasses(sig, operands) after its arity check.");
     }
@@ -218,8 +218,8 @@ public sealed class IntrinsicArgumentClassDriftTests
         string table = rules[at..rules.IndexOf("};", at, StringComparison.Ordinal)];
         var withCross = Regex.Matches(table, @"CrossArgRule\.(?<r>\w+)");
         Assert.True(withCross.Count >= 4,
-            $"only {withCross.Count} cross-argument rules found — §15.59.3 r2, §15.63.3 r2, §15.68.3 r2 and "
-            + "§15.37.3 r2 are all modelled, so this guard has gone blind; fix the regex, do not lower the floor.");
+            $"only {withCross.Count} cross-argument rules found — §2023:15.59.3 r2, §2023:15.63.3 r2, §2023:15.68.3 r2 and "
+            + "§2023:15.37.3 r2 are all modelled, so this guard has gone blind; fix the regex, do not lower the floor.");
         foreach (Match m in Regex.Matches(table, """\["(?<f>[A-Z0-9-]+)"\][^\r\n]*CrossArgRule\.(?<r>\w+)"""))
         {
             if (m.Groups["r"].Value == "None") continue;
@@ -233,7 +233,7 @@ public sealed class IntrinsicArgumentClassDriftTests
         }
     }
 
-    /// <summary>kb/Work R27 — §8.5.2.1 Table 2's CLASS question must be answered for every USAGE, and a new
+    /// <summary>kb/Work R27 — §2023:8.5.2.1 Table 2's CLASS question must be answered for every USAGE, and a new
     /// usage member must not silently inherit its storage category's answer. An index data item's PicInfo
     /// carries category NUMERIC for the storage model, so before the usage-keyed arm it passed every
     /// class-numeric screen and <c>FUNCTION INTEGER(IX)</c> computed the occurrence number silently. USAGE
@@ -261,7 +261,7 @@ public sealed class IntrinsicArgumentClassDriftTests
             [WiseOwl.Cobol.Binding.Model.Usage.Pointer] = "category",
             [WiseOwl.Cobol.Binding.Model.Usage.ProgramPointer] = "category",
             [WiseOwl.Cobol.Binding.Model.Usage.FunctionPointer] = "category",
-            // USAGE MESSAGE-TAG (kb/Work PB487, PB4740) — §13.18.60.4 GR9 makes the class AND category of a message-tag
+            // USAGE MESSAGE-TAG (kb/Work PB487, PB4740) — §2023:13.18.60.4 GR9 makes the class AND category of a message-tag
             // data item message-tag: PicCategory.MessageTag, whose ClassOfCategory row answers CobolClass.MessageTag, so
             // every screen over the lattice decides a message tag instead of failing open.
             [WiseOwl.Cobol.Binding.Model.Usage.MessageTag] = "category",
@@ -280,7 +280,7 @@ public sealed class IntrinsicArgumentClassDriftTests
         };
         foreach (var u in Enum.GetValues<WiseOwl.Cobol.Binding.Model.Usage>())
             Assert.True(dispositioned.ContainsKey(u),
-                $"Usage.{u} has no §8.5.2.1 Table-2 class disposition (kb/Work R27) — decide its Table-2 "
+                $"Usage.{u} has no §2023:8.5.2.1 Table-2 class disposition (kb/Work R27) — decide its Table-2 "
                 + "class, wire the usage-keyed arm in ClassOfPlace if the storage category must not answer, "
                 + "then record the decision here.");
         // The usage-keyed arm itself exists (the source-form half, same style as the rest of this suite).
@@ -289,15 +289,15 @@ public sealed class IntrinsicArgumentClassDriftTests
 
     /// <summary>
     /// ⛔ EVERY <c>ArgKinds</c> CODE THE CATALOG USES HAS A DISPOSITION — an <c>Admissible</c> arm (an OPERAND
-    /// kind, screened) or a row in <c>IntrinsicArgumentRules.NonOperandArgumentKinds</c> (a §15.3 NAME/keyword
+    /// kind, screened) or a row in <c>IntrinsicArgumentRules.NonOperandArgumentKinds</c> (a §2023:15.3 NAME/keyword
     /// type, resolved by the function's own binder). Without this, a new code is a declaration nothing reads and
     /// nothing can contradict — the PB1 dead-column defect in its general form, and the exact trap the
-    /// ordering-name code <c>'o'</c> (§15.3 argument type 12, kb/Work PB101) would have walked into.
+    /// ordering-name code <c>'o'</c> (§2023:15.3 argument type 12, kb/Work PB101) would have walked into.
     /// </summary>
     /// <remarks>
     /// ⚠ It is the CATALOG's vocabulary that is checked, not <c>Verified</c>'s: the sibling fact above already
     /// holds every screened SCHEMA to a handled code, and that is precisely the half that cannot see a code
-    /// introduced on a catalog row whose function binds through a bespoke arm. §15.3 has fourteen argument
+    /// introduced on a catalog row whose function binds through a bespoke arm. §2023:15.3 has fourteen argument
     /// types and four of them (Keyword, Locale-name, Ordering-name, Type declaration) are not operands at all,
     /// so more such codes are expected — the locale increments add a locale-name code across five functions —
     /// and each one costs a row rather than a rediscovery.
@@ -326,7 +326,7 @@ public sealed class IntrinsicArgumentClassDriftTests
         Assert.True(undispositioned.Count == 0,
             $"ArgKinds code(s) with neither an Admissible arm nor a NonOperandArgumentKinds row: "
             + $"[{string.Join("; ", undispositioned)}]. A code nothing reads is a dead column — give it an "
-            + "Admissible arm if it is an operand class, or a NonOperandArgumentKinds row naming the §15.3 "
+            + "Admissible arm if it is an operand class, or a NonOperandArgumentKinds row naming the §2023:15.3 "
             + "argument type and the binder that resolves it.");
 
         // A non-operand kind's disposition NAMES its resolver, and that resolver exists. A row saying "the
@@ -334,7 +334,7 @@ public sealed class IntrinsicArgumentClassDriftTests
         string binder = BinderSource();
         foreach (var (code, why) in IntrinsicArgumentRules.NonOperandArgumentKinds)
         {
-            Assert.Contains("§15.3", why, StringComparison.Ordinal);
+            Assert.Contains("§2023:15.3", why, StringComparison.Ordinal);
             var named = Regex.Matches(why, @"IntrinsicBinder\.(?<m>\w+)").Select(m => m.Groups["m"].Value).ToList();
             Assert.True(named.Count > 0,
                 $"NonOperandArgumentKinds['{code}'] does not name the IntrinsicBinder method that resolves it");
@@ -411,13 +411,13 @@ public sealed class IntrinsicArgumentClassDriftTests
     }
 
     /// <summary>A bare reference to an elementary item of <paramref name="usage"/> — the operand shape the
-    /// §15.3 type-6 screen sees for <c>FUNCTION CHAR(WS-F)</c>.</summary>
+    /// §2023:15.3 type-6 screen sees for <c>FUNCTION CHAR(WS-F)</c>.</summary>
     private static BoundFieldOperand ItemOperand(Usage usage, PicInfo pic) =>
         new(new MemberPlace(
             new AccessPath([new RootFieldSegment("WS_" + usage)]),
             new DataItem { Level = 1, CobolName = "WS-" + usage, ClrName = "WS_" + usage, Pic = pic }));
 
-    /// <summary>Every <see cref="Usage"/> whose synthesized profile is a FLOATING-POINT item (§14.6.8.3 plus the
+    /// <summary>Every <see cref="Usage"/> whose synthesized profile is a FLOATING-POINT item (§2023:14.6.8.3 plus the
     /// COMP-1/COMP-2 synonyms), derived from <see cref="PicInfo.IsFloat"/> rather than listed — a new float
     /// usage joins the sweep below the moment it lands.</summary>
     public static TheoryData<Usage> FloatUsages()
@@ -436,7 +436,7 @@ public sealed class IntrinsicArgumentClassDriftTests
     /// </summary>
     /// <remarks>
     /// ⚠ THE DEFECT IT GUARDS WAS INVISIBLE BY CONSTRUCTION, which is why the assertion is over the whole
-    /// cross-product and not over one witness. ISO §5.5 2)b)2. defines an integer operand written as an
+    /// cross-product and not over one witness. ISO §2023:5.5 2)b)2. defines an integer operand written as an
     /// identifier as "a <b>fixed-point</b> numeric data item … whose description does not include any digit
     /// positions to the right of the radix point" — TWO conditions. A floating-point item is PICTURE-less, so
     /// <see cref="PicInfo.FloatItem"/> gives it <c>Scale: 0</c> and the SECOND condition is vacuously
@@ -450,10 +450,10 @@ public sealed class IntrinsicArgumentClassDriftTests
     {
         var op = ItemOperand(usage, PicInfo.FloatItem(usage));
 
-        // The sibling classifier §15.2 type 5 asks the SAME question of the SAME operand and must agree —
-        // it is what enforces every statement rule that says "shall be an integer" (§14.9.28.3 SR2).
+        // The sibling classifier §2023:15.2 type 5 asks the SAME question of the SAME operand and must agree —
+        // it is what enforces every statement rule that says "shall be an integer" (§2023:14.9.28.3 SR2).
         Assert.False(IntrinsicResultType.IsIntegerOperand(op),
-            $"IntrinsicResultType.IsIntegerOperand answers TRUE for a USAGE {usage} item — §5.5 2)b)2. requires "
+            $"IntrinsicResultType.IsIntegerOperand answers TRUE for a USAGE {usage} item — §2023:5.5 2)b)2. requires "
             + "a FIXED-POINT numeric data item, and a floating-point item is PICTURE-less (Scale 0), so a "
             + "scale-only test admits it. PERFORM … TIMES over it iterates the truncated value silently.");
 
@@ -473,9 +473,9 @@ public sealed class IntrinsicArgumentClassDriftTests
             .Order()
             .ToList();
         Assert.True(admitted.Count == 0,
-            $"USAGE {usage} (a floating-point item, ISO §14.6.8.3) is ADMITTED at 'i' (§15.3 type 6) "
-            + $"position(s): [{string.Join("; ", admitted)}]. §15.3 type 6 requires an integer data item or an "
-            + "always-integral arithmetic expression, and §5.5 2)b)2. makes an integer data item a FIXED-POINT "
+            $"USAGE {usage} (a floating-point item, ISO §2023:14.6.8.3) is ADMITTED at 'i' (§2023:15.3 type 6) "
+            + $"position(s): [{string.Join("; ", admitted)}]. §2023:15.3 type 6 requires an integer data item or an "
+            + "always-integral arithmetic expression, and §2023:5.5 2)b)2. makes an integer data item a FIXED-POINT "
             + "one. Fix PicInfo.IsIntegerDescription — the ONE primitive both integer screens read — never the "
             + "individual arm.");
     }
@@ -488,7 +488,7 @@ public sealed class IntrinsicArgumentClassDriftTests
     [Fact]
     public void EveryIntegerArgumentPosition_StillAdmitsAFixedPointIntegerItem()
     {
-        // PIC 9(4) — category numeric, scale 0, usage display: §5.5 2)b)2.'s integer data item exactly.
+        // PIC 9(4) — category numeric, scale 0, usage display: §2023:5.5 2)b)2.'s integer data item exactly.
         var pic = new PicInfo(PicCategory.Numeric, Usage.Display, Length: 4, Digits: 4, Scale: 0, Signed: false);
         var op = ItemOperand(Usage.Display, pic);
         Assert.True(IntrinsicResultType.IsIntegerOperand(op));
@@ -502,8 +502,8 @@ public sealed class IntrinsicArgumentClassDriftTests
             .Order()
             .ToList();
         Assert.True(rejected.Count == 0,
-            $"a PIC 9(4) integer item is REJECTED at 'i' position(s): [{string.Join("; ", rejected)}] — §15.3 "
-            + "type 6 admits an integer data item, and §5.5 2)b)2. says this is one.");
+            $"a PIC 9(4) integer item is REJECTED at 'i' position(s): [{string.Join("; ", rejected)}] — §2023:15.3 "
+            + "type 6 admits an integer data item, and §2023:5.5 2)b)2. says this is one.");
     }
 
     /// <summary>One data-item witness per <see cref="CobolClass"/> member a PICTURE can present, with the
@@ -519,7 +519,7 @@ public sealed class IntrinsicArgumentClassDriftTests
             (CobolClass.Alphanumeric, new PicInfo(PicCategory.Alphanumeric, Usage.Display, 4, 0, 0, false)),
             (CobolClass.Alphabetic,
                 new PicInfo(PicCategory.Alphanumeric, Usage.Display, 4, 0, 0, false) { IsAlphabetic = true }),
-            // PIC ZZ9 — category numeric-edited, usage display: §8.5.2.1 Table 2 class ALPHANUMERIC, and the
+            // PIC ZZ9 — category numeric-edited, usage display: §2023:8.5.2.1 Table 2 class ALPHANUMERIC, and the
             // refined member the lattice reports for it. THIS is the witness kb/Work PB305 turns on.
             (CobolClass.NumericEditedDeEditing, new PicInfo(PicCategory.NumericEdited, Usage.Display, 3, 3, 0, false)),
             (CobolClass.National, new PicInfo(PicCategory.National, Usage.National, 4, 0, 0, false)),
@@ -554,7 +554,7 @@ public sealed class IntrinsicArgumentClassDriftTests
         i < s.Positions.Length ? s.Positions[i] : s.Tail;
 
     /// <summary>
-    /// ⛔ EVERY CROSS-ARGUMENT RULE ACCEPTS TWO OPERANDS OF ONE §8.5.2.1 TABLE-2 CLASS (kb/Work PB305). This is
+    /// ⛔ EVERY CROSS-ARGUMENT RULE ACCEPTS TWO OPERANDS OF ONE §2023:8.5.2.1 TABLE-2 CLASS (kb/Work PB305). This is
     /// the drift test the fix is paired with, and it is written over the SCHEMA TABLE and the whole
     /// <see cref="CobolClass"/> lattice rather than over a list of functions, so a new cross rule is swept the
     /// day its row is added and a new refined class member the day it is modelled.
@@ -562,12 +562,12 @@ public sealed class IntrinsicArgumentClassDriftTests
     /// <remarks>
     /// <para>
     /// ⛔ EVERY cross clause in the catalogue is CLASS-worded, which is what makes this assertion total rather
-    /// than per-function: §15.37.3 r2 makes argument-2 "a data item or literal of either class alphabetic or
-    /// alphanumeric", §15.96.3 r2 makes it "a single character that is either class alphabetic or class
-    /// alphanumeric", §15.87.3 r2 says it per argument-2/argument-3 pair, §15.59.3 r2 / §15.63.3 r2 / §15.71.3 r3 /
-    /// §15.72.3 r3 say "All arguments shall be of the same class", §15.68.3 r2 says "of the same class as
-    /// argument-1" — even though its own r1 is category-worded — and §15.48.3 r3 / §15.79.3 r3 / §15.92.3 r2's
-    /// "the same type as argument-1" is read as the class. So a screen may MERGE two Table-2 classes (§15.59.3
+    /// than per-function: §2023:15.37.3 r2 makes argument-2 "a data item or literal of either class alphabetic or
+    /// alphanumeric", §2023:15.96.3 r2 makes it "a single character that is either class alphabetic or class
+    /// alphanumeric", §2023:15.87.3 r2 says it per argument-2/argument-3 pair, §2023:15.59.3 r2 / §2023:15.63.3 r2 / §2023:15.71.3 r3 /
+    /// §2023:15.72.3 r3 say "All arguments shall be of the same class", §2023:15.68.3 r2 says "of the same class as
+    /// argument-1" — even though its own r1 is category-worded — and §2023:15.48.3 r3 / §2023:15.79.3 r3 / §2023:15.92.3 r2's
+    /// "the same type as argument-1" is read as the class. So a screen may MERGE two Table-2 classes (§2023:15.59.3
     /// r2's own alphabetic/alphanumeric exception) but may never SPLIT one.
     /// </para>
     /// <para>
@@ -614,20 +614,20 @@ public sealed class IntrinsicArgumentClassDriftTests
             $"only {exercised} admissible same-class pair(s) reached CrossViolation — the witness bank or the "
             + "per-position filter has gone blind; fix the walk, do not lower the floor.");
         Assert.True(rejected.Count == 0,
-            "a cross-argument rule REJECTED two operands of one §8.5.2.1 Table-2 class — it is SPLITTING a class "
+            "a cross-argument rule REJECTED two operands of one §2023:8.5.2.1 Table-2 class — it is SPLITTING a class "
             + $"the standard does not split (kb/Work PB305):{Environment.NewLine}"
             + string.Join(Environment.NewLine, rejected.Order()));
     }
 
     /// <summary>
-    /// ⛔ EVERY CLASS-WORDED ARGUMENT KIND'S ADMISSIBLE SET IS CLOSED UNDER ITS §8.5.2.1 TABLE-2 CLASS: if it
+    /// ⛔ EVERY CLASS-WORDED ARGUMENT KIND'S ADMISSIBLE SET IS CLOSED UNDER ITS §2023:8.5.2.1 TABLE-2 CLASS: if it
     /// admits a class, it admits every lattice member of that class. This is what keeps
     /// <c>IntrinsicArgumentRules.ByClass</c> honest — a hand-edit back to a literal member list fails here.
     /// </summary>
     /// <remarks>
     /// ⚠ THERE IS NO CATEGORY-WORDED KIND, AND NO EXEMPTION FROM THIS RULE (kb/Work PB658). The one kind that used to
     /// be exempt ('t', the NUMVAL / FORMATTED-* family) was a hand-listed CATEGORY set that admitted the edited items
-    /// its own clauses ("of category alphanumeric or national", §15.68.3 r1) exclude. A category-worded position is
+    /// its own clauses ("of category alphanumeric or national", §2023:15.68.3 r1) exclude. A category-worded position is
     /// now the derived class set plus an <c>ArgPredicateKind.CharacterCategory</c> predicate, so every kind is a
     /// class set and this closure holds for all of them; a new kind with a literal member list turns this red.
     /// </remarks>
@@ -652,11 +652,11 @@ public sealed class IntrinsicArgumentClassDriftTests
                 foreach (var m in Enum.GetValues<CobolClass>())
                     if (IntrinsicArgumentRules.TableTwoClass(m) == IntrinsicArgumentRules.TableTwoClass(admitted)
                         && !ok.Contains(m))
-                        open.Add($"kind '{k}' admits {admitted} but not {m}, which §8.5.2.1 Table 2 puts in the "
+                        open.Add($"kind '{k}' admits {admitted} but not {m}, which §2023:8.5.2.1 Table 2 puts in the "
                             + $"same class ({IntrinsicArgumentRules.TableTwoClass(m)})");
         }
         Assert.True(open.Count == 0,
-            "a CLASS-worded argument kind admits only part of a §8.5.2.1 Table-2 class — state it with "
+            "a CLASS-worded argument kind admits only part of a §2023:8.5.2.1 Table-2 class — state it with "
             + "IntrinsicArgumentRules.ByClass; a CATEGORY-worded rule is the class set plus the CharacterCategory "
             + $"predicate, never a hand-listed category set:{Environment.NewLine}"
             + string.Join(Environment.NewLine, open.Distinct().Order()));
@@ -664,13 +664,13 @@ public sealed class IntrinsicArgumentClassDriftTests
 
     /// <summary>
     /// ⛔ A FUNCTION'S STRING-ARGUMENT RULE IS WORDED CATEGORY OR CLASS, AND THE ROW CARRIES THE <c>CharacterCategory</c>
-    /// PREDICATE EXACTLY WHEN THE CLAUSE SAYS CATEGORY (kb/Work PB658 — §8.5.2.1's closing sentence: "Use of the name of
+    /// PREDICATE EXACTLY WHEN THE CLAUSE SAYS CATEGORY (kb/Work PB658 — §2023:8.5.2.1's closing sentence: "Use of the name of
     /// a data class or data category in the rules of COBOL refers to the category unless class is specifically
     /// indicated"). The wording table is declared HERE, beside the clause text it was read from, and the clause text
     /// is checked against the specification on every build, so a re-worded or mis-attributed row fails.
     /// </summary>
     /// <remarks>
-    /// Two mechanisms used to answer §15.68.3 r1: the generic string set admitted a numeric-edited item and a bespoke
+    /// Two mechanisms used to answer §2023:15.68.3 r1: the generic string set admitted a numeric-edited item and a bespoke
     /// IntrinsicBinder arm rejected it for NUMVAL-C alone, so which one bit was an accident of call order, and NUMVAL
     /// and NUMVAL-F (the same category wording) screened nothing finer than the class. The bespoke arm is deleted; the
     /// predicate is the one owner, and this test is what keeps the wording table and the rows in agreement.
@@ -718,8 +718,8 @@ public sealed class IntrinsicArgumentClassDriftTests
     }
 
     /// <summary>
-    /// ⛔ EVERY OPERAND POSITION THAT §15.6 TABLE 21 TYPES <c>Int</c> AND NOTHING ELSE IS KIND <c>'i'</c> IN THE VERIFIED
-    /// TABLE (kb/Work PB1420). §8.4.3.2.3 SR11 ("A numeric function shall not be specified where an integer operand is
+    /// ⛔ EVERY OPERAND POSITION THAT §2023:15.6 TABLE 21 TYPES <c>Int</c> AND NOTHING ELSE IS KIND <c>'i'</c> IN THE VERIFIED
+    /// TABLE (kb/Work PB1420). §2023:8.4.3.2.3 SR11 ("A numeric function shall not be specified where an integer operand is
     /// required") is only as complete as the table of integer positions, and that table was HAND-MAINTAINED: RANDOM's
     /// seed (Table 21: <c>Int1</c>) and COMBINED-DATETIME's argument-1 were typed class-numeric, so a numeric function
     /// stood where an integer is required. The positions are DERIVED from the standard's own table now, so the next
@@ -773,7 +773,7 @@ public sealed class IntrinsicArgumentClassDriftTests
                 }
                 char? kind = schema.At(p)?.Kind;
                 if (kind != 'i')
-                    problems.Add($"{function}: Table 21 types operand position {p + 1} Int (§15.3 type 6), but its Verified "
+                    problems.Add($"{function}: Table 21 types operand position {p + 1} Int (§2023:15.3 type 6), but its Verified "
                         + $"kind is '{(kind?.ToString() ?? "none")}' — SR11 cannot bar a numeric function from it");
             }
         }

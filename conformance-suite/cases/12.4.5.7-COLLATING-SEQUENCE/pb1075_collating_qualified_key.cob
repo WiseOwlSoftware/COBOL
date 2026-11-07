@@ -6,14 +6,14 @@
 *> portable: unverified
 *>---
       *> A KEY-LEVEL COLLATING SEQUENCE CLAUSE NAMES A QUALIFIED KEY (kb/Work PB1075).
-      *> ISO/IEC 1989:2023 §12.4.5.7.2 Format 2: COLLATING SEQUENCE OF {data-name-1 |
+      *> ISO/IEC 1989:2023 §2023:12.4.5.7.2 Format 2: COLLATING SEQUENCE OF {data-name-1 |
       *> record-key-name-1}... IS alphabet-name-3. data-name-1 is a user-defined word, and
-      *> §8.4.2.2.1 makes qualification the way it is made unique — IX-KEY is declared in
+      *> §2023:8.4.2.2.1 makes qualification the way it is made unique — IX-KEY is declared in
       *> both files' records here, so `OF IX-KEY IN IX-REC` is the natural spelling. It was a
       *> parse error (COBOL0312 unexpected 'IN').
-      *> Expected, by the rules: REV orders "Z" first and "A" last (§12.3.7.4 GR7: the THROUGH
+      *> Expected, by the rules: REV orders "Z" first and "A" last (§2023:12.3.7.4 GR7: the THROUGH
       *> phrase "is assigned a successive ascending position in the collating sequence being
-      *> specified", literal-1 first); §12.4.5.7.4 GR6 "Alphabet-name-3 applies to record
+      *> specified", literal-1 first); §2023:12.4.5.7.4 GR6 "Alphabet-name-3 applies to record
       *> keys identified by data-name-1", so IX's keys ascend Z, M, A. START ... NOT LESS THAN
       *> "Z" positions at the first record and READ NEXT then returns ZZZ, MMM, AAA.
        IDENTIFICATION DIVISION.

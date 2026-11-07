@@ -6,9 +6,9 @@ using WiseOwl.Cobol.Runtime;
 namespace WiseOwl.Cobol.Frontend.Common;
 
 /// <summary>
-/// ISO/IEC 1989:2023 §8.12 <b>Compiler-directive words</b> — the ONE representation of the words "reserved in
-/// compiler directives" (kb/Work PB1366). §7.3.3 SR7 reserves each of them within the context of a directive that
-/// specifies it, and §7.3.11.3 SR1 / §7.3.8.4.3 SR1 forbid any of them as a compilation-variable-name; before
+/// ISO/IEC 1989:2023 §2023:8.12 <b>Compiler-directive words</b> — the ONE representation of the words "reserved in
+/// compiler directives" (kb/Work PB1366). §2023:7.3.3 SR7 reserves each of them within the context of a directive that
+/// specifies it, and §2023:7.3.11.3 SR1 / §2023:7.3.8.4.3 SR1 forbid any of them as a compilation-variable-name; before
 /// PB1366 no stage consulted the list, because the list had no representation in <c>src</c> at all, so
 /// <c>&gt;&gt;DEFINE OFF AS 1</c> and <c>&gt;&gt;IF LISTING IS DEFINED</c> were accepted.
 ///
@@ -49,13 +49,13 @@ public static class CompilerDirectiveWords
 
     private static readonly HashSet<string> Set = new(Table, CobolNames.Comparer);
 
-    /// <summary>The §8.12 table, in the order the standard prints its columns.</summary>
+    /// <summary>The §2023:8.12 table, in the order the standard prints its columns.</summary>
     public static IReadOnlyList<string> All => Table;
 
-    /// <summary>True when <paramref name="word"/> is reserved in compiler directives: a §8.12 table word, or an
-    /// exception-name of §14.6.13.1 (the <c>EC-USER-</c> family and the <c>EC-IMP-suffix</c> FORM included: §8.12 reserves the
+    /// <summary>True when <paramref name="word"/> is reserved in compiler directives: a §2023:8.12 table word, or an
+    /// exception-name of §2023:14.6.13.1 (the <c>EC-USER-</c> family and the <c>EC-IMP-suffix</c> FORM included: §2023:8.12 reserves the
     /// family whether or not an implementor defines a member). Case-insensitive,
-    /// like every COBOL word (§8.3.1).</summary>
+    /// like every COBOL word (§2023:8.3.1).</summary>
     public static bool IsReserved(string word) =>
         Set.Contains(word) || ExceptionCatalog.TryGet(word, out _) || ExceptionCatalog.IsImplementorSuffixForm(word);
 }

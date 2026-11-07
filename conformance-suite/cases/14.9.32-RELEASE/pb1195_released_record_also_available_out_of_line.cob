@@ -5,13 +5,13 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO 1989:2023 §14.9.51.4 GR4 (WRITE), §14.9.35.4 GR6 (REWRITE), §14.9.32.4 GR3 (RELEASE) - SAME RECORD AREA.
+      *> ISO 1989:2023 §2023:14.9.51.4 GR4 (WRITE), §2023:14.9.35.4 GR6 (REWRITE), §2023:14.9.32.4 GR3 (RELEASE) - SAME RECORD AREA.
       *> The three statements say nearly the same thing: the logical record released "is no longer available in the record area unless"
       *> the file is "specified in a SAME RECORD AREA clause. The logical record is also available as a record of
       *> other file-names referenced in the same SAME RECORD AREA clause ..., as well as the file associated with
-      *> record-name-1." §12.4.6.4.4 GR2 makes the listed files share one area "for processing the current logical
-      *> record", and §12.4.6.4.4 GR2 says the same of a record READ.
-      *> A DYNAMIC LENGTH elementary record (§13.18.19, §8.5.1.10) is OUT OF LINE (docs/CONFORMANCE.md D-FRA): it has no
+      *> record-name-1." §2023:12.4.6.4.4 GR2 makes the listed files share one area "for processing the current logical
+      *> record", and §2023:12.4.6.4.4 GR2 says the same of a record READ.
+      *> A DYNAMIC LENGTH elementary record (§2023:13.18.19, §2023:8.5.1.10) is OUT OF LINE (docs/CONFORMANCE.md D-FRA): it has no
       *> character window over the shared area, so the one-area rule has to be carried out by a store at each
       *> statement. A READ already made the record available in it; WRITE, REWRITE and RELEASE did not.
       *>

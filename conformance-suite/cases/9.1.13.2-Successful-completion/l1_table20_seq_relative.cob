@@ -8,7 +8,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.27.4 GR8 — "In Table 20, Permissible I-O statements
+      *> ISO §2023:14.9.27.4 GR8 — "In Table 20, Permissible I-O statements
       *> by access mode and open mode, 'X' at an intersection indicates
       *> that the specified statement, used in the access mode given
       *> for that row, may be used with the open mode given at the top
@@ -17,23 +17,23 @@
       *> organizations; l1_table20_indexed.cob walks it for INDEXED.
       *> Every X cell is exercised and shall report success; every
       *> BLANK cell is exercised and shall report the status
-      *> §9.1.13.7 names for it:
+      *> §2023:9.1.13.7 names for it:
       *>   item 7 → '47'  READ or START, connector not open input/I-O
       *>   item 8 → '48'  WRITE: a) access sequential and not open
       *>                  extend/output; b) access random or dynamic
       *>                  and not open I-O/output
       *>   item 9 → '49'  REWRITE or DELETE RECORD, not open I-O
       *> The Extend column for the Random and Dynamic rows is blank but
-      *> UNREACHABLE from legal source — §14.9.27.3 SR2 confines EXTEND
+      *> UNREACHABLE from legal source — §2023:14.9.27.3 SR2 confines EXTEND
       *> to sequential access — so it is pinned at the runtime instead,
       *> by unit:Table20WriteOpenModeTests (kb/Work PB325).
       *> Table 20's rows are keyed on the ACCESS MODE, not on the
       *> organization, so the Sequential row's START cells govern a
       *> sequential-ORGANIZATION file too — the FIRST/LAST form
-      *> §14.9.41.3 SR2 requires there. They are walked on QS below
+      *> §2023:14.9.41.3 SR2 requires there. They are walked on QS below
       *> (kb/Work PB352; until it landed the statement never reached a
       *> bound node on this organization and the cells were unwalkable).
-      *> The Random row's START is blank in every column: §14.9.41.3
+      *> The Random row's START is blank in every column: §2023:14.9.41.3
       *> SR1 rejects it at compile time (see
       *> conformance:cases/14.9.27-OPEN/pb325-start-random-access).
        IDENTIFICATION DIVISION.

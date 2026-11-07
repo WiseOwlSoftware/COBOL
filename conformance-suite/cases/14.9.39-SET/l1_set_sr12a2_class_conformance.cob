@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.39.3 SR12 a)2. — SET format 5 (object-reference
+      *> ISO §2023:14.9.39.3 SR12 a)2. — SET format 5 (object-reference
       *> assignment) where identifier-3 is described with an
       *> object-class-name and WITHOUT an ONLY phrase: "the
       *> object-class-name specified in the description of the data
@@ -25,12 +25,12 @@
       *>     OBJECT REFERENCE L1A2B.
       *>
       *> EXPECTED OUTPUT, DERIVED FROM THE RULE TEXT AND ITS
-      *> NEIGHBOURS, NOT FROM A RUN.  §14.9.39.4 GR9: "If
+      *> NEIGHBOURS, NOT FROM A RUN.  §2023:14.9.39.4 GR9: "If
       *> identifier-4 is specified, a reference to the object
       *> identified by identifier-4 is placed into each data item
       *> referenced by identifier-3" — so after `SET B TO D` the
       *> reference held in B identifies the L1A2D instance, and after
-      *> `SET B TO B2` it identifies an L1A2B instance.  §14.9.23.4
+      *> `SET B TO B2` it identifies an L1A2B instance.  §2023:14.9.23.4
       *> GR2: "Identifier-1 identifies an instance object … literal-1
       *> … identifies a method OF THAT OBJECT that will act upon that
       *> instance object" — the method is resolved on the object, not

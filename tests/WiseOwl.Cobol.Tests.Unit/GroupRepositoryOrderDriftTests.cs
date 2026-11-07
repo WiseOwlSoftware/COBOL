@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ A REPOSITORY PROTOTYPE IS RESOLVED BY ONE SEARCH OF THE COMPILATION GROUP, RUN AS OF THE REFERENCING ELEMENT'S
-/// POSITION (kb/Work PB989; ISO §12.3.8.4 GR10 / GR11). "Specified previously in the same compilation group" is a
+/// POSITION (kb/Work PB989; ISO §2023:12.3.8.4 GR10 / GR11). "Specified previously in the same compilation group" is a
 /// POSITION rule: a definition counts for a) only when it starts before the source element whose REPOSITORY names it.
 /// The binder used to build two order-blind tables once for the whole group (<c>BuildProgramDetailsTable</c>, keyed by
 /// externalized name; <c>BuildUserFunctionTable</c>, keyed by WORD), so a definition that followed its caller supplied

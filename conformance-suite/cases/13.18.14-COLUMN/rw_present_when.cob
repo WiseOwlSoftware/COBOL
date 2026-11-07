@@ -6,19 +6,19 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §13.18.41 Format 1 (report-group PRESENT WHEN, 2002) +
-      *> §13.18.64 (report-group VARYING, 2002) + the §13.18.14 multiple
+      *> ISO §2023:13.18.41 Format 1 (report-group PRESENT WHEN, 2002) +
+      *> §2023:13.18.64 (report-group VARYING, 2002) + the §2023:13.18.14 multiple
       *> COLUMN clause. Conditions are evaluated once per presentation,
-      *> BEFORE any LINE processing (§13.18.41.4 GR2); a false condition
+      *> BEFORE any LINE processing (§2023:13.18.41.4 GR2); a false condition
       *> processes the entry "as though [it] were omitted" (GR2b):
       *> an absent LINE prints nothing and the NEXT relative line
       *> re-anchors on LINE-COUNTER (the collapse — presentation 2's
       *> TAIL lands directly under ROW-2); an absent printable item
       *> leaves its columns as spaces. The VARYING counter takes FROM
-      *> at the first COLUMN repetition (§13.18.64.4 GR3a — re-evaluated
+      *> at the first COLUMN repetition (§2023:13.18.64.4 GR3a — re-evaluated
       *> per presentation: FROM WS-SEQ), then += BY per repetition
       *> (GR3b), and is the SOURCE item (GR4 NOTE). Placement:
-      *> §13.18.35.4 GR5b3 (first body line on the page → FIRST
+      *> §2023:13.18.35.4 GR5b3 (first body line on the page → FIRST
       *> DETAIL) / GR7 (subsequent relative lines → LINE-COUNTER + n).
       *> PLACEMENT (kb/Work PB484). The report's FIRST printed line is the first line of the file:
       *> a line number IS a page line number (ISO 13.18.35.4 GR6 - "the report's LINE-COUNTER is set

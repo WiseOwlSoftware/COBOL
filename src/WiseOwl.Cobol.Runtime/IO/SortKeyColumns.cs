@@ -3,19 +3,19 @@
 namespace WiseOwl.Cobol.Runtime.IO;
 
 /// <summary>
-/// ⛔ THE ONE KEY COMPARISON of SORT and MERGE (ISO §14.9.40 GR8 / §14.9.24 GR3 — the relation-condition comparison
+/// ⛔ THE ONE KEY COMPARISON of SORT and MERGE (ISO §2023:14.9.40 GR8 / §2023:14.9.24 GR3 — the relation-condition comparison
 /// rules per key), over a fixed number of SLOTS, each holding one record's keys DECODED ONCE: a chunk being sorted has
 /// one slot per record, a merge one per run head (<see cref="SortWork"/>, kb/Work PB3339). A NUMERIC key column holds
-/// the records' algebraic values (GR8 / §8.8.4.2.4 — a collating sequence NEVER applies to a numeric comparison); a
-/// NATIONAL key column holds the records' DECODED national character positions (§8.8.4.2.9 compares national
-/// POSITIONS, and the record image carries each as a UTF-16BE byte pair — §13.18.60.4 GR8 / D-N1); a collated column
+/// the records' algebraic values (GR8 / §2023:8.8.4.2.4 — a collating sequence NEVER applies to a numeric comparison); a
+/// NATIONAL key column holds the records' DECODED national character positions (§2023:8.8.4.2.9 compares national
+/// POSITIONS, and the record image carries each as a UTF-16BE byte pair — §2023:13.18.60.4 GR8 / D-N1); a collated column
 /// under a sequence that supports keys (<see cref="CobolCollation.SupportsKeys"/> — the LOCALE arm) holds the records'
 /// materialized <see cref="Collation.CollationKey"/>s (built through the collator's
 /// <see cref="Collation.Cache.CollationKeyCache"/>, so records sharing a value share one key); any other character
 /// column holds the records' key windows, sliced once, compared under that key's own sequence (an ALPHABET table) or
 /// the native order. <see cref="Compare"/> compares two slots most significant key first; DESCENDING inverts the
 /// per-key result (GR8b); 0 ⇔ all keys equal (GR8c — the caller's stability or run order then decides, GR3/GR4).
-/// <para>⛔ THE SEQUENCE IS PER KEY, NOT PER STATEMENT (ISO §14.9.40.4 GR5 / §14.9.24.4 GR5): one SORT resolves an
+/// <para>⛔ THE SEQUENCE IS PER KEY, NOT PER STATEMENT (ISO §2023:14.9.40.4 GR5 / §2023:14.9.24.4 GR5): one SORT resolves an
 /// alphanumeric AND a national sequence and each key takes the one its CLASS names. A single per-statement sequence
 /// applied the alphanumeric weights to a national key's UTF-16BE bytes — right by accident in the native order (byte
 /// order IS code point order) and silently wrong under any declared alphabet (kb/Work PB678).</para>
@@ -66,14 +66,14 @@ internal sealed class SortKeyColumns
     /// (<see cref="ResidentBytesPerRecord"/>), so the two cannot disagree about what a record's keys cost.</summary>
     private static Lane LaneOf(in CobolSort.Key key, CobolCollation? seq) =>
         // A FLOAT key (an Ieee-form profile, kb/Work PB164 wave 2) decodes through the IEEE lane and compares as its
-        // ALGEBRAIC double value (§14.9.40.4 GR8 → §8.8.4.2.4 — a numeric key compares by value regardless of usage;
+        // ALGEBRAIC double value (§2023:14.9.40.4 GR8 → §2023:8.8.4.2.4 — a numeric key compares by value regardless of usage;
         // its raw big-endian IEEE bytes would order every negative after every positive). double.CompareTo is a total
         // order, so an exotic NaN payload cannot throw.
         key.Class is CobolSort.KeyClass.Numeric && key.Profile.ByteForm is NumericByteForm.Ieee32 or NumericByteForm.Ieee64 ? Lane.Float
         // An UNSIGNED 16-byte binary key (kb/Work PB186): its [0, 2^128) range does not fit the Int128 column — the
         // signed decode returns a value at or above 2^127 as a NEGATIVE Int128, so ALL-ONES would sort before 7.
-        // §14.9.40.4 GR8 / §14.9.24.4 GR3 compare keys "according to the rules for comparison of operands in a
-        // relation condition", which for numeric operands is §8.8.4.2.4's algebraic value, so the key decodes through
+        // §2023:14.9.40.4 GR8 / §2023:14.9.24.4 GR3 compare keys "according to the rules for comparison of operands in a
+        // relation condition", which for numeric operands is §2023:8.8.4.2.4's algebraic value, so the key decodes through
         // the unsigned lane and orders as a UInt128.
         : key.Class is CobolSort.KeyClass.Numeric && key.Profile.ImageExceedsInt128 ? Lane.UnsignedWide
         : key.Class is CobolSort.KeyClass.Numeric ? Lane.Numeric
@@ -135,10 +135,10 @@ internal sealed class SortKeyColumns
     /// <summary>A string object's fixed cost beyond its characters (header, method table, length, terminator).</summary>
     internal const int StringObjectBytes = 32;
 
-    /// <summary>⛔ THE ONE class → collating-sequence selection (ISO §14.9.40.4 GR5 / §14.9.24.4 GR5): the ALPHANUMERIC
+    /// <summary>⛔ THE ONE class → collating-sequence selection (ISO §2023:14.9.40.4 GR5 / §2023:14.9.24.4 GR5): the ALPHANUMERIC
     /// sequence for keys of class alphabetic and alphanumeric, the NATIONAL sequence for keys of class national, and NO
-    /// sequence for the two classes GR5 does not name — numeric keys compare algebraically (§8.8.4.2.4) and boolean
-    /// keys compare by boolean value "regardless of their usage" (§8.8.4.2.8), so a declared alphabet must not reach
+    /// sequence for the two classes GR5 does not name — numeric keys compare algebraically (§2023:8.8.4.2.4) and boolean
+    /// keys compare by boolean value "regardless of their usage" (§2023:8.8.4.2.8), so a declared alphabet must not reach
     /// either.</summary>
     private static CobolCollation? SequenceFor(CobolSort.KeyClass cls, CobolCollation? alnum, CobolCollation? national) => cls switch
     {
@@ -149,9 +149,9 @@ internal sealed class SortKeyColumns
 
     /// <summary>The key's COMPARISON OPERAND out of a record image — the window for every class but national, and for a
     /// NATIONAL key the window's UTF-16BE byte pairs decoded back to national character positions through the ONE
-    /// decoder <see cref="CobolBits.NatReadWindow"/>. §8.8.4.2.9 states the comparison over national character positions
+    /// decoder <see cref="CobolBits.NatReadWindow"/>. §2023:8.8.4.2.9 states the comparison over national character positions
     /// ("the length of an operand is the number of national character positions in the operand") while the record
-    /// image stores two bytes per position (§13.18.60.4 GR8; D-N1), so comparing the raw window would weigh BYTES — and
+    /// image stores two bytes per position (§2023:13.18.60.4 GR8; D-N1), so comparing the raw window would weigh BYTES — and
     /// the high byte of every Latin national character is U+0000, which is how a national key silently compared EQUAL
     /// across whole records before kb/Work PB678.</summary>
     private static string Operand(in StoredFrame record, in CobolSort.Key k) =>
@@ -161,8 +161,8 @@ internal sealed class SortKeyColumns
             : Slice(record, k);
 
     /// <summary>The key's character window of a record image. A record shorter than the window (a varying record —
-    /// §14.9.40.3 SR6g requires keys within the MINIMUM size, so a conforming program never hits this; the lenient path
-    /// space-extends, matching the §8.8.4.2.1 shorter-operand rule) is padded with spaces.</summary>
+    /// §2023:14.9.40.3 SR6g requires keys within the MINIMUM size, so a conforming program never hits this; the lenient path
+    /// space-extends, matching the §2023:8.8.4.2.1 shorter-operand rule) is padded with spaces.</summary>
     private static string Slice(in StoredFrame record, in CobolSort.Key k)
     {
         string image = record.Image ?? "";

@@ -7,16 +7,16 @@ using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.CodeGen;
 
-/// <summary>The emitter of <see cref="BoundHoldTableAll"/> (ISO §8.4.3.2.4 GR2, §15.3; kb/Work PB4162): the held form of a
+/// <summary>The emitter of <see cref="BoundHoldTableAll"/> (ISO §2023:8.4.3.2.4 GR2, §2023:15.3; kb/Work PB4162): the held form of a
 /// table(ALL) function argument.
 /// <para>The walk is <c>CobolTable.AllArgs</c>'s - row-major over the ALL levels, outermost first, each level's range read when
-/// the level is ENTERED as a function of the outer indices (§15.3: "the first … specification being the identifier with each
+/// the level is ENTERED as a function of the outer indices (§2023:15.3: "the first … specification being the identifier with each
 /// subscript specified by the word ALL replaced by one, the next … the rightmost subscript specified by the word ALL incremented
 /// by one") - written as nested loops over the SAME index vector the source's element place names, with each element stored
 /// by the bound element copy (<see cref="BoundHoldTableAll.Copy"/>, an ordinary MOVE) into the next occurrence of the held
 /// table. The held enumeration then ranges over the copy exactly as the source's did over the table.</para>
 /// <para>When the held table is a dynamic-capacity table (a source level has no allocated maximum), the walk runs twice: the first
-/// counts the elements and sets the capacity to the count (§14.9.39 Format 14's <c>SET capacity TO</c>), the second stores them.</para></summary>
+/// counts the elements and sets the capacity to the count (§2023:14.9.39 Format 14's <c>SET capacity TO</c>), the second stores them.</para></summary>
 internal sealed class TableHoldEmitter(EmitContext ctx, ArithmeticEmitter arith)
 {
     /// <summary>The statement emitter, wired after construction (the copy is any bound statement).</summary>
@@ -28,7 +28,7 @@ internal sealed class TableHoldEmitter(EmitContext ctx, ArithmeticEmitter arith)
         string source = LocalNames.Of(hold.Source.Indices.Local);
         string held = LocalNames.Of(hold.Held.Indices.Local);
         string stored = $"{held}_n";
-        using (w.Block("// hold the table(ALL) argument at its place in the argument list (ISO §8.4.3.2.4 GR2, §15.3)"))
+        using (w.Block("// hold the table(ALL) argument at its place in the argument list (ISO §2023:8.4.3.2.4 GR2, §2023:15.3)"))
         {
             w.Line($"long[] {source} = new long[{hold.Source.Counts.Count}];");
             w.Line($"long[] {held} = new long[1];");
@@ -46,7 +46,7 @@ internal sealed class TableHoldEmitter(EmitContext ctx, ArithmeticEmitter arith)
             });
             if (hold.Count is { } count)
                 arith.StoreArith(count, new NumX(stored, 0), CobolRounding.Truncation);   // the count is a numeric data item, stored through its PICTURE
-            // §15.3 14): an ALL that yields no argument is EC-ARGUMENT-FUNCTION, raised where the argument is evaluated (GR2).
+            // §2023:15.3 14): an ALL that yields no argument is EC-ARGUMENT-FUNCTION, raised where the argument is evaluated (GR2).
             w.Line(RuntimeApi.TableRequireOccurrences(stored));
         }
     }

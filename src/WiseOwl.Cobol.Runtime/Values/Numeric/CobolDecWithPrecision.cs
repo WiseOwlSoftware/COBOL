@@ -45,7 +45,7 @@ public readonly record struct CobolDecWithPrecision(CobolDec Value, int Precisio
     /// <summary>The NESTED native quotient: truncated at <see cref="CobolNum.NestedQuotientScale"/> of
     /// <paramref name="receiverScale"/> and the operands' larger precision, held to the SDIDI's 34 significant digits by
     /// round-to-odd (<see cref="CobolDec.DivTruncatedToOdd"/>), carrying that precision (not the working scale) to the
-    /// operations above it. A zero divisor raises <see cref="CobolSizeError.ZeroDivide"/> (ISO §14.7.5 case 2).</summary>
+    /// operations above it. A zero divisor raises <see cref="CobolSizeError.ZeroDivide"/> (ISO §2023:14.7.5 case 2).</summary>
     public static CobolDecWithPrecision DivTruncatedToOdd(CobolDecWithPrecision a, CobolDecWithPrecision b, int receiverScale)
     {
         int precision = Math.Max(a.Precision, b.Precision);

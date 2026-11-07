@@ -6,12 +6,12 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.22.4 GR8 NOTE 2 + Annex D.25 EXAMPLE 5 — INSPECT BACKWARD: the keyword gives the
+      *> ISO §2023:14.9.22.4 GR8 NOTE 2 + Annex D.25 EXAMPLE 5 — INSPECT BACKWARD: the keyword gives the
       *> direction of the SCAN, never of the MATCHING (kb/Work PB1152).
       *> NOTE 2 "The keyword BACKWARD specifies only the direction of the scan, not the direction of the matching. Matching always
-      *>   takes place starting at the leftmost character at the current character position" -> OK  §14.9.22.4 8)  (General rules)
+      *>   takes place starting at the leftmost character at the current character position" -> OK  §2023:14.9.22.4 8)  (General rules)
       *> GR8c "if BACKWARD is specified, the character position ... immediately to the left of the leftmost character position that
-      *>   participated in the match is now considered to be the leftmost character position" -> OK  §14.9.22.4 8)  (General rules)
+      *>   participated in the match is now considered to be the leftmost character position" -> OK  §2023:14.9.22.4 8)  (General rules)
       *> So the current position walks right-to-left and each literal is compared LEFT-to-right from it: a two-character
       *> literal cannot match at the rightmost position (only one character is there), and after a hit the scan resumes ONE
       *> position to the left of the hit's leftmost character, so a later comparison can overlap the hit.

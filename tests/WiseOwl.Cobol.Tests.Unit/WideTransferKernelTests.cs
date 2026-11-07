@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ THE FINAL TRANSFER OF A NATIVE PRODUCT OR QUOTIENT PAST THE Int128 CARRIER, EXACT FOR EVERY RECEIVER WIDTH
 /// (kb/Work PB1143, the train review's finding N1). <see cref="CobolDec.MulAtScale"/> and
 /// <see cref="CobolDec.QuotientAtScale"/> round the exact 256-bit product / quotient ONCE with the receiver's mode
-/// (§14.7.4.3), where the SDIDI's 34 digits (<see cref="CobolWide.ToDec"/>) hid the tail from a 16-byte COMP-5
+/// (§2023:14.7.4.3), where the SDIDI's 34 digits (<see cref="CobolWide.ToDec"/>) hid the tail from a 16-byte COMP-5
 /// receiver that holds 38. Every expected value is exact decimal arithmetic worked by hand in the comments.
 /// </summary>
 public sealed class WideTransferKernelTests
@@ -70,7 +70,7 @@ public sealed class WideTransferKernelTests
     [Fact]
     public void Prohibited_RaisesWhetherOrNotChecked_AndAnExactProductLands()
     {
-        // §14.7.4.3 rule 7 keeps the resultant whether or not checking is enabled (kb/Work PB3990): the .25 is a real tail,
+        // §2023:14.7.4.3 rule 7 keeps the resultant whether or not checking is enabled (kb/Work PB3990): the .25 is a real tail,
         // so both transfer forms raise the one rule-7 condition rather than land ...190824.
         foreach (bool checkedTransfer in new[] { true, false })
         {

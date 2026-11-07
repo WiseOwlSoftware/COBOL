@@ -4,10 +4,10 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.46.2 general format — FUNCTION INTEGER-OF-DATE ( argument-1 ).
+      *> ISO §2023:15.46.2 general format — FUNCTION INTEGER-OF-DATE ( argument-1 ).
       *> ONE argument, unbracketed: no optional trailing argument, no repetition
       *> group, no phrase. A second argument is not a form this function has, at
-      *> any edition (§15.46 is a COBOL-85 function, so all four run it).
+      *> any edition (§2023:15.46 is a COBOL-85 function, so all four run it).
       *> The accepting side is 2023/l1_integer_date_form_returned.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1NEGIODATE2.

@@ -17,7 +17,7 @@ public sealed class DiagnosticBag
     private readonly List<CompileOutputLine> _compileOutput = [];
 
     /// <summary>What the compilation itself TRANSFERS to its operator, in order: the lines the DISPLAY directive writes at
-    /// compile time (ISO §7.3.12.4 GR1, kb/Work PB1538). Not a diagnostic — a diagnostic names a defect at a position,
+    /// compile time (ISO §2023:7.3.12.4 GR1, kb/Work PB1538). Not a diagnostic — a diagnostic names a defect at a position,
     /// and a transferred line is the program's own output — so it travels beside them on the sink every phase already
     /// holds, and the driver hands it to the CLI, which writes each line to the stream it names.</summary>
     public IReadOnlyList<CompileOutputLine> CompileOutput => _compileOutput;

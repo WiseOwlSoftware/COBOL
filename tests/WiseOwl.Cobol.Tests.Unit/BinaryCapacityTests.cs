@@ -6,12 +6,12 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The BinaryCapacity truncation discipline (§13.18.60.4 GR12 for the BINARY-CHAR family, DOC-A.1-208 for COMP-5): a store
+/// The BinaryCapacity truncation discipline (§2023:13.18.60.4 GR12 for the BINARY-CHAR family, DOC-A.1-208 for COMP-5): a store
 /// bounds the value by the NATIVE two's-complement range of the item's byte width, not its digit count. Phase 4
 /// M2-DATA-1 implemented the previously-stubbed path in <see cref="CobolNum"/>. <c>Store</c> WRAPS an
 /// out-of-range value — the deterministic no-ON-SIZE-ERROR truncation, the width analog of high-order digit
 /// truncation; <c>TryStore</c> (the ON SIZE ERROR path) reports a SIZE ERROR (returns <c>false</c>) when the
-/// value leaves the range. Signed and unsigned differ by range (§14.9.25.4 GR6 d) 2. b. — an unsigned receiver stores the
+/// value leaves the range. Signed and unsigned differ by range (§2023:14.9.25.4 GR6 d) 2. b. — an unsigned receiver stores the
 /// magnitude).
 /// </summary>
 public sealed class BinaryCapacityTests
@@ -41,7 +41,7 @@ public sealed class BinaryCapacityTests
     public void Store_Signed_WrapsTwosComplement(int bytes, long value, long expected)
         => Assert.Equal((Int128)expected, CobolNum.Store(value, 0, Bin(bytes, signed: true)));
 
-    /// <summary>An UNSIGNED receiver stores the MAGNITUDE (ISO §14.9.25.4 GR6 d) 2. b.) reduced modulo 2^bits.</summary>
+    /// <summary>An UNSIGNED receiver stores the MAGNITUDE (ISO §2023:14.9.25.4 GR6 d) 2. b.) reduced modulo 2^bits.</summary>
     [Theory]
     [InlineData(1, 255, 255)]              // in range (max)
     [InlineData(1, 256, 0)]                // wraps
@@ -77,7 +77,7 @@ public sealed class BinaryCapacityTests
         => Assert.Equal((Int128)(-300), CobolNum.Store(-300, 0, Bin(2, signed: true)));
 
     /// <summary>The 8-byte UNSIGNED range reaches above <see cref="long"/> (2^64−1) — the Int128 substrate
-    /// carries it (ISO §13.18.60.4 GR12: BINARY-DOUBLE UNSIGNED 0..2^64−1).</summary>
+    /// carries it (ISO §2023:13.18.60.4 GR12: BINARY-DOUBLE UNSIGNED 0..2^64−1).</summary>
     [Fact]
     public void Store_UnsignedDouble_HoldsAboveLongMax()
     {

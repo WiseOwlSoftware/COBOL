@@ -16,15 +16,15 @@
       *> WHEN clause, condition-1 of each PRESENT WHEN clause is
       *> evaluated before the processing of any LINE clauses for the
       *> report group"
-      *>   cite.py: OK  §13.18.41.4 2)  (General rules)
+      *>   cite.py: OK  §2023:13.18.41.4 2)  (General rules)
       *> "Furthermore, if the entry is a level-01 entry, the effect on
       *> processing is as though the entire report group description
       *> were omitted."
-      *>   cite.py: OK  §13.18.41.4 2) b)  (General rules)
+      *>   cite.py: OK  §2023:13.18.41.4 2) b)  (General rules)
       *> "the sum counter is reset to zero and the size error indicator
       *> is unset at the end of the processing of the report group in
       *> which it is printed"
-      *>   cite.py: OK  §13.18.54.4 2)  (General rules)
+      *>   cite.py: OK  §2023:13.18.54.4 2)  (General rules)
       *>
       *> DERIVATION, report R-A (PAGE LIMIT 6, FIRST DETAIL 2, LAST
       *> DETAIL 4). The page heading's USE BEFORE REPORTING declarative

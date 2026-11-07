@@ -8,7 +8,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ REFERENCE MODIFICATION PRESERVES THE CATEGORY (ISO §8.4.3.3.4 GR6) — fix-queue PB20.
+/// ⛔ REFERENCE MODIFICATION PRESERVES THE CATEGORY (ISO §2023:8.4.3.3.4 GR6) — fix-queue PB20.
 /// <para>
 /// The rule reads: "The unique data item has the same class, category, and usage as that defined for
 /// identifier-1, except that: a) the category alphanumeric-edited is considered class and category alphanumeric,
@@ -25,7 +25,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </para>
 /// <para>
 /// These are table-driven over the rule itself rather than through a compiled program on purpose: the effect is
-/// currently LATENT (no rule that the §15.3 screen consults today demands class boolean, so the corrected
+/// currently LATENT (no rule that the §2023:15.3 screen consults today demands class boolean, so the corrected
 /// categories change no accepted/rejected verdict yet) and it exists to UNBLOCK PB19's INTEGER-OF-BOOLEAN row.
 /// A behavioural golden would therefore pin nothing; the rule is a pure function, so it is tested as one.
 /// </para>
@@ -57,7 +57,7 @@ public sealed class RefModCategoryDriftTests
         Assert.Equal(expected, RefModPlace.CategoryOf(Pic(cat, usage)));
 
     /// <summary>⛔ NO REF-MOD RESULT IS EVER CATEGORY NUMERIC — GR6c rewrites numeric away in both directions.
-    /// This is what makes the §8.8.1.1 bar on a reference-modified ARITHMETIC operand correct as it stands, so
+    /// This is what makes the §2023:8.8.1.1 bar on a reference-modified ARITHMETIC operand correct as it stands, so
     /// PB20 deliberately did NOT touch that screen's verdict (only its citation). Asserted rather than assumed,
     /// because "the arithmetic bar is still right" is exactly the kind of claim that rots silently.</summary>
     [Theory]
@@ -73,11 +73,11 @@ public sealed class RefModCategoryDriftTests
     }
 
     /// <summary>
-    /// ⛔ THE CITATION GUARD. "§8.4.2.4" does not exist — `cite.py --check` reports no such clause, §8.4.2 has
-    /// only .1/.2/.3, and reference modification is §8.4.3.3. It had been inherited into 21 sites across 14
+    /// ⛔ THE CITATION GUARD. "§8.4.2.4" does not exist — `cite.py --check` reports no such clause, §2023:8.4.2 has
+    /// only .1/.2/.3, and reference modification is §2023:8.4.3.3. It had been inherited into 21 sites across 14
     /// files, and every reader saw a § and stopped. No runtime test can see a wrong clause NUMBER, so this is a
     /// source-form guard.
-    /// <para>⚠ It must not fire on §8.8.4.2.4 (Comparison of numeric operands), which is REAL and appears 15
+    /// <para>⚠ It must not fire on §2023:8.8.4.2.4 (Comparison of numeric operands), which is REAL and appears 15
     /// times — hence the leading boundary. That near-collision is why a naive grep-and-replace on this codebase
     /// is dangerous, and why the check is pinned here rather than left to eyes.</para>
     /// </summary>
@@ -91,7 +91,7 @@ public sealed class RefModCategoryDriftTests
                 || f.Contains(Path.DirectorySeparatorChar + "obj" + Path.DirectorySeparatorChar)
                 || f.Contains(Path.DirectorySeparatorChar + "bin" + Path.DirectorySeparatorChar)) continue;
             string text = File.ReadAllText(f);
-            // (?<![.0-9]) keeps §8.8.4.2.4 — a real clause — from matching.
+            // (?<![.0-9]) keeps §2023:8.8.4.2.4 — a real clause — from matching.
             foreach (Match m in Regex.Matches(text, @"(?<![.0-9])8\.4\.2\.4(?![0-9])"))
             {
                 // The deliberate references that NAME the bad citation in order to warn about it are exempt:
@@ -107,7 +107,7 @@ public sealed class RefModCategoryDriftTests
             }
         }
         Assert.True(offenders.Count == 0,
-            "the nonexistent clause §8.4.2.4 is cited again (reference modification is §8.4.3.3.4 GR6):\n  "
+            "the nonexistent clause §8.4.2.4 is cited again (reference modification is §2023:8.4.3.3.4 GR6):\n  "
             + string.Join("\n  ", offenders));
     }
 }

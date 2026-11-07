@@ -6,9 +6,9 @@
 *> portable: unverified
 *>---
       *> A REPORT-WRITER OCCURS ... DEPENDING ON OPERAND IS A QUALIFIED-DATA-NAME, AND IT IS BOUND AS WRITTEN
-      *> (kb/Work PB885). ISO/IEC 1989:2023 §13.18.38.2 Format 3 prints DEPENDING ON data-name-1, and
-      *> §13.18.38.3 SR2 (all formats): "Data-name-1 and data-name-2 shall not be subscripted." A data-name
-      *> may be QUALIFIED — §8.4.2.2.1: "Identical user-defined names may be specified in a source unit;
+      *> (kb/Work PB885). ISO/IEC 1989:2023 §2023:13.18.38.2 Format 3 prints DEPENDING ON data-name-1, and
+      *> §2023:13.18.38.3 SR2 (all formats): "Data-name-1 and data-name-2 shall not be subscripted." A data-name
+      *> may be QUALIFIED — §2023:8.4.2.2.1: "Identical user-defined names may be specified in a source unit;
       *> however, uniqueness shall be established through qualification for each user-defined name
       *> explicitly referenced". Before PB885 the operand was captured by a helper that kept the name and
       *> its qualifiers and silently DROPPED a written subscript; the capture is now the ONE data-name-n
@@ -16,7 +16,7 @@
       *> qualified operand resolves through the ONE clause-operand resolver, which counts survivors.
       *>
       *> DERIVATION. CNT OF G1 = 2 and CNT OF G2 = 3, so only the qualifier decides which is data-name-1.
-      *> §13.18.38.4 GR13: "If the value of data-name-1 is in the range integer-1 to (integer-2 - 1), the
+      *> §2023:13.18.38.4 GR13: "If the value of data-name-1 is in the range integer-1 to (integer-2 - 1), the
       *> OCCURS clause has the same effect as an OCCURS clause with no TO or DEPENDING phrases and with an
       *> integer-2 equal to the current value of data-name-1." OCCURS 1 TO 3: 2 is in 1..2, so TWO
       *> repetitions. GR12a: each successive occurrence is printed integer-3 = 2 columns to the right, so

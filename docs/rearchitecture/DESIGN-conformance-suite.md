@@ -147,30 +147,30 @@ not withheld on an `unproven` edge (§3.5), its `requires` claimed and none of i
 (§5), and not run alone. For each test the driver DISPLAYs `*TEST <id>` and CALLs its first program definition that is
 not a prototype (132 accepted assigned tests open with a prototype, function, class or interface,
 `check17/first_unit.py`); it ends by DISPLAYing `*DONE`. "The compilation units in a compilation group may be all or
-part of a run unit or may be unrelated compilation units" (§10.2); 50 NIST-85 programs, 41 green in WiseOwl's NIST
+part of a run unit or may be unrelated compilation units" (§2023:10.2); 50 NIST-85 programs, 41 green in WiseOwl's NIST
 lane, hold a caller and its callees (`check17/nist_multi.py`; `inferred`). Each adapter states how the driver becomes
-the entry (§5): "The implementor shall document how a main program is identified" (§15.65.4 GR 5, MODULE-NAME; A.1
+the entry (§5): "The implementor shall document how a main program is identified" (§2023:15.65.4 GR 5, MODULE-NAME; A.1
 item 136; the standard says nowhere else). A test's solo program, the driver and that test alone, defines what the test
 means; a grouped PASS stands for the solo verdict (§5). Bands stay per test: 216 of the 378 folders holding accepted
 tests mix `accept` sets, and splitting by band would make 1,215 files.
 
 **A test returns to the driver** and writes no STOP statement unless marked `main`. From 2002 it ends with GOBACK or at
 the end of its procedure division: "In these cases, an implicit GOBACK statement without any optional phrases is
-executed" (§14.6.3; `t2002.txt:20800-20803` likewise). At 85 it ends with EXIT PROGRAM as the last statement of its
+executed" (§2023:14.6.3; `t2002.txt:20800-20803` likewise). At 85 it ends with EXIT PROGRAM as the last statement of its
 sentence, which meets the 85 rule that the 2002 F.2 item 50 relaxes: "EXIT PROGRAM is allowed to appear as other than
 the last statement in a consecutive sequence of imperative statements" (`t2002.txt:44016-44017`; `inferred`). EXIT
 PROGRAM is archaic in 2023 (F.1 item 1), and an archaic test's flagged program may hold no other archaic element
 (§3.2), so its control is accepted from 2002 and ends with GOBACK.
 
 **What runs alone** (17h). A test marked `main` runs as the main program, with no driver: its subject is the run unit's
-end or the main program, where EXIT PROGRAM "is treated as if it were a CONTINUE statement" (§14.9.14.4 GR 2). The
+end or the main program, where EXIT PROGRAM "is treated as if it were a CONTINUE statement" (§2023:14.9.14.4 GR 2). The
 generator derives the rest. A test whose text reaches past its units runs solo: a REPLACE statement "remains active
-until it is placed in the inactive state, it is canceled, or the end of the compilation group is reached" (§7.2.4.4 GR
+until it is placed in the inactive state, it is canceled, or the end of the compilation group is reached" (§2023:7.2.4.4 GR
 5), and TURN enables checking "for the procedure division statements and procedure division headers that follow in the
-compilation group" (§7.3.25.4 GR 6). So does a test touching run-unit state, one that sets the runtime locale, which "remains
-in effect for the run unit until another runtime locale is established" (§8.2.1); references RANDOM, whose
-"subsequent references without specifying argument-1 return the next number in the current sequence" (§15.75.3 GR 5);
-or reads the last exception status, which "exists for the entire run unit" (§14.6.13.1.1). Of 2,329 accepted assigned
+compilation group" (§2023:7.3.25.4 GR 6). So does a test touching run-unit state, one that sets the runtime locale, which "remains
+in effect for the run unit until another runtime locale is established" (§2023:8.2.1); references RANDOM, whose
+"subsequent references without specifying argument-1 return the next number in the current sequence" (§2023:15.75.3 GR 5);
+or reads the last exception status, which "exists for the entire run unit" (§2023:14.6.13.1.1). Of 2,329 accepted assigned
 tests, 382 hold a directive or REPLACE statement (283 a TURN), 21 sit in the EXIT, GOBACK and STOP clauses, and 26
 more touch that state: 426 (`check17/solo_union.py`, `check17/run_unit_state.py`). A refused test, a flagged program,
 a control's leg (§3.2), a `build` test and a test with its own WiseOwl compile options (§4) run solo too.
@@ -182,7 +182,7 @@ that differ; a test's expected section comes from the narrowest file holding it.
 so a test that never ran cannot pass by printing nothing; no test writes a literal beginning `*TEST `.
 
 **Independence.** In one file the generator refuses two accepted tests defining one outermost source-unit name or the
-driver's (a contained program's name need be unique only within its outermost program, §11.10.3 SR 3), naming one
+driver's (a contained program's name need be unique only within its outermost program, §2023:11.10.3 SR 3), naming one
 external file, or declaring one EXTERNAL name: the run unit would share them. Today's accepted assigned tests reuse 5
 outermost names in 10 tests and 2 external file names in 4 (`rev3e/outer_names.py`, `rev3e/assign_names_accepted.py`;
 19 file names in 41 counting refused tests, which run solo, `check17/assign_names.py`); S5b renames them.
@@ -209,11 +209,11 @@ A flagged test has no block of its own: it is one line of its file's `<file>.fla
 
 ### 3.2 Tests a compiler must diagnose
 
-The standard never requires a compiler to refuse a program. ISO §4.2.2 requires "a warning mechanism that optionally
+The standard never requires a compiler to refuse a program. ISO §2023:4.2.2 requires "a warning mechanism that optionally
 may be invoked by the user at compile time to indicate violations of the general formats and the explicit syntax
 rules", and of general rules that "could have been classified as syntax rules" it says "An implementation may, but is
-not required to, flag violations of such rules". Archaic and obsolete elements (§4.2.12, §4.2.13), nonstandard
-extensions (§4.2.10) and unsupported processor-dependent elements (§4.2.6) follow the same pattern.
+not required to, flag violations of such rules". Archaic and obsolete elements (§2023:4.2.12, §2023:4.2.13), nonstandard
+extensions (§2023:4.2.10) and unsupported processor-dependent elements (§2023:4.2.6) follow the same pattern.
 
 **The portable judgment is a site, never the message** (decision 2). The standard does not specify "The form or content
 of error, flagging, or warning messages" (§1), so no portable test tells a warning from an error: a flagged test
@@ -223,12 +223,12 @@ diagnostic elsewhere is UNLOCATED, one that also fires on the control NOT DISCRI
 
 | `kind` | Mechanism | Rows it may witness | Legs where flagged |
 |---|---|---|---|
-| `syntax` | §4.2.2 | `FMT-` rows; `SR-` rows `identified-as` syntax rules | flag-mode compile, a diagnostic at the site; not accepted there |
-| `nonstandard` | §4.2.10: "This warning mechanism shall flag only extensions that are syntactically distinguishable" | a construct outside the edition's window, named in `constructs` | as `syntax` |
-| `obsolete` | §4.2.13, F.2 | the element's rows and construct | accepted (compile, run, section) AND flag-mode with a diagnostic at the site |
-| `archaic` | §4.2.12, F.1 | as `obsolete` | as `obsolete` |
-| `processor-dependent` | §4.2.6 | an element named in `requires` | flagged where the profile does not claim it; accepted where it does |
-| `conformance` | §4.2.2's suboption for 14.8.2, 14.8.3, 9.3.8.2.3 | those subclauses' rows, general rules included | the adapter's `conformance` command |
+| `syntax` | §2023:4.2.2 | `FMT-` rows; `SR-` rows `identified-as` syntax rules | flag-mode compile, a diagnostic at the site; not accepted there |
+| `nonstandard` | §2023:4.2.10: "This warning mechanism shall flag only extensions that are syntactically distinguishable" | a construct outside the edition's window, named in `constructs` | as `syntax` |
+| `obsolete` | §2023:4.2.13, F.2 | the element's rows and construct | accepted (compile, run, section) AND flag-mode with a diagnostic at the site |
+| `archaic` | §2023:4.2.12, F.1 | as `obsolete` | as `obsolete` |
+| `processor-dependent` | §2023:4.2.6 | an element named in `requires` | flagged where the profile does not claim it; accepted where it does |
+| `conformance` | §2023:4.2.2's suboption for 14.8.2, 14.8.3, 9.3.8.2.3 | those subclauses' rows, general rules included | the adapter's `conformance` command |
 | `directive` | FLAG-02 (7.3.14.4), FLAG-14 (7.3.15.4); at 2002 and 2014 FLAG-85, FLAG-NATIVE-ARITHMETIC; POP (7.3.20.4 GR 2) | the directive's rows | the FLAG directives: the ordinary compile, accepted, with a diagnostic at the site, since "the warning mechanism is enabled for that option" (FLAG-NATIVE-ARITHMETIC: "flagging is enabled", `t2002.txt:3667`). POP: either compile; its warning that "the POP directive was unsuccessful" enables nothing |
 
 **The mechanisms differ by edition**, held as data (S6). The FCD's 3.2 and the 2002 working document's 3.1 subclauses
@@ -240,7 +240,7 @@ FLAG-NATIVE-ARITHMETIC at 2014, FLAG-85 and FLAG-NATIVE-ARITHMETIC at 2002. At 8
 
 **Accepted and flagged.** A `syntax` or `nonstandard` test is never accepted and flagged at one edition. An `obsolete`,
 `archaic` or `directive` test is accepted wherever it is flagged: "An implementation shall support obsolete language
-elements of the facilities for which support is claimed" (§4.2.13; §4.2.12 likewise for archaic ones), and "A
+elements of the facilities for which support is claimed" (§2023:4.2.13; §2023:4.2.12 likewise for archaic ones), and "A
 conforming implementation shall support obsolete language elements except for elements that are also optional or
 processor-dependent" (F.2; such a test names the element in `requires`). Because "The interaction between obsolete
 language elements and other language elements is undefined unless otherwise specified" (F.2), an accepted obsolete or
@@ -251,13 +251,13 @@ item 1 calls "classified as obsolete in the previous COBOL standard" (`t2002.txt
 
 **The site.** A mark is a label on a line: in free form the floating comment `*> <<a` ends the line; in fixed form the
 sequence number area holds `<<a`, because 85 has no floating comment and margin R "is a fixed position defined by the
-implementor" (§6.3.1), while the sequence number area "may consist of any character in the computer's coded character
-set" (§6.3.2; held for 2002 and 2014, `t2002.txt:2262`, `t2014.txt:2377`; inferred for 85). A label has at most four
+implementor" (§2023:6.3.1), while the sequence number area "may consist of any character in the computer's coded character
+set" (§2023:6.3.2; held for 2002 and 2014, `t2002.txt:2262`, `t2014.txt:2377`; inferred for 85). A label has at most four
 characters, so `<<` and it fit the six columns, and is unique in its case file. The lines carrying one label form one
 site: the whole statement or entry, both places for a rule that relates two, the entry a required clause is missing
 from. Every flagged test has one site holding one violation. An obsolete or archaic flagged program holds its element
-once and no other of that kind, because §4.2.13 asks for a mechanism "to indicate use of an obsolete element in a
-compilation group" (§4.2.12: "to indicate use of an archaic language element in a compilation group"), and a compiler
+once and no other of that kind, because §2023:4.2.13 asks for a mechanism "to indicate use of an obsolete element in a
+compilation group" (§2023:4.2.12: "to indicate use of an archaic language element in a compilation group"), and a compiler
 reporting such use once per group would give control and test the same diagnostic. So the generator refuses such a
 line at an edition where its control holds another element of that kind; a diagnostic per use is a WiseOwl pin. A site
 in a declared library text is found at that file's line or at the COPY statement's.
@@ -265,7 +265,7 @@ in a declared library text is found at that file's line or at the COPY statement
 **Which rows may be `syntax` flags.** FMT rows, and SR rows `identified-as` syntax rules by the heading they sit under:
 1,310 SR rows sit under "Syntax rules" and 65 under other headings (`review-fidelity/sr_headings.py`). For those 65, as
 for general rules, "it is left to the implementor's discretion to determine what is syntactically distinguishable"
-(§4.2.2), so WiseOwl's diagnosis of them is pinned only in the WiseOwl layer.
+(§2023:4.2.2), so WiseOwl's diagnosis of them is pinned only in the WiseOwl layer.
 
 **A flagged test is derived from its control** (17f). The control is an accepted test of the case file written without
 the violation (for an obsolete or archaic element, with its replacement: GOBACK for EXIT PROGRAM), its site's lines
@@ -281,7 +281,7 @@ its lines flag.
 **The verdict of a flagged test**, judged in order:
 1. the control's solo program did not compile: NOT APPLICABLE (a compiler lacking the feature gets no vacuous PASS);
 2. the control's solo program, under the same mechanism (flag-mode, the `conformance` command, or the directive's option
-   off or the POP successful), reports a diagnostic at its site: NOT DISCRIMINATING. Not a FAIL, because §4.2.2, unlike §4.2.10, has no "shall flag only",
+   off or the POP successful), reports a diagnostic at its site: NOT DISCRIMINATING. Not a FAIL, because §2023:4.2.2, unlike §2023:4.2.10, has no "shall flag only",
    and the harness cannot tell an informational message from a flag;
 3. the test's legs report a diagnostic at a line of its site: PASS;
 4. its flag compile reports a diagnostic the control's does not, elsewhere or unlocated: UNLOCATED;
@@ -301,7 +301,7 @@ and where the test is also accepted, compares output. Message text lives once, i
 
 ### 3.3 Expected output that is portable
 
-The device form of DISPLAYed data is the implementor's: §14.9.11.4 GR 1 "Any conversion of data required between
+The device form of DISPLAYed data is the implementor's: §2023:14.9.11.4 GR 1 "Any conversion of data required between
 literal-1 or the data item referenced by identifier-1 and the device is defined by the implementor" (A.1 item 56). Two
 conforming compilers print one signed numeric item as `01E` and `+01.5`.
 
@@ -311,24 +311,24 @@ conforming compilers print one signed numeric item as `01E` and `+01.5`.
   first; a national test compares inside the program and DISPLAYs a literal naming the outcome. DISPLAY shows "the
   alphanumeric representation of that figurative constant" (GR 3), but only SPACE, ZERO, QUOTE and ALL literals of
   allowed characters are portable, since "The character that has the highest ordinal position in the program collating
-  sequence is associated with the figurative constant HIGH-VALUE" (§12.3.7.4 GR 8; GR 9 likewise for LOW-VALUE). A
-  reference-modified display numeric item is alphanumeric (§8.4.3.3.4 GR 6 c) and allowed unless signed without SIGN
-  SEPARATE: "Neither the representation nor the position of that operational sign is specified" (§13.18.52.4 GR 4).
+  sequence is associated with the figurative constant HIGH-VALUE" (§2023:12.3.7.4 GR 8; GR 9 likewise for LOW-VALUE). A
+  reference-modified display numeric item is alphanumeric (§2023:8.4.3.3.4 GR 6 c) and allowed unless signed without SIGN
+  SEPARATE: "Neither the representation nor the position of that operational sign is specified" (§2023:13.18.52.4 GR 4).
 - **The lint judges the storage an operand shows.** A group is allowed only when every item it holds is alphanumeric,
   numeric-edited, or unsigned or separately signed display numeric, and none is SYNCHRONIZED ("The effect of this clause
-  is defined by the implementor", §13.18.55.4 GR 9). An item whose storage another entry describes (REDEFINES, the
+  is defined by the implementor", §2023:13.18.55.4 GR 9). An item whose storage another entry describes (REDEFINES, the
   records of one FD, SAME RECORD AREA) is judged by that entry too. The lint reads declarations, not data flow, and
   refuses `UPON`, fixed-form text past column 72 and any name it cannot classify. As first measured, 1,084 of 2,869
   accepted tests pass it.
 - **Alphanumeric output is portable only by a profile statement.** GR 1 covers alphanumeric operands too, so a profile
   states its alphanumeric DISPLAY conversion as the encoding the adapter decodes stdout with (`identity` for WiseOwl
   and GnuCOBOL); a profile stating none gets UNDOCUMENTED on every accepted test.
-- **Enumerated A.1 values.** Item 148: §13.18.43.4 GR 17 "It is implementor defined whether format 3 of the RECORD
+- **Enumerated A.1 values.** Item 148: §2023:13.18.43.4 GR 17 "It is implementor defined whether format 3 of the RECORD
   clause produces fixed-length records or variable-length records". Such a test names the item in `implementor-defined`
   and has a section per value, in `<file>.148=fixed.out`. Every DOC row carries a decided `enumerates` field (the values
   and the words that name them, or `[]`); the generator reads the values from it and refuses an item that enumerates
-  nothing. Such an item's tests, the sign convention's among them (§13.18.52.4 GR 4, GR 5 b), are WiseOwl-only.
-- **A missing value is reported, not failed** (decision 6). §4.2.5 requires "the implementor shall specify, at a
+  nothing. Such an item's tests, the sign convention's among them (§2023:13.18.52.4 GR 4, GR 5 b), are WiseOwl-only.
+- **A missing value is reported, not failed** (decision 6). §2023:4.2.5 requires "the implementor shall specify, at a
   minimum, the implementor-defined language elements that are identified as required", so a profile lacking a value has
   a documentation gap: UNDOCUMENTED, counted apart. WiseOwl's values are `docs/CONFORMANCE.md` §7's (§5).
 
@@ -341,20 +341,20 @@ rule is addressed by citation path (owner, 2026-08-08, PB55).
 sub-items. A row is suite-witnessed at an edition only when every point applicable there is; otherwise it is PARTIAL,
 and points witnessed of points applicable is the second axis (decision 7).
 
-**Format points come from the notation of §5.2:**
+**Format points come from the notation of §2023:5.2:**
 - a bracket, whose portion "may be explicitly specified or that portion of the general format may be omitted"
-  (§5.2.6.2): each alternative written, and the bracket omitted;
-- a brace (§5.2.6.3): each alternative written; and "If one of the alternatives contains only optional words, that
+  (§2023:5.2.6.2): each alternative written, and the bracket omitted;
+- a brace (§2023:5.2.6.3): each alternative written; and "If one of the alternatives contains only optional words, that
   alternative is the default and is selected unless another alternative is explicitly specified", so a default is both
   written and omitted;
-- choice indicators (§5.2.6.4): each alternative alone, and two or more out of printed order ("The alternatives may be
+- choice indicators (§2023:5.2.6.4): each alternative alone, and two or more out of printed order ("The alternatives may be
   specified in any order");
 - an ellipsis, where "the ellipsis represents the position at which the user elects repetition of a portion of a format"
-  (§5.2.7): the portion written at least twice;
+  (§2023:5.2.7): the portion written at least twice;
 - an optional word, which "may be written to add clarity when the clause or phrase in which they are defined is written
-  in the source unit" (§5.2.3): written, and omitted;
+  in the source unit" (§2023:5.2.3): written, and omitted;
 - every format: "When more than one arrangement exists for a specific language construct, the general format is
-  separated into multiple formats that are numbered and named" (§5.2.1), a single format included, since 95 of the 322
+  separated into multiple formats that are numbered and named" (§2023:5.2.1), a single format included, since 95 of the 322
   FMT sections hold no delimiter (`derivation/format-choice-points.json`).
 
 The 322 FMT rows' 499 printed diagrams hold 765 brackets, 607 braces and 66 pairs of choice indicators (25 delimiters
@@ -362,8 +362,8 @@ unpaired). Untracked, alternatives go unwitnessed: a lexical scan of 6,324 progr
 ... TEST BEFORE in 1.
 
 **Must-diagnose format points.** Elements "shall be written in the compilation group in the sequence given in the
-general format" (§5.2.1), keywords are required (§5.2.2), one alternative of a brace "shall be explicitly specified or is
-implicitly selected" (§5.2.6.3), and of choice indicators §5.2.6.4 says "any single alternative shall be specified
+general format" (§2023:5.2.1), keywords are required (§2023:5.2.2), one alternative of a brace "shall be explicitly specified or is
+implicitly selected" (§2023:5.2.6.3), and of choice indicators §2023:5.2.6.4 says "any single alternative shall be specified
 only once". So each FMT row owes, once each: per brace with no default, no alternative written; per choice-indicator
 set, one alternative written twice; per required keyword, the keyword left out. Each is one line of a control's
 `.flagged.jsonl`; S14 counts them.
@@ -376,9 +376,9 @@ rows, they fill a few hundred tests.
 
 **Points inside a rule.** A Yes or 'x' table cell is an accept point; a No cell under a syntax rule is a must-diagnose
 point, a `syntax` flagged line. "The rules of the PICTURE clause specified in 13.18.40.6, Precedence rules, are syntax
-rules" (§5.3.2), and in Table 10 "An 'x' at an intersection indicates that the symbol(s) at the top of the column may
-precede (but not necessarily immediately) in character-string-1 the symbol(s) at the left of the row" (§13.18.40.6):
-576 cells, 163 'x', so SR-13.18.40.3-2 owes 163 accept and 413 must-diagnose points. MOVE's Table 16 (§14.9.25.3 SR
+rules" (§2023:5.3.2), and in Table 10 "An 'x' at an intersection indicates that the symbol(s) at the top of the column may
+precede (but not necessarily immediately) in character-string-1 the symbol(s) at the left of the row" (§2023:13.18.40.6):
+576 cells, 163 'x', so SR-13.18.40.3-2 owes 163 accept and 413 must-diagnose points. MOVE's Table 16 (§2023:14.9.25.3 SR
 10) holds 31 Yes and 29 No cells in one row. Neither row is witnessed until all its cells are.
 
 **The point catalog is generated from the printed page.** `scripts/spec/data/format-points.json` holds every FMT row's
@@ -392,7 +392,7 @@ transcription of PERFORM Format 3 put imperative-statement-1 inside the repeated
 - **Windows are derived**: a point printing a word first reserved after V (`reserved-words.json`) does not exist at V
   unless a governing `constructs.json` row says otherwise. 35 of the 176 FMT rows banded from 85 print words first
   reserved later (`review-feasibility/point_windows.py`).
-- **Each edition's figures**: CALL ... ON OVERFLOW is archaic in the 2002 text (G.1 item 4) and 2023 §14.9.4 prints no
+- **Each edition's figures**: CALL ... ON OVERFLOW is archaic in the 2002 text (G.1 item 4) and 2023 §2023:14.9.4 prints no
   OVERFLOW, so the catalog also holds the points of the 2002 and FCD figures, matched to 2023 points by their words and
   carrying their text's evidence class; a 2002-figure point also belongs to 85, `inferred`. An 85 alternative 2002
   removed is reached only through NIST's units (§6.3).
@@ -610,8 +610,8 @@ kb/Conformance burn-down, whose ledger page is the owner's (PB2912), so a new se
 - **A case file runs in three steps** (17d, 17g), so one failing test never hides another or fails the file. (1) Compile
   the profile's grouped program (§4), which holds only tests the profile can apply; if it does not translate, compile
   each of them solo, since "Translation may be unsuccessful due to factors other than lack of conformance of a
-  compilation group" (§4.5) and limits "may prevent the successful translation by a conforming implementation of some
-  compilation groups that meet the requirements of standard COBOL" (§4.2.15). A construct the compiler lacks without
+  compilation group" (§2023:4.5) and limits "may prevent the successful translation by a conforming implementation of some
+  compilation groups that meet the requirements of standard COBOL" (§2023:4.2.15). A construct the compiler lacks without
   its profile saying so then costs only its own test, so no file is split by construct. (2) Run it and split stdout at
   the driver's headers wherever they fall (a test ending WITH NO ADVANCING leaves the next header mid-line); a test whose
   section closes and equals its expected section PASSes. (3) Run every other test solo (a section that differs, or one
@@ -626,8 +626,8 @@ kb/Conformance burn-down, whose ledger page is the owner's (PB2912), so a new se
   UNLOCATED (§3.2); NO VERDICT (a crash or the hang guard on the solo run). The last four are counted apart. Exit
   status is not judged.
 - **An extra reserved word counts only as a user-defined word.** "An implementation that introduces additional reserved
-  words as nonstandard extensions conforms" (§4.2.10), and a word "reserved in the specified language construct or
-  context" (§8.10) used in that context is a keyword use. So each test's `words` are its words that are none of the
+  words as nonstandard extensions conforms" (§2023:4.2.10), and a word "reserved in the specified language construct or
+  context" (§2023:8.10) used in that context is a keyword use. So each test's `words` are its words that are none of the
   standard's, plus the names it defines that its edition does not reserve; the generator intersects them with a
   profile to build its group, and a runner does so for a solo test, reading no program.
 - **Results** are JUnit XML and JSON, one result per test naming its file, totalled per edition, clause and placement
@@ -796,7 +796,7 @@ with the excluded units listed. Only then does §6 step 5 retire `tests/nist/` f
    behaviour, and the GAP their new rows and points add is reported as newly measured scope (§4.1).
 2. **The pilot, S3, runs after S5-S8 and S5b and before S14 and S15, and sets their scope** (decision 15). It runs §6
    steps 3 and 4 at all four editions on WiseOwl and GnuCOBOL, crediting points by hand, for clause 11 (114 rows),
-   §14.9.8 COMPUTE and one file statement (`pb355_start_length_past_operand`), plus one sample per long pole of the 85
+   §2023:14.9.8 COMPUTE and one file statement (`pb355_start_length_past_operand`), plus one sample per long pole of the 85
    path: crosswalk programs needing `rows`, `unit` and `differs`, new 85 tests, MOVE's Table 16 as one control, and
    `restricts` for its SR rows. It compiles the 1,074 85 candidates at 85, checks the driver as entry and each edition's
    return on both compilers, and measures the compiles grouping saves, the cost per obligation and the share of step 3's

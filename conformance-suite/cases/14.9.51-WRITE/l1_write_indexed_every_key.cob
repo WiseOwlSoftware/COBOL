@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.51.4 34) — a record WRITTEN to an indexed file is then accessible by EVERY record key: prime and each alternate
+      *> ISO §2023:14.9.51.4 34) — a record WRITTEN to an indexed file is then accessible by EVERY record key: prime and each alternate
       *> THE RULE: "Successful execution of a WRITE statement causes the
       *>   content of the record area to be released. The operating
       *>   environment utilizes the contents of the record keys in such a
@@ -13,10 +13,10 @@
       *>   upon any of these specified record keys."
       *>   cite.py --check 14.9.51.4 "Successful execution of a WRITE
       *>     statement causes the content of the record area to be
-      *>     released" -> OK §14.9.51.4 34)
+      *>     released" -> OK §2023:14.9.51.4 34)
       *>   cite.py --check 14.9.51.4 "subsequent access of the record may
       *>     be made based upon any of these specified record keys"
-      *>     -> OK §14.9.51.4 34)
+      *>     -> OK §2023:14.9.51.4 34)
       *> The golden writes three records OUT of every key's order, then
       *> reaches each written record through the prime key and through
       *> each of the two alternate keys, sequentially and randomly.
@@ -26,38 +26,38 @@
       *>   cite.py --check 14.9.51.4 "If the access mode of the write file
       *>     connector is random or dynamic, WRITE statements may release
       *>     records to the operating environment through that connector
-      *>     in any order" -> OK §14.9.51.4 39)
+      *>     in any order" -> OK §2023:14.9.51.4 39)
       *>   cite.py --check 14.9.27.4 "the prime record key is established
-      *>     as the key of reference" -> OK §14.9.27.4 14) (OPEN INPUT)
+      *>     as the key of reference" -> OK §2023:14.9.27.4 14) (OPEN INPUT)
       *>   cite.py --check 14.9.30.4 "If NEXT is specified or implied, the
       *>     record to be made available is the first existing record in
       *>     the physical file whose key of reference value is greater
       *>     than or equal to the key value in the file position
-      *>     indicator" -> OK §14.9.30.4 21) (d) 1.)
+      *>     indicator" -> OK §2023:14.9.30.4 21) (d) 1.)
       *>   cite.py --check 14.9.30.4 "the first record in the physical
       *>     file whose key value is greater than the key of reference is
-      *>     made available" -> OK §14.9.30.4 21) (e) 3.)
+      *>     made available" -> OK §2023:14.9.30.4 21) (e) 3.)
       *>   cite.py --check 14.9.30.4 "if the KEY phrase is specified,
       *>     data-name-1 or record-key-name-1 is established as the key of
       *>     reference for this retrieval. If the dynamic access mode is
       *>     specified, this key of reference is also used for retrievals
       *>     by any subsequent executions of sequential format READ
-      *>     statements" -> OK §14.9.30.4 30)
+      *>     statements" -> OK §2023:14.9.30.4 30)
       *>   cite.py --check 14.9.30.4 "This value is compared with the
       *>     value contained in the corresponding data item of the stored
       *>     records in the file until the first record having an equal
-      *>     value is found" -> OK §14.9.30.4 32)
+      *>     value is found" -> OK §2023:14.9.30.4 32)
       *>   cite.py --check 14.9.30.4 "The I-O status for the file
       *>     connector referenced by file-name-1 is set to '02' if the
       *>     execution of the READ statement is successful, an indexed
       *>     file is being sequentially accessed, the key of reference is
-      *>     an alternate record key" -> OK §14.9.30.4 27) (needs a
+      *>     an alternate record key" -> OK §2023:14.9.30.4 27) (needs a
       *>     DUPLICATE alternate value; neither key here has one, so
       *>     every status is '00')
       *>   cite.py --check 9.1.13.2 "I-O status = 00. The input-output
       *>     statement is successfully executed and no further
       *>     information is available concerning the input-output
-      *>     operation" -> OK §9.1.13.2 1)
+      *>     operation" -> OK §2023:9.1.13.2 1)
       *> DERIVATION of every .out line:
       *>   W1..W3 00   distinct prime keys, distinct AK1 and AK2 values,
       *>               any order allowed (GR39) -> each WRITE succeeds

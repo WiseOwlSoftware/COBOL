@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
       *> RECORD ... DEPENDING ON AN ITEM OF THE FD'S OWN RECORD (kb/Work PB858).
-      *> ISO/IEC 1989:2023 §13.18.43.3 SR6: "Data-name-1 shall describe an elementary
+      *> ISO/IEC 1989:2023 §2023:13.18.43.3 SR6: "Data-name-1 shall describe an elementary
       *> unsigned integer in the working-storage, local-storage, or linkage section."
       *> F-LEN is an elementary unsigned integer, but it is described in the FILE
       *> section (inside F-REC), so the third obligation is broken. The rule is in every

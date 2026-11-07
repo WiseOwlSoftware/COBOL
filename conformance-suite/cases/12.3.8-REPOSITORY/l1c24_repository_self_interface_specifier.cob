@@ -5,20 +5,20 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §12.3.8.3 SR8 — an interface-specifier naming its own
+      *> ISO §2023:12.3.8.3 SR8 — an interface-specifier naming its own
       *> interface definition is ignored
-      *> RULE §12.3.8.3 SR8: "If the specified interface-name-2 is the
+      *> RULE §2023:12.3.8.3 SR8: "If the specified interface-name-2 is the
       *>   name of the interface definition in which this REPOSITORY
       *>   paragraph is specified, references to interface-name-2 are
       *>   to that interface definition and this interface-specifier is
       *>   ignored."
       *>   cite.py --check 12.3.8.3 "If the specified interface-name-2
       *>   is the name of the interface definition in which this
-      *>   REPOSITORY paragraph is specified" -> OK §12.3.8.3 8)
+      *>   REPOSITORY paragraph is specified" -> OK §2023:12.3.8.3 8)
       *>   cite.py --check 12.3.8.4 "literal-1, literal-2, literal-3,
       *>   or literal-5 is the externalized name by which the class,
       *>   interface, function, or program, respectively, is known to
-      *>   the operating environment" -> OK §12.3.8.4 2)
+      *>   the operating environment" -> OK §2023:12.3.8.4 2)
       *> SET-UP: interface L1C24N's own REPOSITORY writes INTERFACE
       *>   L1C24N AS "L1C24O"; L1C24O is a real interface with a
       *>   DIFFERENT method set (ONLYO only), so L1C24N does not conform

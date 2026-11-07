@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.13.3 SR2: "The number of selection objects within each set of selection objects shall be
+      *> ISO §2023:14.9.13.3 SR2: "The number of selection objects within each set of selection objects shall be
       *> equal to the number of selection subjects."  TWO selection subjects, ONE selection object.
       *>
       *> THE OTHER DIRECTION, AND THE ONE WITH NO DIAGNOSTIC AT ANY STAGE (kb/Work PB399).  The pairing loop

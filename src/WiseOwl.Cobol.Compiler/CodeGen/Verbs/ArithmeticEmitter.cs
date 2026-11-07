@@ -23,11 +23,11 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     internal StatementEmitter Statements { get; set; } = null!;
 
     /// <summary>In-place arithmetic (ADD TO / SUBTRACT FROM / MULTIPLY BY): each receiver ← receiver op Σoperands,
-    /// rounded by the receiver's ROUNDED mode (ISO §14.7.4), under the statement's ON SIZE ERROR phrase if any.</summary>
+    /// rounded by the receiver's ROUNDED mode (ISO §2023:14.7.4), under the statement's ON SIZE ERROR phrase if any.</summary>
     public void EmitInPlace(IReadOnlyList<Receiver> targets, string op, IReadOnlyList<BoundExpr> operands, SizeErrorPhrase? sizeErr)
         => EmitArith(sizeErr, ise =>
         {
-            // The operand sum is the ONE initial evaluation (ISO §14.7.7 GR4 + NOTE 3): with several receivers it
+            // The operand sum is the ONE initial evaluation (ISO §2023:14.7.7 GR4 + NOTE 3): with several receivers it
             // must be materialized, or a receiver that aliases an operand (ADD A TO B A C) would poison the
             // receivers stored after it when the inlined expression re-reads the field — and with one receiver that
             // identifies at run time it is materialized too, so the operands are evaluated before the receiver is
@@ -37,12 +37,12 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             // receiver's Combine as itself, which settles it once at the final transfer, as MULTIPLY ... GIVING and COMPUTE do.
             NumX value = num.Fold(operands, ReceiverContext.None with { Checks = TakenBy(ise) }, keepWide: true);
             if (MaterializesInitialEvaluation(targets)) value = Snapshot(value);
-            // Each receiver's FieldNum read is ALSO a sending reference (A = A + value; §14.6.13.2 NOTE 2), so a
+            // Each receiver's FieldNum read is ALSO a sending reference (A = A + value; §2023:14.6.13.2 NOTE 2), so a
             // non-finite float receiver is caught by its CobolFloat.Sending wrap. Precise follow-on (parallel to the
             // "precise ContainsRefMod filter" note): with MULTIPLE float receivers under EC-DATA-NOT-FINITE checking, a
             // later receiver's non-finite read raises AFTER earlier receivers already stored — a half-commit that is
             // only observable under USE-F3 + RESUME NEXT STATEMENT, where a fatal-EC-interrupted statement leaves
-            // undefined results anyway (§14.6.13.1.3). Pre-snapshotting all receiver reads before the first store would
+            // undefined results anyway (§2023:14.6.13.1.3). Pre-snapshotting all receiver reads before the first store would
             // close it; deferred to avoid restructuring the byte-critical arithmetic store loop for an undefined case.
             foreach (var r in targets) StoreInPlace(r, op, value, ise);
         });
@@ -53,8 +53,8 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     /// <para>The combine IS the final transfer to the receiver: outermost, so a MULTIPLY BY product past the carrier rounds
     /// once at the receiver's scale with its mode (<see cref="NumericRenderer.Combine"/>).</para>
     /// <para>⛔ A CORRESPONDING PAIR IS A SEPARATE STATEMENT, SO IT GETS THE SEPARATE STATEMENT'S STORE (kb/Work PB229).
-    /// ISO §14.9.2.4 GR5 (and §14.9.44.4 GR5 for SUBTRACT): "The results are the same as if the user had referred to each
-    /// pair of corresponding identifiers in separate ADD statements", and §14.7.6 runs the SIZE ERROR imperative "after
+    /// ISO §2023:14.9.2.4 GR5 (and §2023:14.9.44.4 GR5 for SUBTRACT): "The results are the same as if the user had referred to each
+    /// pair of corresponding identifiers in separate ADD statements", and §2023:14.7.6 runs the SIZE ERROR imperative "after
     /// all of the implied statements are completed". The CORRESPONDING emitter used to write its own combine-and-store
     /// with no per-pair guard, inside the statement's one outer try, so a raise while one pair's sum was EVALUATED (a
     /// binary64 sum past the range, EC-SIZE-OVERFLOW) abandoned every later pair, measured: <c>ADD CORRESPONDING</c>
@@ -65,29 +65,29 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             StoreArith(r.Place, num.Combine(num.FieldNum(r.Place), op, value, RcvFor(r, inSizeError), outermost: true), r.Rounding));
 
     /// <summary>GIVING arithmetic: the value is computed once and stored into each receiver, rounded by that
-    /// receiver's own ROUNDED mode (ISO §14.7.5 rule 4 — one value, stored left-to-right into each resultant).</summary>
+    /// receiver's own ROUNDED mode (ISO §2023:14.7.5 rule 4 — one value, stored left-to-right into each resultant).</summary>
     public void EmitGiving(IReadOnlyList<Receiver> targets, Func<ReceiverContext, NumX> value, SizeErrorPhrase? sizeErr)
         => EmitArith(sizeErr, ise =>
         {
             // The RHS is computed FOR the receiver SET -- the widest receiver scale, Real only when EVERY
-            // receiver is float -- the §14.7.7 GR4 one-initial-evaluation shape EmitCompute's multi-target path
+            // receiver is float -- the §2023:14.7.7 GR4 one-initial-evaluation shape EmitCompute's multi-target path
             // established (D16). Pre-P7.3 this RHS rendered under the PREVIOUS statement's leftover Target*
             // state (EmitGiving never called SetTarget) -- the H1 staleness ReceiverContext kills.
             // The float-quantization headroom is the MOST CONSTRAINING receiver's — the widest integer part —
             // since one rendered value has to land in all of them (PB13).
             var rcv = SetRcv(targets, ise);
             NumX v = value(rcv);
-            // ONE initial evaluation (§14.7.7 GR4 + NOTE 3): materialized with several receivers so a receiver
+            // ONE initial evaluation (§2023:14.7.7 GR4 + NOTE 3): materialized with several receivers so a receiver
             // aliasing a sender cannot change the value the remaining receivers store.
             if (MaterializesInitialEvaluation(targets)) v = Snapshot(v);
             foreach (var r in targets) GuardedStore(ise, r.Place, r.Rounding, () => StoreArith(r.Place, v, r.Rounding));
         });
 
-    /// <summary><c>MULTIPLY a BY b GIVING r…</c> (ISO §14.9.26): the product is each receiver's FINAL TRANSFER, so — like the
+    /// <summary><c>MULTIPLY a BY b GIVING r…</c> (ISO §2023:14.9.26): the product is each receiver's FINAL TRANSFER, so — like the
     /// quotient of <see cref="EmitDivide"/> — it renders PER RECEIVER at that receiver's scale and ROUNDED mode
     /// (<see cref="NumericRenderer.Multiply"/>'s outermost arm: a product past the Int128 carrier is the exact product
     /// rounded once, whatever width the receiver is — kb/Work PB1143's review finding N1), from operands that are
-    /// identified and evaluated ONCE (§14.7.7 GR4 + NOTE 3), materialized with several receivers so a receiver that
+    /// identified and evaluated ONCE (§2023:14.7.7 GR4 + NOTE 3), materialized with several receivers so a receiver that
     /// aliases an operand cannot poison the products stored after it.</summary>
     public void EmitMultiplyGiving(IReadOnlyList<Receiver> targets, BoundExpr a, BoundExpr b, SizeErrorPhrase? sizeErr)
         => EmitArith(sizeErr, ise =>
@@ -106,7 +106,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     public void EmitDivide(IReadOnlyList<Receiver> targets, BoundExpr? dividend, BoundExpr divisor, SizeErrorPhrase? sizeErr)
         => EmitArith(sizeErr, ise =>
         {
-            // The SENDERS are identified/evaluated ONCE (ISO §14.9.12.4 GR5 → §14.7.7 GR4 + NOTE 3): with several
+            // The SENDERS are identified/evaluated ONCE (ISO §2023:14.9.12.4 GR5 → §2023:14.7.7 GR4 + NOTE 3): with several
             // receivers both operands are materialized, so a receiver that aliases the dividend or the divisor
             // (DIVIDE b INTO a GIVING x a y — NC172A/NC173A) cannot poison the quotients stored after it. The
             // DIVISION itself still renders per receiver, at that receiver's scale + ROUNDED mode — equal to
@@ -129,7 +129,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
                 // The quotient renders at the receiver's OWN scale + ROUNDED mode.
                 NumX q = dividendX ?? num.FieldNum(r.Place);            // INTO-no-GIVING divides the target
                 // The DIVIDE top-level quotient IS the final transfer to r — outermost, so it rounds at r's scale +
-                // ROUNDED mode (§14.9.12.4 / §14.7.4). Operand sub-divisions (rendered above at :75-76) stay nested.
+                // ROUNDED mode (§2023:14.9.12.4 / §2023:14.7.4). Operand sub-divisions (rendered above at :75-76) stay nested.
                 // Each receiver's quotient can raise its OWN size error (a PROHIBITED-inexact at r's scale) —
                 // guarded per receiver so the raise does not abandon the receivers to its right (PB129).
                 GuardedStore(ise, r.Place, r.Rounding, () =>
@@ -137,7 +137,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             }
         });
 
-    /// <summary>⛔ THE ONE FORMER OF A DIVIDE QUOTIENT AS THE FINAL TRANSFER INTO A RESULTANT (ISO §14.9.12.4 1) and 5) b) /
+    /// <summary>⛔ THE ONE FORMER OF A DIVIDE QUOTIENT AS THE FINAL TRANSFER INTO A RESULTANT (ISO §2023:14.9.12.4 1) and 5) b) /
     /// 6) b): "The quotient is then formed as specified in General rule 1 and stored in identifier-3 as specified in 14.7.7")
     /// - <c>DIVIDE ... GIVING</c> and <c>DIVIDE ... GIVING ... REMAINDER</c> store the SAME quotient, because both ask this
     /// method, so adding the REMAINDER phrase cannot change what identifier-3 holds (kb/Work PB2923: the REMAINDER arm used
@@ -147,7 +147,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     private NumX FinalQuotient(NumX dividend, NumX divisor, ReceiverContext into) =>
         num.Combine(dividend, "/", divisor, into, outermost: true);
 
-    /// <summary><c>DIVIDE … GIVING q REMAINDER r</c> (ISO §14.9.12.4 GR6 and GR7): the remainder is defined from the
+    /// <summary><c>DIVIDE … GIVING q REMAINDER r</c> (ISO §2023:14.9.12.4 GR6 and GR7): the remainder is defined from the
     /// INTERMEDIATE quotient TRUNCATED into identifier-3's SHAPE (<see cref="SubsidiaryShapeOf"/>) - even when the stored
     /// quotient is ROUNDED - as <c>remainder = dividend − (subsidiary quotient × divisor)</c>; the subtraction aligns
     /// scales exactly. The quotient stores with its OWN rounding (recomputed at the receiver's mode when not truncation),
@@ -158,11 +158,11 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     /// subsidiary quotient from THAT quotient by truncation. The statement used to run an Int128 kernel in every mode
     /// and let only the back-multiply and the subtraction ride the SDIDI, so an operand the Int128 carrier cannot hold
     /// — an unsigned 16-byte dividend in [2^127, 2^128), a float or SDIDI dividend past 1.7E+38 — was a size error
-    /// (or a saturated sentinel quotient) where §8.8.1.5.2 1) rounds it into the SDIDI and the quotient fits the
+    /// (or a saturated sentinel quotient) where §2023:8.8.1.5.2 1) rounds it into the SDIDI and the quotient fits the
     /// receiver. The SDIDI lane now forms the quotient, the subsidiary quotient and the remainder on
     /// <c>CobolDec</c>, from the OPERANDS as they are (<see cref="NumericRenderer.DecOperand"/> lifts each); the native
     /// lane keeps the exact Int128 kernel for two scaled operands and a FIXED-POINT identifier-3, whose intermediate range
-    /// is checked (§14.7.5 5)), and divides a binary64 or SDIDI operand as it is (<see cref="CarriedSubsidiaryQuotient"/>,
+    /// is checked (§2023:14.7.5 5)), and divides a binary64 or SDIDI operand as it is (<see cref="CarriedSubsidiaryQuotient"/>,
     /// kb/Work PB3829). A FLOATING-POINT identifier-3 (a float item, a floating-point numeric-edited item) has no fixed
     /// scale for that kernel to truncate at, so in EVERY mode it takes <see cref="CarriedSubsidiaryQuotient"/> (kb/Work
     /// PB2923).</para></summary>
@@ -185,14 +185,14 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             // the exact back-multiply and settled once, by the outer Combine (kb/Work PB3538).
             NumX remainder = num.Combine(dividend, "-",
                 num.Combine(subsidiary, "*", divisor, rcv, keepWide: true), rcv);   // GR7: dividend − subsidiaryQuotient × divisor
-            // The quotient STORE sees the whole quotient, so an over-wide one meets ITS size error (§14.7.5) and takes the
+            // The quotient STORE sees the whole quotient, so an over-wide one meets ITS size error (§2023:14.7.5) and takes the
             // statement's disposition there.
             GuardedStore(ise, d.Quotient.Place, d.Quotient.Rounding, () => StoreArith(d.Quotient.Place,
                 quotientFor(d.Quotient.Rounding), d.Quotient.Rounding));
             // GR6c stores identifier-4 only "if the size error condition is not raised": under a SIZE ERROR phrase (ON, NOT
             // or both, kb/Work PB3989's one disposition for every [NOT] SIZE ERROR statement) or EC-SIZE checking the store
             // is gated on the statement's flag, so the quotient's size error leaves the remainder untouched. With checking
-            // NOT enabled and no phrase, the size error condition is §14.6.13.1.3 8)'s, whose receivers are the
+            // NOT enabled and no phrase, the size error condition is §2023:14.6.13.1.3 8)'s, whose receivers are the
             // implementor's: docs/CONFORMANCE.md DOC-A.1-70 follows GnuCOBOL 3.2 (libcob cob_div_quotient /
             // cob_div_remainder), which stores the remainder whatever the quotient met, formed from the quotient truncated
             // at identifier-3's scale with every integer digit (SubsidiaryShape; kb/Work PB3975). A zero divisor raises
@@ -205,14 +205,14 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         });
 
     /// <summary>The forms identifier-3 of <c>DIVIDE ... REMAINDER</c> can take, as far as its SUBSIDIARY QUOTIENT is
-    /// concerned (ISO §14.9.12.4 6) c)).</summary>
+    /// concerned (ISO §2023:14.9.12.4 6) c)).</summary>
     private enum SubsidiaryForm
     {
         /// <summary>A fixed-point numeric or numeric-edited item (or a PICTURE-less one): a decimal point location and a
         /// digit count.</summary>
         FixedPoint,
         /// <summary>A floating-point numeric-edited item: a significand of a fixed digit count at the quotient's own
-        /// exponent (§13.18.40.4 13) b)).</summary>
+        /// exponent (§2023:13.18.40.4 13) b)).</summary>
         FloatEdited,
         /// <summary>A binary floating-point usage (COMP-1/2, FLOAT-SHORT/-LONG/-EXTENDED, FLOAT-BINARY-32/-64; the wider
         /// FLOAT-BINARY-128 and FLOAT-DECIMAL-16/-34 are refused at the data description, COBOL1564): a format.</summary>
@@ -220,7 +220,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     }
 
     /// <summary>⛔ IDENTIFIER-3'S SHAPE UNDER TRUNCATION - the ONE description of what "the same number of digits and the same
-    /// decimal point location as the data item referenced by identifier-3" (ISO §14.9.12.4 6) c)) means for each form of
+    /// decimal point location as the data item referenced by identifier-3" (ISO §2023:14.9.12.4 6) c)) means for each form of
     /// identifier-3 (kb/Work PB2923). It replaced a (scale, digit cap) pair that every form was forced into: a
     /// floating-point numeric-edited item took its mask's working-scale HINT as a decimal point location it does not
     /// have, so a quotient below 0.005 truncated to zero in <c>+9.99E+99</c> and the remainder became the whole dividend.
@@ -229,7 +229,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     /// GR6 c) applies only "If the size error condition is not raised", and then the quotient fits identifier-3, so its
     /// truncation (never further from zero than the stored quotient, whatever the ROUNDED mode) has identifier-3's digits
     /// already. When the quotient DID meet a size error and the remainder is still stored (checking not enabled and no SIZE
-    /// ERROR phrase: §14.6.13.1.3 8), docs/CONFORMANCE.md DOC-A.1-70), the subsidiary quotient keeps every integer digit, as
+    /// ERROR phrase: §2023:14.6.13.1.3 8), docs/CONFORMANCE.md DOC-A.1-70), the subsidiary quotient keeps every integer digit, as
     /// GnuCOBOL 3.2's <c>cob_div_quotient</c> does: <c>DIVIDE 1003 BY 4 GIVING B REMAINDER R</c> with B <c>PIC 99</c> stores
     /// R = 3 (1003 - 250 x 4), where the digit cap kb/Work PB129 used to apply gave 803 (kb/Work PB3975).
     /// The two floating forms carry the item's <see cref="Pic"/> and nothing else: their shape is the item's own.</para></summary>
@@ -248,7 +248,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     /// DIRECT kernel call at EXACTLY the receiver scale — not the renderer's working-scale promotion, which yields the
     /// quotient at the dividend's higher scale and poisons the remainder multiply. A sender on the binary64 or SDIDI
     /// carrier goes to <see cref="CarriedSubsidiaryQuotient"/> instead, which divides it as it is.
-    /// Both senders are materialized (§14.9.12.4 GR5 — one item identification/evaluation): each appears in SEVERAL
+    /// Both senders are materialized (§2023:14.9.12.4 GR5 — one item identification/evaluation): each appears in SEVERAL
     /// emitted expressions (kernel call(s) + the remainder back-multiply), and the quotient stores BEFORE the
     /// remainder is formed — a quotient receiver aliasing a sender must not poison the remainder.</summary>
     private (NumX Dividend, NumX Divisor, NumX Subsidiary, Func<CobolRounding, NumX> QuotientFor) NativeSubsidiaryQuotient(
@@ -265,7 +265,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             return CarriedSubsidiaryQuotient(d, Snapshot(dividendX), Snapshot(divisorX), ise, shape);
         NumX dividend = Snapshot(NumericRenderer.DeU(dividendX)),
              divisor = Snapshot(NumericRenderer.DeU(divisorX));
-        // The SUBSIDIARY quotient is the quotient truncated at the GIVING receiver's scale (ISO §14.9.12.4 6) c);
+        // The SUBSIDIARY quotient is the quotient truncated at the GIVING receiver's scale (ISO §2023:14.9.12.4 6) c);
         // SubsidiaryShape says why it carries no digit cap). It is also the stored quotient under TRUNCATION.
         string qt = $"__q{ctx.Names.NextStoreTmp()}";
         w.Line($"Int128 {qt} = {RuntimeApi.NumDivide(dividend.Expr, $"{dividend.Scale}", divisor.Expr, $"{divisor.Scale}", $"{qs}", CobolRounding.Truncation)};");
@@ -280,21 +280,21 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     /// FLOATING-POINT identifier-3 in every mode (kb/Work PB2923), and for a NATIVE sender that is a binary64 (a
     /// FLOAT-LONG item, a float function's returned value) or an SDIDI value (a float literal, a NUMVAL value): the
     /// quotient is the SAME division the statement without REMAINDER performs, <see cref="FinalQuotient"/> as the final
-    /// transfer into identifier-3 (§14.9.12.4 1): under standard-decimal "the result of the arithmetic expression
+    /// transfer into identifier-3 (§2023:14.9.12.4 1): under standard-decimal "the result of the arithmetic expression
     /// (dividend / divisor)"), and the subsidiary quotient is that quotient truncated into identifier-3's shape
-    /// (§14.9.12.4 6) c): "a subsidiary quotient is developed that is signed and derived from the quotient by
+    /// (§2023:14.9.12.4 6) c): "a subsidiary quotient is developed that is signed and derived from the quotient by
     /// truncation of digits at the least significant end and that has the same number of digits and the same decimal
     /// point location as the data item referenced by identifier-3"; <see cref="SubsidiaryShapeOf"/>). A quotient on the
     /// SDIDI or binary64 carrier is formed ONCE and the store rounds it by the receiver's mode; one the division already
     /// landed at identifier-3's scale is formed again at the receiver's mode when that is not TRUNCATION.
-    /// <para>⛔ THE STORED QUOTIENT IS NEVER DERIVED FROM THE SUBSIDIARY ONE (§14.9.12.4 6) b) forms and stores the quotient;
+    /// <para>⛔ THE STORED QUOTIENT IS NEVER DERIVED FROM THE SUBSIDIARY ONE (§2023:14.9.12.4 6) b) forms and stores the quotient;
     /// 6) c) only feeds the remainder). A floating-point identifier-3 stores the quotient with all its digits and
     /// exponent, and its subsidiary quotient is the shape arm's (<see cref="FloatEditedSubsidiary"/>,
     /// <see cref="BinaryFloatSubsidiary"/>).</para>
     /// <para>⛔ NO SENDER IS QUANTIZED BEFORE THE DIVISION (kb/Work PB3829's sweep). The native lane used to land such a sender
     /// TRUNCATED at the receiver's float working scale first, so the ROUNDED decision saw a value already cut:
     /// <c>DIVIDE FL BY 1 GIVING Q ROUNDED MODE AWAY-FROM-ZERO REMAINDER R</c> with FL = 0.12340000000001 stored 0.1234
-    /// where the same statement without REMAINDER stored 0.1235 (§14.7.4.3 3)), and <c>DIVIDE 0.09 BY FB GIVING Q
+    /// where the same statement without REMAINDER stored 0.1235 (§2023:14.7.4.3 3)), and <c>DIVIDE 0.09 BY FB GIVING Q
     /// REMAINDER R</c> with FB = 0.30000000000001 stored 0.3000 where the quotient 0.2999999999999 truncates to 0.2999.
     /// One quotient, one rounding, whichever format of DIVIDE asks for it.</para></summary>
     private (NumX Dividend, NumX Divisor, NumX Subsidiary, Func<CobolRounding, NumX> QuotientFor) CarriedSubsidiaryQuotient(
@@ -309,7 +309,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         // the remainder still stored, DOC-A.1-70) stored the remainder 99999999994 where it is 6. The subsidiary quotient is the exact
         // quotient truncated at the scale (every integer digit), an exact value, so `subsidiary × divisor` (a 45-digit product of a
         // 15-digit quotient and a 30-digit divisor, or 42 digits and 1000) and the dividend's subtraction keep every digit, as GnuCOBOL's
-        // cob_div_quotient / cob_div_remainder do (CLAUDE.md rule 1 for §8.8.1.3's latitude).
+        // cob_div_quotient / cob_div_remainder do (CLAUDE.md rule 1 for §2023:8.8.1.3's latitude).
         NumX subsidiary = shape.Form == SubsidiaryForm.FixedPoint && TakesExactSubsidiary(dividend, divisor)
             ? Snapshot(num.ExactSubsidiaryQuotient(dividend, divisor, shape.Scale))
             : shape.Form switch
@@ -332,7 +332,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     /// The pair whose final-transfer quotient is the exact quotient of exact values (<c>NumericRenderer.CombineCore</c>'s exact arm and
     /// <c>Divide</c>'s last line): one sender on the wide or the run-time-scaled exact form and neither a binary64, whose quotient is a
     /// binary64 (the float lane). Never under standard-decimal arithmetic, whose senders are SDIDI values and whose quotient is the
-    /// 34-digit SDIDI the standard names (ISO §14.9.12.4 GR1, §8.8.1.5.2); an SDIDI-only native pair keeps the SDIDI lane's 34
+    /// 34-digit SDIDI the standard names (ISO §2023:14.9.12.4 GR1, §2023:8.8.1.5.2); an SDIDI-only native pair keeps the SDIDI lane's 34
     /// digits (DOC-A.1-82).</summary>
     private bool TakesExactSubsidiary(NumX dividend, NumX divisor) =>
         !num.StandardDecimal && !dividend.Real && !divisor.Real && (dividend.Wide || dividend.Exact || divisor.Wide || divisor.Exact);
@@ -351,7 +351,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         // A binary64 quotient lands at identifier-3's scale by truncation; the CHECKED landing (the one that raises
         // EC-SIZE-TRUNCATION) only where that name is taken - a SIZE ERROR phrase or EC-SIZE-TRUNCATION checking - and not on
         // the statement's mere having the two-phase shape, which EC-SIZE-OVERFLOW checking alone also gives it
-        // (§14.6.13.1.1 NOTE 3, kb/Work PB4093: the other name stores the low-order digits, DOC-A.1-70). A scaled quotient
+        // (§2023:14.6.13.1.1 NOTE 3, kb/Work PB4093: the other name stores the low-order digits, DOC-A.1-70). A scaled quotient
         // is already there.
         if (truncated.Real)
             return Snapshot(new NumX(RuntimeApi.FloatToScaled(truncated.Expr, truncated.Approximate, $"{qs}", CobolRounding.Truncation,
@@ -361,9 +361,9 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
                 $"DIVIDE REMAINDER: a final-transfer quotient at scale {truncated.Scale}, not identifier-3's {qs}");
     }
 
-    /// <summary>The subsidiary quotient for a FLOATING-POINT numeric-edited identifier-3 (ISO §14.9.12.4 6) c)): the quotient
+    /// <summary>The subsidiary quotient for a FLOATING-POINT numeric-edited identifier-3 (ISO §2023:14.9.12.4 6) c)): the quotient
     /// as the item holds it under truncation, <c>CobolEdit.TruncateToFloatShape</c> - its significand's digits at the
-    /// quotient's own exponent (§13.18.40.4 13) b), §14.6.8.4 1)), the normalization its store performs. An SDIDI value
+    /// quotient's own exponent (§2023:13.18.40.4 13) b), §2023:14.6.8.4 1)), the normalization its store performs. An SDIDI value
     /// (<c>CobolDec</c>, exact), whatever carrier the quotient arrived on, so the back-multiply keeps every digit.</summary>
     private NumX FloatEditedSubsidiary(NumX truncated, PicInfo pic)
     {
@@ -372,9 +372,9 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         return new NumX(sq, 0, Dec: true);
     }
 
-    /// <summary>The subsidiary quotient for a BINARY floating-point identifier-3 (ISO §14.9.12.4 6) c)): the quotient as the
+    /// <summary>The subsidiary quotient for a BINARY floating-point identifier-3 (ISO §2023:14.9.12.4 6) c)): the quotient as the
     /// item holds it under truncation, which is the ONE transfer of an arithmetic value into a floating-point resultant,
-    /// <c>FloatResultant</c> under implied TRUNCATION (§14.7.4.3 10): "rounded to the nearest value nearer to zero that can
+    /// <c>FloatResultant</c> under implied TRUNCATION (§2023:14.7.4.3 10): "rounded to the nearest value nearer to zero that can
     /// be represented in the resultant identifier") - the very landing the item's own store performs when the statement
     /// has no ROUNDED phrase, so the subsidiary quotient and the stored one cannot disagree (kb/Work PB2923, PB1196). A
     /// native binary64 quotient stays binary64 and the remainder is formed in binary64 (DOC-A.1-123); an SDIDI quotient
@@ -394,12 +394,12 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         return new NumX(sq, 0, Dec: true);
     }
 
-    /// <summary>COMPUTE Format 2 — boolean-compute (ISO §14.9.8): render the boolean RHS ONCE at the §14.9.8.4
+    /// <summary>COMPUTE Format 2 — boolean-compute (ISO §2023:14.9.8): render the boolean RHS ONCE at the §2023:14.9.8.4
     /// GR3 width (the largest boolean ITEM referenced, carried at run time — <see cref="BooleanRenderer.RenderAtItemWidth"/>;
     /// an all-literal expression keeps its own length and the per-receiver store fits it), then store into each
-    /// elementary boolean receiver with the §14.6.8.6 left-align / zero-fill / truncate discipline (the string
+    /// elementary boolean receiver with the §2023:14.6.8.6 left-align / zero-fill / truncate discipline (the string
     /// store, pad '0'; JUSTIFIED honored). A multi-receiver COMPUTE materializes the value once (the
-    /// §14.7.7-shaped once-evaluation).</summary>
+    /// §2023:14.7.7-shaped once-evaluation).</summary>
     public void EmitComputeBoolean(BoundComputeBoolean cb)
     {
         string value = BooleanRenderer.RenderAtItemWidth(cb.Rhs, num);
@@ -413,11 +413,11 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         foreach (var t in cb.Targets)
         {
             // OperandPic (kb/Work PB157): a GROUP-USAGE BIT receiver's store width is its as-if PICTURE 1(m)
-            // length (§13.18.29.4 GR1b) — raw Pic gave 0 and the store truncated the whole value.
+            // length (§2023:13.18.29.4 GR1b) — raw Pic gave 0 and the store truncated the whole value.
             int width = t is RefModPlace ? -1 : t.Item.OperandPic?.Length ?? 0;
             // A SOLE positionless RHS — figurative ZERO, or a B-NOT fold of one (`COMPUTE B = B-NOT ZERO`,
             // reachable since kb/Work PB157 un-conflated ZERO from the ALL literal) — REPLICATES its pattern
-            // to the receiver's width (§8.3.3.6.4 GR2 "repeated as necessary"); the '0'-padding store would
+            // to the receiver's width (§2023:8.3.3.6.4 GR2 "repeated as necessary"); the '0'-padding store would
             // turn all-ones into 100…0.
             string store = cb.Rhs is BoundBoolAll all && width > 0
                 ? EmitText.CsLiteral(ReplicateBits(all.Bits, width))
@@ -435,7 +435,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         {
             if (c.Targets.Count > 1)
             {
-                // ONE initial evaluation (§14.7.7 GR4 + NOTE 3): the RHS renders ONCE — at the widest receiver
+                // ONE initial evaluation (§2023:14.7.7 GR4 + NOTE 3): the RHS renders ONCE — at the widest receiver
                 // scale so no receiver-visible digit is lost — is materialized, and every receiver stores from the
                 // temp with its own ROUNDED mode. Re-rendering per receiver would re-read senders a prior
                 // receiver may alias. Real only when EVERY target is float (D16).
@@ -474,8 +474,8 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             {
                 // Single receiver: the RHS's top-level division (if any) IS the final transfer to r — render it
                 // outermost so an outermost quotient rounds at r's scale + mode and a nested quotient does not
-                // inherit r's mode (CA5; §14.7.7 rule 3 NOTE 1). A receiver that identifies at run time takes the
-                // value materialized first (§14.7.7 rule 4; MaterializesInitialEvaluation).
+                // inherit r's mode (CA5; §2023:14.7.7 rule 3 NOTE 1). A receiver that identifies at run time takes the
+                // value materialized first (§2023:14.7.7 rule 4; MaterializesInitialEvaluation).
                 // The materialized value is this receiver's final transfer too, so a PROHIBITED-inexact one raises while
                 // it is formed, before the store: the rule-7 keep spans both (KeepsOnProhibitedInexact).
                 if (MaterializesInitialEvaluation(c.Targets))
@@ -493,7 +493,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     /// <summary>A subscript / reference-modifier bound's pre-operation (kb/Work PB1890): the expression renders
     /// RECEIVER-LESS — no resultant scale truncates it, a nested quotient keeps its guard digits — and its value
     /// reaches the position intake on its own carrier (<see cref="NumericRenderer.IntakeCarrier"/>), which raises
-    /// EC-BOUND-SUBSCRIPT / EC-BOUND-REF-MOD for a non-integer (§8.4.2.3.4 GR1b, §8.4.3.3.4 rule 5)c)) and yields the
+    /// EC-BOUND-SUBSCRIPT / EC-BOUND-REF-MOD for a non-integer (§2023:8.4.2.3.4 GR1b, §2023:8.4.3.3.4 rule 5)c)) and yields the
     /// saturated integer position the integer temporary stores. It rides <see cref="EmitArith"/> with no phrase, so
     /// the expression's own size-error conditions (a zero divisor) keep the arithmetic statements' discipline.</summary>
     public void EmitPositionValue(BoundPositionValue p)
@@ -508,12 +508,12 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     /// <summary>The size-error catch pair (kb/Work PB129 — factored so the outer statement try and every
     /// per-receiver <see cref="GuardedStore"/> emit the identical discipline).
     /// <para>⛔ A statement WITHOUT a SIZE ERROR phrase catches only the conditions it TAKES (kb/Work PB4092,
-    /// <see cref="EcState.SizeErrOnlyNames"/>): the enabled names, and §14.7.4.3 rule 7's keep, which the rule makes
+    /// <see cref="EcState.SizeErrOnlyNames"/>): the enabled names, and §2023:14.7.4.3 rule 7's keep, which the rule makes
     /// whether or not checking is enabled (the condition is latched, the receiver stays, and the EC-SIZE handling then
     /// finds the name not enabled and does nothing — <c>CobolSizeError.IsProhibitedInexact</c>). Every other condition
     /// is not enabled, so it propagates: a zero divisor or an exponentiation-rule violation ends the run unit exactly as
     /// it does with checking off (DOC-A.1-70), where the family-wide catch used to latch it, drop it and go on with the
-    /// receiver unchanged. A statement WITH the phrase catches everything: §14.7.5 enables checking of all of it.</para></summary>
+    /// receiver unchanged. A statement WITH the phrase catches everything: §2023:14.7.5 enables checking of all of it.</para></summary>
     private void WriteSizeCatches(string flag, string? ecnVar)
     {
         var w = ctx.Writer;
@@ -535,8 +535,8 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     }
 
     /// <summary>Emit ONE receiver's compute+store inside its own try when size-error checking is on (kb/Work
-    /// PB129): §14.7.7 r4b makes a raised size error PER-RECEIVER — "processing proceeds to the next resulting
-    /// data item to the right" — and §14.7.5 storing rule 2 requires the untouched receivers to hold the values
+    /// PB129): §2023:14.7.7 r4b makes a raised size error PER-RECEIVER — "processing proceeds to the next resulting
+    /// data item to the right" — and §2023:14.7.5 storing rule 2 requires the untouched receivers to hold the values
     /// they would have had. The old single statement-wide try let one receiver's PROHIBITED/overflow raise
     /// abandon every receiver to its right. <paramref name="mode"/> is the receiver's ROUNDED mode: a PROHIBITED
     /// receiver of an unchecked statement keeps its value on an inexact transfer (<see cref="KeepsOnProhibitedInexact"/>).</summary>
@@ -553,11 +553,11 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             WriteSizeCatches(ecState.SizeErrVar!, ecState.SizeErrEcVar);
         });
 
-    /// <summary>⛔ §14.7.4.3 RULE 7 IN A STATEMENT WITH NO SIZE ERROR PHRASE AND CHECKING OFF (kb/Work PB3990). "If the
+    /// <summary>⛔ §2023:14.7.4.3 RULE 7 IN A STATEMENT WITH NO SIZE ERROR PHRASE AND CHECKING OFF (kb/Work PB3990). "If the
     /// PROHIBITED phrase is specified, and the arithmetic value cannot be represented exactly in the resultant identifier,
     /// the EC-SIZE-TRUNCATION exception condition is set to exist, the size error condition exists, and the content of the
     /// resultant identifier is unchanged": the rule keeps the resultant whether or not checking is enabled, and with
-    /// checking off §14.6.13.1.3 8) leaves only whether and how execution continues to the implementor — it continues
+    /// checking off §2023:14.6.13.1.3 8) leaves only whether and how execution continues to the implementor — it continues
     /// (docs/CONFORMANCE.md DOC-A.1-70, GnuCOBOL 3.2's disposition). Every landing raises
     /// <c>CobolSizeError.ProhibitedInexact</c> before it stores (StoreArith), so the receiver's compute+store — and its
     /// accessors, whose SET a size error skips as under checking — runs in a try that catches THAT condition alone and
@@ -570,12 +570,12 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         EmitProhibitedInexactKeep(ctx.Writer, ctx.Names, emit);
     }
 
-    /// <summary>⛔ THE ONE EMITTED SHAPE OF §14.7.4.3 RULE 7'S UNCHECKED KEEP (kb/Work PB3990): <paramref name="emit"/>'s
+    /// <summary>⛔ THE ONE EMITTED SHAPE OF §2023:14.7.4.3 RULE 7'S UNCHECKED KEEP (kb/Work PB3990): <paramref name="emit"/>'s
     /// compute-and-store inside a try whose one catch (<see cref="RuntimeApi.ProhibitedInexactKeepCatch"/>) takes
     /// <c>CobolSizeError.ProhibitedInexact</c>'s condition alone and does nothing, so the resultant keeps its content
     /// and execution continues (docs/CONFORMANCE.md DOC-A.1-70). Its two callers are the two places an implicit or
     /// explicit COMPUTE lands a PROHIBITED resultant with checking off: an arithmetic statement's receiver
-    /// (<see cref="KeepsOnProhibitedInexact"/>) and a report printable item's §13.18.53.4 GR2 / §13.18.54.4 GR4
+    /// (<see cref="KeepsOnProhibitedInexact"/>) and a report printable item's §2023:13.18.53.4 GR2 / §2023:13.18.54.4 GR4
     /// implicit COMPUTE (<c>ReportWriterEmitter.FieldImage</c>, kb/Work PB3990 review finding R1-1).</summary>
     internal static void EmitProhibitedInexactKeep(CodeWriter w, NameAllocator names, Action emit)
     {
@@ -605,14 +605,14 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         ReceiverContext.Of(r.Place.Item.Pic, r.Rounding, TakenBy(inSizeError));
 
     /// <summary>The optional <c>blankWhenZero</c> argument text for a numeric-edited store when the receiver
-    /// carries BLANK WHEN ZERO (ISO §13.18.8 — zero stores all spaces, MOVE and arithmetic alike).</summary>
+    /// carries BLANK WHEN ZERO (ISO §2023:13.18.8 — zero stores all spaces, MOVE and arithmetic alike).</summary>
     public static string BwzFlag(DataItem item) => item.BlankWhenZero ? ", blankWhenZero: true" : "";
 
     /// <summary>The receiver's editing-config arguments (<see cref="EmitContext.EditCfg"/> — the mask's currency
     /// string + the unit's DECIMAL-POINT IS COMMA).</summary>
     private string EditCfg(PicInfo? pic) => ctx.EditCfg(pic);
 
-    /// <summary>⛔ IS THE INITIAL EVALUATION MATERIALIZED BEFORE THE FIRST RECEIVER IS STORED? ISO §14.7.7 rule 4 orders an
+    /// <summary>⛔ IS THE INITIAL EVALUATION MATERIALIZED BEFORE THE FIRST RECEIVER IS STORED? ISO §2023:14.7.7 rule 4 orders an
     /// arithmetic statement: a) "The initial evaluation of the statement is done and the result of this operation is placed
     /// in an intermediate data item", then b) "Item identification for the receiving data items is done as each data item is
     /// accessed unless it was already done in step a". Two things make the order observable, and either one materializes:
@@ -622,11 +622,11 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     /// <c>&lt;receiver&gt; = &lt;value&gt;</c> and C# evaluates the receiver's address first, so
     /// <c>COMPUTE N(I) = FUNCTION NUMVAL(X(1:L))</c> range-tested I before the reference modifier, and the in-place
     /// <c>ADD FUNCTION NUMVAL(X(1:L)) TO N(I)</c> read N(I) before the operand written to its left, selecting
-    /// EC-BOUND-SUBSCRIPT where §14.9.49.4 GR11 selects the first condition in the order of evaluation.</summary>
+    /// EC-BOUND-SUBSCRIPT where §2023:14.9.49.4 GR11 selects the first condition in the order of evaluation.</summary>
     private static bool MaterializesInitialEvaluation(IReadOnlyList<Receiver> targets) =>
         targets.Count > 1 || PlaceIdentification.IdentifiesAtRunTime(targets[0].Place);
 
-    /// <summary>Materialize a rendered sender/initial-evaluation into a local temp (ISO §14.7.7 GR4 + NOTE 3 —
+    /// <summary>Materialize a rendered sender/initial-evaluation into a local temp (ISO §2023:14.7.7 GR4 + NOTE 3 —
     /// ONE initial evaluation; results independent of sender/receiver storage overlap). Inlining the expression
     /// into each receiver's store would re-read its fields after earlier receivers stored.</summary>
     private NumX Snapshot(NumX v)
@@ -640,7 +640,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
 
     /// <summary>
     /// Run an arithmetic statement's per-receiver stores (<paramref name="emitStores"/>), wrapping them in the
-    /// two-phase ON SIZE ERROR machinery (ISO §14.7.5) when <paramref name="sizeErr"/> is present: a <c>__sizeErr</c>
+    /// two-phase ON SIZE ERROR machinery (ISO §2023:14.7.5) when <paramref name="sizeErr"/> is present: a <c>__sizeErr</c>
     /// flag is set by any per-receiver overflow (<c>TryStore</c> false — phase b, the other receivers still store,
     /// rule 2) or by a <c>CobolSizeError</c> raised during evaluation (e.g. a zero divisor — phase a, no receiver
     /// changes, rule 4); the ON / NOT ON SIZE ERROR imperative then runs once. With no phrase the stores run
@@ -649,9 +649,9 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     public void EmitArith(SizeErrorPhrase? sizeErr, Action<bool> emitStores)
     {
         var w = ctx.Writer;
-        // EC-SIZE checking (>>TURN … EC-SIZE … CHECKING ON, ISO §7.3.25): an ENABLED statement routes through
+        // EC-SIZE checking (>>TURN … EC-SIZE … CHECKING ON, ISO §2023:7.3.25): an ENABLED statement routes through
         // the same two-phase TryStore/try-catch shape even WITHOUT the phrase, latching WHICH Table 13 condition
-        // occurred so the §14.9.49 F3 selection and the fatal default see the precise level-3 name. Checking off
+        // occurred so the §2023:14.9.49 F3 selection and the fatal default see the precise level-3 name. Checking off
         // + no phrase = the unchecked fast path, byte-identical (deep-dive D10 / SSOT §18.16).
         var ecSize = ec.EnabledSizeNames();
         if (sizeErr is null && ecSize.Count == 0) { emitStores(false); return; }
@@ -666,20 +666,20 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             ecState.SizeErrEcVar = ecnVar;
         }
         ecState.SizeErrVar = flag;
-        // ⛔ WHICH CONDITIONS THIS STATEMENT TAKES (kb/Work PB4092, PB4093): the phrase takes every one (§14.7.5); without
-        // it only the names whose checking is enabled are taken (§14.6.13.1.1). The renders choose their checked kernels
+        // ⛔ WHICH CONDITIONS THIS STATEMENT TAKES (kb/Work PB4092, PB4093): the phrase takes every one (§2023:14.7.5); without
+        // it only the names whose checking is enabled are taken (§2023:14.6.13.1.1). The renders choose their checked kernels
         // by it, the store chooses the checked landing by it, and the catches below catch exactly it - a condition not
         // taken is the not-enabled disposition (DOC-A.1-70), never a dropped one.
         ecState.SizeErrChecks = sizeErr is not null ? SizeChecks.All : EcState.ChecksOf(ecSize);
         ecState.SizeErrOnlyNames = sizeErr is null ? ecSize : null;
-        using (w.Block("try")) emitStores(true);   // checked renders: AddChecked / SubChecked / the checked landings (§14.7.5)
+        using (w.Block("try")) emitStores(true);   // checked renders: AddChecked / SubChecked / the checked landings (§2023:14.7.5)
         // A zero divisor / PROHIBITED-inexact quotient raises CobolSizeError; an intermediate that overflows the
         // long engine raises OverflowException (the checked(...) the store wraps the value in). Both are the
-        // statement's size error condition (ISO §14.7.5 — the phrase ENABLES checking, incl. case 5 intermediate
+        // statement's size error condition (ISO §2023:14.7.5 — the phrase ENABLES checking, incl. case 5 intermediate
         // overflow). >long-range overflow still needs the Int128 carrier (G3). This OUTER try now catches only
         // the INITIAL evaluation's raises (a statement with no formable initial value has no results to store);
-        // each receiver's compute+store sits in its own GuardedStore try (kb/Work PB129 — §14.7.7 r4b:
-        // "processing proceeds to the next resulting data item to the right", §14.7.5 storing rule 2).
+        // each receiver's compute+store sits in its own GuardedStore try (kb/Work PB129 — §2023:14.7.7 r4b:
+        // "processing proceeds to the next resulting data item to the right", §2023:14.7.5 storing rule 2).
         WriteSizeCatches(flag, ecnVar);
         ecState.SizeErrVar = null;
         ecState.SizeErrEcVar = null;
@@ -700,21 +700,21 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     }
 
     /// <summary>Store an arithmetic result into a numeric target place, rounding to the receiver scale with
-    /// <paramref name="mode"/> (the receiver's ROUNDED phrase, ISO §14.7.4). Inside an ON SIZE ERROR statement
+    /// <paramref name="mode"/> (the receiver's ROUNDED phrase, ISO §2023:14.7.4). Inside an ON SIZE ERROR statement
     /// (<see cref="EcState.SizeErrVar"/> set) it uses the checked <c>TryStore</c> — on overflow / PROHIBITED-inexact
-    /// it sets the flag and leaves the receiver unchanged (§14.7.5); otherwise the plain <c>Store</c>.</summary>
+    /// it sets the flag and leaves the receiver unchanged (§2023:14.7.5); otherwise the plain <c>Store</c>.</summary>
     public void StoreArith(Place target, NumX value, CobolRounding mode)
     {
         var w = ctx.Writer;
         // ⛔ A LONE FLOATING-POINT OPERAND IS AN SDIDI TOO (kb/Work PB1606). Under a standard-decimal mode every operation
         // yields the SDIDI, so a float ITEM reaches this funnel as a binary64 only when it is the whole expression
-        // (`COMPUTE R = F`, `ADD F GIVING R`): §8.8.1.5.1 makes standard-decimal the method of evaluating "an arithmetic
-        // expression, an arithmetic statement", and §8.8.1.5.2 r1 converts "any operand of an arithmetic expression", a
+        // (`COMPUTE R = F`, `ADD F GIVING R`): §2023:8.8.1.5.1 makes standard-decimal the method of evaluating "an arithmetic
+        // expression, an arithmetic statement", and §2023:8.8.1.5.2 r1 converts "any operand of an arithmetic expression", a
         // lone one included. It lifts through the ONE conversion (CobolDec.FromBinary64) every other float operand uses,
         // instead of landing natively where `F + 0` converted: the two statements then store one value.
         if (num.StandardDecimal && value.Real)
             value = new NumX(num.DecOperand(value), 0, Dec: true);
-        // ⛔ §14.7.4.3 RULE 7 HAS NO GATE HERE, AND NEEDS NONE (kb/Work PB3990, replacing PB654's gate). "If the PROHIBITED
+        // ⛔ §2023:14.7.4.3 RULE 7 HAS NO GATE HERE, AND NEEDS NONE (kb/Work PB3990, replacing PB654's gate). "If the PROHIBITED
         // phrase is specified, and the arithmetic value cannot be represented exactly in the resultant identifier, the
         // EC-SIZE-TRUNCATION exception condition is set to exist, the size error condition exists, and the content of the
         // resultant identifier is unchanged": every landing an arm below writes asks it in its own rounding decision,
@@ -724,18 +724,18 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         // twice (PB654) and covered only the checked statement; the unchecked one stored the value cut. GuardedStore
         // keeps the receiver of an unchecked statement unchanged (KeepsOnProhibitedInexact). The value is read ONCE.
         //
-        // A numeric-edited receiver stores the EDITED image of the result (ISO §14.7.7 — arithmetic results store
+        // A numeric-edited receiver stores the EDITED image of the result (ISO §2023:14.7.7 — arithmetic results store
         // per the MOVE editing rules). ROUNDED applies BEFORE editing: the value is rescaled to the mask's
-        // fraction scale with the receiver's mode (§14.7.4), then formatted.
+        // fraction scale with the receiver's mode (§2023:14.7.4), then formatted.
         if (target.Item.Pic is { Category: PicCategory.NumericEdited, IsFloatEdited: true } fpic)
         {
             // A FLOATING-POINT numeric-edited resultant (D21/PB66): the exact result normalizes into the mask, and the
-            // receiver's §14.7.4.3 mode rounds the SIGNIFICAND to the mask's digits (kb/Work PB2638) — a fixed-point
+            // receiver's §2023:14.7.4.3 mode rounds the SIGNIFICAND to the mask's digits (kb/Work PB2638) — a fixed-point
             // receiver rounds at its fraction scale, this one at its significand's last digit, by the same rules 3 to
             // 10 (rule 4: "rounded to the nearest value that can be represented in the resultant identifier"). The
             // PROHIBITED test (rule 7) is the same question asked of the same significand: TryFormatFloat answers it
             // false, and the unchecked FormatFloatStore raises it. Under ON SIZE ERROR / EC-SIZE both directions out of
-            // range, and an inexact PROHIBITED, are the size error condition (§14.7.5 cases 3 AND 4 — the receiver
+            // range, and an inexact PROHIBITED, are the size error condition (§2023:14.7.5 cases 3 AND 4 — the receiver
             // unchanged; EC-SIZE-TRUNCATION like every sibling arm); without them the MOVE disposition (overflow → the
             // pinned image, underflow → zero) stands, rounded, and an inexact PROHIBITED keeps the receiver (rule 7).
             string fcfg = BwzFlag(target.Item) + EditCfg(target.Item.Pic);
@@ -751,7 +751,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             return;
         }
         // A format-2 (LOCALE) numeric-edited resultant (kb/Work PB64 T6): the edit is the locale's LC_MONETARY at
-        // store time (§13.18.40.5 r9–r15) and the scale the PICTURE's. Under ON SIZE ERROR / EC-SIZE the digit
+        // store time (§2023:13.18.40.5 r9–r15) and the scale the PICTURE's. Under ON SIZE ERROR / EC-SIZE the digit
         // CAPACITY (the picture's integer positions) is the size error condition — EC-SIZE-TRUNCATION — while
         // EC-LOCALE-SIZE (r14 b's character truncation into the SIZE-declared item) is a DISTINCT condition the
         // edit itself raises; both can arise on one store. This arm sits BEFORE the mask arm: a locale item has
@@ -775,13 +775,13 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         {
             // The ONE receiver-scale rule (PicInfo.ReceiverScale: the MASK's fraction scale) and the ONE edited
             // landing, NumericRenderer.EditedLanding, which the LOCALE arm above shares (kb/Work PB2163): under ON SIZE
-            // ERROR / EC-SIZE it is the CHECKED landing, so a PROHIBITED-inexact narrowing (ISO §14.7.4.3 r7) and a
+            // ERROR / EC-SIZE it is the CHECKED landing, so a PROHIBITED-inexact narrowing (ISO §2023:14.7.4.3 r7) and a
             // value past the carrier are size errors and the receiver stays UNCHANGED, as for every receiver category;
             // the no-phrase landing keeps the low-order digits, as the numeric store does.
             int ms = ScaleOf(target);
-            // Under ON SIZE ERROR an edited resultant is capacity-checked too (ISO §14.7.5 case 3 + storing rule
+            // Under ON SIZE ERROR an edited resultant is capacity-checked too (ISO §2023:14.7.5 case 3 + storing rule
             // 2): an aligned |value| exceeding the mask's digit positions sets the flag and leaves the receiver
-            // UNCHANGED — Format's silent high-order truncation is MOVE behavior only (§14.9.25).
+            // UNCHANGED — Format's silent high-order truncation is MOVE behavior only (§2023:14.9.25).
             if (ecState.SizeErrLandingVar is { } eflag)
             {
                 string img = $"__sv{ctx.Names.NextStoreTmp()}";
@@ -796,10 +796,10 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             return;
         }
         // A FLOATING-POINT resultant identifier (COMP-1/2, FLOAT-*, D16) — the float arm of THIS store, sharing the
-        // fixed arm's two rules rather than restating them (kb/Work PB1196): the receiver's §14.7.4.3 mode rounds
+        // fixed arm's two rules rather than restating them (kb/Work PB1196): the receiver's §2023:14.7.4.3 mode rounds
         // the value into the binary format (rule 10's implied TRUNCATION, rules 3–9, rule 7's PROHIBITED as an
         // exactness test), and under ON SIZE ERROR / EC-SIZE checking a value further from zero than the format
-        // permits is the §14.7.5 case-3 size error, receiver unchanged, EC-SIZE-TRUNCATION (no-phrase rule 4) —
+        // permits is the §2023:14.7.5 case-3 size error, receiver unchanged, EC-SIZE-TRUNCATION (no-phrase rule 4) —
         // the SAME condition name the fixed arm latches below. It used to be a bare IEEE round-to-nearest cast that
         // ignored the mode and never raised. The rounding itself is ONE runtime rule, FloatResultant.
         if (target.Item.Pic is { IsFloat: true } floatPic)
@@ -834,7 +834,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         // A float (Real) arithmetic result lands into this FIXED receiver via the runtime's ToScaled at the receiver
         // scale with the receiver's ROUNDED mode (D16), then flows through the ordinary store funnel (rescale
         // identity ⇒ no double-rounding; capacity + SIZE ERROR still apply). A STANDARD-DECIMAL intermediate stores
-        // through the SDIDI overloads (the §14.7 final transfer).
+        // through the SDIDI overloads (the §2023:14.7 final transfer).
         int recvScale = target.Item.Pic!.Scale;
         // The ONE carrier switch (PB84); the landing's form is the statement's (PB77) — CHECKED under ON SIZE ERROR /
         // EC-SIZE checking (the branch below), the low-order digits for the no-phrase store.
@@ -843,14 +843,14 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         {
             string tmp = $"__sv{ctx.Names.NextStoreTmp()}";
             // Intermediate long-engine overflow is detected upstream by the checked multiply the renderer emits in a
-            // size-error context (the checked multiply → OverflowException, caught by the statement's try, §14.7.5
+            // size-error context (the checked multiply → OverflowException, caught by the statement's try, §2023:14.7.5
             // case 5). We do NOT wrap the value in checked(...) here: a constant subexpression would then overflow at
             // COMPILE time (CS0220) and reject valid COBOL — the runtime helper avoids that by not constant-folding.
             // Under EC-SIZE checking the receiver-capacity failure latches EC-SIZE-TRUNCATION (Table 13 —
-            // "significant digits truncated in store"; the §14.7.5 size error on the final transfer).
+            // "significant digits truncated in store"; the §2023:14.7.5 size error on the final transfer).
             string onFail = ecState.SizeErrEcVar is { } ecn2 ? $"{{ {flag} = true; {ecn2} = \"EC-SIZE-TRUNCATION\"; }}" : $"{flag} = true;";
             // ROUNDED MODE PROHIBITED and an inexact transfer is a size error that leaves the receiver UNCHANGED
-            // (§14.7.4.3 rule 7 — the ROUNDED phrase's rule, not §14.7.5's): TryStore answers false for a scaled value,
+            // (§2023:14.7.4.3 rule 7 — the ROUNDED phrase's rule, not §2023:14.7.5's): TryStore answers false for a scaled value,
             // and a float or SDIDI value's landing raises it inside the statement's catch (kb/Work PB3990).
             w.Line($"if (!{RuntimeApi.NumTryStore(args, mode, tmp, value.U)}) {onFail}");
             // On success store the value (a whole-group-aliased numeric-DISPLAY receiver stores its character image).
@@ -885,7 +885,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         p.Item.Pic is { } pic ? pic.ReceiverScale() : 0;
 
     /// <summary>A positionless boolean pattern repeated to <paramref name="width"/> positions and truncated
-    /// on the right (ISO §8.3.3.6.4 GR2 — "repeated as necessary"); compile-time, the pattern is a bound
+    /// on the right (ISO §2023:8.3.3.6.4 GR2 — "repeated as necessary"); compile-time, the pattern is a bound
     /// constant (kb/Work PB157).</summary>
     private static string ReplicateBits(string bits, int width)
     {

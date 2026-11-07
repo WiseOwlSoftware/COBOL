@@ -5,9 +5,9 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.23.4 GR5: "If identifier-1 is null, the EC-OO-NULL exception condition is set to exist and
+      *> ISO §2023:14.9.23.4 GR5: "If identifier-1 is null, the EC-OO-NULL exception condition is set to exist and
       *> execution of the INVOKE statement is terminated." Table 13: Fatal, so the USE declarative runs and
-      *> RESUME AT NEXT STATEMENT (§14.9.33) keeps the run unit alive past the terminated INVOKE.
+      *> RESUME AT NEXT STATEMENT (§2023:14.9.33) keeps the run unit alive past the terminated INVOKE.
       *>
       *> O is an object reference that is never given an instance, so INVOKE O "PING" invokes on null. Before
       *> this fix the runtime threw uncaught: no statement guard was emitted around an INVOKE, so the

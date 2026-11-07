@@ -6,20 +6,20 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO/IEC 1989:2023 §14.9.25.4 GR2 and GR3 — THE ZERO-LENGTH-LITERAL SUBSTITUTION (kb/Work PB425).
+      *> ISO/IEC 1989:2023 §2023:14.9.25.4 GR2 and GR3 — THE ZERO-LENGTH-LITERAL SUBSTITUTION (kb/Work PB425).
       *> GR2: "If literal-1 is an alphanumeric or national zero-length literal and the receiving operand is
       *> other than a dynamic-length elementary item, literal-1 is treated as if it were the figurative
       *> constant SPACE."  GR3: the same sentence for "a boolean zero-length literal" and ZERO.
       *> Every expected value below is COMPUTED FROM THE RULE, receiver by receiver:
-      *>   GR2 (a plain "" and an N"" sender) is figurative SPACE, sized to the receiver by §8.3.3.6.4 GR2 and
-      *>   then EDITED by §14.9.25.4 GR6 where the receiver edits, so PIC XX/XX shows "  /  " — the insertion
+      *>   GR2 (a plain "" and an N"" sender) is figurative SPACE, sized to the receiver by §2023:8.3.3.6.4 GR2 and
+      *>   then EDITED by §2023:14.9.25.4 GR6 where the receiver edits, so PIC XX/XX shows "  /  " — the insertion
       *>   position takes its own character.  Against a BOOLEAN receiver the fill is the boolean character '0'
       *>   (determination D-B2, CONFORMANCE.md §3: Table 17 gives SPACE category boolean there while
-      *>   §8.3.3.6.4 GR5 defines no boolean space, and §14.6.8.6 fills a boolean receiver "with zero fill").
-      *>   GR3 (a B"" sender) is figurative ZERO, whose alphanumeric character value is '0' (§8.3.3.6.4 GR4;
+      *>   §2023:8.3.3.6.4 GR5 defines no boolean space, and §2023:14.6.8.6 fills a boolean receiver "with zero fill").
+      *>   GR3 (a B"" sender) is figurative ZERO, whose alphanumeric character value is '0' (§2023:8.3.3.6.4 GR4;
       *>   Table 17 gives ZERO against an alphanumeric receiving operand the category alphanumeric), so
       *>   PIC X(3) is "000" and PIC XX/XX is "00/00" — NOT spaces.
-      *> Each sender reaches only the receiver categories Table 16 (§14.9.25.3 SR10) admits for its own
+      *> Each sender reaches only the receiver categories Table 16 (§2023:14.9.25.3 SR10) admits for its own
       *> category: alphanumeric → all seven; national → boolean/national/numeric; boolean →
       *> alphanumeric(-edited)/boolean/national.  The zero-length literal keeps its OWN category for that
       *> screen — GR2/GR3 substitute a VALUE, not a written figurative constant — which is why B"" into a
@@ -81,7 +81,7 @@
            DISPLAY "B-NAT=[" R-NAT "]".
       *> ── THE EQUIVALENCE GR2 STATES: MOVE "" and MOVE SPACE are ONE statement ──
       *> The written SPACE moves into R-NUM-ED's full-width reference-modified view (an alphanumeric item over
-      *> the same positions, §8.4.3.3.4 GR6 c)): §14.9.25.3 SR5 refuses a written SPACE into a numeric or
+      *> the same positions, §2023:8.4.3.3.4 GR6 c)): §2023:14.9.25.3 SR5 refuses a written SPACE into a numeric or
       *> numeric-edited item at every edition (kb/Work PB3605), which GR2's substituted value is not.
            MOVE 123 TO R-NUM.
            MOVE "" TO R-NUM.

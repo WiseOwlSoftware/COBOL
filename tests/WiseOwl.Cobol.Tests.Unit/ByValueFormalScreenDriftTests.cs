@@ -8,13 +8,13 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ THE BY VALUE FORMAL'S CLASS RULE IS WRITTEN ONCE (kb/Work PB1051). ISO §14.2.2 SR2 — "Each data-name-1 specified in
+/// ⛔ THE BY VALUE FORMAL'S CLASS RULE IS WRITTEN ONCE (kb/Work PB1051). ISO §2023:14.2.2 SR2 — "Each data-name-1 specified in
 /// a BY VALUE phrase shall be defined as a data item of class numeric, message-tag, object, or pointer" (cite.py --check
 /// 14.2.2 → OK 14.2.2 2)) — is <c>ProcedureHeaderScreen.ByValueClass</c>; the program/function header arm
 /// (<c>CallBindLinkage</c>) and the METHOD header arm (<c>OoDataBinder.BindMethodData</c>) both ASK it, and neither spells the
 /// class set or the <c>COBOL1553</c> code itself. Before this the program arm held the rule inline and the method arm
 /// refused every BY VALUE formal outright — a second copy of the rule waiting to disagree. Likewise the method formal's
-/// passing mode is compared by the ONE §9.3.8.2.3 rule set (<c>OoConformance.MethodConformanceMismatches</c>, rule 1).
+/// passing mode is compared by the ONE §2023:9.3.8.2.3 rule set (<c>OoConformance.MethodConformanceMismatches</c>, rule 1).
 /// </summary>
 [Trait("Sweep", "tree")]
 public sealed class ByValueFormalScreenDriftTests
@@ -32,7 +32,7 @@ public sealed class ByValueFormalScreenDriftTests
     }
 
     /// <summary>⛔ THE CLASS SET IS THE TABLE-2 CLASSIFIER'S, NOT A PicCategory LIST (kb/Work PB3222). The list read the
-    /// storage category, which a USAGE INDEX item carries as numeric, so an index formal (class index, §8.5.2.1) passed
+    /// storage category, which a USAGE INDEX item carries as numeric, so an index formal (class index, §2023:8.5.2.1) passed
     /// BY VALUE; the argument side (<c>CallBinder.ValueClassScreen</c>) asks <c>IntrinsicArgumentRules.ClassOfItem</c>.</summary>
     [Fact]
     public void TheByValueClassScreen_AsksTheTableTwoClassifier_AndListsNoPictureCategory()

@@ -3,7 +3,7 @@
 namespace WiseOwl.Cobol.Runtime;
 
 /// <summary>
-/// THE formation and mapping rules of a name externalized to the operating environment — ISO §8.3.2.2 2): "The
+/// THE formation and mapping rules of a name externalized to the operating environment — ISO §2023:8.3.2.2 2): "The
 /// implementor defines the formation and mapping rules of these names." Documented as DOC-A.1-68 in
 /// <c>docs/CONFORMANCE.md</c> §7, and written ONCE here so that the side that REGISTERS a name (a PROGRAM-ID /
 /// FUNCTION-ID / CLASS-ID / INTERFACE-ID / METHOD-ID / REPOSITORY / EXTERNAL <c>AS literal</c>, formed at bind
@@ -17,10 +17,10 @@ namespace WiseOwl.Cobol.Runtime;
 /// the national space of this implementation's UTF-16 repertoire is the same U+0020 — never other white space,
 /// because a tab or a no-break space is a character of the name, not padding.</item>
 /// <item><b>Mapping</b> (<see cref="Same"/>, <see cref="Comparer"/>): two externalized names are the same name
-/// when they are the same COBOL word — equal under the ONE Annex C fold, <see cref="CobolNames"/> (§8.1.3.2 GR3 b)
+/// when they are the same COBOL word — equal under the ONE Annex C fold, <see cref="CobolNames"/> (§2023:8.1.3.2 GR3 b)
 /// and GR4 b); DOC-A.1-219, kb/Work PB1402) — so <c>CALL "sub-p"</c> reaches <c>PROGRAM-ID. SUB-P</c> and
 /// <c>CALL "prüf"</c> reaches <c>PROGRAM-ID. PRÜF</c>, by the same equality the compiler's name tables use.
-/// §8.3.2.2 2) then makes every source element that names the same externalized name refer to the same
+/// §2023:8.3.2.2 2) then makes every source element that names the same externalized name refer to the same
 /// instance. The comparer is 2023's at every edition, so a name below 2023 is first written in its edition's
 /// spelling (<see cref="FormInEdition"/>) — by the binder for a literal, by the emitted C# for a data item's value
 /// (kb/Work PB2840, PB2991) — and then meets the registered name by this one equality.</item>

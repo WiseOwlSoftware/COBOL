@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// The exact extent of an arithmetic expression's value (<see cref="ExpressionExtent"/>, kb/Work PB3974): the digits the
-/// implementor's intermediate result item of an EVALUATE selection subject needs to hold the value §14.9.13.4 GR3 c)
+/// implementor's intermediate result item of an EVALUATE selection subject needs to hold the value §2023:14.9.13.4 GR3 c)
 /// assigns it. Each expectation is the arithmetic of the bound: a value below 10^i plus one below 10^j is below
 /// 10^(max(i, j)+1), a product is below 10^(i+j), and the fraction digits add under a product and take the larger under
 /// a sum. The field-operand arms (a PICTURE's digits and scale) are held by the

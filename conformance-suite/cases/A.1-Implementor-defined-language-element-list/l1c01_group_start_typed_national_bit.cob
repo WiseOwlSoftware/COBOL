@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §8.5.1.6.5 — strongly-typed, national-first and bit-item
+      *> ISO §2023:8.5.1.6.5 — strongly-typed, national-first and bit-item
       *> groups start at their first item (A.1 item 6)
       *> THE RULE (implementor-defined, A.1 item 6; documented choice:
       *> docs/CONFORMANCE.md row DOC-A.1-6: every group, alphanumeric
@@ -14,14 +14,14 @@
       *> that reach the next byte after a bit item):
       *>   cite.py --check 8.5.1.6.5 "The alignment of the start of a
       *>     strongly-typed group item relative to the first item within
-      *>     that group is defined by the implementor" -> OK §8.5.1.6.5
+      *>     that group is defined by the implementor" -> OK §2023:8.5.1.6.5
       *>   cite.py --check 8.5.1.6.1 "The alignment of the start of an
       *>     alphanumeric group item relative to the first item within
-      *>     that group is defined by the implementor" -> OK §8.5.1.6.1
+      *>     that group is defined by the implementor" -> OK §2023:8.5.1.6.1
       *>   cite.py --check 8.5.1.6.1 "Alignment of alphanumeric groups
       *>     and of data items of usage display is at a natural
       *>     alphanumeric character boundary and is coincident with a
-      *>     byte boundary" -> OK §8.5.1.6.1 (so a PIC X after a bit
+      *>     byte boundary" -> OK §2023:8.5.1.6.1 (so a PIC X after a bit
       *>     item starts a new byte)
       *> 2002 dir: TYPEDEF STRONG, national items, USAGE BIT and
       *> BYTE-LENGTH are 2002. A national character position is 2 bytes

@@ -14,7 +14,7 @@
       *> WHY EACH LEG CAN FAIL (expected values derived from the rules):
       *>   REV-A is ALPHABET "Z" THRU "A", which gives Z the lowest position and A the highest (12.3.7.4), so a table
       *>   of the three letters A, C, B sorted ASCENDING under it reads C, B, A in BOTH spellings.
-      *>   1  SORT TE ASCENDING SEQUENCE IS REV-A         -> CBA (the word omitted, §14.9.40.4 GR5 a))
+      *>   1  SORT TE ASCENDING SEQUENCE IS REV-A         -> CBA (the word omitted, §2023:14.9.40.4 GR5 a))
       *>   2  SORT TE ASCENDING COLLATING SEQUENCE IS REV-A -> CBA (the word written)
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1139CW.

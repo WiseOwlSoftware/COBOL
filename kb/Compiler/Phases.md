@@ -25,7 +25,7 @@ Detail behind each phase of the [[kb/Compiler/Pipeline]].
 NistPreprocessor(if NIST)`, then the line-count-neutral directive collectors
 `>>TURN → >>PROPAGATE → >>REF-MOD-ZERO-LENGTH → >>FLAG-02/14 → >>COBOL-WORDS`. Responsibilities:
 - **Reference-format** (fixed↔free) normalization — only this column-aware pass can see the indicator column (VCR rows 2/94 gate here).
-- **Conditional compilation** (`>>DEFINE`/`>>IF`/`>>EVALUATE`), processed *inside* copybooks (§7.2.1).
+- **Conditional compilation** (`>>DEFINE`/`>>IF`/`>>EVALUATE`), processed *inside* copybooks (§2023:7.2.1).
 - **COPY … REPLACING** / **REPLACE**.
 - **NIST CCVS** `XXXXX###`/`XXXXP###`/`XXXXD###` placeholder substitution (runs after COPY so placeholders inside copied text are substituted).
 
@@ -71,7 +71,7 @@ The parser yields a pure syntactic **CST** (`CompilationUnitContext`). The `Cst/
 The *implemented* state (supersedes an earlier "grammar construct-id annotation" design): a **two-arm post-bind walk**
 that recovers construct identity *itself* (no `.Syntax` back-reference on bound nodes). Arm 1 (bound-tree) keys
 genuinely-semantic gates on resolved node type/attribute; Arm 2 (`ParseArm`, over the raw tree) re-recognizes
-syntactic introduction/removal/phrase gates + the §8.9 reserved-word funnel — because an introduction gate must fire
+syntactic introduction/removal/phrase gates + the §2023:8.9 reserved-word funnel — because an introduction gate must fire
 on *recognition* even when the construct also fails to bind. Version *numbers* stay single-sourced in
 `constructs.json`. Only two forward-detect predicates survive in the grammar (`retryPhraseAhead()`, `boolExprAhead()`).
 See [[kb/Semantics/Passes]].

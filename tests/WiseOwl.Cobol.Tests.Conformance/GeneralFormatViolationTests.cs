@@ -8,12 +8,12 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// The 42 conformance CLAIMS the deleted legacy <c>Overlenient/</c> suite made by NAME and never measured — every
 /// body was <c>{ }</c> (kb/Work PB387; <c>VacuousTestDriftTests</c> now fails on that shape). Each claim
 /// <c>Rejects_&lt;construct&gt;</c> is written here as the spelling its name describes, with the verdict computed
-/// from the statement's printed general format and the metalanguage that reads it: §5.2.6.2 (only BRACKETED
-/// portions may be omitted), §5.2.6.3 ("one of the alternatives contained within the braces shall be explicitly
-/// specified") and §5.2.6.4 (choice indicators: each alternative at most once). The general formats are §14.9.1.2
-/// ACCEPT, §14.9.11.2 DISPLAY, §14.9.19.2 IF, §14.9.13.2 EVALUATE, §14.9.28.2 PERFORM, §14.9.43.2 STRING, §14.9.48.2
-/// UNSTRING, §14.9.22.2 INSPECT, §14.9.4.2 CALL, §14.9.39.2 SET, §14.9.40.2 SORT, §14.9.24.2 MERGE, §14.9.51.2
-/// WRITE, §14.9.30.2 READ, §14.9.27.2 OPEN and §14.9.6.2 CLOSE (each <c>cite.py --check</c>ed).
+/// from the statement's printed general format and the metalanguage that reads it: §2023:5.2.6.2 (only BRACKETED
+/// portions may be omitted), §2023:5.2.6.3 ("one of the alternatives contained within the braces shall be explicitly
+/// specified") and §2023:5.2.6.4 (choice indicators: each alternative at most once). The general formats are §2023:14.9.1.2
+/// ACCEPT, §2023:14.9.11.2 DISPLAY, §2023:14.9.19.2 IF, §2023:14.9.13.2 EVALUATE, §2023:14.9.28.2 PERFORM, §2023:14.9.43.2 STRING, §2023:14.9.48.2
+/// UNSTRING, §2023:14.9.22.2 INSPECT, §2023:14.9.4.2 CALL, §2023:14.9.39.2 SET, §2023:14.9.40.2 SORT, §2023:14.9.24.2 MERGE, §2023:14.9.51.2
+/// WRITE, §2023:14.9.30.2 READ, §2023:14.9.27.2 OPEN and §2023:14.9.6.2 CLOSE (each <c>cite.py --check</c>ed).
 ///
 /// <para><b>Ten of the names were false claims about COBOL.</b> A PERFORM VARYING without BY, a STRING or
 /// UNSTRING without DELIMITED, a CALL without USING, a READ without INTO, a WRITE without FROM, mixed ASCENDING
@@ -29,8 +29,8 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// (PBGF03, 05, 18, 21, 24, 27, 36) drew COBOL0307 "A period may be missing" until kb/Work PB3832's review (R2-1), then
 /// the bare COBOL0001 (a period was expected after the complete statement, but none written there lets the stray
 /// phrase word follow), and since kb/Work PB906 they draw COBOL2269: the statement ENDS before a phrase no general
-/// format of it prints there (ISO §5.2.1), named with the statement whose own syntax prints the word (the IF of a
-/// second ELSE, PBGF05). PBGF15 and PBGF38 are COBOL2269 for another reason (§14.5.3.3, kb/Work PB3830). Since kb/Work
+/// format of it prints there (ISO §2023:5.2.1), named with the statement whose own syntax prints the word (the IF of a
+/// second ELSE, PBGF05). PBGF15 and PBGF38 are COBOL2269 for another reason (§2023:14.5.3.3, kb/Work PB3830). Since kb/Work
 /// PB3428 and PB3861 the rows whose token stands where the parse expects only nameable elements, or a literal of
 /// another category, draw COBOL5506 naming what is expected there: OPEN F1 expects EXTEND, I-O, INPUT or OUTPUT (PBGF40),
 /// PERFORM VARYING … BY 1 expects UNTIL (PBGF12), CALL … RETURNING 5 expects no literal (PBGF23, which drew the
@@ -61,7 +61,7 @@ public sealed class GeneralFormatViolationTests
     [InlineData("PBGF12", "PERFORM VARYING W-N FROM 1 BY 1 DISPLAY W-N END-PERFORM", "COBOL5506")]
     // STRING (M416) — INTO is unbracketed; ON OVERFLOW sits in choice indicators, so at most once.
     [InlineData("PBGF13", "STRING W-A DELIMITED BY SIZE END-STRING", "COBOL0001")]
-    [InlineData("PBGF15", "STRING W-A DELIMITED BY SIZE INTO W-B ON OVERFLOW DISPLAY \"1\" ON OVERFLOW DISPLAY \"2\" END-STRING", "COBOL2269")]   // named since kb/Work PB3830 (§14.5.3.3)
+    [InlineData("PBGF15", "STRING W-A DELIMITED BY SIZE INTO W-B ON OVERFLOW DISPLAY \"1\" ON OVERFLOW DISPLAY \"2\" END-STRING", "COBOL2269")]   // named since kb/Work PB3830 (§2023:14.5.3.3)
     // UNSTRING (M417) — INTO is unbracketed; TALLYING is one bracketed phrase.
     [InlineData("PBGF16", "UNSTRING W-A DELIMITED BY \",\" END-UNSTRING", "COBOL0001")]
     [InlineData("PBGF18", "UNSTRING W-A DELIMITED BY \",\" INTO W-B W-C TALLYING IN W-N TALLYING IN W-K END-UNSTRING", "COBOL2269")]
@@ -88,7 +88,7 @@ public sealed class GeneralFormatViolationTests
     [InlineData("PBGF36", "WRITE R1 FROM W-A FROM W-B", "COBOL2269")]
     // READ (M425) — a written INTO needs its operand; AT END once; KEY only for an indexed file.
     [InlineData("PBGF37", "READ F1 INTO", "COBOL5506")]
-    [InlineData("PBGF38", "READ F1 AT END DISPLAY \"E\" AT END DISPLAY \"F\" END-READ", "COBOL2269")]   // named since kb/Work PB3830 (§14.5.3.3)
+    [InlineData("PBGF38", "READ F1 AT END DISPLAY \"E\" AT END DISPLAY \"F\" END-READ", "COBOL2269")]   // named since kb/Work PB3830 (§2023:14.5.3.3)
     [InlineData("PBGF39", "READ F1 KEY IS W-A", "COBOL0864")]
     // OPEN / CLOSE (M426) — a mode is required, one per file group; CLOSE names a file.
     [InlineData("PBGF40", "OPEN F1", "COBOL5506")]

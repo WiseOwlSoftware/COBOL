@@ -4,13 +4,13 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §13.18.63.3 26) - every THROUGH pair of a condition-name's VALUE clause ascends.
+      *> ISO §2023:13.18.63.3 26) - every THROUGH pair of a condition-name's VALUE clause ascends.
       *> "When the THROUGH phrase is specified: a) when literal-2 is of a class other than alphanumeric
       *> or national, the value of literal-2 shall be less than the value of literal-3. b) when literal-2
       *> is of class alphanumeric or national, and the runtime collating sequence is known, the value of
       *> literal-2 shall be less than the value of literal-3."
       *> cite.py --check 13.18.63.3 "the value of literal-2 shall be less than the value of literal-3"
-      *>   -> OK §13.18.63.3 26)
+      *>   -> OK §2023:13.18.63.3 26)
       *> "known" (b): every sequence this processor fixes at compile time - an alphabet named by IN, the
       *> PROGRAM COLLATING SEQUENCE, the native order - is known; only a LOCALE one is not (SR26 NOTE;
       *> docs/CONFORMANCE.md D-RANGE-KNOWN, kb/Work PB552). Each 88 below is one arm, each refused with

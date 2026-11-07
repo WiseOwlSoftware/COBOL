@@ -39,7 +39,7 @@ public sealed class ImplicitStatementSeriesDriftTests
 
     private static readonly Regex ClauseHeading = new(@"^#{3,6}\s+(\d+(?:\.\d+)+)\s", RegexOptions.Compiled);
 
-    /// <summary>⛔ THE ONE EXEMPTION, AND IT IS SELF-INVALIDATING. VALIDATE (ISO §14.9.50) is the OWNER-DECLINED
+    /// <summary>⛔ THE ONE EXEMPTION, AND IT IS SELF-INVALIDATING. VALIDATE (ISO §2023:14.9.50) is the OWNER-DECLINED
     /// Annex A.4.14 facility (docs/CONFORMANCE.md §4 item 3): the grammar recognizes it only to NAME the refusal
     /// (<c>validateFacilityStatement</c>), it binds to no node, and a statement that never binds has no statement
     /// site to give its operands. <see cref="EveryVerbTheSpecGivesTheResumptionRule_BindsThroughTheImplicitSeries"/>

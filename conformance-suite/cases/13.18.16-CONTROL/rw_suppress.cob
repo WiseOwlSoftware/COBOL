@@ -6,12 +6,12 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.45 SUPPRESS statement. A USE BEFORE REPORTING procedure
-      *> (§14.9.49 Format 2) on the detail group executes SUPPRESS PRINTING
-      *> for the rows flagged hidden (WS-HIDE = 1). Per §14.9.45.4 GR3 the
+      *> ISO §2023:14.9.45 SUPPRESS statement. A USE BEFORE REPORTING procedure
+      *> (§2023:14.9.49 Format 2) on the detail group executes SUPPRESS PRINTING
+      *> for the rows flagged hidden (WS-HIDE = 1). Per §2023:14.9.45.4 GR3 the
       *> statement inhibits ONLY: (a) printing the group's lines, (b) any
       *> page advance, (c) NEXT GROUP, (d) LINE-COUNTER changes. It does
-      *> NOT inhibit sum-counter accumulation (§13.18.54.4 GR7) nor the
+      *> NOT inhibit sum-counter accumulation (§2023:13.18.54.4 GR7) nor the
       *> end-of-group sum reset (GR2) — only PRESENT WHEN / OCCURS DEPENDING
       *> absence skips the reset (GR10), which this program does not use.
       *> Proof: the amount of the SUPPRESSED middle row (20) never prints as

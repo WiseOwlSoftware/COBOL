@@ -6,36 +6,36 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO 1989:2023 §8.4.3.4 — INLINE METHOD INVOCATION, the §8.4.3.1.2 Format 4 identifier.
-      *> General format (§8.4.3.4.2, rendered from the canonical PDF page 163 / printed folio 133):
+      *> ISO 1989:2023 §2023:8.4.3.4 — INLINE METHOD INVOCATION, the §2023:8.4.3.1.2 Format 4 identifier.
+      *> General format (§2023:8.4.3.4.2, rendered from the canonical PDF page 163 / printed folio 133):
       *>     { object-class-name-1 | identifier-1 } :: literal-1
       *>         [ ( { arithmetic-expression-1 | boolean-expression-1 | identifier-2 | literal-2
       *>               | OMITTED } … ) ]
-      *> §8.7.4 makes '::' the invocation operator; §8.4.3.4.4 GR1 defines the construct as the equivalent
+      *> §2023:8.7.4 makes '::' the invocation operator; §2023:8.4.3.4.4 GR1 defines the construct as the equivalent
       *> INVOKE statement delivering into a temporary whose description is the invoked method's RETURNING
       *> item (GR1 b)). kb/Work PB428: before this, the construct was a raw parse error in EVERY position.
       *> Every expected value below is DERIVED from the standard, not captured:
-      *>   1 MOVE …            §14.9.25.4 GR5 / Table 16 alphanumeric→alphanumeric: left-justified, space
+      *>   1 MOVE …            §2023:14.9.25.4 GR5 / Table 16 alphanumeric→alphanumeric: left-justified, space
       *>                       filled, so the PIC X(7) "ACCOUNT" arrives in PIC X(8) as "ACCOUNT ".
-      *>   2 argument          §8.4.3.4.4 GR1 a): the parenthesised operands are the USING arguments, so
+      *>   2 argument          §2023:8.4.3.4.4 GR1 a): the parenthesised operands are the USING arguments, so
       *>                       BAL 0 + 10 = 10, moved to PIC 9(4) → 0010.
-      *>   3 arithmetic        §8.8.1.1: the invocation is an identifier operand — BAL 10 + 5 = 15, + 1 = 16.
-      *>   4 DISPLAY           §14.9.11.4 GR3: the operand's character positions, "ACCOUNT ".
-      *>   5 reference-mod     §8.4.3.1.4 GR1 g) applies the modifier to the identifier on its left;
-      *>                       §8.4.3.3.4 GR5 takes positions 1..3 of "ACCOUNT " → "ACC".
-      *>   6 chained           §8.4.3.1.3 SR1 — identifier is defined recursively, so the temporary of one
+      *>   3 arithmetic        §2023:8.8.1.1: the invocation is an identifier operand — BAL 10 + 5 = 15, + 1 = 16.
+      *>   4 DISPLAY           §2023:14.9.11.4 GR3: the operand's character positions, "ACCOUNT ".
+      *>   5 reference-mod     §2023:8.4.3.1.4 GR1 g) applies the modifier to the identifier on its left;
+      *>                       §2023:8.4.3.3.4 GR5 takes positions 1..3 of "ACCOUNT " → "ACC".
+      *>   6 chained           §2023:8.4.3.1.3 SR1 — identifier is defined recursively, so the temporary of one
       *>                       invocation is identifier-1 of the next: MAKE yields a fresh ACC, GETNAME
       *>                       yields "ACCOUNT ".
-      *>   7 class-name        §8.4.3.4.2's object-class-name-1 arm, through the factory method OPENACC
+      *>   7 class-name        §2023:8.4.3.4.2's object-class-name-1 arm, through the factory method OPENACC
       *>                       (whose SELF "New" creates the account). New ITSELF is not inline-invocable:
-      *>                       §16.2 describes its RETURNING item with ACTIVE-CLASS, which §8.4.3.4.3 SR4
+      *>                       §2023:16.2 describes its RETURNING item with ACTIVE-CLASS, which §2023:8.4.3.4.3 SR4
       *>                       excludes (negative pb1548-inline-new-active-class; kb/Work PB1548).
-      *>   8 relation          §8.8.4.2.1 over two alphanumeric operands of equal size (§8.8.4.2.3 rule 2).
-      *>   9 nested argument   the argument is itself Format 4; §14.8.2.3.3 rule 2d (MOVE rules) governs the
+      *>   8 relation          §2023:8.8.4.2.1 over two alphanumeric operands of equal size (§2023:8.8.4.2.3 rule 2).
+      *>   9 nested argument   the argument is itself Format 4; §2023:14.8.2.3.3 rule 2d (MOVE rules) governs the
       *>                       crossing, because the GR1 c) temporary is not a data item defined in any of
-      *>                       §14.9.23.3 SR9's sections and GR6 a)2 therefore assumes BY CONTENT.
+      *>                       §2023:14.9.23.3 SR9's sections and GR6 a)2 therefore assumes BY CONTENT.
       *>  10 expression arg     kb/Work PB1135 / decision R59: `(5 + 1)` is ONE argument, the arithmetic-expression-1
-      *>                       of the printed brace (the spacing makes the + the binary operator, §8.7.1) - 6 is
+      *>                       of the printed brace (the spacing makes the + the binary operator, §2023:8.7.1) - 6 is
       *>                       added to BAL 15 (after 2 and 3) = 21.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB428IMI.

@@ -14,15 +14,15 @@ namespace WiseOwl.Cobol.Runtime;
 /// as a DISPLAY leaf and no second whole-group mechanism appears.
 /// </para>
 /// <para>
-/// The representations are implementor-defined (ISO/IEC 1989:2023 §13.18.60.4 GR4 BINARY "a radix of 2 is used",
+/// The representations are implementor-defined (ISO/IEC 1989:2023 §2023:13.18.60.4 GR4 BINARY "a radix of 2 is used",
 /// GR11 PACKED-DECIMAL "a radix of 10 … each digit position shall occupy the minimum possible configuration",
-/// GR7 DISPLAY) and §4.2.16 obliges us to document ours — <see cref="NumericByteForm"/> carries that
+/// GR7 DISPLAY) and §2023:4.2.16 obliges us to document ours — <see cref="NumericByteForm"/> carries that
 /// documentation and this file is its implementation. Widths come from <see cref="NumProfile.StorageLength"/>,
-/// which is what <c>FUNCTION BYTE-LENGTH</c> reports (§15.14.4 r1): ONE width, never two answers.
+/// which is what <c>FUNCTION BYTE-LENGTH</c> reports (§2023:15.14.4 r1): ONE width, never two answers.
 /// </para>
 /// <para>
 /// Scale is not represented — the image carries the UNSCALED digits and the decimal point stays implied, exactly
-/// as it is in storage (§13.18.40.4: V occupies no position).
+/// as it is in storage (§2023:13.18.40.4: V occupies no position).
 /// </para>
 /// </summary>
 public static partial class CobolNum
@@ -65,7 +65,7 @@ public static partial class CobolNum
     /// <para>⛔ THE UNSIGNED VALUE MUST NOT ENTER THE SIGNED LANE (kb/Work PB164 — the Step D review's
     /// sweep-note #409). It was written as <c>FormatImage(unchecked((Int128)unscaled), item)</c> on the theory
     /// that the reinterpretation is bit-identical. It is not, because
-    /// <see cref="FormatBinaryImage"/> applies §14.9.25.4 GR6b — "when an unsigned numeric item is the
+    /// <see cref="FormatBinaryImage"/> applies §2023:14.9.25.4 GR6b — "when an unsigned numeric item is the
     /// receiving item, the ABSOLUTE VALUE of the sending value is used" — and that rule is about a NEGATIVE
     /// VALUE, while a 16-byte container value ≥ 2^127 reinterprets to a negative <c>Int128</c> that is not a
     /// negative value at all. The rule then NEGATED the bit pattern: an item holding 2^128−1 encoded as
@@ -106,7 +106,7 @@ public static partial class CobolNum
     /// image is its IEEE 754 interchange encoding, 4 bytes for <see cref="NumericByteForm.Ieee32"/> / 8 for
     /// <see cref="NumericByteForm.Ieee64"/> — bit reinterpretation, never a numeric conversion, packed one
     /// byte per char exactly like the binary lane. The byte order follows the profile's effective FLOAT-BINARY
-    /// endianness (<see cref="NumProfile.FloatLittleEndian"/> — §13.18.60.4 GR19 + §11.9.8; big-endian is the
+    /// endianness (<see cref="NumProfile.FloatLittleEndian"/> — §2023:13.18.60.4 GR19 + §2023:11.9.8; big-endian is the
     /// documented default and the only order the non-standard float usages take). A double value entering an
     /// Ieee32 profile narrows to binary32 first (the item's own precision).
     /// DISTINCTLY NAMED (not FormatImage overloads): an integer argument converts implicitly to BOTH Int128
@@ -121,8 +121,8 @@ public static partial class CobolNum
     /// lane for a <c>float</c> value: the argument widens to <c>double</c> at the call, and an ISO/IEC 60559 format
     /// conversion QUIETS a signaling NaN (x64 <c>cvtss2sd</c> sets the quiet bit), so SET CONTENT …
     /// FLOAT-NOT-A-NUMBER-SIGNALING into a windowed FLOAT-BINARY-32 stored <c>0x7FC00001</c> — a QUIET NaN — where
-    /// ISO §14.9.39.4 rule 35 requires "a canonical representation of a signaling NaN", and a same-usage MOVE or a
-    /// group image round trip quieted one that §14.9.25.4 rule 6 c) says "is transferred to the receiving data
+    /// ISO §2023:14.9.39.4 rule 35 requires "a canonical representation of a signaling NaN", and a same-usage MOVE or a
+    /// group image round trip quieted one that §2023:14.9.25.4 rule 6 c) says "is transferred to the receiving data
     /// item without change". The emitter picks this lane from the ITEM (<c>RuntimeApi.NumFormatImageFloat</c>'s
     /// <c>single</c> argument), never from the value's C# type. Distinctly named for its twin's CS0121 reason.</summary>
     public static string FormatImageSingle(float value, in NumProfile item) =>
@@ -150,14 +150,14 @@ public static partial class CobolNum
     /// <summary>The RAW interchange-format bits of a float carrier's image (binary32 in the low 32 bits for
     /// <see cref="NumericByteForm.Ieee32"/>) — the decode <see cref="ParseImageFloat"/> performs, stopped BEFORE
     /// any numeric conversion. It exists because a binary32 → binary64 widening QUIETS a signaling NaN, so a
-    /// question about WHICH NaN an image holds (ISO §8.8.4.4.4 GR3 j)/k), kb/Work PB225) must be asked of these
+    /// question about WHICH NaN an image holds (ISO §2023:8.8.4.4.4 GR3 j)/k), kb/Work PB225) must be asked of these
     /// bits and never of the decoded <c>double</c>.</summary>
     public static ulong ImageFloatBits(string image, in NumProfile item)
     {
         int n = item.ByteForm is NumericByteForm.Ieee32 ? 4 : 8;
         ulong bits = 0;
         int take = image is null ? 0 : Math.Min(n, image.Length);
-        // HIGH-ORDER-RIGHT (§13.18.60.4 GR19b): the LAST byte is the most significant — walk reversed.
+        // HIGH-ORDER-RIGHT (§2023:13.18.60.4 GR19b): the LAST byte is the most significant — walk reversed.
         if (item.FloatLittleEndian)
             for (int i = take - 1; i >= 0; i--) bits = (bits << 8) | StorageByte.ImageByte(image![i]);
         else
@@ -191,9 +191,9 @@ public static partial class CobolNum
         _ => throw NoByteImage(item),
     };
 
-    // ── §14.6.13.2 rule 2 — the CHECKED sending read of a FIXED-POINT numeric item ─────────────────────────────
+    // ── §2023:14.6.13.2 rule 2 — the CHECKED sending read of a FIXED-POINT numeric item ─────────────────────────────
     //
-    // ⛔ THIS IS RULE 3's TWIN, AND IT WAS THE MISSING HALF OF A TWO-ARM DISPATCH (kb/Work PB230). §14.6.13.2
+    // ⛔ THIS IS RULE 3's TWIN, AND IT WAS THE MISSING HALF OF A TWO-ARM DISPATCH (kb/Work PB230). §2023:14.6.13.2
     // states five sibling conditions over the SAME subject — the content of a sending operand that is not valid:
     //   rule 1  a BOOLEAN sending item that would evaluate false in a boolean class condition  → EC-DATA-INCOMPATIBLE
     //   rule 2  a NUMERIC sending item that is NOT standard floating-point and would evaluate  → EC-DATA-INCOMPATIBLE
@@ -208,14 +208,14 @@ public static partial class CobolNum
     // WHERE IT CAN FIRE. Only a numeric leaf whose storage is a CHARACTER WINDOW (a Tier-B REDEFINES view, or a
     // whole-group-aliased StoreAsImage leaf) can hold content that fails its own class condition — the typed-native
     // model stores every other numeric leaf in a native carrier that can only hold digits, which is exactly why
-    // ConditionRenderer folds `IS NUMERIC` on such a leaf to the compile-time constant `true` (§8.8.4.4.4 GR3 n)1).
+    // ConditionRenderer folds `IS NUMERIC` on such a leaf to the compile-time constant `true` (§2023:8.8.4.4.4 GR3 n)1).
     // So the check rides the windowed decode, which is already the slow path, and a native-carrier read pays
     // nothing — not even a branch.
 
     /// <summary>The checked read of a FIXED-POINT numeric SENDING operand stored as its character image
-    /// (ISO §14.6.13.2 rule 2): return the decoded value, but when EC-DATA-INCOMPATIBLE checking is enabled and
+    /// (ISO §2023:14.6.13.2 rule 2): return the decoded value, but when EC-DATA-INCOMPATIBLE checking is enabled and
     /// the content "would evaluate to false in a numeric class condition" — <see cref="IsNumericImage"/>, the ONE
-    /// §8.8.4.4.4 GR3 n)1 predicate — raise the fatal EC-DATA-INCOMPATIBLE (via
+    /// §2023:8.8.4.4.4 GR3 n)1 predicate — raise the fatal EC-DATA-INCOMPATIBLE (via
     /// <see cref="ExceptionState.DataIncompatibleError"/>). The twin of <see cref="CobolFloat.Sending(double)"/>,
     /// emitted at the same two sending-read chokepoints (the numeric-value read and the string-image read).
     /// <para>Rule 2's exemption list is EXACTLY TWO entries — "a sending item is referenced in a class condition"
@@ -236,7 +236,7 @@ public static partial class CobolNum
     /// two copies of it would be two things to keep in step for no reason.</summary>
     private const string Rule2Detail =
         "the content of a numeric sending item is not valid for its data description "
-        + "(ISO §14.6.13.2 rule 2 — it would evaluate to false in a numeric class condition)";
+        + "(ISO §2023:14.6.13.2 rule 2 — it would evaluate to false in a numeric class condition)";
 
     /// <inheritdoc cref="ParseImageSending(string, in NumProfile)"/>
     public static UInt128 ParseImageU128Sending(string image, in NumProfile item) =>
@@ -245,7 +245,7 @@ public static partial class CobolNum
     /// <summary>The rule-2 checked sending read on the STRING channel — a ZONED window whose stored image IS its
     /// text, so it is handed on verbatim rather than decoded (<c>OperandText.FieldAsString</c>: a decode-and-
     /// reformat round trip would silently turn the incompatible content into zeros, which is the very content
-    /// this condition exists to report). §14.6.13.2 rule 2 speaks of the content being "referenced during the
+    /// this condition exists to report). §2023:14.6.13.2 rule 2 speaks of the content being "referenced during the
     /// execution of a statement" with no numeric-context qualification, so <c>DISPLAY N</c> and
     /// <c>MOVE N TO alphanumeric-item</c> reference it exactly as <c>ADD 1 TO N</c> does — the same two
     /// exemptions, the same raise, the same verbatim value once it has been reported.</summary>
@@ -256,7 +256,7 @@ public static partial class CobolNum
         return image;
     }
 
-    /// <summary>The magnitude digits of a signed ZONED numeric image that is the de-signed source of an alphanumeric MOVE or compare (ISO §14.9.25.4
+    /// <summary>The magnitude digits of a signed ZONED numeric image that is the de-signed source of an alphanumeric MOVE or compare (ISO §2023:14.9.25.4
     /// GR6a: "the operational sign is dropped"). A valid image is decoded and re-emitted (an over-punched digit becomes its plain digit); content
     /// that is NOT a valid representation — a numeric item still holding the spaces it was initialized with, such as an unused DEBUG-SUB-n — is
     /// copied as it stands, its separate sign character dropped, because the standard leaves the content of such a sender undefined and
@@ -272,7 +272,7 @@ public static partial class CobolNum
         };
     }
 
-    /// <summary><see cref="DeSignImage"/> as the checked sending read of §14.6.13.2 rule 2 (the twin of <see cref="SendingImage"/>): invalid content
+    /// <summary><see cref="DeSignImage"/> as the checked sending read of §2023:14.6.13.2 rule 2 (the twin of <see cref="SendingImage"/>): invalid content
     /// raises EC-DATA-INCOMPATIBLE under checking, and the verbatim digits stand once it has been reported.</summary>
     public static string DeSignImageSending(string image, in NumProfile item, int digits)
     {
@@ -282,14 +282,14 @@ public static partial class CobolNum
     }
 
     /// <summary>
-    /// ⛔ THE ONE NUMERIC CLASS CONDITION over a numeric item's STORED IMAGE (ISO §8.8.4.4.4 GR3 n)1) — "the content
+    /// ⛔ THE ONE NUMERIC CLASS CONDITION over a numeric item's STORED IMAGE (ISO §2023:8.8.4.4.4 GR3 n)1) — "the content
     /// of a data item … consists entirely of a valid representation for the usage". Two callers need this exact
     /// question and writing it twice would guarantee drift: the class condition itself (<c>IF W IS NUMERIC</c> over
-    /// a REDEFINES window) and §14.6.13.2 rule 2's checked sending read above, whose test the standard defines BY
+    /// a REDEFINES window) and §2023:14.6.13.2 rule 2's checked sending read above, whose test the standard defines BY
     /// REFERENCE to the class condition ("would evaluate to false in a numeric class condition"). One rule, one
     /// place.
     /// <para><b>Keyed on the BYTE FORM, because that is what "a valid representation for the usage" means</b>
-    /// (§13.18.60.4 GR7/GR11/GR12 leave each representation to the implementor and <see cref="NumericByteForm"/>
+    /// (§2023:13.18.60.4 GR7/GR11/GR12 leave each representation to the implementor and <see cref="NumericByteForm"/>
     /// is WiseOwl COBOL's documentation of ours):</para>
     /// <list type="bullet">
     /// <item>ZONED — GR3 n)1.a exactly: "the presence or absence of an operational sign … is in agreement with
@@ -307,7 +307,7 @@ public static partial class CobolNum
     /// and for <see cref="NumericTruncation.BinaryCapacity"/> the CONTAINER range — a COMP-5 / BINARY-* item's
     /// value range is its storage, so testing it against a picture would condemn values the item legitimately
     /// holds.</item>
-    /// <item>Standard floating-point — NOT this predicate's question. GR3 n)1.b is finiteness and §14.6.13.2
+    /// <item>Standard floating-point — NOT this predicate's question. GR3 n)1.b is finiteness and §2023:14.6.13.2
     /// rule 3 owns it as EC-DATA-NOT-FINITE (<see cref="CobolFloat.Sending(double)"/>); answering <c>true</c>
     /// here keeps the fixed-point raise off a float operand rather than double-reporting it.</item>
     /// </list>
@@ -323,7 +323,7 @@ public static partial class CobolNum
         _ => true,
     };
 
-    /// <summary>§8.8.4.4.4 GR3 n)1.a over a ZONED image — the class condition's own predicates, picked by the
+    /// <summary>§2023:8.8.4.4.4 GR3 n)1.a over a ZONED image — the class condition's own predicates, picked by the
     /// item's <see cref="NumProfile.SignKind"/> so the "in agreement with the data description" half is the
     /// item's declared sign presentation and not a guess. <see cref="NumericSign.BinaryMinus"/> on a zoned item
     /// is the leading-<c>-</c>-only form <see cref="ParseDisplay"/> decodes, so it is tested as written: an
@@ -338,13 +338,13 @@ public static partial class CobolNum
             NumericSign.LeadingOverpunch => CobolClass.IsNumericZoned(image, 1, leading: true, item.SignEncoding),
             NumericSign.BinaryMinus => !string.IsNullOrEmpty(image)
                 && CobolClass.IsNumeric(image[0] == '-' ? image[1..] : image),
-            // TrailingOverpunch — the DISPLAY default; the valid-sign set is the item's own §13.18.52.4 GR5 b)
+            // TrailingOverpunch — the DISPLAY default; the valid-sign set is the item's own §2023:13.18.52.4 GR5 b)
             // convention (kb/Work PB803), never a fixed one.
             _ => CobolClass.IsNumericZoned(image, 1, leading: false, item.SignEncoding),
         };
     }
 
-    /// <summary>§8.8.4.4.4 GR3 n)1.c over a PACKED image: every digit nibble is 0–9, the signed form's trailing
+    /// <summary>§2023:8.8.4.4.4 GR3 n)1.c over a PACKED image: every digit nibble is 0–9, the signed form's trailing
     /// nibble is a sign nibble (0xA–0xF — a digit there is not a representation of any sign), and the decoded
     /// value is within the picture's range. The nibble layout is <see cref="ParsePackedImage"/>'s, read the same
     /// way in both directions.</summary>
@@ -362,11 +362,11 @@ public static partial class CobolNum
         return InPictureRange(ParsePackedImage(image, item), item);
     }
 
-    /// <summary>§8.8.4.4.4 GR3 n)1.c's range half — "the numeric value is within the range of values implied by the
+    /// <summary>§2023:8.8.4.4.4 GR3 n)1.c's range half — "the numeric value is within the range of values implied by the
     /// PICTURE clause" — expressed as the item's OWN capacity discipline, the same one
     /// <see cref="CobolNum.TryStore"/> bounds a store by. A <see cref="NumericTruncation.BinaryCapacity"/> item
     /// (COMP-5 / BINARY-CHAR..DOUBLE) takes its value range from its storage, not from a picture
-    /// (§13.18.60.4 GR12 "the implementor may allow a wider range" / DOC-A.1-208), so every container value is in range.</summary>
+    /// (§2023:13.18.60.4 GR12 "the implementor may allow a wider range" / DOC-A.1-208), so every container value is in range.</summary>
     private static bool InPictureRange(Int128 unscaled, in NumProfile item) =>
         item.Truncation == NumericTruncation.BinaryCapacity
         || CobolDec.UAbs(unscaled) < (UInt128)Pow10Wide(item.Digits);
@@ -380,15 +380,15 @@ public static partial class CobolNum
         new($"no byte representation for a numeric item with ByteForm={item.ByteForm} "
             + $"(Digits={item.Digits}, StorageLength={item.StorageLength}) — it must never reach a record image");
 
-    // ── BINARY (radix 2, §13.18.60.4 GR4/GR6/GR12) ────────────────────────────────────────────────────────────
+    // ── BINARY (radix 2, §2023:13.18.60.4 GR4/GR6/GR12) ────────────────────────────────────────────────────────────
     // Two's complement, MOST SIGNIFICANT BYTE FIRST, in exactly StorageLength bytes. Big-endian is the choice
     // GR4 asks the implementor to make and is what IBM, Micro Focus and GnuCOBOL all write for USAGE BINARY, so
-    // a data file interchanges. An UNSIGNED item holds the magnitude (§14.9.25.4 GR6 d) 2. b. — "the absolute value").
+    // a data file interchanges. An UNSIGNED item holds the magnitude (§2023:14.9.25.4 GR6 d) 2. b. — "the absolute value").
 
     private static string FormatBinaryImage(Int128 unscaled, in NumProfile item)
     {
         int n = Width(item);
-        // §14.9.25.4 GR6b — an unsigned receiving item takes the ABSOLUTE VALUE of the sending value. This is a
+        // §2023:14.9.25.4 GR6b — an unsigned receiving item takes the ABSOLUTE VALUE of the sending value. This is a
         // VALUE-domain rule; the unsigned CARRIER lanes above therefore never come through here, because their
         // "negative" Int128 is a reinterpreted bit pattern, not a negative value.
         if (!item.Signed && unscaled < 0) unscaled = -unscaled;
@@ -397,7 +397,7 @@ public static partial class CobolNum
 
     /// <summary>The radix-2 rendering itself: <paramref name="raw"/>'s low <paramref name="n"/> bytes, most
     /// significant first, one byte per char. The ONE place binary bytes are laid out — the signed lane reaches
-    /// it after §14.9.25.4 GR6b normalization, the unsigned carrier lanes directly.</summary>
+    /// it after §2023:14.9.25.4 GR6b normalization, the unsigned carrier lanes directly.</summary>
     private static string BinaryBytes(UInt128 raw, int n)
     {
         var chars = new char[n];
@@ -410,7 +410,7 @@ public static partial class CobolNum
         int n = Width(item);
         UInt128 raw = 0;
         // A window shorter than the pinned width can only arrive from incompatible data (a short record's pad,
-        // §14.6.13.2 leaves it undefined): the bytes present are read as the LOW-order bytes, deterministically.
+        // §2023:14.6.13.2 leaves it undefined): the bytes present are read as the LOW-order bytes, deterministically.
         int take = image is null ? 0 : Math.Min(n, image.Length);
         for (int i = 0; i < take; i++) raw = (raw << 8) | StorageByte.ImageByte(image![i]);
         // UNCHECKED: a 16-byte unsigned container value ≥ 2^127 has no Int128 image, and the reinterpretation is
@@ -426,7 +426,7 @@ public static partial class CobolNum
     private static UInt128 Mask(UInt128 v, int bytes) =>
         bytes >= 16 ? v : v & ((UInt128.One << (8 * bytes)) - 1);
 
-    // ── PACKED-DECIMAL (radix 10 BCD, §13.18.60.4 GR11) ───────────────────────────────────────────────────────
+    // ── PACKED-DECIMAL (radix 10 BCD, §2023:13.18.60.4 GR11) ───────────────────────────────────────────────────────
     // Two digits per byte, most significant first, zero-padded on the left. NumericByteForm.Packed reserves
     // the LOW nibble of the last byte for the sign — 0xC positive, 0xD negative, 0xF for an item with no
     // operational sign (the IBM / Micro Focus / GnuCOBOL convention); NumericByteForm.PackedNoSign is the 2023
@@ -472,7 +472,7 @@ public static partial class CobolNum
         for (int i = 0; i < digitNibbles; i++)
         {
             int nib = (i % 2 == 0 ? StorageByte.ImageByte(image![i / 2]) >> 4 : StorageByte.ImageByte(image![i / 2])) & 0x0F;
-            // A non-decimal nibble is incompatible data (§14.6.13.2, undefined) — contribute no digit, exactly
+            // A non-decimal nibble is incompatible data (§2023:14.6.13.2, undefined) — contribute no digit, exactly
             // as the zoned decoder ignores a non-digit character, so the decode stays deterministic.
             if (nib <= 9) mag = mag * 10 + nib;
         }

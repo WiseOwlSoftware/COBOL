@@ -34,19 +34,19 @@ public sealed class CompilationInputs : IRepositoryInputs
     public IReadOnlyList<InputProbe> Probes => _probes;
 
     /// <summary>Every environment variable consulted and the value it had, <c>null</c> when it was unset — ISO
-    /// §7.3.11.4 GR4: a <c>&gt;&gt;DEFINE … PARAMETER</c> value "is obtained from the operating environment".</summary>
+    /// §2023:7.3.11.4 GR4: a <c>&gt;&gt;DEFINE … PARAMETER</c> value "is obtained from the operating environment".</summary>
     public IReadOnlyList<EnvironmentRead> EnvironmentReads => _environment;
 
-    /// <summary>True once the compilation read the wall clock — the WHEN-COMPILED stamp (§15.99.3 r2) is baked
+    /// <summary>True once the compilation read the wall clock — the WHEN-COMPILED stamp (§2023:15.99.3 r2) is baked
     /// into the program, so its output is a function of WHEN it was compiled, not only of its inputs.</summary>
     public bool ReadsCompilationTime { get; private set; }
 
-    /// <summary>True once the compilation consulted the external repository (ISO §8.13; DESIGN-external-repository §8.0):
+    /// <summary>True once the compilation consulted the external repository (ISO §2023:8.13; DESIGN-external-repository §8.0):
     /// it listed a repository directory or read an assembly's repository record, so its answers depend on which compiled
     /// assemblies exist there — a directory's whole listing, which no probe of this record states. A dependency record
     /// cannot replay that, so such a compilation is never served from a store of earlier outputs. A group that answers
     /// every specifier itself consults nothing (§16). <c>--repository-check</c>'s comparison with the previous build of the
-    /// output (§9.2 (a)) sets it only when it REPORTS a difference or a skew: a finding about a file the compilation then
+    /// output (§2023:9.2 (a)) sets it only when it REPORTS a difference or a skew: a finding about a file the compilation then
     /// replaces is one no replay over another previous build would repeat.</summary>
     public bool ReadsRepository { get; private set; }
 
@@ -70,7 +70,7 @@ public sealed class CompilationInputs : IRepositoryInputs
             case SourceTextReading.Malformed:
                 ReportOnce(diagnostics, DiagnosticCatalog.SourceTextMalformedForItsMark.Code, DiagnosticSeverity.Error,
                     $"the file begins with a {decoded.EncodingName} byte-order mark but is not well-formed {decoded.EncodingName}: the "
-                    + $"first byte it does not define is at offset {decoded.FaultOffset} — ISO §8.1.3.2 GR1 (Annex A.1 item 25): a file "
+                    + $"first byte it does not define is at offset {decoded.FaultOffset} — ISO §2023:8.1.3.2 GR1 (Annex A.1 item 25): a file "
                     + "with a byte-order mark is read in exactly the encoding the mark names, and this implementation does not substitute a "
                     + "character for a byte sequence that encoding does not define",
                     at);
@@ -79,7 +79,7 @@ public sealed class CompilationInputs : IRepositoryInputs
                 ReportOnce(diagnostics, DiagnosticCatalog.SourceTextReadAsLatin1.Code, DiagnosticSeverity.Warning,
                     "the file has no byte-order mark and is not well-formed UTF-8 (the first byte that is not UTF-8 is at offset "
                     + $"{decoded.FaultOffset}), so it is read as ISO/IEC 8859-1: each byte is the character with that code point — ISO "
-                    + "§8.1.3.2 GR1 (Annex A.1 item 25)",
+                    + "§2023:8.1.3.2 GR1 (Annex A.1 item 25)",
                     at);
                 break;
         }

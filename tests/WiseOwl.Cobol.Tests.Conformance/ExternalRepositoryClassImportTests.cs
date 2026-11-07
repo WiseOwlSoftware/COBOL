@@ -8,15 +8,15 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// ⛔ A CLASS ANOTHER COMPILATION GROUP DEFINES, IMPORTED FROM THE EXTERNAL REPOSITORY (ISO §12.3.8.3 SR6, §12.3.8.4 GR6;
+/// ⛔ A CLASS ANOTHER COMPILATION GROUP DEFINES, IMPORTED FROM THE EXTERNAL REPOSITORY (ISO §2023:12.3.8.3 SR6, §2023:12.3.8.4 GR6;
 /// DESIGN-external-repository §8.4, §10.1, §10.2, §14; kb/Work PB2104). Each Fact compiles a library of classes into a directory
 /// and a caller against it, as two separate compilations, and asserts what the caller's compilation says or does. The
 /// multi-unit golden of §17.1 (<c>conformance-suite/wiseowl/cases/12.3.8-REPOSITORY/pb2104_import_class_under_another_word</c>)
 /// covers the default layout and the run-time identity; these are the cases that need a directory layout, a damaged chain or an
 /// option no manifest case states.
-/// <para>The rules, checked: §12.3.8.3 SR6 "a) If literal-1 is specified, there shall be information in the external repository
+/// <para>The rules, checked: §2023:12.3.8.3 SR6 "a) If literal-1 is specified, there shall be information in the external repository
 /// for the class literal-1" and "b) If literal-1 is not specified, there shall be information in the external repository for the
-/// class object-class-name-1"; §12.3.8.4 GR6 "The compiler shall use the information specified for object-class-name-1 together
+/// class object-class-name-1"; §2023:12.3.8.4 GR6 "The compiler shall use the information specified for object-class-name-1 together
 /// with the external repository to determine the details of the class that is to be used".</para>
 /// </summary>
 public sealed class ExternalRepositoryClassImportTests
@@ -130,7 +130,7 @@ public sealed class ExternalRepositoryClassImportTests
         });
     }
 
-    [Fact]   // The word alone is the identity when no AS phrase is written (§12.3.8.4 GR2); a --reference file is searched after the directories.
+    [Fact]   // The word alone is the identity when no AS phrase is written (§2023:12.3.8.4 GR2); a --reference file is searched after the directories.
     public void AClassIsImportedByItsWord_FromAReferencedAssembly()
     {
         WithDirectory("class-reference", dir =>
@@ -141,7 +141,7 @@ public sealed class ExternalRepositoryClassImportTests
             var r = Compile(app, "P2104C", Client("CLASS P2104WORD", "P2104WORD"), repositories: [app],
                 references: [Path.Combine(lib, "P2104WORD.dll")]);
             Assert.True(r.Success, Codes(r));
-            // The deployment contract (§11.4): a class assembly the build references statically is loaded by the CLR from the
+            // The deployment contract (§2023:11.4): a class assembly the build references statically is loaded by the CLR from the
             // application directory, so it is deployed with the run unit as any .NET application's reference is.
             File.Copy(Path.Combine(lib, "P2104WORD.dll"), Path.Combine(app, "P2104WORD.dll"));
             var (exit, stdout, stderr) = CutRunner.RunExit(Path.Combine(app, "P2104C.dll"), app);
@@ -262,7 +262,7 @@ public sealed class ExternalRepositoryClassImportTests
         });
     }
 
-    [Fact]   // REPO-6: two needed assemblies of one simple name are one module namespace (§4.5, §8.6).
+    [Fact]   // REPO-6: two needed assemblies of one simple name are one module namespace (§2023:4.5, §2023:8.6).
     public void TwoNeededAssembliesOfOneSimpleName_AreRepo6()
     {
         WithDirectory("class-repo6", dir =>

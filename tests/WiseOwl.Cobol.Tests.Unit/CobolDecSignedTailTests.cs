@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// has ITS sign. The tail used to be folded into an unsigned sticky bit that <c>Round34Wide</c> reads as excess in the
 /// RESULT's direction — correct when the tail and the result agree in sign, wrong by a whole unit of the 34th digit
 /// when they do not: <c>1 − 1.0E−50</c> held 1.000…0, and under INTERMEDIATE ROUNDING IS TRUNCATION
-/// (§11.9.11.2 GR3 e: "the nearest value in that format that is nearer to zero than the intermediate value")
+/// (§2023:11.9.11.2 GR3 e: "the nearest value in that format that is nearer to zero than the intermediate value")
 /// the result must be 0.999…9, thirty-four nines.</para>
 /// <para>Every expected value below is the EXACT sum rounded to 34 significant digits in the named mode, computed
 /// with Python's <c>decimal</c> (precision 34, ROUND_DOWN / ROUND_HALF_UP / ROUND_HALF_EVEN) over an exact sum —
@@ -71,7 +71,7 @@ public sealed class CobolDecSignedTailTests
         Assert34(expected, op == "+" ? CobolDec.Add(x, y, mode) : CobolDec.Sub(x, y, mode));
     }
 
-    /// <summary>INTERMEDIATE ROUNDING IS PROHIBITED (§11.9.11.2 3) d)) must see an inexact signed tail as inexact, and an
+    /// <summary>INTERMEDIATE ROUNDING IS PROHIBITED (§2023:11.9.11.2 3) d)) must see an inexact signed tail as inexact, and an
     /// exactly representable difference must not raise.</summary>
     [Fact]
     public void Prohibited_RaisesOnAnInexactSignedTail_AndNotOnAnExactDifference()

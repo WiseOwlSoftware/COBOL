@@ -4,8 +4,8 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> ⛔ LINE-COUNTER IS THE HALF OF §8.4.3.15 THE STANDARD TAKES AWAY (kb/Work PB429).
-*> ISO/IEC 1989:2023 §8.4.3.15.3 SR1 admits BOTH report counters wherever an integer data item may appear:
+*> ⛔ LINE-COUNTER IS THE HALF OF §2023:8.4.3.15 THE STANDARD TAKES AWAY (kb/Work PB429).
+*> ISO/IEC 1989:2023 §2023:8.4.3.15.3 SR1 admits BOTH report counters wherever an integer data item may appear:
 *> "In the procedure division, PAGE-COUNTER and LINE-COUNTER may be referenced in any context where an
 *> integer data item may appear." SR3 then removes exactly one of them from one position:
 *> "LINE-COUNTER shall not be referenced as a receiving operand."

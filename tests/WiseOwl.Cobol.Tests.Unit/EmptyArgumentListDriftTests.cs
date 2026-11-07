@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ NO VARIADIC INTRINSIC BODY INVENTS A VALUE FOR AN EMPTY ARGUMENT LIST (kb/Work PB257).
 ///
-/// <para><b>The rule.</b> ISO <b>§15.3</b> — "The evaluation of an ALL subscript shall result in at least one
+/// <para><b>The rule.</b> ISO <b>§2023:15.3</b> — "The evaluation of an ALL subscript shall result in at least one
 /// argument, otherwise the result of the reference to the function-identifier is undefined" — plus each
 /// function's own <c>MinArgs</c>. A variadic statistical body therefore has NO defined answer over an empty
 /// list, and the one place that says so is <c>CobolIntrinsics.RequireArguments</c>, which raises
@@ -50,10 +50,10 @@ public sealed class EmptyArgumentListDriftTests
         t.StartsWith("//", StringComparison.Ordinal) || t.StartsWith("*", StringComparison.Ordinal)
         || t.StartsWith("/*", StringComparison.Ordinal);
 
-    /// <summary>True when <paramref name="line"/> answers an empty argument list instead of asserting the §15.3
+    /// <summary>True when <paramref name="line"/> answers an empty argument list instead of asserting the §2023:15.3
     /// invariant. <c>source.Length == 0</c> and friends inside the TEXT functions are a different question — a
-    /// zero-length ARGUMENT VALUE, which several §15 returned-value rules answer explicitly (§15.87.4 r1,
-    /// §15.37.4 r5) — so the predicate fires only on an identifier named like an argument LIST.</summary>
+    /// zero-length ARGUMENT VALUE, which several §15 returned-value rules answer explicitly (§2023:15.87.4 r1,
+    /// §2023:15.37.4 r5) — so the predicate fires only on an identifier named like an argument LIST.</summary>
     private static bool AnswersAnEmptyArgumentList(string line)
     {
         string t = line.Trim();
@@ -81,7 +81,7 @@ public sealed class EmptyArgumentListDriftTests
 
         Assert.True(offenders.Count == 0,
             $"{offenders.Count} intrinsic body(ies) answer an EMPTY argument list instead of asserting the "
-            + $"§15.3 at-least-one-argument invariant:{Environment.NewLine}"
+            + $"§2023:15.3 at-least-one-argument invariant:{Environment.NewLine}"
             + string.Join(Environment.NewLine, offenders.Select(o => "    " + o))
             + $"{Environment.NewLine}The standard defines no value over an empty list, so a body that returns "
             + "one is a wrong answer its carrier's twin does not share. Call "
@@ -108,9 +108,9 @@ public sealed class EmptyArgumentListDriftTests
         string[] legal =
         [
             "        RequireArguments(xs.Length, \"VARIANCE\");",
-            "        if (source.Length == 0 || froms.Any(f => f.Length == 0))",     // §15.87.4 r1 — a VALUE rule
-            "        if (hay.Length == 0 || needle.Length == 0) return 0;",         // §15.37.4 r5 — a VALUE rule
-            "        if (chars.Length == 0) return TrimOne(s, mode, ' ');",         // §15.96.3 r3's antecedent
+            "        if (source.Length == 0 || froms.Any(f => f.Length == 0))",     // §2023:15.87.4 r1 — a VALUE rule
+            "        if (hay.Length == 0 || needle.Length == 0) return 0;",         // §2023:15.37.4 r5 — a VALUE rule
+            "        if (chars.Length == 0) return TrimOne(s, mode, ' ');",         // §2023:15.96.3 r3's antecedent
             "        for (int i = 1; i < xs.Length; i++)",
             "        return CobolDec.Div(acc, CobolDec.From(xs.Length, 0), mode);",
             "    /// carried <c>if (xs.Length == 0) return 0;</c> — a silent value",
@@ -120,13 +120,13 @@ public sealed class EmptyArgumentListDriftTests
     }
 
     /// <summary>The POSITIVE half, and it is a UNIFORM rule with NO exemption list: every variadic NUMERIC
-    /// argument list in the intrinsic runtime asserts the §15.3 invariant AT ITS OWN ENTRY.</summary>
+    /// argument list in the intrinsic runtime asserts the §2023:15.3 invariant AT ITS OWN ENTRY.</summary>
     /// <remarks><para>A delegating body is not exempt — RANGE over MAX/MIN, MEAN over SUM, MIDRANGE over
     /// MAX/MIN, STANDARD-DEVIATION over VARIANCE all assert it themselves. The assertion is one integer
     /// compare; an exemption is a list somebody has to maintain, and a list is exactly what CLAUDE.md rule 5
     /// says not to put where a structure belongs. The scope is the NUMERIC carriers — <c>double</c>,
     /// <c>CobolDec</c> and <c>Int128</c>, the three copies of the same ten statistical functions — because a
-    /// variadic STRING list is a different question: §15.18 CONCAT and §15.96 TRIM have returned-value rules
+    /// variadic STRING list is a different question: §2023:15.18 CONCAT and §2023:15.96 TRIM have returned-value rules
     /// that define their own empty cases, and the string extremes reach the invariant through their one
     /// selection helper instead.</para></remarks>
     [Fact]
@@ -168,7 +168,7 @@ public sealed class EmptyArgumentListDriftTests
             $"only {measured} variadic numeric intrinsic body(ies) were measured — the scan found nothing to "
             + "check, which is not the same as finding nothing wrong");
         Assert.True(offenders.Count == 0,
-            $"{offenders.Count} variadic numeric intrinsic body(ies) do not assert the §15.3 at-least-one-"
+            $"{offenders.Count} variadic numeric intrinsic body(ies) do not assert the §2023:15.3 at-least-one-"
             + $"argument invariant at their own entry:{Environment.NewLine}"
             + string.Join(Environment.NewLine, offenders.Select(o => "    " + o))
             + $"{Environment.NewLine}Call CobolIntrinsics.RequireArguments(<array>.Length, \"<FUNCTION>\") as "

@@ -10,14 +10,14 @@ using WiseOwl.Cobol.Tests.Shared;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// ISO §8.8.4.2.1 — "A relation condition shall contain at least one reference to an operand that is not a literal"
-/// (kb/Work PB1470). The sentence is neither a general format nor a syntax rule, so §4.2.2's warning mechanism
+/// ISO §2023:8.8.4.2.1 — "A relation condition shall contain at least one reference to an operand that is not a literal"
+/// (kb/Work PB1470). The sentence is neither a general format nor a syntax rule, so §2023:4.2.2's warning mechanism
 /// indicates it: COBOL3146, a WARNING at every edition (docs/CONFORMANCE.md D-RELLITERAL), the relation compiling and
 /// evaluating as written (<c>conformance:cases/8.8.4.2-Simple-relation-conditions/pb1470_relation_of_two_literals_runs</c> pins the values).
 /// <para>The EXPECTED verdict is computed here from the rule over each operand kind's one property — is it a literal as
-/// the source wrote it? A figurative constant is one (§8.3.3.6 is a clause of §8.3.3 Literals), a symbolic-character is
-/// "a user-defined figurative constant" (§8.3.2.2.29), and a constant-name's effect "is as if literal-1 … were written
-/// where constant-name-1 is written" (§13.10.4 GR1). A data item, an arithmetic expression and a function-identifier
+/// the source wrote it? A figurative constant is one (§2023:8.3.3.6 is a clause of §2023:8.3.3 Literals), a symbolic-character is
+/// "a user-defined figurative constant" (§2023:8.3.2.2.29), and a constant-name's effect "is as if literal-1 … were written
+/// where constant-name-1 is written" (§2023:13.10.4 GR1). A data item, an arithmetic expression and a function-identifier
 /// (folded at bind time or not) are not. Adding an operand kind is one row of <see cref="Kinds"/>; every pair it forms
 /// is then checked automatically.</para>
 /// </summary>
@@ -32,13 +32,13 @@ public sealed class RelationLiteralOperandTests
     [
         new("LI", "1", Literal: true),                         // numeric literal
         new("LA", "\"A\"", Literal: true),                     // alphanumeric literal
-        new("LX", "X\"41\"", Literal: true),                   // hexadecimal alphanumeric literal (§8.3.3.2 Format 2)
+        new("LX", "X\"41\"", Literal: true),                   // hexadecimal alphanumeric literal (§2023:8.3.3.2 Format 2)
         new("SP", "SPACE", Literal: true),                     // figurative constant
         new("ZR", "ZERO", Literal: true),
         new("HV", "HIGH-VALUE", Literal: true),
-        new("AL", "ALL \"A\"", Literal: true),                 // ALL literal (§8.3.3.6.2 Format 6)
-        new("SB", "SB", Literal: true),                        // symbolic-character (§8.3.2.2.29)
-        new("KT", "KT", Literal: true),                        // constant-name of an alphanumeric literal (§13.10.4 GR1)
+        new("AL", "ALL \"A\"", Literal: true),                 // ALL literal (§2023:8.3.3.6.2 Format 6)
+        new("SB", "SB", Literal: true),                        // symbolic-character (§2023:8.3.2.2.29)
+        new("KT", "KT", Literal: true),                        // constant-name of an alphanumeric literal (§2023:13.10.4 GR1)
         new("KN", "KN", Literal: true),                        // constant-name of a numeric literal
         new("XA", "XA", Literal: false),                       // alphanumeric data item
         new("ND", "ND", Literal: false),                       // numeric data item
@@ -94,14 +94,14 @@ public sealed class RelationLiteralOperandTests
             if (got != want) wrong.Add($"{l.Operand} = {r.Operand}: expected {want} COBOL3146, got {got}");
         }
         Assert.True(wrong.Count == 0 && warned.Keys.All(lineOf.ContainsKey),
-            "ISO §8.8.4.2.1 verdicts differ:\n  " + string.Join("\n  ", wrong));
+            "ISO §2023:8.8.4.2.1 verdicts differ:\n  " + string.Join("\n  ", wrong));
     }
 
     /// <summary>⛔ EVERY SURFACE THAT WRITES A RELATION CONDITION asks the rule (<c>ConditionBinder.WrittenRelational</c>):
-    /// PERFORM UNTIL, SEARCH WHEN, an abbreviated relation's inserted subject (§8.8.4.12 — <c>1 = ND OR 2</c> holds the
-    /// relation <c>1 = 2</c>), and an EVALUATE partial-expression, which §14.9.13.3 SR8 treats "as though it were
+    /// PERFORM UNTIL, SEARCH WHEN, an abbreviated relation's inserted subject (§2023:8.8.4.12 — <c>1 = ND OR 2</c> holds the
+    /// relation <c>1 = 2</c>), and an EVALUATE partial-expression, which §2023:14.9.13.3 SR8 treats "as though it were
     /// specified as condition-2". The complement: an EVALUATE subject/object pair and a range are governed by
-    /// §14.9.13.3 SR10's Table 15, which permits a range-expression against a literal subject, and an abbreviated
+    /// §2023:14.9.13.3 SR10's Table 15, which permits a range-expression against a literal subject, and an abbreviated
     /// relation whose inserted subject is a data item compares a data item.</summary>
     [Theory]
     [InlineData("RLITS1", "PERFORM UNTIL 1 = 1 CONTINUE END-PERFORM", 1)]
@@ -121,7 +121,7 @@ public sealed class RelationLiteralOperandTests
     }
 
     /// <summary>A WARNING at every edition, never an error: the program compiles strict and the relation is evaluated
-    /// as written (§4.2.2's warning mechanism; D-RELLITERAL).</summary>
+    /// as written (§2023:4.2.2's warning mechanism; D-RELLITERAL).</summary>
     [Theory]
     [InlineData(85)]
     [InlineData(2002)]
@@ -139,7 +139,7 @@ public sealed class RelationLiteralOperandTests
             """, edition);
         Assert.True(ok, string.Join(" | ", errors));
         Assert.Single(warnings, w => w.Contains("warning COBOL3146", StringComparison.Ordinal)
-            && w.Contains("§8.8.4.2.1", StringComparison.Ordinal));
+            && w.Contains("§2023:8.8.4.2.1", StringComparison.Ordinal));
     }
 
     private static Dictionary<int, int> WarningLines(IEnumerable<string> warnings) =>

@@ -12,12 +12,12 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// limbs of this digit string (DESIGN §1.2 invariant 2 keeps <c>BigInteger</c> out of the runtime), so a
 /// wrong digit is a wrong sine for every argument whose reduction reads it. The constant is re-derived here
 /// independently — 1/(2π) by Machin's formula over a <c>BigInteger</c> fixed point, a test-only type — and its
-/// length is pinned to the SDIDI's range (ISO §8.8.1.5.2: the largest magnitude is 9.999…E+6144, so a significand
+/// length is pinned to the SDIDI's range (ISO §2023:8.8.1.5.2: the largest magnitude is 9.999…E+6144, so a significand
 /// digit sits at 10^6144 at most and the reduction reads <c>CobolIntrinsics.ReductionPlaces</c> places past it).
 /// </summary>
 public sealed class InverseTwoPiDigitsDriftTests
 {
-    private const int TopPlace = 6144;   // §8.8.1.5.2 — 9.999…E+6144
+    private const int TopPlace = 6144;   // §2023:8.8.1.5.2 — 9.999…E+6144
 
     [Fact]
     public void TheDigitString_CoversEveryPlaceAnSdidiDigitCanOccupy()

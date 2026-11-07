@@ -8,13 +8,13 @@ namespace WiseOwl.Cobol.Binding;
 /// <summary>
 /// ⛔ THE ANSWERS THE BACKEND READS OF THE BINDER'S RULE FAMILIES, WRITTEN ONCE OVER THE FINISHED BIND (kb/Work PB2403;
 /// DESIGN-architecture-review §8; DESIGN-backend-abstraction §1.1). The activation descriptions (<see cref="ActivationDescriptions"/>,
-/// whose item half reads the binder's MOVE, Table 16 and prototype-signature rules), the §9.3.8.2.3 pair-mode relation
+/// whose item half reads the binder's MOVE, Table 16 and prototype-signature rules), the §2023:9.3.8.2.3 pair-mode relation
 /// (<see cref="OoConformance.SignatureDifference"/>), the class table's RAISING resolution and an external file connector's
-/// §12.4.5.3 GR1 identity (<see cref="FileEntryIdentity"/>) are binder questions. A backend renders their answers and never
+/// §2023:12.4.5.3 GR1 identity (<see cref="FileEntryIdentity"/>) are binder questions. A backend renders their answers and never
 /// asks them, so a second backend (direct CIL) needs neither the class table nor the binder's rule families: each answer is a
 /// value on the node the backend already reads.
 /// <para>It runs at the end of <c>BinderDriver.Bind</c>, after the group tail, beside the repository records
-/// (<c>RepositoryPublication</c>), so every class fact a description carries (§9.3.6 match rule 6's class lineage) and every
+/// (<c>RepositoryPublication</c>), so every class fact a description carries (§2023:9.3.6 match rule 6's class lineage) and every
 /// record layout an entry identity measures is final. Each answer is written where the backend asked for it, and only for
 /// the nodes it asked about: a unit's formal and RETURNING descriptions for a unit that registers them (one that checks
 /// EC-PROGRAM-ARG-MISMATCH) or publishes a host entry, and a method's for a method with a universal dispatch case.</para>
@@ -31,7 +31,7 @@ internal static class BackendAnswers
         {
             unit.RaisingObjects = Resolve(unit.Bound.Raising ?? [], table);
             bool entry = entries.Contains(unit);
-            // The unit's registration states its descriptions only when it checks EC-PROGRAM-ARG-MISMATCH itself (§14.9.4.4
+            // The unit's registration states its descriptions only when it checks EC-PROGRAM-ARG-MISMATCH itself (§2023:14.9.4.4
             // GR3 d)'s activated half; kb/Work PB165); a host entry's arguments always state them (DESIGN-external-repository §4.3).
             if (entry || !unit.IsPrototype && unit.Data.UnitChecking.ArgMismatchChecking)
             {
@@ -45,8 +45,8 @@ internal static class BackendAnswers
             {
                 if (method.Binding is not { } binding) continue;
                 binding.RaisingObjects = Resolve(method.Raising, table);
-                // A universal dispatch case exists for a method that overrides nothing and has no BY VALUE formal (§9.3.6 match
-                // rule 3 a): a universal invocation passes every argument BY REFERENCE, §14.9.23.3 SR6).
+                // A universal dispatch case exists for a method that overrides nothing and has no BY VALUE formal (§2023:9.3.6 match
+                // rule 3 a): a universal invocation passes every argument BY REFERENCE, §2023:14.9.23.3 SR6).
                 if (method.OverrideOf is not null || binding.Formals.Any(f => f.ByValue)) continue;
                 binding.FormalDescriptions = [.. binding.Formals.Select(f => ActivationDescriptions.OfFormal(f, table))];
                 binding.ReturningDescription = binding.Returning is { } returning ? ActivationDescriptions.Of(returning, table) : null;

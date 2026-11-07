@@ -11,12 +11,12 @@ namespace WiseOwl.Cobol.Tests.Unit.Collation;
 
 /// <summary>
 /// The run unit's ONE locale state (Runtime/Control/LocaleState.cs; DESIGN-locale-facility §4.3; kb/Work PB64 T1):
-/// the §14.6.6 state model (r1 a copy at activation, r3 category independence, §14.9.39.4 GR25 persistence), SET
+/// the §2023:14.6.6 state model (r1 a copy at activation, r3 category independence, §2023:14.9.39.4 GR25 persistence), SET
 /// format 11's four sources (GR22/GR23), format 12's saved-locale HANDLE (GR26/GR27; DETERMINATION L4) and its
 /// per-category snapshot, the two runtime conditions the statements own — EC-LOCALE-MISSING (GR24) and
 /// EC-LOCALE-INVALID-PTR (GR21) — through their checking flags (a raise only while checking is on; the state is
 /// unchanged either way), DETERMINATION L1's normalization of external identifications, and the SORT snapshot
-/// (§14.6.6 r5 — <c>CobolCollation.Snapshot</c>). The suite tests pb64t1_* (conformance-suite/cases/) prove the same
+/// (§2023:14.6.6 r5 — <c>CobolCollation.Snapshot</c>). The suite tests pb64t1_* (conformance-suite/cases/) prove the same
 /// through compiled COBOL; this pins the runtime's contract directly.
 /// </summary>
 [Collection("process-globals")]   // reads the process-global locale configuration (the site tailoring directory variable a
@@ -28,7 +28,7 @@ public sealed class LocaleStateTests
     {
         var st = new LocaleState();
         foreach (LocaleCategory c in Enum.GetValues<LocaleCategory>())
-            Assert.Equal(st.UserDefault[c], st.Current(c));                              // §14.6.6 r1
+            Assert.Equal(st.UserDefault[c], st.Current(c));                              // §2023:14.6.6 r1
         st.SetUserDefaultFromLocale("es-ES");                                               // GR22
         Assert.Equal("es-ES", st.UserDefault.Collate);
         Assert.Equal(LocaleValue.Of(st.UserDefault.Collate == "es-ES" ? st.CurrentLocale.Collate : "").Collate, st.Current(LocaleCategory.Collate));   // unchanged (a copy, not a reference)
@@ -45,7 +45,7 @@ public sealed class LocaleStateTests
         st.SetFromLocale(LocaleCategorySet.Numeric | LocaleCategorySet.Time, "sv-SE");
         Assert.Equal("sv-SE", st.Current(LocaleCategory.Numeric));
         Assert.Equal("sv-SE", st.Current(LocaleCategory.Time));
-        Assert.Equal(before, st.Current(LocaleCategory.Collate));                           // §14.6.6 r3
+        Assert.Equal(before, st.Current(LocaleCategory.Collate));                           // §2023:14.6.6 r3
         Assert.Equal(before, st.Current(LocaleCategory.Monetary));
         st.SetFromLocale(LocaleCategorySet.Collate, "es-ES");
         Assert.Equal("sv-SE", st.Current(LocaleCategory.Time));                             // GR25 — still in effect
@@ -89,7 +89,7 @@ public sealed class LocaleStateTests
             st.SetFromLocale(LocaleCategorySet.Collate, "es-ES");
             var foreign = new LocaleState().Save(false);
             var cell = ManagedPointer.At(new StorageCell { Ref = "abcd" }, 0);
-            // checking OFF: unsuccessful, silent, unchanged (§14.6.13.1.1)
+            // checking OFF: unsuccessful, silent, unchanged (§2023:14.6.13.1.1)
             st.SetFromSaved(LocaleCategorySet.Collate, ManagedPointer.Null);
             st.SetFromSaved(LocaleCategorySet.Collate, cell);
             st.SetFromSaved(LocaleCategorySet.Collate, foreign);
@@ -194,7 +194,7 @@ public sealed class LocaleStateTests
         RunUnit.Run(ru =>
         {
             ru.Locale.SetFromLocale(LocaleCategorySet.Collate, "es-ES");
-            var snap = LocaleCollation.Current.Snapshot();                                   // §14.6.6 r5
+            var snap = LocaleCollation.Current.Snapshot();                                   // §2023:14.6.6 r5
             var bound = new LocaleCollation("sv");
             var pinned = bound.Snapshot();                                                     // a NEW sequence: it pins
             Assert.NotSame(bound, pinned);
@@ -216,7 +216,7 @@ public sealed class LocaleStateTests
         });
     }
 
-    /// <summary>kb/Work PB3331 (review w1123b R1-1): a snapshot (§14.6.6 r5; §12.4.5.7.4 GR1 for an open indexed file)
+    /// <summary>kb/Work PB3331 (review w1123b R1-1): a snapshot (§2023:14.6.6 r5; §2023:12.4.5.7.4 GR1 for an open indexed file)
     /// resolves ONE collator, at its first use, and keeps it. The engine's caches can be dropped between two uses
     /// (<c>LocaleManager.ClearCache</c>), which makes the next resolution a NEW collator, and
     /// <see cref="WiseOwl.Cobol.Runtime.Collation.CollationKey.CompareTo"/> refuses keys of two collators: the live form shows
@@ -245,7 +245,7 @@ public sealed class LocaleStateTests
     /// its runs while RETURN reads them, and each run head's key is built when the head advances
     /// (<c>SortKeyColumns.Set</c>). A cache clear between two RETURNs gave the heads keys of two collators, and the merge's
     /// comparison threw; through the statement's snapshot every key is one collator's, so the RETURNs complete in the
-    /// key's LOCALE order (§14.9.40.4 GR8, §8.8.4.2.11), stable on equal keys (GR3 b).</summary>
+    /// key's LOCALE order (§2023:14.9.40.4 GR8, §2023:8.8.4.2.11), stable on equal keys (GR3 b).</summary>
     [Fact]
     public void ASortMergingRuns_KeepsOneCollator_AcrossACacheClearBetweenReturns()
     {

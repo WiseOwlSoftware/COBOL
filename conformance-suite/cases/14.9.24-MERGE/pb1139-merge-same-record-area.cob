@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB1139 - A USING FILE AND A GIVING FILE OF ONE MERGE IN ONE SAME RECORD AREA CLAUSE ARE REFUSED.
       *>   cite.py --check 14.9.24.3 "The only file-names in a MERGE statement that may be specified in the same SAME
-      *>     RECORD AREA clause are those associated with the GIVING phrase." -> OK §14.9.24.3 11)
+      *>     RECORD AREA clause are those associated with the GIVING phrase." -> OK §2023:14.9.24.3 11)
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1139J.
        ENVIRONMENT DIVISION.

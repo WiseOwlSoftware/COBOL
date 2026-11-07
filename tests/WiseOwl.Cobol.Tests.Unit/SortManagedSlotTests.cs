@@ -9,10 +9,10 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ A SORT RECORD'S MANAGED SLOTS TRAVEL WITH ITS CHARACTERS (kb/Work PB4772). ISO §14.9.32.4 GR2: "The execution of a
+/// ⛔ A SORT RECORD'S MANAGED SLOTS TRAVEL WITH ITS CHARACTERS (kb/Work PB4772). ISO §2023:14.9.32.4 GR2: "The execution of a
 /// RELEASE statement causes the record named by record-name-1 to be released to the initial phase of a sort operation",
-/// and §14.9.34.4 GR3: the RETURN makes "the next existing record ... in the record area". A strongly-typed record's
-/// message-tag, object-reference or pointer leaf (§13.18.60.3 SR14) has no byte form, so <c>CobolSort.ReleaseStatement</c>
+/// and §2023:14.9.34.4 GR3: the RETURN makes "the next existing record ... in the record area". A strongly-typed record's
+/// message-tag, object-reference or pointer leaf (§2023:13.18.60.3 SR14) has no byte form, so <c>CobolSort.ReleaseStatement</c>
 /// takes its leaf vector beside the image and <c>CobolSort.LastReturnedSlots</c> gives it back with the record the
 /// RETURN delivers. The slots stay in memory while the characters spill into run files, so the cases here are the ones
 /// a store that holds only strings gets wrong: a record far past the memory limit, a mix of records with and without
@@ -114,7 +114,7 @@ public sealed class SortManagedSlotTests : IDisposable
         });
     }
 
-    /// <summary>§14.9.32.4 GR1: a RELEASE outside an input procedure is EC-FLOW-RELEASE and releases nothing; with the
+    /// <summary>§2023:14.9.32.4 GR1: a RELEASE outside an input procedure is EC-FLOW-RELEASE and releases nothing; with the
     /// checking on, the raise precedes the release, so the slots it was handed are never kept and the records that follow
     /// still return their own.</summary>
     [Fact]
@@ -132,7 +132,7 @@ public sealed class SortManagedSlotTests : IDisposable
                 Assert.Equal("EC-FLOW-RELEASE",
                     Assert.Throws<CobolFatalException>(() => CobolSort.ReleaseStatement(sd, a, 0, a.Length, slots: SlotsOf(1))).EcName);
                 CobolSort.EnterProcedure(sd, output: false);
-                // §13.18.43.4 GR14 b): a size outside the record range is EC-SORT-MERGE-RELEASE, and it releases nothing.
+                // §2023:13.18.43.4 GR14 b): a size outside the record range is EC-SORT-MERGE-RELEASE, and it releases nothing.
                 ExceptionState.SortMergeReleaseChecking = true;
                 Assert.Equal("EC-SORT-MERGE-RELEASE",
                     Assert.Throws<CobolFatalException>(() => CobolSort.ReleaseStatement(sd, a, 0, a.Length - 1, slots: SlotsOf(1))).EcName);

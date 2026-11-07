@@ -5,13 +5,13 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §8.5.1.11.3 2) — initial program: VL items reset per CALL
+      *> ISO §2023:8.5.1.11.3 2) — initial program: VL items reset per CALL
       *> An initial program's variable-length items, whose resources may
       *> be freed at its GOBACK, revert to initial state on every
       *> activation; a non-initial program's keep their last-used state.
       *>
       *> THE RULES.
-      *> §8.5.1.11.3: "The resources used by a variable-length data item
+      *> §2023:8.5.1.11.3: "The resources used by a variable-length data item
       *>   may be freed automatically when: ... 2) the program
       *>     containing
       *>   the data item is an initial program and executes an EXIT
@@ -20,9 +20,9 @@
       *>   item ... this has no effect on the results of the execution
       *>     of
       *>   the program."
-      *>   OK  §8.5.1.11.3 2)  /  OK  §8.5.1.11.3 (persistence
+      *>   OK  §2023:8.5.1.11.3 2)  /  OK  §2023:8.5.1.11.3 (persistence
       *>     paragraph)
-      *> §8.6.4: "A variable-length data item is in its initial state at
+      *> §2023:8.6.4: "A variable-length data item is in its initial state at
       *>   the start of processing and reverts to its initial state
       *>     under
       *>   the same circumstances as defined for other data items."
@@ -30,16 +30,16 @@
       *>   its initial state is zero."  Working-storage items of an
       *>   initial program "are set to their initial state each time an
       *>   initial program is activated"; those of a program that is not
-      *>   initial are static items.                    OK  §8.6.4
-      *> §11.10.4 GR3: "When an initial program is activated, the data
+      *>   initial are static items.                    OK  §2023:8.6.4
+      *> §2023:11.10.4 GR3: "When an initial program is activated, the data
       *>   items and file connectors contained in it ... are set to
       *>     their
-      *>   initial states."                             OK  §11.10.4 3)
-      *> §8.5.1.9.1: no FROM phrase and no VALUE clause, so "the current
-      *>   capacity is initialized to zero".            OK  §8.5.1.9.1
-      *> §8.5.1.9.3: MOVE to TE (5) past capacity 0 creates the element
-      *>   and raises the capacity to 5.                OK  §8.5.1.9.3
-      *> §8.5.1.10.4 / §15.50.4 GR6: MOVE "ABCD" makes the current
+      *>   initial states."                             OK  §2023:11.10.4 3)
+      *> §2023:8.5.1.9.1: no FROM phrase and no VALUE clause, so "the current
+      *>   capacity is initialized to zero".            OK  §2023:8.5.1.9.1
+      *> §2023:8.5.1.9.3: MOVE to TE (5) past capacity 0 creates the element
+      *>   and raises the capacity to 5.                OK  §2023:8.5.1.9.3
+      *> §2023:8.5.1.10.4 / §2023:15.50.4 GR6: MOVE "ABCD" makes the current
       *>     length
       *>   4, which FUNCTION LENGTH returns.            OK  both
       *> No TO phrase, so no expected capacity and no EC-BOUND-OVERFLOW.

@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB431 — ISO §14.9.28.2 Format 3 (exception-checking PERFORM) prints NO loop-control phrase:
+      *> kb/Work PB431 — ISO §2023:14.9.28.2 Format 3 (exception-checking PERFORM) prints NO loop-control phrase:
       *> its head is [ WITH LOCATION ] and nothing else, followed by imperative-statement-1 and the WHEN
       *> phrases (rendered from the printed page 682 / PDF 712). Formats 2 and 3 share one grammar
       *> alternative here, so a times-phrase can be written before the WHEN — and the Format-3 binder never

@@ -7,7 +7,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// <summary>
 /// G6 (DISPLAY-homogeneous, with numeric-DISPLAY leaves): whole-group MOVE / DISPLAY / compare for a group that mixes
 /// alphanumeric and <b>numeric USAGE-DISPLAY</b> leaves (e.g. the CCVS <c>TEST-RESULTS</c> record with its
-/// <c>DOTVALUE PIC 99</c>). Per ISO/IEC 1989:2023 §14.9 MOVE general rule 4, a whole-group move is a pure character
+/// <c>DOTVALUE PIC 99</c>). Per ISO/IEC 1989:2023 §2023:14.9 MOVE general rule 4, a whole-group move is a pure character
 /// copy with no conversion, "filled without consideration for the individual elementary or group items", so a numeric-DISPLAY
 /// subordinate can legitimately hold non-numeric characters (spaces). WiseOwl COBOL stores such a leaf as its character
 /// image (a <c>string</c>) — NOT a lossy native <c>long</c> — so the group image is byte-faithful (no byte[] — the
@@ -53,7 +53,7 @@ public sealed class GroupNumericLeafDifferentialTests
 
     [Fact]
     public void SpacesLandInNumericPosition_TheCcvsDotvalueCase()
-        // MOVE a short literal to the group → the trailing numeric leaf's positions get SPACES (ISO §14.9.25.4 GR4: no
+        // MOVE a short literal to the group → the trailing numeric leaf's positions get SPACES (ISO §2023:14.9.25.4 GR4: no
         // conversion), NOT "00". The bracket exposes the internal spaces, so spec-pinned (legacy trims them).
         => AssertSpec(
             Program("""

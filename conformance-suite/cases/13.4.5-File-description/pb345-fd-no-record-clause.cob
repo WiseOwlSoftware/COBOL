@@ -4,12 +4,12 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> ISO/IEC 1989:2023 §13.4.5.3 syntax rule 3 a): "When no record description entries
+*> ISO/IEC 1989:2023 §2023:13.4.5.3 syntax rule 3 a): "When no record description entries
 *> are specified: a) a RECORD clause shall be specified in the file description entry"
-*> -- restated on the clause itself by §13.18.43.3 syntax rule 1, "If no record
+*> -- restated on the clause itself by §2023:13.18.43.3 syntax rule 1, "If no record
 *> description entries are specified in a file description entry for a file that is not
 *> a report file, the RECORD clause shall be specified."
-*> The rule is load-bearing, not decorative: §14.9.30.4 GR6 sizes the implied record
+*> The rule is load-bearing, not decorative: §2023:14.9.30.4 GR6 sizes the implied record
 *> description by "the maximum size established by the RECORD clause", so without one
 *> this file has no record area at all. kb/Work PB345 -> COBOL1836.
        IDENTIFICATION DIVISION.

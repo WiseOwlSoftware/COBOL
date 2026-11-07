@@ -5,23 +5,23 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.6.13.1.2 2) — a declarative whose indirectly activated
+      *> ISO §2023:14.6.13.1.2 2) — a declarative whose indirectly activated
       *> element terminates the run unit does not complete normally
       *> Rule: "A declarative procedure is said to complete normally
       *>   if, during execution of the declarative procedure, none of
       *>   the following occur: ... 2) Any directly or indirectly
       *>   activated runtime element terminates the run unit."
       *> cite.py:
-      *>   OK  §14.6.13.1.2 2)  (Normal completion of a declarative
+      *>   OK  §2023:14.6.13.1.2 2)  (Normal completion of a declarative
       *>       procedure)
-      *>   OK  §14.6.13.1.2   (Normal completion of a declarative
+      *>   OK  §2023:14.6.13.1.2   (Normal completion of a declarative
       *>       procedure) [lead sentence]
-      *>   OK  §14.6.13.1.4 3)  a nonfatal EC-USER condition
+      *>   OK  §2023:14.6.13.1.4 3)  a nonfatal EC-USER condition
       *>       with an applicable USE runs the declarative; "If
       *>       execution of the declarative completes normally,
       *>       execution continues as specified in the rules for normal
       *>       execution."
-      *>   OK  §14.9.42.4 6)  (General rules) "Execution of the run unit
+      *>   OK  §2023:14.9.42.4 6)  (General rules) "Execution of the run unit
       *>       terminates and control is transferred to the operating
       *>       system."
       *> Main raises EC-USER-STOPIT (checking ON); its USE declarative

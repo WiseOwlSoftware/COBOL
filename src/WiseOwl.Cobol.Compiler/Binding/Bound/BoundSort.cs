@@ -8,15 +8,15 @@ namespace WiseOwl.Cobol.Binding.Bound;
 // Binding/Procedure/Verbs/SortBinder.cs; these types STAY here — the emitter, BoundStores,
 // UsageCollectionPass, and the source-generated visitor key on this namespace).
 
-/// <summary>One sort/merge key (ISO §14.9.40 GR1/GR2 — significance is statement order, direction is the nearest
+/// <summary>One sort/merge key (ISO §2023:14.9.40 GR1/GR2 — significance is statement order, direction is the nearest
 /// preceding ASCENDING/DESCENDING word): its BYTE window within the SD record image (<paramref name="Offset"/>,
-/// <paramref name="Length"/> — compile-time, §14.9.40.3 SR6a/SR6e: the same byte positions are the key in EVERY
-/// record of the file; a national position occupies two of those bytes, §13.18.60.4 GR8 / D-N1) and its
+/// <paramref name="Length"/> — compile-time, §2023:14.9.40.3 SR6a/SR6e: the same byte positions are the key in EVERY
+/// record of the file; a national position occupies two of those bytes, §2023:13.18.60.4 GR8 / D-N1) and its
 /// <paramref name="Class"/>, which selects the comparator: a NUMERIC key compares algebraically by decoded value
-/// (GR8 → §8.8.4.2.4 — never through a collating sequence, and <paramref name="Item"/> carries the leaf whose
+/// (GR8 → §2023:8.8.4.2.4 — never through a collating sequence, and <paramref name="Item"/> carries the leaf whose
 /// profile decodes the window), a NATIONAL key decodes its byte pairs and compares under the GR5 national sequence
-/// (§8.8.4.2.9), and an alphanumeric or ordinary group key compares as characters under the GR5 alphanumeric
-/// sequence (§8.8.4.2.7). (A BOOLEAN key is not a legal key — §14.9.40.3 SR6 c), SR14 c); §14.9.24.3 SR4 c).)
+/// (§2023:8.8.4.2.9), and an alphanumeric or ordinary group key compares as characters under the GR5 alphanumeric
+/// sequence (§2023:8.8.4.2.7). (A BOOLEAN key is not a legal key — §2023:14.9.40.3 SR6 c), SR14 c); §2023:14.9.24.3 SR4 c).)
 /// <para><paramref name="LayoutRecord"/> is the place of the key's record when a variable-length member precedes
 /// the key (kb/Work PB1025; docs/CONFORMANCE.md §3 D-KWV): <paramref name="Offset"/> is then the key's offset in
 /// that record's FIXED run, and the runtime locates it in each record through the record type's layout. Null for
@@ -30,10 +30,10 @@ public sealed record BoundSortMergeKey(
     public IEnumerable<object> ImplicitOperands => LayoutRecord is null ? [] : [LayoutRecord];
 }
 
-/// <summary>The RECORD IS VARYING model of an SD/FD bound for the sort verbs (ISO §13.18.43): the resolved
+/// <summary>The RECORD IS VARYING model of an SD/FD bound for the sort verbs (ISO §2023:13.18.43): the resolved
 /// DEPENDING ON place — RELEASE takes each record's length from it (GR13a), RETURN restores each returned record's
-/// length into it (GR15) — and the min/max record sizes (the EC-SORT-MERGE-RELEASE bounds, §14.9.40 GR12b;
-/// §13.18.43.4 GR14 b) / GR19 b) for the RELEASE statement — tested by CobolSort, kb/Work PB1036).
+/// length into it (GR15) — and the min/max record sizes (the EC-SORT-MERGE-RELEASE bounds, §2023:14.9.40 GR12b;
+/// §2023:13.18.43.4 GR14 b) / GR19 b) for the RELEASE statement — tested by CobolSort, kb/Work PB1036).
 /// <paramref name="Depending"/> is null for a variable-length SD/FD with no DEPENDING phrase (RECORD m TO n —
 /// GR13b/c: each record then releases/writes at its own size; there is no length register to restore).</summary>
 public sealed record SortVaryingInfo(Place? Depending, int Min, int Max);
@@ -48,7 +48,7 @@ public interface IBoundSortVarying : IBoundImplicitOperands
     IEnumerable<object> IBoundImplicitOperands.ImplicitOperands => Varying is null ? [] : [Varying];
 }
 
-/// <summary><c>SORT file-name-1 …</c> (ISO §14.9.40 Format 1): the three-phase file sort (GR9 — release, sequence,
+/// <summary><c>SORT file-name-1 …</c> (ISO §2023:14.9.40 Format 1): the three-phase file sort (GR9 — release, sequence,
 /// return). <paramref name="Using"/>/<paramref name="InputProcedure"/> is the release phase (GR11/GR12),
 /// <paramref name="Giving"/>/<paramref name="OutputProcedure"/> the return phase (GR14/GR15); a procedure is the
 /// resolved inclusive pc range run as a bounded dispatch — the PC dispatcher's return IS the GR11/GR14
@@ -56,7 +56,7 @@ public interface IBoundSortVarying : IBoundImplicitOperands
 /// alphanumeric one for keys of class alphabetic/alphanumeric and the national one for keys of class national,
 /// each taken from the statement alphabet first, else the matching program collating sequence, else native.
 /// The sort file's record length is <see cref="FileModel.RecordWidth"/> of <paramref name="File"/> — the ONE
-/// record-area size (ISO §13.18.43.4 GR2), which a Format 1 RECORD CONTAINS integer-1 on the SD sets (kb/Work
+/// record-area size (ISO §2023:13.18.43.4 GR2), which a Format 1 RECORD CONTAINS integer-1 on the SD sets (kb/Work
 /// PB1276); it is not carried here a second time.</summary>
 public sealed record BoundSort(
     FileModel File,
@@ -65,7 +65,7 @@ public sealed record BoundSort(
     IReadOnlyList<FileModel> Giving, PcRange? OutputProcedure,
     SortVaryingInfo? Varying) : BoundStatement, IBoundSortVarying;
 
-/// <summary><c>SORT data-name-2 …</c> (ISO §14.9.40 Format 2, COBOL-2002+): the in-place table sort over the typed
+/// <summary><c>SORT data-name-2 …</c> (ISO §2023:14.9.40 Format 2, COBOL-2002+): the in-place table sort over the typed
 /// element array (DESIGN §8.2 — the one sanctioned divergence from the image store: Format 2 operates on
 /// the typed array directly with a typed comparer). <paramref name="Keys"/> are element-relative member chains; an
 /// empty chain is the table element itself (GR23). <paramref name="Count"/> is the table's CURRENT occurrence count
@@ -75,7 +75,7 @@ public sealed record BoundSort(
 /// by the POST-bind whole-group analysis (StoreAsImage) — the emitter reads <c>Table.ElementType</c> then.
 /// <para><paramref name="Storage"/> is WHERE the table's elements live (<see cref="TableSortStorage"/>): the typed
 /// element array a plain table is, or the byte area a table inside a REDEFINES class shares with the other views
-/// (§13.18.44.4 GR1). The statement's two halves — §14.9.40.4 GR19's key comparison and GR24's placing back — are the same
+/// (§2023:13.18.44.4 GR1). The statement's two halves — §2023:14.9.40.4 GR19's key comparison and GR24's placing back — are the same
 /// for both; only how an element is reached differs (kb/Work PB1175, PB1055).</para></summary>
 public sealed record BoundTableSort(
     TableSortStorage Storage, DataItem Table, AllCount Count,
@@ -87,8 +87,8 @@ public sealed record BoundTableSort(
 }
 
 /// <summary>Where a Format-2 table SORT's elements are stored — the closed answer the binder reads off the table's
-/// data description (§14.9.40.3 SR13, §13.18.44.4 GR1). The data-name-2 reference's own subscripts are the ENCLOSING
-/// tables' occurrences (§8.4.2.3.3 SR3, SR5 e), SR6), read once at the statement and carried here as structure.</summary>
+/// data description (§2023:14.9.40.3 SR13, §2023:13.18.44.4 GR1). The data-name-2 reference's own subscripts are the ENCLOSING
+/// tables' occurrences (§2023:8.4.2.3.3 SR3, SR5 e), SR6), read once at the statement and carried here as structure.</summary>
 public abstract record TableSortStorage
 {
     /// <summary>A table with its own typed element array, reached by <paramref name="Array"/> — the whole-table
@@ -110,7 +110,7 @@ public abstract record TableSortStorage
 
 /// <summary>One Format-2 table-sort key: the chain of members from an element of a
 /// <see cref="TableSortStorage.TypedArray"/> table down to the key, outermost first (empty = the element itself, ISO
-/// §14.9.40.4 GR23) — the items, never their joined access text, so each backend spells the access (kb/Work PB4320) —
+/// §2023:14.9.40.4 GR23) — the items, never their joined access text, so each backend spells the access (kb/Work PB4320) —
 /// and the key's <see cref="DataItem"/> (category/profile drive the typed compare). For a
 /// <see cref="TableSortStorage.SharedArea"/> table the chain is unused — the key item is addressed through the class's
 /// window law. A null chain is a key with no stored field on the element struct (a REDEFINES-view member, kb/Work
@@ -118,7 +118,7 @@ public abstract record TableSortStorage
 /// (<see cref="TableSortStorage.TypedArray.KeyWindowOuter"/>).</summary>
 public sealed record BoundTableSortKey(bool Descending, IReadOnlyList<DataItem>? MemberChain, DataItem Key);
 
-/// <summary><c>MERGE file-name-1 …</c> (ISO §14.9.24): a k-way merge of the pre-sorted <paramref name="Using"/>
+/// <summary><c>MERGE file-name-1 …</c> (ISO §2023:14.9.24): a k-way merge of the pre-sorted <paramref name="Using"/>
 /// streams — equal keys keep USING-file order, all of one file's records before the next file's (GR4a/GR4b) —
 /// written to every <paramref name="Giving"/> file (GR12 — each receives the FULL merged result) or pulled by
 /// RETURN in the <paramref name="OutputProcedure"/> (GR8/GR9). Collating per GR5 (identical to SORT GR5). The
@@ -130,19 +130,19 @@ public sealed record BoundMerge(
     IReadOnlyList<FileModel> Giving, PcRange? OutputProcedure,
     SortVaryingInfo? Varying) : BoundStatement, IBoundSortVarying;
 
-/// <summary><c>RELEASE record-name-1 [FROM x]</c> (ISO §14.9.32): release the SD record's image to the initial
+/// <summary><c>RELEASE record-name-1 [FROM x]</c> (ISO §2023:14.9.32): release the SD record's image to the initial
 /// phase of the active sort (GR2). FROM ≡ <c>MOVE x TO record-name-1</c> then the same RELEASE (GR4). A varying SD
-/// releases at the length the RECORD VARYING DEPENDING ON item holds (§13.18.43 GR13); a fixed SD at its ONE record
-/// size, the largest record description's (§13.18.43.4 GR5 a) — a shorter record description sends the record area's
-/// image, kb/Work PB322 F). A short USING-file record is filled by §14.9.40.4 GR7, the USING transfer's own rule
+/// releases at the length the RECORD VARYING DEPENDING ON item holds (§2023:13.18.43 GR13); a fixed SD at its ONE record
+/// size, the largest record description's (§2023:13.18.43.4 GR5 a) — a shorter record description sends the record area's
+/// image, kb/Work PB322 F). A short USING-file record is filled by §2023:14.9.40.4 GR7, the USING transfer's own rule
 /// (kb/Work PB1140), and a short RETURNed record for a GIVING file by GR16.</summary>
 public sealed record BoundRelease(
     FileModel File, Place Record, int RecordWidth, BoundMove? FromMove, SortVaryingInfo? Varying) : BoundStatement, IBoundSortVarying;
 
-/// <summary><c>RETURN file-name-1 RECORD [INTO x] AT END … [NOT AT END …]</c> (ISO §14.9.34): make the next record
+/// <summary><c>RETURN file-name-1 RECORD [INTO x] AT END … [NOT AT END …]</c> (ISO §2023:14.9.34): make the next record
 /// (in key order) available in the SD record area (GR3); INTO ≡ RETURN then MOVE record-area → x (GR5, skipped at
 /// end); at end → <paramref name="AtEnd"/>, else <paramref name="NotAtEnd"/> (GR3/GR4). A varying SD restores the
-/// returned record's length into the DEPENDING item (§13.18.43 GR15).</summary>
+/// returned record's length into the DEPENDING item (§2023:13.18.43 GR15).</summary>
 public sealed record BoundReturn(
     FileModel File, Place RecordArea, BoundMove? IntoMove,
     IReadOnlyList<BoundStatement>? AtEnd, IReadOnlyList<BoundStatement>? NotAtEnd,

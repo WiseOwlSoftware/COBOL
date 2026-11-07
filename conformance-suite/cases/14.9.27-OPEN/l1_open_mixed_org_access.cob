@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.27.3 SR4 — "The files referenced in the OPEN
+      *> ISO §2023:14.9.27.3 SR4 — "The files referenced in the OPEN
       *> statement need not all have the same organization or access."
       *> A PERMISSIVE rule: conformance means the compiler imposes no
       *> agreement it was not asked for. ONE OPEN statement names a
@@ -15,13 +15,13 @@
       *> once OUTPUT and once INPUT.
       *> Expected values, derived only from the rule text:
       *>  - SR4 makes the mixed list legal, so the program COMPILES.
-      *>  - §14.9.27.4 GR20: the result "is the same as if a separate
+      *>  - §2023:14.9.27.4 GR20: the result "is the same as if a separate
       *>    OPEN statement had been written for each file-name in the
       *>    same order", so each file-name gets its OWN I-O status.
-      *>  - Table 18 (§14.9.27.4 GR4): OUTPUT on an unavailable file =
+      *>  - Table 18 (§2023:14.9.27.4 GR4): OUTPUT on an unavailable file =
       *>    "Open causes the file to be created"; INPUT on an available
       *>    file = "Normal open". Successful, no further information ⇒
-      *>    §9.1.13.2 item 1, '00', on every leg.
+      *>    §2023:9.1.13.2 item 1, '00', on every leg.
       *>  - The three records read back prove each connector really was
       *>    associated with its OWN file, not with a shared one.
        IDENTIFICATION DIVISION.

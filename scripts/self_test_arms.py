@@ -257,7 +257,7 @@ DECLARED: dict[str, tuple[str, ...]] = {
     # THE ONE CITATION PARSER (kb/Work PB4887 item 5): every edition, every locator shape and each rejection.
     'scripts/spec/citation.py': (
         'rejects an unknown edition', 'rejects a 1985 locator without its section', 'rejects a Roman locator for 2023',
-        'rejects no edition once bare stops meaning 2023', '2023 phantom refused',
+        'refuses a bare citation, naming the edition form it lacks', '2023 phantom refused',
         '1985 paragraph outside its section is refused', '1985 printed page validates', '1985 appendix paragraph validates',
         '2002 validates against its transcription once it exists', 'scan flags an unknown edition',
     ),

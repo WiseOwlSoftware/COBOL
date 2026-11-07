@@ -17,19 +17,19 @@ namespace WiseOwl.Cobol.Tests.Unit.Store;
 /// through a <see cref="RefusingPageMedium"/> (2.2.1.12's fault injection at the connector's level) whose seam logs and
 /// refuses the operation a case names. The files' own regions are <see cref="TransactionFaultMatrixTests"/>' (kb/Work
 /// PB3337); these cases pin what the statements add over them: the data items' image, what the program is told of a
-/// refusal, §14.6.13.1.3 item 8, the EC-FLOW conditions and the retirement of a clause.
+/// refusal, §2023:14.6.13.1.3 item 8, the EC-FLOW conditions and the retirement of a clause.
 /// <para>Expected values are the standard's:
-/// §14.9.7.4 GR1 / §14.9.36.4 GR1 (<i>"If this statement is executed when there is no active APPLY COMMIT clause, then it
+/// §2023:14.9.7.4 GR1 / §2023:14.9.36.4 GR1 (<i>"If this statement is executed when there is no active APPLY COMMIT clause, then it
 /// has the same effect as a CONTINUE statement with no additional phrases."</i>);
-/// §14.9.7.4 GR5 (<i>"The contents of all data-items referenced in the remaining active APPLY COMMIT clauses are saved
+/// §2023:14.9.7.4 GR5 (<i>"The contents of all data-items referenced in the remaining active APPLY COMMIT clauses are saved
 /// for potential use in a subsequent rollback."</i>);
-/// §14.9.36.4 GR3 (<i>"All files and data-items referenced in active APPLY COMMIT clauses are restored to the state they
+/// §2023:14.9.36.4 GR3 (<i>"All files and data-items referenced in active APPLY COMMIT clauses are restored to the state they
 /// were in at the execution of the last COMMIT statement or the start of the run unit if no COMMIT statements had
 /// previously been executed."</i>);
-/// §14.6.13.1.3 item 8 (<i>"if there is a fatal exception condition for a file subject to an active APPLY COMMIT clause,
+/// §2023:14.6.13.1.3 item 8 (<i>"if there is a fatal exception condition for a file subject to an active APPLY COMMIT clause,
 /// then a ROLLBACK statement is executed unconditionally"</i>);
-/// §9.1.13.6 item 1 ('30': <i>"A permanent error exists and no further information is available concerning the
-/// input-output operation."</i>); and §9.1.18.7's EC-FLOW-COMMIT and EC-FLOW-ROLLBACK, raised for a statement executed
+/// §2023:9.1.13.6 item 1 ('30': <i>"A permanent error exists and no further information is available concerning the
+/// input-output operation."</i>); and §2023:9.1.18.7's EC-FLOW-COMMIT and EC-FLOW-ROLLBACK, raised for a statement executed
 /// while a SORT or MERGE file statement is active (Table 13: fatal).</para>
 /// </summary>
 [Trait("Host", "ReFS")]
@@ -159,14 +159,14 @@ public sealed class TransactionControlTests
 
     private static string?[] Changed() => With(With(With(Seeded(), 5, null), 1, "X001"), 7, "A007");
 
-    /// <summary>§14.6.13.1.3 item 8 as the emitted hook drives it (<c>SequentialIoEmitter.Item8Applies</c>): the question
+    /// <summary>§2023:14.6.13.1.3 item 8 as the emitted hook drives it (<c>SequentialIoEmitter.Item8Applies</c>): the question
     /// asked at the raise, under the statement's checking for the raised condition, and the ROLLBACK when it is due.</summary>
     private static void Item8(Run r, string name, bool checkingEnabled = false)
     {
         if (r.Txn.RollbackDueOnFatal(name, checkingEnabled)) r.Txn.RollbackOnFatal();
     }
 
-    // ── The data items' image (§14.9.7.4 GR5, §14.9.36.4 GR3) ─────────────────────────────────────────────────────
+    // ── The data items' image (§2023:14.9.7.4 GR5, §2023:14.9.36.4 GR3) ─────────────────────────────────────────────────────
 
     [Theory]
     [MemberData(nameof(Orgs))]
@@ -204,7 +204,7 @@ public sealed class TransactionControlTests
         Assert.Equal(Changed(), r.Contents());
     }
 
-    /// <summary>GR1 of both statements: with no active clause each is CONTINUE — even where §9.1.18.7 would forbid it,
+    /// <summary>GR1 of both statements: with no active clause each is CONTINUE — even where §2023:9.1.18.7 would forbid it,
     /// because GR1 is asked before GR2 (EC-FLOW-COMMIT is not raised with checking on).</summary>
     [Theory]
     [MemberData(nameof(Orgs))]
@@ -273,7 +273,7 @@ public sealed class TransactionControlTests
             Assert.Equal("30", r.Reg.Status("F"));
             Assert.Equal(statusItem, r.Txn.HasStatusItem("F"));
             Assert.Equal(statusItem ? "30" : null, clause.StatusItems.GetValueOrDefault("F"));
-            Item8(r, "F");                                   // §14.6.13.1.3 item 8
+            Item8(r, "F");                                   // §2023:14.6.13.1.3 item 8
             Assert.Equal("INITIAL", clause.Item);            // the refused COMMIT saved nothing
             Assert.Equal(Seeded(), r.Contents());
         }
@@ -290,7 +290,7 @@ public sealed class TransactionControlTests
         return data;
     }
 
-    /// <summary>The controls §14.9.36.4 GR2 forbids a ROLLBACK under, as the run unit records each one.</summary>
+    /// <summary>The controls §2023:14.9.36.4 GR2 forbids a ROLLBACK under, as the run unit records each one.</summary>
     public enum Item8Control { InputProcedure, OutputProcedure, RecursiveElement, Method }
 
     public static TheoryData<FileOrg, Item8Control, bool> Item8ControlsWithAndWithoutChecking()
@@ -367,7 +367,7 @@ public sealed class TransactionControlTests
         Assert.Equal(Seeded(), r.Contents());
     }
 
-    // ── §14.6.13.1.3 item 8 after an input-output statement ──────────────────────────────────────────────────────
+    // ── §2023:14.6.13.1.3 item 8 after an input-output statement ──────────────────────────────────────────────────────
 
     /// <summary>A WRITE refused by the medium ('30', a fatal I-O status) on a file under commit control: item 8's
     /// unconditional ROLLBACK undoes the transaction's earlier changes and restores the items. On a file no active clause
@@ -443,7 +443,7 @@ public sealed class TransactionControlTests
         Assert.Equal(Seeded(), r.Contents());
     }
 
-    /// <summary>kb/Work PB3544: item 8's ROLLBACK is <i>"a ROLLBACK statement"</i>, so §14.9.36.4 GR2 holds for it: <i>"If
+    /// <summary>kb/Work PB3544: item 8's ROLLBACK is <i>"a ROLLBACK statement"</i>, so §2023:14.9.36.4 GR2 holds for it: <i>"If
     /// this statement is attempted to be executed under the control of a recursive runtime element or a file SORT or MERGE
     /// statement, then the exception condition EC-FLOW-ROLLBACK is set to exist."</i> A fatal status on a file under commit
     /// control under each control GR2 names raises EC-FLOW-ROLLBACK with checking on and, with it off, rolls nothing
@@ -511,7 +511,7 @@ public sealed class TransactionControlTests
         Assert.Equal(Seeded(), r.Contents());
     }
 
-    // ── §9.1.18.7: EC-FLOW-COMMIT, EC-FLOW-ROLLBACK and EC-FLOW-APPLY-COMMIT under an active SORT or MERGE ──────────
+    // ── §2023:9.1.18.7: EC-FLOW-COMMIT, EC-FLOW-ROLLBACK and EC-FLOW-APPLY-COMMIT under an active SORT or MERGE ──────────
 
     /// <summary>With checking enabled the statement raises its fatal condition and changes nothing; with checking off it
     /// is not executed (docs/CONFORMANCE.md A.4.3): the transaction and the items stay as they were.</summary>
@@ -547,7 +547,7 @@ public sealed class TransactionControlTests
         Assert.Equal(Seeded(), r.Contents());
     }
 
-    /// <summary>§12.4.6.3.4 GR3/GR4: a clause activated under an active SORT or MERGE raises EC-FLOW-APPLY-COMMIT with
+    /// <summary>§2023:12.4.6.3.4 GR3/GR4: a clause activated under an active SORT or MERGE raises EC-FLOW-APPLY-COMMIT with
     /// the ACTIVATING element's checking on; with it off the clause stays inactive and its file is not put under commit
     /// control. The activated element's own scope is handed back either way.</summary>
     [Theory]
@@ -570,9 +570,9 @@ public sealed class TransactionControlTests
         Assert.False(r.Unit.Exceptions.FlowApplyCommitChecking);
     }
 
-    // ── §9.1.18.7 / §8.6.6: a METHOD is a recursive runtime element, though it is no ProgramTable node (kb/Work PB3540) ──
+    // ── §2023:9.1.18.7 / §2023:8.6.6: a METHOD is a recursive runtime element, though it is no ProgramTable node (kb/Work PB3540) ──
 
-    /// <summary>§14.9.7.4 GR2 and §14.9.36.4 GR2: <i>"under the control of a recursive runtime element"</i>, and §8.6.6:
+    /// <summary>§2023:14.9.7.4 GR2 and §2023:14.9.36.4 GR2: <i>"under the control of a recursive runtime element"</i>, and §2023:8.6.6:
     /// <i>"Functions and methods are always recursive."</i> A method's frame on the run unit's module stack (pushed by the
     /// emitted method body, <c>OoEmitter.EmitMethod</c>) is such a control, and so is a plain program the method CALLs:
     /// with checking on COMMIT and ROLLBACK raise their fatal conditions and change nothing, with it off they are not
@@ -623,7 +623,7 @@ public sealed class TransactionControlTests
     }
 
     /// <summary>The negative control of the test above: with only programs that carry no RECURSIVE attribute on the module
-    /// stack, a COMMIT runs (§14.9.7.4 GR3) — the frame's flag, never its presence, is the control.</summary>
+    /// stack, a COMMIT runs (§2023:14.9.7.4 GR3) — the frame's flag, never its presence, is the control.</summary>
     [Theory]
     [MemberData(nameof(Orgs))]
     public void Commit_under_programs_that_are_not_recursive_runs(FileOrg org)
@@ -643,7 +643,7 @@ public sealed class TransactionControlTests
         Assert.Equal(Changed(), r.Contents());
     }
 
-    /// <summary>§12.4.6.3.4 GR3 and §9.1.18.7: a clause activated while a method runs raises EC-FLOW-APPLY-COMMIT with
+    /// <summary>§2023:12.4.6.3.4 GR3 and §2023:9.1.18.7: a clause activated while a method runs raises EC-FLOW-APPLY-COMMIT with
     /// the ACTIVATING element's checking on; with it off the clause stays inactive and its file is not put under commit
     /// control.</summary>
     [Theory]
@@ -670,7 +670,7 @@ public sealed class TransactionControlTests
         Assert.False(r.Unit.Exceptions.FlowApplyCommitChecking);
     }
 
-    // ── Retirement: a canceled element or a returned INITIAL program (§14.9.7.4 GR3, §14.9.36.4 GR4-GR6) ──────────
+    // ── Retirement: a canceled element or a returned INITIAL program (§2023:14.9.7.4 GR3, §2023:14.9.36.4 GR4-GR6) ──────────
 
     /// <summary>A retired clause's items are no longer restored, and the next COMMIT or ROLLBACK deactivates it, while
     /// another element's active clause is restored and saved as before.</summary>
@@ -698,17 +698,17 @@ public sealed class TransactionControlTests
         Assert.Equal(2, kept.Saves);
         Assert.True(r.Txn.AnyActive);
         r.Txn.Retire(live);
-        Assert.Null(r.Txn.Commit());                         // §14.9.7.4 GR3: the COMMIT deactivates the last clause
+        Assert.Null(r.Txn.Commit());                         // §2023:14.9.7.4 GR3: the COMMIT deactivates the last clause
         Assert.False(r.Txn.AnyActive);
         Assert.Equal(2, kept.Saves);
         Assert.False(r.Reg.IsCommitControlled("F"));         // kb/Work PB3541: no active clause names F any more
     }
 
-    /// <summary>⛔ kb/Work PB3541 — A FILE WHOSE LAST CLAUSE IS DEACTIVATED LEAVES COMMIT CONTROL. §14.9.7.4 GR3 (<i>"The COMMIT
+    /// <summary>⛔ kb/Work PB3541 — A FILE WHOSE LAST CLAUSE IS DEACTIVATED LEAVES COMMIT CONTROL. §2023:14.9.7.4 GR3 (<i>"The COMMIT
     /// statement also deactivates any APPLY COMMIT clauses in exited initial programs and canceled runtime elements"</i>) and
-    /// §14.9.36.4 GR6 for the ROLLBACK end the clause, and §12.4.6.3.4 GR5 makes it active only until then; so F's changes
-    /// after the deactivating statement are no ROLLBACK's (§14.9.36.4 GR3 restores <i>"All files and data-items referenced
-    /// in active APPLY COMMIT clauses"</i>) and a fatal status on F runs no §14.6.13.1.3 item 8 ROLLBACK, while another
+    /// §2023:14.9.36.4 GR6 for the ROLLBACK end the clause, and §2023:12.4.6.3.4 GR5 makes it active only until then; so F's changes
+    /// after the deactivating statement are no ROLLBACK's (§2023:14.9.36.4 GR3 restores <i>"All files and data-items referenced
+    /// in active APPLY COMMIT clauses"</i>) and a fatal status on F runs no §2023:14.6.13.1.3 item 8 ROLLBACK, while another
     /// element's active clause, on file G, keeps the run unit's commit control alive. Both deactivating statements are
     /// cases: the COMMIT (<paramref name="byCommit"/>) and the ROLLBACK.</summary>
     [Theory]
@@ -745,8 +745,8 @@ public sealed class TransactionControlTests
     }
 
     /// <summary>⛔ kb/Work PB3541 — THE DEACTIVATION PUTS THE FILE CONTROL ENTRY'S OWN LOCK POSTURE BACK. Under commit control
-    /// §9.1.16 applies <i>"an implicit LOCK MODE IS AUTOMATIC WITH LOCK ON MULTIPLE RECORDS"</i>, so a READ locks its record
-    /// (§12.4.5.9.4 GR4) and another connector's READ of it answers '51'. Once the clause naming F is deactivated F is no
+    /// §2023:9.1.16 applies <i>"an implicit LOCK MODE IS AUTOMATIC WITH LOCK ON MULTIPLE RECORDS"</i>, so a READ locks its record
+    /// (§2023:12.4.5.9.4 GR4) and another connector's READ of it answers '51'. Once the clause naming F is deactivated F is no
     /// longer a file subject to commit and rollback, and its entry's LOCK MODE IS MANUAL holds again: a READ without the
     /// WITH LOCK phrase locks nothing, and the other connector reads the record '00'.</summary>
     [Theory]
@@ -772,7 +772,7 @@ public sealed class TransactionControlTests
     }
 
     /// <summary>⛔ kb/Work PB3541's refused arm: a ROLLBACK the medium refuses still deactivates the retired clause
-    /// (§14.9.36.4 GR6 is not conditioned on GR3's success) and takes F out of commit control, but F's transaction, made
+    /// (§2023:14.9.36.4 GR6 is not conditioned on GR3's success) and takes F out of commit control, but F's transaction, made
     /// while the clause was active, stays OWED: the refusal is told ('30'), and the next ROLLBACK, which another element's
     /// active clause keeps from being a CONTINUE (GR1), finishes it, because the registry finds the transaction by its open
     /// id and not by the connector's commit-control flag.</summary>
@@ -802,11 +802,11 @@ public sealed class TransactionControlTests
         Assert.Equal(Seeded(), r.Contents("F"));
     }
 
-    /// <summary>⛔ kb/Work PB3541's refused COMMIT: a COMMIT the medium refuses deactivates NOTHING (§14.9.7.4 GR3's
+    /// <summary>⛔ kb/Work PB3541's refused COMMIT: a COMMIT the medium refuses deactivates NOTHING (§2023:14.9.7.4 GR3's
     /// deactivation is the COMMIT's effect, and a refused COMMIT made no change permanent), so a retired clause naming F
-    /// keeps F under commit control until §14.6.13.1.3 item 8's ROLLBACK, which is due because F is <i>"a file subject to
+    /// keeps F under commit control until §2023:14.6.13.1.3 item 8's ROLLBACK, which is due because F is <i>"a file subject to
     /// an active APPLY COMMIT clause"</i>, restores F with every other file and the live clause's data items
-    /// (§14.9.36.4 GR3), and only then deactivates the retired clause (§14.9.36.4 GR6) and takes F out of commit control.
+    /// (§2023:14.9.36.4 GR3), and only then deactivates the retired clause (§2023:14.9.36.4 GR6) and takes F out of commit control.
     /// A deactivation run before the refusal is told (or in a finally) would release F first: item 8 would find F under
     /// no clause and run no ROLLBACK, and F's changes would stay in its open transaction for the run unit's end to make
     /// permanent.</summary>
@@ -836,7 +836,7 @@ public sealed class TransactionControlTests
         Assert.Equal("30", kept.StatusItems.GetValueOrDefault("F"));
         Assert.True(r.Reg.IsCommitControlled("F"));          // the refused COMMIT deactivated nothing
         Assert.Equal(1, kept.Saves);                         // ... and saved nothing (GR5 is the COMMIT's)
-        Item8(r, "F");                                       // §14.6.13.1.3 item 8: due, F is still subject to a clause
+        Item8(r, "F");                                       // §2023:14.6.13.1.3 item 8: due, F is still subject to a clause
         Assert.Equal(Seeded(), r.Contents("F"));             // GR3: F restored
         Assert.Equal(Seeded(), r.Contents("G"));             // ... with every other file under commit control
         Assert.Equal("INITIAL", kept.Item);                  // ... and the live clause's items

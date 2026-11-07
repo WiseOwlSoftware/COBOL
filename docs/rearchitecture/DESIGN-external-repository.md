@@ -1,4 +1,4 @@
-# DESIGN — The §8.13 external repository and the .NET host surface
+# DESIGN — The §2023:8.13 external repository and the .NET host surface
 
 **Status:** DESIGN (adopted shape). Owner decisions, kb/Work PB1099 Q3 and 2026-10-05: **the repository IS ECMA-335
 assembly metadata plus COBOL-specific custom attributes** (no bespoke file format); **COBOL-to-COBOL activation keeps
@@ -19,7 +19,7 @@ program- or function-pointer, §6.4) it states the corrected mechanism. §6.2's 
 case shape and §21's slice lists are the parts slices 4, 5, 7 and 8 are implemented from.
 
 **Scope:** the compile-time resolution of every REPOSITORY-paragraph specifier against information outside the
-compilation group (ISO §8.13, §12.3.8); the metadata that carries that information; the two user mechanisms (update,
+compilation group (ISO §2023:8.13, §2023:12.3.8); the metadata that carries that information; the two user mechanisms (update,
 check); cross-assembly classes, interfaces, parameterized definitions and expansions; the run-time locator the
 registry shares with the binder; the typed .NET host entry; the extension point for COBOL calling plain .NET.
 Dimension: **binder repository resolution + backend metadata emission + the run-time locate + the host surface**.
@@ -33,7 +33,7 @@ backend-neutral bound tree) and §18. CLAUDE.md rule 4 governs the shape: ONE re
 group and the metadata-backed store are two providers; ONE activation boundary, which every COBOL CALL, every
 pointer activation, every function activation and every .NET host entry crosses.
 
-**Not in this design:** the BY REFERENCE aliasing of GROUP and REDEFINED formals (§14.2.3 GR8 for a group passed
+**Not in this design:** the BY REFERENCE aliasing of GROUP and REDEFINED formals (§2023:14.2.3 GR8 for a group passed
 twice, or read by a callback while the callee is active) is the boundary's own obligation and is owned by
 **kb/Work PB2087** (the group is claimed by the existing `StorageCell` forcer and crosses as a cell + offset + width
 area, the callee's formal a window over it). PB2087 is the prerequisite for GR8 on group formals; nothing here
@@ -54,7 +54,7 @@ symptom of PB2087 and closes when PB2087 lands (§21).
 
 1. **The repository is the compiled assembly.** Every assembly `cobol` produces carries, for every source unit it
    compiled — program, function, class, interface, program prototype, function prototype, parameterized class or
-   interface, expansion — its §8.13 information as ECMA-335 metadata (the CLR type/method/parameter where one exists)
+   interface, expansion — its §2023:8.13 information as ECMA-335 metadata (the CLR type/method/parameter where one exists)
    plus a versioned family of custom attributes in `WiseOwl.Cobol.Runtime.Repository` for every fact the CLR cannot
    express. The assembly-level `[CobolRepository]` attribute IS the per-assembly index; a directory of assemblies IS a
    repository directory (§7). It is read with `System.Reflection.Metadata` and never loaded (§3.1, r6-meta).
@@ -65,12 +65,12 @@ symptom of PB2087 and closes when PB2087 lands (§21).
    recorded signature exactly as a CALL through an in-group prototype is; at run time the program is located by
    name and GR3 d)'s run-time check runs as it does today.
 3. **Prototype conformance across separately compiled units is the existing comparator over the recorded
-   description tree** (§6.3, §8.2, §9.2): `PrototypeSignatures.Same` — §13.7.3 SR2's "shall match the description",
+   description tree** (§6.3, §8.2, §9.2): `PrototypeSignatures.Same` — §2023:13.7.3 SR2's "shall match the description",
    in which data-names and intermediate grouping take no part (golden
    `conformance-suite/cases/13.7-Linkage-section/pb1115_prototype_group_description`).
    Data-names are recorded for diagnostics and the host surface and are never part of signature identity; a
-   type-name is (§8.5.3.1, §6.3).
-4. **The ONE .NET host surface, generated into the program's own assembly** (§4.3, §4.4; §14.2.3 GR13 and A.1
+   type-name is (§2023:8.5.3.1, §6.3).
+4. **The ONE .NET host surface, generated into the program's own assembly** (§4.3, §4.4; §2023:14.2.3 GR13 and A.1
    item 141 make its restrictions and mechanisms the implementor's): for every outermost program and every
    function — definition or prototype — one `public static class` in `Cobol.<assembly>` whose `Call` method takes
    typed .NET parameters derived from the formal's DESCRIPTION (integral numeric as `long`/`Int128`, scaled as
@@ -87,7 +87,7 @@ symptom of PB2087 and closes when PB2087 lands (§21).
    class or interface in an object-reference description, a RAISING object class, a skeleton's own REPOSITORY
    resolutions — is recorded by EXTERNALIZED identity and compared as one; a dynamic-length structure and a restricted
    data-pointer's type declaration by DEFINITION; a restricted program- or function-pointer by the SIGNATURE of its
-   prototype (§13.18.60.4 GR25 / GR26), recorded in full and compared by signature, never by name or identity (§6.4).
+   prototype (§2023:13.18.60.4 GR25 / GR26), recorded in full and compared by signature, never by name or identity (§6.4).
    Words are per source element: a per-source-element `IdentityScope` maps them (§8.7).
 6. **The schema is what the comparators read** (§6.3) — every `PicInfo` member by value, REDEFINES subordinates,
    type declarations, structures, referenced prototypes — and a two-sided drift test keeps that true (§17.2).
@@ -95,7 +95,7 @@ symptom of PB2087 and closes when PB2087 lands (§21).
 8. **ONE resolver, two providers, documented search order; first match wins; a differing shadowed entry warns**
    (§8.6). Details are taken by EXTERNALIZED NAME, for programs and functions alike (GR10/GR11 a)–c) literally);
    when all three miss, the function WORD is honored — the group's definition, then the repository's recorded word
-   (§8.4.6.7); whenever the externalized-name step selects one function and a DIFFERENT function carries the word,
+   (§2023:8.4.6.7); whenever the externalized-name step selects one function and a DIFFERENT function carries the word,
    the externalized name wins, as GnuCOBOL 3.2 does, with warning REPO-13 — in one group or across the repository
    (determination D-R3, §8.3; owner decision 2026-10-05).
 9. **Parameterized classes and interfaces cross assemblies, one CLR type per expansion (D3).** A skeleton publishes
@@ -124,8 +124,8 @@ symptom of PB2087 and closes when PB2087 lands (§21).
 ## 1. Purpose, scope, non-goals
 
 ### 1.1 Purpose
-ISO §8.13 says the external repository "contains all information required for activating programs, functions, or
-methods and for checking conformance", and §12.3.8 makes it the third source every REPOSITORY specifier may resolve
+ISO §2023:8.13 says the external repository "contains all information required for activating programs, functions, or
+methods and for checking conformance", and §2023:12.3.8 makes it the third source every REPOSITORY specifier may resolve
 against. Without one, `REPOSITORY. PROGRAM NOSUCHPG. FUNCTION NOSUCHFN. CLASS NOSUCHCL.` would compile clean (it is
 REPO-1, COBOL5962, at each specifier since kb/Work PB2103 / PB2104: re-verified 2026-11-03, kb/Work PB1086): each consumer
 would read the clause its own way (a program prototype with a null signature, COBOL1505 at a function's use,
@@ -135,9 +135,9 @@ DOC-A.1-65/-116/-141/-167 document as the host API. This design gives the clause
 .NET entry over the one boundary, and makes that entry the only host surface.
 
 ### 1.2 Scope
-- The REPOSITORY paragraph's five externally-resolvable specifier kinds (§12.3.8.1 "allows specification of program
+- The REPOSITORY paragraph's five externally-resolvable specifier kinds (§2023:12.3.8.1 "allows specification of program
   prototype names, function prototype names, property-names, class names, and interface names that may be used
-  within the scope of this environment division"). The intrinsic specifier resolves against §8.11 and is out of scope.
+  within the scope of this environment division"). The intrinsic specifier resolves against §2023:8.11 and is out of scope.
 - The information a compiled unit publishes, its carrier, how a later compilation finds and reads it, and how the
   result feeds the EXISTING conformance checks unchanged.
 - The two implementor mechanisms and their user documentation; cross-assembly classes, interfaces, skeletons and
@@ -149,7 +149,7 @@ DOC-A.1-65/-116/-141/-167 document as the host API. This design gives the clause
 - Any change to the COBOL-to-COBOL activation boundary (`ICobolProgram`, `CobolArg`, `ProgramTable.CallProgram`),
   including group-formal aliasing (kb/Work PB2087).
 - A direct-IL backend (§3.9 says what it must emit; it is not started here).
-- Parametric polymorphism ("Parametric polymorphism is an optional feature", §9.3.5.3 rule 7; A.4.10 item 3, not
+- Parametric polymorphism ("Parametric polymorphism is an optional feature", §2023:9.3.5.3 rule 7; A.4.10 item 3, not
   claimed) and multiple inheritance (A.4.10 item 1). Parameterized classes are NOT this and are in scope (§10.5).
 - Implementing the plain-.NET provider of §4.6; the resolver and schema admit it, a later slice builds it.
 - Incremental builds or a compiled-program cache.
@@ -162,48 +162,48 @@ Each quotation was run through `cite.py --check`. **(group)** marks a row the in
 
 | Clause | Obligation | Satisfied by |
 |---|---|---|
-| §8.13 ¶1 | "The external repository contains all information required for activating programs, functions, or methods and for checking conformance" | §5, §6; activation information is the externalized name and the index entry (activation is by name, §11.2) |
-| §8.13 list | externalized name; type of source unit; "the description of the parameters of the source unit, if any, and the manner of receiving parameters (by reference or by value) and whether they are optional or not"; returning item; exceptions; "the entry convention of the source unit, if any"; object properties; methods; "type declarations required for the description of parameters and returning items"; DECIMAL-POINT IS COMMA; currencies; "any external locale identification for locales associated with formal parameters or returning items of the source unit"; "any other information that the implementor requires" | §5.3 |
-| §8.13 ¶2 | "This information about a source unit, excluding the externalized name of the source unit, is called its signature"; "Whether the information is taken from a prototype or a definition, the information stored in the external repository about the signature of a program or a function is the same" | §5.2, §6.3 — one record shape from `RepositoryRecord.Of(BoundUnit)` for both; identity is the description compare, in which data-names and intermediate grouping take no part and type-names do (§8.5.3.1; §17.2) |
-| §8.13 ¶3 | "The implementor shall provide a mechanism that allows the user to specify whether to update the external repository when a compilation unit is compiled" | §9.1 |
-| §8.13 ¶4 | "whether to flag differences in prototypes and definitions in the compilation group from the information in the external repository" | §9.2, REPO-9 |
-| §8.13 ¶5 | "The details on the association of the name of a source unit with information in the external repository are specified in 12.3.8, REPOSITORY paragraph" | §8 |
-| §12.3.8.3 SR1 | "all the specifications for that name shall be identical" | (group) `DataBinder.CheckRepositorySpecification` |
-| §12.3.8.3 SR2 | literals "shall be alphanumeric literals or national literals and shall be neither figurative constants nor zero-length literals" | (group) `ExternalizedName.Screen` |
-| §12.3.8.3 SR3, SR4/SR7 | EXPANDS placement; operands declared in the same REPOSITORY | (group) `OoExpansion`; across assemblies §10.5 |
-| §12.3.8.3 SR5/SR8 | "references to object-class-name-1 are to that class definition and this class-specifier is ignored" | (group) `IdentityScope.Build`; the group is asked first |
-| §12.3.8.3 SR6 | "If literal-1 is specified, there shall be information in the external repository for the class literal-1"; "If literal-1 is not specified, there shall be information in the external repository for the class object-class-name-1" | §8.4; REPO-1 |
-| §12.3.8.3 SR9 | "If literal-2 is specified, there shall be information in the external repository for the interface literal-2" (and the twin) | §8.4; REPO-1 |
-| §12.3.8.3 SR10 | the name shall be a prototype in the group, "the name of a function definition specified previously in this compilation group", or "the name of a function for which information exists in the external repository" | §8.3 (legality: all three alternatives honored), REPO-1 |
-| §12.3.8.3 SR11 | self-naming function specifier ignored | (group) `BinderDriver.UserFunctionsOf` (the `ContainingDefinitions` function member) |
-| §12.3.8.3 SR14 | the name shall be a prototype in the group, "the name of a program definition specified previously in this compilation group", or "the name of a program for which information exists in the external repository" | §8.2, REPO-1 |
-| §12.3.8.3 SR15 | self/containing-program specifier ignored | (group) `ProgramPrototypesOf` |
-| §12.3.8.3 SR16 | "there shall be information in the external repository for the property property-name-1 that is part of one of the classes or interfaces that are declared in this REPOSITORY paragraph" (and the literal twin; §19 T1) | §8.5; REPO-1 |
-| §12.3.8.4 GR1/GR7 | "If object-class-name-1 is a class described with the USING phrase, object-class-name-1 may be specified only in the REPOSITORY paragraph" | (group) `OoNameResolution`; an imported skeleton likewise (§10.5) |
-| §12.3.8.4 GR2 ¶1 | "The implementor shall specify when the AS phrase is required" | §8.1 D-R2 |
-| §12.3.8.4 GR2 ¶2 | the property literal "is the externalized name known to the operating environment for a method that implements the named property" | §8.5 D-R5 (§11.7.4 GR1 a): "If the PROPERTY clause is specified, the name is implementor-defined") |
-| §12.3.8.4 GR5/GR8 | "a class object-class-name-1 is created from the parameterized class object-class-name-2" | (group) `OoExpansion`; §10.5 |
-| §12.3.8.4 GR6 / GR9 | "It is implementor-defined how the information in the class specifier and the external repository are used to determine which class is used" / the interface twin (A.1 161/162) | §8.4, §9.4 |
-| §12.3.8.4 GR10 a) | IF "the externalized name of the program prototype is the externalized name of a program definition specified previously in the same compilation group" THEN "the details are taken from that program definition, which is the program that will be called, and the details in the external repository are ignored" | §8.2 step 1 (externalized name AND source order) |
-| §12.3.8.4 GR10 b) | "the details are taken from that program prototype definition and the details in the external repository are ignored" | §8.2 step 2 |
-| §12.3.8.4 GR10 c) | "the details are taken from the external repository for the program with the same name as the externalized name of the program prototype" | §8.2 step 3 — the record decoded from the entry's host-entry method (§5.3) |
-| §12.3.8.4 GR10 NOTE 1 | "Literal-3, if specified, is the externalized name of the program prototype; otherwise, the externalized name is program-prototype-name-1" | `ProgramSpecifier.ExternalizedName` |
-| §12.3.8.4 GR11 a)–c) | the function twin: "if the externalized name of the function prototype is the externalized name of a function definition specified previously in the same compilation group" … "the details are taken from the external repository for the function with the same name as the externalized name of the function prototype" | §8.3 (externalized name; SR10's word alternative when all three miss — determination D-R3) |
-| §12.3.8.4 GR12–GR14 | intrinsic precedence / keyword omission / ALL | (group) |
-| §12.3.8.4 GR15 | "Property-name-1 is the name of an object property that may be used throughout the scope of the containing environment division" | §8.5 |
-| §8.4.6.7 | "A user-function-name may be referenced in the REPOSITORY paragraph of any source element that follows that function definition" … "if the external repository is updated, in any subsequently-compiled source unit that specifies that user-function-name as a function-prototype-name in its REPOSITORY paragraph" | §8.3 D-R3 — the record carries the user-function-name beside the externalized name and the provider answers a word lookup (`FunctionByWord`) when GR11 a)–c) miss; REPO-13 when the externalized-name step and the word name different functions |
-| §13.7.3 SR2 | "The description of the formal parameters and the returning item that appear in the linkage section of a function prototype or a program prototype shall match the description of the formal parameters and the returning item in the corresponding function definition or program definition" | (group) `PrototypeSignatures.Same` → COBOL1513; across units the same comparator over the decoded record (§9.2, REPO-9) |
-| §10.6.3 GR1 | "Compilation of a program prototype definition or a function prototype definition generates information required for the external repository" | §7.2 — a prototype unit compiles to its host-entry class carrying the signature, and its index entry |
-| §10.6.2 SR2/SR3 | "If a compilation group contains both a program definition and a program prototype definition with the same externalized name, the signatures of these two compilation units shall be the same" (and the function twin) | (group) COBOL1513 — within ONE compilation group only; across groups a difference is §8.13 ¶4's "flag differences" (REPO-9, §9.2), never an error |
-| §14.9.4.4 GR3 b)–i) | locate ("the runtime system attempts to locate the program being called"), GR3 d) conformance "if checking for it is enabled in both the activated program and activating runtime element", GR3 e) externals, GR3 f) recursion, GR3 i) "If the program was successfully called, after control is returned from the called program the ON EXCEPTION phrase, if specified, is ignored" | the existing boundary, unchanged (§4.1); the host entry crosses it with checking enabled on its side (§4.3) |
-| §14.2.3 GR8–GR10 | BY REFERENCE "operates as if the formal parameter occupies the same storage area as the argument"; BY CONTENT/BY VALUE "if the formal parameter is numeric, a COMPUTE statement without the ROUNDED phrase" | the boundary (PB2087 for group formals); the host entry lands host values by the same rule, refuses any landing that would lose a digit, a sign or a character (GR13), and gives one host variable passed twice one storage (§4.3) |
-| §14.2.3 GR6 NOTE 1 | "In COBOL, the storage for the returning item is allocated in the activating source unit" | the host entry allocates the RETURNING receiver, as a COBOL activator does (§4.3) |
-| §8.3.2.2 | "Within a run unit, all instances of a given name that is externalized to the operating environment shall identify the same kind of entity or item"; "when two or more source elements identify something with the same externalized name, they refer to the same instance"; "The implementor defines the formation and mapping rules of these names" | §8.6; `ExternalizedNames` (DOC-A.1-68); §4.3 (one host class per externalized name per assembly; every class activates the one program by name); §11.2 (a second module carrying an already-registered outermost name is refused) |
-| §14.2.3 GR13; A.1 141 | "When either the activating or the activated runtime element is other than a COBOL runtime element, the implementor shall specify the restrictions and mechanisms for all supported language products"; "Procedure division header rules when either the activating or the activated runtime element is not a COBOL element" | §4.3 (the host entry: parameter matching, representation, return of a value, omission, the refusals, the exception contract), §9.4 (DOC-A.1-141's text) |
-| §14.2.2 SR2 | BY VALUE data "shall be defined as a data item of class numeric, message-tag, object, or pointer" | §4.3's host-type table (no OPTIONAL BY VALUE; message-tag has no item, §4.3) |
-| §13.18.2.3 SR2/SR4 | ANY LENGTH only "in an elementary level 1 entry in the linkage section of a function, of a contained program, or of a method that is not a property method", and in a function "as a formal parameter with the BY REFERENCE phrase" | §4.3's host-type table (no ANY LENGTH RETURNING, ANY LENGTH only on a function's BY REFERENCE formal) |
-| §8.8.4.4.4 GR3 n) | the NUMERIC class test: "consists entirely of a valid representation for the usage" (and the display/national arm) | §4.3 — the ONE validity rule for write-back and RETURNING at the host door (`CobolNum.IsNumericImage`) |
-| §9.3.12 | "Within a run unit, two classes with the same externalized object-class-name that are created by expanding the same parameterized class with the same actual parameters are the same class instance. If two classes expand a parameterized class with different actual parameters, they are not the same class instance and shall not have the same externalized object-class-name." | §10.5 (D3: one CLR type per (name, triple) by reuse of the expansion of the same `ExpansionKey`; a superseded key is a stale caller REPO-9 names; the "shall not" is reported where the two will necessarily share a run unit) |
+| §2023:8.13 ¶1 | "The external repository contains all information required for activating programs, functions, or methods and for checking conformance" | §5, §6; activation information is the externalized name and the index entry (activation is by name, §11.2) |
+| §2023:8.13 list | externalized name; type of source unit; "the description of the parameters of the source unit, if any, and the manner of receiving parameters (by reference or by value) and whether they are optional or not"; returning item; exceptions; "the entry convention of the source unit, if any"; object properties; methods; "type declarations required for the description of parameters and returning items"; DECIMAL-POINT IS COMMA; currencies; "any external locale identification for locales associated with formal parameters or returning items of the source unit"; "any other information that the implementor requires" | §5.3 |
+| §2023:8.13 ¶2 | "This information about a source unit, excluding the externalized name of the source unit, is called its signature"; "Whether the information is taken from a prototype or a definition, the information stored in the external repository about the signature of a program or a function is the same" | §5.2, §6.3 — one record shape from `RepositoryRecord.Of(BoundUnit)` for both; identity is the description compare, in which data-names and intermediate grouping take no part and type-names do (§2023:8.5.3.1; §17.2) |
+| §2023:8.13 ¶3 | "The implementor shall provide a mechanism that allows the user to specify whether to update the external repository when a compilation unit is compiled" | §9.1 |
+| §2023:8.13 ¶4 | "whether to flag differences in prototypes and definitions in the compilation group from the information in the external repository" | §9.2, REPO-9 |
+| §2023:8.13 ¶5 | "The details on the association of the name of a source unit with information in the external repository are specified in 12.3.8, REPOSITORY paragraph" | §8 |
+| §2023:12.3.8.3 SR1 | "all the specifications for that name shall be identical" | (group) `DataBinder.CheckRepositorySpecification` |
+| §2023:12.3.8.3 SR2 | literals "shall be alphanumeric literals or national literals and shall be neither figurative constants nor zero-length literals" | (group) `ExternalizedName.Screen` |
+| §2023:12.3.8.3 SR3, SR4/SR7 | EXPANDS placement; operands declared in the same REPOSITORY | (group) `OoExpansion`; across assemblies §10.5 |
+| §2023:12.3.8.3 SR5/SR8 | "references to object-class-name-1 are to that class definition and this class-specifier is ignored" | (group) `IdentityScope.Build`; the group is asked first |
+| §2023:12.3.8.3 SR6 | "If literal-1 is specified, there shall be information in the external repository for the class literal-1"; "If literal-1 is not specified, there shall be information in the external repository for the class object-class-name-1" | §8.4; REPO-1 |
+| §2023:12.3.8.3 SR9 | "If literal-2 is specified, there shall be information in the external repository for the interface literal-2" (and the twin) | §8.4; REPO-1 |
+| §2023:12.3.8.3 SR10 | the name shall be a prototype in the group, "the name of a function definition specified previously in this compilation group", or "the name of a function for which information exists in the external repository" | §8.3 (legality: all three alternatives honored), REPO-1 |
+| §2023:12.3.8.3 SR11 | self-naming function specifier ignored | (group) `BinderDriver.UserFunctionsOf` (the `ContainingDefinitions` function member) |
+| §2023:12.3.8.3 SR14 | the name shall be a prototype in the group, "the name of a program definition specified previously in this compilation group", or "the name of a program for which information exists in the external repository" | §8.2, REPO-1 |
+| §2023:12.3.8.3 SR15 | self/containing-program specifier ignored | (group) `ProgramPrototypesOf` |
+| §2023:12.3.8.3 SR16 | "there shall be information in the external repository for the property property-name-1 that is part of one of the classes or interfaces that are declared in this REPOSITORY paragraph" (and the literal twin; §19 T1) | §8.5; REPO-1 |
+| §2023:12.3.8.4 GR1/GR7 | "If object-class-name-1 is a class described with the USING phrase, object-class-name-1 may be specified only in the REPOSITORY paragraph" | (group) `OoNameResolution`; an imported skeleton likewise (§10.5) |
+| §2023:12.3.8.4 GR2 ¶1 | "The implementor shall specify when the AS phrase is required" | §8.1 D-R2 |
+| §2023:12.3.8.4 GR2 ¶2 | the property literal "is the externalized name known to the operating environment for a method that implements the named property" | §8.5 D-R5 (§2023:11.7.4 GR1 a): "If the PROPERTY clause is specified, the name is implementor-defined") |
+| §2023:12.3.8.4 GR5/GR8 | "a class object-class-name-1 is created from the parameterized class object-class-name-2" | (group) `OoExpansion`; §10.5 |
+| §2023:12.3.8.4 GR6 / GR9 | "It is implementor-defined how the information in the class specifier and the external repository are used to determine which class is used" / the interface twin (A.1 161/162) | §8.4, §9.4 |
+| §2023:12.3.8.4 GR10 a) | IF "the externalized name of the program prototype is the externalized name of a program definition specified previously in the same compilation group" THEN "the details are taken from that program definition, which is the program that will be called, and the details in the external repository are ignored" | §8.2 step 1 (externalized name AND source order) |
+| §2023:12.3.8.4 GR10 b) | "the details are taken from that program prototype definition and the details in the external repository are ignored" | §8.2 step 2 |
+| §2023:12.3.8.4 GR10 c) | "the details are taken from the external repository for the program with the same name as the externalized name of the program prototype" | §8.2 step 3 — the record decoded from the entry's host-entry method (§5.3) |
+| §2023:12.3.8.4 GR10 NOTE 1 | "Literal-3, if specified, is the externalized name of the program prototype; otherwise, the externalized name is program-prototype-name-1" | `ProgramSpecifier.ExternalizedName` |
+| §2023:12.3.8.4 GR11 a)–c) | the function twin: "if the externalized name of the function prototype is the externalized name of a function definition specified previously in the same compilation group" … "the details are taken from the external repository for the function with the same name as the externalized name of the function prototype" | §8.3 (externalized name; SR10's word alternative when all three miss — determination D-R3) |
+| §2023:12.3.8.4 GR12–GR14 | intrinsic precedence / keyword omission / ALL | (group) |
+| §2023:12.3.8.4 GR15 | "Property-name-1 is the name of an object property that may be used throughout the scope of the containing environment division" | §8.5 |
+| §2023:8.4.6.7 | "A user-function-name may be referenced in the REPOSITORY paragraph of any source element that follows that function definition" … "if the external repository is updated, in any subsequently-compiled source unit that specifies that user-function-name as a function-prototype-name in its REPOSITORY paragraph" | §8.3 D-R3 — the record carries the user-function-name beside the externalized name and the provider answers a word lookup (`FunctionByWord`) when GR11 a)–c) miss; REPO-13 when the externalized-name step and the word name different functions |
+| §2023:13.7.3 SR2 | "The description of the formal parameters and the returning item that appear in the linkage section of a function prototype or a program prototype shall match the description of the formal parameters and the returning item in the corresponding function definition or program definition" | (group) `PrototypeSignatures.Same` → COBOL1513; across units the same comparator over the decoded record (§9.2, REPO-9) |
+| §2023:10.6.3 GR1 | "Compilation of a program prototype definition or a function prototype definition generates information required for the external repository" | §7.2 — a prototype unit compiles to its host-entry class carrying the signature, and its index entry |
+| §2023:10.6.2 SR2/SR3 | "If a compilation group contains both a program definition and a program prototype definition with the same externalized name, the signatures of these two compilation units shall be the same" (and the function twin) | (group) COBOL1513 — within ONE compilation group only; across groups a difference is §2023:8.13 ¶4's "flag differences" (REPO-9, §9.2), never an error |
+| §2023:14.9.4.4 GR3 b)–i) | locate ("the runtime system attempts to locate the program being called"), GR3 d) conformance "if checking for it is enabled in both the activated program and activating runtime element", GR3 e) externals, GR3 f) recursion, GR3 i) "If the program was successfully called, after control is returned from the called program the ON EXCEPTION phrase, if specified, is ignored" | the existing boundary, unchanged (§4.1); the host entry crosses it with checking enabled on its side (§4.3) |
+| §2023:14.2.3 GR8–GR10 | BY REFERENCE "operates as if the formal parameter occupies the same storage area as the argument"; BY CONTENT/BY VALUE "if the formal parameter is numeric, a COMPUTE statement without the ROUNDED phrase" | the boundary (PB2087 for group formals); the host entry lands host values by the same rule, refuses any landing that would lose a digit, a sign or a character (GR13), and gives one host variable passed twice one storage (§4.3) |
+| §2023:14.2.3 GR6 NOTE 1 | "In COBOL, the storage for the returning item is allocated in the activating source unit" | the host entry allocates the RETURNING receiver, as a COBOL activator does (§4.3) |
+| §2023:8.3.2.2 | "Within a run unit, all instances of a given name that is externalized to the operating environment shall identify the same kind of entity or item"; "when two or more source elements identify something with the same externalized name, they refer to the same instance"; "The implementor defines the formation and mapping rules of these names" | §8.6; `ExternalizedNames` (DOC-A.1-68); §4.3 (one host class per externalized name per assembly; every class activates the one program by name); §11.2 (a second module carrying an already-registered outermost name is refused) |
+| §2023:14.2.3 GR13; A.1 141 | "When either the activating or the activated runtime element is other than a COBOL runtime element, the implementor shall specify the restrictions and mechanisms for all supported language products"; "Procedure division header rules when either the activating or the activated runtime element is not a COBOL element" | §4.3 (the host entry: parameter matching, representation, return of a value, omission, the refusals, the exception contract), §9.4 (DOC-A.1-141's text) |
+| §2023:14.2.2 SR2 | BY VALUE data "shall be defined as a data item of class numeric, message-tag, object, or pointer" | §4.3's host-type table (no OPTIONAL BY VALUE; message-tag has no item, §4.3) |
+| §2023:13.18.2.3 SR2/SR4 | ANY LENGTH only "in an elementary level 1 entry in the linkage section of a function, of a contained program, or of a method that is not a property method", and in a function "as a formal parameter with the BY REFERENCE phrase" | §4.3's host-type table (no ANY LENGTH RETURNING, ANY LENGTH only on a function's BY REFERENCE formal) |
+| §2023:8.8.4.4.4 GR3 n) | the NUMERIC class test: "consists entirely of a valid representation for the usage" (and the display/national arm) | §4.3 — the ONE validity rule for write-back and RETURNING at the host door (`CobolNum.IsNumericImage`) |
+| §2023:9.3.12 | "Within a run unit, two classes with the same externalized object-class-name that are created by expanding the same parameterized class with the same actual parameters are the same class instance. If two classes expand a parameterized class with different actual parameters, they are not the same class instance and shall not have the same externalized object-class-name." | §10.5 (D3: one CLR type per (name, triple) by reuse of the expansion of the same `ExpansionKey`; a superseded key is a stale caller REPO-9 names; the "shall not" is reported where the two will necessarily share a run unit) |
 | A.1 66 / 67 / 161 / 162 | "External repository (mechanism for specifying whether checking and updating occur)"; "External repository information (other information beyond the required information)"; "how external repository and class-specifier determine which class is used"; "how interface specifier and external repository determine which interface is used" | §9 |
 
 ---
@@ -310,11 +310,11 @@ no modifiers.** What the CLR signature of a host entry DOES carry: arity, order,
 (`ref` for BY REFERENCE, by value for BY VALUE), OPTIONAL (nullability), return type, parameter names (display only).
 
 ### 3.4 Entry convention
-§11.9.7.4 GR2 — COBOL means "the naming convention and mapping of method-names and program-names are as specified in
+§2023:11.9.7.4 GR2 — COBOL means "the naming convention and mapping of method-names and program-names are as specified in
 8.3.2.2, User-defined words; other aspects of the entry convention are implementor-defined"; GR3 — "When
 entry-convention-name-1 is specified, the meaning of the entry convention is implementor-defined"; GR4 — "the entry
 convention is inherited from the first class specified in the INHERITS clause", otherwise "In all other cases, the
-entry convention is COBOL". The CALL statement has no convention clause; `>>CALL-CONVENTION` (§7.3.9.3 GR1 "The default
+entry convention is COBOL". The CALL statement has no convention clause; `>>CALL-CONVENTION` (§2023:7.3.9.3 GR1 "The default
 for the CALL-CONVENTION directive is" COBOL) governs name mapping; the `ENTRY` statement is a vendor extension this
 compiler refuses (`StatementBinder`: "ISO/IEC 1989 defines no ENTRY statement") and this design keeps refusing: a
 program has one entry. `OptionsBinder.ScreenEntryConvention` accepts only COBOL (A.1 item 64), so the bound OPTIONS
@@ -324,15 +324,15 @@ writes that constant, or adds a model field together with its consumer (`Options
 (native stack conventions, static blittable-only) are rejected as its home.
 
 ### 3.5 OPTIONAL
-COBOL OPTIONAL means OMITTED is testable (§8.8.4.8); a CLR optional parameter injects a default the callee cannot
+COBOL OPTIONAL means OMITTED is testable (§2023:8.8.4.8); a CLR optional parameter injects a default the callee cannot
 distinguish. Rejected. On the host entry OPTIONAL is nullability: OPTIONAL is written only under BY REFERENCE
-(§14.2.1's using-phrase), so an OPTIONAL formal is `ref T?`; `null` is OMITTED and the entry passes the boundary's omitted argument
-(`ManagedPointer.Null`, §14.9.4.4 GR11), which the callee's omitted-argument condition reads as it does for a COBOL
-`OMITTED` (r6-host call 2). `[CobolFormal(Optional)]` records which formals MAY be omitted (§14.9.4.3 SR24 is
+(§2023:14.2.1's using-phrase), so an OPTIONAL formal is `ref T?`; `null` is OMITTED and the entry passes the boundary's omitted argument
+(`ManagedPointer.Null`, §2023:14.9.4.4 GR11), which the callee's omitted-argument condition reads as it does for a COBOL
+`OMITTED` (r6-host call 2). `[CobolFormal(Optional)]` records which formals MAY be omitted (§2023:14.9.4.3 SR24 is
 checked at bind).
 
 ### 3.6 Named arguments
-"This correspondence is positional and not by name equivalence" (§14.9.4.4 GR2; INVOKE §14.9.23.4 GR3). Host-entry
+"This correspondence is positional and not by name equivalence" (§2023:14.9.4.4 GR2; INVOKE §2023:14.9.23.4 GR3). Host-entry
 parameter names are the sanitized COBOL words of the unit that published the entry (readable to a .NET caller,
 display only); the COBOL word itself is in the attribute.
 
@@ -370,7 +370,7 @@ A PROGRAM-ID becomes `internal sealed class {ClassName} : ICobolProgram` whose C
 args, CobolArg? returning)` (`ProgramEmitter.EmitCallMethod`), adopting each positional carrier into a `__lnk{Uid}`
 field (`FormalAdopt`; `ManagedPointer<T>`, the accessor carrier of `INTERPROGRAM_DESIGN` D1). Activation is
 `ProgramRegistry.CallProgram(name, callerPath, args, returning, notFoundEc, siteArgMismatchChecking)` →
-`ProgramTable.CallProgram`, which performs the whole §14.9.4.4 GR3 boundary around `inst.Call`: locate b) (the §8.4.6.3
+`ProgramTable.CallProgram`, which performs the whole §2023:14.9.4.4 GR3 boundary around `inst.Call`: locate b) (the §2023:8.4.6.3
 scope rules, then the sibling-module probe), recursion f), count/description/RETURNING d) over the registered
 `BoundaryItem`s "if checking for it is enabled in both the activated program and activating runtime element",
 `DescribeExternals` e), the instance model, `Modules.Push`, the checking-flag scope, the nonfatal dispatcher,
@@ -385,54 +385,54 @@ constructs or calls an instance.
 ### 4.2 What the repository adds to a COBOL CALL
 Only compile-time information. A CALL through a prototype the resolver took from the repository (§8.2 step 3) is
 bound exactly as a CALL through an in-group prototype: `CallBinder` checks every argument against the recorded
-formal's DESCRIPTION (§14.8.2, `DiagnosticCatalog.CallArgumentConformance`), the BY VALUE landing uses the recorded
-formal's description (`CobolArgAdapt.LandForFormal`, §14.2.3 GR10), the RETURNING receiver is checked against the
-recorded RETURNING item (§14.8.3), and the site renders the same `CobolArg[]` it renders today. Nothing is referenced
+formal's DESCRIPTION (§2023:14.8.2, `DiagnosticCatalog.CallArgumentConformance`), the BY VALUE landing uses the recorded
+formal's description (`CobolArgAdapt.LandForFormal`, §2023:14.2.3 GR10), the RETURNING receiver is checked against the
+recorded RETURNING item (§2023:14.8.3), and the site renders the same `CobolArg[]` it renders today. Nothing is referenced
 from the callee's assembly: the program is located by name at run time (§11.2), and a callee recompiled with a
 different signature after its callers is met by GR3 d) at run time — EC-PROGRAM-ARG-MISMATCH when checking is
 enabled in both elements, the lenient positional adoption otherwise — and by REPO-9 at the callee's compile (§9.2).
 **A site whose callee is compiled elsewhere describes its operands (determination, 2026-10-27; it settles the question
 kb/Work PB2097 carried to PB2103).** GR3 d) — "If the resources are available and the program being called is a COBOL
 program, the rules for conformance specified in 14.8.2, Parameters and 14.8.3, Returning items apply" … "if checking for
-it is enabled in both the activated program and activating runtime element" (§14.9.4.4 3) d), `cite.py --check` OK) — is
+it is enabled in both the activated program and activating runtime element" (§2023:14.9.4.4 3) d), `cite.py --check` OK) — is
 a RUN-TIME rule about the program actually activated. The compile-time check ran against a record of that program, which
 the callee's later build can replace; only the activated program's own registered formals say what it is now. Today one
-flag, `BoundCallProgram.CalleeSignatureKnown`, answers two different questions — "did the bind check §14.8.2 against a
+flag, `BoundCallProgram.CalleeSignatureKnown`, answers two different questions — "did the bind check §2023:14.8.2 against a
 signature?" (it decides `CallEmitter.LandsAtRunTime`: a site with no formal leaves GR9 / GR10's landing to the boundary)
 and "can the activated program differ from that signature?" (it decides `CallEmitter.DescribesOperands`) — and the two
 part exactly at GR10 b) and c). Slice 7 splits it into `CalleeSignatureKnown` (the first question, unchanged: true for
 AS NESTED, GR10 a), b) and c) once c) carries a record, and every user-defined function) and `CalleeCompiledHere` (the
 second: true only when the activated element is a definition this compilation group compiles — AS NESTED and GR10 a) /
 GR11 a)). `DescribesOperands` becomes `argMismatchChecking && !CalleeCompiledHere`, so a prototype-checked CALL whose
-definition is compiled elsewhere — GR10 b) as much as c) — still states each operand's §14.8.2 description for GR3 d);
+definition is compiled elsewhere — GR10 b) as much as c) — still states each operand's §2023:14.8.2 description for GR3 d);
 `LandsAtRunTime` keeps reading `CalleeSignatureKnown`. The function lane takes the same rule through the same renderer
 (a GR11 b) / c) function is compiled elsewhere). This changes no crossing form (the described argument is the form a
 Format-1 CALL already uses), so it is no call-ABI change.
 **Landed (kb/Work PB2103):** `BoundCallProgram.CalleeCompiledHere`, set by `CallBinder` (AS NESTED; a prototype whose
-`ProgramPrototype.DefinitionCompiledHere` is true — GR10 a) or §8.4.6.8's containing program — when the CALL writes no
+`ProgramPrototype.DefinitionCompiledHere` is true — GR10 a) or §2023:8.4.6.8's containing program — when the CALL writes no
 target of its own or a literal naming that same program) and by `UdfBinder` (`UserFunctionSignature.DefinitionCompiledHere`;
 never through a function-pointer); both lanes describe through `CallBinder.Described`. A described site that held a
-signature also states its program-specifiers, so `ProgramTable.Activate` asks §14.8.2.3.2 rule 2 of it, and lands its
+signature also states its program-specifiers, so `ProgramTable.Activate` asks §2023:14.8.2.3.2 rule 2 of it, and lands its
 arguments a second time through the activated formal's landing, which is the identity for the description the site
 landed for. `ProgramTable.Activate` judges an activated FUNCTION by rule 2 always (rule 2 lists "a function"; the
 program-specifier test answered rule 1 for every function, never reached until a function site described its operands).
 Witnesses: `conformance:wiseowl/cases/14.9.4-CALL/pb2103_prototype_callee_compiled_elsewhere` (the CALL and RETURNING
 arms) and `FunctionCompiledElsewhereTests` (the fatal function arm).
 The DEFAULT is the lenient adoption: the activated program registers its formals' descriptions only when its own
-source enables EC-PROGRAM-ARG-MISMATCH checking (`>>TURN`, §7.3.25; `ProgramEmitter.EmitEntryWrapper`), so without
+source enables EC-PROGRAM-ARG-MISMATCH checking (`>>TURN`, §2023:7.3.25; `ProgramEmitter.EmitEntryWrapper`), so without
 that directive nothing is compared at run time and each argument is read through the callee's description. REPO-9
 at the callee's compile is then the only signal; the manual says so (`docs/manual/dotnet-interop.md`).
 
 ### 4.3 The host entry
-§14.2.3 GR13 governs: "When either the activating or the activated runtime element is other than a COBOL runtime
+§2023:14.2.3 GR13 governs: "When either the activating or the activated runtime element is other than a COBOL runtime
 element, the implementor shall specify the restrictions and mechanisms for all supported language products" (A.1
 item 141, `docs/CONFORMANCE.md` DOC-A.1-141, whose text is §9.4's). This subclause is that specification for the one
 supported non-COBOL language product, .NET. For every outermost program and every function unit with externalized
 name `N` — definition or prototype — the compiler generates, in the group's own assembly, one public class:
 ```csharp
 namespace Cobol.ACCT;
-/// <summary>PROGRAM-ID ACCT-UPDATE (ISO §11.10). Activates the program through the run unit's activation boundary
-/// (§14.9.4.4 GR3): one WORKING-STORAGE per run unit, RECURSIVE/INITIAL honored.</summary>
+/// <summary>PROGRAM-ID ACCT-UPDATE (ISO §2023:11.10). Activates the program through the run unit's activation boundary
+/// (§2023:14.9.4.4 GR3): one WORKING-STORAGE per run unit, RECURSIVE/INITIAL honored.</summary>
 [global::WiseOwl.Cobol.Runtime.Repository.CobolUnit(RepositoryUnitKind.Program, "ACCT-UPDATE", "ACCT-UPDATE", EntryConvention = "COBOL")]
 public static class ACCT_UPDATE
 {
@@ -461,7 +461,7 @@ public static class ACCT_UPDATE
         // 4. finally: every BY REFERENCE variable decoded back by the validity rule; then the RETURNING value decoded
     }
 
-    /// <summary>CANCEL ACCT-UPDATE (ISO §14.9.5) for this run unit.</summary>
+    /// <summary>CANCEL ACCT-UPDATE (ISO §2023:14.9.5) for this run unit.</summary>
     public static void Cancel();   // ProgramRegistry.Cancel("ACCT-UPDATE", callerPath: null)
 }
 ```
@@ -479,7 +479,7 @@ public static class ACCT_UPDATE
   … 05 F-2` of a program externalized "CUST" publishes class `CUST`, record `CUST_Record` and members `CUST`, `F`,
   `F_2`, `F_2_2` (r7-names): every legal description publishes a compilable surface, and the order rule makes the
   names deterministic. Names are display only; the COBOL word is in the attribute (§3.6).
-- **Landing a host value — exact, or refused.** §14.2.3 GR9 lands a BY CONTENT argument for an activator that names
+- **Landing a host value — exact, or refused.** §2023:14.2.3 GR9 lands a BY CONTENT argument for an activator that names
   the program in its REPOSITORY paragraph into "a data item with the same description and the same number of bytes as
   the formal parameter" by "a COMPUTE statement without the ROUNDED phrase" if the formal is numeric, by "a SET
   statement" if it "is of class index, object, or pointer", and "otherwise, a MOVE statement"; GR10 lands BY VALUE by
@@ -499,7 +499,7 @@ public static class ACCT_UPDATE
   store (`CobolNum.TryStore`/`TryStoreU`) under `CobolRounding.Prohibited` — so "exact" is the capacity rule every
   COBOL receiver of that description obeys, and an inexact transfer is refused — and returns the formal's unscaled carrier
   value; `HostLanding.LandText` (fixed length) and `LandVariable` (DYNAMIC LENGTH up to its LIMIT, ANY LENGTH) for a
-  string, through the MOVE's own alignment (`CobolString.Store`, space fill, zero fill for boolean, ISO §13.18.32.4 2)).
+  string, through the MOVE's own alignment (`CobolString.Store`, space fill, zero fill for boolean, ISO §2023:13.18.32.4 2)).
   An edited formal (numeric-edited, alphanumeric-edited) takes the host string as its character content under the
   same fit rule; a host that holds the number formats it.
 - **The arguments are the ones a COBOL CALL renders.** For each formal the entry renders the `CobolArg` that
@@ -512,13 +512,13 @@ public static class ACCT_UPDATE
   numeric argument — so the write-back sees the content the activated program left, including content no native cell
   could hold, and the validity rule below decides it; a floating-point or index formal crosses in its own native cell,
   a pointer or object-reference formal in its managed slot, a character formal as its character image. The fixed
-  storage length and the §14.8.2 description each argument states are the CALL lane's own
+  storage length and the §2023:14.8.2 description each argument states are the CALL lane's own
   (`CallEmitter.ArgumentLength(DataItem, CallCrossing)`, `ActivationDescriptions.Of`), stated as at a CALL site that
   checks EC-PROGRAM-ARG-MISMATCH.
 - **One storage for one variable passed twice.** Two `ref` parameters that refer to the same variable
   (`Unsafe.AreSame`; only parameters of one CLR type can) are given ONE storage when their formals' descriptions are
   the same (`OoConformance.SignatureDifference` is null both ways), so `Call(ref a, ref a)` is the host's `CALL …
-  USING A A` and §14.2.3 GR8 holds for it (r6-host: `LK-B=0005`). When the descriptions differ — `PIC 9(4)` and
+  USING A A` and §2023:14.2.3 GR8 holds for it (r6-host: `LK-B=0005`). When the descriptions differ — `PIC 9(4)` and
   `PIC 9(8)`, both `ref long`, or an index and a `PIC 99` item, whose storages are not even of one type — one storage
   cannot be both, and the call is refused with `ArgumentException` naming both parameters before anything is landed or
   activated (r7-brk): the entry's statements `HostLanding.RequireDistinct(Unsafe.AreSame(ref a, ref b), …)`, one per
@@ -535,11 +535,11 @@ public static class ACCT_UPDATE
   COBOL activator.
 - **Write-back and RETURNING — one validity rule.** In a `finally`, after the boundary returns or throws, each BY
   REFERENCE variable receives its storage's content decoded by the formal's description; after the try, the RETURNING
-  receiver — allocated by the entry as an activating COBOL element allocates it (§14.2.3 GR6 NOTE 1) — is decoded the
+  receiver — allocated by the entry as an activating COBOL element allocates it (§2023:14.2.3 GR6 NOTE 1) — is decoded the
   same way and returned (`void` when the unit has none). A numeric content is decoded only when it is a valid
-  representation of its description: the class test NUMERIC (§8.8.4.4.4 GR3 n)) is true of it, as the runtime's one
+  representation of its description: the class test NUMERIC (§2023:8.8.4.4.4 GR3 n)) is true of it, as the runtime's one
   implementation of that test (`CobolNum.IsNumericImage`) answers — the content a REDEFINES alias, a reference
-  modification or a non-conforming caller can leave there (§14.8.2.3.2 rule 1 lets a COBOL activator's argument carry
+  modification or a non-conforming caller can leave there (§2023:14.8.2.3.2 rule 1 lets a COBOL activator's argument carry
   it). Content that fails it leaves that variable unchanged (or returns no value), and after every other write-back the
   entry throws `FormatException` naming the formal (or the RETURNING item, or the group member) and quoting the
   characters — the .NET exception for a text that does not parse as a number. The rule is the same function for a
@@ -548,12 +548,12 @@ public static class ACCT_UPDATE
   narrows: the host type of a description holds every value its storage can hold (the table below).
 - **Scaled numerics are never presented unscaled.** The host type is a function of the description (below); no member
   anywhere on the host surface exposes a fixed-point item's unscaled integer.
-- **CANCEL.** A program's class has `Cancel()`, which performs §14.9.5's CANCEL of that program in the current run unit
+- **CANCEL.** A program's class has `Cancel()`, which performs §2023:14.9.5's CANCEL of that program in the current run unit
   through `ProgramRegistry.Cancel(name, callerPath: null)` — the one boundary's CANCEL (EC-PROGRAM-CANCEL-ACTIVE for
-  an active program, §14.9.5 GR5). A function has none: CANCEL names programs. With it the host has no reason to name
+  an active program, §2023:14.9.5 GR5). A function has none: CANCEL names programs. With it the host has no reason to name
   `ProgramRegistry` (r7-brk: `Cancel()` resets WORKING-STORAGE).
 - **The boundary is the registry's.** The entry passes `callerPath: null` — an activator outside every program, so
-  only §8.4.6.3's outermost-program rule applies — and `siteArgMismatchChecking: true`, so the ACTIVATING half of GR3
+  only §2023:8.4.6.3's outermost-program rule applies — and `siteArgMismatchChecking: true`, so the ACTIVATING half of GR3
   d)'s "enabled in both" is always on. GR3 d)'s comparison then runs when the activated program enables EC-PROGRAM-ARG-
   MISMATCH checking itself (§4.2). That matters only for a PROTOTYPE library's entry, whose program lives in another
   assembly: against a changed definition it is EC-PROGRAM-ARG-MISMATCH when the definition enables the checking, and
@@ -561,7 +561,7 @@ public static class ACCT_UPDATE
   (the default); REPO-9 at the definition's compile is then the signal. A definition's own entry is compiled with the
   program and cannot disagree with it. GR3 b) locate, e) externals, f) recursion, the instance model, INITIAL's
   implicit CANCEL and the GR3 i) mark are `CallProgram`'s; the entry neither creates nor sees an instance. A
-  function's entry passes `notFoundEc: "EC-FUNCTION-NOT-FOUND"`, the function arm of the same call (§8.4.6.3's
+  function's entry passes `notFoundEc: "EC-FUNCTION-NOT-FOUND"`, the function arm of the same call (§2023:8.4.6.3's
   program/function discrimination, `ResolveVisible`'s `wantFunction`).
 - **The exception contract — what leaves `Call` and why.** Exactly these, and the entry maps none of the boundary's:
   1. `ArgumentException` and its subclasses — `ArgumentOutOfRangeException` for a lossy value, `ArgumentNullException`
@@ -573,8 +573,8 @@ public static class ACCT_UPDATE
      CallProgram` marks every `CobolCallException` that crosses out of `inst.Call`, and only that type). `EcName`
      names it.
   3. The run-unit-ended result of owner decision R48 (DOC-A.1-167): a STOP RUN, or a fatal exception condition that
-     terminates the run unit (§14.6.13.1.3 rule 7, "execution of the run unit is terminated abnormally"), performs the
-     §14.6.11 actions at the OUTERMOST activation boundary — `CallProgram` with `callerPath: null`, the host's
+     terminates the run unit (§2023:14.6.13.1.3 rule 7, "execution of the run unit is terminated abnormally"), performs the
+     §2023:14.6.11 actions at the OUTERMOST activation boundary — `CallProgram` with `callerPath: null`, the host's
      counterpart of `ProgramTable.RunMain` — and leaves as the one documented exception carrying the exit status and
      whether the ending was normal or abnormal. `StopRun` and `CobolFatalException` (with its `CobolSizeError`) are
      the runtime's internal signals inside the run unit and never reach the host.
@@ -594,24 +594,24 @@ emitter (this slice) and the decoder (slice 4) hold the same input and nothing i
 
 | COBOL description | Host type |
 |---|---|
-| fixed-point numeric, no positions right of the decimal point (`Scale ≤ 0`) | the first of `long`, `Int128`, `UInt128` that holds EVERY value the item's storage can hold: for display, national and packed forms the PICTURE's 9 positions times its P positions' scaling (a P position stores no digit, ISO §13.18.40.4 14)), so `long` to 18 value digits and `Int128` to 38; for a binary form whose truncation is by capacity (COMP-5, BINARY-CHAR … BINARY-DOUBLE) the container's exact range — a signed container of up to 8 bytes and an unsigned one of fewer are `long`, an unsigned 8-byte or a signed 16-byte one `Int128`, an unsigned 16-byte one (`PIC 9(20) COMP-5`, [0, 2^128)) `UInt128`; a 16-byte container with P positions is past 38 digits and takes `CobolDec` |
+| fixed-point numeric, no positions right of the decimal point (`Scale ≤ 0`) | the first of `long`, `Int128`, `UInt128` that holds EVERY value the item's storage can hold: for display, national and packed forms the PICTURE's 9 positions times its P positions' scaling (a P position stores no digit, ISO §2023:13.18.40.4 14)), so `long` to 18 value digits and `Int128` to 38; for a binary form whose truncation is by capacity (COMP-5, BINARY-CHAR … BINARY-DOUBLE) the container's exact range — a signed container of up to 8 bytes and an unsigned one of fewer are `long`, an unsigned 8-byte or a signed 16-byte one `Int128`, an unsigned 16-byte one (`PIC 9(20) COMP-5`, [0, 2^128)) `UInt128`; a 16-byte container with P positions is past 38 digits and takes `CobolDec` |
 | fixed-point numeric with `Scale > 0` | `decimal` when the unscaled value has at most 28 digits (the PICTURE's for display, national and packed forms; the container's for a capacity-truncated binary form, so an 8-byte COMP-5 item's 19) and `Scale ≤ 28`; otherwise the runtime's `CobolDec`, exact for every signed storage (its significand is an `Int128`). ⚠ GR13 RESTRICTION: an UNSIGNED 16-byte capacity container with fraction or P positions reaches 2^128 units, past `CobolDec`'s significand; its content below 2^127 units decodes exactly and content at or above it is refused by the validity decode (`HostLanding.TryDec`, `FormatException`), never narrowed |
 | floating-point (COMP-1/COMP-2, FLOAT-*) | the item's own CLR carrier (`float` / `double` / the decimal-float carrier) |
 | alphanumeric, national, boolean, alphanumeric-edited, numeric-edited; DYNAMIC LENGTH | `string` |
-| ANY LENGTH (a FUNCTION's BY REFERENCE formal only: §13.18.2.3 SR2 allows it in a function, a contained program or a method, and SR4 makes it a function's BY REFERENCE formal) | `string`, whose length is the argument's length (§13.18.2.4 GR1) |
+| ANY LENGTH (a FUNCTION's BY REFERENCE formal only: §2023:13.18.2.3 SR2 allows it in a function, a contained program or a method, and SR4 makes it a function's BY REFERENCE formal) | `string`, whose length is the argument's length (§2023:13.18.2.4 GR1) |
 | INDEX data item | `long` |
 | POINTER / PROGRAM-POINTER / FUNCTION-POINTER | `ManagedPointer` / `ProgramPointer` / `FunctionPointer` |
 | OBJECT REFERENCE | the referenced class's or interface's public CLR type; `CobolObject` when universal |
-| message-tag (§14.2.2 SR2 admits it BY VALUE) | none: the A.4 message-control facility is not provided and the DATA DIVISION refuses a message-tag item (`docs/CONFORMANCE.md` §4), so no formal has that class |
-| fixed group | the published record struct: one property per named subordinate (FILLER kept privately so `FromImage` → `AsImage` round-trips), nested record structs for subordinate groups, an array property for OCCURS (its length checked at `AsImage`); for OCCURS DEPENDING ON whose data-name-1 is in the record (where §13.18.38.3 20) places it before the table), the array's length is the DEPENDING ON value, which §13.18.38.4 7) makes "the current number of occurrences", and for one whose data-name-1 is outside the record the array is the table's whole area, every occurrence the storage holds (§8.5.1.8); a REDEFINES subordinate is not a member (the record is the first description; its other views are the image's) |
+| message-tag (§2023:14.2.2 SR2 admits it BY VALUE) | none: the A.4 message-control facility is not provided and the DATA DIVISION refuses a message-tag item (`docs/CONFORMANCE.md` §4), so no formal has that class |
+| fixed group | the published record struct: one property per named subordinate (FILLER kept privately so `FromImage` → `AsImage` round-trips), nested record structs for subordinate groups, an array property for OCCURS (its length checked at `AsImage`); for OCCURS DEPENDING ON whose data-name-1 is in the record (where §2023:13.18.38.3 20) places it before the table), the array's length is the DEPENDING ON value, which §2023:13.18.38.4 7) makes "the current number of occurrences", and for one whose data-name-1 is outside the record the array is the table's whole area, every occurrence the storage holds (§2023:8.5.1.8); a REDEFINES subordinate is not a member (the record is the first description; its other views are the image's) |
 | strongly-typed group with an object-reference or pointer leaf | the published record struct with those members; packed as the CALL lane's carrier for that shape (PB2087's cell area with managed slots) |
-| variable-length group — a dynamic-length elementary item or a dynamic-capacity table beneath it (§8.5.1.12), whose current extent composes (`DataItem.CurrentExtentImageCapable`, the CALL lane's own gate) | the published record struct: a dynamic-length member is `string`, a dynamic-capacity table an array of its current capacity (never below its minimum capacity, "Integer-4 is the minimum capacity of the table", §13.18.38.4 16)); crosses as the CALL lane's variable-length carrier (`CobolVarGroup`); no `AsImage`/`FromImage`, because its storage has no single image (a dynamic-length item "may be located elsewhere", §8.5.1.10.3). A group holding both such a component and a pointer or object-reference member (its current extent composing with each reference a fixed placeholder of its reserved positions, `DataItem.CurrentExtentTransferImageCapable`) has the same record and crosses as the CALL lane's cell AREA of its description, the form the COBOL boundary carries it in (kb/Work PB3139): the host class declares the DESCRIPTION'S own fresh cell (`__hs<n>`, `DataEmitter.FreshArea`, the factory the program's area formal takes, with the description's `_P_` profiles it names, so a prototype-only unit needs no program class and a dynamic-capacity table the area holds is created and initialized by the description, §8.5.1.9.5); the record's carrier is distributed into that cell (`StorageCell.StoreVarGroupAt`, the store a formal's copy-in makes) and each reference set in its managed slot, a dynamic-capacity table's element cells included (`__PutSlots`); the argument states the group's §8.5.1.12 atoms (`Shape`, `DynBase`) so the activated program's formal is laid over it (§14.2.3 8): "operates as if the formal parameter occupies the same storage area as the argument"), and the write-back reads the area back by the inverse walk (`__TryGetArea`). There is no GR13 restriction on this shape (kb/Work PB3273; `HostEntryShapeDriftTests` pins the area's four parts) |
+| variable-length group — a dynamic-length elementary item or a dynamic-capacity table beneath it (§2023:8.5.1.12), whose current extent composes (`DataItem.CurrentExtentImageCapable`, the CALL lane's own gate) | the published record struct: a dynamic-length member is `string`, a dynamic-capacity table an array of its current capacity (never below its minimum capacity, "Integer-4 is the minimum capacity of the table", §2023:13.18.38.4 16)); crosses as the CALL lane's variable-length carrier (`CobolVarGroup`); no `AsImage`/`FromImage`, because its storage has no single image (a dynamic-length item "may be located elsewhere", §2023:8.5.1.10.3). A group holding both such a component and a pointer or object-reference member (its current extent composing with each reference a fixed placeholder of its reserved positions, `DataItem.CurrentExtentTransferImageCapable`) has the same record and crosses as the CALL lane's cell AREA of its description, the form the COBOL boundary carries it in (kb/Work PB3139): the host class declares the DESCRIPTION'S own fresh cell (`__hs<n>`, `DataEmitter.FreshArea`, the factory the program's area formal takes, with the description's `_P_` profiles it names, so a prototype-only unit needs no program class and a dynamic-capacity table the area holds is created and initialized by the description, §2023:8.5.1.9.5); the record's carrier is distributed into that cell (`StorageCell.StoreVarGroupAt`, the store a formal's copy-in makes) and each reference set in its managed slot, a dynamic-capacity table's element cells included (`__PutSlots`); the argument states the group's §2023:8.5.1.12 atoms (`Shape`, `DynBase`) so the activated program's formal is laid over it (§2023:14.2.3 8): "operates as if the formal parameter occupies the same storage area as the argument"), and the write-back reads the area back by the inverse walk (`__TryGetArea`). There is no GR13 restriction on this shape (kb/Work PB3273; `HostEntryShapeDriftTests` pins the area's four parts) |
 
 The published record struct is rendered from the DESCRIPTION by `PublishedRecordEmitter` (corrected 2026-10-15, kb/Work
 PB2099: this paragraph used to name a "published mode" of `RecordStructEmitter` and `GroupImageCodec`, but a group
 FORMAL has no internal record struct — the program reads it through windows over its area — so there is no member walk
 to share; what IS shared is the storage geometry and the door rules):
-- **Geometry.** Each member's place in the record image is `BitLayout.StartBitWithin`, the one §8.5.1.6.3 placement walk
+- **Geometry.** Each member's place in the record image is `BitLayout.StartBitWithin`, the one §2023:8.5.1.6.3 placement walk
   (in bits, so two USAGE BIT members that share a byte are placed as the program places them, and a national member
   occupies its two bytes per position) that both the binder's class offsets and the record-struct image codec are laid
   out by; an occurrence's stride is `BitLayout.StrideBits`. Nothing re-derives an offset.
@@ -631,15 +631,15 @@ to share; what IS shared is the storage geometry and the door rules):
   member of which fails it is not decoded at all — the host's variable is unchanged — and the `FormatException` names
   the first failing member (`LK_G.LK_N`). `FromImage` refuses an image that is not the record's width
   (`HostLanding.RequireImage`).
-- **Crossing.** The record image is the group's storage; a bit or national group (§13.18.29.4 GR1b/GR2b) crosses as the
+- **Crossing.** The record image is the group's storage; a bit or national group (§2023:13.18.29.4 GR1b/GR2b) crosses as the
   elementary item it is treated as, its boolean or national positions, exactly as the CALL lane's text crossing carries
   it (`CallEmitter.CallStringRead`). A record holding a pointer or object-reference member (a strongly-typed group,
-  §13.18.60.3 SR14) crosses as the CALL lane's cell area (kb/Work PB2087, `CallEmitter.AreaOf`): its storage is a
+  §2023:13.18.60.3 SR14) crosses as the CALL lane's cell area (kb/Work PB2087, `CallEmitter.AreaOf`): its storage is a
   `StorageCell` holding the image and each reference in its managed slot (`__Area`, `__PutSlots` through
   `CobolPtr.SlotWrite`), the argument states `Area: new CellPointer(cell, 0)` so the activated program's formal occupies
-  that storage (§14.2.3 8)), and the write-back reads each slot back (`CobolPtr.SlotRead`). An image alone
+  that storage (§2023:14.2.3 8)), and the write-back reads each slot back (`CobolPtr.SlotRead`). An image alone
   (`AsImage`/`FromImage`) holds no reference: `FromImage` leaves those members in their null state.
-- **The variable-length carrier.** A record holding dynamic-length items or dynamic-capacity tables (§8.5.1.12) crosses
+- **The variable-length carrier.** A record holding dynamic-length items or dynamic-capacity tables (§2023:8.5.1.12) crosses
   as the CALL lane's carrier of its description, `CobolVarGroup` (`__Var`; `ManagedPointer<CobolVarGroup>`, the
   `CallCrossing.VarGroup` arm), composed in the description's own shape so the activated program's formal takes it
   as a COBOL argument of the same description (`CobolArgAdapt.VarGroup`): its fixed run is the landed image with each
@@ -647,7 +647,7 @@ to share; what IS shared is the storage geometry and the door rules):
   `StorageCell.VarGroupAt`), and its components, in the order `CellComponents` numbers them (placed by
   `CellComponents.InLayout`, the same walk over `BitLayout` — a RETURNING item has no storage class to read offsets
   from), are each dynamic-length member's content landed by `HostLanding.LandVariable` (refused past the item's
-  maximum size, §8.5.1.10.1) and each dynamic-capacity table's occurrences — their images concatenated, or the
+  maximum size, §2023:8.5.1.10.1) and each dynamic-capacity table's occurrences — their images concatenated, or the
   occurrences' own carriers for a table whose elements hold components (`CobolVarGroup.Elements`, kb/Work PB2496) —
   with the table's array required to be a capacity it can have (`HostLanding.RequireCapacity`). The write-back decodes
   the carrier the activated program left (`__TryGet(CobolVarGroup …)`: the fixed run back into the image by
@@ -665,7 +665,7 @@ structs, `Call`, and `Cancel` for a program; the program class itself stays `int
 call around the boundary. A prototype library and the definition's library each publish their own class for one
 externalized name, in their own namespaces: two DISPLAY shapes of one signature (pb1115's prototype publishes `ref
 L_G_Record`, its definition `ref D_G_Record` with a nested `D_S_Record`: names and grouping differ, the descriptions
-are the same, §13.7.3 SR2), which REPO-9 compares (§9.2) and both of which activate the one program by name.
+are the same, §2023:13.7.3 SR2), which REPO-9 compares (§9.2) and both of which activate the one program by name.
 
 **ONE host surface (owner decision 2026-10-05).** The change that lands the host entry retires every other host
 route: `docs/CONFORMANCE.md` DOC-A.1-65, -116, -141 and -167 stop telling a host to activate a program through
@@ -738,7 +738,7 @@ spelling it replaced made `_redef_@int`, refused by the C# compiler). OO names a
 `DataItem.AddMember`, which allocates in the group's own record-struct scope, and the class-level roots through the
 program-class scope. `CsNameReservationDriftTests` reads every member declaration the code generator writes, the
 members C# synthesizes for a record struct and the `ICobolProgram` members, and is red when one is in neither seed.
-Within a run unit one externalized name identifies one kind of entity (§8.3.2.2), so a program and a class never
+Within a run unit one externalized name identifies one kind of entity (§2023:8.3.2.2), so a program and a class never
 legally share one. Generated code roots every name outside the unit's own namespace at `global::`: an assembly named
 `System`, `Cobol` or `WiseOwl` makes `Cobol.System` (…) a member of `Cobol`, which would otherwise capture a written
 prefix (CS0234 on legal source), and an assembly named after a runtime type (`CobolNum`) would capture that simple name
@@ -766,7 +766,7 @@ schema and resolver admit it; building it is a later slice.
 ### 4.7 What is checked when
 | Fact | Home | Checked |
 |---|---|---|
-| a formal's description (PICTURE identity, scale, category, sign, usage, clauses, ANY LENGTH, DYNAMIC LENGTH, ALIGNED, locale, currency, DP-comma, strong type, group layout), mode, OPTIONAL; the RETURNING description | `[CobolFormal]` + the `[CobolDescription]` tree on the host-entry parameter / return value (§6) | bind — `PrototypeSignatures.Same` (prototype vs definition), `ParameterConformance` (argument vs formal, §14.8.2), §14.8.3 (RETURNING) — over the decoded record, exactly as for an in-group prototype |
+| a formal's description (PICTURE identity, scale, category, sign, usage, clauses, ANY LENGTH, DYNAMIC LENGTH, ALIGNED, locale, currency, DP-comma, strong type, group layout), mode, OPTIONAL; the RETURNING description | `[CobolFormal]` + the `[CobolDescription]` tree on the host-entry parameter / return value (§6) | bind — `PrototypeSignatures.Same` (prototype vs definition), `ParameterConformance` (argument vs formal, §2023:14.8.2), §2023:14.8.3 (RETURNING) — over the decoded record, exactly as for an in-group prototype |
 | the signature the callee's previous build or a published prototype/definition carries | the same attributes in that assembly | `--repository-check` at the callee's compile (REPO-9, §9.2) |
 | the activated program's formals and RETURNING at run time | `BoundaryItem` registration (unchanged) | GR3 d) when checking is enabled in both elements — every COBOL CALL, and every host entry (which enables it on its side) |
 | a host's call | the host-entry method's CLR signature | by the C# compiler when the host compiles; by the CLR (`MissingMethodException`) when a host runs against a rebuilt assembly whose entry changed shape |
@@ -777,7 +777,7 @@ schema and resolver admit it; building it is a later slice.
 
 ### 5.1 Unit kinds
 `RepositoryUnitKind { Program, Function, Class, Interface, ProgramPrototype, FunctionPrototype, ParameterizedClass,
-ParameterizedInterface, Expansion, ClrType, ClrMethod }` (the last two reserved, §4.6). §8.13 ¶2 holds: a prototype and
+ParameterizedInterface, Expansion, ClrType, ClrMethod }` (the last two reserved, §4.6). §2023:8.13 ¶2 holds: a prototype and
 a definition publish the same record shape from one `RepositoryRecord.Of(BoundUnit)`, and the comparator that decides
 "the same signature" reads descriptions, never data-names (§6.3, §17.2).
 
@@ -789,8 +789,8 @@ a definition publish the same record shape from one `RepositoryRecord.Of(BoundUn
 | Expansion | the class record + `(definition identity, actual identities)`, its `ExpansionKey` and its placement (§10.5) |
 | ParameterizedClass / ParameterizedInterface | formal list with kinds; the skeleton's post-text-manipulation source; its specifier RESOLUTIONS (word → identity, for every class/interface its own REPOSITORY declares); its `CompileState` (§6.1) |
 
-### 5.3 The home of each §8.13 item
-| §8.13 item | Programs / functions / prototypes | Classes / interfaces |
+### 5.3 The home of each §2023:8.13 item
+| §2023:8.13 item | Programs / functions / prototypes | Classes / interfaces |
 |---|---|---|
 | externalized name, type of source unit | `[CobolUnit(Kind, Name, ExternalizedName)]` on the host-entry class; listed in the assembly's `Units` index | `[CobolUnit]` on the public CLR type (class, `__FACTORY`, interface) |
 | parameters (description, mode, optional) | the `Call` method's Params: .NET type + `[CobolFormal]` + `[CobolDescription]` tree | the method's Params, likewise |
@@ -848,7 +848,7 @@ codec, the vocabulary and the reader, which read the binder, stay in `Binding/Re
 ```csharp
 internal sealed record RepositoryRecord(
     RepositoryUnitKind Kind, string Name, string ExternalizedName,                            // the NAME part
-    string EntryConvention, bool DecimalPointIsComma, RecordList<CurrencyRecord> Currencies,  // from here on: the SIGNATURE part (§8.13 ¶2)
+    string EntryConvention, bool DecimalPointIsComma, RecordList<CurrencyRecord> Currencies,  // from here on: the SIGNATURE part (§2023:8.13 ¶2)
     RecordList<RaisingRecord> Raising, RecordList<FormalRecord> Formals, DescriptionRecord? Returning,
     RecordList<DescriptionRecord> TypeDeclarations, RecordList<StructureRecord> DynamicLengthStructures,
     RecordList<PrototypeRecord> ReferencedPrototypes, ClassRecord? Class = null);
@@ -892,7 +892,7 @@ internal sealed record DescriptionRecord(
     int? TypeDeclaration, RepositoryGroupUsage GroupUsage, PicRecord? Pic, RecordList<DescriptionRecord> Children);
 /// OccursSpec: the bounds, the DEPENDING ON object, a DYNAMIC table's capacity phrases. The object is its word (or
 /// "<outside>") AND, when it is in the record, DependingEntry: the preorder index of its entry in the description's tree
-/// (the root 0), its identity, because a non-unique name is written qualified (ISO §8.4.2.2.3 SR1) and no qualifier is kept.
+/// (the root 0), its identity, because a non-unique name is written qualified (ISO §2023:8.4.2.2.3 SR1) and no qualifier is kept.
 internal sealed record OccursRecord(int Min, int Max, string? Depending, int? DependingEntry, bool Dynamic, string? Capacity,
     int? InitialCapacity, int? ExpectedMax, bool Initialized);
 /// PicInfo BY VALUE — every member. The two restriction NAMES are kept as written by the publishing element (words: an
@@ -912,18 +912,18 @@ internal sealed record LocaleEditRecord(string? LocaleName, string? External, bo
 ```
 **Corrections the implementation made (kb/Work PB2100; held by the converse drift test `RepositoryRecordConverseDriftTests`).**
 SYNCHRONIZED is the clause's form (`RepositorySynchronized`: none, unqualified, LEFT, RIGHT), not a flag: kb/Work PB538
-made the three forms three clauses, which §8.5.3.1 compares. OCCURS is `Occurs` plus an `OccursRecord` (the bounds and a
+made the three forms three clauses, which §2023:8.5.3.1 compares. OCCURS is `Occurs` plus an `OccursRecord` (the bounds and a
 dynamic table's capacity phrases ride `OccursSpec`, which `IsDynamicTable` and the occurs-depending readers need), and the
 DEPENDING ON object is decoded only through the binder's one admission (`DependingAdmission`, kb/Work PB3510), so a record
 naming a forbidden object is refused, never a cycle. The object is recorded by its POSITION (`DependingEntry`, the preorder
 index the attribute ordinals number) beside its word, and decoded from the position, never by looking the word up: the word
 of `DEPENDING ON N OF B` is `N`, and the first `N` of the record may be another item that the admission also admits, so a
 lookup by name decoded a counter the binder never linked (the review of kb/Work PB2100, finding R1-1). A REDEFINES object is
-found by the binder's own placement rule, `DataItem.RedefinedEntry` (§13.18.44.3 SR7 and NOTE 1: the nearest preceding
+found by the binder's own placement rule, `DataItem.RedefinedEntry` (§2023:13.18.44.3 SR7 and NOTE 1: the nearest preceding
 same-named sibling that is not itself a redefinition, else the nearest one, the chain COBOL1656 admits under --permissive),
 since the placement makes its word unambiguous; both halves of the rule are that one function, so a record written for any
 program the compiler accepts decodes to the entry the binder linked; the round trip
-(`RepositoryCodecTests.Same`) compares both links as positions in the tree. `Based` (§13.18.5) and `AlignedAsLevelOne` are recorded because the
+(`RepositoryCodecTests.Same`) compares both links as positions in the tree. `Based` (§2023:13.18.5) and `AlignedAsLevelOne` are recorded because the
 description copy carries them. `TypedefStrong` replaces `DeclaresStrongType`, which is derived from it. RAISING kinds are the
 persisted `RepositoryRaisingKind`, and a program's whole RAISING phrase rides `BoundProgram.Raising`. A record the decoder
 cannot bind (an index past its table, a REDEFINES naming no original definition, a DEPENDING ON position past the tree or
@@ -940,10 +940,10 @@ factory methods, each in roster order (`RepositoryCodec.Of(OoClassUnit)`, `Repos
 DataBinder)`, kb/Work PB2100). **Corrections the OO arm made.** A description's `TypeDeclaration` row is the declaration
 the BINDER resolved where the TYPE clause was written (`DataItem.TypeDeclaration`, set by `DataBinder.ExpandType` beside `TypeName`
 from the one lookup `DataBinder.TryFindTypeDecl`, and carried by the description copy), never a second lookup by name in
-the codec: a method's formal typed by a method-local TYPEDEF names that declaration (ISO §11.7.4 GR5), and a referenced
+the codec: a method's formal typed by a method-local TYPEDEF names that declaration (ISO §2023:11.7.4 GR5), and a referenced
 prototype's formal typed by the prototype's own TYPEDEF names the prototype's, which the publishing unit's scope does not
 hold (the codec's first form resolved it there and left the row out). An accessor's
-`ExternalizedName` is its property's (ISO §12.3.8.4 GR2: "Literal-5 is the externalized name known to the operating
+`ExternalizedName` is its property's (ISO §2023:12.3.8.4 GR2: "Literal-5 is the externalized name known to the operating
 environment for a method that implements the named property"; D-R5), while `Name` keeps the implementor-defined roster
 name (`__GET_<P>`). A property record carries `IsFactory` (a factory's WORKING-STORAGE may hold a PROPERTY clause) and is
 derived from the accessors, so it cannot disagree with them. `Override` is the bound fact (`OoMethodSymbol.OverrideOf`,
@@ -995,11 +995,11 @@ prototype's formals and entries are joined by the prototype's index and the form
   `CellPointer? <area>`, `bool <omitted>` (`OoEmitter.OoSignatureOf` / `OoArgPair`) — and the attributes sit on the
   CARRIER, the triple's first parameter, the one that names the formal; the area and the omitted flag carry nothing
   (both are functions of the formal's description and mode). The trailing `int __retLen` of a method whose RETURNING
-  item is ANY LENGTH (`OoEmitter.RetLenParam`, §13.18.2.4 GR1 b)) carries nothing either: it is a fact of the
+  item is ANY LENGTH (`OoEmitter.RetLenParam`, §2023:13.18.2.4 GR1 b)) carries nothing either: it is a fact of the
   RETURNING description, which the return value's tree records. Property accessors are methods and carry
   `[CobolMethod(Accessor, PropertyName)]` beside the same parameter attributes. An interface's members are emitted by the
   same `OoSignatureOf` and carry the same attributes on the interface's own CLR methods. The covariant-return adapters
-  (explicit interface implementations, §9.3.8.2.3 5a / 5c2) are no COBOL method: they carry no `[CobolMethod]` and the
+  (explicit interface implementations, §2023:9.3.8.2.3 5a / 5c2) are no COBOL method: they carry no `[CobolMethod]` and the
   reader skips every method without one. The FACTORY is its own CLR type (`OoClassSymbol.FactoryClrName`): the class's
   `[CobolUnit]` names it (`FactoryType`, a type-name string, never a `System.Type`), and each factory method carries
   `[CobolMethod(IsFactory = true)]` on the factory type's method.
@@ -1055,7 +1055,7 @@ runtime's ONE pair-mode relation, `ActivationRelations.SignatureDifference`; the
 `ActivationDescriptions.ElementaryClauses` (its pointer clause is `PrototypeSignatures.NamedRestriction`, the TO phrase
 by the prototype it names, PB4107; the description's content restriction is `PrototypeSignatures.SignatureRestriction`,
 the identity of the prototype's signature, PB2464, which the pair-mode relation never reads: every pair-mode check and the signature graph compare the TO phrase by the prototype it names, PB4442, PB4491), `AnyLengthClausesOf`, `OfAddress`, `TypeIdentityKey`, `VariableLengthCompatibility.*` →
-`Atoms`, `TierCIsland`, `OoClassTable.LeafCarried`, `PictureClauseIdentity.*`; §8.5.3.1: `StrongTypeModel.SameType` →
+`Atoms`, `TierCIsland`, `OoClassTable.LeafCarried`, `PictureClauseIdentity.*`; §2023:8.5.3.1: `StrongTypeModel.SameType` →
 `EquivalentTypeDeclarations` → `SameElementaryLayout` → `SameEssentialCharacteristics` →
 `DescriptionClauses.AlignedOrDynamicLengthMismatch` + `SameAnalyzedProfile` — `PicInfo` record equality with
 `EditingRules`, `RestrictedTypeName`, `RestrictedTypeDecl` and `RestrictedPrototypeName` set aside, then `EditingRules`
@@ -1066,7 +1066,7 @@ enclosing comparison's `Comparison` assumption set (PB3120); `BitLayout.*`; `Dat
 | Member read | Read by | Schema field |
 |---|---|---|
 | `IsGroup`, `Children`, `IsElementary` | all walkers | `Children`, `Level`, `Pic` null-ness |
-| `RedefinesTargetName` on subordinates | `ByteWidth`, `ImageWidth`, `Atoms` (§8.5.1.12.1: "any subordinate data items that specify the REDEFINES clause, and all data items subordinate to those data items, are ignored"), `BitLayout` | `RedefinesTarget` |
+| `RedefinesTargetName` on subordinates | `ByteWidth`, `ImageWidth`, `Atoms` (§2023:8.5.1.12.1: "any subordinate data items that specify the REDEFINES clause, and all data items subordinate to those data items, are ignored"), `BitLayout` | `RedefinesTarget` |
 | `Occurs`, `OccursSpec.DependingName`, `IsDynamicTable` | `ByteWidth`, `Atoms`, `VariableLengthCompatibility` | `Occurs`, `OccursDepending` (word inside the record, else `"<outside>"`) with `OccursDependingEntry` (its entry's preorder index, present exactly when the word is inside the record), `OccursDynamic` |
 | `IsDynamicLength`, `DynMaxSize`, `DynStructure` | `DescriptionClauses`, `Atoms`, `TierCIsland`, `IsImageCapable`, `ActivationDescriptions.Of` | `DynamicLength`, `DynMaxSize`, `DynStructure` → `StructureRecord` (definition) |
 | `IsAnyLength`; `IsAligned`, `Justified`, `BlankWhenZero`, `Synchronized` | `SignatureDifference`, `ActivationDescriptions.AnyLengthClausesOf`, `DescriptionClauses`, `ActivationDescriptions.ElementaryClauses`, `SameEssentialCharacteristics` | the five booleans |
@@ -1075,7 +1075,7 @@ enclosing comparison's `Comparison` assumption set (PB3120); `BitLayout.*`; `Dat
 | `HasBitDescendant`, bit positions; `IsImageCapable`, `BoundaryImageCapable`, `CurrentExtentImageCapable` | `ByteWidth`, `SameType`, `SameElementaryLayout`; Tier-C arms, `ActivationDescriptions.Of`, `LeafCarried` | derived at decode from the recorded tree |
 | `Pic` — every member, including `ObjectRef` (`Kind, Name, Factory, Only, Formal`), `RestrictedTypeName/Decl`, `RestrictedPrototypeName`, `_digitPositions`, `EditingRules`, `LocaleEdit`, `Clause` | `SameAnalyzedProfile`, `ActivationDescriptions.ElementaryClauses` arms (the object-reference and pointer clauses included), `ClrTypeName` | `PicRecord`: every member; the restriction names as written beside `RestrictedTypeDeclaration` and `RestrictedPrototype` (indexes, §6.2 rule 4); `ObjectRefName` beside `ObjectRefIdentity` (§6.4); `DigitPositions` nullable so the backing round-trips |
 | `DataItem.RestrictedPrototype`, `PointerRestrictionIdentity` (a restricted program- / function-pointer's resolved prototype and the identity of its signature, PB2464 / PB2495 / PB4491) | `PrototypeSignatures.NamedRestriction`, `SignatureRestriction`, `StampContentRestrictions` | not recorded as such: rebuilt at decode from `RestrictedPrototype` → `ReferencedPrototypes` and stamped (§6.4) |
-| `Renames` | `AtomsOf` | not applicable (a formal is level 01/77, §14.2.2 SR1) |
+| `Renames` | `AtomsOf` | not applicable (a formal is level 01/77, §2023:14.2.2 SR1) |
 | `CobolName` | diagnostics; REDEFINES/ODO targets inside the record | `Name` |
 Not recorded (emitter facts): `ClrName`, `Uid`, carrier field names, `StoreAsImage`, `RedefinesClass` tiers, VALUEs,
 condition-names, index names. The decoded tree is bound into a codec-owned throw-away forest so derived members answer
@@ -1091,7 +1091,7 @@ the two pointers' `PrototypeSignatures.SignatureRestriction`s equal) — plus, f
 description, `ActivationRelations.SignatureDifference` null in both directions (an `ActivationDescription` holds arrays,
 so record `==` is reference equality on them). **Data-names and intermediate grouping are recorded and never
 compared:** `Name` fields serve diagnostics, the host surface and the REDEFINES/ODO targets inside one record;
-`PrototypeSignatures.Same` reads the descriptions (§13.7.3 SR2; pb1115, r6-pb1115). A TYPE-NAME is not a data-name: §8.5.3.1 makes it part of type
+`PrototypeSignatures.Same` reads the descriptions (§2023:13.7.3 SR2; pb1115, r6-pb1115). A TYPE-NAME is not a data-name: §2023:8.5.3.1 makes it part of type
 identity ("Two type declarations are considered equivalent when they have the same type-name", compared by
 `StrongTypeModel.EquivalentTypeDeclarations`), so `TypeName` and the type declarations' names ARE compared, as in
 the group.
@@ -1100,7 +1100,7 @@ the group.
 - **Object references.** In the tree the object-reference description travels as folded WORDS:
   `ActivationDescriptions.Of` writes `ObjectName = CobolNames.Fold(d.Name)` (the written class or interface word) and the
   class facts of PB2463, `ObjectClasses` / `ObjectInterfaces` (the class and its ancestors; the implements closure),
-  derived ONCE by `OoClassTable.SetOperand` and read by the run-time SET table (`ObjectReferenceSet.Refusal`) and §9.3.6
+  derived ONCE by `OoClassTable.SetOperand` and read by the run-time SET table (`ObjectReferenceSet.Refusal`) and §2023:9.3.6
   match rule 6. A word is per source element, so across assemblies the identity is the EXTERNALIZED name.
   *Slice 4* records, per object-reference description, `ObjectRefName` (the written word) and `ObjectRefIdentity` (the
   externalized name of the class or interface it resolved to in the publishing element, through that element's class
@@ -1111,13 +1111,13 @@ the group.
   trip), where every identity resolves. *Slice 7* decodes for other elements: an identity resolves through the
   importer's `IdentityScope` to a group class or interface; one that resolves to nothing is REPO-11 (§14), because the
   resolver's class arm is slice 8's. Source cannot reach that state with a conforming argument, since an argument of an
-  external class needs the importer's own class specifier, which also needs slice 8 (§12.3.8.3 SR6).
+  external class needs the importer's own class specifier, which also needs slice 8 (§2023:12.3.8.3 SR6).
   *Slice 8* imports the class (`Origin`, §10.1); `ObjectRefDescriptor` gains `Target` (the resolved symbol) beside
   `Name`, and the run-time description's `ObjectName`, `ObjectClasses` and `ObjectInterfaces` become the folded
   EXTERNALIZED names of their classes and interfaces instead of words, so two separately compiled groups describe one
   class with one spelling. That changes the text every module's descriptions carry and the run-time relations compare:
   a call-ABI bump (`scripts/abi_pin.py bump --call-abi`, §15.4) in slice 8. `ClrTypeName` is `Target.ClrName` with its
-  namespace. ACTIVE-CLASS carries its containing class's identity (excluded from equality by §9.3.8.2.3 rule 2 d) as
+  namespace. ACTIVE-CLASS carries its containing class's identity (excluded from equality by §2023:9.3.8.2.3 rule 2 d) as
   today). **Landed, slice 8 step 1 part 1 (kb/Work PB2104, wave 20261830):** the run-time description's class facts —
   `ActivationDescriptions.Of` reads `OoClassTable.DescribedOperand`, `SetOperand`'s one derivation with every class and
   interface spelled by its externalized name, while the compile-time SET table keeps the words of its one scope — under
@@ -1147,19 +1147,19 @@ the group.
 - **Restricted data-pointers**: `POINTER TO type` → `RestrictedTypeName` (the word as written) and the type
   DECLARATION it resolves to (`RestrictedTypeDeclaration`, an index into `TypeDeclarations`); the decoder sets
   `PicInfo.RestrictedTypeDecl` to the decoded declaration, and the type is compared by `StrongTypeModel.SameRestriction`
-  / `EquivalentTypeDeclarations` ("both shall be restricted and of the same type", §14.8.2.3.2), as in the group.
+  / `EquivalentTypeDeclarations` ("both shall be restricted and of the same type", §2023:14.8.2.3.2), as in the group.
 - **Restricted program- and function-pointers: what they may CONTAIN is the SIGNATURE; their USAGE clause is the NAME.**
-  §13.18.60.4 GR25: "A restricted program-pointer shall contain only the predefined address NULL or the address of a
+  §2023:13.18.60.4 GR25: "A restricted program-pointer shall contain only the predefined address NULL or the address of a
   program with the same signature as that identified by the specified program-prototype-name" (`cite.py --check` OK,
   25)), and GR26 is its function-pointer twin, so the SET relation (and the rules that send to it) admits two pointers
   restricted to two differently named prototypes of one signature (kb/Work PB2464 / PB3162). Every other relation —
-  §14.8.2.3.2's "of the same type", §9.3.6 3 e), §14.8.3.3, §8.5.3.1's type-declaration equivalence, the pair-mode
-  conformance of §9.3.8.2.3 rules 3 and 6 (kb/Work PB4442) and the signature itself (§8.13 "the description of the
-  parameters", §13.7.3 SR2; kb/Work PB4491) — compares the USAGE clause's TO phrase by the prototype it NAMES, its folded
-  externalized name (`PrototypeSignatures.NamedRestriction`; docs/CONFORMANCE.md D-RP1, kb/Work PB4107). So the §8.5.3.1
+  §2023:14.8.2.3.2's "of the same type", §2023:9.3.6 3 e), §2023:14.8.3.3, §2023:8.5.3.1's type-declaration equivalence, the pair-mode
+  conformance of §2023:9.3.8.2.3 rules 3 and 6 (kb/Work PB4442) and the signature itself (§2023:8.13 "the description of the
+  parameters", §2023:13.7.3 SR2; kb/Work PB4491) — compares the USAGE clause's TO phrase by the prototype it NAMES, its folded
+  externalized name (`PrototypeSignatures.NamedRestriction`; docs/CONFORMANCE.md D-RP1, kb/Work PB4107). So the §2023:8.5.3.1
   keys two compilations compare (`ActivationDescription.StrongType`, `PointerType`) are the same text whether or not a
   compilation holds the prototype's signature, and a signature describes its pointer formals by name — the TO phrase and,
-  for a typed formal, the type declaration it references (`PointerType`; §8.13 "type declarations required for the
+  for a typed formal, the type declaration it references (`PointerType`; §2023:8.13 "type declarations required for the
   description of parameters", branch review R1-1 of kb/Work PB4491) — which makes it a function of its own text: two prototypes that name each other are two signatures, and no fixed point is computed. The
   approved text of this design replaced `PicInfo.RestrictedPrototypeName` by an identity field; the code keeps the written
   name and records the signature beside it, because the SET relation needs the signature and a written word is not an
@@ -1182,7 +1182,7 @@ the group.
     `PrototypeSignatures.Identity`, `SIG <hex>`: the SHA-256 of the prototype's namespace and its
     `PrototypeSignatures.SignatureKey` — the mode, OPTIONAL and `DescriptionKey` of each formal and the RETURNING item's
     presence and key, a restricted pointer formal written as its TO phrase (the folded externalized name of the prototype
-    it names; §8.3.2.2: one name, one program in the run unit), data-names and intermediate grouping omitted (§13.7.3
+    it names; §2023:8.3.2.2: one name, one program in the run unit), data-names and intermediate grouping omitted (§2023:13.7.3
     SR2). `DescriptionKey` is `Same`'s description half as a key, read by the arm `ActivationRelations.SignatureDifference`
     takes and, for a group that is not a bit or national group, `StrongTypeModel.ElementaryLayoutKey`. Two facts the
     relation answers false of even against themselves (an item with no crossing form, a group whose items cannot be
@@ -1216,7 +1216,7 @@ the group.
   phrase a reader sees keeps the name.
 - **RAISING, INHERITS, IMPLEMENTS, expansion actuals, skeleton resolutions**: externalized identities;
   `ClassRaisingCovered` walks from the `RaisingTarget`'s resolved symbol.
-Identity is the externalized name (the Annex C fold): §8.3.2.2 makes one externalized name one instance within a run
+Identity is the externalized name (the Annex C fold): §2023:8.3.2.2 makes one externalized name one instance within a run
 unit; §8.6 keeps the compile-time search space to one entry per identity.
 
 ### 6.5 Determinism and size
@@ -1257,7 +1257,7 @@ programs (`EnsureRegistered`) before activating; a PROTOTYPE unit's entry activa
 the definition is located at run time (§11.2) — so a prototype library is a compile-time repository entry and a
 callable typed surface at once. A PARAMETERIZED definition emits `public static class {Cs}` with
 `[CobolUnit(Kind = ParameterizedClass)]` + `[CobolSkeleton]`. A group holding both a prototype and its definition
-(§10.6.2 SR2/SR3) emits one host-entry class (the definition's); the two are paired by `ExternalizedNames.Same`, the one
+(§2023:10.6.2 SR2/SR3) emits one host-entry class (the definition's); the two are paired by `ExternalizedNames.Same`, the one
 mapping rule (DOC-A.1-68), never by an ordinal compare (kb/Work PB3872: the entry-unit selection, now `RepositoryPublication.EntryUnitsOf`, compared
 ordinally, so a prototype `psub` beside a definition `PSUB` published two classes).
 **Every outermost unit publishes its entry, and therefore its record (slice 4).** The record of a program or function is
@@ -1280,7 +1280,7 @@ signature is read from metadata at compile time and the program is activated by 
 resolves a CLASS, INTERFACE, skeleton or expansion references that assembly (its types appear in the generated code).
 A .NET host references the assemblies whose host entries it calls and, in a composed (trimmed or AOT) run unit, every
 COBOL assembly of the run unit (§11.4); no COBOL caller ever references its callee's. Mutually calling program groups therefore compile
-in any order once each side has a prototype or definition published (§10.6.3 GR1); mutually referencing CLASS groups
+in any order once each side has a prototype or definition published (§2023:10.6.3 GR1); mutually referencing CLASS groups
 compile two-pass (§10.4).
 
 ### 7.4 Repository directories and the locator
@@ -1355,7 +1355,7 @@ internal interface IRepositoryProvider
     // previously", PB989); the metadata provider ignores it — the repository has no source order.
     ProgramAnswer? Program(string externalizedName, int position);                 // GR10 a) / b) in the group; c) in metadata
     FunctionAnswer? Function(string externalizedName, int position);               // GR11 a) / b); c)
-    IEnumerable<FunctionAnswer> FunctionsByWord(string userFunctionName, int position, string? otherThan); // D-R3 steps 2 and 3, §8.4.6.7: the WORD (§8.3)
+    IEnumerable<FunctionAnswer> FunctionsByWord(string userFunctionName, int position, string? otherThan); // D-R3 steps 2 and 3, §2023:8.4.6.7: the WORD (§8.3)
     OoClassSymbol? Class(string identity, out RepositoryOrigin origin);
     OoInterfaceSymbol? Interface(string identity, out RepositoryOrigin origin);
     SkeletonSymbol? Skeleton(string identity, out RepositoryOrigin origin);
@@ -1382,7 +1382,7 @@ the word in either), so it lives once, in the resolver, and no provider repeats 
 drives COBOL2969 (REPO-13), becomes a `FunctionAnswer` (signature and origin) instead of a `BoundUnit`, so the warning
 can name a repository entry as well as a group unit. `FunctionsAt(position)` — every function the element sees by
 WORD without a specifier (`BinderDriver.UserFunctionsOf` registers them) — is the group's alone: a later-compiled unit
-reaches a repository function only through a REPOSITORY specifier (§8.4.6.7), so the metadata provider has no
+reaches a repository function only through a REPOSITORY specifier (§2023:8.4.6.7), so the metadata provider has no
 counterpart, and `UserFunctionsOf` reads it from `resolver.Group` (no resolver member re-states it).
 `MetadataRepositoryProvider` opens nothing until the first specifier the group cannot answer; `ClrTypeProvider` is
 §4.6's slot.
@@ -1415,7 +1415,7 @@ IS the externalized name under `ExternalizedNames`' fold (DOC-A.1-68).
    "the name of a program definition specified previously in this compilation group" and a program "for which
    information exists in the external repository"; a definition that FOLLOWS the specifier is the first only if it
    precedes it, and the second only through a repository entry. The previous build of the output being produced is
-   the information this compilation UPDATES (§8.13 ¶3), not information it resolves against, so the legality of a
+   the information this compilation UPDATES (§2023:8.13 ¶3), not information it resolves against, so the legality of a
    source text never depends on whether an earlier build of it exists. The corpus programs that name a later
    definition with no prototype (named here by case id; they now live under `conformance-suite/cases/<clause>/`, the
    2002 and 2014 corpus directories having moved there, DESIGN-conformance-suite.md; 2002 `pb237_program_prototype`, `pb239_call_address_identifier`,
@@ -1425,10 +1425,10 @@ IS the externalized name under `ExternalizedNames`' fold (DOC-A.1-68).
    prototype-argument-count`, `pb609-call-restricted-program-pointer-signature`, `pb817-set-program-pointer-signature`,
    `pb970-pointer-by-content-prototype-alnum-formal`, `pb1063-program-pointer-by-content-sr22`,
    `w66g-pb1475-strong-type-dpc-differs`) were therefore non-conforming as written; slice 6 gave each a program
-   prototype definition of its callee ahead of every other unit (§10.6.2 SR1), which keeps each test's subject — a
+   prototype definition of its callee ahead of every other unit (§2023:10.6.2 SR1), which keeps each test's subject — a
    prototype-checked CALL, pointer or argument — under GR10 b) (the expectation files hold codes and output, not line
    positions, so none needed re-pinning; §21 slice 5 is not involved).
-2. GR10 b): a program PROTOTYPE definition in the group (prototypes precede all other units, §10.6.2 SR1).
+2. GR10 b): a program PROTOTYPE definition in the group (prototypes precede all other units, §2023:10.6.2 SR1).
 3. GR10 c): `MetadataRepositoryProvider.Program(externalizedName)` → the first entry of `P:name` in the search order,
    its signature decoded from that entry's host-entry `Call` method (§5.3).
 4. None → REPO-1; the prototype is not registered (a CALL, CANCEL or CALL … AS through it is COBOL1760, whose sentence says the word is declared but unanswered — `CallBinder.ResolvePrototype` — not that it is undeclared).
@@ -1445,7 +1445,7 @@ function definition specified previously in this compilation group". The two can
 definition `FUNCTION-ID. F AS "G"` is SR10-legal by its second alternative, yet GR11 a) fails ("F" ≠ "G"), b) has no
 prototype, and c) has details only if some repository function is externalized "F".
 Two ISO clauses then meet at one word. GR11 takes the details from the function EXTERNALIZED "F" — in the group by
-a), in the repository by c). §8.4.6.7 lets the user-function-name F be referenced "in the REPOSITORY paragraph of any
+a), in the repository by c). §2023:8.4.6.7 lets the user-function-name F be referenced "in the REPOSITORY paragraph of any
 source element that follows that function definition" and "in any subsequently-compiled source unit that specifies
 that user-function-name as a function-prototype-name in its REPOSITORY paragraph" — the WORD of `F AS "G"`. When both
 a function externalized "F" and a different function whose word is F exist — in one compilation group, or one in the
@@ -1459,7 +1459,7 @@ conflict it answers, and on the word-only case it has nothing to follow and ISO 
 **Determination D-R3 (owner decision 2026-10-05):**
 1. GR11 a)–c) are applied exactly as written, keyed by externalized name. Whichever of them hits names the function
    (GnuCOBOL's answer and the standard's text).
-2. When all three miss and the specifier is legal by SR10's word alternative or by §8.4.6.7, the details are taken
+2. When all three miss and the specifier is legal by SR10's word alternative or by §2023:8.4.6.7, the details are taken
    from the function the WORD names: the group definition (specified previously) whose user-function-name is F (its
    externalized name "G" is what is activated), else the group prototype of that name (SR10's first alternative — the
    same word's other legal reading; slice 6 added it: without it `FUNCTION F` naming only a prototype `F AS "G"` was
@@ -1467,8 +1467,8 @@ conflict it answers, and on the word-only case it has nothing to follow and ISO 
    the externalized name, §5.3) — so `FUNCTION F` in a later-compiled unit never draws REPO-1 on legal source.
 3. **Whenever step 1 selects a function and a DIFFERENT function whose user-function-name is F exists** — in the
    compilation group (preceding the specifier) or in the repository — the compile warns **REPO-13** naming both
-   functions and both clauses ("`FUNCTION F` activates the function externalized "F" (§12.3.8.4 GR11); the function
-   `F AS "G"` of … is reachable only through a prototype `F AS "G"` (§8.4.6.7)"). The rule is one rule wherever the
+   functions and both clauses ("`FUNCTION F` activates the function externalized "F" (§2023:12.3.8.4 GR11); the function
+   `F AS "G"` of … is reachable only through a prototype `F AS "G"` (§2023:8.4.6.7)"). The rule is one rule wherever the
    two functions live; `--repository-check` is not involved (two different functions, not one signature in two
    states).
 Legal source is never rejected, so the goldens that write `FUNCTION PB303FN` for `AS "PB303FNX"`
@@ -1479,7 +1479,7 @@ source and their expectations; new goldens
 pin REPO-13 in one group (`FX AS "F"` and `F AS "G"` both preceding `FUNCTION F`), REPO-13 across the repository (a
 repository "F" beside `F AS "G"`), the word reaching a later-compiled unit (`F AS "G"` in a library, `FUNCTION F` in a
 program compiled against it), and the group-only word case. REPO-1 for a function specifier cites SR10 only when NONE
-of its alternatives and not §8.4.6.7 holds. The group provider keys both searches by externalized name and keeps the
+of its alternatives and not §2023:8.4.6.7 holds. The group provider keys both searches by externalized name and keeps the
 word → definition map for steps 2 and 3 (`GroupRepository.ResolveFunction` since slice 6, `RepositoryResolver.ResolveFunction`
 over both providers from slice 7, §8.0; the word-keyed
 `BuildUserFunctionTable` and the no-AS skip of `UserFunctionsOf` are gone). `docs/CONFORMANCE.md` §3 carries this
@@ -1501,18 +1501,18 @@ imported; base chains and implemented interfaces included) has an accessor pair 
 ### 8.6 Search order, shadowing, duplicates, case
 Order: `--repository` directories in the order given (within one, §7.4), then `--reference` assemblies in order. **The
 first entry of `kind:name` wins.** A later DIFFERENT entry (another MVID) of the same `kind:name` is REPO-2, a warning,
-when its record differs (the §9.2 compare). Identical copies (one MVID in two places) are one entry. §8.3.2.2's "same
+when its record differs (the §9.2 compare). Identical copies (one MVID in two places) are one entry. §2023:8.3.2.2's "same
 instance" sentence is run-unit scoped and licenses no compile-time error. Within the group: unchanged. Cross-kind: a
 specifier finds only its kinds. Two NEEDED class/interface/expansion assemblies sharing one assembly simple name →
 REPO-6 (one assembly per simple name per load context). Comparisons: `ExternalizedNames.Same`; file-system case is
 irrelevant (the locator compares folded names over the listing).
 
 ### 8.7 Decoding into the importer's name space — the `IdentityScope`
-Words are per source element (§8.4.6.4): P1 `CLASS ACCT AS "BankAccount"` and P2 `CLASS ACCT AS "Ledger"` are two
+Words are per source element (§2023:8.4.6.4): P1 `CLASS ACCT AS "BankAccount"` and P2 `CLASS ACCT AS "Ledger"` are two
 words for two identities. `OoClassTable` therefore stores IMPORTED symbols by IDENTITY only (group-wide, one symbol per
 identity: `ImportClass`, `ImportedClasses`), and each source element's `IdentityScope` (the renamed `OoRepositoryScope`,
 built by the ancestor walk of its REPOSITORY paragraphs) maps a written word to the identity its specifier states
-(`literal ?? word`, §12.3.8.4 GR2). **Landed (kb/Work PB2104), and corrected:** the names a description carries are the class
+(`literal ?? word`, §2023:12.3.8.4 GR2). **Landed (kb/Work PB2104), and corrected:** the names a description carries are the class
 table's keys, not per-element words (a description names the RESOLVED definition, `OoDataBinder.DescribeNamedReference`), so
 an imported symbol's `Name` is the key `class "<identity>"` (`OoClassTable.ImportedKey`) and decoding a record for any
 element needs no per-element word: `RepositoryCodec.Names` maps every identity a record names to the table's name for it
@@ -1520,12 +1520,12 @@ element needs no per-element word: `RepositoryCodec.Names` maps every identity a
 structure rows, have no reader (a restricted pointer's prototype is identified by its signature's identity, a structure by its
 definition, §6.4) and are not built.
 
-### 8.8 Nesting, COMMON and §8.4.6
+### 8.8 Nesting, COMMON and §2023:8.4.6
 Unchanged: a REPOSITORY paragraph lives only in an outermost program, a function, a class or an interface
-(§12.3.3), and §12.3.4 GR1 makes its entries "apply to each directly or indirectly contained source unit". Resolution
+(§2023:12.3.3), and §2023:12.3.4 GR1 makes its entries "apply to each directly or indirectly contained source unit". Resolution
 runs once per paragraph in the outermost element's bind; contained units inherit the RESOLVED prototypes. `AS NESTED`
-never consults the repository (§14.9.4.3 SR15); the run-time scope rules 1–3 are untouched. Contained programs are not
-externalized (§8.3.2.2) and have no host entry.
+never consults the repository (§2023:14.9.4.3 SR15); the run-time scope rules 1–3 are untouched. Contained programs are not
+externalized (§2023:8.3.2.2) and have no host entry.
 
 ---
 
@@ -1533,7 +1533,7 @@ externalized (§8.3.2.2) and have no host entry.
 
 ### 9.1 Update — `--repository-update on|off` (default `on`)
 ON emits the description and OO records; OFF emits only the index, the `[CobolUnit]`s, the registrar and the host
-entries (`HasSignatures = false`). Why ON: §8.4.6.7's "if the external repository is updated" is the state in which
+entries (`HasSignatures = false`). Why ON: §2023:8.4.6.7's "if the external repository is updated" is the state in which
 separately compiled units reference each other. `CompilerDriver.Options.RepositoryUpdate`.
 
 ### 9.2 Check — `--repository-check on|off` (default `on`)
@@ -1544,9 +1544,9 @@ PREVIOUS BUILD OF THIS OUTPUT (the file callers were compiled against; one prefe
 every entry in the search space that publishes the same `kind:name` as a prototype or a definition (a definition that
 differs from a published prototype, a prototype that differs from a published definition). A difference is **REPO-9,
 a warning** naming the entry and the first differing position ("callers compiled against that entry are checked at
-run time by §14.9.4.4 GR3 d) when checking is enabled in both, and adopt the arguments positionally otherwise;
+run time by §2023:14.9.4.4 GR3 d) when checking is enabled in both, and adopt the arguments positionally otherwise;
 recompile them"). An old-schema previous build is REPO-12 (informational) and skipped. Why a warning: a signature
-change is a normal event, this compile is the update, and §10.6.2 SR2/SR3's "shall" is scoped to one compilation
+change is a normal event, this compile is the update, and §2023:10.6.2 SR2/SR3's "shall" is scoped to one compilation
 group. Cost: one header read per entry the resolver already opened, plus the previous output when it exists.
 `CompilerDriver.Options.RepositoryCheck`. **Recorded inputs (kb/Work PB985, PB2103).** The previous build is the
 compilation's own output path, which the compilation then replaces, so its existence is no recorded probe; a finding
@@ -1572,7 +1572,7 @@ and `--repository-check` (kb/Work PB2103); the draft below is its origin and the
 section 21, since that document exists.
 **Manual, "Separately compiled units and the repository":**
 > A WiseOwl COBOL assembly is the external repository entry for every program, function, class, interface, program
-> prototype, function prototype, parameterized class or interface and expansion it compiled (ISO §8.13). When your
+> prototype, function prototype, parameterized class or interface and expansion it compiled (ISO §2023:8.13). When your
 > REPOSITORY paragraph names a program, function, class, interface or property this compilation group does not
 > define, the compiler looks in the repository: first the `--repository DIR` directories, in order (by default the
 > output directory), then the `--reference FILE.dll` assemblies, in order. The first entry found is used; a later
@@ -1590,14 +1590,14 @@ section 21, since that document exists.
 A change to the host entry's surface, its marshaling, its exceptions or the trimmed/AOT switch updates that page in the
 same change set.
 
-**`docs/CONFORMANCE.md`, DOC-A.1-141 (the §14.2.3 GR13 determination, verbatim):** "**Supported non-COBOL language
+**`docs/CONFORMANCE.md`, DOC-A.1-141 (the §2023:14.2.3 GR13 determination, verbatim):** "**Supported non-COBOL language
 products: any .NET language, and only as the ACTIVATING element.** No non-COBOL element can be activated: a CALL, a
 program-pointer or `ADDRESS OF PROGRAM` resolves only WiseOwl COBOL programs. **Mechanism:** every outermost program
 and every user-defined function — definition or prototype — has a generated public class `Cobol.<assembly>.<name>`
 in the assembly that compiled it, whose static `Call` method activates
-it through the same boundary a COBOL CALL crosses (§14.9.4.4 GR3), and, for a program, a static `Cancel` method
-(§14.9.5). This is the only host interface.
-**Parameter matching:** positional (§14.2.3 GR2), one `Call` parameter per USING formal in order; the C# compiler
+it through the same boundary a COBOL CALL crosses (§2023:14.9.4.4 GR3), and, for a program, a static `Cancel` method
+(§2023:14.9.5). This is the only host interface.
+**Parameter matching:** positional (§2023:14.2.3 GR2), one `Call` parameter per USING formal in order; the C# compiler
 checks the count and the types; a prototype library's `Call` against a changed definition is EC-PROGRAM-ARG-MISMATCH
 when the definition enables that checking. **Data type representation:** a numeric item without decimal places is
 `long`, or `Int128` (`UInt128` for an unsigned 16-byte binary item) when its storage can hold more than `long` can; one with decimal places is `decimal` (the
@@ -1605,20 +1605,20 @@ runtime's `CobolDec` beyond 28 digits or 28 places); a floating-point item is it
 national, boolean or edited item is `string`; an index is `long`; pointers are `ManagedPointer`, `ProgramPointer`,
 `FunctionPointer`; an object reference is its class's CLR type; a group is a generated record struct with
 `AsImage`/`FromImage`; in a group that holds a dynamic-length item or a dynamic-capacity table (a variable-length
-group, §8.5.1.12) a dynamic-length item is `string` and a dynamic-capacity table an array of its current capacity, and
-the record has no image methods, its storage having no single image (§8.5.1.9.1, §8.5.1.10.3). Values are landed by
-§14.2.3 GR9/GR10's COMPUTE, SET or MOVE, and a value that the landing would change in any way — a digit lost at either
+group, §2023:8.5.1.12) a dynamic-length item is `string` and a dynamic-capacity table an array of its current capacity, and
+the record has no image methods, its storage having no single image (§2023:8.5.1.9.1, §2023:8.5.1.10.3). Values are landed by
+§2023:14.2.3 GR9/GR10's COMPUTE, SET or MOVE, and a value that the landing would change in any way — a digit lost at either
 end, a sign dropped, a character beyond the item's length or a dynamic-length item's LIMIT, a dynamic-capacity table's
 array below its minimum capacity — is refused with `ArgumentOutOfRangeException` (`ArgumentException` for the array)
 before the program is activated. BY REFERENCE is a C# `ref` parameter:
 the program operates on a storage of the formal's description, and the variable receives its content when the call
 ends; two `ref` parameters given one variable share one storage when their formals have one description and are
 refused with `ArgumentException` otherwise. **Return of a value:** the RETURNING item is the return value; numeric
-content that is not a valid representation of its description (the NUMERIC class test, §8.8.4.4.4) — in the
+content that is not a valid representation of its description (the NUMERIC class test, §2023:8.8.4.4.4) — in the
 RETURNING item or in a BY REFERENCE formal — is never converted: that variable keeps its value and `FormatException`
 is thrown after the other write-backs. GOBACK and EXIT PROGRAM return normally (item 65); STOP RUN and a fatal
 condition that terminates the run unit end the run unit as item 167 states. **Omission of parameters:** an OPTIONAL
-formal is a nullable `ref` parameter, and `null` passes OMITTED (§14.9.4.4 GR11). Same in every edition."
+formal is a nullable `ref` parameter, and `null` passes OMITTED (§2023:14.9.4.4 GR11). Same in every edition."
 
 **`docs/CONFORMANCE.md` §3, D-R3 (the function-name determination).** Written 2026-10-27 for the group arms slice 6
 landed (COBOL2969); its text follows this design's statement — GR11 a)–c) by externalized name; when they miss, the
@@ -1634,7 +1634,7 @@ metadata; witnesses: §17.1. **DOC-A.1-67:** §5.4; schema version and runtime A
 it means — the skeleton's post-text-manipulation source, its compile state and specifier resolutions, and the published
 form of every class it names — and a skeleton with its source and specifier resolutions. A compilation group that
 expands a parameterized class first looks for an expansion of the same name and key and, finding one, uses it (one
-class instance per run unit, §9.3.12), even when that expansion's assembly references the group's own earlier build.
+class instance per run unit, §2023:9.3.12), even when that expansion's assembly references the group's own earlier build.
 Otherwise the expansion is compiled into its own deterministic assembly named by its externalized name when its code
 names no class of the expanding group, and into the group's assembly when it does. An expansion of the same name and
 actual parameters with a different key is out of date: the compiler warns, naming it and every assembly built against
@@ -1672,7 +1672,7 @@ type name `ClassRecord.ClrName` (the TypeDef's metadata name, like `MethodRecord
 `ProgramEmitter` uses for the declaration). Formals are classified as the publishing compilation classified them
 (`StorageFormPass.ClassifyImportedMethod`: an elementary method formal is a character channel and a group formal is a
 whole-group operand, so a numeric DISPLAY formal crosses as `ManagedPointer<string>`, a fact of the CLR signature, not of the
-importer). A class specifier no entry answers is REPO-1 at the specifier (§12.3.8.3 SR6, `OoClassTable.UnansweredClassSpecifier`;
+importer). A class specifier no entry answers is REPO-1 at the specifier (§2023:12.3.8.3 SR6, `OoClassTable.UnansweredClassSpecifier`;
 an interface specifier's twin is step 2's, with the interface import); REPO-6 is COBOL5976, two imports whose module
 namespaces coincide or one equal to the compilation's own output's. Interfaces an imported class implements are REPO-11
 until step 2 imports them.
@@ -1708,7 +1708,7 @@ search space cannot answer is REPO-1 naming the identity; no other diagnostic is
 ### 10.5 Parameterized classes and interfaces across assemblies — D3
 In-group, `OoExpansion.Expand` re-parses a skeleton's token run with each formal replaced by its actual ("An
 expansion of a parameterized class is treated in all respects the same as if it were a class that is not a
-parameterized class", §9.3.12; DOC-A.1-138/-201). §9.3.12 then fixes identity: "Within a run unit, two classes with
+parameterized class", §2023:9.3.12; DOC-A.1-138/-201). §2023:9.3.12 then fixes identity: "Within a run unit, two classes with
 the same externalized object-class-name that are created by expanding the same parameterized class with the same
 actual parameters are the same class instance" — ONE CLR type per (externalized name, definition identity, actual
 identities) among the groups compiled against one meaning of that triple, by reuse of an existing expansion keyed by
@@ -1750,7 +1750,7 @@ that meaning; a group compiled against a superseded meaning is a stale caller th
   it), as its OWN compilation — the skeleton's recorded source under its recorded state, the referenced assemblies as
   references — into `<externalized name>.dll` beside the group's output, deterministically (§6.5, §7.6); an existing
   file of that name and key is left as it is, whatever its bytes, so two groups that expand one key write one file and
-  the CLR loads one assembly of that simple name — one class instance, as §9.3.12 says; (b) when its code references a
+  the CLR loads one assembly of that simple name — one class instance, as §2023:9.3.12 says; (b) when its code references a
   class or interface of this group, in the group's assembly: a separate assembly would need this group's NEW assembly,
   which does not exist while the group compiles. `ExpansionOwnAssembly` records which.
 - **Stale expansions.** An entry with name `lit ?? N` and the same (definition, actuals) identities but another key
@@ -1768,9 +1768,9 @@ that meaning; a group compiled against a superseded meaning is a stale caller th
   neither changed it equals `PA.dll`'s and G1 imports it (the G1 ↔ `PA.dll` cycle above) — one CLR type. If G1 changed
   P's source or NODE's published surface, the key is K′: (4b) expands PA in G1 (its code references NODE, a G1 class)
   and REPO-9 names `PA.dll` and G2; G2, recompiled, imports PA from G1's assembly (key K′). Until it is, the run unit
-  carries G2 bound to the earlier PA — the stale-caller case the warning names, since §9.3.12's one class instance
+  carries G2 bound to the earlier PA — the stale-caller case the warning names, since §2023:9.3.12's one class instance
   cannot hold between a class and a superseded edition of it.
-- **The "shall not" of §9.3.12** ("If two classes expand a parameterized class with different actual parameters, they
+- **The "shall not" of §2023:9.3.12** ("If two classes expand a parameterized class with different actual parameters, they
   are not the same class instance and shall not have the same externalized object-class-name") is a run-unit rule. It
   is reported as an ERROR (COBOL2240) only where the two classes will NECESSARILY share a run unit: the same-name,
   different-triple expansion is in an assembly THIS GROUP REFERENCES (an actual's or the definition's), or it is the
@@ -1793,7 +1793,7 @@ that meaning; a group compiled against a superseded meaning is a stale caller th
   its column stays the token's own in the recorded text (one line), and a diagnostic about it is printed at the entry (below).
 - *The actual's identity rides into the expansion's text.* The formal's own specifier in the definition's REPOSITORY paragraph
   becomes the actual's (`CLASS ELEM` → `CLASS BOX AS "lit"` when the actual's specifier states `AS "lit"`), so the expansion names the
-  class the actual names wherever it is made, and the specifier's own `AS literal-1` externalizes the EXPANSION (§12.3.8.4 GR2: a
+  class the actual names wherever it is made, and the specifier's own `AS literal-1` externalizes the EXPANSION (§2023:12.3.8.4 GR2: a
   `CLASS N AS "lit" EXPANDS …` entry used to lose its literal).
 - *The key is computed after the group is bound, not before it is expanded.* A class's record is its surface, which exists only once its
   data and method headers are bound, and an actual may be a class of this group. So the group expands and binds every expansion as before,
@@ -1810,7 +1810,7 @@ that meaning; a group compiled against a superseded meaning is a stale caller th
   spelling, and the existing assembly is a `RepositoryReferences` entry. That includes an assembly that references this group's own
   previous build (the reference cycle), and only an expansion made over the assemblies this compilation's classes live in
   (`ExpansionPlacementPass.Place`: `HomeOf` per named class, equal to the recorded `ExpansionIdentity.Homes`): the same key over a
-  `BOX` of another assembly is the same class by ISO §9.3.12 but another CLR type, so it is not imported, and where it holds the file
+  `BOX` of another assembly is the same class by ISO §2023:9.3.12 but another CLR type, so it is not imported, and where it holds the file
   placement (a) would write (`targetHeldElsewhere`) the expansion is made in the group's assembly instead of over that file. A copy whose surface differs under one key (a later compiler naming members differently) is stale
   by "members".
 - *Placement (a) is a compilation of its own* (`ExpansionAssemblies`): the expansion's text (`ExpansionOrigin.Text`), preceded by the
@@ -1829,7 +1829,7 @@ that meaning; a group compiled against a superseded meaning is a stale caller th
   file is written, so the existing `<name>.dll` stays as it was.
 - *Placement (a)'s text is written as free-form lines* (`ExpansionAssemblies.FreeForm`): a line breaks at a space BETWEEN words, never at
   one inside a literal, and a literal too long for the rest of a line is continued with the floating literal continuation indicator
-  (§6.2.3.1, §6.5 8)). §6.4.2 requires "at least one alphanumeric character, national character, or hexadecimal digit of the literal
+  (§2023:6.2.3.1, §6.5 8)). §2023:6.4.2 requires "at least one alphanumeric character, national character, or hexadecimal digit of the literal
   content ... on the continued line and on each continuation line" and a doubled quotation symbol "on the same line", so the indicator
   never follows the opening delimiter: a continuation line opens with the quotation symbol and a whole content unit, and a literal
   whose FIRST unit does not fit the line it opens on (delimiter at position 197 and a doubled symbol, at 198 and any unit) moves, prefix
@@ -1857,7 +1857,7 @@ that meaning; a group compiled against a superseded meaning is a stale caller th
     reads the text at its own positions, reports them. Only the compilation that COMPILES the text answers for its warnings: the group for
     placement (b); the sub-compilation for placement (a), after which `ExpansionAssemblies.Write` calls `EditionContext.WithdrawWarningsOf`
     (a `CheckOnly` compilation runs none and keeps the group's report); and, for an expansion imported from the repository, the
-    compilation that made it, so `ExpansionPlacementPass` withdraws the group's report as it places the import (§9.3.12: an expansion "is
+    compilation that made it, so `ExpansionPlacementPass` withdraws the group's report as it places the import (§2023:9.3.12: an expansion "is
     treated in all respects the same as if it were a class that is not a parameterized class", and a compilation reports nothing of a class
     it imports). Errors are never withdrawn (an error of the group's bind stops the compilation before any sub-compilation runs).
   - *The text of a repository skeleton is screened as the written tree is* (`GroupBindContext.Texts`, built by `BinderDriver.CollectUnits`:
@@ -1908,7 +1908,7 @@ that meaning; a group compiled against a superseded meaning is a stale caller th
 
 ### 11.1 What stays as it is
 The whole activation boundary (§4.1): CALL by prototype, literal or data-name, program and function pointers, CANCEL,
-the instance model, the §8.4.6.3 scope, EC-PROGRAM-NOT-FOUND, GR3 d)'s run-time check.
+the instance model, the §2023:8.4.6.3 scope, EC-PROGRAM-NOT-FOUND, GR3 d)'s run-time check.
 
 ### 11.2 The locate step, module registration and the lookup
 Outermost nodes live in a per-kind dictionary keyed by `CallName` (`ExternalizedNames.Comparer`) beside `_order`: rule
@@ -1925,7 +1925,7 @@ composing a run unit (§11.4) and the probe all reach a module through that memb
 3. runs `Register` into a STAGING list and commits it only when none of the module's outermost names is already
    registered by another module, as a program or as a function: "Within a run unit, all instances of a given name that
    is externalized to the operating environment shall identify the same kind of entity or item", and two source
-   elements naming one externalized name "refer to the same instance" (§8.3.2.2 2), so a second module carrying it is
+   elements naming one externalized name "refer to the same instance" (§2023:8.3.2.2 2), so a second module carrying it is
    refused whole, naming both modules, and nothing of it is registered. `ProgramTable.Register` writes only into the
    staging list of the `RegisterModule` call that is running, and throws outside one, so `RegisterModule` is the only
    writer of the registration set.
@@ -1968,7 +1968,7 @@ private bool LocateSiblingModule(string name, bool wantFunction)               /
         return Outermost(name, wantFunction) is not null || ProbeFailed(name, wantFunction, $"'{hit.Path}' did not register the {kind} {name}");
     }
     catch (Exception e) when (IsCodeLoadFailure(e) || e is IOException or UnauthorizedAccessException or TargetInvocationException or ArgumentException)
-    { return ProbeFailed(name, wantFunction, $"'{hit.Path}': {e.GetBaseException().Message}"); }   // never escapes the CALL (§14.9.4.4 GR3 b))
+    { return ProbeFailed(name, wantFunction, $"'{hit.Path}': {e.GetBaseException().Message}"); }   // never escapes the CALL (§2023:14.9.4.4 GR3 b))
 }
 ```
 The named file is loaded without a directory scan (`PAY.dll` beside `PAY - Copy.dll` keeps working); the index is read
@@ -1993,13 +1993,13 @@ of unit asked for (the same key as `_probedNames`): a program lookup and a funct
 with two reasons, and the second must not overwrite the first's.
 `--repository-update off` assemblies are reached (the index is unconditional).
 **Every fault on the way to an activation is one of the CALL's own conditions (determination, Mythos lane 2026-10-27;
-it answers the residual question kb/Work PB2101 carried from the R2 review).** §14.9.4.4 GR3 b): "If the program cannot
+it answers the residual question kb/Work PB2101 carried from the R2 review).** §2023:14.9.4.4 GR3 b): "If the program cannot
 be located or identifier-1 references a zero-length item, the EC-PROGRAM-NOT-FOUND exception condition is set to exist"
 (`cite.py --check` OK, located under 3)); GR3 c): "If the program is located but the resources necessary to execute the
 program are not available, the EC-PROGRAM-RESOURCES exception condition is set to exist … The runtime resources that are
 checked in order to determine the availability of the called program for execution are defined by the implementor"
 (OK, 3) c)); Table 13 makes both fatal ("Called program not found", "Resources not available for called program",
-§14.6.13.1.6, OK); §8.4.3.2.4 GR6 b) / c) are the function twins. The boundary between the two is where
+§2023:14.6.13.1.6, OK); §2023:8.4.3.2.4 GR6 b) / c) are the function twins. The boundary between the two is where
 `docs/CONFORMANCE.md` DOC-A.1-14 / DOC-A.1-89 already put it: **a program is LOCATED when it is registered in the run
 unit** — its name matches a node a module's committed registration created. So:
 - *Not located → EC-PROGRAM-NOT-FOUND (EC-FUNCTION-NOT-FOUND for a function) with the reason.* No file; a file that does
@@ -2013,7 +2013,7 @@ unit** — its name matches a node a module's committed registration created. So
   exception out of the registrar body, the PB154 and PB2843 guards, a name twice in one module, or a static reset that
   throws, which is adopted BEFORE any node is committed so the module registers nothing, is a `CobolCallException`
   EC-PROGRAM-NOT-FOUND naming the module and the fault), so every route to a module sees it: the probe, the emitted
-  `Main` (the abnormal termination of §14.6.12) and a host's `EnsureRegistered()`, whose generated entry has no catch of
+  `Main` (the abnormal termination of §2023:14.6.12) and a host's `EnsureRegistered()`, whose generated entry has no catch of
   its own (it is a `CobolCallException` the host handles, R48's contract at the host door, §4.3). A repeated path stays
   loud: it ends the run unit with its reason, and is never a replaced node.
 - *A registered program whose CODE cannot be loaded is not located either → EC-PROGRAM-NOT-FOUND.* The approved text of
@@ -2097,7 +2097,7 @@ still changes (the planner holds a group only where running work edits the same 
 | `ProgramEmitter.EmitEntryWrapper` (`public static class __CobolModule` in the global namespace with a public `Register()`; always `Main`) | **landed, slice 1 (the library form slice 3):** the one-segment `namespace Cobol.<S>` (§4.5); `[assembly: CobolRepository(schema, runtimeVersion, callAbi, Registrar)]` (`RuntimeApi.ModuleRecordAttribute`); `Register` private, `EnsureRegistered()` the one public member (through `RegisterModule`; the emitted `Main` calls it, so no path registers a module twice); `Main` only with a main unit (`ProgramEmitter.MainUnit`), a library otherwise; `global::` on every foreign name | `ProgramTable.ProbeSiblingModule`, `RoslynBackend.Compile`, `AssemblyPackager.Package` |
 | `RuntimeApi.ModuleRecordAttribute` (slice 1: the assembly record's C# text) | **landed, slice 4 (kb/Work PB2100):** MOVED into `RepositoryAttributeRenderer.ModuleRecord`, the one place attribute syntax is written (§3.9), and deleted from `RuntimeApi`; the record gained `Units` (`HostEntryEmitter.EntryUnits` through `RepositoryAttributeRenderer.IndexOf`), `CompilerVersion` and `Edition` (`BoundCompilation.Edition`), and every host entry its `[CobolUnit]` (`RepositoryAttributeRenderer.UnitRecord`); then (the fourth part) `HasSignatures` with `--repository-update`, and the signature attributes of every host entry: `UnitRecord` with the unit facts, `TableRecords` (type declarations, structures, referenced prototypes) on the class, `FormalRecord` on each `Call` parameter and `ReturningRecord` on its return value, each a transcription of `RepositoryCodec.Of`; then the OO arm: `[CobolUnit]` on every class and interface (and their rows in `Units`, `IndexOf`), and with signatures `UnitRecord`'s class facts, `MethodRecord` on each method, accessor and interface prototype (`OoEmitter.EmitMethodRecord`; the formals on the carriers through `OoEmitter.OoSignatureOf`) and `PropertyRecords` on the type of the accessors | `ProgramEmitter` (its one caller), `HostEntryEmitter`, `OoEmitter` |
 | `CobolRepositoryAttribute` (`CurrentSchemaVersion = 1`, `Registrar` only) | slice 8: `CobolSkeletonAttribute` and `CobolUnitAttribute`'s expansion properties. **Landed, slice 4 (kb/Work PB2100):** `CurrentSchemaVersion = 2` and the named properties `Units`, `HasSignatures`, `CompilerVersion`, `Edition` (§6.6); the schema enums of §6.2 rule 1 (`RepositoryEnums.cs`); `CobolUnitAttribute`; `RepositoryIndex` (§7.4: the header, the `Units` rows and the `AssemblyRef` names read without loading the assembly, the 65,536-unit cap as a typed `RepositoryReadFailure`). Then (the fourth part) the signature attributes of programs, functions and prototypes (`CobolSignatureAttributes.cs`: `CobolFormalAttribute`, `CobolReturningAttribute`, `CobolDescriptionAttribute`, `CobolTypeDeclarationAttribute`, `CobolStructureAttribute`, `CobolPrototypeAttribute`, `CobolPrototypeFormalAttribute`, `CobolPrototypeDescriptionAttribute`, over the two never-applied field bases `CobolDescriptionFieldsAttribute` and `CobolFormalFieldsAttribute`), `CobolUnitAttribute`'s signature properties, `RepositoryReadFailure.NoSignatures` / `OtherSchemaVersion`, and `RepositoryIndex.SchemaAttributeName` / `DecodeSchemaAttribute` (the one decoding provider the compiler's `RepositoryReader` shares); then the OO arm: `CobolMethodAttribute`, `CobolPropertyAttribute`, `CobolUnitAttribute`'s `Final`, `BaseIdentity`, `Implements`, `FactoryImplements` and `FactoryType`, and `RepositoryAccessor` | `PublicAPI.Unshipped.txt` |
-| `ProgramTable` (`_probedModules` keyed by name; `ProbeSiblingModule` loads `<name>.dll` and calls a global `__CobolModule.Register`; a linear `_order` scan for rule 4; `CallProgram`/`Cancel` take a non-null `callerPath`) | **landed, slice 5 (kb/Work PB2101):** `ProbeSiblingModule` over `RepositoryLocator` / `RepositoryIndex` (§11.2: no case-insensitive scan, no reflection read of the record); the per-kind `CallName` dictionaries (`_programs`, `_functions`, filled where `RegisterModule` commits; `_order` deleted); `RuntimeFeatures.DynamicProbe`; the §11.2 classification (`RegisterModule` makes every registrar fault EC-PROGRAM-NOT-FOUND and commits a module's static resets before its nodes; `Create` classifies a registered program whose class or a dependency cannot be loaded or initialized as EC-PROGRAM-NOT-FOUND with the loader's message, as DOC-A.1-14 / -89 classify a module that cannot be loaded). Slice 1: `RegisterModule(registrar, runtimeVersion, callAbi, register)` (one registration set per run unit, the version refusal, staged commit refusing a duplicate outermost name, §11.2); `_probedNames` / `_probeFailure` keyed by `ProbeKey` (the kind letter and the name, kb/Work PB2847); the probe reads `Registrar` from the record. Slice 3: `callerPath` is `string?` in `CallProgram` and `Cancel`, and the null arm (`CallFromHost`) is the outermost boundary that turns a STOP RUN or a run-unit-terminating fatal condition into R48's `RunUnitEndedException(ExitStatus, Abnormal)` after the §14.6.11 actions | `ProgramRegistry`, `RuntimeFeatures` (new), `RunUnit` |
+| `ProgramTable` (`_probedModules` keyed by name; `ProbeSiblingModule` loads `<name>.dll` and calls a global `__CobolModule.Register`; a linear `_order` scan for rule 4; `CallProgram`/`Cancel` take a non-null `callerPath`) | **landed, slice 5 (kb/Work PB2101):** `ProbeSiblingModule` over `RepositoryLocator` / `RepositoryIndex` (§11.2: no case-insensitive scan, no reflection read of the record); the per-kind `CallName` dictionaries (`_programs`, `_functions`, filled where `RegisterModule` commits; `_order` deleted); `RuntimeFeatures.DynamicProbe`; the §11.2 classification (`RegisterModule` makes every registrar fault EC-PROGRAM-NOT-FOUND and commits a module's static resets before its nodes; `Create` classifies a registered program whose class or a dependency cannot be loaded or initialized as EC-PROGRAM-NOT-FOUND with the loader's message, as DOC-A.1-14 / -89 classify a module that cannot be loaded). Slice 1: `RegisterModule(registrar, runtimeVersion, callAbi, register)` (one registration set per run unit, the version refusal, staged commit refusing a duplicate outermost name, §11.2); `_probedNames` / `_probeFailure` keyed by `ProbeKey` (the kind letter and the name, kb/Work PB2847); the probe reads `Registrar` from the record. Slice 3: `callerPath` is `string?` in `CallProgram` and `Cancel`, and the null arm (`CallFromHost`) is the outermost boundary that turns a STOP RUN or a run-unit-terminating fatal condition into R48's `RunUnitEndedException(ExitStatus, Abnormal)` after the §2023:14.6.11 actions | `ProgramRegistry`, `RuntimeFeatures` (new), `RunUnit` |
 | `ProgramRegistry` (public; XML remarks calling it the "emitted-surface shim", a facade whose members "forward") | **landed, slice 3:** `[EditorBrowsable(Never)]` on the type; remarks state that it is the generated code's ABI over the ambient run unit, callable from generated code in other assemblies, with no contract for a hand-written caller (§4.4) | — |
 | `ProgramEmitter.Emit` (the outermost-unit loop emits a program class per definition and skips prototypes) | Slice 8: skeleton → `[CobolSkeleton]` class; expansion → §10.5's steps. **Landed (kb/Work PB2100, PB3872):** the OO arm's records (classes, factory types, methods, accessors, interfaces; `OoEmitter` transcribes `OoClassUnit.Record` and `BoundCompilation.InterfaceRecords`); each host entry's record attributes when the unit carries its record (`BoundUnit.Record`, written at bind time under `--repository-update on`, kb/Work PB4319); the assembly attribute's index and the `[CobolUnit]`s always; `HostEntryEmitter.EntryUnits` pairs a prototype with its definition by DOC-A.1-68's one mapping rule, the Annex C fold (kb/Work PB3872), and `HostEntryEmitter.Published` is deleted (§7.2). Already landed, slice 3: every outermost program, function and prototype → its host-entry class (§4.3) through `HostEntryEmitter` and `PublishedRecordEmitter` | `HostEntryEmitter`, `RepositoryAttributeRenderer` (new), `CompilerDriver` (an expansion assembly is a second emission, slice 8) |
 | `DataBinder.Unique` (private; the internal record struct's member names, unseeded: a subordinate `AsImage` or `Equals` drew CS0102) and `DataItem.Sanitize` | **landed for the internal scopes (kb/Work PB2098), and for the published ones in slice 3:** `CsNames.Allocate(baseName, scope)`: the Sanitized base, then the smallest free `_n`, over a scope seeded with the emitter's own members in that scope and the imported type names (§4.5) — the ONE allocator for internal and published names. `NameAllocator` (the `__`-prefixed temporaries, which no COBOL word can spell) is unchanged | `DataBinder` (every `Unique` caller), `RecordStructEmitter`, `HostEntryEmitter`, `PublishedRecordEmitter`, `OoEmitter` |
@@ -2109,7 +2109,7 @@ still changes (the planner holds a group only where running work edits the same 
 | `BoundCallProgram.CalleeSignatureKnown` (one flag for "checked at bind time" and "cannot differ at run time"; `CallEmitter.DescribesOperands` / `LandsAtRunTime`) | **landed, slice 7 part 1 (kb/Work PB2103), §4.2's landed paragraph:** split into `CalleeSignatureKnown` and `CalleeCompiledHere`; a site whose callee is compiled elsewhere describes its operands for GR3 d) (§4.2) | `CallBinder`, `UdfBinder`, `CallEmitter` |
 | `ObjectRefDescriptor(Kind, Name, Factory, Only, Formal)`; `ActivationDescriptions.Of`'s `ObjectName` / `ObjectClasses` / `ObjectInterfaces` as folded WORDS (PB2463) | slice 8: `+ Target`; `ClrTypeName` over `Target`; the description's class facts become folded EXTERNALIZED names (a call-ABI bump, §6.4) | `PictureAnalyzer`/`DataBinder` (sets `Target`), `OoClassTable.SetOperand`, `OoEmitter.OoReturnClrType`, `OoConformance`, `SetBinder` Format 5 |
 | `DescriptionClauses` and `ActivationDescriptions` (the DYNAMIC LENGTH clause and phrase) compare a dynamic-length structure by its folded NAME; `ClassRaisingCovered` | slice 8: `RaisingTarget.Target`. **Landed, slice 7 part 1 (kb/Work PB2103):** the structure DEFINITION key (§6.4, `DynamicLengthStructure.DefinitionKey`), inside slice 7's call-ABI bump | `StrongTypeModel`, `OoConformance`, `RaisingTarget` |
-| **landed (kb/Work PB2464, PB2495, PB3120, PB3162, PB4491):** `DataItem.RestrictedPrototype` and `DataItem.PointerRestrictionIdentity` (attached by `DataBinder.ResolveRestrictedPrototypes` and stamped by `PrototypeSignatures.StampContentRestrictions` from `BinderDriver.ResolvePointerRestrictions`, before every signature check), `PrototypeSignatures.NamedRestriction`, `SignatureRestriction` and `Identity`, `StrongTypeModel.SameAnalyzedProfile`'s restriction arms — what a restricted program- or function-pointer may CONTAIN is its prototype's SIGNATURE (§13.18.60.4 GR25 / GR26), read through `ActivationDescription.ContentRestriction` by the SET relation alone; every other relation, the signature itself included, reads the TO phrase by name through `ActivationDescription.Clauses`; `PicInfo.RestrictedPrototypeName` kept as the written name | slice 4 (kb/Work PB2100): the decoder, `RepositoryCodec.Decode`, rebuilds `RestrictedPrototype` from `ReferencedPrototypes` with a `PrototypeOrigin` per row, so a decoded pointer may contain what its decoded SIGNATURE allows (§6.4). **Slice 7 part 1 (kb/Work PB2103):** the content identity is canonical, `SIG <hex>`, group-independent, held to `Same` by `SignatureIdentityDriftTests`, under call-ABI 3. **PB4491:** a signature describes a pointer formal by the prototype it names, so the identity is a hash of the signature's own key and the partition refinement that minimized recursive signature graphs (`PrototypeSignatureClasses`, its decoded admission and `BindSession` / `BoundCompilation.SignatureClasses`) is deleted, under call-ABI 6 (§6.4). | `ActivationDescriptions` (`ElementaryClauses`, `OfAddress`), `OoConformance`, `OoBinder`, `BinderDriver`, `OoDriver` |
+| **landed (kb/Work PB2464, PB2495, PB3120, PB3162, PB4491):** `DataItem.RestrictedPrototype` and `DataItem.PointerRestrictionIdentity` (attached by `DataBinder.ResolveRestrictedPrototypes` and stamped by `PrototypeSignatures.StampContentRestrictions` from `BinderDriver.ResolvePointerRestrictions`, before every signature check), `PrototypeSignatures.NamedRestriction`, `SignatureRestriction` and `Identity`, `StrongTypeModel.SameAnalyzedProfile`'s restriction arms — what a restricted program- or function-pointer may CONTAIN is its prototype's SIGNATURE (§2023:13.18.60.4 GR25 / GR26), read through `ActivationDescription.ContentRestriction` by the SET relation alone; every other relation, the signature itself included, reads the TO phrase by name through `ActivationDescription.Clauses`; `PicInfo.RestrictedPrototypeName` kept as the written name | slice 4 (kb/Work PB2100): the decoder, `RepositoryCodec.Decode`, rebuilds `RestrictedPrototype` from `ReferencedPrototypes` with a `PrototypeOrigin` per row, so a decoded pointer may contain what its decoded SIGNATURE allows (§6.4). **Slice 7 part 1 (kb/Work PB2103):** the content identity is canonical, `SIG <hex>`, group-independent, held to `Same` by `SignatureIdentityDriftTests`, under call-ABI 3. **PB4491:** a signature describes a pointer formal by the prototype it names, so the identity is a hash of the signature's own key and the partition refinement that minimized recursive signature graphs (`PrototypeSignatureClasses`, its decoded admission and `BindSession` / `BoundCompilation.SignatureClasses`) is deleted, under call-ABI 6 (§6.4). | `ActivationDescriptions` (`ElementaryClauses`, `OfAddress`), `OoConformance`, `OoBinder`, `BinderDriver`, `OoDriver` |
 | `OoClassTable.Build`; `OoClassSymbol.IsStandard` (`ctx is null`) and `Ctx`; `OoRepositoryScope` (classes/interfaces) | slice 8: `+ Import(symbol)` by identity, `IsParameterized` for imported skeletons; `IsStandard` → `Origin`; `OoRepositoryScope` → `IdentityScope`. **Landed, step 1 (kb/Work PB2104):** `OoClassTable.ImportClass` / `ImportedClasses` / `ImportedAssemblies` (the last now `ImportedTypes.Assemblies` on `BoundCompilation.Imported`, kb/Work PB2403), `OoSymbolOrigin`, `IdentityScope` (words → identities only, §8.7), `IOoImporter`; `IsParameterized` for imported skeletons is step 2's | `OoNameResolution`, `OoEmitter.EmitClassUnit` (skips imported), `ResolveOverrides`, `OoExpansion` |
 | `OoExpansion.Expand(tree, classes, interfaces, edition, words)` | slice 8: resolver-driven; imported skeletons re-parsed under their recorded `CompileState` with recorded resolutions; the `ExpansionKey`; import by key; placement (4a)/(4b); stale detection (REPO-9 with the referencing assemblies); publishes keys and skeleton records (§10.5) | `BinderDriver`, `FragmentParse.ParseTokens` (a `CompileState` parameter), the binder's option-dependent arms, `CompilerDriver`, `RepositoryIndex` (`AssemblyRef` listing) |
 | `DataBinder.BindDeclarations` REPOSITORY loop (never resolved) | **landed differently, slice 7 part 2 (kb/Work PB2103):** every PROGRAM and FUNCTION specifier resolves in `BinderDriver.ProgramPrototypesOf` / `UserFunctionsOf`, which `ResolvePointerRestrictions` asks for every forest before any signature is compared or any body binds, and REPO-1 is reported once per specifier (`RepositoryResolver.ReportUnanswered`, keyed by the specifier a contained program inherits); a separate `ResolveRepositorySpecifiers` pass would have been a second walk of the same tables. `ProgramSpecifier` carries its entry (`At`) as `FunctionSpecifier` does. Class and interface specifiers are slice 8's | `BinderDriver`, `OoDriver.BindClassData` |
@@ -2133,7 +2133,7 @@ route are deleted in the slice that lands their replacements.
 
 | Edition | REPOSITORY paragraph | Resolution | Emission |
 |---|---|---|---|
-| 85 | every specifier kind is refused at recognition with COBOL0900 (the `repository-*-2002` rows) | never consulted; a Format-1 CALL is the boundary as always (§14.8.2.3.2 rule 1, "the formal parameter shall be of the same length as the corresponding argument", is its run-time screen) | the host entry and the records ARE emitted (an 85 program is a legal callee of a 2023 prototype and of .NET); `Edition = 85` |
+| 85 | every specifier kind is refused at recognition with COBOL0900 (the `repository-*-2002` rows) | never consulted; a Format-1 CALL is the boundary as always (§2023:14.8.2.3.2 rule 1, "the formal parameter shall be of the same length as the corresponding argument", is its run-time screen) | the host entry and the records ARE emitted (an 85 program is a legal callee of a 2023 prototype and of .NET); `Edition = 85` |
 | 2002 / 2014 / 2023 | all five kinds; EXPANDS | §8, §10.5 | all |
 No new gate; §17.1's 85 arm proves introduction gating fires before any REPO-* diagnostic.
 
@@ -2156,21 +2156,21 @@ when the provider is built (an existence probe per named place, no listing).
 
 | Placeholder | Severity | Condition | Clause |
 |---|---|---|---|
-| REPO-1 | Error | a specifier (or an EXPANDS definition; a CLASS specifier since slice 8 step 1) that neither the group, the repository nor the CLR provider answers — "… names no {kind}: not {group alternatives}, and no information exists for it in the external repository (searched: …)" | §12.3.8.3 SR6/SR9/SR14/SR16; SR10 only when none of its three alternatives nor §8.4.6.7's word holds (§8.3) |
-| REPO-2 | Warning | a later different entry of the chosen `kind:name` whose record differs; a same-name different-triple expansion elsewhere in the search space | §8.13 ¶4; §9.3.12 |
-| REPO-3 | Error | a named or scanned entry unreadable as a managed PE | §8.13 |
-| REPO-4 | Error | a malformed or oversized record / index | §8.13 |
-| REPO-5 | Error | a description the codec cannot rebuild | §8.13 |
+| REPO-1 | Error | a specifier (or an EXPANDS definition; a CLASS specifier since slice 8 step 1) that neither the group, the repository nor the CLR provider answers — "… names no {kind}: not {group alternatives}, and no information exists for it in the external repository (searched: …)" | §2023:12.3.8.3 SR6/SR9/SR14/SR16; SR10 only when none of its three alternatives nor §2023:8.4.6.7's word holds (§8.3) |
+| REPO-2 | Warning | a later different entry of the chosen `kind:name` whose record differs; a same-name different-triple expansion elsewhere in the search space | §2023:8.13 ¶4; §2023:9.3.12 |
+| REPO-3 | Error | a named or scanned entry unreadable as a managed PE | §2023:8.13 |
+| REPO-4 | Error | a malformed or oversized record / index | §2023:8.13 |
+| REPO-5 | Error | a description the codec cannot rebuild | §2023:8.13 |
 | REPO-6 | Error | two needed class/interface/expansion assemblies with one assembly simple name, or whose one-segment namespaces coincide (§4.5) | §8.6 |
-| REPO-7 | Error | schema version ≠ the reader's, runtime ABI major ≠ this compiler's runtime, or call ABI ≠ this compiler's | §8.13; §5.4 |
-| REPO-8 | Error | a specifier resolves to a `HasSignatures = false` entry | §8.13 ¶3 |
-| REPO-9 | Warning | `--repository-check`: a unit differs from the previous build's record, or from a prototype/definition of its name in the search space; an expansion of the same name and identities with another `ExpansionKey` is stale (naming it, the first differing key component and every assembly that references it, §10.5) | §8.13 ¶4 |
+| REPO-7 | Error | schema version ≠ the reader's, runtime ABI major ≠ this compiler's runtime, or call ABI ≠ this compiler's | §2023:8.13; §5.4 |
+| REPO-8 | Error | a specifier resolves to a `HasSignatures = false` entry | §2023:8.13 ¶3 |
+| REPO-9 | Warning | `--repository-check`: a unit differs from the previous build's record, or from a prototype/definition of its name in the search space; an expansion of the same name and identities with another `ExpansionKey` is stale (naming it, the first differing key component and every assembly that references it, §10.5) | §2023:8.13 ¶4 |
 | REPO-10 | Error | `--repository DIR` does not exist / cannot be enumerated | — |
-| REPO-11 | Error | an imported symbol's base, implemented interface or referenced identity is in no entry | §12.3.8.4 GR6 |
-| REPO-12 | Info | the previous build of this output, or an own-assembly expansion target of the same name, carries another schema, runtime major or call ABI; not compared / overwritten (§10.5) | §8.13 ¶4 |
-| REPO-13 (COBOL2969, slice 6) | Warning | a `FUNCTION F` specifier for which GR11 a), b) or c) selects the function externalized "F" while a different function whose user-function-name is F exists, in the compilation group or in the repository; the externalized name is used (D-R3) | §12.3.8.4 GR11; §8.4.6.7 |
+| REPO-11 | Error | an imported symbol's base, implemented interface or referenced identity is in no entry | §2023:12.3.8.4 GR6 |
+| REPO-12 | Info | the previous build of this output, or an own-assembly expansion target of the same name, carries another schema, runtime major or call ABI; not compared / overwritten (§10.5) | §2023:8.13 ¶4 |
+| REPO-13 (COBOL2969, slice 6) | Warning | a `FUNCTION F` specifier for which GR11 a), b) or c) selects the function externalized "F" while a different function whose user-function-name is F exists, in the compilation group or in the repository; the externalized name is used (D-R3) | §2023:12.3.8.4 GR11; §2023:8.4.6.7 |
 Existing codes keep their roles: 1761 (SR1/SR2), 1760, 1505, 0813/0821/0859 (unreachable for a declared name), 1513 (a
-definition vs a prototype in ONE compilation group, §10.6.2 SR2/SR3), 2240 (expansion identity reuse; the §9.3.12
+definition vs a prototype in ONE compilation group, §2023:10.6.2 SR2/SR3), 2240 (expansion identity reuse; the §2023:9.3.12
 "shall not" where the two classes necessarily share a run unit, §10.5), 0900. No exception condition is new and
 `CobolCallException.CarriedNames` is unchanged: a stale caller meets GR3 d)'s EC-PROGRAM-ARG-MISMATCH (when checking
 is enabled in both); a missing, colliding, duplicate or version-skewed module meets GR3 b)'s EC-PROGRAM-NOT-FOUND with
@@ -2277,7 +2277,7 @@ Folded-name comparison over the enumerated listing; CI's Linux legs run the mult
 ### 17.1 Goldens and the multi-unit harness (per edition 2002/2014/2023; an 85 arm)
 - **Where the multi-unit cases live (determination, Mythos lane 2026-10-27).** The corpus is the conformance suite
   (`conformance-suite/`, DESIGN-conformance-suite.md); `tests/conformance/` is gone. A case that compiles more than one
-  compilation group separately is WiseOwl-specific — how separately compiled units find each other is §8.13's
+  compilation group separately is WiseOwl-specific — how separately compiled units find each other is §2023:8.13's
   implementor mechanism, not a portable program — so it is a WiseOwl conformance case under
   `conformance-suite/wiseowl/cases/<clause>/`, in the suite's one case format, run by the suite's runners, never a
   C# test written per case and never a second harness. C# keeps only what is not a COBOL program: the host harness
@@ -2314,9 +2314,9 @@ Folded-name comparison over the enumerated listing; CI's Linux legs run the mult
   module reached again by the probe and the patched-metadata fixtures are C#, `RunTimeLocateFaultTests` and
   `ModuleRegistrationHostTests`); slices 7 and 8 add cases, not mechanism.
   Cases (slice 7 unless marked): program prototype resolved from a
-  prototype-only build (BY VALUE default from the formal, §14.9.4.4 GR9 b); from a definition's build; the pb1115
+  prototype-only build (BY VALUE default from the formal, §2023:14.9.4.4 GR9 b); from a definition's build; the pb1115
   shape split across two units (prototype names and grouping differ from the definition's: compiles, runs, no
-  REPO-9); a caller's argument that does not conform to the repository formal → the §14.8.2 argument diagnostic;
+  REPO-9); a caller's argument that does not conform to the repository formal → the §2023:14.8.2 argument diagnostic;
   function prototype (word and AS; the GR11 c)-hit order); a restricted program-pointer formal of a repository
   prototype passed a pointer restricted to a differently named prototype of the same signature (one type, GR25), and a
   universal INVOKE across two groups whose returning items are such pointers (no EC-OO-METHOD); a prototype-checked
@@ -2397,9 +2397,9 @@ Folded-name comparison over the enumerated listing; CI's Linux legs run the mult
   `DescriptionRecord` field; a Roslyn-analysis enumeration of the members the comparator sources read must be a subset
   of the table.
 - A perturbation of each recorded description property — `TypeName` and the type declarations' names included
-  (§8.5.3.1) — makes some comparator fail; a perturbation of a DATA-NAME or of intermediate grouping makes none fail
-  (§13.7.3 SR2).
-- For every §10.6.2 SR2/SR3 pair in the corpus (pb1115 included): `PrototypeSignatures.Same(Decode(Of(prototype)),
+  (§2023:8.5.3.1) — makes some comparator fail; a perturbation of a DATA-NAME or of intermediate grouping makes none fail
+  (§2023:13.7.3 SR2).
+- For every §2023:10.6.2 SR2/SR3 pair in the corpus (pb1115 included): `PrototypeSignatures.Same(Decode(Of(prototype)),
   Decode(Of(definition)))` holds, and `Same` against the in-group bound pair agrees (landed:
   `RepositoryRoundTripCorpusTests.PrototypeDefinitionPairs`, over the one enumeration `RepositoryRoundTripCorpusTests.Corpus`).
 - **Boundary layout:** a fixture of (usage, picture, group shape) rows covering every byte form, width and crossing
@@ -2465,7 +2465,7 @@ Folded-name comparison over the enumerated listing; CI's Linux legs run the mult
   cannot be data-names), the internal and published record structs and the host class compile, every name is produced
   by `CsNames.Allocate`, and two compiles give the same names.
 - **One renderer** (`HostEntryShapeDriftTests.AHostEntryArgument_IsStatedByTheCallLanesRenderer`): what a host entry's
-  argument states for §14.9.4.4 GR3 d) — its storage length and its description — is rendered by the CALL lane's
+  argument states for §2023:14.9.4.4 GR3 d) — its storage length and its description — is rendered by the CALL lane's
   `CallEmitter.Described`, from the builders a CALL argument's facts come from (`CallEmitter.ArgumentLength`,
   `ActivationDescriptions.Of`); the entry composes neither fact itself, and every described argument of the emitted
   fixture is in that renderer's form.
@@ -2517,9 +2517,9 @@ expansion assembly from two different expanding groups (slice 8).
 |---|---|
 | Bespoke JSON/binary repository file; separate signature database | a second artifact that can be missing/stale/mismatched; the CLR already ships a versioned, deterministic container with the assembly (owner decision) |
 | The run-unit registry as the repository | no details at compile time; nothing to update or check (PB1086) |
-| Documenting a determination only | §8.13's two "shall provide" sentences |
+| Documenting a determination only | §2023:8.13's two "shall provide" sentences |
 | Loading entries with `Assembly.Load`/reflection | executes module initializers, pins one simple name per ALC (circ5), defeats trim analysis |
-| A typed COBOL-to-COBOL activation (typed entry per program, a prototype interface per signature, typed cells as formals) | owner decision 2026-10-05: COBOL-to-COBOL calls keep the existing `CobolArg` boundary; a typed door must re-establish every GR3 obligation and §14.2.3 GR8 for every storage form on a second path beside the one that already has them, and the repository's job — compile-time information and checking — needs none of it |
+| A typed COBOL-to-COBOL activation (typed entry per program, a prototype interface per signature, typed cells as formals) | owner decision 2026-10-05: COBOL-to-COBOL calls keep the existing `CobolArg` boundary; a typed door must re-establish every GR3 obligation and §2023:14.2.3 GR8 for every storage form on a second path beside the one that already has them, and the repository's job — compile-time information and checking — needs none of it |
 | The host entry in a separate assembly per program or per signature | a second file to deploy, version and lose; two declarations of one signature (the entry's and the repository record's) that can disagree; the program's own assembly already carries the record |
 | A public program class (or a public `ICobolProgram` instance) for hosts | bypasses the boundary: a second WORKING-STORAGE, no GR3 f), no INITIAL cancel, no contained-program construction — the reason program classes stay `internal` |
 | Host BY REFERENCE parameters as cells (`ManagedPointer<T>`, `StrongBox<T>`) | not the .NET idiom for an in/out value; an image a host type cannot hold would still need a decision at the same point; `ref` plus `Unsafe.AreSame` gives one storage to the one aliasing a .NET caller can express (a variable passed twice) |
@@ -2532,17 +2532,17 @@ expansion assembly from two different expanding groups (slice 8).
 | Keeping `ProgramRegistry.CallProgram` / `ICobolProgram.Call` documented as a host API beside the entry | two host surfaces for one job (CLAUDE.md rule 4); owner decision 2026-10-05 retires it |
 | Moving `ProgramRegistry` to a `CompilerServices` namespace to retire it | churns every emitted line and enforces nothing a public type does not already allow; the documentation, `[EditorBrowsable(Never)]` and the one-surface scan (§17.3) retire the route |
 | A dotted namespace `Cobol.<simple name>` | `PAY.V2.dll` meets a type `V2` of `PAY.dll` (CS0434/CS0437 on legal source, r7-ns) |
-| Including data-names or intermediate grouping in signature identity | §13.7.3 SR2 asks the descriptions to match, and §8.5.3.1's essential characteristics do not include names or grouping; pb1115's prototype and definition differ in both and are one signature |
+| Including data-names or intermediate grouping in signature identity | §2023:13.7.3 SR2 asks the descriptions to match, and §2023:8.5.3.1's essential characteristics do not include names or grouping; pb1115's prototype and definition differ in both and are one signature |
 | Fixing the emitter until the corpus compiles with zero Roslyn warnings | CS1718 is reported on legal `IF B = B` (r6-warn); a warning-free corpus is not reachable by emitter changes alone, and surfacing warnings would change every `.diag.txt` |
-| COBOL1513 for a definition that differs from a prototype in another group | §10.6.2 SR2/SR3 are scoped to one compilation group; across groups the standard asks for flagging (§8.13 ¶4), which REPO-9 is |
+| COBOL1513 for a definition that differs from a prototype in another group | §2023:10.6.2 SR2/SR3 are scoped to one compilation group; across groups the standard asks for flagging (§2023:8.13 ¶4), which REPO-9 is |
 | `modreq`/`modopt`; `CallConv*`/`UnmanagedCallersOnly`; CLR `[Optional]` | §3.3, §3.4, §3.5 |
 | Recording the callee's words as identity | §6.4 |
-| Refusing parameterized classes across assemblies | §9.3.12 is core OO (DOC-A.1-138) |
-| A warning for two independently expanded copies of one triple | ships a known §9.3.12 violation (two CLR types for one class instance); D3 imports an existing expansion of the same key instead |
+| Refusing parameterized classes across assemblies | §2023:9.3.12 is core OO (DOC-A.1-138) |
+| A warning for two independently expanded copies of one triple | ships a known §2023:9.3.12 violation (two CLR types for one class instance); D3 imports an existing expansion of the same key instead |
 | Every expansion in its own assembly, in-group references included | the expansion would need the expanding group's NEW assembly, which does not exist while that group compiles |
 | Comparing expansion assemblies by MVID or bytes | a rebuild by a later compiler changes both without changing the class; the `ExpansionKey` names what the expansion means |
 | Refusing an expansion whose existing home references the expanding group | the CLR and Roslyn accept the reference cycle (circ), so importing it keeps one class instance without refusing legal source |
-| A compile-time error for two entries of one name | §8.3.2.2 is run-unit scoped; identical copies are normal |
+| A compile-time error for two entries of one name | §2023:8.3.2.2 is run-unit scoped; identical copies are normal |
 | Extern aliases for imported types | a per-assembly namespace plus `global::` solves the same collision for .NET hosts too (two `__CobolModule`s) |
 | The runtime's deterministic MVID as the version key | any rebuild of the runtime — a comment, a message — would strand every deployed callee; the `AssemblyVersion` major with `PublicApiAnalyzers` is the .NET rule and changes only when the surface or the ABI does |
 | A hash of the callee in the caller; reversible file-name mangling; a source generator; emitter facts in the record | second compares, second mappings, a build step for what a test catches, backend dependence |
@@ -2572,12 +2572,12 @@ expansion assembly from two different expanding groups (slice 8).
   capacity and character-length losses are all refused with `ArgumentOutOfRangeException` before activation; no
   silent narrowing at the host door (§4.3, r7-brk). Cost: a host that wants COMPUTE truncation does it itself.
 - **D-R3 — the function-name determination** (§8.3; owner decision 2026-10-05): GR11 a)–c) by externalized name; the
-  word when they miss (group definition, then the repository's recorded word, §8.4.6.7); whenever the externalized-name
+  word when they miss (group definition, then the repository's recorded word, §2023:8.4.6.7); whenever the externalized-name
   step and the word name different functions, the externalized name, as GnuCOBOL 3.2.0 does, with REPO-13 — in one
   group or across the repository. Legal source is never rejected.
 - **Q4 — AS-literal comparison: the Annex C fold everywhere** (owner, 2026-10-05; DOC-A.1-68; PB661's rows close on
   this document). **Q5 — a Format-1 `CALL "LIT"` does not consult the repository to warn on arity** (owner,
-  2026-10-05: no; a vendor extension under §4.2.10). **Q6 — no second typed shape for groups** (owner, 2026-10-05: no;
+  2026-10-05: no; a vendor extension under §2023:4.2.10). **Q6 — no second typed shape for groups** (owner, 2026-10-05: no;
   the published record struct with `AsImage`/`FromImage` serves the host).
 - **R48 — a STOP RUN or terminating fatal condition under a .NET host ends the run unit only** (owner, 2026-09-25;
   DOC-A.1-167): the host entry's exception contract applies it at the outermost boundary (§4.3).
@@ -2590,8 +2590,8 @@ expansion assembly from two different expanding groups (slice 8).
   placement flag in the record.
 
 **Determinations this design makes under the standard's own latitude** (each derived from the cited clause, none an
-owner question): the host door's restrictions and its exception contract (§14.2.3 GR13, §4.3); the one validity rule
-for write-back and RETURNING, `FormatException` (§8.8.4.4.4 GR3 n), §4.3); one storage only for formals of one
+owner question): the host door's restrictions and its exception contract (§2023:14.2.3 GR13, §4.3); the one validity rule
+for write-back and RETURNING, `FormatException` (§2023:8.8.4.4.4 GR3 n), §4.3); one storage only for formals of one
 description (§4.3); the forward-reference reading of SR14 — the output being produced is not repository information
 (§8.2); the one-segment namespace (§4.5); the call-ABI version (§15.4).
 
@@ -2600,7 +2600,7 @@ description (§4.3); the forward-reference reading of SR14 — the output being 
   recorded it in PB1610. PB1610 has created the manual and moved the host chapter into
   `docs/manual/dotnet-interop.md`; slice 7 writes its chapter as its own page of `docs/manual/` in the change that
   adds the options it describes (§9.4).
-- **(b) A fault on the way to an activation is one of the CALL's own conditions** (§14.9.4.4 GR3 b) / c), §8.4.3.2.4
+- **(b) A fault on the way to an activation is one of the CALL's own conditions** (§2023:14.9.4.4 GR3 b) / c), §2023:8.4.3.2.4
   GR6 b) / c)), as `docs/CONFORMANCE.md` DOC-A.1-14 and DOC-A.1-89 already determine them under CLAUDE.md rule 1
   (GR3 c)'s checked resources are the implementor's; GnuCOBOL's resolver sets EC-PROGRAM-NOT-FOUND for a module found
   but not loadable): a program whose code cannot be made available — no file, a file or dependency that does not load,
@@ -2610,11 +2610,11 @@ description (§4.3); the forward-reference reading of SR14 — the output being 
   stays where those rows put it, the activation's stack; never an escaping fatal of another kind (§11.2; slice 5).
 - **(c) Multi-unit repository tests are WiseOwl conformance cases** under `conformance-suite/wiseowl/cases`, through
   the suite's `build` field, which slice 5 landed, run by the in-process runner (§17.1).
-- **The type of a restricted program- or function-pointer stays its SIGNATURE** (§13.18.60.4 GR25 / GR26, as
+- **The type of a restricted program- or function-pointer stays its SIGNATURE** (§2023:13.18.60.4 GR25 / GR26, as
   PB2464 landed it): the record carries the full signature, and slice 7 makes the class identity a group-independent
   canonical key over the minimized signature graph rather than deleting the classes (§6.4); the approved text's
   "compared by identity" is withdrawn because it would have regressed GR25.
-- **A CALL whose callee is compiled elsewhere describes its operands for §14.9.4.4 GR3 d)** — §12.3.8.4 GR10 b) as well as c), and the
+- **A CALL whose callee is compiled elsewhere describes its operands for §2023:14.9.4.4 GR3 d)** — §2023:12.3.8.4 GR10 b) as well as c), and the
   function twin (§4.2; slice 7). It settles the question kb/Work PB2097 carried to PB2103.
 - **The schema's enums are the runtime's own persisted vocabulary**, structured values are flattened, nullability is
   presence, and a method's attributes sit on the carrier of PB2087's parameter triple (§6.2); `RepositoryIndex` and
@@ -2623,8 +2623,8 @@ description (§4.3); the forward-reference reading of SR14 — the output being 
 
 **Open:** none.
 
-**T1 (transcription, for the spec-reconcile lane):** §12.3.8.3 SR16 a) prints "the property literal-5" where the
-specifier's literal is literal-4; §12.3.8.4 GR11 c) is run into b)'s paragraph (cite.py reports 11) b)).
+**T1 (transcription, for the spec-reconcile lane):** §2023:12.3.8.3 SR16 a) prints "the property literal-5" where the
+specifier's literal is literal-4; §2023:12.3.8.4 GR11 c) is run into b)'s paragraph (cite.py reports 11) b)).
 
 ---
 
@@ -2706,7 +2706,7 @@ currency pass; a slice that finds it is not makes the restructuring and corrects
 3. **The host entry and the one host surface — LANDED (kb/Work PB2099, wave 1093 group B; PB3273 later lifted its one
    GR13 restriction). What is in the tree: its runtime boundary —
    `ProgramTable.CallProgram`/`Cancel` take `string? callerPath`, the null arm `ProgramTable.CallFromHost` is the
-   outermost boundary, `RunUnit.EndForHost` performs the §14.6.11 actions and replaces the host's ambient run unit, and
+   outermost boundary, `RunUnit.EndForHost` performs the §2023:14.6.11 actions and replaces the host's ambient run unit, and
    `RunUnitEndedException(ExitStatus, Abnormal)` is R48's result, witnessed by `HostRunUnitEndingTests`; the door rules
    and the type table are in the tree too: `HostLanding` in the runtime, pinned by `HostLandingTests` on §17.3's loss and
    validity fixtures, and `HostSurface.TypeOf(DataItem)` in the binder's model, pinned by `HostSurfaceTests`; and
@@ -2730,7 +2730,7 @@ currency pass; a slice that finds it is not makes the restructuring and corrects
    `HostSurface.TypeOf`; `HostLanding` (exact landing, alias grouping,
    validity decode); the published record struct (`PublishedRecordEmitter`); `HostEntryEmitter` over the CALL lane's renderer with
    `Call` and `Cancel`; `CallProgram`'s and `Cancel`'s nullable `callerPath` and its outermost-boundary arm with R48's
-   run-unit-ended exception (the §14.6.11 actions, then the one documented type); `OutputKind` library for a group
+   run-unit-ended exception (the §2023:14.6.11 actions, then the one documented type); `OutputKind` library for a group
    without a main unit; the host harness (§17.1) with its Linux leg; the drift tests of §17.3 for the entry body, the
    one renderer, the door rules, the published names and the one host surface; the snapshots' host-entry classes; the
    retirement of the untyped host route — `ProgramRegistry`'s `[EditorBrowsable(Never)]` and remarks,

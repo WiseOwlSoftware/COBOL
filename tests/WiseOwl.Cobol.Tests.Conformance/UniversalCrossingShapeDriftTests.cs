@@ -8,8 +8,8 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// <summary>
 /// ⛔ A UNIVERSAL INVOKE CROSSES EVERY CARRIED SHAPE EXACTLY AS THE TYPED INVOKE DOES (kb/Work PB1781).
 ///
-/// <para>ISO §14.9.23.3 SR6: through a universal object reference "neither the BY CONTENT nor the BY VALUE phrase shall
-/// be specified and the BY REFERENCE phrase, if not specified explicitly, is assumed implicitly", and §14.8.2.2 / §14.8.3.2
+/// <para>ISO §2023:14.9.23.3 SR6: through a universal object reference "neither the BY CONTENT nor the BY VALUE phrase shall
+/// be specified and the BY REFERENCE phrase, if not specified explicitly, is assumed implicitly", and §2023:14.8.2.2 / §2023:14.8.3.2
 /// pair the formal with the argument by description, so the same argument that crosses a typed receiver crosses a universal
 /// one with the same copy-in and the same copy-out. The universal lane boxes every argument by its own descriptor
 /// (<c>OoEmitter.OoUnivCallerRead</c>) and copies the box back (<c>OoUnivCallerWrite</c>); the two are one pair of
@@ -27,11 +27,11 @@ public sealed class UniversalCrossingShapeDriftTests
     [Theory]
     // Every row names its edition: OO, strongly-typed and GROUP-USAGE items are COBOL-2002 introductions, DYNAMIC LENGTH
     // is COBOL-2014; the crossing rules are edition-invariant.
-    // The note's own repro: an alphanumeric group of a character and a zoned numeric member (§14.8.2.2 rule 1 — same size).
+    // The note's own repro: an alphanumeric group of a character and a zoned numeric member (§2023:14.8.2.2 rule 1 — same size).
     [InlineData("UCS01", 2002, "01 G. 05 G1 PIC X(2) VALUE \"AB\". 05 G2 PIC 9(2) VALUE 12.", "", "USING G",
         "01 LG. 05 L1 PIC X(2). 05 L2 PIC 9(2).", "USING LG",
         "DISPLAY \"in=\" LG MOVE \"ZY\" TO L1 ADD 1 TO L2", "DISPLAY \"out=\" G", "in=AB12\nout=ZY13")]
-    // A NATIONAL group is the elementary national item of its as-if PICTURE N(m) at the boundary (§14.8.2.1 NOTE).
+    // A NATIONAL group is the elementary national item of its as-if PICTURE N(m) at the boundary (§2023:14.8.2.1 NOTE).
     [InlineData("UCS02", 2002, "01 G GROUP-USAGE NATIONAL. 05 G1 PIC N(3) VALUE N\"ABC\".", "", "USING G",
         "01 LG GROUP-USAGE NATIONAL. 05 L1 PIC N(3).", "USING LG",
         "DISPLAY \"in=\" LG MOVE N\"XYZ\" TO LG", "DISPLAY \"out=\" G", "in=ABC\nout=XYZ")]
@@ -51,7 +51,7 @@ public sealed class UniversalCrossingShapeDriftTests
     [InlineData("UCS06", 2002, "01 T. 05 E OCCURS 2. 10 E1 PIC X(2).", "MOVE \"AB\" TO E1 (1) MOVE \"CD\" TO E1 (2)", "USING E (2)",
         "01 LG. 05 L1 PIC X(2).", "USING LG",
         "DISPLAY \"in=\" L1 MOVE \"ZZ\" TO L1", "DISPLAY \"out=\" T", "in=CD\nout=ABZZ")]
-    // A group delivered through RETURNING (§14.9.23.4 GR8): the callee's returning item lands in the caller's group.
+    // A group delivered through RETURNING (§2023:14.9.23.4 GR8): the callee's returning item lands in the caller's group.
     [InlineData("UCS07", 2002, "01 G. 05 G1 PIC X(2) VALUE \"..\". 05 G2 PIC 9(2) VALUE 0.", "", "RETURNING G",
         "01 LR. 05 R1 PIC X(2). 05 R2 PIC 9(2).", "RETURNING LR",
         "MOVE \"RR\" TO R1 MOVE 42 TO R2", "DISPLAY \"out=\" G", "out=RR42")]
@@ -59,7 +59,7 @@ public sealed class UniversalCrossingShapeDriftTests
     [InlineData("UCS08", 2002, "01 G. 05 T PIC X(2) OCCURS 3.", "MOVE \"AA\" TO T (1) MOVE \"BB\" TO T (2) MOVE \"CC\" TO T (3)", "USING G",
         "01 LG. 05 LT PIC X(2) OCCURS 3.", "USING LG",
         "DISPLAY \"in=\" LG MOVE \"ZZ\" TO LT (2)", "DISPLAY \"out=\" G", "in=AABBCC\nout=AAZZCC")]
-    // A VARIABLE-LENGTH group (a dynamic-length member, §8.5.1.12) — the V: carrier, which already had both arms.
+    // A VARIABLE-LENGTH group (a dynamic-length member, §2023:8.5.1.12) — the V: carrier, which already had both arms.
     [InlineData("UCS09", 2014, "01 G. 05 G1 PIC X(2) VALUE \"AB\". 05 G2 PIC X DYNAMIC LENGTH.", "MOVE \"cd\" TO G2", "USING G",
         "01 LG. 05 L1 PIC X(2). 05 L2 PIC X DYNAMIC LENGTH.", "USING LG",
         "DISPLAY \"in=\" L1 L2 MOVE \"ZY\" TO L1 MOVE \"efg\" TO L2", "DISPLAY \"out=\" G1 G2", "in=ABcd\nout=ZYefg")]

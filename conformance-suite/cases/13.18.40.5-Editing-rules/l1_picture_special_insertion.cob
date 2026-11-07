@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.18.40.5 editing rule 4 PICTURE clause (special
+      *> ISO §2023:13.18.40.5 editing rule 4 PICTURE clause (special
       *> insertion editing) —
       *> "The symbol '.' is used as the special insertion editing
       *> symbol. Special insertion editing results in the period
@@ -15,14 +15,14 @@
       *>   insertion editing results in the period character occupying
       *>   the same character position in the edited item as the symbol
       *>   '.' occupies in character-string-1."
-      *>   -> OK  §13.18.40.5 4)  (Editing rules)
+      *>   -> OK  §2023:13.18.40.5 4)  (Editing rules)
       *>
       *> ⛔ THE RULE IS ABOUT A POSITION, so a fixture that only showed
       *> "a period appears somewhere" would not exercise it. Three
       *> masks are used whose '.' sits at THREE DIFFERENT character
       *> positions, and for each the actual character at that position
       *> and at its two neighbours is displayed. The edited items are
-      *> moved to alphanumeric items first (Table 16 of §14.9.25 gives
+      *> moved to alphanumeric items first (Table 16 of §2023:14.9.25 gives
       *> Yes for numeric-edited into alphanumeric) so the window is cut
       *> with plain reference modification.
       *>
@@ -35,12 +35,12 @@
       *>                     TC(3:3) shall read *.*
       *>
       *> NAMING. The third item is EZ, not the EC the mask order would
-      *> suggest: §8.9 lists EC among the reserved words and §8.3.2.4.1
+      *> suggest: §2023:8.9 lists EC among the reserved words and §2023:8.3.2.4.1
       *> says "Reserved words shall not be used as system-names or
       *> user-defined words.", so EC is not available here.
       *>
-      *> THE VALUES. §14.6.8.2 rule 5 sends a fixed-point numeric
-      *> sending operand to §13.18.40's editing rules for a
+      *> THE VALUES. §2023:14.6.8.2 rule 5 sends a fixed-point numeric
+      *> sending operand to §2023:13.18.40's editing rules for a
       *> numeric-edited receiving item, and the special insertion
       *> symbol is also the decimal point about which that alignment
       *> happens:

@@ -12,20 +12,20 @@ namespace WiseOwl.Cobol.Binding;
 using Core = CobolParserCore;
 
 /// <summary>⛔ THE ONE READING OF A CONSTANT-NAME BEFORE ANY DATA DIVISION BINDS (kb/Work PB2588). An AS phrase's
-/// literal (§8.3.2.2; <c>externalizedNamePhrase</c>) may be a constant-name (§13.10.3 SR2), and three of its readers run
+/// literal (§2023:8.3.2.2; <c>externalizedNamePhrase</c>) may be a constant-name (§2023:13.10.3 SR2), and three of its readers run
 /// before the constant entry it names is bound: the unit builder (PROGRAM-ID / FUNCTION-ID, <c>BinderDriver.MakeUnit</c>),
 /// the class table (CLASS-ID, INTERFACE-ID, METHOD-ID, a prototype method, <c>OoClassTable.Build</c>) and the OO
 /// repository scope (a REPOSITORY class- or interface-specifier, <c>IdentityScope</c>). They read the constant
 /// entry from the parse tree here; the readers inside the data bind ask <c>DataBinder.ReadConstant</c>, which binds the
 /// same entry. Both decode through the same two functions (<see cref="ConstantEntryBinder.LiteralTokenValue"/>,
 /// <see cref="ConstantEntryBinder.VariableStringValue"/>), so they agree on every constant they both can see.
-/// <para>The SCOPE is the source element whose paragraph carries the word (§13.10.3 SR2 names the constant-name the
+/// <para>The SCOPE is the source element whose paragraph carries the word (§2023:13.10.3 SR2 names the constant-name the
 /// element declares): its own DATA DIVISION, and for a method definition the containing factory or object definition's
-/// too — §11.7.4 GR5, "If a given user-defined word is defined in the data division of this method definition and in
+/// too — §2023:11.7.4 GR5, "If a given user-defined word is defined in the data division of this method definition and in
 /// the data division of the containing object definition, the use of that word in this method refers to the
 /// declaration in this method", so the method's own entry is read first. No containing PROGRAM is read: no pre-bind
-/// position stands in a contained program — §11.10.3 SR2 ("Literal-1 shall not be specified in a program that is
-/// contained within another program"), §12.3.3 SR1 ("The configuration section shall not be specified in a program that
+/// position stands in a contained program — §2023:11.10.3 SR2 ("Literal-1 shall not be specified in a program that is
+/// contained within another program"), §2023:12.3.3 SR1 ("The configuration section shall not be specified in a program that
 /// is contained within another program") — and a CLASS-ID, INTERFACE-ID or class REPOSITORY has no DATA DIVISION of its
 /// own, so a word there names no constant. A data-name of the same spelling declared nearer is the item the word names,
 /// never a constant.</para>
@@ -35,12 +35,12 @@ internal static class PreBindConstants
 {
     /// <summary>The constant <paramref name="name"/> names at <paramref name="site"/> (a parse node inside the
     /// paragraph that carries the word).</summary>
-    /// <param name="variables">The compilation group's &gt;&gt;DEFINE timeline, for a FROM constant (§13.10.2).</param>
+    /// <param name="variables">The compilation group's &gt;&gt;DEFINE timeline, for a FROM constant (§2023:13.10.2).</param>
     public static ConstantReading Read(RuleContext site, string name,
         DirectiveTimeline<CompilationVariableEvent> variables) => Read(site, name, variables, hops: 0);
 
     /// <summary>The longest chain of constant entries, each written AS the next one's name, that is read through; a
-    /// longer chain is a circular dependence (ISO §13.10.3 SR5), which the data bind reports at the entry.</summary>
+    /// longer chain is a circular dependence (ISO §2023:13.10.3 SR5), which the data bind reports at the entry.</summary>
     private const int MaxHops = 64;
 
     private static ConstantReading Read(RuleContext site, string name,
@@ -53,12 +53,12 @@ internal static class PreBindConstants
                 foreach (var (entryName, body, line) in Entries(dd))
                 {
                     if (!CobolNames.Same(entryName, name)) continue;
-                    // A data-name declared in this element is the item the word names (§11.7.4 GR5's nearer
-                    // declaration; §8.4.6) — never a constant of an enclosing element.
+                    // A data-name declared in this element is the item the word names (§2023:11.7.4 GR5's nearer
+                    // declaration; §2023:8.4.6) — never a constant of an enclosing element.
                     return body is null ? ConstantReading.NotAConstant : ValueOf(body, line, name, variables, hops);
                 }
             }
-            // §11.7.4 GR5: a method sees its factory / object definition's data; every other source element is the
+            // §2023:11.7.4 GR5: a method sees its factory / object definition's data; every other source element is the
             // end of the walk.
             if (c is Core.ProgramUnitContext or Core.NestedProgramContext or Core.ClassDefinitionContext
                     or Core.InterfaceDefinitionContext or Core.FactoryParagraphContext or Core.ObjectParagraphContext)
@@ -100,8 +100,8 @@ internal static class PreBindConstants
         }
     }
 
-    /// <summary>The literal a constant entry's operand stands for (§13.10.4 GR1/GR2). A numeric form — an arithmetic
-    /// expression (a single numeric literal included, §13.10.3 SR1) or a LENGTH / BYTE-LENGTH phrase (GR3–GR6) — is of
+    /// <summary>The literal a constant entry's operand stands for (§2023:13.10.4 GR1/GR2). A numeric form — an arithmetic
+    /// expression (a single numeric literal included, §2023:13.10.3 SR1) or a LENGTH / BYTE-LENGTH phrase (GR3–GR6) — is of
     /// class numeric; its value is no reader's business here, because every pre-bind position admits only the
     /// alphanumeric and national classes.</summary>
     private static ConstantReading ValueOf(Core.ConstantEntryBodyContext body, int line, string name,
@@ -111,12 +111,12 @@ internal static class PreBindConstants
         if (body.cobolWord() is { } variable)   // FROM compilation-variable-name-1, read as of the entry's line
         {
             if (variables.DefinitionAt(variable.GetText(), line) is not { Value: { } value })
-                return ConstantReading.Refused;   // §13.10.3 SR8, reported at the entry
+                return ConstantReading.Refused;   // §2023:13.10.3 SR8, reported at the entry
             return ConstantReading.Of(value.Category == CtCategory.Numeric
                 ? new ConcatFolder.Folded(PicCategory.Numeric, value.Text)
                 : ConstantEntryBinder.VariableStringValue(value, where));
         }
-        // An operand written as ONE constant-name is that constant's literal-1 (§13.10.3 SR2, §13.10.4 GR1), whatever its
+        // An operand written as ONE constant-name is that constant's literal-1 (§2023:13.10.3 SR2, §2023:13.10.4 GR1), whatever its
         // class - the data bind's ConstantEntryBinder.ConstantLiteralOperand reading, so the two agree (kb/Work PB780).
         if (SoleOperand.DataRef(body.constantValue()?.arithmeticExpression()) is { } word
             && word.dataReferenceSuffix().Length == 0 && word.cobolWord() is { } spelled)
@@ -128,7 +128,7 @@ internal static class PreBindConstants
         if (body.constantValue()?.nonNumericLiteral() is not { } nn)
             return ConstantReading.Of(new ConcatFolder.Folded(PicCategory.Numeric, body.constantValue()?.GetText() ?? ""));
         if (nn.figurativeConstant() is not null || nn.predefinedNull() is not null)
-            return ConstantReading.Refused;   // §13.10.3 SR6 / SR7, reported at the entry
+            return ConstantReading.Refused;   // §2023:13.10.3 SR6 / SR7, reported at the entry
         if (nn.concatenationExpression() is { } ce)
         {
             // Folded into a sink of its own: a fault of the operand is the entry's to report (the data bind does).

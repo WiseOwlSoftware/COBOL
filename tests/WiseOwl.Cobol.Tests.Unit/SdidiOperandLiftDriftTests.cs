@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ A FIXED-POINT OPERAND ENTERS THE STANDARD-DECIMAL INTERMEDIATE THROUGH ONE LIFT, AND THAT LIFT ROUNDS (kb/Work
-/// PB2918). ISO §8.8.1.5.2 r1: "If the operand value cannot be expressed exactly in an SDIDI, the value is rounded
+/// PB2918). ISO §2023:8.8.1.5.2 r1: "If the operand value cannot be expressed exactly in an SDIDI, the value is rounded
 /// according to the rules in 11.9.11" — and a 16-byte binary container holds 39 digits to the SDIDI's 34.
 /// <c>CobolDec.From</c> is the EXACT lift (it carries the value as given); the emitter reaches it only through
 /// <c>NumericRenderer.DecOperandExact</c>, whose callers are the three ROUND-TO-ODD consumers (the exact product, the
@@ -49,7 +49,7 @@ public sealed class SdidiOperandLiftDriftTests
             + "Offenders: " + string.Join("; ", offenders));
     }
 
-    /// <summary>⛔ AN UNSIGNED-WIDE OPERAND OF AN SDIDI OPERATION IS LIFTED, NEVER NARROWED (kb/Work PB2966). §8.8.1.5.2 r1
+    /// <summary>⛔ AN UNSIGNED-WIDE OPERAND OF AN SDIDI OPERATION IS LIFTED, NEVER NARROWED (kb/Work PB2966). §2023:8.8.1.5.2 r1
     /// rounds an operand to the SDIDI; <c>DeU</c> is the NATIVE lane's Widen funnel (loud above 2^127 - 1), so it may only
     /// run AFTER the standard-decimal / Dec-lane decision. Pinned by order in the two arithmetic funnels that take
     /// operands: <c>CombineCore</c> (the Dec lane returns before the funnel) and <c>Power</c> (the standard-mode

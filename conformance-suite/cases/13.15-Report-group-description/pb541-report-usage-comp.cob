@@ -4,13 +4,13 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> ⛔ THE OTHER HALF OF §13.18.60.3 SR7, AND THE HALF THAT WAS SILENT (kb/Work PB541). The rule reads
+*> ⛔ THE OTHER HALF OF §2023:13.18.60.3 SR7, AND THE HALF THAT WAS SILENT (kb/Work PB541). The rule reads
 *> "Only the DISPLAY or NATIONAL phrase may be specified in any USAGE clause associated with a report group
 *> item." conformance:cases/13.18.14-COLUMN/pb541_report_national_item is the admitted side; this is the excluded side, and
 *> it is written on a GROUP entry on purpose.
 *>
 *> A USAGE clause on a report group entry is "associated with" the report group items under it — that is
-*> what §13.18.60.4 GR1 says a group-level USAGE clause IS: "If the USAGE clause is specified or implied at
+*> what §2023:13.18.60.4 GR1 says a group-level USAGE clause IS: "If the USAGE clause is specified or implied at
 *> a group level, it applies only to each elementary item in the group." Before this, the report binder
 *> captured such a clause and handed it only to the printable LEAF, so a group entry's USAGE clause was
 *> silently DISCARDED: this program compiled and RAN, printing 1234 from an item the source said was COMP.

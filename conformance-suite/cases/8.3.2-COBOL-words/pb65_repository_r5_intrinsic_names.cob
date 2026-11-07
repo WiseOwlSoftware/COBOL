@@ -5,16 +5,16 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB65 (FMT-15.43.2 / FMT-15.58.2). ISO §8.3.2.1 rule 5:
+      *> kb/Work PB65 (FMT-15.43.2 / FMT-15.58.2). ISO §2023:8.3.2.1 rule 5:
       *> "Intrinsic-function-names may be used as user-defined words and
       *> system-names, except for … intrinsic function names identified in a
       *> function-specifier in the REPOSITORY paragraph." So a source unit with
-      *> no REPOSITORY may name a table SQRT and an item MOD (§8.4.3.2.3 SR2 —
+      *> no REPOSITORY may name a table SQRT and an item MOD (§2023:8.4.3.2.3 SR2 —
       *> without the REPOSITORY entry the FUNCTION-less spelling is a data
       *> reference, and FUNCTION SQRT(…) is still the function), while a unit
       *> whose REPOSITORY identifies HIGHEST-ALGEBRAIC makes HIGHEST-ALGEBRAIC(A1)
-      *> the function reference — +999 for a PIC S999 argument (§15.43.4 r2),
-      *> −999 for LOWEST-ALGEBRAIC (§15.58.4) — and may not declare that name
+      *> the function reference — +999 for a PIC S999 argument (§2023:15.43.4 r2),
+      *> −999 for LOWEST-ALGEBRAIC (§2023:15.58.4) — and may not declare that name
       *> (the negatives pb65-repository-intrinsic-name-as-data-name /
       *> pb65-repository-all-intrinsic-name-as-user-word). Before this the
       *> declaration compiled clean and the reference silently read the table.

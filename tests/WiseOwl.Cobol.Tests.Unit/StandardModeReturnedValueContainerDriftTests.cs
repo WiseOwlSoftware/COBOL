@@ -14,13 +14,13 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// list somebody remembered to update.
 /// </summary>
 /// <remarks>
-/// <para><b>The rule.</b> ISO §15.4.1: "When standard-decimal arithmetic or standard-binary arithmetic is in
+/// <para><b>The rule.</b> ISO §2023:15.4.1: "When standard-decimal arithmetic or standard-binary arithmetic is in
 /// effect, the returned value for numeric and integer functions is contained in a temporary standard data item
 /// in the intermediate form defined for the arithmetic mode in effect" — unconditional on whether the function
-/// has an equivalent arithmetic expression and on the SHAPE of whatever consumes the value. §8.8.1.5.1 supplies
+/// has an equivalent arithmetic expression and on the SHAPE of whatever consumes the value. §2023:8.8.1.5.1 supplies
 /// the half that is easy to elide: standard-decimal arithmetic is "a method of evaluating an arithmetic
 /// expression, an arithmetic statement, the SUM clause, and certain integer and numeric functions as specified
-/// in 15.4.1" — the FUNCTION is evaluated under the mode, not merely its use as an operand. §15.4.1's last
+/// in 15.4.1" — the FUNCTION is evaluated under the mode, not merely its use as an operand. §2023:15.4.1's last
 /// paragraph exempts the VALUE (an implementor-defined approximation for a function with no equivalent
 /// arithmetic expression), never the CONTAINER.</para>
 ///
@@ -31,7 +31,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// SIN(1E-20)</c> printed <c>1E-20</c> (binary64 E-notation) where the SDIDI's text is
 /// <c>0.00000000000000000001</c>, and <c>MOVE FUNCTION TAN(a)</c> / <c>COMPUTE r = FUNCTION TAN(a)</c> delivered
 /// 16331239353195368.96 and 16331239353195370.00 for the SAME call — two returned values for one function and
-/// one argument in a single run, which §15.4.1 forbids by name.</para>
+/// one argument in a single run, which §2023:15.4.1 forbids by name.</para>
 ///
 /// <para><b>What makes it a drift test rather than three more goldens.</b> The goldens exercise a handful of
 /// functions; this asserts the property over EVERY <c>Float: true</c> catalog row, and the fixture table is
@@ -92,11 +92,11 @@ public sealed class StandardModeReturnedValueContainerDriftTests : WiseOwlCobolT
     public void EveryFloatFamilyRow_HasAFixture()
     {
         var rows = CatalogFloatRows();
-        Assert.True(rows.Count >= 18, $"only {rows.Count} Float: true catalog rows found — the §15.4.1 float family shrank unexpectedly; check the regex before lowering this.");
+        Assert.True(rows.Count >= 18, $"only {rows.Count} Float: true catalog rows found — the §2023:15.4.1 float family shrank unexpectedly; check the regex before lowering this.");
         var missing = rows.Where(n => !Fixtures.ContainsKey(n)).ToList();
         var stale = Fixtures.Keys.Where(n => !rows.Contains(n, StringComparer.OrdinalIgnoreCase)).ToList();
         Assert.True(missing.Count == 0,
-            "a new §15.4.1 float-family function has no container fixture — add one (a legal, domain-valid "
+            "a new §2023:15.4.1 float-family function has no container fixture — add one (a legal, domain-valid "
             + "reference) so its standard-mode returned value is proved to be SDIDI-carried:\n  " + string.Join("\n  ", missing));
         Assert.True(stale.Count == 0,
             "a fixture names a function the catalog no longer marks Float: true — remove it or fix the row:\n  "
@@ -117,12 +117,12 @@ public sealed class StandardModeReturnedValueContainerDriftTests : WiseOwlCobolT
             // MOVE-source channel, and the arithmetic-receiver channel (which was already correct and is the
             // control). None of them may carry the returned value as a binary64.
             if (generated.Contains("CobolFloat.Display(", StringComparison.Ordinal))
-                offenders.Add($"{name}: the item-92 text channel renders the returned value through CobolFloat.Display — a binary64, not the SDIDI §15.4.1 requires");
+                offenders.Add($"{name}: the item-92 text channel renders the returned value through CobolFloat.Display — a binary64, not the SDIDI §2023:15.4.1 requires");
             if (generated.Contains("CobolFloat.ToScaled", StringComparison.Ordinal))
-                offenders.Add($"{name}: the MOVE-source channel lands the returned value through CobolFloat.ToScaled — a binary64, not the SDIDI §15.4.1 requires");
+                offenders.Add($"{name}: the MOVE-source channel lands the returned value through CobolFloat.ToScaled — a binary64, not the SDIDI §2023:15.4.1 requires");
         }
         Assert.True(offenders.Count == 0,
-            "ISO §15.4.1 — under ARITHMETIC IS STANDARD-DECIMAL the returned value of a numeric function is "
+            "ISO §2023:15.4.1 — under ARITHMETIC IS STANDARD-DECIMAL the returned value of a numeric function is "
             + "contained in a temporary standard data item in the intermediate form of the mode in effect, in "
             + "EVERY reference context. These render it as a raw binary64 instead (kb/Work PB253: the arithmetic "
             + "mode must be tested BEFORE the receiver shape):\n  " + string.Join("\n  ", offenders));

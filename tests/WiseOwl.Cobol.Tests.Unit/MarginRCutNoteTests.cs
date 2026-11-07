@@ -9,13 +9,13 @@ using CnFrontend = WiseOwl.Cobol.Frontend.Frontend;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ A SYNTAX ERROR BESIDE A MARGIN-R CUT NAMES THE CUT (kb/Work PB2555; ISO §6.3.1 "Margin R is immediately to the right of
+/// ⛔ A SYNTAX ERROR BESIDE A MARGIN-R CUT NAMES THE CUT (kb/Work PB2555; ISO §2023:6.3.1 "Margin R is immediately to the right of
 /// the rightmost character position of the program-text area. The rightmost character position of the program-text area is
 /// a fixed position defined by the implementor", Annex A.1 item 158: position 72 here). Text past margin R is not program
 /// text, so the reference format drops it, and a statement that ran past the margin then ends early: the parse fails at the
 /// NEXT token, or at a word the margin cut in two, and nothing pointed at the truncation. COBOL5788 is that pointer. It is a
 /// warning reported BESIDE the error, only where the cut may have been program text: a file's identification tags and a
-/// numeric sequence area are the ordinary use of positions 73–80, an inline comment (§6.3.7.3: "All characters following the
+/// numeric sequence area are the ordinary use of positions 73–80, an inline comment (§2023:6.3.7.3: "All characters following the
 /// floating comment indicator up to margin R are comment-text") and a comment line run on past the margin by definition.
 /// Every position below is COMPUTED from the layout the test writes (position 72 is the last the program-text area holds),
 /// never read off a run.
@@ -82,7 +82,7 @@ public sealed class MarginRCutNoteTests : IDisposable
         AssertStopRunIsTheErrorAfterTheCut(diagnostics);
     }
 
-    /// <summary>kb/Work PB4573, review r2 R2-1 (ISO §7.3.10.4 GR2): the cut note quotes the word the SOURCE wrote. After
+    /// <summary>kb/Work PB4573, review r2 R2-1 (ISO §2023:7.3.10.4 GR2): the cut note quotes the word the SOURCE wrote. After
     /// <c>EQUATE "SECTION" WITH "SECT"</c> the token the margin cut in two is spelled SECTION by the retype, and the note
     /// beside the syntax error said "the word SECTION ends at position 72" where the source holds SECT there.</summary>
     [Fact]
@@ -183,7 +183,7 @@ public sealed class MarginRCutNoteTests : IDisposable
         AssertStopRunIsTheErrorAfterTheCut(diagnostics);
     }
 
-    [Fact] // §6.3.7.3: what follows margin R of a line that ends in an inline comment is the rest of the comment
+    [Fact] // §2023:6.3.7.3: what follows margin R of a line that ends in an inline comment is the rest of the comment
     public void ACommentThatRunsPastMarginR_IsNotACut()
     {
         string comment = "           CALL \"SUBPROG\" USING WS-MSG BY".PadRight(60) + " *> a comment that runs well past margin R of this line";
@@ -193,7 +193,7 @@ public sealed class MarginRCutNoteTests : IDisposable
         AssertStopRunIsTheErrorAfterTheCut(diagnostics);
     }
 
-    [Fact] // §6.3.7.2: a comment line's text runs "up to margin R", and a comment line is not program text
+    [Fact] // §2023:6.3.7.2: a comment line's text runs "up to margin R", and a comment line is not program text
     public void ACommentLinePastMarginR_IsNotACut()
     {
         string commentLine = "      * a comment line whose text runs on and on and on and on past margin R of the line";
@@ -248,7 +248,7 @@ public sealed class MarginRCutNoteTests : IDisposable
     /// <summary>A DISPLAY with program text AND a cut (<c>UPON CONSOLE</c> from position 73): the line holds a statement.</summary>
     private static readonly string TextAndCut = "           DISPLAY \"TRACE\" WS-MSG".PadRight(72) + "UPON CONSOLE";
 
-    [Fact] // PB4372 (review R1-1): ISO §7.3.16.4 3): a false >>IF branch is omitted, so its tokenless line is no cut's effect
+    [Fact] // PB4372 (review R1-1): ISO §2023:7.3.16.4 3): a false >>IF branch is omitted, so its tokenless line is no cut's effect
     public void ALineOfAnOmittedConditionalBranch_IsNotAskedAbout()
     {
         var diagnostics = Compile(Program([.. Head, "           CALL \"SUBPROG\" USING WS-MSG BY", "       >>IF TRACING IS DEFINED", TextAndCut,
@@ -281,7 +281,7 @@ public sealed class MarginRCutNoteTests : IDisposable
     /// <summary>The call the parse fails to finish at <c>STOP</c> when the line after it vanishes.</summary>
     private const string OpenCall = "           CALL \"SUBPROG\" USING WS-MSG BY";
 
-    [Fact] // PB4412: ISO §7.3.16.4 3): the lines of a false >>IF branch are omitted, so a line with text ONLY past margin R there is never read
+    [Fact] // PB4412: ISO §2023:7.3.16.4 3): the lines of a false >>IF branch are omitted, so a line with text ONLY past margin R there is never read
     public void ALineWithTextOnlyPastMarginR_InAnOmittedIfBranch_IsNotAskedAbout()
     {
         var diagnostics = Compile(Program([.. Head, OpenCall, "       >>IF TRACING IS DEFINED", OnlyPastMarginR,
@@ -302,7 +302,7 @@ public sealed class MarginRCutNoteTests : IDisposable
         Assert.Contains("main.cob(13,12) may be this", note);
     }
 
-    [Fact] // PB4412: ISO §7.3.16.4 GR 2: a TRUE IF omits its ELSE phrase's lines
+    [Fact] // PB4412: ISO §2023:7.3.16.4 GR 2: a TRUE IF omits its ELSE phrase's lines
     public void ALineWithTextOnlyPastMarginR_InAnOmittedElseBranch_IsNotAskedAbout()
     {
         var diagnostics = Compile(Program([.. Head, OpenCall, "       >>IF TRACING IS NOT DEFINED", "           CONTINUE",
@@ -322,7 +322,7 @@ public sealed class MarginRCutNoteTests : IDisposable
         Assert.Contains("main.cob(15,12) may be this", note);
     }
 
-    [Fact] // PB4412: ISO §7.3.13.4 5) (no WHEN true, Format 2 as GR 9): the WHEN phrases that do not match are omitted like the branch of a false IF
+    [Fact] // PB4412: ISO §2023:7.3.13.4 5) (no WHEN true, Format 2 as GR 9): the WHEN phrases that do not match are omitted like the branch of a false IF
     public void ALineWithTextOnlyPastMarginR_InAnUnmatchedWhenPhrase_IsNotAskedAbout()
     {
         var diagnostics = Compile(Program([.. Head, OpenCall, "       >>EVALUATE TRUE", "       >>WHEN TRACING IS DEFINED",
@@ -338,7 +338,7 @@ public sealed class MarginRCutNoteTests : IDisposable
         "       >>END-EVALUATE", "           STOP RUN.",
     ];
 
-    [Fact] // PB4412 review R1-1: ISO §6.5 2): a blank debugging line is a blank line, so it is no text before the first >>WHEN (§7.3.13.2)
+    [Fact] // PB4412 review R1-1: ISO §2023:6.5 2): a blank debugging line is a blank line, so it is no text before the first >>WHEN (§2023:7.3.13.2)
     public void ABlankDebuggingLine_BetweenEvaluateAndItsFirstWhen_IsNoText()
     {
         foreach (string blank in new[] { "      D", "      D      " })
@@ -382,7 +382,7 @@ public sealed class MarginRCutNoteTests : IDisposable
         Assert.Contains("main.cob(14,12) may be this", note);
     }
 
-    [Fact] // PB4412: the debugging mode is the UNIT's (ISO §12.3.5.4 GR1): a mode in another program leaves this one's line a comment
+    [Fact] // PB4412: the debugging mode is the UNIT's (ISO §2023:12.3.5.4 GR1): a mode in another program leaves this one's line a comment
     public void ADebuggingLineWithTextOnlyPastMarginR_InAUnitWithoutTheMode_IsNotAskedAbout()
     {
         var diagnostics = Compile(Program([.. DebuggingModeHead, "           STOP RUN.", "       END PROGRAM MARGINR.",
@@ -414,7 +414,7 @@ public sealed class MarginRCutNoteTests : IDisposable
         Assert.Contains("main.cob(12,12) may be this", note);
     }
 
-    [Fact] // PB4412: carrying a blank debugging line to the rewriter changes nothing else: it still reads as a blank line (§6.5 2)
+    [Fact] // PB4412: carrying a blank debugging line to the rewriter changes nothing else: it still reads as a blank line (§2023:6.5 2)
     public void ABlankDebuggingLine_BetweenTheLinesOfALiteral_StillContinuesIt()
     {
         string[] lines =
@@ -473,7 +473,7 @@ public sealed class MarginRCutNoteTests : IDisposable
         Assert.Contains("'CONTENT WS-REPLY' (positions 73 to 88)", note);
     }
 
-    [Fact] // free form is not column-bounded (§6.4): nothing is cut
+    [Fact] // free form is not column-bounded (§2023:6.4): nothing is cut
     public void FreeForm_HasNoMarginR()
     {
         var diagnostics = Compile(Program([.. Head, CutBetweenWords, "           STOP RUN."]), InitialReferenceFormat.Free);

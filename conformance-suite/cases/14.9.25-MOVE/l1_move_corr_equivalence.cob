@@ -5,18 +5,18 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.25.3 SR11 MOVE statement (FORMAT 2) — "The words CORR and CORRESPONDING are
+      *> ISO §2023:14.9.25.3 SR11 MOVE statement (FORMAT 2) — "The words CORR and CORRESPONDING are
       *> equivalent."
       *>   python scripts/spec/cite.py --check 14.9.25.3 "The words CORR and CORRESPONDING are
-      *>   equivalent."  ->  OK  §14.9.25.3 11)  (Syntax rules)
+      *>   equivalent."  ->  OK  §2023:14.9.25.3 11)  (Syntax rules)
       *>
       *> DERIVATION. SR11 makes the two words ONE word, so a Format-2 MOVE written with CORR and the
-      *> same statement written with CORRESPONDING have the same meaning and §14.9.25.4 GR11 applies
+      *> same statement written with CORRESPONDING have the same meaning and §2023:14.9.25.4 GR11 applies
       *> to both identically:
       *>   python scripts/spec/cite.py --check 14.9.25.4 "The results are the same as if the user
       *>   had referred to each pair of corresponding identifiers in separate MOVE statements"
-      *>   ->  OK  §14.9.25.4 11)  (General rules)
-      *> The pairs themselves come from §14.7.6, CORRESPONDING phrase: a pair corresponds when the
+      *>   ->  OK  §2023:14.9.25.4 11)  (General rules)
+      *> The pairs themselves come from §2023:14.7.6, CORRESPONDING phrase: a pair corresponds when the
       *> two items "have the same data-name and the same qualifiers, if any, up to, but not
       *> including, D1 and D2" (rule 1), at least one is elementary and the resulting move is valid
       *> (rule 2), and neither carries OCCURS / REDEFINES / RENAMES (rule 4). So:
@@ -30,9 +30,9 @@
       *> A single receiver written twice would prove nothing — the second MOVE would find the work
       *> of the first already done and agree for free.
       *>
-      *> EXPECTED OUTPUT, line by line, derived from GR11 + §14.7.6 (each pair is a separate
+      *> EXPECTED OUTPUT, line by line, derived from GR11 + §2023:14.7.6 (each pair is a separate
       *> elementary MOVE) and never from what the compiler emits:
-      *>   line 1/2  F-A: alphanumeric to alphanumeric, §14.9.25.4 GR6a — equal sizes (3), so the
+      *>   line 1/2  F-A: alphanumeric to alphanumeric, §2023:14.9.25.4 GR6a — equal sizes (3), so the
       *>             content transfers unchanged: XYZ. F-B: numeric to numeric, GR6d — the value 123
       *>             aligned by decimal point into PIC 9(3): 123. F-D: untouched, so still ??.
       *>             The two lines are therefore CHARACTER-IDENTICAL, which is SR11's whole content.

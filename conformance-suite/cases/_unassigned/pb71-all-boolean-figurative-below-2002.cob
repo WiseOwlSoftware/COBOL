@@ -4,8 +4,8 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> The figurative ALL B"…" carries a boolean literal-1 (ISO §8.3.3.6.3 SR2), a COBOL-2002 introduction
-      *> (§8.3.3.4) - below 2002 it is the introduction diagnostic. kb/Work PB71: it compiled clean at --std 85
+      *> The figurative ALL B"…" carries a boolean literal-1 (ISO §2023:8.3.3.6.3 SR2), a COBOL-2002 introduction
+      *> (§2023:8.3.3.4) - below 2002 it is the introduction diagnostic. kb/Work PB71: it compiled clean at --std 85
       *> (the tokens under figurativeConstant were not visited by the version pass) and died at run time.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB71NBOOL85.

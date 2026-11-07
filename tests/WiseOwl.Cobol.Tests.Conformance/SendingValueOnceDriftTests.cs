@@ -9,16 +9,16 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// <summary>
 /// ⛔ ONE SENDER, MANY RECEIVERS, ONE EVALUATION — the drift net under kb/Work PB394's mechanism.
 ///
-/// <para>ISO §14.9.25.4 GR1 (MOVE) makes the sending value an intermediate result item evaluated "only once,
-/// immediately before data is moved to the first of the receiving operands"; §14.9.13.4 GR3 (EVALUATE) assigns
-/// each selection subject its value "at the beginning of the execution of the EVALUATE statement"; §14.7.7 GR4
-/// gives the arithmetic family its ONE initial evaluation; §14.9.39.4 GR12/GR14/GR16/GR18 store one identified
+/// <para>ISO §2023:14.9.25.4 GR1 (MOVE) makes the sending value an intermediate result item evaluated "only once,
+/// immediately before data is moved to the first of the receiving operands"; §2023:14.9.13.4 GR3 (EVALUATE) assigns
+/// each selection subject its value "at the beginning of the execution of the EVALUATE statement"; §2023:14.7.7 GR4
+/// gives the arithmetic family its ONE initial evaluation; §2023:14.9.39.4 GR12/GR14/GR16/GR18 store one identified
 /// address into each SET receiver "in the order specified". Five clauses, one shape — and before PB394, MOVE and
 /// EVALUATE were the two that did not implement it, each re-running the source EXPRESSION at every use.</para>
 ///
 /// <para>A value-varying sender is what MEASURES the cardinality, and <c>FUNCTION RANDOM</c> is the one the
-/// standard makes reproducible: §15.75.3 r3 — "If a subsequent reference specifies argument-1, a new sequence of
-/// pseudo-random numbers is started" — and §15.75.4 r2 — "For a given seed value on a given implementation, the
+/// standard makes reproducible: §2023:15.75.3 r3 — "If a subsequent reference specifies argument-1, a new sequence of
+/// pseudo-random numbers is started" — and §2023:15.75.4 r2 — "For a given seed value on a given implementation, the
 /// sequence of pseudo-random numbers will always be the same". So every assertion below compares a RE-SEEDED run
 /// against a control and never against a particular pseudo-random value: the tests pin the RULE, not this
 /// implementation's sequence.</para>
@@ -26,20 +26,20 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 public sealed class SendingValueOnceDriftTests
 {
     /// <summary>Every verb that takes ONE sending operand and MORE THAN ONE receiving operand, written so that
-    /// re-evaluating the sender gives the receivers different values. §15.75.4 r1 puts every RANDOM value in
+    /// re-evaluating the sender gives the receivers different values. §2023:15.75.4 r1 puts every RANDOM value in
     /// [0, 1), so two receivers of one evaluation are equal and two evaluations are (with probability 1 for this
     /// generator) not.</summary>
     [Theory]
-    // MOVE (§14.9.25.4 GR1) — the half PB394 measured wrong: MoveEmitter re-rendered BoundMove.Source in its
+    // MOVE (§2023:14.9.25.4 GR1) — the half PB394 measured wrong: MoveEmitter re-rendered BoundMove.Source in its
     // per-target loop, so the second receiver took a second RANDOM value.
     [InlineData("SVO01", "MOVE FUNCTION RANDOM TO W-A, W-B")]
-    // ADD … GIVING / SUBTRACT … GIVING / MULTIPLY … GIVING (§14.7.7 GR4 + NOTE 3 — the one initial evaluation).
+    // ADD … GIVING / SUBTRACT … GIVING / MULTIPLY … GIVING (§2023:14.7.7 GR4 + NOTE 3 — the one initial evaluation).
     [InlineData("SVO02", "ADD FUNCTION RANDOM 0 GIVING W-A, W-B")]
     [InlineData("SVO03", "SUBTRACT 0 FROM FUNCTION RANDOM GIVING W-A, W-B")]
     [InlineData("SVO04", "MULTIPLY FUNCTION RANDOM BY 1 GIVING W-A, W-B")]
-    // COMPUTE (§14.7.7 GR4) — the arm that already carried the rule, kept here so the family is measured as one.
+    // COMPUTE (§2023:14.7.7 GR4) — the arm that already carried the rule, kept here so the family is measured as one.
     [InlineData("SVO05", "COMPUTE W-A, W-B = FUNCTION RANDOM")]
-    // DIVIDE … GIVING (§14.9.12.4 GR5 → §14.7.7 GR4).
+    // DIVIDE … GIVING (§2023:14.9.12.4 GR5 → §2023:14.7.7 GR4).
     [InlineData("SVO06", "DIVIDE FUNCTION RANDOM BY 1 GIVING W-A, W-B")]
     public void OneSenderManyReceivers_EveryReceiverTakesTheSameValue(string pid, string stmt)
     {
@@ -67,7 +67,7 @@ public sealed class SendingValueOnceDriftTests
         Assert.Equal("ONCE", stdout.Replace("\r\n", "\n").TrimEnd('\n'));
     }
 
-    /// <summary>§14.9.13.4 GR3 over the EVALUATE lowering, at every edition — the subject must be evaluated
+    /// <summary>§2023:14.9.13.4 GR3 over the EVALUATE lowering, at every edition — the subject must be evaluated
     /// EXACTLY once per statement however many WHEN phrases read it, and a THRU object (GR4 a) 5.: "selection-
     /// subject &gt;= left-part AND selection-subject &lt;= right-part") reads the ONE value twice rather than
     /// evaluating the subject twice. Measured by consumption: the control drives the identical WHEN phrases from
@@ -132,29 +132,29 @@ public sealed class SendingValueOnceDriftTests
     }
 
     /// <summary>⛔ THE INTERMEDIATE MUST HOLD THE SENDER'S LENGTH, NOT A PADDED APPROXIMATION OF IT.
-    /// §14.9.25.4 GR1's equivalence is a RESULT equivalence, so the one-receiver and many-receiver forms of the
-    /// same MOVE have to agree — and a JUSTIFIED receiver is what MEASURES that, because §13.18.32.4 GR1 aligns
+    /// §2023:14.9.25.4 GR1's equivalence is a RESULT equivalence, so the one-receiver and many-receiver forms of the
+    /// same MOVE have to agree — and a JUSTIFIED receiver is what MEASURES that, because §2023:13.18.32.4 GR1 aligns
     /// the sending data at the rightmost character position and space-fills on the LEFT, which makes the sender's
     /// length observable where a left-justified receiver hides it. The sender that can get it wrong is one whose
-    /// length is decided at run time: §15.4's temporary for a character-category function is carried by a
+    /// length is decided at run time: §2023:15.4's temporary for a character-category function is carried by a
     /// dynamic-length item, "treated as a fixed-length data item whose length is the dynamic-length elementary
-    /// item's current length" (§8.5.1.10.4). <c>FUNCTION TRIM</c> is the shortest sender with that property.
+    /// item's current length" (§2023:8.5.1.10.4). <c>FUNCTION TRIM</c> is the shortest sender with that property.
     /// <para>This test is the net under the residue named on GR-14.9.25.4-1: an earlier revision of kb/Work
     /// PB394 froze an OCCURS DEPENDING group sender at its MAXIMUM extent, and a JUSTIFIED receiver is exactly
     /// where that showed up.</para></summary>
-    /// <summary>kb/Work PB1007 — §14.9.25.4 GR1's equivalence is only an equivalence if the intermediate MOVES AS the
+    /// <summary>kb/Work PB1007 — §2023:14.9.25.4 GR1's equivalence is only an equivalence if the intermediate MOVES AS the
     /// sender: `MOVE a TO temp / MOVE temp TO b` must store what `MOVE a TO b` stores, for EVERY receiver category.
-    /// The §15.4 temporary of an INTEGER function held the value exactly but moved as its 30-digit implementor
+    /// The §2023:15.4 temporary of an INTEGER function held the value exactly but moved as its 30-digit implementor
     /// description, so each character receiver of a two-receiver MOVE took leading zeros where the one-receiver MOVE
     /// took the function's literal form (DOC-A.1-92): `MOVE FUNCTION INTEGER(N) TO A B` stored 0000. This compares
     /// the hoisted store with the single-receiver control per function and per receiver category, so a new receiver
     /// category or a new temporary description inherits the check rather than the defect.</summary>
     [Theory]
-    [InlineData("SVF01", "FUNCTION INTEGER(W-N)")]            // §15.44 — 3
-    [InlineData("SVF02", "FUNCTION INTEGER-PART(-12.5)")]     // §15.49 — a negative integer: GR6 a) drops the sign
-    [InlineData("SVF03", "FUNCTION ORD(\"A\")")]               // §15.70 — an integer from a character argument
-    [InlineData("SVF04", "FUNCTION MOD(-7 3)")]               // §15.64 — 2
-    [InlineData("SVF05", "FUNCTION MAX(3 7)")]                // §15.59 — integer when every argument is (§15.2 item 5)
+    [InlineData("SVF01", "FUNCTION INTEGER(W-N)")]            // §2023:15.44 — 3
+    [InlineData("SVF02", "FUNCTION INTEGER-PART(-12.5)")]     // §2023:15.49 — a negative integer: GR6 a) drops the sign
+    [InlineData("SVF03", "FUNCTION ORD(\"A\")")]               // §2023:15.70 — an integer from a character argument
+    [InlineData("SVF04", "FUNCTION MOD(-7 3)")]               // §2023:15.64 — 2
+    [InlineData("SVF05", "FUNCTION MAX(3 7)")]                // §2023:15.59 — integer when every argument is (§2023:15.2 item 5)
     public void MaterializedIntegerFunction_MovesAsTheFunctionDoes(string pid, string fn)
     {
         string src = $"""
@@ -197,7 +197,7 @@ public sealed class SendingValueOnceDriftTests
         Assert.Equal("SAME", stdout.Replace("\r\n", "\n").TrimEnd('\n'));
     }
 
-    /// <summary>kb/Work PB1007 — the SAME §15.4 temporary crosses an INVOKE: §14.8.2.3.3 2) d) makes a BY CONTENT
+    /// <summary>kb/Work PB1007 — the SAME §2023:15.4 temporary crosses an INVOKE: §2023:14.8.2.3.3 2) d) makes a BY CONTENT
     /// argument for a non-numeric formal conform "as for a MOVE statement", and the argument's value reaches the
     /// formal through the materialized temporary. So the formal must hold what `MOVE FUNCTION f TO x` stores into an
     /// item of the formal's description — per formal category. The INVOKE used to refuse every numeric-typed function
@@ -283,10 +283,10 @@ public sealed class SendingValueOnceDriftTests
     }
 
     /// <summary>⛔ THE INTERMEDIATE MUST BE ABLE TO HOLD WHAT IT IS THERE TO PRESERVE, IN EVERY ALPHABET
-    /// (kb/Work PB886). §14.9.25.4 GR1's equivalence is a RESULT equivalence — <c>MOVE a (b) TO temp / MOVE temp
+    /// (kb/Work PB886). §2023:14.9.25.4 GR1's equivalence is a RESULT equivalence — <c>MOVE a (b) TO temp / MOVE temp
     /// TO b</c> owes what <c>MOVE a (b) TO b</c> owes — so the one-receiver form (no intermediate) and the
     /// two-receiver form (an intermediate) must agree for EVERY usage a reference-modified sender can have. The
-    /// capacity is counted in §8.4.3.3.4 GR5 a)'s positions ("If the usage of identifier-1 is bit, positions used
+    /// capacity is counted in §2023:8.4.3.3.4 GR5 a)'s positions ("If the usage of identifier-1 is bit, positions used
     /// in evaluation are bit positions; otherwise … character positions"), which is what
     /// <c>RefModPlace.PositionCount</c> answers; sizing it by the item's CHARACTER OCCUPANCY instead truncated a
     /// boolean slice to one position (<c>MOVE BE(1:4) TO B1 B2</c> gave <c>1000</c>) and a dynamic-length slice
@@ -298,11 +298,11 @@ public sealed class SendingValueOnceDriftTests
     // usage NATIONAL — GR1's "national position"; one UTF-16 code unit each, never the two bytes each occupies.
     [InlineData("SVOP02", 2002, "01 W-S PIC N(6) USAGE NATIONAL VALUE N\"ABCDEF\".",
                 "01 W-R1 PIC N(4) USAGE NATIONAL.", "01 W-R2 PIC N(4) USAGE NATIONAL.", "W-S(1:4)")]
-    // usage BIT — GR5 a)'s BIT-position arm. Eight boolean positions occupy ONE character (§8.5.1.6.3).
+    // usage BIT — GR5 a)'s BIT-position arm. Eight boolean positions occupy ONE character (§2023:8.5.1.6.3).
     [InlineData("SVOP03", 2002, "01 W-S PIC 1(8) USAGE BIT VALUE B\"10110011\".",
                 "01 W-R1 PIC 1(4) USAGE BIT.", "01 W-R2 PIC 1(4) USAGE BIT.", "W-S(1:4)")]
-    // DYNAMIC LENGTH (§8.5.1.10) — no static character occupancy at all; §8.5.1.10.4 makes the slice's positions
-    // the item's CURRENT length, bounded by the §13.18.19.4 GR2 LIMIT.
+    // DYNAMIC LENGTH (§2023:8.5.1.10) — no static character occupancy at all; §2023:8.5.1.10.4 makes the slice's positions
+    // the item's CURRENT length, bounded by the §2023:13.18.19.4 GR2 LIMIT.
     [InlineData("SVOP04", 2014, "01 W-S PIC X DYNAMIC LENGTH LIMIT 20.", "01 W-R1 PIC X(4).", "01 W-R2 PIC X(4).",
                 "W-S(1:4)")]
     public void RefModIntermediate_HoldsEveryPositionOfTheSlice(
@@ -335,12 +335,12 @@ public sealed class SendingValueOnceDriftTests
         Assert.Equal("SAME", stdout.Replace("\r\n", "\n").TrimEnd('\n'));
     }
 
-    /// <summary>⛔ §14.9.25.4 GR1's OTHER "only once" — the LENGTH: "The length of the data item referenced by
+    /// <summary>⛔ §2023:14.9.25.4 GR1's OTHER "only once" — the LENGTH: "The length of the data item referenced by
     /// identifier-1 is evaluated only once, immediately before the data is moved to the first of the receiving
     /// operands", and "the evaluation of the length of identifier-1 or identifier-2 may be affected by the
     /// DEPENDING ON phrase of the OCCURS clause". The DISCRIMINATING shape is the one where data-name-1 is
     /// itself a receiving operand, because only then does the extent CHANGE between the two stores: with N = 3
-    /// the sender is §13.18.38.4 GR8 a)'s three positions "125", the first store leaves N = 1 (a group sender
+    /// the sender is §2023:13.18.38.4 GR8 a)'s three positions "125", the first store leaves N = 1 (a group sender
     /// makes this GR4's alphanumeric-to-alphanumeric move into a one-character receiving area), and the second
     /// store still owes three positions. Re-reading the length gives "1" (kb/Work PB394's residue).</summary>
     [Fact]
@@ -373,7 +373,7 @@ public sealed class SendingValueOnceDriftTests
     }
 
     /// <summary>⛔ THE LEAF SET <c>SendingValueTemp.Model</c> ANSWERS FOR. Its switch names every
-    /// <see cref="BoundOperand"/> leaf and decides, per leaf, whether the §14.9.25.4 GR1 intermediate result item
+    /// <see cref="BoundOperand"/> leaf and decides, per leaf, whether the §2023:14.9.25.4 GR1 intermediate result item
     /// exists and what its description is — so a leaf added later must be a DECISION, not a fall-through. C#
     /// cannot prove a public abstract record's leaf set closed, so the switch carries a throwing arm and this
     /// test carries the roster: adding a <see cref="BoundOperand"/> fails here, in the test that names the rule,
@@ -384,15 +384,15 @@ public sealed class SendingValueOnceDriftTests
         string[] expected =
         [
             nameof(BoundAddressOperand),    // no intermediate — a pointer value created at the reference (PB1021)
-            nameof(BoundAllLiteral),        // no intermediate — §8.3.3.6.4 GR2 sizes it from the RECEIVER
-            nameof(BoundBoolOperand),       // no intermediate — the §8.8.2 boolean-expression channel
-            nameof(BoundComputedOperand),   // §15.4's temporary elementary data item
+            nameof(BoundAllLiteral),        // no intermediate — §2023:8.3.3.6.4 GR2 sizes it from the RECEIVER
+            nameof(BoundBoolOperand),       // no intermediate — the §2023:8.8.2 boolean-expression channel
+            nameof(BoundComputedOperand),   // §2023:15.4's temporary elementary data item
             nameof(BoundCurrentRecord),     // the record area's description, cloned
-            nameof(BoundFieldOperand),      // the item's description, cloned (§8.4.3.3.4 GR6 when ref-modified)
+            nameof(BoundFieldOperand),      // the item's description, cloned (§2023:8.4.3.3.4 GR6 when ref-modified)
             nameof(BoundFigurative),        // no intermediate — receiver-sized, and GR1's antecedent excludes it
             nameof(BoundNumericLiteral),    // no intermediate — a literal's value cannot change
             nameof(BoundOperandError),      // no intermediate — already diagnosed
-            nameof(BoundPredefinedNull),    // no intermediate — §8.4.3.10.1 a predefined address, no storage (PB1427)
+            nameof(BoundPredefinedNull),    // no intermediate — §2023:8.4.3.10.1 a predefined address, no storage (PB1427)
             nameof(BoundStringLiteral),     // no intermediate — a literal's value cannot change
         ];
         var actual = typeof(BoundOperand).Assembly.GetTypes()

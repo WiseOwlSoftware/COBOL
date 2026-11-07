@@ -8,10 +8,10 @@
       *> pb1652_group_indicate_suppressed_generate accepts from 2002; below it the relative COLUMN clause
       *> and the PRESENT WHEN clause that GR1 equates GROUP INDICATE with are refused (COBOL0900, the
       *> version-matrix introduction gate), so this program, which carries both, is refused at 85.
-      *> ISO/IEC 1989:2023 §13.18.28.4 GR1: "The GROUP INDICATE clause has the same effect as a PRESENT
+      *> ISO/IEC 1989:2023 §2023:13.18.28.4 GR1: "The GROUP INDICATE clause has the same effect as a PRESENT
       *> WHEN clause".
       *>   cite.py --check 13.18.28.4 "The GROUP INDICATE clause has the same effect as a PRESENT WHEN
-      *>     clause"  -> OK  §13.18.28.4 1)  (General rule)
+      *>     clause"  -> OK  §2023:13.18.28.4 1)  (General rule)
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1652BL.
        ENVIRONMENT DIVISION.

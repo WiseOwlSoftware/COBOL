@@ -5,12 +5,12 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// The COBOL-2002 BOOLEAN OPERATORS B-AND / B-OR / B-XOR / B-NOT (Phase-4 track (a) increment 2; ISO §8.7.2 /
-/// §8.8.2 boolean expressions, §14.9.8 Format-2 COMPUTE, §8.8.4.2.2 the boolean relation, §8.8.4.3 the simple
+/// The COBOL-2002 BOOLEAN OPERATORS B-AND / B-OR / B-XOR / B-NOT (Phase-4 track (a) increment 2; ISO §2023:8.7.2 /
+/// §2023:8.8.2 boolean expressions, §2023:14.9.8 Format-2 COMPUTE, §2023:8.8.4.2.2 the boolean relation, §2023:8.8.4.3 the simple
 /// boolean condition). End-to-end facts over the ISO Annex A Table A.2 oracle
 /// (<c>1100 B-AND 0101 = 0100</c> / <c>B-OR = 1101</c> / <c>B-XOR = 1001</c> / <c>B-NOT 1100 = 0011</c>) plus the
 /// constraint band (COBOL1511) and the edition gates. Covers COMPUTE Format 2, the boolean relation
-/// (§8.8.4.2.2, equality-only), and the simple boolean condition (§8.8.4.3) — including the UNPARENTHESIZED
+/// (§2023:8.8.4.2.2, equality-only), and the simple boolean condition (§2023:8.8.4.3) — including the UNPARENTHESIZED
 /// forms, admitted by the <c>boolExprAhead()</c> predicate that leaves <c>comparisonExpression</c> untouched.
 /// (Runtime bit logic is unit-tested in <c>CobolBoolTests</c>.)
 /// </summary>
@@ -55,7 +55,7 @@ public sealed class BooleanOperatorTests
     [InlineData("IF (F B-AND G) DISPLAY \"Y\" ELSE DISPLAY \"N\".", "N")]       // parenthesized
     public void SimpleBooleanCondition_EvaluatesCorrectly(string proc, string expected)
     {
-        // A boolean expression used directly as a condition (§8.8.4.3.4 GR1 — true iff the value is 1), gated
+        // A boolean expression used directly as a condition (§2023:8.8.4.3.4 GR1 — true iff the value is 1), gated
         // by the boolExprAhead() predicate so a normal comparison is unaffected (comparisonExpression untouched).
         var (ok, stdout, detail) = new WiseOwlCobolCompiler(2002).CompileAndRun(Prog("BOP02", proc));
         Assert.True(ok, detail);
@@ -118,23 +118,23 @@ public sealed class BooleanOperatorTests
     [Theory]
     [InlineData("COMPUTE R ROUNDED = A B-AND B.")]                       // SR: no ROUNDED on F2
     [InlineData("COMPUTE R = A ON SIZE ERROR DISPLAY \"E\".")]           // a sole boolean identifier: parsed as F1, re-routed to F2 by operand class
-    [InlineData("COMPUTE R = ZERO ON SIZE ERROR DISPLAY \"E\".")]        // a sole figurative ZERO: either format (§8.8.1.1), owns the phrase (PB3830 R2-1), F2 by the boolean receiver
+    [InlineData("COMPUTE R = ZERO ON SIZE ERROR DISPLAY \"E\".")]        // a sole figurative ZERO: either format (§2023:8.8.1.1), owns the phrase (PB3830 R2-1), F2 by the boolean receiver
     public void BooleanCompute_RoundedOrSizeError_Rejected1511(string proc)
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Prog("BOP04", proc), 2002);
-        Assert.False(ok, "ROUNDED / ON SIZE ERROR is invalid on a boolean COMPUTE (ISO §14.9.8 Format 2)");
+        Assert.False(ok, "ROUNDED / ON SIZE ERROR is invalid on a boolean COMPUTE (ISO §2023:14.9.8 Format 2)");
         EditionHarness.AssertHasDiagnostic(errors, "COBOL1511");
     }
 
-    /// <summary>A right side that PARSES as a boolean-expression (a B-operator) is §14.9.8.2 Format 2, which prints no
-    /// SIZE ERROR phrase, so the phrase may not be syntactically associated with the COMPUTE at all (ISO §14.5.3.3;
+    /// <summary>A right side that PARSES as a boolean-expression (a B-operator) is §2023:14.9.8.2 Format 2, which prints no
+    /// SIZE ERROR phrase, so the phrase may not be syntactically associated with the COMPUTE at all (ISO §2023:14.5.3.3;
     /// kb/Work PB3830 review R1-1): COBOL2269 at the phrase, never a phrase the binder then refuses.</summary>
     [Fact]
     public void BooleanCompute_BooleanExpression_SizeErrorIsUnowned2269()
     {
         var (ok, errors, _) = EditionHarness.CompileFull(
             Prog("BOP05", "COMPUTE R = A B-AND B ON SIZE ERROR DISPLAY \"E\"."), 2002);
-        Assert.False(ok, "a boolean-compute COMPUTE prints no SIZE ERROR phrase (ISO §14.9.8.2 Format 2)");
+        Assert.False(ok, "a boolean-compute COMPUTE prints no SIZE ERROR phrase (ISO §2023:14.9.8.2 Format 2)");
         EditionHarness.AssertHasDiagnostic(errors, "COBOL2269");
     }
 
@@ -154,7 +154,7 @@ public sealed class BooleanOperatorTests
                 COMPUTE N = A B-AND B.
                 STOP RUN.
             """, 2002);
-        Assert.False(ok, "a boolean COMPUTE receiver shall be an elementary boolean item (ISO §14.9.8 SR2)");
+        Assert.False(ok, "a boolean COMPUTE receiver shall be an elementary boolean item (ISO §2023:14.9.8 SR2)");
         EditionHarness.AssertHasDiagnostic(errors, "COBOL1511");
     }
 
@@ -163,7 +163,7 @@ public sealed class BooleanOperatorTests
     {
         var (ok, errors, _) = EditionHarness.CompileFull(
             Prog("BOP06", "IF (A B-AND B) < B\"1111\" DISPLAY \"X\"."), 2002);
-        Assert.False(ok, "boolean relations admit only [NOT] EQUAL (ISO §8.8.4.2.2 Format 2)");
+        Assert.False(ok, "boolean relations admit only [NOT] EQUAL (ISO §2023:8.8.4.2.2 Format 2)");
         EditionHarness.AssertHasDiagnostic(errors, "COBOL1511");
     }
 
@@ -183,7 +183,7 @@ public sealed class BooleanOperatorTests
                 COMPUTE R = A B-AND N.
                 STOP RUN.
             """, 2002);
-        Assert.False(ok, "a boolean expression admits boolean operands only (ISO §8.8.2)");
+        Assert.False(ok, "a boolean expression admits boolean operands only (ISO §2023:8.8.2)");
         EditionHarness.AssertHasDiagnostic(errors, "COBOL1511");
     }
 

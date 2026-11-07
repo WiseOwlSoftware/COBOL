@@ -11,7 +11,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ ISO §5.5 1)'s NONZERO default is enforced by ONE screen (<c>Validation/IntegerOperandPass</c>, kb/Work PB859)
+/// ⛔ ISO §2023:5.5 1)'s NONZERO default is enforced by ONE screen (<c>Validation/IntegerOperandPass</c>, kb/Work PB859)
 /// over every <c>integerLiteral</c> — "the term 'integer-n' … refers to a fixed-point integer literal that shall be
 /// unsigned and nonzero unless otherwise specified in the associated rules". The screen is automatic; what is NOT
 /// automatic is the EXCEPTION question — does this format's rule otherwise-specify? — and a new grammar rule that
@@ -22,7 +22,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 public sealed class IntegerOperandSlotDriftTests
 {
     /// <summary>Every rule that spells an <c>integer-n</c>: with the bare <c>integerLiteral</c> or with the shared
-    /// <c>integerOperand</c> (a literal OR a constant-name, ISO §13.10.3 SR2 — kb/Work PB1947). The
+    /// <c>integerOperand</c> (a literal OR a constant-name, ISO §2023:13.10.3 SR2 — kb/Work PB1947). The
     /// <c>integerOperand</c> rule is the carrier, never a clause, so it is the one rule left out: its OWNER is what
     /// <see cref="IntegerOperandRules.Slots"/> classifies.</summary>
     private static Type[] RulesThatWriteIntegerLiteral() =>
@@ -43,8 +43,8 @@ public sealed class IntegerOperandSlotDriftTests
             .ToArray();
 
     /// <summary>⛔ EVERY integer-n POSITION OF THE GRAMMAR IS A LITERAL POSITION A CONSTANT-NAME STANDS IN (kb/Work
-    /// PB1947 for the report writer, PB1948 for the rest). ISO §13.10.3 SR2 — "constant-name-1 may be used anywhere that
-    /// a format specifies a literal of the class and category of constant-name-1" — and §5.5 1) calls every
+    /// PB1947 for the report writer, PB1948 for the rest). ISO §2023:13.10.3 SR2 — "constant-name-1 may be used anywhere that
+    /// a format specifies a literal of the class and category of constant-name-1" — and §2023:5.5 1) calls every
     /// <c>integer-n</c> "a fixed-point integer literal", so a clause that prints one writes <c>integerOperand</c>
     /// (a literal or a constant-name), never the bare <c>integerLiteral</c>. The set of rules that still write the bare
     /// one is DERIVED from the generated parser and must equal <see cref="IntegerOperandRules.LiteralOnlySlots"/>,
@@ -61,7 +61,7 @@ public sealed class IntegerOperandSlotDriftTests
             .Select(t => t.Name).ToArray();
         Assert.True(unargued.Length == 0,
             "grammar rule(s) spell a bare integerLiteral — an integer-n position takes `integerOperand` so an integer "
-            + "constant-name stands there (ISO §13.10.3 SR2), or the rule is argued in IntegerOperandRules.LiteralOnlySlots: "
+            + "constant-name stands there (ISO §2023:13.10.3 SR2), or the rule is argued in IntegerOperandRules.LiteralOnlySlots: "
             + string.Join(", ", unargued));
     }
 
@@ -87,7 +87,7 @@ public sealed class IntegerOperandSlotDriftTests
         var missing = derived.Where(t => !IntegerOperandRules.Slots.ContainsKey(t)).Select(t => t.Name).ToArray();
         Assert.True(missing.Length == 0,
             "grammar rule(s) write integerLiteral but are not classified in IntegerOperandRules.Slots — read the "
-            + "format's associated rules for a zero permission (§5.5 1) 'unless otherwise specified') and add a row: "
+            + "format's associated rules for a zero permission (§2023:5.5 1) 'unless otherwise specified') and add a row: "
             + string.Join(", ", missing));
     }
 
@@ -126,7 +126,7 @@ public sealed class IntegerOperandSlotDriftTests
     }
 
     /// <summary>⛔ The ONE binder reader never throws (kb/Work PB1058): a value past the host limit — up to the
-    /// 31-digit literal maximum, §8.3.3.3.2 — reads as the limit, which the pre-bind screen has already reported.
+    /// 31-digit literal maximum, §2023:8.3.3.3.2 — reads as the limit, which the pre-bind screen has already reported.
     /// <c>int.Parse</c> at this position took the compiler down with an unhandled <c>OverflowException</c>.</summary>
     [Theory]
     [InlineData("2147483647", 2147483647)]

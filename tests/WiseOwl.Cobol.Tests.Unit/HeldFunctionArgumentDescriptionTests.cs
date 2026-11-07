@@ -6,17 +6,17 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ AN ARGUMENT THE BINDER HOLDS FOR §8.4.3.2.4 GR2's ORDER KEEPS THE DESCRIPTION THE UNHELD ARGUMENT HAS (kb/Work PB4124).
+/// ⛔ AN ARGUMENT THE BINDER HOLDS FOR §2023:8.4.3.2.4 GR2's ORDER KEEPS THE DESCRIPTION THE UNHELD ARGUMENT HAS (kb/Work PB4124).
 /// GR2 "evaluates the arguments individually in the order specified ... from left to right" and says nothing else, so a later
 /// argument that activates a user-defined function makes the binder hold each earlier argument in a compiler temporary
 /// (<c>ArgumentOrder.Window.Settle</c>), and the call must answer what it answers without the activation. The selecting
-/// functions (MAX, MIN, MEDIAN, ABS, MEAN) return a COPY of an argument's item (§15.59.4, §15.63.4, §15.61.4; docs/CONFORMANCE.md
+/// functions (MAX, MIN, MEDIAN, ABS, MEAN) return a COPY of an argument's item (§2023:15.59.4, §2023:15.63.4, §2023:15.61.4; docs/CONFORMANCE.md
 /// DOC-A.1-92), so what <c>DISPLAY</c>, <c>FUNCTION LENGTH</c> and <c>FUNCTION BYTE-LENGTH</c> show of the result is the
 /// selected argument's description; before the fix the held copy was described by the temporary it was held in (8 digits for
 /// <c>A * B</c>, 38 for a nested function), so <c>LENGTH (MAX (A * B, 3))</c> was 4 and <c>LENGTH (MAX (A * B, UDF (A)))</c> 8.
 /// <para>The assertion is the AGREEMENT of the two forms for every argument shape the description is derived from - an arithmetic
 /// expression, a data item, a literal, a nested selecting function (which keeps the item it copied), DATE-OF-INTEGER (fixed digits),
-/// and the functions described by their value - not a number the standard leaves to the implementor (§15.4.1).</para>
+/// and the functions described by their value - not a number the standard leaves to the implementor (§2023:15.4.1).</para>
 /// </summary>
 public sealed class HeldFunctionArgumentDescriptionTests : WiseOwlCobolTestBase
 {
@@ -129,8 +129,8 @@ public sealed class HeldFunctionArgumentDescriptionTests : WiseOwlCobolTestBase
     }
 
     /// <summary>⛔ A FATAL EXCEPTION OF AN EARLIER ARGUMENT IS RAISED BEFORE A LATER ARGUMENT'S ACTIVATION (kb/Work PB4124, review
-    /// round 1). ISO §8.4.3.2.4 GR2 evaluates the arguments left to right; DATE-OF-INTEGER (0) raises EC-ARGUMENT-FUNCTION
-    /// (§14.6.13.1.3), which is fatal (§14.6.13.1.6), so the user-defined function in argument-2 must never run. The nested call
+    /// round 1). ISO §2023:8.4.3.2.4 GR2 evaluates the arguments left to right; DATE-OF-INTEGER (0) raises EC-ARGUMENT-FUNCTION
+    /// (§2023:14.6.13.1.3), which is fatal (§2023:14.6.13.1.6), so the user-defined function in argument-2 must never run. The nested call
     /// is described by its fixed digits, which no argument decides, so it is held AS A VALUE at its place and not read after
     /// the activation by holding only its (stable) arguments.</summary>
     [Theory]
@@ -178,9 +178,9 @@ public sealed class HeldFunctionArgumentDescriptionTests : WiseOwlCobolTestBase
     }
 
     /// <summary>⛔ A table(ALL) THAT RANGES OVER NOTHING ENDS THE REFERENCE AT ITS PLACE IN THE LIST, BEFORE A LATER ACTIVATION (kb/Work
-    /// PB4162). §15.3 14) leaves the reference undefined when "the evaluation of an ALL subscript" yields no argument, and WiseOwl COBOL
+    /// PB4162). §2023:15.3 14) leaves the reference undefined when "the evaluation of an ALL subscript" yields no argument, and WiseOwl COBOL
     /// defines that as a fatal EC-ARGUMENT-FUNCTION, checking or not (<c>CobolTable.RequireOccurrences</c>). The held form of the argument
-    /// is that evaluation (§8.4.3.2.4 GR2), so the user-defined function in argument-2 must never run. Both range kinds that can be
+    /// is that evaluation (§2023:8.4.3.2.4 GR2), so the user-defined function in argument-2 must never run. Both range kinds that can be
     /// empty: an OCCURS DEPENDING table whose object is 0, and a dynamic-capacity table at capacity 0.</summary>
     [Theory]
     [InlineData("OCCURS 0 TO 5 TIMES DEPENDING ON WS-CNT PIC 9(3)", true)]

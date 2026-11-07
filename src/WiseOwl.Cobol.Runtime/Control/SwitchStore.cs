@@ -5,10 +5,10 @@ using System.Collections.Frozen;
 namespace WiseOwl.Cobol.Runtime;
 
 /// <summary>
-/// The run-unit external-switch store (ISO §12.3.7): a SPECIAL-NAMES switch-name identifies an implementor-defined
-/// external switch (GR2) whose on/off status is interrogated through switch-status conditions (§8.8.4.6) and
-/// altered by <c>SET mnemonic-name TO ON/OFF</c> (GR3 / §14.9.39 Format 3 GR5). Implementor definition
-/// (docs/CONFORMANCE.md DOC-A.1-191; §12.3.7.4 GR4 + NOTE 1 / Annex D.15): the switch-names are the closed set
+/// The run-unit external-switch store (ISO §2023:12.3.7): a SPECIAL-NAMES switch-name identifies an implementor-defined
+/// external switch (GR2) whose on/off status is interrogated through switch-status conditions (§2023:8.8.4.6) and
+/// altered by <c>SET mnemonic-name TO ON/OFF</c> (GR3 / §2023:14.9.39 Format 3 GR5). Implementor definition
+/// (docs/CONFORMANCE.md DOC-A.1-191; §2023:12.3.7.4 GR4 + NOTE 1 / Annex D.15): the switch-names are the closed set
 /// <see cref="Names"/> (<c>SWITCH-0</c> … <c>SWITCH-36</c>, <c>UPSI-0</c> … <c>UPSI-7</c>); every switch is settable;
 /// switch scope is the RUN UNIT (one switch shared by all runtime elements — an instance on <see cref="RunUnit"/>
 /// since P8); the external facility that supplies the initial status is the process environment — variable
@@ -19,7 +19,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// </summary>
 public sealed class SwitchStore
 {
-    /// <summary>Per-run-unit switch state keyed by implementor switch-name — the §12.3.7 GR4 NOTE 1 run-unit
+    /// <summary>Per-run-unit switch state keyed by implementor switch-name — the §2023:12.3.7 GR4 NOTE 1 run-unit
     /// scope (one switch referenced by all runtime elements of the run unit).</summary>
     private readonly Dictionary<string, bool> _states = new(CobolNames.Comparer);
 
@@ -46,7 +46,7 @@ public sealed class SwitchStore
     public static bool IsVariableName(string variableName) => VariableNames.Contains(variableName);
 
     /// <summary>The current status of the switch (true = ON). The first interrogation of a switch probes the
-    /// <c>COBOL_&lt;NAME&gt;</c> environment variable once and caches the result (§12.3.7.4 GR4 leaves the facility
+    /// <c>COBOL_&lt;NAME&gt;</c> environment variable once and caches the result (§2023:12.3.7.4 GR4 leaves the facility
     /// to the implementor; DOC-A.1-191 defines it as read at the first interrogation). An absent or empty variable
     /// means OFF (the all-conditions-default of an uninitialized external switch) and is cached too, so the
     /// environment changing afterwards never changes a switch-status condition.</summary>
@@ -63,7 +63,7 @@ public sealed class SwitchStore
         return state;
     }
 
-    /// <summary>Alter the switch's status (ISO §14.9.39 Format 3 GR5: the switch is modified so that a
-    /// condition-name associated with it evaluates per the ON/OFF phrase; §12.3.7 GR3).</summary>
+    /// <summary>Alter the switch's status (ISO §2023:14.9.39 Format 3 GR5: the switch is modified so that a
+    /// condition-name associated with it evaluates per the ON/OFF phrase; §2023:12.3.7 GR3).</summary>
     public void Set(string implementorName, bool isOn) => _states[implementorName] = isOn;
 }

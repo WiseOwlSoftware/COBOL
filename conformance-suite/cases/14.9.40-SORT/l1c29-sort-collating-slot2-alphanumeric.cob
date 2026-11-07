@@ -4,13 +4,13 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.40.3 SR2 — alphabet-name-2 names an ALPHANUMERIC alphabet
+      *> ISO §2023:14.9.40.3 SR2 — alphabet-name-2 names an ALPHANUMERIC alphabet
       *> Rule: "Alphabet-name-2 shall reference an alphabet that defines a
       *> national collating sequence."
       *> cite.py --check 14.9.40.3 "Alphabet-name-2 shall reference an
       *>   alphabet that defines a national collating sequence"
-      *>   -> OK  §14.9.40.3 2)  (Syntax rules)
-      *> A-REV has no FOR NATIONAL phrase, so by §12.3.7.4 GR7 a) its
+      *>   -> OK  §2023:14.9.40.3 2)  (Syntax rules)
+      *> A-REV has no FOR NATIONAL phrase, so by §2023:12.3.7.4 GR7 a) its
       *> sequence is alphanumeric; as the SECOND word after IS it is
       *> alphabet-name-2, violating SR2. alphabet-name-1 (A-AN) is legal.
       *> alphabet-name-2 exists from 2002 (pb678-sort-collating-for-forms-at-85

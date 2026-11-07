@@ -37,7 +37,7 @@ public sealed class ExactWideSettlementDriftTests
     /// reason no digit past the image's 34 can change its value.</summary>
     private static readonly Dictionary<string, string> ImageTakers = new(StringComparer.Ordinal)
     {
-        // §15.17.3 r2: argument-2 is in standard numeric time form (§15.5.5, a magnitude below 86 401), so its image keeps 29
+        // §2023:15.17.3 r2: argument-2 is in standard numeric time form (§2023:15.5.5, a magnitude below 86 401), so its image keeps 29
         // fraction digits, and the returned value is formed on the SDIDI (CombinedDatetimeDec) whatever carried the argument.
         ["CombinedDatetime"] = "argument-2 is bounded below 86401 and the value is formed on the SDIDI",
     };

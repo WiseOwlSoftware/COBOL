@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB1173 — A FILE SORT KEY MUST BE DESCRIBED IN A RECORD OF THE SORT FILE.
       *>   cite.py --check 14.9.40.3 "The data items identified by key data-names shall be described in records
-      *>     associated with file-name-1." -> OK §14.9.40.3 6) a)
+      *>     associated with file-name-1." -> OK §2023:14.9.40.3 6) a)
       *> WK is a WORKING-STORAGE item, not part of any record of SW, so it cannot be a key.
       *> kb/Work PB2512 - the USING and GIVING records are sized to the SD record (its largest record, or its
       *> variable-length range), so the program breaks no rule of the record-size family (SORT SR5, SR11; MERGE

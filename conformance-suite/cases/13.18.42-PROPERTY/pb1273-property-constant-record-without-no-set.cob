@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB1273 — ISO/IEC 1989:2023 §13.18.42.3 SR5: "If the PROPERTY clause is specified in a data item
+      *> kb/Work PB1273 — ISO/IEC 1989:2023 §2023:13.18.42.3 SR5: "If the PROPERTY clause is specified in a data item
       *> described with the CONSTANT RECORD clause, or in any data item subordinate to a data item described with the
       *> CONSTANT RECORD clause, the SET phrase shall be specified." N lacks WITH NO SET. It compiled clean before.
        IDENTIFICATION DIVISION.

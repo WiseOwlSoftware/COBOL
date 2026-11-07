@@ -14,27 +14,27 @@ namespace WiseOwl.Cobol.Compiler.Oo;
 /// crossing a UNIVERSAL object-reference dispatch, built from its data description entry for both sides — the caller's
 /// argument and RETURNING item (<c>OoBinder.OoBindUniversalInvoke</c>) and the method's formals and returning item
 /// (<c>OoEmitter.EmitCobolInvokeCase</c>) — so the two descriptions a run-time relation compares were derived by the
-/// same code. The relations themselves (§9.3.6 MATCH, §14.8.2 / §14.8.3 CONFORMANCE) are
+/// same code. The relations themselves (§2023:9.3.6 MATCH, §2023:14.8.2 / §2023:14.8.3 CONFORMANCE) are
 /// <see cref="ActivationRelations"/>, in the runtime.
 /// <para>It replaced <c>OoConformance.ConformanceDescriptor</c>, a string compared for equality that could not express
-/// either relation: a group keyed like a <c>PIC X(n)</c> of its width matched one (§9.3.6 3 e) says it does not), a
-/// smaller formal group did not match a larger argument (§14.8.2.2 rule 1 admits it), a national, boolean or
+/// either relation: a group keyed like a <c>PIC X(n)</c> of its width matched one (§2023:9.3.6 3 e) says it does not), a
+/// smaller formal group did not match a larger argument (§2023:14.8.2.2 rule 1 admits it), a national, boolean or
 /// numeric-edited operand had no key at all and was refused at bind (COBOL0866), and an ACTIVE-CLASS formal was keyed
-/// by its containing class where §9.3.6 3 d) 4. asks a question of the argument's run-time object.</para>
+/// by its containing class where §2023:9.3.6 3 d) 4. asks a question of the argument's run-time object.</para>
 /// </summary>
 public static class ActivationDescriptions
 {
     /// <summary>The description of <paramref name="item"/>, or null when the item has no universal crossing form — a
     /// group with neither a character image, a variable-length carrier nor (strongly typed) a leaf vector, or a
     /// PICTURE-less elementary item. An object reference carries its class facts from <paramref name="classes"/>, the
-    /// group's class table (<see cref="OoClassTable.SetOperand"/>; kb/Work PB2463), which §9.3.6 match rule 6 and the
-    /// SET conformance of §14.8.2.3.3 / §14.8.3.3 relate at run time; with no table it carries none.</summary>
+    /// group's class table (<see cref="OoClassTable.SetOperand"/>; kb/Work PB2463), which §2023:9.3.6 match rule 6 and the
+    /// SET conformance of §2023:14.8.2.3.3 / §2023:14.8.3.3 relate at run time; with no table it carries none.</summary>
     public static ActivationDescription? Of(DataItem item, OoClassTable? classes)
     {
         if (StrongTypeModel.IsStrongGroup(item))
-            // §8.5.2.1: "Both the class and the category of a strongly-typed group item are the type-name specified in
-            // the TYPE clause" — so match rule 3 c) needs the same type-name, and §14.8.2.2 / §14.8.3.2's "both shall be
-            // of the same type" is the §8.5.3.1 identity (StrongTypeModel.TypeIdentityKey).
+            // §2023:8.5.2.1: "Both the class and the category of a strongly-typed group item are the type-name specified in
+            // the TYPE clause" — so match rule 3 c) needs the same type-name, and §2023:14.8.2.2 / §2023:14.8.3.2's "both shall be
+            // of the same type" is the §2023:8.5.3.1 identity (StrongTypeModel.TypeIdentityKey).
             return item.IsImageCapable || item.CurrentExtentImageCapable || ActivationCrossing.LeafCarried(item)
                 ? new ActivationDescription
                 {
@@ -44,12 +44,12 @@ public static class ActivationDescriptions
                     Positions = item.IsImageCapable ? item.ImageWidth : 0,
                 }
                 : null;
-        // A bit / national group is "treated as an elementary item" at the activation boundary (§14.8.2.1 / §14.8.3.1
-        // NOTE), of class and category boolean / national (§8.5.2.1) — and "treated as though it were an elementary data
+        // A bit / national group is "treated as an elementary item" at the activation boundary (§2023:14.8.2.1 / §2023:14.8.3.1
+        // NOTE), of class and category boolean / national (§2023:8.5.2.1) — and "treated as though it were an elementary data
         // item of usage bit … described with PICTURE 1(m)" / "of usage national … described with PICTURE N(m)"
-        // (§13.18.29.4 GR1 b) / GR2 b)), so match rule 3 e) compares THAT picture: a national group matches an
+        // (§2023:13.18.29.4 GR1 b) / GR2 b)), so match rule 3 e) compares THAT picture: a national group matches an
         // elementary PIC N(m) USAGE NATIONAL of its length and no national group of another length (kb/Work PB2077 —
-        // the typed lane's answer, §14.8.2.3.2 "Additionally" b) / c); this description carried no clauses, so the
+        // the typed lane's answer, §2023:14.8.2.3.2 "Additionally" b) / c); this description carried no clauses, so the
         // universal lane refused the first pair and matched the second).
         if (item.IsAsIfElementary)
         {
@@ -71,12 +71,12 @@ public static class ActivationDescriptions
         }
         // ⛔ The CATEGORY question "is this a group item?" (ItemCategory.IsGroupItem), never the structural IsGroup: a
         // level-66 THROUGH alias has no subordinate entries and carries a composed alphanumeric PICTURE for its carrier,
-        // yet §13.18.45.4 GR2 makes it "an alphanumeric group item" — so it is described, matched and conformed as one
+        // yet §2023:13.18.45.4 GR2 makes it "an alphanumeric group item" — so it is described, matched and conformed as one
         // (its atoms are the elementary items it includes, VariableLengthCompatibility.GroupAtoms; kb/Work PB3101).
         if (ItemCategory.IsGroupItem(item))
         {
-            // §8.5.2.1: "an alphanumeric group item has class and category alphanumeric". A group carries none of the
-            // §9.3.6 3 e) clauses, so its Clauses are empty: two groups match whatever their sizes, and a group never
+            // §2023:8.5.2.1: "an alphanumeric group item has class and category alphanumeric". A group carries none of the
+            // §2023:9.3.6 3 e) clauses, so its Clauses are empty: two groups match whatever their sizes, and a group never
             // matches an elementary item (whose PICTURE is a clause the group lacks).
             if (item.CurrentExtentImageCapable)
                 return new ActivationDescription
@@ -107,7 +107,7 @@ public static class ActivationDescriptions
                 Shape = ActivationShape.ObjectReference,
                 Category = ActivationCategory.Object,
                 ObjectKind = d.RuntimeKind,
-                // The containing class of an ACTIVE-CLASS description is not part of its identity (§9.3.8.2.3 rule 2
+                // The containing class of an ACTIVE-CLASS description is not part of its identity (§2023:9.3.8.2.3 rule 2
                 // d)); the SET table reads it from the class facts (ObjectClasses' first entry).
                 // A reader with no class table (classes: null — the signature identity of a prototype, which hashes this
                 // text) spells the identity the description was resolved to, as the table does.
@@ -123,7 +123,7 @@ public static class ActivationDescriptions
         return new ActivationDescription
         {
             Shape = ActivationShape.Elementary,
-            // §8.5.2.1 Table 2's category name (match rule 3 c)'s coarse half; the PICTURE identity in
+            // §2023:8.5.2.1 Table 2's category name (match rule 3 c)'s coarse half; the PICTURE identity in
             // ElementaryClauses separates every finer distinction), in the compiler's ONE spelling (kb/Work PB850).
             Category = ItemCategory.CategoryName(p),
             Usage = p.Usage.ToString(),
@@ -136,28 +136,28 @@ public static class ActivationDescriptions
             Positions = p.Length,
             LocaleExternal = p.LocaleEdit?.Locale.Named?.External,
             LocaleFromLiteral = p.LocaleEdit?.Locale.Named?.FromLiteral ?? false,
-            // An index item is class index (§8.5.2.1 Table 2), which SR1 keeps out of every MOVE, so it has no heading.
+            // An index item is class index (§2023:8.5.2.1 Table 2), which SR1 keeps out of every MOVE, so it has no heading.
             Table16 = p.Usage is Usage.Index ? Table16Category.None : Table16Operand.Of(item).Heading,
             BinaryWidth = MoveTable16.IsBinaryWidth(item),
         };
     }
 
-    /// <summary>The description of a REFERENCE-MODIFIED argument — the unique data item ISO §8.4.3.3.4 GR5 creates, which
+    /// <summary>The description of a REFERENCE-MODIFIED argument — the unique data item ISO §2023:8.4.3.3.4 GR5 creates, which
     /// GR6 makes "an elementary data item without the JUSTIFIED clause" of identifier-1's class, category and usage
     /// (alphanumeric- and national-edited, numeric and numeric-edited read as alphanumeric or national; alphabetic and
     /// boolean kept — the ONE GR6 reader, <see cref="ItemCategory.CategoryName(Place)"/>). It is described by no PICTURE
-    /// clause and none of §9.3.6 match rule 3 e)'s other clauses (kb/Work PB3098), so it matches only a formal that has
-    /// none of them either — a group of its class — and §14.8.2.2 rule 1 then compares its length. At run time that is
+    /// clause and none of §2023:9.3.6 match rule 3 e)'s other clauses (kb/Work PB3098), so it matches only a formal that has
+    /// none of them either — a group of its class — and §2023:14.8.2.2 rule 1 then compares its length. At run time that is
     /// the EVALUATED length (GR5 c)), which the universal call site sets from the slice it boxes
     /// (<see cref="CobolInvokeArg.ReferenceModified"/>). At compile time it is the length when that is static
     /// (<see cref="RefModPlace.StaticLength"/>), otherwise the slice's MAXIMUM extent — identifier-1's positions from a
-    /// static leftmost position on, or all of them — the measure §14.8.2.2 gives the other argument whose length moves
+    /// static leftmost position on, or all of them — the measure §2023:14.8.2.2 gives the other argument whose length moves
     /// at run time, "the maximum length is used" for an occurs-depending group (docs/CONFORMANCE.md D-RM1 a); kb/Work
     /// PB2077). identifier-1's positions are the ONE readers' (<see cref="RefModPlace.StaticInnerPositions"/> for the
     /// exact length, <see cref="RefModPlace.MaximumInnerPositions"/> for the bound), so a slice of an alphanumeric group,
     /// whose length is static, is measured too, and so is a slice of an item whose own length is a run-time value: a
-    /// DYNAMIC LENGTH item's slice by its §8.5.1.10.1 maximum size, an ANY LENGTH item's by the carrier's ceiling, which
-    /// every group formal fits (§13.18.2.4 GR1 b) — its length is the argument's; kb/Work PB3128).</summary>
+    /// DYNAMIC LENGTH item's slice by its §2023:8.5.1.10.1 maximum size, an ANY LENGTH item's by the carrier's ceiling, which
+    /// every group formal fits (§2023:13.18.2.4 GR1 b) — its length is the argument's; kb/Work PB3128).</summary>
     public static ActivationDescription OfReferenceModification(RefModPlace r) => new()
     {
         Shape = ActivationShape.Elementary,
@@ -169,7 +169,7 @@ public static class ActivationDescriptions
     };
 
     /// <summary>The most positions a slice whose length is a run-time value can have: identifier-1's
-    /// <see cref="RefModPlace.MaximumInnerPositions"/> from a static leftmost position to the end (§8.4.3.3.4 GR5 b) /
+    /// <see cref="RefModPlace.MaximumInnerPositions"/> from a static leftmost position to the end (§2023:8.4.3.3.4 GR5 b) /
     /// c)), or all of them when the leftmost position is a run-time value too.</summary>
     private static int MaximumExtent(RefModPlace r)
     {
@@ -190,22 +190,22 @@ public static class ActivationDescriptions
         item.IsGroup ? TierCIsland.Reason(item, role + " group") : $"the {role} has no PICTURE description";
 
     /// <summary>The description of a PLACE an activation names — an argument or a RETURNING item: a reference-modified
-    /// operand is the unique data item §8.4.3.3.4 GR5 creates (<see cref="OfReferenceModification"/>), any other place
+    /// operand is the unique data item §2023:8.4.3.3.4 GR5 creates (<see cref="OfReferenceModification"/>), any other place
     /// the item it denotes (<see cref="Of"/>). Null for a place that denotes no item and is not reference-modified.</summary>
     public static ActivationDescription? OfPlace(Place p, OoClassTable? classes) =>
         p is RefModPlace r ? OfReferenceModification(r) : p.DenotedItem is { } item ? Of(item, classes) : null;
 
     /// <summary>⛔ THE DESCRIPTION OF ONE CALL ARGUMENT whose activated program is located by name at run time (kb/Work
-    /// PB165) — what §14.9.4.4 GR3 d) compares with the activated program's registered formal
+    /// PB165) — what §2023:14.9.4.4 GR3 d) compares with the activated program's registered formal
     /// (<c>ActivationRelations.CallArgumentViolation</c>). An identifier is described as the place it is
     /// (<see cref="OfPlace"/>), an address-identifier as the unique pointer item it creates (<see cref="OfAddress"/>;
     /// <paramref name="programRestriction"/> is a program-address-identifier's prototype's two restrictions), and a BY
-    /// CONTENT / BY VALUE argument that has no storage as the sending VALUE §14.8.2.3.3 rule 2 names
-    /// (<see cref="OfValue"/>). Null for an omitted argument (§14.9.4.4 GR11), which has nothing to describe.</summary>
+    /// CONTENT / BY VALUE argument that has no storage as the sending VALUE §2023:14.8.2.3.3 rule 2 names
+    /// (<see cref="OfValue"/>). Null for an omitted argument (§2023:14.9.4.4 GR11), which has nothing to describe.</summary>
     internal static ActivationDescription? OfCallArgument(BoundCallArg a, PrototypeSignatures.PrototypeRestriction? programRestriction, OoClassTable? classes)
     {
         if (a.Omitted) return null;
-        // §14.9.4.2 Format 2's boolean-expression-1: a boolean value (§8.8.2), with the character image of its bits.
+        // §2023:14.9.4.2 Format 2's boolean-expression-1: a boolean value (§2023:8.8.2), with the character image of its bits.
         if (a.ContentBool is not null) return Value(ActivationShape.Literal, ActivationCategory.Boolean, Table16Category.Boolean);
         if (a.DataAddress is { } data) return OfAddress(new BoundAddressOperand(data, null), null);
         if (a.ProgramAddress is { } program) return OfAddress(new BoundAddressOperand(null, program), programRestriction);
@@ -214,21 +214,21 @@ public static class ActivationDescriptions
     }
 
     /// <summary>The description of a BY CONTENT / BY VALUE argument that has NO STORAGE, as the sending operand ISO
-    /// §14.8.2.3.3 rule 2 names — the one description the relation (<c>ActivationRelations.CallArgumentViolation</c>) is
+    /// §2023:14.8.2.3.3 rule 2 names — the one description the relation (<c>ActivationRelations.CallArgumentViolation</c>) is
     /// asked of, at bind time (<c>ParameterConformance.ContentConformanceReason</c>) and at run time alike: a nonnumeric literal is its category's Table 16 row; a
     /// numeric literal the numeric row of its own digits (the binder binds every written one, BY VALUE included, as a
-    /// <see cref="BoundNumericLiteral"/>, §14.9.4.4 GR8, so a computed operand is never one: <c>(3)</c> is an expression, kb/Work PB3760);
+    /// <see cref="BoundNumericLiteral"/>, §2023:14.9.4.4 GR8, so a computed operand is never one: <c>(3)</c> is an expression, kb/Work PB3760);
     /// a figurative constant or an ALL literal an alphanumeric value of any category, ZERO also a numeric COMPUTE sender
-    /// (§8.8.1.1), and the §14.9.25.3 SR5 / SR6 / SR7 senders read apart (SPACE; ZERO; an ALL literal of boolean
+    /// (§2023:8.8.1.1), and the §2023:14.9.25.3 SR5 / SR6 / SR7 senders read apart (SPACE; ZERO; an ALL literal of boolean
     /// characters); a
-    /// intrinsic function its §15.2 type's row, a numeric one a value a MOVE sends whose digits a plain-group formal takes
+    /// intrinsic function its §2023:15.2 type's row, a numeric one a value a MOVE sends whose digits a plain-group formal takes
     /// (kb/Work PB3613); an arithmetic expression a numeric value with no character image, which is no MOVE sender, of the
     /// noninteger row (it carries no compile-time integer guarantee, kb/Work PB1946); NULL a SET sender only. Null for a
     /// shape none of these names.</summary>
     public static ActivationDescription? OfValue(BoundOperand value) => value switch
     {
         BoundPredefinedNull => new ActivationDescription { Shape = ActivationShape.PredefinedNull },
-        // §14.9.25.3 SR5 / SR6 / SR7 read the sender apart (SPACE, ZERO, an ALL literal of '0' and '1' only): the ONE
+        // §2023:14.9.25.3 SR5 / SR6 / SR7 read the sender apart (SPACE, ZERO, an ALL literal of '0' and '1' only): the ONE
         // reader MoveTable16.FigurativeSenderOf, so the run-time relation asks the rules the bound MOVE asks.
         BoundFigurative or BoundAllLiteral => Value(ActivationShape.Literal,
             ActivationCategory.OfFigurative(MoveTable16.FigurativeSenderOf(value)), Table16Category.None),
@@ -236,8 +236,8 @@ public static class ActivationDescriptions
         BoundNumericLiteral n => Value(ActivationShape.Literal, ActivationCategory.Numeric, MoveTable16.SenderPosition(n).Heading),
         BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: not PicCategory.Numeric } ic } character =>
             Value(ActivationShape.Literal, CategoryName(ic.ResultCategory), MoveTable16.SenderPosition(character).Heading),
-        // ⛔ A NUMERIC FUNCTION'S VALUE IS A VALUE A MOVE SENDS, NOT AN ARITHMETIC EXPRESSION (kb/Work PB3613): §15.4 puts the returned
-        // value in "a temporary elementary data item", and a function-identifier is a MOVE sending operand (§14.9.25.4 GR1: "identifier-1 ... is a function-identifier"), so §14.8.2.2
+        // ⛔ A NUMERIC FUNCTION'S VALUE IS A VALUE A MOVE SENDS, NOT AN ARITHMETIC EXPRESSION (kb/Work PB3613): §2023:15.4 puts the returned
+        // value in "a temporary elementary data item", and a function-identifier is a MOVE sending operand (§2023:14.9.25.4 GR1: "identifier-1 ... is a function-identifier"), so §2023:14.8.2.2
         // rule 2's "the same as for a MOVE statement with the argument as the sending operand" admits it opposite a plain-group formal,
         // where its digits are what GR4's move stores (docs/CONFORMANCE.md D-B4). It used to share the arithmetic expression's
         // shape, which a group formal refuses (an expression is no MOVE sender), and refused legal source.
@@ -252,7 +252,7 @@ public static class ActivationDescriptions
     private static ActivationDescription Value(ActivationShape shape, string category, Table16Category table16) =>
         new() { Shape = shape, Category = category, Table16 = table16 };
 
-    /// <summary>The §8.5.2 category name of a character-valued operand's <see cref="PicCategory"/>.</summary>
+    /// <summary>The §2023:8.5.2 category name of a character-valued operand's <see cref="PicCategory"/>.</summary>
     private static string CategoryName(PicCategory c) => c switch
     {
         PicCategory.National => ActivationCategory.National,
@@ -260,20 +260,20 @@ public static class ActivationDescriptions
         _ => ActivationCategory.Alphanumeric,
     };
 
-    /// <summary>The description of a method's formal parameter: its item's, with the OPTIONAL phrase (§9.3.6 match
+    /// <summary>The description of a method's formal parameter: its item's, with the OPTIONAL phrase (§2023:9.3.6 match
     /// rules 1 and 3 b)) and the BY VALUE phrase (rule 3 a)). Null when the item has no crossing form.</summary>
     public static ActivationDescription? OfFormal(OoFormal formal, OoClassTable? classes) =>
         Of(formal.Item, classes) is { } d ? With(d, formal.Optional, formal.ByValue) : null;
 
-    /// <summary>The description of an ADDRESS-IDENTIFIER argument (kb/Work PB1137): §8.4.3.11.4 GR1 — "a unique data
+    /// <summary>The description of an ADDRESS-IDENTIFIER argument (kb/Work PB1137): §2023:8.4.3.11.4 GR1 — "a unique data
     /// item of class pointer and category data-pointer", restricted to its operand's type when that is a
     /// strongly-typed group or a restricted data-pointer (GR2, <see cref="StrongTypeModel.AddressOfRestriction"/>) —
-    /// and §8.4.3.13.4 GR1 a program-address-identifier one of category program-pointer, restricted by its prototype
+    /// and §2023:8.4.3.13.4 GR1 a program-address-identifier one of category program-pointer, restricted by its prototype
     /// (GR3). Described exactly as <see cref="Of"/> describes a pointer ITEM of the same restriction.
     /// <paramref name="programRestriction"/> is the program-address-identifier's prototype's two restrictions — the TO
     /// phrase's name and the identity of the prototype's signature (<see cref="PrototypeSignatures.Identity(RestrictedPrototype)"/>), resolved by the invoking unit's
     /// prototype table — null when it names none. The unique item has no TYPE clause, so it carries no
-    /// <see cref="ActivationDescription.PointerType"/>: passed BY REFERENCE (an INVOKE argument, §14.9.23.3 SR9) it is
+    /// <see cref="ActivationDescription.PointerType"/>: passed BY REFERENCE (an INVOKE argument, §2023:14.9.23.3 SR9) it is
     /// of the type its USAGE clause states (docs/CONFORMANCE.md D-RP1).</summary>
     internal static ActivationDescription OfAddress(BoundAddressOperand address, PrototypeSignatures.PrototypeRestriction? programRestriction)
     {
@@ -284,7 +284,7 @@ public static class ActivationDescriptions
                 PointerPhrase(Usage.Pointer, TypePhrase(type)));
         }
         // The restrictions are IDENTITIES (the prototype's folded name, its signature class's, kb/Work PB2103 / PB4107); the
-        // phrase a reader sees names the prototype the identifier wrote (§8.4.3.13.4 GR3: "a program-pointer restricted to
+        // phrase a reader sees names the prototype the identifier wrote (§2023:8.4.3.13.4 GR3: "a program-pointer restricted to
         // program-prototype-name-1").
         return Pointer(ActivationCategory.ProgramPointer, programRestriction?.Named ?? ActivationDescription.Unrestricted,
             programRestriction?.Content ?? ActivationDescription.Unrestricted,
@@ -310,8 +310,8 @@ public static class ActivationDescriptions
         _ => "",
     };
 
-    /// <summary>The §8.5.3.1 type identity of a RESTRICTED class-pointer item that is typed — the key of the type
-    /// declaration its TYPE clause references (<see cref="StrongTypeModel.TypedItemType"/>), which §14.8.2.3.2's "of the
+    /// <summary>The §2023:8.5.3.1 type identity of a RESTRICTED class-pointer item that is typed — the key of the type
+    /// declaration its TYPE clause references (<see cref="StrongTypeModel.TypedItemType"/>), which §2023:14.8.2.3.2's "of the
     /// same type" compares (<see cref="ActivationDescription.PointerType"/>; kb/Work PB4107). Null for an untyped item, an
     /// unrestricted pointer and an item of another class.</summary>
     private static string? PointerTypeOf(DataItem item, PicInfo p, string clauses) =>
@@ -331,11 +331,11 @@ public static class ActivationDescriptions
     /// type-name, and for a subordinate item of a type declaration that item — or null when it is unrestricted.</summary>
     private static string? TypePhrase(StrongTypeModel.TypeRestriction type) => type.IsRestricted ? "TO " + type : null;
 
-    /// <summary>A data-pointer's restriction (§14.8.2.3.2's class-pointer paragraph: "if either is a restricted
+    /// <summary>A data-pointer's restriction (§2023:14.8.2.3.2's class-pointer paragraph: "if either is a restricted
     /// pointer, both shall be restricted and of the same type"): the whole TYPE identity it is restricted to,
-    /// <see cref="StrongTypeModel.TypeRestriction.Key"/> — the §8.5.3.1 identity of the declaration (so two
+    /// <see cref="StrongTypeModel.TypeRestriction.Key"/> — the §2023:8.5.3.1 identity of the declaration (so two
     /// non-equivalent declarations of one type-name in two source elements are two restrictions), and for the address
-    /// of a strongly-typed group SUBORDINATE to a type declaration its position and length (§8.4.3.11.4 GR2 "restricted to the
+    /// of a strongly-typed group SUBORDINATE to a type declaration its position and length (§2023:8.4.3.11.4 GR2 "restricted to the
     /// type of identifier-1", kb/Work PB1408) — so that address never matches a formal restricted to the whole
     /// record's type. A program- or function-pointer's USAGE clause names its prototype
     /// (<see cref="PrototypeSignatures.NamedRestriction(DataItem)"/>), and what it may contain is the prototype's signature
@@ -346,12 +346,12 @@ public static class ActivationDescriptions
     private static ActivationDescription With(ActivationDescription d, bool optional, bool byValue) =>
         d with { Optional = optional, ByValue = byValue };
 
-    /// <summary>⛔ ISO §9.3.6 match rule 3 e)'s identity of an elementary item — "the same ALIGNED, ANY LENGTH, BLANK
+    /// <summary>⛔ ISO §2023:9.3.6 match rule 3 e)'s identity of an elementary item — "the same ALIGNED, ANY LENGTH, BLANK
     /// WHEN ZERO, DYNAMIC LENGTH, JUSTIFIED, PICTURE, SIGN, and USAGE clauses", with 3 e) 1. (currency strings) and 2.
     /// (DECIMAL-POINT IS COMMA) carried by the PICTURE clause's ONE identity (<see cref="PictureClauseIdentity"/>) and
     /// 3. a. (the LOCALE phrase's SIZE) here, 3. b. (its external identification) in
     /// <see cref="ActivationDescription.LocaleExternal"/>. Every relation reads these facts here and nowhere else (the
-    /// <c>DataItem</c> comparator that compared them a second time is deleted, kb/Work PB3101), so the §9.3.6 match and the
+    /// <c>DataItem</c> comparator that compared them a second time is deleted, kb/Work PB3101), so the §2023:9.3.6 match and the
     /// pair-mode identity agree — held by
     /// <c>PictureClauseIdentityDriftTests.ActivationMatch_AgreesWithThePairModeRelation_OverEveryElementaryPair</c>. A
     /// class pointer's USAGE clause carries its TO phrase, by what it names: a data-pointer's type identity, a program- or
@@ -368,7 +368,7 @@ public static class ActivationDescriptions
             return (PrototypeSignatures.NamedRestriction(item) ?? ActivationDescription.Unrestricted,
                 [PointerPhrase(p.Usage, p.RestrictedPrototypeName is { } prototype ? "TO " + prototype : null)]);
         string[] phrases = PhrasesOf(item, p, p.Clause?.Phrases() ?? []);
-        // An ANY LENGTH item's one-symbol picture has no length of its own (§13.18.2.3 SR1).
+        // An ANY LENGTH item's one-symbol picture has no length of its own (§2023:13.18.2.3 SR1).
         return item.IsAnyLength
             ? (ClausesAtAnyLength(item, p, p.Clause?.CharacterString ?? ""), phrases)
             : (ClausesOf(item, p, p.Clause?.Key ?? "", Invariant(p.Length)), phrases);
@@ -377,8 +377,8 @@ public static class ActivationDescriptions
     private static string Invariant(int n) => n.ToString(CultureInfo.InvariantCulture);
 
     /// <summary><see cref="ActivationDescription.AnyLengthClauses"/>: the <see cref="ElementaryClauses"/> of
-    /// <paramref name="item"/> as if it were described with the ANY LENGTH clause — §13.18.2.3 SR1's one-symbol PICTURE,
-    /// the symbol its expanded character-string repeats, and no length — so that §14.8.2.3.2 "Additionally" d)'s "its
+    /// <paramref name="item"/> as if it were described with the ANY LENGTH clause — §2023:13.18.2.3 SR1's one-symbol PICTURE,
+    /// the symbol its expanded character-string repeats, and no length — so that §2023:14.8.2.3.2 "Additionally" d)'s "its
     /// length is considered to match" relaxes the length and nothing else. Null for a PICTURE that repeats no single
     /// symbol, or that carries a currency string, a DECIMAL-POINT IS COMMA state or an EDITING phrase (a one-symbol
     /// ANY LENGTH picture carries none), and for every item without a PICTURE clause.</summary>
@@ -390,7 +390,7 @@ public static class ActivationDescriptions
 
     private static string ClausesAtAnyLength(DataItem item, PicInfo p, string symbol) => ClausesOf(item, p, "*" + symbol, "*");
 
-    /// <summary>The one spelling of ISO §9.3.6 match rule 3 e)'s clause identity of <paramref name="item"/> described
+    /// <summary>The one spelling of ISO §2023:9.3.6 match rule 3 e)'s clause identity of <paramref name="item"/> described
     /// by <paramref name="p"/> (its own PICTURE, or a bit / national group's as-if one), given the PICTURE and LENGTH
     /// texts. ⛔ Invariant culture throughout: the key is compiled into the program and compared ordinally with a key
     /// another compilation built, and a negative <see cref="PicInfo.Scale"/> (<c>PIC 99P</c>) printed U+2212 under sv-SE

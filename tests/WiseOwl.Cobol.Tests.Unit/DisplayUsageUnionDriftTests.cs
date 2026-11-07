@@ -21,7 +21,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// screened a GROUP RETURNING
 /// item's leaves with this union and rejected a COMP-5 leaf as having "no shared character image across the
 /// activation boundary" — years after the group codec started emitting exactly that image. It rejected
-/// conforming source (ISO §14.2.2 SR5 places NO category restriction on a RETURNING item), and nothing failed,
+/// conforming source (ISO §2023:14.2.2 SR5 places NO category restriction on a RETURNING item), and nothing failed,
 /// because a hand-rolled union has no drift lock. <c>V59ImagePredicateDriftTests</c> watches
 /// <c>IsCharacterImage</c>; NOTHING watched this shape, and it is the more common one.
 /// </para>
@@ -32,10 +32,10 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// beside it; the reasons were MEASURED, not assumed (a probe per claim — see the kb note).
 /// </para>
 /// <para>
-/// ⛔ TWO COUNTS PER FILE, NOT ONE (kb/Work PB646). Once §13.18.60.3 SR12's national-form numeric shapes went
+/// ⛔ TWO COUNTS PER FILE, NOT ONE (kb/Work PB646). Once §2023:13.18.60.3 SR12's national-form numeric shapes went
 /// live there are TWO shapes spelled with this text and they are DIFFERENT QUESTIONS: the DISPLAY-ONLY union,
 /// which is the drift-prone one, and the <c>Usage.Display or Usage.National</c> PAIR, which is what the standard
-/// itself writes wherever it admits a numeric item by usage (§8.4.3.3.3 SR1, §13.18.52.3 SR2, §14.9.48.3 SR4).
+/// itself writes wherever it admits a numeric item by usage (§2023:8.4.3.3.3 SR1, §2023:13.18.52.3 SR2, §2023:14.9.48.3 SR4).
 /// A single total would have let a site move between them silently — which is exactly the migration this landing
 /// performed. So the inventory states both, and the IMAGE-FORM question has left this text entirely: it is
 /// <c>PicInfo.IsCharacterFormNumeric</c>, one definition, watched by its own drift test. A site that means "does
@@ -89,7 +89,7 @@ public sealed class DisplayUsageUnionDriftTests
         {
             // ⛔ ReportSectionBinder.cs LEFT THIS INVENTORY (kb/Work PB3280). Its printable item's image mark
             // asked the IMAGE-FORM question in the DISPLAY-only spelling, so a numeric printable item of usage
-            // NATIONAL (§13.18.60.3 SR7 admits the usage, SR12 the picture) reached the line as a long and the
+            // NATIONAL (§2023:13.18.60.3 SR7 admits the usage, SR12 the picture) reached the line as a long and the
             // backend refused the generated C# (CS1503). It now reads PicInfo.IsCharacterFormNumeric, and a
             // printable item is composed into its line and stored nowhere else, so the carriage concern that
             // keeps MarkImageLeaves DISPLAY-only does not reach it.
@@ -106,13 +106,13 @@ public sealed class DisplayUsageUnionDriftTests
             //        present: the deliberate two-lane split, not a missing lane.
             //        (Passes/ClassifyRedefinesClassesPass.cs)
             // PAIR (1) — WithInheritedSign, the ONE rule by which an item acquires an ancestor's SIGN clause
-            //        (§13.18.52.4 GR1 inheritance and the §13.18.49.4 GR5 SAME-AS transform both reach it through
+            //        (§2023:13.18.52.4 GR1 inheritance and the §2023:13.18.49.4 GR5 SAME-AS transform both reach it through
             //        ApplyEffectiveSign, and a report group entry's inherited clause through
-            //        ReportPrintablePicture, kb/Work PB493), and §13.18.52.3 SR2 names exactly that pair: "The
+            //        ReportPrintablePicture, kb/Work PB493), and §2023:13.18.52.3 SR2 names exactly that pair: "The
             //        usage of an elementary item for which the SIGN clause is specified shall be display or
             //        national".
             //
-            // ⛔ WAS 7, THEN 4. THREE WERE DELETED by kb/Work PB495 — the USAGE half of §13.18.60.4 GR1 group
+            // ⛔ WAS 7, THEN 4. THREE WERE DELETED by kb/Work PB495 — the USAGE half of §2023:13.18.60.4 GR1 group
             // inheritance, each asking "is this leaf still at the default DISPLAY usage?" beside its own
             // hand-written set of inheritable usages, which is the WRONG question (GR1 applies a group's clause
             // to EVERY elementary item under it); they became ONE derivation feeding ONE screen
@@ -126,7 +126,7 @@ public sealed class DisplayUsageUnionDriftTests
             ["Binding/Passes/MarkFileRecordImageLeavesPass.cs"] = (1, 0),
             ["Binding/Passes/ClassifyRedefinesClassesPass.cs"] = (1, 0),
 
-            // PAIR — SPEC-REQUIRED, and it is the spec's own pair. §8.4.3.3.3 SR1 admits reference modification
+            // PAIR — SPEC-REQUIRED, and it is the spec's own pair. §2023:8.4.3.3.3 SR1 admits reference modification
             // of "a numeric data item of usage display or national that is not subordinate to a strongly-typed
             // group item", so this site enforces the standard. MEASURED: `MOVE NB(1:1) TO X` over a COMP-5 item
             // draws COBOL1647 citing that rule. ⛔ WAS 4 DISPLAY-ONLY: the other three asked the IMAGE-FORM
@@ -140,7 +140,7 @@ public sealed class DisplayUsageUnionDriftTests
             //      the whole-group / character-channel promotion (IsImagePromotable), now asks
             //      PicInfo.HasImageByteForm minus the national-form numeric (PB646's carriage exclusion) and USAGE
             //      INDEX: a BINARY or PACKED leaf a group MOVE, a READ or a BY REFERENCE crossing reaches holds
-            //      content its native carrier cannot, and the numeric class condition (§8.8.4.4.4 GR3 n) 1. c.)
+            //      content its native carrier cannot, and the numeric class condition (§2023:8.8.4.4.4 GR3 n) 1. c.)
             //      must read that content. UnifyCrossing had left with kb/Work PB187 on the same predicate.
 
             // PAIR (1) — CARRIAGE (DataBindState.ImageForcedItems), the ONE eligibility (IsCharacterImageNumeric) of both of
@@ -148,11 +148,11 @@ public sealed class DisplayUsageUnionDriftTests
             //  the figurative pass — a NON-DIGIT figurative fill deposits fill CHARACTERS into the receiver's
             //      cells ("MOVE QUOTE TO PIC 9(3) leaves three quotation marks"); a 2-byte binary carrier has
             //      no character cells to hold them.
-            //  MarkRefModStoreImage — ⛔ NOT the §8.4.3.3.3 SR1 screen (that is RefModBinder's, above):
+            //  MarkRefModStoreImage — ⛔ NOT the §2023:8.4.3.3.3 SR1 screen (that is RefModBinder's, above):
             //      this one FORCES the underlying item's carriage to its image so a ref-mod store can write
             //      character cells.
             //  ⛔ WAS 2 DISPLAY-ONLY, one per mark (kb/Work PB442). A usage NATIONAL numeric item is represented
-            //      in a national coded character set (§13.18.60.4 GR8), so it HAS the character cells both marks
+            //      in a national coded character set (§2023:13.18.60.4 GR8), so it HAS the character cells both marks
             //      write, and leaving it out was MEASURED: below 2023 `MOVE LOW-VALUE TO` a `PIC 9 USAGE NATIONAL`
             //      item stopped the run unit with NotImplementedCobolFeatureException and `MOVE SPACE TO NN9(1:1)`
             //      was silently lost (conformance:cases/14.9.25-MOVE/pb442_numeric_edited_national_class). This is a SINGLE-LEAF
@@ -170,15 +170,15 @@ public sealed class DisplayUsageUnionDriftTests
             //      not the IMAGE-FORM one PicInfo.IsCharacterFormNumeric answers.
             ["Binding/Bound/MoveOverlap.cs"] = (3, 0),
 
-            // PAIR — SPEC-REQUIRED, verbatim. §14.9.48.3 SR4: "Identifier-4 shall be described implicitly or
+            // PAIR — SPEC-REQUIRED, verbatim. §2023:14.9.48.3 SR4: "Identifier-4 shall be described implicitly or
             // explicitly as usage display and category alphabetic, alphanumeric, or numeric; or as usage
             // national and category national or numeric." A COMP/packed/COMP-5/index/float receiver is
             // rejected BY THE STANDARD.
             ["Binding/Procedure/Verbs/StringUnstringBinder.cs"] = (0, 1),
 
-            // PAIR — SPEC-REQUIRED, verbatim (kb/Work PB1468). §8.8.4.2.5: "The numeric integer operand shall be an
+            // PAIR — SPEC-REQUIRED, verbatim (kb/Work PB1468). §2023:8.8.4.2.5: "The numeric integer operand shall be an
             // integer literal or an integer numeric data item of usage display or national." A COMP/packed/float
-            // item against an alphanumeric operand is not §8.8.4.2.1 item 6's pair — refused COBOL2532.
+            // item against an alphanumeric operand is not §2023:8.8.4.2.1 item 6's pair — refused COBOL2532.
             ["Binding/RelationComparability.cs"] = (0, 1),
 
             // KEEPER — D-U6a's UNIVERSAL box bridge: OoUnivImageBridged asks whether the canonical box is the ZONED
@@ -192,9 +192,9 @@ public sealed class DisplayUsageUnionDriftTests
             //  CodeGen/Verbs/StringEmitter.cs (was 1) — WriteImage's guard read PicInfo.IsCharacterFormNumeric until
             //      kb/Work PB4089 deleted the arm (a numeric receiver is a character channel, promoted to its image).
             //  CodeGen/DataDivision/GroupValueSlicer.cs (was 2) — DistributableSubtree and SliceInit read it
-            //      too, and that was a LIVE silent wrong answer rather than a tidy-up: §13.18.63.3 SR14's
+            //      too, and that was a LIVE silent wrong answer rather than a tidy-up: §2023:13.18.63.3 SR14's
             //      usage-DISPLAY requirement is written about items "subordinate to an alphanumeric group
-            //      item" and does not reach a GROUP-USAGE NATIONAL group, whose subordinates §13.18.29.3 SR3
+            //      item" and does not reach a GROUP-USAGE NATIONAL group, whose subordinates §2023:13.18.29.3 SR3
             //      requires to be usage national and contemplates as numeric by name. MEASURED:
             //      `01 NG GROUP-USAGE NATIONAL VALUE N"AB123". 05 NGA PIC N(2). 05 NGB PIC 9(3).` deposited
             //      NOTHING — `NGA=[  ] NGB=[000]` — where its alphanumeric twin gives `[AB]` / `[123]`.
@@ -218,8 +218,8 @@ public sealed class DisplayUsageUnionDriftTests
     }
 
     /// <summary>The drift instance itself, pinned so it cannot come back — and it cannot come back at all, because the
-    /// screen that held it is gone (kb/Work PB1419): the UDF binder has NO RETURNING category screen. ISO §14.2.2 SR5
-    /// places no category restriction on a RETURNING item and §8.4.3.2.4 GR1 clones its description, so a union of
+    /// screen that held it is gone (kb/Work PB1419): the UDF binder has NO RETURNING category screen. ISO §2023:14.2.2 SR5
+    /// places no category restriction on a RETURNING item and §2023:8.4.3.2.4 GR1 clones its description, so a union of
     /// usages (or any other category list) in <c>UdfBinder</c> would be a second statement of a rule the standard
     /// does not have. The unit still pins that the file holds no DISPLAY-only union.</summary>
     [Fact]

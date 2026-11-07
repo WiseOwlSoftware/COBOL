@@ -4,7 +4,7 @@ namespace WiseOwl.Cobol.Runtime.IO;
 
 /// <summary>
 /// ⭐ THE RUN UNIT'S OPEN STORES, ONE PER PHYSICAL FILE (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.7, "Within a
-/// run unit"; kb/Work PB143, PB3335; ISO §14.9.10.4 GR5 — "the identified record has been logically removed from THE
+/// run unit"; kb/Work PB143, PB3335; ISO §2023:14.9.10.4 GR5 — "the identified record has been logically removed from THE
 /// PHYSICAL FILE and can no longer be accessed"). Every connector of the run unit over one physical file attaches to the
 /// ONE keyed store engine handle for it (<see cref="KeyedStore"/>: the run unit's page I/O, the page cache, the ledger and
 /// the trees), keyed by resolved host path — the same key the <see cref="PhysicalFileTable"/> arbitrates sharing and locks
@@ -78,11 +78,11 @@ internal sealed class StoreTable
         return Enter(host, identity, new T());
     }
 
-    /// <summary>⛔ ATTACH TO A STORE THAT IS BEING CREATED — <c>OPEN OUTPUT</c>, §14.9.27.4 GR18: a new, EMPTY store
+    /// <summary>⛔ ATTACH TO A STORE THAT IS BEING CREATED — <c>OPEN OUTPUT</c>, §2023:14.9.27.4 GR18: a new, EMPTY store
     /// for <paramref name="host"/> that no other connector of this run unit holds (kb/Work PB754).
     /// <para>Emptying a store is a change every attached connector would see instantly (kb/Work PB143), so it is
     /// only ever done HERE, where the precondition that makes it safe is checked rather than remembered: Table 19
-    /// refuses every OUTPUT open beside any other open connector — §9.1.13.9 1) e), <i>"An attempt is made to open a
+    /// refuses every OUTPUT open beside any other open connector — §2023:9.1.13.9 1) e), <i>"An attempt is made to open a
     /// physical file in the output mode and the physical file is currently open by another file connector"</i> —
     /// and <c>FileRegistry.OpenShared</c> runs that arbitration BEFORE the connector's OPEN body. An entry that
     /// still exists here therefore means the arbitration was bypassed, and the answer is a loud defect, never a
@@ -91,7 +91,7 @@ internal sealed class StoreTable
     /// <para>⛔ WHERE TABLE 19 IS NOT ASKED THE OPEN IS ADMITTED, AND THE CREATION REPLACES THE PATH'S STORE (kb/Work PB670):
     /// at COBOL-85 (<paramref name="arbitrated"/> false: <see cref="FileConnector.SharingFacilityInEffect"/>) no sharing mode
     /// restricts another connector, so an OPEN OUTPUT beside connectors that hold the file is a normal open and creates the
-    /// file under them (§14.9.27.4 GR18). The created store becomes the run unit's for the path, as it does for a file replaced
+    /// file under them (§2023:14.9.27.4 GR18). The created store becomes the run unit's for the path, as it does for a file replaced
     /// at the path from outside (<see cref="Attach{T}"/>, kb/Work PB3533): the store the siblings hold stays theirs alone, their
     /// <see cref="Detach"/> no longer touches the path's entry, and what they find in the file from then on is the file's own
     /// word, the engine's statuses for a file that changed under an open connector (2.2.1.6).</para></summary>
@@ -100,7 +100,7 @@ internal sealed class StoreTable
         if (arbitrated && _byHost.TryGetValue(host, out var e) && !NamesAnotherFile(e, identity))
             throw new InvalidOperationException(
                 $"physical file '{host}' is being created by OPEN OUTPUT while {e.Attached} other connector(s) of this "
-                + "run unit hold it open; Table 19 refuses that OPEN (§9.1.13.9 1) e)), so reaching here is an "
+                + "run unit hold it open; Table 19 refuses that OPEN (§2023:9.1.13.9 1) e)), so reaching here is an "
                 + "arbitration defect (kb/Work PB754)");
         return Enter(host, identity, created);
     }

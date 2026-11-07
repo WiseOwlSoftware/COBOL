@@ -5,14 +5,14 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> EC-EXTERNAL-DATA-MISMATCH (ISO §14.8.4.2; raise point §14.9.4.4 GR3e; VCR 15).
-      *> §14.8.4.2: for each external file connector, the file status, LINAGE and
+      *> EC-EXTERNAL-DATA-MISMATCH (ISO §2023:14.8.4.2; raise point §2023:14.9.4.4 GR3e; VCR 15).
+      *> §2023:14.8.4.2: for each external file connector, the file status, LINAGE and
       *> relative key data items shall be external data items referring to the same
       *> corresponding storage in each runtime element. MAIN's FD for external file
       *> XDM-F carries LINAGE IS XDM-LN (an external data item); the CALLed sub's FD
       *> carries LINAGE IS 10 (the literal form — no data item at all) — the linage
       *> references are not the same corresponding external item. (The FILE STATUS and
-      *> RELATIVE KEY faces of §14.8.4.2 are compile-blocked in one compilation group by
+      *> RELATIVE KEY faces of §2023:14.8.4.2 are compile-blocked in one compilation group by
       *> the ≥2023 COBOL1573/1575 cross-SELECT checks — VCR 18/31 — so LINAGE is the
       *> in-group-reachable runtime vector.) Checking enabled in both elements; the
       *> Fatal condition is set at the CALL, the call is not successful (GR3h #1).

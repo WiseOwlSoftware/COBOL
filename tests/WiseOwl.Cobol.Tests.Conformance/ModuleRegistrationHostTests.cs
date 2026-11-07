@@ -6,17 +6,17 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// kb/Work PB2097 — slice 1 of the §8.13 external repository (docs/rearchitecture/DESIGN-external-repository.md §4.5,
-/// §11.2, §11.3), run as separately compiled modules beside each other, the way a run unit composed of several runtime
-/// modules is deployed (ISO/IEC 1989:2023 §14.6.1, cite.py OK: "A run unit contains one or more runtime modules").
+/// kb/Work PB2097 — slice 1 of the §2023:8.13 external repository (docs/rearchitecture/DESIGN-external-repository.md §4.5,
+/// §2023:11.2, §2023:11.3), run as separately compiled modules beside each other, the way a run unit composed of several runtime
+/// modules is deployed (ISO/IEC 1989:2023 §2023:14.6.1, cite.py OK: "A run unit contains one or more runtime modules").
 /// <list type="bullet">
 ///   <item>Every emitted type lives in the module's namespace <c>Cobol.&lt;S&gt;</c> and every foreign name is
 ///     <c>global::</c>-rooted, so modules whose assembly names are the namespaces the generated code uses
 ///     (<c>Cobol</c>, and <c>WiseOwl</c>, the first segment of <c>WiseOwl.Cobol.Runtime</c>) or a runtime type's name (<c>CobolNum</c>) compile and call each other.</item>
 ///   <item>A sibling module that defines an outermost program another module already registered is refused WHOLE by
-///     <c>ProgramTable.RegisterModule</c>: §8.3.2.2 2) (cite.py OK) "when two or more source elements identify something
+///     <c>ProgramTable.RegisterModule</c>: §2023:8.3.2.2 2) (cite.py OK) "when two or more source elements identify something
 ///     with the same externalized name, they refer to the same instance", so the second definition is not registered and
-///     the CALL that needed the module is §14.9.4.4 GR3 b)'s EC-PROGRAM-NOT-FOUND ("If the program cannot be located",
+///     the CALL that needed the module is §2023:14.9.4.4 GR3 b)'s EC-PROGRAM-NOT-FOUND ("If the program cannot be located",
 ///     cite.py OK), whose message names both modules.</item>
 ///   <item>A sibling module compiled against another runtime major is refused by the probe with that reason.</item>
 /// </list>
@@ -176,9 +176,9 @@ public sealed class ModuleRegistrationHostTests
     }
 
     /// <summary>kb/Work PB2843: two modules each DECLARE an outermost <c>P2843W</c>, the sibling's <c>AS "P2843X"</c>
-    /// (legal: §8.3.2.2 2) externalizes the AS literal, so the two externalized names differ). Each outermost program's
+    /// (legal: §2023:8.3.2.2 2) externalizes the AS literal, so the two externalized names differ). Each outermost program's
     /// run-unit path is rooted at its externalized name (<c>ProgramTable.OutermostPath</c>), so loading the sibling
-    /// leaves the main module's node, and its containee, in place: §8.4.6.3 1) (cite.py OK) "that program-name may be
+    /// leaves the main module's node, and its containee, in place: §2023:8.4.6.3 1) (cite.py OK) "that program-name may be
     /// referenced only by statements included in that containing program", and P2843W contains P2843H. With a
     /// declared-name root the sibling's node replaced the main module's, and <c>CALL "P2843H"</c> was not found.</summary>
     [Fact]
@@ -273,7 +273,7 @@ public sealed class ModuleRegistrationHostTests
         """;
 
     /// <summary>kb/Work PB2920: two modules each DECLARE <c>CLASS-ID. P2920C</c>, the sibling's <c>AS "P2920-LEDGER"</c>
-    /// (legal: §8.3.2.2 2) externalizes the AS literal, so the two classes differ). Each factory file's connector key is
+    /// (legal: §2023:8.3.2.2 2) externalizes the AS literal, so the two classes differ). Each factory file's connector key is
     /// rooted at its class's externalized name (<c>ProgramTable.ClassPath</c>), so the sibling's factory opens, writes and
     /// closes ITS file and the main module's connector is still open when the main module closes it. With the declared
     /// C# name as the root both factories shared one connector: the sibling's CLOSE closed the main module's file and the
@@ -298,7 +298,7 @@ public sealed class ModuleRegistrationHostTests
     /// <summary>One module of the PB2920 EXTERNAL pair: a factory method that shows <paramref name="tag"/>, in a class
     /// whose factory describes the EXTERNAL item <c>P2920X</c> as <c>PIC X(<paramref name="width"/>)</c>.
     /// EC-EXTERNAL-FORMAT-CONFLICT checking is on for the whole module, so the method's activation compares this
-    /// describer with every other one in the run unit (§14.8.4.1; ISO §14.8.4.3, cite.py OK).</summary>
+    /// describer with every other one in the run unit (§2023:14.8.4.1; ISO §2023:14.8.4.3, cite.py OK).</summary>
     private static string ClassWithExternalItem(string prog, string asPhrase, string tag, int width, string declaratives, string callSibling) => $"""
         >>TURN EC-EXTERNAL-FORMAT-CONFLICT CHECKING ON
         IDENTIFICATION DIVISION.
@@ -337,7 +337,7 @@ public sealed class ModuleRegistrationHostTests
 
     /// <summary>kb/Work PB2920, the EXTERNAL-describer arm: the two modules' classes describe the external item
     /// <c>P2920X</c> as 4 and as 8 bytes. They are two classes (two externalized names), so each is a describer and the
-    /// second activation is §13.18.22 GR6's nonconformance (cite.py OK for §14.8.4.3): EC-EXTERNAL-FORMAT-CONFLICT, the
+    /// second activation is §2023:13.18.22 GR6's nonconformance (cite.py OK for §2023:14.8.4.3): EC-EXTERNAL-FORMAT-CONFLICT, the
     /// sibling's method never runs, and the declarative's RESUME continues. With the declared C# name as the describer's
     /// identity the two classes were ONE describer, the comparison skipped it, and the sibling's method ran.</summary>
     [Fact]

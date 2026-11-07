@@ -116,7 +116,7 @@ mkdir -p "$OUT"
 # ⚠ `*.g.cs` is a greenfield artefact and must be cleaned with everything else: `cobol` writes the generated
 # C# next to each output assembly, where a stale copy would mislead a post-mortem. (`*.cbattr` used to be swept
 # here too — the fixed-file-attribute catalog sidecar. It no longer exists: owner decision 2026-09-07,
-# kb/Work PB802, put a keyed file's §9.1.6 attributes in the store's own header, so nothing outlives the data
+# kb/Work PB802, put a keyed file's §2023:9.1.6 attributes in the store's own header, so nothing outlives the data
 # file the `*.txt` sweep removes.)
 rm -f "$OUT"/*.dll "$OUT"/*.runtimeconfig.json "$OUT"/*.txt "$OUT"/*.compile.log "$OUT"/*.compile.rc \
       "$OUT"/*.g.cs

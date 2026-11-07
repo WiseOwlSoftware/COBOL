@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §7.3.13.4 GR5 GR6 — format 1 EVALUATE directive with no
+      *> ISO §2023:7.3.13.4 GR5 GR6 — format 1 EVALUATE directive with no
       *> TRUE WHEN: WHEN OTHER text-2 included; with no WHEN OTHER,
       *> every WHEN text-1 omitted.
       *> RULE 7.3.13.4 GR5: "If no WHEN phrase evaluates to TRUE, all
@@ -19,8 +19,8 @@
       *>   associated with all WHEN phrases are omitted from the
       *>   resultant text."
       *> cite.py:
-      *>   OK  §7.3.13.4 5)  (General rules)
-      *>   OK  §7.3.13.4 6)  (General rules)
+      *>   OK  §2023:7.3.13.4 5)  (General rules)
+      *>   OK  §2023:7.3.13.4 6)  (General rules)
       *> EXPECTED OUTPUT, DERIVED:
       *>   A-OTHER-LINE-1   subject 5: not = 1, not in 2 THRU 4, so
       *>   A-OTHER-LINE-2   every line of WHEN OTHER text-2 is included

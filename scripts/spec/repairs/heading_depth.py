@@ -84,8 +84,8 @@ def main() -> int:
         num = m.group("num")
         # The outline's level EQUALS the dotted depth for all 1,728 numbered entries — verified, zero
         # exceptions. So depth is a proven proxy, which matters because 374 markdown headings have no outline
-        # entry at all (the outline omits some leaves). Using the outline alone would repair §15.7 and leave
-        # §15.7.1 behind, replacing one inconsistency with another. Where an entry EXISTS the two agree by
+        # entry at all (the outline omits some leaves). Using the outline alone would repair §2023:15.7 and leave
+        # §2023:15.7.1 behind, replacing one inconsistency with another. Where an entry EXISTS the two agree by
         # construction; the assertion below keeps it that way rather than trusting the measurement to hold.
         depth = num.count(".") + 1
         if num in auth:

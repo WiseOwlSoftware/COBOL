@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.18.49.4 2) — SAME AS a group: names, hierarchy, levels
+      *> ISO §2023:13.18.49.4 2) — SAME AS a group: names, hierarchy, levels
       *> > 49
       *> "If data-name-1 describes a group item: a) the subject of the
       *> entry is a group whose subordinate elements have the same
@@ -17,14 +17,14 @@
       *> cite.py --check 13.18.49.4 "the subject of the entry is a group
       *>   whose subordinate elements have the same names, descriptions,
       *>   and hierarchy as the subordinate elements of data-name-1"
-      *>   -> OK §13.18.49.4 2) a)
+      *>   -> OK §2023:13.18.49.4 2) a)
       *> cite.py --check 13.18.49.4 "the level-numbers of items
       *>   subordinate to that group are adjusted, if necessary, to
       *>   preserve the hierarchy of data-name-1"
-      *>   -> OK §13.18.49.4 2) b)
+      *>   -> OK §2023:13.18.49.4 2) b)
       *> cite.py --check 13.18.49.4 "level-numbers in the resulting
-      *>   hierarchy may exceed 49" -> OK §13.18.49.4 2) c)
-      *> Legality: §13.18.49.3 7) "Data-name-1 shall reference an
+      *>   hierarchy may exceed 49" -> OK §2023:13.18.49.4 2) c)
+      *> Legality: §2023:13.18.49.3 7) "Data-name-1 shall reference an
       *> elementary item or a level 1 group item" (--check OK): T is a
       *> level 1 group.
       *> WHY b) AND c) ARE FORCED: the subject S is at level 48 and T

@@ -14,7 +14,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ A DYNAMIC-CAPACITY TABLE IS ONLY EVER BUILT BY THE DESCRIPTION THAT READS IT, WHICH IS WHY ISO §14.6.13.2 RULE 6
+/// ⛔ A DYNAMIC-CAPACITY TABLE IS ONLY EVER BUILT BY THE DESCRIPTION THAT READS IT, WHICH IS WHY ISO §2023:14.6.13.2 RULE 6
 /// HAS NO RAISE SITE (kb/Work PB1118; docs/CONFORMANCE.md A.4.4). Rule 6 sets EC-DATA-INCOMPATIBLE "when the internal
 /// format of a dynamic-capacity table, as defined by the implementor, is not correctly formed or does not agree with
 /// the corresponding OCCURS clause". Its dynamic-LENGTH twin, rule 5, is reachable — a LINKAGE formal or a shared
@@ -22,8 +22,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <c>CobolDynString.Agree</c> asks the question there. A table cannot get into that position: the implementor's
 /// internal format is one <c>CobolDynTable</c> object, and every one a program reads was CONSTRUCTED from that
 /// program's own OCCURS clause (its FROM minimum and TO expected capacity) or RECREATED into it by
-/// <c>FromCurrentImage</c>, which applies the receiving description's minimum (§14.6.9.2). A file record cannot hold
-/// one (§8.5.1.9.1 3)), and a LINKAGE one sits in a variable-length group formal, which crosses through that same
+/// <c>FromCurrentImage</c>, which applies the receiving description's minimum (§2023:14.6.9.2). A file record cannot hold
+/// one (§2023:8.5.1.9.1 3)), and a LINKAGE one sits in a variable-length group formal, which crosses through that same
 /// recreation. ONE storage form does share a table across descriptions — a CELL-BACKED area (kb/Work PB1042: two
 /// programs describing one EXTERNAL record) — and there rule 6 is reachable and is asked on every reference:
 /// <c>StorageCell.DynTableAt</c> takes the REFERENCING description's minimum and element width, carried by the
@@ -60,7 +60,7 @@ public sealed class DynamicCapacityAgreementDriftTests
     }
 
     /// <summary>The emitted recreation of a table from another description's content is the ONE group-image codec's
-    /// (<c>GroupImageCodec</c> — the §14.9.25.4 GR9 MOVE and the activation-boundary transfer), which recreates it
+    /// (<c>GroupImageCodec</c> — the §2023:14.9.25.4 GR9 MOVE and the activation-boundary transfer), which recreates it
     /// at the RECEIVING description.</summary>
     [Fact]
     public void ATableIsRecreatedOnlyThroughTheReceivingDescription()

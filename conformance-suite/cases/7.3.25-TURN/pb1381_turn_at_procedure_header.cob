@@ -5,58 +5,58 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §7.3.25.4 GR6/GR8 - a >>TURN written between an activated
+      *> ISO §2023:7.3.25.4 GR6/GR8 - a >>TURN written between an activated
       *> element's DATA DIVISION and its PROCEDURE DIVISION header
       *> governs that header, so it decides the activated half of the
       *> "enabled in both" parameter-conformance gates (kb/Work PB1381)
-      *> RULE §7.3.25.4 GR6: "checking for the exception condition
+      *> RULE §2023:7.3.25.4 GR6: "checking for the exception condition
       *>   associated with exception-name-1 is enabled for the procedure
       *>   division statements and procedure division headers that
       *>   follow in the compilation group".
       *>   cite.py --check 7.3.25.4 "procedure division statements and
       *>   procedure division headers that follow in the compilation
-      *>   group" -> OK §7.3.25.4 6)
-      *> RULE §7.3.25.4 GR8: the OFF phrase disables checking "for all
+      *>   group" -> OK §2023:7.3.25.4 6)
+      *> RULE §2023:7.3.25.4 GR8: the OFF phrase disables checking "for all
       *>   procedure division statements and procedure division headers
       *>   that follow in the compilation group".
       *>   cite.py --check 7.3.25.4 "checking for the exception condition
       *>   associated with exception-name-1 is disabled for all
       *>   procedure division statements and procedure division
-      *>   headers" -> OK §7.3.25.4 8)
-      *> RULE §14.9.4.4 GR3 d): EC-PROGRAM-ARG-MISMATCH "is set to exist
+      *>   headers" -> OK §2023:7.3.25.4 8)
+      *> RULE §2023:14.9.4.4 GR3 d): EC-PROGRAM-ARG-MISMATCH "is set to exist
       *>   if checking for it is enabled in both the activated program
       *>   and activating runtime element".
       *>   cite.py --check 14.9.4.4 "is set to exist if checking for it
       *>   is enabled in both the activated program and activating
-      *>   runtime element" -> OK §14.9.4.4 3)
-      *> RULE §14.9.23.4 GR7 c): the same "enabled in both the activated
+      *>   runtime element" -> OK §2023:14.9.4.4 3)
+      *> RULE §2023:14.9.23.4 GR7 c): the same "enabled in both the activated
       *>   method and the activating runtime element" gate for
       *>   EC-OO-UNIVERSAL (cite.py --check 14.9.23.4 "is set to exist if
       *>   checking for it is enabled in both the activated method and
-      *>   the activating runtime element" -> OK §14.9.23.4 7)).
+      *>   the activating runtime element" -> OK §2023:14.9.23.4 7)).
       *>   GR7 c) is reached only by a BOUND method: GR7 b) resolves
-      *>   first by §9.3.6, whose match rules require a BY REFERENCE
+      *>   first by §2023:9.3.6, whose match rules require a BY REFERENCE
       *>   argument to have the formal's PICTURE (cite.py --check 9.3.6
       *>   "has the same ALIGNED, ANY LENGTH, BLANK WHEN ZERO, DYNAMIC
       *>   LENGTH, JUSTIFIED, PICTURE, SIGN, and USAGE clauses" -> OK,
       *>   labelled 3) d) 5. - the transcription nests e) under d)), so
-      *>   a USING descriptor mismatch matches NO method and is §9.3.6
+      *>   a USING descriptor mismatch matches NO method and is §2023:9.3.6
       *>   6)'s EC-OO-METHOD ("otherwise, the EC-OO-METHOD exception
-      *>   condition is set to exist" -> OK §9.3.6 6)). A RETURNING
-      *>   item only has to be a MOVE receiver (§9.3.6 7) -> OK), so a
+      *>   condition is set to exist" -> OK §2023:9.3.6 6)). A RETURNING
+      *>   item only has to be a MOVE receiver (§2023:9.3.6 7) -> OK), so a
       *>   PIC 9(6) receiver BINDS a PIC 9(4) returning method, and
-      *>   §14.8.3.3's same-PICTURE conformance ("the receiving operand
+      *>   §2023:14.8.3.3's same-PICTURE conformance ("the receiving operand
       *>   shall have the same ALIGN, BLANK WHEN ZERO, DYNAMIC LENGTH,
-      *>   JUSTIFIED, PICTURE, SIGN, and USAGE clauses" -> OK §14.8.3.3)
+      *>   JUSTIFIED, PICTURE, SIGN, and USAGE clauses" -> OK §2023:14.8.3.3)
       *>   is the violation GR7 c) names.
-      *> §14.8.4.1's "before the Environment division" fold point is
+      *> §2023:14.8.4.1's "before the Environment division" fold point is
       *>   the EC-EXTERNAL conditions' alone; it is not these rules'.
       *> SET-UP: line 1 enables both conditions, so every activating
       *>   statement of PB1381P is enabled. The CALLs pass TWO
       *>   arguments to one-formal programs (a count violation); the
       *>   INVOKE receives TAKE's PIC 9(4) returning item into PIC 9(6)
-      *>   through a universal object reference (bound by §9.3.6 7),
-      *>   a §14.8.3.3 returning-item conformance violation).
+      *>   through a universal object reference (bound by §2023:9.3.6 7),
+      *>   a §2023:14.8.3.3 returning-item conformance violation).
       *>   PB1381A: EC-ALL OFF before its IDENTIFICATION DIVISION, then
       *>     EC-PROGRAM-ARG-MISMATCH ON just before its header.
       *>   PB1381B: EC-PROGRAM-ARG-MISMATCH OFF just before its header.

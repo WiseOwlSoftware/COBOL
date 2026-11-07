@@ -16,7 +16,7 @@ using CnFrontend = WiseOwl.Cobol.Frontend.Frontend;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// PERFORM Format 3 (§14.9.28) grammar parse tests (design §6.1). These are PARSE-only — they exercise the
+/// PERFORM Format 3 (§2023:14.9.28) grammar parse tests (design §6.1). These are PARSE-only — they exercise the
 /// greedy-safe grammar (the <c>whenOperandAhead()</c> continuation predicate) and the Formats-2/3 merge in
 /// isolation from the binder/emitter. The load-bearing regression net is defect-2: a WHEN body's leading verb
 /// (RESUME, RAISE, …) must NOT be annexed as a spurious second exception-name.
@@ -102,7 +102,7 @@ public sealed class PerformFormat3ParseTests
         Assert.Single(Descendants<CobolParserCore.PerformWhenEcItemContext>(r.Tree!));
     }
 
-    // ── (2) RESUME AT? — all four spellings parse (the §14.9.33.2 AT-optional fix).
+    // ── (2) RESUME AT? — all four spellings parse (the §2023:14.9.33.2 AT-optional fix).
     [Theory]
     [InlineData("RESUME NEXT STATEMENT")]
     [InlineData("RESUME AT NEXT STATEMENT")]
@@ -170,8 +170,8 @@ public sealed class PerformFormat3ParseTests
 
     // imp-2 immediately followed by FINALLY: FINALLY must be the phrase, not a 2nd exception-name.
     // ⛔ THE SUBJECT IS THE OPERAND BOUNDARY, AND IT IS MEASURED ON A CONFORMING STATEMENT (kb/Work PB396).
-    // This case used to write `WHEN EC-SIZE` with an EMPTY imperative-statement-2. §14.9.28.2 Format 3 prints
-    // imperative-statement-2 UNBRACKETED inside the WHEN brace, and §5.2.6.3 makes a brace group's content
+    // This case used to write `WHEN EC-SIZE` with an EMPTY imperative-statement-2. §2023:14.9.28.2 Format 3 prints
+    // imperative-statement-2 UNBRACKETED inside the WHEN brace, and §2023:5.2.6.3 makes a brace group's content
     // required, so the empty spelling was never legal — the grammar accepted it only because the body was
     // written `statementBlock*`. The boundary question (does `whenOperandAhead()` let FINALLY be annexed as a
     // second exception-name?) is the same question with a body present, and is asked here on source the
@@ -188,8 +188,8 @@ public sealed class PerformFormat3ParseTests
         Assert.Single(Descendants<CobolParserCore.PerformWhenEcItemContext>(r.Tree!));
     }
 
-    /// <summary>The same statement with imperative-statement-2 OMITTED is refused: §14.9.28.2 Format 3 leaves it
-    /// unbracketed inside the WHEN brace, and §5.2.6.2 licenses an omission only for a bracketed portion
+    /// <summary>The same statement with imperative-statement-2 OMITTED is refused: §2023:14.9.28.2 Format 3 leaves it
+    /// unbracketed inside the WHEN brace, and §2023:5.2.6.2 licenses an omission only for a bracketed portion
     /// (kb/Work PB396).</summary>
     [Fact]
     public void EmptyImp2_IsRejected()
@@ -198,7 +198,7 @@ public sealed class PerformFormat3ParseTests
             "    PERFORM\n        ADD 1 TO N\n    WHEN EC-SIZE\n    FINALLY DISPLAY \"f\"\n    END-PERFORM.\n"
             + "    STOP RUN."), 2023);
         Assert.True(r.Diags.HasErrors,
-            "a WHEN phrase with no imperative-statement-2 parsed — ISO §14.9.28.2 Format 3 prints it unbracketed.");
+            "a WHEN phrase with no imperative-statement-2 parsed — ISO §2023:14.9.28.2 Format 3 prints it unbracketed.");
     }
 
     [Fact]

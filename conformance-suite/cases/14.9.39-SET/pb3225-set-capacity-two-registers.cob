@@ -4,10 +4,10 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.39.2 Format 14 - `SET data-name-2 { TO | UP BY | DOWN BY } ...` prints ONE receiving operand and no
-      *> ellipsis, and §14.9.39.3 SR29 makes it a CAPACITY register:
+      *> ISO §2023:14.9.39.2 Format 14 - `SET data-name-2 { TO | UP BY | DOWN BY } ...` prints ONE receiving operand and no
+      *> ellipsis, and §2023:14.9.39.3 SR29 makes it a CAPACITY register:
       *>   "Data-name-2 shall reference a data item defined in the CAPACITY phrase of a dynamic-capacity-table format
-      *>   OCCURS clause."   cite.py: OK  §14.9.39.3 29)  (Syntax rules)
+      *>   OCCURS clause."   cite.py: OK  §2023:14.9.39.3 29)  (Syntax rules)
       *> Both operands are CAPACITY registers, so SR29 admits each, but the format prints data-name-2 once:
       *> two receiving operands are no Format 14.
       *> No printed SET format admits the list, in EITHER order of its operands (kb/Work PB3225): the statement is

@@ -15,16 +15,16 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ WHAT A MODULE PUBLISHES IS WHAT THE CODEC WROTE (ISO §8.13; DESIGN-external-repository §6.2, §7.4, §9.1, §17.2, §17.3,
-/// §17.7; kb/Work PB2100). §8.13 stores each source unit's signature — "the description of the parameters of the source unit,
+/// ⛔ WHAT A MODULE PUBLISHES IS WHAT THE CODEC WROTE (ISO §2023:8.13; DESIGN-external-repository §6.2, §7.4, §9.1, §17.2, §17.3,
+/// §17.7; kb/Work PB2100). §2023:8.13 stores each source unit's signature — "the description of the parameters of the source unit,
 /// if any, and the manner of receiving parameters (by reference or by value) and whether they are optional or not", the
 /// returning item, the entry convention, DECIMAL-POINT IS COMMA, the currency symbols — and "The implementor shall provide a
 /// mechanism that allows the user to specify whether to update the external repository when a compilation unit is compiled".
 /// A module built with <c>--repository-update on</c> (the default) therefore carries, through
 /// <see cref="RepositoryAttributeRenderer"/>, a record that <see cref="RepositoryReader"/> reads back EQUAL to
 /// <see cref="RepositoryCodec.Of"/> of every unit it publishes (a record is a value, so equality is every field); with
-/// <c>off</c> it carries none and the reader says so. §6.2's encoding rules are pinned by fixtures that hold each structured
-/// value and lack it, and every refusal of §15.3 is a typed outcome.
+/// <c>off</c> it carries none and the reader says so. §2023:6.2's encoding rules are pinned by fixtures that hold each structured
+/// value and lack it, and every refusal of §2023:15.3 is a typed outcome.
 /// </summary>
 public sealed class RepositoryReaderTests : WiseOwlCobolTestBase
 {
@@ -41,7 +41,7 @@ public sealed class RepositoryReaderTests : WiseOwlCobolTestBase
         Assert.True(outcome.Failure == RepositoryReadFailure.None, outcome.Detail);
         Assert.Equal(expected, outcome.Records);
 
-        // Each decoded record still answers as the unit does (§6.3's invariant), so the published record is the unit's.
+        // Each decoded record still answers as the unit does (§2023:6.3's invariant), so the published record is the unit's.
         foreach (var record in outcome.Records)
         {
             var decoded = RepositoryCodec.Decode(record);
@@ -67,8 +67,8 @@ public sealed class RepositoryReaderTests : WiseOwlCobolTestBase
         }
     }
 
-    /// <summary>A class's and an interface's records (ISO §8.13 "the object properties of the source unit" and "the methods
-    /// contained in the source unit"; §6.2 "Anchoring"): what the module carries — the facts on the class's type, the
+    /// <summary>A class's and an interface's records (ISO §2023:8.13 "the object properties of the source unit" and "the methods
+    /// contained in the source unit"; §2023:6.2 "Anchoring"): what the module carries — the facts on the class's type, the
     /// methods on the CLR methods that implement them, the factory's on its own type — reads back equal to the codec's, in the
     /// index's order (interfaces, classes, host entries).</summary>
     [Fact]
@@ -84,7 +84,7 @@ public sealed class RepositoryReaderTests : WiseOwlCobolTestBase
         Assert.True(outcome.Failure == RepositoryReadFailure.None, outcome.Detail);
         Assert.Equal(expected, outcome.Records);
 
-        // Each decoded method still answers as the bound method does (§6.3's invariant).
+        // Each decoded method still answers as the bound method does (§2023:6.3's invariant).
         foreach (var (record, methods) in RepositoryCodecTests.OoRecordsOf(comp))
         {
             var decoded = RepositoryCodec.Decode(outcome.Records.Single(r => r.Kind == record.Kind && r.Name == record.Name));
@@ -109,7 +109,7 @@ public sealed class RepositoryReaderTests : WiseOwlCobolTestBase
         var (dll, _, _) = CompileFixture(repositoryUpdate: false);
         using RepositoryIndex index = RepositoryIndex.Open(dll).Index!;
         Assert.False(index.HasSignatures);
-        Assert.Equal(3, index.Units.Count);   // the index and the unit identities stay (§7.1): the group is locatable by name
+        Assert.Equal(3, index.Units.Count);   // the index and the unit identities stay (§2023:7.1): the group is locatable by name
         Assert.Equal(RepositoryReadFailure.NoSignatures, RepositoryReader.Read(index).Failure);
         var md = index.Metadata;
         var schema = md.CustomAttributes.Select(h => RepositoryIndex.SchemaAttributeName(md, md.GetCustomAttribute(h))).OfType<string>().ToHashSet();
@@ -125,7 +125,7 @@ public sealed class RepositoryReaderTests : WiseOwlCobolTestBase
         Assert.True(File.ReadAllBytes(first).AsSpan().SequenceEqual(File.ReadAllBytes(second)), "two compiles of one group differ");
     }
 
-    // ── §6.2 rules 2 and 3: each structured value with it and without it ───────────────────────────────────────────────
+    // ── §2023:6.2 rules 2 and 3: each structured value with it and without it ───────────────────────────────────────────────
 
     public static TheoryData<string> EncodingFixtures => [.. Fixtures.Keys];
 
@@ -177,7 +177,7 @@ public sealed class RepositoryReaderTests : WiseOwlCobolTestBase
         },
     };
 
-    // ── §15.3: what the reader refuses ─────────────────────────────────────────────────────────────────────────────
+    // ── §2023:15.3: what the reader refuses ─────────────────────────────────────────────────────────────────────────────
 
     [Theory]
     [InlineData("EditRuleChar1 = new char[] { 'a' }, EditRuleNeg = new string[] { }, EditRulePos = new string[] { \"\" }, EditRuleSimpleInsertion = new bool[] { true }, EditRuleFloating = new bool[] { false }", "EditRule")]
@@ -233,7 +233,7 @@ public sealed class RepositoryReaderTests : WiseOwlCobolTestBase
         Assert.Equal(RepositoryReadFailure.OtherSchemaVersion, Read(otherSchema + unit("A", "")).Failure);
     }
 
-    /// <summary>§15.3 for the OO records: a class whose unit names no factory type, a factory type the module does not hold, a
+    /// <summary>§2023:15.3 for the OO records: a class whose unit names no factory type, a factory type the module does not hold, a
     /// method on the factory type that does not say it is a factory method, and a formal on a CLR method that carries no
     /// <see cref="CobolMethodAttribute"/> are each malformed.</summary>
     [Theory]
@@ -293,7 +293,7 @@ public sealed class RepositoryReaderTests : WiseOwlCobolTestBase
     /// <summary>The records of <paramref name="records"/> rendered by <see cref="RepositoryAttributeRenderer"/> into ONE library
     /// — a program's on a class of its own, its formals on a <c>Call</c>'s parameters and its returning item on the return
     /// value, as a host entry carries them; a class's on a class with each object method a method of it and each factory
-    /// method one of the factory type the record names; an interface's on an interface (§6.2 "Anchoring") — compiled by Roslyn
+    /// method one of the factory type the record names; an interface's on an interface (§2023:6.2 "Anchoring") — compiled by Roslyn
     /// and read back by <see cref="RepositoryReader"/>. Two records may not share a kind and externalized name (one module, one
     /// unit per name).</summary>
     internal static IReadOnlyList<RepositoryRecord> ReadLibrary(IReadOnlyList<RepositoryRecord> records)

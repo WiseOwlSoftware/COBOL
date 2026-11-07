@@ -6,7 +6,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.87 SUBSTITUTE — argument-1 with each occurrence of argument-2 replaced by argument-3. Default is
+      *> ISO §2023:15.87 SUBSTITUTE — argument-1 with each occurrence of argument-2 replaced by argument-3. Default is
       *> ALL occurrences; FIRST (rule 3.a) / LAST (rule 3.b) restrict to one; ANYCASE (rule 5) folds case; multiple
       *> argument-2/argument-3 pairs apply in one left-to-right pass (rules 3/4). S1 = "ABABAB", S2 = "CAT DOG".
        IDENTIFICATION DIVISION.

@@ -4,21 +4,21 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.69.2 general format — "FUNCTION NUMVAL-F ( argument-1 )". This is the DEFICIT direction
+      *> ISO §2023:15.69.2 general format — "FUNCTION NUMVAL-F ( argument-1 )". This is the DEFICIT direction
       *> of the same single argument position that conformance:cases/15.69-NUMVAL-F/l1-numvalf-arity pins in the
       *> excess direction. The figure prints exactly ONE argument position: no repetition brace, no
-      *> bracketed second position, and nothing making the one position optional. §15.3 opens "The
+      *> bracketed second position, and nothing making the one position optional. §2023:15.3 opens "The
       *> definition of a function specifies the number of arguments required, which may be zero, one, or
-      *> more" — and §15.69.2 IS that definition — so the count in the figure is a bound in BOTH
+      *> more" — and §2023:15.69.2 IS that definition — so the count in the figure is a bound in BOTH
       *> directions, and a reference supplying none is not a NUMVAL-F reference. COBOL1504
-      *> ("FUNCTION NUMVAL-F takes 1 argument(s); 0 given (ISO §15.3)").
+      *> ("FUNCTION NUMVAL-F takes 1 argument(s); 0 given (ISO §2023:15.3)").
       *>
       *> ⚠ ITS OWN FILE, DELIBERATELY. An empty argument list is the one arity shape that could in
       *> principle be refused by the PARSER rather than by the arity check; kept apart from
       *> l1-numvalf-arity so that a parse abort here can never mask the excess-direction fixture's
       *> diagnostic, and so each direction fails or passes on its own evidence.
       *>
-      *> The ADMIT side of the format — the one-argument reference written exactly as §15.69.2 prints
+      *> The ADMIT side of the format — the one-argument reference written exactly as §2023:15.69.2 prints
       *> it — is conformance:cases/15.69.3-Argument-rules/numvalf_decimal_comma_and_spaces.
       *>
       *> reject-at omits 85: NUMVAL-F was introduced by ISO/IEC 1989:2002, so below 2002 the reference

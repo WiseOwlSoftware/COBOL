@@ -5,7 +5,7 @@
 // communication section, its communication description entries and the statements over them. The design is
 // docs/rearchitecture/DESIGN-communication-facility.md (kb/Work PB4677). Each general format below was measured on the
 // printed page of the 2002 text (folios 666-667, 677-679, 680, 681, 683): SYMBOLIC, IS, FOR, the MESSAGE of MESSAGE COUNT,
-// TIMES, BY, WITH, ADVANCING and the LINE of REPLACING LINE carry no underline, so each is an optional word (§5.2.3).
+// TIMES, BY, WITH, ADVANCING and the LINE of REPLACING LINE carry no underline, so each is an optional word (§2023:5.2.3).
 // Every rule parses at every edition (the union grammar); VersionConformancePass gates the facility on recognition.
 // Imported by CobolParserCore.g4 — no options block beyond the vocabulary.
 
@@ -30,7 +30,7 @@ communicationDescriptionEntry
 
 // cd-name-1 is a user-defined word (ISO/IEC 1989:2002 8.3.1.1.1, A.1.2.1), so it does not ride dataName, whose FILLER is a reserved
 // word: the fileControlClauseGroup shape, whose reservedGatedWord and the funnel's position for cobolWord
-// (IsProvableUserWordPosition) make a word §8.9 reserves draw COBOL0901. The actions record the name for keywordContinuesHere, and for
+// (IsProvableUserWordPosition) make a word §2023:8.9 reserves draw COBOL0901. The actions record the name for keywordContinuesHere, and for
 // communicationNameFollows: a SEND of the COBOL-85 format 1 and of the 2023 format are the same tokens.
 cdName
     : (cobolWord | reservedGatedWord) { declareName(TokenStream.LT(-1)); declareCommunicationName(TokenStream.LT(-1)); }

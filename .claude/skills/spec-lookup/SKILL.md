@@ -21,11 +21,11 @@ rule 1). If you catch yourself starting from a failing diff, stop and restart at
 `specs/ISO_COBOL_2023.md` — TRACKED in this repository. (The private `specs-private` submodule holds only the licensed
 PDF, needed only to render a page.)
 
-Rules live as **Syntax Rules (SR)** and **General Rules (GR)** per statement (§14.9.x) and clause (§11/§12/§13.x),
-plus §8 concepts (classes and categories §8.5, conditions §8.8.4, reference and ref-mod §8.4, standard conversions
-§8.5.1, expressions §8.8), §15 intrinsics, Annex A (required documented behavior), Annex E (edition deltas), and
+Rules live as **Syntax Rules (SR)** and **General Rules (GR)** per statement (§2023:14.9.x) and clause (§11/§12/§13.x),
+plus §8 concepts (classes and categories §2023:8.5, conditions §2023:8.8.4, reference and ref-mod §2023:8.4, standard conversions
+§2023:8.5.1, expressions §2023:8.8), §15 intrinsics, Annex A (required documented behavior), Annex E (edition deltas), and
 Annex F (obsolete/archaic). `python scripts/spec/where.py <clause> [rule]` lists the code that already cites a rule.
-Statement nesting, phrase ownership and scope (which statement a conditional phrase or an imperative-statement belongs to) are decided by §14.5.3 Scope of statements, not by §14.5.1's definitions (fuzz night 5, kb/Work PB3830).
+Statement nesting, phrase ownership and scope (which statement a conditional phrase or an imperative-statement belongs to) are decided by §2023:14.5.3 Scope of statements, not by §2023:14.5.1's definitions (fuzz night 5, kb/Work PB3830).
 
 ## 2. If a general format (a DIAGRAM) is load-bearing
 

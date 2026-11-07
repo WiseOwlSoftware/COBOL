@@ -5,9 +5,9 @@
       *> portable: unverified
       *>---
       *> RECEIVE FROM WS-TAG GIVING NOSUCH-BUF WS-LEN - identifier-1 names nothing. Expected: COBOL1639.
-      *> ISO §14.9.31.3 SR2 - "The data description entries of identifier-1 or any data items subordinate to it
+      *> ISO §2023:14.9.31.3 SR2 - "The data description entries of identifier-1 or any data items subordinate to it
       *> shall not contain the ANY LENGTH clause, ..." - identifier-1 has no data description entry at all.
-      *>   cite.py: OK  §14.9.31.3 2)  (Syntax rules)
+      *>   cite.py: OK  §2023:14.9.31.3 2)  (Syntax rules)
       *> SEND and RECEIVE are the declined asynchronous messaging facility (COBOL1578, docs/CONFORMANCE.md
       *> section 4 item 1; Annex A.3 item 4, section 4.2.6). Declining a facility declines its behaviour, not the
       *> identifiers its statements name: the statement binds to a no-op, and every operand that is an

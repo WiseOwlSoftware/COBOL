@@ -18,13 +18,13 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <list type="bullet">
 /// <item><c>KeyReference</c> keeps the name and qualifiers and DISCARDS the rest — so the report-writer
 /// <c>OCCURS … DEPENDING ON WS-TE (2)</c> bound the unsubscripted name and printed the wrong number of
-/// repetitions, in silence, while ISO §13.18.38.3 SR2 says "Data-name-1 and data-name-2 shall not be
+/// repetitions, in silence, while ISO §2023:13.18.38.3 SR2 says "Data-name-1 and data-name-2 shall not be
 /// subscripted";</item>
 /// <item><c>dataReference()?.GetText()</c> GLUES the tokens — so the data-division <c>DEPENDING ON CNT OF G1</c>
 /// became the undefined name <c>CNTOFG1</c> (legal source rejected) and <c>CAPACITY IN CAP3 (1)</c> silently
 /// defined a register spelled <c>CAP3(1)</c>.</item>
 /// </list>
-/// <c>ClauseDataName</c> is the ONE capture: it screens the shapes §8.4.2.2.2 Format 1 does not admit and keeps
+/// <c>ClauseDataName</c> is the ONE capture: it screens the shapes §2023:8.4.2.2.2 Format 1 does not admit and keeps
 /// the qualifiers. These guards keep it the only one.
 /// </summary>
 [Trait("Sweep", "tree")]
@@ -63,10 +63,10 @@ public sealed class OccursOperandCaptureDriftTests
         string[] allowed =
         [
             "ClauseDataName",          // DataBinder.cs — calls it only after ScreenClauseOperandShape passes
-            "ResolveReportCode",       // §13.18.12.3 SR2 RD CODE: the screen is over the BASE item; the written reference rides on
-            "SumAddendRef",            // §13.18.54 SUM identifier-1: a subscript is LEGAL and bound separately
-            "UponDetailRef",           // §13.18.54.3 SR7 UPON: screens subscript/ref-mod itself (COBOL2046)
-            "ControlOperandRef",       // §13.18.16.3 SR4 CONTROL: a ref-mod is LEGAL and kept separately
+            "ResolveReportCode",       // §2023:13.18.12.3 SR2 RD CODE: the screen is over the BASE item; the written reference rides on
+            "SumAddendRef",            // §2023:13.18.54 SUM identifier-1: a subscript is LEGAL and bound separately
+            "UponDetailRef",           // §2023:13.18.54.3 SR7 UPON: screens subscript/ref-mod itself (COBOL2046)
+            "ControlOperandRef",       // §2023:13.18.16.3 SR4 CONTROL: a ref-mod is LEGAL and kept separately
         ];
         var callers = BinderFiles()
             .SelectMany(f =>
@@ -92,7 +92,7 @@ public sealed class OccursOperandCaptureDriftTests
         Assert.Equal(allowed.OrderBy(m => m, StringComparer.Ordinal), callers);
     }
 
-    /// <summary>⛔ THE REPORT BINDER NEVER INVENTS AN OPERAND (kb/Work PB853). ISO §13.15.3 SR10 — "Every
+    /// <summary>⛔ THE REPORT BINDER NEVER INVENTS AN OPERAND (kb/Work PB853). ISO §2023:13.15.3 SR10 — "Every
     /// elementary entry with a COLUMN clause shall also contain either a SOURCE, VALUE or SUM clause" — had no
     /// site, and a <c>new FieldValueSource("SPACE")</c> stood in for the clause the programmer never wrote, which
     /// printed <c>000</c> under <c>PIC 999</c>. Every VALUE operand is the programmer's own literal; a
@@ -106,12 +106,12 @@ public sealed class OccursOperandCaptureDriftTests
         // Population: the VALUE-operand construction this guard polices is still in this file.
         Assert.Contains("new FieldValueSource(r)", src, StringComparison.Ordinal);
         Assert.DoesNotMatch(new Regex(@"new\s+FieldValueSource\(\s*""", RegexOptions.None), src);
-        // The screens run over each run of WRITTEN entries between the RD's constant entries (ReportEntryRuns, §13.8.2;
+        // The screens run over each run of WRITTEN entries between the RD's constant entries (ReportEntryRuns, §2023:13.8.2;
         // kb/Work PB1954), so each written entry is screened once; the walk is one call per RD (BindReportSectionEntries
         // binds the same runs), after every screen and so before the first run and every replay inside it.
         int screen = src.IndexOf("ScreenReportEntryClausePresence(run, model);", StringComparison.Ordinal);
         int walk = src.IndexOf("BindReportSectionEntries(entries, runs, model);", StringComparison.Ordinal);
-        Assert.True(screen > 0 && walk > screen, "the §13.15.3 clause-presence screen must run once per RD, "
+        Assert.True(screen > 0 && walk > screen, "the §2023:13.15.3 clause-presence screen must run once per RD, "
             + "before the entry walk and its replays");
     }
 }

@@ -6,7 +6,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.96 TRIM — delete LEADING (rule 1) / TRAILING (rule 2) / both (rule 3) characters matching the
+      *> ISO §2023:15.96 TRIM — delete LEADING (rule 1) / TRAILING (rule 2) / both (rule 3) characters matching the
       *> delete set. With no argument-2 the set is a space (rule 3.a, the 2014 form); an explicit single-character
       *> argument-2 (here "0") is the 2023 enhancement (Annex E.3.3 item 31). WS-S = "  HELLO   ".
        IDENTIFICATION DIVISION.

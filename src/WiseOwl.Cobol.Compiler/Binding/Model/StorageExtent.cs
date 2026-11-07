@@ -5,11 +5,11 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// <summary>⛔ THE COMPILE-TIME STORAGE EXTENT OF AN OPERAND — which storage area it lies in, where it starts and how
 /// many bytes it spans — and the ONE answer to "do these two operands STATICALLY overlap?" (kb/Work PB1907;
 /// docs/CONFORMANCE.md §3 D-OVL1).
-/// <para>ISO §14.6.10 1): "if the operands … are not described by the same data description entry … and the
+/// <para>ISO §2023:14.6.10 1): "if the operands … are not described by the same data description entry … and the
 /// storage areas overlap, the result of the statement is undefined" (Annex A.2 item 36). The standard leaves the
 /// result open, so WiseOwl COBOL documents what it does, and a rule that depends on overlap needs the overlap
 /// to be a FACT the binder can read, not a guess the emitter makes. This is that fact. It is known only where the
-/// compiler can prove it: both operands live in ONE storage area (a REDEFINES class, §13.18.44, or one record) and
+/// compiler can prove it: both operands live in ONE storage area (a REDEFINES class, §2023:13.18.44, or one record) and
 /// every offset and length is a constant. An operand under OCCURS, a dynamic or variable-length item, a USAGE
 /// NATIONAL or BIT operand, a reference modification with a run-time bound, or a RENAMES span answers
 /// <see langword="null"/>, and a null is "not provably overlapping" — never "disjoint".</para>
@@ -26,7 +26,7 @@ public readonly record struct StorageExtent(DataItem Area, int Start, int Length
         ReferenceEquals(Area, other.Area) && Start < other.Start + other.Length && other.Start < Start + Length;
 
     /// <summary>The static extent of <paramref name="place"/>, or null when it is not provable (see the type's
-    /// summary). A reference modification narrows its inner extent by its literal bounds (§8.4.3.3.4 GR5);
+    /// summary). A reference modification narrows its inner extent by its literal bounds (§2023:8.4.3.3.4 GR5);
     /// the image decorators keep their inner item's extent.</summary>
     public static StorageExtent? Of(Place place) => place switch
     {
@@ -40,7 +40,7 @@ public readonly record struct StorageExtent(DataItem Area, int Start, int Length
 
     private static StorageExtent? OfRefMod(RefModPlace r)
     {
-        // Positions are CHARACTER positions (§8.4.3.3.4 GR5a); they are bytes only for a DISPLAY-usage operand,
+        // Positions are CHARACTER positions (§2023:8.4.3.3.4 GR5a); they are bytes only for a DISPLAY-usage operand,
         // which is the only kind whose extent this answers (USAGE NATIONAL / BIT operands answer null above).
         if (Of(r.Inner) is not { } inner || r.Start.Int32Literal is not { } start || start < 1) return null;
         if (r.StaticLength(inner.Length) is not { } len || len < 1 || start - 1 + len > inner.Length) return null;

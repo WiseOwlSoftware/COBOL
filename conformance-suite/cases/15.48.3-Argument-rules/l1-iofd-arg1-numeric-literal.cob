@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.48.3 r1 — "Argument-1 shall be a national or alphanumeric literal."
+      *> ISO §2023:15.48.3 r1 — "Argument-1 shall be a national or alphanumeric literal."
       *> A numeric literal is of neither admitted class, so this program is not
       *> legal COBOL and must be rejected. That much is the rule, and it is what
       *> this case witnesses.

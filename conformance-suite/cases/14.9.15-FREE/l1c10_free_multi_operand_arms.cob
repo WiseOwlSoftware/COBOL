@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.15 FREE — format, GR1 a) b) c) and GR2 order/resume
+      *> ISO §2023:14.9.15 FREE — format, GR1 a) b) c) and GR2 order/resume
       *>
       *> Rows pinned: FMT-14.9.15.2, GR-14.9.15.4-1, GR-14.9.15.4-2.
       *>  Format "FREE { data-name-1 } ..." (one or more operands).
@@ -32,12 +32,12 @@
       *>  normally, execution continues as specified in the rules
       *>  for normal execution" (here: GR2's resumption).
       *> cite.py --check:
-      *>  OK  §14.9.15.2   (General format)
-      *>  OK  §14.9.15.4 1) a)  (General rules)
-      *>  OK  §14.9.15.4 1) b)  (General rules)
-      *>  OK  §14.9.15.4 1) c)  (General rules)
-      *>  OK  §14.9.15.4 2)  (General rules)
-      *>  OK  §14.6.13.1.4 3)  (Nonfatal exception conditions)
+      *>  OK  §2023:14.9.15.2   (General format)
+      *>  OK  §2023:14.9.15.4 1) a)  (General rules)
+      *>  OK  §2023:14.9.15.4 1) b)  (General rules)
+      *>  OK  §2023:14.9.15.4 1) c)  (General rules)
+      *>  OK  §2023:14.9.15.4 2)  (General rules)
+      *>  OK  §2023:14.6.13.1.4 3)  (Nonfatal exception conditions)
       *>
       *> Derivation of each expected line (EC lines come from the
       *> declarative; K counts them):

@@ -11,16 +11,16 @@ options {
 }
 
 // ⛔ NOT A CLAUSE, AND NOT A VENDOR HOOK — the grammar's ERROR PRODUCTION, in the two forms below (kb/Work PB829,
-// PB3390; the §13.16.2 half landed first as kb/Work PB487).
+// PB3390; the §2023:13.16.2 half landed first as kb/Work PB487).
 //
 // A word run matches ANY run of words, so wherever it sits in an alternative list it is a TOTAL SINK for everything
 // the named alternatives missed. It used to be reached from SIX sites spanning EIGHT closed general formats — the
-// data description entry (§13.16.2), the file description entry (§13.4.5.2), the sort-merge file description entry
-// (§13.4.6.2), the file control entry (§12.4.5.1), the I-O-CONTROL paragraph (§12.4.6.2), the SPECIAL-NAMES paragraph
-// (§12.3.7.2), the configuration section (§12.3.2) and the identification division (§11.2.1) — under the name of a
+// data description entry (§2023:13.16.2), the file description entry (§2023:13.4.5.2), the sort-merge file description entry
+// (§2023:13.4.6.2), the file control entry (§2023:12.4.5.1), the I-O-CONTROL paragraph (§2023:12.4.6.2), the SPECIAL-NAMES paragraph
+// (§2023:12.3.7.2), the configuration section (§2023:12.3.2) and the identification division (§2023:11.2.1) — under the name of a
 // "vendor/extension hook". It is not one: a vendor extension is admitted only under the dialect that owns it, never
 // by a catch-all, and this compiler declares no vendor dialect. What it actually did was SWALLOW a word run the format
-// does not define, at every edition and every strictness, with no diagnostic anywhere — §4.2.2's warning obligation
+// does not define, at every edition and every strictness, with no diagnostic anywhere — §2023:4.2.2's warning obligation
 // cannot be met for a construct the compiler never represents.
 //
 // Every one of those sites now spells `unrecognizedClause` or `unrecognizedDataClause`, and the run's pieces
@@ -32,14 +32,14 @@ options {
 // of one or more tokens). It must be the LAST alternative at every site: ANTLR takes the first matching alternative.
 //
 // ⛔ TWO FORMS, BECAUSE ONE TOKEN'S READING DEPENDS ON WHAT FOLLOWS THE LIST (kb/Work PB3390). An unsigned integer can
-// be the NEXT entry's level-number (ISO §8.3.2.2.13: "A level-number, expressed as a one-digit or two-digit number"),
+// be the NEXT entry's level-number (ISO §2023:8.3.2.2.13: "A level-number, expressed as a one-digit or two-digit number"),
 // and a level-numbered entry follows the period of only the data division's three lists: the data description entry
-// (§13.16.2), the file description entry (§13.4.5.2) and the sort-merge file description entry (§13.4.6.2), whose
+// (§2023:13.16.2), the file description entry (§2023:13.4.5.2) and the sort-merge file description entry (§2023:13.4.6.2), whose
 // record descriptions follow. A run that held the integer there read `01 X PIC X FOO` then `05 Y PIC X.`, the period
 // forgotten, as the ONE run `FOO 05 Y`, and Y's PICTURE as X's second (COBOL2423). Nothing that follows any other
-// list begins with an integer, and there the run must hold one: `SOURCE-COMPUTER. XYZ 12.` (ISO §12.3.5.2 prints
+// list begins with an integer, and there the run must hold one: `SOURCE-COMPUTER. XYZ 12.` (ISO §2023:12.3.5.2 prints
 // `SOURCE-COMPUTER. [ computer-name-1 ] .`) had ONE viable parse while the run could not open at it, the name-less
-// paragraph (§12.3.5.3 SR1 lets its second period go) followed by `XYZ 12` as an unrecognized configuration
+// paragraph (§2023:12.3.5.3 SR1 lets its second period go) followed by `XYZ 12` as an unrecognized configuration
 // paragraph, so XYZ was the refused word; `OBJECT-COMPUTER. XYZ 12.` read XYZ as an OBJECT-COMPUTER clause. With the
 // integer admitted the computer-name's reading is viable too, and ANTLR resolves the tie toward the lower alternative,
 // the name. The integer also continues the run: an IDENTIFIER-led `FOO 12` is one run, quoted by its opening (where a
@@ -48,7 +48,7 @@ options {
 // and `ClosedFormatDriftTests` derives which list writes which from the generated parser: the data form exactly where
 // a level-number may follow the list's period.
 // ⚠ The data form leaves out the integer-led comma decimal (`1,5`) too, although it is never a level-number (a comma
-// that no space follows is no separator, ISO §8.3.5 2), so `1,5` is one character-string): every item that begins
+// that no space follows is no separator, ISO §2023:8.3.5 2), so `1,5` is one character-string): every item that begins
 // with INTEGERLIT must be out, because a predicated alternative that is the only one viable at its first token throws
 // NoViableAlt there when its predicate fails — `FOO` then `05 Y` would draw a bare parse error at 05. The parse layer
 // refuses the comma decimal by name instead (CobolErrorStrategy), and a bare integer there is the missing period's.
@@ -78,9 +78,9 @@ unrecognizedDataClause
 // competes with no legal reading but a clause's own literal list, which keeps it (loop continuation is the lower
 // alternative). Every multi-token literal shape is held, or the run would end inside a literal at a bare parse error
 // with a false "a period may be missing" (`01 A PIC X FOO -1.`, `FOO "A" & "B"`): a sign-led numeric literal (ISO
-// §8.3.3.3.2 2), "If a sign is used, it shall appear as the leftmost character of the literal"; `-1` is MINUS INTEGERLIT
+// §2023:8.3.3.3.2 2), "If a sign is used, it shall appear as the leftmost character of the literal"; `-1` is MINUS INTEGERLIT
 // outside the list and argument regions), the DECIMAL-POINT IS COMMA literals (the leading-comma `,5` here, kb/Work
-// PB3390: `OBJECT-COMPUTER. XYZ ,5.` quoted XYZ while the run could not open at it) and a concatenation (§8.8.3.3 3),
+// PB3390: `OBJECT-COMPUTER. XYZ ,5.` quoted XYZ while the run could not open at it) and a concatenation (§2023:8.8.3.3 3),
 // "equivalent to a literal"), whose `&` continues the run (residueItem) with the operand after it.
 // The leading-comma decimal is numericLiteralCore's alternative, with its contiguity predicate (kb/Work PB1446: `, 5`
 // is a separator and an integer), and ClosedFormatDriftTests holds the split: residueOpening's numeric shapes and
@@ -152,18 +152,18 @@ valueClauseOperand
     | nonNumericLiteral
     ;
 
-// Range form for EVALUATE WHEN (full arithmetic) — §14.9.13.2's range-expression, INCLUDING the trailing
+// Range form for EVALUATE WHEN (full arithmetic) — §2023:14.9.13.2's range-expression, INCLUDING the trailing
 // `[ IN alphabet-name-1 ]` phrase, which is the only way a program can name the collating sequence that orders an
-// alphanumeric / national range (§14.7.8 rule 2: "When the IN alphabet-name phrase is specified, the collating
+// alphanumeric / national range (§2023:14.7.8 rule 2: "When the IN alphabet-name phrase is specified, the collating
 // sequence used for range evaluation is the collating sequence defined by that alphabet"; with no phrase the
 // ordering is "defined by the implementor"). MEASURED off the printed page (PDF p649 / folio 619): the bracket sits
-// AFTER the right-hand operand brace, `IN` is NOT underlined (an optional word, §5.2.3) and alphabet-name-1 is a
-// required operand of the bracketed phrase. The phrase was simply absent, so §14.9.13.3 SR3 — whose entire content
+// AFTER the right-hand operand brace, `IN` is NOT underlined (an optional word, §2023:5.2.3) and alphabet-name-1 is a
+// required operand of the bracketed phrase. The phrase was simply absent, so §2023:14.9.13.3 SR3 — whose entire content
 // is a constraint ON it — had no code site (kb/Work PB398).
 // ⚠ `IN` IS ALSO THE QUALIFICATION CONNECTIVE (`qualification : (OF | IN) cobolWord`), so over an identifier-4 the
 // two readings — `identifier-4 IN group` and `identifier-4` + the alphabet phrase — are BOTH complete parses and
 // ANTLR's greedy `dataReferenceSuffix*` loop takes the qualifier. That is an ambiguity only the resolved SYMBOL can
-// settle (§8.3.2.2: "a given user-defined word may be used as only one type of user-defined word", so an
+// settle (§2023:8.3.2.2: "a given user-defined word may be used as only one type of user-defined word", so an
 // alphabet-name is never a data-name, record-name or file-name qualifier), and it is NOT settled here: flipping the
 // grammar's preference would make the opposite legal reading — a genuinely qualified identifier-4 — unreachable
 // instead. EvaluateBinder.BindRangeHigh settles it by symbol (kb/Work PB843): a LAST `IN word` suffix that names a
@@ -171,7 +171,7 @@ valueClauseOperand
 // The LITERAL-operand spelling the printed figure shows never meets the ambiguity, since a literal takes no
 // qualifier.
 // ⛔ AND `IN` IS OPTIONAL (kb/Work PB983): the printed phrase underlines neither `IN` nor anything else in the
-// bracket (PDF p649 / folio 619 — "[ IN alphabet-name-1 ]" is plain type), so §5.2.3 makes `WHEN "M" THRU "A" AL`
+// bracket (PDF p649 / folio 619 — "[ IN alphabet-name-1 ]" is plain type), so §2023:5.2.3 makes `WHEN "M" THRU "A" AL`
 // conforming. With IN omitted the word is unambiguous HERE: after a complete right-hand operand only ALSO, WHEN or
 // the imperative statement's verb (all reserved) may follow a selection object, so a bare user-defined word can be
 // nothing but alphabet-name-1 — whose TYPE the binder still checks (EvaluateBinder.RangeAlphabet). The VALUE
@@ -203,7 +203,7 @@ condition
     : logicalOrExpression
     ;
 
-// ── THE CONDITION TIERS (ISO §8.8.4.9 / §8.8.4.11; precedence NOT > AND > XOR > OR, §8.8.4.11.3) ──
+// ── THE CONDITION TIERS (ISO §2023:8.8.4.9 / §2023:8.8.4.11; precedence NOT > AND > XOR > OR, §2023:8.8.4.11.3) ──
 // Each tier is an iterative loop whose leftmost element is the tier below, so `a OR b XOR c` groups as
 // `a OR (b XOR c)` and `a XOR b AND c` as `a XOR (b AND c)`. The tiers come in TWO spellings that differ in the
 // LEADING element only:
@@ -211,26 +211,26 @@ condition
 //     simple condition of the sequence — never abbreviated;
 //   * the SUCCEEDING tiers (succeedingXorExpression / succeedingAndExpression / succeedingCondition) are the
 //     operand of every connective, at every tier.
-// ⛔ ONE TAIL, AT EVERY TIER (kb/Work PB1390). §8.8.4.12.1: "any relation condition except the first may be
-// abbreviated", and §8.8.4.12.2's general format repeats ONE group — {AND | OR | EXCLUSIVE-OR | XOR} then
+// ⛔ ONE TAIL, AT EVERY TIER (kb/Work PB1390). §2023:8.8.4.12.1: "any relation condition except the first may be
+// abbreviated", and §2023:8.8.4.12.2's general format repeats ONE group — {AND | OR | EXCLUSIVE-OR | XOR} then
 // {NOT | simple-relational-operator | extended-relational-operator} then object-1 — with any connective in any
 // position. The abbreviated tail used to be spelled THREE different ways (OR admitted only an
 // abbreviated-AND chain with no bare/NOT continuation and no XOR, AND admitted an abbreviated relation only after
 // a leading one, XOR's right operand could not lead with one), so `A = B OR < C AND D`, `A = B XOR < C` and
 // `A = B OR < C XOR = D` were COBOL0001 at every edition. Now every connective's operand is a succeeding tier,
 // whose leftmost element is `succeedingCondition` — an abbreviated relation or an ordinary (NOT-)condition —
-// and the binder's AbbrevCarry threads §8.8.4.12.4 GR1's insertion through the sequence in source order.
+// and the binder's AbbrevCarry threads §2023:8.8.4.12.4 GR1's insertion through the sequence in source order.
 // PartialExpressionSpineDriftTests re-derives the succeeding tiers' tails from the leading tiers' own text.
 logicalOrExpression
     : logicalXorExpression ( OR succeedingXorExpression )*
     ;
 
-// COBOL-2023 logical exclusive-or (ISO §8.8.4.9; precedence NOT > AND > XOR > OR). XOR and EXCLUSIVE-OR are
-// equivalent (§8.8.4.11.1 NOTE). The OPERATOR is a 2023 addition (Annex E.2 item 25 reserves both words; VCR rows
+// COBOL-2023 logical exclusive-or (ISO §2023:8.8.4.9; precedence NOT > AND > XOR > OR). XOR and EXCLUSIVE-OR are
+// equivalent (§2023:8.8.4.11.1 NOTE). The OPERATOR is a 2023 addition (Annex E.2 item 25 reserves both words; VCR rows
 // 32/41): it parses at every edition (superset — a user-word XOR is never valid in a connective slot) and is
 // gated on RECOGNITION of the one `xorOperator` rule (VersionConformancePass.VisitXorOperator, and the
 // conditional-compilation stage for a >>IF — the ONE LogicalOperatorGate body); below 2023 both words are
-// USER-DEFINED words (cobolWord admits the tokens; the §8.9 funnel enforces the 2023 reservation as 0901).
+// USER-DEFINED words (cobolWord admits the tokens; the §2023:8.9 funnel enforces the 2023 reservation as 0901).
 logicalXorExpression
     : logicalAndExpression ( xorOperator succeedingAndExpression )*
     ;
@@ -247,7 +247,7 @@ succeedingAndExpression
     : succeedingCondition ( AND succeedingCondition )*
     ;
 
-// A simple condition that is NOT the first of its sequence: §8.8.4.12.1's abbreviated relation (subject, or
+// A simple condition that is NOT the first of its sequence: §2023:8.8.4.12.1's abbreviated relation (subject, or
 // subject and relational operator, omitted) or an ordinary (NOT-)condition — a bare `object-1` is the latter's
 // comparisonExpression with no operator, which the binder reads against the carried subject and operator.
 succeedingCondition
@@ -255,7 +255,7 @@ succeedingCondition
     | unaryLogicalExpression
     ;
 
-// The ONE spelling of the exclusive-or connective (§8.8.4.9: "'EXCLUSIVE-OR' or 'XOR'"), shared by the condition
+// The ONE spelling of the exclusive-or connective (§2023:8.8.4.9: "'EXCLUSIVE-OR' or 'XOR'"), shared by the condition
 // tiers, the EVALUATE partial-expression spine and the constant-conditional-expression tiers, so the 2023
 // introduction gate has one node to recognize.
 xorOperator
@@ -263,7 +263,7 @@ xorOperator
     | EXCLUSIVE_OR
     ;
 
-// Abbreviated combined relation condition (ISO §8.8.4.12): the subject (and optionally the relational operator)
+// Abbreviated combined relation condition (ISO §2023:8.8.4.12): the subject (and optionally the relational operator)
 // elided from a succeeding relation — `IF A > B OR < C`, `IF A > B AND NOT < C` (NOT < is a comparisonOperator
 // alternative). A bare object (`IF A = B OR C`) and NOT + bare object (`IF A = B AND NOT C`) are ordinary
 // unaryLogicalExpressions whose comparisonExpression has no operator.
@@ -271,7 +271,7 @@ abbreviatedRelation
     : comparisonOperator comparisonOperand
     ;
 
-// ── §14.9.13.3 SR5 — partial-expression-1, the EVALUATE selection object whose LEFTMOST portion is elided.
+// ── §2023:14.9.13.3 SR5 — partial-expression-1, the EVALUATE selection object whose LEFTMOST portion is elided.
 // "A selection object is a partial-expression if the leftmost portion of the selection object is a relational
 // operator, a class condition without the identifier, a sign condition without the identifier, or a sign condition
 // without the arithmetic expression." SR8 then says what it MEANS: the object "is treated as though it were
@@ -310,16 +310,16 @@ partialAndExpression
     ;
 
 // SR5's four shapes, in `comparisonExpression`'s own order and spelling with the leading comparisonOperand removed:
-// a relational operator (which IS abbreviatedRelation, §8.8.4.12's already-elided relation), a class condition
+// a relational operator (which IS abbreviatedRelation, §2023:8.8.4.12's already-elided relation), a class condition
 // without the identifier, and a sign condition without its identifier / arithmetic expression (one alternative —
-// §8.8.4.7.2's two operand forms occupy the same position).
+// §2023:8.8.4.7.2's two operand forms occupy the same position).
 partialComparison
     : IS? NOT? classConditionName                              // class condition without the identifier
-    | IS? NOT? (POSITIVE | NEGATIVE | ZERO)                    // sign condition without its operand (ZERO the keyword, §8.8.4.7.2 — not ZEROS/ZEROES, PB510)
+    | IS? NOT? (POSITIVE | NEGATIVE | ZERO)                    // sign condition without its operand (ZERO the keyword, §2023:8.8.4.7.2 — not ZEROS/ZEROES, PB510)
     | abbreviatedRelation                                      // leftmost portion is a relational operator
     ;
 
-// §8.8.4.10's negated condition. NOT is NOT self-recursive: Table 5 (§8.8.4.11.3) admits after NOT only a
+// §2023:8.8.4.10's negated condition. NOT is NOT self-recursive: Table 5 (§2023:8.8.4.11.3) admits after NOT only a
 // simple-condition or '(' — "the pair 'NOT NOT' is not permissible". cceNot is spelled the same way
 // (ConditionTierConnectiveDriftTests).
 unaryLogicalExpression
@@ -327,7 +327,7 @@ unaryLogicalExpression
     ;
 
 primaryCondition
-    // COBOL-2002 boolean forms (ISO §8.8.4.2.2 relation / §8.8.4.3 simple condition) — gated by the
+    // COBOL-2002 boolean forms (ISO §2023:8.8.4.2.2 relation / §2023:8.8.4.3 simple condition) — gated by the
     // boolExprAhead() predicate so it fires ONLY when a B-operator (or a parenthesized boolean literal — kb/Work
     // PB1370) is actually present in this condition;
     // a normal comparison returns false and falls to comparisonExpression UNCHANGED (the shared rule is
@@ -343,23 +343,23 @@ primaryCondition
 // Relational
 // =========================
 
-// ⛔ THE ADDRESS-IDENTIFIER IS A RELATION OPERAND (kb/Work PB1021). §8.8.4.2.2 Format 3
-// (message-tag-object-or-pointer-reference) prints `identifier-3 … identifier-4`, and §8.4.3.1.2 identifier
-// FORMAT 9 makes an address-identifier an identifier; §8.4.3.11.4 GR1 / §8.4.3.13.4 GR1 make each arm "a unique
-// data item of class pointer", which is exactly what §8.8.4.2.3 SR5 asks of identifier-3 and identifier-4. With
+// ⛔ THE ADDRESS-IDENTIFIER IS A RELATION OPERAND (kb/Work PB1021). §2023:8.8.4.2.2 Format 3
+// (message-tag-object-or-pointer-reference) prints `identifier-3 … identifier-4`, and §2023:8.4.3.1.2 identifier
+// FORMAT 9 makes an address-identifier an identifier; §2023:8.4.3.11.4 GR1 / §2023:8.4.3.13.4 GR1 make each arm "a unique
+// data item of class pointer", which is exactly what §2023:8.8.4.2.3 SR5 asks of identifier-3 and identifier-4. With
 // only valueOperand here `IF P = ADDRESS OF X` was a bare COBOL0001 on conforming source. It is the ONE
-// `addressIdentifier` rule PB239 gave the CALL argument (CobolParserCore.g4), so the §8.4.3.11 storage forcing
+// `addressIdentifier` rule PB239 gave the CALL argument (CobolParserCore.g4), so the §2023:8.4.3.11 storage forcing
 // (PtrBindBasedAndAddressablesPass.PtrScanAddressOfTargets walks that rule's nodes) and the 2002 introduction gate
 // (VersionConformancePass.VisitAddressIdentifier) reach this surface with no change of their own. ADDRESS is a
 // reserved word that heads no valueOperand, so the new arm is unambiguous and every relation that parsed before
 // parses identically — the shared comparison DFA (the DEVLOG-621 lesson) is not re-predicted on any old input.
-// The abbreviated relation (§8.8.4.12) reaches it through the same rule.
+// The abbreviated relation (§2023:8.8.4.12) reaches it through the same rule.
 comparisonOperand
-    : addressIdentifier   // §8.8.4.2.2 Format 3 identifier-3 / identifier-4 (kb/Work PB1021)
+    : addressIdentifier   // §2023:8.8.4.2.2 Format 3 identifier-3 / identifier-4 (kb/Work PB1021)
     | valueOperand
     ;
 
-// ── COBOL-2002 boolean expressions (ISO §8.8.2; precedence B-NOT > B-AND > B-XOR > B-OR, rule 7b).
+// ── COBOL-2002 boolean expressions (ISO §2023:8.8.2; precedence B-NOT > B-AND > B-XOR > B-OR, rule 7b).
 // Permissive-superset doctrine: the operand SHAPES (a boolean item / boolean literal / figurative ZERO /
 // ALL B"…") are enforced at BIND (the boolean-expression constraint band); the tiers enforce the formation
 // rules 1–3 and every Table 4 adjacency cell structurally EXCEPT TWO. ⛔ THE FIRST IS (B-NOT, B-NOT): this
@@ -368,7 +368,7 @@ comparisonOperand
 // asserted otherwise (a green-looking claim holding a gap open, kb/Work PB158). ⛔ THE SECOND IS THE SHIFT ROW —
 // only an identifier or literal may follow a shift operator, and booleanShiftSuffix parses a whole
 // arithmeticExpression (kb/Work PB1413: the "but ONE" this comment then claimed was the same kind of false). Both
-// are screened by ExpressionFormationPass / ArithmeticFormationRules (COBOL1719), alongside §8.8.1.2 Table 3's
+// are screened by ExpressionFormationPass / ArithmeticFormationRules (COBOL1719), alongside §2023:8.8.1.2 Table 3's
 // (unary, unary) cell — one mechanism for both adjacency tables, run by the compile-time evaluator too. The tiers
 // are SUPERSET-parsed (no edition predicate); they are reached ONLY through the boolExprAhead()-gated
 // primaryCondition ENTRY (or COMPUTE F2), so a condition with no B-operator and no parenthesized boolean literal
@@ -378,15 +378,15 @@ comparisonOperand
 booleanExpression : booleanXorTerm ( B_OR booleanXorTerm )* ;
 booleanXorTerm    : booleanAndTerm ( B_XOR booleanAndTerm )* ;
 booleanAndTerm    : booleanShiftTerm ( B_AND booleanShiftTerm )* ;
-// Boolean shift tier (ISO §8.8.2 rule 8, COBOL-2023). The shift's SECOND operand is an INTEGER operand (rule 5 /
+// Boolean shift tier (ISO §2023:8.8.2 rule 8, COBOL-2023). The shift's SECOND operand is an INTEGER operand (rule 5 /
 // Table 4 — after a shift operator ONLY an identifier-or-literal integer may appear), never a booleanFactor. The
 // tiers fix only the operand/operator SEQUENCE: rule 7b's context-inherited shift precedence (a shift takes the
 // precedence of the preceding operation — a B-NOT included) is re-derived by the ONE BooleanExpressionResolver.
 booleanShiftTerm  : booleanFactor booleanShiftSuffix* ;
-// The shift's second operand is an INTEGER operand (ISO §8.8.2 rule 5). Superset parse, NARROWED in both lanes
+// The shift's second operand is an INTEGER operand (ISO §2023:8.8.2 rule 5). Superset parse, NARROWED in both lanes
 // (kb/Work PB1413): the arithmeticExpression is screened back to Table 4's single identifier or literal by
 // ArithmeticFormationRules.ShiftCountNotSoleOperand (a grammar tier cannot do it — `-1` is an integer literal and
-// `- 1` a unary operator, one token sequence in the default lexer mode), then held to §5.5 2)'s INTEGER operand by
+// `- 1` a unary operator, one token sequence in the default lexer mode), then held to §2023:5.5 2)'s INTEGER operand by
 // each lane (ConditionBinder via IntrinsicResultType.IsIntegerOperand; the compile-time evaluator by literal form).
 booleanShiftSuffix : (B_SHIFT_L | B_SHIFT_R | B_SHIFT_LC | B_SHIFT_RC) arithmeticExpression ;
 booleanFactor     : B_NOT booleanFactor
@@ -395,19 +395,19 @@ booleanFactor     : B_NOT booleanFactor
                   ;
 
 comparisonExpression
-    : comparisonOperand IS? NOT? OMITTED                           // omitted-argument condition (§8.8.4.8; 2002+ - kb/Work PB133)
+    : comparisonOperand IS? NOT? OMITTED                           // omitted-argument condition (§2023:8.8.4.8; 2002+ - kb/Work PB133)
     | comparisonOperand IS? NOT? classConditionName                // class condition
-    | comparisonOperand IS? NOT? (POSITIVE | NEGATIVE | ZERO)      // sign condition (merged from signCondition); §8.8.4.7.2 prints the keyword ZERO only — PB510
+    | comparisonOperand IS? NOT? (POSITIVE | NEGATIVE | ZERO)      // sign condition (merged from signCondition); §2023:8.8.4.7.2 prints the keyword ZERO only — PB510
     | comparisonOperand ( comparisonOperator comparisonOperand )?  // existing relational + bare operand
     ;
-    // NOTE (Phase-4a increment 2, DEVLOG 621): the boolean RELATION (§8.8.4.2.2) and the simple boolean
-    // CONDITION (§8.8.4.3) are STAGED RESIDUE — a booleanExpression alternative here disturbed the shared
+    // NOTE (Phase-4a increment 2, DEVLOG 621): the boolean RELATION (§2023:8.8.4.2.2) and the simple boolean
+    // CONDITION (§2023:8.8.4.3) are STAGED RESIDUE — a booleanExpression alternative here disturbed the shared
     // parser's comparison DFA (subscripted / ref-mod comparisons at 2002+ regressed: `ELEM(I) = x` → "no
     // viable alternative"), so the condition-context boolean forms are deferred to a focused grammar pass.
     // The boolean OPERATORS work in COMPUTE Format 2 (its own dedicated computeStatement alt, isolated from
     // conditions). `IF (a B-AND b)` etc. are NOT yet supported.
 
-// ⛔ THE ONE CLASS-CONDITION ALTERNATIVE LIST (ISO §8.8.4.4.2), read off the PRINTED general format (PDF
+// ⛔ THE ONE CLASS-CONDITION ALTERNATIVE LIST (ISO §2023:8.8.4.4.2), read off the PRINTED general format (PDF
 // page 224 / printed 194, rendered): identifier-1 IS [NOT] followed by a brace group of FOURTEEN alternatives
 // with no choice indicator — exactly one is selected. `IS` is NOT underlined there, so it is optional (IS?);
 // every keyword alternative IS underlined, and alphabet-name-1 / class-name-1 are the two user-defined names,
@@ -420,13 +420,13 @@ comparisonExpression
 //   ALL FOURTEEN ARE OFFERED. Each keyword alternative is one line here plus one ClassConditionModel row plus
 // one ConditionRenderer.RenderClass arm, and ClassConditionTableDriftTests fails if any of the three is missed
 // (the seven COBOL-2014 numeric-content alternatives landed together — kb/Work PB225).
-//   ⛔ BOOLEAN AND THE SEVEN 2014 WORDS ARE KEYWORDS HERE ONLY WHERE §8.9 RESERVES THEM (kb/Work PB655). BOOLEAN
+//   ⛔ BOOLEAN AND THE SEVEN 2014 WORDS ARE KEYWORDS HERE ONLY WHERE §2023:8.9 RESERVES THEM (kb/Work PB655). BOOLEAN
 // is a COBOL-2002 reserved word (not reserved at 85), the seven numeric-content words are reserved from 2014, and
 // below those editions each is an ordinary user-defined word: `CLASS BOOLEAN IS "01"` in SPECIAL-NAMES is
 // conforming COBOL-85 and `IF X IS BOOLEAN` names that user class. The token-level reservation gate retypes such
 // a DECLARED class to IDENTIFIER, so it arrives through cobolWord; a keyword token that still arrives below its
 // edition is an UNDECLARED class-name-1, and ConditionBinder reads it as one (→ COBOL1639) instead of as the
-// §8.8.4.4.4 GR3 alternative. (Until PB655 the gate was a cobolWord predicate and the ORDER of these alternatives
+// §2023:8.8.4.4.4 GR3 alternative. (Until PB655 the gate was a cobolWord predicate and the ORDER of these alternatives
 // was the edition gate; a predicate past the left edge of an enclosing decision cannot be one.)
 //   ⛔ ITS OWN NAME, NOT `className` (kb/Work PB2292). The rule used to be called className, as is the OO class-name
 // rule of CobolOO.g4; ANTLR keeps the FIRST imported definition of a duplicated rule, so CLASS-ID, END CLASS, INHERITS
@@ -438,7 +438,7 @@ classConditionName
     | ALPHABETIC_LOWER
     | ALPHABETIC_UPPER
     | cobolWord                     // alphabet-name-1, or a user-defined CLASS from SPECIAL-NAMES
-    | BOOLEAN                       // §8.8.4.4.4 GR3 e) — reserved (and so reachable here) at 2002+ only
+    | BOOLEAN                       // §2023:8.8.4.4.4 GR3 e) — reserved (and so reachable here) at 2002+ only
     | FARTHEST_FROM_ZERO            // GR3 g) — this and the six below reserved (reachable here) at 2014+ only
     | FLOAT_INFINITY                // GR3 h)
     | FLOAT_NOT_A_NUMBER            // GR3 i)
@@ -448,7 +448,7 @@ classConditionName
     | NEAREST_TO_ZERO               // GR3 m)
     ;
 
-// ⛔ THE PRINTED OPERATOR SET OF §8.8.4.2.2 FORMAT 1 (General-relation), NOT A SUPERSET OF IT (kb/Work PB1034),
+// ⛔ THE PRINTED OPERATOR SET OF §2023:8.8.4.2.2 FORMAT 1 (General-relation), NOT A SUPERSET OF IT (kb/Work PB1034),
 // read off the RENDERED page (PDF p217, printed folio 187) because the diagram's brackets and underlining decide it.
 // The brace group prints eleven alternatives, every one led by `IS` (not underlined, so optional) and with THAN / TO
 // not underlined either (optional words):
@@ -456,7 +456,7 @@ classConditionName
 //     IS GREATER THAN OR EQUAL TO · IS >= · IS LESS THAN OR EQUAL TO · IS <=
 // `[NOT]` brackets the FIRST SIX ONLY, so NOT is not an alternative of the four OR-EQUAL operators (the standard's
 // own spelling of "not greater than or equal" is IS LESS THAN, and of "not less than or equal" IS GREATER THAN), and
-// EQUAL's optional word is TO, never THAN. §8.7.5.1 prints the same set (Format 1 plus Format 2's NOT LESS / NOT
+// EQUAL's optional word is TO, never THAN. §2023:8.7.5.1 prints the same set (Format 1 plus Format 2's NOT LESS / NOT
 // GREATER / NOT EQUAL spellings). The rule used to admit five spellings no format prints — NOT >=, NOT <=, NOT
 // GREATER [THAN] OR EQUAL [TO], NOT LESS [THAN] OR EQUAL [TO], and EQUAL / NOT EQUAL THAN — and MapOperator folded each
 // into a valid operator, so `IF A NOT >= B` compiled and ran in every edition; the only screen was the START KEY
@@ -515,10 +515,10 @@ powerExpression
     : unaryExpression ( POWER unaryExpression )*
     ;
 
-// ⛔ THE SELF-RECURSION IS DELIBERATE AND MUST STAY (kb/Work PB158). §8.8.1.2 Table 3 marks (unary, unary) an
-// INVALID pair, and the obvious fix — `addOp primaryExpression`, the non-self-recursive shape §8.8.4.11.3's
+// ⛔ THE SELF-RECURSION IS DELIBERATE AND MUST STAY (kb/Work PB158). §2023:8.8.1.2 Table 3 marks (unary, unary) an
+// INVALID pair, and the obvious fix — `addOp primaryExpression`, the non-self-recursive shape §2023:8.8.4.11.3's
 // Table 5 tier (unaryLogicalExpression) uses to exclude NOT NOT structurally — REJECTS LEGAL SOURCE here.
-// §8.3.3.3.2 rule 2 makes a sign part of the numeric literal when the literal is one contiguous character-string,
+// §2023:8.3.3.3.2 rule 2 makes a sign part of the numeric literal when the literal is one contiguous character-string,
 // so `- -2` is the PERMISSIBLE (unary, literal) pair while `- - 2` is the invalid (unary, unary) one — and in the
 // DEFAULT lexer mode both emit MINUS MINUS INTEGERLIT (the SIGNED_INTEGERLIT/SIGNED_DECIMALLIT twins that encode
 // the adjacency exist only in the lexer's list regions — argument and subscript lists). No CFG tier can separate them; only
@@ -536,66 +536,66 @@ unaryExpression
 // =========================
 
 // ⛔ `inlineMethodInvocation` SITS WHERE `functionCall` SITS, AND THAT PAIRING IS A RULE, NOT A HABIT
-// (kb/Work PB428). §8.4.3.1.2 makes a function-identifier (Format 1) and an inline method invocation
+// (kb/Work PB428). §2023:8.4.3.1.2 makes a function-identifier (Format 1) and an inline method invocation
 // (Format 4) two formats of ONE thing — an identifier — and their two exclusions are word-for-word twins:
-// §8.4.3.2.3 SR1 "A function-identifier shall not be specified as a receiving operand" and §8.4.3.4.3 SR1
+// §2023:8.4.3.2.3 SR1 "A function-identifier shall not be specified as a receiving operand" and §2023:8.4.3.4.3 SR1
 // "Inline method invocation shall not be specified as a receiving operand". So the SENDING positions that
 // admit one admit the other, and the RECEIVING rules admit neither. InlineMethodInvocationOperandDriftTests
 // enforces exactly that over the .g4 text, so the NEXT operand rule to gain functionCall cannot forget it.
 // It precedes `dataReference` because its own first element IS a dataReference (ANTLR takes the first
 // matching alternative — feedback_grammar_precedence).
 //
-// ⛔ THE OBJECT-VIEW AND SELF / SUPER ARE IDENTIFIERS HERE TOO (kb/Work PB1425, PB1782 step 2). §8.4.3.1.3 SR1 makes
-// every identifier slot "any of the formats for an identifier", and Formats 5 (object-view, §8.4.3.5) and 6 (SELF
-// and [object-class-name-1 OF] SUPER, §8.4.3.8) are identifiers of class object: §8.8.4.2.15 "An operand of class
+// ⛔ THE OBJECT-VIEW AND SELF / SUPER ARE IDENTIFIERS HERE TOO (kb/Work PB1425, PB1782 step 2). §2023:8.4.3.1.3 SR1 makes
+// every identifier slot "any of the formats for an identifier", and Formats 5 (object-view, §2023:8.4.3.5) and 6 (SELF
+// and [object-class-name-1 OF] SUPER, §2023:8.4.3.8) are identifiers of class object: §2023:8.8.4.2.15 "An operand of class
 // object may be compared with another operand of class object", and an argument or a SET sender may be one. They
 // were reachable only through `objectReference` (INVOKE / SET / RAISE), so `IF O = SELF` and `USING D AS C` were
-// parse errors. Their position rules are the BINDER's, asked of the bound identifier: §8.4.3.8.3 SR1 (a method
-// only), SR3 (SUPER only as an invocation's or a property's object) and §8.4.3.5.3 SR1 (OoBinder.OoBindOoIdentifier).
+// parse errors. Their position rules are the BINDER's, asked of the bound identifier: §2023:8.4.3.8.3 SR1 (a method
+// only), SR3 (SUPER only as an invocation's or a property's object) and §2023:8.4.3.5.3 SR1 (OoBinder.OoBindOoIdentifier).
 // ⛔ `dataReference` PRECEDES THE VIEW (kb/Work PB1425, Format 7): `P OF U AS C` reads both as a view of `P OF U` and
-// as the property P of `U AS C`, and §8.4.3.1.4 GR1 applies c) the view before d) OF, so the data reference (whose
+// as the property P of `U AS C`, and §2023:8.4.3.1.4 GR1 applies c) the view before d) OF, so the data reference (whose
 // `propertyObject` suffix carries the view) wins the tie; a qualified DATA name `A OF G AS C` is re-read as the view of
 // that item by the resolver (ReferenceResolver.ResolveObjectProperty). `U AS C` and `SELF AS C` are no data reference,
 // so they still reach `objectView`. The qualified `K OF SUPER` is a data reference too (`selfAndSuper` is SELF | SUPER),
-// and the resolver refuses it here by §8.4.3.8.3 SR3 when K is a class-name. A receiving position never parses an
-// expression, so §8.4.3.8.3 SR2 / §8.4.3.5.3 SR2 are not widened by this.
+// and the resolver refuses it here by §2023:8.4.3.8.3 SR3 when K is a class-name. A receiving position never parses an
+// expression, so §2023:8.4.3.8.3 SR2 / §2023:8.4.3.5.3 SR2 are not widened by this.
 //
-// ⛔ THE ARITHMETIC ZERO TAKES ITS OPTIONAL ALL (kb/Work PB3846). §8.8.1.1 admits "the figurative constant ZERO (ZEROS,
-// ZEROES)" as an operand, and §8.3.3.6.2 Format 1 prints that figurative constant as `[ ALL ] ZERO`, so `1 + ALL ZERO`
+// ⛔ THE ARITHMETIC ZERO TAKES ITS OPTIONAL ALL (kb/Work PB3846). §2023:8.8.1.1 admits "the figurative constant ZERO (ZEROS,
+// ZEROES)" as an operand, and §2023:8.3.3.6.2 Format 1 prints that figurative constant as `[ ALL ] ZERO`, so `1 + ALL ZERO`
 // is an arithmetic expression whose operand is written with the word ALL. ZeroTokenRewriter reads the context that
 // decides past the ALL (the ZERO's neighbour on the left is the ALL, not the operator), and the arm carries the ALL
-// so the binder asks §8.3.3.6.3 SR1 a)'s edition gate of it (ExpressionBinder.ZeroOperand, the one numeric reading of
+// so the binder asks §2023:8.3.3.6.3 SR1 a)'s edition gate of it (ExpressionBinder.ZeroOperand, the one numeric reading of
 // the figurative ZERO, shared with `ADD ALL ZERO TO X`): accepted at 85, COBOL0902 from 2002. Before, the arm was the
 // bare token, and `1 + ALL ZERO`, `ALL ZERO + 1`, `- ALL ZERO` and `(ALL ZERO)` were a bare COBOL0001.
 primaryExpression
     : numericLiteral
     | ALL? ZERO_ARITH                  // figurative [ALL] ZERO the token rewriter marks arithmetic (kb/Work PB3846)
     | functionCall
-    | inlineMethodInvocation           // §8.4.3.1.2 Format 4 (§8.4.3.4) — the Format-1 twin above
+    | inlineMethodInvocation           // §2023:8.4.3.1.2 Format 4 (§2023:8.4.3.4) — the Format-1 twin above
     | dataReference
-    | objectView                       // §8.4.3.1.2 Format 5 (§8.4.3.5)
-    | selfAndSuper                     // §8.4.3.1.2 Format 6's SELF / SUPER (§8.4.3.8)
+    | objectView                       // §2023:8.4.3.1.2 Format 5 (§2023:8.4.3.5)
+    | selfAndSuper                     // §2023:8.4.3.1.2 Format 6's SELF / SUPER (§2023:8.4.3.8)
     | LPAREN arithmeticExpression RPAREN
     ;
 
-// FUNCTION calls (1989 Amendment to COBOL-85 — intrinsic functions, ISO §15; function-identifier §8.4.3.2).
+// FUNCTION calls (1989 Amendment to COBOL-85 — intrinsic functions, ISO §15; function-identifier §2023:8.4.3.2).
 // P7 Step 12: the argument-list '(' after "FUNCTION functionName" stays in DEFAULT lexer mode (the lexer's
-// FUNCTION suppression — §8.4.3.2 SR6: that '(' is ALWAYS the argument list), so each argument parses as a real
+// FUNCTION suppression — §2023:8.4.3.2 SR6: that '(' is ALWAYS the argument list), so each argument parses as a real
 // arithmeticExpression through the ONE expression grammar (SR8: an argument is an identifier, literal, boolean
-// expression, or arithmetic expression). Arguments are separated by separators only (§8.3.5: space, or
+// expression, or arithmetic expression). Arguments are separated by separators only (§2023:8.3.5: space, or
 // comma/semicolon followed by space — both skipped by the lexer), so the list is plain juxtaposition; the
-// space-vs-adjacent sign distinction (MAX(A -4) = two args, MAX(A - 4) = one subtraction; §8.7.1 operator
-// spacing + §8.3.3.3.2 literal-sign adjacency) is preserved by the lexer's argument-region SIGNED_* twins.
+// space-vs-adjacent sign distinction (MAX(A -4) = two args, MAX(A - 4) = one subtraction; §2023:8.7.1 operator
+// spacing + §2023:8.3.3.3.2 literal-sign adjacency) is preserved by the lexer's argument-region SIGNED_* twins.
 // A nested data-reference subscript inside an argument is a parsed subscriptPart like any other (kb/Work PB2113).
-// The empty-parens form (FUNCTION RANDOM ()) is the §8.4.3.2 SR6 NOTE's shape.
-// The keyword-omitted form name(args) (§8.4.3.2 SR2) has NO grammar alternative of its own (D2 — irreducible
+// The empty-parens form (FUNCTION RANDOM ()) is the §2023:8.4.3.2 SR6 NOTE's shape.
+// The keyword-omitted form name(args) (§2023:8.4.3.2 SR2) has NO grammar alternative of its own (D2 — irreducible
 // ambiguity with a subscripted dataReference): it parses as the dataReference's subscriptPart, whose items are
 // functionArguments, and the binder binds them as the arguments once it proves the name is a function.
 //
-// ── REFERENCE-MODIFYING THE FUNCTION RESULT (fix-queue PB8, ISO §8.4.3.3.3 SR2) ────────────────────────────
-// §8.4.3.1.2 Format 3 makes `identifier-1 reference-modifier-1` an IDENTIFIER, and §8.4.3.3.3 SR2 admits a
+// ── REFERENCE-MODIFYING THE FUNCTION RESULT (fix-queue PB8, ISO §2023:8.4.3.3.3 SR2) ────────────────────────────
+// §2023:8.4.3.1.2 Format 3 makes `identifier-1 reference-modifier-1` an IDENTIFIER, and §2023:8.4.3.3.3 SR2 admits a
 // function-identifier as identifier-1 ("If identifier-1 is a function-identifier, it shall reference an
-// alphanumeric, boolean, or national function"). §8.4.3.1.4 GR1 fixes the order: (f) the argument list applies
+// alphanumeric, boolean, or national function"). §2023:8.4.3.1.4 GR1 fixes the order: (f) the argument list applies
 // to the function-name on its left, THEN (g) "a reference modifier applies to the identifier on the left" — so
 // the tail sits after the optional argument list, and BOTH of these are legal:
 //     FUNCTION CURRENT-DATE (1:4)              -- zero-argument function, ref-modified
@@ -605,25 +605,25 @@ primaryExpression
 // a function NAME the lexer's FUNCTION suppression makes it FNARG_LPAREN, and after the argument list's ')' the
 // previous token is not a data-name so the reference-paren trigger never fires. Both therefore reach the
 // refModPart that already exists for dataReference.
-// ⚠ `refModPart*`, not `refModPart?`, and that is deliberate: §8.4.3.3.3 SR3 ("identifier-1 shall not be a
+// ⚠ `refModPart*`, not `refModPart?`, and that is deliberate: §2023:8.4.3.3.3 SR3 ("identifier-1 shall not be a
 // reference-modification format identifier") forbids ref-modifying a ref-mod, and making the ARITY carry that
 // rule here would enforce SR3 in a SECOND place — the data-reference side already counts ref-mods in
 // ReferenceResolver, because `dataReferenceSuffix*` cannot express the limit either. One rule belongs in one
 // place, so both sides parse the extra modifier and the binder rejects it with COBOL1630, giving the same
 // cited message for FUNCTION F(X) (1:4)(1:2) as for A (3:4)(2:2) instead of a raw parse error on one side only.
 // ⚠ The two alternatives are disjoint on the COLON and need no predicate: a functionArgList can never contain a
-// COLON at its own level (a nested data item's ref-mod inside an argument is that item's own refModPart). §8.4.3.2
+// COLON at its own level (a nested data item's ref-mod inside an argument is that item's own refModPart). §2023:8.4.3.2
 // SR6 — "if a function's definition permits arguments … the left parenthesis is ALWAYS … that function's
 // arguments" — is a CATALOG question the grammar cannot answer, so the binder enforces it (IntrinsicBinder):
 // a bare ref-mod directly after an argument-PERMITTING function name is an SR6/SR8 argument-list error.
 // ── THE KEYWORD-OMITTED FORM FOR A RESERVED INTRINSIC NAME (fix-queue PB9) ────────────────────────────────
-// §8.4.3.2.3 SR2 lets the word FUNCTION be omitted for any intrinsic the REPOSITORY declares. For an ordinary
+// §2023:8.4.3.2.3 SR2 lets the word FUNCTION be omitted for any intrinsic the REPOSITORY declares. For an ordinary
 // intrinsic name that omission is the D2 IRREDUCIBLE AMBIGUITY — `FOO(1)` is equally a subscripted data
 // reference — so it has no grammar alternative and the binder re-routes a dataReference instead.
 // ⛔ THAT ARGUMENT DOES NOT APPLY TO A RESERVED WORD, and that is the whole basis for this alternative: a
-// reserved word can NEVER be a user-defined data name (§8.3.2.4.1), so `SUM(1 2 3)` cannot be a subscripted
-// data reference and there is nothing to be ambiguous with. §8.9 ∩ §8.11 is exactly four words — LENGTH,
-// RANDOM, SIGN, SUM — the four §8.3.2.1 5) bars from user-defined words, and all four arrive here. (LENGTH used to
+// reserved word can NEVER be a user-defined data name (§2023:8.3.2.4.1), so `SUM(1 2 3)` cannot be a subscripted
+// data reference and there is nothing to be ambiguous with. §2023:8.9 ∩ §2023:8.11 is exactly four words — LENGTH,
+// RANDOM, SIGN, SUM — the four §2023:8.3.2.1 5) bars from user-defined words, and all four arrive here. (LENGTH used to
 // reach the binder through the cobolWord name slot, which made it a legal NAME in every slot at every edition:
 // `INDEXED BY LENGTH` compiled. kb/Work PB845 took it out of cobolWord.)
 // ⚠ WHY NOT JUST ADD THEM TO cobolWord — this was tried and NIST NC116A caught it. A word in the
@@ -631,7 +631,7 @@ primaryExpression
 // FOLLOWING data-description clause keyword:
 //     01 W PICTURE S99999 VALUE ZERO
 //            SIGN LEADING SEPARATE.        ->  COBOL1585 "takes exactly one literal"
-// SIGN and SUM both BEGIN a data-description clause (§13.18.52 SIGN, §13.18.54 report-writer SUM). This alternative is confined to expression/operand positions and
+// SIGN and SUM both BEGIN a data-description clause (§2023:13.18.52 SIGN, §2023:13.18.54 report-writer SUM). This alternative is confined to expression/operand positions and
 // cannot reach a data description at all, so that whole class is structurally out of reach.
 // ⚠ THE ARGUMENT LIST IS A `subscriptPart`, NOT `FNARG_LPAREN functionArgList FNARG_RPAREN`, and a token dump is what
 // says so: these words carry subscriptTrigger=true, so with no FUNCTION keyword before them the lexer types the '('
@@ -650,19 +650,19 @@ primaryExpression
 // A VALUE clause operand is a `unaryExpression`, which reaches functionCall, and the operand loop is greedy —
 // so admitting a BARE SIGN made the loop swallow the SIGN CLAUSE of the NEXT line as a second VALUE literal
 // (COBOL1585). With the group required, `SIGN LEADING` cannot match a functionCall at all and the loop stops
-// where it should. The same applies to the report-writer `SUM OF` clause (§13.18.54).
-// RANDOM is different and needs no group: §15.75.2 brackets the whole parenthesised part, so the bare form is
+// where it should. The same applies to the report-writer `SUM OF` clause (§2023:13.18.54).
+// RANDOM is different and needs no group: §2023:15.75.2 brackets the whole parenthesised part, so the bare form is
 // legal — and RANDOM begins no data-description clause, so nothing can swallow it.
-// ⛔ THE ARGUMENT-LIST PARENS ARE FNARG_LPAREN / FNARG_RPAREN, NOT LPAREN / RPAREN (fix-queue PB48). §8.4.3.2.3
+// ⛔ THE ARGUMENT-LIST PARENS ARE FNARG_LPAREN / FNARG_RPAREN, NOT LPAREN / RPAREN (fix-queue PB48). §2023:8.4.3.2.3
 // SR6 makes the '(' immediately after an intrinsic-function-name ALWAYS the argument list, never a grouping
 // paren, and the lexer retypes it from the _fnParenStack it already keeps. Writing the distinction into the
 // token vocabulary is what stops the post-lex passes from having to re-derive it: ZeroTokenRewriter's "ZERO
 // adjacent to a paren is arithmetic" rule was reading THIS paren and converting `FUNCTION LOWER-CASE(ZERO)`'s
-// figurative into an arithmetic zero, so the §15.3 class screen saw class numeric and rejected legal source.
+// figurative into an arithmetic zero, so the §2023:15.3 class screen saw class numeric and rejected legal source.
 // A grouping paren INSIDE the list (`FUNCTION MAX((A + B) 2)`) is an ordinary LPAREN and is unaffected.
 // The keyword-omitted reserved form takes EITHER suffix group: `SUM (A B)` is the argument list, and `SUM (1:4)` is a
 // group the lexer cannot type (REF_LPAREN opens both) and the COLON makes a refModPart. Parsing the second keeps
-// §8.4.3.2.3 SR6's verdict in IntrinsicBinder (`subscriptPart() is null` with a refModPart is the argument-list
+// §2023:8.4.3.2.3 SR6's verdict in IntrinsicBinder (`subscriptPart() is null` with a refModPart is the argument-list
 // error) instead of a raw parse error (kb/Work PB2113).
 functionCall
     : FUNCTION functionName (FNARG_LPAREN functionArgList? FNARG_RPAREN)? refModPart*
@@ -670,35 +670,35 @@ functionCall
     | RANDOM subscriptPart? refModPart*
     ;
 
-// The §8.9-reserved words that are also §8.11 intrinsic function names AND require arguments (RANDOM, the fourth
-// member of §8.9 ∩ §8.11, takes its own arm above because its arguments are optional). Legal only when the
+// The §2023:8.9-reserved words that are also §2023:8.11 intrinsic function names AND require arguments (RANDOM, the fourth
+// member of §2023:8.9 ∩ §2023:8.11, takes its own arm above because its arguments are optional). Legal only when the
 // REPOSITORY declares the function — a question the grammar cannot answer, so IntrinsicBinder enforces
-// §8.4.3.2.3 SR2.
+// §2023:8.4.3.2.3 SR2.
 reservedIntrinsicArgFn
     : LENGTH
     | SIGN
     | SUM
     ;
 
-// Arguments separate by space (no token — plain juxtaposition) or by the §8.3.5 comma/semicolon-plus-space
+// Arguments separate by space (no token — plain juxtaposition) or by the §2023:8.3.5 comma/semicolon-plus-space
 // separator, which inside an argument region survives as FNARG_SEPARATOR so a following '(' reads as a
 // parenthesized ARGUMENT, never as a subscript of the previous argument's data-name.
 functionArgList
     : functionArgument (FNARG_SEPARATOR? functionArgument)*
     ;
 
-// One function argument (§8.4.3.2 SR8 + the §15 per-function phrase words). The phrase-keyword alternative
-// admits the RESERVED words that appear inside §15 argument lists (TRIM LEADING/TRAILING §15.96; FIND-STRING
-// LAST/START/AFTER §15.37; SUBSTITUTE FIRST/LAST §15.87; CONVERT ANY/ALPHANUMERIC/NATIONAL §15.19) — words that
+// One function argument (§2023:8.4.3.2 SR8 + the §15 per-function phrase words). The phrase-keyword alternative
+// admits the RESERVED words that appear inside §15 argument lists (TRIM LEADING/TRAILING §2023:15.96; FIND-STRING
+// LAST/START/AFTER §2023:15.37; SUBSTITUTE FIRST/LAST §2023:15.87; CONVERT ANY/ALPHANUMERIC/NATIONAL §2023:15.19) — words that
 // are plain IDENTIFIERs (ANYCASE, HEX, NAT, ANUM, BYTE, CURRENT, ACTIVATING, NESTED, STACK, TOP-LEVEL) arrive
 // through dataReference inside arithmeticExpression and are classified by name in the binder. OMITTED is the
-// §8.4.3.2.2 format's argument alternative (SR7 bars it for intrinsics — a bind-time diagnostic, not a parse
+// §2023:8.4.3.2.2 format's argument alternative (SR7 bars it for intrinsics — a bind-time diagnostic, not a parse
 // error). A superset rule: which words a given function admits is the binder's §15 job.
-// §8.4.3.2.3 SR8: "Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic
+// §2023:8.4.3.2.3 SR8: "Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic
 // expression." The boolean arm sits behind the ARGUMENT-scoped boolArgAhead() predicate (kb/Work PB65,
 // FMT-15.45.2): it fires only when a B-operator belongs to THIS argument, so a bare boolean literal / item still
 // takes its literal / expression arm and a following B-AND outside the argument list is not this argument's.
-// An ADDRESS-IDENTIFIER (§8.4.3.1.2 identifier Format 9) is "an identifier" in SR8's sense, and SR10 names class
+// An ADDRESS-IDENTIFIER (§2023:8.4.3.1.2 identifier Format 9) is "an identifier" in SR8's sense, and SR10 names class
 // pointer for a user-defined function's BY VALUE argument (kb/Work PB1060: `F(ADDRESS OF A)` was COBOL0901
 // "'ADDRESS' is a reserved word"). It is the ONE `addressIdentifier` rule (kb/Work PB1021); ADDRESS heads no other
 // arm, so the alternative is unambiguous. Each intrinsic's own argument-class rule then accepts or refuses it.
@@ -723,7 +723,7 @@ fnArgPhraseWord
     | NATIONAL
     ;
 
-// ── COMPILE-TIME DIRECTIVE-EXPRESSION fragments (ISO §7.3.6 arithmetic / §7.3.7 boolean / §7.3.8 constant-
+// ── COMPILE-TIME DIRECTIVE-EXPRESSION fragments (ISO §2023:7.3.6 arithmetic / §2023:7.3.7 boolean / §2023:7.3.8 constant-
 // conditional-expression). Isolated fragment entry rules — reachable ONLY from the frontend's directive-expression
 // re-parse (referenced by nothing in compilationUnit, so ZERO blast radius
 // on the main parse). They reuse the existing operand sub-rules (arithmeticExpression / booleanExpression /
@@ -733,7 +733,7 @@ fnArgPhraseWord
 
 // One compile-time operand (a >>DEFINE value, a >>EVALUATE selection-subject / >>WHEN object). Operand-kind
 // disambiguation reuses the boolExprAhead() predicate (the primaryCondition mechanism): booleanExpression is
-// entered ONLY when a real B-operator is present, or the operand is a parenthesized boolean literal — §8.8.2's
+// entered ONLY when a real B-operator is present, or the operand is a parenthesized boolean literal — §2023:8.8.2's
 // "a boolean expression enclosed in parentheses", which has no operator to find (kb/Work PB1370: `>>DEFINE X AS
 // (B"101")` was malformed); otherwise an arithmetic operand (a single numeric literal too — GR5 reclassification
 // is in the evaluator) or a non-numeric literal. The evaluator dispatches on WHICH sub-node parsed, not a token
@@ -745,9 +745,9 @@ compileTimeOperand
     | nonNumericLiteral                          // string / national / boolean / hex literal operand
     ;
 
-// A constant-conditional-expression (§7.3.8) — the >>IF operand and the >>EVALUATE-TRUE >>WHEN operand. §7.3.8.2
+// A constant-conditional-expression (§2023:7.3.8) — the >>IF operand and the >>EVALUATE-TRUE >>WHEN operand. §2023:7.3.8.2
 // SR1 d): "A complex condition as specified in 8.8.4.9, Complex conditions" — so its logical tiers are THE
-// condition tiers' connectives over a compile-time leaf: precedence NOT > AND > XOR > OR (§8.8.4.11.3), the one
+// condition tiers' connectives over a compile-time leaf: precedence NOT > AND > XOR > OR (§2023:8.8.4.11.3), the one
 // `xorOperator` rule (a 2023 introduction, gated per fragment by the conditional-compilation stage), and a
 // non-recursive NOT (Table 5 — 'NOT NOT' is not permissible). The leaf differs, so ANTLR (which has no
 // parameterized rules) needs a second spelling of the tiers; ConditionTierConnectiveDriftTests requires each cce
@@ -764,27 +764,27 @@ cceNot     : NOT? ccePrimary ;
 ccePrimary : LPAREN constantConditionalExpression RPAREN
            | definedCondition
            | cceRelationOrBoolean ;
-// §7.3.8.4.4 defined-condition. DEFINED is a token only under PrimeDirectiveExpr (a primed-lexer keyword). Listed
+// §2023:7.3.8.4.4 defined-condition. DEFINED is a token only under PrimeDirectiveExpr (a primed-lexer keyword). Listed
 // before cceRelationOrBoolean so a trailing DEFINED selects it; a cobolWord with no DEFINED falls through.
 definedCondition : cobolWord IS? NOT? DEFINED ;
-// ⛔ NO `IS? NOT?` BEFORE comparisonOperator (kb/Work PB1034): §7.3.8.2 SR1 a) makes the relation "formed according to
+// ⛔ NO `IS? NOT?` BEFORE comparisonOperator (kb/Work PB1034): §2023:7.3.8.2 SR1 a) makes the relation "formed according to
 // the rules in 8.8.4.2", whose operator set is comparisonOperator's alone — it carries its own IS and its own NOT. The
 // prefix this rule used to write was a second, unscreened way to say NOT, which let `>>IF X NOT >= 3` through the
 // narrowed operator rule and `X NOT NOT = 3` through at all.
 cceRelationOrBoolean
-    : {boolExprAhead()}? booleanExpression                            // §8.8.4.3 simple boolean condition (length-1)
-    | compileTimeOperand ( comparisonOperator compileTimeOperand )? ;   // §7.3.8.2 relation (or a bare operand)
+    : {boolExprAhead()}? booleanExpression                            // §2023:8.8.4.3 simple boolean condition (length-1)
+    | compileTimeOperand ( comparisonOperator compileTimeOperand )? ;   // §2023:7.3.8.2 relation (or a bare operand)
 
-// ── The DISPLAY DIRECTIVE's operand list (ISO §7.3.12.2, kb/Work PB807): a REPEATED choice of arithmetic-expression-1 /
+// ── The DISPLAY DIRECTIVE's operand list (ISO §2023:7.3.12.2, kb/Work PB807): a REPEATED choice of arithmetic-expression-1 /
 // boolean-expression-1 / literal-1 / `PARAMETER compilation-variable-name-1`, then an optional UPON phrase whose braces
-// carry §5.2.6.4 CHOICE INDICATORS — ONE OR MORE of `compile-time-device-1 …` and LISTING, each at most once, in any
-// order. The operand alternatives are `compileTimeOperand` (the SAME rule a DEFINE value reads, so §7.3.12.3 SR2/SR3
+// carry §2023:5.2.6.4 CHOICE INDICATORS — ONE OR MORE of `compile-time-device-1 …` and LISTING, each at most once, in any
+// order. The operand alternatives are `compileTimeOperand` (the SAME rule a DEFINE value reads, so §2023:7.3.12.3 SR2/SR3
 // "formed in accordance with 7.3.6 / 7.3.7" is one grammar, not a third spelling); PARAMETER and LISTING are not
 // lexer tokens, so they are read here as words, PARAMETER told apart by `parameterPhraseAhead` and LISTING by the
-// stage (a §8.12 compiler-directive word is never a compilation-variable-name, so neither can be mistaken). The UPON words
+// stage (a §2023:8.12 compiler-directive word is never a compilation-variable-name, so neither can be mistaken). The UPON words
 // are plain words: which of them are devices, and the choice-indicator discipline (each alternative at most once), are
-// the stage's semantic rules (§5.2.6.4, §7.3.12.4 GR5), checked against the ONE implementor-name table. Juxtaposed
-// operands are separated as an arithmetic expression ends — `1 - 2` is one subtraction (§7.3.6 has no argument
+// the stage's semantic rules (§2023:5.2.6.4, §2023:7.3.12.4 GR5), checked against the ONE implementor-name table. Juxtaposed
+// operands are separated as an arithmetic expression ends — `1 - 2` is one subtraction (§2023:7.3.6 has no argument
 // juxtaposition), `1 "A"` two operands. Reached ONLY from the directive-expression re-parse, like every fragment here.
 displayDirectiveFragment : displayDirectiveOperand+ displayUponPhrase? EOF ;
 displayDirectiveOperand
@@ -793,14 +793,14 @@ displayDirectiveOperand
     ;
 displayUponPhrase : UPON cobolWord+ ;
 
-// The word after FUNCTION (§8.4.3.2.2): a function-prototype-name-1 or an intrinsic-function-name-1.
+// The word after FUNCTION (§2023:8.4.3.2.2): a function-prototype-name-1 or an intrinsic-function-name-1.
 // ⛔ THE NAME ARM IS cobolWord, NEVER A BARE IDENTIFIER (kb/Work PB2721). A function-prototype-name is a user-defined
-// word (§8.3.2.2.10) DECLARED by `FUNCTION-ID.` through programName — which is cobolWord — so this REFERENCE slot,
-// and the REPOSITORY specifier that reads this rule too (§12.3.8.2 `FUNCTION function-prototype-name-1`), must admit
-// the same word set. It used to be IDENTIFIER, so a function named by a §8.10 context-sensitive word that has a lexer
-// token (`FUNCTION-ID. CAPACITY.`, §8.3.2.1 3)) was declared cleanly and then refused at `REPOSITORY. FUNCTION
+// word (§2023:8.3.2.2.10) DECLARED by `FUNCTION-ID.` through programName — which is cobolWord — so this REFERENCE slot,
+// and the REPOSITORY specifier that reads this rule too (§2023:12.3.8.2 `FUNCTION function-prototype-name-1`), must admit
+// the same word set. It used to be IDENTIFIER, so a function named by a §2023:8.10 context-sensitive word that has a lexer
+// token (`FUNCTION-ID. CAPACITY.`, §2023:8.3.2.1 3)) was declared cleanly and then refused at `REPOSITORY. FUNCTION
 // CAPACITY.` and at `FUNCTION CAPACITY(V)`. An intrinsic-function-name is no user-defined word, but no §15 name
-// spelled by IDENTIFIER is §8.9-reserved, so the §8.9 funnel the cobolWord arm passes through never meets one; the
+// spelled by IDENTIFIER is §2023:8.9-reserved, so the §2023:8.9 funnel the cobolWord arm passes through never meets one; the
 // reserved ones have their own tokens and their own arm.
 functionName
     : cobolWord
@@ -809,7 +809,7 @@ functionName
 
 // The intrinsic-function-names that collide with a lexer token not in cobolWord (reserved words), listed so the parser
 // accepts them after FUNCTION. TokenRetypes reads THIS rule's tokens off the ATN: each keeps its '(' a subscript
-// trigger, for the keyword-omitted call §8.4.3.2.3 SR2 permits.
+// trigger, for the keyword-omitted call §2023:8.4.3.2.3 SR2 permits.
 intrinsicKeywordName
     : DISPLAY
     | LENGTH
@@ -828,7 +828,7 @@ argumentList
     : argument (COMMA? argument)*
     ;
 
-// ⛔ THE FIVE ARGUMENT FORMS ARE THE PRINTED ONES, AND THREE OF THEM WERE MISSING (kb/Work PB428). §8.4.3.4.2's
+// ⛔ THE FIVE ARGUMENT FORMS ARE THE PRINTED ONES, AND THREE OF THEM WERE MISSING (kb/Work PB428). §2023:8.4.3.4.2's
 // brace group — rendered from the canonical PDF page 163, printed folio 133 — is
 // `{ arithmetic-expression-1 | boolean-expression-1 | identifier-2 | literal-2 | OMITTED }`, with OMITTED the
 // only underlined word. This rule read `arithmeticExpression | literal | dataReference`, which is the shape the
@@ -842,13 +842,13 @@ argumentList
 // operator does not (`{!numericLiteralIsLeftOperand()}?`, kb/Work PB1135 / decision R59: `O :: "M" (5 + 1)` is ONE
 // argument, like the INVOKE statement's `USING 5 + 1`) — and `booleanExpression` takes the proven
 // {boolExprAhead()}? gate because its leaf `valueOperand` matches everything the other two arms match.
-// ⚠ OMITTED IS FIRST AND IS A RESERVED WORD (§8.9), so it can never be a data-name and shadows nothing.
-// ⛔ THE ADDRESS-IDENTIFIER JOINS AS identifier-2 (kb/Work PB1021): §8.4.3.4.4 GR1 makes these the arguments of
-// `INVOKE … USING`, whose §14.9.23.3 SR9 names the address-identifier outright — the SAME `addressIdentifier` rule
+// ⚠ OMITTED IS FIRST AND IS A RESERVED WORD (§2023:8.9), so it can never be a data-name and shadows nothing.
+// ⛔ THE ADDRESS-IDENTIFIER JOINS AS identifier-2 (kb/Work PB1021): §2023:8.4.3.4.4 GR1 makes these the arguments of
+// `INVOKE … USING`, whose §2023:14.9.23.3 SR9 names the address-identifier outright — the SAME `addressIdentifier` rule
 // the INVOKE statement's own invokeArgument takes. ADDRESS is reserved and heads no other alternative.
 argument
     : OMITTED
-    | addressIdentifier   // §14.9.23.3 SR9 / SR19 via §8.4.3.4.4 GR1 (kb/Work PB1021)
+    | addressIdentifier   // §2023:14.9.23.3 SR9 / SR19 via §2023:8.4.3.4.4 GR1 (kb/Work PB1021)
     | {boolExprAhead()}? booleanExpression
     | {!numericLiteralIsLeftOperand()}? literal
     | arithmeticExpression
@@ -867,7 +867,7 @@ numericLiteral
     : signedNumericLiteral
     ;
 
-// A concatenation expression (ISO §8.8.3) is an ALTERNATIVE OF the non-numeric-literal rule because §8.8.3.3
+// A concatenation expression (ISO §2023:8.8.3) is an ALTERNATIVE OF the non-numeric-literal rule because §2023:8.8.3.3
 // GR3 makes it "equivalent to a literal of the same class and value, [usable] anywhere a literal of that class
 // may be used" — every literal position (VALUE clauses, statement operands, FUNCTION arguments, …) inherits it
 // through this one rule. The concat tier is a distinct ADDITIVE alternative (first, per ANTLR first-match
@@ -875,14 +875,14 @@ numericLiteral
 // exactly the same shape as before. AMPERSAND appears in no other rule, so prediction is unambiguous: a literal
 // followed by '&' can only be a concatenation expression.
 // figurativeConstant is listed FIRST (kb/Work PB71): `ALL "A" & "B"` is the figurative ALL over the concatenated
-// literal-1 "AB" (§8.3.3.6.3 SR2 — literal-1 "may be a concatenation expression"), and ANTLR resolves the tie
-// between that reading and "a concatenation whose first operand is ALL "A"" (illegal — §8.8.3.2 SR1) toward the
+// literal-1 "AB" (§2023:8.3.3.6.3 SR2 — literal-1 "may be a concatenation expression"), and ANTLR resolves the tie
+// between that reading and "a concatenation whose first operand is ALL "A"" (illegal — §2023:8.8.3.2 SR1) toward the
 // lower alternative. A concatenation that merely CONTAINS an ALL figurative (`"X" & ALL "A"`) still parses as a
 // concatenation and is rejected COBOL1541 by ConcatFolder as before.
 // ⛔ predefinedNull is NOT a literal and NOT a figurative constant — see its rule below. It is an arm HERE only as
 // the parse CARRIER: this rule's slot set is exactly the set of operand positions that parsed NULL while it was
 // (wrongly) a figurativeConstant arm, so every position still PARSES it (superset parse) and the binder decides —
-// ExpressionBinder refuses it everywhere except the §8.4.3.10.3 SR1 contexts (kb/Work PB1427).
+// ExpressionBinder refuses it everywhere except the §2023:8.4.3.10.3 SR1 contexts (kb/Work PB1427).
 nonNumericLiteral
     : figurativeConstant
     | concatenationExpression
@@ -893,10 +893,10 @@ nonNumericLiteral
     | predefinedNull
     ;
 
-// ISO §8.4.3.1.2 identifier FORMAT 8 (predefined-address) and the NULL arm of FORMAT 6 (predefined-object): NULL is
-// an IDENTIFIER — §8.4.3.10.1: "NULL is a predefined address of class pointer or a predefined content of class
-// message-tag"; §8.4.3.7.3 SR2: "NULL is implicitly described as class object and category object reference" —
-// never one of the §8.3.3.6.2 figurative formats. It used to be a `figurativeConstant` arm, which
+// ISO §2023:8.4.3.1.2 identifier FORMAT 8 (predefined-address) and the NULL arm of FORMAT 6 (predefined-object): NULL is
+// an IDENTIFIER — §2023:8.4.3.10.1: "NULL is a predefined address of class pointer or a predefined content of class
+// message-tag"; §2023:8.4.3.7.3 SR2: "NULL is implicitly described as class object and category object reference" —
+// never one of the §2023:8.3.3.6.2 figurative formats. It used to be a `figurativeConstant` arm, which
 // is how every generic figurative consumer read it as LOW-VALUE: `STRING NULL …` stored a NUL, `INSPECT … FOR ALL
 // NULL` tallied, `FUNCTION LENGTH(NULL)` answered 1 (kb/Work PB1427). ONE rule, read by every slot that names it
 // (`nonNumericLiteral`, the SET sender `setToSender`, `objectReferenceTerm`), so the binder has one node to ask.
@@ -904,14 +904,14 @@ predefinedNull
     : NULL_
     ;
 
-// ISO §8.8.3.1 general format: {literal-1 | concatenation-expression-1} & literal-2 — left-recursive in the
+// ISO §2023:8.8.3.1 general format: {literal-1 | concatenation-expression-1} & literal-2 — left-recursive in the
 // spec, flattened here to operand (& operand)+; ConcatFolder folds the class back LEFT-to-right, pair by pair
-// (§8.8.3.3 GR1 — kb/Work PB1406). Operands are literals of class alphanumeric (STRINGLIT and its X"…" hex
-// format), national, or boolean, or figurative constants (§8.8.3.2 SR1); numeric literals are NOT operands (SR1
+// (§2023:8.8.3.3 GR1 — kb/Work PB1406). Operands are literals of class alphanumeric (STRINGLIT and its X"…" hex
+// format), national, or boolean, or figurative constants (§2023:8.8.3.2 SR1); numeric literals are NOT operands (SR1
 // admits only the three classes), so `5 & …` is a parse error by construction. A WORD is an operand too: the two
-// words that stand for a literal — a constant-name (§13.10.3 SR2: "anywhere that a format specifies a literal of
+// words that stand for a literal — a constant-name (§2023:13.10.3 SR2: "anywhere that a format specifies a literal of
 // the class and category of constant-name-1") and a symbolic-character (a figurative constant its SPECIAL-NAMES
-// SYMBOLIC CHARACTERS clause defines, §12.3.7.4 GR11 a)
+// SYMBOLIC CHARACTERS clause defines, §2023:12.3.7.4 GR11 a)
 // — are both user-defined words, which the parse cannot tell apart from a data-name, so the arm admits any
 // cobolWord and ConcatFolder resolves it (COBOL2473 for a word that stands for no literal). The SR1 same-class
 // rule, the no-ALL-figurative rule, and the SR2–SR4 8,191-position caps are BIND-time checks too (a superset
@@ -928,7 +928,7 @@ concatOperand
     | BOOLLIT
     | HEXLIT
     | figurativeConstant
-    | predefinedNull     // NO operand (§8.8.3.2 SR1) — admitted so ConcatFolder refuses it by name (kb/Work PB1427)
+    | predefinedNull     // NO operand (§2023:8.8.3.2 SR1) — admitted so ConcatFolder refuses it by name (kb/Work PB1427)
     | cobolWord          // a constant-name or a symbolic-character (kb/Work PB1406); LAST, after the keyword figuratives
     ;
 
@@ -943,11 +943,11 @@ signedNumericLiteral
 // sign-adjacent comma decimal (`-1,5`, `+,5`) is ONE lexer token, SIGNED_DECIMALLIT, because the sign and the integer
 // part would otherwise already be a SIGNED_INTEGERLIT that no alternative here can extend (kb/Work PB2506); each
 // contiguous shape below has a lexer body (DEC_COMMA_BODY), which SignedLiteralShapeDriftTests holds.
-// ⛔ A COMMA LITERAL IS ONE CHARACTER-STRING (§8.3.3.3.2 / §8.3.5), so its tokens are CONTIGUOUS — a space before the
+// ⛔ A COMMA LITERAL IS ONE CHARACTER-STRING (§2023:8.3.3.3.2 / §2023:8.3.5), so its tokens are CONTIGUOUS — a space before the
 // comma ends the previous literal (kb/Work PB1446: `1 ,5` fused into the interior-point literal 1,5 = 1.5, the value
 // of characters OUTSIDE the literal, where `,5` is 0.5). The left-edge predicate sees the hidden-channel gap.
 numericLiteralCore
-    : FLOATLIT                             // 1.5E3, 2.5E-2 (floating-point literal, ISO §8.3.3.3.3 — D16)
+    : FLOATLIT                             // 1.5E3, 2.5E-2 (floating-point literal, ISO §2023:8.3.3.3.3 — D16)
     | COMMA_FLOATLIT                       // 1,5E3 (the DECIMAL-POINT IS COMMA floating-point literal — kb/Work PB98)
     | DECIMALLIT                           // 123.45 or .45 (dot decimal from lexer)
     | SIGNED_DECIMALLIT                    // -15.6, -1,5 (sign-adjacent literal — list regions only, P7 Step 12)
@@ -959,32 +959,32 @@ numericLiteralCore
 
 // ⛔ TWO SLOTS, AND THE DIFFERENCE IS THE SIGN — NOT ONE RULE WITH A HOLE IN IT (kb/Work PB553).
 // `integerLiteral` is the metalanguage `integer-n` of a printed general format, and its UNSIGNED shape IS the
-// rule: ISO §5.5 1) — "When the term 'integer-n' (n = 1, 2, …) is used in a general format and associated
+// rule: ISO §2023:5.5 1) — "When the term 'integer-n' (n = 1, 2, …) is used in a general format and associated
 // rules, it refers to a fixed-point integer literal that shall be unsigned and nonzero unless otherwise
-// specified in the associated rules." So `01 T PIC X OCCURS +3.` is correctly rejected (§13.18.38.3 SR16
+// specified in the associated rules." So `01 T PIC X OCCURS +3.` is correctly rejected (§2023:13.18.38.3 SR16
 // otherwise-specifies only the NONZERO half, never the sign), and widening THIS rule would accept it.
 // `signedIntegerLiteral` is the other slot: one whose own syntax rule constrains the operand as an INTEGER
-// NUMERIC LITERAL rather than as `integer-n` — the Format 2 (table) VALUE clause's FROM/TO subscripts. §5.5 2) a) — "if that operand is a literal, it shall be an
-// integer literal, as defined in 8.3.3.3.2, Fixed-point numeric literals" — and §8.3.3.3.2 2) admits the sign:
+// NUMERIC LITERAL rather than as `integer-n` — the Format 2 (table) VALUE clause's FROM/TO subscripts. §2023:5.5 2) a) — "if that operand is a literal, it shall be an
+// integer literal, as defined in 8.3.3.3.2, Fixed-point numeric literals" — and §2023:8.3.3.3.2 2) admits the sign:
 // "A literal shall not contain more than one sign character. If a sign is used, it shall appear as the
-// leftmost character of the literal." §13.18.63.3 SR19, "Subscript-1 and subscript-2 shall be integer numeric
+// leftmost character of the literal." §2023:13.18.63.3 SR19, "Subscript-1 and subscript-2 shall be integer numeric
 // literals", is the one such slot in the whole grammar today; SignedIntegerSlotDriftTests pins that inventory
 // so a second one cannot be added silently, in either direction.
 // ⚠ SUPERSET-PARSE / BIND-NARROW, the standing doctrine: the sign is a SEPARATE token here (a DEFAULT-mode
 // `(` after FROM/TO opens no signed-literal lexer region), so `FROM ( + 1 )` — a space between the sign and
-// its digits, which §8.3.3.3.2 forbids because a literal is one character-string — also parses, and
+// its digits, which §2023:8.3.3.3.2 forbids because a literal is one character-string — also parses, and
 // DataBinder reports it BY NAME (COBOL2155) instead of leaving it to the ANTLR error reporter.
 integerLiteral
     : INTEGERLIT
     ;
 
 // ⛔ THE ONE SPELLING OF AN `integer-n` POSITION THAT MAY BE WRITTEN AS AN INTEGER CONSTANT-NAME (kb/Work PB1947).
-// ISO §13.10.3 SR2 — "constant-name-1 may be used anywhere that a format specifies a literal of the class and
-// category of constant-name-1" — and §5.5 1) makes every `integer-n` of a general format "a fixed-point integer
-// literal", so each such position is a literal position a constant-name stands in (§13.10.4 GR1: "as if literal-1 …
+// ISO §2023:13.10.3 SR2 — "constant-name-1 may be used anywhere that a format specifies a literal of the class and
+// category of constant-name-1" — and §2023:5.5 1) makes every `integer-n` of a general format "a fixed-point integer
+// literal", so each such position is a literal position a constant-name stands in (§2023:13.10.4 GR1: "as if literal-1 …
 // were written where constant-name-1 is written"). The grammar cannot tell a constant-name from any other user
 // word, so the alternative is `cobolWord` and the BINDER substitutes (ConstantEntryBinder.IntegerOperandValue — the ONE
-// reader, which also asks the §5.5 1) unsigned and nonzero questions of the value the constant substitutes). A clause
+// reader, which also asks the §2023:5.5 1) unsigned and nonzero questions of the value the constant substitutes). A clause
 // whose integer position takes this rule is classified by the CLAUSE that owns it (IntegerOperandRules.Slots), never
 // by this rule, so the zero permissions stay per clause. The OCCURS bounds, the report-writer LINE / COLUMN / NEXT
 // GROUP / PAGE operands and the OCCURS STEP integer are the sites so far; the next clause whose format prints an
@@ -998,10 +998,10 @@ signedIntegerLiteral
     : (PLUS | MINUS)? INTEGERLIT
     ;
 
-// The literal-1 of the ALL figurative (§8.3.3.6.3 SR2): "an alphanumeric, boolean, or national literal, any of which
+// The literal-1 of the ALL figurative (§2023:8.3.3.6.3 SR2): "an alphanumeric, boolean, or national literal, any of which
 // may be a concatenation expression" — one quoted literal of any class (plain / hexadecimal alphanumeric, national
-// N"…" / NX"…", boolean B"…" / BX"…"), or THE §8.8.3 concatenationExpression, the same rule every other literal
-// position uses, so its operands are every §8.8.3.2 SR1 operand: a figurative constant ("may be specified as one or
+// N"…" / NX"…", boolean B"…" / BX"…"), or THE §2023:8.8.3 concatenationExpression, the same rule every other literal
+// position uses, so its operands are every §2023:8.8.3.2 SR1 operand: a figurative constant ("may be specified as one or
 // both operands") and a constant-name or symbolic-character word included (kb/Work PB1627 — a second, quoted-only
 // operand rule here refused `ALL "A" & SPACE` and `ALL "A" & K`). Greedy: the ALL binds the WHOLE concatenation
 // (kb/Work PB71). A constant-name literal-1 written ALONE is the figurativeConstant `ALL cobolWord` arm below (the
@@ -1014,8 +1014,8 @@ allLiteral
     | BOOLLIT
     ;
 
-// §8.3.3.6.2 formats 1–5: the figurative spellings a format's braces make INTERCHANGEABLE — and only here
-// (kb/Work PB510). Each spelling is its own lexer token (one token per §8.9 reserved word), so a general format
+// §2023:8.3.3.6.2 formats 1–5: the figurative spellings a format's braces make INTERCHANGEABLE — and only here
+// (kb/Work PB510). Each spelling is its own lexer token (one token per §2023:8.9 reserved word), so a general format
 // that names ONE of them as a keyword (BLANK WHEN ZERO, the sign condition's ZERO, OPTIONS INITIALIZE's BINARY
 // ZEROES / HIGH-VALUES / LOW-VALUES / SPACES) writes that token and admits no other spelling.
 zeroWord      : ZERO | ZEROS | ZEROES ;
@@ -1030,15 +1030,15 @@ figurativeConstant
     | highValueWord
     | lowValueWord
     | quoteWord
-    | ALL allLiteral   // Format 6 — ALL literal-1 (§8.3.3.6.3 SR2: an alphanumeric, boolean or national literal, which
+    | ALL allLiteral   // Format 6 — ALL literal-1 (§2023:8.3.3.6.3 SR2: an alphanumeric, boolean or national literal, which
                         // may be a concatenation expression; kb/Work PB71 — ONE arm for the four literal kinds)
     | ALL zeroWord
     | ALL spaceWord
     | ALL highValueWord
     | ALL lowValueWord
     | ALL quoteWord
-    | ALL cobolWord   // Format 7 — ALL symbolic-character-1 (§8.3.3.6.2; SR4: a SYMBOLIC CHARACTERS name — kb/Work PB110),
-                      // OR Format 6 over a constant-name literal-1 (§13.10.3 SR2 — kb/Work PB1627): the parse cannot
+    | ALL cobolWord   // Format 7 — ALL symbolic-character-1 (§2023:8.3.3.6.2; SR4: a SYMBOLIC CHARACTERS name — kb/Work PB110),
+                      // OR Format 6 over a constant-name literal-1 (§2023:13.10.3 SR2 — kb/Work PB1627): the parse cannot
                       // tell the two words apart, so ConcatFolder.FoldAllLiteral resolves a constant-name first and
                       // the Format 7 readers take the rest. LAST so the keyword forms and ALL literal-1 win; the bare
                       // form is a word reference (the constant-name substitution seams)

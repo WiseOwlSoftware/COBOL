@@ -4,10 +4,10 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB1390 — the TERMINATION half of ISO §8.8.4.12.4 GR1: "The insertion of an omitted subject and/or
+      *> kb/Work PB1390 — the TERMINATION half of ISO §2023:8.8.4.12.4 GR1: "The insertion of an omitted subject and/or
       *> relational operator terminates once a complete simple condition is encountered within a complex
       *> condition." After the class condition B IS NUMERIC nothing is carried, so `OR < 2` has no subject to
-      *> insert (§8.8.4.12.1 lets a relation omit its subject only when a preceding relation condition supplies
+      *> insert (§2023:8.8.4.12.1 lets a relation omit its subject only when a preceding relation condition supplies
       *> one). It was refused with no diagnostic (the COBOL2319 internal-error net); it is now COBOL2552.
       *> (A group that OPENS with an abbreviated relation, `OR (< 2)`, never parses: every leading tier begins
       *> with an unabbreviated condition.)

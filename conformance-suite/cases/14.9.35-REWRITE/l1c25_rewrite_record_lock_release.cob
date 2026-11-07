@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.35.4 GR12 — REWRITE record-lock release/set rules
+      *> ISO §2023:14.9.35.4 GR12 — REWRITE record-lock release/set rules
       *> (single locking a) 1. and a) 2., multiple locking b), c)).
       *> "12) If record locks are in effect, the following actions take
       *> place at the beginning or at the successful completion of the
@@ -27,24 +27,24 @@
       *>  c) If the WITH LOCK phrase is specified, the record lock
       *>  associated with the record to be replaced is set at
       *>  completion."
-      *> cite.py: OK  §14.9.35.4 12)  (General rules) - lead-in, a) 1.,
+      *> cite.py: OK  §2023:14.9.35.4 12)  (General rules) - lead-in, a) 1.,
       *>   a) 2., b) and c) each checked separately
-      *> cite.py: OK  §12.4.5.9.4 5)  (General rules) - MANUAL: "Records
+      *> cite.py: OK  §2023:12.4.5.9.4 5)  (General rules) - MANUAL: "Records
       *>   locks are obtained only when the LOCK phrase is explicitly
       *>   specified on an I-O statement."
-      *> cite.py: OK  §12.4.5.9.4 6)  (General rules) - single locking
+      *> cite.py: OK  §2023:12.4.5.9.4 6)  (General rules) - single locking
       *>   is implied by LOCK MODE without LOCK ON; "Execution of any
       *>   I-O statement except START releases any previously locked
       *>   record in that file for that file connector."
-      *> cite.py: OK  §12.4.5.9.4 7)  (General rules) - MULTIPLE: "a
+      *> cite.py: OK  §2023:12.4.5.9.4 7)  (General rules) - MULTIPLE: "a
       *>   file connector is permitted to have more than one record of
       *>   a file locked"
-      *> cite.py: OK  §14.9.30.4 9)  (General rules) - a READ of "the
+      *> cite.py: OK  §2023:14.9.30.4 9)  (General rules) - a READ of "the
       *>   record identified for access is locked by another file
       *>   connector" -> record operation conflict condition
-      *> cite.py: OK  §9.1.13.8 1)  (Record operation conflict condition
+      *> cite.py: OK  §2023:9.1.13.8 1)  (Record operation conflict condition
       *>   with unsuccessful completion) - "I-O status = 51."
-      *> cite.py: OK  §9.1.16   (Record locking) - "all record locks
+      *> cite.py: OK  §2023:9.1.16   (Record locking) - "all record locks
       *>   established for a file are released by the execution of an
       *>   explicit or implicit CLOSE statement for the file."
       *> Probe: observer connector Q (LOCK MODE MANUAL, never locks)
@@ -64,7 +64,7 @@
       *>  S4: P READ 3 WITH LOCK -> Q3=51. P REWRITE 9 (no such slot)
       *>      -> invalid key, 23 (GR21). The lock on 3 is on a record
       *>      other than the one to be replaced, released "at the
-      *>      beginning" (a) 2.; also §12.4.5.9.4 GR6: ANY I-O statement
+      *>      beginning" (a) 2.; also §2023:12.4.5.9.4 GR6: ANY I-O statement
       *>      releases it) -> Q3=00 although the REWRITE failed.
       *>  S5: M READ 1 WITH LOCK, READ 2 WITH LOCK (both kept, GR7).
       *>      M REWRITE 1 (no phrase) -> b): released only with WITH NO
@@ -73,7 +73,7 @@
       *>      the lock on 1 stays -> Q1=51.
       *>  S7: M REWRITE 3 WITH LOCK (3 not locked before) -> c) sets it
       *>      -> Q3=51.
-      *>  S8: CLOSE M releases all its locks (§9.1.16) -> Q1=00, Q3=00.
+      *>  S8: CLOSE M releases all its locks (§2023:9.1.16) -> Q1=00, Q3=00.
       *>  Final contents: 1 = M's rewrite, 2 = M's, 3 = M's, 4 intact.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1C25G.

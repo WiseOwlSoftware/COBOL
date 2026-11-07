@@ -51,7 +51,7 @@ public sealed class Frontend
     public bool Permissive { get; init; }
 
     /// <summary>The reference format the compilation group starts in (the CLI's <c>--source-format</c>; kb/Work
-    /// PB1362) — fixed form unless selected otherwise, ISO §7.3.24.3 2) "The default reference format of a compilation
+    /// PB1362) — fixed form unless selected otherwise, ISO §2023:7.3.24.3 2) "The default reference format of a compilation
     /// group is fixed form". See <see cref="Preprocessor.InitialReferenceFormat"/>.</summary>
     public Preprocessor.InitialReferenceFormat InitialFormat { get; init; } = Preprocessor.InitialReferenceFormat.Fixed;
 
@@ -73,7 +73,7 @@ public sealed class Frontend
 
     /// <summary>EVERY directive-derived fact the binder consumes, as ONE record (kb/Work PB65 — the fifth
     /// positional parameter on <c>Bind</c> was the growing-list shape). Reflects the LAST parsed source, with
-    /// §14.9.28.4 GR14's implicit PUSH ALL / POP ALL already replayed into every event timeline (kb/Work PB1004,
+    /// §2023:14.9.28.4 GR14's implicit PUSH ALL / POP ALL already replayed into every event timeline (kb/Work PB1004,
     /// PB1066 — the front end places them, because the conditional-compilation driver's state needs them too).</summary>
     public DirectiveResults Directives { get; private set; } = DirectiveResults.None;
 
@@ -92,9 +92,9 @@ public sealed class Frontend
         // encoding is COBOL5434 and ends the compilation here, an unmarked non-UTF-8 file is read as ISO/IEC 8859-1 with COBOL5435.
         if (Inputs.ReadSourceText(sourcePath, diagnostics) is not { } raw) return null;
 
-        // ISO §14.9.28.4 GR14 (kb/Work PB1004, PB1066): "An implicit PUSH ALL … is assumed at the end of
+        // ISO §2023:14.9.28.4 GR14 (kb/Work PB1004, PB1066): "An implicit PUSH ALL … is assumed at the end of
         // imperative-statement-1. Immediately preceding the END PERFORM phrase, there is an implicit POP ALL". ALL is
-        // EVERY pushable directive (§7.3.22.4 GR2), and each stage of the front end holds its own share of that state
+        // EVERY pushable directive (§2023:7.3.22.4 GR2), and each stage of the front end holds its own share of that state
         // BEFORE the parse that can place the two ops: the reference-format normalizer holds the SOURCE FORMAT in force,
         // the conditional-compilation driver the compilation-variable table and the frontend-inline FLAG options. A
         // >>DEFINE or >>SOURCE FORMAT written in a WHEN phrase would therefore outlive END-PERFORM. The stages re-run with
@@ -120,7 +120,7 @@ public sealed class Frontend
             LineMap = passLineMap;
             var passAreas = new FixedFormAreas(passLineMap, formats);
             var (tree, parsed, sourceDebuggingLines) = LexAndParse(processed.Text, sourcePath, directives.CobolWordsMap, passDiagnostics, passAreas);
-            // A debugging line the §6.5 walk passed over as a comment between the parts of a literal, and that the unit's
+            // A debugging line the §2023:6.5 walk passed over as a comment between the parts of a literal, and that the unit's
             // WITH DEBUGGING MODE makes source, is a source line there (kb/Work PB2490).
             referenceFormatGates.OnSourceDebuggingLines(
                 sourceDebuggingLines.Select(t => passLineMap.Origin(t.Line)).OfType<SourceOrigin>());
@@ -167,7 +167,7 @@ public sealed class Frontend
             }
             if (pass > SpeculationBound(encounters, formats))
                 throw new InvalidOperationException(
-                    "the §14.9.28.4 GR14 implicit-op fixed point did not converge (kb/Work PB1066) — each pass must "
+                    "the §2023:14.9.28.4 GR14 implicit-op fixed point did not converge (kb/Work PB1066) — each pass must "
                     + "settle at least one more directive");
             implicitOps = keyed;
             formatOps = placed;
@@ -182,7 +182,7 @@ public sealed class Frontend
     /// is program text: reading it changes only the text after it, so it and every candidate before it are settled, and the
     /// candidates after it are decided again by the run that reads it. A run that names none ends the iteration, which is every
     /// run of a program without a candidate; each other run settles one more candidate of a text that only grows past it, so
-    /// it ends. Each run reports into a bag and a reference-format diagnostics of its own, as each §14.9.28.4 GR14 pass does:
+    /// it ends. Each run reports into a bag and a reference-format diagnostics of its own, as each §2023:14.9.28.4 GR14 pass does:
     /// only the last run's are the pass's.</summary>
     private (DiagnosticBag Diagnostics, ReferenceFormatDiagnostics Gates, MappedText Text, DirectiveResults Directives,
         ConditionalCompilationResult Encounters, IReadOnlyDictionary<string, ReferenceFormatMap> Formats) RunTextStages(
@@ -203,7 +203,7 @@ public sealed class Frontend
         }
     }
 
-    /// <summary>How many passes the §14.9.28.4 GR14 fixed point may take: each settles at least one more directive — an
+    /// <summary>How many passes the §2023:14.9.28.4 GR14 fixed point may take: each settles at least one more directive — an
     /// encounter of the conditional-compilation driver or a written format directive of the normalizer — plus the final
     /// confirming pass and one for the unrestored first run.</summary>
     private static int SpeculationBound(ConditionalCompilationResult encounters,
@@ -218,7 +218,7 @@ public sealed class Frontend
 
     /// <summary>The RESULTANT line of the END-PERFORM phrase that closes an exception-checking PERFORM the parse could not
     /// read it of (kb/Work PB1066) — 0 when it cannot be found. The phrase is unreadable exactly when the reference format
-    /// §14.9.28.4 GR14's implicit POP ALL would restore is still the wrong one for it (the handler's &gt;&gt;SOURCE
+    /// §2023:14.9.28.4 GR14's implicit POP ALL would restore is still the wrong one for it (the handler's &gt;&gt;SOURCE
     /// FORMAT left in force reads a free-form <c>END-PERFORM</c> as a sequence area), so only the PHYSICAL text can still
     /// say where it is: the first line after the one that ends imperative-statement-1 that holds the word outside a
     /// comment line (a fixed-form <c>*</c> or <c>/</c> indicator, or a floating <c>*&gt;</c>), and is not the END-PERFORM
@@ -260,7 +260,7 @@ public sealed class Frontend
     /// no-op on source that does not use it, so an ordinary program passes through essentially unchanged.
     /// </summary>
     /// <returns>The logical free-form text and the reference format each physical line was read in — which the COPY
-    /// statements of the text need (§7.3.24.3 3), kb/Work PB1067).</returns>
+    /// statements of the text need (§2023:7.3.24.3 3), kb/Work PB1067).</returns>
     private (MappedText Text, ReferenceFormatMap Formats) Normalize(string raw, string sourcePath,
         ReferenceFormatDiagnostics referenceFormatGates, ImplicitFormatOps implicitOps, CommentEntryPins pins)
     {
@@ -271,14 +271,14 @@ public sealed class Frontend
         // PB82): a fixed-form continuation JOINS physical lines, and the map records which line each output came from.
         var text = ReferenceFormatProcessor.NormalizeToFreeFormMapped(raw, referenceFormatGates, sourcePath,
             InitialFormat.InitialFixed(), out var formats, ccvsIndicators: NistTestName is not null,   // kb/Work PB1494
-            implicitOps: implicitOps.For(sourcePath),   // §14.9.28.4 GR14's implicit PUSH/POP ALL written in the source (kb/Work PB1066)
+            implicitOps: implicitOps.For(sourcePath),   // §2023:14.9.28.4 GR14's implicit PUSH/POP ALL written in the source (kb/Work PB1066)
             pins: pins,   // the comment-entry candidates a previous run proved to be program text (kb/Work PB4281)
             inclusion: CommentEntryPins.SourceText);   // … in the source text, the run's first text (kb/Work PB4487)
         return (text, formats);
     }
 
     /// <summary>The text manipulation and directive stages after normalization — repeatable, because the
-    /// §14.9.28.4 GR14 implicit-op program (<paramref name="implicitOps"/>) comes from a parse of their own output
+    /// §2023:14.9.28.4 GR14 implicit-op program (<paramref name="implicitOps"/>) comes from a parse of their own output
     /// (<see cref="Parse"/>). Returns the resultant text, the directive results (WITHOUT the implicit ops, which the
     /// caller replays once the program has converged), and the driver's directive encounters.</summary>
     private (MappedText Text, DirectiveResults Directives, ConditionalCompilationResult Encounters,
@@ -287,7 +287,7 @@ public sealed class Frontend
         ReferenceFormatDiagnostics referenceFormatGates, IReadOnlyList<KeyedDirectiveOp> implicitOps, ImplicitFormatOps formatOps,
         CommentEntryPins pins)
     {
-        // The MERGED text-manipulation driver (ISO §7.2.1) — conditional compilation INTERLEAVED with COPY, so a
+        // The MERGED text-manipulation driver (ISO §2023:7.2.1) — conditional compilation INTERLEAVED with COPY, so a
         // >>DEFINE/>>IF/>>EVALUATE INSIDE a copybook is processed (the CC-before-COPY split could not see them), while
         // a main-source >>IF still gates a COPY (omitted-branch COPY is never expanded) and REPLACE (Step 3) runs over
         // the expanded group. leave* keep the post-85 directive families flowing to their dedicated stages below.
@@ -312,22 +312,22 @@ public sealed class Frontend
         int linesBefore = CountLines(text);
         var lineMap = new SourceLineMap(mapped.Lines);   // the directive stages' diagnostics name SOURCE lines through it
 
-        // The POSITION-RULED directive sites (ISO §7.3.20.3 SR4 / §7.3.22.3 SR4 / §7.3.25.3 SR5) — recorded
+        // The POSITION-RULED directive sites (ISO §2023:7.3.20.3 SR4 / §2023:7.3.22.3 SR4 / §2023:7.3.25.3 SR5) — recorded
         // BEFORE the TURN stage blanks its lines, so all three words are still in the text and ONE scan answers
         // "where was a TURN / PUSH / POP written" for the binder's single lexical-containment predicate (owner
         // decision D20; kb/Work PB595). It also consumes the >>PUSH / >>POP lines, which the conditional-
         // compilation driver now leaves for it (LeftDirectives) because that driver runs before COPY has settled
         // the line frame and cannot name the resultant line a directive ended on — recording each as a
         // DirectiveStackOp every stage below replays over the state it holds, and warning (COBOL2297) for an
-        // unsuccessful named POP (§7.3.20 / §7.3.22; kb/Work PB941). Line-count preserving.
+        // unsuccessful named POP (§2023:7.3.20 / §2023:7.3.22; kb/Work PB941). Line-count preserving.
         (text, var directiveSites, var stackOps) = DirectiveSiteProcessor.Process(text, diagnostics, sourcePath, lineMap);
         if (CountLines(text) != linesBefore)
             throw new InvalidOperationException(
                 "DirectiveSiteProcessor changed the line count — every directive site would misanchor (hazard H3)");
 
-        // The compilation-variable TIMELINE (ISO §7.3.11.4 GR1; kb/Work PB1368): the DEFINE events the driver recorded,
-        // already in this resultant frame, with the PUSH/POP program of the same text replayed over them (§7.3.20.4
-        // GR1/GR3, §7.3.22.4 GR3 — a POP restores the whole table). The uses GR1 permits OUTSIDE conditional
+        // The compilation-variable TIMELINE (ISO §2023:7.3.11.4 GR1; kb/Work PB1368): the DEFINE events the driver recorded,
+        // already in this resultant frame, with the PUSH/POP program of the same text replayed over them (§2023:7.3.20.4
+        // GR1/GR3, §2023:7.3.22.4 GR3 — a POP restores the whole table). The uses GR1 permits OUTSIDE conditional
         // compilation read it at their own line: a later directive's literal slot (>>COBOL-WORDS, below) and a
         // constant entry's FROM phrase (the binder, through DirectiveResults).
         var compilationVariableLog = new DirectiveEventLog<CompilationVariableEvent>();
@@ -342,7 +342,7 @@ public sealed class Frontend
             throw new InvalidOperationException(
                 "TurnDirectiveProcessor changed the line count — TURN scoping would silently misanchor (hazard H3)");
 
-        // >>PROPAGATE (ISO §7.3.21): collect the ON/OFF toggles the binder folds per source element (§7.3.21.4
+        // >>PROPAGATE (ISO §2023:7.3.21): collect the ON/OFF toggles the binder folds per source element (§2023:7.3.21.4
         // GR1/GR3 — automatic propagation for the functions, methods and programs that follow; kb/Work PB1119).
         // Line-count preserving like the >>TURN stage.
         (text, var propagateEvents) = PropagateDirectiveProcessor.Process(text, stackOps);
@@ -350,7 +350,7 @@ public sealed class Frontend
             throw new InvalidOperationException(
                 "PropagateDirectiveProcessor changed the line count (hazard H3)");
 
-        // >>REF-MOD-ZERO-LENGTH (ISO §7.3.23): recognize + edition-gate + collect the per-line zero-length toggle
+        // >>REF-MOD-ZERO-LENGTH (ISO §2023:7.3.23): recognize + edition-gate + collect the per-line zero-length toggle
         // events on the FINAL text (each event line is directly comparable to a ref-mod token's Start.Line — the
         // >>TURN anchoring discipline). Line-count preserving like the two stages above.
         (text, var refModZeroLengthEvents) = RefModZeroLengthDirectiveProcessor.Process(text, stackOps);
@@ -358,7 +358,7 @@ public sealed class Frontend
             throw new InvalidOperationException(
                 "RefModZeroLengthDirectiveProcessor changed the line count (hazard H3)");
 
-        // >>FLAG-02 / >>FLAG-14 (ISO §7.3.14 / §7.3.15): collect the per-option ON/OFF toggle events on the FINAL
+        // >>FLAG-02 / >>FLAG-14 (ISO §2023:7.3.14 / §2023:7.3.15): collect the per-option ON/OFF toggle events on the FINAL
         // text (each event line is directly comparable to a flagged construct's token Start.Line — the >>TURN
         // anchoring discipline). Line-count preserving like the stages above.
         (text, var flagEvents) = FlagDirectiveProcessor.Process(text, diagnostics, sourcePath, lineMap, stackOps);
@@ -366,7 +366,7 @@ public sealed class Frontend
             throw new InvalidOperationException(
                 "FlagDirectiveProcessor changed the line count (hazard H3)");
 
-        // >>COBOL-WORDS (ISO §7.3.10): parse the per-group reserved/context/intrinsic word-table modification into
+        // >>COBOL-WORDS (ISO §2023:7.3.10): parse the per-group reserved/context/intrinsic word-table modification into
         // the CobolWordsMap (the lexer retype + composed ReservedWordSet consume it), edition-gate the
         // directive word, and enforce SR1/SR2/SR5. Line-count preserving like the stages above.
         (text, var cobolWordsMap, int firstUnitLine) = CobolWordsDirectiveProcessor.Process(text, diagnostics, sourcePath, lineMap,
@@ -374,7 +374,7 @@ public sealed class Frontend
         if (CountLines(text) != linesBefore)
             throw new InvalidOperationException(
                 "CobolWordsDirectiveProcessor changed the line count (hazard H3)");
-        // §7.3.10.3 SR1's placement rule, judged against the boundary that stage reads with the group's own synonyms
+        // §2023:7.3.10.3 SR1's placement rule, judged against the boundary that stage reads with the group's own synonyms
         // (kb/Work PB1373) — for the COBOL-WORDS directive itself and for a PUSH / POP naming it.
         DirectiveSiteProcessor.JudgeFirstUnitPlacement(directiveSites, firstUnitLine, diagnostics, sourcePath, lineMap);
 
@@ -388,9 +388,9 @@ public sealed class Frontend
         text = resolved.Text.Text;
         var lineOrigins = resolved.Text.Lines;
 
-        // >>LEAP-SECOND (ISO §7.3.17): the ON/OFF toggles the binder folds at each compilation unit's first line — the
-        // §15.3 date/time consumers' fact (kb/Work PB65 — it used to be consumed and discarded; kb/Work PB1378 — it is
-        // per UNIT, §7.3.4 GR5: a directive between two sibling units governs the units that follow). Line-count
+        // >>LEAP-SECOND (ISO §2023:7.3.17): the ON/OFF toggles the binder folds at each compilation unit's first line — the
+        // §2023:15.3 date/time consumers' fact (kb/Work PB65 — it used to be consumed and discarded; kb/Work PB1378 — it is
+        // per UNIT, §2023:7.3.4 GR5: a directive between two sibling units governs the units that follow). Line-count
         // preserving like the stages above.
         (text, var leapSecondEvents) = LeapSecondDirectiveProcessor.Process(text, stackOps);
         if (CountLines(text) != linesBefore)
@@ -403,14 +403,14 @@ public sealed class Frontend
             manipulated, copy.ReferenceFormats, resolved.ProgramText);
     }
 
-    /// <summary>The ISO §7.3 directive keywords the merged text-manipulation driver LEAVES in the text for the
+    /// <summary>The ISO §2023:7.3 directive keywords the merged text-manipulation driver LEAVES in the text for the
     /// dedicated stages above — ONE list, in the order those stages run (PUSH / POP / TURN for the site scan,
     /// then TURN, PROPAGATE, REF-MOD-ZERO-LENGTH, FLAG-02 / FLAG-14, COBOL-WORDS, LEAP-SECOND). A new directive
     /// with behavior is one entry here plus its stage.
-    /// <para>PUSH and POP are here for their POSITION and their OPS: §7.3.22.3 SR4 and §7.3.20.3 SR4 are rules
+    /// <para>PUSH and POP are here for their POSITION and their OPS: §2023:7.3.22.3 SR4 and §2023:7.3.20.3 SR4 are rules
     /// about WHERE they are written, and only the final line frame can say (kb/Work PB595), and
     /// <see cref="Preprocessor.DirectiveSiteProcessor"/> records each as a <see cref="DirectiveStackOp"/> that the
-    /// later state-holding stages replay through the ONE <see cref="DirectiveStateStack"/> (§7.3.20 / §7.3.22,
+    /// later state-holding stages replay through the ONE <see cref="DirectiveStateStack"/> (§2023:7.3.20 / §2023:7.3.22,
     /// kb/Work PB941). The driver applies them too, in encounter order, to the state IT holds (DEFINE and the
     /// running FLAG options) before leaving the line.</para>
     /// This set answers WHICH STAGE OWNS THE LINE and nothing else: every word in it is also a
@@ -430,7 +430,7 @@ public sealed class Frontend
     /// failure. The <c>ZERO</c>→<c>ZERO_ARITH</c> token rewrite runs between lexing and parsing to avoid an
     /// exponential-prediction ambiguity. Returns the tree the parser built and whether it is the program's (no syntax
     /// error was reported); the tree of a parse that reported errors is the parser's RECOVERED one, for the one reader that
-    /// can use it (<see cref="Parse"/>'s §14.9.28.4 GR14 op placement) and never an answer to hand on.
+    /// can use it (<see cref="Parse"/>'s §2023:14.9.28.4 GR14 op placement) and never an answer to hand on.
     /// </summary>
     private (CobolParserCore.CompilationUnitContext Tree, bool Parsed, IReadOnlyList<IToken> SourceDebuggingLines) LexAndParse(
         string text, string sourcePath, CobolWordsMap cobolWordsMap, DiagnosticBag diagnostics, IMarginRCutLocator cuts)
@@ -438,7 +438,7 @@ public sealed class Frontend
         // The pass's earlier stages (line entry, COPY, directives) reported into <diagnostics> already; the attempt bags below
         // hold the lex and parse stages' own. An error of either keeps the binder from running.
         bool priorErrors = diagnostics.HasErrors;
-        // >>COBOL-WORDS (ISO §7.3.10.4 GR2/GR3/GR4): the LEXER applies the group's synonyms and de-reserved words to each
+        // >>COBOL-WORDS (ISO §2023:7.3.10.4 GR2/GR3/GR4): the LEXER applies the group's synonyms and de-reserved words to each
         // token as it emits it (TokenRetypes.PrimeLexer, kb/Work PB1372), so PIC's mode switch, the FUNCTION argument
         // region, the SUBSCRIPT trigger and every reader of the filled stream (DebuggingLineRewriter's source-unit
         // boundaries, kb/Work PB1915) see the words the directive made. Primed BEFORE any tokenization. A no-op when the
@@ -478,7 +478,7 @@ public sealed class Frontend
         // region is the exception the rewriter cannot settle on tokens (the lexer skipped its text in that mode), so
         // each such line that IS source has its carrier blanked and the text is lexed again (kb/Work PB1913); the loop
         // ends when none is left, at most once per debugging line. `text` then IS the text every later reader
-        // offsets into (the §8.3.5 / §13.18.40.3 rules below, the fragment re-parses of the tree's regions).
+        // offsets into (the §2023:8.3.5 / §2023:13.18.40.3 rules below, the fragment re-parses of the tree's regions).
         CommonTokenStream tokens;
         // The debugging lines that stay SOURCE: the region lines blanked on the way (their marker is gone from the final
         // stream) and the final stream's own (kb/Work PB2490).
@@ -503,27 +503,27 @@ public sealed class Frontend
         // line's carrier this loop has since blanked.
         lexErrors.ReportInto(diagnostics, sourcePath, LineMap);
         ZeroTokenRewriter.Rewrite(tokens);
-        // The §8.9 reservation gate's retype of the words the program declares where the edition frees them (kb/Work PB655).
+        // The §2023:8.9 reservation gate's retype of the words the program declares where the edition frees them (kb/Work PB655).
         // (The >>COBOL-WORDS retype was applied by the lexer itself.) A no-op when no such word is declared.
         retypes.Rewrite(tokens);
-        // ISO §4.2.14 — each embedded precompiler block (EXEC … END-EXEC) becomes the one token that stands for what its
+        // ISO §2023:4.2.14 — each embedded precompiler block (EXEC … END-EXEC) becomes the one token that stands for what its
         // precompiler writes, BEFORE every reader of the stream: the screens below skip its text, which is another
         // language, and every prediction of the parse sees the token (kb/Work PB4341). A no-op for a source with none.
         var embeddedBlocks = EmbeddedBlockReading.Read(tokens,
             () => ParsesCleanly(tokens, retypes, edition, cobolWordsMap, sourcePath, cuts));
 
-        // ISO §13.18.40.3 SR7 — decided from the characters PICMODE delimited, once per PICTURE clause of every
+        // ISO §2023:13.18.40.3 SR7 — decided from the characters PICMODE delimited, once per PICTURE clause of every
         // entry kind (kb/Work PB569). Reported through the syntax-error listener so it is located exactly like a
         // parse error; the parse itself still runs, so every other diagnostic of the unit is reported too.
         var sr7 = new CobolErrorListener(diagnostics, sourcePath, LineMap, cuts);
-        // ISO §6.3.5 1) / §6.4.2 — a literal its line ends inside (kb/Work PB3245), FIRST: it is why whatever else its line
+        // ISO §2023:6.3.5 1) / §2023:6.4.2 — a literal its line ends inside (kb/Work PB3245), FIRST: it is why whatever else its line
         // and the next draw is drawn, and a parse it breaks never reaches the bind-time literal walk.
         LiteralScreen.ReportUnterminated(tokens.GetTokens(), (t, descriptor, message) =>
             sr7.SyntaxError(TextWriter.Null, null!, t, t.Line, t.Column, $"[{descriptor.Code}] {message}", null!));
         foreach (var pic in PictureSeparatorPeriodRule.Violations(text, tokens.GetTokens()))
             sr7.SyntaxError(TextWriter.Null, null!, pic, pic.Line, pic.Column,
                 $"[{Diagnostics.DiagnosticDescriptors.COBOL2419.Code}] {PictureSeparatorPeriodRule.Message(pic)}", null!);
-        // ISO §8.3.5 rules 2, 3 and 5 — the separator context of every comma, semicolon, period and literal, decided from
+        // ISO §2023:8.3.5 rules 2, 3 and 5 — the separator context of every comma, semicolon, period and literal, decided from
         // the same characters and reported the same way (kb/Work PB1394). Hidden-channel tokens included: a ';' with no
         // space after it reaches the token stream only there.
         foreach (var v in SeparatorRule.Violations(text, tokens.GetTokens()))
@@ -531,23 +531,23 @@ public sealed class Frontend
                 $"[{v.Descriptor.Code}] {v.Message}", null!);
 
         // The parser needs the map as well as the lexer and the rewriter: its text predicates (LOCALE, ORDER,
-        // CLASSIFICATION, ATTRIBUTE, the LC_ categories) recognize §8.9/§8.10 words the lexer deliberately does
+        // CLASSIFICATION, ATTRIBUTE, the LC_ categories) recognize §2023:8.9/§2023:8.10 words the lexer deliberately does
         // not tokenize, so only CobolWordsMap.Resolve can reach them — kb/Work PB250.
         // ⛔ BOTH AXES, not just the year (kb/Work PB693). The parser's <c>Edition</c> is the single source its
         // predicates read, and the reservation gate (<c>userWordHere</c>) asks the PERMISSIVE axis: the migration
-        // mode must keep a §8.9-reserved word usable as a user-defined word so the funnel can WARN instead of
+        // mode must keep a §2023:8.9-reserved word usable as a user-defined word so the funnel can WARN instead of
         // the parse dying. Setting only DialectLevel left Permissive false for every real compile, so
         // `--permissive` could not save a program that names a reservation-gated word — the one thing the mode
         // exists for. Every other stage of this pipeline is already handed `Permissive`; the parser was the gap.
         var parser = NewParser(tokens, edition, cobolWordsMap);
 
-        // ⛔ THE TOKEN-LEVEL §8.9 GATE (kb/Work PB655): the ONE loop both front ends share —
+        // ⛔ THE TOKEN-LEVEL §2023:8.9 GATE (kb/Work PB655): the ONE loop both front ends share —
         // ReservationGateRewriter.ParseToFixpoint re-parses until no newly declared free gated word remains.
         int parseStart = diagnostics.Diagnostics.Count;   // the parse's own reports start here (the cause below is placed among them)
         var tree = ReservationGateRewriter.ParseToFixpoint(parser, tokens, retypes, diagnostics,
             (bag, witness) => ParsePass(parser, tokens, bag, witness, sourcePath, cuts));
 
-        // ISO §4.2.14 — each embedded precompiler block, reported once at its EXEC and placed among the parse's reports by
+        // ISO §2023:4.2.14 — each embedded precompiler block, reported once at its EXEC and placed among the parse's reports by
         // position (kb/Work PB4341); a source that holds one did not parse, whatever the parse's own errors.
         if (embeddedBlocks.Any)
         {
@@ -558,14 +558,14 @@ public sealed class Frontend
             diagnostics.AddBeforeEffects(blockReports.Diagnostics, parseStart);
         }
 
-        // ISO §8.7.1 — the arithmetic operators' own separator context, decided from the characters beside each operator
+        // ISO §2023:8.7.1 — the arithmetic operators' own separator context, decided from the characters beside each operator
         // the PARSE TREE found (only the tree says binary, unary or no operator at all) and reported the same way
-        // (kb/Work PB2017). The two operator clauses that need no tree (§8.7.3, §8.7.4) were asked with the rest above.
+        // (kb/Work PB2017). The two operator clauses that need no tree (§2023:8.7.3, §2023:8.7.4) were asked with the rest above.
         foreach (var v in SeparatorRule.ArithmeticOperatorViolations(text, tree))
             sr7.SyntaxError(TextWriter.Null, null!, v.Token, v.Token.Line, v.Token.Column,
                 $"[{v.Descriptor.Code}] {v.Message}", null!);
 
-        // ISO §8.3.2.1 / §8.1.3.2 GR4 / Annex B.3 — the characters of every COBOL word the lexer produced. The binder driver
+        // ISO §2023:8.3.2.1 / §2023:8.1.3.2 GR4 / Annex B.3 — the characters of every COBOL word the lexer produced. The binder driver
         // screens the words of a tree it binds, but it does not run on a compilation whose frontend reported ANY error
         // (CompilerDriver.Compile): a parse that FAILED, and equally a parse that succeeded beside a separator, PICTURE or
         // preprocessor error. A word the grammar cannot use is exactly why a parse may have failed (it dies at the NEXT

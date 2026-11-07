@@ -8,7 +8,7 @@
       *> PICTURE clause caps a fixed-point item's digit positions:
       *> "the number of digit positions described by character-string-1
       *> shall range from 1 through 31."
-      *>   cite.py: OK  §13.18.40.3 14)  (Syntax rules)
+      *>   cite.py: OK  §2023:13.18.40.3 14)  (Syntax rules)
       *> COBOL-85 capped a fixed-point item at 18 digits; the 19-31
       *> digit tier (and with it a sum counter wider than 18 digits
       *> over such an addend) is 2002 and later, so the 19-digit

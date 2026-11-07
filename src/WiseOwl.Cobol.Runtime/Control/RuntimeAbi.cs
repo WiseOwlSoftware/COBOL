@@ -26,13 +26,13 @@ public static class RuntimeAbi
     public static Version Version { get; } = typeof(RuntimeAbi).Assembly.GetName().Version
         ?? throw new InvalidOperationException("the WiseOwl COBOL runtime assembly carries no AssemblyVersion");
 
-    /// <summary>The boundary layout this runtime adopts (§15.4). Bumped whenever a compiler-side crossing decision
+    /// <summary>The boundary layout this runtime adopts (§2023:15.4). Bumped whenever a compiler-side crossing decision
     /// changes: <c>CallEmitter.CrossingOf</c>, <c>ProgramEmitter.FormalCrossing</c> / <c>FormalCarrierType</c>, the
     /// profile and width <c>CallEmitter.RegisteredFormal</c> / <c>RegisteredReturning</c> register, the BY VALUE
     /// landing's arguments, or the text a description carries for the relations to compare (3: a restricted pointer's
     /// canonical signature identity and the DYNAMIC LENGTH structure's definition key, kb/Work PB2103; 4: a restricted
     /// prototype pointer's USAGE clause by the prototype it names, its signature class moved to the content restriction,
-    /// and the pointer's §8.5.3.1 type, kb/Work PB4107; 6: a prototype's signature identity describes a restricted
+    /// and the pointer's §2023:8.5.3.1 type, kb/Work PB4107; 6: a prototype's signature identity describes a restricted
     /// pointer formal by the prototype its TO phrase names, so every content restriction whose signature holds one is
     /// spelled anew, kb/Work PB4491).
     /// <para>A property, never a <c>const</c>: a constant's value is part of the shipped public surface the runtime major

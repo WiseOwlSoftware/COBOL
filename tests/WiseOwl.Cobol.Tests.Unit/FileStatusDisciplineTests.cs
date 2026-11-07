@@ -7,10 +7,10 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The ISO §9.1.13 I-O status DISCIPLINE seams kb/Work PB140 closed — pinned at the runtime registry over a
+/// The ISO §2023:9.1.13 I-O status DISCIPLINE seams kb/Work PB140 closed — pinned at the runtime registry over a
 /// PRIVATE <see cref="FileRegistry"/> instance (no shared static state, so these parallelize freely):
-/// the §9.1.13.7 item 3 '43' gate dropping on EVERY intervening statement (the Status-setter chokepoint),
-/// CLOSE WITH LOCK only locking on a successful close, the REEL/UNIT surface honoring §14.9.6.4 GR6 for an
+/// the §2023:9.1.13.7 item 3 '43' gate dropping on EVERY intervening statement (the Status-setter chokepoint),
+/// CLOSE WITH LOCK only locking on a successful close, the REEL/UNIT surface honoring §2023:14.9.6.4 GR6 for an
 /// absent optional file, the loud unregistered-connector invariant that replaced the fail-open '00', and the
 /// DELETE FILE GR17 medium-refusal classification. The end-to-end FILE STATUS observations ride the
 /// pb140_* goldens; these facts reach the arms no golden can (the throw branches, the exception mapping).
@@ -20,7 +20,7 @@ public sealed class FileStatusDisciplineTests
     private const int SeqAccess = 0;   // KeyedAccess.Sequential
 
     /// <summary>A relative ACCESS SEQUENTIAL connector loaded with <paramref name="records"/> and reopened I-O
-    /// — the §9.1.13.7 3) DELETE-gate scenario's starting state.</summary>
+    /// — the §2023:9.1.13.7 3) DELETE-gate scenario's starting state.</summary>
     private static (FileRegistry reg, string host) SeqRelativeIo(params string[] records)
     {
         var reg = new FileRegistry();
@@ -33,7 +33,7 @@ public sealed class FileStatusDisciplineTests
         return (reg, host);
     }
 
-    // §9.1.13.7 3): UNLOCK is in §9.1.13.1's statement set, so a READ / UNLOCK / DELETE sequence must answer
+    // §2023:9.1.13.7 3): UNLOCK is in §2023:9.1.13.1's statement set, so a READ / UNLOCK / DELETE sequence must answer
     // '43' — the record survives and a fresh READ re-arms the gate. (The old hand-cleared flag survived
     // UNLOCK: the DELETE answered '00' and removed the record.)
     [Fact]
@@ -54,7 +54,7 @@ public sealed class FileStatusDisciplineTests
         finally { FileHarness.TryDelete(host); }
     }
 
-    // §9.1.13.7 3) + item 1: the already-open OPEN ('41') is an executed input-output statement — the third
+    // §2023:9.1.13.7 3) + item 1: the already-open OPEN ('41') is an executed input-output statement — the third
     // leak site (the '41' arm returned before the hand reset ran).
     [Fact]
     public void ReadGate_AlreadyOpen41DropsIt_DeleteIs43()
@@ -70,7 +70,7 @@ public sealed class FileStatusDisciplineTests
         finally { FileHarness.TryDelete(host); }
     }
 
-    // §9.1.13.7 3): DELETE FILE (on the open connector — '41', §14.9.10.4 GR13) likewise drops the gate.
+    // §2023:9.1.13.7 3): DELETE FILE (on the open connector — '41', §2023:14.9.10.4 GR13) likewise drops the gate.
     [Fact]
     public void ReadGate_DeleteFile41DropsIt_DeleteIs43()
     {
@@ -84,7 +84,7 @@ public sealed class FileStatusDisciplineTests
         finally { FileHarness.TryDelete(host); }
     }
 
-    // §14.9.6.4 GR1: an unsuccessful CLOSE WITH LOCK ('42' — never opened) performs NO closing action, so a
+    // §2023:14.9.6.4 GR1: an unsuccessful CLOSE WITH LOCK ('42' — never opened) performs NO closing action, so a
     // later OPEN must succeed. (The old unconditional _locked.Add answered '38' forever after.)
     [Fact]
     public void CloseWithLock_Unsuccessful42_DoesNotPoisonLaterOpen()
@@ -106,9 +106,9 @@ public sealed class FileStatusDisciplineTests
         finally { FileHarness.TryDelete(host); }
     }
 
-    // §14.9.6.4 GR6: for an absent OPTIONAL input file NO unit processing is performed — CLOSE REEL/UNIT
+    // §2023:14.9.6.4 GR6: for an absent OPTIONAL input file NO unit processing is performed — CLOSE REEL/UNIT
     // completes successfully ('00', not the '07' unit-processing warning), and the connector stays open for
-    // the real CLOSE. §9.1.13.7 item 2: on a not-open file the surface answers '42'.
+    // the real CLOSE. §2023:9.1.13.7 item 2: on a not-open file the surface answers '42'.
     [Fact]
     public void CloseReelUnit_AbsentOptional_NoUnitProcessing()
     {
@@ -135,7 +135,7 @@ public sealed class FileStatusDisciplineTests
     }
 
     // kb/Work PB360 — the statement entries that survived PB140 on a TryGetValue guard: UNLOCK returned having set
-    // no status (§14.9.47.4 GR3 makes the update unconditional), the five governed record verbs invented '30',
+    // no status (§2023:14.9.47.4 GR3 makes the update unconditional), the five governed record verbs invented '30',
     // and the staging / sequential-surface entries dropped the call. Every one is now the Require chokepoint.
     public static TheoryData<string> StatementEntries() => new()
     {
@@ -175,7 +175,7 @@ public sealed class FileStatusDisciplineTests
         Assert.Throws<InvalidOperationException>(() => reg.WriteAdvancing("R", "X", 1, false, null));
     }
 
-    // §14.9.6.3 SR1 binds REEL/UNIT to sequential organization; a keyed connector reaching the surface is a
+    // §2023:14.9.6.3 SR1 binds REEL/UNIT to sequential organization; a keyed connector reaching the surface is a
     // compiler defect and must be loud, never a silently-skipped status assignment.
     [Fact]
     public void CloseReelUnit_OnAKeyedConnector_IsLoud()
@@ -185,8 +185,8 @@ public sealed class FileStatusDisciplineTests
         Assert.Throws<InvalidOperationException>(() => reg.CloseReelUnit("R"));
     }
 
-    // §14.9.10.4 GR17 vs §9.1.13.6 item 1: a medium that refuses deletion (Windows ERROR_WRITE_PROTECT,
-    // Unix EROFS) is '37'; the host's SHARING refusal is §9.1.13.9 2)'s '62' (kb/Work PB860 — this assertion
+    // §2023:14.9.10.4 GR17 vs §2023:9.1.13.6 item 1: a medium that refuses deletion (Windows ERROR_WRITE_PROTECT,
+    // Unix EROFS) is '37'; the host's SHARING refusal is §2023:9.1.13.9 2)'s '62' (kb/Work PB860 — this assertion
     // used to pin ERROR_SHARING_VIOLATION as the "other" case and so held the '30' defect green); any other
     // IOException stays the generic '30'.
     [Fact]
@@ -198,7 +198,7 @@ public sealed class FileStatusDisciplineTests
         Assert.Equal(FileStatusCode.PermanentError, FileStatusCode.ForDeleteFileFailure(new IOException("disk full", unchecked((int)0x80070070))));
     }
 
-    // §14.9.10.4 GR14: DELETE FILE of a genuinely absent physical file is the SUCCESSFUL '05'.
+    // §2023:14.9.10.4 GR14: DELETE FILE of a genuinely absent physical file is the SUCCESSFUL '05'.
     [Fact]
     public void DeleteFile_AbsentPhysicalFile_Is05()
     {
@@ -207,7 +207,7 @@ public sealed class FileStatusDisciplineTests
         Assert.Equal(FileStatusCode.OptionalFileNotFound, reg.DeleteFile("A"));
     }
 
-    // §9.1.13.7 item 9 ('49'): DELETE RECORD on a connector not open I-O.
+    // §2023:9.1.13.7 item 9 ('49'): DELETE RECORD on a connector not open I-O.
     [Fact]
     public void Delete_OpenInput_Is49()
     {
@@ -221,7 +221,7 @@ public sealed class FileStatusDisciplineTests
         finally { FileHarness.TryDelete(host); }
     }
 
-    // §9.1.13.5 ('23'): a random-access DELETE whose RELATIVE KEY names no record.
+    // §2023:9.1.13.5 ('23'): a random-access DELETE whose RELATIVE KEY names no record.
     [Fact]
     public void Delete_RandomMissingKey_Is23()
     {
@@ -239,7 +239,7 @@ public sealed class FileStatusDisciplineTests
         finally { FileHarness.TryDelete(host); }
     }
 
-    // §14.9.6.4 GR8: after a successful CLOSE the connector is out of its open mode and dissociated — the
+    // §2023:14.9.6.4 GR8: after a successful CLOSE the connector is out of its open mode and dissociated — the
     // OPEN / CLOSE / CLOSE / OPEN cycle answers 00 / 00 / 42 / 00, never '41'.
     [Fact]
     public void Close_ThenCloseAgain42_ThenReopen00()

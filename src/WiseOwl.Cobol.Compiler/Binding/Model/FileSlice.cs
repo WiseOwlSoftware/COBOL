@@ -5,11 +5,11 @@ using WiseOwl.Cobol.Runtime;
 namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>
-/// The files ONE bound unit declares (ISO §12.4.5 SELECT, §13.4.5 FD, §13.4.6 SD; docs/rearchitecture/DESIGN-architecture-review.md
-/// §8.3 (1); kb/Work PB2296 M6): a value slice of <see cref="DataBindState"/> whose writers are the two halves that declare a
+/// The files ONE bound unit declares (ISO §2023:12.4.5 SELECT, §2023:13.4.5 FD, §2023:13.4.6 SD;
+/// docs/rearchitecture/DESIGN-architecture-review.md §8.3 (1); kb/Work PB2296 M6): a value slice of <see cref="DataBindState"/> whose writers are the two halves that declare a
 /// file, the FILE-CONTROL binder (the SELECT entry) and the FILE SECTION walk (an FD or SD that names a file no SELECT
-/// specified, §13.4.5.3 SR1 / §13.4.6.3 SR1). A container's GLOBAL files are NOT here: they are
-/// <see cref="InheritedGlobals.Files"/>, and <see cref="DataBindState.VisibleFiles"/> reads both, this unit's first (§8.4.6.2.1 3).
+/// specified, §2023:13.4.5.3 SR1 / §2023:13.4.6.3 SR1). A container's GLOBAL files are NOT here: they are
+/// <see cref="InheritedGlobals.Files"/>, and <see cref="DataBindState.VisibleFiles"/> reads both, this unit's first (§2023:8.4.6.2.1 3).
 /// </summary>
 public sealed class FileSlice
 {

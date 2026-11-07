@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> SET [SIZE OF] dynamic-length-item TO arithmetic-expression-5 (ISO §14.9.39 Format 16, COBOL-2023): the
+      *> SET [SIZE OF] dynamic-length-item TO arithmetic-expression-5 (ISO §2023:14.9.39 Format 16, COBOL-2023): the
       *> nonfatal EC-STORAGE-NOT-AVAIL condition. GR37 — a value that does not evaluate to a nonnegative number sets
       *> the length to 0 and sets EC-STORAGE-NOT-AVAIL; the sign test is on the EVALUATED value, so a fractional
       *> negative in (-1,0) still triggers it (before the toward-zero truncation). GR38 — a value above the item's

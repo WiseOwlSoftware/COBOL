@@ -21,11 +21,11 @@ options {
 }
 
 // ==========================================
-// SCREEN SECTION (ISO 2002 §13.9)
+// SCREEN SECTION (ISO 2002 §2023:13.9)
 // ==========================================
 
-// §13.9.2 prints `SCREEN SECTION. [ constant-entry | screen-description-entry ] …` (kb/Work PB4306): a constant entry
-// (§13.10) may stand among the screen description entries, as it does among a report's (CobolReportWriter.g4's
+// §2023:13.9.2 prints `SCREEN SECTION. [ constant-entry | screen-description-entry ] …` (kb/Work PB4306): a constant entry
+// (§2023:13.10) may stand among the screen description entries, as it does among a report's (CobolReportWriter.g4's
 // reportDescriptionEntry). Without the alternative `01 K CONSTANT AS 5.` drew a syntax error instead of the section's
 // named refusal; DataBinder binds the constant as the report host does, so a reference to it is not "undefined".
 screenSection
@@ -75,12 +75,12 @@ screenClause
     | globalClause
     ;
 
-// LINE NUMBER IS [PLUS | + | MINUS | -] {identifier-1 | integer-1}   (ISO §13.17.2 formats 1 and 2, §13.18.35
-// format 2). Measured on the rendered page (PDF page 431 = §13.17.2): NUMBER and IS are NOT underlined, so both
+// LINE NUMBER IS [PLUS | + | MINUS | -] {identifier-1 | integer-1}   (ISO §2023:13.17.2 formats 1 and 2, §2023:13.18.35
+// format 2). Measured on the rendered page (PDF page 431 = §2023:13.17.2): NUMBER and IS are NOT underlined, so both
 // are optional words; the four-way sign group is a BRACKET, so it too is optional; and MINUS / '-' are printed
 // alternatives the OCR'd list had, but this rule did not.
 // PLUSWORD = the reserved word PLUS; PLUS = the '+' symbol. ⚠ There is NO lexer token for the WORD MINUS (it is
-// §8.9-reserved from 2002 and modelled in the reserved-word funnel, not the lexer), so it arrives as an
+// §2023:8.9-reserved from 2002 and modelled in the reserved-word funnel, not the lexer), so it arrives as an
 // IDENTIFIER — which is why IDENTIFIER is an alternative here. That over-admits (`LINE FOO 5` parses), and that
 // is harmless in a DECLINED module: everything this rule matches is refused by name at bind, so a wider surface
 // only converts more COBOL0001 parse errors into the named COBOL1560.
@@ -89,25 +89,25 @@ screenLineClause
     ;
 
 // {COLUMN | COL | COLUMNS | COLS} NUMBER IS [PLUS | + | MINUS | -] {identifier-2 | integer-2}
-// (ISO §13.17.2; §13.18.14 SR1 admits the plural spellings).
+// (ISO §2023:13.17.2; §2023:13.18.14 SR1 admits the plural spellings).
 screenColumnClause
     : (COLUMN | COL | COLUMNS | COLS) NUMBER? IS? (IDENTIFIER | PLUS | PLUSWORD | MINUS)? (dataReference | integerLiteral)
     ;
 
-// BLANK {LINE | SCREEN}   (§13.18.7; the screen description entry's §13.17.2 format 2 (elementary) is
+// BLANK {LINE | SCREEN}   (§2023:13.18.7; the screen description entry's §2023:13.17.2 format 2 (elementary) is
 // where it may appear — format 1 (group) admits SCREEN only, bind-narrowed rather than grammar-narrowed,
 // since the whole entry is refused anyway)
 screenBlankClause
     : BLANK (LINE | SCREEN)
     ;
 
-// ERASE {[END] [OF] {LINE | SCREEN} | EOL | EOS}   (§13.17.2 format 2 / §13.18.21.3 SR1: "The word EOL is
+// ERASE {[END] [OF] {LINE | SCREEN} | EOL | EOS}   (§2023:13.17.2 format 2 / §2023:13.18.21.3 SR1: "The word EOL is
 // equivalent to the words END OF LINE"). The two long spellings were missing and produced a parse error.
-// ⛔ END AND OF ARE OPTIONAL WORDS (§8.3.2.4.3; kb/Work PB695 family 3). MEASURED on printed page 429 / folio
+// ⛔ END AND OF ARE OPTIONAL WORDS (§2023:8.3.2.4.3; kb/Work PB695 family 3). MEASURED on printed page 429 / folio
 // 399: ERASE carries a rule at 92.2% cover, LINE 89.7%, SCREEN 94.0%, EOL 87.9% and EOS 87.5% — while BOTH
 // occurrences of END (boxes 127.54–148.05 and 127.53–148.03) and BOTH of OF (150.39–163.11 and 150.37–163.09)
 // have NO horizontal rule in their band at all. The transcription's own figure note agrees.
-// ⚠ THE BRACE IS STILL REQUIRED: LINE / SCREEN / EOL / EOS stays a mandatory choice (§5.2.6.3), so a bare
+// ⚠ THE BRACE IS STILL REQUIRED: LINE / SCREEN / EOL / EOS stays a mandatory choice (§2023:5.2.6.3), so a bare
 // `ERASE` remains a parse error exactly as before — this relaxes the two words INSIDE the alternative, it does
 // not make the alternative empty. With END and OF gone the clause can open on LINE, which is also the head of
 // screenLineClause; that is unambiguous because ANTLR is deciding INSIDE screenEraseClause once ERASE is
@@ -156,8 +156,8 @@ screenUsingClause
     ;
 
 // ==========================================
-// The screen STATEMENT surfaces (ACCEPT ISO §14.9.1 format 3, DISPLAY §14.9.11 format 2,
-// SET §14.9.39 format 6)
+// The screen STATEMENT surfaces (ACCEPT ISO §2023:14.9.1 format 3, DISPLAY §2023:14.9.11 format 2,
+// SET §2023:14.9.39 format 6)
 // ==========================================
 
 // The positioning phrase shared VERBATIM by ACCEPT format 3 and DISPLAY format 2. Rendered from the printed
@@ -166,7 +166,7 @@ screenUsingClause
 //     [ AT {| [ LINE NUMBER {identifier|integer} ] [ {COLUMN|COL} NUMBER {identifier|integer} ] |} ]
 //
 // AT and NUMBER are NOT underlined (optional words); LINE, COLUMN and COL are. The inner group carries CHOICE
-// INDICATORS (§5.2.6.4 — one or more, each at most once, ANY ORDER), which is why this is a `+` over the two
+// INDICATORS (§2023:5.2.6.4 — one or more, each at most once, ANY ORDER), which is why this is a `+` over the two
 // legs and not a fixed LINE-then-COLUMN sequence: `DISPLAY SG COLUMN 5` with no LINE is legal, and it is exactly
 // the shape kb/Work PB260 measured binding as a THREE-operand device DISPLAY.
 // ⛔ THE EXCEPTION PHRASES ARE THE STATEMENT'S OWN `conditionalPhrases`, NOT A TAIL OF THIS PHRASE (kb/Work PB1528).
@@ -178,7 +178,7 @@ screenUsingClause
 //
 //     DELETE FILE F ON EXCEPTION DISPLAY X NOT ON EXCEPTION DISPLAY "NOEXC" END-DELETE
 //
-// and that is §14.5.3.3's association question, which ConditionalPhraseAssociation answers for every owner: a literal,
+// and that is §2023:14.5.3.3's association question, which ConditionalPhraseAssociation answers for every owner: a literal,
 // function-identifier, inline-invocation or second operand, UPON, NO ADVANCING or FROM rules the screen format out
 // (Format.Unprinted); this positioning phrase PROVES it; with neither, the format is only PRESUMED — whether `X` is a
 // screen-name is a declaration fact the parser does not see — and the inner statement takes the phrase only when no
@@ -193,10 +193,10 @@ screenPositionLeg
     ;
 
 // SET screen-name-1 ATTRIBUTE {| BELL | BLINK | HIGHLIGHT | LOWLIGHT | REVERSE-VIDEO | UNDERLINE |} {OFF|ON} …
-// (ISO §14.9.39.2 Format 6, rendered from PDF page 760.)
+// (ISO §2023:14.9.39.2 Format 6, rendered from PDF page 760.)
 // ⛔ THE FORMAT HAS NO `TO`. A proposal to witness this as `SET SG ATTRIBUTE HIGHLIGHT TO ON` would have been
 // illegal source; the printed diagram puts ON/OFF directly after the attribute group.
-// ATTRIBUTE is a §8.10 CONTEXT-SENSITIVE word ("SET statement"), not a reserved word and not a lexer token —
+// ATTRIBUTE is a §2023:8.10 CONTEXT-SENSITIVE word ("SET statement"), not a reserved word and not a lexer token —
 // so it arrives as an ordinary word and the arm is recognized by a LEFT-EDGE predicate on the text, the
 // ORDER TABLE / SET LOCALE precedent. Not edition-gated: `SET x ATTRIBUTE …` has no other reading at any
 // edition (Format 1 requires TO, Format 2 requires UP/DOWN BY), so recognizing it everywhere is what lets the

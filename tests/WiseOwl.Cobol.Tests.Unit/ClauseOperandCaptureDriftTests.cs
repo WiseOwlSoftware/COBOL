@@ -15,7 +15,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// whole logical page on another data item's value, and the compile output was EMPTY.</para>
 /// <para>The fix is structural — one capture (<c>ClauseDataName</c>, which also refuses the shapes a
 /// <i>data-name-n</i> position does not admit) and one resolver (<c>ResolveClauseOperand</c>, over the single
-/// ISO §8.4.2.2 candidate-set matcher <c>DataBinder.QualifiedCandidates</c>) — so the guard has to be that the
+/// ISO §2023:8.4.2.2 candidate-set matcher <c>DataBinder.QualifiedCandidates</c>) — so the guard has to be that the
 /// OLD SHAPES DO NOT COME BACK. A behavioural test proves today's clauses are right
 /// (<c>ClauseOperandQualificationSpecTests</c>); this one keeps the NEXT clause automatic, which is the half a
 /// behavioural test cannot reach: a new clause written with the old idiom would pass every existing test.</para>
@@ -94,7 +94,7 @@ public sealed class ClauseOperandCaptureDriftTests
     /// <summary>⛔ EVERY <c>KeyReference</c> CAPTURE OUTSIDE THE REPORT SECTION IS SCREENED (kb/Work PB481).
     /// <c>KeyReference</c> keeps the qualifiers and DROPS a subscript or reference-modifier, so a data-name-n
     /// operand that reaches it unscreened binds as if unmodified — the SORT table key did, and sorted on the whole
-    /// item. The report-section callers (<c>ReportSectionBinder.cs</c>) are the principled exceptions: §13.18.16.3
+    /// item. The report-section callers (<c>ReportSectionBinder.cs</c>) are the principled exceptions: §2023:13.18.16.3
     /// SR4 and its twins PERMIT a reference-modifier there and read it through <c>ReadOperandSuffixes</c>. Any
     /// other file that calls <c>KeyReference</c> must also call the screen, so a new key-naming caller cannot
     /// re-open the drop by repeating the idiom.</summary>
@@ -119,7 +119,7 @@ public sealed class ClauseOperandCaptureDriftTests
         Assert.True(callers >= 2, "the scan found fewer KeyReference callers than DataBinder + SortBinder — re-derive it");
     }
 
-    /// <summary>The post-build file-clause resolution holds NO first-match name lookup. §8.4.2.2.1 makes the
+    /// <summary>The post-build file-clause resolution holds NO first-match name lookup. §2023:8.4.2.2.1 makes the
     /// NUMBER of candidates the answer — "uniqueness shall be established through qualification" — so a site that
     /// takes <c>[0]</c> has substituted declaration order for the standard's rule, silently.</summary>
     [Fact]
@@ -130,7 +130,7 @@ public sealed class ClauseOperandCaptureDriftTests
         Assert.DoesNotContain("ByName[", body, StringComparison.Ordinal);
     }
 
-    /// <summary>⭐ ONE §8.4.2.2 QUALIFICATION MATCHER IN THE WHOLE BINDER. There were two: the complete one in
+    /// <summary>⭐ ONE §2023:8.4.2.2 QUALIFICATION MATCHER IN THE WHOLE BINDER. There were two: the complete one in
     /// <c>ReferenceResolver</c> (candidate set, exactly one survivor, the file-name as the outermost qualifier)
     /// and a weaker private twin in <c>DataBinder</c> that knew neither the file-name qualifier nor uniqueness —
     /// so the procedure division read the complete rule and the data division the partial one. The matcher is

@@ -7,11 +7,11 @@
       *> kb/Work PB1405 + PB1500 + PB1064 - the edition floor of the
       *> positive goldens 2002/w67q_pb1405_universal_externalized_name,
       *> 2002/w67q_pb1500_universal_no_match and
-      *> 2002/w67q_pb1064_invoke_character_channel: an INVOKE (§14.9.23)
-      *> through a universal object reference, resolved by the §9.3.6
+      *> 2002/w67q_pb1064_invoke_character_channel: an INVOKE (§2023:14.9.23)
+      *> through a universal object reference, resolved by the §2023:9.3.6
       *> method-invocation rules against a METHOD-ID's AS name
-      *> (§8.3.2.2), with its BY REFERENCE argument sharing the formal's
-      *> storage (§14.2.3 GR8), is object orientation - an ISO/IEC
+      *> (§2023:8.3.2.2), with its BY REFERENCE argument sharing the formal's
+      *> storage (§2023:14.2.3 GR8), is object orientation - an ISO/IEC
       *> 1989:2002 introduction absent from COBOL-85, so the 85 compiler
       *> refuses the class reference and the INVOKE (COBOL0900).
        IDENTIFICATION DIVISION.

@@ -6,7 +6,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §13.18.34.4 GR6 b) — the LINAGE value rules AND what happens
+      *> ISO §2023:13.18.34.4 GR6 b) — the LINAGE value rules AND what happens
       *> when they are violated. This fixture pins the SECOND HALF of that
       *> rule, which had no reachable behaviour at all before kb/Work
       *> PB526: the violation was a raw CLR throw that killed the process,
@@ -17,38 +17,38 @@
       *> THE RULE, VERBATIM:
       *>   python scripts/spec/cite.py --check 13.18.34.4 "The page size
       *>   shall be greater than zero."
-      *>   -> OK  §13.18.34.4 6) b) 1.  (General rules)
+      *>   -> OK  §2023:13.18.34.4 6) b) 1.  (General rules)
       *>   python scripts/spec/cite.py --check 13.18.34.4 "The footing
       *>   start shall be greater than zero and not greater than the page
       *>   size."
-      *>   -> OK  §13.18.34.4 6) b) 2.  (General rules)
+      *>   -> OK  §2023:13.18.34.4 6) b) 2.  (General rules)
       *>   python scripts/spec/cite.py --check 13.18.34.4 "If the value
       *>   does not conform to these two rules, the EC-I-O-LINAGE
       *>   exception condition is set to exist."
-      *>   -> OK  §13.18.34.4 6) b) 2.  (General rules)
+      *>   -> OK  §2023:13.18.34.4 6) b) 2.  (General rules)
       *>   python scripts/spec/cite.py --check 13.18.34.4 "it continues
       *>   with the statement following the WRITE statement; the
       *>   LINAGE-COUNTER is set to 0 and remains at that value until the
       *>   file is closed; and all subsequent WRITE statements referencing
       *>   the file cause the EC-I-O-LINAGE exception condition to
       *>   continue to exist until the file is closed."
-      *>   -> OK  §13.18.34.4 6) b) 2.  (General rules)
+      *>   -> OK  §2023:13.18.34.4 6) b) 2.  (General rules)
       *>
       *> WHAT MAKES IT OBSERVABLE WITH NO >>TURN. EC-I-O-LINAGE is Fatal
-      *> (Table 13) and §14.6.13.1.3 3) routes a fatal EC-I-O condition
-      *> through §9.1.13's rules, which are rules about the I-O STATUS:
+      *> (Table 13) and §2023:14.6.13.1.3 3) routes a fatal EC-I-O condition
+      *> through §2023:9.1.13's rules, which are rules about the I-O STATUS:
       *>   python scripts/spec/cite.py --check 14.6.13.1.3 "If the
       *>   exception condition is a fatal EC-I-O exception condition, then
       *>   the rules for 9.1.13, I-O status apply, then if the implementor
       *>   has not specified otherwise, the following rules apply for all
-      *>   fatal exception conditions."   -> OK  §14.6.13.1.3 3)
+      *>   fatal exception conditions."   -> OK  §2023:14.6.13.1.3 3)
       *> No status value corresponds to this condition, so WiseOwl COBOL makes
-      *> it §9.1.13.11's implementor-defined one:
+      *> it §2023:9.1.13.11's implementor-defined one:
       *>   python scripts/spec/cite.py --check 9.1.13.11 "I-O status = 9x.
       *>   An implementor-defined condition exists. This condition shall
       *>   not duplicate any other condition specified by another I-O
       *>   status value. The value of x is defined by the implementor."
-      *>   -> OK  §9.1.13.11 1)
+      *>   -> OK  §2023:9.1.13.11 1)
       *> The value is '90' and the determination is docs/CONFORMANCE.md §7
       *> DOC-A.1-110. '9' is a FATAL first digit by this implementation's
       *> own determination, which is what Table 13's Fatal requires:
@@ -56,7 +56,7 @@
       *>   of I-O status values indicate fatal exception conditions. These
       *>   are: any that begin with the digit 3, 4, or 7, and any that
       *>   begin with the digit 9 that the implementor defines as fatal."
-      *>   -> OK  §9.1.13.1  (General)
+      *>   -> OK  §2023:9.1.13.1  (General)
       *> An unsuccessful I-O status is what a format-1 USE declarative
       *> fires on, with no >>TURN anywhere:
       *>   python scripts/spec/cite.py --check 14.9.49.4 "the procedures
@@ -64,8 +64,8 @@
       *>   of the standard input-output exception routine upon the
       *>   unsuccessful execution of an input-output operation unless an
       *>   AT END or INVALID KEY phrase takes precedence."
-      *>   -> OK  §14.9.49.4 6)  (General rules)
-      *> Checking for EC-I-O-LINAGE is NOT enabled here, so §14.6.13.1.3
+      *>   -> OK  §2023:14.9.49.4 6)  (General rules)
+      *> Checking for EC-I-O-LINAGE is NOT enabled here, so §2023:14.6.13.1.3
       *> 8) governs the continuation and this implementation's answer is
       *> the one GR6 b) 2 itself writes down — execution continues with
       *> the statement following:
@@ -73,7 +73,7 @@
       *>   for the exception condition is not enabled, the implementor
       *>   defines whether or not execution will continue, how it will
       *>   continue, and how any receiving operands are affected."
-      *>   -> OK  §14.6.13.1.3 8)  (Fatal exception conditions)
+      *>   -> OK  §2023:14.6.13.1.3 8)  (Fatal exception conditions)
       *>
       *> ── LPA: the page size rule, violated at a WRITE ────────────────
       *> LPA is `LINAGE IS WS-SZ LINES`, WS-SZ = 2, no FOOTING phrase.
@@ -111,7 +111,7 @@
       *>   python scripts/spec/cite.py --check 13.18.34.4 "If the FOOTING
       *>   phrase is not specified, no end-of-page condition independent
       *>   of the page overflow condition exists."
-      *>   -> OK  §13.18.34.4 1)  (General rules)
+      *>   -> OK  §2023:13.18.34.4 1)  (General rules)
       *> is the rule for an ABSENT phrase and cannot be reached here
       *> (kb/Work PB525: zero used to be the encoding of "absent", so a
       *> specified 0 silently took GR1's reading and the program ran to
@@ -125,20 +125,20 @@
       *>   python scripts/spec/cite.py --check 14.9.51.4 "When an
       *>   end-of-page condition occurs, the WRITE statement is successful
       *>   and then the following actions take place:"
-      *>   -> OK  §14.9.51.4 27)  (General rules)
+      *>   -> OK  §2023:14.9.51.4 27)  (General rules)
       *>   python scripts/spec/cite.py --check 14.9.51.4 "If, during the
       *>   successful execution of a WRITE statement with the NOT
       *>   END-OF-PAGE phrase, the end-of-page condition does not occur,
       *>   then after execution of the input-output operation, control is
       *>   transferred to imperative-statement-2 of the NOT END-OF-PAGE
-      *>   phrase."   -> OK  §14.9.51.4 28)  (General rules)
+      *>   phrase."   -> OK  §2023:14.9.51.4 28)  (General rules)
       *>         GR27 makes an end-of-page WRITE successful and GR28
       *>         conditions the NOT arm on successful execution, so an
       *>         unsuccessful WRITE runs neither.
       *> B-REOPEN with WS-FT = 3 the footing area is [3,5] (GR3) and the
       *>         file works: FS=00, LC=001.
       *> B-W2    AFTER ADVANCING 2 LINES puts the counter at 3, which is
-      *>         at the footing start, so §14.9.51.4 GR26 b)'s end-of-page
+      *>         at the footing start, so §2023:14.9.51.4 GR26 b)'s end-of-page
       *>         condition occurs and the AT END-OF-PAGE imperative runs
       *>         on a SUCCESSFUL write: B-EOP2, FS=00, LC=003.
        IDENTIFICATION DIVISION.

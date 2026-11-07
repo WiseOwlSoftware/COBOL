@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ WHICH USAGE EACH OPTIONAL USAGE-CLAUSE PHRASE MAY FOLLOW IS WRITTEN ONCE, IN <c>UsagePhraseRules</c>, AND IT IS
-/// THE PRINTED FIGURE'S (ISO §13.18.60.2; kb/Work PB174, PB3517).
+/// THE PRINTED FIGURE'S (ISO §2023:13.18.60.2; kb/Work PB174, PB3517).
 ///
 /// <para><b>Why this test exists.</b> The grammar parses the clause's four optional phrases — <c>SIGNED</c> /
 /// <c>UNSIGNED</c>, <c>WITH NO SIGN</c>, the endianness-phrase and the encoding-phrase — after EVERY usage word
@@ -37,7 +37,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 [Trait("Sweep", "tree")]
 public sealed class UsageClausePhraseDriftTests : WiseOwlCobolTestBase
 {
-    /// <summary>Which of the four optional phrases the PRINTED §13.18.60.2 figure (PDF p.533 = printed folio 503,
+    /// <summary>Which of the four optional phrases the PRINTED §2023:13.18.60.2 figure (PDF p.533 = printed folio 503,
     /// rendered) writes on each usage word's line. BINARY-CHAR/-SHORT/-LONG/-DOUBLE print <c>{ SIGNED | UNSIGNED
     /// }</c>; PACKED-DECIMAL prints <c>[ WITH NO SIGN ]</c>; FLOAT-BINARY-32/-64/-128 print <c>[ endianness-phrase
     /// ]</c>; FLOAT-DECIMAL-16/-34 print a bracketed choice-indicator group over { encoding-phrase,
@@ -161,7 +161,7 @@ public sealed class UsageClausePhraseDriftTests : WiseOwlCobolTestBase
         Assert.NotEmpty(grammar);   // a sweep that found nothing would pass every assertion below vacuously
         var classified = new SortedSet<string>(PrintedPhrases.Keys, StringComparer.Ordinal);
         Assert.True(grammar.SetEquals(classified),
-            "the grammar's usageKeyword inventory and this test's §13.18.60.2 phrase classification have diverged.\n"
+            "the grammar's usageKeyword inventory and this test's §2023:13.18.60.2 phrase classification have diverged.\n"
             + $"  grammar : {string.Join(", ", grammar)}\n"
             + $"  table   : {string.Join(", ", classified)}\n"
             + "RENDER THE PRINTED PAGE (python scripts/render-spec-page.py 533) and record which of the four optional "
@@ -177,7 +177,7 @@ public sealed class UsageClausePhraseDriftTests : WiseOwlCobolTestBase
             + $"  grammar : {string.Join(", ", grammar)}\n"
             + $"  mapped  : {string.Join(", ", PhraseRule.Keys)}\n"
             + "A phrase the grammar parses after every usage word needs a UsagePhrase member and a UsagePhraseRules "
-            + "row deciding which usages the §13.18.60.2 figure prints it on, or it is accepted (and ignored) on all "
+            + "row deciding which usages the §2023:13.18.60.2 figure prints it on, or it is accepted (and ignored) on all "
             + "of them, which is kb/Work PB3517.");
         foreach (UsagePhrase phrase in Enum.GetValues<UsagePhrase>())
         {
@@ -230,7 +230,7 @@ public sealed class UsageClausePhraseDriftTests : WiseOwlCobolTestBase
     }
 
     /// <summary>One phrase as a programmer writes it, per <see cref="UsagePhrase"/> member — what the host probe
-    /// below writes after USAGE DISPLAY, whose §13.18.60.2 line prints none of the four.</summary>
+    /// below writes after USAGE DISPLAY, whose §2023:13.18.60.2 line prints none of the four.</summary>
     private static readonly Dictionary<UsagePhrase, string> PhraseSample = new()
     {
         [UsagePhrase.Sign] = "UNSIGNED",
@@ -245,10 +245,10 @@ public sealed class UsageClausePhraseDriftTests : WiseOwlCobolTestBase
     /// entry, Annex A.4.2, refused by <c>ScreenFacility</c> as COBOL1560).</summary>
     private static readonly Dictionary<string, Func<string, string, string>?> UsageClauseHosts = new(StringComparer.Ordinal)
     {
-        // §13.16.2 format 1: a data description entry.
+        // §2023:13.16.2 format 1: a data description entry.
         ["dataDescriptionClause"] = static (id, phrases) => Program(id, string.Join("\n",
             phrases.Split('|').Select((p, i) => $"       01 R-{i + 1} PIC 9(3) USAGE DISPLAY {p}."))),
-        // §13.15.2: a report group description entry, whose USAGE clause §13.15.4 GR2 makes "the same clauses as
+        // §2023:13.15.2: a report group description entry, whose USAGE clause §2023:13.15.4 GR2 makes "the same clauses as
         // those that are described under the general format for a data description entry".
         ["reportGroupClause"] = static (id, phrases) => ReportProgram(id, string.Join("\n",
             phrases.Split('|').Select((p, i) =>
@@ -398,11 +398,11 @@ public sealed class UsageClausePhraseDriftTests : WiseOwlCobolTestBase
     public void PhraseOnAUsageWhoseLinePrintsIt_CompilesClean_PinnedToSpec(string entry)
     {
         var errors = CompileAt($"pos-{entry}", $"01 W {entry}.", 2023);
-        Assert.True(errors.Count == 0, $"`{entry}` is legal 2023 source (§13.18.60.2) but drew:\n"
+        Assert.True(errors.Count == 0, $"`{entry}` is legal 2023 source (§2023:13.18.60.2) but drew:\n"
             + string.Join("\n", errors));
     }
 
-    /// <summary>§5.2.6.4: "any single alternative may be specified only once" — and, in the same clause, "The
+    /// <summary>§2023:5.2.6.4: "any single alternative may be specified only once" — and, in the same clause, "The
     /// alternatives may be specified in any order", so the ORDER leg must stay clean while the REPEAT leg rejects.
     /// Without the order leg a screen that rejected the second phrase unconditionally would look correct.</summary>
     [Fact]

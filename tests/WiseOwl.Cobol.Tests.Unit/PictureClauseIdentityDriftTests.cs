@@ -13,8 +13,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ "THE SAME PICTURE CLAUSE" HAS ONE IDENTITY, AND EVERY ASKER READS IT (kb/Work PB1166, PB3101). The standard asks for
-/// identical elementary descriptions in five places — §8.5.3.1 type equivalence, §9.3.6 method matching, §9.3.8.2.3
-/// interface conformance (overrides, IMPLEMENTS), §14.8.2.3.2 BY REFERENCE arguments, §14.8.3.3 returning items —
+/// identical elementary descriptions in five places — §2023:8.5.3.1 type equivalence, §2023:9.3.6 method matching, §2023:9.3.8.2.3
+/// interface conformance (overrides, IMPLEMENTS), §2023:14.8.2.3.2 BY REFERENCE arguments, §2023:14.8.3.3 returning items —
 /// each with the same two exceptions: currency symbols match only when their currency STRINGS do, and period /
 /// comma symbols only when DECIMAL-POINT IS COMMA is in effect for both source elements or neither. Before PB1166
 /// the activation / signature comparator compared a per-category subset of the picture — the edit mask text, or
@@ -26,7 +26,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <para>This pins the properties that keep the identity single: (1) the pair-mode relation
 /// (<see cref="OoConformance.SignatureDifference"/>) honours every axis of <see cref="PictureClauseIdentity"/>, measured
 /// over pictures ANALYZED by <see cref="PictureAnalyzer"/> — never hand-built profiles that could omit the field; (2) the
-/// §9.3.6 match (<see cref="ActivationRelations.Matches"/>) agrees with it over every pair of elementary items; (3) the
+/// §2023:9.3.6 match (<see cref="ActivationRelations.Matches"/>) agrees with it over every pair of elementary items; (3) the
 /// pair-mode identity is symmetric and relaxes no ANY LENGTH item.</para>
 /// </summary>
 public sealed class PictureClauseIdentityDriftTests
@@ -58,7 +58,7 @@ public sealed class PictureClauseIdentityDriftTests
         var usdDollar = Item("$$$9.99", new Dictionary<char, CurrencyDefinition> { ['$'] = Alnum("USD") });
         var usdU = Item("UUU9.99", new Dictionary<char, CurrencyDefinition> { ['U'] = Alnum("USD") });
         var eurDollar = Item("$$$9.99", new Dictionary<char, CurrencyDefinition> { ['$'] = Alnum("EUR") });
-        Assert.Null(Difference(usdDollar, usdU));        // §9.3.8.2.3 rule 3 a): the same currency string
+        Assert.Null(Difference(usdDollar, usdU));        // §2023:9.3.8.2.3 rule 3 a): the same currency string
         Assert.NotNull(Difference(usdDollar, eurDollar));
     }
 
@@ -93,7 +93,7 @@ public sealed class PictureClauseIdentityDriftTests
     }
 
     /// <summary>The two halves of the one description identity agree (kb/Work PB480, PB3101): over every ordered pair of
-    /// ELEMENTARY items drawn from a population that varies each axis the identity carries, §9.3.6 match rule 3 e)
+    /// ELEMENTARY items drawn from a population that varies each axis the identity carries, §2023:9.3.6 match rule 3 e)
     /// (<see cref="ActivationRelations.Matches"/> over the descriptions <see cref="ActivationDescriptions"/> builds)
     /// holds exactly when the pair-mode relation finds the two descriptions the same — the national, boolean and
     /// numeric-edited categories included. The population asserts it produced pairs at all.</summary>
@@ -127,8 +127,8 @@ public sealed class PictureClauseIdentityDriftTests
         Assert.True(pairs > 300, $"only {pairs} pairs — the population no longer exercises the invariant");
     }
 
-    /// <summary>The pair-mode identity is SYMMETRIC and relaxes nothing (ISO §9.3.8.2.3 rule 3 names ANY LENGTH among the
-    /// clauses that shall be the same, and §14.8.2.3.2 "Additionally" d)'s relaxation is an activation's, never a
+    /// <summary>The pair-mode identity is SYMMETRIC and relaxes nothing (ISO §2023:9.3.8.2.3 rule 3 names ANY LENGTH among the
+    /// clauses that shall be the same, and §2023:14.8.2.3.2 "Additionally" d)'s relaxation is an activation's, never a
     /// signature's): over the population above plus ANY LENGTH items, an ANY LENGTH item is the same description only
     /// as an ANY LENGTH item of the same one-symbol picture, and the verdict does not depend on the order of the pair.</summary>
     [Fact]

@@ -12,14 +12,14 @@ options {
 
 // SPECIAL-NAMES.
 specialNamesParagraph
-    // §12.3.7.2 prints `SPECIAL-NAMES. [clauses] .` and §12.3.7.3 SR31 lets ONE of the two separator periods go
+    // §2023:12.3.7.2 prints `SPECIAL-NAMES. [clauses] .` and §2023:12.3.7.3 SR31 lets ONE of the two separator periods go
     // when no clause is written (kb/Work PB1090) — the full empty spelling `SPECIAL-NAMES. .` is the second alternative,
     // as the SOURCE-COMPUTER / OBJECT-COMPUTER siblings write theirs. ⛔ A non-empty paragraph has ONE closing period,
     // after its last clause. The `DOT?` after every entry is a PUNCTUATION SUPERSET written HERE, on the paragraph
     // (not inside specialNameEntry), so the periods are this rule's own children: ClosedFormatPass reads them through
     // ParagraphPeriods and refuses a period after an inner entry (COBOL3407) or a missing closing one
     // (COBOL3408) BY NAME (kb/Work PB2727) — `SPECIAL-NAMES. CLASS HEXD IS "0" THRU "9". DECIMAL-POINT IS COMMA.`
-    // compiled clean, a period-per-entry spelling §12.3.7.2 does not print.
+    // compiled clean, a period-per-entry spelling §2023:12.3.7.2 does not print.
     : SPECIAL_NAMES DOT ((specialNameEntry DOT?)+ | DOT)?
     ;
 
@@ -29,8 +29,8 @@ specialNameEntry
     | classDefinitionClause
     | symbolicCharactersClause
     | alphabetClause
-    // CRT STATUS / CURSOR (§12.3.7; Annex A.4.2 item 25 — the DECLINED screen module, refused by name at bind
-    // with COBOL1560). ⚠ RESERVATION-GATED. §8.9 reserves CRT and CURSOR from 2002 ONLY, so at COBOL-85 they
+    // CRT STATUS / CURSOR (§2023:12.3.7; Annex A.4.2 item 25 — the DECLINED screen module, refused by name at bind
+    // with COBOL1560). ⚠ RESERVATION-GATED. §2023:8.9 reserves CRT and CURSOR from 2002 ONLY, so at COBOL-85 they
     // are ordinary user words and `SPECIAL-NAMES. CURSOR IS FOO.` is a legal '85 implementor-switch entry that
     // must keep parsing as one — the localeClause precedent exactly. Without the gate the '85 program drew a
     // screen-facility refusal for a switch entry that has nothing to do with screens (kb/Work PB301).
@@ -41,7 +41,7 @@ specialNameEntry
     // COBOL0308 "a data-name is expected here, not a literal" — a parse error pointing at the wrong token, for a
     // clause the standard defines (fix-queue PB25).
     | localeClause
-    // MUST precede implementorSwitchEntry, for the LOCALE clause's reason: at COBOL-85 §8.9 leaves ORDER
+    // MUST precede implementorSwitchEntry, for the LOCALE clause's reason: at COBOL-85 §2023:8.9 leaves ORDER
     // user-definable, so `cobolWord`'s gated alternative still admits it and `ORDER TABLE OT1 IS "…"` would
     // otherwise match `cobolWord (IS cobolWord)?` as far as the bare word ORDER, and the entry loop re-enters on
     // TABLE — a keyword token no cobolWord admits — dying on a token the user never wrote a clause around
@@ -52,13 +52,13 @@ specialNameEntry
     // implementorSwitchEntry anyway, the LOCALE / ORDER TABLE posture for a clause with a keyword anchor.
     | dynamicLengthStructureClause
     | implementorSwitchEntry
-    // ⛔ THE §12.3.7.2 GENERAL FORMAT IS CLOSED (kb/Work PB829; RENDERED from the printed page — PDF p320 /
+    // ⛔ THE §2023:12.3.7.2 GENERAL FORMAT IS CLOSED (kb/Work PB829; RENDERED from the printed page — PDF p320 /
     // folio 290): alphabet-name-clause · CLASS · CRT STATUS · CURRENCY SIGN · CURSOR · DECIMAL-POINT ·
     // dynamic-length-structure-clause · LOCALE · the switch-name/feature-name/device-name entry ·
     // symbolic-characters-clause · ORDER TABLE, and nothing else.
     // ⚠ REACH: `implementorSwitchEntry` above takes a word plus a REQUIRED continuation, and IS is un-underlined
     // in the printed format, so a TWO-word entry (`WIBBLE WOBBLE`) is shape-legal as `device-name-1 [IS]
-    // mnemonic-name-3` and never reaches here — what the standard refuses there is §12.3.7.3 SR8 (the name is
+    // mnemonic-name-3` and never reaches here — what the standard refuses there is §2023:12.3.7.3 SR8 (the name is
     // not one the implementor specifies), a SEMANTIC rule refused by name at bind (COBOL2241, kb/Work PB862).
     // This alternative catches what NO arm of the format admits: a lone word (kb/Work PB716), a run carrying a
     // literal, or three or more words. The vendor `CHANNEL integer IS mnemonic-name` and `RESERVE integer
@@ -68,31 +68,31 @@ specialNameEntry
     | unrecognizedClause   // ⛔ LAST — refused BY NAME by ClosedFormatPass (COBOL1970)
     ;
 
-// LOCALE locale-name-1 IS { external-locale-name-1 | literal-4 } (§12.3.7).
-// ⛔ PARSED SO IT CAN BE DIAGNOSED, NOT SO IT CAN BE USED. This is an §A.4.9 item 10 optional-locale element —
+// LOCALE locale-name-1 IS { external-locale-name-1 | literal-4 } (§2023:12.3.7).
+// ⛔ PARSED SO IT CAN BE DIAGNOSED, NOT SO IT CAN BE USED. This is an §2023:A.4.9 item 10 optional-locale element —
 // "SPECIAL-NAMES paragraph: LOCALE clause and LOCALE phrases in the ALPHABET clause (12.3.7)" — and WiseOwl COBOL's
-// documented non-support of the locale module is conformant per §4.2.7 / §A.4.1 ONLY if it is DIAGNOSED. The
+// documented non-support of the locale module is conformant per §2023:4.2.7 / §2023:A.4.1 ONLY if it is DIAGNOSED. The
 // binder emits COBOL1518, the same cited message the LOCALE phrase of LOWER-CASE / NUMVAL-C already gets; a
 // raw parse error is not documented non-support, it is an unexplained rejection. Superset-parse / bind-narrow,
 // exactly as the rest of this grammar does it.
-// ⚠ The predicate is EDITION-GATED (2002+, where §8.9 reserves LOCALE). At COBOL-85 LOCALE is an ordinary user
+// ⚠ The predicate is EDITION-GATED (2002+, where §2023:8.9 reserves LOCALE). At COBOL-85 LOCALE is an ordinary user
 // word, so `SPECIAL-NAMES. LOCALE IS FOO.` is a legal implementor-switch entry and must keep parsing as one —
 // below 2002 localeClauseAhead() is false and this alternative is unreachable.
 localeClause
     : {localeClauseAhead()}? formatWord cobolWord IS? (cobolWord | literal)
     ;
 // ⚠ Three slots, three KINDS of word (kb/Work PB764): the keyword LOCALE is a formatWord (a use OF the reserved
-// word, §5.2.2); locale-name-1 is a user-defined word (§8.3.2.2) and external-locale-name-1 a SYSTEM-NAME
-// (§8.3.2.3.1) — §8.3.2.1 rule 1 forbids a reserved word as EITHER, so both stay cobolWord for the §8.9 funnel.
+// word, §2023:5.2.2); locale-name-1 is a user-defined word (§2023:8.3.2.2) and external-locale-name-1 a SYSTEM-NAME
+// (§2023:8.3.2.3.1) — §2023:8.3.2.1 rule 1 forbids a reserved word as EITHER, so both stay cobolWord for the §2023:8.9 funnel.
 
-// ORDER TABLE ordering-name-1 IS literal-9 (ISO §12.3.7.2 — the LAST item of the SPECIAL-NAMES general format,
+// ORDER TABLE ordering-name-1 IS literal-9 (ISO §2023:12.3.7.2 — the LAST item of the SPECIAL-NAMES general format,
 // bracketed and therefore at most once). ORDER *is* a lexer token (kb/Work PB704 — a keyword slot may not borrow
-// `cobolWord`, whose §8.9 funnel refuses the word position-blind at 2002+), and so is TABLE, so the clause is
+// `cobolWord`, whose §2023:8.9 funnel refuses the word position-blind at 2002+), and so is TABLE, so the clause is
 // recognized by its own two keywords and needs no text predicate: the retired `{orderTableAhead()}?` read the
 // same word pair by text only because ORDER had no token.
-// literal-9 names the cultural ordering table (§12.3.7.4 GR17 — "The implementor specifies the allowable content
+// literal-9 names the cultural ordering table (§2023:12.3.7.4 GR17 — "The implementor specifies the allowable content
 // of literal-9"); ordering-name-1 "may be specified only in the STANDARD-COMPARE intrinsic function"
-// (§12.3.7.3 SR9). The binder (SpecialNamesBinder.OrderTableBind) enforces SR10/SR11 and registers the name.
+// (§2023:12.3.7.3 SR9). The binder (SpecialNamesBinder.OrderTableBind) enforces SR10/SR11 and registers the name.
 // ⚠ NOT edition-gated, unlike localeClause: TABLE is reserved at EVERY edition, so the pair ORDER + TABLE has no
 // competing COBOL-85 reading (nothing else in a SPECIAL-NAMES paragraph can be followed by, or begin with, TABLE)
 // — and ORDER is reserved at every edition (kb/Work PB3957), so no edition has a user-defined ORDER for a switch entry
@@ -106,7 +106,7 @@ orderTableClause
 
 // ⛔ A SPECIAL-NAMES LITERAL POSITION WHOSE ONLY WORD IS A CONSTANT-NAME (kb/Work PB1942): literal-5 / literal-6 of the
 // CLASS clause, literal-7 / literal-8 of the CURRENCY SIGN clause and literal-9 of the ORDER TABLE clause.
-// §13.10.3 SR2 — "Except in a compiler directive, constant-name-1 may be used anywhere that a format specifies a
+// §2023:13.10.3 SR2 — "Except in a compiler directive, constant-name-1 may be used anywhere that a format specifies a
 // literal of the class and category of constant-name-1" — puts a constant-name in each of them, and the constant
 // entry stands LATER, in the DATA DIVISION, so the parser cannot tell a constant-name from any other word: the word
 // is admitted here and DataBinder.SpecialNamesConstant decides it (it binds the constant entry on demand,
@@ -119,13 +119,13 @@ specialNamesLiteral
     | cobolWord
     ;
 
-// dynamic-length-structure-clause (ISO §12.3.7.2; kb/Work PB829 — it had NO rule, so the clause was COBOL0001
+// dynamic-length-structure-clause (ISO §2023:12.3.7.2; kb/Work PB829 — it had NO rule, so the clause was COBOL0001
 // "unexpected 'DYNAMIC'"):
 //   DYNAMIC LENGTH [STRUCTURE] dynamic-length-structure-name-1 [IS]
 //       { |[SIGNED] [SHORT] PREFIXED|  |DELIMITED| }  |  physical-structure-name-1
 // ⛔ RENDERED from the printed page (PDF p321 / folio 291), not the OCR: DYNAMIC, LENGTH, SIGNED, SHORT, PREFIXED and DELIMITED are
-// underlined; STRUCTURE and IS are not, so both are optional words (§5.2.3). The PREFIXED / DELIMITED pair sits in
-// CHOICE INDICATORS (§5.2.6.4 — braces: ONE OR MORE of the alternatives, any order, each at most once), which the
+// underlined; STRUCTURE and IS are not, so both are optional words (§2023:5.2.3). The PREFIXED / DELIMITED pair sits in
+// CHOICE INDICATORS (§2023:5.2.6.4 — braces: ONE OR MORE of the alternatives, any order, each at most once), which the
 // grammar writes as `(…)+` and `ChoiceIndicators.AtMostOnce` reads the at-most-once half of at bind — the one
 // reader of that rule. STRUCTURE, SHORT and PREFIXED are not lexer tokens (context words, never reserved), so they
 // are recognized by TEXT through the parser base's one `Word` funnel; each predicate sits at the LEFT EDGE of its
@@ -141,10 +141,10 @@ dynamicLengthStructureWord
 
 dynamicLengthLayout
     : (dynamicLengthPrefixedPhrase | dynamicLengthDelimitedPhrase)+
-    | cobolWord                                   // physical-structure-name-1 (§12.3.7.3 SR32 — implementor names)
+    | cobolWord                                   // physical-structure-name-1 (§2023:12.3.7.3 SR32 — implementor names)
     ;
 
-// [SIGNED] [SHORT] PREFIXED — the length-field prefix (SPECIAL-NAMES paragraph, §12.3.7.4 GR18).
+// [SIGNED] [SHORT] PREFIXED — the length-field prefix (SPECIAL-NAMES paragraph, §2023:12.3.7.4 GR18).
 dynamicLengthPrefixedPhrase
     : SIGNED? dynamicLengthShortWord? dynamicLengthPrefixedWord
     ;
@@ -157,14 +157,14 @@ dynamicLengthPrefixedWord
     : {wordAhead("PREFIXED")}? IDENTIFIER
     ;
 
-// DELIMITED — the binary-zero delimiter (SPECIAL-NAMES paragraph, §12.3.7.4 GR19). A rule of its own so the at-most-once reader sees it as a
+// DELIMITED — the binary-zero delimiter (SPECIAL-NAMES paragraph, §2023:12.3.7.4 GR19). A rule of its own so the at-most-once reader sees it as a
 // context like its sibling.
 dynamicLengthDelimitedPhrase
     : DELIMITED
     ;
 
 // SPECIAL-NAMES switch entry: switch-name-1 [IS mnemonic-name-1] [ON [STATUS] [IS] condition-name-1] [OFF [STATUS] [IS]
-// condition-name-2] (ISO §12.3.7.2). ⛔ MEASURED, NOT TRANSCRIBED (kb/Work PB695, §5.2.3 / §8.3.2.4.3): on printed folio 290 the
+// condition-name-2] (ISO §2023:12.3.7.2). ⛔ MEASURED, NOT TRANSCRIBED (kb/Work PB695, §2023:5.2.3 / §2023:8.3.2.4.3): on printed folio 290 the
 // switch rows carry EXACTLY TWO underline rules — under ON and under OFF. IS and STATUS are un-underlined in
 // every one of the three lines, so `SW1 MN1`, `ON STATUS C1`, `ON C1` and `OFF C2` are all conforming spellings
 // of the same entry. The IS of `[IS mnemonic-name-1]` was demanded here and the ON arm's STATUS/IS were split
@@ -174,7 +174,7 @@ dynamicLengthDelimitedPhrase
 // device-name arms require `IS mnemonic-name`, so NO arm is a bare word. The old `cobolWord (IS? cobolWord)?
 // switchOnClause? switchOffClause?` had a one-word minimum spelling, and inside the unbounded `specialNameEntry*`
 // loop every word left over after a clause became a complete, silent entry (`CLASS DIGITS IS "0" ZOTZOT.` ran).
-// Which system-name the first word IS — and so which arm it may be written in — is §12.3.7.3 SR8's implementor
+// Which system-name the first word IS — and so which arm it may be written in — is §2023:12.3.7.3 SR8's implementor
 // table (WiseOwl.Cobol.Editions/ImplementorNames.cs, COBOL2241), a semantic rule the grammar cannot decide: the three arms
 // share one shape here and the NAME picks the arm.
 implementorSwitchEntry
@@ -183,7 +183,7 @@ implementorSwitchEntry
                 )
     ;
 
-// The CHOICE INDICATORS of both switch-arm status groups (§5.2.6.4 — "any single alternative shall be specified
+// The CHOICE INDICATORS of both switch-arm status groups (§2023:5.2.6.4 — "any single alternative shall be specified
 // only once", in any order): ON then optional OFF, or OFF then optional ON. Spelled as the two orders rather than
 // `(switchOnClause | switchOffClause)*` so "each at most once" is the SHAPE and needs no bind-time count; the old
 // `switchOnClause? switchOffClause?` refused the legal `OFF STATUS IS C2 ON STATUS IS C1` with COBOL0001.
@@ -233,7 +233,7 @@ classDefinitionClause
     : CLASS cobolWord specialNamesForPhrase? IS? classValueSet (IN cobolWord)? misplacedSpecialNamesForPhrase?
     ;
 
-// { literal-5 [ THROUGH literal-6 ] }… — JUXTAPOSED groups (the SPECIAL-NAMES paragraph's §12.3.7.2
+// { literal-5 [ THROUGH literal-6 ] }… — JUXTAPOSED groups (the SPECIAL-NAMES paragraph's §2023:12.3.7.2
 // diagram carries its own ellipsis
 // on the group; the comma is the optional separator it is everywhere). `(COMMA x)*` REQUIRED a comma between
 // groups and rejected `CLASS HEXDIG IS "0" THRU "9" "A" THRU "F"` — legal COBOL at every edition (kb/Work PB60's
@@ -255,7 +255,7 @@ classValueItem
 
 // SYMBOLIC CHARACTERS [FOR {ALPHANUMERIC|NATIONAL}]
 //   {name}... {IS|ARE} {integer}... [IN alphabet-name] ...
-// N:N positional mapping: first name ↔ first integer, etc. (SPECIAL-NAMES paragraph, §12.3.7)
+// N:N positional mapping: first name ↔ first integer, etc. (SPECIAL-NAMES paragraph, §2023:12.3.7)
 // ⛔ CHARACTERS, FOR, IS AND ARE ARE ALL OPTIONAL WORDS (kb/Work PB695). Printed folio 292 ("where
 // symbolic-characters-clause is:") carries underline rules under SYMBOLIC, ALPHANUMERIC, NATIONAL and IN and
 // under nothing else: the one rule on the heading line ends at x=112.24, three points short of CHARACTERS' left
@@ -269,7 +269,7 @@ symbolicCharactersClause
       symbolicCharacterEntry+ (IN cobolWord)? misplacedSpecialNamesForPhrase?
     ;
 
-// ⛔ integer-1 IS AN `integer-n` POSITION, so an integer constant-name stands there (ISO §13.10.3 SR2; kb/Work PB1948)
+// ⛔ integer-1 IS AN `integer-n` POSITION, so an integer constant-name stands there (ISO §2023:13.10.3 SR2; kb/Work PB1948)
 // — but the format's own repeated group `{symbolic-character-1}… [IS|ARE] {integer-1}…` writes the names and the
 // ordinals as WORDS side by side, so a constant-name ordinal cannot be told from the next symbolic-character-1 by
 // the parser alone. THREE ordered alternatives admit every spelling and leave the decision where the information is:
@@ -288,12 +288,12 @@ symbolicCharacterEntry
     ;
 
 // ALPHABET alphabet-name-1 [FOR ALPHANUMERIC] IS {NATIVE|STANDARD-1|STANDARD-2|literal-phrase…}
-// ALPHABET alphabet-name-2 FOR NATIONAL IS {NATIVE|UCS-4|UTF-8|UTF-16|literal-phrase…}   (ISO §12.3.7.2)
+// ALPHABET alphabet-name-2 FOR NATIONAL IS {NATIVE|UCS-4|UTF-8|UTF-16|literal-phrase…}   (ISO §2023:12.3.7.2)
 // The FOR phrase's ISO position is BETWEEN the name and IS. ⛔ The historical postfix position (after the
 // definition) is NOT a superset any dialect owns (kb/Work PB977, CLAUDE.md rule 1's precedence: GnuCOBOL's grammar
 // takes the FOR target only between the name and IS; IBM Enterprise COBOL's ALPHABET clause has no FOR phrase at
 // all — surveyed from the vendors' published syntax, not measured here): it compiled clean at strict 2023, and it
-// is now parsed only as misplacedSpecialNamesForPhrase, refused by name at every edition. UCS-4/UTF-8/UTF-16 are §8.9 CONTEXT-SENSITIVE words (ALPHABET clause
+// is now parsed only as misplacedSpecialNamesForPhrase, refused by name at every edition. UCS-4/UTF-8/UTF-16 are §2023:8.9 CONTEXT-SENSITIVE words (ALPHABET clause
 // scope) — they arrive as ordinary cobolWord entries and are recognized BY TEXT in the binder/pass, never
 // as lexer keywords (they stay user-definable outside this clause).
 // ⛔ IS AND FOR ARE OPTIONAL WORDS (kb/Work PB695). Printed folio 291 ("where alphabet-name-clause is:") rules
@@ -304,7 +304,7 @@ alphabetClause
     : ALPHABET cobolWord specialNamesForPhrase? IS? alphabetDefinition misplacedSpecialNamesForPhrase?
     ;
 
-// ⛔ THE ONE `FOR {ALPHANUMERIC | NATIONAL}` PHRASE OF THE SPECIAL-NAMES PARAGRAPH (ISO §12.3.7.2) — its ALPHABET
+// ⛔ THE ONE `FOR {ALPHANUMERIC | NATIONAL}` PHRASE OF THE SPECIAL-NAMES PARAGRAPH (ISO §2023:12.3.7.2) — its ALPHABET
 // clause, its CLASS clause and its SYMBOLIC CHARACTERS clause
 // all print it, and until kb/Work PB695 each spelled its own copy. The copies drifted
 // exactly where a copy always drifts: the ALPHABET one was a subrule and its 2002 gate tested the SUBRULE, while
@@ -316,7 +316,7 @@ specialNamesForPhrase
     ;
 
 // ⛔ AN ERROR PRODUCTION, NOT A FORMAT (kb/Work PB977): the FOR phrase written AFTER a clause's definition — the
-// position no edition of §12.3.7.2 prints and no dialect owns. It exists so that ONE visitor
+// position no edition of §2023:12.3.7.2 prints and no dialect owns. It exists so that ONE visitor
 // (ClosedFormatPass.VisitMisplacedSpecialNamesForPhrase) refuses it by name for all three FOR-bearing clauses, and
 // the binders read it only to RECOVER the class the user evidently meant. A distinct rule, so no clause's
 // specialNamesForPhrase() accessor can ever return the misplaced one by mistake.
@@ -333,10 +333,10 @@ alphabetDefinition
     | alphabetEntry (COMMA? alphabetEntry)*
     ;
 
-// `IS LOCALE [ locale-name-2 ]` (§12.3.7.2, either branch; kb/Work PB100/PB101): LOCALE is the phrase's own
+// `IS LOCALE [ locale-name-2 ]` (§2023:12.3.7.2, either branch; kb/Work PB100/PB101): LOCALE is the phrase's own
 // KEYWORD — a formatWord (kb/Work PB764), recognized by text because it has no lexer token (IntrinsicBinder reads
 // `LOWER-CASE(x LOCALE …)` as a bare word) — and locale-name-2 a REFERENCE to a SPECIAL-NAMES locale-name
-// (§12.3.7.3 SR24). Not edition-gated: below 2002 the ONE construct gate (alphabet-locale-2002) names the phrase.
+// (§2023:12.3.7.3 SR24). Not edition-gated: below 2002 the ONE construct gate (alphabet-locale-2002) names the phrase.
 // ALL(*) prefers the entry list whenever the words that follow cannot end the phrase (`LOCALE ALSO "A"`).
 alphabetLocalePhrase
     : {wordAhead("LOCALE")}? formatWord cobolWord?
@@ -344,7 +344,7 @@ alphabetLocalePhrase
 
 // literal-1 [ {THROUGH|THRU} literal-2 | {ALSO literal-3}… ] — ⚠ A DELIBERATE SUPERSET (kb/Work PB790). The printed
 // figure (RENDERED — PDF p321 / folio 291) stacks the two phrases in ONE bracket with no choice indicators, so an
-// entry carries at most one of them (§5.2.6.2). The rule still admits both so the binder can refuse the pair BY NAME
+// entry carries at most one of them (§2023:5.2.6.2). The rule still admits both so the binder can refuse the pair BY NAME
 // (COBOL2242, SpecialNamesBinder.AlphabetLiteralPhrase) instead of a parse error at ALSO that names no rule.
 alphabetEntry
     : (cobolWord | literal) ((THRU | THROUGH) (cobolWord | literal))?

@@ -5,41 +5,41 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §12.4.5.5.3 GR1/GR2 — no ACCESS MODE clause assumes
+      *> ISO §2023:12.4.5.5.3 GR1/GR2 — no ACCESS MODE clause assumes
       *>   sequential; sequential access order
       *> GR1: "If the ACCESS MODE clause is not specified, sequential
       *>   access is assumed."
       *>   cite.py --check 12.4.5.5.3 "If the ACCESS MODE clause is not
       *>     specified, sequential access is
-      *>     assumed."  -> OK  §12.4.5.5.3 1)  (General rules)
+      *>     assumed."  -> OK  §2023:12.4.5.5.3 1)  (General rules)
       *> GR2 a): "For sequential files this sequence is specified by
       *>   predecessor-successor record
       *> relationships established by the execution of WRITE statements
       *>   when the physical file is created
       *> or extended."
-      *>   cite.py -> OK  §12.4.5.5.3 2) a)  (General rules)
+      *>   cite.py -> OK  §2023:12.4.5.5.3 2) a)  (General rules)
       *> GR2 b): "For relative files this sequence is the order of
       *>   ascending relative record numbers of
       *> existing records in the physical file."
-      *>   cite.py -> OK  §12.4.5.5.3 2) b)  (General rules)
+      *>   cite.py -> OK  §2023:12.4.5.5.3 2) b)  (General rules)
       *> GR2 c): "For indexed files this sequence is ascending within a
       *>   given key of reference according to
       *> the collating sequence for that key."
-      *>   cite.py -> OK  §12.4.5.5.3 2) c)  (General rules)
-      *> §14.9.51.4 GR42 a) (WRITE, indexed): "When the write file
+      *>   cite.py -> OK  §2023:12.4.5.5.3 2) c)  (General rules)
+      *> §2023:14.9.51.4 GR42 a) (WRITE, indexed): "When the write file
       *>   connector is open for output or extend in
       *> the sequential access mode and the value of the prime record
       *>   key is not greater than the value of
       *> the prime record key of the last record written through that
       *>   file connector, the I-O status
       *> associated with the write file connector is set to '21'."
-      *>   cite.py -> OK  §14.9.51.4 42)  (General rules)
-      *> §14.9.30.4 GR25 (READ): "For a relative file, if the RELATIVE
+      *>   cite.py -> OK  §2023:14.9.51.4 42)  (General rules)
+      *> §2023:14.9.30.4 GR25 (READ): "For a relative file, if the RELATIVE
       *>   KEY clause is specified for
       *> file-name-1, the execution of a READ statement moves the
       *>   relative record number of the record made
       *> available to the relative key data item"  -> cite.py OK
-      *>   §14.9.30.4 25)
+      *>   §2023:14.9.30.4 25)
       *> SQ, RL, IX and IY have NO ACCESS MODE clause.  RLW and IXW
       *>   (ACCESS RANDOM / DYNAMIC) only BUILD
       *> the relative and indexed files out of order, so that sequential

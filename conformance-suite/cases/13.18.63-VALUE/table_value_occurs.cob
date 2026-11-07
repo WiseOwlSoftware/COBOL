@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §13.18.63.4 GR 9 — a VALUE clause on (or subordinate to) an OCCURS clause initializes EVERY
+      *> ISO §2023:13.18.63.4 GR 9 — a VALUE clause on (or subordinate to) an OCCURS clause initializes EVERY
       *> occurrence to the value (the COBOL-2002 table-format VALUE clause; COBOL-85 prohibited it). Covers a
       *> numeric element, a signed/scaled element, and a character element — every occurrence must carry the value.
        IDENTIFICATION DIVISION.

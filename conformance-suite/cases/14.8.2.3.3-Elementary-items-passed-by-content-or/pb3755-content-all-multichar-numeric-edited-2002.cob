@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB3755 - the activation arm asks the MOVE rules, the WHOLE of them, and §8.3.3.6.3 SR3 is asked of every
+      *> kb/Work PB3755 - the activation arm asks the MOVE rules, the WHOLE of them, and §2023:8.3.3.6.3 SR3 is asked of every
       *> association a figurative constant takes (moved to it, compared with it, paired with it): "If the length of
       *> literal-1 is greater than one, it is not permitted to be associated with a numeric or numeric-edited item". So
       *> ALL "57" BY CONTENT into the PIC ZZ9 formal of a contained program activated with the NESTED phrase is the

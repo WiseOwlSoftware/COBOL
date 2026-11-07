@@ -12,9 +12,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// MEANWHILE (kb/Work PB3946; the opposite direction of PB3635's <c>FileMode.CreateNew</c>; <c>FileConnector.Open</c>). Another run unit
 /// can remove the file between the one presence probe and the connector's handle. A handle opened <see cref="FileMode.OpenOrCreate"/>
 /// then created the file empty and adopted it, so an OPEN INPUT / I-O / EXTEND answered success over a file that was never there, and
-/// a covered OPEN journaled a file that did not exist as present. The OPEN is unsuccessful instead (§14.9.27.4 GR25: the file is not
+/// a covered OPEN journaled a file that did not exist as present. The OPEN is unsuccessful instead (§2023:14.9.27.4 GR25: the file is not
 /// affected) and is made again from its entry step, so its probe finds the file gone and the order is the one in which the other run
-/// unit's removal ran first: §9.1.13.6 item 5's '35' for a non-optional file, §14.9.27.4 GR17's '05' creation for an OPTIONAL one on I-O or EXTEND,
+/// unit's removal ran first: §2023:9.1.13.6 item 5's '35' for a non-optional file, §2023:14.9.27.4 GR17's '05' creation for an OPTIONAL one on I-O or EXTEND,
 /// GR13's '05' for an OPTIONAL INPUT, GR18's creation for OUTPUT.
 /// <para>The removal is made at the exact point between the probe and the handle, with no timing: the Table 19 column request
 /// (<see cref="ColumnRequestLog.Before"/>) of a present file's OPEN runs after the probe and before the organization's body in every
@@ -66,7 +66,7 @@ public sealed class FileRemovedMeanwhileTests
         Assert.True(File.Exists(host));
     }
 
-    /// <summary>⛔ THE EXPECTED STATUS IS THE ONE THE OTHER RUN UNIT'S REMOVAL, RUN FIRST, WOULD HAVE GIVEN (§9.1.13.6 item 5, §14.9.27.4
+    /// <summary>⛔ THE EXPECTED STATUS IS THE ONE THE OTHER RUN UNIT'S REMOVAL, RUN FIRST, WOULD HAVE GIVEN (§2023:9.1.13.6 item 5, §2023:14.9.27.4
     /// GR13, GR17, GR18), and the file is as that order leaves it: absent for a non-optional INPUT / I-O / EXTEND and for an OPTIONAL
     /// INPUT, an empty file for the creations. No creating handle is spelled by an OPEN of an existing file.</summary>
     [Theory]
@@ -109,7 +109,7 @@ public sealed class FileRemovedMeanwhileTests
     }
 
     /// <summary>The OPEN is made again a bounded number of times: a file that is present at every attempt's probe and removed before
-    /// every attempt's handle ends in §9.1.13.6 item 1's '30' after 1 + <c>FileConnector.MaxPathChangedRetries</c> attempts (PB3635's bound
+    /// every attempt's handle ends in §2023:9.1.13.6 item 1's '30' after 1 + <c>FileConnector.MaxPathChangedRetries</c> attempts (PB3635's bound
     /// for a path made at every attempt), and nothing is created.</summary>
     [Fact]
     public void An_open_whose_file_is_removed_at_every_attempt_answers_30_after_the_bound_and_creates_nothing()

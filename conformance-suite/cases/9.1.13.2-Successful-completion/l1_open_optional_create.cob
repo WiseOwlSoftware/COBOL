@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.27.4 GR17 — "If the file is not present, and the
+      *> ISO §2023:14.9.27.4 GR17 — "If the file is not present, and the
       *> EXTEND or I-O phrase is specified in the OPEN statement, and
       *> the OPTIONAL clause is specified in the file control entry for
       *> file-name-1, the OPEN statement creates the file. This
@@ -15,24 +15,24 @@
       *> OPEN statement specified in the source element and the I-O
       *> status value associated with file-name-1 is set to '05'."
       *> (The clause's last three characters are an OCR artifact in the
-      *> transcription; §9.1.13.2 item 4a supplies the value outright —
+      *> transcription; §2023:9.1.13.2 item 4a supplies the value outright —
       *> "If the open mode is I-O or extend, the physical file has been
       *> created".)
       *> The rule has SIX arms — three organizations x {EXTEND, I-O} —
       *> and all six are exercised, none inferred from another.
       *> Per arm, all three lines are stated by the rule:
-      *>   -OPEN   '05' (§9.1.13.2 item 4a).
+      *>   -OPEN   '05' (§2023:9.1.13.2 item 4a).
       *>   -REOPEN a plain OPEN INPUT of the same file-name now reports
-      *>           '00'. §9.1.13.2 item 4a's '05' is defined by "the
+      *>           '00'. §2023:9.1.13.2 item 4a's '05' is defined by "the
       *>           physical file is not present"; a '00' here is only
       *>           possible because the earlier OPEN CREATED the file.
       *>           This is the line that separates GR17 from GR13,
       *>           where the INPUT phrase creates nothing.
       *>   -READ   '10'. The creation is "as if OPEN OUTPUT … CLOSE",
-      *>           and §14.9.27.4 GR18 says that leaves a file which
+      *>           and §2023:14.9.27.4 GR18 says that leaves a file which
       *>           "contains no records" — so the first sequential READ
-      *>           is the at end condition (§9.1.13.4 item 1a).
-      *> §14.9.27.3 SR2 confines EXTEND to sequential access mode, so
+      *>           is the at end condition (§2023:9.1.13.4 item 1a).
+      *> §2023:14.9.27.3 SR2 confines EXTEND to sequential access mode, so
       *> the keyed connectors below are ACCESS SEQUENTIAL.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1OPN17.

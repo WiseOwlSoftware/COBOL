@@ -5,7 +5,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// The <c>--permissive</c> lane for a FLOATING-POINT operand at an ISO §15.3 type-6 (integer) argument
+/// The <c>--permissive</c> lane for a FLOATING-POINT operand at an ISO §2023:15.3 type-6 (integer) argument
 /// position — the coercion extension the strict screen names, and the home of everything kb/Work PB2 and PB21
 /// proved once their programs stopped being conforming under strict.
 /// </summary>
@@ -13,12 +13,12 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// <para>
 /// ⛔ WHY THESE PROGRAMS MOVED (kb/Work PB248). <c>tests/conformance/2023/pb21_float_arg_integer_family</c> was
 /// a STRICT positive golden whose header derived its legality as "a COMP-2 item is category numeric hence class
-/// numeric, and §15.3's INTEGER type resolves through CLASS numeric — the integer-ness is a VALUE property, not
+/// numeric, and §2023:15.3's INTEGER type resolves through CLASS numeric — the integer-ness is a VALUE property, not
 /// a class the argument screen can reject on". That premise contradicts the landed PB40 reading of the SAME
 /// clause, which rejects a <c>PIC 9V9</c> operand at an integer position for exactly the reason it would admit a
-/// COMP-2 one; the two could not both be right. Re-derived, §15.3 type 6 admits "an arithmetic expression that
+/// COMP-2 one; the two could not both be right. Re-derived, §2023:15.3 type 6 admits "an arithmetic expression that
 /// will always result in an integer value <b>or</b> an integer data item" (--check verified) and a floating-point
-/// item is neither — §14.6.8.3 sets its content to "the algebraic value of the sending operand", so its DECLARED
+/// item is neither — §2023:14.6.8.3 sets its content to "the algebraic value of the sending operand", so its DECLARED
 /// value set contains non-integers whatever a given reference holds. Strict now rejects (COBOL1627), and the
 /// four <c>negative/pb248-*</c> fixtures pin that.
 /// </para>
@@ -36,7 +36,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// </remarks>
 public sealed class FloatIntegerArgumentPermissiveTests
 {
-    /// <summary>kb/Work PB21's program, verbatim in its permissive home: six §15.3 type-6 functions over COMP-2
+    /// <summary>kb/Work PB21's program, verbatim in its permissive home: six §2023:15.3 type-6 functions over COMP-2
     /// operands. The expected values are the fixed-point ones — that IS the invariant.</summary>
     private const string Pb21Program = """
        IDENTIFICATION DIVISION.
@@ -68,9 +68,9 @@ public sealed class FloatIntegerArgumentPermissiveTests
            STOP RUN.
        """;
 
-    /// <summary>The MOD pair kb/Work PB2 lost to the strict screen — §15.64.3 r1 is "Argument-1 and argument-2
+    /// <summary>The MOD pair kb/Work PB2 lost to the strict screen — §2023:15.64.3 r1 is "Argument-1 and argument-2
     /// shall be integers", so the FLOAT operands live here while the corpus golden keeps the integer ones.
-    /// §15.64.4's equivalent arithmetic expression makes MOD FLOORED, so the result takes the sign of
+    /// §2023:15.64.4's equivalent arithmetic expression makes MOD FLOORED, so the result takes the sign of
     /// argument-2: MOD(−7, 3) = 2. The float lane must produce the same 2.</summary>
     private const string Pb2ModProgram = """
        IDENTIFICATION DIVISION.
@@ -86,7 +86,7 @@ public sealed class FloatIntegerArgumentPermissiveTests
            STOP RUN.
        """;
 
-    /// <summary>Strict REJECTS both, with the §15.3 type-6 diagnostic — the half the negative corpus pins,
+    /// <summary>Strict REJECTS both, with the §2023:15.3 type-6 diagnostic — the half the negative corpus pins,
     /// asserted here too so the pair of verdicts is readable in one place.</summary>
     [Theory]
     [InlineData(nameof(Pb21Program))]
@@ -95,7 +95,7 @@ public sealed class FloatIntegerArgumentPermissiveTests
     {
         string src = which == nameof(Pb21Program) ? Pb21Program : Pb2ModProgram;
         var (ok, errors, _) = EditionHarness.CompileFull(src, 2023);
-        Assert.False(ok, "a floating-point operand at an ISO §15.3 type-6 position is not conforming");
+        Assert.False(ok, "a floating-point operand at an ISO §2023:15.3 type-6 position is not conforming");
         EditionHarness.AssertHasDiagnostic(errors, "COBOL1627");
         EditionHarness.AssertHasDiagnostic(errors, "floating-point numeric data item");
     }
@@ -118,18 +118,18 @@ public sealed class FloatIntegerArgumentPermissiveTests
         Assert.Equal(
             new[]
             {
-                "IODAY=000143951",       // §15.45.4 — the integer date of ordinal date 1995046
-                "IODATE=000143951",      // §15.46.4 — the same day reached through the calendar date 19950215
-                "DAYOFINT=001995046",    // §15.24.4 — the inverse of INTEGER-OF-DAY
-                "DATEOFINT=019950215",   // §15.22.4 — the inverse of INTEGER-OF-DATE
-                "Y2YYYY=000001995",      // §15.100.4 — 95 windowed on base 2000 − 50 = 1950 → 1995
-                "FACT=000000000120",     // §15.36.4 — 5! = 120
+                "IODAY=000143951",       // §2023:15.45.4 — the integer date of ordinal date 1995046
+                "IODATE=000143951",      // §2023:15.46.4 — the same day reached through the calendar date 19950215
+                "DAYOFINT=001995046",    // §2023:15.24.4 — the inverse of INTEGER-OF-DAY
+                "DATEOFINT=019950215",   // §2023:15.22.4 — the inverse of INTEGER-OF-DATE
+                "Y2YYYY=000001995",      // §2023:15.100.4 — 95 windowed on base 2000 − 50 = 1950 → 1995
+                "FACT=000000000120",     // §2023:15.36.4 — 5! = 120
                 "IODAY-FIXED=000143951", // the FIXED-POINT control: the float lane must equal it
             },
             stdout.Replace("\r\n", "\n").TrimEnd('\n').Split('\n'));
     }
 
-    /// <summary>MOD's float pair under permissive: §15.64.4's equivalent arithmetic expression is floored, so
+    /// <summary>MOD's float pair under permissive: §2023:15.64.4's equivalent arithmetic expression is floored, so
     /// MOD(−7, 3) = 2 — the same value the corpus golden now computes from integer operands.</summary>
     [Fact]
     public void Pb2Mod_UnderPermissive_IsFlooredJustAsTheFixedPointPathIs()
@@ -144,10 +144,10 @@ public sealed class FloatIntegerArgumentPermissiveTests
     }
 
     /// <summary>kb/Work PB254’s float lane, which is the WRONG-ANSWER half of that defect and, after
-    /// PB248, is reachable only here. §15.90.3 r1 / §15.91.3 r1 constrain nothing but integer-ness and
-    /// §15.90.4 r1a / §15.91.4 r1a are CATCH-ALLS, so 1.0E19 — eleven orders of magnitude above the
+    /// PB248, is reachable only here. §2023:15.90.3 r1 / §2023:15.91.3 r1 constrain nothing but integer-ness and
+    /// §2023:15.90.4 r1a / §2023:15.91.4 r1a are CATCH-ALLS, so 1.0E19 — eleven orders of magnitude above the
     /// windows — owes the verdict <b>1</b> ("the date is not valid"). The shipped body answered <b>0</b>,
-    /// which is §15.90.4 r1d / §15.91.4 r1c "The date is valid", because <c>TryIntegerArg(…) ? body : 0</c>
+    /// which is §2023:15.90.4 r1d / §2023:15.91.4 r1c "The date is valid", because <c>TryIntegerArg(…) ? body : 0</c>
     /// used a literal 0 as its domain-guard tail — and 0 is a VERDICT here, not a sentinel.</summary>
     private const string Pb254TotalDateProgram = """
        IDENTIFICATION DIVISION.
@@ -186,34 +186,34 @@ public sealed class FloatIntegerArgumentPermissiveTests
         Assert.Equal(
             new[]
             {
-                "F1=01", // §15.90.4 r1a — 1.0E19 is greater than 99 999 999
-                "F2=01", // §15.91.4 r1a — and greater than 9 999 999
-                "F3=00", // §15.90.4 r1d — 19950215 IS a valid date: the control
+                "F1=01", // §2023:15.90.4 r1a — 1.0E19 is greater than 99 999 999
+                "F2=01", // §2023:15.91.4 r1a — and greater than 9 999 999
+                "F3=00", // §2023:15.90.4 r1d — 19950215 IS a valid date: the control
             },
             stdout.Replace("\r\n", "\n").TrimEnd('\n').Split('\n'));
     }
 
-    /// <summary>Strict refuses this program too, on the same §15.3 type-6 screen — the verdict pair is
+    /// <summary>Strict refuses this program too, on the same §2023:15.3 type-6 screen — the verdict pair is
     /// readable in one place, as it is for PB21 and PB2 above.</summary>
     [Fact]
     public void Pb254TotalDateValidators_AreRejectedUnderStrict()
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Pb254TotalDateProgram, 2023);
-        Assert.False(ok, "a floating-point operand at an ISO §15.3 type-6 position is not conforming");
+        Assert.False(ok, "a floating-point operand at an ISO §2023:15.3 type-6 position is not conforming");
         EditionHarness.AssertHasDiagnostic(errors, "COBOL1627");
     }
 
     /// <summary>
     /// kb/Work PB635 — the MIXED-CLASS member of this lane, and the one whose failure was a CRASH rather than a
-    /// value. FIND-STRING is the only catalogued function that puts a §15.3 type-6 INTEGER position beside two
-    /// STRING ones (§15.37.3 r1/r2 "class alphabetic, alphanumeric, or national"; r3 "argument-3 shall be an
+    /// value. FIND-STRING is the only catalogued function that puts a §2023:15.3 type-6 INTEGER position beside two
+    /// STRING ones (§2023:15.37.3 r1/r2 "class alphabetic, alphanumeric, or national"; r3 "argument-3 shall be an
     /// integer data item or integer literal"), so a float argument-3 asked the emitter's float dispatch a
     /// question it could not answer: it read "is ANY argument floating", moved the WHOLE call to the binary64
     /// lane, converted <c>H</c> and <c>ND</c> to <c>double</c>, dropped LAST and ANYCASE, and named a
     /// <c>FindStringReal</c> body that does not exist — <c>error CS0117: 'CobolIntrinsics' does not contain a
     /// definition for 'FindStringReal'</c>, Roslyn refusing the generated C# on source the front end accepted.
-    /// <para>⛔ THE PHRASES ARE THE ASSERTION, not merely the compile. §15.4.1 grants the binary64 lane its
-    /// licence for "an equivalent arithmetic expression", and §15.37.4 specifies none — the returned value is a
+    /// <para>⛔ THE PHRASES ARE THE ASSERTION, not merely the compile. §2023:15.4.1 grants the binary64 lane its
+    /// licence for "an equivalent arithmetic expression", and §2023:15.37.4 specifies none — the returned value is a
     /// character POSITION — so there is no binary64 anything in this call and every phrase has to survive.
     /// F1..F4 are the four (LAST × ANYCASE) combinations over the SAME float argument-3, and they answer four
     /// values that a body ignoring either phrase could not produce; F5 is the fixed-point control, the same
@@ -244,11 +244,11 @@ public sealed class FloatIntegerArgumentPermissiveTests
        """;
 
     /// <summary>
-    /// H = "abcABCabcABC". Case-sensitively, ND = "ABC" occurs at {4, 10}; under ANYCASE (§15.37.4 r4 — "as if
+    /// H = "abcABCabcABC". Case-sensitively, ND = "ABC" occurs at {4, 10}; under ANYCASE (§2023:15.37.4 r4 — "as if
     /// all uppercase letters in both argument-1 and argument-2 were replaced by their corresponding lowercase
-    /// letters") at {1, 4, 7, 10}. §15.37.4 r2: "argument-3 represents the number of matches to ignore before
+    /// letters") at {1, 4, 7, 10}. §2023:15.37.4 r2: "argument-3 represents the number of matches to ignore before
     /// determining the character position that shall be returned", so argument-3 = 1 drops one occurrence from
-    /// the head, or from the tail under LAST (§15.37.4 r1). Hence 10, 4, 4, 7 — and 7 again from the integer
+    /// the head, or from the tail under LAST (§2023:15.37.4 r1). Hence 10, 4, 4, 7 — and 7 again from the integer
     /// literal, because the value of a function may not depend on how its argument was stored.
     /// </summary>
     [Fact]
@@ -273,9 +273,9 @@ public sealed class FloatIntegerArgumentPermissiveTests
     }
 
     /// <summary>
-    /// kb/Work PB651 — a FRACTIONAL float at a §15.3 type-6 position, on each of the three lanes a call with one used to
+    /// kb/Work PB651 — a FRACTIONAL float at a §2023:15.3 type-6 position, on each of the three lanes a call with one used to
     /// take: MOD's exact arm (which aligned the fraction instead of dropping it), COMBINED-DATETIME (which the float moved
-    /// to the binary64 lane), and ANNUITY (a §15.4.1 float-family function, whose body took the double as it stood).
+    /// to the binary64 lane), and ANNUITY (a §2023:15.4.1 float-family function, whose body took the double as it stood).
     /// docs/CONFORMANCE.md DOC-A.1-124: with EC-ARGUMENT-FUNCTION checking off the truncated integer is the result, so
     /// each answers exactly what its integer answers.
     /// </summary>
@@ -300,8 +300,8 @@ public sealed class FloatIntegerArgumentPermissiveTests
            STOP RUN.
        """;
 
-    /// <summary>The three values from the equivalent arithmetic expressions over the TRUNCATED integers: §15.64.4
-    /// 7 − 3 × INTEGER(7 / 3) = 1; §15.17.4 143951 + 3600 / 100000 = 143951.03600; §15.9.4 1) b)
+    /// <summary>The three values from the equivalent arithmetic expressions over the TRUNCATED integers: §2023:15.64.4
+    /// 7 − 3 × INTEGER(7 / 3) = 1; §2023:15.17.4 143951 + 3600 / 100000 = 143951.03600; §2023:15.9.4 1) b)
     /// 0.05 / (1 − 1.05 ** −3) = 0.367208564…, truncated to the receiver's nine fraction digits.</summary>
     [Fact]
     public void Pb651FractionalFloat_AtATypeSixPosition_UnderPermissive_IsTruncatedOnEveryLane()
@@ -317,7 +317,7 @@ public sealed class FloatIntegerArgumentPermissiveTests
     }
 
     /// <summary>
-    /// kb/Work PB651 review R1-2 — a float whose integer lies PAST the <c>Int128</c> carrier (±1.7e38) at a §15.3 type-6
+    /// kb/Work PB651 review R1-2 — a float whose integer lies PAST the <c>Int128</c> carrier (±1.7e38) at a §2023:15.3 type-6
     /// position. The position intake used to CLAMP it to the carrier's extreme, which answers for a different integer:
     /// <c>MOD(1.0E39, 7)</c> answered 1, the remainder of 2¹²⁷ − 1, with no exception condition. Now a function whose
     /// value depends on the integer keeps it or says it cannot — EC-ARGUMENT-FUNCTION, here handled by a declarative
@@ -360,9 +360,9 @@ public sealed class FloatIntegerArgumentPermissiveTests
            STOP RUN.
        """;
 
-    /// <summary>§15.64.4: MOD(1000000000000000019884624838656, 7) = 5. §15.3: a value the implementation cannot represent
+    /// <summary>§2023:15.64.4: MOD(1000000000000000019884624838656, 7) = 5. §2023:15.3: a value the implementation cannot represent
     /// at an integer argument of a function that depends on it is EC-ARGUMENT-FUNCTION (docs/CONFORMANCE.md
-    /// DOC-A.1-124). §15.90.4 r1a / §15.91.4 r1a: 01 for every integer outside the window. §15.37.4 r2/r3: 0 once every
+    /// DOC-A.1-124). §2023:15.90.4 r1a / §2023:15.91.4 r1a: 01 for every integer outside the window. §2023:15.37.4 r2/r3: 0 once every
     /// match is ignored.</summary>
     [Fact]
     public void Pb651FloatPastTheCarrier_KeepsItsValueOrRaises_AndOnlyAConstantAnswerClamps()
@@ -377,14 +377,14 @@ public sealed class FloatIntegerArgumentPermissiveTests
             stdout.Replace("\r\n", "\n").TrimEnd('\n').Split('\n'));
     }
 
-    /// <summary>Strict refuses it on the §15.3 type-6 screen, as it does every other program in this file —
+    /// <summary>Strict refuses it on the §2023:15.3 type-6 screen, as it does every other program in this file —
     /// and the negative corpus pins the same verdict per function at
     /// <c>conformance-suite/cases/_unassigned/pb635-find-string-float-skip</c>.</summary>
     [Fact]
     public void Pb635FindString_IsRejectedUnderStrict()
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Pb635FindStringProgram, 2023);
-        Assert.False(ok, "a floating-point operand at an ISO §15.3 type-6 position is not conforming");
+        Assert.False(ok, "a floating-point operand at an ISO §2023:15.3 type-6 position is not conforming");
         EditionHarness.AssertHasDiagnostic(errors, "COBOL1627");
         EditionHarness.AssertHasDiagnostic(errors, "FUNCTION FIND-STRING argument-3");
     }

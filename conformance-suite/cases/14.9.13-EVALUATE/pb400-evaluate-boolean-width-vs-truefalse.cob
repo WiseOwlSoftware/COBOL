@@ -4,11 +4,11 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.13.3 SR6 a)/b) reclassify a boolean operand to a boolean CONDITION
+      *> ISO §2023:14.9.13.3 SR6 a)/b) reclassify a boolean operand to a boolean CONDITION
       *> only when it "results in one boolean character".  W-B2 is PICTURE 1(2), so its
-      *> result is TWO boolean characters (§8.8.2 rule 10 — "a boolean value whose
+      *> result is TWO boolean characters (§2023:8.8.2 rule 10 — "a boolean value whose
       *> length shall be the number of boolean positions of the larger item referenced")
-      *> and it stays boolean-expression-1.  §14.9.13.3 SR10 Table 15 leaves the
+      *> and it stays boolean-expression-1.  §2023:14.9.13.3 SR10 Table 15 leaves the
       *> boolean-expression × TRUE-or-FALSE cell BLANK, so this is a syntax-rule
       *> violation and therefore a compile-time diagnostic.
       *> It used to compile and die at run time with "boolean-literal condition"; the

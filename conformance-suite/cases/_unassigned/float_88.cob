@@ -8,7 +8,7 @@
        IDENTIFICATION DIVISION.
        PROGRAM-ID. FLT88.
       *> a level-88 condition with a FRACTIONAL VALUE on a float item
-      *> compares by algebraic value (§8.8.4.2.4), not truncated. D16 review.
+      *> compares by algebraic value (§2023:8.8.4.2.4), not truncated. D16 review.
        DATA DIVISION.
        WORKING-STORAGE SECTION.
        01 WS-H USAGE COMP-2.

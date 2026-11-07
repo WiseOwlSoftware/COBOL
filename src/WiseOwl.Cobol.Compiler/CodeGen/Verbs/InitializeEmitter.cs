@@ -17,7 +17,7 @@ internal sealed class InitializeEmitter(EmitContext ctx, MoveEmitter move)
     /// <summary>The VALUE recipe's home, built on first use (the shape <c>SetEmitter</c> and <c>ReportWriterEmitter</c> take).</summary>
     private DataEmitter Data => _data ??= new DataEmitter(ctx);
 
-    /// <summary>INITIALIZE (ISO §14.9.20) — render the bind-time expansion: each <see cref="InitializeStore"/> IS
+    /// <summary>INITIALIZE (ISO §2023:14.9.20) — render the bind-time expansion: each <see cref="InitializeStore"/> IS
     /// the spec's implicit elementary MOVE (GR4), emitted through the ONE MOVE store path (<c>EmitMove</c> →
     /// <c>ConvertSource</c> — so REPLACING/VALUE/default senders get identical conversion, editing, padding and
     /// truncation to an explicit MOVE; e.g. a numeric sender into a numeric-edited receiver edits, and the GR6c
@@ -34,10 +34,10 @@ internal sealed class InitializeEmitter(EmitContext ctx, MoveEmitter move)
         switch (action)
         {
             case InitializeStore s:
-                // §14.9.20.4 GR4 — an implicit MOVE, ONE code path, receiver category by receiver category:
+                // §2023:14.9.20.4 GR4 — an implicit MOVE, ONE code path, receiver category by receiver category:
                 // "Otherwise, the implicit statement is: MOVE sending-operand TO receiving-operand." The rule
                 // exempts only the five pointer-ish categories (SET, the arms below); a COMP-1/COMP-2/FLOAT-*
-                // receiver is category NUMERIC (§8.5.2), so it takes exactly the path its explicit MOVE takes —
+                // receiver is category NUMERIC (§2023:8.5.2), so it takes exactly the path its explicit MOVE takes —
                 // MoveEmitter's float-receiver arm in ConvertSource, which owns the GR6 d)4.a EC-DATA-OVERFLOW
                 // check, the single/double store cast, AND the WINDOWED (image-stored, Tier-B) re-encode
                 // `target.StoreAsImage ? NumFormatImageFloat(v) : v`. ⛔ There is deliberately NO float arm here:
@@ -49,34 +49,34 @@ internal sealed class InitializeEmitter(EmitContext ctx, MoveEmitter move)
                 move.Emit(s.Move);
                 break;
             case InitializeStoreValue s:
-                // §14.9.20.4 GR6 a) 3. for a receiver a MOVE would edit / justify / blank (kb/Work PB4512): the
-                // result the rule asks for is the initial value, so it is the ONE §13.18.63 VALUE recipe's image —
+                // §2023:14.9.20.4 GR6 a) 3. for a receiver a MOVE would edit / justify / blank (kb/Work PB4512): the
+                // result the rule asks for is the initial value, so it is the ONE §2023:13.18.63 VALUE recipe's image —
                 // the same call the item's declaration, a report field and SET condition-name TO TRUE make.
                 w.Line(PlaceRenderer.Write(s.Target, Data.ValueImageOf(s.Target.Item, s.Raw))
-                    + "   // INITIALIZE TO VALUE — the VALUE clause's initial value (ISO §14.9.20.4 GR6 a) 3.)");
+                    + "   // INITIALIZE TO VALUE — the VALUE clause's initial value (ISO §2023:14.9.20.4 GR6 a) 3.)");
                 break;
             case InitializeSetNull s:
-                // §14.9.20 GR4/GR6c: an implicit SET Target TO the predefined NULL (data-pointer → ManagedPointer.Null,
+                // §2023:14.9.20 GR4/GR6c: an implicit SET Target TO the predefined NULL (data-pointer → ManagedPointer.Null,
                 // program-pointer → ProgramPointer.Null, object-reference → null). A SET, NOT a MOVE — reuses the
                 // item's DefaultInitializer, matching SetEmitter.EmitSetPointer / OoEmitter.EmitSetObjectRef.
                 w.Line(PlaceRenderer.Write(s.Target, s.Target.Item.Pic!.DefaultInitializer));
                 break;
             case InitializeSetFrom s:
-                // §14.9.20.4 GR4 + GR6b: an implicit `SET Target TO identifier-2`, rendered as THE SET STATEMENT
+                // §2023:14.9.20.4 GR4 + GR6b: an implicit `SET Target TO identifier-2`, rendered as THE SET STATEMENT
                 // renders it for the same operand pair — SetEmitter.EmitSetPointer's straight handle copy for the
-                // pointer family (§14.9.39 Format 7), OoEmitter's Format-5 cast-and-copy for an object-reference
-                // receiver (§14.9.39 GR9, "reference copy"). §14.9.20.3 SR3 has already refused literal-1 and SR4
+                // pointer family (§2023:14.9.39 Format 7), OoEmitter's Format-5 cast-and-copy for an object-reference
+                // receiver (§2023:14.9.39 GR9, "reference copy"). §2023:14.9.20.3 SR3 has already refused literal-1 and SR4
                 // the category mismatch, so the pair is a valid SET by the time it reaches here.
                 w.Line(PlaceRenderer.Write(s.Target,
                         s.Target.Item.Pic is { Category: PicCategory.ObjectReference } orp
                             ? $"({orp.ClrType})({PlaceRenderer.Read(s.Source)})"
                             : PlaceRenderer.Read(s.Source))
-                    + "   // INITIALIZE REPLACING — implicit SET (ISO §14.9.20.4 GR4/GR6b)");
+                    + "   // INITIALIZE REPLACING — implicit SET (ISO §2023:14.9.20.4 GR4/GR6b)");
                 break;
             case InitializeLoop l:
                 // ONE loop over the ONE occurrence-count model (kb/Work PB393): a fixed OCCURS count, an
-                // occurs-depending table's CURRENT count under §13.18.38.4 GR8a, or a dynamic-capacity table's
-                // current capacity under §14.9.20.4 GR10 ("all the elements of the table up to current capacity
+                // occurs-depending table's CURRENT count under §2023:13.18.38.4 GR8a, or a dynamic-capacity table's
+                // current capacity under §2023:14.9.20.4 GR10 ("all the elements of the table up to current capacity
                 // … are initialized … and the current capacity of the table is left unchanged" — the capacity is
                 // untouched because the stores go through RefReceiving WITHIN the bound, which never grows).
                 string v = LocalNames.Of(l.Var);
@@ -85,9 +85,9 @@ internal sealed class InitializeEmitter(EmitContext ctx, MoveEmitter move)
                         EmitAction(b);
                 break;
             case InitializeOccurrenceSelect sel:
-                // ISO §14.9.20.4 GR5c1c/GR6a3 — the only per-occurrence arm of the expansion: a Format-2 (table)
+                // ISO §2023:14.9.20.4 GR5c1c/GR6a3 — the only per-occurrence arm of the expansion: a Format-2 (table)
                 // VALUE keys a different literal to each occurrence, and the occurrences it does not key are not
-                // receiving-operands under the VALUE phrase at all. The arms come LAST PHRASE FIRST (§13.18.63.4
+                // receiving-operands under the VALUE phrase at all. The arms come LAST PHRASE FIRST (§2023:13.18.63.4
                 // GR15), so the if/else-if chain's first holding arm is the literal the occurrence takes.
                 bool first = true;
                 foreach (var arm in sel.Arms)

@@ -5,24 +5,24 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §7.3.6.3 GR2 + §7.3.6.2 SR2 (Annex A.1 item 29) — the
+      *> ISO §2023:7.3.6.3 GR2 + §2023:7.3.6.2 SR2 (Annex A.1 item 29) — the
       *>   documented compile-time arithmetic mode and rounding
-      *> Rules: §7.3.6.3 GR2 "The implementor shall define and document
+      *> Rules: §2023:7.3.6.3 GR2 "The implementor shall define and document
       *>   which mode of arithmetic is to be used when evaluating
-      *>   compile-time arithmetic." -> OK  §7.3.6.3 2)
-      *>   §7.3.6.2 SR2 "The implementor shall define and document any
+      *>   compile-time arithmetic." -> OK  §2023:7.3.6.3 2)
+      *>   §2023:7.3.6.2 SR2 "The implementor shall define and document any
       *>   rules restricting the precision and/or magnitude and/or range
       *>   of permissible values for the intermediate results ... They
       *>   shall also document which intermediate rounding method is
-      *>   used" -> OK  §7.3.6.2 2)
-      *>   §7.3.6.3 GR3 "The final result of the arithmetic expression
+      *>   used" -> OK  §2023:7.3.6.2 2)
+      *>   §2023:7.3.6.3 GR3 "The final result of the arithmetic expression
       *>   shall be truncated to the integer part of the value as
-      *>   specified in 15.49, INTEGER-PART function" -> OK  §7.3.6.3 3)
-      *>   §13.10.4 GR4 "If arithmetic-expression-1 is specified, it is
-      *>   evaluated in accordance with 7.3.6" -> OK  §13.10.4 4)
-      *>   §A.1 29) "Compile-Time Arithmetic (Mode of arithmetic used
+      *>   specified in 15.49, INTEGER-PART function" -> OK  §2023:7.3.6.3 3)
+      *>   §2023:13.10.4 GR4 "If arithmetic-expression-1 is specified, it is
+      *>   evaluated in accordance with 7.3.6" -> OK  §2023:13.10.4 4)
+      *>   §2023:A.1 29) "Compile-Time Arithmetic (Mode of arithmetic used
       *>   and rules for intermediate data handling). This item is
-      *>   required." -> OK  §A.1 29)
+      *>   required." -> OK  §2023:A.1 29)
       *> THE DOCUMENTED DETERMINATION (docs/CONFORMANCE.md row
       *>   DOC-A.1-29): one evaluator for constant entries and
       *>   directives; each intermediate result is a decimal number of
@@ -53,7 +53,7 @@
       *>   handling of intermediate results is now explicitly
       *>   implementor defined." with "The previous COBOL Standard
       *>   required the use of an arithmetic mode that is no longer
-      *>   supported." (both -> OK  §E.2 6)). Below 2023 the mode was
+      *>   supported." (both -> OK  §2023:E.2 6)). Below 2023 the mode was
       *>   prescribed, so this determination cannot set 2002/2014
       *>   output.
        IDENTIFICATION DIVISION.

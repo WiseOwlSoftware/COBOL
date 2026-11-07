@@ -4,19 +4,19 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> ISO §15.98.3 rule 1 (VARIANCE): "Argument-1 shall be of class numeric." It is
-*> the ONLY argument rule §15.98.3 has, so any argument diagnostic this program
+*> ISO §2023:15.98.3 rule 1 (VARIANCE): "Argument-1 shall be of class numeric." It is
+*> the ONLY argument rule §2023:15.98.3 has, so any argument diagnostic this program
 *> draws is that rule and no other.
 *>
-*> §15.98.2's general format is `FUNCTION VARIANCE ( { argument-1 } ... )`: every
+*> §2023:15.98.2's general format is `FUNCTION VARIANCE ( { argument-1 } ... )`: every
 *> written position IS argument-1, so the rule governs the whole variadic list.
 *> This fixture puts the non-numeric operand at POSITION 1, the ordinal the
 *> clause names literally.
 *>
-*> §8.5.2.1 Table 2 puts category alphanumeric in class ALPHANUMERIC, so a
+*> §2023:8.5.2.1 Table 2 puts category alphanumeric in class ALPHANUMERIC, so a
 *> PIC X(3) item holding "100" is not of class numeric however numeric its value
-*> looks. §15.3 argument type 10 (Numeric) admits "an arithmetic expression or a
-*> numeric data item"; §8.8.1.1 admits as an arithmetic expression "an identifier
+*> looks. §2023:15.3 argument type 10 (Numeric) admits "an arithmetic expression or a
+*> numeric data item"; §2023:8.8.1.1 admits as an arithmetic expression "an identifier
 *> referencing a numeric data item", which an alphanumeric item is not. The
 *> sibling axis — a NUMERIC-EDITED operand, class alphanumeric by the same Table 2
 *> row — is pinned once for the family by pb1-numeric-arg-numeric-edited.

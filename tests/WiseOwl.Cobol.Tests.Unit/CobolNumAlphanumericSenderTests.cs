@@ -7,7 +7,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// The two value-level decodes of a character image (numeric design D25): <see cref="CobolNum.FromAlphanumeric"/>
-/// carries ISO §14.9.25.4 GR6 d) 3's size rule for an ALPHANUMERIC SENDING OPERAND — "the rightmost 31 character
+/// carries ISO §2023:14.9.25.4 GR6 d) 3's size rule for an ALPHANUMERIC SENDING OPERAND — "the rightmost 31 character
 /// positions" — and <see cref="CobolNum.DigitMagnitude"/> carries no size rule at all, for a caller whose image
 /// size its own data description already fixes. The boundary is tested HERE rather than only through COBOL
 /// programs because it is an arithmetic property of the window (31 vs 32 characters, and CHARACTER positions vs
@@ -40,7 +40,7 @@ public sealed class CobolNumAlphanumericSenderTests
         Assert.Equal(Int128.Parse(Digits40[1..32]), CobolNum.FromAlphanumeric(Digits40[..32]));
     }
 
-    // ⛔ CHARACTER POSITIONS, NOT DIGIT CHARACTERS. §14.6.13.2 lets a non-digit position contribute no digit, but
+    // ⛔ CHARACTER POSITIONS, NOT DIGIT CHARACTERS. §2023:14.6.13.2 lets a non-digit position contribute no digit, but
     // it still OCCUPIES a position, so the window must be taken over the image and only then scanned. These two
     // images have the same digits in the same order and different answers.
     [Fact]

@@ -14,20 +14,20 @@ using CnFrontend = WiseOwl.Cobol.Frontend.Frontend;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ A REPOSITORY RECORD DECODES TO A DESCRIPTION NO COMPARATOR CAN TELL FROM ITS ORIGINAL (ISO §8.13;
-/// DESIGN-external-repository §6.3's invariant and §17.2's round trip; kb/Work PB2100). §8.13 stores "the description of the
+/// ⛔ A REPOSITORY RECORD DECODES TO A DESCRIPTION NO COMPARATOR CAN TELL FROM ITS ORIGINAL (ISO §2023:8.13;
+/// DESIGN-external-repository §6.3's invariant and §17.2's round trip; kb/Work PB2100). §2023:8.13 stores "the description of the
 /// parameters of the source unit, if any, and the manner of receiving parameters (by reference or by value) and whether they
 /// are optional or not" as the unit's signature, so a record is right exactly when <c>Decode(Of(unit))</c>, bound in the
 /// publishing element's own scope, answers every question the binder asks of a description as the bound unit does: the
-/// activation description both ways (<see cref="OoConformance.SignatureDifference"/>), the §8.5.3.1 layout and type tests,
+/// activation description both ways (<see cref="OoConformance.SignatureDifference"/>), the §2023:8.5.3.1 layout and type tests,
 /// the widths, the host types, the normalized <c>PicInfo</c> equality and a restricted pointer's two restrictions — its TO
-/// phrase and what it may contain, the identity of its decoded prototype's signature (§6.4), so equal identities mean
+/// phrase and what it may contain, the identity of its decoded prototype's signature (§2023:6.4), so equal identities mean
 /// "same signature", never "same name". <see cref="RoundTrip"/> is that check, shared with the corpus enumeration
 /// (<see cref="RepositoryRoundTripCorpusTests"/>).
 /// </summary>
 public sealed class RepositoryCodecTests
 {
-    // Programs whose LINKAGE covers the description shapes §6.3's table lists: an occurs-depending table, a REDEFINES, edited
+    // Programs whose LINKAGE covers the description shapes §2023:6.3's table lists: an occurs-depending table, a REDEFINES, edited
     // and currency pictures, SIGN SEPARATE, SYNCHRONIZED LEFT and RIGHT, BLANK WHEN ZERO, JUSTIFIED, a strong TYPE, a pointer
     // restricted to that type, program-pointers restricted to a prototype that names itself (a finite graph of one row),
     // national, bit and float items, BY VALUE, OPTIONAL and RETURNING.
@@ -113,7 +113,7 @@ public sealed class RepositoryCodecTests
         Assert.NotNull(record.Returning);
         // The type declarations the descriptions name are rows: T1 (F3's type and F5's restriction), PT (F4's type) and
         // DT (F5's type); PRTA, which F4 and PRTA's own P name, is one prototype row naming itself — and PP, the type of
-        // PRTA's formal P, which PRTA declares and RTONE does not (§8.13 "type declarations required for the description of
+        // PRTA's formal P, which PRTA declares and RTONE does not (§2023:8.13 "type declarations required for the description of
         // parameters"): a referenced prototype's formals are described with ITS declarations (DataItem.TypeDeclaration).
         Assert.Equal(["DT", "PP", "PT", "T1"], record.TypeDeclarations.Select(t => t.Name!).Order(StringComparer.Ordinal));
         int t1 = record.TypeDeclarations.Select((t, i) => (t, i)).Single(x => x.t.Name == "T1").i;
@@ -127,12 +127,12 @@ public sealed class RepositoryCodecTests
         Assert.True(RecordOf(comp, comp.Units.Single(u => u.Name == "RTTWO")).Formals[1].Optional);
     }
 
-    // A class and an interface whose records cover what ISO §8.13 lists for them: "the object properties of the source unit"
+    // A class and an interface whose records cover what ISO §2023:8.13 lists for them: "the object properties of the source unit"
     // (an object property from a PROPERTY clause, a factory property, an interface's GET PROPERTY prototype) and "the methods
     // contained in the source unit, if any, and details about the method's externalized name, parameters, returning item, and
     // entry convention" (a BY VALUE formal and a RETURNING item, an OPTIONAL formal, a factory method returning an object
     // reference); the superclass and the implemented interface as identities, an AS name, DECIMAL-POINT IS COMMA; and a
-    // method formal typed by the object's TYPEDEF and one typed by the METHOD's own (ISO §11.7.4 GR5: the method's
+    // method formal typed by the object's TYPEDEF and one typed by the METHOD's own (ISO §2023:11.7.4 GR5: the method's
     // declaration is the one its word refers to).
     internal const string OoSource = """
                IDENTIFICATION DIVISION.
@@ -259,7 +259,7 @@ public sealed class RepositoryCodecTests
         Assert.Empty(c.FactoryImplements);
         Assert.Equal(comp.ClassUnits.Single().Symbol.FactoryClrName, c.FactoryType);
         Assert.Equal([new PropertyRecord("TAG", "TAG", false, true, true), new PropertyRecord("F-COUNT", "F-COUNT", true, true, true)], c.Properties);
-        // The object roster, then the factory roster; an accessor carries its property's externalized name (ISO §12.3.8.4 GR2).
+        // The object roster, then the factory roster; an accessor carries its property's externalized name (ISO §2023:12.3.8.4 GR2).
         Assert.Equal([("SCALE", false), ("FILL-IN", false), ("TAG", false), ("TAG", false), ("MAKE", true), ("F-COUNT", true), ("F-COUNT", true)],
             c.Methods.Select(m => (m.ExternalizedName, m.IsFactory)));
         Assert.All(c.Methods, m => Assert.Equal(RepositoryRecord.CobolEntryConvention, m.EntryConvention));
@@ -274,10 +274,10 @@ public sealed class RepositoryCodecTests
         Assert.Equal(["ROMAIN", "ROI", "ROC"], RoundTripAll(comp));
     }
 
-    // A formal whose OCCURS DEPENDING ON object is QUALIFIED because its name is not unique in the record (ISO §8.4.2.2.3
+    // A formal whose OCCURS DEPENDING ON object is QUALIFIED because its name is not unique in the record (ISO §2023:8.4.2.2.3
     // SR1: "uniqueness shall be established through a sequence of qualifiers that precludes any ambiguity of reference"),
     // and one whose REDEFINES chain repeats a name: `X REDEFINES X` names the first X, and so does `C REDEFINES X`
-    // (§13.18.44.3 SR7: "Multiple redefinitions of the same storage area shall each specify as data-name-2 the data-name of
+    // (§2023:13.18.44.3 SR7: "Multiple redefinitions of the same storage area shall each specify as data-name-2 the data-name of
     // the entry that originally defined the area"; NOTE 1: "If data-name-2 is not unique, no ambiguity of reference exists
     // because of the required placement of the REDEFINES clause"). A record that keeps either link as a bare word decodes it
     // to whichever entry of that name a lookup meets first (kb/Work PB978's shape), so the decoded twin is not the bound item.
@@ -320,7 +320,7 @@ public sealed class RepositoryCodecTests
         Assert.Equal(["RTQUAL"], RoundTripAll(comp));
     }
 
-    /// <summary>A REDEFINES chain ISO §13.18.44.3 SR7 forbids ("Multiple redefinitions of the same storage area shall each
+    /// <summary>A REDEFINES chain ISO §2023:13.18.44.3 SR7 forbids ("Multiple redefinitions of the same storage area shall each
     /// specify as data-name-2 the data-name of the entry that originally defined the area") is COBOL1656, an error strict
     /// and a warning under --permissive, where the binder links the nearest same-named candidate because every candidate is
     /// itself a redefinition. The renderer publishes that link, so the decoder asks the same rule, both halves
@@ -394,7 +394,7 @@ public sealed class RepositoryCodecTests
         Assert.Empty(off.InterfaceRecords);
     }
 
-    /// <summary>§6.4 part 3 and §17.2's perturbation: a record whose referenced prototype lost a formal no longer has its
+    /// <summary>§2023:6.4 part 3 and §17.2's perturbation: a record whose referenced prototype lost a formal no longer has its
     /// original's signature, so what its decoded pointer may contain, the identity of that signature, differs.</summary>
     [Fact]
     public void ARecordThatDroppedAReferencedPrototypesFormal_FailsTheRoundTrip()
@@ -414,8 +414,8 @@ public sealed class RepositoryCodecTests
         Assert.StartsWith(PrototypeSignatures.CanonicalPrefix, decoded.Formals[3].Item.PointerRestrictionIdentity);
     }
 
-    /// <summary>§17.2's perturbation: a DATA-NAME is recorded and never compared (ISO §13.7.3 SR2), a TYPE-NAME is compared
-    /// (§8.5.3.1: "Two type declarations are considered equivalent when they have the same type-name").</summary>
+    /// <summary>§17.2's perturbation: a DATA-NAME is recorded and never compared (ISO §2023:13.7.3 SR2), a TYPE-NAME is compared
+    /// (§2023:8.5.3.1: "Two type declarations are considered equivalent when they have the same type-name").</summary>
     [Fact]
     public void ADataNameChange_IsInert_AndATypeNameChange_IsSeen()
     {
@@ -442,8 +442,8 @@ public sealed class RepositoryCodecTests
         Assert.False(PrototypeSignatures.Same(new CalleeSignature(unit.Data.Linkage.Formals, unit.Data.Linkage.Returning), decodedRetyped.Signature));
     }
 
-    /// <summary>§15.3: a record the decoder cannot bind is a typed refusal naming the record, never an index fault or a
-    /// cycle: an index past its table, and an OCCURS DEPENDING ON object ISO §13.18.38.3 SR17 forbids ("Data-name-1 shall
+    /// <summary>§2023:15.3: a record the decoder cannot bind is a typed refusal naming the record, never an index fault or a
+    /// cycle: an index past its table, and an OCCURS DEPENDING ON object ISO §2023:13.18.38.3 SR17 forbids ("Data-name-1 shall
     /// describe an integer") — here the group that holds the table, the PB3510 shape whose link a consumer would follow
     /// without end.</summary>
     [Fact]
@@ -538,7 +538,7 @@ public sealed class RepositoryCodecTests
         }
     }
 
-    /// <summary>§6.3's invariant for one unit: <c>Decode(Of(unit))</c> is indistinguishable from the unit's LINKAGE to every
+    /// <summary>§2023:6.3's invariant for one unit: <c>Decode(Of(unit))</c> is indistinguishable from the unit's LINKAGE to every
     /// comparator and derived quantity.</summary>
     internal static void RoundTrip(BoundCompilation comp, BoundUnit unit)
     {
@@ -552,7 +552,7 @@ public sealed class RepositoryCodecTests
             $"{unit.Name}: the decoded signature is not the same as the unit's (PrototypeSignatures.Same)");
     }
 
-    /// <summary>§6.3's invariant for one signature (a unit's or a method's): each decoded formal and the decoded returning
+    /// <summary>§2023:6.3's invariant for one signature (a unit's or a method's): each decoded formal and the decoded returning
     /// item are indistinguishable from the bound ones.</summary>
     private static void RoundTrip(string at, IReadOnlyList<(DataItem Item, int Position, bool ByValue, bool Optional)> formals, DataItem? returning,
         IReadOnlyList<LinkageFormal> decodedFormals, DataItem? decodedReturning)
@@ -599,7 +599,7 @@ public sealed class RepositoryCodecTests
     private static int Link(List<DataItem> entries, DataItem? target) =>
         target is null ? -1 : entries.FindIndex(e => ReferenceEquals(e, target));
 
-    /// <summary>§6.3's normalization of <c>PicInfo</c>: record equality with the four restriction members and the editing
+    /// <summary>§2023:6.3's normalization of <c>PicInfo</c>: record equality with the four restriction members and the editing
     /// rules set aside, the rules element-wise, the restriction names equal as written (one scope), and the restrictions
     /// equal by their relations.</summary>
     private static void SameEntry(string at, DataItem x, DataItem y)
@@ -620,7 +620,7 @@ public sealed class RepositoryCodecTests
             Assert.True(StrongTypeModel.SameRestriction(StrongTypeModel.PointerRestriction(x), StrongTypeModel.PointerRestriction(y)), $"{at}: SameRestriction");
         if (p.RestrictedPrototypeName is not null)
         {
-            // The USAGE clause's TO phrase, which §8.5.3.1 and the identity rules compare (kb/Work PB4107).
+            // The USAGE clause's TO phrase, which §2023:8.5.3.1 and the identity rules compare (kb/Work PB4107).
             Assert.True(PrototypeSignatures.NamedRestriction(x) == PrototypeSignatures.NamedRestriction(y),
                 $"{at}: NamedRestriction {PrototypeSignatures.NamedRestriction(x)} vs {PrototypeSignatures.NamedRestriction(y)}");
             Assert.True(x.PointerRestrictionIdentity == y.PointerRestrictionIdentity,

@@ -6,15 +6,15 @@
 *> portable: unverified
 *>---
       *> kb/Work PB4231 — SET Format 7 with an `ADDRESS OF data-name-1` receiver takes ANY identifier as its sender
-      *> identifier-6, a function-identifier included: §14.9.39.2 Format 7 prints `SET { ADDRESS OF data-name-1 |
-      *> identifier-5 } ... TO identifier-6`, §8.4.3.1.3 SR1 makes identifier-6 "any of the formats for an identifier",
-      *> §8.4.3.2.1 "A function-identifier references the unique data item that results from the evaluation of a
-      *> function", and §14.9.39.3 SR17 asks only "Identifier-6 shall be of category data-pointer" (PB4231ID RETURNS a
+      *> identifier-6, a function-identifier included: §2023:14.9.39.2 Format 7 prints `SET { ADDRESS OF data-name-1 |
+      *> identifier-5 } ... TO identifier-6`, §2023:8.4.3.1.3 SR1 makes identifier-6 "any of the formats for an identifier",
+      *> §2023:8.4.3.2.1 "A function-identifier references the unique data item that results from the evaluation of a
+      *> function", and §2023:14.9.39.3 SR17 asks only "Identifier-6 shall be of category data-pointer" (PB4231ID RETURNS a
       *> USAGE POINTER item). The grammar's former Format-7 rule spelled the sender as a bare data reference, so this
       *> was COBOL0001 "unexpected 'FUNCTION'" at every edition; the one setToStatement rule reads the sender through
       *> the expression tier, as the identifier-5 route already did (kb/Work PB1929).
       *> EXPECTED OUTPUT, derived line by line:
-      *>   1  P1 holds ADDRESS OF R1 (§8.4.3.11.4 GR1); PB4231ID returns it unchanged, and §14.9.39.4 GR13 "the address
+      *>   1  P1 holds ADDRESS OF R1 (§2023:8.4.3.11.4 GR1); PB4231ID returns it unchanged, and §2023:14.9.39.4 GR13 "the address
       *>      identified by identifier-6 is assigned to each based item referenced by data-name-1", so B1 is R1  1=ABCD
       *>   2  the receiving list mixes the two spellings: GR13 rebases B1 and GR12 ("stored in each data item referenced
       *>      by identifier-5 in the order specified") stores the same address in P2; P1 now addresses R2         2=WXYZ

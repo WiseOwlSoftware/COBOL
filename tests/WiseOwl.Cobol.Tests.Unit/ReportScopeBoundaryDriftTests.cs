@@ -7,8 +7,8 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ THE REPORT SECTION HAS ONE WRITER AND ONE HOME (kb/Work PB2357; docs/rearchitecture/DESIGN-architecture-review.md
-/// §8.3 (1), step 7 of the <c>DataBinder</c> extract).
+/// ⛔ THE REPORT SECTION HAS ONE WRITER AND ONE HOME (kb/Work PB2357;
+/// docs/rearchitecture/DESIGN-architecture-review.md §8.3 (1), step 7 of the <c>DataBinder</c> extract).
 /// <para><c>ReportSectionBinder</c> binds and resolves the REPORT SECTION and is the only writer of <c>ReportScope</c>,
 /// the facts every later phase reads (the reports a unit declares and inherits, their depths, the sum counters, the
 /// refused PRESENT WHEN conditions). The C# types hold the read side (<c>ReportScope</c>'s mutators are
@@ -58,7 +58,7 @@ public sealed class ReportScopeBoundaryDriftTests
         Assert.True(found >= 4, $"the scan found only {found} report-scope mutations — the pattern no longer matches the code");
         Assert.True(offenders.Count == 0,
             "A ReportScope is written outside ReportSectionBinder — a unit's reports, sum counters and refused PRESENT WHEN "
-            + "conditions have ONE producer (ISO §13.18.27.4 GR1–GR2; §13.15.3 SR16):\n  " + string.Join("\n  ", offenders));
+            + "conditions have ONE producer (ISO §2023:13.18.27.4 GR1–GR2; §2023:13.15.3 SR16):\n  " + string.Join("\n  ", offenders));
     }
 
     [Fact]

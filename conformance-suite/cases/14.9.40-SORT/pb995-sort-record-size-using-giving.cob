@@ -10,13 +10,13 @@
       *>     records smaller than the smallest record nor larger than the largest record described for file-name-1.
       *>     If the file description entry for file-name-1 describes fixed-length records, the file description entry
       *>     for file-name-2 shall not describe a record that is larger than the record described for file-name-1."
-      *>     -> OK §14.9.40.3 5)
+      *>     -> OK §2023:14.9.40.3 5)
       *>   cite.py --check 14.9.40.3 "If the GIVING phrase is specified and the file description entry for
       *>     file-name-3 describes variable-length records, the file description entry for file-name-1 shall describe
       *>     neither records smaller than the smallest record nor larger than the largest record described for
       *>     file-name-3. If the file description entry for file-name-3 describes fixed-length records, the file
       *>     description entry for file-name-1 shall not describe a record that is larger than the record described
-      *>     for file-name-3." -> OK §14.9.40.3 11)
+      *>     for file-name-3." -> OK §2023:14.9.40.3 11)
       *> Each statement below breaks one arm and is refused (COBOL1757), the legal twin of each in
       *> 85/pb995_sort_merge_record_size_ranges:
       *>   1  SD fixed 5, USING a fixed 8-byte file                    SR5, fixed arm (the USING record is larger)

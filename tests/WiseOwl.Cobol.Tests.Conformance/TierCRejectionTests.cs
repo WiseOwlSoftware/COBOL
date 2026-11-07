@@ -20,7 +20,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// PB2497, <c>2014/pb2497_vlg_record_odo_element_tables</c>), and a DYNAMIC-CAPACITY table of them moves and compares
 /// (kb/Work PB2496); the variable-length loud that remains is a fixed-length group opposite such a dynamic-capacity
 /// table across an activation boundary. ACCEPT/STRING receivers and INSPECT's identifier-1
-/// are BIND-screened by their own syntax rules (§14.9.1.3 SR6 / §14.9.43.3 SR11 / §14.9.22.3 SR1) and pinned as such.
+/// are BIND-screened by their own syntax rules (§2023:14.9.1.3 SR6 / §2023:14.9.43.3 SR11 / §2023:14.9.22.3 SR1) and pinned as such.
 /// </summary>
 public sealed class TierCRejectionTests
 {
@@ -41,8 +41,8 @@ public sealed class TierCRejectionTests
             STOP RUN.
         """;
 
-    /// <summary>An operand its own SYNTAX RULE bars (§14.9.1.3 SR6 ACCEPT / §14.9.43.3 SR11 STRING /
-    /// §14.9.25.3 SR9 MOVE) fails at BIND with the rule's diagnostic — earlier and more precise than the
+    /// <summary>An operand its own SYNTAX RULE bars (§2023:14.9.1.3 SR6 ACCEPT / §2023:14.9.43.3 SR11 STRING /
+    /// §2023:14.9.25.3 SR9 MOVE) fails at BIND with the rule's diagnostic — earlier and more precise than the
     /// runtime island.</summary>
     private static void AssertBindRejected(string proc)
     {
@@ -52,13 +52,13 @@ public sealed class TierCRejectionTests
     }
 
     /// <summary>⛔ BOTH MOVE LEGS ARE BIND REJECTIONS, NOT RUNTIME LOUDS, AND THE STANDARD IS WHY (kb/Work
-    /// PB393). They were <c>AssertLoudTierC</c> until MOVE's §8.5.1.12 screen existed, and that was the
-    /// wrong posture rather than a stricter one: §14.9.25.3 SR9 is a SYNTAX RULE ("If identifier-1 or
+    /// PB393). They were <c>AssertLoudTierC</c> until MOVE's §2023:8.5.1.12 screen existed, and that was the
+    /// wrong posture rather than a stricter one: §2023:14.9.25.3 SR9 is a SYNTAX RULE ("If identifier-1 or
     /// identifier-2 references a variable-length group then these groups shall be compatible groups as
-    /// specified in 8.5.1.12"), and §8.5.1.12.1 states it over the OTHER operand — such a group "may not
+    /// specified in 8.5.1.12"), and §2023:8.5.1.12.1 states it over the OTHER operand — such a group "may not
     /// undergo ... a move operation, in either direction ... unless the other operand is a compatible group".
     /// <c>WS-SRC</c> and <c>WS-DEST</c> are ELEMENTARY, so neither leg can ever be that other operand, and
-    /// §4.2.2 ¶2 requires a compile-time mechanism for a violated syntax rule. A COMPATIBLE pair now moves
+    /// §2023:4.2.2 ¶2 requires a compile-time mechanism for a violated syntax rule. A COMPATIBLE pair now moves
     /// rather than aborting (<c>conformance:cases/14.9.25-MOVE/pb393_move_varlen_group</c>), so the Tier-C island no longer
     /// owns MOVE at all — its remaining MOVE-adjacent lock is the pointer/object-class arm below.
     /// ⛔ Do NOT "restore" these to a runtime loud; the loud was the defect.</summary>
@@ -67,24 +67,24 @@ public sealed class TierCRejectionTests
     /// <inheritdoc cref="MoveIntoGroup_BindRejected"/>
     [Fact] public void MoveGroupToElementary_BindRejected() => AssertBindRejected("    MOVE WS-G TO WS-DEST.");
 
-    /// <summary>INSPECT joins the MOVE legs for the same reason (kb/Work PB856): ISO §14.9.22.3 SR1 admits as
+    /// <summary>INSPECT joins the MOVE legs for the same reason (kb/Work PB856): ISO §2023:14.9.22.3 SR1 admits as
     /// identifier-1 only "an alphanumeric or national group item or an elementary item described implicitly or
     /// explicitly as usage display or national", and a variable-length group is neither of the two group kinds
-    /// it names (§3.11 excludes it from "alphanumeric group item" by name). A SYNTAX rule, so a bind rejection
+    /// it names (§2023:3.11 excludes it from "alphanumeric group item" by name). A SYNTAX rule, so a bind rejection
     /// (COBOL1626) — the runtime Tier-C loud this used to assert was the binder admitting ANY group.</summary>
     [Fact] public void InspectGroup_BindRejected() => AssertBindRejected("    INSPECT WS-G REPLACING ALL \"A\" BY \"B\".");
     [Fact] public void StringIntoGroup_BindRejected() => AssertBindRejected("    STRING WS-SRC DELIMITED BY SIZE INTO WS-G.");
     [Fact] public void AcceptIntoGroup_BindRejected() => AssertBindRejected("    ACCEPT WS-G.");
 
     /// <summary>The POINTER/OBJECT-CLASS leg, pinned WORKING (kb/Work PB244). A strongly-typed group with a class
-    /// pointer leaf is a legal DISPLAY identifier-1 (ISO §14.9.11.3 SR1 bars only an item OF class message-tag,
-    /// object or pointer; a strongly-typed group's class is its type-name, §8.5.2.1) and a legal MOVE sender
-    /// (§14.9.25.3 SR2 constrains only a strongly-typed RECEIVER). Both used to compile and abort at run time with
+    /// pointer leaf is a legal DISPLAY identifier-1 (ISO §2023:14.9.11.3 SR1 bars only an item OF class message-tag,
+    /// object or pointer; a strongly-typed group's class is its type-name, §2023:8.5.2.1) and a legal MOVE sender
+    /// (§2023:14.9.25.3 SR2 constrains only a strongly-typed RECEIVER). Both used to compile and abort at run time with
     /// the Tier-C loud — a green test pinned that refusal. They now transfer the group's ONE-WAY storage image:
     /// the pointer leaf contributes its 8 positions holding the pointer's storage image (the predefined address
     /// NULL is eight X"00" positions, kb/Work PB1071 — they were spaces before), exactly what the same group
     /// shows from a BASED storage cell (D-SLOT; CONFORMANCE.md A.1 items 56 and 216).
-    /// <para>⛔ THE GROUP IS A STRONG TYPEDEF, AND THAT IS FORCED BY THE STANDARD: §13.18.60.3 SR14 admits a
+    /// <para>⛔ THE GROUP IS A STRONG TYPEDEF, AND THAT IS FORCED BY THE STANDARD: §2023:13.18.60.3 SR14 admits a
     /// POINTER usage only at level 1 or subordinate to a type declaration that includes the STRONG phrase
     /// (COBOL1724 rejects the ordinary-group spelling). Do NOT relax that screen to simplify a fixture.</para>
     /// <para>What stays refused is NOT this: comparison and every read-back ask the two-way capability, because
@@ -127,7 +127,7 @@ public sealed class TierCRejectionTests
 
     /// <summary>The R40 leg, pinned WORKING: an INDEX-leaf group displays its verbatim content — the leaf's
     /// occurrence number as 8 big-endian two's-complement bytes (the R40 pin; A.1 items 56 + 211). SET (one
-    /// of the references §13.18.60.3 SR10 permits) seeds the value.</summary>
+    /// of the references §2023:13.18.60.3 SR10 permits) seeds the value.</summary>
     [Fact]
     public void DisplayIndexGroup_RendersVerbatimBytes()
     {
@@ -156,8 +156,8 @@ public sealed class TierCRejectionTests
 
     /// <summary>PB164's DISPLAY leg for a COMP-5 leaf CLOSED with the image widening: the group has a whole
     /// image now, and DISPLAY transfers a group's character content VERBATIM (the A.1 item-56 determination —
-    /// a group with no GROUP-USAGE clause that is not strongly typed is an alphanumeric group item, ISO §13.18.29.4
-    /// GR3, so of class alphanumeric, §8.5.2.1), so the COMP-5 leaf's two's-complement
+    /// a group with no GROUP-USAGE clause that is not strongly typed is an alphanumeric group item, ISO §2023:13.18.29.4
+    /// GR3, so of class alphanumeric, §2023:8.5.2.1), so the COMP-5 leaf's two's-complement
     /// bytes appear raw in the output,
     /// exactly as GnuCOBOL renders such a group (the split-latitude tiebreaker). GR-14.9.11.4-4's COMP-5
     /// residue is discharged; the floats closed with wave 2 and the INDEX leg with R40 — every leaf-kind
@@ -187,8 +187,8 @@ public sealed class TierCRejectionTests
     /// <summary>kb/Work PB176 — a group whose OCCURS DEPENDING table holds a dynamic-length ELEMENT member once
     /// FAILED backend compilation with CS1061 (the ODO sender path emitted <c>.AsImage()</c> on a struct that never
     /// received one; the SEVENTH two-arm-dispatch instance). kb/Work PB244 then gave such a group its one-way
-    /// current-extent IMAGE (<c>DataItem.CurrentExtentImageCapable</c>, ISO §14.9.11.4 GR7 / A.1 item 57): each of the first
-    /// <c>WS-GO-N</c> occurrences, at its own current extent (§13.18.38.4 GR8). Here <c>WS-GO-D</c> is
+    /// current-extent IMAGE (<c>DataItem.CurrentExtentImageCapable</c>, ISO §2023:14.9.11.4 GR7 / A.1 item 57): each of the first
+    /// <c>WS-GO-N</c> occurrences, at its own current extent (§2023:13.18.38.4 GR8). Here <c>WS-GO-D</c> is
     /// ("ab", "c") and <c>WS-GO-F</c> ("123", "456") for the two occurrences in use: <c>2ab123c456</c>.</summary>
     [Fact]
     public void DisplayOdoTableOfDynamicElements_RendersEachOccurrenceAtItsCurrentExtent()
@@ -219,8 +219,8 @@ public sealed class TierCRejectionTests
     /// <summary>kb/Work PB244 — the cell-backed twin of
     /// <c>DisplayOdoTableOfDynamicElements_RendersEachOccurrenceAtItsCurrentExtent</c>: an EXTERNAL (cell-backed)
     /// group whose OCCURS DEPENDING table has variable-length ELEMENTS composes the same image, because one storage
-    /// has one rendering whatever area holds it (ISO §14.9.11.4 GR7, A.1 item 57; the table at its CURRENT count,
-    /// §13.18.38.4 GR8). The group is the table alone, so with the count 1 only the first occurrence ("ab", "123")
+    /// has one rendering whatever area holds it (ISO §2023:14.9.11.4 GR7, A.1 item 57; the table at its CURRENT count,
+    /// §2023:13.18.38.4 GR8). The group is the table alone, so with the count 1 only the first occurrence ("ab", "123")
     /// shows, and with 2 both do.</summary>
     [Fact]
     public void DisplayCellBackedTableOfDynamicElements_RendersEachOccurrenceAtItsCurrentExtent()
@@ -252,9 +252,9 @@ public sealed class TierCRejectionTests
         Assert.Equal(["ab123", "ab123c456"], stdout.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries));
     }
 
-    /// <summary>kb/Work PB244 shape (b), ISO §14.9.11.4 GR7 (A.1 item 57): a group with BOTH an OCCURS DEPENDING
+    /// <summary>kb/Work PB244 shape (b), ISO §2023:14.9.11.4 GR7 (A.1 item 57): a group with BOTH an OCCURS DEPENDING
     /// table and a dynamic member composes — the dynamic item at its current content, the table at its CURRENT
-    /// count (§13.18.38.4 GR8, here 2 of 5 occurrences of three characters). The pre-PB244 posture was the
+    /// count (§2023:13.18.38.4 GR8, here 2 of 5 occurrences of three characters). The pre-PB244 posture was the
     /// Tier-C loud this fact replaces.</summary>
     [Fact]
     public void DisplayOdoGroupWithDynamicMember_RendersCurrentExtent()

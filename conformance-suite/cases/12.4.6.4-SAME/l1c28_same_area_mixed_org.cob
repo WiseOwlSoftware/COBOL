@@ -5,17 +5,17 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §12.4.6.4.3 SR4 / §12.4.6.4.4 GR1 — one file-area SAME
+      *> ISO §2023:12.4.6.4.3 SR4 / §2023:12.4.6.4.4 GR1 — one file-area SAME
       *> clause over SEQUENTIAL, RELATIVE and INDEXED files with three
       *> different access modes, each opened in turn.
       *> SR4: "The files specified in a given SAME clause need not all
       *>   have the same organization or access."
-      *>   cite.py: OK  §12.4.6.4.3 4)  (Syntax rules)
+      *>   cite.py: OK  §2023:12.4.6.4.3 4)  (Syntax rules)
       *> GR1: "A file-area format SAME clause specifies that two or more
       *>   files referenced by file-name-1, file-name-2 are to use the
       *>   same memory area during processing. ... No more than one of
       *>   these files may be in the open mode at a given time."
-      *>   cite.py: OK  §12.4.6.4.4 1)  (General rules)
+      *>   cite.py: OK  §2023:12.4.6.4.4 1)  (General rules)
       *> Derivation. SR4 makes this clause legal: FS is SEQUENTIAL
       *> ACCESS SEQUENTIAL, FR is RELATIVE ACCESS RANDOM, FI is INDEXED
       *> ACCESS DYNAMIC, so the program compiles. GR1: the three files

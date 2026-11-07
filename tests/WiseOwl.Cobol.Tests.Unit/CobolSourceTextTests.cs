@@ -7,9 +7,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// The one reading of a literal's delimiters and of the comment indicator (<see cref="CobolSourceText"/>, kb/Work
-/// PB2621), every expected value read from the rule: ISO §8.3.5 5) (the opening delimiters — a quotation symbol, B", N",
-/// X", BX", NX" with either quotation symbol — and the closing one), §8.3.3.2.3 3) (two contiguous quotation symbols
-/// matching the opening one are one character of the content) and §6.2.3.1 (<c>*&gt;</c> is the comment indicator).
+/// PB2621), every expected value read from the rule: ISO §2023:8.3.5 5) (the opening delimiters — a quotation symbol, B", N",
+/// X", BX", NX" with either quotation symbol — and the closing one), §2023:8.3.3.2.3 3) (two contiguous quotation symbols
+/// matching the opening one are one character of the content) and §2023:6.2.3.1 (<c>*&gt;</c> is the comment indicator).
 /// </summary>
 public sealed class CobolSourceTextTests
 {
@@ -53,7 +53,7 @@ public sealed class CobolSourceTextTests
     [Theory]
     [InlineData("'IT''S' X", 0, 7)]
     [InlineData("'IT''S", 0, 6)]
-    [InlineData("A \"\" B", 2, 4)]        // the zero-length literal (§8.3.3.1: contiguous delimiters)
+    [InlineData("A \"\" B", 2, 4)]        // the zero-length literal (§2023:8.3.3.1: contiguous delimiters)
     public void LiteralEnd_IsPastTheClosingDelimiter(string text, int quotePos, int expected)
         => Assert.Equal(expected, CobolSourceText.LiteralEnd(text, quotePos));
 

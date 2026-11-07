@@ -12,20 +12,20 @@ using CnFrontend = WiseOwl.Cobol.Frontend.Frontend;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// Unit tests for the REDEFINES / RENAMES classification pass (ISO/IEC 1989:2023 §13.18.44/§13.18.45;
+/// Unit tests for the REDEFINES / RENAMES classification pass (ISO/IEC 1989:2023 §2023:13.18.44/§2023:13.18.45;
 /// DESIGN §4). They bind a WORKING-STORAGE fragment and assert the shared-storage class membership, the
 /// canonical/view split, the tier verdict, the class width, and the SR9 subordinate-suppression propagation —
 /// catching silent mis-classification a behavioral test could miss (the dispatch-site / mis-classification bug class).
 /// </summary>
 public sealed class RedefinesClassificationTests
 {
-    /// <summary>§13.18.44.3 SR17 (kb/Work PB177 arm C) — "Neither data-name-2 nor the subject of the entry
+    /// <summary>§2023:13.18.44.3 SR17 (kb/Work PB177 arm C) — "Neither data-name-2 nor the subject of the entry
     /// shall be a variable-length group or a dynamic-length elementary item." BOTH sides, one case each: the
     /// two-arm discipline, because a screen written for one side only is this repo's most reproducible defect.
     /// <para>⛔ THE TIER, NOT JUST THE DIAGNOSTIC. This was not merely an under-rejection but a SILENT
     /// MIS-MODEL: <c>StorageFormPass.Classify</c> tests <c>IsDynamicLength</c> BEFORE its Tier-B view arm, so a
     /// dynamic-length REDEFINES view got its own disjoint native <c>string</c> — two storages for the one area
-    /// §13.18.44.4 GR1 defines, with no diagnostic (measured: <c>MOVE "ZZ" TO D</c> left the redefined item
+    /// §2023:13.18.44.4 GR1 defines, with no diagnostic (measured: <c>MOVE "ZZ" TO D</c> left the redefined item
     /// unchanged). Asserting <c>Rejected</c> is what makes that path unreachable structurally rather than
     /// merely unreached because a diagnostic stopped the compile.</para></summary>
     [Theory]
@@ -177,7 +177,7 @@ public sealed class RedefinesClassificationTests
         finally { FileHarness.TryDelete(path); }
     }
 
-    /// <summary>§13.18.44.3 SR12 (kb/Work PB179 — the Step D Tier-D bind half): a POINTER item as the
+    /// <summary>§2023:13.18.44.3 SR12 (kb/Work PB179 — the Step D Tier-D bind half): a POINTER item as the
     /// SUBJECT of a REDEFINES entry is a conformance rejection — before the screen it classified Tier B
     /// with a ZERO-WIDTH window (the pointer categories occupy no character positions).</summary>
     [Fact]
@@ -189,7 +189,7 @@ public sealed class RedefinesClassificationTests
         Assert.Contains("SR12", p.Class.RejectReason);
     }
 
-    /// <summary>§13.18.44.3 SR14: data-name-2 (the redefined item) of class pointer.</summary>
+    /// <summary>§2023:13.18.44.3 SR14: data-name-2 (the redefined item) of class pointer.</summary>
     [Fact]
     public void TierD_PointerTarget_RejectedSr14()
     {
@@ -205,7 +205,7 @@ public sealed class RedefinesClassificationTests
     /// <para>⛔ THE REASON CHANGED WITH kb/Work PB231's pointer third, and the assertion follows the reason
     /// rather than the wording. It is no longer "no byte-window overlay": a pointer-class leaf DOES ride a
     /// shared storage area now, on that area's MANAGED SLOTS (Place.SlotWindow / StorageCell.SlotAt), which is
-    /// where §14.9.3.4 GR9's null-seeding writes. What a REDEFINES class lacks is the CARRIER — the slots live
+    /// where §2023:14.9.3.4 GR9's null-seeding writes. What a REDEFINES class lacks is the CARRIER — the slots live
     /// on a StorageCell, which the three cell surfaces (EXTERNAL, ADDRESS OF, BASED) have and a stored string
     /// backing does not. That is a property of the carrier, not of the leaf, so it is a SECOND question asked
     /// in ComputeTier rather than a residue in the shared gate DataBinder.ByteWindowResidueOf, which now
@@ -278,7 +278,7 @@ public sealed class RedefinesClassificationTests
     {
         // Phase 1E (supersedes the interim Tier-C rejection): a DISPLAY + fixed-point BINARY pun is Tier B —
         // ONE string backing, the COMP leaf an image-stored window over it. V59 re-based that window on the
-        // leaf's TRUE BYTES: a PIC S9(8) COMP occupies FOUR bytes (radix 2, §13.18.60.4 GR4), not eight zoned
+        // leaf's TRUE BYTES: a PIC S9(8) COMP occupies FOUR bytes (radix 2, §2023:13.18.60.4 GR4), not eight zoned
         // digit characters, so the pun sees the first four positions of the X(8) area and the class width comes
         // from the WIDER member. The former zoned window also had to rewrite the leaf's SignKind to a trailing
         // overpunch, because a variable-width BinaryMinus image could not sit in a fixed digit window; with the

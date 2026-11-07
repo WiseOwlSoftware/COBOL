@@ -6,23 +6,23 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB495 — ISO §13.18.60.4 GR1: "If the USAGE clause is specified or implied at a group level,
+      *> kb/Work PB495 — ISO §2023:13.18.60.4 GR1: "If the USAGE clause is specified or implied at a group level,
       *> it applies only to each elementary item in the group. Unless the GROUP-USAGE clause is also specified
       *> or implied, the USAGE clause applies only to each elementary item in the group and not to the group
       *> itself." So a PICTURE-LESS elementary item under a group that wrote a picture-less usage IS an item of
-      *> that usage — §13.16.3 SR8 makes the PICTURE not merely optional but PROHIBITED there ("the PICTURE
+      *> that usage — §2023:13.16.3 SR8 makes the PICTURE not merely optional but PROHIBITED there ("the PICTURE
       *> clause shall not be specified ... for an item whose usage is binary-char, binary-short, binary-long,
       *> binary-double, float-short, float-long, float-extended, index, ...") — and the group is the sum of
       *> those items, never a scalar of the usage's own type.
       *>
       *> EXPECTED VALUES, DERIVED — every width is fixed by the usage, not by any picture:
-      *>   BINARY-CHAR/-SHORT/-LONG/-DOUBLE = 1/2/4/8 bytes. §13.18.60.4 GR12 fixes the minimum ranges
+      *>   BINARY-CHAR/-SHORT/-LONG/-DOUBLE = 1/2/4/8 bytes. §2023:13.18.60.4 GR12 fixes the minimum ranges
       *>     (-2**7..2**7, -2**15..2**15, -2**31..2**31, -2**63..2**63 signed) and GR21 leaves the length to
       *>     the implementor; WiseOwl COBOL's determination is the two's-complement width that exactly spans each
       *>     range (docs/CONFORMANCE.md — 1, 2, 4 and 8 bytes).
-      *>   FLOAT-SHORT / FLOAT-LONG = 4/8 bytes. §13.18.60.4 GR13 leaves "the size and permitted range" to the
+      *>   FLOAT-SHORT / FLOAT-LONG = 4/8 bytes. §2023:13.18.60.4 GR13 leaves "the size and permitted range" to the
       *>     implementor with float-short <= float-long; WiseOwl COBOL maps them to IEEE binary32 / binary64.
-      *>   INDEX = 8 bytes. §13.18.60.4 GR10 leaves an index data item's representation to the implementor;
+      *>   INDEX = 8 bytes. §2023:13.18.60.4 GR10 leaves an index data item's representation to the implementor;
       *>     WiseOwl COBOL's is the 8-byte occurrence number.
       *>   The GROUP's byte length is the sum of its leaves: G-TWO holds two BINARY-SHORT items = 4.
       *>   The DISPLAY images on the V= line are the same derivation read as DIGIT POSITIONS: GR12's

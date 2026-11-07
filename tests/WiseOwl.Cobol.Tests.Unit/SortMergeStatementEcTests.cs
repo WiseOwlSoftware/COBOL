@@ -26,8 +26,8 @@ public sealed class SortMergeStatementEcTests
         return got;
     }
 
-    /// <summary>A RETURN in an executing input procedure is detected by §14.9.40.4 GR10 (-ACTIVE) and by
-    /// §14.9.34.4 GR1 (EC-FLOW-RETURN, "any other time"): -ACTIVE is raised when it is enabled, EC-FLOW-RETURN
+    /// <summary>A RETURN in an executing input procedure is detected by §2023:14.9.40.4 GR10 (-ACTIVE) and by
+    /// §2023:14.9.34.4 GR1 (EC-FLOW-RETURN, "any other time"): -ACTIVE is raised when it is enabled, EC-FLOW-RETURN
     /// only when -ACTIVE is not.</summary>
     [Fact]
     public void Return_InAnInputProcedure_RaisesActive_BeforeFlowReturn()
@@ -51,7 +51,7 @@ public sealed class SortMergeStatementEcTests
         }
     }
 
-    /// <summary>The RELEASE twin: §14.9.40.4 GR13 (-ACTIVE) before §14.9.32.4 GR1 (EC-FLOW-RELEASE), and the raise
+    /// <summary>The RELEASE twin: §2023:14.9.40.4 GR13 (-ACTIVE) before §2023:14.9.32.4 GR1 (EC-FLOW-RELEASE), and the raise
     /// releases nothing.</summary>
     [Fact]
     public void Release_InAnOutputProcedure_RaisesActive_BeforeFlowRelease_AndReleasesNothing()
@@ -78,7 +78,7 @@ public sealed class SortMergeStatementEcTests
         }
     }
 
-    /// <summary>§13.18.43.4 GR14 b): a size outside integer-2..integer-3 raises -RELEASE and "the execution of the
+    /// <summary>§2023:13.18.43.4 GR14 b): a size outside integer-2..integer-3 raises -RELEASE and "the execution of the
     /// RELEASE statement is unsuccessful". With checking off the record releases at the DEPENDING ON size exactly
     /// as the lenient reference modification <c>(1:size)</c> sliced it before PB1036.</summary>
     [Fact]
@@ -106,7 +106,7 @@ public sealed class SortMergeStatementEcTests
         }
     }
 
-    /// <summary>§14.9.40.4 GR12 b): the implicit USING release tests the size the record had when READ — larger
+    /// <summary>§2023:14.9.40.4 GR12 b): the implicit USING release tests the size the record had when READ — larger
     /// than the largest record, or (variable-length SD) smaller than the smallest.</summary>
     [Fact]
     public void ImplicitRelease_TestsTheReadSize()
@@ -131,7 +131,7 @@ public sealed class SortMergeStatementEcTests
         }
     }
 
-    /// <summary>§14.9.40.4 GR10: a SORT/MERGE executed while a procedure of an executing statement runs raises
+    /// <summary>§2023:14.9.40.4 GR10: a SORT/MERGE executed while a procedure of an executing statement runs raises
     /// -ACTIVE BEFORE it touches a store, so an enclosing statement on the SAME file keeps its records.</summary>
     [Fact]
     public void Init_WhileAProcedureRuns_RaisesActive_AndLeavesTheEnclosingStoreIntact()
@@ -155,7 +155,7 @@ public sealed class SortMergeStatementEcTests
         }
     }
 
-    /// <summary>§14.9.24.4 GR6: a USING stream out of KEY order raises -SEQUENCE; the scan runs only while the
+    /// <summary>§2023:14.9.24.4 GR6: a USING stream out of KEY order raises -SEQUENCE; the scan runs only while the
     /// condition is enabled, and an ordered input raises nothing.</summary>
     [Fact]
     public void Merge_AnOutOfOrderStream_RaisesSequence_OnlyWhenChecked()
@@ -207,7 +207,7 @@ public sealed class SortMergeStatementEcTests
             Assert.True(gates.TryGetValue(name, out var flag) && flag is not null, $"{name} has no flagged fatal gate row");
     }
 
-    /// <summary>§14.6.13.1.3 2) keys on the statement that EXECUTED: a condition a SORT/MERGE statement entry raises
+    /// <summary>§2023:14.6.13.1.3 2) keys on the statement that EXECUTED: a condition a SORT/MERGE statement entry raises
     /// carries <see cref="CobolFatalException.RaisedBySortMerge"/> — the mark the SORT/MERGE guard disposes of by
     /// the verb — and the same name raised by the RELEASE statement does not; only SORT and MERGE guards consult it.</summary>
     [Fact]
@@ -234,7 +234,7 @@ public sealed class SortMergeStatementEcTests
         Assert.False(EcEmitter.VerbDisposes(Node(typeof(BoundRelease))));
     }
 
-    /// <summary>§14.9.40.4 GR9 / §14.9.24.4 GR7, GR12 raise -FILE-OPEN only for a file "in an open mode": a
+    /// <summary>§2023:14.9.40.4 GR9 / §2023:14.9.24.4 GR7, GR12 raise -FILE-OPEN only for a file "in an open mode": a
     /// connector that is not open — here one never even registered — raises nothing although checking is on. The
     /// raising arm needs a live connector and is witnessed end to end by the golden's cases A and B.</summary>
     [Fact]

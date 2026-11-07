@@ -27,11 +27,11 @@ tags: [wiseowl-cobol, work, defect]
 > then at RUN TIME: `NotImplementedCobolFeatureException: reference 'CURRENT-DATE'`. `PI` and `E` failed
 > identically — the whole zero-argument family.
 >
-> §15.21.2's general format is `FUNCTION CURRENT-DATE` with NO parentheses, so with the keyword omitted
-> (§12.3.8.1 + §8.4.3.2.3 SR2) the reference is a **bare name — ZERO suffixes, not one**.
+> §2023:15.21.2's general format is `FUNCTION CURRENT-DATE` with NO parentheses, so with the keyword omitted
+> (§2023:12.3.8.1 + §2023:8.4.3.2.3 SR2) the reference is a **bare name — ZERO suffixes, not one**.
 > `IntrinsicBinder.KeywordOmittedFunction` opened `if (suffixes.Length != 1 …) return null;`, so it fell through
 > to a data reference, resolved to nothing, and reached the runtime's not-implemented stage. The standard writes
-> the form itself at §D.14.3.6: `MOVE FUNCTION LOCALE-DATE (CURRENT-DATE (1:8))`.
+> the form itself at §2023:D.14.3.6: `MOVE FUNCTION LOCALE-DATE (CURRENT-DATE (1:8))`.
 >
 > **Fixed narrowly.** A bare name becomes a function reference ONLY when the catalog says the function admits
 > zero arguments (`MinArgs == 0`), so a declared data item still wins and no other bare word is re-routed for

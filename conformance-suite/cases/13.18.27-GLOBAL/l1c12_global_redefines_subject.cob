@@ -5,17 +5,17 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §13.18.27.4 GR3 — GLOBAL on a REDEFINES entry makes only its subject a global name
+      *> ISO §2023:13.18.27.4 GR3 — GLOBAL on a REDEFINES entry makes only its subject a global name
       *> "If the GLOBAL clause is used in a data description entry that contains the REDEFINES clause, it
       *> is only the subject of that REDEFINES clause that possesses the global attribute."
       *>   cite.py --check 13.18.27.4 "If the GLOBAL clause is used in a data description entry that
       *>     contains the REDEFINES clause, it is only the subject of that REDEFINES clause that possesses
-      *>     the global attribute."  -> OK  §13.18.27.4 3)  (General rules)
+      *>     the global attribute."  -> OK  §2023:13.18.27.4 3)  (General rules)
       *> GR2: "A statement in a program contained directly or indirectly within a program that describes a
       *> global name may reference that name without describing it again."
       *>   cite.py --check 13.18.27.4 "A statement in a program contained directly or indirectly within a
       *>     program that describes a global name may reference that name without describing it again."
-      *>     -> OK  §13.18.27.4 2)  (General rules)
+      *>     -> OK  §2023:13.18.27.4 2)  (General rules)
       *> POSITIVE HALF: WS-B (the subject of "REDEFINES WS-A GLOBAL") is global, so the contained program
       *> L1C12D references it without describing it (GR2), and it IS the storage of WS-A (a redefinition).
       *> The NEGATIVE HALF (WS-A, the redefined item, is NOT global) is the twin

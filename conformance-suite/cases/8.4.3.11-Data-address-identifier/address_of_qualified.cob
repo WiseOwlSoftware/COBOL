@@ -5,13 +5,13 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §8.4.3.11 ADDRESS OF with qualified and subscripted
+      *> ISO §2023:8.4.3.11 ADDRESS OF with qualified and subscripted
       *> operands (2002). GR1: the address-identifier references the
       *> address of THE data item — a qualified operand resolves through
-      *> §8.4.2.2 qualification; a subscripted operand addresses the
+      *> §2023:8.4.2.2 qualification; a subscripted operand addresses the
       *> OCCURRENCE (a table lays its occurrences end-to-end in the
       *> record's storage). Each taken address is re-based onto a BASED
-      *> view (§14.9.39 F7 / §13.18.5 GR2-4) and read back — the DISPLAY
+      *> view (§2023:14.9.39 F7 / §2023:13.18.5 GR2-4) and read back — the DISPLAY
       *> content proves the address landed on the right storage.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. ADDROFQP10PT.
@@ -31,7 +31,7 @@
            MOVE "AAA" TO T-ENT(1).
            MOVE "BBB" TO T-ENT(2).
            MOVE "CCC" TO T-ENT(3).
-      *> A qualified operand (§8.4.2.2).
+      *> A qualified operand (§2023:8.4.2.2).
            SET W-PTR TO ADDRESS OF W-HEAD OF W-REC.
            SET ADDRESS OF V-4 TO W-PTR.
            DISPLAY "QUAL=" V-4.

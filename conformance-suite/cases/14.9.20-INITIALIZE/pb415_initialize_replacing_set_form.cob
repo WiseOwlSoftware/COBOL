@@ -8,7 +8,7 @@
 *>---
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB415SETF.
-      *> kb/Work PB415 — ISO §14.9.20.4 GR4 + GR6b: the implicit SET whose sending-operand is identifier-2.
+      *> kb/Work PB415 — ISO §2023:14.9.20.4 GR4 + GR6b: the implicit SET whose sending-operand is identifier-2.
       *>
       *> GR4: "If the category of a receiving-operand is data-pointer, function-pointer, message-tag,
       *> object-reference, or program-pointer, the implicit statement is: SET receiving-operand TO
@@ -20,7 +20,7 @@
       *> GR6c's fill table give the PREDEFINED NULL; GR6b does not, and writing NULL under REPLACING would be a
       *> WRONG answer rather than a missing one. It was unreachable because `initializeCategory` could not spell
       *> DATA-POINTER / PROGRAM-POINTER / OBJECT-REFERENCE at all — PB415's grammar row.
-      *> §14.9.20.3 SR3 is what makes identifier-2 the only sender here: "For each DATA-POINTER,
+      *> §2023:14.9.20.3 SR3 is what makes identifier-2 the only sender here: "For each DATA-POINTER,
       *> FUNCTION-POINTER, MESSAGE-TAG, OBJECT-REFERENCE, or PROGRAM-POINTER phrase specified as the
       *> category-name in the REPLACING phrase, identifier-2 shall be specified" (the negative witness for
       *> literal-1 is conformance-suite/cases/14.9.20-INITIALIZE/pb415-initialize-replacing-pointer-literal).
@@ -29,7 +29,7 @@
       *>   1[SET]   P1 is nulled, then REPLACING DATA-POINTER … BY SRC qualifies it through GR5c2 and GR6b
       *>            gives it SRC's address — NOT NULL. Before PB415 this statement did not parse.
       *>   1B[SAME] the same store, compared against the sender: GR6b's sending-operand IS identifier-2, so the
-      *>            receiver holds exactly SRC (§8.4.3.10.4 makes two pointers equal when they address the same
+      *>            receiver holds exactly SRC (§2023:8.4.3.10.4 makes two pointers equal when they address the same
       *>            item).
       *>   2[SET]   the same for USAGE PROGRAM-POINTER, whose sender PPSRC was SET TO ENTRY "PB415SUB".
       *>   3[SET]   the same for USAGE OBJECT REFERENCE (GR4's SET form covers object-reference too).
@@ -52,7 +52,7 @@
        01 PP    USAGE PROGRAM-POINTER.
        01 OSRC  USAGE OBJECT REFERENCE PB415CL.
        01 O1    USAGE OBJECT REFERENCE PB415CL.
-      *> §13.18.60.3 SR14 lets a USAGE POINTER item stand below level 01 only under a STRONG type declaration.
+      *> §2023:13.18.60.3 SR14 lets a USAGE POINTER item stand below level 01 only under a STRONG type declaration.
        01 PB415T IS TYPEDEF STRONG.
            05 TP-P USAGE POINTER.
            05 TP-X PIC X(3).

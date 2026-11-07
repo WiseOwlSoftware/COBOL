@@ -8,8 +8,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// kb/Work PB2101 — <see cref="RepositoryLocator"/> over <see cref="RepositoryIndex"/> (DESIGN-external-repository §7.4,
-/// §15.2): the named file first and nothing else read when it answers, the directory index on a miss (so a program whose
-/// assembly is not named after it is found), a collision of two different assemblies, the word rows of §8.3, the schema
+/// §2023:15.2): the named file first and nothing else read when it answers, the directory index on a miss (so a program whose
+/// assembly is not named after it is found), a collision of two different assemblies, the word rows of §2023:8.3, the schema
 /// check, and the file rules (files only, no recursion, an exact <c>.dll</c> extension, the size cap). Every file here is a real
 /// assembly built with Roslyn carrying a real <c>[CobolRepository]</c> record, as a compiled module does.
 /// </summary>

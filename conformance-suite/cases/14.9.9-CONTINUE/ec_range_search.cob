@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> EC-RANGE-SEARCH-INDEX / EC-RANGE-SEARCH-NO-MATCH (ISO §14.9.37.4 GR4 and GR9; §14.6.13.1.6 Nonfatal). A serial
+      *> EC-RANGE-SEARCH-INDEX / EC-RANGE-SEARCH-NO-MATCH (ISO §2023:14.9.37.4 GR4 and GR9; §2023:14.6.13.1.6 Nonfatal). A serial
       *> SEARCH whose INITIAL index is < 1 or > the highest permissible occurrence sets SEARCH-INDEX (GR4 — this also
       *> fixes a latent bug: the initial index < 1 now goes to AT END/unsuccessful, not a phantom occurrence 0). A scan
       *> that advances past the last occurrence with no WHEN satisfied sets NO-MATCH (GR4, its last sentence; SEARCH ALL: GR9,

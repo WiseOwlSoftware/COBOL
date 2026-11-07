@@ -7,11 +7,11 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ THE OBJECT-VIEW'S RUN-TIME CONFORMANCE CHECK (ISO §8.4.3.5.4 GR2–GR6; kb/Work PB1425), held at the runtime helper
+/// ⛔ THE OBJECT-VIEW'S RUN-TIME CONFORMANCE CHECK (ISO §2023:8.4.3.5.4 GR2–GR6; kb/Work PB1425), held at the runtime helper
 /// every emitted view calls, <see cref="CobolObject.ObjectView{T}"/>. The conformance goldens
 /// (<c>2002/pb1425_object_view</c>, <c>2002/pb1425_object_view_unchecked</c>) pin the enabled raise and the lenient
 /// ONLY; the one outcome no COBOL golden can compare on stdout is an unrelated object with checking OFF, where the
-/// standard sets nothing (§14.8.1 NOTE 3) and typed code cannot hold the object.
+/// standard sets nothing (§2023:14.8.1 NOTE 3) and typed code cannot hold the object.
 /// </summary>
 public sealed class ObjectViewConformanceTests
 {

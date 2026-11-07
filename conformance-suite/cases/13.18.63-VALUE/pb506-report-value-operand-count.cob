@@ -4,12 +4,12 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §13.18.63.3 SR35, sentence 2: "The number of operands of the VALUE clause shall be equal to the
+      *> ISO §2023:13.18.63.3 SR35, sentence 2: "The number of operands of the VALUE clause shall be equal to the
       *> number of repetitions of the repeating entry or the same number multiplied by the number of repetitions
       *> of any number of successive repeating entries at higher levels than the repeating entry."  The entry
-      *> below is a repeating entry — §13.15.4 GR3, a COLUMN clause with more than one operand, three repetitions
+      *> below is a repeating entry — §2023:13.15.4 GR3, a COLUMN clause with more than one operand, three repetitions
       *> — and writes TWO operands.  Two is neither three nor three times the repetitions of any higher repeating
-      *> entry (there are none), so the clause is not conforming source.  §13.18.63.4 GR23's wrap-around sentence
+      *> entry (there are none), so the clause is not conforming source.  §2023:13.18.63.4 GR23's wrap-around sentence
       *> ("If no further operands remain, assignment begins again from the first operand") is what governs the
       *> LEGAL multi-level case SR35's "multiplied by" admits; it does not license a short list here.
       *> Before kb/Work PB506 this compiled clean and printed `AAA  AAA  AAA`, indistinguishable from the legal

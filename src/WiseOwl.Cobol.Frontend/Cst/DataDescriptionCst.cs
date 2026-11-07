@@ -38,10 +38,10 @@ public readonly struct DataDescriptionCst(Core.DataDescriptionEntryContext ctx)
     }
 
     /// <summary>
-    /// The set of §13.16.2 Format-1 clause slots this entry actually WRITES — the operand of every
-    /// "…shall not be specified in the same data description entry with…" rule of §13.16.3.
+    /// The set of §2023:13.16.2 Format-1 clause slots this entry actually WRITES — the operand of every
+    /// "…shall not be specified in the same data description entry with…" rule of §2023:13.16.3.
     ///
-    /// <para>⛔ <b>Why a SET and not another hand-written condition list.</b> §13.16.3 SR12, SR13, SR14, SR17 and
+    /// <para>⛔ <b>Why a SET and not another hand-written condition list.</b> §2023:13.16.3 SR12, SR13, SR14, SR17 and
     /// SR18 are each a rule over the WHOLE clause list — SR17 and SR18 literally read "the only other clauses
     /// permitted are …". Every one of them used to be spelled in the binder as an <c>||</c> chain over whichever
     /// local decode flags the author happened to remember, and every one of them was INCOMPLETE the moment a new
@@ -77,7 +77,7 @@ public readonly struct DataDescriptionClauseCst(Core.DataDescriptionClauseContex
     /// <summary>The raw clause context — for the presence-only <c>xxxClause() is [not] null</c> predicates.</summary>
     public Core.DataDescriptionClauseContext Context => ctx;
 
-    /// <summary>Which §13.16.2 Format-1 clause slot this is (<see cref="DataClauseKind.None"/> only when the
+    /// <summary>Which §2023:13.16.2 Format-1 clause slot this is (<see cref="DataClauseKind.None"/> only when the
     /// grammar grew an alternative nobody classified — which <c>DataClauseKindDriftTests</c> makes impossible).
     /// <para>A <c>dataDescriptionClause</c> has exactly ONE child, the chosen alternative's sub-rule, so the
     /// classification is a single map lookup on that child's context type — no text, no re-parse.</para></summary>
@@ -88,11 +88,11 @@ public readonly struct DataDescriptionClauseCst(Core.DataDescriptionClauseContex
     /// <summary>The PICTURE string text, or <see langword="null"/> when this is not a picture clause.</summary>
     public string? PictureText => ctx.pictureClause()?.PIC_STRING()?.GetText();
 
-    /// <summary>The <c>TYPE [TO] type-name-1</c> referenced type-name text (§13.18.57.2 Format 1; D17), or null. The
+    /// <summary>The <c>TYPE [TO] type-name-1</c> referenced type-name text (§2023:13.18.57.2 Format 1; D17), or null. The
     /// slot is a <c>cobolWord</c>, the word set of the TYPEDEF entry's own <c>dataName</c> (kb/Work PB2721).</summary>
     public string? TypeRefName => ctx.typeClause()?.cobolWord()?.GetText();
 
-    /// <summary>The <c>SAME AS data-name-1</c> target data-name text (ISO §13.18.49), or null. The first
+    /// <summary>The <c>SAME AS data-name-1</c> target data-name text (ISO §2023:13.18.49), or null. The first
     /// <c>cobolWord</c> is the target; any further ones are its OF/IN qualifiers (<see cref="SameAsQualifiers"/>).</summary>
     public string? SameAsTargetName => ctx.sameAsClause()?.cobolWord(0)?.GetText();
 
@@ -112,7 +112,7 @@ public readonly struct DataDescriptionClauseCst(Core.DataDescriptionClauseContex
 
     /// <summary>The REDEFINES clause's operand as WRITTEN — the whole <c>dataReference</c>, or null. ⛔ Never its
     /// text: <c>GetText()</c> glues <c>A OF G</c> into the one word <c>AOFG</c>, which resolved to an unrelated item
-    /// of that name (kb/Work PB1281). The binder screens the shape (§13.18.44.3 SR5/SR6) and resolves the base
+    /// of that name (kb/Work PB1281). The binder screens the shape (§2023:13.18.44.3 SR5/SR6) and resolves the base
     /// data-name.</summary>
     public Core.DataReferenceContext? RedefinesTarget => ctx.redefinesClause()?.dataReference();
 
@@ -122,10 +122,10 @@ public readonly struct DataDescriptionClauseCst(Core.DataDescriptionClauseContex
     // migrated in Group C; the report-writer partial migrates in P7.)
 
     // (The OCCURS fixed bounds are no longer a pure text read: each `integerOperand` is an integer literal OR an
-    // integer constant-name (ISO §13.10.3 SR2), and resolving the latter needs the binder's compile-time
+    // integer constant-name (ISO §2023:13.10.3 SR2), and resolving the latter needs the binder's compile-time
     // constant table — so the max-occurrence read lives in DataBinder.Constants.IntegerOperandValue, not here.)
 
-    /// <summary>The OCCURS INDEXED BY index-names, in order (empty when absent) — §13.18.38.2's
+    /// <summary>The OCCURS INDEXED BY index-names, in order (empty when absent) — §2023:13.18.38.2's
     /// <c>{ index-name-1 } …</c>, each a single word (<c>indexNameList</c>), so the text of one is exactly the name
     /// declared. It was a <c>dataReference</c>'s glued text, and <c>IX OF G</c> declared <c>IXOFG</c> (kb/Work PB2732).
     /// The caller keeps the <c>INDEXED()</c> presence guard raw.</summary>

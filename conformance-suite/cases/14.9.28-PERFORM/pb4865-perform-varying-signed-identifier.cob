@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> PB4865 - the same rule for a separated sign: + K is an arithmetic expression (ISO §8.8.1.1), not the identifier-4 that §14.9.28.2 prints
+      *> PB4865 - the same rule for a separated sign: + K is an arithmetic expression (ISO §2023:8.8.1.1), not the identifier-4 that §2023:14.9.28.2 prints
       *> for the BY phrase.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. NEGPV4865J.

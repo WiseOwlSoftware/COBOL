@@ -5,21 +5,21 @@ using System;
 namespace WiseOwl.Cobol.Frontend.Expressions;
 
 /// <summary>
-/// An immutable compile-time boolean value — a string of '0'/'1' positions (ISO/IEC 1989:2023 §8.8.2; the D-B1
+/// An immutable compile-time boolean value — a string of '0'/'1' positions (ISO/IEC 1989:2023 §2023:8.8.2; the D-B1
 /// substrate the runtime <c>CobolString</c>/<c>CobolBool</c> store category-boolean items on). VALUE equality is
-/// <b>length-sensitive</b> (§7.3.8.3 GR2 constant-conditional comparison + §7.3.11.3 SR2 redefinition — two
-/// boolean values are the same iff same length AND same bits), distinct from the runtime §8.8.4.2.2 relation
+/// <b>length-sensitive</b> (§2023:7.3.8.3 GR2 constant-conditional comparison + §2023:7.3.11.3 SR2 redefinition — two
+/// boolean values are the same iff same length AND same bits), distinct from the runtime §2023:8.8.4.2.2 relation
 /// which right-extends the shorter operand.
 ///
 /// The fold operators mirror the runtime <see cref="T:WiseOwl.Cobol.Runtime.CobolBool"/> kernel EXACTLY (the proven
-/// §8.8.2 implementation; the ALGORITHM — not the code — is shared, written before the Frontend referenced the
+/// §2023:8.8.2 implementation; the ALGORITHM — not the code — is shared, written before the Frontend referenced the
 /// Runtime assembly): a binary op combines positionwise left-to-right, right-zero-extending the shorter operand, result
 /// length = the larger operand (rules 9/10); zero-length combines to zero-length (rule 9 NOTE 2); <see cref="Not"/>
 /// preserves length; a shift preserves the first operand's length (rule 8).
 ///
-/// A compile-time (directive) boolean operand is ALWAYS a concrete boolean LITERAL — §7.3.7.2 SR1 admits only
-/// boolean literals, and §7.3.3 SR10 bars the figurative constants (<c>ZERO</c> / <c>ALL "literal"</c>) that the
-/// runtime §8.8.2 admits — so there is no positionless (figurative) case here; a figurative operand is a formation
+/// A compile-time (directive) boolean operand is ALWAYS a concrete boolean LITERAL — §2023:7.3.7.2 SR1 admits only
+/// boolean literals, and §2023:7.3.3 SR10 bars the figurative constants (<c>ZERO</c> / <c>ALL "literal"</c>) that the
+/// runtime §2023:8.8.2 admits — so there is no positionless (figurative) case here; a figurative operand is a formation
 /// error the evaluator rejects (COBOL1619), never a value.
 /// </summary>
 public sealed class BitString : IEquatable<BitString>
@@ -36,7 +36,7 @@ public sealed class BitString : IEquatable<BitString>
 
     private static char Bit(string s, int i) => i < s.Length && s[i] == '1' ? '1' : '0';
 
-    /// <summary>Unary <c>B-NOT</c> (§8.8.2 rule 7b, 1st) — complement every position, length preserved.</summary>
+    /// <summary>Unary <c>B-NOT</c> (§2023:8.8.2 rule 7b, 1st) — complement every position, length preserved.</summary>
     public BitString Not()
     {
         var arr = Bits.ToCharArray();
@@ -44,7 +44,7 @@ public sealed class BitString : IEquatable<BitString>
         return new BitString(new string(arr));
     }
 
-    /// <summary>A binary boolean op (<c>'&amp;'</c> B-AND / <c>'^'</c> B-XOR / <c>'|'</c> B-OR, §8.8.2 rules 9/10)
+    /// <summary>A binary boolean op (<c>'&amp;'</c> B-AND / <c>'^'</c> B-XOR / <c>'|'</c> B-OR, §2023:8.8.2 rules 9/10)
     /// combining <paramref name="left"/> and <paramref name="right"/> positionwise, the shorter right-zero-extended;
     /// result length = the larger operand; two zero-length operands ⇒ zero-length (rule 9 NOTE 2).</summary>
     public static BitString Combine(BitString left, char op, BitString right)
@@ -62,7 +62,7 @@ public sealed class BitString : IEquatable<BitString>
         return Of(new string(arr));
     }
 
-    /// <summary>A boolean shift/rotate (§8.8.2 rule 8): <paramref name="count"/> positions, logical (zero-fill) or
+    /// <summary>A boolean shift/rotate (§2023:8.8.2 rule 8): <paramref name="count"/> positions, logical (zero-fill) or
     /// <paramref name="circular"/> (rotate), <paramref name="left"/> or right. Result length = this value's length.
     /// A count == 0 is identity; a logical shift by ≥ the length yields all zeros; a circular shift is periodic in
     /// the length. Mirrors <c>CobolBool.Shift</c>.</summary>
@@ -92,13 +92,13 @@ public sealed class BitString : IEquatable<BitString>
         return Of(new string(arr));
     }
 
-    /// <summary>The truth value of a boolean value used as a simple boolean condition (§8.8.4.3 GR1 — true iff the
+    /// <summary>The truth value of a boolean value used as a simple boolean condition (§2023:8.8.4.3 GR1 — true iff the
     /// value is boolean 1). SR1 (length 1) is checked by the caller; this defensively tests position 1.</summary>
     public bool IsTrue => Bits.Length > 0 && Bits[0] == '1';
 
-    /// <summary>Boolean-RELATION equality (§8.8.4.2.8 rule 2): a positionwise value comparison, the shorter operand
+    /// <summary>Boolean-RELATION equality (§2023:8.8.4.2.8 rule 2): a positionwise value comparison, the shorter operand
     /// right-extended with boolean zeros; two zero-length values are equal. This is the equality a cce / EVALUATE
-    /// boolean relation uses (§7.3.8.3 GR2's unequal-length⇒unequal length-sensitivity is for operands that are
+    /// boolean relation uses (§2023:7.3.8.3 GR2's unequal-length⇒unequal length-sensitivity is for operands that are
     /// "not numeric or boolean") — distinct from <see cref="Equals(BitString)"/>. Mirrors <c>CobolBool.Equal</c>.</summary>
     public static bool EqualExtended(BitString a, BitString b)
     {
@@ -107,7 +107,7 @@ public sealed class BitString : IEquatable<BitString>
         return true;
     }
 
-    // Length-sensitive value equality (§7.3.11.3 SR2 redefinition — two DEFINE values are "the same" iff same
+    // Length-sensitive value equality (§2023:7.3.11.3 SR2 redefinition — two DEFINE values are "the same" iff same
     // length AND same bits): unequal length ⇒ not equal. (A boolean RELATION uses EqualExtended instead.)
     public bool Equals(BitString? other) =>
         other is not null && string.Equals(Bits, other.Bits, StringComparison.Ordinal);

@@ -5,8 +5,8 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB1166 - the INVOKE lane (§14.8.2.3.2 BY REFERENCE and
-      *> §14.8.3.3 RETURNING), the REJECT half.
+      *> kb/Work PB1166 - the INVOKE lane (§2023:14.8.2.3.2 BY REFERENCE and
+      *> §2023:14.8.3.3 RETURNING), the REJECT half.
       *>   cite.py --check 14.8.3.3 "Currency symbols match if and only if
       *>     the corresponding currency strings are the same"      OK 1)
       *>   cite.py --check 14.8.3.3 "Period picture symbols match if and
@@ -24,7 +24,7 @@
       *>         before PB1166 it ran and the receiver read 1234 for 12,34.
       *>   TAKE  USING BY REFERENCE Z9.99 - the same, the argument lane.
       *>   TAKEA USING BY REFERENCE A(5) into X(5) - two PICTURE clauses.
-      *> Each is the §14.8.2.3.2 / §14.8.3.3 conformance diagnostic.
+      *> Each is the §2023:14.8.2.3.2 / §2023:14.8.3.3 conformance diagnostic.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. W61BNEGINV.
        ENVIRONMENT DIVISION.

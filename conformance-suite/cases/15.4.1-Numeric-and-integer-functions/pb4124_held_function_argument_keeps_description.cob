@@ -5,20 +5,20 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB4124 - ISO §8.4.3.2.4 GR2: "At the time reference is made to a function, its arguments are evaluated
+      *> kb/Work PB4124 - ISO §2023:8.4.3.2.4 GR2: "At the time reference is made to a function, its arguments are evaluated
       *> individually in the order specified in the list of arguments, from left to right." (cite.py: OK 8.4.3.2.4 2)).
       *> GR2 orders the evaluation and nothing else, so an earlier argument that a LATER argument's user-defined function
       *> activation could change is evaluated first and HELD, and the call's result is the result it would have had
-      *> without the activation: §15.4.1's "the returned value is the same for all instances of a given function ... so long
-      *> as the value and order of the arguments ... are unchanged" (cite.py: OK 15.4.1), and §15.4: "The evaluation of a
+      *> without the activation: §2023:15.4.1's "the returned value is the same for all instances of a given function ... so long
+      *> as the value and order of the arguments ... are unchanged" (cite.py: OK 15.4.1), and §2023:15.4: "The evaluation of a
       *> function produces a returned value in a temporary elementary data item" (cite.py: OK 15.4). The temporary's
-      *> description is implementor-defined under native arithmetic (§15.4.1; docs/CONFORMANCE.md DOC-A.1-92 gives
+      *> description is implementor-defined under native arithmetic (§2023:15.4.1; docs/CONFORMANCE.md DOC-A.1-92 gives
       *> GnuCOBOL 3.2.0's: MAX, MIN and MEDIAN return a COPY of the selected argument's item, an arithmetic expression is
       *> described by its value), so no length is asserted here; what is asserted is that holding an argument changes
       *> NEITHER the item the selection returns NOR its length. FUNCTION LENGTH answers "the length of argument-1 in
-      *> alphanumeric character positions" (§15.50.4 3), cite.py: OK 15.50.4 3)) and FUNCTION BYTE-LENGTH "the length of
-      *> argument-1 in number of bytes" (§15.14.4 1), cite.py: OK 15.14.4 1)), of the temporary a function-identifier
-      *> references (§8.4.3.2.4 r1), so each pair below measures the SAME call twice, once with a literal filler argument
+      *> alphanumeric character positions" (§2023:15.50.4 3), cite.py: OK 15.50.4 3)) and FUNCTION BYTE-LENGTH "the length of
+      *> argument-1 in number of bytes" (§2023:15.14.4 1), cite.py: OK 15.14.4 1)), of the temporary a function-identifier
+      *> references (§2023:8.4.3.2.4 r1), so each pair below measures the SAME call twice, once with a literal filler argument
       *> (nothing to hold) and once with a user-defined function activation as the filler (the argument to its left is held).
       *> The filler never wins the selection, so both calls select the same argument, whose item is the item measured.
       *> Before the fix the held argument was described by the intermediate item it was held in: the pair EXPR measured 4

@@ -9,18 +9,18 @@
       *>
       *> THE RULES, --check validated:
       *>   cite.py --check 14.9.40.4 "The sorted table elements of the table referenced by data-name-2 are placed in
-      *>     the table referenced by data-name-2." -> OK §14.9.40.4 24)
+      *>     the table referenced by data-name-2." -> OK §2023:14.9.40.4 24)
       *>   cite.py --check 14.9.40.3 "Data-name-2 shall have an OCCURS clause in its data description entry." -> OK
-      *>     §14.9.40.3 13)
+      *>     §2023:14.9.40.3 13)
       *>   cite.py --check 13.18.60.3 "A USAGE clause with the MESSAGE-TAG, OBJECT REFERENCE, POINTER, FUNCTION-POINTER,
       *>     or PROGRAM-POINTER phrase may be specified only for an elementary data item at level 1 or an elementary
-      *>     data item subordinate to a type declaration that includes the STRONG phrase" -> OK §13.18.60.3 14)
+      *>     data item subordinate to a type declaration that includes the STRONG phrase" -> OK §2023:13.18.60.3 14)
       *> A table element is the whole of its description, pointer and all: the sorted elements are what GR24 places, so a
       *> pointer travels with the key beside it. The pointer's value is a managed reference in the BASED area's slot,
       *> not part of the byte image the element's other items occupy (kb/Work PB231); before this change the statement
       *> was deferred (COBOL1756) and aborted the run unit, though every other shared-storage table sorted.
       *> The pointer is spelled legally: USAGE POINTER is admitted below level 1 only inside a STRONG type declaration
-      *> (§13.18.60.3 SR14), so the table is a strongly-typed group and the BASED record takes its type.
+      *> (§2023:13.18.60.3 SR14), so the table is a strongly-typed group and the BASED record takes its type.
       *>
       *> WHY EACH LEG CAN FAIL (expected values derived from the rules, not copied from a run):
       *>   1  keys 3, 1, 2 hold pointers to "AAAA", "BBBB", "CCCC". SORT E ASCENDING KEY EK puts the elements in key
@@ -28,7 +28,7 @@
       *>        the pointers at their old occurrences and print 1 AAAA, 2 BBBB, 3 CCCC).
       *>   2  DESCENDING over the same table: 3 AAAA, 2 CCCC, 1 BBBB.
       *>   3  a table inside ROW OCCURS 2 sorts one row: ROW(1) holds keys 2, 1 with pointers "AAAA", "BBBB", ROW(2) holds
-      *>        keys 4, 3 with pointers "CCCC", "DDDD". SORT E2(2) ASCENDING KEY EK2 sorts ROW(2) only (§8.4.2.3.3 SR5 e):
+      *>        keys 4, 3 with pointers "CCCC", "DDDD". SORT E2(2) ASCENDING KEY EK2 sorts ROW(2) only (§2023:8.4.2.3.3 SR5 e):
       *>        ROW(1) stays 2 AAAA, 1 BBBB and ROW(2) reads 3 DDDD, 4 CCCC.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1922PT.

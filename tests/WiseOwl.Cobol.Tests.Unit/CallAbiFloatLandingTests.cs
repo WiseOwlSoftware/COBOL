@@ -6,14 +6,14 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ A FLOATING-POINT FORMAL IS A NUMERIC RECEIVER OF THE §14.2.3 GR9/GR10 COMPUTE (kb/Work PB1114).
-/// ISO §14.8.2.3.3 2) a) — "If the formal parameter is numeric, the conformance rules are the same as for a COMPUTE
+/// ⛔ A FLOATING-POINT FORMAL IS A NUMERIC RECEIVER OF THE §2023:14.2.3 GR9/GR10 COMPUTE (kb/Work PB1114).
+/// ISO §2023:14.8.2.3.3 2) a) — "If the formal parameter is numeric, the conformance rules are the same as for a COMPUTE
 /// statement with the argument as the sending operand" — has no floating-point exemption, and GR9's first leg says
 /// the same ("if the formal parameter is numeric, a COMPUTE statement without the ROUNDED phrase"). The landing
 /// used to cover fixed-point formals only, and a float formal's description has ZERO digit positions, so the
 /// fixed-point landing's capacity reduction (<c>value % 10^0</c>) stored 0. The float lane lands through
 /// <see cref="FloatResultant"/> — the one transfer of an arithmetic value into a float resultant identifier —
-/// under implied TRUNCATION (§14.7.4.3 rule 10: the nearest representable value nearer to zero).
+/// under implied TRUNCATION (§2023:14.7.4.3 rule 10: the nearest representable value nearer to zero).
 /// <para>RED BEFORE THE FIX: the kb/Work PB1114 repro (a <c>PIC 9(3)V99</c> 12.5 BY CONTENT to a FLOAT-LONG formal of a
 /// NESTED activation) printed <c>IN-S [0]</c> — the same zero the first row below asserts away — because
 /// <c>LandForFormal</c>'s guard admitted fixed-point formals only and the callee's <c>Num</c> landed the fixed-point
@@ -58,7 +58,7 @@ public sealed class CallAbiFloatLandingTests
         Assert.Equal(12.5d, CobolArgAdapt.Num<double>([landed], 0, FloatLong, 0).Value);
     }
 
-    /// <summary>The landing is the un-ROUNDED COMPUTE: 0.1 is not a binary32 value, so §14.7.4.3 rule 10 lands the
+    /// <summary>The landing is the un-ROUNDED COMPUTE: 0.1 is not a binary32 value, so §2023:14.7.4.3 rule 10 lands the
     /// nearest value NEARER TO ZERO — the binary32 just below 0.1, never the round-to-nearest 0.1000000015. Landed in
     /// ONE rounding from the exact scaled value, not through a binary64 first.</summary>
     [Fact]
@@ -108,7 +108,7 @@ public sealed class CallAbiFloatLandingTests
         Assert.Equal(Math.Pow(2, 127), Assert.IsType<ManagedPointer<double>>(landed.Carrier).Value);
     }
 
-    /// <summary>A value past the float format's range is §14.7.5 case 3's size error: with EC-SIZE checking enabled
+    /// <summary>A value past the float format's range is §2023:14.7.5 case 3's size error: with EC-SIZE checking enabled
     /// at the activating statement the landing RAISES EC-SIZE-TRUNCATION (no-phrase rule 4); with it off the
     /// no-phrase disposition stands and the value lands at the nearest value nearer to zero, the format's largest
     /// finite value (rule 10 with an unbounded exponent).</summary>
@@ -122,7 +122,7 @@ public sealed class CallAbiFloatLandingTests
         Assert.Equal(float.MaxValue, Assert.IsType<ManagedPointer<float>>(landed.Carrier).Value);
     }
 
-    /// <summary>The residual callee-side views (a crossing whose formal the activator could not know — §14.9.4.4 GR9's
+    /// <summary>The residual callee-side views (a crossing whose formal the activator could not know — §2023:14.9.4.4 GR9's
     /// first branch) share the float landing: <see cref="CobolArgAdapt.Num"/>'s converting view reads the value and
     /// writes back un-scaled into the caller's own cell.</summary>
     [Fact]

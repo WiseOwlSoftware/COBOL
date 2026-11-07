@@ -6,7 +6,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
 /// kb/Work PB93 — a REDEFINES data-name-2 / RENAMES data-name-2/-3 that names nothing (or, for REDEFINES, a LATER
-/// sibling) is a diagnosed error at every edition (ISO §13.18.44.3 SR4/SR7/SR10, §13.18.45.3 SR4, §8.4.2.1); it used to
+/// sibling) is a diagnosed error at every edition (ISO §2023:13.18.44.3 SR4/SR7/SR10, §2023:13.18.45.3 SR4, §2023:8.4.2.1); it used to
 /// compile silently into a storage shape no edition defines. A REDEFINES naming a redefinition (SR7) is an error
 /// strict and the anchor-chased chain under <c>--permissive</c>.
 /// </summary>

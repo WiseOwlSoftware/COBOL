@@ -5,24 +5,24 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.51.4 GR36 — a WRITE whose prime record key equals an
+      *> ISO §2023:14.9.51.4 GR36 — a WRITE whose prime record key equals an
       *>   existing record's prime key is refused ('22', INVALID KEY)
       *> Rule: "The value of the prime record key shall not be equal to
       *>   the value of the prime record key of any record existing in
       *>   the file."
       *>   cite.py --check 14.9.51.4 "The value of the prime record key
       *>   shall not be equal to the value of the prime record key of
-      *>   any record existing in the file" -> OK  §14.9.51.4 36)
+      *>   any record existing in the file" -> OK  §2023:14.9.51.4 36)
       *>   cite.py --check 14.9.51.4 "When the value of the prime
       *>   record key of the record to be written is equal to the value
       *>   of the prime record key of any record existing in the file,
       *>   the I-O status associated with the write file connector is
-      *>   set to '22'" -> OK  §14.9.51.4 42) (item b); cite.py prints
+      *>   set to '22'" -> OK  §2023:14.9.51.4 42) (item b); cite.py prints
       *>   the enclosing rule only)
       *>   cite.py --check 14.9.51.4 "If the execution of a WRITE
       *>   statement is unsuccessful, the write operation does not take
       *>   place, the content of the record area is unaffected"
-      *>   -> OK  §14.9.51.4 15)
+      *>   -> OK  §2023:14.9.51.4 15)
       *> DERIVATION. RANDOM access, so GR42 a)'s sequential-order '21'
       *> cannot apply; the only failing rule is GR36 / GR42 b).
       *>   WRITE K01/OLD1 into the empty file   -> "W1 00"

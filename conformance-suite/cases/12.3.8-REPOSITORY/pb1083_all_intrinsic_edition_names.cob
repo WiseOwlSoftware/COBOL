@@ -12,7 +12,7 @@
       *> prohibited within the scope of that REPOSITORY paragraph as
       *> user-defined words" - BASECONVERT, CONCAT, CONVERT,
       *> FIND-STRING, MODULE-NAME, SMALLEST-ALGEBRAIC, SUBSTITUTE. They
-      *> are COBOL-2023 functions, so under COBOL-2014 §12.3.8.3 SR13
+      *> are COBOL-2023 functions, so under COBOL-2014 §2023:12.3.8.3 SR13
       *> does not reach them and they are ordinary data-names. It used
       *> to refuse all three (COBOL1649) at --std 2014; at 2023 they
       *> are refused (negative/pb1083-all-intrinsic-2023-names).

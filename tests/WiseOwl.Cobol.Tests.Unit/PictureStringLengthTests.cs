@@ -7,7 +7,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// kb/Work PB4304 — ISO §13.18.40.3 SR4's number is the EDITION's: 30 at COBOL-85, 50 in the 2002 text's own SR4
+/// kb/Work PB4304 — ISO §2023:13.18.40.3 SR4's number is the EDITION's: 30 at COBOL-85, 50 in the 2002 text's own SR4
 /// (its Annex F.2 item 94, "increased from 30 to 50"), 63 from COBOL-2014 and in the 2023 text. The two edges are the
 /// construct registry rows <c>picture-string-50-2002</c> and <c>picture-string-63-2014</c>
 /// (docs/VERSION_CHANGE_REFERENCE.md row 7.46); these tests ask the one bound, <see cref="PictureAnalyzer.MaxStringLength"/>,

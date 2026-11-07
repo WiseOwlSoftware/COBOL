@@ -4,10 +4,10 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.1.3 SR5 — "Identifier-3 and identifier-4 shall be
+      *> ISO §2023:14.9.1.3 SR5 — "Identifier-3 and identifier-4 shall be
       *> unsigned integer data items." Those two operands are the AT
       *> LINE NUMBER / COLUMN NUMBER positions of the ACCEPT statement's
-      *> Format 3 (§14.9.1.2; the measured figure notes record that AT
+      *> Format 3 (§2023:14.9.1.2; the measured figure notes record that AT
       *> and NUMBER are optional words, that the LINE/COLUMN brace
       *> carries choice indicators, and that the whole AT phrase sits
       *> inside one outer bracket). This is the ONLY source shape that

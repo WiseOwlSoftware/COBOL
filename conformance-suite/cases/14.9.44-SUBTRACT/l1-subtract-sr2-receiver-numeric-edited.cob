@@ -4,13 +4,13 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.44.3 SR2 (FORMATS 1 AND 2) — "Identifier-1 and
+      *> ISO §2023:14.9.44.3 SR2 (FORMATS 1 AND 2) — "Identifier-1 and
       *> identifier-2 shall reference numeric data items."
       *> THE RECEIVING ARM, and the axis that separates SR2 from SR4.
       *> In format 1 identifier-2 is the in-place receiver.  NE is
-      *> described PIC ZZZ9, which §8.5.2.13 makes "a data item of
+      *> described PIC ZZZ9, which §2023:8.5.2.13 makes "a data item of
       *> category numeric-edited … referred to as a numeric-edited
-      *> data item"; §8.5.2.12's closed list of what is a numeric data
+      *> data item"; §2023:8.5.2.12's closed list of what is a numeric data
       *> item does not contain it.  SR2 says NUMERIC, full stop, so
       *> `SUBTRACT 1 FROM NE` is illegal.
       *> THE DERIVATION IS INTERNAL TO THE CLAUSE AND NEEDS NO OTHER

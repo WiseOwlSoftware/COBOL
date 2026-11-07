@@ -12,20 +12,20 @@
       *> "Following the unsuccessful execution of a START statement,
       *> the file position indicator is set to indicate that no valid
       *> record position has been established."
-      *>   cite.py: OK  §14.9.41.4 7)  (General rules)
+      *>   cite.py: OK  §2023:14.9.41.4 7)  (General rules)
       *> "Unless otherwise specified, at the completion of any
       *> unsuccessful execution of a READ statement, ... the file
       *> position indicator is set to indicate that no valid record
       *> position has been established."
-      *>   cite.py: OK  §14.9.30.4 18)  (General rules)
+      *>   cite.py: OK  §2023:14.9.30.4 18)  (General rules)
       *> "For a sequential READ statement, if the previous READ or
       *> START statement for the file connector was unsuccessful, then
       *> the READ statement is unsuccessful and the I-O status is set
       *> to '46'"
-      *>   cite.py: OK  §14.9.30.4 21)  (General rules)
+      *>   cite.py: OK  §2023:14.9.30.4 21)  (General rules)
       *> "The open mode of the file connector referenced by file-name-1
       *> shall be input or I-O." - otherwise '47'.
-      *>   cite.py: OK  §14.9.41.4 1) ; §14.9.30.4 2) ; §9.1.13.7 7)
+      *>   cite.py: OK  §2023:14.9.41.4 1) ; §2023:14.9.30.4 2) ; §2023:9.1.13.7 7)
       *>
       *> DERIVATION (each leg fails if an unsuccessful exit skips the
       *> invalidation, or if the invalidation outlives a reposition):

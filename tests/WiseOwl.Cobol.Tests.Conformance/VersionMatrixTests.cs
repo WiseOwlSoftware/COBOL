@@ -257,7 +257,7 @@ public abstract class VersionMatrixTestsBase<TSlot>
     public static IEnumerable<object[]> ObsoleteMatrix() =>
         TestPartitioning.SliceRows<TSlot>(AllObsoleteMatrix(), Partitions);
 
-    /// <summary>The archaic/obsolete flag contract (P2.6, ISO §4.2.12/§4.2.13): an <c>obsoleteIn</c> row
+    /// <summary>The archaic/obsolete flag contract (P2.6, ISO §2023:4.2.12/§2023:4.2.13): an <c>obsoleteIn</c> row
     /// COMPILES throughout its availability window (the element remains conforming) and carries the FIXED
     /// 0903 band WARNING exactly at editions ≥ obsoleteIn — never below (no NIST-85 noise). A DUAL row
     /// (obsolete then later REMOVED — QUOTE→numeric: obsolete 2014 per Annex E.2 item 21, removed 2023) is

@@ -6,33 +6,33 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §7.3.10.4 6) — COBOL-WORDS does not reach the compiler
+      *> ISO §2023:7.3.10.4 6) — COBOL-WORDS does not reach the compiler
       *> directing statements (COPY, REPLACE) or compiler directives
       *> (>>IF, >>SOURCE)
       *>
       *> "6) A COBOL-WORDS directive does not affect any Compiler
       *> directing statements or Compiler directives."
-      *>   cite.py: OK  §7.3.10.4 6)  (General rules)
+      *>   cite.py: OK  §2023:7.3.10.4 6)  (General rules)
       *> "The compiler directing statements are the COPY statement and
       *> the REPLACE statement."
-      *>   cite.py: OK  §7.2.2.2   (Compiler directing statements)
+      *>   cite.py: OK  §2023:7.2.2.2   (Compiler directing statements)
       *> What UNDEFINE / SUBSTITUTE would otherwise do: "any syntax
       *> requiring the use of the COBOL word that is the content of
       *> literal-3 shall not be available for use in this compilation
       *> group" (UNDEFINE)
-      *>   cite.py: OK  §7.3.10.4 3)  (General rules)
+      *>   cite.py: OK  §2023:7.3.10.4 3)  (General rules)
       *> "the COBOL word that is the content of literal-5 shall be used
       *> in any syntax where the COBOL word that is the content of
       *> literal-4 is documented as required or optional" (SUBSTITUTE)
-      *>   cite.py: OK  §7.3.10.4 4)  (General rules)
+      *>   cite.py: OK  §2023:7.3.10.4 4)  (General rules)
       *> >>IF: "If constant-conditional-expression-1 evaluates to TRUE,
       *> all lines of text-1 are included in the resultant text and all
       *> lines of text-2 are omitted from the resultant text."
-      *>   cite.py: OK  §7.3.16.4 2)  (General rules)
+      *>   cite.py: OK  §2023:7.3.16.4 2)  (General rules)
       *> >>SOURCE: "the source text or library text following the
       *> directive ... shall be treated as fixed form if FIXED is
       *> specified, or as free form if FREE is specified"
-      *>   cite.py: OK  §7.3.24.3 1)  (General rules)
+      *>   cite.py: OK  §2023:7.3.24.3 1)  (General rules)
       *>
       *> COPY, REPLACE, END-IF and SOURCE are UNDEFINEd and IF is
       *> SUBSTITUTEd by WHENIF, yet GR6 keeps the COPY and REPLACE

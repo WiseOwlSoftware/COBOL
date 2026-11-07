@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> ISO §14.9.49.3 SR10: "The GENERATE, INITIATE, or TERMINATE statements shall not appear in a
+*> ISO §2023:14.9.49.3 SR10: "The GENERATE, INITIATE, or TERMINATE statements shall not appear in a
 *> paragraph within a USE BEFORE REPORTING procedure." (kb/Work PB363.)
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB363GBR.

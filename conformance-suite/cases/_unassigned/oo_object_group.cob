@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO 1989:2023 §11.7 / ADR §7 — typed-native object data for GROUPS (→ a per-instance record struct) and
+      *> ISO 1989:2023 §2023:11.7 / ADR §7 — typed-native object data for GROUPS (→ a per-instance record struct) and
       *> fixed OCCURS tables (→ a per-instance array), proven PER-INSTANCE: FILL mutates R1's PERSON group + TBL
       *> table; R2 (untouched) keeps its defaults. R2 shown first (ANN/0/000), then R1 (BOB/7/123) — a shared/static
       *> group or array would show R2 already filled.

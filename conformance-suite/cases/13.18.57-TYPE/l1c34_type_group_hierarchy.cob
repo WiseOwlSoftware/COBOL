@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.18.57.4 GR2 — a group TYPE subject below level 1
+      *> ISO §2023:13.18.57.4 GR2 — a group TYPE subject below level 1
       *>   keeps the
       *> type's names, descriptions and hierarchy, levels adjusted
       *>   (past 49)
@@ -27,18 +27,18 @@
       *>   subordinate elements have the same names, descriptions, and
       *>     hierarchy
       *>   as the subordinate elements of type-name-1" -> OK
-      *>     §13.18.57.4 2) a)
+      *>     §2023:13.18.57.4 2) a)
       *> cite.py --check 13.18.57.4 "the level-numbers of items
       *>   subordinate to
       *>   that group are adjusted, if necessary, to preserve the
       *>     hierarchy of
-      *>   type-name-1" -> OK §13.18.57.4 2) b)
+      *>   type-name-1" -> OK §2023:13.18.57.4 2) b)
       *> cite.py --check 13.18.57.4 "level-numbers in the resulting
       *>   hierarchy
-      *>   may exceed 49" -> OK §13.18.57.4 2) c)
+      *>   may exceed 49" -> OK §2023:13.18.57.4 2) c)
       *> cite.py --check 13.18.57.4 "the subject of the entry is
       *>   aligned as
-      *>   though it were a level 1 item" -> OK §13.18.57.4 2) d)
+      *>   though it were a level 1 item" -> OK §2023:13.18.57.4 2) d)
       *> T's members are written at 05/10. X is a level-49 subject, so
       *>   its
       *> members must sit at levels > 49 (b, c); P is a level-05
@@ -46,7 +46,7 @@
       *> level-05 sibling Q, so its 05/10 members must be pushed below
       *>   05 or
       *> they would become siblings of P and Q (b). d) is observable
-      *>   through bit alignment (kb/Work PB1569): §8.5.1.6.3 —
+      *>   through bit alignment (kb/Work PB1569): §2023:8.5.1.6.3 —
       *>   "Alignment of elementary bit data items of level 1 or
       *>   level 77 and a level 1 bit group are at the first bit of
       *>   a byte" (cite.py --check 8.5.1.6.3 -> OK), where a bit

@@ -158,7 +158,7 @@ guard_output_verdict() {
         # ⛔ THE ALLOWANCE COMES FROM THE GOLDEN, NOT FROM THE CONSTANT 0. This arm is reached only after a
         # candidate matched the golden byte-for-byte, so the output's footer IS the golden's footer: comparing
         # it to 0 was auditing the BASELINE, not the run. One golden legitimately carries a failure — NC201A,
-        # whose PFM-TEST-F4-23 asserts a value §14.9.28.4 GR13 e) 2 contradicts (kb/Work PB436) — and scoring
+        # whose PFM-TEST-F4-23 asserts a value §2023:14.9.28.4 GR13 e) 2 contradicts (kb/Work PB436) — and scoring
         # that as a regression would turn a CONFORMING compiler red. Which goldens may carry one is not decided
         # here: tests/nist/corpus.tsv declares them CCVS-DEFECT and CorpusManifestTests asserts that the
         # declared set equals the goldens that actually carry a footer, in BOTH directions — so a golden cannot
@@ -242,7 +242,7 @@ guard_report_file() {
 #
 # THE FORM TWO FILES ARE COMPARED IN.  guard_canonical_into SRC DEST   (NistOutputs.Canonical's twin)
 # A line sequential file ends each record with the HOST's newline — CR LF on Windows, LF on Linux (docs/CONFORMANCE.md
-# DOC-A.1-114; ISO §12.4.5.10.3 GR2, "an implementor-defined line delimiter") — and the goldens hold LF so they read the
+# DOC-A.1-114; ISO §2023:12.4.5.10.3 GR2, "an implementor-defined line delimiter") — and the goldens hold LF so they read the
 # same on both. A TEXT file (only HT LF FF CR and printable ASCII) is compared with each CR LF taken as LF; a CR not
 # followed by LF is record data and stays. Any other file is a BINARY file and is compared as written: a record file's
 # bytes do not depend on the host, so a newline translation in one is a defect this must see.
@@ -326,7 +326,7 @@ guard_files_apply() {
 # THE TERMINATION ARM (kb/Work PB1955).  guard_termination_verdict TEST EC RRC ERRFILE RUN_TIMEOUT
 # For a row tests/nist/corpus.tsv declares `TERMINATES EC-…` (read through scripts/guard-population.sh), the
 # observation that counts is the run unit's END, not its report: the golden records a run that continued past a
-# fatal I-O status nothing covers, and WiseOwl COBOL's documented choice under ISO §9.1.13.1 ends the run unit
+# fatal I-O status nothing covers, and WiseOwl COBOL's documented choice under ISO §2023:9.1.13.1 ends the run unit
 # there (Annex A.1 item 103). So the run must exit non-zero NAMING the declared exception — the same two facts
 # NistDifferentialTests asserts for the row. The evidence rules hold here as on every other arm: a timeout, a
 # signal, or a non-zero exit with nothing on stderr observed nothing, so none of them is scored.

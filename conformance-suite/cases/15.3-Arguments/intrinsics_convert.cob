@@ -6,10 +6,10 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.19 CONVERT (2023). ANUM<->HEX (NOTE 3 a/b), HEX->BYTE (r5), NAT->ANUM HEX (r2 over UTF-16BE),
+      *> ISO §2023:15.19 CONVERT (2023). ANUM<->HEX (NOTE 3 a/b), HEX->BYTE (r5), NAT->ANUM HEX (r2 over UTF-16BE),
       *> and the ANUM->NAT->ANUM repertoire round-trip (r1/r3). The alphanumeric coded set is 8-bit Latin-1
-      *> (code point == byte); national is UTF-16, one char/position (D-N1). See §15.19.4.
-      *> CS: NAT/ANUM/HEX/BYTE are §8.10 CONTEXT-SENSITIVE words - reserved only where CONVERT's format
+      *> (code point == byte); national is UTF-16, one char/position (D-N1). See §2023:15.19.4.
+      *> CS: NAT/ANUM/HEX/BYTE are §2023:8.10 CONTEXT-SENSITIVE words - reserved only where CONVERT's format
       *> permits them, so a data item NAMED one of them is legal as argument-1 (PB59 / FMT-15.19.2).
       *> D9: 15.19.3 r5's NOTE puts the ANUM-source test on the REPRESENTATION, not the class - a numeric
       *> DISPLAY item is a valid string of characters from the alphanumeric set ("005" -> its hex).

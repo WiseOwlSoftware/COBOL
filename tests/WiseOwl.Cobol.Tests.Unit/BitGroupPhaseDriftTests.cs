@@ -8,8 +8,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ A BYTE BOUNDARY INSIDE A BIT GROUP IS A BYTE OF THE RECORD, AND THE WALK KNOWS WHERE ITS GROUP BEGINS IN ONE
-/// (kb/Work PB3158). §8.5.1.6.3 starts a bit group that follows a same-level bit item at "the next bit position in
-/// storage", so the group can begin mid-byte, and §13.18.1.4 GR1 aligns an ALIGNED subject on "the first available byte
+/// (kb/Work PB3158). §2023:8.5.1.6.3 starts a bit group that follows a same-level bit item at "the next bit position in
+/// storage", so the group can begin mid-byte, and §2023:13.18.1.4 GR1 aligns an ALIGNED subject on "the first available byte
 /// boundary" — of the record, not of the group it sits in. <c>BitLayout.PhaseOf</c> is where in a byte a group begins;
 /// the one walk starts its cursor there, so every <c>RoundUpToByte</c> it performs is the record's. These facts keep the
 /// shape that makes that true and cheap:
@@ -69,7 +69,7 @@ public sealed class BitGroupPhaseDriftTests
     /// whose layout depends on its phase strides whole bytes. The stride asks THAT question (<c>HoldsByteStart</c>,
     /// read through the walk's own placement predicate), never the ALIGNED clause alone, which left an ALIGNED
     /// MEMBER of a table element inside a byte in every occurrence after the first; and a group keeps its position
-    /// only when its first item does (§8.5.1.6.3, both directions of "the same bit position").</summary>
+    /// only when its first item does (§2023:8.5.1.6.3, both directions of "the same bit position").</summary>
     [Fact]
     public void TheStride_AsksWhetherTheLayoutDependsOnThePhase_AndAGroupBeginsWithItsFirstItem()
     {

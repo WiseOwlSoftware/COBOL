@@ -4,7 +4,7 @@ using System.Buffers.Binary;
 
 namespace WiseOwl.Cobol.Runtime.IO.Store;
 
-/// <summary>The relation of a <see cref="BTree.Seek"/>: START's relational operators (§14.9.41.4 GR17 c) to e)) and READ's
+/// <summary>The relation of a <see cref="BTree.Seek"/>: START's relational operators (§2023:14.9.41.4 GR17 c) to e)) and READ's
 /// key match.</summary>
 internal enum SeekRelation
 {
@@ -48,7 +48,7 @@ internal interface IPageSink
 /// changes a statement makes to one tree. Because every change is in memory until the flush, the pages a statement will
 /// write (<see cref="PagesToWrite"/>) are known BEFORE it begins, and its reservation is sized exactly.</para>
 /// <para><b>STAMPED POINTERS (R3).</b> Every child reference, root and overflow link is a <see cref="PagePointer"/>; every
-/// read verifies the page against its stamp, and a page that is torn, stale or misplaced answers '30' (§9.1.13.6 item 1)
+/// read verifies the page against its stamp, and a page that is torn, stale or misplaced answers '30' (§2023:9.1.13.6 item 1)
 /// through <see cref="StoreStatus.PermanentError"/>. A failed read or write DISCARDS the pending edit: the tree is then as
 /// its last flush left it.</para>
 /// <para><b>No sibling pointers.</b> A leaf's <c>next</c> is 0: a rewritten leaf's left neighbour would still name the
@@ -410,7 +410,7 @@ internal sealed partial class BTree
         int Against(byte[] stored);
     }
 
-    /// <summary>A whole key, or a START's partial key under the order's prefix comparison (§14.9.41.4 GR17 c), d)).</summary>
+    /// <summary>A whole key, or a START's partial key under the order's prefix comparison (§2023:14.9.41.4 GR17 c), d)).</summary>
     private readonly ref struct KeyProbe(IKeyOrder order, ReadOnlySpan<byte> key, bool prefix) : IProbe
     {
         private readonly ReadOnlySpan<byte> _key = key;

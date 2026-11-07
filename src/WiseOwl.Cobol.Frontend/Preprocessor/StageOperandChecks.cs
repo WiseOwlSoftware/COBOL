@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 
 /// <summary>
 /// ⛔ THE SYNTAX-ONLY OPERAND CHECK OF EVERY DIRECTIVE WHOSE OPERAND A DOWNSTREAM STAGE PARSES (kb/Work PB2003).
-/// ISO §7.2.1 requires compiler directives to be "syntactically correct in the initial source text and library text",
+/// ISO §2023:7.2.1 requires compiler directives to be "syntactically correct in the initial source text and library text",
 /// and the false path of a <c>&gt;&gt;IF</c> or <c>&gt;&gt;EVALUATE</c> is part of that text. The conditional-compilation
 /// driver therefore asks every directive line's operand in an OMITTED branch too — the closed-word rows through
 /// <see cref="CompilerDirectiveCatalog.CheckOperand"/>, the directives the driver itself evaluates through its own arms —

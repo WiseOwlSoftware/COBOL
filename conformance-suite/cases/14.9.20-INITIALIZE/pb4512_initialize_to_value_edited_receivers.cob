@@ -8,16 +8,16 @@
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB4512EV.
       *> kb/Work PB4512 -- ISO 14.9.20.4 GR6 a) 3., at the introduction edition of the TO VALUE phrase (COBOL-2002).
-      *>   cite.py: OK  §14.9.20.4 6) a) 3.  (General rules)
+      *>   cite.py: OK  §2023:14.9.20.4 6) a) 3.  (General rules)
       *>   "the sending-operand is determined by the literal in the VALUE clause specified in the data description
       *>   entry of the data item" and, as GR6 a) 3. words the result, it "produces the same result as the initial
       *>   value of the data item as produced by the application of the VALUE clause".
       *> The initial value of a VALUE clause is NOT edited, justified or blanked:
-      *>   cite.py: OK  §13.18.63.4 7)  (General rules)
+      *>   cite.py: OK  §2023:13.18.63.4 7)  (General rules)
       *>   "initialization is not affected by a JUSTIFIED clause and no editing takes place"
-      *>   cite.py: OK  §13.18.63.4 8)  (General rules)
+      *>   cite.py: OK  §2023:13.18.63.4 8)  (General rules)
       *>   "the BLANK WHEN ZERO clause has no effect on initialization" (an alphanumeric or national literal)
-      *>   cite.py: OK  §13.18.63.3 11)  (Syntax rules)
+      *>   cite.py: OK  §2023:13.18.63.3 11)  (Syntax rules)
       *>   "Editing characters in a picture character-string for a numeric-edited data item are used in editing of the
       *>   initial value when ... the literal is numeric."
       *> So INITIALIZE ... ALL TO VALUE must leave each item holding exactly its initial value, and an edited

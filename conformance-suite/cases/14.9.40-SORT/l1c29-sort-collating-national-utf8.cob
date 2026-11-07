@@ -4,16 +4,16 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.40.3 SR2 — alphabet-name-2 is a UTF-8 alphabet (no collating sequence)
+      *> ISO §2023:14.9.40.3 SR2 — alphabet-name-2 is a UTF-8 alphabet (no collating sequence)
       *> Rule: "Alphabet-name-2 shall reference an alphabet that defines a
       *> national collating sequence."
       *> cite.py --check 14.9.40.3 "Alphabet-name-2 shall reference an
       *>   alphabet that defines a national collating sequence"
-      *>   -> OK  §14.9.40.3 2)  (Syntax rules)
-      *> §12.3.7.4 GR7 Table 6 (cite.py --check 12.3.7.4 "indicates for
+      *>   -> OK  §2023:14.9.40.3 2)  (Syntax rules)
+      *> §2023:12.3.7.4 GR7 Table 6 (cite.py --check 12.3.7.4 "indicates for
       *> each operand of the ALPHABET clause whether the alphabet-name
       *> references a coded character set, a collating sequence, or both"
-      *> -> OK  §12.3.7.4 7)): UTF-8 has NO Y in the collating-sequence
+      *> -> OK  §2023:12.3.7.4 7)): UTF-8 has NO Y in the collating-sequence
       *> column, so N-U8 defines no collating sequence at all -> SR2.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1C29F.

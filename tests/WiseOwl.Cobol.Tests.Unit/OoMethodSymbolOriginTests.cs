@@ -10,8 +10,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ AN OO SYMBOL'S ORIGIN IS A TYPE, NOT THE NULLNESS OF ITS CONTEXT (kb/Work PB4459), AND NO SYMBOL CARRIES A PARSE CONTEXT (kb/Work
 /// PB2401). A class, an interface or a method is <see cref="OoSymbolOrigin.Source"/> exactly when a CLASS-ID, INTERFACE-ID or METHOD-ID
-/// definition built it, and that definition is in the bind session's <see cref="SourceMap"/>, never on the symbol; a standard (ISO §16.2),
-/// imported or generated (ISO §13.18.42 PROPERTY accessor) method has none, and asking the map for one is a loud internal error — so no
+/// definition built it, and that definition is in the bind session's <see cref="SourceMap"/>, never on the symbol; a standard (ISO §2023:16.2),
+/// imported or generated (ISO §2023:13.18.42 PROPERTY accessor) method has none, and asking the map for one is a loud internal error — so no
 /// reader can hand a missing context to the diagnostic cursor (<c>edition.At</c>), which would leave the cursor where an earlier construct
 /// put it — and the map refuses to record a definition for a symbol that is not <see cref="OoSymbolOrigin.Source"/>. The
 /// positioned-diagnostic witnesses are <c>OoClassTablePositionTests</c>' IMPLEMENTS-GENERATED-ACCESSOR and IMPLEMENTS-STANDARD-METHOD

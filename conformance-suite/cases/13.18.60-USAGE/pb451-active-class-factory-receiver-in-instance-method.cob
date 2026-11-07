@@ -4,11 +4,11 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.39.3 syntax rule 14 b)2.: with identifier-3 described with an ACTIVE-CLASS
+      *> ISO §2023:14.9.39.3 syntax rule 14 b)2.: with identifier-3 described with an ACTIVE-CLASS
       *> phrase and the sender "the predefined object SELF", "if the data item referenced by
       *> identifier-3 is described with a FACTORY phrase, the method containing the SET
       *> statement shall be defined in the factory definition of its containing class."
-      *> §13.18.60.4 GR22 e)1.: with FACTORY the item shall hold "the factory object of that
+      *> §2023:13.18.60.4 GR22 e)1.: with FACTORY the item shall hold "the factory object of that
       *> class", and SELF in an instance method is an instance object.  The conforming twin is
       *> the FMK method of conformance:cases/9.3.6-Method-invocation/pb389_object_reference_descriptor (SET FA TO SELF
       *> inside a FACTORY method, prints PING-D).

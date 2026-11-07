@@ -183,7 +183,7 @@ internal sealed class SequentialJournal
         // The publication's result says WHY no holder came back (kb/Work PB3675, PB3749): a host that takes no lock here, or twelve tries
         // all lost to another run unit. SidecarLockFiles.Publish counts three ways to lose a try: the unit removed the lock directory,
         // reaped the pending holder file, or held it as it was locked or renamed. Either way the transaction cannot begin and the
-        // statement answers '30' with the file unaffected (§14.9.27.4 GR25), but the refusal names the cause that happened.
+        // statement answers '30' with the file unaffected (§2023:14.9.27.4 GR25), but the refusal names the cause that happened.
         var published = medium.PublishHolder(directory, HolderName(id), out var holder);
         if (holder is null)   // the holder is null unless the result is Ok (IHostMedium.PublishHolder)
             throw new IOException(published == RegionLockResult.Held
@@ -430,7 +430,7 @@ internal sealed class SequentialJournal
     internal bool Retired => _holder is null;
 
     /// <summary>⛔ WITHDRAW a transaction whose first change did not happen (2.2.2.14; kb/Work PB3492): an OPEN under commit control
-    /// began it for a creation or a capture and is UNSUCCESSFUL with the file not affected (§14.9.27.4 GR25: <i>"If the execution of
+    /// began it for a creation or a capture and is UNSUCCESSFUL with the file not affected (§2023:14.9.27.4 GR25: <i>"If the execution of
     /// the OPEN statement is unsuccessful, the file is not affected"</i>) — refused before it created the file, a capture refused
     /// before its <c>K</c> was handed over, or a creation refused and undone. The file is as the journal's start says, so nothing
     /// is restored: the decision <c>D R</c> is appended and synced and the journal retired. A refusal leaves the journal open for
@@ -626,7 +626,7 @@ internal sealed class SequentialJournal
         internal static readonly Holdings Unreadable = new([WholeFileOf(NoId)], unlistable: true);
 
         /// <summary>Whether the lock directory could not be listed (<see cref="Unreadable"/>): the process lacks the authority
-        /// the entry step needs, which an OPEN answers as such ('37', §9.1.13.6 6) b)) rather than as a sharing conflict.</summary>
+        /// the entry step needs, which an OPEN answers as such ('37', §2023:9.1.13.6 6) b)) rather than as a sharing conflict.</summary>
         internal bool Unlistable { get; } = unlistable;
 
         /// <summary>The live transactions' holdings.</summary>
@@ -644,8 +644,8 @@ internal sealed class SequentialJournal
         internal bool HoldsRecordAt(long offset) => Live.Any(h => h.HoldsRecordAt(offset));
 
         /// <summary>⛔ THE LOCK TEST'S ANSWER (2.2.2.3: "held, '51' (RETRY applies)"): null when no holding <paramref name="held"/>
-        /// picks lives; otherwise the record operation conflict '51' (§9.1.13.8 1)), its holder OUTSIDE the run unit — a holder a
-        /// RETRY phrase waits for (§14.7.9.3 GR1 to GR3) — unless every such holding is the run unit's own transaction
+        /// picks lives; otherwise the record operation conflict '51' (§2023:9.1.13.8 1)), its holder OUTSIDE the run unit — a holder a
+        /// RETRY phrase waits for (§2023:14.7.9.3 GR1 to GR3) — unless every such holding is the run unit's own transaction
         /// <paramref name="runUnitsOwn"/>, met through a connector no APPLY COMMIT clause names, which cannot end while the
         /// statement runs: a RETRY makes no wait for it, and FOREVER ends with the deadlock '52' (A.1 item 109).</summary>
         internal RetryAttempt? Conflict(Func<Holding, bool> held, int? runUnitsOwn)
@@ -680,7 +680,7 @@ internal sealed class SequentialJournal
         }
         catch (UnauthorizedAccessException) { return Holdings.Unreadable; }
         // A spelling the host cannot make absolute, or has no directory beside (a root: "C:/", "/"), names no file, so no transaction
-        // lives on it: the OPEN's own probe answers for it (a data-name-1 holds an arbitrary string, §12.4.5.3 GR3 b); kb/Work PB2848,
+        // lives on it: the OPEN's own probe answers for it (a data-name-1 holds an arbitrary string, §2023:12.4.5.3 GR3 b); kb/Work PB2848,
         // PB4097). The three exception types are SidecarRegionLocks's own set for the same call.
         catch (Exception e) when (e is PathTooLongException or ArgumentException or NotSupportedException) { return Holdings.None; }
         if (names.Count == 0) return Holdings.None;

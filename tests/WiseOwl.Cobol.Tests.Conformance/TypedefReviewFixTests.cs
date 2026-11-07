@@ -6,14 +6,14 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
 /// Regression locks for the TYPEDEF (data-model D17) adversarial review (DEVLOG 664, wf_7d3b1492-01a — 7 confirmed
-/// defects, all fixed): the compile-time negatives (three previously-unenforced §13.18.57.3 syntax rules) plus the two
+/// defects, all fixed): the compile-time negatives (three previously-unenforced §2023:13.18.57.3 syntax rules) plus the two
 /// false-positive fixes (the run-behavior of the nested-strong and cloned-ODO cases is byte-verified by the
 /// <c>typedef_nested_strong</c> / <c>typedef_odo</c> corpus goldens). New diagnostics: 1536 (SR7), 1537 (SR2),
 /// 1538 (SR5).
 /// </summary>
 public sealed class TypedefReviewFixTests
 {
-    /// <summary>§13.18.57.3 SR7 (fix #1) — a level-77 subject requires an ELEMENTARY type; a WEAK GROUP type on a 77
+    /// <summary>§2023:13.18.57.3 SR7 (fix #1) — a level-77 subject requires an ELEMENTARY type; a WEAK GROUP type on a 77
     /// subject was silently accepted (only the STRONG case was caught by SR6). Now COBOL1536, strength-invariant.</summary>
     [Fact]
     public void WeakGroupTypeOnLevel77_Rejected1536()
@@ -32,11 +32,11 @@ public sealed class TypedefReviewFixTests
                 DISPLAY "X".
                 STOP RUN.
             """, 2002);
-        Assert.False(ok, "a level-77 subject referencing a GROUP type must be rejected (ISO §13.18.57.3 SR7)");
+        Assert.False(ok, "a level-77 subject referencing a GROUP type must be rejected (ISO §2023:13.18.57.3 SR7)");
         EditionHarness.AssertHasDiagnostic(diag, "COBOL1536");
     }
 
-    /// <summary>§13.18.57.3 SR2 (fix #2) — a TYPE entry followed immediately by a SUBORDINATE entry silently merged
+    /// <summary>§2023:13.18.57.3 SR2 (fix #2) — a TYPE entry followed immediately by a SUBORDINATE entry silently merged
     /// members (and leaked a raw Roslyn CS1061 for an elementary type). Now COBOL1537.</summary>
     [Fact]
     public void SubordinateAfterTypeEntry_Rejected1537()
@@ -56,11 +56,11 @@ public sealed class TypedefReviewFixTests
                 DISPLAY "X".
                 STOP RUN.
             """, 2002);
-        Assert.False(ok, "a subordinate entry immediately after a TYPE entry must be rejected (ISO §13.18.57.3 SR2)");
+        Assert.False(ok, "a subordinate entry immediately after a TYPE entry must be rejected (ISO §2023:13.18.57.3 SR2)");
         EditionHarness.AssertHasDiagnostic(diag, "COBOL1537");
     }
 
-    /// <summary>§13.18.57.3 SR2 (fix #2) — a TYPE entry followed immediately by a LEVEL-88 entry (the 88 belongs in the
+    /// <summary>§2023:13.18.57.3 SR2 (fix #2) — a TYPE entry followed immediately by a LEVEL-88 entry (the 88 belongs in the
     /// type declaration). Now COBOL1537.</summary>
     [Fact]
     public void Level88AfterTypeEntry_Rejected1537()
@@ -78,11 +78,11 @@ public sealed class TypedefReviewFixTests
                 DISPLAY "X".
                 STOP RUN.
             """, 2002);
-        Assert.False(ok, "a level-88 immediately after a TYPE entry must be rejected (ISO §13.18.57.3 SR2)");
+        Assert.False(ok, "a level-88 immediately after a TYPE entry must be rejected (ISO §2023:13.18.57.3 SR2)");
         EditionHarness.AssertHasDiagnostic(diag, "COBOL1537");
     }
 
-    /// <summary>§13.18.57.3 SR5 (fix #3) — a group SUPERORDINATE to a TYPE subject carrying a USAGE (or SIGN) clause
+    /// <summary>§2023:13.18.57.3 SR5 (fix #3) — a group SUPERORDINATE to a TYPE subject carrying a USAGE (or SIGN) clause
     /// silently overrode the type's representation. Now COBOL1538.</summary>
     [Fact]
     public void UsageSuperordinateToTypeSubject_Rejected1538()
@@ -101,12 +101,12 @@ public sealed class TypedefReviewFixTests
                 DISPLAY X.
                 STOP RUN.
             """, 2002);
-        Assert.False(ok, "a USAGE clause on a group superordinate to a TYPE subject must be rejected (ISO §13.18.57.3 SR5)");
+        Assert.False(ok, "a USAGE clause on a group superordinate to a TYPE subject must be rejected (ISO §2023:13.18.57.3 SR5)");
         EditionHarness.AssertHasDiagnostic(diag, "COBOL1538");
     }
 
-    /// <summary>Fixes #5 + #6 (false positives) — a STRONG type nested inside a STRONG type is legal (§13.18.57.3 SR6
-    /// second arm), and a nested strong subgroup is the SAME type as a standalone item of that type (§8.5.3, by the
+    /// <summary>Fixes #5 + #6 (false positives) — a STRONG type nested inside a STRONG type is legal (§2023:13.18.57.3 SR6
+    /// second arm), and a nested strong subgroup is the SAME type as a standalone item of that type (§2023:8.5.3, by the
     /// NEAREST TYPE anchor). Both a same-type MOVE and a same-type compare must compile CLEAN (no false 1532/1533).
     /// (The <c>typedef_nested_strong</c> golden byte-verifies the run output.)</summary>
     [Fact]

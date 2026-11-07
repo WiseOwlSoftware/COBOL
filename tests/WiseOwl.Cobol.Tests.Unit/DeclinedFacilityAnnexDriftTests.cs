@@ -11,16 +11,16 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// The drift guard for the DECLINED-FACILITY POSTURE — that every diagnostic which declines a language element
 /// cites the clause of the annex the element is actually listed in, and that the annex it claims agrees with the
-/// user documentation ISO §4.2.6 and §4.2.7 both oblige (<c>docs/CONFORMANCE.md</c>).
+/// user documentation ISO §2023:4.2.6 and §2023:4.2.7 both oblige (<c>docs/CONFORMANCE.md</c>).
 ///
-/// <para>⛔ WHY THIS EXISTS (kb/Work PB709). §4.2.6 governs Annex A.3, PROCESSOR-DEPENDENT elements, and carries
+/// <para>⛔ WHY THIS EXISTS (kb/Work PB709). §2023:4.2.6 governs Annex A.3, PROCESSOR-DEPENDENT elements, and carries
 /// two sentences nothing else in the standard carries — a MANDATORY compile-time warning mechanism, and an express
-/// licence not to "diagnose syntax errors within this unsupported syntax". §4.2.7 governs Annex A.4, OPTIONAL
+/// licence not to "diagnose syntax errors within this unsupported syntax". §2023:4.2.7 governs Annex A.4, OPTIONAL
 /// elements, and has NEITHER: it makes the element one an implementor "may, but need not, implement" and requires
 /// only that the claim be identified in user documentation, after which A.4.1 admits the syntax "only when support
 /// for that language element is claimed by the implementor". The two licences reach OPPOSITE postures — accept and
 /// warn versus refuse by name — so which clause a decline cites is a normative fact about it, not a reference.
-/// §4.2.6 was nevertheless written at four Annex-A.4 sites, and NOTHING could see it: the clause exists, the quoted
+/// §2023:4.2.6 was nevertheless written at four Annex-A.4 sites, and NOTHING could see it: the clause exists, the quoted
 /// text is genuinely in the standard, and <c>scripts/spec/audit_code_citations.py --check</c> therefore passes. A
 /// real citation answering a different question is invisible to every mechanical check the repo had.</para>
 ///
@@ -32,11 +32,11 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 public sealed class DeclinedFacilityAnnexDriftTests
 {
-    /// <summary>A citation of ISO §4.2.6 or §4.2.7 that is the WHOLE clause number: the trailing lookahead keeps
-    /// <c>§4.2.6</c> from matching inside a longer path, and keeps <c>§4.2.16</c> (the conformance-claim clause,
-    /// which several of these Titles legitimately mention) out of the §4.2.1 family entirely.</summary>
+    /// <summary>A citation of ISO §2023:4.2.6 or §2023:4.2.7 that is the WHOLE clause number: the trailing lookahead keeps
+    /// <c>§2023:4.2.6</c> from matching inside a longer path, and keeps <c>§2023:4.2.16</c> (the conformance-claim clause,
+    /// which several of these Titles legitimately mention) out of the §2023:4.2.1 family entirely.</summary>
     private static Regex Cites(string clause) =>
-        new(Regex.Escape("§" + clause) + @"(?![0-9.])", RegexOptions.CultureInvariant);
+        new(Regex.Escape("§2023:" + clause) + @"(?![0-9.])", RegexOptions.CultureInvariant);
 
     /// <summary>Every declined-facility descriptor — the ones that carry an annex, i.e. the ones whose posture
     /// this class is about.</summary>
@@ -47,7 +47,7 @@ public sealed class DeclinedFacilityAnnexDriftTests
     /// Annex A.4 register (§5, <c>"A4"</c>) names, from the register extract
     /// (<c>tests/version-matrix/conformance-register.json</c>, written from the document by
     /// <c>scripts/doc_audits.py --write-register</c> and held fresh by the DOC AUDITS gate audit): no compiler test opens a
-    /// Markdown file (kb/Work PB4453), and the document is still what §4.2.6 and §4.2.7 make the normative artifact.</summary>
+    /// Markdown file (kb/Work PB4453), and the document is still what §2023:4.2.6 and §2023:4.2.7 make the normative artifact.</summary>
     private static HashSet<string> CodesUnder(string annex) => ConformanceRegister.DeclinedCodes(annex);
 
     /// <summary>The population assertion (feedback_verdict_evidence_invariant). A decline band that parsed to
@@ -66,8 +66,8 @@ public sealed class DeclinedFacilityAnnexDriftTests
     }
 
     /// <summary>⛔ THE OBLIGATION, ARM 1. A descriptor's own text cites the clause of an annex it is not in.
-    /// This is the shape kb/Work PB709 was opened for: §4.2.6 at an A.4-only site reads "we could not implement
-    /// this", where §4.2.7 reads "we chose not to, and documented it" — and only the second is the posture
+    /// This is the shape kb/Work PB709 was opened for: §2023:4.2.6 at an A.4-only site reads "we could not implement
+    /// this", where §2023:4.2.7 reads "we chose not to, and documented it" — and only the second is the posture
     /// <c>docs/CONFORMANCE.md</c> §5 actually takes. A facility listed in BOTH annexes (commit and rollback is
     /// A.3 items 6-7 AND A.4.3) may cite either.</summary>
     [Fact]
@@ -78,11 +78,11 @@ public sealed class DeclinedFacilityAnnexDriftTests
         {
             string text = d.Title + " " + d.IsoSection;
             if (!d.Annex.HasFlag(DeclinedAnnex.A3) && Cites("4.2.6").IsMatch(text))
-                wrong.Add($"{d.Code} ({d.Id}) is Annex {d.Annex} — an OPTIONAL element — but cites §4.2.6, the "
-                    + "PROCESSOR-DEPENDENT clause; §4.2.7 is the one that governs it");
+                wrong.Add($"{d.Code} ({d.Id}) is Annex {d.Annex} — an OPTIONAL element — but cites §2023:4.2.6, the "
+                    + "PROCESSOR-DEPENDENT clause; §2023:4.2.7 is the one that governs it");
             if (!d.Annex.HasFlag(DeclinedAnnex.A4) && Cites("4.2.7").IsMatch(text))
                 wrong.Add($"{d.Code} ({d.Id}) is Annex {d.Annex} — a PROCESSOR-DEPENDENT element — but cites "
-                    + "§4.2.7, the OPTIONAL-element clause; §4.2.6 is the one that governs it");
+                    + "§2023:4.2.7, the OPTIONAL-element clause; §2023:4.2.6 is the one that governs it");
         }
         Assert.True(wrong.Count == 0,
             "declined-facility descriptor(s) citing the wrong annex's clause (kb/Work PB709):\n"
@@ -100,7 +100,7 @@ public sealed class DeclinedFacilityAnnexDriftTests
         {
             Assert.NotNull(d.PostureClause);
             foreach (string clause in d.PostureClause!.Split(" / "))
-                if (!Cites(clause.TrimStart('§')).IsMatch(d.IsoSection))
+                if (!Cites(clause["§2023:".Length..]).IsMatch(d.IsoSection))
                     missing.Add($"{d.Code} ({d.Id}) is Annex {d.Annex}, whose licence is {clause}, but its "
                         + $"IsoSection '{d.IsoSection}' does not cite it");
         }
@@ -110,8 +110,8 @@ public sealed class DeclinedFacilityAnnexDriftTests
     }
 
     /// <summary>⛔ THE OBLIGATION, ARM 3 — the datum agrees with the USER DOCUMENTATION, which is what the
-    /// standard actually obliges. §4.2.6 requires the absence of a processor-dependent element to be "specified
-    /// in the implementor's user documentation" (<c>docs/CONFORMANCE.md</c> §2) and §4.2.7 requires the optional
+    /// standard actually obliges. §2023:4.2.6 requires the absence of a processor-dependent element to be "specified
+    /// in the implementor's user documentation" (<c>docs/CONFORMANCE.md</c> §2) and §2023:4.2.7 requires the optional
     /// elements claimed to be identified there (§5). So a code named in §2 declines an A.3 element and a code
     /// named in §5 declines an A.4 one — and the descriptor has to say the same thing.</summary>
     [Fact]
@@ -136,39 +136,39 @@ public sealed class DeclinedFacilityAnnexDriftTests
 
     /// <summary>Prove the guards can FAIL (feedback_green_gates_arent_evidence). Run the two predicates against
     /// FABRICATED descriptors rather than by mutating the catalog, and pin the negative side too — a correctly
-    /// cited descriptor must not trip them, or the guard would be unusable and get deleted. The A.4-with-§4.2.6
+    /// cited descriptor must not trip them, or the guard would be unusable and get deleted. The A.4-with-§2023:4.2.6
     /// case is the one PB709 actually found in the tree.</summary>
     [Fact]
     public void TheGuards_CanFail_AndDoNotFireOnCorrectCitations()
     {
         var a4CitingA3 = new DiagnosticDescriptor("COBOL9998", "fabricated-a4", EditionSeverity.Error,
-            "an OPTIONAL element (§4.2.6) that is not supported", "ISO §4.2.6 / Annex A.4.14",
+            "an OPTIONAL element (§2023:4.2.6) that is not supported", "ISO §2023:4.2.6 / Annex A.4.14",
             Annex: DeclinedAnnex.A4);
         var a3CitingA4 = new DiagnosticDescriptor("COBOL9997", "fabricated-a3", EditionSeverity.Warning,
-            "a processor-dependent element (§4.2.7) that is not supported", "ISO §4.2.7 / Annex A.3 item 4",
+            "a processor-dependent element (§2023:4.2.7) that is not supported", "ISO §2023:4.2.7 / Annex A.3 item 4",
             Annex: DeclinedAnnex.A3);
         Assert.Matches(Cites("4.2.6"), a4CitingA3.Title + " " + a4CitingA3.IsoSection);
         Assert.Matches(Cites("4.2.7"), a3CitingA4.Title + " " + a3CitingA4.IsoSection);
-        Assert.Equal("§4.2.7", a4CitingA3.PostureClause);
-        Assert.Equal("§4.2.6", a3CitingA4.PostureClause);
+        Assert.Equal("§2023:4.2.7", a4CitingA3.PostureClause);
+        Assert.Equal("§2023:4.2.6", a3CitingA4.PostureClause);
         Assert.DoesNotMatch(Cites("4.2.6"), a4CitingA3.PostureClause!);   // arm 2 would flag it too
         Assert.DoesNotMatch(Cites("4.2.7"), a3CitingA4.PostureClause!);
 
         var correct = new DiagnosticDescriptor("COBOL9996", "fabricated-ok", EditionSeverity.Error,
-            "an OPTIONAL element (§4.2.7; Annex A.4.14), additionally obsolete (§4.2.13) and outside the "
-            + "§4.2.16 claim", "ISO §4.2.7 / Annex A.4.1", Annex: DeclinedAnnex.A4);
+            "an OPTIONAL element (§2023:4.2.7; Annex A.4.14), additionally obsolete (§2023:4.2.13) and outside the "
+            + "§2023:4.2.16 claim", "ISO §2023:4.2.7 / Annex A.4.1", Annex: DeclinedAnnex.A4);
         Assert.DoesNotMatch(Cites("4.2.6"), correct.Title + " " + correct.IsoSection);
         Assert.Matches(Cites("4.2.7"), correct.IsoSection);
 
         var both = new DiagnosticDescriptor("COBOL9995", "fabricated-both", EditionSeverity.Warning,
-            "listed in both annexes", "ISO §4.2.6 ¶3 / §4.2.7 / Annex A.3 items 6-7 / Annex A.4.3",
+            "listed in both annexes", "ISO §2023:4.2.6 ¶3 / §2023:4.2.7 / Annex A.3 items 6-7 / Annex A.4.3",
             Annex: DeclinedAnnex.A3 | DeclinedAnnex.A4);
-        Assert.Equal("§4.2.6 / §4.2.7", both.PostureClause);
+        Assert.Equal("§2023:4.2.6 / §2023:4.2.7", both.PostureClause);
         foreach (string clause in both.PostureClause!.Split(" / "))
-            Assert.Matches(Cites(clause.TrimStart('§')), both.IsoSection);
+            Assert.Matches(Cites(clause["§2023:".Length..]), both.IsoSection);
 
         // A descriptor that is not a decline carries no clause at all — the None arm of the derivation.
         Assert.Null(new DiagnosticDescriptor("COBOL9994", "fabricated-none", EditionSeverity.Error,
-            "not a decline", "ISO §8.1").PostureClause);
+            "not a decline", "ISO §2023:8.1").PostureClause);
     }
 }

@@ -404,12 +404,12 @@ public sealed class BTreeShapeTests
         Assert.Equal(0, KeyOrders.Ordinal.ComparePrefix([0x41, 0x42, 0x43], [0x41, 0x42]));
         // NUMERIC: a relative record number big-endian, so byte order is numeric order.
         Assert.True(KeyOrders.Ordinal.Compare(KeyOrders.RecordNumberKey(255), KeyOrders.RecordNumberKey(256)) < 0);
-        // WEIGHTED: the declared alphabet "ZYX…A" (§12.3.7.4 GR7) reverses the letters' order.
+        // WEIGHTED: the declared alphabet "ZYX…A" (§2023:12.3.7.4 GR7) reverses the letters' order.
         var reversed = new WeightedKeyOrder(null, BTreeModelTests.ReversedAlphabet(), 2);
         Assert.True(reversed.Compare("ZZ"u8, "AA"u8) < 0);
         Assert.True(reversed.ComparePrefix("ZA"u8, "Z"u8) == 0);
         Assert.True(reversed.ComparePrefix("ZA"u8, "Y"u8) < 0);
-        // WEIGHTED with a CODE-SET and no COLLATING SEQUENCE: the bytes decoded, then the native order (§12.4.5.7.4 GR4).
+        // WEIGHTED with a CODE-SET and no COLLATING SEQUENCE: the bytes decoded, then the native order (§2023:12.4.5.7.4 GR4).
         var codeSet = new CodeSetConversion(Enumerable.Range(0, 256).Select(u => (char)(255 - u)).ToArray());
         var decoded = new WeightedKeyOrder(codeSet, null, 2);
         Assert.True(decoded.Compare([0x01], [0x02]) > 0);
@@ -418,8 +418,8 @@ public sealed class BTreeShapeTests
         Assert.True(composite.Compare(CompositeKeyOrder.Compose("AB"u8, 9), CompositeKeyOrder.Compose("AC"u8, 1)) < 0);
         Assert.True(composite.Compare(CompositeKeyOrder.Compose("AB"u8, 1), CompositeKeyOrder.Compose("AB"u8, 2)) < 0);
         Assert.Equal(0, composite.ComparePrefix(CompositeKeyOrder.Compose("ABC"u8, 7), "AB"u8));
-        // PREFIX NARROWING: every order that compares position by position (§8.8.4.2.7 1)) narrows a prefix of every
-        // length; a LOCALE-BASED sequence (§8.8.4.2.11) only a prefix as long as the key, which §14.9.41.4 GR17 c) then
+        // PREFIX NARROWING: every order that compares position by position (§2023:8.8.4.2.7 1)) narrows a prefix of every
+        // length; a LOCALE-BASED sequence (§2023:8.8.4.2.11) only a prefix as long as the key, which §2023:14.9.41.4 GR17 c) then
         // truncates nothing of, and a composite key over one the same.
         Assert.True(KeyOrders.Ordinal.PrefixNarrows(1));
         Assert.True(reversed.PrefixNarrows(1));
@@ -443,7 +443,7 @@ public sealed class BTreeShapeTests
         Assert.Throws<ArgumentException>(() => reversed.Compare("ZZ"u8, "ZZZ"u8));
     }
 
-    /// <summary>⛔ A START'S PARTIAL KEY UNDER A LOCALE-BASED SEQUENCE IS THE SEQUENTIAL SEARCH §14.9.41.4 GR17 STATES
+    /// <summary>⛔ A START'S PARTIAL KEY UNDER A LOCALE-BASED SEQUENCE IS THE SEQUENTIAL SEARCH §2023:14.9.41.4 GR17 STATES
     /// (review w1122-a R1-1): <i>"the file is searched sequentially"</i> for EQUAL and the GREATER relations, <i>"in reverse
     /// order"</i> for the LESS ones, each stored key truncated to the partial key's length. Under the root locale the keys
     /// order "áa" &lt; "ab" &lt; "ác" &lt; "ad" while their one-character prefixes are á, a, á, a, so the qualifying entries
@@ -494,7 +494,7 @@ public sealed class BTreeShapeTests
 
     /// <summary>⛔ A WHOLE-LENGTH START KEY UNDER A LOCALE-BASED SEQUENCE IS A BINARY SEARCH, NOT A WALK OF THE FILE (review
     /// w1122-a R2-1; kb/Work PB3330's bar: no statement reads the whole file). When the START's key is as long as the
-    /// record key (§14.9.41.4 GR17 b)), GR17 c) and d) truncate nothing, so the comparison is the key order's own, the
+    /// record key (§2023:14.9.41.4 GR17 b)), GR17 c) and d) truncate nothing, so the comparison is the key order's own, the
     /// qualifying entries are one run of it, and the seek reads the tree's depth, a leaf or two more where it settles across
     /// a leaf boundary — never the leaves before its answer. Every relation is checked against the sequential search's
     /// answer over the sorted keys, at present keys, absent keys, below the first and above the last (the invalid key

@@ -11,7 +11,7 @@ using WiseOwl.Cobol.Tests.Shared;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ISO §7.2.3.4 GR10 — "If the REPLACING phrase is specified, the library text shall not contain a COPY
+/// ISO §2023:7.2.3.4 GR10 — "If the REPLACING phrase is specified, the library text shall not contain a COPY
 /// statement" — against GR12, which permits nesting (at least 5 levels) only WITHOUT replacing (kb/Work R34).
 /// The differential's syn_copy:630 ("COPY: recursive replacement", a GnuCOBOL EXTENSION) exposed the gap: the
 /// preprocessor recursed into the nested copybook OUTSIDE the replacement scope, so the ISO-illegal

@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §7.3.13.4 GR7 — alphanumeric / national literal subject of
+      *> ISO §2023:7.3.13.4 GR7 — alphanumeric / national literal subject of
       *> the EVALUATE directive: binary per-character equality, and
       *> literals of unequal length are unequal (no space padding).
       *> RULE 7.3.13.4 GR7: "If literal-1 is an alphanumeric or national
@@ -14,7 +14,7 @@
       *>   used. If the literals are of unequal length they are not
       *>   equal."
       *> cite.py:
-      *>   OK  §7.3.13.4 7)  (General rules)
+      *>   OK  §2023:7.3.13.4 7)  (General rules)
       *> EXPECTED OUTPUT, DERIVED:
       *>  A-EXACT           "ABC" vs "ABC ": unequal length, not equal;
       *>                    vs "abc": encodings differ (no collating

@@ -6,7 +6,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit.Collation;
 
 /// <summary>
-/// The table-driven NFD (Runtime/Collation/Normalizer.cs; The Unicode Standard §3.11, the Canonical Ordering
+/// The table-driven NFD (Runtime/Collation/Normalizer.cs; The Unicode Standard §2023:3.11, the Canonical Ordering
 /// Algorithm), in its two shapes: the string form and the span form a comparison uses. The span form must give the
 /// string form's text in a caller buffer when it fits and in a pooled array when it does not, and a comparison of texts
 /// that need their NFD must allocate nothing (kb/Work PB107: the NFD cost 394 B on accented text, 93 B per comparison).

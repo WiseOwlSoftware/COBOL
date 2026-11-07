@@ -6,7 +6,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The Format-3 (exception-checking) PERFORM interceptor frame stack (ISO/IEC 1989:2023 §14.9.28.4 GR17–GR22) —
+/// The Format-3 (exception-checking) PERFORM interceptor frame stack (ISO/IEC 1989:2023 §2023:14.9.28.4 GR17–GR22) —
 /// the runtime-additive half (Increment 1 of the pc-range interceptor, design SSOT
 /// <c>PHASE-13-c5-perform-format3-DESIGN.md</c> §9.2). Exercises <see cref="ExceptionEngine.RunTopFrame"/>'s
 /// innermost→outermost walk, GR17 fall-through to an outer PERFORM, GR18 WHEN OTHER as the matcher's own fallback,

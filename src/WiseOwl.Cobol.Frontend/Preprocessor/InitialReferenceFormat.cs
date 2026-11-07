@@ -4,19 +4,19 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 
 /// <summary>
 /// The reference format a compilation group STARTS in, before any <c>&gt;&gt;SOURCE FORMAT</c> directive (kb/Work
-/// PB1362) — the CLI's <c>--source-format</c>. ISO §7.3.24.3 2): "The default reference format of a compilation group
+/// PB1362) — the CLI's <c>--source-format</c>. ISO §2023:7.3.24.3 2): "The default reference format of a compilation group
 /// is fixed form", so <see cref="Fixed"/> is the default at every entry point. <see cref="Free"/> and
-/// <see cref="Auto"/> are the implementor-defined mechanism §4.2.10 3) requires for selecting a nonstandard behavior
+/// <see cref="Auto"/> are the implementor-defined mechanism §2023:4.2.10 3) requires for selecting a nonstandard behavior
 /// of a required language element ("provided that standard-conforming behavior is also implemented and that an
 /// implementor-defined mechanism exists for selection of the nonstandard behavior"); GnuCOBOL, the rule-1 precedent,
 /// likewise defaults to fixed and selects free form by a compiler flag. docs/CONFORMANCE.md DOC-A.1-158 documents
 /// the three.
-/// <para>A <c>&gt;&gt;SOURCE FORMAT</c> directive switches the format whichever selection started it (§7.3.24.3 1));
+/// <para>A <c>&gt;&gt;SOURCE FORMAT</c> directive switches the format whichever selection started it (§2023:7.3.24.3 1));
 /// library text starts in the format in effect for its COPY statement (3)).</para>
 /// </summary>
 public enum InitialReferenceFormat
 {
-    /// <summary>Fixed form — the standard's default (§7.3.24.3 2)).</summary>
+    /// <summary>Fixed form — the standard's default (§2023:7.3.24.3 2)).</summary>
     Fixed,
 
     /// <summary>Free form from the first line — a stated selection, as if the text began with
@@ -51,7 +51,7 @@ public static class InitialReferenceFormatOption
         return false;
     }
 
-    /// <summary>The initial format as the §6.5 walker takes it: fixed?, or null to detect it.</summary>
+    /// <summary>The initial format as the §2023:6.5 walker takes it: fixed?, or null to detect it.</summary>
     public static bool? InitialFixed(this InitialReferenceFormat format) => format switch
     {
         InitialReferenceFormat.Fixed => true,

@@ -5,7 +5,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// kb/Work PB1616 — a literal in a COMPILER-DIRECTIVE operand obeys its own §8.3.3 syntax rules and the edition gates of
+/// kb/Work PB1616 — a literal in a COMPILER-DIRECTIVE operand obeys its own §2023:8.3.3 syntax rules and the edition gates of
 /// its format, exactly as the same literal written in the program text does (kb/Work PB1393, PB1545, PB895). The
 /// directive operand is lexed apart from the unit, so the unit-tree screen never reached it: the evaluator asked the
 /// rules itself, under COBOL1619, along the one path it evaluated — an omitted branch, an operand a failed
@@ -18,7 +18,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 public sealed class DirectiveLiteralScreenTests
 {
     /// <summary>The directive lines <paramref name="directives"/> in a minimal FREE-form program. A compiler directive is
-    /// one line and cannot be continued, so a literal longer than a free-form line (255 positions, §6.1 3) a),
+    /// one line and cannot be continued, so a literal longer than a free-form line (255 positions, §2023:6.1 3) a),
     /// COBOL2653) makes the line itself an error too: the length tests below read the literal's own diagnostic out of
     /// the errors and never ask whether the compile as a whole succeeded.</summary>
     private static string Program(string id, string directives) =>
@@ -27,7 +27,7 @@ public sealed class DirectiveLiteralScreenTests
 
     /// <summary>Every directive position that takes a compile-time operand: a DEFINE value, a >>IF operand, a >>EVALUATE
     /// subject, a >>WHEN object (both forms), a >>DISPLAY operand — and the same DEFINE inside an OMITTED branch, which
-    /// §7.2.1 holds to the same syntax. <c>{L}</c> is the literal under test.</summary>
+    /// §2023:7.2.1 holds to the same syntax. <c>{L}</c> is the literal under test.</summary>
     public static TheoryData<string, string> Positions() => new()
     {
         { "DEFINE value",                  ">>DEFINE D AS {L}" },
@@ -42,7 +42,7 @@ public sealed class DirectiveLiteralScreenTests
 
     private static string Fill(string directives, string literal) => directives.Replace("{L}", literal);
 
-    /// <summary>The length rule (§8.3.3.2.3 SR1 alphanumeric, §8.3.3.4.3 SR1 boolean, §8.3.3.5.3 SR1 national: at most
+    /// <summary>The length rule (§2023:8.3.3.2.3 SR1 alphanumeric, §2023:8.3.3.4.3 SR1 boolean, §2023:8.3.3.5.3 SR1 national: at most
     /// 8,191 positions of the class) at every directive position: an 8,192-position literal is COBOL0814, once, and
     /// its 8,191-position twin draws no such diagnostic (the line it sits on still draws COBOL2653, which is the
     /// line's, not the literal's).</summary>
@@ -54,9 +54,9 @@ public sealed class DirectiveLiteralScreenTests
         {
             var (ok, errors, _) = EditionHarness.CompileFull(
                 Program("DLS" + positions, Fill(directives, "\"" + new string('A', positions) + "\"")), 2023);
-            Assert.False(ok, $"[{position}] the {positions}-position line is over §6.1 3) a)'s 255");
+            Assert.False(ok, $"[{position}] the {positions}-position line is over §2023:6.1 3) a)'s 255");
             if (positions <= 8191)
-                Assert.DoesNotContain(errors, e => e.Contains("COBOL0814"));   // §8.3.3.2.3 SR1 '≤ 8,191'
+                Assert.DoesNotContain(errors, e => e.Contains("COBOL0814"));   // §2023:8.3.3.2.3 SR1 '≤ 8,191'
             else
             {
                 Assert.Single(errors, e => e.Contains("COBOL0814"));   // once: one screen
@@ -76,8 +76,8 @@ public sealed class DirectiveLiteralScreenTests
         Assert.Single(errors, e => e.Contains("COBOL0814"));   // an 8,192-position literal shall be rejected
     }
 
-    /// <summary>The hexadecimal grouping rule (§8.3.3.2.3 SR6 pairs, §8.3.3.5.3 SR5 groups of four) and the content
-    /// repertoire rules (§8.3.3.2.3 SR5 hexadecimal digits, §8.3.3.4.3 SR2 '0' or '1') at every directive position.</summary>
+    /// <summary>The hexadecimal grouping rule (§2023:8.3.3.2.3 SR6 pairs, §2023:8.3.3.5.3 SR5 groups of four) and the content
+    /// repertoire rules (§2023:8.3.3.2.3 SR5 hexadecimal digits, §2023:8.3.3.4.3 SR2 '0' or '1') at every directive position.</summary>
     [Theory]
     [MemberData(nameof(Positions))]
     public void HexGrouping_IsScreenedAtEveryDirectivePosition(string position, string directives)
@@ -85,7 +85,7 @@ public sealed class DirectiveLiteralScreenTests
         foreach (string literal in new[] { "X\"414\"", "NX\"041\"" })
         {
             var (ok, errors, _) = EditionHarness.CompileFull(Program("DLH", Fill(directives, literal)), 2023);
-            Assert.False(ok, $"[{position}] {literal} shall be rejected (§8.3.3.2.3 SR6 / §8.3.3.5.3 SR5)");
+            Assert.False(ok, $"[{position}] {literal} shall be rejected (§2023:8.3.3.2.3 SR6 / §2023:8.3.3.5.3 SR5)");
             Assert.Single(errors, e => e.Contains("COBOL1635"));
         }
     }
@@ -97,7 +97,7 @@ public sealed class DirectiveLiteralScreenTests
     {
         var (ok, errors, _) = EditionHarness.CompileFull(
             Program("DLR", ">>IF 1 = 2\n>>DEFINE D AS " + literal + "\n>>END-IF"), 2023);
-        Assert.False(ok, $"{literal} shall be rejected even in an omitted branch (§7.2.1: directives are syntactically correct)");
+        Assert.False(ok, $"{literal} shall be rejected even in an omitted branch (§2023:7.2.1: directives are syntactically correct)");
         Assert.Single(errors, e => e.Contains(code));
     }
 
@@ -113,7 +113,7 @@ public sealed class DirectiveLiteralScreenTests
         Assert.Contains("COBOL1635", errors[0]);
     }
 
-    /// <summary>The edition gate of the literal's FORMAT (§8.3.3.1: the zero-length literal is a COBOL-2014 introduction,
+    /// <summary>The edition gate of the literal's FORMAT (§2023:8.3.3.1: the zero-length literal is a COBOL-2014 introduction,
     /// VCR row 7.30, kb/Work PB895) reaches a directive operand in a COMPILED branch — and only there, as the directive's
     /// own gate and the boolean-operator gate do: an omitted branch is not compiled.</summary>
     [Theory]

@@ -11,18 +11,18 @@
       *> admitted only the WORD, so `LINE + 1` and `COLUMN + 2` were a bare COBOL0001 "unexpected '+'".
       *>
       *> THE RULES — the same sentence, printed at each clause:
-      *> §13.18.35.3 SR1 (LINE)        — "PLUS and + are synonyms."
-      *> §13.18.14.3 SR2 (COLUMN)      — "PLUS and + are synonyms."
-      *> §13.18.37.3 SR2 (NEXT GROUP)  — "PLUS and + are synonyms."
+      *> §2023:13.18.35.3 SR1 (LINE)        — "PLUS and + are synonyms."
+      *> §2023:13.18.14.3 SR2 (COLUMN)      — "PLUS and + are synonyms."
+      *> §2023:13.18.37.3 SR2 (NEXT GROUP)  — "PLUS and + are synonyms."
       *> A synonym is an IDENTITY claim, so DE-W (every relative operand spelled PLUS) and DE-S (every one
       *> spelled +) must print identical lines at identical distances. This golden runs at 2002 because the
       *> relative COLUMN operand is a 2002 addition (construct report-multi-column-2002).
       *>
-      *> DERIVATION. The report is not divided into pages (§13.18.39.4 GR2 a)), so §13.18.35.4 GR5 c)
+      *> DERIVATION. The report is not divided into pages (§2023:13.18.39.4 GR2 a)), so §2023:13.18.35.4 GR5 c)
       *> places a body group's first relative line at LINE-COUNTER + integer-2, GR7 b) every later one the
-      *> same way, and §13.18.37.4 GR4 b) adds the NEXT GROUP integer-2 to LINE-COUNTER after the group
+      *> same way, and §2023:13.18.37.4 GR4 b) adds the NEXT GROUP integer-2 to LINE-COUNTER after the group
       *> (an unpaged report has no FOOTING region to clamp it against).
-      *> §13.18.14.4 GR7-GR9: the horizontal counter is zero at the start of a line, a relative COLUMN's
+      *> §2023:13.18.14.4 GR7-GR9: the horizontal counter is zero at the start of a line, a relative COLUMN's
       *> leftmost position is the counter + integer-2, and the counter becomes the item's rightmost column.
       *>   GENERATE DE-W: line 0 + 1 = 1: "W" at column 1 (counter 1), then PLUS 2 -> 1 + 2 = 3 "XY";
       *>                  line 1 + 1 = 2: "Z" at column 0 + 2 = 2. NEXT GROUP PLUS 2: LC 2 + 2 = 4.

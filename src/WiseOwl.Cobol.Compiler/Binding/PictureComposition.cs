@@ -6,7 +6,7 @@ using WiseOwl.Cobol.Editions.Diagnostics;
 namespace WiseOwl.Cobol.Binding;
 
 /// <summary>
-/// The Table-10 ROLE a picture symbol OCCURRENCE plays (ISO/IEC 1989:2023 §13.18.40.6, Table 10 — Format 1
+/// The Table-10 ROLE a picture symbol OCCURRENCE plays (ISO/IEC 1989:2023 §2023:13.18.40.6, Table 10 — Format 1
 /// picture symbol order of precedence). The values ARE the table's column indexes, in the printed order, so a
 /// role indexes <see cref="PictureComposition.MayPrecede"/> directly.
 /// <para>Eight symbols occupy TWO columns and two rows each, because their precedence depends on WHERE they
@@ -20,9 +20,9 @@ namespace WiseOwl.Cobol.Binding;
 /// </summary>
 internal enum PicRole
 {
-    /// <summary>B 0 / — simple insertion (§13.18.40.5 rule 3).</summary>
+    /// <summary>B 0 / — simple insertion (§2023:13.18.40.5 rule 3).</summary>
     SimpleInsertion = 0,
-    /// <summary>The GROUPING separator: ',' — or, under DECIMAL-POINT IS COMMA, '.' (§13.18.40.3 SR13).</summary>
+    /// <summary>The GROUPING separator: ',' — or, under DECIMAL-POINT IS COMMA, '.' (§2023:13.18.40.3 SR13).</summary>
     Grouping = 1,
     /// <summary>The DECIMAL separator: '.' — or, under DECIMAL-POINT IS COMMA, ',' (SR13).</summary>
     DecimalSeparator = 2,
@@ -33,7 +33,7 @@ internal enum PicRole
     SignLeading = 4,
     /// <summary>'+' / '−' as a non-floating insertion symbol, LAST in character-string-1.</summary>
     SignTrailing = 5,
-    /// <summary>CR / DB — each two-character pair is ONE symbol (§13.18.40.3 SR12 NOTE 2).</summary>
+    /// <summary>CR / DB — each two-character pair is ONE symbol (§2023:13.18.40.3 SR12 NOTE 2).</summary>
     CrDb = 6,
     /// <summary>The currency symbol as FIXED insertion, first or second symbol.</summary>
     CurrencyLeading = 7,
@@ -60,21 +60,21 @@ internal enum PicRole
     /// <summary>V.</summary>
     ImpliedPoint = 18,
     /// <summary>'P' left of the decimal point position — i.e. a TRAILING 'P' string, whose implied point is
-    /// "to the right of the string of 'P's" (§13.18.40.4 GR14).</summary>
+    /// "to the right of the string of 'P's" (§2023:13.18.40.4 GR14).</summary>
     ScaleLeft = 19,
     /// <summary>'P' right of the decimal point position — a LEADING 'P' string, implied point to its left.</summary>
     ScaleRight = 20,
-    /// <summary>1 — boolean (§8.5.2.5).</summary>
+    /// <summary>1 — boolean (§2023:8.5.2.5).</summary>
     Boolean = 21,
-    /// <summary>N — national (§8.5.2.10).</summary>
+    /// <summary>N — national (§2023:8.5.2.10).</summary>
     National = 22,
-    /// <summary>E — the floating-point exponent separator (§13.18.40.4 GR13 b).</summary>
+    /// <summary>E — the floating-point exponent separator (§2023:13.18.40.4 GR13 b).</summary>
     Exponent = 23,
 }
 
 /// <summary>
-/// The COMPOSITION validator for a Format-1 PICTURE character-string: ISO/IEC 1989:2023 §13.18.40.3's
-/// composition syntax rules plus §13.18.40.6's Table 10 precedence, as ONE pass over the repeat-expanded symbol
+/// The COMPOSITION validator for a Format-1 PICTURE character-string: ISO/IEC 1989:2023 §2023:13.18.40.3's
+/// composition syntax rules plus §2023:13.18.40.6's Table 10 precedence, as ONE pass over the repeat-expanded symbol
 /// string. It answers the second obligation of SR2 — "Character-string-1 shall consist of an ALLOWABLE
 /// COMBINATION of characters used as picture symbols. The allowable combinations of symbols for a PICTURE clause
 /// are specified in 13.18.40.6, Precedence rules" — which <see cref="PictureAnalyzer"/>'s symbol loop, testing
@@ -89,7 +89,7 @@ internal enum PicRole
 /// and the leading-currency row admits only a leading sign. A rule the matrix already carries is not written
 /// down twice.</para>
 /// <para>The comma/period ROLES are a PARAMETER (SR13: "The rules for the symbol period apply to the symbol
-/// comma, and the rules for the symbol comma apply to the symbol period"; §13.18.40.6: "When the DECIMAL-POINT
+/// comma, and the rules for the symbol comma apply to the symbol period"; §2023:13.18.40.6: "When the DECIMAL-POINT
 /// IS COMMA clause is specified, the precedence rules for the symbols comma and period are interchanged"), so
 /// the whole rule set transfers with one flag rather than growing a comma copy of every period rule.</para>
 /// </summary>
@@ -104,7 +104,7 @@ internal static class PictureComposition
     /// </summary>
     internal static readonly AsyncLocal<Action<long>?> WalkObserver = new();
 
-    // ── ISO §13.18.40.6, Table 10 — Format 1 picture symbol order of precedence ──────────────────────────────
+    // ── ISO §2023:13.18.40.6, Table 10 — Format 1 picture symbol order of precedence ──────────────────────────────
     // One entry per SECOND symbol (the table's ROW, in printed order = the PicRole order); within an entry, one
     // cell per FIRST symbol (the table's COLUMN, same order). 'x' == "the symbol at the top of the column MAY
     // PRECEDE (but not necessarily immediately) in character-string-1 the symbol at the left of the row"; '.' is
@@ -153,7 +153,7 @@ internal static class PictureComposition
     internal static readonly int[] MayPrecede = PackTable();
 
     /// <summary>The two roles of a NON-FLOATING currency-like symbol — the fixed currency symbol and, by
-    /// §13.18.40.6's closing sentence, the fixed extended editing sign control symbol — as a bit set over
+    /// §2023:13.18.40.6's closing sentence, the fixed extended editing sign control symbol — as a bit set over
     /// <see cref="PicRole"/>. Their order against one another is SR24/SR25/SR26's, never the matrix's.</summary>
     private const int CurrencyLikeRoles = (1 << (int)PicRole.CurrencyLeading) | (1 << (int)PicRole.CurrencyTrailing);
 
@@ -183,10 +183,10 @@ internal static class PictureComposition
     /// every rule below counts in.</summary>
     private readonly record struct Sym(string Text, char Kind, int At);
 
-    /// <summary>⛔ THE ONE ASKER OF SR13's ROLE SWAP (kb/Work PB3219). §13.18.40.3 SR13 — "When the DECIMAL-POINT IS
+    /// <summary>⛔ THE ONE ASKER OF SR13's ROLE SWAP (kb/Work PB3219). §2023:13.18.40.3 SR13 — "When the DECIMAL-POINT IS
     /// COMMA clause is specified, the symbol comma is the decimal separator and the symbol period is the grouping
     /// separator. The rules for the symbol period apply to the symbol comma, and the rules for the symbol comma
-    /// apply to the symbol period" — and §13.18.40.6 ("the precedence rules for the symbols comma and period are
+    /// apply to the symbol period" — and §2023:13.18.40.6 ("the precedence rules for the symbols comma and period are
     /// interchanged") decide which character plays the DECIMAL separator in every rule that names "the symbol
     /// period" (SR12 b in both of its forms, SR17, SR20, Table 10's period row). Every consumer asks THIS pair
     /// instead of spelling <c>decimalPointIsComma ? ',' : '.'</c> itself: the composition validator, the
@@ -234,7 +234,7 @@ internal static class PictureComposition
         var floating = MarkFloating(syms, cs, char1, char1Extended, decimalSep, grouping);
         bool IsFloating(int i) => floating[i];
 
-        // The DIGIT POSITIONS (§13.18.40.4 GR14): 9, the zero-suppression symbols, every 'P' ("not counted in
+        // The DIGIT POSITIONS (§2023:13.18.40.4 GR14): 9, the zero-suppression symbols, every 'P' ("not counted in
         // the size of the item, but each symbol 'P' is counted in the maximum number of digit positions") and
         // each occurrence of a floating string's symbol.
         var digitPositions = new List<int>(n);
@@ -243,9 +243,9 @@ internal static class PictureComposition
                 || ((syms[i].Kind == '+' || syms[i].Kind == '-' || syms[i].Kind == cs) && IsFloating(i)))
                 digitPositions.Add(i);
 
-        // ── §13.18.40.3's composition syntax rules, each cited, in a fixed order so the message names the most
+        // ── §2023:13.18.40.3's composition syntax rules, each cited, in a fixed order so the message names the most
         // specific rule the string breaks. Every one of them is a PROHIBITION on a combination; the precedence
-        // walk below then decides the ORDER question SR2 delegates to §13.18.40.6.
+        // walk below then decides the ORDER question SR2 delegates to §2023:13.18.40.6.
 
         // SR12 b) "Each of the symbols from the set 'CR', 'DB', 'E', 'S', 'V' '.' may appear only once in
         // character-string-1." (SR13 puts the comma in the period's place under DECIMAL-POINT IS COMMA.)
@@ -253,28 +253,28 @@ internal static class PictureComposition
             if (Count(once) is var k and > 1)
                 return Fail(DiagnosticCatalog.PictureComposition,
                     $"the symbol '{once}' appears {k} times — each of the symbols 'CR', 'DB', 'E', 'S', 'V', "
-                    + $"'{decimalSep}' may appear only once in character-string-1 (ISO §13.18.40.3 SR12 b"
+                    + $"'{decimalSep}' may appear only once in character-string-1 (ISO §2023:13.18.40.3 SR12 b"
                     + (decimalPointIsComma ? "; SR13 — the rules for the symbol period apply to the symbol comma)" : ")"));
 
         // SR20 "The symbol 'V' and the symbol '.' are mutually exclusive in character-string-1."
         if (Count("V") > 0 && Count(decimalSep.ToString()) > 0)
             return Fail(DiagnosticCatalog.PictureComposition,
                 $"the symbol 'V' and the symbol '{decimalSep}' are mutually exclusive in character-string-1 — both "
-                + "indicate the decimal point position (ISO §13.18.40.3 SR20"
+                + "indicate the decimal point position (ISO §2023:13.18.40.3 SR20"
                 + (decimalPointIsComma ? "; SR13)" : ")"));
 
         // SR17 "The symbol 'P' and the symbol '.' are mutually exclusive in character-string-1."
         if (Count("P") > 0 && Count(decimalSep.ToString()) > 0)
             return Fail(DiagnosticCatalog.PictureComposition,
                 $"the symbol 'P' and the symbol '{decimalSep}' are mutually exclusive in character-string-1 — 'P' "
-                + "already implies the assumed decimal point (ISO §13.18.40.3 SR17"
+                + "already implies the assumed decimal point (ISO §2023:13.18.40.3 SR17"
                 + (decimalPointIsComma ? "; SR13)" : ")"));
 
         // SR21 "The symbol 'Z' and the symbol '*' are mutually exclusive in character-string-1."
         if (Count("Z") > 0 && Count("*") > 0)
             return Fail(DiagnosticCatalog.PictureComposition,
                 "the symbol 'Z' and the symbol '*' are mutually exclusive in character-string-1 — one item has one "
-                + "replacement character, space for 'Z' and asterisk for '*' (ISO §13.18.40.3 SR21; §13.18.40.5 rule 7)");
+                + "replacement character, space for 'Z' and asterisk for '*' (ISO §2023:13.18.40.3 SR21; §2023:13.18.40.5 rule 7)");
 
         // SR23 "The editing sign control symbols '+', '-', 'CR', and 'DB' are mutually exclusive in
         // character-string-1 with the exception of a numeric-edited data item for a floating-point edited
@@ -285,12 +285,12 @@ internal static class PictureComposition
         if (signKinds.Count > 1)
             return Fail(DiagnosticCatalog.PictureComposition,
                 $"the editing sign control symbols '{signKinds[0]}' and '{signKinds[1]}' are mutually exclusive in "
-                + "character-string-1 (ISO §13.18.40.3 SR23)");
+                + "character-string-1 (ISO §2023:13.18.40.3 SR23)");
 
         // SR18 "The symbol 'S', if present, shall be the first symbol in character-string-1."
         if (Count("S") > 0 && syms[0].Kind != 'S')
             return Fail(DiagnosticCatalog.PictureComposition,
-                "the symbol 'S' shall be the FIRST symbol in character-string-1 (ISO §13.18.40.3 SR18)");
+                "the symbol 'S' shall be the FIRST symbol in character-string-1 (ISO §2023:13.18.40.3 SR18)");
 
         // SR16 "The symbol 'P' may appear only as a continuous string of 'P's in the leftmost or rightmost digit
         // positions in character-string-1." Both halves are measured: one contiguous run, and that run standing
@@ -305,13 +305,13 @@ internal static class PictureComposition
                 if (ps[i] != ps[i - 1] + 1)
                     return Fail(DiagnosticCatalog.PictureComposition,
                         "the symbols 'P' do not form a CONTINUOUS string — 'P' may appear only as a continuous "
-                        + "string of 'P's in the leftmost or rightmost digit positions (ISO §13.18.40.3 SR16)");
+                        + "string of 'P's in the leftmost or rightmost digit positions (ISO §2023:13.18.40.3 SR16)");
             leadingP = ps[0] == digitPositions[0];
             trailingP = ps[^1] == digitPositions[^1];
             if (!leadingP && !trailingP)
                 return Fail(DiagnosticCatalog.PictureComposition,
                     "the string of 'P's stands at neither the leftmost nor the rightmost digit positions of "
-                    + "character-string-1 (ISO §13.18.40.3 SR16)");
+                    + "character-string-1 (ISO §2023:13.18.40.3 SR16)");
         }
 
         // SR19 "When the symbol 'V' and one or more symbols 'P' are used in character-string-1, the symbol 'V'
@@ -323,7 +323,7 @@ internal static class PictureComposition
             if (v != ps[0] - 1 && v != ps[^1] + 1)
                 return Fail(DiagnosticCatalog.PictureComposition,
                     "the symbol 'V' neither immediately precedes the first symbol 'P' nor immediately follows the "
-                    + "last (ISO §13.18.40.3 SR19)");
+                    + "last (ISO §2023:13.18.40.3 SR19)");
         }
 
         // SR22 "Neither the symbol 'S' nor the symbol '*' shall be specified in character-string-1 when the
@@ -331,7 +331,7 @@ internal static class PictureComposition
         if (blankWhenZero && (Count("S") > 0 || Count("*") > 0))
             return Fail(DiagnosticCatalog.PictureComposition,
                 $"the symbol '{(Count("S") > 0 ? 'S' : '*')}' is specified beside a BLANK WHEN ZERO clause — neither "
-                + "'S' nor '*' may be (ISO §13.18.40.3 SR22)");
+                + "'S' nor '*' may be (ISO §2023:13.18.40.3 SR22)");
 
         // SR24 "For fixed insertion with editing sign control symbols, only one currency symbol and only one
         // editing sign control symbol may be used in character-string-1."
@@ -352,12 +352,12 @@ internal static class PictureComposition
         if (fixedCurrency > 1)
             return Fail(DiagnosticCatalog.PictureComposition,
                 $"character-string-1 uses {fixedCurrency} currency symbols as FIXED insertion — only one currency "
-                + "symbol may be used (ISO §13.18.40.3 SR24). Two or more ADJACENT occurrences would be a floating "
-                + "insertion string (§13.18.40.5 rule 6); these are separated by other symbols");
+                + "symbol may be used (ISO §2023:13.18.40.3 SR24). Two or more ADJACENT occurrences would be a floating "
+                + "insertion string (§2023:13.18.40.5 rule 6); these are separated by other symbols");
         if (fixedSign > 1)
             return Fail(DiagnosticCatalog.PictureComposition,
                 $"character-string-1 uses {fixedSign} editing sign control symbols as FIXED insertion — only one may "
-                + "be used (ISO §13.18.40.3 SR24)");
+                + "be used (ISO §2023:13.18.40.3 SR24)");
 
         // SR24, second sentence: "For extended editing sign control symbols, either one or two extended editing sign
         // control symbols may be used in character-string-1." A symbol is an OCCURRENCE — a FLOATING string of one
@@ -377,7 +377,7 @@ internal static class PictureComposition
             return Fail(DiagnosticCatalog.PictureEditingExtendedCount,
                 $"character-string-1 uses {extendedFixed + extendedFloating.Count} extended editing sign control "
                 + "symbols (each fixed occurrence, and each floating string of one character-1, is one) — either ONE "
-                + "or TWO may be used (ISO §13.18.40.3 SR24)");
+                + "or TWO may be used (ISO §2023:13.18.40.3 SR24)");
 
         // SR12 a) "Character-string-1 shall contain: — at least on[e] one of the symbols from the set 'A', 'N',
         // 'X', 'Z', '1', '9', *', or — at least two occurrences of one of the symbols from the set character-1,
@@ -385,7 +385,7 @@ internal static class PictureComposition
         // lowercase "'x'", which is the symbol 'X' and is already covered by the first bullet — are the PRINTED
         // standard's, verified against the canonical PDF; the transcription is faithful.) Without one of these a
         // character-string describes no digit position and no character position, so it defines no category at
-        // all (§13.18.40.4 GR5-GR13).
+        // all (§2023:13.18.40.4 GR5-GR13).
         bool anyContent = false;
         foreach (var s in syms) if (s.Kind is 'A' or 'N' or 'X' or 'Z' or '1' or '9' or '*') { anyContent = true; break; }
         if (!anyContent)
@@ -397,14 +397,14 @@ internal static class PictureComposition
             return Fail(DiagnosticCatalog.PictureComposition,
                 "character-string-1 describes no digit position and no character position — it shall contain at "
                 + "least one of the symbols 'A', 'N', 'X', 'Z', '1', '9', '*', or at least two occurrences of one "
-                + $"of character-1, 'X', '+', '-', '{cs}' (ISO §13.18.40.3 SR12 a)");
+                + $"of character-1, 'X', '+', '-', '{cs}' (ISO §2023:13.18.40.3 SR12 a)");
 
         // The DECIMAL POINT POSITION — derived ONCE, here, because two rules count from it: SR29 just below and
         // the Table-10 role assignment (which of the eight two-row symbols' halves an occurrence takes).
         int dp = DecimalPointPosition(syms, n, decimalSep, leadingP, ps);
 
         // SR29 "For floating insertion, at least one insertion symbol shall be specified to the left of the
-        // decimal point position." A floating string is anchored left of the point BY DEFINITION: §13.18.40.5
+        // decimal point position." A floating string is anchored left of the point BY DEFINITION: §2023:13.18.40.5
         // rule 6 a) represents "any or all of the leading numeric character positions TO THE LEFT of the decimal
         // point position by the same insertion symbol", and rule 6 b) "ALL of the numeric character positions",
         // whose result "is the same as if the floating insertion editing were defined only to the left of the
@@ -426,12 +426,12 @@ internal static class PictureComposition
             return Fail(DiagnosticCatalog.PictureComposition,
                 $"the floating insertion string of '{syms[firstFloat].Text}' lies wholly to the RIGHT of the "
                 + $"decimal point position ({point}) — for floating insertion, at least one insertion symbol "
-                + "shall be specified to the LEFT of the decimal point position (ISO §13.18.40.3 SR29"
+                + "shall be specified to the LEFT of the decimal point position (ISO §2023:13.18.40.3 SR29"
                 + (decimalPointIsComma ? "; SR13 — the rules for the symbol period apply to the symbol comma" : "")
-                + "). §13.18.40.5 rule 6 defines the image only for a string that starts left of the point");
+                + "). §2023:13.18.40.5 rule 6 defines the image only for a string that starts left of the point");
         }
 
-        // ── §13.18.40.6 Table 10 — the ORDER question SR2 delegates ("The allowable combinations of symbols for
+        // ── §2023:13.18.40.6 Table 10 — the ORDER question SR2 delegates ("The allowable combinations of symbols for
         // a PICTURE clause are specified in 13.18.40.6, Precedence rules"). Assign every occurrence its role,
         // then require an 'x' for EVERY ordered pair: an 'x' means the column symbol "may precede (BUT NOT
         // NECESSARILY IMMEDIATELY)" the row symbol, so the relation binds non-adjacent pairs too.
@@ -442,7 +442,7 @@ internal static class PictureComposition
     /// The DECIMAL POINT POSITION of a Format-1 character-string, as the SYMBOL ORDINAL the point stands at — so
     /// a symbol at a LOWER ordinal is "to the left of the decimal point position" and one at a higher ordinal is
     /// to its right. 'V' and the decimal separator each state it outright (SR20 has already made them mutually
-    /// exclusive); with neither, a LEADING 'P' string puts it immediately to that string's left (§13.18.40.4
+    /// exclusive); with neither, a LEADING 'P' string puts it immediately to that string's left (§2023:13.18.40.4
     /// GR14 — "The symbol 'P' implies an assumed decimal point that is either — to the left of the string of
     /// 'P's if they indicate the leftmost digit positions in character-string-1; or — to the right of the string
     /// of 'P's if they indicate the rightmost digit positions"), and otherwise it lies past the last symbol,
@@ -458,7 +458,7 @@ internal static class PictureComposition
     }
 
     /// <summary>
-    /// ⛔ THE ONE DEFINITION OF A FLOATING INSERTION STRING (ISO §13.18.40.5 rule 6), read by the composition
+    /// ⛔ THE ONE DEFINITION OF A FLOATING INSERTION STRING (ISO §2023:13.18.40.5 rule 6), read by the composition
     /// rules here AND by <see cref="PictureAnalyzer"/>'s geometry derivation, so the two can never disagree.
     /// "Floating insertion editing is indicated by specifying a string of at least two IDENTICAL floating
     /// insertion editing symbols. Any of the simple insertion editing symbols embedded in this string or to the
@@ -468,7 +468,7 @@ internal static class PictureComposition
     /// property. An occurrence outside such a run is FIXED insertion (rule 5) and SR24 bounds it to one.
     /// </summary>
     /// <returns>The floating string's symbol and how many times it occurs, or <c>('\0', 0)</c> when the
-    /// character-string has none. §13.18.40.3 SR27 admits at most one such string, and the Table-10 walk rejects
+    /// character-string has none. §2023:13.18.40.3 SR27 admits at most one such string, and the Table-10 walk rejects
     /// a second, so the first one found is the only one.</returns>
     internal static (char Symbol, int Occurrences) FloatingString(string expanded, char cs,
         IReadOnlySet<char> char1, IReadOnlySet<char> char1Extended, bool decimalPointIsComma)
@@ -529,7 +529,7 @@ internal static class PictureComposition
         int n = syms.Count;
         var floating = new bool[n];
         // "Any of the SIMPLE INSERTION editing symbols embedded in this string or to the immediate right of this
-        // string are part of the string" (ISO §13.18.40.5 rule 6), plus — by rule 6 b), which represents ALL the
+        // string are part of the string" (ISO §2023:13.18.40.5 rule 6), plus — by rule 6 b), which represents ALL the
         // numeric character positions — the decimal point. The simple-insertion SET is CobolEdit's, read and not
         // re-spelled (kb/Work PB490: it was written out at four sites and two of the copies drifted to {',', 'B'}).
         // A PICTURE EDITING character-1 stays transparent to this walk in EITHER form, for the reason the role map
@@ -537,7 +537,7 @@ internal static class PictureComposition
         // question the standard does not ask here (kb/Work PB528).
         bool Embedded(char c) => WiseOwl.Cobol.Runtime.CobolEdit.IsSimpleInsertionSymbol(c, grouping)
             || c == decimalSep || char1.Contains(c);
-        // ⛔ THE FLOATING INSERTION SYMBOLS are §13.18.40.5 rule 6's own list, all four kinds: "The currency
+        // ⛔ THE FLOATING INSERTION SYMBOLS are §2023:13.18.40.5 rule 6's own list, all four kinds: "The currency
         // symbol, the EXTENDED EDITING SIGN CONTROL SYMBOLS, if specified, and the fixed editing sign control
         // symbols '+' and '-' are used as the floating insertion symbols." The extended ones are exactly the
         // character-1 letters declared with a FOR phrase (SR12), which is why they arrive as their own set
@@ -597,17 +597,17 @@ internal static class PictureComposition
             // ⛔ A PICTURE EDITING character-1 TAKES A TABLE-10 ROLE ONLY WHEN THE STANDARD GIVES IT ONE. The
             // standard gives a Table-10 precedence to 'es' ALONE — "If the EDITING phrase is specified, the
             // precedence of 'es' as related to Table 10 … has the same precedence as the 'cs' symbol in the column
-            // and row of non-floating insertion symbols" (§13.18.40.6) — where 'es' is the EXTENDED editing sign
+            // and row of non-floating insertion symbols" (§2023:13.18.40.6) — where 'es' is the EXTENDED editing sign
             // control symbol, the FOR form (SR12: "If literal-1 is specified, character-1 is a fixed editing sign
             // control symbol. If the FOR phrase is specified, character-1 is an extended editing sign control
             // symbol"). So a NON-FLOATING extended occurrence is position-ambiguous exactly like a fixed currency
             // symbol, leading (first or second symbol) or trailing (last or penultimate), and is asked of every
             // OTHER symbol by the matrix (kb/Work PB855: `PIC 99L99` places it mid-string, where neither cs role
             // admits it). Three things stay outside the matrix, each for a stated reason:
-            //  - the IS form is SIMPLE insertion (§13.18.40.5 rule 3) and the standard assigns it no Table-10
+            //  - the IS form is SIMPLE insertion (§2023:13.18.40.5 rule 3) and the standard assigns it no Table-10
             //    precedence, so it constrains no neighbour (`PIC LL EDITING L IS ":"` is the shape SR12 a) names as
             //    sufficient; kb/Work PB528);
-            //  - a FLOATING extended string is floating insertion (rule 6), and §13.18.40.6 states the 'cs'
+            //  - a FLOATING extended string is floating insertion (rule 6), and §2023:13.18.40.6 states the 'cs'
             //    mapping for the NON-floating column and row alone;
             //  - the ORDER OF ONE CURRENCY-LIKE SYMBOL AGAINST ANOTHER is not the matrix's: the blank
             //    leading-currency-before-trailing-currency cell would refuse the very pairs SR25 ("the first
@@ -702,19 +702,19 @@ internal static class PictureComposition
         }
 
         WalkObserver.Value?.Invoke(tests);
-        // A non-floating EXTENDED character-1 on either side of the pair stands in the cs column and row (§13.18.40.6,
+        // A non-floating EXTENDED character-1 on either side of the pair stands in the cs column and row (§2023:13.18.40.6,
         // closing sentence), which is not obvious from the picture, so the message says it.
         bool esInPair = IsFixedExtended(syms[worst.First], worst.First) || IsFixedExtended(syms[worst.Second], worst.Second);
         return fail(DiagnosticCatalog.PicturePrecedence,
             $"the symbol '{syms[worst.Second].Text}' at symbol position {worst.Second + 1} may not follow the symbol "
             + $"'{syms[worst.First].Text}' at symbol position {worst.First + 1}. Character-string-1 shall consist of "
-            + "an allowable COMBINATION of characters used as picture symbols (ISO §13.18.40.3 SR2), and the "
-            + "allowable combinations are §13.18.40.6, Table 10 — Format 1 picture symbol order of precedence, "
+            + "an allowable COMBINATION of characters used as picture symbols (ISO §2023:13.18.40.3 SR2), and the "
+            + "allowable combinations are §2023:13.18.40.6, Table 10 — Format 1 picture symbol order of precedence, "
             + "whose blank cell here is a prohibition"
             + (esInPair
                 ? ". A non-floating extended editing sign control symbol (a character-1 written with the FOR phrase) "
                   + "\"has the same precedence as the 'cs' symbol in the column and row of non-floating insertion "
-                  + "symbols\" (§13.18.40.6), so it may stand only where a fixed currency symbol may: first or "
+                  + "symbols\" (§2023:13.18.40.6), so it may stand only where a fixed currency symbol may: first or "
                   + "second, or last or penultimate"
                 : ""));
 

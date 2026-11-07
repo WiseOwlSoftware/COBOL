@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ A FRAMED RECORD IS DECODED IN ONE PLACE — RecordFraming.ReadFrame — SO EVERY READER OF A RECORD VARYING SEQUENTIAL
 /// FILE OR A KEYED STORE AGREES ON WHICH RECORDS THE FILE HOLDS (kb/Work PB2754).
-/// <para><b>The derivation.</b> The frame is the §9.1.7.2 information "the implementor may add to the record on the
+/// <para><b>The derivation.</b> The frame is the §2023:9.1.7.2 information "the implementor may add to the record on the
 /// physical storage medium (such as record length headers)", so what a damaged frame means is the implementor's to
 /// decide — but it is decided ONCE. The frame grammar (the length word, the gap tag, bit 31's extent flag, the extent
 /// table, the payload) was decoded in four places, two of them through a parallel decoder over Latin-1 characters,
@@ -240,7 +240,7 @@ public sealed class FrameDecoderDriftTests
         {
             File.WriteAllBytes(host, Damaged(damage));
             // A file shorter than one length word states nothing (the torn word); every other damaged first frame is
-            // the decoder's End, which the OPEN answers '39' (§9.1.13.6 item 7).
+            // the decoder's End, which the OPEN answers '39' (§2023:9.1.13.6 item 7).
             Assert.Equal(damage == Damage.TornWord, RecordFraming.StreamFramingParses(host));
             using var fs = File.OpenRead(host);
             Assert.Equal(0, RecordFraming.CountFrames(fs));
@@ -251,7 +251,7 @@ public sealed class FrameDecoderDriftTests
 
     /// <summary>A keyed store engine's leaf value is exactly one frame (<see cref="RecordFraming.DecodeFrame"/>, the one
     /// decoder): a whole frame decodes; every damaged shape, and a whole frame with a byte after it, is not a value this
-    /// writer produces — null, which the reader answers as the torn page it is ('30', §9.1.13.6 item 1).</summary>
+    /// writer produces — null, which the reader answers as the torn page it is ('30', §2023:9.1.13.6 item 1).</summary>
     [Theory]
     [MemberData(nameof(Damages))]
     public void ALeafValue_IsExactlyOneFrame(Damage damage)

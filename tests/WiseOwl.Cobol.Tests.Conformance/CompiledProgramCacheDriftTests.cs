@@ -148,7 +148,7 @@ public sealed class CompiledProgramCacheDriftTests : IDisposable
     [Fact]
     public void ACopybookThatNewlyShadowsTheOneFound_Misses()
     {
-        // Locating library text is implementor-defined (ISO §7.2.3.4 GR3) and the default library searches its
+        // Locating library text is implementor-defined (ISO §2023:7.2.3.4 GR3) and the default library searches its
         // places in order (DOC-A.1-40: the working directory, then each --copy DIR), so a copybook appearing in an
         // EARLIER --copy directory shadows the one the earlier compile found in a later one — an input that exists
         // only as a probe that answered "absent".
@@ -230,7 +230,7 @@ public sealed class CompiledProgramCacheDriftTests : IDisposable
     }
 
     /// <summary>A hit replays the compilation's OWN output — the lines its DISPLAY directives transferred (ISO
-    /// §7.3.12.4 1): "The DISPLAY directive causes the contents of each operand to be transferred to the source
+    /// §2023:7.3.12.4 1): "The DISPLAY directive causes the contents of each operand to be transferred to the source
     /// listing or compile-time-device-1") — exactly as the cold compile produced them. Before the entry carried them,
     /// a hit returned none, and a test reading them would have passed cold and failed warm.</summary>
     [Fact]

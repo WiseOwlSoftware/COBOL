@@ -5,13 +5,13 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO 1989:2023 §12.4.5.3 GR3 b) and the implementor's content rule DOC-A.1-73 (Annex A.1 item 73; §12.4.5.3 GR4) -
+      *> ISO 1989:2023 §2023:12.4.5.3 GR3 b) and the implementor's content rule DOC-A.1-73 (Annex A.1 item 73; §2023:12.4.5.3 GR4) -
       *> a sort-merge file's ASSIGN USING content is checked at EVERY SORT and MERGE, exactly as at every OPEN.
       *> GR3: "The association occurs at the time of execution of an OPEN, SORT, or MERGE statement that referenced
       *> file-name-1", and "If the association cannot be made because the content of the data item referenced by
       *> data-name-1 is not consistent with the specification for device-name-1 or literal-1, the OPEN, SORT, or
       *> MERGE statement is unsuccessful." DOC-A.1-73 makes content that is empty after the space removal, or that
-      *> carries a character below U+0020, inconsistent. §3.176: an unsuccessful execution is one that "does not
+      *> carries a character below U+0020, inconsistent. §2023:3.176: an unsuccessful execution is one that "does not
       *> result in the execution of all the operations specified by that statement" - so a SORT or MERGE whose sort
       *> file cannot be associated releases nothing, sequences nothing and writes nothing. The GIVING file is the
       *> witness: it is created only by an implicit OPEN OUTPUT that the terminated statement never reaches.
@@ -65,7 +65,7 @@
        PROCEDURE DIVISION.
        MAIN SECTION.
        M-1.
-      *> The unsorted input for SORT, and the two pre-sorted inputs MERGE requires (§14.9.24.2 general format: USING file-name-2 {file-name-3} ... - two or more files).
+      *> The unsorted input for SORT, and the two pre-sorted inputs MERGE requires (§2023:14.9.24.2 general format: USING file-name-2 {file-name-3} ... - two or more files).
            OPEN OUTPUT INF.
            MOVE "BBB" TO INF-REC.
            WRITE INF-REC.

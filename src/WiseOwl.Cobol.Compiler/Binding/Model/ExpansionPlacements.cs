@@ -35,7 +35,7 @@ internal sealed record ExpansionPlacement(ExpansionIdentity Identity, ExpansionW
 /// class</c> that carries its attributes, and the skeleton record itself.</summary>
 internal sealed record PublishedSkeleton(string Name, string ExternalizedName, bool IsInterface, string ClrName, SkeletonRecord Skeleton)
 {
-    /// <summary>The kind the unit is published as (§5.1).</summary>
+    /// <summary>The kind the unit is published as (§2023:5.1).</summary>
     public RepositoryUnitKind Kind => IsInterface ? RepositoryUnitKind.ParameterizedInterface : RepositoryUnitKind.ParameterizedClass;
 }
 
@@ -49,7 +49,7 @@ internal sealed record PublishedSkeleton(string Name, string ExternalizedName, b
 internal sealed record ExpansionToWrite(string Text, CompileState State, ExpansionPlacement Placement, SourceLocation RequestedAt, DiagnosticRegion Region,
     IReadOnlySet<string> ClientWritten);
 
-/// <summary>What the group publishes for its parameterized definitions and where each of its expansions lives (§10.5): produced by
+/// <summary>What the group publishes for its parameterized definitions and where each of its expansions lives (§2023:10.5): produced by
 /// <c>ExpansionPlacementPass</c> once the group is bound, carried on the <see cref="BoundCompilation"/>, read by the emitter and the
 /// driver.</summary>
 /// <param name="ByName">Each expansion's placement, by the CLR name its class or interface has in this module (a module's type names are
@@ -75,7 +75,7 @@ internal sealed record ExpansionPlacements(IReadOnlyDictionary<string, Expansion
     public ExpansionPlacement? Of(string clrName) => ByName.GetValueOrDefault(clrName);
 
     /// <summary>Whether this module emits the class or interface it names <paramref name="clrName"/>: every one but an expansion
-    /// placed in another assembly (§10.5). The one answer: the binder publishes a record for exactly these, and the backend emits
+    /// placed in another assembly (§2023:10.5). The one answer: the binder publishes a record for exactly these, and the backend emits
     /// exactly these and lists them in the module's <c>Units</c> index.</summary>
     public bool EmittedHere(string clrName) => Of(clrName) is not { Where: ExpansionWhere.Imported or ExpansionWhere.OwnAssembly };
 

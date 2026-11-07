@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.22 — INSPECT BACKWARD (COBOL-2023: Annex E.3 item 34 adds the BACKWARD context-sensitive
+      *> ISO §2023:14.9.22 — INSPECT BACKWARD (COBOL-2023: Annex E.3 item 34 adds the BACKWARD context-sensitive
       *> word to INSPECT): inspection proceeds right-to-left. Re-editioned from 2002 at the W3 audit (DEVLOG 597).
       *> R: FIRST "A" backward = the RIGHTMOST "A" (forward FIRST would hit index 0).
       *>    "ABABA" -> "ABAB*".

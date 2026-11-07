@@ -17,7 +17,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ EVERY EXCEPTION-NAME THE CATALOG QUOTES IS DECLARED BY THE BINDER AND RAISED BY THE RUNTIME — OR IT IS DECLINED, WITH
 /// A REASON A READER CAN FOLLOW (kb/Work PB3102, PB1762, PB1037; CONDITIONS_EXCEPTIONS_DESIGN D13).
-/// ISO §14.6.13.1.1: "If checking for an exception condition is enabled and an exception status indicator is set as a
+/// ISO §2023:14.6.13.1.1: "If checking for an exception condition is enabled and an exception status indicator is set as a
 /// result of an exception detected during the execution of a statement, the associated exception condition is raised",
 /// and "when the general rules for a statement indicate that a specific exception condition exists, it is raised only if
 /// checking for that exception condition is enabled". So a name needs BOTH halves, and a name with one is a defect with a
@@ -38,7 +38,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <para>⚠ <b>WHAT "RAISED" MEANS HERE, stated because the honest boundary matters.</b> A raise site is a string literal
 /// that IS the name (or a quoted copy of it, in text an emitter writes) in <c>src/WiseOwl.Cobol.Runtime</c> or in the code
 /// generator, outside the catalog and the gate tables; the EC-I-O family is raised through the status map
-/// (<see cref="ExceptionCatalog.IoEcOfStatus"/> over every two-digit status) and the three names §13.18.34.4 / §14.9.51.4
+/// (<see cref="ExceptionCatalog.IoEcOfStatus"/> over every two-digit status) and the three names §2023:13.18.34.4 / §2023:14.9.51.4
 /// name outright. That proves a raise site EXISTS, not that it is reachable — reachability is the conformance goldens'
 /// job, and the cost of this rule is one literal per name.</para>
 ///
@@ -68,7 +68,7 @@ public sealed class EcRaiseSiteRegistryDriftTests
     ];
 
     /// <summary>The names raised at the ACTIVATION BOUNDARY, in the ACTIVATING element, for a name the propagation machinery
-    /// chooses at RUN time (§14.9.18.4 GR1 b) 3a, §14.6.13.1.5 EXIT/GOBACK item 4). The activating statement carries its own
+    /// chooses at RUN time (§2023:14.9.18.4 GR1 b) 3a, §2023:14.6.13.1.5 EXIT/GOBACK item 4). The activating statement carries its own
     /// <see cref="EcCheckingProfile"/> (<c>EcBinder.StampActivators</c>), which answers for ANY catalogued name, so no
     /// statement declares these; the raise site is <c>ExceptionState.StageLastName</c> / <c>ConvertObjectPropagationToNamed</c>.
     /// The evidence that each is raised is the raise site itself (<c>Raised</c>), never the register: a test reads no
@@ -133,8 +133,8 @@ public sealed class EcRaiseSiteRegistryDriftTests
         return found;
     }
 
-    /// <summary>The EC-I-O names a connector can set to exist: §9.1.13.1's status map over every two-digit status, and the
-    /// three §13.18.34.4 GR6 b) 2 / §14.9.51.4 GR27 a) names a rule gives outright.</summary>
+    /// <summary>The EC-I-O names a connector can set to exist: §2023:9.1.13.1's status map over every two-digit status, and the
+    /// three §2023:13.18.34.4 GR6 b) 2 / §2023:14.9.51.4 GR27 a) names a rule gives outright.</summary>
     private static IEnumerable<string> IoRaised()
     {
         for (int i = 0; i < 100; i++)

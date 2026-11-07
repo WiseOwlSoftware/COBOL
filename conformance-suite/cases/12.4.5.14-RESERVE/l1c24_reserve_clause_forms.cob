@@ -5,14 +5,14 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §12.4.5.14.2 format — RESERVE integer-1 [AREA | AREAS]
+      *> ISO §2023:12.4.5.14.2 format — RESERVE integer-1 [AREA | AREAS]
       *> General format: RESERVE integer-1 [AREA|AREAS]; RESERVE is the
       *> required word, AREA/AREAS a bracketed optional one-of.
       *>   cite.py --check 12.4.5.14.2 "integer-1"
-      *>     -> OK §12.4.5.14.2 (General format)
+      *>     -> OK §2023:12.4.5.14.2 (General format)
       *>   cite.py --check 5.5 "shall be unsigned and nonzero unless
       *>   otherwise specified in the associated rules"
-      *>     -> OK §5.5 1) (Integer operands)
+      *>     -> OK §2023:5.5 1) (Integer operands)
       *> Each of the three spellings the format admits is written on
       *> its own file: RESERVE 5 AREAS (F1), RESERVE 1 AREA (F2),
       *> RESERVE 3 with the optional word omitted (F3). The number of

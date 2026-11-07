@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §12.3.7.3 SR20 (A.1 item 43) — equivalence of a non-COBOL
+      *> ISO §2023:12.3.7.3 SR20 (A.1 item 43) — equivalence of a non-COBOL
       *>   currency symbol, bare form
       *> Rule: "If the character specified as the currency symbol is not
       *>   a character in the
@@ -18,7 +18,7 @@
       *>     character and any other
       *>   character in the computer's compile-time coded character set
       *>     is defined by the
-      *>   implementor"  -> OK  §12.3.7.3 20)  (Syntax rules)
+      *>   implementor"  -> OK  §2023:12.3.7.3 20)  (Syntax rules)
       *> Implementor definition (docs/CONFORMANCE.md row DOC-A.1-43): a
       *>   non-COBOL currency
       *> symbol is equivalent to exactly the characters with the same
@@ -31,18 +31,18 @@
       *>     specified,
       *>   literal-7 is both the currency string and the currency
       *>     symbol."
-      *>   -> OK  §12.3.7.3 22)  (Syntax rules)
-      *> Floating insertion needs equivalent occurrences (§13.18.40.3
+      *>   -> OK  §2023:12.3.7.3 22)  (Syntax rules)
+      *> Floating insertion needs equivalent occurrences (§2023:13.18.40.3
       *>   SR28):
       *>   cite.py --check 13.18.40.3 "all occurrences of the currency
       *>     symbol within
       *>   character-string-1 shall be equivalent characters"  -> OK
-      *>     §13.18.40.3 28)
+      *>     §2023:13.18.40.3 28)
       *>   cite.py --check 13.18.40.5 "a single occurrence of the
       *>     replacement
       *>   character(s) is (are) placed into the character position(s)
       *>     immediately
-      *>   preceding"  -> OK  §13.18.40.5 6)  (Editing rules)
+      *>   preceding"  -> OK  §2023:13.18.40.5 6)  (Editing rules)
       *> Derivation of each expected line:
       *>   UP=[é1.50]   PIC É9.99: the upper-case 'É' is the currency
       *>     symbol by

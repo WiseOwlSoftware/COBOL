@@ -9,24 +9,24 @@
       *> kb/Work PB963 - >>TURN file-name-1, both arms (ISO 7.3.25.4)
       *> GR6: "if file-name-1 is specified, checking is enabled only for
       *> exception conditions associated with that file-name"
-      *>   cite.py: OK  §7.3.25.4 6)  (General rules)
+      *>   cite.py: OK  §2023:7.3.25.4 6)  (General rules)
       *> GR8: "if file-name-1 is specified, checking is disabled only
       *> for exception conditions associated with that file-name"
-      *>   cite.py: OK  §7.3.25.4 8)  (General rules)
+      *>   cite.py: OK  §2023:7.3.25.4 8)  (General rules)
       *> GR3: "If file-name-1 is specified, the effect is as if
       *> file-name-1 were specified for each of these exception-names"
-      *>   cite.py: OK  §7.3.25.4 3)  (General rules)
+      *>   cite.py: OK  §2023:7.3.25.4 3)  (General rules)
       *> GR5: "If specified within a statement, the TURN directive does
       *> not apply to any phrase of that statement"
-      *>   cite.py: OK  §7.3.25.4 5)  (General rules)
-      *> Supporting: §14.9.30.4 24) a) READ at end sets status '10'
+      *>   cite.py: OK  §2023:7.3.25.4 5)  (General rules)
+      *> Supporting: §2023:14.9.30.4 24) a) READ at end sets status '10'
       *> "and, if enabled, the EC-I-O-AT-END exception condition is set
-      *> to exist" (cite.py: OK  §14.9.30.4 24)); §14.9.39.4 28) SET
+      *> to exist" (cite.py: OK  §2023:14.9.30.4 24)); §2023:14.9.39.4 28) SET
       *> LAST EXCEPTION TO OFF: "the last exception status is set to
-      *> indicate no exception" (cite.py: OK  §14.9.39.4 28));
-      *> §15.33.3 1) "If the last exception status indicates no
+      *> indicate no exception" (cite.py: OK  §2023:14.9.39.4 28));
+      *> §2023:15.33.3 1) "If the last exception status indicates no
       *> exception, alphanumeric spaces are returned"
-      *> (cite.py: OK  §15.33.3 1)).
+      *> (cite.py: OK  §2023:15.33.3 1)).
       *> DERIVATION. F1 and F2 are empty; each phase reopens both,
       *> clears the last exception status, and READs each once to its
       *> at end condition. The AT END phrase shows EXCEPTION-STATUS: the

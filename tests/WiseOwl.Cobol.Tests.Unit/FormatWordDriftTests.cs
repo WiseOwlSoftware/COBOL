@@ -18,16 +18,16 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ THE DRIFT GUARD FOR <c>formatWord</c> (kb/Work PB764) — "a keyword slot may not borrow <c>cobolWord</c>",
 /// measured instead of remembered.
 ///
-/// <para>ISO §5.2.2 / §5.2.3: a keyword or optional word standing where its general format prints it is a USE of
-/// the word, outside §8.3.2.1 rule 1 ("Reserved words shall not be used as user-defined words or system-names").
-/// A §8.9-reserved word with NO lexer token arrives as IDENTIFIER, and the §8.9 funnel
+/// <para>ISO §2023:5.2.2 / §2023:5.2.3: a keyword or optional word standing where its general format prints it is a USE of
+/// the word, outside §2023:8.3.2.1 rule 1 ("Reserved words shall not be used as user-defined words or system-names").
+/// A §2023:8.9-reserved word with NO lexer token arrives as IDENTIFIER, and the §2023:8.9 funnel
 /// (<c>VersionConformancePass.VisitCobolWord</c>) screens every IDENTIFIER <c>cobolWord</c> position-blind — so a
 /// grammar rule that matches such a keyword through <c>cobolWord</c> draws a FALSE COBOL0901 at every edition
 /// that reserves it (PB704: <c>SORT … WITH DUPLICATES IN ORDER</c>). The funnel used to paper over that with a
 /// LADDER of per-slot exemptions, one of which was always missing. The keyword slots now parse as
 /// <c>formatWord</c> (IDENTIFIER, never <c>cobolWord</c>), and the ladder is gone.</para>
 ///
-/// <para>WHAT THIS PINS, derived from three sources and none of them a hand list: the WORDS are every §8.9-reserved
+/// <para>WHAT THIS PINS, derived from three sources and none of them a hand list: the WORDS are every §2023:8.9-reserved
 /// word (<c>reserved-words.json</c>) the compiled lexer has no token for; the POSITIONS are every one the
 /// positive conformance corpus actually writes, parsed by the real frontend at the golden's own edition; the
 /// ALLOWANCES are the funnel's NON-positional reasons (a bare §15 function-argument phrase word, a construct
@@ -39,7 +39,7 @@ public sealed class FormatWordDriftTests
     private static readonly string[] Editions = ["85", "2002", "2014", "2023"];
     private static readonly Regex Literal = new("\"[^\"]*\"|'[^']*'", RegexOptions.CultureInvariant);
 
-    /// <summary>§8.9-reserved (at some edition) spellings the lexer never tokenizes — they can only ever arrive as
+    /// <summary>§2023:8.9-reserved (at some edition) spellings the lexer never tokenizes — they can only ever arrive as
     /// IDENTIFIER, which is exactly the population the funnel screens position-blind.</summary>
     private static HashSet<string> TokenlessReservedWords()
     {
@@ -66,14 +66,14 @@ public sealed class FormatWordDriftTests
     {
         if (VersionConformancePass.IsBareFunctionArgumentWord(w)) return true;          // §15 phrase word
         if (DeclinedFacilityPass.EnclosingDeclinedConstruct(w) is not null) return true; // refused whole
-        if (word == "EXCEPTION-OBJECT")                                                  // §8.4.3.6 register
+        if (word == "EXCEPTION-OBJECT")                                                  // §2023:8.4.3.6 register
             for (Antlr4.Runtime.RuleContext? a = w.Parent; a is not null; a = a.Parent)
                 if (a is CobolParserCore.StatementContext) return true;
         return word.StartsWith("DEBUG-", StringComparison.Ordinal);                     // '85 debug registers
     }
 
     /// <summary>Violations in one parsed program: every IDENTIFIER <c>cobolWord</c> whose spelling is a tokenless
-    /// §8.9-reserved word the program's edition reserves, and that is not a non-positional use.</summary>
+    /// §2023:8.9-reserved word the program's edition reserves, and that is not a non-positional use.</summary>
     private static IEnumerable<string> Violations(CobolParserCore.CompilationUnitContext tree, CnFrontend fe,
         int edition, HashSet<string> words, string label)
     {
@@ -100,7 +100,7 @@ public sealed class FormatWordDriftTests
         [.. SuiteManifest.Manifest.Editions[edition].Values.Where(t => t.Expect == "accept")
             .OrderBy(t => t.Id, StringComparer.Ordinal).Select(t => (t.Id, Path.Combine(SuiteManifest.Root, t.Source)))];
 
-    /// <summary>⛔ THE OBLIGATION. In every ENABLED positive golden that writes a tokenless §8.9-reserved word, each
+    /// <summary>⛔ THE OBLIGATION. In every ENABLED positive golden that writes a tokenless §2023:8.9-reserved word, each
     /// occurrence at an edition that reserves it is a <c>formatWord</c> (a keyword) — never a <c>cobolWord</c> —
     /// unless it is a non-positional use. Plus the population assertions that keep it from passing vacuously
     /// (feedback_verdict_evidence_invariant): the word set holds the known keywords, the corpus probe parsed real
@@ -110,7 +110,7 @@ public sealed class FormatWordDriftTests
     {
         var words = TokenlessReservedWords();
         foreach (string known in new[] { "LOCALE", "NESTED", "COBOL", "USER-DEFAULT", "SYSTEM-DEFAULT" })
-            Assert.True(words.Contains(known), $"'{known}' is not in the tokenless §8.9 set — the derivation broke "
+            Assert.True(words.Contains(known), $"'{known}' is not in the tokenless §2023:8.9 set — the derivation broke "
                 + "(or the word gained a lexer token: then its keyword slots are tokens and it leaves this guard)");
         // The prefilter only decides which goldens are worth a parse: the words the edition reserves, in source text
         // with the comments removed (a `*>` tail or a fixed-form column-7 `*` line) — the parse decides the rest.
@@ -149,9 +149,9 @@ public sealed class FormatWordDriftTests
         Assert.True(parsed >= 20, $"only {parsed} golden(s) carrying a tokenless reserved word were parsed — the probe is blind");
         Assert.True(keywordCount >= 20, $"only {keywordCount} formatWord keyword(s) in the corpus — the grammar stopped producing them");
         Assert.True(violations.Count == 0,
-            $"{violations.Count} general-format keyword(s) borrow cobolWord, which the §8.9 funnel screens as a user-defined "
+            $"{violations.Count} general-format keyword(s) borrow cobolWord, which the §2023:8.9 funnel screens as a user-defined "
             + "word (a false COBOL0901 — or a ladder exemption hiding one). Route the slot through `formatWord` "
-            + "(ISO §5.2.2/§5.2.3; DESIGN-frontend-grammar \"A KEYWORD SLOT MAY NOT BORROW cobolWord\"): "
+            + "(ISO §2023:5.2.2/§2023:5.2.3; DESIGN-frontend-grammar \"A KEYWORD SLOT MAY NOT BORROW cobolWord\"): "
             + string.Join("; ", violations.Take(12)));
         foreach (string family in new[] { "LOCALE", "NESTED", "USER-DEFAULT", "CLASSIFICATION", "LC_ALL" })
             Assert.True(keywordTexts.ContainsKey(family), $"no golden parses '{family}' as a formatWord — its slot regressed to cobolWord, "

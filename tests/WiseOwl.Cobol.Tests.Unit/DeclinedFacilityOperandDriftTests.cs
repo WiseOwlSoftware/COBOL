@@ -16,8 +16,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <para>The recognize-and-name arms (<c>StatementBinder.BindUnsupportedFacility</c>: VALIDATE, the MCS SEND and
 /// RECEIVE) bind to a no-op, and for a long time they bound NOTHING else: an undefined name, a reference-modified
 /// VALIDATE operand and a pointer operand compiled clean, and so did an undefined name in the statement list of a
-/// SEND's ON EXCEPTION phrase. Declining a facility licenses its BEHAVIOUR to be absent (ISO §4.2.6 ¶3, §4.2.7); the
-/// statement's operands are identifiers all the same, and the general identifier rules and VALIDATE's §14.9.50.3
+/// SEND's ON EXCEPTION phrase. Declining a facility licenses its BEHAVIOUR to be absent (ISO §2023:4.2.6 ¶3, §2023:4.2.7); the
+/// statement's operands are identifiers all the same, and the general identifier rules and VALIDATE's §2023:14.9.50.3
 /// syntax rules apply to them. The shape that keeps the NEXT declined statement from repeating it: a declined
 /// statement is routed through a <c>BindDeclined…</c> method that reads its operands in
 /// <c>DeclinedFacilityBinder</c> first, and the operands the grammar gives each declined rule are a census that
@@ -45,13 +45,13 @@ public sealed class DeclinedFacilityOperandDriftTests
         new(StringComparer.Ordinal)
         {
             ["validateFacilityStatement"] = (1, 1,
-                "VALIDATE { identifier-1 } … — the repeated operand, every one screened against §14.9.50.3 SR1/SR2/SR4/SR5"),
+                "VALIDATE { identifier-1 } … — the repeated operand, every one screened against §2023:14.9.50.3 SR1/SR2/SR4/SR5"),
             ["messagingReceiveStatement"] = (3, 3,
                 "RECEIVE [FROM] data-name-1 GIVING identifier-1 data-name-2 — the three data references; data-name-1 and -2 are names (ScreenedNames)"),
             ["messagingSendStatement"] = (3, 3,
                 "SEND [TO] { literal-1 | message-server-name-1 | data-name-2 } FROM identifier-1 [RETURNING data-name-1] — "
                 + "FROM and RETURNING always resolve (RETURNING, a name, after its shape is screened); the TO operand resolves only in Format 2, where it is a data-name-2 "
-                + "(§14.9.38.3 SR4): in Format 1 it names a message-server-name-1, 'the name of a message server run unit' "
+                + "(§2023:14.9.38.3 SR4): in Format 1 it names a message-server-name-1, 'the name of a message server run unit' "
                 + "(SR2), which is no data item, and the grammar's one dataReference alternative cannot tell the two apart, "
                 + "so MessagingBinder.ClassifySend decides the format first (kb/Work PB4090)"),
         };
@@ -63,9 +63,9 @@ public sealed class DeclinedFacilityOperandDriftTests
     /// the binder screens it or this list says why it need not.</summary>
     private static readonly (string Face, string ClauseConstant)[] ScreenedNames =
     [
-        ("SEND TO operand", "SendClause"),             // message-server-name-1 | data-name-2 (§14.9.38.2)
+        ("SEND TO operand", "SendClause"),             // message-server-name-1 | data-name-2 (§2023:14.9.38.2)
         ("SEND RETURNING data-name-1", "SendClause"),  // Format 1
-        ("RECEIVE data-name-1", "ReceiveClause"),      // §14.9.31.2
+        ("RECEIVE data-name-1", "ReceiveClause"),      // §2023:14.9.31.2
         ("RECEIVE data-name-2", "ReceiveClause"),
     ];
 
@@ -81,13 +81,13 @@ public sealed class DeclinedFacilityOperandDriftTests
     }
 
     /// <summary>⛔ THE TWO CLAUSE CONSTANTS CITE THE CLAUSES THEIR NAMES SAY (kb/Work PB4169): a RECEIVE operand is told
-    /// RECEIVE's §14.9.31.2 and a SEND operand SEND's §14.9.38.2, never one sentence naming both.</summary>
+    /// RECEIVE's §2023:14.9.31.2 and a SEND operand SEND's §2023:14.9.38.2, never one sentence naming both.</summary>
     [Fact]
     public void TheClauseConstants_CiteTheirOwnStatementsAndNeverBothInOneSentence()
     {
         string facility = CodeOf(MessagingBinderPath);
-        Assert.Matches(@"SendClause\s*=\s*""ISO §14\.9\.38\.2""", facility);
-        Assert.Matches(@"ReceiveClause\s*=\s*""ISO §14\.9\.31\.2""", facility);
+        Assert.Matches(@"SendClause\s*=\s*""ISO §2023:14\.9\.38\.2""", facility);
+        Assert.Matches(@"ReceiveClause\s*=\s*""ISO §2023:14\.9\.31\.2""", facility);
         Assert.DoesNotMatch(@"14\.9\.38\.2[^;]*14\.9\.31\.2|14\.9\.31\.2[^;]*14\.9\.38\.2", facility);
     }
 

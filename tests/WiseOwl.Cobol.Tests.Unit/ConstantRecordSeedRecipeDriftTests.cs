@@ -7,7 +7,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// kb/Work PB1233 — a CONSTANT RECORD's content is that of an INITIALIZE, not the initial state, and the choice is
-/// made ONCE, at the root, by <c>ValueInitializer.RecipeFor</c> (ISO §13.18.15.4 GR1: "as though the clause had
+/// made ONCE, at the root, by <c>ValueInitializer.RecipeFor</c> (ISO §2023:13.18.15.4 GR1: "as though the clause had
 /// been omitted and the record had been the subject of an INITIALIZE statement that is specified with the FILLER
 /// phrase; the VALUE phrase with the category-name of ALL; and the DEFAULT phrase"). The defect was that both seed
 /// lanes composed the ordinary initial state (the OPTIONS INITIALIZE background, a blank numeric-edited item, a
@@ -56,7 +56,7 @@ public sealed class ConstantRecordSeedRecipeDriftTests
             {
                 string t = lines[i].TrimStart();
                 if (t.StartsWith("//") || t.StartsWith("///")) continue;
-                // useValues: IsConstantRecord is the EXTERNAL seed's VALUE switch (§11.9.10.4 GR7), a different
+                // useValues: IsConstantRecord is the EXTERNAL seed's VALUE switch (§2023:11.9.10.4 GR7), a different
                 // question; a recipe ternary on the flag is the copy this test forbids.
                 if (lines[i].Contains("IsConstantRecord") && lines[i].Contains("SeedRecipe.")
                     && name != "ValueInitializer.cs")
@@ -65,6 +65,6 @@ public sealed class ConstantRecordSeedRecipeDriftTests
         }
         Assert.True(offenders.Count == 0,
             "A seed lane chooses its SeedRecipe from IsConstantRecord itself instead of ValueInitializer.RecipeFor "
-            + "(ISO §13.18.15.4 GR1; kb/Work PB1233):\n" + string.Join("\n", offenders));
+            + "(ISO §2023:13.18.15.4 GR1; kb/Work PB1233):\n" + string.Join("\n", offenders));
     }
 }

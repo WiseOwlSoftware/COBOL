@@ -17,10 +17,10 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     /// <summary>The C# string-expression for an item's INITIAL character image (used to seed a Tier-B backing from
     /// the canonical's VALUE): a group concatenates its leaves' images; an elementary item formats its VALUE (numeric
     /// → <c>CobolNum.FormatDisplay</c>; alphanumeric/edited → the stored string; figurative/default per width). A
-    /// fixed-OCCURS entry's image repeats <c>Occurs</c> times — every occurrence takes the VALUE (ISO §13.18.63 GR9;
+    /// fixed-OCCURS entry's image repeats <c>Occurs</c> times — every occurrence takes the VALUE (ISO §2023:13.18.63 GR9;
     /// the recursion runs through this wrapper, so nested OCCURS repeat too).
     /// <para><paramref name="useValues"/> false suppresses every VALUE and composes the CATEGORY-DEFAULT initial
-    /// image instead — the §13.18.63 GR4a shape, where "a PLAIN external item's VALUE takes effect only during
+    /// image instead — the §2023:13.18.63 GR4a shape, where "a PLAIN external item's VALUE takes effect only during
     /// INITIALIZE", so its run-unit cell must seed blank/zero rather than VALUE-composed. It is the SAME
     /// composition either way, which is the point: a byte-form leaf's default is the ZERO ENCODING of its pinned
     /// form (radix-2 / BCD / IEEE / INDEX bytes), never a run of ASCII '0' characters. The EXTERNAL path used to
@@ -32,8 +32,8 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     public string ImageInitOf(DataItem item, bool useValues = true, Subscripts subs = default,
         SeedRecipe recipe = SeedRecipe.InitialState)
     {
-        recipe = ValueInitializer.RecipeFor(item, recipe);   // a CONSTANT RECORD root: §13.18.15.4 GR1 (kb/Work PB1233)
-        // ⛔ A FORMAT 2 (table) VALUE GIVES EACH OCCURRENCE ITS OWN IMAGE — §13.18.63.4 GR12 ("A format 2 VALUE
+        recipe = ValueInitializer.RecipeFor(item, recipe);   // a CONSTANT RECORD root: §2023:13.18.15.4 GR1 (kb/Work PB1233)
+        // ⛔ A FORMAT 2 (table) VALUE GIVES EACH OCCURRENCE ITS OWN IMAGE — §2023:13.18.63.4 GR12 ("A format 2 VALUE
         // clause initializes a table element to the value of literal-1"), GR13 (cyclic reuse under TO), GR14
         // (no TO = fill to the maximum), GR15 (a later FROM wins on overlap). This method read only
         // item.RawValue, which is null for a table VALUE (the two carriers are mutually exclusive on DataItem),
@@ -65,10 +65,10 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     {
         // ⛔ A POINTER-CLASS LEAF CONTRIBUTES RESERVED BYTES AND NO IMAGE (kb/Work PB231 — the pointer third).
         // Its value is a managed reference held in the area's MANAGED SLOT (Place.SlotWindow / StorageCell.SlotAt),
-        // whose unwritten state IS null — §14.9.3.4 GR9's "data items of class object or class pointer in the
-        // allocated storage are initialized to null" and §13.18.63.4's "data items of class message-tag, class
+        // whose unwritten state IS null — §2023:14.9.3.4 GR9's "data items of class object or class pointer in the
+        // allocated storage are initialized to null" and §2023:13.18.63.4's "data items of class message-tag, class
         // object, and class pointer are initialized to null" both hold with no seeding here. What the BYTE image
-        // owes the shared area is exactly the item's storage extent of placeholder positions, so §14.9.3.4 GR3's
+        // owes the shared area is exactly the item's storage extent of placeholder positions, so §2023:14.9.3.4 GR3's
         // byte quantity and every FOLLOWING member's class offset are what a byte-addressed area says they are —
         // without this the pointer contributed its PICTURE-less zero-width nothing and displaced the rest.
         // Placed beside the national coding below because it is the same kind of decision: how the member's
@@ -76,7 +76,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         if (SlotWindow.CarriedBySlot(item)) return SlotSeedOf(item);
         // ⛔ A DYNAMIC-LENGTH LEAF CONTRIBUTES NO BYTES AT ALL (kb/Work PB1026): its content rides the cell's
         // dynamic slot (Place.DynSlotWindow), and it occupies zero positions of the area's fixed run — its
-        // ByteWidth, §8.5.1.12.3's "all dynamic-length elementary items are considered to be of zero length". Its
+        // ByteWidth, §2023:8.5.1.12.3's "all dynamic-length elementary items are considered to be of zero length". Its
         // VALUE, if any, is the slot's seed (CellDynSeeds). A one-character fill here displaced every following
         // member of an ADDRESS-OF-taken variable-length group by one position.
         if (DynSlotWindow.CarriedBySlot(item)) return "\"\"";
@@ -84,7 +84,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         // ⛔ A NATIONAL LEAF'S SEED IS ITS BYTES, NOT ITS CARRIER (kb/Work PB231). Everything this method seeds
         // is a BYTE-ADDRESSED shared area — a Tier-B REDEFINES backing, an EXTERNAL run-unit cell, a
         // BASED/ADDRESS-OF cell, an OO backing — and a national character position occupies TWO of those bytes
-        // (§13.18.60.4 GR8 leaves the size to the implementor; D-N1 pins two, UTF-16BE). Applied HERE, once,
+        // (§2023:13.18.60.4 GR8 leaves the size to the implementor; D-N1 pins two, UTF-16BE). Applied HERE, once,
         // over whatever the carrier arms below composed, so the VALUE arm, the OPTIONS INITIALIZE fill arm and
         // the no-clause space arm cannot each get it separately right or separately wrong — the same
         // one-transform discipline the USAGE BIT arms use with CobolBits.Pack. MEASURED before the fix on
@@ -100,14 +100,14 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     /// <see cref="ImageInitOf"/> for the component slots <see cref="ImageInitOfOne"/> leaves out, one chained call per
     /// component of <paramref name="root"/>'s scope in ordinal order (<see cref="CellComponents.Of"/>, the order the
     /// binder numbered them in): a <c>.SeedDyn(ordinal, content)</c> for a dynamic-length item whose initial content is
-    /// not empty — §8.6.4 via the VALUE clause's own recipe (<see cref="ValueInitializer.InitializerFrom"/>'s
+    /// not empty — §2023:8.6.4 via the VALUE clause's own recipe (<see cref="ValueInitializer.InitializerFrom"/>'s
     /// dynamic-length arm: MOVE-like, truncated to the maximum size; absent a VALUE the initial length is zero, which
     /// an unwritten slot already is) — and a <c>.SeedDynTable(ordinal, table)</c> for EVERY dynamic-capacity table,
     /// which has no unwritten state: its FROM capacity of element cells, each seeded by this same method one scope
-    /// down (§8.5.1.9.1). Empty when the scope has no component, so every cell without one is emitted as before.</summary>
-    /// <param name="useValues">False for a PLAIN external record (§13.18.63.4 GR4 a): no VALUE seeds the initial
+    /// down (§2023:8.5.1.9.1). Empty when the scope has no component, so every cell without one is emitted as before.</summary>
+    /// <param name="useValues">False for a PLAIN external record (§2023:13.18.63.4 GR4 a): no VALUE seeds the initial
     /// state — though the occurrences a statement creates under the INITIALIZED phrase are still composed as an
-    /// INITIALIZE … TO VALUE composes them (§8.5.1.9.5).</param>
+    /// INITIALIZE … TO VALUE composes them (§2023:8.5.1.9.5).</param>
     /// <param name="firstOrdinal">The ordinal of the root's first component; null for the root's class ordinal
     /// (<see cref="DataItem.ClassDynOrdinal"/>), and 0 for a root no storage class holds — a .NET host's published record
     /// of a group formal or RETURNING item (kb/Work PB3273), whose cell is its own scope.</param>
@@ -134,7 +134,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     /// (<see cref="ValueInitializer.DynTableNew"/>, shared with the record-struct lane). Each occurrence is an element
     /// cell: the element's image (<see cref="ImageInitOf"/> at that occurrence's subscript) and its own components'
     /// seeds. An occurrence a STATEMENT creates under the INITIALIZED phrase is composed with VALUEs whatever
-    /// <paramref name="useValues"/> says (§8.5.1.9.5: "as though … INITIALIZE … WITH FILLER ALL TO VALUE THEN TO
+    /// <paramref name="useValues"/> says (§2023:8.5.1.9.5: "as though … INITIALIZE … WITH FILLER ALL TO VALUE THEN TO
     /// DEFAULT"); a table VALUE (Format 2) applies only where VALUEs do.</summary>
     private string CellTable(DataItem table, bool useValues, Subscripts subs)
     {
@@ -151,7 +151,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     /// <summary>One MEMBER's contribution to its group's compile-time image seed — the COMPILE-TIME twin of
     /// <see cref="AsImageOf"/>, arm for arm, so the seed a Tier-B backing starts at and the image
     /// <c>AsImage()</c> composes at run time are the same bytes (kb/Work PB584).
-    /// <para>A §8.5.1.6.3 bit RUN images as its PACKED bits: the run's LEADER packs every member's INITIAL
+    /// <para>A §2023:8.5.1.6.3 bit RUN images as its PACKED bits: the run's LEADER packs every member's INITIAL
     /// carrier concatenated (the compile-time twin of <c>BitCarrierOf</c>) and a CONTINUATION contributes
     /// nothing — which is what makes a MIXED bit/character group's seed exactly as wide as the group instead of
     /// one byte per bit member. Everything else recurses through <see cref="ImageInitOf"/>, so the national
@@ -174,7 +174,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     {
         if (item.IsGroup)
         {
-            // ⛔ A GROUP-LEVEL VALUE INITIALIZES THE AREA (ISO §13.18.63.4 GR5 — "the group area is initialized
+            // ⛔ A GROUP-LEVEL VALUE INITIALIZES THE AREA (ISO §2023:13.18.63.4 GR5 — "the group area is initialized
             // without consideration for the individual elementary or group items contained within this group"),
             // so it REPLACES the member-wise composition below rather than being composed alongside it. The one
             // area rule is GroupValueSlicer.AreaTextOf, shared with the record-struct lane.
@@ -186,7 +186,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             // OO backings — and it walked straight past the group's own RawValue into the members. Measured on
             // 99bc08c8: `01 G VALUE "ABCD". 05 A PIC X(2). 05 B PIC X(2). 01 R REDEFINES G PIC X(4).` left A, B
             // and R all SPACES, while the identical group WITHOUT the REDEFINES initialized "AB"/"CD" — the
-            // whole VALUE lost to nothing but the presence of an alias. §13.18.63.3 SR12 bars a VALUE in the
+            // whole VALUE lost to nothing but the presence of an alias. §2023:13.18.63.3 SR12 bars a VALUE in the
             // redefinING entry, never in the redefined one, so that program is conforming.
             // (The seventh instance of the two-arm-dispatch shape: the slicer's arm was written, the codec's
             // was not, and only the slicer's lane was ever tested.)
@@ -197,7 +197,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             // so this lane cannot disagree with the record-struct lane about what a bit group's area is
             // (kb/Work PB207).
             if (useValues && recipe is SeedRecipe.InitialState && GroupValueSlicer.AreaOf(item, ctx, subs) is { } area)
-                // A bit group's area is m BOOLEAN POSITIONS (§13.18.29.4 GR1b); its IMAGE is those positions
+                // A bit group's area is m BOOLEAN POSITIONS (§2023:13.18.29.4 GR1b); its IMAGE is those positions
                 // PACKED — ceil(m/8) characters through CobolBits.Pack, the ONE bit-order law (D19/PB43), never
                 // a second packer written here. The count is asked of ExtentBits, not taken from the area's own
                 // Length: the two are equal by AreaOf's contract, and asking the LAYOUT keeps the image the
@@ -207,27 +207,27 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                     : area.CsExpression();
 
             // ⛔ A BIT GROUP'S IMAGE IS ITS PACKED AREA, NOT ITS MEMBERS' IMAGES CONCATENATED. Each bit member
-            // images as its own ceil(n/8) characters, and §8.5.1.6.3 makes same-level bit members SHARE bytes —
+            // images as its own ceil(n/8) characters, and §2023:8.5.1.6.3 makes same-level bit members SHARE bytes —
             // so the concatenation is wider than the group. MEASURED at b7004e6b on
             // `01 K GROUP-USAGE BIT. 05 K1 PIC 1(2) VALUE B"11". 05 K2 PIC 1(2) VALUE B"01".
             //  01 KV REDEFINES K PIC X(1).`: K2 read back as `00` and the backing byte was 0xC0, because the
             // 2-character composition was truncated to the group's 1-character width and K2's byte fell off.
-            // The composition is BitAreaOf's — the same §8.5.1.6.3 placement the VALUE arm above and
+            // The composition is BitAreaOf's — the same §2023:8.5.1.6.3 placement the VALUE arm above and
             // AsBits()/FromBits use.
             if (item.GroupUsage is GroupUsage.Bit)
                 return RuntimeApi.BitsPack(BitAreaOf(item, m => InitialBitCarrierOf(m, useValues, subs)),
                                            $"{BitLayout.ExtentBits(item)}");
 
             // ⛔ THE SEED COMPOSES OVER THE PHYSICAL FIELD LIST, NOT OVER item.Children (kb/Work PB584). A MIXED
-            // bit/character group is the case that proves it: §8.5.1.6.3 puts "an elementary bit data item
+            // bit/character group is the case that proves it: §2023:8.5.1.6.3 puts "an elementary bit data item
             // immediately following an elementary bit data item or bit group item of the same level" at the next
             // BIT position, so consecutive same-level bit members SHARE a byte, and only PhysicalModel computes
             // those runs. Walking the children instead gave each bit member its OWN ceil(n/8) characters, so the
             // composition was WIDER than the group and every member after the first run shifted. MEASURED at
             // f2bbf098b on `01 CTL. 05 H1 PIC 1(4) USAGE BIT VALUE B"0100". 05 H2 PIC 1(4) USAGE BIT VALUE
             // B"0001". 05 H3 PIC X(1) VALUE "B". 01 CV REDEFINES CTL PIC X(2).`: the members read back
-            // [0100][0000][DLE] and CV's bytes were 0x40 0x10, where §8.5.1.6.3's one run gives 0x41 ('A') and
-            // §13.18.44.4 GR1's storage association then puts "B" in CV(2:1). The identical group WITHOUT the
+            // [0100][0000][DLE] and CV's bytes were 0x40 0x10, where §2023:8.5.1.6.3's one run gives 0x41 ('A') and
+            // §2023:13.18.44.4 GR1's storage association then puts "B" in CV(2:1). The identical group WITHOUT the
             // alias — the record-struct lane, which already walks PhysicalChildrenOf — gave [0100][0001][B].
             // Two composers for one image; both now ask the ONE run law, so a run cannot be resolved two ways.
             // ⚠ What they share is the LAW and not the field list: `PhysicalModel.PhysicalChildrenOf` answers
@@ -253,7 +253,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             // generic figurative arm, so `PIC 1(4) USAGE BIT VALUE ZERO` seeded FOUR carrier characters where
             // the packed image is ONE — the figurative return knows the item's boolean POSITIONS and nothing
             // about its storage. MEASURED at f2bbf098b on `01 B PIC 1(4) USAGE BIT VALUE ZERO. 01 BV REDEFINES
-            // B PIC X(1).`: the byte came back 0x30 (the character '0') where §13.18.60.4 GR5's packed image of
+            // B PIC X(1).`: the byte came back 0x30 (the character '0') where §2023:13.18.60.4 GR5's packed image of
             // four zero bits is 0x00, and B itself then read [0011]. One arm, one reader: the CARRIER is
             // ValueInitializer.BooleanCarrierOf's answer for every lane, and the USAGE decides only whether
             // those positions are packed.
@@ -265,14 +265,14 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             // here stored `pic.Length` CHARACTERS — the PICTURE's digit count — which for a byte-form member is
             // simply a different number (`PIC 9(4) COMP` is 4 digits and 2 bytes) and displaced every following
             // member of the image. The leniency itself survives as what it always meant: an alphanumeric literal
-            // on a numeric item is read AS the numeric literal §13.18.63.3 SR2 asked for (NC107A's
+            // on a numeric item is read AS the numeric literal §2023:13.18.63.3 SR2 asked for (NC107A's
             // `PIC 999 VALUE "000"` under a REDEFINES), which is the SAME encode — hence one arm, not two.
             if (pic.Category is PicCategory.Numeric && !pic.IsFloat && vals.FigurativeInitializer(raw, pic) is null)
                 return RuntimeApi.NumFormatImage(
                     EmitText.UnscaledAtScale(raw.StartsWith('"') ? CobolLiteral.Decode(raw) : raw, pic.Scale),
                     item.ProfileName);
-            // A NUMERIC literal VALUE on a numeric-edited member contributes its EDITED image (§13.18.63.3 SR6) —
-            // for a format-2 (LOCALE) member a RUNTIME image (no compile-time image exists, §13.18.40.5 r11;
+            // A NUMERIC literal VALUE on a numeric-edited member contributes its EDITED image (§2023:13.18.63.3 SR6) —
+            // for a format-2 (LOCALE) member a RUNTIME image (no compile-time image exists, §2023:13.18.40.5 r11;
             // the ONE producer, RuntimeApi.LocaleEditCompose — PB64 T6; the EditCompose arm's mask deref would NRE).
             if (pic.LocaleEdit is not null && !raw.StartsWith('"')
                 && ValueInitializer.TryParseNumeric(raw, out var luv, out int lsc))
@@ -281,7 +281,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                 && ValueInitializer.TryParseNumeric(raw, out var uv, out int sc))
                 return EmitText.CsLiteral(RuntimeApi.EditCompose(uv, sc, pic.EditMask!,
                     item.BlankWhenZero, pic.CurrencyString, pic.DecimalPointIsComma, pic.EditingRules));
-            // A Format-6 `ALL literal-1` is the literal repeated to the item's size (§8.3.3.6.4 GR2) — the SAME reader
+            // A Format-6 `ALL literal-1` is the literal repeated to the item's size (§2023:8.3.3.6.4 GR2) — the SAME reader
             // the record-struct lane asks (ValueInitializer.AllLiteralInitializer), or the image seeds the parse text.
             if (vals.AllLiteralInitializer(raw, pic) is { } allFill) return allFill;
             if (pic.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited)
@@ -294,14 +294,14 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         // literal through the ONE recipe, else the zero encoding.
         if (pic.Category is PicCategory.Numeric && pic.IsFloat && !(useValues && effRaw is not null)
             && vals.NoValueSeed(item, pic, recipe) is { } floatBackground)
-            return floatBackground;   // §14.6.2.3.2 action 1 over a float window (owner decision R53)
+            return floatBackground;   // §2023:14.6.2.3.2 action 1 over a float window (owner decision R53)
         if (pic.Category is PicCategory.Numeric && pic.IsFloat)
             return RuntimeApi.NumFormatImageFloat(
                 useValues && effRaw is { } fraw && !fraw.StartsWith('"')
                     && vals.FigurativeInitializer(fraw, pic) is null
                     ? ValueInitializer.RawValueAsFloat(fraw, pic) : "0d",
                 item.ProfileName, pic.IsSingle);
-        // ⛔ THE TIER-B IMAGE ARM'S NO-VALUE SEED — §14.6.2.3.2 action 1's BACKGROUND on the image axis
+        // ⛔ THE TIER-B IMAGE ARM'S NO-VALUE SEED — §2023:14.6.2.3.2 action 1's BACKGROUND on the image axis
         // (kb/Work PB152). This was the arm PB151 could not reach: the ALLOCATE fix landed with its fill decoder
         // PRIVATE to PtrEmitter, so this fall-through went on hardcoding ' ' / '0' with no way to consult the
         // OPTIONS model. It now asks the SAME choke point the native-field arm asks (InitialStateBackground),
@@ -310,7 +310,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         if (vals.NoValueSeed(item, pic, recipe) is { } bg) return bg;
         return pic.Category is PicCategory.Numeric && !pic.IsFloat
             ? RuntimeApi.NumFormatImage("0L", item.ProfileName)
-            // Boolean initial state — zeros (§13.18.63). A USAGE BIT item's zeros are PACKED, so the seed is
+            // Boolean initial state — zeros (§2023:13.18.63). A USAGE BIT item's zeros are PACKED, so the seed is
             // ceil(n/8) zero BYTES rather than n zero characters (D19/PB43); the all-zero bit pattern makes the
             // packed form '\0' repeated, which is what the AsImage side would produce for the same value.
             : pic.Category is PicCategory.Boolean
@@ -321,7 +321,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     }
 
     /// <summary>A boolean item's IMAGE from its boolean CARRIER — the one place the USAGE decides how the
-    /// positions are stored (ISO §13.18.60.4 GR5: a usage-bit item's positions are PACKED, high-order first,
+    /// positions are stored (ISO §2023:13.18.60.4 GR5: a usage-bit item's positions are PACKED, high-order first,
     /// into <c>ceil(n/8)</c> characters through <c>CobolBits.Pack</c>, D19/PB43; a usage-display boolean item's
     /// positions ARE its characters). Separating it from the carrier is what keeps the VALUE rules
     /// (<see cref="ValueInitializer.BooleanCarrierOf"/>) out of the storage question — the two were entangled,
@@ -329,14 +329,14 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     private static string BooleanImageOf(string carrier, PicInfo pic) =>
         pic.Usage is Usage.Bit ? RuntimeApi.BitsPack(carrier, $"{pic.Length}") : carrier;
 
-    /// <summary>Emit a variable-length group's <c>CurrentImage()</c> — the §14.9.11.4 GR7 implementor-defined
+    /// <summary>Emit a variable-length group's <c>CurrentImage()</c> — the §2023:14.9.11.4 GR7 implementor-defined
     /// DISPLAY format, documented as CONFORMANCE.md A.1 item 57 (kb/Work PB164): the members' images in
     /// declaration order, each FIXED member contributing exactly its <see cref="AsImageOf"/> recipe (the ONE
     /// member-image law — no second copy), each dynamic-length leaf its CURRENT content, each dynamic-capacity
     /// table every occurrence at its CURRENT capacity, each nested SCALAR variable-length group its own
     /// <c>CurrentImage()</c>, each FIXED-OCCURS table of variable-length group elements the concatenation of its
     /// occurrences' (kb/Work PB244), and the group's OCCURS DEPENDING table the prefix of its maximum image that its
-    /// CURRENT count names (the <c>__odo</c> parameter, §13.18.38.4 GR8). The geometry follows the §15.50.4 r7 LENGTH sum in CHARACTER POSITIONS —
+    /// CURRENT count names (the <c>__odo</c> parameter, §2023:13.18.38.4 GR8). The geometry follows the §2023:15.50.4 r7 LENGTH sum in CHARACTER POSITIONS —
     /// <c>FUNCTION LENGTH(G)</c> equals <c>CurrentImage().Length</c> (a NATIONAL member contributes the two bytes
     /// it occupies, A.1 item 57), and a table of variable-length ELEMENTS under OCCURS DEPENDING or dynamic
     /// capacity contributes each occurrence's own current image (<see cref="VarPartKind.OdoTable"/> and the
@@ -356,20 +356,20 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     /// it holds one, else nothing. ⛔ The count is a PARAMETER because the composing method is a struct instance
     /// method while data-name-1 may live outside the group entirely (the PB164 fleet's reason for refusing the
     /// shape); the operand's access path supplies it (<c>PlaceRenderer</c>: the clamped current count for a
-    /// statement's operand, the maximum at an activation boundary — §14.8.2.2 "the maximum length is used").</summary>
+    /// statement's operand, the maximum at an activation boundary — §2023:14.8.2.2 "the maximum length is used").</summary>
     internal static string OdoParameter(DataItem group) => DataItem.HasOdoBeneath(group) ? "int __odo" : "";
 
     /// <summary>The argument that forwards <see cref="OdoParameter"/> to a nested group's method.</summary>
     private static string OdoArgument(DataItem group) => DataItem.HasOdoBeneath(group) ? "__odo" : "";
 
     /// <summary>Where the OCCURS DEPENDING table lies in a member that holds it as its TRAILING storage
-    /// (§13.18.38.3 SR22), read off <see cref="OdoModel.GeometryOf"/>, THE ONE geometry <c>OdoGroupPlace</c> also reads
-    /// for a group operand (§13.18.38.4 GR8), so the member's CURRENT image is the same character prefix of its maximum
+    /// (§2023:13.18.38.3 SR22), read off <see cref="OdoModel.GeometryOf"/>, THE ONE geometry <c>OdoGroupPlace</c> also reads
+    /// for a group operand (§2023:13.18.38.4 GR8), so the member's CURRENT image is the same character prefix of its maximum
     /// image the operand takes. ⛔ It used to take one occurrence's <see cref="DataItem.ImageWidth"/>, a national
     /// element's POSITIONS, where the image holds its BYTES (kb/Work PB546's two widths).
     /// <para>The table is counted in the member's own unit: CHARACTERS (bytes on the physical basis), or BITS when a
-    /// USAGE BIT leaf lies in the subtree (§8.5.1.6.3 places a bit item "at the next bit position in storage", so a bit
-    /// occurrence shares bytes and the current extent is <c>ceiling(bits / 8)</c> characters, §15.50.4 rule 9; kb/Work
+    /// USAGE BIT leaf lies in the subtree (§2023:8.5.1.6.3 places a bit item "at the next bit position in storage", so a bit
+    /// occurrence shares bytes and the current extent is <c>ceiling(bits / 8)</c> characters, §2023:15.50.4 rule 9; kb/Work
     /// PB3030). Every consumer asks this record, never the unit.</para></summary>
     /// <param name="Tail">The table as the runtime states it (<see cref="OdoModel.FixedImageTail"/>).</param>
     /// <param name="MemberWidth">The member's emitted field width in characters (its image at the maximum).</param>
@@ -389,7 +389,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         public (int StartChar, int Unit, int MaxUnits) RecordTail => (MemberWidth - Tail.Width, Tail.RecordUnit, Tail.RecordMaxUnits);
 
         /// <summary>The C# statement that keeps the member's occurrences past the RECEIVING count <c>__odo</c>
-        /// (§13.18.38.4 GR8 a): the received fixed run <c>__s</c>, whose member starts at character
+        /// (§2023:13.18.38.4 GR8 a): the received fixed run <c>__s</c>, whose member starts at character
         /// <paramref name="off"/>, takes the member's own content (<paramref name="ownImage"/>) from the first unused
         /// occurrence on — <c>OdoTail.KeepUnused</c>, the one splice a cell-backed group's store asks too (a bit window
         /// for a table counted in bits, whose first unused occurrence may start inside a character).</summary>
@@ -411,7 +411,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         VarPartKind.Nested => $"{p.Field.Name}.CurrentImage({OdoArgument(p.Item!)})",
         VarPartKind.NestedTable =>
             $"string.Concat(global::System.Array.ConvertAll({p.Field.Name}, __e => __e.CurrentImage()))",
-        // The first __odo occurrences, each at its own current extent (§13.18.38.4 GR8; kb/Work PB244).
+        // The first __odo occurrences, each at its own current extent (§2023:13.18.38.4 GR8; kb/Work PB244).
         VarPartKind.OdoTable => RuntimeApi.TableConcatImages(p.Field.Name, "__odo", "static __e => __e.CurrentImage()"),
         _ => throw new InvalidOperationException($"unknown variable-length part {p.Kind}"),
     };
@@ -424,7 +424,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
 
     /// <summary>The parameters of <c>AsVarImage</c>: the OCCURS DEPENDING count when the group holds the table
     /// (<see cref="OdoParameter"/>) and <c>__agree</c> — whether this is a STATEMENT's read of the group, which
-    /// asks a LINKAGE dynamic-length member to agree with its DYNAMIC LENGTH clause (ISO §14.6.13.2 rule 5; kb/Work
+    /// asks a LINKAGE dynamic-length member to agree with its DYNAMIC LENGTH clause (ISO §2023:14.6.13.2 rule 5; kb/Work
     /// PB1937 / PB1118), as opposed to the activation boundary's own copy-out, which references nothing.</summary>
     private static string AsVarImageParameters(DataItem group) =>
         DataItem.HasOdoBeneath(group) ? "int __odo, bool __agree = false, bool __byReference = false"
@@ -432,11 +432,11 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
 
     /// <summary>The parameters of <c>FromVarImage</c>: the carrier, <c>__storage</c> (a LINKAGE formal's copy-in, kb/Work
     /// PB1937) and, for a group that holds the OCCURS DEPENDING table, the RECEIVING count <c>__odo</c> - how many
-    /// occurrences the operation uses (kb/Work PB244; ISO §13.18.38.4 GR8 a): "If the data item referenced by data-name-1
+    /// occurrences the operation uses (kb/Work PB244; ISO §2023:13.18.38.4 GR8 a): "If the data item referenced by data-name-1
     /// is outside the group, only that part of the table area that is specified by the value of the data item ... at the
     /// start of the operation will be used", so the occurrences past it keep their content). The default is the
     /// MAXIMUM - GR8 b) for a receiving group whose DEPENDING item is inside it, and the activation boundary's own
-    /// copy-in, where "the maximum length is used" (§14.8.2.2).</summary>
+    /// copy-in, where "the maximum length is used" (§2023:14.8.2.2).</summary>
     private static string FromVarImageParameters(DataItem group) =>
         DataItem.HasOdoBeneath(group) ? "CobolVarGroup __v, bool __storage = false, int __odo = int.MaxValue"
                                       : "CobolVarGroup __v, bool __storage = false";
@@ -446,11 +446,11 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
 
     /// <param name="agree">null: the plain field; <c>"true"</c>: a sending read that agrees with the maximum when
     /// the member lies in the LINKAGE SECTION — storage the activating element wrote through ITS OWN description
-    /// (§14.2.3 GR8) and which <c>PlaceRenderer.Read</c> already agrees on an elementary reference
+    /// (§2023:14.2.3 GR8) and which <c>PlaceRenderer.Read</c> already agrees on an elementary reference
     /// (<c>ReadsForeignDynamicLength</c>); <c>"__agree"</c>: the same, decided at run time by the caller.</param>
     private string CurrentMemberImage(DataItem d, string? agree = null) =>
         d.IsDynamicTable ? $"{d.ClrName}.CurrentImage({DynElementImage(d)})"
-        // §15.50.4 r7b — a dynamic-length leaf's current content at its current length, as the image it occupies: a
+        // §2023:15.50.4 r7b — a dynamic-length leaf's current content at its current length, as the image it occupies: a
         // NATIONAL leaf's characters are its UTF-16BE byte pairs (D-N1), exactly as a fixed national member's are
         // (AsImageOf; kb/Work PB3441), so the group's image is its storage and DISPLAY, LENGTH and CONVERT ANY agree.
         : d.ImageUnit > 1 ? RuntimeApi.NatBytes(DynLeafContent(d, agree))
@@ -481,7 +481,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         // through its byte-form lane (float via the distinctly-named IEEE lane), a string-carried element
         // (alphanumeric / edited / StoreAsImage) passes through. A USAGE BIT element is the third lane (kb/Work
         // PB2818): its carrier is the '0'/'1' string of its boolean positions, and its slice of the image is
-        // those positions PACKED into ceil(n/8) characters (§8.5.1.6.3, §13.18.60.4 GR5) - the width ByteWidth gives
+        // those positions PACKED into ceil(n/8) characters (§2023:8.5.1.6.3, §2023:13.18.60.4 GR5) - the width ByteWidth gives
         // the table's element, which FromCurrentImage divides the carried content by.
         : BitLayout.IsBitLeaf(d) ? $"__e => {RuntimeApi.BitsPack("__e", $"{d.Pic!.Length}")}"
         // A NATIONAL element is its characters' UTF-16BE byte pairs (kb/Work PB3441), the ElementWidth bytes the table's
@@ -497,7 +497,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     private static string NationalImage(DataItem d, string characters) =>
         d.ImageUnit > 1 ? RuntimeApi.NatBytes(characters) : characters;
 
-    // ── The VARIABLE-LENGTH GROUP's ACTIVATION-BOUNDARY codec (ISO §14.8.2.2 / §14.8.3.2 via §14.9.4.3 SR25;
+    // ── The VARIABLE-LENGTH GROUP's ACTIVATION-BOUNDARY codec (ISO §2023:14.8.2.2 / §2023:14.8.3.2 via §2023:14.9.4.3 SR25;
     //    kb/Work PB204) ─────────────────────────────────────────────────────────────────────────────────────
 
     /// <summary>What one member of a variable-length group contributes to its boundary carrier.</summary>
@@ -505,38 +505,38 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     {
         /// <summary>A member with a fixed image — it lands in <c>CobolVarGroup.Fixed</c> at its own offset.</summary>
         Fixed,
-        /// <summary>A dynamic-length elementary item — ONE carried component (§8.5.1.10).</summary>
+        /// <summary>A dynamic-length elementary item — ONE carried component (§2023:8.5.1.10).</summary>
         DynLeaf,
-        /// <summary>A dynamic-capacity table — ONE carried component, its occurrences concatenated (§8.5.1.9).</summary>
+        /// <summary>A dynamic-capacity table — ONE carried component, its occurrences concatenated (§2023:8.5.1.9).</summary>
         DynTable,
         /// <summary>A dynamic-capacity table whose ELEMENTS are variable-length groups (kb/Work PB2496) — ONE carried
         /// component, NESTED: its occurrences ride as their own carriers (<c>CobolVarGroup.Elements</c>), because their
         /// count is a run-time quantity and each holds components of its own, so flattening them would move the ordinal
-        /// of every later component. §14.6.9.2 moves such a table element by element, a group MOVE per occurrence.</summary>
+        /// of every later component. §2023:14.6.9.2 moves such a table element by element, a group MOVE per occurrence.</summary>
         DynGroupTable,
         /// <summary>A nested SCALAR variable-length group — FLATTENED: its own fixed run joins ours and its own
-        /// components join ours in place, because §8.5.1.12 is stated over relative byte positions and is blind
+        /// components join ours in place, because §2023:8.5.1.12 is stated over relative byte positions and is blind
         /// to the declaration tree.</summary>
         Nested,
         /// <summary>A FIXED-OCCURS table of variable-length group elements — <c>Occurs</c> times <see cref="Nested"/>,
         /// each occurrence flattened in place in order. The multiplicity is a COMPILE-TIME fact, so the carrier's
-        /// ordinal component list still describes it (§8.5.1.12.2 puts each occurrence's dynamic-length items at
+        /// ordinal component list still describes it (§2023:8.5.1.12.2 puts each occurrence's dynamic-length items at
         /// their own relative byte positions).</summary>
         NestedTable,
         /// <summary>A member of FIXED image that holds the group's OCCURS DEPENDING table as its trailing storage
-        /// (§13.18.38.3 SR22). Its image is the same recipe as <see cref="Fixed"/>'s, cut to the table's CURRENT
+        /// (§2023:13.18.38.3 SR22). Its image is the same recipe as <see cref="Fixed"/>'s, cut to the table's CURRENT
         /// count (<c>__odo</c>); its <see cref="VarPart.FixedWidth"/> is the MAXIMUM width, so every offset is the
-        /// one the maximum-length formal sees (§14.8.2.2: "the maximum length is used"). In the record layout the
+        /// one the maximum-length formal sees (§2023:14.8.2.2: "the maximum length is used"). In the record layout the
         /// table is the last variable-length component (<see cref="ContiguousLayout"/>).</summary>
         OdoFixed,
         /// <summary>The group's OCCURS DEPENDING table itself, whose ELEMENTS are variable-length groups (kb/Work PB244):
         /// <see cref="NestedTable"/> at a count that is a parameter. Its IMAGE is each of the first <c>__odo</c>
-        /// occurrences' own <c>CurrentImage()</c>, in order (§13.18.38.4 GR8); its CARRIER is those occurrences'
+        /// occurrences' own <c>CurrentImage()</c>, in order (§2023:13.18.38.4 GR8); its CARRIER is those occurrences'
         /// carriers concatenated (<c>CobolTable.ConcatVarImages</c>), and the receiving side takes every occurrence it
         /// has from whatever was carried (<c>FromVarImage</c> loops to the maximum; a slice the carrier does not hold is
-        /// the §14.9.25.4 GR9b excess part). Its <see cref="VarPart.FixedWidth"/> / <see cref="VarPart.DynCount"/> are
-        /// the MAXIMUM's, so every offset is the one the maximum-length formal sees (§14.8.2.2) and the table, the
-        /// group's trailing storage (§13.18.38.3 SR22), keeps every earlier component where it is. In the RECORD layout
+        /// the §2023:14.9.25.4 GR9b excess part). Its <see cref="VarPart.FixedWidth"/> / <see cref="VarPart.DynCount"/> are
+        /// the MAXIMUM's, so every offset is the one the maximum-length formal sees (§2023:14.8.2.2) and the table, the
+        /// group's trailing storage (§2023:13.18.38.3 SR22), keeps every earlier component where it is. In the RECORD layout
         /// its components are listed at the maximum and a record holding N occurrences is laid out by the first N
         /// (<see cref="RecordOdo"/>; kb/Work PB2497).</summary>
         OdoTable,
@@ -562,7 +562,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         var runContinuations = new HashSet<string>(StringComparer.Ordinal);
         foreach (var f in phys.PhysicalChildrenOf(group))
         {
-            // ⛔ A §8.5.1.6.3 RUN IS ONE SLICE, AT ITS LEADER'S FIELD (PhysicalModel.Physical.BitRun), so the member a
+            // ⛔ A §2023:8.5.1.6.3 RUN IS ONE SLICE, AT ITS LEADER'S FIELD (PhysicalModel.Physical.BitRun), so the member a
             // run holds is classified THERE: an OCCURS DEPENDING table that continues a run (05 B PIC 1 USAGE BIT.
             // 05 TB PIC 1 USAGE BIT OCCURS 1 TO 16 DEPENDING ON N.) lives in the leader's characters, which are then
             // the OdoFixed part, cut to the table's count; the continuation's own field holds nothing (kb/Work PB2921
@@ -591,7 +591,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         return parts;
     }
 
-    /// <summary>The OCCURS DEPENDING table the group holds as its trailing storage (§13.18.38.3 SR22), as its record
+    /// <summary>The OCCURS DEPENDING table the group holds as its trailing storage (§2023:13.18.38.3 SR22), as its record
     /// layout states it (<c>CobolContiguousLayout</c>'s <c>Odo</c>; kb/Work PB244, PB2497): for elements of a fixed
     /// image <see cref="OdoModel.FixedImageTail"/> over the member that holds it (<see cref="OdoModel.ImageHolder"/>, the
     /// <see cref="VarPartKind.OdoFixed"/> part), which the layout makes its LAST component, taken out of the fixed run
@@ -605,7 +605,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         : new OdoTail(VarFixedWidth(t), t.Occurs ?? 1, VarComponentCount(t));
 
     /// <summary>The character width of a variable-length group's FIXED run — its image with every
-    /// variable-length component collapsed to nothing. This is the §8.5.1.12.3 accounting the compatibility
+    /// variable-length component collapsed to nothing. This is the §2023:8.5.1.12.3 accounting the compatibility
     /// relation is stated in ("all dynamic-length elementary items are considered to be of zero length"),
     /// which is exactly why two COMPATIBLE groups lay this string out the same way.</summary>
     public int VarFixedWidth(DataItem group) => VarParts(group).Sum(p => p.FixedWidth);
@@ -627,13 +627,13 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             || p.Kind is VarPartKind.Nested or VarPartKind.NestedTable or VarPartKind.OdoTable && CarriesDynTable(p.Item!));
 
     /// <summary>Emit a variable-length group's <c>AsVarImage()</c> / <c>FromVarImage()</c> — the boundary codec
-    /// §14.8.2.2 and §14.8.3.2 need, the exact analogue of <c>AsImage</c>/<c>FromImage</c> for a group that has
+    /// §2023:14.8.2.2 and §2023:14.8.3.2 need, the exact analogue of <c>AsImage</c>/<c>FromImage</c> for a group that has
     /// no fixed record window. Gated on <see cref="DataItem.CurrentExtentImageCapable"/>, THE ONE capability
     /// (kb/Work PB204): a group whose extent DISPLAY can compose is a group whose extent a crossing can carry,
     /// and giving the crossing its own gate would be the second copy this repo's two-arm rule forbids.
     /// <para>The fixed members ride exactly the <see cref="AsImageOf"/> / <see cref="EmitMemberFromImage"/>
     /// member-image law the record codec uses — the ONE recipe, no second spelling — at offsets computed with
-    /// the variable-length components contributing ZERO, which is §8.5.1.12.3's own convention.</para></summary>
+    /// the variable-length components contributing ZERO, which is §2023:8.5.1.12.3's own convention.</para></summary>
     public void EmitVarImageMethods(DataItem group, CodeWriter w)
     {
         var parts = VarParts(group);
@@ -648,7 +648,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             // occurrence carriers, null for a plain one; a spliced nested group's own list, every entry, in place.
             var elemParts = new List<string>();
             // Parallel to dynParts when the carrier holds a dynamic-capacity table (kb/Work PB2690): the element each
-            // INITIALIZED table creates (ISO §8.5.1.9.5, CobolDynTable.CreatedAs, null for a table without the phrase),
+            // INITIALIZED table creates (ISO §2023:8.5.1.9.5, CobolDynTable.CreatedAs, null for a table without the phrase),
             // which a BY REFERENCE formal's fixed table sees past the capacity and creates from; null for a dynamic-length
             // item; a spliced nested group's own list in place.
             // Stated only for STORAGE (__byReference: a BY REFERENCE crossing's carrier) - a MOVE's sender and a BY CONTENT
@@ -688,7 +688,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                     case VarPartKind.OdoTable:
                         // The nested group's own carrier (every occurrence's, in order, for a table), spliced in
                         // place: its fixed run extends ours and its components take the next slots (the flattening
-                        // §8.5.1.12 requires). An OCCURS DEPENDING table contributes the first __odo occurrences
+                        // §2023:8.5.1.12 requires). An OCCURS DEPENDING table contributes the first __odo occurrences
                         // (the current count at a statement, the maximum at a boundary); the receiver loops to its
                         // own maximum below, and a slice the carrier did not carry is the GR9b excess part.
                         w.Line($"var __n{n} = " + p.Kind switch
@@ -714,7 +714,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                 + $"{(creates ? $", __byReference ? [{string.Join(", ", createdParts)}] : null" : "")});");
         }
         // THE FILE-RECORD HALF (determination D-FRA; kb/Work PB981): a record read back as ONE contiguous image
-        // (§8.5.1.11.2 — what CurrentImage() wrote) is decomposed into this same carrier by the ONE split rule,
+        // (§2023:8.5.1.11.2 — what CurrentImage() wrote) is decomposed into this same carrier by the ONE split rule,
         // CobolVarGroup.FromContiguous, over the component layout below — the flattened VarParts walk, so a
         // nested variable-length group's components are located exactly where FromVarImage's Slice expects them.
         var layout = new List<(int FixedAt, int Unit, long MaxUnits, int Structure)>();
@@ -745,11 +745,11 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             w.Line($"FromVarImage({RuntimeApi.ContiguousLayoutField}.Decompose(__r, __e, __fixedForm, __odo));");
             w.Line($"return {RuntimeApi.ContiguousLayoutField}.StatesCount(__r, __e, __fixedForm);");
         }
-        // ⛔ __storage (kb/Work PB1937) — the boundary copy-in of a LINKAGE formal: §14.2.3 GR8 makes the formal
+        // ⛔ __storage (kb/Work PB1937) — the boundary copy-in of a LINKAGE formal: §2023:14.2.3 GR8 makes the formal
         // "occupy the same storage area as the argument", so a dynamic-length member keeps the argument's WHOLE
         // content even when this description's LIMIT is smaller (the shortened copy was then written back over the
-        // caller's). A read through this description agrees with its maximum (CurrentMemberImage: §14.6.13.2 rule 5,
-        // kb/Work PB1118); every other store — a MOVE into the group — still truncates (§8.5.1.10.4).
+        // caller's). A read through this description agrees with its maximum (CurrentMemberImage: §2023:14.6.13.2 rule 5,
+        // kb/Work PB1118); every other store — a MOVE into the group — still truncates (§2023:8.5.1.10.4).
         using (w.Block($"public void FromVarImage({FromVarImageParameters(group)})"))
         {
             w.Line($"string __s = {RuntimeApi.StrStore("__v.Fixed", $"{totalFixed}")};");
@@ -762,7 +762,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                     case VarPartKind.OdoFixed:   // the whole maximum width: a carrier shorter than it pads (StrStore above)
                         if (p.Kind is VarPartKind.OdoFixed)
                         {
-                            // §13.18.38.4 GR8 a): only the first __odo occurrences are used, so the table's remaining
+                            // §2023:13.18.38.4 GR8 a): only the first __odo occurrences are used, so the table's remaining
                             // occurrences keep the content they have (the carrier's fixed run is spliced over the member's
                             // CURRENT image from the first unused occurrence on).
                             w.Line(OdoMemberTail.Of(p).KeepUnusedOccurrences(off, AsImageOf(p.Field)));
@@ -771,7 +771,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                         off += p.Field.Width;
                         break;
                     case VarPartKind.NestedTable:
-                    case VarPartKind.OdoTable:   // every occurrence it USES (§13.18.38.4 GR8 a: __odo of them), to its maximum
+                    case VarPartKind.OdoTable:   // every occurrence it USES (§2023:13.18.38.4 GR8 a: __odo of them), to its maximum
                         using (w.Block($"for (int __i = 0; __i < {(p.Kind is VarPartKind.OdoTable ? $"global::System.Math.Min({p.Occurs}, __odo)" : p.Occurs.ToString())}; __i++)"))
                             w.Line($"{p.Field.Name}[__i].FromVarImage(__v.Slice({off} + __i * {p.FixedWidth / p.Occurs}, "
                                 + $"{p.FixedWidth / p.Occurs}, {dynAt} + __i * {p.DynCount / p.Occurs}, {p.DynCount / p.Occurs}), __storage);");
@@ -779,7 +779,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                         dynAt += p.DynCount;
                         break;
                     case VarPartKind.DynLeaf:
-                        // §8.5.1.10.4 — the receiving store for a dynamic-length item: replace, truncate on the
+                        // §2023:8.5.1.10.4 — the receiving store for a dynamic-length item: replace, truncate on the
                         // right to the LIMIT, never pad. The component IS the item's whole current content.
                         // A NATIONAL leaf's component is its image, UTF-16BE (CurrentMemberImage): the characters are decoded
                         // first and the LIMIT counts POSITIONS, so a store never cuts a position's pair (kb/Work PB3441).
@@ -789,14 +789,14 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                         break;
                     case VarPartKind.DynTable:
                         // The capacity comes from the carried length divided by OUR element width — legitimate
-                        // because §8.5.1.12.3 admits corresponding tables only "when the byte length of their
+                        // because §2023:8.5.1.12.3 admits corresponding tables only "when the byte length of their
                         // elements is equal", which the bind-time compatibility check enforced.
                         // ⛔ WHEN NO COMPONENT WAS CARRIED THIS TABLE IS IN THE EXCESS PART, AND THAT IS A
-                        // DIFFERENT RULE (kb/Work PB393). §14.9.25.4 GR9b step 2 sends it to §14.6.9.4, where
+                        // DIFFERENT RULE (kb/Work PB393). §2023:14.9.25.4 GR9b step 2 sends it to §2023:14.6.9.4, where
                         // "the current capacity of the dynamic table is unaffected, and each element of the
                         // dynamic table is space-filled" — the opposite of recreating it at capacity zero,
-                        // which is what an empty CARRIED component means under §14.6.9.2. The shape is
-                        // reachable on conforming source: §8.5.1.12.2's last sentence admits a trailing
+                        // which is what an empty CARRIED component means under §2023:14.6.9.2. The shape is
+                        // reachable on conforming source: §2023:8.5.1.12.2's last sentence admits a trailing
                         // dynamic-capacity table beyond the shorter group's last character, "treated as if it
                         // corresponds to a space-filled fixed-length table".
                         using (w.Block($"if (__v.HasDyn({dynAt}))"))
@@ -808,10 +808,10 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                         dynAt++;
                         break;
                     case VarPartKind.DynGroupTable:
-                        // §14.6.9.2: the table is RECREATED from the sender's occurrences, each stored into its element
+                        // §2023:14.6.9.2: the table is RECREATED from the sender's occurrences, each stored into its element
                         // by the element's own FromVarImage — "Correspondingly numbered elements are moved according to
                         // the rules of the MOVE statement" (kb/Work PB2496); the FROM minimum is filled with space-filled
-                        // elements. Not carried at all, it is in the GR9b excess part: §14.6.9.4 space-fills each
+                        // elements. Not carried at all, it is in the GR9b excess part: §2023:14.6.9.4 space-fills each
                         // element at an unaffected capacity — the empty carrier, which GR9b's own steps space-fill.
                         string store = "(__e, __x) => { __e.FromVarImage(__x, __storage); return __e; }";
                         using (w.Block($"if (__v.HasDyn({dynAt}))"))
@@ -837,11 +837,11 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     /// each variable-length component's offset in the FIXED run, its unit width in image characters (the image unit of a
     /// dynamic-length item's positions - <see cref="DataItem.ImageUnit"/>, one for an alphanumeric item and two for
     /// a national one, whose image <see cref="CurrentMemberImage"/> composes as its UTF-16BE bytes, kb/Work PB3441 - the
-    /// element width for a dynamic-capacity table), and its maximum size in those units (§8.5.1.10.1's
+    /// element width for a dynamic-capacity table), and its maximum size in those units (§2023:8.5.1.10.1's
     /// maximum size; the table's maximum capacity). Nested scalar variable-length groups flatten in place, the
     /// same flattening <see cref="VarParts"/> gives the carrier. The fourth element is the component's DYNAMIC LENGTH
     /// STRUCTURE (<c>CobolDynStructure.Code</c>, or the bare unit for an item that names none, <c>PlainCode</c>; 0 for an
-    /// alphanumeric item with none - ISO §12.3.7.4 GR18/GR19; kb/Work PB1094), read through <see cref="FileModel.LayoutCodeOf"/>,
+    /// alphanumeric item with none - ISO §2023:12.3.7.4 GR18/GR19; kb/Work PB1094), read through <see cref="FileModel.LayoutCodeOf"/>,
     /// the one reader of what a structured item occupies in a record.</summary>
     private void ContiguousLayout(DataItem group, int baseAt, List<(int FixedAt, int Unit, long MaxUnits, int Structure)> layout)
     {
@@ -864,7 +864,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                 case VarPartKind.OdoFixed:
                     // The OCCURS DEPENDING table is a variable-length COMPONENT of the record, up to its maximum
                     // (OdoMemberTail.RecordTail: one element per unit, or one character per unit for a table counted
-                    // in bits). §13.18.38.3 SR22 makes it the record's trailing storage, so it is the last component.
+                    // in bits). §2023:13.18.38.3 SR22 makes it the record's trailing storage, so it is the last component.
                     var (startChar, unit, maxUnits) = OdoMemberTail.Of(p).RecordTail;
                     layout.Add((off + startChar, unit, maxUnits, 0));
                     off += startChar;   // the table itself leaves the FIXED run
@@ -896,7 +896,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             : $"(__e, __x) => {x}";
     }
 
-    /// <summary>The image of ONE space-filled element of the dynamic-capacity table <paramref name="d"/> (ISO §14.6.9.4: "each
+    /// <summary>The image of ONE space-filled element of the dynamic-capacity table <paramref name="d"/> (ISO §2023:14.6.9.4: "each
     /// element of the dynamic table is space-filled"): <paramref name="width"/> bytes of the national space (the pair 00, 20)
     /// for a national element, never the byte 0x20 twice, which is U+2020 (kb/Work PB3441); else spaces.</summary>
     private static string SpaceElementImage(DataItem d, int width) =>
@@ -931,9 +931,9 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     public void EmitImageMethods(DataItem group, CodeWriter w)
     {
         var members = phys.PhysicalChildrenOf(group);
-        // ⛔ A BIT GROUP'S BYTE FACE IS ITS BIT FACE PACKED (§13.18.29.4 GR1b — "treated as though it were an elementary
+        // ⛔ A BIT GROUP'S BYTE FACE IS ITS BIT FACE PACKED (§2023:13.18.29.4 GR1b — "treated as though it were an elementary
         // data item … PICTURE 1(m)", kb/Work PB3564): the image is those m positions through CobolBits.Pack and FromImage
-        // unpacks m positions into FromBits, so ONE composition — the §8.5.1.6.3 area, with its stored implicit filler —
+        // unpacks m positions into FromBits, so ONE composition — the §2023:8.5.1.6.3 area, with its stored implicit filler —
         // stands behind both faces. The member-by-member run packing below is for the owners whose image is the
         // concatenation of their members' (every other group); a bit group that begins mid-byte measures its runs from
         // that position (kb/Work PB3158), which the run packing's byte-rounded slices cannot state.
@@ -960,21 +960,21 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         if (group.GroupUsage is GroupUsage.National) EmitNatMethods(group, w);
     }
 
-    /// <summary>A NATIONAL GROUP's elementary face (ISO §13.18.29.4 GR2b — "a national group is treated as though
+    /// <summary>A NATIONAL GROUP's elementary face (ISO §2023:13.18.29.4 GR2b — "a national group is treated as though
     /// it were an elementary data item of usage national and class and category national described with PICTURE
     /// N(m), where m is the length of the group"; D20/PB79, kb/Work PB327): <c>AsNat()</c> is the group's m
     /// national CHARACTER positions and <c>FromNat</c> stores m of them back. The BYTE form stays
     /// <c>AsImage()</c>/<c>FromImage()</c> (the record / REDEFINES / file image), exactly as it does for a bit
     /// group — two faces of ONE composition, so they cannot disagree.
-    /// <para>⛔ DERIVED FROM THE IMAGE, never a second walk over the children: §13.18.29.3 SR3 requires that "all
+    /// <para>⛔ DERIVED FROM THE IMAGE, never a second walk over the children: §2023:13.18.29.3 SR3 requires that "all
     /// elementary items subordinate to the subject of the entry shall be explicitly or implicitly described as
     /// usage national", so every byte pair of a national group's image IS a national character position and the
     /// two faces are exactly <c>CobolBits.NatBytes</c> and its inverse. That is why this needs no <c>BitAreaOf</c>
-    /// analogue: the bit face exists because §8.5.1.6.3 lets same-level bit items SHARE a byte, and national
+    /// analogue: the bit face exists because §2023:8.5.1.6.3 lets same-level bit items SHARE a byte, and national
     /// positions never share one.</para>
     /// <para>The receiving side fits in POSITIONS before serializing (<c>CobolString.Store</c> then
     /// <c>NatBytes</c>): padding the BYTES with 0x20 would manufacture U+2020 characters instead of the national
-    /// spaces §14.9.25.4's national move requires — the identical trap <c>CobolBits.NatWriteWindow</c> documents.</para></summary>
+    /// spaces §2023:14.9.25.4's national move requires — the identical trap <c>CobolBits.NatWriteWindow</c> documents.</para></summary>
     private static void EmitNatMethods(DataItem group, CodeWriter w)
     {
         // m — the as-if PICTURE N(m) length, THE ONE reader of it (DataItem.AsIfPic reads the same ImageWidth,
@@ -984,7 +984,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         w.Line($"public void FromNat(string __n) => FromImage({RuntimeApi.NatBytes(RuntimeApi.StrStore("__n", $"{m}"))});");
     }
 
-    /// <summary>A BIT GROUP's elementary face (§13.18.29.4 GR1b — "treated as though it were an elementary data item
+    /// <summary>A BIT GROUP's elementary face (§2023:13.18.29.4 GR1b — "treated as though it were an elementary data item
     /// … PICTURE 1(m), where m is the bit length of the group"; D20/PB79): <c>AsBits()</c> is the group's m
     /// boolean positions and <c>FromBits</c> distributes m boolean positions back to the members. The packed byte
     /// form stays <c>AsImage()</c>/<c>FromImage()</c> (the record / REDEFINES / file image); the two agree because
@@ -993,7 +993,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     /// <para>⛔ BOTH DIRECTIONS PLACE THE MEMBERS BY <see cref="BitLayout.StartBitWithin"/>, and the width is
     /// <see cref="BitLayout.ExtentBits"/> — not a sum of the members' <see cref="BitLayout.RunBits"/>, which is
     /// what both halves used to do. A sum is only right while every member is "immediately following … an item of
-    /// the SAME LEVEL" (§8.5.1.6.3's one byte-sharing case); a member at a different level number starts at "the
+    /// the SAME LEVEL" (§2023:8.5.1.6.3's one byte-sharing case); a member at a different level number starts at "the
     /// first bit position of the first available byte" and the skipped bits are implicit filler. MEASURED at
     /// b7004e6b on `01 BG GROUP-USAGE BIT. 05 B1 PIC 1(2) VALUE B"11". 03 B2 PIC 1(2) VALUE B"11".`:
     /// <c>DISPLAY BG</c> printed FOUR boolean positions while <c>FUNCTION LENGTH(BG)</c> — which reads the same
@@ -1004,16 +1004,16 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         w.Line($"public readonly string AsBits() => {BitAreaOf(group, BitCarrierOf, storedFillers: true)};");
         using (w.Block("public void FromBits(string __b)"))
         {
-            // pad with boolean zeros / truncate to m (§14.6.8.6)
+            // pad with boolean zeros / truncate to m (§2023:14.6.8.6)
             w.Line($"__b = {RuntimeApi.StrStoreBoolean("__b", $"{BitLayout.ExtentBits(group)}", justifiedRight: false)};");
             foreach (var m in BitMembers(group))
             {
                 int at = BitLayout.StartBitWithin(group, m);
                 EmitRunMemberFromBits(m, "__b", at < 0 ? 0 : at, w);
             }
-            // ⛔ THE IMPLICIT FILLER BETWEEN THE RUNS TAKES WHAT THE AREA HOLDS THERE (§8.5.1.6.3 "implicitly described as a
+            // ⛔ THE IMPLICIT FILLER BETWEEN THE RUNS TAKES WHAT THE AREA HOLDS THERE (§2023:8.5.1.6.3 "implicitly described as a
             // filler elementary bit data item", kb/Work PB3564) — the positions are part of the m the group is described
-            // with (§13.18.29.4 GR1b), so a MOVE of m boolean positions to the group stores them all.
+            // with (§2023:13.18.29.4 GR1b), so a MOVE of m boolean positions to the group stores them all.
             foreach (var filler in BitLayout.FillersOf(group))
                 if (filler.Kind is BitFillerKind.RunTail)
                     w.Line($"{filler.ClrName} = {RuntimeApi.BitsSlice("__b", $"{filler.StartBit}", $"{filler.Bits}")};");
@@ -1021,25 +1021,25 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     }
 
     /// <summary>The members of <paramref name="group"/> that OCCUPY storage — a redefining child overlays its
-    /// target and adds none (§13.18.44), and a non-data child (a condition-name entry) is not a member at all.
+    /// target and adds none (§2023:13.18.44), and a non-data child (a condition-name entry) is not a member at all.
     /// The one member list for every bit composition below, so they cannot walk different populations.</summary>
     private static IEnumerable<DataItem> BitMembers(DataItem group) =>
         group.Children.Where(c => c.RedefinesTargetName is null && (c.IsGroup || c.IsElementary));
 
-    /// <summary>⛔ THE ONE §8.5.1.6.3 AREA COMPOSITION for a bit group: each member's boolean carrier placed at
+    /// <summary>⛔ THE ONE §2023:8.5.1.6.3 AREA COMPOSITION for a bit group: each member's boolean carrier placed at
     /// the bit position the walk gives it, with the implicit-filler zeros between and after them, for the
-    /// group's whole <see cref="BitLayout.ExtentBits"/> — §13.18.29.4 GR1b's "PICTURE 1(m), where m is the bit
+    /// group's whole <see cref="BitLayout.ExtentBits"/> — §2023:13.18.29.4 GR1b's "PICTURE 1(m), where m is the bit
     /// length of the group". <paramref name="carrierOf"/> is what a member contributes: its FIELD for the
     /// emitted <c>AsBits()</c> face, its INITIAL value for the compile-time image seed, and the two therefore
     /// cannot place the same member at two different positions.
     ///
-    /// <para>The filler positions are §8.5.1.6.3's — "implicit filler bit positions are generated … as needed to
+    /// <para>The filler positions are §2023:8.5.1.6.3's — "implicit filler bit positions are generated … as needed to
     /// advance alignment to a required natural boundary for the next item within that group" and, at the end,
     /// "as needed to increase the number of bits to fill an integral number of characters". On the emitted face
     /// (<paramref name="storedFillers"/>) they are the owner's STORED filler fields (<see cref="BitLayout.FillersOf"/>,
     /// kb/Work PB3564), because "the filler bit positions are implicitly described as a filler elementary bit data
     /// item" and so hold what the last move put there; on the seed's face they are ZEROS, the boolean initial state
-    /// §13.18.63 gives a position no VALUE reaches (the string backing the seed starts stores them itself).</para></summary>
+    /// §2023:13.18.63 gives a position no VALUE reaches (the string backing the seed starts stores them itself).</para></summary>
     private static string BitAreaOf(DataItem group, Func<DataItem, string> carrierOf, bool storedFillers = false)
     {
         var parts = new List<string>();
@@ -1068,9 +1068,9 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
 
     /// <summary>One bit member's INITIAL boolean carrier — the compile-time twin of <see cref="BitCarrierOf"/>,
     /// for the image seed: a nested bit group composes its own area (the same <see cref="BitAreaOf"/> walk, so
-    /// §8.5.1.6.3 applies "within that group" at every level), a bit leaf stores its VALUE into its declared
-    /// boolean positions (§14.6.8.6 — zero pad, truncate right) or takes the all-zero boolean initial state, and
-    /// a fixed-OCCURS member repeats that for every occurrence (§13.18.63.4 GR9).</summary>
+    /// §2023:8.5.1.6.3 applies "within that group" at every level), a bit leaf stores its VALUE into its declared
+    /// boolean positions (§2023:14.6.8.6 — zero pad, truncate right) or takes the all-zero boolean initial state, and
+    /// a fixed-OCCURS member repeats that for every occurrence (§2023:13.18.63.4 GR9).</summary>
     private string InitialBitCarrierOf(DataItem m, bool useValues, Subscripts subs = default)
     {
         // ⛔ THE BIT CARRIER IS THE THIRD STORAGE LANE, AND IT DROPPED THE FORMAT 2 (table) VALUE TOO
@@ -1079,10 +1079,10 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         // occurrence of a USAGE BIT table inside a bit group came back all-zero. MEASURED before the fix on
         // `01 BG GROUP-USAGE BIT. 05 B PIC 1(4) OCCURS 3 VALUES ARE B"1010" B"0101" FROM (1). 01 BV REDEFINES
         // BG PIC X(2).`: [0000|0000|0000], where the SAME declaration without the alias — the record-struct
-        // lane — gave [1010|0101|1010]. §13.18.63.4 GR12/GR13 govern this lane exactly as they govern the other
+        // lane — gave [1010|0101|1010]. §2023:13.18.63.4 GR12/GR13 govern this lane exactly as they govern the other
         // two, so it asks DataItem.ValueAt with the occurrence tuple like they do.
         if (m.Occurs is not { } occ || occ <= 0) return OneBitCarrierOf(m, useValues, subs);
-        // ⛔ THE OCCURRENCES SIT ONE STRIDE APART (§13.18.1.4 GR2, kb/Work PB3156) — the compile-time twin of
+        // ⛔ THE OCCURRENCES SIT ONE STRIDE APART (§2023:13.18.1.4 GR2, kb/Work PB3156) — the compile-time twin of
         // BitCarrierOf: every occurrence is padded to its stride and the last one's padding cut off again, which is
         // BitLayout.TableBits. A table whose layout does not depend on where in a byte it begins (no ALIGNED subject
         // or member, nothing that starts a byte, kb/Work PB3167) has stride = width and needs neither.
@@ -1106,7 +1106,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         if (!useValues || m.ValueAt(subs) is not { } raw) return EmitText.CsLiteral(new string('0', pic.Length));
         // ⛔ THE VALUE RULES ARE ASKED OF THE ONE READER, NOT RESTATED HERE (kb/Work PB584). This arm used to be
         // `FigurativeInitializer(raw, pic) ?? StrStoreBoolean(Decode(raw), …)` — the FIGURATIVE arm and the
-        // PLAIN-LITERAL arm, with §8.3.3.6.4 GR2's Format-6 `ALL literal-1` arm missing, which the record-struct
+        // PLAIN-LITERAL arm, with §2023:8.3.3.6.4 GR2's Format-6 `ALL literal-1` arm missing, which the record-struct
         // lane (ValueInitializer.InitializerFor) has always had. MEASURED at f2bbf098b on
         // `01 BG GROUP-USAGE BIT. 05 K1 PIC 1(4) VALUE ALL B"1". 05 K2 PIC 1(4) VALUE ZERO. 01 BV REDEFINES BG
         // PIC X(1).`: K1 read back [0000] through the alias and [1111] without it — the two-arm shape, one arm
@@ -1131,14 +1131,14 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         }
         if (m.Occurs is { } o)
         {
-            // The occurrences are one STRIDE apart (§13.18.1.4 GR2 — an ALIGNED table's or member's, kb/Work PB3156,
+            // The occurrences are one STRIDE apart (§2023:13.18.1.4 GR2 — an ALIGNED table's or member's, kb/Work PB3156,
             // PB3167), each `per` wide.
             int stride = BitLayout.StrideBits(m);
             using (w.Block($"for (int __i = 0; __i < {o}; __i++)"))
                 w.Line(m.IsGroup
                     ? $"{m.ClrName}[__i].FromBits({RuntimeApi.BitsSlice(carrier, $"{at} + __i * {stride}", $"{per}")});"
                     : $"{m.ClrName}[__i] = {RuntimeApi.BitsSlice(carrier, $"{at} + __i * {stride}", $"{per}")};");
-            // The stored filler BETWEEN the occurrences (§8.5.1.6.3, kb/Work PB3564) takes what the carrier holds there.
+            // The stored filler BETWEEN the occurrences (§2023:8.5.1.6.3, kb/Work PB3564) takes what the carrier holds there.
             if (BitLayout.TablePadOf(m) is { } pad)
                 w.Line($"{pad.ClrName} = {RuntimeApi.BitsStridePads(carrier, $"{at}", $"{per}", $"{stride}", $"{o}")};");
         }
@@ -1153,25 +1153,25 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     /// <summary>One member's AsImage sub-expression: a scalar string field directly, a nested group's
     /// <c>AsImage()</c>, a NATIVE fixed-point leaf the BYTES it occupies (<c>CobolNum.FormatImage</c> with the
     /// leaf's own profile — its zoned digits for USAGE DISPLAY, its radix-2 / BCD bytes for BINARY / PACKED,
-    /// §13.18.60.4 GR4/GR11), or — for a fixed-OCCURS table — the concatenation of every occurrence's image
-    /// (ISO §14.9: a group move treats the whole group, INCLUDING every OCCURS position, as one alphanumeric
+    /// §2023:13.18.60.4 GR4/GR11), or — for a fixed-OCCURS table — the concatenation of every occurrence's image
+    /// (ISO §2023:14.9: a group move treats the whole group, INCLUDING every OCCURS position, as one alphanumeric
     /// item).</summary>
-    /// <summary>A §8.5.1.6.3 run member's BIT CARRIER expression — THE one carrier law (kb/Work PB161): a bit
+    /// <summary>A §2023:8.5.1.6.3 run member's BIT CARRIER expression — THE one carrier law (kb/Work PB161): a bit
     /// leaf's '0'/'1' string field; a bit GROUP's <c>AsBits()</c>; a fixed-OCCURS member the concatenation of
     /// every occurrence's carrier (the AsImage run packer read the raw <c>string[]</c> field before, CS1503).</summary>
     private static string BitCarrierOf(DataItem m)
     {
-        // ⛔ A TIER-B CANONICAL HAS NO FIELD OF ITS OWN NAME, only its class's one string backing (§13.18.44.4 GR1 — the
+        // ⛔ A TIER-B CANONICAL HAS NO FIELD OF ITS OWN NAME, only its class's one string backing (§2023:13.18.44.4 GR1 — the
         // shared area is addressed through the backing; PhysicalModel.BuildPhysicals), so its carrier is its first
         // WidthBits bits unpacked from that backing (kb/Work PB3166). `m.ClrName` named a field that does not exist.
         if (BackingOf(m) is { } backing) return RuntimeApi.BitsReadWindow(backing, "0", $"{BitLayout.WidthBits(m)}");
         if (m.Occurs is null) return m.IsGroup ? $"{m.ClrName}.AsBits()" : m.ClrName;
         string occurrences = m.IsGroup ? $"global::System.Array.ConvertAll({m.ClrName}, __e => __e.AsBits())" : m.ClrName;
-        // ⛔ THE OCCURRENCES SIT ONE STRIDE APART, NOT ONE WIDTH (§13.18.1.4 GR2, kb/Work PB3156): an ALIGNED table puts
+        // ⛔ THE OCCURRENCES SIT ONE STRIDE APART, NOT ONE WIDTH (§2023:13.18.1.4 GR2, kb/Work PB3156): an ALIGNED table puts
         // every occurrence at the first bit of a byte, so the carrier carries the filler between them — the extent
         // BitLayout.TableBits states, which BitAreaOf and the run packer both advance by. A table whose layout does not
         // depend on where in a byte it begins (kb/Work PB3167) has stride = width, and keeps the plain concatenation.
-        // ⛔ THAT FILLER IS STORED (§8.5.1.6.3 "implicitly described as a filler elementary bit data item", kb/Work PB3564): the
+        // ⛔ THAT FILLER IS STORED (§2023:8.5.1.6.3 "implicitly described as a filler elementary bit data item", kb/Work PB3564): the
         // table's TablePad field holds the positions between the occurrences, so a group move that wrote them is read back.
         return !BitLayout.HasTablePad(m)
             ? $"string.Concat({occurrences})"
@@ -1182,9 +1182,9 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
 
     /// <summary>The C# name of the string backing that STORES bit member <paramref name="m"/> when it is the canonical of a
     /// Tier-B REDEFINES class (<see cref="RedefinesTier.StringCanonical"/>), else null: such an item is no field of its
-    /// own name, and every composer that reaches it as a §8.5.1.6.3 run member or a bit-group member (the carrier
+    /// own name, and every composer that reaches it as a §2023:8.5.1.6.3 run member or a bit-group member (the carrier
     /// face, the distributor, and <c>PhysicalModel.BuildPhysicals</c>' field) reads and writes the backing instead.
-    /// A bit item is never an OCCURS data-name-2 (§13.18.44.3 SR5), so the backing holds exactly one occurrence.</summary>
+    /// A bit item is never an OCCURS data-name-2 (§2023:13.18.44.3 SR5), so the backing holds exactly one occurrence.</summary>
     private static string? BackingOf(DataItem m) =>
         m.IsCanonical && m.Class is { Tier: RedefinesTier.StringCanonical } cls && ReferenceEquals(cls.Canonical, m)
             ? cls.BackingClrName
@@ -1194,7 +1194,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     /// <see cref="BitLayout.RunTailOf"/> names when it fills exactly the characters the run occupies
     /// (<see cref="BitLayout.RunCharacters"/>), else null. The two are the same positions for every run of a group that
     /// begins on a byte of the record; a bit group that begins MID-BYTE measures the gap to its next run from that
-    /// position (§8.5.1.6.3, kb/Work PB3158), which no character image of it states — its elementary bit face
+    /// position (§2023:8.5.1.6.3, kb/Work PB3158), which no character image of it states — its elementary bit face
     /// (<c>AsBits</c>) is where those positions live, and its byte face is derived from that (<see cref="EmitImageMethods"/>).</summary>
     private static BitFiller? ImageTailOf(IReadOnlyList<DataItem> run)
     {
@@ -1203,7 +1203,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             ? tail : null;
     }
 
-    /// <summary>A §8.5.1.6.3 run's PACKED image: its members' carriers back to back, then its stored trailing filler
+    /// <summary>A §2023:8.5.1.6.3 run's PACKED image: its members' carriers back to back, then its stored trailing filler
     /// (<see cref="ImageTailOf"/>), packed over every position — so the slice is the whole of the characters the
     /// run occupies (kb/Work PB3564).</summary>
     private static string PackedRunOf(IReadOnlyList<DataItem> run)
@@ -1215,10 +1215,10 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     }
 
     private static string AsImageOf(PhysicalModel.Physical f) =>
-        // D19/PB43 — a USAGE BIT run images as its PACKED bits (§13.18.60.4 GR5), high-order first, and a run may
-        // span several FIELDS because §8.5.1.6.3 puts same-level bit items at successive bit positions. The run's
+        // D19/PB43 — a USAGE BIT run images as its PACKED bits (§2023:13.18.60.4 GR5), high-order first, and a run may
+        // span several FIELDS because §2023:8.5.1.6.3 puts same-level bit items at successive bit positions. The run's
         // leader packs every member's carrier concatenated; a continuation contributed Width 0 and images as "".
-        // ⛔ THE RUN'S TRAILING FILLER IS PART OF THE PACK (§8.5.1.6.3, kb/Work PB3564): the positions after the last member,
+        // ⛔ THE RUN'S TRAILING FILLER IS PART OF THE PACK (§2023:8.5.1.6.3, kb/Work PB3564): the positions after the last member,
         // up to the byte the next item starts on, are "a filler elementary bit data item" of the group and have a field
         // of their own (BitLayout.FillersOf), so the image carries what the last group move wrote there. Without it the
         // pack zero-filled them and MOVE "AB" TO G read back as NUL,B.
@@ -1230,13 +1230,13 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         // emitted over such a leaf.
         : f.SlotLeaf is { } slot ? SlotImageOf(f, slot)
         // ⛔ A NATIONAL LEAF IMAGES AS ITS BYTES (kb/Work PB327): two per character position, high-order first
-        // (ISO §13.18.60.4 GR8 leaves the size to the implementor — D-N1 pins two, UTF-16BE), through the ONE
+        // (ISO §2023:13.18.60.4 GR8 leaves the size to the implementor — D-N1 pins two, UTF-16BE), through the ONE
         // serializer CobolBits.NatBytes that the Tier-B window, the EXTERNAL/BASED cell seed and CONVERT's
         // raw-storage channel already ride. Concatenating the occurrences BEFORE serializing is the same string
         // as serializing each and concatenating, so the OCCURS arm needs no separate spelling.
         // ⛔ IT IS A TRANSFORM OVER THE CARRIER'S OWN CHARACTER IMAGE, NOT AN ALTERNATIVE TO IT (design D-N7,
         // kb/Work PB646). A national leaf's category decides what its characters ARE — for the category-national
-        // and boolean forms the carrier IS those characters, and for the national-form NUMERIC of §13.18.60.3
+        // and boolean forms the carrier IS those characters, and for the national-form NUMERIC of §2023:13.18.60.3
         // SR12 they are the zoned digit run CobolNum.FormatImage writes from the native carrier — while the
         // USAGE decides only how a character is SERIALIZED. Composing the two is what let SR12's numeric shapes
         // land without a second numeric byte form; the two used to be mutually exclusive arms, because the
@@ -1266,7 +1266,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     /// gets its substring; a nested group gets <c>FromImage</c>; a NATIVE fixed-point leaf decodes its byte slice
     /// (<c>CobolNum.ParseImage</c> with the leaf's own profile, cast to its CLR storage type — an incompatible
     /// position, e.g. the spaces a short record's pad legitimately deposits, decodes deterministically per ISO
-    /// §14.6.13.2, see CobolNum); a fixed-OCCURS table loops its occurrences, each taking its per-occurrence width
+    /// §2023:14.6.13.2, see CobolNum); a fixed-OCCURS table loops its occurrences, each taking its per-occurrence width
     /// in source order (the array elements are value-type structs/strings, mutated in place).
     /// <para>ONE profile, never an image-specific override: since the image IS the item's bytes, a BINARY/PACKED
     /// leaf's sign lives in those bytes (two's complement / the sign nibble) and its <c>SignKind</c> — a DISPLAY
@@ -1279,10 +1279,10 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         if (f.BitRun is { } run)
         {
             int runBits = run.Sum(BitLayout.RunBits);
-            // The run's stored trailing filler (§8.5.1.6.3, kb/Work PB3564) is unpacked with it and stored back below.
+            // The run's stored trailing filler (§2023:8.5.1.6.3, kb/Work PB3564) is unpacked with it and stored back below.
             var tail = ImageTailOf(run);
             // ⚠ The carrier local is named for the run's OFFSET, not a bare `__bits`: a group may hold SEVERAL
-            // runs (two bit items separated by a character item are two runs, §8.5.1.6.3 — the character item
+            // runs (two bit items separated by a character item are two runs, §2023:8.5.1.6.3 — the character item
             // breaks the same-level adjacency), and they all land in this one method scope. The first version
             // emitted `var __bits` per run and a two-run group failed to compile with CS0128.
             string carrier = $"__bits{off}";
@@ -1296,7 +1296,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                 at += BitLayout.RunBits(m);
             }
             // ⛔ WHAT THE IMAGE HELD AFTER THE LAST MEMBER IS THE FILLER'S VALUE NOW — MOVE "AB" TO G stores 'A''s low
-            // seven bits here, and the next DISPLAY of G reads them back (§14.9.25.4 GR4: the group move is an
+            // seven bits here, and the next DISPLAY of G reads them back (§2023:14.9.25.4 GR4: the group move is an
             // alphanumeric move and so round-trips the bytes).
             if (tail is not null) w.Line($"{tail.ClrName} = {RuntimeApi.BitsSlice(carrier, $"{at}", $"{tail.Bits}")};");
             return;
@@ -1305,14 +1305,14 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         // ⛔ THE INVERSE OF AsImageOf's national arm (kb/Work PB327): decode the UTF-16BE byte pairs back to the
         // leaf's character positions through CobolBits.NatReadWindow — the inverse CobolBits.NatBytes names, never
         // a second decoder. A pair the image is too short to hold decodes as the NATIONAL space, which is exactly
-        // §14.9.30.4 GR15's fill for a national record area ("a trailing space is defined to be the national space
+        // §2023:14.9.30.4 GR15's fill for a national record area ("a trailing space is defined to be the national space
         // character") — the connector's byte-level pad and this decode agree on it by construction.
         if (f.NatLeaf is { } nat)
         {
             // ⛔ THE INVERSE COMPOSITION OF AsImageOf's national arm (design D-N7, kb/Work PB646): the byte
             // pairs decode to the leaf's CHARACTER positions, and the carrier decoder below turns those
             // characters into the carrier — a string for the category-national/national-edited/boolean forms,
-            // the native fixed-point value for §13.18.60.3 SR12's national-form NUMERIC. Reading the window and
+            // the native fixed-point value for §2023:13.18.60.3 SR12's national-form NUMERIC. Reading the window and
             // then NOT decoding the digits is what a single mutually-exclusive arm did, and it stored a string
             // into a `long` field (uncompilable generated C#, unreachable only while the category was staged).
             int pos = NationalWindow.PositionsOf(nat)!.Value;
@@ -1345,7 +1345,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     /// profile and is cast to its CLR storage type; a FLOAT leaf takes the IEEE bit-reinterpretation lane, because
     /// the Int128 lane's cast would numerically CONVERT the parsed integer (kb/Work PB164 wave 2); every
     /// string-shaped field is its characters already. An incompatible position — e.g. the spaces a short record's
-    /// pad legitimately deposits — decodes deterministically per ISO §14.6.13.2 (see CobolNum).
+    /// pad legitimately deposits — decodes deterministically per ISO §2023:14.6.13.2 (see CobolNum).
     /// <para>It is ONE function because it was three copies, and the national arm was a fourth that decoded
     /// nothing (kb/Work PB646).</para></summary>
     private static string CarrierFromChars(PhysicalModel.Physical f, string chars) =>

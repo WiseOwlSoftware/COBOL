@@ -14,11 +14,11 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ AN INTRODUCTION GATE IS ONLY AS COMPLETE AS ITS LIST OF GRAMMAR SITES, AND THAT LIST WAS HAND-MAINTAINED.
 /// The boolean operators are a COBOL-2002 introduction and the four boolean SHIFT operators a COBOL-2023 one
-/// (ISO §8.7.2 / §8.8.2 rule 8), gated in <c>VersionConformancePass</c> at the ALTITUDE of each grammar rule
+/// (ISO §2023:8.7.2 / §2023:8.8.2 rule 8), gated in <c>VersionConformancePass</c> at the ALTITUDE of each grammar rule
 /// that hosts a top-level <c>booleanExpression</c> — per site, never per node, because the tiers nest through
 /// parentheses and a per-node gate would multiply the diagnostic.
 /// <para>For as long as there were two such sites the list was invisible. PB46 added a third
-/// (<c>INVOKE … USING BY CONTENT boolean-expression-1</c>, §14.9.23.2) and the omission would have been silent:
+/// (<c>INVOKE … USING BY CONTENT boolean-expression-1</c>, §2023:14.9.23.2) and the omission would have been silent:
 /// <c>BY CONTENT B1 B-SHIFT-L 2</c> compiling clean under <c>--std 2002</c> — a 2023 construct inside a 2002
 /// statement, accepted, with every gate green (feedback_edition_gate_sweep).</para>
 /// <para>So the list is DERIVED from the grammar here rather than remembered. A new rule that admits a boolean
@@ -44,12 +44,12 @@ public sealed class BooleanExpressionGateSiteDriftTests
     /// only from the conditional-compilation stage's fragment re-parse, which the <c>VersionConformancePass</c>
     /// walk never reaches — and that reachability fact used to sit in <see cref="Exempt"/> as if it were a reason
     /// for NO gate, so <c>&gt;&gt;DEFINE G AS B"1100" B-SHIFT-L 1</c> compiled clean at 2002 and 2014. A compile-time
-    /// boolean expression is "formed in accordance with 8.8.2" (ISO §7.3.7.2 SR1) of the targeted edition, so each
+    /// boolean expression is "formed in accordance with 8.8.2" (ISO §2023:7.3.7.2 SR1) of the targeted edition, so each
     /// rule is gated by the frontend helper that evaluates its fragment, keyed here by that helper's name.</summary>
     private static readonly Dictionary<string, string> DirectiveGated = new(StringComparer.Ordinal)
     {
-        ["compileTimeOperand"] = "EvaluateOperandText",   // compileTimeOperandFragment (§7.3.11 / §7.3.13 operands)
-        ["cceRelationOrBoolean"] = "EvaluateCceText",     // constantConditionalExpressionFragment (§7.3.8)
+        ["compileTimeOperand"] = "EvaluateOperandText",   // compileTimeOperandFragment (§2023:7.3.11 / §2023:7.3.13 operands)
+        ["cceRelationOrBoolean"] = "EvaluateCceText",     // constantConditionalExpressionFragment (§2023:7.3.8)
     };
 
     private static string ProcessorSource() => File.ReadAllText(TestRepo.Src(Path.Combine(

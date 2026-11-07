@@ -7,7 +7,7 @@
       *> kb/Work PB1173 + PB1052 — A FILE SORT KEY THAT IS A DYNAMIC-LENGTH ITEM IS REFUSED BY SR6 d), NOT BY A CAPABILITY.
       *>   cite.py --check 14.9.40.3 "A key data item shall not be a variable-length group, an occurs-depending-on
       *>     data item, a dynamic-length elementary item or an item subordinate to a dynamic-capacity table."
-      *>     -> OK §14.9.40.3 6) d)
+      *>     -> OK §2023:14.9.40.3 6) d)
       *> SK is PIC X DYNAMIC LENGTH (a COBOL-2014 construct). The statement was refused all along, but as "key 'SK' has
       *> no character image" — a statement about the compiler — where the standard names the case.
       *> kb/Work PB2512 - the USING and GIVING records are sized to the SD record (its largest record, or its

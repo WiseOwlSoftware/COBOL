@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Runtime.IO.Store;
 /// <para>A cached page is still read through its stamped pointer (2.2.1.6 R3): a hit counts only when the cached page's
 /// <c>self</c> and <c>generation</c> are the pointer's, so a page reused since it was cached is read from the medium
 /// again. The checksum is not recomputed on a hit: the bytes were verified when they entered.</para>
-/// <para>Its capacity is §12.4.5.14.3 GR1's floor — <i>"If the RESERVE clause is specified, the number of input-output
+/// <para>Its capacity is §2023:12.4.5.14.3 GR1's floor — <i>"If the RESERVE clause is specified, the number of input-output
 /// areas allocated is equal to the value of integer-1"</i> — at least one page per input-output area of the attached
 /// connectors, and never below <see cref="DefaultPages"/>, the run unit's default (1 MiB), which is above the engine's
 /// working set (the tree's depth plus three) for every tree the format can hold.</para></summary>

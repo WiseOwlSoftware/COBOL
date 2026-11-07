@@ -6,7 +6,7 @@
 *> portable: unverified
 *>---
       *> FUNCTION EXCEPTION-FILE(file-connector-name) — the COBOL-2023 file-connector
-      *> argument form (ISO §15.28.4 r2; Annex E.3.3 item 25). It reports the NAMED
+      *> argument form (ISO §2023:15.28.4 r2; Annex E.3.3 item 25). It reports the NAMED
       *> connector's current I-O status + SELECT-spelled file-name (r2b), or two
       *> alphanumeric spaces when the connector was never opened/attempted/accessed
       *> (r2a) — unlike the no-argument form, which reports the LAST exception. Here

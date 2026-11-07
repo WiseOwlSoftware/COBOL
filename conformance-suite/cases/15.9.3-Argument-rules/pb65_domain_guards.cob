@@ -5,12 +5,12 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.9.3 r2/r3, §15.74.3 r2, §15.75.3 r2 — the financial/random argument-domain guards
+      *> ISO §2023:15.9.3 r2/r3, §2023:15.74.3 r2, §2023:15.75.3 r2 — the financial/random argument-domain guards
       *> (fix-queue PB65). A negative ANNUITY rate, a PRESENT-VALUE rate ≤ −1, and a negative RANDOM
-      *> seed are incorrect argument VALUES: §15.3 sets EC-ARGUMENT-FUNCTION and the documented
+      *> seed are incorrect argument VALUES: §2023:15.3 sets EC-ARGUMENT-FUNCTION and the documented
       *> default is 0 (checking off here). The old bodies computed silently — ANNUITY(-0.5 3) gave
       *> +0.0714, and RANDOM(-5) aliased a positive seed through a mask. The legal control
-      *> ANNUITY(0, 4) = 1/4 (§15.9.4 r1a). Both carriers guard through ONE raise site per rule.
+      *> ANNUITY(0, 4) = 1/4 (§2023:15.9.4 r1a). Both carriers guard through ONE raise site per rule.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB65DOM.
        DATA DIVISION.

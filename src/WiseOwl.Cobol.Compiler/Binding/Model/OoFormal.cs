@@ -5,15 +5,15 @@ namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>One resolved USING formal: the LINKAGE item, the 0-based positional slot, the emitted C# parameter name
 /// (the argument's carrier), and whether the
-/// procedure division header specifies the OPTIONAL phrase for it (ISO §14.2.1 general format; §14.2.3 GR3 — what §14.9.23.3 SR18 and
-/// §14.8.2.1 read, and what §9.3.8.2.3 rule 8 compares between a method and its prototype). <paramref name="ByValue"/>
-/// is the passing mode of the formal — the BY VALUE phrase specified or implied for it (§14.2.1; §14.2.3 GR4: "Both the
-/// BY REFERENCE and the BY VALUE phrases are transitive"), what §14.9.23.3 SR5 and §14.9.23.4 GR6 select the argument's
-/// mode by and what §9.3.8.2.3 rule 1 compares ("consistent BY REFERENCE and BY VALUE specifications"). A BY VALUE
+/// procedure division header specifies the OPTIONAL phrase for it (ISO §2023:14.2.1 general format; §2023:14.2.3 GR3 — what §2023:14.9.23.3 SR18 and
+/// §2023:14.8.2.1 read, and what §2023:9.3.8.2.3 rule 8 compares between a method and its prototype). <paramref name="ByValue"/>
+/// is the passing mode of the formal — the BY VALUE phrase specified or implied for it (§2023:14.2.1; §2023:14.2.3 GR4: "Both the
+/// BY REFERENCE and the BY VALUE phrases are transitive"), what §2023:14.9.23.3 SR5 and §2023:14.9.23.4 GR6 select the argument's
+/// mode by and what §2023:9.3.8.2.3 rule 1 compares ("consistent BY REFERENCE and BY VALUE specifications"). A BY VALUE
 /// formal crosses the method ABI exactly as a BY REFERENCE one does — the carrier, the area and the omitted flag —
 /// but the activator hands it a DETACHED cell and no area (never its own storage) and the method never copies it back
-/// (§14.2.3 GR10), so the mode is a fact of the binding, not a second C# signature.
-/// <para>⛔ THE FORMAL OCCUPIES ITS ARGUMENT'S STORAGE (ISO §14.2.3 GR8; kb/Work PB2087, the method arm). The parameter is
+/// (§2023:14.2.3 GR10), so the mode is a fact of the binding, not a second C# signature.
+/// <para>⛔ THE FORMAL OCCUPIES ITS ARGUMENT'S STORAGE (ISO §2023:14.2.3 GR8; kb/Work PB2087, the method arm). The parameter is
 /// the argument's CARRIER (<c>ManagedPointer&lt;T&gt;</c>) plus its AREA (<see cref="AreaParam"/>, the cell the argument
 /// lives in, or null), exactly the pair a program's <c>CobolArg</c> carries. A <paramref name="CarrierResident"/>
 /// formal (an elementary one no other LINKAGE entry REDEFINES and whose ADDRESS OF is not taken — the program arm's
@@ -46,12 +46,12 @@ public sealed record OoFormal(DataItem Item, int Position, string ParamName, boo
 
     /// <summary>The C# name of the formal's omitted-presence parameter — the METHOD arm of the one presence fact
     /// (<see cref="OmittedProbe.MethodFlag"/>; kb/Work PB757). EVERY formal carries one, not only an OPTIONAL
-    /// one: §8.8.4.8.4 GR1c makes omission transitive through a forwarded formal whatever the receiving
+    /// one: §2023:8.8.4.8.4 GR1c makes omission transitive through a forwarded formal whatever the receiving
     /// formal's own phrase, exactly as the program arm's null carrier is. The name is positional and outside
     /// every COBOL-word-derived family: every <c>ParamName</c> carries the <c>__formal_</c> tag
     /// (<see cref="NamingConvention.FormalParameterName"/>), so no formal can collide with it.</summary>
     public string OmittedFlag => $"__omitted{Position}";
 
-    /// <summary>The presence fact every consumer reads (§8.8.4.8.4 GR1).</summary>
+    /// <summary>The presence fact every consumer reads (§2023:8.8.4.8.4 GR1).</summary>
     public OmittedProbe Probe => new OmittedProbe.MethodFlag(OmittedFlag);
 }

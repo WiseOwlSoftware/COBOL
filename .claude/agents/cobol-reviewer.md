@@ -51,7 +51,7 @@ The approved target architecture is the design's §8; a finding either serves it
   and a hook enforces it; write only the checkpoint `.jsonl` file your prompt names.
 - **The lens is the dimension's, from ONE place:** `.claude/skills/review/SKILL.md` and
   `tools/claude-skills/skills/review/references/dimensions.md` for the four dimensions, design §5 for the standards
-  (§5.5 for modern C#), §8 for the target. Your prompt adds only what is particular to this batch.
+  (DESIGN-architecture-review §5.5 for modern C#), §8 for the target. Your prompt adds only what is particular to this batch.
 - **The bar** (design §3 R2; `r2_collect.py` rejects a record that misses it): exact sites, the rule broken, a
   concrete scenario, the target consistent with §8 (or the open note that already plans it: `existing_note`), the
   wave kind, `files` that exist in the pin, the `members` a wave would move or change, calibrated severity

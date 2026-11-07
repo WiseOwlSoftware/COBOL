@@ -34,7 +34,7 @@ public readonly record struct DecodedSourceText(string? Text, SourceTextReading 
 
 /// <summary>
 /// ⛔ THE ONE PLACE THE BYTES OF A SOURCE OR LIBRARY TEXT FILE BECOME CHARACTERS (docs/CONFORMANCE.md §7, Annex A.1
-/// items 25 and 26; ISO §8.1.3.2 GR1 and GR2; kb/Work PB1397). The disposition, stated once:
+/// items 25 and 26; ISO §2023:8.1.3.2 GR1 and GR2; kb/Work PB1397). The disposition, stated once:
 /// <list type="bullet">
 /// <item>A file beginning with a byte-order mark is read in the encoding the mark names — UTF-8 (<c>EF BB BF</c>),
 /// UTF-16 little- or big-endian (<c>FF FE</c> / <c>FE FF</c>), UTF-32 little- or big-endian (<c>FF FE 00 00</c> /

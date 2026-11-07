@@ -70,7 +70,7 @@
            DISPLAY "A3=" WS-A.
            DISPLAY "B3=" WS-B.
            STOP RUN.
-      *> kb/Work PB131 - AS NESTED requires CONTAINMENT (§14.9.4.3 SR15 sentence 2, enforced at bind).
+      *> kb/Work PB131 - AS NESTED requires CONTAINMENT (§2023:14.9.4.3 SR15 sentence 2, enforced at bind).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. SUBV-P10UV.
        DATA DIVISION.

@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.4.4 GR3 b)/c) (Annex A.1 item 14) — the runtime
+      *> ISO §2023:14.9.4.4 GR3 b)/c) (Annex A.1 item 14) — the runtime
       *> resources a CALL checks: the documented set is EMPTY, so a
       *> module file that exists but cannot be loaded is "not located"
       *> (EC-PROGRAM-NOT-FOUND) and EC-PROGRAM-RESOURCES is never raised.

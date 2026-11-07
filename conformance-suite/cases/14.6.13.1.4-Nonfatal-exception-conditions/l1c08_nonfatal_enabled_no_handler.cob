@@ -5,26 +5,26 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.6.13.1.4 4) — an ENABLED nonfatal condition with no
+      *> ISO §2023:14.6.13.1.4 4) — an ENABLED nonfatal condition with no
       *> phrase, WHEN or USE: the statement continues per its own rules
       *> Rule 4): "Execution of the statement continues as specified in
       *>   the rules for that statement."
       *> cite.py:
-      *>   OK  §14.6.13.1.4 4)  (Nonfatal exception conditions)
-      *>   OK  §14.6.13.1.4 1)  (Nonfatal exception conditions) [rule 1
+      *>   OK  §2023:14.6.13.1.4 4)  (Nonfatal exception conditions)
+      *>   OK  §2023:14.6.13.1.4 1)  (Nonfatal exception conditions) [rule 1
       *>       needs a conditional phrase WITHOUT NOT - none here]
-      *>   OK  §14.9.43.4 8) a)  "No further data is transferred to the
+      *>   OK  §2023:14.9.43.4 8) a)  "No further data is transferred to the
       *>       data item referenced by identifier-3."
-      *>   OK  §14.9.43.4 8) d)  "If the ON OVERFLOW phrase is not
+      *>   OK  §2023:14.9.43.4 8) d)  "If the ON OVERFLOW phrase is not
       *>       specified, execution continues as specified in
       *>       14.6.13.1.4, Nonfatal exception conditions."
-      *>   OK  §14.9.43.4 8) e)  "The NOT ON OVERFLOW phrase, if
+      *>   OK  §2023:14.9.43.4 8) e)  "The NOT ON OVERFLOW phrase, if
       *>       specified, is ignored."
-      *>   OK  §14.9.29.4 1)  NOTE "For nonfatal exception conditions
+      *>   OK  §2023:14.9.29.4 1)  NOTE "For nonfatal exception conditions
       *>       where there are no applicable exception processing
       *>       procedures, the RAISE statement acts as a CONTINUE
       *>       statement."
-      *>   OK  §14.6.13.1.1   (General) "the associated exception
+      *>   OK  §2023:14.6.13.1.1   (General) "the associated exception
       *>       condition is raised, the last exception status is set to
       *>       indicate that exception condition"
       *> Checking is ON for both conditions (TURN), there are no

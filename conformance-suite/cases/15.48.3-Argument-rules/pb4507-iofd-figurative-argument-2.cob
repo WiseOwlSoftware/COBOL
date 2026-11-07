@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> PB4507 - ISO §15.48.3 r3: argument-2 "shall be a data item of the same type as argument-1". A figurative constant
+      *> PB4507 - ISO §2023:15.48.3 r3: argument-2 "shall be a data item of the same type as argument-1". A figurative constant
       *> is of class alphanumeric, so the class screen admits it; it is not a data item, so the data-item rule alone refuses it
       *> (the sibling of pb58-iofd-literal). Moving the data-item question to the function-identifier-aware predicate must
       *> keep this refusal.

@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB1166 - the IMPLEMENTS lane (§9.3.11 through §9.3.8.2.3
+      *> kb/Work PB1166 - the IMPLEMENTS lane (§2023:9.3.11 through §2023:9.3.8.2.3
       *> rule 3), the REJECT half.
       *>   cite.py --check 9.3.8.2.3 "Period picture symbols match if and
       *>     only if the DECIMAL-POINT IS COMMA clause is in effect for

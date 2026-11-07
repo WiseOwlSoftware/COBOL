@@ -3,7 +3,7 @@
 namespace WiseOwl.Cobol.Runtime;
 
 /// <summary>
-/// The STRING (ISO/IEC 1989:2023 §14.9.43) and UNSTRING (§14.9.48) runtime kernels over the typed-native string
+/// The STRING (ISO/IEC 1989:2023 §2023:14.9.43) and UNSTRING (§2023:14.9.48) runtime kernels over the typed-native string
 /// substrate: values come in and go out as .NET <see cref="string"/>s; the POINTER item travels as a 1-based
 /// <c>ref long</c>. One <see cref="StringTransfer"/> call per STRING sending operand; one
 /// <see cref="UnstringExtract"/> call per UNSTRING receiving area (plus one <see cref="UnstringSkipRun"/> after its
@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Runtime;
 public static class CobolStringOps
 {
     /// <summary>
-    /// Transfer ONE STRING sending operand into the receiver image (§14.9.43.4 GR3–GR8). The receiver travels as
+    /// Transfer ONE STRING sending operand into the receiver image (§2023:14.9.43.4 GR3–GR8). The receiver travels as
     /// its full character image and only the touched positions change — no space filling is ever applied (GR3a /
     /// GR7: every untouched position keeps its prior content). A <see langword="null"/> or zero-length
     /// <paramref name="delimiter"/> means DELIMITED BY SIZE (SR9 / GR3c — a zero-length delimiter item behaves as
@@ -52,7 +52,7 @@ public static class CobolStringOps
     }
 
     /// <summary>
-    /// Examine the UNSTRING sending field for ONE receiving area (§14.9.48.4 GR11) starting at the 1-based
+    /// Examine the UNSTRING sending field for ONE receiving area (§2023:14.9.48.4 GR11) starting at the 1-based
     /// <paramref name="pointer"/> (GR11a; the caller has already established pointer ≥ 1 — the initiation
     /// range check is GR15a/GR16a, performed once per statement before any receiver). Returns the number of
     /// characters examined excluding delimiter characters (the COUNT IN value, GR11e / GR4), with the examined
@@ -126,7 +126,7 @@ public static class CobolStringOps
     }
 
     /// <summary>
-    /// Consume the contiguous repeats of an ALL delimiter after its first occurrence (§14.9.48.4 GR7: "one occurrence
+    /// Consume the contiguous repeats of an ALL delimiter after its first occurrence (§2023:14.9.48.4 GR7: "one occurrence
     /// or two or more contiguous occurrences of literal-1 … or the content of the data item referenced by
     /// identifier-2 are treated as if they were only one occurrence"), starting at the 1-based
     /// <paramref name="pointer"/> that <see cref="UnstringExtract"/> left just past that first occurrence. Run by the

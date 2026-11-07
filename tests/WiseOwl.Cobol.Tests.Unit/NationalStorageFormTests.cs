@@ -12,9 +12,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// The P10 Step-2/3 substrate PINS (PHASE-10 exit criterion "national CharImage confirmed
-/// one-UTF-16-char-per-position"): a NATIONAL leaf (ISO §13.18.60.4 GR8; the documented D-N1 implementor
-/// choice — one .NET UTF-16 <c>char</c> per national position, §8.1.2 NOTE 2) and a BOOLEAN leaf
-/// (§13.18.60.3 SR5/SR13b; D-B1 — one '0'/'1' char per boolean position) both ride
+/// one-UTF-16-char-per-position"): a NATIONAL leaf (ISO §2023:13.18.60.4 GR8; the documented D-N1 implementor
+/// choice — one .NET UTF-16 <c>char</c> per national position, §2023:8.1.2 NOTE 2) and a BOOLEAN leaf
+/// (§2023:13.18.60.3 SR5/SR13b; D-B1 — one '0'/'1' char per boolean position) both ride
 /// <see cref="StorageForm.CharImage"/> with <c>ImageWidth == PICTURE Length</c> — NEVER the legacy
 /// 2-bytes-per-character doubling. The backing C# field for a <c>PIC N(n)</c>/<c>PIC 1(n)</c> item is a
 /// string of exactly <c>Width</c> chars (the ValueInitializer/StrStore width discipline reads this same
@@ -67,7 +67,7 @@ public sealed class NationalStorageFormTests
         Assert.Equal(PicCategory.National, ci.Category);
     }
 
-    /// <summary>USAGE NATIONAL with an implied-usage PIC N: the same CharImage form (§13.18.60.4 GR8 — usage
+    /// <summary>USAGE NATIONAL with an implied-usage PIC N: the same CharImage form (§2023:13.18.60.4 GR8 — usage
     /// national IS the national character form; SR13a lets PIC N imply it).</summary>
     [Fact]
     public void National_UsageNational_SameCharImageForm()
@@ -81,10 +81,10 @@ public sealed class NationalStorageFormTests
     }
 
     /// <summary>⛔ THE TWO BOOLEAN USAGES OCCUPY DIFFERENT WIDTHS, and this test used to assert they did not.
-    /// It read "D-B1 — one boolean character per position; §13.18.60.3 SR5/SR13b make DISPLAY and BIT the same
+    /// It read "D-B1 — one boolean character per position; §2023:13.18.60.3 SR5/SR13b make DISPLAY and BIT the same
     /// string storage" and pinned <c>ImageWidth == 4</c> for <c>PIC 1(4) USAGE BIT</c>. **Neither cited rule says
     /// that**: SR13(b) implies USAGE DISPLAY only when NO usage clause is written, and SR5 merely requires a bit
-    /// item to have a boolean picture. The rule that governs is <b>§13.18.60.4 GR5</b> — "the USAGE BIT clause
+    /// item to have a boolean picture. The rule that governs is <b>§2023:13.18.60.4 GR5</b> — "the USAGE BIT clause
     /// specifies that bits SHALL be used" — so a bit item occupies <c>ceil(n/8)</c> character positions
     /// (design D19, fix-queue PB43). A GREEN test resting on a misreading is how the defect stayed invisible;
     /// see <c>feedback_green_test_can_hold_a_gap_open</c>.</summary>
@@ -94,12 +94,12 @@ public sealed class NationalStorageFormTests
         var bit = BindWs("01 B-ITEM PIC 1(4) USAGE BIT.").Forest.ByName["B-ITEM"][0];
         Assert.Equal(PicCategory.Boolean, bit.Pic!.Category);
         Assert.Equal(Usage.Bit, bit.Pic.Usage);
-        Assert.Equal(4, bit.Pic.Length);            // four BOOLEAN positions — what §15.50.4 r1 returns
+        Assert.Equal(4, bit.Pic.Length);            // four BOOLEAN positions — what §2023:15.50.4 r1 returns
         Assert.Equal(1, bit.ImageWidth);            // ceil(4/8) CHARACTER positions — what it OCCUPIES
         Assert.Equal(1, bit.ByteWidth);
 
         // The DISPLAY form is the other half of D-B1 and is REQUIRED to stay one character per position:
-        // §13.18.60.3 SR13(b) implies USAGE DISPLAY, and §13.18.60.4 GR7 makes DISPLAY "an alphanumeric coded
+        // §2023:13.18.60.3 SR13(b) implies USAGE DISPLAY, and §2023:13.18.60.4 GR7 makes DISPLAY "an alphanumeric coded
         // character set". It is not merely licensed — it is the rule for this declaration.
         var disp = BindWs("01 D-ITEM PIC 1(4).").Forest.ByName["D-ITEM"][0];
         Assert.Equal(PicCategory.Boolean, disp.Pic!.Category);
@@ -110,7 +110,7 @@ public sealed class NationalStorageFormTests
         Assert.Equal(PicCategory.Boolean, ci.Category);
     }
 
-    /// <summary>§8.5.1.6.3 is a LAYOUT, not a sum — the case that separates them. Two 3-bit items SEPARATED by a
+    /// <summary>§2023:8.5.1.6.3 is a LAYOUT, not a sum — the case that separates them. Two 3-bit items SEPARATED by a
     /// character item are two runs, each taking its own byte ("aligned at the first bit position of the first
     /// available byte"), so the group is 3 positions. Summing bits and rounding once gives 14 bits → 2, which is
     /// the answer the fix-queue entry's stated shape would have produced.</summary>

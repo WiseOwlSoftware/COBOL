@@ -24,7 +24,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <c>OdoGroupPlace</c> wrapping a <c>MemberPlace</c>, and it fell into the default arm of INITIALIZE's receiver
 /// cursor factory (plain COBOL-85 <c>INITIALIZE</c> of an ODO group aborted the run unit), of MOVE
 /// CORRESPONDING's <c>CorrAccess.Create</c> (<c>SUBTRACT CORRESPONDING</c> over two ODO groups aborted — a
-/// group kind §14.9.44.3 SR6 admits BY NAME), and of <c>FUNCTION LENGTH</c>'s variable-length sum, which peeled
+/// group kind §2023:14.9.44.3 SR6 admits BY NAME), and of <c>FUNCTION LENGTH</c>'s variable-length sum, which peeled
 /// exactly one known decorator kind and staged everything else loud.</para>
 /// <para>So the rule is enforced here rather than remembered: a storage-form switch either asks
 /// <see cref="WiseOwl.Cobol.Binding.Model.Place.Undecorated"/>, or handles decorators itself (an arm naming
@@ -40,18 +40,18 @@ public sealed class PlaceStorageFormSwitchDriftTests
     private static readonly string[] StorageForms =
     [
         "MemberPlace", "RedefViewPlace", "DynTablePlace", "CapacityRegisterPlace", "RenamesPlace",
-        // A REPORT SECTION sum counter (ISO §13.18.54.4 GR1/GR5/GR12; kb/Work PB840): engine state rather than
+        // A REPORT SECTION sum counter (ISO §2023:13.18.54.4 GR1/GR5/GR12; kb/Work PB840): engine state rather than
         // program storage, but a LEAF all the same — a switch over storage forms that meets it and falls into a
         // catch-all is the very defect this detector exists for, and GR12 makes it a RECEIVER too.
         "ReportSumCounterPlace",
         "DebugRegisterPlace",
-        // The predefined object reference EXCEPTION-OBJECT (ISO §8.4.3.6.3 SR2; kb/Work PB922): a read-only VIEW
+        // The predefined object reference EXCEPTION-OBJECT (ISO §2023:8.4.3.6.3 SR2; kb/Work PB922): a read-only VIEW
         // over the run unit's one ExceptionState rather than program storage, but a LEAF exactly as the CAPACITY
         // and DEBUG-ITEM registers are — a storage-form switch that meets it in a catch-all is this detector's
         // subject.
         "ExceptionObjectPlace",
-        // A report's PAGE-COUNTER (ISO §8.4.3.15; kb/Work PB429): engine state like the sum counter beside it,
-        // and §8.4.3.15.3 SR1 admits it "may be referenced in any context where an integer data item may
+        // A report's PAGE-COUNTER (ISO §2023:8.4.3.15; kb/Work PB429): engine state like the sum counter beside it,
+        // and §2023:8.4.3.15.3 SR1 admits it "may be referenced in any context where an integer data item may
         // appear" — so it is a RECEIVER as well as a source, and a storage-form switch that meets it in a
         // catch-all is exactly the defect this detector exists for.
         "ReportPageCounterPlace",
@@ -68,7 +68,7 @@ public sealed class PlaceStorageFormSwitchDriftTests
             "ScreenBitAlignment peels the decorations ITSELF in the enclosing `while (core is PlaceDecorator "
             + "dec)` loop — accumulating each reference modifier's leftmost boolean position as it goes, which "
             + "is why it cannot use the one-shot Undecorated — so `core` is a storage place by construction. Its "
-            + "default arm is also a documented ACCEPT (ISO §14.9.4.3 SR6/SR8, §8.4.3.2.3 SR14: a shape the bit "
+            + "default arm is also a documented ACCEPT (ISO §2023:14.9.4.3 SR6/SR8, §2023:8.4.3.2.3 SR14: a shape the bit "
             + "walk cannot model is never rejected), not a loud.",
     };
 

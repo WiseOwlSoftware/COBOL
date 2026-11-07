@@ -5,7 +5,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// The PICTURE clause EDITING phrase (ISO/IEC 1989:2023 §13.18.40.2 Format 1; the new-in-2023 reserved word EDITING,
+/// The PICTURE clause EDITING phrase (ISO/IEC 1989:2023 §2023:13.18.40.2 Format 1; the new-in-2023 reserved word EDITING,
 /// Annex E.3.3 item 19). User-defined picture editing: the simple-insertion (IS) form places a literal at each
 /// character-1 position UNCONDITIONALLY (editing rule 3), and the extended sign-control (FOR) form selects the
 /// NEGATIVE literal on a negative value / the POSITIVE literal (or spaces, SR12c) otherwise — the sign map derived
@@ -32,7 +32,7 @@ public sealed class PictureEditingTests
     // ── The single-character render (LANDABLE) ──
 
     /// <summary>IS (simple insertion) form — character-1 inserts literal-1 at its position unconditionally (ISO
-    /// §13.18.40.5 editing rule 3): <c>PIC 99T99 EDITING T IS ":"</c>, MOVE 1230 → <c>12:30</c>.</summary>
+    /// §2023:13.18.40.5 editing rule 3): <c>PIC 99T99 EDITING T IS ":"</c>, MOVE 1230 → <c>12:30</c>.</summary>
     [Fact]
     public void SimpleInsertion_Renders()
     {
@@ -79,7 +79,7 @@ public sealed class PictureEditingTests
 
     /// <summary>A MULTI-CHARACTER literal, straight out of Annex D.24: <c>01 item PIC IS L999.99 EDITING L FOR
     /// NEGATIVE IS "DEBIT "</c> — "The statement 'MOVE -123.45 TO item' would result in 'DEBIT 123.45'" and
-    /// "The statement 'MOVE 123.45 TO item' would result in 'bbbbbb123.45'". §13.18.40.4 GR14's 'es' entry gives
+    /// "The statement 'MOVE 123.45 TO item' would result in 'bbbbbb123.45'". §2023:13.18.40.4 GR14's 'es' entry gives
     /// the item 12 character positions (6 for literal-2, 6 for "999.99") and SR12c makes the unspecified POSITIVE
     /// side "the space character repeated for the number of characters in" literal-2.</summary>
     [Fact]
@@ -97,7 +97,7 @@ public sealed class PictureEditingTests
     }
 
     /// <summary>A FLOATING character-1 (the same character-1 twice or more under a FOR phrase) is a floating
-    /// insertion string — §13.18.40.5 rule 6 lists "the extended editing sign control symbols, if specified" among
+    /// insertion string — §2023:13.18.40.5 rule 6 lists "the extended editing sign control symbols, if specified" among
     /// the floating insertion symbols. Annex D.24: <c>PIC IS LLLL9.99F</c> with <c>"("</c> and <c>")"</c> renders
     /// -123.45 as 'b(123.45)'. GR14's 'es' sizes it at "one occurrence of literal-2 or literal-3 … plus one
     /// character for each repetition of character-1": 1 + 3 for the L's, 1 for the F, 4 for "9.99" — 9.</summary>
@@ -148,7 +148,7 @@ public sealed class PictureEditingTests
 
     // ── The SR8–SR12 shape rules ──
 
-    /// <summary>SR8 (ISO §13.18.40.3) — character-1 shall be a basic letter other than A B C D E N P R S V X Z or a
+    /// <summary>SR8 (ISO §2023:13.18.40.3) — character-1 shall be a basic letter other than A B C D E N P R S V X Z or a
     /// CURRENCY-SIGN letter: <c>EDITING X</c> is rejected (COBOL1591).</summary>
     [Fact]
     public void ReservedLetterChar1_Rejected1591()
@@ -192,7 +192,7 @@ public sealed class PictureEditingTests
 
     // ── Edition gating ──
 
-    /// <summary>The COBOL-2023 introduction gate (§13.18.40.2; Annex E.3.3 item 19): a PICTURE EDITING phrase is
+    /// <summary>The COBOL-2023 introduction gate (§2023:13.18.40.2; Annex E.3.3 item 19): a PICTURE EDITING phrase is
     /// rejected below 2023 with COBOL0900 (VersionConformancePass ParseArm.VisitPictureClause).</summary>
     [Theory]
     [InlineData(85)]

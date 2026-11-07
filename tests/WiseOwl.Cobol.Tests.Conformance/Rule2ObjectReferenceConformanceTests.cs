@@ -5,14 +5,14 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// kb/Work PB1497 + PB1112 — ISO §9.3.8.2.3 rule 2 (the object-reference arms a)–d)) over the IMPLEMENTS relation, one
-/// row per alternative of the USAGE OBJECT REFERENCE general format (§13.18.60.2). Each rule quotes its clause; every
+/// kb/Work PB1497 + PB1112 — ISO §2023:9.3.8.2.3 rule 2 (the object-reference arms a)–d)) over the IMPLEMENTS relation, one
+/// row per alternative of the USAGE OBJECT REFERENCE general format (§2023:13.18.60.2). Each rule quotes its clause; every
 /// citation was run through <c>cite.py --check 9.3.8.2.3</c> (rule 2 a) "universal object reference", b) "the same
 /// interface-name", c) "the same object-class-name, and the presence or absence of the FACTORY and ONLY phrases is the
 /// same in both interfaces", d) "ACTIVE-CLASS phrase, and the presence or absence of the FACTORY phrase is the same in
 /// both interfaces"). The class implements the interface with the SAME formal description (conforms) or a DIFFERENT one
 /// (COBOL0841). The ACTIVE-CLASS rows are the ones PB1497 made reachable: an interface method prototype may carry the
-/// phrase (§13.18.60.3 SR16; §10.6.1 NOTE), and the containing class is no part of the description.
+/// phrase (§2023:13.18.60.3 SR16; §2023:10.6.1 NOTE), and the containing class is no part of the description.
 /// </summary>
 public sealed class Rule2ObjectReferenceConformanceTests
 {

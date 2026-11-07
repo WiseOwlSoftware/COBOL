@@ -12,8 +12,8 @@ using CnFrontend = WiseOwl.Cobol.Frontend.Frontend;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// kb/Work PB1010 — <b>a METHOD is its own declarative-selection scope.</b> ISO §14.2.2 SR10 admits the declaratives
-/// format in a method definition, and §14.9.49.4 GR3/GR4 a) select over the USE statements of the source element
+/// kb/Work PB1010 — <b>a METHOD is its own declarative-selection scope.</b> ISO §2023:14.2.2 SR10 admits the declaratives
+/// format in a method definition, and §2023:14.9.49.4 GR3/GR4 a) select over the USE statements of the source element
 /// that contains the raising statement: the method. The emitter realizes that with ONE machinery emitter
 /// (<c>DispatchEmitter.EmitUseMachinery</c>) called <c>asLocal</c> from <c>OoEmitter.EmitMethod</c>, so every
 /// selection member becomes a LOCAL FUNCTION of the method that declares the USE procedures, and a method activation

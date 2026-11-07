@@ -11,25 +11,25 @@ using WiseOwl.Cobol.Runtime;
 
 /// <summary>
 /// ⛔ THE ONE FUNNEL FOR RESOLVING A WRITTEN REPORT-GROUP REFERENCE (kb/Work PB365). THREE sites name a
-/// report group by name — <c>GENERATE data-name-1</c> (ISO §14.9.16.3 SR1), <c>USE BEFORE REPORTING
-/// identifier-1</c> (§14.9.49.3 SR9) and, since kb/Work PB482, the SUM clause's <c>UPON data-name-2</c>
-/// (§13.18.54.3 SR7: "Data-name-2 shall be the name of a detail. It may be qualified only by a report-name" —
+/// report group by name — <c>GENERATE data-name-1</c> (ISO §2023:14.9.16.3 SR1), <c>USE BEFORE REPORTING
+/// identifier-1</c> (§2023:14.9.49.3 SR9) and, since kb/Work PB482, the SUM clause's <c>UPON data-name-2</c>
+/// (§2023:13.18.54.3 SR7: "Data-name-2 shall be the name of a detail. It may be qualified only by a report-name" —
 /// the DATA-division site, resolved in <c>ReportSectionBinder.ResolveReports</c> once every group is described) — and
 /// before this funnel the two statement sites were written as
 /// <c>foreach (report) if (report.Groups.FirstOrDefault(name-matches) is {} g) return g;</c>: a loop shape that
-/// encodes <i>find one</i> where §8.4.2.2 requires <i>find exactly one</i>. With the same 01-level group name in
+/// encodes <i>find one</i> where §2023:8.4.2.2 requires <i>find exactly one</i>. With the same 01-level group name in
 /// two report description entries, the reference bound to whichever RD was written first, silently — so a
 /// GENERATE of the second report's group ran the OTHER report's declarative and nothing downstream noticed
 /// (feedback_two_arm_dispatch: two arms, and neither one was right).
 ///
-/// <para><b>The rule.</b> §8.4.2.2.1: "Identical user-defined names may be specified in a source unit; however,
+/// <para><b>The rule.</b> §2023:8.4.2.2.1: "Identical user-defined names may be specified in a source unit; however,
 /// uniqueness shall be established through qualification for each user-defined name explicitly referenced,
-/// except as specified in rules 2 through 6" — none of exceptions 2–6 covers a report-group name. §8.4.2.2.3
+/// except as specified in rules 2 through 6" — none of exceptions 2–6 covers a report-group name. §2023:8.4.2.2.3
 /// SR1 restates it as the syntax rule: "For each non unique user-defined name that is explicitly referenced,
 /// uniqueness shall be established through a sequence of qualifiers that precludes any ambiguity of reference."
-/// The available qualifier is the report-name (§8.4.2.2.2 Format 1's file-report-qualifier; §14.9.16.3 SR1 says
+/// The available qualifier is the report-name (§2023:8.4.2.2.2 Format 1's file-report-qualifier; §2023:14.9.16.3 SR1 says
 /// so in words: "It may be qualified by a report-name"), which is why the qualified spelling exists at all.
-/// §8.4.2.2.3 SR3 makes IN and OF equivalent — the grammar's <c>reportGroupReference</c> accepts both.</para>
+/// §2023:8.4.2.2.3 SR3 makes IN and OF equivalent — the grammar's <c>reportGroupReference</c> accepts both.</para>
 ///
 /// <para><b>Why the ambiguity is diagnosed HERE and not at the call sites.</b> One rule, one place. The callers
 /// differ only in what a MISS means (GENERATE falls back to the report-name form for summary reporting, SR2;
@@ -45,7 +45,7 @@ internal static class ReportGroupResolution
     public enum Match { Found, Ambiguous, None }
 
     /// <summary>Split a <c>reportGroupReference</c> parse context into (head, qualifier). The qualifier is the
-    /// <c>IN/OF report-name-1</c> tail (§8.4.2.2.2 Format 1's file-report-qualifier), null when unqualified.
+    /// <c>IN/OF report-name-1</c> tail (§2023:8.4.2.2.2 Format 1's file-report-qualifier), null when unqualified.
     /// ⚠ Read from the context's CHILDREN, never <c>GetText()</c> of the whole context — that concatenates
     /// <c>DET-A OF R-B</c> into an unmatchable key (the same trap <c>ResolveProcedure</c> documents).</summary>
     public static (string Head, string? Qualifier) Parts(Core.ReportGroupReferenceContext r) =>
@@ -53,11 +53,11 @@ internal static class ReportGroupResolution
 
     /// <summary>Resolve a possibly-qualified report-group reference against the unit's report models. Collects
     /// EVERY candidate (a qualified reference restricts the candidate reports to the named one) and reports
-    /// COBOL1920 when more than one survives — §8.4.2.2.1 / §8.4.2.2.3 SR1.</summary>
+    /// COBOL1920 when more than one survives — §2023:8.4.2.2.1 / §2023:8.4.2.2.3 SR1.</summary>
     /// <param name="where">The reference site for the diagnostic, e.g. <c>"GENERATE 'DET-A'"</c>.</param>
     /// <param name="scope">The procedure division's binder when <paramref name="reports"/> includes GLOBAL reports
     /// inherited from containers: candidates from more than one source element are narrowed to the NEAREST one
-    /// before ambiguity is asked (§8.4.6.2.1 rule 3 — <see cref="ReportScope.NearestInScope"/>). Null for the
+    /// before ambiguity is asked (§2023:8.4.6.2.1 rule 3 — <see cref="ReportScope.NearestInScope"/>). Null for the
     /// data-division site, whose reports are all the unit's own.</param>
     public static Match Resolve(EditionContext edition, IReadOnlyList<ReportModel> reports,
         string head, string? qualifier, string where, out ReportModel? report, out ReportGroupModel? group,
@@ -79,14 +79,14 @@ internal static class ReportGroupResolution
         if (found.Count == 1) return Match.Found;
         var extra = found.Skip(1);
 
-        // §8.4.2.2.3 SR1 — the reference does not preclude ambiguity. Name every report that carries the group
+        // §2023:8.4.2.2.3 SR1 — the reference does not preclude ambiguity. Name every report that carries the group
         // so the fix (which qualifier to write) is in the message.
         string owners = string.Join(", ", new[] { report.Name }
             .Concat(extra.Select(e => e.Report.Name)).Select(n => $"'{n}'"));
         edition.Error(DiagnosticCatalog.ReportGroupReferenceAmbiguous, $"{where}: report group '{head}' is "
             + $"described in more than one report description entry ({owners}) — qualify the reference "
             + $"(e.g. '{head} OF {report.Name}'), since uniqueness shall be established through qualification "
-            + "(ISO §8.4.2.2.1 / §8.4.2.2.3 SR1)");
+            + "(ISO §2023:8.4.2.2.1 / §2023:8.4.2.2.3 SR1)");
         return Match.Ambiguous;
     }
 }

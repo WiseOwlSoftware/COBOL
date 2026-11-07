@@ -8,15 +8,15 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ EVERY TYPE OF USER-DEFINED WORD IS DECLARED THROUGH THE ONE FUNNEL (kb/Work PB1083; ISO §8.3.2.2).
-/// <para>§8.3.2.1 rule 5 and §12.3.8.3 SR12/SR13 forbid a user-defined word of ANY type from spelling an
+/// ⛔ EVERY TYPE OF USER-DEFINED WORD IS DECLARED THROUGH THE ONE FUNNEL (kb/Work PB1083; ISO §2023:8.3.2.2).
+/// <para>§2023:8.3.2.1 rule 5 and §2023:12.3.8.3 SR12/SR13 forbid a user-defined word of ANY type from spelling an
 /// intrinsic-function-name the REPOSITORY paragraph identifies. The screen was called from six hand-picked declaration
 /// funnels, so an alphabet-name, a class-name, a symbolic-character, a program-name or a function-prototype-name
 /// spelling one compiled clean. Every declaration now announces its word through <c>DataBinder.DeclareUserWord</c> with
-/// its <see cref="UserWordKind"/>, and this test keeps that total: the enum carries exactly the types §8.3.2.2 lists
+/// its <see cref="UserWordKind"/>, and this test keeps that total: the enum carries exactly the types §2023:8.3.2.2 lists
 /// (parsed from <c>specs/ISO_COBOL_2023.md</c>, never copied by hand), and every type is declared at some call site or
 /// carried below as a type this compiler never declares in a bound source element, with the reason.</para>
-/// <para>The same funnel asks §8.3.2.2's other two rules about a word AS DECLARED (kb/Work PB990, PB1403): one TYPE per
+/// <para>The same funnel asks §2023:8.3.2.2's other two rules about a word AS DECLARED (kb/Work PB990, PB1403): one TYPE per
 /// word within a source element, except as the standard's three exceptions say, and a letter in every word but a
 /// section-name, paragraph-name or level-number. Both rule tables are DATA (<c>UserWordKinds</c>) rebuilt below from the
 /// standard's own text, so an edit to either, or to the standard's wording, cannot drift silently.</para>
@@ -24,12 +24,12 @@ namespace WiseOwl.Cobol.Tests.Unit;
 [Trait("Sweep", "tree")]
 public sealed class UserWordDeclarationDriftTests
 {
-    /// <summary>The §8.3.2.2 types no binder declares, and why. A type here shall NOT also be declared (the list
+    /// <summary>The §2023:8.3.2.2 types no binder declares, and why. A type here shall NOT also be declared (the list
     /// would then be stale), and each reason names the rule or the mechanism that makes the exemption true.</summary>
     private static readonly Dictionary<UserWordKind, string> NotDeclaredInASourceElement = new()
     {
-        [UserWordKind.CompilationVariableName] = "§8.3.2.1: compilation-variable-names form intersecting sets with "
-            + "intrinsic-function-names, and §8.3.2.2 exception 1 — they live in the text-manipulation stage",
+        [UserWordKind.CompilationVariableName] = "§2023:8.3.2.1: compilation-variable-names form intersecting sets with "
+            + "intrinsic-function-names, and §2023:8.3.2.2 exception 1 — they live in the text-manipulation stage",
         [UserWordKind.LevelNumber] = "a level-number is digits, never an intrinsic-function-name, and declares nothing",
         [UserWordKind.DirectiveName] = "the PUSH/POP directive-name names a compiler directive — a reference processed "
             + "in the text-manipulation stage, not a declaration",
@@ -39,20 +39,20 @@ public sealed class UserWordDeclarationDriftTests
     {
         string spec = File.ReadAllText(Path.Combine(TestRepo.Root, "specs", "ISO_COBOL_2023.md"));
         int start = spec.IndexOf("The types of user-defined words are:", StringComparison.Ordinal);
-        Assert.True(start >= 0, "§8.3.2.2's list header moved in specs/ISO_COBOL_2023.md — re-derive this guard");
+        Assert.True(start >= 0, "§2023:8.3.2.2's list header moved in specs/ISO_COBOL_2023.md — re-derive this guard");
         int end = spec.IndexOf("Within a source element, a given user-defined word", start, StringComparison.Ordinal);
-        Assert.True(end > start, "§8.3.2.2's list end moved in specs/ISO_COBOL_2023.md — re-derive this guard");
+        Assert.True(end > start, "§2023:8.3.2.2's list end moved in specs/ISO_COBOL_2023.md — re-derive this guard");
         return [.. Regex.Matches(spec[start..end], @"^— ([a-z-]+)\s*$", RegexOptions.Multiline).Select(m => m.Groups[1].Value)];
     }
 
-    /// <summary>§8.3.2.2's text after the type list, up to the sentence that ends the exceptions.</summary>
+    /// <summary>§2023:8.3.2.2's text after the type list, up to the sentence that ends the exceptions.</summary>
     private static string ExceptionsText()
     {
         string spec = File.ReadAllText(Path.Combine(TestRepo.Root, "specs", "ISO_COBOL_2023.md"));
         int start = spec.IndexOf("Within a source element, a given user-defined word", StringComparison.Ordinal);
-        Assert.True(start >= 0, "§8.3.2.2's exceptions moved in specs/ISO_COBOL_2023.md — re-derive this guard");
+        Assert.True(start >= 0, "§2023:8.3.2.2's exceptions moved in specs/ISO_COBOL_2023.md — re-derive this guard");
         int end = spec.IndexOf("Further rules for uniqueness", start, StringComparison.Ordinal);
-        Assert.True(end > start, "§8.3.2.2's exceptions end moved in specs/ISO_COBOL_2023.md — re-derive this guard");
+        Assert.True(end > start, "§2023:8.3.2.2's exceptions end moved in specs/ISO_COBOL_2023.md — re-derive this guard");
         return spec[start..end];
     }
 
@@ -61,7 +61,7 @@ public sealed class UserWordDeclarationDriftTests
 
     /// <summary>⛔ THE ONE-TYPE-PER-WORD CENSUS IS THE STANDARD'S, NOT OURS (kb/Work PB990): which types may share a
     /// word is written ONCE (<see cref="UserWordKinds.MayBeOneWord"/>) and this test rebuilds the whole 31 x 31 relation
-    /// from §8.3.2.2's own exceptions, parsed from <c>specs/ISO_COBOL_2023.md</c>, and fails on the first pair the two
+    /// from §2023:8.3.2.2's own exceptions, parsed from <c>specs/ISO_COBOL_2023.md</c>, and fails on the first pair the two
     /// disagree about — so an edit to the sets, or to the standard's text, cannot drift silently.</summary>
     [Fact]
     public void TheSharingRelation_IsRebuiltFromTheStandardsExceptions()
@@ -87,12 +87,12 @@ public sealed class UserWordDeclarationDriftTests
                     || (b == UserWordKind.LevelNumber && withLevelNumber.Contains(a))
                     || (oneName.Contains(a) && oneName.Contains(b));
                 Assert.True(expected == UserWordKinds.MayBeOneWord(a, b),
-                    $"§8.3.2.2 says a {a.Spelling()} and a {b.Spelling()} {(expected ? "MAY" : "may NOT")} share a word; "
+                    $"§2023:8.3.2.2 says a {a.Spelling()} and a {b.Spelling()} {(expected ? "MAY" : "may NOT")} share a word; "
                     + $"UserWordKinds.MayBeOneWord says the opposite");
             }
     }
 
-    /// <summary>⛔ THE LETTERLESS TYPES ARE THE STANDARD'S (kb/Work PB1403): §8.3.2.2 — "<i>With the exception of
+    /// <summary>⛔ THE LETTERLESS TYPES ARE THE STANDARD'S (kb/Work PB1403): §2023:8.3.2.2 — "<i>With the exception of
     /// section-names, paragraph-names, and level-numbers, each user-defined word shall contain at least one basic
     /// letter or extended letter</i>". <see cref="UserWordKinds.MayBeLetterless"/> is rebuilt from that sentence.</summary>
     [Fact]
@@ -100,7 +100,7 @@ public sealed class UserWordDeclarationDriftTests
     {
         string spec = File.ReadAllText(Path.Combine(TestRepo.Root, "specs", "ISO_COBOL_2023.md"));
         var m = Regex.Match(spec, @"With the exception of ([a-z-]+), ([a-z-]+), and ([a-z-]+), each user-defined word shall contain at least one basic letter");
-        Assert.True(m.Success, "§8.3.2.2's letter rule moved in specs/ISO_COBOL_2023.md — re-derive this guard");
+        Assert.True(m.Success, "§2023:8.3.2.2's letter rule moved in specs/ISO_COBOL_2023.md — re-derive this guard");
         Assert.Equal(
             new[] { m.Groups[1].Value, m.Groups[2].Value, m.Groups[3].Value }.Select(s => s.TrimEnd('s')).Order(),
             UserWordKinds.MayBeLetterless.Select(k => k.Spelling()).Order());
@@ -123,10 +123,10 @@ public sealed class UserWordDeclarationDriftTests
         Assert.True(declare >= 0);
         string head = binder[declare..(declare + 260)];
         Assert.Contains("CheckOneTypePerWord(word, kind);", head);
-        Assert.Contains("CheckLetter(word, kind);", head);   // §8.3.2.2's letter rule, kb/Work PB1403 — the same funnel
+        Assert.Contains("CheckLetter(word, kind);", head);   // §2023:8.3.2.2's letter rule, kb/Work PB1403 — the same funnel
     }
 
-    /// <summary>§8.3.2.2 says "used": a census is RECORDED from exactly two funnels, the declaration funnel
+    /// <summary>§2023:8.3.2.2 says "used": a census is RECORDED from exactly two funnels, the declaration funnel
     /// (<c>DataBinder.CheckOneTypePerWord</c>) and the reference funnel (<c>OoClassTable.RecordReferenceUse</c>, a
     /// method's reference to an object-class-name, interface-name or parameter-name its class declares, kb/Work PB3132),
     /// and the reference funnel is reached from two resolvers only: the one class-name resolver,
@@ -146,13 +146,13 @@ public sealed class UserWordDeclarationDriftTests
             sources.Where(s => Regex.IsMatch(s.Text, @"\b(?:recordUse|data\.RecordConfigurationNameUse)\(")).Select(s => s.Name).Order());
     }
 
-    /// <summary>⛔ EVERY TYPE §8.4.6.1 SAYS A CONFIGURATION SECTION DECLARES HAS A TABLE WHOSE RESOLUTIONS ARE USES
-    /// (kb/Work PB3153). §8.4.6.1 lists the types that, "<i>when they are declared within a configuration section, may be
+    /// <summary>⛔ EVERY TYPE §2023:8.4.6.1 SAYS A CONFIGURATION SECTION DECLARES HAS A TABLE WHOSE RESOLUTIONS ARE USES
+    /// (kb/Work PB3153). §2023:8.4.6.1 lists the types that, "<i>when they are declared within a configuration section, may be
     /// referenced only by statements and entries either in that source element that contains a configuration section or
     /// in any source element contained within that source element</i>": a contained program and a method resolve names
     /// no declaration of their own announced, so each type's registry is a <c>ConfigurationNames</c> table built with
     /// the recorder (or, for the mnemonic-name, the <c>MnemonicRegistry</c>, whose <c>TryUse</c> records), and the
-    /// referring element's §8.3.2.2 census sees the use. The list is parsed from <c>specs/ISO_COBOL_2023.md</c>; a type it
+    /// referring element's §2023:8.3.2.2 census sees the use. The list is parsed from <c>specs/ISO_COBOL_2023.md</c>; a type it
     /// gains, or a table that stops recording, is red here.</summary>
     [Fact]
     public void EveryConfigurationSectionNameType_ResolvesThroughARecordingTable()
@@ -160,9 +160,9 @@ public sealed class UserWordDeclarationDriftTests
         string spec = File.ReadAllText(Path.Combine(TestRepo.Root, "specs", "ISO_COBOL_2023.md"));
         int start = spec.IndexOf("when they are declared within a configuration section, may be referenced only by",
             StringComparison.Ordinal);
-        Assert.True(start >= 0, "§8.4.6.1's configuration-section list moved in specs/ISO_COBOL_2023.md — re-derive this guard");
+        Assert.True(start >= 0, "§2023:8.4.6.1's configuration-section list moved in specs/ISO_COBOL_2023.md — re-derive this guard");
         int end = spec.IndexOf("Specific conventions for declarations and references", start, StringComparison.Ordinal);
-        Assert.True(end > start, "§8.4.6.1's list end moved in specs/ISO_COBOL_2023.md — re-derive this guard");
+        Assert.True(end > start, "§2023:8.4.6.1's list end moved in specs/ISO_COBOL_2023.md — re-derive this guard");
         var listed = Regex.Matches(spec[start..end], @"^— ([a-z-]+)", RegexOptions.Multiline)
             .Select(m => KindOfSpelling(m.Groups[1].Value)).Distinct().Order().ToArray();
         Assert.Equal(8, listed.Length);
@@ -177,9 +177,9 @@ public sealed class UserWordDeclarationDriftTests
     }
 
     /// <summary>⛔ AN INHERITED CONFIGURATION-SECTION NAME YIELDS TO THE ELEMENT'S OWN ITEM THROUGH ONE TEST (kb/Work
-    /// PB3153 review round 2). Where a format admits both an inherited SPECIAL-NAMES name and an operand, §8.4.6.1 makes
+    /// PB3153 review round 2). Where a format admits both an inherited SPECIAL-NAMES name and an operand, §2023:8.4.6.1 makes
     /// the referring element's own item of that spelling the referent, and that item may be a data item OR a
-    /// constant-name (§13.10.3 SR2 admits one wherever a literal of its category is). A bare <c>Refs.Probe(…)</c> sees
+    /// constant-name (§2023:13.10.3 SR2 admits one wherever a literal of its category is). A bare <c>Refs.Probe(…)</c> sees
     /// only the data item, so STANDARD-COMPARE's argument-4, WRITE ADVANCING's integer-1 and an EVALUATE object
     /// claimed an own constant-name as the inherited ordering-name, mnemonic-name or class-name and refused legal source
     /// COBOL2692. So no expression pairs a configuration-section-name lookup with a raw probe: it asks
@@ -197,7 +197,7 @@ public sealed class UserWordDeclarationDriftTests
                 + $@"|\b(?:{tables})\.(?:Declares|TryUse|TryPeek))\([^;{{}}]*?Refs\.Probe\(")
             .Select(m => $"{s.Name}:{LineOf(s.Text, m.Index)}")).ToList();
         Assert.True(raw.Count == 0, "a configuration-section-name lookup is paired with a raw Refs.Probe, which misses an "
-            + "own constant-name (" + string.Join(", ", raw) + "): ask ReferenceResolver.DescribesOwnItem (§8.4.6.1, kb/Work PB3153)");
+            + "own constant-name (" + string.Join(", ", raw) + "): ask ReferenceResolver.DescribesOwnItem (§2023:8.4.6.1, kb/Work PB3153)");
         string resolver = sources.Single(s => s.Name == "ReferenceResolver.cs").Text;
         Assert.Matches(@"public bool DescribesOwnItem\(Core\.DataReferenceContext dref\) =>\s+"
             + @"data.Constants.ConstantOf\(dref\) is not null \|\| Probe\(dref\) is not null;", resolver);
@@ -205,7 +205,7 @@ public sealed class UserWordDeclarationDriftTests
 
     /// <summary>⛔ A PROCEDURE-DIVISION MEMBER THAT TAKES A DATA REFERENCE AS AN INHERITABLE CONFIGURATION-SECTION NAME
     /// ASKS THE OWN-ITEM TEST (kb/Work PB3153 review w1085d R1-1). A word the grammar parsed as a data reference is a
-    /// position whose format also admits an operand, so §8.4.6.1 makes the referring element's own item of that spelling
+    /// position whose format also admits an operand, so §2023:8.4.6.1 makes the referring element's own item of that spelling
     /// the referent. The raw-probe guard above cannot see a member that asks NO own-item test at all: the bare-operand
     /// switch-status arm (<c>SetAlterBinder.SwitchCondOf</c>) resolved <c>IF SWON</c> through
     /// <c>SwitchConditions.TryUse</c> over a contained program's own <c>01 SWON PIC 1</c> and refused legal source
@@ -239,7 +239,7 @@ public sealed class UserWordDeclarationDriftTests
         Assert.True(lookups >= 5, $"found only {lookups} configuration-name resolutions under Binding/Procedure — re-derive this guard");
         Assert.True(missing.Count == 0, "a member resolves a data reference as an inherited configuration-section name "
             + "without asking ReferenceResolver.DescribesOwnItem (" + string.Join(", ", missing) + "): the element's own "
-            + "item of that spelling is the referent (§8.4.6.1, kb/Work PB3153)");
+            + "item of that spelling is the referent (§2023:8.4.6.1, kb/Work PB3153)");
     }
 
     /// <summary>The <c>ConfigurationNames</c> tables the compiler declares, read off their declarations.</summary>
@@ -260,9 +260,9 @@ public sealed class UserWordDeclarationDriftTests
             .Where(f => !f.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}"))
             .Select(f => (Name: Path.GetFileName(f), Text: File.ReadAllText(f)))];
 
-    /// <summary>⛔ A PARAGRAPH-NAME-OMITTED PARAGRAPH IS NAMED NOWHERE (ISO §14.4.3; kb/Work PB990): the procedure table
+    /// <summary>⛔ A PARAGRAPH-NAME-OMITTED PARAGRAPH IS NAMED NOWHERE (ISO §2023:14.4.3; kb/Work PB990): the procedure table
     /// registered a declarative section's leading sentences, and its empty-section no-op pc, as a paragraph named like
-    /// the SECTION — a paragraph the source never wrote, which §8.3.2.2's one-type-per-word census found declared
+    /// the SECTION — a paragraph the source never wrote, which §2023:8.3.2.2's one-type-per-word census found declared
     /// as both and which made a legal reference to the section ambiguous. They go through the anonymous-paragraph
     /// entry points, so no call of <c>AddParagraph</c> passes a section's name.</summary>
     [Fact]
@@ -273,13 +273,13 @@ public sealed class UserWordDeclarationDriftTests
         Assert.DoesNotMatch(new Regex(@"\bAddParagraph\(\s*name\b"), builder);
     }
 
-    /// <summary>The enum is §8.3.2.2's list: one member per listed type, no member the list does not name, save the one type an earlier edition's list
+    /// <summary>The enum is §2023:8.3.2.2's list: one member per listed type, no member the list does not name, save the one type an earlier edition's list
     /// names and 2023's cannot: the cd-name of the communication facility (ISO/IEC 1989:2002 8.3.1.1.1, deleted at 2014; kb/Work PB4677).</summary>
     [Fact]
     public void TheEnum_IsTheStandardsList()
     {
         var listed = SpecListedTypes();
-        Assert.True(listed.Length >= 30, $"parsed only {listed.Length} types from §8.3.2.2 — re-derive this guard");
+        Assert.True(listed.Length >= 30, $"parsed only {listed.Length} types from §2023:8.3.2.2 — re-derive this guard");
         Assert.Equal(listed.Append("cd-name").Order(StringComparer.Ordinal),
             Enum.GetValues<UserWordKind>().Select(k => k.Spelling()).Order(StringComparer.Ordinal));
     }
@@ -304,7 +304,7 @@ public sealed class UserWordDeclarationDriftTests
             bool exempt = NotDeclaredInASourceElement.ContainsKey(kind);
             Assert.True(declared ^ exempt, declared
                 ? $"{kind.Spelling()} is declared through DataBinder.DeclareUserWord AND listed exempt — drop the exemption"
-                : $"no declaration of a {kind.Spelling()} reaches DataBinder.DeclareUserWord — §8.3.2.1 rule 5 / §12.3.8.3 "
+                : $"no declaration of a {kind.Spelling()} reaches DataBinder.DeclareUserWord — §2023:8.3.2.1 rule 5 / §2023:12.3.8.3 "
                   + "SR12-SR13 do not reach it; call the funnel where the word is declared, or exempt it with the rule "
                   + "that makes the exemption true");
         }

@@ -3,16 +3,16 @@
 namespace WiseOwl.Cobol.Runtime;
 
 /// <summary>
-/// The run-unit module call-name stack backing FUNCTION MODULE-NAME (ISO §15.65). <see cref="ProgramTable"/>
+/// The run-unit module call-name stack backing FUNCTION MODULE-NAME (ISO §2023:15.65). <see cref="ProgramTable"/>
 /// pushes a frame at every activation boundary (RunMain for the main program; CallProgram for every CALL /
 /// cross-assembly CALL / user-function reference / nested-program CALL) and pops it on return, so the top of
 /// stack is always the currently running runtime element. Each frame carries the element's own name, the
-/// outermost program-id of its compilation unit (§15.65.4 r7 CURRENT), and whether it is a nested (contained)
+/// outermost program-id of its compilation unit (§2023:15.65.4 r7 CURRENT), and whether it is a nested (contained)
 /// program (r8 NESTED). One INSTANCE per run unit on <see cref="RunUnit"/> (was the runtime's ONE
 /// <c>[ThreadStatic]</c> — the ambient run unit's AsyncLocal now carries the activation scope uniformly,
 /// DESIGN-runtime-library §2.1).
 ///
-/// Each frame also records whether its element is RECURSIVE (§8.6.6), so <see cref="AnyRecursive"/> answers COMMIT's
+/// Each frame also records whether its element is RECURSIVE (§2023:8.6.6), so <see cref="AnyRecursive"/> answers COMMIT's
 /// and ROLLBACK's "under the control of a recursive runtime element" for a RECURSIVE program, a function and a method
 /// alike (kb/Work PB3540).
 ///
@@ -21,7 +21,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// call site: a method is reached by a typed direct call, by the universal <c>__CobolInvoke</c> switch, and by
 /// an inline invocation, and a per-site push would be three arms of one dispatch (fix-queue PB36).
 ///
-/// ⛔ THIS COMMENT USED TO SAY THE OMISSION WAS "conformant, not residue: §15.65.4 r3/r4 make the returned form
+/// ⛔ THIS COMMENT USED TO SAY THE OMISSION WAS "conformant, not residue: §2023:15.65.4 r3/r4 make the returned form
 /// for method-id elements implementor-defined". BOTH CITED RULES ARE REAL AND NEITHER GOVERNS. r3 is about a
 /// runtime element that is NOT a COBOL runtime element; a COBOL method is one. r4 is about the FORM of the name
 /// and explicitly lists "method-id" among the forms an implementor may return — which presumes the element is on
@@ -35,7 +35,7 @@ public sealed class ModuleStack
 
     private readonly List<Frame> _stack = [];
 
-    /// <summary>How many of the running activations are RECURSIVE runtime elements (§8.6.6: a program carrying the
+    /// <summary>How many of the running activations are RECURSIVE runtime elements (§2023:8.6.6: a program carrying the
     /// RECURSIVE attribute, and every function and method — "Functions and methods are always recursive"). Kept beside
     /// the frames because this stack is the run unit's one record of what is running, and a method is a frame here and
     /// nowhere else (it is no <see cref="ProgramTable"/> node).</summary>
@@ -45,14 +45,14 @@ public sealed class ModuleStack
     /// reset, so no two activations, live or finished, ever share one.</summary>
     private long _lastActivation;
 
-    /// <summary>Push the run-unit main program (TOP-LEVEL, §15.65.4 r10; ACTIVATING → single space, r5).
-    /// <paramref name="recursive"/>: it carries the RECURSIVE attribute (§8.6.6).</summary>
+    /// <summary>Push the run-unit main program (TOP-LEVEL, §2023:15.65.4 r10; ACTIVATING → single space, r5).
+    /// <paramref name="recursive"/>: it carries the RECURSIVE attribute (§2023:8.6.6).</summary>
     public void PushMain(string name, bool recursive)
         => Add(new(name, name, IsNested: false, IsMain: true, recursive, ++_lastActivation));
 
     /// <summary>Push a CALLed / referenced / INVOKEd element (its name, its compilation unit's outermost program-id, and
     /// whether it is a contained/nested program). <paramref name="recursive"/>: the element is a RECURSIVE runtime
-    /// element — a program with the RECURSIVE attribute, a function or a method (§8.6.6).</summary>
+    /// element — a program with the RECURSIVE attribute, a function or a method (§2023:8.6.6).</summary>
     public void Push(string name, string outermost, bool isNested, bool recursive)
         => Add(new(name, outermost, isNested, IsMain: false, recursive, ++_lastActivation));
 
@@ -62,17 +62,17 @@ public sealed class ModuleStack
         if (f.Recursive) _recursiveFrames++;
     }
 
-    /// <summary>Whether a RECURSIVE runtime element is running (§8.6.6): whatever runs while one is active runs "under the
-    /// control of a recursive runtime element", which §9.1.18.7, §12.4.6.3.4 GR3, §14.9.7.4 GR2 and §14.9.36.4 GR2 forbid
+    /// <summary>Whether a RECURSIVE runtime element is running (§2023:8.6.6): whatever runs while one is active runs "under the
+    /// control of a recursive runtime element", which §2023:9.1.18.7, §2023:12.4.6.3.4 GR3, §2023:14.9.7.4 GR2 and §2023:14.9.36.4 GR2 forbid
     /// for COMMIT, ROLLBACK and the activation of an APPLY COMMIT clause (kb/Work PB3338, PB3540). One answer for every
     /// kind of recursive element, because every activation mechanism pushes its frame here.</summary>
     public bool AnyRecursive => _recursiveFrames > 0;
 
     // ── ACTIVATION IDENTITY (kb/Work PB892 Arm B) ─────────────────────────────────────────────────────────────
     // This stack is the run unit's ONE record of which activation is running: every activation mechanism
-    // §15.65.4 r5 names pushes a frame here (ProgramTable.CallProgram / RunMain for a CALL, a function reference
+    // §2023:15.65.4 r5 names pushes a frame here (ProgramTable.CallProgram / RunMain for a CALL, a function reference
     // and the main program; the method body itself for an INVOKE and an inline invocation). So it is also the
-    // one place that can answer §14.9.18.4 GR1 b)'s question "which activation is the ACTIVATING runtime element
+    // one place that can answer §2023:14.9.18.4 GR1 b)'s question "which activation is the ACTIVATING runtime element
     // of the element that is returning with RAISING" — a question with no other runtime chokepoint, because a
     // typed INVOKE is a direct .NET call. Each frame therefore carries a unique activation identity.
 
@@ -94,7 +94,7 @@ public sealed class ModuleStack
 
 
     /// <summary>Resolve MODULE-NAME for the keyword selector (0 CURRENT · 1 ACTIVATING · 2 NESTED · 3 STACK ·
-    /// 4 TOP-LEVEL). Returns the §15.65.4-defined value, trimmed (a dynamic-length result — r1, no trailing
+    /// 4 TOP-LEVEL). Returns the §2023:15.65.4-defined value, trimmed (a dynamic-length result — r1, no trailing
     /// spaces).</summary>
     public string Name(int kind)
     {
@@ -135,7 +135,7 @@ public sealed class ModuleStack
                 // ⚖ THE COST, DOCUMENTED (docs/CONFORMANCE.md §4.2.16): a CONTAINED program now yields
                 // `MAIN;MAIN; ` — CURRENT is outermost-granularity (r7) while ACTIVATING is element-granularity
                 // (r5), so for a nested program the first two entries coincide. That is r9's own composition, not
-                // a defect; §15.65.1's looser "a list of all the module names" reading was the alternative and it
+                // a defect; §2023:15.65.1's looser "a list of all the module names" reading was the alternative and it
                 // cannot represent recursion at all.
                 var sb = new System.Text.StringBuilder();
                 sb.Append(top.Outermost);                    // entry 0 = CURRENT (r7)

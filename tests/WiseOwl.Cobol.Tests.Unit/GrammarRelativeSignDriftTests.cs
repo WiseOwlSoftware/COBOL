@@ -10,14 +10,14 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ THE DRIFT GUARD FOR "PLUS AND + ARE SYNONYMS" (kb/Work PB951).
 ///
 /// <para><b>Why it exists.</b> ISO/IEC 1989:2023 prints the same sentence at three report-writer clauses —
-/// §13.18.35.3 SR1 (LINE), §13.18.14.3 SR2 (COLUMN) and §13.18.37.3 SR2 (NEXT GROUP): "PLUS and + are
+/// §2023:13.18.35.3 SR1 (LINE), §2023:13.18.14.3 SR2 (COLUMN) and §2023:13.18.37.3 SR2 (NEXT GROUP): "PLUS and + are
 /// synonyms." — and the grammar wrote the word <c>PLUSWORD</c> alone into all three productions, so
 /// <c>LINE + 1</c> was a bare COBOL0001. One synonym written down three times was the defect; the fix is ONE
 /// fragment, <c>reportRelativeSign : PLUSWORD | PLUS</c>, that every relative operand references.</para>
 ///
 /// <para><b>What it pins, mechanically.</b> (1) In every parser grammar file, a parser rule whose body names the
 /// word token <c>PLUSWORD</c> also names the symbol token <c>PLUS</c> — the next clause that takes a relative
-/// operand cannot be written with one spelling (the screen section's LINE/COLUMN clauses, §13.17 format 2, carry
+/// operand cannot be written with one spelling (the screen section's LINE/COLUMN clauses, §2023:13.17 format 2, carry
 /// both alongside MINUS and satisfy it as written). (2) In the report writer grammar, <c>PLUSWORD</c> appears in
 /// exactly one rule, the fragment — a hand-repeated <c>(PLUSWORD | PLUS)</c> would reproduce the defect's own
 /// cause.</para>
@@ -68,8 +68,8 @@ public sealed class GrammarRelativeSignDriftTests
             }
         Assert.True(seen >= 3, $"only {seen} rule(s) name PLUSWORD — the probe is not seeing the grammar");
         Assert.True(offenders.Count == 0,
-            "these rules admit the word PLUS but not '+', which ISO §13.18.35.3 SR1 / §13.18.14.3 SR2 / "
-            + "§13.18.37.3 SR2 make its synonym — reference reportRelativeSign instead: " + string.Join("; ", offenders));
+            "these rules admit the word PLUS but not '+', which ISO §2023:13.18.35.3 SR1 / §2023:13.18.14.3 SR2 / "
+            + "§2023:13.18.37.3 SR2 make its synonym — reference reportRelativeSign instead: " + string.Join("; ", offenders));
     }
 
     [Fact]

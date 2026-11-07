@@ -19,16 +19,16 @@ namespace WiseOwl.Cobol.Tests.Unit.Store;
 /// data items) is kb/Work PB3338's, so the registry calls stand in for the statements. Every expected value is the
 /// standard's or the design's:
 /// <list type="bullet">
-///   <item>§14.9.36.4 GR3: <i>"All files and data-items referenced in active APPLY COMMIT clauses are restored to the state
+///   <item>§2023:14.9.36.4 GR3: <i>"All files and data-items referenced in active APPLY COMMIT clauses are restored to the state
 ///   they were in at the execution of the last COMMIT statement or the start of the run unit if no COMMIT statements had
 ///   previously been executed."</i> — the run unit's OWN changes (2.2.1.10, finding R1-2): another run unit's records are
 ///   never touched.</item>
-///   <item>§14.9.7.4 GR3: <i>"The execution of the COMMIT statement permanently applies any changes made to the files
+///   <item>§2023:14.9.7.4 GR3: <i>"The execution of the COMMIT statement permanently applies any changes made to the files
 ///   specified in all the active APPLY COMMIT clauses and releases all record locks associated with those files."</i></item>
-///   <item>§9.1.16: <i>"The implementor may specify circumstances other than a locked logical record that result in the
+///   <item>§2023:9.1.16: <i>"The implementor may specify circumstances other than a locked logical record that result in the
 ///   return of a locked record status."</i> — a record a live transaction changed (deleted ones included) and a unique key
 ///   value its change freed answer '51' to every other connector (DOC-A.1-152; findings R2-3, R2-4).</item>
-///   <item>§9.1.18.5: <i>"When a run unit terminates abnormally, all file changes made since the previous commit or, if
+///   <item>§2023:9.1.18.5: <i>"When a run unit terminates abnormally, all file changes made since the previous commit or, if
 ///   none, the beginning of the run unit are rolled back for all files for which there are active APPLY COMMIT
 ///   clauses."</i> — by the first writable statement after the death (the dead-owner step, finding R3-1), and an INPUT
 ///   reader in between reads the file as it stands.</item>
@@ -167,7 +167,7 @@ public abstract class CommitRollbackRuntimeHarness
 [Trait("Host", "ReFS")]
 public sealed class CommitRollbackRuntimeTests : CommitRollbackRuntimeHarness
 {
-    /// <summary>§14.9.36.4 GR3, the run unit's own changes: a WRITE, a REWRITE and a DELETE under commit control, then
+    /// <summary>§2023:14.9.36.4 GR3, the run unit's own changes: a WRITE, a REWRITE and a DELETE under commit control, then
     /// ROLLBACK — one statement — leaves the file as at the start of the run unit, and nothing of the transaction behind.</summary>
     [Theory]
     [MemberData(nameof(Orgs))]
@@ -202,7 +202,7 @@ public sealed class CommitRollbackRuntimeTests : CommitRollbackRuntimeHarness
         finally { TryDelete(host); }
     }
 
-    /// <summary>§14.9.7.4 GR3: what a COMMIT applied stays applied — a later ROLLBACK restores to THAT COMMIT — and it
+    /// <summary>§2023:14.9.7.4 GR3: what a COMMIT applied stays applied — a later ROLLBACK restores to THAT COMMIT — and it
     /// releases every lock (another run unit's REWRITE of the record then succeeds).</summary>
     [Theory]
     [MemberData(nameof(Orgs))]
@@ -215,7 +215,7 @@ public sealed class CommitRollbackRuntimeTests : CommitRollbackRuntimeHarness
             var a = Open(host, org, commit: true);
             var b = Open(host, org, commit: false);
             Assert.Equal("00", Write(a, org, 7, "A007"));
-            Assert.Equal("51", Rewrite(b, org, 7, "Z007"));   // A's WRITE holds K7 (§14.9.51.4 GR11's implied lock)
+            Assert.Equal("51", Rewrite(b, org, 7, "Z007"));   // A's WRITE holds K7 (§2023:14.9.51.4 GR11's implied lock)
             Assert.Null(a.Commit());
             AssertNoTransactionLeft(a);
             Assert.Equal("00", Rewrite(a, org, 7, "B007"));
@@ -223,7 +223,7 @@ public sealed class CommitRollbackRuntimeTests : CommitRollbackRuntimeHarness
             Assert.Equal("00", Read(b, org, 7, out var seven));
             Assert.Equal(Rec(7, "A007"), seven);
             Assert.Equal("00", Rewrite(b, org, 7, "Z007"));   // the COMMIT and the ROLLBACK released everything
-            // A READ under the commit posture locks its record (§9.1.16's implicit LOCK MODE IS AUTOMATIC, §12.4.5.9.4
+            // A READ under the commit posture locks its record (§2023:9.1.16's implicit LOCK MODE IS AUTOMATIC, §2023:12.4.5.9.4
             // GR4) until the next COMMIT or ROLLBACK, in the region like any automatic lock.
             Assert.Equal("00", Read(a, org, 7, out _));
             Assert.Equal("51", Rewrite(b, org, 7, "Y007"));
@@ -354,7 +354,7 @@ public sealed class CommitRollbackRuntimeTests : CommitRollbackRuntimeHarness
         finally { TryDelete(host); }
     }
 
-    /// <summary>2.2.1.12's round-4 row (finding R4-1) through the RETRY phrase (§14.9.51.4 GR16, <i>"for the case where
+    /// <summary>2.2.1.12's round-4 row (finding R4-1) through the RETRY phrase (§2023:14.9.51.4 GR16, <i>"for the case where
     /// resources needed to write a record are locked by another run unit"</i>): B's WRITE K5 WITH RETRY meets A's holding
     /// while A lives ('51' at the first attempt); A dies during B's wait, outside B's mutex; B's next attempt re-enters,
     /// finds A dead, rolls A back and evaluates the WRITE again: '22', never '00'. B's WRITE K9, an identity nobody holds,
@@ -436,7 +436,7 @@ public sealed class CommitRollbackRuntimeTests : CommitRollbackRuntimeHarness
         finally { TryDelete(host); }
     }
 
-    /// <summary>§14.9.7.4 GR4 / §9.1.15 (<i>"the file lock is removed by the COMMIT statement"</i>): a connector CLOSEd under
+    /// <summary>§2023:14.9.7.4 GR4 / §2023:9.1.15 (<i>"the file lock is removed by the COMMIT statement"</i>): a connector CLOSEd under
     /// commit control keeps its handle, so a ROLLBACK after the CLOSE still restores; a later OPEN INPUT finds the record
     /// the transaction had written absent ('23').</summary>
     [Theory]
@@ -460,16 +460,16 @@ public sealed class CommitRollbackRuntimeTests : CommitRollbackRuntimeHarness
         finally { TryDelete(host); }
     }
 
-    /// <summary>§14.9.7.4 GR4 (<i>"For files specified in active APPLY COMMIT clauses that have been closed and not reopened
+    /// <summary>§2023:14.9.7.4 GR4 (<i>"For files specified in active APPLY COMMIT clauses that have been closed and not reopened
     /// prior to the COMMIT statement, the file locks are released."</i>) — so until then they are not: while a connector
-    /// CLOSEd under commit control keeps its file lock, another run unit's OPEN WITH NO OTHER is refused '61' (§9.1.13.9
+    /// CLOSEd under commit control keeps its file lock, another run unit's OPEN WITH NO OTHER is refused '61' (§2023:9.1.13.9
     /// 1), Table 19), on a host whose share modes are the lock and on one whose run-unit lock is the published column alike;
-    /// the COMMIT (or the ROLLBACK) releases it and the same OPEN then succeeds. §9.1.15 (<i>"The file lock is removed by an
+    /// the COMMIT (or the ROLLBACK) releases it and the same OPEN then succeeds. §2023:9.1.15 (<i>"The file lock is removed by an
     /// explicit or implicit CLOSE statement executed for that file connector, except where the file is subject to an
     /// active APPLY COMMIT clause."</i>) keys the rule on the clause, so a connector that only READ before its CLOSE keeps
     /// the lock as one that changed a record does (<paramref name="changed"/>; review finding R1-2). A re-OPEN of the closed
     /// connector itself replaces the kept lock and is never refused by it, and the run unit's end releases the lock its
-    /// implicit CLOSE kept (§9.1.18.5, <i>"In both cases all file and record locks are then released"</i>).</summary>
+    /// implicit CLOSE kept (§2023:9.1.18.5, <i>"In both cases all file and record locks are then released"</i>).</summary>
     [Theory]
     [InlineData(FileOrg.Relative, true, true)]
     [InlineData(FileOrg.Relative, false, true)]
@@ -516,7 +516,7 @@ public sealed class CommitRollbackRuntimeTests : CommitRollbackRuntimeHarness
         finally { TryDelete(host); }
     }
 
-    /// <summary>⛔ A TRANSACTION CARRIES OVER A CLOSE AND A RE-OPEN OF ITS CONNECTOR (§14.9.7.4 GR3, §14.9.36.4 GR3; review
+    /// <summary>⛔ A TRANSACTION CARRIES OVER A CLOSE AND A RE-OPEN OF ITS CONNECTOR (§2023:14.9.7.4 GR3, §2023:14.9.36.4 GR3; review
     /// finding R1-1): the CLOSE under commit control keeps the connector's attachment to the run unit's store, and the
     /// re-OPEN carries it on — the run unit reads its own uncommitted record, changes more in the same transaction (its id
     /// unchanged), and the COMMIT makes every change permanent, or the ROLLBACK restores the start, as a later WRITABLE OPEN
@@ -525,7 +525,7 @@ public sealed class CommitRollbackRuntimeTests : CommitRollbackRuntimeHarness
     /// under SHARING WITH ALL OTHER, after giving it back under SHARING WITH NO OTHER (the I-O default), whose share mode
     /// refuses any second handle. Through the INPUT re-OPEN — whose handle is writable while the transaction stands, the
     /// handle the COMMIT or ROLLBACK writes through (2.2.1.10 As built (3)) — the transaction stays alive: another run
-    /// unit's REWRITE of the record it wrote answers '51' (§9.1.16, DOC-A.1-152), never rolls it back.</summary>
+    /// unit's REWRITE of the record it wrote answers '51' (§2023:9.1.16, DOC-A.1-152), never rolls it back.</summary>
     [Theory]
     [InlineData(FileOrg.Relative, FileSharing.AllOther, true)]
     [InlineData(FileOrg.Relative, FileSharing.AllOther, false)]
@@ -576,7 +576,7 @@ public sealed class CommitRollbackRuntimeTests : CommitRollbackRuntimeHarness
         finally { TryDelete(host); }
     }
 
-    /// <summary>⛔ A RE-OPEN WITH NO TRANSACTION STANDING TAKES THE ACCESS OF ITS OWN MODE (review finding R2-1; §9.1.15 3),
+    /// <summary>⛔ A RE-OPEN WITH NO TRANSACTION STANDING TAKES THE ACCESS OF ITS OWN MODE (review finding R2-1; §2023:9.1.15 3),
     /// <i>"The successful opening of a file establishes a file lock for the applicable sharing rules, thereby preventing other
     /// run units from opening that file with incompatible sharing rules"</i>): a connector under commit control that only
     /// READ is CLOSEd — its handle kept — and re-OPENed INPUT under SHARING WITH ALL OTHER; another run unit's OPEN under
@@ -605,7 +605,7 @@ public sealed class CommitRollbackRuntimeTests : CommitRollbackRuntimeHarness
             Declare(b, host, org, commit: false, name: "B", sharing: FileSharing.ReadOnly);
             b.OpenStatic("B", other);
             Assert.Equal("00", b.Status("B"));
-            // §14.9.6.4 GR9: the CLOSE released no record lock of a file in an APPLY COMMIT clause, so the record a's READ
+            // §2023:14.9.6.4 GR9: the CLOSE released no record lock of a file in an APPLY COMMIT clause, so the record a's READ
             // locked is still a's (kb/Work PB3480; this case used to pin '00' here, the CLOSE's wrong release); the next
             // record, which nobody locked, reads.
             Assert.Equal("51", Read(b, org, 1, out _, name: "B"));
@@ -619,7 +619,7 @@ public sealed class CommitRollbackRuntimeTests : CommitRollbackRuntimeHarness
         finally { TryDelete(host); }
     }
 
-    /// <summary>⛔ AN INPUT OPENER THAT STILL OWES ITS TRANSACTION'S WRITES IS STILL AN INPUT OPENER (kb/Work PB3482; §9.1.15 2),
+    /// <summary>⛔ AN INPUT OPENER THAT STILL OWES ITS TRANSACTION'S WRITES IS STILL AN INPUT OPENER (kb/Work PB3482; §2023:9.1.15 2),
     /// <i>"The sharing with read only mode restricts concurrent access to a physical file through file connectors other than
     /// this one, to input mode"</i>; Table 19, the cells of the SHARING WITH READ ONLY INPUT and EXTEND / I-O rows against the
     /// existing SHARING WITH ALL OTHER INPUT column are <i>"Normal open"</i>): a connector under commit control changes a record,
@@ -680,7 +680,7 @@ public sealed class CommitRollbackRuntimeTests : CommitRollbackRuntimeHarness
     }
 
     /// <summary>⛔ THE OTHER ARM OF THE OWED-WRITES FACT: AN INPUT OPENER WHOSE COLUMN IS TAKEN AFRESH STILL PUBLISHES IT (kb/Work
-    /// PB3499; §9.1.15 2); Table 19, the SHARING WITH READ ONLY INPUT row against the existing READ ONLY INPUT column is
+    /// PB3499; §2023:9.1.15 2); Table 19, the SHARING WITH READ ONLY INPUT row against the existing READ ONLY INPUT column is
     /// <i>"Normal open"</i>). A connector under commit control and SHARING WITH NO OTHER changes a record and is CLOSEd: its kept
     /// handle excludes every other open and publishes no column, so its re-OPEN INPUT under SHARING WITH READ ONLY takes its
     /// column afresh, after the body, through the writable handle that replaced the kept one (the transaction stands). That
@@ -718,15 +718,15 @@ public sealed class CommitRollbackRuntimeTests : CommitRollbackRuntimeHarness
         finally { TryDelete(host); }
     }
 
-    /// <summary>⛔ AN UNSUCCESSFUL RE-OPEN LEAVES WHAT THE CLOSE KEPT AS IT WAS (review lead R2-2; §14.9.27.4 GR25, <i>"If the
-    /// execution of the OPEN statement is unsuccessful, the file is not affected"</i>; §14.9.7.4 GR4, <i>"For files specified
+    /// <summary>⛔ AN UNSUCCESSFUL RE-OPEN LEAVES WHAT THE CLOSE KEPT AS IT WAS (review lead R2-2; §2023:14.9.27.4 GR25, <i>"If the
+    /// execution of the OPEN statement is unsuccessful, the file is not affected"</i>; §2023:14.9.7.4 GR4, <i>"For files specified
     /// in active APPLY COMMIT clauses that have been closed and not reopened prior to the COMMIT statement, the file locks are
     /// released."</i>): a connector under commit control and SHARING WITH ALL OTHER changes a record and is CLOSEd; its re-OPEN
     /// INPUT adopts the kept handle (the transaction stands, so the handle is the writable one) and meets a medium that refuses
-    /// every page read, write and sync ('30', §9.1.13.6 item 1). The re-OPEN published its own Table 19 column (all other,
+    /// every page read, write and sync ('30', §2023:9.1.13.6 item 1). The re-OPEN published its own Table 19 column (all other,
     /// INPUT) on the kept lock's hold and the unsuccessful OPEN put the kept column (all other, non-INPUT) back, so another run
     /// unit's OPEN I-O SHARING WITH READ ONLY — which Table 19 admits beside INPUT and refuses beside I-O — is refused '61'
-    /// (§9.1.13.9 1)) until the ROLLBACK, which restores the record and releases the lock, after which the same OPEN succeeds.
+    /// (§2023:9.1.13.9 1)) until the ROLLBACK, which restores the record and releases the lock, after which the same OPEN succeeds.
     /// (Review lead R3-2 of PB3337: with A SHARING WITH NO OTHER its handle refused the other OPEN on every host by itself and
     /// the case passed with the column restore removed. The kept handle here admits the other OPEN's share mode on a host that
     /// carries the column lock instead of mandatory share modes, so there only the restored column refuses it.)</summary>
@@ -768,10 +768,10 @@ public sealed class CommitRollbackRuntimeTests : CommitRollbackRuntimeHarness
     }
 
     /// <summary>⛔ A RE-OPEN THAT IS REFUSED ON ITS SECOND ATTEMPT TOO LEAVES WHAT THE CLOSE KEPT AS IT WAS, AND MAKES NO THIRD
-    /// (kb/Work PB3498; §9.1.13.9 1), <i>"A file sharing conflict condition exists because an OPEN statement is attempted on a
+    /// (kb/Work PB3498; §2023:9.1.13.9 1), <i>"A file sharing conflict condition exists because an OPEN statement is attempted on a
     /// physical file and that physical file is already open by another file connector in a manner that conflicts with this
-    /// request"</i>; §14.9.27.4 GR25, <i>"If the execution of the OPEN statement is unsuccessful, the file is not
-    /// affected"</i>; §14.9.7.4 GR4, <i>"For files specified in active APPLY COMMIT clauses that have been closed and not
+    /// request"</i>; §2023:14.9.27.4 GR25, <i>"If the execution of the OPEN statement is unsuccessful, the file is not
+    /// affected"</i>; §2023:14.9.7.4 GR4, <i>"For files specified in active APPLY COMMIT clauses that have been closed and not
     /// reopened prior to the COMMIT statement, the file locks are released."</i>): B, under commit control and SHARING WITH READ
     /// ONLY, reads and is CLOSEd (its handle and its Table 19 column kept) beside another run unit's INPUT opener that owes
     /// writes (kb/Work PB3499; the second attempt is made only beside one); a program
@@ -886,11 +886,11 @@ public sealed class CommitRollbackRuntimeTests : CommitRollbackRuntimeHarness
         return outcome;
     }
 
-    /// <summary>⛔ THE TWO-ATTEMPT OPEN OVER A KEPT HANDLE AND ITS RECORD LOCKS (kb/Work PB3501; §9.1.15 2), <i>"The sharing with read
+    /// <summary>⛔ THE TWO-ATTEMPT OPEN OVER A KEPT HANDLE AND ITS RECORD LOCKS (kb/Work PB3501; §2023:9.1.15 2), <i>"The sharing with read
     /// only mode restricts concurrent access to a physical file through file connectors other than this one, to input mode"</i>;
-    /// §14.9.6.4 GR9, <i>"Except when the file is specified in an APPLY COMMIT clause, the file lock and any record locks
+    /// §2023:14.9.6.4 GR9, <i>"Except when the file is specified in an APPLY COMMIT clause, the file lock and any record locks
     /// associated with the file connector referenced by file-name-1 are released by the execution of the CLOSE statement"</i>;
-    /// §14.9.27.4 GR25, <i>"If the execution of the OPEN statement is unsuccessful, the file is not affected"</i>; §9.1.16, <i>"While
+    /// §2023:14.9.27.4 GR25, <i>"If the execution of the OPEN statement is unsuccessful, the file is not affected"</i>; §2023:9.1.16, <i>"While
     /// locked by a given file connector, a record is not accessible to another file connector in the same or a different run
     /// unit"</i>): run unit A, under commit control, changes a record, is CLOSEd and re-OPENed INPUT, so it holds the writable
     /// handle its transaction owes writes through (kb/Work PB3482). Run unit B, under commit control and SHARING WITH READ ONLY,
@@ -901,7 +901,7 @@ public sealed class CommitRollbackRuntimeTests : CommitRollbackRuntimeHarness
     /// handle was given back and the new one tried; the unsuccessful attempt takes the kept handle again with its record locks
     /// (<c>KeyedConnector.RetakeKeptHandle</c>, kb/Work PB3483), and the second attempt succeeds and rehomes them again
     /// (<c>KeyedConnector.Attach</c>). Whichever half regressed - the retake not republishing the locks, or the give-back left set
-    /// between the attempts - a third run unit would READ the record B locked with '00' where §9.1.16 owes it '51', and the record B changed
+    /// between the attempts - a third run unit would READ the record B locked with '00' where §2023:9.1.16 owes it '51', and the record B changed
     /// with '00' where its transaction's holding owes '51' (DOC-A.1-152). The COMMIT then makes both readable ('00') and the
     /// record B changed holds B's value; the column requests of the re-OPEN are the two attempts' (replace, restore, replace) on
     /// a host whose share modes are mandatory and one (replace) elsewhere, where the first attempt is admitted.</summary>
@@ -944,7 +944,7 @@ public sealed class CommitRollbackRuntimeTests : CommitRollbackRuntimeHarness
             Assert.Equal(HostFile.ShareModesAreMandatory ? [(own, true), (kept, true), (own, true)] : [(own, true)],
                 log.Requests.Select(r => (r.Own, r.Replaces)));
 
-            // C takes part in record locking (a LOCK MODE clause, which SHARING WITH ALL OTHER requires of a file not under APPLY COMMIT, §14.9.27.3 SR8), so it meets B's.
+            // C takes part in record locking (a LOCK MODE clause, which SHARING WITH ALL OTHER requires of a file not under APPLY COMMIT, §2023:14.9.27.3 SR8), so it meets B's.
             var c = Open(host, org, commit: false, FileOpenMode.Input, name: "C");
             Assert.Equal("51", Read(c, org, 2, out _, name: "C"));
             Assert.Equal("51", Read(c, org, 3, out _, name: "C"));
@@ -966,10 +966,10 @@ public sealed class CommitRollbackRuntimeTests : CommitRollbackRuntimeHarness
         finally { TryDelete(host); }
     }
 
-    /// <summary>⛔ A RE-OPEN ANOTHER RUN UNIT REFUSES KEEPS THE HANDLE THE CLOSE KEPT (kb/Work PB3483; §9.1.13.9 1), <i>"A file
+    /// <summary>⛔ A RE-OPEN ANOTHER RUN UNIT REFUSES KEEPS THE HANDLE THE CLOSE KEPT (kb/Work PB3483; §2023:9.1.13.9 1), <i>"A file
     /// sharing conflict condition exists because an OPEN statement is attempted on a physical file and that physical file is
-    /// already open by another file connector in a manner that conflicts with this request"</i>; §14.9.27.4 GR25, <i>"If the
-    /// execution of the OPEN statement is unsuccessful, the file is not affected"</i>; §14.9.7.4 GR4, the file locks of a file
+    /// already open by another file connector in a manner that conflicts with this request"</i>; §2023:14.9.27.4 GR25, <i>"If the
+    /// execution of the OPEN statement is unsuccessful, the file is not affected"</i>; §2023:14.9.7.4 GR4, the file locks of a file
     /// closed and not reopened are released only by the COMMIT): A, under commit control and SHARING WITH ALL OTHER, changes a
     /// record and is CLOSEd; B opens the file I-O beside A's kept handle (Table 19: all other beside all other); A's re-OPEN
     /// under SHARING WITH READ ONLY is refused '61' by B — and by A's own kept handle, whose share mode a host that
@@ -1022,14 +1022,14 @@ public sealed class CommitRollbackRuntimeTests : CommitRollbackRuntimeHarness
         finally { TryDelete(host); }
     }
 
-    /// <summary>⛔ A RE-OPEN THAT IS UNSUCCESSFUL AFTER IT SWAPPED HANDLES PUTS THE KEPT HANDLE BACK (kb/Work PB3483; §14.9.27.4
-    /// GR25, <i>"If the execution of the OPEN statement is unsuccessful, the file is not affected"</i>; §14.9.7.4 GR4): A, under
+    /// <summary>⛔ A RE-OPEN THAT IS UNSUCCESSFUL AFTER IT SWAPPED HANDLES PUTS THE KEPT HANDLE BACK (kb/Work PB3483; §2023:14.9.27.4
+    /// GR25, <i>"If the execution of the OPEN statement is unsuccessful, the file is not affected"</i>; §2023:14.9.7.4 GR4): A, under
     /// commit control and SHARING WITH ALL OTHER, changes a record and is CLOSEd; its re-OPEN under SHARING WITH NO OTHER takes
     /// a handle the kept one's share mode refuses, so the kept handle is given back and the new one taken — and the medium then
-    /// refuses the adoption's first read ('30', §9.1.13.6 item 1). The kept handle is back as the CLOSE left it: the
+    /// refuses the adoption's first read ('30', §2023:9.1.13.6 item 1). The kept handle is back as the CLOSE left it: the
     /// transaction's liveness byte is held by a live run unit, so another run unit's writable OPEN does not roll it back (its
     /// REWRITE of the record answers '51', never '23' for a record the rollback removed), the file lock stands (an OPEN SHARING
-    /// WITH NO OTHER is refused '61', §9.1.13.9 1)), and the ROLLBACK restores the file.</summary>
+    /// WITH NO OTHER is refused '61', §2023:9.1.13.9 1)), and the ROLLBACK restores the file.</summary>
     [Theory]
     [MemberData(nameof(Orgs))]
     public void An_unsuccessful_reopen_after_the_handle_swap_gives_the_kept_handle_back(FileOrg org)
@@ -1077,9 +1077,9 @@ public sealed class CommitRollbackRuntimeTests : CommitRollbackRuntimeHarness
     }
 
     /// <summary>⛔ THE HANDLE A CLOSE KEPT IS NOT "ANOTHER FILE CONNECTOR" TO ITS OWN CONNECTOR'S OPEN OUTPUT (kb/Work PB3483;
-    /// §9.1.13.9 1) e), <i>"An attempt is made to open a physical file in the output mode and the physical file is currently
+    /// §2023:9.1.13.9 1) e), <i>"An attempt is made to open a physical file in the output mode and the physical file is currently
     /// open by another file connector"</i>): a connector under commit control writes, is CLOSEd and opens OUTPUT again — the
-    /// file is created anew ('00', §14.9.27.4 GR18) with nothing of the first OPEN left in it. On a host whose share modes
+    /// file is created anew ('00', §2023:14.9.27.4 GR18) with nothing of the first OPEN left in it. On a host whose share modes
     /// are the lock (Windows) the OUTPUT question is a probe for a handle on the file, and the kept handle answered it:
     /// '61' for a file nobody else had open.</summary>
     [Theory]
@@ -1107,7 +1107,7 @@ public sealed class CommitRollbackRuntimeTests : CommitRollbackRuntimeHarness
 
     /// <summary>The same, when the re-OPEN changes the sharing mode and the CLOSE kept a Table 19 column lock with its handle
     /// (on Windows a read handle of the connector's own, kb/Work PB3482): the kept lock is replaced by the re-OPEN's (kb/Work
-    /// PB3483), and neither it nor the kept handle is "another file connector" (§9.1.13.9 1) e)) or a holder Table 19 refuses
+    /// PB3483), and neither it nor the kept handle is "another file connector" (§2023:9.1.13.9 1) e)) or a holder Table 19 refuses
     /// the re-OPEN beside. An OPEN OUTPUT under SHARING WITH ALL OTHER is asked the OUTPUT question beside the column holder;
     /// a re-OPEN under SHARING WITH NO OTHER takes an exclusive handle, which the column holder gives way to; and a re-OPEN
     /// after a CLOSE under SHARING WITH NO OTHER, whose kept handle excludes every other open (the column holder's included),
@@ -1155,8 +1155,8 @@ public sealed class CommitRollbackRuntimeTests : CommitRollbackRuntimeHarness
         }
     }
 
-    /// <summary>The same OPEN OUTPUT is refused '61' when another run unit holds the file (§9.1.13.9 1) e)), and the refusal
-    /// leaves the kept state as the CLOSE left it (§14.9.27.4 GR25): the transaction is alive for a third run unit
+    /// <summary>The same OPEN OUTPUT is refused '61' when another run unit holds the file (§2023:9.1.13.9 1) e)), and the refusal
+    /// leaves the kept state as the CLOSE left it (§2023:14.9.27.4 GR25): the transaction is alive for a third run unit
     /// ('51'), and the ROLLBACK restores the file.</summary>
     [Theory]
     [MemberData(nameof(Orgs))]
@@ -1187,9 +1187,9 @@ public sealed class CommitRollbackRuntimeTests : CommitRollbackRuntimeHarness
 
     /// <summary>The other caller of the retake (kb/Work PB3497; <c>KeyedConnector.HeldByAnotherHandle</c>, the OPEN OUTPUT's probe for a
     /// handle on the file): the kept handle is given back for the instant of the question, another run unit's handle answers
-    /// it ('61', §9.1.13.9 1) e)), and the medium refuses the retake's read of the store the give-back left without a file
-    /// ('30', §9.1.13.6 item 1). The handle is kept all the same (§14.9.27.4 GR25), so a third run unit meets the record lock the
-    /// CLOSE kept ('51', §14.9.6.4 GR9; §9.1.16) and the transaction's holding ('51'), and the connector's re-OPEN, which reads
+    /// it ('61', §2023:9.1.13.9 1) e)), and the medium refuses the retake's read of the store the give-back left without a file
+    /// ('30', §2023:9.1.13.6 item 1). The handle is kept all the same (§2023:14.9.27.4 GR25), so a third run unit meets the record lock the
+    /// CLOSE kept ('51', §2023:14.9.6.4 GR9; §2023:9.1.16) and the transaction's holding ('51'), and the connector's re-OPEN, which reads
     /// the store again, is the transaction's and ends at the ROLLBACK.</summary>
     [Theory]
     [MemberData(nameof(Orgs))]
@@ -1232,8 +1232,8 @@ public sealed class CommitRollbackRuntimeTests : CommitRollbackRuntimeHarness
     }
 
     /// <summary>⛔ AN OPEN OUTPUT OVER THE FILE ITS CONNECTOR'S CLOSE KEPT LEAVES THE KEPT STATE UNTIL THE CREATION HAS LANDED
-    /// (kb/Work PB3493; §14.9.27.4 GR18, <i>"the successful execution of the OPEN statement creates the file"</i>; GR25, <i>"If
-    /// the execution of the OPEN statement is unsuccessful, the file is not affected"</i>; §14.9.7.4 GR4): A, under commit control,
+    /// (kb/Work PB3493; §2023:14.9.27.4 GR18, <i>"the successful execution of the OPEN statement creates the file"</i>; GR25, <i>"If
+    /// the execution of the OPEN statement is unsuccessful, the file is not affected"</i>; §2023:14.9.7.4 GR4): A, under commit control,
     /// changes record 7 and is CLOSEd; its re-OPEN OUTPUT creates the file in a store of its own, and the medium refuses the
     /// creation at its second page write (<c>refusal</c> "write") or at its first sync ("sync"). The creation is undone, so the
     /// OPEN answers '30' and the file is not affected: the transaction stands (its liveness byte is held by a live run unit, so
@@ -1286,8 +1286,8 @@ public sealed class CommitRollbackRuntimeTests : CommitRollbackRuntimeHarness
     /// the medium's state is unknown, '30' either way): the previous file is gone all the same, so what the CLOSE kept ends with
     /// it. The OPEN answers '30' and no keyed transaction stands in the file, but the OPEN CAPTURED the file before its creation
     /// (DESIGN-runtime-library.md 2.2.2.14; kb/Work PB3492): the capture's (ALL) holding refuses another run unit's writable OPEN
-    /// ('61', 2.2.2.8), and the ROLLBACK that item 8 would run (§14.6.13.1.3 8)) restores the file as at the last COMMIT
-    /// (§14.9.36.4 GR3) — the seeded records, A's uncommitted record 7 rolled back in the restored file. Before kb/Work PB3492 the
+    /// ('61', 2.2.2.8), and the ROLLBACK that item 8 would run (§2023:14.6.13.1.3 8)) restores the file as at the last COMMIT
+    /// (§2023:14.9.36.4 GR3) — the seeded records, A's uncommitted record 7 rolled back in the restored file. Before kb/Work PB3492 the
     /// ROLLBACK found nothing to restore and the file stayed the empty store.</summary>
     [Theory]
     [MemberData(nameof(Orgs))]
@@ -1323,14 +1323,14 @@ public sealed class CommitRollbackRuntimeTests : CommitRollbackRuntimeHarness
     /// <summary>⛔ A REFUSED CREATION WHOSE UNDO THE MEDIUM REFUSES TOO LEAVES THE PREVIOUS FILE GONE (review finding R1-1 of
     /// kb/Work PB3493; 2.2.1.16's OPEN OUTPUT rows): A changes record 7 under commit control and is CLOSEd; its re-OPEN OUTPUT
     /// writes the empty meta at N into the commit slot, and the medium then refuses the creation (page 2's write, or the commit
-    /// slot's sync) AND the undo's restore of that slot. §14.9.27.4 GR25's <i>"the file is not affected"</i> is out of reach:
-    /// the commit slot holds the empty store, which R6 adopts at every later OPEN. So the OPEN answers '30' (§9.1.13.6 item 1)
+    /// slot's sync) AND the undo's restore of that slot. §2023:14.9.27.4 GR25's <i>"the file is not affected"</i> is out of reach:
+    /// the commit slot holds the empty store, which R6 adopts at every later OPEN. So the OPEN answers '30' (§2023:9.1.13.6 item 1)
     /// and what the CLOSE kept ends with the previous file, as at a refused final sync: no transaction stands (a COMMIT and a
     /// ROLLBACK find none in the file), the kept file lock is gone, and the file reads as the empty store. Before the fix the kept
     /// transaction stood over the old store, and the next COMMIT promoted it beside the creation's slot and answered success over
     /// a file every later OPEN read as empty. The OPEN captured the file before its creation (2.2.2.14; kb/Work PB3492), so the
     /// capture's (ALL) holding refuses another run unit's writable OPEN ('61') until the COMMIT, which makes the replacement
-    /// permanent (§14.9.7.4 GR3) — the ROLLBACK after it finds nothing — and then admits it.</summary>
+    /// permanent (§2023:14.9.7.4 GR3) — the ROLLBACK after it finds nothing — and then admits it.</summary>
     [Theory]
     [InlineData(FileOrg.Relative, "write")]
     [InlineData(FileOrg.Relative, "sync")]
@@ -1372,7 +1372,7 @@ public sealed class CommitRollbackRuntimeTests : CommitRollbackRuntimeHarness
         finally { TryDelete(host); }
     }
 
-    /// <summary>An OPEN OUTPUT whose creation lands ends what the CLOSE kept with the file it was kept on (§14.9.27.4 GR18): the
+    /// <summary>An OPEN OUTPUT whose creation lands ends what the CLOSE kept with the file it was kept on (§2023:14.9.27.4 GR18): the
     /// transaction (A's record 7 is not in the new file; it is in the capture's before file, which only a ROLLBACK brings back,
     /// kb/Work PB3492), its record lock on record 1 and the file lock; the capture's (ALL) holding refuses another run unit's
     /// writable OPEN ('61', DESIGN-runtime-library.md 2.2.2.8) until the COMMIT; the connector's next WRITE begins a transaction
@@ -1453,7 +1453,7 @@ public sealed class CommitRollbackRuntimeFileVerbTests : CommitRollbackRuntimeHa
             { FileOrg.Indexed, "delete" }, { FileOrg.Relative, "create" }, { FileOrg.Indexed, "create" } };
 
     /// <summary>One row's program through <paramref name="a"/>: '30' (or a refused COMMIT) is the fatal condition, whose item 8
-    /// ROLLBACK (§14.6.13.1.3 8)) the caller runs. Returns whether the COMMIT answered success.</summary>
+    /// ROLLBACK (§2023:14.6.13.1.3 8)) the caller runs. Returns whether the COMMIT answered success.</summary>
     private static bool CaptureRow(FileRegistry a, FileOrg org, string verb)
     {
         static bool Fine(string status, string expected = "00") =>
@@ -1481,10 +1481,10 @@ public sealed class CommitRollbackRuntimeFileVerbTests : CommitRollbackRuntimeHa
 
     /// <summary>⛔ THE KEYED CAPTURE AND CREATION, FAULT-FREE AND REFUSED AT EVERY OPERATION OF THE JOURNAL'S MEDIUM (kb/Work PB3492;
     /// MANDATORY-PRACTICES I11): run fault-free, the row's COMMIT makes the replacement, the removal or the creation permanent
-    /// (§14.9.7.4 GR3) — the record 7 its run unit changed before the capture is gone with the file it was in. Refused at operation
+    /// (§2023:14.9.7.4 GR3) — the record 7 its run unit changed before the capture is gone with the file it was in. Refused at operation
     /// n of the medium (the journal's header, the before file's write and sync, the directory syncs, the <c>K</c>, the decision,
     /// the retirement), the statement answers '30', item 8's ROLLBACK runs, and the file the next entry finds is the state at the
-    /// last COMMIT (§14.9.36.4 GR3: the five seeded records, record 7 rolled back; no file for a creation) — or, when the COMMIT
+    /// last COMMIT (§2023:14.9.36.4 GR3: the five seeded records, record 7 rolled back; no file for a creation) — or, when the COMMIT
     /// answered success before the refusal, the committed one; never a third, and no transaction file is left behind.</summary>
     [Theory]
     [MemberData(nameof(CaptureRows))]
@@ -1542,10 +1542,10 @@ public sealed class CommitRollbackRuntimeFileVerbTests : CommitRollbackRuntimeHa
     private static bool Same(string?[]? a, string?[]? b) => a is null ? b is null : b is not null && a.SequenceEqual(b);
 
     /// <summary>⛔ A DELETE FILE AFTER A CLOSE UNDER COMMIT CONTROL IS NOT REFUSED BY THE CONNECTOR'S OWN KEPT HANDLE (kb/Work PB3492;
-    /// the NOTE under §14.9.10.4 GR15, <i>"Such files can still be deleted, however if they are, then in the event of a rollback they
+    /// the NOTE under §2023:14.9.10.4 GR15, <i>"Such files can still be deleted, however if they are, then in the event of a rollback they
     /// will be restored to the state they were in at the last commit"</i>): it answers '00' under every posture — under ALL OTHER
     /// the host publishes the Table 19 file lock through a handle of its own on Windows, which went with the removal — and the
-    /// removal's (ALL) holding then refuses another run unit's writable OPEN ('61') and DELETE FILE ('62', §9.1.13.9 2)) until the
+    /// removal's (ALL) holding then refuses another run unit's writable OPEN ('61') and DELETE FILE ('62', §2023:9.1.13.9 2)) until the
     /// ROLLBACK, which restores the file as at the last COMMIT, record 7 rolled back in it.</summary>
     [Theory]
     [InlineData(FileOrg.Relative, FileSharing.NoOther)]
@@ -1580,9 +1580,9 @@ public sealed class CommitRollbackRuntimeFileVerbTests : CommitRollbackRuntimeHa
     /// <summary>⛔ AN UNSUCCESSFUL DELETE FILE LEAVES THE FILE AND THE RUN UNIT'S TRANSACTION ON IT AS THE CLOSE LEFT THEM (kb/Work PB3492,
     /// review finding R1-1; MANDATORY-PRACTICES I11): A changes record 7 under commit control and CLOSEs the file, and its DELETE FILE
     /// is refused after the kept handle was given back — at the capture's read of the file, or at the removal itself ('30', a
-    /// permanent error condition, §9.1.13.6, which the program handles, so item 8's ROLLBACK does not run). The kept handle, the transaction's liveness
+    /// permanent error condition, §2023:9.1.13.6, which the program handles, so item 8's ROLLBACK does not run). The kept handle, the transaction's liveness
     /// byte through it and the Table 19 file lock are taken back, so A's COMMIT answers success and makes record 7 permanent
-    /// (§14.9.7.4 GR3, <i>"permanently applies any changes made to the files"</i>): another run unit's writable OPEN after it, whose
+    /// (§2023:14.9.7.4 GR3, <i>"permanently applies any changes made to the files"</i>): another run unit's writable OPEN after it, whose
     /// dead-owner step rolls back every transaction without a live owner, reads record 7 as A wrote it. Before the fix the COMMIT
     /// forgot the transaction (the store held no file) and the next writable OPEN rolled record 7 back.</summary>
     [Theory]
@@ -1642,7 +1642,7 @@ public sealed class CommitRollbackRuntimeFileVerbTests : CommitRollbackRuntimeHa
             var b = new FileRegistry();
             Declare(b, host, org, commit: false, name: "B", sharing: FileSharing.AllOther);
             b.OpenStatic("B", FileOpenMode.IO);
-            // A's CLOSE kept the file, so its file lock stands (§9.1.15): NO OTHER refuses B ('61'), as does the capture's (ALL)
+            // A's CLOSE kept the file, so its file lock stands (§2023:9.1.15): NO OTHER refuses B ('61'), as does the capture's (ALL)
             // holding once the before file was written (2.2.2.8); ALL OTHER with no capture admits B (Table 19), and B's writable
             // OPEN's dead-owner step finds A's transaction alive, its liveness byte taken back with the handle.
             Assert.Equal(sharing == FileSharing.NoOther || refused == "delete" ? "61" : "00", b.Status("B"));
@@ -1661,7 +1661,7 @@ public sealed class CommitRollbackRuntimeFileVerbTests : CommitRollbackRuntimeHa
         }
     }
 
-    /// <summary>⛔ A DEAD RUN UNIT'S CAPTURE IS SETTLED BY THE NEXT ENTRY (2.2.2.8, 2.2.2.14; §9.1.18.5, <i>"When a run unit terminates
+    /// <summary>⛔ A DEAD RUN UNIT'S CAPTURE IS SETTLED BY THE NEXT ENTRY (2.2.2.8, 2.2.2.14; §2023:9.1.18.5, <i>"When a run unit terminates
     /// abnormally, all file changes made since the previous commit ... are rolled back"</i>): A changes record 7 and DELETEs the file,
     /// which gives every handle of A on it back, and dies (its journal's holder dropped as a death drops it). The next writable
     /// OPEN of another run unit restores the before file, and its store's dead-owner step rolls back A's record 7 in it; an
@@ -1707,11 +1707,11 @@ public sealed class CommitRollbackRuntimeFileVerbTests : CommitRollbackRuntimeHa
         }
     }
 
-    /// <summary>⛔ A KEYED FILE CREATED SINCE THE LAST COMMIT IS ABSENT AGAIN AFTER THE ROLLBACK (§14.9.36.4 GR3, the state at the start
-    /// of the run unit had no file; §14.9.27.4 GR17, GR18; 2.2.2.14) — whether the connector is CLOSEd at the ROLLBACK or still OPEN
+    /// <summary>⛔ A KEYED FILE CREATED SINCE THE LAST COMMIT IS ABSENT AGAIN AFTER THE ROLLBACK (§2023:14.9.36.4 GR3, the state at the start
+    /// of the run unit had no file; §2023:14.9.27.4 GR17, GR18; 2.2.2.14) — whether the connector is CLOSEd at the ROLLBACK or still OPEN
     /// on it (review finding R1-2): the open connector stays in its open mode on no file, so a READ finds no record ('23'), its
     /// next WRITE creates the file again (the next ROLLBACK removes it again, a COMMIT keeps it with that record), and a run unit
-    /// that writes nothing more and ends normally (§9.1.18.5's COMMIT, then the implicit CLOSE) leaves no file — never the empty
+    /// that writes nothing more and ends normally (§2023:9.1.18.5's COMMIT, then the implicit CLOSE) leaves no file — never the empty
     /// file the rolled-back creation made.</summary>
     [Theory]
     [InlineData(FileOrg.Relative, FileOpenMode.Output, "closed")]
@@ -1760,7 +1760,7 @@ public sealed class CommitRollbackRuntimeFileVerbTests : CommitRollbackRuntimeHa
                     Assert.Equal("23", Read(a, org, 2, out _));     // no file, no record
                     break;
             }
-            a.CloseAll();   // §9.1.18.5: the normal end commits, then the implicit CLOSE
+            a.CloseAll();   // §2023:9.1.18.5: the normal end commits, then the implicit CLOSE
             Assert.Equal(expected, StateOf(host, org));
             AssertNoJournalLeft(host);
         }
@@ -1769,8 +1769,8 @@ public sealed class CommitRollbackRuntimeFileVerbTests : CommitRollbackRuntimeHa
 
     /// <summary>⛔ A KEYED WRITE THAT WOULD CREATE THE FILE AGAIN MEETS A FILE ANOTHER RUN UNIT MADE AT THE PATH MEANWHILE (kb/Work
     /// PB3635; the sequential twin is <c>SequentialConnector.CreateTheFileAgain</c>): the ROLLBACK released the file lock of a file not
-    /// open at the last COMMIT (§9.1.15) and reversed only this run unit's own changes (§14.9.36.4 GR3), so what the other run unit
-    /// created there is protected from this one (§9.1.17): the WRITE answers '30' (§9.1.13.6 item 1) and the later COMMIT or ROLLBACK
+    /// open at the last COMMIT (§2023:9.1.15) and reversed only this run unit's own changes (§2023:14.9.36.4 GR3), so what the other run unit
+    /// created there is protected from this one (§2023:9.1.17): the WRITE answers '30' (§2023:9.1.13.6 item 1) and the later COMMIT or ROLLBACK
     /// leaves the other's file as its creator wrote it, no journal left.</summary>
     [Theory]
     [InlineData(FileOrg.Relative, false)]
@@ -1808,8 +1808,8 @@ public sealed class CommitRollbackRuntimeFileVerbTests : CommitRollbackRuntimeHa
     /// HANDLE (kb/Work PB3635, review finding R1-1 of the first round; <c>FileConnector.Open</c>, <c>KeyedConnector.LockCreating</c>).
     /// The covered OPEN has begun its journal with no file at its start when the other run unit's OPEN OUTPUT (which takes no entry
     /// mutex) makes the file: the creating handle is <see cref="FileMode.CreateNew"/>, refuses it, the journal is withdrawn, and the OPEN
-    /// is made again over the file that stands. OPEN OUTPUT then REPLACES it after the capture of its records (§14.9.27.4 GR18), so the
-    /// run unit's ROLLBACK restores them (§14.9.36.4 GR3) rather than removing the file as a creation of its own, and its COMMIT keeps
+    /// is made again over the file that stands. OPEN OUTPUT then REPLACES it after the capture of its records (§2023:14.9.27.4 GR18), so the
+    /// run unit's ROLLBACK restores them (§2023:14.9.36.4 GR3) rather than removing the file as a creation of its own, and its COMMIT keeps
     /// the replacement; the OPEN of an absent OPTIONAL file (GR17) opens the file that stands, '00', and the ROLLBACK leaves its records.</summary>
     [Theory]
     [InlineData(FileOrg.Relative, FileOpenMode.Output, false)]
@@ -1858,7 +1858,7 @@ public sealed class CommitRollbackRuntimeFileVerbTests : CommitRollbackRuntimeHa
 
     /// <summary>⛔ A DIRECTORY AT THE PATH IS NOT A FILE MADE MEANWHILE (kb/Work PB3635, review finding R2-1). The presence probe answers
     /// Absent for a directory (<c>HostFile.Probe</c>), so a creating OPEN takes a <see cref="FileMode.CreateNew"/> handle on it: Windows
-    /// refuses with an access error and Unix with <c>EEXIST</c>, the host's word for a FILE made meanwhile. Both hosts answer §14.9.27.4
+    /// refuses with an access error and Unix with <c>EEXIST</c>, the host's word for a FILE made meanwhile. Both hosts answer §2023:14.9.27.4
     /// GR3's '37' as before, at once: no OPEN is made again (one journal begun for the one attempt, none left), on every organization.</summary>
     [Theory]
     [InlineData(FileOrg.Relative, FileOpenMode.Output, true)]
@@ -1884,7 +1884,7 @@ public sealed class CommitRollbackRuntimeFileVerbTests : CommitRollbackRuntimeHa
             var a = new FileRegistry { Medium = medium };
             Declare(a, host, org, commit: covered, optional: true);
             a.OpenStatic("F", mode);
-            Assert.Equal("37", a.Status("F"));   // §14.9.27.4 GR3 on both hosts
+            Assert.Equal("37", a.Status("F"));   // §2023:14.9.27.4 GR3 on both hosts
             Assert.True(begun <= 1, $"the OPEN was made again: {begun} journals begun");
             a.CloseAll();
             AssertNoJournalLeft(host);
@@ -1894,10 +1894,10 @@ public sealed class CommitRollbackRuntimeFileVerbTests : CommitRollbackRuntimeHa
     }
 
     /// <summary>The same decision where the file a connector's CLOSE kept is not there at the re-OPEN (kb/Work PB3493's sibling arms,
-    /// the absent OPTIONAL file of §14.9.27.4 GR13 on INPUT and of GR17 on I-O): what the CLOSE kept belonged to a file that was
+    /// the absent OPTIONAL file of §2023:14.9.27.4 GR13 on INPUT and of GR17 on I-O): what the CLOSE kept belonged to a file that was
     /// removed outside the run unit, so the OPEN ('05') retires it (kb/Work PB3576) instead of attaching beside it, and a later OPEN of the file made
     /// anew by another run unit reads THAT file's records, never the removed file's from the kept store. On I-O the OPEN creates
-    /// the file (GR17) and the CLOSE keeps the file lock its opening established (§9.1.15), so another run unit's OPEN OUTPUT is
+    /// the file (GR17) and the CLOSE keeps the file lock its opening established (§2023:9.1.15), so another run unit's OPEN OUTPUT is
     /// '61' until the COMMIT removes it. A host that keeps a file
     /// while a handle on it stands (Windows: the kept handle's share mode admits no delete) refuses the removal, which is the
     /// host's own protection of the kept state.</summary>
@@ -1932,8 +1932,8 @@ public sealed class CommitRollbackRuntimeFileVerbTests : CommitRollbackRuntimeHa
             Assert.Equal("00", a.Status("F"));
             if (mode == FileOpenMode.IO)
             {
-                // The I-O OPEN created the file (§14.9.27.4 GR17), and its successful opening established a file lock that the
-                // CLOSE under APPLY COMMIT keeps (§9.1.15): ALL OTHER admits input, I-O and extend only, so another run unit's
+                // The I-O OPEN created the file (§2023:14.9.27.4 GR17), and its successful opening established a file lock that the
+                // CLOSE under APPLY COMMIT keeps (§2023:9.1.15): ALL OTHER admits input, I-O and extend only, so another run unit's
                 // OPEN OUTPUT is refused ('61') until the COMMIT removes the lock.
                 var refused = new FileRegistry();
                 Declare(refused, host, org, commit: false, name: "S");
@@ -1955,11 +1955,11 @@ public sealed class CommitRollbackRuntimeFileVerbTests : CommitRollbackRuntimeHa
         finally { TryDelete(host); }
     }
 
-    /// <summary>The absent OPTIONAL I-O arm's two refusals over a kept state (§14.9.27.4 GR17 creates the file; GR25, <i>"If the
+    /// <summary>The absent OPTIONAL I-O arm's two refusals over a kept state (§2023:14.9.27.4 GR17 creates the file; GR25, <i>"If the
     /// execution of the OPEN statement is unsuccessful, the file is not affected"</i>; kb/Work PB3493, review finding R1-5; PB3576):
     /// the file A's CLOSE under commit control kept is removed outside the run unit, and A's re-OPEN I-O finds it absent. The kept
     /// state belongs to the removed file, not to A, so it RETIRES to the registry before the OPEN reaches either refusal: when the
-    /// host refuses the handle that would create the new file (<c>handle</c>: the directory is gone too, §9.1.13.6 item 1's '30'),
+    /// host refuses the handle that would create the new file (<c>handle</c>: the directory is gone too, §2023:9.1.13.6 item 1's '30'),
     /// and when the handle is taken but the new file's store cannot be made (<c>attach</c>: the medium refuses the empty store's
     /// first write, '30'), the transaction A made stands in the registry, as the CLOSE left it, until the ROLLBACK ends it, and A
     /// holds none. A host that keeps a file while a handle on it stands (Windows) refuses the removal, which is the host's own
@@ -2022,7 +2022,7 @@ public sealed class CommitRollbackRuntimeFileVerbTests : CommitRollbackRuntimeHa
     /// holding record 2. A's re-OPEN is an ordinary OPEN of the file the path names: it reads record 2 and finds no record 7 or 1
     /// ('23'), no transaction of A's stands in it, and a change reaches the new file. What the CLOSE kept RETIRES with the file it
     /// was kept on (the registry keeps it as it keeps the state of a connector associated with another file, kb/Work PB3494), so
-    /// the COMMIT (§14.9.7.4 GR3, <i>"permanently applies any changes made to the files specified in all the active APPLY COMMIT
+    /// the COMMIT (§2023:14.9.7.4 GR3, <i>"permanently applies any changes made to the files specified in all the active APPLY COMMIT
     /// clauses"</i>) commits BOTH files' changes: record 8 in the file at the path and record 7 in the renamed one, never abandoned
     /// to the next writable OPEN's rollback. Before the fix the re-OPEN adopted the kept handle on the removed file and read its
     /// records ('23' for record 2, '00' for record 7); before kb/Work PB3576 the kept state was ended, and record 7 of the renamed
@@ -2082,10 +2082,10 @@ public sealed class CommitRollbackRuntimeFileVerbTests : CommitRollbackRuntimeHa
         }
     }
 
-    /// <summary>The same decision when the re-OPEN of the file made at the path is UNSUCCESSFUL (kb/Work PB3533, PB3576; §14.9.27.4
+    /// <summary>The same decision when the re-OPEN of the file made at the path is UNSUCCESSFUL (kb/Work PB3533, PB3576; §2023:14.9.27.4
     /// GR25, <i>"If the execution of the OPEN statement is unsuccessful, the file is not affected"</i>, speaks of the file the path
     /// names, and the kept one is not it): the path names a file that is not a keyed file (GR10's fixed file attribute conflict,
-    /// '39'), or one another run unit holds under SHARING WITH NO OTHER (§9.1.13.9 1), '61'). The kept state has retired all the
+    /// '39'), or one another run unit holds under SHARING WITH NO OTHER (§2023:9.1.13.9 1), '61'). The kept state has retired all the
     /// same — A holds no transaction of its own, and the ROLLBACK restores the retired one — and the file at the path is as the other
     /// party left it.</summary>
     [Theory]
@@ -2196,8 +2196,8 @@ public sealed class CommitRollbackRuntimeReplacedFileTests : CommitRollbackRunti
         finally { TryDelete(host); }
     }
 
-    /// <summary>⛔ THE RUN UNIT'S FILE AND RECORD LOCKS ARE OF A PHYSICAL FILE, NOT OF A PATH (kb/Work PB3576; §9.1.16, <i>"While
-    /// locked by a given file connector, a record is not accessible to another file connector"</i>; §9.1.13.9 1), a file opened by
+    /// <summary>⛔ THE RUN UNIT'S FILE AND RECORD LOCKS ARE OF A PHYSICAL FILE, NOT OF A PATH (kb/Work PB3576; §2023:9.1.16, <i>"While
+    /// locked by a given file connector, a record is not accessible to another file connector"</i>; §2023:9.1.13.9 1), a file opened by
     /// a connector with SHARING WITH NO OTHER refuses another connector's OPEN): connector F holds the file open and READs record 2
     /// WITH LOCK; outside the run unit the file is removed (or renamed away) and another made at the path, holding a record 2 of its
     /// own (<c>B002</c>); connector G of the same run unit OPENs the path. G meets nothing of F's: its OPEN is '00' even where F holds
@@ -2244,7 +2244,7 @@ public sealed class CommitRollbackRuntimeReplacedFileTests : CommitRollbackRunti
         }
     }
 
-    /// <summary>⛔ DELETE FILE ASKS ABOUT THE PHYSICAL FILE, NOT ITS PATH (kb/Work PB3576; §9.1.13.9 2), a DELETE FILE statement
+    /// <summary>⛔ DELETE FILE ASKS ABOUT THE PHYSICAL FILE, NOT ITS PATH (kb/Work PB3576; §2023:9.1.13.9 2), a DELETE FILE statement
     /// refused when the physical file is <i>"currently open by another file connector"</i>): connector F holds the file open;
     /// outside the run unit the file is removed (or renamed away) and another made at the path; connector G's DELETE FILE deletes
     /// THE FILE AT THE PATH ('00', the file gone), because F is open on a file that is not at the path any more — a control
@@ -2285,8 +2285,8 @@ public sealed class CommitRollbackRuntimeReplacedFileTests : CommitRollbackRunti
     }
 
     /// <summary>⛔ A FILE MADE AFTER ANOTHER WAS REMOVED MAY BE GIVEN THE REMOVED FILE'S NUMBER, AND IS STILL THE FILE ITS CONNECTOR
-    /// OPENED (review R1-1 of kb/Work PB3576; §9.1.13.9 1) a), a file opened by one connector with SHARING WITH NO OTHER refuses
-    /// another connector's OPEN; §9.1.13.9 2), DELETE FILE of a file open by another connector is '62'): F OPENs OUTPUT (creating
+    /// OPENED (review R1-1 of kb/Work PB3576; §2023:9.1.13.9 1) a), a file opened by one connector with SHARING WITH NO OTHER refuses
+    /// another connector's OPEN; §2023:9.1.13.9 2), DELETE FILE of a file open by another connector is '62'): F OPENs OUTPUT (creating
     /// the file), CLOSEs and DELETEs the file, then OPENs OUTPUT again. A host that gives a freed file number to the next file made
     /// (Linux ext4) gives the new file the number the first file's state still claimed. Connector G of the run unit then meets F's
     /// Table 19 entry at once: DELETE FILE is '62' and OPEN INPUT is '61', as they are beside any other open connector.</summary>
@@ -2316,7 +2316,7 @@ public sealed class CommitRollbackRuntimeReplacedFileTests : CommitRollbackRunti
     }
 
     /// <summary>⛔ THE LOCKS A RETIRED KEPT STATE HOLDS ARE THE OLD FILE'S, AND THE COMMIT GIVES THEM BACK WITH IT (kb/Work PB3576,
-    /// PB3578; §9.1.16, <i>"A COMMIT statement releases all record locks for files subject to commit and rollback"</i>): on a host
+    /// PB3578; §2023:9.1.16, <i>"A COMMIT statement releases all record locks for files subject to commit and rollback"</i>): on a host
     /// whose region locks answer unavailable for record bytes, F, under commit control, READs record 2 (the lock is in this run
     /// unit's table alone) and is CLOSEd, which keeps it; outside the run unit the file is renamed away and another made at the
     /// path, holding a record 2 of its own. F's re-OPEN is an ordinary OPEN of the new file: F holds no record lock there, and
@@ -2375,22 +2375,22 @@ public sealed class CommitRollbackRuntimeReplacedFileTests : CommitRollbackRunti
     }
 
     /// <summary>Open connector <paramref name="name"/> of <paramref name="reg"/> in I-O mode on the physical file the content of
-    /// its ASSIGN USING data item names (§12.4.5.3 GR3 b): the association is made by the OPEN, so one connector reaches
+    /// its ASSIGN USING data item names (§2023:12.4.5.3 GR3 b): the association is made by the OPEN, so one connector reaches
     /// different physical files over a run unit.</summary>
     private static void OpenAssigned(FileRegistry reg, string host, string name = "F") =>
         reg.OpenShared(name, FileOpenMode.IO, hasSharingOverride: false, FileSharing.AllOther, FileRetryKind.None, 0,
             OpenTapePhrase.None, host, assignDynamic: true, page: null);
 
     /// <summary>⛔ WHAT A CLOSE UNDER COMMIT CONTROL KEPT BELONGS TO THE PHYSICAL FILE, NOT TO THE CONNECTOR (kb/Work PB3494;
-    /// §12.4.5.3 GR3 b, <i>"the file connector referenced by file-name-1 is associated with a physical file identified by the
-    /// content of the data item referenced by data-name-1 in the runtime element that executes the OPEN"</i>; §14.9.7.4 GR3 and
-    /// GR4; §14.9.36.4 GR3; §9.1.16): A, under commit control, changes record 7 of host 1, READs record 1 and is CLOSEd; a MOVE
+    /// §2023:12.4.5.3 GR3 b, <i>"the file connector referenced by file-name-1 is associated with a physical file identified by the
+    /// content of the data item referenced by data-name-1 in the runtime element that executes the OPEN"</i>; §2023:14.9.7.4 GR3 and
+    /// GR4; §2023:14.9.36.4 GR3; §2023:9.1.16): A, under commit control, changes record 7 of host 1, READs record 1 and is CLOSEd; a MOVE
     /// to the ASSIGN USING item and an OPEN associate it with host 2, which holds three records of its own. The OPEN is an
     /// ordinary OPEN of host 2 - it adopts neither host 1's handle nor its store, so record 5 is '23' and record 2 is host 2's -
     /// while host 1's transaction, record lock and file lock stand (another run unit's REWRITE of record 7 answers '51', its READ
     /// of record 1 '51', a NO OTHER OPEN '61') until the COMMIT or ROLLBACK ends them at host 1, host 2 untouched, or until the
     /// connector is associated with host 1 again and OPENs it ("back"), where the transaction goes on, or until the run unit's end
-    /// ("end"), whose implicit COMMIT (§9.1.18.5, <i>"When a run unit terminates normally, all file changes are permanently committed"</i>) makes
+    /// ("end"), whose implicit COMMIT (§2023:9.1.18.5, <i>"When a run unit terminates normally, all file changes are permanently committed"</i>) makes
     /// host 1's change permanent and gives the locks back. Before the fix the OPEN
     /// of host 2 took host 1's kept handle and store: record 5 was host 1's and the new file got no file lock.</summary>
     [Theory]
@@ -2451,7 +2451,7 @@ public sealed class CommitRollbackRuntimeReplacedFileTests : CommitRollbackRunti
                 Assert.Equal(Rec(7, "A007"), own);
                 Assert.Null(a.Rollback());
             }
-            else if (ending == "end") a.CloseAll();   // the run unit's normal end (§9.1.18.5): the implicit COMMIT, then the locks go
+            else if (ending == "end") a.CloseAll();   // the run unit's normal end (§2023:9.1.18.5): the implicit COMMIT, then the locks go
             else Assert.Null(ending == "commit" ? a.Commit() : a.Rollback());
             if (ending != "back")
             {
@@ -2468,9 +2468,9 @@ public sealed class CommitRollbackRuntimeReplacedFileTests : CommitRollbackRunti
         finally { TryDelete(host1); TryDelete(host2); }
     }
 
-    /// <summary>The run unit's end ends the state kept on a file its connector was associated away from (§9.1.18.5, <i>"all file
+    /// <summary>The run unit's end ends the state kept on a file its connector was associated away from (§2023:9.1.18.5, <i>"all file
     /// and record locks are then released"</i>; kb/Work PB3494), and a ROLLBACK the medium refuses at that file keeps its
-    /// transaction for the dead-owner step and is told through the file-name (§9.1.13.1): the connector's status is '30' and the
+    /// transaction for the dead-owner step and is told through the file-name (§2023:9.1.13.1): the connector's status is '30' and the
     /// name returned, while the other file's COMMIT is not touched.</summary>
     [Fact]
     public void A_refused_rollback_of_a_file_its_connector_was_associated_away_from_is_told_through_the_file_name()
@@ -2506,10 +2506,10 @@ public sealed class CommitRollbackRuntimeReplacedFileTests : CommitRollbackRunti
     /// <summary>⛔ A COMMIT TAKES THE RUN UNIT'S FILES IN THE ORDER OF ITS OPEN STORES, a retired state's file at its own place
     /// (DESIGN-runtime-library.md 2.2.1.10, <i>"Files are committed one at a time, in the order of the run unit's open
     /// stores"</i>; review findings R1-2 and R1-5 of kb/Work PB3494), and a refused COMMIT of a state its connector was
-    /// associated away from is told through the file-name (§9.1.13.1): G opens host 3 and then F host 1, both under commit
+    /// associated away from is told through the file-name (§2023:9.1.13.1): G opens host 3 and then F host 1, both under commit
     /// control, and each changes record 7; F is CLOSEd and an ASSIGN USING OPEN associates it with host 2. The COMMIT, with host
     /// 1 refusing every write and sync, commits host 3 first and stops at host 1: F's status is '30' and its name returned. The
-    /// ROLLBACK that §14.6.13.1.3 item 8 then executes restores host 1 and finds host 3 committed. Before the fix every
+    /// ROLLBACK that §2023:14.6.13.1.3 item 8 then executes restores host 1 and finds host 3 committed. Before the fix every
     /// retired state came first, so the COMMIT stopped at host 1 before host 3 and the ROLLBACK undid host 3's change.</summary>
     [Fact]
     public void A_commit_takes_a_retired_files_transaction_at_its_place_in_the_order_of_the_open_stores()
@@ -2553,12 +2553,12 @@ public sealed class CommitRollbackRuntimeReplacedFileTests : CommitRollbackRunti
         finally { TryDelete(host1); TryDelete(host2); TryDelete(host3); }
     }
 
-    /// <summary>⛔ A CLOSE UNDER COMMIT CONTROL KEEPS THE RECORD LOCKS OF ITS FILE UNTIL THE COMMIT OR ROLLBACK (§14.9.6.4 GR9,
+    /// <summary>⛔ A CLOSE UNDER COMMIT CONTROL KEEPS THE RECORD LOCKS OF ITS FILE UNTIL THE COMMIT OR ROLLBACK (§2023:14.9.6.4 GR9,
     /// <i>"Except when the file is specified in an APPLY COMMIT clause, the file lock and any record locks associated with the
-    /// file connector referenced by file-name-1 are released by the execution of the CLOSE statement"</i>; §9.1.16, <i>"A
+    /// file connector referenced by file-name-1 are released by the execution of the CLOSE statement"</i>; §2023:9.1.16, <i>"A
     /// COMMIT statement releases all record locks for files subject to commit and rollback"</i>, and the ROLLBACK's the same;
-    /// kb/Work PB3480): a connector READs record 1 under the implicit automatic locking (§12.4.5.9.4 GR4), is CLOSEd, and
-    /// another run unit's READ of record 1 answers '51' (§9.1.13.8) while a record nobody locked reads; the same after the
+    /// kb/Work PB3480): a connector READs record 1 under the implicit automatic locking (§2023:12.4.5.9.4 GR4), is CLOSEd, and
+    /// another run unit's READ of record 1 answers '51' (§2023:9.1.13.8) while a record nobody locked reads; the same after the
     /// connector's own re-OPEN (<paramref name="reopen"/>), the kept handle adopted (I-O) or given back for another (INPUT) —
     /// the locks are published through the handle's endpoint, which the re-OPEN moves them off before it gives the handle
     /// back, so the one release at the COMMIT or ROLLBACK is the only one; and a second CLOSE of the closed file ('42', GR1)
@@ -2609,11 +2609,11 @@ public sealed class CommitRollbackRuntimeReplacedFileTests : CommitRollbackRunti
         finally { TryDelete(host); }
     }
 
-    /// <summary>⛔ AN UNSUCCESSFUL RE-OPEN LEAVES THE KEPT RECORD LOCKS WHERE THE CLOSE KEPT THEM (§14.9.27.4 GR25, <i>"If the
-    /// execution of the OPEN statement is unsuccessful, the file is not affected"</i>; §14.9.6.4 GR9; kb/Work PB3480): an
+    /// <summary>⛔ AN UNSUCCESSFUL RE-OPEN LEAVES THE KEPT RECORD LOCKS WHERE THE CLOSE KEPT THEM (§2023:14.9.27.4 GR25, <i>"If the
+    /// execution of the OPEN statement is unsuccessful, the file is not affected"</i>; §2023:14.9.6.4 GR9; kb/Work PB3480): an
     /// INDEXED connector under commit control OPENs INPUT, READs record 1 and is CLOSEd; its re-OPEN EXTEND takes a handle of
     /// its own (the kept one is read-only), the record locks move to it (the store mutex held), and the OPEN is refused at its
-    /// last step, the read of the prime tree's root that finds the highest key (§14.9.27.4 GR15; §9.1.13.6 item 1: '30') -
+    /// last step, the read of the prime tree's root that finds the highest key (§2023:14.9.27.4 GR15; §2023:9.1.13.6 item 1: '30') -
     /// after the attach. The locks go back to the handle the CLOSE kept, so another run unit's READ of record 1 still answers
     /// '51' until the ROLLBACK.</summary>
     [Fact]
@@ -2654,8 +2654,8 @@ public sealed class CommitRollbackRuntimeReplacedFileTests : CommitRollbackRunti
     /// <summary>The same, when the kept handle had to be GIVEN BACK EARLY (review finding R1-2): under an OPEN phrase SHARING WITH NO OTHER the
     /// kept handle (SHARING WITH ALL OTHER) refuses the exclusive one the re-OPEN takes, so it goes first and the record locks published through it leave the host with
     /// it; the OPEN is then refused at its last step, and its own handle goes too. The locks are still this run unit's, in its
-    /// table, until the ROLLBACK - a second connector of the same run unit reading record 1 meets '51' (§14.9.27.4 GR25;
-    /// §14.9.6.4 GR9), where the first fix released them with the failed OPEN's handle and answered '00'. And they are
+    /// table, until the ROLLBACK - a second connector of the same run unit reading record 1 meets '51' (§2023:14.9.27.4 GR25;
+    /// §2023:14.9.6.4 GR9), where the first fix released them with the failed OPEN's handle and answered '00'. And they are
     /// ANOTHER run unit's '51' too: the unsuccessful OPEN takes the kept handle again (kb/Work PB3483, RetakeKeptHandle) and
     /// publishes them through it again (PhysicalFileTable.Republish), where the merge of PB3483 under PB3480 first left them in
     /// the table alone and answered B '00'.</summary>
@@ -2708,20 +2708,20 @@ public sealed class CommitRollbackRuntimeReplacedFileTests : CommitRollbackRunti
     }
 
     /// <summary>⛔ A RE-OPEN WHOSE KEPT HANDLE CANNOT BE STORE-ADOPTED AGAIN STILL LEAVES WHAT THE CLOSE KEPT STANDING (kb/Work PB3497;
-    /// §14.9.27.4 GR25, <i>"If the execution of the OPEN statement is unsuccessful, the file is not affected"</i>; §14.9.6.4 GR9,
+    /// §2023:14.9.27.4 GR25, <i>"If the execution of the OPEN statement is unsuccessful, the file is not affected"</i>; §2023:14.9.6.4 GR9,
     /// <i>"Except when the file is specified in an APPLY COMMIT clause, the file lock and any record locks associated with the file
-    /// connector referenced by file-name-1 are released by the execution of the CLOSE statement"</i>; §9.1.16, <i>"While locked by a
+    /// connector referenced by file-name-1 are released by the execution of the CLOSE statement"</i>; §2023:9.1.16, <i>"While locked by a
     /// given file connector, a record is not accessible to another file connector in the same or a different run unit"</i>):
     /// A, under commit control and SHARING WITH ALL OTHER, READs record 1 (its record lock) and WRITEs record 7 (its
     /// transaction), and is CLOSEd. Its re-OPEN I-O under SHARING WITH NO OTHER takes a handle the kept one's share mode refuses,
     /// so the kept handle is given back (and with it, the store's last handle: the store has no file) and the new one taken -
-    /// and the medium refuses the adoption's first read ('30', §9.1.13.6 item 1). The OPEN's unsuccessful end retakes the kept
+    /// and the medium refuses the adoption's first read ('30', §2023:9.1.13.6 item 1). The OPEN's unsuccessful end retakes the kept
     /// handle (<c>KeyedConnector.RetakeKeptHandle</c>), and the medium refuses the retake's read of the store too, so the retake
     /// cannot adopt the store again - the case the first fix of PB3483 left without the handle, its record locks unpublished and
     /// its transaction's liveness byte free. The handle is kept all the same: the medium, which answers again, is not what the
     /// CLOSE kept. Another run unit's READ of record 1 answers '51' and so does its READ and its REWRITE of the record the
     /// transaction wrote (the dead-owner step of its writable OPEN found the owner alive and rolled nothing back), its OPEN
-    /// SHARING WITH NO OTHER is refused '61' (§9.1.13.9 1)), and A's re-OPEN, which reads the store again, is the transaction's
+    /// SHARING WITH NO OTHER is refused '61' (§2023:9.1.13.9 1)), and A's re-OPEN, which reads the store again, is the transaction's
     /// and ends at a ROLLBACK that restores the file. A host that enforces share modes per handle (Windows) is the one that
     /// takes the retake; elsewhere the kept handle is never given back and the case passes through the OPEN's own refusal.</summary>
     [Theory]
@@ -2777,17 +2777,17 @@ public sealed class CommitRollbackRuntimeReplacedFileTests : CommitRollbackRunti
     }
 
     /// <summary>⛔ THE COMMIT AND THE ROLLBACK REACH A FILE WHOSE RETAKE THE MEDIUM REFUSED, ONCE THE MEDIUM ANSWERS (kb/Work PB3630;
-    /// §14.9.36.4 GR3, <i>"All files and data-items referenced in active APPLY COMMIT clauses are restored to the state they were in
+    /// §2023:14.9.36.4 GR3, <i>"All files and data-items referenced in active APPLY COMMIT clauses are restored to the state they were in
     /// at the execution of the last COMMIT statement or the start of the run unit if no COMMIT statements had previously been
-    /// executed"</i>; §14.9.7.4 GR3, <i>"The execution of the COMMIT statement permanently applies any changes made to the files
+    /// executed"</i>; §2023:14.9.7.4 GR3, <i>"The execution of the COMMIT statement permanently applies any changes made to the files
     /// specified in all the active APPLY COMMIT clauses and releases all record locks associated with those files"</i>): the setup is
     /// <see cref="A_reopen_whose_kept_handle_cannot_adopt_the_store_again_leaves_what_the_close_kept_standing"/>'s - the kept state
     /// has its handle (the file lock, the liveness byte, the record locks) and its store has no file - and the statement that follows
     /// is the COMMIT or the ROLLBACK, not the re-OPEN. Neither rule makes the statement fail because an earlier retake was refused:
     /// the store adopts the file again through the kept writable handle, so the ROLLBACK restores the file and the COMMIT promotes
     /// the change, each answering no status on a healthy medium (before the fix both answered '30'). While the medium still refuses,
-    /// the statement is refused as any statement is (§9.1.13.6 item 1: '30', its file named): a refused COMMIT leaves the kept state
-    /// for the ROLLBACK that follows it (§14.6.13.1.3 item 8), and a refused ROLLBACK ends the kept state all the same
+    /// the statement is refused as any statement is (§2023:9.1.13.6 item 1: '30', its file named): a refused COMMIT leaves the kept state
+    /// for the ROLLBACK that follows it (§2023:14.6.13.1.3 item 8), and a refused ROLLBACK ends the kept state all the same
     /// (<c>FileRegistry.ReleaseKeptOf</c>), the transaction it leaves standing being the dead-owner step's, which the next writable
     /// OPEN of another run unit runs.</summary>
     [Theory]
@@ -2828,7 +2828,7 @@ public sealed class CommitRollbackRuntimeReplacedFileTests : CommitRollbackRunti
             {
                 Assert.Equal("F", told);
                 Assert.Equal("30", a.Status("F"));
-                // A refused COMMIT leaves the kept state standing for the ROLLBACK §14.6.13.1.3 item 8 executes next; a refused
+                // A refused COMMIT leaves the kept state standing for the ROLLBACK §2023:14.6.13.1.3 item 8 executes next; a refused
                 // ROLLBACK has ended it (ReleaseCommitLocks) and left the transaction to the dead-owner step.
                 if (commit) Assert.Null(a.Rollback());
             }
@@ -2859,10 +2859,10 @@ public sealed class CommitRollbackRuntimeReplacedFileTests : CommitRollbackRunti
 
     /// <summary>A second connector's registration with a CLOSEd connector's name (the activation of its element again after
     /// a CANCEL, kb/Work PB168) DISPLACES the first, and what its CLOSE under commit control kept goes on being the COMMIT's
-    /// and the ROLLBACK's (§12.4.6.3.4 GR5: a canceled runtime element's APPLY COMMIT clause stays active until a COMMIT or
-    /// ROLLBACK deactivates it; §14.9.7.4 GR3 and GR4: the COMMIT applies the changes made to the files of the active clauses
+    /// and the ROLLBACK's (§2023:12.4.6.3.4 GR5: a canceled runtime element's APPLY COMMIT clause stays active until a COMMIT or
+    /// ROLLBACK deactivates it; §2023:14.9.7.4 GR3 and GR4: the COMMIT applies the changes made to the files of the active clauses
     /// and releases the file locks of those closed and not reopened; kb/Work PB3484): another run unit's OPEN WITH NO OTHER is
-    /// refused '61' until then (§9.1.13.9 1)), the changes the displaced connector made are committed or rolled back, and
+    /// refused '61' until then (§2023:9.1.13.9 1)), the changes the displaced connector made are committed or rolled back, and
     /// the same OPEN then succeeds — before the fix the kept handle was dropped with the connector, held its lock for the life
     /// of the process and was never reached by either statement. The connector is displaced CLOSEd, or still OPEN (an
     /// activation that ended abnormally: its implicit CLOSE, <see cref="FileRegistry.CloseIfOpen"/>, kb/Work PB168).</summary>
@@ -2910,7 +2910,7 @@ public sealed class CommitRollbackRuntimeReplacedFileTests : CommitRollbackRunti
     }
 
     /// <summary>The element's NEXT activation opens the file again beside the displaced connector's kept state
-    /// (§12.4.6.3.4 GR5; kb/Work PB3484): the replacement attaches to the run unit's store, so the transaction the displaced
+    /// (§2023:12.4.6.3.4 GR5; kb/Work PB3484): the replacement attaches to the run unit's store, so the transaction the displaced
     /// connector began is the replacement's too (one transaction per run unit and physical file, 2.2.1.10) - it reads the
     /// uncommitted record, changes another, and one COMMIT or ROLLBACK ends both connectors' share of it (the displaced
     /// one's kept handle is given back with it).</summary>
@@ -2949,8 +2949,8 @@ public sealed class CommitRollbackRuntimeReplacedFileTests : CommitRollbackRunti
 
     /// <summary>The replacement's OPEN under SHARING WITH NO OTHER (the I-O default) is not refused by the connector it
     /// displaced (review finding R1-1): that connector is closed (or abandoned open, and closed at the displacement) and of
-    /// THIS run unit, and §9.1.13.9 1) owes '61' only against a physical file <i>"currently open by another file connector"</i>
-    /// - the kept handle is what is left of the closed connector's file lock (§9.1.15), which prevents OTHER run units. The
+    /// THIS run unit, and §2023:9.1.13.9 1) owes '61' only against a physical file <i>"currently open by another file connector"</i>
+    /// - the kept handle is what is left of the closed connector's file lock (§2023:9.1.15), which prevents OTHER run units. The
     /// element's next activation takes the transaction over as a re-OPEN of the connector does, another run unit's OPEN stays
     /// refused '61' until the COMMIT or ROLLBACK, and that one COMMIT or ROLLBACK ends the replacement's and the displaced
     /// connector's share of it.</summary>
@@ -3001,10 +3001,10 @@ public sealed class CommitRollbackRuntimeReplacedFileTests : CommitRollbackRunti
         finally { TryDelete(host); }
     }
 
-    /// <summary>The same for the instance-file connector an object's deletion drops (§9.1.4, kb/Work PB603:
+    /// <summary>The same for the instance-file connector an object's deletion drops (§2023:9.1.4, kb/Work PB603:
     /// <see cref="FileRegistry.CloseAndDrop"/>, and the GC-requested close <see cref="FileRegistry.CloseAll"/> drains): what the
     /// connector's CLOSE under commit control kept goes on being the next COMMIT's or ROLLBACK's, or the run unit's end's
-    /// (§9.1.18.5, <i>"all file and record locks are then released"</i>; kb/Work PB3484) — another run unit's OPEN WITH NO
+    /// (§2023:9.1.18.5, <i>"all file and record locks are then released"</i>; kb/Work PB3484) — another run unit's OPEN WITH NO
     /// OTHER is refused '61' until then and succeeds after, and the object's changes are committed or rolled back.</summary>
     [Theory]
     [InlineData(FileOrg.Relative, "drop", true)]
@@ -3052,8 +3052,8 @@ public sealed class CommitRollbackRuntimeReplacedFileTests : CommitRollbackRunti
     }
 
     /// <summary>A run unit's start (<see cref="FileRegistry.Reset"/>, which runs the implicit CLOSE of whatever an earlier run
-    /// unit left, §14.6.11 2)) and its end (<see cref="FileRegistry.CloseAll"/>) give back what a CLOSE under commit control
-    /// kept — the file lock, the handle, the record locks (§9.1.18.5) — so another run unit's OPEN WITH NO OTHER succeeds and
+    /// unit left, §2023:14.6.11 2)) and its end (<see cref="FileRegistry.CloseAll"/>) give back what a CLOSE under commit control
+    /// kept — the file lock, the handle, the record locks (§2023:9.1.18.5) — so another run unit's OPEN WITH NO OTHER succeeds and
     /// its READ of the record the first run unit locked answers '00' (kb/Work PB3484; the sibling arms of the displaced and
     /// dropped connectors).</summary>
     [Theory]
@@ -3085,7 +3085,7 @@ public sealed class CommitRollbackRuntimeReplacedFileTests : CommitRollbackRunti
         finally { TryDelete(host); }
     }
 
-    /// <summary>⛔ A TRANSACTION A ROLLBACK IS OWED IS NEVER COMMITTED (review finding R1-4; §9.1.18.5, <i>"When a run unit
+    /// <summary>⛔ A TRANSACTION A ROLLBACK IS OWED IS NEVER COMMITTED (review finding R1-4; §2023:9.1.18.5, <i>"When a run unit
     /// terminates abnormally, all file changes made since the previous commit or, if none, the beginning of the run unit are
     /// rolled back"</i>; 2.2.1.16's refused row "ROLLBACK, at any page", the termination path's rollback the same): an
     /// abnormal ending whose file-only ROLLBACK the medium refuses ('30') leaves the transaction standing, and the implicit
@@ -3161,7 +3161,7 @@ public sealed class CommitRollbackRuntimeReplacedFileTests : CommitRollbackRunti
     }
 
     /// <summary>⛔ AN ABANDONED TRANSACTION IS ROLLED BACK BY THE NEXT WRITABLE OPEN WHILE ANOTHER COPY OF ITS OWNER'S HANDLE
-    /// LIVES (kb/Work PB3549; §9.1.18.5, <i>"When a run unit terminates abnormally, all file changes made since the previous
+    /// LIVES (kb/Work PB3549; §2023:9.1.18.5, <i>"When a run unit terminates abnormally, all file changes made since the previous
     /// commit or, if none, the beginning of the run unit are rolled back"</i>, and <i>"all file and record locks are then
     /// released"</i>): the kept file's liveness byte is unlocked by its give-back (<c>KeptFile.GiveBack</c>, the endpoint's
     /// disposal), never left to the handle's close. A <c>fork</c> in another thread holds a copy of every descriptor until
@@ -3194,7 +3194,7 @@ public sealed class CommitRollbackRuntimeReplacedFileTests : CommitRollbackRunti
     /// <summary>The same row UNDER LOAD (kb/Work PB3549's stress harness): round after round, a transaction is abandoned
     /// while another thread starts child processes without pause — every one a real <c>fork</c> holding a copy of every
     /// descriptor until its <c>exec</c> — and then <see cref="ParallelOpeners"/> run units OPEN the file I-O at once, racing
-    /// for its dead-owner step: the first to take the store mutex rolls the transaction back (§9.1.18.5), and every OPEN,
+    /// for its dead-owner step: the first to take the store mutex rolls the transaction back (§2023:9.1.18.5), and every OPEN,
     /// whichever it is, finds no transaction left once it is open; the file reads as it was seeded.</summary>
     [Fact]
     public void An_abandoned_transaction_is_rolled_back_by_parallel_writable_opens_while_child_processes_start()
@@ -3316,8 +3316,8 @@ public sealed class CommitRollbackRuntimeReplacedFileTests : CommitRollbackRunti
 
     /// <summary>The run unit's own boundary (review lead R1-5): <see cref="RunUnit.Run"/>'s exception filter records how
     /// the run unit ended (<c>RunUnit.NoteEnding</c>) and its <see cref="RunUnit.Terminate"/> chooses by it — a body that
-    /// returns, or ends by STOP RUN, ends NORMALLY and commits (§9.1.18.5's first sentence); one that a runtime failure
-    /// ends, ABNORMALLY, and rolls back (§9.1.18.5's second; §14.6.12's file-only ROLLBACK).</summary>
+    /// returns, or ends by STOP RUN, ends NORMALLY and commits (§2023:9.1.18.5's first sentence); one that a runtime failure
+    /// ends, ABNORMALLY, and rolls back (§2023:9.1.18.5's second; §2023:14.6.12's file-only ROLLBACK).</summary>
     [Theory]
     [InlineData("returns")]
     [InlineData("stop-run")]
@@ -3361,8 +3361,8 @@ public sealed class CommitRollbackRuntimeReplacedFileTests : CommitRollbackRunti
     }
 
     /// <summary>⛔ THE PROGRAM TABLE'S BOUNDARIES RECORD HOW THE RUN UNIT ENDED (kb/Work PB3481, review lead R1-5 of
-    /// PB3337; §9.1.18.5, <i>"When a run unit terminates abnormally, all file changes made since the previous commit or, if
-    /// none, the beginning of the run unit are rolled back"</i>; §14.6.12, <i>"If commit and rollback is in effect, a
+    /// PB3337; §2023:9.1.18.5, <i>"When a run unit terminates abnormally, all file changes made since the previous commit or, if
+    /// none, the beginning of the run unit are rolled back"</i>; §2023:14.6.12, <i>"If commit and rollback is in effect, a
     /// rollback is executed"</i>). A main program's boundary (<c>ProgramTable.RunMain</c>, whose <c>RunOnThisThread</c> the
     /// standalone <c>Main</c> enters through <c>RunModule</c> too) and a .NET host's (<c>CallFromHost</c>, reached by a CALL
     /// with no calling program) each end the run unit through <see cref="RunUnit.Terminate"/>, which chooses the implicit
@@ -3415,7 +3415,7 @@ public sealed class CommitRollbackRuntimeReplacedFileTests : CommitRollbackRunti
                 else if (ending is "fails") Assert.Throws<InvalidOperationException>(() => ru.Programs.RunMain("PB3481"));
                 else ru.Programs.RunMain("PB3481");
                 if (ending is "returns") Assert.Equal(0, ru.ExitStatus);
-                else if (ending is "fatal" or "implementor-fatal" or "call-fatal") Assert.Equal(1, ru.ExitStatus);   // §14.6.12's ERROR indication
+                else if (ending is "fatal" or "implementor-fatal" or "call-fatal") Assert.Equal(1, ru.ExitStatus);   // §2023:14.6.12's ERROR indication
             }
             else
             {
@@ -3429,7 +3429,7 @@ public sealed class CommitRollbackRuntimeReplacedFileTests : CommitRollbackRunti
         finally { TryDelete(host); }
     }
 
-    /// <summary>§9.1.18.5: an ABNORMAL ending rolls the run unit's changes back (the file-only rollback of §14.6.12); a
+    /// <summary>§2023:9.1.18.5: an ABNORMAL ending rolls the run unit's changes back (the file-only rollback of §2023:14.6.12); a
     /// NORMAL ending commits them.</summary>
     [Theory]
     [InlineData(true)]
@@ -3501,7 +3501,7 @@ public sealed class CommitRollbackRuntimeReplacedFileTests : CommitRollbackRunti
         finally { TryDelete(host); }
     }
 
-    /// <summary>2.2.1.10's COMMIT regions (finding R5-1), told as §14.6.13.1.3 item 8's fatal condition: '30' on the refused
+    /// <summary>2.2.1.10's COMMIT regions (finding R5-1), told as §2023:14.6.13.1.3 item 8's fatal condition: '30' on the refused
     /// file. Refused at its SLOT WRITE (region 1): the transaction is intact and the unconditional ROLLBACK restores it.
     /// Its SYNC 2 refused (region 3): the COMMIT reverses under its own mutex hold and reports failure, and every later
     /// OPEN reads the previous COMMIT's file. In no run is a COMMIT reported failed with its transaction committed.</summary>
@@ -3537,7 +3537,7 @@ public sealed class CommitRollbackRuntimeReplacedFileTests : CommitRollbackRunti
     }
 
     /// <summary>A RETIRED connector's record locks the host could not publish are given back by the COMMIT or the ROLLBACK as a
-    /// registered one's are (review finding R1-3): §9.1.16, <i>"A COMMIT statement releases all record locks for files subject
+    /// registered one's are (review finding R1-3): §2023:9.1.16, <i>"A COMMIT statement releases all record locks for files subject
     /// to commit and rollback"</i> (and the ROLLBACK's sentence). An object's instance file READs record 1 on a host whose
     /// region locks answer unavailable for record bytes (the lock is recorded in this run unit's table alone), the object is
     /// deleted (<see cref="FileRegistry.CloseAndDrop"/>, its minted key never named again), and another connector of the run
@@ -3577,9 +3577,9 @@ public sealed class CommitRollbackRuntimeReplacedFileTests : CommitRollbackRunti
     }
 
     /// <summary>⛔ A KEPT STATE THAT ENDS INSIDE THE CONNECTOR GIVES BACK THE RECORD LOCKS THE HOST COULD NOT PUBLISH TOO (kb/Work
-    /// PB3578; §14.9.27.4 GR18, <i>"the successful execution of the OPEN statement creates the file"</i>; §9.1.16): on a host whose
+    /// PB3578; §2023:14.9.27.4 GR18, <i>"the successful execution of the OPEN statement creates the file"</i>; §2023:9.1.16): on a host whose
     /// region locks answer unavailable for record bytes, connector F, under commit control, READs record 2 (the lock is in this run
-    /// unit's table alone), is CLOSEd (the CLOSE keeps it, §14.9.6.4 GR9: one lock held) and re-OPENed OUTPUT, which creates the file
+    /// unit's table alone), is CLOSEd (the CLOSE keeps it, §2023:14.9.6.4 GR9: one lock held) and re-OPENed OUTPUT, which creates the file
     /// anew and ends what the CLOSE kept (PB3493: the transaction ended with the file it was in). Nothing of the old file is held by
     /// F any more: no lock stays in the table for a connector with nothing left to release it. Before the fix
     /// <c>KeyedConnector.ReleaseKept</c> released only the locks its endpoint published, so the unpublished one stayed.</summary>
@@ -3602,7 +3602,7 @@ public sealed class CommitRollbackRuntimeReplacedFileTests : CommitRollbackRunti
             Assert.Equal(1, a.RecordLocksHeldBy("F"));
             a.Close("F");
             Assert.Equal("00", a.Status("F"));
-            Assert.Equal(1, a.RecordLocksHeldBy("F"));   // §14.9.6.4 GR9: the CLOSE under commit control keeps it
+            Assert.Equal(1, a.RecordLocksHeldBy("F"));   // §2023:14.9.6.4 GR9: the CLOSE under commit control keeps it
             a.OpenStatic("F", FileOpenMode.Output);
             Assert.Equal("00", a.Status("F"));
             Assert.Equal(0, a.RecordLocksHeldBy("F"));

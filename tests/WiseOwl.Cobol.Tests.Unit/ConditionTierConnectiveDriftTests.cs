@@ -9,9 +9,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ THE CONSTANT-CONDITIONAL-EXPRESSION TIERS ARE THE CONDITION TIERS' CONNECTIVES OVER A COMPILE-TIME LEAF, AND THE
 /// EXCLUSIVE-OR CONNECTIVE IS SPELLED ONCE (kb/Work PB1371, PB1390).
-/// <para><b>ISO §7.3.8.2 SR1 d)</b>: a constant conditional expression may be "A complex condition as specified in
-/// 8.8.4.9, Complex conditions", so its connectives are §8.8.4.9's — AND, OR, EXCLUSIVE-OR / XOR and NOT, with
-/// §8.8.4.11.3's precedence and Table 5's ban on 'NOT NOT'. ANTLR has no parameterized rules, so the cce tiers
+/// <para><b>ISO §2023:7.3.8.2 SR1 d)</b>: a constant conditional expression may be "A complex condition as specified in
+/// 8.8.4.9, Complex conditions", so its connectives are §2023:8.8.4.9's — AND, OR, EXCLUSIVE-OR / XOR and NOT, with
+/// §2023:8.8.4.11.3's precedence and Table 5's ban on 'NOT NOT'. ANTLR has no parameterized rules, so the cce tiers
 /// (<c>cceOr</c> / <c>cceXor</c> / <c>cceAnd</c> / <c>cceNot</c>) are a second SPELLING of the condition tiers over a
 /// different leaf — and a second spelling is the shape that rots: the cce copy never received the 2023 XOR tier and
 /// let NOT recurse, so <c>&gt;&gt;IF 1 = 2 XOR 1 = 1</c> was a malformed-expression error and <c>&gt;&gt;IF NOT NOT
@@ -72,7 +72,7 @@ public sealed class ConditionTierConnectiveDriftTests
     }
 
     /// <summary>The XOR / EXCLUSIVE_OR tokens are named by <c>xorOperator</c> (the connective) and
-    /// <c>reservedGatedWord</c> (the user-defined word below 2023, whose §8.9 reservation the funnel enforces) and by
+    /// <c>reservedGatedWord</c> (the user-defined word below 2023, whose §2023:8.9 reservation the funnel enforces) and by
     /// no other parser rule in any grammar file.</summary>
     [Fact]
     public void TheExclusiveOrTokens_AreSpelledOnlyByXorOperator()

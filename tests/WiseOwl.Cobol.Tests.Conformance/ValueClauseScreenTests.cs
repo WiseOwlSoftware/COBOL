@@ -8,12 +8,12 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// ⛔ THE VALUE-CLAUSE SYNTAX RULES THAT WERE SKIPPED PER FORMAT (kb/Work PB515, PB550, PB551, PB586) — one
 /// family, four rules, each asked by the ONE screen its question belongs to, over every format the rule names:
 /// <list type="bullet">
-///   <item>§13.16.3 SR10 — "The VALUE clause shall not be specified for data items of class index, message-tag,
+///   <item>§2023:13.16.3 SR10 — "The VALUE clause shall not be specified for data items of class index, message-tag,
 ///     object, or pointer." USAGE INDEX was the class the set missed, written or inherited (COBOL2168).</item>
-///   <item>§13.18.63.3 SR12 (format 1) and SR16 (format 2) — no VALUE in an entry that contains a REDEFINES
+///   <item>§2023:13.18.63.3 SR12 (format 1) and SR16 (format 2) — no VALUE in an entry that contains a REDEFINES
 ///     clause or is subordinate to one. The value was silently DISCARDED (COBOL2406).</item>
-///   <item>§13.18.63.3 SR25 — no format 3 VALUE subordinate to a CONSTANT RECORD entry (COBOL2406).</item>
-///   <item>§13.18.63.3 SR2/SR3 — ALL FORMATS: the range and sign of a numeric literal, which never reached a
+///   <item>§2023:13.18.63.3 SR25 — no format 3 VALUE subordinate to a CONSTANT RECORD entry (COBOL2406).</item>
+///   <item>§2023:13.18.63.3 SR2/SR3 — ALL FORMATS: the range and sign of a numeric literal, which never reached a
 ///     level-88 (format 3) literal nor a report-section (format 4) one (COBOL1625).</item>
 /// </list>
 /// Every rejection has its OVER-REJECTION control beside it: each of these rules has a legal neighbour a careless
@@ -59,14 +59,14 @@ public sealed class ValueClauseScreenTests
         }
     }
 
-    // ── §13.16.3 SR10 — class index (PB515) ─────────────────────────────────────────────────────────────────
+    // ── §2023:13.16.3 SR10 — class index (PB515) ─────────────────────────────────────────────────────────────────
 
     [Fact]
     public void IndexItem_WithValue_IsRejected_WrittenAndInherited()
     {
         Rejects(Prog("VCS515A", "77 I USAGE INDEX VALUE 7."), "COBOL2168");
         Rejects(Prog("VCS515B", "01 G.\n   05 I USAGE INDEX VALUE 1."), "COBOL2168");
-        // §13.18.60.4 GR1: the group's USAGE clause IS the elementary item's — the same class, the same rule.
+        // §2023:13.18.60.4 GR1: the group's USAGE clause IS the elementary item's — the same class, the same rule.
         Rejects(Prog("VCS515C", "01 G USAGE INDEX.\n   05 A VALUE 1.\n   05 B."), "COBOL2168");
     }
 
@@ -74,7 +74,7 @@ public sealed class ValueClauseScreenTests
     public void IndexItem_WithoutValue_Compiles() =>
         Accepts(Prog("VCS515D", "01 G USAGE INDEX.\n   05 A.\n   05 B.\n77 I USAGE INDEX."));
 
-    // ── §13.18.63.3 SR12 / SR16 — REDEFINES (PB550) ─────────────────────────────────────────────────────────
+    // ── §2023:13.18.63.3 SR12 / SR16 — REDEFINES (PB550) ─────────────────────────────────────────────────────────
 
     [Fact]
     public void Value_InOrUnderARedefiningEntry_IsRejected_AtEveryEdition()
@@ -107,7 +107,7 @@ public sealed class ValueClauseScreenTests
         Accepts(Prog("VCS550G",
             "01 R.\n   05 A PIC X(4) VALUE \"AAAA\".\n   05 B REDEFINES A PIC X(4).\n      88 BZ VALUE \"ZZZZ\".\n   05 C PIC X VALUE \"C\"."));
 
-    // ── §13.18.63.3 SR25 — CONSTANT RECORD (PB551) ──────────────────────────────────────────────────────────
+    // ── §2023:13.18.63.3 SR25 — CONSTANT RECORD (PB551) ──────────────────────────────────────────────────────────
 
     [Fact]
     public void ConditionName_UnderAConstantRecord_IsRejected()
@@ -118,12 +118,12 @@ public sealed class ValueClauseScreenTests
     }
 
     /// <summary>SR25 names formats 3, 4 and 5 only: the format-1 VALUEs that give a CONSTANT RECORD its content are
-    /// what §13.18.15 is for.</summary>
+    /// what §2023:13.18.15 is for.</summary>
     [Fact]
     public void ConstantRecord_Format1Content_Compiles() =>
         Accepts(Prog("VCS551C", "01 CR CONSTANT RECORD.\n   05 X PIC 9 VALUE 7.\n   05 Y PIC X(2) VALUE \"AB\"."), WithConstantRecord);
 
-    // ── §13.18.63.3 SR2 / SR3 — ALL FORMATS: format 3 (PB586) ───────────────────────────────────────────────
+    // ── §2023:13.18.63.3 SR2 / SR3 — ALL FORMATS: format 3 (PB586) ───────────────────────────────────────────────
 
     [Fact]
     public void Level88Literal_OutsideTheConditionalVariablesRange_IsRejected()
@@ -139,7 +139,7 @@ public sealed class ValueClauseScreenTests
     public void Level88Literal_AtTheRangeBoundaries_Compiles() =>
         Accepts(Prog("VCS586F", "01 W PIC S9(2)V9.\n   88 C-ALL VALUE -99.9 THRU 99.9.\n   88 C-Z VALUE 0.\n01 U PIC 9(2).\n   88 U-TOP VALUE 99."));
 
-    // ── §13.18.63.3 SR2 / SR3 / SR4 — ALL FORMATS: format 4, the report section (PB586's sibling) ────────────
+    // ── §2023:13.18.63.3 SR2 / SR3 / SR4 — ALL FORMATS: format 4, the report section (PB586's sibling) ────────────
 
     private static string Report(string id, string entries) => $$"""
         IDENTIFICATION DIVISION.

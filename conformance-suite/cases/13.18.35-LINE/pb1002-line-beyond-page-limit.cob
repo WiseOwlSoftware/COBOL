@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> A LINE NUMBER BEYOND THE PAGE LIMIT (kb/Work PB1002). ISO/IEC 1989:2023 §13.18.35.3 SR3: "Neither
+*> A LINE NUMBER BEYOND THE PAGE LIMIT (kb/Work PB1002). ISO/IEC 1989:2023 §2023:13.18.35.3 SR3: "Neither
 *> integer-1 nor integer-2 shall exceed the page limit, or 9999 if the report is not divided into pages."
 *> PAGE LIMIT 10 with LINE 20 compiled clean before PB1002, and the engine then printed the line on a page
 *> that has no line 20. A rule of every edition: the single-operand LINE clause is COBOL-85 syntax.

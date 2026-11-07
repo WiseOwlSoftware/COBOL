@@ -6,12 +6,12 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
 /// ⛔ A FILE OF A CONTAINING ELEMENT IN AN APPLY COMMIT CLAUSE IS SR1's OR SR11's VIOLATION, NEVER AN UNDEFINED DATA-NAME
-/// (kb/Work PB3557). ISO §12.4.6.3.3 SR1: <i>"File-name-1 shall be specified in the FILE-CONTROL paragraph of the source
+/// (kb/Work PB3557). ISO §2023:12.4.6.3.3 SR1: <i>"File-name-1 shall be specified in the FILE-CONTROL paragraph of the source
 /// element that contains this clause"</i>; SR11: <i>"Where a file or record area is declared with the GLOBAL clause, it
 /// may only be specified in the APPLY COMMIT clause of the same source element."</i> The clause's bare word is file-name-1
 /// only when this element selects it; every other word is identifier-1, so the container's file used to resolve as a
 /// data-name, find none and draw COBOL1639 "no declaration in this source element gives the name" — false for a GLOBAL
-/// file, visible here by §13.18.27.4 GR1 — while the COBOL4709 descriptor claimed an SR1 report no code path made.
+/// file, visible here by §2023:13.18.27.4 GR1 — while the COBOL4709 descriptor claimed an SR1 report no code path made.
 /// <c>FileControlBinder.ScreenEnclosingFileOperand</c> reports it under its own rule; <c>DataBinder.NonDataDeclarationOf</c>
 /// answers "a file-name" to every other site that wants a data item (the wording, not the code, changes there).
 /// </summary>
@@ -70,7 +70,7 @@ public sealed class ApplyCommitEnclosingFileTests
         Assert.False(ok);
         var only = Assert.Single(errors);
         Assert.Contains("COBOL4709", only, StringComparison.Ordinal);
-        Assert.Contains("ISO §12.4.6.3.3 SR11", only, StringComparison.Ordinal);
+        Assert.Contains("ISO §2023:12.4.6.3.3 SR11", only, StringComparison.Ordinal);
         Assert.Contains("GLOBAL", only, StringComparison.Ordinal);
         EditionHarness.AssertNoDiagnostic(errors, "COBOL1639");
         EditionHarness.AssertNoDiagnostic(errors, "no declaration in this source element");
@@ -85,11 +85,11 @@ public sealed class ApplyCommitEnclosingFileTests
         Assert.False(ok);
         var only = Assert.Single(errors);
         Assert.Contains("COBOL4709", only, StringComparison.Ordinal);
-        Assert.Contains("ISO §12.4.6.3.3 SR11", only, StringComparison.Ordinal);
+        Assert.Contains("ISO §2023:12.4.6.3.3 SR11", only, StringComparison.Ordinal);
         Assert.Contains("record area", only, StringComparison.Ordinal);
     }
 
-    /// <summary>SR11's record area written with its file-report-qualifier (§8.4.2.2.2 Format 1: <i>"data-name-1 [
+    /// <summary>SR11's record area written with its file-report-qualifier (§2023:8.4.2.2.2 Format 1: <i>"data-name-1 [
     /// data-qualifier ] … [ file-report-qualifier ]"</i>): <c>RREC IN RELF</c> names the same GLOBAL record area as the
     /// bare word, so it meets the same SR11 report, never the undefined-name verdict (kb/Work PB3557 review R1-1: the
     /// screen returned at any qualifier, so the qualified spelling drew COBOL1639).</summary>
@@ -100,13 +100,13 @@ public sealed class ApplyCommitEnclosingFileTests
         Assert.False(ok);
         var only = Assert.Single(errors);
         Assert.Contains("COBOL4709", only, StringComparison.Ordinal);
-        Assert.Contains("ISO §12.4.6.3.3 SR11", only, StringComparison.Ordinal);
+        Assert.Contains("ISO §2023:12.4.6.3.3 SR11", only, StringComparison.Ordinal);
         Assert.Contains("'RREC OF RELF' is a record area of file 'RELF'", only, StringComparison.Ordinal);
         EditionHarness.AssertNoDiagnostic(errors, "COBOL1639");
     }
 
     /// <summary>THE QUALIFIED ARM THAT CAN FAIL: a qualified word whose name is no GLOBAL record area of the file it
-    /// names is no record area at all, and stays an undefined data-name (§8.4.2.1); a qualifier alone never makes SR11.</summary>
+    /// names is no record area at all, and stays an undefined data-name (§2023:8.4.2.1); a qualifier alone never makes SR11.</summary>
     [Fact]
     public void AQualifiedWordNamingNoGlobalRecordArea_IsStillAnUndefinedDataName()
     {
@@ -125,12 +125,12 @@ public sealed class ApplyCommitEnclosingFileTests
         Assert.False(ok);
         var only = Assert.Single(errors);
         Assert.Contains("COBOL4709", only, StringComparison.Ordinal);
-        Assert.Contains("ISO §12.4.6.3.3 SR1:", only, StringComparison.Ordinal);
+        Assert.Contains("ISO §2023:12.4.6.3.3 SR1:", only, StringComparison.Ordinal);
         EditionHarness.AssertNoDiagnostic(errors, "COBOL1639");
     }
 
     /// <summary>THE ARM THAT PROVES THE PROBE CAN FAIL: a word that is no file anywhere is still an undefined data-name
-    /// (§8.4.2.1) — the clause's identifier-1 reading is unchanged.</summary>
+    /// (§2023:8.4.2.1) — the clause's identifier-1 reading is unchanged.</summary>
     [Fact]
     public void AWordThatIsNoFileAnywhere_IsStillAnUndefinedDataName()
     {
@@ -140,7 +140,7 @@ public sealed class ApplyCommitEnclosingFileTests
         EditionHarness.AssertNoDiagnostic(errors, "COBOL4709");
     }
 
-    /// <summary>A contained program's own data item spelled like the container's file hides the file-name (§8.4.6.2.1
+    /// <summary>A contained program's own data item spelled like the container's file hides the file-name (§2023:8.4.6.2.1
     /// 3) a): "If the name is declared in source element B, the item in source element B is the referenced item"), so
     /// the word is identifier-1 as written — no SR1 or SR11 report.</summary>
     [Fact]
@@ -164,10 +164,10 @@ public sealed class ApplyCommitEnclosingFileTests
         Assert.True(ok, string.Join("\n", errors));
     }
 
-    /// <summary>⛔ THE NEARER DECLARATION DECIDES, NOT THE NAME TABLE (review R2-2; §8.4.6.2.1 3) a): "If the name is
+    /// <summary>⛔ THE NEARER DECLARATION DECIDES, NOT THE NAME TABLE (review R2-2; §2023:8.4.6.2.1 3) a): "If the name is
     /// declared in source element B, the item in source element B is the referenced item"). The contained program's own
     /// report entry RREC hides the container's GLOBAL record area RREC, so the operand names a report item and the refusal
-    /// is the report section's (§13.8.6.2.3, COBOL5092), never §12.4.6.3.3 SR11: the kb/Work PB4196 order, on the APPLY COMMIT arm.</summary>
+    /// is the report section's (§2023:13.8.6.2.3, COBOL5092), never §2023:12.4.6.3.3 SR11: the kb/Work PB4196 order, on the APPLY COMMIT arm.</summary>
     [Fact]
     public void AnOwnReportEntrySpelledLikeTheContainersGlobalRecordArea_IsRefusedAsAReportItem()
     {
@@ -186,8 +186,8 @@ public sealed class ApplyCommitEnclosingFileTests
     }
 
     /// <summary>Two GLOBAL files each with a record of one name (review R2-3): the file-report-qualifier tells them apart
-    /// (§8.4.2.2.2 Format 1), so <c>R IN F2</c> is F2's record area and SR11 names F2; the bare word identifies neither,
-    /// so it is the reference that fails (§8.4.2.2.3 SR1, ambiguity), never §12.4.6.3.3 SR11 about whichever file came first.</summary>
+    /// (§2023:8.4.2.2.2 Format 1), so <c>R IN F2</c> is F2's record area and SR11 names F2; the bare word identifies neither,
+    /// so it is the reference that fails (§2023:8.4.2.2.3 SR1, ambiguity), never §2023:12.4.6.3.3 SR11 about whichever file came first.</summary>
     [Fact]
     public void TwoGlobalFilesRecordsOfOneName_AreToldApartByTheFileQualifier()
     {
@@ -209,7 +209,7 @@ public sealed class ApplyCommitEnclosingFileTests
     }
 
     /// <summary>⛔ DEPTH, BOTH WAYS (review R2-1): the nearest containing element's declaration is the referenced item
-    /// (§8.4.6.2.1 3) b)). A middle program's GLOBAL working-storage item X hides the outermost program's GLOBAL file X, so
+    /// (§2023:8.4.6.2.1 3) b)). A middle program's GLOBAL working-storage item X hides the outermost program's GLOBAL file X, so
     /// the innermost clause names a working-storage 01 item (SR3 holds; SR11 is about files and record areas only); and a
     /// middle program's GLOBAL file X hides the outermost program's GLOBAL item X, so the clause names a GLOBAL file (SR11).</summary>
     [Fact]
@@ -230,7 +230,7 @@ public sealed class ApplyCommitEnclosingFileTests
         Assert.False(fileOk);
         var only = Assert.Single(fileErrors);
         Assert.Contains("COBOL4709", only, StringComparison.Ordinal);
-        Assert.Contains("ISO §12.4.6.3.3 SR11", only, StringComparison.Ordinal);
+        Assert.Contains("ISO §2023:12.4.6.3.3 SR11", only, StringComparison.Ordinal);
         Assert.Contains("'X' is a file of a containing source element", only, StringComparison.Ordinal);
     }
 }

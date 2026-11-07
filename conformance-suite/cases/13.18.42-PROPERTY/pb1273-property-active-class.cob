@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB1273 — ISO/IEC 1989:2023 §13.18.42.3 SR6: "The PROPERTY clause shall not be specified for data
+      *> kb/Work PB1273 — ISO/IEC 1989:2023 §2023:13.18.42.3 SR6: "The PROPERTY clause shall not be specified for data
       *> items of usage object reference described with an ACTIVE-CLASS phrase." It compiled clean before.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1273NAM.

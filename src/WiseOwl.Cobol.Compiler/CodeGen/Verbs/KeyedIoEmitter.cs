@@ -11,13 +11,13 @@ namespace WiseOwl.Cobol.CodeGen;
 using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
 
 /// <summary>
-/// RELATIVE + INDEXED file-I/O emission (ISO/IEC 1989:2023 §14.9.10/.30/.35/.41/.51; DESIGN §8.3; P7
+/// RELATIVE + INDEXED file-I/O emission (ISO/IEC 1989:2023 §2023:14.9.10/.30/.35/.41/.51; DESIGN §8.3; P7
 /// Step 9e — a real collaborator over the per-unit <see cref="EmitContext"/>): every keyed verb renders the SSOT
 /// <b>status-first</b> shape — perform the operation, capture the two-character I-O status, store the FILE STATUS
-/// item, then branch: AT END on first character <c>'1'</c> (statuses 10/14, §9.1.13.4), INVALID KEY on <c>'2'</c>
-/// ONLY (§9.1.13.5/§9.1.14 — a 3x/4x failure routes to exception processing, never the INVALID KEY imperative;
+/// item, then branch: AT END on first character <c>'1'</c> (statuses 10/14, §2023:9.1.13.4), INVALID KEY on <c>'2'</c>
+/// ONLY (§2023:9.1.13.5/§2023:9.1.14 — a 3x/4x failure routes to exception processing, never the INVALID KEY imperative;
 /// the legacy's any-failure IsInvalidKey is a known deviation, pinned to spec), and the NOT-phrases on success
-/// (<c>'0'</c>, §9.1.14 final rule). OPEN/CLOSE flow through the existing <c>BoundOpen</c>/<c>BoundClose</c>
+/// (<c>'0'</c>, §2023:9.1.14 final rule). OPEN/CLOSE flow through the existing <c>BoundOpen</c>/<c>BoundClose</c>
 /// emission — the runtime file facade dispatches to the keyed connectors.
 /// </summary>
 internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, PlaceTable places,
@@ -39,34 +39,34 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
 
     /// <summary>Register a relative/indexed connector (called from the core file registration): the host path,
     /// record width, access mode, and the key geometry — the RELATIVE KEY digit capacity (drives statuses 14/24,
-    /// §9.1.13.4/§14.9.51 GR29a), or the prime + alternate key (offset, length) ranges of the record's character
-    /// image (§12.4.5.12 / §12.4.5.6; offsets computed against the generated codec's deterministic layout).</summary>
+    /// §2023:9.1.13.4/§2023:14.9.51 GR29a), or the prime + alternate key (offset, length) ranges of the record's character
+    /// image (§2023:12.4.5.12 / §2023:12.4.5.6; offsets computed against the generated codec's deterministic layout).</summary>
     public void EmitRegistration(CodeWriter w, FileModel file)
     {
         // ⛔ NO RECORD-LESS EARLY RETURN HERE (kb/Work PB345). It used to read `if (file.Records.Count == 0)
         // return; // a SELECT with no FD`, a premise the standard refutes twice: an FD with no record description
-        // entries is NOT "a SELECT with no FD", and §13.4.5.3 SR3 makes it legal on this very format — SR7 takes
+        // entries is NOT "a SELECT with no FD", and §2023:13.4.5.3 SR3 makes it legal on this very format — SR7 takes
         // the permission back only for INDEXED. So a legal RELATIVE file written without a level-01 got no
         // connector at all and every verb on it aborted the run unit. The record-less decision now belongs to the
         // ONE caller (SequentialIoEmitter.EmitFileRegistration), above the organization split, and every FD that
-        // reaches emission carries a record area — §14.9.30.4 GR6's implied description when none was written.
+        // reaches emission carries a record area — §2023:14.9.30.4 GR6's implied description when none was written.
         string name = FileKeyExpr(file), assign = CsLiteral(file.AssignTarget);
         int access = (int)file.AccessMode;   // FileAccessMode ordinals mirror the runtime KeyedAccess enum
         string opt = file.Optional ? "true" : "false";
-        // A variable-length file registers its record-size bounds (ISO §13.18.43 GR9/GR10) for the GR14/§14.9.35
+        // A variable-length file registers its record-size bounds (ISO §2023:13.18.43 GR9/GR10) for the GR14/§2023:14.9.35
         // GR20 '44' boundary checks; the keyed frames already carry per-record lengths.
         string vary = file.RecordSizeVaries ? $", {file.VaryMin}, {file.VaryMax}" : "";
         if (file.Organization == FileOrganization.Relative)
         {
             int digits = file.RelativeKeyItem?.Pic?.Digits ?? 0;
             w.Line($"{RuntimeApi.FileRegisterRelative(name, assign, file.RecordWidth, opt, access, digits, vary, ctx.Data.DialectLevel, CsLiteral(file.SelectName))};");
-            SequentialIoEmitter.EmitAreaRegistrations(w, file);   // §14.9.30.4 GR15 + §13.18.13.4 GR2
+            SequentialIoEmitter.EmitAreaRegistrations(w, file);   // §2023:14.9.30.4 GR15 + §2023:13.18.13.4 GR2
             return;
         }
         if (file.PrimeKey is not { } pk || KeySegments(pk, file.FixedFormRecords) is not { } primeKey)
         {
             w.Line(LoudStmt($"indexed file '{file.CobolName}': RECORD KEY missing or not locatable in the record "
-                + "image (ISO §12.4.5.12)"));
+                + "image (ISO §2023:12.4.5.12)"));
             return;
         }
         w.Line($"{RuntimeApi.FileRegisterIndexed(name, assign, file.RecordWidth, opt, access, primeKey, vary, ctx.Data.DialectLevel, CollationLit(file.PrimeKeyCollation), CsLiteral(file.SelectName))};");
@@ -76,26 +76,26 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
             if (KeySegments(alt, file.FixedFormRecords) is not { } altKey)
             {
                 w.Line(LoudStmt($"indexed file '{file.CobolName}': ALTERNATE RECORD KEY '{alt.Face}' not "
-                    + "locatable in the record image (ISO §12.4.5.6)"));
+                    + "locatable in the record image (ISO §2023:12.4.5.6)"));
                 continue;
             }
             var altCollation = i < file.AlternateKeyCollations.Count ? file.AlternateKeyCollations[i] : null;
-            // §12.4.5.6.4 GR6 — the key suppression value, already sized to the key (FileControlBinder.KeySuppressionOf);
+            // §2023:12.4.5.6.4 GR6 — the key suppression value, already sized to the key (FileControlBinder.KeySuppressionOf);
             // the connector compares key IMAGES, so a national key's value rides the ONE national serializer.
             string sup = suppress is not { } s ? "null"
                 : s.National ? RuntimeApi.NatBytes(CsLiteral(s.Value)) : CsLiteral(s.Value);
             w.Line($"{RuntimeApi.FileAddAlternateKey(name, altKey, dups ? "true" : "false", CollationLit(altCollation), sup)};");
         }
-        SequentialIoEmitter.EmitAreaRegistrations(w, file);   // §14.9.30.4 GR15 + §13.18.13.4 GR2
+        SequentialIoEmitter.EmitAreaRegistrations(w, file);   // §2023:14.9.30.4 GR15 + §2023:13.18.13.4 GR2
     }
 
     /// <summary>A record key's byte windows as the connector takes them (<see cref="RuntimeApi.KeySegments"/>): one
     /// per segment of the key, in order — data-name-1's one, or each data-name-2 of the SOURCE phrase, whose
-    /// concatenation IS the key (§12.4.5.12.4 GR2 / §12.4.5.6.4 GR2; kb/Work PB1099). Null when any segment has no
+    /// concatenation IS the key (§2023:12.4.5.12.4 GR2 / §2023:12.4.5.6.4 GR2; kb/Work PB1099). Null when any segment has no
     /// locatable window.
-    /// <para>⛔ EACH WINDOW IS IN BYTES (kb/Work PB327): §12.4.5.12.4 GR4 states key correspondence over "the
+    /// <para>⛔ EACH WINDOW IS IN BYTES (kb/Work PB327): §2023:12.4.5.12.4 GR4 states key correspondence over "the
     /// identical BYTE POSITIONS", and <see cref="KeyWindow"/>'s offset is a byte offset — so the WIDTH is the item's
-    /// byte extent too, which for a national item (PIC N(n)) is 2n, not n (§13.18.60.4 GR8; D-N1).</para></summary>
+    /// byte extent too, which for a national item (PIC N(n)) is 2n, not n (§2023:13.18.60.4 GR8; D-N1).</para></summary>
     private string? KeySegments(Binding.Model.RecordKey key, bool fixedForm)
     {
         var windows = new List<(int Offset, int Width, string Layout)>(key.Segments.Count);
@@ -107,11 +107,11 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
         return RuntimeApi.KeySegments(windows);
     }
 
-    /// <summary>A record key's registration window (§12.4.5.12 / §12.4.5.6): its byte offset and, when a
+    /// <summary>A record key's registration window (§2023:12.4.5.12 / §2023:12.4.5.6): its byte offset and, when a
     /// variable-length member of its record precedes it, the record type's layout expression — the offset is then
     /// the key's FIXED-run offset and the connector locates the key per record (kb/Work PB1025; docs/CONFORMANCE.md
     /// §3 D-KWV). ONE reader, <see cref="Binding.Model.RecordLayout.KeyWindowOf"/>, the same one the SORT/MERGE
-    /// key and the §12.4.5.12.3 SR4 / §12.4.5.6.3 SR5 screens read. Null when the key has no locatable window.</summary>
+    /// key and the §2023:12.4.5.12.3 SR4 / §2023:12.4.5.6.3 SR5 screens read. Null when the key has no locatable window.</summary>
     private (int Offset, string Layout)? KeyWindow(Binding.Model.DataItem key, bool fixedForm)
     {
         var root = key;
@@ -121,20 +121,20 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
             // ⛔ In a file of FIXED-length records (D-FRA (vi)) every record has the one fixed form, so the key sits at
             // ONE position — the fixed-run offset plus the MAXIMUM extent of every member that precedes it
             // (KeyWindow.MaxEnd less the key's own width) — and registers as a plain window, exactly the window a
-            // second program describing the same file with plain fields declares (§9.1.6, §14.9.27.4 GR10).
+            // second program describing the same file with plain fields declares (§2023:9.1.6, §2023:14.9.27.4 GR10).
             return fixedForm ? ((int)(win.MaxEnd - key.ByteWidth), "null")
                 : (win.Offset, RuntimeApi.ContiguousLayoutOf(PlaceRenderer.Read(place)));
-        // Every other key keeps the area offset it has always registered (§12.4.5.12.4 GR4's byte positions).
+        // Every other key keeps the area offset it has always registered (§2023:12.4.5.12.4 GR4's byte positions).
         return Binding.Model.RecordLayout.OffsetOf(key) is { } off ? (off, "null") : null;
     }
 
-    /// <summary>The §12.4.5.7 key collating sequence as a runtime <c>CobolCollation</c> expression — the program's
+    /// <summary>The §2023:12.4.5.7 key collating sequence as a runtime <c>CobolCollation</c> expression — the program's
     /// <c>__COLLATE</c> when the key's alphabet IS the program collating sequence, else an inline carrier — or "null"
     /// for native order (a no-clause key emits "null" so its registration is unchanged from the pre-clause engine).</summary>
     private string CollationLit(AlphabetDef? def) =>
         def is null ? "null" : ReferenceEquals(def, ctx.Data.Configuration.Collating) ? "__COLLATE" : CollationEmit.New(def);
 
-    // ── READ (ISO §14.9.30) ────────────────────────────────────────────────────────────────────────────────────
+    // ── READ (ISO §2023:14.9.30) ────────────────────────────────────────────────────────────────────────────────────
 
     public void EmitRead(BoundKeyedRead rd)
     {
@@ -143,14 +143,14 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
         string name = FileKeyExpr(file);
         int id = ctx.Names.NextKeyedSeq();
         string st = $"__kst{id}", img = $"__kim{id}";
-        // The RECORD AREA is the LARGEST record description (PlaceTable.RecordArea, §13.18.33.4
+        // The RECORD AREA is the LARGEST record description (PlaceTable.RecordArea, §2023:13.18.33.4
         // GR3 — multi-01 FDs share one area; a READ makes the record available in the WHOLE area, so a shorter Records[0] must not
         // truncate the splice — RL106A's 56/102-char pair left a stale tail).
         Place? area = places.RecordArea(file);
 
         if (rd.Kind == ReadKind.Random && file.Organization == FileOrganization.Relative)
         {
-            // §14.9.30 GR29 — the random read positions to the RRN held by the RELATIVE KEY item. The slot number
+            // §2023:14.9.30 GR29 — the random read positions to the RRN held by the RELATIVE KEY item. The slot number
             // travels through the TYPED field (PIC-aware by construction — the field IS a scaled long), never a
             // byte decode (the legacy proved byte-decoding COMP relative keys breaks; brief §2.1).
             if (Rrn(file) is not { } rrn)
@@ -161,21 +161,21 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
             }
             w.Line($"{RuntimeApi.FileSetRelativeKey(name, rrn)};");
         }
-        // §9.1.16 record-lock governance (Phase 4d): EVERY read is governed — 51 when another connector holds
+        // §2023:9.1.16 record-lock governance (Phase 4d): EVERY read is governed — 51 when another connector holds
         // the record's lock (unless IGNORING LOCK), else the WITH LOCK / AUTOMATIC lock is acquired. It lands
         // BEFORE the success block so a 51 denial leaves the record area untouched (not made available).
-        // ⛔ UNCONDITIONALLY (kb/Work PB683). Governance is a RUN-TIME fact — §9.1.15 lets an OPEN statement's
+        // ⛔ UNCONDITIONALLY (kb/Work PB683). Governance is a RUN-TIME fact — §2023:9.1.15 lets an OPEN statement's
         // own SHARING phrase override the file control entry — so no property of the SELECT or of this
         // statement can decide it. And the runtime GOVERNS EVERY CONNECTOR, not only the ones that opted in:
-        // a connector absent from the posture map is given §12.4.5.9.4 GR1 b) 2.'s implementor default and the
+        // a connector absent from the posture map is given §2023:12.4.5.9.4 GR1 b) 2.'s implementor default and the
         // same governed body runs — it used to fall through to the ungoverned one, which is how a clause-less
         // connector read, rewrote and DELETED records another connector held locked (kb/Work PB669).
         // ⛔ THE GOVERNED SHAPE IS PER FORMAT, NOT PER ORGANIZATION (kb/Work PB340). A Format-1 NEXT/PREVIOUS
         // walk routes through the ONE governed Format-1 read the sequential emitter also renders, because
-        // §14.9.30.4 GR22's ADVANCING ON LOCK skip-scan RE-EXECUTES the read and so has to own the read itself;
+        // §2023:14.9.30.4 GR22's ADVANCING ON LOCK skip-scan RE-EXECUTES the read and so has to own the read itself;
         // the loop used to exist only on the sequential arm and `rd.AdvancingOnLock` was simply dropped here.
         // A Format-2 random read has no next record to advance to and no ADVANCING phrase in its general
-        // format (§14.9.30.2), so it keeps the post-read adjustment.
+        // format (§2023:14.9.30.2), so it keeps the post-read adjustment.
         switch (rd.Kind)
         {
             case ReadKind.Next:
@@ -186,11 +186,11 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
                 break;
             default:
                 // Indexed Format 2: the key VALUE is the key field's current content in the record area
-                // (§14.9.30 GR32) — pass the area image; the connector slices the key-of-reference range.
-                // ⛔ ONE CALL, NOT A READ FOLLOWED BY A GOVERNANCE PATCH (kb/Work PB338): §14.9.30.4 GR10 a)/d)
+                // (§2023:14.9.30 GR32) — pass the area image; the connector slices the key-of-reference range.
+                // ⛔ ONE CALL, NOT A READ FOLLOWED BY A GOVERNANCE PATCH (kb/Work PB338): §2023:14.9.30.4 GR10 a)/d)
                 // require the file position indicator and the key of reference to be UNCHANGED when the record
                 // operation conflict condition arises, so the governed entry has to own the retrieval and decide
-                // BEFORE it, for EVERY connector — §9.1.16's inaccessibility is not conditioned on the
+                // BEFORE it, for EVERY connector — §2023:9.1.16's inaccessibility is not conditioned on the
                 // reading connector's own LOCK MODE clause (kb/Work PB669).
                 string keyImage = area is not null ? OperandText.RecordSendImage(area) : "\"\"";
                 string? keyExtents = area is not null ? OperandText.RecordSendExtents(area) : null;
@@ -201,20 +201,20 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
         using (w.Block($"if ({IoStatusClass.Successful(st)})"))
         {
             SeqIo.EmitRecordAreaStore(file, area, img, RuntimeApi.FileCurrentRecord(name), RuntimeApi.FileCurrentRecordExtents(name));
-            // §9.1.13.6 item 4 b) (kb/Work PB1513): the record has landed; an OCCURS DEPENDING ON item that makes it
+            // §2023:9.1.13.6 item 4 b) (kb/Work PB1513): the record has landed; an OCCURS DEPENDING ON item that makes it
             // exceed the file's maximum makes the READ unsuccessful — '34' — so the success-only steps below follow
             // the verdict. The status local is the statement's own, and every later phrase test reads it. The record
             // area therefore HOLDS the landed record after that '34' — an unsuccessful READ's area content is undefined
-            // (§14.9.30.4 GR18), so it is within the standard; the area-untouched posture is for the denials that
+            // (§2023:14.9.30.4 GR18), so it is within the standard; the area-untouched posture is for the denials that
             // come BEFORE the landing (a '51', above), and SequentialIoEmitter.EmitRead states the exception.
             string? tooLong = SeqIo.OdoRecordExceedsMaximum(file);
             if (tooLong is not null)
                 using (w.Block($"if ({tooLong})"))
-                    w.Line($"{st} = {RuntimeApi.FileReadExceedsRecordMaximum(name)};   // §9.1.13.6 item 4 b) — the READ is unsuccessful");
+                    w.Line($"{st} = {RuntimeApi.FileReadExceedsRecordMaximum(name)};   // §2023:9.1.13.6 item 4 b) — the READ is unsuccessful");
             void SuccessSteps()
             {
-                SeqIo.EmitReadLengthStore(file);   // §13.18.43 GR15 — the just-read length into DEPENDING
-                // §14.9.30 GR25 — a sequential READ of a relative file MOVEs the RRN of the record made available
+                SeqIo.EmitReadLengthStore(file);   // §2023:13.18.43 GR15 — the just-read length into DEPENDING
+                // §2023:14.9.30 GR25 — a sequential READ of a relative file MOVEs the RRN of the record made available
                 // into the RELATIVE KEY data item (MOVE rules — the canonical numeric store path).
                 if (rd.Kind != ReadKind.Random && file.Organization == FileOrganization.Relative
                     && file.RelativeKeyItem is { } rk && places.Of(rk) is { } rkPlace)
@@ -226,13 +226,13 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
         SeqIo.EmitStoreFileStatus(file);
         var hook = SeqIo.EmitUseHook(file, "READ", atEndHandled: rd.AtEnd is not null, invalidKeyHandled: rd.InvalidKey?.Invalid is not null);
 
-        // The §9.1.14 / §14.9.30 GR24 transfer-of-control branches, uniform across the read kinds (a phrase
+        // The §2023:9.1.14 / §2023:14.9.30 GR24 transfer-of-control branches, uniform across the read kinds (a phrase
         // whose status family cannot arise for this kind — e.g. INVALID KEY on a sequential read — is simply
         // dead, the leniency-tolerant rendering of a CCVS-misplaced phrase): '2x' → INVALID KEY imperative;
         // '0x' (success) → INTO move + NOT AT END / NOT INVALID KEY; '1x' (10/14, the at-end family,
-        // §9.1.13.4) → AT END imperative; any other unsuccessful status takes NO branch — §14.9.30.4 GR13
-        // ignores both phrases when neither condition occurs and GR13 b) routes it through §9.1.12's
-        // exception processing. That includes GR21's '46', a LOGIC ERROR (§9.1.13.7 6)), not the at end
+        // §2023:9.1.13.4) → AT END imperative; any other unsuccessful status takes NO branch — §2023:14.9.30.4 GR13
+        // ignores both phrases when neither condition occurs and GR13 b) routes it through §2023:9.1.12's
+        // exception processing. That includes GR21's '46', a LOGIC ERROR (§2023:9.1.13.7 6)), not the at end
         // condition GR24 is conditioned on; the determination is on IoStatusClass (kb/Work PB810).
         bool into = rd.IntoMove is not null && area is not null;
         bool hasInv = rd.InvalidKey?.Invalid is not null;
@@ -243,19 +243,19 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
         if (into || rd.NotAtEnd is not null || rd.InvalidKey?.NotInvalid is not null || fires)
             using (w.Block($"{(hasInv ? "else " : "")}if ({IoStatusClass.Successful(st)})"))
             {
-                // GR4 b) — READ INTO is READ then MOVE THE CURRENT RECORD (the §13.18.43.4 GR16 slice of the
+                // GR4 b) — READ INTO is READ then MOVE THE CURRENT RECORD (the §2023:13.18.43.4 GR16 slice of the
                 // record area, never the padded area): the BOUND move, built by the SAME binder call the
                 // sequential arm makes (kb/Work PB348 over PB339).
                 // X3.23-1985 USE FOR DEBUGGING general rules 5 d / 6 c: the INTO phrase ran, so its receiver's section runs; rule 2 b: a READ that
                 // delivered a record runs its file-name section, with the record read in DEBUG-CONTENTS (D20).
                 if (into) move.Emit(rd.IntoMove!);
                 Debug.LandAfterActionKeeping();   // kept for the arm below: a READ that delivered none runs the section too unless an AT END / INVALID KEY statement ran
-                if (rd.NotAtEnd is { } nae) SeqIo.EmitNotPhrase(hook, nae);                  // §14.9.30 — NOT AT END on success
-                if (rd.InvalidKey?.NotInvalid is { } nik) SeqIo.EmitNotPhrase(hook, nik);    // §9.1.14 — success only
+                if (rd.NotAtEnd is { } nae) SeqIo.EmitNotPhrase(hook, nae);                  // §2023:14.9.30 — NOT AT END on success
+                if (rd.InvalidKey?.NotInvalid is { } nik) SeqIo.EmitNotPhrase(hook, nik);    // §2023:9.1.14 — success only
             }
         if (rd.AtEnd is { } at)
             using (w.Block($"if ({IoStatusClass.AtEnd(st)})"))
-                Statements.EmitStatementList(at);                                                // §14.9.30 GR24c
+                Statements.EmitStatementList(at);                                                // §2023:14.9.30 GR24c
         // X3.23-1985 USE FOR DEBUGGING general rule 2 b: an unsuccessful READ that ran neither its INVALID KEY nor its AT END statement still
         // runs the file-name section, after the USE procedure above (D20).
         if (Debug.HasFileNameAfterAction)
@@ -269,18 +269,18 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
         Debug.DiscardAfterAction();
     }
 
-    // ── WRITE (ISO §14.9.51) ───────────────────────────────────────────────────────────────────────────────────
+    // ── WRITE (ISO §2023:14.9.51) ───────────────────────────────────────────────────────────────────────────────────
 
     public void EmitWrite(BoundKeyedWrite wr)
     {
         var w = ctx.Writer;
         FileModel file = wr.File;
         string name = FileKeyExpr(file);
-        if (wr.FromMove is { } fromMove) move.Emit(fromMove);   // §14.9.51.4 GR5 a) — the BOUND implicit MOVE
+        if (wr.FromMove is { } fromMove) move.Emit(fromMove);   // §2023:14.9.51.4 GR5 a) — the BOUND implicit MOVE
         Debug.LandBeforeIo();   // X3.23-1985 USE FOR DEBUGGING general rule 5 a / 6 a: after the FROM move, before the I-O (docs/CONTROL_FLOW_DESIGN.md D20)
         if (file.Organization == FileOrganization.Relative && file.AccessMode != FileAccessMode.Sequential)
         {
-            // §14.9.51 GR29b/GR32 — random/dynamic: the runtime element pre-set the RELATIVE KEY item with the
+            // §2023:14.9.51 GR29b/GR32 — random/dynamic: the runtime element pre-set the RELATIVE KEY item with the
             // RRN to write; read it through the typed field.
             if (Rrn(file) is not { } rrn)
             {
@@ -292,21 +292,21 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
         int id = ctx.Names.NextKeyedSeq();
         string st = $"__kst{id}";
         string wimg = SeqIo.SentRecordImage(file, wr.Record);   // THE ONE record-area channel (kb/Work PB327; D-WRT1, PB1907)
-        // §9.1.16/§14.9.51 GR10-GR11 (P10 Step 8): EVERY keyed WRITE routes through the governed entry — single
+        // §2023:9.1.16/§2023:14.9.51 GR10-GR11 (P10 Step 8): EVERY keyed WRITE routes through the governed entry — single
         // locking releases the connector's prior lock, WITH LOCK locks the record written. Unconditional
-        // (kb/Work PB683): only the runtime can see an OPEN's own SHARING phrase (§9.1.15), and it governs
-        // every connector (kb/Work PB669). §13.18.43 GR13a rides in `lenArg`.
+        // (kb/Work PB683): only the runtime can see an OPEN's own SHARING phrase (§2023:9.1.15), and it governs
+        // every connector (kb/Work PB669). §2023:13.18.43 GR13a rides in `lenArg`.
         var (retryKind, retryAmount) = SeqIo.RenderRetry(wr.Retry);
         string lenArg = SeqIo.VaryingLengthArg(file) ?? "-1";
         // The LINAGE page rides the governed entry through the SAME helper the sequential surface uses; for a
-        // keyed FD it renders `null` because ISO §13.4.5.2 Format 2 (relative-or-indexed) carries no
+        // keyed FD it renders `null` because ISO §2023:13.4.5.2 Format 2 (relative-or-indexed) carries no
         // linage-clause — derived from the file model, never a hand-written null here (kb/Work PB673).
-        // §14.9.51.4 GR4 — the released record is also available as a record of the other files of a SAME RECORD AREA
+        // §2023:14.9.51.4 GR4 — the released record is also available as a record of the other files of a SAME RECORD AREA
         // clause (kb/Work PB1195): held in a local so the statement and the store after it see the SAME record.
         string? released = SeqIo.BeginReleasedRecord(file, wr.Record, ref wimg);
         w.Line($"var {st} = {RuntimeApi.FileWriteShared(name, wimg, lenArg, SequentialIoEmitter.RuntimeRecordLock(wr.Lock), retryKind, retryAmount, SeqIo.LinageArg(file), areaExtents: OperandText.RecordSendExtents(wr.Record))};");
         SeqIo.EndReleasedRecord(file, wr.Record, released, lenArg, RuntimeApi.FileStatus(name));
-        // §14.9.51 GR29a/GR30 — sequential access (incl. EXTEND): the released RRN is MOVEd into the RELATIVE KEY
+        // §2023:14.9.51 GR29a/GR30 — sequential access (incl. EXTEND): the released RRN is MOVEd into the RELATIVE KEY
         // item during execution of the WRITE.
         if (file.Organization == FileOrganization.Relative && file.AccessMode == FileAccessMode.Sequential
             && file.RelativeKeyItem is { } rk && places.Of(rk) is { } rkPlace)
@@ -317,18 +317,18 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
         SeqIo.EmitInvalid(st, wr.InvalidKey, hook);
     }
 
-    // ── REWRITE (ISO §14.9.35) ─────────────────────────────────────────────────────────────────────────────────
+    // ── REWRITE (ISO §2023:14.9.35) ─────────────────────────────────────────────────────────────────────────────────
 
     public void EmitRewrite(BoundKeyedRewrite rw)
     {
         var w = ctx.Writer;
         FileModel file = rw.File;
         string name = FileKeyExpr(file);
-        if (rw.FromMove is { } fromMove) move.Emit(fromMove);   // §14.9.35.4 GR7 a) — the BOUND implicit MOVE
+        if (rw.FromMove is { } fromMove) move.Emit(fromMove);   // §2023:14.9.35.4 GR7 a) — the BOUND implicit MOVE
         Debug.LandBeforeIo();   // X3.23-1985 USE FOR DEBUGGING general rule 5 a / 6 a: after the FROM move, before the I-O (docs/CONTROL_FLOW_DESIGN.md D20)
         if (file.Organization == FileOrganization.Relative && file.AccessMode != FileAccessMode.Sequential)
         {
-            // §14.9.35 GR21 — random/dynamic: the slot to replace is named by the RELATIVE KEY item.
+            // §2023:14.9.35 GR21 — random/dynamic: the slot to replace is named by the RELATIVE KEY item.
             if (Rrn(file) is not { } rrn)
             {
                 w.Line(LoudStmt($"relative REWRITE on '{file.CobolName}' without a resolvable RELATIVE KEY item"));
@@ -339,13 +339,13 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
         int id = ctx.Names.NextKeyedSeq();
         string st = $"__kst{id}";
         string rimg = SeqIo.SentRecordImage(file, rw.Record);   // THE ONE record-area channel (kb/Work PB327; D-WRT1, PB1907)
-        // §9.1.16/§14.9.35 GR11-GR12 (P10 Step 8): EVERY keyed REWRITE routes through the governed entry —
+        // §2023:9.1.16/§2023:14.9.35 GR11-GR12 (P10 Step 8): EVERY keyed REWRITE routes through the governed entry —
         // another connector's lock on the target blocks it (RETRY re-checks, else 51; the record is unrewritten).
-        // Unconditional (kb/Work PB683): the OPEN's own SHARING phrase (§9.1.15) is invisible here, and the
-        // runtime body (§13.18.43 GR13a / §14.9.35 GR20) governs every connector, opted in or not (kb/Work PB669).
+        // Unconditional (kb/Work PB683): the OPEN's own SHARING phrase (§2023:9.1.15) is invisible here, and the
+        // runtime body (§2023:13.18.43 GR13a / §2023:14.9.35 GR20) governs every connector, opted in or not (kb/Work PB669).
         var (retryKind, retryAmount) = SeqIo.RenderRetry(rw.Retry);
         string lenArg = SeqIo.VaryingLengthArg(file) ?? "-1";
-        // §14.9.35.4 GR6 — the released record is also available as a record of the other files of a SAME RECORD AREA
+        // §2023:14.9.35.4 GR6 — the released record is also available as a record of the other files of a SAME RECORD AREA
         // clause (kb/Work PB1195): held in a local so the statement and the store after it see the SAME record.
         string? released = SeqIo.BeginReleasedRecord(file, rw.Record, ref rimg);
         w.Line($"var {st} = {RuntimeApi.FileRewriteShared(name, rimg, lenArg, SequentialIoEmitter.RuntimeRecordLock(rw.Lock), retryKind, retryAmount, OperandText.RecordSendExtents(rw.Record))};");
@@ -355,7 +355,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
         SeqIo.EmitInvalid(st, rw.InvalidKey, hook);
     }
 
-    // ── DELETE RECORD / DELETE FILE (ISO §14.9.10) ─────────────────────────────────────────────────────────────
+    // ── DELETE RECORD / DELETE FILE (ISO §2023:14.9.10) ─────────────────────────────────────────────────────────────
 
     public void EmitDelete(BoundKeyedDelete del)
     {
@@ -364,7 +364,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
         string name = FileKeyExpr(file);
         if (file.Organization == FileOrganization.Relative && file.AccessMode != FileAccessMode.Sequential)
         {
-            // §14.9.10 GR4 — relative random/dynamic deletes the record named by the RELATIVE KEY item.
+            // §2023:14.9.10 GR4 — relative random/dynamic deletes the record named by the RELATIVE KEY item.
             if (Rrn(file) is not { } rrn)
             {
                 w.Line(LoudStmt($"relative DELETE on '{file.CobolName}' without a resolvable RELATIVE KEY item"));
@@ -373,9 +373,9 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
             }
             w.Line($"{RuntimeApi.FileSetRelativeKey(name, rrn)};");
         }
-        // §14.9.10 GR3 — indexed random/dynamic deletes by the PRIME RECORD KEY's current content; DELETE carries
+        // §2023:14.9.10 GR3 — indexed random/dynamic deletes by the PRIME RECORD KEY's current content; DELETE carries
         // no record operand, so the key value is sliced from the record area image (GR8 — the area is unchanged).
-        // The RECORD AREA is the LARGEST record description (PlaceTable.RecordArea, §13.18.33.4
+        // The RECORD AREA is the LARGEST record description (PlaceTable.RecordArea, §2023:13.18.33.4
         // GR3 — multi-01 FDs share one area; a READ makes the record available in the WHOLE area, so a shorter Records[0] must not
         // truncate the splice — RL106A's 56/102-char pair left a stale tail).
         Place? area = places.RecordArea(file);
@@ -383,7 +383,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
         string? areaExtents = area is not null ? OperandText.RecordSendExtents(area) : null;
         int id = ctx.Names.NextKeyedSeq();
         string st = $"__kst{id}";
-        // §9.1.16/§14.9.10 GR6-GR7 (P10 Step 8): EVERY DELETE routes through the governed entry — a record
+        // §2023:9.1.16/§2023:14.9.10 GR6-GR7 (P10 Step 8): EVERY DELETE routes through the governed entry — a record
         // locked by another connector shall not be deleted (RETRY re-checks, else 51). Unconditional (kb/Work
         // PB683): the runtime governs the removal for EVERY connector, opted in or not (kb/Work PB669) — which
         // is what stops a clause-less connector DELETING a record another one holds locked.
@@ -398,14 +398,14 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
     public void EmitDeleteFile(BoundKeyedDeleteFile df)
     {
         var w = ctx.Writer;
-        // §14.9.10 Format 2 applies to EVERY organization (GR13/GR14/GR16): the sequential connector now
+        // §2023:14.9.10 Format 2 applies to EVERY organization (GR13/GR14/GR16): the sequential connector now
         // exposes its host path, so the runtime DeleteFile handles it uniformly with relative/indexed (DEVLOG
         // 612, Phase-4 track d). After a successful delete, the same name's next OPEN INPUT reports '35'
         // (file not available) — the golden's round-trip. GR12's multiple file-names are bound as one
         // BoundKeyedDeleteFile per name (kb/Work PB134), so this emitter always sees exactly one.
         int id = ctx.Names.NextKeyedSeq();
         string st = $"__kst{id}";
-        // A RETRY phrase re-attempts the §14.9.10 GR15 file-sharing-conflict check ('62' — the physical file
+        // A RETRY phrase re-attempts the §2023:14.9.10 GR15 file-sharing-conflict check ('62' — the physical file
         // open by another connector); the plain form keeps the existing single-attempt entry. The OVERRIDE
         // phrase (GR18) travels to the runtime as the flag that suppresses the fixed-file-attribute match —
         // it must be CARRIED even while the validated set is empty, or a future non-empty set silently checks
@@ -420,21 +420,21 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
             w.Line($"var {st} = {RuntimeApi.FileDeleteFile(FileKeyExpr(df.File), ovr)};");
         SeqIo.EmitStoreFileStatus(df.File);
         Debug.LandAfterAction();   // X3.23-1985 USE FOR DEBUGGING general rule 2 c: a DELETE statement that references file-name-1 (D20)
-        // §14.9.10.4 GR20b: the enabled level-3 EC-I-O for the status is set to exist EVEN when the ON
+        // §2023:14.9.10.4 GR20b: the enabled level-3 EC-I-O for the status is set to exist EVEN when the ON
         // EXCEPTION phrase is written — the phrase suppresses only the declarative dispatch and the fatal
         // default (GR20c), the same third-flag shape the AT END / INVALID KEY suppressions use. The old
         // `if (OnException is null)` skip left EXCEPTION-STATUS stale inside imperative-statement-3
         // (kb/Work PB141).
         var hook = SeqIo.EmitUseHook(df.File, "DELETE FILE", onExceptionHandled: df.OnException is not null);
-        // §9.1.13.1/§14.9.10: ON EXCEPTION runs on an unsuccessful completion; '05' (absent file) is a SUCCESSFUL
+        // §2023:9.1.13.1/§2023:14.9.10: ON EXCEPTION runs on an unsuccessful completion; '05' (absent file) is a SUCCESSFUL
         // completion (GR14) and takes the NOT ON EXCEPTION path — unless a USE declarative (or a WHEN phrase) has
         // handled the EC-I-O-WARNING that '05' raised, when "the imperative-statement in that phrase is not
-        // executed" (§14.6.13.1.4 2)/3), kb/Work PB3237): the hook's NotPhraseGate, as every other I-O verb's.
+        // executed" (§2023:14.6.13.1.4 2)/3), kb/Work PB3237): the hook's NotPhraseGate, as every other I-O verb's.
         SeqIo.EmitPhrasePair(IoStatusClass.Unsuccessful(st), df.OnException, df.NotOnException,
             IoStatusClass.Successful(st), hook);
     }
 
-    // ── START (ISO §14.9.41) ───────────────────────────────────────────────────────────────────────────────────
+    // ── START (ISO §2023:14.9.41) ───────────────────────────────────────────────────────────────────────────────────
 
     public void EmitStart(BoundKeyedStart sta)
     {
@@ -447,43 +447,43 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
             w.Line($"var {st} = {RuntimeApi.FileStartFirstLast(name, sta.Mode == KeyedStartMode.Last ? "true" : "false")};");
         else if (file.Organization == FileOrganization.Relative)
         {
-            // §14.9.41 GR9/GR10 — numeric comparison against the RELATIVE KEY item's value (typed read).
+            // §2023:14.9.41 GR9/GR10 — numeric comparison against the RELATIVE KEY item's value (typed read).
             string rrn = RuntimeApi.HostInt64(NumericRenderer.Align(num.FieldNum(sta.Operand!), 0));
             w.Line($"var {st} = {RuntimeApi.FileStartRelative(name, CsLiteral(sta.Op), rrn)};");
         }
         else
         {
-            // ⛔ §14.9.41.4 GR17 a) SOURCES THE SEARCH KEY FROM THE RECORD AREA, NOT FROM data-name-1
+            // ⛔ §2023:14.9.41.4 GR17 a) SOURCES THE SEARCH KEY FROM THE RECORD AREA, NOT FROM data-name-1
             // (kb/Work PB355): "The specified key is set up by moving the relevant parts of the record area into
             // a temporary data area." The "specified key" is GR16's KEY OF REFERENCE — "The key specified in the
             // KEY phrase, or that shares a leftmost character with the data item specified in the KEY phrase,
             // becomes the key of reference" — so the relevant parts are THAT key's character positions in the
             // area, and data-name-1's role ends at naming the key and (GR17 b)) supplying a default length.
             // The area image therefore travels, and the connector slices the key of reference out of it with the
-            // SAME `KeyOf` the random READ (§14.9.30.4 GR32) and DELETE (§14.9.10.4 GR3) use — one extraction,
-            // three verbs, and a SOURCE-phrase key's several "parts" (§12.4.5.12.4 GR2) fall out of it.
+            // SAME `KeyOf` the random READ (§2023:14.9.30.4 GR32) and DELETE (§2023:14.9.10.4 GR3) use — one extraction,
+            // three verbs, and a SOURCE-phrase key's several "parts" (§2023:12.4.5.12.4 GR2) fall out of it.
             // Sending `OperandText.AsStorageImage(sta.Operand)` instead agreed with the rule only while the
             // temporary area was no longer than data-name-1: a LENGTH count that reaches PAST the operand into
             // the rest of the key invented SPACES for the characters the record area actually holds.
             // GR17 b) fixes only the LENGTH of that area — "the length specified in the LENGTH clause, if
             // specified, or else the length of record-key-name-1, if specified, or else the length of
             // data-name-1" — which is what `len` below renders, and GR14 bounds it by the key's own length.
-            // The key comparison collates NATIVE at COBOL-85 (§12.4.5.7 file collating; the program collating
+            // The key comparison collates NATIVE at COBOL-85 (§2023:12.4.5.7 file collating; the program collating
             // sequence does NOT silently apply to keys — brief risk note).
-            // ⛔ §14.9.41.4 GR13 COUNTS THE OPERAND'S OWN CHARACTER POSITIONS, AND THE CONNECTOR SLICES BYTES
+            // ⛔ §2023:14.9.41.4 GR13 COUNTS THE OPERAND'S OWN CHARACTER POSITIONS, AND THE CONNECTOR SLICES BYTES
             // (kb/Work PB327): "If data-name-1 or record-key-name-1 is of class alphanumeric,
             // arithmetic-expression-1 is the number of alphanumeric character positions; if data-name-1 or
             // record-key-name-1 is of class national, arithmetic-expression-1 is the number of national character
-            // positions." A national position is TWO bytes (§13.18.60.4 GR8; D-N1), so the count is scaled here,
+            // positions." A national position is TWO bytes (§2023:13.18.60.4 GR8; D-N1), so the count is scaled here,
             // once, at the one place the two units meet — and the key VALUE goes through THE ONE storage channel,
             // never its carrier, or the connector would compare one byte per position against a two-byte window.
-            // GR17e's comparison per §8.8.4.2.9 is satisfied by the byte compare: UTF-16BE pair order IS code-unit
-            // order over the BMP repertoire §8.5.1.4 admits (CONFORMANCE.md items 33/188).
-            // A record-key-name (sta.NamedKey) has the class of data-name-2 (§12.4.5.12.3 SR5 / §12.4.5.6.3 SR6) and
+            // GR17e's comparison per §2023:8.8.4.2.9 is satisfied by the byte compare: UTF-16BE pair order IS code-unit
+            // order over the BMP repertoire §2023:8.5.1.4 admits (CONFORMANCE.md items 33/188).
+            // A record-key-name (sta.NamedKey) has the class of data-name-2 (§2023:12.4.5.12.3 SR5 / §2023:12.4.5.6.3 SR6) and
             // its length is the concatenation's (GR17 b) — kb/Work PB1099.
             int natBytes = NationalWindow.PositionsOf(sta.NamedKey?.CategorySource ?? sta.Operand!.Item) is not null
                 ? RuntimeApi.BytesPerNational : 1;
-            // ⛔ §14.9.41.4 GR14 IS ASKED OF arithmetic-expression-1 ITSELF, SO THE VALUE TRAVELS UNNARROWED
+            // ⛔ §2023:14.9.41.4 GR14 IS ASKED OF arithmetic-expression-1 ITSELF, SO THE VALUE TRAVELS UNNARROWED
             // (kb/Work PB357): "If arithmetic-expression-1 does not evaluate to a positive nonzero integer that is
             // less than or equal to the length of the associated key, the I-O status value … is set to '23'". The
             // former int cast of `Align(expr, 0)` truncated 2.5 to 2 and wrapped 4294967297 to 1 before the connector's
@@ -501,7 +501,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
         SeqIo.EmitStoreFileStatus(file);
         Debug.LandAfterAction();   // X3.23-1985 USE FOR DEBUGGING general rule 2 c: right after the I-O, whatever its outcome (D20)
         var hook = SeqIo.EmitUseHook(file, "START", invalidKeyHandled: sta.InvalidKey?.Invalid is not null);
-        SeqIo.EmitInvalid(st, sta.InvalidKey, hook);   // §14.9.41 GR6 — transfer per §9.1.14
+        SeqIo.EmitInvalid(st, sta.InvalidKey, hook);   // §2023:14.9.41 GR6 — transfer per §2023:9.1.14
     }
 
     /// <summary>The <c>StartKeyLength</c> expression for a WITH LENGTH count already funnelled to its exact lane
@@ -513,7 +513,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
     // ── Shared keyed emission helpers ──────────────────────────────────────────────────────────────────────────
 
     /// <summary>The C# <c>long</c> expression reading the file's RELATIVE KEY item (the RRN travels through the
-    /// typed field — §12.4.5.13; the item is OUTSIDE the record, SR3), or null when the file has none.</summary>
+    /// typed field — §2023:12.4.5.13; the item is OUTSIDE the record, SR3), or null when the file has none.</summary>
     private string? Rrn(FileModel file)
     {
         if (file.RelativeKeyItem is not { } rk || places.Of(rk) is not { } place) return null;

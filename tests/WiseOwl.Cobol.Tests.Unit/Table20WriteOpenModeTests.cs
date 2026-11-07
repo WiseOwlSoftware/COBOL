@@ -7,10 +7,10 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ISO §14.9.27.4 GR8's Table 20 leaves the WRITE cell BLANK where the access mode is random or dynamic and the
-/// open mode is extend, and §9.1.13.7 item 8 b) names the status for that intersection — <i>"If the access mode
+/// ISO §2023:14.9.27.4 GR8's Table 20 leaves the WRITE cell BLANK where the access mode is random or dynamic and the
+/// open mode is extend, and §2023:9.1.13.7 item 8 b) names the status for that intersection — <i>"If the access mode
 /// is dynamic or random, the file connector is not open in the I-O or output mode"</i> → '48'. That state is
-/// UNREACHABLE from conforming source (§14.9.27.3 SR2 confines the EXTEND phrase to sequential access), so no
+/// UNREACHABLE from conforming source (§2023:14.9.27.3 SR2 confines the EXTEND phrase to sequential access), so no
 /// conformance golden can reach it: the reachable cells of Table 20 ride
 /// conformance:cases/9.1.13.2-Successful-completion/l1_table20_seq_relative and conformance:cases/14.9.27-OPEN/l1_table20_indexed, and these four facts reach
 /// the arm they cannot.
@@ -77,7 +77,7 @@ public sealed class Table20WriteOpenModeTests
         return n;
     }
 
-    // Table 20, Random × WRITE × Extend — blank; §9.1.13.7 8 b) → '48'. The record must NOT be released:
+    // Table 20, Random × WRITE × Extend — blank; §2023:9.1.13.7 8 b) → '48'. The record must NOT be released:
     // before PB325 the sequential branch appended it at the highest RRN + 1 and reported '00'.
     [Theory]
     [InlineData(RandomAccess)]
@@ -115,7 +115,7 @@ public sealed class Table20WriteOpenModeTests
     }
 
     // The complement, so the fix cannot be "always 48": Table 20's Sequential × WRITE × Extend IS an X, and
-    // §14.9.51.4 GR29 a) gives the released record the highest existing RRN + 1.
+    // §2023:14.9.51.4 GR29 a) gives the released record the highest existing RRN + 1.
     [Fact]
     public void RelativeWrite_ExtendModeAtSequentialAccess_Succeeds_AndAppends()
     {

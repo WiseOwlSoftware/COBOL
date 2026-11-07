@@ -5,21 +5,21 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB1045 - ISO §13.18.27.3 4) bars the GLOBAL clause in a factory, instance or method
+      *> kb/Work PB1045 - ISO §2023:13.18.27.3 4) bars the GLOBAL clause in a factory, instance or method
       *> definition, and ONLY there: the screen is per definition, never per compilation group.
-      *> RULE §13.18.27.3 4): "The GLOBAL clause shall not be specified in a factory definition, an
+      *> RULE §2023:13.18.27.3 4): "The GLOBAL clause shall not be specified in a factory definition, an
       *>   instance definition, or a method definition." cite.py --check 13.18.27.3 "The GLOBAL clause
       *>   shall not be specified in a factory definition, an instance definition, or a method
-      *>   definition" -> OK §13.18.27.3 4)
-      *> RULE §13.18.27.3 1) a): "A constant entry." -> OK §13.18.27.3 1) a) (a program's constant
-      *>   entry may carry GLOBAL), and §13.18.27.4 2): "A statement in a program contained directly or
+      *>   definition" -> OK §2023:13.18.27.3 4)
+      *> RULE §2023:13.18.27.3 1) a): "A constant entry." -> OK §2023:13.18.27.3 1) a) (a program's constant
+      *>   entry may carry GLOBAL), and §2023:13.18.27.4 2): "A statement in a program contained directly or
       *>   indirectly within a program that describes a global name may reference that name without
-      *>   describing it again." -> OK §13.18.27.4 2)
+      *>   describing it again." -> OK §2023:13.18.27.4 2)
       *> SHAPE: PB1045P declares the GLOBAL constant KG and contains PB1045N; the class PB1045C in the
       *>   same compilation group declares constants WITHOUT the clause in its OBJECT working storage
       *>   (KO) and in its method's local storage (KM).
       *> EXPECTED OUTPUT, DERIVED (a constant-name is "as if literal-1 ... were written where
-      *>   constant-name-1 is written", §13.10.4 1) -> OK):
+      *>   constant-name-1 is written", §2023:13.10.4 1) -> OK):
       *>   NESTED 7  PB1045N references the container's global constant-name KG.
       *>   OBJECT 5 3  the class's own constants, legal because neither carries GLOBAL.
        IDENTIFICATION DIVISION.

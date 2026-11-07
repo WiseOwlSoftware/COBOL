@@ -4,17 +4,17 @@ using WiseOwl.Cobol.Editions;
 
 namespace WiseOwl.Cobol.Frontend.Preprocessor;
 
-/// <summary>Whether a <see cref="DirectiveStackOp"/> saves (§7.3.22 PUSH) or restores (§7.3.20 POP).</summary>
+/// <summary>Whether a <see cref="DirectiveStackOp"/> saves (§2023:7.3.22 PUSH) or restores (§2023:7.3.20 POP).</summary>
 public enum DirectiveStackKind { Push, Pop }
 
 /// <summary>
-/// ONE <c>&gt;&gt;PUSH</c> or <c>&gt;&gt;POP</c> directive (ISO §7.3.22 / §7.3.20), reduced to what the directive
+/// ONE <c>&gt;&gt;PUSH</c> or <c>&gt;&gt;POP</c> directive (ISO §2023:7.3.22 / §2023:7.3.20), reduced to what the directive
 /// state stack acts on: where it was written, which way it goes, and which directive's state it names — a
 /// <c>constructs.json</c> ROW id, or null for <c>ALL</c>.
 /// </summary>
 /// <param name="Line">1-based line in the frame of the stage that parsed it.</param>
 /// <param name="Kind">PUSH or POP.</param>
-/// <param name="Row">The named directive's registry row (§7.3.20.2 / §7.3.22.2 <c>directive-name</c>), or null
+/// <param name="Row">The named directive's registry row (§2023:7.3.20.2 / §2023:7.3.22.2 <c>directive-name</c>), or null
 /// when <c>ALL</c> is specified. A row, never a spelling: <c>&gt;&gt;PUSH FLAG-02</c> names the FLAG-02 row and
 /// nothing else.</param>
 public readonly record struct DirectiveStackOp(int Line, DirectiveStackKind Kind, string? Row)
@@ -47,33 +47,33 @@ public readonly record struct DirectiveStackOp(int Line, DirectiveStackKind Kind
 
 /// <summary>
 /// A holder of ONE directive's state that a PUSH saves and a POP restores — the only thing a stage writes to
-/// take part in §7.3.20 / §7.3.22. The pairing of PUSH with POP, the ALL fan-out and the unsuccessful-POP rule
+/// take part in §2023:7.3.20 / §2023:7.3.22. The pairing of PUSH with POP, the ALL fan-out and the unsuccessful-POP rule
 /// live in <see cref="DirectiveStateStack"/>, once; a carrier knows only how to snapshot and reinstate itself.
 /// </summary>
 public interface IDirectiveStateCarrier
 {
-    /// <summary>A snapshot of the state in effect now (§7.3.22.4 GR1: "the state of the directive is saved";
+    /// <summary>A snapshot of the state in effect now (§2023:7.3.22.4 GR1: "the state of the directive is saved";
     /// GR3: the directive's effects remain active, so saving changes nothing).</summary>
     object? Save();
 
-    /// <summary>Reinstate <paramref name="saved"/> — §7.3.20.4 GR1/GR3, "the state … shall be restored" — from
+    /// <summary>Reinstate <paramref name="saved"/> — §2023:7.3.20.4 GR1/GR3, "the state … shall be restored" — from
     /// the POP directive on <paramref name="popLine"/> onward.</summary>
     void Restore(object? saved, int popLine);
 }
 
 /// <summary>
-/// THE compiler-directive state stack (ISO/IEC 1989:2023 §7.3.20 POP, §7.3.22 PUSH; kb/Work PB941) — one
+/// THE compiler-directive state stack (ISO/IEC 1989:2023 §2023:7.3.20 POP, §2023:7.3.22 PUSH; kb/Work PB941) — one
 /// mechanism for every directive whose state the standard lets a PUSH save, never per-directive save code.
 ///
 /// <list type="bullet">
-/// <item>§7.3.22.4 GR1 — "If directive-name is specified, the state of the directive is saved."</item>
-/// <item>§7.3.22.4 GR2 — "If ALL is specified, the state of all of the directives other than EVALUATE, IF, PAGE,
+/// <item>§2023:7.3.22.4 GR1 — "If directive-name is specified, the state of the directive is saved."</item>
+/// <item>§2023:7.3.22.4 GR2 — "If ALL is specified, the state of all of the directives other than EVALUATE, IF, PAGE,
 /// POP, or PUSH are saved." The set is <see cref="CompilerDirectiveCatalog.PushableRows"/>, derived from the
 /// registry, so a new directive is pushed by ALL because it exists.</item>
-/// <item>§7.3.20.4 GR1 / GR3 — a POP restores the named directive's (or, for ALL, every directive's) state
+/// <item>§2023:7.3.20.4 GR1 / GR3 — a POP restores the named directive's (or, for ALL, every directive's) state
 /// "previously stored by a PUSH directive and … not removed by a POP directive". Each directive therefore has a
 /// STACK of saved states, and a POP removes the most recent one.</item>
-/// <item>§7.3.20.4 GR2 — a named POP with nothing stored "is unsuccessful"; <see cref="Apply"/> answers that, and
+/// <item>§2023:7.3.20.4 GR2 — a named POP with nothing stored "is unsuccessful"; <see cref="Apply"/> answers that, and
 /// <see cref="DirectiveSiteProcessor"/> is the one place that warns (<c>COBOL2297</c>).</item>
 /// </list>
 ///
@@ -114,7 +114,7 @@ public sealed class DirectiveStateStack
     }
 
     /// <summary>Apply one PUSH or POP. Returns false exactly when the op is a POP of a named directive whose state
-    /// was never stored, or was already restored — §7.3.20.4 GR2's unsuccessful POP. A POP ALL with nothing
+    /// was never stored, or was already restored — §2023:7.3.20.4 GR2's unsuccessful POP. A POP ALL with nothing
     /// stored restores nothing and returns false too; GR2 speaks of directive-name only, so callers warn only for
     /// a named POP.</summary>
     public bool Apply(DirectiveStackOp op)
@@ -191,11 +191,11 @@ public sealed class DirectiveEventLog<T>
 /// <para>For such a directive "the state" at a line is the fold of the events in effect there, so SAVING it is
 /// remembering how many of the row's events were in effect, and RESTORING it is revoking every one recorded since:
 /// an event is REVOKED at the POP line, and from that line on it is as though it had never been written — which is
-/// exactly §7.3.20.4 GR1's "the state … shall be restored". The events are never reordered or synthesized.</para>
+/// exactly §2023:7.3.20.4 GR1's "the state … shall be restored". The events are never reordered or synthesized.</para>
 ///
 /// <para>⛔ A timeline keeps its EVENTS and its OP PROGRAM, and its revocations are always a REPLAY of the one
 /// over the other through <see cref="DirectiveStateStack"/> — never patched. That is what lets a later phase add
-/// the PUSH/POP ops only it can see (<see cref="WithStackOps"/>): §14.9.28.4 GR14's implicit PUSH ALL / POP ALL
+/// the PUSH/POP ops only it can see (<see cref="WithStackOps"/>): §2023:14.9.28.4 GR14's implicit PUSH ALL / POP ALL
 /// around an exception-checking PERFORM's handlers are placed by the PARSE TREE, after every frontend stage has
 /// run, and they pair with the explicit ops on the same stacks (kb/Work PB1004; the conditional-compilation
 /// driver, which runs before any parse, receives the same ops by re-running — kb/Work PB1066).</para>
@@ -229,8 +229,8 @@ public sealed class DirectiveTimeline<T> : IReadOnlyList<T>
 
     /// <summary>Replay <paramref name="program"/> over <paramref name="entries"/> through ONE
     /// <see cref="DirectiveStateStack"/>, each row's events carried by its own carrier: a PUSH saves how many of
-    /// the row's events are in effect, a POP revokes those recorded since, at the POP's line (§7.3.22.4 GR1/GR2,
-    /// §7.3.20.4 GR1/GR3). Every op written BEFORE an event's line applies before it (the stages' own
+    /// the row's events are in effect, a POP revokes those recorded since, at the POP's line (§2023:7.3.22.4 GR1/GR2,
+    /// §2023:7.3.20.4 GR1/GR3). Every op written BEFORE an event's line applies before it (the stages' own
     /// <c>AdvanceTo</c> discipline); the ops after the last event apply too.</summary>
     internal static DirectiveTimeline<T> Replay(IReadOnlyList<Entry> entries, IReadOnlyList<DirectiveStackOp> program)
     {
@@ -269,8 +269,8 @@ public sealed class DirectiveTimeline<T> : IReadOnlyList<T>
     }
 
     /// <summary>Is event <paramref name="index"/> still in effect at a construct on <paramref name="siteLine"/>?
-    /// False from the line of the POP that restored the state saved before it (§7.3.20.4 GR1/GR3). An explicit
-    /// directive occupies its own line, so no construct shares an explicit POP's line; §14.9.28.4 GR14's implicit
+    /// False from the line of the POP that restored the state saved before it (§2023:7.3.20.4 GR1/GR3). An explicit
+    /// directive occupies its own line, so no construct shares an explicit POP's line; §2023:14.9.28.4 GR14's implicit
     /// POP ALL is placed at the END-PERFORM line, which the statements after END-PERFORM share.</summary>
     public bool InEffectAt(int index, int siteLine) => _revokedAt is null || siteLine < _revokedAt[index];
 

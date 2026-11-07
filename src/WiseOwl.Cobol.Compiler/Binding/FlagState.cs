@@ -5,10 +5,10 @@ using WiseOwl.Cobol.Frontend.Preprocessor;
 namespace WiseOwl.Cobol.Binding;
 
 /// <summary>
-/// The compile-time <c>&gt;&gt;FLAG-02</c> / <c>&gt;&gt;FLAG-14</c> resolution (ISO §7.3.14 / §7.3.15): the
+/// The compile-time <c>&gt;&gt;FLAG-02</c> / <c>&gt;&gt;FLAG-14</c> resolution (ISO §2023:7.3.14 / §2023:7.3.15): the
 /// source-ordered ON/OFF directive toggles, folded PER OPTION per source line so
 /// <see cref="Validation.FlagConformancePass"/> can decide whether a given option is flagging at a construct's
-/// line. Every option's default is OFF (§7.3.14.4 GR5 / §7.3.15.4 GR5). The fold is over events with
+/// line. Every option's default is OFF (§2023:7.3.14.4 GR5 / §2023:7.3.15.4 GR5). The fold is over events with
 /// <c>Line &lt; siteLine</c> — strict, because a directive occupies its own line and applies to the text that
 /// FOLLOWS it (the <c>&gt;&gt;TURN</c> GR2 discipline); the LAST toggle affecting the option wins.
 /// <c>ALL</c> (an event with an empty option list) fans out to every option of that directive — including an
@@ -26,7 +26,7 @@ public sealed class FlagState
     /// <summary>Build the state from the frontend's directive events (already syntax-checked by
     /// <see cref="FlagDirectiveProcessor"/>). Null/empty ⇒ the OFF default everywhere. A
     /// <see cref="DirectiveTimeline{T}"/> carries the PUSH/POP history: a POP-revoked toggle is skipped
-    /// (§7.3.20.4 GR1/GR3; kb/Work PB941).</summary>
+    /// (§2023:7.3.20.4 GR1/GR3; kb/Work PB941).</summary>
     public static FlagState Build(IReadOnlyList<FlagEvent>? events)
         => events is null || events.Count == 0 ? Empty : new FlagState(DirectiveTimeline<FlagEvent>.Of(events));
 

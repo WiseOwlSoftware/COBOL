@@ -5,20 +5,20 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO/IEC 1989:2023 §8.4.3.2 — a function-identifier written with FUNCTION-POINTER-NAME-1, the consumer
+      *> ISO/IEC 1989:2023 §2023:8.4.3.2 — a function-identifier written with FUNCTION-POINTER-NAME-1, the consumer
       *> SET Format 8 (kb/Work PB452) landed without. kb/Work PB847.
       *>
-      *> §8.4.3.2.2 — the function-identifier's name is function-pointer-name-1, function-prototype-name-1 or
-      *>   intrinsic-function-name-1; §8.4.3.2.3 SR4 — "Function-pointer-name-1 shall be defined as a
+      *> §2023:8.4.3.2.2 — the function-identifier's name is function-pointer-name-1, function-prototype-name-1 or
+      *>   intrinsic-function-name-1; §2023:8.4.3.2.3 SR4 — "Function-pointer-name-1 shall be defined as a
       *>   function-pointer data item"; SR2 — with function-pointer-name-1 "the word FUNCTION may be omitted";
       *>   SR5 — "If function-pointer-name-1 is specified, the parentheses shall be specified."
-      *> §8.4.3.2.4 GR1 — the result's description is that of the RETURNING item "of the function prototype
+      *> §2023:8.4.3.2.4 GR1 — the result's description is that of the RETURNING item "of the function prototype
       *>   identified by the TO phrase of the USAGE clause in the definition of function-pointer-name-1".
-      *> §8.4.3.2.4 GR4 — that prototype determines "the characteristics of the activated element", and GR6c —
+      *> §2023:8.4.3.2.4 GR4 — that prototype determines "the characteristics of the activated element", and GR6c —
       *>   "the runtime system attempts to execute the function at the address pointed to by
       *>   function-pointer-name-1. If function-pointer-name-1 is NULL, the EC-FUNCTION-PTR-NULL exception
       *>   condition is set to exist, no function is activated".
-      *> §14.9.39.4 GR14 — SET Format 8 stores a same-signature function's address; PBTRP has PBDBP's signature.
+      *> §2023:14.9.39.4 GR14 — SET Format 8 stores a same-signature function's address; PBTRP has PBDBP's signature.
       *>
       *> EXPECTED OUTPUT, derived line by line:
       *>   A=000000010  FP holds PBDBP's address; FUNCTION FP(5) activates it: 5 * 2.
@@ -26,11 +26,11 @@
       *>                the function the pointer HOLDS (GR6c), not the prototype its TO phrase names: 5 * 3.
       *>   C=IF         FP(2) = 6 in an IF condition (the per-evaluation activation path): 2 * 3 = 6.
       *>   D=3          PERFORM VARYING IA FROM 1 UNTIL FP(IA) > 7 — the condition is evaluated before each pass
-      *>                (§14.9.28.4), activating PBTRP each time: 3, 6, 9 — so the loop stops with IA = 3 (moved to I).
+      *>                (§2023:14.9.28.4), activating PBTRP each time: 3, 6, 9 — so the loop stops with IA = 3 (moved to I).
       *>   Z=000000077  FUNCTION FZ() — a zero-argument function through a pointer; SR5's parentheses written.
       *>   H: EC-FUNCTION-PTR-NULL  FP is SET TO NULL; FP(5) raises GR6c's condition (checking is ON), and the
       *>                declarative associated with it runs (GR6f), reporting it through EXCEPTION-STATUS …
-      *>   AFTER        … and RESUME AT NEXT STATEMENT continues after the statement that raised it (§14.9.33.4
+      *>   AFTER        … and RESUME AT NEXT STATEMENT continues after the statement that raised it (§2023:14.9.33.4
       *>                GR2 a) 2.).
        IDENTIFICATION DIVISION.
        FUNCTION-ID. PBDBP.

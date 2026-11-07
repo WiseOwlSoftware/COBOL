@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §8.8.4.3.3 SR1 — "Boolean-expression-1 shall reference only
+      *> ISO §2023:8.8.4.3.3 SR1 — "Boolean-expression-1 shall reference only
       *> boolean items of length 1." B8 is a boolean item of length 8
       *> (PICTURE 1(8)), so the simple boolean condition IF B8 violates
       *> the rule and shall be refused at compile time. Nothing else in

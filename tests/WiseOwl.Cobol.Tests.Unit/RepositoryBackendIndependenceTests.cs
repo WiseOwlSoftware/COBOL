@@ -14,8 +14,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ WHAT A MODULE PUBLISHES DOES NOT DEPEND ON THE BACKEND THAT WROTE IT (DESIGN-external-repository §17.4; kb/Work PB2100).
-/// The repository schema is metadata (ISO §8.13's information, as custom attributes, §6), so a direct-CIL backend must be able
-/// to publish what the Roslyn backend publishes. The renderer states every encoding rule of §6.2 once, as values
+/// The repository schema is metadata (ISO §2023:8.13's information, as custom attributes, §6), so a direct-CIL backend must be able
+/// to publish what the Roslyn backend publishes. The renderer states every encoding rule of §2023:6.2 once, as values
 /// (<see cref="AttributeApplication"/>); this fixture is the second backend: it writes those applications into a module with
 /// <see cref="MetadataBuilder"/> and the ECMA-335 custom-attribute encoders, on the same CLR shapes a module carries (a
 /// program's formals on a method's parameters and its returning item on the return value; a class's methods on its type's

@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// method, a reference described BASE, a universal reference) is the golden <c>2002/pb1548_standard_class_base</c>;
 /// the class-name refusal and the inline refusal are the negatives <c>pb1548-new-without-base</c> and
 /// <c>pb1548-inline-new-active-class</c>. These cases pin the arms the goldens do not reach: New refused through
-/// each OTHER §14.9.23.3 receiver rule, the REPOSITORY requirement, the §12.3.8.4 GR6 precedence of a group-defined
+/// each OTHER §2023:14.9.23.3 receiver rule, the REPOSITORY requirement, the §2023:12.3.8.4 GR6 precedence of a group-defined
 /// class named BASE, FactoryObject's override rules, and the runtime conformance of a universal New.
 /// </summary>
 public sealed class StandardClassBaseTests
@@ -38,7 +38,7 @@ public sealed class StandardClassBaseTests
         finally { ScratchDirectory.Remove(dir); }
     }
 
-    /// <summary>§14.9.23.3 SR4 f): SELF "New" in a factory method names a method of "the factory interface of the
+    /// <summary>§2023:14.9.23.3 SR4 f): SELF "New" in a factory method names a method of "the factory interface of the
     /// class containing the INVOKE statement" — which has no New unless the class inherits BASE.</summary>
     [Fact]
     public void SelfNew_InFactoryOfAClassWithoutBase_Is2448_Sr4f()
@@ -62,7 +62,7 @@ public sealed class StandardClassBaseTests
         EditionHarness.AssertHasDiagnostic(errors, "SR4 f)");
     }
 
-    /// <summary>§14.9.23.3 SR4 h): SUPER "New" in a factory method names a method of "the factory interface of a
+    /// <summary>§2023:14.9.23.3 SR4 h): SUPER "New" in a factory method names a method of "the factory interface of a
     /// class inherited by the class containing the INVOKE statement" — here a superclass that does not inherit
     /// BASE either.</summary>
     [Fact]
@@ -95,7 +95,7 @@ public sealed class StandardClassBaseTests
         EditionHarness.AssertHasDiagnostic(errors, "SR4 h)");
     }
 
-    /// <summary>§14.9.23.3 SR4 a): through a reference described FACTORY OF a class, literal-1 names "a method
+    /// <summary>§2023:14.9.23.3 SR4 a): through a reference described FACTORY OF a class, literal-1 names "a method
     /// contained in the factory interface of that object-class-name".</summary>
     [Fact]
     public void FactoryOfReferenceNew_OnAClassWithoutBase_Is2448_Sr4a()
@@ -125,7 +125,7 @@ public sealed class StandardClassBaseTests
         EditionHarness.AssertHasDiagnostic(errors, "SR4 a)");
     }
 
-    /// <summary>§14.9.23.3 SR4 c): through a reference described FACTORY OF ACTIVE-CLASS, literal-1 names "a method
+    /// <summary>§2023:14.9.23.3 SR4 c): through a reference described FACTORY OF ACTIVE-CLASS, literal-1 names "a method
     /// contained in the factory interface of the class containing the INVOKE statement" — no New without BASE.</summary>
     [Fact]
     public void FactoryOfActiveClassNew_InAClassWithoutBase_Is2448_Sr4c()
@@ -152,7 +152,7 @@ public sealed class StandardClassBaseTests
         EditionHarness.AssertHasDiagnostic(errors, "SR4 c)");
     }
 
-    /// <summary>§11.3.3 SR2 + §8.4.6.4: the standard class is reached like any other — INHERITS FROM BASE without
+    /// <summary>§2023:11.3.3 SR2 + §2023:8.4.6.4: the standard class is reached like any other — INHERITS FROM BASE without
     /// `CLASS BASE` in the REPOSITORY is COBOL0821, and the message names the missing entry.</summary>
     [Fact]
     public void InheritsFromBase_WithoutTheRepositoryEntry_Is0821_NamingTheStandardClass()
@@ -166,7 +166,7 @@ public sealed class StandardClassBaseTests
         EditionHarness.AssertHasDiagnostic(errors, "is the standard class BASE");
     }
 
-    /// <summary>§12.3.8.4 GR6 (implementor-defined — OoStandardClasses): a class DEFINED in the compilation group
+    /// <summary>§2023:12.3.8.4 GR6 (implementor-defined — OoStandardClasses): a class DEFINED in the compilation group
     /// under the name BASE is the one the group's specifiers mean. This one declares no New, so a subclass of it
     /// has none either — the standard class did not leak in behind it.</summary>
     [Fact]
@@ -202,7 +202,7 @@ public sealed class StandardClassBaseTests
         EditionHarness.AssertHasDiagnostic(errors, "COBOL2448");
     }
 
-    /// <summary>§16.2 gives both BASE methods a header with no USING phrase.</summary>
+    /// <summary>§2023:16.2 gives both BASE methods a header with no USING phrase.</summary>
     [Fact]
     public void New_WithUsingArguments_Is0826()
         => EditionHarness.AssertHasDiagnostic(ErrorsOf("""
@@ -230,8 +230,8 @@ public sealed class StandardClassBaseTests
             END CLASS SCB6.
             """), "COBOL0826");
 
-    /// <summary>FactoryObject is an inherited instance method of every BASE subclass (§9.3.9), so redefining it
-    /// without OVERRIDE is §11.7.3 SR4a's COBOL0837.</summary>
+    /// <summary>FactoryObject is an inherited instance method of every BASE subclass (§2023:9.3.9), so redefining it
+    /// without OVERRIDE is §2023:11.7.3 SR4a's COBOL0837.</summary>
     [Fact]
     public void FactoryObject_RedefinedWithoutOverride_Is0837()
         => EditionHarness.AssertHasDiagnostic(ErrorsOf("""
@@ -259,7 +259,7 @@ public sealed class StandardClassBaseTests
     /// New creates an object of the factory's class: the universal FactoryObject invocation on it dispatches to the
     /// subclass's override and answers the subclass's factory.
     /// <para>The receivers of the universal invocations are universal. A receiver described with the subclass does not
-    /// match BASE's New (§9.3.6 rule 6: its returning item is ACTIVE-CLASS in BASE, and §14.9.39.3 SR12 b) 2. relates
+    /// match BASE's New (§2023:9.3.6 rule 6: its returning item is ACTIVE-CLASS in BASE, and §2023:14.9.39.3 SR12 b) 2. relates
     /// the class containing it, BASE, to the receiver's class; kb/Work PB2463), which the next test pins.</para></summary>
     [Fact]
     public void FactoryObject_Override_AndUniversalNew_CreatesTheFactorysClass()
@@ -320,7 +320,7 @@ public sealed class StandardClassBaseTests
 
     /// <summary>A universal New into a typed receiving item stops the run unit, never an unchecked cast: BASE's New
     /// returns an ACTIVE-CLASS reference whose containing class is BASE, which SR12 b) 2. does not relate to the
-    /// receiver's class, so §9.3.6 rule 6 finds no matching method and the search ends in EC-OO-METHOD (§9.3.6
+    /// receiver's class, so §2023:9.3.6 rule 6 finds no matching method and the search ends in EC-OO-METHOD (§2023:9.3.6
     /// resolution step 6; kb/Work PB2463).</summary>
     [Fact]
     public void UniversalNew_IntoANonConformingTypedReceiver_StopsAtRunTime()

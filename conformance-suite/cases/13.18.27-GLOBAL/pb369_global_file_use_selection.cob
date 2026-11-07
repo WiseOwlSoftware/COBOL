@@ -5,18 +5,18 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.49.4 GR4 (FORMATS 1 AND 2), the Format-1 half: for an
+      *> ISO §2023:14.9.49.4 GR4 (FORMATS 1 AND 2), the Format-1 half: for an
       *> I-O exception raised by a statement in a contained program the
       *> declarative selected is a) the qualifying declarative in the
       *> source element that contains the statement, else b) a qualifying
       *> declarative with the GLOBAL attribute in the next inclusive
       *> directly containing source element, repeated outward (kb/Work
       *> PB369; the Format-2 half is pb369_global_report_use_selection).
-      *> GF is a GLOBAL file (§13.18.27.3 SR1 d)) whose OPEN INPUT fails:
+      *> GF is a GLOBAL file (§2023:13.18.27.3 SR1 d)) whose OPEN INPUT fails:
       *> the file does not exist and is not OPTIONAL, status 35.
       *>   PB369GFA: USE GLOBAL AFTER ERROR ON GF   -> "OUTER-GLOBAL"
       *>   PB369GFB (in A): its OWN USE AFTER ERROR ON GF (the inherited
-      *>     global file-name, §13.18.27.4 GR2)     -> "B-OWN"
+      *>     global file-name, §2023:13.18.27.4 GR2)     -> "B-OWN"
       *>   PB369GFC (in B): no declaratives.
       *> B's OPEN -> a) B's own beats A's GLOBAL one:      "B-OWN 35"
       *> C's OPEN -> B's is not GLOBAL, so b) goes to A:   "OUTER-GLOBAL 35"

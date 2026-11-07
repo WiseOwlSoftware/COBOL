@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.49.3 SR14 - "The same pair of exception-name-2 and file-name-2 shall not be
+      *> ISO §2023:14.9.49.3 SR14 - "The same pair of exception-name-2 and file-name-2 shall not be
       *> specified in more than one USE statement within the same procedure division." Two
       *> Format-3 USE statements in ONE procedure division each specify the pair
       *> (EC-I-O-AT-END, F1), so the pair is specified in more than one USE statement and the

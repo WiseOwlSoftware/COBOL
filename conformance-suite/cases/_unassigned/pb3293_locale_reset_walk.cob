@@ -12,11 +12,11 @@
       *>   cite.py --check 12.3.7.4 "When the LOCALE phrase is
       *>     specified, the collating sequence identified is defined
       *>     by the locale referenced by locale-name-2 when specified"
-      *>     -> OK §12.3.7.4 7) e)
+      *>     -> OK §2023:12.3.7.4 7) e)
       *>   cite.py --check 8.8.4.2.11 "Comparison then proceeds by the
       *>     algorithm associated with the collating sequence defined
       *>     by category LC_COLLATE from the current locale"
-      *>     -> OK §8.8.4.2.11
+      *>     -> OK §2023:8.8.4.2.11
       *> The locale ZP is "zh-u-co-pinyin": CLDR release-48-2 zh.xml,
       *> type pinyin, tailors the ideographs into pinyin order
       *> (qi U+4E03 < san U+4E09 < yi U+4E00) and LATER resets on

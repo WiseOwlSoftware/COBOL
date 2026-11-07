@@ -15,7 +15,7 @@ public interface IAppends<in T>
 /// <summary>The MID-BIND read of a <see cref="FactSet{T}"/>: "recorded so far". A fact recorded by an earlier statement's
 /// bind is visible to a later statement's and one recorded later is not, because the binder appends and reads in the
 /// order it binds; that statement-order visibility is the contract of this view, and a reader that needs the complete set
-/// holds <see cref="IReads{T}"/> instead (§8.3 (1)).</summary>
+/// holds <see cref="IReads{T}"/> instead (DESIGN-architecture-review §8.3 (1)).</summary>
 public interface IReadsEarly<in T>
 {
     /// <summary>True when <paramref name="fact"/> has been recorded at this point of binding.</summary>
@@ -23,7 +23,7 @@ public interface IReadsEarly<in T>
 }
 
 /// <summary>The WHOLE read of a <see cref="FactSet{T}"/>: every fact the set will ever hold. It is legal only after the
-/// last phase that appends to the set (§8.3 (1); <c>BindPipeline.ValidateDag</c> checks a pass's declared views against
+/// last phase that appends to the set (DESIGN-architecture-review §8.3 (1); <c>BindPipeline.ValidateDag</c> checks a pass's declared views against
 /// the phase order, kb/Work PB2352).</summary>
 public interface IReads<T> : IReadOnlyCollection<T>
 {
@@ -31,7 +31,7 @@ public interface IReads<T> : IReadOnlyCollection<T>
     bool Contains(T fact);
 }
 
-/// <summary>One APPEND-ONLY fact set of <see cref="DataBindState"/> (§8.3 (1)): facts that accumulate across bind phases,
+/// <summary>One APPEND-ONLY fact set of <see cref="DataBindState"/> (DESIGN-architecture-review §8.3 (1)): facts that accumulate across bind phases,
 /// which no single-producer value slice can hold. It admits no removal and no reset, so a fact once recorded stays
 /// recorded; each view (<see cref="IAppends{T}"/>, <see cref="IReadsEarly{T}"/>, <see cref="IReads{T}"/>) is the one
 /// thing its holder may do with the set.</summary>

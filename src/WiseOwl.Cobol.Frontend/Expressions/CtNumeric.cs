@@ -8,11 +8,11 @@ namespace WiseOwl.Cobol.Frontend.Expressions;
 
 /// <summary>
 /// The compile-time NUMERIC VALUE CARRIER (kb/Work PB1592): every numeric compile-time value — a numeric literal, a
-/// compilation-variable or constant-name value, an intermediate or final result of a §7.3.6 compile-time arithmetic
+/// compilation-variable or constant-name value, an intermediate or final result of a §2023:7.3.6 compile-time arithmetic
 /// expression — is a <see cref="CobolDec"/>, an exact significand × 10^exponent with the SDIDI's 34-digit precision
-/// and decimal128 range (ISO §8.8.1.5.2). The carrier is NOT an arithmetic mode: it holds every valid fixed-point
-/// literal (at most 31 digits, §8.3.3.3.2) exactly, and every value either mode of <see cref="CompileTimeArithmetic"/>
-/// produces, so a single literal (§7.3.11.4 GR5 — "treated as a literal, not as an arithmetic-expression") keeps its
+/// and decimal128 range (ISO §2023:8.8.1.5.2). The carrier is NOT an arithmetic mode: it holds every valid fixed-point
+/// literal (at most 31 digits, §2023:8.3.3.3.2) exactly, and every value either mode of <see cref="CompileTimeArithmetic"/>
+/// produces, so a single literal (§2023:7.3.11.4 GR5 — "treated as a literal, not as an arithmetic-expression") keeps its
 /// value whatever the edition's arithmetic mode is, and only a value that ENTERS an arithmetic expression meets the
 /// mode's own range (<see cref="CompileTimeArithmetic.Enter"/>).
 /// <para>This class holds the carrier's mode-independent facts — parse, integer part, digit count, text, hash — so
@@ -23,9 +23,9 @@ public static class CtNumeric
     /// <summary>The carrier value of a canonical (dot-decimal) numeric literal of either form, through the ONE exact
     /// literal parser (<see cref="NumericLiteral.TryParseExact"/>) and the SDIDI's one rounding funnel. Exact for
     /// every significand of at most 34 digits — every fixed-point literal; only a 35- or 36-digit floating-point
-    /// significand (§8.3.3.3.3) rounds, and such a literal reaches the carrier only as a constant entry's sole
+    /// significand (§2023:8.3.3.3.3) rounds, and such a literal reaches the carrier only as a constant entry's sole
     /// operand, whose value is carried by its TEXT. False when the text is not a numeric literal or its value lies
-    /// outside the decimal128 range (§8.8.1.5.2 r2).</summary>
+    /// outside the decimal128 range (§2023:8.8.1.5.2 r2).</summary>
     public static bool TryParseLiteral(string canonicalText, out CobolDec value)
     {
         value = default;
@@ -69,7 +69,7 @@ public static class CtNumeric
     /// the truncating transfer drops no nonzero digit of an integer.</summary>
     public static Int128 ToInt128(CobolDec integer) => integer.ToUnscaledChecked(0, CobolRounding.Truncation);
 
-    /// <summary>The integer-literal text of an integer value as <see cref="CobolDec.TruncateToInteger"/> returns it (§7.3.6.3 GR3:
+    /// <summary>The integer-literal text of an integer value as <see cref="CobolDec.TruncateToInteger"/> returns it (§2023:7.3.6.3 GR3:
     /// "the resultant value shall be considered to be an integer numeric literal") — sign, digits, no point; zero is
     /// <c>0</c>.</summary>
     public static string ToIntegerText(CobolDec integer)

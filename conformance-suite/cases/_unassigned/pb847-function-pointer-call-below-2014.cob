@@ -4,8 +4,8 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO/IEC 1989:2023 §8.4.3.2 - a function-identifier through function-pointer-name-1 needs a
-      *> FUNCTION-POINTER item, a COBOL-2014 usage (§13.18.60.4 GR26). kb/Work PB847 gave the reference its
+      *> ISO/IEC 1989:2023 §2023:8.4.3.2 - a function-identifier through function-pointer-name-1 needs a
+      *> FUNCTION-POINTER item, a COBOL-2014 usage (§2023:13.18.60.4 GR26). kb/Work PB847 gave the reference its
       *> binder arm; this pins that the arm does not make the construct available below the edition that
       *> introduced the usage - the introduction gate still names it.
        IDENTIFICATION DIVISION.

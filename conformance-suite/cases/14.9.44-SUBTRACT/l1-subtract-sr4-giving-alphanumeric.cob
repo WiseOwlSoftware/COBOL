@@ -4,12 +4,12 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.44.3 SR4 (FORMAT 2) — "Identifier-3 shall reference
+      *> ISO §2023:14.9.44.3 SR4 (FORMAT 2) — "Identifier-3 shall reference
       *> a numeric data item or a numeric-edited data item."
       *> THE REJECTING HALF of a two-category admission.  XG is
-      *> described PIC X(4), which §8.5.2.3 makes a data item of
-      *> category ALPHANUMERIC; it is on neither §8.5.2.12's list of
-      *> numeric data items nor §8.5.2.13's list of numeric-edited
+      *> described PIC X(4), which §2023:8.5.2.3 makes a data item of
+      *> category ALPHANUMERIC; it is on neither §2023:8.5.2.12's list of
+      *> numeric data items nor §2023:8.5.2.13's list of numeric-edited
       *> ones, so it is outside both alternatives SR4 offers and
       *> `SUBTRACT 1 FROM 20 GIVING XG` is illegal.
       *> Literal-1 and literal-2 are numeric literals, so SR3 holds

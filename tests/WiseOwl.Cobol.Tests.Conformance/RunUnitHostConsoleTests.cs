@@ -13,13 +13,13 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// DOC-A.1-167), which set UTF-8 there (DOC-A.1-59; kb/Work PB59, PB899). Under a host, the standard display device
 /// is the host's standard output exactly as the host configured it (DOC-A.1-59), and the run unit only writes to it.
 /// This is the console twin of <see cref="RunUnitHostExitCodeTests"/> (kb/Work PB3163), and the rule behind both is
-/// §14.6.1's "A run unit is an independent entity that may be executed without communicating with, or being
+/// §2023:14.6.1's "A run unit is an independent entity that may be executed without communicating with, or being
 /// coordinated with, any other run unit": a run unit that rewrote a process-wide cell would coordinate with the host
 /// through it.
 /// <para>The host is a real C# program compiled with Roslyn and run as its own process. It first gives its console an
 /// encoding of its own (ISO 8859-1, code page 28591), then installs its OWN writers for standard output and standard
 /// error, then activates a program through its generated host entry (<c>Cobol.HCDISP.HCDISP.Call</c>,
-/// DESIGN-external-repository §4.3, the one host surface of §4.4) that DISPLAYs wide characters
+/// DESIGN-external-repository §4.3, the one host surface of §2023:4.4) that DISPLAYs wide characters
 /// on the standard display device and UPON SYSERR. Expected, derived: the host's two writers and its encoding are all
 /// still in force afterwards, and each DISPLAY reached the host's writer for its device, every character intact
 /// (a writer holds UTF-16, so nothing is encoded on the way). Before the fix the run unit's first activation set

@@ -8,13 +8,13 @@
       *>---
       *> kb/Work PB994 - SORT AND MERGE USE AND GIVE RELATIVE AND INDEXED FILES.
       *>   cite.py --check 14.9.40.3 "If file-name-2 references a relative or an indexed file, its access mode shall
-      *>     be sequential or dynamic." -> OK §14.9.40.3 12)  (the keyed files are legal operands)
+      *>     be sequential or dynamic." -> OK §2023:14.9.40.3 12)  (the keyed files are legal operands)
       *>   cite.py --check 14.9.40.4 "For a relative file, the relative key data item for the first record returned
-      *>     has the value 1; for the second record returned, the value 2; etc." -> OK §14.9.40.4 15)
+      *>     has the value 1; for the second record returned, the value 2; etc." -> OK §2023:14.9.40.4 15)
       *>   cite.py --check 14.9.40.3 "If file-name-3 references an indexed file, the first specification of
       *>     data-name-1 shall be associated with an ASCENDING phrase and the data item referenced by that data-name-1
       *>     shall begin at the same byte location within its record and occupy the same number of bytes as the prime
-      *>     record key for that file." -> OK §14.9.40.3 9)
+      *>     record key for that file." -> OK §2023:14.9.40.3 9)
       *> The binder used to refuse every relative or indexed USING / GIVING file as "the G5 keyed slice". IXF and RLG are
       *> ACCESS DYNAMIC and RLF, IXH and RLH SEQUENTIAL: both modes SR12 admits for a USING file, in both roles.
       *> WHY EACH LEG CAN FAIL (expected values derived from the rules):
@@ -22,7 +22,7 @@
       *>      ascending relative record number: C3xx, A1yy, B2zz. IXF's prime key IK is bytes 1-2, the same bytes as
       *>      SK, and the first key is ASCENDING (SR9), so the records are written in prime-key order and a sequential
       *>      read of IXF returns A1yy, B2zz, C3xx.
-      *>   2  SORT DESCENDING KEY SK USING IXF GIVING RLG. IXF is read in prime-key order (GR12 b, §12.4.5.5.3 GR2 c);
+      *>   2  SORT DESCENDING KEY SK USING IXF GIVING RLG. IXF is read in prime-key order (GR12 b, §2023:12.4.5.5.3 GR2 c);
       *>      the sorted order is C3xx, B2zz, A1yy, and RLG (ACCESS DYNAMIC) receives them as relative records 1, 2,
       *>      3 (GR15 b): REL 01 C3xx, REL 02 B2zz, REL 03 A1yy, and after the statement the relative key data item
       *>      "indicates the last record returned": RK2 = 03.

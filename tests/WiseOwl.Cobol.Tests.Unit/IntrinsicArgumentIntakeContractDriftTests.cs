@@ -88,7 +88,7 @@ public sealed class IntrinsicArgumentIntakeContractDriftTests
         // ⛔ A RUN MUST ASSERT ITS POPULATION (feedback_verdict_evidence_invariant): if the member regex ever
         // stops matching, an empty set would pass this test silently and the contract would be unguarded.
         // Eight since kb/Work PB651: Arg, LeadArg and the lane predicates read the indexed operands through RawArg (the
-        // one entry that takes a §15.3 type-6 operand's integer), so they no longer call num.AsNum themselves.
+        // one entry that takes a §2023:15.3 type-6 operand's integer), so they no longer call num.AsNum themselves.
         Assert.True(intakes.Count >= 8,
             $"expected at least 8 argument intakes in IntrinsicRenderer, found {intakes.Count} " +
             $"([{string.Join(", ", intakes.Select(m => m.Name))}]) — the member scan is blind");
@@ -112,7 +112,7 @@ public sealed class IntrinsicArgumentIntakeContractDriftTests
 
     /// <summary>
     /// ⛔ THE ONE INTAKE THAT CAN CHANGE A VALUE STAYS NAMED AS SUCH. <c>Arg</c> is the only intake that lands an
-    /// SDIDI operand at a compile-time working scale, and PB251's defect was a function whose §15.67.4 r1 value
+    /// SDIDI operand at a compile-time working scale, and PB251's defect was a function whose §2023:15.67.4 r1 value
     /// the definition FIXES being materialized through a receiver-derived scale. If <c>Arg</c> ever stops being
     /// LANDED, or a second member acquires that class, the reasoning above it has to be redone.
     /// </summary>
@@ -128,10 +128,10 @@ public sealed class IntrinsicArgumentIntakeContractDriftTests
     }
 
     /// <summary>
-    /// ⛔ THE NUMVAL FAMILY DOES NOT REACH THE LANDING INTAKE AT ALL. §15.67.4 r1 / §15.68.4 r1 fix the returned
-    /// value with no arithmetic-mode qualification, and §15.4.1's implementor latitude reaches only a function
+    /// ⛔ THE NUMVAL FAMILY DOES NOT REACH THE LANDING INTAKE AT ALL. §2023:15.67.4 r1 / §2023:15.68.4 r1 fix the returned
+    /// value with no arithmetic-mode qualification, and §2023:15.4.1's implementor latitude reaches only a function
     /// whose definition does NOT otherwise specify it — so NUMVAL and NUMVAL-C render on the SDIDI carrier in
-    /// EVERY mode and no compile-time working scale exists for them. NUMVAL-F (§15.69.4 r2's approximation licence,
+    /// EVERY mode and no compile-time working scale exists for them. NUMVAL-F (§2023:15.69.4 r2's approximation licence,
     /// resolved to the exact parse by kb/Work PB3839) joins them. This asserts the shape that makes that true:
     /// their dispatch stands BEFORE the arithmetic-mode branch, and no <c>WorkingScale</c> call is left in the
     /// renderer at all. (A working scale in this file is what truncated
@@ -145,10 +145,10 @@ public sealed class IntrinsicArgumentIntakeContractDriftTests
 
         int fixedArm = src.IndexOf("IntrinsicCarrierRules.ReturnsExactParse(sig.Name) && RenderDec(ic)", StringComparison.Ordinal);
         int modeBranch = src.IndexOf("if (num.StandardDecimal)", StringComparison.Ordinal);
-        Assert.True(fixedArm > 0, "the §15.4.1 exact-parse arm is gone from IntrinsicRenderer");
+        Assert.True(fixedArm > 0, "the §2023:15.4.1 exact-parse arm is gone from IntrinsicRenderer");
         Assert.True(modeBranch > 0, "IntrinsicRenderer no longer branches on the arithmetic mode");
         Assert.True(fixedArm < modeBranch,
-            "the NUMVAL/NUMVAL-C/NUMVAL-F arm must run BEFORE the arithmetic-mode dispatch — §15.67.4 r1 carries no mode "
+            "the NUMVAL/NUMVAL-C/NUMVAL-F arm must run BEFORE the arithmetic-mode dispatch — §2023:15.67.4 r1 carries no mode "
             + "qualification, so putting it inside the standard branch is the PB251 defect returning");
     }
 }

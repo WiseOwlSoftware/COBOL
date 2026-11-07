@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
       *> RECORD ... DEPENDING ON A GROUP, A SIGNED ITEM AND A NON-INTEGER (kb/Work PB858).
-      *> ISO/IEC 1989:2023 §13.18.43.3 SR6: "Data-name-1 shall describe an elementary
+      *> ISO/IEC 1989:2023 §2023:13.18.43.3 SR6: "Data-name-1 shall describe an elementary
       *> unsigned integer in the working-storage, local-storage, or linkage section."
       *> Each item is in working-storage, so only the first two obligations are asked:
       *> W-GRP is a group (not elementary), W-SGN is signed, W-DEC has a decimal place.

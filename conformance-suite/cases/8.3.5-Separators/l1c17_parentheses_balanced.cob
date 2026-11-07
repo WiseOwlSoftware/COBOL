@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §8.3.5 4) — parentheses: separators, balanced, delimiting
+      *> ISO §2023:8.3.5 4) — parentheses: separators, balanced, delimiting
       *> "Except when appearing in a picture character-string, the
       *>  COBOL characters right parenthesis and left parenthesis are
       *>  separators. Except in pseudo-text, parentheses may appear
@@ -17,7 +17,7 @@
       *>   appear only in balanced pairs of left and right parentheses
       *>   delimiting subscripts, a list of function or method
       *>   arguments, a reference modifier, arithmetic or boolean
-      *>   expressions, or conditions." -> OK §8.3.5 4)
+      *>   expressions, or conditions." -> OK §2023:8.3.5 4)
       *> Every legal context the rule names that exists in COBOL 85 is
       *> exercised (boolean expressions and methods arrive in 2002);
       *> the rejection half is pinned by the negatives

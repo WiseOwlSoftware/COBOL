@@ -5,20 +5,20 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §8.4.2.3.3 SR1 — the subscripted name is an ordinary qualified name (§8.4.2.2)
+      *> ISO §2023:8.4.2.3.3 SR1 — the subscripted name is an ordinary qualified name (§2023:8.4.2.2)
       *>
-      *> THE RULE. §8.4.2.3.3 1): "Qualified-data-name-1 and qualified-condition-name-1 are
+      *> THE RULE. §2023:8.4.2.3.3 1): "Qualified-data-name-1 and qualified-condition-name-1 are
       *> defined in 8.4.2.2, Qualification."
-      *>   cite.py: OK  §8.4.2.3.3 1)  (Syntax rules)
-      *> §8.4.2.3.2 prints the formats as "qualified-data-name-1 [ ( subscript ... ) ]" and
+      *>   cite.py: OK  §2023:8.4.2.3.3 1)  (Syntax rules)
+      *> §2023:8.4.2.3.2 prints the formats as "qualified-data-name-1 [ ( subscript ... ) ]" and
       *> "qualified-condition-name-1 [ ( subscript ... ) ]": the qualifiers (OF/IN) are
       *> written BEFORE the subscripts, and a subscript is an arithmetic expression, whose
-      *> identifier may itself be a qualified name. §8.4.2.2 lets a name be qualified by
+      *> identifier may itself be a qualified name. §2023:8.4.2.2 lets a name be qualified by
       *> any higher-level name that makes it unique (CA OF G2 skips the level of E).
-      *>   cite.py: OK  §8.4.2.3.2   (General format)
+      *>   cite.py: OK  §2023:8.4.2.3.2   (General format)
       *>
       *> G1 and G2 both contain a table E (with condition-name CA) and a counter W, so
-      *> every unqualified E, CA or W is ambiguous; only the §8.4.2.2 qualification picks
+      *> every unqualified E, CA or W is ambiguous; only the §2023:8.4.2.2 qualification picks
       *> the table and the subscript.
       *>
       *> DERIVATION of every expected line:

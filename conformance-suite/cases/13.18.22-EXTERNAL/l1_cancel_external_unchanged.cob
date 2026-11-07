@@ -5,26 +5,26 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.5.4 8 — "The contents of data items in external data records described by a program are not
+      *> ISO §2023:14.9.5.4 8 — "The contents of data items in external data records described by a program are not
       *> changed when that program is canceled."  DERIVED FROM THE RULE TEXT, and corroborated by a second,
-      *> independent clause: §14.6.2.3.3 says "Static and external data are the only data that are in the
+      *> independent clause: §2023:14.6.2.3.3 says "Static and external data are the only data that are in the
       *> last-used state.  External data is always in the last-used state except when the run unit is
       *> activated." — a CANCEL is not a run-unit activation, so external data keeps its contents across one.
       *> THE DISCRIMINATOR.  The same CANCEL that must LEAVE the external record alone must RESET the canceled
-      *> program's own working-storage: §13.5.4 1) makes "Data items in the working-storage section of a
-      *> program that does not have the initial attribute ... static data", and §14.6.2.3.2 3) places static
+      *> program's own working-storage: §2023:13.5.4 1) makes "Data items in the working-storage section of a
+      *> program that does not have the initial attribute ... static data", and §2023:14.6.2.3.2 3) places static
       *> data in the initial state "The first time the program in which it is described is activated after the
       *> execution of a CANCEL statement referencing the program", where step 2 re-applies the VALUE clause.
       *> So the two storages must PART COMPANY at the CANCEL, and both halves are measured here in one run.
       *> Without the counter half this golden would be vacuous: an implementation that ignored the CANCEL
       *> entirely would also leave the external record untouched and would read as GR8-conforming.
-      *> THE SHARING.  §13.18.22.1: "The constituent data items and group data items of an external data record
+      *> THE SHARING.  §2023:13.18.22.1: "The constituent data items and group data items of an external data record
       *> are available in a run unit to every runtime element that describes the record as external."  The two
-      *> descriptions carry the same externalized name and define the same number of bytes, as §13.18.22.4 6)
+      *> descriptions carry the same externalized name and define the same number of bytes, as §2023:13.18.22.4 6)
       *> requires; that rule does not constrain the SUBORDINATE data-names, so they are deliberately different
       *> here — MAIN writes through L1X-MAIN and the sub reads and writes through L1X-SUB, which is itself the
       *> evidence that one run-unit storage, not two look-alike copies, is in play.
-      *> Sequencing note: the sub has returned (GOBACK) before the CANCEL, so §14.9.5.4 5's active-state
+      *> Sequencing note: the sub has returned (GOBACK) before the CANCEL, so §2023:14.9.5.4 5's active-state
       *> prohibition is not engaged and GR3's "in its initial state" applies to the following CALL.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1XCN01.

@@ -3,28 +3,28 @@
 namespace WiseOwl.Cobol.Runtime;
 
 /// <summary>
-/// The <c>USAGE BIT</c> record-image codec (ISO §13.18.60.4 GR5 "bits shall be used"; §8.5.1.6.3 alignment;
+/// The <c>USAGE BIT</c> record-image codec (ISO §2023:13.18.60.4 GR5 "bits shall be used"; §2023:8.5.1.6.3 alignment;
 /// design D19, fix-queue PB43).
 ///
 /// <para><b>Two representations, one value.</b> A boolean item's VALUE carrier is a <c>'0'</c>/<c>'1'</c> string —
 /// one character per boolean position — for BOTH usages, because every MOVE / compare / ref-mod / fill path is
-/// character-shaped and §13.18.40.4 GR14 lets a boolean character be represented as an alphanumeric character. What
+/// character-shaped and §2023:13.18.40.4 GR14 lets a boolean character be represented as an alphanumeric character. What
 /// differs is what the item OCCUPIES in a record image:</para>
 /// <list type="bullet">
-///   <item><b>USAGE DISPLAY</b> (implied when no USAGE clause is written, §13.18.60.3 SR13(b)) — the carrier IS the
-///         image, one character per position, per §13.18.60.4 GR7's "alphanumeric coded character set". These
+///   <item><b>USAGE DISPLAY</b> (implied when no USAGE clause is written, §2023:13.18.60.3 SR13(b)) — the carrier IS the
+///         image, one character per position, per §2023:13.18.60.4 GR7's "alphanumeric coded character set". These
 ///         helpers are never called for it.</item>
 ///   <item><b>USAGE BIT</b> — the image is the PACKED bits, <c>ceil(n / 8)</c> characters. That is what these
 ///         helpers do.</item>
 /// </list>
 ///
-/// <para>⛔ <b>THE BIT ORDER IS HIGH-ORDER-FIRST, AND IT IS NOT ARBITRARY.</b> §8.5.1.6.3 speaks throughout of
+/// <para>⛔ <b>THE BIT ORDER IS HIGH-ORDER-FIRST, AND IT IS NOT ARBITRARY.</b> §2023:8.5.1.6.3 speaks throughout of
 /// "the first bit position of the first available byte" and lays successive items at "the next bit position", so
 /// boolean position 1 is the most significant bit of the first byte and the run fills toward the low-order end.
-/// A trailing partial byte is zero-filled — those are §8.5.1.6.3's implicit filler bits, which §15.50.4 r5
+/// A trailing partial byte is zero-filled — those are §2023:8.5.1.6.3's implicit filler bits, which §2023:15.50.4 r5
 /// requires be counted in the length (and they are: the width is the ceiling).</para>
 ///
-/// <para>⚠ <b>A run may span several ITEMS.</b> Two bit items of the SAME LEVEL share a byte (§8.5.1.6.3's
+/// <para>⚠ <b>A run may span several ITEMS.</b> Two bit items of the SAME LEVEL share a byte (§2023:8.5.1.6.3's
 /// next-bit-position rule), so the emitter concatenates their carriers and packs ONCE — which is why these take a
 /// whole run's bits rather than one item's.</para>
 /// </summary>
@@ -34,10 +34,10 @@ public static class CobolBits
 
     /// <summary>Pack a run's <c>'0'</c>/<c>'1'</c> carrier into its record image — <c>ceil(count / 8)</c>
     /// characters, high-order bit first, trailing filler bits zero. Any character other than <c>'1'</c> reads as
-    /// zero, which makes a space-padded or uninitialized carrier decode as the all-zero boolean value §13.18.63
+    /// zero, which makes a space-padded or uninitialized carrier decode as the all-zero boolean value §2023:13.18.63
     /// gives it rather than throwing.</summary>
     /// <summary>Pack EVERY boolean position the carrier holds — the count is <paramref name="bits"/>.Length.
-    /// The shape a REFERENCE-MODIFIED usage-bit operand needs: ISO/IEC 1989:2023 §8.4.3.3.4 GR5c gives the slice
+    /// The shape a REFERENCE-MODIFIED usage-bit operand needs: ISO/IEC 1989:2023 §2023:8.4.3.3.4 GR5c gives the slice
     /// its own position count, which may be a runtime expression, so the caller never has to re-derive it (and
     /// a second evaluation of the slice expression is exactly what this overload avoids).</summary>
     public static string Pack(string bits) => Pack(bits, bits.Length);
@@ -61,13 +61,13 @@ public static class CobolBits
 
     /// <summary>
     /// Read <paramref name="count"/> boolean positions starting at ABSOLUTE bit position
-    /// <paramref name="startBit"/> of a byte image — the §13.18.44.4 GR1 storage association read for a bit
+    /// <paramref name="startBit"/> of a byte image — the §2023:13.18.44.4 GR1 storage association read for a bit
     /// item that shares its storage area with other data descriptions ("Storage association for the subject of
     /// the entry starts at the first BIT of the data item referenced by data-name-2 and continues over an area
     /// sufficient to contain the number of BITS required"). <see cref="Unpack"/> is the
     /// <paramref name="startBit"/> = 0 case.
     /// <para>A position past the end of the image yields <c>'0'</c>, the same benign decode a short record's
-    /// pad gets — §13.18.63's all-zero boolean initial state rather than a throw.</para>
+    /// pad gets — §2023:13.18.63's all-zero boolean initial state rather than a throw.</para>
     /// </summary>
     public static string ReadWindow(string image, int startBit, int count)
     {
@@ -85,7 +85,7 @@ public static class CobolBits
     /// Splice <paramref name="bits"/> into <paramref name="image"/> starting at ABSOLUTE bit position
     /// <paramref name="startBit"/>, returning the new image and leaving EVERY OTHER BIT of it untouched — the
     /// receiving twin of <see cref="ReadWindow"/>, and the reason a sub-byte bit item can share a byte with its
-    /// siblings (§8.5.1.6.3: "an elementary bit data item immediately following an elementary bit data item or
+    /// siblings (§2023:8.5.1.6.3: "an elementary bit data item immediately following an elementary bit data item or
     /// bit group item of the same level" is placed "at the next bit position in storage"). A write that would
     /// run past the image stops at its end — the same truncation a short window gets everywhere else.
     /// </summary>
@@ -99,7 +99,7 @@ public static class CobolBits
     /// <summary>
     /// <see cref="WriteWindow"/> into a record image held in a mutable <paramref name="buffer"/>: splice
     /// <paramref name="bits"/> at ABSOLUTE bit position <paramref name="startBit"/>, leaving every other bit untouched
-    /// (§8.5.1.6.3's shared byte). A .NET host entry's published record composes its image member by member in one
+    /// (§2023:8.5.1.6.3's shared byte). A .NET host entry's published record composes its image member by member in one
     /// buffer (DESIGN-external-repository §4.3), so a bit member is written in place rather than through a new string
     /// per member; the bit-order law is the same <see cref="Blit"/>.
     /// </summary>
@@ -131,13 +131,13 @@ public static class CobolBits
 
     /// <summary>The carrier of a TABLE of bit occurrences whose occurrences sit <paramref name="stride"/> bits apart:
     /// each occurrence's own carrier, padded with zero filler bits to <paramref name="stride"/> except the last —
-    /// §13.18.1.4 GR2 ("An ALIGNED clause specified for a multiple-occurrence data item applies to each occurrence of
+    /// §2023:13.18.1.4 GR2 ("An ALIGNED clause specified for a multiple-occurrence data item applies to each occurrence of
     /// that item") puts the subject, or an ALIGNED member, of every occurrence at the first bit of a byte, so the
-    /// occurrences are a whole number of bytes apart (<c>BitLayout.StrideBits</c>, kb/Work PB3167), and §8.5.1.6.3
+    /// occurrences are a whole number of bytes apart (<c>BitLayout.StrideBits</c>, kb/Work PB3167), and §2023:8.5.1.6.3
     /// generates filler only "as needed to advance alignment to a required natural boundary for the next item", so the
     /// last occurrence has none after it (<c>BitLayout.TableBits</c>). With every occurrence exactly
     /// <paramref name="stride"/> bits wide (a table packed bit by bit) it is the plain concatenation.
-    /// <para>The padding is the table's STORED implicit filler (§8.5.1.6.3 "implicitly described as a filler elementary bit
+    /// <para>The padding is the table's STORED implicit filler (§2023:8.5.1.6.3 "implicitly described as a filler elementary bit
     /// data item"; kb/Work PB3564): <paramref name="pads"/> holds the <c>stride − width</c> positions that follow each
     /// occurrence but the last, one gap after another, as <see cref="StridePads"/> reads them back — so what a group move
     /// wrote there is what the next read of the group gives. A pad string shorter than a gap reads zero beyond its end.</para></summary>
@@ -169,7 +169,7 @@ public static class CobolBits
     /// <summary>The UTF-16BE byte serialization of a NATIONAL string — one char per BYTE, two bytes (high-order
     /// first) per national position (D-N1: national is UTF-16, one code unit per character position). ⛔ THE ONE
     /// national→bytes reduction: <c>CobolIntrinsics.Convert</c>'s NAT source arm and the compiler-emitted CONVERT
-    /// ANY raw-storage channel (a national leaf's storage bits, §15.19.3 r7) both ride it — never a second
+    /// ANY raw-storage channel (a national leaf's storage bits, §2023:15.19.3 r7) both ride it — never a second
     /// serializer (fix-queue PB59 family 5b). Not a BIT codec, but it lives here because this class is where the
     /// storage-byte reductions are: the char==byte string convention is <see cref="Pack"/>'s.</summary>
     public static string NatBytes(string s)
@@ -190,7 +190,7 @@ public static class CobolBits
         buf[at + 1] = StorageByte.ToChar((byte)c);
     }
 
-    /// <summary>Bytes per national character position — ISO §13.18.60.4 GR8 leaves the size to the implementor
+    /// <summary>Bytes per national character position — ISO §2023:13.18.60.4 GR8 leaves the size to the implementor
     /// ("National characters shall be represented in the storage of the computer as characters of a uniform size
     /// equal to or a multiple of the size of characters in the computer's alphanumeric character set. Each
     /// implementor shall specify the size and representation of characters stored for usage NATIONAL") and
@@ -202,11 +202,11 @@ public static class CobolBits
     /// positions from the UTF-16BE byte pairs at <paramref name="startByte"/> of a byte image (char==byte). A
     /// pair that runs past the end of the image decodes as the national SPACE — the same benign short-window
     /// decode <see cref="ReadWindow"/> gives a bit run, never a throw (a shared storage area may legitimately be
-    /// shorter than a view over it, §13.18.44.4 GR1's larger-of-the-two allocation notwithstanding, and a BASED
+    /// shorter than a view over it, §2023:13.18.44.4 GR1's larger-of-the-two allocation notwithstanding, and a BASED
     /// window over a hand-sized ALLOCATE is the reachable case).
     /// <para>⛔ A position holding a character with no byte image (an alphanumeric item may hold any UTF-16 code unit,
     /// DOC-A.1-31) reads through <see cref="StorageByte.ImageByte"/>: the byte is <c>?</c> and EC-DATA-CONVERSION is
-    /// set (§8.1.2 1: every character of the alphanumeric coded character set occupies the same number of bytes, so
+    /// set (§2023:8.1.2 1: every character of the alphanumeric coded character set occupies the same number of bytes, so
     /// the storage image of one that cannot is decided once, DOC-A.1-33) — never the code unit's truncated low-order
     /// byte, which turned U+20AC into U+00AC through a national REDEFINES view (kb/Work PB547).</para></summary>
     public static string NatReadWindow(string image, int startByte, int positions)
@@ -225,7 +225,7 @@ public static class CobolBits
     /// <summary>The receiving twin of <see cref="NatReadWindow"/>: splice <paramref name="value"/>, fitted to
     /// exactly <paramref name="positions"/> national positions, into <paramref name="image"/> as UTF-16BE byte
     /// pairs starting at <paramref name="startByte"/>, leaving every other byte of the image untouched (ISO
-    /// §13.18.44.4 GR1 — the shared area is one storage area and a write through one view must not disturb the
+    /// §2023:13.18.44.4 GR1 — the shared area is one storage area and a write through one view must not disturb the
     /// bytes of another). Fitting happens in POSITIONS, before serialization: padding the BYTES with 0x20 would
     /// manufacture U+2020 national characters instead of national spaces.</summary>
     public static string NatWriteWindow(string image, int startByte, int positions, string value)
@@ -242,10 +242,10 @@ public static class CobolBits
     }
 
     /// <summary>The national CONTENT a whole storage image becomes in a receiver whose length is the content's — a
-    /// dynamic-length national item (ISO §8.5.1.10.4: "The new length of the dynamic-length elementary item is
+    /// dynamic-length national item (ISO §2023:8.5.1.10.4: "The new length of the dynamic-length elementary item is
     /// determined by the length of new content"). The image's UTF-16BE pairs decode as <see cref="NatReadWindow"/>
     /// decodes them; an ODD byte count cannot be whole national content, so its last position is completed with the
-    /// alphanumeric space, the fill §14.9.25.4 GR4's elementary-move rules supply and the fixed national receiver
+    /// alphanumeric space, the fill §2023:14.9.25.4 GR4's elementary-move rules supply and the fixed national receiver
     /// already takes (design D-N8, kb/Work PB546): the three bytes "ABC" become two positions, U+4142 and U+4320.</summary>
     public static string NatFromStorage(string image)
     {

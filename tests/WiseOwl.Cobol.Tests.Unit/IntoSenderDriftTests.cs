@@ -12,9 +12,9 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ THE SENDING OPERAND OF AN <c>INTO</c> PHRASE IS ONE RULE, AND IT HAS TO STAY IN ONE PLACE. ISO §14.9.30.4
-/// GR4 b) and §14.9.34.4 GR5 b) say the same sentence about READ and RETURN — the sender is THE CURRENT RECORD,
-/// sized by the RECORD clause (§13.18.43.4 GR16), and designated an alphanumeric group move when the file
+/// ⛔ THE SENDING OPERAND OF AN <c>INTO</c> PHRASE IS ONE RULE, AND IT HAS TO STAY IN ONE PLACE. ISO §2023:14.9.30.4
+/// GR4 b) and §2023:14.9.34.4 GR5 b) say the same sentence about READ and RETURN — the sender is THE CURRENT RECORD,
+/// sized by the RECORD clause (§2023:13.18.43.4 GR16), and designated an alphanumeric group move when the file
 /// description entry carries a RECORD IS VARYING clause — and the compiler builds that phrase from THREE arms:
 /// the sequential READ, the keyed READ, and the sort/merge RETURN.
 /// <para>All three used to build the implicit MOVE themselves, and all three were wrong the same way for years:
@@ -25,7 +25,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <para>⛔ <b>THE BUILDER MOVED, AND THIS TEST MOVED WITH IT (kb/Work PB348).</b> It used to name
 /// <c>SequentialIoEmitter.IntoSender</c> and the three EMITTERS. The implicit move of an INTO phrase is now
 /// BOUND, not synthesized at emission — an operand is a bind-time object, and building it downstream of the
-/// binder is what kept the §14.9.25.3 MOVE syntax rules and the <c>DataBindState.ImageForcedItems</c> storage facts off it —
+/// binder is what kept the §2023:14.9.25.3 MOVE syntax rules and the <c>DataBindState.ImageForcedItems</c> storage facts off it —
 /// so the one builder is <c>MoveBinder.BindIntoPhrase</c> and the three arms are the three BINDERS. The
 /// invariant is unchanged; only its address is.</para>
 /// <para><b>What this can and cannot see.</b> It counts CONSTRUCTIONS of the operand across the compiler's
@@ -42,7 +42,7 @@ public sealed class IntoSenderDriftTests
     /// <summary>The binder that OWNS the rule, and the file its one construction must live in.</summary>
     private const string Owner = "MoveBinder.cs";
 
-    /// <summary>Every binder that binds an <c>INTO</c> phrase (ISO §14.9.30 READ, §14.9.34 RETURN). Adding a
+    /// <summary>Every binder that binds an <c>INTO</c> phrase (ISO §2023:14.9.30 READ, §2023:14.9.34 RETURN). Adding a
     /// verb with an INTO phrase means adding its binder here — and routing it through the builder.</summary>
     public static TheoryData<string> IntoBinders() => new()
     {
@@ -68,7 +68,7 @@ public sealed class IntoSenderDriftTests
         }
 
         Assert.True(sites.Count == 1,
-            $"ISO §14.9.30.4 GR4 b) / §14.9.34.4 GR5 b) name ONE sending operand for every INTO phrase, so "
+            $"ISO §2023:14.9.30.4 GR4 b) / §2023:14.9.34.4 GR5 b) name ONE sending operand for every INTO phrase, so "
             + $"'new {Operand}' belongs at exactly one site — {Owner}#{Builder}. Found {sites.Count}: "
             + string.Join(", ", sites.Distinct().OrderBy(s => s, StringComparer.Ordinal)));
         Assert.Equal(Owner, sites[0]);
@@ -81,7 +81,7 @@ public sealed class IntoSenderDriftTests
         string src = StripComments(File.ReadAllText(
             TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Procedure", "Verbs", binderFile)));
         Assert.True(Regex.IsMatch(src, $@"\b{Builder}\s*\("),
-            $"{binderFile} binds an INTO phrase but never calls {Builder} — §14.9.30.4 GR4 b)'s current record "
+            $"{binderFile} binds an INTO phrase but never calls {Builder} — §2023:14.9.30.4 GR4 b)'s current record "
             + "would be re-derived here, which is exactly how the padded record area survived in three arms.");
     }
 

@@ -5,39 +5,39 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.7.7 rule 4 — multiple resultant identifiers: one
+      *> ISO §2023:14.7.7 rule 4 — multiple resultant identifiers: one
       *>   intermediate, stored left to right, receivers identified as
       *>   accessed; size error per receiver; NOTE 3 overlap.
       *> Rule 4 fragments, each --check'ed (cite.py labels every
       *> paragraph of rule 4, b) and NOTE 3 included, "4) a)"):
       *> cite.py --check 14.7.7 "The initial evaluation of the
       *>   statement is done and the result of this operation is
-      *>   placed in an intermediate data item" -> OK §14.7.7 4) a)
+      *>   placed in an intermediate data item" -> OK §2023:14.7.7 4) a)
       *> cite.py --check 14.7.7 "All item identification for the data
       *>   items involved in the initial evaluation is done at the
-      *>   start of the execution of the statement" -> OK §14.7.7 4) a)
+      *>   start of the execution of the statement" -> OK §2023:14.7.7 4) a)
       *> cite.py --check 14.7.7 "If the size error condition is raised
       *>   during the initial evaluation, none of the resultant data
-      *>   items are changed" -> OK §14.7.7 4) a)
+      *>   items are changed" -> OK §2023:14.7.7 4) a)
       *> cite.py --check 14.7.7 "in the left-to-right order in which
       *>   the receiving data items are specified in the statement"
-      *>   -> OK §14.7.7 4) a)   [text is 4) b)]
+      *>   -> OK §2023:14.7.7 4) a)   [text is 4) b)]
       *> cite.py --check 14.7.7 "Item identification for the receiving
       *>   data items is done as each data item is accessed unless it
-      *>   was already done in step a" -> OK §14.7.7 4) a) [is 4) b)]
+      *>   was already done in step a" -> OK §2023:14.7.7 4) a) [is 4) b)]
       *> cite.py --check 14.7.7 "If the size error condition is raised
       *>   when attempting to store in a resulting data item, only
-      *>   that data item remains unchanged" -> OK §14.7.7 4) a)
+      *>   that data item remains unchanged" -> OK §2023:14.7.7 4) a)
       *>   [text is 4) b)]
       *> cite.py --check 14.7.7 "Those results in the receiving
       *>   operands are the same as if no receiving operand shared any
       *>   part of its storage area with any sending operand"
-      *>   -> OK §14.7.7 4) a)   [text is NOTE 3]
+      *>   -> OK §2023:14.7.7 4) a)   [text is NOTE 3]
       *> cite.py --check 14.7.5 "if the divisor in a divide operation
-      *>   or in a DIVIDE statement is zero" -> OK §14.7.5 2)
+      *>   or in a DIVIDE statement is zero" -> OK §2023:14.7.5 2)
       *> cite.py --check 14.7.5 "control is transferred to the
       *>   imperative-statement specified in the SIZE ERROR phrase"
-      *>   -> OK §14.7.5 3)
+      *>   -> OK §2023:14.7.5 3)
       *> Derivation (a wrong order/timing changes the line shown in []):
       *> 1 ADD X TO X Y, X=5 Y=1: intermediate 5 fixed first; X=5+5,
       *>   Y=1+5.                     "1 X=10 Y=06"  [Y=11 if re-read]

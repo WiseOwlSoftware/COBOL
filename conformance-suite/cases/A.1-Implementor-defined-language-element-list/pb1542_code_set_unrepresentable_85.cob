@@ -7,7 +7,7 @@
       *>---
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1542CS.
-      *> ISO/IEC 1989:2023 §13.18.13.4 GR6 b) — "On output, each
+      *> ISO/IEC 1989:2023 §2023:13.18.13.4 GR6 b) — "On output, each
       *> native coded character in the record is replaced for the
       *> storage medium with its associated coded character as defined
       *> in the alphabet being used" — at the output STATEMENT
@@ -16,12 +16,12 @@
       *> A character with NO associated coded character in the
       *> CODE-SET alphabet cannot be replaced, so the WRITE or REWRITE
       *> is unsuccessful with the implementor-defined I-O status '91'
-      *> (§9.1.13.11 item 1; docs/CONFORMANCE.md DOC-A.1-110 — the
+      *> (§2023:9.1.13.11 item 1; docs/CONFORMANCE.md DOC-A.1-110 — the
       *> same condition, and status, as a character with no byte image
       *> in a file with no CODE-SET), nothing reaches the medium and
-      *> the record area is unaffected (§14.9.51.4 GR15, §14.9.35.4
+      *> the record area is unaffected (§2023:14.9.51.4 GR15, §2023:14.9.35.4
       *> GR14). STANDARD-1 / STANDARD-2 are ISO/IEC 646 IRV, 128
-      *> characters (§12.3.7.4 GR7 c; DOC-A.1-187); EBCDIC is CCSID 37,
+      *> characters (§2023:12.3.7.4 GR7 c; DOC-A.1-187); EBCDIC is CCSID 37,
       *> 256 characters, all of U+0000-U+00FF.
       *>
       *> Why each leg can fail:
@@ -37,11 +37,11 @@
       *>        names a READ condition); REWRITing it unchanged is the
       *>        output rule again - '91'; the next REWRITE, of IRV
       *>        characters, is '43' because the refused REWRITE is now
-      *>        the immediately previous statement (§14.9.35.4 GR5), so
+      *>        the immediately previous statement (§2023:14.9.35.4 GR5), so
       *>        the medium still holds X'E9' (SQ-AFTER).
       *>  Only SEQUENTIAL files carry the clause: a RELATIVE or
       *>        INDEXED file description entry is Format 2, which
-      *>        prints no CODE-SET clause (§13.4.5.3 SR7; kb/Work
+      *>        prints no CODE-SET clause (§2023:13.4.5.3 SR7; kb/Work
       *>        PB1238 refuses it, COBOL2604).
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.

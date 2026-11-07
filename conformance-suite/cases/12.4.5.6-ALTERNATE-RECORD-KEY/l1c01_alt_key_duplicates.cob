@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §12.4.5.6.4 r4 — alternate key without/with DUPLICATES
+      *> ISO §2023:12.4.5.6.4 r4 — alternate key without/with DUPLICATES
       *> THE RULE: "If the DUPLICATES phrase is not specified, the value
       *> of the associated alternate record key shall not be equal to
       *> the value of the same alternate record key in another record in
@@ -14,24 +14,24 @@
       *>     specified, the value of the associated alternate record key
       *>     shall not be equal to the value of the same alternate
       *>     record key in another record in the physical file"
-      *>     -> OK §12.4.5.6.4 4)
+      *>     -> OK §2023:12.4.5.6.4 4)
       *> ITS OBSERVABLE CONSEQUENCES:
       *>   cite.py --check 14.9.51.4 "When an alternate record key of
       *>     the record to be written does not allow duplicates and the
       *>     value of that alternate record key is equal to the value of
       *>     the corresponding alternate record key of a record in the
       *>     file, the I-O status associated with the write file
-      *>     connector is set to '22'" -> OK §14.9.51.4 42)
+      *>     connector is set to '22'" -> OK §2023:14.9.51.4 42)
       *>   cite.py --check 14.9.35.4 "When an alternate record key of
       *>     the record to be replaced does not allow duplicates and the
       *>     value of that alternate record key is equal to the value of
       *>     the corresponding alternate record key of a record in that
       *>     physical file, the I-O status associated with the rewrite
-      *>     file connector is set to '22'" -> OK §14.9.35.4 25)
+      *>     file connector is set to '22'" -> OK §2023:14.9.35.4 25)
       *>   cite.py --check 9.1.13.2 "For a REWRITE or WRITE statement,
       *>     the record just written created a duplicate key value for
       *>     at least one alternate record key for which duplicates are
-      *>     allowed" -> OK §9.1.13.2 2)   (I-O status '02')
+      *>     allowed" -> OK §2023:9.1.13.2 2)   (I-O status '02')
       *> AK1 is unique (no DUPLICATES); AK2 is WITH DUPLICATES.
       *> DERIVATION of every .out line:
       *>   W1 0001/AAAA/XX  nothing to equal              -> W1 00

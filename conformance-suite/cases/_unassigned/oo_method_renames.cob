@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §11.7 / §13.18.45 — level-66 RENAMES in a METHOD's LOCAL-STORAGE (M2-OO-1h step 1). The alias
+      *> ISO §2023:11.7 / §2023:13.18.45 — level-66 RENAMES in a METHOD's LOCAL-STORAGE (M2-OO-1h step 1). The alias
       *> resolves FROM/THRU structurally within the method's own record, independent of method-name scoping.
       *> BOTH renames A-PART THRU B-PART (the 6-char span); JUSTA renames A-PART (inherits PIC XXX).
        IDENTIFICATION DIVISION.

@@ -3,12 +3,12 @@
 namespace WiseOwl.Cobol.Runtime.Exceptions;
 
 /// <summary>
-/// One active Format-3 (exception-checking) PERFORM frame (ISO/IEC 1989:2023 §14.9.28.4 GR17–GR22). The emitted
+/// One active Format-3 (exception-checking) PERFORM frame (ISO/IEC 1989:2023 §2023:14.9.28.4 GR17–GR22). The emitted
 /// PERFORM pushes a frame onto <see cref="ExceptionEngine"/>'s ambient stack around imperative-statement-1 and pops
 /// it in a <c>finally</c>; a raise site inside imp-1 consults the top matching frame (via
 /// <see cref="ExceptionEngine.RunTopFrame"/>) BEFORE the USE declaratives (GR17 — "any USE declarative that would
 /// normally match … is ignored"). The <see cref="Matcher"/> closure performs the tier-ordered WHEN selection
-/// (§14.9.49.4 GR3c–g) and runs the matching imp-2 (+ WHEN COMMON imp-4) as bounded pc-ranges, returning the
+/// (§2023:14.9.49.4 GR3c–g) and runs the matching imp-2 (+ WHEN COMMON imp-4) as bounded pc-ranges, returning the
 /// per-statement dispatch action the raise site consumes.
 /// </summary>
 public sealed class PerformFrame
@@ -30,9 +30,9 @@ public sealed class PerformFrame
     /// <summary>The activation that pushed this frame (<see cref="ModuleStack.CurrentActivation"/> at the push),
     /// stamped by <see cref="ExceptionEngine.PushPerformFrame"/>, never by the emitted code. A WHEN phrase selects
     /// only a condition raised in its OWN activation (kb/Work PB442): an exception status indicator "exists for each
-    /// function, method, or program" (ISO §14.6.13.1.1), and a condition reaches an activator only by propagation,
-    /// which raises it "in the activating runtime element" (§14.9.18.4 GR1 b), §14.6.13.1.3 6)) at the activating
-    /// statement (§14.9.33.4 GR2 a) 2.). <see cref="ExceptionEngine.RunTopFrame"/> stops at the first frame of
+    /// function, method, or program" (ISO §2023:14.6.13.1.1), and a condition reaches an activator only by propagation,
+    /// which raises it "in the activating runtime element" (§2023:14.9.18.4 GR1 b), §2023:14.6.13.1.3 6)) at the activating
+    /// statement (§2023:14.9.33.4 GR2 a) 2.). <see cref="ExceptionEngine.RunTopFrame"/> stops at the first frame of
     /// another activation.</summary>
     internal long Activation { get; set; }
 

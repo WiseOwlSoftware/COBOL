@@ -16,22 +16,22 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// non-numeric one, not over the one function that was reported.
 /// </summary>
 /// <remarks>
-/// <para><b>The rule.</b> ISO §15.3 types the argument positions: type 6 is "An arithmetic expression that will
+/// <para><b>The rule.</b> ISO §2023:15.3 types the argument positions: type 6 is "An arithmetic expression that will
 /// always result in an integer value or an integer data item shall be specified" and type 10 "Numeric. An
 /// arithmetic expression or a numeric data item shall be specified" — those two have a numeric value. Types
 /// 1/2/9 (alphabetic / alphanumeric / national), 3 (boolean), 5 (index), 11 (object) and 13 (pointer) name
-/// character, bit and reference operands, which have none. §15.4.1 grants the binary64 lane its licence —
+/// character, bit and reference operands, which have none. §2023:15.4.1 grants the binary64 lane its licence —
 /// "When native arithmetic is in effect and an equivalent arithmetic expression is specified, the value returned
 /// is an implementor-defined approximation of the value of that expression" — and a function with a non-numeric
 /// argument position has neither that expression nor a binary64 carrier for the position.</para>
 ///
 /// <para><b>Why this test exists (kb/Work PB635).</b> <c>IntrinsicRenderer.RenderNum</c>'s float dispatch asked
 /// "is ANY argument floating" and then rendered EVERY argument through one binary64 conversion. For
-/// FIND-STRING — §15.37.3 r1 "Argument-1 shall be a data item or literal of class alphabetic, alphanumeric, or
+/// FIND-STRING — §2023:15.37.3 r1 "Argument-1 shall be a data item or literal of class alphabetic, alphanumeric, or
 /// national", r3 "argument-3 shall be an integer data item or integer literal" — a float argument-3 therefore
 /// moved the whole call: the two string operands became <c>(double)CobolNum.FromAlphanumeric(…)</c>, the
 /// LAST/ANYCASE phrases were dropped, and the emitted call named a <c>FindStringReal</c> body that does not
-/// exist. Measured before the fix, under <c>--permissive</c> (the lane PB248's §15.3 type-6 screen leaves the
+/// exist. Measured before the fix, under <c>--permissive</c> (the lane PB248's §2023:15.3 type-6 screen leaves the
 /// float form reachable in): <c>error CS0117: 'CobolIntrinsics' does not contain a definition for
 /// 'FindStringReal'</c> — and the same for <c>OrdReal</c>, <c>TestNumvalReal</c> and
 /// <c>IntegerOfBooleanReal</c>. A Roslyn error on the generated C# is an internal failure escaping at the wrong
@@ -59,7 +59,7 @@ public sealed class IntrinsicFloatLaneArgumentRunDriftTests : WiseOwlCobolTestBa
 
     /// <summary>One legal reference per mixed-class row, with a <c>FLOAT-LONG</c> operand at a position the
     /// function's own §15.x.3 rules describe — an integer position where the row has one (FIND-STRING's
-    /// argument-3, §15.37.3 r3), else the string position itself, which <c>--permissive</c> reaches through the
+    /// argument-3, §2023:15.37.3 r3), else the string position itself, which <c>--permissive</c> reaches through the
     /// DA6 coercion. The KEY is the catalog's function name — that is what ties this table to the sweep.</summary>
     private static readonly Dictionary<string, string> Fixtures = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -83,7 +83,7 @@ public sealed class IntrinsicFloatLaneArgumentRunDriftTests : WiseOwlCobolTestBa
     internal const int PastEveryDeclaredPosition = 8;
 
     /// <summary>Every catalog row that (a) returns a NUMERIC or INTEGER value, so <c>RenderNum</c>'s float
-    /// dispatch is the channel it reaches, and (b) has at least one argument position §15.3 does not type as
+    /// dispatch is the channel it reaches, and (b) has at least one argument position §2023:15.3 does not type as
     /// numeric — read through the same <c>ArgumentRunIsAllNumeric</c> derivation the renderer dispatches on, so
     /// the test cannot disagree with the compiler about who is in the set.</summary>
     private static List<(string Name, string Rm)> MixedClassNumericRows()
@@ -106,12 +106,12 @@ public sealed class IntrinsicFloatLaneArgumentRunDriftTests : WiseOwlCobolTestBa
     {
         var rows = MixedClassNumericRows();
         Assert.True(rows.Count >= 12,
-            $"only {rows.Count} mixed-class numeric-result rows found — the §15.3 argument-type sweep shrank "
+            $"only {rows.Count} mixed-class numeric-result rows found — the §2023:15.3 argument-type sweep shrank "
             + "unexpectedly; check IntrinsicArgumentRules.Verified before lowering this.");
         var missing = rows.Select(r => r.Name).Where(n => !Fixtures.ContainsKey(n)).ToList();
         var stale = Fixtures.Keys.Where(n => !rows.Any(r => string.Equals(r.Name, n, StringComparison.OrdinalIgnoreCase))).ToList();
         Assert.True(missing.Count == 0,
-            "a catalogued function now MIXES a non-numeric §15.3 argument position with the numeric channel and "
+            "a catalogued function now MIXES a non-numeric §2023:15.3 argument position with the numeric channel and "
             + "has no float-argument fixture — add one, or the PB635 shape (a float argument moving the whole "
             + "call to the binary64 lane, string operands and all) can come back for it unseen:\n  "
             + string.Join("\n  ", missing));
@@ -148,7 +148,7 @@ public sealed class IntrinsicFloatLaneArgumentRunDriftTests : WiseOwlCobolTestBa
                     + "double and the function's phrases are dropped");
         }
         Assert.True(offenders.Count == 0,
-            "ISO §15.3 types each argument position, and only types 6 and 10 have a numeric value; §15.4.1's "
+            "ISO §2023:15.3 types each argument position, and only types 6 and 10 have a numeric value; §2023:15.4.1's "
             + "binary64 licence covers a function's equivalent arithmetic expression, not a call whose operands "
             + "are character strings. These moved to the binary64 lane on the strength of ONE floating-point "
             + "argument (kb/Work PB635):\n  " + string.Join("\n  ", offenders));
@@ -158,10 +158,10 @@ public sealed class IntrinsicFloatLaneArgumentRunDriftTests : WiseOwlCobolTestBa
     /// ⛔ THE OTHER ARM (feedback_two_arm_dispatch). <c>RenderNum</c> has TWO routes into
     /// <see cref="IntrinsicRenderer.RenderFloat"/>: the ARGUMENT one this file guards, and the FAMILY one —
     /// <c>if (sig.Float) return RenderFloat(ic, sig.RuntimeMethod)</c> — which runs FIRST and consults no
-    /// argument at all. A <c>Float: true</c> row with a non-numeric §15.3 position would ride that arm straight
+    /// argument at all. A <c>Float: true</c> row with a non-numeric §2023:15.3 position would ride that arm straight
     /// into the same binary64 conversion of every argument, and would NOT show up as a missing <c>…Real</c> body
     /// because the exact name exists: the failure would be a wrong ANSWER, not a crash, which is strictly worse.
-    /// Every <c>Float: true</c> row is all-numeric today (the §15.4.1 float family is the trig / log / financial
+    /// Every <c>Float: true</c> row is all-numeric today (the §2023:15.4.1 float family is the trig / log / financial
     /// set), and this says so out loud rather than leaving it true by luck.
     /// </summary>
     [Fact]
@@ -182,7 +182,7 @@ public sealed class IntrinsicFloatLaneArgumentRunDriftTests : WiseOwlCobolTestBa
             .Order(StringComparer.Ordinal)
             .ToList();
         Assert.True(mixed.Count == 0,
-            "a Float: true catalog row now declares a non-numeric §15.3 argument position, and RenderNum's "
+            "a Float: true catalog row now declares a non-numeric §2023:15.3 argument position, and RenderNum's "
             + "`if (sig.Float)` arm reaches RenderFloat WITHOUT asking about the argument run — every argument, "
             + "the character ones included, would be converted to double and the answer would simply be wrong "
             + "(kb/Work PB635). Either the row is not a float-family function or that arm needs the same "
@@ -190,7 +190,7 @@ public sealed class IntrinsicFloatLaneArgumentRunDriftTests : WiseOwlCobolTestBa
     }
 
     /// <summary>Compile one <c>--permissive</c> program that references <paramref name="reference"/> in the
-    /// numeric channel with a <c>FLOAT-LONG</c> operand. <c>--permissive</c> is deliberate: PB248's §15.3 type-6
+    /// numeric channel with a <c>FLOAT-LONG</c> operand. <c>--permissive</c> is deliberate: PB248's §2023:15.3 type-6
     /// screen REJECTS a floating-point item at an integer position under strict conformance (COBOL1627), so
     /// strict alone cannot reach the renderer at all and a strict-only probe would be green for the wrong
     /// reason.</summary>

@@ -5,9 +5,9 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// MOVE Table 16 legality + alignment for the boolean/national rows and columns (ISO §14.9.25.3 Table 16
+/// MOVE Table 16 legality + alignment for the boolean/national rows and columns (ISO §2023:14.9.25.3 Table 16
 /// :28839–28852; Phase 4a M2-DATA-3/4). Every constructible Yes cell involving a boolean or national operand
-/// runs end-to-end (alignment per §14.6.8.5 — national-space right fill — and §14.6.8.6 — boolean-zero right
+/// runs end-to-end (alignment per §2023:14.6.8.5 — national-space right fill — and §2023:14.6.8.6 — boolean-zero right
 /// fill); every constructible No cell asserts the COBOL0819 category-legality diagnostic. The SR7 figurative
 /// rows (:28817 — only ZERO and a boolean-charactered ALL may send to a boolean receiver) and the zero-length
 /// literal rule (GR2 :28895 — a zero-length literal behaves as SPACE) are pinned here too. National-edited
@@ -29,11 +29,11 @@ public sealed class NationalBooleanMoveTests
         """;
 
     // ── The Yes cells: boolean receiver (Table 16 columns Boolean = Yes for AN / National / Boolean senders;
-    //    §8.3.3.6.3 — ZERO and a digit-only-0/1 ALL literal are the legal figurative senders per SR7) ────────
+    //    §2023:8.3.3.6.3 — ZERO and a digit-only-0/1 ALL literal are the legal figurative senders per SR7) ────────
 
     /// <summary>Receiver category BOOLEAN, every legal sender: alphanumeric (Table 16 :28846 AN→Boolean = Yes),
-    /// national (National→Boolean = Yes), boolean, MOVE ZERO (§8.3.3.6 GR4 — boolean zeros by context), and
-    /// ALL of boolean characters (SR7's surviving figurative). Right fill is boolean ZEROS (§14.6.8.6
+    /// national (National→Boolean = Yes), boolean, MOVE ZERO (§2023:8.3.3.6 GR4 — boolean zeros by context), and
+    /// ALL of boolean characters (SR7's surviving figurative). Right fill is boolean ZEROS (§2023:14.6.8.6
     /// :24304–24308), never spaces.</summary>
     [Fact]
     public void BooleanReceiver_LegalSenders_StoreWithZeroFill()
@@ -62,9 +62,9 @@ public sealed class NationalBooleanMoveTests
 
     /// <summary>Receiver category NATIONAL, every legal sender: alphabetic, alphanumeric, alphanumeric-edited,
     /// integer numeric (Table 16 :28849 Numeric-int→National = Yes), numeric-edited, boolean, national — plus
-    /// the zero-length N"" literal (MOVE GR2 :28895 — behaves as SPACE). Conversion is the §14.9.25 GR6a
+    /// the zero-length N"" literal (MOVE GR2 :28895 — behaves as SPACE). Conversion is the §2023:14.9.25 GR6a
     /// alphanumeric→national correspondence (Latin-1 identity under D-N4); right fill is NATIONAL SPACES
-    /// (§14.6.8.5 :24297–24301). The trailing "!" sentinel makes the space fill observable through the
+    /// (§2023:14.6.8.5 :24297–24301). The trailing "!" sentinel makes the space fill observable through the
     /// harness's per-line trailing-space trim.</summary>
     [Fact]
     public void NationalReceiver_LegalSenders_StoreWithNationalSpaceFill()
@@ -126,7 +126,7 @@ public sealed class NationalBooleanMoveTests
 
     /// <summary>Sender category NATIONAL to the numeric family: Table 16 :28847 col Numeric = Yes — the
     /// national digits convert as an unsigned integer (GR6d3), and a numeric-edited receiver edits the
-    /// converted value. (National→AN/AN-edited/Alphabetic are the No cells below; DISPLAY-OF §15.26 is the
+    /// converted value. (National→AN/AN-edited/Alphabetic are the No cells below; DISPLAY-OF §2023:15.26 is the
     /// sanctioned narrowing, itself residue.)</summary>
     [Fact]
     public void NationalSender_NumericReceivers_ConvertAsUnsignedInteger()
@@ -146,7 +146,7 @@ public sealed class NationalBooleanMoveTests
         Assert.Equal("NUM=042\nNED= 42", stdout);
     }
 
-    // ── The No cells: each is COBOL0819 at bind (ISO §14.9.25.3 SR10 + Table 16 :28839–28852; the SR7
+    // ── The No cells: each is COBOL0819 at bind (ISO §2023:14.9.25.3 SR10 + Table 16 :28839–28852; the SR7
     //    figurative rows :28817). Version-invariant at ≥2002 — the operands themselves are 0900-gated below. ──
 
     public static TheoryData<string, string, string, string> IllegalCells() => new()
@@ -167,7 +167,7 @@ public sealed class NationalBooleanMoveTests
         // national receiver: a NON-INTEGER numeric sender is illegal (Table 16 — only integer numeric → national)
         { "NBMOV13", "01 NI PIC 9V9.\n01 NW PIC N(4).", "MOVE NI TO NW.", "Numeric non-integer → National" },
         // SR7 (:28817): a non-boolean figurative shall not send to a boolean receiver (no boolean
-        // SPACE/QUOTE/HIGH-VALUE/LOW-VALUE exists, §8.3.3.6)
+        // SPACE/QUOTE/HIGH-VALUE/LOW-VALUE exists, §2023:8.3.3.6)
         { "NBMOV14", "01 BW PIC 1(4).", "MOVE SPACE TO BW.", "SPACE → Boolean (SR7)" },
         { "NBMOV15", "01 BW PIC 1(4).", "MOVE QUOTE TO BW.", "QUOTE → Boolean (SR7)" },
         { "NBMOV16", "01 BW PIC 1(4).", "MOVE HIGH-VALUE TO BW.", "HIGH-VALUE → Boolean (SR7)" },
@@ -180,7 +180,7 @@ public sealed class NationalBooleanMoveTests
     public void IllegalMoveCell_Rejects0819(string pid, string ws, string move, string cell)
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Prog(pid, ws, move), 2002);
-        Assert.False(ok, $"{cell} must be rejected (ISO §14.9.25.3 Table 16 / SR7)");
+        Assert.False(ok, $"{cell} must be rejected (ISO §2023:14.9.25.3 Table 16 / SR7)");
         EditionHarness.AssertHasDiagnostic(errors, "COBOL0819");
     }
 }

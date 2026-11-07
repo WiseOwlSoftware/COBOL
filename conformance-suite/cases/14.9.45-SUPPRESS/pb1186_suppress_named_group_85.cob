@@ -11,14 +11,14 @@
       *> "The SUPPRESS statement inhibits printing only for the report
       *> group named in the USE procedure within which the SUPPRESS
       *> statement appears."
-      *>   cite.py: OK  §14.9.45.4 1)  (General rules)
+      *>   cite.py: OK  §2023:14.9.45.4 1)  (General rules)
       *> "The effect of the SUPPRESS statement is limited to the current
       *> instance of the report group."
-      *>   cite.py: OK  §14.9.45.4 2)  (General rules)
+      *>   cite.py: OK  §2023:14.9.45.4 2)  (General rules)
       *> "Procedure-names within a declarative section may be referenced
       *> in a different declarative section or in a nondeclarative
       *> procedure only with a PERFORM statement."
-      *>   cite.py: OK  §14.9.49.3 4)  (Syntax rules)
+      *>   cite.py: OK  §2023:14.9.49.3 4)  (Syntax rules)
       *>
       *> DERIVATION. SUP-B's SUPPRESS names DET-B (its USE procedure).
       *> WS-N counts GENERATEs, so each printed line names its instance.

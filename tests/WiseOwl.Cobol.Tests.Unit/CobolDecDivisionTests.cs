@@ -6,13 +6,13 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// SDIDI division (<c>CobolDec.Div</c>, ISO §8.8.1.5.3) when the numerator has FAR FEWER digits than the
+/// SDIDI division (<c>CobolDec.Div</c>, ISO §2023:8.8.1.5.3) when the numerator has FAR FEWER digits than the
 /// denominator (kb/Work PB83 — found landing PB69): the pre-scale that gives the quotient its 34–36 significant
 /// digits can exceed 10³⁸ (up to 10⁷³ for a 1-digit numerator over a 38-digit denominator), and it was CAPPED at
 /// 10³⁸ while the result exponent still subtracted the uncapped amount — so `100000 / 123456789012345678901234567890`
 /// answered 0 under STANDARD-DECIMAL (8.1E-25 owed), wrong by 10^(scaleUp − 38). The scale is now applied in two exact
 /// steps (inside the numerator's Int128 headroom, then through the 256-bit product). Expected values are the exact
-/// decimal quotients rounded to 34 significant digits (§8.8.1.5.2 NOTE 2), derived independently.
+/// decimal quotients rounded to 34 significant digits (§2023:8.8.1.5.2 NOTE 2), derived independently.
 /// </summary>
 public sealed class CobolDecDivisionTests
 {
@@ -56,11 +56,11 @@ public sealed class CobolDecDivisionTests
         var m = CobolIntrinsics.ModDec(CobolRounding.NearestAwayFromZero, a2, CobolDec.From(1000000007, 0));
         Assert.Equal("13657001E0", $"{m.Sig}E{m.Exp}");
         var r = CobolIntrinsics.RemDec(CobolRounding.NearestAwayFromZero, new CobolDec(-11, 0), CobolDec.From(5, 0));
-        Assert.Equal("-1E0", $"{r.Sig}E{r.Exp}");                        // §15.77.4 — the sign follows the dividend
+        Assert.Equal("-1E0", $"{r.Sig}E{r.Exp}");                        // §2023:15.77.4 — the sign follows the dividend
     }
 
     // ── kb/Work PB3954: an EXACT quotient / root is held at ISO/IEC 60559:2020 5.4.1's preferred exponent ───────────────
-    // ISO §8.8.1.5.3 (division) and §15.84.4 r2 (SQRT) take their definitions from 60559, whose exact result is the
+    // ISO §2023:8.8.1.5.3 (division) and §2023:15.84.4 r2 (SQRT) take their definitions from 60559, whose exact result is the
     // representation NEAREST the preferred exponent (the dividend's less the divisor's; half the operand's rounded down);
     // only an INEXACT result fills the 34 digits. Expected values are derived by hand from the exact decimal results.
 

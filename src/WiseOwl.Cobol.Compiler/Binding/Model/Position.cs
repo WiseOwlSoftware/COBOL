@@ -4,14 +4,14 @@ namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>
 /// ⛔ THE TYPED POSITION CARRIER (D10's second half, kb/Work PB2151; docs/rearchitecture/DESIGN-binder-bound-tree.md
-/// §3.9): an integer-valued run-time address term — a subscript (ISO §8.4.2.3.2 <c>arithmetic-expression-1</c>), a
-/// reference-modifier leftmost position or length (§8.4.3.3.3 SR4), and the offsets and ordinals the place model
+/// §2023:3.9): an integer-valued run-time address term — a subscript (ISO §2023:8.4.2.3.2 <c>arithmetic-expression-1</c>), a
+/// reference-modifier leftmost position or length (§2023:8.4.3.3.3 SR4), and the offsets and ordinals the place model
 /// computes from them. The binder builds STRUCTURE and the code generator renders it
 /// (<c>CodeGen.PositionRenderer</c>); no position travels between the two as C# text.
 /// <para>The node set is the set of shapes that render DIRECTLY as an ordinal. Every other arithmetic expression (a
 /// function-identifier, <c>/</c>, <c>**</c>, a decimal literal, a scaled operand inside a compound) is bound by the
-/// ONE expression binder into the §15.4 position temporary and is then a
-/// <see cref="PositionItemRead"/> of that temporary, so §8.4.2.3.4 GR1 b)'s integrality rule is asked once, of the
+/// ONE expression binder into the §2023:15.4 position temporary and is then a
+/// <see cref="PositionItemRead"/> of that temporary, so §2023:8.4.2.3.4 GR1 b)'s integrality rule is asked once, of the
 /// result.</para>
 /// </summary>
 public abstract record Position
@@ -40,7 +40,7 @@ public abstract record Position
     };
 
     /// <summary>True when this position evaluates to itself at any time — a non-negative integer constant, or an offset
-    /// with no subscript term over one. The structural test the §14.6.4 7) evaluate-once identification asks before it
+    /// with no subscript term over one. The structural test the §2023:14.6.4 7) evaluate-once identification asks before it
     /// hoists a position into a statement local (<c>CodeGen.PlaceIdentification</c>); a term over a constant index
     /// is still a term, so the identification keeps the address it would have computed.</summary>
     public bool IsSelfEvaluating => this switch
@@ -51,7 +51,7 @@ public abstract record Position
     };
 
     /// <summary>⛔ TRUE WHEN THIS DIRECTLY RENDERED POSITION CANNOT BE EVALUATED IN THE HOST'S <c>long</c> (kb/Work
-    /// PB2616). <c>CodeGen.PositionRenderer</c> renders <c>+ - *</c> as C# <c>long</c> arithmetic, but §8.4.2.3.4
+    /// PB2616). <c>CodeGen.PositionRenderer</c> renders <c>+ - *</c> as C# <c>long</c> arithmetic, but §2023:8.4.2.3.4
     /// 1) b) makes the subscript "the result of the evaluation of arithmetic-expression-1" — the expression's value,
     /// not a 64-bit machine product that wraps — so an expression whose worst case does not fit the host's
     /// <c>long</c> is not a shape this carrier may render. The worst case is a COMPILE-TIME digit bound: a
@@ -60,7 +60,7 @@ public abstract record Position
     /// (<c>+ -</c> add them, <c>*</c> multiplies them). Narrow operands (the ordinary <c>T(I + 1)</c>) keep the
     /// <c>long</c> fast path; a position that answers true is bound through the ONE expression binder instead
     /// (<c>SubscriptBinder.MaterializePosition</c>), whose intermediate rule is the arithmetic statements'
-    /// (§8.8.1.3 native arithmetic, kb/Work PB1900) and whose result then meets the §8.4.2.3.4 bound check.
+    /// (§2023:8.8.1.3 native arithmetic, kb/Work PB1900) and whose result then meets the §2023:8.4.2.3.4 bound check.
     /// <para>A bare leaf never answers true: an item read is a single <c>CobolTable.Occ</c> and does no arithmetic. Every
     /// operator node answers for itself, and a leaf that is itself past <c>long</c> (a 19–38 digit item) makes its
     /// parent operator exceed, since a saturated read is not the value.</para></summary>
@@ -120,7 +120,7 @@ public sealed record PositionConstant(long Value) : Position;
 
 /// <summary>⛔ A compile-time integer PAST THE HOST'S <c>long</c> (kb/Work PB2938): an integer literal or constant-name of
 /// 20 or more digits used as a subscript or a reference-modifier position. It is out of every table's and item's range
-/// whatever the table or item (ISO §8.4.2.3.4 GR2, §8.4.3.3.4 5)), but the value the program wrote is what the
+/// whatever the table or item (ISO §2023:8.4.2.3.4 GR2, §2023:8.4.3.3.4 5)), but the value the program wrote is what the
 /// diagnostic must name, so the node keeps it exactly, signed, instead of the <c>long</c> clamp a
 /// <see cref="PositionConstant"/> would hold (saturated at ±<see cref="Int128.MaxValue"/> past 38 digits, the position
 /// temporary's own capacity). It renders as the runtime's saturating carrier of that value
@@ -153,18 +153,18 @@ public enum PositionReadForm
 public sealed record PositionItemRead(AccessPath Path, DataItem Item, PositionReadForm Form) : Position;
 
 /// <summary>A statement-local integer <paramref name="Local"/> — a report VARYING counter (rendered as a <c>long</c> when
-/// <paramref name="AsLong"/>), a hoisted item identification (ISO §14.6.4), a loop variable — by its identity, never
+/// <paramref name="AsLong"/>), a hoisted item identification (ISO §2023:14.6.4), a loop variable — by its identity, never
 /// its name (<see cref="MethodLocal"/>, kb/Work PB4321).</summary>
 public sealed record PositionLocal(MethodLocal Local, bool AsLong = false) : Position;
 
-/// <summary>A statement-local integer array <paramref name="Local"/> — a table(ALL) enumeration's index vector (ISO §15.3),
+/// <summary>A statement-local integer array <paramref name="Local"/> — a table(ALL) enumeration's index vector (ISO §2023:15.3),
 /// one current occurrence per ALL level. Not itself a position: each element is one (<see cref="PositionLocalElement"/>),
 /// and the enumeration that declares it (<see cref="TableAllPlace"/>) and the subscripts that read it name the SAME
 /// vector, by its identity (<see cref="MethodLocal"/>, kb/Work PB4321).</summary>
 public sealed record LocalVector(MethodLocal Local);
 
 /// <summary>One element of a statement-local integer array — a table(ALL) enumeration's current occurrence of one
-/// level (ISO §15.3): <c>Vector[Index]</c>.</summary>
+/// level (ISO §2023:15.3): <c>Vector[Index]</c>.</summary>
 public sealed record PositionLocalElement(LocalVector Vector, int Index) : Position;
 
 /// <summary>The arithmetic operators a directly rendered position composes with.</summary>
@@ -179,20 +179,20 @@ public sealed record PositionNegate(Position Operand) : Position;
 /// <summary>A WRITTEN parenthesis, kept so the rendered order of evaluation is the source's.</summary>
 public sealed record PositionGroup(Position Inner) : Position;
 
-/// <summary>A BASED item's data-address pointer displacement (ISO §13.18.5): the character offset at which the pointer
+/// <summary>A BASED item's data-address pointer displacement (ISO §2023:13.18.5): the character offset at which the pointer
 /// named by <paramref name="PointerField"/> (a C# member) currently points into its storage cell, read at run time.</summary>
 public sealed record PositionPointerOffset(string PointerField) : Position;
 
 /// <summary>The component-ordinal twin of <see cref="PositionPointerOffset"/> (kb/Work PB2094): the ordinal of the first
 /// cell component the pointer named by <paramref name="PointerField"/> (a C# member) currently addresses, read at run
 /// time (<c>CellPointer.DynBase</c>). A class laid over storage through its data-address pointer — a BASED item, an
-/// AREA formal (§14.2.3 GR8) — numbers its components from it, as its character window is displaced by the offset.</summary>
+/// AREA formal (§2023:14.2.3 GR8) — numbers its components from it, as its character window is displaced by the offset.</summary>
 public sealed record PositionPointerDynBase(string PointerField) : Position;
 
 /// <summary>⛔ THE ONE STRUCTURED FORM OF EVERY ADDRESS THE PLACE MODEL COMPUTES FROM SUBSCRIPTS (kb/Work PB2151;
 /// DESIGN-binder-bound-tree.md §3.9.1): <paramref name="Origin"/> + Σ (index − 1) × stride over
 /// <paramref name="Terms"/>, outermost level first. A Tier-B view's byte offset (the item's in-class offset plus each
-/// in-class OCCURS level's per-occurrence storage width, ISO §13.18.44), its bit twin (§8.5.1.6.3's bit positions,
+/// in-class OCCURS level's per-occurrence storage width, ISO §2023:13.18.44), its bit twin (§2023:8.5.1.6.3's bit positions,
 /// strided by <c>BitLayout.StrideBits</c>), a cell component ordinal (<c>DataItem.ClassDynOrdinal</c> plus each level's
 /// components per occurrence) and the ADDRESS OF displacement are all this one node, so the law
 /// "(index − 1) × stride" is written once, here, and every producer builds the node instead of concatenating text.

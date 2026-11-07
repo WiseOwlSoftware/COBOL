@@ -5,17 +5,17 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.95.3 r1 — TEST-NUMVAL-F's argument-1 class screen, the ADMIT side.
+      *> ISO §2023:15.95.3 r1 — TEST-NUMVAL-F's argument-1 class screen, the ADMIT side.
       *> "Argument-1 shall be an alphanumeric or national literal or a data item of class alphanumeric or
       *> national."
       *> (cite.py --check 15.95.3 "Argument-1 shall be an alphanumeric or national literal or a data item of
-      *> class alphanumeric or national" -> OK, §15.95.3 rule 1.)
+      *> class alphanumeric or national" -> OK, §2023:15.95.3 rule 1.)
       *>
-      *> THE RULE NAMES A CLASS, AND §8.5.2.1 TABLE 2 IS WHAT SAYS WHICH CATEGORIES REACH IT. Class
+      *> THE RULE NAMES A CLASS, AND §2023:8.5.2.1 TABLE 2 IS WHAT SAYS WHICH CATEGORIES REACH IT. Class
       *> ALPHANUMERIC covers categories alphanumeric, alphanumeric-edited and — the row easiest to read the
       *> wrong way — NUMERIC-EDITED with usage display. Class NATIONAL covers national and national-edited.
-      *> A GROUP item takes its class from its own kind (§8.5.2.1): an alphanumeric group (GRP below: no
-      *> GROUP-USAGE clause, not strongly typed, §13.18.29.4 GR3) has class alphanumeric, a bit group
+      *> A GROUP item takes its class from its own kind (§2023:8.5.2.1): an alphanumeric group (GRP below: no
+      *> GROUP-USAGE clause, not strongly typed, §2023:13.18.29.4 GR3) has class alphanumeric, a bit group
       *> boolean, a national group national. Class ALPHABETIC is a
       *> DISTINCT class with its own Table 2 row ("Alphabetic | Alphabetic") and r1 does not name it, which
       *> is the reject side: conformance:cases/15.95.3-Argument-rule/l1-test-numval-f-alphabetic-item. Class NUMERIC is the
@@ -29,8 +29,8 @@
       *> the class column would reject the EDIT line below, and a screen that dropped the group arm would
       *> reject GRP. Both would be over-rejections of conforming source, invisible from the two negatives.
       *>
-      *> Hand-derived from §15.95.4: the returned value is 0 when argument-1 conforms to the §15.69.3 r1
-      *> content format, and §15.69.3 r5 makes leading and trailing spaces ignorable. Every probe below
+      *> Hand-derived from §2023:15.95.4: the returned value is 0 when argument-1 conforms to the §2023:15.69.3 r1
+      *> content format, and §2023:15.69.3 r5 makes leading and trailing spaces ignorable. Every probe below
       *> carries a conforming content, so each answers 0 — the observable that says the reference both BOUND
       *> and EVALUATED, where a rejected argument would not compile at all.
       *>   LIT   an alphanumeric literal, r1's first alternative.

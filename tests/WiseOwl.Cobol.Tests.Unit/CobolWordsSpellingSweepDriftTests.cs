@@ -9,18 +9,18 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// <b>The &gt;&gt;COBOL-WORDS SPELLING sweep</b> (ISO §7.3.10.4 GR2-GR4; kb/Work PB4572): the compiler source holds no
+/// <b>The &gt;&gt;COBOL-WORDS SPELLING sweep</b> (ISO §2023:7.3.10.4 GR2-GR4; kb/Work PB4572): the compiler source holds no
 /// raw-word comparison of a word the directive can name and the lexer does not tokenize. The reach invariant itself
 /// (two mechanisms, one partition) is <see cref="CobolWordsReachDriftTests"/>; this class is the tree-wide half of it.
 /// </summary>
 [Trait("Sweep", "tree")]
 public sealed class CobolWordsSpellingSweepDriftTests
 {
-    /// <summary>⛔ A WORD THE LEXER DOES NOT TOKENIZE IS ASKED THROUGH THE MAP, NEVER BY ITS SPELLING (ISO §7.3.10.4 GR2-GR4;
+    /// <summary>⛔ A WORD THE LEXER DOES NOT TOKENIZE IS ASKED THROUGH THE MAP, NEVER BY ITS SPELLING (ISO §2023:7.3.10.4 GR2-GR4;
     /// kb/Work PB4572). A spelling test of such a word (<c>CobolNames.Same(word, "COMMA")</c>) is inert to the directive
     /// in both directions: it refused <c>DECIMAL-POINT IS CMA</c> after <c>EQUATE "COMMA" WITH "CMA"</c>, and
     /// it took <c>EXO</c> for an undefined name after <c>EQUATE "EXCEPTION-OBJECT" WITH "EXO"</c>. The population is
-    /// the words the directive can NAME (SR3: §8.9 reserved at <see cref="CobolWordsMap.DirectiveEdition"/> and §8.10
+    /// the words the directive can NAME (SR3: §2023:8.9 reserved at <see cref="CobolWordsMap.DirectiveEdition"/> and §2023:8.10
     /// context-sensitive) that the lexer spells in no rule, derived from the two tables and the lexer grammar, so the next
     /// such word is covered without an edit here. The form scanned is the raw-word comparison, <c>CobolNames.Same</c> /
     /// <c>CobolKeywords.Same</c> with the word as a literal; a comparison of a CANONICAL value (<c>sig.Name ==</c>, a
@@ -55,11 +55,11 @@ public sealed class CobolWordsSpellingSweepDriftTests
         Assert.True(compared > 20, $"only {compared} CobolNames/CobolKeywords.Same calls found — the scan broke");
         Assert.True(offenders.Count == 0,
             $"{offenders.Count} spelling test(s) of a word the lexer does not tokenize ignore a >>COBOL-WORDS synonym "
-            + $"(ISO §7.3.10.4 GR2): ask CobolWordsMap.Is instead (e.g. {string.Join(", ", offenders.Take(3))})");
+            + $"(ISO §2023:7.3.10.4 GR2): ask CobolWordsMap.Is instead (e.g. {string.Join(", ", offenders.Take(3))})");
     }
 
-    /// <summary>The words an EQUATE, UNDEFINE or SUBSTITUTE can name (§7.3.10.3 SR3): §8.9 reserved at the directive's edition
-    /// and §8.10 context-sensitive. (Intrinsic function names are the third SR3 population; they reach the binder through
+    /// <summary>The words an EQUATE, UNDEFINE or SUBSTITUTE can name (§2023:7.3.10.3 SR3): §2023:8.9 reserved at the directive's edition
+    /// and §2023:8.10 context-sensitive. (Intrinsic function names are the third SR3 population; they reach the binder through
     /// the catalog's canonical name.)</summary>
     private static HashSet<string> DirectiveNamableWords()
     {

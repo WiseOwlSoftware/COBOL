@@ -80,7 +80,7 @@ public sealed class ScreenFacilityConstructDriftTests
 
     /// <summary>kb/Work R32, kept as an ABSENCE assertion because a negative golden can only assert presence.
     /// A name DECLARED in a refused SCREEN SECTION is not UNDEFINED: the program is rejected for the facility
-    /// (COBOL1560 for the section, COBOL1707 for the screen DISPLAY), never with the §8.4.2.1
+    /// (COBOL1560 for the section, COBOL1707 for the screen DISPLAY), never with the §2023:8.4.2.1
     /// "is not defined" verdict (COBOL1639), which would send the user hunting a declaration that is right
     /// there. This is what <c>tests/conformance/2023/screen_section_reference.cob</c> used to hold before PB260
     /// refuted its premise (it asserted the program COMPILED).</summary>
@@ -129,7 +129,7 @@ public sealed class ScreenFacilityConstructDriftTests
     /// `NOT ON EXCEPTION` is spelled the same on a screen ACCEPT/DISPLAY as on the statements that already own one,
     /// and ACCEPT and DISPLAY sit inside every one of their imperative-statement slots — so a free-standing
     /// exception-phrase pair once made the INNER display swallow the ENCLOSING statement's NOT-arm (four corpus
-    /// programs went red: delete_file_absent, ec_external_*). ISO §14.5.3.3 gives the phrase to the inner statement
+    /// programs went red: delete_file_absent, ec_external_*). ISO §2023:14.5.3.3 gives the phrase to the inner statement
     /// only when it "may be syntactically associated" with it, and the screen format's operand is a screen-name,
     /// which the parser cannot see: so a literal operand rules the screen format out, and an identifier operand
     /// leaves it only PRESUMED, taking the phrase only when no enclosing statement may (kb/Work PB1528,
@@ -173,7 +173,7 @@ public sealed class ScreenFacilityConstructDriftTests
 
     /// <summary>kb/Work PB1528: the UNPOSITIONED screen statement with an exception phrase — `ACCEPT screen-name-1 ON
     /// EXCEPTION …` / `DISPLAY screen-name-1 ON EXCEPTION …`, legal Format 3 / Format 2 shapes because the printed
-    /// formats bracket the AT phrase and the exception phrases independently (§14.9.1.2, §14.9.11.2) — draws the
+    /// formats bracket the AT phrase and the exception phrases independently (§2023:14.9.1.2, §2023:14.9.11.2) — draws the
     /// named Annex A.4.2 refusal COBOL1707 that docs/CONFORMANCE.md §5 promises, and no parse error: it used to draw
     /// "unexpected 'ON'" (COBOL0307, later COBOL2269) plus a COBOL0901 for the END- word.</summary>
     [Theory]
@@ -211,8 +211,8 @@ public sealed class ScreenFacilityConstructDriftTests
     /// phrase. An IDENTIFIER operand leaves the screen format possible to the parser, so the phrase reaches the binder,
     /// which sees the operand is no screen-name and names the shape (COBOL2269: Format 1 prints no exception phrase) —
     /// never the screen refusal COBOL1707, which would tell the user the declined module is what is missing; a LITERAL
-    /// operand rules the screen format out at parse time (§14.9.11.2: Format 2 writes screen-name-1), so the phrase may
-    /// be associated with nothing (§14.5.3.3) and the parse layer's COBOL2269 names the operand that ruled it out.</summary>
+    /// operand rules the screen format out at parse time (§2023:14.9.11.2: Format 2 writes screen-name-1), so the phrase may
+    /// be associated with nothing (§2023:14.5.3.3) and the parse layer's COBOL2269 names the operand that ruled it out.</summary>
     [Fact]
     public void ExceptionPhraseOnADeviceOperand_IsNamed_ByWhatTheOperandIs()
     {
@@ -228,7 +228,7 @@ public sealed class ScreenFacilityConstructDriftTests
                 STOP RUN.
             """, 2023);
         Assert.True(Has(identifier, "COBOL2269") && Has(identifier, "'WS-X' is not declared in the SCREEN SECTION")
-            && Has(identifier, "§14.9.1.2 Format 1 (device)"), string.Join("\n", identifier));
+            && Has(identifier, "§2023:14.9.1.2 Format 1 (device)"), string.Join("\n", identifier));
         Assert.False(Has(identifier, "COBOL1707"), "a device ACCEPT with an exception phrase is not the declined "
             + "screen module — claiming that module would not make it legal:\n" + string.Join("\n", identifier));
 
@@ -245,7 +245,7 @@ public sealed class ScreenFacilityConstructDriftTests
         Assert.False(Has(literal, "COBOL1707"), string.Join("\n", literal));
     }
 
-    /// <summary>⛔ THE COMPLEMENT OF THE OPTIONS INITIALIZE REFUSAL. §11.9.10.4 GR1 — "If ALL is specified,
+    /// <summary>⛔ THE COMPLEMENT OF THE OPTIONS INITIALIZE REFUSAL. §2023:11.9.10.4 GR1 — "If ALL is specified,
     /// LOCAL-STORAGE, SCREEN, and WORKING-STORAGE apply" — names three targets of which TWO are supported, so
     /// <c>INITIALIZE ALL SECTION TO SPACES</c> is legal source and must stay legal; only the EXPLICIT SCREEN leg
     /// of GR3 is refused (<c>a42-options-initialize-screen</c>). The standard wrote the two as separate rules,
@@ -275,15 +275,15 @@ public sealed class ScreenFacilityConstructDriftTests
     // ⛔ THE POPULATION IS DERIVED FROM THE GRAMMAR, NEVER LISTED. This used to be eight `[InlineData]` rows
     // naming five words at two editions — a selector that was evidence about the five it named and silent about
     // the seventeen it dropped (feedback_measure_the_selectors_complement). Those seventeen pass today only
-    // because kb/Work PB693/PB300 replaced the hand reservation gate with one DERIVED from §8.9; nothing held
+    // because kb/Work PB693/PB300 replaced the hand reservation gate with one DERIVED from §2023:8.9; nothing held
     // them, and the next token the screen grammar adds without a `cobol-words.json` nameSlot row would cost the
     // user that word again in silence — which is PB301's defect exactly (CLAUDE.md rule 5: never a
     // hand-maintained list where a structure belongs).
 
     /// <summary>Every single-word lexer token the SCREEN surface references, paired with each edition. The
     /// surface is <c>CobolScreen.g4</c> plus the two SPECIAL-NAMES screen clauses in
-    /// <c>CobolSpecialNames.g4</c>; the population keeps only the words ISO §8.9 leaves FREE at at least one
-    /// edition, because a word §8.9 reserves everywhere was never the user's to lose.</summary>
+    /// <c>CobolSpecialNames.g4</c>; the population keeps only the words ISO §2023:8.9 leaves FREE at at least one
+    /// edition, because a word §2023:8.9 reserves everywhere was never the user's to lose.</summary>
     public static IEnumerable<object[]> ScreenSurfaceWordCases() =>
         from word in ScreenSurfaceWords()
         from edition in new[] { 85, 2002, 2014, 2023 }
@@ -291,16 +291,16 @@ public sealed class ScreenFacilityConstructDriftTests
 
     /// <summary>⛔ THE DRIFT GATE FOR THE WORDS, the twin of
     /// <see cref="EveryScreenClauseAlternative_HasAScreenFacilityRow"/> for the clauses.
-    /// <para>ISO §8.3.2.1 rule 3 — "Context-sensitive words may be used as user-defined words and system-names in
-    /// contexts other than the language construct in which they are defined" — so the fifteen §8.10 screen words
+    /// <para>ISO §2023:8.3.2.1 rule 3 — "Context-sensitive words may be used as user-defined words and system-names in
+    /// contexts other than the language construct in which they are defined" — so the fifteen §2023:8.10 screen words
     /// (AUTO, BELL, BLINK, BACKGROUND-COLOR, EOL, EOS, ERASE, FOREGROUND-COLOR, FULL, HIGHLIGHT, LOWLIGHT,
     /// REQUIRED, REVERSE-VIDEO, SECURE, UNDERLINE) are legal user-defined words at EVERY edition, declining
-    /// Annex A.4.2 notwithstanding. ISO §8.3.2.1 rule 1 — "Reserved words shall not be used as user-defined words
-    /// or system-names" — so the seven §8.9 screen words (COL, COLS, COLUMN, COLUMNS, CRT, CURSOR, SCREEN) are
-    /// barred exactly where §8.9 reserves them, and §8.9 adds all but COLUMN in 2002, which leaves them legal
+    /// Annex A.4.2 notwithstanding. ISO §2023:8.3.2.1 rule 1 — "Reserved words shall not be used as user-defined words
+    /// or system-names" — so the seven §2023:8.9 screen words (COL, COLS, COLUMN, COLUMNS, CRT, CURSOR, SCREEN) are
+    /// barred exactly where §2023:8.9 reserves them, and §2023:8.9 adds all but COLUMN in 2002, which leaves them legal
     /// COBOL-85 user words.</para>
     /// <para>Both arms are asserted here, and the REJECTING arm asserts the DIAGNOSTIC, not merely the rejection:
-    /// COBOL0901 names §8.9, where the raw COBOL0001 "no viable alternative" this class of bug produces names
+    /// COBOL0901 names §2023:8.9, where the raw COBOL0001 "no viable alternative" this class of bug produces names
     /// nothing. The corpus lanes are <c>85/pb301_screen_words_as_user_words</c>,
     /// <c>2023/pb301_screen_words_as_user_words</c>, <c>negative/pb301-screen-words-reserved-from-2002</c> and
     /// <c>negative/pb301-column-reserved-at-every-edition</c>; the SCREEN-position complement — the same words
@@ -325,15 +325,15 @@ public sealed class ScreenFacilityConstructDriftTests
 
         if (!reserved)
         {
-            Assert.True(ok, $"'{word}' is a lexer token the screen surface needs, and §8.9 does not reserve it at "
-                + $"COBOL-{edition} — §8.3.2.1 rule 3 makes it a legal user-defined word there and declining "
+            Assert.True(ok, $"'{word}' is a lexer token the screen surface needs, and §2023:8.9 does not reserve it at "
+                + $"COBOL-{edition} — §2023:8.3.2.1 rule 3 makes it a legal user-defined word there and declining "
                 + $"Annex A.4.2 must not cost it:\n{string.Join("\n", errors)}");
             return;
         }
 
-        Assert.False(ok, $"§8.9 reserves '{word}' at COBOL-{edition}, so §8.3.2.1 rule 1 bars it from a "
+        Assert.False(ok, $"§2023:8.9 reserves '{word}' at COBOL-{edition}, so §2023:8.3.2.1 rule 1 bars it from a "
             + "user-defined-word slot");
-        Assert.True(Has(errors, "COBOL0901"), $"'{word}' must be refused BY NAME at COBOL-{edition} (§8.9 via "
+        Assert.True(Has(errors, "COBOL0901"), $"'{word}' must be refused BY NAME at COBOL-{edition} (§2023:8.9 via "
             + $"the reservation gate's `reservedGatedWord` twin), never as a raw parse error:\n"
             + string.Join("\n", errors));
     }
@@ -342,7 +342,7 @@ public sealed class ScreenFacilityConstructDriftTests
     /// changed token spelling, a moved file — would make the theory above vacuously green, and a nameSlot row
     /// missing for a NEW screen token is PB301's defect returning. Both are asserted here: the population's size
     /// and both of its classes, and that every member carries a <c>cobol-words.json</c> <c>nameSlot</c> row,
-    /// which is the single fact the whole mechanism rests on (the reservation gate is then derived from §8.9 by
+    /// which is the single fact the whole mechanism rests on (the reservation gate is then derived from §2023:8.9 by
     /// <c>gen-cobol-words.ps1</c>, so no per-word edition flag can rot).</summary>
     [Fact]
     public void ScreenSurfaceWordPopulation_IsDerived_AndEveryMemberHasANameSlotRow()
@@ -352,8 +352,8 @@ public sealed class ScreenFacilityConstructDriftTests
             $"only {words.Count} screen-surface words found — the .g4 scrape broke and the word theory is blind");
 
         // Both classes must be present, or one arm of the theory never runs.
-        Assert.Contains(words, w => ReservedWords.Find(w) is null);                         // §8.10, free always
-        Assert.Contains(words, w => ReservedWords.Find(w) is { } e                          // §8.9, free at 85 only
+        Assert.Contains(words, w => ReservedWords.Find(w) is null);                         // §2023:8.10, free always
+        Assert.Contains(words, w => ReservedWords.Find(w) is { } e                          // §2023:8.9, free at 85 only
                                     && !e.IsReservedAt(85) && e.IsReservedAt(2002));
 
         using var doc = JsonDocument.Parse(File.ReadAllText(TestRepo.VersionMatrix("cobol-words.json")));
@@ -408,7 +408,7 @@ public sealed class ScreenFacilityConstructDriftTests
     /// puts it (the SPECIAL-NAMES clauses), scraped by name;</item>
     /// <item>a <c>screenClause</c> ALTERNATIVE defined in another grammar file — a clause the screen entry SHARES
     /// with the data description entry (PICTURE, VALUE, OCCURS, USAGE, SIGN, JUSTIFIED, BLANK WHEN ZERO, GLOBAL).
-    /// Those are core language refused only because §13.17's containing entry is optional, and their words are
+    /// Those are core language refused only because §2023:13.17's containing entry is optional, and their words are
     /// their own module's, not this one's — <c>occursClause</c> alone would drag CAPACITY, STEP and INITIALIZED,
     /// all kb/Work PB655 class 4 — so they are deliberately outside this population;</item>
     /// <item>named in <see cref="RefusalSitesOutsideTheScreenSurface"/> with a reason.</item>
@@ -450,7 +450,7 @@ public sealed class ScreenFacilityConstructDriftTests
     }
 
     /// <summary>Rules the A.4.2 funnel refuses that are NOT screen surface, with the reason. Only ONE leg of
-    /// <c>optionsInitializeSection</c> (§11.9.10 <c>INITIALIZE … SCREEN …</c>) is declined; the rule itself is
+    /// <c>optionsInitializeSection</c> (§2023:11.9.10 <c>INITIALIZE … SCREEN …</c>) is declined; the rule itself is
     /// core OPTIONS-paragraph language whose other words (LOCAL-STORAGE, WORKING-STORAGE, ALL) belong to no
     /// screen construct, so scraping its body would pull PB655's classes into this module's population. It is
     /// listed rather than caught by class 3 above because it is not a <c>screenClause</c> alternative.</summary>
@@ -506,7 +506,7 @@ public sealed class ScreenFacilityConstructDriftTests
 
     private static string ScreenGrammar() => StripComments(File.ReadAllText(ScreenGrammarPath()));
 
-    /// <summary>The population: every single-word lexer token the SCREEN surface references that ISO §8.9 leaves
+    /// <summary>The population: every single-word lexer token the SCREEN surface references that ISO §2023:8.9 leaves
     /// free at at least one edition. The surface is all of <c>CobolScreen.g4</c> plus each
     /// <see cref="ExternalScreenSurfaceRules"/> rule, scraped by name — and EACH must be found, because a scrape
     /// that silently returns one rule instead of two loses that rule's words from the population and every
@@ -533,7 +533,7 @@ public sealed class ScreenFacilityConstructDriftTests
             .Select(m => m.Groups[1].Value).ToHashSet(StringComparer.Ordinal);
 
         return [.. referenced.Where(tokens.ContainsKey).Select(t => tokens[t])
-                             // Keep only what §8.9 leaves free somewhere: a word reserved at every edition
+                             // Keep only what §2023:8.9 leaves free somewhere: a word reserved at every edition
                              // (AT, IS, LINE, FILLER, SECTION …) was never a user word to lose, and belongs to
                              // no module — the whole-lexer join over those is kb/Work PB655.
                              .Where(w => ReservedWords.Find(w) is not { } e
@@ -545,7 +545,7 @@ public sealed class ScreenFacilityConstructDriftTests
     private static string StripComments(string g4) =>
         Regex.Replace(Regex.Replace(g4, @"//[^\r\n]*", ""), @"/\*.*?\*/", "", RegexOptions.Singleline);
 
-    /// <summary>ATTRIBUTE is §8.10 context-sensitive in the SET statement and is NOT a lexer token, so the
+    /// <summary>ATTRIBUTE is §2023:8.10 context-sensitive in the SET statement and is NOT a lexer token, so the
     /// SET format-6 arm is recognized by a left-edge text predicate (<c>setAttributeAhead</c>) — which means a
     /// data item actually NAMED <c>ATTRIBUTE</c> walks straight through that predicate. Both directions are
     /// pinned: <c>SET ATTRIBUTE TO 7</c> (the word in the RECEIVER slot, where the predicate must not fire) and
@@ -599,11 +599,11 @@ public sealed class ScreenFacilityConstructDriftTests
             """;
         var at85 = Compile(src, 85);
         Assert.False(Has(at85.Errors, "COBOL1560"),
-            "at COBOL-85 CURSOR is not reserved (§8.9), so this is an implementor-switch entry and carries no "
+            "at COBOL-85 CURSOR is not reserved (§2023:8.9), so this is an implementor-switch entry and carries no "
             + "screen verdict:\n" + string.Join("\n", at85.Errors));
         var at2023 = Compile(src, 2023);
         Assert.True(Has(at2023.Errors, "COBOL1560: the SPECIAL-NAMES CURSOR clause"),
-            "at 2002+ the same text IS the §12.3.7 CURSOR clause (Annex A.4.2 item 25):\n"
+            "at 2002+ the same text IS the §2023:12.3.7 CURSOR clause (Annex A.4.2 item 25):\n"
             + string.Join("\n", at2023.Errors));
     }
 }

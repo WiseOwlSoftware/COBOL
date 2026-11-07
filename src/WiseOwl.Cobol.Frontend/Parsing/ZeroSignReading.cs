@@ -15,16 +15,16 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 ///         OPERAND-LIST reading (<see cref="ZeroTokenRewriter"/>'s <c>IsSignOfNextLiteral</c>): the ZERO stays figurative
 ///         and the <c>-1</c> is the next operand. That is right in every operand list (<c>DISPLAY ZERO -1</c>) and wrong
 ///         where the grammar puts an ARITHMETIC EXPRESSION (<c>COMPUTE X = ZERO -1</c>, <c>IF X = ZERO -1</c>): there the
-///         same characters are a subtraction written without its second space, which §8.7.1 refuses by name
+///         same characters are a subtraction written without its second space, which §2023:8.7.1 refuses by name
 ///         (<c>COBOL2993</c>, <c>SeparatorRule</c>) exactly as it refuses the sibling <c>Y -1</c>. The parse shows it by
 ///         failing at the SIGN (kb/Work PB3981).</item>
 ///   <item><b>A BARE figurative ZERO in a slot that takes only an arithmetic expression</b> (<c>SET IX UP BY ZERO</c>,
-///         <c>SET IX TO ZERO</c>, <c>CONTINUE AFTER ZERO SECONDS</c>, <c>ALLOCATE ZERO CHARACTERS</c>). ISO §8.8.1.1: "An
+///         <c>SET IX TO ZERO</c>, <c>CONTINUE AFTER ZERO SECONDS</c>, <c>ALLOCATE ZERO CHARACTERS</c>). ISO §2023:8.8.1.1: "An
 ///         arithmetic expression may be [...] the figurative constant ZERO (ZEROS, ZEROES)", and the expression grammar's
 ///         only figurative arm is <c>ZERO_ARITH</c>, so the figurative token is refused in such a slot and the parse fails
 ///         AT the ZERO (kb/Work PB4120). A slot whose rule also admits the figurative (a MOVE sender, a VALUE operand, a
 ///         relation operand) parses the figurative and never reaches this round, so the figurative keeps its meaning
-///         there (§8.3.3.6.4 GR4: the value 0 or the character '0' "depending on context").</item>
+///         there (§2023:8.3.3.6.4 GR4: the value 0 or the character '0' "depending on context").</item>
 /// </list>
 /// Which slots those are is never listed: the parse that fails is the grammar's own answer, so the NEXT slot typed
 /// arithmetic-expression-only is covered without a change here.

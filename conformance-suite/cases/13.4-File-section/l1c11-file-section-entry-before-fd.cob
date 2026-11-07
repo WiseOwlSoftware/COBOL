@@ -4,13 +4,13 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.4.2 general format — every entry of the FILE SECTION
+      *> ISO §2023:13.4.2 general format — every entry of the FILE SECTION
       *>   follows a file-description-entry or a
       *>   sort-merge-file-description-entry
       *>   cite.py --check 13.4.2 "file-description-entry"
-      *>   -> OK  §13.4.2   (General format)
+      *>   -> OK  §2023:13.4.2   (General format)
       *>   cite.py --check 13.4.2 "sort-merge-file-description-entry"
-      *>   -> OK  §13.4.2   (General format)
+      *>   -> OK  §2023:13.4.2   (General format)
       *> The format admits a record-description-entry only inside the
       *> group opened by an FD or SD; W-LOOSE is written directly
       *> after the FILE SECTION header, before any FD. Moving it after

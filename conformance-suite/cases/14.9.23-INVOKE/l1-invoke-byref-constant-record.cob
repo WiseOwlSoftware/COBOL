@@ -4,13 +4,13 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.23.3 SR20 — "If identifier-3 does not reference an
+      *> ISO §2023:14.9.23.3 SR20 — "If identifier-3 does not reference an
       *> address-identifier, identifier-3 is a receiving operand."
       *> (cite.py --check 14.9.23.3 OK, Syntax rule 20.)
       *> DERIVED BEFORE MEASURING. KA is a plain data item, not an
       *> address-identifier, so as a USING argument (identifier-3) it IS
       *> a receiving operand, and every rule barring a receiving operand
-      *> applies to it. §13.18.15.3 SR2 (cite.py --check OK, SR 2):
+      *> applies to it. §2023:13.18.15.3 SR2 (cite.py --check OK, SR 2):
       *> "Neither the data item described by the subject of the entry
       *> nor any data item subordinate to the subject of the entry shall
       *> be specified as a receiving data item" — KA is subordinate to

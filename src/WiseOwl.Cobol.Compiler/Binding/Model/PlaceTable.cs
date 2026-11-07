@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// at emit time, by asking the reference resolver (24 calls, so the backend input carried the binder). The binder now
 /// builds every one of them once, in the model layer (<see cref="PlaceBuilder"/>), in the pass that follows the last
 /// fact the builder reads (the storage-form pass), and the backend reads the finished <see cref="Place"/>.
-/// <para>A <see cref="Place"/> exists for an item that is not a table element (§8.4.2.3.3 SR5: a table element is
+/// <para>A <see cref="Place"/> exists for an item that is not a table element (§2023:8.4.2.3.3 SR5: a table element is
 /// referenced with a subscript, so by-item resolution has none to give) and whose declaration was not refused; every
 /// other item has an entry that says so, and <see cref="Of"/> returns null for it. An item the table never saw is a
 /// defect of the pass that fills it, and it is loud (<see cref="InvalidOperationException"/>), never a null that reads as
@@ -45,7 +45,7 @@ internal sealed class PlaceTable
                 $"no Place was built for data item '{item.CobolName ?? item.ClrName}' when binding finished — the pass that "
                 + "fills the PlaceTable did not see it (kb/Work PB2375)");
 
-    /// <summary>⛔ THE ONE RESOLUTION OF AN FD/SD's RECORD AREA (kb/Work PB355). ISO §13.18.33.4 GR3 — "Multiple level 1
+    /// <summary>⛔ THE ONE RESOLUTION OF AN FD/SD's RECORD AREA (kb/Work PB355). ISO §2023:13.18.33.4 GR3 — "Multiple level 1
     /// entries subordinate to a FD or SD entry represent implicit redefinitions of the same area" — so the area is ONE
     /// place, and it is the LARGEST description's view (<see cref="FileModel.AreaRecord"/>). Null only for a file whose
     /// record area could not be resolved at all.</summary>
@@ -59,7 +59,7 @@ internal sealed class PlaceTable
     public Place? Window(DataItem item, IReadOnlyList<Position> occurrence) => _builder.ResolveItemAt(item, occurrence);
 
     /// <summary>The CURRENT occurrence count of <paramref name="table"/> under the given outer occurrence positions (ISO
-    /// §14.6.9.1 via <see cref="OccurrenceCounts"/>) - the other windowed answer the shared-storage table SORT asks at its
+    /// §2023:14.6.9.1 via <see cref="OccurrenceCounts"/>) - the other windowed answer the shared-storage table SORT asks at its
     /// comparator's element numbers.</summary>
     public AllCount? CurrentOccurrenceCount(DataItem table, IReadOnlyList<Position> outer) =>
         _builder.CurrentOccurrenceCount(table, outer);

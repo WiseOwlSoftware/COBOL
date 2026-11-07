@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> The PROPERTY clause (ISO §13.18.42) is a COBOL-2002 OO introduction. Residue migration #7
+      *> The PROPERTY clause (ISO §2023:13.18.42) is a COBOL-2002 OO introduction. Residue migration #7
       *> (DESIGN-version-conformance-pipeline.md): the parse-time {is2002()}? predicate AND the reverse-signature
       *> ReservedWordEditionHints arm are GONE — PROPERTY now parses at all editions (superset) and the introduction
       *> gate is enforced at BIND (DataBinder clause loop -> Check(PropertyClause2002)), so below 2002 it is an exact

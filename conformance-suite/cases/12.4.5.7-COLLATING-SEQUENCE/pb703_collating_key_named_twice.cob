@@ -5,18 +5,18 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §12.4.5.7.2 Format 2 (key-level) COLLATING SEQUENCE: the general format is
+      *> ISO §2023:12.4.5.7.2 Format 2 (key-level) COLLATING SEQUENCE: the general format is
       *> `COLLATING SEQUENCE OF { data-name-1 | record-key-name-1 } … IS alphabet-name-3`,
-      *> and by §5.2.7 ("the ellipsis applies to the portion of the format between the
+      *> and by §2023:5.2.7 ("the ellipsis applies to the portion of the format between the
       *> determined pair of delimiters") the `…` repeats the BRACE GROUP — so ONE clause
-      *> may list one or more names, the same name among them. §12.4.5.7.3 SR8 forbids a
+      *> may list one or more names, the same name among them. §2023:12.4.5.7.3 SR8 forbids a
       *> name only "in more than one COLLATING SEQUENCE clause", and one clause is never
       *> more than one, so `OF IX-KEY IX-KEY IS REV` is legal (kb/Work PB703 — it was
       *> rejected COBOL1582 by a duplicate screen hoisted out of the clause loop).
       *>
-      *> Expected values, derived: §12.4.5.7.4 GR6 — "Alphabet-name-3 applies to record
+      *> Expected values, derived: §2023:12.4.5.7.4 GR6 — "Alphabet-name-3 applies to record
       *> keys identified by data-name-1 or record-key-name-1" — gives IX-KEY the REV
-      *> sequence and IX-ALT the DREV sequence, and §12.4.5.5.3 GR2 c) makes sequential
+      *> sequence and IX-ALT the DREV sequence, and §2023:12.4.5.5.3 GR2 c) makes sequential
       *> retrieval "ascending within a given key of reference according to the collating
       *> sequence for that key".
       *>   REV  = "ZYXWVUTSRQPONMLKJIHGFEDCBA": weights Z=0 < M=13 < A=25, so the prime

@@ -10,21 +10,21 @@ namespace WiseOwl.Cobol.Runtime;
 /// shared-storage shape; PHASE4_RECONCILIATION "M2-DATA-5 / M2-PROC-5 — increment 2" design). Helpers, not a
 /// second carrier: every pointer VALUE stays a <see cref="ManagedPointer"/>; every pointed storage stays a
 /// character-image cell (never a byte substrate). Fatal exception conditions throw
-/// <see cref="CobolFatalException"/> (the documented runtime raise-point channel; §14.6.13.1.3 #7/#8
+/// <see cref="CobolFatalException"/> (the documented runtime raise-point channel; §2023:14.6.13.1.3 #7/#8
 /// loud-failure doctrine); nonfatal ones report through out-parameters for the emitter's TurnState-gated
 /// <c>ExceptionState.Set</c> block.
 /// </summary>
 public static class CobolPtr
 {
     /// <summary>Dereference a BASED item's implicit pointer for a view of <paramref name="classWidth"/>
-    /// characters (ISO §13.18.5): GR3 — a reference while the pointer is NULL is <c>EC-DATA-PTR-NULL</c>
+    /// characters (ISO §2023:13.18.5): GR3 — a reference while the pointer is NULL is <c>EC-DATA-PTR-NULL</c>
     /// (Fatal); GR4 — an invalid address (a freed cell, a non-window carrier, or a window that does not fit
     /// inside the cell) is <c>EC-BOUND-PTR</c> (Fatal). Returns the cell whose <c>Ref</c> the generated
     /// bridge property aliases.</summary>
     public static StorageCell Deref(ManagedPointer? p, long classWidth)
     {
         // ⛔ THESE FOUR THROW WHETHER OR NOT CHECKING IS ON, and that is the owner's decided rule rather than an
-        // oversight: checking-off is lenient only where the standard NAMES the outcome, and §13.18.5.4 GR3/GR4
+        // oversight: checking-off is lenient only where the standard NAMES the outcome, and §2023:13.18.5.4 GR3/GR4
         // name none. This method must return a StorageCell, so "lenient" could only mean fabricating one and
         // letting the program run on garbage — which no other COBOL does (GnuCOBOL and gcobol list both
         // conditions fatal and otherwise SIGSEGV; Micro Focus traps to RTS 114; IBM abends S0C4; NetCOBOL
@@ -49,7 +49,7 @@ public static class CobolPtr
         if (w.Generation != w.Cell.Generation)
         {
             // The storage this pointer named has ENDED (kb/Work PB1216): FREE, the end of the activation that owned it,
-            // or a CANCEL — §13.18.5.4 GR4's "not a valid address of storage", with §8.6.5 naming the ways the
+            // or a CANCEL — §2023:13.18.5.4 GR4's "not a valid address of storage", with §2023:8.6.5 naming the ways the
             // association ceases ("the actual data no longer exists, as specified 8.6.4 … and in 14.9.3").
             string ended = DanglingDetail(w.Cell.LastEnd);
             ExceptionState.BoundPtrError(ended);
@@ -97,13 +97,13 @@ public static class CobolPtr
     public static int DynBaseOf(ManagedPointer? p) => p is CellPointer w ? w.DynBase : 0;
 
     /// <summary>The LOWEST value a data-pointer data item may hold, as a character-position displacement from
-    /// the origin of the storage it addresses (ISO §14.9.39.4 GR20's "the range of values allowed by the
-    /// implementor for a data-pointer data item"; §A.1 216 requires it documented, and
+    /// the origin of the storage it addresses (ISO §2023:14.9.39.4 GR20's "the range of values allowed by the
+    /// implementor for a data-pointer data item"; §2023:A.1 216 requires it documented, and
     /// <c>docs/CONFORMANCE.md</c> §7 DOC-A.1-216 does).</summary>
     public const long MinAddress = long.MinValue;
 
     /// <summary>The HIGHEST value a data-pointer data item may hold (the <see cref="MinAddress"/> twin —
-    /// §14.9.39.4 GR20 · §A.1 216 · DOC-A.1-216).</summary>
+    /// §2023:14.9.39.4 GR20 · §2023:A.1 216 · DOC-A.1-216).</summary>
     public const long MaxAddress = long.MaxValue;
 
     /// <summary>The widest displacement that could possibly carry an in-range address to another in-range
@@ -113,7 +113,7 @@ public static class CobolPtr
     /// applied to the pointer carrier by PB465).</summary>
     private static readonly Int128 AddressSpan = (Int128)MaxAddress - MinAddress;
 
-    /// <summary>Displace a data pointer (ISO §14.9.39.4): GR18 — a NULL operand is <c>EC-DATA-PTR-NULL</c>
+    /// <summary>Displace a data pointer (ISO §2023:14.9.39.4): GR18 — a NULL operand is <c>EC-DATA-PTR-NULL</c>
     /// (Fatal); GR20 — "the address contained in each identifier-9 … is incremented, if UP is specified, or
     /// decremented, if DOWN is specified, by the number of bytes specified by arithmetic-expression-3"
     /// (character positions in this model), and "if this new address is outside the range of values allowed by
@@ -121,7 +121,7 @@ public static class CobolPtr
     /// the value of the data item referenced by identifier-9 is unchanged".
     /// <para>⛔ The range GR20 names is <see cref="MinAddress"/>..<see cref="MaxAddress"/> — the addresses this
     /// implementation can represent, NOT the bounds of the addressed storage. An address that leaves its cell
-    /// but stays representable is a legal pointer VALUE; §13.18.5.4 GR4 raises EC-BOUND-PTR when it is
+    /// but stays representable is a legal pointer VALUE; §2023:13.18.5.4 GR4 raises EC-BOUND-PTR when it is
     /// DEREFERENCED. A cell-bounds test here would reject conforming programs (DOC-A.1-216).</para></summary>
     /// <param name="by">The displacement, as an <see cref="Int128"/>: arithmetic-expression-3 may be a
     /// 31-digit integer item, and narrowing it at the emitter would WRAP it before this guard could see it —
@@ -129,7 +129,7 @@ public static class CobolPtr
     /// <param name="down">DOWN BY — negated HERE, after the span test, so the negation itself cannot overflow.</param>
     public static ManagedPointer UpBy(ManagedPointer? p, Int128 by, bool down = false)
     {
-        // §14.9.39.4 GR19 and GR20 each state the unsuccessful outcome for this statement — "the execution of
+        // §2023:14.9.39.4 GR19 and GR20 each state the unsuccessful outcome for this statement — "the execution of
         // the SET statement is unsuccessful, and the content of identifier-9 is unchanged" / "the value of the
         // data item referenced by identifier-9 is unchanged" — so with checking OFF these return the operand
         // UNCHANGED rather than terminating. Unlike Deref there IS a defined thing to return.
@@ -168,7 +168,7 @@ public static class CobolPtr
         return p ?? ManagedPointer.Null;   // GR20 verbatim — identifier-9 is unchanged
     }
 
-    /// <summary>SET pointer UP/DOWN BY with an EXACT scaled fixed-point amount — §14.9.39.4's two rules as TWO
+    /// <summary>SET pointer UP/DOWN BY with an EXACT scaled fixed-point amount — §2023:14.9.39.4's two rules as TWO
     /// checks with TWO outcomes (kb/Work PB465):
     /// <list type="number">
     /// <item>GR19, on the AMOUNT: "if arithmetic-expression-3 does not evaluate to an integer, the
@@ -211,7 +211,7 @@ public static class CobolPtr
         return p ?? ManagedPointer.Null;   // GR19 verbatim — unsuccessful; identifier-9 unchanged
     }
 
-    /// <summary>ALLOCATE (ISO §14.9.3): a fresh <paramref name="size"/>-character cell. GR2: a request of
+    /// <summary>ALLOCATE (ISO §2023:14.9.3): a fresh <paramref name="size"/>-character cell. GR2: a request of
     /// zero or less returns the NULL pointer and NO exception condition exists. GR5: storage NOT AVAILABLE —
     /// a request past the cell model's capacity, or an OutOfMemory landing — returns NULL with
     /// <paramref name="notAvail"/> set for the emitter's checking-gated EC-STORAGE-NOT-AVAIL block (the
@@ -266,7 +266,7 @@ public static class CobolPtr
         return Allocate((Int128)up, fill, out notAvail);
     }
 
-    /// <summary>FREE (ISO §14.9.15 GR1): (a) a pointer addressing the START of storage obtained by ALLOCATE
+    /// <summary>FREE (ISO §2023:14.9.15 GR1): (a) a pointer addressing the START of storage obtained by ALLOCATE
     /// and not yet freed — release it (the cell's life ends, <see cref="StorageCell.End"/>, and its image is
     /// dropped; every dangling alias then fails loud at <see cref="Deref"/>, the "contents become undefined"
     /// license made loud) and the operand becomes NULL; (b) a NULL operand — no operation; (c) anything else
@@ -291,8 +291,8 @@ public static class CobolPtr
     /// of a class-pointer / class-object member of a BASED, EXTERNAL or ADDRESS-OF-taken record, which lives
     /// in <see cref="StorageCell.SlotAt"/> rather than in the cell's byte image because a managed reference is
     /// not a byte sequence. <paramref name="nullState"/> is the item's COBOL NULL state — the value an
-    /// unwritten slot has, which realizes ISO §14.9.3.4 GR9 ("data items of class object or class pointer in
-    /// the allocated storage are initialized to null") and §13.18.63.4's "data items of class message-tag,
+    /// unwritten slot has, which realizes ISO §2023:14.9.3.4 GR9 ("data items of class object or class pointer in
+    /// the allocated storage are initialized to null") and §2023:13.18.63.4's "data items of class message-tag,
     /// class object, and class pointer are initialized to null" with ONE expression, the same
     /// <c>PicInfo.DefaultInitializer</c> an ordinary declared field is seeded from.
     /// <para>The window's byte geometry is unchanged and unused here — the slot is keyed by the SAME byte

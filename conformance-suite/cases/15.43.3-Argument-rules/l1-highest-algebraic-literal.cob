@@ -4,11 +4,11 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.43.3 r1 — "Argument-1 shall be a DATA ITEM of category numeric or numeric-edited ..."
+      *> ISO §2023:15.43.3 r1 — "Argument-1 shall be a DATA ITEM of category numeric or numeric-edited ..."
       *>
-      *> THE DATA-ITEM CONJUNCT. A numeric literal is of category numeric (§8.3.3, §8.5.2.1's closing "The
+      *> THE DATA-ITEM CONJUNCT. A numeric literal is of category numeric (§2023:8.3.3, §2023:8.5.2.1's closing "The
       *> class and category of a literal are defined in 8.3.3"), so a screen written on CATEGORY ALONE lets
-      *> it through — and then §15.43.4 r2 has nothing to compute: "the positive algebraic value of greatest
+      *> it through — and then §2023:15.43.4 r2 has nothing to compute: "the positive algebraic value of greatest
       *> finite magnitude that may be represented in ARGUMENT-1" is a property of a data description entry,
       *> and a literal has none. Folding 999 to 999 would look plausible and be meaningless, which is the
       *> failure mode this fixture exists to make loud.

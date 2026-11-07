@@ -16,22 +16,22 @@ namespace WiseOwl.Cobol.Binding.Repository;
 internal readonly record struct RepositoryReadOutcome(IReadOnlyList<RepositoryRecord> Records, RepositoryReadFailure Failure, string? Detail);
 
 /// <summary>
-/// ⛔ THE ONE DECODER OF A MODULE'S SIGNATURE ATTRIBUTES (ISO §8.13; DESIGN-external-repository §6.2, §7.4's compiler half;
+/// ⛔ THE ONE DECODER OF A MODULE'S SIGNATURE ATTRIBUTES (ISO §2023:8.13; DESIGN-external-repository §6.2, §7.4's compiler half;
 /// kb/Work PB2100): it reads, through the runtime's <see cref="RepositoryIndex"/> (one prefetched metadata read, the header
 /// never decoded twice), what <c>RepositoryAttributeRenderer</c> wrote, and returns each unit's
 /// <see cref="RepositoryRecord"/> — the model the codec binds into its throw-away forest (<see cref="RepositoryCodec.Decode"/>,
-/// §6.3). It is the renderer's other half, so it states §6.2's encoding rules in reverse: an absent named argument is null for
+/// §2023:6.3). It is the renderer's other half, so it states §2023:6.2's encoding rules in reverse: an absent named argument is null for
 /// a nullable value and the default for any other; a structure exists exactly when its presence marker does; the formals are
 /// found by <see cref="CobolFormalAttribute"/>, never by CLR position, and a description tree by its ordinals, never by the
 /// order of the attribute rows.
-/// <para>Nothing an entry holds is trusted (§15.3): a constructor or a named argument of another type, an index naming no row,
+/// <para>Nothing an entry holds is trusted (§2023:15.3): a constructor or a named argument of another type, an index naming no row,
 /// a description whose ordinals do not form one tree, parallel arrays of unequal length, two formals at one position, a unit
 /// the index does not list or an index row with no unit is <see cref="RepositoryReadFailure.Malformed"/> with the reader's
 /// words, never an exception. A module built with <c>--repository-update off</c> carries no signatures
 /// (<see cref="RepositoryReadFailure.NoSignatures"/>, REPO-8) and one of another schema version is
 /// <see cref="RepositoryReadFailure.OtherSchemaVersion"/> (REPO-7, §6.6: the reader implements one version). The REPO
 /// diagnostics that report these outcomes are slice 7's.</para>
-/// <para>A class's or an interface's record (§6.1 <see cref="ClassRecord"/>) is read from its type: the unit's facts from its
+/// <para>A class's or an interface's record (§2023:6.1 <see cref="ClassRecord"/>) is read from its type: the unit's facts from its
 /// <see cref="CobolUnitAttribute"/>, the tables as a program's, each method from the CLR method that carries its
 /// <see cref="CobolMethodAttribute"/> (a CLR method without one is no COBOL method, and a formal or description on it is
 /// malformed), and each property from a <see cref="CobolPropertyAttribute"/>; the factory's methods and properties from the
@@ -66,7 +66,7 @@ internal static class RepositoryReader
         {
             return Fail(RepositoryReadFailure.Malformed, e.Message);
         }
-        catch (Exception e) when (e is BadImageFormatException or InvalidOperationException or ArgumentException)   // a hostile blob, as RepositoryIndex.Open catches it (§15.3)
+        catch (Exception e) when (e is BadImageFormatException or InvalidOperationException or ArgumentException)   // a hostile blob, as RepositoryIndex.Open catches it (§2023:15.3)
         {
             return Fail(RepositoryReadFailure.Malformed, e.Message);
         }
@@ -151,8 +151,8 @@ internal static class RepositoryReader
         return record;
     }
 
-    /// <summary>The skeleton a parameterized definition's type carries (§6.1 <see cref="SkeletonRecord"/>): its formals, source,
-    /// specifier resolutions and compile state. The parallel arrays are of one length, as every flattened structure is (§6.2 rule 3).</summary>
+    /// <summary>The skeleton a parameterized definition's type carries (§2023:6.1 <see cref="SkeletonRecord"/>): its formals, source,
+    /// specifier resolutions and compile state. The parallel arrays are of one length, as every flattened structure is (§2023:6.2 rule 3).</summary>
     private static SkeletonRecord Skeleton(Fields s, string unitName)
     {
         var formals = s.Texts(nameof(CobolSkeletonAttribute.Formals)) ?? [];
@@ -169,7 +169,7 @@ internal static class RepositoryReader
                 s.Text(nameof(CobolSkeletonAttribute.CompilationVariables)) ?? ""));
     }
 
-    /// <summary>The identity an expansion's unit states (§10.5): the definition, the actuals, the key and the placement.</summary>
+    /// <summary>The identity an expansion's unit states (§2023:10.5): the definition, the actuals, the key and the placement.</summary>
     private static ExpansionIdentity Expansion(Fields unit, string unitName) => new(
         unit.Text(nameof(CobolUnitAttribute.ExpandsDefinition)) ?? throw new MalformedEntry($"the expansion '{unitName}' names no definition"),
         List(unit.Texts(nameof(CobolUnitAttribute.ExpandsActuals)) ?? throw new MalformedEntry($"the expansion '{unitName}' lists no actuals")),
@@ -177,7 +177,7 @@ internal static class RepositoryReader
         List(unit.Texts(nameof(CobolUnitAttribute.ExpansionHomes)) ?? []),
         unit.Flag(nameof(CobolUnitAttribute.ExpansionOwnAssembly)));
 
-    /// <summary>A class's or an interface's own facts (§6.1 <see cref="ClassRecord"/>): the unit's, then the methods and the
+    /// <summary>A class's or an interface's own facts (§2023:6.1 <see cref="ClassRecord"/>): the unit's, then the methods and the
     /// properties of its type and, for a class, of the factory type the unit names. Every class has a factory (its own CLR
     /// type, design §6.2 "Anchoring") and no interface has one, so a record that says otherwise is malformed.</summary>
     private static ClassRecord Class(MetadataReader md, TypeDefinition type, RepositoryUnitKind kind, Fields unit, List<Fields> properties)
@@ -241,7 +241,7 @@ internal static class RepositoryReader
         return methods;
     }
 
-    /// <summary>The formal and returning-item attributes of one or more CLR methods' parameters and return values (§6.2
+    /// <summary>The formal and returning-item attributes of one or more CLR methods' parameters and return values (§2023:6.2
     /// "Anchoring"): a <see cref="CobolFormalAttribute"/> with its <see cref="CobolDescriptionAttribute"/>s per formal, the
     /// return value's <see cref="CobolReturningAttribute"/> with its tree.</summary>
     private sealed class Signature
@@ -391,7 +391,7 @@ internal static class RepositoryReader
         ObjectRefOnly: f.Flag(nameof(CobolDescriptionFieldsAttribute.ObjectRefOnly)),
         ObjectRefFormal: f.Flag(nameof(CobolDescriptionFieldsAttribute.ObjectRefFormal)));
 
-    /// <summary>The five <c>EditRule…</c> arrays (§6.2 rule 3): all present or all absent, and of one length.</summary>
+    /// <summary>The five <c>EditRule…</c> arrays (§2023:6.2 rule 3): all present or all absent, and of one length.</summary>
     private static RecordList<EditRuleRecord>? EditingRules(Fields f)
     {
         var char1 = f.Chars(nameof(CobolDescriptionFieldsAttribute.EditRuleChar1));
@@ -406,7 +406,7 @@ internal static class RepositoryReader
         return List(Enumerable.Range(0, char1.Count).Select(i => new EditRuleRecord(char1[i], neg[i], pos[i], simple[i], floating[i])));
     }
 
-    /// <summary>Three parallel arrays (§6.2 rule 3) zipped: all absent is the empty list; otherwise all present and of one length.</summary>
+    /// <summary>Three parallel arrays (§2023:6.2 rule 3) zipped: all absent is the empty list; otherwise all present and of one length.</summary>
     private static IEnumerable<TRow> Parallel<TA, TB, TC, TRow>(IReadOnlyList<TA>? a, IReadOnlyList<TB>? b, IReadOnlyList<TC>? c, string what,
         Func<TA, TB, TC, TRow> row)
     {
@@ -429,11 +429,11 @@ internal static class RepositoryReader
         }
     }
 
-    /// <summary>A record the reader refuses (§15.3), caught once by <see cref="Read"/> as its malformed outcome.</summary>
+    /// <summary>A record the reader refuses (§2023:15.3), caught once by <see cref="Read"/> as its malformed outcome.</summary>
     private sealed class MalformedEntry(string message) : Exception(message);
 
     /// <summary>One decoded attribute: its constructor arguments by position and its named arguments by name, each read by
-    /// the exact type the schema declares (an argument of any other type refuses the entry, §15.1).</summary>
+    /// the exact type the schema declares (an argument of any other type refuses the entry, §2023:15.1).</summary>
     private sealed class Fields
     {
         private readonly string _attribute;

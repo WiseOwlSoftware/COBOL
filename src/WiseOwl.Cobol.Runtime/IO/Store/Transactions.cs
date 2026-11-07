@@ -19,7 +19,7 @@ namespace WiseOwl.Cobol.Runtime.IO.Store;
 /// UNDO tree is its own list of its holdings: after every statement the HOLDINGS tree's key set equals the union of the
 /// UNDO trees' key sets (finding R5-2).</item>
 /// </list>
-/// ⛔ The UNDO and HOLDINGS trees are ordered by <see cref="HoldingsKeyOrder"/>, the FILE'S OWN key orders (§12.4.5.12.4
+/// ⛔ The UNDO and HOLDINGS trees are ordered by <see cref="HoldingsKeyOrder"/>, the FILE'S OWN key orders (§2023:12.4.5.12.4
 /// GR1: <i>"The equality or inequality is based on the collating sequence used for the file according to the rules for a
 /// relation condition"</i>): two key images the file's collating sequence makes equal are ONE identity, whatever their
 /// bytes, so a holding taken under one spelling is found, and kept, under the other (kb/Work PB3485). The TRANSACTIONS
@@ -104,10 +104,10 @@ internal static class TransactionKeys
 /// <summary>⛔ THE ORDER OF THE UNDO AND HOLDINGS TREES' KEYS (DESIGN-runtime-library.md 2.2.1.10; kb/Work PB3485): a
 /// holding key is a kind byte and then an identity, and two keys are the same holding exactly when the FILE says they are
 /// the same key. A <see cref="TransactionKeys.RecordKind"/> key compares its record identity through
-/// <paramref name="records"/>, the order of the prime tree (the record's identity IS its prime key, and §12.4.5.12.4
+/// <paramref name="records"/>, the order of the prime tree (the record's identity IS its prime key, and §2023:12.4.5.12.4
 /// GR1 decides the equality of two prime keys by <i>"the collating sequence used for the file according to the rules for a
 /// relation condition"</i>); a <see cref="TransactionKeys.ValueKind"/> key compares its alternate key number and then the
-/// value through that key's own order in <paramref name="values"/> (§14.9.51.4 GR35: <i>"The comparison used for ensuring
+/// value through that key's own order in <paramref name="values"/> (§2023:14.9.51.4 GR35: <i>"The comparison used for ensuring
 /// uniqueness, for ordering records, or for suppressing records in the physical file is based on the collating sequence
 /// for the file"</i>). Compared as bytes, a holding taken under the spelling "abcd" would not be found by a writer of "ABCD"
 /// where the file's sequence makes the two keys one, and a transaction's second change of the record under the other

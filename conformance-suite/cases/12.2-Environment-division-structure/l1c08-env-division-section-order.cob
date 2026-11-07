@@ -4,13 +4,13 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §12.2.1 FMT — the input-output section may not precede the
+      *> ISO §2023:12.2.1 FMT — the input-output section may not precede the
       *> configuration section.
       *> Format: "ENVIRONMENT DIVISION." "[ configuration-section ]"
       *>   "[ input-output-section ]" - fixed order.
       *> cite.py:
-      *>   OK  §12.2.1   (General format)  [ configuration-section ]
-      *>   OK  §12.2.1   (General format)  [ input-output-section ]
+      *>   OK  §2023:12.2.1   (General format)  [ configuration-section ]
+      *>   OK  §2023:12.2.1   (General format)  [ input-output-section ]
       *> Both sections below are individually valid (the positive
       *> l1c08_environment_division_shapes uses them in format order);
       *> only their order violates the general format, so the source

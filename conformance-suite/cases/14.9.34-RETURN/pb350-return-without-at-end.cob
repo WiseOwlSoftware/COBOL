@@ -4,14 +4,14 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.34.2 — the AT END phrase OMITTED ENTIRELY. The general format prints
+      *> ISO §2023:14.9.34.2 — the AT END phrase OMITTED ENTIRELY. The general format prints
       *>     AT END imperative-statement-1
       *> on its own line with NO brackets, between the bracketed [ NOT AT END … ] and [ END-RETURN ]; per
-      *> §5.2.6.2 brackets are the only convention that makes a portion of a general format omissible and per
-      *> §5.2.2 an underlined keyword is required subject to those conventions, so the phrase is MANDATORY.
+      *> §2023:5.2.6.2 brackets are the only convention that makes a portion of a general format omissible and per
+      *> §2023:5.2.2 an underlined keyword is required subject to those conventions, so the phrase is MANDATORY.
       *> Nothing in the rule is edition-dependent — it is a property of the printed format, not of a feature
       *> introduction — hence all four reject-at years.
-      *> Until kb/Work PB350 this compiled clean at every edition and produced a WRONG ANSWER: §14.9.34.4 GR3
+      *> Until kb/Work PB350 this compiled clean at every edition and produced a WRONG ANSWER: §2023:14.9.34.4 GR3
       *> makes imperative-statement-1 the only defined destination for control at end of data, so with no AT
       *> END phrase control fell THROUGH the statement onto a record area the same rule leaves undefined, and
       *> a loop written on RETURN could never terminate from the statement — this program printed the

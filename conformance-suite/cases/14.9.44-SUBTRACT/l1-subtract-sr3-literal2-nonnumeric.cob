@@ -4,11 +4,11 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.44.3 SR3 (FORMATS 1 AND 2) — "Literal-1 and
+      *> ISO §2023:14.9.44.3 SR3 (FORMATS 1 AND 2) — "Literal-1 and
       *> literal-2 shall be numeric literals."
       *> THE LITERAL-2 ARM.  Literal-2 exists only in format 2, the
       *> `SUBTRACT … FROM {identifier-2 | literal-2} GIVING …` shape
-      *> of §14.9.44.2, where it is the MINUEND.  "20" is written as
+      *> of §2023:14.9.44.2, where it is the MINUEND.  "20" is written as
       *> an alphanumeric literal, so `SUBTRACT 1 FROM "20" GIVING G`
       *> violates SR3.  As with the literal-1 arm, the digits being
       *> decimal is the trap and not the licence.

@@ -5,12 +5,12 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §8.8.4.2.13 1) — two index-names compare by their occurrence numbers
+      *> ISO §2023:8.8.4.2.13 1) — two index-names compare by their occurrence numbers
       *>
-      *> THE RULE. §8.8.4.2.13: "Relation tests may be made only between
+      *> THE RULE. §2023:8.8.4.2.13: "Relation tests may be made only between
       *>   1) two index-names. The result is the same as if the corresponding occurrence
       *>      numbers were compared."
-      *>   cite.py: OK  §8.8.4.2.13 1)  (Comparisons involving index-names or index data items)
+      *>   cite.py: OK  §2023:8.8.4.2.13 1)  (Comparisons involving index-names or index data items)
       *>
       *> I1/J1 index T1 (elements of 4 characters), I2 indexes T2 (elements of 8
       *> characters), so an index VALUE that were a displacement would differ from the

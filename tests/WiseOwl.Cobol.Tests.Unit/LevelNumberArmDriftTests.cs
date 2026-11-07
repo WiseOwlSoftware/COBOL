@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ A SECTION-KEYED SYNTAX RULE IS ONLY AS COMPLETE AS ITS LIST OF GRAMMAR ARMS, AND THAT LIST IS A CLASSIFIER.
-/// ISO §13.18.33.3 states FOUR level-number sets, one per DATA DIVISION section, and <c>LevelNumberPass</c>
+/// ISO §2023:13.18.33.3 states FOUR level-number sets, one per DATA DIVISION section, and <c>LevelNumberPass</c>
 /// screens them by classifying a <c>levelNumber</c> parse node from its ancestry. Two lists are load-bearing
 /// there: the ENTRY rules that spell a level-number, and — for a data description entry, whose set depends on the
 /// section — the SECTION rules that contain one.
@@ -73,7 +73,7 @@ public sealed class LevelNumberArmDriftTests
     /// <summary>ANTLR's generated context type for a parser rule.</summary>
     private static string ContextType(string rule) => char.ToUpperInvariant(rule[0]) + rule[1..] + "Context";
 
-    /// <summary>Every grammar rule that spells a level-number is classified into a §13.18.33.3 arm.</summary>
+    /// <summary>Every grammar rule that spells a level-number is classified into a §2023:13.18.33.3 arm.</summary>
     [Fact]
     public void EveryLevelNumberBearingRule_IsClassifiedByThePass()
     {
@@ -90,9 +90,9 @@ public sealed class LevelNumberArmDriftTests
         Assert.True(unclassified.Count == 0,
             $"grammar rule(s) spell a level-number that LevelNumberPass.Classify does not recognize: "
             + $"{string.Join(", ", unclassified)}.{Environment.NewLine}"
-            + $"Classify returns null there, so ISO §13.18.33.3 is not enforced on that arm and an out-of-range "
+            + $"Classify returns null there, so ISO §2023:13.18.33.3 is not enforced on that arm and an out-of-range "
             + $"level compiles clean — the PB485 shape. Add the arm to LevelNumberRules.Classify with the "
-            + $"§13.18.33.3 syntax rule its section obeys.");
+            + $"§2023:13.18.33.3 syntax rule its section obeys.");
     }
 
     /// <summary>A data description entry's permitted set depends on the SECTION that contains it (SR2 for a
@@ -112,11 +112,11 @@ public sealed class LevelNumberArmDriftTests
         Assert.True(unclassified.Count == 0,
             $"grammar rule(s) host a data description entry whose SECTION LevelNumberPass.Classify does not "
             + $"recognize: {string.Join(", ", unclassified)}.{Environment.NewLine}"
-            + $"Decide which ISO §13.18.33.3 syntax rule governs that section (SR2 for an FD/SD record area, "
+            + $"Decide which ISO §2023:13.18.33.3 syntax rule governs that section (SR2 for an FD/SD record area, "
             + $"SR5 for working-storage / local-storage / linkage) and add it to the inner switch.");
     }
 
-    /// <summary>The four permitted sets are written ONCE, in the §13.18.33.3 table. Four copies of "is this
+    /// <summary>The four permitted sets are written ONCE, in the §2023:13.18.33.3 table. Four copies of "is this
     /// level legal here" spread across DataBinder, ReportSectionBinder and ScreenFacility is precisely the shape
     /// that carried zero copies for as long as nobody counted (feedback_one_rule_one_place).</summary>
     [Fact]
@@ -143,7 +143,7 @@ public sealed class LevelNumberArmDriftTests
             .Select(Path.GetFileName)
             .ToList();
         Assert.True(offenders.Count == 0,
-            $"file(s) outside LevelNumberPass.cs decide ISO §13.18.33.3 for themselves: "
+            $"file(s) outside LevelNumberPass.cs decide ISO §2023:13.18.33.3 for themselves: "
             + $"{string.Join(", ", offenders)} — the level-number sets belong in ONE place; a second copy is how "
             + $"one arm gets fixed and the others do not. A pointer comment naming LevelNumberPass is fine.");
     }

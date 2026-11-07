@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §12.3.7.4 GR7 f/g/h — SPECIAL-NAMES ALPHABET clause, UCS-4 / UTF-8 / UTF-16
+      *> ISO §2023:12.3.7.4 GR7 f/g/h — SPECIAL-NAMES ALPHABET clause, UCS-4 / UTF-8 / UTF-16
       *> phrases: the correspondence with the native character set (Annex A.1 item 188;
       *> docs/CONFORMANCE.md DOC-A.1-188).
       *>
@@ -22,21 +22,21 @@
       *>      association for the UTF-32 character from which the UTF-16 character was
       *>      transformed."
       *> Table 6 makes all three references to a CODED CHARACTER SET, so the observation
-      *> point is the coded-set surface, not a collating surface. §12.3.7.4 GR11 c is the
+      *> point is the coded-set surface, not a collating surface. §2023:12.3.7.4 GR11 c is the
       *> surface used here: "When NATIONAL is specified, the value of figurative constant
       *> symbolic-character-1 is the internal representation of the character at ordinal
       *> position integer-1 in the native national character set or, if the IN phrase is
-      *> specified, in the character set referenced by alphabet-name-3." §12.3.7.3 SR16 f1
+      *> specified, in the character set referenced by alphabet-name-3." §2023:12.3.7.3 SR16 f1
       *> requires that alphabet to define a NATIONAL character set, which all three phrases
       *> do. So `SYMBOLIC CHARACTERS FOR NATIONAL s IS n IN a` NAMES the character at ordinal
       *> n of a, and FUNCTION ORD then reports which NATIVE national character that is —
-      *> §15.70.4 r2 reads the national program collating sequence, which is left NATIVE here,
-      *> and §12.3.7.4 GR6 makes the native ordinal association the implementor's ("The
+      *> §2023:15.70.4 r2 reads the national program collating sequence, which is left NATIVE here,
+      *> and §2023:12.3.7.4 GR6 makes the native ordinal association the implementor's ("The
       *> implementor shall define the order of characters within the native alphanumeric
       *> coded character set and the native national coded character set, associating each
       *> character with an ordinal position within the character set"). WiseOwl COBOL's
       *> determination is UTF-16 code units in code-unit order, so the native ordinal of a
-      *> character is its code unit + 1 (§15.70.1 "The lowest ordinal position is 1").
+      *> character is its code unit + 1 (§2023:15.70.1 "The lowest ordinal position is 1").
       *> Each printed number is therefore THE CORRESPONDENCE GR7 asks the implementor to
       *> document, read out of the compiler.
       *>

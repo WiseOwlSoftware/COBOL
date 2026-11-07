@@ -7,9 +7,9 @@ namespace WiseOwl.Cobol.Binding;
 
 /// <summary>
 /// ⛔ THE INHERITANCE MERGE of a contained program (docs/rearchitecture/DESIGN-architecture-review.md §8.3 (1); kb/Work
-/// PB2296): ISO §13.18.27.4 GR1 ("A constant-name, data-name, file-name, report-name, or screen-name described using a
+/// PB2296): ISO §2023:13.18.27.4 GR1 ("A constant-name, data-name, file-name, report-name, or screen-name described using a
 /// GLOBAL clause is a global name") and GR2 (a program contained directly or indirectly within the program that describes
-/// a global name "may reference that name without describing it again"), with §8.4.6.2.1 3)'s nearest-declaration rule.
+/// a global name "may reference that name without describing it again"), with §2023:8.4.6.2.1 3)'s nearest-declaration rule.
 /// The containers are read nearest first, and a parent binds before its children, so each container is complete when its
 /// child reads it. Run by <c>BinderDriver.BindUnitData</c> for every program unit, in two halves:
 /// <list type="bullet">
@@ -29,7 +29,7 @@ internal static class InheritStep
     public static void Seed(BoundUnit unit, DataBinder data, ElementBinders binders)
     {
         var inherited = data.State.Inherited;
-        // The containers' GLOBAL reports (§13.18.27.3 SR1 e) / §13.18.27.4 GR1–GR2; kb/Work PB369) and GLOBAL data roots,
+        // The containers' GLOBAL reports (§2023:13.18.27.3 SR1 e) / §2023:13.18.27.4 GR1–GR2; kb/Work PB369) and GLOBAL data roots,
         // OFFERED here and made visible by the unit's own data division at the end of its declaration half
         // (ReportSectionBinder.InheritContainerReports / InheritContainerGlobalData), so the unit's own clauses that name one
         // (FILE STATUS, RECORD / RELATIVE KEY, OCCURS … DEPENDING ON, ASSIGN … USING) see it (kb/Work PB3766).
@@ -42,15 +42,15 @@ internal static class InheritStep
             // nearest global declaration wins): an intermediate program's own NON-global declaration of the name hides
             // nothing from the programs it contains.
             inherited.AddContainerConstants(binders.Of(anc).Data.Constants.GlobalConstantsToInherit(), ++depth);
-            // …its GLOBAL type declarations (§13.18.58.4 GR3; §8.4.6.2.2; kb/Work PB1303): ExpandTypes runs inside the
+            // …its GLOBAL type declarations (§2023:13.18.58.4 GR3; §2023:8.4.6.2.2; kb/Work PB1303): ExpandTypes runs inside the
             // unit's first data phase, so a TYPE clause there already sees the container's type-name.
             inherited.AddContainerTypeDecls(binders.Of(anc).Data.State.Forest.TypeDecls);
-            // …and its files' names (§13.18.27.4 GR1): the data division's own resolutions ask whether a name that is no
+            // …and its files' names (§2023:13.18.27.4 GR1): the data division's own resolutions ask whether a name that is no
             // data item IS a visible file-name (kb/Work PB3557).
             inherited.AddContainerFiles(binders.Of(anc).Data.State.Files.Declared, binders.Of(anc).Data.Linkage.GlobalRoots, depth);
         }
         // The member names every container's GLOBAL root will occupy in this unit's class (kb/Work PB1047): the bridges are
-        // emitted for every global root (Merge), so a LOCAL root spelled like one (the §8.4.6.2.1 3) a) shadowing case)
+        // emitted for every global root (Merge), so a LOCAL root spelled like one (the §2023:8.4.6.2.1 3) a) shadowing case)
         // must take another C# name — its stem too, or a member DERIVED from the stem (a REDEFINES backing) would re-spell
         // the bridge (LinkageBinder.InheritedMemberNamesOf).
         foreach (var (anc, g, _) in ContainerBridgedRootsOf(unit, binders))
@@ -85,21 +85,21 @@ internal static class InheritStep
         }
 
         // Every tier is in place now — this unit's own names and every container's globals — so an inherited constant a
-        // NEARER data-name hides can leave (§8.4.6.2.1 3); kb/Work PB1009 / PB1047).
+        // NEARER data-name hides can leave (§2023:8.4.6.2.1 3); kb/Work PB1009 / PB1047).
         DropShadowed(data);
     }
 
     /// <summary>Once <paramref name="data"/>'s DATA DIVISION is bound AND every container's global data is inherited, an
-    /// inherited GLOBAL constant, and an inherited symbolic-character (§12.3.7.4 GR11 a), is SHADOWED by a data-name,
+    /// inherited GLOBAL constant, and an inherited symbolic-character (§2023:12.3.7.4 GR11 a), is SHADOWED by a data-name,
     /// condition-name or index-name of the same spelling declared in a NEARER source element — this unit's own, or a nearer
-    /// container's global one — by ISO §8.4.6.2.1 3) ("a) If the name is declared in source element B, the item in source
+    /// container's global one — by ISO §2023:8.4.6.2.1 3) ("a) If the name is declared in source element B, the item in source
     /// element B is the referenced item. b) … 1. The item in source element A if the name is declared in source element
     /// A"), so a shadowed constant leaves <see cref="InheritedGlobals.Constants"/> before any procedure reference can
     /// substitute it (kb/Work PB1009; the nearer-container half kb/Work PB1047 — an outer program's constant used to beat
     /// the middle program's global data-name) and a shadowed symbolic-character is hidden (kb/Work PB3154 review R1-1:
     /// <c>MOVE S1 TO Y</c> moved the container's figurative instead of the local <c>01 S1</c>, with no diagnostic). Run by
     /// <see cref="Merge"/> for a program unit and by <c>OoDriver</c> for an OBJECT or FACTORY half, whose class definition
-    /// hands it symbolic-characters (§8.4.6.1) and no constants.
+    /// hands it symbolic-characters (§2023:8.4.6.1) and no constants.
     /// <para>Every tier a name can be declared at is asked by <c>DataBinder.DeclaredNearerThan</c>; a METHOD's own names
     /// are the one tier nearer still, asked at reference time (<c>OoDataBinder.ActiveMethodDeclares</c>).</para></summary>
     internal static void DropShadowed(DataBinder data) =>
@@ -107,11 +107,11 @@ internal static class InheritStep
 
     /// <summary>⛔ THE ONE LIST OF A UNIT'S INHERITED GLOBAL DATA ROOTS: every named GLOBAL root of every container of
     /// <paramref name="unit"/>, nearest container first, each with its container and how many containment levels out it
-    /// lives (the nesting distance ISO §8.4.6.2.1 3) selects on). EVERY global root joins, shadowed spelling or not (kb/Work
-    /// PB1047 / PB1243): §8.4.6.2.1 1) puts "all global names that are defined in source element A and in any source
-    /// elements that directly or indirectly contain source element A" in the set, and §8.4.6.2.2 makes every data-name
+    /// lives (the nesting distance ISO §2023:8.4.6.2.1 3) selects on). EVERY global root joins, shadowed spelling or not (kb/Work
+    /// PB1047 / PB1243): §2023:8.4.6.2.1 1) puts "all global names that are defined in source element A and in any source
+    /// elements that directly or indirectly contain source element A" in the set, and §2023:8.4.6.2.2 makes every data-name
     /// subordinate to a global name a global name in its own right — so a local 01 G hides the container's G, never its
-    /// subordinate Y. WHICH candidate a reference names is §8.4.6.2.1 3)'s nearest-declaring-element rule, applied after
+    /// subordinate Y. WHICH candidate a reference names is §2023:8.4.6.2.1 3)'s nearest-declaring-element rule, applied after
     /// qualification (SymbolTable.NearestDeclaring); the depth is what it reads. The names are inherited from it by
     /// <c>DataBinder.InheritContainerGlobalData</c>, the C# bridges are built from it by <see cref="Merge"/>.</summary>
     private static List<(BoundUnit Container, DataItem Root, int Depth)> ContainerGlobalRootsOf(BoundUnit unit, ElementBinders binders)
@@ -132,7 +132,7 @@ internal static class InheritStep
     /// MEMBER NAMES IT RESERVES (<see cref="Seed"/>): the inherited GLOBAL roots (<see cref="ContainerGlobalRootsOf"/>) and,
     /// after them, the roots a container's GLOBAL files' own clauses name (<see cref="DataBinder.GlobalFileOperandRoots"/>,
     /// kb/Work PB4454). The second kind is reached by the unit's I-O statements on the file, never by a name it writes
-    /// (ISO §13.18.27.4 GR2), so it is bridged and placed and is not offered as a name.</summary>
+    /// (ISO §2023:13.18.27.4 GR2), so it is bridged and placed and is not offered as a name.</summary>
     private static List<(BoundUnit Container, DataItem Root, int Depth)> ContainerBridgedRootsOf(BoundUnit unit, ElementBinders binders)
     {
         var roots = ContainerGlobalRootsOf(unit, binders);
@@ -149,7 +149,7 @@ internal static class InheritStep
     /// <summary>The GLOBAL report description entries of every container of <paramref name="unit"/>, nearest container
     /// first, each with how many containment levels out it lives (the <c>__outer</c> chain length a reference to its
     /// storage renders through, <see cref="ReportScope.Depth"/>). Like a GLOBAL FD, the report is SHARED, never
-    /// re-declared: the child's verbs hold the container's <see cref="ReportModel"/> (ISO §13.18.27.4 GR1–GR2).</summary>
+    /// re-declared: the child's verbs hold the container's <see cref="ReportModel"/> (ISO §2023:13.18.27.4 GR1–GR2).</summary>
     private static List<(ReportModel Report, int Depth)> ContainerGlobalReportsOf(BoundUnit unit, ElementBinders binders)
     {
         var reports = new List<(ReportModel Report, int Depth)>();

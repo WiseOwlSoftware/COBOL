@@ -5,29 +5,29 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §7.3.16.3 SR6 — multi-line text-1/text-2 holding directives
+      *> ISO §2023:7.3.16.3 SR6 — multi-line text-1/text-2 holding directives
       *> "Text-1 and text-2 may be any kind of source lines, including
       *> compiler directives. Text-1 and text-2 may consist of multiple
       *> lines."
-      *>   cite.py: OK  §7.3.16.3 6)  (Syntax rules)
-      *> Selection: §7.3.16.4 GR2 "all lines of text-1 are included in
+      *>   cite.py: OK  §2023:7.3.16.3 6)  (Syntax rules)
+      *> Selection: §2023:7.3.16.4 GR2 "all lines of text-1 are included in
       *> the resultant text and all lines of text-2 are omitted" (TRUE)
-      *>   cite.py: OK  §7.3.16.4 2)  (General rules)
+      *>   cite.py: OK  §2023:7.3.16.4 2)  (General rules)
       *> and GR3 "all lines of text-2 are included in the resultant
       *> text and all lines of text-1 are omitted from the resultant
       *> text" (FALSE).
-      *>   cite.py: OK  §7.3.16.4 3)  (General rules)
+      *>   cite.py: OK  §2023:7.3.16.4 3)  (General rules)
       *> DEFINE/IF/EVALUATE are processed only as encountered in the
-      *> group being conditionally processed (§7.2.1 Step 2: "the
+      *> group being conditionally processed (§2023:7.2.1 Step 2: "the
       *> expanded compilation group is read and the following compiler
       *> directives and substitutions are processed in the order
       *> encountered"), so a >>DEFINE line inside OMITTED text has no
       *> effect and one inside INCLUDED text does.
-      *>   cite.py: OK  §7.2.1   (General)
-      *> §7.3.8.4.4 GR2 "A defined condition using the IS NOT DEFINED
+      *>   cite.py: OK  §2023:7.2.1   (General)
+      *> §2023:7.3.8.4.4 GR2 "A defined condition using the IS NOT DEFINED
       *> syntax evaluates TRUE if compilation-variable-name-1 is not
       *> currently defined."
-      *>   cite.py: OK  §7.3.8.4.4 2)  (General rule)
+      *>   cite.py: OK  §2023:7.3.8.4.4 2)  (General rule)
       *>
       *> DERIVATION (SW = 1).
       *> IF #1 (SW = 1, TRUE): text-1 = eleven lines holding a MOVE, a

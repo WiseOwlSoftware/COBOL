@@ -5,15 +5,15 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB3253 - ISO 1989 §13.18.43.3 SR3 ("No record description entry for the file may specify a number of
+      *> kb/Work PB3253 - ISO 1989 §2023:13.18.43.3 SR3 ("No record description entry for the file may specify a number of
       *> bytes greater than integer-1") over a record that holds USAGE BIT items BESIDE a DYNAMIC LENGTH item.
-      *> §13.18.43.4 GR8 b) sizes the record description at its MAXIMUM ("The maximum number of table elements
+      *> §2023:13.18.43.4 GR8 b) sizes the record description at its MAXIMUM ("The maximum number of table elements
       *> described in the record is used in the summation above to determine the maximum number of bytes associated
       *> with the record description"), a dynamic-length item counting at its maximum size, the smallest of its LIMIT,
-      *> its prefixed usage's largest integer and the implementor's maximum (§8.5.1.10.1), and GR4 counts a trailing
+      *> its prefixed usage's largest integer and the implementor's maximum (§2023:8.5.1.10.1), and GR4 counts a trailing
       *> partial byte whole ("the record size includes the entire byte in which that data item ends").
       *>
-      *> DERIVATION: B1 and B2 are same-level USAGE BIT items of 3 bits each, so §8.5.1.6.3 places B2 in the byte B1
+      *> DERIVATION: B1 and B2 are same-level USAGE BIT items of 3 bits each, so §2023:8.5.1.6.3 places B2 in the byte B1
       *> starts - the bits take ONE byte, not two - and D takes at most its LIMIT 10: the description is 1 + 10 = 11
       *> bytes at its greatest, EXACTLY integer-1 of RECORD CONTAINS 11, so the entry is LEGAL. The negative
       *> conformance-suite/cases/13.18.43-RECORD/pb3253-record-contains-bits-beside-dynamic-one-over.cob states 10.

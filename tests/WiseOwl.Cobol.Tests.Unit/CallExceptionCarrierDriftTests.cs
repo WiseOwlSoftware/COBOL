@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// <see cref="CobolCallException.CarriedNames"/> is what a CALL site's emitted catch arms filter on
-/// (<c>CallEmitter.EnabledOtherCallNames</c> — ISO §14.9.4.4 GR3h item 2's second disjunct), so a level-3 name
+/// (<c>CallEmitter.EnabledOtherCallNames</c> — ISO §2023:14.9.4.4 GR3h item 2's second disjunct), so a level-3 name
 /// this carrier can raise but that the list omits reaches NO arm at all: with checking enabled the condition
 /// silently bypasses its declarative and terminates the run unit instead. That is exactly how
 /// EC-FUNCTION-NOT-FOUND went unhandled until kb/Work PB233 — nothing in the tree contradicted a name that was
@@ -22,7 +22,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// raises), the constructor's own <c>ecName</c> default, and <c>CarriedNames</c> itself. Doc-comment lines are
 /// excluded, because a comment may legitimately name a condition this carrier does NOT raise:
 /// EC-PROGRAM-ARG-OMITTED is exactly such a name, and saying so is the point of that comment. Level-3 names
-/// never end in a hyphen (§14.6.13.1.1's open-suffix rule), which is what separates a real name from the two
+/// never end in a hyphen (§2023:14.6.13.1.1's open-suffix rule), which is what separates a real name from the two
 /// FAMILY PREFIXES <see cref="CobolCallException.IsProgramOrExternal"/> tests.</para>
 /// </summary>
 [Trait("Sweep", "tree")]
@@ -35,12 +35,12 @@ public sealed class CallExceptionCarrierDriftTests
         Path.Combine("WiseOwl.Cobol.Runtime", "Control", "ProgramRegistry.cs"),
         Path.Combine("WiseOwl.Cobol.Runtime", "Control", "ProgramTable.cs"),
         Path.Combine("WiseOwl.Cobol.Runtime", "Control", "ExternalTable.cs"),
-        // PB165: StoreReturn is total — a result it cannot store raises EC-PROGRAM-ARG-MISMATCH (§14.9.4.4 GR4)
+        // PB165: StoreReturn is total — a result it cannot store raises EC-PROGRAM-ARG-MISMATCH (§2023:14.9.4.4 GR4)
         // instead of being silently discarded, so the RETURNING landing is a carrier file too.
         Path.Combine("WiseOwl.Cobol.Runtime", "Control", "CallAbi.cs"),
     ];
 
-    /// <summary>A level-3 exception-name literal — §14.6.13.1.1's open suffix forbids a trailing hyphen, so
+    /// <summary>A level-3 exception-name literal — §2023:14.6.13.1.1's open suffix forbids a trailing hyphen, so
     /// this does not match the <c>"EC-PROGRAM-"</c> / <c>"EC-EXTERNAL-"</c> family prefixes.</summary>
     private static readonly Regex NameLiteral =
         new("\"(EC-[A-Z0-9-]*[A-Z0-9])\"", RegexOptions.Compiled);
@@ -103,7 +103,7 @@ public sealed class CallExceptionCarrierDriftTests
         }
     }
 
-    /// <summary>ISO §14.9.4.4 GR3h item 1's partition, checked on the carrier's own name set: exactly the
+    /// <summary>ISO §2023:14.9.4.4 GR3h item 1's partition, checked on the carrier's own name set: exactly the
     /// EC-PROGRAM-* and EC-EXTERNAL-* members answer true, and at least one member does not — the CALL
     /// emitter's two arms both exist only because the set is genuinely mixed.</summary>
     [Fact]

@@ -13,18 +13,18 @@ namespace WiseOwl.Cobol.Runtime.IO;
 /// it, and so is an UNPAIRED surrogate (it is not a character and has no UTF-8 form; a byte that was not UTF-8 reads
 /// as one, U+DC80–U+DCFF, which is how such a line reports '09'). ⛔ The encoding IS part of the set, so a file
 /// with a CODE-SET clause takes the CODE-SET alphabet's set instead
-/// (§13.18.13.4 GR6; kb/Work PB1542): under STANDARD-1, STANDARD-2 or ASCII an alphanumeric character above
+/// (§2023:13.18.13.4 GR6; kb/Work PB1542): under STANDARD-1, STANDARD-2 or ASCII an alphanumeric character above
 /// U+007F is outside, under EBCDIC every U+0020–U+00FF character is inside — the same membership
 /// <see cref="CodeSetConversion.Represents"/> answers for every other organization's '91'. A national record
-/// area's characters are written as UTF-16BE (§13.18.60.4 GR8 / D-N1) and keep no ceiling.</para>
+/// area's characters are written as UTF-16BE (§2023:13.18.60.4 GR8 / D-N1) and keep no ceiling.</para>
 /// <para><b>WHY ONE TYPE:</b> the standard names this one set from three places and they must never disagree —
-/// §14.9.30.4 GR16 (a successful READ whose record area holds one ⇒ I-O status '09', §9.1.13.2 item 7),
-/// §14.9.51.4 GR23 (WRITE ⇒ unsuccessful, '71') and §14.9.35.4 GR17 d) (REWRITE ⇒ unsuccessful, '71';
-/// §9.1.13.10 item 1 covers both write directions and adds that the record area remains unchanged). Before
+/// §2023:14.9.30.4 GR16 (a successful READ whose record area holds one ⇒ I-O status '09', §2023:9.1.13.2 item 7),
+/// §2023:14.9.51.4 GR23 (WRITE ⇒ unsuccessful, '71') and §2023:14.9.35.4 GR17 d) (REWRITE ⇒ unsuccessful, '71';
+/// §2023:9.1.13.10 item 1 covers both write directions and adds that the record area remains unchanged). Before
 /// kb/Work PB329 only the REWRITE arm existed and it carried its own ad-hoc CR/LF test, so the WRITE arm was
 /// missing outright and the READ arm could not produce '09' at all.</para>
 /// <para><b>WHY THIS BOUNDARY</b> (the derivation the A.1 row publishes):
-/// (1) the delimiters are FORCED out — §9.1.7.2 makes a line sequential record's extent "the number of
+/// (1) the delimiters are FORCED out — §2023:9.1.7.2 makes a line sequential record's extent "the number of
 /// characters between the preceding line delimiter and the following line delimiter", so an area holding CR or
 /// LF cannot round-trip as one record;
 /// (2) the set cannot be ONLY "everything but the delimiters" — the reader consumes CR/LF as the framing, so a
@@ -33,7 +33,7 @@ namespace WiseOwl.Cobol.Runtime.IO;
 /// (3) the remaining C0 controls are the stream/device repertoire, not text — NUL terminates a host string,
 /// SUB (0x1A) marks end-of-file on DOS-descended hosts, VT/FF are page controls, ESC introduces an escape
 /// sequence — and a line sequential file exists to BE plain text and interchange with non-COBOL tools (the same
-/// property that keeps a sequential file's §9.1.6 fixed file attributes out of the §14.9.27.4 GR10 validated set
+/// property that keeps a sequential file's §2023:9.1.6 fixed file attributes out of the §2023:14.9.27.4 GR10 validated set
 /// altogether — a line sequential file records none, because recording one would stop it being plain text);
 /// (4) ⚖ surveyed, not assumed (the owner's standing latitude rule): GnuCOBOL's <c>COB_LS_VALIDATE</c> defaults
 /// to true "per COBOL 2022" and validates "that the data should be validated as it is read (status 09) /
@@ -59,16 +59,16 @@ public static class LineSequentialCharacterSet
     /// <summary>True when the record area holds at least one character OUTSIDE the set — the single predicate
     /// behind '09' (READ), '71' (WRITE) and '71' (REWRITE).
     /// <para>⛔ CHARACTERS, NOT BYTES. The connector's record channel carries one char per BYTE, and
-    /// §14.9.30.4 GR15 is explicit that a record area is "specified implicitly or explicitly" as alphanumeric
-    /// OR as national. A national character occupies two bytes, UTF-16BE (§13.18.60.4 GR8 / determination D-N1),
+    /// §2023:14.9.30.4 GR15 is explicit that a record area is "specified implicitly or explicitly" as alphanumeric
+    /// OR as national. A national character occupies two bytes, UTF-16BE (§2023:13.18.60.4 GR8 / determination D-N1),
     /// so <c>N"CD"</c> occupies the bytes <c>00 43 00 44</c> — a byte-level test would read the 0x00 halves as
     /// control characters and refuse EVERY national line sequential record (it would have broken the standing
     /// golden <c>2002/pb327_national_line_sequential_fill</c>). <paramref name="national"/> is the connector's
     /// <c>NationalRecordArea</c>, the same flag <c>FitRecord</c>/<c>TrimRecordEnd</c> read, so the three
     /// record-area rules agree on what a character is. A trailing ODD byte is half a national position, whose
-    /// content §14.9.30.4 GR14/GR15 leave undefined; it forms no character and is not tested.</para>
+    /// content §2023:14.9.30.4 GR14/GR15 leave undefined; it forms no character and is not tested.</para>
     /// <para>⛔ A SURROGATE PAIR IS ONE CHARACTER. With no CODE-SET the area is walked as UTF-16, so a supplementary
-    /// character (two positions, §8.5.1.4) is tested as its scalar value and only an UNPAIRED surrogate is outside.</para>
+    /// character (two positions, §2023:8.5.1.4) is tested as its scalar value and only an UNPAIRED surrogate is outside.</para>
     /// <para><paramref name="codeSet"/> is the connector's CODE-SET conversion, or null — REQUIRED so no caller
     /// can ask the question without saying which coded character set the file is in (kb/Work PB1542).</para></summary>
     public static bool HasCharacterOutside(ReadOnlySpan<char> recordArea, bool national, CodeSetConversion? codeSet)

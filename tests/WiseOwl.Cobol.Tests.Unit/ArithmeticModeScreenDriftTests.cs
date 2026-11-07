@@ -9,7 +9,7 @@ using WiseOwl.Cobol.Frontend.Preprocessor;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The §4.2.6 non-support screen for <c>ARITHMETIC IS STANDARD-BINARY</c> fires for EVERY kind of source unit
+/// The §2023:4.2.6 non-support screen for <c>ARITHMETIC IS STANDARD-BINARY</c> fires for EVERY kind of source unit
 /// that can carry an OPTIONS paragraph — and the set of such units is read out of the GRAMMAR, not out of a list
 /// somebody remembered to update.
 ///
@@ -17,7 +17,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// or an INTERFACE's OPTIONS paragraph. Measured 2026-08-31 (kb/Work PB197): <c>METHOD-ID … OPTIONS. ARITHMETIC
 /// IS STANDARD-BINARY.</c> compiled at <c>--std 2014</c> with <b>no diagnostic at all</b>, and INTERFACE-ID was
 /// hollow the same way — a second arm the original finding did not name, found only by sweeping all of them.
-/// §4.2.6 requires "a warning mechanism at compile time to indicate use of syntactically-detectable
+/// §2023:4.2.6 requires "a warning mechanism at compile time to indicate use of syntactically-detectable
 /// processor-dependent language elements not supported by that implementation"; two of seven unit kinds had
 /// none.</para>
 ///
@@ -132,7 +132,7 @@ public sealed class ArithmeticModeScreenDriftTests : WiseOwlCobolTestBase
     [MemberData(nameof(FixtureNames))]
     public void StandardBinary_IsDeclinedInEveryUnitKind_PinnedToSpec(string production)
     {
-        // §4.2.6: "An implementation shall provide a warning mechanism at compile time to indicate use of
+        // §2023:4.2.6: "An implementation shall provide a warning mechanism at compile time to indicate use of
         // syntactically-detectable processor-dependent language elements not supported by that implementation."
         // WiseOwl COBOL's is the hard COBOL0806 (see docs/CONFORMANCE.md §1 on why an error, not a warning).
         var errors = CompileAt2014(production, Fixtures[production]);
@@ -141,7 +141,7 @@ public sealed class ArithmeticModeScreenDriftTests : WiseOwlCobolTestBase
             $"[{production}] ARITHMETIC IS STANDARD-BINARY drew no COBOL0806. Diagnostics:\n"
             + string.Join("\n", errors.DefaultIfEmpty("(none)")));
         // Exactly once, not once per binder that happens to look: the screen sits at the single point the
-        // clause is READ, so §11.9.4 GR1 inheritance never re-reports a clause the unit did not write.
+        // clause is READ, so §2023:11.9.4 GR1 inheritance never re-reports a clause the unit did not write.
         Assert.Equal(1, count);
     }
 
@@ -155,7 +155,7 @@ public sealed class ArithmeticModeScreenDriftTests : WiseOwlCobolTestBase
         //
         //   --std 2002 : 0900 (the introduction gate — STANDARD-BINARY arrives in COBOL-2014) AND 0806
         //   --std 2014 : 0806 alone
-        //   --std 2023 : 0806 AND 0903 (the obsolescence flag — §8.8.1.4.1 NOTE 1 / Annex F.2 item 3)
+        //   --std 2023 : 0806 AND 0903 (the obsolescence flag — §2023:8.8.1.4.1 NOTE 1 / Annex F.2 item 3)
         //
         // Asserting the ABSENCES is what makes this a test: without "no 0900 at 2014" an introduction-gate
         // regression that fired at every edition would look identical to a healthy compiler.

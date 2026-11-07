@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// The LINE-ENTRY stage of the reference-format pipeline (kb/Work PB1800, PB1586, PB1496, PB1803): where a text
 /// becomes lines. Every expectation is read off the rule it cites — docs/CONFORMANCE.md DOC-A.1-156 (terminators;
-/// ISO §6.1 3) b)) and DOC-A.1-157 (a tab advances to the next tab stop — positions 1, 9, 17, …; §6.1 1) c)) — never
+/// ISO §2023:6.1 3) b)) and DOC-A.1-157 (a tab advances to the next tab stop — positions 1, 9, 17, …; §2023:6.1 1) c)) — never
 /// off a run.
 /// </summary>
 public sealed class PhysicalLinesTests
@@ -56,7 +56,7 @@ public sealed class PhysicalLinesTests
         Assert.Equal(2, set[1].Number);
     }
 
-    [Fact] // DOC-A.1-157 / §6.1 1) c): over every line of up to four characters drawn from {X, TAB, space, a
+    [Fact] // DOC-A.1-157 / §2023:6.1 1) c): over every line of up to four characters drawn from {X, TAB, space, a
     // supplementary-plane character}, no U+0009 survives, and the expanded text and the column map agree with the
     // DEFINITION — a tab fills the positions up to the next stop of 8 and counts ONE physical column, a
     // supplementary-plane character is two UTF-16 units and ONE physical column, and an index past the end of the
@@ -144,7 +144,7 @@ public sealed class PhysicalLinesTests
         Assert.Equal(" DISPLAY \"T\".", text.Split('\n')[0]);   // position 8 (a space) then the text from position 9
     }
 
-    [Fact] // §6.3.1 / item 158: text a TAB pushes past margin R is outside the program-text area, like any such text.
+    [Fact] // §2023:6.3.1 / item 158: text a TAB pushes past margin R is outside the program-text area, like any such text.
     public void FixedForm_ATabPushingTextPastMarginR_IsTruncated()
     {
         // 7 + 12 characters, then spaces to the tab's own 0-based index 64: the tab fills 64-71, so what follows it
@@ -172,7 +172,7 @@ public sealed class PhysicalLinesTests
         Assert.True(ReferenceFormatProcessor.IsFixedForm(PhysicalLines.Read(src).Lines));
     }
 
-    [Theory] // §6.1 3) a): "ranging from a minimum of 0 to a maximum of 255" — a free-form line of more than 255
+    [Theory] // §2023:6.1 3) a): "ranging from a minimum of 0 to a maximum of 255" — a free-form line of more than 255
     // positions is COBOL2653, at every edition the free-form reading exists in (kb/Work PB1496).
     [InlineData(255, 0)]
     [InlineData(256, 1)]
@@ -195,7 +195,7 @@ public sealed class PhysicalLinesTests
         Assert.Contains(Normalize(tooLong + "\n", InitialReferenceFormat.Free).Bag.Diagnostics, d => d.Code == "COBOL2653");
     }
 
-    [Fact] // §6.1 2) b): a fixed-form line may be longer than a free-form one — only its program-text area counts.
+    [Fact] // §2023:6.1 2) b): a fixed-form line may be longer than a free-form one — only its program-text area counts.
     public void FixedForm_IsNotSubjectToThe255PositionLimit()
     {
         var (_, bag) = Normalize("       DISPLAY \"A\"." + new string(' ', 240) + "TAG\n", InitialReferenceFormat.Fixed);
@@ -213,7 +213,7 @@ public sealed class PhysicalLinesTests
     public void ALoneCr_DoesNotStartADirectiveLine()
     {
         var (text, bag) = Normalize("DISPLAY \"A\"\r>>SOURCE FORMAT FIXED\nX\n", InitialReferenceFormat.Free);
-        // one line, the format NOT switched; the `>>` follows program text, so §7.3.3 SR2 names it (kb/Work PB1690)
+        // one line, the format NOT switched; the `>>` follows program text, so §2023:7.3.3 SR2 names it (kb/Work PB1690)
         // The lone CR stays: it is no COBOL character space, so the cut before `>>` does not trim it (kb/Work PB1660; DOC-A.1-156
         // takes a lone CR as a character of the line).
         Assert.Equal("DISPLAY \"A\"\r", text.Split('\n')[0]);

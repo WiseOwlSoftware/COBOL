@@ -5,26 +5,26 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §9.1.6 (A.1 item 78) — whether the ability to share a
+      *> ISO §2023:9.1.6 (A.1 item 78) — whether the ability to share a
       *>   physical file is a fixed file attribute: documented "No"
       *> Rule: "The implementor shall specify whether the ability to
       *>   share a physical file is a fixed file attribute."
       *>   cite.py --check 9.1.6 "The implementor shall specify whether
       *>   the ability to share a physical file is a fixed file
-      *>   attribute" -> OK  §9.1.6   (Fixed file attributes)
+      *>   attribute" -> OK  §2023:9.1.6   (Fixed file attributes)
       *>   cite.py --check 9.1.15 "The sharing with all other mode
       *>   allows concurrent access to a physical file through other
       *>   file connectors specifying input, I-O, or extend mode"
-      *>   -> OK  §9.1.15 3)  (Sharing mode)
+      *>   -> OK  §2023:9.1.15 3)  (Sharing mode)
       *>   cite.py --check 9.1.15 "Associating this file connector with
       *>   the physical file will be unsuccessful if the physical file
       *>   is currently open through other file connectors"
-      *>   -> OK  §9.1.15 1)  (Sharing mode)
+      *>   -> OK  §2023:9.1.15 1)  (Sharing mode)
       *>   cite.py --check 9.1.13.9 "I-O status = 61"
-      *>   -> OK  §9.1.13.9 1)
+      *>   -> OK  §2023:9.1.13.9 1)
       *>   cite.py --check 14.9.27.3 "the LOCK MODE clause shall be
       *>   specified in the file control entry for file-name-1"
-      *>   -> OK  §14.9.27.3 8)  (why the ALL OTHER entries carry one)
+      *>   -> OK  §2023:14.9.27.3 8)  (why the ALL OTHER entries carry one)
       *> Documented choice (docs/CONFORMANCE.md DOC-A.1-78): NO. The
       *> sharing mode belongs to each file connector (its SHARING
       *> clause or the OPEN's SHARING phrase), is checked against the

@@ -6,9 +6,9 @@
 *> portable: unverified
 *>---
       *> kb/Work PB3331 (review w1123b R1-1) — an indexed file's key collating sequence is a FIXED FILE ATTRIBUTE
-      *> (ISO §12.4.5.7.4 GR1: "Each collating sequence is a fixed file attribute and the collating sequence is set
+      *> (ISO §2023:12.4.5.7.4 GR1: "Each collating sequence is a fixed file attribute and the collating sequence is set
       *> upon the successful execution of an OPEN statement that creates the physical file"). The key here is
-      *> ordered by ALPHABET CUR IS LOCALE with no locale-name, which §12.3.7.4 GR7 e) defines by "the locale that
+      *> ordered by ALPHABET CUR IS LOCALE with no locale-name, which §2023:12.3.7.4 GR7 e) defines by "the locale that
       *> is current at the time the collating sequence is used at runtime"; the file is created under the root
       *> locale (the harness pins the user default to the root), so its order is the root's for its existence.
       *> What each line proves:
@@ -19,7 +19,7 @@
       *>                  of n there: na, n~a, nb, n~b, nz, oa, ob = 1 4 2 5 3 6 7), never the Spanish one
       *>                  (1 2 3 4 5 6 7); the eighth READ NEXT is '10' with AT END taken.
       *>   O2           — re-opened while ES is current, the connector's sequence differs from the file's fixed one:
-      *>                  §14.9.27.4 GR10's file attribute conflict, '39' (FILE STATUS present, no declarative:
+      *>                  §2023:14.9.27.4 GR10's file attribute conflict, '39' (FILE STATUS present, no declarative:
       *>                  execution continues).
       *>   O3 / M       — back under the user default (the root), the OPEN succeeds and the walk is the root order.
       *> Non-ASCII appears only inside literals (UTF-8 source); every DISPLAY is ASCII.

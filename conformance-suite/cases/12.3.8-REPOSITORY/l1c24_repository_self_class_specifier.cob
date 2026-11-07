@@ -5,20 +5,20 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §12.3.8.3 SR5 — a class-specifier naming its own class
+      *> ISO §2023:12.3.8.3 SR5 — a class-specifier naming its own class
       *> definition is ignored
-      *> RULE §12.3.8.3 SR5: "If the specified object-class-name-1 is
+      *> RULE §2023:12.3.8.3 SR5: "If the specified object-class-name-1 is
       *>   the name of the class definition in which this REPOSITORY
       *>   paragraph is specified, references to object-class-name-1
       *>   are to that class definition and this class-specifier is
       *>   ignored."
       *>   cite.py --check 12.3.8.3 "If the specified object-class-
       *>   name-1 is the name of the class definition in which this
-      *>   REPOSITORY paragraph is specified" -> OK §12.3.8.3 5)
+      *>   REPOSITORY paragraph is specified" -> OK §2023:12.3.8.3 5)
       *>   cite.py --check 12.3.8.4 "literal-1, literal-2, literal-3,
       *>   or literal-5 is the externalized name by which the class,
       *>   interface, function, or program, respectively, is known to
-      *>   the operating environment" -> OK §12.3.8.4 2)
+      *>   the operating environment" -> OK §2023:12.3.8.4 2)
       *> SET-UP: class L1C24K's own REPOSITORY writes CLASS L1C24K AS
       *>   "L1C24L"; L1C24L is a real class in this compilation group
       *>   whose factory WHO prints a different line. Only factory

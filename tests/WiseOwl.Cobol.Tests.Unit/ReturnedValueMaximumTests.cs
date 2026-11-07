@@ -7,7 +7,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The ISO §15.4 returned-value maximum (Annex A.1 item 93, docs/CONFORMANCE.md row <c>DOC-A.1-93</c>; kb/Work
+/// The ISO §2023:15.4 returned-value maximum (Annex A.1 item 93, docs/CONFORMANCE.md row <c>DOC-A.1-93</c>; kb/Work
 /// PB2631): ONE number, <see cref="CobolIntrinsics.ReturnedValueMaximum"/>, asked through ONE guard by every function
 /// whose returned value can outgrow its arguments. The determination is the carrier's ceiling, so it is the SAME number
 /// as row <c>DOC-A.1-62</c>'s dynamic-length maximum, and the 8,191-position literal maximum is not a returned-value
@@ -34,8 +34,8 @@ public sealed class ReturnedValueMaximumTests
         Assert.Equal(8192, CobolIntrinsics.BaseConvert(new string('F', 2048), 16, 2).Length);
     }
 
-    /// <summary>One position past the maximum is §15.4's EC-ARGUMENT-FUNCTION and row DOC-A.1-93's zero-length value,
-    /// answered before the value is allocated (a boolean item of argument-2 positions, §15.13.4 r1).</summary>
+    /// <summary>One position past the maximum is §2023:15.4's EC-ARGUMENT-FUNCTION and row DOC-A.1-93's zero-length value,
+    /// answered before the value is allocated (a boolean item of argument-2 positions, §2023:15.13.4 r1).</summary>
     [Fact]
     public void OnePastTheMaximum_IsTheZeroLengthValue()
     {

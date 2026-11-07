@@ -10,7 +10,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ <b>ISO §13.16.3 SR9 — the VALUE-implied PICTURE</b> (kb/Work PB504; the <c>ALL literal-1</c> length is
+/// ⛔ <b>ISO §2023:13.16.3 SR9 — the VALUE-implied PICTURE</b> (kb/Work PB504; the <c>ALL literal-1</c> length is
 /// kb/Work PB831; the figurative admission is the kb/Work PB828 adjudication).
 ///
 /// <para><b>Every program here REFERENCES the item and COMPILES FOR REAL.</b> That is not incidental: the two
@@ -39,7 +39,7 @@ public sealed class ImpliedPictureTests : WiseOwlCobolTestBase
     // ── SR9's three arms, each measured through the VALUE that comes back and the item's length ──────────────
 
     /// <summary>SR9 a) — "if the literal is alphanumeric, 'PICTURE X(length)'", the length being the literal's
-    /// own (§8.3.3.2). Before kb/Work PB504 this program was REJECTED by the §13.16.3 SR8 closing guard, and
+    /// own (§2023:8.3.3.2). Before kb/Work PB504 this program was REJECTED by the §2023:13.16.3 SR8 closing guard, and
     /// before kb/Work PB487 the reference leaked a raw Roslyn <c>CS0103</c> to the user.</summary>
     [Fact]
     public void Sr9a_AlphanumericLiteral_ImpliesPictureXOfTheLiteralLength()
@@ -51,8 +51,8 @@ public sealed class ImpliedPictureTests : WiseOwlCobolTestBase
         Assert.Equal("[HELLO] 5", stdout);
     }
 
-    /// <summary>§13.16.3 SR9 a) again, on the HEXADECIMAL form of an alphanumeric literal (§8.3.3.2) — SR9's length is
-    /// "the length of the literal as specified in 8.3.3, Literals", and §8.3.3.2.3 r6 groups the digits TWO per
+    /// <summary>§2023:13.16.3 SR9 a) again, on the HEXADECIMAL form of an alphanumeric literal (§2023:8.3.3.2) — SR9's length is
+    /// "the length of the literal as specified in 8.3.3, Literals", and §2023:8.3.3.2.3 r6 groups the digits TWO per
     /// alphanumeric character, so <c>X"414243"</c> is three characters and implies <c>X(3)</c>, not six.</summary>
     [Fact]
     public void Sr9a_HexadecimalLiteral_LengthIsItsDecodedCharacters()
@@ -64,8 +64,8 @@ public sealed class ImpliedPictureTests : WiseOwlCobolTestBase
         Assert.Equal("[ABC] 3", stdout);
     }
 
-    /// <summary>§13.16.3 SR9 b) — "if the literal is boolean, 'PICTURE 1(length)'", the length being the count of
-    /// boolean characters the literal has (§8.3.3.4).</summary>
+    /// <summary>§2023:13.16.3 SR9 b) — "if the literal is boolean, 'PICTURE 1(length)'", the length being the count of
+    /// boolean characters the literal has (§2023:8.3.3.4).</summary>
     [Fact]
     public void Sr9b_BooleanLiteral_ImpliesPicture1OfTheLiteralLength()
     {
@@ -77,7 +77,7 @@ public sealed class ImpliedPictureTests : WiseOwlCobolTestBase
     }
 
     /// <summary>SR9 c) — "if the literal is national, 'PICTURE N(length)'". The implied clause is a PICTURE
-    /// character-string like any other, so §13.18.60.3 SR13 a) then applies to it in the standard's own words —
+    /// character-string like any other, so §2023:13.18.60.3 SR13 a) then applies to it in the standard's own words —
     /// "if the explicit or IMPLICIT picture character-string contains the symbol 'N', a USAGE NATIONAL clause is
     /// implied" — which is why writing USAGE NATIONAL on the entry is redundant rather than contradictory.</summary>
     [Fact]
@@ -92,9 +92,9 @@ public sealed class ImpliedPictureTests : WiseOwlCobolTestBase
         Assert.Equal("[HELLO] 5\r\n[HI] 2", stdout);
     }
 
-    // ── The figurative constant: inside SR9's grant, with §8.3.3.6.4's lengths ────────────────────────────────
+    // ── The figurative constant: inside SR9's grant, with §2023:8.3.3.6.4's lengths ────────────────────────────────
 
-    /// <summary>§8.3.3.6.4 GR3 b) — "When a figurative constant is other than ALL literal-1, the length of the
+    /// <summary>§2023:8.3.3.6.4 GR3 b) — "When a figurative constant is other than ALL literal-1, the length of the
     /// string is one character" — for both the bare word and the Format-2 <c>ALL SPACES</c> spelling, in which
     /// ALL is the format's own OPTIONAL word rather than Format 6's required one.</summary>
     [Fact]
@@ -110,7 +110,7 @@ public sealed class ImpliedPictureTests : WiseOwlCobolTestBase
         Assert.Equal("[ ]1\r\n[ ]1\r\n[0]1", stdout);
     }
 
-    /// <summary>⛔ kb/Work PB831, the SILENT WRONG ANSWER this rule's absence produced. §8.3.3.6.4 GR3 c) — "The
+    /// <summary>⛔ kb/Work PB831, the SILENT WRONG ANSWER this rule's absence produced. §2023:8.3.3.6.4 GR3 c) — "The
     /// length of the string is the length of literal-1" — is the rule for a figurative constant whose CONTEXT
     /// does not specify a length, which is exactly a PICTURE-less item; GR2, which repeats the string to the
     /// receiver's size, governs a SIZED receiver and was applied here by mistake. <c>01 G VALUE ALL "AB".</c>
@@ -129,12 +129,12 @@ public sealed class ImpliedPictureTests : WiseOwlCobolTestBase
         Assert.Equal("[AB]2\r\n[A]1\r\n[AB]2", stdout);
     }
 
-    /// <summary>§8.3.3.6.4 GR1 — "When a figurative constant is used in a context requiring national characters,
+    /// <summary>§2023:8.3.3.6.4 GR1 — "When a figurative constant is used in a context requiring national characters,
     /// the figurative constant represents a national character value" — and the only context a PICTURE-less
-    /// entry offers is the usage that applies to it, which §13.18.60.4 GR1 lets a GROUP supply. So the same
+    /// entry offers is the usage that applies to it, which §2023:13.18.60.4 GR1 lets a GROUP supply. So the same
     /// <c>VALUE SPACE</c> implies <c>N(1)</c> under a USAGE NATIONAL group and <c>X(1)</c> outside one; the
     /// witness is that the national one is accepted at all, since an implied <c>X(1)</c> under USAGE NATIONAL is
-    /// §13.18.60.3 SR12's refusal.</summary>
+    /// §2023:13.18.60.3 SR12's refusal.</summary>
     [Fact]
     public void Sr9_FigurativeInANationalContext_ImpliesANationalPicture()
     {
@@ -147,10 +147,10 @@ public sealed class ImpliedPictureTests : WiseOwlCobolTestBase
         Assert.Equal("A=1 B=[AB]2", stdout);
     }
 
-    /// <summary>§8.3.3.6.4 GR4 — the ZERO format "represents the numeric value '0', one or more of the boolean
-    /// character '0', or one or more of the character '0' ... depending on context" — and §13.18.60.3 SR5 makes
+    /// <summary>§2023:8.3.3.6.4 GR4 — the ZERO format "represents the numeric value '0', one or more of the boolean
+    /// character '0', or one or more of the character '0' ... depending on context" — and §2023:13.18.60.3 SR5 makes
     /// usage bit a context whose picture "describes a boolean data item". It reaches the ZERO format only:
-    /// §8.3.3.6.4 GR5–GR8 give SPACE / HIGH-VALUE / LOW-VALUE / QUOTE no boolean representation, so
+    /// §2023:8.3.3.6.4 GR5–GR8 give SPACE / HIGH-VALUE / LOW-VALUE / QUOTE no boolean representation, so
     /// <c>USAGE BIT VALUE SPACE</c> implies <c>X(1)</c> and draws SR5's refusal — one diagnostic, from the
     /// picture screen, exactly as a written <c>PIC X(1) USAGE BIT</c> does.</summary>
     [Fact]
@@ -188,7 +188,7 @@ public sealed class ImpliedPictureTests : WiseOwlCobolTestBase
     }
 
     /// <summary>The rule's subject is the entry AS COMPOSED, so the synthesis runs over the COMPOSITION forest:
-    /// a TYPEDEF TEMPLATE's own entry needs the implied picture (the §13.16.3 SR8 guard reports over it) and so
+    /// a TYPEDEF TEMPLATE's own entry needs the implied picture (the §2023:13.16.3 SR8 guard reports over it) and so
     /// does the <c>TYPE</c> CLONE (the emitter lays that one out). A pass over the written-entry forest alone
     /// would reject this program at the template.</summary>
     [Fact]
@@ -203,11 +203,11 @@ public sealed class ImpliedPictureTests : WiseOwlCobolTestBase
         Assert.Equal("[HELLOXYZ] 8", stdout);
     }
 
-    // ── What SR9 does NOT grant: §13.16.3 SR8 still requires the PICTURE ─────────────────────────────────────
+    // ── What SR9 does NOT grant: §2023:13.16.3 SR8 still requires the PICTURE ─────────────────────────────────────
 
     /// <summary>SR9's own exclusion — "an alphanumeric, boolean, or national literal THAT IS NOT A ZERO-LENGTH
     /// LITERAL" — plus the three spellings outside its three categories: a numeric literal, the class-pointer
-    /// figurative NULL, and an entry with no VALUE clause at all. Each falls to §13.16.3 SR8.
+    /// figurative NULL, and an entry with no VALUE clause at all. Each falls to §2023:13.16.3 SR8.
     /// <para>⛔ This is the boundary the former carve-out blurred: the SR8 guard used to skip ANY figurative
     /// VALUE, which silently admitted <c>ALL ""</c> as well.</para></summary>
     [Theory]
@@ -219,26 +219,26 @@ public sealed class ImpliedPictureTests : WiseOwlCobolTestBase
     public void Sr9_GrantsNothingHere_SoSr8StillRequiresThePicture(string id, string entry)
     {
         var (ok, _, detail) = CompileAndRun(Program(id, entry, "           DISPLAY A\n"), dialectLevel: 2002);
-        Assert.False(ok, "expected §13.16.3 SR8's rejection");
+        Assert.False(ok, "expected §2023:13.16.3 SR8's rejection");
         Assert.Contains("COBOL0881", detail, StringComparison.Ordinal);
     }
 
     /// <summary>SR9 grants the omission only "in the DATA-ITEM FORMAT of the VALUE clause", which is
-    /// §13.18.63.2 Format 1. The Format-2 (table) spelling is a different format and SR9 does not reach it, so a
-    /// picture-less <c>OCCURS … VALUES ARE … FROM</c> entry stays §13.16.3 SR8's rejection.</summary>
+    /// §2023:13.18.63.2 Format 1. The Format-2 (table) spelling is a different format and SR9 does not reach it, so a
+    /// picture-less <c>OCCURS … VALUES ARE … FROM</c> entry stays §2023:13.16.3 SR8's rejection.</summary>
     [Fact]
     public void Sr9_DoesNotReachTheFormat2TableValue()
     {
         var (ok, _, detail) = CompileAndRun(
             Program("SR9TBL", "       01 R.\n          05 A OCCURS 3 VALUES ARE \"AB\" FROM (1).\n",
                 "           DISPLAY A(1)\n"), dialectLevel: 2002);
-        Assert.False(ok, "expected §13.16.3 SR8's rejection — SR9 grants only the data-item format");
+        Assert.False(ok, "expected §2023:13.16.3 SR8's rejection — SR9 grants only the data-item format");
         Assert.Contains("COBOL0881", detail, StringComparison.Ordinal);
     }
 
-    // ── The SIBLING format: §13.15.3 SR14, the report group description entry ────────────────────────────────
+    // ── The SIBLING format: §2023:13.15.3 SR14, the report group description entry ────────────────────────────────
 
-    /// <summary>⛔ THE SECOND ARM. §13.15.3 SR14 states §13.16.3 SR9 word for word for the REPORT GROUP
+    /// <summary>⛔ THE SECOND ARM. §2023:13.15.3 SR14 states §2023:13.16.3 SR9 word for word for the REPORT GROUP
     /// description entry, and the report binder rejected it — <c>02 COLUMN 1 VALUE "HELLO".</c> drew
     /// "printable item at COLUMN 1 has no PICTURE clause" on legal source while its data-division twin compiled.
     /// The two arms now share one classifier and one edition gate. The printed line proves the implied
@@ -291,7 +291,7 @@ public sealed class ImpliedPictureTests : WiseOwlCobolTestBase
     {
         string src = Program("SR9E85", "       01 A VALUE \"HELLO\".\n", "           DISPLAY A\n");
         var below = CompileAndRun(src, dialectLevel: 85);
-        Assert.False(below.ok, "§13.16.3 SR9 is a post-85 addition");
+        Assert.False(below.ok, "§2023:13.16.3 SR9 is a post-85 addition");
         Assert.Contains("COBOL0900", below.detail, StringComparison.Ordinal);
         Assert.Contains("COBOL-2002", below.detail, StringComparison.Ordinal);
 
@@ -303,7 +303,7 @@ public sealed class ImpliedPictureTests : WiseOwlCobolTestBase
 
     // ── The DRIFT guard: the three arms, re-read from the standard on every run ──────────────────────────────
 
-    /// <summary>⛔ §13.16.3 SR9's three arms AGAINST THEIR OWN SOURCE, re-read out of <c>specs/ISO_COBOL_2023.md</c>
+    /// <summary>⛔ §2023:13.16.3 SR9's three arms AGAINST THEIR OWN SOURCE, re-read out of <c>specs/ISO_COBOL_2023.md</c>
     /// — which PICTURE character-string each literal class implies. The classifier's class→symbol table is the
     /// one thing here a compiler-side probe cannot contradict (a wrong symbol moves the synthesis and every
     /// behavioural expectation together), so the standard's own sentences are the only independent oracle —
@@ -313,9 +313,9 @@ public sealed class ImpliedPictureTests : WiseOwlCobolTestBase
     {
         string[] lines = File.ReadAllLines(TestRepo.Specs("ISO_COBOL_2023.md"));
         int start = Array.FindIndex(lines, l => Regex.IsMatch(l, @"^#{2,6}\s+13\.16\.3\b"));
-        Assert.True(start >= 0, "§13.16.3 is missing from specs/ISO_COBOL_2023.md — this guard must follow the clause.");
+        Assert.True(start >= 0, "§2023:13.16.3 is missing from specs/ISO_COBOL_2023.md — this guard must follow the clause.");
         int end = Array.FindIndex(lines, start + 1, l => Regex.IsMatch(l, @"^#{2,6}\s+13\.16\.4\b"));
-        Assert.True(end > start, "§13.16.4 not found after §13.16.3 — the heading shape changed.");
+        Assert.True(end > start, "§2023:13.16.4 not found after §2023:13.16.3 — the heading shape changed.");
 
         // SR9's arms are printed one per line as `a) if the literal is <class>, 'PICTURE <symbol>(length)'`.
         var arms = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -326,7 +326,7 @@ public sealed class ImpliedPictureTests : WiseOwlCobolTestBase
             if (m.Success) arms[m.Groups[1].Value] = m.Groups[2].Value;
         }
         Assert.True(arms.Count == 3,
-            "§13.16.3 SR9's three implied-PICTURE arms did not parse — fix the scanner against the printed "
+            "§2023:13.16.3 SR9's three implied-PICTURE arms did not parse — fix the scanner against the printed "
             + $"rule, never the other way round; {arms.Count} parsed.");
 
         var expected = new Dictionary<LiteralClass, string>
@@ -361,8 +361,8 @@ public sealed class ImpliedPictureTests : WiseOwlCobolTestBase
         Assert.Equal(expected, implied!.Value.Text);
     }
 
-    /// <summary>The operands SR9 grants NOTHING for — the classifier answers null and §13.16.3 SR8 governs.
-    /// A zero-length literal is excluded by SR9's own words in every one of its spellings (§8.3.3.1: "If the
+    /// <summary>The operands SR9 grants NOTHING for — the classifier answers null and §2023:13.16.3 SR8 governs.
+    /// A zero-length literal is excluded by SR9's own words in every one of its spellings (§2023:8.3.3.1: "If the
     /// opening and closing delimiters are contiguous, the length of the literal is zero").</summary>
     [Theory]
     [InlineData("\"\"")]
@@ -376,7 +376,7 @@ public sealed class ImpliedPictureTests : WiseOwlCobolTestBase
     public void Sr9Classifier_GrantsNothingOutsideItsThreeCategories(string raw)
         => Assert.Null(DataBinder.Sr9ImpliedFor(raw, Usage.Display));
 
-    /// <summary>§8.3.3.6.4 GR1 and GR4 on the classifier: the CONTEXT moves a figurative constant's class, and
+    /// <summary>§2023:8.3.3.6.4 GR1 and GR4 on the classifier: the CONTEXT moves a figurative constant's class, and
     /// GR4's boolean arm is the ZERO format's alone.</summary>
     [Fact]
     public void Sr9Classifier_FigurativeClassFollowsTheContext()
@@ -389,10 +389,10 @@ public sealed class ImpliedPictureTests : WiseOwlCobolTestBase
         Assert.Equal("X(2)", DataBinder.Sr9ImpliedFor("\"AB\"", Usage.National)!.Value.Text);
     }
 
-    /// <summary>⛔ The §13.18.60.4 GR1 context walk is asked PULL-style here (the pass runs before
+    /// <summary>⛔ The §2023:13.18.60.4 GR1 context walk is asked PULL-style here (the pass runs before
     /// `UsageInheritancePass` pushes the same fact down), so it is measured against a chain DEEPER THAN ONE: the
     /// USAGE clause sits two levels above the entry. A self-only or one-level reading implies `X(1)`, which
-    /// §13.18.60.3 SR12 then refuses — so this program compiling at all is the witness, and its LENGTH 1 with a
+    /// §2023:13.18.60.3 SR12 then refuses — so this program compiling at all is the witness, and its LENGTH 1 with a
     /// national twin proves the entry is the national item GR1 makes it (probe_the_shape_the_subject_hides: the
     /// flat case cannot tell the two readings apart).</summary>
     [Fact]
@@ -406,7 +406,7 @@ public sealed class ImpliedPictureTests : WiseOwlCobolTestBase
             dialectLevel: 2002);
         Assert.True(ok, detail);
         // A takes GR1's national representation from two levels up — an implied X(1) under USAGE NATIONAL would
-        // be §13.18.60.3 SR12's refusal, so compiling at all is the witness — and B is SR9 c)'s N(2).
+        // be §2023:13.18.60.3 SR12's refusal, so compiling at all is the witness — and B is SR9 c)'s N(2).
         Assert.Equal("A=1 B=[XY]2", stdout);
     }
 }

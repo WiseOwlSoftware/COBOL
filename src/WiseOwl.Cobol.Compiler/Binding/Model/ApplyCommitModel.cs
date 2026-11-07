@@ -3,21 +3,21 @@
 namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>
-/// One source element's I-O-CONTROL APPLY COMMIT clause (ISO §12.4.6.3; kb/Work PB3338): what §12.4.6.3.4 GR1 makes
+/// One source element's I-O-CONTROL APPLY COMMIT clause (ISO §2023:12.4.6.3; kb/Work PB3338): what §2023:12.4.6.3.4 GR1 makes
 /// "subject to the commit and rollback facility" when the runtime element is activated (GR5).
 /// <para><see cref="Files"/> are the file-name-1 operands (SR1, SR2); each is also flagged
 /// <see cref="FileModel.SubjectToApplyCommit"/>, the antecedent of the claimed clauses' syntax rules.
 /// <see cref="Items"/> is every data item the clause saves at COMMIT and restores at ROLLBACK: the identifier-1
 /// operands (SR3) and, after them, the items SR9 makes "automatically subject to the APPLY COMMIT clause" — each listed
-/// file's FILE STATUS item, its LINAGE data-names and its RECORD clause's DEPENDING item (COMMIT, §14.9.7.4 GR5:
+/// file's FILE STATUS item, its LINAGE data-names and its RECORD clause's DEPENDING item (COMMIT, §2023:14.9.7.4 GR5:
 /// "This includes the file status data items and data-items specified in the linage or record clauses of the file
-/// descriptions"; ROLLBACK, §14.9.36.4 GR3: "It also includes the file status data items and data-items specified in the
+/// descriptions"; ROLLBACK, §2023:14.9.36.4 GR3: "It also includes the file status data items and data-items specified in the
 /// linage or record clauses of the file descriptions"). An item appears once, whichever way it arrived.</para>
 /// </summary>
 public sealed class ApplyCommitModel
 {
     /// <summary>⛔ The file-name-1 operands, in written order, each once — THE FILES THE CLAUSE PUTS UNDER COMMIT CONTROL, of
-    /// every organization §9.1.18.2 admits (the keyed ones' transaction is their store's, DESIGN-runtime-library.md 2.2.1.10;
+    /// every organization §2023:9.1.18.2 admits (the keyed ones' transaction is their store's, DESIGN-runtime-library.md 2.2.1.10;
     /// the sequential ones' is the transaction journal, 2.2.2, kb/Work PB3340). The activation, the statements' own-file arms
     /// and the EC binding read this list.</summary>
     public List<FileModel> Files { get; } = [];

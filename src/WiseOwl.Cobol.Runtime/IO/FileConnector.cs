@@ -3,10 +3,10 @@
 namespace WiseOwl.Cobol.Runtime.IO;
 
 /// <summary>
-/// The shared control logic of every file-organization connector (DESIGN-runtime-library §2.2): the ISO §9.1.13
-/// FILE STATUS register, the §14.9.30 GR21 / §14.9.35 GR5 read-position guard pair, the OPEN/CLOSE preamble with
-/// its open-mode bookkeeping (§14.9.49.4 GR6b–e USE-declarative mode scoping), the OPTIONAL-file absence flag,
-/// the RECORD IS VARYING bounds (§13.18.43 GR9/GR10), and the record-area fit/store shaping. Organization-
+/// The shared control logic of every file-organization connector (DESIGN-runtime-library §2.2): the ISO §2023:9.1.13
+/// FILE STATUS register, the §2023:14.9.30 GR21 / §2023:14.9.35 GR5 read-position guard pair, the OPEN/CLOSE preamble with
+/// its open-mode bookkeeping (§2023:14.9.49.4 GR6b–e USE-declarative mode scoping), the OPTIONAL-file absence flag,
+/// the RECORD IS VARYING bounds (§2023:13.18.43 GR9/GR10), and the record-area fit/store shaping. Organization-
 /// specific record SELECTION and the org-specific verb surfaces stay on the subclasses
 /// (<see cref="SequentialConnector"/> · <see cref="RelativeConnector"/> · <see cref="IndexedConnector"/>) —
 /// the base is the TRUE common denominator only; anything the organizations do differently remains theirs.
@@ -22,7 +22,7 @@ public abstract class FileConnector
     }
 
     /// <summary>The resolved host path of the physical file this connector is ASSOCIATED with — the connector's
-    /// half of ISO §12.4.5.3 GR3 ("The ASSIGN clause specifies the association of the file connector referenced by
+    /// half of ISO §2023:12.4.5.3 GR3 ("The ASSIGN clause specifies the association of the file connector referenced by
     /// file-name-1 to a physical file identified by device-name-1, literal-1, or the content of the data item
     /// referenced by data-name-1"). Empty = NOT YET ASSOCIATED, which only a bare <c>ASSIGN USING data-name-1</c>
     /// file can be: it carries no device-name/literal, so nothing identifies a physical file until the first
@@ -31,13 +31,13 @@ public abstract class FileConnector
     public string HostPath { get; private set; }
 
     /// <summary>
-    /// ISO §12.4.5.3 GR3, reached from §14.9.27.4 GR26 — establish the connector-to-physical-file association.
+    /// ISO §2023:12.4.5.3 GR3, reached from §2023:14.9.27.4 GR26 — establish the connector-to-physical-file association.
     /// <para>GR3's lead sentence fixes the TIMING: <i>"The association occurs at the time of execution of an OPEN,
     /// SORT, or MERGE statement that referenced file-name-1"</i>, and GR3 b) fixes the VALUE: <i>"When the USING
     /// phrase of the ASSIGN clause is specified, the file connector referenced by file-name-1 is associated with a
     /// physical file identified by the content of the data item referenced by data-name-1 in the runtime element
     /// that executes the OPEN, SORT, or MERGE statement."</i> So this runs at every OPEN/SORT/MERGE, never once at
-    /// registration — §9.1.21 exists to let one connector reach different physical files during a run unit, and the
+    /// registration — §2023:9.1.21 exists to let one connector reach different physical files during a run unit, and the
     /// standard's own concepts annex states the consequence (D.19.9.2 NOTE: <i>"The MOVE statements only have an
     /// effect on the dynamic assignment when a subsequent OPEN statement for the file connector is executed."</i>).</para>
     /// <para>⛔ THE ASSOCIATION VALUE IS AN ARGUMENT OF THE STATEMENT, NEVER STATE ON THIS OBJECT (kb/Work PB673).
@@ -46,21 +46,21 @@ public abstract class FileConnector
     /// specifies</b> the OPEN, SORT, or MERGE statement"</i>, b) <i>"identified by the content of the data item
     /// referenced by data-name-1 <b>in the runtime element that executes</b> the OPEN, SORT, or MERGE
     /// statement"</i> — and one file connector may be described by MANY such elements: an EXTERNAL file connector
-    /// is one object per run unit shared by every describing element (§13.18.22.4 GR4 a), whose file control
-    /// entries §12.4.5.3 GR1 b requires only to be CONSISTENT (unlike GR1 i's FILE STATUS, which must name the
+    /// is one object per run unit shared by every describing element (§2023:13.18.22.4 GR4 a), whose file control
+    /// entries §2023:12.4.5.3 GR1 b requires only to be CONSISTENT (unlike GR1 i's FILE STATUS, which must name the
     /// same external item). So the emitter renders the EXECUTING element's own ASSIGN specification at the
     /// OPEN/SORT/MERGE site and passes it here; a connector-held source answered with the LAST installer's.</para>
     /// <para>One entry point for both arms, never a second mechanism: <paramref name="dynamic"/> selects GR3 b's
-    /// content rules (the implementor's §12.4.5.3 GR4 determination, below) over GR3 a's plain literal.</para>
-    /// <para>An OPEN of an ALREADY-OPEN connector is unsuccessful at §14.9.27.4 GR2's '41' and GR25's "the file is
+    /// content rules (the implementor's §2023:12.4.5.3 GR4 determination, below) over GR3 a's plain literal.</para>
+    /// <para>An OPEN of an ALREADY-OPEN connector is unsuccessful at §2023:14.9.27.4 GR2's '41' and GR25's "the file is
     /// not affected", so the association is left standing: re-pointing an open connector would strand its streams
     /// and its physical-file-table registration on the old path.</para>
     /// <para>Returns null when the association stands, or the I-O status of a failed one. The allowable CONTENT of
-    /// data-name-1 and the consistency rules are the implementor's (§12.4.5.3 GR4; Annex A.1 items 10 and 73) —
+    /// data-name-1 and the consistency rules are the implementor's (§2023:12.4.5.3 GR4; Annex A.1 items 10 and 73) —
     /// WiseOwl COBOL's determination is in docs/CONFORMANCE.md §7 (DOC-A.1-73): the content with leading and trailing
     /// SPACES removed is the assign target and is then mapped to a host path exactly as literal-1 would be; content
     /// that is empty after that removal, or that carries a control character, names no physical file, so the
-    /// association cannot be made and §9.1.13.6 item 2's '31' is the status the standard reserves for exactly this
+    /// association cannot be made and §2023:9.1.13.6 item 2's '31' is the status the standard reserves for exactly this
     /// ("A permanent error exists during execution of an OPEN statement because the content of the data item
     /// referenced by the data-name specified in the USING phrase of the file control entry is not consistent with
     /// the specification for the device-name or literal in the ASSIGN clause of that file control entry").</para>
@@ -70,17 +70,17 @@ public abstract class FileConnector
     /// <param name="dynamic">True when the file control entry in the executing element writes the USING phrase.</param>
     public string? Associate(string spec, bool dynamic)
     {
-        if (IsOpen) return null;                           // §14.9.27.4 GR2/GR25 — an already-open connector is untouched
+        if (IsOpen) return null;                           // §2023:14.9.27.4 GR2/GR25 — an already-open connector is untouched
         if (AssociationFailure(spec, dynamic, out string? hostPath) is { } failed) return failed;
         if (hostPath is not null) HostPath = hostPath;
         return null;
     }
 
-    /// <summary>⛔ THE ONE RULE FOR WHETHER AN ASSIGN SPECIFICATION CAN BE ASSOCIATED (§12.4.5.3 GR3 / GR4; Annex A.1
+    /// <summary>⛔ THE ONE RULE FOR WHETHER AN ASSIGN SPECIFICATION CAN BE ASSOCIATED (§2023:12.4.5.3 GR3 / GR4; Annex A.1
     /// items 10 and 73, docs/CONFORMANCE.md DOC-A.1-73) — a pure function of the specification, so the OPEN
     /// (<see cref="Associate"/>, which then records the host path on its connector) and the SORT/MERGE statement's
     /// association of its OWN sort-merge file (<see cref="CobolSort.AssociationMade"/>, which has no connector to
-    /// record it on — a sort-merge file is the statement's sort work, never a host connector, §13.4.6; kb/Work PB1097) ask the same question
+    /// record it on — a sort-merge file is the statement's sort work, never a host connector, §2023:13.4.6; kb/Work PB1097) ask the same question
     /// and cannot answer it differently. Returns null when the association can be made, else the I-O status of the
     /// failure ('31'); <paramref name="hostPath"/> is the physical file the specification identifies, or null when
     /// it identifies none and the registration's stands (the bare <c>ASSIGN USING</c> placeholder).</summary>
@@ -92,7 +92,7 @@ public abstract class FileConnector
             // GR3 a) — literal-1/device-name-1 identify the physical file directly. The value is a source-text
             // constant, so re-resolving it at every OPEN is idempotent for the single-describer case and is what
             // makes the MULTI-describer case right: an EXTERNAL connector registered by one element must still be
-            // associated with the file the EXECUTING element's own entry names. §12.4.5.2 SR4 already bars a
+            // associated with the file the EXECUTING element's own entry names. §2023:12.4.5.2 SR4 already bars a
             // zero-length literal, so an empty spec here can only be the bare `ASSIGN USING` shape's placeholder —
             // it identifies nothing and leaves the registration's unassociated (empty) host path standing.
             if (spec.Length != 0) hostPath = CobolFile.ResolveHostPath(spec);
@@ -100,7 +100,7 @@ public abstract class FileConnector
         }
         string target = spec.Trim(' ');
         foreach (char ch in target)
-            if (ch < ' ') return FileStatusCode.AssignNotConsistent;   // '31' §9.1.13.6 item 2
+            if (ch < ' ') return FileStatusCode.AssignNotConsistent;   // '31' §2023:9.1.13.6 item 2
         if (target.Length == 0) return FileStatusCode.AssignNotConsistent;
         hostPath = CobolFile.ResolveHostPath(target);
         return null;
@@ -109,16 +109,16 @@ public abstract class FileConnector
     /// <summary>The record area's width in character positions.</summary>
     protected readonly int RecordWidth;
 
-    /// <summary>The RECORD IS VARYING bounds (ISO §13.18.43 GR9/GR10); (-1,-1) = fixed-length records.</summary>
+    /// <summary>The RECORD IS VARYING bounds (ISO §2023:13.18.43 GR9/GR10); (-1,-1) = fixed-length records.</summary>
     protected readonly int VaryMin, VaryMax;
 
     /// <summary>True when the FD declares RECORD IS VARYING (the store then length-frames records).</summary>
     protected bool IsVarying => VaryMin >= 0;
 
-    /// <summary>The latest I-O status (ISO §9.1.13). "00" until the first operation. ⛔ THE SETTER IS THE ONE
+    /// <summary>The latest I-O status (ISO §2023:9.1.13). "00" until the first operation. ⛔ THE SETTER IS THE ONE
     /// I-O-STATUS ASSIGNMENT PATH, and it records that the connector was accessed (kb/Work PB63 / RV-15.28.4-2):
-    /// §9.1.13.1 names CLOSE, DELETE, OPEN, READ, REWRITE, START, UNLOCK and WRITE as the statements that set the
-    /// I-O status, and §15.28.4 r2a's "never been opened, attempted to be opened, or otherwise attempted to be
+    /// §2023:9.1.13.1 names CLOSE, DELETE, OPEN, READ, REWRITE, START, UNLOCK and WRITE as the statements that set the
+    /// I-O status, and §2023:15.28.4 r2a's "never been opened, attempted to be opened, or otherwise attempted to be
     /// accessed" is exactly "no statement has set it" — so a CLOSE or READ on a never-opened connector (status 42 /
     /// 47) IS an attempted access. <see cref="EverAccessed"/> used to be a flag written at two hand-picked sites
     /// (OPEN and DELETE FILE), which made every other verb wrong by default.</summary>
@@ -128,17 +128,17 @@ public abstract class FileConnector
         protected set
         {
             _status = value;
-            IoConditionName = null;   // a fresh operation: §9.1.13.1's correspondence answers unless one is named
+            IoConditionName = null;   // a fresh operation: §2023:9.1.13.1's correspondence answers unless one is named
             EverAccessed = true;
-            // §9.1.13.7 3): the '43' DELETE/REWRITE gate holds only when the IMMEDIATELY-previous operation on
+            // §2023:9.1.13.7 3): the '43' DELETE/REWRITE gate holds only when the IMMEDIATELY-previous operation on
             // this connector was a successful READ. Every status assignment IS an operation's outcome
-            // (§9.1.13.1's closed statement set — CLOSE, DELETE, OPEN, READ, REWRITE, START, UNLOCK, WRITE), so
+            // (§2023:9.1.13.1's closed statement set — CLOSE, DELETE, OPEN, READ, REWRITE, START, UNLOCK, WRITE), so
             // the gate drops HERE, at the one chokepoint — and the READ terminals re-arm it AFTER their own
             // assignment. Four verbs leaked the gate when each entry cleared it by hand: UNLOCK, DELETE FILE,
             // the already-open '41' OPEN and the sharing '38'/'61' OPEN arms all reported '00' on a following
             // DELETE where the spec requires '43' (kb/Work PB140).
             PrevOpWasSuccessfulRead = false;
-            // §9.1.13.1: a permanent error (an I-O status beginning '3', §9.1.13.6) "remains in effect for all
+            // §2023:9.1.13.1: a permanent error (an I-O status beginning '3', §2023:9.1.13.6) "remains in effect for all
             // subsequent input-output operations on the file" — recorded HERE, at the one chokepoint every
             // operation's outcome passes, so no producer (a host failure '30', a boundary '34', the ODO READ's
             // '34') can forget to start it. Only an OPEN connector keeps one: a failed OPEN leaves the connector
@@ -148,7 +148,7 @@ public abstract class FileConnector
     }
     private string _status = FileStatusCode.Success;
 
-    /// <summary>⛔ THE PERMANENT ERROR IN EFFECT (kb/Work PB1541; ISO §9.1.13.1: <i>"The permanent error condition
+    /// <summary>⛔ THE PERMANENT ERROR IN EFFECT (kb/Work PB1541; ISO §2023:9.1.13.1: <i>"The permanent error condition
     /// remains in effect for all subsequent input-output operations on the file unless an implementor-defined
     /// technique is invoked to correct the permanent error condition"</i>; Annex A.1 item 105, which is optional and
     /// documented when provided — <c>docs/CONFORMANCE.md</c> DOC-A.1-105): the status that began it, or
@@ -162,7 +162,7 @@ public abstract class FileConnector
     /// by asking it, through the preconditions each verb family already shares (<see cref="ReadOpenModeGuard"/>,
     /// <see cref="StartOpenModeGuard"/>, <see cref="MutationOpenModeGuard"/>, the WRITE entries' own first line,
     /// <see cref="Open"/>, and the registry's UNLOCK and DELETE FILE). The statement is unsuccessful, touches
-    /// nothing, and sets the same I-O status again — which §9.1.13.1 also makes raise that status's exception
+    /// nothing, and sets the same I-O status again — which §2023:9.1.13.1 also makes raise that status's exception
     /// condition again. Returns the status, or <see langword="null"/> when no permanent error is in effect. Assigns
     /// nothing: the caller owns the single <see cref="Status"/> assignment (the '43' gate drops exactly once).</summary>
     protected string? PermanentErrorReplay() => _permanentError;
@@ -170,9 +170,9 @@ public abstract class FileConnector
     /// <summary>⛔ THE LAST CHECK OF A WRITE OR REWRITE, ASKED BY THE ORGANIZATION ITSELF (kb/Work PB2848). The
     /// registry sets it for the statement when the statement requests a NEW record lock
     /// (<c>FileRegistry.WriteSharedInStatement</c> / <c>RewriteSharedInStatement</c>); it answers the failing status —
-    /// §12.4.5.9.4 GR7's '54' / '53', <i>"Any I-O statement that attempts to obtain a record lock that would exceed
-    /// either limit is unsuccessful"</i> — or null. The lock is the statement's effect on success (§14.9.51.4 GR11, the
-    /// WRITE's: the record lock <i>"is set when the execution of the WRITE statement is successful"</i>; §14.9.35.4 GR12
+    /// §2023:12.4.5.9.4 GR7's '54' / '53', <i>"Any I-O statement that attempts to obtain a record lock that would exceed
+    /// either limit is unsuccessful"</i> — or null. The lock is the statement's effect on success (§2023:14.9.51.4 GR11, the
+    /// WRITE's: the record lock <i>"is set when the execution of the WRITE statement is successful"</i>; §2023:14.9.35.4 GR12
     /// the REWRITE's), so the ceiling is judged only on a statement that has passed every rule of its own, and the
     /// statement must still be
     /// unsuccessful with the file untouched (GR15 / GR14): <see cref="RefusedAtCommit"/> is therefore asked once, by
@@ -186,8 +186,8 @@ public abstract class FileConnector
     /// REWRITE makes once its own rules have passed and before it changes anything.</summary>
     private protected string? RefusedAtCommit() => CommitGate?.Invoke();
 
-    /// <summary>The RETRY phrase of the governed statement now executing (§14.7.9; none outside one), which the keyed
-    /// organizations' holdings test applies to a transaction's lock (DESIGN-runtime-library.md 2.2.1.10; §14.9.51.4 GR16).
+    /// <summary>The RETRY phrase of the governed statement now executing (§2023:14.7.9; none outside one), which the keyed
+    /// organizations' holdings test applies to a transaction's lock (DESIGN-runtime-library.md 2.2.1.10; §2023:14.9.51.4 GR16).
     /// Set and cleared by the registry around the statement, as <see cref="CommitGate"/> is.</summary>
     internal (FileRetryKind Kind, long Amount) StatementRetry { get; set; }
 
@@ -201,15 +201,15 @@ public abstract class FileConnector
     public void SetStatus(string status) => Status = status;
 
     /// <summary>⛔ THE EC-I-O LEVEL-3 EXCEPTION-NAME A RULE NAMED FOR THE LAST I-O OPERATION ON THIS CONNECTOR,
-    /// when one did; <see langword="null"/> when ISO §9.1.13.1's status→EC correspondence is the answer (kb/Work
+    /// when one did; <see langword="null"/> when ISO §2023:9.1.13.1's status→EC correspondence is the answer (kb/Work
     /// PB526).
-    /// <para><b>Why a connector needs this at all.</b> §9.1.13.1 maps an I-O status's FIRST DIGIT to an
+    /// <para><b>Why a connector needs this at all.</b> §2023:9.1.13.1 maps an I-O status's FIRST DIGIT to an
     /// exception-name, and that map covers every EC-I-O condition the standard reaches through a status. It does
-    /// not cover EC-I-O-LINAGE: §13.18.34.4 GR6 b) 2 sets that condition to exist by NAME, and no status value
-    /// corresponds to it — so an operation stopped by it has to report a status (§9.1.13.1: the value <i>"is set
-    /// during the execution of a … WRITE statement"</i>, and §14.6.13.1.3 #3 routes a fatal EC-I-O through
-    /// §9.1.13's rules, which are rules about the status) AND the name, because the status alone would raise the
-    /// wrong condition. §14.6.13.1.1 licenses the override: <i>"Unless otherwise specified, if more than one
+    /// not cover EC-I-O-LINAGE: §2023:13.18.34.4 GR6 b) 2 sets that condition to exist by NAME, and no status value
+    /// corresponds to it — so an operation stopped by it has to report a status (§2023:9.1.13.1: the value <i>"is set
+    /// during the execution of a … WRITE statement"</i>, and §2023:14.6.13.1.3 #3 routes a fatal EC-I-O through
+    /// §2023:9.1.13's rules, which are rules about the status) AND the name, because the status alone would raise the
+    /// wrong condition. §2023:14.6.13.1.1 licenses the override: <i>"Unless otherwise specified, if more than one
     /// exception is detected during the execution of a statement, the one that is set to exist is undefined"</i> —
     /// GR6 b) 2 is the "otherwise specified".</para>
     /// <para>⛔ IT IS PER-OPERATION, NOT PER-CONNECTOR STATE: the <see cref="Status"/> setter — the ONE I-O-status
@@ -218,9 +218,9 @@ public abstract class FileConnector
     /// separately.</para></summary>
     public string? IoConditionName { get; private set; }
 
-    /// <summary>Report an operation whose exception condition a rule NAMES rather than leaving to §9.1.13.1's
-    /// status→EC correspondence — an unsuccessful one (§13.18.34.4 GR6 b) 2's EC-I-O-LINAGE) or a SUCCESSFUL one
-    /// (§14.9.51.4 GR27 a)'s EC-I-O-EOP / EC-I-O-EOP-OVERFLOW, which the correspondence cannot reach because a
+    /// <summary>Report an operation whose exception condition a rule NAMES rather than leaving to §2023:9.1.13.1's
+    /// status→EC correspondence — an unsuccessful one (§2023:13.18.34.4 GR6 b) 2's EC-I-O-LINAGE) or a SUCCESSFUL one
+    /// (§2023:14.9.51.4 GR27 a)'s EC-I-O-EOP / EC-I-O-EOP-OVERFLOW, which the correspondence cannot reach because a
     /// clean '00' corresponds to no condition at all): the status and the name are set together and returned, so the two
     /// cannot be assigned out of order (the <see cref="Status"/> setter clears the name).</summary>
     protected string SetIoCondition(string status, string ecName)
@@ -231,17 +231,17 @@ public abstract class FileConnector
     }
 
     /// <summary>The connector has been opened, attempted to be opened, or otherwise attempted to be accessed (ISO
-    /// §15.28.4 r2a / §15.29.4 r2a) — FUNCTION EXCEPTION-FILE(connector) returns two spaces until this is true.
+    /// §2023:15.28.4 r2a / §2023:15.29.4 r2a) — FUNCTION EXCEPTION-FILE(connector) returns two spaces until this is true.
     /// Set by the <see cref="Status"/> setter, i.e. by EVERY statement that assigns an I-O status; a never-touched
     /// SELECTed connector stays false.</summary>
     public bool EverAccessed { get; private set; }
 
-    /// <summary>The file-name exactly as spelled in the SELECT clause (ISO §15.28.4 r1c/r2b, §15.29.4 r1c/r2b —
+    /// <summary>The file-name exactly as spelled in the SELECT clause (ISO §2023:15.28.4 r1c/r2b, §2023:15.29.4 r1c/r2b —
     /// "the file-name exactly as specified in the SELECT clause"), carried from the compiler's FileModel at
     /// registration (kb/Work PB63); the registry KEY is an emit-side namespace and is never displayed.</summary>
     public string SelectName { get; set; } = "";
 
-    /// <summary>True for a SELECT OPTIONAL file (ISO §14.9.27 GR13/GR17).</summary>
+    /// <summary>True for a SELECT OPTIONAL file (ISO §2023:14.9.27 GR13/GR17).</summary>
     public bool IsOptional { get; set; }
 
     /// <summary>⛔ THE ISO EDITION THE PROGRAM THAT SELECTED THIS FILE WAS COMPILED FOR (85 / 2002 / 2014 /
@@ -260,8 +260,8 @@ public abstract class FileConnector
 
     /// <summary>⛔ IS THE FILE SHARING FACILITY IN EFFECT FOR THIS CONNECTOR'S PROGRAM (kb/Work PB670)? It is a COBOL-2002
     /// module (<see cref="DialectBehavior.FileSharingFacility"/>; Annex A.4.7, optional), so at <c>--std 85</c> it is not:
-    /// no sharing mode restricts another connector, the Table 19 arbitration of the OPEN (§14.9.27.4) is not asked, no file
-    /// lock is established against other run units (§9.1.15) and the file sharing conflict status '61' (§9.1.13.9 item 1)
+    /// no sharing mode restricts another connector, the Table 19 arbitration of the OPEN (§2023:14.9.27.4) is not asked, no file
+    /// lock is established against other run units (§2023:9.1.15) and the file sharing conflict status '61' (§2023:9.1.13.9 item 1)
     /// is never produced. THE ONE READ of the behaviour for the connector and the registry: the arbitration and the
     /// default mode (<c>FileRegistry.SharedOpenAttempt</c>), the cross-run-unit lock and a host refusal's status
     /// (<see cref="Open"/>) all ask this and never an inline edition comparison.</summary>
@@ -272,7 +272,7 @@ public abstract class FileConnector
     /// fixed at OPEN (<see cref="FileLockPosture.AdmitsAnotherRunUnit"/>: every mode but <c>NO OTHER</c> may meet a
     /// sibling at any moment, in this run unit or another, so every WRITE is released to the medium). At COBOL-85 the
     /// default mode restricts nobody (<c>FileRegistry.ImplementorDefaultSharing</c>) but no run unit is guaranteed to see
-    /// another's records (§A.4.1: the facility's rules are optional with it), so only a file connector that IS open beside
+    /// another's records (§2023:A.4.1: the facility's rules are optional with it), so only a file connector that IS open beside
     /// this one, in this run unit, is owed anything: the posture a program that names no sharing clause has at 2002, where
     /// its OUTPUT buffers until the area fills or the file closes. Paying a flush per record and a seek per READ for a
     /// sibling that may never come measured a 5x WRITE and a 1.6x READ slowdown on every <c>--std 85</c> file.
@@ -281,7 +281,7 @@ public abstract class FileConnector
     internal bool OtherConnectorsMayShare =>
         FileLockPosture.AdmitsAnotherRunUnit(HostShare) && (SharingFacilityInEffect || Physical is { Open.Count: > 1 });
 
-    /// <summary>⛔ HAND THE RECORDS THIS CONNECTOR HAS BUFFERED TO THE MEDIUM (§14.9.51.4 GR12, "releases a logical record
+    /// <summary>⛔ HAND THE RECORDS THIS CONNECTOR HAS BUFFERED TO THE MEDIUM (§2023:14.9.51.4 GR12, "releases a logical record
     /// to the operating environment"), because a sibling file connector is about to open the same physical file at
     /// COBOL-85 (<see cref="OtherConnectorsMayShare"/>; <c>FileRegistry.SharedOpenAttempt</c>). A connector that buffers
     /// nothing does nothing. Never throws: a host refusal is held and reported by this connector's own next WRITE or its
@@ -289,7 +289,7 @@ public abstract class FileConnector
     /// statement that failed to store those bytes.</summary>
     internal virtual void ReleaseBufferedRecords() { }
 
-    /// <summary>The registry's per-physical-file record-store table (kb/Work PB143 — §14.9.10.4 GR5's "removed
+    /// <summary>The registry's per-physical-file record-store table (kb/Work PB143 — §2023:14.9.10.4 GR5's "removed
     /// from the physical file"): the keyed connectors attach their record images through it so every connector
     /// over one host path sees ONE store. Null (a connector constructed outside a registry, e.g. a focused
     /// unit test) keeps the private-store behavior.</summary>
@@ -301,17 +301,17 @@ public abstract class FileConnector
     /// (kb/Work PB753). Table 19 arbitrates every open over this state already (<c>st.Open[name]</c> records
     /// every successful one, kb/Work PB321), and since kb/Work PB740 two CLAUSE-LESS connectors may share one
     /// physical file — so "this SELECT wrote a SHARING or LOCK MODE clause" cannot gate a rule about what the
-    /// medium holds. <see cref="PhysicalFileTable.State.ReleaseGeneration"/> is such a rule: §14.9.30.4 GR21 c)
+    /// medium holds. <see cref="PhysicalFileTable.State.ReleaseGeneration"/> is such a rule: §2023:14.9.30.4 GR21 c)
     /// selects <i>"the first existing record in the physical file"</i> regardless of any clause.</para></summary>
     internal PhysicalFileTable.State? Physical { get; private set; }
 
-    /// <summary>The §9.1.16 RECORD-LOCKING view of <see cref="Physical"/> — non-null only for a connector whose
+    /// <summary>The §2023:9.1.16 RECORD-LOCKING view of <see cref="Physical"/> — non-null only for a connector whose
     /// current OPEN can SET record locks: a LOCK MODE clause under a sharing mode other than NO OTHER
-    /// (<c>FileRegistry.RecordLocksSetUnder</c>, §12.4.5.9.4 GR1 and GR3). A SHARING clause alone, a SHARING or RETRY
+    /// (<c>FileRegistry.RecordLocksSetUnder</c>, §2023:12.4.5.9.4 GR1 and GR3). A SHARING clause alone, a SHARING or RETRY
     /// phrase on the OPEN and the NO OTHER mode confer none (kb/Work PB3372). It is
     /// what the release-ordinal mint a shared <c>OPEN EXTEND</c> numbers its appended records from reads
     /// (kb/Work PB739), and the gate is the record-locking one because the ordinal IS the lock identity:
-    /// §12.4.5.9.4 GR1 b) 2. leaves a clause-less connector's record locking to the implementor and this
+    /// §2023:12.4.5.9.4 GR1 b) 2. leaves a clause-less connector's record locking to the implementor and this
     /// compiler's determination is <see cref="FileLockMode.None"/> (kb/Work PB740), so there is no identity to
     /// mint and no whole-file measurement to pay for.
     /// <para>⛔ ONE FACT, ONE FIELD, AND NOW ONE DERIVATION. Participation used to be a separate <c>bool</c>
@@ -343,7 +343,7 @@ public abstract class FileConnector
     /// registry hands it down with the physical file's state at every OPEN (<see cref="AssociatePhysical"/>).</summary>
     internal string LockOwner { get; private set; } = "";
 
-    /// <summary>The ISO §9.1.15 <b>file lock</b> this connector's own host handles carry — <i>"The successful
+    /// <summary>The ISO §2023:9.1.15 <b>file lock</b> this connector's own host handles carry — <i>"The successful
     /// opening of a file establishes a file lock for the applicable sharing rules, thereby preventing other run
     /// units from opening that file with incompatible sharing rules."</i> DERIVED, in one place, by
     /// <see cref="FileLockPosture.OfSharingMode"/> from the connector's arbitrated sharing mode; the registry
@@ -351,11 +351,11 @@ public abstract class FileConnector
     /// (Table 19 admits a pair only when each side's posture already admits the other's access, kb/Work PB322).
     /// <para>⛔ IT REPLACED A BOOLEAN THAT ANSWERED THE WRONG QUESTION (kb/Work PB740). <c>SharedStreams</c> —
     /// "did this SELECT write a SHARING or LOCK MODE clause" — chose between <see cref="FileShare.ReadWrite"/>
-    /// and <see cref="FileShare.Read"/>, and got §9.1.15 backwards in both directions: <c>SHARING WITH NO
-    /// OTHER</c>, which §9.1.15 1) calls <i>exclusive access</i>, took the permissive arm (an external process
+    /// and <see cref="FileShare.Read"/>, and got §2023:9.1.15 backwards in both directions: <c>SHARING WITH NO
+    /// OTHER</c>, which §2023:9.1.15 1) calls <i>exclusive access</i>, took the permissive arm (an external process
     /// appended to a file the program had declared exclusive, measured across processes), while two clause-less
     /// connectors Table 19 PERMITS to share one file took the restrictive one and the second OPEN answered '30'
-    /// — a status no Table 19 row and no §9.1.13.9 item produces.</para></summary>
+    /// — a status no Table 19 row and no §2023:9.1.13.9 item produces.</para></summary>
     internal FileShare HostShare => _ownedWritesAdmitted
         ? FileLockPosture.WhenOwedWritesAreAdmitted(HostSharing)
         : FileLockPosture.OfSharingMode(HostSharing);
@@ -365,7 +365,7 @@ public abstract class FileConnector
     /// of the sharing mode's own file lock (<see cref="Open"/>, kb/Work PB3482). Written only by the OPEN, before its body.</summary>
     private bool _ownedWritesAdmitted;
 
-    /// <summary>The sharing mode this connector's current OPEN is arbitrated under (§9.1.15: the OPEN's SHARING
+    /// <summary>The sharing mode this connector's current OPEN is arbitrated under (§2023:9.1.15: the OPEN's SHARING
     /// phrase, else the file control entry's clause, else the implementor default of the open mode) — the ONE
     /// fact both halves of the file lock derive from: the host share mode of the connector's own handle
     /// (<see cref="HostShare"/>) and the cross-run-unit region lock (<see cref="RunUnitFileLock"/>). The registry
@@ -373,23 +373,23 @@ public abstract class FileConnector
     /// READ ONLY posture the .NET path constructors gave.</summary>
     internal FileSharing HostSharing { get; set; } = FileSharing.ReadOnly;
 
-    /// <summary>The §9.1.15 file lock this connector holds against other RUN UNITS while it is open — the part
+    /// <summary>The §2023:9.1.15 file lock this connector holds against other RUN UNITS while it is open — the part
     /// of the lock a host's <see cref="FileShare"/> cannot say (<see cref="RunUnitFileLock"/>, kb/Work PB833);
     /// null where the host cannot hold it and the share mode of the connector's own handle is all there is.</summary>
     private RunUnitFileLock? _runUnitLock;
 
     /// <summary>Establish the cross-run-unit file lock of the OPEN in <paramref name="mode"/>. Returns the
-    /// failing I-O status — §9.1.13.9 1)'s '61', <i>"that physical file is already open by another file
+    /// failing I-O status — §2023:9.1.13.9 1)'s '61', <i>"that physical file is already open by another file
     /// connector in a manner that conflicts with this request"</i> — or null when the lock is held or the host
     /// cannot hold one.
     /// <para>⛔ OUTPUT ASKS A HOST WHOSE SHARE MODES ARE THE LOCK FIRST (<see cref="HostFile.ShareModesAreMandatory"/>).
-    /// Table 19's OUTPUT rows are unsuccessful against every column (§9.1.13.9 1) e)), but an OUTPUT open
+    /// Table 19's OUTPUT rows are unsuccessful against every column (§2023:9.1.13.9 1) e)), but an OUTPUT open
     /// <i>creates</i> the file — it truncates what is there — and a host share mode only refuses an open whose ACCESS
     /// it excludes, so a handle that admits a writer admits the truncation: measured on Windows, an <c>OPEN
     /// OUTPUT</c> in a second run unit answered '00' against a file the first held open <c>SHARING WITH ALL
     /// OTHER</c>, and emptied it. A <see cref="FileShare.None"/> request (<see cref="HostFile.IsHeldByAnother"/>)
     /// is refused by every outstanding handle there is, which is exactly the OUTPUT rows' meaning, and it is made
-    /// BEFORE anything is created (§14.9.27.4 GR25, <i>"If the execution of the OPEN statement is unsuccessful, the
+    /// BEFORE anything is created (§2023:14.9.27.4 GR25, <i>"If the execution of the OPEN statement is unsuccessful, the
     /// file is not affected"</i>). Every host also has the column lock (<see cref="RunUnitFileLock"/>, Windows too since
     /// kb/Work PB3482), which refuses an OUTPUT like every other cell of the table; a host without mandatory share modes
     /// has only it, and asks a REGULAR file only — the probe is a read open, which on a FIFO waits for a writer that is
@@ -399,7 +399,7 @@ public abstract class FileConnector
     /// the body created it, when the connector's own handle would make the OUTPUT question answer yes.</param>
     private string? TakeRunUnitFileLock(FileOpenMode mode, bool existedBeforeBody)
     {
-        // §9.1.15's file lock belongs to the file sharing facility, which COBOL-85 does not have (A.4.1: the facility's
+        // §2023:9.1.15's file lock belongs to the file sharing facility, which COBOL-85 does not have (A.4.1: the facility's
         // rules and I-O status values are optional with it): no lock, no column, no '61' (kb/Work PB670).
         if (!SharingFacilityInEffect) return null;
         if (existedBeforeBody && mode == FileOpenMode.Output && HostFile.ShareModesAreMandatory && HeldByAnotherHandle())
@@ -412,7 +412,7 @@ public abstract class FileConnector
         // ⛔ A FILE LOCK THE CLOSE KEPT (KeepRunUnitFileLock) is REPLACED by this OPEN's, never given back first: the kept
         // column refuses this OPEN's as another holder's, and releasing it to get out of its way left the file unlocked for
         // an instant, and again when the OPEN was unsuccessful (kb/Work PB3483). A refusal leaves it exactly as the CLOSE left
-        // it (§14.9.27.4 GR25).
+        // it (§2023:14.9.27.4 GR25).
         bool owesWrites = OwesWrites(mode, existedBeforeBody);
         if (KeptFileLock is { } kept)
             switch (kept.Amend(HostSharing, mode, owesWrites))
@@ -434,7 +434,7 @@ public abstract class FileConnector
     private bool _runUnitLockWasKept;
 
     /// <summary>⛔ THE OPEN CONNECTOR'S FILE LOCK WHILE ITS FILE IS NOT THERE (DESIGN-runtime-library.md 2.2.2.14; kb/Work PB3492, review
-    /// finding R1-2): a ROLLBACK removes the file a creation since the last COMMIT made (§14.9.36.4 GR3) while this connector
+    /// finding R1-2): a ROLLBACK removes the file a creation since the last COMMIT made (§2023:14.9.36.4 GR3) while this connector
     /// stays open, so the column the OPEN published is given back for the removal (<see cref="RunUnitFileLock.Suspend"/>: on a
     /// host that publishes it through a handle on the file, that handle refuses the removal), and published again when the
     /// connector's next WRITE creates the file again (<see cref="ResumeRunUnitFileLock"/>).</summary>
@@ -444,7 +444,7 @@ public abstract class FileConnector
     /// host cannot.</summary>
     private protected bool ResumeRunUnitFileLock() => _runUnitLock?.Resume() ?? true;
 
-    /// <summary>The unsuccessful OPEN gives its file lock back (§9.1.15: only a SUCCESSFUL opening establishes one) — or, when
+    /// <summary>The unsuccessful OPEN gives its file lock back (§2023:9.1.15: only a SUCCESSFUL opening establishes one) — or, when
     /// it is the kept lock this OPEN amended, returns it to the organization's kept state as the CLOSE left it
     /// (<see cref="TryRestoreKeptFileLock"/>).</summary>
     private void ReleaseRunUnitFileLock()
@@ -455,7 +455,7 @@ public abstract class FileConnector
         if (!wasKept || !TryRestoreKeptFileLock(held)) held.Dispose();
     }
 
-    /// <summary>The cross-run-unit file lock handed to the organization by a CLOSE that KEEPS it (§14.9.7.4 GR4: <i>"For
+    /// <summary>The cross-run-unit file lock handed to the organization by a CLOSE that KEEPS it (§2023:14.9.7.4 GR4: <i>"For
     /// files specified in active APPLY COMMIT clauses that have been closed and not reopened prior to the COMMIT statement,
     /// the file locks are released."</i> — so until that COMMIT they are not): the connector no longer holds it, so the
     /// CLOSE's own release passes it by, and the organization gives it back at the COMMIT or ROLLBACK.</summary>
@@ -474,7 +474,7 @@ public abstract class FileConnector
 
     /// <summary>Is the (present) physical file held open by a handle that is not THIS connector's own
     /// (<see cref="HostFile.IsHeldByAnother"/>)? A handle the connector's CLOSE kept (<see cref="HoldsKeptHandle"/>) is its
-    /// own: §9.1.13.9 1) e) speaks of <i>"another file connector"</i>, so a re-OPEN OUTPUT is not refused by it (kb/Work PB3483).</summary>
+    /// own: §2023:9.1.13.9 1) e) speaks of <i>"another file connector"</i>, so a re-OPEN OUTPUT is not refused by it (kb/Work PB3483).</summary>
     private protected virtual bool HeldByAnotherHandle() => ProbeHeldByAnother();
 
     /// <summary>The host's probe behind <see cref="HeldByAnotherHandle"/>, beside what the connector's CLOSE kept of the
@@ -488,12 +488,12 @@ public abstract class FileConnector
         : HostFile.IsHeldByAnother(HostPath);
 
     /// <summary>The file lock this connector's CLOSE kept (<see cref="KeepRunUnitFileLock"/>) and its re-OPEN has not yet
-    /// replaced, or null. It ends when the connector is REOPENED (§14.9.7.4 GR4, <i>"closed and not reopened"</i>): the OPEN
+    /// replaced, or null. It ends when the connector is REOPENED (§2023:14.9.7.4 GR4, <i>"closed and not reopened"</i>): the OPEN
     /// replaces it by its own (<see cref="TakeRunUnitFileLock"/>), which the kept one would otherwise refuse as another
     /// holder's.</summary>
     private protected virtual RunUnitFileLock? KeptFileLock => null;
 
-    /// <summary>⛔ WHAT THIS CLOSED CONNECTOR'S CLOSE UNDER COMMIT CONTROL KEPT, AS TABLE 19 SEES IT (§14.9.7.4 GR4: its file lock
+    /// <summary>⛔ WHAT THIS CLOSED CONNECTOR'S CLOSE UNDER COMMIT CONTROL KEPT, AS TABLE 19 SEES IT (§2023:14.9.7.4 GR4: its file lock
     /// stands until the COMMIT or ROLLBACK): whether it still holds the file against another opener (a kept handle, or a
     /// published kept file lock), and the column it holds it in — the kept file lock's, or, the host publishing none, the column
     /// of the OPEN whose handle it kept. The registry reads them to tell a sharing conflict of the run unit's own from another
@@ -532,22 +532,22 @@ public abstract class FileConnector
 
     /// <summary>The OPEN that replaced a kept file lock (<see cref="TakeKeptFileLockOver"/>) was UNSUCCESSFUL: the
     /// organization puts the lock back on the column the CLOSE kept (<see cref="RunUnitFileLock.Revert"/>) and into its kept
-    /// state, because an unsuccessful OPEN leaves the file as it was (§14.9.27.4 GR25, <i>"If the execution of the OPEN
+    /// state, because an unsuccessful OPEN leaves the file as it was (§2023:14.9.27.4 GR25, <i>"If the execution of the OPEN
     /// statement is unsuccessful, the file is not affected"</i>) and the file stays closed and not reopened until the COMMIT
-    /// (§14.9.7.4 GR4). False when it keeps nothing any more (or the host will not publish the column again); the caller
+    /// (§2023:14.9.7.4 GR4). False when it keeps nothing any more (or the host will not publish the column again); the caller
     /// then ends the lock.</summary>
     private protected virtual bool TryRestoreKeptFileLock(RunUnitFileLock held) => false;
 
-    /// <summary>⛔ WHETHER THIS CONNECTOR'S CLOSE KEEPS ITS RECORD LOCKS (and its file lock): §14.9.6.4 GR9, <i>"Except when the
+    /// <summary>⛔ WHETHER THIS CONNECTOR'S CLOSE KEEPS ITS RECORD LOCKS (and its file lock): §2023:14.9.6.4 GR9, <i>"Except when the
     /// file is specified in an APPLY COMMIT clause, the file lock and any record locks associated with the file connector
-    /// referenced by file-name-1 are released by the execution of the CLOSE statement"</i>; §9.1.16 releases a
+    /// referenced by file-name-1 are released by the execution of the CLOSE statement"</i>; §2023:9.1.16 releases a
     /// commit-controlled file's only at a COMMIT or a ROLLBACK. Asked by the registry's CLOSE (<c>SharedClose</c>) before the
     /// connector's own close runs, and by the connector's close itself (<c>KeyedConnector.CloseCore</c>), so the lock release
     /// and the handle that carries the locks are one decision. False for a connector no APPLY COMMIT clause names.</summary>
     internal virtual bool CloseKeepsLocks => false;
 
     /// <summary>Whether this (closed) connector still holds the host handle its CLOSE under commit control kept, the
-    /// §9.1.15 file lock until the COMMIT (only a keyed connector keeps one, kb/Work PB3337).</summary>
+    /// §2023:9.1.15 file lock until the COMMIT (only a keyed connector keeps one, kb/Work PB3337).</summary>
     private protected virtual bool HoldsKeptHandle => false;
 
     /// <summary>The OPEN has probed <see cref="HostPath"/> and found it <paramref name="presence"/> Present or Absent
@@ -560,7 +560,7 @@ public abstract class FileConnector
     private protected virtual void RetireWhatWasKeptOfAnotherFile(FilePresence presence) { }
 
     /// <summary>The ACCESS this connector's own long-lived host handle takes of the physical file in
-    /// <paramref name="mode"/> — what a SIBLING connector's §9.1.15 file lock has to admit for this connector to
+    /// <paramref name="mode"/> — what a SIBLING connector's §2023:9.1.15 file lock has to admit for this connector to
     /// open at all (FileLockPostureDriftTests measures that every Table-19-admitted pair does).
     /// <para>The default is the open mode's floor (<see cref="FileLockPosture.AccessOf"/>): INPUT reads, OUTPUT
     /// and EXTEND write, I-O does both. ⛔ AN ORGANIZATION THAT NEEDS MORE OF THE PHYSICAL FILE THAN ITS OPEN
@@ -578,10 +578,10 @@ public abstract class FileConnector
     /// </summary>
     internal virtual FileAccess HostAccess(FileOpenMode mode) => FileLockPosture.AccessOf(mode);
 
-    /// <summary>The host stream that IS this connector's §9.1.15 file lock while it is open — the long-lived handle
+    /// <summary>The host stream that IS this connector's §2023:9.1.15 file lock while it is open — the long-lived handle
     /// carrying <see cref="HostShare"/> and opened with <see cref="HostAccess"/>, through which the connector's
-    /// records travel and its §9.1.16 record locks are published (<see cref="RecordLocks"/>). Null while no handle is
-    /// held: before the OPEN body takes one, after the CLOSE (§9.1.15, <i>"The file lock is removed by an explicit or
+    /// records travel and its §2023:9.1.16 record locks are published (<see cref="RecordLocks"/>). Null while no handle is
+    /// held: before the OPEN body takes one, after the CLOSE (§2023:9.1.15, <i>"The file lock is removed by an explicit or
     /// implicit CLOSE statement executed for that file connector"</i>), and for an arm with no physical file to hold
     /// (an absent OPTIONAL file opened INPUT).
     /// <para>Its <see cref="FileStream.CanRead"/>/<see cref="FileStream.CanWrite"/> are what the host GRANTED, the one
@@ -592,12 +592,12 @@ public abstract class FileConnector
 
 
     /// <summary>Release whatever host handle this connector's <see cref="OpenCore"/> took before the OPEN turned
-    /// out to be UNSUCCESSFUL — §9.1.15 establishes a file lock on <i>"The SUCCESSFUL opening of a file"</i> and
-    /// §14.9.27.4 GR25 leaves an unsuccessful one with <i>"the file … not affected"</i>, so an unsuccessful OPEN
+    /// out to be UNSUCCESSFUL — §2023:9.1.15 establishes a file lock on <i>"The SUCCESSFUL opening of a file"</i> and
+    /// §2023:14.9.27.4 GR25 leaves an unsuccessful one with <i>"the file … not affected"</i>, so an unsuccessful OPEN
     /// shall leave no handle behind at all.
     /// <para>⛔ THE CLOSE CANNOT DO IT, which is why this hook exists rather than a comment asking each
     /// organization to be careful: <see cref="Close"/> answers '42' and never reaches <see cref="CloseCore"/>
-    /// for a connector that is not open (§9.1.13.7 item 2), so a handle taken by a body that then failed or
+    /// for a connector that is not open (§2023:9.1.13.7 item 2), so a handle taken by a body that then failed or
     /// threw would be held until the process ended — a file lock against other run units that no COBOL
     /// statement could remove. The base does nothing because a connector that takes no handle has nothing to
     /// release; every organization that takes one overrides it, and the override is the same code its
@@ -605,46 +605,46 @@ public abstract class FileConnector
     protected virtual void AbandonOpen() { }
 
     /// <summary>Freeze the collating sequences this connector's keys are ordered by, for the OPEN about to run and the
-    /// file it opens (ISO §12.4.5.7.4 GR1: <i>"Each collating sequence is a fixed file attribute"</i>). Called first in
-    /// <see cref="Open"/>, before §14.9.27.4 GR10 compares the declared attributes with the file's, so the comparison,
+    /// file it opens (ISO §2023:12.4.5.7.4 GR1: <i>"Each collating sequence is a fixed file attribute"</i>). Called first in
+    /// <see cref="Open"/>, before §2023:14.9.27.4 GR10 compares the declared attributes with the file's, so the comparison,
     /// the attributes a creating OPEN records and every key comparison while the file is open use ONE sequence: a SET
     /// LOCALE issued while the file is open cannot reorder it. The base does nothing: only an indexed file has keys
     /// ordered by a collating sequence.</summary>
     private protected virtual void FreezeOpenSequences() { }
 
-    /// <summary>True while the connector is in an open mode (ISO §9.1.4): set by a success-family OPEN, cleared
-    /// by ANY completed CLOSE (§14.9.6.4 GR8 — and an unsuccessful close does not keep the open mode either).
+    /// <summary>True while the connector is in an open mode (ISO §2023:9.1.4): set by a success-family OPEN, cleared
+    /// by ANY completed CLOSE (§2023:14.9.6.4 GR8 — and an unsuccessful close does not keep the open mode either).
     /// ⛔ ONE bit with ONE job (kb/Work PB140): the FPI's "optional file not present" state lives on
     /// <see cref="OptionalAbsent"/> and is NOT part of openness — folding it in forced every CloseCore to
-    /// mutate the file position indicator §14.9.6.4 GR6 says a CLOSE leaves unchanged.</summary>
+    /// mutate the file position indicator §2023:14.9.6.4 GR6 says a CLOSE leaves unchanged.</summary>
     public bool IsOpen => _openMode;
     private bool _openMode;
 
     /// <summary>The current open mode (meaningful while <see cref="ModeKnown"/>).</summary>
     protected FileOpenMode Mode;
 
-    /// <summary>True while the file is open OR a failed OPEN recorded its attempted mode (ISO §14.9.49.4 GR6b —
-    /// "in the process of being opened"); cleared by a successful CLOSE (§9.1.4 — the file is then in no mode).</summary>
+    /// <summary>True while the file is open OR a failed OPEN recorded its attempted mode (ISO §2023:14.9.49.4 GR6b —
+    /// "in the process of being opened"); cleared by a successful CLOSE (§2023:9.1.4 — the file is then in no mode).</summary>
     protected bool ModeKnown;
 
-    /// <summary>The open-mode view for USE-declarative mode scoping (ISO §14.9.49.4 GR6b–e): <c>(int)</c> of the
+    /// <summary>The open-mode view for USE-declarative mode scoping (ISO §2023:14.9.49.4 GR6b–e): <c>(int)</c> of the
     /// mode while open OR the ATTEMPTED mode of a failed OPEN; −1 after a successful CLOSE / before any OPEN.</summary>
     public int OpenModeView => ModeKnown ? (int)Mode : -1;
 
-    /// <summary>The open mode while the connector IS OPEN (ISO §9.1.4), null otherwise.
+    /// <summary>The open mode while the connector IS OPEN (ISO §2023:9.1.4), null otherwise.
     /// ⛔ DELIBERATELY NOT <see cref="OpenModeView"/>: that view also answers with the ATTEMPTED mode of a
-    /// FAILED open (§14.9.49.4 GR6b's "in the process of being opened"), which is what USE-declarative mode
+    /// FAILED open (§2023:14.9.49.4 GR6b's "in the process of being opened"), which is what USE-declarative mode
     /// scoping needs and is WRONG for any rule that asks whether the connector IS OPEN in a given mode.
-    /// §14.9.21.4 GR3 is such a rule -- "the INITIATE statement may be executed only if the corresponding
+    /// §2023:14.9.21.4 GR3 is such a rule -- "the INITIATE statement may be executed only if the corresponding
     /// file connector is open in the extend mode or the output mode" -- and after an UNSUCCESSFUL OPEN OUTPUT the
     /// GR6b view still answers "output", which would let an INITIATE proceed into a connector that is not open.</summary>
     public FileOpenMode? OpenModeIfOpen => _openMode ? Mode : null;
 
     /// <summary>OPEN INPUT/I-O of an absent OPTIONAL file: the connector is open but no physical store exists
-    /// (positioned at EOF / "not present", ISO §14.9.27 GR13; §9.1.13.2 item 5).</summary>
+    /// (positioned at EOF / "not present", ISO §2023:14.9.27 GR13; §2023:9.1.13.2 item 5).</summary>
     protected bool OptionalAbsent;
 
-    // Read-position state (ISO §14.9.30 GR21 / §14.9.35 GR5): a sequential READ after an unsuccessful READ with
+    // Read-position state (ISO §2023:14.9.30 GR21 / §2023:14.9.35 GR5): a sequential READ after an unsuccessful READ with
     // no reposition is itself unsuccessful ('46'); a sequential-access REWRITE/DELETE requires the immediately-
     // previous op be a successful READ (else '43'). The '43' gate drops in the Status SETTER (every outcome is
     // an operation; the READ terminals re-arm it after assigning) — kb/Work PB140's chokepoint. The '46' poison
@@ -658,8 +658,8 @@ public abstract class FileConnector
     protected bool PrevOpWasSuccessfulRead;
 
     /// <summary>A successful READ's terminal: assign the status (the setter drops the '43' gate like every
-    /// other outcome) and then RE-ARM it — the ONE place a read outcome may do so (§9.1.13.7 3)). A successful
-    /// READ is also a reposition, so the '46' poison clears (§14.9.30 GR21).</summary>
+    /// other outcome) and then RE-ARM it — the ONE place a read outcome may do so (§2023:9.1.13.7 3)). A successful
+    /// READ is also a reposition, so the '46' poison clears (§2023:14.9.30 GR21).</summary>
     protected string ReadSucceeded(string status)
     {
         Status = status;
@@ -668,12 +668,12 @@ public abstract class FileConnector
         return status;
     }
 
-    /// <summary>The file position indicator's "optional file not present" state (ISO §9.1.13.2 item 5 /
-    /// §14.9.6.4 GR6) — exposed for the registry's REEL/UNIT surface, which must perform NO unit processing
+    /// <summary>The file position indicator's "optional file not present" state (ISO §2023:9.1.13.2 item 5 /
+    /// §2023:14.9.6.4 GR6) — exposed for the registry's REEL/UNIT surface, which must perform NO unit processing
     /// for an absent optional file.</summary>
     internal bool OptionalNotPresent => OptionalAbsent;
 
-    // ── READ preconditions (ISO §14.9.30.4) ─────────────────────────────────────────────────────────────────
+    // ── READ preconditions (ISO §2023:14.9.30.4) ─────────────────────────────────────────────────────────────────
     //
     // ⛔ ONE COPY OF EACH READ PRECONDITION, FOR ALL FIVE READ ENTRIES (kb/Work PB336). The open-mode guard,
     // the '46' poison and the absent-OPTIONAL arm are ALL-FORMATS rules of the READ statement, so they belong
@@ -683,10 +683,10 @@ public abstract class FileConnector
     // so every sequential READ after the first on an absent optional file re-reported '10' — although the arm
     // itself had already armed the '46' the next READ owed. Order here is the rules' own order.
     //
-    // ⛔ AND EVERY UNSUCCESSFUL READ OR START ENDS IN ONE TERMINAL, Unsuccessful (kb/Work PB359). §14.9.30.4 GR18
+    // ⛔ AND EVERY UNSUCCESSFUL READ OR START ENDS IN ONE TERMINAL, Unsuccessful (kb/Work PB359). §2023:14.9.30.4 GR18
     // — "Unless otherwise specified, at the completion of any unsuccessful execution of a READ statement, … the
     // file position indicator is set to indicate that no valid record position has been established" — and its
-    // START twin §14.9.41.4 GR7 are unconditional on the KIND of failure, and the keyed connectors' FPI is a key
+    // START twin §2023:14.9.41.4 GR7 are unconditional on the KIND of failure, and the keyed connectors' FPI is a key
     // value plus a validity bit that only the InvalidateFilePosition virtual clears. Exits that wrote the base
     // flag by hand, or returned their status with nothing (`return Status = notOpen;`), kept the rule only by an
     // argument about OpenCore's current shape. So the guards below are PURE — they answer a status and change
@@ -695,19 +695,19 @@ public abstract class FileConnector
     // FilePositionInvalidationDriftTests keeps every READ and START entry free of a direct Status assignment.
 
     /// <summary>⛔ THE ONE TERMINAL OF AN UNSUCCESSFUL READ OR START — the twin of <see cref="ReadSucceeded"/>
-    /// (kb/Work PB359). ISO §14.9.30.4 GR18 (READ) and §14.9.41.4 GR7 (START) set the file position indicator to
+    /// (kb/Work PB359). ISO §2023:14.9.30.4 GR18 (READ) and §2023:14.9.41.4 GR7 (START) set the file position indicator to
     /// "no valid record position" on every unsuccessful execution, whatever the status, so the invalidation and
     /// the status assignment are one step here and never two steps at an exit that could drop the first.
     /// Assigns <see cref="Status"/> (its setter drops the '43' gate exactly once) and returns
     /// <paramref name="status"/>.</summary>
     protected string Unsuccessful(string status)
     {
-        InvalidateFilePosition();   // §14.9.30.4 GR18 / §14.9.41.4 GR7
+        InvalidateFilePosition();   // §2023:14.9.30.4 GR18 / §2023:14.9.41.4 GR7
         return Status = status;
     }
 
     /// <summary>A successful START's terminal, after the organization has set its file position indicator: a
-    /// successful START is a reposition, so §14.9.30.4 GR21's '46' poison clears, and the status is '00'. With
+    /// successful START is a reposition, so §2023:14.9.30.4 GR21's '46' poison clears, and the status is '00'. With
     /// <see cref="ReadSucceeded"/> and <see cref="Unsuccessful"/> it is how every READ and START entry assigns
     /// <see cref="Status"/> (kb/Work PB359).</summary>
     protected string StartPositioned()
@@ -716,32 +716,32 @@ public abstract class FileConnector
         return Status = FileStatusCode.Success;
     }
 
-    /// <summary>The open-mode precondition every READ shares (ISO §14.9.30.4 GR2: "The open mode of the file
+    /// <summary>The open-mode precondition every READ shares (ISO §2023:14.9.30.4 GR2: "The open mode of the file
     /// connector referenced by file-name-1 shall be input or I-O. If it is any other value, the execution of the
-    /// READ statement is unsuccessful and the I-O status value for file-name-1 is set to '47'."; §9.1.13.7 item
+    /// READ statement is unsuccessful and the I-O status value for file-name-1 is set to '47'."; §2023:9.1.13.7 item
     /// 7). Returns the failing status, or <see langword="null"/> when the READ may proceed. PURE: a READ entry
-    /// returns the failing status through <see cref="Unsuccessful"/>, which applies §14.9.30.4 GR18.</summary>
+    /// returns the failing status through <see cref="Unsuccessful"/>, which applies §2023:14.9.30.4 GR18.</summary>
     protected string? ReadOpenModeGuard() =>
-        PermanentErrorReplay()   // §9.1.13.1 — a permanent error in effect answers first (kb/Work PB1541)
+        PermanentErrorReplay()   // §2023:9.1.13.1 — a permanent error in effect answers first (kb/Work PB1541)
         ?? (!IsOpen || Mode is FileOpenMode.Output or FileOpenMode.Extend ? FileStatusCode.ReadNotOpenForInput : null);
 
     /// <summary>The preconditions of a SEQUENTIAL READ, in the standard's own order: GR2's open mode ('47');
-    /// then ISO §14.9.30.4 GR21's first sentence — "For a sequential READ statement, if the previous READ or
+    /// then ISO §2023:14.9.30.4 GR21's first sentence — "For a sequential READ statement, if the previous READ or
     /// START statement for the file connector was unsuccessful, then the READ statement is unsuccessful and the
-    /// I-O status is set to '46'" (§9.1.13.7 item 6) — then the absent-OPTIONAL arm, which §9.1.13.4 item 1 c)
+    /// I-O status is set to '46'" (§2023:9.1.13.7 item 6) — then the absent-OPTIONAL arm, which §2023:9.1.13.4 item 1 c)
     /// scopes to "a sequential READ statement … attempted FOR THE FIRST TIME on a file described as optional and
     /// the physical file is not present" ('10'). GR21 shall be tested FIRST: it is what makes '10' first-time-
     /// only, because the '10' arm is itself an unsuccessful READ and arms the poison for its successor.
     /// Returns the failing status, or <see langword="null"/> when the READ may proceed. PURE: every failing arm
     /// is an unsuccessful READ, and the READ entry returns it through <see cref="Unsuccessful"/>, which applies
-    /// §14.9.30.4 GR18.</summary>
+    /// §2023:14.9.30.4 GR18.</summary>
     protected string? SequentialReadGuard()
     {
         if (ReadOpenModeGuard() is { } notOpen) return notOpen;                     // '47' GR2
-        if (LastReadUnsuccessful) return FileStatusCode.NoValidNextRecord;          // '46' GR21 / §9.1.13.7 6
+        if (LastReadUnsuccessful) return FileStatusCode.NoValidNextRecord;          // '46' GR21 / §2023:9.1.13.7 6
         // This READ is itself unsuccessful, so its GR18 invalidation (Unsuccessful) arms GR21 for its successor —
         // that is what makes '10' first-time-only, and why the two arms shall be written in this order.
-        if (OptionalAbsent) return FileStatusCode.AtEnd;                            // '10' §9.1.13.4 1 c)
+        if (OptionalAbsent) return FileStatusCode.AtEnd;                            // '10' §2023:9.1.13.4 1 c)
         return null;
     }
 
@@ -752,25 +752,25 @@ public abstract class FileConnector
     /// organization ANDs its own remaining precondition (a live stream; a valid file position indicator).</summary>
     protected bool SequentialReadReachesRetrieval => SequentialReadGuard() is null;
 
-    // ── The pre-read record identity (ISO §14.9.30.4 GR9/GR10 a)) ───────────────────────────────────────────
+    // ── The pre-read record identity (ISO §2023:14.9.30.4 GR9/GR10 a)) ───────────────────────────────────────────
     //
     // ⛔ EVERY ORGANIZATION CAN NAME THE RECORD ITS NEXT READ WOULD MAKE AVAILABLE, BEFORE THE READ COMMITS
     // (kb/Work PB338). GR9's record-operation-conflict check is asked of "the record identified for access",
     // and GR10 a) — "The file position indicator is unchanged" — can only hold if that check runs BEFORE the
-    // position moves. §14.9.30.4 GR13 a) says the same thing from the other side: the I-O status is updated
+    // position moves. §2023:14.9.30.4 GR13 a) says the same thing from the other side: the I-O status is updated
     // "and, IF the record operation conflict condition did not occur, the file position indicator is set."
     // These two virtuals are how the registry asks each organization, so the governed read's ordering is
     // structural instead of a per-arm convention. Both answer "" for "no record is identified", which is
     // every case where the read would fail before it could touch one; the governed entry then skips the
     // conflict check and lets the physical step report its own status.
 
-    /// <summary>The lock identity (§9.1.16) of the record a FORMAT-1 sequential READ in this direction would
-    /// make available — computed by running the organization's own §14.9.30.4 GR21 selection WITHOUT committing
+    /// <summary>The lock identity (§2023:9.1.16) of the record a FORMAT-1 sequential READ in this direction would
+    /// make available — computed by running the organization's own §2023:14.9.30.4 GR21 selection WITHOUT committing
     /// the file position indicator. "" when no record is identified.</summary>
     public virtual string PeekSequentialRecordId(bool previous) { _ = previous; return ""; }
 
-    /// <summary>The lock identity (§9.1.16) of the record a FORMAT-2 random READ would make available —
-    /// §14.9.30.4 GR29's relative record number, or GR32's first record matching the key of reference —
+    /// <summary>The lock identity (§2023:9.1.16) of the record a FORMAT-2 random READ would make available —
+    /// §2023:14.9.30.4 GR29's relative record number, or GR32's first record matching the key of reference —
     /// computed WITHOUT establishing the key of reference (GR10 d): <i>"The key of reference for indexed files
     /// is unchanged"</i>. "" when no such record exists, which is the invalid-key condition and carries no lock.
     /// <paramref name="recordImage"/> supplies the key slice for an indexed read (GR32);
@@ -779,64 +779,64 @@ public abstract class FileConnector
     public virtual string PeekRandomReadRecordId(int keyIndex, string recordImage, RecordExtents? recordExtents)
     { _ = keyIndex; _ = recordImage; _ = recordExtents; return ""; }
 
-    /// <summary>ISO §14.9.30.4 GR18 — <i>"Unless otherwise specified, at the completion of any unsuccessful
+    /// <summary>ISO §2023:14.9.30.4 GR18 — <i>"Unless otherwise specified, at the completion of any unsuccessful
     /// execution of a READ statement, the content of the associated record area is undefined, the key of
     /// reference is undefined for indexed files, and the file position indicator is set to indicate that no
     /// valid record position has been established."</i> The registry applies it to the ONE unsuccessful READ it
-    /// decides itself and the connector never sees — the §12.4.5.9.4 GR7 record-lock-limit denial ('53'/'54'),
+    /// decides itself and the connector never sees — the §2023:12.4.5.9.4 GR7 record-lock-limit denial ('53'/'54'),
     /// which is refused BEFORE the physical retrieval and so leaves a position no connector step invalidated.
     /// <para>⛔ NOT the record operation conflict condition: GR10 a)/d) are GR18's "otherwise specified" and
     /// require the indicator and the key of reference to be UNCHANGED, which under the pre-read ordering costs
     /// no action at all.</para></summary>
     internal void ApplyUnsuccessfulReadPosition() => InvalidateFilePosition();
 
-    // ── START preconditions (ISO §14.9.41.4) ────────────────────────────────────────────────────────────────
+    // ── START preconditions (ISO §2023:14.9.41.4) ────────────────────────────────────────────────────────────────
     //
     // ⛔ ONE COPY, FOR ALL THREE ORGANIZATIONS, exactly as the READ preconditions above (kb/Work PB336's
     // lesson, applied to START by PB352). GR1's open-mode test was written out five times — twice in each keyed
     // connector and once more when the sequential arm landed — and every copy carried the SAME omission: it
-    // returned '47' WITHOUT invalidating the file position indicator, although §14.9.41.4 GR7 applies to EVERY
+    // returned '47' WITHOUT invalidating the file position indicator, although §2023:14.9.41.4 GR7 applies to EVERY
     // unsuccessful START and a '47' START is unsuccessful.
 
-    /// <summary>ISO §14.9.41.4 GR7 — <i>"Following the unsuccessful execution of a START statement, the file
+    /// <summary>ISO §2023:14.9.41.4 GR7 — <i>"Following the unsuccessful execution of a START statement, the file
     /// position indicator is set to indicate that no valid record position has been established."</i> On this
-    /// base that state is the '46' poison §9.1.13.7 item 6 a) reads back on the next sequential READ; a keyed
+    /// base that state is the '46' poison §2023:9.1.13.7 item 6 a) reads back on the next sequential READ; a keyed
     /// connector, whose FPI is a key VALUE plus a validity bit, overrides to clear the bit as well. The same state
-    /// is §14.9.30.4 GR18's for an unsuccessful READ, so every unsuccessful READ and START sets it through here and
+    /// is §2023:14.9.30.4 GR18's for an unsuccessful READ, so every unsuccessful READ and START sets it through here and
     /// this is the one writer of <see cref="LastReadUnsuccessful"/>'s <see langword="true"/>.</summary>
     protected virtual void InvalidateFilePosition() => LastReadUnsuccessful = true;
 
-    /// <summary>The START statement's open-mode precondition (ISO §14.9.41.4 GR1: <i>"The open mode of the file
-    /// connector referenced by file-name-1 shall be input or I-O."</i>; §9.1.13.7 item 7 — <i>"The execution of a
+    /// <summary>The START statement's open-mode precondition (ISO §2023:14.9.41.4 GR1: <i>"The open mode of the file
+    /// connector referenced by file-name-1 shall be input or I-O."</i>; §2023:9.1.13.7 item 7 — <i>"The execution of a
     /// READ or START statement is attempted referencing a file connector that is not open in the input or I-O
     /// mode"</i> → '47'; Table 20's blank Output/Extend cells). Returns the failing status, or
     /// <see langword="null"/> when the START may proceed. PURE: the refused START is an unsuccessful one, and the
     /// START entry returns the status through <see cref="Unsuccessful"/>, which applies GR7.</summary>
     protected string? StartOpenModeGuard() =>
-        PermanentErrorReplay()   // §9.1.13.1 — still an unsuccessful START (kb/Work PB1541)
+        PermanentErrorReplay()   // §2023:9.1.13.1 — still an unsuccessful START (kb/Work PB1541)
         ?? (IsOpen && Mode is not (FileOpenMode.Output or FileOpenMode.Extend) ? null : FileStatusCode.ReadNotOpenForInput);
 
-    /// <summary>The absent-OPTIONAL arm of a RANDOM (format-2) READ — ISO §9.1.13.5 item 3 b), "a START or
+    /// <summary>The absent-OPTIONAL arm of a RANDOM (format-2) READ — ISO §2023:9.1.13.5 item 3 b), "a START or
     /// random READ statement is attempted on a file described as optional and the physical file is not present"
     /// → '23'. TWO deliberate differences from <see cref="SequentialReadGuard"/>, both read off the rule texts:
-    /// §14.9.30.4 GR21 opens "For a sequential READ statement", so a random READ never yields '46'; and 3 b)
+    /// §2023:14.9.30.4 GR21 opens "For a sequential READ statement", so a random READ never yields '46'; and 3 b)
     /// carries no "first time" qualifier, so an absent optional file answers '23' to EVERY random READ. The
     /// unsuccessful read still arms the poison (the READ entry returns it through <see cref="Unsuccessful"/>) —
-    /// §9.1.13.7 item 6 b) ("The preceding READ statement referencing that file connector was unsuccessful") is
+    /// §2023:9.1.13.7 item 6 b) ("The preceding READ statement referencing that file connector was unsuccessful") is
     /// not restricted to sequential reads, so the next SEQUENTIAL READ on a dynamic-access connector is GR21's
     /// '46'. Kept separate from <see cref="ReadOpenModeGuard"/> because the indexed connector establishes its key
     /// of reference (GR30/GR31) between the two. PURE.</summary>
     protected string? RandomReadAbsentOptionalGuard() =>
         OptionalAbsent ? FileStatusCode.RecordNotFound : null;   // '23' 3 b)
 
-    /// <summary>The length of the most recently read record (ISO §13.18.43 GR15 — the frame length on a varying
+    /// <summary>The length of the most recently read record (ISO §2023:13.18.43 GR15 — the frame length on a varying
     /// file, the record width on a fixed one; the RECORD VARYING DEPENDING item receives it after a READ).
     /// Written only through <see cref="NoteRecordRead"/>, so it can never disagree with
     /// <see cref="CurrentRecord"/>.</summary>
     public int LastReadLength { get; private set; }
 
     /// <summary>⛔ THE CURRENT RECORD — the record the most recent successful READ made available, at its OWN
-    /// length (never fitted to the record area): §13.18.43.4 GR16's "number of bytes in the current record".
+    /// length (never fitted to the record area): §2023:13.18.43.4 GR16's "number of bytes in the current record".
     /// The record area's character image is this record fitted to <see cref="RecordWidth"/>; an OUT-OF-LINE
     /// record of the area (a dynamic-length record or a variable-length group — docs/CONFORMANCE.md §7
     /// determination D-FRA, kb/Work PB981) has no window over that image and receives THIS instead, so its
@@ -861,7 +861,7 @@ public abstract class FileConnector
     public RecordExtents? CurrentRecordExtents { get; private set; }
 
     /// <summary>The maximum size specified by the record description entries, when it EXCEEDS the record area's
-    /// character width — ISO §14.9.30.4 GR14/GR15's truncation bound ("the record is truncated on the right to
+    /// character width — ISO §2023:14.9.30.4 GR14/GR15's truncation bound ("the record is truncated on the right to
     /// the maximum size"). Zero (the default) means <see cref="RecordWidth"/>, which is the bound for every file
     /// whose records all have a character window; only a variable-length record (D-FRA, kb/Work PB981) reaches
     /// past it.</summary>
@@ -870,18 +870,18 @@ public abstract class FileConnector
     /// <summary>GR14/GR15's "maximum size specified by the record description entries".</summary>
     protected int MaxRecordSize => RecordMax > RecordWidth ? RecordMax : RecordWidth;
 
-    // ── Record-lock identity (ISO §9.1.16 — record locking applies to EVERY organization; the READ/REWRITE/
-    //    WRITE/DELETE lock rules §14.9.30 GR7–GR12 / §14.9.35 GR11–GR12 / §14.9.51 GR10–GR11 / §14.9.10 GR6–GR7
+    // ── Record-lock identity (ISO §2023:9.1.16 — record locking applies to EVERY organization; the READ/REWRITE/
+    //    WRITE/DELETE lock rules §2023:14.9.30 GR7–GR12 / §2023:14.9.35 GR11–GR12 / §2023:14.9.51 GR10–GR11 / §2023:14.9.10 GR6–GR7
     //    are ALL-FORMATS rules). Each organization names its records for the PhysicalFileTable: the RRN for
     //    relative, the prime record key for indexed, the record's 1-based ordinal position for sequential (the
     //    natural analogue — a relative store's frames ARE ordinals). Empty string = no identified record.
 
-    /// <summary>The lock identity of the record most recently made available by a READ (§9.1.16 — the record a
-    /// post-read lock acquisition targets; §14.9.30 GR11c/d).</summary>
+    /// <summary>The lock identity of the record most recently made available by a READ (§2023:9.1.16 — the record a
+    /// post-read lock acquisition targets; §2023:14.9.30 GR11c/d).</summary>
     public virtual string LastReadRecordId => "";
 
     /// <summary>The endpoint through which this connector's record locks are PUBLISHED to other run units
-    /// (<see cref="RegionLocks"/>, kb/Work PB2660, PB2936) — §9.1.16, <i>"While locked by a given file connector, a
+    /// (<see cref="RegionLocks"/>, kb/Work PB2660, PB2936) — §2023:9.1.16, <i>"While locked by a given file connector, a
     /// record is not accessible to another file connector in the same or a different run unit"</i>. Made by the host of
     /// the process for the connector's own handle when the handle is taken, and disposed (every byte it holds given
     /// back) when the handle is given up. Null for a connector whose locks only its own run unit can see;
@@ -892,34 +892,34 @@ public abstract class FileConnector
     /// Inert for every organization but the keyed ones.</summary>
     internal virtual StoreStatement BeginStatement() => default;
 
-    /// <summary>Run a RETRY phrase's wait for a holder in ANOTHER run unit (§14.7.9.3) outside this connector's
+    /// <summary>Run a RETRY phrase's wait for a holder in ANOTHER run unit (§2023:14.7.9.3) outside this connector's
     /// store statement, so that run unit can execute the statement that gives the lock back (kb/Work PB2660).</summary>
     internal virtual void WaitOutsideStatement(Action wait) => wait();
 
     /// <summary>Whether THIS connector already held a record lock on <see cref="LastReadRecordId"/> when the governed READ
-    /// that made it available began its own §14.9.30.4 GR11 lock actions — null when that READ ran none (no record
+    /// that made it available began its own §2023:14.9.30.4 GR11 lock actions — null when that READ ran none (no record
     /// locking governs the file, or the record has no identity). A READ whose record then proves unsuccessful AFTER
-    /// the lock actions (§9.1.13.6 item 4 b)'s '34', <c>FileRegistry.ReadExceedsRecordMaximum</c>) puts the record's
+    /// the lock actions (§2023:9.1.13.6 item 4 b)'s '34', <c>FileRegistry.ReadExceedsRecordMaximum</c>) puts the record's
     /// lock back exactly as it was: GR11 b)/c)/d) speak of the SUCCESSFUL execution, and an earlier READ WITH LOCK's lock
     /// under multiple record locking is not this READ's to give up.</summary>
     internal bool? RecordLockHeldBeforeRead { get; set; }
 
-    /// <summary>The lock identity of the record a REWRITE/DELETE executed NOW would target (§14.9.35 GR11 /
-    /// §14.9.10 GR6 — the pre-operation conflict check; <paramref name="recordImage"/> supplies the key slice
-    /// for an indexed random/dynamic target, §14.9.35 GR23 / §14.9.10 GR3, and <paramref name="recordExtents"/> the
+    /// <summary>The lock identity of the record a REWRITE/DELETE executed NOW would target (§2023:14.9.35 GR11 /
+    /// §2023:14.9.10 GR6 — the pre-operation conflict check; <paramref name="recordImage"/> supplies the key slice
+    /// for an indexed random/dynamic target, §2023:14.9.35 GR23 / §2023:14.9.10 GR3, and <paramref name="recordExtents"/> the
     /// record area's EXTENT TABLE — D-FRA (v), kb/Work PB1053). "" when no record is identified.
     /// <para>⛔ A CONNECTOR NOT OPEN IN THE I-O MODE IDENTIFIES NO RECORD (kb/Work PB1194), the same contract the two
-    /// READ peeks keep. §14.9.35.4 GR3 (<i>"If the open mode is some other value or the file is not open, the I-O
-    /// status in the rewrite file connector is set to '49'"</i>) and §14.9.10.4 GR1 settle the statement before any
-    /// record is reached, so the registry's §9.1.16 conflict check has nothing to ask. The keyed arms used to name
+    /// READ peeks keep. §2023:14.9.35.4 GR3 (<i>"If the open mode is some other value or the file is not open, the I-O
+    /// status in the rewrite file connector is set to '49'"</i>) and §2023:14.9.10.4 GR1 settle the statement before any
+    /// record is reached, so the registry's §2023:9.1.16 conflict check has nothing to ask. The keyed arms used to name
     /// the record in the key area whatever the open state, so a REWRITE through a CLOSED connector of a record
     /// another connector held locked answered '51' where '49' is the only applicable status: with no open mode no
-    /// sharing mode is in effect, and the lock rule presupposes one (§9.1.15).</para></summary>
+    /// sharing mode is in effect, and the lock rule presupposes one (§2023:9.1.15).</para></summary>
     public string MutationTargetRecordId(string recordImage, RecordExtents? recordExtents) =>
         MutationOpenModeGuard() is null ? MutationTargetRecordIdCore(recordImage, recordExtents) : "";
 
-    /// <summary>The record a sequential-ACCESS REWRITE or DELETE RECORD identifies, or "" when none is: §14.9.35.4 GR5 and
-    /// §14.9.10.4 GR2 name the record the immediately previous statement's READ made current, and only a statement that follows
+    /// <summary>The record a sequential-ACCESS REWRITE or DELETE RECORD identifies, or "" when none is: §2023:14.9.35.4 GR5 and
+    /// §2023:14.9.10.4 GR2 name the record the immediately previous statement's READ made current, and only a statement that follows
     /// a successfully executed READ has one. After any other statement (an unsuccessful REWRITE, a WRITE, a START) the
     /// statement is the '43' of <see cref="PrevOpWasSuccessfulRead"/>'s gate, tested in the general rules' order BEFORE the
     /// record lock GR11 / GR6 would have met (docs/CONFORMANCE.md DOC-A.1-104 (2)): the registry's conflict check, which runs
@@ -930,25 +930,25 @@ public abstract class FileConnector
     /// mode.</summary>
     protected virtual string MutationTargetRecordIdCore(string recordImage, RecordExtents? recordExtents) => "";
 
-    /// <summary>The open-mode precondition REWRITE and DELETE RECORD share — ISO §14.9.35.4 GR3, <i>"The rewrite file
+    /// <summary>The open-mode precondition REWRITE and DELETE RECORD share — ISO §2023:14.9.35.4 GR3, <i>"The rewrite file
     /// connector shall have an open mode of I-O. If the open mode is some other value or the file is not open, the
-    /// I-O status in the rewrite file connector is set to '49'"</i>, and §14.9.10.4 GR1, <i>"The open mode of the
-    /// file connector referenced by file-name-1 shall be I-O"</i>, whose status is §9.1.13.7 9)'s '49'. Returns
+    /// I-O status in the rewrite file connector is set to '49'"</i>, and §2023:14.9.10.4 GR1, <i>"The open mode of the
+    /// file connector referenced by file-name-1 shall be I-O"</i>, whose status is §2023:9.1.13.7 9)'s '49'. Returns
     /// the failing status, or <see langword="null"/> when the statement may proceed. Assigns nothing, like
     /// <see cref="ReadOpenModeGuard"/>: the caller owns the single status assignment. Written once here for
     /// every organization's REWRITE and DELETE body and for <see cref="MutationTargetRecordId"/>.</summary>
     protected string? MutationOpenModeGuard() =>
-        PermanentErrorReplay()   // §9.1.13.1 — a permanent error in effect answers first (kb/Work PB1541)
+        PermanentErrorReplay()   // §2023:9.1.13.1 — a permanent error in effect answers first (kb/Work PB1541)
         ?? (IsOpen && Mode == FileOpenMode.IO ? null : FileStatusCode.DeleteRewriteNotOpenForIO);
 
-    /// <summary>The lock identity of the record released by the most recent successful WRITE (§14.9.51 GR11 —
+    /// <summary>The lock identity of the record released by the most recent successful WRITE (§2023:14.9.51 GR11 —
     /// the WITH LOCK acquisition target).</summary>
     public virtual string LastWrittenRecordId => "";
 
-    // ── OPEN / CLOSE (the shared preamble; ISO §14.9.27 / §14.9.6) ───────────────────────────────────────────
+    // ── OPEN / CLOSE (the shared preamble; ISO §2023:14.9.27 / §2023:14.9.6) ───────────────────────────────────────────
 
-    /// <summary>OPEN the file in <paramref name="mode"/> (ISO §14.9.27 / §9.1.13.4): the already-open guard
-    /// ('41', §9.1.13.7 item 1), the attempted-mode bookkeeping (GR6b), the read-position reset, the ONE
+    /// <summary>OPEN the file in <paramref name="mode"/> (ISO §2023:14.9.27 / §2023:9.1.13.4): the already-open guard
+    /// ('41', §2023:9.1.13.7 item 1), the attempted-mode bookkeeping (GR6b), the read-position reset, the ONE
     /// presence probe, the GR3 authority answer ('37'), the GR10 attribute comparison ('39') and the GR16 write
     /// capability answer ('37'), then the organization's <see cref="OpenCore"/> under the shared permission/I-O
     /// failure mapping ('37'/'30'). Sets and returns the status.
@@ -961,19 +961,19 @@ public abstract class FileConnector
     /// start, with the share mode that admits it. A refusal the column also made is '61' on the first attempt.</para>
     /// <para>⛔ AND AGAIN WHEN THE FILE THE OPEN DECIDED TO CREATE WAS MADE BY ANOTHER RUN UNIT MEANWHILE (kb/Work PB3635). An OPEN
     /// that creates the file (<c>OPEN OUTPUT</c> of an absent file, <c>OPEN I-O</c> or <c>EXTEND</c> of an absent OPTIONAL one,
-    /// §14.9.27.4 GR17, GR18) decides on the ONE presence probe and then takes a handle opened <see cref="FileMode.CreateNew"/>, which
+    /// §2023:14.9.27.4 GR17, GR18) decides on the ONE presence probe and then takes a handle opened <see cref="FileMode.CreateNew"/>, which
     /// refuses a file made since (<see cref="HostFile.IsAlreadyExists"/>): a creation never replaces, adopts or journals as its own
-    /// the file of a run unit whose OPEN takes no entry mutex. The refused attempt is an unsuccessful OPEN (§14.9.27.4 GR25: the file
+    /// the file of a run unit whose OPEN takes no entry mutex. The refused attempt is an unsuccessful OPEN (§2023:14.9.27.4 GR25: the file
     /// is not affected, the journal it began withdrawn) and the OPEN is made again from its entry step, so its probe finds the file
     /// that stands and it is the OPEN of an EXISTING file — the order in which the two run units' OPENs would have run one after the
     /// other. At most <see cref="MaxPathChangedRetries"/> times, so a path that is created and removed over and over answers the
-    /// last attempt's '30' (§9.1.13.6 item 1).</para>
+    /// last attempt's '30' (§2023:9.1.13.6 item 1).</para>
     /// <para>⛔ AND AGAIN WHEN THE FILE THE OPEN DECIDED TO USE WAS REMOVED MEANWHILE (kb/Work PB3946, the opposite direction). An OPEN
     /// that found the file PRESENT takes a handle opened <see cref="FileMode.Open"/> (<c>OpenOrCreate</c> would create the file empty and
     /// adopt it, an OPEN INPUT / I-O / EXTEND of a file that was never there, and a covered OPEN would journal it as present), which
     /// refuses a file removed since the probe (<see cref="HostFile.IsRemoved"/>). The refused attempt is an unsuccessful OPEN (GR25) and
     /// the OPEN is made again from its entry step, so its probe finds the file gone and the answer is the one the removal, run first,
-    /// would have given: '35' for a non-optional INPUT / I-O / EXTEND (§9.1.13.6 item 5), the OPTIONAL file's '05' (§14.9.27.4 GR13, GR17), the
+    /// would have given: '35' for a non-optional INPUT / I-O / EXTEND (§2023:9.1.13.6 item 5), the OPTIONAL file's '05' (§2023:14.9.27.4 GR13, GR17), the
     /// creation of an OUTPUT (GR18). The two directions share one bound: a path whose answer goes stale at every attempt is the same
     /// race, and the last attempt's '30' stands.</para></summary>
     public string Open(FileOpenMode mode)
@@ -1026,14 +1026,14 @@ public abstract class FileConnector
     private string OpenOnce(FileOpenMode mode, bool ownedWritesAdmitted, out OpenAgain again)
     {
         again = OpenAgain.No;
-        if (IsOpen) return Status = PermanentErrorReplay() ?? FileStatusCode.FileAlreadyOpen;   // §9.1.13.1 (kb/Work PB1541) before '41'
+        if (IsOpen) return Status = PermanentErrorReplay() ?? FileStatusCode.FileAlreadyOpen;   // §2023:9.1.13.1 (kb/Work PB1541) before '41'
         // ⛔ THE ENTRY STEP RUNS BEFORE THE PRESENCE PROBE (DESIGN-runtime-library.md 2.2.2.8; kb/Work PB3340): settling a dead
         // run unit's transaction can create or remove the physical file (a creation rolled back removes it, a DELETE FILE rolled
         // back restores it), so the presence every rule below reads is the presence AFTER it. An entry refused by a live
-        // transaction's holdings is §9.1.13.9 1)'s '61', with the file unaffected (§14.9.27.4 GR25).
+        // transaction's holdings is §2023:9.1.13.9 1)'s '61', with the file unaffected (§2023:14.9.27.4 GR25).
         string? entered;
         try { entered = EnterPhysicalFile(mode); }
-        // The settle's writable handle (or the lock directory) refused for the authority this process lacks: §9.1.13.6 6) b)'s '37',
+        // The settle's writable handle (or the lock directory) refused for the authority this process lacks: §2023:9.1.13.6 6) b)'s '37',
         // as the OPEN's own host open answers it below and as a keyed reader's settle does (kb/Work PB4097); any other host failure
         // is item 1's '30'.
         catch (UnauthorizedAccessException) { entered = FileStatusCode.PermissionDenied; }
@@ -1050,7 +1050,7 @@ public abstract class FileConnector
 
     // ── Commit control: the run unit's transaction journals (DESIGN-runtime-library.md 2.2.2; kb/Work PB3340, PB3492) ──
 
-    /// <summary>⛔ Whether an active APPLY COMMIT clause names this connector (§12.4.6.3.4; set by
+    /// <summary>⛔ Whether an active APPLY COMMIT clause names this connector (§2023:12.4.6.3.4; set by
     /// <c>FileRegistry.RegisterCommitControl</c>, cleared by <c>ReleaseCommitControl</c>). A keyed connector's WRITE, REWRITE and
     /// DELETE then keep the record's before-image in the run unit's transaction in the file (2.2.1.10); a sequential connector's
     /// changes are its run unit's transaction journal (2.2.2); and the verbs that replace or remove the WHOLE physical file of
@@ -1072,15 +1072,15 @@ public abstract class FileConnector
 
     /// <summary>The run unit's transaction journal on the file, when THIS OPEN began it (a creation's START <c>A</c>, an OPEN OUTPUT's
     /// capture), until the OPEN ends: an unsuccessful OPEN that did not affect the file withdraws it
-    /// (<see cref="WithdrawWhatTheOpenBegan"/>, §14.9.27.4 GR25).</summary>
+    /// (<see cref="WithdrawWhatTheOpenBegan"/>, §2023:14.9.27.4 GR25).</summary>
     private protected SequentialJournal? _begunByOpen;
 
     /// <summary>Whether this OPEN changed the physical file: its handle created it, or its creation or truncation replaced what it
-    /// held. An unsuccessful OPEN that did is not withdrawn: its journal stands, and item 8's ROLLBACK (§14.6.13.1.3 8), the
+    /// held. An unsuccessful OPEN that did is not withdrawn: its journal stands, and item 8's ROLLBACK (§2023:14.6.13.1.3 8), the
     /// statement's '30' being fatal) restores the file from it.</summary>
     private protected bool _openChangedFile;
 
-    /// <summary>⛔ AN UNSUCCESSFUL OPEN WITHDRAWS THE JOURNAL IT BEGAN WHEN IT DID NOT AFFECT THE FILE (§14.9.27.4 GR25, <i>"If the
+    /// <summary>⛔ AN UNSUCCESSFUL OPEN WITHDRAWS THE JOURNAL IT BEGAN WHEN IT DID NOT AFFECT THE FILE (§2023:14.9.27.4 GR25, <i>"If the
     /// execution of the OPEN statement is unsuccessful, the file is not affected"</i>; DESIGN-runtime-library.md 2.2.2.14): no
     /// transaction began on it, and a transaction that stood before the OPEN stands as it was. One rule in one place for both
     /// organizations (kb/Work PB3635). Clears what the OPEN recorded of its journal.</summary>
@@ -1097,14 +1097,14 @@ public abstract class FileConnector
     /// restored before the store's own dead-owner step reads it. A covered OPEN takes the entry mutex for it and keeps it through its
     /// host open, creation or capture (<see cref="LeaveEntry"/> gives it back); an uncovered one pays one listing and takes the mutex
     /// only to settle.
-    /// <para>⛔ AN OPEN INPUT SETTLES TOO, AND REFUSES NOTHING (§9.1.18.5: <i>"When a run unit terminates abnormally, all file changes
+    /// <para>⛔ AN OPEN INPUT SETTLES TOO, AND REFUSES NOTHING (§2023:9.1.18.5: <i>"When a run unit terminates abnormally, all file changes
     /// made since the previous commit or, if none, the beginning of the run unit are rolled back"</i>, and only then <i>"all file and
     /// record locks are then released"</i>): once the dead run unit's locks are gone its change is no longer in the file, so a reader
     /// that opens after the death never meets it. The settle writes through its own short-lived writable handle
     /// (<see cref="SequentialJournal.AuxiliaryData"/>), never the reader's, so an INPUT connector can run it; a live transaction's
     /// holdings are not the reader's OPEN to refuse (the Table 19 arbiter answers for the file lock, the READ's lock test for the
     /// record). The keyed engine's own dead owners are <c>KeyedConnector.SettleDeadOwnersBeside</c>'s. A lock directory this process
-    /// may not list is the authority the OPEN lacks: '37' (§9.1.13.6 6) b): <i>"insufficient authority exists to access the
+    /// may not list is the authority the OPEN lacks: '37' (§2023:9.1.13.6 6) b): <i>"insufficient authority exists to access the
     /// file"</i>), the file unaffected — never the '61' of a sharing conflict no holder is known to cause. Returns the failing I-O
     /// status, or null to proceed.</para></summary>
     private string? EnterPhysicalFile(FileOpenMode mode)
@@ -1112,7 +1112,7 @@ public abstract class FileConnector
         if (HostPath.Length == 0) return null;
         bool reading = mode is FileOpenMode.Input;
         // A file whose directory is not there has no lock directory beside it: nothing to settle and no one to exclude, and the
-        // OPEN's own creation answers for the directory (§9.1.13.6 1)), after what the CLOSE kept of another file has retired.
+        // OPEN's own creation answers for the directory (§2023:9.1.13.6 1)), after what the CLOSE kept of another file has retired.
         if (!reading && CommitControlled && HostFile.ContainingDirectoryExists(HostPath)) EntryMutex = Transactions.HoldEntryMutex(HostPath);
         var holdings = SequentialJournal.Enter(Medium, HostPath, Journal?.Id, EntryMutex);
         if (holdings.Unlistable) return FileStatusCode.PermissionDenied;
@@ -1151,7 +1151,7 @@ public abstract class FileConnector
         ModeKnown = true;   // a FAILED open still records the attempted mode (GR6b "being opened")
         OptionalAbsent = false;
         LastReadUnsuccessful = false;   // OPEN is a reposition; the '43' gate drops in the Status setter
-        FreezeOpenSequences();          // before GR10's comparison reads them (§12.4.5.7.4 GR1)
+        FreezeOpenSequences();          // before GR10's comparison reads them (§2023:12.4.5.7.4 GR1)
         // ⛔ ONE presence probe per OPEN, taken HERE and handed down to OpenCore (kb/Work PB323). Two things
         // hang on it — GR3's authority answer and GR10's "the file exists" precondition — and every
         // organization's OpenCore needs it again for Table 18, so asking the host once and passing the answer
@@ -1164,28 +1164,28 @@ public abstract class FileConnector
         try
         {
             presence = HostFile.Probe(HostPath);
-            // §14.9.27.4 GR3 — "If the file associated with file-name-1 is present and insufficient authority
+            // §2023:14.9.27.4 GR3 — "If the file associated with file-name-1 is present and insufficient authority
             // exists to open the file, the execution of the OPEN statement is unsuccessful, and the I-O status
-            // value in the file connector referenced by file-name-1 is set to '37'." (§9.1.13.6 item 6 b)
+            // value in the file connector referenced by file-name-1 is set to '37'." (§2023:9.1.13.6 item 6 b)
             // restates it for OPEN and DELETE FILE and adds "The ability to detect this is processor
             // dependent".) THE RULE LIVES HERE, ONCE, ABOVE THE ORGANIZATIONS: a refusal is not evidence of
             // absence, so it must never reach OpenCore's Table-18 arms, which would read it as '35' — or, for
             // an OPTIONAL file, as GR13's successful open over a file that is not there.
             // OUTPUT is excluded, and that exclusion is REQUIRED, not a convenience: GR18 makes OUTPUT a
-            // CREATION that never consults presence, §9.1.13.6 item 5's '35' is defined only "for an OPEN
+            // CREATION that never consults presence, §2023:9.1.13.6 item 5's '35' is defined only "for an OPEN
             // statement with the INPUT, I-O, or EXTEND phrase", and a directory the process may write but not
             // list legitimately accepts a new file — probing it answers Unauthorized while the OPEN OUTPUT
             // genuinely succeeds. When an OUTPUT target IS present-and-refused, the creating stream itself
             // raises UnauthorizedAccessException and the catch below returns the same '37'.
             if (presence is FilePresence.Unauthorized && mode is not FileOpenMode.Output)
-                return Status = FileStatusCode.PermissionDenied;   // '37' §14.9.27.4 GR3 / §9.1.13.6 item 6 b)
+                return Status = FileStatusCode.PermissionDenied;   // '37' §2023:14.9.27.4 GR3 / §2023:9.1.13.6 item 6 b)
             // ⛔ WHAT A CLOSE KEPT OF A FILE THE PATH NO LONGER NAMES LEAVES THIS CONNECTOR HERE, before anything of this OPEN reads
             // it (kb/Work PB3533, PB3576): the write probe, the file lock the CLOSE kept and the organization's kept handle and
             // store all belong to the physical file the CLOSE was on, and the path now names another file (made after the kept one
             // was removed or renamed away outside the run unit) or none. The kept state is not ended with it: the physical file
             // still exists unless it was removed, and the COMMIT still reaches what the run unit changed in it.
             if (presence is FilePresence.Present or FilePresence.Absent) RetireWhatWasKeptOfAnotherFile(presence);
-            // §14.9.27.4 GR10 — the fixed-file-attribute comparison, BEFORE any organization work: "During the
+            // §2023:14.9.27.4 GR10 — the fixed-file-attribute comparison, BEFORE any organization work: "During the
             // execution of the OPEN statement when the file connector is matched with the file and the file
             // exists, the attributes of the file connector as specified in the file control paragraph and the
             // file description entry are compared with the fixed file attributes of the file. If the attributes
@@ -1193,16 +1193,16 @@ public abstract class FileConnector
             // unsuccessful, and the I-O status associated with file-name-1 is set to '39'." An UNSUCCESSFUL
             // OPEN leaves the file unaffected (GR25), so the check has to precede OpenCore, whose
             // OUTPUT/creation arms truncate. OUTPUT is excluded because GR18 makes it a CREATION ("If the OUTPUT
-            // phrase is specified, the successful execution of the OPEN statement creates the file"), and §9.1.6
+            // phrase is specified, the successful execution of the OPEN statement creates the file"), and §2023:9.1.6
             // fixes a file's attributes at creation — so an OPEN OUTPUT ESTABLISHES them (in the store the
             // organization writes) rather than being judged against the previous file's. GR10's own precondition
             // is "the file EXISTS", which is Present and nothing else.
             if (mode is not FileOpenMode.Output && presence is FilePresence.Present && FixedAttributeConflict())
-                return Status = FileStatusCode.FixedAttributeConflict;   // '39' §9.1.13.6 item 7
-            // §14.9.27.4 GR16 — "If the I-O phrase is specified, the file shall support the input and output
+                return Status = FileStatusCode.FixedAttributeConflict;   // '39' §2023:9.1.13.6 item 7
+            // §2023:14.9.27.4 GR16 — "If the I-O phrase is specified, the file shall support the input and output
             // statements that are permitted for the organization of that file when opened in the I-O mode. If
             // the file does not support those statements, the I-O status value for file-name-1 is set to '37'
-            // and the execution of the OPEN statement is unsuccessful." §9.1.13.6 item 6 a) prices the other
+            // and the execution of the OPEN statement is unsuccessful." §2023:9.1.13.6 item 6 a) prices the other
             // write mode the same way: 1. "the EXTEND or OUTPUT phrase is specified but the file will not
             // support write operations", 2. the I-O restatement of GR16.
             // ⛔ THE WRITE CAPABILITY IS AN OPEN-CONTRACT QUESTION, ASKED HERE, ONCE, FOR EVERY ORGANIZATION —
@@ -1217,7 +1217,7 @@ public abstract class FileConnector
             // organization added later inherits the answer instead of re-earning it.
             // INPUT is excluded and the exclusion is REQUIRED, not an optimization: a read-only file supports
             // every statement Table 20 permits in the input mode, so probing write for it would refuse an OPEN
-            // the operating environment carries out perfectly. §9.1.13.6 item 6 a) 3. ("the INPUT phrase is
+            // the operating environment carries out perfectly. §2023:9.1.13.6 item 6 a) 3. ("the INPUT phrase is
             // specified but the file will not support read operations") is the input mode's own question, and
             // it is already answered eagerly by every organization — the sequential reader and the keyed
             // Attach() both open/read the store, and their UnauthorizedAccessException reaches the same '37'
@@ -1225,73 +1225,73 @@ public abstract class FileConnector
             // The Present guard is likewise required: an ABSENT target has no capability to probe, and the two
             // modes that reach OpenCore absent both CREATE (GR17's optional I-O/EXTEND, GR18's OUTPUT), where
             // the creating stream's own refusal is the authority answer.
-            // A connector that still holds the handle its CLOSE under commit control kept (§9.1.15's file lock, until the
+            // A connector that still holds the handle its CLOSE under commit control kept (§2023:9.1.15's file lock, until the
             // COMMIT) is not probed either: that handle's own share mode would refuse the probe — '61' for the
             // connector's own re-OPEN (review finding R1-1) — and the handle the re-OPEN takes writable asks the same
             // question, its UnauthorizedAccessException reaching the same '37' through the catch below.
             if (presence is FilePresence.Present && mode is not FileOpenMode.Input && !HoldsKeptHandle
                 && !HostFile.PermitsWrite(HostPath))
-                return Status = FileStatusCode.PermissionDenied;   // '37' §14.9.27.4 GR16 / §9.1.13.6 item 6 a)
-            // §9.1.15 — "The successful opening of a file establishes a file lock for the applicable sharing
+                return Status = FileStatusCode.PermissionDenied;   // '37' §2023:14.9.27.4 GR16 / §2023:9.1.13.6 item 6 a)
+            // §2023:9.1.15 — "The successful opening of a file establishes a file lock for the applicable sharing
             // rules, thereby preventing other run units from opening that file with incompatible sharing rules":
             // THE LOCK IS TAKEN HERE, ONCE, ABOVE THE ORGANIZATIONS, and BEFORE OpenCore on a file that exists,
             // because an OPEN that is going to be unsuccessful leaves the file unaffected (GR25) and OUTPUT's
             // body truncates it (kb/Work PB833). A file that does not exist yet is locked after the body has
             // created it, below: nothing can hold what is not there.
             if (presence is FilePresence.Present && TakeRunUnitFileLock(mode, existedBeforeBody: true) is { } refusal)
-                return Status = refusal;   // '61' §9.1.13.9 1) — a file lock the CLOSE kept stands as the CLOSE left it (GR25)
+                return Status = refusal;   // '61' §2023:9.1.13.9 1) — a file lock the CLOSE kept stands as the CLOSE left it (GR25)
             s = OpenCore(mode, presence);
             if (s[0] == '0' && _runUnitLock is null && TakeRunUnitFileLock(mode, existedBeforeBody: false) is { } lateRefusal) s = lateRefusal;
         }
         catch (UnauthorizedAccessException) { s = FileStatusCode.PermissionDenied; }
-        // §9.1.13.9 1) — "A file sharing conflict condition exists because an OPEN statement is attempted on a
+        // §2023:9.1.13.9 1) — "A file sharing conflict condition exists because an OPEN statement is attempted on a
         // physical file and that physical file is already open by another file connector in a manner that
         // conflicts with this request". A connector of THIS run unit is refused by the Table 19 arbiter before
         // the body runs (FileRegistry's '61'); a connector of ANOTHER run unit is visible only as the host's own
         // refusal, and the host says which refusal it is (kb/Work PB860 — every organization answered '30').
         // Where the facility is not in effect (COBOL-85) '61' is a status the edition does not define, so a process outside
-        // the run unit that holds the file is the operating environment's refusal and nothing more: §9.1.13.6 item 1's '30'.
+        // the run unit that holds the file is the operating environment's refusal and nothing more: §2023:9.1.13.6 item 1's '30'.
         catch (IOException e) when (HostFile.IsSharingRefusal(e))
         {
             s = SharingFacilityInEffect ? FileStatusCode.FileSharingConflict : FileStatusCode.PermanentError;
         }
         // A creating arm's CreateNew handle met a file another run unit made since the probe (kb/Work PB3635): the OPEN is made
         // again over it (Open). Only a creating arm takes such a handle, so no other refusal reads as this one; if the attempts
-        // run out the status stands, §9.1.13.6 item 1's '30'.
+        // run out the status stands, §2023:9.1.13.6 item 1's '30'.
         catch (IOException e) when (HostFile.IsAlreadyExists(e, HostPath))
         {
             (s, again) = (FileStatusCode.PermanentError, OpenAgain.FileMadeMeanwhile);
         }
         // A DIRECTORY has the path's name (the probe answers Absent for one, HostFile.Probe): Unix refuses the creating handle with
-        // EEXIST where Windows throws UnauthorizedAccessException, and both are §14.9.27.4 GR3's '37' (review finding R2-1).
+        // EEXIST where Windows throws UnauthorizedAccessException, and both are §2023:14.9.27.4 GR3's '37' (review finding R2-1).
         catch (IOException e) when (HostFile.IsDirectoryInTheWay(e, HostPath)) { s = FileStatusCode.PermissionDenied; }
         // The probe found the file PRESENT and the handle (FileMode.Open) found no file: another run unit removed it meanwhile
         // (kb/Work PB3946). The OPEN is made again, its probe now finding what the removal left; if the attempts run out the status
-        // stands, §9.1.13.6 item 1's '30'. A creating arm's handle is never refused as missing (CreateNew, OpenOrCreate), and an
+        // stands, §2023:9.1.13.6 item 1's '30'. A creating arm's handle is never refused as missing (CreateNew, OpenOrCreate), and an
         // OPEN that found the file absent or unobservable is not this race.
         catch (IOException e) when (presence is FilePresence.Present && HostFile.IsRemoved(e))
         {
             (s, again) = (FileStatusCode.PermanentError, OpenAgain.FileRemovedMeanwhile);
         }
         catch (IOException) { s = FileStatusCode.PermanentError; }
-        // §9.1.13.6 item 1's '30' — "a permanent error exists and no further information is available". Since
-        // §12.4.5.3 GR3 b) made the host path a RUNTIME VALUE (the content of data-name-1), an arbitrary string can
+        // §2023:9.1.13.6 item 1's '30' — "a permanent error exists and no further information is available". Since
+        // §2023:12.4.5.3 GR3 b) made the host path a RUNTIME VALUE (the content of data-name-1), an arbitrary string can
         // now reach the .NET path APIs, and the shapes they reject outside the IOException family — an embedded
         // separator the platform forbids, a form the platform does not support — must be an I-O status like every
         // other open failure, never an escaping exception. Associate() already screens the empty and control-
         // character content ('31'); this is the residue only the operating environment can judge.
         catch (ArgumentException) { s = FileStatusCode.PermanentError; }
         catch (NotSupportedException) { s = FileStatusCode.PermanentError; }
-        // The connector's input-output areas are allocated HERE, by the OPEN that takes its streams (ISO §12.4.5.14.3
+        // The connector's input-output areas are allocated HERE, by the OPEN that takes its streams (ISO §2023:12.4.5.14.3
         // GR1; HostFile.InputOutputAreaBuffer, kb/Work PB643). RESERVE integer-1 may ask for more memory than the run
-        // unit has — that is "current resource availability", not a compile-time limit (§4.2.15's limit,
+        // unit has — that is "current resource availability", not a compile-time limit (§2023:4.2.15's limit,
         // HostFile.MaxInputOutputAreas, only bounds the count's arithmetic) — and an OPEN has only I-O statuses as
-        // outcomes, so an allocation the runtime cannot make is §9.1.13.6 item 1's '30' like any other permanent
+        // outcomes, so an allocation the runtime cannot make is §2023:9.1.13.6 item 1's '30' like any other permanent
         // failure, never an OutOfMemoryException killing the run unit (the CobolDynTable precedent, kb/Work PB1410).
         catch (OutOfMemoryException) { s = FileStatusCode.PermanentError; }
         _openMode = s[0] == '0';   // a success-family OPEN ('00'/'05'/'07') puts the connector in its open mode
-        // §9.1.15 — "The SUCCESSFUL opening of a file establishes a file lock": an unsuccessful one establishes
-        // none, and §14.9.27.4 GR25 leaves the file unaffected. Any handle the body took on its way to failing
+        // §2023:9.1.15 — "The SUCCESSFUL opening of a file establishes a file lock": an unsuccessful one establishes
+        // none, and §2023:14.9.27.4 GR25 leaves the file unaffected. Any handle the body took on its way to failing
         // goes back HERE, because Close() answers '42' for a connector that is not open and never reaches
         // CloseCore (kb/Work PB771).
         // ⛔ The release is OUTSIDE the try above, so a host refusal during it escaped the OPEN as an unhandled
@@ -1312,14 +1312,14 @@ public abstract class FileConnector
                 && column.AnotherOwesWrites())
                 again = OpenAgain.WithOwnedWritesAdmitted;
             try { AbandonOpen(); }
-            catch (IOException) { }   // the status above stands (§14.9.27.4 GR25 — the unsuccessful OPEN's own)
-            // §9.1.15 — only a SUCCESSFUL opening establishes the lock; §14.9.27.4 GR25 — what a CLOSE under commit
+            catch (IOException) { }   // the status above stands (§2023:14.9.27.4 GR25 — the unsuccessful OPEN's own)
+            // §2023:9.1.15 — only a SUCCESSFUL opening establishes the lock; §2023:14.9.27.4 GR25 — what a CLOSE under commit
             // control kept stands as it was, so a kept lock this OPEN amended goes back to the kept state (a second attempt
             // amends it again, with no instant in which the file is unlocked: RunUnitFileLock.Amend, Revert).
             ReleaseRunUnitFileLock();
         }
         _runUnitLockWasKept = false;   // a SUCCESSFUL OPEN's lock is the connector's own; the kept one it replaced is gone
-        // ⛔ NOTHING IS RECORDED HERE, AND THE ABSENCE IS THE DESIGN (kb/Work PB802). §9.1.6's fixed file
+        // ⛔ NOTHING IS RECORDED HERE, AND THE ABSENCE IS THE DESIGN (kb/Work PB802). §2023:9.1.6's fixed file
         // attributes "apply to the file at the time it is created", and the two moments the OPEN statement
         // CREATES a file — GR18's OUTPUT, GR17's absent OPTIONAL I-O/EXTEND — are exactly the moments each
         // organization's OpenCore writes its own store: the RELATIVE and INDEXED arms create the keyed store
@@ -1331,10 +1331,10 @@ public abstract class FileConnector
         return Status = s;
     }
 
-    /// <summary>⛔ §14.9.27.4 GR10's PER-ORGANIZATION ANSWER: does THIS organization's physical format record a
-    /// §9.1.6 fixed file attribute that CONTRADICTS <see cref="DeclaredAttributes"/>? Asked once per OPEN by
+    /// <summary>⛔ §2023:14.9.27.4 GR10's PER-ORGANIZATION ANSWER: does THIS organization's physical format record a
+    /// §2023:9.1.6 fixed file attribute that CONTRADICTS <see cref="DeclaredAttributes"/>? Asked once per OPEN by
     /// <see cref="Open"/>, on a file that exists and in a mode other than OUTPUT; true is the file attribute
-    /// conflict condition and I-O status '39' (§9.1.13.6 item 7).
+    /// conflict condition and I-O status '39' (§2023:9.1.13.6 item 7).
     /// <para>⛔ THIS VIRTUAL IS THE ANNEX A.1 ITEM 129 VALIDATED SET, and the set is stated as a RULE rather
     /// than a table: <b>exactly what each organization's format encodes</b>. GR10 grants precisely that latitude
     /// — "The implementor defines which of the fixed-file attributes are validated during the execution of the
@@ -1347,18 +1347,18 @@ public abstract class FileConnector
     /// <c>docs/FILES_DESIGN.md</c> D10.</para>
     /// <para>THE BASE ANSWER IS "NO", and it is the honest one for a format that records nothing — a
     /// fixed-length record sequential file is plain bytes and a line sequential file is plain text, so no
-    /// §9.1.6 attribute of either can be read back to be contradicted. §9.1.7.2 says so, and §9.1.13.2 items 3,
+    /// §2023:9.1.6 attribute of either can be read back to be contradicted. §2023:9.1.7.2 says so, and §2023:9.1.13.2 items 3,
     /// 5 and 7 answer the resulting disagreements with the SUCCESSFUL '04', '06' and '09' rather than a refused
     /// OPEN. It must never become a guess: a validated set may not MANUFACTURE a '39' from an attribute the
     /// file never stated.</para></summary>
     protected virtual bool FixedAttributeConflict() => false;
 
-    // ── The connector's declared fixed file attributes (ISO §9.1.6) ──────────────────────────────────────────
+    // ── The connector's declared fixed file attributes (ISO §2023:9.1.6) ──────────────────────────────────────────
 
-    /// <summary>This connector's fixed file attributes AS DECLARED — §14.9.27.4 GR10's "the attributes of the
+    /// <summary>This connector's fixed file attributes AS DECLARED — §2023:14.9.27.4 GR10's "the attributes of the
     /// file connector as specified in the file control paragraph and the file description entry". Assembled
     /// HERE, once, for every organization: the record type and the minimum/maximum logical record size are the
-    /// RECORD clause's (§13.18.43 GR9/GR10 for a varying file; a fixed file's single record width for both
+    /// RECORD clause's (§2023:13.18.43 GR9/GR10 for a varying file; a fixed file's single record width for both
     /// bounds). Organizations contribute only what is theirs — <see cref="DeclaredOrganization"/> and, for an
     /// indexed file, <see cref="DeclaredKeys"/>.</summary>
     public FixedFileAttributes DeclaredAttributes => new(
@@ -1368,42 +1368,42 @@ public abstract class FileConnector
         IsVarying ? VaryMax : RecordWidth,
         DeclaredKeys);
 
-    /// <summary>This organization's name in the persisted catalog — §9.1.6's primary attribute and nothing
-    /// else, so one of the three values §9.1.6 names ("There are three organizations: sequential, relative, and
+    /// <summary>This organization's name in the persisted catalog — §2023:9.1.6's primary attribute and nothing
+    /// else, so one of the three values §2023:9.1.6 names ("There are three organizations: sequential, relative, and
     /// indexed"): <see cref="FixedFileAttributes.Sequential"/>, <see cref="FixedFileAttributes.Relative"/> or
-    /// <see cref="FixedFileAttributes.Indexed"/>. §9.1.7.2's record-sequential / line-sequential distinction is
-    /// §9.1.6's separately listed <i>record delimiter</i>, not a fourth organization, and it is outside the
-    /// §14.9.27.4 GR10 validated set (<see cref="FixedFileAttributes.Conflicts"/>).</summary>
+    /// <see cref="FixedFileAttributes.Indexed"/>. §2023:9.1.7.2's record-sequential / line-sequential distinction is
+    /// §2023:9.1.6's separately listed <i>record delimiter</i>, not a fourth organization, and it is outside the
+    /// §2023:14.9.27.4 GR10 validated set (<see cref="FixedFileAttributes.Conflicts"/>).</summary>
     protected abstract string DeclaredOrganization { get; }
 
-    /// <summary>Which of §14.9.6.4 GR2's four categories this connector's PHYSICAL FILE falls in — the index
-    /// Table 14 (§14.9.6.4 GR3) is read by, and the ONE place WiseOwl COBOL's medium determination is stated in
+    /// <summary>Which of §2023:14.9.6.4 GR2's four categories this connector's PHYSICAL FILE falls in — the index
+    /// Table 14 (§2023:14.9.6.4 GR3) is read by, and the ONE place WiseOwl COBOL's medium determination is stated in
     /// code. GR2 requires every supported physical file to be in exactly one category; making it an abstract
     /// property makes that total by construction, where it used to be a sentence in a doc comment on one CLOSE
     /// method (kb/Work PB235). See <see cref="PhysicalFileCategory"/> for why the answers are (a) and (d).</summary>
     public abstract PhysicalFileCategory Category { get; }
 
-    /// <summary>This connector's record keys for the catalog (§9.1.6 — prime key, alternate keys, SUPPRESS WHEN,
+    /// <summary>This connector's record keys for the catalog (§2023:9.1.6 — prime key, alternate keys, SUPPRESS WHEN,
     /// key collating sequence): index 0 the prime key, 1.. the alternates in declaration order. Only an indexed
     /// file has any; sequential and relative files answer the shared empty list.</summary>
     protected virtual IReadOnlyList<FixedFileAttributes.KeyDescriptor> DeclaredKeys => [];
 
     /// <summary>The drain of the ONE print line held back on this connector — the report writer's:
     /// <see cref="CobolReport"/> keeps its most recent report line unwritten so that a relative line with an
-    /// integer-2 of zero can overwrite it (ISO §13.18.35.4 GR3; kb/Work PB1247). Whoever writes next to the device
+    /// integer-2 of zero can overwrite it (ISO §2023:13.18.35.4 GR3; kb/Work PB1247). Whoever writes next to the device
     /// claims it first (<see cref="FileRegistry.HoldLine"/>), which writes out a different holder's line, and
     /// <see cref="Close"/> writes out the holder's line before the file closes. Null = nothing held.</summary>
     internal Action? HeldLineDrain { get; set; }
 
-    /// <summary>CLOSE the file (ISO §14.9.6): the not-open guard ('42', §9.1.13.7 item 2), then the
+    /// <summary>CLOSE the file (ISO §2023:14.9.6): the not-open guard ('42', §2023:9.1.13.7 item 2), then the
     /// organization's <see cref="CloseCore"/> under the OPEN twin's exception mapping — an OS-level close
-    /// failure (a flush that cannot complete, a store that cannot persist) is the §9.1.13.6 item 1 permanent
+    /// failure (a flush that cannot complete, a store that cannot persist) is the §2023:9.1.13.6 item 1 permanent
     /// error '30', where it previously escaped the emitted statement and aborted the run unit (kb/Work
-    /// PB140). Successful or not, a completed CLOSE takes the connector out of its open mode (§14.9.6.4 GR8;
+    /// PB140). Successful or not, a completed CLOSE takes the connector out of its open mode (§2023:14.9.6.4 GR8;
     /// the failure left it BOTH associated and open before). Sets and returns the status.
     /// <para>⛔ THE CLOSING OPERATIONS RUN WHATEVER ELSE FAILS (kb/Work PB603). A failure no I-O status describes
     /// (an exception outside the '30' family: a runtime defect, which still propagates to the caller) must not
-    /// leave the connector open, its host handle held or its §9.1.15 file lock standing. §14.6.11 2) runs the run
+    /// leave the connector open, its host handle held or its §2023:9.1.15 file lock standing. §2023:14.6.11 2) runs the run
     /// unit's implicit CLOSE <i>"for all open files in the run unit, even when an error occurs during the execution
     /// of one or more of the CLOSE statements"</i>, and a lock that outlived its run unit would refuse the next run
     /// unit's OPEN with a spurious '61'. So the organization's <see cref="CloseCore"/>, whose own <c>finally</c>
@@ -1420,9 +1420,9 @@ public abstract class FileConnector
         }
         finally
         {
-            ReleaseRunUnitFileLock();   // §9.1.15 — "The file lock is removed by an explicit or implicit CLOSE statement"
+            ReleaseRunUnitFileLock();   // §2023:9.1.15 — "The file lock is removed by an explicit or implicit CLOSE statement"
             _openMode = false;
-            // §9.1.13.1 / Annex A.1 item 105 — THE CORRECTION TECHNIQUE: a completed CLOSE ends a permanent error in
+            // §2023:9.1.13.1 / Annex A.1 item 105 — THE CORRECTION TECHNIQUE: a completed CLOSE ends a permanent error in
             // effect, successful or not (an unsuccessful CLOSE also leaves the connector closed), so the next OPEN
             // starts clean (kb/Work PB1541, docs/CONFORMANCE.md DOC-A.1-105). A CLOSE that itself fails '30' does not
             // restart the condition: `_openMode` is already false, which the Status setter's IsOpen test reads.
@@ -1446,7 +1446,7 @@ public abstract class FileConnector
     }
 
     /// <summary>The organization's <see cref="CloseCore"/> under the OPEN twin's exception mapping: an OS-level
-    /// close failure is §9.1.13.6 item 1's permanent error '30'.</summary>
+    /// close failure is §2023:9.1.13.6 item 1's permanent error '30'.</summary>
     private string MappedCloseCore()
     {
         try { return CloseCore(); }
@@ -1456,7 +1456,7 @@ public abstract class FileConnector
 
     /// <summary>The organization-specific OPEN body: reset org state, create/load the physical store, and
     /// return the resulting status. Runs under the base's '37'/'30' exception mapping; the base has already
-    /// recorded the attempted mode, reset the shared position state, and answered §14.9.27.4 GR3 and GR10.
+    /// recorded the attempted mode, reset the shared position state, and answered §2023:14.9.27.4 GR3 and GR10.
     /// <para><paramref name="presence"/> is the base's ONE <see cref="HostFile.Probe"/> answer — an
     /// implementation must never re-ask the host, and must never call <c>File.Exists</c>, whose two-valued
     /// answer is what kb/Work PB323 was. For every mode but OUTPUT it is <see cref="FilePresence.Present"/> or
@@ -1466,10 +1466,10 @@ public abstract class FileConnector
     protected abstract string OpenCore(FileOpenMode mode, FilePresence presence);
 
     /// <summary>The organization-specific CLOSE body (flush/persist/dispose); returns the resulting status.
-    /// A successful close must clear <see cref="ModeKnown"/> (§9.1.4 — the file is then in no open mode).</summary>
+    /// A successful close must clear <see cref="ModeKnown"/> (§2023:9.1.4 — the file is then in no open mode).</summary>
     protected abstract string CloseCore();
 
-    /// <summary>⛔ ISO §12.4.5.14.3 GR1 — the number of input-output areas this connector allocates: the RESERVE
+    /// <summary>⛔ ISO §2023:12.4.5.14.3 GR1 — the number of input-output areas this connector allocates: the RESERVE
     /// clause's integer-1, set by the emitter right after registration for exactly the files whose file control entry
     /// writes the clause (kb/Work PB643, the <see cref="NationalRecordArea"/> pattern), else
     /// <see cref="HostFile.ImplementorInputOutputAreas"/>. Each organization spends it through
@@ -1479,7 +1479,7 @@ public abstract class FileConnector
 
     // ── Record-area shaping ──────────────────────────────────────────────────────────────────────────────────
 
-    /// <summary>⛔ §14.9.30.4 GR15's RECORD-AREA CATEGORY — true when the record area is "specified implicitly or
+    /// <summary>⛔ §2023:14.9.30.4 GR15's RECORD-AREA CATEGORY — true when the record area is "specified implicitly or
     /// explicitly as national", set by the emitter right after registration for exactly those files (kb/Work
     /// PB327). It decides which SPACE the short-record pad below uses, and nothing else. It is a property of the
     /// FD's record description, not of the physical file, so it is declared once per connector rather than
@@ -1487,13 +1487,13 @@ public abstract class FileConnector
     public bool NationalRecordArea { get; internal set; }
 
     /// <summary>⛔ THE FD's RECORD CLAUSE CARRIES A DEPENDING PHRASE — set by the emitter right after registration for
-    /// exactly those files (kb/Work PB1191), the <see cref="NationalRecordArea"/> pattern. §14.9.51.4 GR21 strips a
+    /// exactly those files (kb/Work PB1191), the <see cref="NationalRecordArea"/> pattern. §2023:14.9.51.4 GR21 strips a
     /// line sequential record's trailing spaces only for a file description "not containing a RECORD clause with the
     /// DEPENDING phrase"; GR22 says such a record is transferred at data-name-1's length, spaces included. So a
     /// connector with this property never trims (<see cref="TrimRecordEnd"/>).</summary>
     public bool RecordLengthFromDepending { get; internal set; }
 
-    /// <summary>⛔ THE FILE'S §13.18.13 CODE-SET CONVERSION, or null for the native character set — §13.18.13.4
+    /// <summary>⛔ THE FILE'S §2023:13.18.13 CODE-SET CONVERSION, or null for the native character set — §2023:13.18.13.4
     /// GR7, "<i>If the CODE-SET clause is not specified, the native character set is assumed for data on the
     /// external media</i>". Set by the emitter right after registration for exactly the files whose CODE-SET
     /// clause names a coded character set that is not the whole native one-byte channel under the identity — a
@@ -1507,7 +1507,7 @@ public abstract class FileConnector
 
     /// <summary>⛔ THE FILE'S ENCODING — an attribute of the FILE, carried by its connector (owner decision kb/Work R51
     /// item 3; design <c>FILES_DESIGN.md</c> D29; kb/Work PB1760): a CODE-SET clause selects its alphabet's
-    /// coded character set (§13.18.13.4 GR6); otherwise a LINE SEQUENTIAL file is UTF-8 text and every other file is
+    /// coded character set (§2023:13.18.13.4 GR6); otherwise a LINE SEQUENTIAL file is UTF-8 text and every other file is
     /// one byte per character position under the storage-byte law (ISO/IEC 8859-1, HIGH-VALUE the byte 0xFF —
     /// DOC-A.1-31). Derived, never stored, so it cannot disagree with the two facts it is made of.</summary>
     public MediumEncoding MediumEncoding =>
@@ -1522,7 +1522,7 @@ public abstract class FileConnector
 
     /// <summary>⛔ GR6 b — the STORAGE-MEDIUM form of a record image about to be written, encoded by the file's
     /// <see cref="MediumEncoding"/>. Every physical write of record data passes through here.
-    /// <para>⛔ <paramref name="national"/> is the category of the record being SENT (§14.9.51.4 GR21 / GR22: "If
+    /// <para>⛔ <paramref name="national"/> is the category of the record being SENT (§2023:14.9.51.4 GR21 / GR22: "If
     /// record-name-1 is specified implicitly or explicitly as national …"), never the connector's area category —
     /// an FD with a national and an alphanumeric record description writes each as what it is (kb/Work PB1191).</para></summary>
     protected string ToMedium(string nativeImage, bool national) => MediumEncoding is MediumEncoding.Utf8
@@ -1530,7 +1530,7 @@ public abstract class FileConnector
         : FileCharacterSet.ToChannel(nativeImage, CodeSet);
 
     /// <summary>⛔ THE BYTES A RECORD IMAGE OCCUPIES ON THE MEDIUM — <see cref="ToMedium"/>'s length, but TOTAL, so a
-    /// size rule that is stated before a character-set rule can be tested before it (§14.9.35.4 GR17 b) before d);
+    /// size rule that is stated before a character-set rule can be tested before it (§2023:14.9.35.4 GR17 b) before d);
     /// kb/Work PB2834). A UTF-8 file counts through <see cref="LineSequentialEncoding.ChannelLength"/>; every other
     /// encoding is one channel unit per character (<see cref="FileCharacterSet.ToChannel"/> maps character for
     /// character), so a character the file's coded character set has no image for still takes the one byte any
@@ -1544,7 +1544,7 @@ public abstract class FileConnector
     /// PB1542): true when the record holds a character with no image in the FILE'S coded character set — with no
     /// <see cref="CodeSet"/>, the ISO/IEC 8859-1 file character set
     /// (<see cref="FileCharacterSet.HasCharacterWithoutByteImage"/>); with one, the CODE-SET alphabet's own set,
-    /// because §13.18.13.4 GR6 b replaces "<i>each native coded character in the record … with its associated coded
+    /// because §2023:13.18.13.4 GR6 b replaces "<i>each native coded character in the record … with its associated coded
     /// character as defined in the alphabet being used</i>" and a character with no associated coded character
     /// cannot be replaced (<see cref="CodeSetConversion.HasCharacterWithoutImage"/>). The statement is then
     /// unsuccessful before anything reaches the medium: '91' (<see cref="FileStatusCode.CharacterWithoutByteImage"/>)
@@ -1557,17 +1557,17 @@ public abstract class FileConnector
 
     /// <summary>Pad/truncate to the record width — the record-AREA image a READ makes available (a shorter
     /// varying record space-fills the area; its true length is <see cref="LastReadLength"/>).
-    /// <para>⛔ A NATIONAL RECORD AREA PADS WITH THE NATIONAL SPACE (ISO §14.9.30.4 GR15 — "If the record-area
+    /// <para>⛔ A NATIONAL RECORD AREA PADS WITH THE NATIONAL SPACE (ISO §2023:14.9.30.4 GR15 — "If the record-area
     /// associated with file-name-1 is specified implicitly or explicitly as national, a trailing space is defined
     /// to be the national space character"; kb/Work PB327). This channel carries one CHARACTER per BYTE, and a
-    /// national space is the two bytes 0x00 0x20 (§13.18.60.4 GR8 leaves the size to the implementor — D-N1 pins
+    /// national space is the two bytes 0x00 0x20 (§2023:13.18.60.4 GR8 leaves the size to the implementor — D-N1 pins
     /// two, UTF-16BE), so the pad is written as the pair, aligned to the AREA's own even byte boundary: the
     /// national positions of the area start at even offsets, and an odd short read leaves a half position whose
-    /// content §14.9.30.4 GR14/GR15 do not define. Padding the bytes with 0x20 instead would have manufactured
+    /// content §2023:14.9.30.4 GR14/GR15 do not define. Padding the bytes with 0x20 instead would have manufactured
     /// U+2020 characters — the identical trap <c>CobolBits.NatWriteWindow</c> documents on the write side.</para></summary>
     protected string Fit(string s) => FitRecord(s, RecordWidth, NationalRecordArea);
 
-    /// <summary>⛔ THE ONE RECORD FIT (kb/Work PB327): the alphanumeric fill (§14.9.30.4 GR15: "a trailing space
+    /// <summary>⛔ THE ONE RECORD FIT (kb/Work PB327): the alphanumeric fill (§2023:14.9.30.4 GR15: "a trailing space
     /// is defined to be the alphanumeric space character"), or GR15's national one — both
     /// <see cref="RecordFill.Fit"/>, which the SORT/MERGE transfers' own short-record fill shares (kb/Work PB1140).
     /// Every site that pads a record image to a declared span routes through it, so the two fills cannot diverge.
@@ -1575,12 +1575,12 @@ public abstract class FileConnector
     /// <para>⛔ <paramref name="national"/> says WHICH category the rule being applied keys on, and each caller names
     /// it: the READ side and a record area at rest are the AREA's category (<see cref="NationalRecordArea"/>, GR15
     /// — "the record-area associated with file-name-1"), while a WRITE or REWRITE is keyed on record-name-1
-    /// (§14.9.51.4 GR22, §14.9.35.4 GR17 c) — its own category, which an FD with both a national and an alphanumeric
+    /// (§2023:14.9.51.4 GR22, §2023:14.9.35.4 GR17 c) — its own category, which an FD with both a national and an alphanumeric
     /// record description does not share with the area (kb/Work PB1191).</para></summary>
     protected static string FitRecord(string s, int width, bool national) => RecordFill.Fit(s, width, national);
 
     /// <summary>⛔ THE RECORD AREA IN ITS ALL-SPACES STATE — what an unsuccessful READ hands back in place of a
-    /// record (§14.9.30.4 GR18: its content is then undefined, and the connector offers spaces). It is
+    /// record (§2023:14.9.30.4 GR18: its content is then undefined, and the connector offers spaces). It is
     /// <see cref="FitRecord"/> of the empty image, so a NATIONAL record area holds national spaces and never
     /// U+2020 positions a byte-level <c>new string(' ', n)</c> manufactures (kb/Work PB679, the sibling of the key
     /// pad fixed in <see cref="IndexedConnector"/>): ONE pad, ONE trim, keyed on the area's category.</summary>
@@ -1588,19 +1588,19 @@ public abstract class FileConnector
 
     /// <summary>⛔ THE ONE TRAILING-SPACE TRIM of a record image on the way OUT to a line-oriented stream — the
     /// inverse of <see cref="FitRecord"/>'s pad, and it has to shed the SAME space (kb/Work PB327). A national
-    /// record area's trailing space is the national space, the two bytes 0x00 0x20 (§14.9.30.4 GR15;
-    /// §13.18.60.4 GR8 / D-N1), so it sheds in PAIRS from the area's own even byte boundary: a plain
+    /// record area's trailing space is the national space, the two bytes 0x00 0x20 (§2023:14.9.30.4 GR15;
+    /// §2023:13.18.60.4 GR8 / D-N1), so it sheds in PAIRS from the area's own even byte boundary: a plain
     /// <c>TrimEnd()</c> removed only the 0x20 of the last pair and stopped at its 0x00, leaving an odd-length
     /// record with half a national position on disk (measured: `01 L-REC PIC N(5).` holding N"AB" wrote nine
     /// bytes, `00 41 00 42 00 20 00 20 00`).
-    /// <para>⛔ <paramref name="national"/> is the category of the record being WRITTEN — §14.9.51.4 GR21: "If
+    /// <para>⛔ <paramref name="national"/> is the category of the record being WRITTEN — §2023:14.9.51.4 GR21: "If
     /// record-name-1 is specified implicitly or explicitly as alphanumeric, a space is defined to be the alphanumeric
     /// space character. If record-name-1 is specified implicitly or explicitly as national, a space is defined to be
     /// the national space character" — and not the connector's area flag: an FD that carries a national record
     /// description AND an alphanumeric one writes each with its own space (kb/Work PB1191).</para></summary>
     protected string TrimRecordEnd(string image, bool national)
     {
-        // §14.9.51.4 GR22: a DEPENDING-phrase file keeps the record at data-name-1's length — GR21's strip does not apply.
+        // §2023:14.9.51.4 GR22: a DEPENDING-phrase file keeps the record at data-name-1's length — GR21's strip does not apply.
         if (RecordLengthFromDepending) return image;
         // GR21's "spaces" are the alphanumeric SPACE CHARACTER only — <c>TrimEnd()</c> stripped every Unicode White_Space
         // character too, so a trailing U+00A0 (a member of the line sequential character set, DOC-A.1-115) vanished.
@@ -1613,7 +1613,7 @@ public abstract class FileConnector
     /// <summary>⛔ A RECORD SENT TO A FILE OF FIXED-LENGTH RECORDS, in the FIXED FORM those records have (determination
     /// D-FRA (vi); kb/Work PB1562). The sending side of a WRITE / REWRITE hands every connector the same thing — a
     /// variable-length group record's contiguous image with the extent table of its layout. A connector of
-    /// VARIABLE-length records frames both (D-FRA (v)); a FIXED connector cannot, because §13.18.43.4 GR6 and §9.1.6
+    /// VARIABLE-length records frames both (D-FRA (v)); a FIXED connector cannot, because §2023:13.18.43.4 GR6 and §2023:9.1.6
     /// make its records one size and its record type and size fixed attributes that a second program describing
     /// the file with a plain <c>PIC X(n)</c> shares, so it carries the record in the one shape every record of the
     /// file has (<see cref="CobolContiguousLayout.ToFixedForm"/>), and the table, which described the CONTIGUOUS
@@ -1628,8 +1628,8 @@ public abstract class FileConnector
         && !ReferenceEquals(form, image) ? (form, null) : (image, extents);
 
     /// <summary>The stored image of a record being written: a varying record keeps exactly its declared length
-    /// (ISO §13.18.43 GR13 — truncate/pad the area image to it); a fixed record fills the record width. Returns
-    /// null (→ '44') when a varying length violates the declared bounds (GR14 / §14.9.35 GR20).</summary>
+    /// (ISO §2023:13.18.43 GR13 — truncate/pad the area image to it); a fixed record fills the record width. Returns
+    /// null (→ '44') when a varying length violates the declared bounds (GR14 / §2023:14.9.35 GR20).</summary>
     protected string? Stored(string image, int length)
     {
         if (!IsVarying) return Fit(image);

@@ -5,15 +5,15 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// kb/Work PB598 — WHICH SUBJECT the §13.18.63.3 SR4 / SR5 / SR10 SIZE sentences bound, at every edition.
+/// kb/Work PB598 — WHICH SUBJECT the §2023:13.18.63.3 SR4 / SR5 / SR10 SIZE sentences bound, at every edition.
 ///
 /// <para>Each of those three rules is a sentence PAIR (SR4 alphanumeric, SR5 national, SR10 boolean): sentence 1
 /// is a CLASS rule over "the item" / "the subject of the entry", and sentences 2–3 are a SIZE rule that names
 /// exactly two subjects — "an elementary item" (bounded by "the size indicated by an <b>explicit</b> PICTURE
 /// clause") and a group item (bounded by "the size of the group item"). A CONDITION-NAME is neither: a Format-3
-/// entry is <c>88 condition-name-1 value-clause .</c> (§13.16.2), which admits no PICTURE clause, and §13.18.63.3
-/// SR33 makes that level-88 entry the subject; §8.5.1.3.2 item 3 gives a condition-name entry "no true concept of
-/// level", so it is neither of §8.5.1.3.1's record subdivisions; and §13.18.63.4 GR19 gives it its conditional
+/// entry is <c>88 condition-name-1 value-clause .</c> (§2023:13.16.2), which admits no PICTURE clause, and §2023:13.18.63.3
+/// SR33 makes that level-88 entry the subject; §2023:8.5.1.3.2 item 3 gives a condition-name entry "no true concept of
+/// level", so it is neither of §2023:8.5.1.3.1's record subdivisions; and §2023:13.18.63.4 GR19 gives it its conditional
 /// variable's characteristics only IMPLICITLY — which is what "explicit" excludes. The three level-88 call sites
 /// in <c>DataBinder.BindCondition</c> nevertheless handed the screen the CONDITIONAL VARIABLE's size, so all three
 /// arms rejected legal source.</para>
@@ -36,9 +36,9 @@ public sealed class ConditionNameValueSizeTests
     private const string National = "01 NV PIC N(2).\n   88 NC VALUE N\"ABC\".";
     private const string Boolean = "01 BV PIC 1(2) USAGE BIT.\n   88 BC VALUE B\"101\".";
 
-    /// <summary>§13.18.63.3 SR4 sentence 2 does not reach a Format-3 subject, at ANY edition — the rule is
+    /// <summary>§2023:13.18.63.3 SR4 sentence 2 does not reach a Format-3 subject, at ANY edition — the rule is
     /// edition-invariant (no Annex E change touches it), so all four compile and produce the same answer:
-    /// §8.8.4.5.3 item 2 sends the comparison to the relation-condition rules, which space-extend the shorter
+    /// §2023:8.8.4.5.3 item 2 sends the comparison to the relation-condition rules, which space-extend the shorter
     /// operand, so a literal longer than the conditional variable never compares equal.</summary>
     [Theory]
     [InlineData(85)]
@@ -53,7 +53,7 @@ public sealed class ConditionNameValueSizeTests
         Assert.Equal("N", stdout.Trim());
     }
 
-    /// <summary>§14.9.39.4 GR6 → §13.18.63.4 GR7 → §14.6.8.5: <c>SET condition-name TO TRUE</c> places the literal
+    /// <summary>§2023:14.9.39.4 GR6 → §2023:13.18.63.4 GR7 → §2023:14.6.8.5: <c>SET condition-name TO TRUE</c> places the literal
     /// "aligned at the leftmost character position in the data item with space fill or truncation to the right, as
     /// required". The standard DEFINES the oversize store, which a size rule at level 88 would make dead text.</summary>
     [Theory]

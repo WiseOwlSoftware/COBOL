@@ -17,9 +17,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// The activation-description keys are the same text on every compiling host (kb/Work PB3257). A universal INVOKE
 /// compares a caller's description with the method's ordinally at run time (<see cref="ActivationRelations"/>), and the
 /// two descriptions are built by two compilations, possibly on two hosts — so a key that formats a number with the
-/// host culture keys one type apart from itself. The ISO relations they carry are §8.5.3.1's same type ("Two type
+/// host culture keys one type apart from itself. The ISO relations they carry are §2023:8.5.3.1's same type ("Two type
 /// declarations are considered equivalent when they have the same type-name", with the elementary items' essential
-/// characteristics) and §14.8.2.2's "both shall be of the same type" for a strongly-typed group argument.
+/// characteristics) and §2023:14.8.2.2's "both shall be of the same type" for a strongly-typed group argument.
 /// <para>The culture is a clone of the invariant culture whose negative sign is U+2212 MINUS SIGN, which is what
 /// sv-SE's is on .NET 10: deterministic on every host, ICU or not. Each item's PICTURE <c>99P</c> has a NEGATIVE scale
 /// (the PICTURE scaling symbol P), the value that printed U+2212 in the record dump the strong-type key embedded, and

@@ -21,7 +21,7 @@ const ROW = {
     test_ref: { type: 'string', description: 'conformance:cases/<clause folder>/<id> (or conformance:wiseowl/cases/<folder>/<id>); empty when not closable' },
     files: { type: 'array', items: { type: 'string' }, description: 'draft files written under out/<slug>/, repo-relative destination paths' },
     derivation: { type: 'string', description: 'how each expected line follows from the quoted rule text — the spec is the only oracle' },
-    citations_checked: { type: 'array', items: { type: 'string' }, description: 'each `cite.py --check <clause> "<text>"` command and its verdict line' },
+    citations_checked: { type: 'array', items: { type: 'string' }, description: 'each `cite.py --check "§2023:<clause>" "<text>"` command and its verdict line' },
     editions: { type: 'string' },
     notes: { type: 'string' },
   },
@@ -77,7 +77,7 @@ file you produce goes under ${SCRATCH}/out/<slug>/ using the repo-relative desti
 THE SPEC IS THE ONLY ORACLE: specs/ISO_COBOL_2023.md (ISO/IEC 1989:2023). Derive every expected output value from the
 rule text BEFORE thinking about what the compiler does; NIST goldens and GnuCOBOL are regression
 nets, never authority; a *_MatchesLegacy test or a nist: ref cannot close a row. VALIDATE EVERY CITATION:
-python scripts/spec/cite.py --check <clause> "<quoted text>"  — a citation you did not run --check on is not a
+python scripts/spec/cite.py --check "§2023:<clause>" "<quoted text>"  — a citation you did not run --check on is not a
 citation, and a REAL clause that answers a DIFFERENT question is the failure mode to fear most.
 ⛔ HARD CAP: 160 TURNS (read-only work; owner decision 2026-09-04). Agent cost is QUADRATIC in turns
 (tokens ~ 0.115*T + 0.00031*T^2, n=239), so the work is SPLIT, never extended. As you approach the cap: checkpoint

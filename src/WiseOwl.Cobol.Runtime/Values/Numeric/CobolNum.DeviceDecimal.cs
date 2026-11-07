@@ -7,7 +7,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// <summary>
 /// ⛔ THE DECIMAL DEVICE FORM OF A NUMERIC ITEM — what a DISPLAY statement shows of a numeric operand under
 /// <c>decimal</c>, the default of the compile option <c>--numeric-display</c>
-/// (kb/Work PB3505, owner decision kb/Work PB3467). ISO/IEC 1989:2023 §14.9.11.4 GR1 — "Any conversion of data
+/// (kb/Work PB3505, owner decision kb/Work PB3467). ISO/IEC 1989:2023 §2023:14.9.11.4 GR1 — "Any conversion of data
 /// required between literal-1 or the data item referenced by identifier-1 and the device is defined by the
 /// implementor" — leaves the form to the implementor, and docs/CONFORMANCE.md DOC-A.1-56 documents ours: the
 /// digits at the value's positions with the decimal point where the scale puts it, and a signed item's sign as a
@@ -16,7 +16,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// is not reached from here.
 /// <para>ONE composition (<see cref="Compose"/>) serves every carrier — a native value (<c>Int128</c>, <c>UInt128</c>)
 /// and a character image (an item stored as its image, a REDEFINES / reference-modification window) — so the
-/// form cannot differ between two storages of one value (§13.18.44.4 GR1: one storage, two descriptions).</para>
+/// form cannot differ between two storages of one value (§2023:13.18.44.4 GR1: one storage, two descriptions).</para>
 /// </summary>
 public static partial class CobolNum
 {
@@ -24,7 +24,7 @@ public static partial class CobolNum
     /// (<c>long</c>, <c>ulong</c> and <c>Int128</c> carriers all bind here). A BINARY-CAPACITY item
     /// (COMP-5, BINARY-CHAR … BINARY-DOUBLE) holds any value of its container, past its PICTURE's digit count, so it
     /// shows the container's digits (<see cref="DeviceDigits"/>) and a value is never cut to the picture.</summary>
-    /// <param name="commaMode">The unit's decimal separator: <c>,</c> under DECIMAL-POINT IS COMMA (§12.3.7.4 GR14 a),
+    /// <param name="commaMode">The unit's decimal separator: <c>,</c> under DECIMAL-POINT IS COMMA (§2023:12.3.7.4 GR14 a),
     /// else <c>.</c>.</param>
     public static string DisplayDecimal(Int128 unscaled, in NumProfile receiver, bool commaMode) =>
         Compose(unscaled < 0, CobolDec.UAbs(unscaled).ToString(CultureInfo.InvariantCulture), receiver, commaMode);
@@ -38,7 +38,7 @@ public static partial class CobolNum
     /// image <see cref="FormatDisplay(Int128, in NumProfile)"/> writes (an item the whole-group analysis stored as its image, a
     /// REDEFINES view or reference-modification window, a BINARY/PACKED window decoded and re-imaged). The digit
     /// positions are carried through AS STORED, so content a group MOVE deposited that is not a digit stays visible
-    /// (§14.6.13.2: it is undefined, and a decode-and-reformat round trip would turn it into zeros); only the sign
+    /// (§2023:14.6.13.2: it is undefined, and a decode-and-reformat round trip would turn it into zeros); only the sign
     /// position is read, by the item's own <see cref="NumProfile.SignKind"/> and over-punch convention.</summary>
     public static string DisplayDecimal(string image, in NumProfile receiver, bool commaMode)
     {
@@ -73,7 +73,7 @@ public static partial class CobolNum
     private const int DeviceReadDigits = 38;
 
     /// <summary>⛔ THE ACCEPT-SIDE READER OF THE DECIMAL DEVICE FORM (kb/Work PB3513, the inverse of
-    /// <see cref="DisplayDecimal(Int128, in NumProfile, bool)"/>; ISO/IEC 1989:2023 §14.9.1.4 GR1 — "Any conversion of data
+    /// <see cref="DisplayDecimal(Int128, in NumProfile, bool)"/>; ISO/IEC 1989:2023 §2023:14.9.1.4 GR1 — "Any conversion of data
     /// required between the device and the data item referenced by identifier-1 is defined by the implementor";
     /// docs/CONFORMANCE.md DOC-A.1-1). It converts the characters an ACCEPT of a fixed-point numeric item transferred
     /// (<paramref name="window"/>: the item's own size for a character-form item, the whole record for a binary or
@@ -81,13 +81,13 @@ public static partial class CobolNum
     /// (measured 2026-10-23, the precedence tiebreaker of CLAUDE.md rule 1):
     /// <list type="bullet">
     ///   <item>leading spaces, then an optional sign (<c>+</c> or <c>-</c>; an unsigned item drops it), then the number:
-    ///         digits, ONE decimal separator (the program's, a comma under DECIMAL-POINT IS COMMA, §12.3.7.4 GR14 a),
+    ///         digits, ONE decimal separator (the program's, a comma under DECIMAL-POINT IS COMMA, §2023:12.3.7.4 GR14 a),
     ///         with spaces and the other separator character skipped wherever they stand;</item>
     ///   <item>a character that is none of those makes the WHOLE text invalid and the value zero: a trailing sign
-    ///         (<c>12.5-</c>), a second separator, a letter. No exception is set (§14.6.13.2: undefined content);</item>
+    ///         (<c>12.5-</c>), a second separator, a letter. No exception is set (§2023:14.6.13.2: undefined content);</item>
     ///   <item>the fraction keeps its first <see cref="NumProfile.FractionDigits"/> digits (truncation, never rounding);
     ///         integer digits past the item's capacity lose their HIGH-ORDER end, so the item keeps the low-order digits
-    ///         (§14.6.8.2 rule 4, "zero fill or truncation on either end", the alignment a MOVE applies) — the unscaled value is
+    ///         (§2023:14.6.8.2 rule 4, "zero fill or truncation on either end", the alignment a MOVE applies) — the unscaled value is
     ///         reduced to the PICTURE's digit count here, a BINARY-CAPACITY item's container excepted: it keeps every digit its
     ///         container holds and the value wraps to the container (<see cref="WrapBinary"/>, DOC-A.1-208), as GnuCOBOL's does.
     ///         The characters ahead of the last integer digit dropped are skipped unexamined, a non-digit among them
@@ -198,12 +198,12 @@ public static partial class CobolNum
     ///   <item>scale &gt; 0 — the point stands before the last <c>scale</c> digits; a scale past the digit run (leading
     ///         <c>P</c>) writes the point and then the zeros the Ps stand for: <c>PIC PP9(3)</c> holding .00123 is <c>.00123</c>;</item>
     ///   <item>scale &lt; 0 — trailing <c>P</c> positions are zeros that occupy no storage and are written:
-    ///         <c>PIC 9(3)PP</c> holding 1200 is <c>01200</c>. DISPLAY is none of the operations a) to d) of §13.18.40.4 GR14 (symbol P)
+    ///         <c>PIC 9(3)PP</c> holding 1200 is <c>01200</c>. DISPLAY is none of the operations a) to d) of §2023:13.18.40.4 GR14 (symbol P)
     ///         that use the item's algebraic value, so the Ps are not counted in the item's size; writing their zeros is this GR1
     ///         conversion's choice (the value as a reader writes it, DOC-A.1-56), and the transfer is the converted text's size (GR6);</item>
     ///   <item>a SIGNED item always shows <c>+</c> or <c>-</c>, so zero is <c>+</c>: LEADING, except that an item the
     ///         program wrote <c>SIGN TRAILING SEPARATE</c> shows it where the program put it, trailing
-    ///         (<c>001.50-</c>) — the character position §13.18.52.4 GR6 a) gives it;</item>
+    ///         (<c>001.50-</c>) — the character position §2023:13.18.52.4 GR6 a) gives it;</item>
     /// </list></summary>
     private static string Compose(bool negative, string digits, in NumProfile item, bool commaMode, bool padTo = true)
     {

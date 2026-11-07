@@ -4,13 +4,13 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §8.5.2.8 GR1 — an IMPLICITLY usage-index item is of class
+      *> ISO §2023:8.5.2.8 GR1 — an IMPLICITLY usage-index item is of class
       *>   index, so it is not a MOVE operand.
       *> cite.py --check 8.5.2.8 "An elementary data item explicitly or
-      *>   implicitly described as usage index" -> OK §8.5.2.8 1)
+      *>   implicitly described as usage index" -> OK §2023:8.5.2.8 1)
       *> cite.py --check 13.18.60.3 "An index data item may be
       *>   referenced explicitly only in a SEARCH or SET statement"
-      *>   -> OK §13.18.60.3 10)
+      *>   -> OK §2023:13.18.60.3 10)
       *> I1 inherits USAGE INDEX from G (implicit), so it is an index
       *> data item and MOVE 5 TO I1 references it outside the places
       *> SR10 lists. COBOL0809 = MOVE operand of class index.

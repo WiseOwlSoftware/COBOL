@@ -5,9 +5,9 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// ⛔ <b>A REJECTED DECLARATION IS DIAGNOSED ONCE</b> (kb/Work PB960). When a PICTURE fails ISO §13.18.40.3's
+/// ⛔ <b>A REJECTED DECLARATION IS DIAGNOSED ONCE</b> (kb/Work PB960). When a PICTURE fails ISO §2023:13.18.40.3's
 /// syntax rules the binder substitutes a RECOVERY profile so binding can continue; its <c>Category</c> is a storage
-/// placeholder (alphanumeric), not an analysis of anything the program wrote. Every §8.5.2.1 class/category
+/// placeholder (alphanumeric), not an analysis of anything the program wrote. Every §2023:8.5.2.1 class/category
 /// reader a syntax-rule screen consults now reads <c>PicInfo.AnalyzedCategory</c>, which is null for a recovery
 /// profile, so the screens fail open instead of telling the user their <c>PIC 9V9V9</c> item is "of category
 /// alphanumeric".
@@ -36,15 +36,15 @@ public sealed class RecoveryCategoryCascadeTests
         """;
 
     [Theory]
-    [InlineData("ADD W-BAD TO W-N")]                                  // §8.8.1.1 sending operand
-    [InlineData("COMPUTE W-N = W-BAD * 2")]                           // §8.8.1.1 in an expression
+    [InlineData("ADD W-BAD TO W-N")]                                  // §2023:8.8.1.1 sending operand
+    [InlineData("COMPUTE W-N = W-BAD * 2")]                           // §2023:8.8.1.1 in an expression
     [InlineData("ADD 1 TO W-BAD")]                                    // the arithmetic resultant screen
     [InlineData("COMPUTE W-BAD = 1")]
     [InlineData("DIVIDE W-N BY 2 GIVING W-N REMAINDER W-BAD")]
-    [InlineData("MOVE W-T (W-BAD) TO W-X")]                           // a subscript (§8.4.2.3.2)
-    [InlineData("MOVE FUNCTION SQRT (W-BAD) TO W-N")]                 // a §15.3 class-numeric argument
+    [InlineData("MOVE W-T (W-BAD) TO W-X")]                           // a subscript (§2023:8.4.2.3.2)
+    [InlineData("MOVE FUNCTION SQRT (W-BAD) TO W-N")]                 // a §2023:15.3 class-numeric argument
     [InlineData("SET IX TO W-BAD")]
-    [InlineData("IF W-BAD = W-B DISPLAY \"Y\" END-IF")]               // §8.8.4.2.2 boolean relation
+    [InlineData("IF W-BAD = W-B DISPLAY \"Y\" END-IF")]               // §2023:8.8.4.2.2 boolean relation
     [InlineData("IF W-BAD > 3 DISPLAY \"Y\" END-IF")]
     [InlineData("MOVE W-BAD TO W-E")]
     [InlineData("MOVE W-B TO W-BAD")]

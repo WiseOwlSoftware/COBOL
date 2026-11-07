@@ -4,8 +4,8 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> ISO 1989:2023 §14.9.37.2 Format 1: WHEN condition-1 { imperative-statement-2 | NEXT SENTENCE } - a BRACE, so
-*> exactly one alternative is written (§5.2.6.3); NEXT SENTENCE followed by another statement in the same WHEN
+*> ISO 1989:2023 §2023:14.9.37.2 Format 1: WHEN condition-1 { imperative-statement-2 | NEXT SENTENCE } - a BRACE, so
+*> exactly one alternative is written (§2023:5.2.6.3); NEXT SENTENCE followed by another statement in the same WHEN
 *> body is neither. Refused at every edition. COBOL2269 (kb/Work PB446).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB446WNSMX.

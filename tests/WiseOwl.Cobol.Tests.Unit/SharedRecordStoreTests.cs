@@ -7,7 +7,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The per-PHYSICAL-FILE keyed record store (kb/Work PB143; ISO §14.9.10.4 GR5 — a deleted record "has been
+/// The per-PHYSICAL-FILE keyed record store (kb/Work PB143; ISO §2023:14.9.10.4 GR5 — a deleted record "has been
 /// logically removed from the physical file and can no longer be accessed"). Before, every connector held a
 /// PRIVATE snapshot loaded at OPEN and persisted WHOLE at CLOSE: a record DELETEd through one connector stayed
 /// readable through another over the same host path, and the CLOSE ORDER decided which private view survived on

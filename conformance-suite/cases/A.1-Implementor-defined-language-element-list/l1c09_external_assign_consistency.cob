@@ -5,18 +5,18 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §12.4.5.3 1) b) / Annex A item 72 — the documented
+      *> ISO §2023:12.4.5.3 1) b) / Annex A item 72 — the documented
       *> consistency rules for the ASSIGN clause of an external file.
       *> Rule: "A consistent specification for data-name-1,
       *> device-name-1, and literal-1 in the ASSIGN clause. The
       *> implementor shall specify the consistency rules for
       *> data-name-1, device-name-1, and literal-1."
-      *> cite.py: OK  §12.4.5.3 1) b)  (General rules)
-      *> cite.py: OK  §14.8.4.4   (Correspondence of external file
+      *> cite.py: OK  §2023:12.4.5.3 1) b)  (General rules)
+      *> cite.py: OK  §2023:14.8.4.4   (Correspondence of external file
       *>          control entries) "For each external file connector,
       *>          the rules specified in 12.4.5, File control entry
       *>          General rule 1 apply."
-      *> cite.py: OK  §14.9.4.4 3)  (General rules) CALL e): "If one of
+      *> cite.py: OK  §2023:14.9.4.4 3)  (General rules) CALL e): "If one of
       *>          the rules listed above is violated and checking for it
       *>          is enabled ... in both the activated program and
       *>          activating runtime element, that exception is set to

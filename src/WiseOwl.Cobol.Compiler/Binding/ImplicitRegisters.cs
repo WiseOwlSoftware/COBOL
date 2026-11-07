@@ -25,10 +25,10 @@ public sealed class ImplicitRegisters
     /// declarative is collected under WITH DEBUGGING MODE (empty otherwise — a non-debug program's resolution is unchanged).</summary>
     public IReadOnlyDictionary<string, (DataItem Item, DebugRegisterMember Member)> DebugRegisters => _debugRegisters;
 
-    /// <summary>The implicit description of the predefined object reference <c>EXCEPTION-OBJECT</c> (ISO §8.4.3.6.3 SR2 —
+    /// <summary>The implicit description of the predefined object reference <c>EXCEPTION-OBJECT</c> (ISO §2023:8.4.3.6.3 SR2 —
     /// "EXCEPTION-OBJECT is implicitly described as class object and category object reference, as an external data item, and as
-    /// a universal object reference"; kb/Work PB922), synthesized on first reference and shared thereafter: §8.4.3.6.4 GR2 gives
-    /// the run unit ONE instance of it. It is a DESCRIPTION carrier only, so every class/category screen (§14.9.25.3 SR1's
+    /// a universal object reference"; kb/Work PB922), synthesized on first reference and shared thereafter: §2023:8.4.3.6.4 GR2 gives
+    /// the run unit ONE instance of it. It is a DESCRIPTION carrier only, so every class/category screen (§2023:14.9.25.3 SR1's
     /// "shall not be … object", a relation condition's operand class, an argument's class) reads it as the object-reference item
     /// SR2 says it is.</summary>
     public DataItem ExceptionObjectRegister => field ??= new DataItem
@@ -38,8 +38,8 @@ public sealed class ImplicitRegisters
         ClrName = "__exceptionObject",
         Pic = PicInfo.ObjectReferenceItem(ObjectRefDescriptor.Universal),
         // ⚠ SR2's "as an external data item" is NOT carried as HasExternalClause: that flag drives the
-        // §13.18.22 EXTERNAL-store re-basing of a DECLARED record, and this item is never declared, laid out or
-        // emitted. What the phrase asserts — one instance shared by the whole run unit (§8.4.3.6.4 GR2) — is
+        // §2023:13.18.22 EXTERNAL-store re-basing of a DECLARED record, and this item is never declared, laid out or
+        // emitted. What the phrase asserts — one instance shared by the whole run unit (§2023:8.4.3.6.4 GR2) — is
         // already realized by the runtime's single ExceptionState, which is what the place reads.
     };
 
@@ -54,7 +54,7 @@ public sealed class ImplicitRegisters
     /// ITEM: general rule 10 describes it as <c>PICTURE S9999 SIGN IS LEADING SEPARATE</c>, so its profile is that PICTURE's and it is
     /// IMAGE-CARRIED (<see cref="StorageForm.CharImage"/>, the report sum counter's precedent): the register stores its five-character
     /// image (<c>+0003</c>, SPACES for a reference that is not subscripted) and every numeric consumer decodes it — a comparison,
-    /// COMPUTE or DISPLAY sees the value, and a MOVE to an alphanumeric item drops the separate sign (§14.9.25.4 GR6; CCVS DB201A
+    /// COMPUTE or DISPLAY sees the value, and a MOVE to an alphanumeric item drops the separate sign (§2023:14.9.25.4 GR6; CCVS DB201A
     /// moves it to X(5) and compares <c>"0005"</c>). <paramref name="takeUid"/> is the binder's unique-id counter
     /// (<c>DataBinder.TakeUid</c>).</summary>
     internal void ActivateDebugRegisters(Func<int> takeUid, int contentsWidth = Runtime.DebugItem.MinContentsWidth)

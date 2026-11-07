@@ -5,15 +5,15 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §13.18.52.4 GR4 — the operational sign of a signed numeric item whose PICTURE
-      *> contains 'S' and to which NO SIGN clause applies (Annex A.1 item 177, §8.5.1.5;
+      *> ISO §2023:13.18.52.4 GR4 — the operational sign of a signed numeric item whose PICTURE
+      *> contains 'S' and to which NO SIGN clause applies (Annex A.1 item 177, §2023:8.5.1.5;
       *> kb/Work PB803, owner decision 2026-09-09).
       *>
-      *> THE RULE. §13.18.52.4 GR4: "A numeric item whose picture character-string contains the
+      *> THE RULE. §2023:13.18.52.4 GR4: "A numeric item whose picture character-string contains the
       *> symbol 'S', and to which no SIGN clause applies, has an operational sign. Neither the
       *> representation nor the position of that operational sign is specified by the symbol 'S'.
       *> The implementor shall specify the position and representation of the operational sign.
-      *> General rules 5 and 6 do not apply to such signed numeric items."  §8.5.1.5 states the
+      *> General rules 5 and 6 do not apply to such signed numeric items."  §2023:8.5.1.5 states the
       *> obligation from the other end: "This clause is optional; if it is not used, operational
       *> signs will be represented as defined by the implementor."
       *>
@@ -28,7 +28,7 @@
       *>
       *> WHY EACH LEG CAN FAIL — expected values derived from the determination above, not observed.
       *> NEG / POS read the two table halves as RAW CHARACTERS through an alphanumeric GROUP move
-      *>   (§14.9.25.4 GR4: a group move transfers character positions "without consideration for
+      *>   (§2023:14.9.25.4 GR4: a group move transfers character positions "without consideration for
       *>   the individual elementary or group items contained within"), so what is displayed is the
       *>   STORAGE and not a re-rendering of the value.
       *> The `|` sentinel immediately after the signed item inside the same group is what makes the

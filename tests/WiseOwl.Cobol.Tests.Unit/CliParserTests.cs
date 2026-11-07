@@ -203,7 +203,7 @@ public sealed class CliParserTests
     }
 
     /// <summary>⛔ <c>--numeric-display</c> (kb/Work PB3505, owner decision PB3467) — the form DISPLAY gives a numeric
-    /// operand, ISO §14.9.11.4 GR1 / Annex A.1 item 56. An ABSENT option is the decimal form (GnuCOBOL 3.2.0's default),
+    /// operand, ISO §2023:14.9.11.4 GR1 / Annex A.1 item 56. An ABSENT option is the decimal form (GnuCOBOL 3.2.0's default),
     /// <c>digits</c> keeps the digit image, and anything else is a CLI argument error, as for <c>--sign-encoding</c>;
     /// the option must not swallow a following flag.</summary>
     [Fact]
@@ -236,9 +236,9 @@ public sealed class CliParserTests
         Assert.NotEmpty(Errors("a.cob", "--repository-update", "--run"));
     }
 
-    /// <summary>kb/Work PB1362 — <c>--source-format</c>: ISO §7.3.24.3 2) "The default reference format of a
+    /// <summary>kb/Work PB1362 — <c>--source-format</c>: ISO §2023:7.3.24.3 2) "The default reference format of a
     /// compilation group is fixed form", so an ABSENT option is fixed form; <c>free</c> and <c>auto</c> are the
-    /// §4.2.10 3) selection of the nonstandard behavior; anything else is a CLI argument error.</summary>
+    /// §2023:4.2.10 3) selection of the nonstandard behavior; anything else is a CLI argument error.</summary>
     [Fact]
     public void SourceFormat_DefaultsToFixed_SelectsFreeOrAuto_AndRejectsAnythingElse()
     {
@@ -253,7 +253,7 @@ public sealed class CliParserTests
         Assert.NotEmpty(Errors("a.cob", "--source-format", "--run"));
     }
 
-    /// <summary>ISO §4.2.10's warning mechanism is an OPT-IN: absent, a compile asks for nothing new; present
+    /// <summary>ISO §2023:4.2.10's warning mechanism is an OPT-IN: absent, a compile asks for nothing new; present
     /// (<c>--flag-extensions</c>, a bare switch that never swallows the token after it) it is carried to the driver
     /// (kb/Work PB1525).</summary>
     [Fact]

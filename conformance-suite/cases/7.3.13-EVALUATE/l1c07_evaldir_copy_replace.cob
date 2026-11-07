@@ -6,7 +6,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §7.3.13.4 GR1 — text words inside EVALUATE directive text
+      *> ISO §2023:7.3.13.4 GR1 — text words inside EVALUATE directive text
       *> are subject to COPY and REPLACE matching and replacing.
       *> RULE 7.3.13.4 GR1: "Text-1 and text-2 are not part of the
       *>   EVALUATE compiler directive line. Any text words in text-1 or
@@ -14,8 +14,8 @@
       *>   to the matching and replacing rules of the COPY statement and
       *>   the REPLACE statement."
       *> cite.py:
-      *>   OK  §7.3.13.4 1)  (General rules)
-      *>  OK  §7.3.13.4 4) b)  (General rules)  [GR4 tail]
+      *>   OK  §2023:7.3.13.4 1)  (General rules)
+      *>  OK  §2023:7.3.13.4 4) b)  (General rules)  [GR4 tail]
       *> Support file: l1c07cb.cpy = one line "DISPLAY ZZTAG."
       *> EXPECTED OUTPUT, DERIVED:
       *>   GR1-REPLACE-OK  subject 1 matches >>WHEN 1, so its text-1 is

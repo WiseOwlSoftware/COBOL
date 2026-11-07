@@ -5,7 +5,7 @@ using WiseOwl.Cobol.Common;
 namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>
-/// What one currency PICTURE SYMBOL of a source unit stands for (ISO §12.3.7.3, the CURRENCY SIGN clause): the
+/// What one currency PICTURE SYMBOL of a source unit stands for (ISO §2023:12.3.7.3, the CURRENCY SIGN clause): the
 /// currency STRING (literal-7's characters) AND the CLASS of that literal. The class is half of the definition, not an
 /// afterthought: SR28 says "If literal-7 is of class alphanumeric, the associated currency symbol may be used only to
 /// define a numeric-edited item with usage display. If literal-7 is of class national, the associated currency symbol
@@ -28,7 +28,7 @@ public readonly record struct CurrencyDefinition(string Text, LiteralClass Liter
     /// broke SR18, SR23 a) or SR23 b)), so the string and its class are unknown (kb/Work PB1920). The symbol stays a
     /// currency symbol — a PICTURE that writes it is the program the user meant, and reading it as an invalid PICTURE
     /// character (COBOL0808 / COBOL0819) would bury the clause's one diagnostic under a cascade — but no rule that
-    /// reads the string or the class (SR21, SR28, §15.68.3 r3) is asked of it.</summary>
+    /// reads the string or the class (SR21, SR28, §2023:15.68.3 r3) is asked of it.</summary>
     public bool ClauseRefused { get; init; }
 
     /// <summary>The placeholder a refused clause registers for <paramref name="symbol"/>: the symbol as its own

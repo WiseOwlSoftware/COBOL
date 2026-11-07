@@ -20,12 +20,12 @@ namespace WiseOwl.Cobol.Validation;
 /// grammar called it a "vendor/extension hook" and reached it from SIX sites spanning EIGHT closed general
 /// formats. It is not a vendor hook: a vendor extension is admitted only under the dialect that owns it, never by
 /// a catch-all, and this compiler declares no vendor dialect. What it did was swallow — at every edition and
-/// every strictness, with no diagnostic anywhere, so §4.2.2's warning obligation ("An implementation shall
+/// every strictness, with no diagnostic anywhere, so §2023:4.2.2's warning obligation ("An implementation shall
 /// provide a warning mechanism … to indicate violations of the general formats and the explicit syntax rules of
 /// standard COBOL") could not be met for a construct the compiler never represented.</para>
 ///
 /// <para>WHY ONE PASS AND ONE TABLE, NOT EIGHT DIAGNOSTIC SITES. Closing it one site at a time is how it
-/// survived: kb/Work PB487 closed §13.16.2 and its sibling sweep, reading the grammar by rule NAME, counted four
+/// survived: kb/Work PB487 closed §2023:13.16.2 and its sibling sweep, reading the grammar by rule NAME, counted four
 /// of the remaining five and missed the I-O-CONTROL paragraph's INLINE alternative, which is not a named
 /// <c>xxxClause : genericClause</c> wrapper. The grammar now has ONE error production, in two forms
 /// (<c>unrecognizedClause</c>, and <c>unrecognizedDataClause</c> where a level-number may follow the list, whose run
@@ -42,7 +42,7 @@ namespace WiseOwl.Cobol.Validation;
 /// <see cref="ScreenParagraphPeriods"/>.)</para>
 ///
 /// <para>WHY A PARSE-TREE WALK AND NOT A BINDER HOOK — the <see cref="DeclinedFacilityPass"/> argument, and here
-/// it is load-bearing rather than convenient. The §13.16.2 refusal used to live in <c>DataBinder.BindEntry</c>,
+/// it is load-bearing rather than convenient. The §2023:13.16.2 refusal used to live in <c>DataBinder.BindEntry</c>,
 /// which is NOT reached for every written entry: the level-66 and level-88 paths return before it, so an
 /// unrecognized word on <c>88 CN WIBBLE VALUE 1.</c> was dropped in silence by the very fix that closed the
 /// format — MEASURED on the pre-change build, where only COBOL1747 fired and WIBBLE vanished. Four of the
@@ -51,8 +51,8 @@ namespace WiseOwl.Cobol.Validation;
 /// parse tree sees the written syntax whether or not anything binds it.</para>
 ///
 /// <para>SEVERITY. Error at every edition and every strictness, through <see cref="EditionContext.Error"/> and
-/// not the declined/removed seam: this is not an optional element this implementation declines (§4.2.7) nor a
-/// construct of another edition (§8.9) — it is source no edition of the standard admits, and there is no
+/// not the declined/removed seam: this is not an optional element this implementation declines (§2023:4.2.7) nor a
+/// construct of another edition (§2023:8.9) — it is source no edition of the standard admits, and there is no
 /// permissive reading of it that is not "compile something the programmer did not write".</para>
 /// </summary>
 internal sealed class ClosedFormatPass(EditionContext edition) : CursorFollowingVisitor(edition)
@@ -90,15 +90,15 @@ internal sealed class ClosedFormatPass(EditionContext edition) : CursorFollowing
         return base.VisitChildren(node);
     }
 
-    /// <summary>⛔ THE PUNCTUATION HALF OF A CLOSED FORMAT (kb/Work PB2727). ISO §12.4.6.2, §12.3.7.2 and §12.3.8.2
-    /// print ONE separator period after the paragraph's entries — §12.4.6.2 a second only around the APPLY COMMIT
-    /// clause, a sentence of its own — and §5.2.1 binds "the words, phrases, clauses, punctuation, and operands in
+    /// <summary>⛔ THE PUNCTUATION HALF OF A CLOSED FORMAT (kb/Work PB2727). ISO §2023:12.4.6.2, §2023:12.3.7.2 and §2023:12.3.8.2
+    /// print ONE separator period after the paragraph's entries — §2023:12.4.6.2 a second only around the APPLY COMMIT
+    /// clause, a sentence of its own — and §2023:5.2.1 binds "the words, phrases, clauses, punctuation, and operands in
     /// each general format". The grammar superset-parses a period after every entry so the refusal can name the
     /// rule: a period that splits the paragraph is COBOL3407, at the period; a paragraph that ends without its
     /// closing period is COBOL3408, at its last entry. Error at every edition: the 1985, 2002, 2014 and 2023
-    /// formats all print the single period. The SOURCE-COMPUTER and OBJECT-COMPUTER rows (§12.3.5.2, §12.3.6.2;
+    /// formats all print the single period. The SOURCE-COMPUTER and OBJECT-COMPUTER rows (§2023:12.3.5.2, §2023:12.3.6.2;
     /// kb/Work PB3370) read the same way: a paragraph with nothing after its header has no sentence, which is the
-    /// one spelling §12.3.5.3 SR1 and §12.3.6.3 SR4 let omit the second period.</summary>
+    /// one spelling §2023:12.3.5.3 SR1 and §2023:12.3.6.3 SR4 let omit the second period.</summary>
     private void ScreenParagraphPeriods(ParserRuleContext paragraph, ParagraphPeriod row)
     {
         var sentences = ParagraphPeriods.Sentences(paragraph);
@@ -119,7 +119,7 @@ internal sealed class ClosedFormatPass(EditionContext edition) : CursorFollowing
             _edition.Error(DiagnosticCatalog.ParagraphInteriorPeriod,
                 $"{row.Subject} paragraph: a separator period follows '{WrittenOpening(sentences[i].Entries[^1])}' "
                 + $"and the paragraph goes on with '{WrittenOpening(sentences[i + 1].Entries[0])}' — the ISO "
-                + $"§{row.Clause} general format prints {row.Printed} (§5.2.1); delete this period");
+                + $"§2023:{row.Clause} general format prints {row.Printed} (§2023:5.2.1); delete this period");
         }
         if (sentences[^1].Period is null)
         {
@@ -127,16 +127,16 @@ internal sealed class ClosedFormatPass(EditionContext edition) : CursorFollowing
             using var at = _edition.At(last.Stop);
             _edition.Error(DiagnosticCatalog.ParagraphPeriodMissing,
                 $"{row.Subject} paragraph: it ends after '{WrittenOpening(last)}' without a separator period — the "
-                + $"ISO §{row.Clause} general format prints {row.Printed} (§5.2.1); write the period");
+                + $"ISO §2023:{row.Clause} general format prints {row.Printed} (§2023:5.2.1); write the period");
         }
     }
 
     /// <summary>Count the elements <paramref name="container"/>'s clause children fill and diagnose each that is
-    /// written more than once (ISO §5.2.6.2, §5.2.7), through the ONE <see cref="UnrepeatedElements"/> reader the
-    /// RD entry already uses — or, for a figure whose clauses sit in choice indicators (§5.2.6.4,
+    /// written more than once (ISO §2023:5.2.6.2, §2023:5.2.7), through the ONE <see cref="UnrepeatedElements"/> reader the
+    /// RD entry already uses — or, for a figure whose clauses sit in choice indicators (§2023:5.2.6.4,
     /// <see cref="ClauseList.ChoiceIndicators"/>), through <see cref="ChoiceIndicators"/>. Reported at the SECOND occurrence — the one that makes the entry non-conforming. Where
     /// the list's figure fixes the order (<see cref="ClauseList.Sequence"/>), an element written after one the figure
-    /// prints LATER is refused too (§5.2.1; kb/Work PB1508), at the element written out of place. The figure is the
+    /// prints LATER is refused too (§2023:5.2.1; kb/Work PB1508), at the element written out of place. The figure is the
     /// one the targeted edition prints (<see cref="ClauseList.At"/>; kb/Work PB2532 — the COBOL-85 identification
     /// division's comment-entry paragraphs are counted and ranked at 85 only).</summary>
     private void ScreenClauseRepetition(ParserRuleContext container)
@@ -168,14 +168,14 @@ internal sealed class ClosedFormatPass(EditionContext edition) : CursorFollowing
             // "paragraph"s, as the closed-format refusal does; every other list holds clauses.
             string noun = ClosedFormats.Of(first.GetType())?.Noun ?? "clause";
             string subject = $"{list.Subject}{OwnerSuffix(container)}", written = $"the {noun} '{WrittenOpening(first)}'";
-            // A figure whose clauses sit in CHOICE INDICATORS is §5.2.6.4's, read by the ONE choice-indicator reader
-            // (COBOL2104); any other repeated bracket is §5.2.6.2 / §5.2.7's (COBOL2423; kb/Work PB3133, review R1-1).
+            // A figure whose clauses sit in CHOICE INDICATORS is §2023:5.2.6.4's, read by the ONE choice-indicator reader
+            // (COBOL2104); any other repeated bracket is §2023:5.2.6.2 / §2023:5.2.7's (COBOL2423; kb/Work PB3133, review R1-1).
             if (list.ChoiceIndicators) ChoiceIndicators.AtMostOnce(_edition, count, subject, written, list.Format);
             else UnrepeatedElements.AtMostOnce(_edition, count, subject, written, list.Format, orderFree: list.Sequence is null);
         }
     }
 
-    /// <summary>ISO §5.2.1 — "The words, phrases, clauses, punctuation, and operands in each general format shall be
+    /// <summary>ISO §2023:5.2.1 — "The words, phrases, clauses, punctuation, and operands in each general format shall be
     /// written in the compilation group in the sequence given in the general format, unless otherwise specified by
     /// the rules of that format." Reported at <paramref name="clause"/>, the element written after
     /// <paramref name="printedLater"/> although the figure prints it first (COBOL2987).</summary>
@@ -187,7 +187,7 @@ internal sealed class ClosedFormatPass(EditionContext edition) : CursorFollowing
             $"{list.Subject}{OwnerSuffix(container)}: '{WrittenOpening(clause)}' is written after "
             + $"'{WrittenOpening(printedLater)}', but {list.Format}'s general format prints it before — no rule "
             + "of that format frees the order, so the elements shall be written in the sequence the format gives "
-            + "(§5.2.1)");
+            + "(§2023:5.2.1)");
     }
 
     private static string OwnerSuffix(ParserRuleContext container)
@@ -235,7 +235,7 @@ internal sealed class ClosedFormatPass(EditionContext edition) : CursorFollowing
 
     /// <summary>A SPECIAL-NAMES FOR phrase written AFTER its clause's definition (kb/Work PB977) — the second error
     /// production this pass owns, and the same posture: source no edition admits, refused at every edition and
-    /// every strictness. ISO §12.3.7.2 prints <c>FOR {ALPHANUMERIC | NATIONAL}</c> only immediately after the name
+    /// every strictness. ISO §2023:12.3.7.2 prints <c>FOR {ALPHANUMERIC | NATIONAL}</c> only immediately after the name
     /// the ALPHABET / CLASS clause declares, and before the first symbolic-character-1 of SYMBOLIC CHARACTERS; the
     /// trailing spelling is owned by no dialect (CLAUDE.md rule 1's precedence — GnuCOBOL takes the phrase only
     /// before IS). ONE visitor for all three clauses: the ALPHABET one used to be ACCEPTED as a "historical
@@ -253,7 +253,7 @@ internal sealed class ClosedFormatPass(EditionContext edition) : CursorFollowing
         var phrase = ctx.specialNamesForPhrase();
         string words = string.Join(" ", Enumerable.Range(0, phrase.ChildCount).Select(i => phrase.GetChild(i).GetText()));
         _edition.Error(DiagnosticCatalog.SpecialNamesForPhraseMisplaced, $"{clause}: the phrase '{words}' "
-            + $"follows the clause's definition — the FOR phrase belongs {where} (ISO §12.3.7.2 general format)");
+            + $"follows the clause's definition — the FOR phrase belongs {where} (ISO §2023:12.3.7.2 general format)");
         return null;
     }
 }

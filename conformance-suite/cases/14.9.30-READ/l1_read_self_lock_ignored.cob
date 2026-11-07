@@ -5,12 +5,12 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.30.4 GR8 — "If record locking is enabled for the file
+      *> ISO §2023:14.9.30.4 GR8 — "If record locking is enabled for the file
       *> connector referenced by file-name-1 and the record identified
       *> for access by the general rules for the READ statement is
       *> locked by THAT file connector, the record lock is ignored and
       *> the READ operation proceeds as if the record were not locked."
-      *> §9.1.16 says the same from the other side: "A locked record may
+      *> §2023:9.1.16 says the same from the other side: "A locked record may
       *> be re-accessed by the same file connector that holds the lock."
       *>
       *> WHY MULTIPLE RECORD LOCKING IS LOAD-BEARING HERE.  Under SINGLE

@@ -15,7 +15,7 @@ namespace WiseOwl.Cobol.CodeGen;
 internal static class OccurrenceRunEmit
 {
     /// <summary>Every occurrence 1..<paramref name="n"/> in one uniform run — a table whose occurrences all
-    /// initialize alike (§13.18.63.4 GR9).</summary>
+    /// initialize alike (§2023:13.18.63.4 GR9).</summary>
     public static IReadOnlyList<OccurrenceRun> Uniform(int n) => n > 0 ? [new OccurrenceRun(1, n, 1)] : [];
 
     /// <summary>The runs of occurrences 1..<paramref name="n"/> whose content REPEATS, where

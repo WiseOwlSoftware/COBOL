@@ -5,7 +5,7 @@ using System.Buffers.Binary;
 namespace WiseOwl.Cobol.Runtime.Mcs;
 
 /// <summary>The kinds of <see cref="McsFrame"/>: one enumeration for both messaging facilities (docs/rearchitecture/DESIGN-message-control.md §6).
-/// <see cref="Ring"/> is the only kind a bell receives; the rest are the 2023 facility's (§5.3), whose payloads
+/// <see cref="Ring"/> is the only kind a bell receives; the rest are the 2023 facility's (§2023:5.3), whose payloads
 /// <c>PeerFrameCodec</c> (Runtime/Messaging) encodes.</summary>
 internal enum McsFrameKind : byte
 {

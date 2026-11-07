@@ -14,16 +14,16 @@
       *> "Two or more instances of data-name-1 in the same clause may,
       *> however, refer to the same physical data item or to
       *> overlapping data items."
-      *>   cite.py: OK  §13.18.16.3 6)  (Syntax rules)
+      *>   cite.py: OK  §2023:13.18.16.3 6)  (Syntax rules)
       *> "a) If any control footing is defined for the report, the
       *> current contents of control data items are saved and the
       *> corresponding prior controls are stored in the control data
       *> items before any control footing is printed."
-      *>   cite.py: OK  §13.18.16.4 4) a)  (General rules)
+      *>   cite.py: OK  §2023:13.18.16.4 4) a)  (General rules)
       *> "d) The contents of any control data items are restored to the
       *> values they had at the start of execution of the TERMINATE
       *> statement."
-      *>   cite.py: OK  §14.9.46.4 3) d)  (General rules)
+      *>   cite.py: OK  §2023:14.9.46.4 3) d)  (General rules)
       *>
       *> DERIVATION. GENERATE 1 (WS-KEY EAXYZ) prints DT at line 1 and
       *> saves the priors EA / EAXYZ. The program moves WEQRS and

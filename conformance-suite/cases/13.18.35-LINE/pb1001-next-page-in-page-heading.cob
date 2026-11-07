@@ -4,9 +4,9 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> A NEXT PAGE PHRASE IN A PAGE HEADING (kb/Work PB1001). ISO/IEC 1989:2023 §13.18.35.3 SR8: "The NEXT PAGE
+*> A NEXT PAGE PHRASE IN A PAGE HEADING (kb/Work PB1001). ISO/IEC 1989:2023 §2023:13.18.35.3 SR8: "The NEXT PAGE
 *> phrase may appear only in the description of a body group or a report footing." A page heading is printed
-*> BY a page advance (§13.18.57.4 GR6b), so it cannot ask for one. A rule of every edition.
+*> BY a page advance (§2023:13.18.57.4 GR6b), so it cannot ask for one. A rule of every edition.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1001PH.
        ENVIRONMENT DIVISION.

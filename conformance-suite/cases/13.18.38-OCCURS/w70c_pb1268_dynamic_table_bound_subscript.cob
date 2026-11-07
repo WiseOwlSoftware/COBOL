@@ -10,11 +10,11 @@
       *> THE RULES, --check validated:
       *>   cite.py --check 8.5.1.9.2 "When a data item in a dynamic-capacity table is referenced as a sending
       *>     operand, the result of the operation is the same as for a fixed-capacity table whose number of
-      *>     occurrences is the current capacity of the table" -> OK §8.5.1.9.2
+      *>     occurrences is the current capacity of the table" -> OK §2023:8.5.1.9.2
       *>   cite.py --check 8.4.2.3.4 "If the value of the subscript is not a positive integer or is less than one or
       *>     is greater than the highest permissible occurrence number, the EC-BOUND-SUBSCRIPT exception condition
-      *>     is set to exist" -> OK §8.4.2.3.4 2)
-      *> A RECEIVING subscript past the current capacity GROWS the table (§8.5.1.9.3) and is no condition; a
+      *>     is set to exist" -> OK §2023:8.4.2.3.4 2)
+      *> A RECEIVING subscript past the current capacity GROWS the table (§2023:8.5.1.9.3) and is no condition; a
       *> receiving subscript below one is not a growth case, so the fixed-table rule applies to it.
       *> Dynamic-capacity tables are a COBOL-2023 introduction, so the construct has no earlier-edition copy.
       *>

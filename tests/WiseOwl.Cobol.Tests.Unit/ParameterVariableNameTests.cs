@@ -12,9 +12,9 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// kb/Work PB2990 — the PARAMETER phrase of <c>&gt;&gt;DEFINE</c> (§7.3.11.4 GR4, DOC-A.1-49) and of
-/// <c>&gt;&gt;DISPLAY</c> (§7.3.12.4 GR3, DOC-A.1-55) names its environment variable by the compilation-variable-name's
-/// canonical upper-case spelling, which is <see cref="CobolNames.UpperFold"/> — the Annex C fold of §8.1.3.2 GR3 b) with
+/// kb/Work PB2990 — the PARAMETER phrase of <c>&gt;&gt;DEFINE</c> (§2023:7.3.11.4 GR4, DOC-A.1-49) and of
+/// <c>&gt;&gt;DISPLAY</c> (§2023:7.3.12.4 GR3, DOC-A.1-55) names its environment variable by the compilation-variable-name's
+/// canonical upper-case spelling, which is <see cref="CobolNames.UpperFold"/> — the Annex C fold of §2023:8.1.3.2 GR3 b) with
 /// the basic letters raised — and not the host's <c>ToUpperInvariant</c>. A compilation-variable-name is a COBOL word, so
 /// two spellings Annex C makes ONE word (an extended letter and its own lowercase) read ONE variable, and two
 /// spellings it keeps apart (a long s and S: C.2 lists no mapping for U+017F; the Kelvin sign and K: the pair (212A,006B)
@@ -56,12 +56,12 @@ public sealed class ParameterVariableNameTests
         { "PB2990-" + LongS, "PB2990-" + LongS },         // Annex C.2 lists no mapping for U+017F — the host would read it as S
     };
 
-    [Theory] // §7.3.11.4 GR4 + DOC-A.1-49: the PARAMETER phrase of DEFINE
+    [Theory] // §2023:7.3.11.4 GR4 + DOC-A.1-49: the PARAMETER phrase of DEFINE
     [MemberData(nameof(Spellings))]
     public void Define_ReadsTheVariableOfTheCanonicalSpelling(string written, string variable)
         => Assert.Equal([variable], NamesRead($" >>DEFINE {written} AS PARAMETER\n"));
 
-    [Theory] // §7.3.12.4 GR3 + DOC-A.1-55: the PARAMETER phrase of DISPLAY — the same lookup
+    [Theory] // §2023:7.3.12.4 GR3 + DOC-A.1-55: the PARAMETER phrase of DISPLAY — the same lookup
     [MemberData(nameof(Spellings))]
     public void Display_ReadsTheVariableOfTheCanonicalSpelling(string written, string variable)
         => Assert.Equal([variable], NamesRead($" >>DISPLAY PARAMETER {written}\n"));

@@ -1,1 +1,1 @@
-{"refuse-at": ["2002", "2014", "2023"], "expect": "COBOL1942: data item 'T': the ALIGNED clause may be specified only for a bit group item or an elementary bit data item (ISO §13.18.1.3 SR1) — this entry is a group item of a type declaration with the STRONG phrase"}
+{"refuse-at": ["2002", "2014", "2023"], "expect": "COBOL1942: data item 'T': the ALIGNED clause may be specified only for a bit group item or an elementary bit data item (ISO §2023:13.18.1.3 SR1) — this entry is a group item of a type declaration with the STRONG phrase"}

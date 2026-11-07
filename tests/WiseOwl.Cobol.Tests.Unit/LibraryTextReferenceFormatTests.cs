@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// kb/Work PB1067 — the reference format library text starts in: "The default reference format of library text is the
 /// reference format that was in effect for the COPY statement that resulted in processing of this library text"
-/// (§7.3.24.3 3)), asked of the <see cref="ReferenceFormatMap"/> the §6.5 walker records for the text holding the COPY.
+/// (§2023:7.3.24.3 3)), asked of the <see cref="ReferenceFormatMap"/> the §2023:6.5 walker records for the text holding the COPY.
 /// </summary>
 public sealed class LibraryTextReferenceFormatTests
 {

@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
       *> A NEXT GROUP CLAUSE ON A LEVEL 2 ENTRY (kb/Work PB957).
-      *> ISO/IEC 1989:2023 §13.15.3 SR6: "The NEXT GROUP clause may be specified only in a level 1 entry."
+      *> ISO/IEC 1989:2023 §2023:13.15.3 SR6: "The NEXT GROUP clause may be specified only in a level 1 entry."
       *> Drawn on COBOL2284 (report-next-group-clause-rule).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB957NL1.

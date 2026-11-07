@@ -6,13 +6,13 @@ using WiseOwl.Cobol.Editions.Diagnostics;
 
 namespace WiseOwl.Cobol.Binding;
 
-/// <summary>One ISO §8.8.4.4.3 OPERAND rule, as a member of the set a class-condition alternative carries.
+/// <summary>One ISO §2023:8.8.4.4.3 OPERAND rule, as a member of the set a class-condition alternative carries.
 /// Each member is a rule of the standard's own shape — "shall reference a data item whose usage is …",
 /// "shall not be specified if the category … is …" — so the alternative table below states WHICH rules name
 /// an alternative and this enum states WHAT each rule says, once.</summary>
 internal enum ClassOperandRule
 {
-    /// <summary>§8.8.4.4.3 SR4 — "ALPHABETIC, ALPHABETIC-LOWER, ALPHABETIC-UPPER, or class-name-1 shall not be
+    /// <summary>§2023:8.8.4.4.3 SR4 — "ALPHABETIC, ALPHABETIC-LOWER, ALPHABETIC-UPPER, or class-name-1 shall not be
     /// specified if the category of the data item referenced by identifier-1 is boolean, numeric, or
     /// numeric-edited." ⚠ alphabet-name-1 is NOT in this rule's list, which is why the alphabet-name
     /// alternative carries its own <see cref="ClassConditionModel.AlphabetName"/> kind rather than being folded
@@ -20,43 +20,43 @@ internal enum ClassOperandRule
     /// rule as written would have rejected `IF NUM-ITEM IS SOME-ALPHABET`, which SR4 does not name).</summary>
     NotBooleanNumericOrNumericEdited,
 
-    /// <summary>§8.8.4.4.3 SR5 — "BOOLEAN shall not be specified if the category of the data item referenced by
+    /// <summary>§2023:8.8.4.4.3 SR5 — "BOOLEAN shall not be specified if the category of the data item referenced by
     /// identifier-1 is numeric or numeric-edited." One category short of SR4's list, deliberately: a BOOLEAN
     /// class test over a category-boolean item is the ordinary case.</summary>
     NotNumericOrNumericEdited,
 
-    /// <summary>§8.8.4.4.3 SR3 — "If the alphabet-name-1, ALPHABETIC, ALPHABETIC-LOWER, ALPHABETIC-UPPER,
+    /// <summary>§2023:8.8.4.4.3 SR3 — "If the alphabet-name-1, ALPHABETIC, ALPHABETIC-LOWER, ALPHABETIC-UPPER,
     /// BOOLEAN, or class-name-1 phrase is specified, identifier-1 shall reference a data-item whose usage is
     /// display or national."</summary>
     UsageDisplayOrNational,
 
-    /// <summary>§8.8.4.4.3 SR8 — "If the NUMERIC phrase is specified, identifier-1 shall reference a data item
+    /// <summary>§2023:8.8.4.4.3 SR8 — "If the NUMERIC phrase is specified, identifier-1 shall reference a data item
     /// whose usage is display or national or whose category is numeric." SR3's rule with the category escape,
     /// which is why NUMERIC is absent from SR3's list and present here.</summary>
     NumericUsageOrCategory,
 
-    /// <summary>§8.8.4.4.3 SR6 — "If FARTHEST-FROM-ZERO, IN-ARITHMETIC-RANGE, or NEAREST-TO-ZERO is specified,
+    /// <summary>§2023:8.8.4.4.3 SR6 — "If FARTHEST-FROM-ZERO, IN-ARITHMETIC-RANGE, or NEAREST-TO-ZERO is specified,
     /// identifier-1 shall reference a data item whose category is numeric." A POSITIVE requirement, unlike SR3–SR5
-    /// and SR8: an alphanumeric group and a reference-modified slice (category alphanumeric, §8.4.3.3.4 GR6 c)
+    /// and SR8: an alphanumeric group and a reference-modified slice (category alphanumeric, §2023:8.4.3.3.4 GR6 c)
     /// BREAK it — the operand's CATEGORY is asked, never its base item's.</summary>
     NumericCategory,
 
-    /// <summary>§8.8.4.4.3 SR7 — "If the FLOAT-INFINITY, FLOAT-NOT-A-NUMBER, FLOAT-NOT-A-NUMBER-QUIET, or
+    /// <summary>§2023:8.8.4.4.3 SR7 — "If the FLOAT-INFINITY, FLOAT-NOT-A-NUMBER, FLOAT-NOT-A-NUMBER-QUIET, or
     /// FLOAT-NOT-A-NUMBER-SIGNALING phrase is specified, identifier-1 shall reference a data item described with a
-    /// standard floating-point usage." STANDARD — §3.166's FLOAT-BINARY-32/-64/-128 and §3.167's
+    /// standard floating-point usage." STANDARD — §2023:3.166's FLOAT-BINARY-32/-64/-128 and §2023:3.167's
     /// FLOAT-DECIMAL-16/-34, read from <see cref="UsageFamilies"/> — so FLOAT-SHORT / FLOAT-LONG / FLOAT-EXTENDED /
-    /// COMP-1 / COMP-2 break it, exactly as they break the SET Format 15 twin, §14.9.39.3 SR32.</summary>
+    /// COMP-1 / COMP-2 break it, exactly as they break the SET Format 15 twin, §2023:14.9.39.3 SR32.</summary>
     StandardFloatUsage,
 }
 
-/// <summary>One alternative of the ISO §8.8.4.4.2 class-condition general format: the tag the bound node and
-/// the renderer key on, the phrase a diagnostic names it by, and the §8.8.4.4.3 rules that name it — in the
+/// <summary>One alternative of the ISO §2023:8.8.4.4.2 class-condition general format: the tag the bound node and
+/// the renderer key on, the phrase a diagnostic names it by, and the §2023:8.8.4.4.3 rules that name it — in the
 /// order they are APPLIED, category rules before usage rules, so an operand that breaks both is reported
 /// against the rule that speaks about its category.</summary>
 internal readonly record struct ClassAlternative(char Kind, string Spelling, ClassOperandRule[] Rules);
 
 /// <summary>
-/// ⛔ THE ISO §8.8.4.4.2 CLASS-CONDITION ALTERNATIVES AND THEIR §8.8.4.4.3 OPERAND RULES, WRITTEN DOWN ONCE.
+/// ⛔ THE ISO §2023:8.8.4.4.2 CLASS-CONDITION ALTERNATIVES AND THEIR §2023:8.8.4.4.3 OPERAND RULES, WRITTEN DOWN ONCE.
 /// </summary>
 /// <remarks>
 /// <para>The general format prints FOURTEEN alternatives in one brace group (the printed page was rendered:
@@ -66,13 +66,13 @@ internal readonly record struct ClassAlternative(char Kind, string Spelling, Cla
 /// an alternative is a row here plus a grammar alternative plus a renderer arm — never a new screen.</para>
 /// <para>⛔ IT REPLACED THREE PARTIAL COPIES (kb/Work PB571 + PB590). The alternatives were enumerated in the
 /// <c>classConditionName</c> grammar rule AND in a second grammar rule <c>classCondition</c> (whose list carried
-/// ALPHANUMERIC — which §8.8.4.4.2 does not offer at all — and omitted BOOLEAN, class-name-1 and
+/// ALPHANUMERIC — which §2023:8.8.4.4.2 does not offer at all — and omitted BOOLEAN, class-name-1 and
 /// alphabet-name-1), and the kind was decoded in <c>ConditionBinder.BindClassConditionOn</c> AND again in
 /// <c>EvaluateBinder.SubjectAsCondition</c>. The operand SCREEN was a third partial: it returned early unless
-/// the operand's category was boolean, so §8.8.4.4.3 SR1 — "Identifier-1 shall not reference a data item of
+/// the operand's category was boolean, so §2023:8.8.4.4.3 SR1 — "Identifier-1 shall not reference a data item of
 /// class index, message-tag, object, or pointer" — was never asked, and <c>IF IX IS NUMERIC</c> over a USAGE
 /// INDEX item compiled clean and printed TRUE, answering a class question about a class-INDEX item as though
-/// its class were numeric (§13.18.60.4 GR10: "The class and category of an index data item are index").</para>
+/// its class were numeric (§2023:13.18.60.4 GR10: "The class and category of an index data item are index").</para>
 /// <para>ALL FOURTEEN ARE OFFERED. The seven COBOL-2014 numeric-content alternatives — FARTHEST-FROM-ZERO,
 /// FLOAT-INFINITY, FLOAT-NOT-A-NUMBER[-QUIET|-SIGNALING], IN-ARITHMETIC-RANGE and NEAREST-TO-ZERO — landed
 /// together as seven rows over two new rules (SR6, SR7), which is what makes them one mechanism and not seven
@@ -80,7 +80,7 @@ internal readonly record struct ClassAlternative(char Kind, string Spelling, Cla
 /// </remarks>
 internal static class ClassConditionModel
 {
-    /// <summary>NUMERIC (§8.8.4.4.4 GR3 n).</summary>
+    /// <summary>NUMERIC (§2023:8.8.4.4.4 GR3 n).</summary>
     public const char Numeric = 'N';
     /// <summary>ALPHABETIC (GR3 b).</summary>
     public const char Alphabetic = 'A';
@@ -110,7 +110,7 @@ internal static class ClassConditionModel
     /// <summary>NEAREST-TO-ZERO (GR3 m) — COBOL-2014.</summary>
     public const char NearestToZero = 'Z';
 
-    /// <summary>The offered alternatives, each with the §8.8.4.4.3 rules that name it.</summary>
+    /// <summary>The offered alternatives, each with the §2023:8.8.4.4.3 rules that name it.</summary>
     public static readonly ClassAlternative[] Alternatives =
     [
         new(Numeric, "NUMERIC", [ClassOperandRule.NumericUsageOrCategory]),
@@ -142,15 +142,15 @@ internal static class ClassConditionModel
         return null;
     }
 
-    /// <summary>ISO §8.8.4.4.3 SR1 — "Identifier-1 shall not reference a data item of class index, message-tag,
+    /// <summary>ISO §2023:8.8.4.4.3 SR1 — "Identifier-1 shall not reference a data item of class index, message-tag,
     /// object, or pointer, nor a strongly-typed group, nor a variable-length group" — over EVERY alternative,
     /// which is why it is not a row above. Returns the phrase naming why, or null when SR1 admits the operand.
     /// <para>⛔ THE CLASS HALF DELEGATES TO THE TWO EXISTING DEFINITIONS AND WRITES NO THIRD LIST.
-    /// <see cref="ItemCategory.IsIndexMessageTagObjectOrPointer"/> is §13.18.60.3 SR4's phrase reader — the
+    /// <see cref="ItemCategory.IsIndexMessageTagObjectOrPointer"/> is §2023:13.18.60.3 SR4's phrase reader — the
     /// population that answers for MESSAGE-TAG and FUNCTION-POINTER, whose entries never gain a
-    /// <see cref="PicInfo"/> at all — and <see cref="IntrinsicArgumentRules.ClassOf"/> is the §8.5.2.1 Table-2
+    /// <see cref="PicInfo"/> at all — and <see cref="IntrinsicArgumentRules.ClassOf"/> is the §2023:8.5.2.1 Table-2
     /// classifier, which answers for the operand shapes that are not a plain data-item reference (an index-NAME,
-    /// an intrinsic of §15.2 item 6's index class, the NULL predefined address). Neither alone is total, and a
+    /// an intrinsic of §2023:15.2 item 6's index class, the NULL predefined address). Neither alone is total, and a
     /// hand-written class list beside them would be the third copy this table exists to prevent.</para>
     /// <para>The strongly-typed-group arm keeps its own catalog entry (the COBOL1533 strong-typing family,
     /// which is split by rule); the class and variable-length-group arms share this one. SR1 is therefore ONE
@@ -174,7 +174,7 @@ internal static class ClassConditionModel
     /// <paramref name="category"/> and whose USAGE is <paramref name="usage"/>.
     /// <para>⛔ THE CATEGORY IS THE OPERAND'S, NOT ITS BASE ITEM'S (kb/Work PB823's screen twin): the caller
     /// reads it through THE ONE operand-category reader, so a reference-modified slice is category alphanumeric
-    /// (national when its usage is national) per §8.4.3.3.4 GR6 c) while keeping its item's usage per GR6's
+    /// (national when its usage is national) per §2023:8.4.3.3.4 GR6 c) while keeping its item's usage per GR6's
     /// opening sentence ("the same class, category, and usage as that defined for identifier-1, except that…").
     /// The screen used to read the BASE item's picture, so <c>IF NUM (1:2) IS ALPHABETIC</c> was refused under SR4
     /// as though the slice were category numeric.</para>
@@ -182,10 +182,10 @@ internal static class ClassConditionModel
     /// an ordinary group's usage) and fails OPEN for the NEGATIVE rules — SR3/SR4/SR5/SR8 exist to reject what
     /// they name, never what this compiler cannot classify. The two POSITIVE rules (SR6, SR7) name what the
     /// operand SHALL be, so a data item whose category is known and is not that fails them: an alphanumeric
-    /// group is category alphanumeric (§8.5.2.1) and has no standard floating-point usage.</para>
+    /// group is category alphanumeric (§2023:8.5.2.1) and has no standard floating-point usage.</para>
     /// <para><paramref name="function"/> marks an intrinsic FUNCTION-IDENTIFIER operand, for SR3's second sentence —
     /// "If identifier-1 is a function-identifier, it shall reference an alphanumeric or national function" — which
-    /// states the function's half of the usage rule by its TYPE (§15.2), not by a usage clause it cannot have
+    /// states the function's half of the usage rule by its TYPE (§2023:15.2), not by a usage clause it cannot have
     /// (kb/Work PB1401). A COUNTER REGISTER is not a function-identifier, has no usage clause, and so keeps the
     /// fail-open usage answer; SR4–SR6 reach it through its category.</para></summary>
     public static bool Violates(ClassOperandRule rule, PicCategory? category, Usage? usage, bool function) => rule switch
@@ -210,32 +210,32 @@ internal static class ClassConditionModel
     /// rule the predicate does not test and a code can never outlive its rule (CLAUDE.md rule 1: a citation
     /// that passes <c>--check</c> while pointing at the wrong rule is the failure mode).
     /// <para>Every operand rule has its own code (kb/Work PB4463): SR4 and SR8 once shared COBOL0844, the
-    /// arithmetic-operand rule of §8.8.1.1, which the catalogue row named.</para></summary>
+    /// arithmetic-operand rule of §2023:8.8.1.1, which the catalogue row named.</para></summary>
     public static (string Code, string Clause, string Text) Wording(ClassOperandRule rule) => rule switch
     {
-        ClassOperandRule.NotBooleanNumericOrNumericEdited => (DiagnosticCatalog.ClassConditionAlphabeticCategory.Code, "ISO §8.8.4.4.3 SR4",
+        ClassOperandRule.NotBooleanNumericOrNumericEdited => (DiagnosticCatalog.ClassConditionAlphabeticCategory.Code, "ISO §2023:8.8.4.4.3 SR4",
             "ALPHABETIC, ALPHABETIC-LOWER, ALPHABETIC-UPPER, or class-name-1 shall not be specified if the "
             + "category of the data item referenced by identifier-1 is boolean, numeric, or numeric-edited"),
         ClassOperandRule.NotNumericOrNumericEdited =>
-            (DiagnosticCatalog.ClassConditionBooleanCategory.Code, "ISO §8.8.4.4.3 SR5",
+            (DiagnosticCatalog.ClassConditionBooleanCategory.Code, "ISO §2023:8.8.4.4.3 SR5",
             "BOOLEAN shall not be specified if the category of the data item referenced by identifier-1 is "
             + "numeric or numeric-edited"),
         ClassOperandRule.UsageDisplayOrNational =>
-            (DiagnosticCatalog.ClassConditionOperandUsage.Code, "ISO §8.8.4.4.3 SR3",
+            (DiagnosticCatalog.ClassConditionOperandUsage.Code, "ISO §2023:8.8.4.4.3 SR3",
             "if the alphabet-name-1, ALPHABETIC, ALPHABETIC-LOWER, ALPHABETIC-UPPER, BOOLEAN, or class-name-1 "
             + "phrase is specified, identifier-1 shall reference a data-item whose usage is display or national. If "
             + "identifier-1 is a function-identifier, it shall reference an alphanumeric or national function"),
         ClassOperandRule.NumericCategory =>
-            (DiagnosticCatalog.ClassConditionNotNumericCategory.Code, "ISO §8.8.4.4.3 SR6",
+            (DiagnosticCatalog.ClassConditionNotNumericCategory.Code, "ISO §2023:8.8.4.4.3 SR6",
             "if FARTHEST-FROM-ZERO, IN-ARITHMETIC-RANGE, or NEAREST-TO-ZERO is specified, identifier-1 shall "
             + "reference a data item whose category is numeric"),
         ClassOperandRule.StandardFloatUsage =>
-            (DiagnosticCatalog.ClassConditionNotStandardFloat.Code, "ISO §8.8.4.4.3 SR7",
+            (DiagnosticCatalog.ClassConditionNotStandardFloat.Code, "ISO §2023:8.8.4.4.3 SR7",
             "if the FLOAT-INFINITY, FLOAT-NOT-A-NUMBER, FLOAT-NOT-A-NUMBER-QUIET, or FLOAT-NOT-A-NUMBER-SIGNALING "
             + "phrase is specified, identifier-1 shall reference a data item described with a standard "
             + "floating-point usage (FLOAT-BINARY-32/-64/-128, FLOAT-DECIMAL-16/-34 — not FLOAT-SHORT, "
             + "FLOAT-LONG, FLOAT-EXTENDED, COMP-1 or COMP-2)"),
-        _ => (DiagnosticCatalog.ClassConditionNumericOperandUsage.Code, "ISO §8.8.4.4.3 SR8",
+        _ => (DiagnosticCatalog.ClassConditionNumericOperandUsage.Code, "ISO §2023:8.8.4.4.3 SR8",
             "if the NUMERIC phrase is specified, identifier-1 shall reference a data item whose usage is "
             + "display or national or whose category is numeric"),
     };

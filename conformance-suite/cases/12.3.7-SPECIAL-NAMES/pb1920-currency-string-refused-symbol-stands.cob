@@ -4,7 +4,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §12.3.7.3 SR23 b) - literal-7 "may consist of any characters
+      *> ISO §2023:12.3.7.3 SR23 b) - literal-7 "may consist of any characters
       *> from the computer's coded character set except for the digits 0
       *> through 9 ...", so "E1" is refused (COBOL0890). The PICTURE
       *> SYMBOL phrase (2002) still names '#', a valid literal-8 (SR26,

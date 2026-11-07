@@ -9,9 +9,9 @@ using WiseOwl.Cobol.Tests.Shared;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// ⛔ THE OPTIONAL-WORD DRIFT GATE — ISO §8.3.2.4.3: "Within each format, uppercase words that are not underlined
+/// ⛔ THE OPTIONAL-WORD DRIFT GATE — ISO §2023:8.3.2.4.3: "Within each format, uppercase words that are not underlined
 /// are called optional words and may be specified at the user's option WITH NO EFFECT ON THE SEMANTICS OF THE
-/// FORMAT." §5.2.3 says the same of the words themselves. This test takes that literally: for each format below
+/// FORMAT." §2023:5.2.3 says the same of the words themselves. This test takes that literally: for each format below
 /// it writes EVERY SUBSET of the format's optional words and demands that all of them compile and produce
 /// BYTE-IDENTICAL output. A word made required again fails immediately, and so does a word whose presence quietly
 /// changes what the statement binds to.
@@ -58,10 +58,10 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
     private sealed record FormatCase(string Name, string Clause, int Edition, string[] OptionalWords,
                                      string ProgramId, string Template);
 
-    // ── USE Format 1 (§14.9.49.2): USE [GLOBAL] AFTER STANDARD {EXCEPTION | ERROR} PROCEDURE ON {…} ──────────
+    // ── USE Format 1 (§2023:14.9.49.2): USE [GLOBAL] AFTER STANDARD {EXCEPTION | ERROR} PROCEDURE ON {…} ──────────
     // Underlined on printed folio 774: USE, GLOBAL, EXCEPTION, ERROR, INPUT, OUTPUT, I-O, EXTEND. Plain: AFTER,
     // STANDARD, PROCEDURE, ON. Neither file is ever opened, so the CLOSE is unsuccessful with I-O status 42
-    // (§14.9.6.4 GR1) and the declarative selected by §14.9.49.4 GR6 a) reports it.
+    // (§2023:14.9.6.4 GR1) and the declarative selected by §2023:14.9.49.4 GR6 a) reports it.
     private const string UseFormat1 = """
            IDENTIFICATION DIVISION.
            PROGRAM-ID. OPWA.
@@ -102,8 +102,8 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
         .Replace("PROGRAM-ID. OPWA.", "PROGRAM-ID. OPWW.", StringComparison.Ordinal)
         .Replace("ERROR {2} {3} F1.", "ERROR PROCEDURE {2} F1.", StringComparison.Ordinal);
 
-    // ── USE Format 3 (§14.9.49.2): USE AFTER {EXCEPTION CONDITION | EC} … ─────────────────────────────────────
-    // Only AFTER is plain. EC is synonymous with EXCEPTION CONDITION (§14.9.49.3 SR12), so the two spellings of
+    // ── USE Format 3 (§2023:14.9.49.2): USE AFTER {EXCEPTION CONDITION | EC} … ─────────────────────────────────────
+    // Only AFTER is plain. EC is synonymous with EXCEPTION CONDITION (§2023:14.9.49.3 SR12), so the two spellings of
     // the keyword pair are covered by the two rows below rather than by the subset sweep.
     private const string UseFormat3 = """
           >>TURN EC-BOUND-SUBSCRIPT CHECKING ON
@@ -155,8 +155,8 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
                STOP RUN.
     """;
 
-    // ── START … [WITH] LENGTH (§14.9.41.2) ───────────────────────────────────────────────────────────────────
-    // Printed folio 754 underlines LENGTH and leaves WITH plain. §14.9.41.4 GR17 b) makes the temporary key area
+    // ── START … [WITH] LENGTH (§2023:14.9.41.2) ───────────────────────────────────────────────────────────────────
+    // Printed folio 754 underlines LENGTH and leaves WITH plain. §2023:14.9.41.4 GR17 b) makes the temporary key area
     // 2 characters, so both spellings must position at AA01 and read it back identically.
     private const string StartWithLength = """
            IDENTIFICATION DIVISION.
@@ -197,11 +197,11 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
                STOP RUN.
     """;
 
-    // ── SPECIAL-NAMES §12.3.7.2, the COBOL-85 clauses (kb/Work PB695) ────────────────────────────────────────
+    // ── SPECIAL-NAMES §2023:12.3.7.2, the COBOL-85 clauses (kb/Work PB695) ────────────────────────────────────────
     // Printed folio 290 rules ALPHANUMERIC CLASS COMMA CRT CURRENCY CURSOR DECIMAL-POINT IN LOCALE NATIONAL OFF
     // ON ORDER PICTURE SPECIAL-NAMES. STATUS SYMBOL TABLE THROUGH THRU; folios 291/292 add ALPHABET, NATIVE,
     // STANDARD-1/2, UCS-4, UTF-8/16 and SYMBOLIC. IS is in none of them, and neither is the CHARACTERS of
-    // SYMBOLIC CHARACTERS (the heading line's one rule stops three points short of it). §13.18.44 exchanges the
+    // SYMBOLIC CHARACTERS (the heading line's one rule stops three points short of it). §2023:13.18.44 exchanges the
     // period and the comma under DECIMAL-POINT IS COMMA, so every spelling must edit 123,45 identically.
     private const string SpecialNames85 = """
            IDENTIFICATION DIVISION.
@@ -229,7 +229,7 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
                STOP RUN.
     """;
 
-    // ── SPECIAL-NAMES §12.3.7.2, the post-85 words ───────────────────────────────────────────────────────────
+    // ── SPECIAL-NAMES §2023:12.3.7.2, the post-85 words ───────────────────────────────────────────────────────────
     // The FOR that introduces ALPHANUMERIC/NATIONAL is plain wherever the paragraph prints it (CLASS on folio
     // 290, ALPHABET on 291, SYMBOLIC CHARACTERS on 292) — since PB695 one grammar rule serves all three — and
     // the WITH of `[ WITH PICTURE SYMBOL literal-8 ]` is plain too.
@@ -260,7 +260,7 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
                STOP RUN.
     """;
 
-    // ── SPECIAL-NAMES §12.3.7.2, the implementor-switch entry ────────────────────────────────────────────────
+    // ── SPECIAL-NAMES §2023:12.3.7.2, the implementor-switch entry ────────────────────────────────────────────────
     // Folio 290's switch rows carry EXACTLY two underline rules on the whole stack, under ON and under OFF, so
     // `[IS mnemonic-name-1]`, `ON [STATUS] [IS] condition-name-1` and the OFF row are five optional words. The
     // grammar used to hand-write that power set as two alternatives per phrase and dropped a member of it.
@@ -278,10 +278,10 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
                STOP RUN.
     """;
 
-    // ── OBJECT-COMPUTER §12.3.6.2 ────────────────────────────────────────────────────────────────────────────
+    // ── OBJECT-COMPUTER §2023:12.3.6.2 ────────────────────────────────────────────────────────────────────────────
     // Printed folio 285's whole underline roster is ALPHANUMERIC CLASSIFICATION LOCALE NATIONAL OBJECT-COMPUTER.
     // SEQUENCE SYSTEM-DEFAULT USER-DEFAULT, so CHARACTER, PROGRAM, COLLATING, FOR and IS are all optional. The
-    // reversed alphabet makes the choice observable: §12.3.6.4 9) + §8.8.4.2.7 compare under it, so "A" > "Z".
+    // reversed alphabet makes the choice observable: §2023:12.3.6.4 9) + §2023:8.8.4.2.7 compare under it, so "A" > "Z".
     private const string ObjectComputer = """
            IDENTIFICATION DIVISION.
            PROGRAM-ID. OPWH.
@@ -330,9 +330,9 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
                STOP RUN.
     """;
 
-    // ── OPTIONS §11.9.10.2 and SET §14.9.39.2 Formats 7 and 16 ───────────────────────────────────────────────
+    // ── OPTIONS §2023:11.9.10.2 and SET §2023:14.9.39.2 Formats 7 and 16 ───────────────────────────────────────────────
     // Folio 277's roster omits SECTION and TO; folio 730 rules ADDRESS and not the OF beside it (folio 140, the
-    // §8.4.3.11.2 data-address-identifier, rules ADDRESS alone); folio 732 rules SET, SIZE and TO and not OF.
+    // §2023:8.4.3.11.2 data-address-identifier, rules ADDRESS alone); folio 732 rules SET, SIZE and TO and not OF.
     private const string OptionsAndSet = """
            IDENTIFICATION DIVISION.
            PROGRAM-ID. OPWJ.
@@ -358,10 +358,10 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
                STOP RUN.
     """;
 
-    // ── CODE-SET §13.18.13.2 ─────────────────────────────────────────────────────────────────────────────────
+    // ── CODE-SET §2023:13.18.13.2 ─────────────────────────────────────────────────────────────────────────────────
     // PDF p414 / folio 384 carries exactly three underlines in the whole format — CODE-SET, ALPHANUMERIC,
     // NATIONAL. FOR and IS are plain. STANDARD-1's correspondence to the native set is the identity over the
-    // ISO 646 characters (§12.3.7.4 GR7 c), so the round trip is byte-exact whichever subset is written.
+    // ISO 646 characters (§2023:12.3.7.4 GR7 c), so the round trip is byte-exact whichever subset is written.
     private const string CodeSetFor = """
            IDENTIFICATION DIVISION.
            PROGRAM-ID. OPWK.
@@ -394,8 +394,8 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
                STOP RUN.
     """;
 
-    // ── DYNAMIC LENGTH §13.18.19.2 ───────────────────────────────────────────────────────────────────────────
-    // PDF p427 / folio 397 rules DYNAMIC and LIMIT and nothing else; LENGTH and IS are plain. §13.18.19.4 GR1
+    // ── DYNAMIC LENGTH §2023:13.18.19.2 ───────────────────────────────────────────────────────────────────────────
+    // PDF p427 / folio 397 rules DYNAMIC and LIMIT and nothing else; LENGTH and IS are plain. §2023:13.18.19.4 GR1
     // makes the minimum length zero, so LEN0 is 0 in every spelling.
     private const string DynamicLength = """
            IDENTIFICATION DIVISION.
@@ -413,7 +413,7 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
                STOP RUN.
     """;
 
-    // ── INITIALIZE §14.9.20.2 ────────────────────────────────────────────────────────────────────────────────
+    // ── INITIALIZE §2023:14.9.20.2 ────────────────────────────────────────────────────────────────────────────────
     // PDF p667 / folio 637 rules INITIALIZE, FILLER, ALL, VALUE, REPLACING, BY, DEFAULT and the category names.
     // WITH, both THENs, DATA and BOTH occurrences of TO are plain. The all-omitted spelling of the last slot pair
     // is the bare `INITIALIZE N1 DEFAULT`, which is exactly what `initializeOperandList`'s reservedHere("DEFAULT")
@@ -439,10 +439,10 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
                STOP RUN.
     """;
 
-    // ── VALUE §13.18.63.2 format 3 ───────────────────────────────────────────────────────────────────────────
+    // ── VALUE §2023:13.18.63.2 format 3 ───────────────────────────────────────────────────────────────────────────
     // PDF p546 / folio 516: the `[ WHEN SET TO FALSE IS literal-4 ]` bracket carries ONE rule, under FALSE.
     // WHEN, SET, TO and both IS/ARE connectives are plain. IN is plain too and is deliberately NOT a slot — with
-    // it omitted, alphabet-name-1 is indistinguishable from one more literal-2 (§13.10.3 SR2 lets a constant-name
+    // it omitted, alphabet-name-1 is indistinguishable from one more literal-2 (§2023:13.10.3 SR2 lets a constant-name
     // stand where a format specifies a literal), so the operand loop always wins; see the grammar note.
     private const string ValueFalseWords = """
            IDENTIFICATION DIVISION.
@@ -461,9 +461,9 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
     """;
 
     // ── kb/Work PB695 family 3 ────────────────────────────────────────────────────────────────────────────────
-    // ALTERNATE RECORD KEY (§12.4.5.6.2). PDF p350 / folio 320: ALTERNATE, RECORD, SOURCE, DUPLICATES and
+    // ALTERNATE RECORD KEY (§2023:12.4.5.6.2). PDF p350 / folio 320: ALTERNATE, RECORD, SOURCE, DUPLICATES and
     // SUPPRESS carry underline rectangles (94–96% cover); KEY (box 174.45–193.41), IS, WITH and WHEN (box
-    // 303.50–334.12) carry none. The four plain words are the slots. §12.4.5.6.4 GR6 withholds the ALTERNATE
+    // 303.50–334.12) carry none. The four plain words are the slots. §2023:12.4.5.6.4 GR6 withholds the ALTERNATE
     // access path of a record whose alternate key equals literal-1, so the walk must skip 02/XX in EVERY
     // spelling — a subset that quietly stopped applying the suppression would change the output, not just fail.
     private const string AlternateSuppress = """
@@ -510,9 +510,9 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
                STOP RUN.
     """;
 
-    // LOCK MODE (§12.4.5.9.2). PDF p355 / folio 325: LOCK (90.8%), the second LOCK (90.8%), ON (83.5%),
+    // LOCK MODE (§2023:12.4.5.9.2). PDF p355 / folio 325: LOCK (90.8%), the second LOCK (90.8%), ON (83.5%),
     // MULTIPLE (95.0%), MANUAL, AUTOMATIC, RECORD and RECORDS carry rules; MODE (box 115.12–144.04),
-    // IS (146.38–155.14) and WITH (251.70–278.69) carry none. §12.4.5.9.4 GR3 makes the clause inert for a
+    // IS (146.38–155.14) and WITH (251.70–278.69) carry none. §2023:12.4.5.9.4 GR3 makes the clause inert for a
     // file opened in the sharing-with-no-other mode, so every spelling must round-trip the record identically.
     private const string LockModeWords = """
            IDENTIFICATION DIVISION.
@@ -552,9 +552,9 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
                STOP RUN.
     """;
 
-    // DELETE FILE's exception phrases (§14.9.10.2 Format 2), written NEGATIVE-FIRST. PDF p635 / folio 605:
+    // DELETE FILE's exception phrases (§2023:14.9.10.2 Format 2), written NEGATIVE-FIRST. PDF p635 / folio 605:
     // EXCEPTION carries a rule in both phrases (95.5%) and NOT one (89.5%); NEITHER occurrence of ON has any.
-    // The file is never created, so §14.9.10.4 GR14 ("not present … successful … '05'") makes the NOT phrase
+    // The file is never created, so §2023:14.9.10.4 GR14 ("not present … successful … '05'") makes the NOT phrase
     // the one that runs in every spelling.
     private const string DeleteFileNotOn = """
            IDENTIFICATION DIVISION.
@@ -582,9 +582,9 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
                STOP RUN.
     """;
 
-    // INVOKE's argument phrases (§14.9.23.2). PDF p681 / folio 651: REFERENCE (96.3%), CONTENT (95.4%) and
-    // VALUE (92.9%) carry rules; none of the three occurrences of BY does. §14.2.3 GR8 makes the BY REFERENCE
-    // store visible in the caller and §14.8.2.3.3 keeps the BY CONTENT copy private, so the two-line output is
+    // INVOKE's argument phrases (§2023:14.9.23.2). PDF p681 / folio 651: REFERENCE (96.3%), CONTENT (95.4%) and
+    // VALUE (92.9%) carry rules; none of the three occurrences of BY does. §2023:14.2.3 GR8 makes the BY REFERENCE
+    // store visible in the caller and §2023:14.8.2.3.3 keeps the BY CONTENT copy private, so the two-line output is
     // the observable that a mis-selected passing mode would change.
     private const string InvokeByWords = """
            IDENTIFICATION DIVISION.
@@ -634,10 +634,10 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
            END CLASS OPWRC.
     """;
 
-    // INHERITS (§11.3.2). PDF p294 / folio 264: INHERITS carries a rule (95.0%) and FROM's box 140.01–168.09
+    // INHERITS (§2023:11.3.2). PDF p294 / folio 264: INHERITS carries a rule (95.0%) and FROM's box 140.01–168.09
     // carries none. ⛔ FROM sits inside the optional `[ INHERITS FROM … ]` group, the shape
     // audit_grammar_optional_words.py reports only since kb/Work PB715 — and that audit reads the private PDF and
-    // runs in no gate, so this row is the mechanical guard the gates run. §11.3.4 GR1 gives the subclass its
+    // runs in no gate, so this row is the mechanical guard the gates run. §2023:11.3.4 GR1 gives the subclass its
     // superclass's methods, so the inherited MIX must answer in both spellings.
     private const string InheritsFromWord = """
            IDENTIFICATION DIVISION.
@@ -694,16 +694,16 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
            END OBJECT.
            END CLASS OPWSD.
     """;
-    // ── SORT §14.9.40.2, the DUPLICATES phrase: [ WITH DUPLICATES IN ORDER ] ─────────────────────────────────
+    // ── SORT §2023:14.9.40.2, the DUPLICATES phrase: [ WITH DUPLICATES IN ORDER ] ─────────────────────────────────
     // MEASURED on the printed page (PDF pages 774 and 775 — Format 1 and Format 2 print the same line): of the
-    // four words only DUPLICATES carries an underline rule, so WITH, IN and ORDER are all optional (§5.2.3) and
+    // four words only DUPLICATES carries an underline rule, so WITH, IN and ORDER are all optional (§2023:5.2.3) and
     // all eight subsets are conforming spellings of the SAME phrase.
-    // ⛔ WRITTEN TWICE, AT 85 AND AT 2023, AND THE SECOND ROW IS THE REGRESSION (kb/Work PB704). §8.9 reserves
-    // ORDER from 2002, and while the word rode `cobolWord` the §8.9 funnel — which screens every IDENTIFIER
+    // ⛔ WRITTEN TWICE, AT 85 AND AT 2023, AND THE SECOND ROW IS THE REGRESSION (kb/Work PB704). §2023:8.9 reserves
+    // ORDER from 2002, and while the word rode `cobolWord` the §2023:8.9 funnel — which screens every IDENTIFIER
     // occurrence POSITION-BLIND — read the format's own word as a user-defined one: the four spellings that
     // WRITE ORDER were COBOL0901 at 2002/2014/2023 and clean at 85. A single-edition row would have passed
     // the whole time (feedback_edition_gate_sweep).
-    // The observable is §14.9.40.4 GR3 b): among records equal on every key the order of return is the order in
+    // The observable is §2023:14.9.40.4 GR3 b): among records equal on every key the order of return is the order in
     // which the input procedure RELEASED them, so the output pins the phrase's ONE semantic effect and not
     // merely that it parsed.
     private const string SortDuplicates = """
@@ -760,13 +760,13 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
         SortDuplicates.Replace("OPWT", "OPWU", StringComparison.Ordinal)
                       .Replace("opwt.tmp", "opwu.tmp", StringComparison.Ordinal);
 
-    // ── USAGE §13.18.60.2, the three pointer usages: POINTER [ TO type-name-1 ], FUNCTION-POINTER TO
+    // ── USAGE §2023:13.18.60.2, the three pointer usages: POINTER [ TO type-name-1 ], FUNCTION-POINTER TO
     // function-prototype-name-1, PROGRAM-POINTER [ TO program-prototype-name-1 ] (kb/Work PB848). RENDERED — PDF
     // p533 / folio 503: the underline rule sits under POINTER / FUNCTION-POINTER / PROGRAM-POINTER, never under TO.
     // ⛔ TO IS REQUIRED-INSIDE-AN-OPTIONAL-GROUP in the grammar's old `(TO cobolWord)?`, the shape
     // audit_grammar_optional_words.py reports only since kb/Work PB715 and in no gate (it reads the private PDF),
     // so this row is the mechanical guard the gates run. Each TO slot
-    // sits on the TO-FULL twin of a TO-less entry, and §14.9.39.3 SR19/SR20/SR22 admit the copy between the twins
+    // sits on the TO-FULL twin of a TO-less entry, and §2023:14.9.39.3 SR19/SR20/SR22 admit the copy between the twins
     // only because both name the same type / prototype — a TO-less operand that bound as nothing would fail to
     // compile rather than print something else.
     private const string PointerUsageTo = """
@@ -836,7 +836,7 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
            END PROGRAM OPWVP.
     """;
 
-    // ── USAGE OBJECT REFERENCE §13.18.60.2: [ FACTORY OF ] ACTIVE-CLASS / [ FACTORY OF ] object-class-name-1 —
+    // ── USAGE OBJECT REFERENCE §2023:13.18.60.2: [ FACTORY OF ] ACTIVE-CLASS / [ FACTORY OF ] object-class-name-1 —
     // FACTORY is underlined on folio 503 and OF is not (kb/Work PB848's sibling sweep; the grammar required OF).
     // DERIVED from the PB389 golden, which writes BOTH forms (a factory-of-class item in the program, a
     // factory-of-ACTIVE-CLASS item in a factory method) and prints what each one invokes — so the template can
@@ -849,7 +849,7 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
             .Replace("END PROGRAM PB389M.", "END PROGRAM OPWX.", StringComparison.Ordinal);
 
     // ── kb/Work PB3751 ─────────────────────────────────────────────────────────────────────────────────────────
-    // PAGE (§13.18.39.2). PDF p468 / folio 438 underlines PAGE alone, so all four words of `[ LIMIT IS | LIMITS ARE ]`
+    // PAGE (§2023:13.18.39.2). PDF p468 / folio 438 underlines PAGE alone, so all four words of `[ LIMIT IS | LIMITS ARE ]`
     // are optional — within the alternative chosen (the two rows below; a word of each, `PAGE LIMIT ARE`, is the
     // negative corpus's pb3751-page-limit-mixed-alternatives). The page limit is observable: GR3 d) makes LAST
     // DETAIL the page limit 3, so the fourth one-line detail advances the page (2/01) in every spelling.
@@ -886,8 +886,8 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
                DISPLAY "R " PC "/" LC.
     """;
 
-    // RECEIVE (§14.9.31.2). PDF p732 / folio 702: CONTINUE, MESSAGE and RECEIVED carry rules; AFTER and SECONDS carry
-    // none in THIS format (§8.3.2.4.3 decides "within each format"; the CONTINUE statement's own p634 format rules
+    // RECEIVE (§2023:14.9.31.2). PDF p732 / folio 702: CONTINUE, MESSAGE and RECEIVED carry rules; AFTER and SECONDS carry
+    // none in THIS format (§2023:8.3.2.4.3 decides "within each format"; the CONTINUE statement's own p634 format rules
     // both and keeps them). The facility is declined and inert (COBOL1578), so the row pins the SPELLINGS: every
     // subset must compile, and the run around the statements must not change.
     private const string ReceiveContinueWords = """
@@ -1024,7 +1024,7 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
             if (!r.Success)
             {
                 return SpellingRun.Failed($"ISO §{f.Clause}: the optional words [{s.Words}] must compile at --std "
-                    + $"{f.Edition} (§5.2.3 — they are printed WITHOUT an underline): {string.Join("\n", r.Errors)}");
+                    + $"{f.Edition} (§2023:5.2.3 — they are printed WITHOUT an underline): {string.Join("\n", r.Errors)}");
             }
 
             var (ran, stdout, detail) = CutRunner.Run(Path.Combine(dir, s.Unit + ".dll"), dir);
@@ -1035,7 +1035,7 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
         finally { ScratchDirectory.Remove(dir); }
     }
 
-    /// <summary>ISO §8.3.2.4.3: one spelling of a format compiles, runs, and prints what the format's bare spelling
+    /// <summary>ISO §2023:8.3.2.4.3: one spelling of a format compiles, runs, and prints what the format's bare spelling
     /// prints. The bare spelling's own row (mask 0) is the baseline itself, so that row proves the baseline compiles
     /// and runs.</summary>
     [Theory]
@@ -1053,7 +1053,7 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
             $"[{f.Name}] [{s.Words}] has no baseline to be compared with: the bare spelling [{BareSpelling}] failed "
             + $"(its own row, mask 0, reports it): {baseline.Failure}");
         Assert.True(baseline.Output == run.Output,
-            $"ISO §8.3.2.4.3: an optional word is specified \"with no effect on the semantics of the " +
+            $"ISO §2023:8.3.2.4.3: an optional word is specified \"with no effect on the semantics of the " +
             $"format\", but §{f.Clause} written [{s.Words}] differs from [{BareSpelling}].\n" +
             $"  [{BareSpelling}] -> {baseline.Output}\n  [{s.Words}] -> {run.Output}");
     }

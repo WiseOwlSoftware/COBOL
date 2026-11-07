@@ -5,10 +5,10 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.7.6 rule 3 — ADD/SUBTRACT CORRESPONDING pairs a
+      *> ISO §2023:14.7.6 rule 3 — ADD/SUBTRACT CORRESPONDING pairs a
       *>   same-named item only when BOTH are numeric data items.
       *> cite.py --check 14.7.6 "In an ADD or SUBTRACT statement, both
-      *>   of the data items are numeric data items" -> OK §14.7.6 3)
+      *>   of the data items are numeric data items" -> OK §2023:14.7.6 3)
       *> Categories of the namesakes (G1 sender / G2 receiver):
       *>   A  9(3) / 9(3)            both numeric      -> pair
       *>   C  X(3) / 9(3)            sender alphanumeric
@@ -16,16 +16,16 @@
       *>   E  9(3) / 9(3) BLANK WHEN ZERO  receiver numeric-edited
       *> cite.py --check 8.5.2.12 "An elementary data item described as
       *>   numeric by its PICTURE character-string and not described
-      *>   with a BLANK WHEN ZERO clause" -> OK §8.5.2.12 1)
+      *>   with a BLANK WHEN ZERO clause" -> OK §2023:8.5.2.12 1)
       *> cite.py --check 8.5.2.3 "An elementary data item described as
       *>   alphanumeric by its PICTURE character-string"
-      *>   -> OK §8.5.2.3 1)
+      *>   -> OK §2023:8.5.2.3 1)
       *> cite.py --check 8.5.2.13 "A data item described as
       *>   numeric-edited by its PICTURE character-string"
-      *>   -> OK §8.5.2.13 1)
+      *>   -> OK §2023:8.5.2.13 1)
       *> cite.py --check 8.5.2.13 "A data item described as numeric by
       *>   its PICTURE character-string and described with a BLANK WHEN
-      *>   ZERO clause" -> OK §8.5.2.13 2)
+      *>   ZERO clause" -> OK §2023:8.5.2.13 2)
       *> Start: G1 A=5 C="007" D=5 E=5; G2 A=10 C=10 D=" 10" E=10.
       *>   "ADD A=015 C=010 D= 10 E=010"  only A pairs: 10+5 = 15.
       *>   "SUB A=010 C=010 D= 10 E=010"  SUBTRACT CORRESPONDING G1

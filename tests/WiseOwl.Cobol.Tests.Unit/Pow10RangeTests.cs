@@ -62,7 +62,7 @@ public sealed class Pow10RangeTests
 
     /// <summary>The PB2633 receiver shape, landed by the one float quantizer (kb/Work PB3829 retired the codomain clamp
     /// that first exposed the wrapped power): a trailing-P receiver has a NEGATIVE scale, and the float lands ONCE at it
-    /// with the statement's mode (§14.7.4.3). One unit at scale s is 10^-s, so ACOS(-1) = 3.14... is 0.314... units at
+    /// with the statement's mode (§2023:14.7.4.3). One unit at scale s is 10^-s, so ACOS(-1) = 3.14... is 0.314... units at
     /// scale -1 and far less below: truncation and the nearest modes give 0 units, AWAY-FROM-ZERO (r3) gives 1 unit,
     /// TOWARD-LESSER (r9) of ASIN(-1) = -1.57... gives -1 unit and TOWARD-GREATER (r8) gives 0. ACOS(0.5) truncated is
     /// 0 units at every such scale, never the -1 the wrapped 10^39 produced.</summary>

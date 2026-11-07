@@ -4,7 +4,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.28.3 SR14 — "If file-name-1 or file-name-2 is
+      *> ISO §2023:14.9.28.3 SR14 — "If file-name-1 or file-name-2 is
       *> specified in a WHEN phrase, it shall not be specified more
       *> than once in any of the WHEN phrases within the scope of a
       *> format 3 PERFORM statement unless all such instances are

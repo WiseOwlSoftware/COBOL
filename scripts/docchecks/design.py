@@ -20,7 +20,7 @@ RUNTIME_API = "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs"
 DATA_MODEL = "docs/DATA_MODEL_DESIGN.md"
 BINDER_DESIGN = "docs/rearchitecture/DESIGN-binder-bound-tree.md"
 #: kb/Work PB3697: which stores convert a boolean item's characters (determination D-B5, PB3666) and which content no
-#: store can reach (§14.6.13.2 1)) is ONE text, carried word for word by these three places. A fourth bypass is added to
+#: store can reach (§2023:14.6.13.2 1)) is ONE text, carried word for word by these three places. A fourth bypass is added to
 #: all three or to none.
 BOOLEAN_STORE_DETERMINATION = (
     "Every STORE into a boolean item converts its characters. That includes a GR4 group move (the decoded "
@@ -30,7 +30,7 @@ BOOLEAN_STORE_DETERMINATION = (
     "the group's bytes), a REDEFINES view, a record area shared with another record of its file or with a SAME RECORD AREA "
     "peer (a READ or RETURN fills the area's bytes), an APPLY COMMIT restore (ROLLBACK returns the saved image), or storage "
     "shared through a BY REFERENCE argument, EXTERNAL, BASED or ADDRESS OF. That content is undefined "
-    "(§14.6.13.2 1)), and the boolean operators read such a position as zero.")
+    "(§2023:14.6.13.2 1)), and the boolean operators read such a position as zero.")
 SUPERSEDED_BYPASS_WORDING = re.compile("Two things bypass|Two exemptions|The exemptions:")
 MENTION = re.compile(r"`CobolSort\.(?P<member>[A-Z]\w*)\((?P<args>[^`()]*)\)`")
 

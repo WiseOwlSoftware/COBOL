@@ -1141,7 +1141,7 @@ def reserved_words() -> dict[str, frozenset[str]]:
     return {e: frozenset(w["word"] for w in words if w.get(f"r{e}")) for e in editions}
 
 
-#: §8.10 is a table whose first column is the word; §8.11 lists one name a line; §8.12 is a table of words.
+#: §2023:8.10 is a table whose first column is the word; §2023:8.11 lists one name a line; §2023:8.12 is a table of words.
 _KEYWORD_SECTIONS = (("8.10", "first cell"), ("8.11", "line"), ("8.12", "every cell"))
 _KEYWORD = re.compile(r"^[A-Z][A-Z0-9]*(?:-[A-Z0-9]+)*$")
 

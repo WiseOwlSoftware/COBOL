@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ A PARTIAL EXPRESSION IS A CONDITION WITH ITS LEFTMOST OPERAND MISSING — NOT A SECOND CONDITION LANGUAGE
 /// (kb/Work PB398).
 ///
-/// <para><b>ISO §14.9.13.3 SR5</b> defines partial-expression-1 by its LEFT EDGE alone: "A selection object is a
+/// <para><b>ISO §2023:14.9.13.3 SR5</b> defines partial-expression-1 by its LEFT EDGE alone: "A selection object is a
 /// partial-expression if the leftmost portion of the selection object is a relational operator, a class condition
 /// without the identifier, a sign condition without the identifier, or a sign condition without the arithmetic
 /// expression." <b>SR7 d)</b> then fixes everything to its right: "Partial-expression-1 shall be a sequence of
@@ -27,7 +27,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 public sealed class PartialExpressionSpineDriftTests
 {
     /// <summary>The grammar with its line comments REMOVED — before any rule is located, not after. A prose comment
-    /// may contain both a ';' (a §-reference's own punctuation, e.g. "§8.8.4.8; 2002+") and a rule-shaped line, so
+    /// may contain both a ';' (a §-reference's own punctuation, e.g. "§2023:8.8.4.8; 2002+") and a rule-shaped line, so
     /// extracting first and stripping second truncates <c>comparisonExpression</c> at its first alternative, and a
     /// rule whose comment block sits between its name and its ':' (<c>valueClause</c>) is not found at all. Both
     /// were measured on the first run of this test — the failure branch, fired once, per feedback
@@ -67,8 +67,8 @@ public sealed class PartialExpressionSpineDriftTests
     }
 
     /// <summary>⛔ THE SUCCEEDING TIERS ARE THE SAME MIRROR (kb/Work PB1390). Every connective's operand — at the OR,
-    /// XOR and AND tier alike — is a SUCCEEDING tier whose leftmost element may be §8.8.4.12's abbreviated relation
-    /// ("any relation condition except the first may be abbreviated", §8.8.4.12.1). They differ from the leading
+    /// XOR and AND tier alike — is a SUCCEEDING tier whose leftmost element may be §2023:8.8.4.12's abbreviated relation
+    /// ("any relation condition except the first may be abbreviated", §2023:8.8.4.12.1). They differ from the leading
     /// tiers in the leading element only, so their tails are extracted from the leading tiers and required
     /// identical: the abbreviated tail used to be spelled three different ways, one per tier, and each spelling
     /// rejected a different legal mix.</summary>
@@ -113,10 +113,10 @@ public sealed class PartialExpressionSpineDriftTests
         Assert.Contains("IS? NOT? classConditionName", partial, StringComparison.Ordinal);
         Assert.Contains("comparisonOperand IS? NOT? classConditionName", written, StringComparison.Ordinal);
         // SR5 shapes 3 and 4 — "a sign condition without the identifier, or a sign condition without the
-        // arithmetic expression": §8.8.4.7.2's two operand forms occupy ONE elided position, so one alternative.
+        // arithmetic expression": §2023:8.8.4.7.2's two operand forms occupy ONE elided position, so one alternative.
         Assert.Contains("IS? NOT? (POSITIVE | NEGATIVE | ZERO)", partial, StringComparison.Ordinal);
         Assert.Contains("comparisonOperand IS? NOT? (POSITIVE | NEGATIVE | ZERO)", written, StringComparison.Ordinal);
-        // SR5 shape 2 — "the leftmost portion … is a relational operator": §8.8.4.12's already-elided relation,
+        // SR5 shape 2 — "the leftmost portion … is a relational operator": §2023:8.8.4.12's already-elided relation,
         // reused rather than re-spelled, so the operator list cannot differ between the two.
         Assert.Contains("abbreviatedRelation", partial, StringComparison.Ordinal);
         Assert.Equal("comparisonOperator comparisonOperand", RuleBody("CobolExpressions.g4", "abbreviatedRelation"));
@@ -132,14 +132,14 @@ public sealed class PartialExpressionSpineDriftTests
     {
         var alts = RuleBody("CobolControlFlow.g4", "evaluateWhenItem")
             .Split('|', StringSplitOptions.RemoveEmptyEntries)
-            // Less the bracketed NOT? §14.9.13.2 prints on five alternatives (kb/Work PB2722) — which ones carry it is
+            // Less the bracketed NOT? §2023:14.9.13.2 prints on five alternatives (kb/Work PB2722) — which ones carry it is
             // EvaluateSelectionObjectArityDriftTests' rule; this one is about the ORDER of the shapes.
             .Select(a => Regex.Replace(a, @"\bNOT\?\s*", "").Trim()).Where(a => a.Length > 0).ToArray();
         int partial = Array.IndexOf(alts, "partialExpression");
         int value = Array.IndexOf(alts, "valueOperand");
         int range = Array.IndexOf(alts, "valueRange");
         int cond = Array.IndexOf(alts, "condition");
-        Assert.True(partial >= 0, $"evaluateWhenItem lost its partial-expression alternative (ISO §14.9.13.3 SR5); "
+        Assert.True(partial >= 0, $"evaluateWhenItem lost its partial-expression alternative (ISO §2023:14.9.13.3 SR5); "
             + $"got [{string.Join(" | ", alts)}]");
         Assert.True(value >= 0 && range >= 0 && cond >= 0,
             $"evaluateWhenItem must still name valueOperand, valueRange and condition; got [{string.Join(" | ", alts)}]");
@@ -149,10 +149,10 @@ public sealed class PartialExpressionSpineDriftTests
             + $"object. Order: [{string.Join(" | ", alts)}]");
     }
 
-    /// <summary>The range's <c>IN alphabet-name-1</c> phrase (ISO §14.9.13.2's range-expression; §14.7.8 rule 2) —
+    /// <summary>The range's <c>IN alphabet-name-1</c> phrase (ISO §2023:14.9.13.2's range-expression; §2023:14.7.8 rule 2) —
     /// present, and present on the EVALUATE range specifically. Its VALUE-clause twin lives in
-    /// <c>CobolData.g4</c>'s <c>valueClause</c>, where §14.7.8's first sentence puts it. IN is an OPTIONAL word in
-    /// both (not underlined, §5.2.3; kb/Work PB983): the EVALUATE rule admits it omitted, and the VALUE clause's
+    /// <c>CobolData.g4</c>'s <c>valueClause</c>, where §2023:14.7.8's first sentence puts it. IN is an OPTIONAL word in
+    /// both (not underlined, §2023:5.2.3; kb/Work PB983): the EVALUATE rule admits it omitted, and the VALUE clause's
     /// IN-less spelling is peeled by symbol in the binder (<c>TrailingInPhraseDriftTests</c> pins that half).</summary>
     [Fact]
     public void ValueRange_CarriesTheInAlphabetPhrase()

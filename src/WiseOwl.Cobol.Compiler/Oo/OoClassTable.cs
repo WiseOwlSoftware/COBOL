@@ -14,12 +14,12 @@ using Core = CobolParserCore;
 using WiseOwl.Cobol.Runtime;
 
 /// <summary>
-/// The PASS-1 class symbol table of a compilation group (OO deep-dive D1; ISO §11.2/§11.3/§11.7): built from
+/// The PASS-1 class symbol table of a compilation group (OO deep-dive D1; ISO §2023:11.2/§2023:11.3/§2023:11.7): built from
 /// every <c>classDefinition</c> parse context BEFORE any unit binds, so a driver program's INVOKE / typed
 /// <c>USAGE OBJECT REFERENCE</c> resolves a class defined LATER in the source file (the cross-unit hard
 /// problem — "a genuine two-pass over the compilation group, owned by the BINDER"). Pass-2 (statement binding)
 /// consults it to choose each INVOKE's call form and validate the method roster; the emitters only render the
-/// bound facts. Class and method names compare case-insensitively (§8.3.2.2).
+/// bound facts. Class and method names compare case-insensitively (§2023:8.3.2.2).
 /// </summary>
 public sealed class OoClassTable
 {
@@ -29,17 +29,17 @@ public sealed class OoClassTable
     public IReadOnlyList<OoClassSymbol> Classes => _classes;
     private readonly List<OoClassSymbol> _classes = [];
 
-    /// <summary>All interfaces in source order (§11.6 — emitted as C# interfaces BEFORE the classes, purely
+    /// <summary>All interfaces in source order (§2023:11.6 — emitted as C# interfaces BEFORE the classes, purely
     /// for readability; Roslyn needs no ordering). Interfaces and classes share ONE name namespace
-    /// (<see cref="_ifaceByName"/> is checked against <see cref="_byName"/> at Build — a collision is COBOL0820, §8.3.2.2).</summary>
+    /// (<see cref="_ifaceByName"/> is checked against <see cref="_byName"/> at Build — a collision is COBOL0820, §2023:8.3.2.2).</summary>
     public IReadOnlyList<OoInterfaceSymbol> Interfaces => _interfaces;
     private readonly List<OoInterfaceSymbol> _interfaces = [];
 
-    /// <summary>The skeletons this group publishes, one per parameterized definition it writes (§9.3.12 / §9.3.13; DESIGN-external-repository
-    /// §10.5), expanded or not, in source order.</summary>
+    /// <summary>The skeletons this group publishes, one per parameterized definition it writes (§2023:9.3.12 / §2023:9.3.13; DESIGN-external-repository
+    /// §2023:10.5), expanded or not, in source order.</summary>
     internal IReadOnlyList<SkeletonSource> Skeletons { get; private init; } = [];
 
-    /// <summary>The PARAMETERIZED class and interface definitions (§9.3.12 / §9.3.13), in source order: kept OUT of
+    /// <summary>The PARAMETERIZED class and interface definitions (§2023:9.3.12 / §2023:9.3.13), in source order: kept OUT of
     /// <see cref="Classes"/> / <see cref="Interfaces"/> and out of every name lookup — each is a skeleton, its
     /// expansions are the classes (<see cref="OoExpansion"/>) — but each is still a class or interface definition, so
     /// the binder binds it as itself, for its own rules, and emits nothing from it (kb/Work PB2051; OO deep-dive D12).</summary>
@@ -50,21 +50,21 @@ public sealed class OoClassTable
     private readonly List<OoInterfaceSymbol> _parameterizedInterfaces = [];
     private readonly Dictionary<string, OoInterfaceSymbol> _ifaceByName = new(CobolNames.Comparer);
 
-    /// <summary>The interface named <paramref name="name"/>, or null (case-insensitive, §8.3.2.2).</summary>
+    /// <summary>The interface named <paramref name="name"/>, or null (case-insensitive, §2023:8.3.2.2).</summary>
     public OoInterfaceSymbol? FindInterface(string name) => _ifaceByName.TryGetValue(name, out var i) ? i : null;
     /// <summary>The class named <paramref name="name"/>, or null (COBOL class names are case-insensitive). A class
-    /// DEFINED in the compilation group wins; otherwise the name may be the standard class BASE (ISO §16.1), whose
-    /// information the implementation's external repository always holds (§12.3.8.3 SR6 b) — the §12.3.8.4 GR6
+    /// DEFINED in the compilation group wins; otherwise the name may be the standard class BASE (ISO §2023:16.1), whose
+    /// information the implementation's external repository always holds (§2023:12.3.8.3 SR6 b) — the §2023:12.3.8.4 GR6
     /// implementor-defined choice, documented at <see cref="OoStandardClasses"/>. This is the group-wide table, NOT
     /// the question "may this source element name it": that is <see cref="OoNameResolution"/>'s, and the standard
-    /// class is as subject to it as any other (§8.4.6.4 — a REPOSITORY entry is still required).</summary>
+    /// class is as subject to it as any other (§2023:8.4.6.4 — a REPOSITORY entry is still required).</summary>
     public OoClassSymbol? Find(string name) =>
         _byName.TryGetValue(name, out var c) ? c
         : CobolNames.Same(name, OoStandardClasses.BaseName) ? StandardBase
         : null;
 
     /// <summary>The class whose EXTERNALIZED name (its CLASS-ID's <c>AS literal-1</c>, or its name) is
-    /// <paramref name="externalized"/> — what a REPOSITORY class-specifier's <c>AS literal-1</c> names (ISO §12.3.8.4
+    /// <paramref name="externalized"/> — what a REPOSITORY class-specifier's <c>AS literal-1</c> names (ISO §2023:12.3.8.4
     /// GR2; kb/Work PB974). Compared as the group's other externalized names are (case-insensitive). The standard
     /// class BASE is externalized as its own name, and answers only when no definition of the group claims it —
     /// the same precedence as <see cref="Find"/>.</summary>
@@ -93,7 +93,7 @@ public sealed class OoClassTable
 
     /// <summary>The key an imported class has in this table and in every object-reference description naming it
     /// (<see cref="OoClassSymbol.Name"/>): <c>class "&lt;identity&gt;"</c>, the spelling DESIGN-external-repository §8.7 gives an
-    /// identity no source element has a word for. A word is per source element (§8.4.6.4), so two elements may give one
+    /// identity no source element has a word for. A word is per source element (§2023:8.4.6.4), so two elements may give one
     /// identity two words or two identities one word; the key is group-wide and — a quote and a space are in no COBOL word —
     /// can be neither a group class's word nor another identity's.</summary>
     public static string ImportedKey(string identity) => $"class \"{identity}\"";
@@ -101,13 +101,13 @@ public sealed class OoClassTable
     /// <summary>The interface twin of <see cref="ImportedKey"/>: <c>interface "&lt;identity&gt;"</c>.</summary>
     public static string ImportedInterfaceKey(string identity) => $"interface \"{identity}\"";
 
-    /// <summary>⛔ ISO §12.3.8.3 SR6 FOR ONE CLASS-SPECIFIER WITHOUT EXPANDS (DESIGN-external-repository §8.4): "there shall be
+    /// <summary>⛔ ISO §2023:12.3.8.3 SR6 FOR ONE CLASS-SPECIFIER WITHOUT EXPANDS (DESIGN-external-repository §8.4): "there shall be
     /// information in the external repository for the class" the specifier names — a class the group defines, the standard class
-    /// BASE (always there, §16.1), a parameterized definition (an EXPANDS operand), the formal of the definition the specifier lies
+    /// BASE (always there, §2023:16.1), a parameterized definition (an EXPANDS operand), the formal of the definition the specifier lies
     /// in, or a class the external repository publishes under the identity <c>literal-1 ?? word</c> (<see cref="ImportClass"/>). Null
     /// when one answers, or the importer refused the question with a finding of its own (REPO-3 … REPO-8, REPO-6); otherwise the
     /// text REPO-1 says was searched. Asked once per specifier (<paramref name="specifier"/>, the entry), however many source elements
-    /// inherit it (§12.3.4 GR1).</summary>
+    /// inherit it (§2023:12.3.4 GR1).</summary>
     public string? UnansweredClassSpecifier(Antlr4.Runtime.ParserRuleContext specifier, string word, string? externalized)
     {
         if (!_specifiersAsked.Add(specifier)) return null;
@@ -122,19 +122,19 @@ public sealed class OoClassTable
     private readonly HashSet<Antlr4.Runtime.ParserRuleContext> _specifiersAsked = new(ReferenceEqualityComparer.Instance);
 
     /// <summary>The PROPERTY specifiers awaiting <see cref="CheckPropertySpecifiers"/>, each once: a property is "part of one of the
-    /// classes or interfaces that are declared in this REPOSITORY paragraph" (§12.3.8.3 SR16), and a class's accessors — a
+    /// classes or interfaces that are declared in this REPOSITORY paragraph" (§2023:12.3.8.3 SR16), and a class's accessors — a
     /// PROPERTY clause's synthesized pair included — exist only once its data has bound (kb/Work PB1274), so the question is asked
     /// when every roster is complete.</summary>
     private readonly List<(Core.RepositoryEntryContext Entry, string Word, string? Externalized)> _propertySpecifiers = [];
 
     /// <summary>Record a REPOSITORY <c>PROPERTY</c> specifier for <see cref="CheckPropertySpecifiers"/>; the same entry, seen by
-    /// the source elements that inherit it (§12.3.4 GR1), is recorded once.</summary>
+    /// the source elements that inherit it (§2023:12.3.4 GR1), is recorded once.</summary>
     internal void DeferPropertySpecifier(Core.RepositoryEntryContext entry, string word, string? externalized)
     {
         if (_propertySpecifiers.All(p => !ReferenceEquals(p.Entry, entry))) _propertySpecifiers.Add((entry, word, externalized));
     }
 
-    /// <summary>⛔ ISO §12.3.8.3 SR16, for every PROPERTY specifier recorded: "a) If literal-4 is specified, there shall be information
+    /// <summary>⛔ ISO §2023:12.3.8.3 SR16, for every PROPERTY specifier recorded: "a) If literal-4 is specified, there shall be information
     /// in the external repository for the property literal-5 that is part of one of the classes or interfaces that are declared in this
     /// REPOSITORY paragraph" and "b) … for the property property-name-1" otherwise — a class (a definition of the group or an import,
     /// base chain and implemented interfaces included) or an interface (its inherited ones included) of THIS paragraph with an accessor
@@ -149,8 +149,8 @@ public sealed class OoClassTable
             bool found = false;
             foreach (var other in (entry.Parent as Core.RepositoryParagraphContext)?.repositoryEntry() ?? [])
             {
-                // A parameterized definition's own paragraph declares its formals (§11.3.3 SR8): which class or interface each
-                // stands for, and so which property it has, is each expansion's (§9.3.12) — whose re-parsed paragraph this rule asks.
+                // A parameterized definition's own paragraph declares its formals (§2023:11.3.3 SR8): which class or interface each
+                // stands for, and so which property it has, is each expansion's (§2023:9.3.12) — whose re-parsed paragraph this rule asks.
                 if (other.className() is { } formalClass && other.CLASS() is not null && scope.IsFormal(formalClass.GetText())
                     || other.interfaceName() is { } formalInterface && other.INTERFACE() is not null && scope.IsFormal(formalInterface.GetText()))
                     found = true;
@@ -177,7 +177,7 @@ public sealed class OoClassTable
             .Any(i => i.AllPrototypes().Any(p => IsAccessorOf(p, property)));
     }
 
-    /// <summary>⛔ THE IMPORT (DESIGN-external-repository §8.4 step 3, §10.1): the class whose EXTERNALIZED name is
+    /// <summary>⛔ THE IMPORT (DESIGN-external-repository §8.4 step 3, §2023:10.1): the class whose EXTERNALIZED name is
     /// <paramref name="identity"/> — the group's own definition, else the standard class BASE, else one already imported —
     /// and otherwise the one the external repository publishes, registered here by that identity so the whole group shares
     /// one symbol per identity. Null when nothing answers; the importer has reported a finding of its own when it refused
@@ -198,7 +198,7 @@ public sealed class OoClassTable
         return symbol;
     }
 
-    /// <summary>The interface twin of <see cref="ImportClass"/> (ISO §12.3.8.3 SR9; DESIGN-external-repository §10.6): the interface
+    /// <summary>The interface twin of <see cref="ImportClass"/> (ISO §2023:12.3.8.3 SR9; DESIGN-external-repository §10.6): the interface
     /// whose externalized name is <paramref name="identity"/> — the group's definition, else one already imported, else the one the
     /// external repository publishes, registered here by identity and BEFORE it is completed (its INHERITS list and its prototypes
     /// name other interfaces, and a prototype may name its own). §16 defines no standard interface, so there is no BASE step.</summary>
@@ -215,7 +215,7 @@ public sealed class OoClassTable
         return symbol;
     }
 
-    /// <summary>ISO §12.3.8.3 SR9 for one interface-specifier without EXPANDS (the twin of
+    /// <summary>ISO §2023:12.3.8.3 SR9 for one interface-specifier without EXPANDS (the twin of
     /// <see cref="UnansweredClassSpecifier"/>): "there shall be information in the external repository for the interface" — one the
     /// group defines, a parameterized definition (an EXPANDS operand), the formal of the definition the specifier lies in, or one the
     /// external repository publishes under <c>literal-2 ?? word</c>. Null when one answers or the importer has reported a finding of
@@ -241,9 +241,9 @@ public sealed class OoClassTable
         ?? _importedInterfaces.GetValueOrDefault(externalized);
 
     /// <summary>True when <paramref name="name"/> names a PARAMETERIZED class or interface definition of the group
-    /// (kb/Work PB759). Such a definition is a skeleton (§9.3.12 / §9.3.13) and is deliberately NOT in this table
+    /// (kb/Work PB759). Such a definition is a skeleton (§2023:9.3.12 / §2023:9.3.13) and is deliberately NOT in this table
     /// — <see cref="OoExpansion"/> puts its EXPANSIONS here instead — so a lookup of its name misses; this is what
-    /// lets <see cref="OoNameResolution.Resolve"/> say WHY (ISO §12.3.8.4 GR1: "If object-class-name-1 is a class
+    /// lets <see cref="OoNameResolution.Resolve"/> say WHY (ISO §2023:12.3.8.4 GR1: "If object-class-name-1 is a class
     /// described with the USING phrase, object-class-name-1 may be specified only in the REPOSITORY
     /// paragraph").</summary>
     public bool IsParameterized(string name) => _parameterized.Contains(name);
@@ -251,7 +251,7 @@ public sealed class OoClassTable
     private int _dialectLevel;   // the edition's year: the spelling the repository AS literals are read in (kb/Work PB2840)
     private static readonly IReadOnlySet<string> EmptyNames = new HashSet<string>();
 
-    /// <summary>The §8.4.6.4 name scope visible at <paramref name="site"/> — memoized per SOURCE ELEMENT so the
+    /// <summary>The §2023:8.4.6.4 name scope visible at <paramref name="site"/> — memoized per SOURCE ELEMENT so the
     /// ancestor walk runs once per program / class / interface / method definition rather than once per
     /// reference. ⛔ This table is the GROUP's set and is deliberately NOT the answer to "may this source
     /// element reference that name": go through <see cref="OoNameResolution"/>, which composes the two.</summary>
@@ -268,7 +268,7 @@ public sealed class OoClassTable
     }
 
     /// <summary>The class or interface a class-specifier or interface-specifier <paramref name="entry"/> stands for in its own scope —
-    /// what its identity (<c>literal-1 ?? word</c>, ISO §12.3.8.4 GR2) names in the group, the standard class or the external
+    /// what its identity (<c>literal-1 ?? word</c>, ISO §2023:12.3.8.4 GR2) names in the group, the standard class or the external
     /// repository — without recording a use of the word (the NON-diagnosing, census-free half of <see cref="OoNameResolution.Lookup"/>).
     /// Neither when nothing answers or the word is a formal parameter-name of the definition it lies in.</summary>
     internal (OoClassSymbol? Class, OoInterfaceSymbol? Interface) ResolveSpecifier(Core.RepositoryEntryContext entry)
@@ -305,11 +305,11 @@ public sealed class OoClassTable
     /// table's own later questions about a definition (<see cref="MethodAt"/>, <see cref="ResolveOverrides"/>) read.</summary>
     private SourceMap _sources = null!;
 
-    /// <summary>⛔ §8.3.2.2 at a REFERENCE (kb/Work PB3132): "Within a source element, a given user-defined word may be
+    /// <summary>⛔ §2023:8.3.2.2 at a REFERENCE (kb/Work PB3132): "Within a source element, a given user-defined word may be
     /// used as only one type of user-defined word". The object-class-names, interface-names and parameter-names a
     /// source element references are often declared by ANOTHER element: a method's by its CLASS (the CLASS-ID, the
     /// class's REPOSITORY, its USING clause), a contained program's, a factory definition's or an instance definition's
-    /// by a CONTAINING element's REPOSITORY (§12.3.4 GR1), none of which is the referring element (§10.5: "A source element is a source unit
+    /// by a CONTAINING element's REPOSITORY (§2023:12.3.4 GR1), none of which is the referring element (§2023:10.5: "A source element is a source unit
     /// excluding any contained source units"). So the referring element's census (<see cref="CensusOf"/>) learns each
     /// one here, from the one funnel every such reference resolves through (<see cref="OoNameResolution.Lookup"/>),
     /// whatever kind of element refers. A word the element declares itself as the same type is recorded twice, which
@@ -317,7 +317,7 @@ public sealed class OoClassTable
     /// its container's REPOSITORY declares, is therefore legal until the element references that class-name, and then
     /// refused COBOL2692 at whichever of the two comes second, here or at the declaration funnel
     /// (<c>DataBinder.DeclareUserWord</c>). The names a CONFIGURATION SECTION declares reach a contained element the
-    /// same way (§8.4.6.1), and the data binder records each reference to one here too
+    /// same way (§2023:8.4.6.1), and the data binder records each reference to one here too
     /// (<c>DataBinder.RecordConfigurationNameUse</c>, kb/Work PB3153). False, recording nothing, when no census holds
     /// <paramref name="site"/> (a site in no source element, a table no <see cref="Build"/> made).</summary>
     internal bool RecordReferenceUse(Antlr4.Runtime.RuleContext? site, string name, UserWordKind kind)
@@ -329,7 +329,7 @@ public sealed class OoClassTable
         return true;
     }
 
-    /// <summary>THE §8.3.2.2 census of the source element <paramref name="site"/> lies in (§10.5), one per element for
+    /// <summary>THE §2023:8.3.2.2 census of the source element <paramref name="site"/> lies in (§2023:10.5), one per element for
     /// the whole compilation, so the binder that declares the element's words and every reference that uses one
     /// (<see cref="RecordReferenceUse"/>) record into the same object whatever order they run in. A method's is its
     /// symbol's (<see cref="CensusOf(OoMethodSymbol)"/>; kb/Work PB2921), found through <see cref="MethodAt"/>. Every
@@ -349,8 +349,8 @@ public sealed class OoClassTable
         return words;
     }
 
-    /// <summary>The §8.3.2.2 census of <paramref name="method"/>, a source element of its own (§10.5), so its words may repeat,
-    /// as another type, a word of its class or of a sibling method (§8.4.6.1; kb/Work PB2921). One per method symbol for the
+    /// <summary>The §2023:8.3.2.2 census of <paramref name="method"/>, a source element of its own (§2023:10.5), so its words may repeat,
+    /// as another type, a word of its class or of a sibling method (§2023:8.4.6.1; kb/Work PB2921). One per method symbol for the
     /// whole compilation: the binder declaring the method's words (<c>OoDataBinder.EnterMethodDeclarations</c>) and every
     /// reference made inside it (<see cref="CensusOf(Antlr4.Runtime.RuleContext)"/>) record into this object. Binder working
     /// state, so it is kept here and not on the method's model scope (kb/Work PB2402).</summary>
@@ -385,7 +385,7 @@ public sealed class OoClassTable
 
     /// <summary>The innermost source element containing <paramref name="site"/> — the memo key, and the unit
     /// whose REPOSITORY (plus its containers') the scope is. A method definition is its own key even though it
-    /// may not carry a REPOSITORY (§12.3.3 SR2): its scope is its class's, and keying on it costs one entry.</summary>
+    /// may not carry a REPOSITORY (§2023:12.3.3 SR2): its scope is its class's, and keying on it costs one entry.</summary>
     private static Antlr4.Runtime.RuleContext? SourceElementOf(Antlr4.Runtime.RuleContext? site)
     {
         for (var c = site; c is not null; c = c.Parent)
@@ -396,7 +396,7 @@ public sealed class OoClassTable
         return null;
     }
 
-    /// <summary>The §11.8.4 GR2 closure: direct IMPLEMENTS + everything an implemented interface INHERITS +
+    /// <summary>The §2023:11.8.4 GR2 closure: direct IMPLEMENTS + everything an implemented interface INHERITS +
     /// everything an inherited CLASS implements (transitively, cycle-safe).</summary>
     public IReadOnlyList<OoInterfaceSymbol> ImplementsClosure(OoClassSymbol cls, bool factory)
     {
@@ -416,13 +416,13 @@ public sealed class OoClassTable
         }
     }
 
-    /// <summary>⛔ THE CLASS FACTS OF ONE OBJECT-REFERENCE DESCRIPTION, as ISO §14.9.39.3 SR10 / SR12 relate them
+    /// <summary>⛔ THE CLASS FACTS OF ONE OBJECT-REFERENCE DESCRIPTION, as ISO §2023:14.9.39.3 SR10 / SR12 relate them
     /// (<see cref="ObjectReferenceOperand"/>; kb/Work PB2463) — the ONE derivation both the compile-time SET table
     /// (<see cref="OoConformance.ObjectRefAssignmentMismatch(OoClassTable, ObjectRefDescriptor, ObjectRefDescriptor, bool)"/>)
     /// and the run-time descriptions (<see cref="ActivationDescriptions"/>, <c>ActivationDescription.ObjectClasses</c> /
     /// <c>ObjectInterfaces</c>) read. An object-class-name description — and an ACTIVE-CLASS one, whose class is "the
     /// class containing the data item" (SR10 c), SR12 b) 2.) — has its class and every class it inherits from, and the
-    /// §11.8.4 GR2 closure of what its objects (its factory object, FACTORY written) implement (SR10 b) / c)); an
+    /// §2023:11.8.4 GR2 closure of what its objects (its factory object, FACTORY written) implement (SR10 b) / c)); an
     /// interface-name description has the interface and every interface it inherits from (SR10 a): "an interface that
     /// identifies int-1 or an interface inheriting from int-1"). A name this table does not resolve has neither.
     /// <para>A FORMAL description (<see cref="ObjectRefDescriptor.Formal"/>; kb/Work PB2937) names no class of the table
@@ -437,8 +437,8 @@ public sealed class OoClassTable
     /// <summary>⛔ THE CLASS FACTS OF ONE OBJECT-REFERENCE DESCRIPTION AS A RUN-TIME DESCRIPTION CARRIES THEM
     /// (<see cref="ActivationDescriptions"/>; DESIGN-external-repository §6.4): <see cref="SetOperand"/>'s derivation, with
     /// the class or interface the description names and every class and interface of its facts spelled by its
-    /// EXTERNALIZED name (ISO §11.3.4 GR1, §11.6.4 GR1: "the name … that is externalized to the operating environment"),
-    /// because a word is per source element and two separately compiled groups name one class by its identity (§8.13). A
+    /// EXTERNALIZED name (ISO §2023:11.3.4 GR1, §2023:11.6.4 GR1: "the name … that is externalized to the operating environment"),
+    /// because a word is per source element and two separately compiled groups name one class by its identity (§2023:8.13). A
     /// FORMAL description keeps its parameter-name: nothing emits a skeleton.</summary>
     public ObjectReferenceOperand DescribedOperand(ObjectRefDescriptor d) => Facts(d, identities: true);
 
@@ -469,9 +469,9 @@ public sealed class OoClassTable
         string Spell(OoInterfaceSymbol x) => identities ? x.ExternalizedName : x.Name;
     }
 
-    /// <summary>⛔ THE SENDER AND RECEIVER OF ONE §14.9.39.3 PAIR, as the SET table relates them — <see cref="SetOperand"/>
+    /// <summary>⛔ THE SENDER AND RECEIVER OF ONE §2023:14.9.39.3 PAIR, as the SET table relates them — <see cref="SetOperand"/>
     /// for each side, except that a FORMAL side (kb/Work PB2937) stands for the actual MOST FAVOURABLE to the pair. ISO
-    /// §9.3.8.2.4 treats the definition "as if the actual parameter classes or interfaces were substituted for the
+    /// §2023:9.3.8.2.4 treats the definition "as if the actual parameter classes or interfaces were substituted for the
     /// parameters", so a definition bound as itself refuses a pair only when EVERY expansion would: a formal sender is
     /// taken to be the receiver's own class or interface (its class or a subclass of it, one implementing it), a formal
     /// receiver the sender's own class (or an interface the sender implements). What survives the substitution is what no
@@ -485,7 +485,7 @@ public sealed class OoClassTable
         var s = SetOperand(send);
         var r = SetOperand(recv);
         // An ACTIVE-CLASS sender in a definition whose superclass is a parameter-name: its class inherits from the actual,
-        // which may be the receiver's class or one implementing the receiver's interface (§9.3.9) — most favourable too.
+        // which may be the receiver's class or one implementing the receiver's interface (§2023:9.3.9) — most favourable too.
         if (send.IsActiveClass && send.Name is { } own && ContainingSkeleton(send, own)?.FormalBaseName is not null)
             s = s with { Classes = [.. s.Classes ?? [], .. r.Classes ?? []], Interfaces = [.. s.Interfaces ?? [], .. r.Interfaces ?? []] };
         if (send.Formal && recv.Formal && CobolNames.Same(send.Name, recv.Name)) return (s, r);
@@ -507,7 +507,7 @@ public sealed class OoClassTable
     private OoClassSymbol? ContainingSkeleton(ObjectRefDescriptor d, string name) =>
         d.IsActiveClass ? _parameterizedClasses.FirstOrDefault(c => CobolNames.Same(c.Name, name)) : null;
 
-    /// <summary>The class and every class it inherits from, nearest first (cycle-safe; §11.3.3 SR4 refuses a cycle).</summary>
+    /// <summary>The class and every class it inherits from, nearest first (cycle-safe; §2023:11.3.3 SR4 refuses a cycle).</summary>
     private static List<OoClassSymbol> ClassLineage(OoClassSymbol cls)
     {
         var lineage = new List<OoClassSymbol>();
@@ -536,19 +536,19 @@ public sealed class OoClassTable
     /// <summary>
     /// Build the table from the group's class definitions (pass-1: identity + roster only — no data or statement
     /// binding). Structural diagnostics raised here, each through its own <c>DiagnosticCatalog</c> descriptor (one
-    /// rule, one code — kb/Work PB1784): a class or interface name declared twice (§8.4.6.4 / §8.3.2.2,
-    /// <c>OoDefinitionNameNotUnique</c>); an INHERITS or IMPLEMENTS name that resolves to nothing in scope (§11.3.3 SR2
-    /// <c>InheritedClassNotInScope</c> — never silently a root class — and §11.6.3 SR2 / §11.4.3 SR1 / §11.8.3 SR1
-    /// <c>InterfaceNameNotInScope</c>); the INHERITS clauses' own rules, §11.3.3 SR3 / SR4 / SR5 / SR7 and §11.6.3 SR3
+    /// rule, one code — kb/Work PB1784): a class or interface name declared twice (§2023:8.4.6.4 / §2023:8.3.2.2,
+    /// <c>OoDefinitionNameNotUnique</c>); an INHERITS or IMPLEMENTS name that resolves to nothing in scope (§2023:11.3.3 SR2
+    /// <c>InheritedClassNotInScope</c> — never silently a root class — and §2023:11.6.3 SR2 / §2023:11.4.3 SR1 / §2023:11.8.3 SR1
+    /// <c>InterfaceNameNotInScope</c>); the INHERITS clauses' own rules, §2023:11.3.3 SR3 / SR4 / SR5 / SR7 and §2023:11.6.3 SR3
     /// / SR6 (<c>InheritsClauseRule</c>), over every class and interface definition, the parameterized ones
     /// (<paramref name="parameterizedClasses"/>, kept out of the table) included; OVERRIDE / FINAL in a prototype
-    /// (§11.7.3 SR2 / SR8); and the two declined Annex A.4.10 items — multiple class inheritance (item 1) and a
-    /// method-name defined twice in one definition (item 3: parametric polymorphism, ISO §9.3.5.3, whose support this
+    /// (§2023:11.7.3 SR2 / SR8); and the two declined Annex A.4.10 items — multiple class inheritance (item 1) and a
+    /// method-name defined twice in one definition (item 3: parametric polymorphism, ISO §2023:9.3.5.3, whose support this
     /// implementation does not claim, deep-dive D9).
     /// <para>⚠ The three §12063 citations that stood here and at the two COBOL0822 emit sites were NOT
     /// clause numbers — ISO/IEC 1989:2023 has no §12063; the number was a stray line anchor, recorded as
     /// finding 44 of <c>docs/rearchitecture/DESIGN-SPEC-RECONCILIATION.md</c>. Re-derived and
-    /// <c>cite.py --check</c>ed: §9.3.5.3 is "Parametric polymorphism", its rule 7 is "Parametric polymorphism
+    /// <c>cite.py --check</c>ed: §2023:9.3.5.3 is "Parametric polymorphism", its rule 7 is "Parametric polymorphism
     /// is an optional feature in this Working Draft International Standard", and Annex A.4.10 item 3 is
     /// "Parametric polymorphism (9.3.5.3)". The CLAUDE.md rule-1 inherited-citation failure, caught at the
     /// point the rows it covers were being witnessed.</para>
@@ -569,17 +569,17 @@ public sealed class OoClassTable
         };
         var usedCsNames = new HashSet<string>(StringComparer.Ordinal);
 
-        // §11.3.3 SR1 / §11.6.3 SR1 / §11.7.3 SR1 — the AS phrase's literal, screened by the ONE screen
-        // every AS site shares (kb/Work PB303). §11.3.3 SR1 is the outlier: it omits the zero-length
+        // §2023:11.3.3 SR1 / §2023:11.6.3 SR1 / §2023:11.7.3 SR1 — the AS phrase's literal, screened by the ONE screen
+        // every AS site shares (kb/Work PB303). §2023:11.3.3 SR1 is the outlier: it omits the zero-length
         // exclusion its four siblings carry, so CLASS-ID passes rejectZeroLength: false. Absent, or on a
-        // rejected literal, the externalized name IS the declared word (§8.3.2.2 2)).
+        // rejected literal, the externalized name IS the declared word (§2023:8.3.2.2 2)).
         string Externalized(Core.ExternalizedNamePhraseContext? phrase, string declared,
             string kind, string rule, bool rejectZeroLength = true)
         {
             if (phrase is null) return declared;
             using var _ = edition.At(phrase);
-            // No DATA DIVISION is bound yet, so a constant-name operand (§13.10.3 SR2) is read off the parse tree
-            // (kb/Work PB2588): a METHOD-ID's from its own and its object's or factory's entries (§11.7.4 GR5).
+            // No DATA DIVISION is bound yet, so a constant-name operand (§2023:13.10.3 SR2) is read off the parse tree
+            // (kb/Work PB2588): a METHOD-ID's from its own and its object's or factory's entries (§2023:11.7.4 GR5).
             return ExternalizedName.Screen(phrase, k => PreBindConstants.Read(phrase, k, variables), edition,
                        DiagnosticCatalog.ExternalizedNameLiteral,
                        $"{kind} '{declared}' AS {ExternalizedName.Written(phrase)}", "literal-1", rule,
@@ -587,7 +587,7 @@ public sealed class OoClassTable
                    ?? declared;
         }
 
-        // ── INTERFACES first (§11.6) — classes' IMPLEMENTS then resolve regardless of source order ──
+        // ── INTERFACES first (§2023:11.6) — classes' IMPLEMENTS then resolve regardless of source order ──
         foreach (var ictx in interfaces ?? [])
         {
             string iname = ictx.interfaceName(0).GetText();
@@ -601,12 +601,12 @@ public sealed class OoClassTable
             {
                 edition.Error(DiagnosticCatalog.OoDefinitionNameNotUnique,
                     $"duplicate interface definition '{iname}' — interface definitions within a compilation group "
-                    + "shall have unique interface-names (ISO §8.4.6.4)");
+                    + "shall have unique interface-names (ISO §2023:8.4.6.4)");
                 continue;
             }
             table._ifaceByName.Add(iname, isym);
             table._interfaces.Add(isym);
-            // The END INTERFACE and END METHOD names are §10.7.3 SR6 / SR5, asked by Validation.EndMarkerPass.
+            // The END INTERFACE and END METHOD names are §2023:10.7.3 SR6 / SR5, asked by Validation.EndMarkerPass.
             AddPrototypes(isym);
         }
         // The PARAMETERIZED interface definitions (kb/Work PB2051): out of the table and every lookup, but interface
@@ -622,21 +622,21 @@ public sealed class OoClassTable
             table._parameterizedInterfaces.Add(isym);
         }
 
-        // One interface definition's symbol (the table's and the parameterized ones); §11.6.3 SR1 screens the AS literal.
+        // One interface definition's symbol (the table's and the parameterized ones); §2023:11.6.3 SR1 screens the AS literal.
         OoInterfaceSymbol NewInterfaceSymbol(Core.InterfaceDefinitionContext ictx)
         {
             string iname = ictx.interfaceName(0).GetText();
             var isym = new OoInterfaceSymbol(iname, DataItem.WordIdentifier(iname), OoSymbolOrigin.Source)
             {
                 ExternalizedName = Externalized(ictx.externalizedNamePhrase(), iname,
-                    "INTERFACE-ID", "ISO §11.6.3 SR1"),
+                    "INTERFACE-ID", "ISO §2023:11.6.3 SR1"),
             };
             sources.Add(isym, ictx, expanded.Origins.GetValueOrDefault(ictx));
             return isym;
         }
 
-        // PROTOTYPES (§10.6.2 SR4): a header + optional LINKAGE-only data division, NO procedure body,
-        // NO OVERRIDE/FINAL attributes (§11.7 SR2/SR8 — the OVERRIDE/FINAL wave's forward obligation).
+        // PROTOTYPES (§2023:10.6.2 SR4): a header + optional LINKAGE-only data division, NO procedure body,
+        // NO OVERRIDE/FINAL attributes (§2023:11.7 SR2/SR8 — the OVERRIDE/FINAL wave's forward obligation).
         void AddPrototypes(OoInterfaceSymbol isym)
         {
             var ictx = sources.Of(isym);
@@ -650,20 +650,20 @@ public sealed class OoClassTable
                 if (m.OVERRIDE() is not null)
                     edition.Error(DiagnosticCatalog.MethodPrototypeOverrideOrFinal,
                         $"interface '{iname}', method '{pname}': the OVERRIDE phrase shall not be specified in a "
-                        + "method prototype (ISO §11.7.3 SR2)");
+                        + "method prototype (ISO §2023:11.7.3 SR2)");
                 if (m.FINAL() is not null)
                     edition.Error(DiagnosticCatalog.MethodPrototypeOverrideOrFinal,
                         $"interface '{iname}', method '{pname}': the FINAL clause shall not be specified in a "
-                        + "method prototype (ISO §11.7.3 SR8)");
-                // §10.6.2 SR4 a)-f) — the ONE prototype-body screen every prototype kind shares (kb/Work PB894).
+                        + "method prototype (ISO §2023:11.7.3 SR8)");
+                // §2023:10.6.2 SR4 a)-f) — the ONE prototype-body screen every prototype kind shares (kb/Work PB894).
                 // This arm used to carry its own two of the six restrictions, with the data division checked
                 // against three of its five non-linkage sections.
                 PrototypeUnitRules.ScreenBody($"interface '{iname}', method '{pname}'", m.optionsParagraph(),
                     m.environmentDivision(), m.dataDivision(), pd, edition);
-                // A GET/SET PROPERTY prototype (kb/Work PB1449): §11.7.2's format is shared by method definitions and
-                // prototypes, and §11.7.4 GR6/GR7 make a METHOD-ID with the GET / SET phrase a get / set property
+                // A GET/SET PROPERTY prototype (kb/Work PB1449): §2023:11.7.2's format is shared by method definitions and
+                // prototypes, and §2023:11.7.4 GR6/GR7 make a METHOD-ID with the GET / SET phrase a get / set property
                 // method — so the prototype joins the roster under the SAME pinned accessor name a class's accessor
-                // has (§11.7.4 GR1 a)), and IMPLEMENTS conformance pairs the two by that roster key.
+                // has (§2023:11.7.4 GR1 a)), and IMPLEMENTS conformance pairs the two by that roster key.
                 var psel = m.methodPropertySelector();
                 string protoName = psel is null ? pname
                     : psel.GET() is not null ? NamingConvention.GetAccessorName(pname)
@@ -677,9 +677,9 @@ public sealed class OoClassTable
                     ClrName = psel is null ? DataItem.WordIdentifier(pname) : protoName,
                     Accessor = psel is null ? '\0' : psel.GET() is not null ? 'G' : 'S',
                     PropertyName = psel is null ? null : pname,
-                    // §11.7.2 prints [AS literal-1] on the method-name-1 arm only (the class arm's rule).
+                    // §2023:11.7.2 prints [AS literal-1] on the method-name-1 arm only (the class arm's rule).
                     ExternalizedName = Externalized(m.externalizedNamePhrase(), protoName,
-                        "METHOD-ID", "ISO §11.7.3 SR1"),
+                        "METHOD-ID", "ISO §2023:11.7.3 SR1"),
                 };
                 sources.Add(proto, m);
                 if (!isym.TryAddPrototype(proto))
@@ -687,14 +687,14 @@ public sealed class OoClassTable
                         $"interface '{iname}': a second method prototype named '{pname}'");
             }
         }
-        // Interface INHERITS resolution + cycle check (§11.6.3 SR2/SR3/SR6). The INHERITS clause of a PARAMETERIZED
+        // Interface INHERITS resolution + cycle check (§2023:11.6.3 SR2/SR3/SR6). The INHERITS clause of a PARAMETERIZED
         // interface is asked too (kb/Work PB2051): nothing resolves to a skeleton, so it cannot close a cycle, and a
         // base written as one of its parameter-names resolves as a formal, which each expansion's own clause answers.
         foreach (var isym in table._interfaces.Concat(table._parameterizedInterfaces))
         {
-            // §11.6.3 SR6: "A given interface-name shall not appear more than once in an INHERITS clause" — the rule is
-            // about the WRITTEN NAME (two spellings are one name under the Annex C fold, §8.1.3.2 GR3 b)/GR4 b)), not the interface it resolves to:
-            // two different REPOSITORY names for one externalized interface (§12.3.8.3 — INTERFACE R6X AS "E" and
+            // §2023:11.6.3 SR6: "A given interface-name shall not appear more than once in an INHERITS clause" — the rule is
+            // about the WRITTEN NAME (two spellings are one name under the Annex C fold, §2023:8.1.3.2 GR3 b)/GR4 b)), not the interface it resolves to:
+            // two different REPOSITORY names for one externalized interface (§2023:12.3.8.3 — INTERFACE R6X AS "E" and
             // INTERFACE R6Y AS "E") are two interface-names, which no sentence of the standard forbids, so both are
             // legal and name ONE base (docs/CONFORMANCE.md D-INH1; kb/Work PB1502, following the PB946 determination).
             var writtenNames = new HashSet<string>(CobolNames.Comparer);
@@ -708,14 +708,14 @@ public sealed class OoClassTable
                 {
                     edition.Error(DiagnosticCatalog.InheritsClauseRule,
                         $"interface '{isym.Name}': INHERITS FROM names '{inh}' more than once; a given interface-name "
-                        + "shall not appear more than once in an INHERITS clause (ISO §11.6.3 SR6)");
+                        + "shall not appear more than once in an INHERITS clause (ISO §2023:11.6.3 SR6)");
                     continue;
                 }
-                // §11.6.3 SR2: "Interface-name-2 shall be the name of an interface specified in the REPOSITORY
+                // §2023:11.6.3 SR2: "Interface-name-2 shall be the name of an interface specified in the REPOSITORY
                 // paragraph of this source element" — the class-INHERITS rule's twin, same funnel (PB365).
                 if (OoNameResolution.Resolve(table, edition, sources.Of(isym), inh, OoNameResolution.Want.Interface,
                         $"interface '{isym.Name}': INHERITS FROM", DiagnosticCatalog.InterfaceNameNotInScope.Code,
-                        "ISO §11.6.3 SR2").Interface is { } b
+                        "ISO §2023:11.6.3 SR2").Interface is { } b
                     && !isym.Inherits.Contains(b))
                     isym.Inherits.Add(b);   // an alias of a base already inherited adds nothing (one C# base)
             }
@@ -734,7 +734,7 @@ public sealed class OoClassTable
                     {
                         edition.Error(DiagnosticCatalog.InheritsClauseRule,
                             $"interface '{isym.Name}': the INHERITS graph is cyclic; interface-name-2 shall not "
-                            + "inherit directly or indirectly from interface-name-1 (ISO §11.6.3 SR3)");
+                            + "inherit directly or indirectly from interface-name-1 (ISO §2023:11.6.3 SR3)");
                         stack.Clear();
                         break;
                     }
@@ -743,7 +743,7 @@ public sealed class OoClassTable
             }
         }
 
-        // §11.7.3 SR4 b): "if this method definition is contained in an interface definition, no inherited method
+        // §2023:11.7.3 SR4 b): "if this method definition is contained in an interface definition, no inherited method
         // prototype shall have the same method resolution signature as the method prototype declared by this method
         // definition" — the interface twin of the class arm's SR4 a) (the OVERRIDE marking below). Since SR2 forbids
         // OVERRIDE in a prototype there is no legal way to redeclare an inherited prototype, so ANY inherited
@@ -758,7 +758,7 @@ public sealed class OoClassTable
                         using var atPrototype = edition.At(sources.Of(own));
                         edition.Error(DiagnosticCatalog.InterfacePrototypeRedeclaresInherited,
                             $"interface '{isym.Name}', method '{own.Name}': the method prototype has the same method "
-                            + $"resolution signature as one inherited from interface '{inherited.Name}' (ISO §11.7.3 SR4 b); "
+                            + $"resolution signature as one inherited from interface '{inherited.Name}' (ISO §2023:11.7.3 SR4 b); "
                             + "OVERRIDE, the only way to redeclare an inherited method, is forbidden in a prototype by SR2)");
                         break;
                     }
@@ -779,14 +779,14 @@ public sealed class OoClassTable
             {
                 edition.Error(DiagnosticCatalog.OoDefinitionNameNotUnique,
                     $"'{name}' is defined as both a class and an interface — two kinds of entity cannot share one "
-                    + "externalized name (ISO §8.3.2.2)");
+                    + "externalized name (ISO §2023:8.3.2.2)");
                 continue;
             }
             if (!table._byName.TryAdd(name, sym) || !usedCsNames.Add(csName))
             {
                 edition.Error(DiagnosticCatalog.OoDefinitionNameNotUnique,
                     $"duplicate class definition '{name}' — object class definitions within a compilation group shall "
-                    + "have unique object-class-names (ISO §8.4.6.4; class names compare case-insensitively and map to "
+                    + "have unique object-class-names (ISO §2023:8.4.6.4; class names compare case-insensitively and map to "
                     + "one emitted type)");
                 continue;
             }
@@ -796,11 +796,11 @@ public sealed class OoClassTable
                 throw new InvalidOperationException(
                     $"factory class name '{sym.FactoryClrName}' of class '{name}' is already taken (kb/Work PB2921)");
             table._classes.Add(sym);
-            // The END CLASS and END METHOD names are §10.7.3 SR4 / SR5, asked by Validation.EndMarkerPass.
+            // The END CLASS and END METHOD names are §2023:10.7.3 SR4 / SR5, asked by Validation.EndMarkerPass.
             AddMethods(sym);
         }
 
-        // One class definition's symbol: its names, its CLASS-ID attributes (§11.3.3 SR1 screens the AS literal), its
+        // One class definition's symbol: its names, its CLASS-ID attributes (§2023:11.3.3 SR1 screens the AS literal), its
         // INHERITS operands as written. Shared by the table's classes and the parameterized definitions (kb/Work PB2051),
         // so a CLASS-ID rule asked here is asked of every class definition the source holds.
         OoClassSymbol NewClassSymbol(Core.ClassDefinitionContext ctx)
@@ -811,9 +811,9 @@ public sealed class OoClassTable
             var bases = id.className().Skip(1).Select(c => c.GetText()).ToList();
             var sym = new OoClassSymbol(name, csName, OoSymbolOrigin.Source)
             {
-                // §11.3.3 SR1 alone omits the zero-length exclusion (verified on the printed page).
+                // §2023:11.3.3 SR1 alone omits the zero-length exclusion (verified on the printed page).
                 ExternalizedName = Externalized(id.externalizedNamePhrase(), name,
-                    "CLASS-ID", "ISO §11.3.3 SR1", rejectZeroLength: false),
+                    "CLASS-ID", "ISO §2023:11.3.3 SR1", rejectZeroLength: false),
                 Bases = bases,
                 BaseName = bases.Count >= 1 ? bases[0] : null,
                 IsFinal = id.FINAL() is not null,
@@ -848,22 +848,22 @@ public sealed class OoClassTable
                 { ClrName = mcs, Owner = sym, HasOverride = m.OVERRIDE() is not null, IsFinal = m.FINAL() is not null,
                   Accessor = sel is null ? '\0' : sel.GET() is not null ? 'G' : 'S',
                   PropertyName = sel?.propertyName().GetText(),
-                  // §11.7.2 prints [AS literal-1] on the method-name-1 arm only — a GET/SET PROPERTY
-                  // method's name is implementor-defined (§11.7.4 GR1 a), so `sel` never has one.
+                  // §2023:11.7.2 prints [AS literal-1] on the method-name-1 arm only — a GET/SET PROPERTY
+                  // method's name is implementor-defined (§2023:11.7.4 GR1 a), so `sel` never has one.
                   ExternalizedName = Externalized(m.externalizedNamePhrase(), methodName,
-                      "METHOD-ID", "ISO §11.7.3 SR1") };
+                      "METHOD-ID", "ISO §2023:11.7.3 SR1") };
                 sources.Add(method, m);
-                // §11.7.3 SR6/SR7 (the accessor's header shape) are asked of the BOUND header, by
+                // §2023:11.7.3 SR6/SR7 (the accessor's header shape) are asked of the BOUND header, by
                 // OoDataBinder.BindMethodData — the parameter count and the ACTIVE-CLASS descriptor (kb/Work PB1503).
                 if (!sym.TryAddMethod(method))
                     edition.Declined(DiagnosticCatalog.ParametricPolymorphismDeclined,
                         $"class '{name}': a second method named '{methodName}' (OO deep-dive D9)");
             }
 
-            // FACTORY methods (§11.4) — a SEPARATE roster/interface (§9.3.6: an instance method and a
+            // FACTORY methods (§2023:11.4) — a SEPARATE roster/interface (§2023:9.3.6: an instance method and a
             // factory method may share a name). A factory METHOD-ID named NEW is an ordinary method (kb/Work PB1582):
-            // New belongs to the standard class BASE's factory interface (§16.2), so outside BASE's hierarchy NEW is
-            // just a method-name, and inside it `METHOD-ID. NEW OVERRIDE.` overrides BASE's New (§11.7.3 SR3 — §16.2
+            // New belongs to the standard class BASE's factory interface (§2023:16.2), so outside BASE's hierarchy NEW is
+            // just a method-name, and inside it `METHOD-ID. NEW OVERRIDE.` overrides BASE's New (§2023:11.7.3 SR3 — §2023:16.2
             // does not declare New FINAL) while `METHOD-ID. NEW.` is the SR4 a) redefinition (ResolveOverrides).
             foreach (var m in ctx.factoryParagraph()?.methodDefinition() ?? [])
             {
@@ -888,7 +888,7 @@ public sealed class OoClassTable
                   Accessor = fsel is null ? '\0' : fsel.GET() is not null ? 'G' : 'S',
                   PropertyName = fsel?.propertyName().GetText(),
                   ExternalizedName = Externalized(m.externalizedNamePhrase(), methodName,
-                      "METHOD-ID", "ISO §11.7.3 SR1") };
+                      "METHOD-ID", "ISO §2023:11.7.3 SR1") };
                 sources.Add(method, m);
                 if (!sym.TryAddFactoryMethod(method))
                     edition.Declined(DiagnosticCatalog.ParametricPolymorphismDeclined,
@@ -901,23 +901,23 @@ public sealed class OoClassTable
         {
             if (sym.BaseName is not { } baseName) continue;
             using var atBase = edition.At(sources.Of(sym).classIdParagraph().className(1));
-            // §11.3.3 SR2: "Object-class-name-2 shall be the name of a class specified in the REPOSITORY
-            // paragraph of this source element" — an INSTANCE of §8.4.6.4, so it resolves through the ONE
+            // §2023:11.3.3 SR2: "Object-class-name-2 shall be the name of a class specified in the REPOSITORY
+            // paragraph of this source element" — an INSTANCE of §2023:8.4.6.4, so it resolves through the ONE
             // funnel and NOT through this table's group-wide Find (kb/Work PB365).
             if (OoNameResolution.Resolve(table, edition, sources.Of(sym), baseName, OoNameResolution.Want.Class,
                     $"class '{sym.Name}': INHERITS FROM", DiagnosticCatalog.InheritedClassNotInScope.Code,
-                    "ISO §11.3.3 SR2").Class
+                    "ISO §2023:11.3.3 SR2").Class
                 is { } baseSym)
             {
                 sym.Base = baseSym;
                 if (baseSym.IsFinal)
                     edition.Error(DiagnosticCatalog.InheritsClauseRule,
                         $"class '{sym.Name}': INHERITS FROM '{baseName}', which is declared FINAL; object-class-name-2 "
-                        + "shall not be the name of a class defined with the FINAL clause (ISO §11.3.3 SR5 / §11.3.4 GR3)");
+                        + "shall not be the name of a class defined with the FINAL clause (ISO §2023:11.3.3 SR5 / §2023:11.3.4 GR3)");
             }
         }
 
-        // §11.3.3 SR3 / SR4 over the RESOLVED links (an AS-literal alias of the class's own name is still itself), and
+        // §2023:11.3.3 SR3 / SR4 over the RESOLVED links (an AS-literal alias of the class's own name is still itself), and
         // a cycle would emit circular C# base declarations — so the link is CUT and downstream chain walks stay finite.
         // Every class ON a cycle breaks SR4 (each one's object-class-name-2 inherits from it), and one that merely
         // inherits INTO a cycle breaks nothing: so the cycle members are found first, over the uncut links, and only
@@ -940,19 +940,19 @@ public sealed class OoClassTable
             using var atClass = edition.At(sources.Of(sym).classIdParagraph().className(1));   // the INHERITS name (a linked class has one)
             edition.Error(DiagnosticCatalog.InheritsClauseRule, chain.Count == 1
                 ? $"class '{sym.Name}': INHERITS FROM '{sym.BaseName}' names the class itself; object-class-name-2 "
-                  + "shall not be the name of the class declared by this class definition (ISO §11.3.3 SR3)"
+                  + "shall not be the name of the class declared by this class definition (ISO §2023:11.3.3 SR3)"
                 : $"class '{sym.Name}': INHERITS FROM '{sym.BaseName}', which inherits from '{sym.Name}' (the chain "
                   + $"{string.Join(" -> ", chain)}); object-class-name-2 shall not inherit from object-class-name-1 "
-                  + "directly or indirectly (ISO §11.3.3 SR4)");
+                  + "directly or indirectly (ISO §2023:11.3.3 SR4)");
         }
         foreach (var (sym, _) in onCycle) sym.Base = null;
 
         // The PARAMETERIZED class definitions (kb/Work PB1505). OoExpansion keeps each out of the table — it is a
-        // skeleton, and its expansions are the classes — but it is a class definition all the same, and §11.3.3's rules
+        // skeleton, and its expansions are the classes — but it is a class definition all the same, and §2023:11.3.3's rules
         // on object-class-name-2 are syntax rules of its CLASS-ID paragraph. SR7 and the declined multiple inheritance
         // are the shared ScreenInheritsNames; SR3 compares the written name (the skeleton's own name resolves to no
-        // class); SR2 and SR5 resolve the base through the one §8.4.6.4 funnel. A base written as one of the
-        // definition's own parameter-names (§11.3.4 GR6 permits it wherever an object-class-name is) names the actual
+        // class); SR2 and SR5 resolve the base through the one §2023:8.4.6.4 funnel. A base written as one of the
+        // definition's own parameter-names (§2023:11.3.4 GR6 permits it wherever an object-class-name is) names the actual
         // of each expansion, where the expansion's own CLASS-ID answers these rules.
         foreach (var skeleton in parameterizedClasses ?? [])
         {
@@ -974,7 +974,7 @@ public sealed class OoClassTable
             string baseName = baseCtx.GetText();
             if (id.ooParameterName().Any(p => CobolNames.Same(p.GetText(), baseName)))
             {
-                // The base is a formal: the method search SUPER starts (§8.4.3.8.4 GR3) and SELF continues through is
+                // The base is a formal: the method search SUPER starts (§2023:8.4.3.8.4 GR3) and SELF continues through is
                 // the actual's, known only in an expansion (kb/Work PB2937).
                 if (sym is not null) sym.FormalBaseName = baseName;
                 continue;
@@ -984,39 +984,39 @@ public sealed class OoClassTable
             {
                 edition.Error(DiagnosticCatalog.InheritsClauseRule,
                     $"parameterized class '{name}': INHERITS FROM '{baseName}' names the class itself; object-class-name-2 "
-                    + "shall not be the name of the class declared by this class definition (ISO §11.3.3 SR3)");
+                    + "shall not be the name of the class declared by this class definition (ISO §2023:11.3.3 SR3)");
                 continue;
             }
             var resolvedBase = OoNameResolution.Resolve(table, edition, skeleton, baseName, OoNameResolution.Want.Class,
                 $"parameterized class '{name}': INHERITS FROM", DiagnosticCatalog.InheritedClassNotInScope.Code,
-                "ISO §11.3.3 SR2").Class;
-            // A written class is the skeleton's superclass exactly as it is an ordinary class's (§9.3.9): the search
+                "ISO §2023:11.3.3 SR2").Class;
+            // A written class is the skeleton's superclass exactly as it is an ordinary class's (§2023:9.3.9): the search
             // SUPER starts and the methods SELF inherits are its, whether or not anything expands the definition (kb/Work
             // PB2937 — the skeleton's bodies bind as themselves). A FINAL one is refused and not inherited, as below.
             if (sym is not null && resolvedBase is { IsFinal: false }) sym.Base = resolvedBase;
             if (resolvedBase is { IsFinal: true })
                 edition.Error(DiagnosticCatalog.InheritsClauseRule,
                     $"parameterized class '{name}': INHERITS FROM '{baseName}', which is declared FINAL; object-class-name-2 "
-                    + "shall not be the name of a class defined with the FINAL clause (ISO §11.3.3 SR5 / §11.3.4 GR3)");
+                    + "shall not be the name of a class defined with the FINAL clause (ISO §2023:11.3.3 SR5 / §2023:11.3.4 GR3)");
         }
 
         // OVERRIDE / FINAL resolution is NOT done here: a roster is complete only once its class's data has bound,
-        // because the accessors a PROPERTY clause defines (§13.18.42.4 GR1/GR2) are a fact of the BOUND data — see
+        // because the accessors a PROPERTY clause defines (§2023:13.18.42.4 GR1/GR2) are a fact of the BOUND data — see
         // ResolveOverrides, which BinderDriver runs after every class's data binds (kb/Work PB1274).
 
-        // IMPLEMENTS capture (§11.8.2 — the OBJECT/FACTORY paragraph headers). §11.8.3 SR1 (OBJECT) and
-        // §11.4.3 SR1 (FACTORY) are the SAME sentence — "Interface-name-1 shall be the name of an interface
+        // IMPLEMENTS capture (§2023:11.8.2 — the OBJECT/FACTORY paragraph headers). §2023:11.8.3 SR1 (OBJECT) and
+        // §2023:11.4.3 SR1 (FACTORY) are the SAME sentence — "Interface-name-1 shall be the name of an interface
         // specified in the REPOSITORY paragraph of the containing class definition" — and both now resolve
-        // through the §8.4.6.4 funnel. Until kb/Work PB365 this comment said the REPOSITORY requirement was
+        // through the §2023:8.4.6.4 funnel. Until kb/Work PB365 this comment said the REPOSITORY requirement was
         // "staged as a documented follow-up"; a staged rule is an accepted illegal program, so it is enforced. A
         // PARAMETERIZED class's IMPLEMENTS clauses are asked too (kb/Work PB2051); a parameter-name there resolves as a
-        // formal, and conformance to whatever it names is each expansion's (§9.3.8.2.4).
+        // formal, and conformance to whatever it names is each expansion's (§2023:9.3.8.2.4).
         foreach (var sym in table._classes.Concat(table._parameterizedClasses))
         {
             CaptureImplements(sources.Of(sym).objectParagraph()?.implementsClause(), sym.Implements,
-                "OBJECT", "ISO §11.8.3 SR1");
+                "OBJECT", "ISO §2023:11.8.3 SR1");
             CaptureImplements(sources.Of(sym).factoryParagraph()?.implementsClause(), sym.FactoryImplements,
-                "FACTORY", "ISO §11.4.3 SR1");
+                "FACTORY", "ISO §2023:11.4.3 SR1");
 
             void CaptureImplements(Core.ImplementsClauseContext? impl, List<OoInterfaceSymbol> into,
                 string where, string citation)
@@ -1024,18 +1024,18 @@ public sealed class OoClassTable
                 foreach (var iref in impl?.interfaceName() ?? [])
                 {
                     using var atImplements = edition.At(iref);
-                    // The site is the CLASS definition (§11.8.3 SR1 says "of the containing class
+                    // The site is the CLASS definition (§2023:11.8.3 SR1 says "of the containing class
                     // definition"), which is also where the OBJECT/FACTORY paragraph's own scope comes from:
-                    // §12.3.3 SR3 forbids a REPOSITORY inside either paragraph.
+                    // §2023:12.3.3 SR3 forbids a REPOSITORY inside either paragraph.
                     if (OoNameResolution.Resolve(table, edition, sources.Of(sym), iref.GetText(),
                             OoNameResolution.Want.Interface, $"class '{sym.Name}' ({where}): IMPLEMENTS",
                             DiagnosticCatalog.InterfaceNameNotInScope.Code, citation).Interface is { } isym)
                     {
-                        // A REPEATED interface-name is legal and changes nothing (kb/Work PB946): §11.8.2/§11.4.2
-                        // print `IMPLEMENTS { interface-name-1 } …`, §11.8.3/§11.4.3 have exactly two syntax rules
+                        // A REPEATED interface-name is legal and changes nothing (kb/Work PB946): §2023:11.8.2/§2023:11.4.2
+                        // print `IMPLEMENTS { interface-name-1 } …`, §2023:11.8.3/§2023:11.4.3 have exactly two syntax rules
                         // (REPOSITORY membership; conformance) and neither forbids a repeat — where the standard
-                        // DOES forbid one it says so, §11.3.3 SR7 and §11.6.3 SR6 for the two INHERITS clauses. The
-                        // implemented set is what §11.8.4 GR2 consumes, so the second occurrence is absorbed.
+                        // DOES forbid one it says so, §2023:11.3.3 SR7 and §2023:11.6.3 SR6 for the two INHERITS clauses. The
+                        // implemented set is what §2023:11.8.4 GR2 consumes, so the second occurrence is absorbed.
                         if (!into.Contains(isym))
                             into.Add(isym);
                     }
@@ -1046,11 +1046,11 @@ public sealed class OoClassTable
     }
 
     /// <summary>The rules on the WRITTEN object-class-name-2 list of a CLASS-ID's INHERITS clause, asked of every class
-    /// definition (a parameterized one included): ISO §11.3.3 SR7 — "A given class name shall not appear more than once
+    /// definition (a parameterized one included): ISO §2023:11.3.3 SR7 — "A given class name shall not appear more than once
     /// in an INHERITS clause" (kb/Work PB1020) — first, then the declined multiple inheritance (Annex A.4.10 item 1,
     /// <c>MultipleInheritanceDeclined</c>) over the DISTINCT names, so <c>INHERITS FROM B B</c> reports the rule it breaks and not the
-    /// restriction. The names compare as written words (§8.3.2.2 — case-insensitively), the reading the interface twin
-    /// (§11.6.3 SR6, kb/Work PB1502) takes.</summary>
+    /// restriction. The names compare as written words (§2023:8.3.2.2 — case-insensitively), the reading the interface twin
+    /// (§2023:11.6.3 SR6, kb/Work PB1502) takes.</summary>
     private static void ScreenInheritsNames(Core.ClassIdParagraphContext id, string name, EditionContext edition)
     {
         var distinct = new List<string>();
@@ -1062,13 +1062,13 @@ public sealed class OoClassTable
                 using var _ = edition.At(written);
                 edition.Error(DiagnosticCatalog.InheritsClauseRule,
                     $"class '{name}': INHERITS FROM names '{w}' more than once; a given class name shall not appear more "
-                    + "than once in an INHERITS clause (ISO §11.3.3 SR7)");
+                    + "than once in an INHERITS clause (ISO §2023:11.3.3 SR7)");
                 continue;
             }
             distinct.Add(w);
         }
         if (distinct.Count > 1)
-            // §11.3.2 permits several INHERITS bases; WiseOwl COBOL restricts to SINGLE inheritance and refuses the rest
+            // §2023:11.3.2 permits several INHERITS bases; WiseOwl COBOL restricts to SINGLE inheritance and refuses the rest
             // by name through the ONE declined-element seam (SSOT §18 #18; Annex A.4.10 item 1 — multiple inheritance,
             // not claimed). Silently compiling against only the first base was the R9 silent-miscompile.
             using (edition.At(id.className(2)))
@@ -1080,22 +1080,22 @@ public sealed class OoClassTable
     /// OVERRIDE marking and the method-attribute rules, over rosters that are COMPLETE — run by <c>BinderDriver</c>
     /// once every class's data has bound (and so once every PROPERTY clause has defined its accessors), before any
     /// signature is compared. A PROPERTY clause "causes a method to be defined for the containing object" (ISO
-    /// §13.18.42.4 GR1/GR2), and §8.4.3.9.1 calls it "a method implicitly generated for a data item described with the
+    /// §2023:13.18.42.4 GR1/GR2), and §2023:8.4.3.9.1 calls it "a method implicitly generated for a data item described with the
     /// PROPERTY clause" — so its accessors are superclass methods like any other: an explicit `GET PROPERTY N OVERRIDE`
-    /// overrides one, and a FINAL one (§13.18.42.4 GR3) refuses it. Which entries carry the clause is a fact of the
+    /// overrides one, and a FINAL one (§2023:13.18.42.4 GR3) refuses it. Which entries carry the clause is a fact of the
     /// BOUND data, not of the entry's own text (a SAME AS entry is "as though the data description identified by
-    /// data-name-1 had been coded in place", §13.18.49.4 GR1), so the roster is complete only after data binding.
+    /// data-name-1 had been coded in place", §2023:13.18.49.4 GR1), so the roster is complete only after data binding.
     /// Until kb/Work PB1274 this ran inside <see cref="Build"/>, before any clause accessor existed: the OVERRIDE of
-    /// one was refused (0838), a FINAL one could be redefined, and §13.18.42.3 SR4 depended on SOURCE ORDER.
+    /// one was refused (0838), a FINAL one could be redefined, and §2023:13.18.42.3 SR4 depended on SOURCE ORDER.
     /// <para>The rules, both rosters (instance + factory) alike — per-interface, never cross-roster (D11): an EXPLICIT
-    /// OVERRIDE marks the override (0839 when the overridden method is FINAL — §11.7.3 SR3 "The method in the
-    /// superclass shall not be defined with the FINAL clause"); a name match WITHOUT the attribute is the §11.7.3
+    /// OVERRIDE marks the override (0839 when the overridden method is FINAL — §2023:11.7.3 SR3 "The method in the
+    /// superclass shall not be defined with the FINAL clause"); a name match WITHOUT the attribute is the §2023:11.7.3
     /// SR4 a) 0837 via EditionContext.Removed (error strict; warning + the pre-wave inference under --permissive — the
     /// documented migration leniency), and the override is STILL marked so 0829 signature messages stay coherent;
     /// OVERRIDE with NO matching base method is the SR3 0838. The override and the method it overrides are one slot, which
     /// <see cref="NameMethodSlots"/> names once every override is marked (C# requires the exact member name). A PROPERTY clause's own accessors carry
     /// no OVERRIDE (its implicit METHOD-ID has none), so a clause accessor that meets a superclass method of its name
-    /// is §13.18.42.3 SR4 — asked here too, by property-name, since SR4 bars the name whichever accessors either side
+    /// is §2023:13.18.42.3 SR4 — asked here too, by property-name, since SR4 bars the name whichever accessors either side
     /// defines.</para>
     /// </summary>
     public void ResolveOverrides(EditionContext edition)
@@ -1111,7 +1111,7 @@ public sealed class OoClassTable
         NameMethodSlots();
     }
 
-    /// <summary>ISO §13.18.42.3 SR4: "The data-name for the subject of the entry shall not be the same as a
+    /// <summary>ISO §2023:13.18.42.3 SR4: "The data-name for the subject of the entry shall not be the same as a
     /// property-name defined in a superclass" — and its NOTE names both ways a superclass defines one (GET/SET PROPERTY
     /// methods, or a PROPERTY clause), which is exactly what a roster's accessors record. Asked of each PROPERTY-clause
     /// subject once, over the base chain's matching roster (instance or factory).</summary>
@@ -1129,7 +1129,7 @@ public sealed class OoClassTable
                         $"class '{sym.Name}'{(factory ? " (FACTORY)" : "")}: property subject '{accessor.PropertyName}': "
                         + $"superclass '{b.Name}' already defines a property of that name; the data-name for the subject "
                         + "of the entry shall not be the same as a property-name defined in a superclass "
-                        + "(ISO §13.18.42.3 SR4)");
+                        + "(ISO §2023:13.18.42.3 SR4)");
                     break;
                 }
         }
@@ -1140,7 +1140,7 @@ public sealed class OoClassTable
     {
         foreach (var m in roster)
         {
-            // A PROPERTY clause's accessor (no METHOD-ID of its own) is never an override: §13.18.42.3 SR4 above
+            // A PROPERTY clause's accessor (no METHOD-ID of its own) is never an override: §2023:13.18.42.3 SR4 above
             // refuses the only way one can meet a superclass method of its name.
             if (m.PropertySubject is not null) continue;
             using var atMethod = edition.At(sources.Of(m));
@@ -1152,36 +1152,36 @@ public sealed class OoClassTable
                         $"class '{sym.Name}': {kind}method '{m.SourceName}' specifies OVERRIDE but no "
                         + "superclass defines a method with that name"
                         + (sym.Base is null ? " (the class has no INHERITS clause)" : "")
-                        + " (ISO §11.7.3 SR3)");
+                        + " (ISO §2023:11.7.3 SR3)");
                 continue;
             }
             if (!m.HasOverride)
                 edition.Removed(DiagnosticCatalog.RedefinitionWithoutOverride.Code,
                     $"class '{sym.Name}': {kind}method '{m.SourceName}' redefines a method inherited from "
-                    + $"'{baseM.Owner.Name}' without the OVERRIDE attribute (ISO §11.7.3 SR4a — an "
+                    + $"'{baseM.Owner.Name}' without the OVERRIDE attribute (ISO §2023:11.7.3 SR4a — an "
                     + "inherited method may be redefined only with OVERRIDE; add OVERRIDE to the "
                     + "METHOD-ID paragraph)");
             if (baseM.IsFinal)
                 edition.Error(DiagnosticCatalog.FinalMethodOverridden,
                     $"class '{sym.Name}': {kind}method '{m.SourceName}' overrides '{baseM.Owner.Name}'."
                     + $"'{baseM.SourceName}', which is declared FINAL — a FINAL method shall not be "
-                    + "overridden (ISO §11.7.3 SR3 / §11.7.4 GR3)");
+                    + "overridden (ISO §2023:11.7.3 SR3 / §2023:11.7.4 GR3)");
             m.OverrideOf = baseM;
         }
     }
 
     /// <summary>⛔ ONE C# MEMBER NAME PER METHOD SLOT, NEVER THE NAME OF A TYPE THAT DECLARES IT (kb/Work PB975, PB3342).
     /// Every method that C# requires to share one member name is one SLOT: an override and the method it overrides
-    /// (C# overrides by name; §11.7.3 SR3 pairs them by method resolution signature), and a class's method and every
-    /// interface prototype it implements (C# implements implicitly by name; §9.3.11 pairs them by the roster key, the
+    /// (C# overrides by name; §2023:11.7.3 SR3 pairs them by method resolution signature), and a class's method and every
+    /// interface prototype it implements (C# implements implicitly by name; §2023:9.3.11 pairs them by the roster key, the
     /// externalized name, which <see cref="OoConformance.ValidateImplements"/> asks through the same
     /// <see cref="OoClassSymbol.FindMethod"/>). A slot is named once, from the word of its first non-overriding method
     /// in source order (a standard method's runtime name when the slot holds one), and every member takes that name.
     /// <para>The name a slot cannot take is the name of a type that declares one of its members — the instance class,
     /// the factory class or the interface — because a C# member may not be named like its enclosing type (CS0542).
     /// Such a slot takes <see cref="NamingConvention.ClassNamedMethodName"/>, a prefix family no user word and no type
-    /// spells. The COBOL is legal: §8.3.2.2 bars one word as two types of user-defined word only "Within a source
-    /// element"; §10.5 "A source element is a source unit excluding any contained source units", so a method-name (a
+    /// spells. The COBOL is legal: §2023:8.3.2.2 bars one word as two types of user-defined word only "Within a source
+    /// element"; §2023:10.5 "A source element is a source unit excluding any contained source units", so a method-name (a
     /// METHOD-ID's own source element) and the object-class-name or interface-name of a definition containing it sit in
     /// different source elements, and an override or an implementation of a method spelled like the class keeps the
     /// legality of the method it overrides or implements. Before this rule a class's OWN method was renamed alone

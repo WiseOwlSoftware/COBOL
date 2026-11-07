@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> The boolean operators B-AND/B-OR/B-XOR/B-NOT (ISO §8.7.2/§8.8.2) are a COBOL-2002 introduction. Residue
+      *> The boolean operators B-AND/B-OR/B-XOR/B-NOT (ISO §2023:8.7.2/§2023:8.8.2) are a COBOL-2002 introduction. Residue
       *> migration #2 (DESIGN-version-conformance-pipeline.md): the parse-time {is2002()}? tier predicates AND the
       *> reverse-signature ReservedWordEditionHints arms are GONE — the boolean tiers parse at all editions behind the
       *> operand-adjacency boolExprAhead() ENTRY (a plain comparison never enters them — DEVLOG 621), and the gate is

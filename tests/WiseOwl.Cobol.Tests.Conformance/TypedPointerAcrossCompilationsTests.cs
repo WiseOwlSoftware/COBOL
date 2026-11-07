@@ -9,16 +9,16 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// ⛔ ONE TYPE DECLARATION OF A RESTRICTED PROGRAM-POINTER IS ONE TYPE IN EVERY COMPILATION THAT DECLARES IT (kb/Work
 /// PB4107, branch review R1-1). Two separately compiled modules each declare <c>TB TYPEDEF USAGE PROGRAM-POINTER TO
 /// P4107X</c> and a strong group <c>TG</c> holding one <c>TB</c>; one module holds P4107X's prototype, the other names it in
-/// its REPOSITORY paragraph only, so its details are "taken from the external repository" (ISO §12.3.8.4 GR10 c), cite.py
+/// its REPOSITORY paragraph only, so its details are "taken from the external repository" (ISO §2023:12.3.8.4 GR10 c), cite.py
 /// OK 12.3.8.4 10) c)) — the prototype's own module, P4107X.dll, compiled first (DESIGN-external-repository §8.2 step 3,
-/// kb/Work PB2103). A BY REFERENCE argument of type TB is "of the same type" as a formal of type TB (§14.8.2.3.2, OK
+/// kb/Work PB2103). A BY REFERENCE argument of type TB is "of the same type" as a formal of type TB (§2023:14.8.2.3.2, OK
 /// 14.8.2.3.2 4): "If either is a restricted pointer, both shall be restricted and of the same type"), and one of type TG
-/// as a formal of type TG (§14.8.2.2, OK 14.8.2.2 2)), because §8.5.3.1 (OK 8.5.3.1) makes two type declarations
+/// as a formal of type TG (§2023:14.8.2.2, OK 14.8.2.2 2)), because §2023:8.5.3.1 (OK 8.5.3.1) makes two type declarations
 /// equivalent when "they have the same type-name" and the same USAGE clauses, whose TO phrase names the prototype
 /// (docs/CONFORMANCE.md D-RP1).
-/// <para>The run-time check (§14.9.4.4 GR3 d), OK 14.9.4.4 3) d)) compares the two modules' §8.5.3.1 keys
+/// <para>The run-time check (§2023:14.9.4.4 GR3 d), OK 14.9.4.4 3) d)) compares the two modules' §2023:8.5.3.1 keys
 /// (<c>StrongTypeModel.TypeIdentityKey</c>), so the key must be one text whether the prototype's signature came from the
-/// group or from the repository's record of it. The corpus cannot carry this case: §10.6.2 SR1 puts every prototype of a
+/// group or from the repository's record of it. The corpus cannot carry this case: §2023:10.6.2 SR1 puts every prototype of a
 /// compilation group ahead of its other units, so one group never holds both a group-resolving and a repository-resolving
 /// declaration.</para>
 /// </summary>

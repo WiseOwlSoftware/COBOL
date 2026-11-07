@@ -137,7 +137,7 @@ public sealed class MonetaryFactsTests
     [Fact]
     public void GroupingAdmits_PinnedShapes_ThreeThenTwoAndThrees()
     {
-        // kb/Work PB835 — ISO §15.68.3 r5b.6 "in accordance with locale fields mon_thousands_sep and mon_grouping".
+        // kb/Work PB835 — ISO §2023:15.68.3 r5b.6 "in accordance with locale fields mon_thousands_sep and mon_grouping".
         var us = MonetaryFacts.Of(LocaleFacts.For("en-US"));                // {3} repeating
         Assert.True(us.GroupingAdmits([1, 3, 3], complete: true));          // 1,234,567
         Assert.True(us.GroupingAdmits([7], complete: true));                // no separator — r5b.6 "may"
@@ -209,7 +209,7 @@ public sealed class MonetaryFactsTests
             int d = culture.NumberFormat.CurrencyDecimalDigits;
             if (d is < 0 or > 6) continue;
             // Build the picture FROM the culture so the two digit strings are identical and only PLACEMENT can
-            // differ. ⚠ TEST CONSTRUCTION, not a rule: §13.18.40.5 r12 hands the locale the separators and
+            // differ. ⚠ TEST CONSTRUCTION, not a rule: §2023:13.18.40.5 r12 hands the locale the separators and
             // group sizes, never the fraction width — the width here is chosen to match ToString's.
             string frac = "891234"[..d];
             string picPos = "$" + new string('9', 7) + (d > 0 ? "." + new string('9', d) : "");

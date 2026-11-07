@@ -14,19 +14,19 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// "derived" true.
 ///
 /// <para>The defect they close: <c>ConditionalCompilationProcessor</c> carried a flat
-/// <c>KnownIgnoredDirectives</c> HashSet of directive NAMES with no edition column, so eleven ISO §7.3
+/// <c>KnownIgnoredDirectives</c> HashSet of directive NAMES with no edition column, so eleven ISO §2023:7.3
 /// directives — <c>&gt;&gt;PUSH</c>, <c>&gt;&gt;POP</c> and <c>&gt;&gt;DISPLAY</c> among them — compiled clean at
 /// <c>--std 85</c>, an edition that has no compiler directives at all, while their siblings from the same
 /// Annex E.2 item 5 list drew COBOL0900. A name set cannot be wrong about an edition it does not record, and
 /// nothing could have failed. Now the roster IS the <c>directiveWords</c> column of
 /// <c>tests/version-matrix/constructs.json</c>, and <see cref="Roster_Matches_TheSpecSection"/> re-derives it
-/// from §7.3 itself, so a directive added to the standard's clause list without a row is a red test rather than
+/// from §2023:7.3 itself, so a directive added to the standard's clause list without a row is a red test rather than
 /// a silent under-rejection.</para>
 /// </summary>
 [Trait("Sweep", "tree")]
 public sealed class CompilerDirectiveCatalogDriftTests
 {
-    /// <summary>Every clause under ISO §7.3 whose heading names a directive — the spec's own roster.</summary>
+    /// <summary>Every clause under ISO §2023:7.3 whose heading names a directive — the spec's own roster.</summary>
     private static Dictionary<string, string> SpecDirectives()
     {
         string path = TestRepo.Specs("ISO_COBOL_2023.md");
@@ -36,9 +36,9 @@ public sealed class CompilerDirectiveCatalogDriftTests
         foreach (Match m in Regex.Matches(File.ReadAllText(path),
                      @"^#{4}\s+(7\.3\.\d+)\s+(.+?)\s+directive\s*$", RegexOptions.Multiline))
         {
-            // "SOURCE FORMAT directive" — the directive is headed by its FIRST word (§7.3.3 SR6: compiler-
+            // "SOURCE FORMAT directive" — the directive is headed by its FIRST word (§2023:7.3.3 SR6: compiler-
             // instruction opens with ONE compiler-directive word; FORMAT and IS are optional words in the
-            // §7.3.24.2 general format).
+            // §2023:7.3.24.2 general format).
             string word = m.Groups[2].Value.Split(' ')[0].Trim();
             found[word] = m.Groups[1].Value;
         }
@@ -47,9 +47,9 @@ public sealed class CompilerDirectiveCatalogDriftTests
     }
 
     /// <summary>
-    /// THE spec-derived check: every §7.3.x directive the standard defines has a catalog row, and every row
-    /// the catalog claims is a §7.3 directive is one — except the two Annex E.2 item 21 directives the 2023
-    /// text REMOVED, which by construction no longer have a §7.3 clause to be found in and are named here so the
+    /// THE spec-derived check: every §2023:7.3.x directive the standard defines has a catalog row, and every row
+    /// the catalog claims is a §2023:7.3 directive is one — except the two Annex E.2 item 21 directives the 2023
+    /// text REMOVED, which by construction no longer have a §2023:7.3 clause to be found in and are named here so the
     /// exemption is explicit rather than a silently loose comparison.
     /// </summary>
     [Fact]
@@ -63,32 +63,32 @@ public sealed class CompilerDirectiveCatalogDriftTests
         string[] removedIn2023 = ["FLAG-85", "FLAG-NATIVE-ARITHMETIC"];
         foreach (string w in removedIn2023)
             Assert.True(CompilerDirectiveCatalog.Find(w)?.RemovedIn == 2023,
-                $"{w} is exempted from the §7.3 roster check because Annex E.2 item 21 removed it in 2023 — "
+                $"{w} is exempted from the §2023:7.3 roster check because Annex E.2 item 21 removed it in 2023 — "
                 + "its row must say so");
 
         var missing = spec.Keys.Where(w => !catalog.Contains(w)).Order(StringComparer.Ordinal).ToList();
         Assert.True(missing.Count == 0,
-            $"ISO §7.3 defines {spec.Count} directives; these have NO constructs.json row and are therefore "
+            $"ISO §2023:7.3 defines {spec.Count} directives; these have NO constructs.json row and are therefore "
             + $"ungated at every edition: [{string.Join(", ", missing)}] — add a row with directiveWords and "
             + "re-run scripts/gen-constructs.ps1");
 
-        // The reverse direction is asked PER ROW, not per word: §7.3.16's construct is spelled
-        // >>IF / >>ELSE / >>END-IF and §7.3.13's is >>EVALUATE / >>WHEN / >>END-EVALUATE, so the companion words
+        // The reverse direction is asked PER ROW, not per word: §2023:7.3.16's construct is spelled
+        // >>IF / >>ELSE / >>END-IF and §2023:7.3.13's is >>EVALUATE / >>WHEN / >>END-EVALUATE, so the companion words
         // have no clause heading of their own and must not be — a bare >>ELSE is not a directive. What must
-        // hold is that every ROW is anchored: at least one of its words heads a §7.3 clause.
+        // hold is that every ROW is anchored: at least one of its words heads a §2023:7.3 clause.
         var unanchored = ConstructRegistry.Entries
             .Where(e => e.DirectiveWords.Count > 0 && e.RemovedIn != 2023
                         && !e.DirectiveWords.Any(spec.ContainsKey))
             .Select(e => $"{e.Id} [{string.Join("/", e.DirectiveWords)}]").Order(StringComparer.Ordinal).ToList();
         Assert.True(unanchored.Count == 0,
-            $"these rows claim directive words that head NO ISO §7.3 clause: [{string.Join(", ", unanchored)}] "
-            + "— §7.3.3 SR9 reserves >>IMP for implementor directives, so a non-standard word needs either a "
+            $"these rows claim directive words that head NO ISO §2023:7.3 clause: [{string.Join(", ", unanchored)}] "
+            + "— §2023:7.3.3 SR9 reserves >>IMP for implementor directives, so a non-standard word needs either a "
             + "clause or a written exemption here");
     }
 
     /// <summary>
     /// The clause a row cites is the clause the spec puts the directive in. The PUSH/POP pairing is the reason
-    /// this is a test and not a reading: §7.3.20 is POP and §7.3.22 is PUSH, the reverse of the order the old
+    /// this is a test and not a reading: §2023:7.3.20 is POP and §2023:7.3.22 is PUSH, the reverse of the order the old
     /// code comment listed them in (kb/Work PB725).
     /// </summary>
     [Fact]
@@ -96,9 +96,9 @@ public sealed class CompilerDirectiveCatalogDriftTests
     {
         var wrong = new List<string>();
         foreach (var (word, clause) in SpecDirectives())
-            if (CompilerDirectiveCatalog.Find(word) is { } row && !row.Citation.Contains("§" + clause + ";")
-                && !row.Citation.Contains("§" + clause + " "))
-                wrong.Add($"{word} is §{clause} but its row cites \"{row.Citation}\"");
+            if (CompilerDirectiveCatalog.Find(word) is { } row && !row.Citation.Contains("§2023:" + clause + ";")
+                && !row.Citation.Contains("§2023:" + clause + " "))
+                wrong.Add($"{word} is §2023:{clause} but its row cites \"{row.Citation}\"");
 
         Assert.True(wrong.Count == 0, string.Join("\n", wrong));
     }
@@ -109,7 +109,7 @@ public sealed class CompilerDirectiveCatalogDriftTests
     public void Structural_Sanity()
     {
         var words = CompilerDirectiveCatalog.Words.ToList();
-        Assert.True(words.Count >= 17, $"only {words.Count} directive words — §7.3 defines 17 directives");
+        Assert.True(words.Count >= 17, $"only {words.Count} directive words — §2023:7.3 defines 17 directives");
         Assert.All(words, w => Assert.Matches("^[A-Z][A-Z0-9-]*$", w));
         Assert.Equal(words.Count, words.Distinct(StringComparer.Ordinal).Count());
         Assert.All(words, w =>
@@ -118,7 +118,7 @@ public sealed class CompilerDirectiveCatalogDriftTests
             Assert.Contains(row.DiagnosticCode, new[] { "COBOL0900", "COBOL0902" });
             Assert.InRange(row.IntroducedIn, 2002, 2023);   // COBOL-85 has no compiler directives at all
         });
-        Assert.True(CompilerDirectiveCatalog.IsDirective("push"));   // case-insensitive (§8.3.1: words fold)
+        Assert.True(CompilerDirectiveCatalog.IsDirective("push"));   // case-insensitive (§2023:8.3.1: words fold)
         Assert.Null(CompilerDirectiveCatalog.Find("IFF"));           // a typo is NOT a directive
     }
 
@@ -161,7 +161,7 @@ public sealed class CompilerDirectiveCatalogDriftTests
         silent.Remove("SOURCE");
         Assert.True(silent.Count == 0,
             $"[{string.Join(", ", silent)}] compile clean at --std 85, an edition with no compiler directives "
-            + "(ISO §7.3 is a COBOL-2002 introduction) — the PB725 under-rejection has returned");
+            + "(ISO §2023:7.3 is a COBOL-2002 introduction) — the PB725 under-rejection has returned");
     }
 
     /// <summary>The one directive whose gate cannot live with its siblings: <c>&gt;&gt;SOURCE FORMAT</c> is
@@ -230,7 +230,7 @@ public sealed class CompilerDirectiveCatalogDriftTests
         var exempt = new List<string>();
         // Stage-owned operands are a different mechanism with their own per-stage codes (0718 TURN, 1622 FLAG,
         // 1623 COBOL-WORDS, 1619 the conditional-compilation expressions) — not this producer's subject, EXCEPT for
-        // PRESENCE: a row that requires an operand (DISPLAY's, §7.3.12.2) has it checked here whoever reads the
+        // PRESENCE: a row that requires an operand (DISPLAY's, §2023:7.3.12.2) has it checked here whoever reads the
         // content (kb/Work PB807).
         foreach (var row in ConstructRegistry.Entries
                      .Where(e => e.DirectiveOperand is { } o && (o.Form != DirectiveOperandForm.Stage || o.OperandRequired)))
@@ -252,7 +252,7 @@ public sealed class CompilerDirectiveCatalogDriftTests
 
     /// <summary>The operand spelling a row's general format does not admit, derived from the row: a word the closed
     /// set does not admit, or nothing where the format requires an operand; null when no malformed operand exists
-    /// (PAGE's comment-text-1, §7.3.19.3 SR2, and the two removed FLAG windows).</summary>
+    /// (PAGE's comment-text-1, §2023:7.3.19.3 SR2, and the two removed FLAG windows).</summary>
     private static string? MalformedOperandOf(DirectiveOperandSyntax s) => s.Form switch
     {
         // A word the set does not admit — for >>CALL-CONVENTION that is an undefined call-convention-name,
@@ -262,7 +262,7 @@ public sealed class CompilerDirectiveCatalogDriftTests
         _ => null,
     };
 
-    /// <summary>ISO §7.2.1 (kb/Work PB1363): "compiler directives" shall be "syntactically correct in the initial source
+    /// <summary>ISO §2023:7.2.1 (kb/Work PB1363): "compiler directives" shall be "syntactically correct in the initial source
     /// text and library text", and the false path of an IF directive is part of it — so the operand column is a
     /// property of the directive line, not of the branch the line is in. Derived from the same rows as the test above:
     /// each malformed operand, written inside an OMITTED branch, still draws COBOL1911, and each conforming one
@@ -293,7 +293,7 @@ public sealed class CompilerDirectiveCatalogDriftTests
         }
 
         Assert.True(silent.Count == 0,
-            $"these directive lines are accepted in silence inside an omitted branch: [{string.Join(", ", silent)}] (ISO §7.2.1)");
+            $"these directive lines are accepted in silence inside an omitted branch: [{string.Join(", ", silent)}] (ISO §2023:7.2.1)");
         Assert.True(rejected.Count == 0,
             $"these conforming directive lines are rejected inside an omitted branch: [{string.Join(", ", rejected)}]");
     }
@@ -309,7 +309,7 @@ public sealed class CompilerDirectiveCatalogDriftTests
         [nameof(CobolWordsDirectiveProcessor)] = ("COBOL1623", "RESERVE \"ZQXWORD\""),
     };
 
-    /// <summary>ISO §7.2.1 (kb/Work PB2003): every directive row whose operand a DOWNSTREAM stage parses is owned by the
+    /// <summary>ISO §2023:7.2.1 (kb/Work PB2003): every directive row whose operand a DOWNSTREAM stage parses is owned by the
     /// conditional-compilation driver itself (which evaluates it in every branch) or by a stage with a check-only entry
     /// the driver asks in an omitted branch (<see cref="StageOperandChecks"/>). A row whose owner is neither is a
     /// directive whose false-path lines are accepted in silence, found here instead of by a user.</summary>
@@ -351,7 +351,7 @@ public sealed class CompilerDirectiveCatalogDriftTests
                 rejected.Add($"{word} {conforming}");
         }
 
-        Assert.True(silent.Count == 0, $"these directive lines are accepted in silence inside an omitted branch: [{string.Join(", ", silent)}] (ISO §7.2.1)");
+        Assert.True(silent.Count == 0, $"these directive lines are accepted in silence inside an omitted branch: [{string.Join(", ", silent)}] (ISO §2023:7.2.1)");
         Assert.True(rejected.Count == 0, $"these conforming directive lines are rejected inside an omitted branch: [{string.Join(", ", rejected)}]");
     }
 
@@ -378,7 +378,7 @@ public sealed class CompilerDirectiveCatalogDriftTests
                     rejected.Add($"{row.DirectiveWords[0]} {operand}".Trim() + $" → {d.Message}");
 
             // And the omissible half, from the same column: where the printed format leaves an alternative
-            // un-underlined (§5.2.3), writing nothing selects it and shall not be diagnosed.
+            // un-underlined (§2023:5.2.3), writing nothing selects it and shall not be diagnosed.
             if (s is { Form: DirectiveOperandForm.Words, ChoiceOmissible: true }
                 && Diagnose(row.DirectiveWords[0], "", row.IntroducedIn).Any(d => d.Code == "COBOL1911"))
                 rejected.Add($">>{row.DirectiveWords[0]} with the omitted phrase implied");
@@ -404,17 +404,17 @@ public sealed class CompilerDirectiveCatalogDriftTests
                 if (!row.DirectiveWords.Contains(word, StringComparer.OrdinalIgnoreCase))
                     bad.Add($"{row.Id}: noOperandWords names '{word}', which is not one of the row's directive words");
                 if (!Diagnose(word, "ZZJUNK", row.IntroducedIn).Any(d => d.Code == "COBOL1911"))
-                    bad.Add($">>{word} ZZJUNK is accepted in silence (ISO §7.3.3 SR3/SR4)");
+                    bad.Add($">>{word} ZZJUNK is accepted in silence (ISO §2023:7.3.3 SR3/SR4)");
                 if (Diagnose(word, "", row.IntroducedIn).Any(d => d.Code == "COBOL1911")
                     || Diagnose(word, "*> why", row.IntroducedIn).Any(d => d.Code == "COBOL1911"))
-                    bad.Add($">>{word} bare, or with an inline comment, is rejected — §7.3.3 SR3/SR4 allow both");
+                    bad.Add($">>{word} bare, or with an inline comment, is rejected — §2023:7.3.3 SR3/SR4 allow both");
             }
 
         Assert.True(checkedWords >= 3, "the IF and EVALUATE rows declare ELSE, END-IF and END-EVALUATE operand-less");
         Assert.True(bad.Count == 0, string.Join("\n", bad));
     }
 
-    /// <summary>§7.3.3 SR3/SR4 — a directive "may be followed only by space characters and an optional inline
+    /// <summary>§2023:7.3.3 SR3/SR4 — a directive "may be followed only by space characters and an optional inline
     /// comment". Six stages sliced their own operand and none of them knew that, so <c>&gt;&gt;PROPAGATE ON
     /// *&gt; on</c> was REJECTED and <c>&gt;&gt;SOURCE FORMAT FIXED *&gt; switch</c> was not recognized at all —
     /// the following segment was then read in the wrong reference format (kb/Work PB794).</summary>
@@ -437,11 +437,11 @@ public sealed class CompilerDirectiveCatalogDriftTests
         Assert.DoesNotContain(bag.Diagnostics, d => d.Code == "COBOL1911");
         Assert.DoesNotContain(">>SOURCE", free);   // consumed, so the parser never sees it
 
-        // …and the quote-aware half: the *> inside a literal is data (§8.3.3.1), not a comment.
+        // …and the quote-aware half: the *> inside a literal is data (§2023:8.3.3.1), not a comment.
         Assert.True(CompilerDirectiveLine.TryParse(">>DISPLAY \"a *> b\"", out var d2));
         Assert.Equal("\"a *> b\"", d2.Operand);
         Assert.Equal("DISPLAY", d2.Word);
-        // §7.3.3 SR5: the space after the indicator is optional, and its absence is treated as though present.
+        // §2023:7.3.3 SR5: the space after the indicator is optional, and its absence is treated as though present.
         Assert.True(CompilerDirectiveLine.TryParse(">> SOURCE FORMAT IS FIXED", "SOURCE", out string op));
         Assert.Equal("FORMAT IS FIXED", op);
     }
@@ -470,8 +470,8 @@ public sealed class CompilerDirectiveCatalogDriftTests
     {
         var bag = new DiagnosticBag();
         string line = $">>{word} {operand}".TrimEnd();
-        // The line is in the false path of an IF directive (ISO §7.2.1). The reference-format stage reads every branch
-        // (§7.2.1 Step 1: SOURCE FORMAT in a false path is processed, kb/Work PB1006) and is fixed form until a directive
+        // The line is in the false path of an IF directive (ISO §2023:7.2.1). The reference-format stage reads every branch
+        // (§2023:7.2.1 Step 1: SOURCE FORMAT in a false path is processed, kb/Work PB1006) and is fixed form until a directive
         // says otherwise, so its case first switches to free form to make the wrapper's own `>>` lines recognizable.
         if (omittedBranch)
             line = (word == "SOURCE" ? ">>SOURCE FORMAT IS FREE\n" : "") + $">>IF 1 = 2\n{line}\n>>END-IF";

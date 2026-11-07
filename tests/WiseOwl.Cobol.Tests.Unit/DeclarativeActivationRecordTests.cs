@@ -6,11 +6,11 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// kb/Work PB1122 Task B — the DECLARATIVE ACTIVATION RECORD (ISO §14.6.13.1.2 1): a declarative does not complete
+/// kb/Work PB1122 Task B — the DECLARATIVE ACTIVATION RECORD (ISO §2023:14.6.13.1.2 1): a declarative does not complete
 /// normally when "a RESUME … that is specified in this … program is executed, or a fatal exception occurs within the
 /// scope of the declarative". The emitted <c>__RunUse</c> opens a record with <c>EnterDeclarative</c>, asks
 /// <c>DeclarativeNotNormal</c> when the range falls off its end, and closes it in a <c>finally</c>; the fatal raise
-/// funnel (<c>Set(…, fatal: true)</c>) and a RESUME that §14.9.33.4 GR1 made a CONTINUE
+/// funnel (<c>Set(…, fatal: true)</c>) and a RESUME that §2023:14.9.33.4 GR1 made a CONTINUE
 /// (<c>MarkDeclarativesNotNormal</c>) are the two marks. These drive the engine directly, because the golden
 /// <c>2002/pb1122_declarative_fatal_in_scope_merge</c> can only show the consumer's end of it.
 /// </summary>
@@ -63,7 +63,7 @@ public sealed class DeclarativeActivationRecordTests
         Assert.False(e.DeclarativeNotNormal(tok));
     }
 
-    /// <summary>§14.6.13.1.2 1)'s RESUME is one "specified in this … program": a RESUME that GR1 made a CONTINUE marks
+    /// <summary>§2023:14.6.13.1.2 1)'s RESUME is one "specified in this … program": a RESUME that GR1 made a CONTINUE marks
     /// only the open declaratives of ITS program instance, never another program's in the call chain.</summary>
     [Fact]
     public void ResumeContinue_MarksOnlyItsOwnPrograms()
@@ -103,7 +103,7 @@ public sealed class DeclarativeActivationRecordTests
     }
 
     /// <summary>A rule keyed on NORMAL completion tells <c>NotNormal</c> from <c>Normal</c>; every other consumer
-    /// lets the statement finish and treats a handled warning alike (§14.9.49.4 GR13, GR7 b)/c), GR12 b)/c)).</summary>
+    /// lets the statement finish and treats a handled warning alike (§2023:14.9.49.4 GR13, GR7 b)/c), GR12 b)/c)).</summary>
     [Theory]
     [InlineData(DispatchResult.Normal, true)]
     [InlineData(DispatchResult.NotNormal, true)]

@@ -10,10 +10,10 @@ using Fault = WiseOwl.Cobol.Tests.Unit.Store.MemoryPageMedium.Fault;
 namespace WiseOwl.Cobol.Tests.Unit.Store;
 
 /// <summary>
-/// ⛔ A START'S PARTIAL KEY UNDER A LOCALE-BASED SEQUENCE IS THE SEQUENTIAL SEARCH OF §14.9.41.4 GR17, BOUNDED AT THE
+/// ⛔ A START'S PARTIAL KEY UNDER A LOCALE-BASED SEQUENCE IS THE SEQUENTIAL SEARCH OF §2023:14.9.41.4 GR17, BOUNDED AT THE
 /// PRIMARY LEVEL (docs/rearchitecture/DESIGN-runtime-library.md 2.2.1.4; kb/Work PB3332; review w1122-a R2-1, R3-1).
 /// GR17 c) and d) truncate each stored key to the partial key's length and search the file sequentially, forward for
-/// EQUAL and the GREATER relations and in reverse for the LESS ones; §8.8.4.2.11 compares the truncation by the locale's
+/// EQUAL and the GREATER relations and in reverse for the LESS ones; §2023:8.8.4.2.11 compares the truncation by the locale's
 /// multi-level algorithm over its trimmed operands. The tree starts that search at the bound its two high-water marks
 /// make exact and leaves it at the end of the run of entries that tie the bound.
 /// <para>THE MODEL is GR17 as written — <c>FindIndex</c> / <c>FindLastIndex</c> of the first (or last) sorted key whose
@@ -34,7 +34,7 @@ public sealed class LocalePartialStartTests
     /// <summary>The shape is its definition: the largest (cut − level-1 weights before it) and the longest run between
     /// two cuts, less one. Ordinary letters weigh one primary each; a control (U+0001) and a soft hyphen are completely
     /// ignorable; "æ" and "ß" expand to two primaries; Czech "ch" and Danish "aa" are contractions of two characters
-    /// into one primary; a TAB weighs like a space; §8.8.4.2.11's trailing spaces are not part of the operand.</summary>
+    /// into one primary; a TAB weighs like a space; §2023:8.8.4.2.11's trailing spaces are not part of the operand.</summary>
     [Theory]
     [InlineData("root", "abc", 0, 0)]
     [InlineData("root", "a\u0001b", 1, 0)]
@@ -221,7 +221,7 @@ public sealed class LocalePartialStartTests
         Assert.True(edges > 100, $"{edges} probes cut a doubled digraph");
     }
 
-    /// <summary>⛔ THE BOUND STOPS BEFORE A WEIGHT BELOW A SPACE'S (§8.8.4.2.11's trimming). A stored key whose truncation
+    /// <summary>⛔ THE BOUND STOPS BEFORE A WEIGHT BELOW A SPACE'S (§2023:8.8.4.2.11's trimming). A stored key whose truncation
     /// ends in spaces of its interior loses them to the trimming, so its truncation is a proper prefix of a probe that has
     /// a TAB (a weight below a space's) at that place: below the probe, while the stored key's own space weights place it
     /// above a bound that kept the TAB. The keys have no ignorable and no contraction (g = 0), so only the cut keeps the
@@ -314,7 +314,7 @@ public sealed class LocalePartialStartTests
         if (cursor.HasCurrent) Assert.True(keys[next].AsSpan().SequenceEqual(cursor.Key), $"{at}: the step after the START");
     }
 
-    /// <summary>§14.9.41.4 GR17 c) to e) as written: the index of the first sorted key (the last, for the LESS relations)
+    /// <summary>§2023:14.9.41.4 GR17 c) to e) as written: the index of the first sorted key (the last, for the LESS relations)
     /// whose truncation to the probe's length satisfies the relation; -1 when none does (e) 2., the invalid key).</summary>
     private static int Gr17(IKeyOrder order, List<byte[]> keys, byte[] probe, SeekRelation relation) => relation switch
     {
@@ -580,7 +580,7 @@ public sealed class LocalePartialStartTests
         }
     }
 
-    /// <summary>⛔ A REFUSED READ ANYWHERE IN THE SEARCH ANSWERS '30' (§9.1.13.6 item 1; 2.2.1.4, a refused read is no
+    /// <summary>⛔ A REFUSED READ ANYWHERE IN THE SEARCH ANSWERS '30' (§2023:9.1.13.6 item 1; 2.2.1.4, a refused read is no
     /// verdict on the page): the root the marks are read from, the descent to the bound, each leaf the run crosses. The
     /// cursor is left with no current entry, and the same START once the medium heals answers GR17's entry.</summary>
     [Fact]

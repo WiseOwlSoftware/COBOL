@@ -4,10 +4,10 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO/IEC 1989:2023 §12.3.8.3 SR12 (kb/Work PB1083):
+      *> ISO/IEC 1989:2023 §2023:12.3.8.3 SR12 (kb/Work PB1083):
       *> "Intrinsic-function-name-1 shall not be specified as a
       *> user-defined word within the scope of this REPOSITORY paragraph"
-      *> - of ANY §8.3.2.2 type: the alphabet-name PI, the class-name E
+      *> - of ANY §2023:8.3.2.2 type: the alphabet-name PI, the class-name E
       *> and the symbolic-character ABS are user-defined words declared in
       *> the scope of FUNCTION PI E ABS INTRINSIC. The screen used to be
       *> asked only for data-, condition-, index-, file-, paragraph- and

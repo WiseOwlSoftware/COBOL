@@ -662,7 +662,7 @@ CLAUSE_4_2_7_RX = re.compile(r'(?<![\d.])4\.2\.7(?!\.?\d)')
 A1_NAMED_RX = re.compile(r'\bA\.1\b|\bDOC-A\.1-')
 #: Annex A.4 named in a text: the optional-element list or one of its modules (`A.4.8`, `A.4.1`).
 A4_NAMED_RX = re.compile(r'\bA\.4\b')
-#: How far either side of a §4.2.7 mention an `A.4` naming must sit to count as that mention's own.
+#: How far either side of a §2023:4.2.7 mention an `A.4` naming must sit to count as that mention's own.
 GROUND_WINDOW = 200
 #: How much of the text's opening also counts: a register row or a note that BEGINS with its module (`| A.4.8 |`,
 #: `Annex A.4.8 (items 1 …`) names the annex of everything it then says, however long the row runs.
@@ -854,7 +854,7 @@ def main(argv: list[str]) -> int:
         findings.append('the audit filed ZERO §7 determinations, so "no findings" is a statement about nothing: the §7 table '
                         'or its parser is what changed')
     findings.extend(orphan_verdicts(load_inventory(), set(numbered), set(unreachable)))
-    # kb/Work PB593 — no Annex A.1 element is grounded on §4.2.7, which its own first sentence scopes to Annex A.4.
+    # kb/Work PB593 — no Annex A.1 element is grounded on §2023:4.2.7, which its own first sentence scopes to Annex A.4.
     findings.extend(sweep_inherited_grounds(text, load_inventory(), json.loads(SCHEMA_PATH.read_text(encoding='utf-8'))))
 
     print('\n=== docs/CONFORMANCE.md §7 ROWS ===')

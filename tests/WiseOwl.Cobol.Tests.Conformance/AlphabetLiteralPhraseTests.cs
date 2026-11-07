@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// per-file <c>.err</c> substring per case would be five near-identical programs pinning five near-identical
 /// strings, where one class can state the pairing.</para>
 /// <para><b>Why the wording is the assertion.</b> Before PB770 the ALPHABET clause borrowed the CLASS clause's
-/// ordinal helper, so an out-of-range ALPHABET ordinal was reported as <c>COBOL1671: CLASS : … §12.3.7.3
+/// ordinal helper, so an out-of-range ALPHABET ordinal was reported as <c>COBOL1671: CLASS : … §2023:12.3.7.3
 /// SR17 b2</c> on a program with no CLASS clause and under a rule about a different construct. A test that
 /// asserted only "it is rejected" would have called that green
 /// (<c>feedback_a_real_clause_can_answer_a_different_question</c>).</para>
@@ -42,7 +42,7 @@ public sealed class AlphabetLiteralPhraseTests
         EditionHarness.AssertHasDiagnostic(errors, expected);
     }
 
-    /// <summary>§12.3.7.3 SR14 c1 — "<i>Each numeric literal shall be an unsigned integer and shall have a value
+    /// <summary>§2023:12.3.7.3 SR14 c1 — "<i>Each numeric literal shall be an unsigned integer and shall have a value
     /// within the range of one through the maximum number of characters in the native national character set.</i>"
     /// The native national set is the 65,536 UTF-16 code units (D-N1), so 0 and 65,537 are both outside it and
     /// the ordinals are 1-based.</summary>
@@ -55,10 +55,10 @@ public sealed class AlphabetLiteralPhraseTests
     public void NationalOrdinal_OutsideTheNativeSet_IsSR14c1(string pid, string ordinal, string expected)
     {
         Rejects(pid, $"ALPHABET NALF FOR NATIONAL IS {ordinal} THRU 5.", expected);
-        Rejects(pid + "R", $"ALPHABET NALF FOR NATIONAL IS {ordinal} THRU 5.", "ISO §12.3.7.3 SR14 c1");
+        Rejects(pid + "R", $"ALPHABET NALF FOR NATIONAL IS {ordinal} THRU 5.", "ISO §2023:12.3.7.3 SR14 c1");
     }
 
-    /// <summary>§12.3.7.3 SR14 c1, the FIRST half of its one sentence: "<i>Each numeric literal shall be an
+    /// <summary>§2023:12.3.7.3 SR14 c1, the FIRST half of its one sentence: "<i>Each numeric literal shall be an
     /// UNSIGNED integer and shall have a value within the range …</i>". The two halves are separate obligations and
     /// only one of them is a range: <c>int.TryParse</c> accepts a leading sign, so <c>+5</c> read as ordinal 5 and
     /// only a NEGATIVE value was caught - by the range half, which is a different rule answering for this one.</summary>
@@ -71,28 +71,28 @@ public sealed class AlphabetLiteralPhraseTests
         string clause = national ? $"ALPHABET NALF FOR NATIONAL IS {ordinal} THRU 9."
                                  : $"ALPHABET ALF IS {ordinal} THRU 9.";
         Rejects(pid, clause, $"{ordinal} - each numeric literal shall be an UNSIGNED integer".Replace(" - ", " — "));
-        Rejects(pid + "R", clause, $"ISO §12.3.7.3 SR14 {(national ? "c1" : "b1")}");
+        Rejects(pid + "R", clause, $"ISO §2023:12.3.7.3 SR14 {(national ? "c1" : "b1")}");
     }
 
-    /// <summary>§12.3.7.3 SR14 c2 — "<i>Each noninteger literal shall be a national literal.</i>" An ALPHANUMERIC
+    /// <summary>§2023:12.3.7.3 SR14 c2 — "<i>Each noninteger literal shall be a national literal.</i>" An ALPHANUMERIC
     /// literal in the FOR NATIONAL branch is the violation; so is a noninteger NUMERIC literal, which is neither
     /// the c1 ordinal nor a national literal.</summary>
     [Theory]
     [InlineData("PB770C2A", "\"A\" ALSO N\"B\"")]
     [InlineData("PB770C2B", "1.5 ALSO N\"B\"")]
     public void NationalNonintegerLiteral_OfTheWrongClass_IsSR14c2(string pid, string phrase) =>
-        Rejects(pid, $"ALPHABET NALF FOR NATIONAL IS {phrase}.", "ISO §12.3.7.3 SR14 c2");
+        Rejects(pid, $"ALPHABET NALF FOR NATIONAL IS {phrase}.", "ISO §2023:12.3.7.3 SR14 c2");
 
-    /// <summary>§12.3.7.3 SR14 c3 — "<i>Each national literal, when a THROUGH or ALSO phrase is specified, shall
+    /// <summary>§2023:12.3.7.3 SR14 c3 — "<i>Each national literal, when a THROUGH or ALSO phrase is specified, shall
     /// be one character in length.</i>" Both phrases, because the b-series arm silently DROPPED the whole entry
     /// under exactly this shape (PB770 leg b) and one phrase's fix is not the other's.</summary>
     [Theory]
     [InlineData("PB770C3A", "N\"AB\" THRU N\"C\"")]
     [InlineData("PB770C3B", "N\"AB\" ALSO N\"C\"")]
     public void NationalMultiCharacterOperand_UnderThroughOrAlso_IsSR14c3(string pid, string phrase) =>
-        Rejects(pid, $"ALPHABET NALF FOR NATIONAL IS {phrase}.", "ISO §12.3.7.3 SR14 c3");
+        Rejects(pid, $"ALPHABET NALF FOR NATIONAL IS {phrase}.", "ISO §2023:12.3.7.3 SR14 c3");
 
-    /// <summary>§12.3.7.3 SR15 on the NATIONAL side — code-name-2. The alphanumeric twin is the negative-corpus
+    /// <summary>§2023:12.3.7.3 SR15 on the NATIONAL side — code-name-2. The alphanumeric twin is the negative-corpus
     /// entry <c>pb770-alphabet-unsupported-code-name</c>; this is the arm that names code-name-2 and the national
     /// coded character sets, and it is here because ONE check now answers for both (the arms had two).</summary>
     [Fact]
@@ -100,8 +100,8 @@ public sealed class AlphabetLiteralPhraseTests
         Rejects("PB770C15", "ALPHABET NALF FOR NATIONAL IS EBCDIC.",
             "COBOL1907: ALPHABET NALF FOR NATIONAL IS EBCDIC: not a supported code-name");
 
-    /// <summary>⛔ THE ARM-PAIRING FACT. §12.3.7.3 SR14 a is stated ONCE, above the b-series and the c-series, so
-    /// it governs both classes; §12.3.7.4 GR7 k is likewise stated once "<i>where the native coded character set
+    /// <summary>⛔ THE ARM-PAIRING FACT. §2023:12.3.7.3 SR14 a is stated ONCE, above the b-series and the c-series, so
+    /// it governs both classes; §2023:12.3.7.4 GR7 k is likewise stated once "<i>where the native coded character set
     /// is the type … being defined, either alphanumeric or national</i>". This is the fact that fails if either
     /// arm is ever given its own builder again — the shape that produced PB770
     /// (<c>feedback_two_arm_dispatch</c>, fifth instance): both arms carried the same
@@ -115,8 +115,8 @@ public sealed class AlphabetLiteralPhraseTests
         Rejects(pid, clause, expected + " is specified more than once");
 
     /// <summary>kb/Work PB790 — ONE literal-phrase entry carries a THROUGH range OR ALSO operands, never both: the
-    /// printed figure (§12.3.7.2, RENDERED — PDF p321 / folio 291) stacks the two in ONE bracket with no choice
-    /// indicators (§5.2.6.2). The pair used to compile on both arms and drop the ALSO operands; it is refused by name
+    /// printed figure (§2023:12.3.7.2, RENDERED — PDF p321 / folio 291) stacks the two in ONE bracket with no choice
+    /// indicators (§2023:5.2.6.2). The pair used to compile on both arms and drop the ALSO operands; it is refused by name
     /// on BOTH arms, because the ONE builder answers for both (<c>feedback_two_arm_dispatch</c>). The entry order is
     /// flipped on the national arm so neither position of the pair is the only one pinned.</summary>
     [Theory]
@@ -142,7 +142,7 @@ public sealed class AlphabetLiteralPhraseTests
     /// under the CLASS clause's descriptor, message or rule number, and a CURRENCY SIGN literal shall not be
     /// silently resolved as a native ordinal — both used to happen, because one general "literal characters"
     /// helper with optional arguments defaulted to the CLASS clause's identity for every caller that did not pass
-    /// a class-name. §12.3.7.3 SR18: "<i>Literal-7 shall be an alphanumeric or national literal that is not a
+    /// a class-name. §2023:12.3.7.3 SR18: "<i>Literal-7 shall be an alphanumeric or national literal that is not a
     /// figurative constant.</i>"</summary>
     [Fact]
     public void NoClauseInheritsTheClassClausesRuleNumber()
@@ -154,7 +154,7 @@ public sealed class AlphabetLiteralPhraseTests
         Assert.DoesNotContain(errors, e => e.Contains("CLASS ", System.StringComparison.Ordinal));
 
         var (curOk, curErrors, _) = EditionHarness.CompileFull(Prog("PB770CUR", "CURRENCY SIGN IS 65."), 2023);
-        Assert.False(curOk, "a numeric CURRENCY SIGN literal-7 violates ISO §12.3.7.3 SR18");
+        Assert.False(curOk, "a numeric CURRENCY SIGN literal-7 violates ISO §2023:12.3.7.3 SR18");
         EditionHarness.AssertHasDiagnostic(curErrors, "literal-7 shall be an alphanumeric or national literal");
         Assert.DoesNotContain(curErrors, e => e.Contains("SR17", System.StringComparison.Ordinal));
     }

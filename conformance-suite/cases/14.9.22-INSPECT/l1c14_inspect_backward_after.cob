@@ -5,24 +5,24 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.22.4 GR9 c)1. — INSPECT BACKWARD with AFTER; GR8 back
+      *> ISO §2023:14.9.22.4 GR9 c)1. — INSPECT BACKWARD with AFTER; GR8 back
       *> GR9c1 "from the character position immediately to the left of
       *>   the leftmost character position of the first occurrence of
-      *>   literal-2" -> OK  §14.9.22.4 9)  (General rules)
+      *>   literal-2" -> OK  §2023:14.9.22.4 9)  (General rules)
       *> GR9c "is never eligible to participate in the comparison
-      *>   operation" -> OK  §14.9.22.4 9)  (General rules)
+      *>   operation" -> OK  §2023:14.9.22.4 9)  (General rules)
       *> GR8a "The operands of the TALLYING or REPLACING phrase are
       *>   considered in the order they are specified"
-      *>   -> OK  §14.9.22.4 8)  (General rules) ("or, if BACKWARD is
+      *>   -> OK  §2023:14.9.22.4 8)  (General rules) ("or, if BACKWARD is
       *>   specified, the rightmost character position"; 8c "immediately
       *>   to the left of the leftmost character position that
       *>   participated in the match"; NOTE 2 matching is left-to-right)
       *> GR8a3 "If the FIRST adjective applies to literal-1 and
       *>   literal-1 is the first occurrence"
-      *>   -> OK  §14.9.22.4 8)  (General rules)
+      *>   -> OK  §2023:14.9.22.4 8)  (General rules)
       *> GR17d "the leftmost occurrence of literal-1, or, if BACKWARD is
       *>   specified, the rightmost occurrence of literal-1"
-      *>   -> OK  §14.9.22.4 17)  (General rules)
+      *>   -> OK  §2023:14.9.22.4 17)  (General rules)
       *> BACKWARD is COBOL-2023 syntax, hence this 2023 golden.
       *> Derivations over T = "A12C21D12EF" (positions 1..11):
       *> K1 CHARACTERS AFTER "12": scanning from the right the first

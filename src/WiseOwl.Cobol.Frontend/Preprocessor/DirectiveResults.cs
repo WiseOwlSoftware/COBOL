@@ -5,20 +5,20 @@ using WiseOwl.Cobol.Editions;
 namespace WiseOwl.Cobol.Frontend.Preprocessor;
 
 /// <summary>
-/// The frontend's ISO §7.3 directive outputs for one compilation group, as ONE record the binder consumes
-/// (<c>BinderDriver.Bind</c>): the <c>&gt;&gt;TURN</c> events (§7.3.25 — the group's
-/// compile-time TurnState), the <c>&gt;&gt;REF-MOD-ZERO-LENGTH</c> events (§7.3.23), the <c>&gt;&gt;FLAG-02</c> /
-/// <c>&gt;&gt;FLAG-14</c> events (§7.3.14 / §7.3.15), the <c>&gt;&gt;PROPAGATE</c> events (§7.3.21 — folded per
-/// source element for automatic propagation, kb/Work PB1119), the <c>&gt;&gt;COBOL-WORDS</c> map (§7.3.10) and the
-/// <c>&gt;&gt;LEAP-SECOND</c> events (§7.3.17 — folded per compilation unit, kb/Work PB1378), the
-/// <c>&gt;&gt;DEFINE</c> compilation-variable timeline (§7.3.11.4 GR1 — read by <c>CONSTANT … FROM</c> at the
+/// The frontend's ISO §2023:7.3 directive outputs for one compilation group, as ONE record the binder consumes
+/// (<c>BinderDriver.Bind</c>): the <c>&gt;&gt;TURN</c> events (§2023:7.3.25 — the group's
+/// compile-time TurnState), the <c>&gt;&gt;REF-MOD-ZERO-LENGTH</c> events (§2023:7.3.23), the <c>&gt;&gt;FLAG-02</c> /
+/// <c>&gt;&gt;FLAG-14</c> events (§2023:7.3.14 / §2023:7.3.15), the <c>&gt;&gt;PROPAGATE</c> events (§2023:7.3.21 — folded per
+/// source element for automatic propagation, kb/Work PB1119), the <c>&gt;&gt;COBOL-WORDS</c> map (§2023:7.3.10) and the
+/// <c>&gt;&gt;LEAP-SECOND</c> events (§2023:7.3.17 — folded per compilation unit, kb/Work PB1378), the
+/// <c>&gt;&gt;DEFINE</c> compilation-variable timeline (§2023:7.3.11.4 GR1 — read by <c>CONSTANT … FROM</c> at the
 /// entry's own line, kb/Work PB1368), and the
-/// POSITION-RULED directive sites (§7.3.20.3 SR4 / §7.3.22.3 SR4 / §7.3.25.3 SR5 — WHERE a TURN / PUSH / POP was
+/// POSITION-RULED directive sites (§2023:7.3.20.3 SR4 / §2023:7.3.22.3 SR4 / §2023:7.3.25.3 SR5 — WHERE a TURN / PUSH / POP was
 /// written, for the ONE lexical-containment predicate owner decision D20 requires — and the sites of every directive
 /// whose row carries a placement rule). A directive that gains behavior adds a member here — never a new
 /// positional parameter on Bind (kb/Work PB65).
 /// <para>The event lists are <see cref="DirectiveTimeline{T}"/>s: each event carries the line of the
-/// <c>&gt;&gt;POP</c> that revoked it (§7.3.20 / §7.3.22, kb/Work PB941), and the CobolWordsMap value already has
+/// <c>&gt;&gt;POP</c> that revoked it (§2023:7.3.20 / §2023:7.3.22, kb/Work PB941), and the CobolWordsMap value already has
 /// the PUSH/POP history applied. ⛔ A NEW member is directive state and must be claimed by a
 /// <see cref="DirectiveStateRegistry"/> entry — <c>DirectiveStateStackTests</c> fails until it is, so PUSH/POP
 /// cannot silently miss it.</para>
@@ -40,11 +40,11 @@ public sealed record DirectiveResults(
 
     /// <summary>These results with <paramref name="ops"/> — PUSH/POP ops only a LATER phase can place — replayed
     /// into EVERY event timeline together with the written ones (<see cref="DirectiveTimeline{T}.WithStackOps"/>).
-    /// The one caller is the front end's §14.9.28.4 GR14 implicit PUSH ALL / POP ALL around an exception-checking
+    /// The one caller is the front end's §2023:14.9.28.4 GR14 implicit PUSH ALL / POP ALL around an exception-checking
     /// PERFORM's handlers (kb/Work PB1004, PB1066 — <c>Frontend.Parse</c>). ⛔ A new timeline member joins this method —
     /// <c>ExceptionPerformDirectiveScopeTests</c> fails for a <see cref="DirectiveTimeline{T}"/> member it does not
     /// replay. The group-prefix value needs nothing: COBOL-WORDS cannot be written inside a compilation unit
-    /// (§7.3.10.3 SR1), so no PERFORM can bracket it.</summary>
+    /// (§2023:7.3.10.3 SR1), so no PERFORM can bracket it.</summary>
     public DirectiveResults WithStackOps(IReadOnlyList<DirectiveStackOp> ops) =>
         ops.Count == 0 || !HasLineScopedEvents() ? this : this with
     {

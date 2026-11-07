@@ -14,8 +14,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ WHICH READING WINS WHEN A WORD COULD BE EITHER AN OPERAND OR THE NEXT KEYWORD (kb/Work PB805).
 /// <para>A greedy operand list whose items can be a <c>cobolWord</c> will absorb any keyword token that
 /// <c>cobolWord</c> admits, and the construct that keyword begins vanishes. The migration mode admits every word
-/// §8.9 took away from an older edition (<c>ConstructAvailability.Removed</c>), so under <c>--permissive</c>
-/// <c>01 G VALUE N"AB" GROUP-USAGE NATIONAL.</c> lost its §13.18.29 GROUP-USAGE clause to the VALUE list while
+/// §2023:8.9 took away from an older edition (<c>ConstructAvailability.Removed</c>), so under <c>--permissive</c>
+/// <c>01 G VALUE N"AB" GROUP-USAGE NATIONAL.</c> lost its §2023:13.18.29 GROUP-USAGE clause to the VALUE list while
 /// the strict compile accepted it. The answer used to be written per word and per list — PROPERTY in two VALUE
 /// loops, DEFAULT in INITIALIZE, five phrase words in DELETE FILE — and left to ALL(*) lookahead luck for the
 /// rest. It is now ONE generated predicate, <c>{!keywordContinuesHere()}?</c> on every keyword-token
@@ -70,7 +70,7 @@ public sealed class OperandListKeywordDriftTests
             + "— end an operand list through keywordContinuesHere(), never a per-word guard (kb/Work PB805)");
     }
 
-    /// <summary>⛔ THE GROUP-USAGE REGRESSION, over its whole derived population. For every word §8.9 reserves at
+    /// <summary>⛔ THE GROUP-USAGE REGRESSION, over its whole derived population. For every word §2023:8.9 reserves at
     /// edition E and left free at an older one (the migration mode restores it at E) whose token can BEGIN a data
     /// description clause (the FIRST set of <c>dataDescriptionClause</c>, read off the ATN), a VALUE clause
     /// followed by that word must keep exactly ONE operand under <c>--permissive</c> — the word opens the next
@@ -100,7 +100,7 @@ public sealed class OperandListKeywordDriftTests
             if (!reserved.TryGetValue(word, out var flags)) continue;
             for (int i = 1; i < Editions.Length; i++)
             {
-                if (!flags[i] || !flags[..i].Contains(false)) continue;   // restored only where §8.9 took it away
+                if (!flags[i] || !flags[..i].Contains(false)) continue;   // restored only where §2023:8.9 took it away
                 pairs++;
                 sawGroupUsage |= word == "GROUP-USAGE";
                 foreach (bool permissive in (bool[])[false, true])
@@ -113,7 +113,7 @@ public sealed class OperandListKeywordDriftTests
         }
         Assert.True(pairs > 0 && sawGroupUsage, $"the derivation found {pairs} pairs and GROUP-USAGE={sawGroupUsage} — it broke");
         Assert.True(failures.Count == 0,
-            $"a VALUE operand list absorbed a clause-opening word (kb/Work PB805; §13.16.3 4) clauses in any order): "
+            $"a VALUE operand list absorbed a clause-opening word (kb/Work PB805; §2023:13.16.3 4) clauses in any order): "
             + string.Join(" | ", failures));
     }
 

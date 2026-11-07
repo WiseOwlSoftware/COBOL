@@ -6,19 +6,19 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.13.3 SR10 Table 15 marks subject=Condition × object=TRUE-or-FALSE
+      *> ISO §2023:14.9.13.3 SR10 Table 15 marks subject=Condition × object=TRUE-or-FALSE
       *> permissible (and its transpose, subject=TRUE-or-FALSE × object=Condition),
-      *> §14.9.13.4 GR3 e) assigns "any selection subject specified by condition-1 …
+      *> §2023:14.9.13.4 GR3 e) assigns "any selection subject specified by condition-1 …
       *> a truth value according to the rules for evaluating conditional expressions",
       *> and GR4 a) 4. selects the WHEN whose TRUE/FALSE matches that truth value.
       *>
       *> THREE spellings are condition-1, and all three shall behave identically in
-      *> both positions: a level-88 condition-name (§8.8.4.2.7 rule 2 — "the bare
+      *> both positions: a level-88 condition-name (§2023:8.8.4.2.7 rule 2 — "the bare
       *> condition-name … is a complete condition"), a SWITCH-STATUS condition-name
-      *> (§8.8.4.6), and the subject's own class test.  The switch spelling is the one
+      *> (§2023:8.8.4.6), and the subject's own class test.  The switch spelling is the one
       *> the compiler used to refuse as "an identifier" on the SUBJECT side alone while
       *> accepting it as an OBJECT (kb/Work PB400) — two per-side classifiers, one arm
-      *> fixed.  §14.9.39.4 GR5 fixes what SET … TO ON does: the external switch is
+      *> fixed.  §2023:14.9.39.4 GR5 fixes what SET … TO ON does: the external switch is
       *> modified "such that the truth value resultant from evaluation of a
       *> condition-name associated with that switch will reflect an on status".
        IDENTIFICATION DIVISION.
@@ -90,7 +90,7 @@
                    DISPLAY "CLASS-SUBJ=F"
            END-EVALUATE.
       *> Table 15 marks Condition x Condition permissible as well (the Condition ROW is
-      *> 'Y' under BOTH the Condition and the TRUE-or-FALSE column), and §14.9.13.4
+      *> 'Y' under BOTH the Condition and the TRUE-or-FALSE column), and §2023:14.9.13.4
       *> GR4 a) 3. and a) 4. state that cell's analysis in one shared sentence: "If the
       *> truth value of the selection subject and selection object match, the result of
       *> the analysis is true.  If they do not match, the result is false."  GR3 e) is

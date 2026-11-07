@@ -4,10 +4,10 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> ISO §7.2.4.4 GR9 "The text produced as a result of processing a
+*> ISO §2023:7.2.4.4 GR9 "The text produced as a result of processing a
 *> REPLACE statement shall not contain a COPY statement, a REPLACE
 *> statement, a SOURCE FORMAT directive, a comment, or a blank line"
-*> (cite.py --check: OK §7.2.4.4 9)). XX1 is replaced by the word
+*> (cite.py --check: OK §2023:7.2.4.4 9)). XX1 is replaced by the word
 *> REPLACE: COBOL2574 (kb/Work PB1356). Fixed form.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1356RR.

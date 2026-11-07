@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
       *> kb/Work PB4162 - the negative of pb4162_table_all_dynamic_capacity_held_for_order. A dynamic-capacity table (the OCCURS
-      *> DYNAMIC clause, ISO §13.18.38 Format 4) is a COBOL-2014 introduction, so the program is refused by name at 2002 and
+      *> DYNAMIC clause, ISO §2023:13.18.38 Format 4) is a COBOL-2014 introduction, so the program is refused by name at 2002 and
       *> 85 - COBOL0900, the introduction gate (at 85 the user-defined function reference is the first refusal).
        IDENTIFICATION DIVISION.
        FUNCTION-ID. PB4162M.

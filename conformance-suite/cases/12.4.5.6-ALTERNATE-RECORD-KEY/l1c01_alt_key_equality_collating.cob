@@ -5,23 +5,23 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §12.4.5.6.4 r4 — alternate key equality under the key's
+      *> ISO §2023:12.4.5.6.4 r4 — alternate key equality under the key's
       *> collating sequence
       *> THE RULE: "The equality or inequality is based on the collating
       *> sequence used for the file according to the rules for a
       *> relation condition."
       *>   cite.py --check 12.4.5.6.4 "The equality or inequality is
       *>     based on the collating sequence used for the file according
-      *>     to the rules for a relation condition" -> OK §12.4.5.6.4 4)
+      *>     to the rules for a relation condition" -> OK §2023:12.4.5.6.4 4)
       *>   cite.py --check 12.4.5.6.4 "If the DUPLICATES phrase is not
       *>     specified, the value of the associated alternate record key
       *>     shall not be equal to the value of the same alternate
       *>     record key in another record in the physical file"
-      *>     -> OK §12.4.5.6.4 4)
+      *>     -> OK §2023:12.4.5.6.4 4)
       *>   cite.py --check 12.4.5.7.4 "Alphabet-name-3 applies to record
       *>     keys identified by data-name-1 or record-key-name-1"
-      *>     -> OK §12.4.5.7.4 6)
-      *>   cite.py --check 12.3.7.4 "ALSO" -> OK §12.3.7.4 7)
+      *>     -> OK §2023:12.4.5.7.4 6)
+      *>   cite.py --check 12.3.7.4 "ALSO" -> OK §2023:12.3.7.4 7)
       *>     (item k) 6: ALSO puts literal-1 and literal-3 "to the
       *>     same ordinal position in the collating sequence")
       *>   cite.py --check 14.9.51.4 "When an alternate record key of
@@ -29,7 +29,7 @@
       *>     value of that alternate record key is equal to the value of
       *>     the corresponding alternate record key of a record in the
       *>     file, the I-O status associated with the write file
-      *>     connector is set to '22'" -> OK §14.9.51.4 42)
+      *>     connector is set to '22'" -> OK §2023:14.9.51.4 42)
       *> 2002 dir: the key-level COLLATING SEQUENCE OF clause is 2002.
       *> FOLD puts "A"/"a" at one position and "B"/"b" at one position.
       *> AK1 collates by FOLD, AK2 (no clause) by the native sequence;

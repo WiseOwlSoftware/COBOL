@@ -25,7 +25,7 @@ namespace WiseOwl.Cobol.Validation;
 /// <para>WHY A PARSE-TREE WALK AND NOT A BINDER HOOK. A declined clause has no bound node — that is what
 /// declining it means — so there is no binder arm to hang it on, and the binder's own entry paths would drop it
 /// silently in exactly the places it matters most: <c>DataBinder.BindEntry</c> returns early for levels 66 and
-/// 88, and <c>BindCondition</c> returns early for an UNNAMED level-88, which is precisely the §13.16.2 Format-4
+/// 88, and <c>BindCondition</c> returns early for an UNNAMED level-88, which is precisely the §2023:13.16.2 Format-4
 /// validation entry (<c>88 [condition-name-2] value-clause .</c>). A walk over the parse tree sees the written
 /// syntax whether or not anything binds it.</para>
 ///
@@ -48,7 +48,7 @@ internal sealed class DeclinedFacilityPass(EditionContext edition) : CursorFollo
 {
     private readonly EditionContext _edition = edition;
 
-    /// <summary>Words that lead a clause but carry no identity — §5.2.3 optional words, not underlined in the
+    /// <summary>Words that lead a clause but carry no identity — §2023:5.2.3 optional words, not underlined in the
     /// printed general formats. Dropped when composing the clause's name from its own leading keywords, so
     /// <c>DEFAULT IS "AB"</c> is reported as the DEFAULT clause rather than the "DEFAULT IS" clause.</summary>
     private static readonly HashSet<string> Connectives =
@@ -58,7 +58,7 @@ internal sealed class DeclinedFacilityPass(EditionContext edition) : CursorFollo
     {
         // Below COBOL-2002 no declined-facility node can exist: every entry into CobolDeclined.g4 is behind an
         // {is2002()}? left-edge predicate (kb/Work PB2291 records them, and finds them construct gates
-        // rather than §8.9 word status for CLASS, DESTINATION, INVALID and VARYING). Skipping the walk
+        // rather than §2023:8.9 word status for CLASS, DESTINATION, INVALID and VARYING). Skipping the walk
         // there is not an optimization that could hide a diagnostic — it is the same fact the predicates state, and
         // it keeps a pure COBOL-85 compile byte-for-byte free of this pass.
         if (edition.DialectLevel < 2002) return;
@@ -68,9 +68,9 @@ internal sealed class DeclinedFacilityPass(EditionContext edition) : CursorFollo
 
     /// <summary>Do not descend into a PROCEDURE DIVISION: every declined construct this pass refuses is a DATA
     /// DIVISION clause, so the procedure body — much the largest part of a real compilation unit — cannot contain
-    /// one. The declined STATEMENTS (VALIDATE §14.9.50, MCS SEND/RECEIVE) are recognized-and-named at BIND instead
+    /// one. The declined STATEMENTS (VALIDATE §2023:14.9.50, MCS SEND/RECEIVE) are recognized-and-named at BIND instead
     /// (<c>StatementBinder.BindUnsupportedFacility</c>, the recognize-and-name warning band — mandated by
-    /// §4.2.6 ¶3 for the Annex A.3 half, MCS, and a documented §4.2.7 choice for the
+    /// §2023:4.2.6 ¶3 for the Annex A.3 half, MCS, and a documented §2023:4.2.7 choice for the
     /// Annex A.4.14 VALIDATE statement; kb/Work PB709), because they DO have a bound
     /// node — an inert one — and the program is expected to keep running.
     /// <para>⚠ VERIFIED AGAINST THE GRAMMAR, not assumed, because the skip would be a SILENT hole if any data
@@ -94,14 +94,14 @@ internal sealed class DeclinedFacilityPass(EditionContext edition) : CursorFollo
 
     /// <summary>The declined construct enclosing <paramref name="node"/>, or null. ⛔ THE ONE ANSWER to "is this
     /// syntax inside a construct refused whole?", for any other pass that must not diagnose inside one — today
-    /// the §8.9 funnel (<c>VersionConformancePass.VisitCobolWord</c>; kb/Work PB764 moved it here from a private
-    /// ancestor walk there). There is no syntax of OURS inside a declined A.4 construct to diagnose: §4.2.7 makes
+    /// the §2023:8.9 funnel (<c>VersionConformancePass.VisitCobolWord</c>; kb/Work PB764 moved it here from a private
+    /// ancestor walk there). There is no syntax of OURS inside a declined A.4 construct to diagnose: §2023:4.2.7 makes
     /// the element one an implementation "may, but need not, implement", and A.4.1 admits its syntax "only when
     /// support … is claimed" — so one diagnostic per declined construct (the override below, which does not
-    /// descend) is the whole posture. The §13.18.62.2 ON group's FORMAT / CONTENT / RELATION were the sharpest
+    /// descend) is the whole posture. The §2023:13.18.62.2 ON group's FORMAT / CONTENT / RELATION were the sharpest
     /// case: the funnel printed "'FORMAT' is a reserved word … cannot be used as a user-defined word" beside
     /// COBOL1708, a false statement next to the true one.
-    /// <para>⛔ NOT §4.2.6: that clause's "not required to diagnose syntax errors within this unsupported syntax"
+    /// <para>⛔ NOT §2023:4.2.6: that clause's "not required to diagnose syntax errors within this unsupported syntax"
     /// is written of Annex A.3 PROCESSOR-DEPENDENT elements, and these rules are Annex A.4 optional ones (kb/Work
     /// PB709).</para></summary>
     internal static Antlr4.Runtime.RuleContext? EnclosingDeclinedConstruct(Antlr4.Runtime.RuleContext node)
@@ -111,12 +111,12 @@ internal sealed class DeclinedFacilityPass(EditionContext edition) : CursorFollo
         return null;
     }
 
-    /// <summary>The §13.16.2 "validation-clauses" group of the DECLINED A.4.14 VALIDATE facility: CLASS
-    /// (§13.18.11), DEFAULT (§13.18.17), DESTINATION (§13.18.18), INVALID (§13.18.31), PRESENT WHEN format 2
-    /// (§13.18.41), VARYING's validation leg (§13.18.64) and VALIDATE-STATUS / VAL-STATUS (§13.18.62).
+    /// <summary>The §2023:13.16.2 "validation-clauses" group of the DECLINED A.4.14 VALIDATE facility: CLASS
+    /// (§2023:13.18.11), DEFAULT (§2023:13.18.17), DESTINATION (§2023:13.18.18), INVALID (§2023:13.18.31), PRESENT WHEN format 2
+    /// (§2023:13.18.41), VARYING's validation leg (§2023:13.18.64) and VALIDATE-STATUS / VAL-STATUS (§2023:13.18.62).
     /// <para>⚠ CLASS is the one the annex does not list. It joins the group by owner decision (kb/Work PB375,
-    /// 2026-09-02) on §13.16.2's own ground — the printed Format-1 validation-clauses block opens with
-    /// <c>[ class-clause ]</c> and maps it to "13.18.11, CLASS clause" — and because §13.18.11.1 gives the
+    /// 2026-09-02) on §2023:13.16.2's own ground — the printed Format-1 validation-clauses block opens with
+    /// <c>[ class-clause ]</c> and maps it to "13.18.11, CLASS clause" — and because §2023:13.18.11.1 gives the
     /// clause no content outside the module. It needed no arm here, which is the derived namer working.</para>
     /// <para>⚠ PRESENT WHEN and VARYING are SHARED with report writer, which IS supported (Annex A.4.11 items 14
     /// and 20; <c>docs/CONFORMANCE.md</c> §5 records report writer as Partial with both implemented). The two
@@ -128,26 +128,26 @@ internal sealed class DeclinedFacilityPass(EditionContext edition) : CursorFollo
     public override object? VisitValidationClause(CobolParserCore.ValidationClauseContext ctx)
     {
         _edition.Declined(DiagnosticCatalog.ValidateDataDivisionClauseUnsupported,
-            $"the {ClauseName(ctx)} clause of the §13.16.2 validation-clauses group");
-        return null;   // nothing below a declined A.4 clause is diagnosed (§4.2.7 / A.4.1: the element's
+            $"the {ClauseName(ctx)} clause of the §2023:13.16.2 validation-clauses group");
+        return null;   // nothing below a declined A.4 clause is diagnosed (§2023:4.2.7 / A.4.1: the element's
                        // syntax is not this implementation's) — one diagnostic per clause
     }
 
-    /// <summary>The §13.18.63.2 Format-5 content-validation entry's own tail — <c>[IS|ARE] {INVALID|VALID}
+    /// <summary>The §2023:13.18.63.2 Format-5 content-validation entry's own tail — <c>[IS|ARE] {INVALID|VALID}
     /// [WHEN condition-1]</c> — which is what turns an ordinary level-88 VALUE list into the A.4.14 item-7
     /// construct. Its own rule rather than a <c>validationClause</c> alternative because it is a PHRASE of the
     /// VALUE clause, whose formats 1–4 are fully supported: only this tail is declined.</summary>
     public override object? VisitValidateValidPhrase(CobolParserCore.ValidateValidPhraseContext ctx)
     {
         _edition.Declined(DiagnosticCatalog.ValidateDataDivisionClauseUnsupported,
-            "the VALUE clause's content-validation entry (ISO §13.18.63 format 5 — the "
-            + $"'{(ctx.VALID() is not null ? "VALID" : "INVALID")}' phrase; §13.16.2 format 4, Annex A.4.14 "
+            "the VALUE clause's content-validation entry (ISO §2023:13.18.63 format 5 — the "
+            + $"'{(ctx.VALID() is not null ? "VALID" : "INVALID")}' phrase; §2023:13.16.2 format 4, Annex A.4.14 "
             + "item 7); the ordinary condition-name VALUE formats 1, 3 and 4 are unaffected");
         return null;
     }
 
     /// <summary>Name the clause from its OWN leading keywords — the terminals before the first sub-rule, minus
-    /// the §5.2.3 optional connectives. Derived rather than switched so a new alternative added to
+    /// the §2023:5.2.3 optional connectives. Derived rather than switched so a new alternative added to
     /// <c>validationClause</c> is named correctly with no code change here (CLAUDE.md rule 5: prefer the shape
     /// that makes the next case automatic). Yields CLASS · DEFAULT · DESTINATION · INVALID WHEN · PRESENT WHEN ·
     /// VARYING · VALIDATE-STATUS · VAL-STATUS.

@@ -8,9 +8,9 @@
 *> ISO 1989:2023 7.3.10.4 GR4 (kb/Work PB4573): "When the SUBSTITUTE option is specified, the COBOL word that is the
 *> content of literal-5 shall be used in any syntax where the COBOL word that is the content of literal-4 is
 *> documented as required or optional."
-*>   cite.py: OK  §7.3.10.4 4)  (General rules)
+*>   cite.py: OK  §2023:7.3.10.4 4)  (General rules)
 *> 12.3.7.2 general format: [ CURRENCY SIGN IS literal-7 [ WITH PICTURE SYMBOL literal-8 ] ] ...
-*>   cite.py: OK  §12.3.7.2 (General format)  (the SIGN IS literal-7 line)
+*>   cite.py: OK  §2023:12.3.7.2 (General format)  (the SIGN IS literal-7 line)
 *> 12.3.7.3 SR23: "If the PICTURE SYMBOL phrase is specified, literal-7 is the currency string and literal-8 is the
 *> associated currency symbol."
 *> SYMBOL is a context-sensitive word (8.10, CURRENCY clause), so SUBSTITUTE may name it (7.3.10.3 SR3) and SYM is the

@@ -8,8 +8,8 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// ⛔ <b>THE REFERENCE-TIME *-ARG-OMITTED FACT OF A FORMAL PARAMETER</b> (kb/Work PB971) — carried by the formal's
 /// root <see cref="DataItem"/> (<see cref="DataItem.OmittedGuard"/>) and copied onto the ROOT segment of every
 /// <see cref="AccessPath"/> built from that item, so every reference the backend renders through the path is
-/// checked, whatever verb or operand position produced it. ISO §14.9.4.4 GR12 (program), §8.4.3.2.4 GR8 (function)
-/// and §14.9.23.4 GR10 (method) each set the kind's condition to exist when "a parameter for which the
+/// checked, whatever verb or operand position produced it. ISO §2023:14.9.4.4 GR12 (program), §2023:8.4.3.2.4 GR8 (function)
+/// and §2023:14.9.23.4 GR10 (method) each set the kind's condition to exist when "a parameter for which the
 /// omitted-argument condition is true is referenced … except as an argument or in the omitted-argument
 /// condition"; the two exemptions never render the path (the condition reads <see cref="OmittedProbe"/>; a
 /// forwarded whole formal forwards its carrier), so they need no list here.

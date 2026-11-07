@@ -10,19 +10,19 @@
       *>   python scripts/spec/cite.py --check 12.4.5.10.3 "Each record
       *>   in a line sequential file is terminated by an
       *>   implementor-defined line delimiter"
-      *>                                        -> OK  §12.4.5.10.3 2)
+      *>                                        -> OK  §2023:12.4.5.10.3 2)
       *>   python scripts/spec/cite.py --check 14.9.30.4 "contains one
       *>   or more characters not in the implementor-defined character
       *>   set for a line sequential file, the I-O status in the read
-      *>   file connector is set to '09'"      -> OK  §14.9.30.4 16)
+      *>   file connector is set to '09'"      -> OK  §2023:14.9.30.4 16)
       *> The determination: a READ ends a record at an LF, or at a CR LF
       *> pair, on every host; a lone CR is record DATA (GnuCOBOL's rule,
       *> CLAUDE.md rule 1). The file is written byte by byte through a
-      *> one-character record sequential FD (§12.4.5.10.3 GR3):
+      *> one-character record sequential FD (§2023:12.4.5.10.3 GR3):
       *>   A B CR C D LF E F CR LF G H        (no final delimiter)
       *> so the line sequential READs deliver ABxCD (x = the CR, shown
       *> here as "<") with '09' -- CR is outside the line sequential
-      *> character set (item 115, §14.9.30.4 GR16) -- then EF with
+      *> character set (item 115, §2023:14.9.30.4 GR16) -- then EF with
       *> '00' (its CR LF pair is one delimiter), then GH with '00' (a
       *> final line ends at the end of the file), then the at-end '10'.
       *> Before PB1540 the lone CR ended a record: AB, CD, EF, GH.

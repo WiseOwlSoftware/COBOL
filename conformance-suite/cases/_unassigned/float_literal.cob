@@ -7,7 +7,7 @@
 *>---
        IDENTIFICATION DIVISION.
        PROGRAM-ID. FLTLIT.
-      *> floating-point numeric literals, exponent form (ISO §8.3.3.3.3):
+      *> floating-point numeric literals, exponent form (ISO §2023:8.3.3.3.3):
       *> significand (with decimal point) E [+-] exponent. D16.
        DATA DIVISION.
        WORKING-STORAGE SECTION.

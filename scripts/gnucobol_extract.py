@@ -182,7 +182,7 @@ def parse_file(path: str) -> list[Group]:
 # three orders of magnitude: the whole external tree holds 75 files of which exactly TWO are `.cob`, because
 # the 1,323 programs live as `AT_DATA` heredocs inside the `.at` wrappers this module parses. A wave therefore
 # proved a shape ABSENT from a corpus the gate then found it in — twice, and one of the cases is titled
-# "REDEFINES: with OCCURS" (PB209; §13.18.44.3 SR5 s.1 / §13.18.63.3 SR13 s.2).
+# "REDEFINES: with OCCURS" (PB209; §2023:13.18.44.3 SR5 s.1 / §2023:13.18.63.3 SR13 s.2).
 #
 # So the population is defined ONCE, here, and BOTH readers call it: `gnucobol_differential.py` for the cases
 # it compiles, `corpus_sweep.py` for the programs it greps. A sweep over "the corpus" now mechanically includes

@@ -10,13 +10,13 @@
       *> fill there happens on the GIVING side (GR13); this test runs the MERGE USING side, GR2 of 14.9.24.4:
       *>   cite.py --check 14.9.24.4 "If the file referenced by file-name-1 contains only fixed-length records, any
       *>     record in the file referenced by file-name-2 or file-name-3 containing fewer character positions than that
-      *>     fixed length is space filled on the right to that fixed length" -> OK §14.9.24.4 2)
+      *>     fixed length is space filled on the right to that fixed length" -> OK §2023:14.9.24.4 2)
       *>   cite.py --check 14.9.24.4 "a) If there is only one record description entry associated with the file
       *>     referenced by file-name-2 or file-name-3 and that record is described as a national data item or as an
       *>     elementary data item of usage national and of category numeric, numeric-edited, or boolean, the record is
-      *>     filled with national space characters." -> OK §14.9.24.4 2) a)
+      *>     filled with national space characters." -> OK §2023:14.9.24.4 2) a)
       *>   cite.py --check 14.9.24.4 "c) Otherwise, the record is filled with alphanumeric space characters."
-      *>     -> OK §14.9.24.4 2) c)
+      *>     -> OK §2023:14.9.24.4 2) c)
       *> (b) needs SELECT WHEN, which WiseOwl COBOL declines by name - Annex A.4.8 - so it cannot arise.) A national
       *> space is the two bytes 00 20 (UTF-16BE) and an alphanumeric space the one byte 20. Every SD below is FIXED: no
       *> RECORD VARYING clause, so its records are all its description's 6 bytes, and each 4-byte USING record is
@@ -36,7 +36,7 @@
       *>        OP5=001 OP6=033, twice
       *>   X  EXCEPTION PATH, GR7 a): MERGE USING UD1 MISS GIVING GX, where MISS is a non-optional file that is not
       *>      there. Its implicit OPEN INPUT is I-O status 35 (cite.py --check 9.1.13.6 "I-O status = 35" -> OK
-      *>      §9.1.13.6 5)), which is fatal (9.1.13.1), the MERGE statement ends at that OPEN, and the program has a
+      *>      §2023:9.1.13.6 5)), which is fatal (9.1.13.1), the MERGE statement ends at that OPEN, and the program has a
       *>      FILE STATUS clause for MISS so it continues (docs/CONFORMANCE.md DOC-A.1-103): MISS-ST = 35, the
       *>      GIVING file GX was never opened by the terminated statement (GX-ST still spaces), and OPEN INPUT GX
       *>      afterwards is 35 again - no merged record, filled or not, reached it.

@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.21.4 GR5 — multi-name INITIATE order, RESUME NEXT
+      *> ISO §2023:14.9.21.4 GR5 — multi-name INITIATE order, RESUME NEXT
       *> GR5: "The results of executing an INITIATE statement in which
       *> more than one report-name-1 is specified is the same as if a
       *> separate INITIATE statement had been executed for each
@@ -14,31 +14,31 @@
       *> execution of a declarative procedure that executes a RESUME
       *> statement with the NEXT STATEMENT phrase, processing resumes
       *> at the next implicit INITIATE statement, if any."
-      *>   cite.py: OK  §14.9.21.4 5)  (General rules)
+      *>   cite.py: OK  §2023:14.9.21.4 5)  (General rules)
       *> Supporting (each cite.py --check OK):
-      *>  §14.9.21.4 1) c) "PAGE-COUNTER is set to 1"
-      *>  §14.9.21.4 2) "If it is in the active state, the
+      *>  §2023:14.9.21.4 1) c) "PAGE-COUNTER is set to 1"
+      *>  §2023:14.9.21.4 2) "If it is in the active state, the
       *>    EC-REPORT-ACTIVE exception condition is set to exist and
       *>    the execution of the INITIATE statement has no other
       *>    effect."
-      *>  §14.9.21.4 4) "A successful INITIATE statement places the
+      *>  §2023:14.9.21.4 4) "A successful INITIATE statement places the
       *>    report in the active state."
-      *>  §8.4.3.15.3 1) "In the procedure division, PAGE-COUNTER and
+      *>  §2023:8.4.3.15.3 1) "In the procedure division, PAGE-COUNTER and
       *>    LINE-COUNTER may be referenced in any context where an
       *>    integer data item may appear"; 3) bars only LINE-COUNTER
       *>    as a receiving operand - so MOVE ... TO PAGE-COUNTER is
       *>    legal and is the probe that shows WHEN each report was
       *>    initiated.
-      *>  §14.9.33.4 2) a) - without §14.9.21.4 GR5 the implicit
+      *>  §2023:14.9.33.4 2) a) - without §2023:14.9.21.4 GR5 the implicit
       *>    CONTINUE
       *>    "immediately follows the end of the statement that was
       *>    executing ... unless general rules associated with the
       *>    applicable statement specify otherwise"; GR5 sentence 2
       *>    is that "otherwise".
-      *>  §14.9.46.4 2) - a TERMINATE with no GENERATE since the
+      *>  §2023:14.9.46.4 2) - a TERMINATE with no GENERATE since the
       *>    INITIATE "causes no processing of any kind to take place
       *>    for any report groups" (so it prints nothing).
-      *>  §15.33.3 1) - EXCEPTION-STATUS is the 31-character
+      *>  §2023:15.33.3 1) - EXCEPTION-STATUS is the 31-character
       *>    left-justified exception-name.
       *> DERIVATION.
       *>  INITIATE R-B: inactive, file open OUTPUT -> PC-B = 1, active.

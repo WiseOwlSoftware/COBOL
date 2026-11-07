@@ -6,7 +6,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.18.52.4 GR4 / GR5 b) AT COBOL-85 — the operational-sign representation and the
+      *> ISO §2023:13.18.52.4 GR4 / GR5 b) AT COBOL-85 — the operational-sign representation and the
       *> valid sign set (Annex A.1 items 177 and 178; kb/Work PB803).
       *>
       *> ⛔ WHY AN 85 TWIN EXISTS.  The SIGN clause and the implementor's latitude over the fused

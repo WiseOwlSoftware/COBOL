@@ -7,17 +7,17 @@ namespace WiseOwl.Cobol.CodeGen;
 
 /// <summary>
 /// The RECEIVER a numeric render is computed FOR (P7 Step 3; DESIGN-codegen-backend §2.5): the receiving item's
-/// scale (the division/power working scale, ISO §8.8.1/§14.7.4), its INTEGER-DIGIT CAPACITY (the float
+/// scale (the division/power working scale, ISO §2023:8.8.1/§2023:14.7.4), its INTEGER-DIGIT CAPACITY (the float
 /// landing headroom — see <see cref="WorkingScale"/>), whether it is a floating-point receiver (the
 /// whole RHS then evaluates in IEEE binary64 — D16), its ROUNDED mode, and which size error conditions the statement
 /// TAKES (<see cref="SizeChecks"/>: a sum renders the checked <c>AddChecked</c> when it takes EC-SIZE-OVERFLOW;
-/// ISO §14.7.5, §14.6.13.1.1). Passed BY PARAMETER into every public numeric-render entry — replacing the
+/// ISO §2023:14.7.5, §2023:14.6.13.1.1). Passed BY PARAMETER into every public numeric-render entry — replacing the
 /// four mutable <c>EmitContext.Target*</c>/<c>InSizeErrorContext</c> fields whose manual set/reset discipline
 /// was the H1 staleness hazard (a receiver-less render inheriting the PREVIOUS statement's receiver). A site with
 /// no receiver in scope passes <see cref="None"/> (scale 0, no capacity, fixed-point, truncation, unchecked).
 /// </summary>
 /// <param name="IntegerDigits">
-/// The receiver's INTEGER digit positions — its §13.18.40.3 SR14 <c>DigitPositions</c> less its scale, never
+/// The receiver's INTEGER digit positions — its §2023:13.18.40.3 SR14 <c>DigitPositions</c> less its scale, never
 /// negative. <b>0 means "no integer-digit constraint"</b>, which is true both of a receiver-less context
 /// (<see cref="None"/>) and of an all-fraction receiver such as <c>PIC V9(9)</c>; the two want the same working
 /// scale, so one encoding serves both. Over-counting is SAFE and under-counting is not (see
@@ -59,7 +59,7 @@ internal readonly record struct ReceiverContext(
     /// <see cref="IntegerDigits"/>) and its floating-point-edited-ness. A null PICTURE (an index, an object) is
     /// <see cref="None"/>'s scale 0 / no capacity, still bearing a receiver.
     /// <para>It is what an ARITHMETIC statement builds for each resultant identifier (<c>ArithmeticEmitter.RcvFor</c>)
-    /// and what a CALL or INVOKE argument expression builds for its FORMAL PARAMETER: §14.2.3 GR9/GR10 make the
+    /// and what a CALL or INVOKE argument expression builds for its FORMAL PARAMETER: §2023:14.2.3 GR9/GR10 make the
     /// crossing "a COMPUTE statement without the ROUNDED phrase" into a record of the formal's description
     /// (kb/Work PB289), so the expression is evaluated FOR that description — a quotient to the formal's own
     /// fraction digits, a floating-point formal in binary64 — and never at the receiver-less working scale, which
@@ -106,10 +106,10 @@ internal readonly record struct ReceiverContext(
     /// a SET pointer UP/DOWN BY amount, an ALLOCATE character count): 6 fraction digits. (Not a CALL argument: one
     /// no formal can see crosses at its SDIDI's own exponent, <c>CobolArgAdapt.SdidiValue</c>, kb/Work PB3677.) It is the ONLY consumer of the constant.
     /// <para>⛔ IT IS NOT A NUMVAL RULE, AND CALLING IT ONE HELD A WRONG ANSWER OPEN (kb/Work PB251). Named
-    /// <c>NumvalScaleFloor</c>, it read as though §15.67/§15.68/§15.69 prescribed a 6-digit working scale. They
-    /// prescribe no working scale at all: §15.67.4 r1 / §15.68.4 r1 fix the returned value as "the numeric value
+    /// <c>NumvalScaleFloor</c>, it read as though §2023:15.67/§2023:15.68/§2023:15.69 prescribed a 6-digit working scale. They
+    /// prescribe no working scale at all: §2023:15.67.4 r1 / §2023:15.68.4 r1 fix the returned value as "the numeric value
     /// represented by argument-1" with no arithmetic-mode qualification, so NUMVAL and NUMVAL-C render on the
-    /// SDIDI carrier in every mode and never consult this constant, and neither does NUMVAL-F, whose §15.69.4 r2
+    /// SDIDI carrier in every mode and never consult this constant, and neither does NUMVAL-F, whose §2023:15.69.4 r2
     /// approximation licence is resolved to r3's exact value (kb/Work PB3839). What remains is an IMPLEMENTOR
     /// choice for the one landing with no receiver to derive a scale from — the <see cref="WorkingScale"/> CAP
     /// above it is a correctness requirement, this floor is not.</para>
@@ -136,7 +136,7 @@ internal readonly record struct ReceiverContext(
     ///   <item>a value that does NOT fit always trips the receiver's capacity check — the sentinel descales to
     ///         1.7014×10^(38−ws) ≥ 1.7014×10^IntegerDigits, which exceeds the receiver's maximum
     ///         10^IntegerDigits − 1 for every ws ≤ 38 − IntegerDigits. So the saturation can no longer be
-    ///         SILENT: it is guaranteed to raise the size error condition (§14.7.5 case 5).</item>
+    ///         SILENT: it is guaranteed to raise the size error condition (§2023:14.7.5 case 5).</item>
     /// </list>
     /// That is the same discipline <c>CobolFloat.ToScaled</c> already relies on — a landing past the carrier is a size error exactly when
     /// the landing scale keeps the sentinel above the receiver's capacity, and unsafe when a later rescale shrinks
@@ -146,13 +146,13 @@ internal readonly record struct ReceiverContext(
     /// <para>
     /// The cap only BINDS for receivers with more than 38 − <paramref name="floor"/> integer digits (below that the
     /// floor wins), so it is behaviour-neutral for every ordinary picture. It can never fall below the
-    /// receiver's own scale for a legal picture: §13.18.40.3 SR14 caps digit positions at 31, so
+    /// receiver's own scale for a legal picture: §2023:13.18.40.3 SR14 caps digit positions at 31, so
     /// 38 − IntegerDigits ≥ 38 − 31 = 7 ≥ Scale whenever IntegerDigits + Scale ≤ 31.
     /// </para>
     /// <para>⛔ A FLOOR IS A CHOICE AND MUST NEVER BE READ AS A FUNCTION'S RULE (kb/Work PB251): the NUMVAL floor
-    /// that used to be listed here was never §15.67's — the family has no working scale at all — and the name
+    /// that used to be listed here was never §2023:15.67's — the family has no working scale at all — and the name
     /// alone kept a truncating native lane looking spec-derived. Every floor passed here is an implementor choice
-    /// under §8.8.1.2 / §15.4.1; the cap is the only part the standard forces. (The float family has no floor of its
+    /// under §2023:8.8.1.2 / §2023:15.4.1; the cap is the only part the standard forces. (The float family has no floor of its
     /// own: its value lands at the receiver's own scale, <see cref="FloatLanding"/>.)</para>
     /// </summary>
     public int WorkingScale(int floor)
@@ -165,7 +165,7 @@ internal readonly record struct ReceiverContext(
     /// <summary>
     /// ⛔ THE ONE PLACE a NATIVE-arithmetic float value's LANDING is decided — WHETHER it is quantized into the
     /// fixed-point <c>Int128</c> lane at all, and when it is, at which SCALE and with which ROUNDING MODE
-    /// (kb/Work PB647, then PB653). The §15.4.1 float-intrinsic family
+    /// (kb/Work PB647, then PB653). The §2023:15.4.1 float-intrinsic family
     /// (<c>IntrinsicRenderer.RenderFloatNative</c>) and native <c>**</c> (<c>NumericRenderer.Power</c>) are its
     /// two consumers, and they must agree because one returned value must not land two ways.
     /// <para>
@@ -174,7 +174,7 @@ internal readonly record struct ReceiverContext(
     /// fixed-point resultant or keep the binary64, and the second covers the last two shapes:
     /// <list type="bullet">
     ///   <item><b>The final transfer into a fixed-point resultant</b> quantizes AT that identifier's scale with
-    ///     the statement's own ROUNDED mode. §14.7.4.1: "If, after decimal point alignment, the number of places
+    ///     the statement's own ROUNDED mode. §2023:14.7.4.1: "If, after decimal point alignment, the number of places
     ///     in the fractional part of the result of an arithmetic operation is greater than the number of places
     ///     provided for the fraction of the resultant identifier, truncation is relative to the size provided for
     ///     the resultant identifier" (cite.py-verified) — the decision is made ONCE, at the receiver's scale, so
@@ -199,7 +199,7 @@ internal readonly record struct ReceiverContext(
     /// above it propagate the loss: with <c>R PIC 9V9(9)</c>, <c>COMPUTE R = FUNCTION SQRT(3) * 2</c> gave
     /// 3.464101614 where a <c>COMP-2</c> item holding the IDENTICAL binary64 gave the correct 3.464101615, and
     /// <c>COMPUTE R = FUNCTION SQRT(10) ** 2</c> gave 9.999999998 against the COMP-2 arm's 10.000000000.
-    /// §15.4.1 forbids the split outright — "the returned value is the same for all instances of a given function
+    /// §2023:15.4.1 forbids the split outright — "the returned value is the same for all instances of a given function
     /// within a single execution of the runtime element so long as the value and order of the arguments, the
     /// collating sequence, and the locale are unchanged" — and the RELATION channel, which never quantized,
     /// already AGREED with the COMP-2 item, so the arithmetic channel was the one arm out of step
@@ -216,31 +216,31 @@ internal readonly record struct ReceiverContext(
     /// guard it once added to the dividend's scale compounded with depth exactly this way); a float landing has
     /// no such bound. Keeping the binary64 removes the question instead of tuning it: the value IS
     /// then the same object a <c>COMP-2</c> item holds, <c>CombineCore</c>'s <c>Real</c> lane evaluates the whole
-    /// expression in IEEE binary64 (numeric design D16, on §8.8.1.3's "implementor-defined method of evaluating
+    /// expression in IEEE binary64 (numeric design D16, on §2023:8.8.1.3's "implementor-defined method of evaluating
     /// an arithmetic expression, an arithmetic statement, the SUM clause, and all integer and numeric
-    /// functions"), and §15.4.1's identity holds BY CONSTRUCTION across the arithmetic, relation, text and MOVE
+    /// functions"), and §2023:15.4.1's identity holds BY CONSTRUCTION across the arithmetic, relation, text and MOVE
     /// channels rather than by arithmetic luck.
     /// </para>
     /// <para>
     /// ⛔ NO LANDING CLAMPS TO A FUNCTION'S CODOMAIN (kb/Work PB3829, overturning PB65's clamp). A §15.x.4 bound is
     /// a rule on the RETURNED value, which every arm here leaves untouched; the final-transfer arm then rounds it
-    /// once at the resultant identifier per §14.7.4.3, and the value it lands may lie past the bound (ACOS(-1)
-    /// ROUNDED into <c>9V9999</c> is 3.1416, beyond π) or fail to fit (a size error, §14.7.5), exactly as the same
+    /// once at the resultant identifier per §2023:14.7.4.3, and the value it lands may lie past the bound (ACOS(-1)
+    /// ROUNDED into <c>9V9999</c> is 3.1416, beyond π) or fail to fit (a size error, §2023:14.7.5), exactly as the same
     /// value does when it arrives through a nested expression or a <c>COMP-2</c> item.
     /// </para>
     /// <para>
     /// ⛔ WHAT PB647 ORIGINALLY CLOSED, KEPT BECAUSE IT IS WHY THE FINAL-TRANSFER ARM READS AS IT DOES. The
     /// quantizer hard-coded <see cref="CobolRounding.NearestAwayFromZero"/> at the working scale in BOTH
     /// positions, so with <c>S PIC 9V9(9)</c>, <c>MOVE FUNCTION SQRT(3) TO S</c> gave 1.732050807
-    /// (§14.6.8.2 rule 4 — "the data is aligned by decimal point and is transferred to the receiving digits with
+    /// (§2023:14.6.8.2 rule 4 — "the data is aligned by decimal point and is transferred to the receiving digits with
     /// zero fill or truncation on either end") while <c>COMPUTE S = FUNCTION SQRT(3)</c> gave 1.732050808, and
     /// <c>SQRT(0.9999999999)</c> into <c>PIC 9V9</c> split across a whole tenth (0.9 against 1.0). The same
-    /// hard-coding made the ROUNDED phrase a NO-OP on this family, where §14.7.4.3 rule 2 says "If the ROUNDED
+    /// hard-coding made the ROUNDED phrase a NO-OP on this family, where §2023:14.7.4.3 rule 2 says "If the ROUNDED
     /// phrase is not specified, execution is as if ROUNDED MODE IS TRUNCATION had been specified".
     /// </para>
     /// <para>
     /// ⚠ <c>NUMVAL-F</c> DOES NOT CONSULT THIS DECISION, AND THAT IS NOT DRIFT (kb/Work PB3839). Its value is not a
-    /// binary64: §15.69.4 r2 grants native arithmetic "an approximation" and the implementor's determination is r3's
+    /// binary64: §2023:15.69.4 r2 grants native arithmetic "an approximation" and the implementor's determination is r3's
     /// exact value in every mode and channel (<c>IntrinsicCarrierRules.ReturnsExactParse</c>), so a fixed-point
     /// receiver rounds it ONCE at its own scale and a floating-point receiver converts it once, through the SDIDI landing.
     /// </para>

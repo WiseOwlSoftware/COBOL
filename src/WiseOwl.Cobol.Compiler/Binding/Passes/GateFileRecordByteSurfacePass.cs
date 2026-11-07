@@ -24,7 +24,7 @@ internal sealed class GateFileRecordByteSurfacePass : IBindPass
 
     /// <summary>The byte-surface gate for FILE records — the THIRD caller of <see cref="DataBinder.ByteWindowResidueOf"/>
     /// (kb/Work PB327, folding in the instruction PB231 left on that predicate). An FD/SD record area is written
-    /// to and read from a physical file as a run of BYTES (ISO §14.9.30.4 GR14/GR15 state the short/long-record
+    /// to and read from a physical file as a run of BYTES (ISO §2023:14.9.30.4 GR14/GR15 state the short/long-record
     /// rules over "the number of bytes in the record"), and the generated <c>AsImage()</c>/<c>FromImage()</c> pair
     /// IS that byte layout — so the question "can this leaf be laid out in a byte window?" is literally the one
     /// the REDEFINES classifier and the EXTERNAL/BASED cell forcer ask, and asking it in a second hand-written
@@ -37,7 +37,7 @@ internal sealed class GateFileRecordByteSurfacePass : IBindPass
     /// managed-slot half, so such a record is not <c>IsImageCapable</c> and every WRITE/READ of it is the record
     /// codec's own Tier-C loud (<c>TierCIsland.Reason</c>) — unchanged by this fold.</para>
     /// <para>NATIONAL now RIDES: a national character position occupies two bytes, high-order first
-    /// (§13.18.60.4 GR8 leaves the size to the implementor — D-N1 pins two), which the codec composes through
+    /// (§2023:13.18.60.4 GR8 leaves the size to the implementor — D-N1 pins two), which the codec composes through
     /// <c>CobolBits.NatBytes</c> and decodes through <c>CobolBits.NatReadWindow</c>. What the fold refuses is what
     /// the predicate refuses everywhere else: a pointer/object-class leaf, and a leaf with no bound
     /// representation.</para></summary>

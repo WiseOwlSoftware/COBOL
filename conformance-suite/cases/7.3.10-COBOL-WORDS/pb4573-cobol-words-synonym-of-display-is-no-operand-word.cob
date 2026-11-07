@@ -8,7 +8,7 @@
 *> content of literal-2 shall be treated as a synonym for the COBOL word that is the content of literal-1, and may
 *> be used in any syntax requiring the use of the reserved word, context-sensitive word, or intrinsic function name
 *> that is the content of literal-1."
-*>   cite.py: OK  §7.3.10.4 2)  (General rules)
+*>   cite.py: OK  §2023:7.3.10.4 2)  (General rules)
 *> 8.3.2.1 rule 1: "Reserved words shall not be used as user-defined words or system-names." SHOW, a synonym for the
 *> reserved word DISPLAY, is DISPLAY in this compilation group, so MOVE "A" TO SHOW names no data item and the program
 *> is refused (COBOL0901). The refusal named the original, "'DISPLAY' is a reserved word", which the source never wrote;

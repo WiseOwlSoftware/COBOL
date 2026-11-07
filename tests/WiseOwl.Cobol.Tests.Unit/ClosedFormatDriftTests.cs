@@ -19,7 +19,7 @@ using Core = CobolParserCore;
 /// <para><b>Why it exists.</b> The word run <c>genericClause</c> matches ANY run of words,
 /// so wherever it sits in an alternative list it swallows everything the named alternatives missed. It was ONE
 /// grammar rule reached from SIX sites spanning EIGHT closed general formats, and closing it one site at a time
-/// is exactly how it survived: kb/Work PB487 closed §13.16.2 and swept for siblings, but read the grammar by rule
+/// is exactly how it survived: kb/Work PB487 closed §2023:13.16.2 and swept for siblings, but read the grammar by rule
 /// NAME — so it counted four of the remaining five and missed the I-O-CONTROL paragraph's INLINE alternative,
 /// which is not a named <c>xxxClause : genericClause</c> wrapper. "One production, one pass, one table" is only
 /// a claim until something derives it mechanically, which is what these facts do.</para>
@@ -95,7 +95,7 @@ public sealed class ClosedFormatDriftTests : WiseOwlCobolTestBase
     }
 
     /// <summary>⛔ EACH LIST WRITES THE FORM ITS FOLLOW SET CALLS FOR (kb/Work PB3390). The data form exists because an
-    /// unsigned integer after a list's separator period may be the next entry's level-number (ISO §8.3.2.2.13); the
+    /// unsigned integer after a list's separator period may be the next entry's level-number (ISO §2023:8.3.2.2.13); the
     /// general form holds the integer because nothing after the other lists begins with one. Read from the generated
     /// parser: from each call of the production, the separator periods reachable without consuming a token, and what
     /// may begin after each (entering rules, leaving them to every caller, never into the production itself). A list
@@ -261,7 +261,7 @@ public sealed class ClosedFormatDriftTests : WiseOwlCobolTestBase
             Assert.True(f.FormatLabel.Length == 0 || f.FormatLabel.EndsWith(' '),
                 $"{type.Name}: FormatLabel must carry its own trailing space so the message needs no second template");
             // The noun and the code agree: a PARAGRAPH list is 1971, a CLAUSE list is 1970 (or 1941, the code
-            // §13.16.2 kept from kb/Work PB487). A mismatch sends the reader to the wrong subclause.
+            // §2023:13.16.2 kept from kb/Work PB487). A mismatch sends the reader to the wrong subclause.
             if (f.Noun == "paragraph") Assert.Equal("COBOL1971", f.Diagnostic.Code);
             else Assert.Contains(f.Diagnostic.Code, new[] { "COBOL1941", "COBOL1970" });
         }
@@ -406,7 +406,7 @@ public sealed class ClosedFormatDriftTests : WiseOwlCobolTestBase
         Assert.Equal(beginning, ClosedFormats.LevelNumberEntryRules.Order().ToArray());
     }
 
-    /// <summary>The band is ERROR severity at every edition and every strictness. §4.2.2 makes a general format
+    /// <summary>The band is ERROR severity at every edition and every strictness. §2023:4.2.2 makes a general format
     /// the definition of what may be written; there is no permissive reading of an unrecognized clause that is
     /// not "compile something the programmer did not write", so it never downgrades to a warning.</summary>
     [Fact]

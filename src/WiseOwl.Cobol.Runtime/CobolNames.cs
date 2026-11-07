@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// ⛔ THE ONE CASE FOLD OF A COBOL WORD — ISO Annex C, the "Mapping of uppercase letters to lowercase letters in the
 /// COBOL character repertoire" (kb/Work PB1402). Every table keyed by a COBOL word, and every comparison of two
 /// words, folds through here and through nothing else (<c>CobolNameFoldDriftTests</c>).
-/// <para><b>The rule.</b> §8.1.3.2 3): "Equivalence of uppercase and lowercase basic letters is achieved by
+/// <para><b>The rule.</b> §2023:8.1.3.2 3): "Equivalence of uppercase and lowercase basic letters is achieved by
 /// folding from uppercase to lowercase in accordance with the case mapping described in Annex C", and 4) b): "An
 /// uppercase extended letter is treated as though it were folded to its corresponding lowercase extended letter, if
 /// any, in accordance with the case mapping described in Annex C". A character Annex C.2 does not list folds to
@@ -26,7 +26,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// follows it). The generator derives that set from the lists (<c>scripts/spec/gen_annex_bc.py</c>), and a reserved word,
 /// system-name or implementor-name is written in basic letters only, so no spelling with an extended letter equals one
 /// through this fold (<c>AnnexBCDriftTests</c>). The UPPER-CASE and LOWER-CASE intrinsic functions are a separate,
-/// implementor-defined mapping (§15.97.4 4)) and are not this fold.</para>
+/// implementor-defined mapping (§2023:15.97.4 4)) and are not this fold.</para>
 /// <para><b>The edition.</b> The tables are the COBOL 2023 Annex C; the earlier editions differ by Annex E's two
 /// recorded changes: E.2 item 14 DELETED (0131,0069) and (03C2,03C3) at 2023, and E.3.3 item 6 ADDED 597 mappings.
 /// Every added mapping pairs at least one character that the earlier editions' Annex B does not hold (measured by
@@ -80,10 +80,10 @@ public static partial class CobolNames
     /// a-z then written A-Z (kb/Work PB1965). Two spellings of one COBOL word give one string, so it is the key a
     /// table compared by ordinal, a derived C# identifier or an externalized name the compiler forms reads (a word
     /// compared with a KEYWORD is compared on its basic letters alone, by <c>WiseOwl.Cobol.Editions.CobolKeywords</c>:
-    /// §8.1.3.2 4) folds extended letters in user-defined words only, kb/Work PB4240). It replaces the host's <c>ToUpperInvariant</c>, which is not the
+    /// §2023:8.1.3.2 4) folds extended letters in user-defined words only, kb/Work PB4240). It replaces the host's <c>ToUpperInvariant</c>, which is not the
     /// standard's mapping: at COBOL 2023 it writes the dotless i U+0131 as <c>I</c> and final sigma U+03C2 as sigma's
     /// capital, joining words Annex C keeps apart (Annex E.2 item 14). Only the basic letters are raised, because only their upper case is the standard's
-    /// (§8.1.3.1 Table 1: the basic letters A to Z are the "Latin capital letters (uppercase letters)"); an extended
+    /// (§2023:8.1.3.1 Table 1: the basic letters A to Z are the "Latin capital letters (uppercase letters)"); an extended
     /// letter stays in its fold, as Annex C maps only from upper case to lower.
     /// All-basic words that are already upper case are returned as they are.</summary>
     public static string UpperFold(string word)

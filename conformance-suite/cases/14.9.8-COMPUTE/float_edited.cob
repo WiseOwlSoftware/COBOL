@@ -8,7 +8,7 @@
        IDENTIFICATION DIVISION.
        PROGRAM-ID. FLTEDT.
       *> a float (COMP-2) source edited into a numeric-edited receiver,
-      *> by MOVE and by COMPUTE (ISO §14.9.25.4 GR5 / §14.7.7). D16 review.
+      *> by MOVE and by COMPUTE (ISO §2023:14.9.25.4 GR5 / §2023:14.7.7). D16 review.
        DATA DIVISION.
        WORKING-STORAGE SECTION.
        01 WS-F USAGE COMP-2.

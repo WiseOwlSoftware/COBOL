@@ -9,8 +9,8 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.17/§15.38-§15.41/§15.48/§15.69/§15.79/§15.92/§15.95 — the COBOL-2014 date/time + number
-      *> intrinsics. Integer date 153569 = 2021-06-16 (§15.5.2 epoch 1601-01-01=1); 45296 s = 12:34:56.
+      *> ISO §2023:15.17/§2023:15.38-§2023:15.41/§2023:15.48/§2023:15.69/§2023:15.79/§2023:15.92/§2023:15.95 — the COBOL-2014 date/time + number
+      *> intrinsics. Integer date 153569 = 2021-06-16 (§2023:15.5.2 epoch 1601-01-01=1); 45296 s = 12:34:56.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. FMTDT.
        DATA DIVISION.

@@ -6,7 +6,7 @@
 *> portable: unverified
 *>---
        >>TURN EC-I-O-EOP EC-I-O-EOP-OVERFLOW CHECKING ON
-      *> kb/Work PB854 -- §14.9.51.4 GR27 a)'s two exception conditions
+      *> kb/Work PB854 -- §2023:14.9.51.4 GR27 a)'s two exception conditions
       *> are SET TO EXIST by an end-of-page WRITE, and GR27 b)-d) route
       *> them: to the END-OF-PAGE phrase when it is specified, otherwise
       *> to the applicable USE declarative.
@@ -15,18 +15,18 @@
       *>   python scripts/spec/cite.py --check 14.9.51.4 "If the
       *>   end-of-page condition was caused by the action in General rule
       *>   26a, the EC-I-O-EOP-OVERFLOW exception condition is set to
-      *>   exist."                            -> OK  §14.9.51.4 27) a)
+      *>   exist."                            -> OK  §2023:14.9.51.4 27) a)
       *>   python scripts/spec/cite.py --check 14.9.51.4 "If the
       *>   END-OF-PAGE phrase is not specified, and there is an applicable
       *>   USE declarative, control is transferred to that declarative."
-      *>                                      -> OK  §14.9.51.4 27) d)
+      *>                                      -> OK  §2023:14.9.51.4 27) d)
       *>   python scripts/spec/cite.py --check 14.9.51.4 "If the
       *>   END-OF-PAGE phrase is specified, control is transferred to
-      *>   imperative-statement-1."           -> OK  §14.9.51.4 27) b)
+      *>   imperative-statement-1."           -> OK  §2023:14.9.51.4 27) b)
       *>
       *> THE PAGE. LINAGE IS 3 LINES WITH FOOTING AT 2: OPEN OUTPUT sets
-      *> LINAGE-COUNTER to 1 (§13.18.34.4 GR7 d)); each plain WRITE is a
-      *> one-line advance (§14.9.51.4 GR25, §13.18.34.4 GR7 c) 3).
+      *> LINAGE-COUNTER to 1 (§2023:13.18.34.4 GR7 d)); each plain WRITE is a
+      *> one-line advance (§2023:14.9.51.4 GR25, §2023:13.18.34.4 GR7 c) 3).
       *>   W1 -> counter 2: in the footing area, GR26 b) -> EC-I-O-EOP
       *>   W2 -> counter 3: in the footing area, GR26 b) -> EC-I-O-EOP
       *>   W3 -> 4 exceeds the page body: overflow, GR26 a), counter 1

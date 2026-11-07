@@ -4,9 +4,9 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> ⛔ THE NEGATIVE BELOW THE INTRODUCING EDITION (kb/Work PB541). §13.18.60.3 SR7 admits a NATIONAL report
+*> ⛔ THE NEGATIVE BELOW THE INTRODUCING EDITION (kb/Work PB541). §2023:13.18.60.3 SR7 admits a NATIONAL report
 *> group item — conformance:cases/13.18.14-COLUMN/pb541_report_national_item is the positive — but national data itself is a
-*> COBOL-2002 introduction (ISO §8.5.2, category national), so the same entry at --std 85 is not conforming
+*> COBOL-2002 introduction (ISO §2023:8.5.2, category national), so the same entry at --std 85 is not conforming
 *> COBOL-85 and the edition gate refuses it (COBOL0900).
 *>
 *> This is the edition-gate sweep the new SR7 screen owes: widening a usage gate from DISPLAY to

@@ -5,7 +5,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// Reference-modification range checking (ISO/IEC 1989:2023 §8.4.3.3.4 item 5c; review C14 + V48). Item 5c: a
+/// Reference-modification range checking (ISO/IEC 1989:2023 §2023:8.4.3.3.4 item 5c; review C14 + V48). Item 5c: a
 /// SPECIFIED length "shall result in a positive nonzero integer, unless the REF-MOD-ZERO-LENGTH directive is set to
 /// ON, when the result may also be zero" — so a negative specified length is out of range and, under
 /// <c>&gt;&gt;TURN EC-BOUND-REF-MOD CHECKING ON</c>, raises the fatal EC-BOUND-REF-MOD, while the REF-MOD-ZERO-LENGTH
@@ -31,7 +31,7 @@ public sealed class RefModRangeTests
             STOP RUN.
         """;
 
-    [Fact]   // §8.4.3.3.4 item 5c: a specified negative length under EC-BOUND-REF-MOD checking raises the fatal EC.
+    [Fact]   // §2023:8.4.3.3.4 item 5c: a specified negative length under EC-BOUND-REF-MOD checking raises the fatal EC.
     public void SpecifiedNegativeLength_UnderChecking_RaisesFatal()
     {
         var (ok, stdout, detail) = WiseOwlCobol.CompileAndRun(Prog(
@@ -80,7 +80,7 @@ public sealed class RefModRangeTests
     }
 
     [Fact]   // V48: an OCCURS 0 TO n DEPENDING group at count 0 is a zero-extent receive — a plain group MOVE is a
-             // no-op (§13.18.38 GR8a), NOT a reference-modification violation, so it must not raise under checking.
+             // no-op (§2023:13.18.38 GR8a), NOT a reference-modification violation, so it must not raise under checking.
     public void OdoGroup_ZeroExtentReceive_DoesNotRaise()
     {
         var (ok, stdout, detail) = WiseOwlCobol.CompileAndRun(Prog(

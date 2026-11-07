@@ -6,7 +6,7 @@
 *> portable: unverified
 *>---
       *> CA3 (CONFORMANCE-FIX-QUEUE): when HIGH-VALUE / LOW-VALUE is referenced at runtime (DISPLAY included, ISO
-      *> §8.3.3.6.4 GR6/GR7 + NOTE 2) it is the character with the highest / lowest ordinal position in the runtime
+      *> §2023:8.3.3.6.4 GR6/GR7 + NOTE 2) it is the character with the highest / lowest ordinal position in the runtime
       *> alphanumeric PROGRAM COLLATING SEQUENCE — NOT the native pin. Under ALPHABET AL (Z..A occupy the first 26
       *> positions) the LOWEST position is 'Z', so LOW-VALUE = 'Z'. A MOVE of the figurative already threaded the
       *> PCS (WS = 'Z'); DISPLAY of the BARE figurative ignored it and emitted the native pin X"00" — a GR6/GR7

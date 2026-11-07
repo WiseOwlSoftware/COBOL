@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO 1989:2023 §14.9.41.3 SR6 — the COMPLEMENT of the screen
+      *> ISO 1989:2023 §2023:14.9.41.3 SR6 — the COMPLEMENT of the screen
       *> kb/Work PB354 tightened. SR6 admits data-name-1 that is
       *>   a) "A data item specified as a prime or alternate record key
       *>      associated with file-name-1", or
@@ -20,7 +20,7 @@
       *>   K1  the declared prime key itself                  (SR6 a)
       *>   K2  an item at the prime key's identical BYTE
       *>       POSITIONS in a SECOND record description —
-      *>       §12.4.5.12.4 GR4 makes those positions
+      *>       §2023:12.4.5.12.4 GR4 makes those positions
       *>       "implicitly referenced as keys for all other
       *>       record description entries"                    (SR6 a)
       *>   K3  a SHORTER same-class/category/usage item at the
@@ -33,7 +33,7 @@
       *> prime key "AAB" selects the SECOND record (not the first,
       *> which "AAA" would) and a 2-character generic alternate "BB"
       *> selects the third — each answer is unreachable by accident.
-      *> §14.9.30.4 GR21 (sequential arm b) makes the START-selected
+      *> §2023:14.9.30.4 GR21 (sequential arm b) makes the START-selected
       *> record the one the following READ NEXT delivers.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. P354GENK.
@@ -90,7 +90,7 @@
            READ IXF NEXT AT END CONTINUE END-READ
            DISPLAY "K1=" IX-DATA
       *> K2 — the same byte positions in a second record description
-      *> (§12.4.5.12.4 GR4 makes them the prime key implicitly).
+      *> (§2023:12.4.5.12.4 GR4 makes them the prime key implicitly).
            MOVE "BBBBBB" TO VW-KEY
            START IXF KEY IS = VW-KEY
                INVALID KEY DISPLAY "K2-INV"

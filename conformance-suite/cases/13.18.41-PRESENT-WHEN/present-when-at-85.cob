@@ -4,9 +4,9 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §13.18.41 Format 1 — the report-group PRESENT WHEN clause is a
+      *> ISO §2023:13.18.41 Format 1 — the report-group PRESENT WHEN clause is a
       *> COBOL-2002 introduction (the 2002 RW modernization; PRESENT itself is
-      *> §8.9-reserved "added 2002"). Below 2002 the recognition gate rejects
+      *> §2023:8.9-reserved "added 2002"). Below 2002 the recognition gate rejects
       *> (COBOL0900, VersionConformancePass ParseArm).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. RWPW85P10RP.

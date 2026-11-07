@@ -7,11 +7,11 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// The editing sign follows the value the receiver ENDS UP HOLDING, never the sending value (kb/Work PB3664).
-/// ISO §13.18.40.5 5): "Table 8, Results of fixed insertion editing, shows the character(s) produced by an editing
+/// ISO §2023:13.18.40.5 5): "Table 8, Results of fixed insertion editing, shows the character(s) produced by an editing
 /// sign control symbol, depending on the value of the data item" — its first column is "Positive or zero value".
-/// §14.9.25.4 6) sends a numeric-edited receiver to §14.6.8.2 5) ("further alignment, zero fill or truncation, and
+/// §2023:14.9.25.4 6) sends a numeric-edited receiver to §2023:14.6.8.2 5) ("further alignment, zero fill or truncation, and
 /// transfer of digits take place as described in the general rules and editing rules in 13.18.40"), so a sending
-/// -0.001 into an item with two fraction digits stores ZERO (§8.8.4.2.4 says the same of comparisons: "Zero is
+/// -0.001 into an item with two fraction digits stores ZERO (§2023:8.8.4.2.4 says the same of comparisons: "Zero is
 /// considered a unique value regardless of the sign"). Every expected string is hand-derived from those rules.
 /// </summary>
 public sealed class CobolEditStoredSignTests
@@ -40,7 +40,7 @@ public sealed class CobolEditStoredSignTests
     public void Format_SignIsTheStoredValues(string picture, long value, int scale, string expected) =>
         Assert.Equal(expected, CobolEdit.Format(value, scale, picture));
 
-    // ISO §13.18.40.5 7) b) and 6) b): "the value of the data to be stored" is zero when the digits the picture HOLDS
+    // ISO §2023:13.18.40.5 7) b) and 6) b): "the value of the data to be stored" is zero when the digits the picture HOLDS
     // are all zero, so a value whose high-order digits truncate to zero is all asterisks (the point kept) or all
     // spaces (kb/Work PB4515). A stored nonzero value keeps rule 7 a)'s suppression to the left of the point.
     [Theory]
@@ -55,7 +55,7 @@ public sealed class CobolEditStoredSignTests
     public void Format_AllSuppressedPicture_TestsTheStoredDigits(string picture, long value, int scale, string expected) =>
         Assert.Equal(expected, CobolEdit.Format(value, scale, picture));
 
-    // ISO §14.9.25.4 6) d) 1: de-editing "establishes the operand's numeric value, which may be signed" — the sign a
+    // ISO §2023:14.9.25.4 6) d) 1: de-editing "establishes the operand's numeric value, which may be signed" — the sign a
     // floating string landed (Table 9: '-' for a negative value of either string, '+' only for a positive or zero '+' string), read
     // at the position, for either symbol (kb/Work PB4514).
     [Theory]
@@ -69,7 +69,7 @@ public sealed class CobolEditStoredSignTests
     public void DeEdit_FloatingSignString_ReadsTheLandedSign(string mask, string image, long expected) =>
         Assert.Equal((Int128)expected, CobolEdit.DeEdit(image, mask));
 
-    // §13.18.40.5 rule 6: a PICTURE EDITING character-1 used as a simple insertion symbol EMBEDDED in a floating
+    // §2023:13.18.40.5 rule 6: a PICTURE EDITING character-1 used as a simple insertion symbol EMBEDDED in a floating
     // string is part of the string, so the landed sign can sit on it (PIC --T--9 holding -555 is "  -555"). The
     // de-edit reads that sign too (PB4514 review round 1, R1-1); the round trip pins Format against DeEdit.
     [Theory]
@@ -96,7 +96,7 @@ public sealed class CobolEditStoredSignTests
         Assert.Equal((Int128)value, CobolEdit.DeEdit(image, mask, edits: rules));
     }
 
-    // §13.18.40.5 rule 6 makes only the simple insertion symbols embedded in a floating string, or immediately right
+    // §2023:13.18.40.5 rule 6 makes only the simple insertion symbols embedded in a floating string, or immediately right
     // of it, part of the string; a character-1 LEFT of the string, or past a digit position after it, always shows
     // its literal and is never a landing position (PB4621), so a '-' literal there is not the item's sign.
     [Theory]
@@ -138,7 +138,7 @@ public sealed class CobolEditStoredSignTests
         Assert.Equal((Int128)value, CobolEdit.DeEdit(image, mask, edits: rules));
     }
 
-    // §13.18.40.5 rule 6: the extended editing sign control symbols are floating insertion symbols too, and the
+    // §2023:13.18.40.5 rule 6: the extended editing sign control symbols are floating insertion symbols too, and the
     // simple insertion symbol embedded in their string is part of it, so rule 6 a) can land the sign (Table 9)
     // on it: PIC LLTLL9 EDITING L FOR NEGATIVE IS "-" EDITING T IS ":" holding -555 is "  -555" (PB4703 R1-1).
     // The de-edit reads it back, as it reads a floating '+' or '-' string's landed sign (PB4514).
@@ -196,7 +196,7 @@ public sealed class CobolEditStoredSignTests
         Assert.Equal((Int128)value, CobolEdit.DeEdit(image, mask, edits: rules));
     }
 
-    // §13.18.40.5 rule 6 a) lands the floating currency symbol's STRING (GR14 'cs': the first occurrence adds the
+    // §2023:13.18.40.5 rule 6 a) lands the floating currency symbol's STRING (GR14 'cs': the first occurrence adds the
     // currency string's length to the size) on a simple insertion symbol embedded in its string just as on a
     // currency position: the string is written whole there, and de-edited back (PB4703).
     [Theory]
@@ -264,7 +264,7 @@ public sealed class CobolEditStoredSignTests
         Assert.Equal((Int128)value, CobolEdit.DeEdit(image, mask, edits: rules));
     }
 
-    // A BLANK landing wider than one position, with suppressed Z positions after the floating string (§13.18.40.3
+    // A BLANK landing wider than one position, with suppressed Z positions after the floating string (§2023:13.18.40.3
     // SR12 b admits Z beside a FOR character-1): the run of spaces holds the whole string, the landing at its last
     // position, and the Z positions after it, so the widths must be summed past the string (PB4755).
     [Theory]
@@ -283,7 +283,7 @@ public sealed class CobolEditStoredSignTests
         Assert.Equal((Int128)value, CobolEdit.DeEdit(image, mask, edits: rules));
     }
 
-    // §13.18.40.5 rule 6 a): "a single occurrence of the replacement character(s) is (are) placed into the
+    // §2023:13.18.40.5 rule 6 a): "a single occurrence of the replacement character(s) is (are) placed into the
     // character position(s) immediately preceding" the first nonzero digit, and GR14 'es' counts an embedded
     // symbol's whole literal in the size. A floating '+' or '-' landing on an embedded symbol TWO characters wide
     // therefore writes the sign once, at the end of the slot, the slot's other character holding the replacement

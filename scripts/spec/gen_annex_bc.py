@@ -4,8 +4,8 @@
 The ISO standard is the authority for two compile-time tables (CLAUDE.md rule 1):
 
 * Annex B.3 — the characters permitted in a user-defined word, in three POSITION classes: (1) anywhere,
-  (2) anywhere but first, (3) anywhere but first or last (§8.1.3.2 GR4; §8.3.2.1).
-* Annex C.2 — the uppercase-to-lowercase case mapping that folds COBOL words (§8.1.3.2 GR3 b) and GR4 b)).
+  (2) anywhere but first, (3) anywhere but first or last (§2023:8.1.3.2 GR4; §2023:8.3.2.1).
+* Annex C.2 — the uppercase-to-lowercase case mapping that folds COBOL words (§2023:8.1.3.2 GR3 b) and GR4 b)).
   The fold APPLIES a pair only when both its letters are basic or both extended (kb/Work PB4420, owner decision
   2026-11-01): GR4 b) folds an uppercase extended letter to "its corresponding lowercase EXTENDED letter", so a pair
   that crosses between the two classes (today (0130,0069), (0131,0069) and (212A,006B)) is transcribed from the standard
@@ -133,12 +133,12 @@ def plausibility(data: dict[str, list[tuple[int, int]]]) -> list[str]:
 
 
 def is_basic_letter(cp: int) -> bool:
-    """A basic letter: A-Z or a-z (§8.1.3.1 Table 1); every other letter Annex B holds is an EXTENDED letter."""
+    """A basic letter: A-Z or a-z (§2023:8.1.3.1 Table 1); every other letter Annex B holds is an EXTENDED letter."""
     return 0x41 <= cp <= 0x5A or 0x61 <= cp <= 0x7A
 
 
 def crosses_classes(pair: tuple[int, int]) -> bool:
-    """Whether an (uppercase, lowercase) pair maps between the basic and the extended letters (§8.1.3.2 GR4 b)
+    """Whether an (uppercase, lowercase) pair maps between the basic and the extended letters (§2023:8.1.3.2 GR4 b)
     names the corresponding lowercase EXTENDED letter of an extended one; GR3 b) the basic letters among themselves)."""
     return is_basic_letter(pair[0]) != is_basic_letter(pair[1])
 
@@ -186,7 +186,7 @@ def render(data: dict[str, list[tuple[int, int]]], names: list[str], namespace: 
         "E33Item5Added": "Annex E.3.3 item 5: characters added to Annex B at COBOL 2023 (absent before).",
         "E33Item6Added": "Annex E.3.3 item 6: case mappings added at COBOL 2023 (absent before), less <see cref=\"NotApplied\"/>.",
         "NotApplied": "The pairs of Annex C.2, E.2 item 14 and E.3.3 item 6 that map an extended letter to a basic one, which the "
-                      "fold of a COBOL word does not apply (§8.1.3.2 GR4 b): the corresponding lowercase EXTENDED letter; kb/Work PB4420).",
+                      "fold of a COBOL word does not apply (§2023:8.1.3.2 GR4 b): the corresponding lowercase EXTENDED letter; kb/Work PB4420).",
     }
     for name in names:
         out.append(f"    /// <summary>{docs[name]}</summary>")

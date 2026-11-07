@@ -14,8 +14,8 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// ⛔ A MUTED SCREEN IS A DIAGNOSTIC NOBODY REPORTS UNLESS ANOTHER WALK ASKS THE SAME QUESTION (kb/Work PB3682), so
 /// <c>EditionContext.Muted</c> is not for general use: it is asked only inside the usage walk
 /// (<c>DataBinder.UsageInheritanceWalk</c> and <c>UsageInheritanceGroup</c>), where <c>AnsweredByTypeDeclaration</c> and the
-/// copy's own provenance show that the walk over the TYPE declaration screens the same fact (ISO §13.18.57.4 GR1 and
-/// §13.18.49.4 GR1 make a copy "as though … coded in place", so a defect inside it is the declaration's). A caller anywhere
+/// copy's own provenance show that the walk over the TYPE declaration screens the same fact (ISO §2023:13.18.57.4 GR1 and
+/// §2023:13.18.49.4 GR1 make a copy "as though … coded in place", so a defect inside it is the declaration's). A caller anywhere
 /// else is a new decision, made here, with its own proof that somebody else reports what it drops.
 /// </summary>
 [Trait("Sweep", "tree")]

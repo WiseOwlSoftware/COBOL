@@ -6,8 +6,8 @@ using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Shared;
 
-/// <summary>⛔ THE THREE FILE ORGANIZATIONS, ONE ENUM (kb/Work PB771, PB3459, PB3471). §9.1.6: <i>"There are three
-/// organizations: sequential, relative, and indexed"</i>, and §9.1.15 names none of them — <i>"The successful opening of
+/// <summary>⛔ THE THREE FILE ORGANIZATIONS, ONE ENUM (kb/Work PB771, PB3459, PB3471). §2023:9.1.6: <i>"There are three
+/// organizations: sequential, relative, and indexed"</i>, and §2023:9.1.15 names none of them — <i>"The successful opening of
 /// a file establishes a file lock for the applicable sharing rules"</i> is owed by every organization there is. RELATIVE
 /// and INDEXED once owed it and paid nothing (they held no long-lived host handle between OPEN and CLOSE), which is why a
 /// measurement of the file lock, of a sharing refusal or of a record lock is a theory over THIS enum. A test of the keyed
@@ -32,7 +32,7 @@ public enum FileOrg { Sequential, Relative, Indexed }
 ///
 /// <para><b>The file.</b> An 8-character record: the key in positions 1-4 (also the relative record number, so one
 /// <see cref="Rec"/> serves every organization; a sequential file simply carries it as data) and a 4-character
-/// payload. Dynamic access, except for a connector that OPENs EXTEND (<see cref="FileHarness.AccessFor"/>, §14.9.27.3 SR2);
+/// payload. Dynamic access, except for a connector that OPENs EXTEND (<see cref="FileHarness.AccessFor"/>, §2023:14.9.27.3 SR2);
 /// one prime key. A test with a different record layout (an alternate key, a wider record, a
 /// LINE SEQUENTIAL file) registers its own file and may still use <see cref="Tmp"/>, <see cref="TryDelete"/> and
 /// <see cref="Rec"/>.</para>
@@ -46,7 +46,7 @@ public static partial class FileHarness
     /// <summary>A fresh path in the temp directory, unique per call (the file is not created).</summary>
     public static string Tmp(string tag) => Path.Combine(Path.GetTempPath(), $"file-{tag}-{Guid.NewGuid():N}.dat");
 
-    /// <summary>Delete the physical file. ONE artifact per physical file (kb/Work PB802): a keyed file's §9.1.6 fixed file
+    /// <summary>Delete the physical file. ONE artifact per physical file (kb/Work PB802): a keyed file's §2023:9.1.6 fixed file
     /// attributes are the store header INSIDE it, so deleting the data file deletes them. A read-only file (a test that
     /// made it unwritable) goes too; a file that does not exist is no error; a refusal (a handle another process holds) is
     /// REPORTED, never swallowed (<see cref="HarnessLog.ReportLeft"/>, kb/Work PB3194). It never throws, so it can run in a
@@ -67,13 +67,13 @@ public static partial class FileHarness
         }
     }
 
-    /// <summary>The LOCK MODE a declaration of <paramref name="sharing"/> needs and no more: §14.9.27.3 SR8 requires the
+    /// <summary>The LOCK MODE a declaration of <paramref name="sharing"/> needs and no more: §2023:14.9.27.3 SR8 requires the
     /// LOCK MODE clause where the ALL phrase is specified in the SHARING clause (SHARING WITH ALL OTHER), and the other
     /// sharing modes need none.</summary>
     public static FileLockMode LockModeRequiredBy(FileSharing sharing) =>
         sharing == FileSharing.AllOther ? FileLockMode.Manual : FileLockMode.None;
 
-    /// <summary>⛔ THE ACCESS MODE A CONNECTOR THAT OPENS IN <paramref name="mode"/> CAN DECLARE (kb/Work PB3479). §14.9.27.3 SR2:
+    /// <summary>⛔ THE ACCESS MODE A CONNECTOR THAT OPENS IN <paramref name="mode"/> CAN DECLARE (kb/Work PB3479). §2023:14.9.27.3 SR2:
     /// <i>"The EXTEND phrase shall be specified only if the access mode of the file connector referenced by file-name-1 is
     /// sequential"</i>, and the compiler refuses the other declarations (COBOL2372), so a RELATIVE or INDEXED connector
     /// opened EXTEND in a test is a state no program reaches. Every other open mode is legal under every access mode, and
@@ -89,7 +89,7 @@ public static partial class FileHarness
     private static readonly ConditionalWeakTable<FileRegistry, Dictionary<string, KeyedAccess>> Declared = new();
 
     /// <summary>Fail the test that would OPEN <paramref name="name"/> in <paramref name="mode"/> over a declaration no
-    /// program makes: EXTEND over a connector <see cref="Register"/> declared with RANDOM or DYNAMIC access (§14.9.27.3 SR2,
+    /// program makes: EXTEND over a connector <see cref="Register"/> declared with RANDOM or DYNAMIC access (§2023:14.9.27.3 SR2,
     /// <see cref="AccessFor"/>). A connector no <see cref="Register"/> call declared is not checked, so a test that
     /// registers one with the registry's own methods keeps its own declaration. <see cref="Open"/> and the unit tests'
     /// <c>OpenStatic</c> shorthand both call it; a call straight to <c>FileRegistry.OpenShared</c> or <c>reg.Open</c> on a
@@ -98,7 +98,7 @@ public static partial class FileHarness
     {
         if (mode != FileOpenMode.Extend || !Declared.TryGetValue(reg, out var declarations)
             || !declarations.TryGetValue(name, out var access) || access == KeyedAccess.Sequential) return;
-        Assert.Fail($"OPEN EXTEND over '{name}' declared with {access} access: §14.9.27.3 SR2 allows EXTEND only "
+        Assert.Fail($"OPEN EXTEND over '{name}' declared with {access} access: §2023:14.9.27.3 SR2 allows EXTEND only "
             + "for sequential access, so this declaration is no program (FileHarness.AccessFor gives the declaration "
             + "an OPEN in this mode can make).");
     }
@@ -120,7 +120,7 @@ public static partial class FileHarness
     /// <paramref name="sharing"/> under <paramref name="lockMode"/> (no sharing clause at all when
     /// <paramref name="sharing"/> is null: the NO OTHER default). With <paramref name="alternateKey"/> an INDEXED file also
     /// has an alternate key WITH DUPLICATES over the payload (positions 5-8), so a record is two trees' entries. Every
-    /// connector on one physical file declares the SAME attributes, because §14.9.27.4 GR10 compares them at each
+    /// connector on one physical file declares the SAME attributes, because §2023:14.9.27.4 GR10 compares them at each
     /// OPEN. <paramref name="edition"/> is the ISO edition the declaring program was compiled for (the CLI's
     /// <c>--std</c>), which a connector reads for each behaviour that differs by edition (<c>DialectBehaviors</c>).</summary>
     public static void Register(FileRegistry reg, string name, string host, FileOrg org,
@@ -172,10 +172,10 @@ public static partial class FileHarness
         return reg.RewriteShared(name, Rec(n, payload), -1, FileRecordLock.None, FileRetryKind.None, 0);
     }
 
-    /// <summary>A DELETE RECORD of record <paramref name="n"/>: not for a SEQUENTIAL file (§14.9.10.3 SR1).</summary>
+    /// <summary>A DELETE RECORD of record <paramref name="n"/>: not for a SEQUENTIAL file (§2023:14.9.10.3 SR1).</summary>
     public static string Delete(FileRegistry reg, string name, FileOrg org, int n)
     {
-        Assert.True(org != FileOrg.Sequential, "§14.9.10.3 SR1: DELETE RECORD is not for a file with sequential organization");
+        Assert.True(org != FileOrg.Sequential, "§2023:14.9.10.3 SR1: DELETE RECORD is not for a file with sequential organization");
         Position(reg, name, org, n);
         return reg.DeleteShared(name, Rec(n, "    "), FileRetryKind.None, 0);
     }
@@ -222,7 +222,7 @@ public static partial class FileHarness
 
     /// <summary>Tear <paramref name="host"/>'s store: every page that carries <paramref name="record"/>'s bytes gets one
     /// byte flipped, so its checksum fails at the next read and the engine answers the record statement with the
-    /// permanent error '30' (§9.1.13.6 item 1; 2.2.1.6 R3). Scans every page from the first: a record image is never in
+    /// permanent error '30' (§2023:9.1.13.6 item 1; 2.2.1.6 R3). Scans every page from the first: a record image is never in
     /// a meta page. Returns the number of pages torn, and fails the test when it is none (the record was not found).</summary>
     public static int TearPagesCarrying(string host, ReadOnlySpan<byte> record)
     {

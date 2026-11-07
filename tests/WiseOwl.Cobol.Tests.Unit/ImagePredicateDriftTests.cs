@@ -65,7 +65,7 @@ public class ImagePredicateDriftTests
     }
 
     [Theory]
-    // The IEEE interchange widths (kb/Work PB164 wave 2 — §13.18.60.4 GR13–GR15, big-endian).
+    // The IEEE interchange widths (kb/Work PB164 wave 2 — §2023:13.18.60.4 GR13–GR15, big-endian).
     [InlineData(Usage.Float, NumericByteForm.Ieee32, 4)]
     [InlineData(Usage.FloatShort, NumericByteForm.Ieee32, 4)]
     [InlineData(Usage.FloatBinary32, NumericByteForm.Ieee32, 4)]

@@ -7,10 +7,10 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ A FORMAL PASSED ON BY REFERENCE IS ONE VIEW DEEP HOWEVER MANY ACTIVATIONS PASS IT ON (kb/Work PB4768).
-/// ISO §14.2.3 GR8 — "the activated runtime element operates as if the formal parameter occupies the same storage
+/// ISO §2023:14.2.3 GR8 — "the activated runtime element operates as if the formal parameter occupies the same storage
 /// area as the argument" — makes every formal of a chain of activations the SAME storage. A view built over the
 /// previous activation's view is a chain of one closure per activation: each access costs the chain's depth and a
-/// recursion deep enough exhausts the .NET stack outside the activation-stack check (§14.9.4.4 GR3 c) and h)).
+/// recursion deep enough exhausts the .NET stack outside the activation-stack check (§2023:14.9.4.4 GR3 c) and h)).
 /// <para>RED BEFORE THE FIX: <c>CobolArgAdapt.Text</c> returned a new <c>OverField</c> over the previous carrier, so
 /// the view the loop below reaches at level N read through N delegates and 100 000 levels overflowed the stack.</para>
 /// </summary>

@@ -10,8 +10,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// The W2 loud-guard sweep at the unit level (roadmap Phase 2; architecture rec 2 — every silent misbind is a
 /// wrong-answer bug): <see cref="PictureAnalyzer.ParseUsage"/> recognizes EVERY grammar-accepted usage keyword explicitly
-/// (ISO §13.18.60 — the 2002 inventory previously fell through a catch-all to DISPLAY), and
-/// <see cref="PictureAnalyzer.Analyze"/> enforces the §13.18.40.3 SR2 PICTURE symbol whitelist (the 2002+ symbols
+/// (ISO §2023:13.18.60 — the 2002 inventory previously fell through a catch-all to DISPLAY), and
+/// <see cref="PictureAnalyzer.Analyze"/> enforces the §2023:13.18.40.3 SR2 PICTURE symbol whitelist (the 2002+ symbols
 /// N/1/E previously fell through to "pure numeric, zero digits").
 /// <para><b>Edition-gate note (Step 14g.1):</b> the USAGE / PICTURE-category INTRODUCTION gates (national /
 /// boolean / pointer / object-reference / binary-char-family / float-trio 2002 introductions) no longer fire at
@@ -26,7 +26,7 @@ public sealed class LoudGuardTests
 {
     private static EditionContext Ed(int level) => new(level);
 
-    // ── ParseUsage: the implemented set still maps cleanly (zero-regression, ISO §13.18.60) ────────────────
+    // ── ParseUsage: the implemented set still maps cleanly (zero-regression, ISO §2023:13.18.60) ────────────────
 
     [Theory]
     [InlineData(null, Usage.Display)]
@@ -53,7 +53,7 @@ public sealed class LoudGuardTests
     /// <summary>Every 2002-introduced USAGE keyword maps to its OWN <see cref="Usage"/> member with NO parse-layer
     /// diagnostic at ANY edition (the introduction gate moved to <c>VersionConformancePass</c>, Step 14g.1 — the
     /// mapping itself is edition-invariant). OBJECT REFERENCE / the BINARY-CHAR family / the float trio /
-    /// NATIONAL / BIT / POINTER (ISO §13.18.60.4).</summary>
+    /// NATIONAL / BIT / POINTER (ISO §2023:13.18.60.4).</summary>
     [Theory]
     [InlineData("OBJECT REFERENCE", Usage.ObjectReference)]
     [InlineData("BINARY-CHAR", Usage.BinaryChar)]
@@ -79,7 +79,7 @@ public sealed class LoudGuardTests
     }
 
     /// <summary>An unrecognized keyword (a compiler defect — the grammar admits nothing outside the map) is a
-    /// loud internal error, never a silent Display misbind (ISO §13.18.60).</summary>
+    /// loud internal error, never a silent Display misbind (ISO §2023:13.18.60).</summary>
     [Fact]
     public void ParseUsage_UnrecognizedKeyword_LoudInternalError()
     {
@@ -89,9 +89,9 @@ public sealed class LoudGuardTests
         Assert.Contains(ed.Diagnostics, d => d.Contains("unrecognized USAGE keyword"));
     }
 
-    // ── Analyze: the §13.18.40.3 SR2 whitelist — N / 1 / E gate loud; anything else is invalid ─────────────
+    // ── Analyze: the §2023:13.18.40.3 SR2 whitelist — N / 1 / E gate loud; anything else is invalid ─────────────
 
-    /// <summary>The floating-point numeric-edited PICTURE symbol E (ISO §13.18.40.4 GR13 b) — LIVE since data-model
+    /// <summary>The floating-point numeric-edited PICTURE symbol E (ISO §2023:13.18.40.4 GR13 b) — LIVE since data-model
     /// design D21 (kb/Work PB66). Its introduction gate (COBOL0900 below 2002) is the post-bind
     /// <c>VersionConformancePass</c> GateData enumerator's (<c>PictureConstructId</c> keys on <c>IsFloatEdited</c>),
     /// so <c>Analyze</c> at 85 emits NO picture-layer diagnostic — it classifies the form; the 0900 firing is verified
@@ -106,10 +106,10 @@ public sealed class LoudGuardTests
         Assert.Equal(PicCategory.NumericEdited, pic.Category);
     }
 
-    /// <summary>NATIONAL-EDITED (ISO §13.18.40.4 GR10 / §8.5.2.11) — LIVE since kb/Work PB492. Like the
+    /// <summary>NATIONAL-EDITED (ISO §2023:13.18.40.4 GR10 / §2023:8.5.2.11) — LIVE since kb/Work PB492. Like the
     /// external-float form above, its introduction gate (COBOL0900 below 2002) is the post-bind
     /// <c>VersionConformancePass</c> GateData enumerator's, so <c>Analyze</c> at 85 emits NO picture-layer
-    /// diagnostic and CLASSIFIES: category national (§8.5.2.1 Table 2 — class national), carrying the edit mask
+    /// diagnostic and CLASSIFIES: category national (§2023:8.5.2.1 Table 2 — class national), carrying the edit mask
     /// that Table 7's "Simple insertion" renders through. It used to be a loud staged skeleton whose category was
     /// RECOVERED to alphanumeric, so no such item could be defined at any edition.</summary>
     [Fact]
@@ -124,7 +124,7 @@ public sealed class LoudGuardTests
         Assert.Equal(5, pic.Length);
     }
 
-    /// <summary>A floating-point numeric-edited picture whose significand carries a symbol Table 10 (§13.18.40.6, row
+    /// <summary>A floating-point numeric-edited picture whose significand carries a symbol Table 10 (§2023:13.18.40.6, row
     /// E) does not admit before the E — V, Z, *, P, S, CR, DB, the currency symbol — is COBOL1658 (kb/Work PB66);
     /// the legal shape classifies numeric-edited silently at 2002+.</summary>
     [Theory]
@@ -136,7 +136,7 @@ public sealed class LoudGuardTests
     {
         var ed = Ed(2023);
         PictureAnalyzer.Analyze(picture, Usage.Display, ed, "data item 'T'");
-        Assert.True(ed.HasErrors, $"PIC {picture} must be rejected (§13.18.40.4 GR13 b / §13.18.40.6 Table 10)");
+        Assert.True(ed.HasErrors, $"PIC {picture} must be rejected (§2023:13.18.40.4 GR13 b / §2023:13.18.40.6 Table 10)");
         Assert.Contains(ed.Diagnostics, d => d.Contains("COBOL1658"));
     }
 
@@ -158,7 +158,7 @@ public sealed class LoudGuardTests
     }
 
     /// <summary>PIC N classifies category NATIONAL with the SR13a IMPLIED usage NATIONAL (no USAGE clause;
-    /// ISO §13.18.60.4 SR13a / §13.18.40.4 GR9) — silent at 2002+, one character position per N.</summary>
+    /// ISO §2023:13.18.60.4 SR13a / §2023:13.18.40.4 GR9) — silent at 2002+, one character position per N.</summary>
     [Fact]
     public void Analyze_PicN_ClassifiesNational_UsageImplied()
     {
@@ -170,8 +170,8 @@ public sealed class LoudGuardTests
         Assert.Equal(4, pic.Length);
     }
 
-    /// <summary>PIC 1 without a USAGE clause classifies category BOOLEAN at usage DISPLAY (ISO §13.18.60.4
-    /// SR13b / §13.18.40.4 GR8) — silent at 2002+, one boolean position per 1; PIC 1 USAGE BIT takes
+    /// <summary>PIC 1 without a USAGE clause classifies category BOOLEAN at usage DISPLAY (ISO §2023:13.18.60.4
+    /// SR13b / §2023:13.18.40.4 GR8) — silent at 2002+, one boolean position per 1; PIC 1 USAGE BIT takes
     /// <see cref="Usage.Bit"/> over the SAME representation (GR14 R14, D-B1).</summary>
     [Fact]
     public void Analyze_Pic1_ClassifiesBoolean_UsageDisplay()
@@ -190,7 +190,7 @@ public sealed class LoudGuardTests
         Assert.Equal(Usage.Bit, bit.Usage);
     }
 
-    /// <summary>The usage×picture conformance screen's REFUSALS (ISO §13.18.60.3): SR20 — "Only the NATIONAL
+    /// <summary>The usage×picture conformance screen's REFUSALS (ISO §2023:13.18.60.3): SR20 — "Only the NATIONAL
     /// phrase may be specified in a USAGE clause associated with an elementary data item whose explicit or
     /// implicit picture character-string contains the symbol 'N'" — and SR5 — "An elementary data item with
     /// usage bit shall be specified only with a picture character-string that describes a boolean data item" —
@@ -211,11 +211,11 @@ public sealed class LoudGuardTests
         Assert.Contains(ed2.Diagnostics, d => d.Contains("COBOL0881"));
     }
 
-    /// <summary>The screen's ADMISSIONS: ISO §13.18.60.3 SR12 — "An elementary data item with usage national
+    /// <summary>The screen's ADMISSIONS: ISO §2023:13.18.60.3 SR12 — "An elementary data item with usage national
     /// shall be described with a picture character-string that describes a boolean, national, national-edited,
     /// numeric, or numeric-edited data item" — names FIVE picture shapes, and the screen must pass every one of
     /// them with the usage INTACT. Three of them (numeric, numeric-edited, boolean) were refused by name at
-    /// COBOL0899 until kb/Work PB646; the category each carries is its ordinary one (§13.18.40.4 GR1 makes
+    /// COBOL0899 until kb/Work PB646; the category each carries is its ordinary one (§2023:13.18.40.4 GR1 makes
     /// the usage a statement about the item's CHARACTER POSITIONS, not about its category), which is precisely
     /// why the data model needed no national-only category: design D-N7.</summary>
     [Theory]
@@ -228,14 +228,14 @@ public sealed class LoudGuardTests
     {
         var ed = Ed(2002);
         var pic = PictureAnalyzer.Analyze(picture, Usage.National, ed, "data item 'T'", explicitUsage: true);
-        Assert.False(ed.HasErrors, $"PIC {picture} USAGE NATIONAL is admitted by §13.18.60.3 SR12: "
+        Assert.False(ed.HasErrors, $"PIC {picture} USAGE NATIONAL is admitted by §2023:13.18.60.3 SR12: "
             + string.Join("; ", ed.Diagnostics));
         Assert.DoesNotContain(ed.Diagnostics, d => d.Contains("COBOL0899"));
         Assert.Equal(category, pic.Category);
         Assert.Equal(Usage.National, pic.Usage);
     }
 
-    /// <summary>A symbol outside the §13.18.40.3 SR2 set is an invalid PICTURE (COBOL0808) at every
+    /// <summary>A symbol outside the §2023:13.18.40.3 SR2 set is an invalid PICTURE (COBOL0808) at every
     /// edition — previously it fell through to "pure numeric, zero digits".</summary>
     [Theory]
     [InlineData("9Q9", 'Q')]
@@ -247,12 +247,12 @@ public sealed class LoudGuardTests
         {
             var ed = Ed(level);
             PictureAnalyzer.Analyze(picture, Usage.Display, ed, "data item 'T'");
-            Assert.True(ed.HasErrors, $"PIC {picture} must be rejected at COBOL-{level} (§13.18.40.3 SR2)");
+            Assert.True(ed.HasErrors, $"PIC {picture} must be rejected at COBOL-{level} (§2023:13.18.40.3 SR2)");
             Assert.Contains(ed.Diagnostics, d => d.Contains("COBOL0808") && d.Contains($"'{bad}'"));
         }
     }
 
-    // ── Analyze: zero-regression classification facts (the '85 corpus symbol repertoire, §13.18.40.4) ──────
+    // ── Analyze: zero-regression classification facts (the '85 corpus symbol repertoire, §2023:13.18.40.4) ──────
 
     [Fact]
     public void Analyze_Alphanumeric_Unchanged()
@@ -276,7 +276,7 @@ public sealed class LoudGuardTests
         Assert.True(pic.Signed);
     }
 
-    /// <summary>CR/DB are single two-character symbols (§13.18.40.3 SR12 NOTE 2) — the whitelist scan must
+    /// <summary>CR/DB are single two-character symbols (§2023:13.18.40.3 SR12 NOTE 2) — the whitelist scan must
     /// consume the pair, and the classification stays NUMERIC-EDITED (NC104A MOVE-TEST-F1-14).</summary>
     [Theory]
     [InlineData("9(5)CR")]
@@ -289,8 +289,8 @@ public sealed class LoudGuardTests
         Assert.Equal(PicCategory.NumericEdited, pic.Category);
     }
 
-    /// <summary>A custom currency PICTURE symbol (ISO §12.3.7 GR13 — NC107A's <c>W</c>, NC108M's <c>&lt;</c>)
-    /// stays legal and classifies NUMERIC-EDITED exactly as before the whitelist landed (§13.18.40.4).</summary>
+    /// <summary>A custom currency PICTURE symbol (ISO §2023:12.3.7 GR13 — NC107A's <c>W</c>, NC108M's <c>&lt;</c>)
+    /// stays legal and classifies NUMERIC-EDITED exactly as before the whitelist landed (§2023:13.18.40.4).</summary>
     [Theory]
     [InlineData("WWWW9", 'W')]
     [InlineData("<<<<9", '<')]
@@ -322,7 +322,7 @@ public sealed class LoudGuardTests
     // ── The skeleton enum members fail LOUD if a storage-mapping switch is ever reached (item-4 audit) ─────
 
     /// <summary>By construction nothing creates a PicInfo carrying a skeleton usage/category (the bind-time
-    /// gates reject first, ISO §13.18.60/§13.18.40) — if a future phase starts constructing them without
+    /// gates reject first, ISO §2023:13.18.60/§2023:13.18.40) — if a future phase starts constructing them without
     /// implementing the storage mapping, every derived member throws instead of silently defaulting.</summary>
     [Fact]
     public void FloatTrio_StorageMappingMembers_Live()
@@ -347,7 +347,7 @@ public sealed class LoudGuardTests
 
     /// <summary>National/boolean LEFT the skeleton set at Phase 4a (M2-DATA-3/4): the storage-mapping members
     /// now answer the LIVE shapes — a C# string field, national space / boolean-zero defaults (D-N1/D-B1;
-    /// §13.18.63) — instead of throwing the skeleton guard.</summary>
+    /// §2023:13.18.63) — instead of throwing the skeleton guard.</summary>
     [Fact]
     public void NationalBoolean_StorageMappingMembers_Live()
     {

@@ -12,8 +12,8 @@ public readonly record struct ExceptionNameViolation(DiagnosticDescriptor Descri
 
 /// <summary>
 /// ⛔ THE ONE HOME OF "IS THIS WRITTEN WORD AN EXCEPTION-NAME THE TARGETED EDITION HAS" (kb/Work PB2740, R05). ISO
-/// §7.3.25.3 SR2 — "Exception-name-1 shall be one of the exception names listed in 14.6.13.1, Exception conditions" —
-/// is a SYNTAX rule of the <c>&gt;&gt;TURN</c> directive, and §7.2.1 requires a compiler directive to be "syntactically
+/// §2023:7.3.25.3 SR2 — "Exception-name-1 shall be one of the exception names listed in 14.6.13.1, Exception conditions" —
+/// is a SYNTAX rule of the <c>&gt;&gt;TURN</c> directive, and §2023:7.2.1 requires a compiler directive to be "syntactically
 /// correct in the initial source text and library text", the false path of a <c>&gt;&gt;IF</c> included. Two channels
 /// therefore have to ask the same question and print the same answer: the directive stage
 /// (<c>TurnDirectiveProcessor.ParseTurn</c>, which a COMPILED line and an OMITTED-branch line both reach) and the
@@ -24,13 +24,13 @@ public readonly record struct ExceptionNameViolation(DiagnosticDescriptor Descri
 /// <para>The rule lives BELOW both channels (the front end cannot reference the binder), in the assembly that owns the
 /// diagnostic catalog, so the next written-name site calls it and cannot write a third copy. What stays in the binder
 /// is the part that is not syntax: the level test of the RAISE contexts, the declined-module postures and the
-/// §15.33 width advisory (<c>EcNameResolution.Advise</c>) — they need the compile's options, and an omitted branch is
+/// §2023:15.33 width advisory (<c>EcNameResolution.Advise</c>) — they need the compile's options, and an omitted branch is
 /// never compiled.</para>
 /// </summary>
 public static class ExceptionNameRule
 {
-    /// <summary>Resolve <paramref name="raw"/> against the §14.6.13.1 catalog (and the open EC-USER- family,
-    /// §14.6.13.1.1). False with <see cref="DiagnosticCatalog.EcNameUnknown"/> (COBOL0711) when it is neither;
+    /// <summary>Resolve <paramref name="raw"/> against the §2023:14.6.13.1 catalog (and the open EC-USER- family,
+    /// §2023:14.6.13.1.1). False with <see cref="DiagnosticCatalog.EcNameUnknown"/> (COBOL0711) when it is neither;
     /// <paramref name="where"/> names the construct that wrote it (<c>&gt;&gt;TURN</c>, <c>RAISE</c>, …).</summary>
     public static bool TryGet(string raw, string where, out EcInfo info, out ExceptionNameViolation violation)
     {
@@ -40,7 +40,7 @@ public static class ExceptionNameRule
             return true;
         }
         violation = new ExceptionNameViolation(DiagnosticCatalog.EcNameUnknown,
-            $"{where}: '{raw}' is not an exception-name of ISO/IEC 1989 §14.6.13.1 (and not a valid EC-USER- name; "
+            $"{where}: '{raw}' is not an exception-name of ISO/IEC 1989 §2023:14.6.13.1 (and not a valid EC-USER- name; "
             + "this implementation defines no EC-IMP- name, DOC-A.1-99)");
         return false;
     }

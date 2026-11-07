@@ -29,7 +29,7 @@ internal enum PageKind : byte
 /// <summary>What a read through a stamped <see cref="PagePointer"/> found (2.2.1.6 R3): the page is WHOLE only when its
 /// checksum holds, its <see cref="PageHeader.Self"/> is the page number read and its generation equals the pointer's
 /// stamp. Every other answer is a TORN read — torn, read from the wrong offset, or an older version of the page (a lost
-/// write over a reused page) — and is answered by the statement as §9.1.13.6 item 1's '30', never swallowed.</summary>
+/// write over a reused page) — and is answered by the statement as §2023:9.1.13.6 item 1's '30', never swallowed.</summary>
 internal enum PageCheck
 {
     /// <summary>The page is the one the pointer names.</summary>

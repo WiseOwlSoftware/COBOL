@@ -5,7 +5,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// The three-operand <c>… TO/FROM … GIVING …</c> arithmetic forms (ISO/IEC 1989:2023 §14.9.2 ADD / §14.9.44
+/// The three-operand <c>… TO/FROM … GIVING …</c> arithmetic forms (ISO/IEC 1989:2023 §2023:14.9.2 ADD / §2023:14.9.44
 /// SUBTRACT, Format 2 of each): the
 /// TO/FROM operand participates in the sum/difference but is NOT a receiver — only the GIVING operands receive.
 /// Pinned to the committed golden.

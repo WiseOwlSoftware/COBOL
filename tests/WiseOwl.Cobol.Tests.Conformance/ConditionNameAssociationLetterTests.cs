@@ -5,11 +5,11 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// ⛔ ISO §13.16.3 SR24 — WHICH LETTER the refusal quotes (kb/Work PB947). Every lettered exclusion produces the same
+/// ⛔ ISO §2023:13.16.3 SR24 — WHICH LETTER the refusal quotes (kb/Work PB947). Every lettered exclusion produces the same
 /// code, COBOL1976, and only the quoted sentence tells them apart, so a corpus <c>.err</c> naming the code cannot
 /// see the defect this pins: a VARIABLE-LENGTH group (letter h) was refused under letter c) — "an alphanumeric group
 /// containing items with a usage other than display" — because c)'s subject was asked as "a group with no
-/// GROUP-USAGE clause", which is two of §3.11's FOUR exclusions from "alphanumeric group item".
+/// GROUP-USAGE clause", which is two of §2023:3.11's FOUR exclusions from "alphanumeric group item".
 /// <para>They are xUnit rows rather than corpus entries because a corpus <c>.err</c> is a substring that must be
 /// PRESENT, and two of the three assertions here are that a letter is ABSENT from one entry's message while present
 /// in its neighbour's.</para>
@@ -42,7 +42,7 @@ public sealed class ConditionNameAssociationLetterTests
     }
 
     /// <summary>The note's own repro: the SAME non-DISPLAY member under an alphanumeric group (c) and under a
-    /// variable-length group (h). A variable-length group is not an alphanumeric group (§3.11), so it earns h) and
+    /// variable-length group (h). A variable-length group is not an alphanumeric group (§2023:3.11), so it earns h) and
     /// never c).</summary>
     [Fact]
     public void VariableLengthGroupWithNonDisplayMember_QuotesLetterH_AndAlphanumericGroupQuotesLetterC()
@@ -69,8 +69,8 @@ public sealed class ConditionNameAssociationLetterTests
         Assert.DoesNotContain("c) An alphanumeric group", variable);
     }
 
-    /// <summary>A STRONGLY-TYPED group instance is not an alphanumeric group (§3.11) either. SR24 letter g) is the
-    /// type DECLARATION's, so the instance is barred by the rule that is about it — §13.18.57.3 SR2, COBOL1537, an
+    /// <summary>A STRONGLY-TYPED group instance is not an alphanumeric group (§2023:3.11) either. SR24 letter g) is the
+    /// type DECLARATION's, so the instance is barred by the rule that is about it — §2023:13.18.57.3 SR2, COBOL1537, an
     /// 88 immediately after a TYPE-clause entry — and by no SR24 letter. It used to draw a second, wrong refusal under
     /// letter c) for the COMP member its TYPE brings.</summary>
     [Fact]

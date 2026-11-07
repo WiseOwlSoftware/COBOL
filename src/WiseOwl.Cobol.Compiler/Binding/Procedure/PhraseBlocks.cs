@@ -10,10 +10,10 @@ using Core = CobolParserCore;
 
 /// <summary>
 /// The ONE binder of a Table 12 conditional-phrase pair (P7 Step 10b; kb/Work PB3830). Every statement's [NOT] phrases
-/// are the grammar's one <c>conditionalPhrases</c> rule (AT END §14.9.30/§14.9.34, INVALID KEY, ON SIZE ERROR §14.7.5,
-/// ON OVERFLOW §14.9.43/§14.9.48, ON EXCEPTION, AT END-OF-PAGE §14.9.51), each phrase classified by
+/// are the grammar's one <c>conditionalPhrases</c> rule (AT END §2023:14.9.30/§2023:14.9.34, INVALID KEY, ON SIZE ERROR §2023:14.7.5,
+/// ON OVERFLOW §2023:14.9.43/§2023:14.9.48, ON EXCEPTION, AT END-OF-PAGE §2023:14.9.51), each phrase classified by
 /// <see cref="ConditionalPhrases"/>, so a verb binder asks for the family it owns and receives the (positive, NOT)
-/// imperative-statements by ROLE — §5.2.6.4's choice indicators let the two be written in either order, and the order of
+/// imperative-statements by ROLE — §2023:5.2.6.4's choice indicators let the two be written in either order, and the order of
 /// writing never changes which branch is which.
 /// </summary>
 internal static class PhraseBlocks

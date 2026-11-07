@@ -13,8 +13,8 @@ using Core = CobolParserCore;
 /// <summary>
 /// The ORDER in which the data division's records bind (kb/Work PB1231). The binder walks each section's entries in
 /// source order, and a record's description is read once, as it is bound. A constant entry, though, may measure a data
-/// item described AFTER it — §13.10.3 SR4 ("The length of data-name-1 or data-name-2 shall not be dependent, directly
-/// or indirectly, upon the value of constant-name-1") forbids only the circular case, and no clause of §13.10 or §8.4
+/// item described AFTER it — §2023:13.10.3 SR4 ("The length of data-name-1 or data-name-2 shall not be dependent, directly
+/// or indirectly, upon the value of constant-name-1") forbids only the circular case, and no clause of §2023:13.10 or §2023:8.4
 /// orders the two — and an entry BEFORE that item may need the constant's value: <c>01 A PIC X(K). 01 K CONSTANT AS
 /// LENGTH OF W. 01 W PIC X(7).</c> describes A as X(7).
 /// <para>So the records bind in DEPENDENCY order and stand in SOURCE order. When a constant's value is demanded and
@@ -144,15 +144,15 @@ public sealed partial class DataBinder
 
     /// <summary>⛔ AN ENTRY'S TABLE BOUNDS BIND AFTER ITS ITEM EXISTS (kb/Work PB1941). <c>05 A3 OCCURS K3. 10 W3 PIC
     /// X(4).</c> with <c>01 K3 CONSTANT AS LENGTH OF W3 (1).</c>: A3's OCCURS bound demands K3, and K3 measures W3, an
-    /// entry subordinate to A3. §13.10.3 SR4 ("The length of data-name-1 or data-name-2 shall not be dependent,
+    /// entry subordinate to A3. §2023:13.10.3 SR4 ("The length of data-name-1 or data-name-2 shall not be dependent,
     /// directly or indirectly, upon the value of constant-name-1") is not violated — an element's length does not
     /// depend on the occurrence count — so W3 binds ahead of the walk (<see cref="BindLaterEntriesOfOpenRecord"/>)
     /// under A3's item, which therefore exists, linked into its record and known as a table
     /// (<see cref="DataItem.TableBoundsPending"/>), before the bounds are evaluated. A3's description stays open
     /// meanwhile (<see cref="IsDescriptionOpen"/>): a constant that measures A3 or an ancestor is the SR4 cycle.
-    /// <para>Each bound is an integer literal or an integer constant-name (§13.10.3 SR2), read by
+    /// <para>Each bound is an integer literal or an integer constant-name (§2023:13.10.3 SR2), read by
     /// <see cref="IntegerOperandValue"/>. The table is allocated at its MAXIMUM occurrence count — the last fixed
-    /// bound (integer-2 of a Format 2 table, the sole bound of a fixed one) — per §8.5.1.8; the minimum, DEPENDING,
+    /// bound (integer-2 of a Format 2 table, the sole bound of a fixed one) — per §2023:8.5.1.8; the minimum, DEPENDING,
     /// KEY and dynamic-capacity surface is the <see cref="OccursSpec"/>.</para></summary>
     private void BindTableBounds(DataItem item, OpenDescription description)
     {
@@ -192,7 +192,7 @@ public sealed partial class DataBinder
 
     /// <summary>⛔ PART OF AN OPEN RECORD, BOUND AHEAD OF ITS WALK (kb/Work PB1941). <c>01 R. 05 A PIC X(K). 05 W PIC
     /// X(7). 01 K CONSTANT AS LENGTH OF W.</c> — A's PICTURE demands K while R is being described, and W is a later
-    /// entry of R. §13.10.3 SR4 ("The length of data-name-1 or data-name-2 shall not be dependent, directly or
+    /// entry of R. §2023:13.10.3 SR4 ("The length of data-name-1 or data-name-2 shall not be dependent, directly or
     /// indirectly, upon the value of constant-name-1") is not violated: W's length does not depend on K, so W can be
     /// measured before the walk reaches it.
     /// <para>For every entry declaring <paramref name="name"/> whose bind has not begun inside a record whose walk HAS
@@ -243,7 +243,7 @@ public sealed partial class DataBinder
     /// <summary>Complete a group bound alone ahead of the walk before it is measured: bind its subordinate entries now,
     /// under it and in source order (an entry already bound ahead attaches at its position), so its description is
     /// whole. The walk then skips those entries and attaches the group itself where it stands. A subordinate whose
-    /// description depends on the constant being evaluated meets that constant's cycle check — §13.10.3 SR4, since the
+    /// description depends on the constant being evaluated meets that constant's cycle check — §2023:13.10.3 SR4, since the
     /// group's length then depends on it.</summary>
     internal void CompletePreboundGroup(DataItem group)
     {
@@ -281,7 +281,7 @@ public sealed partial class DataBinder
     }
 
     /// <summary>One past the last entry subordinate to the entry at <paramref name="index"/>: the next entry at its
-    /// level or a lower one, a level-66 entry (which follows the record's last data description entry, §13.18.45.3
+    /// level or a lower one, a level-66 entry (which follows the record's last data description entry, §2023:13.18.45.3
     /// SR2) or the next record. Its level-88 entries are inside the run.</summary>
     private static int SubordinateRunEnd(IReadOnlyList<Core.DataDescriptionEntryContext> run, int index)
     {
@@ -298,7 +298,7 @@ public sealed partial class DataBinder
     private bool TakePreboundEntry(Core.DataDescriptionEntryContext entry, out DataItem? item) =>
         _preboundEntryItems.Remove(entry, out item);
 
-    // ── The REPORT SECTION's entries (kb/Work PB1226, §13.10.3 SR11) ─────────────────────────────────────────────
+    // ── The REPORT SECTION's entries (kb/Work PB1226, §2023:13.10.3 SR11) ─────────────────────────────────────────────
 
     /// <summary>Where one report group description entry stands: its RD's entry list, its index there and the
     /// report-name. A report entry is no <see cref="DataItem"/> that <see cref="NameResolution.FindItem"/> sees, so
@@ -308,12 +308,12 @@ public sealed partial class DataBinder
     {
         public Core.ReportGroupEntryContext Entry => Entries[Index];
 
-        /// <summary>An ELEMENTARY report item: no entry follows it at a higher level-number (§13.15 — the level
+        /// <summary>An ELEMENTARY report item: no entry follows it at a higher level-number (§2023:13.15 — the level
         /// hierarchy; the replay subtree of <c>BindReportEntries</c> is measured the same way).</summary>
         public bool IsElementary => Index + 1 >= Entries.Length || ReportEntryLevel(Entries[Index + 1]) <= ReportEntryLevel(Entry);
 
         /// <summary>The names that qualify the entry, innermost first: each named report group description entry it
-        /// is subordinate to, then its report-name (§8.4.2.2.3 SR4; §8.4.2.2.2 Format 1's file-report-qualifier).</summary>
+        /// is subordinate to, then its report-name (§2023:8.4.2.2.3 SR4; §2023:8.4.2.2.2 Format 1's file-report-qualifier).</summary>
         public IEnumerable<string> Qualification
         {
             get
@@ -351,7 +351,7 @@ public sealed partial class DataBinder
     }
 
     /// <summary>The report group description entries <paramref name="name"/> OF/IN <paramref name="qualifiers"/>
-    /// names: each qualifier, in the order written, is a name the entry is subordinate to (§8.4.2.2.3 SR4).</summary>
+    /// names: each qualifier, in the order written, is a name the entry is subordinate to (§2023:8.4.2.2.3 SR4).</summary>
     internal List<ReportEntryLocation> ReportEntryCandidates(string name, IReadOnlyList<string> qualifiers)
     {
         if (!_reportEntryLocations.TryGetValue(name, out var locs)) return [];

@@ -40,7 +40,7 @@ public enum RepositoryReadFailure
     /// <summary>The file could not be read: it is missing or the file system refused it (REPO-3, or REPO-10 for a named
     /// <c>--reference</c> file that does not exist).</summary>
     Unreadable = 7,
-    /// <summary>The file is larger than <see cref="RepositoryLocator.MaxFileBytes"/> and was skipped (§15.2; REPO-1 lists it).</summary>
+    /// <summary>The file is larger than <see cref="RepositoryLocator.MaxFileBytes"/> and was skipped (§2023:15.2; REPO-1 lists it).</summary>
     TooLarge = 8,
 }
 
@@ -55,7 +55,7 @@ public readonly record struct RepositoryIndexOutcome(RepositoryIndex? Index, Rep
 /// ⛔ THE ONE READER OF A COMPILED MODULE'S REPOSITORY HEADER AND UNIT INDEX (DESIGN-external-repository §7.4, §15.1; kb/Work
 /// PB2100), without loading the assembly: one prefetched <see cref="PEReader"/> and <see cref="MetadataReader"/> read of the
 /// assembly-level <see cref="CobolRepositoryAttribute"/> — its schema, runtime version, call ABI, registrar, compiler version,
-/// edition and <see cref="Units"/> rows — and of the <c>AssemblyRef</c> table's names (the stale-expansion scan of §10.5).
+/// edition and <see cref="Units"/> rows — and of the <c>AssemblyRef</c> table's names (the stale-expansion scan of §2023:10.5).
 /// The file is read into memory and closed, so no handle lingers (a repository entry can be replaced by the next build while
 /// a compilation holds its index, §7.5).
 /// <para>It is public because the runtime grants no <c>InternalsVisibleTo</c> to the compiler, whose
@@ -288,7 +288,7 @@ public sealed class RepositoryIndex : IDisposable
     /// <summary>The decoding provider: primitives, strings, enums (always <c>int</c>-backed, DESIGN-external-repository §6.2
     /// rule 1) and one-dimensional arrays of those. A type is named, never loaded, and every enum is taken as <c>int</c>
     /// (the reader cannot learn an underlying type otherwise); the schema's attribute properties are read by their exact types,
-    /// so an argument of any other type fails the read of the property that names it (§15.1).</summary>
+    /// so an argument of any other type fails the read of the property that names it (§2023:15.1).</summary>
     private sealed class DecodeTypes : ICustomAttributeTypeProvider<string>
     {
         public static readonly DecodeTypes Instance = new();

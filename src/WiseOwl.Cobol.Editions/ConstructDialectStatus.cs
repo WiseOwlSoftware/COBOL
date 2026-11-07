@@ -11,7 +11,7 @@ public enum ConstructAvailability
     NotYetIntroduced,
     /// <summary>Removed by the edition — error strict / warning permissive (the removed-construct severity seam).</summary>
     Removed,
-    /// <summary>Obsolete at the edition (ISO §4.2.13 over Annex F.2) — warning always (0903).</summary>
+    /// <summary>Obsolete at the edition (ISO §2023:4.2.13 over Annex F.2) — warning always (0903).</summary>
     Obsolete,
 }
 
@@ -37,9 +37,9 @@ public sealed record ConstructDialectStatus(
     string DiagnosticCode, string Citation)
 {
     /// <summary>
-    /// The ISO §7.3 compiler-directive WORDS this row gates — empty for every non-directive row, and the
-    /// reason the preprocessor needs no hand-kept directive list (kb/Work PB725). One row per §7.3.x clause;
-    /// a clause whose construct spans several words (§7.3.16's IF/ELSE/END-IF, §7.3.13's
+    /// The ISO §2023:7.3 compiler-directive WORDS this row gates — empty for every non-directive row, and the
+    /// reason the preprocessor needs no hand-kept directive list (kb/Work PB725). One row per §2023:7.3.x clause;
+    /// a clause whose construct spans several words (§2023:7.3.16's IF/ELSE/END-IF, §2023:7.3.13's
     /// EVALUATE/WHEN/END-EVALUATE) carries them all, because a bare <c>&gt;&gt;ELSE</c> is not a directive of
     /// its own. <see cref="WiseOwl.Cobol.Editions.CompilerDirectiveCatalog"/> inverts this into the word → row map
     /// the text-manipulation stage gates on, so adding a directive is ONE constructs.json row plus a regen —
@@ -48,7 +48,7 @@ public sealed record ConstructDialectStatus(
     public IReadOnlyList<string> DirectiveWords { get; init; } = [];
 
     /// <summary>
-    /// The OPERAND syntax of the §7.3 directive this row gates — the column beside <see cref="DirectiveWords"/>
+    /// The OPERAND syntax of the §2023:7.3 directive this row gates — the column beside <see cref="DirectiveWords"/>
     /// that says which words may FOLLOW the directive word (kb/Work PB794), rendered from the row's
     /// <c>directiveOperand</c> object. Null on every non-directive row, and on no directive row:
     /// <c>CompilerDirectiveOperandDriftTests</c> asserts the partition is total, because the state this note
@@ -57,10 +57,10 @@ public sealed record ConstructDialectStatus(
     /// </summary>
     public DirectiveOperandSyntax? DirectiveOperand { get; init; }
 
-    /// <summary>The §7.3 directive's PLACEMENT rule, when its syntax rules say where it may not (or may only) be
+    /// <summary>The §2023:7.3 directive's PLACEMENT rule, when its syntax rules say where it may not (or may only) be
     /// written (kb/Work PB1377, PB1378, PB1065) — rendered from the row's <c>directivePlacement</c> object. Null on
-    /// every row whose directive may be written anywhere §7.3.3 SR8 allows. A <c>&gt;&gt;PUSH</c> or
-    /// <c>&gt;&gt;POP</c> naming the directive inherits the rule (§7.3.20.3 SR2, §7.3.22.3 SR2).</summary>
+    /// every row whose directive may be written anywhere §2023:7.3.3 SR8 allows. A <c>&gt;&gt;PUSH</c> or
+    /// <c>&gt;&gt;POP</c> naming the directive inherits the rule (§2023:7.3.20.3 SR2, §2023:7.3.22.3 SR2).</summary>
     public DirectivePlacement? Placement { get; init; }
 
     /// <summary>The availability verdict at <paramref name="edition"/>.</summary>

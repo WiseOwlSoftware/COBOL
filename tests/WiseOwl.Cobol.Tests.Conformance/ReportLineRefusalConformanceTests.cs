@@ -10,13 +10,13 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// DOC-A.1-159, DOC-A.1-103). GENERATE, INITIATE and TERMINATE write the report file's lines, and a line the medium
 /// refuses — a character with no byte image in the file coded character set ('91', or '71' on a LINE SEQUENTIAL
 /// file; owner decision kb/Work R47) or a medium the host reports full ('34') — "does not take place"
-/// (§14.9.51.4 GR15). The question these tests pin is what the PROGRAM can observe of the refusal.
+/// (§2023:14.9.51.4 GR15). The question these tests pin is what the PROGRAM can observe of the refusal.
 /// <para>The standard's answer: "The value of the I-O status is set during the execution of a CLOSE, DELETE, OPEN,
-/// READ, REWRITE, START, UNLOCK or WRITE statement" (§9.1.13.1) — GENERATE, INITIATE and TERMINATE are not on that
-/// list, and no rule of §14.9.16.4, §14.9.21.4 or §14.9.46.4 writes the line "as if a WRITE statement" (as
-/// §14.9.24.4 GR12 does for MERGE). So the report file's FILE STATUS item keeps the value OPEN stored, no
+/// READ, REWRITE, START, UNLOCK or WRITE statement" (§2023:9.1.13.1) — GENERATE, INITIATE and TERMINATE are not on that
+/// list, and no rule of §2023:14.9.16.4, §2023:14.9.21.4 or §2023:14.9.46.4 writes the line "as if a WRITE statement" (as
+/// §2023:14.9.24.4 GR12 does for MERGE). So the report file's FILE STATUS item keeps the value OPEN stored, no
 /// EC-I-O condition is raised and no USE procedure of the file runs, and the run continues
-/// (the choice after a fatal status is the implementor's, §9.1.13.1: "The implementor may either continue or
+/// (the choice after a fatal status is the implementor's, §2023:9.1.13.1: "The implementor may either continue or
 /// terminate the execution of the run unit"). Where the standard leaves the choice, GnuCOBOL 3.2.0 answers
 /// (CLAUDE.md rule 1) and it agrees: measured 2026-10-18 on a report file ASSIGNed to <c>/dev/full</c>, whose
 /// plain WRITE answers FILE STATUS '34' at the 68th record, the report's FILE STATUS stays '00' through 300
@@ -82,7 +82,7 @@ public sealed class ReportLineRefusalConformanceTests
 
     /// <summary>The refused line is invisible to the program: FILE STATUS keeps OPEN's '00' through every report
     /// statement, the USE procedure never runs, the run reaches STOP RUN, and the only trace is the blank line on the
-    /// medium (§14.9.51.4 GR15 — the refused line, its advance included, does not take place, so the next line's
+    /// medium (§2023:14.9.51.4 GR15 — the refused line, its advance included, does not take place, so the next line's
     /// advance covers its slot). The two organizations refuse the same line with different statuses ('91' and '71'),
     /// and neither reaches the program.</summary>
     [Theory]
@@ -108,7 +108,7 @@ public sealed class ReportLineRefusalConformanceTests
     }
 
     /// <summary>A report program under <c>&gt;&gt;TURN EC-I-O CHECKING ON</c>, the setting that makes the question
-    /// observable at all: without it §14.6.13.1.1 links no exception condition to any I-O status. Four detail lines,
+    /// observable at all: without it §2023:14.6.13.1.1 links no exception condition to any I-O status. Four detail lines,
     /// the second and the LAST holding U+20AC, so the refusal arises both when a later GENERATE flushes the pending line
     /// and when TERMINATE flushes the final one. <paramref name="fileStatus"/> adds a FILE STATUS item,
     /// <paramref name="use"/> one of the declaratives (none; the EC-I-O exception-name form; the file-name form).
@@ -210,11 +210,11 @@ public sealed class ReportLineRefusalConformanceTests
         Assert.Equal(Host("A1B{nl}{nl}AéB{nl}"), Encoding.Latin1.GetString(bytes!));
     }
 
-    /// <summary>The same silence on a medium the host reports full ('34', §9.1.13.6 item 3): Linux's
+    /// <summary>The same silence on a medium the host reports full ('34', §2023:9.1.13.6 item 3): Linux's
     /// <c>/dev/full</c> refuses every write with ENOSPC. The writer buffers, so the refusal surfaces on a LATER line's
     /// write (the 68th plain record in GnuCOBOL), and the report statements that meet it answer the program
     /// nothing: FILE STATUS '00' and no USE procedure after the whole run of GENERATEs and after TERMINATE. (CLOSE is
-    /// an I-O statement of §9.1.13.1 with its own status, deliberately not asserted here.) A host without the device
+    /// an I-O statement of §2023:9.1.13.1 with its own status, deliberately not asserted here.) A host without the device
     /// must not be Linux, so this cannot pass on the CI host by not running.</summary>
     [Fact]
     public void ReportLine_RefusedByAFullMedium_IsNotAnIoStatementException()

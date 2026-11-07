@@ -9,8 +9,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ THE BYTE-LEVEL FLOAT LANE PINS (kb/Work PB164 wave 2). The conformance golden round-trips a float group
 /// through FormatImageFloat AND ParseImageFloat, so it is SELF-INVERSE: a byte-order, width or reinterpret
 /// error that both lanes share cancels out and the golden stays green (the wave-2 review fleet's finding).
-/// These facts state the bytes THEMSELVES — the IEEE 754 interchange encodings §13.18.60.4 GR14/GR15 pin
-/// (rendered per §13.18.60.4 GR19's endianness, big-endian being our documented §11.9.8.3 SR1 default) —
+/// These facts state the bytes THEMSELVES — the IEEE 754 interchange encodings §2023:13.18.60.4 GR14/GR15 pin
+/// (rendered per §2023:13.18.60.4 GR19's endianness, big-endian being our documented §2023:11.9.8.3 SR1 default) —
 /// so each lane is measured against the standard, not against its own inverse. The unsigned wide-carrier
 /// lanes (wave 1's ulong/UInt128 FormatImage/StoreImage) get the same treatment.
 /// </summary>
@@ -54,7 +54,7 @@ public sealed class FloatImageLaneTests
         Assert.Equal(-2.25, CobolNum.ParseImageFloat(Big64MinusTwoTwentyFive, Ieee(NumericByteForm.Ieee64)));
     }
 
-    /// <summary>HIGH-ORDER-RIGHT (§13.18.60.4 GR19b via the OPTIONS FLOAT-BINARY clause, §11.9.8): the SAME
+    /// <summary>HIGH-ORDER-RIGHT (§2023:13.18.60.4 GR19b via the OPTIONS FLOAT-BINARY clause, §2023:11.9.8): the SAME
     /// interchange encoding with the byte sequence exactly reversed — asserted against literal bytes, not
     /// against the big-endian lane's output reversed by the test (that would re-trust the subject).</summary>
     [Fact]
@@ -112,12 +112,12 @@ public sealed class FloatImageLaneTests
     /// <summary>⛔ THE 16-BYTE UNSIGNED LANE ABOVE 2^127 (kb/Work PB164 — the Step D review's sweep-note #409).
     /// The 8-byte fact above could never have caught this: every <c>ulong</c> reinterprets to a NON-NEGATIVE
     /// <c>Int128</c>, so it never reached the branch that was wrong. A 16-byte container value ≥ 2^127 does
-    /// reinterpret negative, and <c>FormatBinaryImage</c> applied §14.9.25.4 GR6b — "when an unsigned numeric
+    /// reinterpret negative, and <c>FormatBinaryImage</c> applied §2023:14.9.25.4 GR6b — "when an unsigned numeric
     /// item is the receiving item, the ABSOLUTE VALUE of the sending value is used" — to that bit pattern,
     /// NEGATING it. An item holding 2^128−1 encoded as <c>00…01</c>: a silent wrong answer in the lane wave 1
     /// had just introduced. 2^127 alone round-tripped BY ACCIDENT (−Int128.MinValue is Int128.MinValue), which
     /// is why the +1 case is pinned beside it — a single sample here would have passed over the defect.
-    /// <para>These are the bytes §13.18.60.4 GR4 asks for ("a radix of 2 is used", most significant byte first)
+    /// <para>These are the bytes §2023:13.18.60.4 GR4 asks for ("a radix of 2 is used", most significant byte first)
     /// over the full container range GR12 gives the item, stated directly rather than through the lane's own
     /// inverse.</para></summary>
     [Fact]

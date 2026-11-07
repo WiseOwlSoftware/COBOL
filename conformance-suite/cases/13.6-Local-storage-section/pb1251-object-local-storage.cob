@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB1251 - ISO §13.6.3 SR1 (cite.py --check 13.6.3 "The local-storage section may be specified in a program defi" -> OK §13.6.3 1)):
+      *> kb/Work PB1251 - ISO §2023:13.6.3 SR1 (cite.py --check 13.6.3 "The local-storage section may be specified in a program defi" -> OK §2023:13.6.3 1)):
       *> "The local-storage section may be specified in a program definition or function definition or in a method definition contained in a class definition."
       *> A instance definition is none of those, so a LOCAL-STORAGE SECTION written in the OBJECT
       *> paragraph's data division is a syntax-rule violation at EVERY edition with the OO facility.

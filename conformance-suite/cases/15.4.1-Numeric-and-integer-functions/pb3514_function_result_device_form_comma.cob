@@ -7,7 +7,7 @@
 *>---
       *> kb/Work PB3514 (DOC-A.1-92) under DECIMAL-POINT IS COMMA: the decimal separator of a function's device form is the
       *> program's, the comma, exactly as it is for a data item (pb3505_display_numeric_decimal_comma) and as a numeric
-      *> literal is written (§12.3.7.4 GR14 a: the comma is "the character written in numeric literals to represent the
+      *> literal is written (§2023:12.3.7.4 GR14 a: the comma is "the character written in numeric literals to represent the
       *> decimal separator"). Every description is the rule of pb3514_function_result_device_form: a copy of the argument's
       *> item (MAX, MIN, MEDIAN, a literal), or the value's own (NUMVAL, INTEGER, SUM, MEAN, REM); the comma is the only
       *> difference from that test, and the lines were CHECKED against `cobc -x -std=default` 3.2.0, which agrees.

@@ -9,7 +9,7 @@ using WiseOwl.Cobol.Frontend.Preprocessor;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// kb/Work PB466 — the invariant that keeps procedure-name resolution able to ANSWER the question ISO §8.4.2.2.1
+/// kb/Work PB466 — the invariant that keeps procedure-name resolution able to ANSWER the question ISO §2023:8.4.2.2.1
 /// asks: <b>a procedure-name scope records every declaration of a spelling, so "is this reference unique?" is
 /// still decidable at the reference.</b>
 ///
@@ -22,9 +22,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// itself is pinned here, over the source of the procedure-binding files, and the behaviour is pinned beside
 /// it end to end.</para>
 ///
-/// <para>The rules being kept true: §8.4.2.2.1 ("uniqueness shall be established through qualification for each
+/// <para>The rules being kept true: §2023:8.4.2.2.1 ("uniqueness shall be established through qualification for each
 /// user-defined name explicitly referenced" — rule 1 "No other name has the identical spelling", rule 6 the
-/// paragraph/section excuse) and §8.4.2.2.3 SR1 and SR7.</para>
+/// paragraph/section excuse) and §2023:8.4.2.2.3 SR1 and SR7.</para>
 /// </summary>
 public sealed class ProcedureNameUniquenessDriftTests
 {
@@ -65,7 +65,7 @@ public sealed class ProcedureNameUniquenessDriftTests
         }
         Assert.True(found.Count == 0,
             "a procedure-name scope registers a declaration with TryAdd or an overwriting indexer, so a repeated "
-            + "spelling is discarded and ISO §8.4.2.2.1 can no longer be answered at the reference. Use "
+            + "spelling is discarded and ISO §2023:8.4.2.2.1 can no longer be answered at the reference. Use "
             + "ProcedureNameMap.Declare (kb/Work PB466):\n" + string.Join("\n", found));
     }
 
@@ -148,7 +148,7 @@ public sealed class ProcedureNameUniquenessDriftTests
             DISPLAY "TWO".
         """;
 
-    /// <summary>⛔ AT EVERY EDITION. §8.4.2.2 is unchanged across 85/2002/2014/2023, so a per-edition arm that
+    /// <summary>⛔ AT EVERY EDITION. §2023:8.4.2.2 is unchanged across 85/2002/2014/2023, so a per-edition arm that
     /// forgot the rule would be a conformance hole the single-edition goldens cannot see.</summary>
     [Theory]
     [InlineData(85)]
@@ -161,7 +161,7 @@ public sealed class ProcedureNameUniquenessDriftTests
         Assert.Contains(errors, e => e.Contains("COBOL2121", StringComparison.Ordinal));
     }
 
-    /// <summary>…and the two legal shapes stay legal, at every edition: §8.4.2.2.2 format 4 qualification, and
+    /// <summary>…and the two legal shapes stay legal, at every edition: §2023:8.4.2.2.2 format 4 qualification, and
     /// rule 6's same-section excuse. A "reject anything duplicated" over-correction fails here.</summary>
     [Theory]
     [InlineData(85)]

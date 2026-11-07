@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ THE HAND-WRITTEN USER MANUAL STAYS TRUE (kb/Work PB1610, PB4453; DESIGN-USER-DOCUMENTATION §4, §5). ISO/IEC 1989:2023
-/// §4.2.16 makes <c>docs/manual/</c> the implementation's user documentation, and a manual that names an option the
+/// §2023:4.2.16 makes <c>docs/manual/</c> the implementation's user documentation, and a manual that names an option the
 /// command line lacks, a diagnostic code the catalogue never allocated, a page that does not exist, or a program that no
 /// longer compiles is documentation that misleads.
 /// <para>

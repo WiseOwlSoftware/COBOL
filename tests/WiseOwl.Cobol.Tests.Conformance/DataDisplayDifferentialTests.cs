@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 ///         two agree (single/trailing operand, numeric).</item>
 ///   <item><see cref="AssertSpec"/> — pinned to the <b>spec-correct</b> value with an ISO citation, used where the
 ///         legacy is non-conforming. The legacy trims trailing spaces off an alphanumeric DISPLAY operand, which
-///         ISO §14.9.11.4 GR1/GR6 forbid ("the content of each operand … the size … is the sum of the sizes of
+///         ISO §2023:14.9.11.4 GR1/GR6 forbid ("the content of each operand … the size … is the sum of the sizes of
 ///         the operands"); WiseOwl COBOL emits the full field, so a test that exposes <i>internal</i> trailing spaces
 ///         (a trailing <c>"]"</c>) is pinned to the spec, not the quirk.</item>
 /// </list>
@@ -75,7 +75,7 @@ public sealed class DataDisplayDifferentialTests
 
     [Theory]
     // Full-field-width DISPLAY: a trailing "]" exposes the operand's internal trailing spaces, which ISO
-    // §14.9.11.4 GR6 requires be transferred (the legacy trims them — non-conforming — so we pin the spec value).
+    // §2023:14.9.11.4 GR6 requires be transferred (the legacy trims them — non-conforming — so we pin the spec value).
     [InlineData("01 WS-A PIC X(10) VALUE \"HI\".", "    DISPLAY \"[\" WS-A \"]\".", "[HI        ]")]
     [InlineData("01 WS-A PIC X(5) VALUE \"AB\".", "    DISPLAY \"<\" WS-A \">\".", "<AB   >")]
     [InlineData("01 WS-A PIC X(4).", "    DISPLAY \"[\" WS-A \"]\".", "[    ]")]   // no VALUE → all spaces
@@ -93,7 +93,7 @@ public sealed class DataDisplayDifferentialTests
     public void MoveThenDisplay(string ws, string proc) => AssertMatchesGolden(Program(ws, proc));
 
     [Theory]
-    // Alphanumeric → alphanumeric MOVE: left-justified, space-filled to the receiver width (ISO §14.9.24 GR4).
+    // Alphanumeric → alphanumeric MOVE: left-justified, space-filled to the receiver width (ISO §2023:14.9.24 GR4).
     // The trailing "]" exposes the fill, so this is spec-pinned (legacy trims).
     [InlineData("01 WS-A PIC X(3) VALUE \"XY\".\n01 WS-B PIC X(6) VALUE \"......\".",
                 "    MOVE WS-A TO WS-B.\n    DISPLAY \"[\" WS-B \"]\".", "[XY    ]")]

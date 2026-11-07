@@ -4,7 +4,7 @@ namespace WiseOwl.Cobol.Binding;
 
 /// <summary>
 /// ⛔ THE FORM A DISPLAY STATEMENT GIVES A NUMERIC OPERAND — the compile option <c>--numeric-display</c> and this
-/// implementation's answer to ISO/IEC 1989:2023 §14.9.11.4 GR1: "Any conversion of data required between literal-1 or
+/// implementation's answer to ISO/IEC 1989:2023 §2023:14.9.11.4 GR1: "Any conversion of data required between literal-1 or
 /// the data item referenced by identifier-1 and the device is defined by the implementor" (Annex A.1 item 56,
 /// docs/CONFORMANCE.md DOC-A.1-56). kb/Work PB3505 implements the owner's decision of kb/Work PB3467 (2026-10-21,
 /// "yes"): the default follows GnuCOBOL 3.2.0's default configuration, the rule-1 precedent for an implementor
@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Binding;
 /// <para>The form is a property of the COMPILED PROGRAM, never of the process — the compiler chooses which of two
 /// runtime conversions a DISPLAY operand is emitted against, exactly as <c>--sign-encoding</c> bakes its convention into
 /// every emitted profile. It reaches only DISPLAY's GR1 device conversion: a MOVE of the same item to an alphanumeric
-/// receiver is §14.9.25.4 GR6's, and a record image is the item's storage, whatever this option says.</para>
+/// receiver is §2023:14.9.25.4 GR6's, and a record image is the item's storage, whatever this option says.</para>
 /// </summary>
 public enum NumericDisplayForm
 {

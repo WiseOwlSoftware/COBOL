@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.37.4 GR8 — "The search index is the index referenced
+      *> ISO §2023:14.9.37.4 GR8 — "The search index is the index referenced
       *> by the first (or only) index-name specified in the INDEXED
       *> phrase in the OCCURS clause associated with identifier-1. Any
       *> other indexes associated with identifier-1 remain unchanged by
@@ -24,7 +24,7 @@
       *>   G8-KY=2  KY is another index of identifier-1 and Format 2
       *>            has no VARYING phrase that could reach it, so it
       *>            still holds the 2 it was set to.
-      *> §14.9.37.3 SR8 is respected: data-name-1 is subscripted by the
+      *> §2023:14.9.37.3 SR8 is respected: data-name-1 is subscripted by the
       *> FIRST index-name associated with identifier-1.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1SRA8.

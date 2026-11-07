@@ -9,8 +9,8 @@ namespace WiseOwl.Cobol.Binding;
 /// <summary>
 /// ⛔ ONE SOURCE OF REPOSITORY ANSWERS (DESIGN-external-repository §8.0): the compilation group
 /// (<see cref="GroupRepositoryProvider"/>) and the external repository (<see cref="MetadataRepositoryProvider"/>). Each
-/// answers by EXTERNALIZED name (ISO §12.3.8.4 GR10 / GR11 a)–c)) and lists the functions a WORD names (determination
-/// D-R3 steps 2 and 3, §8.4.6.7). A provider states only what it holds; the rules that span providers live once, in
+/// answers by EXTERNALIZED name (ISO §2023:12.3.8.4 GR10 / GR11 a)–c)) and lists the functions a WORD names (determination
+/// D-R3 steps 2 and 3, §2023:8.4.6.7). A provider states only what it holds; the rules that span providers live once, in
 /// <see cref="RepositoryResolver"/>.
 /// </summary>
 internal interface IRepositoryProvider
@@ -25,7 +25,7 @@ internal interface IRepositoryProvider
     FunctionAnswer? Function(string externalizedName, int position);
 
     /// <summary>Every function this provider holds whose user-function-name is <paramref name="userFunctionName"/> and
-    /// that a source element at <paramref name="position"/> may name by it (§8.4.6.7: a definition "that follows that
+    /// that a source element at <paramref name="position"/> may name by it (§2023:8.4.6.7: a definition "that follows that
     /// function definition within the compilation group", or one in the external repository), in the order the
     /// provider prefers them.
     /// <para>With <paramref name="otherThan"/> null this is D-R3 step 2: the first function is the specifier's answer, so a
@@ -41,8 +41,8 @@ internal interface IRepositoryProvider
 internal abstract record RepositoryOrigin
 {
     /// <summary>True when the element the answer names is a DEFINITION this compilation group compiles, so the program
-    /// or function a CALL through it activates is the one whose formals the bind checked (§14.9.4.4 GR3 d) can find no
-    /// difference at run time; §4.2's <c>CalleeCompiledHere</c>). False for a prototype definition (its program is
+    /// or function a CALL through it activates is the one whose formals the bind checked (§2023:14.9.4.4 GR3 d) can find no
+    /// difference at run time; §2023:4.2's <c>CalleeCompiledHere</c>). False for a prototype definition (its program is
     /// compiled elsewhere, GR10 b) / GR11 b)) and for a repository entry (c)).</summary>
     public abstract bool IsDefinitionCompiledHere { get; }
 
@@ -73,9 +73,9 @@ internal sealed record FunctionResolution(UserFunctionSignature Signature, Repos
 /// <summary>
 /// ⛔ THE REPOSITORY SPECIFIER RESOLVER (DESIGN-external-repository §8.0, §8.2, §8.3): every program-specifier and
 /// function-specifier of the compilation group resolves here, over the providers in their search order — the group
-/// first, then the external repository (§12.3.8.4 GR10 / GR11 a) and b) before c)). Determination D-R3 is ONE rule
+/// first, then the external repository (§2023:12.3.8.4 GR10 / GR11 a) and b) before c)). Determination D-R3 is ONE rule
 /// across every provider, so it is written once, in <see cref="ResolveFunction"/>, and no provider repeats it.
-/// <para>A specifier no provider answers is REPO-1 (§8.2 step 4, §8.3), reported once per specifier by
+/// <para>A specifier no provider answers is REPO-1 (§2023:8.2 step 4, §2023:8.3), reported once per specifier by
 /// <see cref="ReportUnanswered"/>, unless the external repository's own finding already refused it
 /// (<see cref="MetadataRepositoryProvider.Refused"/>).</para>
 /// </summary>
@@ -87,10 +87,10 @@ internal sealed class RepositoryResolver(GroupRepositoryProvider group, Metadata
     /// <summary>The group's provider, for what only the group holds (<see cref="GroupRepositoryProvider.FunctionsAt"/>).</summary>
     public GroupRepositoryProvider Group { get; } = group;
 
-    /// <summary>The external repository's provider, for the entries §9.2's check compares against.</summary>
+    /// <summary>The external repository's provider, for the entries §2023:9.2's check compares against.</summary>
     public MetadataRepositoryProvider External { get; } = external;
 
-    /// <summary>⛔ REPO-1 (ISO §12.3.8.3 SR14 for a program, SR10 for a function; DESIGN-external-repository §14) for the
+    /// <summary>⛔ REPO-1 (ISO §2023:12.3.8.3 SR14 for a program, SR10 for a function; DESIGN-external-repository §14) for the
     /// <paramref name="specifier"/> — the written <c>PROGRAM</c> / <c>FUNCTION <paramref name="word"/> [AS literal]</c> whose
     /// externalized name is <paramref name="externalizedName"/> — that no provider answered, at the edition's current position
     /// (the caller places it on the specifier): once per specifier, however many source elements inherit it, and not at all
@@ -108,7 +108,7 @@ internal sealed class RepositoryResolver(GroupRepositoryProvider group, Metadata
               + $"externalized \"{externalizedName}\"";
         edition.Error(DiagnosticCatalog.RepositorySpecifierUnanswered,
             $"REPOSITORY {kind.ToUpperInvariant()} {written} names no {kind}: {alternatives}, and no information exists for it in the "
-            + $"external repository ({External.Searched(family, externalizedName)}) — ISO §12.3.8.3 {(function ? "SR10" : "SR14")}");
+            + $"external repository ({External.Searched(family, externalizedName)}) — ISO §2023:12.3.8.3 {(function ? "SR10" : "SR14")}");
     }
 
     /// <summary>GR10 for a program-prototype whose externalized name is <paramref name="externalizedName"/>, as a source
@@ -128,7 +128,7 @@ internal sealed class RepositoryResolver(GroupRepositoryProvider group, Metadata
     /// <list type="number">
     /// <item>GR11 a) / b) / c) keyed by externalized name, every provider in order — whichever hits names the function
     /// (GnuCOBOL 3.2.0's answer and the standard's text);</item>
-    /// <item>when all miss, the function the WORD names (§8.4.6.7; SR10's "the name of a function definition specified
+    /// <item>when all miss, the function the WORD names (§2023:8.4.6.7; SR10's "the name of a function definition specified
     /// previously" and "the name of a function prototype specified in this compilation group"), every provider in
     /// order — its externalized name is what is activated;</item>
     /// <item>when step 1 hit and a DIFFERENT function — another externalized name — carries the word and is visible to

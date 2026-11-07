@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ WHICH CHARACTER IS THE DECIMAL POINT OF A PICTURE CHARACTER-STRING IS ASKED OF ONE FUNCTION (kb/Work PB3219).
-/// ISO §13.18.40.3 SR13 makes the comma the decimal separator and the period the grouping separator under DECIMAL-POINT
+/// ISO §2023:13.18.40.3 SR13 makes the comma the decimal separator and the period the grouping separator under DECIMAL-POINT
 /// IS COMMA, and says the rules written for one apply to the other; every PICTURE rule that names "the symbol
 /// period" (SR12 b in both of its forms, SR17, SR20, the floating-string detector, Table 10's period row) therefore
 /// takes its character from <c>PictureComposition.DecimalSeparator</c> / <c>GroupingSeparator</c>. The picture

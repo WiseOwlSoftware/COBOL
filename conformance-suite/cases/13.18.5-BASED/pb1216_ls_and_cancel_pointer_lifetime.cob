@@ -8,17 +8,17 @@
       *> kb/Work PB1216 - a data pointer into storage whose life has
       *> ENDED is not a valid address: a LOCAL-STORAGE item after its
       *> activation returns, a WORKING-STORAGE item after CANCEL.
-      *> §13.18.5.4 GR4: "If the subject of the entry is referenced while
+      *> §2023:13.18.5.4 GR4: "If the subject of the entry is referenced while
       *>   its address is not NULL and not a valid address of storage,
       *>   the EC-BOUND-PTR exception condition is set to exist."
-      *>   OK  §13.18.5.4 4)  (General rules)
-      *> §8.6.5: "The association may cease to exist because the actual
-      *>   data no longer exists, as specified 8.6.4"  OK  §8.6.5
-      *> §8.6.4: LOCAL-STORAGE "persists while that instance of the
+      *>   OK  §2023:13.18.5.4 4)  (General rules)
+      *> §2023:8.6.5: "The association may cease to exist because the actual
+      *>   data no longer exists, as specified 8.6.4"  OK  §2023:8.6.5
+      *> §2023:8.6.4: LOCAL-STORAGE "persists while that instance of the
       *>   runtime element is in active state"; a static item persists
       *>   to "the execution of a CANCEL statement of a program that
-      *>   directly or indirectly contains the items".  OK  §8.6.4
-      *> §14.9.33.4 GR2: RESUME AT NEXT STATEMENT continues after the
+      *>   directly or indirectly contains the items".  OK  §2023:8.6.4
+      *> §2023:14.9.33.4 GR2: RESUME AT NEXT STATEMENT continues after the
       *>   interrupted statement (the MOVE B TO W4), so W4 keeps "....".
       *> DERIVATION. LS [....]: SUBLS returned ADDRESS OF its LOCAL-
       *>   STORAGE item; its activation ended, so MOVE B raises (HANDLED)

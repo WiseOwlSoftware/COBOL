@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
       *> kb/Work PB1173 — A TABLE SORT KEY IS NOT SUBSCRIPTED.
-      *>   cite.py --check 14.9.40.3 "Key data names shall not be subscripted." -> OK §14.9.40.3 14) b)
+      *>   cite.py --check 14.9.40.3 "Key data names shall not be subscripted." -> OK §2023:14.9.40.3 14) b)
       *> `SORT TE ASCENDING KEY TK(1)` used to sort exactly as `KEY TK` — the written subscript was dropped without a
       *> word (DataBinder.KeyReference kept the qualifiers only). It is refused by the one data-name-n shape screen
       *> (COBOL2024), which says the key is written with a subscript.

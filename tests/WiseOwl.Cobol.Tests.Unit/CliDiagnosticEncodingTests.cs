@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 /// <remarks>
 /// <para>
-/// Diagnostics carry ISO citations, so they carry non-ASCII: <c>(ISO §11.10.3 SR5–6)</c> holds U+00A7 and
+/// Diagnostics carry ISO citations, so they carry non-ASCII: <c>(ISO §2023:11.10.3 SR5–6)</c> holds U+00A7 and
 /// U+2013. The CLI never set <see cref="Console.OutputEncoding"/>, while <c>ProgramTable.RunMain</c> did — one
 /// rule, two places it could be written, one of them written (<c>feedback_two_arm_dispatch</c>). On a default
 /// Windows console (cp437) the section sign therefore left the process as the single byte <c>0x15</c> — a

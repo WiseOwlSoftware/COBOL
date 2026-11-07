@@ -8,19 +8,19 @@ using WiseOwl.Cobol.Tests.Shared;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// kb/Work PB728 / PB575 — the invariant that keeps ISO §8.8.4.2.1's group sentence TRUE as condition-name codegen
+/// kb/Work PB728 / PB575 — the invariant that keeps ISO §2023:8.8.4.2.1's group sentence TRUE as condition-name codegen
 /// grows: <b>a condition-name test over a GROUP conditional variable renders the same comparison rules as the
 /// identical test over the ELEMENTARY item of that group's class.</b>
 ///
-/// <para><b>Why this test exists.</b> §8.8.4.5.3 GR2 — "The rules for comparing a conditional variable with a
-/// condition-name value are the same as those specified for relation conditions" — and §8.8.4.2.1 — "A national
+/// <para><b>Why this test exists.</b> §2023:8.8.4.5.3 GR2 — "The rules for comparing a conditional variable with a
+/// condition-name value are the same as those specified for relation conditions" — and §2023:8.8.4.2.1 — "A national
 /// group item or a bit group item shall be treated as an elementary national data item or an elementary bit data
 /// item, respectively" — together say the subject's CLASS decides the comparison, for a group exactly as for an
 /// elementary item. The renderer had that rule written down twice: the operand TEXT came from the ONE category
-/// reader (<c>DataItem.OperandPic</c>, which answers the §13.18.29.4 GR1b/GR2b as-if PICTURE for a bit / national
+/// reader (<c>DataItem.OperandPic</c>, which answers the §2023:13.18.29.4 GR1b/GR2b as-if PICTURE for a bit / national
 /// group), while the COLLATING SEQUENCE came from a raw <c>Pic?.Category</c>, which is null for every group. The
 /// two halves disagreed about what the operand IS: a <c>GROUP-USAGE NATIONAL</c> 88 rendered a national image
-/// (<c>.AsNat()</c>) weighed on the ALPHANUMERIC table, and a <c>GROUP-USAGE BIT</c> 88 lost §8.8.4.2.8's
+/// (<c>.AsNat()</c>) weighed on the ALPHANUMERIC table, and a <c>GROUP-USAGE BIT</c> 88 lost §2023:8.8.4.2.8's
 /// right-extension with boolean zeros. Both were silent: under the default native sequences the two collations
 /// coincide, so every existing green test passed.</para>
 ///
@@ -34,7 +34,7 @@ public sealed class ConditionNameSubjectClassDriftTests
     /// <summary>Two DIFFERENT collating sequences, deliberately, so neither leg can pass for the wrong reason: an
     /// alphanumeric alphabet in which 'A' and 'B' share one position (ALSO) and a national alphabet in which they
     /// do not. A test that renders the wrong sequence therefore renders a DIFFERENT argument, not merely a
-    /// different name for the same order. The OBJECT-COMPUTER paragraph precedes SPECIAL-NAMES, the §12.3.2 printed
+    /// different name for the same order. The OBJECT-COMPUTER paragraph precedes SPECIAL-NAMES, the §2023:12.3.2 printed
     /// sequence (kb/Work PB1508).</summary>
     private const string Alphabets = """
                OBJECT-COMPUTER. DRIFT-COMPUTER
@@ -63,8 +63,8 @@ public sealed class ConditionNameSubjectClassDriftTests
     /// literal so the only admissible difference in the emitted comparison is the operand read.</summary>
     public static TheoryData<string, string, string> ClassPairs() => new()
     {
-        // NATIONAL — §8.8.4.2.9: ordered by the national program collating sequence (NAT-D), never the
-        // alphanumeric one (§13.18.29.4 GR2b gives the group the as-if PICTURE N(3)).
+        // NATIONAL — §2023:8.8.4.2.9: ordered by the national program collating sequence (NAT-D), never the
+        // alphanumeric one (§2023:13.18.29.4 GR2b gives the group the as-if PICTURE N(3)).
         {
             "national",
             """
@@ -79,8 +79,8 @@ public sealed class ConditionNameSubjectClassDriftTests
                        IF EN-IS-A DISPLAY "E" END-IF.
             """
         },
-        // BOOLEAN — §8.8.4.2.8: a VALUE comparison "regardless of their usage", the shorter operand extended on
-        // the right with boolean zeros, and never the alphanumeric weight table (§13.18.29.4 GR1b gives the group
+        // BOOLEAN — §2023:8.8.4.2.8: a VALUE comparison "regardless of their usage", the shorter operand extended on
+        // the right with boolean zeros, and never the alphanumeric weight table (§2023:13.18.29.4 GR1b gives the group
         // the as-if PICTURE 1(3)).
         {
             "boolean",
@@ -96,8 +96,8 @@ public sealed class ConditionNameSubjectClassDriftTests
                        IF EB-ON DISPLAY "E" END-IF.
             """
         },
-        // ALPHANUMERIC — the OVER-REJECTION CONTROL: an ordinary group has no as-if PICTURE, §8.8.4.2.1 treats it
-        // as an elementary alphanumeric data item, and §8.8.4.2.7 collates it under the alphanumeric sequence.
+        // ALPHANUMERIC — the OVER-REJECTION CONTROL: an ordinary group has no as-if PICTURE, §2023:8.8.4.2.1 treats it
+        // as an elementary alphanumeric data item, and §2023:8.8.4.2.7 collates it under the alphanumeric sequence.
         // The fix must not move this leg.
         {
             "alphanumeric",
@@ -136,7 +136,7 @@ public sealed class ConditionNameSubjectClassDriftTests
             Assert.True(group == elementary,
                 $"{klass}: the GROUP condition-name renders '{compares[0]}' where its ELEMENTARY twin renders "
                 + $"'{compares[1]}' — the comparison rules differ after the operand read ('{group}' vs "
-                + $"'{elementary}'). ISO §8.8.4.5.3 GR2 + §8.8.4.2.1: the subject's CLASS decides the comparison, "
+                + $"'{elementary}'). ISO §2023:8.8.4.5.3 GR2 + §2023:8.8.4.2.1: the subject's CLASS decides the comparison, "
                 + "for a group as for an elementary item.");
         }
         finally { ScratchDirectory.Remove(dir); }
@@ -162,9 +162,9 @@ public sealed class ConditionNameSubjectClassDriftTests
         return found;
     }
 
-    /// <summary>The SCREENS must agree too, not only the rendered comparison. §13.18.63.3's Format-3 syntax rules
+    /// <summary>The SCREENS must agree too, not only the rendered comparison. §2023:13.18.63.3's Format-3 syntax rules
     /// are stated over "the category of the subject of the entry" (SR29) and over the subject's class
-    /// (SR4/SR5/SR10, carried into Format 3 by SR24), and §13.18.29.4 GR1b/GR2b give a bit / national GROUP that
+    /// (SR4/SR5/SR10, carried into Format 3 by SR24), and §2023:13.18.29.4 GR1b/GR2b give a bit / national GROUP that
     /// category — so a THROUGH range must draw the SAME verdict on the group as on its elementary twin. Every
     /// guard in <c>BindCondition</c> used to read the raw picture, which a group does not have, so the group leg
     /// slipped every screen: a boolean THROUGH that SR29 forbids compiled, and the range then reached codegen and
@@ -174,7 +174,7 @@ public sealed class ConditionNameSubjectClassDriftTests
     /// green test hold the stage open; if the national THROUGH range's staged decline is later discharged, both
     /// legs simply compile and this still passes — what it can never allow again is the two legs DISAGREEING.</para></summary>
     [Theory]
-    // §13.18.63.3 SR29 — a boolean subject may not carry THROUGH at all, for either subject shape.
+    // §2023:13.18.63.3 SR29 — a boolean subject may not carry THROUGH at all, for either subject shape.
     [InlineData("bit", """
            01 GB GROUP-USAGE BIT.
               88 GB-R VALUE B"000" THRU B"111".
@@ -183,7 +183,7 @@ public sealed class ConditionNameSubjectClassDriftTests
            01 EB PIC 1(3) USAGE BIT.
               88 EB-R VALUE B"000" THRU B"111".
     """)]
-    // A national THROUGH range is spec-legal (§14.7.8 rule 2 orders it under the national sequence); whatever this
+    // A national THROUGH range is spec-legal (§2023:14.7.8 rule 2 orders it under the national sequence); whatever this
     // compiler does with it, it must do the same to both subject shapes.
     [InlineData("national", """
            01 GN GROUP-USAGE NATIONAL.
@@ -193,7 +193,7 @@ public sealed class ConditionNameSubjectClassDriftTests
            01 EN PIC N(3).
               88 EN-R VALUE N"AAA" THRU N"CCC".
     """)]
-    // The class funnel (§13.18.63.3 SR5 over a national subject): an alphanumeric literal is not a national one.
+    // The class funnel (§2023:13.18.63.3 SR5 over a national subject): an alphanumeric literal is not a national one.
     [InlineData("national-class", """
            01 GN GROUP-USAGE NATIONAL.
               88 GN-C VALUE "AB".

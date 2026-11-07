@@ -6,13 +6,13 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The PB56 Dec-carrier intrinsic bodies (<c>CobolIntrinsics.Dec.cs</c>) — §15.4.1 r1's equivalent
+/// The PB56 Dec-carrier intrinsic bodies (<c>CobolIntrinsics.Dec.cs</c>) — §2023:15.4.1 r1's equivalent
 /// arithmetic expressions evaluated ON the SDIDI, spec-derived expected values throughout.
 /// </summary>
 /// <remarks>
 /// The defect these pin out: the interim landing truncated Dec operands at working scale 6, so a
 /// sub-microscale operand reached every exact-family body as ZERO (kb/Work PB56; the found instance was
-/// <c>FUNCTION SIGN(1e-9 − 0)</c> returning 0 against §15.81.4 r1a's +1). The agreement theory is the
+/// <c>FUNCTION SIGN(1e-9 − 0)</c> returning 0 against §2023:15.81.4 r1a's +1). The agreement theory is the
 /// drift half: on an all-fixed-point shared domain the Dec body and the exact Int128 body are
 /// digit-identical (<c>NUMERIC_DESIGN.md</c> D3's documented equivalence), so the two engines
 /// cannot drift apart without a red here.
@@ -40,14 +40,14 @@ public sealed class CobolIntrinsicsDecTests
     {
         AssertDec(D(1, 9), CobolIntrinsics.MaxDec(D(1, 9), D(0, 0)));       // 1e-9 > 0
         AssertDec(D(-1, 9), CobolIntrinsics.MinDec(D(0, 0), D(-1, 9)));     // −1e-9 < 0
-        // §15.59.4 r2: equal values (different representations) — the LEFTMOST argument is returned.
+        // §2023:15.59.4 r2: equal values (different representations) — the LEFTMOST argument is returned.
         var leftmost = CobolIntrinsics.MaxDec(D(1000, 3), D(1, 0));         // both exactly 1
         Assert.Equal(-3, leftmost.Exp);                                     // identity, not just value
-        Assert.Equal(2, CobolIntrinsics.OrdMaxDec(D(1, 0), D(2, 0), D(2, 0)));  // first greatest, §15.71.4 r2
+        Assert.Equal(2, CobolIntrinsics.OrdMaxDec(D(1, 0), D(2, 0), D(2, 0)));  // first greatest, §2023:15.71.4 r2
         Assert.Equal(1, CobolIntrinsics.OrdMinDec(D(3, 9), D(4, 9)));
     }
 
-    // ── Floor / truncation semantics (§15.44 / §15.49 / §15.42) ─────────────────────────────────────────
+    // ── Floor / truncation semantics (§2023:15.44 / §2023:15.49 / §2023:15.42) ─────────────────────────────────────────
 
     [Fact]
     public void FloorTruncFraction_NegativeNonIntegral_DifferByOne()
@@ -58,7 +58,7 @@ public sealed class CobolIntrinsicsDecTests
         AssertDec(D(75, 2), CobolIntrinsics.FractionPartDec(CobolRounding.NearestAwayFromZero, D(275, 2)));
     }
 
-    // ── MOD / REM over the SDIDI (§15.64.4 r1 / §15.77.4 r1), including the sign table ─────────────────
+    // ── MOD / REM over the SDIDI (§2023:15.64.4 r1 / §2023:15.77.4 r1), including the sign table ─────────────────
 
     [Theory]
     [InlineData(11, 5, 1)]
@@ -81,9 +81,9 @@ public sealed class CobolIntrinsicsDecTests
     public void AnnuityDec_RateZero_IsReciprocalOfPeriods() =>
         AssertDec(D(25, 2), CobolIntrinsics.AnnuityDec(CobolRounding.NearestAwayFromZero, D(0, 0), D(4, 0)));
 
-    /// <summary>⛔ kb/Work PB637 — argument-2 is a TOTAL integer (§15.9.3 r3 "positive integer" is a sign rule), so a
-    /// count past <c>long</c> reaches the body whole. At rate 0 the equivalent expression §15.9.4 r1a is
-    /// <c>1 / argument-2</c>, which §15.4.1 r1 makes the standard-decimal value for every n: 10^20 → 1E-20 and
+    /// <summary>⛔ kb/Work PB637 — argument-2 is a TOTAL integer (§2023:15.9.3 r3 "positive integer" is a sign rule), so a
+    /// count past <c>long</c> reaches the body whole. At rate 0 the equivalent expression §2023:15.9.4 r1a is
+    /// <c>1 / argument-2</c>, which §2023:15.4.1 r1 makes the standard-decimal value for every n: 10^20 → 1E-20 and
     /// 10^38 → 1E-38 and 10^40 (past <c>Int128</c>: an SDIDI integer the renderer keeps whole — the first fix narrowed
     /// it to <c>Int128</c>, review R1-1) → 1E-40, with checking ARMED. The count is 10^exponent.</summary>
     [Theory]
@@ -102,7 +102,7 @@ public sealed class CobolIntrinsicsDecTests
         finally { WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.ArgumentFunctionChecking = saved; }
     }
 
-    /// <summary>§15.9.4 r1b past <c>long</c> with a rate small enough that <c>(1 + rate) ** n</c> stays in range:
+    /// <summary>§2023:15.9.4 r1b past <c>long</c> with a rate small enough that <c>(1 + rate) ** n</c> stays in range:
     /// rate 1E-30, n 10^20. With x = n·ln(1 + rate) = 1E-10 − 5E-41 the denominator is 1 − e^(−x) = x − x²/2 + … and
     /// the value rate / (x − x²/2) = 1E-20 · (1 + 5E-11 + …) = 1.00000000005E-20. The subtraction cancels ten of the
     /// SDIDI's 34 digits (an inherent property of the written expression), so the assertion is to 12 digits.</summary>
@@ -116,8 +116,8 @@ public sealed class CobolIntrinsicsDecTests
 
     /// <summary>The OTHER half of the totality claim: at a positive rate the equivalent expression's own
     /// <c>(1 + rate) ** n</c> leaves the decimal128 range, which is its size condition (EC-SIZE-OVERFLOW,
-    /// §8.8.1.5.2 r2) — and it is the SAME condition at n = 10^6 (inside <c>long</c>) and at n = 10^20 (past it),
-    /// never an EC-ARGUMENT-FUNCTION that depends on the carrier's width (§15.3 r14 has no incorrect argument here).</summary>
+    /// §2023:8.8.1.5.2 r2) — and it is the SAME condition at n = 10^6 (inside <c>long</c>) and at n = 10^20 (past it),
+    /// never an EC-ARGUMENT-FUNCTION that depends on the carrier's width (§2023:15.3 r14 has no incorrect argument here).</summary>
     [Theory]
     [InlineData(6)]
     [InlineData(20)]
@@ -131,7 +131,7 @@ public sealed class CobolIntrinsicsDecTests
 
     [Fact]
     public void PresentValueDec_Rate1_SumsDiscountedAmounts() =>
-        // §15.74.4 r1: 8/(1+1)^1 + 8/(1+1)^2 = 4 + 2 = 6.
+        // §2023:15.74.4 r1: 8/(1+1)^1 + 8/(1+1)^2 = 4 + 2 = 6.
         AssertDec(D(6, 0), CobolIntrinsics.PresentValueDec(CobolRounding.NearestAwayFromZero, D(1, 0), D(8, 0), D(8, 0)));
 
     [Fact]
@@ -168,7 +168,7 @@ public sealed class CobolIntrinsicsDecTests
     }
 
     // ── The NUMVAL family under STANDARD-DECIMAL (PB60, RV-15.67.4-1a): the one scan lifted EXACTLY ─────
-    // §15.4.1 places the returned value in an SDIDI; §15.67.4 r1 / §15.68.4 r1 / §15.69.4 r3 fix it as "the
+    // §2023:15.4.1 places the returned value in an SDIDI; §2023:15.67.4 r1 / §2023:15.68.4 r1 / §2023:15.69.4 r3 fix it as "the
     // numeric value represented by argument-1" — no working scale, no receiver, no approximation.
 
     private const CobolRounding Nafz = CobolRounding.NearestAwayFromZero;
@@ -179,24 +179,24 @@ public sealed class CobolIntrinsicsDecTests
         var v = CobolIntrinsics.NumvalDec("1.2345678");
         Assert.Equal((System.Int128)12345678, v.Sig);                        // identity: the PARSED scale (7),
         Assert.Equal(-7, v.Exp);                                             //   never the native ≥6 floor
-        AssertDec(D(-5, 1), CobolIntrinsics.NumvalDec("0.5CR"));             // §15.67.4 r2 — CR negates
-        AssertDec(D(-5, 1), CobolIntrinsics.NumvalDec(" - 0.5 "));           // §15.67.3 r2 — spaces before the digit
+        AssertDec(D(-5, 1), CobolIntrinsics.NumvalDec("0.5CR"));             // §2023:15.67.4 r2 — CR negates
+        AssertDec(D(-5, 1), CobolIntrinsics.NumvalDec(" - 0.5 "));           // §2023:15.67.3 r2 — spaces before the digit
         AssertDec(D(1500, 3), CobolIntrinsics.NumvalDec("1.500"));           // trailing zeros keep their scale
-        // A 34-digit argument is legal under the standard-decimal cap (§15.67.3 r4) and exact (§8.8.1.5.2's
+        // A 34-digit argument is legal under the standard-decimal cap (§2023:15.67.3 r4) and exact (§2023:8.8.1.5.2's
         // 34 digits) — the native projection saturated its Int128 rescale on this input.
         // ⛔ The cap is passed EXPLICITLY because the family's one convention is that the OMITTED default is the
-        // NATIVE §15.67.3 r3 cap of 31 (kb/Work PB251 — these bodies now serve native arithmetic too, and the
+        // NATIVE §2023:15.67.3 r3 cap of 31 (kb/Work PB251 — these bodies now serve native arithmetic too, and the
         // emitter names the cap exactly when the mode's cap differs).
         var n34 = CobolIntrinsics.NumvalDec("1234567890123456789012345678901234", digitCap: 34);
         Assert.Equal(System.Int128.Parse("1234567890123456789012345678901234"), n34.Sig);
         Assert.Equal(0, n34.Exp);
-        AssertDec(D(125, 1), CobolIntrinsics.NumvalDec("12,5", commaMode: true));   // §15.67.3 r5
+        AssertDec(D(125, 1), CobolIntrinsics.NumvalDec("12,5", commaMode: true));   // §2023:15.67.3 r5
     }
 
     [Fact]
     public void NumvalCDec_ConsumesCurrencyAndGrouping_Exactly()
     {
-        AssertDec(D(12345678901234, 10), CobolIntrinsics.NumvalCDec("$1,234.5678901234", "$"));   // §15.68.4 r2
+        AssertDec(D(12345678901234, 10), CobolIntrinsics.NumvalCDec("$1,234.5678901234", "$"));   // §2023:15.68.4 r2
         AssertDec(D(-12345, 2), CobolIntrinsics.NumvalCDec("R123.45CR", "R"));                    // the r4a position (PB60)
         AssertDec(D(-12345, 2), CobolIntrinsics.NumvalCDec("usd 123.45-", "USD", anycase: true)); // r4f
     }
@@ -209,8 +209,8 @@ public sealed class CobolIntrinsicsDecTests
         var big = CobolIntrinsics.NumvalFDec(Nafz, "1E+40");                               // in range, exact
         Assert.Equal((System.Int128)1, big.Sig);
         Assert.Equal(40, big.Exp);
-        AssertDec(D(-350, 1), CobolIntrinsics.NumvalFDec(Nafz, " - 35E+0 "));              // §15.69.3 r5's legal spaces
-        // A 4-digit E-exponent can leave decimal128 (§8.8.1.5.2 r2) — the ONE range check every SDIDI result gets.
+        AssertDec(D(-350, 1), CobolIntrinsics.NumvalFDec(Nafz, " - 35E+0 "));              // §2023:15.69.3 r5's legal spaces
+        // A 4-digit E-exponent can leave decimal128 (§2023:8.8.1.5.2 r2) — the ONE range check every SDIDI result gets.
         var ex = Assert.Throws<CobolSizeError>(() => CobolIntrinsics.NumvalFDec(Nafz, "1E+9999"));
         Assert.Equal("EC-SIZE-OVERFLOW", ex.EcName);
     }
@@ -227,21 +227,21 @@ public sealed class CobolIntrinsicsDecTests
     [InlineData(" + 7 ")]
     public void NumvalFamily_IsOneProjection_OnTheSharedDomain(string text)
     {
-        // ⛔ NO MEMBER OF THE FAMILY HAS A NATIVE TWIN TO AGREE WITH (kb/Work PB251, PB3839): §15.67.4 r1 /
-        // §15.68.4 r1 fix the returned value of NUMVAL and NUMVAL-C with no arithmetic-mode qualification, and NUMVAL-F's
-        // §15.69.4 r2 approximation is resolved to r3's exact value, so ONE projection serves every mode and the
+        // ⛔ NO MEMBER OF THE FAMILY HAS A NATIVE TWIN TO AGREE WITH (kb/Work PB251, PB3839): §2023:15.67.4 r1 /
+        // §2023:15.68.4 r1 fix the returned value of NUMVAL and NUMVAL-C with no arithmetic-mode qualification, and NUMVAL-F's
+        // §2023:15.69.4 r2 approximation is resolved to r3's exact value, so ONE projection serves every mode and the
         // agreement question is answered by construction. What is still worth asserting is that the three read one
         // scan: the value is the parsed one at its OWN scale — no working scale, no receiver.
         AssertDec(CobolIntrinsics.NumvalDec(text), CobolIntrinsics.NumvalCDec(text, "¤"));
-        if (!text.Contains("CR"))   // NUMVAL-F has no CR form (§15.69.3 r1)
+        if (!text.Contains("CR"))   // NUMVAL-F has no CR form (§2023:15.69.3 r1)
             Assert.Equal(CobolIntrinsics.NumvalDec(text).ToUnscaled(9, CobolRounding.Truncation),
                          CobolIntrinsics.NumvalFDec(Nafz, text).ToUnscaled(9, CobolRounding.Truncation));
     }
 
-    /// <summary>The reject projections are SHARED: a non-conforming argument yields the §15.3 default (0)
+    /// <summary>The reject projections are SHARED: a non-conforming argument yields the §2023:15.3 default (0)
     /// from both modes' value functions, through the one message per family (checking off here).</summary>
     [Theory]
-    [InlineData("-12-")]                                     // neither §15.67.3 r1 format
+    [InlineData("-12-")]                                     // neither §2023:15.67.3 r1 format
     [InlineData("12345678901234567890123456789012345")]      // 35 digits — past the standard-decimal cap too
     [InlineData("")]                                         // r1c — no digit anywhere
     public void NumvalFamily_RejectProjection_IsSharedAcrossModes(string text)

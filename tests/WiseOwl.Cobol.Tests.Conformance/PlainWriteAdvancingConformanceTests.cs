@@ -7,11 +7,11 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
 /// ⛔ A WRITE WITHOUT THE ADVANCING PHRASE IS A WRITE WITH <c>AFTER ADVANCING 1 LINE</c>, IN EVERY STATE OF THE
-/// DEVICE (kb/Work PB1027). ISO/IEC 1989:2023 §14.9.51.4 GR25: <i>"If the ADVANCING phrase is not used, automatic
+/// DEVICE (kb/Work PB1027). ISO/IEC 1989:2023 §2023:14.9.51.4 GR25: <i>"If the ADVANCING phrase is not used, automatic
 /// advancing shall be provided by the implementor to act as if the user has specified AFTER ADVANCING 1 LINE."</i>
 /// (checked: <c>cite.py --check 14.9.51.4 "If the ADVANCING phrase is not used, automatic advancing shall be
 /// provided by the implementor to act as if the user has specified AFTER ADVANCING 1 LINE"</c> is
-/// <c>OK  §14.9.51.4 25)</c>). The standard names no implementor choice of PLACEMENT, so the two spellings produce
+/// <c>OK  §2023:14.9.51.4 25)</c>). The standard names no implementor choice of PLACEMENT, so the two spellings produce
 /// the SAME file, byte for byte, whatever the file already holds — the property this class pins over every
 /// placement mix instead of over the handful of mixes a hand-written golden would name.
 ///
@@ -137,7 +137,7 @@ public sealed class PlainWriteAdvancingConformanceTests
     }
 
     /// <summary>The complement of the grid: a file that has never been written with an ADVANCING phrase and has no
-    /// LINAGE clause supports no vertical positioning (Annex A.3 item 37; §14.9.51.4 GR25: <i>"If the physical file
+    /// LINAGE clause supports no vertical positioning (Annex A.3 item 37; §2023:14.9.51.4 GR25: <i>"If the physical file
     /// does not support vertical positioning, the ADVANCING and END-OF-PAGE phrases are ignored"</i>), so its plain
     /// WRITE is the record and its own line end — no leading blank line, which is the shape GnuCOBOL writes by
     /// default and the one every ordinary text-file program relies on. A record sequential file has no line end

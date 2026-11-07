@@ -5,16 +5,16 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO 1989:2023 §9.1.13.2 item 4 a): "For an OPEN statement, it is successfully executed but the file is described as
+      *> ISO 1989:2023 §2023:9.1.13.2 item 4 a): "For an OPEN statement, it is successfully executed but the file is described as
       *> optional and the physical file is not present at the time the OPEN statement is executed. If the open mode is I-O
-      *> or extend, the physical file has been created." - the I-O status is 05. §9.1.13.6 item 5: "I-O status = 35. A
+      *> or extend, the physical file has been created." - the I-O status is 05. §2023:9.1.13.6 item 5: "I-O status = 35. A
       *> permanent error exists because an OPEN statement with the INPUT, I-O, or EXTEND phrase is attempted on a file that
       *> is not described as optional and the physical file is not present." A report file is a file like any other for
-      *> these two rules (its OPEN takes only OUTPUT or EXTEND, §14.9.27.3 SR1), and the OPTIONAL flag is exactly what the
+      *> these two rules (its OPEN takes only OUTPUT or EXTEND, §2023:14.9.27.3 SR1), and the OPTIONAL flag is exactly what the
       *> report-file registration hands the runtime (kb/Work PB1880: ReportFileRegistrationEmitterTests pins the emitted
       *> text; this program witnesses the behaviour):
       *>   RPT  not OPTIONAL, the physical file absent, OPEN EXTEND -> '35'; the connector stays closed, so the CLOSE that
-      *>        follows is the logic error '42' (§9.1.13.7 item 2) and no file is created.
+      *>        follows is the logic error '42' (§2023:9.1.13.7 item 2) and no file is created.
       *>   RPO  OPTIONAL, absent, OPEN EXTEND -> '05' and the file has been created; the report is written, closed ('00'),
       *>        and a second OPEN EXTEND over the now-present file is a plain '00' (item 1) that appends.
       *> Both are answered with FILE STATUS, so the fatal '35' does not end the program (docs/CONFORMANCE.md DOC-A.1-103).

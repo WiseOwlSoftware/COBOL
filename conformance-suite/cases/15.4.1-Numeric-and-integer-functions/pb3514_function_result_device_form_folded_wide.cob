@@ -6,7 +6,7 @@
 *> portable: unverified
 *>---
       *> kb/Work PB3514 review round 1 (DOC-A.1-92). Two consequences of one rule: a function's returned value is a temporary
-      *> data item (§15.4) and DISPLAY shows the temporary by the description the implementor gave it (§14.9.11.4 GR1).
+      *> data item (§2023:15.4) and DISPLAY shows the temporary by the description the implementor gave it (§2023:14.9.11.4 GR1).
       *> (1) A call the compiler folds to a literal that GnuCOBOL 3.2.0 does NOT fold (HIGHEST-/LOWEST-ALGEBRAIC) is still a
       *>     function's returned value, so as the argument of ABS, MAX, MIN, MEDIAN or MEAN its temporary is described by its
       *>     value, exactly as it is when DISPLAY shows the call itself (000000999).

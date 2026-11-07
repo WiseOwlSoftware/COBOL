@@ -9,10 +9,10 @@
       *>
       *> THE RULES, --check validated:
       *>   cite.py --check 14.9.40.4 "The number of occurrences of table elements referenced by data-name-2 is
-      *>     determined by the rules in the OCCURS clause." -> OK §14.9.40.4 20)
+      *>     determined by the rules in the OCCURS clause." -> OK §2023:14.9.40.4 20)
       *>   cite.py --check 8.4.2.3.3 "as the rightmost or only subscript of a table in the table format of a SORT
       *>     statement. This is equivalent to omitting the rightmost or only subscript in this context." -> OK
-      *>     §8.4.2.3.3 6)
+      *>     §2023:8.4.2.3.3 6)
       *> OCCURS DYNAMIC is a COBOL-2014 construct. The subject DX lies in DROW OCCURS 2, so SORT DX(2) sorts DROW(2)'s
       *> table, whose current number of occurrences is that occurrence's OWN capacity (each outer occurrence holds its
       *> own dynamic table) and nothing past it.

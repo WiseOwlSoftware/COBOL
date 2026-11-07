@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.13.3 SR10: "The permissible combinations of selection subject and selection object
+      *> ISO §2023:14.9.13.3 SR10: "The permissible combinations of selection subject and selection object
       *> operands are indicated in Table 15, Combination of operands in the EVALUATE statement", and
       *> Table 15's caption is explicit — "a space indicates an invalid combination". Against a
       *> TRUE-or-FALSE selection subject the ONLY permissible objects are a condition, TRUE/FALSE, or ANY;

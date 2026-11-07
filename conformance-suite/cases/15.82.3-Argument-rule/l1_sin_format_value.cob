@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §15.82.2 general format and §15.82.4 r1 — SIN's shape and
+      *> ISO §2023:15.82.2 general format and §2023:15.82.4 r1 — SIN's shape and
       *> its returned value, including the CODOMAIN half of the rule
       *> Format: "<u>FUNCTION</u> <u>SIN</u> ( argument-1 )" - both
       *> words underlined (required), exactly one argument in required
@@ -21,7 +21,7 @@
       *> nested function-identifier. If the format were silently
       *> narrowed to a bare identifier, EXPR and NEST would fail.
       *>
-      *> §15.82.4 r1: "The returned value is the approximation of the
+      *> §2023:15.82.4 r1: "The returned value is the approximation of the
       *> sine of argument-1 and is greater than or equal to - 1 and
       *> less than or equal to +1." The rule is a CONJUNCTION and each
       *> half is pinned separately.

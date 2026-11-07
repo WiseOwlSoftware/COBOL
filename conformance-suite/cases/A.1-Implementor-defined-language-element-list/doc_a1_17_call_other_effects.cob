@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.4.4 GR3 h) 2. (Annex A.1 item 17) - the other effects
+      *> ISO §2023:14.9.4.4 GR3 h) 2. (Annex A.1 item 17) - the other effects
       *> of a CALL that was not successful, whose condition is handled by
       *> exception processing (checking enabled, no ON EXCEPTION phrase).
       *>   cite.py --check 14.9.4.4 "any applicable exception processing
@@ -23,7 +23,7 @@
       *> conditions and EC-EXTERNAL's CALL-time one. Its 2002/2014 twin,
       *> without EC-EXTERNAL (a 2023 name), is
       *> doc_a1_17_call_other_effects_2002.
-      *> Each declarative ends with RESUME AT NEXT STATEMENT (§14.9.33.4
+      *> Each declarative ends with RESUME AT NEXT STATEMENT (§2023:14.9.33.4
       *> GR2), so control returns from it. Without RESUME a fatal
       *> condition's declarative has no next executable statement and
       *> the run unit ends abnormally (cite.py --check 14.6.3 "In the

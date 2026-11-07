@@ -18,11 +18,11 @@
       *> for the specified level of control. If no such control footing
       *> is defined, it is assumed to be present and to consist of a
       *> 01-level entry alone."
-      *>   cite.py: OK  §13.18.54.4 2)  (General rules)
+      *>   cite.py: OK  §2023:13.18.54.4 2)  (General rules)
       *> "When a GENERATE statement for such a detail is executed, the
       *> adding takes place as many times as data-name-2 appears in the
       *> UPON phrase."
-      *>   cite.py: OK  §13.18.54.4 7) c) 2.  (General rules)
+      *>   cite.py: OK  §2023:13.18.54.4 7) c) 2.  (General rules)
       *>
       *> DERIVATION, report R-A (CONTROLS FINAL WS-C, no control footing
       *> declared at all). (C,K) = (1,1) (1,2) (2,3) (2,4). Column 3 is

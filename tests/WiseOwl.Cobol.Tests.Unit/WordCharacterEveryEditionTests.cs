@@ -7,7 +7,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ISO §8.3.2.1 and §8.1.3.2 GR4 over Annex B (kb/Work PB4130): a character that NO edition's Annex B holds is no
+/// ISO §2023:8.3.2.1 and §2023:8.1.3.2 GR4 over Annex B (kb/Work PB4130): a character that NO edition's Annex B holds is no
 /// extended letter, so it is refused at every target, COBOL-85 included, as a word-character violation (COBOL2773) that
 /// says what the character is. A letter some edition's Annex B holds is left to the construct gate below 2002 and to
 /// the edition's own table from 2002.
@@ -42,7 +42,7 @@ public sealed class WordCharacterEveryEditionTests
     public void HasExtendedLetter_IsAskedOfEachCharacter(string word, bool expected) =>
         Assert.Equal(expected, CobolCharacterRepertoire.HasExtendedLetter(word));
 
-    /// <summary>ISO §8.3.2.1 (kb/Work PB4234): "The hyphen or underscore shall not appear as the first or last character in such
+    /// <summary>ISO §2023:8.3.2.1 (kb/Work PB4234): "The hyphen or underscore shall not appear as the first or last character in such
     /// words." The rule is edition-free and the one place that states it is <see cref="CobolCharacterRepertoire.SeparatorPositionViolation"/>,
     /// which every consumer asks: the screen and the directive stages (<see cref="CobolWordRule.CharacterViolation"/>), the
     /// text-stage word readers (<see cref="CobolCharacterRepertoire.IsWordShape"/>) and the parse layer's word test.</summary>
@@ -60,7 +60,7 @@ public sealed class WordCharacterEveryEditionTests
             string? message = CobolWordRule.CharacterViolation(word, level);
             Assert.NotNull(message);
             Assert.Contains($"as its {position} character", message);
-            Assert.Contains("§8.3.2.1", message);
+            Assert.Contains("§2023:8.3.2.1", message);
             Assert.False(CobolWordRule.RemovedAt2023(word, level));
         }
         Assert.False(CobolCharacterRepertoire.IsWordShape(word));

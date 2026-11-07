@@ -30,11 +30,11 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 public sealed class StatementDeferralAnnounceDriftTests
 {
-    /// <summary>INSPECT … FOR ALL LINAGE-COUNTER OF file is a pure job-1 deferral: LINAGE-COUNTER (§8.4.3.14) is
+    /// <summary>INSPECT … FOR ALL LINAGE-COUNTER OF file is a pure job-1 deferral: LINAGE-COUNTER (§2023:8.4.3.14) is
     /// runtime-sourced and the resolver routes it only where a statement binder reads it
     /// (<c>DeferredShape.UnroutedSpecialRegister</c>), and INSPECT's search operand is not one of them. The source is
-    /// the standard's own: §8.4.3.14.4 GR1 makes LINAGE-COUNTER "a temporary unsigned integer data item of class and
-    /// category numeric" and leaves its usage to the implementor, and §14.9.22.3 SR2 admits an elementary item of
+    /// the standard's own: §2023:8.4.3.14.4 GR1 makes LINAGE-COUNTER "a temporary unsigned integer data item of class and
+    /// category numeric" and leaves its usage to the implementor, and §2023:14.9.22.3 SR2 admits an elementary item of
     /// usage display. It sits behind a GO TO so the RUN never reaches it — before PB236 that made the staged loud
     /// unobservable at EVERY stage.
     /// <para>⚠ THE EXEMPLAR IS WHATEVER LEGAL SOURCE THE COMPILER STILL DEFERS, AND IT HAS CHANGED BEFORE: ENTRY until
@@ -112,7 +112,7 @@ MAIN.
     }
 
     /// <summary>The other half of the separation: a violated SYNTAX RULE is an ERROR naming the rule, never
-    /// the deferral warning. `ADD CORRESPONDING` over an elementary operand violates ISO §14.9.2.3 SR6, and
+    /// the deferral warning. `ADD CORRESPONDING` over an elementary operand violates ISO §2023:14.9.2.3 SR6, and
     /// the binder has had the predicate and the citation all along — only the STAGE was wrong.</summary>
     [Fact]
     public void SyntaxRuleViolation_IsAnError_NotTheDeferralWarning()

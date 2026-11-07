@@ -12,13 +12,13 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ORGANIZATIONS. There are two such questions and this class guards both: <c>HostFile.Probe</c> ("is the file
 /// there, and may this process observe it?") and <c>HostFile.PermitsWrite</c> ("may this process write it?").
 /// <para>The presence rule exists because a two-valued probe cannot state the answer the standard requires. ISO
-/// §9.1.13.6 item 5 sets '35' when <i>"the physical file is not present"</i>; §14.9.27.4 GR3 sets '37' when
+/// §2023:9.1.13.6 item 5 sets '35' when <i>"the physical file is not present"</i>; §2023:14.9.27.4 GR3 sets '37' when
 /// <i>"the file ... is present and insufficient authority exists to open the file"</i>. <c>File.Exists</c>
 /// swallows every access error and returns <c>false</c>, so it reports the second case as the first — and
 /// silently, since a program cannot tell an invented empty OPTIONAL file from a real one. Every other file
 /// under <c>WiseOwl.Cobol.Runtime/IO</c> is therefore forbidden <c>File.Exists</c>, <c>FileInfo.Exists</c> and the
 /// raw <c>File.GetAttributes</c> the probe is built from.</para>
-/// <para>The write-capability rule exists because §14.9.27.4 GR16 and §9.1.13.6 item 6 a) name no organization:
+/// <para>The write-capability rule exists because §2023:14.9.27.4 GR16 and §2023:9.1.13.6 item 6 a) name no organization:
 /// a file that <i>"will not support write operations"</i> is '37' whichever organization is reading it. Asked
 /// inside an organization's OPEN arm it is asked only by the organizations that happen to touch a stream —
 /// which is what kb/Work PB328 was, and why <c>PermitsWrite</c> may be called only from <c>FileConnector</c>.
@@ -68,8 +68,8 @@ public sealed class HostFileProbeDriftTests
 
         Assert.True(offenders.Count == 0,
             "A hand-written presence probe under WiseOwl.Cobol.Runtime/IO. File.Exists and FileInfo.Exists answer "
-            + "FALSE for a file that is present but refused, which is ISO §9.1.13.6 item 5's '35' where "
-            + "§14.9.27.4 GR3 requires '37' — and, for an OPTIONAL file, a SUCCESSFUL open over an invented "
+            + "FALSE for a file that is present but refused, which is ISO §2023:9.1.13.6 item 5's '35' where "
+            + "§2023:14.9.27.4 GR3 requires '37' — and, for an OPTIONAL file, a SUCCESSFUL open over an invented "
             + "empty file (kb/Work PB323, the OPEN twin of PB140). Call HostFile.Probe and switch on the three "
             + "FilePresence states instead. Offending sites:\n  " + string.Join("\n  ", offenders));
     }
@@ -90,11 +90,11 @@ public sealed class HostFileProbeDriftTests
 
     // ── The write-capability question: asked in the OPEN contract, never in an organization arm (PB328) ──────
 
-    /// <summary>The file that owns the OPEN contract — the ONE caller §14.9.27.4 GR16's question is allowed to
+    /// <summary>The file that owns the OPEN contract — the ONE caller §2023:14.9.27.4 GR16's question is allowed to
     /// have.</summary>
     private const string OpenContractHome = "FileConnector.cs";
 
-    /// <summary>⛔ §14.9.27.4 GR16 IS AN OPEN-CONTRACT RULE, NOT AN ORGANIZATION'S RULE. GR16 and §9.1.13.6
+    /// <summary>⛔ §2023:14.9.27.4 GR16 IS AN OPEN-CONTRACT RULE, NOT AN ORGANIZATION'S RULE. GR16 and §2023:9.1.13.6
     /// item 6 a) name no organization, so the question <i>"will this file support write operations?"</i> has to
     /// be asked once, above <c>OpenCore</c>, or it is asked only by whichever organizations happen to open a
     /// stream — which is exactly what kb/Work PB328 was: the sequential arm's I-O and EXTEND streams ARE write
@@ -125,7 +125,7 @@ public sealed class HostFileProbeDriftTests
         }
 
         Assert.True(offenders.Count == 0,
-            "A write-capability probe outside the OPEN contract. ISO §14.9.27.4 GR16 and §9.1.13.6 item 6 a) "
+            "A write-capability probe outside the OPEN contract. ISO §2023:14.9.27.4 GR16 and §2023:9.1.13.6 item 6 a) "
             + "name no organization, so the question belongs once in FileConnector.Open, above OpenCore, where "
             + "every organization — including one added later — inherits its answer (kb/Work PB328). Offending "
             + "sites:\n  " + string.Join("\n  ", offenders));
@@ -146,7 +146,7 @@ public sealed class HostFileProbeDriftTests
             !l.TrimStart().StartsWith("//", StringComparison.Ordinal)
             && l.Contains("HostFile.PermitsWrite(", StringComparison.Ordinal));
         Assert.True(calls == 1,
-            $"FileConnector must ask §14.9.27.4 GR16's write-capability question exactly once; found {calls}. "
+            $"FileConnector must ask §2023:14.9.27.4 GR16's write-capability question exactly once; found {calls}. "
             + "Two call sites are two rules (kb/Work PB328); zero means the '37' the standard requires for a "
             + "read-only I-O, EXTEND or OUTPUT target is not produced at all.");
     }

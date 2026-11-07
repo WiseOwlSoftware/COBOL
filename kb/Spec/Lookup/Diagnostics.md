@@ -28,65 +28,65 @@ serves as the diagnostic→phase map). See [[kb/Semantics/Validation Rules]] and
 ## Edition & conformance band
 | Code | Meaning (Id) | Sev | ISO § | Phase | Construct / where |
 |---|---|---|---|---|---|
-| `COBOL0900` | construct used below its introducing edition (`edition-introduction`) | Error | §ann. per construct | Validate **and** Preprocess | most edition-gated constructs (the generic intro gate) → [[kb/Spec/Lookup/Construct Catalogue]]; **also every ISO §7.3 compiler directive** — the whole family shares this one band, checked where the text-manipulation stage recognizes a `>>` word (kb/Work PB725 retired `>>TURN`'s bespoke COBOL0875) |
-| `COBOL0901` | word reserved in the targeted edition used as a user word (`edition-reserved-word`) | Error | §8.9 | Validate | the §8.9 reserved-word funnel → [[kb/Spec/Lookup/Semantic Rules]] |
+| `COBOL0900` | construct used below its introducing edition (`edition-introduction`) | Error | §ann. per construct | Validate **and** Preprocess | most edition-gated constructs (the generic intro gate) → [[kb/Spec/Lookup/Construct Catalogue]]; **also every ISO §2023:7.3 compiler directive** — the whole family shares this one band, checked where the text-manipulation stage recognizes a `>>` word (kb/Work PB725 retired `>>TURN`'s bespoke COBOL0875) |
+| `COBOL0901` | word reserved in the targeted edition used as a user word (`edition-reserved-word`) | Error | §2023:8.9 | Validate | the §2023:8.9 reserved-word funnel → [[kb/Spec/Lookup/Semantic Rules]] |
 | `COBOL0902` | construct removed by the targeted edition (`edition-removed-construct`) | Error / Warn (permissive) | Annex E.2 | Validate | ALTER, STOP literal, LABEL RECORDS, OPEN REVERSED, … |
-| `COBOL0903` | obsolete / archaic element (`edition-obsolete-flag`) | Warning | §4.2.12/.13, Annex F.2 | Validate | NEXT SENTENCE, EXIT PROGRAM (archaic 2023), col-7 continuation |
-| `COBOL1533` | strong-type: class-condition / compare / MOVE mismatch (3 ids) | Error | §8.8.4.4.3 SR1 · §8.8.4.2.3 SR1 · §14.9.25.3 SR2 | Bind | strongly-typed group misuse |
-| `COBOL1535` | strong-group ordering illegal | Error | §8.8.4.2.3 SR4 | Bind | strong-type ordering |
-| `COBOL1560`* | §4.2.6 processor-dependent unsupported (band) | Warning | §4.2.6 ¶3 | Validate | documented non-support surface (see 1578–1580) |
+| `COBOL0903` | obsolete / archaic element (`edition-obsolete-flag`) | Warning | §2023:4.2.12/.13, Annex F.2 | Validate | NEXT SENTENCE, EXIT PROGRAM (archaic 2023), col-7 continuation |
+| `COBOL1533` | strong-type: class-condition / compare / MOVE mismatch (3 ids) | Error | §2023:8.8.4.4.3 SR1 · §2023:8.8.4.2.3 SR1 · §2023:14.9.25.3 SR2 | Bind | strongly-typed group misuse |
+| `COBOL1535` | strong-group ordering illegal | Error | §2023:8.8.4.2.3 SR4 | Bind | strong-type ordering |
+| `COBOL1560`* | §2023:4.2.6 processor-dependent unsupported (band) | Warning | §2023:4.2.6 ¶3 | Validate | documented non-support surface (see 1578–1580) |
 
 ## Documented non-support (recognized + warned/rejected)
 | Code | Meaning (Id) | Sev | ISO § | Phase | Facility |
 |---|---|---|---|---|---|
-| `COBOL1578` | MCS SEND/RECEIVE unsupported | Warning | §4.2.6 / Annex A.3.4 / §14.9.31/.38 | Validate | asynchronous messaging |
-| `COBOL1579` | COMMIT/ROLLBACK unsupported (behaves as CONTINUE) | Warning | §4.2.6 / A.3.6-7 / §14.9.7/.36 | Validate | commit/rollback |
-| `COBOL1580` | VALIDATE unsupported (optional + obsolete 2023) | Warning | §4.2.7 / A.4.14 / §14.9.50 | Validate | VALIDATE |
+| `COBOL1578` | MCS SEND/RECEIVE unsupported | Warning | §2023:4.2.6 / Annex A.3.4 / §2023:14.9.31/.38 | Validate | asynchronous messaging |
+| `COBOL1579` | COMMIT/ROLLBACK unsupported (behaves as CONTINUE) | Warning | §2023:4.2.6 / A.3.6-7 / §2023:14.9.7/.36 | Validate | commit/rollback |
+| `COBOL1580` | VALIDATE unsupported (optional + obsolete 2023) | Warning | §2023:4.2.7 / A.4.14 / §2023:14.9.50 | Validate | VALIDATE |
 
 ## Directive diagnostics (Preprocess / directive passes)
 | Code | Meaning (Id) | Sev | ISO § | Phase | Directive |
 |---|---|---|---|---|---|
-| `COBOL0718` | `>>TURN` malformed | Error | §7.3.25.2/.3 SR1/SR3 | Preprocess | `>>TURN` |
-| `COBOL0719` | `>>TURN` file-name after a non-EC-I-O exception | Error | §7.3.25.3 SR4 | Preprocess | `>>TURN` |
-| `COBOL1911` | a directive operand its own general format does not admit — ONE producer for every directive whose operand is a closed word set, off the row's `directiveOperand` column (kb/Work PB794; it retired the per-directive `COBOL0883` and `COBOL1576`) | Error | §7.3.3 SR6 + each directive's general format | Preprocess | `>>SOURCE FORMAT` · `>>LISTING` · `>>PAGE` · `>>PUSH` · `>>POP` · `>>DISPLAY` · `>>CALL-CONVENTION` · `>>PROPAGATE` · `>>LEAP-SECOND` · `>>REF-MOD-ZERO-LENGTH` |
-| `COBOL1618` | `>>DEFINE` redefinition without OVERRIDE | Error | §7.3.11.3 SR2 | Preprocess | `>>DEFINE` |
-| `COBOL1619` | compiler-directive expression malformed | Error | §7.3.6/.7/.8 | Preprocess | CC expressions |
-| `COBOL1620` | `>>FLAG-02` 2002→2014 incompatibility flag | Warning | §7.3.14 | Validate | `>>FLAG-02` (`FlagConformancePass`) |
-| `COBOL1621` | `>>FLAG-14` 2014→2023 incompatibility flag | Warning | §7.3.15 | Validate | `>>FLAG-14` (`FlagConformancePass`) |
-| `COBOL1622` | `>>FLAG-02/14` directive malformed | Error | §7.3.14.2/.15.2 | Preprocess | `>>FLAG` |
-| `COBOL1623` | `>>COBOL-WORDS` malformed / SR1–SR5 | Error | §7.3.10.2/.3 | Preprocess | `>>COBOL-WORDS` |
+| `COBOL0718` | `>>TURN` malformed | Error | §2023:7.3.25.2/.3 SR1/SR3 | Preprocess | `>>TURN` |
+| `COBOL0719` | `>>TURN` file-name after a non-EC-I-O exception | Error | §2023:7.3.25.3 SR4 | Preprocess | `>>TURN` |
+| `COBOL1911` | a directive operand its own general format does not admit — ONE producer for every directive whose operand is a closed word set, off the row's `directiveOperand` column (kb/Work PB794; it retired the per-directive `COBOL0883` and `COBOL1576`) | Error | §2023:7.3.3 SR6 + each directive's general format | Preprocess | `>>SOURCE FORMAT` · `>>LISTING` · `>>PAGE` · `>>PUSH` · `>>POP` · `>>DISPLAY` · `>>CALL-CONVENTION` · `>>PROPAGATE` · `>>LEAP-SECOND` · `>>REF-MOD-ZERO-LENGTH` |
+| `COBOL1618` | `>>DEFINE` redefinition without OVERRIDE | Error | §2023:7.3.11.3 SR2 | Preprocess | `>>DEFINE` |
+| `COBOL1619` | compiler-directive expression malformed | Error | §2023:7.3.6/.7/.8 | Preprocess | CC expressions |
+| `COBOL1620` | `>>FLAG-02` 2002→2014 incompatibility flag | Warning | §2023:7.3.14 | Validate | `>>FLAG-02` (`FlagConformancePass`) |
+| `COBOL1621` | `>>FLAG-14` 2014→2023 incompatibility flag | Warning | §2023:7.3.15 | Validate | `>>FLAG-14` (`FlagConformancePass`) |
+| `COBOL1622` | `>>FLAG-02/14` directive malformed | Error | §2023:7.3.14.2/.15.2 | Preprocess | `>>FLAG` |
+| `COBOL1623` | `>>COBOL-WORDS` malformed / SR1–SR5 | Error | §2023:7.3.10.2/.3 | Preprocess | `>>COBOL-WORDS` |
 
 ## Data, value, constant, type (Bind)
 | Code | Meaning (Id) | Sev | ISO § | Phase | Where |
 |---|---|---|---|---|---|
-| `COBOL0801` | fixed-point item/literal > 31 digits | Error | §8.3.3.3.2 | Bind | digit capacity |
-| `COBOL0802` | fixed-point > 18 digits pre-2002 | Error | §8.3.3.3.2 | Bind | digit capacity (edition) |
-| `COBOL1540` | concat operands not same class | Error | §8.8.3.2 SR1 | Bind | `&` concatenation |
-| `COBOL1541` | concat operand is an ALL figurative | Error | §8.8.3.2 SR1 | Bind | concatenation |
-| `COBOL1545` | concat result > 8191 chars | Error | §8.8.3.2 SR2–4 | Bind | concatenation |
-| `COBOL1547` | constant-entry syntax-rule violation | Error | §13.10.3 / §7.3.6.2 | Bind | CONSTANT |
-| `COBOL1548` | constant used as a receiver | Error | §13.10.3 SR2 | Bind | CONSTANT |
-| `COBOL1549` | CONSTANT RECORD structural rule | Error | §13.18.15.3 | Bind | CONSTANT RECORD |
-| `COBOL1555` | SAME AS subject-entry rule | Error | §13.18.49.3 | Bind | SAME AS |
-| `COBOL1556` | SAME AS referenced-entry rule | Error | §13.18.49.3 | Bind | SAME AS |
-| `COBOL1557` | SAME AS cyclic reference | Error | §13.18.49.3 SR3/4 | Bind | SAME AS / TYPE |
-| `COBOL1558` | EXTERNAL type misuse | Error | §13.18.22 SR5/GR2 | Bind | EXTERNAL TYPEDEF |
-| `COBOL1570` | numeric-edited VALUE oversize (2023) | Error / Warn | §13.18.63 SR4/5 | Validate | VALUE (edition) |
-| `COBOL1625` | numeric VALUE out of PICTURE range | Error | §13.18.63.3 SR2/3 | Bind | VALUE |
-| `COBOL1577` | method REDEFINES out of method scope | Error | §13.18.44.3 | Bind | OO method data |
-| `COBOL1582` | file COLLATING SEQUENCE malformed | Error | §12.4.5.7.3 SR3-8 | Bind | indexed key collation |
-| `COBOL1583` | file COLLATING alphabet undeclared/wrong class | Error | §12.4.5.7.3 SR1/2/7 | Bind | indexed key collation |
-| `COBOL1584` | NATIONAL file collating not implemented | Warning | §12.4.5.7 | Bind | indexed key collation |
-| `COBOL1559` | report-group PRESENT WHEN / VARYING rule | Error | §13.15.3 / §13.18.64.3 | Bind | Report Writer |
+| `COBOL0801` | fixed-point item/literal > 31 digits | Error | §2023:8.3.3.3.2 | Bind | digit capacity |
+| `COBOL0802` | fixed-point > 18 digits pre-2002 | Error | §2023:8.3.3.3.2 | Bind | digit capacity (edition) |
+| `COBOL1540` | concat operands not same class | Error | §2023:8.8.3.2 SR1 | Bind | `&` concatenation |
+| `COBOL1541` | concat operand is an ALL figurative | Error | §2023:8.8.3.2 SR1 | Bind | concatenation |
+| `COBOL1545` | concat result > 8191 chars | Error | §2023:8.8.3.2 SR2–4 | Bind | concatenation |
+| `COBOL1547` | constant-entry syntax-rule violation | Error | §2023:13.10.3 / §2023:7.3.6.2 | Bind | CONSTANT |
+| `COBOL1548` | constant used as a receiver | Error | §2023:13.10.3 SR2 | Bind | CONSTANT |
+| `COBOL1549` | CONSTANT RECORD structural rule | Error | §2023:13.18.15.3 | Bind | CONSTANT RECORD |
+| `COBOL1555` | SAME AS subject-entry rule | Error | §2023:13.18.49.3 | Bind | SAME AS |
+| `COBOL1556` | SAME AS referenced-entry rule | Error | §2023:13.18.49.3 | Bind | SAME AS |
+| `COBOL1557` | SAME AS cyclic reference | Error | §2023:13.18.49.3 SR3/4 | Bind | SAME AS / TYPE |
+| `COBOL1558` | EXTERNAL type misuse | Error | §2023:13.18.22 SR5/GR2 | Bind | EXTERNAL TYPEDEF |
+| `COBOL1570` | numeric-edited VALUE oversize (2023) | Error / Warn | §2023:13.18.63 SR4/5 | Validate | VALUE (edition) |
+| `COBOL1625` | numeric VALUE out of PICTURE range | Error | §2023:13.18.63.3 SR2/3 | Bind | VALUE |
+| `COBOL1577` | method REDEFINES out of method scope | Error | §2023:13.18.44.3 | Bind | OO method data |
+| `COBOL1582` | file COLLATING SEQUENCE malformed | Error | §2023:12.4.5.7.3 SR3-8 | Bind | indexed key collation |
+| `COBOL1583` | file COLLATING alphabet undeclared/wrong class | Error | §2023:12.4.5.7.3 SR1/2/7 | Bind | indexed key collation |
+| `COBOL1584` | NATIONAL file collating not implemented | Warning | §2023:12.4.5.7 | Bind | indexed key collation |
+| `COBOL1559` | report-group PRESENT WHEN / VARYING rule | Error | §2023:13.15.3 / §2023:13.18.64.3 | Bind | Report Writer |
 
 ## External-file consistency (2023 — Bind + Validate)
 | Code | Meaning (Id) | Sev | ISO § | Phase | Construct |
 |---|---|---|---|---|---|
-| `COBOL1573` | corresponding SELECTs must share the external FILE STATUS item | Error | §12.4.5.3 GR1(i) / §14.8.4.2 | Bind→Validate | external files |
-| `COBOL1575` | corresponding SELECTs must share the external RELATIVE KEY item | Error | §12.4.5.3 GR1(h) | Bind→Validate | external relative files |
-| `COBOL1624` | FILE STATUS / RELATIVE KEY / LINAGE items must themselves be external | Error | §14.8.4.2 / Annex E.2 item 9 | Bind→Validate | external files |
-| `COBOL1574` | FUNCTION EXCEPTION-FILE[-N] arg is not a declared file | Error | §15.28.3 / §15.29.3 | Bind | intrinsics |
-| `COBOL1572` | MERGE inside a SORT/MERGE procedure (2023) | Error | §14.9.24 | Validate | MERGE |
+| `COBOL1573` | corresponding SELECTs must share the external FILE STATUS item | Error | §2023:12.4.5.3 GR1(i) / §2023:14.8.4.2 | Bind→Validate | external files |
+| `COBOL1575` | corresponding SELECTs must share the external RELATIVE KEY item | Error | §2023:12.4.5.3 GR1(h) | Bind→Validate | external relative files |
+| `COBOL1624` | FILE STATUS / RELATIVE KEY / LINAGE items must themselves be external | Error | §2023:14.8.4.2 / Annex E.2 item 9 | Bind→Validate | external files |
+| `COBOL1574` | FUNCTION EXCEPTION-FILE[-N] arg is not a declared file | Error | §2023:15.28.3 / §2023:15.29.3 | Bind | intrinsics |
+| `COBOL1572` | MERGE inside a SORT/MERGE procedure (2023) | Error | §2023:14.9.24 | Validate | MERGE |
 | `COBOL1571` | X3.23-1985 USE FOR DEBUGGING subject staged | Error | VCR Table 7 | Bind | DEBUGGING |
 
 ## The `COBOL0899` family — recognized-but-not-implemented (staged loud)
@@ -139,4 +139,4 @@ aren't in `DIAGNOSTICS.md` yet.
 - [[kb/Spec/Lookup/Index]] · [[kb/Semantics/Validation Rules]] — link here.
 
 > \* `COBOL1560` is cited from the conformance record ([[docs/CONFORMANCE]] §4) as the
-> §4.2.6 warning band and the locale-reject; they may render as string-literals rather than first-class descriptors.
+> §2023:4.2.6 warning band and the locale-reject; they may render as string-literals rather than first-class descriptors.

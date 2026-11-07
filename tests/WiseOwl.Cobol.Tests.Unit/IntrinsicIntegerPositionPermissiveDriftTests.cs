@@ -9,12 +9,12 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ A FLOATING-POINT OPERAND AT AN ISO §15.3 TYPE-6 (INTEGER) POSITION, UNDER <c>--permissive</c>, ANSWERS AS THE
+/// ⛔ A FLOATING-POINT OPERAND AT AN ISO §2023:15.3 TYPE-6 (INTEGER) POSITION, UNDER <c>--permissive</c>, ANSWERS AS THE
 /// INTEGER IT HOLDS — asserted over EVERY integer position of EVERY verified intrinsic argument schema, not over the
 /// functions a defect happened to name (kb/Work PB651).
 /// </summary>
 /// <remarks>
-/// <para><b>The rule.</b> ISO §15.3 type 6: "An arithmetic expression that will always result in an integer value or
+/// <para><b>The rule.</b> ISO §2023:15.3 type 6: "An arithmetic expression that will always result in an integer value or
 /// an integer data item shall be specified." A floating-point item is neither, so STRICT conformance refuses it there
 /// (COBOL1627, kb/Work PB248) and only <c>--permissive</c> binds it. What it then means is the determination
 /// docs/CONFORMANCE.md DOC-A.1-124 records: an operand represents an integer exactly when its value has no nonzero
@@ -38,48 +38,48 @@ namespace WiseOwl.Cobol.Tests.Unit;
 public sealed class IntrinsicIntegerPositionPermissiveDriftTests : WiseOwlCobolTestBase
 {
     /// <summary>One reference per (function, 1-based OPERAND position) — the schema's convention, which skips a NAME
-    /// argument (STANDARD-COMPARE's ordering-name, §15.3 type 12). <c>{A}</c> is the integer operand; the value is a
+    /// argument (STANDARD-COMPARE's ordering-name, §2023:15.3 type 12). <c>{A}</c> is the integer operand; the value is a
     /// non-negative integer inside the position's own §15.x.3 value rule, so the control is a legal call and a
     /// one-half increment truncates back to it.</summary>
     private static readonly Dictionary<string, (string Reference, int Value)> Fixtures =
         new(StringComparer.OrdinalIgnoreCase)
         {
-            ["ANNUITY#2"] = ("FUNCTION ANNUITY(0.05 {A})", 3),                           // §15.9.3 r3
-            ["BASECONVERT#2"] = ("FUNCTION BASECONVERT(\"17\" {A} 16)", 10),             // §15.12.3 r1
+            ["ANNUITY#2"] = ("FUNCTION ANNUITY(0.05 {A})", 3),                           // §2023:15.9.3 r3
+            ["BASECONVERT#2"] = ("FUNCTION BASECONVERT(\"17\" {A} 16)", 10),             // §2023:15.12.3 r1
             ["BASECONVERT#3"] = ("FUNCTION BASECONVERT(\"17\" 10 {A})", 16),
-            ["BOOLEAN-OF-INTEGER#1"] = ("FUNCTION BOOLEAN-OF-INTEGER({A} 8)", 5),        // §15.13.3 r1/r2
+            ["BOOLEAN-OF-INTEGER#1"] = ("FUNCTION BOOLEAN-OF-INTEGER({A} 8)", 5),        // §2023:15.13.3 r1/r2
             ["BOOLEAN-OF-INTEGER#2"] = ("FUNCTION BOOLEAN-OF-INTEGER(5 {A})", 8),
-            ["CHAR#1"] = ("FUNCTION CHAR({A})", 66),                                     // §15.15.3 r1
-            ["CHAR-NATIONAL#1"] = ("FUNCTION CHAR-NATIONAL({A})", 66),                   // §15.16.3 r1
-            ["COMBINED-DATETIME#1"] = ("FUNCTION COMBINED-DATETIME({A} 3600)", 143951),  // §15.17.3 r1
-            ["DATE-OF-INTEGER#1"] = ("FUNCTION DATE-OF-INTEGER({A})", 143951),           // §15.22.3 r1
-            ["DATE-TO-YYYYMMDD#1"] = ("FUNCTION DATE-TO-YYYYMMDD({A} 50 2000)", 950215), // §15.23.3 r1/r2/r4
+            ["CHAR#1"] = ("FUNCTION CHAR({A})", 66),                                     // §2023:15.15.3 r1
+            ["CHAR-NATIONAL#1"] = ("FUNCTION CHAR-NATIONAL({A})", 66),                   // §2023:15.16.3 r1
+            ["COMBINED-DATETIME#1"] = ("FUNCTION COMBINED-DATETIME({A} 3600)", 143951),  // §2023:15.17.3 r1
+            ["DATE-OF-INTEGER#1"] = ("FUNCTION DATE-OF-INTEGER({A})", 143951),           // §2023:15.22.3 r1
+            ["DATE-TO-YYYYMMDD#1"] = ("FUNCTION DATE-TO-YYYYMMDD({A} 50 2000)", 950215), // §2023:15.23.3 r1/r2/r4
             ["DATE-TO-YYYYMMDD#2"] = ("FUNCTION DATE-TO-YYYYMMDD(950215 {A} 2000)", 50),
             ["DATE-TO-YYYYMMDD#3"] = ("FUNCTION DATE-TO-YYYYMMDD(950215 50 {A})", 2000),
-            ["DAY-OF-INTEGER#1"] = ("FUNCTION DAY-OF-INTEGER({A})", 143951),             // §15.24.3 r1
-            ["DAY-TO-YYYYDDD#1"] = ("FUNCTION DAY-TO-YYYYDDD({A} 50 2000)", 95046),      // §15.25.3 r1/r2/r4
+            ["DAY-OF-INTEGER#1"] = ("FUNCTION DAY-OF-INTEGER({A})", 143951),             // §2023:15.24.3 r1
+            ["DAY-TO-YYYYDDD#1"] = ("FUNCTION DAY-TO-YYYYDDD({A} 50 2000)", 95046),      // §2023:15.25.3 r1/r2/r4
             ["DAY-TO-YYYYDDD#2"] = ("FUNCTION DAY-TO-YYYYDDD(95046 {A} 2000)", 50),
             ["DAY-TO-YYYYDDD#3"] = ("FUNCTION DAY-TO-YYYYDDD(95046 50 {A})", 2000),
-            ["FACTORIAL#1"] = ("FUNCTION FACTORIAL({A})", 5),                            // §15.36.3 r1
-            ["FIND-STRING#3"] = ("FUNCTION FIND-STRING(\"abcabc\" \"c\" START AFTER {A})", 1), // §15.37.3 r3
-            ["FORMATTED-DATE#2"] = ("FUNCTION FORMATTED-DATE(\"YYYYMMDD\" {A})", 143951),          // §15.39.3 r3
+            ["FACTORIAL#1"] = ("FUNCTION FACTORIAL({A})", 5),                            // §2023:15.36.3 r1
+            ["FIND-STRING#3"] = ("FUNCTION FIND-STRING(\"abcabc\" \"c\" START AFTER {A})", 1), // §2023:15.37.3 r3
+            ["FORMATTED-DATE#2"] = ("FUNCTION FORMATTED-DATE(\"YYYYMMDD\" {A})", 143951),          // §2023:15.39.3 r3
             ["FORMATTED-DATETIME#2"] = ("FUNCTION FORMATTED-DATETIME(\"YYYYMMDDThhmmss\" {A} 3600)", 143951),
             ["FORMATTED-DATETIME#4"] = ("FUNCTION FORMATTED-DATETIME(\"YYYYMMDDThhmmss+hhmm\" 143951 3600 {A})", 60),
-            ["FORMATTED-TIME#3"] = ("FUNCTION FORMATTED-TIME(\"hhmmss+hhmm\" 3600 {A})", 60),     // §15.41.3 r4
-            ["INTEGER-OF-DATE#1"] = ("FUNCTION INTEGER-OF-DATE({A})", 19950215),         // §15.46.3 r1
-            ["INTEGER-OF-DAY#1"] = ("FUNCTION INTEGER-OF-DAY({A})", 1995046),            // §15.47.3 r1
-            ["MOD#1"] = ("FUNCTION MOD({A} 3)", 7),                                      // §15.64.3 r1
+            ["FORMATTED-TIME#3"] = ("FUNCTION FORMATTED-TIME(\"hhmmss+hhmm\" 3600 {A})", 60),     // §2023:15.41.3 r4
+            ["INTEGER-OF-DATE#1"] = ("FUNCTION INTEGER-OF-DATE({A})", 19950215),         // §2023:15.46.3 r1
+            ["INTEGER-OF-DAY#1"] = ("FUNCTION INTEGER-OF-DAY({A})", 1995046),            // §2023:15.47.3 r1
+            ["MOD#1"] = ("FUNCTION MOD({A} 3)", 7),                                      // §2023:15.64.3 r1
             ["MOD#2"] = ("FUNCTION MOD(7 {A})", 3),
-            ["RANDOM#1"] = ("FUNCTION RANDOM({A})", 5),                                  // §15.75.3 r1/r2
-            ["STANDARD-COMPARE#3"] = ("FUNCTION STANDARD-COMPARE(\"A\" \"B\" {A})", 1),  // §15.85.3 r6
-            ["TEST-DATE-YYYYMMDD#1"] = ("FUNCTION TEST-DATE-YYYYMMDD({A})", 19950215),   // §15.90.3 r1
-            ["TEST-DAY-YYYYDDD#1"] = ("FUNCTION TEST-DAY-YYYYDDD({A})", 1995046),        // §15.91.3 r1
-            ["YEAR-TO-YYYY#1"] = ("FUNCTION YEAR-TO-YYYY({A} 50 2000)", 95),             // §15.100.3 r1/r2/r4
+            ["RANDOM#1"] = ("FUNCTION RANDOM({A})", 5),                                  // §2023:15.75.3 r1/r2
+            ["STANDARD-COMPARE#3"] = ("FUNCTION STANDARD-COMPARE(\"A\" \"B\" {A})", 1),  // §2023:15.85.3 r6
+            ["TEST-DATE-YYYYMMDD#1"] = ("FUNCTION TEST-DATE-YYYYMMDD({A})", 19950215),   // §2023:15.90.3 r1
+            ["TEST-DAY-YYYYDDD#1"] = ("FUNCTION TEST-DAY-YYYYDDD({A})", 1995046),        // §2023:15.91.3 r1
+            ["YEAR-TO-YYYY#1"] = ("FUNCTION YEAR-TO-YYYY({A} 50 2000)", 95),             // §2023:15.100.3 r1/r2/r4
             ["YEAR-TO-YYYY#2"] = ("FUNCTION YEAR-TO-YYYY(95 {A} 2000)", 50),
             ["YEAR-TO-YYYY#3"] = ("FUNCTION YEAR-TO-YYYY(95 50 {A})", 2000),
         };
 
-    /// <summary>Every §15.3 type-6 OPERAND position a verified schema declares, up to the catalog row's own maximum
+    /// <summary>Every §2023:15.3 type-6 OPERAND position a verified schema declares, up to the catalog row's own maximum
     /// argument count (a uniform schema's kind repeats as a TAIL, so the row's arity bounds it).</summary>
     private static List<string> IntegerPositions()
     {
@@ -101,12 +101,12 @@ public sealed class IntrinsicIntegerPositionPermissiveDriftTests : WiseOwlCobolT
     {
         var keys = IntegerPositions();
         Assert.True(keys.Count >= 30,
-            $"only {keys.Count} §15.3 type-6 positions found in IntrinsicArgumentRules.Verified — the schema sweep "
+            $"only {keys.Count} §2023:15.3 type-6 positions found in IntrinsicArgumentRules.Verified — the schema sweep "
             + "shrank unexpectedly; check the table before lowering this floor.");
         var missing = keys.Where(k => !Fixtures.ContainsKey(k)).ToList();
         var stale = Fixtures.Keys.Where(k => !keys.Contains(k, StringComparer.OrdinalIgnoreCase)).ToList();
         Assert.True(missing.Count == 0,
-            "a verified intrinsic schema declares a §15.3 type-6 position with no permissive float fixture — add one, "
+            "a verified intrinsic schema declares a §2023:15.3 type-6 position with no permissive float fixture — add one, "
             + "or a float at that position reaches the renderer under --permissive unprobed (kb/Work PB651):\n  "
             + string.Join("\n  ", missing));
         Assert.True(stale.Count == 0,
@@ -145,12 +145,12 @@ public sealed class IntrinsicIntegerPositionPermissiveDriftTests : WiseOwlCobolT
 
         // ⛔ A BACKEND error is the PB635 signature: Roslyn refusing generated C# for source the front end accepted.
         Assert.True(compiled.Success,
-            $"--permissive must accept a float at every §15.3 type-6 position and generate C# that compiles "
+            $"--permissive must accept a float at every §2023:15.3 type-6 position and generate C# that compiles "
             + $"({compiled.Status}):\n  {string.Join("\n  ", compiled.Errors)}");
         var unwarned = keys.Where(k => !compiled.Warnings.Any(w => w.Contains("COBOL1627", StringComparison.Ordinal)
             && w.Contains(k[..k.IndexOf('#')], StringComparison.OrdinalIgnoreCase))).ToList();
         Assert.True(unwarned.Count == 0,
-            "--permissive bound a float at a §15.3 type-6 position WITHOUT the COBOL1627 warning that names the "
+            "--permissive bound a float at a §2023:15.3 type-6 position WITHOUT the COBOL1627 warning that names the "
             + "extension:\n  " + string.Join("\n  ", unwarned));
 
         var (ran, stdout, detail) = RunAssembly(dllPath);
@@ -166,7 +166,7 @@ public sealed class IntrinsicIntegerPositionPermissiveDriftTests : WiseOwlCobolT
                         + $"[{lines[$"{key}/{probe}"]}], but the integer literal {Fixtures[key].Value} answers [{control}]");
         }
         Assert.True(offenders.Count == 0,
-            "a float at an ISO §15.3 type-6 position must answer as the integer it holds — exactly, or truncated with "
+            "a float at an ISO §2023:15.3 type-6 position must answer as the integer it holds — exactly, or truncated with "
             + "EC-ARGUMENT-FUNCTION checking off (docs/CONFORMANCE.md DOC-A.1-124). These answered differently from the "
             + "integer literal, so the function's value depended on how its argument was stored (kb/Work PB651):\n  "
             + string.Join("\n  ", offenders));

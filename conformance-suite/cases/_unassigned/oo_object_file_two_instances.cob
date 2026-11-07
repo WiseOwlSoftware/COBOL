@@ -9,7 +9,7 @@
        PROGRAM-ID. OOOF2.
       *> M2-OO-1i inc 4: per-object connector INDEPENDENCE. Two objects of
       *> one class open the SAME file on their OWN connectors; A holds its
-      *> read position across B's open (distinct __fkey#n per object, §9.1.4).
+      *> read position across B's open (distinct __fkey#n per object, §2023:9.1.4).
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.
        REPOSITORY.

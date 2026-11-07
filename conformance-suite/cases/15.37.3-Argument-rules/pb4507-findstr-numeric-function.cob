@@ -4,10 +4,10 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> PB4507 - ISO §15.37.3 r3: argument-3 "shall be an integer data item or integer literal". A nested function-identifier
-      *> is a data item (§8.4.3.2.4 r1), but FUNCTION SQRT is a NUMERIC function (§15.2 item 6), not an integer function, so its
-      *> temporary item is not an integer data item whatever one reference happens to yield (§8.4.3.2.3 SR11). The refusal is the
-      *> §15.3 type 6 integer test now that the operand-shape predicate admits a function-identifier.
+      *> PB4507 - ISO §2023:15.37.3 r3: argument-3 "shall be an integer data item or integer literal". A nested function-identifier
+      *> is a data item (§2023:8.4.3.2.4 r1), but FUNCTION SQRT is a NUMERIC function (§2023:15.2 item 6), not an integer function, so its
+      *> temporary item is not an integer data item whatever one reference happens to yield (§2023:8.4.3.2.3 SR11). The refusal is the
+      *> §2023:15.3 type 6 integer test now that the operand-shape predicate admits a function-identifier.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. NEGFINDSTRNUMFN.
        DATA DIVISION.

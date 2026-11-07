@@ -5,15 +5,15 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// MOVE / compare of a SIGNED numeric to an ALPHANUMERIC operand (ISO/IEC 1989:2023 §14.9.25.4 GR6a): "if the sending
+/// MOVE / compare of a SIGNED numeric to an ALPHANUMERIC operand (ISO/IEC 1989:2023 §2023:14.9.25.4 GR6a): "if the sending
 /// operand is described as being signed numeric, the operational sign is not moved" — so the de-signed magnitude
 /// digits are transferred (an overpunched digit becomes a plain digit; a separate sign character is omitted), NOT the
-/// zoned/overpunch image. A numeric-vs-alphanumeric comparison follows the same rule (§8.8.4.2.5 treats the numeric as
+/// zoned/overpunch image. A numeric-vs-alphanumeric comparison follows the same rule (§2023:8.8.4.2.5 treats the numeric as
 /// moved to an alphanumeric item). DISPLAY is unaffected — it shows the sign-aware image. Each result is derived from
 /// the spec.
 ///
 /// <para>EXCEPTION — a GROUP receiver: GR6a's sign-drop applies only to a valid ELEMENTARY move (GR6), and a group
-/// receiver makes the move NON-elementary (§14.9.25.4 GR4 ¶1). GR4 then bars any internal-representation conversion,
+/// receiver makes the move NON-elementary (§2023:14.9.25.4 GR4 ¶1). GR4 then bars any internal-representation conversion,
 /// so the overpunch sign is PRESERVED (see <see cref="SignedToAlphanumericGroup_SignPreserved"/>) — do not conflate
 /// the group case with the elementary-receiver de-sign.</para>
 /// </summary>
@@ -21,7 +21,7 @@ public sealed class SignedAlphanumericMoveDifferentialTests
 {
     private static readonly WiseOwlCobolCompiler WiseOwlCobol = new();
 
-    /// <summary>Assert WiseOwl COBOL produces the SPEC-DERIVED <paramref name="expected"/> (ISO §14.9.25.4).</summary>
+    /// <summary>Assert WiseOwl COBOL produces the SPEC-DERIVED <paramref name="expected"/> (ISO §2023:14.9.25.4).</summary>
     private static void AssertSpec(string source, string expected)
     {
         var (cok, cout, cdetail) = WiseOwlCobol.CompileAndRun(source);
@@ -60,8 +60,8 @@ public sealed class SignedAlphanumericMoveDifferentialTests
             "    MOVE SN TO XR.\n    DISPLAY \"R=\" XR."), "R=007");
 
     [Fact]
-    // A signed numeric compared against an alphanumeric literal uses its de-signed magnitude (ISO §8.8.4.2.5 → the
-    // numeric is "treated as though it were moved, according to the rules of the MOVE statement" → §14.9.25.4 GR6a, the
+    // A signed numeric compared against an alphanumeric literal uses its de-signed magnitude (ISO §2023:8.8.4.2.5 → the
+    // numeric is "treated as though it were moved, according to the rules of the MOVE statement" → §2023:14.9.25.4 GR6a, the
     // sign is not moved): -5 in two digits is "05", which equals the literal "05". SPEC-ONLY: the former legacy engine is
     // non-conformant here — it compares the overpunch image ("0N") and reports NE (cf. the DISPLAY trailing-trim
     // precedent in feedback_use_the_spec). INVESTIGATED as a VERSION-INVARIANT legacy bug, not a cross-edition change
@@ -74,14 +74,14 @@ public sealed class SignedAlphanumericMoveDifferentialTests
             "    IF SN = \"05\" DISPLAY \"EQ\" ELSE DISPLAY \"NE\" END-IF."), "EQ");
 
     [Fact]
-    // ISO §14.9.25.4 GR4: a GROUP receiver makes the move NON-elementary (GR4 ¶1 — an elementary move needs an
+    // ISO §2023:14.9.25.4 GR4: a GROUP receiver makes the move NON-elementary (GR4 ¶1 — an elementary move needs an
     // elementary RECEIVER), so it is "treated as an alphanumeric to alphanumeric elementary move, EXCEPT that there is
     // no conversion of data from one form of internal representation to another" (spec line 28569). GR6a's operational-
     // sign drop is scoped to GR6's "valid elementary moves" (line 28573/28586) and therefore does NOT apply — dropping
     // an overpunch (byte 'N' → '5') is exactly the representation conversion GR4 bars. So S9(3) -45 copies its DISPLAY
     // overpunch image verbatim → "04N". CORRECTED 2026-07-22 (CA28, DEVLOG 998): this test previously pinned "045" on a
-    // MISREAD — it applied §8.8.4.1 (a RELATION-CONDITION rule, "a group compares as elementary alphanumeric") to MOVE,
-    // where §14.9.25.4 GR4 governs. The former legacy engine's "04N" (once mislabelled non-conformant) is in fact the
+    // MISREAD — it applied §2023:8.8.4.1 (a RELATION-CONDITION rule, "a group compares as elementary alphanumeric") to MOVE,
+    // where §2023:14.9.25.4 GR4 governs. The former legacy engine's "04N" (once mislabelled non-conformant) is in fact the
     // SPEC-CORRECT value. The elementary-receiver de-sign (SignedToAlphanumeric_NegativeMagnitude → "123") stays
     // correct — GR6a DOES apply there. Version-invariant (GR4 unchanged across editions).
     public void SignedToAlphanumericGroup_SignPreserved()
@@ -100,7 +100,7 @@ public sealed class SignedAlphanumericMoveDifferentialTests
 
     [Theory]
     // Boundary guard: the de-signing is scoped to the ALPHANUMERIC (string) comparison branch ONLY. A signed numeric
-    // compared against a NUMERIC literal is an algebraic comparison (ISO §8.8.4.2.1) — the sign is significant and is
+    // compared against a NUMERIC literal is an algebraic comparison (ISO §2023:8.8.4.2.1) — the sign is significant and is
     // NOT dropped — so -5 ≠ 5 but -5 = -5. (Spec and the former legacy engine agree here.)
     [InlineData("    IF SN = 5 DISPLAY \"EQ\" ELSE DISPLAY \"NE\" END-IF.", "NE")]
     [InlineData("    IF SN = -5 DISPLAY \"EQ\" ELSE DISPLAY \"NE\" END-IF.", "EQ")]

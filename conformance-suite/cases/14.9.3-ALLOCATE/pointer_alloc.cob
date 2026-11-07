@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.3 (ALLOCATE) / §14.9.15 (FREE) — dynamic storage as managed ManagedPointers (COBOL-2002).
+      *> ISO §2023:14.9.3 (ALLOCATE) / §2023:14.9.15 (FREE) — dynamic storage as managed ManagedPointers (COBOL-2002).
       *>   ALLOCATE based-item        — obtain storage sized for the BASED item; set its data-address pointer.
       *>   ALLOCATE n CHARACTERS ...  — obtain n bytes; RETURNING gives the pointer.
       *>   FREE p                     — release the storage; set the pointer to NULL (the GC reclaims the bytes).

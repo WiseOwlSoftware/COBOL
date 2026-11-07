@@ -19,10 +19,10 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// and <c>conformance-suite/wiseowl/cases/**</c>), bound at EVERY edition it is accepted at — 85 included, since an 85
 /// program is a legal callee and publishes its record (§13) — and for each outermost program, function and prototype unit,
 /// and each method of each class and interface, <see cref="RepositoryCodecTests.RoundTrip"/> holds: <c>Decode(Of(unit))</c>
-/// answers every comparator and derived quantity as the bound unit's LINKAGE does, its restricted pointers included (§6.3,
-/// §6.4); and every record the module publishes (§7.2: every outermost unit but a prototype its group defines, every class
+/// answers every comparator and derived quantity as the bound unit's LINKAGE does, its restricted pointers included (§2023:6.3,
+/// §2023:6.4); and every record the module publishes (§2023:7.2: every outermost unit but a prototype its group defines, every class
 /// and every interface) is rendered by <c>RepositoryAttributeRenderer</c>, compiled and read back by <c>RepositoryReader</c>
-/// EQUAL to the record (§6.2, §7.4), so the attribute encoding holds for every shape the corpus has. One Fact over the whole corpus, bound in parallel, so a description shape the fixtures of
+/// EQUAL to the record (§2023:6.2, §7.4), so the attribute encoding holds for every shape the corpus has. One Fact over the whole corpus, bound in parallel, so a description shape the fixtures of
 /// <see cref="RepositoryCodecTests"/> and <see cref="RepositoryReaderTests"/> lack is still met. Beside it, every prototype and
 /// definition pair of one group compares the same decoded as bound (<see cref="PrototypeDefinitionPairs"/>, §17.2's SR2 pair).
 /// </summary>
@@ -32,7 +32,7 @@ public sealed class RepositoryRoundTripCorpusTests
     /// reference format). The one enumeration both corpus Facts read (this class's and
     /// <c>HostEntryShapeDriftTests.EveryOutermostUnitOfTheCorpus_PublishesExactlyOneEntryAndRecord</c>). A multi-unit case
     /// whose build compiles a unit before its own source (DESIGN-external-repository §17.1) is not in it: its program resolves
-    /// REPOSITORY specifiers against those separately compiled assemblies (ISO §12.3.8.4 GR10 c)), which an in-process bind of
+    /// REPOSITORY specifiers against those separately compiled assemblies (ISO §2023:12.3.8.4 GR10 c)), which an in-process bind of
     /// its source alone does not have, and its own run is the suite's (<c>ConformanceSuiteRunner</c>).</summary>
     internal static IReadOnlyList<(int Edition, string Id, string Path, InitialReferenceFormat Format)> Corpus()
     {
@@ -112,8 +112,8 @@ public sealed class RepositoryRoundTripCorpusTests
         Assert.True(classes > 300 && interfaces > 50, $"only {classes} class and {interfaces} interface records were published — the OO arm measured nothing");
     }
 
-    /// <summary>§17.2's SR2-pair check for one group: for every prototype the group also defines (ISO §10.6.2 SR2 / SR3, the
-    /// pairs kb/Work PB1115 compares; ISO §13.7.3 SR2: "The description of the formal parameters and the returning item that
+    /// <summary>§17.2's SR2-pair check for one group: for every prototype the group also defines (ISO §2023:10.6.2 SR2 / SR3, the
+    /// pairs kb/Work PB1115 compares; ISO §2023:13.7.3 SR2: "The description of the formal parameters and the returning item that
     /// appear in the linkage section of a function prototype or a program prototype shall match the description of the
     /// formal parameters and the returning item in the corresponding function definition or program definition"),
     /// <c>PrototypeSignatures.Same</c> of the two DECODED records holds, and agrees with <c>Same</c> of the bound pair — so

@@ -2,29 +2,29 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 namespace WiseOwl.Cobol.Binding;
 
-/// <summary>The three things a §15.3.1–§15.3.3 format string can be.</summary>
+/// <summary>The three things a §2023:15.3.1–§2023:15.3.3 format string can be.</summary>
 internal enum DateTimeFormatKind { Date, Time, Combined }
 
-/// <summary>The ZONE of a format's time portion (ISO §15.3.3.4–§15.3.3.6): a plain common time format
+/// <summary>The ZONE of a format's time portion (ISO §2023:15.3.3.4–§2023:15.3.3.6): a plain common time format
 /// (<c>Local</c>), one suffixed <c>Z</c> (<c>Utc</c>), or one carrying an explicit <c>+hhmm</c>/<c>+hh:mm</c>
 /// subformat (<c>Offset</c>). <c>None</c> is a DATE format, which has no time portion at all — kept distinct from
-/// <c>Local</c> because §15.40.3 r6 / §15.41.3 r5 are predicates on the TIME portion, and collapsing the two would
+/// <c>Local</c> because §2023:15.40.3 r6 / §2023:15.41.3 r5 are predicates on the TIME portion, and collapsing the two would
 /// make a date format silently answer a question about a time.</summary>
 internal enum DateTimeZone { None, Local, Utc, Offset }
 
-/// <summary>What <see cref="DateTimeFormatGrammar.Describe"/> knows about a legal §15.3 format: its KIND (the
-/// §15.39/40/41/48/79/92 rule-2 screen, COBOL1631) and its time portion's ZONE (the §15.40.3 r6 / §15.41.3 r5
+/// <summary>What <see cref="DateTimeFormatGrammar.Describe"/> knows about a legal §2023:15.3 format: its KIND (the
+/// §2023:15.39/40/41/48/79/92 rule-2 screen, COBOL1631) and its time portion's ZONE (the §2023:15.40.3 r6 / §2023:15.41.3 r5
 /// screen, COBOL1633).</summary>
 internal readonly record struct DateTimeFormatInfo(DateTimeFormatKind Kind, DateTimeZone Zone);
 
 /// <summary>
-/// THE RECOGNIZER for the ISO §15.3.1–§15.3.3 date, time and combined date-and-time formats — the answer to
+/// THE RECOGNIZER for the ISO §2023:15.3.1–§2023:15.3.3 date, time and combined date-and-time formats — the answer to
 /// "is this string one of the formats the standard defines?", which nothing previously asked (fix-queue PB11).
 ///
 /// <para>⛔ <b>WHY A RECOGNIZER AND NOT MORE CHECKS.</b> <c>CobolDate.Tokenize</c> validates a format
 /// CHARACTER-WISE: each character belongs to a known class and each run has a permitted width. That accepts any
-/// string assembled from legal pieces, so §15.39.3 r2 ("the content of argument-1 shall be a date format"),
-/// §15.41.3 r2 (a time format) and §15.40.3 r2 (a combined format) were enforced NOWHERE, and the failure mode
+/// string assembled from legal pieces, so §2023:15.39.3 r2 ("the content of argument-1 shall be a date format"),
+/// §2023:15.41.3 r2 (a time format) and §2023:15.40.3 r2 (a combined format) were enforced NOWHERE, and the failure mode
 /// was a FABRICATED value rather than over-acceptance:
 /// <code>
 ///   FUNCTION FORMATTED-DATE("hhmmss" 100000)             -> "000000"     a TIME format in a DATE function
@@ -36,22 +36,22 @@ internal readonly record struct DateTimeFormatInfo(DateTimeFormatKind Kind, Date
 /// The set of legal formats is CLOSED and small, so membership is the right test and no amount of per-character
 /// checking substitutes for it.</para>
 ///
-/// <para><b>The grammar, read from the standard.</b> §15.3.1.1: "COBOL supports six date formats: basic and
+/// <para><b>The grammar, read from the standard.</b> §2023:15.3.1.1: "COBOL supports six date formats: basic and
 /// extended formats for calendar dates, basic and extended formats for ordinal dates, and basic and extended
-/// formats for week dates." §15.3.2: four common-time shapes × {local, UTC, offset} = twelve time formats.
-/// §15.3.3.7: a combined format is a date format, an uppercase <c>T</c>, and a time format — <b>basic with basic
+/// formats for week dates." §2023:15.3.2: four common-time shapes × {local, UTC, offset} = twelve time formats.
+/// §2023:15.3.3.7: a combined format is a date format, an uppercase <c>T</c>, and a time format — <b>basic with basic
 /// and extended with extended</b>, which is the rule the chimera above breaks.</para>
 ///
 /// <para><b>⚠ BASIC AND EXTENDED NEVER MIX</b>, and that is the whole reason this is a recognizer rather than a
 /// set of independent field checks: every wrong example above is assembled from individually legal subfields.</para>
 ///
-/// <para>§15.39.3 r1 makes argument-1 a LITERAL, so this runs at BIND time and the diagnostic is a compile
+/// <para>§2023:15.39.3 r1 makes argument-1 a LITERAL, so this runs at BIND time and the diagnostic is a compile
 /// error rather than a runtime surprise.</para>
 /// </summary>
 internal static class DateTimeFormatGrammar
 {
     /// <summary>The implementor-defined maximum number of digit positions in the seconds fraction
-    /// (§15.3.3.2: "The implementor defines the maximum … that maximum shall be greater than or equal to nine").
+    /// (§2023:15.3.3.2: "The implementor defines the maximum … that maximum shall be greater than or equal to nine").
     /// <para>⛔ 18, NOT 9 AND NOT UNBOUNDED. Nine is the standard's floor and choosing it would reject formats
     /// this compiler accepts today. Unbounded is what it did before, and a fraction of 19 or more digits
     /// overflows <c>(long)Pow10.AsWide(width)</c> in the emitter and prints garbage (fix-queue PB16) — so the
@@ -62,17 +62,17 @@ internal static class DateTimeFormatGrammar
     private static readonly string[] BasicDates = ["YYYYMMDD", "YYYYDDD", "YYYYWwwD"];
     private static readonly string[] ExtendedDates = ["YYYY-MM-DD", "YYYY-DDD", "YYYY-Www-D"];
 
-    /// <summary>Classify <paramref name="format"/>, or null when it is not a legal §15.3 format at all.
-    /// <paramref name="decimalComma"/> selects the seconds-fraction separator: §15.3.3.2 makes it a comma under
+    /// <summary>Classify <paramref name="format"/>, or null when it is not a legal §2023:15.3 format at all.
+    /// <paramref name="decimalComma"/> selects the seconds-fraction separator: §2023:15.3.3.2 makes it a comma under
     /// <c>DECIMAL-POINT IS COMMA</c> and a period otherwise.</summary>
     internal static DateTimeFormatKind? Classify(string format, bool decimalComma) =>
         Describe(format, decimalComma)?.Kind;
 
     /// <summary>
-    /// <see cref="Classify"/> plus the TIME PORTION'S ZONE — the fact §15.40.3 r6 and §15.41.3 r5 turn on:
+    /// <see cref="Classify"/> plus the TIME PORTION'S ZONE — the fact §2023:15.40.3 r6 and §2023:15.41.3 r5 turn on:
     /// "argument-4 [resp. argument-3] shall not be specified if the time portion of the format in argument-1 is
-    /// neither a UTC format nor an offset format." Those rules are decidable at BIND time, because §15.40.3 r1 /
-    /// §15.41.3 r1 make argument-1 a LITERAL and the argument's presence is syntactic.
+    /// neither a UTC format nor an offset format." Those rules are decidable at BIND time, because §2023:15.40.3 r1 /
+    /// §2023:15.41.3 r1 make argument-1 a LITERAL and the argument's presence is syntactic.
     /// <para>⛔ THE ZONE WAS ALWAYS COMPUTED HERE AND THEN THROWN AWAY. <see cref="IsTimeOfWidth"/> already
     /// decided local-vs-UTC-vs-offset in order to answer "is this a time format" at all; it simply collapsed the
     /// three into a bool. Returning what the recogniser already knows is why this closes the r6/r5 pair without
@@ -87,7 +87,7 @@ internal static class DateTimeFormatGrammar
         if (IsDate(format)) return new DateTimeFormatInfo(DateTimeFormatKind.Date, DateTimeZone.None);
         if (ZoneOf(format, sep) is { } tz) return new DateTimeFormatInfo(DateTimeFormatKind.Time, tz);
 
-        // §15.3.3.7 — a combined format is <date>T<time>, basic with basic and extended with extended. 'T' occurs
+        // §2023:15.3.3.7 — a combined format is <date>T<time>, basic with basic and extended with extended. 'T' occurs
         // in no other position of any format, so the first one is the separator.
         int t = format.IndexOf('T');
         if (t > 0)
@@ -107,10 +107,10 @@ internal static class DateTimeFormatGrammar
 
     private static bool IsDate(string s) => Array.IndexOf(BasicDates, s) >= 0 || Array.IndexOf(ExtendedDates, s) >= 0;
 
-    /// <summary>§15.3.3.4–§15.3.3.6: a time format is a common time format, optionally followed by <c>Z</c> (UTC)
-    /// or by an offset subformat — and WHICH of the three it is, since §15.40.3 r6 / §15.41.3 r5 turn on exactly
+    /// <summary>§2023:15.3.3.4–§2023:15.3.3.6: a time format is a common time format, optionally followed by <c>Z</c> (UTC)
+    /// or by an offset subformat — and WHICH of the three it is, since §2023:15.40.3 r6 / §2023:15.41.3 r5 turn on exactly
     /// that. Null when it is not a time format at this width. The offset subformat's own width must MATCH the
-    /// common part's — §15.3.3.6.1 gives the basic subformat five characters (<c>+hhmm</c>) and the extended one
+    /// common part's — §2023:15.3.3.6.1 gives the basic subformat five characters (<c>+hhmm</c>) and the extended one
     /// six (<c>+hh:mm</c>).</summary>
     private static DateTimeZone? ZoneOfWidth(string s, bool extended, char sep)
     {
@@ -122,7 +122,7 @@ internal static class DateTimeFormatGrammar
             : null;
     }
 
-    /// <summary>§15.3.3.1/§15.3.3.2: <c>hhmmss</c> or <c>hh:mm:ss</c>, optionally followed by the decimal
+    /// <summary>§2023:15.3.3.1/§2023:15.3.3.2: <c>hhmmss</c> or <c>hh:mm:ss</c>, optionally followed by the decimal
     /// separator and at least one further <c>s</c> for the seconds fraction.</summary>
     private static bool IsCommonTime(string s, bool extended, char sep)
     {

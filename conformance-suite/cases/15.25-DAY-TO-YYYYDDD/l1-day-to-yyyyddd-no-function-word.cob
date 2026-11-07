@@ -4,10 +4,10 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.25.2 general format — FUNCTION DAY-TO-YYYYDDD ( … ): the word
+      *> ISO §2023:15.25.2 general format — FUNCTION DAY-TO-YYYYDDD ( … ): the word
       *> FUNCTION is UNDERLINED, so it is a required word of this format.
       *>
-      *> The one permission to omit it is §8.4.3.2.3 SR2 — "If intrinsic-function-
+      *> The one permission to omit it is §2023:8.4.3.2.3 SR2 — "If intrinsic-function-
       *> name-1 or the ALL phrase is specified in the REPOSITORY paragraph … the
       *> word FUNCTION may be omitted from the function-identifier" — and this
       *> compilation unit has NO REPOSITORY paragraph, so the permission is not in

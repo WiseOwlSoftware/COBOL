@@ -5,8 +5,8 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB1284 — ISO/IEC 1989:2023 §13.18.45.3 SR10: "The area described by data-name-2 THROUGH data-name-3
-      *> shall define an integral number of bytes." §8.5.1.6.3 packs same-level USAGE BIT items into shared bytes,
+      *> kb/Work PB1284 — ISO/IEC 1989:2023 §2023:13.18.45.3 SR10: "The area described by data-name-2 THROUGH data-name-3
+      *> shall define an integral number of bytes." §2023:8.5.1.6.3 packs same-level USAGE BIT items into shared bytes,
       *> so A (3 bits) + B (5 bits) is ONE byte and C + D (4 + 4 bits) is the next: X1 = A THRU B and X2 = A THRU D
       *> are whole bytes (8 and 16 bits), so both entries are legal and the program compiles and runs. (A THRU C,
       *> 11 bits, is not — the negative pb1284-renames-bit-area-fractional.) This golden pins the ACCEPTANCE side of

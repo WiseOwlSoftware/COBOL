@@ -5,10 +5,10 @@
 *> portable: unverified
 *>---
 *> ⛔ AN ABSOLUTE LINE CLAUSE ON A REPEATING ENTRY REQUIRES THE STEP PHRASE (kb/Work PB565). ISO/IEC 1989:2023
-*> §13.18.38.3 SR25: "The STEP phrase shall be specified if the entry: a) contains an absolute LINE clause, or
+*> §2023:13.18.38.3 SR25: "The STEP phrase shall be specified if the entry: a) contains an absolute LINE clause, or
 *> b) has an entry with an absolute LINE clause subordinate to it, or c) contains an absolute COLUMN clause, or
 *> d) is subordinate to an entry with a LINE clause and has an entry with an absolute COLUMN clause subordinate
-*> to it." Without integer-3 §13.18.38.4 GR12 gives the repetitions no vertical interval at all — GR12's closing
+*> to it." Without integer-3 §2023:13.18.38.4 GR12 gives the repetitions no vertical interval at all — GR12's closing
 *> sentence takes it "from the relative LINE or COLUMN numbers … specified in the corresponding report section
 *> entries", and an ABSOLUTE line number supplies none — so all three occurrences would print on line 5.
 *>

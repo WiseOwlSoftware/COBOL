@@ -5,12 +5,12 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB3514 (DOC-A.1-92) under ARITHMETIC IS STANDARD-DECIMAL (§8.8.1.5; §15.4.1: "the returned value for numeric
+      *> kb/Work PB3514 (DOC-A.1-92) under ARITHMETIC IS STANDARD-DECIMAL (§2023:8.8.1.5; §2023:15.4.1: "the returned value for numeric
       *> and integer functions is contained in a temporary standard data item in the intermediate form defined for the
       *> arithmetic mode in effect"). A function the native mode answers in binary64 (SQRT, EXP, PI) answers on the SDIDI
       *> here, an exact decimal value, so the value alone describes its temporary exactly as for every other exact function
       *> (pb3514_function_result_device_form): SQRT(4) is 2 in a 9-position item, EXP(0) is 1, SQRT(2) and PI are DISPLAY
-      *> items of their 34 significant digits (the SDIDI's decimal128 precision, §8.8.1.5.2). The selection functions copy
+      *> items of their 34 significant digits (the SDIDI's decimal128 precision, §2023:8.8.1.5.2). The selection functions copy
       *> an argument's item in every mode. Expected values are derived from the SDIDI values and the description rule.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3514D.

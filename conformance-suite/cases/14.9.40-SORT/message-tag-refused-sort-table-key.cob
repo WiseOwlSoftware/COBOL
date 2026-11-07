@@ -6,9 +6,9 @@
 *>---
       *> kb/Work PB4740 review R1-3 - A TABLE SORT KEY OF CLASS MESSAGE-TAG IS REFUSED ON THE ORDERING GROUND.
       *>   cite.py --check 14.9.40.3 "Key data items shall not be of class boolean, object, or pointer." ->
-      *>     OK §14.9.40.3 14)
+      *>     OK §2023:14.9.40.3 14)
       *>   cite.py --check 8.8.4.2.14 "An operand of class message-tag may be compared with another operand of class
-      *>     message-tag." -> OK §8.8.4.2.14
+      *>     message-tag." -> OK §2023:8.8.4.2.14
       *> SR14 c) lists only boolean, object and pointer, and a message tag is none of them; but a sort key is ORDERED
       *> and 8.8.4.2.14 defines the comparison of two message-tag operands as the equality of the messages' parties (no
       *> relational order, see message-tag-refused-relation-ordering), so the key has no ordering to sort by. TGT is a

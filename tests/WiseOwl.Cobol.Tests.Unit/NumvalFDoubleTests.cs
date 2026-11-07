@@ -19,7 +19,7 @@ public sealed class NumvalFDoubleTests
     [InlineData("1.5E-12", 1.5e-12)]
     [InlineData(" 1.5 ", 1.5)]
     [InlineData("0.1", 0.1)]                    // the decimal-clean identity, one rounding
-    [InlineData(" - 35E+0 ", -35d)]             // §15.69.3 r5's legal spaces
+    [InlineData(" - 35E+0 ", -35d)]             // §2023:15.69.3 r5's legal spaces
     [InlineData("12345678901234567890E-20", 0.12345678901234567890)]   // 20 digits ⇒ the nearest binary64
     public void NumvalFDouble_IsTheNearestBinary64(string text, double expected) =>
         Assert.Equal(expected, CobolIntrinsics.NumvalFDouble(text));
@@ -27,7 +27,7 @@ public sealed class NumvalFDoubleTests
     [Fact]
     public void NumvalFDouble_CommaMode_And_Rejects()
     {
-        Assert.Equal(1.5, CobolIntrinsics.NumvalFDouble("1,5", commaMode: true));    // §15.69.3 r4
+        Assert.Equal(1.5, CobolIntrinsics.NumvalFDouble("1,5", commaMode: true));    // §2023:15.69.3 r4
         Assert.Equal(0d, CobolIntrinsics.NumvalFDouble("1 2"));                        // r5's except-clause — the shared reject, checking off
         Assert.Equal(0d, CobolIntrinsics.NumvalFDouble("0E+9999"));                    // zero significand
         Assert.True(double.IsPositiveInfinity(CobolIntrinsics.NumvalFDouble("1E+9999")));   // past binary64 is +Infinity

@@ -15,7 +15,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <para>
 /// <c>SubscriptBinder.PositionRead</c> emits <c>CobolTable.Occ(&lt;field&gt;, _P_n)</c> for a NUMERIC subscript,
 /// <c>CobolString.RefModPosition(&lt;field&gt;, _P_n)</c> for a NUMERIC reference-modification bound (the item's own
-/// profile carries its scale, its sign and the byte form §14.6.13.2 rule 2's check reads — kb/Work PB1117), and
+/// profile carries its scale, its sign and the byte form §2023:14.6.13.2 rule 2's check reads — kb/Work PB1117), and
 /// the profile-less <c>CobolTable.Occ(&lt;field&gt;)</c> only for a NON-numeric <c>--permissive</c> operand. That is a
 /// deliberate design: the post-bind whole-group analysis has not yet chosen the field's storage form when the
 /// text is produced, so ONE text has to serve a <c>long</c> field and the <c>string</c> image it may become, and
@@ -96,7 +96,7 @@ public sealed class PositionCarrierOverloadDriftTests
     }
 
     /// <summary>⛔ THE PROFILE-LESS ARITY IS NOT A NUMERIC READ (kb/Work PB1117). A numeric item read without its
-    /// profile cannot apply §14.6.13.2 rule 2 to a character image and cannot see its sign or scale, which is
+    /// profile cannot apply §2023:14.6.13.2 rule 2 to a character image and cannot see its sign or scale, which is
     /// exactly how EC-DATA-INCOMPATIBLE became unreachable on the item-identification lane. So no one-argument
     /// overload may accept a carrier only a NUMERIC item has (the wide and unsigned-binary tiers), and no
     /// profile-less scale arity may come back.</summary>
@@ -113,9 +113,9 @@ public sealed class PositionCarrierOverloadDriftTests
     }
 
     /// <summary>⛔ NO FLOAT CARRIER AT EITHER ARITY, AND THIS IS A CONFORMANCE RULE, NOT A CAPABILITY GAP. A
-    /// <c>double</c>/<c>float</c> operand can be fractional, and §8.4.2.3.4 GR1b sets EC-BOUND-SUBSCRIPT when the
+    /// <c>double</c>/<c>float</c> operand can be fractional, and §2023:8.4.2.3.4 GR1b sets EC-BOUND-SUBSCRIPT when the
     /// expression "does not result in an integer" — a test <c>Occ</c> performs over an unscaled/profile pair a
-    /// float has no equivalent of. So a float position operand must keep routing to the D18 §15.4 temp, where the
+    /// float has no equivalent of. So a float position operand must keep routing to the D18 §2023:15.4 temp, where the
     /// rule is applied exactly once, to the result. An <c>Occ(double)</c> overload added for convenience would
     /// silently truncate <c>E(FUNCTION SQRT(2))</c> to occurrence 1 and raise nothing; this test is what makes that
     /// a deliberate decision to reverse rather than an easy one to slip in.</summary>

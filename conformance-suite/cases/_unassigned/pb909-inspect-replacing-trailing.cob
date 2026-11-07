@@ -4,10 +4,10 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> ISO 1989:2023 §14.9.22.2 General formats: the replacing-phrase prints CHARACTERS BY, ALL, LEADING and
+*> ISO 1989:2023 §2023:14.9.22.2 General formats: the replacing-phrase prints CHARACTERS BY, ALL, LEADING and
 *> FIRST - and nothing else. REPLACING TRAILING is a vendor extension the grammar accepts; it used to bind to
 *> the DEFERRAL carrier, so the program compiled with a COBOL1756 "not implemented" warning and aborted
-*> the run unit when the INSPECT executed. §4.2.2 requires the compile-time indication of "violations of the
+*> the run unit when the INSPECT executed. §2023:4.2.2 requires the compile-time indication of "violations of the
 *> general formats and the explicit syntax rules of standard COBOL"; no edition prints TRAILING, and this
 *> implementation admits no vendor dialect, so every edition refuses. COBOL2269 (kb/Work PB909).
        IDENTIFICATION DIVISION.

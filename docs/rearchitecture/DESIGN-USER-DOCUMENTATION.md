@@ -5,25 +5,25 @@
 
 ## §1 The obligation
 
-ISO/IEC 1989:2023 §4.2.16 (`cite.py --check 4.2.16` OK): *"An implementation shall satisfy the user documentation
+ISO/IEC 1989:2023 §2023:4.2.16 (`cite.py --check 4.2.16` OK): *"An implementation shall satisfy the user documentation
 requirements specified in 4.2.3, 4.2.4, 4.2.5, 4.2.6, 4.2.10, 4.2.12, and 4.2.13 by specification in at least one
 form of documentation."* Any form qualifies — manuals, on-line documentation, help screens — and a requirement may be
 met by reference to other documents.
 
 | Clause | Subject | Current source of truth |
 |---|---|---|
-| §4.2.3 | Interaction with non-COBOL runtime modules | .NET interop: `INTERPROGRAM_DESIGN.md`, R48 (STOP RUN under a .NET host) |
-| §4.2.4 | Interaction between COBOL implementations | not yet written as user text (migration chapter) |
-| §4.2.5 | Implementor-defined language elements | `docs/CONFORMANCE.md` §7 (Annex A.1 register, 182/182) + §3 determinations |
-| §4.2.6 | Processor-dependent language elements | `docs/CONFORMANCE.md` §2 (Annex A.3) + §4 documented non-support |
-| §4.2.10 | Nonstandard extensions | `docs/CONFORMANCE.md`, `GnuCOBOL extensions.md`, dialect gating |
-| §4.2.12 / §4.2.13 | Archaic / obsolete elements | `constructs.json` + `VERSION_CHANGE_REFERENCE.md` (edition matrix) |
+| §2023:4.2.3 | Interaction with non-COBOL runtime modules | .NET interop: `INTERPROGRAM_DESIGN.md`, R48 (STOP RUN under a .NET host) |
+| §2023:4.2.4 | Interaction between COBOL implementations | not yet written as user text (migration chapter) |
+| §2023:4.2.5 | Implementor-defined language elements | `docs/CONFORMANCE.md` §7 (Annex A.1 register, 182/182) + §3 determinations |
+| §2023:4.2.6 | Processor-dependent language elements | `docs/CONFORMANCE.md` §2 (Annex A.3) + §4 documented non-support |
+| §2023:4.2.10 | Nonstandard extensions | `docs/CONFORMANCE.md`, `GnuCOBOL extensions.md`, dialect gating |
+| §2023:4.2.12 / §2023:4.2.13 | Archaic / obsolete elements | `constructs.json` + `VERSION_CHANGE_REFERENCE.md` (edition matrix) |
 
 The facts exist; what is missing is a USER-facing presentation, versioned with the compiler.
 
 ## §2 Decisions (R50)
 
-1. **Docs-as-code, not a wiki.** The §4.2.16 documentation describes ONE compiler version, so it is versioned,
+1. **Docs-as-code, not a wiki.** The §2023:4.2.16 documentation describes ONE compiler version, so it is versioned,
    reviewed and CI-checked with the code (the rustc book / Reference, CPython `Doc/`, GnuCOBOL's Texinfo manual,
    dotnet/docs all do this). A wiki is unversioned, unreviewed and cannot be generated.
 2. **Astro Starlight**, hosted on **wiseowlsoftware.com** (the existing Astro site, which carries Demeanor's docs).
@@ -67,11 +67,11 @@ like any documentation site, nothing to download or install. A version picker sw
   foreign files ('39'), the Latin-1 no-CODE-SET rule of R47 and the status codes. It also covers sharing and record
   locking, APPLY COMMIT / COMMIT / ROLLBACK and the crash guarantee, the performance a user can plan by, and the SORT
   work files' memory limit and location. Its prerequisite, kb/Work PB3330's keyed store engine, has landed.
-- *.NET interoperability* (§4.2.3, `dotnet-interop.md`) — calling COBOL from C#, what crosses the boundary, what a call
+- *.NET interoperability* (§2023:4.2.3, `dotnet-interop.md`) — calling COBOL from C#, what crosses the boundary, what a call
   throws, trimmed/AOT applications; and the statement that COBOL cannot call non-COBOL code (DOC-A.1-13, -15, -141).
   The "Separately compiled units and the repository" chapter joins it as its own page when kb/Work PB2103 lands.
-- *Migrating* (§4.2.4, `migrating.md`) — from IBM Enterprise COBOL, Micro Focus and GnuCOBOL: what is standard, what is a
-  dialect extension, what WiseOwl COBOL rejects and why; it carries the §4.2.4 statement that no interaction with other
+- *Migrating* (§2023:4.2.4, `migrating.md`) — from IBM Enterprise COBOL, Micro Focus and GnuCOBOL: what is standard, what is a
+  dialect extension, what WiseOwl COBOL rejects and why; it carries the §2023:4.2.4 statement that no interaction with other
   COBOL implementations' runtime elements is supported.
 - *Release notes* (`release-notes.md`) — per version, derived from the DEVLOG entries between release tags (edited, not
   dumped); the page states the convention until a release exists.
@@ -81,10 +81,10 @@ Every behavioral statement on a hand-written page was run on the compiler it des
 (`../editions/`), so a bundle mounted at any version prefix keeps its links; it never links a file outside `docs/manual/`.
 
 **Generated** (`docs/manual/reference/`), each by one generator with a drift test:
-- *Conformance statement* (§4.2.5, §4.2.6, §4.2.10) — from `docs/CONFORMANCE.md` §2–§5, §7 and the traceability
+- *Conformance statement* (§2023:4.2.5, §2023:4.2.6, §2023:4.2.10) — from `docs/CONFORMANCE.md` §2–§5, §7 and the traceability
   inventory: the implementor-defined register, processor-dependent dispositions, optional-module (A.4) claims,
   documented non-support with its warning codes, and the limits.
-- *Edition matrix* (§4.2.12, §4.2.13) — from `constructs.json` + `VERSION_CHANGE_REFERENCE.md`: per construct, the
+- *Edition matrix* (§2023:4.2.12, §2023:4.2.13) — from `constructs.json` + `VERSION_CHANGE_REFERENCE.md`: per construct, the
   introducing edition, archaic/obsolete status, and what `--std` does with it.
 - *Command-line reference* — from `CliOptions` (one source for `--help` and the page).
 - *Diagnostics reference* — from the diagnostic catalog: one entry per `COBOL####` code with severity, the rule it

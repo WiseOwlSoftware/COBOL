@@ -14,9 +14,9 @@ Method: every assigned file was read in full. Citations are `file:line`. LOC cou
 
 | Area | Responsibility | Substrate crossing |
 |---|---|---|
-| `IO/` | The static `CobolFile` facade + three organization connectors (Sequential / Relative / Indexed), SORT/MERGE store, Report Writer engine, file sharing/locking, ACCEPT sources. Owns the ISO §9.1.13 I-O status machine, the §14.9.30/§14.9.35 read-position state, framing, LINAGE. | record ⇄ **character image (`string`)** at the on-disk edge (the ONLY typed→char boundary in I/O) |
-| `Control/` | Inter-program CALL/CANCEL (`ProgramRegistry`), the §14.6.2.3 state model, EXTERNAL store, `FUNCTION MODULE-NAME` stack (`CobolModule`), the CALL ABI (`ManagedPointer`/`StorageCell`/`CobolArg`/`ICobolProgram`/`CobolArgAdapt`), pointer ops (`CobolPtr`), OO root (`CobolObject`), external switches, control signals. | CALL-ABI adapters + `StorageCell` are the sanctioned char-image seams |
-| `Exceptions/` | The §14.6.13 Table-13 catalog (`ExceptionCatalog`), the run-unit LAST EXCEPTION register + propagation slots + ambient EC-checking gates (`ExceptionState`), the EXCEPTION-* function backends (`EcFunctions`), fatal-condition + RESUME signals. | none (pure state) |
+| `IO/` | The static `CobolFile` facade + three organization connectors (Sequential / Relative / Indexed), SORT/MERGE store, Report Writer engine, file sharing/locking, ACCEPT sources. Owns the ISO §2023:9.1.13 I-O status machine, the §2023:14.9.30/§2023:14.9.35 read-position state, framing, LINAGE. | record ⇄ **character image (`string`)** at the on-disk edge (the ONLY typed→char boundary in I/O) |
+| `Control/` | Inter-program CALL/CANCEL (`ProgramRegistry`), the §2023:14.6.2.3 state model, EXTERNAL store, `FUNCTION MODULE-NAME` stack (`CobolModule`), the CALL ABI (`ManagedPointer`/`StorageCell`/`CobolArg`/`ICobolProgram`/`CobolArgAdapt`), pointer ops (`CobolPtr`), OO root (`CobolObject`), external switches, control signals. | CALL-ABI adapters + `StorageCell` are the sanctioned char-image seams |
+| `Exceptions/` | The §2023:14.6.13 Table-13 catalog (`ExceptionCatalog`), the run-unit LAST EXCEPTION register + propagation slots + ambient EC-checking gates (`ExceptionState`), the EXCEPTION-* function backends (`EcFunctions`), fatal-condition + RESUME signals. | none (pure state) |
 | `Intrinsics/` | The §15 catalog: float math, exact scaled-`Int128`/`long` numerics + NUMVAL family, character functions, date/time engine. | scaled-long / `double` / `string` — no byte substrate |
 
 The typed-native invariant holds: the only `string`-image boundaries are the disk edge (`FileConnector`s,
@@ -30,7 +30,7 @@ The typed-native invariant holds: the only `string`-image boundaries are the dis
 | Type | File | LOC | Assessment |
 |---|---|---|---|
 | `CobolFile` (static, partial ×3) | `IO/CobolFile.cs` (+ `.Locks.cs`, tail of `IndexedFile.cs`) | 196 / 331 / — | The emitted file facade + registries. Owns `Files`/`Locked`/`_instSeq`/`_pendingObjectClose`. **Dispatches sequential-first then falls through to a parallel `Keyed*` fan-out** (`CobolFile.cs:103-108,116,169,172,177`). A second dispatch mechanism layered on the type split. |
-| `SequentialFile` | `IO/SequentialFile.cs` | 438 | Line- & record-sequential + print-control ADVANCING + LINAGE. Re-implements the §9.1.13 status machine and read-position pair from scratch (`:31-32`). Own varying framing (`WriteFrameLength :290`). Coherent internally; duplicated externally. |
+| `SequentialFile` | `IO/SequentialFile.cs` | 438 | Line- & record-sequential + print-control ADVANCING + LINAGE. Re-implements the §2023:9.1.13 status machine and read-position pair from scratch (`:31-32`). Own varying framing (`WriteFrameLength :290`). Coherent internally; duplicated externally. |
 | `RelativeFile` | `IO/RelativeFile.cs` | 487 | Sparse `SortedDictionary` slot model. Re-implements status machine + read-position pair (`:108-109`) + `_modeKnown`/`OpenModeView` (`:132-133`) + `Stored()`/`Fit()`. `KeyedFrames` framing helper (`:27-79`) shared with indexed. |
 | `IndexedFile` | `IO/IndexedFile.cs` | 707 | Record-list-as-truth design (arrival-ordered, indexes derived on demand — a genuinely good design, `:474-477`). Re-implements the same status machine + read-position pair (`:47-48`). **The file also carries the `partial class CobolFile` keyed registries + `Keyed*` routing (`:510-707`)** — an unrelated concern welded onto the connector file. |
 | `KeyedAccess` enum | `IO/RelativeFile.cs:10` | — | Shared access-mode enum; fine. |
@@ -42,11 +42,11 @@ The typed-native invariant holds: the only `string`-image boundaries are the dis
 ### Control
 | Type | File | LOC | Assessment |
 |---|---|---|---|
-| `ProgramRegistry` (static) + 10 others | `Control/ProgramRegistry.cs` | 595 | **God-FILE grab-bag:** the registry PLUS `ProgramReturn`, `CobolCallException`, `CobolPassMode`, `ManagedPointer`(+`Null`), `StorageCell`, `CellPointer`, `ManagedPointer<T>`, `CobolArg`, `ICobolProgram`, `CobolArgAdapt`, `ExternalStore`. 11 distinct types in one file. Registry logic itself (name scope §8.4.6.3, state model §14.6.2.3, CANCEL, sibling-module probe) is sound and well-cited. `ProbeSiblingModule (:558)` does `AssemblyLoadContext` load + reflection `Invoke` (cached per name). |
+| `ProgramRegistry` (static) + 10 others | `Control/ProgramRegistry.cs` | 595 | **God-FILE grab-bag:** the registry PLUS `ProgramReturn`, `CobolCallException`, `CobolPassMode`, `ManagedPointer`(+`Null`), `StorageCell`, `CellPointer`, `ManagedPointer<T>`, `CobolArg`, `ICobolProgram`, `CobolArgAdapt`, `ExternalStore`. 11 distinct types in one file. Registry logic itself (name scope §2023:8.4.6.3, state model §2023:14.6.2.3, CANCEL, sibling-module probe) is sound and well-cited. `ProbeSiblingModule (:558)` does `AssemblyLoadContext` load + reflection `Invoke` (cached per name). |
 | `CobolObject` (abstract) | `Control/CobolObject.cs` | 90 | OO root: universal `__CobolInvoke`, null-guard, per-object instance-file tracking. **`~CobolObject` finalizer (`:85-89`)** — the prior data-race site; now enqueue-only (see §4). `SuppressFinalize` by default, re-arm only for file-owning objects (`:68,75`) — a thoughtful fix. |
 | `CobolModule` (static) | `Control/CobolModule.cs` | 81 | `FUNCTION MODULE-NAME` stack. **The LONE `[ThreadStatic]` store (`:24`)** — inconsistent with every other (plain-static) run-unit store. |
 | `CobolPtr` (static) | `Control/CobolPtr.cs` | 107 | ADDRESS OF / BASED / SET / ALLOCATE / FREE over `ManagedPointer`+`StorageCell`. Loud-fatal on null/freed/out-of-range. Clean; stateless. |
-| `ExternalSwitches` (static) | `Control/ExternalSwitches.cs` | 49 | **Process-global `ConcurrentDictionary States` (`:22`)**, run-unit scope per §12.3.7 GR4, but its `Reset()` is "test isolation only" (`:47`) — switch state leaks across in-process run units. |
+| `ExternalSwitches` (static) | `Control/ExternalSwitches.cs` | 49 | **Process-global `ConcurrentDictionary States` (`:22`)**, run-unit scope per §2023:12.3.7 GR4, but its `Reset()` is "test isolation only" (`:47`) — switch state leaks across in-process run units. |
 | `CobolInvokeArg` | `Control/CobolInvokeArg.cs` | 21 | Universal-dispatch arg carrier. Fine. |
 | `MethodReturn`/`StopRun`/`NotImplemented(+Exception)` | `Control/{MethodReturn,StopRun,NotImplemented}.cs` | 17/10/31 | One-purpose control signals; scattered between `Control/` and `Exceptions/`. |
 
@@ -62,13 +62,13 @@ The typed-native invariant holds: the only `string`-image boundaries are the dis
 | Type | File | LOC | Assessment |
 |---|---|---|---|
 | `CobolIntrinsics` (static, partial ×4) | `Intrinsics/CobolIntrinsics{,.Exact,.Float,.Text}.cs` | 57/334/86/305 | Family-split partial. `.cs` = double→scaled-long spine (`FromDouble`, `Pow10D :43`, `Pow10I :51`). `.Exact` = exact `Int128` numerics + NUMVAL. `.Float` = trig/financial/stats + **`static Random _random (Float.cs:71)`** reassigned by `Random(seed) (:83)`. `.Text` = CHAR/ORD/SUBSTITUTE/CONVERT/TRIM. All domain errors funnel to `ExceptionState.ArgumentError`. Cohesive family split — keep. |
-| `CobolDate` (static) | `Intrinsics/CobolDate.cs` | 368 | Date/time + the §15.3 format tokenizer/analyzer (ONE parse feeding emit + analyze — good singular pattern). Own `Pow10 (:154)`. Reads `DateTimeOffset.Now` directly (not `AcceptSource.Now`) — an inconsistency in clock sourcing. |
+| `CobolDate` (static) | `Intrinsics/CobolDate.cs` | 368 | Date/time + the §2023:15.3 format tokenizer/analyzer (ONE parse feeding emit + analyze — good singular pattern). Own `Pow10 (:154)`. Reads `DateTimeOffset.Now` directly (not `AcceptSource.Now`) — an inconsistency in clock sourcing. |
 
 ---
 
 ## 3. Architecture smells (severity · file:line)
 
-### S1 — Three file organizations duplicate the §9.1.13 status machine + read-position state (HIGH)
+### S1 — Three file organizations duplicate the §2023:9.1.13 status machine + read-position state (HIGH)
 `SequentialFile` / `RelativeFile` / `IndexedFile` are three independent `sealed` classes with **no common base**, each
 re-declaring the same control state:
 - read-position guard pair `_lastReadUnsuccessful` / `_prevOpWasSuccessfulRead` — verbatim at
@@ -176,12 +176,12 @@ the CURRENT-DATE intrinsic.
    statement finishes with checking wrongly disabled. Latent within a *single* run unit; moving the gate onto a
    RunUnit instance does NOT fix it.
 4. **RANDOM sequence is process-global, not run-unit-scoped** (`CobolIntrinsics.Float.cs:71,83`). The code comment
-   says "ONE current pseudo-random sequence per run unit (§15.75.3)", but the static is never reset at a run-unit
+   says "ONE current pseudo-random sequence per run unit (§2023:15.75.3)", but the static is never reset at a run-unit
    boundary — a second in-process run unit inherits the first's `_random` state, and two concurrent run units clobber
-   each other's sequence (breaks §15.75.4 rule-2 per-process determinism NIST IF131A relies on).
+   each other's sequence (breaks §2023:15.75.4 rule-2 per-process determinism NIST IF131A relies on).
 5. **`DeleteFile` can never produce status 62.** `DeleteFileSharing = "62"` is defined (`FileSupport.cs:143`) but
    `DeleteFile (IndexedFile.cs:629-653)` only checks the *named* connector's `IsOpen` for 41; it never consults the
-   `Physical` sharing registry for *another* connector holding the file open, so §9.1.13.9 item 2 (62) is unreachable.
+   `Physical` sharing registry for *another* connector holding the file open, so §2023:9.1.13.9 item 2 (62) is unreachable.
    Orthogonal to the reorg, but a real spec gap.
 6. **`ExternalSwitches` state leaks across in-process run units** (`ExternalSwitches.cs:22,47`) — `SET switch TO ON`
    persists past a run-unit boundary because the only `Reset()` is documented "test isolation only."
@@ -224,7 +224,7 @@ run-unit state):**
 
 - **G1 (TOP GAP) — Intrinsics + Sort + Switches run-unit state is left process-global.** DESIGN §2.7 / PHASE-08 Step 9
   scope Intrinsics to "Pow10 dedup + clock change ONLY," so **`CobolIntrinsics._random` (`Float.cs:71`) stays a
-  process-global static** even though its own comment calls it "one … sequence per run unit (§15.75.3)". Likewise
+  process-global static** even though its own comment calls it "one … sequence per run unit (§2023:15.75.3)". Likewise
   **`CobolSort.Files` (`CobolSort.cs:36`)** — a fourth per-run-unit file registry — is left in IO with no move onto
   `RunUnit` (DESIGN §2.2 only says "CobolSort … stays in IO"), and **`ExternalSwitches.States`
   (`ExternalSwitches.cs:22`)** is listed as a type that stays in `Control/` (DESIGN §2.5) but is never made

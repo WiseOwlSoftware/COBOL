@@ -8,13 +8,13 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// kb/Work PB2101, slice 5 of the §8.13 external repository (docs/rearchitecture/DESIGN-external-repository.md §11.2, §17.1
+/// kb/Work PB2101, slice 5 of the §2023:8.13 external repository (docs/rearchitecture/DESIGN-external-repository.md §11.2, §17.1
 /// "Run-time"): EVERY fault on the way to an activation is one of the CALL's own conditions. The faults here are not COBOL
 /// programs (a module whose registrar throws, a registered program whose dependency assembly is missing, a class whose static
 /// initializer throws, a module of an older schema), so they are C# fixtures, built with Roslyn like
 /// <c>NonCobolElement</c> builds every non-COBOL element, beside a COBOL main that CALLs them; the cases that ARE COBOL programs
 /// are the suite's multi-unit cases (conformance-suite/wiseowl/cases/8.13-...).
-/// <para>ISO/IEC 1989:2023 §14.9.4.4 GR3 b) (cite.py OK, located under 3)): "If the program cannot be located or identifier-1
+/// <para>ISO/IEC 1989:2023 §2023:14.9.4.4 GR3 b) (cite.py OK, located under 3)): "If the program cannot be located or identifier-1
 /// references a zero-length item, the EC-PROGRAM-NOT-FOUND exception condition is set to exist"; GR3 c): "If the program is located
 /// but the resources necessary to execute the program are not available, the EC-PROGRAM-RESOURCES exception condition is set to
 /// exist" (OK, 3) c)), the resources the implementor's (Annex A.1 item 14: docs/CONFORMANCE.md DOC-A.1-14 takes GnuCOBOL's answer: a
@@ -109,7 +109,7 @@ public sealed class RunTimeLocateFaultTests
     }
 
     /// <summary>The same registrar fault reached through a host's own <c>EnsureRegistered()</c>, the member a host composing a
-    /// run unit calls (§11.4): before slice 5 the registrar's exception escaped as itself; it is now the CALL's condition, a
+    /// run unit calls (§2023:11.4): before slice 5 the registrar's exception escaped as itself; it is now the CALL's condition, a
     /// <see cref="CobolCallException"/> with EC-PROGRAM-NOT-FOUND that the host handles and continues after.</summary>
     [Fact]
     public void ARegistrarThatThrows_ThroughAHostsEnsureRegistered_IsAProgramNotFoundCondition()
@@ -231,7 +231,7 @@ public sealed class RunTimeLocateFaultTests
         finally { ScratchDirectory.Remove(dir); }
     }
 
-    /// <summary>The feature switch off (§15.5): nothing is loaded and the reason says why. An application publishing trimmed
+    /// <summary>The feature switch off (§2023:15.5): nothing is loaded and the reason says why. An application publishing trimmed
     /// or ahead of time sets <c>WiseOwl.Cobol.Runtime.DynamicProbe</c> to false in its runtime configuration, which this
     /// application's does too: its module is beside it, and is NOT located.</summary>
     [Fact]

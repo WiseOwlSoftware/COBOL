@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// kb/Work PB1549 — <b>"fatal, checking enabled, not resumed ⇒ abnormal run-unit termination" is decided in ONE
-/// place.</b> ISO §14.6.13.1.3 5) (a declarative that completes normally) and 7) (no handler) both end the run unit;
+/// place.</b> ISO §2023:14.6.13.1.3 5) (a declarative that completes normally) and 7) (no handler) both end the run unit;
 /// only RESUME continues. Every emitted raise site used to render the selector (<c>EcDispatchExpr</c>) and the
 /// RESUME landing itself and was separately responsible for the fatal default after it; the SET … ADDRESS OF
 /// PROGRAM / FUNCTION sites forgot it, so a failed SET CONTINUED the run unit while the CALL arm of the same
@@ -23,7 +23,7 @@ public sealed class EcRaiseSelectionDriftTests
         Path.GetDirectoryName(TestRepo.Src("WiseOwl.Cobol.Compiler", "CodeGen", "EcEmitter.cs"))!;
 
     /// <summary>The selector is rendered by <c>EmitSelection</c> alone, plus the two NONFATAL-selector bridges the
-    /// runtime's own raise sites enter through (§14.6.13.1.4 — a nonfatal condition has no fatal default to forget):
+    /// runtime's own raise sites enter through (§2023:14.6.13.1.4 — a nonfatal condition has no fatal default to forget):
     /// <c>INonfatalSelector.NonfatalDispatch</c> (ProgramEmitter) and the class-unit <c>NonfatalSelectorFn</c>
     /// (OoEmitter). At the pre-PB1549 tree this listed PtrEmitter ×5, CallEmitter ×3, SequentialIoEmitter,
     /// ControlFlowEmitter, StatementEmitter and four sites inside EcEmitter (measured by grep).</summary>
@@ -43,7 +43,7 @@ public sealed class EcRaiseSelectionDriftTests
         };
         Assert.True(expected.OrderBy(p => p.Key).SequenceEqual(calls.OrderBy(p => p.Key)),
             "EcDispatchExpr is rendered outside EcEmitter.EmitSelection — route the raise site through "
-            + "EmitSelection / EmitConditionRaise so the §14.6.13.1.3 fatal default cannot be forgotten: "
+            + "EmitSelection / EmitConditionRaise so the §2023:14.6.13.1.3 fatal default cannot be forgotten: "
             + string.Join(", ", calls.Select(p => $"{p.Key}×{p.Value}")));
     }
 

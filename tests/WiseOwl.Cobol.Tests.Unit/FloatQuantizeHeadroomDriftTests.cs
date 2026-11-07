@@ -30,7 +30,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 [Trait("Sweep", "tree")]
 public sealed class FloatQuantizeHeadroomDriftTests
 {
-    /// <summary>Every (integer-digits, scale) pair a legal PICTURE can present: ISO §13.18.40.3 SR14 caps the
+    /// <summary>Every (integer-digits, scale) pair a legal PICTURE can present: ISO §2023:13.18.40.3 SR14 caps the
     /// total digit positions at 31.</summary>
     public static TheoryData<int, int> LegalPictureShapes()
     {

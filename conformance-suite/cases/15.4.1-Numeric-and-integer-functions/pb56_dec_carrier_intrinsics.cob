@@ -8,15 +8,15 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.4.1 r1 under ARITHMETIC IS STANDARD-DECIMAL — the Dec-carrier intrinsic bodies
+      *> ISO §2023:15.4.1 r1 under ARITHMETIC IS STANDARD-DECIMAL — the Dec-carrier intrinsic bodies
       *> (fix-queue PB56). "The returned value shall equal the value of the equivalent arithmetic
       *> expression": every line below derives from the function's own EAE evaluated on the SDIDI
-      *> (§8.8.1.5.2), with NO argument quantization — the interim landing truncated Dec operands at
-      *> working scale 6, so SIGN(A9 − 0) of a 1e-9 operand returned 0 where §15.81.4 r1a says +1.
-      *> Derivations: SIGN(1e-9)=+1 · MAX(1e-9, 0)=1e-9 · MOD(1e-9·10^40, 7)=3 (§15.64.3 r1
-      *> integers; §15.64.4 r1: 10^31 − 7·INTEGER(10^31/7) = 3; quantized at scale 9 it needs 40 digits, past Int128) · MEDIAN(2e-9 4e-9 9e-9)=4e-9 · VARIANCE(1 2 3)=2/3
-      *> (VARIANCE, §15.98.4: ((1−2)²+0+1)/3), stored truncating into 9V9(5) → 0.66666 · ANNUITY(0, 4)=1/4
-      *> (§15.9.4 r1 rate-zero arm) · PRESENT-VALUE(1, 8 8)=8/2+8/4=6 (§15.74.4 r1) ·
+      *> (§2023:8.8.1.5.2), with NO argument quantization — the interim landing truncated Dec operands at
+      *> working scale 6, so SIGN(A9 − 0) of a 1e-9 operand returned 0 where §2023:15.81.4 r1a says +1.
+      *> Derivations: SIGN(1e-9)=+1 · MAX(1e-9, 0)=1e-9 · MOD(1e-9·10^40, 7)=3 (§2023:15.64.3 r1
+      *> integers; §2023:15.64.4 r1: 10^31 − 7·INTEGER(10^31/7) = 3; quantized at scale 9 it needs 40 digits, past Int128) · MEDIAN(2e-9 4e-9 9e-9)=4e-9 · VARIANCE(1 2 3)=2/3
+      *> (VARIANCE, §2023:15.98.4: ((1−2)²+0+1)/3), stored truncating into 9V9(5) → 0.66666 · ANNUITY(0, 4)=1/4
+      *> (§2023:15.9.4 r1 rate-zero arm) · PRESENT-VALUE(1, 8 8)=8/2+8/4=6 (§2023:15.74.4 r1) ·
       *> STANDARD-DEVIATION(2 2 2)=√0=0. The four financial/statistical functions were COBOL0899-
       *> staged under the standard modes until these SDIDI evaluations existed; this golden is the
       *> unstaging's proof, and the former negative fixture arith-standard-intrinsic-staged.cob
@@ -54,8 +54,8 @@
            DISPLAY "PV=" PV
            COMPUTE SDV = FUNCTION STANDARD-DEVIATION(2, 2, 2)
            DISPLAY "SD=" SDV
-      *> The exponent lifts from the RAW operand (e^1e-9 = 1.000000001…, §15.34.4 r1's EAE over the
-      *> exact §15.27.3 r3 E), and a prose-family result converts in per §8.8.1.5.1 instead of
+      *> The exponent lifts from the RAW operand (e^1e-9 = 1.000000001…, §2023:15.34.4 r1's EAE over the
+      *> exact §2023:15.27.3 r3 E), and a prose-family result converts in per §2023:8.8.1.5.1 instead of
       *> quantizing (SQRT(4e-18) ≈ 2e-9) — the two sibling arms of the same landing defect.
            COMPUTE E9 = FUNCTION EXP(A9 - 0)
            DISPLAY "EX=" E9

@@ -5,7 +5,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// The COBOL-2014 IEEE-754 interchange float USAGE family (ISO §13.18.60.4 GR14-18; PHASE-12 wave 3). GR14/GR15
+/// The COBOL-2014 IEEE-754 interchange float USAGE family (ISO §2023:13.18.60.4 GR14-18; PHASE-12 wave 3). GR14/GR15
 /// PIN FLOAT-BINARY-32/64 to ISO/IEC 60559:2020 binary32/binary64 — mapped EXACTLY to native float/double (LIVE).
 /// GR16-18 PIN FLOAT-BINARY-128 / FLOAT-DECIMAL-16/34 to binary128 / decimal64/128, which .NET provides no type
 /// for; backing them by double/System.Decimal would be NON-conforming, so they are documented processor-dependent
@@ -27,7 +27,7 @@ public sealed class FloatFamilyTests
             STOP RUN.
         """;
 
-    /// <summary>FLOAT-BINARY-32/64 (§13.18.60.4 GR14/GR15) are LIVE — a well-formed item compiles clean at 2014.</summary>
+    /// <summary>FLOAT-BINARY-32/64 (§2023:13.18.60.4 GR14/GR15) are LIVE — a well-formed item compiles clean at 2014.</summary>
     [Theory]
     [InlineData("01 WS-F USAGE FLOAT-BINARY-32.")]
     [InlineData("01 WS-F USAGE FLOAT-BINARY-64.")]
@@ -37,7 +37,7 @@ public sealed class FloatFamilyTests
         Assert.True(ok, $"a well-formed FLOAT-BINARY-32/64 item must compile at 2014:\n{string.Join("\n", diag)}");
     }
 
-    /// <summary>FLOAT-BINARY-128 / FLOAT-DECIMAL-16 / FLOAT-DECIMAL-34 (§13.18.60.4 GR16-18) are processor-dependent
+    /// <summary>FLOAT-BINARY-128 / FLOAT-DECIMAL-16 / FLOAT-DECIMAL-34 (§2023:13.18.60.4 GR16-18) are processor-dependent
     /// non-support (Annex A.3 items 17/19): rejected LOUD with COBOL1564 (never a silent non-conforming
     /// double/System.Decimal representation).</summary>
     [Theory]
@@ -65,13 +65,13 @@ public sealed class FloatFamilyTests
         EditionHarness.AssertHasDiagnostic(diag, "COBOL0900");
     }
 
-    /// <summary>PICTURE is prohibited with a floating-point usage (§13.18.60.2 — the item is picture-less):
+    /// <summary>PICTURE is prohibited with a floating-point usage (§2023:13.18.60.2 — the item is picture-less):
     /// COBOL1521, the whole-float-family guard.</summary>
     [Fact]
     public void PictureWithFloatBinary_Rejected1521()
     {
         var (ok, diag) = EditionHarness.Compile(Prog("01 WS-F PIC 9(4) USAGE FLOAT-BINARY-32."), 2014);
-        Assert.False(ok, "PICTURE with FLOAT-BINARY-32 must be rejected (ISO §13.18.60.2)");
+        Assert.False(ok, "PICTURE with FLOAT-BINARY-32 must be rejected (ISO §2023:13.18.60.2)");
         EditionHarness.AssertHasDiagnostic(diag, "COBOL1521");
     }
 }

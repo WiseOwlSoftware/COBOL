@@ -5,7 +5,7 @@ using Microsoft.Win32.SafeHandles;
 namespace WiseOwl.Cobol.Runtime.IO.Store;
 
 /// <summary>The production <see cref="IPageMedium"/>: positional reads and writes of one page per call through the
-/// connector's OWN handle (<see cref="RandomAccess"/>), so the store travels through the §9.1.15 file lock and no second
+/// connector's OWN handle (<see cref="RandomAccess"/>), so the store travels through the §2023:9.1.15 file lock and no second
 /// handle is ever taken (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.8). It owns nothing: the connector opened
 /// the handle and closes it.</summary>
 internal sealed class HandlePageMedium(SafeFileHandle handle) : IPageMedium

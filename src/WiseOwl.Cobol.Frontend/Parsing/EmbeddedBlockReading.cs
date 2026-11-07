@@ -10,22 +10,22 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// <summary>
 /// ⭐ AN EMBEDDED PRECOMPILER BLOCK IS ONE TOKEN THAT STANDS FOR WHAT ITS PRECOMPILER WRITES IN ITS PLACE, FROM BEFORE THE
 /// FIRST READER OF THE STREAM (kb/Work PB4341, review R1-1). ISO/IEC 1989 defines no EXEC construct: <c>EXEC SQL …
-/// END-EXEC</c> is the input of a vendor's precompiler, which ISO §4.2.14 lets an implementation require ("This permits an
+/// END-EXEC</c> is the input of a vendor's precompiler, which ISO §2023:4.2.14 lets an implementation require ("This permits an
 /// implementation to require components outside the COBOL implementation, such as precompilers"), and this implementation
 /// has none, so every block is refused, once, at its EXEC (COBOL5818, <see cref="Report"/>); a block left without its
 /// END-EXEC is refused as that fault (COBOL5842).
 /// <para>A block is EXEC, a word naming the embedded language, and the text through the first END-EXEC, within one unit:
-/// no separator period between them (ISO §8.3.5 rule 3, "The COBOL character period, when followed by a space, is a
+/// no separator period between them (ISO §2023:8.3.5 rule 3, "The COBOL character period, when followed by a space, is a
 /// separator"), so the period of a qualified SQL name, <c>T.A</c>, is text of the block (review R1-2). <see cref="Read"/>
 /// makes each block one <c>EMBEDDED_BLOCK</c> token spanning it and moves the rest of its tokens to the
 /// <c>EMBEDDED_BLOCK_TEXT</c> channel, which the parser does not read and the screens of the COBOL text skip
 /// (<see cref="ProgramText"/>). Where a statement may begin, the parse takes the token as one
 /// (<c>embeddedBlockStatement</c>), so a block that is the only statement of an IF's or an ELSE's branch, a WHEN, or an
-/// inline PERFORM leaves that construct whole (ISO §14.9.19.3 1)); elsewhere (an entry of WORKING-STORAGE)
+/// inline PERFORM leaves that construct whole (ISO §2023:14.9.19.3 1)); elsewhere (an entry of WORKING-STORAGE)
 /// <see cref="CobolErrorStrategy"/> consumes it as nothing. Done before the parse, every prediction sees the token: a
 /// block the parse met as text was mispredicted (<c>WHEN 1 EXEC SQL …</c> read "1 IS EXEC", a class condition) or
 /// failed a decision made before it (<c>WHEN OTHER EXEC SQL …</c>), and drew false cascades.</para>
-/// <para>⛔ EXEC IS NO RESERVED WORD (§8.9 lists none of EXEC, END-EXEC), so a program may name a data item EXEC, and
+/// <para>⛔ EXEC IS NO RESERVED WORD (§2023:8.9 lists none of EXEC, END-EXEC), so a program may name a data item EXEC, and
 /// then <c>DISPLAY EXEC SQL END-EXEC.</c> is three operands. The source reads EXEC as a block's opener only where it
 /// cannot be a word: when no EXEC of the source is one. An EXEC that opens no block (a declaration, <c>01 EXEC PIC
 /// X.</c>; a reference) means the program writes EXEC as a COBOL word, and the whole source is read as COBOL, as the
@@ -82,7 +82,7 @@ public sealed class EmbeddedBlockReading
                 var t = tokens[i];
                 // ⛔ Every token of the block that is the program's COBOL text, whatever its channel (kb/Work PB4384): a
                 // semicolon with no space after it is on the HIDDEN channel so the separator screen can judge it (ISO
-                // §8.3.5 rule 2), and inside a block it is SQL text. A token already off the COBOL text (an absent
+                // §2023:8.3.5 rule 2), and inside a block it is SQL text. A token already off the COBOL text (an absent
                 // debugging line) stays where it is.
                 if (!ProgramText.Holds(t)) continue;
                 tokens[i] = i == exec
@@ -97,7 +97,7 @@ public sealed class EmbeddedBlockReading
     /// block's last default-channel token (its END-EXEC, or the token before the separator period or the end of the text
     /// that ends an unterminated one).
     /// <para>⛔ A block needs a word after its EXEC. When that word is a user-defined word (an IDENTIFIER: SQL, CICS and
-    /// DLI are none of the reserved words of any edition, ISO §8.9) and the sentence ends before an END-EXEC (ISO §8.3.5
+    /// DLI are none of the reserved words of any edition, ISO §2023:8.9) and the sentence ends before an END-EXEC (ISO §2023:8.3.5
     /// rule 3, "The COBOL character period, when followed by a space, is a separator"), the EXEC may open a block left
     /// unterminated, a fault of the embedded text: <see cref="Read"/> reports it as itself and the blocks that do close
     /// stay one token each. EXEC followed by anything else (a reserved word, the period, a literal) is a COBOL word.</para>
@@ -154,10 +154,10 @@ public sealed class EmbeddedBlockReading
         => closed
             ? $"[{Diagnostics.DiagnosticDescriptors.COBOL5818.Code}] EXEC {language}: ISO/IEC 1989 defines no EXEC construct. "
               + $"The text through END-EXEC is an embedded {language} block, the input of a precompiler that translates it to "
-              + "COBOL before compilation (ISO §4.2.14), and this implementation has no precompiler. Run the source through "
+              + "COBOL before compilation (ISO §2023:4.2.14), and this implementation has no precompiler. Run the source through "
               + "the precompiler first and compile the COBOL it writes."
             : $"[{Diagnostics.DiagnosticDescriptors.COBOL5842.Code}] EXEC {language}: the embedded {language} block has no "
-              + "END-EXEC. The separator period that ends the sentence (ISO §8.3.5 rule 3) comes first, so the block is taken "
+              + "END-EXEC. The separator period that ends the sentence (ISO §2023:8.3.5 rule 3) comes first, so the block is taken "
               + "through the text before that period. Write END-EXEC after the block's text and before that period.";
 
     /// <summary>Does the source hold a block? Then it does not parse, whatever the parse's own syntax errors.</summary>

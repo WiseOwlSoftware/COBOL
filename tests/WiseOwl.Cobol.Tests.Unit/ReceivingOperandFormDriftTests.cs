@@ -10,10 +10,10 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ EVERY IDENTIFIER FORM THAT IS NEVER A RECEIVING OPERAND IS PARSED IN EVERY RECEIVING POSITION AND REFUSED BY ITS OWN
-/// RULE FROM ONE TABLE (kb/Work PB1551, PB1782 step 1). ISO §8.4.3 writes the exclusion into each identifier format —
-/// §8.4.3.5.3 SR2 (object-view), §8.4.3.6.3 SR1 (EXCEPTION-OBJECT), §8.4.3.7.3 SR1 (NULL), §8.4.3.8.3 SR2 (SELF and
-/// SUPER), §8.4.3.11.3 SR5 / §8.4.3.12.3 SR3 / §8.4.3.13.3 SR4 (the address-identifiers) — so a receiving slot that took
-/// only a data reference refused them as a parse error re-coded to §8.9 (COBOL0901 "is a reserved word … cannot be
+/// RULE FROM ONE TABLE (kb/Work PB1551, PB1782 step 1). ISO §2023:8.4.3 writes the exclusion into each identifier format —
+/// §2023:8.4.3.5.3 SR2 (object-view), §2023:8.4.3.6.3 SR1 (EXCEPTION-OBJECT), §2023:8.4.3.7.3 SR1 (NULL), §2023:8.4.3.8.3 SR2 (SELF and
+/// SUPER), §2023:8.4.3.11.3 SR5 / §2023:8.4.3.12.3 SR3 / §2023:8.4.3.13.3 SR4 (the address-identifiers) — so a receiving slot that took
+/// only a data reference refused them as a parse error re-coded to §2023:8.9 (COBOL0901 "is a reserved word … cannot be
 /// used as a user-defined word"): a rule the program had not broken, which would become SILENT ACCEPTANCE the moment the
 /// identifier tier is widened.
 /// <para>The shape these facts hold: <see cref="NonReceivableForm"/> has one row per member in
@@ -58,8 +58,8 @@ public sealed class ReceivingOperandFormDriftTests
                 $"NonReceivableForm.{form} has no row in ReceivingOperandForms.Rules — decide the rule that forbids it as a "
                 + "receiving operand before adding the form");
             string message = rule.Message("X");
-            Assert.Matches(@"ISO §8\.4\.3\.\d+\.3 SR\d", message);
-            Assert.StartsWith("ISO §8.4.3.", rule.Descriptor.IsoSection, StringComparison.Ordinal);
+            Assert.Matches(@"ISO §2023:8\.4\.3\.\d+\.3 SR\d", message);
+            Assert.StartsWith("ISO §2023:8.4.3.", rule.Descriptor.IsoSection, StringComparison.Ordinal);
         }
     }
 
@@ -88,12 +88,12 @@ public sealed class ReceivingOperandFormDriftTests
     {
         ["returningClause"] = "the PROCEDURE DIVISION header's RETURNING item — a definition, not a statement operand",
         ["usingByReference"] = "the PROCEDURE DIVISION header's USING BY REFERENCE data-name-1 — a formal parameter, a "
-            + "level 01/77 linkage-section data-name (§14.2.2 SR1), not a statement operand",
+            + "level 01/77 linkage-section data-name (§2023:14.2.2 SR1), not a statement operand",
         ["messagingReceiveStatement"] = "the declined 2023 asynchronous RECEIVE (Annex A.3 item 4) — accepted inert, nothing is stored",
         ["messagingSendStatement"] = "the declined 2023 asynchronous SEND (Annex A.3 item 4) — accepted inert, nothing is stored",
         ["sortGivingPhrase"] = "SORT … GIVING names FILES (file-name-2), not identifiers",
         ["mergeGivingPhrase"] = "MERGE … GIVING names FILES (file-name-2), not identifiers",
-        ["setBooleanStatement"] = "SET Format 4's receiver is condition-name-1 (§14.9.39.2), a user-defined word, not an identifier",
+        ["setBooleanStatement"] = "SET Format 4's receiver is condition-name-1 (§2023:14.9.39.2), a user-defined word, not an identifier",
     };
 
     /// <summary>The operand rules that follow a receiving keyword yet are SENDING operands — TO also introduces a value in
@@ -102,18 +102,18 @@ public sealed class ReceivingOperandFormDriftTests
     private static readonly Dictionary<string, string> SendingOperands = new()
     {
         ["sendingOperand"] = "the grammar's identifier-or-literal value: INSPECT CONVERTING's TO operand identifier-7 / "
-            + "literal-5 (§14.9.22.4 GR5 — what is said of literal-5 applies equally to identifier-7) and the AFTER/BEFORE "
+            + "literal-5 (§2023:14.9.22.4 GR5 — what is said of literal-5 applies equally to identifier-7) and the AFTER/BEFORE "
             + "INITIAL delimiter",
-        ["setToSender"] = "the TO operand of every SET format setToStatement carries: Format 7's identifier-6 (§14.9.39.2 "
-            + "Format 7 (data-pointer-assignment); its constraints are §14.9.39.3 SR19's), the address assigned, and the "
+        ["setToSender"] = "the TO operand of every SET format setToStatement carries: Format 7's identifier-6 (§2023:14.9.39.2 "
+            + "Format 7 (data-pointer-assignment); its constraints are §2023:14.9.39.3 SR19's), the address assigned, and the "
             + "value, object reference or pointer the other formats assign",
-        ["setLocaleSource"] = "SET Format 11's TO operand identifier-10 (§14.9.39.2 Format 11 (set-locale); §14.9.39.3 "
+        ["setLocaleSource"] = "SET Format 11's TO operand identifier-10 (§2023:14.9.39.2 Format 11 (set-locale); §2023:14.9.39.3 "
             + "SR25), the locale named",
     };
 
     /// <summary>The words that introduce a receiving identifier in a statement's general format: TO (MOVE, ADD, SET),
-    /// INTO, GIVING, RETURNING, REMAINDER, POINTER, VARYING, AFTER, REFERENCE (CALL / INVOKE BY REFERENCE, §14.9.4.3 SR5,
-    /// §14.9.23.3 SR20), ACCEPT, INITIALIZE, SET's own receiving list and its CONTENT OF / SIZE OF, and UNSTRING's
+    /// INTO, GIVING, RETURNING, REMAINDER, POINTER, VARYING, AFTER, REFERENCE (CALL / INVOKE BY REFERENCE, §2023:14.9.4.3 SR5,
+    /// §2023:14.9.23.3 SR20), ACCEPT, INITIALIZE, SET's own receiving list and its CONTENT OF / SIZE OF, and UNSTRING's
     /// TALLYING IN / DELIMITER IN / COUNT IN. What follows the keyword is read by <see cref="SlotOperands"/>.</summary>
     private static readonly Regex ReceivingKeyword = new(
         @"\b(?:SET|TO|INTO|GIVING|RETURNING|REMAINDER|POINTER|VARYING|AFTER|REFERENCE|ACCEPT|INITIALIZE"
@@ -229,7 +229,7 @@ public sealed class ReceivingOperandFormDriftTests
             .Select(kv => kv.Key).Order(StringComparer.Ordinal).ToList();
 
     /// <summary>⛔ NO RECEIVING PHRASE OVER A BARE DATA REFERENCE. A receiving slot written `dataReference` re-opens the
-    /// parse-error-as-§8.9 refusal for SELF / SUPER / NULL / a view / an address-identifier written there.</summary>
+    /// parse-error-as-§2023:8.9 refusal for SELF / SUPER / NULL / a view / an address-identifier written there.</summary>
     [Fact]
     public void NoReceivingPhrase_TakesABareDataReference()
     {

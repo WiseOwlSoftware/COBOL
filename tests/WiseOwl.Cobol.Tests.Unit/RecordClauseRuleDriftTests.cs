@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ THE DRIFT GUARD ON <see cref="RecordClauseRules"/>'S TABLE (kb/Work PB721) — the sibling of
 /// <see cref="FileControlKeyRuleDriftTests"/>, over the RECORD clause's own size syntax rules
-/// (ISO/IEC 1989:2023 §13.18.43.3).
+/// (ISO/IEC 1989:2023 §2023:13.18.43.3).
 /// <para>The table is the compiler's whole statement of what a RECORD clause's integers require, and it carries
 /// two things a comment cannot be trusted with: a clause number per row, and a GENERAL FORMAT per row. Both are
 /// re-derived here from <c>specs/ISO_COBOL_2023.md</c> on every run — the format column from the standard's own bare
@@ -28,7 +28,7 @@ public sealed class RecordClauseRuleDriftTests
 
     // ── The scanner is proven able to fail before any row is trusted ────────────────────────────────────────
 
-    /// <summary>⛔ A GREEN CHECK THAT NEVER LOOKED AT ANYTHING IS NOT EVIDENCE. §13.18.43.3 has exactly nine
+    /// <summary>⛔ A GREEN CHECK THAT NEVER LOOKED AT ANYTHING IS NOT EVIDENCE. §2023:13.18.43.3 has exactly nine
     /// printed syntax rules; the region is bounded by the NEXT heading, so a sentence from the neighbouring
     /// general-rules clause must NOT be found in it — and must be found where it really lives.</summary>
     [Fact]
@@ -39,7 +39,7 @@ public sealed class RecordClauseRuleDriftTests
         Assert.Equal(9, rules.Count);
         Assert.Contains("Integer-3 shall be greater than integer-2", rules[5]);
 
-        // §13.18.43.4 GR7 is the GENERAL rule about what integer-2 MEANS. It is one subclause away and reads
+        // §2023:13.18.43.4 GR7 is the GENERAL rule about what integer-2 MEANS. It is one subclause away and reads
         // like a syntax rule about the same operand — the exact neighbour a region that swallowed its successor
         // would absorb, and the exact confusion this note's own report was filed under.
         string foreign = SpecClauseText.Norm(
@@ -101,7 +101,7 @@ public sealed class RecordClauseRuleDriftTests
         }
     }
 
-    /// <summary>⛔ THE FORMAT COLUMN IS RE-DERIVED FROM THE STANDARD, never trusted. §13.18.43.3 divides its
+    /// <summary>⛔ THE FORMAT COLUMN IS RE-DERIVED FROM THE STANDARD, never trusted. §2023:13.18.43.3 divides its
     /// rules with bare <c>FORMAT n</c> lines, and that division decides which clauses a rule is in force over —
     /// a row screened on the wrong format either fires on source the standard permits or is silent on source it
     /// forbids, and neither shows up as a compile error.</summary>
@@ -147,7 +147,7 @@ public sealed class RecordClauseRuleDriftTests
     }
 
     /// <summary>⛔ THE ABSENCES ARE DERIVED, NOT ASSUMED. The table deliberately carries no row for SR7 or SR8,
-    /// and the whole justification is §5.5 1)'s sentence about what <c>integer-n</c> IS: "a fixed-point integer
+    /// and the whole justification is §2023:5.5 1)'s sentence about what <c>integer-n</c> IS: "a fixed-point integer
     /// literal that shall be unsigned and nonzero unless otherwise specified in the associated rules". UNSIGNED
     /// is what makes a negative integer-2 unwritable — so the general format, not a screen, discharges those two
     /// rules — and "unless otherwise specified" is what makes SR7/SR8 the express permission for ZERO. If that
@@ -204,7 +204,7 @@ public sealed class RecordClauseRuleDriftTests
         Assert.All(rows, r => Assert.Equal(RecordRuleSubject.DependingOperand, r.Subject));
     }
 
-    /// <summary>⛔ THE OPERAND NAMES ARE THE FORMAT'S OWN. §13.18.43.2 spells Format 1 with integer-1, Format 2
+    /// <summary>⛔ THE OPERAND NAMES ARE THE FORMAT'S OWN. §2023:13.18.43.2 spells Format 1 with integer-1, Format 2
     /// with integer-2/integer-3 and Format 3 with integer-4/integer-5, and a message that named the wrong pair
     /// would send the reader to the wrong general format. Re-derived from the printed rules: SR3 names
     /// integer-1, SR5 names integer-2 and integer-3, SR9 names integer-4 and integer-5.</summary>
@@ -230,8 +230,8 @@ public sealed class RecordClauseRuleDriftTests
 
     /// <summary>⛔ THE FORMAT PROJECTION IS ONE-TO-ONE WITH THE MODEL, and this is the arm a "does it answer the
     /// right thing" assertion passes without: every way the binder can record a RECORD clause maps to exactly one
-    /// §13.18.43.2 format, and an entry with NO clause maps to none — which is what keeps the screen silent where
-    /// §13.18.43.4 GR5 implies a clause from the record descriptions.</summary>
+    /// §2023:13.18.43.2 format, and an entry with NO clause maps to none — which is what keeps the screen silent where
+    /// §2023:13.18.43.4 GR5 implies a clause from the record descriptions.</summary>
     [Fact]
     public void TheClauseProjection_MapsEachBoundShapeToItsOwnFormatAndNoClauseToNone()
     {

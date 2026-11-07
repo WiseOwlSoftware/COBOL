@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> ISO 1989:2023 §14.9.51.3 SR3: "If the organization of the write file is indexed or relative, format 2 shall
+*> ISO 1989:2023 §2023:14.9.51.3 SR3: "If the organization of the write file is indexed or relative, format 2 shall
 *> be specified." Format 2 prints no ADVANCING and no END-OF-PAGE phrase, so a print-control phrase on an
 *> indexed WRITE is a syntax-rule violation - the mirror of SR2, which already lands on COBOL1720. It used
 *> to be a COBOL1756 deferral ("print-control phrases are for sequential print files") and a run-unit abort.

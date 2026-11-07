@@ -8,7 +8,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ THE SIMPLE-INSERTION DRIFT PIN. ISO §13.18.40.5 rule 3 names the simple insertion editing symbols once —
+/// ⛔ THE SIMPLE-INSERTION DRIFT PIN. ISO §2023:13.18.40.5 rule 3 names the simple insertion editing symbols once —
 /// "the symbols 'B', '0', '/', ',' and, if literal=1 is specified, character-1 are used as the simple insertion
 /// editing symbols" — and rules 6 and 7 both spend that set again, in identical words: "Any of the simple
 /// insertion editing symbols embedded in this string or to the immediate right of this string are part of the
@@ -24,11 +24,11 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 public class CobolEditSimpleInsertionDriftTests
 {
-    /// <summary>An IS-form PICTURE EDITING phrase (§13.18.40.3 SR12 "If literal-1 is specified") — rule 3's
+    /// <summary>An IS-form PICTURE EDITING phrase (§2023:13.18.40.3 SR12 "If literal-1 is specified") — rule 3's
     /// fifth simple insertion symbol, which is why it is enumerated beside the four fixed ones.</summary>
     private static readonly CobolEdit.EditRule[] IsForm = [new('T', ":", ":", SimpleInsertion: true, Floating: false)];
 
-    /// <summary>Every simple insertion symbol of a picture, with the character it inserts (§13.18.40.4 GR14:
+    /// <summary>Every simple insertion symbol of a picture, with the character it inserts (§2023:13.18.40.4 GR14:
     /// 'B' the space, '0' the zero, '/' the slant, ',' the comma; rule 3: character-1 inserts literal-1) and the
     /// rules that declare it. The four fixed symbols come from the runtime's own set — never a literal list.</summary>
     public static IEnumerable<object[]> Symbols()
@@ -86,13 +86,13 @@ public class CobolEditSimpleInsertionDriftTests
     [MemberData(nameof(Symbols))]
     public void Alphanumeric_InsertsTheSameCharacterTheNumericPathDoes(char symbol, char inserted, bool editing)
     {
-        // §13.18.40.5 Table 7 gives category alphanumeric-edited SIMPLE INSERTION, and §13.18.40.4 GR7 admits
+        // §2023:13.18.40.5 Table 7 gives category alphanumeric-edited SIMPLE INSERTION, and §2023:13.18.40.4 GR7 admits
         // character-1 as one of its constituents — the same set, so the same inserted character.
         string image = CobolEdit.FormatSimpleInsertion("ABCD", $"XX{symbol}XX", editing ? IsForm : null);
         Assert.Equal($"AB{inserted}CD", image);
     }
 
-    /// <summary>⛔ THE NATIONAL-EDITED TWIN, same theory data, same renderer (kb/Work PB492). §13.18.40.5 Table 7
+    /// <summary>⛔ THE NATIONAL-EDITED TWIN, same theory data, same renderer (kb/Work PB492). §2023:13.18.40.5 Table 7
     /// gives category NATIONAL-EDITED the SAME one type of editing, "Simple insertion", that it gives
     /// alphanumeric-edited, so <c>PIC NN{symbol}NN</c> shall render exactly what <c>PIC XX{symbol}XX</c> renders.
     /// This fails if anyone re-splits the renderer per category: the national arm had no renderer AT ALL, because
@@ -106,7 +106,7 @@ public class CobolEditSimpleInsertionDriftTests
         Assert.Equal(CobolEdit.FormatSimpleInsertion("ABCD", $"XX{symbol}XX", editing ? IsForm : null), national);
     }
 
-    /// <summary>⛔ THE EDITED-CATEGORY SET IS ONE SET — ISO §13.18.40.4 GR7 (alphanumeric-edited) and GR10
+    /// <summary>⛔ THE EDITED-CATEGORY SET IS ONE SET — ISO §2023:13.18.40.4 GR7 (alphanumeric-edited) and GR10
     /// (national-edited) name it word for word: "at least one instance of character-1 or one of the symbols from
     /// the set 'B', '0', '/'". It is rule 3's simple-insertion set MINUS the grouping separator, which Table 10
     /// admits only beside the numeric rows. Derived here from <see cref="CobolEdit.SimpleInsertionSymbols"/>, so
@@ -120,7 +120,7 @@ public class CobolEditSimpleInsertionDriftTests
         // A DECLARED PICTURE EDITING character-1 is a member at both GR7 and GR10 — the leg the two hand-written
         // literal lists left out, which refused `PIC NNTNN EDITING T IS N":"` as an invalid PICTURE.
         Assert.True(CobolEdit.IsEditedCategorySymbol('T', new HashSet<char> { 'T' }));
-        Assert.True(CobolEdit.IsEditedCategorySymbol('t', new HashSet<char> { 'T' }));   // §8.1.3 GR3 case equivalence
+        Assert.True(CobolEdit.IsEditedCategorySymbol('t', new HashSet<char> { 'T' }));   // §2023:8.1.3 GR3 case equivalence
         Assert.False(CobolEdit.IsEditedCategorySymbol('T'));
     }
 
@@ -129,7 +129,7 @@ public class CobolEditSimpleInsertionDriftTests
     {
         // Rule 3's four fixed symbols, and no other PICTURE symbol: the currency symbol and '+ - CR DB' are FIXED
         // insertion (rule 5), '.' is SPECIAL insertion (rule 4), 'Z' and '*' are suppression symbols (rule 7),
-        // and the rest are digit / character / scaling positions (§13.18.40.4 GR14).
+        // and the rest are digit / character / scaling positions (§2023:13.18.40.4 GR14).
         foreach (char s in "B0/,") Assert.True(CobolEdit.IsSimpleInsertionSymbol(s), $"'{s}' is a rule-3 symbol");
         foreach (char s in "9ZAXSVPEN1CD$+-*.") Assert.False(CobolEdit.IsSimpleInsertionSymbol(s), $"'{s}' is not");
         Assert.Equal(4, CobolEdit.SimpleInsertionSymbols.Length);
@@ -138,7 +138,7 @@ public class CobolEditSimpleInsertionDriftTests
     [Fact]
     public void TheSeparatorPairFollowsWhicheverCharacterIsTheGroupingSeparator()
     {
-        // §13.18.40.2 SR13: "The rules for the symbol period apply to the symbol comma, and the rules for the
+        // §2023:13.18.40.2 SR13: "The rules for the symbol period apply to the symbol comma, and the rules for the
         // symbol comma apply to the symbol period." Whichever character is the GROUPING separator is the simple
         // insertion symbol; the other is the decimal point, whose editing is special insertion (rule 4).
         Assert.True(CobolEdit.IsSimpleInsertionSymbol(',', grouping: ','));
@@ -150,9 +150,9 @@ public class CobolEditSimpleInsertionDriftTests
     [Fact]
     public void ASimpleInsertionSymbolLeftOfTheStringIsNotPartOfIt()
     {
-        // Rules 6 and 7 say EMBEDDED or "to the immediate right" — never to the left. §13.18.40.6 Table 10 admits
+        // Rules 6 and 7 say EMBEDDED or "to the immediate right" — never to the left. §2023:13.18.40.6 Table 10 admits
         // 'B 0 /' and ',' before a 'Z' (both columns carry an 'x' against the left-of-point 'Z *' row), and
-        // §13.18.40.4 GR15 confirms the render from the VALIDATE side: "the character zero if the symbol '0' is
+        // §2023:13.18.40.4 GR15 confirms the render from the VALIDATE side: "the character zero if the symbol '0' is
         // neither part of floating insertion editing nor of zero suppression with replacement editing".
         Assert.Equal("0  1", CobolEdit.Format(1, 0, "0ZZ9"));
         Assert.Equal(",  1", CobolEdit.Format(1, 0, ",ZZ9"));
@@ -166,7 +166,7 @@ public class CobolEditSimpleInsertionDriftTests
         // Rule 5: "Character-1, the currency symbol and the editing sign control symbols '+', '-', 'CR' and 'DB'
         // are used as the fixed insertion editing symbols. … When character-1 is used, and is not a simple
         // insertion character, it represents literal-2, or literal-3 as the insertion characters." A FOR phrase
-        // is that form (§13.18.40.3 SR12), so it is NOT part of the 'Z' string beside it — and the distinction
+        // is that form (§2023:13.18.40.3 SR12), so it is NOT part of the 'Z' string beside it — and the distinction
         // is not readable off the rendered characters: this phrase renders ':' for either sign, exactly like the
         // IS form, and only the FORM separates them.
         CobolEdit.EditRule[] forForm = [new('U', ":", ":", SimpleInsertion: false, Floating: false)];

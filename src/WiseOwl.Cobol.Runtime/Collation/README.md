@@ -68,7 +68,7 @@ decompositions, `Unified_Ideograph`, block boundaries, assigned ranges).
 be able to place a character strictly *between* two of them (Spanish ñ between n and o). Order is preserved
 exactly; secondaries and tertiaries carry the source values; the `*` variable marking becomes `IsVariable`.
 `Lookup('a')` therefore reports primary `0x23EC0` for the source `0x23EC`. Everything the source file does not
-list is computed the way UTS #10 says: Hangul syllables through their conjoining jamo (§3.12 of the Unicode
+list is computed the way UTS #10 says: Hangul syllables through their conjoining jamo (§2023:3.12 of the Unicode
 Standard); Han / Tangut / Nushu / Khitan ideographs and unassigned code points through Table 16's two-element
 implicit weights (`[.AAAA.0020.0002][.BBBB.0000.0000]`, with the 17.0 siniform bases FB00–FB03, core Han FB40,
 other Han FB80, everything else FBC0 — the ranges are derived from the UCD by the generator and recorded in the
@@ -220,7 +220,7 @@ literal-phrase table, its national twin, and the LOCALE / ordering-table arm ove
 comparison consumer (`CobolString.Compare`, `CobolSort`, the indexed-file key comparers, `MAX`/`MIN`, `ORD`/`CHAR`,
 `HIGH-VALUE`/`LOW-VALUE`) takes that carrier. Which arm a program gets is decided at bind time from the ALPHABET /
 PROGRAM COLLATING SEQUENCE / ORDER TABLE clauses; the locale arm resolves the run-unit's current locale (or the
-named one) at each use, as §12.3.7.4 GR7e requires. `docs/rearchitecture/DESIGN-locale-facility.md` §4.4/§4.9 is
+named one) at each use, as §2023:12.3.7.4 GR7e requires. `docs/rearchitecture/DESIGN-locale-facility.md` §4.4/§4.9 is
 the design of that carrier and of its consumers; this README stops at the engine. (Landing state: the carrier (T2)
 and the LOCALE arm for the CURRENT-locale `IS LOCALE` phrase with its consumers (T3) landed 2026-08-18 — kb/Work
 PB101; the named `IS LOCALE locale-name` form waits for the LOCALE clause (T1); STANDARD-COMPARE / ORDER TABLE (T7)

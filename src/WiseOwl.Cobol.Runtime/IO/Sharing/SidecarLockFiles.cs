@@ -8,8 +8,8 @@ namespace WiseOwl.Cobol.Runtime.IO;
 /// <summary>
 /// ⛔ THE LOCK-FILE PRIMITIVE OF EVERY HOST THAT HAS NO OPEN-FILE-DESCRIPTION LOCKS — macOS above all (kb/Work PB2484,
 /// PB2936): ONE LOCK FILE PER HOLDER, in a lock directory BESIDE the physical file, published atomically and probed
-/// without excluding any other prober. <see cref="SidecarColumnLockHost"/> (the §9.1.15 file lock) and
-/// <see cref="SidecarRegionLocks"/> (the §9.1.16 record locks and the store mutex) are two POLICIES over this one
+/// without excluding any other prober. <see cref="SidecarColumnLockHost"/> (the §2023:9.1.15 file lock) and
+/// <see cref="SidecarRegionLocks"/> (the §2023:9.1.16 record locks and the store mutex) are two POLICIES over this one
 /// mechanism, so the rules that make it race-free are written here and nowhere else.
 /// <para><b>The directory.</b> <c>.wolk-&lt;16 hex&gt;</c>, named by the SHA-256 of the physical file's name under the
 /// host's case rule (<see cref="HostFile.PhysicalFileKey"/>), so two spellings of one file reach one directory and two

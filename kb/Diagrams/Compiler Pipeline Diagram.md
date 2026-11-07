@@ -59,13 +59,13 @@ per-phase detail is in [[kb/Compiler/Pipeline-to-ISO-Mapping]].
 ```mermaid
 flowchart TD
     PRE["0 · PREPROCESS<br/>ISO: §6 ref-format · §7 COPY/REPLACE/>>directives<br/>Rule: col-7 indicator gates (VCR 2/94)<br/>IR: none (text + Turn/Flag/Words carriers)"]
-    LEX["1 · LEX<br/>ISO: §8.3 words/literals/PICTURE<br/>Rule: §8.3.2 word-formation (63-char 2023)<br/>IR: token stream"]
+    LEX["1 · LEX<br/>ISO: §2023:8.3 words/literals/PICTURE<br/>Rule: §2023:8.3.2 word-formation (63-char 2023)<br/>IR: token stream"]
     PARSE["2 · PARSE (superset)<br/>ISO: §11–§16 syntax formats<br/>Rule: context-free only (edition deferred)<br/>IR: CST"]
-    BIND["3 · BIND (AST+IR)<br/>ISO: §8.4 refs · §13 data · §14.9 verbs<br/>Rule: §14.9.25.3 SR1 MOVE · §8.8.4 precedence<br/>IR: bound tree + Place"]
-    VAL["4 · VALIDATE (edition gate)<br/>ISO: Annex E/F · §8.9 · §4 conformance<br/>Rule: 0900 intro / 0902 removed / 0901 reserved<br/>IR: gated bound tree — HALT on error"]
+    BIND["3 · BIND (AST+IR)<br/>ISO: §2023:8.4 refs · §13 data · §2023:14.9 verbs<br/>Rule: §2023:14.9.25.3 SR1 MOVE · §2023:8.8.4 precedence<br/>IR: bound tree + Place"]
+    VAL["4 · VALIDATE (edition gate)<br/>ISO: Annex E/F · §2023:8.9 · §4 conformance<br/>Rule: 0900 intro / 0902 removed / 0901 reserved<br/>IR: gated bound tree — HALT on error"]
     OPT["5 · OPTIMIZE<br/>delegated → C# compiler + JIT<br/>Rule: preserve observable behavior<br/>IR: (unchanged)"]
     GEN["6 · CODEGEN (Roslyn)<br/>ISO: §14 verb semantics → C#<br/>Rule: PC dispatch · loud-failure (D8)<br/>IR: bound tree → .g.cs → assembly"]
-    RUN["7 · RUNTIME<br/>ISO: §8.8 · §9.1.13 · §14.6–.9 · §15<br/>Rule: ROUNDED §14.7.4 · FILE STATUS · EC Table 13<br/>IR: node → runtime call"]
+    RUN["7 · RUNTIME<br/>ISO: §2023:8.8 · §2023:9.1.13 · §2023:14.6–.9 · §15<br/>Rule: ROUNDED §2023:14.7.4 · FILE STATUS · EC Table 13<br/>IR: node → runtime call"]
     PRE --> LEX --> PARSE --> BIND --> VAL --> OPT --> GEN --> RUN
     VAL -. "0900/0902/0901" .-> STOP["diagnostics → HALT if error"]
 ```
@@ -75,12 +75,12 @@ flowchart TD
 | Phase | ISO constructs | Rules enforced | IR nodes / links |
 |---|---|---|---|
 | Preprocess | COPY/REPLACE, `>>` directives (§7) | ref-format §6 | — → [[kb/Spec/Lookup/Constraints]] |
-| Lex | words, literals, PICTURE (§8.3) | word-formation §8.3.2 | tokens → [[kb/Spec/Lookup/Keywords]] |
+| Lex | words, literals, PICTURE (§2023:8.3) | word-formation §2023:8.3.2 | tokens → [[kb/Spec/Lookup/Keywords]] |
 | Parse | divisions/statements/expr (§11–§16) | syntax formats | CST → [[kb/Spec/Lookup/Grammar]] |
-| Bind | data items, verbs, refs (§13/§14/§8.4) | MOVE SR1, precedence, category | `Bound*`, `Place` → [[kb/Spec/Lookup/IR Mapping]] |
+| Bind | data items, verbs, refs (§13/§14/§2023:8.4) | MOVE SR1, precedence, category | `Bound*`, `Place` → [[kb/Spec/Lookup/IR Mapping]] |
 | Validate | edition-varying constructs (Annex E/F) | 0900/0901/0902/0903 | gate → [[kb/Spec/Lookup/Semantic Rules]] |
 | Codegen | all verbs (§14) | PC dispatch, loud-failure | render → [[kb/Spec/Lookup/IR Mapping]] |
-| Runtime | numerics/files/intrinsics/EC (§8.8/§9/§14/§15) | ROUNDED, FILE STATUS, EC | calls → [[kb/Spec/Lookup/Runtime Mapping]] |
+| Runtime | numerics/files/intrinsics/EC (§2023:8.8/§9/§14/§15) | ROUNDED, FILE STATUS, EC | calls → [[kb/Spec/Lookup/Runtime Mapping]] |
 
 **Full mapping:** [[kb/Compiler/Pipeline-to-ISO-Mapping]].
 

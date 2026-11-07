@@ -6,7 +6,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §8.7.5.2 SR1 SR3 SR5 SR7 SR8 SR10 — relop spellings agree
+      *> ISO §2023:8.7.5.2 SR1 SR3 SR5 SR7 SR8 SR10 — relop spellings agree
       *> SR1:  "Format 1 specifies simple relational operators."
       *> SR3:  "> is an abbreviation for GREATER THAN."
       *> SR5:  "< is an abbreviation for LESS THAN."
@@ -14,18 +14,18 @@
       *> SR8:  "NOT = is an abbreviation for NOT EQUAL."
       *> SR10: "<= is an abbreviation for LESS THAN OR EQUAL TO."
       *> cite.py --check:
-      *>   OK  §8.7.5.2 1)  (Syntax rules)
-      *>   OK  §8.7.5.2 3)  (Syntax rules)
-      *>   OK  §8.7.5.2 5)  (Syntax rules)
-      *>   OK  §8.7.5.2 7)  (Syntax rules)
-      *>   OK  §8.7.5.2 8)  (Syntax rules)
-      *>   OK  §8.7.5.2 10)  (Syntax rules)
-      *>   OK  §8.8.4.12.4 1)  (General rule)  abbreviated combined
+      *>   OK  §2023:8.7.5.2 1)  (Syntax rules)
+      *>   OK  §2023:8.7.5.2 3)  (Syntax rules)
+      *>   OK  §2023:8.7.5.2 5)  (Syntax rules)
+      *>   OK  §2023:8.7.5.2 7)  (Syntax rules)
+      *>   OK  §2023:8.7.5.2 8)  (Syntax rules)
+      *>   OK  §2023:8.7.5.2 10)  (Syntax rules)
+      *>   OK  §2023:8.8.4.12.4 1)  (General rule)  abbreviated combined
       *>       relation: "the last stated relational operator were
       *>       inserted in place of the omitted relational operator"
-      *> §8.7.5.1 (general format): every operator is "IS <op>" with IS
+      *> §2023:8.7.5.1 (general format): every operator is "IS <op>" with IS
       *> optional (not underlined) and THAN / TO optional; GREATER,
-      *> LESS, EQUAL, NOT, OR are the required words. §8.8.4.12.2 lets a
+      *> LESS, EQUAL, NOT, OR are the required words. §2023:8.8.4.12.2 lets a
       *> simple-relational-operator follow AND / OR with the subject
       *> omitted (SR1 is what makes Format 1 eligible there).
       *> A = 5 is compared with X = 3, 5, 7 in turn; each line shows the

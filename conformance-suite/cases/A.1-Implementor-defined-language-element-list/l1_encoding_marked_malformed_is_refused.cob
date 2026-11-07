@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §8.1.3.2 GR1 (Annex A.1 item 25) - the counterpart of
+      *> ISO §2023:8.1.3.2 GR1 (Annex A.1 item 25) - the counterpart of
       *> l1_encoding_unmarked_non_utf8_is_latin1.
       *>   cite.py --check 8.1.3.2 "The implementor shall define a
       *>     mapping of each basic letter, basic digit, basic special"

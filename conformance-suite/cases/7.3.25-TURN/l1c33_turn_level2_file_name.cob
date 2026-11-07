@@ -5,19 +5,19 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §7.3.25.4 GR3 — level-2 EC-I-O + file-name-1
+      *> ISO §2023:7.3.25.4 GR3 — level-2 EC-I-O + file-name-1
       *> "With the exception of EC-I-O-WARNING, if exception-name-1 is
       *> one of the level-2 exception-names, the effect is as if that
       *> TURN directive were specified containing all exception-names
       *> that are subordinate to that level-2 exception-name. If
       *> file-name-1 is specified, the effect is as if file-name-1 were
       *> specified for each of these exception-names."
-      *>   cite.py: OK  §7.3.25.4 3)  (General rules)
-      *> Supporting: §9.1.13.1 - an I-O status '1x' is associated with
-      *> EC-I-O-AT-END; §7.3.25.4 GR6 "if file-name-1 is specified,
+      *>   cite.py: OK  §2023:7.3.25.4 3)  (General rules)
+      *> Supporting: §2023:9.1.13.1 - an I-O status '1x' is associated with
+      *> EC-I-O-AT-END; §2023:7.3.25.4 GR6 "if file-name-1 is specified,
       *> checking is enabled only for exception conditions associated
-      *> with that file-name"; §14.6.13.1.1 - a raised exception sets
-      *> the last exception status; §15.33.3 1) EXCEPTION-STATUS returns
+      *> with that file-name"; §2023:14.6.13.1.1 - a raised exception sets
+      *> the last exception status; §2023:15.33.3 1) EXCEPTION-STATUS returns
       *> spaces "If the last exception status indicates no exception".
       *> DERIVATION. '>>TURN EC-I-O F1 CHECKING ON' is, by GR3, the same
       *> as naming every level-3 EC-I-O-* (among them EC-I-O-AT-END)

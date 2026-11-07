@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> PB4794 review R1-1 - ISO §15.3 6) (cite.py --check 15.3 OK: "will always result in an integer value") and §15.7.4 1) a)
+      *> PB4794 review R1-1 - ISO §2023:15.3 6) (cite.py --check 15.3 OK: "will always result in an integer value") and §2023:15.7.4 1) a)
       *> (FUNCTION ABS of a zero or positive argument is "(argument-1)"). 2 ** -20 is a power to an integer exponent, not a nested
       *> quotient: the arithmetic stores it exactly (0.00000095367431640625, 20 fraction digits), so 2 ** -20 * 1048576 is exactly 1,
       *> the argument of ABS always results in an integer, ABS is an Integer function and FUNCTION FACTORIAL accepts it.

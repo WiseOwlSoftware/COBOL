@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Tests.Shared;
 /// so there is no result being discarded". That ground is false for any program that WRITES: the killed first
 /// attempt had already created, appended to or rewritten files in its run directory, and the retry ran in that
 /// directory. The NIST program IX216A opens an absent OPTIONAL indexed file with OPEN EXTEND and expects I-O status
-/// 05 (ISO/IEC 1989:2023 §14.9.27.4 GR17, "the file is created" because it is not present); the first attempt, killed
+/// 05 (ISO/IEC 1989:2023 §2023:14.9.27.4 GR17, "the file is created" because it is not present); the first attempt, killed
 /// by the 120 s budget, had created the file, so the retry found it PRESENT and answered 00. One test of 17,812 went
 /// red on the Linux gate with <c>OPEN EXTEND: EXP: 05 FAIL*</c>, a measurement taken from the wrong starting state and
 /// reported as a value (the A12 failure class this observer exists to prevent, plan §11 A12).

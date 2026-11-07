@@ -5,7 +5,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// The figurative constant <c>ALL literal-1</c> (ISO/IEC 1989:2023 §8.3.3.6.4, Format 6). In a width-specified context
+/// The figurative constant <c>ALL literal-1</c> (ISO/IEC 1989:2023 §2023:8.3.3.6.4, Format 6). In a width-specified context
 /// — a VALUE clause, a fixed-length receiver, a level-88 VALUE, or a compared-with operand — the literal is repeated
 /// character by character until its length is ≥ the associated width, then truncated from the right to that width
 /// (GR2). In a length-unspecified context (DISPLAY), the literal is used once (GR3c). Each result is derived from the
@@ -20,7 +20,7 @@ public sealed class AllLiteralDifferentialTests
         string want = CutRunner.Normalize(expected);
         var (cok, cout, cdetail) = WiseOwlCobol.CompileAndRun(source);
         Assert.True(cok, $"WiseOwl COBOL failed: {cdetail}");
-        Assert.Equal(want, cout);                       // conformance to ISO §8.3.3.6.4
+        Assert.Equal(want, cout);                       // conformance to ISO §2023:8.3.3.6.4
     }
 
     private static string Program(string ws, string proc) => $"""

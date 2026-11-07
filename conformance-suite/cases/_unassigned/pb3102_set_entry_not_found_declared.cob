@@ -19,25 +19,25 @@
       *> row's loss, because three other sources declare the name.
       *>
       *> THE RULES.
-      *> §8.4.3.13.4 GR4: "If the runtime system cannot locate the
+      *> §2023:8.4.3.13.4 GR4: "If the runtime system cannot locate the
       *>   program, the EC-PROGRAM-NOT-FOUND exception condition is set
       *>   to exist and the value of the address-identifier is the
       *>   predefined address NULL."
-      *>   OK  §8.4.3.13.4 4)  (General rules)
-      *> §14.6.13.1.1: "If checking for an exception condition is
+      *>   OK  §2023:8.4.3.13.4 4)  (General rules)
+      *> §2023:14.6.13.1.1: "If checking for an exception condition is
       *>   enabled and an exception status indicator is set as a result
       *>   of an exception detected during the execution of a statement,
       *>   the associated exception condition is raised".
-      *>   OK  §14.6.13.1.1  (General)
-      *> §14.6.13.1.3 5): checking enabled and an applicable USE
+      *>   OK  §2023:14.6.13.1.1  (General)
+      *> §2023:14.6.13.1.3 5): checking enabled and an applicable USE
       *>   statement: the declarative is executed; "If execution of the
       *>   declarative completes normally the execution of the run unit
       *>   is terminated abnormally" - so the declarative RESUMEs.
-      *>   OK  §14.6.13.1.3 5)  (Fatal exception conditions)
-      *> §14.9.33.4 GR2 a): NEXT STATEMENT's implicit CONTINUE
+      *>   OK  §2023:14.6.13.1.3 5)  (Fatal exception conditions)
+      *> §2023:14.9.33.4 GR2 a): NEXT STATEMENT's implicit CONTINUE
       *>   "immediately follows the end of the statement that was
       *>   executing".
-      *>   OK  §14.9.33.4 2) a)  (General rules)
+      *>   OK  §2023:14.9.33.4 2) a)  (General rules)
       *>
       *> DERIVATION.
       *> FOUND-SET -- PB3102SB is an outermost program of this run unit,

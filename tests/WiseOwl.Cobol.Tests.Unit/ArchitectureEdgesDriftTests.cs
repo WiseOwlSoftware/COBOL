@@ -189,7 +189,7 @@ public sealed class ArchitectureEdgesDriftTests
         Assert.Empty(file.CheckCensus("c0ffee000000", new Dictionary<(string, string), int> { [("P.Low", "P.Mid")] = 1, [("P.Mid", "P.Low")] = 3 }));
     }
 
-    /// <summary>THE RATCHET ONLY FALLS (kb/Work PB2417, branch review R1-1; §8.1 "The ratchet and the removers"): run on a
+    /// <summary>THE RATCHET ONLY FALLS (kb/Work PB2417, branch review R1-1; DESIGN-architecture-review §8.1 "The ratchet and the removers"): run on a
     /// measurement that adds a pair, swaps one pair for another inside a row (the reviewer's plant: the from type already
     /// has a pair in the row, so a reach rule would have named its remover), adds a row, or grows a census count, the
     /// ratchet writes none of it — the new pair is not listed, gets no remover and stays red, and the grown count stays
@@ -252,7 +252,7 @@ public sealed class ArchitectureEdgesDriftTests
         Assert.Empty(afterRemoval.CheckWalk(removed, PlantedNamespaces, noCensus));
     }
 
-    /// <summary>THE LANDING OF A REMOVER (kb/Work PB2417, branch review R2-1; §8.1 "The landing of a remover"), in the
+    /// <summary>THE LANDING OF A REMOVER (kb/Work PB2417, branch review R2-1; DESIGN-architecture-review §8.1 "The landing of a remover"), in the
     /// PB4319 shape: the remover's landing takes a row's last walked pair while the newest census still counts the row
     /// (a record older than the landing, or consts and <c>nameof</c>s the walk cannot see). Ratcheted at that census the
     /// row stays, census-only, naming the landed remover: both observers pass and <c>work.py check</c> refuses the

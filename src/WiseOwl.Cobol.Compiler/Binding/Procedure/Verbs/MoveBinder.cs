@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Binding.Procedure;
 using Core = CobolParserCore;
 
 /// <summary>
-/// The MOVE figurative-constant edition gates (ISO/IEC 1989:2023 §14.9.25.3 SR5; roadmap Phase 2 W2 track A —
+/// The MOVE figurative-constant edition gates (ISO/IEC 1989:2023 §2023:14.9.25.3 SR5; roadmap Phase 2 W2 track A —
 /// VCR rows 1 / 92 / 128): SR5 permits "an ALL "literal" figurative constant (containing only digits) or an ALL
 /// symbolic-character (representing a digit)" to move "to an integer numeric item"; "in all other cases, the move
 /// of an alphanumeric figurative constant (SPACE, QUOTE, HIGH-VALUE, LOW-VALUE, ALL "literal", or ALL
@@ -36,8 +36,8 @@ using Core = CobolParserCore;
 ///
 /// <para>⛔ The columns are SETS and NULLABLE clauses, not flags, because the three verbs' rules genuinely
 /// differ and a scalar "the function must be alphanumeric" column would reject legal source: RELEASE
-/// (§14.9.32.3 SR2) and WRITE (§14.9.51.3 SR4) admit an alphanumeric or national function, REWRITE
-/// (§14.9.35.3 SR9) also admits a BOOLEAN one, and only RELEASE (§14.9.32.3 SR4) forbids a zero-length
+/// (§2023:14.9.32.3 SR2) and WRITE (§2023:14.9.51.3 SR4) admit an alphanumeric or national function, REWRITE
+/// (§2023:14.9.35.3 SR9) also admits a BOOLEAN one, and only RELEASE (§2023:14.9.32.3 SR4) forbids a zero-length
 /// literal-1. Adding the next FROM phrase is a row here, not another screen
 /// (feedback_model_the_rule_shape_not_one_case).</para>
 /// </summary>
@@ -62,66 +62,66 @@ internal sealed record FromPhraseRules(
     /// property of the VERB, not of an occurrence of it, so all five are singletons.</summary>
     public ImplicitMovePhrase Phrase { get; } = new(Statement, MoveRuleCite);
 
-    /// <summary>RELEASE (ISO §14.9.32) — the only FROM phrase carrying the zero-length-literal rule.</summary>
+    /// <summary>RELEASE (ISO §2023:14.9.32) — the only FROM phrase carrying the zero-length-literal rule.</summary>
     public static readonly FromPhraseRules Release = new(
         "RELEASE FROM",
-        "ISO §14.9.32.4 GR4 a); §14.9.32.3 SR3",
+        "ISO §2023:14.9.32.4 GR4 a); §2023:14.9.32.3 SR3",
         [PicCategory.Alphanumeric, PicCategory.National],
-        "ISO §14.9.32.3 SR2 — \"If identifier-1 is a function-identifier, it shall reference an alphanumeric or "
+        "ISO §2023:14.9.32.3 SR2 — \"If identifier-1 is a function-identifier, it shall reference an alphanumeric or "
         + "national function.\"",
-        "ISO §14.9.32.3 SR4 — \"Literal-1 shall not be a zero-length literal.\"");
+        "ISO §2023:14.9.32.3 SR4 — \"Literal-1 shall not be a zero-length literal.\"");
 
-    /// <summary>WRITE (ISO §14.9.51). §14.9.51.3 SR4 is UNCONDITIONAL and stricter than the FILE-less SR11
+    /// <summary>WRITE (ISO §2023:14.9.51). §2023:14.9.51.3 SR4 is UNCONDITIONAL and stricter than the FILE-less SR11
     /// ("alphanumeric, boolean, or national"), so a conforming program satisfies both only inside SR4's set —
     /// which is what is enforced. The FILE-phrase arm (SR10) is unreachable: Annex A.4.13 item 2 is declined.</summary>
     public static readonly FromPhraseRules Write = new(
         "WRITE FROM",
-        "ISO §14.9.51.4 GR5 a); §14.9.51.3 SR6",
+        "ISO §2023:14.9.51.4 GR5 a); §2023:14.9.51.3 SR6",
         [PicCategory.Alphanumeric, PicCategory.National],
-        "ISO §14.9.51.3 SR4 — \"If identifier-1 is a function-identifier, it shall reference an alphanumeric or "
+        "ISO §2023:14.9.51.3 SR4 — \"If identifier-1 is a function-identifier, it shall reference an alphanumeric or "
         + "national function.\"",
         null);
 
-    /// <summary>REWRITE (ISO §14.9.35). §14.9.35.3 SR9's set is the WIDER one — it admits a boolean function —
+    /// <summary>REWRITE (ISO §2023:14.9.35). §2023:14.9.35.3 SR9's set is the WIDER one — it admits a boolean function —
     /// and it is the applicable rule because the FILE phrase (SR8's condition) is declined, A.4.13 item 2.</summary>
     public static readonly FromPhraseRules Rewrite = new(
         "REWRITE FROM",
-        "ISO §14.9.35.4 GR7 a); §14.9.35.3 SR6",
+        "ISO §2023:14.9.35.4 GR7 a); §2023:14.9.35.3 SR6",
         [PicCategory.Alphanumeric, PicCategory.Boolean, PicCategory.National],
-        "ISO §14.9.35.3 SR9 — \"If identifier-1 references a function and the FILE phrase is not specified, "
+        "ISO §2023:14.9.35.3 SR9 — \"If identifier-1 references a function and the FILE phrase is not specified, "
         + "identifier-1 shall reference an alphanumeric, boolean, or national function.\"",
         null);
 }
 
 internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, CorrespondingBinder corr)
 {
-    private int _elementLoopVar;   // program-unique §14.6.9.2 element-loop ordinal (a StatementLocalRole.ElementMoveOccurrence local)
+    private int _elementLoopVar;   // program-unique §2023:14.6.9.2 element-loop ordinal (a StatementLocalRole.ElementMoveOccurrence local)
 
     public BoundStatement Bind(Core.MoveStatementContext move)
     {
-        if (move.CORRESPONDING() is not null || move.CORR() is not null)   // Format 2 — BOTH tokens (§14.9.25.3 SR11)
+        if (move.CORRESPONDING() is not null || move.CORR() is not null)   // Format 2 — BOTH tokens (§2023:14.9.25.3 SR11)
             return corr.Bind(CorrVerb.Move, move.dataReference(), move.receivingIdentifier(), CobolRounding.Truncation, null);
         // ⛔ THE MESSAGE NO LONGER NAMES "MOVE CORRESPONDING" (kb/Work PB421). It used to read "MOVE
         // CORRESPONDING / unsupported MOVE form", and that was the arm `MOVE <sending> CORRESPONDING id-3 TO
-        // id-4` reached — a shape §14.9.25.2 prints no format for, which `moveReceivingPhrase`'s deleted second
+        // id-4` reached — a shape §2023:14.9.25.2 prints no format for, which `moveReceivingPhrase`'s deleted second
         // alternative admitted and this loud stage then answered AT RUN TIME. Format 2 is handled whole at the
         // CORRESPONDING test above, so what remains here is a defensive arm over the one printed receiving
         // shape, and it must not claim an unimplemented feature that this binder in fact implements.
         if (move.sendingOperand() is not { } send || move.moveReceivingPhrase() is not { } targets)
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, $"MOVE '{DataBinder.WrittenText(move)}': Format 1 prints one sending operand and "
-                + "TO identifier-2 … (ISO §14.9.25.2)");
+                + "TO identifier-2 … (ISO §2023:14.9.25.2)");
         BoundOperand source = SendingOperand(send, "MOVE source");
-        // An INDEX-NAME sending operand (kb/Work R16): MOVE is not among §13.18.38.3 r7's five index-name
+        // An INDEX-NAME sending operand (kb/Work R16): MOVE is not among §2023:13.18.38.3 r7's five index-name
         // contexts — the same judgment the SR1 arm below applies to class-index DATA ITEMS (COBOL0809).
         // Before this, a string-category receiver aborted at RUN time and a numeric one silently computed.
         if (send.dataReference() is { } sdref)
         {
             using var sendingAt = ctx.Edition.At(sdref);   // the operand's own position, not the statement's (kb/Work PB4383)
             if (host.Expr.ScreenIndexNameOperand(source, sdref.GetText(), "a MOVE sending operand"))
-                source = BoundOperandError.Refused(ctx.Edition, $"MOVE of the index-name '{DataBinder.WrittenText(sdref)}' (ISO §13.18.38.3 r7)");
+                source = BoundOperandError.Refused(ctx.Edition, $"MOVE of the index-name '{DataBinder.WrittenText(sdref)}' (ISO §2023:13.18.38.3 r7)");
         }
         // Identifier-1 is bound; what the receivers register from here on (a function-bearing subscript's temporary,
-        // a user-defined function's activation) is THEIR evaluation, which §14.6.4 puts after the sender's.
+        // a user-defined function's activation) is THEIR evaluation, which §2023:14.6.4 puts after the sender's.
         int senderPreOpsEnd = ctx.Data.Procedure.PendingPreOps.Mark();
         var resolved = host.Expr.ResolveTargets(targets.receivingIdentifier());
         return BindMoveOf(source, resolved, senderPreOpsEnd: senderPreOpsEnd);
@@ -140,7 +140,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
     /// <c>MOVE</c> drew COBOL0819; and <c>RELEASE SRT-NUM FROM QUOTE</c> ABORTED THE RUN with an unhandled
     /// <c>NotImplementedCobolFeatureException</c>, because <see cref="DataBindState.ImageForcedItems"/> — a fact
     /// <c>StorageFormPass</c> consumes — is collected HERE and the emitter-built move never passed through.
-    /// §14.9.32.4 GR4 makes <c>RELEASE record-name-1 FROM x</c> exactly <c>MOVE x TO record-name-1</c> followed
+    /// §2023:14.9.32.4 GR4 makes <c>RELEASE record-name-1 FROM x</c> exactly <c>MOVE x TO record-name-1</c> followed
     /// by the same RELEASE, so "exactly" has to include the bind.</para>
     ///
     /// <para>Everything a MOVE's own rules impose lives in this one call, so a phrase added tomorrow inherits it
@@ -154,22 +154,22 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
                                 ImplicitMovePhrase? implicitOf = null, int? senderPreOpsEnd = null)
     {
         // ⛔ THE SYNTAX SCREENS RUN UNLESS THE STATEMENT HAS ALREADY ASKED THE SAME QUESTION ITS OWN WAY
-        // (kb/Work PB880). INITIALIZE is the one such statement: §14.9.20.3 SR4 asks the MOVE validity question
+        // (kb/Work PB880). INITIALIZE is the one such statement: §2023:14.9.20.3 SR4 asks the MOVE validity question
         // once per REPLACING CATEGORY (InitializeBinder.CheckReplacingMoveValidity, through the same chain), and
-        // the §14.9.20.4 GR6a/GR6c senders are valid by construction — so asking it again per receiver would
+        // the §2023:14.9.20.4 GR6a/GR6c senders are valid by construction — so asking it again per receiver would
         // report one error twice. Everything below the screens (the freeze, the storage facts) runs for every
         // move, because that is what an implicit move built anywhere else used to miss.
         if (implicitOf is not { ValidityAskedByStatement: true })
         {
-            // The §14.9.25.3 SR1 operand-class check (the SR5 edition gates are VersionConformancePass Step 14f).
+            // The §2023:14.9.25.3 SR1 operand-class check (the SR5 edition gates are VersionConformancePass Step 14f).
             MoveOperandClassChecks(source, targets, implicitOf);
-            // §14.9.25.3 SR2 / SR6–SR8 / SR9 / SR10 — the whole validity chain, MoveTable16.Validity, framed per
+            // §2023:14.9.25.3 SR2 / SR6–SR8 / SR9 / SR10 — the whole validity chain, MoveTable16.Validity, framed per
             // rule. SR9 rides it (kb/Work PB393's screen; every FROM / INTO phrase's "shall be valid … in a MOVE
             // statement" rule inherits it here), and so does SR2 (data-model D17).
             MoveCategoryLegality(source, targets, implicitOf);
         }
         // ⛔ kb/Work PB2078: MoveEmitter stores the receivers one at a time ("Item identification for identifier-2 is
-        // performed immediately before the data is moved to the respective data item", §14.9.25.4 GR1), so a receiver
+        // performed immediately before the data is moved to the respective data item", §2023:14.9.25.4 GR1), so a receiver
         // that is an object property has its accessors placed around ITS store (ReceiverBracketEmitter.Receive). The claim
         // is made HERE, in the one constructor of a MOVE, so the written MOVE and every implicit move a phrase defines
         // (READ / RETURN … INTO, ACCEPT, UNSTRING … INTO, INITIALIZE) get it by construction: whichever statement emits
@@ -177,10 +177,10 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         // running after the statement's own phrase bodies (`READ f INTO P NOT AT END DISPLAY P`). A claim whose node is
         // emitted any other way fails the compilation (ReceiverBracketEmitter.Emit), never drops the accessors.
         foreach (var target in targets) ctx.Data.Procedure.ClaimInterleavedReceiver(target);
-        // A ref-mod slice store on a numeric-DISPLAY receiver needs image backing for ANY sender (§8.4.3.3.4 GR6;
+        // A ref-mod slice store on a numeric-DISPLAY receiver needs image backing for ANY sender (§2023:8.4.3.3.4 GR6;
         // the W2 adversarial-review round-trip-loss fix — see MarkRefModStoreImage).
         MarkRefModStoreImage(targets);
-        // ⛔ §14.9.25.4 GR1 — "If identifier-1 is reference-modified, subscripted, or is a function-identifier,
+        // ⛔ §2023:14.9.25.4 GR1 — "If identifier-1 is reference-modified, subscripted, or is a function-identifier,
         // the reference modifier, subscript, or function-identifier is evaluated only once, immediately before
         // data is moved to the first of the receiving operands", and the rule's own equivalence writes the
         // required shape out: MOVE a (b) TO b, c (b) ≡ MOVE a (b) TO temp / MOVE temp TO b / MOVE temp to c (b),
@@ -194,7 +194,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         // b` applies the identity copy and then the same conversion `MOVE a (b) TO b` applies. The intermediate's
         // VALUE is unobservable at N = 1, and MOVE is the most executed verb in a COBOL program. Its ORDER is not:
         // the sender is evaluated before the receiver is identified, which decides the exception condition a
-        // statement failing on both sides raises (§14.9.49.4 GR11). That order is the emitter's to keep — each
+        // statement failing on both sides raises (§2023:14.9.49.4 GR11). That order is the emitter's to keep — each
         // store renders through PlaceIdentification.SenderFirst, which evaluates the sending value into a local
         // ahead of the receiver's address when both sides identify at run time (kb/Work PB3261). The one part of the
         // order no store can keep is what a receiver evaluates AHEAD of its store. Two arms, one question:
@@ -221,33 +221,33 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         if ((targets.Count > 1 || MoveClassifier.NeedsLengthFreeze(source, targets) || receiverEvaluationOvertakesSender)
             && host.SendingValue.Materialize(source, "move", senderPreOpsEnd, SendingValueTemp.ValueUse.MovedTo(targets)) is { } frozen)
             source = new BoundFieldOperand(frozen);
-        // ⛔ §14.6.9.2's element moves are bound HERE, beside the group move they follow (kb/Work PB1144), so every
+        // ⛔ §2023:14.6.9.2's element moves are bound HERE, beside the group move they follow (kb/Work PB1144), so every
         // GR9 move — the written MOVE and each implicit phrase move alike — carries them, and each is a MOVE this
         // method screened and storage-marked rather than one the emitter synthesizes.
         var move = new BoundMove(source, targets) { ImplicitOf = implicitOf, ElementMoves = ElementMovesOf(source, targets) };
         // The fill's STORAGE fact is collected off the CONSTRUCTED node, so it is asked of the same per-target
-        // store the emitter renders — including the sender §14.9.25.4 GR2 substitutes (kb/Work PB425).
+        // store the emitter renders — including the sender §2023:14.9.25.4 GR2 substitutes (kb/Work PB425).
         MarkFillImageStorage(move);
         return move;
     }
 
-    // ── ISO §14.6.9.2's element moves of a §14.9.25.4 GR9 group move (kb/Work PB1144) ─────────────────────────
+    // ── ISO §2023:14.6.9.2's element moves of a §2023:14.9.25.4 GR9 group move (kb/Work PB1144) ─────────────────────────
 
-    /// <summary>⛔ THE §14.6.9.2 ELEMENT MOVES OF A VARIABLE-LENGTH GROUP MOVE — "Correspondingly numbered elements
+    /// <summary>⛔ THE §2023:14.6.9.2 ELEMENT MOVES OF A VARIABLE-LENGTH GROUP MOVE — "Correspondingly numbered elements
     /// are moved according to the rules of the MOVE statement specified in 14.9.25, MOVE statement" — one
     /// <see cref="TableElementMove"/> per receiving operand GR9 governs (<see cref="MoveClassifier.VariableLengthGroupSender"/>,
     /// the antecedent the emitter's group transfer asks) and per corresponding table pair of that operand pair
-    /// (<see cref="VariableLengthCompatibility.CorrespondingTables"/>, the same walk §14.9.25.3 SR9 matched them by).
+    /// (<see cref="VariableLengthCompatibility.CorrespondingTables"/>, the same walk §2023:14.9.25.3 SR9 matched them by).
     /// <para>The group transfer (<c>CobolVarGroup</c>) moves each table as element IMAGES, and an image IS the
     /// MOVE's result for exactly two shapes, which take no element move:</para>
     /// <list type="bullet">
-    ///   <item>a GROUP element pair — §14.9.25.4 GR4 makes a fixed-length group move an alphanumeric move
-    ///     "without conversion", and §8.5.1.12.3's matching made the two elements the same byte length;</item>
+    ///   <item>a GROUP element pair — §2023:14.9.25.4 GR4 makes a fixed-length group move an alphanumeric move
+    ///     "without conversion", and §2023:8.5.1.12.3's matching made the two elements the same byte length;</item>
     ///   <item>an elementary pair with IDENTICAL descriptions (<see cref="OoConformance.SignatureDifference"/>, the
     ///     ONE pair-mode identity, over the descriptions every relation reads) — the conversion is then the
     ///     identity.</item>
     /// </list>
-    /// <para>Every other elementary pair — any category pair §14.9.25.3 admits, since §8.5.1.12.3 compares only
+    /// <para>Every other elementary pair — any category pair §2023:14.9.25.3 admits, since §2023:8.5.1.12.3 compares only
     /// the elements' byte lengths ("Two corresponding tables match when the byte length of their elements is equal
     /// and their elements are compatible", and compatibility is defined for groups) — gets the real elementary MOVE,
     /// bound by <see cref="BindMoveOf"/> over the two element places at a loop-local occurrence number, so its
@@ -273,7 +273,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
     /// <summary>One corresponding pair's element move: the sending and receiving element places at the loop's
     /// occurrence number, each reached from its OWN group's resolved place through the ONE bind-time cursor
     /// (<see cref="PlaceCursor"/> — so a subscripted or qualified group keeps its subscripts), and the two current
-    /// counts of §14.6.9.1 (<see cref="OccurrenceCounts.Current"/>).</summary>
+    /// counts of §2023:14.6.9.1 (<see cref="OccurrenceCounts.Current"/>).</summary>
     private TableElementMove ElementMove(int target, Place send, VariableLengthCompatibility.TableSite sSite,
                                          Place recv, VariableLengthCompatibility.TableSite rSite)
     {
@@ -284,16 +284,16 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
             return new TableElementMove(target, v, s?.Count, r?.Count, null,
                 $"the element moves of the corresponding tables '{sSite.Table.CobolName ?? "FILLER"}' and "
                 + $"'{rSite.Table.CobolName ?? "FILLER"}' of a variable-length group MOVE: a table reached through a storage "
-                + "form whose element places this implementation does not build (ISO §14.6.9.2)");
+                + "form whose element places this implementation does not build (ISO §2023:14.6.9.2)");
         var elementMove = BindMoveOf(new BoundFieldOperand(sReach.Element), [rReach.Element], ImplicitMovePhrase.TableElement);
         return new TableElementMove(target, v, sReach.Count, rReach.Count, elementMove, null);
     }
 
     /// <summary>⛔ THE ONE REACH FROM A GROUP OPERAND TO ONE OF ITS CORRESPONDING TABLES' ELEMENTS (kb/Work PB1144,
     /// PB1938): occurrence <paramref name="v"/> of the table at <paramref name="site"/> and the table's current count
-    /// (§14.6.9.1). A table of an ordinary group is reached from the group's resolved place down its ancestor chain
+    /// (§2023:14.6.9.1). A table of an ordinary group is reached from the group's resolved place down its ancestor chain
     /// (<see cref="TableCursor"/>); a table leaf in the span of a level-66 THROUGH alias is not a subordinate of the alias
-    /// item (§13.18.45.4 GR2 — the alias "includes" the record's elementary items and owns none), so it is reached as
+    /// item (§2023:13.18.45.4 GR2 — the alias "includes" the record's elementary items and owns none), so it is reached as
     /// the RECORD's table at the outer occurrences its span part names (<see cref="RenamesSpanPart.SubscriptsFor"/>),
     /// through the ONE item→place builder every verb operand uses. Null when no element place is built for the table's
     /// storage form.</summary>
@@ -313,7 +313,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
     /// (<c>ReceiverBracketEmitter.Receive</c>): identifier-3's <see cref="OoPendingPropertyOp.Prelude"/>, its evaluation
     /// into the identified-object temporary, and the GET of a part store (<c>OoBinder.OoWrapPropertyOps</c>, which builds
     /// those steps from the same three members). True when any of them evaluates something at run time, so a statement
-    /// whose rules evaluate its sending operand first (§14.9.25.4 GR1) knows the bracket would overtake it. A receiver
+    /// whose rules evaluate its sending operand first (§2023:14.9.25.4 GR1) knows the bracket would overtake it. A receiver
     /// that is no claimed property opens nothing.</summary>
     private static bool ReceiverOpensAtRunTime(ProcedureBindState procedure, Place receiver, Bound.StoreKind kind)
     {
@@ -327,7 +327,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
     }
 
     /// <summary>The cursor at <paramref name="table"/> inside the resolved group <paramref name="group"/>: down the
-    /// table's ancestor chain from the group (§8.5.1.12's atoms flatten only scalar subordinate groups, so no OCCURS
+    /// table's ancestor chain from the group (§2023:8.5.1.12's atoms flatten only scalar subordinate groups, so no OCCURS
     /// level lies between them). Null when the table is not a subordinate of the group's item or a storage form on
     /// the way has no cursor; a level-66 THROUGH alias's table leaves are never asked of it (<see cref="ReachElement"/>).</summary>
     private static PlaceCursor? TableCursor(Place group, DataItem table)
@@ -348,12 +348,12 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
 
     /// <summary>
     /// ⛔ THE ONE BINDING OF A <c>{identifier | literal}</c> SENDING OPERAND (kb/Work PB2114) — the grammar's one
-    /// <c>sendingOperand</c> rule, as MOVE's identifier-1 / literal-1 (§14.9.25.2), the FROM phrases of WRITE,
+    /// <c>sendingOperand</c> rule, as MOVE's identifier-1 / literal-1 (§2023:14.9.25.2), the FROM phrases of WRITE,
     /// REWRITE and RELEASE (their implicit MOVE, <see cref="BindFromPhrase"/>) and INITIALIZE's REPLACING item
-    /// (§14.9.20.3 SR4's "MOVE statement with identifier-2 or literal-1 as the sending item"). A function-identifier
-    /// is a sending item of its function's category (§15.2), and an inline method invocation is one of the
-    /// identifier formats §14.9.25.3 SR3's designation reaches (§8.4.3.1.2 Format 4; kb/Work PB428);
-    /// §8.4.3.2.3 SR1 and §8.4.3.4.3 SR1 keep both off the receiving side, where no rule offers them.
+    /// (§2023:14.9.20.3 SR4's "MOVE statement with identifier-2 or literal-1 as the sending item"). A function-identifier
+    /// is a sending item of its function's category (§2023:15.2), and an inline method invocation is one of the
+    /// identifier formats §2023:14.9.25.3 SR3's designation reaches (§2023:8.4.3.1.2 Format 4; kb/Work PB428);
+    /// §2023:8.4.3.2.3 SR1 and §2023:8.4.3.4.3 SR1 keep both off the receiving side, where no rule offers them.
     /// <paramref name="position"/> names the operand in the refusal of a shape the rule cannot produce.
     /// </summary>
     public BoundOperand SendingOperand(Core.SendingOperandContext send, string position) =>
@@ -366,13 +366,13 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
     // ── The … FROM and … INTO phrases (kb/Work PB348) ───────────────────────────────────────────────────────
 
     /// <summary>
-    /// Bind a <c>… FROM {identifier-1 | literal-1}</c> phrase into its implicit MOVE — WRITE (ISO §14.9.51),
-    /// REWRITE (§14.9.35) and RELEASE (§14.9.32) alike. Null when no FROM phrase is written.
+    /// Bind a <c>… FROM {identifier-1 | literal-1}</c> phrase into its implicit MOVE — WRITE (ISO §2023:14.9.51),
+    /// REWRITE (§2023:14.9.35) and RELEASE (§2023:14.9.32) alike. Null when no FROM phrase is written.
     ///
     /// <para>The operand is bound, the verb's OWN phrase syntax rules are applied (<paramref name="rules"/>),
     /// and the move is then screened by <see cref="BindMoveOf"/> under the MOVE statement's rules — which is
     /// what each verb's "shall be valid as a sending operand in a MOVE statement specifying record-name-1 as
-    /// the receiving operand" rule says to do (§14.9.32.3 SR3 · §14.9.35.3 SR6 · §14.9.51.3 SR6).</para>
+    /// the receiving operand" rule says to do (§2023:14.9.32.3 SR3 · §2023:14.9.35.3 SR6 · §2023:14.9.51.3 SR6).</para>
     ///
     /// <para>⛔ This is the successor to the former <c>SequentialIoBinder.WriteSource</c>, which bound the
     /// operand and inspected NOTHING — a three-way hand-off from the three verbs, each of which carries its own
@@ -384,16 +384,16 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
     {
         if (send is null) return null;   // no FROM phrase
         BoundOperand source = SendingOperand(send, rules.Statement);
-        // §8.4.3.1.2 Format 4 (kb/Work PB428): the per-verb FunctionCategories screen below is deliberately NOT
-        // extended to an inline method invocation. §14.9.51.3 SR4, §14.9.35.3 SR9 and §14.9.32.3 SR2 each restrict
+        // §2023:8.4.3.1.2 Format 4 (kb/Work PB428): the per-verb FunctionCategories screen below is deliberately NOT
+        // extended to an inline method invocation. §2023:14.9.51.3 SR4, §2023:14.9.35.3 SR9 and §2023:14.9.32.3 SR2 each restrict
         // "a FUNCTION-IDENTIFIER" by name, and none states a rule for an inline invocation, so what governs it is
         // the phrase's own implicit MOVE, which BindMoveOf applies.
         var fc = send.functionCall();
 
         // ── The FUNCTION-IDENTIFIER class restriction, a SET per verb because the rules name different sets:
-        // RELEASE §14.9.32.3 SR2 and WRITE §14.9.51.3 SR4 admit "an alphanumeric or national function";
-        // REWRITE §14.9.35.3 SR9 admits "an alphanumeric, boolean, or national function" when the FILE phrase is
-        // not specified (and the FILE arm, §14.9.35.3 SR8 / §14.9.51.3 SR10, is Annex A.4.13 item 2 — DECLINED
+        // RELEASE §2023:14.9.32.3 SR2 and WRITE §2023:14.9.51.3 SR4 admit "an alphanumeric or national function";
+        // REWRITE §2023:14.9.35.3 SR9 admits "an alphanumeric, boolean, or national function" when the FILE phrase is
+        // not specified (and the FILE arm, §2023:14.9.35.3 SR8 / §2023:14.9.51.3 SR10, is Annex A.4.13 item 2 — DECLINED
         // COBOL1706 before this point, so only the no-FILE readings are reachable). A scalar "must be
         // alphanumeric" column here would reject legal source on the REWRITE arm.
         // The class is read off the BOUND operand through the same Table-16 sender position the category screen
@@ -405,8 +405,8 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
                 $"{rules.Statement} {DataBinder.WrittenText(fc)}: {rules.FunctionRuleCite} — this function's result is of "
                 + $"category {cat.ToString().ToLowerInvariant()}");
 
-        // ── §14.9.32.3 SR4, "Literal-1 shall not be a zero-length literal." RELEASE's alone: neither
-        // §14.9.51.3 nor §14.9.35.3 states it for the FROM phrase of WRITE / REWRITE, so it is carried on the
+        // ── §2023:14.9.32.3 SR4, "Literal-1 shall not be a zero-length literal." RELEASE's alone: neither
+        // §2023:14.9.51.3 nor §2023:14.9.35.3 states it for the FROM phrase of WRITE / REWRITE, so it is carried on the
         // rules row rather than applied to every verb. The compiler already owns the predicate — it is the same
         // BoundStringLiteral test ControlFlowBinder applies to the STOP RUN / GOBACK status literal. ──
         if (rules.ZeroLengthLiteralRuleCite is { } zlCite && source is BoundStringLiteral { Value.Length: 0 })
@@ -418,17 +418,17 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
 
     /// <summary>
     /// Bind a <c>… INTO identifier-1</c> phrase into its implicit MOVE — the sequential READ, the keyed READ and
-    /// the sort RETURN (ISO §14.9.30.4 GR4 b) and §14.9.34.4 GR5 b), which are the same sentence: "The current
+    /// the sort RETURN (ISO §2023:14.9.30.4 GR4 b) and §2023:14.9.34.4 GR5 b), which are the same sentence: "The current
     /// record is moved from the record area to the area specified by identifier-1 according to the rules for the
     /// MOVE statement without the CORRESPONDING phrase").
     ///
-    /// <para>The SENDER is the record area sliced to its §13.18.43.4 GR16 byte count, and — for a FORMAT 2
+    /// <para>The SENDER is the record area sliced to its §2023:13.18.43.4 GR16 byte count, and — for a FORMAT 2
     /// <c>RECORD IS VARYING</c> file only — designated an alphanumeric group move by those same rules. That
     /// choice is <see cref="BoundCurrentRecord"/>'s and was built in ONE place already (kb/Work PB339); it moved
     /// here from the emitter with the move it belongs to, because an operand is a bind-time object.</para>
     ///
-    /// <para>⛔ The verb's OWN syntax rules for the phrase are applied FIRST — §14.9.30.3 SR1/SR2 for READ and
-    /// §14.9.34.3 SR2/SR3 for RETURN, through <c>StatementValidation.CheckIntoReceiver</c> (kb/Work PB337) —
+    /// <para>⛔ The verb's OWN syntax rules for the phrase are applied FIRST — §2023:14.9.30.3 SR1/SR2 for READ and
+    /// §2023:14.9.34.3 SR2/SR3 for RETURN, through <c>StatementValidation.CheckIntoReceiver</c> (kb/Work PB337) —
     /// exactly as <see cref="BindFromPhrase"/> applies each FROM verb's own rules before handing the pair to
     /// <see cref="BindMoveOf"/>. They were applied by NO ONE: the operand was resolved and never inspected, so a
     /// strongly-typed group could be filled from an alphanumeric record image, which nothing else in this
@@ -442,13 +442,13 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
     public BoundMove BindIntoPhrase(FileModel file, Place area, Place receiver, IntoPhraseRules rules)
     {
         ctx.Validation.CheckIntoReceiver(file, receiver, rules);
-        // §13.18.43.4 GR16 a) reads the DEPENDING item; GR16 b) applies when the phrase is absent. Resolved
+        // §2023:13.18.43.4 GR16 a) reads the DEPENDING item; GR16 b) applies when the phrase is absent. Resolved
         // HERE, once, for all three INTO arms — the sequential READ, the keyed READ and the sort RETURN.
         Place? depending = file is { Varying.DependingName: not null, VaryingDependingItem: { } d }
             ? ctx.Refs.Places.ResolveItem(d) : null;
         // A FIXED-length file keeps the plain record-area operand: its current record IS the whole area
-        // (§13.18.43.4 GR6 — integer-1 bytes in every record), including the short-final-record '04' case of
-        // §14.9.30.4 GR14, where the area right of the last valid character is undefined rather than short.
+        // (§2023:13.18.43.4 GR6 — integer-1 bytes in every record), including the short-final-record '04' case of
+        // §2023:14.9.30.4 GR14, where the area right of the last valid character is undefined rather than short.
         return BindMoveOf(
             file.Varying is { } v ? new BoundCurrentRecord(area, file, depending, v.VaryingClause)
                                   : new BoundFieldOperand(area),
@@ -456,7 +456,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
     }
 
     /// <summary>
-    /// The §14.9.25.3 SR1 OPERAND-CLASS check on one bound MOVE (Format 1) — version-invariant, every sender and
+    /// The §2023:14.9.25.3 SR1 OPERAND-CLASS check on one bound MOVE (Format 1) — version-invariant, every sender and
     /// receiver kind. The SR5 figurative EDITION gates it used to carry live in
     /// <c>VersionConformancePass.GateMove</c> (Step 14f) and the pre-removal storage marking in
     /// <see cref="MarkFigurativeFillImage"/>, so what is left here is one rule: "The class of identifier-1 or
@@ -465,16 +465,16 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
     private void MoveOperandClassChecks(BoundOperand source, IReadOnlyList<Place> targets,
                                         ImplicitMovePhrase? implicitOf)
     {
-        // The §14.9.25.3 SR1 class check FIRST — version-invariant, every operand kind: "The class of
+        // The §2023:14.9.25.3 SR1 class check FIRST — version-invariant, every operand kind: "The class of
         // identifier-1 or identifier-2 shall not be index, message-tag, object, or pointer." A MOVE operand of
         // one of those classes is invalid at EVERY edition, never an Annex-E removal (the W2 adversarial review
         // caught the 0902 row mislabeling it "permitted through 2014").
-        // SR1 reaches a FUNCTION sender through §15.2 item 6 (kb/Work PB124 wave 5b): "Index functions.
+        // SR1 reaches a FUNCTION sender through §2023:15.2 item 6 (kb/Work PB124 wave 5b): "Index functions.
         // These are of the class and category index." — MAX/MIN over index arguments IS one, and its result's
         // storage category (Numeric) made it indistinguishable from a numeric sender here, so
         // MOVE FUNCTION MAX(IX1 IX2) TO 9(n) silently stored an occurrence-number image (GR-15.2-6).
         // ⛔ BOTH SENDER ARMS NOW ASK ONE READER (kb/Work PB416): MoveTable16.SenderClassRefusal classifies
-        // through IntrinsicArgumentRules.ClassOf — the ONE §8.5.2.1 Table-2 answer — so §14.9.20.3 SR4's
+        // through IntrinsicArgumentRules.ClassOf — the ONE §2023:8.5.2.1 Table-2 answer — so §2023:14.9.20.3 SR4's
         // hypothetical MOVE (INITIALIZE REPLACING) gets the identical verdict, and the index-NAME sender shape
         // neither hand-written arm matched is covered by construction.
         // ⛔ AND SO DOES THE RECEIVING ARM (kb/Work PB423). It read `t.Item.Pic is { Usage: Usage.Index }` — one
@@ -493,7 +493,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
                 ctx.Edition.Error(DiagnosticCatalog.MoveOperandClassNotAllowed,
                     $"{recvRefusal} — {ImplicitMovePhrase.WhereOf(implicitOf, t.Item.CobolName)}");
 
-        // (The §14.9.25.3 SR5 EDITION gates — MoveAllDigitIntegerObsolete2023 / MoveQuoteNumericObsolete2014 /
+        // (The §2023:14.9.25.3 SR5 EDITION gates — MoveAllDigitIntegerObsolete2023 / MoveQuoteNumericObsolete2014 /
         // MoveAlphanumericFigurativeRemoved2023 — moved to the post-bind VersionConformancePass (Step 14f),
         // which re-derives the SAME classification from the bound MOVE's WRITTEN source. The pre-removal STORAGE
         // marking is MarkFigurativeFillImage, off the constructed node.)
@@ -501,11 +501,11 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
 
     /// <summary>
     /// Pre-removal FILL STORAGE (reachable at 85/2002/2014 + 2023 --permissive regardless of the SR5 gate, and at
-    /// EVERY edition through §14.9.25.4 GR2): a NON-digit fill — SPACE/QUOTE/HIGH-VALUE/LOW-VALUE, an ALL literal
+    /// EVERY edition through §2023:14.9.25.4 GR2): a NON-digit fill — SPACE/QUOTE/HIGH-VALUE/LOW-VALUE, an ALL literal
     /// with a non-digit, or the figurative SPACE GR2 substitutes for a zero-length literal — deposits the fill
     /// CHARACTERS as the receiver's character image (provisional; the pre-2023 fill — MOVE QUOTE TO
     /// PIC 9(3) leaves three quotation marks, IS NUMERIC is then false, and a later read decodes deterministically
-    /// per §14.6.13.2). Flag an eligible elementary numeric-DISPLAY receiver <c>StoreAsImage</c> — the SAME §14.9
+    /// per §2023:14.6.13.2). Flag an eligible elementary numeric-DISPLAY receiver <c>StoreAsImage</c> — the SAME §2023:14.9
     /// MOVE GR4 whole-group image substrate, never a parallel mechanism.
     /// <para>⛔ ELIGIBILITY IS THE NODE'S OWN <see cref="MoveKind"/>, asked of the constructed
     /// <see cref="BoundMove"/> (kb/Work PB425). It used to be a hand-copy of <see cref="MoveClassifier"/>'s
@@ -524,7 +524,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         {
             var t = move.Targets[i];
             // Two reasons, one storage fact: the sender IS the fill (a written figurative / non-digit ALL, or the
-            // one §14.9.25.4 GR2 substitutes for a zero-length literal), or the sender MAY BE the fill at run
+            // one §2023:14.9.25.4 GR2 substitutes for a zero-length literal), or the sender MAY BE the fill at run
             // time (GR1's zero-length-item clause — the emitted store's zero arm writes the same image, so the
             // receiver has to be able to hold one whichever way the test goes).
             if (move.Stores[i].Kind is not MoveKind.FigurativeToNumericImage
@@ -534,7 +534,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         }
     }
 
-    /// <summary>ISO §14.9.25.3 SR2, SR6–SR10 for one MOVE, per receiver — asked of <see cref="MoveTable16.Validity(BoundOperand, Place)"/>
+    /// <summary>ISO §2023:14.9.25.3 SR2, SR6–SR10 for one MOVE, per receiver — asked of <see cref="MoveTable16.Validity(BoundOperand, Place)"/>
     /// and framed here under each rule's own diagnostic (COBOL1533 · COBOL1931 · COBOL0819). Version-
     /// invariant: SR5's edition rows are <c>VersionConformancePass</c>'s.</summary>
     private void MoveCategoryLegality(BoundOperand source, IReadOnlyList<Place> targets,
@@ -542,13 +542,13 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
     {
         foreach (var t in targets)
         {
-            // ⛔ THE WHOLE §14.9.25.3 VALIDITY QUESTION, ASKED OF THE ONE CHAIN (kb/Work PB878). This method used
+            // ⛔ THE WHOLE §2023:14.9.25.3 VALIDITY QUESTION, ASKED OF THE ONE CHAIN (kb/Work PB878). This method used
             // to compose ShapeRefusal + Refusal by hand and skip GROUP receivers outright, while SR2 and SR9 were
             // asked by two more screens (StatementValidation.CheckStrongMove / .CheckVariableLengthMove) — four
             // calls to answer one question, which is the shape that let INITIALIZE and INVOKE ask a subset. The
             // RULES now live in MoveTable16.Validity, in SR order; what stays here is the explicit statement's
             // FRAMING — each rule's own diagnostic code, and SR10's --permissive re-reading.
-            // ⚠ A GROUP RECEIVER IS ASKED TOO. Table 16 exempts it itself (§14.9.25.4 GR4) and SR2/SR9 are
+            // ⚠ A GROUP RECEIVER IS ASKED TOO. Table 16 exempts it itself (§2023:14.9.25.4 GR4) and SR2/SR9 are
             // group rules; the one rule the old `continue` hid is SR8, whose letter — "identifier-2 shall
             // reference a numeric or numeric-edited item" — a group item does not satisfy. MOVE CORRESPONDING's
             // pairing filter already read it that way (kb/Work PB391); the written MOVE now agrees with it.
@@ -561,7 +561,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
     /// <summary>⛔ THE VALIDITY QUESTION OF AN IMPLICIT MOVE WHOSE RECEIVER IS A POSITION, NOT A DATA ITEM — asked of
     /// the SAME screens and framed by the SAME code as the written MOVE (kb/Work PB4361). <c>GOBACK RETURNING x</c>
     /// with no header RETURNING item moves <c>x</c> to the run unit's exit status, an elementary integer with no
-    /// description entry. The first cut asked only §14.9.25.3 SR1's class half of that MOVE, so a boolean operand
+    /// description entry. The first cut asked only §2023:14.9.25.3 SR1's class half of that MOVE, so a boolean operand
     /// that the header-RETURNING arm refuses (SR10, Table 16: boolean to numeric is "No") compiled clean and
     /// aborted at run time. The sender-class screen (SR1) and the whole
     /// <see cref="MoveTable16.Validity(BoundOperand, Table16Operand, DataItem?)"/> chain (SR2, SR6–SR10) are asked
@@ -600,7 +600,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
                     ? receiverItem : MoveTable16.OperandItem(source)!;
                 ctx.Edition.Error(DiagnosticCatalog.MoveVariableLengthIncompatible,
                     $"MOVE involving the variable-length group '{vl.CobolName ?? vl.ClrName}': {refusal.Reason} — "
-                    + "ISO §14.9.25.3 SR9 requires the two groups to be compatible as specified in §8.5.1.12"
+                    + "ISO §2023:14.9.25.3 SR9 requires the two groups to be compatible as specified in §2023:8.5.1.12"
                     + ImplicitMovePhrase.Via(implicitOf));
                 break;
             case MoveRule.SourceShape:
@@ -627,12 +627,12 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
             && MoveValidity.Table16Refusal(Table16Operand.Lenient(senderPos, senderIsFunction, senderIsView).Heading,
                 Table16Operand.Lenient(receiverPos, false, receiverIsView).Heading) is null)
             ctx.Edition.Warning(DiagnosticCatalog.MoveShapeInvalid, $"{where}: {refusal}; accepted under --permissive "
-                + (senderIsFunction ? "as the function's literal text (a NUMERIC-typed function is the Noninteger sender, ISO §15.2 item 4)"
-                                    : "reading the reference-modified view as plain alphanumeric (ISO §8.4.3.3.4 GR6 keeps it alphabetic)"));
+                + (senderIsFunction ? "as the function's literal text (a NUMERIC-typed function is the Noninteger sender, ISO §2023:15.2 item 4)"
+                                    : "reading the reference-modified view as plain alphanumeric (ISO §2023:8.4.3.3.4 GR6 keeps it alphabetic)"));
         else
             ctx.Edition.Error(DiagnosticCatalog.MoveShapeInvalid, $"{where}: MOVE is invalid — {refusal}"
                 + (senderIsFunction && senderPos is { Category: PicCategory.Numeric, IsNonInteger: true }
-                    ? " (a NUMERIC-typed function is the Noninteger sender, §15.2 item 4 / §8.4.3.2.3 SR11; an INTEGER function moves to a character receiver; --permissive accepts this as the function's literal text)"
+                    ? " (a NUMERIC-typed function is the Noninteger sender, §2023:15.2 item 4 / §2023:8.4.3.2.3 SR11; an INTEGER function moves to a character receiver; --permissive accepts this as the function's literal text)"
                     : ""));
     }
 
@@ -640,13 +640,13 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
     /// <summary>
     /// Ref-mod STORE backing (the W2 adversarial-review fix, DEVLOG 595): a MOVE into a reference-modified
     /// slice of a numeric USAGE-DISPLAY item writes CHARACTERS into the item's character positions
-    /// (§8.4.3.3.4 GR6 — the unique result is an elementary alphanumeric item). Without image backing the resolver
+    /// (§2023:8.4.3.3.4 GR6 — the unique result is an elementary alphanumeric item). Without image backing the resolver
     /// wraps <c>NumericImagePlace(long)</c> and the spliced image ROUND-TRIPS through the <c>long</c> on
     /// store, silently losing any non-digit deposit (<c>MOVE SPACE TO N(1:2)</c> left N's digits — and the
     /// observable result flipped with whether UNRELATED code elsewhere image-backed the item). Mark the
     /// underlying item <c>StoreAsImage</c> at bind time for EVERY sender kind — digits round-trip either way,
     /// so the flag is safe, and the byte-semantics model (a ref-mod store is a character-cell write) is what
-    /// §14.6.8's fixed-width transfer implies. Same substrate + eligibility as the figurative pass; a Tier-B
+    /// §2023:14.6.8's fixed-width transfer implies. Same substrate + eligibility as the figurative pass; a Tier-B
     /// window already writes character images; a REDEFINES-class member keeps its (already-run) tier
     /// classification — the emitter's narrow loud guard covers that residue.
     /// </summary>
@@ -659,7 +659,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
     }
 
     /// <summary>⛔ THE ONE ELIGIBILITY of both image marks above — a figurative fill and a reference-modified store:
-    /// a numeric item whose USAGE is a CHARACTER form, DISPLAY or NATIONAL (§13.18.60.4 GR7 / GR8 — an
+    /// a numeric item whose USAGE is a CHARACTER form, DISPLAY or NATIONAL (§2023:13.18.60.4 GR7 / GR8 — an
     /// alphanumeric or a national coded character set represents it), outside a REDEFINES class, never a float. Usage NATIONAL
     /// was left out of both copies (kb/Work PB442): a pre-2023 <c>MOVE LOW-VALUE TO</c> a <c>PIC 9 USAGE NATIONAL</c>
     /// item reached the emitter's "without image-backed storage" guard and stopped the run unit with

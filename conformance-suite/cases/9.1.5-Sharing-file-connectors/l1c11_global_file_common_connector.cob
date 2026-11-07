@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §9.1.5 2) — a global file-name of a containing (or
+      *> ISO §2023:9.1.5 2) — a global file-name of a containing (or
       *>   indirectly containing) program names ONE common connector
       *> Rule: "If a program is contained within another program, both
       *>   programs may refer to a common file connector by referring
@@ -16,7 +16,7 @@
       *>   file connector by referring to an associated global
       *>   file-name either in the containing program or in any
       *>   program that directly or indirectly contains the containing
-      *>   program" -> OK  §9.1.5 2)  (Sharing file connectors)
+      *>   program" -> OK  §2023:9.1.5 2)  (Sharing file connectors)
       *> L1C11H contains L1C11HB, which contains L1C11HC. GF is GLOBAL
       *> in L1C11H (indirectly contains L1C11HC); GB is GLOBAL in
       *> L1C11HB (the program containing L1C11HC). Only the declaring

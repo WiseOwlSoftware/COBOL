@@ -6,15 +6,15 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
 /// A READ with a KEY phrase is a Format 2 (random) READ, and the diagnostic that refuses one on an indexed file
-/// names what the statement actually does wrong (kb/Work PB3569). ISO §14.9.30.2 prints the KEY phrase in Format
-/// 2 only, and Format 2 prints none of ADVANCING, AT END, NEXT, NOT AT END or PREVIOUS; §14.9.30.4 GR19: "An
+/// names what the statement actually does wrong (kb/Work PB3569). ISO §2023:14.9.30.2 prints the KEY phrase in Format
+/// 2 only, and Format 2 prints none of ADVANCING, AT END, NEXT, NOT AT END or PREVIOUS; §2023:14.9.30.4 GR19: "An
 /// implicit or explicit NEXT phrase or a PREVIOUS phrase results in a sequential read: otherwise, the read is a
 /// random read and the rules for format 2 apply." Two spellings are refused, each with its own message:
 /// <list type="bullet">
 /// <item>a sequential-read phrase written beside the KEY phrase: the message names every such phrase the statement
 /// wrote and no other;</item>
 /// <item>no such phrase, on a file whose access mode is SEQUENTIAL (written, or assumed when the ACCESS MODE clause
-/// is absent, §12.4.5.5.3 GR1): §14.9.30.3 SR8 implies the NEXT phrase, GR19 makes an implicit NEXT a sequential
+/// is absent, §2023:12.4.5.5.3 GR1): §2023:14.9.30.3 SR8 implies the NEXT phrase, GR19 makes an implicit NEXT a sequential
 /// read and a sequential read has no KEY phrase. The statement has no wrong phrase, the file is the wrong mode for
 /// it, so the message names the access mode and the implied NEXT and no phrase the statement wrote. That is the
 /// reading the binder's <c>ReadKind.Next</c> and the INVALID KEY screen already use; the same SR8 + GR19 reading
@@ -47,8 +47,8 @@ public sealed class ReadKeyFormatTests
         string message = Single0864(diagnostics);
         Assert.Contains("the file's access mode is SEQUENTIAL", message);
         // ONE reading of SR8 + GR19, the binder's and the INVALID KEY screen's: the implied NEXT makes it sequential.
-        Assert.Contains("so the NEXT phrase is implied (ISO §14.9.30.3 SR8) and the READ is a sequential read (ISO §14.9.30.4 GR19)", message);
-        Assert.DoesNotContain("random READ (ISO §14.9.30.4 GR19)", message);   // GR19 is not the rule that makes THIS a random read
+        Assert.Contains("so the NEXT phrase is implied (ISO §2023:14.9.30.3 SR8) and the READ is a sequential read (ISO §2023:14.9.30.4 GR19)", message);
+        Assert.DoesNotContain("random READ (ISO §2023:14.9.30.4 GR19)", message);   // GR19 is not the rule that makes THIS a random read
         Assert.Contains("ACCESS MODE IS RANDOM, or DYNAMIC", message);
         if (accessClause.Length == 0) Assert.Contains(AccessModeNotSpecified, message);
         else Assert.DoesNotContain(AccessModeNotSpecified, message);
@@ -106,7 +106,7 @@ public sealed class ReadKeyFormatTests
         Assert.False(ok, $"'{statement}' compiled");
         string message = Single0864(diagnostics);
         Assert.Contains($"this statement specifies {written};", message);
-        Assert.Contains("whose general format prints none of the phrases ADVANCING, AT END, NEXT, NOT AT END or PREVIOUS (ISO §14.9.30.2)", message);
+        Assert.Contains("whose general format prints none of the phrases ADVANCING, AT END, NEXT, NOT AT END or PREVIOUS (ISO §2023:14.9.30.2)", message);
         Assert.DoesNotContain("access mode is SEQUENTIAL", message);   // the file's mode is not what is wrong here
     }
 
@@ -123,7 +123,7 @@ public sealed class ReadKeyFormatTests
     {
         var (ok, diagnostics) = EditionHarness.Compile(
             Program("PBRK03", accessClause, "READ F1 KEY IS F1-K INVALID KEY DISPLAY \"I\" END-READ"), edition);
-        Assert.True(ok, $"a Format 2 READ ... KEY on an {accessClause} file is legal (§12.4.5.5.3 GR3, GR4); got:\n{string.Join("\n", diagnostics)}");
+        Assert.True(ok, $"a Format 2 READ ... KEY on an {accessClause} file is legal (§2023:12.4.5.5.3 GR3, GR4); got:\n{string.Join("\n", diagnostics)}");
     }
 
     [Theory]

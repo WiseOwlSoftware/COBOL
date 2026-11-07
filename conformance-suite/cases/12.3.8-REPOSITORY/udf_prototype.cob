@@ -5,9 +5,9 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §11.5 Format 2 / §10.6 / §12.3.8 — a FUNCTION-ID … IS PROTOTYPE signature-only unit
-      *> (LINKAGE-only data + a header-only PROCEDURE DIVISION, §10.6.2 SR4) precedes the caller (SR1); the
-      *> in-group DEFINITION that follows is the activation target (§12.3.8 GR11a). Proves the IS PROTOTYPE
+      *> ISO §2023:11.5 Format 2 / §2023:10.6 / §2023:12.3.8 — a FUNCTION-ID … IS PROTOTYPE signature-only unit
+      *> (LINKAGE-only data + a header-only PROCEDURE DIVISION, §2023:10.6.2 SR4) precedes the caller (SR1); the
+      *> in-group DEFINITION that follows is the activation target (§2023:12.3.8 GR11a). Proves the IS PROTOTYPE
       *> parse, the no-body emit (the prototype registers no runtime module), and forward resolution through
       *> the REPOSITORY FUNCTION specifier. WS-N=7 ⇒ SQUARER(7)=49 ⇒ P=000049.
        IDENTIFICATION DIVISION.

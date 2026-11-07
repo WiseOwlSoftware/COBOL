@@ -5,9 +5,9 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// EXACT-COUNT witnesses for the Step-14g.4 gates — the file-control SHARING (§12.4.5.15) and LOCK MODE (§12.4.5.9)
-/// clauses, the SPECIAL-NAMES FOR ALPHANUMERIC/NATIONAL phrase (§12.3.7), and the PROCEDURE DIVISION RETURNING (§14.2)
-/// and RAISING (§14.2.2) phrases — all COBOL-2002 introductions relocated from their bind-time Checks
+/// EXACT-COUNT witnesses for the Step-14g.4 gates — the file-control SHARING (§2023:12.4.5.15) and LOCK MODE (§2023:12.4.5.9)
+/// clauses, the SPECIAL-NAMES FOR ALPHANUMERIC/NATIONAL phrase (§2023:12.3.7), and the PROCEDURE DIVISION RETURNING (§2023:14.2)
+/// and RAISING (§2023:14.2.2) phrases — all COBOL-2002 introductions relocated from their bind-time Checks
 /// (FileControlBinder.BindFileControl / SpecialNamesBinder.BindSpecialNames / CallBindLinkage) to the post-bind <c>VersionConformancePass</c>
 /// parse-arm on RECOGNITION. The version matrix + the contains-based conformance suite verify PRESENCE; these pin the
 /// FIRING COUNT. The load-bearing case is <see cref="MethodReturning_At85_NotGated"/>: the procedureDivision rule is
@@ -23,7 +23,7 @@ public sealed class ConfigPdEditionTests
             && e.Contains(whereFragment, StringComparison.OrdinalIgnoreCase));
     }
 
-    // A SELECT carrying BOTH the SHARING and LOCK MODE clauses (independent §12.4.5 introductions).
+    // A SELECT carrying BOTH the SHARING and LOCK MODE clauses (independent §2023:12.4.5 introductions).
     private const string ShareLock = """
         IDENTIFICATION DIVISION.
         PROGRAM-ID. SHL.

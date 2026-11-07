@@ -6,19 +6,19 @@ using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Binding;
 
-/// <summary>The §12.4.5.3 GR1 identity of an EXTERNAL file connector's file control entry, built at the end of the bind
+/// <summary>The §2023:12.4.5.3 GR1 identity of an EXTERNAL file connector's file control entry, built at the end of the bind
 /// (<c>BackendAnswers</c>) into <see cref="FileModel.SelectFingerprint"/>: it describes each record key with the binder's one
 /// description builder (<see cref="ActivationDescriptions"/>), so the backend renders a value and asks no binder rule
 /// (kb/Work PB2403).</summary>
 internal static class FileEntryIdentity
 {
-    /// <summary>⛔ THE ONE §12.4.5.3 GR1 IDENTITY of an external file connector's file control entry — the string two
-    /// describers' <c>ExternalStore.Describe</c> registrations compare for EC-EXTERNAL-FILE-MISMATCH (§14.8.4.4: "the
+    /// <summary>⛔ THE ONE §2023:12.4.5.3 GR1 IDENTITY of an external file connector's file control entry — the string two
+    /// describers' <c>ExternalStore.Describe</c> registrations compare for EC-EXTERNAL-FILE-MISMATCH (§2023:14.8.4.4: "the
     /// rules specified in 12.4.5, File control entry General rule 1 apply"). One segment per GR1 item that the entry
     /// can make differ: a) OPTIONAL, b) the ASSIGN operands, c) the RECORD DELIMITER phrase, d) RESERVE integer-1,
     /// e) organization, f) access mode, g) the COLLATING SEQUENCE clauses, j) the prime key's description and relative
     /// location, k) each alternate key's description, relative location, DUPLICATES and SUPPRESS WHEN phrase (and so
-    /// their number), l) sharing mode, m) lock mode. h) RELATIVE KEY and i) FILE STATUS are the §14.8.4.2 external-item
+    /// their number), l) sharing mode, m) lock mode. h) RELATIVE KEY and i) FILE STATUS are the §2023:14.8.4.2 external-item
     /// references the descriptor carries beside it (<c>RelativeKeyRef</c> / <c>FileStatusRef</c>). The split-key
     /// <c>SOURCE IS</c> operands of j)/k) ("each data-name-6" / "each data-name-3") enter as the record-key-name
     /// followed by each operand's own entry in order (kb/Work PB1099). Every segment is built from the bound <see cref="FileModel"/>; kb/Work
@@ -26,9 +26,9 @@ internal static class FileEntryIdentity
     /// so a mismatch in any of them ran the activated program with no condition.</summary>
     public static string Of(FileModel f)
     {
-        // §12.4.5.3 GR1 j)/k) "The same data description entry for data-name-… as well as their relative location
+        // §2023:12.4.5.3 GR1 j)/k) "The same data description entry for data-name-… as well as their relative location
         // within the associated record": the key's name as written (part of its data description entry), its
-        // elementary/group shape and byte extent, its §14.8 conformance description (category, usage, PICTURE clause
+        // elementary/group shape and byte extent, its §2023:14.8 conformance description (category, usage, PICTURE clause
         // identity, sign) and its byte offset within the record area (RecordLayout.OffsetOf, the same offset the
         // connector registers the key window at).
         static string KeyEntry(string name, DataItem? item) => item is null ? CobolNames.UpperFold(name)
@@ -36,7 +36,7 @@ internal static class FileEntryIdentity
               + $":{(item.IsGroup ? "G" : "E")}{item.ByteWidth}:"
               + (ActivationDescriptions.Of(item, classes: null) is { } d ? $"{d.Category}/{d.Clauses}/{d.Positions}" : "-");
         // j)/k) "each data-name-6" / "each data-name-3": a SOURCE-form key is its record-key-name and every operand's
-        // entry in the order specified, since that order IS the key (§12.4.5.12.4 GR2).
+        // entry in the order specified, since that order IS the key (§2023:12.4.5.12.4 GR2).
         static string ClauseKey(string name, RecordKeySource? source, DataItem? item) => source is null
             ? KeyEntry(name, item)
             : $"{CobolNames.UpperFold(source.Name)}=SOURCE[{string.Join("+", source.Operands.Select(o => KeyEntry(o.Name, o.Item)))}]";

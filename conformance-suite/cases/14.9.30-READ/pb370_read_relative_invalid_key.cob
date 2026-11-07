@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.30.4 GR29: "For a relative file, execution of a READ
+      *> ISO §2023:14.9.30.4 GR29: "For a relative file, execution of a READ
       *> statement sets the file position indicator to the value
       *> contained in the data item referenced by the RELATIVE KEY
       *> clause for the file, and the record whose relative record
@@ -14,11 +14,11 @@
       *> file does not contain such a record, the invalid key condition
       *> exists and execution of the READ statement is unsuccessful.
       *> (See 9.1.14, Invalid key condition.)"
-      *> §9.1.14 2): with INVALID KEY written, control goes to its
+      *> §2023:9.1.14 2): with INVALID KEY written, control goes to its
       *> imperative statement and no exception procedure runs; 3): with
       *> no INVALID KEY phrase, "any applicable exception processing
       *> statements are executed" - here the file's USE procedure.
-      *> '23' is the §9.1.13.5 3) a) value: "an attempt is made to
+      *> '23' is the §2023:9.1.13.5 3) a) value: "an attempt is made to
       *> randomly access a record that does not exist in the physical
       *> file". FR holds relative record numbers 2, 4 and 5.
       *>   R4   random READ of RRN 4: found, NOT INVALID KEY, REC-4.

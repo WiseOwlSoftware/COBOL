@@ -6,17 +6,17 @@ namespace WiseOwl.Cobol.Runtime;
 
 /// <summary>
 /// THE ONE collating-sequence carrier (DESIGN-locale-facility §4.4.1; kb/Work PB101): every consumer of a COBOL
-/// collating sequence — relation and condition-name comparisons (ISO §8.8.4.2.7/.9), SORT/MERGE keys (§14.9.40 GR5),
-/// indexed-file keys (§12.4.5.7), MAX/MIN (§15.61/§15.63), ORD/CHAR (§15.70/§15.15) and the HIGH-VALUE/LOW-VALUE
-/// extremes (§8.3.3.6.4 GR6/GR7) — takes one of these, and the compiler emits one per declared sequence
+/// collating sequence — relation and condition-name comparisons (ISO §2023:8.8.4.2.7/.9), SORT/MERGE keys (§2023:14.9.40 GR5),
+/// indexed-file keys (§2023:12.4.5.7), MAX/MIN (§2023:15.61/§2023:15.63), ORD/CHAR (§2023:15.70/§2023:15.15) and the HIGH-VALUE/LOW-VALUE
+/// extremes (§2023:8.3.3.6.4 GR6/GR7) — takes one of these, and the compiler emits one per declared sequence
 /// (<c>__COLLATE</c> for the alphanumeric program collating sequence, <c>__COLLATE_NAT</c> for the national one, an
 /// inline instance for a statement or file alphabet). The arms:
 /// <list type="bullet">
 /// <item><see cref="AlphanumericCollation"/> — an <c>ALPHABET</c> literal phrase over the alphanumeric set, and
 /// <see cref="NationalCollation"/> — its <c>FOR NATIONAL</c> twin. Both are named arms of the ONE
-/// <see cref="LiteralPhraseCollation"/> implementation of §12.3.7.4 GR7 k: sparse over the 65,536 code units of
+/// <see cref="LiteralPhraseCollation"/> implementation of §2023:12.3.7.4 GR7 k: sparse over the 65,536 code units of
 /// either native repertoire, with a materialized O(1) weight cache below the highest specified character.</item>
-/// <item><see cref="LocaleCollation"/> — a LOCALE-based sequence (§8.8.4.2.11) or an <c>ORDER TABLE</c>: the derived
+/// <item><see cref="LocaleCollation"/> — a LOCALE-based sequence (§2023:8.8.4.2.11) or an <c>ORDER TABLE</c>: the derived
 /// CLDR/UCA collation engine of <c>Runtime/Collation/</c>.</item>
 /// </list>
 /// The NATIVE sequence has no carrier: it is the two-argument <see cref="CobolString.Compare(string?,string?,char)"/>
@@ -28,24 +28,24 @@ namespace WiseOwl.Cobol.Runtime;
 public abstract class CobolCollation
 {
     /// <summary>Compare two character values under this sequence: &lt;0, 0, &gt;0. Each arm applies ITS OWN
-    /// operand rule — the table arms space-extend the shorter operand (§8.8.4.2.1, the pad itself weighed through
-    /// the sequence), the locale arm truncates trailing spaces (§8.8.4.2.11) — so a caller never pads or trims.</summary>
+    /// operand rule — the table arms space-extend the shorter operand (§2023:8.8.4.2.1, the pad itself weighed through
+    /// the sequence), the locale arm truncates trailing spaces (§2023:8.8.4.2.11) — so a caller never pads or trims.</summary>
     public abstract int Compare(string? left, string? right);
 
-    /// <summary>The 0-based collating position of <paramref name="c"/> — the ORD arithmetic (§15.70.4 r1).</summary>
+    /// <summary>The 0-based collating position of <paramref name="c"/> — the ORD arithmetic (§2023:15.70.4 r1).</summary>
     public abstract int Weight(char c);
 
-    /// <summary>The number of collating positions the sequence defines (§15.15.3 r2's domain bound for CHAR).</summary>
+    /// <summary>The number of collating positions the sequence defines (§2023:15.15.3 r2's domain bound for CHAR).</summary>
     public abstract int PositionCount { get; }
 
-    /// <summary>The character at 0-based <paramref name="position"/> — the CHAR inverse (§15.15.4 r2: the FIRST
+    /// <summary>The character at 0-based <paramref name="position"/> — the CHAR inverse (§2023:15.15.4 r2: the FIRST
     /// character defined for a shared position), or −1 outside the sequence.</summary>
     public abstract int CharAt(long position);
 
-    /// <summary>The HIGH-VALUE character of the sequence (§8.3.3.6.4 GR6 — the highest ordinal position).</summary>
+    /// <summary>The HIGH-VALUE character of the sequence (§2023:8.3.3.6.4 GR6 — the highest ordinal position).</summary>
     public abstract char HighValue { get; }
 
-    /// <summary>The LOW-VALUE character of the sequence (§8.3.3.6.4 GR7 — the lowest ordinal position).</summary>
+    /// <summary>The LOW-VALUE character of the sequence (§2023:8.3.3.6.4 GR7 — the lowest ordinal position).</summary>
     public abstract char LowValue { get; }
 
     /// <summary>True when the sequence can hand out a materialized, cacheable sort key (<see cref="KeyOf"/>) whose
@@ -55,9 +55,9 @@ public abstract class CobolCollation
     /// comparison is a table lookup per character, cheaper than any key.</summary>
     public virtual bool SupportsKeys => false;
 
-    /// <summary>True when this sequence is compared by the STANDARD comparison of ISO §8.8.4.2.7 1) — <i>"comparing
+    /// <summary>True when this sequence is compared by the STANDARD comparison of ISO §2023:8.8.4.2.7 1) — <i>"comparing
     /// alphanumeric characters in corresponding alphanumeric character positions starting from the high-order end"</i>,
-    /// the first unequal pair deciding — and false for a LOCALE-BASED one (§8.8.4.2.11: <i>"is not necessarily performed
+    /// the first unequal pair deciding — and false for a LOCALE-BASED one (§2023:8.8.4.2.11: <i>"is not necessarily performed
     /// character-by-character"</i>; under the CLDR/UCA engine a primary difference late in an operand outranks a secondary
     /// difference early in it). A consumer that relies on the position-by-position shape asks this: the keyed store's
     /// partial-key seek (<see cref="IO.Store.IKeyOrder.PrefixNarrows"/>) narrows a key shorter than the record key by
@@ -69,7 +69,7 @@ public abstract class CobolCollation
     /// <see cref="Collation.PrefixShape"/> of a stored key under this sequence's operand rule, which the store keeps as its
     /// tree's high-water marks. Asked only when <see cref="UsesStandardComparison"/> is false — a standard comparison's
     /// prefixes are themselves one run of its order — and the default, no deficit and no overhang, goes with
-    /// <see cref="PrimaryBound"/>'s empty bound: the sequential search of §14.9.41.4 GR17 c) and d) as written.</summary>
+    /// <see cref="PrimaryBound"/>'s empty bound: the sequential search of §2023:14.9.41.4 GR17 c) and d) as written.</summary>
     internal virtual Collation.PrefixShape PrefixShapeOf(string value) => default;
 
     /// <summary>Part 2: the bound of a partial key <paramref name="prefix"/> — the first level-1 weights of the prefix that
@@ -92,14 +92,14 @@ public abstract class CobolCollation
     /// null when <see cref="SupportsKeys"/> is false. Keys of one sequence order exactly as <see cref="Compare"/>.</summary>
     public virtual Collation.CollationKey? KeyOf(string? value) => null;
 
-    /// <summary>This sequence frozen for one statement or one open file (ISO §14.6.6 r5 — a SORT/MERGE keeps the
+    /// <summary>This sequence frozen for one statement or one open file (ISO §2023:14.6.6 r5 — a SORT/MERGE keeps the
     /// collating sequence in effect when it began; a locale switch during its execution has no effect on it — and
-    /// §12.4.5.7.4 GR1, an indexed file's key sequence is a fixed file attribute): a table sequence is already immutable
+    /// §2023:12.4.5.7.4 GR1, an indexed file's key sequence is a fixed file attribute): a table sequence is already immutable
     /// and returns itself; a LOCALE sequence returns itself bound to the locale current NOW and to ONE collator.</summary>
     public virtual CobolCollation Snapshot() => this;
 
     /// <summary>Membership of <paramref name="read"/> in the THROUGH range [<paramref name="lo"/>, <paramref name="hi"/>]
-    /// under this sequence (ISO §14.7.8; a level-88 VALUE THRU or an EVALUATE WHEN range). When <paramref name="lo"/>
+    /// under this sequence (ISO §2023:14.7.8; a level-88 VALUE THRU or an EVALUATE WHEN range). When <paramref name="lo"/>
     /// collates AFTER <paramref name="hi"/> (rule 2) the nonfatal EC-RANGE-INVALID is set and the range is treated as
     /// EMPTY (false); otherwise the inclusive bound test. ONE implementation for every arm — the three copies the
     /// overload set used to need are gone.</summary>

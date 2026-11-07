@@ -5,20 +5,20 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §13.10 constant entries (2002). A constant is a COMPILE-TIME
-      *> substitution: §13.10.4 GR1/GR3 — references are "as if [the]
+      *> ISO §2023:13.10 constant entries (2002). A constant is a COMPILE-TIME
+      *> substitution: §2023:13.10.4 GR1/GR3 — references are "as if [the]
       *> literal were written where constant-name-1 is written"; the
       *> entry occupies NO storage. AS forms covered: a literal (GR1/GR2
-      *> — incl. the §13.10.3 SR1 reclassification, so AS 0.25 keeps its
-      *> non-integer value, and a §8.8.3 concatenation, which folds
-      *> first per §8.8.3.3 GR3); an arithmetic expression (§13.10.4 GR4 —
-      *> §7.3.6 compile-time arithmetic, result truncated to an
-      *> integer), including a PRIOR constant as an operand (§13.10.3
-      *> SR2/SR7); and LENGTH OF (GR6 — the §15.50 LENGTH value).
+      *> — incl. the §2023:13.10.3 SR1 reclassification, so AS 0.25 keeps its
+      *> non-integer value, and a §2023:8.8.3 concatenation, which folds
+      *> first per §2023:8.8.3.3 GR3); an arithmetic expression (§2023:13.10.4 GR4 —
+      *> §2023:7.3.6 compile-time arithmetic, result truncated to an
+      *> integer), including a PRIOR constant as an operand (§2023:13.10.3
+      *> SR2/SR7); and LENGTH OF (GR6 — the §2023:15.50 LENGTH value).
       *> Substitution positions exercised: an OCCURS bound + a PICTURE
-      *> repetition count (§13.10.3 SR2), VALUE clauses (01 and
+      *> repetition count (§2023:13.10.3 SR2), VALUE clauses (01 and
       *> level-88), a subscript, MOVE/DISPLAY operands, arithmetic, and
-      *> relation conditions. §13.10.3 SR9: a duplicated constant-name
+      *> relation conditions. §2023:13.10.3 SR9: a duplicated constant-name
       *> with the SAME specification is legal.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. KONSTP10CT.

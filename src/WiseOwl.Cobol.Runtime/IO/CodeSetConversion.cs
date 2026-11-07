@@ -3,14 +3,14 @@
 namespace WiseOwl.Cobol.Runtime.IO;
 
 /// <summary>
-/// ⛔ THE ONE ISO §13.18.13.4 GR6 CODE-SET CONVERSION — "<i>On input, each coded character from the storage
+/// ⛔ THE ONE ISO §2023:13.18.13.4 GR6 CODE-SET CONVERSION — "<i>On input, each coded character from the storage
 /// medium is replaced with its associated native coded character as defined in the alphabet being used</i>"
 /// (GR6 a) and "<i>On output, each native coded character in the record is replaced for the storage medium with
 /// its associated coded character as defined in the alphabet being used</i>" (GR6 b). One instance per file
-/// connector, or NULL — §13.18.13.4 GR7, "<i>If the CODE-SET clause is not specified, the native character set
+/// connector, or NULL — §2023:13.18.13.4 GR7, "<i>If the CODE-SET clause is not specified, the native character set
 /// is assumed for data on the external media</i>", which is the identity and costs nothing.
 /// <para><b>The correspondence is the compiler's</b>, not the runtime's: the ALPHABET clause's coded character
-/// set decides it (§12.3.7.4 GR7 c for STANDARD-1 / STANDARD-2, GR7 i for a code-name —
+/// set decides it (§2023:12.3.7.4 GR7 c for STANDARD-1 / STANDARD-2, GR7 i for a code-name —
 /// <c>WiseOwl.Cobol.Binding.CodedCharacterSet.MediumCorrespondence</c>) and the emitter hands the finished table down as
 /// a literal, exactly as it hands down a collating sequence's weights. The table has one entry per character of
 /// the coded character set: 256 for a complete single-byte code (EBCDIC), 128 for ISO/IEC 646 (STANDARD-1,
@@ -25,11 +25,11 @@ namespace WiseOwl.Cobol.Runtime.IO;
 /// on input and back to the same code unit on output, so a relative or indexed store that re-persists every record
 /// at CLOSE rewrites a record it never changed byte-exactly. Membership is the statement's question; the encoding
 /// is the boundary's, and after the screen it is total.</para>
-/// <para><b>What is converted, and what is not.</b> GR6 speaks of the characters of the RECORD; §13.18.13.4 GR3
+/// <para><b>What is converted, and what is not.</b> GR6 speaks of the characters of the RECORD; §2023:13.18.13.4 GR3
 /// applies "<i>the specified alphabet … for code-set conversion of all data items in each record</i>". The
-/// framing this processor adds around a record — the §9.1.7.2 record-length header of a VARYING or keyed file,
+/// framing this processor adds around a record — the §2023:9.1.7.2 record-length header of a VARYING or keyed file,
 /// and a line sequential file's line delimiter — is not data of the record and stays in the native encoding;
-/// §9.1.7.2 leaves that framing implementor-defined ("<i>any information the implementor may add to the record on
+/// §2023:9.1.7.2 leaves that framing implementor-defined ("<i>any information the implementor may add to the record on
 /// the physical storage medium (such as record length headers)</i>"), and keeping it native is what lets one
 /// framing serve a converted and an unconverted file alike. The determination is published in
 /// <c>docs/CONFORMANCE.md</c> §2 row 27.</para>
@@ -57,7 +57,7 @@ public sealed class CodeSetConversion
     /// <see cref="Represents"/>).</summary>
     private readonly char[] _toMedium;
 
-    /// <summary>Build the conversion from §12.3.7.4 GR7's correspondence: <paramref name="toNative"/>[u] is the
+    /// <summary>Build the conversion from §2023:12.3.7.4 GR7's correspondence: <paramref name="toNative"/>[u] is the
     /// native character that medium code unit <c>u</c> represents.</summary>
     /// <exception cref="ArgumentException">The correspondence is not one this record channel can invert: it has no
     /// characters or more than the channel's 256, or two code units share a native character, or a native
@@ -70,7 +70,7 @@ public sealed class CodeSetConversion
         ArgumentNullException.ThrowIfNull(toNative);
         if (toNative.Length is 0 or > ChannelUnits)
             throw new ArgumentException($"a CODE-SET coded character set shall be a single-byte code on this "
-                + $"medium: {toNative.Length} characters (ISO §13.18.13.4 GR6)", nameof(toNative));
+                + $"medium: {toNative.Length} characters (ISO §2023:13.18.13.4 GR6)", nameof(toNative));
         _toNative = toNative;
         _toMedium = new char[ChannelUnits];
         var assigned = new bool[ChannelUnits];
@@ -79,11 +79,11 @@ public sealed class CodeSetConversion
             char native = toNative[unit];
             if (native >= ChannelUnits)
                 throw new ArgumentException($"medium code unit {unit} corresponds to U+{(int)native:X4}, which "
-                    + "is outside the one-byte record channel (ISO §13.18.13.4 GR6 b)", nameof(toNative));
+                    + "is outside the one-byte record channel (ISO §2023:13.18.13.4 GR6 b)", nameof(toNative));
             if (assigned[native])
                 throw new ArgumentException($"medium code units {(int)_toMedium[native]} and {unit} both "
                     + $"correspond to U+{(int)native:X4}: the correspondence is not invertible "
-                    + "(ISO §13.18.13.4 GR6 b)", nameof(toNative));
+                    + "(ISO §2023:13.18.13.4 GR6 b)", nameof(toNative));
             _toMedium[native] = (char)unit;
             assigned[native] = true;
         }
@@ -94,12 +94,12 @@ public sealed class CodeSetConversion
             if (assigned[unit])
                 throw new ArgumentException($"medium code unit {(int)_toMedium[unit]} corresponds to U+{unit:X4}, "
                     + $"which is also the value of code unit {unit} outside the {toNative.Length}-character set: "
-                    + "the channel encoding would not be invertible (ISO §13.18.13.4 GR6)", nameof(toNative));
+                    + "the channel encoding would not be invertible (ISO §2023:13.18.13.4 GR6)", nameof(toNative));
             _toMedium[unit] = (char)unit;
         }
     }
 
-    /// <summary>§13.18.13.4 GR6 b's MEMBERSHIP question — true when <paramref name="native"/> has an "<i>associated
+    /// <summary>§2023:13.18.13.4 GR6 b's MEMBERSHIP question — true when <paramref name="native"/> has an "<i>associated
     /// coded character as defined in the alphabet being used</i>", i.e. is a character of this coded character
     /// set. A native character above the one-byte channel never is — except the HIGH-VALUE character, which every
     /// coded character set represents by its HIGHEST code unit (<see cref="HighUnit"/>).</summary>
@@ -138,7 +138,7 @@ public sealed class CodeSetConversion
                 // A code unit outside the set has no associated native character; it is left as it stands rather
                 // than mapped to something it is not — the medium held a byte this coded character set does not
                 // define, which is a property of the FILE, not an error this READ may invent a status for
-                // (§13.18.13.4 names no condition for it; the one exception is a line sequential file, whose
+                // (§2023:13.18.13.4 names no condition for it; the one exception is a line sequential file, whose
                 // character set it is outside of — '09', SequentialConnector.RecordAreaOutsideLineCharacterSet).
                 // It is not a member (Represents), so a WRITE or REWRITE of it is refused like any other
                 // non-member, and ToMedium carries it back to the same unit when a store re-persists the record.
@@ -167,7 +167,7 @@ public sealed class CodeSetConversion
                 if (c >= ChannelUnits)
                     throw new InvalidOperationException($"the record contains U+{(int)c:X4}, which the file's "
                         + "CODE-SET coded character set does not represent, and no WRITE or REWRITE screen refused it "
-                        + "(ISO §13.18.13.4 GR6 b)");
+                        + "(ISO §2023:13.18.13.4 GR6 b)");
                 dst[i] = map[c];
             }
         });

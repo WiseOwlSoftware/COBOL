@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> UNLOCK (ISO §14.9.47) is a COBOL-2002 introduction. Residue migration #5
+      *> UNLOCK (ISO §2023:14.9.47) is a COBOL-2002 introduction. Residue migration #5
       *> (DESIGN-version-conformance-pipeline.md): the parse-time {is2002()}? predicate AND the reverse-signature
       *> ReservedWordEditionHints arm are GONE — UNLOCK now parses at all editions (superset) and the introduction
       *> gate is enforced at BIND (BindUnlock → ConstructRegistry.Check(UnlockStatement2002)), so below 2002 it is

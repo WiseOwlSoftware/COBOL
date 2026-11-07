@@ -7,7 +7,7 @@ using WiseOwl.Cobol.Frontend.Generated;
 namespace WiseOwl.Cobol.Frontend.Parsing;
 
 /// <summary>
-/// The compile-time directive-expression re-parse (ISO/IEC 1989:2023 §7.3.6/§7.3.7/§7.3.8). The frontend
+/// The compile-time directive-expression re-parse (ISO/IEC 1989:2023 §2023:7.3.6/§2023:7.3.7/§2023:7.3.8). The frontend
 /// conditional-compilation stage isolates a directive's operand / constant-conditional-expression TEXT (a
 /// <c>&gt;&gt;DEFINE</c> value, a <c>&gt;&gt;EVALUATE</c> subject / <c>&gt;&gt;WHEN</c> object, a <c>&gt;&gt;IF</c>
 /// cce) and re-lexes it here with the lexer primed as a directive-expression region
@@ -16,9 +16,9 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// tokenizer / condition parser. The tree is evaluated by the ONE
 /// shared <see cref="T:WiseOwl.Cobol.Frontend.Expressions.CompileTimeExpressionEvaluator"/>.
 ///
-/// The DEFAULT lexer mode is used (no list region) — §7.3.6 has no argument juxtaposition, so <c>1 - 2</c>
+/// The DEFAULT lexer mode is used (no list region) — §2023:7.3.6 has no argument juxtaposition, so <c>1 - 2</c>
 /// is subtraction — and the <see cref="ZeroTokenRewriter"/> is applied so a figurative <c>ZERO</c> in an arithmetic
-/// operand becomes <c>ZERO_ARITH</c> (which the evaluator then rejects under §7.3.3 SR10). The operand parses at the
+/// operand becomes <c>ZERO_ARITH</c> (which the evaluator then rejects under §2023:7.3.3 SR10). The operand parses at the
 /// newest edition (<see cref="EditionInfo.Latest"/>) — the whole-<c>&gt;&gt;</c>-facility introduction gate below
 /// 2002 is tracked separately (ledger C15). Any syntax error becomes a loud <see langword="null"/> — a partial
 /// parse is never evaluated.
@@ -35,7 +35,7 @@ public static class DirectiveExpressionFragment
     public static CobolParserCore.ConstantConditionalExpressionFragmentContext? ParseCce(string text) =>
         Parse(text, static p => p.constantConditionalExpressionFragment());
 
-    /// <summary>Parse the operand list of a <c>&gt;&gt;DISPLAY</c> directive (ISO §7.3.12.2) — the repeated
+    /// <summary>Parse the operand list of a <c>&gt;&gt;DISPLAY</c> directive (ISO §2023:7.3.12.2) — the repeated
     /// operands and the UPON phrase's words — or <see langword="null"/> on any syntax error. Each operand is the SAME
     /// <c>compileTimeOperand</c> a DEFINE value is, or a <c>PARAMETER</c> phrase.</summary>
     public static CobolParserCore.DisplayDirectiveFragmentContext? ParseDisplay(string text) =>

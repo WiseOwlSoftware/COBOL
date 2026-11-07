@@ -6,9 +6,9 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
 /// ⛔ A WORD THAT IS BOTH A DECLARED CONSTANT-NAME AND AN IMPLEMENTOR SYSTEM-NAME, WRITTEN WHERE THE ASSIGN CLAUSE ADMITS
-/// EITHER (kb/Work PB2500). ISO §12.4.5.1 prints <c>ASSIGN [TO] {device-name-1 | literal-1}</c>; §13.10.3 SR2 puts a
-/// constant-name wherever a format specifies a literal; §8.3.2.1 4) lets one word be a system-name and a user-defined
-/// word; §12.4.5.2 SR5 leaves "the meaning and rules for the allowable specification of device-name-1 and the value of
+/// EITHER (kb/Work PB2500). ISO §2023:12.4.5.1 prints <c>ASSIGN [TO] {device-name-1 | literal-1}</c>; §2023:13.10.3 SR2 puts a
+/// constant-name wherever a format specifies a literal; §2023:8.3.2.1 4) lets one word be a system-name and a user-defined
+/// word; §2023:12.4.5.2 SR5 leaves "the meaning and rules for the allowable specification of device-name-1 and the value of
 /// literal-1" to the implementor. The determination (docs/CONFORMANCE.md §7 DOC-A.1-71): the program's own declaration of
 /// the word wins, exactly as it does for the LOCALE clause and the ALPHABET code-name. The corpus golden
 /// <c>pb2500_assign_constant_name</c> carries the success and run-time abnormal paths (I-O statuses 00, 05, 10, 35, a USE
@@ -35,8 +35,8 @@ public sealed class AssignConstantNameTests
             STOP RUN.
         """;
 
-    /// <summary>§12.4.5.2 SR4 — "Literal-1 shall be an alphanumeric literal and shall be neither a figurative constant
-    /// nor a zero-length literal" — holds the constant, which is "as if literal-1 … were written" (§13.10.4 GR1), to the
+    /// <summary>§2023:12.4.5.2 SR4 — "Literal-1 shall be an alphanumeric literal and shall be neither a figurative constant
+    /// nor a zero-length literal" — holds the constant, which is "as if literal-1 … were written" (§2023:13.10.4 GR1), to the
     /// same rule: a numeric, national or boolean constant, and a zero-length one, each refused with COBOL2645 naming
     /// the constant and what it stands for, at every edition that has constant entries (2002 introduced them).</summary>
     [Theory]
@@ -54,11 +54,11 @@ public sealed class AssignConstantNameTests
             EditionHarness.AssertHasDiagnostic(errors, "COBOL2645");
             EditionHarness.AssertHasDiagnostic(errors, "the constant-name 'K'");
             EditionHarness.AssertHasDiagnostic(errors, why);
-            EditionHarness.AssertHasDiagnostic(errors, "ISO §12.4.5.2 SR4");
+            EditionHarness.AssertHasDiagnostic(errors, "ISO §2023:12.4.5.2 SR4");
         }
     }
 
-    /// <summary>A constant entry whose own operand was refused (§13.10.3 SR6: a figurative constant is no literal-1 of a
+    /// <summary>A constant entry whose own operand was refused (§2023:13.10.3 SR6: a figurative constant is no literal-1 of a
     /// constant entry) reports at the ENTRY; the ASSIGN operand that names it recovers silently — one fault, one report,
     /// never a second COBOL2645 that blames the ASSIGN clause for the entry's error.</summary>
     [Fact]
@@ -109,9 +109,9 @@ public sealed class AssignConstantNameTests
         Assert.Equal("DEV1", stdout.Trim());
     }
 
-    /// <summary>The constant is "as if literal-1 … were written" (§13.10.4 GR1), so a hexadecimal-alphanumeric constant
-    /// (an alphanumeric literal, §8.3.3.2.2) names the file its characters spell, and a GLOBAL constant of a containing
-    /// program (§13.18.27.4 GR1-GR2) is the one a contained program's ASSIGN reads. ONE file, written through the
+    /// <summary>The constant is "as if literal-1 … were written" (§2023:13.10.4 GR1), so a hexadecimal-alphanumeric constant
+    /// (an alphanumeric literal, §2023:8.3.3.2.2) names the file its characters spell, and a GLOBAL constant of a containing
+    /// program (§2023:13.18.27.4 GR1-GR2) is the one a contained program's ASSIGN reads. ONE file, written through the
     /// contained program's constant and read back through a literal in the container.</summary>
     [Fact]
     public void HexadecimalAndGlobalConstants_NameTheirFile()
@@ -164,19 +164,19 @@ public sealed class AssignConstantNameTests
     /// <summary>⛔ THE THIRD EC-I-O ARM OF A CONSTANT-NAMED FILE (kb/Work PB3438): NEITHER a FILE STATUS item NOR a USE
     /// declarative. The corpus golden <c>pb2500_assign_constant_name</c> covers FILE STATUS (MS, status 35) and USE
     /// without FILE STATUS (DC) but cannot hold this arm, because the harness requires exit 0 and this arm ends the run
-    /// unit abnormally. §14.6.13.1.3 3): "If the exception condition is a fatal EC-I-O exception condition, then the
-    /// rules for 9.1.13, I-O status apply"; §9.1.13.1: a status beginning 3 or 4 "indicate[s] fatal exception
+    /// unit abnormally. §2023:14.6.13.1.3 3): "If the exception condition is a fatal EC-I-O exception condition, then the
+    /// rules for 9.1.13, I-O status apply"; §2023:9.1.13.1: a status beginning 3 or 4 "indicate[s] fatal exception
     /// conditions" and the implementor "may either continue or terminate the execution of the run unit"; the
     /// implementor's determination (docs/CONFORMANCE.md §7, DOC-A.1-103) continues only when the program is equipped
-    /// to see the failure, and with nothing equipped the run unit terminates (§14.6.12). That is the implementor's
-    /// determination, not a rule the standard mandates: no EC-I-O checking is enabled here, so §14.6.13.1.3 8) leaves
+    /// to see the failure, and with nothing equipped the run unit terminates (§2023:14.6.12). That is the implementor's
+    /// determination, not a rule the standard mandates: no EC-I-O checking is enabled here, so §2023:14.6.13.1.3 8) leaves
     /// whether execution continues to the implementor, and 7) (termination, with checking enabled) does not apply. The
     /// constant must not change that: its file is an ordinary file once named, so each fatal status of the abnormal
     /// paths the golden answers through a status item ends the run, with nothing after the failing statement run.
     /// <list type="bullet">
-    /// <item>OPEN INPUT of a non-optional file whose physical file is absent: '35' (§9.1.13.6 5)), first digit 3,
+    /// <item>OPEN INPUT of a non-optional file whose physical file is absent: '35' (§2023:9.1.13.6 5)), first digit 3,
     /// EC-I-O-PERMANENT-ERROR.</item>
-    /// <item>WRITE to a file that is not open: '48' (§9.1.13.7 8)), first digit 4, EC-I-O-LOGIC-ERROR.</item>
+    /// <item>WRITE to a file that is not open: '48' (§2023:9.1.13.7 8)), first digit 4, EC-I-O-LOGIC-ERROR.</item>
     /// </list>
     /// Every leg can fail: "AFTER" is displayed only if the run unit continued, and the termination must name the
     /// exception, the statement and the status the rule gives. The constant is spelled as a word that is ALSO a

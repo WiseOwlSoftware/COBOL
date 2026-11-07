@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.4.2 general format — constant and type-declaration
+      *> ISO §2023:13.4.2 general format — constant and type-declaration
       *>   entries inside the FILE SECTION, after an FD and an SD
       *> Format: FILE SECTION. [ { file-description-entry
       *>   [constant-entry | record-description-entry |
@@ -14,19 +14,19 @@
       *>   {constant-entry | record-description-entry |
       *>   type-declaration-entry} ... } ] ...
       *>   cite.py --check 13.4.2 "constant-entry"
-      *>   -> OK  §13.4.2   (General format)
+      *>   -> OK  §2023:13.4.2   (General format)
       *>   cite.py --check 13.4.2 "type-declaration-entry"
-      *>   -> OK  §13.4.2   (General format)
+      *>   -> OK  §2023:13.4.2   (General format)
       *>   cite.py --check 13.4.2 "sort-merge-file-description-entry"
-      *>   -> OK  §13.4.2   (General format)
+      *>   -> OK  §2023:13.4.2   (General format)
       *>   cite.py --check 13.10.4 "the effect of specifying
       *>   constant-name-1 in other than this entry is as if literal-1
       *>   or the text represented by compilation-variable-name-1 were
       *>   written where constant-name-1 is written"
-      *>   -> OK  §13.10.4 1)  (General rules)
+      *>   -> OK  §2023:13.10.4 1)  (General rules)
       *>   cite.py --check 13.12 "A type declaration entry has no
       *>   storage associated with it"
-      *>   -> OK  §13.12   (Type declaration entry)
+      *>   -> OK  §2023:13.12   (Type declaration entry)
       *> F-OUT's entry is followed by a constant, a type declaration,
       *> its record and another constant; S-WK's by a constant and
       *> its record. The entries interleave freely and the records

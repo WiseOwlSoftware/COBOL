@@ -23,14 +23,14 @@ internal sealed record EnclosingOccurrence(IReadOnlyList<Position> Subscripts, I
 
 /// <summary>Which statement's <b>table</b> operand a subscript list is read for (<see cref="ReadSubscripts"/>) —
 /// the operand names a table, not one occurrence of it, so its own level takes no subscript and what is written
-/// is the ENCLOSING tables' occurrences. <see cref="Sort"/>: a Format-2 SORT's data-name-2 (§14.9.40.3 SR13).
-/// <see cref="Search"/>: SEARCH's identifier-1 (§14.9.37.3 SR2), read only for a dynamic-capacity table nested
+/// is the ENCLOSING tables' occurrences. <see cref="Sort"/>: a Format-2 SORT's data-name-2 (§2023:14.9.40.3 SR13).
+/// <see cref="Search"/>: SEARCH's identifier-1 (§2023:14.9.37.3 SR2), read only for a dynamic-capacity table nested
 /// under other tables, whose scan bound is one instance's current capacity.</summary>
 internal enum TableSubject { None, Sort, Search }
 
 /// <summary>ONE written position — a subscript of a subscript list, or a reference modifier's leftmost position or
 /// length — as the PARSE gives it (kb/Work PB2151). <paramref name="Tokens"/> are its terminals, for the readers
-/// whose syntax rules are about the written text (§14.9.37.3 SR8/SR9's index-name subscript, §13.10.3 SR3's
+/// whose syntax rules are about the written text (§2023:14.9.37.3 SR8/SR9's index-name subscript, §2023:13.10.3 SR3's
 /// literal subscripts). <paramref name="Operand"/> is the node the position binds from: the subscript item's or
 /// the modifier's <c>functionArgument</c>; null for <c>ALL</c> and for a piece of a written item the tree cannot
 /// give a subscript reading (<see cref="SegmentsOf"/>), which the binder refuses by name.
@@ -42,18 +42,18 @@ internal sealed record PositionSegment(
     List<IToken> Tokens, Core.FunctionArgumentContext? Operand,
     Core.DataReferenceContext? Cut = null, bool FromCutList = false);
 
-/// <summary>One index-name written as a subscript and the declaration it resolved to — §8.4.2.3.3 SR4's
+/// <summary>One index-name written as a subscript and the declaration it resolved to — §2023:8.4.2.3.3 SR4's
 /// collector entry (<see cref="ScreenIndexNameAssociation"/>).</summary>
 internal readonly record struct IndexUse(IToken Token, IndexDeclaration Decl);
 
 /// <summary>
-/// ⛔ <b>SUBSCRIPTS: THE WRITTEN POSITIONS OF A TABLE ELEMENT REFERENCE, BOUND TO TYPED POSITIONS</b> (ISO §8.4.2.3,
+/// ⛔ <b>SUBSCRIPTS: THE WRITTEN POSITIONS OF A TABLE ELEMENT REFERENCE, BOUND TO TYPED POSITIONS</b> (ISO §2023:8.4.2.3,
 /// DESIGN-architecture-review §8.3 (4), kb/Work PB2374). "Subscripts are used when reference is made to an individual element
-/// within a table of like elements" (§8.4.2.3.1). This type reads a written <c>subscriptPart</c> into one
+/// within a table of like elements" (§2023:8.4.2.3.1). This type reads a written <c>subscriptPart</c> into one
 /// <see cref="Position"/> per subscript (a subscript is an arithmetic expression, an index-name with an optional relative
-/// integer, or ALL — §8.4.2.3.2), screens the rules a subscript list is held to (SR2 and SR3's count, SR4's index-name
+/// integer, or ALL — §2023:8.4.2.3.2), screens the rules a subscript list is held to (SR2 and SR3's count, SR4's index-name
 /// association, SR5's "each table element reference shall be subscripted", SR6's ALL), and binds the leftmost-position and
-/// length of a reference modifier through the SAME position binder, because §8.4.3.3.3 SR4 gives both the arithmetic-expression
+/// length of a reference modifier through the SAME position binder, because §2023:8.4.3.3.3 SR4 gives both the arithmetic-expression
 /// operand form (<see cref="BindPosition"/>, <see cref="SegmentPosition"/>).
 /// <para>A position the direct walk cannot read — a function activation, a division — is MATERIALIZED through the statement
 /// binder's hook (<see cref="MaterializeSegment"/>, the D18 hook of kb/Work PB17) into the one <c>ExpressionBinder.BindExpr</c>,
@@ -64,7 +64,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     /// <summary>The D18 hook that MATERIALIZES a subscript / ref-mod position the direct walk cannot read
     /// (fix-queue PB17): given the position's PARSED arithmetic expression (null when the written position is not
     /// one — the hook refuses it by name, COBOL2363), its written text for that message and its line, it binds the
-    /// expression through the ONE <c>ExpressionBinder.BindExpr</c>, synthesizes the §15.4 temporary via
+    /// expression through the ONE <c>ExpressionBinder.BindExpr</c>, synthesizes the §2023:15.4 temporary via
     /// <c>CompilerTemps.Create</c>, registers the store as a statement-scoped pending PRE-op on
     /// <see cref="ProcedureBindState.PendingPreOps"/>, and returns the temp — which this resolver then reads as an ordinary
     /// position (<see cref="PositionRead"/>).
@@ -80,22 +80,22 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     /// <remarks>⛔ THE POSITION RIDES THE HOOK (kb/Work PB170/PB172). It used to be <c>Func&lt;string, int,
     /// DataItem?&gt;</c>, so ONE hook served BOTH <see cref="SegmentPosition.Subscript"/> and
     /// <see cref="SegmentPosition.RefMod"/> and the binder hard-coded the index-name window context for both —
-    /// but §13.18.38.3 r7's five contexts list "as a subscript" and do NOT list a reference-modification
+    /// but §2023:13.18.38.3 r7's five contexts list "as a subscript" and do NOT list a reference-modification
     /// position, so an index-name in a ref-mod bound was wrongly admitted. One hook, two positions, one context
     /// was the defect; the position is now part of the hook's question.</remarks>
     internal Func<Core.ArithmeticExpressionContext, SegmentPosition, int, DataItem?>? MaterializeSegment { get; set; }
 
     /// <summary>⛔ THE WRITTEN SUBSCRIPT LIST OF <paramref name="dref"/> AGAINST <paramref name="item"/>, read ONCE for
     /// both commit entries (<see cref="Resolve"/> and <see cref="ResolveForItem"/> each carried a copy before kb/Work
-    /// PB1030): §8.4.2.3.2's empty-parentheses screen, the segment renderer, §8.4.2.3.3 SR4's index-name
+    /// PB1030): §2023:8.4.2.3.2's empty-parentheses screen, the segment renderer, §2023:8.4.2.3.3 SR4's index-name
     /// association and the SR2/SR3/SR5 arity screen. Null when the list is acceptable (<paramref name="indexExprs"/>
     /// then holds the rendered subscripts); otherwise the non-place answer.</summary>
     /// <param name="subject">Which statement's TABLE operand the reference is (<see cref="TableSubject"/>), or
     /// <see cref="TableSubject.None"/> for an ordinary table-element reference. A Format-2 table SORT's subject
     /// (kb/Work PB1055) sorts the table's OWN level, which takes no subscript, so the reference writes the subscripts
-    /// of the ENCLOSING tables only — <see cref="ScreenTableSubjectArity"/> — and §8.4.2.3.3 SR6's rightmost ALL,
+    /// of the ENCLOSING tables only — <see cref="ScreenTableSubjectArity"/> — and §2023:8.4.2.3.3 SR6's rightmost ALL,
     /// "equivalent to omitting the rightmost or only subscript in this context", is admitted and dropped. SEARCH's
-    /// identifier-1 is the same shape (§14.9.37.3 SR2: not subscripted at the searched level) but its statement
+    /// identifier-1 is the same shape (§2023:14.9.37.3 SR2: not subscripted at the searched level) but its statement
     /// owns the arity screen (<c>StatementValidation.ResolveSearchTable</c>, where SR3's reading lets the
     /// superordinate subscripts be left to the WHEN phrases) and SR6's ALL is SORT's alone.</param>
     internal RefResolution? ReadSubscripts(Core.DataReferenceContext dref, DataItem item,
@@ -103,22 +103,22 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     {
         indexExprs = [];
         if (subCtx is null)
-            return (subject is TableSubject.Sort ? ScreenTableSubjectArity(dref, item, 0)   // §8.4.2.3.3 SR5 — none written (kb/Work PB681)
+            return (subject is TableSubject.Sort ? ScreenTableSubjectArity(dref, item, 0)   // §2023:8.4.2.3.3 SR5 — none written (kb/Work PB681)
                     : subject is TableSubject.None && ScreenSubscriptArity(dref, item, 0))
                 ? RefResolution.Refused(DataBinder.WrittenText(dref)) : null;
-        if (ScreenEmptyParentheses(dref, subCtx))   // §8.4.2.3.2 / §8.4.3.3.2 (kb/Work PB969)
+        if (ScreenEmptyParentheses(dref, subCtx))   // §2023:8.4.2.3.2 / §2023:8.4.3.3.2 (kb/Work PB969)
             return RefResolution.Refused(DataBinder.WrittenText(dref));
         List<IndexUse> ixNames = [];
         int preOpMark = data.Procedure.PendingPreOps.Mark();   // the subscripts' own pre-ops (D18 temp stores, activations) start here
         int propertyMark = data.Procedure.PropertyOps.Mark();   // ... and their object-property references (the other pending list)
         var e = InterpretSubscripts(subCtx, ixNames, subject is TableSubject.Sort);
         if (e is null) return refs.SegmentFailure(DataBinder.WrittenText(dref));   // a segment the materializer refused or deferred
-        ScreenIndexNameAssociation(item, ixNames);   // §8.4.2.3.3 SR4 (kb/Work PB459)
+        ScreenIndexNameAssociation(item, ixNames);   // §2023:8.4.2.3.3 SR4 (kb/Work PB459)
         if (subject switch
             {
                 TableSubject.Sort => ScreenTableSubjectArity(dref, item, e.Count),
                 TableSubject.Search => false,
-                _ => ScreenSubscriptArity(dref, item, e.Count),   // §8.4.2.3.3 SR2/SR3 (kb/Work PB877)
+                _ => ScreenSubscriptArity(dref, item, e.Count),   // §2023:8.4.2.3.3 SR2/SR3 (kb/Work PB877)
             })
             return RefResolution.Refused(DataBinder.WrittenText(dref));
         indexExprs = e;
@@ -126,7 +126,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         return null;
     }
 
-    /// <summary>⛔ THE ENCLOSING OCCURRENCE A SEARCH'S WHEN PHRASES NAME (kb/Work PB3365; ISO §14.9.37.4 GR1: "The
+    /// <summary>⛔ THE ENCLOSING OCCURRENCE A SEARCH'S WHEN PHRASES NAME (kb/Work PB3365; ISO §2023:14.9.37.4 GR1: "The
     /// subscript that is used to determine the occurrence of each superordinate table to search is specified by the user
     /// in the WHEN phrases"). Runs <paramref name="bindWhile"/> — the binding of one WHEN condition — and returns the
     /// subscripts of the enclosing tables that its FIRST committed reference to <paramref name="table"/> (or to an item
@@ -134,7 +134,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     /// committing subscript reading (<see cref="ReadSubscripts"/>), never read a second time: a subscript that
     /// activates a function would activate twice, and a probe (<c>Probing</c>) offers nothing for the same reason.
     /// <para>Only a dynamic-capacity table needs this: its scan bound is one occurrence's current capacity
-    /// (§8.5.1.9.1), where a fixed or occurs-depending table has one bound for every occurrence of the enclosing
+    /// (§2023:8.5.1.9.1), where a fixed or occurs-depending table has one bound for every occurrence of the enclosing
     /// tables. When a condition references the table at two occurrences, the first reference in source order names it.
     /// Save/restored like <c>Probing</c>: a nested resolution can re-enter.</para>
     /// <para>⛔ A SUBSCRIPT THAT BEARS A FUNCTION CARRIES ITS PRE-OPS WITH IT. Such a subscript is lowered to a D18
@@ -143,7 +143,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     /// temp nobody has stored yet (a NullReferenceException on the first probe; on a repeated statement the previous
     /// execution's value, silently the wrong occurrence). The occurrence's pre-ops are therefore captured too
     /// (<see cref="EnclosingOccurrence.PreOps"/>) and the SEARCH runs them once ahead of the scan to determine the
-    /// occurrence it bounds (§14.9.37.4 GR1); the WHEN condition still evaluates its own copy each time it is tried.
+    /// occurrence it bounds (§2023:14.9.37.4 GR1); the WHEN condition still evaluates its own copy each time it is tried.
     /// An OBJECT-PROPERTY subscript is the same shape on the OTHER pending list (<c>ProcedureBindState.PropertyOps</c>,
     /// which the per-evaluation wrapper drains alongside the pre-ops), so its pending GET is captured as well
     /// (<see cref="EnclosingOccurrence.PropertyOps"/>; kb/Work PB3365 review R2-1).</para></summary>
@@ -178,7 +178,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         }
     }
 
-    /// <summary>⛔ §8.4.2.3.3 SR3 / SR5 e) / SR6 FOR THE SUBJECT OF A FORMAT-2 TABLE SORT (kb/Work PB1055) — the
+    /// <summary>⛔ §2023:8.4.2.3.3 SR3 / SR5 e) / SR6 FOR THE SUBJECT OF A FORMAT-2 TABLE SORT (kb/Work PB1055) — the
     /// written subscripts against the table's ENCLOSING levels. SR5 e) lets "the subject of a SORT statement that
     /// references a table" omit its subscripting, and SR6 spells the omission "ALL … as the rightmost or only
     /// subscript of a table in the table format of a SORT statement. This is equivalent to omitting the rightmost
@@ -199,14 +199,14 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
             $"'{DataBinder.WrittenText(dref)}': the table '{subject}' sits inside {enclosing} enclosing OCCURS "
             + $"clause{(enclosing == 1 ? "" : "s")}, so the SORT subject writes {enclosing} subscript"
             + $"{(enclosing == 1 ? "" : "s")}, outermost first, and none for '{subject}' itself — the level the "
-            + $"statement sorts; ALL may stand as the rightmost one; {written} written (ISO §8.4.2.3.3 SR3, SR5 e), "
-            + "SR6; §14.9.40.3 SR13).");
+            + $"statement sorts; ALL may stand as the rightmost one; {written} written (ISO §2023:8.4.2.3.3 SR3, SR5 e), "
+            + "SR6; §2023:14.9.40.3 SR13).");
         return true;
     }
 
     /// <summary>The subscripts a table operand (<paramref name="subject"/>: a Format-2 table SORT's data-name-2 or a
     /// SEARCH's identifier-1) writes for its ENCLOSING tables, one rendered index expression per level, outermost
-    /// first (empty for a table that lies in no other table) — or the refusal. ISO §14.9.40.3 SR13: "Subscripting
+    /// first (empty for a table that lies in no other table) — or the refusal. ISO §2023:14.9.40.3 SR13: "Subscripting
     /// shall be specified in accordance with 8.4.2.3"; the rule that shape takes for a SORT subject is
     /// <see cref="ScreenTableSubjectArity"/>; a SEARCH's count is screened by its own statement rule.</summary>
     internal RefResolution? ReadTableSubjectSubscripts(Core.DataReferenceContext dref, DataItem table,
@@ -214,12 +214,12 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         ReadSubscripts(dref, table, SubscriptGroupOf(dref), out outerIndexExprs, subject);
 
     /// <summary>⛔ A DATA REFERENCE FOLLOWED BY EMPTY PARENTHESES — <c>WS-X()</c> or <c>WS-X( )</c> — is neither
-    /// form a parenthesis after a data-name can take (kb/Work PB969): §8.4.2.3.2 writes a subscript list as
-    /// <c>( subscript … )</c>, at least one subscript, and §8.4.3.3.2 a reference modifier as
+    /// form a parenthesis after a data-name can take (kb/Work PB969): §2023:8.4.2.3.2 writes a subscript list as
+    /// <c>( subscript … )</c>, at least one subscript, and §2023:8.4.3.3.2 a reference modifier as
     /// <c>( leftmost-position : [ length ] )</c>, a required leftmost position. Returns <see langword="true"/> when
     /// the reference is rejected, so the caller returns null.
     /// <para>The GRAMMAR admits the empty group because the same parenthesis carries a keyword-omitted
-    /// function-identifier's argument list, where §8.4.3.2.2 brackets the arguments inside the parentheses and
+    /// function-identifier's argument list, where §2023:8.4.3.2.2 brackets the arguments inside the parentheses and
     /// <c>F()</c> is the zero-argument spelling — only the resolved symbol tells a function from a data item, and
     /// a name that reached THIS resolver resolved to a data item. Unscreened, <c>DISPLAY WS-X( )</c> compiled CLEAN
     /// and aborted at RUN time on NotImplementedCobolFeatureException while the receiving side drew COBOL0899's
@@ -230,9 +230,9 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
 
     /// <summary>The COBOL2309 message body (the quoted reference is the caller's).</summary>
     internal const string EmptyParenthesesMessage = "parentheses with nothing inside them follow a data reference. A "
-        + "subscript list writes at least one subscript (ISO §8.4.2.3.2 — \"( subscript … )\") and a reference "
-        + "modifier a leftmost position (ISO §8.4.3.3.2); empty parentheses belong only to a function-identifier "
-        + "with no arguments (ISO §8.4.3.2.2). Remove the parentheses, or write the subscript.";
+        + "subscript list writes at least one subscript (ISO §2023:8.4.2.3.2 — \"( subscript … )\") and a reference "
+        + "modifier a leftmost position (ISO §2023:8.4.3.3.2); empty parentheses belong only to a function-identifier "
+        + "with no arguments (ISO §2023:8.4.3.2.2). Remove the parentheses, or write the subscript.";
 
     private bool ScreenEmptyParentheses(Core.DataReferenceContext dref, Core.SubscriptPartContext group)
     {
@@ -245,7 +245,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         return true;
     }
 
-    /// <summary>⛔ §8.4.2.3.3 SR2 AND SR3 — THE WRITTEN SUBSCRIPT LIST AGAINST THE ITEM'S DIMENSIONS, asked ONCE
+    /// <summary>⛔ §2023:8.4.2.3.3 SR2 AND SR3 — THE WRITTEN SUBSCRIPT LIST AGAINST THE ITEM'S DIMENSIONS, asked ONCE
     /// per source reference and therefore on BOTH sides of every statement (kb/Work PB877). Returns
     /// <see langword="true"/> when the reference is rejected, so the caller returns null.
     /// <para><b>SR2</b> — "If a subscript is specified, the data description entry describing qualified-data-name-1
@@ -259,7 +259,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     /// <c>MOVE 1 TO PLAIN (1)</c> drew the receiving chokepoint's catch-all, COBOL0899 "a reference shape
     /// WiseOwl COBOL does not yet implement as a receiver" — a promise, about source no edition of the standard will
     /// ever admit (the PB489 shape) — while <c>DISPLAY PLAIN (1)</c> COMPILED CLEAN and aborted at run time on
-    /// <c>NotImplementedCobolFeatureException</c>, where §4.2.2 requires a compile-time mechanism.</para>
+    /// <c>NotImplementedCobolFeatureException</c>, where §2023:4.2.2 requires a compile-time mechanism.</para>
     /// <para><b>SR5</b> — "Each table element reference shall be subscripted except when such reference appears"
     /// as a SEARCH subject, in a REDEFINES clause, in an OCCURS KEY IS phrase, in a SORT statement's KEY phrase or
     /// table subject, in a screen description entry's FROM/TO/USING phrase, or as a SUM clause addend. ⛔ NONE OF
@@ -286,7 +286,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         if (written == 0)
             data.Edition.Error(DiagnosticCatalog.TableElementNotSubscripted,
                 $"'{text}': '{subject}' is a table element — its description contains, or is subordinate to, "
-                + $"{arity} OCCURS clause{(arity == 1 ? "" : "s")} — and ISO §8.4.2.3.3 SR5 requires \"Each table "
+                + $"{arity} OCCURS clause{(arity == 1 ? "" : "s")} — and ISO §2023:8.4.2.3.3 SR5 requires \"Each table "
                 + "element reference shall be subscripted\" outside seven contexts (a SEARCH subject, a REDEFINES "
                 + "clause, an OCCURS KEY IS phrase, a SORT key or table subject, a screen FROM/TO/USING phrase, a "
                 + $"SUM addend), none of which this is. Write {arity} subscript{(arity == 1 ? "" : "s")}, "
@@ -295,12 +295,12 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
             data.Edition.Error(DiagnosticCatalog.SubscriptOnNonTableItem,
                 $"'{text}': a subscript is written on '{subject}', whose data description entry neither "
                 + "contains an OCCURS clause nor is subordinate to one, so no subscript may be written on it "
-                + "(ISO §8.4.2.3.3 SR2). For a character span write the reference-modification colon form "
-                + $"instead — '{subject} (1:n)' (§8.4.3.3).");
+                + "(ISO §2023:8.4.2.3.3 SR2). For a character span write the reference-modification colon form "
+                + $"instead — '{subject} (1:n)' (§2023:8.4.3.3).");
         else
             data.Edition.Error(DiagnosticCatalog.SubscriptCountMismatch,
                 $"'{text}': {written} subscript{(written == 1 ? "" : "s")} written, but the description of "
-                + $"'{subject}' contains {arity} OCCURS clause{(arity == 1 ? "" : "s")}; ISO §8.4.2.3.3 SR3 "
+                + $"'{subject}' contains {arity} OCCURS clause{(arity == 1 ? "" : "s")}; ISO §2023:8.4.2.3.3 SR3 "
                 + "requires one subscript per OCCURS clause, written in the order of successively less inclusive "
                 + "dimensions of the table.");
         return true;
@@ -317,7 +317,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     /// first, read by the ONE <see cref="SegmentsOf"/> with the same declaration-informed '(' rule
     /// <see cref="InterpretSubscripts"/> uses (kb/Work PB136), or <see langword="null"/> when the reference carries
     /// no subscript group at all.
-    /// <para>⛔ The RENDERED form cannot answer the question this exists for. ISO §14.9.37.3 SR8 and SR9 are rules
+    /// <para>⛔ The RENDERED form cannot answer the question this exists for. ISO §2023:14.9.37.3 SR8 and SR9 are rules
     /// about the SOURCE TEXT of a SEARCH ALL subscript — "shall be subscripted by the first index-name associated
     /// with identifier-1 … The index-name subscript shall not be followed by a '+' or a '–'" — and the C# index
     /// expression <see cref="InterpretSubscripts"/> produces has already erased both facts: an index-name and an
@@ -326,12 +326,12 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         SubscriptSegmentsOf(ReferenceResolver.ReadWritten(dref).SubscriptGroup);
 
     /// <summary>True when any subscript of <paramref name="dref"/>, AS WRITTEN, names the index-name
-    /// <paramref name="index"/> — the ONE reader for the two SEARCH rules that prohibit it: §14.9.37.3 SR5's second
+    /// <paramref name="index"/> — the ONE reader for the two SEARCH rules that prohibit it: §2023:14.9.37.3 SR5's second
     /// sentence over the Format-1 VARYING identifier-2 ("shall not be subscripted by the first or only index-name
     /// specified in the INDEXED phrase … for identifier-1", kb/Work PB211) and SR10's over a Format-2 WHEN operand.
     /// Asked of the source text for the reason <see cref="SubscriptSegments"/> gives: the rendered subscript has
     /// already erased which name was written. Index-names are user-defined words, compared case-insensitively
-    /// (§8.1.3.2 GR3 a)).</summary>
+    /// (§2023:8.1.3.2 GR3 a)).</summary>
     /// <para>⛔ BY DECLARATION, NOT SPELLING (kb/Work PB919): with two tables each <c>INDEXED BY IX</c>, a
     /// subscript <c>IX OF OTHER</c> names the other table's index and is legal here, so each written occurrence of
     /// the spelling is resolved — with the OF/IN qualifiers that follow it — and compared by identity.</para>
@@ -357,10 +357,10 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
 
     /// <summary>⛔ THE ONE DECLARATION-INFORMED <c>'('</c> PREDICATE (kb/Work PB136, corrected by PB877) — the
     /// segmenter's question "does this name own the <c>'('</c> that follows it, or does that paren open a new
-    /// subscript?", answered by §8.4.2.3.3 SR2: a name that may carry a subscript owns its paren; a name that may
+    /// subscript?", answered by §2023:8.4.2.3.3 SR2: a name that may carry a subscript owns its paren; a name that may
     /// not cannot, so the paren can only begin a parenthesized-expression subscript.
     /// <para>⛔ IT IS A NAMED MEMBER, NOT A LAMBDA AT EACH CALL SITE, AND THAT IS THE POINT. Both callers —
-    /// <see cref="SubscriptSegments"/> (the §14.9.37.3 SR8/SR9 source-text reader) and
+    /// <see cref="SubscriptSegments"/> (the §2023:14.9.37.3 SR8/SR9 source-text reader) and
     /// <see cref="InterpretSubscripts"/> (the rendering path) — spelled the lambda out for themselves, and
     /// <see cref="SubscriptSegments"/>'s own doc-comment CLAIMED they used "the same declaration-informed '(' rule".
     /// They did, by coincidence of two identical copies; PB877 corrected one of them and the claim would have
@@ -368,14 +368,14 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     /// <para>Answers true ONLY for a name that RESOLVES to a data item on which no subscript may be written.
     /// An UNRESOLVED name answers false — it may be a function reference (<c>FUNCTION INTEGER (X)</c>), whose
     /// argument list must not be split from it — and so does a table element, which owns its paren.</para>
-    /// <para>⛔ ASKED OF THE WHOLE QUALIFIED NAME (kb/Work PB1455's sibling sweep). §8.4.2.3.2 hangs the subscript list
+    /// <para>⛔ ASKED OF THE WHOLE QUALIFIED NAME (kb/Work PB1455's sibling sweep). §2023:8.4.2.3.2 hangs the subscript list
     /// off <c>qualified-data-name-1</c>, so in <c>X (E OF T (1))</c> the paren belongs to <c>E OF T</c>; asking the
     /// LAST word alone asked about <c>T</c> — a group that carries no OCCURS — split <c>(1)</c> off as a second
     /// subscript of X, and refused the legal reference COBOL2270 ("E OF T … shall be subscripted").</para></summary>
     internal bool CannotBeSubscripted(string name, List<string> qualifiers) =>
         (qualifiers.Count > 0 ? refs.Names.ResolveQualified(name, qualifiers) : refs.Names.ResolveUnqualified(name)) is { IsTableElement: false };
 
-    // ── Intrinsic-argument entries (ISO §15.3; consumed by IntrinsicBinder) ─────────────────────────────────
+    // ── Intrinsic-argument entries (ISO §2023:15.3; consumed by IntrinsicBinder) ─────────────────────────────────
     // The table(ALL) argument resolves its name and renders its non-ALL subscripts itself (it builds an enumeration,
     // not one place) — these thin internal entries expose the SAME private resolution (ResolveUnqualified /
     // ResolveQualified → PlaceForItem → BindPosition) so argument references see identical view/qualification/
@@ -384,20 +384,20 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     /// <summary>Bind one written subscript to its typed <see cref="Position"/> (the private
     /// <see cref="BindPosition"/>), or null when it cannot be bound (caller fails loud).
     /// <para>⛔ <paramref name="indexNames"/> IS NOT OPTIONAL (kb/Work PB1472): a caller that renders a subscript
-    /// owes §8.4.2.3.3 SR4's association screen (<see cref="ScreenIndexNameAssociation"/>) for the index-names it
+    /// owes §2023:8.4.2.3.3 SR4's association screen (<see cref="ScreenIndexNameAssociation"/>) for the index-names it
     /// wrote, and the collector is how the screen sees them. The only caller outside the resolver, the table(ALL)
     /// intrinsic argument, passed none, so `FUNCTION SUM(E2(IXA, ALL))` with IXA declared on another table compiled
     /// clean while `E2(IXA, 1)` was refused — the second arm of one subscript reading.</para></summary>
     internal Position? BindIndexSegment(PositionSegment segment, List<IndexUse> indexNames) =>
         BindPosition(segment, SegmentPosition.Subscript, indexNames);
 
-    /// <summary>True when one subscript segment is the bare word <c>ALL</c> (§8.4.2.3.3 SR6) — the ONE test, asked by
+    /// <summary>True when one subscript segment is the bare word <c>ALL</c> (§2023:8.4.2.3.3 SR6) — the ONE test, asked by
     /// the reference reader and the table(ALL) intrinsic argument alike.</summary>
     internal static bool IsAllSegment(PositionSegment segment) => segment.Tokens is [{ Type: Core.ALL }];
 
-    /// <param name="indexNames">§8.4.2.3.3 SR4's collector — the index-names used as subscripts, for
+    /// <param name="indexNames">§2023:8.4.2.3.3 SR4's collector — the index-names used as subscripts, for
     /// <see cref="ScreenIndexNameAssociation"/> at the caller, which knows the table being referenced.</param>
-    /// <param name="admitRightmostAll">True only for a Format-2 SORT table subject (§8.4.2.3.3 SR6): a rightmost
+    /// <param name="admitRightmostAll">True only for a Format-2 SORT table subject (§2023:8.4.2.3.3 SR6): a rightmost
     /// <c>ALL</c> is "equivalent to omitting the rightmost or only subscript", so the segment is dropped from the
     /// result rather than bound (<see cref="ReadSubscripts"/>).</param>
     /// <summary>Bind each subscript of the written list to its typed <see cref="Position"/>, outermost first; a
@@ -407,9 +407,9 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     {
         var positions = new List<Position>();
         // kb/Work PB136 — declaration-informed '(' splitting, through the ONE predicate (kb/Work PB877): an
-        // inline `IsTable` lambda stood here and answered only §8.4.2.3.3 SR2's FIRST half, so a name SUBORDINATE
-        // to an OCCURS — legally subscripted, and a legal arithmetic-expression-1 subscript under §8.4.2.3.2 +
-        // §8.8.1.1 + §8.4.3.1.2 Format 2 — had its own '(' split off as an EXTRA subscript.
+        // inline `IsTable` lambda stood here and answered only §2023:8.4.2.3.3 SR2's FIRST half, so a name SUBORDINATE
+        // to an OCCURS — legally subscripted, and a legal arithmetic-expression-1 subscript under §2023:8.4.2.3.2 +
+        // §2023:8.8.1.1 + §2023:8.4.3.1.2 Format 2 — had its own '(' split off as an EXTRA subscript.
         var segments = SegmentsOf(ctx, CannotBeSubscripted);
         if (admitRightmostAll && segments.Count > 0 && IsAllSegment(segments[^1])) segments.RemoveAt(segments.Count - 1);
         foreach (var seg in segments)
@@ -440,7 +440,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     internal static bool IsNameToken(IToken t) => CobolLexer.SubscriptTriggerTokens.Contains(t.Type);
 
     /// <summary>The OF/IN qualifiers written after the name at <paramref name="at"/> in <paramref name="tokens"/>
-    /// (ISO §8.4.2.2.2), in written order; <paramref name="last"/> is the index of the last token they cover.</summary>
+    /// (ISO §2023:8.4.2.2.2), in written order; <paramref name="last"/> is the index of the last token they cover.</summary>
     private static List<string> QualifiersAfter(List<IToken> tokens, int at, out int last)
     {
         var qualifiers = new List<string>();
@@ -454,15 +454,15 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     }
 
     /// <summary>⛔ THE WRITTEN SUBSCRIPT LIST AS SEGMENTS, ONE PER SUBSCRIPT, read off the PARSE (kb/Work PB2113).
-    /// The grammar already split the list — each <c>subscriptItem</c> is one operand, separated by §8.3.5's space or
+    /// The grammar already split the list — each <c>subscriptItem</c> is one operand, separated by §2023:8.3.5's space or
     /// comma/semicolon-plus-space — so a segment is an item. The one decision the grammar cannot make is kept, and it
     /// is asked of the tree:
     /// <para>⛔ kb/Work PB136 — the '(' after a name, at an item's own level, is the name's subscript list when the
-    /// name can carry one and the start of a NEW subscript when it cannot (§8.4.2.3.3 SR2): Annex D.3.5.3's
+    /// name can carry one and the start of a NEW subscript when it cannot (§2023:8.4.2.3.3 SR2): Annex D.3.5.3's
     /// <c>DOG (XCOUNTER (- YCOUNTER))</c> is two subscripts, <c>DOG (BAKER (I) 3)</c> two with BAKER(I) the first. The
     /// parser always reads the first way (the lexer typed the paren REF_LPAREN after the name), so a name that
     /// <paramref name="parenSplitsAfterName"/> says cannot be subscripted gives its list to a new subscript — the cut
-    /// the declarations decide, which §8.4.2.3.2 leaves to them. With no predicate (none is known) nothing is cut.</para>
+    /// the declarations decide, which §2023:8.4.2.3.2 leaves to them. With no predicate (none is known) nothing is cut.</para>
     /// <para>⚠ A cut has a subscript reading only when its list CLOSES the item: the item without the list is the
     /// first subscript and the list's single item the second. A list followed by more of the item
     /// (<c>T (A + X (- Y) + 1)</c>, where the tree joins <c>+ 1</c> to <c>X (- Y)</c>), or a second cut in one item,
@@ -518,7 +518,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
                         if (q.subscriptPart() is [var qsp, ..]) sp = qsp;
                     }
                     if (sp is null) continue;
-                    // §8.4.2.3.2 hangs the list off the whole qualified name (kb/Work PB1455's sweep)
+                    // §2023:8.4.2.3.2 hangs the list off the whole qualified name (kb/Work PB1455's sweep)
                     if (cannotBeSubscripted(head.GetText(), qualifiers)) cuts.Add((dref, sp));
                     return;   // the first list decides; what follows it is that list's own reading
                 }
@@ -540,7 +540,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     /// binder; the walk is an optimization over that route, never the arbiter of what is legal in the position
     /// (fix-queue PB42).
     /// <para>⚠ THAT INVARIANT WAS A CLAIM, NOT A FACT, until kb/Work PB170. A name the walk CAN read never reached
-    /// the binder, so nothing ever applied §8.8.1.1 to it and <c>T(XE)</c> with <c>XE PIC X(4)</c> compiled clean
+    /// the binder, so nothing ever applied §2023:8.8.1.1 to it and <c>T(XE)</c> with <c>XE PIC X(4)</c> compiled clean
     /// under STRICT — the walk WAS deciding the position's legality, by omission. It holds now because
     /// <see cref="ScreenPositionOperandClass"/> asks the same classifier the binder would have asked, so the direct
     /// walk and the D18 route reach the same verdict rather than two different ones.</para>
@@ -550,7 +550,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     /// same operand again through the expression binder. Measured: <c>MOVE E(XE ** 2) TO R</c> with <c>XE PIC X(4)</c>
     /// emitted COBOL0844 TWICE. So the screens are QUEUED and flushed only when the walk returns a position; every
     /// D18 reroute discards the queue, which makes the deduplication a property of the control flow.</para></summary>
-    /// <param name="indexNames">§8.4.2.3.3 SR4's collector — see
+    /// <param name="indexNames">§2023:8.4.2.3.3 SR4's collector — see
     /// <see cref="ResolveSubscriptName(string,List{string},SegmentPosition,ref List{PendingScreen},out bool,ValueTuple{IToken,List{IndexUse}})"/>.</param>
     internal Position? BindPosition(PositionSegment seg, SegmentPosition position, List<IndexUse>? indexNames = null)
     {
@@ -559,22 +559,22 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         if (seg.FromCutList || seg.Operand?.arithmeticExpression() is not { } expr)
             return MaterializePosition(seg, position);
         // kb/Work PB136: a QUOTIENT-bearing position routes to D18 UNCONDITIONALLY — the direct form would be C#
-        // integer division over long reads, truncating where §8.4.2.3.4 GR1b evaluates the exact result of the whole
+        // integer division over long reads, truncating where §2023:8.4.2.3.4 GR1b evaluates the exact result of the whole
         // expression and requires EC-BOUND-SUBSCRIPT on a non-integer (`E((W-A + W-B) / 2)` with the sum 7 silently
         // selected occurrence 3).
         if (tokens.Any(t => t.Type is Core.SLASH)) return MaterializePosition(seg, position);
         // ⛔ A COMPOUND position (one carrying an arithmetic operator) whose operands include a SCALED item cannot be
-        // read operand by operand, because §8.4.2.3.4 GR1b tests the integrality of THE RESULT of the whole
+        // read operand by operand, because §2023:8.4.2.3.4 GR1b tests the integrality of THE RESULT of the whole
         // expression, not of each operand: `W-E(W-P + W-Q)` with W-P = W-Q = 1.5 has the integral result 3.0 and is
         // a legal subscript, while de-scaling each operand first yields 1 + 1 = 2 AND raises the condition twice on
         // source that never violated it. Such a position routes to D18, which evaluates the expression at full
-        // precision into the §15.4 temp and applies the integrality rule exactly once — to the result. A SINGLE
+        // precision into the §2023:15.4 temp and applies the integrality rule exactly once — to the result. A SINGLE
         // scaled operand needs no such detour: it IS the result, so the direct read is equivalent and cheaper.
         bool compound = tokens.Any(t => t.Type is Core.PLUS or Core.MINUS or Core.STAR or Core.SLASH or Core.POWER);
         List<PendingScreen>? pending = null;
         bool functionChecked = false;
         if (Additive(expr.additiveExpression()) is not { } bound) return MaterializePosition(seg, position);
-        // ⛔ AN EXPRESSION THAT CAN PASS THE HOST'S long IS NOT A DIRECT SHAPE (kb/Work PB2616): §8.4.2.3.4 1) b) takes the
+        // ⛔ AN EXPRESSION THAT CAN PASS THE HOST'S long IS NOT A DIRECT SHAPE (kb/Work PB2616): §2023:8.4.2.3.4 1) b) takes the
         // subscript from "the evaluation of arithmetic-expression-1", and the typed walk renders + - * as C# long
         // arithmetic, so `A * B - C * D` over PIC 9(21) operands wrapped and selected another element. Decided at
         // compile time from the operands' digit bounds (Position.ExceedsLongArithmetic); the narrow common case
@@ -634,11 +634,11 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
                 return Additive(p.arithmeticExpression().additiveExpression()) is { } inner ? new PositionGroup(inner) : null;
             if (p.numericLiteral() is { } lit) return IntegerLiteral(lit);
             // ⛔ The figurative ZERO beside a ref-mod colon, an operator or a lone grouping pair (ZeroTokenRewriter) is the
-            // INTEGER 0 (§8.8.1.1 "the figurative constant ZERO"; §8.3.3.6.4 GR4 — the zero format is the value 0 in a
+            // INTEGER 0 (§2023:8.8.1.1 "the figurative constant ZERO"; §2023:8.3.3.6.4 GR4 — the zero format is the value 0 in a
             // numeric context), so it is a literal like `0` and meets every literal-only screen as one (kb/Work PB3960):
-            // routed through D18 it became a §15.4 temp read, and `T(ZERO:2)` over PIC X(4) escaped the §8.4.3.3.4 5) b)
-            // range screen that `T(0:2)` meets. ALL before it is §8.3.3.6.2 Format 1's optional word, whose
-            // §8.3.3.6.3 SR1 a) edition edge is queued with the other screens (an abandoned walk must not report twice).
+            // routed through D18 it became a §2023:15.4 temp read, and `T(ZERO:2)` over PIC X(4) escaped the §2023:8.4.3.3.4 5) b)
+            // range screen that `T(0:2)` meets. ALL before it is §2023:8.3.3.6.2 Format 1's optional word, whose
+            // §2023:8.3.3.6.3 SR1 a) edition edge is queued with the other screens (an abandoned walk must not report twice).
             if (p.ZERO_ARITH() is { } zero)
             {
                 if (p.ALL() is not null)
@@ -668,10 +668,10 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         }
     }
 
-    /// <summary>An integer literal (a sign before it is a unary operator of the expression, ISO §8.3.3.3.2) as a
+    /// <summary>An integer literal (a sign before it is a unary operator of the expression, ISO §2023:8.3.3.3.2) as a
     /// <see cref="PositionConstant"/> — or, past the host's <c>long</c>, a <see cref="PositionWideConstant"/> that keeps
     /// the value (kb/Work PB2938); null for any other numeric literal (a decimal or floating-point literal — the D18
-    /// route applies §8.4.2.3.4 GR1 b)'s integrality rule to it).</summary>
+    /// route applies §2023:8.4.2.3.4 GR1 b)'s integrality rule to it).</summary>
     private static Position? IntegerLiteral(Core.NumericLiteralContext lit)
     {
         var signed = lit.signedNumericLiteral();
@@ -695,18 +695,18 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
             ? wide : text[0] == '-' ? -Int128.MaxValue : Int128.MaxValue)
         : new PositionConstant(value);
 
-    /// <summary>A screen the fast path OWES once it commits to rendering the segment — either the §8.8.1.1 class
-    /// screen over a resolved item (<see cref="ScreenPositionOperandClass"/>) or the §13.18.38.3 r7 index-name
+    /// <summary>A screen the fast path OWES once it commits to rendering the segment — either the §2023:8.8.1.1 class
+    /// screen over a resolved item (<see cref="ScreenPositionOperandClass"/>) or the §2023:13.18.38.3 r7 index-name
     /// screen (<see cref="IndexNameInPositionError"/>, <c>Item</c> null). Queued rather than emitted so an exit
     /// to D18 later in the token loop cannot leave a diagnostic behind for the D18 route to duplicate — see
     /// <see cref="BindPosition"/>. The third kind (<paramref name="AllZero"/>, <c>Name</c> the operand as written) is the
-    /// §8.3.3.6.3 SR1 a) edition edge of a position written <c>ALL ZERO</c> (kb/Work PB3960).</summary>
+    /// §2023:8.3.3.6.3 SR1 a) edition edge of a position written <c>ALL ZERO</c> (kb/Work PB3960).</summary>
     private readonly record struct PendingScreen(DataItem? Item, string Name, bool AllZero = false);
 
-    /// <summary>⛔ §8.4.2.3.3 SR4 — THE ONE CONSUMER OF THE INDEX→TABLE ASSOCIATION on the reference side:
+    /// <summary>⛔ §2023:8.4.2.3.3 SR4 — THE ONE CONSUMER OF THE INDEX→TABLE ASSOCIATION on the reference side:
     /// "Index-name-1 shall correspond to a data description entry in the hierarchy of the table being referenced
     /// that contains an INDEXED BY phrase specifying that index-name."
-    /// <para>kb/Work PB459 measured the hole: §14.9.39.4 GR1 builds the association ("Index-names are associated
+    /// <para>kb/Work PB459 measured the hole: §2023:14.9.39.4 GR1 builds the association ("Index-names are associated
     /// with a given table by being specified in the INDEXED BY phrase of the OCCURS clause for that table") and
     /// <c>DataItem.IndexNames</c> holds it, but outside SEARCH nothing read it — so
     /// <c>MOVE 77 TO E2(IX1)</c>, with IX1 the index of an unrelated table, compiled clean and wrote through that
@@ -726,12 +726,12 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
             if (DeclaredInHierarchy(item, decl)) continue;
             data.Edition.Error(DiagnosticCatalog.IndexNameNotInTable,
                 $"'{item.CobolName}' subscripted by the index-name '{t.Text}', which is not in the INDEXED BY "
-                + "phrase of any OCCURS clause in this item's hierarchy (ISO §8.4.2.3.3 SR4)");
+                + "phrase of any OCCURS clause in this item's hierarchy (ISO §2023:8.4.2.3.3 SR4)");
         }
     }
 
     /// <summary>True when the RESOLVED declaration <paramref name="decl"/> belongs to an entry of
-    /// <paramref name="item"/>'s own hierarchy — the item itself or any containing entry (§8.4.2.3.3 SR4's
+    /// <paramref name="item"/>'s own hierarchy — the item itself or any containing entry (§2023:8.4.2.3.3 SR4's
     /// "hierarchy of the table being referenced"). ⛔ BY DECLARATION IDENTITY, NOT SPELLING (kb/Work PB919): with
     /// two tables each <c>INDEXED BY IX</c>, <c>EB(IX OF EA)</c> names the index of the OTHER table, and a
     /// spelling test would pass it because EB's hierarchy also declares an IX.</summary>
@@ -742,9 +742,9 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         return false;
     }
 
-    /// <summary>True when this segment contains a FUNCTION-IDENTIFIER (ISO §8.4.3.1.2 Format 1) and therefore
+    /// <summary>True when this segment contains a FUNCTION-IDENTIFIER (ISO §2023:8.4.3.1.2 Format 1) and therefore
     /// belongs to the D18 materialization route rather than the direct position walk: either the explicit
-    /// <c>FUNCTION</c> keyword, or the §8.4.3.2.3 SR2 keyword-omitted form — a REPOSITORY-declared intrinsic or a
+    /// <c>FUNCTION</c> keyword, or the §2023:8.4.3.2.3 SR2 keyword-omitted form — a REPOSITORY-declared intrinsic or a
     /// user-function name, immediately followed by its parenthesis, that is NOT shadowed by a declared data item (a declared item always wins, exactly as in
     /// <c>IntrinsicBinder.KeywordOmittedFunction</c>; the two must not drift apart, which is why both ask the
     /// question the same way).</summary>
@@ -771,7 +771,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         }
         return false;
 
-        // The function-identifier's head token IS an activation site (ISO §7.3.14.4 GR4 b reads it back from
+        // The function-identifier's head token IS an activation site (ISO §2023:7.3.14.4 GR4 b reads it back from
         // DataBindState.ActivationSites — the subscript has no FunctionCall parse node of its own).
         bool Activation(IToken head)
         {
@@ -781,12 +781,12 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     }
 
     /// <summary>The D18 route (fix-queue PB17, widened by PB42): materialize ANY position the direct walk cannot
-    /// read into the §15.4 temporary, and read the position as that temp's ordinary position read. The position's
+    /// read into the §2023:15.4 temporary, and read the position as that temp's ordinary position read. The position's
     /// PARSE NODE — its <c>arithmeticExpression</c> — is handed to the <see cref="MaterializeSegment"/> hook, which
     /// binds it through the ONE expression binder (kb/Work PB2151: the node is bound where the grammar parsed it; the
     /// verbatim-text re-parse through an isolated fragment rule is gone).
     /// <para>⛔ IT IS DELIBERATELY NOT GATED ON A TOKEN LIST. The ARITHMETIC-EXPRESSION GRAMMAR decides
-    /// admissibility: a position that did not parse as an arithmetic expression — the word ALL outside §8.4.2.3.3
+    /// admissibility: a position that did not parse as an arithmetic expression — the word ALL outside §2023:8.4.2.3.3
     /// SR6's two contexts, a nonnumeric literal, a piece of an item the declarations cut that has no subscript
     /// reading (<see cref="SegmentsOf"/>) — is refused here by name (COBOL2363, kb/Work PB1030) and never reaches
     /// the hook. That is what lets a function-identifier, <c>**</c>, a decimal literal and every
@@ -795,7 +795,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     /// binder) or the hook refuses or defers the position — in every such case the caller's loud posture stands.</para></summary>
     private Position? MaterializePosition(PositionSegment seg, SegmentPosition position)
     {
-        // R30 PURITY (kb/Work PB157): a probe must not BIND the position — the hook registers a §15.4 pre-op and a
+        // R30 PURITY (kb/Work PB157): a probe must not BIND the position — the hook registers a §2023:15.4 pre-op and a
         // function-bearing position would activate TWICE (once per probe+commit). The probe's Place is discarded
         // after its Item is read, so the dummy occurrence is never emitted.
         if (refs.Probing) return new PositionConstant(1);
@@ -805,10 +805,10 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         // expression the walk cannot read, the tree has no reading of the cut, so the position is refused by name.
         if ((seg.Cut is null ? seg.Operand?.arithmeticExpression() : null) is not { } expr)
         {
-            // ⛔ A POSITION THAT IS NOT AN ARITHMETIC EXPRESSION IS NOT A SUBSCRIPT (kb/Work PB1030). §8.4.2.3.2 writes a
+            // ⛔ A POSITION THAT IS NOT AN ARITHMETIC EXPRESSION IS NOT A SUBSCRIPT (kb/Work PB1030). §2023:8.4.2.3.2 writes a
             // subscript as ALL, arithmetic-expression-1, or index-name-1 [{+|-} integer-1] (the last is read directly
-            // and never arrives here), and §8.4.3.3.3 SR4 makes both reference-modifier bounds arithmetic expressions.
-            // What did not parse as one is the word ALL outside the two places §8.4.2.3.3 SR6 admits it (an
+            // and never arrives here), and §2023:8.4.3.3.3 SR4 makes both reference-modifier bounds arithmetic expressions.
+            // What did not parse as one is the word ALL outside the two places §2023:8.4.2.3.3 SR6 admits it (an
             // intrinsic-function argument or a SORT table's rightmost subscript, neither of which resolves through
             // here), or not a subscript at all (`E("A")`). It used to be returned unreported, and the caller bound a
             // run-time NotImplemented that aborted the run unit.
@@ -822,60 +822,60 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     }
 
     /// <summary>The COBOL2363 text for a position that is not an arithmetic expression (kb/Work PB1030) — the
-    /// word ALL in a subscript names §8.4.2.3.3 SR6's two contexts; anything else names the position's own rule.</summary>
+    /// word ALL in a subscript names §2023:8.4.2.3.3 SR6's two contexts; anything else names the position's own rule.</summary>
     private static string IllegalPositionMessage(string segment, SegmentPosition position) =>
         position == SegmentPosition.RefMod
             ? $"'{segment}' is written as a reference-modification bound, but a leftmost-position and a length shall "
-              + "be arithmetic expressions (ISO §8.4.3.3.3 SR4)."
+              + "be arithmetic expressions (ISO §2023:8.4.3.3.3 SR4)."
         : CobolNames.Same(segment, "ALL")
-            ? "the subscript ALL is written where it is not permitted: ISO §8.4.2.3.3 SR6 — \"The subscript ALL may "
+            ? "the subscript ALL is written where it is not permitted: ISO §2023:8.4.2.3.3 SR6 — \"The subscript ALL may "
               + "be used only\" when the subscripted identifier is an intrinsic function argument, or as the rightmost "
               + "or only subscript of a table in the table format of a SORT statement. Write the occurrence you mean."
         : $"'{segment}' is written as a subscript, but a subscript is ALL, an arithmetic expression, or an index-name "
-          + "optionally followed by + or - and an integer (ISO §8.4.2.3.2).";
+          + "optionally followed by + or - and an integer (ISO §2023:8.4.2.3.2).";
 
     /// <summary>A subscript data-name → its C# read expression: an INDEXED BY index-name (a <c>long</c> field), or
-    /// a (possibly OF/IN-qualified, ISO §8.4.2.3.2) numeric data item read; <see langword="null"/> if unresolvable.
+    /// a (possibly OF/IN-qualified, ISO §2023:8.4.2.3.2) numeric data item read; <see langword="null"/> if unresolvable.
     /// A data-item read is wrapped in <c>CobolTable.Occ(…)</c> — overload resolution converts a STRING-stored
     /// occurrence number (a leaf the post-bind whole-group analysis flags <see cref="DataItem.StoreAsImage"/>, a
     /// decision NOT yet made when this bind-time text is produced) exactly as a native <c>long</c>.</summary>
     /// <param name="scaled">Set when the resolved operand carries a nonzero PICTURE scale, so the caller can send a
-    /// COMPOUND segment to the D18 materializer instead (the §8.4.2.3.4 GR1b result-vs-operand distinction).</param>
+    /// COMPOUND segment to the D18 materializer instead (the §2023:8.4.2.3.4 GR1b result-vs-operand distinction).</param>
     /// <param name="nameToken">The name's own token, and the collector it is recorded into when it resolves to an
     /// index-name IN A SUBSCRIPT position: the caller is the only frame that knows WHICH table is being
-    /// referenced, so §8.4.2.3.3 SR4 is applied there (<see cref="ScreenIndexNameAssociation"/>). Threaded rather
+    /// referenced, so §2023:8.4.2.3.3 SR4 is applied there (<see cref="ScreenIndexNameAssociation"/>). Threaded rather
     /// than kept on the resolver because the D18 materializer can re-enter this resolver for a nested
     /// reference (kb/Work PB459).</param>
     private Position? ResolveSubscriptName(string name, List<string> qualifiers, SegmentPosition position,
         ref List<PendingScreen>? pending, out bool scaled, (IToken Token, List<IndexUse>? Into) nameToken)
     {
         scaled = false;
-        // An index-name is an occurrence number by construction (§13.18.38) and a constant-name substitutes an
+        // An index-name is an occurrence number by construction (§2023:13.18.38) and a constant-name substitutes an
         // INTEGER literal — neither can be scaled, so both keep the fast path.
-        // ⛔ BUT ONLY IN THE POSITION r7 LISTS (kb/Work PB170). §13.18.38.3 r7's five contexts include "as a
+        // ⛔ BUT ONLY IN THE POSITION r7 LISTS (kb/Work PB170). §2023:13.18.38.3 r7's five contexts include "as a
         // subscript" and do NOT include a reference-modification position, and this line returned the index
         // field regardless of `position` — so `W(IX:2)` compiled clean. The R16 screen for exactly this rule
         // already existed (ExpressionBinder.ScreenIndexNameOperand); it simply was not applied here.
-        // The name may be QUALIFIED (§8.4.2.2.2 Format 3 / §8.4.2.2.3 SR6 — `E(IX OF T)`), and a duplicated one
+        // The name may be QUALIFIED (§2023:8.4.2.2.2 Format 3 / §2023:8.4.2.2.3 SR6 — `E(IX OF T)`), and a duplicated one
         // must be (SR1): the ONE resolution decides both (kb/Work PB919).
         if (refs.Names.ResolveIndexName(name, qualifiers, nameToken.Token) is { Outcome: not IndexRefOutcome.NotAnIndexName } ix)
         {
             if (position == SegmentPosition.Subscript)
             {
-                // §8.4.2.3.3 SR4 — screened by the caller, which has the table
+                // §2023:8.4.2.3.3 SR4 — screened by the caller, which has the table
                 if (ix.Decl is { } decl) nameToken.Into?.Add(new IndexUse(nameToken.Token, decl));
                 return IndexCellOf(ix);
             }
             (pending ??= []).Add(new PendingScreen(null, name));
             return IndexCellOf(ix);   // keep reading: a null here would re-route to D18 and screen the operand twice
         }
-        // An INTEGER constant-name in a subscript position substitutes its integer literal (ISO §13.10.3 SR2 /
-        // §13.10.4 GR1/GR3 — a subscript is a literal position, §8.4.2.3.2) — its VALUE is the position, read by THE ONE
+        // An INTEGER constant-name in a subscript position substitutes its integer literal (ISO §2023:13.10.3 SR2 /
+        // §2023:13.10.4 GR1/GR3 — a subscript is a literal position, §2023:8.4.2.3.2) — its VALUE is the position, read by THE ONE
         // integer-literal reader (kb/Work PB1579).
         if (qualifiers.Count == 0
             && data.Constants.FindConstant(name) is { Category: PicCategory.Numeric, IntegerText: { } integer })
             return HostPosition(integer);
-        // A report VARYING counter in scope (§13.18.64.4 GR4's NOTE: "data-name-1 [may] be used … as a subscript to a source
+        // A report VARYING counter in scope (§2023:13.18.64.4 GR4's NOTE: "data-name-1 [may] be used … as a subscript to a source
         // data item") is the compose-local integer the placement declares; it is no data item and has no scale.
         if (qualifiers.Count == 0 && refs.VaryingScope is { } counters && counters.TryGetValue(name, out var counter))
             return new PositionLocal(counter.Local, AsLong: true);
@@ -886,12 +886,12 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         return PositionRead(item, position);
     }
 
-    /// <summary>⛔ §13.18.38.3 r7 AT THE TOKEN RENDERER'S REF-MOD BOUND — <b>ONE RULE, ONE LANE POSTURE, DECIDED
+    /// <summary>⛔ §2023:13.18.38.3 r7 AT THE TOKEN RENDERER'S REF-MOD BOUND — <b>ONE RULE, ONE LANE POSTURE, DECIDED
     /// BY THE SLOT KIND</b> (kb/Work PB219). r7 is enforced at four sites and they were not all on the same
     /// disposition; the axis that settles each one is what the slot IS, never which route reached it:
     /// <list type="bullet">
     ///   <item><b>An ARITHMETIC-expression position</b> — <c>ExpressionBinder.IndexNameExpr</c> (R29) and THIS
-    ///   site. §8.4.3.3.3 SR4 makes a reference-modification leftmost-position/length an arithmetic expression,
+    ///   site. §2023:8.4.3.3.3 SR4 makes a reference-modification leftmost-position/length an arithmetic expression,
     ///   so the ref-mod bound is R29's family, not R16's. Posture: strict REJECTS with the r7 citation;
     ///   <c>--permissive</c> WARNS and computes the occurrence number (the documented GnuCOBOL coercion). The
     ///   emit floor is identical either way — this method's caller renders <c>field</c> in both lanes.</item>
@@ -907,9 +907,9 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     /// bound.</summary>
     private void IndexNameInPositionError(string name, SegmentPosition position)
     {
-        string what = $"the index-name '{name}' is not an identifier (ISO §8.4.3.1.2) and a "
-            + "reference-modification leftmost-position/length is not one of §13.18.38.3 r7's five contexts (a "
-            + "subscript, PERFORM/SEARCH VARYING, SET, a relation condition) — §8.4.3.3.3 SR4 makes both bounds "
+        string what = $"the index-name '{name}' is not an identifier (ISO §2023:8.4.3.1.2) and a "
+            + "reference-modification leftmost-position/length is not one of §2023:13.18.38.3 r7's five contexts (a "
+            + "subscript, PERFORM/SEARCH VARYING, SET, a relation condition) — §2023:8.4.3.3.3 SR4 makes both bounds "
             + "arithmetic expressions";
         if (data.Edition.Permissive)
             data.Edition.Warning(DiagnosticCatalog.IndexNameContext,
@@ -919,16 +919,16 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
                 $"{what}. SET a data item to the index first (SET data-item TO {name})");
     }
 
-    /// <summary>⛔ THE §8.8.1.1 CLASS SCREEN FOR THE TOKEN RENDERER'S FAST PATH (kb/Work PB170) — the funnel entry
+    /// <summary>⛔ THE §2023:8.8.1.1 CLASS SCREEN FOR THE TOKEN RENDERER'S FAST PATH (kb/Work PB170) — the funnel entry
     /// that never reached the funnel.
-    /// <para><b>The chain, every link cite.py-checked.</b> §8.4.2.3.2's subscript general format is exactly three
+    /// <para><b>The chain, every link cite.py-checked.</b> §2023:8.4.2.3.2's subscript general format is exactly three
     /// alternatives — <c>ALL | arithmetic-expression-1 | index-name-1 [{+|-} integer-1]</c> — so a bare data-name
-    /// subscript is admitted ONLY as arithmetic-expression-1; §8.8.1.1 then admits "an identifier referencing a
-    /// NUMERIC data item, a numeric literal, the figurative constant ZERO"; §8.5.2.1 Table 2 puts category
-    /// alphanumeric and alphanumeric-edited in class ALPHANUMERIC. §8.4.3.3.3 SR4 ("leftmost-position and length
+    /// subscript is admitted ONLY as arithmetic-expression-1; §2023:8.8.1.1 then admits "an identifier referencing a
+    /// NUMERIC data item, a numeric literal, the figurative constant ZERO"; §2023:8.5.2.1 Table 2 puts category
+    /// alphanumeric and alphanumeric-edited in class ALPHANUMERIC. §2023:8.4.3.3.3 SR4 ("leftmost-position and length
     /// shall be arithmetic expressions") carries the identical rule to the ref-mod bounds. So <c>T(XE)</c> and
     /// <c>W(XE:2)</c> with <c>XE PIC X(4)</c> are illegal, and <c>T(IDX)</c> with an index DATA item is illegal
-    /// twice over (§13.18.60.3 SR10's closed reference list has no subscript entry).</para>
+    /// twice over (§2023:13.18.60.3 SR10's closed reference list has no subscript entry).</para>
     /// <para><b>Why the screen has to be HERE.</b> <see cref="ResolveSubscriptName"/> renders the position read
     /// straight from the token — <c>ExpressionBinder.OperandRef</c> never runs, because the operand never enters
     /// the expression binder at all. Measured on 02c72682: <c>E(XE)</c> compiled clean and digit-decoded "0002"
@@ -937,7 +937,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     /// case arm, and plain <c>+</c> over an unscaled alphanumeric name is none of those.</para>
     /// <para>⚠ THE VERDICT IS <see cref="IntrinsicArgumentRules"/>'s, deliberately: a category switch written here
     /// would have been the fifth place answering "is this operand class numeric". Routing the segment to D18
-    /// instead — which would reuse OperandRef's screen with no new code — was REJECTED: it materializes a §15.4
+    /// instead — which would reuse OperandRef's screen with no new code — was REJECTED: it materializes a §2023:15.4
     /// temp and a PendingPreOp for every permissive alphanumeric subscript, changing permissive-lane emitted text
     /// and adding an integrality check where <c>CobolTable.Occ(string)</c> has none. Screening in place keeps the
     /// emit floor byte-identical.</para>
@@ -958,33 +958,33 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         // parameter for — <c>long</c> or <c>string</c> for a non-numeric operand (numeric ones add the wide tiers). A group's
         // carrier is its per-program <c>record struct</c> and a pointer's is <c>ManagedPointer</c>, so
         // both now route to D18 and are screened by <c>ExpressionBinder.OperandRef</c> instead — the same
-        // COBOL0844 over the same §8.8.1.1, minus this method's position phrase.
+        // COBOL0844 over the same §2023:8.8.1.1, minus this method's position phrase.
         // ⚠ THE INTERSECTION IS NARROWER THAN THAT LIST, and it is the second precondition that narrows it: only
         // an item <c>IntrinsicArgumentRules.IsArithmeticOperandClass</c> REJECTED is ever queued, and the
         // numeric-only carriers belong to class NUMERIC items, which it accepts. So what reaches HERE is
         // exactly: an index DATA item (an <c>IndexCell</c> is a <c>long</c>) and the string-carrier categories
         // — alphanumeric, national, boolean, numeric-edited and their edited forms.
         string what = item.Pic is { Usage: Usage.Index }
-                ? $"item '{name}', an index data item (class index, ISO §8.5.2.1 Table 2; §13.18.60.3 SR10 admits "
+                ? $"item '{name}', an index data item (class index, ISO §2023:8.5.2.1 Table 2; §2023:13.18.60.3 SR10 admits "
                   + "an index data item only in SEARCH/SET, a relation condition, or an intrinsic argument)"
             // The class SPELLED by the one Table-2 spelling (kb/Work PB1400): `ToString().ToLowerInvariant()` of the
             // enum printed a numeric-edited subscript as "class numericediteddeediting".
             : $"item '{name}' of class "
               + $"{IntrinsicArgumentRules.ClassNameOf(item)} "
-              + "(ISO §8.5.2.1 Table 2)";
+              + "(ISO §2023:8.5.2.1 Table 2)";
         string where = position == SegmentPosition.Subscript
-            ? "a subscript is arithmetic-expression-1 (ISO §8.4.2.3.2)"
-            : "a reference-modification leftmost-position/length is an arithmetic expression (ISO §8.4.3.3.3 SR4)";
+            ? "a subscript is arithmetic-expression-1 (ISO §2023:8.4.2.3.2)"
+            : "a reference-modification leftmost-position/length is an arithmetic expression (ISO §2023:8.4.3.3.3 SR4)";
         // The SAME dialect gate the expression-binder screen carries (dialect_two_axes — every leniency is
         // dialect-gated): --permissive keeps the CobolTable.Occ(string) digit decode, which is the leniency
         // already implemented by that overload, and the emitted text is unchanged either way.
         if (data.Edition.Permissive)
-            data.Edition.Warning(DiagnosticCatalog.ArithmeticOperandNotNumeric, $"{what} is not a numeric operand — {where}, and ISO §8.8.1.1 "
+            data.Edition.Warning(DiagnosticCatalog.ArithmeticOperandNotNumeric, $"{what} is not a numeric operand — {where}, and ISO §2023:8.8.1.1 "
                 + "admits only an identifier referencing a NUMERIC data item, a numeric literal, or the "
                 + "figurative constant ZERO; accepted under --permissive, decoding its digit characters as an "
                 + "unsigned integer");
         else
-            data.Edition.Error(DiagnosticCatalog.ArithmeticOperandNotNumeric, $"{what} is not a numeric operand: {where}, and ISO §8.8.1.1 "
+            data.Edition.Error(DiagnosticCatalog.ArithmeticOperandNotNumeric, $"{what} is not a numeric operand: {where}, and ISO §2023:8.8.1.1 "
                 + "admits only an identifier referencing a NUMERIC data item, a numeric literal, or the "
                 + "figurative constant ZERO. --permissive accepts it as a digit-decoding extension");
     }
@@ -993,13 +993,13 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     /// <c>long</c> expression for the POSITION it denotes, in either position kind.
     /// <para>A WiseOwl COBOL numeric item stores UNSCALED — <c>PIC 9V9 VALUE 2.0</c> is the field <c>20L</c> at scale
     /// 1 — so the item's VALUE and its STORAGE are different numbers whenever the PICTURE has a <c>V</c>. Both
-    /// position clauses are about the VALUE: §8.4.2.3.4 GR1b makes the subscript "the result of the evaluation of
-    /// arithmetic-expression-1", and §8.4.3.3.4 rule 5)c) says the same for a leftmost-position/length. Reading the
+    /// position clauses are about the VALUE: §2023:8.4.2.3.4 GR1b makes the subscript "the result of the evaluation of
+    /// arithmetic-expression-1", and §2023:8.4.3.3.4 rule 5)c) says the same for a leftmost-position/length. Reading the
     /// storage instead is what made <c>W-E(W-S)</c> with <c>W-S = 2.0</c> index occurrence 20 and return the
     /// out-of-range scratch.</para>
     /// <para>⛔ A NUMERIC item reads through its OWN PROFILE, at every scale and in both positions:
     /// <c>CobolTable.Occ(path, _P_n)</c> / <c>CobolString.RefModPosition(path, _P_n)</c>. The profile carries the
-    /// scale (GR1b's integrality, and a trailing-P item's multiplier), the sign, and the byte form §14.6.13.2 rule
+    /// scale (GR1b's integrality, and a trailing-P item's multiplier), the sign, and the byte form §2023:14.6.13.2 rule
     /// 2's check needs when the post-bind whole-group analysis stores the item as its character image — a position
     /// is ITEM IDENTIFICATION, which rule 1 names as checked even inside a class condition (kb/Work PB1117). The
     /// profile-less form this replaced decoded that image through a tolerant digit scan: EC-DATA-INCOMPATIBLE was
@@ -1012,7 +1012,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         bool numeric = item.Pic is { Category: PicCategory.Numeric };
         // ⛔ THE BET ON OVERLOAD RESOLUTION IS ONLY GOOD FOR THE CARRIERS THAT HAVE AN OVERLOAD (kb/Work PB201).
         if (!HasPositionOverload(item, numeric)) return null;
-        // An unsubscripted read: an item inside a table has no path without its subscripts (§8.4.2.3.3 SR3's count).
+        // An unsubscripted read: an item inside a table has no path without its subscripts (§2023:8.4.2.3.3 SR3's count).
         if (PlaceBuilder.BuildAccessPath(item, []) is not { } path) return null;
         return new PositionItemRead(path, item,
             !numeric ? PositionReadForm.Digits
@@ -1038,14 +1038,14 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     /// leaf), <c>ManagedPointer</c>/<c>ProgramPointer</c>, an object reference, and a GROUP's <c>record struct</c>
     /// name — have none, and the emitted text was therefore not C# that compiles.
     /// ⚠ The FLOAT exclusion is a RULE, not a missing overload: a <c>double</c> operand can be
-    /// fractional and §8.4.2.3.4 GR1b sets EC-BOUND-SUBSCRIPT when the expression "does not result in an
+    /// fractional and §2023:8.4.2.3.4 GR1b sets EC-BOUND-SUBSCRIPT when the expression "does not result in an
     /// integer", a test the scale-less overload does not perform — so a float belongs on the D18
-    /// route, where the §15.4 temp applies the rule once, to the result.
+    /// route, where the §2023:15.4 temp applies the rule once, to the result.
     /// MEASURED, six shapes, before this fix: <c>TE(FD1)</c> with <c>FD1 USAGE COMP-2</c>,
     /// <c>TE(BIG)</c> with <c>BIG PIC 9(20) COMP</c> and <c>TE(W-U)</c> with
     /// <c>W-U USAGE BINARY-DOUBLE UNSIGNED</c> each failed the BACKEND with
     /// <c>CS1503 cannot convert from 'double'/'System.Int128'/'ulong' to 'long'</c> — in the DEFAULT lane, on source
-    /// §8.8.1.1 and §8.4.2.3.4 GR1b make perfectly legal — <c>W(FD1:2)</c> the same at a ref-mod bound, and a
+    /// §2023:8.8.1.1 and §2023:8.4.2.3.4 GR1b make perfectly legal — <c>W(FD1:2)</c> the same at a ref-mod bound, and a
     /// GROUP subscript under <c>--permissive</c> emitted the record struct (<c>CS1503 '_T_0' to 'long'</c>) or, for
     /// a class-tier BASED group, a name with no C# field at all (<c>CS0103</c>).</para>
     /// <para><b>Why a route and not only wider overloads.</b> The three INTEGER carriers above genuinely were
@@ -1055,9 +1055,9 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     /// per-program generated type, and a pointer has no numeric value to convert at all. The
     /// route already exists and is the documented posture: <see cref="BindPosition"/> is "an optimization over
     /// that route, never the arbiter of what is legal in the position", so an operand it cannot render is
-    /// <see cref="MaterializePosition"/>'s, where <c>ExpressionBinder</c> screens it under §8.8.1.1 and
+    /// <see cref="MaterializePosition"/>'s, where <c>ExpressionBinder</c> screens it under §2023:8.8.1.1 and
     /// <c>NumericRenderer.FieldNum</c> — THE ONE numeric read — supplies the carrier-correct decode (the float
-    /// sending check, the wide tier, and a group's §8.5.2.1 alphanumeric IMAGE, which is exactly the digit decode
+    /// sending check, the wide tier, and a group's §2023:8.5.2.1 alphanumeric IMAGE, which is exactly the digit decode
     /// the <c>--permissive</c> message promises and the fast path never performed).</para>
     /// <para>⚠ Returning FALSE is always sound and never a verdict: the segment reroutes to D18, whose loud
     /// posture on failure is the caller's pre-existing one. The pre-promotion reading of <c>ElementType</c> is
@@ -1095,15 +1095,15 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
 
 /// <summary>Which ORDINAL-POSITION rule a rendered segment is subject to. The two positions share one token
 /// renderer and one integrality rule, and differ only in the Table 13 condition a non-integer value sets:
-/// §8.4.2.3.4 GR1b names EC-BOUND-SUBSCRIPT for a subscript, §8.4.3.3.4 rule 5)c) names EC-BOUND-REF-MOD for a
+/// §2023:8.4.2.3.4 GR1b names EC-BOUND-SUBSCRIPT for a subscript, §2023:8.4.3.3.4 rule 5)c) names EC-BOUND-REF-MOD for a
 /// leftmost-position/length (fix-queue PB41). Carried by parameter rather than a field — the renderer is
 /// re-entrant through <see cref="RefModBinder.ReadRefMod(CobolParserCore.RefModPartContext)"/>, and ambient
 /// state goes stale across a re-entrant descent (the ExpressionBinder OperandContext discipline).</summary>
 internal enum SegmentPosition
 {
-    /// <summary>A subscript (ISO §8.4.2.3.2 <c>arithmetic-expression-1</c>) — EC-BOUND-SUBSCRIPT.</summary>
+    /// <summary>A subscript (ISO §2023:8.4.2.3.2 <c>arithmetic-expression-1</c>) — EC-BOUND-SUBSCRIPT.</summary>
     Subscript,
 
-    /// <summary>A reference-modifier leftmost-position or length (§8.4.3.3.3 SR4) — EC-BOUND-REF-MOD.</summary>
+    /// <summary>A reference-modifier leftmost-position or length (§2023:8.4.3.3.3 SR4) — EC-BOUND-REF-MOD.</summary>
     RefMod,
 }

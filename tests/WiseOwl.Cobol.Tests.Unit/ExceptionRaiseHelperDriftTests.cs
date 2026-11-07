@@ -8,7 +8,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// kb/Work PB676 — the invariant that keeps ISO §14.6.13.1.1's raise rule TRUE PER CONDITION as conditions are
+/// kb/Work PB676 — the invariant that keeps ISO §2023:14.6.13.1.1's raise rule TRUE PER CONDITION as conditions are
 /// added: <b>the ambient flag a runtime raise helper READS is the flag the emitter SETS for the exception-name
 /// that helper raises.</b>
 ///
@@ -23,7 +23,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// wrong flag cannot pass.</para>
 ///
 /// <para>The fatality is checked the same way, against <see cref="ExceptionCatalog"/> — the machine form of
-/// §14.6.13.1.6 Table 13 — so a helper whose <c>fatal:</c> argument disagrees with the standard's category fails
+/// §2023:14.6.13.1.6 Table 13 — so a helper whose <c>fatal:</c> argument disagrees with the standard's category fails
 /// here rather than by terminating (or failing to terminate) a user's run unit.</para>
 /// </summary>
 public sealed class ExceptionRaiseHelperDriftTests
@@ -43,7 +43,7 @@ public sealed class ExceptionRaiseHelperDriftTests
             .GetProperties(BindingFlags.Public | BindingFlags.Instance)
             .Where(p => p.PropertyType == typeof(bool) && p.Name.EndsWith("Checking", StringComparison.Ordinal))];
 
-    /// <summary>The raise helpers: every public <c>…Error</c> method on the engine IS a §14.6.13.1.1 raise, so the
+    /// <summary>The raise helpers: every public <c>…Error</c> method on the engine IS a §2023:14.6.13.1.1 raise, so the
     /// census closes by construction — a nineteenth condition's helper joins it the moment it is written.</summary>
     private static readonly MethodInfo[] RaiseHelpers =
         [.. typeof(ExceptionEngine)
@@ -66,7 +66,7 @@ public sealed class ExceptionRaiseHelperDriftTests
         }
         catch (TargetInvocationException tie) when (tie.InnerException is CobolFatalException fatal)
         {
-            // §14.6.13.1.3: the thrown signal and the last exception status describe ONE raise.
+            // §2023:14.6.13.1.3: the thrown signal and the last exception status describe ONE raise.
             Assert.Equal(engine.LastName, fatal.EcName);
             return new Raise(fatal.EcName, engine.LastFatal, Threw: true);
         }
@@ -96,7 +96,7 @@ public sealed class ExceptionRaiseHelperDriftTests
             // 1. What does it raise with everything enabled? A helper that records NOTHING has lost its Set.
             string? raised = Probe(h, _ => true).Ec;
             Assert.True(raised is not null,
-                $"{h.Name} raised no exception condition with every checking flag enabled — §14.6.13.1.1 raises the "
+                $"{h.Name} raised no exception condition with every checking flag enabled — §2023:14.6.13.1.1 raises the "
                 + "condition when checking IS enabled, so this helper has lost its Set and EXCEPTION-STATUS, the "
                 + "USE declarative and the PERFORM WHEN all see nothing.");
             string ec = raised!;
@@ -124,7 +124,7 @@ public sealed class ExceptionRaiseHelperDriftTests
             Assert.Equal(ec, only.Ec);
 
             // 5. The recorded fatality is Table 13's, read from the catalog rather than from the helper's own
-            //    `fatal:` argument (§14.6.13.1.3 for fatal, §14.6.13.1.4 for nonfatal — one terminates the run
+            //    `fatal:` argument (§2023:14.6.13.1.3 for fatal, §2023:14.6.13.1.4 for nonfatal — one terminates the run
             //    unit when unhandled, the other continues).
             Assert.True(ExceptionCatalog.TryGet(ec, out var info), $"{ec} is not a Table 13 exception-name");
             Assert.Equal(3, info.Level);
@@ -132,7 +132,7 @@ public sealed class ExceptionRaiseHelperDriftTests
             Assert.True(only.Threw == fatal,
                 $"{h.Name} raises {ec}, which Table 13 categorizes {info.Fatality}, but it "
                 + (only.Threw ? "THREW a CobolFatalException" : "returned without throwing")
-                + " — the §14.6.13.1.3 / §14.6.13.1.4 dispositions are not interchangeable.");
+                + " — the §2023:14.6.13.1.3 / §2023:14.6.13.1.4 dispositions are not interchangeable.");
             Assert.True(only.Fatal == fatal,
                 $"{h.Name} recorded LastFatal={only.Fatal} for {ec}, which Table 13 categorizes {info.Fatality} — "
                 + "the `fatal:` argument disagrees with the standard's category.");
@@ -157,7 +157,7 @@ public sealed class ExceptionRaiseHelperDriftTests
         {
             if (flag is null) continue;                  // an unconditional raise site — no helper by design
             // The ACTIVATING-HALF gates have no runtime helper, and the gate table says why: each condition is raised
-            // only when checking is enabled in BOTH elements (§14.8.4.1; §14.9.23.4 GR7c), so the flag carries the
+            // only when checking is enabled in BOTH elements (§2023:14.8.4.1; §2023:14.9.23.4 GR7c), so the flag carries the
             // ACTIVATOR's half to an activation boundary, which tests it there. Their reader is asserted below
             // (EveryExternalActivatingFlag_SetsItsOwnBitOfTheActivatingMask) and by the goldens that raise them.
             if (EcEmitter.ActivatingHalfGates.Contains(ec)) continue;

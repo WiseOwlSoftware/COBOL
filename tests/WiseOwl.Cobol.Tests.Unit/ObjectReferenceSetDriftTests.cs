@@ -7,9 +7,9 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ ISO §14.9.39.3's SET FORMAT 5 TABLE (SR8 / SR10 / SR12 / SR14) IS WRITTEN ONCE, IN THE RUNTIME, AND BOTH PHASES ASK IT
+/// ⛔ ISO §2023:14.9.39.3's SET FORMAT 5 TABLE (SR8 / SR10 / SR12 / SR14) IS WRITTEN ONCE, IN THE RUNTIME, AND BOTH PHASES ASK IT
 /// (kb/Work PB2463). The compiler asks it for every pair it sees (<c>OoConformance.ObjectRefAssignmentMismatch</c>), the run
-/// time for the pairs no compilation sees — §9.3.6 match rule 6 across a universal INVOKE, and §14.8.2.3.3 / §14.8.3.3 at a
+/// time for the pairs no compilation sees — §2023:9.3.6 match rule 6 across a universal INVOKE, and §2023:14.8.2.3.3 / §2023:14.8.3.3 at a
 /// CALL located at run time (<see cref="ActivationRelations"/>). Before PB2463 the run-time arm was <c>_ =&gt; true</c>
 /// because the table lived only in the compiler, over a class table the run time does not have: a method returning an
 /// UNRELATED class matched, and the delivery raised EC-OO-UNIVERSAL where rule 6 makes the invocation EC-OO-METHOD. So: no
@@ -21,10 +21,10 @@ public sealed class ObjectReferenceSetDriftTests
 {
     /// <summary>The refusal texts only the table writes: a second copy of an arm in the compiler would spell one.</summary>
     [Theory]
-    [InlineData("(ISO §14.9.39.3 SR12 a)2.)")]
-    [InlineData("(ISO §14.9.39.3 SR12 b)2.)")]
-    [InlineData("(ISO §14.9.39.3 SR10 a))")]
-    [InlineData("(ISO §14.9.39.3 SR14 a))")]
+    [InlineData("(ISO §2023:14.9.39.3 SR12 a)2.)")]
+    [InlineData("(ISO §2023:14.9.39.3 SR12 b)2.)")]
+    [InlineData("(ISO §2023:14.9.39.3 SR10 a))")]
+    [InlineData("(ISO §2023:14.9.39.3 SR14 a))")]
     public void NoCompilerSource_SpellsAnArmOfTheTable(string refusal)
     {
         var offenders = Directory.EnumerateFiles(TestRepo.Src("WiseOwl.Cobol.Compiler"), "*.cs", SearchOption.AllDirectories)

@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.39.3 syntax rule 10 c) 2.: for an interface-name receiver, a sender described with an ACTIVE-CLASS
+      *> ISO §2023:14.9.39.3 syntax rule 10 c) 2.: for an interface-name receiver, a sender described with an ACTIVE-CLASS
       *> phrase and WITHOUT a FACTORY phrase is permitted only if "the objects of the class containing the data item
       *> referenced by identifier-4 shall implement int-1".  A is described ACTIVE-CLASS inside method MK of the
       *> instance definition of P9C2C; that instance definition carries no IMPLEMENTS clause (it only names P9C2I in

@@ -7,7 +7,7 @@
 > all 9 PHASE-03 exit criteria hold.
 > How WiseOwl COBOL enforces edition (85 / 2002 / 2014 / 2023) conformance. The gating pass runs **post-bind** as a
 > two-arm walk — one arm over the bound tree (semantic gates), one over the raw parse tree (syntactic gates + the
-> §8.9 reserved-word funnel); version *identity* is recovered by the pass itself (bound-node type/attribute or
+> §2023:8.9 reserved-word funnel); version *identity* is recovered by the pass itself (bound-node type/attribute or
 > parse-tree re-recognition — no `.Syntax` back-reference, no grammar annotation), while version *numbers* stay
 > single-sourced in `constructs.json`. This doc is the canonical design for the
 > version-conformance pipeline; the version-gating
@@ -21,7 +21,7 @@
 > genuinely-semantic gates — MOVE-category, the USAGE/PICTURE-category and pointer-conditioned gates, and the
 > DATA/PICTURE/OO attribute gates over every source-declared item); (2) a **presence-based PARSE-tree arm**
 > (`ParseArm`, over `GroupBindContext.Tree`, running AFTER bind so a construct's semantic errors also accumulate) for
-> the SYNTACTIC introduction/removal/phrase/expression/literal gates + the §8.9 reserved-word funnel — it ABSORBED
+> the SYNTACTIC introduction/removal/phrase/expression/literal gates + the §2023:8.9 reserved-word funnel — it ABSORBED
 > the former `EditionValidator`. **WHY the split:** an INTRODUCTION/removal gate must fire on the construct's
 > syntactic RECOGNITION, NOT its bound node — a bound-arm gate silently DROPS the 0900 whenever a below-edition
 > construct ALSO has a semantic error (it binds to `BoundUnsupported`/`BoundNop`, so the distinctive node is never
@@ -36,7 +36,7 @@ this design rules out, each a way version gating decays if it is *not* a single 
 
 | Anti-pattern | Why it fails |
 | --- | --- |
-| A post-hoc reverse-signature *recogniser* that re-diagnoses a failed parse | It *guesses* a construct's identity from token/rule/adjacency signatures — inherently heuristic; it mis-fires on legitimate §8.9 user words + garbled syntax. |
+| A post-hoc reverse-signature *recogniser* that re-diagnoses a failed parse | It *guesses* a construct's identity from token/rule/adjacency signatures — inherently heuristic; it mis-fires on legitimate §2023:8.9 user words + garbled syntax. |
 | Edition `{isYYYY()}?` *predicates* scattered through the grammar | Gating logic duplicated per rule instead of one version table; and a bare predicate can only fail to a generic parse error, never name the required edition. (Four physical per-edition grammars are worse — ~95% duplicated and still unable to say "requires COBOL-2002" without cross-referencing a newer grammar.) |
 | `ConstructRegistry.Check` calls *embedded in the binder* | Couples version conformance to name/type binding; no single place owns the policy. |
 | Gating discovered *during* code emission (bind and emit fused) | Codegen runs on an errored tree and the output is discarded — wasted work and a phase-boundary violation. |
@@ -87,13 +87,13 @@ is this closed, documented set:
    D8 intrinsic IntroducedIn/RemovedIn windows (`IntrinsicCatalog`, COBOL1502/1503, + the bespoke TRIM
    argument-2 window riding BindTrim), the `ExceptionCatalog` EC-name windows (COBOL0878 — EcBinder, the USE
    F3 name loop, `>>TURN`), the `PictureAnalyzer` picture-symbol rows (the ≥edition 0899 half of the W2 skeleton
-   gate), and the §8.3.3.3.2 / §13.18.40 digit caps (`EditionContext.CheckDigitCapacity`, 0801/0802 —
-   `EditionInfo.MaxDigits` is the table; §8.3.3.3.2 caps fixed-point literals at 1–31 digits and §13.18.40.3 SR14
+   gate), and the §2023:8.3.3.3.2 / §2023:13.18.40 digit caps (`EditionContext.CheckDigitCapacity`, 0801/0802 —
+   `EditionInfo.MaxDigits` is the table; §2023:8.3.3.3.2 caps fixed-point literals at 1–31 digits and §2023:13.18.40.3 SR14
    caps a numeric/fixed-point-numeric-edited item's PICTURE digit positions at 1–31).
 3. **The three sanctioned BEHAVIORAL edition reads** (they select semantics for VALID programs, no diagnostic):
-   the <2002 keyword-omitted FUNCTION routing gate (`IntrinsicBinder` — §8.4.3.2 SR2 routing is inert below
+   the <2002 keyword-omitted FUNCTION routing gate (`IntrinsicBinder` — §2023:8.4.3.2 SR2 routing is inert below
    2002), its program twin, the <2002 program-prototype-name routing (`CallBinder.ProgramPrototypeNamesExist`,
-   row program-prototype-name-2002: below 2002 a bare word after CALL or CANCEL is identifier-1, never §14.9.4.2
+   row program-prototype-name-2002: below 2002 a bare word after CALL or CANCEL is identifier-1, never §2023:14.9.4.2
    Format 2's bracket-omitted spelling, and the same read is what judges a CALL's argument spellings up front,
    kb/Work PB4503, PB4509), and the ≥2002 MOVE CORRESPONDING pair-selection window (`CorrespondingBinder` — the
    Table-16 NE row).
@@ -112,7 +112,7 @@ Any OTHER `DialectLevel` comparison appearing in `Binding/**` is a defect: reloc
 `VersionMatrixTests.IntroducedConstruct_IsRejectedUnderPermissive` runs every active row × every edition below
 its `introducedIn` under `--permissive` and requires a rejection. Until CA14 the permissive axis was tested only
 for REMOVAL rows, which is why the exception above survived two phases — and why the same test immediately found
-two more: `receive-as-user-word` and `end-receive-as-user-word` at COBOL-85, where the §8.9 reserved-word arm
+two more: `receive-as-user-word` and `end-receive-as-user-word` at COBOL-85, where the §2023:8.9 reserved-word arm
 hard-coded a `Removed` verdict. That arm now COMPUTES the verdict from the word's own reservation interval
 (`ReservedWordSet.UserWordVerdictAt`): a spelling an edition took away is the migration case, a spelling reserved
 at the target edition and at every edition before it never was a user word there.
@@ -177,12 +177,12 @@ The OPEN site's predicate is `{is2002() || retryPhraseAhead()}?`. **`retryPhrase
 with RETRY at the lookahead in the OPEN-clause position, the tail after RETRY is an **UNAMBIGUOUS numeric** retry tail
 (`n TIMES` | `FOR`? `n SECONDS`, where `n` contains an integer literal — an integer can never be a file name, so RETRY
 must be the phrase keyword) **AND** at least one further candidate file-name token remains before the sentence
-terminator (`openFileSpec+` must stay satisfiable). A bare `RETRY FOREVER` (FOREVER is a §8.10 user-legal word) or a
+terminator (`openFileSpec+` must stay satisfiable). A bare `RETRY FOREVER` (FOREVER is a §2023:8.10 user-legal word) or a
 `RETRY <name>` count is *genuinely ambiguous* below 2002 and is EXCLUDED — those defer to `is2002()`. Consequences:
 - `OPEN INPUT RETRY FOREVER.` (no numeric tail, no trailing name) stays a two-file-name list at 85;
 - `OPEN INPUT RETRY 5 TIMES F.` forward-detects (the integer `5` disambiguates; `F` remains);
 - the genuinely ambiguous `OPEN INPUT RETRY FOREVER F.` resolves to file names below 2002 (RETRY/FOREVER are legal user
-  words there) and to the phrase at ≥2002 (`is2002()` is true; the §8.9 funnel reserves RETRY).
+  words there) and to the phrase at ≥2002 (`is2002()` is true; the §2023:8.9 funnel reserves RETRY).
 
 Fail-safe: a missed real gate (an ambiguous below-2002 tail) degrades to a neutral parse error, never a wrong edition
 claim. The other five RETRY sites name their file BEFORE the phrase, so they carry no ambiguity and are gated by the
@@ -196,7 +196,7 @@ parse-tree arm on the RETRY phrase's recognition (`VisitRetryPhrase` → `Check(
 - The parse-tree arm re-recognizes each syntactic construct and calls `ConstructRegistry.Check(edition, sink, id,
   where)`; the bound-tree arm computes the resolved fact from the bound node for the semantically-conditioned gates
   and Checks. Both funnel through the one `Check`.
-- Absorbs the former `EditionValidator` (its §8.9 reserved-word funnel is the parse arm's `VisitCobolWord`, §3) and is
+- Absorbs the former `EditionValidator` (its §2023:8.9 reserved-word funnel is the parse arm's `VisitCobolWord`, §3) and is
   the SINGLE home for every edition `Check`: the binder is edition-agnostic (the former `DataBinder*` /
   `StatementBinder*` / `OoClassTable` / `PicInfo` / `OdoModel` sites now fire from one of the pass's two arms), and the
   former emission-time gate (the anti-pattern #4) is gone. The ONE surviving bind-time `Check` is the documented
@@ -213,12 +213,12 @@ folding an orthogonal rule into the edition pass silently widens a charter that 
 
 | Pass | Axis | Severity | Keyed on | Runs |
 |---|---|---|---|---|
-| `FlagConformancePass` | migration flagging (§7.3.14 FLAG-02 / §7.3.15 FLAG-14) | always Warning | the user's `>>FLAG` directive state, regardless of `--std` | post-bind |
-| `ExpressionFormationPass` | non-edition SYNTAX-RULE conformance (§8.8.1.2 Table 3, §8.8.2 Table 4; the identifier's suffix order, §8.4.2.3.2 / §8.4.3.1.2 Format 3 — COBOL2776, kb/Work PB1455) | Error | the parse tree alone — no edition, no directive state | post-bind |
-| `LiteralScreen` (a frontend body, `Frontend/Parsing`; `BinderDriver` runs it on the unit's tree, and the conditional-compilation stage's fragment funnels on each directive operand's tree — lexed apart from the unit, kb/Work PB1616 — with the edition gates of a literal's format only in a compiled branch) | a LITERAL's own syntax rules (§8.3.3.2.3 SR1/SR5/SR6, §8.3.3.4.3 SR1/SR2/SR3, §8.3.3.5.3 SR1/SR4/SR5 — length ≤ 8,191 positions of its class from COBOL-2014 and ≤ 160 below it — the edition-keyed bound `CobolLiteral.MaxPositions`, COBOL0814 (kb/Work PB1615); content repertoire of the prefixed formats, COBOL2630, kb/Work PB1441; hexadecimal grouping, COBOL1635; and §8.3.3.3.2 2), a numeric literal's sign abutting its digits, COBOL2155 — kb/Work PB1445) | Error | every literal TOKEN of the raw tree, DEFAULT-mode and SUBSCRIPT-mode twins alike, and every `signedNumericLiteral` / `signedIntegerLiteral` node that carries a sign (a plain walk, not a visitor, so no override can hide a literal — kb/Work PB1393; `LiteralScreenDriftTests` derives the token set from the lexer) | post-bind |
+| `FlagConformancePass` | migration flagging (§2023:7.3.14 FLAG-02 / §2023:7.3.15 FLAG-14) | always Warning | the user's `>>FLAG` directive state, regardless of `--std` | post-bind |
+| `ExpressionFormationPass` | non-edition SYNTAX-RULE conformance (§2023:8.8.1.2 Table 3, §2023:8.8.2 Table 4; the identifier's suffix order, §2023:8.4.2.3.2 / §2023:8.4.3.1.2 Format 3 — COBOL2776, kb/Work PB1455) | Error | the parse tree alone — no edition, no directive state | post-bind |
+| `LiteralScreen` (a frontend body, `Frontend/Parsing`; `BinderDriver` runs it on the unit's tree, and the conditional-compilation stage's fragment funnels on each directive operand's tree — lexed apart from the unit, kb/Work PB1616 — with the edition gates of a literal's format only in a compiled branch) | a LITERAL's own syntax rules (§2023:8.3.3.2.3 SR1/SR5/SR6, §2023:8.3.3.4.3 SR1/SR2/SR3, §2023:8.3.3.5.3 SR1/SR4/SR5 — length ≤ 8,191 positions of its class from COBOL-2014 and ≤ 160 below it — the edition-keyed bound `CobolLiteral.MaxPositions`, COBOL0814 (kb/Work PB1615); content repertoire of the prefixed formats, COBOL2630, kb/Work PB1441; hexadecimal grouping, COBOL1635; and §2023:8.3.3.3.2 2), a numeric literal's sign abutting its digits, COBOL2155 — kb/Work PB1445) | Error | every literal TOKEN of the raw tree, DEFAULT-mode and SUBSCRIPT-mode twins alike, and every `signedNumericLiteral` / `signedIntegerLiteral` node that carries a sign (a plain walk, not a visitor, so no override can hide a literal — kb/Work PB1393; `LiteralScreenDriftTests` derives the token set from the lexer) | post-bind |
 | `DeclinedFacilityPass` | Annex A.4 optional elements this implementation does not claim | Error | the claim register (`docs/CONFORMANCE.md` §5), not the edition | post-bind |
-| `ClosedFormatPass` | a CLOSED general format's residue (§4.2.2 — every error production, `unrecognizedClause` or `unrecognizedDataClause`, the grammar reached, COBOL1941/1970/1971, named by its format and § from `ClosedFormats.ByContext`) | Error | the parse tree alone, at every edition and strictness (kb/Work PB829) | post-bind |
-| `LevelNumberPass` | the level-number's own syntax rules (§13.18.33.3 SR2/4/5/6, §13.18.33.4 GR2, §13.16.3 SR1/SR2) | Error | the parse tree alone — the entry's SECTION ancestry and its BODY | **pre-bind** |
+| `ClosedFormatPass` | a CLOSED general format's residue (§2023:4.2.2 — every error production, `unrecognizedClause` or `unrecognizedDataClause`, the grammar reached, COBOL1941/1970/1971, named by its format and § from `ClosedFormats.ByContext`) | Error | the parse tree alone, at every edition and strictness (kb/Work PB829) | post-bind |
+| `LevelNumberPass` | the level-number's own syntax rules (§2023:13.18.33.3 SR2/4/5/6, §2023:13.18.33.4 GR2, §2023:13.16.3 SR1/SR2) | Error | the parse tree alone — the entry's SECTION ancestry and its BODY | **pre-bind** |
 
 **`LevelNumberPass` is the one that runs FIRST, and deliberately.** The others consume the bound model or sit
 with the edition pass by convention; this one reads a token, the section the entry is in, and the shape of the
@@ -229,9 +229,9 @@ under whatever entry preceded it, so every later reference mis-qualified and the
 makes it impossible for a bind-time failure on the malformed structure to preempt the diagnostic that explains it.
 
 **Two axes, one pass, two codes.** A level-number is constrained twice over and the constraints are independent:
-by the SECTION its entry lives in (§13.18.33.3 — four *different* sets; 77 is legal in working-storage and illegal
-in a record area) and by the general FORMAT the entry is written in (§13.18.33.4 GR2's "may be used only as
-described by …" plus §13.16.3 SR1/SR2). `COBOL1746` reports the first, `COBOL1747` the second, because the
+by the SECTION its entry lives in (§2023:13.18.33.3 — four *different* sets; 77 is legal in working-storage and illegal
+in a record area) and by the general FORMAT the entry is written in (§2023:13.18.33.4 GR2's "may be used only as
+described by …" plus §2023:13.16.3 SR1/SR2). `COBOL1746` reports the first, `COBOL1747` the second, because the
 user action differs: one says the level-number may not appear here at all, the other says the level-number is fine
 but the entry under it is not the format it requires. The FORMAT is read from the entry BODY and never from the
 level-number — deciding it from the level would make GR2b and GR2c vacuous — so the level-number selects which
@@ -263,16 +263,16 @@ The pass is the compiler's invocation of it, once per parse tree; `CompileTimeEx
 consumer. This is the `BooleanExpressionResolver` pattern: one frontend rule, consumer-generic, so the three
 evaluating arms (`ExpressionBinder.BindExprCore`, `EvalArith`, and `SoleNumericLiteral`) cannot drift apart.
 
-#### 2.4.2 The ONE gate site that runs BEFORE the pipeline — compiler directives (§7.3)
+#### 2.4.2 The ONE gate site that runs BEFORE the pipeline — compiler directives (§2023:7.3)
 
 `VersionConformancePass` gates constructs the parser produced a tree for. A **compiler directive never becomes a
-tree**: ISO §7.2 consumes it in the text-manipulation stage, so by the time any pass exists the line is a blank.
+tree**: ISO §2023:7.2 consumes it in the text-manipulation stage, so by the time any pass exists the line is a blank.
 Its edition gate therefore cannot live in the pass, and the disjointness charter above extends to say **exactly
 where it does live: `ConditionalCompilationProcessor`, at the single point it recognizes a `>>` word.** That one
-site covers the whole §7.3 family — the directives it consumes, the ones a downstream stage owns
-(`Frontend.LeftDirectives`), and the conditional-compilation directives its own switch handles — because §7.3.2
-gives them ONE general format (`>>compiler-instruction`) and §7.3.3 SR6 opens compiler-instruction with ONE
-compiler-directive word (§8.12). It calls the same `ConstructRegistry.Check` funnel and the same
+site covers the whole §2023:7.3 family — the directives it consumes, the ones a downstream stage owns
+(`Frontend.LeftDirectives`), and the conditional-compilation directives its own switch handles — because §2023:7.3.2
+gives them ONE general format (`>>compiler-instruction`) and §2023:7.3.3 SR6 opens compiler-instruction with ONE
+compiler-directive word (§2023:8.12). It calls the same `ConstructRegistry.Check` funnel and the same
 `EditionSeverityPolicy`, so the codes are the pass's codes: COBOL0900 below the introducing edition,
 COBOL0902 at a removing one, COBOL0903 at an obsoleting one.
 
@@ -281,26 +281,26 @@ column; `CompilerDirectiveCatalog` (`WiseOwl.Cobol.Editions`) inverts it into th
 Adding a directive is ONE row plus `pwsh scripts/gen-constructs.ps1` — the word becomes recognized, its edition
 becomes enforced, and the version matrix compiles its `source` at all four editions, in one change.
 
-**The same site asks the OPERAND question, off the same row** (kb/Work PB794). §7.3.3 SR6 composes
+**The same site asks the OPERAND question, off the same row** (kb/Work PB794). §2023:7.3.3 SR6 composes
 compiler-instruction "as specified in the syntax of each directive", so "may this word head a `>>` line at this
 edition" and "may these words follow it" are two questions with one answer each per directive; the second is the
 row's `directiveOperand` column, and `CompilerDirectiveCatalog.CheckOperand` is its ONE producer —
 **COBOL1911** for the whole family. The column is a TOTAL partition, enforced by the generator and by
 `CompilerDirectiveCatalogDriftTests`: `words` (a closed set from the printed general format — with the optional
 words, whether the choice may be omitted, whether a catalogued directive-name or a user-defined word is
-admissible), `text` (the content is not checked, and the citation says by WHOSE decision — §7.3.19.3 SR2 for
-PAGE's comment-text-1, unbuilt residue for §7.3.12.2's DISPLAY operand syntax, the removed clauses for the two
+admissible), `text` (the content is not checked, and the citation says by WHOSE decision — §2023:7.3.19.3 SR2 for
+PAGE's comment-text-1, unbuilt residue for §2023:7.3.12.2's DISPLAY operand syntax, the removed clauses for the two
 FLAG windows), or `stage` (a named downstream stage parses it: TURN, the FLAG pair, COBOL-WORDS, and the
 conditional-compilation driver's own expression operands). ⛔ Whether the choice is omissible is read off the
-PRINTED UNDERLINING, never the braces: §7.3.24.2 underlines FIXED and FREE so `>>SOURCE FORMAT` alone is
-malformed, while §7.3.17.2/§7.3.18.2/§7.3.21.2/§7.3.23.2 leave `ON` un-underlined, so a bare `>>LEAP-SECOND` is
-conforming (§5.2.3). Before PB794 this rule was written in six stages with six codes and not at all for the seven
+PRINTED UNDERLINING, never the braces: §2023:7.3.24.2 underlines FIXED and FREE so `>>SOURCE FORMAT` alone is
+malformed, while §2023:7.3.17.2/§2023:7.3.18.2/§2023:7.3.21.2/§2023:7.3.23.2 leave `ON` un-underlined, so a bare `>>LEAP-SECOND` is
+conforming (§2023:5.2.3). Before PB794 this rule was written in six stages with six codes and not at all for the seven
 directives the driver consumes, so `>>SOURCE FORMAT UNKNOWN`, `>>LISTING GARBAGE` and `>>PUSH GARBAGE` compiled
 in silence. **COBOL0883 and COBOL1576 are RETIRED** by that consolidation; COBOL1650 keeps only
-§7.3.17.3 SR1's placement rule.
+§2023:7.3.17.3 SR1's placement rule.
 
 **And the directive LINE has one parse.** `CompilerDirectiveLine` (`WiseOwl.Cobol.Editions`) owns the indicator with
-its optional following space (§7.3.3 SR5), the directive word, and the operand with a §7.3.3 SR3/SR4 inline
+its optional following space (§2023:7.3.3 SR5), the directive word, and the operand with a §2023:7.3.3 SR3/SR4 inline
 comment removed (quote-aware, so the `*>` inside `>>DISPLAY "a *> b"` is data). Every stage calls it. Seven
 hand-rolled copies of `trimmed[2..].TrimStart()` are gone, and with them a class of defect the copies all shared:
 `>>PROPAGATE ON *> on` was rejected as a malformed operand, and `>>SOURCE FORMAT FIXED *> switch` was not
@@ -314,7 +314,7 @@ more (`>>TURN`/COBOL0875, `>>PROPAGATE`/COBOL0883), and, for a flat `KnownIgnore
 no edition column, nowhere at all. Eleven ISO directives compiled clean at `--std 85`, an edition that has no
 compiler directives whatsoever, and nothing could have failed, because a name set cannot be wrong about an edition
 it does not record. Consolidating deleted the two bespoke gates (COBOL0875 is RETIRED; COBOL0883 kept only
-its §7.3.21.2 malformed-operand half, until PB794 retired that too), deleted four byte-identical `BagSink`
+its §2023:7.3.21.2 malformed-operand half, until PB794 retired that too), deleted four byte-identical `BagSink`
 copies, and removed `dialectLevel`/`permissive` from four stage signatures that no longer ask an edition
 question. PB794 then removed the diagnostic channel itself from the PROPAGATE and REF-MOD-ZERO-LENGTH stages,
 which no longer report anything at all.
@@ -345,11 +345,11 @@ codes come from the pass, so a bind-only verdict would silently drop every editi
 `PrecededByOperand` / `NextWithin` / `PrecededByAnyBeforeDot` / `InRule`). No positional or
 signature heuristic survives it in any form.
 
-**Deleted:** `EditionValidator` — absorbed into the `VersionConformancePass` (§2.4); its §8.9 reserved-word funnel is
+**Deleted:** `EditionValidator` — absorbed into the `VersionConformancePass` (§2.4); its §2023:8.9 reserved-word funnel is
 the pass's parse-tree arm (`VisitCobolWord`).
 
 **Kept (orthogonal — NOT introduction gates):**
-- The **§8.9 reserved-word funnel**: rejects a *genuine user-word* spelling at/above the edition where the word became
+- The **§2023:8.9 reserved-word funnel**: rejects a *genuine user-word* spelling at/above the edition where the word became
   reserved (`COBOL0901`). Inverse gate (word→reserved), unchanged in behavior; it lives inside the
   `VersionConformancePass` (the parse-tree arm's `VisitCobolWord`).
 - The **VALUE/PROPERTY boundary guards** (`CobolData.g4:382/389`): value-operand-loop disambiguation, not an edition gate.
@@ -400,7 +400,7 @@ finally funnels every bind-time `Check` into the one pass.
 - **Stage 3 — the pipeline skeleton.** Build the two-arm `VersionConformancePass`; funnel every
   compiler-embedded `ConstructRegistry.Check` call site into it (`DataBinder*` / `StatementBinder*` / `OoClassTable` /
   `PicInfo` / `OdoModel` + `EditionValidator`'s own + the former emitter-side gate); absorb
-  and DELETE `EditionValidator` (its §8.9 reserved-word funnel becomes the parse arm's `VisitCobolWord`); make the
+  and DELETE `EditionValidator` (its §2023:8.9 reserved-word funnel becomes the parse arm's `VisitCobolWord`); make the
   binder edition-agnostic (zero `Check`s save the documented UDF exception); no `.Syntax` back-reference is added to
   any bound node (the parse-tree arm re-recognizes the syntactic gates instead); split bind/emit in
   `CompilerDriver` (bind → pass → HALT on errors → emit); point `CheckOnly` / `check-batch` / `EditionHarness` /

@@ -8,8 +8,8 @@
       *>---
        IDENTIFICATION DIVISION.
        PROGRAM-ID. OPNFATIX.
-      *> ISO/IEC 1989:2023 §14.9.27.4 GR10 — the INDEXED half of the
-      *> Annex A.1 item 129 validated set (kb/Work PB193). §9.1.6 names
+      *> ISO/IEC 1989:2023 §2023:14.9.27.4 GR10 — the INDEXED half of the
+      *> Annex A.1 item 129 validated set (kb/Work PB193). §2023:9.1.6 names
       *> "prime record key, alternate record keys, SUPPRESS WHEN
       *> attribute ... the collating sequence of the keys for indexed
       *> files" among the attributes fixed when a file is created;
@@ -91,13 +91,13 @@
        01 D-ST PIC XX.
        PROCEDURE DIVISION.
        MAIN-P.
-      *> 1. §14.9.27.4 GR18 — the OPEN OUTPUT creates the file, so
-      *>    §9.1.6 fixes its key attributes here: ONE key, the 4-byte
+      *> 1. §2023:14.9.27.4 GR18 — the OPEN OUTPUT creates the file, so
+      *>    §2023:9.1.6 fixes its key attributes here: ONE key, the 4-byte
       *>    window at offset 0, no duplicates, no SUPPRESS WHEN, the
-      *>    native collating sequence (§12.4.5.3 GR6 — no COLLATING
+      *>    native collating sequence (§2023:12.4.5.3 GR6 — no COLLATING
       *>    SEQUENCE clause applies).
       *>    The two records are released in ASCENDING prime key order
-      *>    because the access mode is sequential: §9.1.13.5 item 1
+      *>    because the access mode is sequential: §2023:9.1.13.5 item 1
       *>    makes a violation of "the ascending sequence requirements
       *>    for successive record key values" the '21' sequence error,
       *>    and each WRITE's status is displayed so a golden can never
@@ -123,7 +123,7 @@
            OPEN INPUT IX-C
            DISPLAY "I3-ALTCOUNT=" C-ST
       *> 4. Every validated attribute agrees: '00', and the file reads
-      *>    in prime-key order (§14.9.27.4 GR14 — the file position
+      *>    in prime-key order (§2023:14.9.27.4 GR14 — the file position
       *>    indicator is set to the lowest collating position and the
       *>    prime record key is the key of reference).
            OPEN INPUT IX-D

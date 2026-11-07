@@ -1,1 +1,1 @@
-{"refuse-at": ["2002", "2014", "2023"], "expect": "COBOL5506: cannot parse construct near 'TIMES'. The word TIMES is not expected here: expected a user-defined word or an integer literal (ISO §5.2.1)."}
+{"refuse-at": ["2002", "2014", "2023"], "expect": "COBOL5506: cannot parse construct near 'TIMES'. The word TIMES is not expected here: expected a user-defined word or an integer literal (ISO §2023:5.2.1)."}

@@ -15,7 +15,7 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// island": the one sanctioned <c>byte[]</c> boundary of hard-invariant #1, whose confined codec is a scheduled
 /// increment (DESIGN-data-model §2.3, Step D — deferred).
 /// <para>Before Step C the same explanation was copy-pasted across ~12 emit guards with drift ("byte island"
-/// vs "byte path", with/without the §4.2 reference). Step C routes each guard's message through the ONE
+/// vs "byte path", with/without the §2023:4.2 reference). Step C routes each guard's message through the ONE
 /// <see cref="Reason(string)"/> tail here, PRESERVING each site's own predicate (P1 vs P2) and its
 /// operation-specific lead + offending-leaf descriptor — a message-only collapse, behavior-neutral. The
 /// REDEFINES-CLASS Tier-C rejection is a SEPARATE, already-single-sourced verdict (the ONE
@@ -36,7 +36,7 @@ internal static class TierCIsland
     /// default is DERIVED FROM THE ITEM (kb/Work PB164 — a fixed string blamed a leaf kind even when the
     /// group was imageless for a different reason): an imageless LEAF is named first (LIVE for the
     /// pointer/object-class usages — the R40 fleet's correction; R40 closed only the NUMERIC leaf kinds),
-    /// else the VARIABLE-LENGTH mechanism (§8.5.1.12).</summary>
+    /// else the VARIABLE-LENGTH mechanism (§2023:8.5.1.12).</summary>
     public static string Reason(DataItem item, string context, string? leafKind = null)
     {
         // Derivation order per the PB164 review fleet: an IMAGELESS LEAF is tested FIRST (blaming the
