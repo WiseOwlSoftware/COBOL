@@ -1,0 +1,11 @@
+A: first phrase selects
+ARM
+B: second phrase evaluated
+OTHER
+  DB0
+C: ALSO
+ARM
+D: first phrase names D
+ARM
+  DB0
+END
