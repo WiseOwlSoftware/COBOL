@@ -1,4 +1,4 @@
-## The citations audit reads the tooling, string literals included; one example marker; the screen reads the line above (PB4911)
+## Entry 3244 — 2026-11-07 00:49 PST — The citations audit reads the tooling, string literals included; one example marker; the screen reads the line above (PB4911)
 
 kb/Work PB4887 phase 2 rewrote the tree's citations into the edition form and made a bare one a refusal, but its
 rewriter left the tooling's string literals by design and the hand pass missed many. `gen_ledger.py` went on
@@ -46,3 +46,4 @@ flags.
 concatenated f-string, a section list, and the negative where words stand before the number) and the marker;
 `audit_code_citations.py --self-test` plants a bare 4.2.16 inside a script's string literal (BARE), its marked twin
 (silent) and the four trees' reach. Every changed script's self-test passes.
+
