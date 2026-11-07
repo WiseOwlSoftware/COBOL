@@ -31,10 +31,10 @@ public static class MessageTagImage
     public static MessageTag TagOf(string image)
     {
         if (image == PointerImage.NullImage) return MessageTag.Null;
-        if (image.Length == PointerImage.Width && image.All(static c => c <= 0xFF))
+        if (image.Length == PointerImage.Width && image.All(StorageByte.HasByte))
         {
             long id = 0;
-            foreach (char c in image) id = (id << 8) | (byte)c;
+            foreach (char c in image) id = (id << 8) | StorageByte.ToByte(c);
             if (RunUnit.Current.SlotImages.TagOf(id) is { } tag) return tag;
         }
         return new MessageTag(null!, MessageParty.Unresolved, image, 0);

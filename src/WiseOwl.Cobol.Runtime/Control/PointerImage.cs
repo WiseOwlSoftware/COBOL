@@ -143,8 +143,8 @@ public static class PointerImage
         long a = 0;
         foreach (char c in image)
         {
-            if (c > 0xFF) return null;
-            a = (a << 8) | (byte)c;
+            if (!StorageByte.HasByte(c)) return null;
+            a = (a << 8) | StorageByte.ToByte(c);
         }
         return a;
     }
