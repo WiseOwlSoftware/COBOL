@@ -1,0 +1,28 @@
+{
+ "page": 844,
+ "figure": 0,
+ "drawn_lines": [
+  "                     ⎧<u>ALL</u>                            ⎫",
+  "                     ⎪                               ⎪",
+  "                     ⎪integer-1                      ⎪",
+  "⎧condition-name-1⎫   ⎪              ┌⎧+⎫          ┐ ⎪",
+  "⎨                ⎬ ( ⎨data-name-2   │⎨ ⎬ integer-2│ ⎬ ...)",
+  "⎩data-name-1     ⎭   ⎪              └⎩-⎭          ┘ ⎪",
+  "                     ⎪              ┌⎧+⎫          ┐ ⎪",
+  "                     ⎪index-name-1  │⎨ ⎬ integer-3│ ⎪",
+  "                     ⎩              └⎩-⎭          ┘ ⎭"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "                      ╭ <u>ALL</u>                               ╮",
+  "                      │                                   │",
+  "                      │ integer-1                         │",
+  "╭ condition-name-1 ╮  │               ┌ ╭ + ╮           ┐ │",
+  "┤                  ├ (┤ data-name-2   │ ┤   ├ integer-2 │ ├ …  )",
+  "╰ data-name-1      ╯  │               └ ╰ - ╯           ┘ │",
+  "                      │               ┌ ╭ + ╮           ┐ │",
+  "                      │ index-name-1  │ ┤   ├ integer-3 │ │",
+  "                      ╰               └ ╰ - ╯           ┘ ╯"
+ ],
+ "reason": "The printed page repeats the amendment's subscripting format of page 841 identically (Change the format for subscripting to read); the batch's drawing set the outer brace's point twice. Drawn as page 841's decided figure."
+}

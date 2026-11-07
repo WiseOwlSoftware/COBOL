@@ -1,0 +1,20 @@
+{
+ "page": 224,
+ "figure": 2,
+ "drawn_lines": [
+  "                                                         ⎧{file-name-1} ...⎫",
+  "                                                         ⎪<u>INPUT</u>            ⎪",
+  "SRI <u>USE</u> [<u>GLOBAL</u>] <u>AFTER</u> STANDARD ⎧<u>EXCEPTION</u>⎫ <u>PROCEDURE</u> ON ⎨<u>OUTPUT</u>           ⎬",
+  "                                ⎩<u>ERROR</u>    ⎭              ⎪<u>I-O</u>              ⎪",
+  "                                                         ⎩<u>EXTEND</u>           ⎭"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "                                                             ╭ {file-name-1} … ╮",
+  "                                  ╭ <u>EXCEPTION</u> ╮              │ <u>INPUT</u>           │",
+  "SRI <u>USE</u> [ <u>GLOBAL</u> ] <u>AFTER</u> STANDARD ┤           ├ <u>PROCEDURE</u> ON ┤ <u>OUTPUT</u>          ├",
+  "                                  ╰ <u>ERROR</u>     ╯              │ <u>I-O</u>             │",
+  "                                                             ╰ <u>EXTEND</u>          ╯"
+ ],
+ "reason": "The printed page sets the SRI USE format as the batch read it: [GLOBAL] AFTER STANDARD {EXCEPTION/ERROR} PROCEDURE ON the five-alternative brace ({file-name-1} ..., INPUT, OUTPUT, I-O, EXTEND); the batch's two braces sat a row apart from the label row. Hand-drawn from the page in the house style."
+}

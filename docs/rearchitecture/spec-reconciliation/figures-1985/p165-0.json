@@ -1,0 +1,21 @@
+{
+ "page": 165,
+ "figure": 0,
+ "drawn_lines": [
+  "                   ⎧⎧⎧<u>IN</u>⎫ data-name-2 ⎫ ... ┌⎧<u>IN</u>⎫ ⎧file-name-1⎫┐⎫",
+  "⎧data-name-1     ⎫ ⎨⎩⎩<u>OF</u>⎭             ⎭     └⎩<u>OF</u>⎭ ⎩cd-name-1  ⎭┘⎬",
+  "⎩condition-name-1⎭ ⎪ ⎧<u>IN</u>⎫ ⎧file-name-1⎫                         ⎪",
+  "                   ⎩ ⎩<u>OF</u>⎭ ⎩cd-name-1  ⎭                         ⎭"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "                     ╭ ╭ ╭ <u>IN</u> ╮ data-name-2  ╮ …   ┌ ╭ <u>IN</u> ╮ ╭ file-name-1 ╮ ┐ ╮",
+  "                     │ ┤ ┤    ├              ├     │ ┤    ├ ┤             ├ │ │",
+  "╭ data-name-1      ╮ ┤ ╰ ╰ <u>OF</u> ╯              ╯     └ ╰ <u>OF</u> ╯ ╰ cd-name-1   ╯ ┘ ├",
+  "┤                  ├ │                                                        │",
+  "╰ condition-name-1 ╯ │   ╭ <u>IN</u> ╮ ╭file-name-1 ╮                                │",
+  "                     │   ┤    ├ ┤            ├                                │",
+  "                     ╰   ╰ <u>OF</u> ╯ ╰cd-name-1   ╯                                ╯"
+ ],
+ "reason": "The printed page bears the batch's drawing out: {data-name-1 / condition-name-1}, then a two-way brace whose first alternative is {{IN/OF} data-name-2} ... [{IN/OF} {file-name-1/cd-name-1}] and whose second is {IN/OF} {file-name-1/cd-name-1}; IN and OF underlined. The measurer did not pair it. Redrawn in the house style."
+}

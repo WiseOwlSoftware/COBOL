@@ -1,0 +1,20 @@
+{
+ "page": 250,
+ "figure": 0,
+ "drawn_lines": [
+  "<u>WORKING-STORAGE</u> <u>SECTION</u>.",
+  "",
+  "┌77-level-description-entry┐",
+  "│                          │ ...",
+  "└record-description-entry  ┘"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "<u>WORKING-STORAGE</u> <u>SECTION</u>.",
+  "",
+  "┌77-level-description-entry ┐",
+  "│                           │ …",
+  "└record-description-entry   ┘"
+ ],
+ "reason": "The printed page sets WORKING-STORAGE SECTION. and [77-level-description-entry / record-description-entry] ... as the batch drew it. Redrawn in the house style."
+}

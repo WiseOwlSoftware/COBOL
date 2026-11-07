@@ -1,0 +1,23 @@
+{
+ "page": 216,
+ "figure": 6,
+ "drawn_lines": [
+  "<u>INITIALIZE</u>  {identifier-1} ...",
+  "    ┌           ⎧⎧<u>ALPHABETIC</u>         ⎫                       ⎫     ┐",
+  "    │           ⎪⎪<u>ALPHANUMERIC</u>       ⎪         ⎧identifier-2⎫⎪     │",
+  "    │ <u>REPLACING</u> ⎨⎨<u>NUMERIC</u>            ⎬ DATA <u>BY</u> ⎩literal-1   ⎭⎬ ... │",
+  "    │           ⎪⎪<u>ALPHANUMERIC-EDITED</u>⎪                       ⎪     │",
+  "    └           ⎩⎩<u>NUMERIC-EDITED</u>     ⎭                       ⎭     ┘"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "<u>INITIALIZE</u>  {identifier-1} …",
+  "    ┌           ╭╭<u>ALPHABETIC</u>          ╮                          ╮     ┐",
+  "    │           ││<u>ALPHANUMERIC</u>        │         ╭ identifier-2 ╮ │     │",
+  "    │           ││                    │         ┤              ├ │     │",
+  "    │ <u>REPLACING</u> ┤┤<u>NUMERIC</u>             ├ DATA <u>BY</u> ╰ literal-1    ╯ ├ …   │",
+  "    │           ││<u>ALPHANUMERIC-EDITED</u> │                          │     │",
+  "    └           ╰╰<u>NUMERIC-EDITED</u>      ╯                          ╯     ┘"
+ ],
+ "reason": "The printed page sets INITIALIZE as the batch drew it: the REPLACING bracket round a brace holding the five-category brace, DATA BY and the identifier-2/literal-1 brace, then the ellipsis inside the bracket. Drawn in the house style (figure_reading.restyle)."
+}

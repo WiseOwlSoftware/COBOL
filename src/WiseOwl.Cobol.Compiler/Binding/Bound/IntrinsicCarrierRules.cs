@@ -145,7 +145,7 @@ internal static class IntrinsicCarrierRules
     /// (<paramref name="meanOfMiddlePair"/>, kb/Work PB4753): the mean of the two middle values is a NEW value, evaluated as its
     /// equivalent expression is (§2023:15.4.1) in binary64 beside a float item, where the exact lane landed it one binary64 low. A MIXED
     /// even list keeps the exact lane because WHICH values are the middle pair is a run-time fact: its body
-    /// (<c>CobolIntrinsics.MedianBinary64Exact</c>, kb/Work PB4859) forms the binary64 mean when a MIDDLE value is binary64 and the
+    /// (<c>CobolIntrinsics.MedianExact</c>, kb/Work PB4859, PB4891) forms the binary64 mean when a MIDDLE value is binary64 and the
     /// exact mean when both are fixed-point (a binary64 elsewhere in the list is not an operand of the mean).
     /// </summary>
     internal static bool SelectionNeedsExactLane(bool anyBinary64, bool allBinary64, bool anyFloatItem, bool anyApproximation,
@@ -157,7 +157,7 @@ internal static class IntrinsicCarrierRules
     /// arguments as its ranges hold (<see cref="TableAllPlace.StaticCount"/>, the product of a fixed OCCURS's counts), so a list of
     /// fixed tables has a bind-time count and a bind-time parity. A table(ALL) over an OCCURS DEPENDING or dynamic-capacity range has a
     /// RUN-TIME count (<see cref="MedianParityIsRunTime"/>): the parity is not a bind-time fact, so this answers false and the list is
-    /// not routed to the float lane here; the exact lane decides the parity at run time (<c>CobolIntrinsics.MedianBinary64Exact</c>,
+    /// not routed to the float lane here; the exact lane decides the parity at run time (<c>CobolIntrinsics.MedianExact</c>,
     /// kb/Work PB4827). A mean is a NEW value that no argument's own kind describes, so the kind-preserving exact lane of
     /// <see cref="SelectionNeedsExactLane"/> has nothing to preserve for it.</summary>
     internal static bool ReturnsMeanOfMiddlePair(string functionName, IReadOnlyList<BoundOperand> arguments)

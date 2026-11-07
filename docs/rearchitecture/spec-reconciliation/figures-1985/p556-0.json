@@ -1,0 +1,16 @@
+{
+ "page": 556,
+ "figure": 0,
+ "drawn_lines": [
+  "     ⎧<u>RECORD</u>    ⎫",
+  "<u>SAME</u> ⎨<u>SORT</u>      ⎬ AREA FOR file-name-1  {file-name-2} ...",
+  "     ⎩<u>SORT-MERGE</u>⎭"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "     ╭ <u>RECORD</u>     ╮",
+  "<u>SAME</u> ┤ <u>SORT</u>       ├ AREA FOR file-name-1  {file-name-2} …",
+  "     ╰ <u>SORT-MERGE</u> ╯"
+ ],
+ "reason": "The printed page sets the SAME RECORD/SORT/SORT-MERGE AREA clause (2.5.2) as the batch drew it: SAME {RECORD/SORT/SORT-MERGE} AREA FOR file-name-1 {file-name-2} ...; the page draws no level-2 box here. Drawn in the house style (figure_reading.restyle)."
+}

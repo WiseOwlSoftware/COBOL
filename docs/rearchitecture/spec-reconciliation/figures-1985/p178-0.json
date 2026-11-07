@@ -1,0 +1,40 @@
+{
+ "page": 178,
+ "figure": 0,
+ "drawn_lines": [
+  " <u>ENVIRONMENT</u> <u>DIVISION</u>.",
+  "",
+  "[<u>CONFIGURATION</u> <u>SECTION</u>.",
+  "",
+  "[<u>SOURCE-COMPUTER</u>.  [source-computer-entry]]",
+  "",
+  "[<u>OBJECT-COMPUTER</u>.  [object-computer-entry]]",
+  "",
+  "[<u>SPECIAL-NAMES</u>.  [special-names-entry]]]",
+  "",
+  "[<u>INPUT-OUTPUT</u> <u>SECTION</u>.",
+  "",
+  " <u>FILE-CONTROL</u>.  {file-control-entry} ...",
+  "",
+  "[<u>I-O-CONTROL</u>.  [input-output-control-entry]]]"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  " <u>ENVIRONMENT</u> <u>DIVISION</u>.",
+  "",
+  "[<u>CONFIGURATION</u> <u>SECTION</u>.",
+  "",
+  "[<u>SOURCE-COMPUTER</u>.  [source-computer-entry]]",
+  "",
+  "[<u>OBJECT-COMPUTER</u>.  [object-computer-entry]]",
+  "",
+  "[<u>SPECIAL-NAMES</u>.  [special-names-entry]]]",
+  "",
+  "[<u>INPUT-OUTPUT</u> <u>SECTION</u>.",
+  "",
+  " <u>FILE-CONTROL</u>.  {file-control-entry} …",
+  "",
+  "[<u>I-O-CONTROL</u>.  [input-output-control-entry]]]"
+ ],
+ "reason": "The printed page bears the batch's drawing out: ENVIRONMENT DIVISION and its CONFIGURATION and INPUT-OUTPUT sections, each paragraph in typed brackets as printed, FILE-CONTROL. {file-control-entry} ...; the measurer did not pair it. Redrawn in the house style."
+}

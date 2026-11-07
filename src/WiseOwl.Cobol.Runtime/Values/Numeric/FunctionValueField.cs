@@ -136,8 +136,18 @@ public readonly struct FunctionValueField
     /// an argument expression in which an exact wide intermediate met an SDIDI-carried operand, an arbitrary-precision value of an
     /// expression past the 256-bit form, a selection or mean over such values): <see cref="OfWide"/> for a value on the wide form, the
     /// same temporary over the arbitrary-precision value for one past it - every digit, as GnuCOBOL's arbitrary-precision temporary
-    /// shows it, never the value's 34-digit image - and <see cref="OfValue"/> for one the SDIDI carries.</summary>
-    public static FunctionValueField OfExact(CobolExact value) =>
+    /// shows it, never the value's 34-digit image - and <see cref="OfValue"/> for one the SDIDI carries. ⛔ A BINARY64 IS A BINARY64
+    /// TEMPORARY (kb/Work PB4891): an exact value that is a float item's content or an engine's approximation (<see cref="CobolExact.TryBinary64"/>,
+    /// a nested selection's returned content and its negation, which only the run time knows) is <see cref="OfBinary64"/> in
+    /// <paramref name="mode"/> or <see cref="OfFloat"/>, as the renderer describes a binary64 it knows at compile time, so an even
+    /// <see cref="Median"/> reads the same middle kind on DISPLAY as <c>CobolIntrinsics.MedianExact</c> on COMPUTE.</summary>
+    public static FunctionValueField OfExact(CobolExact value, CobolRounding mode) =>
+        !value.TryBinary64(out double binary64) ? OfExactValue(value)
+        : value.TryApproximation(out _) ? OfFloat(binary64)
+        : OfBinary64(binary64, mode);
+
+    /// <summary><see cref="OfExact"/> of a value that is no binary64.</summary>
+    private static FunctionValueField OfExactValue(CobolExact value) =>
         value.IsDec ? OfValue(value.Image)
         : value.TryWide(out CobolWide wide, out int scale) ? OfWide(wide, scale)
         : OfExactForm(value);   // past the 256-bit form, or a wide value at a negative scale that cannot be written out on it
@@ -224,14 +234,14 @@ public readonly struct FunctionValueField
         if (!even) return low;
         // ⛔ THE MEAN IS THE ONE VALUE EVERY NATIVE CHANNEL GIVES (§2023:15.61.4 2), §2023:15.4.1; kb/Work PB3953, PB4750, PB4826 review R1-2, PB4859),
         // so DISPLAY shows what COMPUTE stores. When a MIDDLE value is binary64 the function's equivalent expression is evaluated in
-        // binary64 (docs/CONFORMANCE.md DOC-A.1-92b), as the renderer's float lane and CobolIntrinsics.MedianBinary64Exact form it: the mean
+        // binary64 (docs/CONFORMANCE.md DOC-A.1-92b), as the renderer's float lane and CobolIntrinsics.MedianExact forms it: the mean
         // of the two middles, each as its double; a binary64 elsewhere in the list is no operand of the mean. Otherwise it is the exact sum
         // times the exact one half, whatever form the sum takes (a sum truncated at 34 digits and then halved was 4.5 units off in its 34th
         // digit, and MEDIAN (A B) = (A + B) / 2 was true on COMPUTE alone). Under a standard mode the mean is the SDIDI's
         // (<see cref="MedianStandard"/>).
         if (low._shape == Shape.Float || high._shape == Shape.Float)
             return OfFloat(CobolIntrinsics.MedianReal(low.Double(), high.Double()));
-        return OfExact(CobolExact.Mul(CobolExact.Add(low.Exact(), high.Exact()), CobolExact.From(5, 1)));
+        return OfExactValue(CobolExact.Mul(CobolExact.Add(low.Exact(), high.Exact()), CobolExact.From(5, 1)));
     }
 
     /// <summary>This temporary's value as a binary64, nearest-even (a float temporary's own double, whose SDIDI lift round-trips).</summary>

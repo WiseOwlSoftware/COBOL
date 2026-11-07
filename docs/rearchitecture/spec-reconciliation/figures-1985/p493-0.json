@@ -1,0 +1,18 @@
+{
+ "page": 493,
+ "figure": 0,
+ "drawn_lines": [
+  "       ⎧ <u>INPUT</u> {file-name-1} ...  ⎫",
+  "<u>OPEN</u>   ⎨ <u>OUTPUT</u> {file-name-2} ... ⎬ ...",
+  "       ⎪ <u>I-O</u> {file-name-3} ...    ⎪",
+  "       ⎩ <u>EXTEND</u> {file-name-4} ... ⎭"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "     ╭ <u>INPUT</u> {file-name-1} …     ╮",
+  "<u>OPEN</u> ┤ <u>OUTPUT</u> {file-name-2} …    ├ …",
+  "     │ <u>I-O</u> {file-name-3} …       │",
+  "     ╰║<u>EXTEND</u> {file-name-4} …║   ╯"
+ ],
+ "reason": "The printed page sets the indexed OPEN format exactly as the relative one (page 451), the EXTEND alternative in a level-2 box, which the batch lost. Drawn from the page."
+}

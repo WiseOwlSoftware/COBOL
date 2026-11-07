@@ -1,0 +1,24 @@
+{
+ "page": 485,
+ "figure": 0,
+ "drawn_lines": [
+  "<u>I-O-CONTROL</u>.",
+  "",
+  "┌┌                                    ⎧integer-1 <u>RECORDS</u> OF file-name-2⎫┐",
+  "││<u>RERUN</u> <u>ON</u> ⎧file-name-1       ⎫ EVERY ⎨integer-2 <u>CLOCK-UNITS</u>           ⎬│ ...",
+  "││         ⎩implementor-name-1⎭       ⎩condition-name-1                ⎭│",
+  "│└                                                                      ┘",
+  "└ [<u>SAME</u> [<u>RECORD</u>] AREA FOR file-name-3 {file-name-4} ... ] ... .┘"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "<u>I-O-CONTROL</u>.",
+  "",
+  "┌ ┌          ╭ file-name-1        ╮       ╭ integer-1 <u>RECORDS</u> OF file-name-2 ╮ ┐",
+  "│ │ <u>RERUN</u> <u>ON</u> ┤                    ├ EVERY ┤ integer-2 <u>CLOCK-UNITS</u>            ├ │ …",
+  "└ └          ╰ implementor-name-1 ╯       ╰ condition-name-1                 ╯ ┘",
+  "",
+  "  [ <u>SAME</u> ║ [ <u>RECORD</u> ] ║ AREA FOR file-name-3 { file-name-4 } … ] … . ]"
+ ],
+ "reason": "The printed page sets the indexed I-O-CONTROL paragraph exactly as the relative one (page 443): [[RERUN ON {file-name-1 / implementor-name-1} EVERY {integer-1 RECORDS OF file-name-2 / integer-2 CLOCK-UNITS / condition-name-1}] ... and [SAME [RECORD] AREA ...] ... .] with a level-2 box round [RECORD], which the batch lost. Drawn from the page."
+}

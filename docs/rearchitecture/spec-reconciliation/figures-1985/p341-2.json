@@ -1,0 +1,28 @@
+{
+ "page": 341,
+ "figure": 2,
+ "drawn_lines": [
+  "         ┌                  ┌⎧<u>THROUGH</u>⎫                 ┐┐",
+  "<u>PERFORM</u>  │procedure-name-1  │⎨       ⎬ procedure-name-2││",
+  "         └                  └⎩<u>THRU</u>   ⎭                 ┘┘",
+  "   ╔════════════════════╗",
+  "   ║┌          ⎧<u>BEFORE</u>⎫┐║",
+  "   ║│WITH <u>TEST</u> ⎨      ⎬│║ <u>UNTIL</u> condition-1",
+  "   ║└          ⎩<u>AFTER</u> ⎭┘║",
+  "   ╚════════════════════╝",
+  "    [imperative-statement-1 <u>END-PERFORM</u>]"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "         ┌                  ┌ ╭ <u>THROUGH</u> ╮                 ┐ ┐",
+  "<u>PERFORM</u>  │ procedure-name-1 │ ┤         ├ procedure-name-2│ │",
+  "         └                  └ ╰ <u>THRU</u>    ╯                 ┘ ┘",
+  "",
+  "   ╔ ┌           ╭ <u>BEFORE</u> ╮ ┐ ╗",
+  "   ║ │ WITH <u>TEST</u> ┤        ├ │ ║ <u>UNTIL</u> condition-1",
+  "   ╚ └           ╰ <u>AFTER</u>  ╯ ┘ ╝",
+  "",
+  "   [ imperative-statement-1 <u>END-PERFORM</u> ]"
+ ],
+ "reason": "The printed page sets PERFORM Format 3 as the batch drew it, its level-2 box round [WITH TEST {BEFORE/AFTER}] alone (UNTIL condition-1 outside it); the batch drew the box as a full rectangle, which the house style draws as its two sides. Redrawn by hand in the house style; it reads as the batch's drawing."
+}

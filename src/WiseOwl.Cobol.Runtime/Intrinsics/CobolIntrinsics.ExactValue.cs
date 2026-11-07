@@ -53,45 +53,37 @@ public static partial class CobolIntrinsics
     /// <summary>MIN (§2023:15.63.4): the content of the argument having the least value.</summary>
     public static CobolExact MinExact(params CobolExact[] xs) => xs[SelectExact(xs, greatest: false, "MIN")];
 
-    /// <summary>MEDIAN (§2023:15.61.4): the middle value in sorted order for an odd count, the mean of the two middle values for an even
-    /// one, rounded once to the SDIDI's 34 digits.</summary>
-    public static CobolExact MedianExact(CobolRounding mode, params CobolExact[] xs)
-    {
-        CobolExact median = MedianWhole(xs);
-        return xs.Length % 2 != 0 ? median : CobolExact.FromDec(median.ToDecRounded(mode));
-    }
-
-    /// <summary>MEDIAN (§2023:15.61.4) over arguments of which at least one is binary64 (a float item's content or an engine's approximation),
-    /// <paramref name="binary64"/> saying which (a float item's exact expansion is not marked in its <see cref="CobolExact"/>; kb/Work PB4827,
-    /// PB4859). An odd count returns the selected argument whole, as its own kind (§2023:15.61.4 1)). An even count is the mean of the two middle
-    /// values (§2023:15.61.4 2)), a new value: when a MIDDLE value is binary64 it is evaluated in binary64 (§2023:15.4.1: "an implementor-defined
-    /// approximation of the value of that expression"; docs/CONFORMANCE.md DOC-A.1-92b), as <see cref="MedianReal"/> forms it for a count
-    /// the binder knows, and lands as the float item it derives from does (<see cref="CobolExact.FromBinary64"/>); when both middles are
-    /// fixed-point it is <see cref="MedianExact"/>'s exact mean, a binary64 elsewhere in the list being no operand of it. Equal values keep
-    /// their written order, so the middle pair is the one <c>FunctionValueField.Median</c> picks.</summary>
-    public static CobolExact MedianBinary64Exact(CobolRounding mode, bool[] binary64, params CobolExact[] xs)
-    {
-        RequireArguments(xs.Length, "MEDIAN");
-        if (xs.Length % 2 != 0) return MedianWhole(xs);
-        int[] order = [.. Enumerable.Range(0, xs.Length).OrderBy(i => xs[i], Comparer<CobolExact>.Create(CobolExact.Compare))];
-        int low = order[xs.Length / 2 - 1], high = order[xs.Length / 2];
-        if (!binary64[low] && !binary64[high]) return MedianExact(mode, xs[low], xs[high]);
-        // An approximation remembers its double; a float item's content IS its binary64 expansion, which lands exactly in any mode.
-        static double Double(CobolExact x) => x.TryApproximation(out double approximation)
-            ? approximation
-            : FloatResultant.FromExact(x, CobolRounding.NearestEven, single: false);
-        return CobolExact.FromBinary64(MedianReal(Double(xs[low]), Double(xs[high])));
-    }
+    /// <summary>MEDIAN (§2023:15.61.4) on the SDIDI lane: <see cref="MedianWhole"/>, with an exact mean of two fixed-point middles rounded once
+    /// to the SDIDI's 34 digits in <paramref name="mode"/>.</summary>
+    public static CobolExact MedianExact(CobolRounding mode, params CobolExact[] xs) => Median(xs, mode);
 
     /// <summary>MEDIAN (§2023:15.61.4) EXACTLY, never cut to the SDIDI's 34 digits: the lane of a list that aligns an argument of unknown
     /// bound (kb/Work PB4792, review R1-1), whose value the Int128 body held whole before the alignment could leave it.</summary>
-    public static CobolExact MedianWhole(params CobolExact[] xs)
+    public static CobolExact MedianWhole(params CobolExact[] xs) => Median(xs, null);
+
+    /// <summary>⛔ MEDIAN (§2023:15.61.4), ONE BODY FOR BOTH LANES (kb/Work PB4827, PB4859, PB4891). An odd count returns the middle argument whole,
+    /// as its own kind (§2023:15.61.4 1)). An even count is the mean of the two middle values (§2023:15.61.4 2)), a new value: when a MIDDLE value
+    /// is binary64 (<see cref="CobolExact.TryBinary64"/>: a float item's content or an engine's approximation, written or returned by a nested
+    /// selection, which only the run time knows) the mean is evaluated in binary64 (§2023:15.4.1: "an implementor-defined approximation of the value
+    /// of that expression"; docs/CONFORMANCE.md DOC-A.1-92b), as <see cref="MedianReal"/> forms it for a count the binder knows, and is itself a
+    /// binary64's content (<see cref="CobolExact.FromBinary64"/>); when both middles are fixed-point it is their exact mean, a binary64 elsewhere
+    /// in the list being no operand of it, rounded once in <paramref name="sdidi"/> when the lane returns the SDIDI. Equal values keep their
+    /// written order, so the middle values are the ones <c>FunctionValueField.Median</c> picks for DISPLAY.</summary>
+    private static CobolExact Median(CobolExact[] xs, CobolRounding? sdidi)
     {
         RequireArguments(xs.Length, "MEDIAN");
-        var sorted = (CobolExact[])xs.Clone();
-        Array.Sort(sorted, CobolExact.Compare);
-        int mid = sorted.Length / 2;
-        return sorted.Length % 2 != 0 ? sorted[mid] : HalfSum(sorted[mid - 1], sorted[mid]);
+        int[] order = [.. Enumerable.Range(0, xs.Length)];
+        Array.Sort(order, (i, j) => CobolExact.Compare(xs[i], xs[j]) is var c and not 0 ? c : i.CompareTo(j));
+        CobolExact high = xs[order[xs.Length / 2]];
+        if (xs.Length % 2 != 0) return high;
+        CobolExact low = xs[order[xs.Length / 2 - 1]];
+        bool lowBinary64 = low.TryBinary64(out double lowDouble), highBinary64 = high.TryBinary64(out double highDouble);
+        if (lowBinary64 || highBinary64)
+            return CobolExact.FromBinary64(MedianReal(
+                lowBinary64 ? lowDouble : FloatResultant.FromExact(low, CobolRounding.NearestEven, single: false),
+                highBinary64 ? highDouble : FloatResultant.FromExact(high, CobolRounding.NearestEven, single: false)));
+        CobolExact mean = HalfSum(low, high);
+        return sdidi is { } mode ? CobolExact.FromDec(mean.ToDecRounded(mode)) : mean;
     }
 
     /// <summary>MIDRANGE (§2023:15.62.4): <c>(FUNCTION MAX + FUNCTION MIN) / 2</c>, rounded once.</summary>

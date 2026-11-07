@@ -452,6 +452,30 @@ public sealed class CobolBigExactFormTests
         Assert.NotEqual(-0.001, FloatResultant.FromExact(CobolExact.Negate(CobolExact.From(1, 3)), CobolRounding.Truncation, single: false));
     }
 
+    /// <summary>⛔ A FLOAT ITEM'S CONTENT CARRIES ITS BINARY64 MARK (kb/Work PB4891): a selection returns it whole and a negation and a
+    /// precision change keep it, an operation that forms a new value drops it, and an even MEDIAN reads it off its two middles, so the mean
+    /// of the content MAX selected beside 0.5 is the binary64 mean 0.3 (§2023:15.61.4 2), DOC-A.1-92b), not the exact mean
+    /// .30000000000000000277..., in both lanes; two fixed-point middles keep the exact mean whatever else the list holds.</summary>
+    [Fact]
+    public void FloatContent_CarriesItsBinary64MarkIntoAnEvenMedian()
+    {
+        CobolExact f = CobolExact.FromBinary64(0.1), half = CobolExact.From(5, 1);
+        Assert.True(f.TryBinary64(out double d) && d == 0.1);
+        CobolExact selected = CobolIntrinsics.MaxExact(f, CobolExact.From(5, 2));
+        Assert.True(selected.TryBinary64(out _));
+        Assert.True(CobolExact.Negate(selected).TryBinary64(out double negated) && negated == -0.1);
+        Assert.True(selected.WithPrecision(0).TryBinary64(out _));
+        Assert.False(CobolExact.Add(selected, CobolExact.From(0, 0)).TryBinary64(out _));
+        Assert.False(half.TryBinary64(out _));
+        double binaryMean = (0.1 + 0.5) / 2;
+        Assert.Equal(binaryMean, FloatResultant.FromExact(CobolIntrinsics.MedianExact(CobolRounding.NearestEven, selected, half),
+            CobolRounding.Truncation, single: false));
+        Assert.Equal(binaryMean, FloatResultant.FromExact(CobolIntrinsics.MedianWhole(selected, half), CobolRounding.Truncation, single: false));
+        CobolExact fixedMean = CobolIntrinsics.MedianExact(CobolRounding.NearestEven, f, half, CobolExact.From(6, 1), CobolExact.From(7, 1));
+        Assert.Equal(0, CobolExact.Compare(CobolExact.From(55, 2), fixedMean));
+        Assert.False(fixedMean.TryBinary64(out _));
+    }
+
     /// <summary>An engine's approximation lands as the binary64 it is, in every mode (its decimal, truncated, would sit one below
     /// 0.001's double); a PROHIBITED landing of an inexact value raises, an exact one does not; a checked landing past the format's range
     /// is the size error; a binary32 receiver rounds once.</summary>

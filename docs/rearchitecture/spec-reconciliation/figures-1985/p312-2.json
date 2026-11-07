@@ -1,0 +1,32 @@
+{
+ "page": 312,
+ "figure": 2,
+ "drawn_lines": [
+  "       ⎧identifier-1⎫        ⎧identifier-2⎫",
+  "<u>DIVIDE</u> ⎨            ⎬ <u>INTO</u>   ⎨            ⎬",
+  "       ⎩literal-1   ⎭        ⎩literal-2   ⎭",
+  "",
+  "    <u>GIVING</u>  {identifier-3 [<u>ROUNDED</u>]} ...",
+  "",
+  "    [ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1]",
+  "",
+  "    [<u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2]",
+  "",
+  "    [<u>END-DIVIDE</u>]"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "       ╭identifier-1╮        ╭identifier-2╮",
+  "<u>DIVIDE</u> ┤            ├ <u>INTO</u>   ┤            ├",
+  "       ╰literal-1   ╯        ╰literal-2   ╯",
+  "",
+  "    <u>GIVING</u>  {identifier-3 [<u>ROUNDED</u>]} …",
+  "",
+  "    [ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1]",
+  "",
+  "    [<u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2]",
+  "",
+  "    [<u>END-DIVIDE</u>]"
+ ],
+ "reason": "The printed page sets DIVIDE Format 2 ({identifier-1/literal-1} INTO {identifier-2/literal-2} GIVING {identifier-3 [ROUNDED]} ... and its SIZE ERROR and END-DIVIDE phrases) as the batch drew it. Redrawn in the house style."
+}

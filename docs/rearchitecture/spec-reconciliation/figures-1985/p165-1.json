@@ -1,0 +1,15 @@
+{
+ "page": 165,
+ "figure": 1,
+ "drawn_lines": [
+  "                 ⎧<u>IN</u>⎫",
+  "paragraph-name-1 ⎩<u>OF</u>⎭ section-name-1"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "                 ╭ <u>IN</u> ╮",
+  "                 ┤    ├",
+  "paragraph-name-1 ╰ <u>OF</u> ╯ section-name-1"
+ ],
+ "reason": "The printed page sets paragraph-name-1 {IN/OF} section-name-1 with IN and OF underlined, as the batch drew it. Redrawn in the house style."
+}

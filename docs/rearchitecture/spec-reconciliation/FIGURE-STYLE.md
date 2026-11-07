@@ -168,6 +168,15 @@ OCR layer reads `]}` as `])`; `figure_raster.DELIM_SIDE`), so a written figure r
 stays clean. `--check` is clean when every block is in its decided form, none awaits a verdict, and every verdict
 names a block of the file.
 
+A verdict's figure is written as it stands, so `load_verdicts` holds it to this style: no figure carries rule 2's
+forbidden pieces, and a `drawn` verdict (the printed page bears the batch's drawing out) carries the batch's drawing
+REDRAWN, `figure_reading.restyle`: the same words in the same rows and columns, the Miscellaneous Technical pieces
+replaced by rule 3's, a two-row group grown to three rows (rule 5, a brace's point on the new row), a brace drawn
+without its point given one, a corner on one row typed (rule 7), the ellipsis `…`, and each delimiter set one space
+clear of what it holds where no other row's word stands in the way. `restyle` asserts that its figure reads as the
+drawing (`compare` empty) and refuses what it cannot derive: a box drawn as a full rectangle (rule 9 draws sides
+only) and the batch's arrows. Those, and a drawing the page shows wrong, are the refuter's own, `neither`.
+
 ## Layout rules, for the generator
 
 ### A blank row between groups

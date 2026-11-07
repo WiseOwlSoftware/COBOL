@@ -1,0 +1,16 @@
+{
+ "page": 280,
+ "figure": 1,
+ "drawn_lines": [
+  "⎧<u>VALUE</u> IS  ⎫ ⎧             ┌⎧<u>THROUGH</u>⎫           ┐⎫",
+  "⎨           ⎬ ⎨ literal-2   │⎨       ⎬ literal-3 │⎬ ...",
+  "⎩<u>VALUES</u> ARE⎭ ⎩             └⎩<u>THRU</u>   ⎭           ┘⎭"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "╔╭ <u>VALUE</u> IS   ╮ ╭             ┌ ╭ <u>THROUGH</u> ╮           ┐ ╮      ╗",
+  "║┤            ├ ┤ literal-2   │ ┤         ├ literal-3 │ ├ …    ║",
+  "╚╰ <u>VALUES</u> ARE ╯ ╰             └ ╰ <u>THRU</u>    ╯           ┘ ╯      ╝"
+ ],
+ "reason": "The printed page encloses VALUE Format 2 in a level-2 box: {VALUE IS / VALUES ARE} {literal-2 [{THROUGH/THRU} literal-3]} ...; the batch lost the box and set its closing braces a column off, and the regeneration lost literal-2, literal-3 and the ellipsis. Drawn from the page."
+}

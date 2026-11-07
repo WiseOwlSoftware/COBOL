@@ -1,0 +1,24 @@
+{
+ "page": 409,
+ "figure": 0,
+ "drawn_lines": [
+  "      ⎧             ┌ ⎧ <u>REEL</u> ⎫                 ┐ ⎫",
+  "      ⎪             │ ⎨      ⎬ [FOR <u>REMOVAL</u>]   │ ⎪",
+  "      ⎪             │ ⎩ <u>UNIT</u> ⎭                 │ ⎪",
+  "<u>CLOSE</u> ⎨ file-name-1 │                          │ ⎬ ...",
+  "      ⎪             │      ⎧ <u>NO</u> <u>REWIND</u> ⎫       │ ⎪",
+  "      ⎪             │ WITH ⎨           ⎬       │ ⎪",
+  "      ⎩             └      ⎩ <u>LOCK</u>      ⎭       ┘ ⎭"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "      ╭             ┌ ╭ <u>REEL</u> ╮                           ┐ ╮",
+  "      │             │ ┤      ├ ║ [ FOR <u>REMOVAL</u> ] ║       │ │",
+  "      │             │ ╰ <u>UNIT</u> ╯                           │ │",
+  "<u>CLOSE</u> ┤ file-name-1 │                                    │ ├ …",
+  "      │             │ ╔      ╭ <u>NO</u> <u>REWIND</u> ╮             ╗ │ │",
+  "      │             │ ║ WITH ┤           ├             ║ │ │",
+  "      ╰             └ ╚      ╰ <u>LOCK</u>      ╯             ╝ ┘ ╯"
+ ],
+ "reason": "The printed page sets CLOSE {file-name-1 [{REEL / UNIT} [FOR REMOVAL] / WITH {NO REWIND / LOCK}]} ... with one level-2 outline round [FOR REMOVAL] and the WITH alternative, which the batch lost. Drawn from the page as two boxes (rule 9 draws a box's sides in columns of their own)."
+}

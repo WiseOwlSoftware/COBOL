@@ -1,0 +1,27 @@
+{
+ "page": 223,
+ "figure": 1,
+ "drawn_lines": [
+  "<u>SUBTRACT</u> ⎧identifier-1⎫ ...  <u>FROM</u> {identifier-3 [<u>ROUNDED</u>]} ...",
+  "         ⎩literal-1   ⎭",
+  "",
+  "    [ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1]",
+  "",
+  "    [<u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2]",
+  "",
+  "    [<u>END-SUBTRACT</u>]"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "<u>SUBTRACT</u> ╭identifier-1╮ …    <u>FROM</u> {identifier-3 [<u>ROUNDED</u>]} …",
+  "         ┤            ├",
+  "         ╰literal-1   ╯",
+  "",
+  "    [ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1]",
+  "",
+  "    [<u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2]",
+  "",
+  "    [<u>END-SUBTRACT</u>]"
+ ],
+ "reason": "The printed page sets SUBTRACT format 1 as the batch drew it: {identifier-1/literal-1} ... FROM {identifier-3 [ROUNDED]} ... and the three optional phrases. Drawn in the house style (figure_reading.restyle)."
+}

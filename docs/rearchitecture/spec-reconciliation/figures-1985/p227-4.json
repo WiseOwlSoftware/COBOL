@@ -1,0 +1,16 @@
+{
+ "page": 227,
+ "figure": 4,
+ "drawn_lines": [
+  "                                 ⎧ <u>POSITIVE</u> ⎫",
+  "arithmetic-expression-1 IS [<u>NOT</u>] ⎨ <u>NEGATIVE</u> ⎬",
+  "                                 ⎩ <u>ZERO</u>     ⎭"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "                                 ╭ <u>POSITIVE</u> ╮",
+  "arithmetic-expression-1 IS [<u>NOT</u>] ┤ <u>NEGATIVE</u> ├",
+  "                                 ╰ <u>ZERO</u>     ╯"
+ ],
+ "reason": "The printed page sets the sign condition as the batch drew it: arithmetic-expression-1 IS [NOT] {POSITIVE/NEGATIVE/ZERO}. Drawn in the house style (figure_reading.restyle)."
+}

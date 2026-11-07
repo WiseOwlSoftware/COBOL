@@ -1,0 +1,21 @@
+{
+ "page": 218,
+ "figure": 2,
+ "drawn_lines": [
+  "       ⎧<u>INPUT</u>  ⎧file-name-1  ┌<u>REVERSED</u>         ┐⎫ ...⎫",
+  "       ⎪       ⎨              └WITH <u>NO</u> <u>REWIND</u> ┘⎭    ⎪",
+  "S <u>OPEN</u> ⎨<u>OUTPUT</u> {file-name-2  [WITH <u>NO</u> <u>REWIND</u>]} ...   ⎬ ...",
+  "       ⎪<u>I-O</u> {file-name-3} ...                         ⎪",
+  "       ⎩<u>EXTEND</u> {file-name-4} ...                      ⎭"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "       ╭ <u>INPUT</u>  ╭            ┌ <u>REVERSED</u>       ┐ ╮     ╮",
+  "       │        ┤file-name-1 │                │ ├ …   │",
+  "       │        ╰            └ WITH <u>NO</u> <u>REWIND</u> ┘ ╯     │",
+  "S <u>OPEN</u> ┤ <u>OUTPUT</u> {file-name-2 [ WITH <u>NO</u> <u>REWIND</u> ] } …   ├ …",
+  "       │ <u>I-O</u> {file-name-3} …                          │",
+  "       ╰ <u>EXTEND</u> {file-name-4} …                       ╯"
+ ],
+ "reason": "The printed page sets S OPEN as the batch drew it (INPUT {file-name-1 [REVERSED / WITH NO REWIND]} ..., OUTPUT, I-O, EXTEND, the S module mark at its left), but the batch's columns were one off; hand-drawn in the house style from the decided OPEN format of the Sequential I-O module, without its level-2 box (the skeleton draws none)."
+}
