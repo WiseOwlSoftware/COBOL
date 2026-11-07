@@ -1,4 +1,4 @@
-## PB4849: the figure audits on a scan, and a brace drawn as one shape
+## Entry 3269 — 2026-11-07 13:28 PST — PB4849: the figure audits on a scan, and a brace drawn as one shape
 
 Wave 20261907 group A finished kb/Work PB4849, the 1985 general formats regenerated and cross-checked.
 
@@ -51,3 +51,4 @@ literal text; they are now plain text, and their four verdicts are updated. `swe
 stays clean. `docs/DOC_INDEX.md` gains the transcription's row, and `docs/VERSION_CHANGE_REFERENCE.md` says the repo
 now holds the 1985 text. Still open (PB4850): the page-by-page reconciliation, the Preface and acknowledgment (both
 gates exit naming their tables, which have no 1985 row), and the check of the reference's 1985 claims.
+
