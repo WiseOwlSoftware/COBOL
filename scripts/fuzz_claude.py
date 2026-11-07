@@ -46,6 +46,7 @@ import threading
 import time
 from pathlib import Path
 
+from api_key import read_api_key  # noqa: E402  (scripts/: THE reader of an API key file, kb/Work PB4816)
 from standard_streams import ensure_utf8  # noqa: E402  (scripts/: UTF-8 standard streams)
 
 #: The executable; WISEOWL_COBOL_FUZZ_CLAUDE overrides it (the self-test points it at a stub).
@@ -59,16 +60,6 @@ _meter_lock = threading.Lock()
 _spent_usd = 0.0
 #: The API key the CLI is given, when a run names one (`use_api_key_file`); None: the CLI's own sign-in.
 _api_key: str | None = None
-
-
-def read_api_key(path: str | os.PathLike[str]) -> str:
-    """THE reader of an API key file (this writer's and fuzz_batch.py's): its first non-empty line, stripped, a byte-order
-    mark dropped (a file saved by Notepad carries one). A missing or empty file is a RuntimeError naming the path, never
-    the key."""
-    lines = [ln.strip() for ln in Path(path).read_text(encoding="utf-8-sig").splitlines() if ln.strip()] if Path(path).exists() else []
-    if not lines:
-        raise RuntimeError(f"no API key in {path}")
-    return lines[0]
 
 
 def use_api_key_file(path: str | os.PathLike[str]) -> None:
@@ -224,16 +215,7 @@ def self_test() -> int:
                 except RuntimeError:
                     check(f"a {bad} reply raises RuntimeError", True)
             keyfile = Path(tmp) / "key.txt"
-            keyfile.write_text(chr(0xFEFF) + chr(10) + "  sk-test-key  " + chr(10), encoding="utf-8", newline="\n")
-            check("the key file's first non-empty line is read, stripped, a byte-order mark dropped", read_api_key(keyfile) == "sk-test-key")
-            empty = Path(tmp) / "empty.txt"
-            empty.write_text(chr(10), encoding="utf-8", newline="\n")
-            for name, bad in (("an empty key file", empty), ("a missing key file", Path(tmp) / "none.txt")):
-                try:
-                    read_api_key(bad)
-                    check(f"{name} is a RuntimeError", False)
-                except RuntimeError as e:
-                    check(f"{name} is a RuntimeError naming the path", str(bad) in str(e))
+            keyfile.write_text("  sk-test-key  " + chr(10), encoding="utf-8", newline="\n")
             use_api_key_file(keyfile)
             mode.write_text("key", encoding="utf-8", newline="\n")
             check("an API key file reaches the CLI's environment only", claude_chat("sonnet", msgs[:2], 0.3)[0] == "KEY=sk-test-key")
