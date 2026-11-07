@@ -32,4 +32,11 @@ file.
 `cite.py --check "§1985:XVIII.8"` validated Amendment 1's addendum paragraph as a paragraph of the Index. The heading now
 ends them, with a planted case.
 
+**Self-review** found two silent wrong rows in the amendment arm before the gate. A change that adds a rule but names
+no paragraph was read as a change to the base rule of that number. An added rule with no new text took the change's own
+wording as its text. Both are now unresolved changes. The first gate was red on six text-mode writes in the new
+self-test that did not state `newline=`. The re-gate of the tooling at 0e712ea read `=== BUILD-LOCAL GATE: GREEN —
+Conformance 22,482/22,482 · Unit 40,428/40,428 · Characterization 37/37 cases ran (skipped 0)` (run
+000002-20261107T210023Z).
+
 PB4886 stays open: the audit itself, and the edition parameter of `build_inventory.py` and the ledger, wait for PB4850.
