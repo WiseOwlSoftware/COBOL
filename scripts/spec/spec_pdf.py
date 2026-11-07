@@ -13,6 +13,7 @@ way, so the three editions (1985, 2002, 2023) would have needed one edit per too
     markdown(edition)   the public Markdown transcription of that edition (tracked in this repository)
     geometry(edition)   "vector" or "raster": how that PDF's general formats are measured (figure_geometry.py dispatches)
     require_vector(ed, tool)  exit unless the edition's general formats are vector strokes (a tool that reads underlines)
+    scan_check(ed)      the command that holds a scanned edition's figures to the measured page (sweep_figures --check)
     folio_offset(ed)    PDF page minus printed folio, or exit naming the missing table
     add_edition_argument(parser)        the one `--edition {1985,2002,2023}` option (default 2023), read as `args.edition`
     edition_data(table, edition, what)  a tool's per-edition DATA, or exit naming the table that lacks the edition
@@ -77,16 +78,27 @@ def geometry(edition: int = DEFAULT_EDITION) -> str:
     return EDITIONS[edition].geometry
 
 
+def scan_check(edition: int) -> str:
+    """The command that holds a scanned edition's general formats to the measured page: `sweep_figures.py --check`
+    regenerates every drawn figure from the scan (`figure_raster`) and compares it with the transcription
+    (`figure_reading.compare`), so each figure is in its decided form or named (kb/Work PB4849)."""
+    return f"python scripts/spec/sweep_figures.py --edition {edition} --check"
+
+
 def require_vector(edition: int, tool: str) -> None:
     """Exit unless `edition`'s general formats are vector strokes. A tool that reads underlines from a PDF page's drawings
-    (`figure_extract.extract`) finds none in a scan, and would report every word un-underlined as a clean result. A scan
-    is measured from pixels against the converted figures' words (`figure_raster.measure_figures`), which only the
-    tools that read those words do: `sweep_figures.py` and `render_figure.py` (kb/Work PB4849)."""
+    (`figure_extract.extract`) finds none in a scan, and would report every word un-underlined as a clean result.
+
+    A scan needs no second arm of such a tool (kb/Work PB4849, decided 2026-11-07: one mechanism per job). What the
+    vector audits check of a printed figure (its underlines, its structure, its words) `scan_check` already proves of
+    every scanned figure against the measured page, and one page's measurement is printed by `render_figure.py <page>
+    --edition <edition>`. So the refusal names the check that covers the scan; `sweep_figures.self_test` proves that
+    check sees every general format of a scanned edition."""
     if geometry(edition) != "vector":
-        sys.exit(f"FATAL: {tool} reads underlines from a PDF page's vector drawings, and the {edition} PDF is a scan whose "
-                 "underlines are pixels. A scan is measured by scripts/spec/figure_raster.py (PB4817) against the converted "
-                 "figures' words, which sweep_figures.py and render_figure.py read (PB4849); this tool has no raster arm "
-                 f"yet and refuses the {edition} edition rather than report a clean page.")
+        sys.exit(f"FATAL: {tool} reads a PDF page's vector drawings, and the {edition} PDF is a scan whose underlines are "
+                 f"pixels. A scan's general formats are held to the measured page by `{scan_check(edition)}`, which "
+                 "covers what this tool checks of a vector page; one page's measured figures are printed by "
+                 f"`python scripts/spec/render_figure.py <page> --edition {edition}` (kb/Work PB4849).")
 
 
 def folio_offset(edition: int = DEFAULT_EDITION) -> int:
@@ -257,8 +269,8 @@ def self_test() -> int:
         require_vector(1985, "a planted tool")
         check("require_vector exits for the scanned edition", False)
     except SystemExit as ex:
-        check("require_vector exits for the scanned edition, naming the tool, the edition and PB4817",
-              all(w in str(ex.code) for w in ("a planted tool", "1985", "PB4817")))
+        check("require_vector exits for the scanned edition, naming the tool and the check that covers the scan",
+              all(w in str(ex.code) for w in ("a planted tool", scan_check(1985), "render_figure.py <page> --edition 1985")))
     check("2023's folio offset is recorded", folio_offset(2023) == 30)
     try:
         folio_offset(1985)

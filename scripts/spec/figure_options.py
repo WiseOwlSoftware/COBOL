@@ -199,47 +199,90 @@ def read(pages: Iterable[tuple[int, list[dict], list[dict]]]) -> Reading:
         for e in render_figure.enclosures(glyphs, stems):
             bottom = e.bottom if e.bottom is not None else e.low + render_figure.ROW_TOL
             holders.append(Holder(e.family, page, e.x_open, e.x_close, e.top, bottom, False))
-
-        def held(p: dict) -> tuple[Holder, ...]:
-            hs = [h for h in holders if h.holds(page, p["x0"], p["y0"], rowof[p["y0"]])]
-            return tuple(sorted(hs, key=lambda h: (-(h.x_close - h.x_open), h.top)))
-
-        # §2023:5.2.7: the portion an ellipsis repeats is the bracket or brace whose closer stands immediately to its
-        # left; a word standing nearer than any such closer is repeated alone (`identifier-1 …`).
-        repeated_holders: set[Holder] = set()
-        repeated_words: set[int] = set()
-        notation = set(TEXT_OPEN) | set(TEXT_CLOSE) | {TEXT_BAR, ELLIPSIS} | set(render_figure.GLYPH_PIECES)
-        for e in (p for p in pieces if p["text"] == ELLIPSIS):
-            row = rowof[e["y0"]]
-            closer = max((h for h in holders if h.family in REPEATABLE and h.x_close <= e["x0"]
-                          and h.holds(page, h.x_open + 0.01, e["y0"], row)), key=lambda h: h.x_close, default=None)
-            word = max((p for p in pieces if p["text"] not in notation and rowof[p["y0"]] == row
-                        and p["x1"] <= e["x0"] + 0.5), key=lambda p: p["x0"], default=None)
-            if word is not None and (closer is None or word["x0"] > closer.x_close):
-                repeated_words.add(id(word))
-            elif closer is not None:
-                repeated_holders.add(closer)
-
-        lines: dict[float, list[dict]] = collections.defaultdict(list)
-        for p in pieces:
-            lines[rowof[p["y0"]]].append(p)
-        for row in sorted(lines):
-            ps = sorted(lines[row], key=lambda p: p["x0"])
-            texts = [p["text"] for p in ps]
-            # A `Format N` label, or a line of prose (`where until-phrase is:`), ends one diagram and opens the next:
-            # PERFORM's until-phrase prints `UNTIL { condition-1 / EXIT }` below Format 3, and that EXIT is no word
-            # of the PERFORM format above it.
-            if prose_row(texts) or any(t == _FORMAT_WORD and i + 1 < len(texts) and texts[i + 1].isdigit()
-                                       for i, t in enumerate(texts)):
-                diagram += 1
-                continue
-            for p in ps:
-                if p["text"] in notation:
-                    continue
-                hs = held(p)
-                out.append(Word(p["text"].strip(_STRIP), p["underlined"], page, p["x0"], p["y0"], row, diagram, hs,
-                                id(p) in repeated_words or any(h in repeated_holders for h in hs)))
+        diagram = _held_words(page, pieces, holders, rowof, diagram, out, prose=True)
     return Reading(out, unpaired)
+
+
+#: A drawn figure's cell, in points, so a drawing reads at the printed page's scale: a row is one printed line (the
+#: optional-word audit's `measure` groups words by `round(y0 / 3)`), a column one typewriter character.
+DRAWN_ROW, DRAWN_COLUMN = 12.0, 6.0
+
+
+def read_drawn(blocks: Iterable[list[str]]) -> Reading:
+    """`read` over DRAWN figures instead of a measured page: a scanned edition's general formats as its transcription
+    draws them (FIGURE-STYLE.md), each held to the measured scan by `sweep_figures.py --check` (kb/Work PB4849). One
+    `<pre>` block's lines per item; a block is one diagram (its `page` is its place in `blocks`), and a label or a line of
+    prose inside it would open the next, but a decided general format holds no prose (`prose`). The delimiters are `figure_reading`'s, the one reader of a drawing: a multi-row
+    delimiter and a typed one on one row alike, paired there. A level-2 box groups and chooses nothing (FIGURE-STYLE.md
+    rule 9), and a typed parenthesis on one row is a word's COBOL punctuation (`( argument-1 )`), so neither holds."""
+    import figure_reading
+    out: list[Word] = []
+    unpaired = 0
+    diagram = 0
+    for page, lines in enumerate(blocks):
+        pieces = _pieces([{"text": w.text, "x0": w.col * DRAWN_COLUMN, "x1": (w.col + len(w.text)) * DRAWN_COLUMN,
+                           "y0": w.row * DRAWN_ROW, "underlined": bool(w.underlined)}
+                          for w in figure_reading.read(lines)])
+        if not pieces:
+            continue
+        holders = [Holder(e.family, page, e.left * DRAWN_COLUMN, e.right * DRAWN_COLUMN, e.top * DRAWN_ROW,
+                          e.bottom * DRAWN_ROW, e.top == e.bottom)
+                   for e in figure_reading.enclosures(lines)
+                   if e.family != "box" and not (e.family == "paren" and e.top == e.bottom)]
+        unpaired += sum(1 for fam, *_ in figure_reading.strays(lines) if fam != "box")
+        diagram = _held_words(page, pieces, holders, {p["y0"]: p["y0"] for p in pieces}, diagram, out,
+                              prose=False) + 1
+    return Reading(out, unpaired)
+
+
+def _held_words(page: int, pieces: list[dict], holders: list[Holder], rowof: dict[float, float], diagram: int,
+                out: list[Word], prose: bool) -> int:
+    """Append one page's words to `out`, each with the holders that hold it and whether an ellipsis repeats it, and
+    return the diagram the page ends in: the ONE reading of `pieces` against `holders`, for a measured page (`read`) and
+    a drawn figure (`read_drawn`) alike. `prose` says whether a line of prose can be among them: a measured band runs
+    from one clause heading to the next and holds the rules' text too, while a drawn general format is diagram lines
+    only, whose lowercase metavariables (`[ length ]` in 1985's reference modification, PDF page 168) `prose_row` would
+    read as prose."""
+    def held(p: dict) -> tuple[Holder, ...]:
+        hs = [h for h in holders if h.holds(page, p["x0"], p["y0"], rowof[p["y0"]])]
+        return tuple(sorted(hs, key=lambda h: (-(h.x_close - h.x_open), h.top)))
+
+    # §2023:5.2.7: the portion an ellipsis repeats is the bracket or brace whose closer stands immediately to its
+    # left; a word standing nearer than any such closer is repeated alone (`identifier-1 …`).
+    repeated_holders: set[Holder] = set()
+    repeated_words: set[int] = set()
+    notation = set(TEXT_OPEN) | set(TEXT_CLOSE) | {TEXT_BAR, ELLIPSIS} | set(render_figure.GLYPH_PIECES)
+    for e in (p for p in pieces if p["text"] == ELLIPSIS):
+        row = rowof[e["y0"]]
+        closer = max((h for h in holders if h.family in REPEATABLE and h.x_close <= e["x0"]
+                      and h.holds(page, h.x_open + 0.01, e["y0"], row)), key=lambda h: h.x_close, default=None)
+        word = max((p for p in pieces if p["text"] not in notation and rowof[p["y0"]] == row
+                    and p["x1"] <= e["x0"] + 0.5), key=lambda p: p["x0"], default=None)
+        if word is not None and (closer is None or word["x0"] > closer.x_close):
+            repeated_words.add(id(word))
+        elif closer is not None:
+            repeated_holders.add(closer)
+
+    lines: dict[float, list[dict]] = collections.defaultdict(list)
+    for p in pieces:
+        lines[rowof[p["y0"]]].append(p)
+    for row in sorted(lines):
+        ps = sorted(lines[row], key=lambda p: p["x0"])
+        texts = [p["text"] for p in ps]
+        # A `Format N` label, or a line of prose (`where until-phrase is:`), ends one diagram and opens the next:
+        # PERFORM's until-phrase prints `UNTIL { condition-1 / EXIT }` below Format 3, and that EXIT is no word
+        # of the PERFORM format above it.
+        if (prose and prose_row(texts)) or any(t == _FORMAT_WORD and i + 1 < len(texts) and texts[i + 1].rstrip(":").isdigit()
+                                   for i, t in enumerate(texts)):
+            diagram += 1
+            continue
+        for p in ps:
+            if p["text"] in notation:
+                continue
+            hs = held(p)
+            out.append(Word(p["text"].strip(_STRIP), p["underlined"], page, p["x0"], p["y0"], row, diagram, hs,
+                            id(p) in repeated_words or any(h in repeated_holders for h in hs)))
+    return diagram
 
 
 _MARK = {"bracket": "[", "bar": "|", "brace": "{", "paren": "(", "box": "║"}   # box: a scan's level-2 box (PB4849)
@@ -354,6 +397,29 @@ COMPUTE = (
      (76.29, 259.43, 291.41, "bracket", "L"), (309.72, 259.43, 291.41, "bracket", "R")])
 
 
+#: The two fixtures above DRAWN in the house style (FIGURE-STYLE.md: a brace ╭ ┤ ╰, a bracket ┌ │ └, choice indicators
+#: a bare │ column), as (plain lines, the words underlined): `read_drawn` must read each exactly as `read` measures it.
+DRAWN_LOCK_MODE = (
+    ["             ╭ MANUAL    ╮ ┌                                  ╭ RECORD  ╮ ┐",
+     "LOCK MODE IS ┤           ├ │ WITH LOCK ON [ MULTIPLE ]        ┤         ├ │",
+     "             ╰ AUTOMATIC ╯ └                                  ╰ RECORDS ╯ ┘"],
+    {"MANUAL", "AUTOMATIC", "LOCK", "ON", "MULTIPLE", "RECORD", "RECORDS"})
+DRAWN_COMPUTE = (
+    ["Format 1 (arithmetic-compute):", "",
+     "COMPUTE { identifier-1 [ rounded-phrase ] } … = arithmetic-expression-1",
+     "  ┌ │ ON SIZE ERROR imperative-statement-1         │ ┐",
+     "  │ │                                              │ │",
+     "  └ │ NOT ON SIZE ERROR imperative-statement-2     │ ┘",
+     "[ END-COMPUTE ]"],
+    {"COMPUTE", "SIZE", "ERROR", "NOT", "END-COMPUTE"})
+
+
+def _underline(lines: list[str], words: set[str]) -> list[str]:
+    """`lines` with each whole word of `words` set in `<u>` tags, as the transcription draws an underline."""
+    pattern = re.compile(r"(?<![\w-])(" + "|".join(sorted(map(re.escape, words), key=len, reverse=True)) + r")(?![\w-])")
+    return [pattern.sub(r"<u>\1</u>", line) for line in lines]
+
+
 def fixture(case) -> Layout:
     words, stems = case
     ws = [{"text": t, "x0": x0, "x1": x1, "y0": y0, "underlined": u} for t, x0, x1, y0, u in words]
@@ -413,6 +479,27 @@ def self_test() -> int:
           and unpaired == 1, (holders, unpaired))
     check("a line carrying a lowercase word is prose", prose_row(["The", "COMPUTE", "statement"])
           and not prose_row(["COMPUTE", "identifier-1", "[", "END-COMPUTE", "]"]))
+
+    # ---- `read_drawn`: the same two formats DRAWN in the house style (FIGURE-STYLE.md) read exactly as measured ----
+    def shape(ws: list[Word]) -> list[tuple]:
+        return [(w.text, bool(w.underlined), tuple(h.family for h in w.holders), w.repeated, w.diagram) for w in ws]
+
+    for name, drawn, case in (("LOCK MODE", DRAWN_LOCK_MODE, LOCK_MODE), ("COMPUTE", DRAWN_COMPUTE, COMPUTE)):
+        got, want = shape(read_drawn([_underline(*drawn)]).words), shape(fixture(case).words)
+        check(f"read_drawn: the {name} format drawn reads as measured (words, underlines, holders, ellipsis)",
+              got == want, got)
+    inside = ["READ file-name [ NEXT ] RECORD", "data-name-1 ( leftmost-character-position: [ length ] )", ""]
+    width = max(map(len, inside))
+    boxed = read_drawn([_underline([f"{a} {t.ljust(width)} {b}" for (a, b), t in zip(("╔╗", "║║", "╚╝"), inside)]
+                                   + ["Format 2:", "WRITE x"], {"READ", "NEXT", "WRITE"})])
+    check("read_drawn: a level-2 box and a typed parenthesis hold nothing, a lowercase metavariable is no prose, and "
+          "a label opens the next diagram",
+          shape(boxed.words) == [("READ", True, (), False, 0), ("file-name", False, (), False, 0),
+                                 ("NEXT", True, ("bracket",), False, 0), ("RECORD", False, (), False, 0),
+                                 ("data-name-1", False, (), False, 0), ("leftmost-character-position", False, (), False, 0),
+                                 ("length", False, ("bracket",), False, 0), ("WRITE", True, (), False, 1),
+                                 ("x", False, (), False, 1)]
+          and boxed.unpaired == 0, (shape(boxed.words), boxed.unpaired))
     print("SELF-TEST:", "PASS" if ok else "FAIL")
     return 0 if ok else 1
 

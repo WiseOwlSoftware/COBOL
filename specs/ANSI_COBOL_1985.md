@@ -1299,8 +1299,8 @@ SUMMARY OF ELEMENTS IN THE NUCLEUS MODULE
 | Characters used in words 0-9 A-Z - (hyphen) ................. | X | X |
 | Characters used in punctuation " ( ) . , ; space ............ | X | X |
 | Characters used in punctuation : (colon) .................... | N | X |
-| Characters used in editing B + - . , Z * $ 0 CR DB / ........ | X | X |
-| Characters used in arithmetic operations + - * / ** ......... | N | X |
+| Characters used in editing B + - . , Z \* $ 0 CR DB / ........ | X | X |
+| Characters used in arithmetic operations + - \* / \*\* ......... | N | X |
 | Characters used in relation conditions = &gt; &lt; &gt;= &lt;= .......... | X | X |
 | Characters used in subscripting + - ......................... | X | X |
 | Single character substitution allowed ....................... | X | X |
@@ -1332,7 +1332,7 @@ SUMMARY OF ELEMENTS IN THE NUCLEUS MODULE
 | Required words .............................................. | X | X |
 | Key words ................................................... | X | X |
 | Special character words | | |
-| Arithmetic operators + - * / ** ............................. | N | X |
+| Arithmetic operators + - \* / \*\* ............................. | N | X |
 | Arithmetic operators used in subscripting + - ............... | X | X |
 | Relation characters = &gt; &lt; &gt;= &lt;= ................................ | X | X |
 | Optional words .............................................. | X | X |
@@ -1468,7 +1468,7 @@ Nucleus Element Summary
 | &nbsp;Data characters X 9 A | X | X |
 | &nbsp;Operational symbols S V P | X | X |
 | &nbsp;Nonfloating insertion characters B + - . , $ 0 CR DB / | X | X |
-| &nbsp;Replacement or floating insertion characters $ + - Z * | X | X |
+| &nbsp;Replacement or floating insertion characters $ + - Z \* | X | X |
 | &nbsp;Currency sign substitution | X | X |
 | &nbsp;Decimal point substitution | X | X |
 | REDEFINES clause | X | X |
@@ -1494,7 +1494,7 @@ Nucleus Element Summary
 | ELEMENT | LEVEL 1 | LEVEL 2 |
 |---|---|---|
 | Arithmetic expression | N | X |
-| &nbsp;Binary arithmetic operators + - * / ** | N | X |
+| &nbsp;Binary arithmetic operators + - \* / \*\* | N | X |
 | &nbsp;Unary arithmetic operators + - | N | X |
 | Conditional expressions | X | X |
 | &nbsp;Simple condition | X | X |
@@ -2675,8 +2675,8 @@ Language Concepts Element Summary
 | Characters used in punctuation " ( ) . , ; space ..................... | 1 NUC |
 | Characters used in punctuation : (colon) ............................. | 2 NUC |
 | Characters used in punctuation = ..................................... | 1 STM |
-| Characters used in editing B + - . , Z * $ 0 CR DB / ................ | 1 NUC |
-| Characters used in arithmetic operations + - * / ** ................. | 2 NUC |
+| Characters used in editing B + - . , Z \* $ 0 CR DB / ................ | 1 NUC |
+| Characters used in arithmetic operations + - \* / \*\* ................. | 2 NUC |
 | Characters used in relation conditions = &gt; &lt; &gt;= &lt;= .................. | 1 NUC |
 | Characters used in subscripting + - .................................. | 1 NUC |
 | Single character substitution allowed ................................ | 1 NUC |
@@ -2789,7 +2789,7 @@ Language Concepts Element Summary
 | Continuation of COBOL word, numeric literal, PICTURE character-string ........................................... | 2 NUC |
 | Blank lines ........................................................... | 1 NUC |
 | Comment lines | |
-| Asterisk (*) comment line ............................................. | 1 NUC |
+| Asterisk (\*) comment line ............................................. | 1 NUC |
 | Slant (/) comment line ................................................ | 1 NUC |
 | Debugging line with D in indicator area ............................... | 1 NUC |
 | <u>Source Program Structure</u> | |
@@ -3123,7 +3123,7 @@ Data Division Element Summary
 | &nbsp;Data characters &nbsp;X 9 A | 1 NUC<br>1 RPW |
 | &nbsp;Operational symbols &nbsp;S V P | 1 NUC<br>1 RPW |
 | &nbsp;Nonfloating insertion characters &nbsp;B + - . , $ 0 CR DB / | 1 NUC<br>1 RPW |
-| &nbsp;Replacement or floating insertion characters &nbsp;$ + - Z * | 1 NUC<br>1 RPW |
+| &nbsp;Replacement or floating insertion characters &nbsp;$ + - Z \* | 1 NUC<br>1 RPW |
 | &nbsp;Currency sign substitution | 1 NUC<br>1 RPW |
 | &nbsp;Decimal point substitution | 1 NUC<br>1 RPW |
 | REDEFINES clause | 1 NUC |
@@ -3188,7 +3188,7 @@ Procedure Division Element Summary
 | &nbsp;DECLARATIVES | 1 SEQ<br>1 REL<br>1 INX<br>1 RPW<br>1 DEB Z |
 | &nbsp;END DECLARATIVES | 1 SEQ<br>1 REL<br>1 INX<br>1 RPW<br>1 DEB Z |
 | Arithmetic expressions | 2 NUC |
-| &nbsp;Binary arithmetic operators &nbsp;+ - * / ** | 2 NUC |
+| &nbsp;Binary arithmetic operators &nbsp;+ - \* / \*\* | 2 NUC |
 | &nbsp;Unary arithmetic operators &nbsp;+ - | 2 NUC |
 | Conditional expressions | 1 NUC |
 | &nbsp;Simple condition | 1 NUC |
@@ -4069,7 +4069,7 @@ To define a one-dimensional table, the programmer uses an OCCURS clause as part 
 
 Example 1:
 
-<pre>
+<pre style="line-height:1">
     01   TABLE-1.
          02   TABLE-ELEMENT   OCCURS 20 TIMES.
               03   DOG ...
@@ -4080,7 +4080,7 @@ In example 2, TABLE-ELEMENT defines a one-dimensional table, but DOG does not si
 
 Example 2:
 
-<pre>
+<pre style="line-height:1">
     02   TABLE-1.
          03   TABLE-ELEMENT   OCCURS 20 TIMES.
               04   DOG   OCCURS 5 TIMES.
@@ -4100,7 +4100,7 @@ None of the three one-dimensional tables which appear in the following two examp
 
 Example 3:
 
-<pre>
+<pre style="line-height:1">
 01  ABLE.
     02  BAKER ...
     02  CHARLIE  OCCURS 20 TIMES ...
@@ -4109,7 +4109,7 @@ Example 3:
 
 Example 4:
 
-<pre>
+<pre style="line-height:1">
 01  ABLE.
     02  BAKER  OCCURS 20 TIMES ...
     02  CHARLIE ...
@@ -4120,7 +4120,7 @@ Defining a one-dimensional table within each occurrence of an element of another
 
 Example 5:
 
-<pre>
+<pre style="line-height:1">
 02  BAKER  OCCURS 20 TIMES ...
     03  CHARLIE ...
     03  DOG  OCCURS 5 TIMES ...
@@ -4198,7 +4198,7 @@ Concepts - Table Handling
 
 Assuming the following data definition:
 
-<pre>
+<pre style="line-height:1">
     02  XCOUNTER ...
 
     02  BAKER  OCCURS 20 TIMES  INDEXED BY BAKER-INDEX ...
@@ -4620,7 +4620,7 @@ II-29
 
 Concepts - Communication Facility
 
-<pre>
+<pre style="line-height:1">
 COBOL Program                 Message Control System                 Communication
                                      (MCS)                              Devices
 
@@ -4774,7 +4774,7 @@ Concepts - Communication Facility
 
 queues, i.e., queues comprising queues. In COBOL, four levels of queues are available to the user. In order of decreasing significance, the queue levels are named queue, sub-queue-1, sub-queue-2, and sub-queue-3. The full queue structure is depicted in figure 2, Hierarchy of Queues, where queues and sub-queues have been named with the letters A through O. Messages have been named with a letter according to their source (X, Y, or Z) and with a sequential number.
 
-<pre>
+<pre style="line-height:1">
 QUEUE          ⎨                          A
                                           |
                           +---------------+---------------+
@@ -4899,7 +4899,7 @@ Glossary
 | :--- | :--- |
 | + | addition |
 | - | subtraction |
-| * | multiplication |
+| \* | multiplication |
 | / | division |
 | ** | exponentiation |
 
@@ -4957,7 +4957,7 @@ Glossary
 | | space |
 | + | plus sign |
 | - | minus sign (hyphen) |
-| * | asterisk |
+| \* | asterisk |
 | / | slant (solidus) |
 | = | equal sign |
 | $ | currency sign (represented as ¤ in the International Reference Version of International Standard ISO 646-1973) |
@@ -4991,7 +4991,7 @@ NOTE 2: When the computer character set includes lowercase letters, they may be 
 
 <u>Comment-Entry</u>. An entry in the Identification Division that may be any combination of characters from the computer's character set.
 
-<u>Comment Line</u>. A source program line represented by an asterisk (*) in the indicator area of the line and any characters from the computer's character set in area A and area B of that line. The comment line serves only for documentation in a program. A special form of comment line represented by a slant (/) in the indicator area of the line and any characters from the computer's character set in area A and area B of that line causes page ejection prior to printing the comment.
+<u>Comment Line</u>. A source program line represented by an asterisk (&#42;) in the indicator area of the line and any characters from the computer's character set in area A and area B of that line. The comment line serves only for documentation in a program. A special form of comment line represented by a slant (/) in the indicator area of the line and any characters from the computer's character set in area A and area B of that line causes page ejection prior to printing the comment.
 
 <u>Common Program</u>. A program which, despite being directly contained within another program, may be called from any program directly or indirectly contained in that other program.
 
@@ -5111,7 +5111,7 @@ Division. A collection of zero, one, or more sections or paragraphs, called the 
 
 Division Header. A combination of words, followed by a separator period, that indicates the beginning of a division. The division headers in a COBOL program are:
 
-<pre>
+<pre style="line-height:1">
 IDENTIFICATION DIVISION.
 ENVIRONMENT DIVISION.
 DATA DIVISION.
@@ -5131,7 +5131,7 @@ Editing Character. A single character or a fixed two-character combination belon
 | CR | credit |
 | DB | debit |
 | Z | zero suppress |
-| * | check protect |
+| \* | check protect |
 | $ | currency sign |
 | , | comma (decimal point) |
 | . | period (decimal point) |
@@ -5143,7 +5143,7 @@ End of Procedure Division. The physical position of a COBOL source program after
 
 End Program Header. A combination of words, followed by a separator period, that indicates the end of a COBOL source program. The end program header is:
 
-<pre>
+<pre style="line-height:1">
 END PROGRAM program-name.
 </pre>
 
@@ -5702,7 +5702,7 @@ Glossary
 |---|---|
 | + | plus sign |
 | - | minus sign |
-| * | asterisk |
+| \* | asterisk |
 | / | slant (solidus) |
 | = | equal sign |
 | $ | currency sign |
@@ -7195,7 +7195,7 @@ The divisions of a COBOL source program must be ordered as follows: the Identifi
 
 The reference format for a line is represented as follows:
 
-<pre>
+<pre style="line-height:1">
 Margin                      Margin  Margin            Margin              Margin
 L                                C  A                      B                   R
 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | ...                   |
@@ -7585,7 +7585,7 @@ V-4
 
 ## Page 197
 
-<pre>
+<pre style="line-height:1">
                                        Environment Division - File Control Entry
 </pre>
 
@@ -7688,7 +7688,7 @@ V-6
 
 ## Page 199
 
-<pre>
+<pre style="line-height:1">
                                                     Environment Division - File Control Entry
 </pre>
 
@@ -7724,7 +7724,7 @@ V-7
 
 ## Page 200
 
-<pre>
+<pre style="line-height:1">
 Data Division
 
                          GENERAL FORMAT FOR DATA DIVISION
@@ -7812,7 +7812,7 @@ V-9
 
 ## Page 202
 
-<pre>
+<pre style="line-height:1">
 Data Division - File Description Entry
 </pre>
 
@@ -7872,11 +7872,11 @@ Data Division - File Description Entry
 │ <u>BLOCK</u> CONTAINS [ integer-1 <u>TO</u> ] integer-2 ┤            ├ │
 └                                           ╰ CHARACTERS ╯ ┘
 
-┌        ╭ CONTAINS integer-3 CHARACTERS
-│        │
-│        │ IS <u>VARYING</u> IN SIZE [ [ FROM integer-4 ] [ <u>TO</u> integer-5 ] CHARACTERS ] ╮ ┐
-│ <u>RECORD</u> ┤                                                                       │ │
-│        │ [ <u>DEPENDING</u> ON data-name-1 ]                                          ├ │
+┌        ╭ CONTAINS integer-3 CHARACTERS                                         ╮
+│        │                                                                       │
+│        │ IS <u>VARYING</u> IN SIZE [ [ FROM integer-4 ] [ <u>TO</u> integer-5 ] CHARACTERS ] │ ┐
+│ <u>RECORD</u> ┤                                                                       ├ │
+│        │ [ <u>DEPENDING</u> ON data-name-1 ]                                          │ │
 │        │                                                                       │ │
 └        ╰ CONTAINS integer-6 <u>TO</u> integer-7 CHARACTERS                            ╯ ┘
 
@@ -8248,7 +8248,7 @@ V-18
 
 ## Page 211
 
-<pre>
+<pre style="line-height:1">
                                                                     Procedure Division
 </pre>
 
@@ -8375,14 +8375,14 @@ Verb Formats (CALL - DISABLE)
          ╭             ┌╭<u>REEL</u> ╮  [FOR <u>REMOVAL</u>] ┐ ╮
          ┤             │┤     ├                │ ├
          │             │╰<u>UNIT</u> ╯                │ │
-&lt;i&gt;SW&lt;/i&gt; <u>CLOSE</u> ┤ file-name-1   │                      │ ├ …
+SW        <u>CLOSE</u> ┤ file-name-1   │                      │ ├ …
          │             │      ╭ <u>NO</u> <u>REWIND</u>╮     │ │
          ┤             │      ┤          ├     │ ├
          ╰             └WITH  ╰ <u>LOCK</u>     ╯     ┘ ╯
 </pre>
 
 <pre style="line-height:1">
-&lt;i&gt;RI&lt;/i&gt; <u>CLOSE</u> {file-name-1 [WITH <u>LOCK</u>]} …
+RI        <u>CLOSE</u> {file-name-1 [WITH <u>LOCK</u>]} …
 </pre>
 
 <pre style="line-height:1">
@@ -8693,7 +8693,7 @@ V-25
 
 ## Page 218
 
-<pre>
+<pre style="line-height:1">
 Verb Formats (MULTIPLY - PERFORM)
 </pre>
 
@@ -8949,9 +8949,8 @@ Verb Formats (SET - STOP)
 </pre>
 
 <pre style="line-height:1">
-    ╭                          ╭ <u>ON</u>  ╮
-<u>SET</u> ┤ { mnemonic-name-1 } … <u>TO</u> ┤     ├ ╮ …
-    │                          │     │ ├
+    ╭                          ╭ <u>ON</u>  ╮ ╮
+<u>SET</u> ┤ { mnemonic-name-1 } … <u>TO</u> ┤     ├ ├ …
     ╰                          ╰ <u>OFF</u> ╯ ╯
 </pre>
 
@@ -9071,7 +9070,7 @@ V-31
 
 ## Page 224
 
-<pre>
+<pre style="line-height:1">
 Verb Formats (UNSTRING - USE)
 </pre>
 
@@ -9134,7 +9133,7 @@ V-32
 <u>**GENERAL FORMAT FOR COBOL VERBS**</u>
 
 <pre style="line-height:1">
-<i>S</i> <u>WRITE</u> record-name-1 [ <u>FROM</u> identifier-1 ]
+S        <u>WRITE</u> record-name-1 [ <u>FROM</u> identifier-1 ]
 
     ┌                      ╭ ╭ identifier-2 ╮ ┌ LINE  ┐ ╮ ┐
     │                      │ ┤              ├ │       │ │ │
@@ -9156,7 +9155,7 @@ V-32
 </pre>
 
 <pre style="line-height:1">
-&lt;i&gt;RI&lt;/i&gt; <u>WRITE</u> record-name-1  [<u>FROM</u> identifier-1]
+RI        <u>WRITE</u> record-name-1  [<u>FROM</u> identifier-1]
 
     [<u>INVALID</u> KEY imperative-statement-1]
 
@@ -9692,7 +9691,7 @@ The DATE-COMPILED paragraph provides the compilation date in the Identification 
 
 (1) The paragraph-name DATE-COMPILED causes the current date to be inserted during program compilation. If a DATE-COMPILED paragraph is present, it is replaced during compilation with a paragraph of the form:
 
-<pre>
+<pre style="line-height:1">
           DATE-COMPILED. current date.
 </pre>
 
@@ -9935,13 +9934,13 @@ c. If the implementor-name-2 phrase is specified, the character code set or coll
 
 d. If the literal phrase is specified, the alphabet-name may not be referenced in a CODE-SET clause (see page VII-24, The CODE-SET Clause). The collating sequence identified is that defined according to the following rules:
 
-1) The value of each literal specifies:
+1\) The value of each literal specifies:
 
 a) The ordinal number of a character within the native character set, if the literal is numeric. This value must not exceed the value which represents the number of characters in the native character set.
 
 b) The actual character within the native character set, if the literal is nonnumeric. If the value of the nonnumeric literal contains multiple characters, each character in the literal, starting with the leftmost character, is assigned successive ascending positions in the collating sequence being specified.
 
-2) The order in which the literals appear in the ALPHABET clause specifies, in ascending sequence, the ordinal number of the character within the collating sequence being specified.
+2\) The order in which the literals appear in the ALPHABET clause specifies, in ascending sequence, the ordinal number of the character within the collating sequence being specified.
 
 VI-15
 
@@ -9949,11 +9948,11 @@ VI-15
 
 Nucleus - SPECIAL-NAMES
 
-3) Any characters within the native collating sequence, which are not explicitly specified in the literal phrase, assume a position, in the collating sequence being specified, greater than any of the explicitly specified characters. The relative order within the set of these unspecified characters is unchanged from the native collating sequence.
+3\) Any characters within the native collating sequence, which are not explicitly specified in the literal phrase, assume a position, in the collating sequence being specified, greater than any of the explicitly specified characters. The relative order within the set of these unspecified characters is unchanged from the native collating sequence.
 
-4) If the THROUGH phrase is specified, the set of contiguous characters in the native character set beginning with the character specified by the value of literal-1, and ending with the character specified by the value of literal-2, is assigned a successive ascending position in the collating sequence being specified. In addition, the set of contiguous characters specified by a given THROUGH phrase may specify characters of the native character set in either ascending or descending sequence.
+4\) If the THROUGH phrase is specified, the set of contiguous characters in the native character set beginning with the character specified by the value of literal-1, and ending with the character specified by the value of literal-2, is assigned a successive ascending position in the collating sequence being specified. In addition, the set of contiguous characters specified by a given THROUGH phrase may specify characters of the native character set in either ascending or descending sequence.
 
-5) If the ALSO phrase is specified, the characters of the native character set specified by the value of literal-1 and literal-3 are assigned to the same ordinal position in the collating sequence being specified or in the character code set that is used to represent the data, and if alphabet-name-1 is referenced in a SYMBOLIC CHARACTERS clause, only literal-1 is used to represent the character in the native character set.
+5\) If the ALSO phrase is specified, the characters of the native character set specified by the value of literal-1 and literal-3 are assigned to the same ordinal position in the collating sequence being specified or in the character code set that is used to represent the data, and if alphabet-name-1 is referenced in a SYMBOLIC CHARACTERS clause, only literal-1 is used to represent the character in the native character set.
 
 (5) The character that has the highest ordinal position in the program collating sequence is associated with the figurative constant HIGH-VALUE, except when this figurative constant is specified as a literal in the SPECIAL-NAMES paragraph. If more than one character has the highest position in the program collating sequence, the last character specified is associated with the figurative constant HIGH-VALUE.
 
@@ -9987,7 +9986,7 @@ a. digits 0 through 9;
 
 b. alphabetic characters consisting of the uppercase letters A, B, C, D, P, R, S, V, X, Z; the lowercase letters a through z; or the space;
 
-c. special characters * + - , . ; ( ) " = /
+c. special characters \* + - , . ; ( ) " = /
 
 If this clause is not present, only the currency sign defined in the COBOL character set may be used as the currency symbol in the PICTURE clause.
 
@@ -10476,15 +10475,15 @@ b. Its content when represented in standard data format must be two or more char
 
 (6) To define an item as numeric edited:
 
-a. Its PICTURE character-string is restricted to certain combinations of the symbols 'B', '/', 'P', 'V', 'Z', '0', '9', ',', '.', '*', '+', '-', 'CR', 'DB', and the currency symbol. The allowable combinations are determined from the order of precedence of symbols and the editing rules; and
+a. Its PICTURE character-string is restricted to certain combinations of the symbols 'B', '/', 'P', 'V', 'Z', '0', '9', ',', '.', '\*', '+', '-', 'CR', 'DB', and the currency symbol. The allowable combinations are determined from the order of precedence of symbols and the editing rules; and
 
-1) The number of digit positions that can be represented in the PICTURE character-string must range from 1 to 18 inclusive; and
+1\) The number of digit positions that can be represented in the PICTURE character-string must range from 1 to 18 inclusive; and
 
-2) The character-string must contain at least one '0', 'B', '/', 'Z', '*', '+', ',', '.', '-', 'CR', 'DB', or the currency symbol.
+2\) The character-string must contain at least one '0', 'B', '/', 'Z', '\*', '+', ',', '.', '-', 'CR', 'DB', or the currency symbol.
 
 b. The content of each of the character positions must be consistent with the corresponding PICTURE symbol.
 
-(7) The size of an elementary item, where size means the number of character positions occupied by the elementary item in standard data format, is determined by the number of allowable symbols that represent character positions. An unsigned nonzero integer which is enclosed in parentheses following the symbols 'A', ',', 'X', '9', 'P', 'Z', '*', 'B', '/', '0', '+', '-', or the currency symbol indicates the number of consecutive occurrences of the symbol. Note that the following symbols may appear only once in a given PICTURE: 'S', 'V', '.', 'CR', and 'DB'.
+(7) The size of an elementary item, where size means the number of character positions occupied by the elementary item in standard data format, is determined by the number of allowable symbols that represent character positions. An unsigned nonzero integer which is enclosed in parentheses following the symbols 'A', ',', 'X', '9', 'P', 'Z', '\*', 'B', '/', '0', '+', '-', or the currency symbol indicates the number of consecutive occurrences of the symbol. Note that the following symbols may appear only once in a given PICTURE: 'S', 'V', '.', 'CR', and 'DB'.
 
 VI-30
 
@@ -10934,9 +10933,9 @@ a. The format on the external media of records or groups containing elementary i
 
 b. Any necessary generation of implicit FILLER, if the elementary item immediately preceding an item containing the SYNCHRONIZED clause does not terminate at an appropriate natural boundary. Such automatically generated FILLER positions are included in:
 
-1) The size of any group item to which the FILLER item belongs; and
+1\) The size of any group item to which the FILLER item belongs; and
 
-2) The number of character positions allocated when the group item of which the FILLER item is a part appears as the object of a REDEFINES clause.
+2\) The number of character positions allocated when the group item of which the FILLER item is a part appears as the object of a REDEFINES clause.
 
 (9) An implementor may, at his option, specify automatic alignment for any internal data formats except, within a record, data items whose usage is DISPLAY. However, the record itself may be synchronized.
 
@@ -11156,7 +11155,7 @@ There are five binary arithmetic operators and two unary arithmetic operators th
 |:---:|:---|
 | + | Addition |
 | - | Subtraction |
-| * | Multiplication |
+| \* | Multiplication |
 | / | Division |
 | ** | Exponentiation |
 
@@ -11540,7 +11539,7 @@ VI-62
 
 Nucleus - Complex Conditions
 
-<pre>
+<pre style="line-height:1">
  ┌─────────────┐
  │  Evaluate   │
  │ condition-1 │
@@ -11611,7 +11610,7 @@ VI-64
 
 Nucleus - Complex Conditions
 
-<pre>
+<pre style="line-height:1">
                       ┌──────────────┐
                       │   Evaluate   │
                       │ condition-1  │
@@ -11654,7 +11653,7 @@ VI-65
 
 Nucleus - Complex Conditions
 
-<pre>
+<pre style="line-height:1">
      ┌──────────────┐
      │   Evaluate   │
      │ condition-1  │
@@ -12133,7 +12132,7 @@ VI-79
 
 ## Page 312
 
-<pre>
+<pre style="line-height:1">
 Nucleus - DIVIDE
 </pre>
 
@@ -12190,7 +12189,7 @@ VI-80
 
 ## Page 313
 
-<pre>
+<pre style="line-height:1">
 Nucleus - DIVIDE
 </pre>
 
@@ -12404,11 +12403,11 @@ h. If the NOT phrase is specified for a selection object, the values assigned to
 
 a. Each selection object within the set of selection objects for the first WHEN phrase is compared to the selection subject having the same ordinal position within the set of selection subjects. One of the following conditions must be satisfied if the comparison is to be satisfied:
 
-1) If the items being compared are assigned numeric or nonnumeric values, or a range of numeric or nonnumeric values, the comparison is satisfied if the value, or one of the range of values, assigned to the selection object is equal to the value assigned to the selection subject according to the rules for comparison. (See page VI-54, Relation Condition.)
+1\) If the items being compared are assigned numeric or nonnumeric values, or a range of numeric or nonnumeric values, the comparison is satisfied if the value, or one of the range of values, assigned to the selection object is equal to the value assigned to the selection subject according to the rules for comparison. (See page VI-54, Relation Condition.)
 
-2) If the items being compared are assigned truth values, the comparison is satisfied if the items are assigned the identical truth value.
+2\) If the items being compared are assigned truth values, the comparison is satisfied if the items are assigned the identical truth value.
 
-3) If the selection object being compared is specified by the word ANY, the comparison is always satisfied regardless of the value of the selection subject.
+3\) If the selection object being compared is specified by the word ANY, the comparison is always satisfied regardless of the value of the selection subject.
 
 b. If the above comparison is satisfied for every selection object within the set of selection objects being compared, the WHEN phrase containing that set of selection objects is selected as the one satisfying the set of selection subjects.
 
@@ -12779,11 +12778,11 @@ Nucleus - INSPECT
 
 a. The operands of the TALLYING or REPLACING phrase are considered in the order they are specified in the INSPECT statement from left to right. The first literal-1 is compared to an equal number of contiguous characters, starting with the leftmost character position in the data item referenced by identifier-1. Literal-1 matches that portion of the content of the data item referenced by identifier-1 if they are equal, character for character and:
 
-1) If neither LEADING nor FIRST is specified; or
+1\) If neither LEADING nor FIRST is specified; or
 
-2) If the LEADING adjective applies to literal-1 and literal-1 is a leading occurrence as defined in general rules 10 and 13; or
+2\) If the LEADING adjective applies to literal-1 and literal-1 is a leading occurrence as defined in general rules 10 and 13; or
 
-3) If the FIRST adjective applies to literal-1 and literal-1 is the first occurrence as defined in general rule 13.
+3\) If the FIRST adjective applies to literal-1 and literal-1 is the first occurrence as defined in general rule 13.
 
 b. If no match occurs in the comparison of the first literal-1, the comparison is repeated with each successive literal-1, if any, until either a match is found or there is no next successive literal-1. When there is no next successive literal-1, the character position in the data item referenced by identifier-1 immediately to the right of the leftmost character position considered in the last comparison cycle is considered as the leftmost character position, and the comparison cycle begins again with the first literal-1.
 
@@ -12871,7 +12870,7 @@ In each of the following examples of the INSPECT statement, COUNT-n is assumed t
 
 <u>Example 1</u>:
 
-<pre>
+<pre style="line-height:1">
    INSPECT ITEM TALLYING
 
         COUNT-0 FOR ALL "AB", ALL "D"
@@ -13092,11 +13091,11 @@ operational sign occupies a separate character position, that character is not m
 
 b. When a numeric or numeric edited item is the receiving item, alignment by decimal point and any necessary zero filling takes place as previously defined except where zeros are replaced because of editing requirements. (See page IV-16, Standard Alignment Rules.) When the sending operand is numeric edited, de-editing is implied to establish the operand's unedited numeric value, which may be signed; then the unedited numeric value is moved to the receiving field.
 
-1) When a signed numeric item is the receiving item, the sign of the sending operand is placed in the receiving item. (See page VI-42, The SIGN Clause.) Conversion of the representation of the sign takes place as necessary. If the sending operand is unsigned, a positive sign is generated for the receiving item.
+1\) When a signed numeric item is the receiving item, the sign of the sending operand is placed in the receiving item. (See page VI-42, The SIGN Clause.) Conversion of the representation of the sign takes place as necessary. If the sending operand is unsigned, a positive sign is generated for the receiving item.
 
-2) When an unsigned numeric item is the receiving item, the absolute value of the sending operand is moved and no operational sign is generated for the receiving item.
+2\) When an unsigned numeric item is the receiving item, the absolute value of the sending operand is moved and no operational sign is generated for the receiving item.
 
-3) When the sending operand is described as being alphanumeric, data is moved as if the sending operand were described as an unsigned numeric integer.
+3\) When the sending operand is described as being alphanumeric, data is moved as if the sending operand were described as an unsigned numeric integer.
 
 c. When a receiving field is described as alphabetic, justification and any necessary space filling takes place as previously defined. (See page IV-16, Standard Alignment Rules.)
 
@@ -13380,11 +13379,11 @@ VI-113
 
 Nucleus - PERFORM
 
-1) If the TEST BEFORE phrase is specified or implied:
+1\) If the TEST BEFORE phrase is specified or implied:
 
 When the data item referenced by one identifier is varied, the content of the data item referenced by identifier-2 is set to literal-1 or the current value of the data item referenced by identifier-3 at the point of initial execution of the PERFORM statement; then, if the condition of the UNTIL phrase is false, the specified set of statements is executed once. The value of the data item referenced by identifier-2 is augmented by the specified increment or decrement value (literal-2 or the value of the data item referenced by identifier-4) and condition-1 is evaluated again. The cycle continues until this condition is true, at which point control is transferred to the end of the PERFORM statement. If condition-1 is true at the beginning of execution of the PERFORM statement, control is transferred to the end of the PERFORM statement.
 
-<pre>
+<pre style="line-height:1">
                     Entrance
                        │
                        ▼
@@ -13422,7 +13421,7 @@ Nucleus - PERFORM
 
 When the data items referenced by two identifiers are varied, the content of the data item referenced by identifier-2 is set to literal-1 or the current value of the data item referenced by identifier-3 and then the content of the data item referenced by identifier-5 is set to literal-3 or the current value of the data item referenced by identifier-6. After the contents of the data items referenced by the identifiers have been set, condition-1 is evaluated; if true, control is transferred to the end of the PERFORM statement; if false, condition-2 is evaluated. If condition-2 is false, the specified set of statements is executed once, then the content of the data item referenced by identifier-5 is augmented by literal-4 or the content of the data item referenced by identifier-7 and condition-2 is evaluated again. This cycle of evaluation and augmentation continues until this condition is true. When condition-2 is true, the content of the data item referenced by identifier-2 is augmented by literal-2 or the content of the data item referenced by identifier-4, the content of the data item referenced by identifier-5 is set to literal-3 or the current value of the data item referenced by identifier-6, and condition-1 is reevaluated. The PERFORM statement is completed if condition-1 is true; if not, the cycle continues until condition-1 is true.
 
-<pre>
+<pre style="line-height:1">
                         Entrance
                            │
                            ▼
@@ -13476,11 +13475,11 @@ VI-116
 
 Nucleus - PERFORM
 
-2) If the TEST AFTER phrase is specified:
+2\) If the TEST AFTER phrase is specified:
 
 When the data item referenced by one identifier is varied, the content of the data item referenced by identifier-2 is set to literal-1 or the current value of the data item referenced by identifier-3 at the point of execution of the PERFORM statement; then the specified set of statements is executed once and condition-1 of the UNTIL phrase is tested. If the condition is false, the value of the data item referenced by identifier-2 is augmented by the specified increment or decrement value (literal-2 or the value of the data item referenced by identifier-4) and the specified set of statements is executed again. The cycle continues until condition-1 is tested and found to be true, at which point control is transferred to the end of the PERFORM statement.
 
-<pre>
+<pre style="line-height:1">
                          Entrance
                             │
                             ▼
@@ -13569,11 +13568,11 @@ VI-120
 
 ## Page 353
 
-<pre>
+<pre style="line-height:1">
 Nucleus - PERFORM
 </pre>
 
-<pre>
+<pre style="line-height:1">
   x   PERFORM a THRU m                    x   PERFORM a THRU m
 
   a   ──────────────────────┐             a   ─────────────────────────┐
@@ -13887,8 +13886,8 @@ Nucleus - SET
 <tbody>
 <tr><td>Integer literal</td><td>No/3c</td><td>Valid/3a</td><td>No/3b</td></tr>
 <tr><td>Integer data item</td><td>No/3c</td><td>Valid/3a</td><td>No/3b</td></tr>
-<tr><td>Index</td><td>Valid/3c</td><td>Valid/3a</td><td>Valid/3b*</td></tr>
-<tr><td>Index data item</td><td>No/3c</td><td>Valid/3a*</td><td>Valid/3b*</td></tr>
+<tr><td>Index</td><td>Valid/3c</td><td>Valid/3a</td><td>Valid/3b&#42;</td></tr>
+<tr><td>Index data item</td><td>No/3c</td><td>Valid/3a&#42;</td><td>Valid/3b&#42;</td></tr>
 </tbody>
 </table>
 
@@ -14135,7 +14134,7 @@ VI-135
 
 ## Page 368
 
-<pre>
+<pre style="line-height:1">
 Nucleus - UNSTRING
 </pre>
 
@@ -14403,9 +14402,9 @@ d. I-O Status = 07. The input-output statement is successfully executed. However
 
 a. I-O Status = 10. A sequential READ statement is attempted and no next logical record exists in the file because:
 
-1) The end of the file has been reached, or
+1\) The end of the file has been reached, or
 
-2) A sequential READ statement is attempted for the first time on an optional input file that is not present.
+2\) A sequential READ statement is attempted for the first time on an optional input file that is not present.
 
 (3) Permanent Error Condition With Unsuccessful Completion
 
@@ -14423,11 +14422,11 @@ c. I-O Status = 35. A permanent error exists because an OPEN statement with the 
 
 d. I-O Status = 37. A permanent error exists because an OPEN statement is attempted on a file and that file will not support the open mode specified in the OPEN statement. The possible violations are:
 
-1) The [EXTEND or] OUTPUT phrase is specified but the file will not support write operations.
+1\) The [EXTEND or] OUTPUT phrase is specified but the file will not support write operations.
 
-2) The I-O phrase is specified but the file will not support the input and output operations that are permitted for a sequential file when opened in the I-O mode.
+2\) The I-O phrase is specified but the file will not support the input and output operations that are permitted for a sequential file when opened in the I-O mode.
 
-3) The INPUT phrase is specified but the file will not support read operations.
+3\) The INPUT phrase is specified but the file will not support read operations.
 
 e. I-O Status = 38. A permanent error exists because an OPEN statement is attempted on a file previously closed with lock.
 
@@ -14443,15 +14442,15 @@ c. I-O Status = 43. For a mass storage file in the sequential access mode, the l
 
 d. I-O Status = 44. A boundary violation exists because:
 
-1) An attempt is made to write or rewrite a record that is larger than the largest or smaller than the smallest record allowed by the RECORD IS VARYING clause of the associated file-name, or
+1\) An attempt is made to write or rewrite a record that is larger than the largest or smaller than the smallest record allowed by the RECORD IS VARYING clause of the associated file-name, or
 
-2) An attempt is made to rewrite a record to a sequential file and the record is not the same size as the record being replaced.
+2\) An attempt is made to rewrite a record to a sequential file and the record is not the same size as the record being replaced.
 
 e. I-O Status = 46. A sequential READ statement is attempted on a file open in the input or I-O mode and no valid next record has been established because:
 
-1) The preceding READ statement was unsuccessful but did not cause an at end condition, or
+1\) The preceding READ statement was unsuccessful but did not cause an at end condition, or
 
-2) The preceding READ statement caused an at end condition.
+2\) The preceding READ statement caused an at end condition.
 
 VII-4
 
@@ -15266,7 +15265,7 @@ b. LINAGE-COUNTER may be referenced only in Procedure Division statements; howev
 
 c. LINAGE-COUNTER is automatically modified, according to the following rules, during the execution of a WRITE statement to an associated file:
 
-1) When the ADVANCING PAGE phrase of the WRITE statement is specified, the LINAGE-COUNTER is automatically reset to one. During the resetting of LINAGE-COUNTER to the value one, the value of LINAGE-COUNTER is implicitly incremented to exceed the value specified by integer-1 or the data item referenced by data-name-1.
+1\) When the ADVANCING PAGE phrase of the WRITE statement is specified, the LINAGE-COUNTER is automatically reset to one. During the resetting of LINAGE-COUNTER to the value one, the value of LINAGE-COUNTER is implicitly incremented to exceed the value specified by integer-1 or the data item referenced by data-name-1.
 
 VII-28
 
@@ -15274,11 +15273,11 @@ VII-28
 
 Sequential I-O - LINAGE
 
-2) When the ADVANCING identifier-2 or integer-1 phrase of the WRITE statement is specified, the LINAGE-COUNTER is incremented by integer-1 or the value of the data item referenced by identifier-2.
+2\) When the ADVANCING identifier-2 or integer-1 phrase of the WRITE statement is specified, the LINAGE-COUNTER is incremented by integer-1 or the value of the data item referenced by identifier-2.
 
-3) When the ADVANCING phrase of the WRITE statement is not specified, the LINAGE-COUNTER is incremented by the value one. (See page VII-52, The WRITE Statement.)
+3\) When the ADVANCING phrase of the WRITE statement is not specified, the LINAGE-COUNTER is incremented by the value one. (See page VII-52, The WRITE Statement.)
 
-4) The value of LINAGE-COUNTER is automatically reset to one when the device is repositioned to the first line that can be written on for each of the succeeding logical pages. (See page VII-52, The WRITE Statement.)
+4\) The value of LINAGE-COUNTER is automatically reset to one when the device is repositioned to the first line that can be written on for each of the succeeding logical pages. (See page VII-52, The WRITE Statement.)
 
 d. The value of LINAGE-COUNTER is automatically set to one at the time an OPEN statement with the OUTPUT phrase is executed for the associated file.
 
@@ -15591,19 +15590,19 @@ F. Close Reel/Unit
 
 The following operations take place:
 
-1) If the current reel/unit is the last or only reel/unit for the file or the reel is on a non-reel/unit medium, there is no reel/unit swap and the current volume pointer remains unchanged.
+1\) If the current reel/unit is the last or only reel/unit for the file or the reel is on a non-reel/unit medium, there is no reel/unit swap and the current volume pointer remains unchanged.
 
-2) If another reel/unit exists for the file, a reel/unit swap occurs, the current volume pointer is updated to point to the next reel/unit existing in the file, and the standard beginning reel/unit label procedure is executed. If no data records exist for the current volume, another reel/unit swap occurs.
+2\) If another reel/unit exists for the file, a reel/unit swap occurs, the current volume pointer is updated to point to the next reel/unit existing in the file, and the standard beginning reel/unit label procedure is executed. If no data records exist for the current volume, another reel/unit swap occurs.
 
 <u>Output Files (Reel/Unit Media)</u>:
 
 The following operations take place:
 
-1) The standard ending reel/unit label procedure is executed.
+1\) The standard ending reel/unit label procedure is executed.
 
-2) A reel/unit swap. The current volume pointer is updated to point to the new reel/unit.
+2\) A reel/unit swap. The current volume pointer is updated to point to the new reel/unit.
 
-3) The standard beginning reel/unit label procedure is executed.
+3\) The standard beginning reel/unit label procedure is executed.
 
 VII-37
 
@@ -15611,7 +15610,7 @@ VII-37
 
 Sequential I-O - CLOSE
 
-4) The next executed WRITE statement that references that file directs the next logical data record to the next reel/unit of the file.
+4\) The next executed WRITE statement that references that file directs the next logical data record to the next reel/unit of the file.
 
 <u>Output Files (Non-Reel/Unit Media)</u>:
 
@@ -16321,9 +16320,9 @@ c. I-O Status = 05. An OPEN statement is successfully executed but the reference
 
 a. I-O Status = 10. A sequential READ statement is attempted and no next logical record exists in the file because:
 
-1) The end of the file has been reached; or
+1\) The end of the file has been reached; or
 
-2) A sequential READ statement is attempted for the first time on an optional input file that is not present.
+2\) A sequential READ statement is attempted for the first time on an optional input file that is not present.
 
 b. I-O Status = 14. A sequential READ statement is attempted for a relative file and the number of significant digits in the relative record number is larger than the size of the relative key data item described for the file.
 
@@ -16339,9 +16338,9 @@ a. I-O Status = 22. An attempt is made to write a record that would create a dup
 
 b. I-O Status = 23. This condition exists because:
 
-1) An attempt is made to randomly access a record that does not exist in the file; or
+1\) An attempt is made to randomly access a record that does not exist in the file; or
 
-2) A START or random READ statement is attempted on an optional input file that is not present.
+2\) A START or random READ statement is attempted on an optional input file that is not present.
 
 c. I-O Status = 24. An attempt is made to write beyond the externally defined boundaries of a relative file. The implementor specifies the manner in which these boundaries are defined. Or, a sequential WRITE statement is attempted for a relative file and the number of significant digits in the relative record number is larger than the size of the relative key data item described for the file.
 
@@ -16353,11 +16352,11 @@ b. I-O Status = 35. A permanent error exists because an OPEN statement with the 
 
 c. I-O Status = 37. A permanent error exists because an OPEN statement is attempted on a file and that file will not support the open mode specified in the OPEN statement. The possible violations are:
 
-1) The EXTEND or OUTPUT phrase is specified but the file will not support write operations.
+1\) The EXTEND or OUTPUT phrase is specified but the file will not support write operations.
 
-2) The I-O phrase is specified but the file will not support the input and output operations that are permitted for a relative file when opened in the I-O mode.
+2\) The I-O phrase is specified but the file will not support the input and output operations that are permitted for a relative file when opened in the I-O mode.
 
-3) The INPUT phrase is specified but the file will not support read operations.
+3\) The INPUT phrase is specified but the file will not support read operations.
 
 d. I-O Status = 38. A permanent error exists because an OPEN statement is attempted on a file previously closed with lock.
 
@@ -16379,17 +16378,17 @@ c. I-O Status = 43. In the sequential access mode, the last input-output stateme
 
 d. I-O Status = 44. A boundary violation exists because:
 
-1) An attempt is made to write or rewrite a record that is larger than the largest or smaller than the smallest record allowed by the RECORD IS VARYING clause of the associated file-name.
+1\) An attempt is made to write or rewrite a record that is larger than the largest or smaller than the smallest record allowed by the RECORD IS VARYING clause of the associated file-name.
 
-2) In level 1 an attempt is made to rewrite a record to a relative file and the record is not the same size as the record being replaced.
+2\) In level 1 an attempt is made to rewrite a record to a relative file and the record is not the same size as the record being replaced.
 
 e. I-O Status = 46. A sequential READ statement is attempted on a file open in the input or I-O mode and no valid next record has been established because:
 
-1) The preceding START statement was unsuccessful, or
+1\) The preceding START statement was unsuccessful, or
 
-2) The preceding READ statement was unsuccessful but did not cause an at end condition, or
+2\) The preceding READ statement was unsuccessful but did not cause an at end condition, or
 
-3) The preceding READ statement caused an at end condition.
+3\) The preceding READ statement caused an at end condition.
 
 f. I-O Status = 47. The execution of a READ or START statement is attempted on a file not open in the input or I-O mode.
 
@@ -17378,7 +17377,7 @@ VIII-36
 
 ## Page 467
 
-<pre>
+<pre style="line-height:1">
 Relative I-O - WRITE
 </pre>
 
@@ -17561,9 +17560,9 @@ a. I-O Status = 00. The input-output statement is successfully executed and no f
 
 b. I-O Status = 02. The input-output statement is successfully executed but a duplicate key is detected.
 
-1) For a READ statement, the key value for the current key of reference is equal to the value of the same key in the next record within the current key of reference.
+1\) For a READ statement, the key value for the current key of reference is equal to the value of the same key in the next record within the current key of reference.
 
-2) For a REWRITE or WRITE statement, the record just written created a duplicate key value for at least one alternate record key for which duplicates are allowed.
+2\) For a REWRITE or WRITE statement, the record just written created a duplicate key value for at least one alternate record key for which duplicates are allowed.
 
 c. I-O Status = 04. A READ statement is successfully executed but the length of the record being processed does not conform to the fixed file attributes for that file.
 
@@ -17579,9 +17578,9 @@ Indexed I-O - Introduction
 
 a. I-O Status = 10. A sequential READ statement is attempted and no next logical record exists in the file because:
 
-1) The end of the file has been reached; or
+1\) The end of the file has been reached; or
 
-2) A sequential READ statement is attempted for the first time on an optional input file that is not present.
+2\) A sequential READ statement is attempted for the first time on an optional input file that is not present.
 
 (3) Invalid Key Condition With Unsuccessful Completion
 
@@ -17591,9 +17590,9 @@ b. I-O Status = 22. An attempt is made to write or rewrite a record that would c
 
 c. I-O Status = 23. This condition exists because:
 
-1) An attempt is made to randomly access a record that does not exist in the file, or
+1\) An attempt is made to randomly access a record that does not exist in the file, or
 
-2) A START or random READ statement is attempted on an optional input file that is not present.
+2\) A START or random READ statement is attempted on an optional input file that is not present.
 
 d. I-O Status = 24. An attempt is made to write beyond the externally-defined boundaries of an indexed file. The implementor specifies the manner in which these boundaries are defined.
 
@@ -17605,9 +17604,9 @@ b. I-O Status = 35. A permanent error exists because an OPEN statement with the 
 
 c. I-O Status = 37. A permanent error exists because an OPEN statement is attempted on a file and that file will not support the open mode specified in the OPEN statement. The possible violations are:
 
-1) The EXTEND or OUTPUT phrase is specified but the file will not support write operations.
+1\) The EXTEND or OUTPUT phrase is specified but the file will not support write operations.
 
-2) The I-O phrase is specified but the file will not support the input and output operations that are permitted for an indexed file when opened in the I-O mode.
+2\) The I-O phrase is specified but the file will not support the input and output operations that are permitted for an indexed file when opened in the I-O mode.
 
 IX-4
 
@@ -17615,7 +17614,7 @@ IX-4
 
 Indexed I-O - Introduction
 
-3) The INPUT phrase is specified but the file will not support read operations.
+3\) The INPUT phrase is specified but the file will not support read operations.
 
 d. I-O Status = 38. A permanent error exists because an OPEN statement is attempted on a file previously closed with lock.
 
@@ -17631,17 +17630,17 @@ c. I-O Status = 43. In the sequential access mode, the last input-output stateme
 
 d. I-O Status = 44. A boundary violation exists because:
 
-1) An attempt is made to write or rewrite a record that is larger than the largest or smaller than the smallest record allowed for the RECORD IS VARYING clause of the associated file-name.
+1\) An attempt is made to write or rewrite a record that is larger than the largest or smaller than the smallest record allowed for the RECORD IS VARYING clause of the associated file-name.
 
-2) In level 1 an attempt is made to rewrite a record to an indexed file and the record is not the same size as the record being replaced.
+2\) In level 1 an attempt is made to rewrite a record to an indexed file and the record is not the same size as the record being replaced.
 
 e. I-O Status = 46. A sequential READ statement is attempted on a file open in the input or I-O mode and no valid next record has been established because:
 
-1) The preceding START statement was unsuccessful, or
+1\) The preceding START statement was unsuccessful, or
 
-2) The preceding READ statement was unsuccessful but did not cause an at end condition, or
+2\) The preceding READ statement was unsuccessful but did not cause an at end condition, or
 
-3) The preceding READ statement caused an at end condition.
+3\) The preceding READ statement caused an at end condition.
 
 f. I-O Status = 47. The execution of a READ or START statement is attempted on a file not open in the input or I-O mode.
 
@@ -19068,9 +19067,9 @@ a. If the name is declared in program B, the object in program B is the referenc
 
 b. Otherwise, if program A is contained within another program, the referenced object is:
 
-1) The object in program A if the name is declared in program A.
+1\) The object in program A if the name is declared in program A.
 
-2) The object in the containing program if the name is not declared in program A and is declared in the program containing program A. This rule is applied to further containing programs until a single valid name has been found.
+2\) The object in the containing program if the name is not declared in program A and is declared in the program containing program A. This rule is applied to further containing programs until a single valid name has been found.
 
 X-6
 
@@ -20480,15 +20479,15 @@ These implicit functions are performed such that any associated USE AFTER EXCEPT
 
 a. If the MERGE statement appears in a section that is not in an independent segment, then any output procedure referenced by that MERGE statement must appear:
 
-1) Totally within non-independent segments, or
+1\) Totally within non-independent segments, or
 
-2) Wholly contained in a single independent segment.
+2\) Wholly contained in a single independent segment.
 
 b. If a MERGE statement appears in an independent segment, then any output procedure referenced by that MERGE statement must be contained:
 
-1) Totally within non-independent segments, or
+1\) Totally within non-independent segments, or
 
-2) Wholly within the same independent segment as that MERGE statement.
+2\) Wholly within the same independent segment as that MERGE statement.
 
 XI-12
 
@@ -20765,15 +20764,15 @@ Sort-Merge - SORT
 
 a. If a SORT statement appears in a section that is not in an independent segment, then any input procedures or output procedures referenced by that SORT statement must appear:
 
-1) Totally within non-independent segments, or
+1\) Totally within non-independent segments, or
 
-2) Wholly contained in a single independent segment.
+2\) Wholly contained in a single independent segment.
 
 b. If a SORT statement appears in an independent segment, then any input procedures or output procedures referenced by that SORT statement must be contained:
 
-1) Totally within non-independent segments, or
+1\) Totally within non-independent segments, or
 
-2) Wholly within the same independent segment as that SORT statement.
+2\) Wholly within the same independent segment as that SORT statement.
 
 XI-21
 
@@ -22527,10 +22526,10 @@ The NEXT GROUP clause specifies information for vertical positioning of a page f
 #### 3.16.2 General Format
 
 <pre style="line-height:1">
-              ╭ integer-1
-              │
-<u>NEXT</u> <u>GROUP</u> IS ┤ <u>PLUS</u> integer-2 ╮
-              │                ├
+              ╭ integer-1      ╮
+              │                │
+<u>NEXT</u> <u>GROUP</u> IS ┤ <u>PLUS</u> integer-2 ├
+              │                │
               ╰ <u>NEXT</u> <u>PAGE</u>      ╯
 </pre>
 
@@ -23038,13 +23037,13 @@ Output Report File (Reel/Unit Media):
 
 The following operations take place:
 
-1) The standard ending reel/unit label procedure is executed.
+1\) The standard ending reel/unit label procedure is executed.
 
-2) A reel/unit swap. The current volume pointer is updated to point to the new reel/unit.
+2\) A reel/unit swap. The current volume pointer is updated to point to the new reel/unit.
 
-3) The standard beginning reel/unit label procedure is executed.
+3\) The standard beginning reel/unit label procedure is executed.
 
-4) The next executed write operation that references that file directs the next logical data record to the next reel/unit of the file.
+4\) The next executed write operation that references that file directs the next logical data record to the next reel/unit of the file.
 
 Output Report File (Non-Reel/Unit Media):
 
@@ -23130,11 +23129,11 @@ d. If a GENERATE data-name-1 statement is being executed, the processing for the
 
 a. Sense for control break. The rules for determining the equality of control data items are the same as those specified for relation conditions. If a control break has occurred then:
 
-1) Enable the control footing USE procedures and control footing SOURCE clauses to access the control data item values that the report writer control system used to detect a given control break. (See page XIII-55, The TYPE Clause.)
+1\) Enable the control footing USE procedures and control footing SOURCE clauses to access the control data item values that the report writer control system used to detect a given control break. (See page XIII-55, The TYPE Clause.)
 
-2) Process the control footing report groups in the order minor to major. Only control footing report groups that are not more major than the highest level at which a control break occurred are processed.
+2\) Process the control footing report groups in the order minor to major. Only control footing report groups that are not more major than the highest level at which a control break occurred are processed.
 
-3) Process the control heading report groups in the order major to minor. Only the control heading report groups that are not more major than the highest level at which a control break occurred are processed.
+3\) Process the control heading report groups in the order major to minor. Only the control heading report groups that are not more major than the highest level at which a control break occurred are processed.
 
 b. If a GENERATE data-name-1 statement is being executed, the processing for the designated detail report group is performed. If a GENERATE report-name-1 statement is being executed, certain of the steps that are involved in the processing of a detail report group are performed. (See page XIII-55, The TYPE Clause.)
 
@@ -23791,7 +23790,7 @@ The execution of a subsequent RECEIVE statement naming the same contents of the 
 
 a. When the RECEIVE MESSAGE phrase is specified, then:
 
-1) If an end of group has been detected, the content of the data item referenced by data-name-9 is set to 3;
+1\) If an end of group has been detected, the content of the data item referenced by data-name-9 is set to 3;
 
 XIV-8
 
@@ -23799,19 +23798,19 @@ XIV-8
 
 Communication - CD Entry
 
-2) If an end of message has been detected, the content of the data item referenced by data-name-9 is set to 2;
+2\) If an end of message has been detected, the content of the data item referenced by data-name-9 is set to 2;
 
-3) If less than a message is transferred, the content of the data item referenced by data-name-9 is set to 0.
+3\) If less than a message is transferred, the content of the data item referenced by data-name-9 is set to 0.
 
 b. When the RECEIVE SEGMENT phrase is specified, then:
 
-1) If an end of group has been detected, the content of the data item referenced by data-name-9 is set to 3;
+1\) If an end of group has been detected, the content of the data item referenced by data-name-9 is set to 3;
 
-2) If an end of message has been detected, the content of the data item referenced by data-name-9 is set to 2;
+2\) If an end of message has been detected, the content of the data item referenced by data-name-9 is set to 2;
 
-3) If an end of segment has been detected, the content of the data item referenced by data-name-9 is set to 1;
+3\) If an end of segment has been detected, the content of the data item referenced by data-name-9 is set to 1;
 
-4) If less than a message segment is transferred, the content of the data item referenced by data-name-9 is set to 0.
+4\) If less than a message segment is transferred, the content of the data item referenced by data-name-9 is set to 0.
 
 c. When more than one of the above conditions is satisfied simultaneously, the rule first satisfied in the order listed determines the content of the data item referenced by data-name-9.
 
@@ -23843,9 +23842,9 @@ c. The STATUS KEY clause defines data-name-3 to be an elementary alphanumeric da
 
 d. Character positions 11 through 23 and every set of 13 characters thereafter will form table items of the following description:
 
-1) The ERROR KEY clause defines data-name-4 as the name of an elementary alphanumeric data item of 1 character.
+1\) The ERROR KEY clause defines data-name-4 as the name of an elementary alphanumeric data item of 1 character.
 
-2) The SYMBOLIC DESTINATION clause defines data-name-5 as the name of an elementary alphanumeric data item of 12 characters.
+2\) The SYMBOLIC DESTINATION clause defines data-name-5 as the name of an elementary alphanumeric data item of 12 characters.
 
 Use of the above clauses results in a record whose implicit description is equivalent to the following:
 
@@ -23917,7 +23916,7 @@ f. The STATUS KEY clause defines data-name-6 as the name of an elementary alphan
 
 Use of either option results in a record whose implicit description is equivalent to the following:
 
-<pre>
+<pre style="line-height:1">
              <u>IMPLICIT DESCRIPTION</u>                             <u>COMMENT</u>
 
 01   data-name-0.
@@ -23969,17 +23968,17 @@ As part of the execution of a SEND statement, the MCS interprets the content of 
 
 a. When the RECEIVE MESSAGE phrase is specified:
 
-1) If an end of group has been detected, the content of the data item referenced by data-name-5 is set to 3;
+1\) If an end of group has been detected, the content of the data item referenced by data-name-5 is set to 3;
 
-2) If an end of message has been detected, the content of the data item referenced by data-name-5 is set to 2;
+2\) If an end of message has been detected, the content of the data item referenced by data-name-5 is set to 2;
 
-3) If less than a message is transferred, the content of the data item referenced by data-name-5 is set to 0.
+3\) If less than a message is transferred, the content of the data item referenced by data-name-5 is set to 0.
 
 b. When the RECEIVE SEGMENT phrase is specified:
 
-1) If an end of group has been detected, the content of the data item referenced by data-name-5 is set to 3;
+1\) If an end of group has been detected, the content of the data item referenced by data-name-5 is set to 3;
 
-2) If an end of message has been detected, the content of the data item referenced by data-name-5 is set to 2;
+2\) If an end of message has been detected, the content of the data item referenced by data-name-5 is set to 2;
 
 XIV-13
 
@@ -23987,9 +23986,9 @@ XIV-13
 
 Communication - CD Entry
 
-3) If an end of segment has been detected, the content of the data item referenced by data-name-5 is set to 1;
+3\) If an end of segment has been detected, the content of the data item referenced by data-name-5 is set to 1;
 
-4) If less than a message segment is transferred, the content of the data item referenced by data-name-5 is set to 0.
+4\) If less than a message segment is transferred, the content of the data item referenced by data-name-5 is set to 0.
 
 c. When more than one of the conditions is satisfied simultaneously, the rule first satisfied in the order listed determines the content of the data item referenced by data-name-5.
 
@@ -24714,7 +24713,7 @@ Debug - USE FOR DEBUGGING
 
 (10) Associated with each execution of a debugging section is the special register DEBUG-ITEM, which provides information about the conditions that caused the execution of a debugging section. DEBUG-ITEM has the following implicit description:
 
-<pre>
+<pre style="line-height:1">
 01  DEBUG-ITEM.
     02  DEBUG-LINE      PICTURE IS X(6).
     02  FILLER          PICTURE IS X  VALUE IS SPACE.
@@ -24779,11 +24778,11 @@ b. DEBUG-NAME contains procedure-name-1.
 
 c. DEBUG-CONTENTS contains:
 
-1) If the reference to procedure-name-1 is in the INPUT phrase of a SORT statement, 'SORT INPUT'.
+1\) If the reference to procedure-name-1 is in the INPUT phrase of a SORT statement, 'SORT INPUT'.
 
-2) If the reference to procedure-name-1 is in the OUTPUT phrase of a SORT statement, 'SORT OUTPUT'.
+2\) If the reference to procedure-name-1 is in the OUTPUT phrase of a SORT statement, 'SORT OUTPUT'.
 
-3) If the reference to procedure-name-1 is in the OUTPUT phrase of a MERGE statement, 'MERGE OUTPUT'.
+3\) If the reference to procedure-name-1 is in the OUTPUT phrase of a MERGE statement, 'MERGE OUTPUT'.
 
 (20) If the transfer of control from the control mechanism associated with a PERFORM statement caused the debugging section associated with procedure-name-1 to be executed, the following conditions exist:
 
@@ -25707,8 +25706,8 @@ Language Concepts Difference Summary
 | Characters used in punctuation , (comma) ; (semicolon) ........ | 2 NUC | 1 NUC | |
 | Characters used in punctuation : (colon) ....................... | N | 2 NUC | |
 | Characters used in punctuation = ............................... | 2 LIB | 2 STM | |
-| Characters used in editing B + - . , Z * $ 0 CR DB / .......... | 1 NUC | 1 NUC | |
-| Characters used in arithmetic operations + - * / ** ........... | 2 NUC | 2 NUC | |
+| Characters used in editing B + - . , Z \* $ 0 CR DB / .......... | 1 NUC | 1 NUC | |
+| Characters used in arithmetic operations + - \* / \*\* ........... | 2 NUC | 2 NUC | |
 | Characters used in relation conditions = &gt; &lt; .................. | 2 NUC | 1 NUC | |
 | Characters used in relation conditions &gt;= &lt;= .................. | N | 1 NUC | |
 | Characters used in subscripting + - ........................... | 2 TBL | 1 NUC | |
@@ -25775,7 +25774,7 @@ Language Concepts Difference Summary
 | Required words ................................................. | 1 NUC | 1 NUC | |
 | Key words ...................................................... | 1 NUC | 1 NUC | |
 | Special character words | | | |
-| Arithmetic operators + - * / ** .......................... | 2 NUC | 2 NUC | |
+| Arithmetic operators + - \* / \*\* .......................... | 2 NUC | 2 NUC | |
 | Arithmetic operators used in subscripting + - ............. | N | 1 NUC | |
 | Arithmetic operators used in indexing + - ................. | 2 TBL | 1 NUC | |
 | Relation characters = &gt; &lt; .................................. | 2 NUC | 1 NUC | |
@@ -26253,7 +26252,7 @@ Data Division Difference Summary
 | | 1 RPW | 1 RPW |
 | &nbsp;&nbsp;B allowed in alphabetic item | 1 NUC | N |
 | | 1 RPW | N |
-| &nbsp;Replacement or floating insertion characters $ + - Z * | 1 NUC | 1 NUC |
+| &nbsp;Replacement or floating insertion characters $ + - Z \* | 1 NUC | 1 NUC |
 | | 1 RPW | 1 RPW |
 | &nbsp;Currency sign substitution | 1 NUC | 1 NUC |
 | | 1 RPW | 1 RPW |
@@ -26332,7 +26331,7 @@ Procedure Division Difference Summary
 | | 1 RPW | 1 RPW |
 | | 1 DEB | 1 DEB |
 | Arithmetic expressions .......................................... | 2 NUC | 2 NUC |
-| Binary arithmetic operators &nbsp; + - * / ** &nbsp; ...................... | 2 NUC | 2 NUC |
+| Binary arithmetic operators &nbsp; + - \* / \*\* &nbsp; ...................... | 2 NUC | 2 NUC |
 | Unary arithmetic operators &nbsp; + - &nbsp; ............................. | 2 NUC | 2 NUC |
 | Conditional expressions ......................................... | 1 NUC | 1 NUC |
 | Simple condition ................................................ | 1 NUC | 1 NUC |
@@ -27326,7 +27325,7 @@ FOOTING phrase is specified in the LINAGE clause, then no footing area exists an
 
 In second Standard COBOL, the length was computed based on the value of the item in the DEPENDING ON phrase prior to the execution of the statement. Using the second Standard COBOL rules with a MOVE statement (or a READ INTO statement) could have resulted in loss of data if the value of the DEPENDING ON data item was not set to indicate the length of the sending data before the MOVE statement was executed.
 
-<pre>
+<pre style="line-height:1">
 FD  INPUT-FILE.
 01  A.
     02  A-TABLE.
@@ -27342,7 +27341,7 @@ WORKING-STORAGE SECTION.
 
 Suppose in the above program fragment, A-ODO is set to 10 and B-ODO is set to 5. Under second Standard COBOL, in order to move all occurrences of A-ITEM to B-TABLE, one would first move A-ODO to B-ODO. Thus, the following sequences of COBOL statements are equivalent:
 
-<pre>
+<pre style="line-height:1">
 Under second Standard COBOL:     Under third Standard COBOL:
 
 MOVE A-ODO TO B-ODO.             MOVE A TO B.
@@ -27361,7 +27360,7 @@ XVII-55
 
 Substantive Changes (Potentially Affecting)
 
-<pre>
+<pre style="line-height:1">
 FD  INPUT-FILE.
 01  A.
     02  A-TABLE.
@@ -27409,7 +27408,7 @@ The X3J4 COBOL Technical Committee believes that few programs will be affected b
 
 In second Standard COBOL, an item which was described with a REDEFINES clause could be specified in the USING phrase of the Procedure Division header. Thus the following example was legal:
 
-<pre>
+<pre style="line-height:1">
 LINKAGE SECTION.
 01  A  PIC X(10).
 01  B  REDEFINES A  PIC 9(10).
@@ -27499,7 +27498,7 @@ XVII-59
 
 Substantive Changes (Potentially Affecting)
 
-<pre>
+<pre style="line-height:1">
      COPY XYZ
     D    REPLACING 1 BY 2.
 </pre>
@@ -27538,7 +27537,7 @@ In second Standard COBOL, the point at which any subscript in the REMAINDER phra
 
 The only way that this change can affect existing programs is if: (1) the quotient is used as a subscript for the remainder, and (2) the subscript evaluation in the second Standard COBOL implementation does not already evaluate the subscript in the same manner as defined in third Standard COBOL. For example:
 
-<pre>
+<pre style="line-height:1">
 01  DD   PIC 99   VALUE IS 50.
 01  DR   PIC 99   VALUE IS 2.
 01  QU   PIC 99.
@@ -27611,7 +27610,7 @@ The order of initialization of multiple VARYING identifiers in the PERFORM state
 
 In the case where the setting of one identifier determines the value of the other, and the implementor chose to set identifier-5 first, an incompatibility may result. An example is as follows:
 
-<pre>
+<pre style="line-height:1">
           MOVE 2 TO X.
           PERFORM PARA1 VARYING X FROM 1 BY 1 UNTIL X = 3
               AFTER Y FROM X BY 1 UNTIL Y = 3.
@@ -27635,7 +27634,7 @@ In second Standard COBOL, general rule 6d of the PERFORM statement stated that w
 
 This change creates an incompatibility when there is a dependence between identifier-2 and identifier-5. Consider the following example:
 
-<pre>
+<pre style="line-height:1">
           PERFORM PARA3 VARYING X FROM 1 BY 1 UNTIL X IS GREATER THAN 3
               AFTER Y FROM X BY 1 UNTIL Y IS GREATER THAN 3.
 </pre>
@@ -27656,7 +27655,7 @@ Under third Standard COBOL, PARA3 will be executed 6 times with the following va
 
 One would expect the above example to perform the same as the following example:
 
-<pre>
+<pre style="line-height:1">
           PERFORM PARA2 VARYING X FROM 1 BY 1 UNTIL X IS GREATER THAN 3.
 
       PARA2.
@@ -27748,7 +27747,7 @@ Substantive Changes (Potentially Affecting)
 
 interpretation documents B-14 and B-134 that instigated this change. Thus, in the following example:
 
-<pre>
+<pre style="line-height:1">
           SD   FILEA ... .
           01   RECA   PIC S9(18).
           01   RECB   PIC 9(9)V9(9).
@@ -27801,7 +27800,7 @@ In second Standard COBOL, the order of evaluation of subscripts is not specified
 
 Consider the following example:
 
-<pre>
+<pre style="line-height:1">
     01  A  PIC X(1000).
     01  B  PIC XXX.
     01  PTR  REDEFINES B  PIC 999.
@@ -27829,7 +27828,7 @@ Substantive Changes (Potentially Affecting)
 
 Consider the following example:
 
-<pre>
+<pre style="line-height:1">
 01  A  PIC X(30).
 01  BB.
     02  PTR  PIC 99.
@@ -28259,7 +28258,7 @@ Obsolete Element List
 
 The reason for making this element obsolete is that the results of moving an ALL literal to a numeric data item are often unexpected. For example, according to the interpretation contained in X3J4 interpretation document B-23 the statements
 
-<pre>
+<pre style="line-height:1">
 01  A  PIC 99V99.
 
 MOVE ALL "99" TO A.
@@ -31022,7 +31021,7 @@ A-5
 |---|---|
 | I-40 | Paragraph 3.1, second paragraph, add the following to the list: |
 
-<pre>
+<pre style="line-height:1">
           ITR     Intrinsic Function
 </pre>
 
@@ -31031,7 +31030,7 @@ A-5
 | I-41 (T) | Under "Character Set", change entry in MODULE column for "Characters used in punctuation =" from "1 STM" to "2 STM". |
 | I-42 | Add the following before the entry for "Literals"; align the word "Function-names" one position to the right of the word "Literals": |
 
-<pre>
+<pre style="line-height:1">
 Function-names . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   1 ITR
 </pre>
 
@@ -31040,7 +31039,7 @@ Function-names . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   1 I
 | I-42 | Change the entry for "Reference modification" to "Reference-modifier". |
 | I-42 | Add the following before the entry for "Reference-modifier"; align the word "Function-identifier" with the word "Reference-modifier": |
 
-<pre>
+<pre style="line-height:1">
 Function-identifier . . . . . . . . . . . . . . . . . . . . . . . . . . . .   1 ITR
 </pre>
 
@@ -31050,7 +31049,7 @@ Function-identifier . . . . . . . . . . . . . . . . . . . . . . . . . . . .   1 
 | I-51 (T) | In the line following "Level-number clause", change "may be 1 or 1 digits" to "may be 1 or 2 digits". |
 | I-54 | Add the following before the entry for "ACCEPT statement": |
 
-<pre>
+<pre style="line-height:1">
 Intrinsic functions
  ACOS function . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   1 ITR
  ANNUITY function . . . . . . . . . . . . . . . . . . . . . . . . . . . .   1 ITR
@@ -31612,14 +31611,14 @@ During X3J4's work on Addendum 1 for Standard COBOL, close and continuous liaiso
 
 **XVII-17** Add the following before the entry for "User-defined words"; align the word "Function-names" with the word "User-defined":
 
-<pre>
+<pre style="line-height:1">
 Function-names, system-names, and user-defined words form
     intersecting sets. . . . . . . . . . . . . . . . . . . . . . . . . . .  N    1 ITR
 </pre>
 
 **XVII-18** Add the following before the entry for "Literals"; align the word "Function-names" one position to the right of the word "Literals":
 
-<pre>
+<pre style="line-height:1">
 Function-names . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  N    1 ITR
 </pre>
 
@@ -31627,7 +31626,7 @@ Function-names . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  N    1
 
 **XVII-19** Add the following before the entry for "Reference-modifier"; align the word "Function-identifier" with the word "Reference-modifier":
 
-<pre>
+<pre style="line-height:1">
 Function-identifier . . . . . . . . . . . . . . . . . . . . . . . . . .  N    1 ITR
 </pre>
 
@@ -31922,11 +31921,11 @@ Intrinsic Function - Function Summary
 
 | FUNCTION-NAME | ARGUMENTS | TYPE | VALUE RETURNED |
 |---|---|---|---|
-| MAX | A1 ... or<br>I1 ... or<br>N1 ... or<br>X1 ... | Depends upon arguments* | Value of maximum argument |
+| MAX | A1 ... or<br>I1 ... or<br>N1 ... or<br>X1 ... | Depends upon arguments\* | Value of maximum argument |
 | MEAN | N1 ... | N | Arithmetic mean of arguments |
 | MEDIAN | N1 ... | N | Median of arguments |
 | MIDRANGE | N1 ... | N | Mean of minimum and maximum arguments |
-| MIN | A1 ... or<br>I1 ... or<br>N1 ... or<br>X1 ... | Depends upon arguments* | Value of minimum argument |
+| MIN | A1 ... or<br>I1 ... or<br>N1 ... or<br>X1 ... | Depends upon arguments\* | Value of minimum argument |
 | MOD | I1, I2 | I | I1 modulo I2 |
 | NUMVAL | X1 | N | Numeric value of simple numeric string |
 | NUMVAL-C | X1, X2 | N | Numeric value of numeric string with optional commas and currency sign |
@@ -31938,7 +31937,7 @@ Intrinsic Function - Function Summary
 | RANGE | I1 ... or<br>N1 ... | Depends upon argument | Value of maximum argument minus value of minimum argument |
 | REM | N1, N2 | N | Remainder of N1/N2 |
 
-*A function that has only alphabetic arguments is type alphanumeric.
+\*A function that has only alphabetic arguments is type alphanumeric.
 
 Table 1: Table of Functions (Continued)
 
@@ -32346,7 +32345,7 @@ The INTEGER-OF-DAY function converts a date in the Gregorian calendar from Julia
 
 ### 2.17.3 Arguments
 
-(1) Argument-1 must be an integer of the form YYYYDDD, whose value is obtained from the calculation (YYYY * 1000) + DDD.
+(1) Argument-1 must be an integer of the form YYYYDDD, whose value is obtained from the calculation (YYYY \* 1000) + DDD.
 
 a. YYYY represents the year in the Gregorian calendar. It must be an integer greater than 1600.
 
@@ -32690,7 +32689,7 @@ The MOD function returns an integer value that is argument-1 modulo argument-2. 
 
 (1) The returned value is argument-1 modulo argument-2. The returned value is defined as:
 
-argument-1 - (argument-2 * FUNCTION INTEGER (argument-1 / argument-2))
+argument-1 - (argument-2 \* FUNCTION INTEGER (argument-1 / argument-2))
 
 (2) The following illustrates the expected results for some values of argument-1 and argument-2.
 
@@ -33020,7 +33019,7 @@ The REM function returns a numeric value that is the remainder of argument-1 div
 
 (1) The returned value is the remainder of argument-1 / argument-2. It is defined as the expression:
 
-<pre>
+<pre style="line-height:1">
           argument-1 - (argument-2 * FUNCTION INTEGER-PART (argument-1 / argument-2))
 </pre>
 
@@ -33761,21 +33760,21 @@ F. Close Reel/Unit
 
 <u>Input Files and Input-Output Files</u> <u>(Reel/Unit Media)</u>:
 
-1) If the current reel/unit is the last or only reel/unit for the file, there is no reel/unit swap, the current volume pointer remains unchanged, and the file position indicator is set to indicate that no next reel/unit exists.
+1\) If the current reel/unit is the last or only reel/unit for the file, there is no reel/unit swap, the current volume pointer remains unchanged, and the file position indicator is set to indicate that no next reel/unit exists.
 
-2) If another reel/unit exists for the file, a reel/unit swap occurs, the current volume pointer is updated to point to the next reel/unit existing in the file, the standard beginning reel/unit label procedure is executed, and the file position indicator is set to one less than the number of the first record existing on the new current volume. If no data records exist for the current volume, another reel/unit swap occurs.
+2\) If another reel/unit exists for the file, a reel/unit swap occurs, the current volume pointer is updated to point to the next reel/unit existing in the file, the standard beginning reel/unit label procedure is executed, and the file position indicator is set to one less than the number of the first record existing on the new current volume. If no data records exist for the current volume, another reel/unit swap occurs.
 
 <u>Output Files</u> <u>(Reel/Unit Media)</u>:
 
 The following operations take place:
 
-1) The standard ending reel/unit label procedure is executed.
+1\) The standard ending reel/unit label procedure is executed.
 
-2) A reel/unit swap. The current volume pointer is updated to point to the new reel/unit.
+2\) A reel/unit swap. The current volume pointer is updated to point to the new reel/unit.
 
-3) The standard beginning reel/unit label procedure is executed.
+3\) The standard beginning reel/unit label procedure is executed.
 
-4) The next executed WRITE statement that references that file directs the next logical data record to the next reel/unit of the file.
+4\) The next executed WRITE statement that references that file directs the next logical data record to the next reel/unit of the file.
 
 <u>Input Files</u>, <u>Input-Output Files</u>, <u>and Output Files</u> <u>(Non-Reel/Unit Media)</u>:
 
@@ -34155,7 +34154,7 @@ In third Standard COBOL, the length of a figurative constant is zero when associ
 
 Given the following data descriptions in third Standard COBOL:
 
-<pre>
+<pre style="line-height:1">
 DATA DIVISION.
 01  K  PIC 9  VALUE IS 0.
 01  A.
@@ -34221,7 +34220,7 @@ In second Standard COBOL, a PICTURE character-string could be represented with a
 
 The following code was valid in second Standard COBOL but probably did not produce the results that the programmer expected.
 
-<pre>
+<pre style="line-height:1">
 01   FIELD-A   PIC V+(5).
 01   FIELD-B   PIC .$$.
 
@@ -34280,7 +34279,7 @@ ANSI X3.23b-1993
 
 For example, third Standard COBOL does not define what would happen when the following code is executed:
 
-<pre>
+<pre style="line-height:1">
 01  GROUP-ITEM-1.
     05  ODO-DEPEND  PIC 9.
     05  ODO-TABL.
@@ -34336,7 +34335,7 @@ This substantive change was introduced by third Standard COBOL; however, it was 
 
 In second Standard COBOL, the rules for transfer of control were not explicit when a size error condition occurred and an ON SIZE ERROR phrase was not specified. The rules for this situation have been made explicit in third Standard COBOL to ensure that execution will continue using the standard rules for transfer of control. For example:
 
-<pre>
+<pre style="line-height:1">
 01  DIGIT1  PIC 9  VALUE 9.
 01  DIGIT2  PIC 99  VALUE 9.
 01  VALUE-ZERO  PIC 9  VALUE 0.
@@ -34368,13 +34367,13 @@ This substantive change was introduced by third Standard COBOL; however, it was 
 
 In third Standard COBOL, a temporary data item is always used in evaluating arithmetic statements with multiple receiving fields. Thus the result of the statement
 
-<pre>
+<pre style="line-height:1">
         MULTIPLY NUM-1 BY NUM-1 NUM-2
 </pre>
 
 is equivalent to
 
-<pre>
+<pre style="line-height:1">
         MOVE NUM-1 TO TEMP
         MULTIPLY TEMP BY NUM-1
         MULTIPLY TEMP BY NUM-2
@@ -34384,13 +34383,13 @@ Thus an initial value of 2 in field NUM-1 and 3 in field NUM-2 would give a resu
 
 In second Standard COBOL, it was not defined whether a temporary data item was used when no arithmetic was necessary to derive an intermediate operand. Thus an implementation of second Standard COBOL could have interpreted the statement
 
-<pre>
+<pre style="line-height:1">
         MULTIPLY NUM-1 BY NUM-1 NUM-2
 </pre>
 
 as being equivalent to
 
-<pre>
+<pre style="line-height:1">
         MULTIPLY NUM-1 BY NUM-1
         MULTIPLY NUM-1 BY NUM-2
 </pre>
@@ -34441,7 +34440,7 @@ This substantive change was introduced by third Standard COBOL; however, it was 
 
 Consider an example where the following library text has the text-name COPY-1:
 
-<pre>
+<pre style="line-height:1">
 01  TABL.
     05  TABL-ENTRIES  OCCURS 3 TIMES.
         10  ELEM  PIC X(01).
@@ -34454,7 +34453,7 @@ MAINLINE.
 
 and the source program includes in part:
 
-<pre>
+<pre style="line-height:1">
 DATA DIVISION.
 WORKING-STORAGE SECTION.
     COPY COPY-1
@@ -34536,7 +34535,7 @@ ANSI X3.23b-1993
 
 In the Correction Amendment, identifier-1 in all formats of the INSPECT statement is treated as if it were a sending data item for the purpose of determining its length. This causes the length to be consistently evaluated according to the value of the item named in the DEPENDING ON phrase of the OCCURS clause. In the following example, GROUP-ITEM has a length of 10 when referenced in the INSPECT statement.
 
-<pre>
+<pre style="line-height:1">
 01  GROUP-ITEM.
     02  TABLE-SIZE  PIC S9(5)  VALUE IS 5.
     02  TABLE-ITEM  PIC X  OCCURS 1 TO 20 TIMES

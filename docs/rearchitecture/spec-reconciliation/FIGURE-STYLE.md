@@ -177,6 +177,12 @@ clear of what it holds where no other row's word stands in the way. `restyle` as
 drawing (`compare` empty) and refuses what it cannot derive: a box drawn as a full rectangle (rule 9 draws sides
 only) and the batch's arrows. Those, and a drawing the page shows wrong, are the refuter's own, `neither`.
 
+**The figure audits on a scan** (kb/Work PB4849). `--check` holds every figure of a scanned edition to the measured
+page, so the audits that check a vector page's underlines, structure and words (`audit_underlining`,
+`audit_figure_structure`, `audit_figure_text`) have no scan arm: on a scan they refuse, naming `spec_pdf.scan_check`.
+`audit_grammar_optional_words` checks the grammar against the figures, which nothing else does, so on a scan it reads
+the decided figures in the transcription (`figure_options.read_drawn`) instead of the PDF's vector layer.
+
 ## Layout rules, for the generator
 
 ### A blank row between groups
@@ -202,6 +208,15 @@ one level further out — which is why ACCEPT Format 3 keeps its printed seven r
 Depth is counted against the delimiters spanning **both** rows of the pair, never against whatever crosses each
 row separately: in the relation condition the operand braces cover only part of the figure's height, so
 measuring per row made `IS <>` depth 3 and the row below it depth 1, and two plain siblings failed to pair.
+
+### A brace's two pieces are one shape
+
+The page prints one brace: its opening and closing pieces span the same rows and point at the same row, the row of
+the label beside it. They are measured piece by piece, and on a scan the two pieces of one brace measure a row apart
+(1985 PDF pages 407, 426, 559 and 602; page 628's closer ran two rows short). So `render_figure.pair_glyphs` pairs
+each opening piece with its closing one, as `enclosures` pairs them, and draws the pair over the rows of both pieces
+with one point: the row both pieces measure, else the measured one carrying the label left of the opener, else the
+opener's (kb/Work PB4849).
 
 ### An outer enclosure's label may not subdivide an inner one
 
