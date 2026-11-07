@@ -28,7 +28,10 @@ THE KEY is the first non-empty line of the file `--api-key-file` (api_key.read_a
 is never printed, logged or written to state.
 
 LOCAL BACKEND. `pages ... --local MODEL` sends the same render and prompt to a local vision model (Ollama) and records the
-model, digest, time and token counts per page in `local.json`; the model's outer code fence is removed. `check` compares a
+model, digest, time and token counts per page in `local.json`; the model's outer code fence is removed. A request that
+fails (HTTP 500, a dropped connection, a timeout) is tried `LOCAL_TRIES` times with a pause; a page that fails them all is
+recorded in `local.json` with the error and the model, the run goes on, `status` lists the failed pages and the exit code is
+nonzero. `pages <list> --local ANOTHER` retries them. `check` compares a
 page with the PDF's text layer (word recall and precision) and prints numbers only, never page text.
 
 THE STAMP. Every page of a bought PDF carries the reseller's per-copy stamp, which no tracked file may carry
@@ -50,6 +53,7 @@ import argparse
 import base64
 import collections
 import datetime
+import http.client
 import json
 import pathlib
 import re
@@ -81,6 +85,13 @@ BATCH_BYTES = 180 * 1024 * 1024
 CLIENT_RETRIES = 8
 CLIENT_TIMEOUT_SECONDS = 900
 OLLAMA = "http://127.0.0.1:11434"
+#: A local request that fails (a model still loading, a memory error: HTTP 500, a dropped connection, a timeout) is tried this
+#: many times in all, with this pause between tries; a page that fails them all is recorded in local.json and the run goes on.
+LOCAL_TRIES = 3
+LOCAL_RETRY_SECONDS = 20
+#: What a failed request raises: urllib's URLError/HTTPError and socket timeouts are OSErrors, a torn reply an HTTPException,
+#: a reply that is not JSON a ValueError.
+LOCAL_ERRORS = (OSError, http.client.HTTPException, ValueError)
 
 #: Each edition's name in the prompt (the model is told what it is transcribing).
 EDITION_NAMES: dict[int, str] = {
@@ -205,7 +216,12 @@ class Run:
         return {p for p in range(1, count + 1) if self.page_file(p).exists()}
 
     def local_log(self) -> dict[str, Any]:
+        """local.json: per page name, the provenance of a locally converted page, or `{"error": ...}` for one that failed."""
         return json.loads(self.local_file.read_text(encoding="utf-8")) if self.local_file.exists() else {}
+
+    def local_failed(self) -> list[int]:
+        """The pages whose last local conversion failed (a later success replaces the page's record)."""
+        return sorted(int(n[1:]) for n, rec in self.local_log().items() if "error" in rec)
 
     def put(self, pno: int, text: str, replace: bool = False) -> bool:
         """Write page `pno` once. An existing page is kept unless `replace`, which first keeps the old text in orig/.
@@ -367,9 +383,13 @@ def cost_so_far(st: dict[str, Any]) -> float:
 def print_status(run: Run, st: dict[str, Any]) -> None:
     count = st["pages"]
     missing = [p for p in range(1, count + 1) if not run.page_file(p).exists()]
-    local = sorted(run.local_log())
-    print(f"pages written {count - len(missing)}/{count}; local {len(local)}; cost so far ${cost_so_far(st):.2f}; missing {len(missing)} {missing[:20]}",
+    log = run.local_log()
+    failed = run.local_failed()
+    print(f"pages written {count - len(missing)}/{count}; local {len(log) - len(failed)}; cost so far ${cost_so_far(st):.2f}; missing {len(missing)} {missing[:20]}",
           flush=True)
+    if failed:
+        print(f"local conversions failed {len(failed)}: " + "; ".join(f"{p} ({log[page_name(p)]['model']}: {log[page_name(p)]['error']})" for p in failed[:20]),
+              flush=True)
 
 
 # -- the local backend --------------------------------------------------------------------------------------------------
@@ -381,30 +401,65 @@ def ollama_post(path: str, body: dict[str, Any] | None = None) -> Any:
         return json.loads(r.read())
 
 
+def post_with_retries(post: Callable[[str, dict[str, Any] | None], Any], path: str, body: dict[str, Any] | None,
+                      sleep: Callable[[float], None]) -> Any:
+    """`post`, tried up to LOCAL_TRIES times with LOCAL_RETRY_SECONDS between; the last failure is raised."""
+    for attempt in range(1, LOCAL_TRIES + 1):
+        try:
+            return post(path, body)
+        except LOCAL_ERRORS as e:
+            if attempt == LOCAL_TRIES:
+                raise
+            print(f"  {path}: {type(e).__name__}: {e}; try {attempt + 1} of {LOCAL_TRIES} in {LOCAL_RETRY_SECONDS} s", flush=True)
+            sleep(LOCAL_RETRY_SECONDS)
+    raise AssertionError("unreachable")
+
+
 def local_pages(run: Run, pdf: pathlib.Path, model: str, pages: list[int], replace: bool,
-                post: Callable[[str, dict[str, Any] | None], Any] = ollama_post) -> None:
-    """Convert named pages with a local vision model; the provenance of each is recorded in local.json."""
+                post: Callable[[str, dict[str, Any] | None], Any] = ollama_post,
+                sleep: Callable[[float], None] = time.sleep) -> list[int]:
+    """Convert named pages with a local vision model; the provenance of each is recorded in local.json.
+    A page that cannot be converted (every try of the request failed, the reply did not stop, or the stamp check refused it) is
+    recorded in local.json with the error and the model, and the run goes on to the next page; the failed pages are returned
+    and `main` exits nonzero for them. `pages ... --local ANOTHER` retries them (a failed page has no file)."""
     digest = next((m["digest"] for m in post("/api/tags", None)["models"] if m["name"] == model), "")
     log = run.local_log()
+    failed: list[int] = []
+
+    def fail(pno: int, why: str) -> None:
+        name = page_name(pno)
+        print(f"{name}: NOT written, {why}", flush=True)
+        log[name] = {"model": model, "error": why, "at": datetime.datetime.now().astimezone().isoformat()}
+        write_atomic(run.local_file, json.dumps(log, indent=1))
+        failed.append(pno)
+
     for pno in pages:
         name = page_name(pno)
         if run.page_file(pno).exists() and not replace:
             print(f"{name}: already written, skipped", flush=True)
             continue
         image = base64.standard_b64encode(render_png(pdf, pno)).decode()
-        r = post("/api/chat", {"model": model, "stream": False, "think": False,
-                               "options": {"temperature": 0, "num_ctx": 32768, "num_predict": 16000},
-                               "messages": [{"role": "user", "content": prompt_for(run.edition), "images": [image]}]})
+        body = {"model": model, "stream": False, "think": False,
+                "options": {"temperature": 0, "num_ctx": 32768, "num_predict": 16000},
+                "messages": [{"role": "user", "content": prompt_for(run.edition), "images": [image]}]}
+        try:
+            r = post_with_retries(post, "/api/chat", body, sleep)
+        except LOCAL_ERRORS as e:
+            fail(pno, f"{type(e).__name__}: {e}")
+            continue
         if r.get("done_reason") != "stop":
-            print(f"{name}: NOT written, done_reason={r.get('done_reason')}", flush=True)
+            fail(pno, f"done_reason={r.get('done_reason')}")
             continue
         if not run.put(pno, r["message"]["content"], replace=replace):
-            print(f"{name}: NOT written, the stamp check refused it or it was empty", flush=True)
+            fail(pno, "the stamp check refused it or it was empty")
             continue
         log[name] = {"model": model, "digest": digest, "at": datetime.datetime.now().astimezone().isoformat(),
                      "prompt_tokens": r.get("prompt_eval_count"), "output_tokens": r.get("eval_count")}
         write_atomic(run.local_file, json.dumps(log, indent=1))
         print(f"{name}: written, {r.get('eval_count')} tokens", flush=True)
+    if failed:
+        print(f"local conversion FAILED for {len(failed)} page(s): {failed}; rerun with --local ANOTHER-MODEL to retry them", flush=True)
+    return failed
 
 
 def bag(text: str) -> collections.Counter[str]:
@@ -528,8 +583,7 @@ def main(argv: list[str] | None = None, client_factory: Callable[[str], Any] = m
         return 0
     st = run.load(pdf_page_count(pdf) if pdf else None, model)
     if a.cmd == "pages" and a.local:
-        local_pages(run, pdf, a.local, parse_pages(a.pages, st["pages"]), a.replace)
-        return 0
+        return 1 if local_pages(run, pdf, a.local, parse_pages(a.pages, st["pages"]), a.replace) else 0
     if a.cmd == "status" and not a.api_key_file:
         print_status(run, st)
         return 0
