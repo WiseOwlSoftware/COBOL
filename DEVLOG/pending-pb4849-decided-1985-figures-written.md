@@ -41,4 +41,8 @@ counts the checks it runs.
 `test_figure_raster` 10g (an OCR `)` supports `}`), `test_render_figure` (22). No compiler behaviour changed, so there
 are no goldens and no inventory rows.
 
-**Result.** RESULT_PLACEHOLDER
+**Result.** Before the write, the cross-check over all 501 `<pre>` blocks gave 178 agree, 73 disagree, 210 unpaired
+and 40 unlocated. `--apply` wrote 148 general formats in the house style. The 30 other agreeing blocks are not where a
+general format is printed, so they were left as drawn. The re-run `--check` finds all 148 in their decided form and
+none drifted. 353 blocks await a verdict: 277 general formats and 76 other blocks. The local build gate ran on this
+head; its verdict line is in the wave report.
