@@ -1227,7 +1227,7 @@ public static class PictureAnalyzer
                 return Usage.FloatLong;
             case "FLOAT-EXTENDED":
                 return Usage.FloatExtended;
-            // The COBOL-2014 IEEE-754 interchange float family (§13.18.60.4 GR14-18). binary32/64 map EXACTLY to
+            // The COBOL-2014 IEEE-754 interchange float family (§2023:13.18.60.4 GR14-18). binary32/64 map EXACTLY to
             // native float/double (the pinned ISO/IEC 60559:2020 formats are conforming) — LIVE (P12 wave 3). The
             // introduction gate (0900 below 2014) fires from UsageConstructId.
             case "FLOAT-BINARY-32":

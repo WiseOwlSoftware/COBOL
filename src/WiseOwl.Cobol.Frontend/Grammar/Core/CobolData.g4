@@ -378,7 +378,7 @@ dataDescriptionClause
     | justifiedClause
     | blankWhenZeroClause
     | alignedClause   // ISO §2023:13.18.1 (COBOL-2002); superset parse, introduction-gated by VersionConformancePass ParseArm.VisitAlignedClause
-    | constantRecordClause   // COBOL-2014 §13.18.15; superset parse, introduction-gated by VersionConformancePass ParseArm.VisitConstantRecordClause
+    | constantRecordClause   // COBOL-2014 §2023:13.18.15; superset parse, introduction-gated by VersionConformancePass ParseArm.VisitConstantRecordClause
     | propertyClause   // COBOL-2002; parses at all editions (superset), introduction-gated post-bind by VersionConformancePass ParseArm.VisitPropertyClause (rearch 14g.2). (The VALUE-list PROPERTY guards below are KEPT — they are value-operand disambiguation, not an edition gate.)
     | externalClause
     | globalClause
@@ -388,7 +388,7 @@ dataDescriptionClause
     | basedClause
     | anyLengthClause
     | dynamicLengthClause
-    | groupUsageClause   // COBOL-2002 §13.18.29 (kb/Work PB79); superset parse, introduction-gated by VersionConformancePass ParseArm.VisitGroupUsageClause
+    | groupUsageClause   // COBOL-2002 §2023:13.18.29 (kb/Work PB79); superset parse, introduction-gated by VersionConformancePass ParseArm.VisitGroupUsageClause
     | selectWhenClause   // ISO §2023:13.18.51 — Annex A.4.8 item 2), DECLINED: recognize-only, refused by name at bind (COBOL1705)
     | {is2002()}? validationClause   // ISO §2023:13.16.2 validation-clauses — Annex A.4.14, DECLINED: recognize-only, refused by name at bind (COBOL1708); the rule and its rationale are in Grammar/Core/CobolDeclined.g4
     | unrecognizedDataClause   // ⛔ LAST — the error production above; refused BY NAME by ClosedFormatPass (COBOL1941)
@@ -423,7 +423,7 @@ conditionName
     : cobolWord
     ;
 
-// GROUP-USAGE clause (COBOL-2002 §13.18.29): the group item is treated as an elementary item of usage bit /
+// GROUP-USAGE clause (COBOL-2002 §2023:13.18.29): the group item is treated as an elementary item of usage bit /
 // category boolean (BIT) or usage national / category national (NATIONAL) — data-model design D20. Only the
 // GROUP-USAGE token is unique to this clause; BIT / NATIONAL stand alone here (no USAGE prefix), which is why
 // they are dedicated tokens rather than cobolWord-admitted here.
@@ -451,13 +451,13 @@ externalClause
     : IS? EXTERNAL externalizedNamePhrase?
     ;
 
-// BASED clause (COBOL-2002 §13.18.5) — level 01/77 only; the item is a template with an implicit
+// BASED clause (COBOL-2002 §2023:13.18.5) — level 01/77 only; the item is a template with an implicit
 // data-address pointer (initially NULL) and NO storage until SET ADDRESS OF / ALLOCATE gives it one.
 basedClause
     : BASED   // introduction-gated post-bind by VersionConformancePass ParseArm.VisitBasedClause (rearch 14g.2)
     ;
 
-// CONSTANT RECORD clause (COBOL-2014 §13.18.15) — identifies a STRUCTURED CONSTANT: the record's content is
+// CONSTANT RECORD clause (COBOL-2014 §2023:13.18.15) — identifies a STRUCTURED CONSTANT: the record's content is
 // its normal initial content (§2023:13.18.15.4 GR1 — as though INITIALIZE … WITH FILLER ALL TO VALUE THEN TO
 // DEFAULT), and neither the record nor any subordinate may be a receiving operand (SR2 → COBOL1548 at
 // bind). Structural SRs (§2023:13.18.15 SR1 WS/LS-only; §2023:13.16.3 SR3/SR6/SR13) bind-check in DataBinder.
@@ -465,7 +465,7 @@ constantRecordClause
     : CONSTANT RECORD   // introduction-gated post-bind by VersionConformancePass ParseArm.VisitConstantRecordClause
     ;
 
-// ANY LENGTH clause (COBOL-2002 §13.18.2) — the length of a LINKAGE item varies at runtime with the length
+// ANY LENGTH clause (COBOL-2002 §2023:13.18.2) — the length of a LINKAGE item varies at runtime with the length
 // of the corresponding argument (GR1). UNGATED superset parse (the basedClause pattern); the SR1–SR4 shape
 // rules bind-check in DataBinder and the placement sweeps.
 anyLengthClause

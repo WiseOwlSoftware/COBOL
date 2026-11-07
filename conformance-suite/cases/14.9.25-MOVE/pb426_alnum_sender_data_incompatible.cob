@@ -6,7 +6,7 @@
 *> portable: unverified
 *>---
       *> ISO §2023:14.9.25.4 GR6 d) 1 — THE POSITIVE CONTROL FOR THE ALPHANUMERIC SENDER'S EXCEPTION CONDITION,
-      *> at the earliest edition that has the checking model it needs (>>TURN is COBOL-2002, §7.3.25 —
+      *> at the earliest edition that has the checking model it needs (>>TURN is COBOL-2002, §2023:7.3.25 —
       *> negative/pb844-ec-data-incompatible-turn-below-2002 pins its refusal below that).
       *>
       *> THE RULES, --check validated:

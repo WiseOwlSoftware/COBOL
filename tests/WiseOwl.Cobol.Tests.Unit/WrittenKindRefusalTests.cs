@@ -228,7 +228,7 @@ public sealed class WrittenKindRefusalTests
     [InlineData("paren-2023", 2023, Head + Table + "       PROCEDURE DIVISION.\n           COMPUTE W-N = (W-N + 1.\n           STOP RUN.\n",
         "expected B-AND, B-OR, B-SHIFT-L, B-SHIFT-LC, B-SHIFT-R, B-SHIFT-RC, B-XOR, '**', ')', '+', '-', '*' or '/' (ISO §2023:5.2.1)", null)]
     [InlineData("program-id-attribute-85", 85, "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. PB4174G IS GLOBAL.\n" + Proc,
-        "expected COMMON or INITIAL (ISO §2023:5.2.1)", "PROTOTYPE")]   // RECURSIVE is in the 2002 list of §2023:8.10, PROTOTYPE a 2002 §2023:8.9 word
+        "expected COMMON or INITIAL (ISO §2023:5.2.1)", "PROTOTYPE")]   // RECURSIVE is in the 2002 list of §2002:8.10, PROTOTYPE a 2002 §2002:8.9 word
     [InlineData("program-id-attribute-2002", 2002, "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. PB4174G IS GLOBAL.\n" + Proc,
         "expected COMMON, INITIAL, PROTOTYPE or RECURSIVE (ISO §2023:5.2.1)", null)]
     [InlineData("use-85", 85, UseDeclarative, "expected AFTER, BEFORE, ERROR, EXCEPTION", "EC, EO")]

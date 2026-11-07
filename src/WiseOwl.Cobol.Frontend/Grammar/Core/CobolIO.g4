@@ -79,7 +79,7 @@ fileControlClauses
     | fileStatusClause
     | fileReserveClause
     | paddingCharacterClause
-    // COBOL-2002 file sharing / record locking (ISO §12.4.5.15 / §2023:12.4.5.9) — unique leading tokens
+    // COBOL-2002 file sharing / record locking (ISO §2023:12.4.5.15 / §2023:12.4.5.9) — unique leading tokens
     // (SHARING / LOCK), ADDITIVE (the DEVLOG 621/622 lesson).
     | sharingClause   // COBOL-2002; parses at all editions (superset), introduction-gated post-bind by VersionConformancePass ParseArm.VisitSharingClause (rearch 14g.4)
     | lockModeClause   // LOCK MODE (LOCK/MODE hard-reserved) introduction-gated post-bind by VersionConformancePass ParseArm.VisitLockModeClause (rearch 14g.4)
@@ -118,7 +118,7 @@ fileCollatingSequenceClause
       )
     ;
 
-// COBOL-2002 SHARING clause (ISO §12.4.5.15): the file-connector sharing mode.
+// COBOL-2002 SHARING clause (ISO §2023:12.4.5.15): the file-connector sharing mode.
 sharingClause
     : SHARING WITH? sharingMode
     ;
@@ -128,7 +128,7 @@ sharingMode
     | READ ONLY
     ;
 
-// COBOL-2002 LOCK MODE clause (ISO §12.4.5.9): MANUAL / AUTOMATIC (no EXCLUSIVE), with an optional
+// COBOL-2002 LOCK MODE clause (ISO §2023:12.4.5.9): MANUAL / AUTOMATIC (no EXCLUSIVE), with an optional
 // single/multiple record-lock granularity.
 // ⛔ MODE IS AN OPTIONAL WORD (§2023:8.3.2.4.3; kb/Work PB695 family 3), so `LOCK IS MANUAL` and the bare
 // `LOCK MANUAL` are conforming source this rule used to refuse with COBOL0001. MEASURED on printed page 355 /
@@ -411,12 +411,12 @@ openClause
     : openMode (sharingPhrase)? ({is2002() || retryPhraseAhead()}? retryPhrase)? openFileSpec+   // both phrases superset-parsed, gated at BIND (BindOpen → Check(FileSharingClause2002) / GateRetryIntro → Check(RetryPhrase2002)). SHARING is unambiguous; RETRY sits in the openFileSpec+ name-list, so below 2002 (where RETRY is a legal §2023:8.9 user word) the forward-detect retryPhraseAhead() only enters the phrase on an UNAMBIGUOUS numeric tail (n TIMES | FOR? n SECONDS — an integer can never be a file name) with a file name still to follow; RETRY FOREVER / bare RETRY stay file names (fail-safe).
     ;
 
-// COBOL-2002 OPEN SHARING phrase (ISO §14.9.27) — overrides the file-control SHARING clause for this OPEN.
+// COBOL-2002 OPEN SHARING phrase (ISO §2023:14.9.27) — overrides the file-control SHARING clause for this OPEN.
 sharingPhrase
     : SHARING WITH? sharingMode
     ;
 
-// COBOL-2002 RETRY phrase (ISO §14.7.9) on OPEN / READ / WRITE / REWRITE / DELETE — how to react to a lock.
+// COBOL-2002 RETRY phrase (ISO §2023:14.7.9) on OPEN / READ / WRITE / REWRITE / DELETE — how to react to a lock.
 retryPhrase
     : RETRY (arithmeticExpression TIMES | FOR? arithmeticExpression SECONDS | FOREVER)
     ;
@@ -526,10 +526,10 @@ readStatement
 readLockContentionPhrase
     : readAdvancingOnLock
     | readIgnoringLock
-    | retryPhrase   // COBOL-2002 (§14.7.9); superset-parsed, introduction-gated in the VersionConformancePass parse arm (VisitRetryPhrase → Check(RetryPhrase2002))
+    | retryPhrase   // COBOL-2002 (§2023:14.7.9); superset-parsed, introduction-gated in the VersionConformancePass parse arm (VisitRetryPhrase → Check(RetryPhrase2002))
     ;
 
-// COBOL-2002 READ … ADVANCING ON LOCK (ISO §14.9.30 GR22): skip-scan locked records on NEXT/PREVIOUS.
+// COBOL-2002 READ … ADVANCING ON LOCK (ISO §2023:14.9.30 GR22): skip-scan locked records on NEXT/PREVIOUS.
 // Introduction-gated in the VersionConformancePass parse arm (VisitReadAdvancingOnLock -> Check(RecordLockPhrase2002)),
 // beside its two printed siblings; it was gated on BoundRead/BoundKeyedRead.AdvancingOnLock until kb/Work PB353,
 // which measured that a READ the binder refuses never builds the node and so never named the edition.
@@ -541,7 +541,7 @@ readAdvancingOnLock
     : ADVANCING ON? LOCK
     ;
 
-// COBOL-2002 READ … IGNORING LOCK (ISO §14.9.30 GR12): make the record available even if it is locked.
+// COBOL-2002 READ … IGNORING LOCK (ISO §2023:14.9.30 GR12): make the record available even if it is locked.
 // Both words are underlined on p722 (`_IGNORING_ _LOCK_`), so both are required. Introduction-gated in the
 // VersionConformancePass parse arm (VisitReadIgnoringLock → Check(RecordLockPhrase2002)), which is where its
 // former host `recordLockPhrase` gates the retention bracket — the split must not lose the 2002 gate.
@@ -590,7 +590,7 @@ writeStatement
     : WRITE (recordName | FILE fileName)
       recordFromPhrase?
       writeBeforeAfter?
-      (retryPhrase)?   // COBOL-2002 (§14.7.9); superset-parsed, introduction-gated at BIND (GateRetryIntro → Check(RetryPhrase2002)) — residue migration #4. The file is already named before RETRY here, so no name-list ambiguity (unlike OPEN).
+      (retryPhrase)?   // COBOL-2002 (§2023:14.7.9); superset-parsed, introduction-gated at BIND (GateRetryIntro → Check(RetryPhrase2002)) — residue migration #4. The file is already named before RETRY here, so no name-list ambiguity (unlike OPEN).
       (recordLockPhrase)?   // introduction-gated in the VersionConformancePass parse arm (VisitRecordLockPhrase → Check(RecordLockPhrase2002))
       conditionalPhrases
       END_WRITE?
@@ -671,7 +671,7 @@ recordName
 rewriteStatement
     : REWRITE (recordName | FILE fileName) RECORD?
       recordFromPhrase?
-      (retryPhrase)?   // COBOL-2002 (§14.7.9); superset-parsed, introduction-gated at BIND (GateRetryIntro → Check(RetryPhrase2002)) — residue migration #4. The file is already named before RETRY here, so no name-list ambiguity (unlike OPEN).
+      (retryPhrase)?   // COBOL-2002 (§2023:14.7.9); superset-parsed, introduction-gated at BIND (GateRetryIntro → Check(RetryPhrase2002)) — residue migration #4. The file is already named before RETRY here, so no name-list ambiguity (unlike OPEN).
       (recordLockPhrase)?   // introduction-gated in the VersionConformancePass parse arm (VisitRecordLockPhrase → Check(RecordLockPhrase2002))
       conditionalPhrases
       END_REWRITE?
@@ -684,7 +684,7 @@ rewriteStatement
 
 deleteStatement
     : DELETE fileName RECORD?
-      (retryPhrase)?   // COBOL-2002 (§14.7.9); superset-parsed, introduction-gated at BIND (GateRetryIntro → Check(RetryPhrase2002)) — residue migration #4. The file is already named before RETRY here, so no name-list ambiguity (unlike OPEN).
+      (retryPhrase)?   // COBOL-2002 (§2023:14.7.9); superset-parsed, introduction-gated at BIND (GateRetryIntro → Check(RetryPhrase2002)) — residue migration #4. The file is already named before RETRY here, so no name-list ambiguity (unlike OPEN).
       conditionalPhrases
       END_DELETE?
 
@@ -701,13 +701,13 @@ deleteFileStatement
       // on cobolWord's keyword alternatives (kb/Work PB805) — this loop's follow set holds the RETRY / ON
       // EXCEPTION / END-DELETE phrases — never through the five-word hand predicate that stood here.
       fileName*
-      (retryPhrase)?   // COBOL-2002 (§14.7.9); superset-parsed, introduction-gated at BIND (GateRetryIntro → Check(RetryPhrase2002)) — residue migration #4. The file is already named before RETRY here, so no name-list ambiguity (unlike OPEN).
+      (retryPhrase)?   // COBOL-2002 (§2023:14.7.9); superset-parsed, introduction-gated at BIND (GateRetryIntro → Check(RetryPhrase2002)) — residue migration #4. The file is already named before RETRY here, so no name-list ambiguity (unlike OPEN).
       conditionalPhrases
       END_DELETE?
 
     ;
 
-// COBOL-2002 UNLOCK statement (ISO §14.9.47): release all this-connector record locks on the file.
+// COBOL-2002 UNLOCK statement (ISO §2023:14.9.47): release all this-connector record locks on the file.
 unlockStatement
     : UNLOCK fileName (RECORD | RECORDS)?
     ;

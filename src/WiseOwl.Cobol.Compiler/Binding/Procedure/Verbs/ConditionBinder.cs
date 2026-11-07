@@ -1083,7 +1083,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             : cls.ALPHABETIC_UPPER() is not null ? ClassConditionModel.AlphabeticUpper
             : cls.ALPHABETIC_LOWER() is not null ? ClassConditionModel.AlphabeticLower
             : cls.BOOLEAN() is not null ? ClassConditionModel.Boolean
-            // The seven COBOL-2014 numeric-content alternatives (§8.8.4.4.4 GR3 g)–m); kb/Work PB225). Keywords
+            // The seven COBOL-2014 numeric-content alternatives (§2023:8.8.4.4.4 GR3 g)–m); kb/Work PB225). Keywords
             // at 2014+ only — below that the spelling is a SPECIAL-NAMES class-name (the edition check below).
             : cls.FARTHEST_FROM_ZERO() is not null ? ClassConditionModel.FarthestFromZero
             : cls.FLOAT_INFINITY() is not null ? ClassConditionModel.FloatInfinity

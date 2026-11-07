@@ -327,7 +327,7 @@ unaryLogicalExpression
     ;
 
 primaryCondition
-    // COBOL-2002 boolean forms (ISO §8.8.4.2.2 relation / §2023:8.8.4.3 simple condition) — gated by the
+    // COBOL-2002 boolean forms (ISO §2023:8.8.4.2.2 relation / §2023:8.8.4.3 simple condition) — gated by the
     // boolExprAhead() predicate so it fires ONLY when a B-operator (or a parenthesized boolean literal — kb/Work
     // PB1370) is actually present in this condition;
     // a normal comparison returns false and falls to comparisonExpression UNCHANGED (the shared rule is
@@ -359,7 +359,7 @@ comparisonOperand
     | valueOperand
     ;
 
-// ── COBOL-2002 boolean expressions (ISO §8.8.2; precedence B-NOT > B-AND > B-XOR > B-OR, rule 7b).
+// ── COBOL-2002 boolean expressions (ISO §2023:8.8.2; precedence B-NOT > B-AND > B-XOR > B-OR, rule 7b).
 // Permissive-superset doctrine: the operand SHAPES (a boolean item / boolean literal / figurative ZERO /
 // ALL B"…") are enforced at BIND (the boolean-expression constraint band); the tiers enforce the formation
 // rules 1–3 and every Table 4 adjacency cell structurally EXCEPT TWO. ⛔ THE FIRST IS (B-NOT, B-NOT): this

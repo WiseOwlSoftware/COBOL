@@ -26,7 +26,7 @@ using Core = CobolParserCore;
 /// ISO/IEC 1989:2002 removed the areas: the program-text area "begins in character position 8 and terminates with the
 /// character position immediately to the left of margin R" (ISO §2023:6.3.1) and an entry is continued "in the
 /// program-text area of a subsequent line" (§2023:6.3.5), so both rows are introductions of 2002 and the pass asks
-/// nothing from COBOL-2002 on. Free form (§6.4.1) has no areas at any edition.
+/// nothing from COBOL-2002 on. Free form (§2023:6.4.1) has no areas at any edition.
 /// <para>THE CONTINUATION LINE IS THE REFERENCE FORMAT'S (kb/Work PB3168). X3.23-1985 also requires "Area A of a
 /// continuation line [to] be blank" (the hyphen in the indicator area): the same text-in-area-A row, but the text of a
 /// continued literal's tail is no token's start, so this pass cannot place it. The §2023:6.5 logical conversion, which alone

@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// The <see cref="CobolDynString"/> receiving-store and SET-SIZE rules for a DYNAMIC LENGTH elementary item
-/// (ISO §2023:8.5.1.10.4 / §2023:13.18.19, COBOL-2014; §14.9.39 Format 16, COBOL-2023): the sender REPLACES the content and
+/// (ISO §2023:8.5.1.10.4 / §2023:13.18.19, COBOL-2014; §2023:14.9.39 Format 16, COBOL-2023): the sender REPLACES the content and
 /// the new length is the sending length, TRUNCATED ON THE RIGHT at the item's MAXIMUM SIZE with NO padding (the
 /// minimum length is zero, §2023:13.18.19.4 GR1 — the difference from <see cref="CobolString.Store"/>, which space-pads
 /// to a fixed width).

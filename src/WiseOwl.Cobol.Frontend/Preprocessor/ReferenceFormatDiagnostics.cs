@@ -94,7 +94,7 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
 
     /// <summary>A fixed-form CONTINUATION line (a hyphen in the indicator area) whose text begins in area A
     /// (kb/Work PB3168): X3.23-1985 continues an entry in area B and requires "Area A of a continuation line [to] be
-    /// blank"; ISO/IEC 1989:2002 removed the areas (§6.3.1), so it is the <c>fixed-form-text-in-area-a-2002</c> row's
+    /// blank"; ISO/IEC 1989:2002 removed the areas (§2023:6.3.1), so it is the <c>fixed-form-text-in-area-a-2002</c> row's
     /// text-in-area-A rule applied to the one line the area pass cannot place by a token — a continued literal's tail
     /// is no token's start. Every such line is reported, at the first character of its text.</summary>
     public void OnContinuationTextInAreaA(string file, int line, int column)

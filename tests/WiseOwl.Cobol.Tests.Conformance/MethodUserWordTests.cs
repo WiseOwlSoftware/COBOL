@@ -67,7 +67,7 @@ public sealed class MethodUserWordTests
         EditionHarness.AssertHasDiagnostic(warnings, "COBOL0902");
     }
 
-    /// <summary>THE ARM THAT PROVES THE PROBE CAN FAIL: the same program targeting COBOL-2014, where §8.9 reserves
+    /// <summary>THE ARM THAT PROVES THE PROBE CAN FAIL: the same program targeting COBOL-2014, where §2023:8.9 reserves
     /// METHOD, is refused at the data item (COBOL0901) — so the 2023 success above is the edition's, not the
     /// harness's.</summary>
     [Fact]

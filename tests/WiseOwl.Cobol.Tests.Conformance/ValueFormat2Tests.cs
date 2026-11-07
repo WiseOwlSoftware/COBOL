@@ -314,7 +314,7 @@ public sealed class ValueFormat2Tests
 
     // ── Edition gating ──
 
-    /// <summary>The COBOL-2002 introduction gate (§13.18.63.2 Format 2): a table VALUE is rejected below 2002 with
+    /// <summary>The COBOL-2002 introduction gate (§2023:13.18.63.2 Format 2): a table VALUE is rejected below 2002 with
     /// COBOL0900 (VersionConformancePass ParseArm.VisitValueClause).</summary>
     [Fact]
     public void BelowIntroduction_Rejected0900()

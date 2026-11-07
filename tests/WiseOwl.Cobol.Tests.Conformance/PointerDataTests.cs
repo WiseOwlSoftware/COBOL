@@ -29,7 +29,7 @@ public sealed class PointerDataTests
 
     private static string Prog(string body) => PtrProg.Replace("{0}", body);
 
-    /// <summary>The introduction gate: USAGE POINTER is COBOL-2002+ (§13.18.60) — at 85 the W1.5 mapping
+    /// <summary>The introduction gate: USAGE POINTER is COBOL-2002+ (§2023:13.18.60) — at 85 the W1.5 mapping
     /// names the edition (0900); at 2002 it binds and runs.</summary>
     [Fact]
     public void UsagePointer_IntroducedAt2002()

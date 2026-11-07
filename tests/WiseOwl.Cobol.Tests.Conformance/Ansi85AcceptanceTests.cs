@@ -353,7 +353,7 @@ public sealed class Ansi85AcceptanceTests
     [InlineData("RERUN", 2002)]
     [InlineData("ENTER", 2002)]
     [InlineData("DEBUGGING", 2014)]
-    [InlineData("EVERY", 2002)]          // not on the 2002 §2023:8.9 list (kb/Work PB4297)
+    [InlineData("EVERY", 2002)]          // not on the 2002 §2002:8.9 list (kb/Work PB4297)
     [InlineData("CLOCK-UNITS", 2002)]
     [InlineData("REFERENCES", 2002)]
     [InlineData("PROCEDURES", 2002)]

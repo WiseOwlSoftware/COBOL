@@ -255,7 +255,7 @@ public static class CobolFile
         RecordExtents? areaExtents = null)
         => _reg.StartIndexed(name, keyIndex, op, keyedRecordImage, length, areaExtents);
 
-    /// <summary>START FIRST/LAST (COBOL-2002+; §14.9.41 GR11/GR12), either keyed organization.</summary>
+    /// <summary>START FIRST/LAST (COBOL-2002+; §2023:14.9.41 GR11/GR12), either keyed organization.</summary>
     public static string StartFirstLast(string name, bool last) => _reg.StartFirstLast(name, last);
 
     /// <summary>DELETE FILE (§2023:14.9.10 Format 2, COBOL-2023); <paramref name="overridden"/> is the GR18 OVERRIDE

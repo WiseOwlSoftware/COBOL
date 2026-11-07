@@ -43,7 +43,7 @@ public sealed class UdfInvocationTests
         END PROGRAM {{pid}}.
         """;
 
-    /// <summary>The introduction gate: user-defined functions are COBOL-2002+ (§9.4 / §2023:12.3.8) — 0900 at 85
+    /// <summary>The introduction gate: user-defined functions are COBOL-2002+ (§2023:9.4 / §2023:12.3.8) — 0900 at 85
     /// (the binder gate and the PD-header RETURNING parse hint both name the edition); binds at 2002.</summary>
     [Fact]
     public void Invocation_IntroducedAt2002()

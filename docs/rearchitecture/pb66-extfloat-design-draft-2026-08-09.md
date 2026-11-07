@@ -58,7 +58,7 @@ Companion docs (this doc defers to them and must be merged into them on landing)
 4. **No deferral.** Every rule the standard states for this construct is implemented in this wave, including the
    4-digit exponent and the 36-digit significand (§3, D-EF2 proves the Annex A.3 latitude does **not** apply to
    this implementation).
-5. **Four editions in one.** The construct is introduced at COBOL-2002; the §15.43.4/§2023:15.58.4 well-formedness
+5. **Four editions in one.** The construct is introduced at COBOL-2002; the §2023:15.43.4/§2023:15.58.4 well-formedness
    rule is stated in COBOL-2014 wording. §11 gives the per-edition behaviour and the gating diagnostic.
 
 ---

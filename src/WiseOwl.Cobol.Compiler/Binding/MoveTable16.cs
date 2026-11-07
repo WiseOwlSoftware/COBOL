@@ -308,7 +308,7 @@ public static class MoveTable16
     /// variable-length-group namesake paired with an elementary one, reaching the run time as a
     /// <c>NotImplementedCobolFeatureException</c> for the whole-group image the pair can never have.</para>
     /// <para>No edition gate is needed and none is written: a variable-length group can only be DECLARED from
-    /// COBOL-2014 (the DYNAMIC LENGTH clause §13.18.19 and OCCURS Format 4 §2023:13.18.38), so the rule is
+    /// COBOL-2014 (the DYNAMIC LENGTH clause §2023:13.18.19 and OCCURS Format 4 §2023:13.18.38), so the rule is
     /// unreachable below 2014 by construction rather than by a predicate that could drift.</para></summary>
     private static string? VariableLengthRefusal(DataItem? sender, DataItem? receiver) =>
         VariableLengthCompatibility.PairRefusal(sender, receiver, "sending", "receiving",

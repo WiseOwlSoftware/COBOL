@@ -1398,7 +1398,7 @@ public abstract class CobolParserCoreBase : Parser
            && TokenStream.LA(2) == CobolLexer.IDENTIFIER;
 
     /// <summary>
-    /// COBOL-2002 boolean-condition discriminator (ISO §8.8.4.2.2 / §2023:8.8.4.3): true when a boolean OPERATOR
+    /// COBOL-2002 boolean-condition discriminator (ISO §2023:8.8.4.2.2 / §2023:8.8.4.3): true when a boolean OPERATOR
     /// (B-AND / B-OR / B-XOR / B-NOT / a B-SHIFT-*) appears in the CURRENT condition ahead of the parse position,
     /// before any condition boundary — or a parenthesized boolean LITERAL, the one operator-free boolean expression
     /// the token stream can identify (<see cref="ParenRunOpensOnBoolLiteral"/>). It is the ONE boolean-operand
@@ -1659,7 +1659,7 @@ public abstract class CobolParserCoreBase : Parser
         or CobolLexer.BOOLLIT or CobolLexer.ZERO or CobolLexer.ZEROS or CobolLexer.ZEROES;
 
     /// <summary>
-    /// COBOL-2002 RETRY-phrase forward detector (ISO §14.7.9) for the OPEN clause, where the phrase sits inside the
+    /// COBOL-2002 RETRY-phrase forward detector (ISO §2023:14.7.9) for the OPEN clause, where the phrase sits inside the
     /// <c>openFileSpec+</c> file-name list and <c>RETRY</c> is a legal §2023:8.9 user-defined word below 2002. Returns
     /// true only when the tail after RETRY is UNAMBIGUOUSLY a retry phrase — it contains a numeric count
     /// (<c>n TIMES</c> | <c>FOR? n SECONDS</c>): an integer can never be a file name, so RETRY must be the phrase

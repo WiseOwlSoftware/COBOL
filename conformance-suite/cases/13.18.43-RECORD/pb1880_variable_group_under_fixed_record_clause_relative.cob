@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO 1989:2014 §13.18.43 (RECORD clause Format 1) over a VARIABLE-LENGTH GROUP record (§2023:8.5.1.12.1) in a RELATIVE
+      *> ISO 1989:2014 §2023:13.18.43 (RECORD clause Format 1) over a VARIABLE-LENGTH GROUP record (§2023:8.5.1.12.1) in a RELATIVE
       *> file: the relative sibling of pb1562_variable_group_under_fixed_record_clause (record sequential). The record holds
       *> two DYNAMIC LENGTH members around a fixed one, in a file described with the fixed-length clause RECORD CONTAINS 20
       *> CHARACTERS. It is LEGAL: §2023:13.18.43.3 SR3 - "No record description entry for the file may specify a number of bytes

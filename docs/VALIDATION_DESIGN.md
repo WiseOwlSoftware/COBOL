@@ -88,8 +88,8 @@ semantics).
   0810/0811 (ALTER / bare GO TO), 0882 (CALL ON OVERFLOW) — their sites route through `Removed()` unrenumbered.
 - **Reserved words**: `scripts/gen-reserved-words.ps1` derives the
   per-edition table from its sources — the in-repo ISO 2023 §2023:8.9 list (authoritative for 2023), VCR row 32
-  (the Annex E.2 item-25 additions), the transcribed ISO 2002 §2023:8.9 list (`tests/version-matrix/reserved-words-2002.json`,
-  authoritative for 2002), the 2009 committee draft's §2023:8.9/§2023:8.10 lists (`words-2009-cd.json`, one 2014 correction,
+  (the Annex E.2 item-25 additions), the transcribed ISO 2002 §2002:8.9 list (`tests/version-matrix/reserved-words-2002.json`,
+  authoritative for 2002), the 2009 committee draft's 8.9/8.10 lists (`words-2009-cd.json`, one 2014 correction,
   kb/Work PB4297), and GnuCOBOL's per-standard 85/2014 word lists (curl disk-to-disk into the gitignored `.cache/`;
   GPL files stay out — only derived FACTS with provenance are committed).
   Outputs: `WiseOwl.Cobol.Editions/ReservedWords.Table.cs` + `tests/version-matrix/reserved-words.json`, drift-tested

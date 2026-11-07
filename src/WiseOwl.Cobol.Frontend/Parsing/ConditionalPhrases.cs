@@ -264,7 +264,7 @@ public static class ConditionalPhraseAssociation
         // by the receiver's class, naming the phrase COBOL1511 when the statement proves to be Format 2.
         [Core.RULE_computeStatement] = [Pair(ConditionalPhraseFamily.SizeError) with { Unprinted = [BooleanCompute] }],
         // §2023:14.9.4.2 Formats 1 and 2: [| ON EXCEPTION | NOT ON EXCEPTION |]; the 85–2014 format's [ ON OVERFLOW ] alone
-        // (ISO/IEC 1989:2002 §14.8.4.1 Format 1 — no NOT ON OVERFLOW at any edition), removed at 2023 (Annex E.2 1c).
+        // (ISO/IEC 1989:2002 §2002:14.8.4.1 Format 1 — no NOT ON OVERFLOW at any edition), removed at 2023 (Annex E.2 1c).
         [Core.RULE_callStatement] =
         [
             Pair(ConditionalPhraseFamily.Exception),

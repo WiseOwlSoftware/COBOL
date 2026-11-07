@@ -1157,7 +1157,7 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
-        /// <summary>The ALIGNED clause (ISO §2023:13.18.1) — a COBOL-2002 introduction (§8.9 reserves ALIGNED from 2002;
+        /// <summary>The ALIGNED clause (ISO §2023:13.18.1) — a COBOL-2002 introduction (§2023:8.9 reserves ALIGNED from 2002;
         /// it aligns a bit group item or elementary bit data item on the first bit of the first available byte,
         /// §2023:13.18.1.4 GR1). Parse-arm (recognition) like the BASED / ANY LENGTH gates: <c>DataItem.IsAligned</c> is
         /// CLEARED by <c>CheckAlignedClauses</c> on a §2023:13.18.1.3 SR1 violation, so a bound-arm home would drop the
@@ -1353,7 +1353,7 @@ internal sealed class VersionConformancePass
         /// a COBOL-2023 introduction: E.3.3 item 20 ("External data items may now be strongly typed"), corroborated by
         /// E.2 item 10 ("previously external items could not be strongly typed"), so
         /// it is specifically the <c>STRONG</c>+<c>EXTERNAL</c> combination on a level-1 TYPEDEF that is new. A WEAK
-        /// <c>TYPEDEF IS EXTERNAL</c> (no STRONG) was already valid in COBOL-2002 (§13.18.58.3 SR3), so it is NOT gated
+        /// <c>TYPEDEF IS EXTERNAL</c> (no STRONG) was already valid in COBOL-2002 (§2023:13.18.58.3 SR3), so it is NOT gated
         /// here; plain EXTERNAL is 1985-continuous and plain TYPEDEF is the separate COBOL-2002 gate above. Gate on the
         /// CO-OCCURRENCE of the EXTERNAL clause with a STRONG TYPEDEF clause on ONE dataDescriptionEntry. SR5 forces a
         /// strongly-typed external record's type to itself be a strong external type declaration, so gating the
@@ -1594,7 +1594,7 @@ internal sealed class VersionConformancePass
         public override object? VisitSharingClause(CobolParserCore.SharingClauseContext ctx)
         { _p.Check(Constructs.FileSharingClause2002, "the SHARING clause"); return base.VisitChildren(ctx); }
 
-        /// <summary>The SELECT … LOCK MODE clause (ISO §2023:12.4.5.9) — a COBOL-2002 introduction. The §12.4.5.9 SR2
+        /// <summary>The SELECT … LOCK MODE clause (ISO §2023:12.4.5.9) — a COBOL-2002 introduction. The §2023:12.4.5.9 SR2
         /// (WITH LOCK ON MULTIPLE RECORDS vs sequential) validation stays in the binder; this arm only names the edition.</summary>
         public override object? VisitLockModeClause(CobolParserCore.LockModeClauseContext ctx)
         { _p.Check(Constructs.LockModeClause2002, "the LOCK MODE clause"); return base.VisitChildren(ctx); }
@@ -2732,7 +2732,7 @@ internal sealed class VersionConformancePass
         }
 
         /// <summary>National (<c>N"…"</c>) and boolean (<c>B"…"</c>) literals as a PROCEDURE-DIVISION statement
-        /// operand — COBOL-2002 introductions (ISO §8.3.3.5 / §2023:8.3.3.4). Scoped to a StatementContext ancestor so a
+        /// operand — COBOL-2002 introductions (ISO §2023:8.3.3.5 / §2023:8.3.3.4). Scoped to a StatementContext ancestor so a
         /// DATA-division VALUE literal is left to the data/PIC gate (Step 14g) — firing here too would double the
         /// below-2002 diagnostic. One Check per literal occurrence, matching the binder's NationalLiteralOperand /
         /// BooleanLiteralOperand / boolean-expression-operand paths.</summary>

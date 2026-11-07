@@ -305,7 +305,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// dataReference chokepoints (<see cref="RefExpr"/> / <see cref="FieldOperand"/>). Null = not one.</summary>
     public BoundExpr? KeywordOmittedFunction(Core.DataReferenceContext dref)
     {
-        // Keyword omission via the REPOSITORY FUNCTION specifier is a COBOL-2002 introduction (§12.3.8) — below
+        // Keyword omission via the REPOSITORY FUNCTION specifier is a COBOL-2002 introduction (§2023:12.3.8) — below
         // 2002 the routing is inert, so the 85/NIST surface is byte-invariant (a lone name(args) stays a data
         // reference exactly as before). The FUNCTION-keyword form is unaffected at every edition. ⛔ The edition is
         // the constructs.json row of the declaration that licenses the omission (kb/Work PB2589): the entry's own gate
@@ -1799,7 +1799,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// a consequence of the reservation: this detection depends on the word arriving as an ordinary argument, so a
     /// token would silently break the recognition. (fix-queue PB25.)</para>
     /// The argument-1 exclusion is POSITIONAL — the format puts argument-1 there, so a bare word in slot 0 is the
-    /// operand whatever it spells. (It is not "a data item happening to be named LOCALE": from 2002 §2023:8.9 reserves
+    /// operand whatever it spells. (It is not "a data item happening to be named LOCALE": from 2002 §2002:8.9 reserves
     /// the word, so only a &gt;&gt;COBOL-WORDS UNDEFINE can free it — and then <see cref="KeywordWordOf"/> resolves
     /// it to null and no slot sees the keyword at all; at COBOL-85, where §2023:8.9 leaves it free, a DECLARED data item
     /// of that name is an operand and <see cref="KeywordWordOf"/> answers null for it as well. kb/Work PB250,
@@ -1851,7 +1851,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                     return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} format");
                 }
                 anycase = true;
-                // ANYCASE is a 2002 introduction (§2023:15.68.2 / §2023:15.94.2 print it; ISO/IEC 1989:2002 §15.55 / §2023:15.76
+                // ANYCASE is a 2002 introduction (§2023:15.68.2 / §2023:15.94.2 print it; ISO/IEC 1989:2002 §2002:15.55 / §2002:15.76
                 // already did, and §2023:8.9 reserves the word only from 2002): below 2002 it is an ordinary user-defined
                 // word, so the keyword is refused by edition like the LOCALE keyword below (kb/Work PB4359).
                 ConstructRegistry.Check(ctx.Edition.Edition, ctx.Edition.Sink, Constructs.NumvalCAnycaseKeyword2002,

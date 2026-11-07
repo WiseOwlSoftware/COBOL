@@ -6,7 +6,7 @@
 *> portable: unverified
 *>---
       *> THE EARLIEST EDITION AT WHICH THIS PROGRAM CAN BE WRITTEN (kb/Work PB403). EXIT PERFORM (§2023:14.9.14.2
-      *> Format 3) is a COBOL-2002 introduction, so COBOL-2002 is the oldest edition at which §14.9.14.3 SR8 --
+      *> Format 3) is a COBOL-2002 introduction, so COBOL-2002 is the oldest edition at which §2023:14.9.14.3 SR8 --
       *> "The EXIT PERFORM statement may be specified only in an inline or exception-checking PERFORM statement.
       *> The CYCLE phrase shall not be specified within an exception-checking PERFORM statement." -- has an
       *> admitted position to pin at all. §2023:14.9.14.3 SR7 ("An EXIT PROGRAM statement may be specified only in a

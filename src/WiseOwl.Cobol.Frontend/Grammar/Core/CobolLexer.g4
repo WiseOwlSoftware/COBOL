@@ -422,9 +422,9 @@ EOP          : 'EOP' ;
 // ── Hyphenated keywords (must precede IDENTIFIER) ──
 
 PROGRAM_ID      : 'PROGRAM-ID' ;
-FUNCTION_ID     : 'FUNCTION-ID' ;   // COBOL-2002 user-defined function unit header (ISO §11.5)
+FUNCTION_ID     : 'FUNCTION-ID' ;   // COBOL-2002 user-defined function unit header (ISO §2023:11.5)
 EXCLUSIVE_OR    : 'EXCLUSIVE-OR' ;  // COBOL-2023 logical exclusive-or operator, = XOR (ISO §2023:8.8.4.9; a 2023 addition per Annex E.2 item 25 — VCR rows 32/41; the former "2002" note was the W3-corrected mislabel)
-// COBOL-2002 BOOLEAN OPERATORS (ISO §8.7.2 / §2023:8.8.2). Maximal-munch safe: `B-ANDER`/`B-ORDER` stay IDENTIFIER
+// COBOL-2002 BOOLEAN OPERATORS (ISO §2023:8.7.2 / §2023:8.8.2). Maximal-munch safe: `B-ANDER`/`B-ORDER` stay IDENTIFIER
 // by longer match; `B-AND` exact reduces to the keyword by rule order (hyphenated keywords precede IDENTIFIER);
 // BOOLLIT `B"…"` is disjoint (the char after B is a quote). User words at 85 (admitted via cobolWord +
 // _dataNameTokens); the operator meaning parses at every edition and is introduction-gated post-bind
@@ -442,7 +442,7 @@ B_SHIFT_R       : 'B-SHIFT-R' ;
 FLOAT_SHORT     : 'FLOAT-SHORT' ;   // COBOL-2002 standard floating point: IEEE-754 single (= COMP-1)
 FLOAT_LONG      : 'FLOAT-LONG' ;    // COBOL-2002 standard floating point: IEEE-754 double (= COMP-2)
 FLOAT_EXTENDED  : 'FLOAT-EXTENDED' ;// COBOL-2002 extended float — mapped to IEEE-754 double (.NET has no quad)
-// COBOL-2002 ROUNDED MODE names (ISO §14.7.4). Reserved words; corpus-checked (only in comments).
+// COBOL-2002 ROUNDED MODE names (ISO §2023:14.7.4). Reserved words; corpus-checked (only in comments).
 AWAY_FROM_ZERO          : 'AWAY-FROM-ZERO' ;
 NEAREST_AWAY_FROM_ZERO  : 'NEAREST-AWAY-FROM-ZERO' ;
 NEAREST_EVEN            : 'NEAREST-EVEN' ;
@@ -469,7 +469,7 @@ GET         : 'GET' ;       // METHOD-ID GET PROPERTY selector (§2023:11.7; §2
 INTERFACE   : 'INTERFACE' ; // END INTERFACE + the repository INTERFACE specifier (§2023:11.6/§2023:12.3.8; §2023:8.9-reserved 2002+)
 FACTORY     : 'FACTORY' ;   // the FACTORY paragraph (ISO §2023:11.4, 2002+; §2023:8.9-reserved 2002+ — user word at 85, funnel row exists)
 PROTOTYPE   : 'PROTOTYPE' ; // FUNCTION-ID … IS PROTOTYPE (ISO §2023:11.5 Format 2 / §2023:10.6; §2023:8.9-reserved 2002+ — user word at 85, funnel row exists)
-INHERITS    : 'INHERITS' ;   // COBOL-2002 OO: CLASS-ID. name INHERITS FROM base (ISO §11.3); corpus-clean
+INHERITS    : 'INHERITS' ;   // COBOL-2002 OO: CLASS-ID. name INHERITS FROM base (ISO §2023:11.3); corpus-clean
 SPECIAL_NAMES   : 'SPECIAL-NAMES' ;
 FILE_CONTROL    : 'FILE-CONTROL' ;
 I_O_CONTROL     : 'I-O-CONTROL' ;
@@ -482,7 +482,7 @@ BINARY_CHAR     : 'BINARY-CHAR' ;
 BINARY_SHORT    : 'BINARY-SHORT' ;
 BINARY_LONG     : 'BINARY-LONG' ;
 BINARY_DOUBLE   : 'BINARY-DOUBLE' ;
-// COBOL-2002 OPTIONS-paragraph clause words (ISO §11.9). All are CONTEXT-SENSITIVE — reserved only inside the
+// COBOL-2002 OPTIONS-paragraph clause words (ISO §2023:11.9). All are CONTEXT-SENSITIVE — reserved only inside the
 // OPTIONS paragraph — so each is ALSO listed in cobolWord (CobolParserCore.g4) and mirrored in _dataNameTokens
 // above, keeping it legal as a user-defined name everywhere else. Hyphenated forms must precede IDENTIFIER so
 // maximal-munch + first-rule-wins picks the whole keyword (e.g. 'STANDARD-BINARY' over IDENTIFIER); a bare
@@ -493,7 +493,7 @@ STANDARD_DECIMAL  : 'STANDARD-DECIMAL' ;
 ENTRY_CONVENTION  : 'ENTRY-CONVENTION' ;
 FLOAT_BINARY      : 'FLOAT-BINARY' ;
 FLOAT_DECIMAL     : 'FLOAT-DECIMAL' ;
-// The COBOL-2014 IEEE-754 interchange float USAGES (ISO §13.18.60.4 GR14-18): FLOAT-BINARY-32/64/128 =
+// The COBOL-2014 IEEE-754 interchange float USAGES (ISO §2023:13.18.60.4 GR14-18): FLOAT-BINARY-32/64/128 =
 // ISO/IEC 60559:2020 binary32/64/128, FLOAT-DECIMAL-16/34 = decimal64/128. Dedicated hyphenated tokens declared
 // BEFORE IDENTIFIER so maximal-munch + first-rule-wins picks the whole keyword (the source text 'FLOAT-BINARY-32'
 // lexes as ONE IDENTIFIER otherwise — the numeric suffix is swallowed by NAME_BODY). Introduction-gated to 2014
@@ -504,7 +504,7 @@ FLOAT_BINARY_64   : 'FLOAT-BINARY-64' ;
 FLOAT_BINARY_128  : 'FLOAT-BINARY-128' ;
 FLOAT_DECIMAL_16  : 'FLOAT-DECIMAL-16' ;
 FLOAT_DECIMAL_34  : 'FLOAT-DECIMAL-34' ;
-// The COBOL-2014 NUMERIC-CONTENT value words (ISO §14.9.39.2 Format 15 — `SET CONTENT OF … TO`; kb/Work PB452).
+// The COBOL-2014 NUMERIC-CONTENT value words (ISO §2023:14.9.39.2 Format 15 — `SET CONTENT OF … TO`; kb/Work PB452).
 // Hyphenated, so each must precede IDENTIFIER: the source text lexes as ONE IDENTIFIER of the SAME length
 // otherwise, and an equal-length tie is broken by rule order. FLOAT-NOT-A-NUMBER-SIGNALING needs no ordering
 // against FLOAT-NOT-A-NUMBER (maximal munch takes the longer match regardless of order) but is written first so
@@ -607,7 +607,7 @@ OPEN        : 'OPEN' ;
 PERFORM     : 'PERFORM' ;
 READ        : 'READ' ;
 RELEASE     : 'RELEASE' ;
-REPOSITORY  : 'REPOSITORY' ;   // COBOL-2002 REPOSITORY paragraph header (ISO §12.3.8)
+REPOSITORY  : 'REPOSITORY' ;   // COBOL-2002 REPOSITORY paragraph header (ISO §2023:12.3.8)
 RETURN      : 'RETURN' ;
 REWRITE     : 'REWRITE' ;
 SEARCH      : 'SEARCH' ;
@@ -715,9 +715,9 @@ CLASS       : 'CLASS' ;
 CODE        : 'CODE' ;
 CODE_SET    : 'CODE-SET' ;
 COL         : 'COL' ;
-COLS        : 'COLS' ;      // COBOL-2002 COLUMN-clause spelling (ISO §13.18.14 SR1); usable as a user word via cobolWord (§2023:8.9 funnel gates ≥2002)
+COLS        : 'COLS' ;      // COBOL-2002 COLUMN-clause spelling (ISO §2023:13.18.14 SR1); usable as a user word via cobolWord (§2023:8.9 funnel gates ≥2002)
 COLUMN      : 'COLUMN' ;
-COLUMNS     : 'COLUMNS' ;   // COBOL-2002 COLUMN-clause spelling (ISO §13.18.14 SR1); usable as a user word via cobolWord (§2023:8.9 funnel gates ≥2002)
+COLUMNS     : 'COLUMNS' ;   // COBOL-2002 COLUMN-clause spelling (ISO §2023:13.18.14 SR1); usable as a user word via cobolWord (§2023:8.9 funnel gates ≥2002)
 COLLATING   : 'COLLATING' ;
 COMMIT      : 'COMMIT' ;       // commit/rollback facility (A.3 items 6-7) - recognized-not-supported
 COMMON      : 'COMMON' ;
@@ -839,7 +839,7 @@ INDEXED     : 'INDEXED' ;
 INITIAL_    : 'INITIAL' ;
 INPUT       : 'INPUT' ;
 INSTALLATION: 'INSTALLATION' ;
-INTRINSIC   : 'INTRINSIC' ;   // COBOL-2002 REPOSITORY FUNCTION … INTRINSIC (ISO §12.3.8)
+INTRINSIC   : 'INTRINSIC' ;   // COBOL-2002 REPOSITORY FUNCTION … INTRINSIC (ISO §2023:12.3.8)
 INTO        : 'INTO' ;
 INVALID     : 'INVALID' ;
 IS          : 'IS' ;
@@ -855,7 +855,7 @@ LINES       : 'LINES' ;
 LOCATION    : 'LOCATION' ;                // exception-checking PERFORM WITH LOCATION phrase (ISO §2023:14.9.28.2 Format 3; new-in-2023 reserved word, Annex E.2 item 25)
 LOCK        : 'LOCK' ;
 LOWLIGHT    : 'LOWLIGHT' ;
-// ── COBOL-2002 file sharing / record locking (ISO §12.4.5.9 LOCK MODE, §2023:12.4.5.15 SHARING, §2023:14.7.9 RETRY,
+// ── COBOL-2002 file sharing / record locking (ISO §2023:12.4.5.9 LOCK MODE, §2023:12.4.5.15 SHARING, §2023:14.7.9 RETRY,
 // §2023:14.9.27 OPEN, §2023:14.9.30 READ, §2023:14.9.47 UNLOCK). SHARING/RETRY/
 // UNLOCK are §2023:8.9-reserved since 2002 (funnel-gated); MANUAL/AUTOMATIC/IGNORING/FOREVER/SECONDS/ONLY are
 // §2023:8.10 context-sensitive (user-legal at every edition). The phrases parse at every edition and are
@@ -885,12 +885,12 @@ OCCURS      : 'OCCURS' ;
 OF          : 'OF' ;
 OFF         : 'OFF' ;
 ON          : 'ON' ;
-ONLY        : 'ONLY' ;   // COBOL-2002 SHARING READ ONLY (ISO §12.4.5.15) — §2023:8.10 context-sensitive (user word)
+ONLY        : 'ONLY' ;   // COBOL-2002 SHARING READ ONLY (ISO §2023:12.4.5.15) — §2023:8.10 context-sensitive (user word)
 OR          : 'OR' ;
 XOR         : 'XOR' ;   // COBOL-2023 logical exclusive-or operator (ISO §2023:8.8.4.9; 2023 per Annex E.2 item 25 — VCR rows 32/41)
 OMITTED     : 'OMITTED' ;
 OPTIONAL    : 'OPTIONAL' ;
-OPTIONS     : 'OPTIONS' ;   // COBOL-2002 OPTIONS paragraph header (ISO §11.9)
+OPTIONS     : 'OPTIONS' ;   // COBOL-2002 OPTIONS paragraph header (ISO §2023:11.9)
 // The OPTIONAL word ORDER of the SORT DUPLICATES phrase (ISO §2023:14.9.40.2 `[ WITH DUPLICATES IN ORDER ]`) and the
 // REQUIRED word of the SPECIAL-NAMES ORDER TABLE clause (§2023:12.3.7.2). ORDER is reserved at every edition
 // (ReservedWords.Table row: r85=true, kb/Work PB3957), so — exactly like FORMAT — the token carries a `nameSlot` row in
@@ -989,11 +989,11 @@ SEPARATE    : 'SEPARATE' ;
 SEQUENCE    : 'SEQUENCE' ;
 SEQUENTIAL  : 'SEQUENTIAL' ;
 SIGN        : 'SIGN' ;
-SIGNED      : 'SIGNED' ;     // COBOL-2002 BINARY-xxx SIGNED (USAGE clause, ISO §13.18.60); beats SIGN
+SIGNED      : 'SIGNED' ;     // COBOL-2002 BINARY-xxx SIGNED (USAGE clause, ISO §2023:13.18.60); beats SIGN
 UNSIGNED    : 'UNSIGNED' ;   // COBOL-2002 BINARY-xxx UNSIGNED
 SIZE        : 'SIZE' ;
 SOURCE      : 'SOURCE' ;
-SOURCES     : 'SOURCES' ;    // COBOL-2002 SOURCE-clause plural spelling (ISO §13.18.53.2 / §2023:13.18.53.3 SR1); usable as a user word via cobolWord (§2023:8.9 funnel gates ≥2002)
+SOURCES     : 'SOURCES' ;    // COBOL-2002 SOURCE-clause plural spelling (ISO §2023:13.18.53.2 / §2023:13.18.53.3 SR1); usable as a user word via cobolWord (§2023:8.9 funnel gates ≥2002)
 STANDARD_1  : 'STANDARD-1' ;
 STANDARD_2  : 'STANDARD-2' ;
 STATUS      : 'STATUS' ;
@@ -1160,7 +1160,7 @@ fragment DEC_BODY  : [0-9]+ '.' [0-9]+ | '.' [0-9]+ ;                           
 // one SIGNED_INTEGERLIT, so `MIN(-1,5 2)` was MIN(-1, 0.5, 2) and `ABS(-1,5)` two arguments (kb/Work PB2506). It is a
 // body so that its sign-adjacent twin exists and SignedLiteralShapeDriftTests holds both halves of the shape.
 fragment DEC_COMMA_BODY : [0-9]+ ',' [0-9]+ | ',' [0-9]+ ;                           // FN_SIGNED_COMMA_DECIMALLIT
-// ⛔ THE UNDERSCORE IS A COBOL WORD CHARACTER AND HAS BEEN SINCE COBOL-2002 (fix-queue R02). §8.3.2.1: "Each
+// ⛔ THE UNDERSCORE IS A COBOL WORD CHARACTER AND HAS BEEN SINCE COBOL-2002 (fix-queue R02). §2023:8.3.2.1: "Each
 // character of a COBOL word … shall be selected from the set of basic letters, basic digits, extended letters,
 // and the basic special characters HYPHEN AND UNDERSCORE. The hyphen or underscore shall not appear as the first
 // or last character in such words." Without it `01 MY_NAME PIC X(6).` — legal at three of the four editions this

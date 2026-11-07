@@ -447,7 +447,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             case "SecondsPastMidnight":
                 return new NumX(RuntimeApi.DateFn(sig.RuntimeMethod, ""), 7);
 
-            // ── The COBOL-2014 date/time + number family (§15.17/48/79/92; §2023:15.69/95) ───────────────────────────
+            // ── The COBOL-2014 date/time + number family (§2023:15.17/48/79/92; §2023:15.69/95) ───────────────────────────
             case "CombinedDatetime":                                            // §2023:15.17 — a1 + a2/100000
             {
                 // ⛔ ARGUMENT-2 IS TAKEN EXACTLY, NEVER LANDED (kb/Work PB620). §2023:15.17.3 r2 requires only

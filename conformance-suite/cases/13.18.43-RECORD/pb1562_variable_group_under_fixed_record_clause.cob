@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO 1989:2014 §13.18.43 (RECORD clause Format 1) over a VARIABLE-LENGTH GROUP record (§2023:8.5.1.12.1).
+      *> ISO 1989:2014 §2023:13.18.43 (RECORD clause Format 1) over a VARIABLE-LENGTH GROUP record (§2023:8.5.1.12.1).
       *> The record below holds two DYNAMIC LENGTH members around a fixed one, inside a file described with the
       *> fixed-length clause RECORD CONTAINS 20 CHARACTERS. It is LEGAL: §2023:13.18.43.3 SR3 - "No record description entry
       *> for the file may specify a number of bytes greater than integer-1" - bounds the description by its

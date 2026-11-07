@@ -26,7 +26,7 @@ internal sealed class FileLockBinder(BinderContext ctx, StatementBinder host)
     /// file. SR1 — not a sort/merge file.</summary>
     public BoundStatement BindUnlock(Core.UnlockStatementContext ul)
     {
-        // UNLOCK is a COBOL-2002 introduction (§14.9.47), parsed at ALL editions (superset grammar). The edition
+        // UNLOCK is a COBOL-2002 introduction (§2023:14.9.47), parsed at ALL editions (superset grammar). The edition
         // gate moved to the post-bind VersionConformancePass (rearch PHASE-03 Step 14b) — it fires on the
         // self-identifying BoundUnlock node this method produces, so the binder is edition-agnostic here.
         // The ONE file-name resolution step (kb/Work PB236 — §2023:8.4.2.1 through COBOL1639); the old

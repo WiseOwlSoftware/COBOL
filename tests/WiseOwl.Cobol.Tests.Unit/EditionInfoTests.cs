@@ -58,7 +58,7 @@ public sealed class EditionInfoTests
         var captured = new List<EditionDiagnostic>();
         IDiagnosticSink sink = new ListSink(captured);
         var d = new EditionDiagnostic("COBOL0900", EditionSeverity.Error, "invoke-2002",
-            "INVOKE requires COBOL-2002", "statement in paragraph M", "ISO §14.9.23");
+            "INVOKE requires COBOL-2002", "statement in paragraph M", "ISO §2023:14.9.23");
         sink.Report(d);
 
         var got = Assert.Single(captured);

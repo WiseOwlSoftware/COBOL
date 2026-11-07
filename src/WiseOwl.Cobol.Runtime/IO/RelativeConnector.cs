@@ -475,7 +475,7 @@ public sealed class RelativeConnector : KeyedConnector
         return found is { } f ? StartAt(f) : StartFail();
     }
 
-    /// <summary>START FIRST/LAST (COBOL-2002+; §14.9.41 GR11/GR12): the lowest / highest existing RRN; an empty
+    /// <summary>START FIRST/LAST (COBOL-2002+; §2023:14.9.41 GR11/GR12): the lowest / highest existing RRN; an empty
     /// (or absent optional) file → invalid key '23'.</summary>
     public string StartFirstLast(bool last)
     {

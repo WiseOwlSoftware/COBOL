@@ -7,7 +7,7 @@ using WiseOwl.Cobol.Editions;
 namespace WiseOwl.Cobol.Frontend.Preprocessor;
 
 /// <summary>
-/// HOW A CANDIDATE COBOL-85 COMMENT-ENTRY LINE TRAVELS from the §6.5 logical conversion to the stage that decides it
+/// HOW A CANDIDATE COBOL-85 COMMENT-ENTRY LINE TRAVELS from the §2023:6.5 logical conversion to the stage that decides it
 /// (<see cref="CommentEntryResolver"/>; docs/CONFORMANCE.md D-CE2; kb/Work PB4281).
 /// <para>Whether a line such as <c>AUTHOR. Pat O'Brien.</c> is a comment-entry paragraph or the program's own paragraph
 /// depends on the division the TEXT stands in, and "the text" is what the stages between the conversion and the parse

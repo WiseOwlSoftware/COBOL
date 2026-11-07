@@ -23,7 +23,7 @@
       *> The second SUBTRACT is the control: the same window holding a valid numeric image raises nothing and
       *> stores 100 - 7 = 93, so a compiler that simply raised on every SUBTRACT would fail here.
       *>
-      *> 2002 is the introducing edition of the observable (>>TURN is a COBOL-2002 introduction, §7.3.25); see
+      *> 2002 is the introducing edition of the observable (>>TURN is a COBOL-2002 introduction, §2023:7.3.25); see
       *> conformance:cases/14.9.17-GO-TO/pb395-turn-data-incompatible-below-2002 for that gate.
        >>TURN EC-DATA-INCOMPATIBLE CHECKING ON
        IDENTIFICATION DIVISION.

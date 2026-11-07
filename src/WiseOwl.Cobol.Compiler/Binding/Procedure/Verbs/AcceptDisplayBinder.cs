@@ -43,7 +43,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
                 "Format 3 (screen), whose operand is screen-name-1") is { } shape)
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, shape);
 
-        // END-ACCEPT: the explicit scope terminator is a COBOL-2002 introduction (ISO §14.9.1 general formats; the
+        // END-ACCEPT: the explicit scope terminator is a COBOL-2002 introduction (ISO §2023:14.9.1 general formats; the
         // 1985 ACCEPT has none). The edition gate (EndAccept2002) moved to the post-bind VersionConformancePass
         // (Step 14e), reading BoundAccept.HasEndTerminator — computed once here and stamped on each ACCEPT node.
         bool endTerm = AcceptHasTerminator(ac);

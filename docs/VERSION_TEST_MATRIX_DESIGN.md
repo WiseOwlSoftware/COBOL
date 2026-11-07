@@ -345,7 +345,7 @@ interval encoding — `user-word-commit-2023` (intro 85 / removedIn 2023 / 0901)
 > **As built (deltas from the plan above).** The reserved-word 85/2014 lists come from GnuCOBOL's per-standard
 > `config/*.words` (curl disk-to-disk, gitignored `.cache/`, facts-only into the repo), the 2002 list from the 2002
 > standard's own §2023:8.9 (`reserved-words-2002.json`), and the 2014 list loses the 1985 and draft words neither the 2009
-> draft's §2023:8.9 nor 2023's reserves (`words-2009-cd.json`; kb/Work PB4297) ⊕ the in-repo spec §2023:8.9 ⊕ VCR row 32: the re-reservation set is THREE words incl. the END- scope terminator; the EC words are reserved since 2002
+> draft's 8.9 nor 2023's reserves (`words-2009-cd.json`; kb/Work PB4297) ⊕ the in-repo spec §2023:8.9 ⊕ VCR row 32: the re-reservation set is THREE words incl. the END- scope terminator; the EC words are reserved since 2002
 > (not 2023-only); Annex E.2 item 25 decides only the 2014 edge (E.1 compares with the previous standard), where the GnuCOBOL 2014
 > list already agrees; at 2002 the trio stays reserved like the rest of the communication vocabulary (kb/Work PB656). ORDER is
 > reserved at 85 (kb/Work PB3957: the 2002 Annex F.1 item 6 does not name it among the words 2002 added; the earlier CCVS-proof

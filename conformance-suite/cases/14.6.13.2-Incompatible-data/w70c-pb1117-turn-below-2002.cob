@@ -9,7 +9,7 @@
       *>     condition and a VALIDATE statement when invalid data is detected during item identification"
       *>     -> OK §2023:14.6.13.2 1)
       *> The rule's only observable consequence is the exception condition, and a program can request that it
-      *> be checked only from COBOL-2002 onward: the >>TURN directive (§7.3.25) is a 2002 introduction, so at
+      *> be checked only from COBOL-2002 onward: the >>TURN directive (§2023:7.3.25) is a 2002 introduction, so at
       *> --std 85 the version-conformance pass rejects it (COBOL0900). The subscripted reference below is
       *> legal COBOL-85; delete the first line and it compiles at 85, which is what makes COBOL0900 here
       *> attributable to the directive and to nothing else. The positive half is

@@ -150,7 +150,7 @@ public sealed class ControlFlowDifferentialTests
             """));
 
     [Fact]
-    // EXIT PARAGRAPH is a COBOL-2002 structured-procedure exit (ISO §14.9.14.2 Format 4), so this compiles at 2002 —
+    // EXIT PARAGRAPH is a COBOL-2002 structured-procedure exit (ISO §2023:14.9.14.2 Format 4), so this compiles at 2002 —
     // the DifferentialGolden default of edition 85 now correctly REJECTS it (COBOL0900; the CA39 introduction gate).
     public void ExitParagraph()
         => DifferentialGolden.Assert(Program("01 FILLER PIC X.", """

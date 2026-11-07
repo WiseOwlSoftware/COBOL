@@ -356,7 +356,7 @@ public static partial class ReferenceFormatProcessor
     /// </summary>
     public static bool IsFixedForm(ReadOnlySpan<PhysicalLine> lines)
     {
-        // NOTE: do NOT treat the presence of a *> floating comment (COBOL-2002, ISO §6.2.3) as proof of
+        // NOTE: do NOT treat the presence of a *> floating comment (COBOL-2002, ISO §2023:6.2.3) as proof of
         // free-form. *> is legal in BOTH fixed and free reference format; a file with a genuine fixed-format
         // column structure (numeric sequence area + consistent column-7 indicators) is fixed-format that merely
         // uses inline comments, and must still be column-normalized. Classification is therefore driven purely

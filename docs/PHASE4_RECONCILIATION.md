@@ -1233,7 +1233,7 @@ binding. Guard re-green (556 integration, the 31 all pass). As-built vs the desi
   name slot".
   (4) **New boolean tier** (CobolExpressions.g4, after the condition section — precedence per §2023:8.8.2 rule 7b):
   ```
-  // ── COBOL-2002 boolean expressions (ISO §8.8.2; precedence B-NOT > B-AND > B-XOR > B-OR, rule 7b).
+  // ── COBOL-2002 boolean expressions (ISO §2023:8.8.2; precedence B-NOT > B-AND > B-XOR > B-OR, rule 7b).
   // Permissive-superset doctrine: operand SHAPES (boolean item / boolean literal / ZERO / ALL B"…") are
   // enforced at bind (COBOL0898); the tiers enforce formation rules 1–3 + Table 4 structurally.
   booleanExpression : booleanXorTerm ( {is2002()}? B_OR booleanXorTerm )* ;

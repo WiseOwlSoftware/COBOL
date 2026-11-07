@@ -13,7 +13,7 @@
       *> program behaves identically at --std 85. This twin exists to keep it that way:
       *> gating the record-less FD by accident would be invisible at 2023 alone.
       *> The UNLOCK legs of the 2023 twin are ABSENT here on purpose -- the UNLOCK
-      *> statement is a COBOL-2002 introduction (§14.9.47), gated at bind.
+      *> statement is a COBOL-2002 introduction (§2023:14.9.47), gated at bind.
       *>
       *> DERIVATION (identical to the 2023 twin, same clauses) --
       *>   OPEN=00  §2023:9.1.13.2 item 1.

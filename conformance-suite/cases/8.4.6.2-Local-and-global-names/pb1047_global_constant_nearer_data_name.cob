@@ -18,7 +18,7 @@
       *>   screen-names subordinate to a global name are global names."
       *>   cite.py --check 8.4.6.2.2 "All data-names and screen-names
       *>   subordinate to a global name are global names" -> OK
-      *> (The constant entry is COBOL-2002, §13.10; hence this edition.)
+      *> (The constant entry is COBOL-2002, §2023:13.10; hence this edition.)
       *> NESTING: PB1047K (outer) declares CONSTANT K GLOBAL "OUK" and
       *>   contains PB1047N (middle, a GLOBAL group H holding K "MDK")
       *>   and PB1047S (declares no K). PB1047N contains PB1047T.

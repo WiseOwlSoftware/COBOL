@@ -74,7 +74,7 @@ internal sealed class BinderDriver
         global::WiseOwl.Cobol.Validation.LevelNumberPass.Run(tree, edition);
         // COBOL-85's areas A and B (kb/Work PB3147): where each token begins its fixed-form line, against the item it
         // heads. Pre-bind for the level-number screen's reason — a pure syntax rule over the raw tree — and silent from
-        // COBOL-2002 on, which has no areas (ISO §6.3.1).
+        // COBOL-2002 on, which has no areas (ISO §2023:6.3.1).
         global::WiseOwl.Cobol.Validation.AreaPlacementPass.Run(tree, edition);
         // ISO §2023:5.5 1) — every integer-n is NONZERO unless an associated rule says otherwise (kb/Work PB859). Pre-bind
         // for the level-number screen's reason: a pure syntax rule over the raw tree, and a zero OCCURS bound left to

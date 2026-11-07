@@ -212,7 +212,7 @@ public sealed class AlterSwitchesDifferentialTests
 
     [Fact]   // Edition gating (the four-compilers rule): ALTER and the target-less GO TO compile at --std 85
              // (obsolete elements there — no failing diagnostic) and are REJECTED at 2002/2014/2023 as deleted
-             // (ISO/IEC 1989:2002 deletion; 2023 §14.9.17 has no altered form).
+             // (ISO/IEC 1989:2002 deletion; 2023 §2023:14.9.17 has no altered form).
     public void Alter_And_BareGoTo_RejectedAt2002Plus_AcceptedAt85()
     {
         const string alterSrc = """

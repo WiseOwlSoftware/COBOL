@@ -138,7 +138,7 @@
   },
  {
   "id": "validate-statement-2002",
-  "description": "The VALIDATE statement (ISO §2023:14.9.50) - a COBOL-2002 introduction: §8.9 reserves VALIDATE from 2002 and COBOL-85 has no such statement. The facility is declined (Annex A.4.14; docs/CONFORMANCE.md §4 item 3): from 2002 the statement is accepted inert under COBOL1580. The grammar arm is the UNION grammar, predicated only on the verb's spelling, and the VersionConformancePass parse arm (VisitValidateFacilityStatement) names the edition on RECOGNITION, so a VALIDATE statement at --std 85 answers COBOL0900 (kb/Work PB3148: a reservation predicate had made it a bare parse error at its operand). A COBOL-85 program that declares a data item VALIDATE keeps it: the reservation gate retypes every occurrence of the declared word to a user-defined word (kb/Work PB655).",
+  "description": "The VALIDATE statement (ISO §2023:14.9.50) - a COBOL-2002 introduction: §2023:8.9 reserves VALIDATE from 2002 and COBOL-85 has no such statement. The facility is declined (Annex A.4.14; docs/CONFORMANCE.md §4 item 3): from 2002 the statement is accepted inert under COBOL1580. The grammar arm is the UNION grammar, predicated only on the verb's spelling, and the VersionConformancePass parse arm (VisitValidateFacilityStatement) names the edition on RECOGNITION, so a VALIDATE statement at --std 85 answers COBOL0900 (kb/Work PB3148: a reservation predicate had made it a bare parse error at its operand). A COBOL-85 program that declares a data item VALIDATE keeps it: the reservation gate retypes every occurrence of the declared word to a user-defined word (kb/Work PB655).",
   "display": "the VALIDATE statement",
   "diagnosticCode": "COBOL0900",
   "citation": "ISO §2023:14.9.50 (VALIDATE statement; Annex A.4.14, declined)",
@@ -360,7 +360,7 @@
      "choiceOmissible": true,
      "citation": "ISO §2023:7.3.17.2 general format: LEAP-SECOND and OFF are underlined, ON is not, so per §2023:5.2.3 a bare >>LEAP-SECOND selects ON — the 'specified or implied' case §2023:7.3.17.4 GR2/GR4 presuppose. The directive's PLACEMENT rule (§2023:7.3.17.3 SR1, not within a compilation unit) stays with its stage as COBOL1650."
    },
-   "description": "The >>LEAP-SECOND [ON|OFF] compiler directive (ISO §2023:7.3.17) — a COBOL-2002 compiler-directive introduction (§7.3): with ON in effect a formatted-time argument's seconds subfield may be 60 (§2023:15.3.3.3) and a standard numeric time form value is bounded at 86,401 (§2023:7.3.17.4 GR4) instead of 86,400 (GR5); the reported side (a 60 in the seconds position of the clock functions, SECONDS-PAST-MIDNIGHT >= 86,400) is implementor-defined and answered never (A.1 item 112). A text-manipulation-stage directive consumed by LeapSecondDirectiveProcessor; the introduction gate rejects the directive below 2002 (kb/Work PB65).",
+   "description": "The >>LEAP-SECOND [ON|OFF] compiler directive (ISO §2023:7.3.17) — a COBOL-2002 compiler-directive introduction (§2023:7.3): with ON in effect a formatted-time argument's seconds subfield may be 60 (§2023:15.3.3.3) and a standard numeric time form value is bounded at 86,401 (§2023:7.3.17.4 GR4) instead of 86,400 (GR5); the reported side (a 60 in the seconds position of the clock functions, SECONDS-PAST-MIDNIGHT >= 86,400) is implementor-defined and answered never (A.1 item 112). A text-manipulation-stage directive consumed by LeapSecondDirectiveProcessor; the introduction gate rejects the directive below 2002 (kb/Work PB65).",
    "display": ">>LEAP-SECOND directive",
    "diagnosticCode": "COBOL0900",
    "citation": "ISO §2023:7.3.17; §2023:15.3.3.3; §2023:15.79.4",
@@ -800,7 +800,7 @@
   },
   {
    "id": "external-type-declaration-2023",
-   "description": "A strongly-typed EXTERNAL type declaration (ISO §2023:13.18.22.3 SR1/SR5; §2023:8.5.3; Annex E.3 item 10) — a COBOL-2023 addition. E.3 item 10 states external items 'could not be strongly typed' before 2023, so it is specifically the STRONG+EXTERNAL combination on a level-1 TYPEDEF that is new; SR5 forces a strongly-typed external record's type to itself be a strong external type declaration. A WEAK 'TYPEDEF IS EXTERNAL' (no STRONG) was already valid in COBOL-2002 (§13.18.58.3 SR3) and is NOT gated. Gated on the co-occurrence of the EXTERNAL clause with a STRONG TYPEDEF clause on one level-1 data description entry. Below 2023 the strong external type declaration is rejected.",
+   "description": "A strongly-typed EXTERNAL type declaration (ISO §2023:13.18.22.3 SR1/SR5; §2023:8.5.3; Annex E.3 item 10) — a COBOL-2023 addition. E.3 item 10 states external items 'could not be strongly typed' before 2023, so it is specifically the STRONG+EXTERNAL combination on a level-1 TYPEDEF that is new; SR5 forces a strongly-typed external record's type to itself be a strong external type declaration. A WEAK 'TYPEDEF IS EXTERNAL' (no STRONG) was already valid in COBOL-2002 (§2023:13.18.58.3 SR3) and is NOT gated. Gated on the co-occurrence of the EXTERNAL clause with a STRONG TYPEDEF clause on one level-1 data description entry. Below 2023 the strong external type declaration is rejected.",
    "display": "a strongly-typed EXTERNAL type declaration",
    "diagnosticCode": "COBOL0900",
    "citation": "ISO §2023:13.18.22.3 SR1/SR5; §2023:8.5.3; Annex E.3.3 item 20",
@@ -1343,7 +1343,7 @@
    "introducedIn": 85,
    "removedIn": 2002,
    "expectDiagnostic": "COBOL0901",
-   "vcr": "reserved-words.json PROGRAM-POINTER (added 2002, GnuCOBOL 2002 list; ISO 2023 §8.9)",
+   "vcr": "reserved-words.json PROGRAM-POINTER (added 2002, GnuCOBOL 2002 list; ISO 2023 §2023:8.9)",
    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. KUWPP.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 PROGRAM-POINTER PIC 99 VALUE 5.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY PROGRAM-POINTER.\n    STOP RUN.\n"
   },
   {
@@ -1369,7 +1369,7 @@
    "introducedIn": 85,
    "removedIn": 2002,
    "expectDiagnostic": "COBOL0901",
-   "vcr": "reserved-words.json AS (added 2002, GnuCOBOL 2002 list; ISO 2023 §8.9)",
+   "vcr": "reserved-words.json AS (added 2002, GnuCOBOL 2002 list; ISO 2023 §2023:8.9)",
    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. KUWAS.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 AS PIC 99 VALUE 9.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY AS.\n    STOP RUN.\n"
   },
   {
@@ -1382,7 +1382,7 @@
    "introducedIn": 85,
    "removedIn": 2002,
    "expectDiagnostic": "COBOL0901",
-   "vcr": "reserved-words.json CONSTANT (added 2002, GnuCOBOL 2002 list; ISO 2023 §8.9)",
+   "vcr": "reserved-words.json CONSTANT (added 2002, GnuCOBOL 2002 list; ISO 2023 §2023:8.9)",
    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. KUW.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 CONSTANT PIC 99 VALUE 7.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY CONSTANT.\n    STOP RUN.\n"
   },
   {
@@ -1484,7 +1484,7 @@
   },
   {
    "id": "label-records-removed-2002",
-   "description": "LABEL RECORDS clause (FD) — obsolete '85 element DELETED by ISO/IEC 1989:2002; the 2023 FD clause set (§13.18) has no LABEL clause. The FIRST removal gate, shipped with the permissive flip (every NIST FD writes this clause).",
+   "description": "LABEL RECORDS clause (FD) — obsolete '85 element DELETED by ISO/IEC 1989:2002; the 2023 FD clause set (§2023:13.18) has no LABEL clause. The FIRST removal gate, shipped with the permissive flip (every NIST FD writes this clause).",
    "display": "the LABEL RECORDS clause",
    "diagnosticCode": "COBOL0902",
    "citation": "obsolete '85 FD element DELETED by ISO 2002; the 2023 FD clause set (§2023:13.18) has no LABEL clause; VCR Table 7",
@@ -1515,15 +1515,15 @@
    "introducedIn": 85,
    "removedIn": 2002,
    "expectDiagnostic": "COBOL0901",
-   "vcr": "reserved-words.json row RAISING (GnuCOBOL 2002/2014 lists + ISO 2023 §8.9)",
+   "vcr": "reserved-words.json row RAISING (GnuCOBOL 2002/2014 lists + ISO 2023 §2023:8.9)",
    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. UWR.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 RAISING PIC 9 VALUE 6.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY RAISING.\n    STOP RUN.\n"
   },
   {
    "id": "receive-as-user-word",
-   "description": "The word RECEIVE as a user-defined word — the RE-reservation interval in ONE f(case,V) row: 85/2002-reserved (the communication facility, obsolete at 2002 per GnuCOBOL's cobol2002.conf, its word on the ISO 2002 §8.9 list, kb/Work PB4297) → user-definable at 2014 → re-reserved 2023 (Annex E.2 item 25, which compares 2023 with 2014 only: E.1). kb/Work PB656.",
+   "description": "The word RECEIVE as a user-defined word — the RE-reservation interval in ONE f(case,V) row: 85/2002-reserved (the communication facility, obsolete at 2002 per GnuCOBOL's cobol2002.conf, its word on the ISO 2002 §2002:8.9 list, kb/Work PB4297) → user-definable at 2014 → re-reserved 2023 (Annex E.2 item 25, which compares 2023 with 2014 only: E.1). kb/Work PB656.",
    "display": "the word RECEIVE as a user-defined word",
    "diagnosticCode": "COBOL0901",
-   "citation": "§2023:8.9 interval encoding of the RE-reservation: 85/2002-reserved (communication; ISO 2002 §2023:8.9) → user-definable 2014 → re-reserved 2023 (Annex E.2 item 25)",
+   "citation": "§2023:8.9 interval encoding of the RE-reservation: 85/2002-reserved (communication; ISO 2002 §2002:8.9) → user-definable 2014 → re-reserved 2023 (Annex E.2 item 25)",
    "introducedIn": 2014,
    "removedIn": 2023,
    "expectDiagnostic": "COBOL0901",
@@ -2227,7 +2227,7 @@
    "description": "A literal or an arithmetic or boolean expression as a CALL USING argument (BY CONTENT or keyword-less) - a COBOL-2002 introduction, QUOTED from ISO/IEC 1989:2002 Annex F.2 item 15: \"CALL statement. Arithmetic expressions and literals may be used as arguments of the CALL statement.\" In 2002 and later they belong to the program-prototype CALL only (2002 §2023:14.8.4.1 Format 3; 2023 §2023:14.9.4.2 Format 2). Gated in ONE place, CallBinder.Format1Narrowing, with OMITTED and BY VALUE (kb/Work PB4503): below 2002 a Format 1 CALL argument so spelled is this COBOL0900, and under --permissive the vendor extension (owner decision 2026-11-03). VCR row 7.47 (item 15).",
    "display": "a literal or expression as a CALL argument",
    "diagnosticCode": "COBOL0900",
-   "citation": "ISO/IEC 1989:2002 Annex F.2 item 15; ISO §14.9.4.2 Format 2",
+   "citation": "ISO/IEC 1989:2002 Annex F.2 item 15; ISO §2023:14.9.4.2 Format 2",
    "introducedIn": 2002,
    "removedIn": null,
    "expectDiagnostic": "COBOL0900",
@@ -3130,7 +3130,7 @@
    "description": "A SIGN clause without SEPARATE CHARACTER in a REPORT GROUP description entry (kb/Work PB3683). ANSI X3.23-1985 required the SEPARATE phrase there; ISO/IEC 1989:2002 Annex F.2 item 123 QUOTES the change: 'SIGN clause in a report description entry. The SEPARATE phrase is no longer required in a report description entry and the SIGN clause may be specified at the group level.' (item 115's bullet: 'SIGN clause does not require SEPARATE phrase in report section'). The 2023 text of 13.18.52.4 GR5 gives the clause without SEPARATE an implementor-defined representation and 13.18.52.3 SR1 admits 'a numeric report group description entry whose picture character-string contains the symbol S'. Gated in ONE place, DataBinder.ScreenReportSignClauses (once per written entry).",
    "display": "a SIGN clause without SEPARATE CHARACTER in a report group description entry",
    "diagnosticCode": "COBOL0900",
-   "citation": "ISO/IEC 1989:2002 Annex F.2 item 123; ISO §13.18.52.3 SR1, §2023:13.18.52.4 GR5 (2023 text)",
+   "citation": "ISO/IEC 1989:2002 Annex F.2 item 123; ISO §2023:13.18.52.3 SR1, §2023:13.18.52.4 GR5 (2023 text)",
    "introducedIn": 2002,
    "removedIn": null,
    "expectDiagnostic": "COBOL0900",
@@ -3143,7 +3143,7 @@
    "description": "A SIGN clause on a report group description entry that is a GROUP, i.e. has subordinate entries (kb/Work PB3683). ANSI X3.23-1985 admitted the clause only on an elementary report entry; ISO/IEC 1989:2002 Annex F.2 item 123 QUOTES the change: 'the SIGN clause may be specified at the group level' in a report description entry. The 2023 text of 13.18.52.3 SR1 admits 'an alphanumeric group item, national group item, or strongly-typed group item', which a report group entry with subordinates is, and 13.15.3 does not restrict it. Gated in ONE place, DataBinder.ScreenReportSignClauses (once per written entry).",
    "display": "a SIGN clause on a report group description entry that is a group",
    "diagnosticCode": "COBOL0900",
-   "citation": "ISO/IEC 1989:2002 Annex F.2 item 123; ISO §13.18.52.3 SR1 (2023 text)",
+   "citation": "ISO/IEC 1989:2002 Annex F.2 item 123; ISO §2023:13.18.52.3 SR1 (2023 text)",
    "introducedIn": 2002,
    "removedIn": null,
    "expectDiagnostic": "COBOL0900",
@@ -3762,7 +3762,7 @@
    "description": "A fixed-form AREA-A ITEM - a division, section or paragraph header, a level indicator (FD, SD, RD), level-number 01 or 77, DECLARATIVES, END DECLARATIVES or an end marker - that does not begin its line in area A (character positions 8-11). ANSI X3.23-1985's reference format split the program-text area at margin B into area A and area B and began each area-A item in area A; ISO/IEC 1989:2002 removed the split, and the 2023 program-text area 'begins in character position 8 and terminates with the character position immediately to the left of margin R' (ISO §2023:6.3.1) with no area. So the placement is free from 2002 on and an area-A item outside area A is refused at COBOL-85 (kb/Work PB3147). Asked of every token by ONE pass, AreaPlacementPass, from the reference format's own record of where each fixed-form line's text begins (ReferenceFormatMap.PlacementAt through FixedFormAreas). The edition edge is DERIVED, not quoted (VCR row 7.35): the repo holds no 1985 or 2002 text; GnuCOBOL 3.2's cobol85.conf sets areacheck: yes and its cobol2002.conf areacheck: no, and the NIST CCVS-85 corpus writes every area-A item in area A (NC113M tests positions 8-11, OBNC1M's comment-entry is a whole program in area B).",
    "display": "an area-A item that does not begin its fixed-form line in area A",
    "diagnosticCode": "COBOL3734",
-   "citation": "ANSI X3.23-1985 reference format, area A; ISO §6.3.1: no areas from 2002",
+   "citation": "ANSI X3.23-1985 reference format, area A; ISO §2023:6.3.1: no areas from 2002",
    "introducedIn": 2002,
    "removedIn": null,
    "expectDiagnostic": "COBOL3734",
@@ -3774,7 +3774,7 @@
    "description": "Fixed-form program text that begins its line in AREA A (character positions 8-11) but is not an area-A item or a level-number: a statement, a sentence, an entry or clause continued on a subsequent line, a separator period, and ANY text of a CONTINUATION line (a hyphen in the indicator area: 'Area A of a continuation line must be blank'). ANSI X3.23-1985's reference format wrote everything but the area-A items in area B (position 12 to margin R) - an entry, sentence, statement or clause continued 'by starting subsequent line(s) in area B'; ISO/IEC 1989:2002 removed the areas, and the 2023 rule continues an entry 'by starting subsequent COBOL words, literals, or picture character-strings in the program-text area of a subsequent line' (ISO §2023:6.3.5). Level-numbers other than 01 and 77 may begin in either area (indentation by level). Refused at COBOL-85 by the ONE AreaPlacementPass (kb/Work PB3147) for the text that begins a token, and by the §2023:6.5 logical conversion (ReferenceFormatDiagnostics.OnContinuationTextInAreaA, kb/Work PB3168) for a continuation line, whose tail of a continued literal is no token's start; the edge is DERIVED, not quoted (VCR row 7.35), with the same evidence as fixed-form-area-a-item-outside-area-a-2002.",
    "display": "program text other than an area-A item or a level-number that begins its fixed-form line in area A",
    "diagnosticCode": "COBOL3735",
-   "citation": "ANSI X3.23-1985 reference format, area B; ISO §6.3.1, §2023:6.3.5: no areas from 2002",
+   "citation": "ANSI X3.23-1985 reference format, area B; ISO §2023:6.3.1, §2023:6.3.5: no areas from 2002",
    "introducedIn": 2002,
    "removedIn": null,
    "expectDiagnostic": "COBOL3735",

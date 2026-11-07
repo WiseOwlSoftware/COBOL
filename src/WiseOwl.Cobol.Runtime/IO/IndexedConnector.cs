@@ -858,7 +858,7 @@ public sealed class IndexedConnector : KeyedConnector
         return StartSucceeded(keyIndex, f.KeyPart);
     }
 
-    /// <summary>START FIRST/LAST (COBOL-2002+) on an indexed file: §14.9.41.4 GR18 — "If FIRST is specified, the
+    /// <summary>START FIRST/LAST (COBOL-2002+) on an indexed file: §2023:14.9.41.4 GR18 — "If FIRST is specified, the
     /// file position indicator is set to the value of the primary key of the first existing logical record in the
     /// physical file and the key of reference is set to the primary key" — and GR19, the same for LAST and the
     /// last existing record. An empty or absent-optional file → invalid key '23' (GR18/GR19's own second

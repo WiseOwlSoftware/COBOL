@@ -89,7 +89,7 @@ internal sealed class SetAlterBinder(BinderContext ctx)
     }
 
     /// <summary>Bind the target-less <c>GO TO.</c> (ANSI X3.23-1985 only — obsolete there, DELETED by ISO/IEC
-    /// 1989:2002; §14.9.17 of the 2023 standard requires procedure-name-1): it may appear only in a single-GO-TO
+    /// 1989:2002; §2023:14.9.17 of the 2023 standard requires procedure-name-1): it may appear only in a single-GO-TO
     /// paragraph referenced by an ALTER and must be ALTERed before execution, else execution is UNDEFINED — bound
     /// as the alterable transfer with default −1 (dispatcher exit) when ALTERed somewhere, or a constant −1
     /// transfer when no ALTER ever names the paragraph (the legacy's NIST-proven realization of "undefined").</summary>

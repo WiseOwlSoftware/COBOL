@@ -195,7 +195,7 @@ public sealed class InitializeDifferentialTests
         Assert.Equal("  FF00\n    00", stdout);
     }
 
-    // VERSION TEST MATRIX invariant: WITH FILLER was introduced by ISO/IEC 1989:2002 (§14.9.20 / Annex E) — at
+    // VERSION TEST MATRIX invariant: WITH FILLER was introduced by ISO/IEC 1989:2002 (§2023:14.9.20 / Annex E) — at
     // --std 85 the compile is REJECTED with the INITIALIZE edition-gate diagnostic, not silently accepted.
     [Fact]
     public void Initialize_WithFiller_RejectedAt85()

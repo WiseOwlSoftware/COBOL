@@ -1276,7 +1276,7 @@ reference formats, and the only place source comments are recognized. Its model:
   differ says so in the message, in both of its forms (a line with program text, and one with none).
 - **COBOL-85's areas A and B are a fact the reference format RECORDS and a pass after the parse ASKS** (kb/Work PB3147;
   VCR Table 7 row 7.35). ANSI X3.23-1985 split the program-text area into area A (positions 8–11) and area B (12 to
-  margin R) and placed every item by where it begins its line; ISO/IEC 1989:2002 removed the split (§6.3.1, §2023:6.3.5), so
+  margin R) and placed every item by where it begins its line; ISO/IEC 1989:2002 removed the split (§2023:6.3.1, §2023:6.3.5), so
   the two rules — an area-A item (a division, section or paragraph header, a level indicator, level-number 01 or 77,
   DECLARATIVES, END DECLARATIVES, an end marker) begins its line in area A (`fixed-form-area-a-item-outside-area-a-2002`,
   COBOL3734), and any other text that begins a line, a level-number other than 01 or 77 excepted, begins in area B
@@ -2778,7 +2778,7 @@ its loop ends, the statement ends (§2023:14.5.3.3 2) c), 4) b)) and the next en
 SIZE ERROR ADD 1 TO D NOT ON SIZE ERROR …` gives the NOT phrase to the ADD (COBOL2796 then refuses the ADD as a
 conditional statement in an imperative-statement, §3.14), while `READ F AT END ADD 1 TO X NOT AT END …` gives it to the
 READ. **The superset reading, last of all:** a phrase only an earlier edition prints (CALL's `ON OVERFLOW`, 85–2014,
-ISO/IEC 1989:2002 §14.8.4.1 Format 1) still associates with its statement for the conformance pass to name
+ISO/IEC 1989:2002 §2002:14.8.4.1 Format 1) still associates with its statement for the conformance pass to name
 (COBOL0882) — but only when no enclosing open statement may take it at the target edition, so at 2023 `STRING …
 NOT ON OVERFLOW CALL "P" ON OVERFLOW …` is the STRING's (legal), and at 85–2014 the CALL's (COBOL2796). Reading the
 edition here is the one sanctioned phrase-association read of `EditionReadDriftTests`. The superset relaxes the EDITION

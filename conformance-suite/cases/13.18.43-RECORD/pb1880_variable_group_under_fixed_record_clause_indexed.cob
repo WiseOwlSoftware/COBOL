@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO 1989:2014 §13.18.43 (RECORD clause Format 1) over a VARIABLE-LENGTH GROUP record (§2023:8.5.1.12.1) in an INDEXED
+      *> ISO 1989:2014 §2023:13.18.43 (RECORD clause Format 1) over a VARIABLE-LENGTH GROUP record (§2023:8.5.1.12.1) in an INDEXED
       *> file: the indexed sibling of pb1562_variable_group_under_fixed_record_clause (record sequential) and of its relative
       *> twin. The record holds two DYNAMIC LENGTH members around the RECORD KEY, in a file described with RECORD CONTAINS
       *> 20 CHARACTERS: legal because §2023:13.18.43.3 SR3 bounds the description by its maximum (9 + 3 + 8 = 20, D-FRA (iv)).

@@ -37,7 +37,7 @@ namespace WiseOwl.Cobol.Binding.Passes;
 /// layout walk, and SR1 asks the same question in the same words. One predicate, so the rule that DECIDES
 /// whether ALIGNED is legal and the walk that IMPLEMENTS it cannot disagree about what a bit item is.</para>
 ///
-/// <para><b>Edition axis.</b> ALIGNED is reserved from COBOL-2002 (§8.9; <c>ReservedWords.Table.cs</c>), so at
+/// <para><b>Edition axis.</b> ALIGNED is reserved from COBOL-2002 (§2023:8.9; <c>ReservedWords.Table.cs</c>), so at
 /// <c>--std 85</c> the word is a user-defined word and never reaches this pass as a clause — the reservation
 /// gate on <c>cobolWord</c>/<c>reservedGatedWord</c> routes it to the §2023:8.9 funnel instead. The 2002 introduction
 /// gate for the CLAUSE is <c>VersionConformancePass ParseArm.VisitAlignedClause</c>; this pass is a plain syntax

@@ -23,11 +23,11 @@ namespace WiseOwl.Cobol.Frontend.Expressions;
 /// </summary>
 public static class BooleanOperatorTokens
 {
-    /// <summary>A binary boolean operator between two operands: B-AND, B-OR, B-XOR (COBOL-2002, §8.8.2 rule 7) and the
+    /// <summary>A binary boolean operator between two operands: B-AND, B-OR, B-XOR (COBOL-2002, §2023:8.8.2 rule 7) and the
     /// four shifts (COBOL-2023, rule 8), whose right operand is an integer rather than a boolean.</summary>
     public static bool IsInfix(int type) => IsBinary(type) || IsShift(type);
 
-    /// <summary>B-AND, B-OR, B-XOR — the COBOL-2002 binary operators (§8.7.2).</summary>
+    /// <summary>B-AND, B-OR, B-XOR — the COBOL-2002 binary operators (§2023:8.7.2).</summary>
     public static bool IsBinary(int type) => type is CobolLexer.B_AND or CobolLexer.B_OR or CobolLexer.B_XOR;
 
     /// <summary>B-NOT — the COBOL-2002 unary operator, written before its operand.</summary>
@@ -38,7 +38,7 @@ public static class BooleanOperatorTokens
     public static bool IsShift(int type) =>
         type is CobolLexer.B_SHIFT_L or CobolLexer.B_SHIFT_R or CobolLexer.B_SHIFT_LC or CobolLexer.B_SHIFT_RC;
 
-    /// <summary>The COBOL-2002 operator tokens (§8.7.2): the binary operators and B-NOT.</summary>
+    /// <summary>The COBOL-2002 operator tokens (§2023:8.7.2): the binary operators and B-NOT.</summary>
     public static bool IsBinaryOrNot(int type) => IsBinary(type) || IsPrefix(type);
 
     /// <summary>Any boolean-operator token.</summary>

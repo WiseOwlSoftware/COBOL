@@ -192,7 +192,7 @@ public sealed class DynamicLengthTests
         Assert.True(ok, $"a well-formed DYNAMIC LENGTH item must compile at 2014:\n{string.Join("\n", diag)}");
     }
 
-    /// <summary>The COBOL-2014 introduction gate (§8.5.1.10 / §2023:13.18.19): DYNAMIC LENGTH is rejected below 2014 with
+    /// <summary>The COBOL-2014 introduction gate (§2023:8.5.1.10 / §2023:13.18.19): DYNAMIC LENGTH is rejected below 2014 with
     /// the edition-band COBOL0900 (VersionConformancePass ParseArm.VisitDynamicLengthClause).</summary>
     [Theory]
     [InlineData(85)]

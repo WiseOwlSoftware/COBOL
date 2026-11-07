@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO 1989:2002/2023 §13.18.34.4 GR6 - THE LINAGE OPERAND VALUES REACH A CLASS'S FILE TOO. The rule is
+      *> ISO 1989:2002/2023 §2023:13.18.34.4 GR6 - THE LINAGE OPERAND VALUES REACH A CLASS'S FILE TOO. The rule is
       *> written over "the indicated statement" and its file, with no exemption for the runtime element that
       *> executes it, and §2023:9.3.14.2's factory object owns file connectors exactly as a program does
       *> (conformance:cases/_unassigned/oo_factory_file pins the connector itself).

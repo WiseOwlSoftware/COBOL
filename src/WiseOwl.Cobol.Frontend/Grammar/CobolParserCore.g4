@@ -104,7 +104,7 @@ identificationBody
     | functionIdParagraph identificationParagraph*
     ;
 
-// FUNCTION-ID paragraph (COBOL-2002 user-defined function, ISO §11.5). The function unit is otherwise an
+// FUNCTION-ID paragraph (COBOL-2002 user-defined function, ISO §2023:11.5). The function unit is otherwise an
 // ordinary source unit (its own ENVIRONMENT/DATA/PROCEDURE DIVISION USING…RETURNING) and is compiled as a
 // callable program named after the function; a FUNCTION user-name(args) reference lowers onto it (M2-UDF-1,
 // DEVLOG 615). Format 2 — `IS PROTOTYPE` (ISO §2023:11.5 :13127 / §2023:10.6) — is a signature-only prototype unit
@@ -235,7 +235,7 @@ identificationParagraph
     | unrecognizedClause DOT   // ⛔ LAST — refused BY NAME by ClosedFormatPass (COBOL1971)
     ;
 
-// OPTIONS paragraph (COBOL-2002, ISO §11.9) — fully parsed into a structured clause tree (the model is consumed
+// OPTIONS paragraph (COBOL-2002, ISO §2023:11.9) — fully parsed into a structured clause tree (the model is consumed
 // program-wide; see WiseOwl.Cobol.Binding.OptionsModel / OptionsBinder). §2023:11.9.2 (RENDERED, PDF p302 / folio 272) prints
 // `OPTIONS.`, seven SEPARATE brackets in a fixed sequence, and an independent `[.]` (kb/Work PB1508):
 // - ORDER AND REPETITION. Each clause begins with a distinct keyword token, so `optionsClause+` is LL(1)-clean, but it
@@ -471,7 +471,7 @@ configurationParagraph
     | unrecognizedClause DOT   // ⛔ LAST — refused BY NAME by ClosedFormatPass (COBOL1971)
     ;
 
-// REPOSITORY paragraph (COBOL-2002, ISO §12.3.8) — declares the program prototypes, function prototypes, classes,
+// REPOSITORY paragraph (COBOL-2002, ISO §2023:12.3.8) — declares the program prototypes, function prototypes, classes,
 // interfaces and properties a source element references, plus the intrinsic-function-names usable without the word
 // FUNCTION. Each entry starts with its specifier keyword, so the rule cannot over-run into the next section.
 // ⛔ ONE SEPARATOR PERIOD: §2023:12.3.8.2 prints `REPOSITORY. [ { specifier } … . ]` — the period inside the bracket, once,
@@ -1852,7 +1852,7 @@ setProgramAddressStatement
     : SET setReceivingIdentifier+ TO programAddressIdentifier
     ;
 
-// ALLOCATE statement (COBOL-2002 §14.9.3): obtain dynamic storage, returned as a managed data-pointer.
+// ALLOCATE statement (COBOL-2002 §2023:14.9.3): obtain dynamic storage, returned as a managed data-pointer.
 //   ALLOCATE n CHARACTERS [INITIALIZED] [RETURNING p]   — allocate n bytes, return the pointer
 //   ALLOCATE based-item   [INITIALIZED] [RETURNING p]   — allocate storage for a BASED item, set its address
 allocateStatement
@@ -1860,7 +1860,7 @@ allocateStatement
     | ALLOCATE dataReference INITIALIZED? (RETURNING receivingIdentifier)?
     ;
 
-// FREE statement (COBOL-2002 §14.9.15): release storage previously ALLOCATEd; set each data-pointer to NULL.
+// FREE statement (COBOL-2002 §2023:14.9.15): release storage previously ALLOCATEd; set each data-pointer to NULL.
 freeStatement
     : FREE dataReference+
     ;

@@ -6,7 +6,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB495 — the COBOL-2014 leg of ISO §13.18.60.4 GR1 ("If the USAGE clause is specified or implied
+      *> kb/Work PB495 — the COBOL-2014 leg of ISO §2023:13.18.60.4 GR1 ("If the USAGE clause is specified or implied
       *> at a group level, it applies only to each elementary item in the group"), over the phrases 2014 added
       *> and over the SIGNED/UNSIGNED phrase GR21's second sentence governs.
       *>

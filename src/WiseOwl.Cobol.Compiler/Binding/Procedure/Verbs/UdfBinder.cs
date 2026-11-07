@@ -81,7 +81,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
     /// result temporary, register the hoisted activation, and return the temp-reading expression.</summary>
     internal BoundExpr UdfBindCall(string name, IReadOnlyList<Core.FunctionArgumentContext> argCtxs)
     {
-        // INTRODUCTION gate: user-defined functions are COBOL-2002+ (§9.4 / §2023:12.3.8; 0900 below 2002). It fires on
+        // INTRODUCTION gate: user-defined functions are COBOL-2002+ (§2023:9.4 / §2023:12.3.8; 0900 below 2002). It fires on
         // RECOGNITION — a below-2002 UDF reference is an edition violation independent of whether the function is
         // DEFINED (a locate miss is 1505 / EC-FUNCTION-NOT-FOUND). A bound-arm gate on the hoisted BoundCallProgram
         // loses it when the reference errors before the hoist (UdfInvocationTests.BinderGate_0900_At85), so it stays

@@ -409,7 +409,7 @@ public static class DiagnosticCatalog
         + "and the shift operators B-SHIFT-L, B-SHIFT-LC, B-SHIFT-R and B-SHIFT-RC from COBOL-2023. A §2023:8.10 "
         + "context-sensitive word is named by the same rule, from the edition that introduced it "
         + "(ContextSensitiveWordEntry.Introduced: the 2002 standard's list, else E.3.3 item 13 for COBOL-2023, else "
-        + "COBOL-2014): §8.10 treats such a word as a keyword only where the construct is a construct of the edition, "
+        + "COBOL-2014): §2023:8.10 treats such a word as a keyword only where the construct is a construct of the edition, "
         + "so ROUNDED MODE names its eight mode words from COBOL-2014 and OPTIONS ARITHMETIC names NATIVE and "
         + "STANDARD at COBOL-2002 and adds STANDARD-BINARY and STANDARD-DECIMAL from COBOL-2014; where no word is left to name, the "
         + "message is the bare COBOL0001.",
@@ -7916,7 +7916,7 @@ public static class DiagnosticCatalog
         + "level-number 01 or 77, DECLARATIVES, END DECLARATIVES and an end marker in area A: each begins its line, in "
         + "character positions 8-11. Begin the item on a line of its own in area A, or target COBOL-2002 or later, "
         + "whose program-text area has no areas (ISO §2023:6.3.1).",
-        "ANSI X3.23-1985 reference format (area A); ISO §6.3.1");
+        "ANSI X3.23-1985 reference format (area A); ISO §2023:6.3.1");
 
     /// <summary>COBOL3735 — at COBOL-85, fixed-form program text that begins its line in AREA A but is not an
     /// area-A item or a level-number (kb/Work PB3147): a statement, a sentence, a clause or entry continued on a new
@@ -7931,8 +7931,8 @@ public static class DiagnosticCatalog
         + "paragraph headers, level indicators, level-numbers, DECLARATIVES, END DECLARATIVES and end markers: a "
         + "sentence, a statement, and an entry or clause continued on a subsequent line begin in area B (position 12 or "
         + "later), and area A of a continuation line (a hyphen in column 7) is blank. Indent the text into area B, or "
-        + "target COBOL-2002 or later (ISO §6.3.1, §2023:6.3.5).",
-        "ANSI X3.23-1985 reference format (area B); ISO §6.3.1, §2023:6.3.5");
+        + "target COBOL-2002 or later (ISO §2023:6.3.1, §2023:6.3.5).",
+        "ANSI X3.23-1985 reference format (area B); ISO §2023:6.3.1, §2023:6.3.5");
 
     /// <summary>COBOL3803 — a <c>RAISE EXCEPTION</c> of a NONFATAL exception-name whose checking is not enabled at
     /// that statement (kb/Work PB2505), so the statement raises nothing. A quality-of-implementation advisory, never a

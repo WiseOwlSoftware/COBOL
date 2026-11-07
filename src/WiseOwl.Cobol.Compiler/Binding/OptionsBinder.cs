@@ -26,7 +26,7 @@ internal static class OptionsBinder
             .Select(p => p.optionsParagraph()).FirstOrDefault(o => o is not null);
 
     /// <summary>Read a source element's OPTIONS paragraph into an <see cref="OptionsModel"/>. The OPTIONS
-    /// paragraph was introduced by ISO/IEC 1989:2002 (§11.9 — with the ARITHMETIC clause; Annex E.2 item 21
+    /// paragraph was introduced by ISO/IEC 1989:2002 (§2023:11.9 — with the ARITHMETIC clause; Annex E.2 item 21
     /// back-derives the container from obsolete-in-2014 Standard Arithmetic): targeting 85 REJECTS it with an
     /// edition diagnostic and the implied defaults (native arithmetic, nearest-away-from-zero bare ROUNDED)
     /// apply. The later clauses (DEFAULT ROUNDED, INTERMEDIATE ROUNDING, ENTRY-CONVENTION, FLOAT-BINARY/-DECIMAL,

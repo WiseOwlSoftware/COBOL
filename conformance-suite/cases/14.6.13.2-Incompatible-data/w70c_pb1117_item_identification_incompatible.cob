@@ -23,7 +23,7 @@
       *>     -> OK §2023:8.4.2.3.4 1) b) — the subscript is the item's VALUE: its sign and its P scaling count.
       *>
       *> The group MOVEs plant character content in G, so N/K/S/NP are stored as their character images (the
-      *> only storage that can hold content failing the class test). >>TURN is COBOL-2002 (§7.3.25);
+      *> only storage that can hold content failing the class test). >>TURN is COBOL-2002 (§2023:7.3.25);
       *> negative/w70c-pb1117-turn-below-2002 pins its refusal below that.
       *>
       *> WHY EACH LEG CAN FAIL (the pre-PB1117 build decoded every one of these images through a tolerant digit

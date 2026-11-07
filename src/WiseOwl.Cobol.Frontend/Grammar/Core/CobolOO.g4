@@ -1,7 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 
-// Object-Orientation grammar (COBOL-2002, ISO §11.2 identification division structure, §2023:11.3 CLASS-ID,
+// Object-Orientation grammar (COBOL-2002, ISO §2023:11.2 identification division structure, §2023:11.3 CLASS-ID,
 // §2023:11.7 METHOD-ID, §2023:11.8 OBJECT + §2023:14.9.23 INVOKE). This is a version-factored
 // fragment imported by CobolParserCore.g4 — OO rule BODIES live here; the minimal HOOK alternatives
 // (classDefinition in compilationGroup, invokeStatement in statement, objectReferenceUsage in usageKeyword) are added

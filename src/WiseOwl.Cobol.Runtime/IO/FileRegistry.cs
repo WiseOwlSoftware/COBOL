@@ -1126,7 +1126,7 @@ public sealed class FileRegistry
         return false;
     }
 
-    // ── COBOL-2002 file sharing / record locking (ISO §9.1.15/§2023:9.1.16/§2023:14.9.27/§2023:14.9.47/§2023:14.7.9) ─────────────
+    // ── COBOL-2002 file sharing / record locking (ISO §2023:9.1.15/§2023:9.1.16/§2023:14.9.27/§2023:14.9.47/§2023:14.7.9) ─────────────
     // Design D1: the 51/52/61 statuses are defined over "another file connector" (§2023:9.1.13.9) — two SELECTs bound
     // to one resolved host path are two distinct connectors over one physical file within one run unit, so the
     // machinery is REAL. A conflict held by a connector of THIS run unit cannot clear while the statement runs, so

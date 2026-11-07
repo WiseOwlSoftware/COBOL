@@ -33,7 +33,7 @@
       *> date format (eight characters).
       *>
       *> ⚠ 2014, not 2002: SR2's permission arrives with the REPOSITORY FUNCTION
-      *> specifier at COBOL-2002 (§12.3.8), but §2023:15.48 INTEGER-OF-FORMATTED-DATE
+      *> specifier at COBOL-2002 (§2023:12.3.8), but §2023:15.48 INTEGER-OF-FORMATTED-DATE
       *> arrives at COBOL-2014, and one program that writes both bare names is the
       *> honest shape for a rule both rows cite. The permission's own edition floor
       *> is pinned separately by 2002/repository_paragraph.

@@ -1081,7 +1081,7 @@ public sealed class IntrinsicFunctionDifferentialTests
         Assert.Contains("COBOL1502", detail);
     }
 
-    // ── The COBOL-2014 date/time + number family (§15.17/38-41/48/69/79/92/95, Phase 5, DEVLOG 635) ───────────
+    // ── The COBOL-2014 date/time + number family (§2023:15.17/38-41/48/69/79/92/95, Phase 5, DEVLOG 635) ───────────
 
     [Fact]
     public void FormattedTime_UtcRollAcrossMidnight_2014()

@@ -6,7 +6,7 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 
 /// <summary>Where a text stands with respect to the AREAS of a fixed-form line (kb/Work PB3147). ANSI X3.23-1985 split
 /// the program-text area into area A (positions 8–11, <see cref="FixedFormLine.AreaAWidth"/>) and area B (positions 12 to
-/// margin R) and placed every item by where it BEGINS ITS LINE; ISO/IEC 1989:2002 removed the split (ISO §6.3.1), so only
+/// margin R) and placed every item by where it BEGINS ITS LINE; ISO/IEC 1989:2002 removed the split (ISO §2023:6.3.1), so only
 /// a COBOL-85 reading asks.</summary>
 public enum AreaPlacement
 {

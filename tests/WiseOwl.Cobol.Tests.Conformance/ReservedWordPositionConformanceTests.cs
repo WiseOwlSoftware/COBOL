@@ -306,7 +306,7 @@ public sealed class ReservedWordPositionConformanceTests
         EditionHarness.AssertNoDiagnostic(diags, "COBOL0901");
     }
 
-    /// <summary>The same clause under <c>--permissive</c>: FORMAT is a word COBOL-2002 ADDED to §8.9 (r85 false),
+    /// <summary>The same clause under <c>--permissive</c>: FORMAT is a word COBOL-2002 ADDED to §2023:8.9 (r85 false),
     /// so its verdict is <c>Removed</c>, the migration mode HAS a pre-reservation reading to restore and the gate
     /// stands down — the decline stays a warning and the program compiles. (The gate is not blanket-off under
     /// <c>--permissive</c>: a word reserved at this edition and at every older one keeps it — kb/Work PB792.)
