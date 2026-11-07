@@ -1,8 +1,11 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime.Tree;
+using WiseOwl.Cobol.Frontend.Generated;
 
 namespace WiseOwl.Cobol.Binding;
+
+using Core = CobolParserCore;
 
 /// <summary>⛔ THE ONE DEPTH-FIRST WALK OF A PARSE SUBTREE THE BINDER ASKS FOR BY NODE (kb/Work PB4302). A recursive
 /// <c>yield</c> iterator (<c>foreach (var d in Walk(child)) yield return d;</c>) hands every node up through one
@@ -23,6 +26,21 @@ internal static class ParseTreeWalk
         while (pending.Count > 0)
         {
             var next = pending.Pop();
+            yield return next;
+            PushChildren(pending, next);
+        }
+    }
+
+    /// <summary>Every node under <paramref name="statement"/> that belongs to the statement itself: its operands and conditions, NOT those of a
+    /// statement nested in one of its phrases (an IF's branches, a PERFORM's inline body, an ON SIZE ERROR imperative), which is asked on its own.</summary>
+    public static IEnumerable<IParseTree> OwnDescendants(Core.StatementContext statement)
+    {
+        var pending = new Stack<IParseTree>();
+        PushChildren(pending, statement);
+        while (pending.Count > 0)
+        {
+            var next = pending.Pop();
+            if (next is Core.StatementContext) continue;
             yield return next;
             PushChildren(pending, next);
         }

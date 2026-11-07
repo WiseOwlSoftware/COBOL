@@ -778,7 +778,7 @@ only), SR3; SET Format 17 with a non-tag operand; the relation with a tag and a 
 strongly-typed group holding a tag (COBOL1535); a message tag as CALL BY VALUE argument (§14.9.4.3 SR22) and as ACCEPT
 identifier-2 (§14.9.1.3 SR3); INITIALIZE REPLACING MESSAGE-TAG without identifier-2 and with a non-tag one (COBOL1982,
 COBOL1983); NULL in a MOVE; the `CONTINUE AFTER MESSAGE` word that is not RECEIVED. Each refusal also runs at 2014, where
-COBOL0900 is the expected diagnosis and no second one may appear (a SET statement naming a message-tag item whose entry the compilation walks binds to a no-op below 2023 in EVERY format, `SetBinder.NamesGatedMessageTag` and `IsGatedMessageTag`, and an item read from an imported assembly, `DataItem.IsImported`, which has no entry here and so no gate, is bound and checked at every edition); an EC-MCS name at 2014 stays COBOL0878
+COBOL0900 is the expected diagnosis and no second one may appear (a statement of ANY verb whose own operands name a message-tag item whose entry the compilation walks, or a function whose RETURNING item is one, binds to a no-op below 2023, in every SET format as in MOVE and DISPLAY: `StatementBinder.NamesGatedMessageTag` asks it once, at the funnel every statement passes through, over the statement's own operands and not those of a statement nested in it; and an item read from an imported assembly, `DataItem.IsImported`, which has no entry here and so no gate, is bound and checked at every edition); an EC-MCS name at 2014 stays COBOL0878
 (`pb374-ec-mcs-name-below-2023`).
 
 ### 7.2 Two run units
