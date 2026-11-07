@@ -258,4 +258,127 @@ public sealed class MessagingProcessTests : IDisposable
         Assert.Equal("", stderr);
         Assert.Equal("A OK       /0000\nB OK       /0000\nC OK       /0000\nSTATUS EC-CONTINUE-LESS-THAN-ZERO", stdout);
     }
+
+    private const string TaggedGroup = """
+       01 TG IS TYPEDEF STRONG.
+          05 TA PIC X(3).
+          05 TT USAGE MESSAGE-TAG.
+          05 TU USAGE MESSAGE-TAG OCCURS 2.
+          05 TN.
+             10 TM USAGE MESSAGE-TAG.
+             10 TZ PIC X(2).
+""";
+
+    [Fact]
+    public void AGroupHoldingMessageTags_CarriesItsTagsBesideItsImage_InStorageOrder()
+    {
+        // §2023:14.9.38.3 SR3 and §2023:14.9.31.3 SR2 do not refuse a message-tag item in identifier-1, and §2023:14.9.38.4 GR4 makes the message the content of it: the tags
+        // (managed slots, no part of the storage image, DOC-A.1-212) travel beside the image and a RECEIVE stores them back in storage order (design section 4.4). The tag
+        // the requestor sets is the server tag of its first message, so it is not null; the entries it leaves alone are null.
+        string client = $"""
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB4744C5.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 MT        USAGE MESSAGE-TAG.
+       01 MT2       USAGE MESSAGE-TAG.
+       01 REQ       PIC X(8) VALUE "FIRST".
+{TaggedGroup}
+       01 G1 TYPE TG.
+       PROCEDURE DIVISION.
+       MAIN-P.
+           SEND TO "srv" FROM REQ RETURNING MT
+               ON EXCEPTION DISPLAY "CLI SEND-EXC " FUNCTION TRIM(FUNCTION EXCEPTION-STATUS)
+           END-SEND
+           MOVE "ABC" TO TA OF G1
+           MOVE "ZZ" TO TZ OF G1
+           SET TT OF G1 TO MT
+           SET TU OF G1 (2) TO MT
+           SEND TO "srv" FROM G1 RETURNING MT2
+               ON EXCEPTION DISPLAY "CLI SEND2-EXC " FUNCTION TRIM(FUNCTION EXCEPTION-STATUS)
+           END-SEND
+           DISPLAY "SENT"
+           STOP RUN.
+""";
+        string server = $"""
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB4744S5.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 RT        USAGE MESSAGE-TAG.
+       01 BUF       PIC X(8).
+       01 LEN       PIC 9(4).
+{TaggedGroup}
+       01 G2 TYPE TG.
+       PROCEDURE DIVISION.
+       MAIN-P.
+           DISPLAY "READY"
+           RECEIVE RT GIVING BUF LEN
+           RECEIVE RT GIVING G2 LEN
+               ON EXCEPTION DISPLAY "SRV EXC " FUNCTION TRIM(FUNCTION EXCEPTION-STATUS)
+           END-RECEIVE
+           DISPLAY "TA=" TA OF G2 " TZ=" TZ OF G2 " LEN=" LEN
+           IF TT OF G2 = NULL DISPLAY "TT NULL" ELSE DISPLAY "TT SET" END-IF
+           IF TU OF G2 (1) = NULL DISPLAY "TU1 NULL" ELSE DISPLAY "TU1 SET" END-IF
+           IF TU OF G2 (2) = NULL DISPLAY "TU2 NULL" ELSE DISPLAY "TU2 SET" END-IF
+           IF TM OF G2 = NULL DISPLAY "TM NULL" ELSE DISPLAY "TM SET" END-IF
+           IF TT OF G2 = TU OF G2 (2) DISPLAY "TT SAME AS TU2" END-IF
+           STOP RUN.
+""";
+        Compile("PB4744S5", server);
+        Compile("PB4744C5", client);
+        var srv = Start("PB4744S5", serves: "SRV");
+        Assert.Equal("READY", srv.ExpectLine());
+        var cli = Start("PB4744C5");
+        Assert.Equal("SENT", cli.ExpectLine());
+        Assert.Equal("TA=ABC TZ=ZZ LEN=0037", srv.ExpectLine());
+        Assert.Equal("TT SET", srv.ExpectLine());
+        Assert.Equal("TU1 NULL", srv.ExpectLine());
+        Assert.Equal("TU2 SET", srv.ExpectLine());
+        Assert.Equal("TM NULL", srv.ExpectLine());
+        Assert.Equal("TT SAME AS TU2", srv.ExpectLine());
+        Assert.Equal(0, cli.WaitForExit());
+        Assert.Equal(0, srv.WaitForExit());
+    }
+
+    [Fact]
+    public void ASuccessfulReceiveWhoseNonfatalConditionADeclarativeHandled_DoesNotRunItsNotOnExceptionPhrase()
+    {
+        // §2023:14.6.13.1.4 3): "If a conditional phrase with a NOT phrase is specified in the interrupted statement, the imperative-statement in that phrase is not executed"
+        // after a USE declarative handled the nonfatal condition (here EC-CONTINUE-LESS-THAN-ZERO of §2023:14.9.31.4 GR2 on a negative interval); without the declarative the
+        // condition interrupts nothing and the NOT phrase runs.
+        const string source = """
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB4744P2.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 RT        USAGE MESSAGE-TAG.
+       01 BUF       PIC X(6).
+       01 LEN       PIC 9(4).
+       01 NEG       PIC S9 VALUE -1.
+       PROCEDURE DIVISION.
+       DECLARATIVES.
+       LTZ SECTION.
+           USE AFTER EXCEPTION CONDITION EC-CONTINUE-LESS-THAN-ZERO.
+       LTZ-P.
+           DISPLAY "DECL LTZ".
+       END DECLARATIVES.
+       MAIN SECTION.
+       MAIN-P.
+           >>TURN EC-CONTINUE-LESS-THAN-ZERO CHECKING ON
+           RECEIVE RT GIVING BUF LEN CONTINUE AFTER NEG SECONDS
+               NOT ON EXCEPTION DISPLAY "NOT-PHRASE RAN"
+           END-RECEIVE
+           RECEIVE RT GIVING BUF LEN CONTINUE AFTER 0 SECONDS
+               NOT ON EXCEPTION DISPLAY "POLL OK"
+           END-RECEIVE
+           DISPLAY "END"
+           STOP RUN.
+""";
+        Compile("PB4744P2", source);
+        var (exit, stdout, stderr) = CutRunner.RunExit(Path.Combine(_dir, "PB4744P2.dll"), _dir, env: new Dictionary<string, string?> { ["WISEOWL_COBOL_MCS_SERVER"] = "POLLSRV2" });
+        Assert.Equal(0, exit);
+        Assert.Equal("", stderr);
+        Assert.Equal("DECL LTZ\nPOLL OK\nEND", stdout);
+    }
 }

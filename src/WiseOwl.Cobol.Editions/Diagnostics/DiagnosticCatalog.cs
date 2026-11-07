@@ -9183,12 +9183,13 @@ public static class DiagnosticCatalog
         + "(ISO §2023:14.9.38.3 SR3; §2023:14.9.31.3 SR2).",
         "ISO §2023:14.9.38.3 SR3; §2023:14.9.31.3 SR2");
 
-    /// <summary>COBOL6460 — identifier-1 of SEND or RECEIVE is a group that holds a message tag: the tag would not travel with the message (kb/Work PB4744's lead).</summary>
+    /// <summary>COBOL6460 — identifier-1 of SEND or RECEIVE is a variable-length group that holds a message tag: the tag would not travel with the message (kb/Work PB4744's lead).</summary>
     public static readonly DiagnosticDescriptor MessagingTagInMessageArea = new(
         "COBOL6460", "messaging-tag-in-message-area", EditionSeverity.Error,
-        "Identifier-1 of SEND or RECEIVE is a group item that holds a message tag. The message is the item's storage image, which holds no part of a "
-        + "message tag (a tag lives in a managed slot of its group, A.1 item 212), and this implementation does not yet carry the slots beside the image, so "
-        + "the tag would be lost silently. Pass the tag in an elementary message-tag item with its own SEND and RECEIVE (docs/CONFORMANCE.md section 4 item 1).",
+        "Identifier-1 of SEND or RECEIVE is a variable-length group item (one with an OCCURS DYNAMIC table or a dynamic-length member) that holds a message tag. "
+        + "A message tag lives in a managed slot of its group, no part of the storage image (A.1 item 212); the tags of a fixed group travel beside its image, "
+        + "but a variable-length group is received by its contiguous decomposition, which does not yet skip a tag's positions, so the tag would be lost silently. "
+        + "Pass the tag in an elementary message-tag item or in a fixed group (docs/CONFORMANCE.md section 4 item 1).",
         "ISO §2023:14.9.38.3; §2023:14.9.31.3; §2023:13.18.60.4 GR9", RecognizedNotImplemented);
 
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the

@@ -399,14 +399,18 @@ outcome back through the ordinary channels:
   sends no table. The message-tag slots of a strongly-typed identifier-1 travel beside the image
   (`SlotWindow.MembersOf`).
 - SR3 and RECEIVE SR2 refuse POINTER, FUNCTION-POINTER, PROGRAM-POINTER and OBJECT-REFERENCE in identifier-1 and its
-  subordinates at compile time, so the only slot-carried leaf a message holds is a message tag. A strongly-typed group
-  holding one has an image only if `DataItem.ElementImageCapable` admits the category: it admits `PicCategory.MessageTag`
-  with an image of eight spaces (DOC-A.1-212), as R40 admitted INDEX: the generated `FromImage` skips those positions
-  and the slot carries the value. A pointer-class leaf stays excluded, and `DataItem.TransferImageCapable`'s slot arm is
-  unchanged. Slice S1 (kb/Work PB4740) landed the tag as a slot-carried category (`SlotWindow.CarriedBySlot`) and left
-  `ElementImageCapable` as it was, so a strongly-typed group holding a tag has today the one-way transfer image an object
-  reference's group has (DISPLAY, MOVE sender, the `BYTE-LENGTH` of 8 positions per tag); the two-way image that SEND and
-  RECEIVE need was this bullet's admission, assigned to slice S4. **S4 did not admit it** (PB4744): the category is also read by the equality and group-MOVE consumers of the image (the placeholder image is not injective), and the slots need the receiving half (`PlaceCursor` walks of every member with its inner OCCURS levels) that S1 and S4 together did not build. A group item holding a message tag is therefore refused as a message area with COBOL6460 (`MessagingBinder.ScreenMessageArea`), so no tag is lost silently, and the carrying of slots beside the image stays owed (a lead of PB4744). An identifier-1
+  subordinates at compile time, so the only slot-carried leaf a message holds is a message tag. **Correction (PB4744): the category is NOT admitted to
+  `DataItem.ElementImageCapable`.** The equality and group-MOVE consumers of the image read that capability, and the placeholder image (eight spaces per tag)
+  is not injective, so a group holding a tag keeps the one-way transfer image an object reference's group has (DISPLAY, MOVE sender, the `BYTE-LENGTH` of 8
+  positions per tag). The message needs the receiving half only, so a separate pair carries it: a group whose only managed slots are message tags
+  (`GroupImageCodec.HoldsOnlyMessageTagSlots`) gets a generated `FromMessageImage` beside its one-way `AsImage` - the `FromImage` distribution with every tag's
+  placeholder positions skipped (a nested struct that holds tags calls its own `FromMessageImage`) - which `PlaceRenderer.WriteMessageGroupImage` calls. The tags
+  travel as the message's slots in storage order: `AsyncMessaging.TagsOf(<leaf vector>)` flattens the group's `AsLeaves` vector on SEND (a table is an array of its
+  occurrences and a nested group a nested vector, so the inner OCCURS levels fall out of the walk the vector already is; a storage-cell group's vector comes from
+  `PlaceRenderer.GroupLeaves` over `PlaceCursor`), and on RECEIVE `AsyncMessaging.WithTags(<leaf vector>, slots)` rebuilds the vector with the message's tags in place of
+  the area's and `PlaceRenderer.WriteGroupLeaves` stores it back after the image. A tag the message did not carry (the receiving group holds more) is NULL. A
+  VARIABLE-LENGTH group (an OCCURS DYNAMIC table or a dynamic-length member) that holds a tag is refused with COBOL6460 (`MessagingBinder.ScreenMessageArea`): its receiving half
+  is the contiguous decomposition (`FromContiguousImage`), which has no tag-skipping form yet (a lead of PB4744). An identifier-1
   that is a single elementary message tag has the image `""` (`RecordAreaImage`'s slot-carried arm), zero character
   positions, so its SEND is EC-MCS-MESSAGE-LENGTH under GR1 and a RECEIVE into it takes any message as too long (GR3).
 - RECEIVE stores the message by the receiving inverse a READ uses, arm for arm. An identifier-1 that is a

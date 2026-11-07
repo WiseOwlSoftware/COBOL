@@ -4,11 +4,10 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> SEND FROM a strongly-typed group that holds a message tag. Expected: COBOL6460. 14.9.38.4 GR4: "The message contains
-      *> the content of data-name-1" (identifier-1 in the Q2 reading, DESIGN-message-control.md): the content of a group
-      *> includes the tag it holds, but a tag lives in a managed slot of its group and is no part of the group's storage
-      *> image (A.1 item 212), which is what travels. The slots are not carried beside the image yet, so the statement is
-      *> refused rather than lose the tag silently (kb/Work PB4744's lead).
+      *> SEND FROM a strongly-typed VARIABLE-LENGTH group (an OCCURS DYNAMIC table) that holds a message tag. Expected: COBOL6460.
+      *> 14.9.38.4 GR4: "The message contains the content of" identifier-1, and a fixed group's tags travel beside its image as slots (send-group-holding-tag);
+      *> a variable-length group is sent as its contiguous current-extent image, whose receiving half (FromContiguousImage) has no tag-skipping form yet, so the
+      *> statement is refused rather than lose the tag silently (kb/Work PB4744's lead).
       *>   cite.py: OK  14.9.38.4 4)  (General rules)
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB4744N1.
@@ -16,8 +15,8 @@
        WORKING-STORAGE SECTION.
        01 MT        USAGE MESSAGE-TAG.
        01 TG IS TYPEDEF STRONG.
-          05 TGA PIC X(3).
           05 TGT USAGE MESSAGE-TAG.
+          05 TGI PIC X OCCURS DYNAMIC.
        01 G1 TYPE TG.
        PROCEDURE DIVISION.
        MAIN-P.

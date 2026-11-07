@@ -67,6 +67,43 @@ public static class AsyncMessaging
     public static MessageOutcome Receive(MessageTag from, int capacity, MessageWait wait, string checking) =>
         Outcome(RunUnit.Current.Messaging.Receive(from, capacity, wait), checking, lessThanZero: wait.Kind == MessageWaitKind.Seconds && wait.Seconds < 0);
 
+    /// <summary>The message tags a message area holds, in storage order, from the area's leaf vector (<c>AsLeaves</c>: a nested group is a nested vector, a table an array of
+    /// its occurrences): the slots that travel beside the image (§2023:14.9.38.4 GR4 - "The message contains the content of" identifier-1 - and §2023:14.9.31.4 GR1; a tag
+    /// lives in a managed slot and is no part of the image, DOC-A.1-212; docs/rearchitecture/DESIGN-message-control.md section 4.4). Every other leaf is image.</summary>
+    public static object?[] TagsOf(object?[] leaves)
+    {
+        var tags = new List<object?>();
+        Collect(leaves);
+        return [.. tags];
+
+        void Collect(object? value)
+        {
+            if (value is MessageTag) tags.Add(value);
+            else if (value is Array elements and not byte[] and not char[])
+                foreach (object? element in elements) Collect(element);
+        }
+    }
+
+    /// <summary>The inverse of <see cref="TagsOf"/>: a copy of a message area's leaf vector whose tags, in storage order, are <paramref name="tags"/> - the slots of a received
+    /// message. A tag the message did not carry (the receiving area holds more than the sender's did) is <see cref="MessageTag.Null"/>: its positions were filled with spaces
+    /// (§2023:14.9.31.4 GR1), and a tag is never made of them.</summary>
+    public static object?[] WithTags(object?[] leaves, object?[]? tags)
+    {
+        int next = 0;
+        return (object?[])Replace(leaves)!;
+
+        object? Replace(object? value)
+        {
+            if (value is MessageTag) return next < (tags?.Length ?? 0) ? tags![next++] : MessageTag.Null;
+            if (value is not Array elements || value is byte[] or char[] || !MayHoldTags(elements.GetType().GetElementType()!)) return value;
+            var copy = (Array)elements.Clone();
+            for (int i = 0; i < copy.Length; i++) copy.SetValue(Replace(elements.GetValue(i)), i);
+            return copy;
+        }
+
+        static bool MayHoldTags(Type element) => element == typeof(MessageTag) || element == typeof(object) || element.IsArray;
+    }
+
     private static string? LastExceptionName() =>
         ExceptionState.LastName is { } name && name != ExceptionState.ObjectSentinel ? name : null;   // an exception OBJECT has no name to send (GR8: none raised sends none)
 

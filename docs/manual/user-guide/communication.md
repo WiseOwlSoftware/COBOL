@@ -109,5 +109,6 @@ describe it alike, and the length of the message received lands in the last oper
 Whether a statement is successful never depends on checking: `ON EXCEPTION` and `NOT ON EXCEPTION` follow the outcome. The exception condition is set only when
 checking for it is enabled (`>>TURN EC-MCS CHECKING ON`); `EC-MCS-IMP`, a failure of the message control system itself, is fatal. The determinations are
 `docs/CONFORMANCE.md` section 3 (D-MCS-SERVER, D-MCS-LENGTH, D-MCS-WAIT, D-MCS-RAISE, D-MCS-CHECK, D-MCS-TRANSPORT) and the design is
-`docs/rearchitecture/DESIGN-message-control.md`. Linux and Windows are claimed; macOS runs the same Unix code but has no CI leg. A group item that holds a message tag
-cannot be the message area (COBOL6460): a tag is no part of a group's storage image, so it is sent in an elementary message-tag item.
+`docs/rearchitecture/DESIGN-message-control.md`. Linux and Windows are claimed; macOS runs the same Unix code but has no CI leg. A group item that holds message tags can be the message area: the tags travel
+with the message in storage order, and a receiving group that holds more tags than the message carried gets NULL for the rest. A variable-length group (an OCCURS
+DYNAMIC table or a dynamic-length member) that holds a tag cannot (COBOL6460); send the tag in an elementary message-tag item or in a fixed group.

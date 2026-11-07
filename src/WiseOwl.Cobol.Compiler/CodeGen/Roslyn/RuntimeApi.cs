@@ -423,6 +423,12 @@ internal static class RuntimeApi
     public static string AsyncSendResponse(string to, string image, string extents, string slots, string raising, string raisingLast, string checking) =>
         $"{nameof(AsyncMessaging)}.{nameof(AsyncMessaging.SendResponse)}({to}, {image}, {extents}, {slots}, {raising}, {raisingLast}, {checking})";
 
+    /// <summary>The message tags of a message area's leaf vector, the slots a SEND carries beside its image (<c>AsyncMessaging.TagsOf</c>, kb/Work PB4744).</summary>
+    public static string AsyncTagsOf(string leaves) => $"{nameof(AsyncMessaging)}.{nameof(AsyncMessaging.TagsOf)}({leaves})";
+
+    /// <summary>The leaf vector with the received message's tags in place of the area's own (<c>AsyncMessaging.WithTags</c>).</summary>
+    public static string AsyncWithTags(string leaves, string tags) => $"{nameof(AsyncMessaging)}.{nameof(AsyncMessaging.WithTags)}({leaves}, {tags})";
+
     public static string AsyncReceive(string from, string capacity, string wait, string checking) =>
         $"{nameof(AsyncMessaging)}.{nameof(AsyncMessaging.Receive)}({from}, {capacity}, {wait}, {checking})";
 

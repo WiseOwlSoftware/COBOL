@@ -37,8 +37,8 @@ internal sealed class MessagingEmitter(EmitContext ctx, NumericRenderer num, EcS
         var w = ctx.Writer;
         string m = $"__msg{ctx.Names.NextEc()}";
         string server = n.ServerLiteral is { } literal ? OperandText.AsString(literal, num) : CsLiteral(n.ServerName ?? "");
-        var (image, extents) = SentMessage(n.From);
-        w.Line($"var {m} = {RuntimeApi.AsyncSendToServer(server, image, extents, "[]", Checking(n))};");
+        var (image, extents, slots) = SentMessage(n.From);
+        w.Line($"var {m} = {RuntimeApi.AsyncSendToServer(server, image, extents, slots, Checking(n))};");
         using (w.Block($"if ({m}.Successful)"))
             w.Line(PlaceRenderer.Write(n.Returning, $"{m}.Tag") + "   // §2023:14.9.38.4 GR6 - the tag of the server run unit and the message sent");
         EmitOutcome(m, n.OnException, n.NotOnException);
@@ -48,9 +48,9 @@ internal sealed class MessagingEmitter(EmitContext ctx, NumericRenderer num, EcS
     public void Emit(BoundSendResponse n)
     {
         string m = $"__msg{ctx.Names.NextEc()}";
-        var (image, extents) = SentMessage(n.From);
+        var (image, extents, slots) = SentMessage(n.From);
         string raising = n.Raising is { } ecName ? CsLiteral(ecName.Name) : "null";
-        ctx.Writer.Line($"var {m} = {RuntimeApi.AsyncSendResponse(PlaceRenderer.Read(n.To), image, extents, "[]", raising, n.RaisingLast ? "true" : "false", Checking(n))};");
+        ctx.Writer.Line($"var {m} = {RuntimeApi.AsyncSendResponse(PlaceRenderer.Read(n.To), image, extents, slots, raising, n.RaisingLast ? "true" : "false", Checking(n))};");
         EmitOutcome(m, n.OnException, n.NotOnException);
     }
 
@@ -75,8 +75,13 @@ internal sealed class MessagingEmitter(EmitContext ctx, NumericRenderer num, EcS
             string image = $"{m}.Image";
             if (FileModel.IsOutOfLineRecord(n.Into.Item) && !SlotWindow.CarriedBySlot(n.Into.Item))
                 seqIo.EmitOutOfLineInto(n.Into, image, $"{m}.Extents", fixedForm: false);
+            else if (HoldsTags(n.Into))   // the tags are slots: the image goes in without their placeholder positions (FromMessageImage)
+                w.Line(PlaceRenderer.WriteMessageGroupImage(n.Into, RuntimeApi.StrStore(image, $"{n.Into.Item.ByteWidth}"), "RECEIVE GIVING"));
             else if (!SlotWindow.CarriedBySlot(n.Into.Item))
                 seqIo.EmitImageInto(n.Into, image, storesIntoOwnItem: false);   // the sender's storage bytes: verbatim, as other descriptions of the area read them
+            // "The slots follow" (design section 4.4): the group's leaf vector is rebuilt with the message's tags in storage order (AsyncMessaging.WithTags) and stored back.
+            if (HoldsTags(n.Into))
+                w.Line(PlaceRenderer.WriteGroupLeaves(n.Into, RuntimeApi.AsyncWithTags(PlaceRenderer.GroupLeaves(n.Into), $"{m}.Slots")));
         }
         using (w.Block($"if ({m}.Length is {{ }} {m}len)"))
             arith.StoreArith(n.Length, new NumX($"{m}len", 0), CobolRounding.Truncation);   // GR3 - "the length ... of the message received"
@@ -86,19 +91,24 @@ internal sealed class MessagingEmitter(EmitContext ctx, NumericRenderer num, EcS
     }
 
     /// <summary>The image and the extent table of identifier-1 as the message (design section 4.4): a record area's, or a value's operand text.</summary>
-    private (string Image, string Extents) SentMessage(BoundOperand from)
+    private (string Image, string Extents, string Slots) SentMessage(BoundOperand from)
     {
         if (from is BoundFieldOperand { Place: var place })
         {
             // A strongly-typed group holding a message tag has the one-way transfer image only (DataItem.TransferImageCapable): the sender's storage positions, a tag's
-            // as spaces, which is all the length checks and the receiver's positions need.
+            // as spaces, which is all the length checks and the receiver's positions need - and its tags travel beside the image as the message's slots (design section 4.4).
             string image = place.Item.IsGroup && !place.ImageCapable && place.TransferImageCapable
                 ? OperandText.AsStorageImage(place, "SEND FROM", transfer: true)
                 : OperandText.RecordAreaImage(place);
-            return (image, OperandText.RecordAreaExtents(place) ?? "null");
+            string slots = HoldsTags(place) ? RuntimeApi.AsyncTagsOf(PlaceRenderer.GroupLeaves(place)) : "[]";
+            return (image, OperandText.RecordAreaExtents(place) ?? "null", slots);
         }
-        return (OperandText.AsTransferString(from, num, "SEND FROM"), "null");
+        return (OperandText.AsTransferString(from, num, "SEND FROM"), "null", "[]");
     }
+
+    /// <summary>Does the message area hold message tags - a group with a message-tag member (SEND SR3 and RECEIVE SR2 leave no other slot class in it)? An elementary tag is
+    /// no case: it has no positions, so its SEND and RECEIVE are the length conditions of GR1 and GR3.</summary>
+    private static bool HoldsTags(Place area) => area.Item.IsGroup && SlotWindow.MembersOf(area.Item).Any();
 
     private static string Checking(IProfiledStatement n) => CsLiteral(n.CheckingProfile.Encoded);
 
@@ -106,6 +116,11 @@ internal sealed class MessagingEmitter(EmitContext ctx, NumericRenderer num, EcS
     private void EmitOutcome(string m, IReadOnlyList<BoundStatement>? onException, IReadOnlyList<BoundStatement>? notOnException)
     {
         var w = ctx.Writer;
+        // §2023:14.6.13.1.4 3): a nonfatal condition a USE declarative or WHEN handled on a statement that then completes does not run its NOT phrase - the statement's
+        // selection result decides, as SequentialIoEmitter.EmitNotPhrase's gate does for the I-O statements.
+        string handled = $"{m}handled";
+        bool gated = ecState.Active && notOnException is not null;
+        if (gated) w.Line($"bool {handled} = false;");
         if (ecState.Active)
         {
             // §2023:14.6.13.1.3 1) / §2023:14.6.13.1.4 1): a conditional phrase without the NOT phrase takes the condition; otherwise the selection runs over the
@@ -113,9 +128,12 @@ internal sealed class MessagingEmitter(EmitContext ctx, NumericRenderer num, EcS
             using (w.Block($"if ({m}.Raised is {{ }} {m}name)"))
             {
                 if (onException is null)
-                    ec.EmitSelection($"{m}name",
+                {
+                    string r = ec.EmitSelection($"{m}name",
                         EcEmitter.FatalTermination($"{m}name", $"{m}.Detail ?? ({m}name + \" was set to exist by a message control statement and not resumed (ISO 14.6.13.1.3 5)/7))\")"),
                         fatalWhen: $"{m}.RaisedFatal");
+                    if (gated) w.Line($"{handled} = DispatchResult.RanAHandler({r});");
+                }
                 else w.Line("// the statement's ON EXCEPTION phrase takes the condition (§2023:14.6.13.1.3 1); §2023:14.6.13.1.4 1))");
             }
         }
@@ -126,6 +144,6 @@ internal sealed class MessagingEmitter(EmitContext ctx, NumericRenderer num, EcS
                 using (w.Block("else")) Statements.EmitStatementList(notOnException);
         }
         else if (notOnException is not null)
-            using (w.Block($"if ({m}.Successful)")) Statements.EmitStatementList(notOnException);
+            using (w.Block($"if ({m}.Successful{(gated ? $" && !{handled}" : "")})")) Statements.EmitStatementList(notOnException);
     }
 }

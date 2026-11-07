@@ -14,8 +14,16 @@ every name and the design says so. `CobolTiming.Interval` is the one CONTINUE AF
 `docs/CONFORMANCE.md`: A.3 row 4 flips to Claimed, section 4 item 1 is a tombstone that keeps its number (renumbering items 2 to 5 would touch some 350 citations and lands alone), and D-MCS-SERVER, -LENGTH, -WAIT, -RAISE and
 -CHECK are new, with D-MCS-NR extended and DOC-A.1-100 now naming EC-MCS-IMP as a name the implementation sets.
 
-**Not done, refused loudly:** a group item holding a message tag as a message area is COBOL6460 (a tag is no part of a group's storage image; its slot would be lost silently). The design's `ElementImageCapable` admission was not
-made: that category is also read by the equality and group-MOVE consumers of the image.
+**Review round 1 (two blocking findings).** (1) A successful RECEIVE whose nonfatal EC-CONTINUE-LESS-THAN-ZERO a USE declarative handled ran its NOT ON EXCEPTION phrase
+as well; section 14.6.13.1.4 3) skips the phrase. `EcEmitter.EmitSelection` now returns its result local and `MessagingEmitter.EmitOutcome` gates the phrase on
+`DispatchResult.RanAHandler` of it, the rule the I-O emitters keep as `UseHookResult.NotPhraseGate`. Pinned by `MessagingProcessTests`. (2) A group item holding message tags
+was refused as a message area (COBOL6460) though SEND SR3 and RECEIVE SR2 do not list the message tag: the refusal was a scope cut. The tags now travel beside the image.
+`ElementImageCapable` still does not admit the category (equality and group MOVE read it, and the placeholder image is not injective), so a group whose only managed slots are tags
+gets a generated `FromMessageImage` (the `FromImage` distribution minus the tags' placeholder positions; a nested struct calls its own) and the message's slots are
+`AsyncMessaging.TagsOf` of the group's `AsLeaves` vector on SEND and `WithTags` over it on RECEIVE (storage order, inner OCCURS included, a storage-cell group through
+`GroupLeaves`/`WriteGroupLeaves`; a tag the message did not carry is NULL). Golden `send-group-holding-tag`; `MessagingProcessTests` sends a group holding a tag, a tag table
+and a nested group's tag between two processes. Only a VARIABLE-LENGTH group (OCCURS DYNAMIC, a dynamic-length member) holding a tag stays COBOL6460, because its receiving half is
+the contiguous decomposition, which has no tag-skipping form yet (`pb4744-send-from-group-holding-tag`).
 
 **Goldens:** `send-no-server`, `send-response-no-requester`, `receive-no-requester`, `pb374_ec_mcs_names_raise`, `w59_mcs_facility_witness` (rewritten to the exchange), the refusal `pb4744-send-from-group-holding-tag`; the runner gives each test its
 own MCS directory. **Registry:** fourteen rows CONFORMS (GR-14.9.31.4-1 to -5, GR-14.9.38.4-1 to -8, GR-14.6.11-7). Gate: see the landing.

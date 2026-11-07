@@ -3386,8 +3386,9 @@ WHICH annex licenses the decline, and the distinction is normative, not stylisti
    OBJECT-REFERENCE, POINTER, FUNCTION-POINTER or PROGRAM-POINTER clause and no OCCURS DEPENDING ON whose object lies outside
    identifier-1 (§2023:14.9.38.3 SR3, §2023:14.9.31.3 SR2), each refused with **COBOL6266** (a RECEIVE's CONSTANT RECORD receiver is the receiving funnel's COBOL1548 first, §2023:13.18.15.3 SR2);
    and the word after `CONTINUE AFTER MESSAGE` is RECEIVED (§2023:14.9.31.2). The binder builds one node per statement format
-   (`BoundSendToServer`, `BoundSendResponse`, `BoundReceiveMessage`), which `MessagingEmitter` renders as one `AsyncMessaging` call each (kb/Work PB4744). A group item that holds a message tag is refused as a message area with **COBOL6460**
-   (a tag lives in a managed slot of its group, A.1 item 212, and the slots do not yet travel beside the image: `conformance:wiseowl/cases/14.9.38-SEND/pb4744-send-from-group-holding-tag`). Pinned by
+   (`BoundSendToServer`, `BoundSendResponse`, `BoundReceiveMessage`), which `MessagingEmitter` renders as one `AsyncMessaging` call each (kb/Work PB4744). A FIXED group item that holds message tags is a message area: the tags travel beside its image as the message's slots in storage order
+   (`AsyncMessaging.TagsOf`, `WithTags`; `conformance:cases/14.9.38-SEND/send-group-holding-tag`, `MessagingProcessTests`), and a variable-length group that holds one is refused with **COBOL6460**
+   (its contiguous receiving decomposition does not skip a tag's positions yet: `conformance:wiseowl/cases/14.9.38-SEND/pb4744-send-from-group-holding-tag`). Pinned by
    `conformance:wiseowl/cases/14.9.31-RECEIVE/pb3568-receive-undefined-operand`, its siblings and the
    `conformance:wiseowl/cases/14.9.38-SEND/pb4090-*` cases.
    They are a COBOL-2023 introduction, and below `--std 2023` the edition pass answers **COBOL0900**
