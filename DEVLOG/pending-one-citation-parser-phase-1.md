@@ -33,9 +33,11 @@ checked with `cite.py`. One VCR quotation was filed under E.3.3 but is the title
 bare form exposed it, and it now cites E.3. The bare form had read a clause out of the placeholder `§14.9.N`; the
 scratch proof found this, and the bare form now refuses it.
 
-**The rewriter.** `scripts/spec/rewrite_citations.py --dry-run` would rewrite 93,204 bare 2023 citations in 6,274
+**The rewriter.** `scripts/spec/rewrite_citations.py --dry-run` would rewrite 94,480 bare 2023 citations in 6,302
 files. It rewrites exactly the set `citation.bare_standard` classifies as 2023's, which is the set the phase-2 BARE
-refusal refuses. When another edition is named nearby, it decides the edition only by elimination. A number that no 1985
+refusal refuses. Its document screen takes a document's name only as a whole name right against the `§`; the branch
+review (R1-1) found the first screen matched names as substrings anywhere in 45 characters, so "the EVALUATE statement
+(§14.9.13)" read as a document's section and 2,658 genuine citations would have stayed bare and unchecked. When another edition is named nearby, it decides the edition only by elimination. A number that no 1985
 section has is 2023's (370 cases). A number 2023 does not have belongs to the named ISO edition (6 cases). The other
 248 are listed for hand repair. The tooling's code is left alone, because its string literals are data its own logic
 reads; a first scratch run that rewrote it broke two self-tests. On a scratch clone the rewriter ran `--apply`, then a
