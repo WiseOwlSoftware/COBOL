@@ -82,14 +82,14 @@ public sealed class SlotImageRoundTripTests
     {
         var cell = new StorageCell { Ref = "ABCDEFGH" };
         string pointerImage = null!, programImage = null!, tagImage = null!;
-        RunUnit.Run(_ =>
+        RunUnit.Run(unit =>
         {
             pointerImage = PointerImage.Of(ManagedPointer.At(cell, 2));
             programImage = PointerImage.Of(new ProgramPointer("PROGA"));
             tagImage = MessageTagImage.Of(new MessageTag("mcs", MessageParty.Server, "PAYROLL", 4));
             Assert.True(ManagedPointer.SameTarget(ManagedPointer.At(cell, 2), PointerImage.DataPointerOf(pointerImage)));   // same run unit: the same reference
         });
-        RunUnit.Run(_ =>
+        RunUnit.Run(unit =>
         {
             var pointer = PointerImage.DataPointerOf(pointerImage);
             Assert.False(pointer.IsNull);
@@ -104,4 +104,58 @@ public sealed class SlotImageRoundTripTests
             Assert.Equal(tagImage, MessageTagImage.Of(tag));
         });
     }
+
+    [Fact]
+    public void ATokenAnotherProcessWrote_NeverDecodesToALiveReferenceOfThisRunUnit()
+    {
+        // Review R1-1: every process counted its bases from the start, so a file written by an earlier job decoded to THIS run
+        // unit's k-th reference. The bases start at a per-process epoch; a token of a process whose epoch differs by 2^29 holds
+        // none of this run unit's bases, for a pointer and for a message tag.
+        long otherEpoch = PointerImage.Epoch ^ (1L << 29);
+        RunUnit.Run(unit =>
+        {
+            for (int k = 1; k <= 6; k++)
+            {
+                var own = ManagedPointer.At(new StorageCell { Ref = "ZZZZ" }, 0);
+                Assert.True(ManagedPointer.SameTarget(own, PointerImage.DataPointerOf(PointerImage.Of(own))));
+                string foreign = Big(((otherEpoch + k) << 32) + 1);
+                var read = PointerImage.DataPointerOf(foreign);
+                Assert.Equal("EC-BOUND-PTR", Assert.Throws<CobolFatalException>(() => CobolPtr.Deref(read, 1)).EcName);
+                Assert.Equal(foreign, PointerImage.Of(read));
+                string foreignTag = Big((otherEpoch << 32) | (uint)k);
+                _ = MessageTagImage.Of(new MessageTag("mcs", MessageParty.Server, "S" + k, k));
+                Assert.Equal(MessageParty.Unresolved, MessageTagImage.TagOf(foreignTag).Party);
+            }
+        });
+    }
+
+    [Fact]
+    public void AnEndedCellLife_IsNotRetainedByTheRunUnitsTable()
+    {
+        // Review R1-2: the reverse table held every imaged cell strongly for the life of the run unit.
+        WeakReference first = null!;
+        RunUnit.Run(unit =>
+        {
+            first = ImageAndFree();
+            for (int i = 0; i < 5000; i++) ImageAndFree();
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+            Assert.False(first.IsAlive);
+        });
+    }
+
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+    private static WeakReference ImageAndFree()
+    {
+        var cell = new StorageCell { Ref = "ABCD" };
+        _ = PointerImage.Of(ManagedPointer.At(cell, 0));
+        cell.End(StorageEnd.Freed);
+        return new WeakReference(cell);
+    }
+
+    private static string Big(long v) => string.Create(8, v, static (span, a) =>
+    {
+        for (int i = 0; i < 8; i++) span[i] = StorageByte.ToChar((byte)(a >> (8 * (7 - i))));
+    });
 }

@@ -27,12 +27,17 @@ namespace WiseOwl.Cobol.Runtime;
 /// <item>NULL, of every category → eight X"00" positions.</item>
 /// <item>A data-pointer into a storage area → the area's BASE plus the pointer's displacement, as a signed 64-bit
 /// integer in this implementation's binary order, big-endian. Each area is given its base the first time one of its addresses is imaged: the k-th
-/// base is k × 2^32, so two areas' images never meet while a displacement stays inside ±2^31, and
+/// base is (E + k) × 2^32, E a random per-process epoch below 2^30 (see below), so two areas' images never meet while a displacement stays inside ±2^31, and
 /// <c>SET P UP BY n</c> moves the image by exactly n — the address arithmetic GnuCOBOL programs expect.</item>
 /// <item>A program-pointer / function-pointer → a base drawn from the SAME allocator, one per (category,
 /// case-folded externalized name) — so equal pointers (§2023:8.8.4.2.16) have equal images and no image of one
 /// category is ever an image of another.</item>
 /// </list>
+/// ⛔ A token a FILE carries outlives its process, and every process counts its bases from the start: without the epoch E a file written
+/// by an earlier job would decode to THIS run unit's k-th reference (kb/Work PB4838 review R1-1). The epoch makes two processes' bases
+/// disjoint but for a chance of about n/2^30 per token (n the bases the reading process imaged), so a token of another process is a
+/// <see cref="ForeignAddress"/> in practice, never a live reference. A pointer's image is therefore stable for the run unit and not
+/// across runs, as a machine address is not under address-space randomization.
 /// The token is stable for the run unit and never reused, and it DECODES BACK (owner decision 2026-11-06, kb/Work PB4838:
 /// a FILE carries the 8-position token of a pointer leaf and READ, RETURN and SORT GIVING restore the same reference within
 /// the run unit). The inverse is <see cref="DataPointerOf"/> / <see cref="ProgramPointerOf"/> / <see cref="FunctionPointerOf"/>, answered from the run unit's
@@ -42,7 +47,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// keeps its eight positions, so it images back unchanged, and a reference through it raises <c>EC-BOUND-PTR</c>
 /// (§2023:13.18.5.4 GR4, "does not address data storage" — <c>CobolPtr.Deref</c>) or finds no program to CALL. The round trip is exact while a
 /// displacement stays inside ±2^31 (the domain in which two areas' images never meet).
-/// Passing a pointer's BYTES to a non-pointer item stays a one-way copy (§2023:14.8.2.3.2 forbids the BY REFERENCE pairing; §2023:14.8.3.3 1)
+/// Passing a pointer's BYTES to a non-pointer item stays a one-way copy (§2023:14.8.2.3.2 forbids the BY REFERENCE pairing; §2023:14.8.2.3.3
 /// admits BY CONTENT into a same-length item); the decoders exist for the one consumer that must restore a reference from those
 /// bytes, the file record codec.
 /// </summary>
@@ -61,7 +66,10 @@ public static class PointerImage
     internal const string ForeignName = "\0\u0001foreign:";
 
     private const int BaseShift = 32;
-    private static long s_nextBase;   // k of the last base handed out; bases are k << 32
+    /// <summary>The per-process epoch E of the bases, in [0, 2^30): the k-th base is (E + k) &lt;&lt; 32, so it stays below 2^31 for 2^30 bases.
+    /// Also the high half of every message-tag identifier (<see cref="SlotImageTable.TagId"/>).</summary>
+    internal static readonly long Epoch = Random.Shared.Next(1 << 30);
+    private static long s_nextBase = Epoch;   // E + k of the last base handed out; bases are (E + k) << 32
     private static readonly object s_lock = new();
     private static readonly ConditionalWeakTable<object, StrongBox<long>> s_areaBases = new();
     private static readonly Dictionary<string, long> s_nameBases = new(StringComparer.Ordinal);
