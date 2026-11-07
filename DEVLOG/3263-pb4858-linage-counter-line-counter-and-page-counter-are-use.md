@@ -1,4 +1,4 @@
-## PB4858: LINAGE-COUNTER, LINE-COUNTER and PAGE-COUNTER are USE FOR DEBUGGING targets, and DEBUG-ITEM is referenced only inside a debugging section
+## Entry 3263 — 2026-11-07 11:33 PST — PB4858: LINAGE-COUNTER, LINE-COUNTER and PAGE-COUNTER are USE FOR DEBUGGING targets, and DEBUG-ITEM is referenced only inside a debugging section
 
 Wave 20261905 A took the two open items of kb/Work PB4858 and re-probed PB4855.
 
@@ -25,3 +25,4 @@ reach see the table is the easy half; rule 24 c's DEBUG-CONTENTS is the whole ta
 arms (typed array, shared REDEFINES area, dynamic table), a redesign beyond this slice; the note carries the finding.
 
 Codes used: COBOL6442. COBOL6443 and COBOL6444 returned.
+
