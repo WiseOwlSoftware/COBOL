@@ -338,10 +338,13 @@ internal sealed class McsTables(BTree tree)
 
     // ── Devices ────────────────────────────────────────────────────────────────────────────────────────────────
 
-    /// <summary>The committed byte length of the device file <c>&lt;device&gt;.out</c>; 0 for a device the store has never transmitted to.</summary>
-    internal long DeviceEnd(string device) => Get(Join([DeviceEndsTag], Utf8(device))) is { } value ? (long)ReadCount(value) : 0;
+    /// <summary>The committed byte length of the device file <c>&lt;device&gt;.out</c>; null for a device with no row (never seeded, or retired by a later seeding), whose file length is then its committed end like a seeded device's.</summary>
+    internal long? DeviceEnd(string device) => Get(Join([DeviceEndsTag], Utf8(device))) is { } value ? (long)ReadCount(value) : null;
 
     internal void SetDeviceEnd(string device, long end) => Put(Join([DeviceEndsTag], Utf8(device)), Serial((ulong)end));
+
+    /// <summary>The store stops claiming the device file <c>&lt;device&gt;.out</c>: its row goes, and the file is left as it is.</summary>
+    internal void RetireDeviceEnd(string device) => Delete(Join([DeviceEndsTag], Utf8(device)));
 
     /// <summary>Every device the store has transmitted to, with the length of its committed output.</summary>
     internal List<(string Device, long End)> DeviceEnds() =>
