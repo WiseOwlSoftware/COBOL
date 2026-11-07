@@ -69,7 +69,7 @@ public static class CobolTiming
     /// 38 low-order digits make.</summary>
     public static bool ContinueAfter(CobolDec seconds, bool checkLessThanZero) => Continue(Interval(seconds), checkLessThanZero);
 
-    // ⛔ THE INTERVAL RULE, SPLIT FROM THE SUSPENSION SO ITS OTHER READER SHARES IT (kb/Work PB4744; DESIGN-message-control.md §0 Q5, §5.4.4). CONTINUE AFTER
+    // ⛔ THE INTERVAL RULE, SPLIT FROM THE SUSPENSION SO ITS OTHER READER SHARES IT (kb/Work PB4744; DESIGN-message-control.md section 0 Q5, section 5.4.4). CONTINUE AFTER
     // arithmetic-expression-1 SECONDS of a RECEIVE evaluates its interval by this rule and not by a second copy: GR1's sign test, its truncation to whole seconds
     // and its replacement of a value above the maximum meaningful value. An interval is -1 for a value below zero (GR1 a-c), else 0 to MaxSeconds. The
     // non-finite dispositions of ContinueAfter(double, bool) are the rule's too.

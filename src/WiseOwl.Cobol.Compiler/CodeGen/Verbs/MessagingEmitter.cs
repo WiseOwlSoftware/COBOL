@@ -85,7 +85,7 @@ internal sealed class MessagingEmitter(EmitContext ctx, NumericRenderer num, EcS
         EmitOutcome(m, n.OnException, n.NotOnException);
     }
 
-    /// <summary>The image and the extent table of identifier-1 as the message (§4.4): a record area's, or a value's operand text.</summary>
+    /// <summary>The image and the extent table of identifier-1 as the message (design section 4.4): a record area's, or a value's operand text.</summary>
     private (string Image, string Extents) SentMessage(BoundOperand from)
     {
         if (from is BoundFieldOperand { Place: var place })
