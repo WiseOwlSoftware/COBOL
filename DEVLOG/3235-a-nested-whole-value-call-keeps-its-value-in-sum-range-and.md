@@ -1,4 +1,4 @@
-## A nested whole-value call keeps its value in SUM, RANGE and MIDRANGE, and an even MEDIAN with a binary64 middle is the binary64 mean on every channel
+## Entry 3235 — 2026-11-06 19:39 PST — A nested whole-value call keeps its value in SUM, RANGE and MIDRANGE, and an even MEDIAN with a binary64 middle is the binary64 mean on every channel
 
 Two leads of one root, `IntrinsicRenderer` and its carrier rules (kb/Work PB4860, PB4859).
 
@@ -26,3 +26,4 @@ Gate (run 000001-20261107T014616Z): `=== BUILD-LOCAL GATE: GREEN — Conformance
 
 Goldens: `pb4860_a_whole_value_argument_keeps_its_value_in_a_list_that_leaves_the_carrier` (+ `_85` refusal),
 `pb4859_even_median_beside_a_binary64_argument_is_the_binary64_mean` (+ `_below_2002` refusal). Rows closed: none (leads, no inventory row).
+
