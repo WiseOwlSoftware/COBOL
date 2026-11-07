@@ -10,6 +10,7 @@ is interrupted, and re-deriving it costs another full page render and read.
 | `compare-p<first>-p<last>.json` | a Compare agent | its batch, the pages it checked, and every claim |
 | `verify-p<page>-<kind>-<n>.json` | a Verify agent | the claim **and** the adversarial verdict, standing alone |
 | `LEDGER.json` / `REPORT.md` | `scripts/spec/merge_reconciliation.py` | the merge of whatever exists |
+| `figures-<edition>/p<page>-<figure>.json` | a figure refuter (a scanned edition, kb/Work PB4849) | its verdict on the `figure`-th `<pre>` block (from 0) of PDF page `page`: `clause` and `label` as `sweep_figures.py --cross-check`'s ledger names them, `decided` (`generated`, `drawn`, `neither`, or `not-a-format`), `figure_lines` (the decided figure drawn by FIGURE-STYLE.md; none for `not-a-format`) and `reason` (what the printed page shows). `sweep_figures.py --edition <edition> --apply` writes it; `load_verdicts` refuses a malformed one |
 
 A `compare-*.json` with `findings: []` is meaningful — it is evidence that a batch was swept and found clean. Its
 **absence** is indistinguishable from work that never ran, which is why agents write it either way.

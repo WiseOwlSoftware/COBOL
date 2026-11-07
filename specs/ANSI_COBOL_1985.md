@@ -6453,32 +6453,38 @@ paragraph-name-1 ⎩<u>OF</u>⎭ section-name-1
 
 Format 3:
 
-<pre>
-            ⎧<u>IN</u>⎫
-text-name-1 ⎩<u>OF</u>⎭ library-name-1
+<pre style="line-height:1">
+            ╭ <u>IN</u> ╮
+text-name-1 ┤    ├ library-name-1
+            ╰ <u>OF</u> ╯
 </pre>
 
 Format 4:
 
-<pre>
-               ⎧<u>IN</u>⎫
-<u>LINAGE-COUNTER</u> ⎩<u>OF</u>⎭ file-name-2
+<pre style="line-height:1">
+               ╭ <u>IN</u> ╮
+<u>LINAGE-COUNTER</u> ┤    ├ file-name-2
+               ╰ <u>OF</u> ╯
 </pre>
 
 Format 5:
 
-<pre>
-⎧<u>PAGE-COUNTER</u>⎫ ⎧<u>IN</u>⎫ report-name-1
-⎩<u>LINE-COUNTER</u>⎭ ⎩<u>OF</u>⎭
+<pre style="line-height:1">
+╭ <u>PAGE-COUNTER</u> ╮ ╭ <u>IN</u> ╮
+┤              ├ ┤    ├ report-name-1
+╰ <u>LINE-COUNTER</u> ╯ ╰ <u>OF</u> ╯
 </pre>
 
 Format 6:
 
-<pre>
-            ⎧⎧<u>IN</u>⎫ data-name-4 ┌⎧<u>IN</u>⎫ report-name-2┐⎫
-data-name-3 ⎨⎩<u>OF</u>⎭             └⎩<u>OF</u>⎭              ┘⎬
-            ⎪⎧<u>IN</u>⎫ report-name-2                   ⎪
-            ⎩⎩<u>OF</u>⎭                                 ⎭
+<pre style="line-height:1">
+            ╭ ╭ <u>IN</u> ╮             ┌ ╭ <u>IN</u> ╮               ┐ ╮
+            │ ┤    ├ data-name-4 │ ┤    ├ report-name-2 │ │
+            │ ╰ <u>OF</u> ╯             └ ╰ <u>OF</u> ╯               ┘ │
+data-name-3 ┤                                             ├
+            │ ╭ <u>IN</u> ╮                                      │
+            │ ┤    ├ report-name-2                        │
+            ╰ ╰ <u>OF</u> ╯                                      ╯
 </pre>
 
 IV-19
@@ -6790,16 +6796,12 @@ The following gives the general format and order of presentation of the entries 
 
 #### 5.3.1 General Format
 
-<pre>
- identification-division
-
-[environment-division]
-
-[data-division]
-
-[procedure-division]
-
-[end-program-header]
+<pre style="line-height:1">
+identification-division
+[ environment-division ]
+[ data-division ]
+[ procedure-division ]
+[ end-program-header ]
 </pre>
 
 IV-29
@@ -7715,9 +7717,10 @@ Environment Division - File Control Entry
 
 <u>SORT OR MERGE FILE</u>:
 
-<pre>
-<u>SELECT</u> file-name-1  <u>ASSIGN</u> TO ⎧implementor-name-1⎫  ...  .
-                               ⎩literal-1         ⎭
+<pre style="line-height:1">
+                             ╭ implementor-name-1 ╮
+<u>SELECT</u> file-name-1 <u>ASSIGN</u> TO ┤                    ├ … .
+                             ╰ literal-1          ╯
 </pre>
 
 V-6
@@ -7845,8 +7848,8 @@ V-9
 Data Division - File Description Entry
 </pre>
 
-<pre>
-                         <u>GENERAL FORMAT FOR FILE DESCRIPTION ENTRY</u>
+<pre style="line-height:1">
+<u>GENERAL</u> <u>FORMAT</u> <u>FOR</u> <u>FILE</u> <u>DESCRIPTION</u> <u>ENTRY</u>
 </pre>
 
 <u>RELATIVE FILE</u>:
@@ -7877,8 +7880,8 @@ Data Division - File Description Entry
     └     ⎩<u>RECORDS</u> ARE⎭                     ┘
 </pre>
 
-<pre>
-                                   V-10
+<pre style="line-height:1">
+V-10
 </pre>
 
 ## Page 203
@@ -7889,33 +7892,34 @@ Data Division - File Description Entry
 
 <u>INDEXED FILE</u>:
 
-<pre>
-<u>FD</u>  file-name-1
+<pre style="line-height:1">
+<u>FD</u> file-name-1
+[ IS <u>EXTERNAL</u> ]
+[ IS <u>GLOBAL</u> ]
 
-    [IS <u>EXTERNAL</u>]
+┌                                           ╭ <u>RECORDS</u>    ╮ ┐
+│ <u>BLOCK</u> CONTAINS [ integer-1 <u>TO</u> ] integer-2 ┤            ├ │
+└                                           ╰ CHARACTERS ╯ ┘
 
-    [IS <u>GLOBAL</u>]
+┌        ╭ CONTAINS integer-3 CHARACTERS
+│        │
+│        │ IS <u>VARYING</u> IN SIZE [ [ FROM integer-4 ] [ <u>TO</u> integer-5 ] CHARACTERS ] ╮ ┐
+│ <u>RECORD</u> ┤                                                                       │ │
+│        │ [ <u>DEPENDING</u> ON data-name-1 ]                                          ├ │
+│        │                                                                       │ │
+└        ╰ CONTAINS integer-6 <u>TO</u> integer-7 CHARACTERS                            ╯ ┘
 
-    ┌                                        ⎧<u>RECORDS</u>   ⎫┐
-    │<u>BLOCK</u> CONTAINS [integer-1 <u>TO</u>] integer-2 ⎨          ⎬│
-    └                                        ⎩CHARACTERS⎭┘
+┌       ╭ <u>RECORD</u> IS   ╮ ╭ <u>STANDARD</u> ╮ ┐
+│ <u>LABEL</u> ┤             ├ ┤          ├ │
+└       ╰ <u>RECORDS</u> ARE ╯ ╰ <u>OMITTED</u>  ╯ ┘
 
-    ┌       ⎧CONTAINS integer-3 CHARACTERS                                   ⎫┐
-    │<u>RECORD</u> ⎨IS <u>VARYING</u> IN SIZE [[FROM integer-4] [<u>TO</u> integer-5] CHARACTERS] ⎬│
-    │       ⎪     [<u>DEPENDING</u> ON data-name-1]                                 ⎪│
-    └       ⎩CONTAINS integer-6 <u>TO</u> integer-7 CHARACTERS                      ⎭┘
+┌          ╭                       ╭ data-name-2 ╮ ╮   ┐
+│ <u>VALUE</u> <u>OF</u> ┤ implementor-name-1 IS ┤             ├ ├ … │
+└          ╰                       ╰ literal-1   ╯ ╯   ┘
 
-    ┌      ⎧<u>RECORD</u> IS  ⎫ ⎧<u>STANDARD</u>⎫┐
-    │<u>LABEL</u> ⎨           ⎬ ⎨        ⎬│
-    └      ⎩<u>RECORDS</u> ARE⎭ ⎩<u>OMITTED</u> ⎭┘
-
-    ┌         ⎧                      ⎧data-name-2⎫⎫     ┐
-    │<u>VALUE</u> <u>OF</u> ⎨implementor-name-1 IS ⎨           ⎬⎬ ... │
-    └         ⎩                      ⎩literal-1  ⎭⎭     ┘
-
-    ┌     ⎧<u>RECORD</u> IS  ⎫                   ┐
-    │<u>DATA</u> ⎨           ⎬ {data-name-3} ... │ .
-    └     ⎩<u>RECORDS</u> ARE⎭                   ┘
+┌      ╭ <u>RECORD</u> IS   ╮                   ┐
+│ <u>DATA</u> ┤             ├ { data-name-3 } … │ .
+└      ╰ <u>RECORDS</u> ARE ╯                   ┘
 </pre>
 
 V-11
@@ -8089,22 +8093,15 @@ Data Division - Communication Description Entry
 
 <u>FORMAT 2</u>:
 
-<pre>
-<u>CD</u>  cd-name-1 FOR <u>OUTPUT</u>
-
-     [<u>DESTINATION</u> <u>COUNT</u> IS data-name-1]
-
-     [<u>TEXT</u> <u>LENGTH</u> IS data-name-2]
-
-     [<u>STATUS</u> <u>KEY</u> IS data-name-3]
-
-     [<u>DESTINATION</u> <u>TABLE</u> <u>OCCURS</u> integer-1 TIMES
-
-          [<u>INDEXED</u> BY  {index-name-1} ... ]]
-
-     [<u>ERROR</u> <u>KEY</u> IS data-name-4]
-
-     [SYMBOLIC <u>DESTINATION</u> IS data-name-5].
+<pre style="line-height:1">
+<u>CD</u> cd-name-1 FOR <u>OUTPUT</u>
+[ <u>DESTINATION</u> <u>COUNT</u> IS data-name-1 ]
+[ <u>TEXT</u> <u>LENGTH</u> IS data-name-2 ]
+[ <u>STATUS</u> <u>KEY</u> IS data-name-3 ]
+[ <u>DESTINATION</u> <u>TABLE</u> <u>OCCURS</u> integer-1 TIMES
+[ <u>INDEXED</u> BY { index-name-1 } … ] ]
+[ <u>ERROR</u> <u>KEY</u> IS data-name-4 ]
+[ SYMBOLIC <u>DESTINATION</u> IS data-name-5 ] .
 </pre>
 
 <u>FORMAT 3</u>:
@@ -8283,16 +8280,14 @@ V-18
 
 <u>FORMAT 2</u>:
 
-<pre>
-[<u>PROCEDURE</u> <u>DIVISION</u>  [<u>USING</u>  {data-name-1} ... ].
-
-{paragraph-name.
-
-     [sentence] ... } ... ]
+<pre style="line-height:1">
+[ <u>PROCEDURE</u> <u>DIVISION</u> [ <u>USING</u> { data-name-1 } … ] .
+{ paragraph-name.
+[ sentence ] … } … ]
 </pre>
 
-<pre>
-                                        V-19
+<pre style="line-height:1">
+V-19
 </pre>
 
 ## Page 212
@@ -8312,47 +8307,43 @@ Verb Formats (ACCEPT - CALL)
                          ⎩<u>TIME</u>       ⎭
 </pre>
 
-<pre>
+<pre style="line-height:1">
 <u>ACCEPT</u> cd-name-1 MESSAGE <u>COUNT</u>
 </pre>
 
-<pre>
-<u>ADD</u> ⎧identifier-1⎫ ...   <u>TO</u> {identifier-2 [<u>ROUNDED</u>]} ...
-    ⎩literal-1   ⎭
+<pre style="line-height:1">
+    ╭ identifier-1 ╮
+<u>ADD</u> ┤              ├ … <u>TO</u> { identifier-2 [ <u>ROUNDED</u> ] } …
+    ╰ literal-1    ╯
 
-   [ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1]
-
-   [<u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2]
-
-   [<u>END-ADD</u>]
+[ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1 ]
+[ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 ]
+[ <u>END-ADD</u> ]
 </pre>
 
-<pre>
-<u>ADD</u> ⎧identifier-1⎫ ...   TO ⎧identifier-2⎫
-    ⎩literal-1   ⎭          ⎩literal-2   ⎭
+<pre style="line-height:1">
+    ╭ identifier-1 ╮      ╭ identifier-2 ╮
+<u>ADD</u> ┤              ├ … TO ┤              ├
+    ╰ literal-1    ╯      ╰ literal-2    ╯
 
-   <u>GIVING</u>  {identifier-3 [<u>ROUNDED</u>]} ...
-
-   [ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1]
-
-   [<u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2]
-
-   [<u>END-ADD</u>]
+<u>GIVING</u> { identifier-3 [ <u>ROUNDED</u> ] } …
+[ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1 ]
+[ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 ]
+[ <u>END-ADD</u> ]
 </pre>
 
-<pre>
-<u>ADD</u> ⎧<u>CORRESPONDING</u>⎫  identifier-1 <u>TO</u> identifier-2 [<u>ROUNDED</u>]
-    ⎩<u>CORR</u>         ⎭
+<pre style="line-height:1">
+    ╭ <u>CORRESPONDING</u> ╮
+<u>ADD</u> ┤               ├ identifier-1 <u>TO</u> identifier-2 [ <u>ROUNDED</u> ]
+    ╰ <u>CORR</u>          ╯
 
-   [ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1]
-
-   [<u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2]
-
-   [<u>END-ADD</u>]
+[ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1 ]
+[ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 ]
+[ <u>END-ADD</u> ]
 </pre>
 
-<pre>
-<u>ALTER</u>  {procedure-name-1 <u>TO</u>  [<u>PROCEED</u> <u>TO</u>]  procedure-name-2} ...
+<pre style="line-height:1">
+<u>ALTER</u> { procedure-name-1 <u>TO</u> [ <u>PROCEED</u> <u>TO</u> ] procedure-name-2 } …
 </pre>
 
 <pre>
@@ -8372,22 +8363,20 @@ Verb Formats (CALL - DISABLE)
 
 ## <u>GENERAL FORMAT FOR COBOL VERBS</u>
 
-<pre>
-     ⎧identifier-1⎫ ┌      ⎧[BY <u>REFERENCE</u>] {identifier-2} ...⎫     ┐
-<u>CALL</u> ⎨            ⎬ │<u>USING</u> ⎨                                 ⎬ ... │
-     ⎩literal-1   ⎭ └      ⎩BY <u>CONTENT</u>   {identifier-2} ...  ⎭     ┘
+<pre style="line-height:1">
+     ╭ identifier-1 ╮ ┌       ╭ [ BY <u>REFERENCE</u> ] { identifier-2 } … ╮   ┐
+<u>CALL</u> ┤              ├ │ <u>USING</u> ┤                                     ├ … │
+     ╰ literal-1    ╯ └       ╰ BY <u>CONTENT</u> { identifier-2 } …       ╯   ┘
 
-    [ON <u>EXCEPTION</u> imperative-statement-1]
-
-    [<u>NOT</u> ON <u>EXCEPTION</u> imperative-statement-2]
-
-    [<u>END-CALL</u>]
+[ ON <u>EXCEPTION</u> imperative-statement-1 ]
+[ <u>NOT</u> ON <u>EXCEPTION</u> imperative-statement-2 ]
+[ <u>END-CALL</u> ]
 </pre>
 
-<pre>
-       ⎧identifier-1⎫
-<u>CANCEL</u> ⎨            ⎬ ...
-       ⎩literal-1   ⎭
+<pre style="line-height:1">
+       ╭ identifier-1 ╮
+<u>CANCEL</u> ┤              ├ …
+       ╰ literal-1    ╯
 </pre>
 
 <pre>
@@ -8412,18 +8401,15 @@ Verb Formats (CALL - DISABLE)
     [<u>END-COMPUTE</u>]
 </pre>
 
-<pre>
+<pre style="line-height:1">
 <u>CONTINUE</u>
 </pre>
 
-<pre>
+<pre style="line-height:1">
 <u>DELETE</u> file-name-1 RECORD
-
-    [<u>INVALID</u> KEY imperative-statement-1]
-
-    [<u>NOT</u> <u>INVALID</u> KEY imperative-statement-2]
-
-    [<u>END-DELETE</u>]
+[ <u>INVALID</u> KEY imperative-statement-1 ]
+[ <u>NOT</u> <u>INVALID</u> KEY imperative-statement-2 ]
+[ <u>END-DELETE</u> ]
 </pre>
 
 <pre>
@@ -8440,59 +8426,53 @@ Verb Formats (DISPLAY - DIVIDE)
 
 ## <u>GENERAL FORMAT FOR COBOL VERBS</u>
 
-<pre>
-<u>DISPLAY</u> ⎧identifier-1⎫ ...  [<u>UPON</u> mnemonic-name-1]  [WITH <u>NO</u> <u>ADVANCING</u>]
-        ⎩literal-1   ⎭
+<pre style="line-height:1">
+        ╭ identifier-1 ╮
+<u>DISPLAY</u> ┤              ├ … [ <u>UPON</u> mnemonic-name-1 ] [ WITH <u>NO</u> <u>ADVANCING</u> ]
+        ╰ literal-1    ╯
 </pre>
 
-<pre>
-<u>DIVIDE</u> ⎧identifier-1⎫ <u>INTO</u> {identifier-2 [<u>ROUNDED</u>]} ...
-       ⎩literal-1   ⎭
+<pre style="line-height:1">
+       ╭ identifier-1 ╮
+<u>DIVIDE</u> ┤              ├ <u>INTO</u> { identifier-2 [ <u>ROUNDED</u> ] } …
+       ╰ literal-1    ╯
 
-    [ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1]
-
-    [<u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2]
-
-    [<u>END-DIVIDE</u>]
+[ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1 ]
+[ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 ]
+[ <u>END-DIVIDE</u> ]
 </pre>
 
-<pre>
-<u>DIVIDE</u> ⎧identifier-1⎫ <u>INTO</u> ⎧identifier-2⎫
-       ⎩literal-1   ⎭      ⎩literal-2   ⎭
+<pre style="line-height:1">
+       ╭ identifier-1 ╮      ╭ identifier-2 ╮
+<u>DIVIDE</u> ┤              ├ <u>INTO</u> ┤              ├
+       ╰ literal-1    ╯      ╰ literal-2    ╯
 
-    <u>GIVING</u> {identifier-3 [<u>ROUNDED</u>]} ...
-
-    [ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1]
-
-    [<u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2]
-
-    [<u>END-DIVIDE</u>]
+<u>GIVING</u> { identifier-3 [ <u>ROUNDED</u> ] } …
+[ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1 ]
+[ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 ]
+[ <u>END-DIVIDE</u> ]
 </pre>
 
-<pre>
-<u>DIVIDE</u> ⎧identifier-1⎫ <u>BY</u> ⎧identifier-2⎫
-       ⎩literal-1   ⎭    ⎩literal-2   ⎭
+<pre style="line-height:1">
+       ╭ identifier-1 ╮    ╭ identifier-2 ╮
+<u>DIVIDE</u> ┤              ├ <u>BY</u> ┤              ├
+       ╰ literal-1    ╯    ╰ literal-2    ╯
 
-    <u>GIVING</u> {identifier-3 [<u>ROUNDED</u>]} ...
-
-    [ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1]
-
-    [<u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2]
-
-    [<u>END-DIVIDE</u>]
+<u>GIVING</u> { identifier-3 [ <u>ROUNDED</u> ] } …
+[ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1 ]
+[ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 ]
+[ <u>END-DIVIDE</u> ]
 </pre>
 
-<pre>
-<u>DIVIDE</u> ⎧identifier-1⎫ <u>INTO</u> ⎧identifier-2⎫ <u>GIVING</u> identifier-3 [<u>ROUNDED</u>]
-       ⎩literal-1   ⎭      ⎩literal-2   ⎭
+<pre style="line-height:1">
+       ╭ identifier-1 ╮      ╭ identifier-2 ╮
+<u>DIVIDE</u> ┤              ├ <u>INTO</u> ┤              ├ <u>GIVING</u> identifier-3 [ <u>ROUNDED</u> ]
+       ╰ literal-1    ╯      ╰ literal-2    ╯
 
-    <u>REMAINDER</u> identifier-4
-
-    [ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1]
-
-    [<u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2]
-
-    [<u>END-DIVIDE</u>]
+<u>REMAINDER</u> identifier-4
+[ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1 ]
+[ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 ]
+[ <u>END-DIVIDE</u> ]
 </pre>
 
 V-22
@@ -8503,27 +8483,27 @@ Verb Formats (DIVIDE - EVALUATE)
 
 ## GENERAL FORMAT FOR COBOL VERBS
 
-<pre>
-<u>DIVIDE</u> ⎧identifier-1⎫ <u>BY</u> ⎧identifier-2⎫ <u>GIVING</u> identifier-3 [<u>ROUNDED</u>]
-       ⎩literal-1   ⎭    ⎩literal-2   ⎭
+<pre style="line-height:1">
+       ╭ identifier-1 ╮    ╭ identifier-2 ╮
+<u>DIVIDE</u> ┤              ├ <u>BY</u> ┤              ├ <u>GIVING</u> identifier-3 [ <u>ROUNDED</u> ]
+       ╰ literal-1    ╯    ╰ literal-2    ╯
 
-    <u>REMAINDER</u> identifier-4
-
-    [ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1]
-
-    [<u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2]
-
-    [<u>END-DIVIDE</u>]
+<u>REMAINDER</u> identifier-4
+[ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1 ]
+[ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 ]
+[ <u>END-DIVIDE</u> ]
 </pre>
 
-<pre>
-       ⎧<u>INPUT</u> [<u>TERMINAL</u>]⎫
-<u>ENABLE</u> ⎨<u>I-O</u> <u>TERMINAL</u>    ⎬ cd-name-1 ┌WITH <u>KEY</u> ⎧identifier-1⎫┐
-       ⎩<u>OUTPUT</u>          ⎭           └         ⎩literal-1   ⎭┘
+<pre style="line-height:1">
+       ╭ <u>INPUT</u> [ <u>TERMINAL</u> ] ╮
+       │                    │           ┌          ╭ identifier-1 ╮ ┐
+<u>ENABLE</u> ┤ <u>I-O</u> <u>TERMINAL</u>       ├ cd-name-1 │ WITH <u>KEY</u> ┤              ├ │
+       │                    │           └          ╰ literal-1    ╯ ┘
+       ╰ <u>OUTPUT</u>             ╯
 </pre>
 
-<pre>
-<u>ENTER</u> language-name-1  [routine-name-1].
+<pre style="line-height:1">
+<u>ENTER</u> language-name-1 [ routine-name-1 ] .
 </pre>
 
 <pre>
@@ -8573,17 +8553,18 @@ Verb Formats (EXIT - INSPECT)
 <u>EXIT</u> <u>PROGRAM</u>
 </pre>
 
-<pre>
-<u>GENERATE</u> ⎧data-name-1  ⎫
-         ⎩report-name-1⎭
+<pre style="line-height:1">
+         ╭ data-name-1   ╮
+<u>GENERATE</u> ┤               ├
+         ╰ report-name-1 ╯
 </pre>
 
-<pre>
-<u>GO</u> TO  [procedure-name-1]
+<pre style="line-height:1">
+<u>GO</u> TO [ procedure-name-1 ]
 </pre>
 
-<pre>
-<u>GO</u> TO  {procedure-name-1} ...   <u>DEPENDING</u> ON identifier-1
+<pre style="line-height:1">
+<u>GO</u> TO { procedure-name-1 } … <u>DEPENDING</u> ON identifier-1
 </pre>
 
 <pre>
@@ -8601,8 +8582,8 @@ Verb Formats (EXIT - INSPECT)
     └           ⎩⎩<u>NUMERIC-EDITED</u>     ⎭                       ⎭     ┘
 </pre>
 
-<pre>
-<u>INITIATE</u>  {report-name-1} ...
+<pre style="line-height:1">
+<u>INITIATE</u> { report-name-1 } …
 </pre>
 
 <pre>
@@ -8650,34 +8631,41 @@ Verb Formats (INSPECT - MULTIPLY)
 ⎩ ⎩<u>FIRST</u>  ⎭ ⎩                                                                       ⎭     ⎭
 </pre>
 
-<pre>
-<u>INSPECT</u> identifier-1 <u>CONVERTING</u> ⎧identifier-6⎫ <u>TO</u> ⎧identifier-7⎫
-                                ⎩literal-4   ⎭    ⎩literal-5   ⎭
+<pre style="line-height:1">
+                                ╭ identifier-6 ╮    ╭ identifier-7 ╮
+<u>INSPECT</u> identifier-1 <u>CONVERTING</u> ┤              ├ <u>TO</u> ┤              ├
+                                ╰ literal-4    ╯    ╰ literal-5    ╯
 
-    ┌⎧<u>BEFORE</u>⎫         ⎧identifier-4⎫┐
-    └⎩<u>AFTER</u> ⎭ INITIAL ⎩literal-2   ⎭┘ ...
+┌ ╭ <u>BEFORE</u> ╮         ╭ identifier-4 ╮ ┐
+│ ┤        ├ INITIAL ┤              ├ │ …
+└ ╰ <u>AFTER</u>  ╯         ╰ literal-2    ╯ ┘
 </pre>
 
-<pre>
-<u>MERGE</u> file-name-1 ⎧ ON ⎧<u>ASCENDING</u> ⎫ KEY {data-name-1} ... ⎫ ...
-                  ⎩    ⎩<u>DESCENDING</u>⎭                       ⎭
+<pre style="line-height:1">
+                  ╭    ╭ <u>ASCENDING</u>  ╮                       ╮
+<u>MERGE</u> file-name-1 ┤ ON ┤            ├ KEY { data-name-1 } … ├ …
+                  ╰    ╰ <u>DESCENDING</u> ╯                       ╯
 
-    [COLLATING <u>SEQUENCE</u> IS alphabet-name-1]
+[ COLLATING <u>SEQUENCE</u> IS alphabet-name-1 ]
+<u>USING</u> file-name-2 { file-name-3 } …
 
-    <u>USING</u> file-name-2 {file-name-3} ...
-
-    ⎧<u>OUTPUT</u> <u>PROCEDURE</u> IS procedure-name-1 ┌⎧<u>THROUGH</u>⎫ procedure-name-2┐⎫
-    ⎩<u>GIVING</u> {file-name-4} ...             └⎩<u>THRU</u>   ⎭                 ┘⎭
+╭                                      ┌ ╭ <u>THROUGH</u> ╮                  ┐ ╮
+│ <u>OUTPUT</u> <u>PROCEDURE</u> IS procedure-name-1 │ ┤         ├ procedure-name-2 │ │
+┤                                      └ ╰ <u>THRU</u>    ╯                  ┘ ├
+│                                                                       │
+╰ <u>GIVING</u> { file-name-4 } …                                              ╯
 </pre>
 
-<pre>
-<u>MOVE</u> ⎧identifier-1⎫ <u>TO</u> {identifier-2} ...
-     ⎩literal-1   ⎭
+<pre style="line-height:1">
+     ╭ identifier-1 ╮
+<u>MOVE</u> ┤              ├ <u>TO</u> { identifier-2 } …
+     ╰ literal-1    ╯
 </pre>
 
-<pre>
-<u>MOVE</u> ⎧<u>CORRESPONDING</u>⎫ identifier-1 <u>TO</u> identifier-2
-     ⎩<u>CORR</u>         ⎭
+<pre style="line-height:1">
+     ╭ <u>CORRESPONDING</u> ╮
+<u>MOVE</u> ┤               ├ identifier-1 <u>TO</u> identifier-2
+     ╰ <u>CORR</u>          ╯
 </pre>
 
 <pre>
@@ -8701,17 +8689,15 @@ Verb Formats (MULTIPLY - PERFORM)
 
 ## GENERAL FORMAT FOR COBOL VERBS
 
-<pre>
-<u>MULTIPLY</u> ⎧identifier-1⎫ <u>BY</u> ⎧identifier-2⎫
-         ⎩literal-1   ⎭    ⎩literal-2   ⎭
+<pre style="line-height:1">
+         ╭ identifier-1 ╮    ╭ identifier-2 ╮
+<u>MULTIPLY</u> ┤              ├ <u>BY</u> ┤              ├
+         ╰ literal-1    ╯    ╰ literal-2    ╯
 
-    <u>GIVING</u> {identifier-3 [<u>ROUNDED</u>]} ...
-
-    [ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1]
-
-    [<u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2]
-
-    [<u>END-MULTIPLY</u>]
+<u>GIVING</u> { identifier-3 [ <u>ROUNDED</u> ] } …
+[ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1 ]
+[ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 ]
+[ <u>END-MULTIPLY</u> ]
 </pre>
 
 <pre>
@@ -8742,24 +8728,26 @@ W <u>OPEN</u> ⎧<u>OUTPUT</u> {file-name-1 [WITH <u>NO</u> <u>REWIND</u>]} ... 
     [imperative-statement-1 <u>END-PERFORM</u>]
 </pre>
 
-<pre>
-<u>PERFORM</u> ┌procedure-name-1 ┌⎧<u>THROUGH</u>⎫ procedure-name-2┐┐
-        │                 │⎨       ⎬                 ││
-        └                 └⎩<u>THRU</u>   ⎭                 ┘┘
+<pre style="line-height:1">
+        ┌                  ┌ ╭ <u>THROUGH</u> ╮                  ┐ ┐
+<u>PERFORM</u> │ procedure-name-1 │ ┤         ├ procedure-name-2 │ │
+        └                  └ ╰ <u>THRU</u>    ╯                  ┘ ┘
 
-   ⎧identifier-1⎫ <u>TIMES</u>  [imperative-statement-1 <u>END-PERFORM</u>]
-   ⎩integer-1   ⎭
+╭ identifier-1 ╮
+┤              ├ <u>TIMES</u> [ imperative-statement-1 <u>END-PERFORM</u> ]
+╰ integer-1    ╯
 </pre>
 
-<pre>
-<u>PERFORM</u> ┌procedure-name-1 ┌⎧<u>THROUGH</u>⎫ procedure-name-2┐┐
-        │                 │⎨       ⎬                 ││
-        └                 └⎩<u>THRU</u>   ⎭                 ┘┘
+<pre style="line-height:1">
+        ┌                  ┌ ╭ <u>THROUGH</u> ╮                  ┐ ┐
+<u>PERFORM</u> │ procedure-name-1 │ ┤         ├ procedure-name-2 │ │
+        └                  └ ╰ <u>THRU</u>    ╯                  ┘ ┘
 
-   ┌WITH <u>TEST</u>  ⎧<u>BEFORE</u>⎫┐  <u>UNTIL</u> condition-1
-   └           ⎩<u>AFTER</u> ⎭┘
+┌           ╭ <u>BEFORE</u> ╮ ┐
+│ WITH <u>TEST</u> ┤        ├ │ <u>UNTIL</u> condition-1
+└           ╰ <u>AFTER</u>  ╯ ┘
 
-    [imperative-statement-1 <u>END-PERFORM</u>]
+[ imperative-statement-1 <u>END-PERFORM</u> ]
 </pre>
 
 V-26
@@ -8793,28 +8781,22 @@ Verb Formats (PERFORM - READ)
    [imperative-statement-1 <u>END-PERFORM</u>]
 </pre>
 
-<pre>
+<pre style="line-height:1">
 <u>PURGE</u> cd-name-1
 </pre>
 
-<pre>
-SRI <u>READ</u> file-name-1  [<u>NEXT</u>]  RECORD  [<u>INTO</u> identifier-1]
-
-       [AT <u>END</u> imperative-statement-1]
-
-       [<u>NOT</u> AT <u>END</u> imperative-statement-2]
-
-       [<u>END-READ</u>]
+<pre style="line-height:1">
+SRI <u>READ</u> file-name-1 [ <u>NEXT</u> ] RECORD [ <u>INTO</u> identifier-1 ]
+[ AT <u>END</u> imperative-statement-1 ]
+[ <u>NOT</u> AT <u>END</u> imperative-statement-2 ]
+[ <u>END-READ</u> ]
 </pre>
 
-<pre>
-  R <u>READ</u> file-name-1 RECORD  [<u>INTO</u> identifier-1]
-
-       [<u>INVALID</u> KEY imperative-statement-3]
-
-       [<u>NOT</u> <u>INVALID</u> KEY imperative-statement-4]
-
-       [<u>END-READ</u>]
+<pre style="line-height:1">
+R <u>READ</u> file-name-1 RECORD [ <u>INTO</u> identifier-1 ]
+[ <u>INVALID</u> KEY imperative-statement-3 ]
+[ <u>NOT</u> <u>INVALID</u> KEY imperative-statement-4 ]
+[ <u>END-READ</u> ]
 </pre>
 
 V-27
@@ -8875,16 +8857,18 @@ Verb Formats (SEARCH - SET)
 
 ## GENERAL FORMAT FOR COBOL VERBS
 
-<pre>
-<u>SEARCH</u> identifier-1 ┌<u>VARYING</u> ⎧identifier-2 ⎫┐
-                    └        ⎩index-name-1 ⎭┘
+<pre style="line-height:1">
+                    ┌         ╭ identifier-2 ╮ ┐
+<u>SEARCH</u> identifier-1 │ <u>VARYING</u> ┤              ├ │
+                    └         ╰ index-name-1 ╯ ┘
 
-    [AT <u>END</u> imperative-statement-1]
+[ AT <u>END</u> imperative-statement-1 ]
 
-    ⎧<u>WHEN</u> condition-1 ⎧imperative-statement-2⎫⎫ ...
-    ⎩                 ⎩<u>NEXT</u> <u>SENTENCE</u>         ⎭⎭
+╭                  ╭ imperative-statement-2 ╮ ╮
+┤ <u>WHEN</u> condition-1 ┤                        ├ ├ …
+╰                  ╰ <u>NEXT</u> <u>SENTENCE</u>          ╯ ╯
 
-    [<u>END-SEARCH</u>]
+[ <u>END-SEARCH</u> ]
 </pre>
 
 <pre>
@@ -8903,7 +8887,7 @@ Verb Formats (SEARCH - SET)
     [<u>END-SEARCH</u>]
 </pre>
 
-<pre>
+<pre style="line-height:1">
 <u>SEND</u> cd-name-1 <u>FROM</u> identifier-1
 </pre>
 
@@ -8935,20 +8919,21 @@ Verb Formats (SET - STOP)
 
 ## GENERAL FORMAT FOR COBOL VERBS
 
-<pre>
-                       ⎧<u>UP</u> <u>BY</u>  ⎫ ⎧identifier-3⎫
-<u>SET</u> {index-name-3} ... ⎨       ⎬ ⎨            ⎬
-                       ⎩<u>DOWN</u> <u>BY</u>⎭ ⎩integer-2   ⎭
+<pre style="line-height:1">
+                       ╭ <u>UP</u> <u>BY</u>   ╮ ╭ identifier-3 ╮
+<u>SET</u> { index-name-3 } … ┤         ├ ┤              ├
+                       ╰ <u>DOWN</u> <u>BY</u> ╯ ╰ integer-2    ╯
 </pre>
 
-<pre>
-    ⎧                         ⎧<u>ON</u> ⎫⎫
-<u>SET</u> ⎨{mnemonic-name-1} ... <u>TO</u> ⎨   ⎬⎬ ...
-    ⎩                         ⎩<u>OFF</u>⎭⎭
+<pre style="line-height:1">
+    ╭                          ╭ <u>ON</u>  ╮
+<u>SET</u> ┤ { mnemonic-name-1 } … <u>TO</u> ┤     ├ ╮ …
+    │                          │     │ ├
+    ╰                          ╰ <u>OFF</u> ╯ ╯
 </pre>
 
-<pre>
-<u>SET</u> {condition-name-1} ... <u>TO</u> <u>TRUE</u>
+<pre style="line-height:1">
+<u>SET</u> { condition-name-1 } … <u>TO</u> <u>TRUE</u>
 </pre>
 
 <pre>
@@ -8988,10 +8973,10 @@ Verb Formats (SET - STOP)
     [<u>END-START</u>]
 </pre>
 
-<pre>
-     ⎧<u>RUN</u>      ⎫
-<u>STOP</u> ⎨         ⎬
-     ⎩literal-1⎭
+<pre style="line-height:1">
+     ╭ <u>RUN</u>       ╮
+<u>STOP</u> ┤           ├
+     ╰ literal-1 ╯
 </pre>
 
 V-30
@@ -9002,20 +8987,18 @@ Verb Formats (STRING - TERMINATE)
 
 ## GENERAL FORMAT FOR COBOL VERBS
 
-<pre>
-        ⎧⎧identifier-1⎫                   ⎧identifier-2⎫⎫
-<u>STRING</u>  ⎨⎩literal-1   ⎭ ...  <u>DELIMITED</u> BY ⎨literal-2   ⎬⎬ ...
-        ⎩                                 ⎩<u>SIZE</u>        ⎭⎭
+<pre style="line-height:1">
+       ╭                                 ╭ identifier-2 ╮ ╮
+       │ ╭ identifier-1 ╮                │              │ │
+<u>STRING</u> ┤ ┤              ├ … <u>DELIMITED</u> BY ┤ literal-2    ├ ├ …
+       │ ╰ literal-1    ╯                │              │ │
+       ╰                                 ╰ <u>SIZE</u>         ╯ ╯
 
-    <u>INTO</u> identifier-3
-
-    [WITH <u>POINTER</u> identifier-4]
-
-    [ON <u>OVERFLOW</u> imperative-statement-1]
-
-    [<u>NOT</u> ON <u>OVERFLOW</u> imperative-statement-2]
-
-    [<u>END-STRING</u>]
+<u>INTO</u> identifier-3
+[ WITH <u>POINTER</u> identifier-4 ]
+[ ON <u>OVERFLOW</u> imperative-statement-1 ]
+[ <u>NOT</u> ON <u>OVERFLOW</u> imperative-statement-2 ]
+[ <u>END-STRING</u> ]
 </pre>
 
 <pre>
@@ -9029,30 +9012,28 @@ Verb Formats (STRING - TERMINATE)
     [<u>END-SUBTRACT</u>]
 </pre>
 
-<pre>
-<u>SUBTRACT</u> ⎧identifier-1⎫ ...  <u>FROM</u> ⎧identifier-2⎫
-         ⎩literal-1   ⎭           ⎩literal-2   ⎭
+<pre style="line-height:1">
+         ╭ identifier-1 ╮        ╭ identifier-2 ╮
+<u>SUBTRACT</u> ┤              ├ … <u>FROM</u> ┤              ├
+         ╰ literal-1    ╯        ╰ literal-2    ╯
 
-    <u>GIVING</u> {identifier-3 [<u>ROUNDED</u>]} ...
-
-    [ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1]
-
-    [<u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2]
-
-    [<u>END-SUBTRACT</u>]
+<u>GIVING</u> { identifier-3 [ <u>ROUNDED</u> ] } …
+[ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1 ]
+[ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 ]
+[ <u>END-SUBTRACT</u> ]
 </pre>
 
-<pre>
-<u>SUBTRACT</u> ⎧<u>CORRESPONDING</u>⎫ identifier-1 <u>FROM</u> identifier-2 [<u>ROUNDED</u>]
-         ⎩<u>CORR</u>         ⎭
-    [ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1]
+<pre style="line-height:1">
+         ╭ <u>CORRESPONDING</u> ╮
+<u>SUBTRACT</u> ┤               ├ identifier-1 <u>FROM</u> identifier-2 [ <u>ROUNDED</u> ]
+         ╰ <u>CORR</u>          ╯
 
-    [<u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2]
-
-    [<u>END-SUBTRACT</u>]
+[ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1 ]
+[ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 ]
+[ <u>END-SUBTRACT</u> ]
 </pre>
 
-<pre>
+<pre style="line-height:1">
 <u>SUPPRESS</u> PRINTING
 </pre>
 
@@ -9104,8 +9085,8 @@ SRI <u>USE</u> [<u>GLOBAL</u>] <u>AFTER</u> STANDARD ⎧<u>EXCEPTION</u>⎫ <u>P
                        ⎩<u>ERROR</u>    ⎭              ⎩<u>EXTEND</u>           ⎭
 </pre>
 
-<pre>
-  <u>USE</u> [<u>GLOBAL</u>] <u>BEFORE</u> <u>REPORTING</u> identifier-1
+<pre style="line-height:1">
+<u>USE</u> [ <u>GLOBAL</u> ] <u>BEFORE</u> <u>REPORTING</u> identifier-1
 </pre>
 
 <pre>
@@ -9120,8 +9101,8 @@ V-32
 
 ## Page 225
 
-<pre>
-                                                            Verb Formats (WRITE)
+<pre style="line-height:1">
+Verb Formats ( WRITE )
 </pre>
 
 <u>**GENERAL FORMAT FOR COBOL VERBS**</u>
@@ -9215,13 +9196,13 @@ identifier-1 IS [<u>NOT</u>] ⎨ <u>ALPHABETIC-LOWER</u> ⎬
 
 CONDITION-NAME CONDITION:
 
-<pre>
+<pre style="line-height:1">
 condition-name-1
 </pre>
 
 SWITCH-STATUS CONDITION:
 
-<pre>
+<pre style="line-height:1">
 condition-name-1
 </pre>
 
@@ -9235,7 +9216,7 @@ arithmetic-expression-1 IS [<u>NOT</u>] ⎨ <u>NEGATIVE</u> ⎬
 
 NEGATED CONDITION:
 
-<pre>
+<pre style="line-height:1">
 <u>NOT</u> condition-1
 </pre>
 
@@ -9282,30 +9263,34 @@ Qualification
 
 <u>FORMAT 2</u>:
 
-<pre>
-paragraph-name-1 ⎧<u>IN</u>⎫ section-name-1
-                 ⎩<u>OF</u>⎭
+<pre style="line-height:1">
+                 ╭ <u>IN</u> ╮
+paragraph-name-1 ┤    ├ section-name-1
+                 ╰ <u>OF</u> ╯
 </pre>
 
 <u>FORMAT 3</u>:
 
-<pre>
-text-name-1 ⎧<u>IN</u>⎫ library-name-1
-            ⎩<u>OF</u>⎭
+<pre style="line-height:1">
+            ╭ <u>IN</u> ╮
+text-name-1 ┤    ├ library-name-1
+            ╰ <u>OF</u> ╯
 </pre>
 
 <u>FORMAT 4</u>:
 
-<pre>
-<u>LINAGE-COUNTER</u> ⎧<u>IN</u>⎫ file-name-2
-               ⎩<u>OF</u>⎭
+<pre style="line-height:1">
+               ╭ <u>IN</u> ╮
+<u>LINAGE-COUNTER</u> ┤    ├ file-name-2
+               ╰ <u>OF</u> ╯
 </pre>
 
 <u>FORMAT 5</u>:
 
-<pre>
-⎧<u>PAGE-COUNTER</u>⎫ ⎧<u>IN</u>⎫ report-name-1
-⎩<u>LINE-COUNTER</u>⎭ ⎩<u>OF</u>⎭
+<pre style="line-height:1">
+╭ <u>PAGE-COUNTER</u> ╮ ╭ <u>IN</u> ╮
+┤              ├ ┤    ├ report-name-1
+╰ <u>LINE-COUNTER</u> ╯ ╰ <u>OF</u> ╯
 </pre>
 
 <u>FORMAT 6</u>:
@@ -9554,7 +9539,7 @@ The end program header indicates the end of the named COBOL source program.
 
 ### 2.4.2 General Format
 
-<pre>
+<pre style="line-height:1">
 <u>END</u> <u>PROGRAM</u> program-name.
 </pre>
 
@@ -9656,8 +9641,8 @@ The DATE-COMPILED paragraph provides the compilation date in the Identification 
 
 ### 3.4.2 General Format
 
-<pre>
-<u>DATE-COMPILED</u>. [comment-entry] ...
+<pre style="line-height:1">
+<u>DATE-COMPILED</u>. [ comment-entry ] …
 </pre>
 
 ### 3.4.3 Syntax Rules
@@ -10198,9 +10183,10 @@ The JUSTIFIED clause permits alternate positioning of data within a receiving da
 
 ### 5.6.2 General Format
 
-<pre>
-⎧<u>JUSTIFIED</u>⎫
-⎩<u>JUST</u>     ⎭ RIGHT
+<pre style="line-height:1">
+╭ <u>JUSTIFIED</u> ╮
+┤           ├ RIGHT
+╰ <u>JUST</u>      ╯
 </pre>
 
 ### 5.6.3 Syntax Rules
@@ -10233,7 +10219,7 @@ The level-number indicates the position of a data item within the hierarchical s
 
 5.7.2 General Format
 
-<pre>
+<pre style="line-height:1">
 level-number
 </pre>
 
@@ -10381,10 +10367,10 @@ The PICTURE clause describes the general characteristics and editing requirement
 
 5.9.2 General Format
 
-<pre>
-⎧<u>PICTURE</u>⎫
-⎨       ⎬ IS character-string
-⎩<u>PIC</u>    ⎭
+<pre style="line-height:1">
+╭ <u>PICTURE</u> ╮
+┤         ├ IS character-string
+╰ <u>PIC</u>     ╯
 </pre>
 
 5.9.3 Syntax Rules
@@ -10675,10 +10661,10 @@ The REDEFINES clause allows the same computer storage area to be described by di
 
 ### 5.10.2 General Format
 
-<pre>
-               ┌data-name-1┐
-level-number   │           │  <u>REDEFINES</u> data-name-2
-               └FILLER     ┘
+<pre style="line-height:1">
+             ┌ data-name-1 ┐
+level-number │             │ <u>REDEFINES</u> data-name-2
+             └ FILLER      ┘
 </pre>
 
 NOTE: Level-number, data-name-1, and FILLER are shown in the above format to improve clarity. Level-number, data-name-1, and FILLER are not part of the REDEFINES clause.
@@ -10787,10 +10773,10 @@ The SIGN clause specifies the position and the mode of representation of the ope
 
 ### 5.12.2 General Format
 
-<pre>
-              ⎧<u>LEADING</u> ⎫
-[<u>SIGN</u> IS]    ⎨        ⎬  [<u>SEPARATE</u> CHARACTER]
-              ⎩<u>TRAILING</u>⎭
+<pre style="line-height:1">
+            ╭ <u>LEADING</u>  ╮
+[ <u>SIGN</u> IS ] ┤          ├ [ <u>SEPARATE</u> CHARACTER ]
+            ╰ <u>TRAILING</u> ╯
 </pre>
 
 ### 5.12.3 Syntax Rules
@@ -10985,7 +10971,7 @@ The VALUE clause defines the initial value of Communication Section and Working-
 
 Format 1:
 
-<pre>
+<pre style="line-height:1">
 <u>VALUE</u> IS literal-1
 </pre>
 
@@ -11081,24 +11067,19 @@ The general formats of the Procedure Division in the Nucleus are shown below.
 
 Format 1:
 
-<pre>
+<pre style="line-height:1">
 <u>PROCEDURE</u> <u>DIVISION</u>.
-
-{section-name <u>SECTION</u>.
-
-[paragraph-name.
-
-   [sentence] ... ] ... } ...
+{ section-name <u>SECTION</u>.
+[ paragraph-name.
+[ sentence ] … ] … } …
 </pre>
 
 Format 2:
 
-<pre>
+<pre style="line-height:1">
 <u>PROCEDURE</u> <u>DIVISION</u>.
-
-{paragraph-name.
-
-   [sentence] ... } ...
+{ paragraph-name.
+[ sentence ] … } …
 </pre>
 
 ## 6.2 ARITHMETIC EXPRESSIONS
@@ -11341,7 +11322,7 @@ Nucleus - Condition-Name Condition
 
 In a condition-name condition, a conditional variable is tested to determine whether or not its value is equal to one of the values associated with condition-name-1. The general format for the condition-name condition is as follows:
 
-<pre>
+<pre style="line-height:1">
 condition-name-1
 </pre>
 
@@ -11355,7 +11336,7 @@ The result of the test is true if one of the values corresponding to condition-n
 
 A switch-status condition determines the on or off status of an implementor-defined switch. The implementor-name and the on or off value associated with the condition must be named in the SPECIAL-NAMES paragraph of the Environment Division. The general format for the switch-status condition is as follows:
 
-<pre>
+<pre style="line-height:1">
 condition-name-1
 </pre>
 
@@ -11864,30 +11845,27 @@ The ADD statement causes two or more numeric operands to be summed and the resul
 
 <u>Format 1</u>:
 
-<pre>
-<u>ADD</u> ⎧identifier-1⎫ ...   <u>TO</u> {identifier-2 [<u>ROUNDED</u>]} ...
-    ⎩literal-1   ⎭
+<pre style="line-height:1">
+    ╭ identifier-1 ╮
+<u>ADD</u> ┤              ├ … <u>TO</u> { identifier-2 [ <u>ROUNDED</u> ] } …
+    ╰ literal-1    ╯
 
-    [ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1]
-
-    [<u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2]
-
-    [<u>END-ADD</u>]
+[ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1 ]
+[ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 ]
+[ <u>END-ADD</u> ]
 </pre>
 
 <u>Format 2</u>:
 
-<pre>
-<u>ADD</u> ⎧identifier-1⎫ ...   TO ⎧identifier-2⎫
-    ⎩literal-1   ⎭          ⎩literal-2   ⎭
+<pre style="line-height:1">
+    ╭ identifier-1 ╮      ╭ identifier-2 ╮
+<u>ADD</u> ┤              ├ … TO ┤              ├
+    ╰ literal-1    ╯      ╰ literal-2    ╯
 
-    <u>GIVING</u> {identifier-3 [<u>ROUNDED</u>]} ...
-
-    [ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1]
-
-    [<u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2]
-
-    [<u>END-ADD</u>]
+<u>GIVING</u> { identifier-3 [ <u>ROUNDED</u> ] } …
+[ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1 ]
+[ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 ]
+[ <u>END-ADD</u> ]
 </pre>
 
 <u>Format 3</u>:
@@ -12023,7 +12001,7 @@ The CONTINUE statement is a no operation statement. It indicates that no executa
 
 ### 6.9.2 General Format
 
-<pre>
+<pre style="line-height:1">
 <u>CONTINUE</u>
 </pre>
 
@@ -12110,16 +12088,14 @@ The DIVIDE statement divides one numeric data item into others and sets the valu
 
 <u>Format 1</u>:
 
-<pre>
-       ⎧identifier-1⎫
-<u>DIVIDE</u> ⎨            ⎬ <u>INTO</u>   {identifier-2 [<u>ROUNDED</u>]} ...
-       ⎩literal-1   ⎭
+<pre style="line-height:1">
+       ╭ identifier-1 ╮
+<u>DIVIDE</u> ┤              ├ <u>INTO</u> { identifier-2 [ <u>ROUNDED</u> ] } …
+       ╰ literal-1    ╯
 
-    [ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1]
-
-    [<u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2]
-
-    [<u>END-DIVIDE</u>]
+[ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1 ]
+[ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 ]
+[ <u>END-DIVIDE</u> ]
 </pre>
 
 <u>Format 2</u>:
@@ -12140,18 +12116,15 @@ The DIVIDE statement divides one numeric data item into others and sets the valu
 
 <u>Format 3</u>:
 
-<pre>
-       ⎧identifier-1⎫      ⎧identifier-2⎫
-<u>DIVIDE</u> ⎨            ⎬ <u>BY</u>   ⎨            ⎬
-       ⎩literal-1   ⎭      ⎩literal-2   ⎭
+<pre style="line-height:1">
+       ╭ identifier-1 ╮    ╭ identifier-2 ╮
+<u>DIVIDE</u> ┤              ├ <u>BY</u> ┤              ├
+       ╰ literal-1    ╯    ╰ literal-2    ╯
 
-    <u>GIVING</u>  {identifier-3 [<u>ROUNDED</u>]} ...
-
-    [ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1]
-
-    [<u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2]
-
-    [<u>END-DIVIDE</u>]
+<u>GIVING</u> { identifier-3 [ <u>ROUNDED</u> ] } …
+[ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1 ]
+[ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 ]
+[ <u>END-DIVIDE</u> ]
 </pre>
 
 VI-80
@@ -12244,8 +12217,8 @@ The ENTER statement provides a means of allowing the use of more than one langua
 
 #### 6.12.2 General Format
 
-<pre>
-<u>ENTER</u> language-name-1  [routine-name-1].
+<pre style="line-height:1">
+<u>ENTER</u> language-name-1 [ routine-name-1 ] .
 </pre>
 
 #### 6.12.3 Syntax Rules
@@ -12408,7 +12381,7 @@ The EXIT statement provides a common end point for a series of procedures.
 
 ### 6.14.2 General Format
 
-<pre>
+<pre style="line-height:1">
 <u>EXIT</u>
 </pre>
 
@@ -12963,9 +12936,10 @@ The MOVE statement transfers data, in accordance with the rules of editing, to o
 
 <u>Format 1</u>:
 
-<pre>
-<u>MOVE</u> ⎧identifier-1⎫ <u>TO</u> {identifier-2} ...
-     ⎩literal-1   ⎭
+<pre style="line-height:1">
+     ╭ identifier-1 ╮
+<u>MOVE</u> ┤              ├ <u>TO</u> { identifier-2 } …
+     ╰ literal-1    ╯
 </pre>
 
 <u>Format 2</u>:
@@ -13092,30 +13066,27 @@ The MULTIPLY statement causes numeric data items to be multiplied and sets the v
 
 Format 1:
 
-<pre>
-<u>MULTIPLY</u> ⎧identifier-1⎫ <u>BY</u> {identifier-2 [<u>ROUNDED</u>]} ...
-         ⎩literal-1   ⎭
+<pre style="line-height:1">
+         ╭ identifier-1 ╮
+<u>MULTIPLY</u> ┤              ├ <u>BY</u> { identifier-2 [ <u>ROUNDED</u> ] } …
+         ╰ literal-1    ╯
 
-    [ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1]
-
-    [<u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2]
-
-    [<u>END-MULTIPLY</u>]
+[ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1 ]
+[ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 ]
+[ <u>END-MULTIPLY</u> ]
 </pre>
 
 Format 2:
 
-<pre>
-<u>MULTIPLY</u> ⎧identifier-1⎫ <u>BY</u> ⎧identifier-2⎫
-         ⎩literal-1   ⎭    ⎩literal-2   ⎭
+<pre style="line-height:1">
+         ╭ identifier-1 ╮    ╭ identifier-2 ╮
+<u>MULTIPLY</u> ┤              ├ <u>BY</u> ┤              ├
+         ╰ literal-1    ╯    ╰ literal-2    ╯
 
-    <u>GIVING</u> {identifier-3 [<u>ROUNDED</u>]} ...
-
-    [ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1]
-
-    [<u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2]
-
-    [<u>END-MULTIPLY</u>]
+<u>GIVING</u> { identifier-3 [ <u>ROUNDED</u> ] } …
+[ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1 ]
+[ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 ]
+[ <u>END-MULTIPLY</u> ]
 </pre>
 
 ### 6.20.3 Syntax Rules
@@ -13158,24 +13129,24 @@ The PERFORM statement is used to transfer control explicitly to one or more proc
 
 Format 1:
 
-<pre>
-         ┌                  ┌⎧<u>THROUGH</u>⎫                 ┐┐
-<u>PERFORM</u>  │procedure-name-1  │⎨       ⎬ procedure-name-2││
-         └                  └⎩<u>THRU</u>   ⎭                 ┘┘
+<pre style="line-height:1">
+        ┌                  ┌ ╭ <u>THROUGH</u> ╮                  ┐ ┐
+<u>PERFORM</u> │ procedure-name-1 │ ┤         ├ procedure-name-2 │ │
+        └                  └ ╰ <u>THRU</u>    ╯                  ┘ ┘
 
-    [imperative-statement-1 <u>END-PERFORM</u>]
+[ imperative-statement-1 <u>END-PERFORM</u> ]
 </pre>
 
 Format 2:
 
-<pre>
-         ┌                  ┌⎧<u>THROUGH</u>⎫                 ┐┐
-<u>PERFORM</u>  │procedure-name-1  │⎨       ⎬ procedure-name-2││
-         └                  └⎩<u>THRU</u>   ⎭                 ┘┘
+<pre style="line-height:1">
+        ┌                  ┌ ╭ <u>THROUGH</u> ╮                  ┐ ┐
+<u>PERFORM</u> │ procedure-name-1 │ ┤         ├ procedure-name-2 │ │
+        └                  └ ╰ <u>THRU</u>    ╯                  ┘ ┘
 
-    ⎧identifier-1⎫
-    ⎨            ⎬  <u>TIMES</u>  [imperative-statement-1 <u>END-PERFORM</u>]
-    ⎩integer-1   ⎭
+╭ identifier-1 ╮
+┤              ├ <u>TIMES</u> [ imperative-statement-1 <u>END-PERFORM</u> ]
+╰ integer-1    ╯
 </pre>
 
 Format 3:
@@ -13735,25 +13706,28 @@ Nucleus - SET
 
 <u>Format 1</u>:
 
-<pre>
-                           ⎧index-name-2⎫
-<u>SET</u> ⎧index-name-1⎫ ...  <u>TO</u> ⎨identifier-2⎬
-    ⎩identifier-1⎭         ⎩integer-1   ⎭
+<pre style="line-height:1">
+                          ╭ index-name-2 ╮
+    ╭ index-name-1 ╮      │              │
+<u>SET</u> ┤              ├ … <u>TO</u> ┤ identifier-2 ├
+    ╰ identifier-1 ╯      │              │
+                          ╰ integer-1    ╯
 </pre>
 
 <u>Format 2</u>:
 
-<pre>
-<u>SET</u> {index-name-3} ... ⎧<u>UP</u> <u>BY</u>  ⎫ ⎧identifier-3⎫
-                       ⎩<u>DOWN</u> <u>BY</u>⎭ ⎩integer-2   ⎭
+<pre style="line-height:1">
+                       ╭ <u>UP</u> <u>BY</u>   ╮ ╭ identifier-3 ╮
+<u>SET</u> { index-name-3 } … ┤         ├ ┤              ├
+                       ╰ <u>DOWN</u> <u>BY</u> ╯ ╰ integer-2    ╯
 </pre>
 
 <u>Format 3</u>:
 
-<pre>
-    ⎧                          ⎧<u>ON</u> ⎫⎫
-<u>SET</u> ⎨{mnemonic-name-1} ...  <u>TO</u> ⎨   ⎬⎬ ...
-    ⎩                          ⎩<u>OFF</u>⎭⎭
+<pre style="line-height:1">
+    ╭                          ╭ <u>ON</u>  ╮ ╮
+<u>SET</u> ┤ { mnemonic-name-1 } … <u>TO</u> ┤     ├ ├ …
+    ╰                          ╰ <u>OFF</u> ╯ ╯
 </pre>
 
 <u>Format 4</u>:
@@ -13996,30 +13970,27 @@ The SUBTRACT statement is used to subtract one, or the sum of two or more, numer
 
 <u>Format 1</u>:
 
-<pre>
-<u>SUBTRACT</u> ⎧identifier-1⎫ ...   <u>FROM</u> {identifier-2 [<u>ROUNDED</u>]} ...
-         ⎩literal-1   ⎭
+<pre style="line-height:1">
+         ╭ identifier-1 ╮
+<u>SUBTRACT</u> ┤              ├ … <u>FROM</u> { identifier-2 [ <u>ROUNDED</u> ] } …
+         ╰ literal-1    ╯
 
-   [ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1]
-
-   [<u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2]
-
-   [<u>END-SUBTRACT</u>]
+[ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1 ]
+[ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 ]
+[ <u>END-SUBTRACT</u> ]
 </pre>
 
 <u>Format 2</u>:
 
-<pre>
-<u>SUBTRACT</u> ⎧identifier-1⎫ ...   <u>FROM</u> ⎧identifier-2⎫
-         ⎩literal-1   ⎭            ⎩literal-2   ⎭
+<pre style="line-height:1">
+         ╭ identifier-1 ╮        ╭ identifier-2 ╮
+<u>SUBTRACT</u> ┤              ├ … <u>FROM</u> ┤              ├
+         ╰ literal-1    ╯        ╰ literal-2    ╯
 
-   <u>GIVING</u> {identifier-3 [<u>ROUNDED</u>]} ...
-
-   [ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1]
-
-   [<u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2]
-
-   [<u>END-SUBTRACT</u>]
+<u>GIVING</u> { identifier-3 [ <u>ROUNDED</u> ] } …
+[ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1 ]
+[ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 ]
+[ <u>END-SUBTRACT</u> ]
 </pre>
 
 <pre>
@@ -14469,8 +14440,8 @@ The FILE-CONTROL paragraph allows specification of file-related information.
 
 ### 2.2.2 General Format
 
-<pre>
-<u>FILE-CONTROL</u>. {file-control-entry} ...
+<pre style="line-height:1">
+<u>FILE-CONTROL</u>. { file-control-entry } …
 </pre>
 
 ## 2.3 THE FILE CONTROL ENTRY
@@ -14561,7 +14532,7 @@ The ACCESS MODE clause specifies the order in which records are to be accessed i
 
 ### 2.4.2 General Format
 
-<pre>
+<pre style="line-height:1">
 <u>ACCESS</u> MODE IS <u>SEQUENTIAL</u>
 </pre>
 
@@ -14587,7 +14558,7 @@ The FILE STATUS clause specifies a data item which contains the status of an inp
 
 ### 2.5.2 General Format
 
-<pre>
+<pre style="line-height:1">
 FILE <u>STATUS</u> IS data-name-1
 </pre>
 
@@ -14617,8 +14588,8 @@ The ORGANIZATION IS SEQUENTIAL clause specifies sequential organization as the l
 
 ### 2.6.2 General Format
 
-<pre>
-[<u>ORGANIZATION</u> IS]  <u>SEQUENTIAL</u>
+<pre style="line-height:1">
+[ <u>ORGANIZATION</u> IS ] <u>SEQUENTIAL</u>
 </pre>
 
 ### 2.6.3 General Rules
@@ -14684,10 +14655,10 @@ The RECORD DELIMITER clause indicates the method of determining the length of a 
 
 ### 2.8.2 General Format
 
-<pre>
-                       ⎧<u>STANDARD-1</u>       ⎫
-<u>RECORD</u> <u>DELIMITER</u> IS  ⎨                 ⎬
-                       ⎩implementor-name-1⎭
+<pre style="line-height:1">
+                    ╭ <u>STANDARD-1</u>         ╮
+<u>RECORD</u> <u>DELIMITER</u> IS ┤                    ├
+                    ╰ implementor-name-1 ╯
 </pre>
 
 ### 2.8.3 Syntax Rules
@@ -14920,12 +14891,10 @@ The File Section is located in the Data Division of a source program. The File S
 
 The general format of the File Section in the Sequential I-O module is shown below.
 
-<pre>
+<pre style="line-height:1">
 <u>FILE</u> <u>SECTION</u>.
-
-[file-description-entry
-
-{record-description-entry} ... ] ...
+[ file-description-entry
+{ record-description-entry } … ] …
 </pre>
 
 #### 3.1.1 File Description Entry
@@ -15059,7 +15028,7 @@ The CODE-SET clause specifies the character code convention used to represent da
 
 ### 3.4.2 General Format
 
-<pre>
+<pre style="line-height:1">
 <u>CODE-SET</u> IS alphabet-name-1
 </pre>
 
@@ -15269,7 +15238,7 @@ Format 2:
 
 Format 3:
 
-<pre>
+<pre style="line-height:1">
 <u>RECORD</u> CONTAINS integer-4 <u>TO</u> integer-5 CHARACTERS
 </pre>
 
@@ -15900,8 +15869,8 @@ The REWRITE statement logically replaces a record existing in a mass storage fil
 
 ### 4.5.2 General Format
 
-<pre>
-<u>REWRITE</u> record-name-1  [<u>FROM</u> identifier-1]  [<u>END-REWRITE</u>]
+<pre style="line-height:1">
+<u>REWRITE</u> record-name-1 [ <u>FROM</u> identifier-1 ] [ <u>END-REWRITE</u> ]
 </pre>
 
 ### 4.5.3 Syntax Rules
@@ -16776,14 +16745,11 @@ The DELETE statement logically removes a record from a mass storage file.
 
 ### 4.3.2 General Format
 
-<pre>
+<pre style="line-height:1">
 <u>DELETE</u> file-name-1 RECORD
-
-    [<u>INVALID</u> KEY imperative-statement-1]
-
-    [<u>NOT</u> <u>INVALID</u> KEY imperative-statement-2]
-
-    [<u>END-DELETE</u>]
+[ <u>INVALID</u> KEY imperative-statement-1 ]
+[ <u>NOT</u> <u>INVALID</u> KEY imperative-statement-2 ]
+[ <u>END-DELETE</u> ]
 </pre>
 
 ### 4.3.3 Syntax Rules
@@ -17002,14 +16968,11 @@ For sequential access, the READ statement makes available the next logical recor
 
 <u>Format 2</u>:
 
-<pre>
-<u>READ</u> file-name-1 RECORD  [<u>INTO</u> identifier-1]
-
-    [<u>INVALID</u> KEY imperative-statement-3]
-
-    [<u>NOT</u> <u>INVALID</u> KEY imperative-statement-4]
-
-    [<u>END-READ</u>]
+<pre style="line-height:1">
+<u>READ</u> file-name-1 RECORD [ <u>INTO</u> identifier-1 ]
+[ <u>INVALID</u> KEY imperative-statement-3 ]
+[ <u>NOT</u> <u>INVALID</u> KEY imperative-statement-4 ]
+[ <u>END-READ</u> ]
 </pre>
 
 ### 4.5.3 Syntax Rules
@@ -17128,14 +17091,11 @@ The REWRITE statement logically replaces a record existing in a mass storage fil
 
 ### 4.6.2 General Format
 
-<pre>
-<u>REWRITE</u> record-name-1  [<u>FROM</u> identifier-1]
-
-    [<u>INVALID</u> KEY imperative-statement-1]
-
-    [<u>NOT</u> <u>INVALID</u> KEY imperative-statement-2]
-
-    [<u>END-REWRITE</u>]
+<pre style="line-height:1">
+<u>REWRITE</u> record-name-1 [ <u>FROM</u> identifier-1 ]
+[ <u>INVALID</u> KEY imperative-statement-1 ]
+[ <u>NOT</u> <u>INVALID</u> KEY imperative-statement-2 ]
+[ <u>END-REWRITE</u> ]
 </pre>
 
 ### 4.6.3 Syntax Rules
@@ -17355,14 +17315,11 @@ The WRITE statement releases a logical record for an output or input-output file
 
 ### 4.9.2 GENERAL FORMAT
 
-<pre>
-<u>WRITE</u> record-name-1  [<u>FROM</u> identifier-1]
-
-   [<u>INVALID</u> KEY imperative-statement-1]
-
-   [<u>NOT</u> <u>INVALID</u> KEY imperative-statement-2]
-
-   [<u>END-WRITE</u>]
+<pre style="line-height:1">
+<u>WRITE</u> record-name-1 [ <u>FROM</u> identifier-1 ]
+[ <u>INVALID</u> KEY imperative-statement-1 ]
+[ <u>NOT</u> <u>INVALID</u> KEY imperative-statement-2 ]
+[ <u>END-WRITE</u> ]
 </pre>
 
 ### 4.9.3 Syntax Rules
@@ -17691,29 +17648,28 @@ The file control entry declares the relevant physical attributes of an indexed f
 
 #### 2.3.2 General Format
 
-<pre>
-       ╔══════════╗
-<u>SELECT</u> ║[<u>OPTIONAL</u>]║ file-name-1 .
-       ╚══════════╝
+<pre style="line-height:1">
+<u>SELECT</u> ║ [ <u>OPTIONAL</u> ] ║ file-name-1 .
 
-   <u>ASSIGN</u> TO ⎧implementor-name-1⎫ ...
-             ⎩literal-1         ⎭
-  ╔══════════════════════════════╗
-  ║┌                     ┌AREA ┐┐║
-  ║│<u>RESERVE</u> integer-1    │     ││║
-  ║└                     └AREAS┘┘║
-  ╚══════════════════════════════╝
-   [<u>ORGANIZATION</u> IS]  <u>INDEXED</u>
+          ╭ implementor-name-1 ╮
+<u>ASSIGN</u> TO ┤                    ├ …
+          ╰ literal-1          ╯
 
-   ┌               ⎧ <u>SEQUENTIAL</u> ⎫┐
-   │<u>ACCESS</u> MODE IS ⎨ <u>RANDOM</u>     ⎬│
-   └               ⎩║<u>DYNAMIC</u>║   ⎭┘
+╔ ┌                   ┌ AREA  ┐ ┐ ╗
+║ │ <u>RESERVE</u> integer-1 │       │ │ ║
+╚ └                   └ AREAS ┘ ┘ ╝
 
-   <u>RECORD</u> KEY IS data-name-1
-  ╔═════════════════════════════════════════════════════════════╗
-  ║[<u>ALTERNATE</u> <u>RECORD</u> KEY IS data-name-2  [WITH <u>DUPLICATES</u>]] ... ║
-  ╚═════════════════════════════════════════════════════════════╝
-   [FILE <u>STATUS</u> IS data-name-3].
+[ <u>ORGANIZATION</u> IS ] <u>INDEXED</u>
+
+┌                ╭   <u>SEQUENTIAL</u> ╮ ┐
+│                │              │ │
+│ <u>ACCESS</u> MODE IS ┤   <u>RANDOM</u>     ├ │
+│                │              │ │
+└                ╰ ║ <u>DYNAMIC</u> ║  ╯ ┘
+
+<u>RECORD</u> KEY IS data-name-1
+║ [ <u>ALTERNATE</u> <u>RECORD</u> KEY IS data-name-2 [ WITH <u>DUPLICATES</u> ] ] … ║
+  [ FILE <u>STATUS</u> IS data-name-3 ] .
 </pre>
 
 #### 2.3.3 Syntax Rules
@@ -17860,8 +17816,8 @@ The ORGANIZATION IS INDEXED clause specifies the indexed organization as the log
 
 ### 2.6.2 General Format
 
-<pre>
-[<u>ORGANIZATION</u> IS] <u>INDEXED</u>
+<pre style="line-height:1">
+[ <u>ORGANIZATION</u> IS ] <u>INDEXED</u>
 </pre>
 
 ### 2.6.3 General Rules
@@ -17884,7 +17840,7 @@ The RECORD KEY clause specifies the prime record key access path to the records 
 
 ### 2.7.2 General Format
 
-<pre>
+<pre style="line-height:1">
 <u>RECORD</u> KEY IS data-name-1
 </pre>
 
@@ -18127,14 +18083,11 @@ The DELETE statement logically removes a record from a mass storage file.
 
 ### 4.3.2 General Format
 
-<pre>
+<pre style="line-height:1">
 <u>DELETE</u> file-name-1 RECORD
-
-    [<u>INVALID</u> KEY imperative-statement-1]
-
-    [<u>NOT</u> <u>INVALID</u> KEY imperative-statement-2]
-
-    [<u>END-DELETE</u>]
+[ <u>INVALID</u> KEY imperative-statement-1 ]
+[ <u>NOT</u> <u>INVALID</u> KEY imperative-statement-2 ]
+[ <u>END-DELETE</u> ]
 </pre>
 
 ### 4.3.3 Syntax Rules
@@ -18504,14 +18457,11 @@ The REWRITE statement logically replaces a record existing in a mass storage fil
 
 ### 4.6.2 General Format
 
-<pre>
-<u>REWRITE</u> record-name-1  [<u>FROM</u> identifier-1]
-
-   [<u>INVALID</u> KEY imperative-statement-1]
-
-   [<u>NOT</u> <u>INVALID</u> KEY imperative-statement-2]
-
-   [<u>END-REWRITE</u>]
+<pre style="line-height:1">
+<u>REWRITE</u> record-name-1 [ <u>FROM</u> identifier-1 ]
+[ <u>INVALID</u> KEY imperative-statement-1 ]
+[ <u>NOT</u> <u>INVALID</u> KEY imperative-statement-2 ]
+[ <u>END-REWRITE</u> ]
 </pre>
 
 ### 4.6.3 Syntax Rules
@@ -19191,7 +19141,7 @@ The end program header indicates the end of the named COBOL source program.
 
 ### 2.5.2 General Format
 
-<pre>
+<pre style="line-height:1">
 <u>END</u> <u>PROGRAM</u> program-name.
 </pre>
 
@@ -19265,7 +19215,7 @@ The end program header indicates the end of the named COBOL source program.
 
 ### 2.5.2 General Format
 
-<pre>
+<pre style="line-height:1">
 <u>END</u> <u>PROGRAM</u> program-name.
 </pre>
 
@@ -19345,11 +19295,12 @@ The structure of the Linkage Section is the same as that previously described fo
 
 The general format of the Linkage Section is shown below.
 
-<pre>
+<pre style="line-height:1">
 <u>LINKAGE</u> <u>SECTION</u>.
 
-┌77-level-description-entry┐
-└record-description-entry  ┘ ...
+┌ 77-level-description-entry ┐
+│                            │
+└ record-description-entry   ┘ …
 </pre>
 
 If a data item in the Linkage Section is accessed in a program which is not a called program, the effect is undefined.
@@ -19982,7 +19933,7 @@ The EXIT PROGRAM statement marks the logical end of a called program.
 
 ### 5.4.2 General Format
 
-<pre>
+<pre style="line-height:1">
 <u>EXIT</u> <u>PROGRAM</u>
 </pre>
 
@@ -20126,10 +20077,10 @@ The file control entry declares the relevant physical attributes of a sort or me
 
 #### 2.3.2 General Format
 
-<pre>
-                                  ⎧implementor-name-1⎫
-<u>SELECT</u> file-name-1  <u>ASSIGN</u> TO  ⎨                  ⎬ ... .
-                                  ⎩literal-1         ⎭
+<pre style="line-height:1">
+                             ╭ implementor-name-1 ╮
+<u>SELECT</u> file-name-1 <u>ASSIGN</u> TO ┤                    ├ … .
+                             ╰ literal-1          ╯
 </pre>
 
 #### 2.3.3 Syntax Rules
@@ -20156,12 +20107,14 @@ The I-O-CONTROL paragraph specifies the memory area which is to be shared by dif
 
 ### 2.4.2 General Format
 
-<pre>
+<pre style="line-height:1">
 <u>I-O-CONTROL</u>.
 
-┌┌      ⎧<u>RECORD</u>    ⎫                                         ┐       ┐
-││<u>SAME</u>  ⎨<u>SORT</u>      ⎬ AREA FOR file-name-1  {file-name-2} ... │ ...  .│
-└└      ⎩<u>SORT-MERGE</u>⎭                                         ┘       ┘
+┌ ┌      ╭ <u>RECORD</u>     ╮                                        ┐     ┐
+│ │      │            │                                        │     │
+│ │ <u>SAME</u> ┤ <u>SORT</u>       ├ AREA FOR file-name-1 { file-name-2 } … │ … . │
+│ │      │            │                                        │     │
+└ └      ╰ <u>SORT-MERGE</u> ╯                                        ┘     ┘
 </pre>
 
 ### 2.4.3 Syntax Rules
@@ -20248,12 +20201,10 @@ The File Section is located in the Data Division of a source program. The File S
 
 The general format of the File Section in the Sort-Merge module is shown below.
 
-<pre>
+<pre style="line-height:1">
 <u>FILE</u> <u>SECTION</u>.
-
-[sort-merge-file-description-entry
-
-{record-description-entry} ... ] ...
+[ sort-merge-file-description-entry
+{ record-description-entry } … ] …
 </pre>
 
 #### 3.1.1 Sort-Merge File Description Entry
@@ -20282,18 +20233,20 @@ The sort-merge file description entry furnishes information concerning the physi
 
 3.2.2 General Format
 
-<pre>
-<u>SD</u>  file-name-1
+<pre style="line-height:1">
+<u>SD</u> file-name-1
 
-  ┌         ⎧CONTAINS integer-1 CHARACTERS                                          ⎫┐
-  │         ⎪IS <u>VARYING</u> IN SIZE [[FROM integer-2] [<u>TO</u> integer-3] CHARACTERS]  ⎪│
-  │ <u>RECORD</u>  ⎨                                                                       ⎬│
-  │         ⎪    [<u>DEPENDING</u> ON data-name-1]                                        ⎪│
-  └         ⎩CONTAINS integer-4 <u>TO</u> integer-5 CHARACTERS                             ⎭┘
+┌        ╭ CONTAINS integer-1 CHARACTERS                                         ╮ ┐
+│        │                                                                       │ │
+│        │ IS <u>VARYING</u> IN SIZE [ [ FROM integer-2 ] [ <u>TO</u> integer-3 ] CHARACTERS ] │ │
+│ <u>RECORD</u> ┤                                                                       │ │
+│        │ [ <u>DEPENDING</u> ON data-name-1 ]                                          ├ │
+│        │                                                                       │ │
+└        ╰ CONTAINS integer-4 <u>TO</u> integer-5 CHARACTERS                            ╯ ┘
 
-  ┌      ⎧<u>RECORD</u> IS  ⎫                    ┐
-  │ <u>DATA</u> ⎨           ⎬ {data-name-2} ... │ .
-  └      ⎩<u>RECORDS</u> ARE⎭                    ┘
+┌      ╭ <u>RECORD</u> IS   ╮                   ┐
+│ <u>DATA</u> ┤             ├ { data-name-2 } … │ .
+└      ╰ <u>RECORDS</u> ARE ╯                   ┘
 </pre>
 
 3.2.3 Syntax Rules
@@ -20487,8 +20440,8 @@ The RELEASE statement transfers records to the initial phase of a sort operation
 
 ### 4.2.2 General Format
 
-<pre>
-<u>RELEASE</u> record-name-1  [<u>FROM</u> identifier-1]
+<pre style="line-height:1">
+<u>RELEASE</u> record-name-1 [ <u>FROM</u> identifier-1 ]
 </pre>
 
 ### 4.2.3 Syntax Rules
@@ -20531,14 +20484,11 @@ The RETURN statement obtains either sorted records from the final phase of a sor
 
 ### 4.3.2 General Format
 
-<pre>
-<u>RETURN</u> file-name-1 RECORD  [<u>INTO</u> identifier-1]
-
-   AT <u>END</u> imperative-statement-1
-
-   [<u>NOT</u> AT <u>END</u> imperative-statement-2]
-
-   [<u>END-RETURN</u>]
+<pre style="line-height:1">
+<u>RETURN</u> file-name-1 RECORD [ <u>INTO</u> identifier-1 ]
+AT <u>END</u> imperative-statement-1
+[ <u>NOT</u> AT <u>END</u> imperative-statement-2 ]
+[ <u>END-RETURN</u> ]
 </pre>
 
 ### 4.3.3 Syntax Rules
@@ -20921,7 +20871,7 @@ The REPLACE statement is used to replace source program text.
 
 <u>Format 2:</u>
 
-<pre>
+<pre style="line-height:1">
 <u>REPLACE</u> <u>OFF</u>
 </pre>
 
@@ -21143,12 +21093,10 @@ The I-O-CONTROL paragraph specifies the memory area which is to be shared by dif
 
 ### 2.4.2 General Format
 
-<pre>
+<pre style="line-height:1">
 <u>I-O-CONTROL</u>.
-
-    [[<u>SAME</u> AREA FOR file-name-1  {file-name-2} ... ] ...
-
-    [<u>MULTIPLE</u> <u>FILE</u> TAPE CONTAINS  {file-name-3  [<u>POSITION</u> integer-1]} ... ] ... .]
+[ [ <u>SAME</u> AREA FOR file-name-1 { file-name-2 } … ] …
+[ <u>MULTIPLE</u> <u>FILE</u> TAPE CONTAINS { file-name-3 [ <u>POSITION</u> integer-1 ] } … ] … . ]
 </pre>
 
 ### 2.4.3 Syntax Rules
@@ -21179,10 +21127,9 @@ The File Section is located in the Data Division of a source program. The File S
 
 The general format of the File Section in the Report Writer module is shown below.
 
-<pre>
+<pre style="line-height:1">
 <u>FILE</u> <u>SECTION</u>.
-
-[report-file-description-entry] ...
+[ report-file-description-entry ] …
 </pre>
 
 In a COBOL program, the file description entry (FD entry) represents the highest level of organization in the File Section. The File Section header is followed by a file description entry consisting of a level indicator (FD), a file-name, and a series of independent clauses. For a report file, the file description entry must contain the REPORT clause specifying the names of the reports to be written onto the report file. No record description entries may follow the file description entry for a report file.
@@ -21270,10 +21217,10 @@ The REPORT clause specifies the names of reports that comprise a report file.
 
 #### 3.3.2 General Format
 
-<pre>
-⎧<u>REPORT</u> IS  ⎫
-⎨             ⎬ {report-name-1} ...
-⎩<u>REPORTS</u> ARE⎭
+<pre style="line-height:1">
+╭ <u>REPORT</u> IS   ╮
+┤             ├ { report-name-1 } …
+╰ <u>REPORTS</u> ARE ╯
 </pre>
 
 #### 3.3.3 Syntax Rules
@@ -21304,12 +21251,10 @@ The Report Section is located in the Data Division of a source program. The Repo
 
 The general format of the Report Section is shown below.
 
-<pre>
+<pre style="line-height:1">
 <u>REPORT</u> <u>SECTION</u>.
-
-[report-description-entry
-
-{report-group-description-entry} ... ] ...
+[ report-description-entry
+{ report-group-description-entry } … ] …
 </pre>
 
 #### 3.4.1 Report Description Entry
@@ -21422,7 +21367,7 @@ The CODE clause specifies a two-character literal that identifies each print lin
 
 ### 3.6.2 General Format
 
-<pre>
+<pre style="line-height:1">
 <u>CODE</u> literal-1
 </pre>
 
@@ -21452,9 +21397,10 @@ The CONTROL clause establishes the levels of the control hierarchy for the repor
 
 ### 3.7.2 General Format
 
-<pre>
-⎧<u>CONTROL</u> IS  ⎫ ⎧{data-name-1} ...          ⎫
-⎩<u>CONTROLS</u> ARE⎭ ⎩<u>FINAL</u>  [data-name-1] ...⎭
+<pre style="line-height:1">
+╭ <u>CONTROL</u> IS   ╮ ╭ { data-name-1 } …       ╮
+┤              ├ ┤                         ├
+╰ <u>CONTROLS</u> ARE ╯ ╰ <u>FINAL</u> [ data-name-1 ] … ╯
 </pre>
 
 ### 3.7.3 Syntax Rules
@@ -21662,14 +21608,14 @@ The report group description entry specifies the characteristics of a report gro
 
 <u>Format 2</u>:
 
-<pre>
-level-number  [data-name-1]
+<pre style="line-height:1">
+level-number [ data-name-1 ]
 
-    ┌                ⎧integer-1   [ON <u>NEXT</u> <u>PAGE</u>]⎫┐
-    │<u>LINE</u> NUMBER IS ⎨                           ⎬│
-    └                ⎩<u>PLUS</u> integer-2              ⎭┘
+┌                ╭ integer-1 [ ON <u>NEXT</u> <u>PAGE</u> ] ╮ ┐
+│ <u>LINE</u> NUMBER IS ┤                            ├ │
+└                ╰ <u>PLUS</u> integer-2             ╯ ┘
 
-    [[<u>USAGE</u> IS]  <u>DISPLAY</u>].
+[ [ <u>USAGE</u> IS ] <u>DISPLAY</u> ] .
 </pre>
 
 XIII-20
@@ -22300,7 +22246,7 @@ The COLUMN NUMBER clause identifies a printable item and specifies the position 
 
 ## 3.11.2 General Format
 
-<pre>
+<pre style="line-height:1">
 <u>COLUMN</u> NUMBER IS integer-1
 </pre>
 
@@ -22334,7 +22280,7 @@ A data-name specifies the name of the data item being described.
 
 ### 3.12.2 General Format
 
-<pre>
+<pre style="line-height:1">
 data-name-1
 </pre>
 
@@ -22368,7 +22314,7 @@ The GROUP INDICATE clause specifies that the associated printable item is presen
 
 ### 3.13.2 General Format
 
-<pre>
+<pre style="line-height:1">
 <u>GROUP</u> INDICATE
 </pre>
 
@@ -22402,7 +22348,7 @@ The level-number indicates the position of a data item within the hierarchical s
 
 ### 3.14.2 General Format
 
-<pre>
+<pre style="line-height:1">
 level-number
 </pre>
 
@@ -22432,9 +22378,10 @@ The LINE NUMBER clause specifies vertical positioning information for its report
 
 #### 3.15.2 General Format
 
-<pre>
-<u>LINE</u> NUMBER IS ⎧integer-1  [ON <u>NEXT</u> <u>PAGE</u>]⎫
-               ⎩<u>PLUS</u> integer-2           ⎭
+<pre style="line-height:1">
+               ╭ integer-1 [ ON <u>NEXT</u> <u>PAGE</u> ] ╮
+<u>LINE</u> NUMBER IS ┤                            ├
+               ╰ <u>PLUS</u> integer-2             ╯
 </pre>
 
 #### 3.15.3 Syntax Rules
@@ -22495,10 +22442,12 @@ The NEXT GROUP clause specifies information for vertical positioning of a page f
 
 #### 3.16.2 General Format
 
-<pre>
-                ⎧ integer-1          ⎫
-<u>NEXT</u> <u>GROUP</u> IS  ⎨ <u>PLUS</u> integer-2     ⎬
-                ⎩ <u>NEXT</u> <u>PAGE</u>          ⎭
+<pre style="line-height:1">
+              ╭ integer-1
+              │
+<u>NEXT</u> <u>GROUP</u> IS ┤ <u>PLUS</u> integer-2 ╮
+              │                ├
+              ╰ <u>NEXT</u> <u>PAGE</u>      ╯
 </pre>
 
 #### 3.16.3 Syntax Rules
@@ -22586,7 +22535,7 @@ The SOURCE clause identifies the sending data item that is moved to an associate
 
 #### 3.18.2 General Format
 
-<pre>
+<pre style="line-height:1">
 <u>SOURCE</u> IS identifier-1
 </pre>
 
@@ -22620,12 +22569,12 @@ The SUM clause establishes a sum counter and names the data items to be summed.
 
 #### 3.19.2 General Format
 
-<pre>
-{<u>SUM</u> {identifier-1} ...  [<u>UPON</u> {data-name-1} ... ]} ...
+<pre style="line-height:1">
+{ <u>SUM</u> { identifier-1 } … [ <u>UPON</u> { data-name-1 } … ] } …
 
-    ┌          ⎧data-name-2⎫┐
-    │<u>RESET</u> ON  ⎨           ⎬│
-    └          ⎩<u>FINAL</u>      ⎭┘
+┌          ╭ data-name-2 ╮ ┐
+│ <u>RESET</u> ON ┤             ├ │
+└          ╰ <u>FINAL</u>       ╯ ┘
 </pre>
 
 #### 3.19.3 Syntax Rules
@@ -22816,8 +22765,8 @@ The USAGE clause specifies the format of a data item in the computer storage.
 
 ### 3.21.2 General Format
 
-<pre>
-[<u>USAGE</u> IS]  <u>DISPLAY</u>
+<pre style="line-height:1">
+[ <u>USAGE</u> IS ] <u>DISPLAY</u>
 </pre>
 
 ### 3.21.3 Syntax Rules
@@ -22852,7 +22801,7 @@ The VALUE clause defines the value of Report Section printable items.
 
 #### 3.22.2 General Format
 
-<pre>
+<pre style="line-height:1">
 <u>VALUE</u> IS literal-1
 </pre>
 
@@ -23051,9 +23000,10 @@ The GENERATE statement directs the report writer control system to produce a rep
 
 #### 4.3.2 General Format
 
-<pre>
-<u>GENERATE</u> ⎧data-name-1  ⎫
-         ⎩report-name-1⎭
+<pre style="line-height:1">
+         ╭ data-name-1   ╮
+<u>GENERATE</u> ┤               ├
+         ╰ report-name-1 ╯
 </pre>
 
 #### 4.3.3 Syntax Rules
@@ -23130,8 +23080,8 @@ The INITIATE statement causes the report writer control system to begin the proc
 
 ## 4.4.2 General Format
 
-<pre>
-<u>INITIATE</u> {report-name-1} ...
+<pre style="line-height:1">
+<u>INITIATE</u> { report-name-1 } …
 </pre>
 
 ## 4.4.3 Syntax Rules
@@ -23300,7 +23250,7 @@ The SUPPRESS statement causes the report writer control system to inhibit the pr
 
 ### 4.6.2 General Format
 
-<pre>
+<pre style="line-height:1">
 <u>SUPPRESS</u> PRINTING
 </pre>
 
@@ -23338,8 +23288,8 @@ The TERMINATE statement causes the report writer control system to complete the 
 
 ### 4.7.2 General Format
 
-<pre>
-<u>TERMINATE</u> {report-name-1} ...
+<pre style="line-height:1">
+<u>TERMINATE</u> { report-name-1 } …
 </pre>
 
 ### 4.7.3 Syntax Rules
@@ -23436,7 +23386,7 @@ The USE BEFORE REPORTING statement specifies Procedure Division statements that 
 
 ### 4.9.2 General Format
 
-<pre>
+<pre style="line-height:1">
 <u>USE</u> <u>BEFORE</u> <u>REPORTING</u> identifier-1
 </pre>
 
@@ -24036,7 +23986,7 @@ The ACCEPT MESSAGE COUNT statement causes the number of complete messages in a q
 
 #### 3.1.2 General Format
 
-<pre>
+<pre style="line-height:1">
 <u>ACCEPT</u> cd-name-1 MESSAGE <u>COUNT</u>
 </pre>
 
@@ -24176,7 +24126,7 @@ The PURGE statement eliminates from the message control system (MCS) a partial m
 
 **3.4.2 General Format**
 
-<pre>
+<pre style="line-height:1">
 <u>PURGE</u> cd-name-1
 </pre>
 
@@ -24954,7 +24904,7 @@ Ideally, all program segments having segment-numbers ranging from 0 through 49 s
 
 ### 2.3.2 General Format
 
-<pre>
+<pre style="line-height:1">
 <u>SEGMENT-LIMIT</u> IS segment-number
 </pre>
 
@@ -25018,8 +24968,8 @@ Section classification is accomplished by means of a system of segment-numbers. 
 
 #### 3.2.2 General Format
 
-<pre>
-section-name <u>SECTION</u> [segment-number].
+<pre style="line-height:1">
+section-name <u>SECTION</u> [ segment-number ] .
 </pre>
 
 #### 3.2.3 Syntax Rules
@@ -31261,7 +31211,7 @@ When a data item other than a function is being referenced, identifier is a term
 
 <u>Format 1</u>:
 
-<pre>
+<pre style="line-height:1">
 function-identifier-1
 </pre>
 
@@ -33249,7 +33199,7 @@ The WHEN-COMPILED function returns the date and time the program was compiled as
 
 ### 2.46.2 General Format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>WHEN-COMPILED</u>
 </pre>
 

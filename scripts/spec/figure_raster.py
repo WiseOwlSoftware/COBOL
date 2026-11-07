@@ -933,6 +933,9 @@ def _state(box, text, rules, where: dict, bad: list):
 
 
 DELIMS = frozenset("[]{}()")
+#: The typed delimiters an OCR layer cannot tell apart, by side: it reads page 305's `[ROUNDED]}` as `[ROUNDED])`, as a
+#: scan cannot tell `]` from `}` (`align`), so a hint naming any delimiter of the word's side supports it.
+DELIM_SIDE = {ch: frozenset("[{(") if ch in "[{(" else frozenset("]})") for ch in DELIMS}
 
 
 def _is_delimiter_box(box) -> bool:
@@ -988,7 +991,7 @@ class _Frame:
             if not said:
                 v += PAIR_W_HINT / 2                  # the OCR layer drops punctuation and ellipses: no evidence either way
             elif word in DELIMS:
-                v += 0.0 if any(word in h for h in said) else PAIR_W_HINT
+                v += 0.0 if any(DELIM_SIDE[word] & set(h) for h in said) else PAIR_W_HINT
             else:
                 v += (1 - max(_similarity(h, word) for h in said)) * PAIR_W_HINT
         if words is not None:                         # a delimiter: its neighbours must be the word's

@@ -458,6 +458,18 @@ def main() -> int:
     tall = np.array([[9.0, 1], [1, 9], [0, 0]])
     check("more rows than columns leaves a row out, at the least cost", R.hungarian(tall) == [(0, 1), (2, 0)], f"got {R.hungarian(tall)}")
 
+    # 10g. The OCR layer cannot tell a delimiter from another of its side (page 305 reads `[ROUNDED]}` as `[ROUNDED])`):
+    #     a hint naming `)` supports a typed `}` as fully as one naming `}`, and one naming only `{` does not.
+    total += 2
+    closer = (100.0, 10.0, 103.0, 19.0, [(100.0, 10.0, 103.0, 19.0)])
+    frame = R._Frame([(0, 0, closer)], [10.0], [("}", 0, 0)], 1)
+    said = lambda *h: {0: list(h)}
+    check("an OCR `)` supports a typed `}`", frame.cost(0, 0, said("[ROUNDED])"), None) == frame.cost(0, 0, said("}"), None),
+          f"got {frame.cost(0, 0, said('[ROUNDED])'), None)} and {frame.cost(0, 0, said('}'), None)}")
+    check("an OCR `{` does not support a typed `}`",
+          frame.cost(0, 0, said("{"), None) - frame.cost(0, 0, said("}"), None) == R.PAIR_W_HINT,
+          f"got {frame.cost(0, 0, said('{'), None)}")
+
     # 10e. Two figures that share words are placed TOGETHER, in order (ADD's formats share `[ON SIZE ERROR ...]`).
     def hint(y, *words_):
         return [(10 + 40 * k, y, 40 + 40 * k, y + 8, w) for k, w in enumerate(words_)]

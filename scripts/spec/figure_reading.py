@@ -99,12 +99,17 @@ OTHER_NOTATION = set("▼►◄↓¦")
 def token_rows(lines: list[str]) -> list[list[tuple[str, int]]]:
     """A drawn figure's words as `figure_raster.token_rows` takes them: [[(word, column), ...] per row], blank rows
     kept (their count is the figure's height). The multi-row delimiter glyphs are dropped; the typed one-row ones stay in
-    the word they are set against, as the printed page sets them (`[ON`), and `figure_raster.split_token` splits them."""
+    the word they are set against, as the printed page sets them (`[ON`), and `figure_raster.split_token` splits them.
+
+    A word is given as PRINTED, whichever style drew it, so a figure regenerated from its own house-style drawing pairs
+    as it did from the batch's: the house style's ellipsis `…` (render_figure.TEXT_GLYPHS) is the page's three dots,
+    `...` (the pairing reads a word's length from its glyphs, and the scan prints three). The spaces around a typed
+    delimiter stay as drawn: the batch draws the page's own (`} ... ] ...`, PDF page 592), so none can be taken away."""
     out = []
     for line in lines:
         text, _ = plain_row(line)
         text = "".join(" " if ch in COLUMN_GLYPHS or ch in RULE_GLYPHS or ch in OTHER_NOTATION else ch for ch in text)
-        out.append([(m.group(0), m.start()) for m in re.finditer(r"\S+", text)])
+        out.append([(m.group(0).replace("…", "..."), m.start()) for m in re.finditer(r"\S+", text)])
     return out
 
 
@@ -150,12 +155,14 @@ def _column(c: int, run: list[tuple[int, str]]):
     return family, side, c, run[0][0], run[-1][0]
 
 
-def _pair(delims: list[tuple[str, str | None, int, int, int]]) -> list[Enclosure]:
+def _pair(delims: list[tuple[str, str | None, int, int, int]]) -> tuple[list[Enclosure], list[tuple]]:
     """Pair openers with closers: the nearest unpaired closer of the same family to the right whose rows overlap the
-    opener's by half the shorter, innermost first. Bars pair left to right among themselves the same way."""
+    opener's by half the shorter, innermost first. Bars pair left to right among themselves the same way. Returns the
+    pairs and the delimiters left without a partner."""
     out, used = [], set()
-    openers = sorted((d for d in delims if d[1] == "L"), key=lambda d: -d[2])
-    for fam, _, c, r0, r1 in openers:
+    openers = sorted((k for k, d in enumerate(delims) if d[1] == "L"), key=lambda k: -delims[k][2])
+    for o in openers:
+        fam, _, c, r0, r1 = delims[o]
         best = None
         for k, (f2, s2, c2, q0, q1) in enumerate(delims):
             if k in used or f2 != fam or s2 != "R" or c2 <= c:
@@ -165,28 +172,26 @@ def _pair(delims: list[tuple[str, str | None, int, int, int]]) -> list[Enclosure
             if best is None or c2 < delims[best][2]:
                 best = k
         if best is not None:
-            used.add(best)
+            used |= {best, o}
             out.append(Enclosure(fam, min(r0, delims[best][3]), max(r1, delims[best][4]), c, delims[best][2]))
     for family in ("bar", "box"):                 # a bar, and a box side drawn without a corner, have no hand
-        bars = sorted((d for d in delims if d[0] == family and d[1] is None), key=lambda d: d[2])
-        taken = set()
-        for a in range(len(bars)):
-            if a in taken:
+        bars = sorted((k for k, d in enumerate(delims) if d[0] == family and d[1] is None), key=lambda k: delims[k][2])
+        for i, a in enumerate(bars):
+            if a in used:
                 continue
-            for b in range(a + 1, len(bars)):
-                if b in taken:
+            for b in bars[i + 1:]:
+                if b in used:
                     continue
-                _, _, c0, r0, r1 = bars[a]
-                _, _, c1, q0, q1 = bars[b]
+                _, _, c0, r0, r1 = delims[a]
+                _, _, c1, q0, q1 = delims[b]
                 if min(r1, q1) - max(r0, q0) + 1 >= 0.5 * min(r1 - r0 + 1, q1 - q0 + 1):
-                    taken |= {a, b}
+                    used |= {a, b}
                     out.append(Enclosure(family, min(r0, q0), max(r1, q1), c0, c1))
                     break
-    return out
+    return out, [d for k, d in enumerate(delims) if k not in used]
 
 
-def enclosures(lines: list[str]) -> list[Enclosure]:
-    """Every delimiter pair a drawn figure draws: brackets, braces, parentheses, choice bars and boxes."""
+def _delimiters(lines: list[str]) -> list[tuple[str, str | None, int, int, int]]:
     rows = [plain_row(line)[0] for line in lines]
     delims = _columns(rows)
     for r, text in enumerate(rows):
@@ -195,7 +200,21 @@ def enclosures(lines: list[str]) -> list[Enclosure]:
                 delims.append((ONE_ROW[ch][0], ONE_ROW[ch][1], c, r, r))
             elif ch == BAR:
                 delims.append(("bar", None, c, r, r))
-    return _pair(delims)
+    return delims
+
+
+def enclosures(lines: list[str]) -> list[Enclosure]:
+    """Every delimiter pair a drawn figure draws: brackets, braces, parentheses, choice bars and boxes."""
+    return _pair(_delimiters(lines))[0]
+
+
+def strays(lines: list[str]) -> list[tuple[str, str | None, int, int]]:
+    """Every delimiter a drawn figure draws that pairs with nothing, as (family, side, first row, last row), in reading
+    order. The 1985 page sets a typed bracket that opens on one line and closes on another (`[report-description-entry`
+    ... `] ...`, PDF page 592), which no row pairs; a stroke beside a figure (the left side of page 522's page-wide
+    level-2 box, measured alone, drawn as a lone `│`) is one too."""
+    left = _pair(_delimiters(lines))[1]
+    return [(fam, side, r0, r1) for fam, side, _, r0, r1 in sorted(left, key=lambda d: (d[3], d[2]))]
 
 
 def read(lines: list[str]) -> list[Word]:
@@ -256,6 +275,12 @@ def compare(drawn: list[str], generated: list[str]) -> dict:
         xs, ys = seen_a.get(key, []), seen_b.get(key, [])
         partner.update({id(x): y for x, y in zip(xs, ys)})
         out["words"] += [f"drawn only: {w.text}" for w in xs[len(ys):]] + [f"generated only: {w.text}" for w in ys[len(xs):]]
+    # A stroke the GENERATED drawing leaves unpaired, beyond those the drawn one leaves (a bracket set across two lines
+    # is unpaired in both), holds no word: the comparison of holders below cannot see it, and it would be written.
+    extra = collections.Counter((f, s) for f, s, _, _ in strays(generated)) - \
+        collections.Counter((f, s) for f, s, _, _ in strays(drawn))
+    out["grouping"] += [f"generated: a {f} in rows {r0}-{r1} pairs with nothing"
+                        for f, s, r0, r1 in strays(generated) if extra[(f, s)]]
     pairs = [(x, partner[id(x)]) for x in a if id(x) in partner]
     for x, y in pairs:
         if _grouping(x) != _grouping(y):
@@ -349,6 +374,19 @@ def self_test() -> int:
     diff = compare(unboxed, boxed)
     check("a lost box is named on every word it held", diff["boxes"] == ["RECORD: drawn 0, generated 1",
           "RERUN: drawn 0, generated 1", "ON: drawn 0, generated 1", "IN: drawn 0, generated 1"], str(diff))
+    lone = ["identification-division", "", "│ [ procedure-division ]", "│", "│ [ end-program-header ]"]
+    plain = ["identification-division", "", "[procedure-division]", "", "[end-program-header]"]
+    check("a stroke that pairs with nothing is a grouping difference",
+          compare(plain, lone)["grouping"] == ["generated: a bar in rows 2-4 pairs with nothing"], str(compare(plain, lone)))
+    check("paired strokes leave no stray", strays(lone[:1] + ["│ x │"]) == [] and strays(plain) == [])
+    across = ["[report-description-entry", "", "{report-group-description-entry} ... ] ..."]
+    house_across = ["[ report-description-entry", "{ report-group-description-entry } … ] …"]
+    check("a bracket set across two lines, unpaired in both drawings, is no difference",
+          not compare(across, house_across)["grouping"] and len(strays(across)) == 2, str(compare(across, house_across)))
+    check("a house-style ellipsis is read as printed", token_rows(["<u>ADD</u> x … TO"]) == [[("ADD", 0), ("x", 4),
+          ("...", 6), ("TO", 8)]], str(token_rows(["<u>ADD</u> x … TO"])))
+    check("the spaces round a typed delimiter stay as drawn", token_rows(["{a} ... ] ..."]) == [[("{a}", 0), ("...", 4),
+          ("]", 8), ("...", 10)]], str(token_rows(["{a} ... ] ..."])))
     total = len(ran)
     print(f"figure_reading self-test: {total - len(fails)}/{total} " + ("GREEN" if not fails else "RED"))
     for f in fails:

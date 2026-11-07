@@ -154,6 +154,19 @@ is, by the rules below. `sweep_figures.py --edition 1985 --cross-check` regenera
 names, per format, which of the four carried things (grouping, choice bars, underlines, alignment;
 `figure_reading.compare`) the two drawings disagree on.
 
+**What is written into a scanned edition** (`sweep_figures.decide`). `--apply` writes a `<pre>` block in the house
+style only when it is DECIDED: either a refuter's verdict decides it against the printed page (one JSON file per
+block under `spec-reconciliation/figures-<edition>/`, README.md), or the block is a general format (it sits under a
+heading or after a sentence that names one, or carries a `Format N` label) whose every word was read and whose two
+drawings agree on every word and on the four things (and the boxes). The batch also set COBOL examples, flow diagrams
+and tables in `<pre>`; two drawings of an example can agree on every word while the regeneration loses its
+indentation, so no agreement rewrites a block that is not where a general format is printed: a refuter says what it is
+(`not-a-format` leaves it as drawn). A house-style drawing is read back as printed (`figure_reading.token_rows`: `…`
+is the page's `...`), and the pairing takes an OCR hint of any delimiter of a typed delimiter's side as support (the
+OCR layer reads `]}` as `])`; `figure_raster.DELIM_SIDE`), so a written figure regenerates to itself and `--check`
+stays clean. `--check` is clean when every block is in its decided form, none awaits a verdict, and every verdict
+names a block of the file.
+
 ## Layout rules, for the generator
 
 ### A blank row between groups

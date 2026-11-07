@@ -23,6 +23,13 @@ only the fenced ones would leave the worst-transcribed third behind, in the old 
     python scripts/spec/sweep_figures.py --apply
     python scripts/spec/sweep_figures.py --check
     python scripts/spec/sweep_figures.py --check --edition 2002   # another edition (default 2023)
+    python scripts/spec/sweep_figures.py --edition 1985 --cross-check --ledger F   # a scan: the two drawings compared
+    python scripts/spec/sweep_figures.py --edition 1985 --apply   # a scan: the agreed and decided figures written
+
+A SCANNED EDITION (1985) has no text layer, so its figures are found and worded by the transcription's own drawing and
+regenerated from the measured ink (`regenerated`). A figure is written only when it is decided (`decide`): the two
+drawings agree on every word and on the four things a general format carries, or a refuter's verdict in `verdicts_dir`
+decides it against the printed page. Every other figure stays as drawn, and `--check` names it (kb/Work PB4849).
 """
 from __future__ import annotations
 
@@ -36,7 +43,7 @@ import re
 import sys
 from typing import NamedTuple
 
-from spec_headings import GENERAL_FORMAT_TITLE   # THE one spelling of the heading (kb/Work PB284)
+from spec_headings import GENERAL_FORMAT_NAMED, GENERAL_FORMAT_TITLE   # THE one spelling of the heading (kb/Work PB284)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
@@ -356,14 +363,19 @@ def generated(doc, extract, classify_page, R):
 
 
 class Drawn(NamedTuple):
-    """One general format as the transcription draws it: a `<pre>` block, lines[start] its opening tag and lines[end]
-    its closing one, on the page whose `## Page N` heading precedes it, under the nearest clause heading and label."""
+    """One `<pre>` block of the transcription: lines[start] its opening tag and lines[end] its closing one, on the page
+    whose `## Page N` heading precedes it, under the nearest clause heading and label. `general_format` says whether the
+    block sits where a general format is printed: under a heading that names one (`spec_headings.GENERAL_FORMAT_NAMED`)
+    or with a `Format N` label. The batch also set COBOL examples, flow diagrams and tables in `<pre>` (the table
+    definitions of PDF page 96, the appendix's examples from page 763): those are not general formats, and their layout
+    is their content, so no agreement ever rewrites one (`decide`)."""
     page: int
     start: int
     end: int
     rows: list
     clause: str | None
     label: str | None
+    general_format: bool
 
 
 PAGE_HEADING = re.compile(r"^## Page (\d+)\s*$")
@@ -372,20 +384,27 @@ CLAUSE_LINE = re.compile(r"^\s*#*\s*\**(\d+(?:\.\d+)+)\s+(.+?)\**\s*$")
 
 
 def drawn_figures(lines: list[str]) -> list[Drawn]:
-    """Every `<pre>` figure of a transcription assembled page by page (`## Page N`, kb/Work PB4816), in order."""
-    out, page, clause, label, start = [], None, None, None, None
+    """Every `<pre>` block of a transcription assembled page by page (`## Page N`, kb/Work PB4816), in order."""
+    out, page, clause, label, heading, lead, start = [], None, None, None, "", "", None
     for i, line in enumerate(lines):
         if start is not None:
             if line.lstrip().startswith("</pre>"):
-                out.append(Drawn(page, start, i, lines[start + 1:i], clause, label))
+                fmt = bool(label) or any(GENERAL_FORMAT_NAMED.search(t) for t in (heading, lead))
+                out.append(Drawn(page, start, i, lines[start + 1:i], clause, label, fmt))
                 start = None
             continue
         if (m := PAGE_HEADING.match(line)):
             page = int(m.group(1))
-        elif PRE_OPEN_LINE.match(line):
+            continue
+        if PRE_OPEN_LINE.match(line):
             start = i
-        elif (m := CLAUSE_LINE.match(line)):
-            clause, label = f"{m.group(1)} {m.group(2)}", None
+            continue
+        if line.strip():
+            lead = line                  # the text just before a block: "The general format ... is as follows:" (page 290)
+        if (m := CLAUSE_LINE.match(line)):
+            clause, label, heading = f"{m.group(1)} {m.group(2)}", None, m.group(2)
+        elif HEADING.match(line):
+            label, heading = None, re.sub(r"</?u>", "", line)
         elif FORMAT_LABEL.match(re.sub(r"</?u>", "", line)):
             label = re.sub(r"</?u>", "", line).strip()
     return [d for d in out if d.page is not None]
@@ -440,9 +459,11 @@ def cross_check(edition: int, doc, lines: list[str], R, pages: tuple | None, lim
     differs, for a refuter to decide against the printed page (kb/Work PB4849). Writes the result to `ledger` as JSON."""
     import json
     import figure_reading
-    drawn = [d for d in drawn_figures(lines) if pages is None or pages[0] <= d.page <= pages[1]]
+    every = drawn_figures(lines)
+    keyed = [(d, k) for d, k in zip(every, figure_ordinals(every)) if pages is None or pages[0] <= d.page <= pages[1]]
+    drawn = [d for d, _ in keyed]
     results, stats = [], collections.Counter()
-    for d, body, bad, boxes in regenerated(edition, doc, drawn, R):
+    for (d, k), (_, body, bad, boxes) in zip(keyed, regenerated(edition, doc, drawn, R)):
         diff = figure_reading.compare(d.rows, body) if body is not None else None
         things = [t for t in ("words",) + figure_reading.THINGS if diff and diff[t]]
         verdict = ("unlocated" if body is None else "unpaired" if bad else "disagree" if things else "agree")
@@ -450,8 +471,11 @@ def cross_check(edition: int, doc, lines: list[str], R, pages: tuple | None, lim
         for t in things:
             stats[f"disagree on {t}"] += 1
         stats["boxes measured"] += len(boxes)
-        results.append({"page": d.page, "lines": [d.start + 1, d.end + 1], "clause": d.clause, "label": d.label,
-                        "verdict": verdict, "differences": {t: diff[t] for t in things} if diff else {},
+        # `page` and `figure` are the key a refuter's verdict file names (`load_verdicts`); `general_format` is whether
+        # the block sits where a general format is printed (`Drawn.general_format`).
+        results.append({"page": d.page, "figure": k, "lines": [d.start + 1, d.end + 1], "clause": d.clause,
+                        "label": d.label, "general_format": d.general_format, "verdict": verdict,
+                        "differences": {t: diff[t] for t in things} if diff else {},
                         "pairing": bad, "boxes": len(boxes), "generated": body})
     print(f"drawn figures                    : {len(drawn)}")
     for key in ("agree", "disagree", "unpaired", "unlocated"):
@@ -473,21 +497,233 @@ def cross_check(edition: int, doc, lines: list[str], R, pages: tuple | None, lim
     return 0
 
 
+#: Which reading of a disputed figure the printed page bears out: the regenerated one, the batch's drawing, or neither
+#: (the refuter drew it afresh); each of these verdicts carries the decided figure itself, drawn by FIGURE-STYLE.md.
+#: Or NOT_A_FORMAT: the block is a COBOL example, a diagram or a table the batch set in `<pre>`, and stays as drawn.
+NOT_A_FORMAT = "not-a-format"
+DECIDED = ("generated", "drawn", "neither", NOT_A_FORMAT)
+
+
+class Verdict(NamedTuple):
+    """A refuter's decision on one disputed figure of a scanned edition (kb/Work PB4849): the figure is the `figure`-th
+    drawn format (from 0) of PDF page `page`, under `clause` and `label` as `drawn_figures` reads them."""
+    page: int
+    figure: int
+    clause: str | None
+    label: str | None
+    decided: str
+    lines: tuple
+    reason: str
+
+
+def verdicts_dir(edition: int) -> pathlib.Path:
+    """Where the refuters write their verdicts on `edition`'s figures: one JSON file per figure, `p<page>-<figure>.json`,
+    beside the reconciliation's other ledgers (docs/rearchitecture/spec-reconciliation/README.md)."""
+    return spec_pdf.REPO / "docs" / "rearchitecture" / "spec-reconciliation" / f"figures-{edition}"
+
+
+def load_verdicts(directory: pathlib.Path) -> dict[tuple[int, int], Verdict]:
+    """Every verdict file in `directory`, keyed by (page, figure). A malformed file or two files naming one figure is
+    FATAL: a verdict that is silently dropped puts the batch's or the measurer's reading in the file unchecked."""
+    import json
+    out = {}
+    for f in sorted(directory.glob("*.json")) if directory.is_dir() else []:
+        try:
+            j = json.loads(f.read_text(encoding="utf-8"))
+            v = Verdict(int(j["page"]), int(j["figure"]), j.get("clause"), j.get("label"), j["decided"],
+                        tuple(j.get("figure_lines") or ()), str(j.get("reason", "")))
+        except (ValueError, KeyError, TypeError) as exc:
+            sys.exit(f"FATAL: {f} is not a figure verdict ({exc}); it needs page, figure and decided")
+        if v.decided not in DECIDED:
+            sys.exit(f"FATAL: {f}: `decided` must be one of {DECIDED}")
+        if (v.decided == NOT_A_FORMAT) == bool(v.lines) or not all(isinstance(x, str) for x in v.lines):
+            sys.exit(f"FATAL: {f}: a `{v.decided}` verdict " + ("carries no figure_lines" if v.decided == NOT_A_FORMAT
+                     else "needs `figure_lines`, the decided figure's lines"))
+        if not v.reason.strip():
+            sys.exit(f"FATAL: {f}: a verdict states its `reason` (what the printed page shows)")
+        if (v.page, v.figure) in out:
+            sys.exit(f"FATAL: {f} and another verdict both decide figure {v.figure} of page {v.page}")
+        out[(v.page, v.figure)] = v
+    return out
+
+
+def figure_ordinals(drawn: list[Drawn]) -> list[int]:
+    """Each drawn figure's place among its page's figures, from 0: with the page, a figure's identity on a scan."""
+    seen = collections.Counter()
+    out = []
+    for d in drawn:
+        out.append(seen[d.page])
+        seen[d.page] += 1
+    return out
+
+
+def decide(d: Drawn, figure: int, body: list[str] | None, bad: list, diff: dict | None,
+           verdict: Verdict | None) -> tuple[list[str] | None, str]:
+    """What a scanned edition's `<pre>` block is written as, and why:
+    - (the decided figure, "verdict"): a refuter's verdict decides it, or (None, NOT_A_FORMAT) the refuter found it no
+      general format, and it stays as drawn;
+    - (the regeneration, "agree"): a general format whose every word was read and whose two drawings carry the same
+      words and the same four things (and boxes), so writing it changes the notation only (PB4812 rule 1: a general
+      format is drawn from the measured page);
+    - (None, "unclassified"): a block that is not where a general format is printed (`Drawn.general_format`). Two
+      drawings of a COBOL example can agree on every word while the regeneration loses the example's indentation, so
+      no agreement rewrites one: it waits for a refuter to say what it is;
+    - (None, "awaiting"): any other general format stays as the batch drew it until a refuter decides it."""
+    if verdict is not None:
+        if (verdict.clause, verdict.label) != (d.clause, d.label):
+            sys.exit(f"FATAL: the verdict on figure {figure} of page {d.page} is for {verdict.clause} {verdict.label}, but "
+                     f"that figure now sits under {d.clause} {d.label}: the transcription moved under the verdict")
+        return (None, NOT_A_FORMAT) if verdict.decided == NOT_A_FORMAT else (list(verdict.lines), "verdict")
+    if not d.general_format:
+        return None, "unclassified"
+    if body is not None and not bad and diff is not None and not any(diff.values()):
+        return body, "agree"
+    return None, "awaiting"
+
+
+def raster_sweep(edition: int, doc, lines: list[str], R, pages: tuple | None, clause: str | None, mode: str,
+                 limit: int, spec_md: pathlib.Path) -> int:
+    """`--report`, `--apply` and `--check` for a scanned edition (kb/Work PB4849). Every `<pre>` block is regenerated and
+    written as `decide` says; `--check` is clean when every block is in its decided form, none awaits a verdict and
+    every verdict names a block of the file."""
+    import figure_reading
+    every = drawn_figures(lines)
+    keyed = [(d, k) for d, k in zip(every, figure_ordinals(every))
+             if (pages is None or pages[0] <= d.page <= pages[1])
+             and (clause is None or (d.clause or "").split(" ")[0] == clause)]
+    verdicts = load_verdicts(verdicts_dir(edition))
+    whole = pages is None and clause is None
+    stale = sorted(set(verdicts) - {(d.page, k) for d, k in keyed}) if whole else []
+    stats, edits, awaiting = collections.Counter(), [], []
+    for (d, k), (_, body, bad, _boxes) in zip(keyed, regenerated(edition, doc, [d for d, _ in keyed], R)):
+        diff = figure_reading.compare(d.rows, body) if body is not None else None
+        want, why = decide(d, k, body, bad, diff, verdicts.get((d.page, k)))
+        stats[why] += 1
+        if want is None:
+            if why != NOT_A_FORMAT:
+                awaiting.append(d)
+            continue
+        repl = [R.PRE_OPEN] + want
+        if lines[d.start:d.end] == repl:
+            stats["already"] += 1
+        else:
+            edits.append((d, repl, why))
+    print(f"drawn <pre> blocks               : {len(keyed)}")
+    print(f"  decided by a verdict           : {stats['verdict']}")
+    print(f"  no general format (a verdict)  : {stats[NOT_A_FORMAT]}")
+    print(f"  agreed (written regenerated)   : {stats['agree']}")
+    print(f"  awaiting a verdict             : {stats['awaiting']}")
+    print(f"  not where a format is printed  : {stats['unclassified']} (awaiting a verdict)")
+    print(f"  already in their decided form  : {stats['already']}")
+    print(f"  to write                       : {len(edits)}")
+    print(f"  verdicts naming no figure      : {len(stale)}")
+    for page, k in stale:
+        print(f"    figure {k} of page {page}: no such drawn figure")
+    if mode in ("report", "check"):
+        for d, repl, why in edits[:limit]:
+            print(f"  page {d.page} {d.clause or ''} {d.label or ''} ({why}), {spec_md.name} lines {d.start + 1}-{d.end}")
+            for line in difflib.unified_diff(lines[d.start:d.end], repl, "transcription", "decided", n=0, lineterm=""):
+                print(f"    {line}")
+    if mode == "apply":
+        if not edits:
+            print("\nnothing to apply")
+            return 0
+        out = list(lines)
+        for d, repl, _ in sorted(edits, key=lambda e: e[0].start, reverse=True):
+            out[d.start:d.end] = repl
+        spec_md.write_text("\n".join(out) + "\n", encoding="utf-8", newline="\n")
+        print(f"\napplied {len(edits)} figure(s) to {spec_md}")
+        return 0
+    if mode == "check":
+        ok = not edits and not awaiting and not stale
+        print("\nCHECK: clean — every figure is in its decided form." if ok else
+              f"\nCHECK: {len(edits)} figure(s) drifted from their decided form, {len(awaiting)} await a verdict, "
+              f"{len(stale)} verdict(s) name no figure.")
+        return 0 if ok else 1
+    return 0
+
+
 def self_test() -> int:
-    """`drawn_figures` on a planted page-by-page transcription (no PDF is read)."""
+    """`drawn_figures`, `figure_ordinals`, `decide` and `load_verdicts` on planted inputs (no PDF is read)."""
+    import json
+    import tempfile
+    fails, ran = [], []
+
+    def check(name, ok, detail=""):
+        ran.append(name)
+        if not ok:
+            fails.append(f"{name} {detail}")
+
+    def exits(fn) -> str | None:
+        try:
+            fn()
+        except SystemExit as exc:
+            return str(exc)
+        return None
+
     md = ["## Page 304", "", "### 6.6.2 General Format", "", "<u>Format 1</u>:", "", "<pre>", "<u>ADD</u> x", "</pre>", "",
           "## Page 305", "", "<u>Format 2</u>:", "", '<pre style="line-height:1">', "ADD y", "", "    GIVING z",
-          "</pre>Numeric Literals", "", "6.7.2 General Format", "", "<pre>", "ALTER", "</pre>"]
+          "</pre>Numeric Literals", "", "6.7.2 General Format", "", "<pre>", "ALTER", "</pre>",
+          "## Page 306", "### 4.1 TABLE DEFINITION", "", "<pre>", "01  TABLE-1.", "    02  DOG  PIC X.", "</pre>",
+          "The general format of a sign condition is as follows:", "", "## Page 307", "<pre>", "identifier IS ZERO",
+          "</pre>", "## GENERAL FORMAT FOR COBOL VERBS", "<pre>", "<u>ACCEPT</u> x", "</pre>"]
     got = drawn_figures(md)
-    want = [Drawn(304, 6, 8, ["<u>ADD</u> x"], "6.6.2 General Format", "Format 1:"),
-            Drawn(305, 14, 18, ["ADD y", "", "    GIVING z"], "6.6.2 General Format", "Format 2:"),
-            Drawn(305, 22, 24, ["ALTER"], "6.7.2 General Format", None)]
-    ok = got == want
-    print(f"sweep_figures self-test: {int(ok)}/1 " + ("GREEN" if ok else "RED"))
-    if not ok:
-        for g in got:
-            print(f"  got {g}")
-    return 0 if ok else 1
+    want = [Drawn(304, 6, 8, ["<u>ADD</u> x"], "6.6.2 General Format", "Format 1:", True),
+            Drawn(305, 14, 18, ["ADD y", "", "    GIVING z"], "6.6.2 General Format", "Format 2:", True),
+            Drawn(305, 22, 24, ["ALTER"], "6.7.2 General Format", None, True),
+            Drawn(306, 28, 31, ["01  TABLE-1.", "    02  DOG  PIC X."], "4.1 TABLE DEFINITION", None, False),
+            Drawn(307, 35, 37, ["identifier IS ZERO"], "4.1 TABLE DEFINITION", None, True),
+            Drawn(307, 39, 41, ["<u>ACCEPT</u> x"], "4.1 TABLE DEFINITION", None, True)]
+    check("drawn_figures, each block's general-format context", got == want, str(got))
+    check("a figure's ordinal counts from 0 on each page", figure_ordinals(got) == [0, 0, 1, 0, 0, 1],
+          str(figure_ordinals(got)))
+
+    d = got[0]
+    house = ["<u>ADD</u> x"]
+    none = {"words": [], "grouping": [], "bars": [], "underlines": [], "alignment": [], "boxes": []}
+    check("an agreed figure is written regenerated", decide(d, 0, house, [], none, None) == (house, "agree"))
+    check("a disagreement awaits a verdict",
+          decide(d, 0, house, [], dict(none, underlines=["x: drawn [], generated [0]"]), None) == (None, "awaiting"))
+    check("an unread word awaits a verdict", decide(d, 0, house, [{"reason": "unpaired"}], none, None) == (None, "awaiting"))
+    check("an unlocated figure awaits a verdict", decide(d, 0, None, [], None, None) == (None, "awaiting"))
+    v = Verdict(304, 0, "6.6.2 General Format", "Format 1:", "neither", ("<u>ADD</u> <u>x</u>",), "the page underlines x")
+    check("a verdict outranks an agreement", decide(d, 0, house, [], none, v) == (["<u>ADD</u> <u>x</u>"], "verdict"))
+    moved = v._replace(label="Format 2:")
+    check("a verdict on a figure that moved is fatal", (exits(lambda: decide(d, 0, house, [], none, moved)) or "")
+          .startswith("FATAL: the verdict on figure 0 of page 304"))
+    example = got[3]
+    check("an agreed example is never rewritten", decide(example, 0, ["01 TABLE-1."], [], none, None) == (None, "unclassified"))
+    nf = Verdict(306, 0, "4.1 TABLE DEFINITION", None, NOT_A_FORMAT, (), "a COBOL example of a table")
+    check("a not-a-format verdict leaves the block as drawn",
+          decide(example, 0, ["01 TABLE-1."], [], none, nf) == (None, NOT_A_FORMAT))
+
+    with tempfile.TemporaryDirectory() as tmp:
+        root = pathlib.Path(tmp)
+        good = {"page": 304, "figure": 0, "clause": "6.6.2 General Format", "label": "Format 1:", "decided": "neither",
+                "figure_lines": ["<u>ADD</u> <u>x</u>"], "reason": "the page underlines x"}
+        (root / "p0304-0.json").write_text(json.dumps(good), encoding="utf-8", newline="\n")
+        check("a verdict file loads", load_verdicts(root) == {(304, 0): v}, str(load_verdicts(root)))
+        check("no directory, no verdicts", load_verdicts(root / "absent") == {})
+        (root / "p0304-0b.json").write_text(json.dumps(good), encoding="utf-8", newline="\n")
+        check("two verdicts on one figure are fatal", "both decide figure 0 of page 304" in (exits(lambda: load_verdicts(root)) or ""))
+        (root / "p0304-0b.json").write_text(json.dumps(dict(good, figure=1, decided="batch")), encoding="utf-8", newline="\n")
+        check("an unknown decision is fatal", "`decided` must be one of" in (exits(lambda: load_verdicts(root)) or ""))
+        (root / "p0304-0b.json").write_text(json.dumps({"page": 304}), encoding="utf-8", newline="\n")
+        check("a malformed verdict is fatal", "is not a figure verdict" in (exits(lambda: load_verdicts(root)) or ""))
+        second = root / "p0304-0b.json"
+        for name, body, says in (
+                ("a not-a-format verdict carrying a figure is fatal", dict(good, figure=1, decided=NOT_A_FORMAT),
+                 "carries no figure_lines"),
+                ("a decided verdict without its figure is fatal", dict(good, figure=1, figure_lines=[]), "needs `figure_lines`"),
+                ("a verdict without its reason is fatal", dict(good, figure=1, reason=" "), "states its `reason`")):
+            second.write_text(json.dumps(body), encoding="utf-8", newline="")
+            check(name, says in (exits(lambda: load_verdicts(root)) or ""))
+
+    total = len(ran)
+    print(f"sweep_figures self-test: {total - len(fails)}/{total} " + ("GREEN" if not fails else "RED"))
+    for f in fails:
+        print("  FAIL", f)
+    return 1 if fails else 0
 
 
 def main() -> int:
@@ -499,7 +735,7 @@ def main() -> int:
     ap.add_argument("--cross-check", action="store_true",
                     help="a scanned edition: regenerate each drawn figure and compare the two drawings (kb/Work PB4849)")
     ap.add_argument("--ledger", help="with --cross-check: write every figure's result to this JSON file")
-    ap.add_argument("--pages", nargs=2, type=int, metavar=("FROM", "TO"), help="with --cross-check: only these PDF pages")
+    ap.add_argument("--pages", nargs=2, type=int, metavar=("FROM", "TO"), help="a scanned edition: only these PDF pages")
     ap.add_argument("--clause", help="restrict to one clause number, e.g. 14.9.8.2")
     ap.add_argument("--limit", type=int, default=40, help="how many problems to list")
     spec_pdf.add_edition_argument(ap)
@@ -507,18 +743,22 @@ def main() -> int:
     if args.self_test:
         return self_test()
     if spec_pdf.geometry(args.edition) == "raster":
-        if not args.cross_check:
-            sys.exit(f"FATAL: the {args.edition} edition is a scan; its figures are cross-checked (--cross-check) before "
-                     "any is written, and --report, --apply and --check wait for the refuters' verdicts (kb/Work PB4849)")
+        modes = [m for m in ("cross_check", "report", "apply", "check") if getattr(args, m)]
+        if len(modes) != 1:
+            sys.exit("FATAL: a scanned edition takes exactly one of --cross-check, --report, --apply, --check")
         import pymupdf
         sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
         import render_figure as R
         doc = pymupdf.open(spec_pdf.require(args.edition))
-        lines = spec_pdf.markdown(args.edition).read_text(encoding="utf-8").splitlines()
-        return cross_check(args.edition, doc, lines, R, tuple(args.pages) if args.pages else None, args.limit, args.ledger)
-    if args.cross_check:
-        sys.exit(f"FATAL: --cross-check compares a scanned edition's drawn figures with their regeneration; the "
-                 f"{args.edition} edition is vector, and --check regenerates it exactly")
+        spec_md = spec_pdf.markdown(args.edition)
+        lines = spec_md.read_text(encoding="utf-8").splitlines()
+        pages = tuple(args.pages) if args.pages else None
+        if args.cross_check:
+            return cross_check(args.edition, doc, lines, R, pages, args.limit, args.ledger)
+        return raster_sweep(args.edition, doc, lines, R, pages, args.clause, modes[0], args.limit, spec_md)
+    if args.cross_check or args.pages:
+        sys.exit(f"FATAL: --cross-check and --pages are a scanned edition's; the {args.edition} edition is vector, and "
+                 "--check regenerates it exactly")
     pdf = spec_pdf.require(args.edition)
     spec_md = spec_pdf.markdown(args.edition)
     furniture = page_furniture(args.edition)
