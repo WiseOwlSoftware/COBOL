@@ -780,19 +780,22 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// <summary>Record one data-name or ALL REFERENCES OF target. The operand is resolved to its DATA ITEM (a qualified name is the one
     /// item its qualifiers pick, §2023:8.4.2.2), written without subscripts or a reference modifier (syntax rules 10 and 12: the trigger watches
     /// the item, and DEBUG-SUB-n report which occurrence a statement referenced) and named once (syntax rule 6). A report sum counter is its
-    /// register item (syntax rule 9); LINAGE-COUNTER, LINE-COUNTER and PAGE-COUNTER are runtime-sourced references no place stands for and stay staged.</summary>
+    /// register item (syntax rule 9). LINAGE-COUNTER, LINE-COUNTER and PAGE-COUNTER are special-register data items nothing in the format
+    /// excludes (kb/Work PB4858), runtime-sourced and no place: the target names the register (<see cref="CounterRegisterOf"/>).</summary>
     private void AddDebugDataTarget(Core.DataReferenceContext operand, SectionInfo section, DebugTargetKind kind)
     {
         string written = DebugOperandAsWritten(operand);
         string phrase = kind is DebugTargetKind.AllReferences ? $"ON ALL REFERENCES OF '{written}'" : $"ON '{written}'";
-        if ((ctx.Refs.ProbeDeclaration(operand) ?? SumCounterOf(operand)) is not { } item)
+        DataItem? item;
+        BoundExpr? register = null;
+        if (new DataReferenceCst(operand).Register is var special and not SpecialRegister.None)
         {
-            ctx.Edition.Error(DiagnosticCatalog.DebugSubFacilityStaged, $"declarative section '{section.Name}': USE FOR DEBUGGING {phrase} names a "
-                + "special register the statement binder routes to a runtime-sourced reference (LINAGE-COUNTER, LINE-COUNTER, PAGE-COUNTER), which "
-                + "is no place for the trigger to watch; a data item, a REPORT SECTION sum counter (syntax rule 9) and the other special registers "
-                + "are modeled (VCR Table 7 row 7.17)");
-            return;
+            (item, register) = CounterRegisterOf(operand, special);
+            if (register is null) return;   // the resolver reported why
         }
+        else
+            item = ctx.Refs.ProbeDeclaration(operand) ?? SumCounterOf(operand)
+                ?? throw new InvalidOperationException($"USE FOR DEBUGGING {phrase}: NamesDataItem said the operand names a data item, and none resolves");
         if (operand.dataReferenceSuffix().Any(s => s.subscriptPart() is not null || s.refModPart() is not null
                 || s.qualification() is { } q && (q.subscriptPart().Length > 0 || q.refModPart().Length > 0)))
         {
@@ -801,15 +804,30 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                 + "subscripts or indexes and without a reference modifier");
             return;
         }
-        if (_debugTargets.Any(t => ReferenceEquals(t.Item, item)))
+        if (_debugTargets.Any(t => item is not null && ReferenceEquals(t.Item, item) || register is not null && t.NamesRegister(register)))
         {
             ctx.Edition.Error(DiagnosticCatalog.DebugTargetRepeated, $"declarative section '{section.Name}': USE FOR DEBUGGING {phrase} names a "
                 + "data item that another USE FOR DEBUGGING operand names; X3.23-1985 USE FOR DEBUGGING syntax rule 6 allows an identifier in "
                 + "one USE FOR DEBUGGING statement, once");
             return;
         }
-        _debugTargets.Add(new BoundDebugTarget(kind, written, item, null, section.StartPc, section.EndPc));
-        _debugContentsWidth = Math.Max(_debugContentsWidth, item.ImageWidth);
+        _debugTargets.Add(new BoundDebugTarget(kind, written, item, null, section.StartPc, section.EndPc, Register: register));
+        if (register is null) _debugContentsWidth = Math.Max(_debugContentsWidth, item!.ImageWidth);   // a counter register's image is at most 10 digits, inside the minimum
+    }
+
+    /// <summary>The counter register a USE FOR DEBUGGING operand names, and the data item a store to it names: the file whose LINAGE clause
+    /// LINAGE-COUNTER belongs to (§2023:8.4.3.14), or the report whose LINE-COUNTER or PAGE-COUNTER it is (§2023:8.4.3.15), by the ONE resolution
+    /// every counter reference takes (<see cref="CounterResolver"/>; the qualification rules of §2023:8.4.2.2.3 SR8 to SR10). Only PAGE-COUNTER can
+    /// be stored into (its receiving <see cref="ReportPageCounterPlace"/> names the report's counter item); LINAGE-COUNTER and LINE-COUNTER are
+    /// changed by the I-O and report engines alone, which no statement "explicitly references". A null register: the resolver has reported.</summary>
+    private (DataItem? Item, BoundExpr? Register) CounterRegisterOf(Core.DataReferenceContext operand, SpecialRegister special)
+    {
+        if (special is SpecialRegister.LinageCounter)
+            return (null, ctx.Refs.Counters.LinageFileOf(operand) is { } file ? new BoundLinageCounterRef(file) : null);
+        bool isPage = special is SpecialRegister.PageCounter;
+        return ctx.Refs.Counters.ReportOf(operand, isPage ? "PAGE-COUNTER" : "LINE-COUNTER") is { } report
+            ? (isPage ? report.PageCounterRegister : null, new BoundReportCounterRef(report, isPage, ctx.Data.State.Reports.Depth(report)))
+            : (null, null);
     }
 
     /// <summary>Record one cd-name target (X3.23-1985 USE FOR DEBUGGING general rule 8): the communication description the operand names, whose

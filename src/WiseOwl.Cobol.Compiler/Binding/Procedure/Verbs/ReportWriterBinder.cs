@@ -353,7 +353,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         var members = new List<BoundStatement>();
         foreach (var rn in stmt.reportName())
         {
-            if (RwFindReport(rn.GetText()) is not { } r)
+            if (ctx.Data.State.Reports.Named(rn.GetText()) is not { } r)
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule, $"INITIATE '{rn.GetText()}': report-name-1 shall be defined by a report "
                     + "description entry in the report section (ISO §2023:14.9.21.3 SR1)");
             if (RejectContainedReportFile(r, $"INITIATE {r.Name}", "ISO §2023:14.9.21.3 SR2") is { } notGlobal) return notGlobal;
@@ -370,7 +370,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         var (name, qualifier) = ReportGroupResolution.Parts(stmt.reportGroupReference());
         // The report-name form (SR2, summary reporting) has NO qualifier — §2023:8.4.2.2 gives a report-name no
         // qualifier at all — so a qualified operand can only be the data-name form and skips this arm.
-        if (qualifier is null && RwFindReport(name) is { } summary)
+        if (qualifier is null && ctx.Data.State.Reports.Named(name) is { } summary)
         {
             if (summary.Controls.Count == 0)
                 ctx.Edition.Error(DiagnosticCatalog.ReportGenerateNeedsControl, $"GENERATE {name}: the report-name form requires a CONTROL "
@@ -408,7 +408,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         var members = new List<BoundStatement>();
         foreach (var rn in stmt.reportName())
         {
-            if (RwFindReport(rn.GetText()) is not { } r)
+            if (ctx.Data.State.Reports.Named(rn.GetText()) is not { } r)
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule, $"TERMINATE '{rn.GetText()}': report-name-1 shall be defined by a report "
                     + "description entry in the report section (ISO §2023:14.9.46.3 SR1)");
             if (RejectContainedReportFile(r, $"TERMINATE {r.Name}", "ISO §2023:14.9.46.3 SR2") is { } notGlobal) return notGlobal;
@@ -525,9 +525,6 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         return false;
     }
 
-    private ReportModel? RwFindReport(string name) =>
-        ctx.Data.State.Reports.Visible.FirstOrDefault(r => CobolNames.Same(r.Name, name));
-
     /// <summary>Intercept a LINE-COUNTER / PAGE-COUNTER data reference (ISO §2023:8.4.3.15) ahead of normal name
     /// resolution (the LINAGE-COUNTER idiom in <c>FieldOperand</c>/<c>RefExpr</c>). Returns null when the
     /// reference is NOT a counter; a <see cref="BoundReportCounterRef"/> when it resolves (the OF/IN
@@ -538,7 +535,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         bool isPage = dref.PAGE_COUNTER() is not null;
         if (!isPage && dref.LINE_COUNTER() is null) return null;
         string reg = isPage ? "PAGE-COUNTER" : "LINE-COUNTER";
-        return CounterReportOf(dref, reg) is { } report
+        return ctx.Refs.Counters.ReportOf(dref, reg) is { } report
             ? new BoundReportCounterRef(report, isPage, ctx.Data.State.Reports.Depth(report))
             : BoundExprError.Refused(ctx.Edition, $"{reg} reference '{DataBinder.WrittenText(dref)}'");
     }
@@ -548,49 +545,9 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     /// integer data item may appear"; SR3 removes LINE-COUNTER, and only LINE-COUNTER, from the receiving side,
     /// which <c>ExpressionBinder.ResolveReceiving</c> screens before it reaches here). Null when the reference
     /// does not resolve to a report — the qualification diagnostic has then already been raised, exactly as on
-    /// the sending side, because BOTH directions ask <see cref="CounterReportOf"/> (kb/Work PB429).</summary>
+    /// the sending side, because BOTH directions ask <see cref="CounterResolver.ReportOf"/> (kb/Work PB429).</summary>
     public Place? CounterPlace(Core.DataReferenceContext dref) =>
-        CounterReportOf(dref, "PAGE-COUNTER") is { } report
+        ctx.Refs.Counters.ReportOf(dref, "PAGE-COUNTER") is { } report
             ? new ReportPageCounterPlace(report.CsIndex, report.PageCounterRegister, ctx.Data.State.Reports.Depth(report))
             : null;
-
-    /// <summary>⛔ THE ONE RESOLUTION OF A COUNTER REFERENCE TO ITS REPORT, read by the SENDING
-    /// (<see cref="CounterExpr"/>) and RECEIVING (<see cref="CounterPlace"/>) directions alike: the OF/IN
-    /// <c>cobolWord</c> is the report-name qualifier (ISO §2023:8.4.3.15 SR2 / §2023:8.4.2.2), and an unqualified counter
-    /// resolves only when the program has exactly one report. Null — with the diagnostic already raised — when
-    /// the qualifier names no report, when no report description entry exists, or when an unqualified reference
-    /// is ambiguous. Written once so a program cannot be told the qualification rule on one side of a statement
-    /// and a different one on the other (kb/Work PB429).</summary>
-    private ReportModel? CounterReportOf(Core.DataReferenceContext dref, string reg)
-    {
-        if (dref.cobolWord() is { } q)   // qualified: COUNTER OF/IN report-name
-        {
-            if (RwFindReport(q.GetText()) is { } named) return named;
-            ctx.Edition.Error(DiagnosticCatalog.ReportCounterQualification, $"{reg} OF '{q.GetText()}': the qualifier shall name a report "
-                + $"description entry — a counter of a DIFFERENT report is referenced \"qualified explicitly by the report-name "
-                + $"associated with the different report\" (ISO {CounterQualificationRule(reg)}; the qualification requirements "
-                + "for the counters are those of §2023:8.4.2.2, §2023:8.4.3.15.3 SR2)");
-            return null;
-        }
-        // §2023:8.4.2.2.3 SR9/SR10 — "In the report section, an unqualified reference to the [LINE-COUNTER | PAGE-COUNTER] is
-        // qualified implicitly by the name of the report in whose report description entry the reference is made": the
-        // enclosing RD answers, whatever number of reports the program has (kb/Work PB1456).
-        if (ctx.Refs.EnclosingReport is { } enclosing) return enclosing;
-        // §2023:8.4.6.2.5 — the counters of a GLOBAL report are global; §2023:8.4.6.2.1 rule 3 — the nearest declaring
-        // source element's reports hide a container's, so "exactly one report" is asked of the nearest ones.
-        var nearest = ctx.Data.State.Reports.NearestInScope(ctx.Data.State.Reports.Visible, r => r);
-        if (nearest.Count == 1) return nearest[0];
-        ctx.Edition.Error(DiagnosticCatalog.ReportCounterQualification, nearest.Count == 0
-            ? $"{reg} referenced, but the program has no report description entry (ISO §2023:8.4.3.15.1 — the "
-              + "counters are generated per report)"
-            : $"unqualified {reg} with more than one report description entry: {reg} shall be qualified each time it is "
-              + $"referenced in the procedure division if more than one report description entry is specified in the "
-              + $"source element (ISO {CounterQualificationRule(reg)})");
-        return null;
-    }
-
-    /// <summary>The syntax rule that qualifies the register <paramref name="reg"/> — one rule per counter, written as
-    /// the standard writes it (§2023:8.4.2.2.3 SR9 for LINE-COUNTER, SR10 for PAGE-COUNTER).</summary>
-    private static string CounterQualificationRule(string reg) =>
-        reg == "PAGE-COUNTER" ? "§2023:8.4.2.2.3 SR10" : "§2023:8.4.2.2.3 SR9";
 }
