@@ -48,7 +48,8 @@ publications.
 > **The pages are kept.** The source is a scan, and the transcription was made and reconciled page by page against
 > the rendered page, so each `## Page N` heading opens the text of PDF page N. The printed folios (`VI-21`, `XVII-3`)
 > stay where the page prints them. The page furniture that is not the standard's (the reseller's per-copy stamp) is
-> removed.
+> removed. The scan prints folios X-11 and X-12 twice (PDF pages 525-526 and 527-528); both copies
+> are transcribed, and the repeat is marked with a comment where it begins.
 >
 > **Notation.** A key word the standard underlines is underlined (`<u>…</u>`, or the drawn underline of a general
 > format); the general formats are drawn as the printed page draws them, in the house style
@@ -19328,6 +19329,8 @@ X-12
 
 ## Page 527
 
+<!-- PDF page 527 repeats PDF page 525 (folio X-11): the scan prints pages X-11 and X-12 twice. Both copies are transcribed; cite the first. -->
+
 Inter-Program Communication - End Program Header
 
 ## 2.5 END PROGRAM HEADER
@@ -19363,6 +19366,8 @@ The end program header indicates the end of the named COBOL source program.
 X-11
 
 ## Page 528
+
+<!-- PDF page 528 repeats PDF page 526 (folio X-12): the scan prints pages X-11 and X-12 twice. Both copies are transcribed; cite the first. -->
 
 Inter-Program Communication - Identification Division
 
