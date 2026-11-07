@@ -70,4 +70,6 @@ committee draft's numbers in PB3919, PB3920, PB3923 and PB3600 are `clause N`, n
 GREEN; citation.py, cite.py, audit_code_citations.py and doc_audits.py self-tests PASS; doc_audits.py --check GREEN;
 verify_publishable.py PUBLISHABLE; generate.py --check GREEN; semgrep verify PASS (no count rose). The gate:
 `=== BUILD-LOCAL GATE: GREEN — Conformance 22,463/22,463 · Unit 40,427/40,427 · Characterization 37/37 cases ran
-(skipped 0) …` (run 000004-20261107T060203Z).
+(skipped 0) …` (run 000004-20261107T060203Z). After the review round, at 484f911c38 in the finisher's worktree, the
+same verdict line (run 000002-20261107T064558Z); its first gate (000001) was RED on CITATIONS because the round's own
+paragraph in PB4887 quoted the design's section ranges with no name on the line, which is the defect the round fixed.
