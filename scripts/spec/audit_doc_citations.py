@@ -13,22 +13,22 @@ signature: the quoted text IS in the spec, and it is NOT in the clause the doc n
 
 ⛔ A CITATION IS WRITTEN IN MORE THAN ONE ORDER, AND ASSUMING ONE OF THEM IS HOW THIS AUDIT ACCUSED FOUR CORRECT
 SITES (kb/Work PB379). The first version anchored on the § and took the next quote on the line — i.e. it could
-read `§15.39.1 "depends on the type of argument-1"` and nothing else. This repository also writes:
+read `§2023:15.39.1 "depends on the type of argument-1"` and nothing else. This repository also writes:
 
-  · the POSTFIX form, `"depends on the type of argument-1" §15.39.1,` — the citation follows what it supports.
+  · the POSTFIX form, `"depends on the type of argument-1" §2023:15.39.1,` — the citation follows what it supports.
     Of PB379's six reported "misfilings" TWO were this: the prefix reading blamed whichever § happened to sit
     nearest BEFORE the quote, which was the PREVIOUS quote's citation. Worse than the false positives was the
     blind spot behind them — a quote cited in the postfix form was never checked against its clause AT ALL, so a
     misfiling written that way was invisible. Reading both orders removed the false positives and put ~15 more
     citations under the check.
-  · the BACK-REFERENCE form, `§15.2 … "no digits to the right of the decimal point" (item 5)` — the clause is
+  · the BACK-REFERENCE form, `§2023:15.2 … "no digits to the right of the decimal point" (item 5)` — the clause is
     named earlier in the sentence and the quote points back at it by rule number. That one is NOT made
     mechanical here and is not meant to be: a citation no tool can resolve is a citation nothing checks, which
     is the state rule 1 exists to end. The repair is to write the clause number next to the quote it supports.
 
 THE ORDER RULE, then: the citation of a quoted fragment is the clause that FOLLOWS it and closes (a bracket, a
 comma, a full stop, a `/` or `·` in a citation list) if there is one, else the nearest clause BEFORE it on the
-same line. A `§` that opens an aside instead of closing — `"…the NATIONAL phrase" (§13.18.29 — and my first
+same line. A `§` that opens an aside instead of closing — `"…the NATIONAL phrase" (§2023:13.18.29 — and my first
 draft cited …)` — is deliberately not read as the quote's citation: it is a pointer at a construct the quote
 NAMES, and reading it as the source accused kb/Work PB15, which is correct.
 
@@ -50,10 +50,10 @@ This is the same lesson the figure audits taught (`plan §0`: "MY CHECKERS WERE 
 
 FOUND BY THE FIRST RUN (all corrected in the same change set):
   · `DESIGN.md` cited "§12.3.7 GR7 k3 … distinct ascending" TWICE — a phrase that appears NOWHERE in the
-    standard. A Phase-B agent inherited it into a fix-queue finding. The real rule is §12.3.7.4 GR7 1.3.
-  · `REDEFINES_DESIGN.md` cited §13.18.60 for GR4/GR11 text really in §13.18.60.4 — one level short,
+    standard. A Phase-B agent inherited it into a fix-queue finding. The real rule is §2023:12.3.7.4 GR7 1.3.
+  · `REDEFINES_DESIGN.md` cited §13.18.60 for GR4/GR11 text really in §2023:13.18.60.4 — one level short,
     the CA37/CA38 shape.
-  · `PHASE-11-scout-notes.md` cited §13.18.62 for text really in §13.18.63.4 GR4c.
+  · `PHASE-11-scout-notes.md` cited §13.18.62 for text really in §2023:13.18.63.4 GR4c.
 """
 from __future__ import annotations
 
@@ -79,19 +79,19 @@ REPO = citation_corpus.REPO
 #: --find locating it elsewhere says nothing about the clause the doc named.
 QUOTED = r'["“](?P<q>[a-z][^"”\n]{30,90})["”]'
 
-#: FORM 1 — the citation PRECEDES the quote: `§14.9.7.3 SR2: "this statement shall not …"`.
+#: FORM 1 — the citation PRECEDES the quote: `§2023:14.9.7.3 SR2: "this statement shall not …"`.
 #: ⚠ `[^§"“\n]` between the clause and the quote — NOT `[^"“\n]`. A sentence may name two clauses before it
-#: quotes ("never the §13.18.38 window — §14.2.3 GR8 says …"), and the citation being made is the NEAREST one.
+#: quotes ("never the §2023:13.18.38 window — §2023:14.2.3 GR8 says …"), and the citation being made is the NEAREST one.
 #: The greedy form blamed the wrong clause and reported a CORRECT citation as misfiled.
 #: The citation itself is `citation.PATTERN`, the one citation pattern (kb/Work PB4887), read back by `_cited`.
 PAT = re.compile(citation.PATTERN + r'[^§"“\n]{0,80}' + QUOTED)
 
-#: FORM 2 — the citation FOLLOWS the quote and CLOSES it off: `"depends upon the argument types" §15.18.1)`.
+#: FORM 2 — the citation FOLLOWS the quote and CLOSES it off: `"depends upon the argument types" §2023:15.18.1)`.
 #: Three calibrations, each of which stops this form from reading something that is not a citation:
 #:  · `(?!\.\d)` — the clause number is taken WHOLE. Without it the greedy number backtracks against the
-#:    `.`-in-the-terminator alternative and `§12.3.7.3 SR16g / SR17d` reads as a citation of §12.3.7 — a
+#:    `.`-in-the-terminator alternative and `§2023:12.3.7.3 SR16g / SR17d` reads as a citation of §2023:12.3.7 — a
 #:    correct citation reported as one level short, which is the very defect shape this audit hunts.
-#:  · a rule designator may sit between the clause and the terminator (`§14.9.7.3 SR2)`, `§15.2 item 5)`).
+#:  · a rule designator may sit between the clause and the terminator (`§2023:14.9.7.3 SR2)`, `§2023:15.2 item 5)`).
 #:  · the citation must CLOSE — bracket, comma, stop, or the `/` and `·` of a citation list. A `§` followed by
 #:    more prose is an aside about a construct the quote names, not the quote's source (see the order rule).
 POST = re.compile(QUOTED + r'\s{0,2}[(\[]?(?:ISO\s+)?' + citation.PATTERN + r'(?!\.\d)'
@@ -107,7 +107,7 @@ NOT_VERBATIM = ("…", "...", ">", "*", "`")
 
 #: ⛔ AND A MISFILING THAT IS BEING REPORTED AS A MISFILING IS NOT A DEFECT. The kb/Work note for this family is
 #: a table of "this file says §X, the text is really in §Y"; every row spells a wrong pairing, on purpose, and
-#: no per-line disclaimer survives being tabulated — the row IS `§8.6.6 | "shall not be specified …"`. A file may
+#: no per-line disclaimer survives being tabulated — the row IS `§2023:8.6.6 | "shall not be specified …"`. A file may
 #: declare itself with the marker below, which says "the § / quote pairings in here are QUOTED, not asserted".
 #: It is a whole-file opt-out, it is visible in the file, and it is the same mechanism (and the same 40-line
 #: window) `audit_code_citations.py` gives the note that names phantom clauses on purpose.
@@ -118,7 +118,7 @@ MARKER = "audit-doc-citations: names-misfilings"
 #: which is the bucket this audit deliberately does not gate on: a doc quotes LABELS and paraphrases as well
 #: as spec text and nothing distinguishes them. But ONE shape inside that bucket IS decidable — a quotation
 #: that is the clause's OWN SENTENCE WITH WORDS DROPPED. `EmitterState.cs:29` and `ControlFlowEmitter.cs:70`
-#: carried §14.9.14.4 GR5a as *"the most closely preceding, unterminated inline PERFORM"*; the standard says
+#: carried §2023:14.9.14.4 GR5a as *"the most closely preceding, unterminated inline PERFORM"*; the standard says
 #: *"the most closely preceding, and as yet unterminated, inline PERFORM"*. Right clause, right rule,
 #: quotation marks around words the standard does not contain in that order — and BOTH audits reported zero
 #: on it for as long as it shipped. A paraphrase cannot pass this test: its words do not appear IN ORDER
@@ -130,7 +130,7 @@ ELIDE_SLACK, ELIDE_FLOOR = 1.5, 5
 
 _SPEC: dict[int, tuple[list[str], list]] = {}
 _WORDS: dict[int, dict[str, list[str]]] = {}
-#: The three-segment floor of this audit's citations: below it a clause region (`§13.16`) ends at its first subclause
+#: The three-segment floor of this audit's citations: below it a clause region (`§2023:13.16`) ends at its first subclause
 #: heading, so a quotation of the clause's rules is never inside it and every such pairing would read as misfiled.
 FLOOR_SEGMENTS = 3
 
@@ -242,7 +242,7 @@ def scan(paths, elided_out: list | None = None):
     citation in its edition form (`2023:14.9.7.3`, printed after a `§`).
 
     ⛔ ONE VERDICT PER PAIRING, ONE REPORT PER SITE, and the two were conflated until PB379. Deduplicating the
-    REPORT hid siblings: the `§15.38.1 "depends on the type of argument-1"` pairing lives in three files, and a
+    REPORT hid siblings: the `§2023:15.38.1 "depends on the type of argument-1"` pairing lives in three files, and a
     reader of the one reported line had no way to know the other two existed — precisely the sweep CLAUDE.md
     rule 4 demands, defeated by the tool. The ruling (`verdict_of`) is still made once per pairing, which is the
     part that costs anything."""
@@ -286,41 +286,41 @@ def scan(paths, elided_out: list | None = None):
 #: expects, so an arm that stops firing fails the case that names it rather than falling through to another.
 SELF_TEST = [
     ("prefix, misfiled", "misfiled",
-     'The COMMIT statement (ISO §8.6.6) "shall not be specified in the input or output procedure of a MERGE"'),
+     'The COMMIT statement (ISO §2023:8.6.6) "shall not be specified in the input or output procedure of a MERGE"'),
     ("prefix, correct", None,
-     'The COMMIT statement (ISO §14.9.7.3) "shall not be specified in the input or output procedure of a MERGE"'),
+     'The COMMIT statement (ISO §2023:14.9.7.3) "shall not be specified in the input or output procedure of a MERGE"'),
     ("postfix, misfiled", "misfiled",
-     'It "shall not be specified in the input or output procedure of a MERGE" (§8.6.6), it says.'),
+     'It "shall not be specified in the input or output procedure of a MERGE" (§2023:8.6.6), it says.'),
     ("postfix, correct", None,
-     'It "shall not be specified in the input or output procedure of a MERGE" (§14.9.7.3), it says.'),
+     'It "shall not be specified in the input or output procedure of a MERGE" (§2023:14.9.7.3), it says.'),
     # ⛔ THE ELIDED ARM'S OWN DEFECT (kb/Work PB900 arm B), verbatim as it shipped in `EmitterState.cs:29` and
     # `ControlFlowEmitter.cs:70`: the right clause, the right rule, and quotation marks around words the
     # standard does not contain in that order — "and as yet" dropped out of the middle. `--check` FAILS on it,
     # `--find` locates it nowhere, and for as long as it shipped both audits reported zero.
     ("elided quotation", "elided",
-     'an EXIT PERFORM targets (§14.9.14.4 GR5a) "the most closely preceding, unterminated inline PERFORM"'),
+     'an EXIT PERFORM targets (§2023:14.9.14.4 GR5a) "the most closely preceding, unterminated inline PERFORM"'),
     ("elided quotation, repaired", None,
-     'an EXIT PERFORM targets (§14.9.14.4 GR5a) "the most closely preceding, and as yet unterminated, inline '
+     'an EXIT PERFORM targets (§2023:14.9.14.4 GR5a) "the most closely preceding, and as yet unterminated, inline '
      'PERFORM"'),
     # ⛔ AND THE PARAPHRASE THE ARM MUST NOT CLAIM. ELIDED is gateable only because a paraphrase cannot pass it:
     # its words are not in the clause IN ORDER. This one says what GR5a says, in other words, and lands in
     # `absent` where it belongs — the bucket this audit deliberately does not gate on.
     ("paraphrase, not an elision", "absent",
-     'an EXIT PERFORM targets (§14.9.14.4 GR5a) "whichever inline PERFORM is innermost at that point"'),
+     'an EXIT PERFORM targets (§2023:14.9.14.4 GR5a) "whichever inline PERFORM is innermost at that point"'),
     # ⛔ THE FALSE POSITIVE THE ORDER RULE EXISTS TO STOP: two postfix citations in one parenthesis, where the
     # prefix reading pairs each quote with the PREVIOUS quote's clause. Both pairings here are correct.
     ("postfix pair, both correct", None,
-     'the wordings differ ("depends on the type of argument-1" §15.39.1, "depends upon the argument types" '
-     '§15.18.1) and a prose key found ten of twenty'),
-    # ⛔ AND THE ASIDE, which is not a citation of the quote at all: §13.18.29 is where GROUP-USAGE is defined,
-    # the quote is §8.5.2.10's. Reading it as the source accused kb/Work PB15, which is correct.
+     'the wordings differ ("depends on the type of argument-1" §2023:15.39.1, "depends upon the argument types" '
+     '§2023:15.18.1) and a prose key found ten of twenty'),
+    # ⛔ AND THE ASIDE, which is not a citation of the quote at all: §2023:13.18.29 is where GROUP-USAGE is defined,
+    # the quote is §2023:8.5.2.10's. Reading it as the source accused kb/Work PB15, which is correct.
     ("postfix aside, not a citation", None,
      'a group of category national as one "described with a GROUP-USAGE clause with the NATIONAL phrase" '
-     '(§13.18.29 — and my first draft cited §13.18.27)'),
-    # ⛔ AND THE CLAUSE NUMBER TAKEN WHOLE: without `(?!\.\d)` this reads as a citation of §12.3.7 and reports a
+     '(§2023:13.18.29 — and my first draft cited §2023:13.18.27)'),
+    # ⛔ AND THE CLAUSE NUMBER TAKEN WHOLE: without `(?!\.\d)` this reads as a citation of §2023:12.3.7 and reports a
     # correct citation as one level short.
     ("postfix with a rule designator", None,
-     '"specified with the LOCALE phrase" (§12.3.7.3 SR16g / SR17d) — of EITHER class'),
+     '"specified with the LOCALE phrase" (§2023:12.3.7.3 SR16g / SR17d) — of EITHER class'),
     # ⛔ THE EDITION FORM (kb/Work PB4887) reads the same way, and a 1985 citation is checked against the 1985
     # transcription, its paragraph inside its own section.
     ("edition form, prefix, misfiled", "misfiled",
@@ -403,7 +403,7 @@ def main() -> int:
     # shared with `audit_code_citations.py` so a file cannot be covered by one citation rule and not the other.
     # ⛔ AND THE GOLDEN HEADERS ARE IN IT. A `.cob` fixture's header is where it records the rule it exists to
     # pin, and it quotes the standard to do so — `pb43_usage_bit_occupies_bits.cob` carried a FABRICATED
-    # quotation of §8.5.1.6.3 ("aligned at the first bit position of the first available byte"; the standard
+    # quotation of §2023:8.5.1.6.3 ("aligned at the first bit position of the first available byte"; the standard
     # says "Alignment of all other bit data items within a record, when a SYNCHRONIZED clause is not specified,
     # is at the first bit position of the first available byte"). Nothing was reading those headers.
     elided: list = []

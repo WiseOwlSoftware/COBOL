@@ -258,12 +258,12 @@ def dossier_sections(sections: list[str]) -> list[str]:
     """The clause numbers a citation of THIS subject can carry — the rows' own, plus their construct root.
 
     ⛔ THE ROOT IS THE LOAD-BEARING PART. A subject's catalog rows sit in `.2` (format), `.3` (syntax) and `.4`
-    (general) — §14.9.27.2/.3/.4 for OPEN — but the code, the goldens and CONFORMANCE.md overwhelmingly cite the
-    CONSTRUCT clause, `§14.9.27 SR8`. Scanning only the rows' own sections would miss every one of them and hand
+    (general) — §2023:14.9.27.2/.3/.4 for OPEN — but the code, the goldens and CONFORMANCE.md overwhelmingly cite the
+    CONSTRUCT clause, `§2023:14.9.27 SR8`. Scanning only the rows' own sections would miss every one of them and hand
     the agent an empty dossier for a construct with sixteen citing files. So the longest common prefix is added.
 
     ⚠ …but only when every row is a DIRECT CHILD of it. Otherwise a scattered concept subject
-    ('Intrinsic functions' → §15.2, §15.3, §15.4.1) collapses to `§15`, which matches every intrinsic citation in
+    ('Intrinsic functions' → §2023:15.2, §2023:15.3, §2023:15.4.1) collapses to `§15`, which matches every intrinsic citation in
     the repo and floods the caps with noise. Measured over the whole catalog: 596 of 599 subjects take the root,
     and the three that do not (§5 'Description techniques', §6 'Reference format', §15 'Intrinsic functions') are
     exactly the ones where it would have been wrong.
@@ -293,10 +293,10 @@ def clause_pattern(sections: list[str]) -> re.Pattern:
     DIAGNOSTICS.md. The `§` arm is the 2023 citation's mark, `citation.MARK_2023` (the one citation format,
     kb/Work PB4887), the same one `citation.clause_pattern` searches with.
 
-    ⛔ `(?![0-9])` IS THE WHOLE POINT. `§14.9.2` and `§14.9.27` are different statements (STRING and OPEN), and a
+    ⛔ `(?![0-9])` IS THE WHOLE POINT. `§2023:14.9.2` and `§2023:14.9.27` are different statements (STRING and OPEN), and a
     plain prefix match on the shorter one sweeps in every citation of the longer — the dossier for STRING would
     have arrived full of OPEN's binder. The lookahead forbids a following DIGIT and nothing else, so a SUBCLAUSE
-    (`§14.9.27.4`), a rule suffix (`§14.9.27 GR10`) and a bare `§14.9.27` all still match, which is exactly the
+    (`§2023:14.9.27.4`), a rule suffix (`§2023:14.9.27 GR10`) and the clause alone (`§2023:14.9.27`) all still match, which is exactly the
     set that is genuinely about this subject.
 
     The second arm matches the catalog's own rule-ids, `GR-14.9.27.4-10` — the code cites those directly
@@ -465,7 +465,7 @@ def quotable_rules() -> tuple[dict, ...]:
     rule body alone would hand the agent the shape and withhold the reasoning it most needs to verify.
     ⚠ THE WHOLE COMMENT BLOCK IS SEARCHED, only the tail is QUOTED. This grammar's blocks run to a dozen lines
     and the ISO citation is as often at the top as at the bottom: a 6-line window measured from the rule missed
-    `functionArgument`'s "TRIM LEADING/TRAILING §15.96" by two lines, which is how TRIM's dossier came back with
+    `functionArgument`'s "TRIM LEADING/TRAILING §2023:15.96" by two lines, which is how TRIM's dossier came back with
     zero grammar rules the first time it was run.
     """
     return tuple({"rule": r.name, "file": r.file.relative_to(REPO).as_posix(), "line": r.first_line,
@@ -473,7 +473,7 @@ def quotable_rules() -> tuple[dict, ...]:
                   # ⛔ THE SEARCH TEXT INCLUDES THE LEAD COMMENT, and it must. The first cut searched the rule
                   # BODY only, and TRIM came back with zero grammar rules — because a §15 function has no rule
                   # of its own and its only grammar trace is the comment above `CobolExpressions.g4`'s
-                  # argument-list rule, naming "TRIM LEADING/TRAILING §15.96". The citations live in the
+                  # argument-list rule, naming "TRIM LEADING/TRAILING §2023:15.96". The citations live in the
                   # comments; a search that skips them cannot find a construct that is implemented but not
                   # separately parsed.
                   "_search": "\n".join(r.lead + r.source)}
@@ -484,7 +484,7 @@ def grammar_for(kws: list[str], provenance: str, pat: re.Pattern, role: str = ""
     """The grammar rules for the construct — by rule NAME, by the CLAUSE the rule's comment cites, by keyword.
 
     ⭐ THE CITATION ARM CARRIES THE MOST WEIGHT and is why the same regex is threaded in here. A grammar comment
-    reading `// ISO §12.4.5.2 SR1: SELECT comes first` is the grammar author telling this dossier exactly which
+    reading `// ISO §2023:12.4.5.2 SR1: SELECT comes first` is the grammar author telling this dossier exactly which
     rule implements the clause — a better answer than any keyword can give, and the only answer available for a
     construct whose parse is generic.
 
@@ -596,7 +596,7 @@ def register_for(sections: list[str]) -> dict:
     prompts have to tell agents which defects are already closed, and DESIGN §8 item 8 forbids writing that list
     by hand — it went stale twice. This derives the subject's slice of it, in the file, at generation time.
 
-    ⚠ CONTAINMENT IS ONE-WAY on purpose: a note referencing `§14.9.27.4` belongs to OPEN, a note referencing
+    ⚠ CONTAINMENT IS ONE-WAY on purpose: a note referencing `§2023:14.9.27.4` belongs to OPEN, a note referencing
     `§14` does not. Matching ancestors too would attach the half-dozen whole-clause analyses to all 53 statements.
     """
     notes = []
@@ -663,13 +663,13 @@ def self_test() -> int:
         "## 2. Annex A.3 — processor-dependent language elements",
         "| Item | Element | Disposition |",
         "|---|---|---|",
-        "| 26 | an A.3 element of the file control entry, §12.4.5 | documented |",
+        "| 26 | an A.3 element of the file control entry, §2023:12.4.5 | documented |",
         "## 7. Annex A.1 — implementor-defined language elements",
         f"| {inventory_schema.REGISTER_HEADER_CELL} | Element | What we do | Pinned by |",
         "|---|---|---|---|",
-        "| DOC-A.1-151 | RECORD DELIMITER clause, §12.4.5.11.4 GR1 | determined | `Some.Test` |",
+        "| DOC-A.1-151 | RECORD DELIMITER clause, §2023:12.4.5.11.4 GR1 | determined | `Some.Test` |",
         "## 8. Rules with no observable obligation",
-        "| DRV-GR-12.4.5-1 | closed set | §12.4.5 | the argument |",
+        "| DRV-GR-12.4.5-1 | closed set | §2023:12.4.5 | the argument |",
     )
     hits = {h["line"]: h for h in doc_citing(planted, clause_pattern(["12.4.5"]))["lines"]}
     checks = [
