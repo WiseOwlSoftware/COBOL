@@ -1,4 +1,4 @@
-## PB4849: the 1985 figure refuter step begun, and a separator the underline does not span is plain
+## Entry 3252 — 2026-11-07 07:17 PST — PB4849: the 1985 figure refuter step begun, and a separator the underline does not span is plain
 
 Wave 20261901 group A took kb/Work PB4849's step 1 first, as the note's re-ordering asks: decide the 1985 `<pre>`
 blocks awaiting a verdict from the printed page, rather than tune the measurer.
@@ -25,3 +25,4 @@ its letters: the rule under `DECLARATIVES.` (page 182) stops short of the period
 no-separator cases that keep the rule.
 
 **Gate.** See the wave report for the verdict line.
+
