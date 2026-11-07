@@ -1,4 +1,4 @@
-## The tree's citations carry their edition: the one-time rewrite, the hand repairs, and the bare form refused (PB4887 phase 2)
+## Entry 3240 — 2026-11-06 23:04 PST — The tree's citations carry their edition: the one-time rewrite, the hand repairs, and the bare form refused (PB4887 phase 2)
 
 kb/Work PB4887's phase 2, landed alone after the operator lane drained (main d170858339). Phase 1 (entry 3238) gave the
 repository one citation format, `§<edition>:<locator>[ <rule>]`, and one parser, `scripts/spec/citation.py`, and kept
@@ -73,3 +73,4 @@ verify_publishable.py PUBLISHABLE; generate.py --check GREEN; semgrep verify PAS
 (skipped 0) …` (run 000004-20261107T060203Z). After the review round, at 484f911c38 in the finisher's worktree, the
 same verdict line (run 000002-20261107T064558Z); its first gate (000001) was RED on CITATIONS because the round's own
 paragraph in PB4887 quoted the design's section ranges with no name on the line, which is the defect the round fixed.
+
