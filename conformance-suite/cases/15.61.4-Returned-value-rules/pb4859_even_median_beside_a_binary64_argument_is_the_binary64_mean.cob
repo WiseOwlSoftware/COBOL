@@ -24,6 +24,10 @@
       *>       expression by its SDIDI lift and showed the exact mean)
       *>   X3  DISPLAY MEDIAN ((F + 0) (G + 0)): 0.15000000000000002 as B1
       *>   E1  DISPLAY MEDIAN (F M N) with N = 0.7: an odd count SELECTS the middle value M, whole: 0.50000000000000000000
+      *>   S1-S4 (review R2-1) T = 0.1 in 9V9(20); the double of 0.1 is 0.1000000000000000055511..., so it is the LARGER: a binary64 the program
+      *>       computed (F + 0) orders by its exact value on DISPLAY as on COMPUTE, not by its shortest image 0.1 (a tie with T):
+      *>   S1  DISPLAY MAX ((T) (F + 0)) selects the double, shown 0.1;  S2  COMPUTE R = the same: 0.10000000000000000555
+      *>   S3  DISPLAY MIN ((F + 0) T) selects T: 0.10000000000000000000;  S4  COMPUTE R = the same: 0.10000000000000000000
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB4859MED.
        DATA DIVISION.
@@ -34,6 +38,7 @@
        01 M PIC 9V9(20) VALUE 0.5.
        01 N PIC 9V9(20) VALUE 0.7.
        01 R PIC 9V9(20).
+       01 T PIC 9V9(20) VALUE 0.1.
        PROCEDURE DIVISION.
            DISPLAY "B1 " FUNCTION MEDIAN (F G)
            COMPUTE R = FUNCTION MEDIAN (F G)
@@ -48,5 +53,11 @@
            DISPLAY "X2 " R
            DISPLAY "X3 " FUNCTION MEDIAN ((F + 0) (G + 0))
            DISPLAY "E1 " FUNCTION MEDIAN (F M N)
+           DISPLAY "S1 " FUNCTION MAX ((T) (F + 0))
+           COMPUTE R = FUNCTION MAX ((T) (F + 0))
+           DISPLAY "S2 " R
+           DISPLAY "S3 " FUNCTION MIN ((F + 0) T)
+           COMPUTE R = FUNCTION MIN ((F + 0) T)
+           DISPLAY "S4 " R
            STOP RUN.
        END PROGRAM PB4859MED.

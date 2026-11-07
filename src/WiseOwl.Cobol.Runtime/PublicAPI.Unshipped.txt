@@ -897,6 +897,7 @@ static WiseOwl.Cobol.Runtime.FunctionValueField.MedianStandard(WiseOwl.Cobol.Run
 static WiseOwl.Cobol.Runtime.FunctionValueField.Min(params WiseOwl.Cobol.Runtime.FunctionValueField[]! arguments) -> WiseOwl.Cobol.Runtime.FunctionValueField
 static WiseOwl.Cobol.Runtime.FunctionValueField.OfDigits(WiseOwl.Cobol.Runtime.CobolDec value, int digits) -> WiseOwl.Cobol.Runtime.FunctionValueField
 static WiseOwl.Cobol.Runtime.FunctionValueField.OfExact(WiseOwl.Cobol.Runtime.CobolExact value) -> WiseOwl.Cobol.Runtime.FunctionValueField
+static WiseOwl.Cobol.Runtime.FunctionValueField.OfBinary64(double value, WiseOwl.Cobol.Runtime.CobolRounding mode) -> WiseOwl.Cobol.Runtime.FunctionValueField
 static WiseOwl.Cobol.Runtime.FunctionValueField.OfFloat(double value) -> WiseOwl.Cobol.Runtime.FunctionValueField
 static WiseOwl.Cobol.Runtime.FunctionValueField.OfFloatItem(WiseOwl.Cobol.Runtime.CobolDec exactValue, in WiseOwl.Cobol.Runtime.NumProfile item, string! image, int bytes) -> WiseOwl.Cobol.Runtime.FunctionValueField
 static WiseOwl.Cobol.Runtime.FunctionValueField.OfItem(WiseOwl.Cobol.Runtime.CobolDec value, in WiseOwl.Cobol.Runtime.NumProfile item, int positions, int bytes) -> WiseOwl.Cobol.Runtime.FunctionValueField

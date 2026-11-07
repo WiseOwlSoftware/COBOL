@@ -171,6 +171,12 @@ public readonly struct FunctionValueField
     public static FunctionValueField OfFloat(double value) =>
         new(Shape.Float, CobolDec.FromApproximation(value), default, sizeof(double), CobolFloat.Display(value));
 
+    /// <summary>A binary64 the program computed (an expression such as <c>F + 0</c>): no approximation, so it orders by its EXACT value
+    /// (<see cref="CobolDec.FromBinary64"/> in <paramref name="mode"/>, the lift <c>DecOperandExact</c> gives the same operand on
+    /// COMPUTE) and shows the shortest image of its own DISPLAY. A pair holding it is ordered as COMPUTE orders it.</summary>
+    public static FunctionValueField OfBinary64(double value, CobolRounding mode) =>
+        new(Shape.Float, CobolDec.FromBinary64(value, mode), default, sizeof(double), CobolFloat.Display(value));
+
     /// <summary>A floating-point ITEM argument: it orders by its exact value (<paramref name="exactValue"/>, the data item's one
     /// SDIDI lift, never an approximation) and shows the image its own DISPLAY writes (a binary32 item's shortest binary32
     /// round-trip, not its binary64 widening). The temporary copies the item, so it has the item's <paramref name="bytes"/>

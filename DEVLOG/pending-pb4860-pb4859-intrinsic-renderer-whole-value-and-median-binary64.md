@@ -20,6 +20,8 @@ Review round 1 (R1-1): `FunctionDeviceText.Field`'s default arm described a bina
 
 Self-review: architecture (one reader of binary64-ness per channel, no C# in a bound node), full code (15.61.4 2), 15.4.1 and DOC-A.1-92b read, not paraphrased), performance (one small `bool[]` per native MEDIAN with a real argument), duplication (the double conversion in two channel bodies, both over `FloatResultant.FromExact`).
 
+Review round 2 (R2-1): R1-1's `FunctionFieldOfFloat` ordered a computed binary64 (`F + 0`) by its shortest image (`FromApproximation`), but COMPUTE lifts it exactly (`DecOperandExact`, `FromBinary64`), so MAX, MIN and odd MEDIAN selected different arguments on DISPLAY and COMPUTE (T = 0.1 in 9V9(20) against `F + 0`: DISPLAY picked T, COMPUTE the float). New `FunctionValueField.OfBinary64` (exact order, shortest image shown), reached through `FunctionDeviceText.FloatField` for a non-approximate Real; a nested function's approximation keeps `OfFloat`. Golden lines S1-S4 added to the pb4859 case (values from the exact expansion of the double 0.1).
+
 Gate (run 000001-20261107T014616Z): `=== BUILD-LOCAL GATE: GREEN — Conformance 22,399/22,399 · Unit 40,356/40,356 · Characterization 37/37 cases ran (skipped 0)`; the pb4859 cases ran Passed in Conformance.trx (editions 2002, 2014, 2023 and the 85 refusal).
 
 Goldens: `pb4860_a_whole_value_argument_keeps_its_value_in_a_list_that_leaves_the_carrier` (+ `_85` refusal),
