@@ -62,6 +62,7 @@ DEFAULT_OUT = REPO / "scratchpad" / "phase-b"
 # second one: the same format parsed in two places is CLAUDE.md rule 8's failure one level down — `spec_refs`
 # would grow a field here and not there, and the dossier would quietly stop seeing the notes that own its rows.
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+import citation  # noqa: E402  (THE citation format and its parser, kb/Work PB4887)
 import grammar_source  # noqa: E402  (THE reader of the grammar's rules, kb/Work PB3204)
 import inventory_schema  # noqa: E402  (THE reader of the catalog and the §7 register, kb/Work PB3209)
 import inventory_store  # noqa: E402  (THE reader of the inventory)
@@ -288,7 +289,9 @@ def dossier_sections(sections: list[str]) -> list[str]:
 
 
 def clause_pattern(sections: list[str]) -> re.Pattern:
-    """The one citation regex, written once and reused for source, tests, CONFORMANCE.md and DIAGNOSTICS.md.
+    """The dossier's search for these clauses, written once and reused for source, tests, CONFORMANCE.md and
+    DIAGNOSTICS.md. The `§` arm is the 2023 citation's mark, `citation.MARK_2023` (the one citation format,
+    kb/Work PB4887), the same one `citation.clause_pattern` searches with.
 
     ⛔ `(?![0-9])` IS THE WHOLE POINT. `§14.9.2` and `§14.9.27` are different statements (STRING and OPEN), and a
     plain prefix match on the shorter one sweeps in every citation of the longer — the dossier for STRING would
@@ -300,7 +303,7 @@ def clause_pattern(sections: list[str]) -> re.Pattern:
     (`IntrinsicArgumentRules.cs` carries `GR-15.2-6`), and a dossier that saw only `§` would miss them.
     """
     alts = "|".join(re.escape(s) for s in sorted(sections, key=len, reverse=True))
-    return re.compile(rf"(?:§\s?|\b(?:GR|SR|FMT|RV|AR|DOC)-)(?:{alts})(?![0-9])")
+    return re.compile(rf"(?:{citation.MARK_2023}|\b(?:GR|SR|FMT|RV|AR|DOC)-)(?:{alts})(?![0-9])")
 
 
 def keywords(subject: str) -> tuple[list[str], str]:

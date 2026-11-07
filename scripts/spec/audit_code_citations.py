@@ -21,9 +21,19 @@ evidence about MOVE (kb/Work PB159).
 THE CHECKS, each narrow on purpose:
 
   PHANTOM   — the citation names a clause the standard does not have (§8.3.1.2, §8.8.4.1.1, §8.3.3.7 were cited
-              ~120 times between them; kb/Work PB159/PB182/PB290). Only ISO-SHAPED numbers are considered — at
-              least three dot-separated segments under a real top-level clause — because a design doc legitimately
-              writes "§4.2" and "§14.4" about its OWN sections and those are not citations of the standard.
+              ~120 times between them; kb/Work PB159/PB182/PB290). A citation in the edition form
+              (`§2023:13.18.35.4`, `§1985:VI.5.3.2`; `scripts/spec/citation.py`, kb/Work PB4887) is checked against
+              its own edition's transcription, whatever its shape. A BARE `§N` (the transition, while
+              `citation.BARE_MEANS_2023`) is read as 2023 only when ISO-SHAPED — at least three dot-separated
+              segments under a real top-level clause — because a design doc legitimately writes "§4.2" and "§14.4"
+              about its OWN sections and those are not citations of the standard.
+
+  CITATION  — a malformed edition-form citation: an edition the format does not have (`§5000:`), or a locator
+              of the wrong shape for its edition (`§2023:VI.5`, `§1985:5.3.2`).
+
+  BARE      — (once `citation.BARE_MEANS_2023` is gone, kb/Work PB4887 phase 2) a bare `§N` that names a clause of
+              the 2023 standard and no document of the repository's own (`citation.bare_standard`): a citation of the
+              standard carries its edition.
 
   SUBJECT   — the cited clause's catalog subject is a NAMED construct (`MERGE statement`, `HIGHLIGHT clause`,
               `ROUNDED phrase`) whose name appears NOWHERE in the citation's context, while the context DOES name
@@ -128,6 +138,7 @@ import sys
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import citation_corpus  # noqa: E402
 import cite as cite_mod  # noqa: E402  — THE one reader of the standard's printed rule paths (CLAUDE.md rule 1)
+import citation  # noqa: E402  — THE one citation format and its parser (kb/Work PB4887)
 from spec_headings import GENERAL_FORMAT_TITLE  # noqa: E402  — THE one spelling of the heading (kb/Work PB284)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
@@ -137,23 +148,12 @@ import spec_pdf  # noqa: E402  (scripts/spec: the one edition table, kb/Work PB4
 SPEC = spec_pdf.markdown(2023)
 CATALOG = REPO / "docs" / "rearchitecture" / "spec-rule-catalog.json"
 
-#: A clause reference. Two dots minimum for SUBJECT/HEADER (`§13.16` is a real clause and is cited as one);
-#: PHANTOM additionally demands three segments — see the module docstring.
-#: The trailing `(?![a-z])` keeps a RULE PATH out of the clause number: the standard prints `5 b) 3.` and this
-#: repository writes it glued, `§13.18.35.4.5b.3`; without the guard the audit would read `§13.18.35.4.5` as a
-#: clause and call a correct citation a phantom.
-CITE = re.compile(r"§\s?(\d+(?:\.\d+)+)(?![a-z])")
-
-#: ⛔ A `§` IS NOT ALWAYS A CITATION OF THE STANDARD, and PHANTOM is the check that has to care. This repository's
-#: docs and comments also point at THEIR OWN sections ("DESIGN-locale-facility §4.4.3", "ADR §1.2.1 guardrail 1",
-#: "plan §0") and at OTHER EDITIONS of COBOL, whose clause numbering is a different document entirely
-#: ("COBOL-85 §4.3.3", "ISO 1989:1985 8.3.1.2"). Both are legitimate and neither is checkable against
-#: `specs/ISO_COBOL_2023.md`. This is the one calibration in the file that is a list of words rather than a structure,
-#: and it is deliberately short: everything else is derived.
-NOT_THE_STANDARD = re.compile(
-    r"(?:DESIGN|ADR|PLAN|PROMPT|DEVLOG|SURVEY|CRITIQUE|EVAL|README|CONFORMANCE\.md|REDEFINES_DESIGN"
-    r"|this doc|its own|COBOL-(?:85|1985|2002|2014|2023)|1989:(?:1985|2002|2014))[^§\n]{0,45}$",
-    re.IGNORECASE)
+def cited_2023(text: str) -> list[str]:
+    """The clauses of the 2023 standard `text` cites, left to right, read by the one citation parser
+    (`citation.scan`, kb/Work PB4887): the SUBJECT/HEADER/ordinal checks measure against the 2023 rule catalog, so a
+    citation of another edition is not theirs. Two segments count here (`§13.16` is a real clause, cited as one);
+    PHANTOM's bare reading additionally demands three — see the module docstring."""
+    return [c.locator for c in citation.scan(text) if c.edition == 2023 and not c.error]
 
 #: ⛔ AND A PHANTOM THAT IS BEING REPORTED AS A PHANTOM IS NOT A DEFECT. The repairs for this very family leave
 #: behind the sentence that records them — "the old comment cited a §8.3.3.7 the standard does not have",
@@ -173,7 +173,7 @@ WORD = re.compile(r"(?<![A-Za-z0-9-])([A-Z][A-Z0-9]*(?:-[A-Z0-9]+)*)(?![A-Za-z0-
 #: The DEFINITION-HEADER shape: a construct name at the head of the comment, then a citation close behind it.
 HEADER = re.compile(r"^\W*(?:ISO\s+)?(?:COBOL-\d{2,4}\s+)?"
                     r"((?:[A-Z][A-Z0-9-]{2,})(?:\s+[A-Z][A-Z0-9-]+)?)"
-                    r"[^§\n]{0,60}?§\s?\d")
+                    r"[^§\n]{0,60}?" + citation.MARK_2023 + r"\d")
 
 #: A suite test's METADATA BLOCK, from `*>--- conformance-case` to `*>---` (conformance-suite/README.md, "A test";
 #: read by conformance-suite/harness/generate.py): machine metadata, not prose. A `.cob` comment's HEAD and SUBJECT
@@ -329,7 +329,7 @@ def blocks(path: pathlib.Path):
         head = parts
         if path.suffix == ".cob":
             prose = without_metadata(parts) or parts
-            label = next(([p] for p in prose if CITE.search(p)), [])
+            label = next(([p] for p in prose if cited_2023(p)), [])
             head = prose
         yield start + 1, parts, "\n".join(parts).upper() + "\n" + tail, window, label, head
 
@@ -338,35 +338,66 @@ def names_in(text: str) -> set[str]:
     return set(WORD.findall(text))
 
 
-def _phantoms(line: str, universe: set[str], skip: set[str] = frozenset(), prev: str = ""):
-    """The phantom clauses cited on ONE line, with the exclusions the check cannot do without.
+def _reported(line: str, c: citation.Citation, prev: str) -> bool:
+    """Whether the text around `c` REPORTS a wrong citation rather than making one (the exclusions PHANTOM cannot do
+    without): a disclaimer on the line or the one above, a repair record's arrow, a quoted spelling."""
+    if NAMED_AS_WRONG.search(line) or NAMED_AS_WRONG.search(prev):
+        return True                                      # the text is REPORTING the phantom, not making it
+    if re.match(r"\s*(?:→|->)", line[c.end:c.end + 4]):
+        return True                                      # "§8.4.2.4 → §8.4.3.3" — a repair RECORD, not a claim
+    return (line[c.start - 1:c.start] in ('"', "“", "`")
+            and line[c.end:c.end + 1] in ('"', "”", "`"))   # `"§8.8.4.1.1"` — prose NAMING a spelling
 
-    `prev` is the preceding line: prose wraps, and "swept the repo for the phantom clause / \"§8.8.4.1.1\""
-    puts the disclaimer and the citation on different lines."""
-    for m in CITE.finditer(line):
-        c = m.group(1)
-        segs = c.split(".")
+
+def _phantoms(line: str, universe: set[str], skip: set[str] = frozenset(), prev: str = ""):
+    """`(kind, citation, message)` for every citation on ONE line that names nothing — PHANTOM, or CITATION for a
+    malformed edition-form one — with the exclusions the check cannot do without.
+
+    An edition-form citation (`§2023:…`, `§1985:…`) is unambiguous, so it is validated against its own edition's
+    transcription whatever its shape (`citation.validate`). A bare one (the transition, `citation.BARE_MEANS_2023`)
+    is read as 2023 only when ISO-shaped and when no document's name or other edition stands just left of it
+    (`citation.bare_standard`'s screens). `prev` is the preceding line: prose wraps, and "swept the repo for the
+    phantom clause / \"§8.8.4.1.1\"" puts the disclaimer and the citation on different lines."""
+    for c in citation.scan(line):
+        shown = line[c.start:c.end].split(" ")[0] if c.error else f"§{c.edition}:{c.locator}"
+        if c.error:
+            if not _reported(line, c, prev):              # a doc naming the format's token: "the `§2023:` form"
+                yield "CITATION", shown, c.error
+            continue
+        if not c.bare:
+            problem = citation.validate(c)
+            if problem is not None and not _reported(line, c, prev):
+                yield "PHANTOM", shown, problem
+            continue
+        segs = c.locator.split(".")
         if len(segs) < 3 or not segs[0].isdigit() or not 1 <= int(segs[0]) <= 15:
             continue                                     # not ISO-shaped: a doc's own §4.2, a two-part §13.16
-        if c in universe or c in skip:
+        if c.locator in universe or c.locator in skip:
             continue
-        if NOT_THE_STANDARD.search(line[:m.start()]):
+        before = line[:c.start]
+        if citation.DOCUMENT_SECTION.search(before) or citation.other_edition(before) is not None:
             continue                                     # "DESIGN-… §4.4.3", "COBOL-85 §4.3.3"
-        if NAMED_AS_WRONG.search(line) or NAMED_AS_WRONG.search(prev):
-            continue                                     # the text is REPORTING the phantom, not making it
-        if re.match(r"-[A-Z]", line[m.end():m.end() + 2]):
+        if re.match(r"-[A-Z]", line[c.end:c.end + 2]):
             continue                                     # "§9.10.1-C2" — a design doc's own item label
-        if re.match(r"\s*(?:→|->)", line[m.end():m.end() + 4]):
-            continue                                     # "§8.4.2.4 → §8.4.3.3" — a repair RECORD, not a claim
-        if line[m.start() - 1:m.start()] in ('"', "\u201c", "`") and line[m.end():m.end() + 1] in ('"', "\u201d", "`"):
-            continue                                     # `"§8.8.4.1.1"` — prose NAMING a spelling, not citing it
-        yield c
+        if not _reported(line, c, prev):
+            yield "PHANTOM", c.locator, "the standard has no clause §" + c.locator
+
+
+def _bares(line: str, universe: set[str], skip: set[str], prev: str):
+    """BARE (kb/Work PB4887 phase 2): a bare `§N` that `citation.bare_standard` classifies as a citation of the 2023
+    standard — the very set `rewrite_citations.py` rewrites — must carry its edition. Silent while the transition
+    reads the bare form as 2023 (`citation.BARE_MEANS_2023`)."""
+    if citation.BARE_MEANS_2023:
+        return
+    for c in citation.scan(line, bare=True):
+        if c.bare and citation.bare_standard(line, c, skip, universe) and not _reported(line, c, prev):
+            yield "BARE", c.locator, f"write §2023:{c.locator}: a citation of the standard carries its edition"
 
 
 def phantom_scan(universe: set[str] | None):
-    """PHANTOM over EVERY file that carries a citation, source and prose alike — it needs no context, so it has
-    no false-positive problem outside code and there is no reason to leave the design docs unchecked (the
-    §8.3.1.2 family lived in both)."""
+    """PHANTOM, CITATION and BARE over EVERY file that carries a citation, source and prose alike — they need no
+    context, so they have no false-positive problem outside code and there is no reason to leave the design docs
+    unchecked (the §8.3.1.2 family lived in both)."""
     findings: list[tuple[str, str, str, str]] = []
     if universe is None:
         return findings
@@ -388,8 +419,11 @@ def phantom_scan(universe: set[str] | None):
         # A design doc numbers its OWN sections and then points at them; those are not citations of anything.
         mine = {m.group(1) for line in lines if (m := own_heading.match(line))} if path.suffix == ".md" else set()
         for i, line in enumerate(lines, 1):
-            for c in _phantoms(line, universe, mine, lines[i - 2] if i >= 2 else ""):
-                findings.append(("PHANTOM", f"{rel}:{i}", c, "the standard has no clause §" + c))
+            if "§" not in line:
+                continue
+            prev = lines[i - 2] if i >= 2 else ""
+            for kind, c, msg in [*_phantoms(line, universe, mine, prev), *_bares(line, universe, mine, prev)]:
+                findings.append((kind, f"{rel}:{i}", c, msg))
     return findings
 
 
@@ -397,7 +431,8 @@ def phantom_scan(universe: set[str] | None):
 
 #: `§14.9.39 Format 7`, `ISO 14.9.39 format 6`, `14.9.39.2 Formats 11`. The clause may be the CONSTRUCT
 #: (§14.9.39) or its general-format subclause (§14.9.39.2) — this repository writes both, so both are keyed.
-FORMAT_CITE = re.compile(r"(\d+(?:\.\d+){1,4})\s+Formats?\s+(\d+)", re.I)
+#: A clause number of ANOTHER edition's citation (`§2002:14.9.39 Format 4`) is not read (`NOT_ANOTHER_EDITION`).
+FORMAT_CITE = re.compile(r"(?<![\d.])" + citation.NOT_ANOTHER_EDITION + r"(\d+(?:\.\d+){1,4})\s+Formats?\s+(\d+)", re.I)
 
 #: A rule designator and, optionally, the sub-item letter written against it: `GR4`, `SR16g`, `GR3 c) 2`,
 #: `GR7 k)6`, `GR6c's`, `SR1(b)`, `GR7 a/b`. The `(?![a-z])` keeps a word (`GRs`, `SRc`… ) out of the sub-item
@@ -416,15 +451,18 @@ def _sub(m: re.Match) -> str | None:
     return m.group(3) or m.group(4) or m.group(5) or m.group(6)
 
 #: An ISO-shaped clause number, with or without the `§` — `(ISO 14.9.39 Format 10 GR18)` is how half the
-#: goldens write it. Three segments minimum, so a doc's own `§4.2` is not read as a citation.
-CLAUSE_TOKEN = re.compile(r"(?<![\d.])(\d+(?:\.\d+){2,4})(?![\d.])")
+#: goldens write it. Three segments minimum, so a doc's own `§4.2` is not read as a citation; the clause number of
+#: ANOTHER edition's citation (`§2002:14.8.4`) is not a 2023 token (`citation.NOT_ANOTHER_EDITION`, kb/Work PB4887).
+CLAUSE_TOKEN = re.compile(r"(?<![\d.])" + citation.NOT_ANOTHER_EDITION + r"(\d+(?:\.\d+){2,4})(?![\d.])")
 
 #: ⛔ INSIDE A MESSAGE STRING A TWO-SEGMENT CLAUSE IS A CITATION WHEN IT CARRIES THE `§` — `(ISO §11.7 SR6)`,
 #: `(ISO §13.16 SR16 …)`. The three-segment floor exists for PROSE (a doc's own `§4.2`), and it made the
 #: diagnostic family blind to exactly the unqualified citations it exists to catch: fourteen shipped in
 #: `OoClassTable`/`DataBinder` messages while DIAG-UNQUALIFIED read zero (kb/Work PB388, wave 47). The `§` is
-#: the evidence; a bare `11.7` in a message is still not read.
-DIAG_CLAUSE_TOKEN = re.compile(r"(?<![\d.])(?:§\s?(\d+\.\d+)|(\d+(?:\.\d+){2,4}))(?![\d.])")
+#: the evidence; a bare `11.7` in a message is still not read. The mark is the 2023 one (`§2023:11.7`, and the bare
+#: `§11.7` while `citation.BARE_MEANS_2023`).
+DIAG_CLAUSE_TOKEN = re.compile(r"(?<![\d.])" + citation.NOT_ANOTHER_EDITION
+                               + r"(?:" + citation.MARK_2023 + r"(\d+\.\d+)|(\d+(?:\.\d+){2,4}))(?![\d.])")
 
 #: How far to the LEFT a rule designator may look for the clause it belongs to. A line cites one clause and
 #: then several of its rules (`§14.9.37.4 GR4/GR6/GR9`, `§14.9.39 Format 9 SR21 / §8.4.3.13`), so the carry is
@@ -720,7 +758,7 @@ QUOTE_FLOOR = 3
 #: ⛔ A RULE NUMBER OF ANOTHER TEXT IS NOT A CITATION OF THIS ONE. A repository that reconciles editions writes
 #: "the post-ballot 2002 text's clause 8.7.5.2 ends its abbreviation rules at SR8 …" — a true statement about
 #: a DRAFT's numbering, which differs from the 2023 standard's by design (kb/Work PB3602). The same calibration
-#: as `NOT_THE_STANDARD`, for the same reason: it is a short list of words, applied to the text just before the
+#: as `citation.DOCUMENT_SECTION`, for the same reason: it is a short list of words, applied to the text before the
 #: designator, and over-accepting costs nothing while accusing a correct history sentence teaches its author to
 #: delete the history. `P1`/`P2`/`P3` are the reconciliation passes' own names for the three transcriptions.
 OTHER_TEXT = re.compile(r"(?i)post-ballot|\bdrafts?\b|\bJ4\b|\bP[123]\b|COBOL[- ]?(?:85|1985|2002|2014)\b")
@@ -736,7 +774,7 @@ def _standard():
     line carrying both a designator and a quotation asks for it."""
     global _SPEC_LINES
     if _SPEC_LINES is None:
-        _SPEC_LINES = cite_mod.load()
+        _SPEC_LINES = cite_mod.load(2023)
     return _SPEC_LINES
 
 
@@ -811,7 +849,7 @@ def _quote_findings(site: str, line: str):
         between, cs, kind, nums = near[0]
         if (clause := _clause_left_of(line, cs)) is None:
             continue
-        bare = CLAUSE_TOKEN.sub("", between).replace("§", "").replace("ISO", "")
+        bare = CLAUSE_TOKEN.sub("", re.sub(citation.MARK_2023, "", between)).replace("ISO", "")
         if not QUOTE_GAP.match(bare):
             continue
         if cs > qs and not re.search(r"[(\[]", bare):
@@ -982,10 +1020,14 @@ def _clause_left_of(text: str, pos: int, token: re.Pattern = CLAUSE_TOKEN) -> st
     """The ISO-shaped clause number nearest to the LEFT of `pos`, within `CARRY` — the same attribution the
     ordinal arm makes, restricted to one string literal so it cannot cross into the code around it. The
     diagnostic family passes `DIAG_CLAUSE_TOKEN`, which also reads a `§`-marked two-segment clause."""
-    best = None
+    best, best_end = None, -1
     for c in token.finditer(text, 0, pos):
         if pos - c.end() <= CARRY:
-            best = next(g for g in c.groups() if g)
+            best, best_end = next(g for g in c.groups() if g), c.end()
+    # ⛔ A CITATION OF ANOTHER EDITION BETWEEN THEM OWNS THE DESIGNATOR (kb/Work PB4887): in `§2023:14.9.8 … §2002:14.8.4
+    # SR2` the SR2 is 2002's, and filing it under 14.9.8 would measure it against the wrong standard's rules.
+    if best is not None and any(c.edition != 2023 and c.end > best_end for c in citation.scan(text[:pos])):
+        return None
     return best
 
 
@@ -1106,7 +1148,7 @@ def audit(subjects: dict[str, str], own: dict[str, str], universe: set[str] | No
     for path in citation_corpus.declaration_files():
         rel = path.relative_to(REPO).as_posix()
         for lineno, parts, context, window, label, head in blocks(path):
-            cited = [c for p in parts for c in CITE.findall(p)]
+            cited = [c for p in parts for c in cited_2023(p)]
             if not cited:
                 continue
             site = f"{rel}:{lineno}"
@@ -1171,6 +1213,11 @@ ORDINAL_SELF_TEST = [
     ("RULE",
      '    + "(ISO §14.9.12.2 / §14.9.12.3 SR6)");',
      '    + "(ISO §14.9.12.2)");'),
+    # ⛔ THE EDITION FORM IS MEASURED THE SAME WAY, AND ANOTHER EDITION'S RULE IS NOT MEASURED AGAINST 2023'S
+    # (kb/Work PB4887): the silent twin is the same designator filed under a 2002 clause.
+    ("RULE",
+     '    + "(§2023:14.9.12.2 / §2023:14.9.12.3 SR6)");',
+     '    + "(§2023:14.9.12.2 / §2002:14.9.12.3 SR6)");'),
     ("SUBITEM",
      "/// serial SEARCH with VARYING index-of-ANOTHER-table (ISO §14.9.37.4 GR8b) falls through",
      "/// serial SEARCH with VARYING index-of-ANOTHER-table (ISO §14.9.37.4 GR3 c) 2) falls through"),
@@ -1378,6 +1425,44 @@ def ordinal_self_test(ordinals, tops) -> bool:
     return ok
 
 
+#: ⛔ THE EDITION-FORM LEGS (kb/Work PB4887): (the kind that must fire or None for silent, the line). A citation in
+#: the edition form is validated against its own edition, the phantom of one edition is not hidden by another's
+#: clause, and a document's own `§` stays out of every check.
+EDITION_SELF_TEST = [
+    ("PHANTOM", "a figurative constant operand (§2023:8.3.1.2)"),
+    (None, "a figurative constant operand (§2023:8.3.3.6)"),
+    ("PHANTOM", "the data description entry (§1985:VII.5.3.2)"),
+    (None, "the data description entry (§1985:VI.5.3.2 GR3)"),
+    ("CITATION", "the default is EC-ALL CHECKING OFF (§5000: the line it was on)"),
+    ("CITATION", "a Roman locator for an ISO edition (§2023:VI.5)"),
+    (None, "an edition the repository has no transcription of (§2014:99.99)"),
+    (None, "the old comment cited §2023:8.3.1.2, which does not exist"),
+    (None, "DESIGN-locale-facility §4.4.3 and plan §0"),
+]
+
+
+def edition_self_test(universe: set[str]) -> bool:
+    ok = True
+    for want, line in EDITION_SELF_TEST:
+        got = {k for k, _c, _m in _phantoms(line, universe)}
+        good = got == ({want} if want else set())
+        print(f"  {'ok  ' if good else 'FAIL'} {'fires ' + want if want else 'silent'} on {line[:60]}"
+              + ("" if good else f"  (got {sorted(got)})"))
+        ok &= good
+    # ⛔ AND THE PHASE-2 READING, seen to fire before it is switched on: with the transition off, a bare citation of
+    # a 2023 clause is BARE, a document's own section and a reported phantom are not.
+    saved, citation.BARE_MEANS_2023 = citation.BARE_MEANS_2023, False
+    try:
+        bare = [{k for k, _c, _m in _bares(line, universe, set(), "")} for line in (
+            "the MOVE statement (§14.9.25.4 GR6)", "DESIGN-locale-facility §4.4.3", "the old comment cited §8.3.1.2")]
+    finally:
+        citation.BARE_MEANS_2023 = saved
+    good = bare == [{"BARE"}, set(), set()]
+    print(f"  {'ok  ' if good else 'FAIL'} BARE fires on a bare 2023 citation once the transition is off, silent on "
+          "a document's section and a reported phantom" + ("" if good else f"  (got {bare})"))
+    return ok and good
+
+
 def self_test(subjects, own, universe, ordinals=None, tops=None, direct=None) -> int:
     """⛔ A GATE THAT HAS NEVER BEEN SEEN TO FAIL IS NOT EVIDENCE. Each check is fired on the exact defect it
     was written for, and then on its repaired twin, which must be silent."""
@@ -1403,6 +1488,8 @@ def self_test(subjects, own, universe, ordinals=None, tops=None, direct=None) ->
         ok &= not got
     if universe is None:
         print("  ⚠ PHANTOM could not be self-tested — specs/ISO_COBOL_2023.md is absent")
+    else:
+        ok &= edition_self_test(universe)
     ok &= ordinal_self_test(ordinals, tops)
     ok &= diagnostic_self_test(direct)
     ok &= construct_self_test()
@@ -1428,14 +1515,14 @@ def _checks(parts, context, window, subjects, own, universe, phantom=False, labe
         label = parts
     if head is None:
         head = parts
-    cited = [c for p in label for c in CITE.findall(p)]
+    cited = [c for p in label for c in cited_2023(p)]
     ctx_names = names_in(context)
     near = names_in(window)
 
     if phantom and universe is not None:
         for p in parts:
-            for c in _phantoms(p, universe):
-                out.append(("PHANTOM", c, f"the standard has no clause §{c}"))
+            for kind, c, msg in _phantoms(p, universe):
+                out.append((kind, c, msg))
 
     for c in cited:
         subj = subjects.get(c)

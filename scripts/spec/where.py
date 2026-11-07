@@ -15,19 +15,23 @@ Measured motivation (waves 45–57, 81 implementer/finisher transcripts): search
 import argparse, collections, pathlib, re, sys
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+import citation  # noqa: E402  (the one citation format and its parser, kb/Work PB4887)
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('clause', help='e.g. 13.18.63 or 13.18.63.3')
+    ap.add_argument('clause', help='a 2023 clause (13.18.63) or its citation (§2023:13.18.63.3)')
     ap.add_argument('rule', nargs='?', help='optional rule token, e.g. SR2, GR4, r6')
     ap.add_argument('--top', type=int, default=12)
     ap.add_argument('--lines', type=int, default=3)
     a = ap.parse_args()
-    clause = re.escape(a.clause.lstrip('§'))
-    cpat = re.compile(r'§\s?' + clause + r'(?![0-9])')
+    cited = citation.parse(a.clause) if a.clause.startswith('§') else citation.Citation(2023, a.clause)
+    if cited.edition != 2023:
+        sys.exit(f"where.py indexes the citations of the 2023 standard; {a.clause} cites {cited.edition}")
+    cpat = re.compile(citation.clause_pattern(cited.locator))
     rpat = re.compile(r'\b' + re.escape(a.rule) + r'\b', re.I) if a.rule else None
     hits = collections.defaultdict(list)
     for base, globs in (('src', ('*.cs', '*.g4')), ('tests', ('*.cs',)), ('kb/Work', ('*.md',)), ('docs', ('*.md',))):

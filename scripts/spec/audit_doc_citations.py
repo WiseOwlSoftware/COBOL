@@ -58,6 +58,7 @@ FOUND BY THE FIRST RUN (all corrected in the same change set):
 from __future__ import annotations
 
 import argparse
+import dataclasses
 import pathlib
 import re
 import sys
@@ -65,6 +66,7 @@ import sys
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import citation_corpus  # noqa: E402
 import cite as cite_mod  # noqa: E402
+import citation  # noqa: E402  (the one citation format and its parser, kb/Work PB4887)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
@@ -81,7 +83,8 @@ QUOTED = r'["“](?P<q>[a-z][^"”\n]{30,90})["”]'
 #: ⚠ `[^§"“\n]` between the clause and the quote — NOT `[^"“\n]`. A sentence may name two clauses before it
 #: quotes ("never the §13.18.38 window — §14.2.3 GR8 says …"), and the citation being made is the NEAREST one.
 #: The greedy form blamed the wrong clause and reported a CORRECT citation as misfiled.
-PAT = re.compile(r'§(?P<cl>\d+(?:\.\d+){2,})[^§"“\n]{0,80}' + QUOTED)
+#: The citation itself is `citation.PATTERN`, the one citation pattern (kb/Work PB4887), read back by `_cited`.
+PAT = re.compile(citation.PATTERN + r'[^§"“\n]{0,80}' + QUOTED)
 
 #: FORM 2 — the citation FOLLOWS the quote and CLOSES it off: `"depends upon the argument types" §15.18.1)`.
 #: Three calibrations, each of which stops this form from reading something that is not a citation:
@@ -91,7 +94,7 @@ PAT = re.compile(r'§(?P<cl>\d+(?:\.\d+){2,})[^§"“\n]{0,80}' + QUOTED)
 #:  · a rule designator may sit between the clause and the terminator (`§14.9.7.3 SR2)`, `§15.2 item 5)`).
 #:  · the citation must CLOSE — bracket, comma, stop, or the `/` and `·` of a citation list. A `§` followed by
 #:    more prose is an aside about a construct the quote names, not the quote's source (see the order rule).
-POST = re.compile(QUOTED + r'\s{0,2}[(\[]?(?:ISO\s+)?§\s?(?P<cl>\d+(?:\.\d+){2,})(?!\.\d)'
+POST = re.compile(QUOTED + r'\s{0,2}[(\[]?(?:ISO\s+)?' + citation.PATTERN + r'(?!\.\d)'
                   r'(?:\s+(?:SR|GR|item|rule)\s?\d+[a-z]?\)?)?\s*(?:[)\],.;:/·]|$)')
 
 #: Marks that a "quote" is elided, marked up, or otherwise not verbatim — never a checkable citation.
@@ -125,38 +128,39 @@ MARKER = "audit-doc-citations: names-misfilings"
 #: a coincidence rather than a quotation, and that floor is what keeps an ordinary phrase out.
 ELIDE_SLACK, ELIDE_FLOOR = 1.5, 5
 
-_SPEC = None
-_WORDS = None
+_SPEC: dict[int, tuple[list[str], list]] = {}
+_WORDS: dict[int, dict[str, list[str]]] = {}
+#: The three-segment floor of this audit's citations: below it a clause region (`§13.16`) ends at its first subclause
+#: heading, so a quotation of the clause's rules is never inside it and every such pairing would read as misfiled.
+FLOOR_SEGMENTS = 3
 
 
-def _spec() -> tuple[list[str], list]:
-    """`specs/ISO_COBOL_2023.md` as `cite.py` reads it — its lines and clause regions — loaded ONCE per process.
+def _spec(edition: int) -> tuple[list[str], list]:
+    """`edition`'s transcription as `cite.py` reads it — its lines and regions — loaded ONCE per process.
 
     ⛔ ONE CHECKER, CALLED IN-PROCESS (kb/Work PB2525). Every pairing used to be checked by spawning `cite.py
     --check` (and `--find`) as a fresh Python process that reloaded the standard: 843 processes, 75 of the audit's
     79 s under cProfile, about 89 ms each, while the audit's own logic cost about 3 s. `cite.check` and
     `cite.find` are the very functions the `cite.py` CLI calls, so the ruling is the same code either way."""
-    global _SPEC
-    if _SPEC is None:
-        _SPEC = cite_mod.load()
-    return _SPEC
+    if edition not in _SPEC:
+        _SPEC[edition] = cite_mod.load(edition)
+    return _SPEC[edition]
 
 
-def _clause_words() -> dict[str, list[str]]:
-    """clause -> its own region as a WORD LIST, normalized the way `cite.py` compares. Built once."""
-    global _WORDS
-    if _WORDS is None:
-        lines, regions = _spec()
+def _clause_words(edition: int) -> dict[str, list[str]]:
+    """locator -> its own region as a WORD LIST, normalized the way `cite.py` compares. Built once per edition."""
+    if edition not in _WORDS:
+        lines, regions = _spec(edition)
         out: dict[str, list[str]] = {}
         for n, _t, s, e in regions:
             out.setdefault(n, []).extend(cite_mod.norm(" ".join(lines[s:e])).split())
-        _WORDS = out
-    return _WORDS
+        _WORDS[edition] = out
+    return _WORDS[edition]
 
 
-def elided_window(clause: str, quote: str) -> int | None:
-    """The length of the TIGHTEST window of `clause`'s own words that carries `quote`'s words IN ORDER, or
-    None when the quote is not an elision of anything the clause says.
+def elided_window(cited: citation.Citation, quote: str) -> int | None:
+    """The length of the TIGHTEST window of the cited region's own words that carries `quote`'s words IN ORDER, or
+    None when the quote is not an elision of anything the region says.
 
     Scanning from every start keeps this exact rather than greedy: a greedy left-to-right match can consume
     an early occurrence of a common word ("the") and then run to the end of the clause, making a genuine
@@ -164,7 +168,7 @@ def elided_window(clause: str, quote: str) -> int | None:
     want = cite_mod.norm(quote).split()
     if len(want) < ELIDE_FLOOR:
         return None
-    hay = _clause_words().get(clause)
+    hay = _clause_words(cited.edition).get(cited.locator)
     if not hay:
         return None
     best = None
@@ -183,54 +187,66 @@ def elided_window(clause: str, quote: str) -> int | None:
     return best
 
 
-def verdict_of(clause: str, quote: str) -> tuple[str, str | int | None]:
-    """THE ONE RULING on a (clause, quote) pairing — `("ok"|"misfiled"|"elided"|"absent", evidence)`.
+def verdict_of(cited: citation.Citation, quote: str) -> tuple[str, str | int | None]:
+    """THE ONE RULING on a (citation, quote) pairing — `("ok"|"misfiled"|"elided"|"absent", evidence)`, against the
+    transcription of the edition the citation names.
 
     ⛔ A PURE FUNCTION SO THE SELF-TEST DRIVES THE SAME CODE THE GATE DOES. It was inlined in `scan`, and the
     self-test re-implemented the MISFILED half beside it in four lines of its own — which is how the ELIDED arm
     could be added to `scan` and be invisible to `--self-test`: a gate arm nothing had ever seen fire
     (`feedback_green_gates_arent_evidence`). One ruling, two callers."""
-    lines, regions = _spec()
-    if cite_mod.check(lines, regions, clause, quote)[0] == 0:
+    lines, regions = _spec(cited.edition)
+    region_only = dataclasses.replace(cited, rule=None)
+    if cite_mod.check(lines, regions, region_only, quote)[0] == 0:
         return "ok", None
-    code, out = cite_mod.find(lines, regions, quote)
+    code, out = cite_mod.find(lines, regions, quote, cited.edition)
     head = out[0].splitlines()[0].strip() if out else ""
     if code == 0 and head.startswith("§"):
         return "misfiled", head
-    if (w := elided_window(clause, quote)) is not None:
+    if (w := elided_window(cited, quote)) is not None:
         return "elided", w
     return "absent", None
 
 
+def _cited(m: re.Match) -> citation.Citation | None:
+    """The checkable citation a PAT/POST match carries: a well-formed one, of an edition whose transcription exists,
+    at the three-segment floor. A malformed citation is `audit_code_citations.py`'s finding (CITATION), not this one."""
+    cited = citation.from_match(m)
+    if cited is None or cited.error or citation.transcription(cited.edition) is None:
+        return None
+    return cited if len(cited.locator.split(".")) >= FLOOR_SEGMENTS else None
+
+
 def citations(line: str):
-    """Every checkable citation on ONE line, as (column, clause, quote, form), left to right.
+    """Every checkable citation on ONE line, as (column, citation, quote, form), left to right.
 
     The POSTFIX form is resolved FIRST and its quote is then off limits to the prefix form: when both readings
     are available for one quoted fragment the citation written next to it wins, which is what makes
     `"a" §1.2.3, "b" §4.5.6` read as two citations rather than as one misfiling."""
-    claimed: dict[tuple[int, int], tuple[str, str, str]] = {}
+    claimed: dict[tuple[int, int], tuple[citation.Citation | None, str, str]] = {}
     for m in POST.finditer(line):
-        claimed[m.span("q")] = (m.group("cl"), m.group("q"), "postfix")
+        claimed[m.span("q")] = (_cited(m), m.group("q"), "postfix")
     found = dict(claimed)
     for m in PAT.finditer(line):
         if m.span("q") not in claimed:
-            found[m.span("q")] = (m.group("cl"), m.group("q"), "prefix")
+            found[m.span("q")] = (_cited(m), m.group("q"), "prefix")
     for span in sorted(found):
-        clause, quote, form = found[span]
-        if not any(t in quote for t in NOT_VERBATIM):
-            yield span[0], clause, quote, form
+        cited, quote, form = found[span]
+        if cited is not None and not any(t in quote for t in NOT_VERBATIM):
+            yield span[0], cited, quote, form
 
 
 def scan(paths, elided_out: list | None = None):
     """(misfiled, absent, ok) over `paths`, EVERY SITE reported and every distinct pairing checked ONCE.
-    `elided_out`, when given, collects the ELIDED subset of `absent` — see `elided_window`.
+    `elided_out`, when given, collects the ELIDED subset of `absent` — see `elided_window`. A finding names the
+    citation in its edition form (`2023:14.9.7.3`, printed after a `§`).
 
     ⛔ ONE VERDICT PER PAIRING, ONE REPORT PER SITE, and the two were conflated until PB379. Deduplicating the
     REPORT hid siblings: the `§15.38.1 "depends on the type of argument-1"` pairing lives in three files, and a
     reader of the one reported line had no way to know the other two existed — precisely the sweep CLAUDE.md
     rule 4 demands, defeated by the tool. The ruling (`verdict_of`) is still made once per pairing, which is the
     part that costs anything."""
-    verdict: dict[tuple[str, str], tuple[str, str | int | None]] = {}
+    verdict: dict[tuple[int, str, str], tuple[str, str | int | None]] = {}
     misfiled: list[tuple[str, int, str, str, str, str]] = []
     absent: list[tuple[str, int, str, str, str]] = []
     ok = 0
@@ -243,19 +259,20 @@ def scan(paths, elided_out: list | None = None):
             continue
         rel = str(doc.relative_to(REPO) if doc.is_relative_to(REPO) else doc).replace("\\", "/")
         for n, line in enumerate(lines, 1):
-            for _col, clause, quote, form in citations(line):
-                key = (clause, quote)
+            for _col, cited, quote, form in citations(line):
+                key = (cited.edition, cited.locator, quote)
                 if key not in verdict:
-                    verdict[key] = verdict_of(clause, quote)
+                    verdict[key] = verdict_of(cited, quote)
                 kind, evidence = verdict[key]
+                shown = f"{cited.edition}:{cited.locator}"
                 if kind == "ok":
                     ok += 1
                 elif kind == "misfiled":
-                    misfiled.append((rel, n, clause, quote, str(evidence), form))
+                    misfiled.append((rel, n, shown, quote, str(evidence), form))
                 else:
-                    absent.append((rel, n, clause, quote, form))
+                    absent.append((rel, n, shown, quote, form))
                     if elided_out is not None and kind == "elided":
-                        elided_out.append((rel, n, clause, quote, int(evidence), form))
+                        elided_out.append((rel, n, shown, quote, int(evidence), form))
     return misfiled, absent, ok
 
 
@@ -304,6 +321,15 @@ SELF_TEST = [
     # correct citation as one level short.
     ("postfix with a rule designator", None,
      '"specified with the LOCALE phrase" (§12.3.7.3 SR16g / SR17d) — of EITHER class'),
+    # ⛔ THE EDITION FORM (kb/Work PB4887) reads the same way, and a 1985 citation is checked against the 1985
+    # transcription, its paragraph inside its own section.
+    ("edition form, prefix, misfiled", "misfiled",
+     'The COMMIT statement (§2023:8.6.6) "shall not be specified in the input or output procedure of a MERGE"'),
+    ("edition form, postfix, correct", None,
+     'It "shall not be specified in the input or output procedure of a MERGE" (§2023:14.9.7.3 SR2), it says.'),
+    ("1985, correct", None, 'Its entry (§1985:VI.5.3.1) "specifies the characteristics of a particular item of data"'),
+    ("1985, misfiled", "misfiled",
+     'Its entry (§1985:VI.5.4.1) "specifies the characteristics of a particular item of data"'),
 ]
 
 
@@ -311,10 +337,10 @@ def self_test() -> int:
     ok = True
     for name, want_arm, line in SELF_TEST:
         got = []
-        for _col, clause, quote, _form in citations(line):
-            kind, _evidence = verdict_of(clause, quote)
+        for _col, cited, quote, _form in citations(line):
+            kind, _evidence = verdict_of(cited, quote)
             if kind != "ok":
-                got.append((kind, f"§{clause} \"{quote[:40]}\""))
+                got.append((kind, f"§{cited.edition}:{cited.locator} \"{quote[:40]}\""))
         arms = {k for k, _ in got}
         good = (arms == {want_arm}) if want_arm else not arms
         ok &= good
@@ -350,7 +376,7 @@ def self_test() -> int:
             rulings = []
     finally:
         subprocess.Popen = real_popen
-    loaded_once = _spec() is _spec()
+    loaded_once = _spec(2023) is _spec(2023)
     inproc = not spawned and len(rulings) >= len(SELF_TEST) and loaded_once
     print(f"  {'ok  ' if inproc else 'FAIL'} in-process: every ruling made with no process spawned, the standard "
           f"loaded once" + ("" if inproc else f"  (spawned {spawned[:1]}, {len(rulings)} rulings)"))

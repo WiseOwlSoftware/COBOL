@@ -47,6 +47,8 @@ from standard_streams import ensure_utf8
 
 HERE = pathlib.Path(__file__).resolve().parent
 REPO = HERE.parent
+sys.path.insert(0, str(HERE / "spec"))
+import citation  # noqa: E402  (scripts/spec: the one citation format and its parser, kb/Work PB4887)
 BRIEFS = HERE / "fuzz_triage_briefs"
 NL = "\n"
 
@@ -634,15 +636,18 @@ class Spec:
         sys.path.insert(0, str(HERE / "spec"))
         import cite  # noqa: PLC0415
         self.cite = cite
-        self.lines, self.clauses = cite.load()
-        self.known = {c[0] for c in self.clauses}
+        self.lines, self.clauses = cite.load(2023)
 
     def check(self, clause: str, text: str) -> tuple[bool, str]:
-        rc, out = self.cite.check(self.lines, self.clauses, clause, text)
+        """A `{clause, text}` citation of a triage record: its `clause` is a clause of ISO/IEC 1989:2023 by the
+        record's schema (the differential is judged against 2023)."""
+        rc, out = self.cite.check(self.lines, self.clauses, self.cite.citation.Citation(2023, clause), text)
         return rc == 0, out[0].splitlines()[0]
 
 
-CLAUSE_IN_TEXT = re.compile(r"§\s*([0-9A-F]+(?:\.[0-9]+)*)")
+def clauses_in(text: str) -> set[str]:
+    """The 2023 clauses `text` cites, read by the one citation parser (`scripts/spec/citation.py`, kb/Work PB4887)."""
+    return {c.locator for c in citation.scan(text) if c.edition == 2023 and not c.error}
 
 
 def citation_lines(t: Triage, c: Collected, spec: Spec) -> list[tuple[bool, str]]:
@@ -650,9 +655,13 @@ def citation_lines(t: Triage, c: Collected, spec: Spec) -> list[tuple[bool, str]
     `upstream.citations`, and the `citations` of each refutation line (the ones a filed record's `spec_refs` come from)."""
     out = []
     for s, v in c.verdicts:
-        for clause in sorted(set(CLAUSE_IN_TEXT.findall(v.get("rule") or ""))):
-            out.append((clause in spec.known, f"[{s}] {v['signature']}: §{clause} " + ("exists" if clause in spec.known
-                                                                                          else "is NOT a clause of the transcription")))
+        named = {(cited.edition, cited.locator): cited for cited in citation.scan(v.get("rule") or "")}
+        for key in sorted(named):
+            cited = named[key]
+            problem = citation.validate(cited)
+            shown = f"§{cited.edition}:{cited.locator}"
+            out.append((problem is None, f"[{s}] {v['signature']}: {shown} " + ("exists" if problem is None
+                                                                                   else f"is NOT a citation: {problem}")))
         up = v.get("upstream") or {}
         for cit in up.get("citations", []) if up.get("disposition") == "record" else []:
             ok, first = spec.check(cit["clause"], cit["text"])
@@ -912,7 +921,7 @@ def record_held(t: Triage, v: dict, ref: dict | None, spec: Spec) -> Draft | str
         return "a citation does not check: " + " | ".join(bad)
     cited = {cit["clause"] for cit in cites}
     expected = work.section_named(secs, "Expected result") or ""
-    written = set(CLAUSE_IN_TEXT.findall(expected + NL + work.section_named(secs, "Draft issue")))
+    written = clauses_in(expected + NL + work.section_named(secs, "Draft issue"))
     if written - cited:
         return ("the record cites " + ", ".join("§" + c for c in sorted(written - cited)) +
                 ", which the refutation line's checked `citations` do not carry")
