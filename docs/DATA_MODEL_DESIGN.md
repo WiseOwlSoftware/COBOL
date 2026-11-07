@@ -688,8 +688,13 @@ content-validation half is separately answered by the declined A.4.14 facility (
     `PointerImage.NullImage`; and ALLOCATE form 2 passes `CobolPtr.Allocate` the member offsets
     `SlotWindow.TokenImageOffsetsOf` (each OCCURS occurrence, at the stride a reference applies) so its uniform fill
     does not cover them (§2023:14.9.3.4 GR9). `SlotWindow.CarriesTokenImage` is the one test of which slot members have an
-    image. Only a byte WRITE over the positions can disagree afterwards, and it is one-way: a pointer is never decoded
-    back from its bytes.
+    image. Only a byte WRITE over the positions can disagree afterwards, and it is one-way: a byte window never
+    decodes the positions back into the slot. A message tag is in the same family since kb/Work PB4838 (`MessageTagImage`).
+    The one reader of the positions is the FILE record codec: a file record carries the leaf's token and its struct's
+    `FromImage` decodes it (`PointerImage.DataPointerOf` and its siblings, `RuntimeApi.SlotFromImage`), within the run unit
+    (`RunUnit.SlotImages`); a token the run unit never imaged stays a `ForeignAddress` / `MessageParty.Unresolved` tag that
+    keeps its eight positions and raises on use. `DataItem.RecordImageCapable` is the capability (image-capable, then
+    record-image-capable, then transfer-image-capable).
   - **The RECORD-STRUCT twin: a ONE-WAY transfer image (kb/Work PB244).** A strongly-typed group holding such a
     leaf in an ordinary record struct has no cell, but it has the same STORAGE: `DataItem.TransferImageCapable`
     admits it and `GroupImageCodec.EmitImageMethods` emits its `AsImage()` with each slot leaf contributing
