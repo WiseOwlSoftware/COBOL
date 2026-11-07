@@ -54,11 +54,14 @@ class Edition:
 
 #: Each edition's files, named after its public transcription in specs/. 1985 is a scan (PB4812: 0 vector drawings and
 #: about 33 images on a general-format page), so its underlines, brackets, braces and choice bars exist only as pixels
-#: (PB4817 measures them); 2002 is a true vector PDF like 2023 (PB4813). The folio offset of 1985 and 2002 is measured
-#: when their runs begin (PB4812, PB4813), so a tool that needs it exits naming this table until then.
+#: (PB4817 measures them); 2002 is a true vector PDF like 2023 (PB4813), with a true text layer: its underlines and
+#: brackets are line strokes, but its braces are Symbol-font glyphs in the text layer (U+F8F1..U+F8FE), not strokes.
+#: 2002's folio offset is 22, measured from the footer folio of each of its 859 arabic-numbered pages by the text-layer
+#: backend (transcribe_pdf.py text, PB4813). 1985's is measured when its run needs it (PB4812), so a tool that needs it
+#: exits naming this table until then.
 EDITIONS: dict[int, Edition] = {
     1985: Edition("ANSI_COBOL_1985.pdf", "ANSI_COBOL_1985.md", "raster", None, "# SECTION I: INTRODUCTORY INFORMATION"),
-    2002: Edition("ISO_COBOL_2002.pdf", "ISO_COBOL_2002.md", "vector", None, None),
+    2002: Edition("ISO_COBOL_2002.pdf", "ISO_COBOL_2002.md", "vector", 22, None),
     2023: Edition("ISO_COBOL_2023.pdf", "ISO_COBOL_2023.md", "vector", 30, '<a id="section-1"></a>'),
 }
 
@@ -291,7 +294,7 @@ def self_test() -> int:
     except SystemExit as ex:
         check("require_vector exits for the scanned edition, naming the tool and the check that covers the scan",
               all(w in str(ex.code) for w in ("a planted tool", scan_check(1985), "render_figure.py <page> --edition 1985")))
-    check("2023's folio offset is recorded", folio_offset(2023) == 30)
+    check("2023's and 2002's folio offsets are recorded", folio_offset(2023) == 30 and folio_offset(2002) == 22)
     try:
         folio_offset(1985)
         check("an unmeasured folio offset exits", False)

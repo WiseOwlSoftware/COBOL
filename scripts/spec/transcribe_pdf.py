@@ -11,6 +11,7 @@ build_links, validate_doc), which had a retired checkout's paths, a retired mode
     python scripts/spec/transcribe_pdf.py retry    --edition 1985 --state DIR --api-key-file KEY
     python scripts/spec/transcribe_pdf.py pages 12 40-44 --edition 1985 --state DIR --api-key-file KEY [--api-account NAME] [--replace]
     python scripts/spec/transcribe_pdf.py pages 4 122 --edition 1985 --state DIR --local qwen3.6:35b [--replace]
+    python scripts/spec/transcribe_pdf.py text     --edition 2002 --state DIR [PAGES] [--replace]  # the PDF's own text layer
     python scripts/spec/transcribe_pdf.py check    --edition 1985 --state DIR 4 122      # word agreement, numbers only
     python scripts/spec/transcribe_pdf.py assemble --edition 1985 --state DIR [--out F]  # the pages -> specs/<edition>.md (refused once it exists)
     python scripts/spec/test_transcribe_pdf.py                                          # its self-test: planted PDF, fake client, no API call
@@ -37,6 +38,15 @@ recorded in `local.json` with the error and the model, the run goes on, `status`
 nonzero. `pages <list> --local ANOTHER` retries them. `check` compares a
 page with the PDF's text layer (word recall and precision) and prints numbers only, never page text.
 
+TEXT-LAYER BACKEND (kb/Work PB4813). `text [PAGES]` converts pages of a PDF with a true text layer (2002) from that layer,
+with no model: text_layer.py reads the words with their fonts and positions and writes the headings, rules, notes, lists,
+tables and code the page sets, the standard's defects kept as printed. A general format is never typed from text: it is
+written as a text_layer.FIGURE_MARK placeholder (page, figure, measured extent) for the vector arm to draw, and `assemble`
+refuses a page that still holds one. `local.json` records each page as `model: text-layer` with its folio, its figures
+and what the text layer left ambiguous; `status` counts them. A page the layer cannot write (an image) is recorded as
+failed, and `pages <list> --local MODEL` may read it, as may a page whose structure is ambiguous, only as a reading the
+page decides.
+
 A REPLY IS JUDGED BEFORE IT IS WRITTEN (kb/Work PB4917). A model that declines the task ends its turn normally, so a
 `stop_reason` of `end_turn` does not make a reply a page. `collect` and `pages --local` ask `judge` of every reply: a
 first-person declining of the task or a sentence naming a summary (REFUSAL), or, where the page has a text layer, too few
@@ -51,7 +61,8 @@ not written. The state directory is private (it holds the raw pages); only the a
 ASSEMBLY. The pages become the edition's Markdown: a `# ` heading opens each PART (front matter, the Sections of the
 standard, an amendment: `PARTS`), a `## Page N` heading opens each PDF page, and the page text follows as converted: the
 general formats keep the drawn figures the model produced (the figure tools cross-check them). The assembly refuses a
-missing page, an empty page, a refusal or summary in place of a page, and a stamp.
+missing page, an empty page, a refusal or summary in place of a page, a stamp, and a general format the vector arm has not
+yet drawn (a text-layer page's FIGURE_MARK).
 
 COST. `submit --max-usd N` refuses a batch whose estimate (pages x the measured tokens per page, at the model's batch
 rate) exceeds N.
@@ -73,6 +84,7 @@ from typing import Any, Callable, Iterable
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import spec_pdf  # noqa: E402  (the one edition table, kb/Work PB4815)
+import text_layer  # noqa: E402  (the text-layer backend, kb/Work PB4813)
 import verify_publishable  # noqa: E402  (the stamp shapes of each edition)
 from message_batches import DEFAULT_MODEL, BatchRun, make_client, reply_text, usd, write_atomic  # noqa: E402  (THE batch state)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/
@@ -317,6 +329,12 @@ def print_status(run: Run, st: dict[str, Any]) -> None:
     if failed:
         print(f"local conversions failed {len(failed)}: " + "; ".join(f"{p} ({log[page_name(p)]['model']}: {log[page_name(p)]['error']})" for p in failed[:20]),
               flush=True)
+    layer = {n: rec for n, rec in log.items() if rec.get("model") == TEXT_LAYER and "error" not in rec}
+    if layer:
+        unsure = sorted(int(n[1:]) for n, rec in layer.items() if rec.get("ambiguous"))
+        print(f"text layer: {len(layer)} page(s), {sum(rec.get('figures', 0) for rec in layer.values())} general format(s) "
+              f"awaiting the vector arm on {sum(1 for rec in layer.values() if rec.get('figures'))} page(s); "
+              f"structure ambiguous on {len(unsure)} page(s) {unsure[:20]}", flush=True)
     refused = {n: rec for n, rec in st.get("failed", {}).items() if not run.page_file(int(n[1:])).exists()}
     if refused:
         print(f"batch replies refused {len(refused)} (retry resubmits them, pages --local converts them): "
@@ -400,6 +418,69 @@ def local_pages(run: Run, pdf: pathlib.Path, model: str, pages: list[int], repla
     return failed
 
 
+# -- the text-layer backend ---------------------------------------------------------------------------------------------
+
+#: The provenance `model` of a page the text-layer backend wrote: no model read it.
+TEXT_LAYER = "text-layer"
+
+
+def open_pdf(pdf: pathlib.Path) -> Any:
+    import pymupdf  # noqa: PLC0415
+    return pymupdf.open(pdf)
+
+
+def text_pages(run: Run, pdf: pathlib.Path, pages: list[int], replace: bool,
+               read: Callable[[Any, int], text_layer.Layout] = text_layer.read_layout,
+               opener: Callable[[pathlib.Path], Any] = open_pdf) -> list[int]:
+    """Convert named pages from the PDF's own text layer (text_layer.py; kb/Work PB4813), in page order. A page whose text
+    layer holds nothing to write (an image page), or whose stamp cannot be dropped, is recorded in local.json as failed and
+    returned; each written page's provenance records the backend, its general formats awaiting the vector arm, what the text
+    layer left ambiguous, and its folio. A General format clause open at the end of a page carries to the next: the first
+    page named learns it from the nearest earlier page with a heading."""
+    pats = stamp_patterns(run.edition)
+
+    def stamp(t: str) -> bool:
+        return any(p.search(t) for p in pats)
+
+    log = run.local_log()
+    failed: list[int] = []
+    pages = sorted(pages)
+    with opener(pdf) as doc:
+        open_format = False
+        for q in range(pages[0] - 1, 0, -1) if pages else ():
+            known = text_layer.opens_format(read(doc, q), stamp)
+            if known is not None:
+                open_format = known
+                break
+        expected = pages[0] if pages else 0
+        for pno in pages:
+            if pno != expected:   # a gap in the pages named: learn the clause state again
+                open_format = next((k for k in (text_layer.opens_format(read(doc, q), stamp) for q in range(pno - 1, 0, -1))
+                                    if k is not None), False)
+            expected = pno + 1
+            c = text_layer.convert(read(doc, pno), pno, stamp, open_format)
+            open_format = c.format_open
+            name = page_name(pno)
+            if run.page_file(pno).exists() and not replace:
+                print(f"{name}: already written, skipped", flush=True)
+                continue
+            if not run.put(pno, c.markdown, replace=replace):
+                why = "the text layer holds no text to write (" + ("; ".join(c.ambiguous) or "empty") + ")"
+                print(f"{name}: NOT written, {why}", flush=True)
+                failed.append(pno)
+                if not run.page_file(pno).exists():
+                    log[name] = {"model": TEXT_LAYER, "error": why, "at": datetime.datetime.now().astimezone().isoformat()}
+                continue
+            log[name] = {"model": TEXT_LAYER, "at": datetime.datetime.now().astimezone().isoformat(), "folio": c.folio,
+                         "figures": len(c.figures), "ambiguous": c.ambiguous}
+            print(f"{name}: written{f', {len(c.figures)} general format(s) for the vector arm' if c.figures else ''}"
+                  f"{f', AMBIGUOUS: ' + '; '.join(c.ambiguous) if c.ambiguous else ''}", flush=True)
+    write_atomic(run.local_file, json.dumps(log, indent=1))
+    if failed:
+        print(f"text layer FAILED for {len(failed)} page(s): {failed}; `pages <list> --local MODEL` may read them", flush=True)
+    return failed
+
+
 def bag(text: str) -> collections.Counter[str]:
     return collections.Counter(w.lower() for w in WORD.findall(text))
 
@@ -471,6 +552,8 @@ def assemble(run: Run, count: int, parts: list[tuple[int, str]]) -> tuple[str, l
             problems.append(f"{page_name(pno)}: {why}")
         if any(p.search(text) for p in stamp_patterns(run.edition)):
             problems.append(f"{page_name(pno)}: a per-copy stamp survives")
+        if text_layer.FIGURE_MARK in text:
+            problems.append(f"{page_name(pno)}: {text.count(text_layer.FIGURE_MARK)} general format(s) not yet drawn by the vector arm")
         if pno in starts:
             out.append(f"# {starts[pno]}\n\n")
         out.append(f"## Page {pno}\n\n{text.rstrip()}\n\n")
@@ -504,6 +587,10 @@ def build_parser() -> argparse.ArgumentParser:
     g.add_argument("pages", nargs="+", help="page numbers and ranges: 12 40-44")
     g.add_argument("--local", metavar="MODEL", help="an Ollama vision model; no API call")
     g.add_argument("--replace", action="store_true", help="replace a written page (the old text is kept in orig/)")
+    t = sub.add_parser("text", help="convert pages from the PDF's own text layer (no model; general formats left to the vector arm)")
+    common(t, key=False)
+    t.add_argument("pages", nargs="*", help="page numbers and ranges (default: every page)")
+    t.add_argument("--replace", action="store_true", help="replace a written page (the old text is kept in orig/)")
     c = sub.add_parser("check", help="word agreement of converted pages with the PDF's text layer (numbers only)")
     common(c, key=False)
     c.add_argument("pages", nargs="+")
@@ -517,7 +604,7 @@ def main(argv: list[str] | None = None, client_factory: Callable[[str], Any] = m
          pdf_override: pathlib.Path | None = None, parts: list[tuple[int, str]] | None = None) -> int:
     a = build_parser().parse_args(argv)
     run = Run(pathlib.Path(a.state), a.edition)
-    needs_pdf = a.cmd in ("submit", "retry", "pages", "check", "collect")  # collect judges a reply against the page's text layer
+    needs_pdf = a.cmd in ("submit", "retry", "pages", "check", "collect", "text")  # collect judges a reply against the text layer
     pdf = pdf_override or (spec_pdf.require(a.edition) if needs_pdf else None)
     model = getattr(a, "model", DEFAULT_MODEL)
     if a.cmd in ("check", "assemble"):
@@ -544,6 +631,11 @@ def main(argv: list[str] | None = None, client_factory: Callable[[str], Any] = m
         print(f"=== TRANSCRIBE ASSEMBLE: {count} pages -> {out} ===")
         return 0
     st = run.batches.load(model=model, pages=pdf_page_count(pdf) if pdf else 0)
+    if a.cmd == "text":
+        pages = parse_pages(a.pages, st["pages"]) if a.pages else list(range(1, st["pages"] + 1))
+        failed = text_pages(run, pdf, pages, a.replace)
+        print_status(run, st)
+        return 1 if failed else 0
     if a.cmd == "pages" and a.local:
         return 1 if local_pages(run, pdf, a.local, parse_pages(a.pages, st["pages"]), a.replace) else 0
     if a.api_account and not a.api_key_file:

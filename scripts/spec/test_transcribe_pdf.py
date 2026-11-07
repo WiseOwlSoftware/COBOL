@@ -367,6 +367,73 @@ def main() -> int:
         check("a page with a short text layer is not judged by agreement", T.judge("other words entirely", "alpha beta gamma", 1985) is None)
         plant_pdf(pdf, ["alpha beta gamma", "delta epsilon zeta"])  # the cases below read the first planted PDF again
 
+        print("the text-layer backend (PB4813)")
+        L = T.text_layer
+
+        def row(text, x, y, size=9.0, font="Univers"):
+            return [L.Span(text, font, size, x, y, x + 0.5 * size * len(text), y + size)]
+
+        bold = "Univers-Bold"
+        layouts = {
+            1: L.Layout(612, 792, (), (), 1, ()),
+            2: L.Layout(612, 792, (*row("7.1.2 COPY statement", 56.7, 84, 10, bold), *row("The COPY statement copies.", 56.7, 106),
+                                   *row("7.1.2.1 General format", 56.7, 700, 10, bold), *row("COPY", 72, 720),
+                                   *row(STAMP, 56.7, 770, 7, "Helvetica"), *row("32", 56.7, 756))),
+            3: L.Layout(612, 792, (*row("text-name-1", 110, 90), *row("7.1.2.2 Syntax rules", 56.7, 200, 10, bold),
+                                   *row("1)", 56.7, 222), *row("A rule.", 74.7, 222))),
+        }
+        opened: list = []
+
+        @contextlib.contextmanager
+        def opener(path):
+            opened.append(path)
+            yield "planted"
+
+        reader = lambda doc, pno: layouts[pno]
+        tl = T.Run(root / "text", 2002)
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            failed = T.text_pages(tl, pdf, [1, 2, 3], False, read=reader, opener=opener)
+        tlog = tl.local_log()
+        check("an image page is not written, is recorded as a failed text-layer page, and is returned",
+              failed == [1] and not tl.page_file(1).exists() and tlog["p0001"]["model"] == T.TEXT_LAYER and "image" in tlog["p0001"]["error"])
+        p2 = tl.page_file(2).read_text(encoding="utf-8")
+        check("a text-layer page is written from the layer: heading, prose, the format left as a placeholder, no stamp",
+              p2.startswith("##### 7.1.2 COPY statement\n\nThe COPY statement copies.\n\n###### 7.1.2.1 General format\n\n" + L.FIGURE_MARK)
+              and "store order" not in p2 and b"\r" not in tl.page_file(2).read_bytes())
+        check("the clause open at a page's end carries to the next page",
+              tl.page_file(3).read_text(encoding="utf-8").startswith(L.FIGURE_MARK) and "1\\) A rule." in tl.page_file(3).read_text(encoding="utf-8"))
+        check("each page's provenance names the backend, its folio, its figures and what was ambiguous",
+              tlog["p0002"] == {**tlog["p0002"], "model": T.TEXT_LAYER, "folio": "32", "figures": 1, "ambiguous": []} and tlog["p0003"]["figures"] == 1)
+        check("the PDF is opened once for the run", len(opened) == 1)
+        tl.page_file(3).write_text("the canary's page\n", encoding="utf-8", newline="\n")
+        with contextlib.redirect_stdout(io.StringIO()):
+            T.text_pages(tl, pdf, [3], False, read=reader, opener=opener)
+        check("a written page is kept without --replace", tl.page_file(3).read_text(encoding="utf-8") == "the canary's page\n")
+        with contextlib.redirect_stdout(io.StringIO()):
+            T.text_pages(tl, pdf, [3], True, read=reader, opener=opener)
+        check("--replace on one page learns the open clause from the page before it, and keeps the old page in orig/",
+              tl.page_file(3).read_text(encoding="utf-8").startswith(L.FIGURE_MARK)
+              and (root / "text" / "orig" / "p0003.md").read_text(encoding="utf-8") == "the canary's page\n")
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            T.print_status(tl, tl.batches.load(pages=3))
+        check("status counts the text-layer pages and the general formats awaiting the vector arm",
+              "text layer: 2 page(s), 2 general format(s) awaiting the vector arm on 2 page(s)" in out.getvalue()
+              and "local conversions failed 1: 1 (text-layer:" in out.getvalue())
+        tl.page_file(1).write_text("cover\n", encoding="utf-8", newline="\n")
+        text, problems = T.assemble(tl, 3, [(1, "Front matter")])
+        check("the assembly refuses a page whose general format is not yet drawn",
+              any("p0002: 1 general format(s) not yet drawn" in p for p in problems) and any("p0003" in p for p in problems))
+        real_text = T.text_pages
+        try:
+            T.text_pages = lambda r, pf, pg, rp: real_text(r, pf, pg, rp, read=reader, opener=opener)
+            with contextlib.redirect_stdout(io.StringIO()):
+                code = T.main(["text", "1-2", "--edition", "2002", "--state", str(root / "text2")], pdf_override=pdf)
+            check("`text` exits nonzero when a page failed, and calls no API", code == 1 and (root / "text2" / "pages" / "p0002.md").exists())
+        finally:
+            T.text_pages = real_text
+
         print("check and agreement")
         recall, precision, md_words, layer_words = T.agreement("alpha beta gamma\n" + STAMP, "alpha beta gamma delta", 1985)
         check("recall counts layer words found, precision markdown words found",
