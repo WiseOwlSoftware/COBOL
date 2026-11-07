@@ -264,7 +264,7 @@ public sealed class DeclinedFacilityDriftTests
     {
         var missing = MissingPrintedKeywords(File.ReadAllText(GrammarPath), out int cited);
         // Population (feedback_verdict_evidence_invariant): the eight clauses of the band each cite their format.
-        Assert.True(cited >= 8, $"only {cited} rule(s) of CobolDeclined.g4 cite a general format (`ISO §2023:n`) — the "
+        Assert.True(cited >= 8, $"only {cited} rule(s) of CobolDeclined.g4 cite a general format (`ISO §2023:<n>`) — the "
             + "citation reader is broken, or a rule lost the comment that ties it to its printed format");
         Assert.True(missing.Count == 0,
             "printed keyword(s) with a lexer token that no arm of the declined rule names — each falls to cobolWord, "
@@ -284,7 +284,7 @@ public sealed class DeclinedFacilityDriftTests
         var uncovered = rules.Values.Where(r => TokenRef.IsMatch(r.Body) && !covered.Contains(r.Name)).Select(r => r.Name).ToList();
         Assert.True(rules.Count >= 8, $"CobolDeclined.g4 parsed to only {rules.Count} rule(s) — the reader is broken");
         Assert.True(uncovered.Count == 0, "declined rule(s) that write keywords but neither cite a general format "
-            + "(`// ISO §2023:n`) nor are reached from one: " + string.Join(", ", uncovered));
+            + "(`// ISO §2023:<n>`) nor are reached from one: " + string.Join(", ", uncovered));
     }
 
     private static HashSet<string> ReachedRules(string start, Dictionary<string, GrammarRule> rules)
