@@ -29,8 +29,8 @@ drawn figure a verdict; `render_figure.py <page> --edition 1985` prints a page's
 underlines 89, alignment 30 counted over every figure), 212 have a word the pairing could not read, 40 were not located.
 The ledger is in the wave's scratch directory; the refuters take the 294 that do not agree.
 
-**Found on the way.** `sweep_figures.py --check` on the 2023 transcription reports 2 drifted figures (§14.9.9.2 and
-§14.9.28.2 Format 3) at the base commit too: a lead in the wave report, not this mechanism.
+**Found on the way.** `sweep_figures.py --check` on the 2023 transcription reports 2 drifted figures (§2023:14.9.9.2 and
+§2023:14.9.28.2 Format 3) at the base commit too: a lead in the wave report, not this mechanism.
 
 **Tests.** `test_figure_raster.py` cases 10a-10f (planted: dotted letters, ellipsis, typed delimiters, half-line
 alternatives, delimiter order, an uphill line, two figures sharing words, the assignment); `figure_reading.py

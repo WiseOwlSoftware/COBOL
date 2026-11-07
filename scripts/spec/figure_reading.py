@@ -6,10 +6,10 @@ batch of PB4816), and each is now also REGENERATED from the measured page (`figu
 draws it). Two independent drawings of one printed format either agree or one of them is wrong, and the four things a
 general format carries are what they must agree on (PB4812, FIGURE-STYLE.md):
 
-    grouping     the brackets (§5.2.6.2: at most one of the options) and braces (§5.2.6.3: exactly one) that hold a word
-    bars         the choice indicators (§5.2.6.4) that hold it
-    underlines   which of its letters are underlined (§5.2.2: an underlined word is required)
-    alignment    whether the next word is printed beside it or stacked below it (§5.2.6.1: stacked words are alternatives)
+    grouping     the brackets (§2023:5.2.6.2: at most one of the options) and braces (§2023:5.2.6.3: exactly one) that hold a word
+    bars         the choice indicators (§2023:5.2.6.4) that hold it
+    underlines   which of its letters are underlined (§2023:5.2.2: an underlined word is required)
+    alignment    whether the next word is printed beside it or stacked below it (§2023:5.2.6.1: stacked words are alternatives)
 
 and, on a scan, a fifth: the BOXES that hold it (a 1985 box marks syntax unique to level 2 of a module; it groups and
 chooses nothing, FIGURE-STYLE.md rule 9). Either drawing's box is read: the house style's double-line sides, and the
@@ -266,7 +266,7 @@ def compare(drawn: list[str], generated: list[str]) -> dict:
             out["boxes"].append(f"{x.text}: drawn {_boxes(x)}, generated {_boxes(y)}")
         if x.underlined != y.underlined:
             out["underlines"].append(f"{x.text}: drawn {list(x.underlined)}, generated {list(y.underlined)}")
-    # ALIGNMENT is §5.2.6.1's: inside one group, words on one row are in sequence and words on different rows are
+    # ALIGNMENT is §2023:5.2.6.1's: inside one group, words on one row are in sequence and words on different rows are
     # stacked alternatives. Outside every group a row that ends simply continues the format, so only words that share
     # their innermost group in the drawing are compared.
     for (x0, y0), (x1, y1) in zip(pairs, pairs[1:]):
