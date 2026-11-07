@@ -1,0 +1,23 @@
+{
+ "page": 599,
+ "figure": 0,
+ "drawn_lines": [
+  "<u>PAGE</u>  ┌LIMIT IS  ┐  integer-1  ┌LINE ┐  [<u>HEADING</u> integer-2]",
+  "      └LIMITS ARE┘             └LINES┘",
+  "",
+  "   [<u>FIRST</u> <u>DETAIL</u> integer-3]  [<u>LAST</u> <u>DETAIL</u> integer-4]",
+  "",
+  "   [<u>FOOTING</u> integer-5]"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "<u>PAGE</u>  ┌LIMIT IS  ┐  integer-1  ┌LINE ┐  [<u>HEADING</u> integer-2]",
+  "      │          │             │     │",
+  "      └LIMITS ARE┘             └LINES┘",
+  "",
+  "   [<u>FIRST</u> <u>DETAIL</u> integer-3]  [<u>LAST</u> <u>DETAIL</u> integer-4]",
+  "",
+  "   [<u>FOOTING</u> integer-5]"
+ ],
+ "reason": "The printed page sets the PAGE clause (3.8.2) as the batch drew it: PAGE [LIMIT IS/LIMITS ARE] integer-1 [LINE/LINES] [HEADING integer-2], [FIRST DETAIL integer-3] [LAST DETAIL integer-4], [FOOTING integer-5]. Drawn in the house style (figure_reading.restyle)."
+}

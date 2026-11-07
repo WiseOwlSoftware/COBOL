@@ -1,0 +1,30 @@
+{
+ "page": 354,
+ "figure": 0,
+ "drawn_lines": [
+  "<u>SEARCH</u> identifier-1 ┌<u>VARYING</u> ⎧identifier-2⎫┐",
+  "                    └        ⎩index-name-1⎭┘",
+  "",
+  "    [AT <u>END</u> imperative-statement-1]",
+  "",
+  "    ⎧<u>WHEN</u> condition-1 ⎧imperative-statement-2⎫⎫ ...",
+  "    ⎩                 ⎩<u>NEXT</u> <u>SENTENCE</u>         ⎭⎭",
+  "",
+  "    [<u>END-SEARCH</u>]"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "╔<u>SEARCH</u> identifier-1 ┌<u>VARYING</u> ╭identifier-2╮┐        ╗",
+  "║                    │        ┤            ├│        ║",
+  "║                    └        ╰index-name-1╯┘        ║",
+  "║                                                    ║",
+  "║    [AT <u>END</u> imperative-statement-1]                 ║",
+  "║                                                    ║",
+  "║    ╭<u>WHEN</u> condition-1 ╭imperative-statement-2 ╮ ╮ … ║",
+  "║    ┤                 ┤                       ├ ├   ║",
+  "║    ╰                 ╰<u>NEXT</u> <u>SENTENCE</u>          ╯ ╯   ║",
+  "║                                                    ║",
+  "╚    [<u>END-SEARCH</u>]                                    ╝"
+ ],
+ "reason": "The printed page encloses SEARCH Format 1, its label included, in a level-2 box; the words, underlines and groups are as the batch drew them (WHEN condition-1 {imperative-statement-2 / NEXT SENTENCE} with its brace and ellipsis), and the batch lost the box. Drawn as the batch's drawing with the box's two sides round it."
+}

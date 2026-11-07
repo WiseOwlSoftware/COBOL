@@ -1,0 +1,16 @@
+{
+ "page": 480,
+ "figure": 0,
+ "drawn_lines": [
+  "               ⎧ <u>SEQUENTIAL</u> ⎫",
+  "<u>ACCESS</u> MODE IS ⎨ <u>RANDOM</u>     ⎬",
+  "               ⎩ <u>DYNAMIC</u>    ⎭"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "               ╭ <u>SEQUENTIAL</u> ╮",
+  "<u>ACCESS</u> MODE IS ┤ <u>RANDOM</u>     ├",
+  "               ╰║<u>DYNAMIC</u>║   ╯"
+ ],
+ "reason": "The printed page sets ACCESS MODE IS {SEQUENTIAL / RANDOM / DYNAMIC}, all three and ACCESS underlined, with DYNAMIC in a level-2 box, which the batch lost; the measurer did not locate the format. Drawn as the batch's drawing with the box's sides round DYNAMIC."
+}

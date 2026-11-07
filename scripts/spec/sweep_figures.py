@@ -545,6 +545,7 @@ def load_verdicts(directory: pathlib.Path) -> dict[tuple[int, int], Verdict]:
     """Every verdict file in `directory`, keyed by (page, figure). A malformed file or two files naming one figure is
     FATAL: a verdict that is silently dropped puts the batch's or the measurer's reading in the file unchecked."""
     import json
+    import figure_reading
     out = {}
     for f in sorted(directory.glob("*.json")) if directory.is_dir() else []:
         try:
@@ -563,6 +564,17 @@ def load_verdicts(directory: pathlib.Path) -> dict[tuple[int, int], Verdict]:
                      else "needs `figure_lines`, the decided figure's lines"))
         if not v.reason.strip():
             sys.exit(f"FATAL: {f}: a verdict states its `reason` (what the printed page shows)")
+        # The decided figure is written as it stands, so it is held to the house style here: FIGURE-STYLE.md rule 2's
+        # forbidden pieces never reach the file, and a `drawn` verdict IS the batch's drawing, redrawn
+        # (`figure_reading.restyle`): a figure that reads differently from it is the refuter's own, `neither`.
+        if figure_reading.foreign_glyphs(v.lines):
+            sys.exit(f"FATAL: {f}: `figure_lines` carry {figure_reading.foreign_glyphs(v.lines)!r}, which FIGURE-STYLE.md "
+                     "rule 2 forbids; redraw them in box drawing (`figure_reading.restyle`)")
+        if v.decided == "drawn":
+            diff = {t: x for t, x in figure_reading.compare(list(v.drawn), list(v.lines)).items() if x}
+            if diff:
+                sys.exit(f"FATAL: {f}: a `drawn` verdict's figure reads differently from the batch's drawing ({diff}); "
+                         "write the batch's drawing redrawn (`figure_reading.restyle`), or decide `neither`")
         if (v.page, v.figure) in out:
             sys.exit(f"FATAL: {f} and another verdict both decide figure {v.figure} of page {v.page}")
         out[(v.page, v.figure)] = v
@@ -768,9 +780,18 @@ def self_test() -> int:
                 ("a decided verdict without its figure is fatal", dict(good, figure=1, figure_lines=[]), "needs `figure_lines`"),
                 ("a verdict without its reason is fatal", dict(good, figure=1, reason=" "), "states its `reason`"),
                 ("a verdict without the block's drawn lines is fatal", dict(good, figure=1, drawn_lines=[]),
-                 "`drawn_lines` must be the block's lines")):
+                 "`drawn_lines` must be the block's lines"),
+                ("a decided figure in FIGURE-STYLE.md rule 2's forbidden pieces is fatal",
+                 dict(good, figure=1, figure_lines=["<u>ADD</u> ⎧x⎫", "    ⎩y⎭"]), "rule 2 forbids"),
+                ("a `drawn` verdict whose figure is not the batch's drawing is fatal",
+                 dict(good, figure=1, decided="drawn"), "reads differently from the batch's drawing")):
             second.write_text(json.dumps(body), encoding="utf-8", newline="")
             check(name, says in (exits(lambda: load_verdicts(root)) or ""))
+        import figure_reading
+        batch = ["<u>ADD</u> ⎧x⎫", "    ⎩y⎭"]
+        second.write_text(json.dumps(dict(good, figure=1, decided="drawn", drawn_lines=batch,
+                                          figure_lines=figure_reading.restyle(batch))), encoding="utf-8", newline="")
+        check("a `drawn` verdict carrying the batch's drawing, restyled, loads", len(load_verdicts(root)) == 2)
 
     total = len(ran)
     print(f"sweep_figures self-test: {total - len(fails)}/{total} " + ("GREEN" if not fails else "RED"))

@@ -1,0 +1,18 @@
+{
+ "page": 212,
+ "figure": 1,
+ "drawn_lines": [
+  "                         ⎧<u>DATE</u>       ⎫",
+  "<u>ACCEPT</u> identifier-2 <u>FROM</u> ⎨<u>DAY</u>        ⎬",
+  "                         ⎪<u>DAY-OF-WEEK</u>⎪",
+  "                         ⎩<u>TIME</u>       ⎭"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "                         ╭ <u>DATE</u>        ╮",
+  "<u>ACCEPT</u> identifier-2 <u>FROM</u> ┤ <u>DAY</u>         ├",
+  "                         │ <u>DAY-OF-WEEK</u> │",
+  "                         ╰ <u>TIME</u>        ╯"
+ ],
+ "reason": "The printed page sets ACCEPT format 2 as the batch drew it: identifier-2 FROM the DATE/DAY/DAY-OF-WEEK/TIME brace. Drawn in the house style (figure_reading.restyle)."
+}

@@ -1,0 +1,24 @@
+{
+ "page": 241,
+ "figure": 0,
+ "drawn_lines": [
+  "<u>CONFIGURATION</u> <u>SECTION</u>.",
+  "",
+  "[<u>SOURCE-COMPUTER</u>.  [source-computer-entry]]",
+  "",
+  "[<u>OBJECT-COMPUTER</u>.  [object-computer-entry]]",
+  "",
+  "[<u>SPECIAL-NAMES</u>.  [special-names entry]]"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "<u>CONFIGURATION</u> <u>SECTION</u>.",
+  "",
+  "[<u>SOURCE-COMPUTER</u>.  [source-computer-entry]]",
+  "",
+  "[<u>OBJECT-COMPUTER</u>.  [object-computer-entry]]",
+  "",
+  "[<u>SPECIAL-NAMES</u>.  [special-names entry]]"
+ ],
+ "reason": "The printed page bears the batch's drawing out: CONFIGURATION SECTION. and its three paragraphs in typed brackets (special-names entry printed without a hyphen). Redrawn in the house style."
+}

@@ -1,0 +1,24 @@
+{
+ "page": 511,
+ "figure": 0,
+ "drawn_lines": [
+  "<u>WRITE</u> record-name-1  [<u>FROM</u> identifier-1]",
+  "",
+  "   [<u>INVALID</u> KEY imperative-statement-1]",
+  "",
+  "   [<u>NOT</u> <u>INVALID</u> KEY imperative-statement-2]",
+  "",
+  "   [<u>END-WRITE</u>]"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "<u>WRITE</u> record-name-1  [<u>FROM</u> identifier-1]",
+  "",
+  "   [<u>INVALID</u> KEY imperative-statement-1]",
+  "",
+  "   [<u>NOT</u> <u>INVALID</u> KEY imperative-statement-2]",
+  "",
+  "   [<u>END-WRITE</u>]"
+ ],
+ "reason": "The printed page sets WRITE record-name-1 [FROM identifier-1] and its INVALID KEY and END-WRITE phrases as the batch drew them. Redrawn in the house style."
+}

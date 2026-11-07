@@ -1,0 +1,13 @@
+{
+ "page": 393,
+ "figure": 0,
+ "drawn_lines": [
+  "<u>SAME</u> ┌<u>RECORD</u>┐ AREA FOR file-name-1 {file-name-2} ...",
+  "     └      ┘"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "<u>SAME</u> ║ [ <u>RECORD</u> ] ║ AREA FOR file-name-1 { file-name-2 } …"
+ ],
+ "reason": "The printed page sets SAME [RECORD] AREA FOR file-name-1 {file-name-2} ... with a level-2 box round [RECORD] (a one-line bracket), which the batch drew as an unboxed two-row bracket. Drawn from the page."
+}

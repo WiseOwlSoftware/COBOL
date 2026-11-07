@@ -1,0 +1,20 @@
+{
+ "page": 224,
+ "figure": 5,
+ "drawn_lines": [
+  "                         ⎧cd-name-1                        ⎫",
+  "                         ⎪[<u>ALL</u> REFERENCES OF] identifier-1⎪",
+  "  <u>USE</u> FOR <u>DEBUGGING</u> ON  ⎨file-name-1                      ⎬ ...",
+  "                         ⎪procedure-name-1                 ⎪",
+  "                         ⎩<u>ALL</u> <u>PROCEDURES</u>                   ⎭"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "                     ╭ cd-name-1                          ╮",
+  "                     │ [ <u>ALL</u> REFERENCES OF ] identifier-1 │",
+  "<u>USE</u> FOR <u>DEBUGGING</u> ON ┤ file-name-1                        ├ …",
+  "                     │ procedure-name-1                   │",
+  "                     ╰ <u>ALL</u> <u>PROCEDURES</u>                     ╯"
+ ],
+ "reason": "The printed page sets USE FOR DEBUGGING ON the five-alternative brace (cd-name-1, [ALL REFERENCES OF] identifier-1, file-name-1, procedure-name-1, ALL PROCEDURES), then the ellipsis; the skeleton draws no level-2 box, and the batch's brace columns were off. Hand-drawn from the page in the house style."
+}

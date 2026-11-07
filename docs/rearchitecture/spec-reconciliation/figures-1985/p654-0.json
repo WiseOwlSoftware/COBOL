@@ -1,0 +1,16 @@
+{
+ "page": 654,
+ "figure": 0,
+ "drawn_lines": [
+  "                                                   ⎧{file-name-1} ...⎫",
+  "<u>USE</u> <u>AFTER</u> STANDARD ⎧<u>EXCEPTION</u>⎫ <u>PROCEDURE</u> ON ⎨<u>OUTPUT</u>           ⎬",
+  "                     ⎩<u>ERROR</u>    ⎭              ⎩<u>EXTEND</u>           ⎭"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "                   ╭ <u>EXCEPTION</u> ╮              ╭ {file-name-1} … ╮",
+  "<u>USE</u> <u>AFTER</u> STANDARD ┤           ├ <u>PROCEDURE</u> ON ┤ <u>OUTPUT</u>          ├",
+  "                   ╰ <u>ERROR</u>     ╯              ╰ <u>EXTEND</u>          ╯"
+ ],
+ "reason": "The printed page sets the USE format (4.8.2) as USE AFTER STANDARD {EXCEPTION/ERROR} PROCEDURE ON {{file-name-1} ... / OUTPUT / EXTEND}, the same format the composite skeleton prints on page 224 for W; the batch typed the braces' corners. Drawn from the page in the house style."
+}

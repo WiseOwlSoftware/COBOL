@@ -1,0 +1,24 @@
+{
+ "page": 424,
+ "figure": 0,
+ "drawn_lines": [
+  "                                                    ⎧{file-name-1} ┌───┐⎫",
+  "                                                    ⎪              │...│⎪",
+  "                                                    ⎪              └───┘⎪",
+  "                                                    ⎪<u>INPUT</u>              ⎪",
+  "<u>USE</u> <u>AFTER</u> STANDARD ⎧<u>EXCEPTION</u>⎫ <u>PROCEDURE</u> ON ⎨<u>OUTPUT</u>             ⎬",
+  "                    ⎩<u>ERROR</u>    ⎭              ⎪<u>I-O</u>                ⎪",
+  "                                                    ⎪┌──────┐           ⎪",
+  "                                                    ⎪│<u>EXTEND</u>│           ⎪",
+  "                                                    ⎩└──────┘           ⎭"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "                                              ╭ { file-name-1 } ║ … ║  ╮",
+  "                   ╭ <u>EXCEPTION</u> ╮              │ <u>INPUT</u>                  │",
+  "<u>USE</u> <u>AFTER</u> STANDARD ┤           ├ <u>PROCEDURE</u> ON ┤ <u>OUTPUT</u>                 ├",
+  "                   ╰ <u>ERROR</u>     ╯              │ <u>I-O</u>                    │",
+  "                                              ╰ ║ <u>EXTEND</u> ║             ╯"
+ ],
+ "reason": "The printed page sets USE AFTER STANDARD {EXCEPTION / ERROR} PROCEDURE ON {{file-name-1} ... / INPUT / OUTPUT / I-O / EXTEND} with level-2 boxes round the ellipsis after {file-name-1} and round EXTEND, which the batch drew as rectangles that broke its brace. Drawn from the page."
+}

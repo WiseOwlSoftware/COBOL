@@ -1,0 +1,28 @@
+{
+ "page": 327,
+ "figure": 0,
+ "drawn_lines": [
+  "Format 4:",
+  "",
+  "                                    ⎧identifier-6⎫    ⎧identifier-7⎫",
+  "<u>INSPECT</u> identifier-1 <u>CONVERTING</u> ⎨            ⎬ <u>TO</u> ⎨            ⎬",
+  "                                    ⎩literal-4   ⎭    ⎩literal-5   ⎭",
+  "",
+  "  ┌⎧<u>BEFORE</u>⎫         ⎧identifier-4⎫┐",
+  "  │⎨      ⎬ INITIAL ⎨            ⎬│ ...",
+  "  └⎩<u>AFTER</u> ⎭         ⎩literal-2   ⎭┘"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "╔<u>Format</u> <u>4</u>:                                                              ╗",
+  "║                                                                       ║",
+  "║                                  ╭ identifier-6 ╮    ╭ identifier-7 ╮ ║",
+  "║<u>INSPECT</u> identifier-1 <u>CONVERTING</u>   ┤              ├ <u>TO</u> ┤              ├ ║",
+  "║                                  ╰ literal-4    ╯    ╰ literal-5    ╯ ║",
+  "║                                                                       ║",
+  "║    ┌ ╭ <u>BEFORE</u> ╮         ╭ identifier-4 ╮ ┐                            ║",
+  "║    │ ┤        ├ INITIAL ┤              ├ │ …                          ║",
+  "╚    └ ╰ <u>AFTER</u>  ╯         ╰ literal-2    ╯ ┘                            ╝"
+ ],
+ "reason": "The printed page encloses INSPECT Format 4 (CONVERTING), its label included, in a level-2 box; the batch lost the box and set the CONVERTING operand braces a column off. Drawn from the page."
+}

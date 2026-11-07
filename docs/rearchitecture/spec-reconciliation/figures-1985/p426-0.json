@@ -16,15 +16,15 @@
   "  └       ⎩<u>EOP</u>        ⎭                        ┘",
   "  [<u>END-WRITE</u>]"
  ],
- "decided": "generated",
+ "decided": "neither",
  "figure_lines": [
   "<u>WRITE</u> record-name-1 [ <u>FROM</u> identifier-1 ]",
   "",
   "┌                      ╭ ╭   identifier-2 ╮ ┌ LINE  ┐ ╮ ┐",
   "│                      │ ┤                ├ │       │ │ │",
   "│ ╭ <u>BEFORE</u> ╮           │ ╰   integer-1    ╯ └ LINES ┘ │ │",
-  "│ ┤        ├ ADVANCING │                              ├ │",
-  "│ ╰ <u>AFTER</u>  ╯           ┤                              │ │",
+  "│ ┤        ├ ADVANCING ┤                              ├ │",
+  "│ ╰ <u>AFTER</u>  ╯           │                              │ │",
   "│                      │ ╭ ║ mnemonic-name-1 ║ ╮      │ │",
   "│                      │ ┤                     ├      │ │",
   "└                      ╰ ╰   <u>PAGE</u>              ╯      ╯ ┘",
@@ -39,5 +39,5 @@
   "",
   "[ <u>END-WRITE</u> ]"
  ],
- "reason": "The printed page draws a level-2 box around exactly the span the regeneration boxes (checked on the rendered page and against the box pass's list of the page's boxes); the batch drawing lost the box and agrees with the regeneration on every word, grouping, bar, underline and alignment."
+ "reason": "The printed page draws a level-2 box around exactly the span the regeneration boxes (checked on the rendered page and against the box pass's list of the page's boxes); the batch drawing lost the box and agrees with the regeneration on every word, grouping, bar, underline and alignment. The regeneration set this brace's two points on different rows (the scan's measured middle pieces disagree by a row); both are drawn on the row of the label beside the brace, as printed."
 }

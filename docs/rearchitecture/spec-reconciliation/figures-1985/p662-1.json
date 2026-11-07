@@ -1,0 +1,32 @@
+{
+ "page": 662,
+ "figure": 1,
+ "drawn_lines": [
+  "<u>CD</u>  cd-name-1",
+  "",
+  "                            ┌┌[<u>MESSAGE</u> <u>DATE</u> IS data-name-1]               ┐┐",
+  "                            ││     [<u>MESSAGE</u> <u>TIME</u> IS data-name-2]          ││",
+  "                            ││     [SYMBOLIC <u>TERMINAL</u> IS data-name-3]     ││",
+  "     FOR [<u>INITIAL</u>] <u>I-O</u>      ││     [<u>TEXT</u> <u>LENGTH</u> IS data-name-4]           ││",
+  "                            ││     [<u>END</u> <u>KEY</u> IS data-name-5]               ││",
+  "                            │└     [<u>STATUS</u> <u>KEY</u> IS data-name-6]            ┘│",
+  "                            │┌data-name-1, data-name-2, data-name-3,      ┐│",
+  "                            └└     data-name-4, data-name-5, data-name-6 ┘┘"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "<u>CD</u>  cd-name-1",
+  "",
+  "                           ┌                                              ┐",
+  "                           │[[<u>MESSAGE</u> <u>DATE</u> IS data-name-1]                │",
+  "                           │    [<u>MESSAGE</u> <u>TIME</u> IS data-name-2]             │",
+  "                           │    [SYMBOLIC <u>TERMINAL</u> IS data-name-3]        │",
+  "     FOR ║[<u>INITIAL</u>]║ <u>I-O</u>   │    [<u>TEXT</u> <u>LENGTH</u> IS data-name-4]              │ .",
+  "                           │    [<u>END</u> <u>KEY</u> IS data-name-5]                  │",
+  "                           │    [<u>STATUS</u> <u>KEY</u> IS data-name-6]]              │",
+  "                           │╔[data-name-1, data-name-2, data-name-3,     ╗│",
+  "                           │╚    data-name-4, data-name-5, data-name-6]  ╝│",
+  "                           └                                              ┘"
+ ],
+ "reason": "The printed page sets CD Format 3 as page 661's Format 1: one tall bracket holding the six optional clauses and the boxed data-name-1 ... data-name-6 list, FOR [INITIAL] I-O with [INITIAL] boxed, and the period beside the bracket; the batch drew no box and nested a second bracket. Drawn from the page by FIGURE-STYLE.md rule 9."
+}

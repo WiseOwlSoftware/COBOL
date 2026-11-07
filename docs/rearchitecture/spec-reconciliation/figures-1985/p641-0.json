@@ -1,0 +1,22 @@
+{
+ "page": 641,
+ "figure": 0,
+ "drawn_lines": [
+  "      ⎧            ┌ ⎧<u>REEL</u>⎫ [FOR <u>REMOVAL</u>] ┐ ⎫",
+  "      ⎪            │ ⎩<u>UNIT</u>⎭               │ ⎪",
+  "<u>CLOSE</u> ⎨file-name-1 │                      │ ⎬ ...",
+  "      ⎪            │ WITH ⎧<u>NO</u> <u>REWIND</u>⎫     │ ⎪",
+  "      ⎩            └      ⎩<u>LOCK</u>     ⎭     ┘ ⎭"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "      ╭             ┌ ╭<u>REEL</u> ╮  [FOR <u>REMOVAL</u>] ┐ ╮",
+  "      │             │ ┤     ├                │ │",
+  "      │             │ ╰<u>UNIT</u> ╯                │ │",
+  "<u>CLOSE</u> ┤ file-name-1 │                        │ ├ …",
+  "      │             │ WITH  ╭ <u>NO</u> <u>REWIND</u>╮     │ │",
+  "      │             │       ┤          ├     │ │",
+  "      ╰             └       ╰ <u>LOCK</u>     ╯     ┘ ╯"
+ ],
+ "reason": "The printed page sets CLOSE (4.2.2) as the batch drew it: the file-name-1 brace holding the bracket of {REEL/UNIT} [FOR REMOVAL] and WITH {NO REWIND/LOCK}, then the ellipsis; the page draws no level-2 box here. Drawn in the house style (figure_reading.restyle)."
+}

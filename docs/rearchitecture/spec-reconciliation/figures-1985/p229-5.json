@@ -1,0 +1,20 @@
+{
+ "page": 229,
+ "figure": 5,
+ "drawn_lines": [
+  "            ⎧⎧<u>IN</u>⎫ data-name-4 ┌⎧<u>IN</u>⎫ report-name-2┐⎫",
+  "data-name-3 ⎨⎩<u>OF</u>⎭             └⎩<u>OF</u>⎭              ┘⎬",
+  "            ⎪⎧<u>IN</u>⎫ report-name-2                    ⎪",
+  "            ⎩⎩<u>OF</u>⎭                                  ⎭"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "            ╭ ╭ <u>IN</u> ╮ data-name-4 ┌ ╭ <u>IN</u> ╮ report-name-2 ┐ ╮",
+  "            │ ┤    ├             │ ┤    ├               │ │",
+  "data-name-3 ┤ ╰ <u>OF</u> ╯             └ ╰ <u>OF</u> ╯               ┘ ├",
+  "            │ ╭ <u>IN</u> ╮ report-name-2                        │",
+  "            │ ┤    ├                                      │",
+  "            ╰ ╰ <u>OF</u> ╯                                      ╯"
+ ],
+ "reason": "The printed page sets the qualification format for data-name-3: one brace holding {IN/OF} data-name-4 [{IN/OF} report-name-2] and {IN/OF} report-name-2; the batch's closing brace was set with two points and its lower pieces a column off. Drawn from the page in the house style."
+}

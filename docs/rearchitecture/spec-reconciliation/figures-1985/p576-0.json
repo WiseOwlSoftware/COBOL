@@ -1,0 +1,25 @@
+{
+ "page": 576,
+ "figure": 0,
+ "drawn_lines": [
+  "<u>COPY</u> text-name-1  ┌⎧<u>OF</u>⎫ library-name-1┐",
+  "                   └⎩<u>IN</u>⎭               ┘",
+  "",
+  "     ┌          ⎧⎧==pseudo-text-1==⎫      ⎧==pseudo-text-2==⎫⎫     ┐",
+  "     │<u>REPLACING</u> ⎨⎨identifier-1     ⎬ <u>BY</u>   ⎨identifier-2     ⎬⎬ ... │",
+  "     │          ⎪⎪literal-1        ⎪      ⎪literal-2        ⎪⎪     │",
+  "     └          ⎩⎩word-1           ⎭      ⎩word-2           ⎭⎭     ┘"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "                 ╔ ┌ ╭ <u>OF</u> ╮                ┐ ╗",
+  "<u>COPY</u> text-name-1 ║ │ ┤    ├ library-name-1 │ ║",
+  "                 ╚ └ ╰ <u>IN</u> ╯                ┘ ╝",
+  "",
+  "    ╔ ┌           ╭ ╭ ==pseudo-text-1== ╮    ╭ ==pseudo-text-2== ╮ ╮   ┐ ╗",
+  "    ║ │ <u>REPLACING</u> ┤ ┤ identifier-1      ├ <u>BY</u> ┤ identifier-2      ├ ├ … │ ║",
+  "    ║ │           │ │ literal-1         │    │ literal-2         │ │   │ ║",
+  "    ╚ └           ╰ ╰ word-1            ╯    ╰ word-2            ╯ ╯   ┘ ╝"
+ ],
+ "reason": "The printed page sets COPY (2.2) with one level-2 outline round [{OF/IN} library-name-1] and the whole REPLACING bracket, drawn by FIGURE-STYLE.md rule 9 as a box round each of the two (the outline steps left between them); the batch lost the box and typed the OF/IN bracket's corners. Drawn from the page."
+}
