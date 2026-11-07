@@ -177,8 +177,8 @@ public static class ClosedFormats
     /// word after its level-number, the entry-name and the first clause, and only a word that is neither is "not a
     /// clause". The other closed formats write a mandatory name before their clause list (FD, SD, SELECT). The entries
     /// that share the optional name slot are the data description entry and the three that print the same
-    /// <c>level-number [data-name] …</c> head: the screen description entry (§13.9.2, screen-name), the report group
-    /// description entry (§13.8.2) and the constant entry (§13.10.2), so a dangling level-number before a header
+    /// <c>level-number [data-name] …</c> head: the screen description entry (§13.17.2, screen-name), the report group
+    /// description entry (§13.15.2) and the constant entry (§13.10.2), so a dangling level-number before a header
     /// (<c>SCREEN SECTION.</c> then <c>01 LINKAGE SECTION.</c>) is the missing period in all four. The caller compares
     /// the entry's level-number with the token before the offending word: a name or a clause written already closes
     /// the slot.</summary>

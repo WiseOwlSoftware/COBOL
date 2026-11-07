@@ -84,6 +84,8 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// report it repeats could not (kb/Work PB3832, review R2-1).</summary>
     private void Report(Parser recognizer, IToken token, RecognitionException? e, ErrorKind kind)
     {
+        var diedAt = token;
+        token = HeaderAnEntryLoopReadAsAName(recognizer, token) ?? token;
         var at = new OffendingPosition(recognizer, token, IsPredictionFailedAt(e, token));
         at.LeftStatementPrintingTheToken = () => NameOfALeftStatementPrinting(recognizer, token);
         if (Reported(at)) return;
@@ -115,7 +117,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             for (var closed = carried.ClosedEarly; closed is not null; closed = LastRuleChild(closed))
                 NoteLeft(recognizer, closed.RuleIndex, closed.Start.TokenIndex, closed, at.Token);
         }
-        _lastReported = (Math.Min(at.ParserTokenIndex, at.Token.TokenIndex), at.Token.TokenIndex);
+        _lastReported = (Math.Min(at.ParserTokenIndex, at.Token.TokenIndex), Math.Max(at.Token.TokenIndex, diedAt.TokenIndex));
         _orphansItsTail = OrphansItsTail(hints, kind);
         string? violation = ReservedWordUse(recognizer, at);
         var named = at.Token;
@@ -146,7 +148,10 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         var subject = violation is null ? hints.OrderBy(h => h.Priority).FirstOrDefault().Subject : null;
         if (!repeatedProcedureWord && (subject is null || NoteRunRefused(subject)))
             recognizer.NotifyErrorListeners(subject ?? named,
-                violation is not null ? $"[{EditionCodes.ReservedWord}] {violation}" : BuildMessage(subject ?? at.Token, kind, hints), e);
+                violation is not null ? $"[{EditionCodes.ReservedWord}] {violation}"
+                    // ⛔ ONE FAULT, ONE WORDING (kb/Work PB4818): which decision met the word after a dangling level-number is the
+                    // grammar's shape (a data entry's optional name, a section's entry loop) and tells the user nothing.
+                    : BuildMessage(subject ?? at.Token, at.EntrySlotYields ? ErrorKind.InputMismatch : kind, hints), e);
         if (violation is not null && ReadsAsTheNameAhead(recognizer, at, kind))
         {
             ((CobolParserCoreBase)recognizer).ReadAsUserWord(at.Token);
@@ -771,6 +776,26 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                is var code && (code == Diagnostics.DiagnosticDescriptors.COBOL2269.Code
                                || code == Diagnostics.DiagnosticDescriptors.COBOL2073.Code
                                || code == Diagnostics.DiagnosticDescriptors.COBOL0306.Code);
+
+    /// <summary>⛔ THE PREDICATE A SECTION'S ENTRY LOOP CANNOT ASK IS ASKED HERE (kb/Work PB4818): the word that opens a
+    /// header, when a prediction read it as the name of the entry after a dangling level-number and died at the word that
+    /// closes the header; else null. <c>dataName</c> keeps a reservation-gated word that writes a header out of the name slot
+    /// (<see cref="CobolParserCoreBase.noHeaderWrittenHere"/>, kb/Work PB4706), and a data description entry asks that where
+    /// it decides its optional name, with the parser past its level-number. But the report section's loop chooses between
+    /// its two entry kinds BEFORE the level-number (<c>reportDescriptionEntry</c>, §13.8.2), and adaptive prediction
+    /// evaluates a predicate only at the left edge of its decision, so past the level-number the predicate reads as true:
+    /// <c>RD R.</c> then <c>01 SCREEN SECTION.</c> took SCREEN as the name and died at SECTION, one word after the fault the
+    /// same entry names in the working-storage section. The report stands where the predicate would have stopped the parse,
+    /// and every question after it (the slot, the period, §8.9's freedom of the word, which
+    /// <see cref="CobolParserCoreBase.NoteGatedOffender"/> reads off the offender) is the data entry's. A word that is no
+    /// reservation-gated word (<c>01 MAIN SECTION.</c>) is a name at every slot, and its fault is at SECTION.</summary>
+    private static IToken? HeaderAnEntryLoopReadAsAName(Parser recognizer, IToken token)
+        => CobolParserCoreBase.ClosesAHeader(token.Type)
+           && PreviousDefault((ITokenStream)recognizer.InputStream, token.TokenIndex) is { } opener
+           && CobolLexer.IsReservationGated(opener.Type)
+           && new OffendingPosition(recognizer, opener).FollowsALevelNumber
+            ? opener
+            : null;
 
     protected override void ReportNoViableAlternative(Parser recognizer, NoViableAltException e)
         => Report(recognizer, FaultOfABareVerb(recognizer, e) ?? e.OffendingToken ?? recognizer.CurrentToken, e,
@@ -3537,7 +3562,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         /// <c>01 LINKAGE SECTION.</c>), the level-number is the one word the parse has not taken, and the walk to the token
         /// has an entry that prints a level-number and an optional name open
         /// (<see cref="ClosedFormats.LevelNumberEntryRules"/>), kb/Work PB4788.</summary>
-        private bool FollowsALevelNumber
+        public bool FollowsALevelNumber
             => _followsALevelNumber ??= !CarriedForward && PreviousDefault((ITokenStream)_recognizer.InputStream, Token.TokenIndex) is { } previous
                && (ClosedFormats.EntryAwaitingItsName(_recognizer.Context) is { } entry
                    ? previous.TokenIndex == entry.LevelNumber?.TokenIndex
