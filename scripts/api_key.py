@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """api_key.py - THE reader of an API key file (kb/Work PB4816, PB4916).
 
-Four tools bill a Claude call to a key named by `--api-key-file`: the fuzz's CLI writer (fuzz_claude.py, through
-differential_fuzz.py), its batch driver (fuzz_batch.py) and the standard's transcriber (spec/transcribe_pdf.py). They
+Five tools bill a Claude call to a key named by `--api-key-file`: the fuzz's CLI writer (fuzz_claude.py, through
+differential_fuzz.py), its batch driver (fuzz_batch.py), the standard's transcriber (spec/transcribe_pdf.py) and the
+edition audit's judge (spec/audit_batch.py; these two read it through spec/message_batches.py, their one batch state). They
 share this one reader, so the file's format, the choice of account and the rule that an error names the PATH and never a
 key are written once.
 
