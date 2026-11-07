@@ -1,4 +1,4 @@
-## PB4893: below 2023 a statement that activates a signature with a message tag is the gate's, through every receiver, and one roster lookup
+## Entry 3274 — 2026-11-07 14:20 PST — PB4893: below 2023 a statement that activates a signature with a message tag is the gate's, through every receiver, and one roster lookup
 
 **The mechanism.** PB4868 moved the below-2023 message-tag question to the statement funnel
 (`StatementBinder.NamesGatedMessageTag`): a statement whose own operands name a message-tag item this compilation declares binds to
@@ -35,3 +35,4 @@ beside COBOL0900: literal-1 of the CALL is read through `ExpressionBinder.NonNum
 signature has no diagnostic-free reader yet; registered as a lead.
 
 No inventory row is re-verdicted (`closes_rows: []`, with its reason).
+
