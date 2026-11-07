@@ -464,7 +464,9 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         // verb binder remembering to ask.
         if (InputOutputStatement(s) is { } io)
             Ctx.Validation.ScreenSortMergeRecordReferences(io, io.Start.Text.ToUpperInvariant(), Ctx.Refs);
-        var core = BindStatementCore(s);
+        // ⛔ BELOW THE MESSAGE-TAG INTRODUCTION A STATEMENT NAMING A GATED TAG IS THE GATE'S, WHATEVER ITS VERB (kb/Work PB4771, PB4836, PB4868): asked
+        // HERE, once, because this is the one funnel every statement passes through, so no verb binder has to remember to stay quiet beside COBOL0900.
+        var core = NamesGatedMessageTag(s) ? new BoundNop() : BindStatementCore(s);   // no-op: the tag's entry draws COBOL0900 in this compilation
         // The statement's position goes onto the node (kb/Work PB1925): the cursor is this statement's here, and the
         // conformance pass — which has no parse tree — positions its bound-arm diagnostics from it. A node the verb
         // binder returned from a nested statement keeps that statement's own.
@@ -575,6 +577,53 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             or Core.DeleteStatementContext or Core.DeleteFileStatementContext or Core.UnlockStatementContext
             ? (Antlr4.Runtime.ParserRuleContext)s.GetChild(0)
             : null;
+
+    /// <summary>⛔ WHETHER THE INTRODUCTION GATE HAS ALREADY REFUSED THIS STATEMENT'S COMPILE: below 2023 (<c>usage-message-tag-2023</c>, §8.9) a
+    /// message-tag entry draws COBOL0900, and DESIGN-message-control.md §7.1 says each refusal also runs at 2014, "where COBOL0900 is the expected
+    /// diagnosis and no second one may appear". So a statement whose OWN operands (a nested statement is
+    /// asked on its own) name a message-tag item whose entry this compilation walks (<see cref="IsGatedMessageTag"/>) binds to a no-op, and the
+    /// class refusals of its verb speak only where the usage exists. An operand is a data reference, a function-identifier whose RETURNING item
+    /// is such a tag (<see cref="IntrinsicBinder.ReturningItemOf(Core.FunctionCallContext)"/>, the diagnostic-free answer; the keyword-omitted
+    /// form is a data reference no data item answers to), or an inline method invocation whose method returns one
+    /// (<see cref="OoBinder.InlineInvocationReturningItem"/>). ⛔ THE NO-OP IS EARNED BY A GATED OPERAND, NOT BY THE EDITION: an operand that is
+    /// imported has no entry here and no gate fires on it, so the statement is bound and checked at every edition and SR35 refuses it as at 2023,
+    /// rather than the statement vanishing unrefused (kb/Work PB4771 review R1-1, R2-1). Pure: the probes report nothing.</summary>
+    private bool NamesGatedMessageTag(Core.StatementContext s)
+    {
+        if (ConstructRegistry.IsAvailable(Ctx.Edition.Edition, Constructs.UsageMessageTag2023)) return false;
+        // The statement's OWN nodes, in document order, on a stack of this method's own (kb/Work PB4302's walk): the tree under a nested statement,
+        // which is asked on its own, is never touched.
+        var pending = new Stack<IParseTree>();
+        for (int i = s.ChildCount - 1; i >= 0; i--) pending.Push(s.GetChild(i));
+        while (pending.Count > 0)
+        {
+            var node = pending.Pop();
+            if (node is Core.StatementContext) continue;
+            switch (node)
+            {
+                case Core.DataReferenceContext dref:
+                    if (Ctx.Refs.Probe(dref) is { } probed
+                        ? IsGatedMessageTag(probed.Item)
+                        : dref.cobolWord() is { } word && Intrinsic.ReturningItemOf(word.GetText()) is { } returned && IsGatedMessageTag(returned))
+                        return true;
+                    break;
+                case Core.FunctionCallContext call:
+                    if (Intrinsic.ReturningItemOf(call) is { } result && IsGatedMessageTag(result)) return true;
+                    break;
+                case Core.InlineMethodInvocationContext invocation:
+                    if (Oo.InlineInvocationReturningItem(invocation) is { } returnedByMethod && IsGatedMessageTag(returnedByMethod)) return true;
+                    break;
+            }
+            for (int i = node.ChildCount - 1; i >= 0; i--) pending.Push(node.GetChild(i));
+        }
+        return false;
+    }
+
+    /// <summary>Whether <paramref name="item"/> is a message-tag data item whose DATA DIVISION entry THIS compilation walks, so that entry's
+    /// <c>usage-message-tag-2023</c> gate (COBOL0900) refuses the compile below 2023: any item of the compilation's own sources, a same-file
+    /// function's RETURNING item and a same-file class's property or method result included. An IMPORTED item (<see cref="DataItem.IsImported"/>:
+    /// a repository function's, method's or class property's description, read from an assembly) has no entry here and so no gate.</summary>
+    private static bool IsGatedMessageTag(DataItem item) => !item.IsImported && ItemCategory.IsMessageTag(item);
 
     private BoundStatement BindStatementCore(Core.StatementContext s) => s switch
     {

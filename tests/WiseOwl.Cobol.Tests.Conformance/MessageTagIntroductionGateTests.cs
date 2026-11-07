@@ -363,6 +363,106 @@ public sealed class MessageTagIntroductionGateTests
         finally { ScratchDirectory.Remove(dir); }
     }
 
+    /// <summary>kb/Work PB4868: the gate is the whole answer for a statement of ANY verb that names a gated message tag, a same-file function
+    /// returning one, or a statement nested in a statement that does, and not only for SET. The statement is asked once, at the funnel every
+    /// statement passes through (<c>StatementBinder.NamesGatedMessageTag</c>), over its own operands: a statement NESTED in one that names the
+    /// tag is bound on its own, so an unrelated refusal inside an IF whose condition names no tag still speaks. At 2023 the same statements are
+    /// bound, so the class refusals the gate suppressed speak and no COBOL0900 does.</summary>
+    [Theory]
+    [InlineData("MOVE T TO N", 2014, true)]
+    [InlineData("MOVE N TO T", 2014, true)]
+    [InlineData("DISPLAY T", 2014, true)]
+    [InlineData("ADD 1 TO T", 2014, true)]
+    [InlineData("MOVE FUNCTION MTF() TO N", 2014, true)]
+    [InlineData("DISPLAY FUNCTION MTF()", 2014, true)]
+    [InlineData("SET N UP BY FUNCTION MTF()", 2014, true)]
+    [InlineData("SET N DOWN BY FUNCTION MTF()", 2014, true)]
+    [InlineData("SET ADDRESS OF L TO FUNCTION MTF()", 2014, true)]
+    [InlineData("IF N = 7 MOVE T TO N END-IF", 2014, true)]
+    [InlineData("MOVE T TO N", 2002, true)]
+    [InlineData("DISPLAY T", 85, true)]
+    [InlineData("MOVE T TO N", 2023, true)]
+    [InlineData("MOVE N TO T", 2023, true)]
+    [InlineData("DISPLAY T", 2023, true)]
+    [InlineData("ADD 1 TO T", 2023, true)]
+    [InlineData("MOVE FUNCTION MTF() TO N", 2023, true)]
+    [InlineData("DISPLAY FUNCTION MTF()", 2023, true)]
+    public void EveryVerbAMessageTagOperandReaches_IsTheGateAloneBelowTheIntroduction(string statement, int edition, bool refusedWhereTheUsageExists)
+    {
+        // The function and its REPOSITORY entry exist only where the statement names it: a function-id is itself an introduction below 2002.
+        bool usesFunction = statement.Contains("FUNCTION", StringComparison.Ordinal);
+        string function = usesFunction ? """
+            IDENTIFICATION DIVISION.
+            FUNCTION-ID. MTF.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 R USAGE MESSAGE-TAG.
+            PROCEDURE DIVISION RETURNING R.
+            MAIN-P.
+                SET R TO NULL.
+                GOBACK.
+            END FUNCTION MTF.
+
+            """ : "";
+        string repository = usesFunction ? """
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                FUNCTION MTF.
+            """ : "";
+        var errors = EditionHarness.CompileFull($"""
+            {function}
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. MTIVERB.
+            {repository}
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 T USAGE MESSAGE-TAG.
+            01 N PIC 9(4) VALUE 7.
+            LINKAGE SECTION.
+            01 L PIC X.
+            PROCEDURE DIVISION.
+            MAIN-P.
+                {statement}.
+                STOP RUN.
+            """, edition).Errors;
+        if (edition >= 2023)
+        {
+            if (refusedWhereTheUsageExists) Assert.NotEmpty(errors);
+            EditionHarness.AssertNoDiagnostic(errors, "COBOL0900");
+        }
+        else
+        {
+            EditionHarness.AssertHasDiagnostic(errors, "COBOL0900");
+            Assert.All(errors, e => Assert.Contains("COBOL0900", e));   // the gate alone: no class diagnostic beside it
+        }
+    }
+
+    /// <summary>kb/Work PB4868: a statement nested in one that names a gated tag is asked on its own, so a refusal that has nothing to do with the
+    /// tag (here a MOVE of a name nothing declares, inside an IF whose condition names none) is not lost because a LATER statement is the gate's.</summary>
+    [Fact]
+    public void ANestedStatementThatNamesNoTagKeepsItsOwnRefusalBelowTheIntroduction()
+    {
+        var errors = EditionHarness.CompileFull("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. MTINEST.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 T USAGE MESSAGE-TAG.
+            01 N PIC 9(4) VALUE 7.
+            PROCEDURE DIVISION.
+            MAIN-P.
+                IF N = 7
+                    MOVE UNDEFINED-NAME TO N
+                END-IF.
+                MOVE T TO N.
+                STOP RUN.
+            """, 2014).Errors;
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL0900");
+        EditionHarness.AssertHasDiagnostic(errors, "UNDEFINED-NAME");
+        Assert.DoesNotContain(errors, e => e.Contains("COBOL0809"));
+    }
+
     /// <summary>The note's arm 2 from the other side: a group's message-tag usage handed to a leaf that wrote a
     /// PICTURE is refused as a MESSAGE-TAG usage at every edition, and never as a floating-point one.</summary>
     [Theory]

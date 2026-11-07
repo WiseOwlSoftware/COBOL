@@ -140,7 +140,9 @@ internal sealed class McsStore : IDisposable
     /// <summary>The run unit's first statement, before its action (§6 "Seeding", "Devices"). A store that is new or whose definitions changed is seeded and the seeding LANDS
     /// ON ITS OWN, before the action runs and before any device is written: every device the definitions name without a <c>DeviceEnds</c> row takes the length its file has
     /// as its committed end (it is output already delivered, which a new store or a new definition must not destroy, and a dead statement's tail can then never be taken for
-    /// it, because the row is durable before the statement writes). Then every device the store has transmitted to that is longer than its committed end is cut, so a reader of
+    /// it, because the row is durable before the statement writes: the seeding is PROMOTED, which syncs it to the medium, so a power loss returns the store to a state with the row or to one in which no device was written yet).
+    /// A row of a device the definitions no longer name is retired, so the store stops claiming its file: a device renamed only by case is one file on a case-insensitive host, and its old row would
+    /// cut the delivered output of the new name. Then every device the definitions name that is longer than its committed end is cut, so a reader of
     /// a device file sees a dead statement's tail only until then. A file at or below its committed end is never opened for write. The cut is best effort like <see cref="CutBack"/>:
     /// the positional protocol of <see cref="Transmit"/> does not depend on it, so a device the host refuses to cut never refuses a statement that does not transmit to it.
     /// Returns the tables on the tree as seeding left it.</summary>
@@ -149,27 +151,42 @@ internal sealed class McsStore : IDisposable
         if (tables.Meta is not { } meta || !meta.DefinitionsHash.AsSpan().SequenceEqual(definitions.Hash))
         {
             McsSeeding.Seed(tables, definitions, RunUnit.Current.Clock.Now());
-            var known = tables.DeviceEnds().Select(d => d.Device).ToHashSet(StringComparer.Ordinal);
-            foreach (var device in definitions.Parsed.Devices.Where(d => !known.Contains(d)))
+            var defined = definitions.Parsed.Devices.ToHashSet(StringComparer.Ordinal);
+            var known = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var (device, end) in tables.DeviceEnds())
+            {
+                if (defined.Contains(device)) known.Add(device);
+                else
+                {
+                    CutDevice(device, end);   // a dead statement's tail is cut before the row goes, so it is never taken for delivered output
+                    tables.RetireDeviceEnd(device);
+                }
+            }
+            foreach (var device in defined.Where(d => !known.Contains(d)))
                 tables.SetDeviceEnd(device, File.Exists(DeviceFile(device)) ? new FileInfo(DeviceFile(device)).Length : 0);
             tables.FlushMeta();
             if (StatementLanding.Complete(file, [new TreeChange(tables.Tree, TreeChange.PrimeRoot)]) != StoreStatus.Ok)
                 throw new McsRefusalException("the store did not land the seeding");
+            if (file.Promote() != StoreStatus.Ok)
+                throw new McsRefusalException("the store did not promote the seeding");
             tables = new McsTables(new BTree(file, KeyOrders.Ordinal, file.Meta.PrimeRoot));
         }
-        foreach (var (device, end) in tables.DeviceEnds())
-        {
-            string path = DeviceFile(device);
-            try
-            {
-                if (!File.Exists(path) || new FileInfo(path).Length <= end) continue;
-                using var handle = File.OpenHandle(path, FileMode.Open, FileAccess.Write, FileShare.ReadWrite);
-                RandomAccess.SetLength(handle, end);
-            }
-            catch (IOException) { }
-            catch (UnauthorizedAccessException) { }
-        }
+        foreach (var (device, end) in tables.DeviceEnds()) CutDevice(device, end);
         return tables;
+    }
+
+    /// <summary>Cuts the device file to its committed end when it is longer. Best effort (see <see cref="Prepare"/>).</summary>
+    private void CutDevice(string device, long end)
+    {
+        string path = DeviceFile(device);
+        try
+        {
+            if (!File.Exists(path) || new FileInfo(path).Length <= end) return;
+            using var handle = File.OpenHandle(path, FileMode.Open, FileAccess.Write, FileShare.ReadWrite);
+            RandomAccess.SetLength(handle, end);
+        }
+        catch (IOException) { }
+        catch (UnauthorizedAccessException) { }
     }
 
     private string DeviceFile(string device) => Path.Combine(_root, device + ".out");
@@ -186,7 +203,9 @@ internal sealed class McsStore : IDisposable
                 .Select(t => string.Concat(t.Message.Segments) + Environment.NewLine)));
             string file = DeviceFile(device);
             bool existed = File.Exists(file);
-            long end = existed ? Math.Min(tables.DeviceEnd(device), new FileInfo(file).Length) : 0;   // a file shorter than its committed end was changed outside the MCS
+            long length = existed ? new FileInfo(file).Length : 0;
+            string? row = CommittedRow(tables, device);
+            long end = Math.Min(row is null ? length : tables.DeviceEnd(row)!.Value, length);   // a file shorter than its committed end was changed outside the MCS; a device with no row (a run unit holding definitions a later seeding retired) keeps what its file holds, as seeding does
             written.Add(new Written(device, end, existed));
             using (var handle = File.OpenHandle(file, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite))
             {
@@ -194,9 +213,24 @@ internal sealed class McsStore : IDisposable
                 RandomAccess.SetLength(handle, end + text.Length);
                 RandomAccess.FlushToDisk(handle);
             }
-            tables.SetDeviceEnd(device, end + text.Length);
+            if (row is not null) tables.SetDeviceEnd(row, end + text.Length);   // a retired device gets no row back: seeding retired it, and a row it recreated would claim a file another row owns
         }
     }
+
+    /// <summary>The <c>DeviceEnds</c> row that owns the file <paramref name="device"/> names, or null when none does. The row of the same spelling; else, on a host whose file names ignore
+    /// case, the row of the spelling that is the same file, so a run unit still holding a definition that differs only by case from the stored one advances the stored row
+    /// instead of leaving it short of the file (which the next run unit's cut loop would cut) or recreating a second row for one file.</summary>
+    private string? CommittedRow(McsTables tables, string device)
+    {
+        if (tables.DeviceEnd(device) is not null) return device;
+        if (!FileNamesIgnoreCase) return null;
+        return tables.DeviceEnds().Select(r => r.Device).FirstOrDefault(d => string.Equals(d, device, StringComparison.OrdinalIgnoreCase));   // not a COBOL word: a file name, which the host's file system folds, not COBOL
+    }
+
+    private bool? _fileNamesIgnoreCase;
+
+    /// <summary>Whether the MCS directory's file system treats names that differ only by case as one file, probed once with the store file's own name in the other case.</summary>
+    private bool FileNamesIgnoreCase => _fileNamesIgnoreCase ??= File.Exists(Path.Combine(_root, MessageStore.StoreFile.ToUpperInvariant()));
 
     /// <summary>A statement that answers 92 took no action, so the devices it wrote to go back to their committed ends, and a device it created goes. Best effort: the
     /// positional protocol of <see cref="Transmit"/> does not depend on it (the next transmission to a device starts at its committed end and the run unit's first statement
