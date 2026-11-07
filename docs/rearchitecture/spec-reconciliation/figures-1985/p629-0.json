@@ -1,0 +1,14 @@
+{
+ "page": 629,
+ "figure": 0,
+ "drawn_lines": [
+  "[<u>SIGN</u> IS] ⎧<u>LEADING</u> ⎫ <u>SEPARATE</u> CHARACTER",
+  "         ⎩<u>TRAILING</u>⎭"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "[<u>SIGN</u> IS]  {<u>LEADING</u>  } <u>SEPARATE</u> CHARACTER",
+  "         { <u>TRAILING</u> }"
+ ],
+ "reason": "The printed page sets [SIGN IS] {LEADING / TRAILING} SEPARATE CHARACTER, SIGN, LEADING, TRAILING and SEPARATE underlined, as the batch drew it. Redrawn in the house style."
+}
