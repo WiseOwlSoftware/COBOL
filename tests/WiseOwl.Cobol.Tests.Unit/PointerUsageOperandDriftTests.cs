@@ -92,7 +92,8 @@ public sealed class PointerUsageOperandDriftTests
                         "DATA DIVISION.", "FILE SECTION.", "FD REP-FILE REPORT IS REP-1.", "REPORT SECTION.", "RD REP-1.",
                         "01 TYPE IS DETAIL.",
                         $"   05 P COLUMN 1 {clause}.", "PROCEDURE DIVISION.", "MAIN.", "    STOP RUN."),
-        [CobolParserCore.RULE_usageClause, CobolParserCore.RULE_reportGroupClause, CobolParserCore.RULE_reportGroupEntry]);
+        [CobolParserCore.RULE_usageClause, CobolParserCore.RULE_reportGroupClause, CobolParserCore.RULE_reportGroupBody,
+         CobolParserCore.RULE_reportGroupEntry]);
 
     private static readonly Entry Screen = new("screen description entry",
         clause => Lines("IDENTIFICATION DIVISION.", "PROGRAM-ID. PTROPND.", "DATA DIVISION.", "SCREEN SECTION.",
