@@ -343,6 +343,9 @@ internal sealed class McsTables(BTree tree)
 
     internal void SetDeviceEnd(string device, long end) => Put(Join([DeviceEndsTag], Utf8(device)), Serial((ulong)end));
 
+    /// <summary>The store stops claiming the device file <c>&lt;device&gt;.out</c>: its row goes, and the file is left as it is.</summary>
+    internal void RetireDeviceEnd(string device) => Delete(Join([DeviceEndsTag], Utf8(device)));
+
     /// <summary>Every device the store has transmitted to, with the length of its committed output.</summary>
     internal List<(string Device, long End)> DeviceEnds() =>
         [.. Scan([DeviceEndsTag]).Select(row => (Encoding.UTF8.GetString(row.Key, 1, row.Key.Length - 1), (long)ReadCount(row.Value)))];
