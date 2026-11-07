@@ -8,7 +8,8 @@
       *> kb/Work PB4859 (the DISPLAY and fixed-point-neighbour arms of PB4753 and PB4827): an even-count MEDIAN returns "the arithmetic
       *> mean of the two middle values" (ISO 15.61.4 2), a NEW value, which 15.4.1 leaves under native arithmetic to the implementor as
       *> "an implementor-defined approximation of the value of that expression"; the determination (docs/CONFORMANCE.md DOC-A.1-92b)
-      *> is that once ANY argument is binary64 the equivalent expression is evaluated in binary64, whatever channel reads it. The
+      *> is that a binary64 operand puts the equivalent expression in binary64, whatever channel reads it; the operands of the mean
+      *> are the two MIDDLE values only, so a binary64 elsewhere in the list changes nothing (pb65_selection_mixed_carriers T12). The
       *> mean was the exact mean of the float's SDIDI lift when a fixed-point item was the other middle, and on DISPLAY of two
       *> binary64 middles it was the SDIDI mean of their approximations, where COMPUTE gave the binary64 mean.
       *> F = the double of 0.1, G = the double of 0.2, M = 0.5 in a PIC 9V9(20) item. Values by Python floats:

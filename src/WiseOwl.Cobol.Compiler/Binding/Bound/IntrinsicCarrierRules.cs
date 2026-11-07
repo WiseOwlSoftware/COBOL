@@ -141,14 +141,16 @@ internal static class IntrinsicCarrierRules
     ///         approximation, where its decimal is 0.000001). On the exact lane each argument enters as its own kind
     ///         (<c>CobolExact.FromBinary64</c>, <c>CobolExact.FromApproximation</c>) and the selected one lands as that kind.</item>
     /// </list>
-    /// A list of one kind of binary64 stays on the float lane: its content IS the double. So does an even-count MEDIAN, of two kinds
-    /// or beside a fixed-point item (<paramref name="meanOfMiddlePair"/>, kb/Work PB4753, PB4859): the mean of the two middle values is a
-    /// NEW value, evaluated as its equivalent expression is (§15.4.1) in binary64 once any argument is binary64
-    /// (docs/CONFORMANCE.md DOC-A.1-92b), where the exact lane landed it one binary64 low or as the exact mean of a float's lift.
+    /// A list of one kind of binary64 stays on the float lane: its content IS the double. So does an even-count MEDIAN of two kinds
+    /// (<paramref name="meanOfMiddlePair"/>, kb/Work PB4753): the mean of the two middle values is a NEW value, evaluated as its
+    /// equivalent expression is (§15.4.1) in binary64 beside a float item, where the exact lane landed it one binary64 low. A MIXED
+    /// even list keeps the exact lane because WHICH values are the middle pair is a run-time fact: its body
+    /// (<c>CobolIntrinsics.MedianBinary64Exact</c>, kb/Work PB4859) forms the binary64 mean when a MIDDLE value is binary64 and the
+    /// exact mean when both are fixed-point (a binary64 elsewhere in the list is not an operand of the mean).
     /// </summary>
     internal static bool SelectionNeedsExactLane(bool anyBinary64, bool allBinary64, bool anyFloatItem, bool anyApproximation,
         bool meanOfMiddlePair) =>
-        anyBinary64 && !meanOfMiddlePair && (!allBinary64 || (anyFloatItem && anyApproximation));
+        anyBinary64 && (!allBinary64 || (!meanOfMiddlePair && anyFloatItem && anyApproximation));
 
     /// <summary>Is the value of the call of <paramref name="functionName"/> over <paramref name="arguments"/> the arithmetic MEAN of the two middle arguments and not a selected argument
     /// (kb/Work PB4753, PB4791)? True for MEDIAN over an even count of arguments (§15.61.4 r2). A table(ALL) argument stands for as many

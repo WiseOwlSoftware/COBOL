@@ -1,4 +1,4 @@
-## A nested whole-value call keeps its value in SUM, RANGE and MIDRANGE, and an even MEDIAN beside a binary64 argument is the binary64 mean on every channel
+## A nested whole-value call keeps its value in SUM, RANGE and MIDRANGE, and an even MEDIAN with a binary64 middle is the binary64 mean on every channel
 
 Two leads of one root, `IntrinsicRenderer` and its carrier rules (kb/Work PB4860, PB4859).
 
@@ -10,9 +10,11 @@ as an operand of unknown bound and run-time scale (`AlignedOperand.RunTimeScaled
 
 **PB4859.** An even MEDIAN beside a binary64 argument formed the exact mean of the float's SDIDI lift (`DISPLAY MEDIAN (F M)` showed
 `.30000000000000000277`, COMPUTE stored it) and DISPLAY of two binary64 middles kept the SDIDI mean while COMPUTE gave the binary64 mean.
-DOC-A.1-92b: any floating-point argument evaluates the function in binary64. `SelectionNeedsExactLane` no longer sends an even MEDIAN
-to the exact lane, the run-time-count body `MedianBinary64Exact` takes any list with a binary64 argument, and
-`FunctionValueField.Median` forms the double mean when any argument is a float.
+DOC-A.1-92b: a binary64 operand evaluates the expression in binary64, and the mean's operands are the two MIDDLE values. The first
+attempt (an even list with any binary64 argument to the float lane) failed the gate at `pb65_selection_mixed_carriers` T12, whose middles
+are fixed-point: the exact mean was owed and the double lost it. So the decision is made per middle at run time: `MedianBinary64Exact` takes
+each argument's binary64-ness beside its exact value (a float item's expansion carries no mark), and `FunctionValueField.Median` reads the
+`Float` shape of the two middles.
 
 Goldens: `pb4860_a_whole_value_argument_keeps_its_value_in_a_list_that_leaves_the_carrier` (+ `_85` refusal),
 `pb4859_even_median_beside_a_binary64_argument_is_the_binary64_mean` (+ `_below_2002` refusal). Rows closed: none (leads, no inventory row).
