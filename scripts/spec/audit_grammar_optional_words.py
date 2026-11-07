@@ -17,7 +17,9 @@ HOW. For every general format PRINTED IN THE STANDARD — all of them, not the s
   * the transcription declares the population: every `N.N…  General format[s]` heading in `specs/ISO_COBOL_2023.md`;
   * the PAGE and the EXTENT come from `clause_page.index()`, the one clause→page locator — the format runs from
     its own heading to the NEXT clause heading, across a page break when it takes one;
-  * the words in that band are measured — underlined or not — from the PDF's vector rectangles;
+  * the words in that band are measured — underlined or not — from the PDF's vector rectangles; a SCANNED edition
+    (1985) has no vector layer, so its formats are read from the transcription's own decided drawings instead
+    (`drawn_population`), which `sweep_figures.py --check` holds to the measured scan (kb/Work PB4849);
   * the grammar rules that spell the construct are its CLOSURE: the rules naming the construct's leading keyword,
     plus every rule reachable from them that NOTHING ELSE references. That closure is what makes helper rules
     visible — `readAdvancingOnLock` never mentions READ, and a keyword-only scan could never have found PB331;
@@ -66,7 +68,8 @@ docstring records the fix; the discipline stands regardless.
     python scripts/spec/audit_grammar_optional_words.py --clause 14.9.41.2 --show-format
     python scripts/spec/audit_grammar_optional_words.py --clause 14.9.38.2 --show-layout   # the option structure
     python scripts/spec/audit_grammar_optional_words.py --self-test     # fixture grammars; needs no PDF
-    python scripts/spec/audit_grammar_optional_words.py --edition 2002  # another edition (default 2023); a scan is refused
+    python scripts/spec/audit_grammar_optional_words.py --edition 2002  # another edition (default 2023)
+    python scripts/spec/audit_grammar_optional_words.py --edition 1985  # a scan: read from its decided drawings
 """
 from __future__ import annotations
 
@@ -114,6 +117,9 @@ class Format(NamedTuple):
     parent: str                 # the construct's clause, e.g. "14.9.49"
     title: str                  # the construct's clause title, e.g. "USE statement"
     keyword: str | None         # its anchor keyword, e.g. "USE" — None for a prose-titled construct
+    page: int | None = None     # a scanned edition's: the PDF page its first drawn block is on (`drawn_population`)
+    line: int = 0               # a scanned edition's: its heading's line in the transcription, which tells apart two
+                                # formats of one number (1985 numbers its clauses per module: VI-2.4.2, VII-2.4.2)
 
     @property
     def directive(self) -> bool:
@@ -427,6 +433,24 @@ class Spelling(NamedTuple):
     groups: tuple[Unit, ...]        # every group inside it, at any depth, with what it demands once present
     mentions: frozenset[str]        # every token it names, optional or not
     arm: Arm                        # the alternative itself, for the inverse classes
+    certain: frozenset[str]         # of `own`, the tokens it writes WHICHEVER choice is made (`_certain`)
+
+
+def _certain(alt: tuple[Elem, ...]) -> frozenset[str]:
+    """The tokens EVERY use of an alternative writes: its required tokens, and of a required choice only the tokens all
+    of the choice's alternatives write. `_mandatory` counts each arm of a required choice as demanded (whichever is
+    chosen is), which is the question an optional word asks; whether a printed format SPELLS the alternative is another
+    question, and it asks this: `REWRITE (recordName | FILE fileName)` is the spelling of the 1985 `REWRITE
+    record-name-1`, a format that prints no FILE (kb/Work PB4849)."""
+    out: set[str] = set()
+    for e in alt:
+        if e.optional:
+            continue
+        if e.kind == "tok":
+            out.add(e.name)
+        elif e.kind == "group" and e.alts:
+            out |= frozenset.intersection(*(_certain(a) for a in e.alts))
+    return frozenset(out)
 
 
 def _written(alts: tuple[tuple[Elem, ...], ...]) -> frozenset[str]:
@@ -545,7 +569,7 @@ def model(trees: dict[str, tuple[tuple[Elem, ...], ...]], origin: dict[str, str]
     through = _written_through(trees, written)
     spellings = {
         name: tuple(Spelling(own, tuple(_groups(alt, written, through)), frozenset(_tokens(alt)),
-                             _arm(alt, own, written, through))
+                             _arm(alt, own, written, through), own & _certain(alt))
                     for alt, own in zip(alts, demanded(alts, optional_only.get(name, False))))
         for name, alts in trees.items()}
     return GrammarModel(spellings, refs, origin)
@@ -654,7 +678,13 @@ class Examination(NamedTuple):
 #: "enclosing": the same test, judged against this format plus every format that underlines the keyword — a
 #: paragraph printed INSIDE a definition (§2023:11.6.2 INTERFACE-ID within §2023:10.6.1's interface-definition) is spelled
 #: by the definition's rule, which demands END INTERFACE from the enclosing format.
-ANCHORINGS = ("demanding", "named", "enclosing")
+#: "choosing": the rules with an alternative that demands the anchor keyword and whose CERTAIN words the format prints
+#: (`Spelling.certain`): of a required choice, only what every arm writes. A format that prints one arm of a choice
+#: whose other arm a later edition added is spelled by it: the 1985 `REWRITE record-name-1` by `rewriteStatement :
+#: REWRITE (recordName | FILE fileName) …`, whose FILE arm is 2002's (kb/Work PB4849). It is tried last, because a
+#: format printing one keyword of a choice is the construct of every rule offering that keyword: the 2023 INVALID
+#: clause's `INVALID WHEN` would anchor the VALUE clause's `(VALID | INVALID) (WHEN condition)?` too.
+ANCHORINGS = ("demanding", "named", "enclosing", "choosing")
 
 
 def keyword_tokens(keyword: str, keywords: dict[str, set[str]], token_names: set[str]) -> frozenset[str]:
@@ -701,15 +731,18 @@ def examine(gm: GrammarModel, keywords: dict[str, set[str]], keyword: str, plain
     def spells(demands: frozenset[str], words: set[str]) -> bool:
         return all(sp & words for t in demands if (sp := keywords.get(t)))
 
+    def spelt(s: Spelling) -> frozenset[str]:
+        """The words a format must print for `s` to spell it, under the anchoring being tried."""
+        return s.certain if anchoring == "choosing" else s.own
+
     def anchor(words: set[str], demanding: bool) -> set[str]:
         return {r for r, sps in gm.spellings.items()
-                if any(toks & (s.own if demanding else s.mentions) and spells(s.own, words) for s in sps)}
+                if any(toks & (s.own if demanding else s.mentions) and spells(spelt(s), words) for s in sps)}
 
     words, anchors, anchoring = printed, set(), ""
     for anchoring in ANCHORINGS:
-        if anchoring == "enclosing":
-            words = printed | enclosing()
-        anchors = anchor(words, anchoring == "demanding")
+        words = printed | enclosing() if anchoring == "enclosing" else printed
+        anchors = anchor(words, anchoring in ("demanding", "choosing"))
         if anchors:
             break
     else:
@@ -725,7 +758,7 @@ def examine(gm: GrammarModel, keywords: dict[str, set[str]], keyword: str, plain
 
     for rule in sorted(closure(gm.refs, anchors)):
         for s in gm.spellings[rule]:
-            if not spells(s.own, words):
+            if not spells(spelt(s), words):
                 continue
             units = [("", s.own)] + [(u.text, u.demands) for u in s.groups if spells(u.demands, words)]
             for group, demands in units:
@@ -745,11 +778,12 @@ def examine(gm: GrammarModel, keywords: dict[str, set[str]], keyword: str, plain
             # demands is written (or prints outside every portion an ellipsis repeats). Underlining alone cannot
             # decide it, since a bracket or choice indicator legitimately makes an underlined word omissible
             # (MULTIPLE in `[ MULTIPLE ]`); `figure_options` reads which delimiters hold each printed word.
-            arms = [("", s.arm)] + [(u.text, a) for u in s.groups if spells(u.demands, words) for a in u.arms]
-            for group, arm in arms:
+            arms = [("", s.arm, spelt(s))] + [(u.text, a, a.demands) for u in s.groups if spells(u.demands, words)
+                                               for a in u.arms]
+            for group, arm, need in arms:
                 # An arm is this construct's only when it DEMANDS a word the format prints: an arm demanding nothing
                 # (`useEcEntry : cobolWord (FILE fileName)*`) is anchored by any format that prints its one keyword.
-                if not arm.demands or not spells(arm.demands, words):
+                if not arm.demands or not spells(need, words):
                     continue
                 # A word the arm both writes and omits is spelled twice (`LOCK MODE … lockOnPhrase?` with
                 # `lockOnPhrase : WITH? LOCK ON …`; `evaluateWhenClause+ evaluateWhenOther?`, each a WHEN): which
@@ -796,8 +830,9 @@ def read_band(doc, cache: dict[int, tuple[list, list]], start, nxt, classify_pag
     return Band(pages)
 
 
-def measure(words: list[dict]) -> tuple[set[str], set[str]]:
-    """(never-underlined words, underlined-somewhere words) over one construct's printed formats."""
+def measure(words: list[dict], prose: bool = True) -> tuple[set[str], set[str]]:
+    """(never-underlined words, underlined-somewhere words) over one construct's printed formats. `prose` says whether
+    a line of prose can be among them (`figure_options._held_words`): a drawn format's words carry none."""
     by_line: dict[int, list[dict]] = collections.defaultdict(list)
     for w in words:
         by_line[round(w["y0"] / 3)].append(w)
@@ -807,7 +842,7 @@ def measure(words: list[dict]) -> tuple[set[str], set[str]]:
         text = " ".join(w["text"] for w in row)
         if re.search(r"ISO/IEC\s*1989", text):
             continue
-        if figure_options.prose_row(w["text"] for w in row):
+        if prose and figure_options.prose_row(w["text"] for w in row):
             continue
         for w in row:
             t = w["text"].strip(" []{}.,;:()")
@@ -975,19 +1010,136 @@ def self_test() -> int:
     once = run_printed(compute.format("COMPUTE IDENTIFIER+"), "COMPUTE", figure_options.COMPUTE)
     check("…while choice indicators license `(… SIZE ERROR …)*` and their NOT, and a bracket the scope terminator",
           not once.candidates and once.anchoring == "demanding", once)
-    saved_argv = sys.argv
-    try:
-        sys.argv = ["audit_grammar_optional_words.py", "--edition", "1985"]
-        main()
-        refused = None
-    except SystemExit as ex:
-        refused = str(ex.code)
-    finally:
-        sys.argv = saved_argv
-    check("--edition 1985: a scan, whose underlines are pixels, is refused naming PB4817 before any file is read",
-          refused is not None and "PB4817" in refused and "1985" in refused, refused)
+    # ---- a scanned edition: its formats read from the transcription's decided drawings (kb/Work PB4849) ----
+    planted = ["## Page 9001", "### 4.6 THE REWRITE STATEMENT", "#### 4.6.1 Function", "Prose.", "#### 4.6.2 General Format",
+               "<pre>", "<u>REWRITE</u> record-name-1 [ <u>FROM</u> identifier-1 ]", "</pre>", "## Page 9002",
+               "<pre>", "[ <u>END-REWRITE</u> ]", "</pre>", "### 4.7 THE FILE DESCRIPTION ENTRY",
+               "#### 4.7.2 General Format", "<pre>", "<u>FD</u> file-name-1", "</pre>", "### 4.8 EXAMPLES",
+               "<pre>", "REWRITE REC-1.", "</pre>"]
+    drawn = drawn_formats(planted, 1985)
+    check("drawn_formats: a format's blocks across a page break are one format, titled and anchored by its construct",
+          [(f.clause, f.title, f.keyword, f.page, f.line, len(b)) for f, b in drawn]
+          == [("4.6.2", "THE REWRITE STATEMENT", "REWRITE", 9001, 4, 2),
+              ("4.7.2", "THE FILE DESCRIPTION ENTRY", None, 9002, 13, 1)], drawn)
+    rewrite = drawn[0][1]
+    layout = figure_options.Layout(figure_options.read_drawn(rewrite).words)
+    plain_r, under_r = measure([{"text": w.text, "y0": w.y0, "underlined": w.underlined} for w in layout.words], False)
+    rules = ("rewriteStatement : REWRITE (recordName | FILE fileName) recordFrom? END_REWRITE? ; "
+             "recordFrom : FROM IDENTIFIER ; recordName : IDENTIFIER ; fileName : IDENTIFIER ;")
+    keys = dict(_FIXTURE_KEYWORDS, REWRITE={"REWRITE"}, FROM={"FROM"}, END_REWRITE={"END-REWRITE"})
+    chosen = examine(_fixture(rules), keys, "REWRITE", {w.replace("-", "_") for w in plain_r},
+                     {w.replace("-", "_") for w in plain_r | under_r}, set, layout)
+    check("a 1985 format printing one arm of a required choice (`REWRITE record-name-1`, no FILE) is spelled by the "
+          "rule, anchored by `choosing`", chosen.anchoring == "choosing" and chosen.anchors == {"rewriteStatement"}
+          and not chosen.candidates, chosen)
     print("SELF-TEST:", "PASS" if ok else "FAIL")
     return 0 if ok else 1
+
+
+class Population(NamedTuple):
+    """Where one run's general formats come from, and how each is read: the printed page's vector layer
+    (`printed_population`), or, for a scanned edition, the transcription's decided drawings (`drawn_population`)."""
+    formats: list[Format]                                   # every format the transcription declares
+    located: list[Format]                                   # those this population can read
+    page: Callable[[Format], int]                           # the PDF page a format is printed on
+    words: Callable[[Format], list[dict]]                   # its words, as `measure` takes them
+    reading: Callable[[Format], figure_options.Reading]     # its option structure
+    close: Callable[[], None]
+    prose: bool                                             # whether its words can carry a line of prose (`measure`)
+
+
+def printed_population(edition: int) -> Population:
+    """A vector edition's formats: located on the printed page by `clause_page.index`, the one clause->page locator,
+    each read from its heading to the next clause heading (`read_band`), its underlines from the PDF's rectangles."""
+    pdf = spec_pdf.require(edition)
+    import pymupdf
+    sys.path.insert(0, str(HERE))
+    import clause_page
+    from figure_geometry import page_classifier
+
+    classify_page = page_classifier(edition)
+    doc = pymupdf.open(pdf)
+    formats = declared_formats(spec_pdf.markdown(edition).read_text(encoding="utf-8"))
+    heads = clause_page.index(doc)
+    where: dict[str, int] = {}
+    for i, h in enumerate(heads):
+        where.setdefault(h.clause, i)
+    cache: dict[int, tuple[list, list]] = {}
+    bands: dict[Format, Band] = {}
+
+    def band(f: Format) -> Band:
+        if f not in bands:
+            i = where[f.clause]
+            bands[f] = read_band(doc, cache, heads[i], heads[i + 1] if i + 1 < len(heads) else None, classify_page)
+        return bands[f]
+
+    return Population(formats, [f for f in formats if f.clause in where], lambda f: heads[where[f.clause]].page,
+                      lambda f: band(f).words, lambda f: figure_options.read(band(f).pages), doc.close, True)
+
+
+#: A scanned edition's construct titles, and the anchor keyword each names (the 2023 titles' is `ANCHOR`). The 1985
+#: standard titles a construct `THE ADD STATEMENT`, `THE BLOCK CONTAINS CLAUSE`, `THE PROGRAM-ID PARAGRAPH`: the
+#: keyword is the word after THE, and a title naming no statement, clause or paragraph (`THE FILE DESCRIPTION ENTRY`,
+#: `LEVEL-NUMBER`) is a prose title, counted and named like 2023's (`--list-unanchored`).
+DRAWN_ANCHOR: dict[int, re.Pattern] = {
+    1985: re.compile(r"^THE\s+([A-Z][A-Z0-9]*(?:-[A-Z0-9]+)*)\b.*\b(?:STATEMENT|CLAUSE|PARAGRAPH)\b"),
+}
+
+
+def drawn_formats(lines: list[str], edition: int) -> list[tuple[Format, list[list[str]]]]:
+    """A scanned edition's general formats, as its transcription draws them, in document order: each `<pre>` block
+    where a general format is printed (`sweep_figures.Drawn.general_format`) that no refuter found to be none
+    (`sweep_figures.NOT_A_FORMAT`), under a leaf heading titled a general format (`GENERAL_FORMAT_TITLE`), grouped by that
+    heading, with the title of the construct it belongs to (the nearest heading numbered as its parent).
+
+    The composite skeleton (1985 PDF pages 195-232) reprints the module formats under no such heading, so it is not
+    read twice. A figure read here is held to the measured scan by `sweep_figures.py --check` (kb/Work PB4849)."""
+    import bisect
+    import sweep_figures as S
+    anchor = spec_pdf.edition_data(DRAWN_ANCHOR, edition, "construct-title anchors (audit_grammar_optional_words."
+                                                          "DRAWN_ANCHOR)")
+    heads = [(i, m.group(1), m.group(2).strip()) for i, line in enumerate(lines) if (m := S.CLAUSE_LINE.match(line))]
+    starts = [i for i, _, _ in heads]
+    every = S.drawn_figures(lines, S.page_furniture(edition))
+    verdicts = S.load_verdicts(S.verdicts_dir(edition))
+    out: dict[int, tuple[Format, list[list[str]]]] = {}
+    for d, k in zip(every, S.figure_ordinals(every)):
+        v = verdicts.get((d.page, k))
+        if not d.general_format or (v is not None and v.decided == S.NOT_A_FORMAT):
+            continue
+        h = bisect.bisect_right(starts, d.start) - 1
+        if h < 0:
+            continue
+        at, clause, title = heads[h]
+        if not GENERAL_FORMAT_TITLE.fullmatch(title):
+            continue
+        parent = ".".join(clause.split(".")[:-1])
+        construct = next((t for _, c, t in reversed(heads[:h]) if c == parent), "")
+        a = anchor.match(construct)
+        if at not in out:
+            out[at] = (Format(clause, parent, construct, a.group(1) if a else None, d.page, at), [])
+        out[at][1].append(d.rows)
+    return list(out.values())
+
+
+def drawn_population(edition: int) -> Population:
+    """A scanned edition's formats (kb/Work PB4849): a scan has no vector layer to measure, so each is read from its
+    decided drawing in the transcription (`drawn_formats`, `figure_options.read_drawn`), which `sweep_figures.py --check`
+    holds to the measured page."""
+    found = drawn_formats(spec_pdf.markdown(edition).read_text(encoding="utf-8").splitlines(), edition)
+    blocks = {f: b for f, b in found}
+    readings: dict[Format, figure_options.Reading] = {}
+
+    def reading(f: Format) -> figure_options.Reading:
+        if f not in readings:
+            readings[f] = figure_options.read_drawn(blocks[f])
+        return readings[f]
+
+    def words(f: Format) -> list[dict]:
+        return [{"text": w.text, "y0": w.y0 + 1000 * w.page, "underlined": w.underlined} for w in reading(f).words]
+
+    formats = [f for f, _ in found]
+    return Population(formats, formats, lambda f: f.page, words, reading, lambda: None, False)
 
 
 def main() -> int:
@@ -1005,17 +1157,8 @@ def main() -> int:
     args = ap.parse_args()
     if args.self_test:
         return self_test()
-    spec_pdf.require_vector(args.edition, "audit_grammar_optional_words.py")
-    pdf = spec_pdf.require(args.edition)
     spec_md = spec_pdf.markdown(args.edition)
-    import pymupdf
-
-    sys.path.insert(0, str(HERE))
-    import clause_page
-    from figure_geometry import page_classifier
-
-    classify_page = page_classifier(args.edition)
-    doc = pymupdf.open(pdf)
+    population = (drawn_population if spec_pdf.geometry(args.edition) == "raster" else printed_population)(args.edition)
 
     # ---- the grammar side --------------------------------------------------------------------------------
     grammar = parser_rules()                      # ⛔ grammar_source.read refuses an empty population
@@ -1027,14 +1170,8 @@ def main() -> int:
           f"lexer tokens spelling COBOL words: {len(keywords)}")
 
     # ---- the spec side -----------------------------------------------------------------------------------
-    formats = declared_formats(spec_md.read_text(encoding="utf-8"))
-    heads = clause_page.index(doc)
-    where = {}
-    for i, h in enumerate(heads):
-        where.setdefault(h.clause, i)
-
-    located = [f for f in formats if f.clause in where]
-    unresolved = [f for f in formats if f.clause not in where]
+    formats, located = population.formats, population.located
+    unresolved = [f for f in formats if f not in located]
     anchored = [f for f in located if f.keyword]
     print(f"general formats declared by the transcription: {len(formats)}   "
           f"located on the printed page: {len(located)}   with an anchor keyword: {len(anchored)}")
@@ -1050,22 +1187,14 @@ def main() -> int:
 
     print(f"formats checked this run: {len(selected)}\n")
 
-    cache: dict[int, tuple[list, list]] = {}
-    bands: dict[str, Band] = {}
-    measures: dict[str, tuple[set[str], set[str]] | None] = {}
-
-    def band(f: Format) -> Band:
-        if f.clause not in bands:
-            i = where[f.clause]
-            bands[f.clause] = read_band(doc, cache, heads[i], heads[i + 1] if i + 1 < len(heads) else None, classify_page)
-        return bands[f.clause]
+    measures: dict[Format, tuple[set[str], set[str]] | None] = {}
 
     def measured_format(f: Format) -> tuple[set[str], set[str]] | None:
         """(plain, underlined) words of one located format, measured once; None when the band holds no word."""
-        if f.clause not in measures:
-            words = band(f).words
-            measures[f.clause] = measure(words) if words else None
-        return measures[f.clause]
+        if f not in measures:
+            words = population.words(f)
+            measures[f] = measure(words, population.prose) if words else None
+        return measures[f]
 
     def printed_words(plain: set[str], underlined: set[str]) -> set[str]:
         # A word `measure` deliberately SKIPS (FORMAT, ALL, TRUE …) is never measured, so it cannot testify that a
@@ -1076,7 +1205,7 @@ def main() -> int:
         """Every word printed by another located format that UNDERLINES this one's keyword."""
         out: set[str] = set()
         for g in located:
-            m = measured_format(g) if g.clause != f.clause else None
+            m = measured_format(g) if g != f else None
             if m and f.keyword in m[1]:
                 out |= printed_words(*m)
         return out
@@ -1097,7 +1226,7 @@ def main() -> int:
             continue
         measured += 1
         plain, underlined = m
-        page = heads[where[f.clause]].page
+        page = population.page(f)
         if args.show_format:
             print(f"  {f.clause:<14} p{page:<5} {f.title}\n"
                   f"      required: {' '.join(sorted(underlined)) or '(none)'}\n"
@@ -1107,7 +1236,7 @@ def main() -> int:
         if f.directive or not keyword_tokens(f.keyword, keywords, gm.tokens):
             not_parser.append(f)
             continue
-        reading = figure_options.read(band(f).pages)
+        reading = population.reading(f)
         if reading.unpaired:
             unpaired.append(f"{f.clause} ({reading.unpaired})")
         ex = examine(gm, keywords, f.keyword, plain, printed_words(plain, underlined),
@@ -1130,7 +1259,7 @@ def main() -> int:
             print(f"  CANDIDATE  {f.keyword:<14} {f.clause:<12} p{page:<5} {where_said}"
                   + (f" inside {c.group}" if c.group else ""))
             candidates[c.kind] += 1
-    doc.close()
+    population.close()
     if args.list_unanchored:
         for f in located:
             if not f.keyword:
@@ -1173,7 +1302,10 @@ def main() -> int:
         failures.append(f"{len(undeclared)} `audit:<kind>` marker(s) name a member no src file declares: "
                         + ", ".join(undeclared))
     dead = sorted(f"{kind} {rule} {word}" for kind, rule, word in set(decided) - decided_used)
-    if dead and not (args.construct or args.clause):
+    # A marker decides a candidate of the CURRENT standard's formats (`DEFAULT_EDITION`), which the grammar spells; an
+    # earlier edition prints fewer constructs (1985 has no OCCURS … CAPACITY), so only a full run of that edition can
+    # find a marker dead. Another edition's run still reports each marker it matches as DECIDED.
+    if dead and not (args.construct or args.clause) and args.edition == spec_pdf.DEFAULT_EDITION:
         failures.append(f"{len(dead)} `audit:<kind>` marker(s) matched no candidate in a full run — the rule no "
                         "longer says what the marker decides, so the marker is dead: " + ", ".join(dead))
     if unexamined:

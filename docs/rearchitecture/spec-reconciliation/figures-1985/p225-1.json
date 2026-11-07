@@ -21,7 +21,7 @@
  ],
  "decided": "neither",
  "figure_lines": [
-  "<i>S</i> <u>WRITE</u> record-name-1 [ <u>FROM</u> identifier-1 ]",
+  "S        <u>WRITE</u> record-name-1 [ <u>FROM</u> identifier-1 ]",
   "",
   "    ┌                      ╭ ╭ identifier-2 ╮ ┌ LINE  ┐ ╮ ┐",
   "    │                      │ ┤              ├ │       │ │ │",
@@ -41,5 +41,5 @@
   "",
   "    [ <u>END-WRITE</u> ]"
  ],
- "reason": "The printed page (the composite skeleton) sets S WRITE, the italic S module mark at its left: [FROM identifier-1], the BEFORE/AFTER ADVANCING bracket round {{identifier-2/integer-1} [LINE/LINES] / {mnemonic-name-1/PAGE}} (as page 221's SEND draws it), the AT and NOT AT END-OF-PAGE brackets and [END-WRITE]; the batch typed the ADVANCING braces. Split from the RI WRITE format the batch had set in the same pre. Hand-drawn from the page."
+ "reason": "The printed page (the composite skeleton) sets S WRITE, the italic S module mark at its left: [FROM identifier-1], the BEFORE/AFTER ADVANCING bracket round {{identifier-2/integer-1} [LINE/LINES] / {mnemonic-name-1/PAGE}} (as page 221's SEND draws it), the AT and NOT AT END-OF-PAGE brackets and [END-WRITE]; the batch typed the ADVANCING braces. Split from the RI WRITE format the batch had set in the same pre. Hand-drawn from the page. The italic module mark is set as plain text (a figure carries no markup but <u>; the batch's <i> tag, escaped, rendered as literal text), padded to the width the drawing gave it, so this is the batch's drawing with that one change."
 }
