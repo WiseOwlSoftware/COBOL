@@ -28,6 +28,7 @@ THE SHAPES (FIGURE-STYLE.md, "Layout rules, for the generator"; kb/Work PB3530):
                                                the typed bracket it encloses (FIGURE-STYLE.md rule 9; kb/Work PB4849).
   BOX_AROUND_A_BRACE_GROUP                   — a box several rows tall is `╔ ║ ╚` / `╗ ║ ╝`, holding every row
                                                of the brace it encloses.
+  TWO_ROW_BOX_ADDS_NO_ROW                    — a box two printed lines tall is no group: no spacer row between them.
 """
 import pathlib
 import sys
@@ -584,6 +585,24 @@ FIGURES = {
             '║                          │ DAY-OF-WEEK │ ║',
             '║                          │             │ ║',
             '╚                          ╰ TIME        ╯ ╝',
+        ],
+    ),
+    # PLANTED: a level-2 box exactly two printed lines tall around plain words. A box is no group (FIGURE-STYLE.md
+    # rule 9), so the two-row spacer that a two-row bracket earns is not inserted (kb/Work PB4849 review R1-1).
+    'TWO_ROW_BOX_ADDS_NO_ROW': (
+        [
+            ('MOVE', 72.0, 100.0, 300.0, True),
+            ('identifier-1', 106.0, 166.0, 300.0, False),
+            ('TO', 106.0, 118.0, 312.0, True),
+            ('identifier-2', 124.0, 184.0, 312.0, False),
+        ],
+        [
+            (66.0, 297.0, 322.0, 'box', 'L'),
+            (190.0, 297.0, 322.0, 'box', 'R'),
+        ],
+        [
+            '╔ MOVE identifier-1 ╗',
+            '╚ TO identifier-2   ╝',
         ],
     ),
 }

@@ -524,7 +524,8 @@ def build(page, lo, hi, extract, classify_page):
     # always glyph-drawn — came out two rows tall with no middle piece and therefore no POINT, losing the
     # §2023:5.2.6.3-vs-§2023:5.2.6.2 distinction the point exists to carry. `where encoding-phrase is:` on folio 276 is
     # the smallest case: two alternatives, one brace, and nowhere to put its point.
-    spacers = {c[0] for s in stems for c in [covers(s)] if len(c) == 2 and c[1] - c[0] == 1}
+    # A level-2 BOX is no group (FIGURE-STYLE.md rule 9): a box two printed lines tall gains no spacer row.
+    spacers = {c[0] for s in stems if s["kind"] != "box" for c in [covers(s)] if len(c) == 2 and c[1] - c[0] == 1}
     spacers |= {r0 for _, r0, r1, _ in glyph_raw if r1 - r0 == 1}
 
     # A BLANK ROW BETWEEN GROUPS, which the printed page has and the house worked example keeps: ACCEPT

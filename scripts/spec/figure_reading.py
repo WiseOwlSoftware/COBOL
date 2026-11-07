@@ -280,9 +280,10 @@ def compare(drawn: list[str], generated: list[str]) -> dict:
 
 
 def self_test() -> int:
-    fails = []
+    fails, ran = [], []
 
     def check(name, ok, detail=""):
+        ran.append(name)
         if not ok:
             fails.append(f"{name} {detail}")
 
@@ -348,7 +349,7 @@ def self_test() -> int:
     diff = compare(unboxed, boxed)
     check("a lost box is named on every word it held", diff["boxes"] == ["RECORD: drawn 0, generated 1",
           "RERUN: drawn 0, generated 1", "ON: drawn 0, generated 1", "IN: drawn 0, generated 1"], str(diff))
-    total = 17
+    total = len(ran)
     print(f"figure_reading self-test: {total - len(fails)}/{total} " + ("GREEN" if not fails else "RED"))
     for f in fails:
         print("  FAIL", f)
