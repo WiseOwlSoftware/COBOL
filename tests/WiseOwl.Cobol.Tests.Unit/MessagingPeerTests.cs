@@ -19,7 +19,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 [Trait("Host", "ReFS")]
 public sealed class MessagingPeerTests : IDisposable
 {
-    private static readonly TimeSpan Guard = TimeSpan.FromSeconds(30);
+    /// <summary>Only ever the failure of a hang, and one harness unit (kb/Work PB3108): the transport's accept loops and pumps run on the thread pool, which a host busy with the whole
+    /// population can hold back for a minute and more, so a fixed limit measures the host (gate run 000003-20261107T040901Z: 61 s and 91 s, red, for cases that take a fraction of a second).</summary>
+    private static readonly TimeSpan Guard = TimeSpan.FromMilliseconds(ObservationBudget.UnitMs);
 
     private readonly string _work = ScratchDirectory.Create("pb4742p-");
     private readonly List<MessagingPeer> _peers = [];
@@ -40,8 +42,10 @@ public sealed class MessagingPeerTests : IDisposable
         return peer;
     }
 
-    /// <summary>Runs <paramref name="statement"/> on its own thread; the task's result is the statement's, and a hang is the failure of the guard.</summary>
-    private static Task<StatementResult> OnThread(Func<StatementResult> statement) => Task.Run(statement).WaitAsync(Guard);
+    /// <summary>Runs <paramref name="statement"/> on its own thread, never one of the pool's, because a statement blocks and the pumps it waits for need the pool;
+    /// the task's result is the statement's, and a hang is the failure of the guard.</summary>
+    private static Task<StatementResult> OnThread(Func<StatementResult> statement) =>
+        Task.Factory.StartNew(statement, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default).WaitAsync(Guard);
 
     private static StatementResult Result(Task<StatementResult> task) => task.GetAwaiter().GetResult();
 

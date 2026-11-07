@@ -101,8 +101,13 @@ public sealed class PlatformAssumptionTests : IDisposable
         psi.ArgumentList.Add(path);
         psi.ArgumentList.Add(accept ? "accept" : "listen");
         var child = LiveProcess.Start(psi);
-        Assert.Equal("LISTENING", child.ExpectLine());
-        return child;
+        // `dotnet run` writes its own build's warnings to the same stdout (a restore's NU1903, an SDK target's), first, so the child's protocol starts at its first line of its own.
+        while (true)
+        {
+            string line = child.ExpectLine();
+            if (line == "LISTENING") return child;
+            _output.WriteLine($"dotnet run: {line}");
+        }
     }
 
     /// <summary>What <paramref name="socket"/>'s blocking receive does once its peer is gone: zero bytes (end of stream) or
