@@ -28,7 +28,11 @@ def main():
     ap.add_argument('--top', type=int, default=12)
     ap.add_argument('--lines', type=int, default=3)
     a = ap.parse_args()
-    cited = citation.parse(a.clause) if a.clause.startswith('§') else citation.Citation(2023, a.clause)
+    try:
+        cited = citation.parse(a.clause) if a.clause.startswith('§') else citation.Citation(2023, a.clause)
+    except citation.CitationError as e:  # the parser's reason, as cite.py and citation.py print it (review R1-3)
+        print(f'FAIL: {e}')
+        return 1
     if cited.edition != 2023:
         sys.exit(f"where.py indexes the citations of the 2023 standard; {a.clause} cites {cited.edition}")
     cpat = re.compile(citation.clause_pattern(cited.locator))

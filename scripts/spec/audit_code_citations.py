@@ -23,17 +23,16 @@ THE CHECKS, each narrow on purpose:
   PHANTOM   — the citation names a clause the standard does not have (§8.3.1.2, §8.8.4.1.1, §8.3.3.7 were cited
               ~120 times between them; kb/Work PB159/PB182/PB290). A citation in the edition form
               (`§2023:13.18.35.4`, `§1985:VI.5.3.2`; `scripts/spec/citation.py`, kb/Work PB4887) is checked against
-              its own edition's transcription, whatever its shape. A BARE `§N` (the transition, while
-              `citation.BARE_MEANS_2023`) is read as 2023 only when ISO-SHAPED — at least three dot-separated
+              its own edition's transcription, whatever its shape. A BARE `§N` is no citation, but a bare number
+              the 2023 standard does not have is still a phantom when ISO-SHAPED — at least three dot-separated
               segments under a real top-level clause — because a design doc legitimately writes "§4.2" and "§14.4"
               about its OWN sections and those are not citations of the standard.
 
   CITATION  — a malformed edition-form citation: an edition the format does not have (`§5000:`), or a locator
               of the wrong shape for its edition (`§2023:VI.5`, `§1985:5.3.2`).
 
-  BARE      — (once `citation.BARE_MEANS_2023` is gone, kb/Work PB4887 phase 2) a bare `§N` that names a clause of
-              the 2023 standard and no document of the repository's own (`citation.bare_standard`): a citation of the
-              standard carries its edition.
+  BARE      — (kb/Work PB4887) a bare `§N` that names a clause of the 2023 standard and no document of the
+              repository's own (`citation.bare_standard`): a citation of the standard carries its edition.
 
   SUBJECT   — the cited clause's catalog subject is a NAMED construct (`MERGE statement`, `HIGHLIGHT clause`,
               `ROUNDED phrase`) whose name appears NOWHERE in the citation's context, while the context DOES name
@@ -354,11 +353,11 @@ def _phantoms(line: str, universe: set[str], skip: set[str] = frozenset(), prev:
     malformed edition-form one — with the exclusions the check cannot do without.
 
     An edition-form citation (`§2023:…`, `§1985:…`) is unambiguous, so it is validated against its own edition's
-    transcription whatever its shape (`citation.validate`). A bare one (the transition, `citation.BARE_MEANS_2023`)
-    is read as 2023 only when ISO-shaped and when no document's name or other edition stands just left of it
-    (`citation.bare_standard`'s screens). `prev` is the preceding line: prose wraps, and "swept the repo for the
+    transcription whatever its shape (`citation.validate`). A bare one is no citation (BARE refuses it when it names
+    a 2023 clause), but a bare number the 2023 standard does not have is a PHANTOM when it is ISO-shaped and no
+    document's name or other edition stands just left of it (`citation.names_another_text`). `prev` is the preceding line: prose wraps, and "swept the repo for the
     phantom clause / \"§8.8.4.1.1\"" puts the disclaimer and the citation on different lines."""
-    for c in citation.scan(line):
+    for c in citation.scan(line, bare=True):
         shown = line[c.start:c.end].split(" ")[0] if c.error else f"§{c.edition}:{c.locator}"
         if c.error:
             if not _reported(line, c, prev):              # a doc naming the format's token: "the `§2023:` form"
@@ -382,10 +381,7 @@ def _phantoms(line: str, universe: set[str], skip: set[str] = frozenset(), prev:
 
 def _bares(line: str, universe: set[str], skip: set[str], prev: str):
     """BARE (kb/Work PB4887 phase 2): a bare `§N` that `citation.bare_standard` classifies as a citation of the 2023
-    standard — the very set `rewrite_citations.py` rewrites — must carry its edition. Silent while the transition
-    reads the bare form as 2023 (`citation.BARE_MEANS_2023`)."""
-    if citation.BARE_MEANS_2023:
-        return
+    standard (the set the one-time rewrite of kb/Work PB4887 put in the edition form) must carry its edition."""
     for c in citation.scan(line, bare=True):
         if c.bare and citation.bare_standard(line, c, skip, universe) and not _reported(line, c, prev):
             yield "BARE", c.locator, f"write §2023:{c.locator}: a citation of the standard carries its edition"
@@ -456,8 +452,8 @@ CLAUSE_TOKEN = re.compile(r"(?<![\d.])" + citation.NOT_ANOTHER_EDITION + r"(\d+(
 #: `(ISO §2023:13.16 SR16 …)`. The three-segment floor exists for PROSE (a doc's own bare `§4.2`), and it made the
 #: diagnostic family blind to exactly the unqualified citations it exists to catch: fourteen shipped in
 #: `OoClassTable`/`DataBinder` messages while DIAG-UNQUALIFIED read zero (kb/Work PB388, wave 47). The `§` is
-#: the evidence; a bare `11.7` in a message is still not read. The mark is the 2023 one (`§2023:11.7`, and the bare
-#: `§11.7` while `citation.BARE_MEANS_2023`).
+#: the evidence; a bare `11.7` in a message is still not read. The mark is the 2023 one (`§2023:11.7`; a bare `§11.7`
+#: is no citation, and BARE refuses it).
 DIAG_CLAUSE_TOKEN = re.compile(r"(?<![\d.])" + citation.NOT_ANOTHER_EDITION
                                + r"(?:" + citation.MARK_2023 + r"(\d+\.\d+)|(\d+(?:\.\d+){2,4}))(?![\d.])")
 
@@ -1446,17 +1442,14 @@ def edition_self_test(universe: set[str]) -> bool:
         print(f"  {'ok  ' if good else 'FAIL'} {'fires ' + want if want else 'silent'} on {line[:60]}"
               + ("" if good else f"  (got {sorted(got)})"))
         ok &= good
-    # ⛔ AND THE PHASE-2 READING, seen to fire before it is switched on: with the transition off, a bare citation of
-    # a 2023 clause is BARE, a document's own section and a reported phantom are not.
-    saved, citation.BARE_MEANS_2023 = citation.BARE_MEANS_2023, False
-    try:
-        bare = [{k for k, _c, _m in _bares(line, universe, set(), "")} for line in (
-            "the MOVE statement (§14.9.25.4 GR6)", "DESIGN-locale-facility §4.4.3", "the old comment cited §8.3.1.2")]
-    finally:
-        citation.BARE_MEANS_2023 = saved
-    good = bare == [{"BARE"}, set(), set()]
-    print(f"  {'ok  ' if good else 'FAIL'} BARE fires on a bare 2023 citation once the transition is off, silent on "
-          "a document's section and a reported phantom" + ("" if good else f"  (got {bare})"))
+    # ⛔ AND THE BARE REFUSAL (kb/Work PB4887): a bare citation of a 2023 clause is BARE; a document's own section,
+    # another edition's free-text number and a reported phantom are not.
+    bare = [{k for k, _c, _m in _bares(line, universe, set(), "")} for line in (
+        "the MOVE statement (§14.9.25.4 GR6)", "DESIGN-locale-facility §4.4.3", "COBOL-85 §5.3.2 GR3",
+        "the old comment cited §8.3.1.2")]
+    good = bare == [{"BARE"}, set(), set(), set()]
+    print(f"  {'ok  ' if good else 'FAIL'} BARE fires on a bare 2023 citation, silent on a document's section, "
+          "another edition's free text and a reported phantom" + ("" if good else f"  (got {bare})"))
     return ok and good
 
 

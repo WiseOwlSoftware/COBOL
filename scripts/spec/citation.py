@@ -31,11 +31,11 @@ THE FORMAT (owner 2026-11-06; the edition is MANDATORY):
   a 1985 locator always carries its section, and a paragraph the section does not have is refused even when another
   section has it.
 
-THE TRANSITION (kb/Work PB4887 "Landing"; phase 1 of 2). The tree still writes its 123,000-odd citations of the 2023
-standard bare (`§13.18.35.4 GR1`). While `BARE_MEANS_2023` is True a bare `§N.N…` reads as a 2023 citation (marked
-`bare=True`), so the unrewritten tree stays GREEN. PHASE 2 runs `rewrite_citations.py --apply` once, deletes that
-constant and every line that reads it, and from then on a bare `§` is not a citation: the audit refuses a bare `§N`
-that `bare_standard` classifies as a citation of the standard (`audit_code_citations.py` BARE).
+A BARE `§N` IS NO CITATION (kb/Work PB4887 phase 2: the tree's 94,513 bare citations of the 2023 standard were
+rewritten once into the edition form, and the transition that read the bare form as 2023 is gone). `parse` refuses a
+bare `§13.18.35.4 GR1`, naming the edition it lacks; `scan` does not read one unless asked (`bare=True`), which only
+the BARE refusal does: `audit_code_citations.py` refuses a bare `§N` that `bare_standard` classifies as a citation
+of the 2023 standard, and leaves a document's own section ("plan §0", "DESIGN-x §4.4.3") alone.
 
     parse(text)           a WHOLE citation ("§2023:14.9.8.4 GR1") -> Citation, or CitationError naming the defect
     scan(text)            every citation in free text, left to right (malformed ones carry their `error`)
@@ -43,7 +43,7 @@ that `bare_standard` classifies as a citation of the standard (`audit_code_citat
     validate(citation)    None, or why the locator names nothing in that edition's transcription
     regions(edition)      (locator, title, start, end) of every citable region of that edition's transcription
     universe(edition)     the set of locators `validate` accepts, or None for a parsed-only edition
-    bare_standard(...)    whether a bare `§N` in context is a citation of the 2023 standard (the rewrite's classifier)
+    bare_standard(...)    whether a bare `§N` in context is a citation of the 2023 standard (the BARE refusal's classifier)
 
 Run `python scripts/spec/citation.py --self-test` (planted cases for every edition, every locator shape and each
 rejection: no edition, an unknown edition, a phantom clause, a 1985 paragraph outside its section).
@@ -64,10 +64,6 @@ from standard_streams import ensure_utf8  # noqa: E402
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import spec_pdf  # noqa: E402  (scripts/spec: the one table of transcription files, kb/Work PB4815)
-
-#: ⛔ PB4887 PHASE 2 DELETES THIS CONSTANT and every line that reads it, in the landing that runs
-#: `rewrite_citations.py --apply`. Until then a bare `§N.N…` is read as a citation of ISO/IEC 1989:2023.
-BARE_MEANS_2023 = True
 
 
 @dataclasses.dataclass(frozen=True)
@@ -103,16 +99,16 @@ RULE = r"(?:(?:SR|GR) ?\d+(?:[a-z0-9.]*[a-z0-9])?|Format \d+|Table \d+)"
 _RULE = re.compile(RULE + r"\Z")
 
 #: THE ONE CITATION PATTERN. `edition`/`locator` are the edition form (the locator read loosely here, and per edition
-#: by `parse`); `bare` is the transition's bare form (BARE_MEANS_2023), exactly the shape the audits have always
-#: read (`§13.16`, `§ 14.9.39.4`), and the annex clauses (`§A.1`, `§E.2`). A caller that embeds a citation in a larger pattern embeds THIS string (its group
+#: by `parse`); `bare` is a `§` with no edition before a clause-shaped number (`§13.16`, `§ 14.9.39.4`, an annex
+#: clause `§A.1`), which is no citation: only the BARE refusal reads it (`scan(..., bare=True)`). A caller that embeds a citation in a larger pattern embeds THIS string (its group
 #: `cite` spans the citation) and reads the match with `from_match`.
 PATTERN = (r"(?P<cite>§(?:(?P<edition>\d{4}):(?!<)(?P<locator>p\.[A-Z]+-\d+|[A-Z0-9]+(?:\.[A-Z0-9]+)*(?![a-z]))?"
            r"|\s?(?P<bare>(?:\d+|[A-Z])(?:\.\d+)+)(?![a-z]|\.[A-Z])))")
 _SCAN = re.compile(PATTERN + r"(?: (?P<rule>" + RULE + r"))?")
-#: A WHOLE citation, as `cite.py --check` takes it. While BARE_MEANS_2023 the `§` of a bare clause number is optional,
-#: because every brief and skill has written `cite.py --check 8.4.2.3.4 "…"` (phase 2 deletes this arm too).
+#: A WHOLE citation, as `cite.py --check` takes it.
 _WHOLE = re.compile(r"§(?P<edition>\d{4}):(?P<locator>\S+?)(?: (?P<rule>.+))?")
-_WHOLE_BARE = re.compile(r"§?\s?(?P<bare>" + _CLAUSE + r")(?: (?P<rule>.+))?")
+#: A clause number written without its edition (`§14.9.8`, `14.9.8 GR1`): `parse` refuses it, naming the edition form.
+_NO_EDITION = re.compile(r"§?\s?(?P<clause>" + _CLAUSE + r")(?: .+)?")
 
 
 class CitationError(ValueError):
@@ -127,7 +123,7 @@ class Citation:
     rule: str | None = None
     start: int = 0
     end: int = 0
-    bare: bool = False          # written without the edition (the transition's reading, BARE_MEANS_2023)
+    bare: bool = False          # written without the edition: no citation, read only by `scan(..., bare=True)`
     error: str | None = None    # set by `scan` for a malformed citation; `parse` raises it instead
 
     @property
@@ -171,20 +167,21 @@ def parse(text: str) -> Citation:
     if m := _WHOLE.fullmatch(text):
         edition, locator = _edition_locator(m["edition"], m["locator"])
         return Citation(edition, locator, _rule(m["rule"]), 0, len(text))
-    if BARE_MEANS_2023 and (m := _WHOLE_BARE.fullmatch(text)):
-        return Citation(2023, m["bare"], _rule(m["rule"]), 0, len(text), bare=True)
+    if m := _NO_EDITION.fullmatch(text):
+        raise CitationError(f"{text!r} carries no edition: write §<edition>:<locator>[ <rule>], the edition mandatory "
+                            f"(§2023:{m['clause']} for ISO/IEC 1989:2023, §1985:VI.5.3.2 for ANSI X3.23-1985)")
     raise CitationError(f"{text!r} is not a citation: write §<edition>:<locator>[ <rule>], the edition mandatory "
                         "(§2023:13.18.35.4 GR1, §1985:VI.5.3.2 GR3)")
 
 
-def from_match(m: re.Match, bare: bool | None = None) -> Citation | None:
+def from_match(m: re.Match, bare: bool = False) -> Citation | None:
     """The citation a match of `PATTERN` (alone or embedded in a caller's larger pattern) found: malformed ones carry
-    their `error`; a bare one is read as 2023 only while BARE_MEANS_2023, and is None after, unless `bare` asks for
-    it (the rewrite and the BARE refusal read the bare form whatever the transition says)."""
+    their `error`; a bare `§N` is no citation and is None, unless `bare` asks for it (the BARE refusal), when it is
+    returned as the 2023 clause it would name, marked `bare=True`."""
     rule = m.groupdict().get("rule")
     start, end = m.start("cite"), (m.end("rule") if rule else m.end("cite"))
     if m["bare"] is not None:
-        if not (BARE_MEANS_2023 if bare is None else bare):
+        if not bare:
             return None
         return Citation(2023, m["bare"], rule and _rule(rule), start, end, bare=True)
     try:
@@ -194,18 +191,17 @@ def from_match(m: re.Match, bare: bool | None = None) -> Citation | None:
         return Citation(int(m["edition"]), m["locator"] or "", None, start, end, error=str(e))
 
 
-def scan(text: str, bare: bool | None = None) -> Iterator[Citation]:
+def scan(text: str, bare: bool = False) -> Iterator[Citation]:
     """Every citation in `text`, left to right. A malformed edition-form citation is yielded with its `error` set,
-    so a reader can refuse it; a bare one is yielded (as 2023, `bare=True`) only while BARE_MEANS_2023, or when
-    `bare` is True (`from_match`)."""
+    so a reader can refuse it; a bare `§N` is yielded (as 2023, `bare=True`) only when `bare` is True."""
     for m in _SCAN.finditer(text):
         if (c := from_match(m, bare)) is not None:
             yield c
 
 
-#: The mark of a citation of the 2023 standard, just left of its clause number: `§2023:` (and, while BARE_MEANS_2023,
-#: the bare `§`). The 2023-only checks (the rule-ordinal family, a dossier's clause search) embed it.
-MARK_2023 = r"§(?:2023:|\s?)" if BARE_MEANS_2023 else r"§2023:"
+#: The mark of a citation of the 2023 standard, just left of its clause number. The 2023-only checks (the rule-ordinal
+#: family, a dossier's clause search) embed it.
+MARK_2023 = r"§2023:"
 #: A lookbehind refusing a clause number that belongs to ANOTHER edition's citation (`§2002:14.8.4`): the 2023-only
 #: checks that also read a clause number written without its `§` (`(ISO 14.9.39 Format 10 GR18)`) embed it, so a
 #: citation of 2002 is never measured against the 2023 standard's rules.
@@ -337,18 +333,20 @@ def validate(c: Citation, repo: pathlib.Path = spec_pdf.REPO) -> str | None:
     return f"the {c.edition} standard has no {'clause' if EDITIONS[c.edition].locator == 'clause' else 'locator'} {c.locator}"
 
 
-# ── THE BARE FORM'S CLASSIFIER (the rewrite and, after phase 2, the BARE refusal) ─────────────────────────────────────
+# ── THE BARE FORM'S CLASSIFIER (the BARE refusal's) ──────────────────────────────────────────────────────────────────
 
 #: ⛔ A BARE `§` IS NOT ALWAYS A CITATION OF THE STANDARD. The repository's docs and comments also point at THEIR OWN
 #: sections ("DESIGN-locale-facility §4.4.3", "ADR §1.2.1 guardrail 1", "plan §0", and a kb/Work site's
 #: "`docs/VERSION_CHANGE_REFERENCE.md` (§4.2)", a Markdown file named just before). This screen says "the `§` just right
 #: of a document's name is that document's section". Other EDITIONS of COBOL are not in it: they carry their own edition
-#: token now (`§1985:VI.5.3.2`), and a free-text "COBOL-85 §4.3.3" is the rewrite's hand-repair item.
+#: token (`§1985:VI.5.3.2`), and a free-text "COBOL-85 §4.3.3" names its edition beside a number that is no citation.
 #: ⛔ THE NAME IS A WHOLE NAME AND IT STANDS RIGHT AGAINST THE `§` (kb/Work PB4887 review R1-1). The first screen matched
 #: its names as case-blind SUBSTRINGS anywhere in the 45 characters left of the `§`, so "the EVALUATE statement
 #: (§14.9.13)", "evaluated per §8.8.1.5", "statement designated archaic | §F.1", "ReadRandom … owns the §9.1.13" and "a
-#: capacity of its own (§8.5.1.9.2)" were all a document's section: 2,570 genuine citations of the standard the rewrite
-#: would have left bare and the phase-2 BARE refusal would never have seen. Now a name is a whole token (a Markdown
+#: capacity of its own (§8.5.1.9.2)" were all a document's section. That screen called 2,658 bare citations a
+#: document's own section; this one agrees on 1,400 of them, so about 1,258 were genuine citations of the standard
+#: that the one-time rewrite would have left bare and the BARE refusal would never have seen (review R2-1: 2,658 is
+#: the old screen's total, not its genuine part). Now a name is a whole token (a Markdown
 #: file, a design document's identifier, one of the repository's named documents, or a prose "the design's"), and
 #: between it and the `§` stand only punctuation, a possessive, the word "section", or the earlier members of a list of
 #: its sections ("DESIGN-x §4.6, §4.7"). The standard's own transcription is not a document of the repository: "in
@@ -507,15 +505,19 @@ def self_test() -> int:
         ("rejects a 1985 locator without its section", raises("§1985:5.3.2", "is not a 1985 locator")),
         ("rejects a Roman locator for 2023", raises("§2023:VI.5.3", "is not a 2023 locator")),
         ("rejects a malformed rule", raises("§2023:14.9.8.4 rule one", "is not a rule designator")),
-        ("rejects no edition once bare stops meaning 2023", _bare_refused()),
+        ("refuses a bare citation, naming the edition form it lacks",
+         raises("§13.18.35.4 GR1", "'§13.18.35.4 GR1' carries no edition: write §<edition>:<locator>[ <rule>], the "
+                "edition mandatory (§2023:13.18.35.4")
+         and raises("14.9.8", "carries no edition") and raises("§ A.1", "(§2023:A.1 for")),
+        ("refuses a document's section as no citation at all", raises("plan §0", "is not a citation")),
         ("scan reads both edition forms with their rules",
          [(c.edition, c.locator, c.rule) for c in found if not c.error and not c.bare]
          == [(2023, "13.18.35.4", "GR1"), (1985, "VI.5.3.2", "GR3")]),
         ("scan leaves a repository section alone", all(c.locator != "0" for c in found)),
         ("scan flags an unknown edition and a wrong-shaped locator",
          [(c.edition, c.locator) for c in found if c.error] == [(5000, ""), (2023, "VI.5")]),
-        ("scan reads the bare form as 2023 while BARE_MEANS_2023",
-         [(c.edition, c.locator) for c in found if c.bare] == ([(2023, "14.9.24")] if BARE_MEANS_2023 else [])),
+        ("scan reads no bare form unless asked", not any(c.bare for c in found)
+         and [(c.edition, c.locator) for c in scan(text, bare=True) if c.bare] == [(2023, "14.9.24")]),
         ("scan stops a glued rule path at the clause", [c.locator for c in scan("§2023:13.18.35.4.5b.3")] == ["13.18.35.4"]
          and [c.locator for c in scan("§13.18.35.4.5b.3", bare=True)] == ["13.18.35.4"]),
         ("scan reads no clause in a placeholder (§14.9.N)", list(scan("the (§14.9.N) banners", bare=True)) == []),
@@ -548,28 +550,10 @@ def self_test() -> int:
     return 1 if failed else 0
 
 
-def _bare_refused() -> bool:
-    """The phase-2 reading: with the transition off, a bare citation is refused by `parse` and not read by `scan`."""
-    global BARE_MEANS_2023
-    saved, BARE_MEANS_2023 = BARE_MEANS_2023, False
-    try:
-        try:
-            parse("§13.18.35.4 GR1")
-            return False
-        except CitationError as e:
-            return "the edition mandatory" in str(e) and not list(scan("§13.18.35.4"))
-    finally:
-        BARE_MEANS_2023 = saved
-
-
 def _bare_in(line: str) -> bool:
-    global BARE_MEANS_2023
-    saved, BARE_MEANS_2023 = BARE_MEANS_2023, True
-    try:
-        c = next(scan(line))
-        return bare_standard(line, c, known=universe(2023))
-    finally:
-        BARE_MEANS_2023 = saved
+    """Whether the first bare `§N` of `line` is a citation of the 2023 standard written without its edition."""
+    c = next(scan(line, bare=True))
+    return bare_standard(line, c, known=universe(2023))
 
 
 def main() -> int:

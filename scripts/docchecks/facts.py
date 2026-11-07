@@ -31,7 +31,7 @@ def _row(body: str, key: str, findings: list[str]) -> str:
 
 def maximum_findings(conformance: str, facts: dict) -> list[str]:
     """Annex A.1 item 62 (dynamic-length elementary items, maximum length) and item 93 (the returned-value maximum,
-    ISO §15.4) are REQUIRED and DOCUMENTED implementor-defined elements (§4.2.5): the register publishes the number, in
+    ISO §2023:15.4) are REQUIRED and DOCUMENTED implementor-defined elements (§2023:4.2.5): the register publishes the number, in
     both spellings for item 62, and it is the carrier's ceiling, so the two are the same number."""
     findings: list[str] = []
     n62, n93 = facts["dynamicLengthMaximum"], facts["returnedValueMaximum"]
@@ -47,7 +47,7 @@ def maximum_findings(conformance: str, facts: dict) -> list[str]:
 # ── the implementor-defined exception-names (DOC-A.1-99, DOC-A.1-100) ─────────────────────────────────────────────
 
 def exception_name_findings(conformance: str, facts: dict) -> list[str]:
-    """ISO §14.6.13.1.1 leaves an implementor-defined exception-name's action to the implementor and A.1 requires it
+    """ISO §2023:14.6.13.1.1 leaves an implementor-defined exception-name's action to the implementor and A.1 requires it
     documented: item 100 names exactly the catalog's level-2 `-IMP` names and says each is FATAL; item 99 says there is
     no `EC-IMP-suffix` name, and the catalog has none."""
     findings: list[str] = []
@@ -90,7 +90,7 @@ def linage_claim_findings(conformance: str) -> list[str]:
     """Annex A.4.11's LINAGE claim and the file-description format it rests on (the compiler's table is the Unit test's)."""
     findings: list[str] = []
     row = _row(conformance, "A.4.11", findings)
-    for phrase in ("The LINAGE clause (item 10, §13.18.34) is CLAIMED",
+    for phrase in ("The LINAGE clause (item 10, §2023:13.18.34) is CLAIMED",
                    "a LINAGE clause on a Format 2 (relative or indexed) or Format 3 (report) entry is refused COBOL2604"):
         need(findings, row == "" or phrase in row, f"A.4.11 no longer says: {phrase}")
     return findings
@@ -99,10 +99,10 @@ def linage_claim_findings(conformance: str) -> list[str]:
 # ── nonstandard extensions (§3.2) and the reserved words they add (D-RW1) ──────────────────────────────────────────
 
 def extension_register_findings(conformance: str, facts: dict) -> list[str]:
-    """ISO §4.2.10 documentation: §3.2 lists exactly the nonstandard-extension register's rows."""
+    """ISO §2023:4.2.10 documentation: §3.2 lists exactly the nonstandard-extension register's rows."""
     section = re.search(r"### 3\.2 Nonstandard extensions.*?(?=\n## )", conformance, re.DOTALL)
     if section is None:
-        return [f"{common.CONFORMANCE} lost its §3.2 Nonstandard extensions section (ISO §4.2.10 documentation)"]
+        return [f"{common.CONFORMANCE} lost its §3.2 Nonstandard extensions section (ISO §2023:4.2.10 documentation)"]
     documented = re.findall(r"^\| `([a-z0-9-]+)` \|", section.group(0), re.MULTILINE)
     ids = facts["nonstandardExtensionIds"]
     findings: list[str] = []
@@ -113,17 +113,17 @@ def extension_register_findings(conformance: str, facts: dict) -> list[str]:
 
 
 def reserved_word_findings(conformance: str, extension_reserved: set[str]) -> list[str]:
-    """§4.2.10: "Documentation … shall specify any reserved words added for nonstandard extensions." D-RW1 lists exactly
+    """§2023:4.2.10: "Documentation … shall specify any reserved words added for nonstandard extensions." D-RW1 lists exactly
     cobol-words.json's `extensionReserved` words."""
     block = re.search(r"\*\*D-RW1 .*?\n\n", conformance, re.DOTALL)
     if block is None:
-        return [f"{common.CONFORMANCE} lost its D-RW1 determination (§4.2.10 documentation)"]
+        return [f"{common.CONFORMANCE} lost its D-RW1 determination (§2023:4.2.10 documentation)"]
     documented = {w for m in re.finditer(r"\*\*([A-Z][A-Z0-9-]*(?:,\s+[A-Z][A-Z0-9-]*)+)\*\*", block.group(0))
                   for w in re.split(r",\s+", m.group(1))}
     if documented == extension_reserved:
         return []
     return [f"CONFORMANCE.md D-RW1 lists {len(documented)} word(s), cobol-words.json extensionReserved {len(extension_reserved)} "
-            f"— §4.2.10 requires the two to agree (documented only {sorted(documented - extension_reserved)}, "
+            f"— §2023:4.2.10 requires the two to agree (documented only {sorted(documented - extension_reserved)}, "
             f"data only {sorted(extension_reserved - documented)})"]
 
 
@@ -225,7 +225,7 @@ def self_test() -> list[str]:
     doc = ("| DOC-A.1-62 | e | 65,536 and 0x10000 | — |\n| DOC-A.1-93 | e | 65,536 | — |\n"
            f"| DOC-A.1-100 | e | {' '.join(imp)} each is FATAL | — |\n| DOC-A.1-99 | e | **Not provided.** | — |\n"
            "| DOC-A.1-92 | e | FormA FormB FormC | — |\n| DOC-A.1-189 | e | `CSP` | — |\n| DOC-A.1-190 | e | `F1` | — |\n"
-           "| DOC-A.1-191 | e | `SWITCH-1` | — |\n| A.4.11 | m | The LINAGE clause (item 10, §13.18.34) is CLAIMED; a LINAGE clause on a "
+           "| DOC-A.1-191 | e | `SWITCH-1` | — |\n| A.4.11 | m | The LINAGE clause (item 10, §2023:13.18.34) is CLAIMED; a LINAGE clause on a "
            "Format 2 (relative or indexed) or Format 3 (report) entry is refused COBOL2604 | x |\n"
            "### 3.2 Nonstandard extensions\n| `one` | a |\n| `two` | b |\n\n## 4. Documented non-support\nEC-MCS quoted\n"
            "## 5. next\n- **D-RW1 words.** **ALPHA, BETA** end.\n\nafter\n")
