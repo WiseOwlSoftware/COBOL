@@ -1,4 +1,4 @@
-## PB4903 - DEBUG-ITEM is modeled as the group its description gives, so INITIALIZE and MOVE CORRESPONDING treat it as one
+## Entry 3277 — 2026-11-07 14:55 PST — PB4903 - DEBUG-ITEM is modeled as the group its description gives, so INITIALIZE and MOVE CORRESPONDING treat it as one
 
 **Re-probe.** On the branch build `INITIALIZE DEBUG-ITEM` stored one alphanumeric image (every member spaces, the DEBUG-SUB-n included) and
 `MOVE CORRESPONDING G TO DEBUG-ITEM` drew COBOL1757 ("an elementary item").
@@ -17,3 +17,4 @@ register members. The renderer's group read and store arms return the register i
 **Goldens.** `pb4903-debug-item-group` (accept 85) covers MOVE and ADD CORRESPONDING both ways (accepted, pairing nothing: a user item cannot be named DEBUG-NAME, a reserved word), INITIALIZE with and without REPLACING and the FILLER
 bytes after `MOVE ALL "X"`; `pb4903-debug-name-declared-85` pins the review R1-1 fix, `VersionConformancePass` exempting a DEBUG-* word only inside a statement, so a DECLARATION of one draws COBOL0901; `pb4903-debug-item-group-removed-2002` is the refusal from 2002. Expected values are derived from the rule text.
 D-DEBUG-STORE in `docs/CONFORMANCE.md` records that GnuCOBOL's one-item model is not followed.
+
