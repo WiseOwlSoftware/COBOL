@@ -214,10 +214,10 @@ internal sealed partial class ControlFlowBinder
         // the binder drops grouping parentheses and a separated unary sign, so Classify sees only the BoundNumRef or literal
         // underneath and would admit `BY (FUNCTION TWO)`, `BY + FUNCTION TWO` or `FROM + (1)` as the identifier or literal
         // §14.9.28.2 prints. The WRITTEN shape decides, through the ONE sole-operand readers: a single unparenthesized primary
-        // (SoleOperand.Primary) or a single numeric literal with its contiguous sign (SoleOperand.NumericLiteral); anything
+        // (SoleOperand.Primary, whose own LPAREN marks a grouping) or a single numeric literal with its contiguous sign (SoleOperand.NumericLiteral); anything
         // else written is an arithmetic expression.
         bool arithmeticExpression = op.arithmeticExpression() is { } whole
-            && SoleOperand.Primary(whole) is null && SoleOperand.NumericLiteral(whole) is null;
+            && !(SoleOperand.Primary(whole) is { } sole && sole.LPAREN() is null) && SoleOperand.NumericLiteral(whole) is null;
         var (kind, literal) = arithmeticExpression ? (VaryingOperandKind.Invalid, null)
             : functionIdentifier ? (VaryingOperandKind.Identifier, null) : Classify(e);
         if (kind is VaryingOperandKind.Invalid && e is not BoundExprError)
