@@ -1216,6 +1216,26 @@ public sealed class DataItem
         ElementImageCapable
         || (IsElementary ? SlotWindow.CarriedBySlot(this) : IsGroup && Children.All(c => c.TransferImageCapable));
 
+    /// <summary>⛔ THE FILE RECORD IMAGE capability (kb/Work PB4838): <see cref="IsImageCapable"/> widened by exactly the leaf kinds
+    /// whose positions hold a TOKEN that decodes back (<see cref="SlotWindow.CarriesTokenImage"/>: a pointer of the three
+    /// categories and a message tag) - the capability of a record a FILE carries. The owner decided (2026-11-06) that a file
+    /// holds a pointer or message-tag leaf as its 8-position token and that READ, RETURN and SORT GIVING restore the reference it
+    /// names within the run unit, so the record's image is two-way for these leaves and its struct emits <c>FromImage</c>.
+    /// <para>⛔ WHY NOT A WIDER <see cref="IsImageCapable"/>: the consumers that ask that one COMPARE an image (§2023:8.8.4.2.12 equality of
+    /// two strongly-typed groups holds image-equal iff element-equal only where the image is injective in the comparison's own
+    /// terms: two message tags of one party and different serials are EQUAL, §2023:8.8.4.2.14, and their tokens differ) or copy
+    /// one back through a call boundary, and none of them was designed over a token. The record codec is the one consumer
+    /// of this capability, so the layering is image-capable, then record-image-capable, then <see cref="TransferImageCapable"/>
+    /// (which adds the object reference's placeholder, a leaf no file record holds).</para></summary>
+    public bool RecordImageCapable =>
+        IsImageCapable || (!IsDynamicTable && !IsDynamicLength && ElementRecordImageCapable);
+
+    /// <summary>The element-shape half of <see cref="RecordImageCapable"/> - the twin of <see cref="ElementTransferImageCapable"/>, and
+    /// the gate on which the record struct emits its two-way <c>FromImage</c> over a token leaf (<c>GroupImageCodec.EmitImageMethods</c>).</summary>
+    public bool ElementRecordImageCapable =>
+        ElementImageCapable
+        || (IsElementary ? SlotWindow.CarriesTokenImage(this) : IsGroup && Children.All(c => c.RecordImageCapable));
+
     /// <summary>True when this item is a VARIABLE-LENGTH GROUP (ISO §2023:8.5.1.12.1) whose CURRENT-EXTENT image is
     /// well defined: every member satisfies <see cref="CurrentExtentComposes"/> (a fixed image, with or without
     /// the group's OCCURS DEPENDING table as its trailing storage; a dynamic-length leaf; a dynamic-capacity table;
