@@ -716,4 +716,57 @@ public sealed class DebugFacilityTests
         EditionHarness.AssertHasDiagnostic(diags, "COBOL1571: the SORT/MERGE INPUT PROCEDURE");
         EditionHarness.AssertEveryDiagnosticPositioned(diags, nameof(SortProcedureSubject_At85_StagedLoud1571));
     }
+
+    /// <summary>The pointer verbs hold a based item or an addressed item as a DATA ITEM only: ALLOCATE's based item, SET ADDRESS OF's receiver and
+    /// ADDRESS OF's operand are each an operand the statement explicitly references (X3.23-1985 USE FOR DEBUGGING general rule 5, kb/Work
+    /// PB4855), so the section of each runs after the statement. The verbs are 2002 introductions and the facility is 1985's, so the one
+    /// program that has both is the 2002 compile that keeps the removed declarative (--permissive).</summary>
+    [Fact]
+    public void PointerVerbOperands_AreReferences()
+    {
+        const string src = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. DBGPTRREF.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            SOURCE-COMPUTER. IBM-PC WITH DEBUGGING MODE.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 BP BASED.
+               02 BX PIC X(4).
+            01 BQ BASED.
+               02 BZ PIC X(4).
+            01 P USAGE POINTER.
+            01 AX PIC X(4) VALUE "ABCD".
+            PROCEDURE DIVISION.
+            DECLARATIVES.
+            DB1 SECTION.
+                USE FOR DEBUGGING ON ALL REFERENCES OF BP.
+            DB1-B.
+                DISPLAY "  DB1 " DEBUG-NAME (1:2).
+            DB2 SECTION.
+                USE FOR DEBUGGING ON ALL REFERENCES OF BQ.
+            DB2-B.
+                DISPLAY "  DB2 " DEBUG-NAME (1:2).
+            DB3 SECTION.
+                USE FOR DEBUGGING ON ALL REFERENCES OF AX.
+            DB3-B.
+                DISPLAY "  DB3 " DEBUG-NAME (1:2).
+            END DECLARATIVES.
+            MAIN SECTION.
+            M1.
+                DISPLAY "ALLOCATE BP".
+                ALLOCATE BP RETURNING P.
+                DISPLAY "SET ADDRESS OF BQ".
+                SET ADDRESS OF BQ TO P.
+                DISPLAY "SET P TO ADDRESS OF AX".
+                SET P TO ADDRESS OF AX.
+                DISPLAY "END".
+                STOP RUN.
+            """;
+        var (ok, stdout, detail) = EditionHarness.CompileAndRun(src, 2002, permissive: true);
+        Assert.True(ok, detail);
+        var lines = stdout.Replace("\r", "").TrimEnd('\n').Split('\n');
+        Assert.Equal(["ALLOCATE BP", "  DB1 BP", "SET ADDRESS OF BQ", "  DB2 BQ", "SET P TO ADDRESS OF AX", "  DB3 AX", "END"], lines);
+    }
 }
