@@ -6583,8 +6583,8 @@ Reference modification defines a data item by specifying a leftmost character an
 
 ##### 4.3.8.3.2 General Format
 
-<pre>
-data-name-1 (leftmost-character-position: [length])
+<pre style="line-height:1">
+data-name-1 ( leftmost-character-position: [ length ] )
 </pre>
 
 ##### 4.3.8.3.3 Syntax Rules
@@ -7028,8 +7028,8 @@ Procedure Division
 
 The Procedure Division is identified by, and must begin with, the following header:
 
-<pre>
-<u>PROCEDURE</u> <u>DIVISION</u>  [<u>USING</u> {data-name-1} ... ].
+<pre style="line-height:1">
+<u>PROCEDURE</u> <u>DIVISION</u> [ <u>USING</u> { data-name-1 } … ] .
 </pre>
 
 ##### 6.4.1.4.2 Procedure Division Body
@@ -7620,29 +7620,29 @@ V-4
 
 <u>SEQUENTIAL FILE</u>:
 
-<pre>
-<u>SELECT</u>  [<u>OPTIONAL</u>]  file-name-1
+<pre style="line-height:1">
+<u>SELECT</u> [ <u>OPTIONAL</u> ] file-name-1
 
-    <u>ASSIGN</u> TO ⎧implementor-name-1⎫ ...
-              ⎩literal-1         ⎭
+          ╭ implementor-name-1 ╮
+<u>ASSIGN</u> TO ┤                    ├ …
+          ╰ literal-1          ╯
 
-    ┌                   ┌AREA ┐┐
-    │<u>RESERVE</u> integer-1 │     ││
-    └                   └AREAS┘┘
+┌                   ┌ AREA  ┐ ┐
+│ <u>RESERVE</u> integer-1 │       │ │
+└                   └ AREAS ┘ ┘
 
-    [[<u>ORGANIZATION</u> IS]  <u>SEQUENTIAL</u>]
+[ [ <u>ORGANIZATION</u> IS ] <u>SEQUENTIAL</u> ]
 
-    ┌                        ⎧data-name-1⎫┐
-    │<u>PADDING</u> CHARACTER IS   ⎨           ⎬│
-    └                        ⎩literal-2  ⎭┘
+┌                      ╭ data-name-1 ╮ ┐
+│ <u>PADDING</u> CHARACTER IS ┤             ├ │
+└                      ╰ literal-2   ╯ ┘
 
-    ┌                         ⎧<u>STANDARD-1</u>        ⎫┐
-    │<u>RECORD</u> <u>DELIMITER</u> IS      ⎨                  ⎬│
-    └                         ⎩implementor-name-2⎭┘
+┌                     ╭ <u>STANDARD-1</u>         ╮ ┐
+│ <u>RECORD</u> <u>DELIMITER</u> IS ┤                    ├ │
+└                     ╰ implementor-name-2 ╯ ┘
 
-    [<u>ACCESS</u> MODE IS <u>SEQUENTIAL</u>]
-
-    [FILE <u>STATUS</u> IS data-name-2].
+[ <u>ACCESS</u> MODE IS <u>SEQUENTIAL</u> ]
+[ FILE <u>STATUS</u> IS data-name-2 ] .
 </pre>
 
 <u>RELATIVE FILE</u>:
@@ -7718,31 +7718,30 @@ V-6
 
 ## GENERAL FORMAT FOR FILE CONTROL ENTRY
 
-<pre>
-<u>REPORT FILE</u>:
+<pre style="line-height:1">
+<u>REPORT</u> <u>FILE</u>:
+<u>SELECT</u> [ <u>OPTIONAL</u> ] file-name-1
 
-<u>SELECT</u>  [<u>OPTIONAL</u>]  file-name-1
+          ╭ implementor-name-1 ╮
+<u>ASSIGN</u> TO ┤                    ├ …
+          ╰ literal-1          ╯
 
-    <u>ASSIGN</u> TO ⎧implementor-name-1⎫ ...
-              ⎩literal-1         ⎭
+┌                   ┌ AREA  ┐ ┐
+│ <u>RESERVE</u> integer-1 │       │ │
+└                   └ AREAS ┘ ┘
 
-    ┌                    ┌     ┐┐
-    │<u>RESERVE</u> integer-1  │AREA ││
-    └                    └AREAS┘┘
+[ [ <u>ORGANIZATION</u> IS ] <u>SEQUENTIAL</u> ] ]
 
-    [[<u>ORGANIZATION</u> IS]  <u>SEQUENTIAL</u>]]
+┌                      ╭ data-name-1 ╮ ┐
+│ <u>PADDING</u> CHARACTER IS ┤             ├ │
+└                      ╰ literal-2   ╯ ┘
 
-    ┌                       ┐
-    │<u>PADDING</u> CHARACTER IS  ⎧data-name-1⎫│
-    └                     ⎩literal-2  ⎭┘
+┌                     ╭ <u>STANDARD-1</u>         ╮ ┐
+│ <u>RECORD</u> <u>DELIMITER</u> IS ┤                    ├ │
+└                     ╰ implementor-name-2 ╯ ┘
 
-    ┌                         ┐
-    │<u>RECORD</u> <u>DELIMITER</u> IS  ⎧<u>STANDARD-1</u>        ⎫│
-    └                     ⎩implementor-name-2⎭┘
-
-    [<u>ACCESS</u> MODE IS <u>SEQUENTIAL</u>]
-
-    [FILE <u>STATUS</u> IS data-name-2].
+[ <u>ACCESS</u> MODE IS <u>SEQUENTIAL</u> ]
+[ FILE <u>STATUS</u> IS data-name-2 ] .
 </pre>
 
 V-7
@@ -8521,11 +8520,11 @@ Verb Formats (EXIT - INSPECT)
 
 ## GENERAL FORMAT FOR COBOL VERBS
 
-<pre>
+<pre style="line-height:1">
 <u>EXIT</u>
 </pre>
 
-<pre>
+<pre style="line-height:1">
 <u>EXIT</u> <u>PROGRAM</u>
 </pre>
 
@@ -9296,8 +9295,8 @@ Miscellaneous Formats
 
 <u>REFERENCE MODIFICATION</u>:
 
-<pre>
-data-name-1 (leftmost-character-position: [length])
+<pre style="line-height:1">
+data-name-1 ( leftmost-character-position: [ length ] )
 </pre>
 
 <u>IDENTIFIER</u>:
@@ -10097,7 +10096,7 @@ The BLANK WHEN ZERO clause permits the blanking of an item when its value is zer
 
 ### 5.4.2 General Format
 
-<pre>
+<pre style="line-height:1">
 <u>BLANK</u> WHEN <u>ZERO</u>
 </pre>
 
@@ -11907,8 +11906,8 @@ The ALTER statement modifies a predetermined sequence of operations. The ALTER s
 
 #### 6.7.2 General Format
 
-<pre>
-<u>ALTER</u> {procedure-name-1 <u>TO</u>  [<u>PROCEED</u> <u>TO</u>]  procedure-name-2} ...
+<pre style="line-height:1">
+<u>ALTER</u> { procedure-name-1 <u>TO</u> [ <u>PROCEED</u> <u>TO</u> ] procedure-name-2 } ║ … ║
 </pre>
 
 #### 6.7.3 Syntax Rules
@@ -12388,8 +12387,8 @@ The GO TO statement causes control to be transferred from one part of the Proced
 
 <u>Format 1</u>:
 
-<pre>
-<u>GO</u> TO [procedure-name-1]
+<pre style="line-height:1">
+<u>GO</u> TO ║ [ ║ procedure-name-1 ║ ] ║
 </pre>
 
 <u>Format 2</u>:
@@ -15042,10 +15041,10 @@ The DATA RECORDS clause serves only as documentation for the names of data recor
 
 ### 3.5.2 General Format
 
-<pre>
-     ⎧<u>RECORD</u> IS  ⎫
-<u>DATA</u> ⎨           ⎬ {data-name-1} ...
-     ⎩<u>RECORDS</u> ARE⎭
+<pre style="line-height:1">
+     ╭ <u>RECORD</u> IS   ╮
+<u>DATA</u> ┤             ├ { data-name-1 } …
+     ╰ <u>RECORDS</u> ARE ╯
 </pre>
 
 ### 3.5.3 Syntax Rules
@@ -15204,7 +15203,7 @@ The RECORD clause specifies the number of character positions in a fixed length 
 
 Format 1:
 
-<pre>
+<pre style="line-height:1">
 <u>RECORD</u> CONTAINS integer-1 CHARACTERS
 </pre>
 
@@ -16506,8 +16505,8 @@ The ORGANIZATION IS RELATIVE clause specifies relative organization as the logic
 
 ### 2.5.2 General Format
 
-<pre>
-[<u>ORGANIZATION</u> IS]  <u>RELATIVE</u>
+<pre style="line-height:1">
+[ <u>ORGANIZATION</u> IS ] <u>RELATIVE</u>
 </pre>
 
 ### 2.5.3 General Rules
@@ -19209,10 +19208,10 @@ The PROGRAM-ID paragraph specifies the name by which a program is identified and
 
 ### 3.1.2 General Format
 
-<pre>
-                           ┌    ⎧│<u>COMMON</u> │⎫         ┐
-<u>PROGRAM-ID</u>.  program-name │ IS ⎨│       │⎬ PROGRAM │ .
-                           └    ⎩│<u>INITIAL</u>│⎭         ┘
+<pre style="line-height:1">
+╔                          ┌    ╭ │ <u>COMMON</u>  │ ╮         ┐   ╗
+║ <u>PROGRAM-ID</u>. program-name │ IS ┤ │         │ ├ PROGRAM │ . ║
+╚                          └    ╰ │ <u>INITIAL</u> │ ╯         ┘   ╝
 </pre>
 
 ### 3.1.3 Syntax Rules
@@ -19352,31 +19351,34 @@ Inter-Program Communication - File Description Entry
 
 <u>Format 2:</u>
 
-<pre>
-<u>FD</u>  file-name-1
+<pre style="line-height:1">
+<u>FD</u> file-name-1
+╔ [ IS <u>EXTERNAL</u> ] ╗
+╚ [ IS <u>GLOBAL</u> ]   ╝
 
-     ┌──────────────┐
-     │[IS <u>EXTERNAL</u>]│
-     │              │
-     │[IS <u>GLOBAL</u>]  │
-     └──────────────┘
-     ┌                                         ⎧<u>RECORDS</u>   ⎫┐
-     │<u>BLOCK</u> CONTAINS  [integer-1 <u>TO</u>]  integer-2 ⎨          ⎬│
-     └                                         ⎩CHARACTERS⎭┘
-     ┌        ⎧CONTAINS integer-3 CHARACTERS                                     ⎫┐
-     │        ⎪IS <u>VARYING</u> IN SIZE [[FROM integer-4] [<u>TO</u> integer-5] CHARACTERS]⎪│
-     │<u>RECORD</u>  ⎨                                                                  ⎬│
-     │        ⎪    [<u>DEPENDING</u> ON data-name-1]                                  ⎪│
-     └        ⎩CONTAINS integer-6 <u>TO</u> integer-7 CHARACTERS                        ⎭┘
-     ┌      ⎧<u>RECORD</u> IS  ⎫ ⎧<u>STANDARD</u>⎫┐
-     │<u>LABEL</u> ⎨           ⎬ ⎨        ⎬│
-     └      ⎩<u>RECORDS</u> ARE⎭ ⎩<u>OMITTED</u> ⎭┘
-     ┌         ⎧                      ⎧data-name-2⎫⎫     ┐
-     │<u>VALUE</u> <u>OF</u> ⎨implementor-name-1 IS ⎨           ⎬⎬ ... │
-     └         ⎩                      ⎩literal-1  ⎭⎭     ┘
-     ┌      ⎧<u>RECORD</u> IS  ⎫                  ┐
-     │<u>DATA</u>  ⎨           ⎬ {data-name-3} ...│ .
-     └      ⎩<u>RECORDS</u> ARE⎭                  ┘
+┌                                           ╭ <u>RECORDS</u>    ╮ ┐
+│ <u>BLOCK</u> CONTAINS [ integer-1 <u>TO</u> ] integer-2 ┤            ├ │
+└                                           ╰ CHARACTERS ╯ ┘
+
+┌        ╭ CONTAINS integer-3 CHARACTERS                                         ╮ ┐
+│        │                                                                       │ │
+│        │ IS <u>VARYING</u> IN SIZE [ [ FROM integer-4 ] [ <u>TO</u> integer-5 ] CHARACTERS ] │ │
+│ <u>RECORD</u> ┤                                                                       ├ │
+│        │ [ <u>DEPENDING</u> ON data-name-1 ]                                          │ │
+│        │                                                                       │ │
+└        ╰ CONTAINS integer-6 <u>TO</u> integer-7 CHARACTERS                            ╯ ┘
+
+┌       ╭ <u>RECORD</u> IS   ╮ ╭ <u>STANDARD</u> ╮ ┐
+│ <u>LABEL</u> ┤             ├ ┤          ├ │
+└       ╰ <u>RECORDS</u> ARE ╯ ╰ <u>OMITTED</u>  ╯ ┘
+
+┌          ╭                       ╭ data-name-2 ╮ ╮   ┐
+│ <u>VALUE</u> <u>OF</u> ┤ implementor-name-1 IS ┤             ├ ├ … │
+└          ╰                       ╰ literal-1   ╯ ╯   ┘
+
+┌      ╭ <u>RECORD</u> IS   ╮                   ┐
+│ <u>DATA</u> ┤             ├ { data-name-3 } … │ .
+└      ╰ <u>RECORDS</u> ARE ╯                   ┘
 </pre>
 
 X-16
@@ -19624,8 +19626,8 @@ The GLOBAL clause specifies that a data-name, a file-name, or a report-name is a
 
 ### 4.6.2 General Format
 
-<pre>
-IS <u>GLOBAL</u>
+<pre style="line-height:1">
+║ IS <u>GLOBAL</u> ║
 </pre>
 
 ### 4.6.3 Syntax Rules
@@ -19656,8 +19658,8 @@ Inter-Program Communication - Procedure Division Header
 
 The Procedure Division is identified by, and must begin with, the following header:
 
-<pre>
-<u>PROCEDURE</u> <u>DIVISION</u>  [<u>USING</u>  {data-name-1} ... ].
+<pre style="line-height:1">
+<u>PROCEDURE</u> <u>DIVISION</u> [ <u>USING</u> { data-name-1 } … ] .
 </pre>
 
 The USING phrase is necessary only if the object program is to be invoked by a CALL statement and that statement includes a USING phrase.
@@ -20822,8 +20824,8 @@ The REPLACE statement is used to replace source program text.
 
 <u>Format 1:</u>
 
-<pre>
-<u>REPLACE</u> {==pseudo-text-1== <u>BY</u> ==pseudo-text-2==} ...
+<pre style="line-height:1">
+║ <u>REPLACE</u> { ==pseudo-text-1== <u>BY</u> ==pseudo-text-2== } … ║
 </pre>
 
 <u>Format 2:</u>
@@ -20970,30 +20972,29 @@ The file control entry declares the relevant physical attributes of a report fil
 
 #### 2.3.2 General Format
 
-<pre>
-<u>SELECT</u>  [<u>OPTIONAL</u>]  file-name-1
+<pre style="line-height:1">
+<u>SELECT</u> [ <u>OPTIONAL</u> ] file-name-1
 
-   <u>ASSIGN</u> TO ⎧implementor-name-1⎫ ...
-             ⎩literal-1         ⎭
+          ╭ implementor-name-1 ╮
+<u>ASSIGN</u> TO ┤                    ├ …
+          ╰ literal-1          ╯
 
-   ┌                    ┌     ┐┐
-   │<u>RESERVE</u> integer-1  │AREA ││
-   │                    │AREAS││
-   └                    └     ┘┘
+┌                   ┌ AREA  ┐ ┐
+│ <u>RESERVE</u> integer-1 │       │ │
+└                   └ AREAS ┘ ┘
 
-   [[<u>ORGANIZATION</u> IS]  <u>SEQUENTIAL</u>]
+[ [ <u>ORGANIZATION</u> IS ] <u>SEQUENTIAL</u> ]
 
-   ┌                       ⎧data-name-1⎫┐
-   │<u>PADDING</u> CHARACTER IS  ⎨           ⎬│
-   └                       ⎩literal-2  ⎭┘
+┌                      ╭ data-name-1 ╮ ┐
+│ <u>PADDING</u> CHARACTER IS ┤             ├ │
+└                      ╰ literal-2   ╯ ┘
 
-   ┌                       ⎧<u>STANDARD-1</u>        ⎫┐
-   │<u>RECORD</u> <u>DELIMITER</u> IS   ⎨                  ⎬│
-   └                       ⎩implementor-name-2⎭┘
+┌                     ╭ <u>STANDARD-1</u>         ╮ ┐
+│ <u>RECORD</u> <u>DELIMITER</u> IS ┤                    ├ │
+└                     ╰ implementor-name-2 ╯ ┘
 
-   [<u>ACCESS</u> MODE IS <u>SEQUENTIAL</u>]
-
-   [FILE <u>STATUS</u> IS data-name-2]..
+[ <u>ACCESS</u> MODE IS <u>SEQUENTIAL</u> ]
+[ FILE <u>STATUS</u> IS data-name-2 ] ..
 </pre>
 
 #### 2.3.3 Syntax Rules
@@ -31100,8 +31101,8 @@ A function-identifier is a syntactically correct combination of character-string
 
 **4.3.8.3.2 General Format**
 
-<pre>
-<u>FUNCTION</u> function-name-1 [({argument-1} ... )] [reference-modifier]
+<pre style="line-height:1">
+<u>FUNCTION</u> function-name-1 [ ( { argument-1 } … ) ] [ reference-modifier ]
 </pre>
 
 **4.3.8.3.3 Syntax Rules**
@@ -31248,8 +31249,8 @@ Page No. | Change to ANSI X3.23-1985 and ISO 1989-1985
 
 <u>FUNCTION-IDENTIFIER</u>:
 
-<pre>
-<u>FUNCTION</u> function-name-1 [({argument-1} ... )] [reference-modifier]
+<pre style="line-height:1">
+<u>FUNCTION</u> function-name-1 [ ( { argument-1 } … ) ] [ reference-modifier ]
 </pre>
 
 **V-38** Change the format for reference modification to read:
@@ -31270,7 +31271,7 @@ A-14
 
 Format 1:
 
-<pre>
+<pre style="line-height:1">
 function-identifier-1
 </pre>
 
@@ -31422,8 +31423,8 @@ A-18
 |---|---|
 | VII-6 (T) | Paragraph 2.1, in the Input-Output Section of the Sequential I-O module, delete the box around the general format: |
 
-<pre>
-[<u>I-O-CONTROL</u>. [input-output-control-entry]]
+<pre style="line-height:1">
+[ <u>I-O-CONTROL</u>. [ input-output-control-entry ] ]
 </pre>
 
 | Page No. | Change to ANSI X3.23-1985 and ISO 1989-1985 |
@@ -31869,8 +31870,8 @@ The ACOS function returns a numeric value in radians that approximates the arcco
 
 ### 2.5.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>ACOS</u> (argument-1)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>ACOS</u> ( argument-1 )
 </pre>
 
 ### 2.5.3 Arguments
@@ -31897,8 +31898,8 @@ The ANNUITY function (annuity immediate) returns a numeric value that approximat
 
 ### 2.6.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>ANNUITY</u> (argument-1 argument-2)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>ANNUITY</u> ( argument-1 argument-2 )
 </pre>
 
 ### 2.6.3 Arguments
@@ -31933,8 +31934,8 @@ The ASIN function returns a numeric value in radians that approximates the arcsi
 
 ### 2.7.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>ASIN</u> (argument-1)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>ASIN</u> ( argument-1 )
 </pre>
 
 ### 2.7.3 Arguments
@@ -31961,8 +31962,8 @@ The ATAN function returns a numeric value in radians that approximates the arcta
 
 ### 2.8.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>ATAN</u> (argument-1)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>ATAN</u> ( argument-1 )
 </pre>
 
 ### 2.8.3 Arguments
@@ -31987,8 +31988,8 @@ The CHAR function returns a one-character alphanumeric value that is a character
 
 ### 2.9.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>CHAR</u> (argument-1)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>CHAR</u> ( argument-1 )
 </pre>
 
 ### 2.9.3 Arguments
@@ -32017,8 +32018,8 @@ The COS function returns a numeric value that approximates the cosine of an angl
 
 ### 2.10.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>COS</u> (argument-1)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>COS</u> ( argument-1 )
 </pre>
 
 ### 2.10.3 Arguments
@@ -32043,7 +32044,7 @@ The CURRENT-DATE function returns a 21-character alphanumeric value that represe
 
 ### 2.11.2 General Format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>CURRENT-DATE</u>
 </pre>
 
@@ -32091,8 +32092,8 @@ The DATE-OF-INTEGER function converts a date in the Gregorian calendar from inte
 
 ### 2.12.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>DATE-OF-INTEGER</u> (argument-1)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>DATE-OF-INTEGER</u> ( argument-1 )
 </pre>
 
 ### 2.12.3 Arguments
@@ -32119,8 +32120,8 @@ The DAY-OF-INTEGER function converts a date in the Gregorian calendar from integ
 
 ### 2.13.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>DAY-OF-INTEGER</u> (argument-1)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>DAY-OF-INTEGER</u> ( argument-1 )
 </pre>
 
 ### 2.13.3 Arguments
@@ -32147,8 +32148,8 @@ The FACTORIAL function returns an integer that is the factorial of argument-1. T
 
 ### 2.14.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>FACTORIAL</u> (argument-1)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>FACTORIAL</u> ( argument-1 )
 </pre>
 
 ### 2.14.3 Arguments
@@ -32175,8 +32176,8 @@ The INTEGER function returns the greatest integer value that is less than or equ
 
 ### 2.15.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>INTEGER</u> (argument-1)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>INTEGER</u> ( argument-1 )
 </pre>
 
 ### 2.15.3 Arguments
@@ -32201,8 +32202,8 @@ The INTEGER-OF-DATE function converts a date in the Gregorian calendar from stan
 
 ### 2.16.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>INTEGER-OF-DATE</u> (argument-1)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>INTEGER-OF-DATE</u> ( argument-1 )
 </pre>
 
 ### 2.16.3 Arguments
@@ -32233,8 +32234,8 @@ The INTEGER-OF-DAY function converts a date in the Gregorian calendar from Julia
 
 ### 2.17.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>INTEGER-OF-DAY</u> (argument-1)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>INTEGER-OF-DAY</u> ( argument-1 )
 </pre>
 
 ### 2.17.3 Arguments
@@ -32263,8 +32264,8 @@ The INTEGER-PART function returns an integer that is the integer portion of argu
 
 #### 2.18.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>INTEGER-PART</u> (argument-1)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>INTEGER-PART</u> ( argument-1 )
 </pre>
 
 #### 2.18.3 Arguments
@@ -32293,8 +32294,8 @@ The LENGTH function returns an integer equal to the length of the argument in ch
 
 ### 2.19.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>LENGTH</u> (argument-1)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>LENGTH</u> ( argument-1 )
 </pre>
 
 ### 2.19.3 Arguments
@@ -32325,8 +32326,8 @@ The LOG function returns a numeric value that approximates the logarithm to the 
 
 ### 2.20.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>LOG</u> (argument-1)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>LOG</u> ( argument-1 )
 </pre>
 
 ### 2.20.3 Arguments
@@ -32353,8 +32354,8 @@ The LOG10 function returns a numeric value that approximates the logarithm to th
 
 ### 2.21.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>LOG10</u> (argument-1)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>LOG10</u> ( argument-1 )
 </pre>
 
 ### 2.21.3 Arguments
@@ -32381,8 +32382,8 @@ The LOWER-CASE function returns a character string that is the same length as ar
 
 ### 2.22.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>LOWER-CASE</u> (argument-1)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>LOWER-CASE</u> ( argument-1 )
 </pre>
 
 ### 2.22.3 Arguments
@@ -32418,8 +32419,8 @@ The MAX function returns the content of the argument-1 that contains the maximum
 
 ### 2.23.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>MAX</u> ({argument-1} ... )
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>MAX</u> ( { argument-1 } … )
 </pre>
 
 ### 2.23.3 Arguments
@@ -32448,8 +32449,8 @@ The MEAN function returns a numeric value that is the arithmetic mean (average) 
 
 ### 2.24.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>MEAN</u> ({argument-1} ... )
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>MEAN</u> ( { argument-1 } … )
 </pre>
 
 ### 2.24.3 Arguments
@@ -32476,8 +32477,8 @@ The MEDIAN function returns the content of the argument whose value is the middl
 
 ### 2.25.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>MEDIAN</u> ({argument-1} ... )
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>MEDIAN</u> ( { argument-1 } … )
 </pre>
 
 ### 2.25.3 Arguments
@@ -32506,8 +32507,8 @@ The MIDRANGE (middle range) function returns a numeric value that is the arithme
 
 ### 2.26.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>MIDRANGE</u> ({argument-1} ... )
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>MIDRANGE</u> ( { argument-1 } … )
 </pre>
 
 ### 2.26.3 Arguments
@@ -32539,8 +32540,8 @@ The MIN function returns the content of the argument-1 that contains the minimum
 
 ### 2.27.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>MIN</u> ({argument-1} ... )
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>MIN</u> ( { argument-1 } … )
 </pre>
 
 ### 2.27.3 Arguments
@@ -32569,8 +32570,8 @@ The MOD function returns an integer value that is argument-1 modulo argument-2. 
 
 ### 2.28.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>MOD</u> (argument-1 argument-2)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>MOD</u> ( argument-1 argument-2 )
 </pre>
 
 ### 2.28.3 Arguments
@@ -32608,8 +32609,8 @@ The NUMVAL function returns the numeric value represented by the character strin
 
 ### 2.29.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>NUMVAL</u> (argument-1)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>NUMVAL</u> ( argument-1 )
 </pre>
 
 ### 2.29.3 Arguments
@@ -32660,8 +32661,8 @@ The NUMVAL-C function ıeturns the numeric value represented by the character st
 
 ### 2.30.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>NUMVAL-C</u> (argument-1 [argument-2])
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>NUMVAL-C</u> ( argument-1 [ argument-2 ] )
 </pre>
 
 ### 2.30.3 Arguments
@@ -32714,8 +32715,8 @@ The ORD function returns an integer value that is the ordinal position of argume
 
 ### 2.31.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>ORD</u> (argument-1)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>ORD</u> ( argument-1 )
 </pre>
 
 ### 2.31.3 Arguments
@@ -32740,8 +32741,8 @@ The ORD-MAX function returns a value that is the ordinal number of the argument-
 
 ### 2.32.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>ORD-MAX</u> ({argument-1} ... )
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>ORD-MAX</u> ( { argument-1 } … )
 </pre>
 
 ### 2.32.3 Arguments
@@ -32770,8 +32771,8 @@ The ORD-MIN function returns a value that is the ordinal number of the argument 
 
 ### 2.33.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>ORD-MIN</u> ({argument-1} ... )
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>ORD-MIN</u> ( { argument-1 } … )
 </pre>
 
 ### 2.33.3 Arguments
@@ -32800,8 +32801,8 @@ The PRESENT-VALUE function returns a value that approximates the present value o
 
 ### 2.34.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>PRESENT-VALUE</u> (argument-1 {argument-2} ... )
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>PRESENT-VALUE</u> ( argument-1 { argument-2 } … )
 </pre>
 
 ### 2.34.3 Arguments
@@ -32832,8 +32833,8 @@ The RANDOM function returns a numeric value that is a pseudo-random number from 
 
 ### 2.35.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>RANDOM</u> [(argument-1)]
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>RANDOM</u> [ ( argument-1 ) ]
 </pre>
 
 ### 2.35.3 Arguments
@@ -32873,8 +32874,8 @@ The RANGE function returns a value that is equal to the value of the maximum arg
 
 ### 2.36.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>RANGE</u> ({argument-1} ... )
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>RANGE</u> ( { argument-1 } … )
 </pre>
 
 ### 2.36.3 Arguments
@@ -32899,8 +32900,8 @@ The REM function returns a numeric value that is the remainder of argument-1 div
 
 ### 2.37.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>REM</u> (argument-1 argument-2)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>REM</u> ( argument-1 argument-2 )
 </pre>
 
 ### 2.37.3 Arguments
@@ -32931,8 +32932,8 @@ The REVERSE function returns a character string of exactly the same length as ar
 
 ### 2.38.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>REVERSE</u> (argument-1)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>REVERSE</u> ( argument-1 )
 </pre>
 
 ### 2.38.3 Arguments
@@ -32957,8 +32958,8 @@ The SIN function returns a numeric value that approximates the sine of an angle 
 
 ### 2.39.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>SIN</u> (argument-1)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>SIN</u> ( argument-1 )
 </pre>
 
 ### 2.39.3 Arguments
@@ -32983,8 +32984,8 @@ The SQRT function returns a numeric value that approximates the square root of a
 
 ### 2.40.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>SQRT</u> (argument-1)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>SQRT</u> ( argument-1 )
 </pre>
 
 ### 2.40.3 Arguments
@@ -33011,8 +33012,8 @@ The STANDARD-DEVIATION function returns a numeric value that approximates the st
 
 ### 2.41.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>STANDARD-DEVIATION</u> ({argument-1} ... )
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>STANDARD-DEVIATION</u> ( { argument-1 } … )
 </pre>
 
 ### 2.41.3 Arguments
@@ -33052,8 +33053,8 @@ The SUM function returns a value that is the sum of the arguments. The type of t
 
 ### 2.42.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>SUM</u> ({argument-1} ... )
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>SUM</u> ( { argument-1 } … )
 </pre>
 
 ### 2.42.3 Arguments
@@ -33082,8 +33083,8 @@ The TAN function returns a numeric value that approximates the tangent of an ang
 
 ### 2.43.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>TAN</u> (argument-1)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>TAN</u> ( argument-1 )
 </pre>
 
 ### 2.43.3 Arguments
@@ -33108,8 +33109,8 @@ The UPPER-CASE function returns a character string that is the same length as ar
 
 #### 2.44.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>UPPER-CASE</u> (argument-1)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>UPPER-CASE</u> ( argument-1 )
 </pre>
 
 #### 2.44.3 Arguments
@@ -33136,8 +33137,8 @@ The VARIANCE function returns a numeric value that approximates the variance of 
 
 ### 2.45.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>VARIANCE</u> ({argument-1} ... )
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>VARIANCE</u> ( { argument-1 } … )
 </pre>
 
 ### 2.45.3 Arguments

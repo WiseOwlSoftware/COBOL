@@ -1,0 +1,16 @@
+{
+ "page": 399,
+ "figure": 0,
+ "drawn_lines": [
+  "     ⎧<u>RECORD</u> IS  ⎫",
+  "<u>DATA</u> ⎨           ⎬ {data-name-1} ...",
+  "     ⎩<u>RECORDS</u> ARE⎭"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "     ╭ <u>RECORD</u> IS   ╮",
+  "<u>DATA</u> ┤             ├ { data-name-1 } …",
+  "     ╰ <u>RECORDS</u> ARE ╯"
+ ],
+ "reason": "The printed page sets the ellipsis after {data-name-1} on the DATA line, the middle row of the RECORD IS/RECORDS ARE brace; the regeneration set it a row lower, after the brace (render_figure's ellipsis-row defect, the wave 20261900 lead). Drawn from the page."
+}

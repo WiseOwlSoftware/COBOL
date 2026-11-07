@@ -1,0 +1,12 @@
+{
+ "page": 321,
+ "figure": 0,
+ "drawn_lines": [
+  "<u>GO</u> TO [procedure-name-1]"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "<u>GO</u> TO ║ [ ║ procedure-name-1 ║ ] ║"
+ ],
+ "reason": "The printed page boxes each of GO TO's two brackets (procedure-name-1 optional at level 2 only); the batch lost both boxes, and the regeneration read their sides as choice bars and their rules as underlines. Drawn from the page."
+}

@@ -1,0 +1,12 @@
+{
+ "page": 182,
+ "figure": 0,
+ "drawn_lines": [
+  "<u>PROCEDURE</u> <u>DIVISION</u>  [<u>USING</u> {data-name-1} ... ]."
+ ],
+ "decided": "generated",
+ "figure_lines": [
+  "<u>PROCEDURE</u> <u>DIVISION</u> [ <u>USING</u> { data-name-1 } … ] ."
+ ],
+ "reason": "The printed page sets the Procedure Division header format as the regeneration reads it (PROCEDURE, DIVISION and USING underlined; the bracket, brace and ellipsis); it is a general format, though no heading names it one."
+}
