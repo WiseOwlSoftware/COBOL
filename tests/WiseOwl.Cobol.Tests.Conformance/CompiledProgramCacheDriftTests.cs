@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
 /// ⛔ THE KEY OF <see cref="CompiledProgramCache"/> IS COMPLETE (kb/Work PB985 obligation 2;
-/// <c>DESIGN-test-build-ci.md</c> §2023:3.12). A cache whose key omits one compiler input returns a STALE program — a
+/// <c>DESIGN-test-build-ci.md</c> §3.12). A cache whose key omits one compiler input returns a STALE program — a
 /// green verdict about code that no longer exists — so every input axis is flipped here and each flip must MISS:
 /// every <see cref="CompilerDriver.Options"/> property (found by reflection, so a new option is covered the day it
 /// ships), the source text, a copybook's text, a copybook that newly SHADOWS the one found, a directive's

@@ -130,7 +130,7 @@ internal sealed record ArchitectureEdges(
                 if (row.RemovedBy.Count == 0)
                 {
                     failures.Add($"{name} is seen only by the census (no walked pair: inlined consts or nameofs) and names no "
-                                 + "remover — name the kb/Work note that removes its uses in the row's removedBy (§2023:8.1: a "
+                                 + "remover — name the kb/Work note that removes its uses in the row's removedBy (DESIGN-architecture-review §8.1: a "
                                  + "dependency no note removes blocks the file). If its remover just landed, keep it named: "
                                  + CensusLanding);
                 }
@@ -150,7 +150,7 @@ internal sealed record ArchitectureEdges(
     }
 
     /// <summary>
-    /// THE RATCHET (§2023:8.1 "The ratchet and the removers"): the file after the measurement, where every change is a fall —
+    /// THE RATCHET (DESIGN-architecture-review §8.1 "The ratchet and the removers"): the file after the measurement, where every change is a fall —
     /// a listed pair the walk no longer measures is deleted, <c>walkUses</c> becomes the pairs that remain, <c>uses</c>
     /// becomes the census's count when that is LOWER (never higher), a row both observers read zero is deleted, a row
     /// whose last walked pair goes keeps its removers as a census-only row, and the file is keyed to
@@ -185,7 +185,7 @@ internal sealed record ArchitectureEdges(
         return this with { Census = census, Tolerated = rows };
     }
 
-    /// <summary>THE LANDING OF A REMOVER (§2023:8.1): a census-only row — one seen only by the census, or one whose last walked
+    /// <summary>THE LANDING OF A REMOVER (DESIGN-architecture-review §8.1): a census-only row — one seen only by the census, or one whose last walked
     /// pair its remover's landing took — leaves the file only through a census, because the walk cannot see its uses and
     /// deleting its landed remover leaves a row no note removes. The remover's landing records one and ratchets
     /// (<c>work.py check</c> names the same path, <c>EDGES_CENSUS_LANDING</c>).</summary>

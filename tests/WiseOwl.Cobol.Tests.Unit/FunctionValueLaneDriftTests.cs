@@ -90,7 +90,7 @@ public sealed class FunctionValueLaneDriftTests
                 !l.TrimStart().StartsWith("//", StringComparison.Ordinal) && l.Contains(forbidden, StringComparison.Ordinal));
             if (named) offenders.Add($"{Path.GetRelativePath(compiler, file)} names {forbidden}");
         }
-        Assert.True(offenders.Count == 0, "a cross-layer edge §2023:8.1 does not allow: " + string.Join("; ", offenders));
+        Assert.True(offenders.Count == 0, "a cross-layer edge DESIGN-architecture-review §8.1 does not allow: " + string.Join("; ", offenders));
         // The shared rules depend on nothing above compiler.bound.
         string rules = File.ReadAllText(Path.Combine(compiler, "Binding", "Bound", "IntrinsicCarrierRules.cs"));
         Assert.DoesNotContain("using WiseOwl.Cobol.CodeGen", rules, StringComparison.Ordinal);

@@ -28,7 +28,7 @@ internal static class BitLayout
 {
     /// <summary>Bits per character position. §2023:8.1.2 makes this implementor-specified; WiseOwl COBOL pins <b>8</b>,
     /// consistent with <see cref="DataItem.ByteWidth"/>'s "DISPLAY = 1 byte per character position" and recorded
-    /// in <c>docs/CONFORMANCE.md</c> §2023:4.2.16.</summary>
+    /// in <c>docs/CONFORMANCE.md</c> §4.2.16.</summary>
     public const int BitsPerCharacter = 8;
 
     /// <summary>True when this leaf occupies BITS — a boolean item whose usage is explicitly BIT.</summary>

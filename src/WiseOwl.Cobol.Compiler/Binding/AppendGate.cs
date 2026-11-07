@@ -5,8 +5,8 @@ using WiseOwl.Cobol.Binding.Passes;
 namespace WiseOwl.Cobol.Binding;
 
 /// <summary>
-/// The check that a per-unit resolve pass appends only to the fact sets it declared (docs/rearchitecture/DESIGN-architecture-review.md
-/// §2023:8.3 (1), kb/Work PB2352). <c>BindPipeline.ValidateDag</c> checks a pass's declared <see cref="PassViews"/> against the
+/// The check that a per-unit resolve pass appends only to the fact sets it declared
+/// (docs/rearchitecture/DESIGN-architecture-review.md §8.3 (1), kb/Work PB2352). <c>BindPipeline.ValidateDag</c> checks a pass's declared <see cref="PassViews"/> against the
 /// phase order; this gate checks the declaration against what the pass DOES: <see cref="DataBinder.BindResolve"/> opens
 /// the gate around each pass's <see cref="IBindPass.Run"/>, and a <see cref="FactSet{T}"/> appended to while a gate is open
 /// for a pass that did not declare it throws. Outside a pass (the entry walk, the procedure division, the group tail)

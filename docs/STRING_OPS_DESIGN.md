@@ -13,7 +13,7 @@ CENTRAL REPRESENTATION DECISION: alphanumeric/national elementary items are `str
 
 The legacy algorithms are PROVEN against 364 NIST tests (the comparison-cycle, region computation, ALL-skip, overflow conditions, GR4d signed-numeric de-signing). I am MINING them verbatim, changing only the I/O type from `(byte[],offset,len)` to `string`/`char[]`. Counters/pointers/COUNT route through the numeric subsystem (`CobolNum.Store` + `NumProfile`), not a parallel int path. Overlap (spec-undefined) becomes deterministic-and-safe via read-once / single-write-back.
 
-THREE THINGS A NAIVE "it's all strings" DESIGN GETS WRONG, all handled here: (1) non-alphanumeric/group operands (INSPECT GR4b/4c, ref-mod GR2/3, STRING/UNSTRING) must be "treated as if redefined alphanumeric/national of the same size" — free for an elementary `string`, but a `record struct` group or `long` numeric must be materialized to its alphanumeric image, operated on, then DECOMPOSED back into typed sub-fields (the whole-group-alphanumeric boundary deferred to G6); (2) the lvalue gap — string-op targets are subscripted/qualified/ref-mod-sliced; they resolve through the ONE universal `Place` lvalue built by `ReferenceResolver` (`MemberPlace`/`RefModPlace`, SSOT §2023:14.1 — implemented, G2 ✅), never a per-verb string-lvalue (see D7); (3) STRING only changes written positions (GR7) so the working buffer must start from the dest's current value.
+THREE THINGS A NAIVE "it's all strings" DESIGN GETS WRONG, all handled here: (1) non-alphanumeric/group operands (INSPECT GR4b/4c, ref-mod GR2/3, STRING/UNSTRING) must be "treated as if redefined alphanumeric/national of the same size" — free for an elementary `string`, but a `record struct` group or `long` numeric must be materialized to its alphanumeric image, operated on, then DECOMPOSED back into typed sub-fields (the whole-group-alphanumeric boundary deferred to G6); (2) the lvalue gap — string-op targets are subscripted/qualified/ref-mod-sliced; they resolve through the ONE universal `Place` lvalue built by `ReferenceResolver` (`MemberPlace`/`RefModPlace`, SSOT §14.1 — implemented, G2 ✅), never a per-verb string-lvalue (see D7); (3) STRING only changes written positions (GR7) so the working buffer must start from the dest's current value.
 
 ## Decisions
 
@@ -49,13 +49,13 @@ THREE THINGS A NAIVE "it's all strings" DESIGN GETS WRONG, all handled here: (1)
 
 ### D6. HIGH-VALUE → U+FFFF and LOW-VALUE → U+0000 in both classes; QUOTE → U+0022; SPACE → U+0020; ZERO → '0'.
 
-**Rationale.** §2023:8.3.3.6.4 GR6/GR7: the highest/lowest characters of the native sequence, which is the 65,536 UTF-16 code units in both classes (owner decision kb/Work R52; SSOT §2023:14.9 / §18 #14; `NativeCollatingSequence`). The file-I/O byte boundary keeps HIGH-VALUE as the byte 0xFF through the storage-byte law (`StorageByte`; design WISEOWL_COBOL_FILES D29), so figurative constants stay consistent across it.
+**Rationale.** §2023:8.3.3.6.4 GR6/GR7: the highest/lowest characters of the native sequence, which is the 65,536 UTF-16 code units in both classes (owner decision kb/Work R52; SSOT §14.9 / §18 #14; `NativeCollatingSequence`). The file-I/O byte boundary keeps HIGH-VALUE as the byte 0xFF through the storage-byte law (`StorageByte`; design WISEOWL_COBOL_FILES D29), so figurative constants stay consistent across it.
 
 **Rejected alternatives.** U+00FF for alphanumeric HIGH-VALUE (the former Latin-1 pin) — left every character above U+00FF ordered above "the highest character" (kb/Work PB1093).
 
-### D7. String-op targets use the universal `Place` lvalue (`Read()`/`Write(rhs)`) — NOT a separate StringLvalue abstraction. [canonical: SSOT §2023:14.1]
+### D7. String-op targets use the universal `Place` lvalue (`Read()`/`Write(rhs)`) — NOT a separate StringLvalue abstraction. [canonical: SSOT §14.1]
 
-> **The `Place` is the SOLE lvalue model** — there is NO separate StringLvalue abstraction (SSOT §2023:14.1:
+> **The `Place` is the SOLE lvalue model** — there is NO separate StringLvalue abstraction (SSOT §14.1:
 > **`StringLvalue` IS a `Place`**). There is ONE lvalue model (`Place`, built by `ReferenceResolver`) consumed
 > identically by MOVE / arithmetic / INSPECT / STRING / UNSTRING / file READ-INTO / CALL-by-reference.
 > INSPECT/STRING/UNSTRING emit `field.Write(CobolStrings.…(field.Read(), …))` over a `Place`. Introducing a second
@@ -92,7 +92,7 @@ WRITE (the lvalue): `FIELD[a:b] = expr` becomes splice + a single MOVE-into-slic
   COBOL `MOVE X TO FIELD(3:5)` →
   `FIELD = CobolString.SpliceInto(FIELD, 3, 5, CobolString.Store(<X-image>, 5));`
   where `CobolString.SpliceInto(string dst, int leftmost, int length, string newSlice)` returns `dst[..(leftmost-1)] + newSlice + dst[(leftmost-1+length)..]` (newSlice already exactly `length` chars via CobolString.Store — left-justified space-pad/truncate, the receiving-into-a-slice MOVE). Editing is NOT re-applied (spec NOTE at line 21209: ref-mod of an edited item as whole-of-itself prevents editing).
-  > **Runtime-roster note (SSOT §2023:14.8):** ref-mod read/write live on **`CobolString`** (the
+  > **Runtime-roster note (SSOT §14.8):** ref-mod read/write live on **`CobolString`** (the
   > single-string class) as **`RefMod`** and **`SpliceInto`** — NOT on `CobolStrings` and NOT under a separate
 > `…Store` splice-helper name.
   > `CobolStrings` is reserved for the MULTI-operand verbs (`InspectTally`/`InspectReplace`/`StringInto`/

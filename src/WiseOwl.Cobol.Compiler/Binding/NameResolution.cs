@@ -37,8 +37,8 @@ internal readonly record struct IndexRef(IndexRefOutcome Outcome, IndexDeclarati
 }
 
 /// <summary>
-/// ⛔ <b>QUALIFICATION: THE NAME A DATA REFERENCE WRITES, RESOLVED OVER THE SYMBOLS</b> (ISO §2023:8.4.2.2, DESIGN-architecture-review
-/// §2023:8.3 (4), kb/Work PB2372). "Qualification is the specification of superordinate names from the hierarchy to which a
+/// ⛔ <b>QUALIFICATION: THE NAME A DATA REFERENCE WRITES, RESOLVED OVER THE SYMBOLS</b> (ISO §2023:8.4.2.2,
+/// DESIGN-architecture-review §8.3 (4), kb/Work PB2372). "Qualification is the specification of superordinate names from the hierarchy to which a
 /// user-defined name belongs" (§2023:8.4.2.2.1); a reference shall "uniquely identify" its resource, and §2023:8.4.2.2.3 SR1 makes the
 /// written qualifiers establish that. This type asks the candidates of a spelling from <see cref="DataBinder"/>'s symbol tables
 /// (<c>QualifiedCandidates</c>, <c>Symbols</c>), decides uniqueness, and says why when it cannot: the unqualified and qualified

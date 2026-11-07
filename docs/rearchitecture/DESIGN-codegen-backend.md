@@ -59,7 +59,7 @@ The string-carrying `Place` (§1.2) that stood between this and a fully backend-
 `Place` is structural (P7 Step 11) and the last parallel evaluator is gone (P7 Step 12).
 
 ### 1.2 Bound tree and `Place` carried C# text (RESOLVED at P7 Step 11)
-The G4 invariant (SSOT §2023:3.3): *"bound nodes carry no pre-rendered C#-specific fragments; the CIL backend lowers the
+The G4 invariant (SSOT §3.3): *"bound nodes carry no pre-rendered C#-specific fragments; the CIL backend lowers the
 same structure."* The pre-Step-11 reality this section recorded (now historical — every item below is fixed; the
 leaks that remain elsewhere on the bound tree are DESIGN-backend-abstraction §1.3's open rows, and
 `BackendContractDriftTests`, that design's §6, holds every text member of the backend input to the invariant):

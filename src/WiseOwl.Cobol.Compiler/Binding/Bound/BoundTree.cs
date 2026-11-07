@@ -1200,7 +1200,7 @@ public sealed record BoundRejected : BoundStatement
 /// the status VALUE passed to the operating system (§2023:14.9.42.4 GR5 · §2023:14.9.18.4 GR10), null when no <c>STATUS</c>
 /// operand is given. On .NET the single observable is the process exit code (<see cref="Runtime.RunUnit.ExitStatus"/>
 /// → <c>Environment.ExitCode</c>): the value wins when present, else ERROR ⇒ 1 / NORMAL ⇒ 0 (the documented
-/// implementor mapping — <c>docs/CONFORMANCE.md</c> §2023:4.2.16).</summary>
+/// implementor mapping — <c>docs/CONFORMANCE.md</c> §4.2.16).</summary>
 /// <remarks>⛔ <paramref name="Value"/> IS A <see cref="BoundOperand"/>, NOT A <see cref="BoundExpr"/> (kb/Work
 /// PB169). §2023:14.9.42.2 writes the operand as <c>{identifier-1 | literal-1}</c> — it is NOT an
 /// arithmetic-expression position — and §2023:14.9.42.3 SR2 admits "an integer data item or a data item with usage

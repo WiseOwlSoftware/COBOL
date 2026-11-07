@@ -15,7 +15,7 @@ public enum MessageParty
 
 /// <summary>
 /// The message-tag carrier (ISO §2023:13.18.60.4 GR9 — "The class and category of a message-tag data item are message-tag";
-/// §2023:8.5.2.9; kb/Work PB4740, <c>docs/rearchitecture/DESIGN-message-control.md</c> §2023:4.2). The standard leaves the
+/// §2023:8.5.2.9; kb/Work PB4740, <c>docs/rearchitecture/DESIGN-message-control.md</c> §4.2). The standard leaves the
 /// alignment, representation and size of a message-tag data item to the implementor (Annex A.1 item 212, the
 /// documented determination <c>DOC-A.1-212</c>): the item rides a managed slot and occupies no character positions of
 /// its own, the slot rule of DOC-A.1-210 (<see cref="FunctionPointer"/>).

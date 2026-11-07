@@ -987,7 +987,7 @@ var _e0 = WS_DAY; var _e1 = true;
 if (((_e0>=1L && _e0<=5L) && (WS_OPEN==_e1))) {…} else if (((_e0==6L||_e0==7L) && true)) {…} else {…}
 ```
 
-ON SIZE ERROR (ISO §2023:14.7.5): the checked store is **`CobolNum.TryStore`** (SSOT §2023:14.7) — one operation that stores plus runs the capacity/inexact check, leaving the receiver unchanged on overflow (returns `bool`; `false` = ON SIZE ERROR). It rounds to scale FIRST, then tests integer-part capacity; division-by-zero / exponentiation-rule → size error. On error the receiver is LEFT UNCHANGED, so stage the value and assign conditionally. Multiple receivers: OR the per-receiver flags; non-overflowing receivers ARE updated. (Signature: `bool TryStore(CobolInt value, in NumProfile receiver, CobolRounding mode, out long stored)`.)
+ON SIZE ERROR (ISO §2023:14.7.5): the checked store is **`CobolNum.TryStore`** (SSOT §14.7) — one operation that stores plus runs the capacity/inexact check, leaving the receiver unchanged on overflow (returns `bool`; `false` = ON SIZE ERROR). It rounds to scale FIRST, then tests integer-part capacity; division-by-zero / exponentiation-rule → size error. On error the receiver is LEFT UNCHANGED, so stage the value and assign conditionally. Multiple receivers: OR the per-receiver flags; non-overflowing receivers ARE updated. (Signature: `bool TryStore(CobolInt value, in NumProfile receiver, CobolRounding mode, out long stored)`.)
 ```
 bool _se=false; { var _v = new CobolInt(…, _s); if (CobolNum.TryStore(_v, _P_B, _mode, out long _r)) B = _r; else _se = true; }
 if (_se) { <ON SIZE ERROR> } else { <NOT ON SIZE ERROR> }

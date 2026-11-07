@@ -252,7 +252,7 @@ public sealed class RunUnit
     /// GOBACK with a status phrase (ISO §2023:14.9.42.4 GR5 / §2023:14.9.18.4 GR10), or 1 once the run unit ended abnormally
     /// (§2023:14.6.12). On .NET the single observable of that hand-over is the process exit code, so the STATUS value and the
     /// ERROR/NORMAL indication collapse into this ONE canonical integer (the documented implementor mapping —
-    /// <c>docs/CONFORMANCE.md</c> §2023:4.2.16; Annex A "required documented behavior" items 192/193): the STATUS value when
+    /// <c>docs/CONFORMANCE.md</c> §4.2.16; Annex A "required documented behavior" items 192/193): the STATUS value when
     /// specified, else ERROR ⇒ 1 / NORMAL ⇒ 0. <b>It is the RUN UNIT's state and nothing else's</b>: writing it touches no
     /// process-wide cell, because a run unit embedded in a .NET host (<see cref="Run"/>, <see cref="ProgramTable.RunMain"/>)
     /// must not end or restate the HOST's exit code (DOC-A.1-167 — STOP RUN and a fatal condition "end the RUN UNIT ONLY";

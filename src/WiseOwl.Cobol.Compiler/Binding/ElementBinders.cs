@@ -12,8 +12,8 @@ namespace WiseOwl.Cobol.Binding;
 internal sealed record ElementBinding(DataBinder Data, ReferenceResolver Refs);
 
 /// <summary>
-/// ⛔ THE BINDERS OF THE GROUP'S SOURCE ELEMENTS, KEPT ON THE BINDER'S SIDE OF THE SEAM (docs/rearchitecture/DESIGN-architecture-review.md
-/// §2023:8.3 (1), step 11; kb/Work PB2361). A <see cref="BoundUnit"/> and an <see cref="OoClassUnit"/> are the bound model a backend
+/// ⛔ THE BINDERS OF THE GROUP'S SOURCE ELEMENTS, KEPT ON THE BINDER'S SIDE OF THE SEAM
+/// (docs/rearchitecture/DESIGN-architecture-review.md §8.3 (1), step 11; kb/Work PB2361). A <see cref="BoundUnit"/> and an <see cref="OoClassUnit"/> are the bound model a backend
 /// reads, so they carry the frozen <see cref="DataBindResult"/> and never a binder; the binding phases, which need each element's
 /// <see cref="DataBinder"/> and <see cref="ReferenceResolver"/> (a container's GLOBAL names, the repository's signatures, the
 /// statement walk, the group tail), ask this table, which <see cref="BindSession.Binders"/> holds for the length of one bind.

@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Frontend;
 
 /// <summary>
 /// ⛔ THE ONE GATEWAY for every AMBIENT input a compilation reads — the files it opens, the paths it probes, the
-/// environment variables it consults and the wall clock (kb/Work PB985; <c>DESIGN-test-build-ci.md</c> §2023:3.12). Each
+/// environment variables it consults and the wall clock (kb/Work PB985; <c>DESIGN-test-build-ci.md</c> §3.12). Each
 /// read goes through a method here, which performs it AND records it, so after a compile the record names every
 /// fact outside the source text and the options that the compiler's output depended on — the dependency list a
 /// build tool needs (the <c>gcc -MD</c> depfile shape) and the key a compiled-program cache needs.

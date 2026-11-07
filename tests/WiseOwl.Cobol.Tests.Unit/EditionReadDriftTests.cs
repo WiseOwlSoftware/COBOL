@@ -27,7 +27,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// diagnosis-only reads that decide what a syntax diagnostic names as expected (kb/Work PB4174, PB4435); a construct
 /// gate is a D7 defect.</para>
 ///
-/// <para><b>What this test computes, rather than lists</b> (§2023:8.4's rule, applied):
+/// <para><b>What this test computes, rather than lists</b> (DESIGN-architecture-review §8.4's rule, applied):
 /// <list type="number">
 ///   <item>EDITION STATE is the parser's <c>Edition</c> property, an <c>EditionInfo</c>, or a lexer field PRIMED from
 ///     one — the fields the retype stage's edition reads set through a lexer setter (computed from
@@ -266,8 +266,8 @@ public sealed class EditionReadDriftTests
             problems.Add($"STALE recorded site {site}");
 
         Assert.True(problems.Count == 0,
-            "the front end's edition reads drifted from the PB2291 verdict (kb/Work PB2291; DESIGN-architecture-review "
-            + "§2023:8.4). Adjudicate each one — ISO §2023:8.9 word status, or a construct gate that belongs in "
+            "the front end's edition reads drifted from the PB2291 verdict (kb/Work PB2291;"
+            + " DESIGN-architecture-review §8.4). Adjudicate each one — ISO §2023:8.9 word status, or a construct gate that belongs in "
             + "VersionConformancePass — and record it:\n  " + string.Join("\n  ", problems)
             + "\n\nComputed inventory:\n" + model.Render());
     }

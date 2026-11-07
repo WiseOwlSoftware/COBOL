@@ -15,8 +15,8 @@ using WiseOwl.Cobol.Runtime;
 
 /// <summary>
 /// The binder of one source element's SPECIAL-NAMES paragraph and the OBJECT-COMPUTER clauses that name its
-/// alphabets and locales (ISO §2023:12.3.6, §2023:12.3.7; the census's R0-0001 target "SpecialNamesBinder", DESIGN-architecture-review
-/// §2023:8.3 (1)). It declares the configuration-derived state of the unit's <see cref="ConfigurationSlice"/>: the external-switch registry (§2023:12.3.7 — a
+/// alphabets and locales (ISO §2023:12.3.6, §2023:12.3.7; the census's R0-0001 target "SpecialNamesBinder",
+/// DESIGN-architecture-review §8.3 (1)). It declares the configuration-derived state of the unit's <see cref="ConfigurationSlice"/>: the external-switch registry (§2023:12.3.7 — a
 /// switch-name associates an implementor-defined external switch with an optional mnemonic-name and/or ON/OFF status
 /// condition-names; the mnemonic is referenced only in SET [SR5], the condition-names are interrogated as switch-status
 /// conditions [GR2 / §2023:8.8.4.6], SET alters the status [GR3 / §2023:14.9.39 F3]), the CLASS, ALPHABET, SYMBOLIC CHARACTERS,

@@ -37,7 +37,7 @@ public sealed record UnitChecking(
     public static UnitChecking None { get; } = new(0, false, false, false, false);
 }
 
-/// <summary>The checking facts of ONE method (§2023:8.3 (1)): the method twin of <see cref="UnitChecking"/>, written by
+/// <summary>The checking facts of ONE method (DESIGN-architecture-review §8.3 (1)): the method twin of <see cref="UnitChecking"/>, written by
 /// <c>CheckingFold</c> once every method symbol exists (after <c>OoClassTable.ResolveOverrides</c>) and before any
 /// method body binds, and read by <c>OoEmitter</c> through <c>OoMethodSymbol.Checking</c>.</summary>
 /// <param name="OoUniversalChecking">§2023:14.9.23.4 GR7 c)'s METHOD-side half: EC-OO-UNIVERSAL enabled at the method's

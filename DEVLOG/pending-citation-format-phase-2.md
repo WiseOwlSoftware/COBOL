@@ -54,6 +54,18 @@ are templates like `§2023:<clause>`, and the format says so. Every golden, snap
 branch changed (1,964) differs from main only in citation text, checked by normalizing the edition token away (the
 register's lead fields are cut at a fixed length, so their tails shift).
 
+**What the branch review found (R1-1).** The rewrite had also turned a repository document's OWN section numbers into
+2023 clauses wherever the document-name screen did not know the name: "[canonical: SSOT §14.1]" in STRING_OPS_DESIGN
+means docs/DESIGN.md's §14.1 (ONE lvalue model: `Place`), and a reader sent to ISO 14.1 is sent to the wrong text with
+a well-formed citation no audit can flag. The screen lacked `SSOT`, a `PLAN-` identifier, "doc" and "scout brief",
+could not step over an XML-doc `</c>` or an en-dash range (`§8.1–§8.7`), and the own-heading reader missed a
+`### §3.1` heading. All are in the screen now, each with a planted self-test case, and the 39 lines it now reads as a
+document's section went back to the bare form. Where the line itself named no document, the name was written in: the
+architecture-review campaign's 210 notes and code comments (471 sites citing that design's §8.1-§8.7, §5.1-§5.6 and
+§4.1) say `DESIGN-architecture-review §8.3`, kb/Work PB2118 says `design §8.3`, and the hand cases name
+DESIGN-external-repository, PLAN-bindtime-gating-migration and DESIGN.md §15.5. The lead R1-2 is fixed too: the 2009
+committee draft's numbers in PB3919, PB3920, PB3923 and PB3600 are `clause N`, not an edition's.
+
 **Checks.** audit_code_citations.py --check and --check-all: 0 findings over 12,797 files; audit_doc_citations.py
 GREEN; citation.py, cite.py, audit_code_citations.py and doc_audits.py self-tests PASS; doc_audits.py --check GREEN;
 verify_publishable.py PUBLISHABLE; generate.py --check GREEN; semgrep verify PASS (no count rose). The gate:

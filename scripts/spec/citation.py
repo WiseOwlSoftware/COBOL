@@ -355,16 +355,18 @@ def validate(c: Citation, repo: pathlib.Path = spec_pdf.REPO) -> str | None:
 #: specs/ISO_COBOL_2023.md §8.7.5.2" cites the standard.
 _DOCUMENT_NAME = r"""(?:
       (?<![\w./-])(?![\w./-]*ISO_COBOL_2023\.md)[\w./-]*\w\.md(?!\w)        # a Markdown file: docs/X.md, DESIGN-x.md
-    | \b(?:DESIGN|SURVEY|CRITIQUE|EVAL|PHASE|PIPELINE)-\w[\w.-]*\w            # a design document's identifier
+    | \b(?:DESIGN|SURVEY|CRITIQUE|EVAL|PHASE|PIPELINE|PLAN)-\w[\w.-]*\w       # a design document's identifier
+    | (?i:\b(?:doc|scout\s+brief)\b)                                          # "P11 doc §3.1", "the scout brief §4.1"
     | \b[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)*_DESIGN\b                               # OO_DESIGN, CONDITIONS_EXCEPTIONS_DESIGN
-    | \b(?:ADR|PLAN|PROMPT|README|CLAUDE|DESIGN|DEVLOG)\b                     # the repository's named documents
+    | \b(?:ADR|PLAN|PROMPT|README|CLAUDE|DESIGN|DEVLOG|SSOT)\b                # named documents; SSOT is DESIGN.md
     | (?i:\b(?:the|this|that)\s+(?:design|doc|document|deep-dive|ADR)         # prose: "the design's", "this document"
           (?:\s+(?:doc|document|SSOT))?)
     | (?i:\bdesign(?:\s+(?:doc|document|SSOT))?)                              # "design §8", "(design SSOT §9.10)"
 )"""
-#: What may stand between the name and the `§`: a line number (`DESIGN-x.md:848`), a possessive, punctuation, the word
-#: "section", and the earlier members of a list of the document's sections.
-_DOCUMENT_GAP = r"""(?::\d+(?:[-–]\d+)?)?(?:'s|’s)?[\s`*"'(\[]*(?:sections?\s+)?(?:§\s?\w[\w.]*\w?[\s,;/`*)]*(?:and\s+|or\s+)?)*$"""
+#: What may stand between the name and the `§`: the close of an XML-doc `<c>` wrapping the name
+#: (`<c>X-DESIGN.md</c> §9.2`), a line number (`DESIGN-x.md:848`), a possessive, punctuation, the word "section", and
+#: the earlier members of a list or a range (`§8.1–§8.7`) of the document's sections.
+_DOCUMENT_GAP = r"""(?:</c>)?(?::\d+(?:[-–]\d+)?)?(?:'s|’s)?[\s`*"'(\[]*(?:sections?\s+)?(?:§\s?\w[\w.]*\w?[\s,;/–`*)]*(?:and\s+|or\s+)?)*$"""
 DOCUMENT_SECTION = re.compile(_DOCUMENT_NAME + _DOCUMENT_GAP, re.VERBOSE)
 #: A free-text citation of ANOTHER edition, just left of a bare `§`: "COBOL-85 §4.3.3", "ISO 1989:2002 §14.8.4".
 OTHER_EDITION = re.compile(
@@ -545,7 +547,10 @@ def self_test() -> int:
          and not any(_bare_in(s) for s in (
              "DESIGN-external-repository §4.5, §11.2", "`docs/rearchitecture/DESIGN-message-control.md` (§7.2",
              "CONDITIONS_EXCEPTIONS_DESIGN §14.9.29", "the design's §5.5", "(design §5.2; dim", "ADR §4.2",
-             "per `DESIGN.md` §14.4", "DESIGN §3.3 / §14.1", "the interceptor (§9.1-B)"))),
+             "per `DESIGN.md` §14.4", "DESIGN §3.3 / §14.1", "the interceptor (§9.1-B)",
+             # review round 2 R1-1: the SSOT is DESIGN.md, and an XML-doc <c> may wrap the document's name
+             "[canonical: SSOT §14.1]", "(see SSOT §5.1/§14.6)", "<c>PHASE-13-c5-perform-format3-DESIGN.md</c> §9.2",
+             "the P11 doc §3.2 places", "per the scout brief §4.1", "(PLAN-bindtime-gating-migration §4.1 task", "Written as design §8.1–§8.7 of"))),
         ("other_edition names the edition", other_edition("COBOL-85 ") == 1985 and other_edition("ISO 1989:2002 ") == 2002),
     ]
     for name, ok in cases:

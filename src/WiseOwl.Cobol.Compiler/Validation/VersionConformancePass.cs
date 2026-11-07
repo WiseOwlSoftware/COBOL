@@ -2054,7 +2054,7 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
-        // ── Exec Step E: the folded binder-inline gates (plan §2023:4.1 task #13) ────────────────────────────────
+        // ── Exec Step E: the folded binder-inline gates (PLAN-bindtime-gating-migration §4.1 task #13) ──────────────────
         // Each was an inline `DialectLevel` gate that moved VERBATIM with its verb at P7 Step 10; folded here so
         // the two-arm pass is the ONE gating funnel and every gate enters the version matrix (its registry row
         // carries the negative witness). Recognition-based (DEVLOG 724): a below-edition construct names its

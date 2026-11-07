@@ -7,8 +7,8 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ THE REPORT SECTION HAS ONE WRITER AND ONE HOME (kb/Work PB2357; docs/rearchitecture/DESIGN-architecture-review.md
-/// §2023:8.3 (1), step 7 of the <c>DataBinder</c> extract).
+/// ⛔ THE REPORT SECTION HAS ONE WRITER AND ONE HOME (kb/Work PB2357;
+/// docs/rearchitecture/DESIGN-architecture-review.md §8.3 (1), step 7 of the <c>DataBinder</c> extract).
 /// <para><c>ReportSectionBinder</c> binds and resolves the REPORT SECTION and is the only writer of <c>ReportScope</c>,
 /// the facts every later phase reads (the reports a unit declares and inherits, their depths, the sum counters, the
 /// refused PRESENT WHEN conditions). The C# types hold the read side (<c>ReportScope</c>'s mutators are

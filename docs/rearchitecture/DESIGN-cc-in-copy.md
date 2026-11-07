@@ -47,7 +47,7 @@ expansion into ONE pass with **shared directive state**, so:
 This is the spec model (Step 1 flatten ⊕ Step 2 CC, processed in encounter order over the expanded group)
 realized lazily so false-path COPYs are never incorporated.
 
-### §2023:3.1 Shared state (`CcState`)
+### §3.1 Shared state (`CcState`)
 
 Extracted from the current `ConditionalCompilationProcessor.Process` locals into a per-run object threaded
 through recursion: the `defines` map (DEFINE/OFF/OVERRIDE), the `>>IF`/`>>EVALUATE` frame `stack`, the
@@ -55,7 +55,7 @@ through recursion: the `defines` map (DEFINE/OFF/OVERRIDE), the `>>IF`/`>>EVALUA
 `CcState` per compilation group; recursion into a copybook shares it (so a copybook DEFINE is visible to
 following main-source directives — spec Step-2 encounter order).
 
-### §2023:3.2 COPY expansion reuse
+### §3.2 COPY expansion reuse
 
 The copybook mechanics stay in `CopyProcessor` (find/read, `NormalizeCopybook` fixed→free, COPY REPLACING via
 `ApplyReplacements`, the circular/`MaxCopyDepth` guards). The merged driver calls a NEW `CopyProcessor` method
@@ -134,7 +134,7 @@ noncharacter U+FDD0) + its text; the scanner skips only the carrier, so the line
 COBOL-85 rule) while no comment a programmer writes can be mistaken for one. The lexer later reads the carrier as the
 hidden `DEBUG_LINE` marker and `DebuggingLineRewriter` keeps or hides the line's tokens (kb/Work PB1705).
 
-### §2023:3.3 The `leave*` flags + the collection stages
+### §3.3 The `leave*` flags + the collection stages
 
 The driver keeps the exact `leave*` behavior: an emitting-branch `>>TURN`/`>>PROPAGATE`/`>>REF-MOD-ZERO-LENGTH`/
 `>>FLAG-02`/`>>FLAG-14`/`>>COBOL-WORDS` survives to its downstream stage; an omitted-branch one drops; the FLAG
@@ -142,7 +142,7 @@ options b/c update the shared `FlagScanState`. REPLACE (Step 3) runs after the w
 (`CopyProcessor.ApplyReplaceStatements` over the merged text); the five collection stages + COBOL-WORDS run
 unchanged on the final text.
 
-### §2023:3.4 Copybook reference format (§2023:7.3.24.3 GR3 / GR5 — kb/Work PB1067)
+### §3.4 Copybook reference format (§2023:7.3.24.3 GR3 / GR5 — kb/Work PB1067)
 
 `NormalizeCopybookMapped` runs library text through the ONE §2023:6.5 walker the main source uses
 (`ReferenceFormatProcessor.NormalizeToFreeFormMapped`), starting in the format in effect for the COPY statement (GR3).
@@ -154,7 +154,7 @@ text detected free hands nothing on and the library text is detected on its own 
 copybook's own `>>SOURCE FORMAT` segments are resolved within it and the COPY's text was converted on its own, so
 GR5's revert holds by construction.
 
-### §2023:3.5 The origin map (kb/Work PB82 — landed 2026-08-18; columns kb/Work PB1801 / PB1688)
+### §3.5 The origin map (kb/Work PB82 — landed 2026-08-18; columns kb/Work PB1801 / PB1688)
 
 Every stage of the chain that CHANGES the line count or the columns is MAPPED, with no exception (the `--nist`
 placeholder substitution, `NistPreprocessor.Process`, was the last one, kb/Work PB2986): it takes and returns a

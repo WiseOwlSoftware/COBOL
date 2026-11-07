@@ -9,7 +9,7 @@ public enum ExtensionSupport
 {
     /// <summary>ACCEPTED at every edition: the construct compiles and runs, and the §2023:4.2.10 warning mechanism
     /// (<c>--flag-extensions</c>, COBOL2894) names each use. This is a CLAIMED extension — the one
-    /// <c>docs/CONFORMANCE.md</c> §2023:3.2 must identify.</summary>
+    /// <c>docs/CONFORMANCE.md</c> §3.2 must identify.</summary>
     Accepted,
 
     /// <summary>RECOGNIZED and REFUSED by name: the words are reserved (§2023:4.2.10 permits added reserved words, and
@@ -25,7 +25,7 @@ public enum ExtensionSupport
 /// implementation that has extensions, and this record is the one place all three are answered:
 /// <list type="bullet">
 /// <item>"Documentation associated with an implementation shall identify nonstandard extensions for which support is
-/// claimed and shall specify any reserved words added for nonstandard extensions" — <c>docs/CONFORMANCE.md</c> §2023:3.2 is
+/// claimed and shall specify any reserved words added for nonstandard extensions" — <c>docs/CONFORMANCE.md</c> §3.2 is
 /// rendered by hand from these rows and held equal to them by <c>NonstandardExtensionRegisterDriftTests</c>, and
 /// <see cref="ReservedWords"/> is held equal to <c>cobol-words.json</c>'s <c>extensionReserved</c>;</item>
 /// <item>"An implementation shall provide a warning mechanism that optionally may be invoked by the user at compile
@@ -90,7 +90,7 @@ public static class NonstandardExtensionRegister
         id, display, ExtensionSupport.Accepted, MainframeAndMicroFocusAndGnu, standard, Distinguishable: true,
         Spellings: [$"COMP-{n}", $"COMPUTATIONAL-{n}"], ReservedWords: [$"COMP-{n}", $"COMPUTATIONAL-{n}"]);
 
-    /// <summary>Every row, in the order <c>docs/CONFORMANCE.md</c> §2023:3.2 lists them.</summary>
+    /// <summary>Every row, in the order <c>docs/CONFORMANCE.md</c> §3.2 lists them.</summary>
     public static readonly IReadOnlyList<NonstandardExtension> Entries =
     [
         Usage(ExtensionIds.UsageComp1, "USAGE COMP-1 / COMPUTATIONAL-1 (single-precision floating point)",

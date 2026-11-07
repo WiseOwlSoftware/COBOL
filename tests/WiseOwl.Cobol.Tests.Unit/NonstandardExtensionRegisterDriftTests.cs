@@ -19,7 +19,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// speak of an extension from drifting apart: the register's ids and their <see cref="ExtensionIds"/> constants; the
 /// reserved-word table (<c>cobol-words.json</c> <c>extensionReserved</c>); the usage funnel, which finds a vendor
 /// spelling BY ROW; the grammar's <c>usageKeyword</c> alternatives; the binder sites, which name a row by its id; and
-/// <c>docs/CONFORMANCE.md</c> §2023:3.2. A new extension is a row, and every one of these fails until it is complete.
+/// <c>docs/CONFORMANCE.md</c> §3.2. A new extension is a row, and every one of these fails until it is complete.
 /// </summary>
 [Trait("Sweep", "tree")]
 public sealed class NonstandardExtensionRegisterDriftTests
@@ -150,7 +150,7 @@ public sealed class NonstandardExtensionRegisterDriftTests
     }
 
     /// <summary>§2023:4.2.10: "Documentation associated with an implementation shall identify nonstandard extensions for
-    /// which support is claimed" — <c>docs/CONFORMANCE.md</c> §2023:3.2 has one table row per register row, first column
+    /// which support is claimed" — <c>docs/CONFORMANCE.md</c> §3.2 has one table row per register row, first column
     /// the row's id in backticks, and no other.</summary>
     [Fact]
     public void TheDocumentation_ListsExactlyTheRegisterRows()

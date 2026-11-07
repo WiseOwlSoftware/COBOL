@@ -1153,7 +1153,7 @@ internal sealed class BinderDriver
             // GR10 a) / b): the in-group definition SPECIFIED PREVIOUSLY — else the in-group program PROTOTYPE
             // definition (kb/Work PB894) — supplies the details; c) the external repository entry that publishes the
             // externalized name (RepositoryResolver.ResolveProgram, the one search over both providers). None is REPO-1
-            // (SR14), at the specifier, and registers no prototype: a CALL through it is COBOL1760 (§2023:8.2 step 4).
+            // (SR14), at the specifier, and registers no prototype: a CALL through it is COBOL1760 (DESIGN-external-repository §8.2 step 4).
             using var _ = data.Edition.At(spec.At);
             if (repository.ResolveProgram(spec.ExternalizedName, position) is { } details)
                 map[name] = new ProgramPrototype(name, spec.ExternalizedName, details);
@@ -1245,7 +1245,7 @@ internal sealed class BinderDriver
             using var _ = data.Edition.At(specifier.At);
             if (repository.ResolveFunction(name, specifier.ExternalizedName, position) is not { } resolved)
             {
-                // None of SR10's three alternatives, nor §2023:8.4.6.7's word, holds: REPO-1 at the specifier (§2023:8.3), and the
+                // None of SR10's three alternatives, nor §2023:8.4.6.7's word, holds: REPO-1 at the specifier (DESIGN-external-repository §8.3), and the
                 // name is no function of the element.
                 own.Remove(name);
                 repository.ReportUnanswered(specifier, function: true, name, specifier.ExternalizedName, data.Edition);

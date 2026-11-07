@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Binding.Model;
 // no binder type, so they live in compiler.model, below both the binder (ProcedureBindState) and code generation
 // (EmitContext.Options), each of which keeps its own instance.
 
-/// <summary>A SCOPED OVERRIDE (§2023:8.3 (1)): the values pushed over a root by the scopes now open. <see cref="Push"/>
+/// <summary>A SCOPED OVERRIDE (DESIGN-architecture-review §8.3 (1)): the values pushed over a root by the scopes now open. <see cref="Push"/>
 /// returns the scope whose disposal restores the value the push replaced, so an override can only end where it began.
 /// The root is not held here: it is the unit's own value (its OPTIONS slice, written by its producer), which the reader
 /// passes to <see cref="Over"/>, so the override is a value with no reference to the state it overrides.</summary>
@@ -41,7 +41,7 @@ public sealed class Scoped<T>
     }
 }
 
-/// <summary>A SCOPE CURSOR (§2023:8.3 (1)): a position in the walk that a scope enters and its exit restores.
+/// <summary>A SCOPE CURSOR (DESIGN-architecture-review §8.3 (1)): a position in the walk that a scope enters and its exit restores.
 /// <see cref="Enter"/> returns the scope whose disposal puts back the value the entry replaced; <see cref="Advance"/>
 /// moves the cursor inside the scope now open (an operand-evaluation count growing as the statement drains its steps),
 /// and that scope's exit discards the move with the rest of the scope.</summary>
@@ -70,7 +70,7 @@ public sealed class Cursor<T>(T initial)
     }
 }
 
-/// <summary>An ORDERED DRAIN QUEUE (§2023:8.3 (1)): entries in registration order, taken by the binder that marked the queue
+/// <summary>An ORDERED DRAIN QUEUE (DESIGN-architecture-review §8.3 (1)): entries in registration order, taken by the binder that marked the queue
 /// before they were registered. <see cref="Mark"/> is the position the next entry takes; <see cref="DrainFrom"/> returns and
 /// removes every entry after a mark, in registration order. The queue admits no other removal: an entry leaves only with
 /// the suffix of the mark it was registered after. An entry may be placed at an earlier position of the queue

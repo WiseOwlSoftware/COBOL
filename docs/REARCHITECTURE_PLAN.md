@@ -3025,7 +3025,7 @@ phase boundary.
 > ambiguity needing a forward-detect) and NEVER a binder-embedded `Check`. **P14**'s matrix-closure gates reference
 > the `VersionConformancePass`, not `EditionValidator`. Each affected phase's scope note points back to the design doc.
 
-## §2023:4.1 — Execution resequencing (2026-07-11, owner-directed: TOOLING-FIRST foundation)
+## §4.1 — Execution resequencing (2026-07-11, owner-directed: TOOLING-FIRST foundation)
 
 **Owner directive (2026-07-11, `[[project_leverage_antlr_roslyn_tooling]]`; evaluation
 `docs/rearchitecture/EVAL-antlr-leverage-and-traversal.md`):** the §4 order is dependency-correct but **buries the two

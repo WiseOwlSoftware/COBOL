@@ -551,7 +551,7 @@ public static partial class CobolIntrinsics
     /// reference to this function in the run unit") and lives on <see cref="RunUnit.Random"/> — a process-global
     /// static here let a second run unit in one process continue the first's seeded sequence (kb/Work PB307).
     /// The spec form (one current sequence that seeded calls restart and argument-less calls
-    /// continue) is implemented here per the scout brief §2023:4.1; it also satisfies the 0 ≤ r &lt; 1 NIST range checks.</summary>
+    /// continue) is implemented here per the scout brief §4.1; it also satisfies the 0 ≤ r &lt; 1 NIST range checks.</summary>
     public static double Random() => RunUnit.Current.Random.Next();
 
     /// <summary>RANDOM (seed) (§2023:15.75.3 rules 2/3): starts a NEW sequence from the seed and returns its first

@@ -1794,7 +1794,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             // WHEN-COMPILED is the COMPILATION timestamp (§2023:15.99.3 r2) — a constant in the generated source,
             // captured ONCE PER COMPILATION on ProgramEmitter (kb/Work PB120), not per process. (The legacy's
             // runtime-clock placeholder also passes IF142A's plausibility checks; the constant is the
-            // spec-correct form — scout brief §2023:4.4.)
+            // spec-correct form — scout brief §4.4.)
             "WhenCompiled" => EmitText.CsLiteral(ctx.WhenCompiledStamp),
             "MaxString" or "MinString" =>                                      // §2023:15.59/63 all-string form (PCS via CollatePrefix, CA23)
                 RuntimeApi.Intrinsic(sig.RuntimeMethod, CollatePrefix(ic) + StrArgList(ic)),

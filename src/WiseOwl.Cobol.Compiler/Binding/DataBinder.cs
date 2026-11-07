@@ -248,12 +248,13 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         State.Forest.TypeDecls.Values.Concat(Oo.BoundMethods.SelectMany(static m => m.DataScope.TypeDecls.Values));
 
 
-    /// <summary>The unit's data-binding state (<see cref="DataBindState"/>; docs/rearchitecture/DESIGN-architecture-review.md
-    /// §2023:8.3 (1), kb/Work PB2296): its value slices and its four append-only fact sets. Every reader of those facts reads
-    /// through it.</summary>
+    /// <summary>The unit's data-binding state (<see cref="DataBindState"/>;
+    /// docs/rearchitecture/DESIGN-architecture-review.md §8.3 (1), kb/Work PB2296): its value slices and its four
+    /// append-only fact sets. Every reader of those facts reads through it.</summary>
     public DataBindState State => field ??= new DataBindState(RecordConfigurationNameUse);
 
-    /// <summary>The state procedure binding keeps on this unit's binder (<see cref="ProcedureBindState"/>; §2023:8.3 (1)): the
+    /// <summary>The state procedure binding keeps on this unit's binder (<see cref="ProcedureBindState"/>;
+    /// DESIGN-architecture-review §8.3 (1)): the
     /// scoped OPTIONS override, the two statement-scoped drain queues and the two scope cursors. Never part of
     /// <see cref="State"/>.</summary>
     internal ProcedureBindState Procedure { get; } = new();

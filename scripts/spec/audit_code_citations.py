@@ -387,6 +387,17 @@ def _bares(line: str, universe: set[str], skip: set[str], prev: str):
             yield "BARE", c.locator, f"write §2023:{c.locator}: a citation of the standard carries its edition"
 
 
+#: A Markdown heading that numbers the document's OWN section, written plain (`### 3.1 Shared state`) or with a section
+#: sign (`### §3.1 Shared state`, DESIGN-cc-in-copy's style). An edition-form heading (`### §2023:14.9.27.3 SR2
+#: measured`) is a citation of the standard, not a section of the document (kb/Work PB4887 review round 2 R1-1).
+OWN_HEADING = re.compile(r"^#{1,6}\s+(?:§\s?)?(\d+(?:\.\d+)+)")
+
+
+def own_sections(lines: list[str]) -> set[str]:
+    """The section numbers a Markdown document heads itself: its bare `§N` of one of them is its own section."""
+    return {m.group(1) for line in lines if (m := OWN_HEADING.match(line))}
+
+
 def phantom_scan(universe: set[str] | None):
     """PHANTOM, CITATION and BARE over EVERY file that carries a citation, source and prose alike — they need no
     context, so they have no false-positive problem outside code and there is no reason to leave the design docs
@@ -394,7 +405,6 @@ def phantom_scan(universe: set[str] | None):
     findings: list[tuple[str, str, str, str]] = []
     if universe is None:
         return findings
-    own_heading = re.compile(r"^#{1,6}\s+(\d+(?:\.\d+)+)")
     for path in citation_corpus.all_files():
         rel = path.relative_to(REPO).as_posix()
         try:
@@ -410,7 +420,7 @@ def phantom_scan(universe: set[str] | None):
         if MARKER in "\n".join(lines[:40]):
             continue
         # A design doc numbers its OWN sections and then points at them; those are not citations of anything.
-        mine = {m.group(1) for line in lines if (m := own_heading.match(line))} if path.suffix == ".md" else set()
+        mine = own_sections(lines) if path.suffix == ".md" else set()
         for i, line in enumerate(lines, 1):
             if "§" not in line:
                 continue
@@ -1450,7 +1460,13 @@ def edition_self_test(universe: set[str]) -> bool:
     good = bare == [{"BARE"}, set(), set(), set()]
     print(f"  {'ok  ' if good else 'FAIL'} BARE fires on a bare 2023 citation, silent on a document's section, "
           "another edition's free text and a reported phantom" + ("" if good else f"  (got {bare})"))
-    return ok and good
+    # A document's own headings, plain or with a section sign, are its sections; an edition-form heading is not.
+    own = own_sections(["### 3.1 Shared state", "### §3.2 COPY expansion reuse", "## § 4.1 Execution",
+                        "### §2023:14.9.27.3 SR2 measured"])
+    heads = own == {"3.1", "3.2", "4.1"}
+    print(f"  {'ok  ' if heads else 'FAIL'} own_sections reads plain and §-signed headings, never an edition-form one"
+          + ("" if heads else f"  (got {sorted(own)})"))
+    return ok and good and heads
 
 
 def self_test(subjects, own, universe, ordinals=None, tops=None, direct=None) -> int:

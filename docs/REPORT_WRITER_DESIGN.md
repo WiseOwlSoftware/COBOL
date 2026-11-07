@@ -2,7 +2,7 @@
 
 > **Status: LIVE / authoritative subsystem design** for the WiseOwl COBOL rewrite (COBOL → idiomatic
 > typed-native C# via Roslyn; no byte substrate). This doc CLOSES the SSOT's "designed only to the seam"
-> scope flag for Report Writer (`docs/DESIGN.md` §14 verb table / §2023:15.5): the subsystem is now
+> scope flag for Report Writer (`docs/DESIGN.md` §15.5 and its §14 verb table): the subsystem is now
 > implemented. The locked invariants and cross-cutting consistency live in the SSOT; spec authority is
 > `specs/ISO_COBOL_2023.md` (ISO/IEC 1989:2023) — every behavior below carries its § citation.
 
@@ -872,7 +872,7 @@ group, whichever follows in logical order":
 ## 6. Design authority (this doc + the cited GRs, not the legacy)
 
 The implementation follows THIS doc + the cited GRs rather than a §-by-§ port of the legacy (whose
-report-file content is wrong — §7). The SSOT (§14 verb table, §2023:15.5) records RW's locked scope and its §0.5
+report-file content is wrong — §7). The SSOT (§15.5 and its §14 verb table) records RW's locked scope and its §0.5
 deep-dive table points here.
 
 ## 7. Hazards & oracle holes (validated)
