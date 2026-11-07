@@ -1,4 +1,4 @@
-## PB4889: an unnamed report item may begin with NATIONAL; the report entry's name slot asks the data entry's predicate
+## Entry 3257 — 2026-11-07 09:51 PST — PB4889: an unnamed report item may begin with NATIONAL; the report entry's name slot asks the data entry's predicate
 
 **Mechanism.** `reportGroupEntry` (`levelNumber dataName? reportGroupClause* DOT`) offered its optional name to a
 reservation-gated word (through `dataName`'s `reservedGatedWord`) with no predicate, so `10 NATIONAL COLUMN 1 PIC N(3)
@@ -33,3 +33,4 @@ SR-13.18.60.3-7 were already CONFORMS.
 only for a gated word the edition reserves at an entry's head, as before. Duplication: none added.
 
 **Gate.** `build-local -Priority BelowNormal` at the branch head, the whole Unit, Conformance and Characterization populations; its verdict line is in the wave report (w20261905e-PB4889).
+
