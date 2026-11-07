@@ -230,7 +230,7 @@ def self_test() -> int:
     status_md.write_text("STATUS-AT: x\n", encoding="utf-8", newline="\n")
     os.utime(status_md, (now - 5 * 60, now - 5 * 60))   # the implementer's last act, 5 minutes ago
     since = now - 100 * 60
-    iso =dt.datetime.fromtimestamp
+    iso = dt.datetime.fromtimestamp
     (cdir / landing_measure.FILE).write_text("".join(json.dumps(x) + chr(10) for x in (
         {"pr": 1, "branch": "b1", "enqueued": iso(now - 50 * 60).astimezone().isoformat(),
          "merged": iso(now - 30 * 60).astimezone().isoformat()},
