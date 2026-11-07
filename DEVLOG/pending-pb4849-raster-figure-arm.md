@@ -1,10 +1,10 @@
-## PB4849 (part 1): the 1985 general formats regenerated from the scan and cross-checked against the batch's drawing
+## PB4849: the 1985 general formats regenerated from the scan, their level-2 boxes drawn, and the batch's drawing cross-checked
 
 **What the note asked.** Regenerate every 1985 general format from the measured page, compare it with the batch's
 drawn figure on the four things a format carries (grouping, choice bars, underlines, alignment), send each
-disagreement to a refuter, write the decided figures and run the four figure audits. This landing is the first
-mechanism: the raster arm of the figure pipeline and the cross-check. The refuter run, the box glyph rule, writing
-the figures and the audits' raster arms remain open on PB4849.
+disagreement to a refuter, write the decided figures and run the four figure audits. This landing carries two
+mechanisms: the raster arm of the figure pipeline with the cross-check (wave 20261890), and the level-2 boxes (wave
+20261891, at the end). The refuter run, writing the figures and the audits' raster arms remain open on PB4849.
 
 **Re-probe.** The raster arm `figure_geometry.page_classifier(1985)` handed a PyMuPDF page to
 `figure_raster.measure_page`, which takes a page number, so it could not have run; `figure_extract`, `render_figure`
@@ -36,3 +36,23 @@ The ledger is in the wave's scratch directory; the refuters take the 294 that do
 alternatives, delimiter order, an uphill line, two figures sharing words, the assignment); `figure_reading.py
 --self-test` (13 cases); `sweep_figures.py --self-test` (`drawn_figures`). The twelve calibration crops still measure
 as counted by eye.
+
+**The level-2 boxes (wave 20261891).** The 1985 standard boxes syntax unique to level 2 of a module (PDF page 23).
+The re-probe on this build: `find_boxes` measured them (page 389: `[RECORD]` and the MULTIPLE FILE TAPE line), but
+`render_figure` drew none and the batch's drawing had lost them, so the cross-check could not see a box at all.
+FIGURE-STYLE.md rule 9 now draws a box as a fourth family in DOUBLE lines, its two sides only (`╔ ║ ╚` / `╗ ║ ╝`, and
+`║ … ║` one row tall): a top or bottom rule would need a row that is no printed line, and a box set inside a line has
+none. `figure_raster.classify_page` gives each box as two stems of kind `box`, which `render_figure.build` pairs, seats
+and draws as it does a bracket's, in a column of its own; a box is no group, so it adds and removes no blank row.
+`figure_reading` reads a box from either drawing (these sides, or the batch's full double-line rectangle) and `compare`
+names a fifth thing, `boxes`; `sweep_figures.regenerated` names a measured box the drawing lost because its words
+stayed unread. On the way, `find_boxes` read an underline fused to a descender (page 222) and one side of a drawn
+diagram's frame (page 353) as boxes 1.3 pt tall and 1.4 pt wide and erased their ink; it now requires the rectangle
+its rules enclose to be a box's size, and page 222's stamp-free crop is a calibration case that fails without that.
+The batch drew some boxes as brackets (page 662's `┌DESTINATION TABLE …┐`, dropping a typed `[`): those figures stay
+unpaired for the refuter.
+
+**The run again** (all 976 pages, 501 drawn figures, 104 boxes reaching a figure): 181 agree, 68 disagree (27 of them
+on the boxes alone, the batch having dropped them), 212 unpaired, 40 unlocated; 5 figures name a box lost with its
+words. Tests: `test_render_figure.py` 21/21 (two figures measured from pages 389 and 303, and a box-pairing check),
+`figure_reading.py --self-test` 17/17, `test_figure_raster.py` 52/52 (13 crops).
