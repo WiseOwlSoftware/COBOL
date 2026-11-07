@@ -54,7 +54,8 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         foreach (var clause in ev.evaluateWhenClause())
         {
             var body = host.BindBlocks([clause.statementBlock()]);
-            // Consecutive WHEN phrases share the body: OR their per-phrase matches (§14.9.13 — the 1985 form).
+            // Consecutive WHEN phrases share the body: each keeps its own match, OR-ed at emission so a phrase an earlier one
+            // short-circuited is never evaluated or flagged evaluated (§14.9.13.4 GR4: each WHEN phrase is processed left to right; the 1985 form; USE FOR DEBUGGING rules 5 and 6).
             var phraseMatches = new List<BoundCondition>();
             foreach (var phrase in clause.evaluateWhenPhrase())
             {
@@ -81,8 +82,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
                     BindSurplusObject(objects[i]);
                 phraseMatches.Add(terms.Count == 1 ? terms[0] : new BoundLogical("&&", terms));
             }
-            BoundCondition match = phraseMatches.Count == 1 ? phraseMatches[0] : new BoundLogical("||", phraseMatches);
-            whens.Add(new BoundEvaluateWhen(match, body));
+            whens.Add(new BoundEvaluateWhen(phraseMatches, body));
         }
         // `[ WHEN OTHER imperative-statement-2 ]` — ONE optional phrase, AFTER the `{ … } …` repetition
         // (§14.9.13.2 + §5.2.7), so the grammar now admits it once and only last. The rule used to live in a

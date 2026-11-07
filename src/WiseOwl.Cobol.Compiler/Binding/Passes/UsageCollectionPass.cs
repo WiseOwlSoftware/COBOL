@@ -263,7 +263,7 @@ internal static class UsageCollectionPass
 
         // ── conditions + loop control (the nested STATEMENTS are recursed by StatementChildren) ──
         public bool Visit(BoundIf n) { Cond(n.Condition); return false; }
-        public bool Visit(BoundEvaluate n) { foreach (var w in n.Whens) Cond(w.Match); return false; }
+        public bool Visit(BoundEvaluate n) { foreach (var w in n.Whens) foreach (var m in w.Matches) Cond(m); return false; }
         public bool Visit(BoundInlinePerform n) { Perf(n.Control); return false; }
         public bool Visit(BoundOutOfLinePerform n) { Perf(n.Control); return false; }
         public bool Visit(BoundSearch n)

@@ -27,10 +27,13 @@ internal sealed class EvaluateEmitter(EmitContext ctx, ConditionRenderer cond)
         // A WHEN phrase is evaluated only when every earlier one was false: a debugging section that depends on an operand written in it runs only
         // when the phrase was reached (X3.23-1985 USE FOR DEBUGGING general rules 5 and 6; DebugTriggerPlanner.PlanPhrases).
         var phrases = Debug.TakePhraseFlags();
-        for (int k = 0; k < ev.Whens.Count; k++)
+        int phrase = 0;
+        foreach (var arm in ev.Whens)
         {
-            var arm = ev.Whens[k];
-            string match = phrases.Mark(k, cond.Render(arm.Match));
+            // The arm's phrases are OR-ed in source order, each marked evaluated inside its own condition, so one an earlier phrase
+            // short-circuited stays unmarked (BoundEvaluate.PhraseOperands numbers the phrases across the statement).
+            var terms = arm.Matches.Select(m => phrases.Mark(phrase++, cond.Render(m))).ToList();
+            string match = terms.Count == 1 ? terms[0] : "(" + string.Join(" || ", terms.Select(t => $"({t})")) + ")";
             using (w.Block(first ? $"if ({match})" : $"else if ({match})"))
                 Statements.EmitStatementList(arm.Statements);
             first = false;
