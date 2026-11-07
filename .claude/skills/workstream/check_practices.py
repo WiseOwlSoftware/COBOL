@@ -131,7 +131,7 @@ BRIEFS = {
 # wave's reviewer wording (the BRIEFS pin above), so the two reviewers are bound by one rule. Path (from the repo root) -> patterns.
 CODE_PROMPTS = {
     # PB4888 (I12): the planner's review-FINDINGS finisher is told its targeted tests and its fix gate by groups.FINDINGS_ANSWER
-    'scripts/orchestrator/groups.py': [r'MANDATORY-PRACTICES I12', r'dotnet test --filter', FIX_GATE_ENV],
+    'scripts/orchestrator/groups.py': [r'MANDATORY-PRACTICES I12', r'run the targeted tests', FIX_GATE_ENV],
     'scripts/orchestrator/review_lane.py': [r'YOUR SCRATCH DIRECTORY is \{r\[\'scratch\'\]\} \(MANDATORY-PRACTICES P16',
                                             r'(?s)def review_prompt.*?scratch_line\(r\).*?def finisher_prompt.*?scratch_line\(r\).*?def claude_argv'],
 }
