@@ -22,12 +22,13 @@ pages 297 and 298, and three figures fell to unlocated), and cells that share ru
 
 **Tests.** Two new stamp-free crops, `p0389-prose.png` (4 boxes) and `p0684-prose.png` (3 boxes), were counted by
 eye, and a planted case (8h) draws a two-line polygon. Against the old measurer all three fail (53/57). A second planted
-case (8i) is a ruled table that must not become a box per cell. `test_figure_raster.py` passes 58/58.
+case (8i) is a ruled table that must not become a box per cell. `test_figure_raster.py` passes 58/58;
+`test_render_figure.py` 21/21, `figure_reading.py --self-test` 17/17, `sweep_figures.py --self-test` 1/1 and
+`test_figure_geometry.py` 10/10 are unchanged.
 
 **The cross-check again** (976 pages, 501 drawn figures): the verdicts are unchanged (181 agree, 68 disagree, 212
 unpaired, 40 unlocated). 114 measured boxes now reach a figure instead of 104: the wrapped boxes of the general
-formats on pages 245, 354, 409, 543 (both formats) and 661. Figures that disagree on choice bars fell from 28 to 26. `test_render_figure.py` 21/21, `figure_reading.py --self-test` 17/17,
-`sweep_figures.py --self-test` 1/1 and `test_figure_geometry.py` 10/10 are unchanged.
+formats on pages 245, 354, 409, 543 (both formats) and 661. Figures that disagree on choice bars fell from 28 to 26.
 
 **Rows.** None: PB4898 is landed with `closes_rows: []` (tooling). PB4849 stays open for its pairing, refuter, apply
 and audit steps.
