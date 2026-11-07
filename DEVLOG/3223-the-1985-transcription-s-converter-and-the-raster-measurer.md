@@ -1,4 +1,4 @@
-## The 1985 transcription's converter, and the raster measurer calibrated on twelve real pages
+## Entry 3223 — 2026-11-06 16:58 PST — The 1985 transcription's converter, and the raster measurer calibrated on twelve real pages
 
 Wave 20261886, group A (kb/Work PB4816, PB4848), after the owner lifted the hold on running the tools against the licensed 1985 scan ("yes, go ahead with all the steps").
 No API call was made and nothing was run against the 2002 PDF.
@@ -33,3 +33,4 @@ fitness for monospaced bands only.
 Two defects found in files already read were fixed in place: the planted-only fill test, and a stem's median extent that lost the first 4.7 pt of a leaning bracket.
 Gate: see the report.
 Review R1-1 (blocking): the first assembly kept 14 residues of the per-copy stamp because the 1985 shape table named only two pieces. verify_publishable.FORBIDDEN[1985] now carries the opening and licence-terms pieces, the assembly was redone (16 stamp lines dropped) and a planted case in the verify_publishable self-test pins the three new shapes.
+
