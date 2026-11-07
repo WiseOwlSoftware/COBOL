@@ -106,7 +106,7 @@ _RULE = re.compile(RULE + r"\Z")
 #: read (`§13.16`, `§ 14.9.39.4`), and the annex clauses (`§A.1`, `§E.2`). A caller that embeds a citation in a larger pattern embeds THIS string (its group
 #: `cite` spans the citation) and reads the match with `from_match`.
 PATTERN = (r"(?P<cite>§(?:(?P<edition>\d{4}):(?P<locator>p\.[A-Z]+-\d+|[A-Z0-9]+(?:\.[A-Z0-9]+)*(?![a-z]))?"
-           r"|\s?(?P<bare>(?:\d+|[A-Z])(?:\.\d+)+)(?![a-z])))")
+           r"|\s?(?P<bare>(?:\d+|[A-Z])(?:\.\d+)+)(?![a-z]|\.[A-Z])))")
 _SCAN = re.compile(PATTERN + r"(?: (?P<rule>" + RULE + r"))?")
 #: A WHOLE citation, as `cite.py --check` takes it. While BARE_MEANS_2023 the `§` of a bare clause number is optional,
 #: because every brief and skill has written `cite.py --check 8.4.2.3.4 "…"` (phase 2 deletes this arm too).
@@ -478,7 +478,9 @@ def self_test() -> int:
          [(c.edition, c.locator) for c in found if c.error] == [(5000, ""), (2023, "VI.5")]),
         ("scan reads the bare form as 2023 while BARE_MEANS_2023",
          [(c.edition, c.locator) for c in found if c.bare] == ([(2023, "14.9.24")] if BARE_MEANS_2023 else [])),
-        ("scan stops a glued rule path at the clause", [c.locator for c in scan("§2023:13.18.35.4.5b.3")] == ["13.18.35.4"]),
+        ("scan stops a glued rule path at the clause", [c.locator for c in scan("§2023:13.18.35.4.5b.3")] == ["13.18.35.4"]
+         and [c.locator for c in scan("§13.18.35.4.5b.3", bare=True)] == ["13.18.35.4"]),
+        ("scan reads no clause in a placeholder (§14.9.N)", list(scan("the (§14.9.N) banners", bare=True)) == []),
         ("scan keeps the full stop out of a rule", [c.rule for c in scan("as §2023:14.9.8.4 GR1.")] == ["GR1"]),
         ("clause_pattern does not match a longer clause",
          re.search(clause_pattern("14.9.2"), "§2023:14.9.27") is None
