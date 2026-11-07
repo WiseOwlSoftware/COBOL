@@ -18,6 +18,10 @@ and the acknowledgment's wording, is keyed by edition below, and an edition with
      part of the preface to any such publication". That request is the condition the transcription is published
      under.
 
+  3. **A transcription that keeps its pages agrees with its reconciliation ledger** (`LEDGER`, 1985: kb/Work PB4850):
+     every repair on its page, every claim decided, and each page's prose carrying exactly the level-2 box sides its
+     marked boxes account for (`check_ledger`).
+
 THE WHOLE TRACKED TREE, TOO (owner 2026-11-05: redact the stamp everywhere, history included). The repository is
 public, and a reconciliation agent once quoted the stamp, purchaser's name and order number included, into its ledger.
 `check_tree` therefore reads EVERY tracked file, as the index holds it, for the personally identifying pieces of a stamp:
@@ -37,6 +41,7 @@ complements, not duplicates.
 from __future__ import annotations
 
 import argparse
+import json
 import pathlib
 import re
 import sys
@@ -413,7 +418,6 @@ def main(edition: int = spec_pdf.DEFAULT_EDITION) -> int:
     failures = check_text(text, edition)
     failures.extend(check_corrections(text))
     if edition in LEDGER:
-        import json
         failures.extend(check_ledger(text, json.loads((REPO / LEDGER[edition]).read_text(encoding="utf-8"))))
     failures.extend(check_tree())
 
