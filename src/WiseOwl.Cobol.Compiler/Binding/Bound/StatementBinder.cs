@@ -483,6 +483,12 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         if (Ctx.Enclosing.InBeforeReportingProcedure && _controlStoreReports == controlStoreMark
             && Rw.CheckControlDataStores(core))
             _controlStoreReports++;
+        // X3.23-1985 USE FOR DEBUGGING syntax rule 11 (kb/Work PB4858) — asked HERE, of every statement, because this is the one funnel and
+        // BoundReferences reads the statement's OWN references (a nested statement is asked at its own position).
+        if (!_inDebuggingSection && Ctx.Table.HasDebugRegisters && ReferencesDebugItem(core))
+            data.Edition.Error(DiagnosticCatalog.DebugItemOutsideDebuggingSection,
+                "the statement references the DEBUG-ITEM special register or one of its members outside a debugging section; "
+                + "X3.23-1985 USE FOR DEBUGGING syntax rule 11 restricts references to DEBUG-ITEM to references from within a debugging section");
         bool drewError = data.Edition.ErrorsRecorded != errorMark;
         // ⛔ A STATEMENT AN EXPANSION OWNS (kb/Work PB2937): a site of this statement met a question only an expansion of
         // the parameterized definition being bound as itself can answer (EditionContext.NoteExpansionDeferred). Its own
@@ -555,6 +561,11 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             return new BoundDebugTriggered(bound, fires, Ctx.SourceLine(s)) { At = core.At };
         return bound;
     }
+
+    /// <summary>Whether <paramref name="statement"/> itself references the DEBUG-ITEM register or a member, whole, reference-modified or as a
+    /// subscript or window position (<see cref="BoundReferences"/>: a place or a position that reads the register's item).</summary>
+    private bool ReferencesDebugItem(BoundStatement statement) =>
+        BoundReferences.Of(statement).Places.Any(place => Ctx.Table.IsDebugRegister(place.Item));
 
     /// <summary>Whether the paragraph now binding is in a debugging section (X3.23-1985 USE FOR DEBUGGING general rule 1).</summary>
     private bool _inDebuggingSection;

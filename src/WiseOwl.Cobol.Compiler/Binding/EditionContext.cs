@@ -217,6 +217,12 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
         return any;
     }
 
+    /// <summary>Answer for a refusal whose ONLY cause was reported EARLIER, where the construct it depends on was written (a
+    /// reference to a REPOSITORY word whose specifier was refused, kb/Work PB4822): a second report here would be a cascade
+    /// of the first, but the statement funnel still wants "this statement drew an error" before it accepts a refusal node.
+    /// The compile is already failed by the earlier report, which the caller guarantees was made.</summary>
+    internal void NoteCauseReportedEarlier() => ErrorsRecorded++;
+
     private readonly List<string> _unbuilt = [];
 
     /// <summary>Record that a REFUSAL node was bound — the source is wrong and the site says it reported why.

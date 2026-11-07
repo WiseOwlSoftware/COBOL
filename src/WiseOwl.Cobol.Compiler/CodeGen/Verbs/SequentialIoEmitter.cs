@@ -1103,8 +1103,8 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     /// variable-length group decomposes the contiguous record (§2023:8.5.1.11.2) through its generated
     /// <c>FromContiguousImage</c>; a dynamic-length record takes the record as its new content (§2023:8.5.1.10.4 —
     /// "the new value becomes the content of the item", truncated on the right at its maximum; a NATIONAL one
-    /// decodes the record's byte pairs first, the inverse of its NatBytes image); a pointer-class record has no
-    /// character image, so the record does not reach it and its value is unchanged.</summary>
+    /// decodes the record's byte pairs first, the inverse of its NatBytes image); a pointer or message-tag record decodes the 8-position token the file carried (kb/Work PB4838);
+    /// an object-reference record has no character image, so the record does not reach it and its value is unchanged.</summary>
     private void EmitOutOfLineInto(Place record, string currentRecord, string currentExtents, bool fixedForm = false)
     {
         var w = ctx.Writer;
@@ -1136,8 +1136,15 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             w.Line(PlaceRenderer.Write(record, ReceivingStore.Characters(item, content, "0")));   // the ONE elementary character store (PB871)
             return;
         }
-        // A pointer-class record: no character image (A.1 items 210/216) — nothing of the record lands in it.
-        w.Line($"// '{item.CobolName}' — pointer-class record: no character image, the READ leaves its value unchanged (D-FRA)");
+        // A pointer or message-tag record decodes the 8-position token the file carried (kb/Work PB4838; the exact inverse of
+        // OperandText.RecordAreaImage's elementary slot arm); an object-reference record has no character image, so nothing of
+        // the record lands in it (A.1 items 210/216, D-FRA).
+        if (SlotWindow.CarriesTokenImage(item))
+        {
+            w.Line(PlaceRenderer.Write(record, RuntimeApi.SlotFromImage(item, RuntimeApi.StrStore(currentRecord, $"{item.ByteWidth}"))));
+            return;
+        }
+        w.Line($"// '{item.CobolName}' — object-reference record: no character image, the READ leaves its value unchanged (D-FRA)");
     }
 
     /// <summary>⛔ THE C# CONDITION "the record the READ just landed is made too long by its OCCURS DEPENDING ON item",
@@ -1306,7 +1313,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             // ⛔ THE FIT WIDTH IS THE RECORD'S BYTE EXTENT (kb/Work PB327) — §2023:14.9.30.4 GR14/GR15 measure a
             // record in BYTES, and FromImage distributes a byte image. ByteWidth IS ImageWidth for every leaf
             // kind but NATIONAL, so this is byte-identical for national-free records.
-            w.Line(PlaceRenderer.WriteFullGroupImage(record, RuntimeApi.StrStore(imageExpr, $"{record.Item.ByteWidth}"),
+            w.Line(PlaceRenderer.WriteRecordAreaImage(record, RuntimeApi.StrStore(imageExpr, $"{record.Item.ByteWidth}"),
                 $"record area '{record.Item.CobolName}' read"));
             return;
         }

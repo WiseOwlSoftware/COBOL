@@ -198,13 +198,18 @@ internal static class OperandText
     /// <c>CurrentImage()</c> composer; §2023:13.18.43.4 GR13 c) sizes it), a DYNAMIC-LENGTH record its content at its
     /// current length (§2023:8.5.1.10.4 — a sending operand "is treated as a fixed-length data item whose length is
     /// the dynamic-length elementary item's current length"; the storage arm below already renders exactly that),
-    /// and a POINTER-CLASS record the zero-length image — it has no character image (A.1 items 210/216), so there
-    /// is nothing of it for a file to carry.</para></summary>
+    /// and a POINTER or MESSAGE-TAG record its 8-position TOKEN (kb/Work PB4838; A.1 items 212/216 - the file carries the token and READ decodes it back);
+    /// an object-reference record the zero-length image - it has no character image (A.1 item 210), so there is nothing of it for a file to carry.</para></summary>
     public static string RecordAreaImage(Place record) =>
         IsVarGroupRecord(record)
             ? PlaceRenderer.VarGroupCurrentImage(record, "record-area image of")
-        : record.Item.IsElementary && SlotWindow.CarriedBySlot(record.Item) ? "\"\""
-        : AsStorageImage(record, "record-area image of");
+        // An ELEMENTARY pointer or message-tag record sends its 8-position token, as one inside a group does (kb/Work PB4838);
+        // an object-reference record has no image (and no file section holds one, §2023:13.18.57.3 SR8).
+        : record.Item.IsElementary && SlotWindow.CarriedBySlot(record.Item)
+            ? SlotWindow.CarriesTokenImage(record.Item) ? RuntimeApi.SlotImageOf(record.Item, PlaceRenderer.Read(record)) : "\"\""
+        // A record with a pointer or message-tag leaf sends the leaf's 8-position TOKEN (kb/Work PB4838): the group's AsImage, which
+        // READ / RETURN decode back through FromImage (PlaceRenderer.WriteRecordAreaImage).
+        : AsStorageImage(record, "record-area image of", transfer: !record.ImageCapable && record.RecordImageCapable);
 
     /// <summary>⛔ THE EXTENT TABLE that travels beside <see cref="RecordAreaImage"/> (docs/CONFORMANCE.md §3
     /// determination D-FRA (v); kb/Work PB1053), or null when the record has none to send. A VARIABLE-LENGTH GROUP

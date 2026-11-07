@@ -568,7 +568,7 @@ off-by-one through every later counter check.
   reads up to the PAGE width, so the cut never decides whether the exception is raised (kb/Work PB1934).
 - **Counters** (§2023:8.4.3.15; kb/Work PB1049, PB1456): `ReportWriterBinder.CounterExpr` intercepts LINE-/PAGE-COUNTER in
   `FieldOperand`/`RefExpr` ahead of name resolution (the LINAGE-COUNTER idiom); the OF/IN `cobolWord` is the report-name
-  qualifier. ONE resolution, `CounterReportOf`, answers which report a counter names, for both directions and both
+  qualifier. ONE resolution, `CounterResolver.ReportOf`, answers which report a counter names, for both directions and both
   divisions: a qualifier shall name a report description entry (and a counter of a DIFFERENT report is referenced
   exactly so — §2023:8.4.2.2.3 SR9/SR10's third sentence — in the report section and the procedure division alike); in the
   PROCEDURE division an unqualified counter resolves only against a sole report; in the REPORT SECTION an unqualified

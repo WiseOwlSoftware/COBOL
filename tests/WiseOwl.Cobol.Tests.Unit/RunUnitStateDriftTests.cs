@@ -175,6 +175,9 @@ public sealed class RunUnitStateDriftTests
             "the activation floor of the run unit's THREAD: [ThreadStatic], set once when ActivationStack starts the "
             + "thread from that thread's own stack bounds, and a property of the thread's stack, not of any run unit's "
             + "state (kb/Work PB2659)",
+        ["WiseOwl.Cobol.Runtime.SlotImageTable::s_lastTagSerial"] =
+            "the message-tag id serial (kb/Work PB4838, DOC-A.1-212): counts per PROCESS like the pointer-image bases, so the ids of two run units "
+            + "of one process never coincide and a tag token another run unit wrote does not decode to this run unit's own tag",
         ["WiseOwl.Cobol.Runtime.PointerImage::s_nextBase"] =
             "the pointer-image base allocator (kb/Work PB970 arm 2, DOC-A.1-216): its bases key the process-wide "
             + "area and name tables beside it, so it must count per PROCESS — a per-run-unit restart would hand a "
@@ -255,6 +258,8 @@ public sealed class RunUnitStateDriftTests
             "memo of the one-run atom array of each width, keyed by the width: derived data, the array is immutable (kb/Work PB2690)",
         ["WiseOwl.Cobol.Runtime.PointerImage::s_areaBases"] =
             "see PointerImage::s_nextBase in " + nameof(ProcessLifetimeStatics) + ": pointer-image bases count per PROCESS",
+        ["WiseOwl.Cobol.Runtime.PointerImage::s_cellBases"] =
+            "see PointerImage::s_nextBase in " + nameof(ProcessLifetimeStatics) + ": pointer-image bases count per PROCESS (one per cell life, kb/Work PB4838); what a token decodes to is the run unit's own SlotImageTable",
         ["WiseOwl.Cobol.Runtime.PointerImage::s_nameBases"] =
             "see PointerImage::s_nextBase in " + nameof(ProcessLifetimeStatics) + ": pointer-image bases count per PROCESS",
         ["WiseOwl.Cobol.Runtime.Repository.RepositoryLocator::Cache"] =
