@@ -1264,6 +1264,7 @@ class Gate:
         except ValueError as e:  # the shared gate settings turned malformed while this gate queued: stop, with the reason
             return self._finish(out, run, NOT_RUN_CAUSES["settings"].verdict, str(e), 2)
         out.timings["slot_wait_s"] = round(time.monotonic() - t, 1)
+        out.timings["slot_taken_s"] = round(time.monotonic() - started, 1)  # WHEN the slot was taken, from the gate's start (PB4888)
         out.slot = slot.describe()  # acquire() has printed `gate-slot: took slot k of N …`; the verdict line names it
         try:
             return self._tested(out, run, slot, started)

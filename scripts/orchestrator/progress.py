@@ -17,8 +17,14 @@ THE LINE, read from the coordination directory only (no git, no GitHub: it runs 
                 merged may be a closed pull request, so the line does not guess)
   oldest        the item that has waited longest, and on what
 STALLS: a group RUNNING longer than `RUNNING_STALL_MIN` (the owner's unit hand-off, 60 minutes), and a DONE report not
-reviewed `REVIEW_STALL_MIN` after it was written (half the owner's 30-minute dispatch-to-queue bar). Each is named with
-its slug, its notes and its minutes.
+reviewed `REVIEW_STALL_MIN` after its implementer's last act (half the owner's 30-minute dispatch-to-queue bar). Each is
+named with its slug, its notes and its minutes.
+A DONE REPORT IS NOT YET A RETURN (kb/Work PB4918). The rolling wave starts a branch's review only when its implementer
+RETURNS, and an implementer writes its report, then gates the tip it reports and fills the gate line in at the verdict, so
+the report's mtime can be a whole gate (25 to 60 minutes) before the return. `implementer_activity` reads the report's own
+worktree: a gate holding its lock there means the implementer is still working (the group counts as running, under
+`RUNNING_STALL_MIN`, from its dispatch), and otherwise the review clock starts at the newest of the report's mtime and the
+worktree's last act (its HEAD log, its STATUS.md), never at the report alone.
 
 Usage:
     python scripts/orchestrator/progress.py [--coord <dir>] [--since ISO] [--json]
@@ -53,6 +59,27 @@ def stall_lane(g: dict) -> str:
     return g.get("lane") or "operator"
 
 
+def implementer_activity(worktree: str | None) -> tuple[bool, float]:
+    """(a gate holds the lock of the report's worktree, the mtime of the worktree's last act): what says a DONE report's
+    implementer has NOT returned yet (kb/Work PB4918). The lock is the gate's own (`gate.live_gate`, the one reader of "a
+    gate is running here"; the worktree's git directory is read with no git process, as the branch survey does); the last
+    act is the newest of its HEAD log and its STATUS.md (the two files an implementer's checkpoint rewrites, as
+    `prune_worktrees.survey` reads them). A report naming no worktree, or one that is gone, says (False, 0.0): the clock then
+    runs from the report alone."""
+    if not worktree or not pathlib.Path(worktree).is_dir():
+        return False, 0.0
+    import gate  # noqa: PLC0415  (scripts/, on the path through coord; heavy, so only for a DONE report awaiting review)
+    import prune_worktrees  # noqa: PLC0415
+    gdir = prune_worktrees.worktree_git_dir(worktree)
+    stamps = []
+    for p in (gdir / "logs" / "HEAD", pathlib.Path(worktree) / "STATUS.md"):
+        try:
+            stamps.append(p.stat().st_mtime)
+        except OSError:
+            pass
+    return gate.live_gate(gdir / gate.LOCK_NAME) is not None, max(stamps, default=0.0)
+
+
 def progress(cdir: pathlib.Path, since: float, now: float | None = None) -> dict:
     """The progress figures and the stalls, as a dict (render prints the line)."""
     now = time.time() if now is None else now
@@ -76,9 +103,17 @@ def progress(cdir: pathlib.Path, since: float, now: float | None = None) -> dict
         elif r.review:
             groups["findings"] += 1
         else:
+            gating, last_act = implementer_activity(r.worktree)
+            if gating and isinstance(g.get("at"), (int, float)):
+                # its report is written but its implementer is still gating the tip: no review can have started
+                groups["running"] += 1
+                waiting.append({"slug": slug, "notes": notes, "minutes": (now - g["at"]) / 60, "on": "running",
+                                "limit": RUNNING_STALL_MIN, "lane": stall_lane(g)})
+                continue
             groups["unreviewed"] += 1
             try:
-                waiting.append({"slug": slug, "notes": notes, "minutes": (now - r.path.stat().st_mtime) / 60,
+                waiting.append({"slug": slug, "notes": notes,
+                                "minutes": (now - max(r.path.stat().st_mtime, last_act)) / 60,
                                 "on": "its branch review", "limit": REVIEW_STALL_MIN,
                                 "lane": stall_lane(g)})
             except OSError:
@@ -168,11 +203,19 @@ def self_test() -> int:
         {"wave": "7", "letter": "E", "notes": ["PB705"], "files": [], "at": now - 80 * 60},    # SPLIT
         {"wave": "7", "letter": "F", "notes": ["PB706"], "files": [], "at": now - 80 * 60},    # DONE, FINDINGS
         {"wave": "7", "letter": "G", "notes": ["PB707"], "files": [], "at": now - 70 * 60,
-         "lane": "mythos"}]})                                                                  # the Mythos lane's, running 70 min
+         "lane": "mythos"},                                                                    # the Mythos lane's, running 70 min
+        {"wave": "7", "letter": "H", "notes": ["PB708"], "files": [], "at": now - 45 * 60},    # DONE report, its gate still running
+        {"wave": "7", "letter": "I", "notes": ["PB709"], "files": [], "at": now - 80 * 60}]})  # DONE report, worktree active 5 min ago
 
-    def report(name: str, status: str, review: str, age_min: float) -> None:
+    def worktree(name: str) -> pathlib.Path:
+        wt = cdir / "worktrees" / name   # the path shape a report header's worktree is read from (reports.WORKTREE)
+        (wt / ".git" / "logs").mkdir(parents=True)
+        return wt
+
+    def report(name: str, status: str, review: str, age_min: float, wt: pathlib.Path | None = None) -> None:
         p = rd / name
-        p.write_text(f"{status}\n**Status:** {status} · **branch:** `b{name[:3]}` · **HEAD:** `abcdef12`\n{review}",
+        where = f" · **worktree:** `{wt}`" if wt else ""
+        p.write_text(f"{status}\n**Status:** {status} · **branch:** `b{name[:3]}`{where} · **HEAD:** `abcdef12`\n{review}",
                      encoding="utf-8", newline="\n")
         os.utime(p, (now - age_min * 60, now - age_min * 60))
 
@@ -180,17 +223,35 @@ def self_test() -> int:
     report("w7d-PB704-report.md", "DONE", "", 40)
     report("w7e-PB705-report.md", "SPLIT", "", 30)
     report("w7f-PB706-report.md", "DONE", "**Review:** FINDINGS 2 w7f-review-r1 abcdef12 E:/s/review-w7-f.jsonl\n", 30)
+    wt_gating, wt_active = worktree("wt-h"), worktree("wt-i")
+    report("w7h-PB708-report.md", "DONE", "", 40, wt_gating)
+    report("w7i-PB709-report.md", "DONE", "", 40, wt_active)
+    status_md = wt_active / "STATUS.md"
+    status_md.write_text("STATUS-AT: x\n", encoding="utf-8", newline="\n")
+    os.utime(status_md, (now - 5 * 60, now - 5 * 60))   # the implementer's last act, 5 minutes ago
     since = now - 100 * 60
-    iso = dt.datetime.fromtimestamp
+    iso =dt.datetime.fromtimestamp
     (cdir / landing_measure.FILE).write_text("".join(json.dumps(x) + chr(10) for x in (
         {"pr": 1, "branch": "b1", "enqueued": iso(now - 50 * 60).astimezone().isoformat(),
          "merged": iso(now - 30 * 60).astimezone().isoformat()},
         {"pr": 2, "branch": "b2", "enqueued": iso(now - 10 * 60).astimezone().isoformat()},
         {"pr": 3, "branch": "b3", "enqueued": iso(now - 300 * 60).astimezone().isoformat(),
          "merged": iso(now - 200 * 60).astimezone().isoformat()})), encoding="utf-8", newline="\n")
-    p = progress(cdir, since, now)
-    check(p["groups"] == {"running": 3, "clean": 1, "findings": 1, "unreviewed": 1, "other": 1},
+    import gate  # noqa: PLC0415
+    import gate_slot  # noqa: PLC0415
+    held = gate_slot.ExclusiveLock.try_take(wt_gating / ".git" / gate.LOCK_NAME, "gate (self-test)")
+    try:
+        p = progress(cdir, since, now)
+    finally:
+        if held:
+            held.release()
+    check(held is not None, "the self-test took the gate lock of the gating worktree")
+    check(p["groups"] == {"running": 4, "clean": 1, "findings": 1, "unreviewed": 2, "other": 1},
           f"each ledger group by its state: {p['groups']}")
+    check(not any(w["slug"] in ("w7h", "w7i") for w in p["stalls"]),
+          f"a DONE report whose implementer still gates is running, not a review stall (PB4918), and one whose worktree "
+          f"was active 5 minutes ago has waited 5 minutes for review, not 40: {p['stalls']}")
+    check(sorted(round(w["minutes"]) for w in p["stalls"]) == [40, 70, 90], f"the stalls' minutes: {p['stalls']}")
     check(p["landings"] == {"enqueued": 2, "merged": 1},
           f"the landings enqueued and merged since the unit started, never an earlier one: {p['landings']}")
     check(p["oldest"] and p["oldest"]["slug"] == "w7a" and round(p["oldest"]["minutes"]) == 90,
@@ -199,7 +260,7 @@ def self_test() -> int:
                                                                      ("w7d", "its branch review")],
           f"a group past its running limit and a DONE report past its review limit are stalls: {p['stalls']}")
     line = render("wave", p)
-    check(line.startswith("PROGRESS wave at 100 min: groups running 3") and "oldest waiting: w7a (PB701) 90 min" in line,
+    check(line.startswith("PROGRESS wave at 100 min: groups running 4") and "oldest waiting: w7a (PB701) 90 min" in line,
           f"the line: {line}")
     check(stall_lines(p)[0] == "STALL w7a (PB701): 90 min on running, past its 60-minute limit",
           f"a stall line is stable for its item: {stall_lines(p)}")
