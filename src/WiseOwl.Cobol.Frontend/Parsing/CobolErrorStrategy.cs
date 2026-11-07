@@ -2052,7 +2052,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         var atn = recognizer.Atn;
         var token = at.Token;
         bool refusedWord = predictionFailedAt && token.Type == CobolLexer.IDENTIFIER;
-        if (!(refusedWord || IsReservedWord(token) || IsLiteral(token)) || HeaderWords(atn).Contains(token.Type))
+        if (!(refusedWord || IsReservedWord(token) || IsLiteral(token)))
             return null;
         // ⛔ A RESERVED WORD WHERE THE ENTRY'S NAME IS DUE IS THE NAME THE SOURCE WROTE, NOT A CLAUSE IT DOES NOT PRINT
         // (kb/Work PB4604): `01 MOVE PIC X.` writes MOVE where §2023:13.16.3 SR4 puts the entry-name, so the fault is §2023:8.3.2.1
@@ -2077,6 +2077,10 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // A foreign run that BEGINS BEFORE the header's opening word is named above all the same (kb/Work PB4770): the header
         // merely ended it, and PB4301 refuses a run whatever ended it.
         if (at.WritesAHeader) return null;
+        // ⛔ A HEADER'S OPENING WORD IS NO CLAUSE EITHER, BUT IT ENDS A RUN THE SAME WAY (kb/Work PB4845): in `01 W-A PIC X VALEU`
+        // then `LINKAGE SECTION.` the run VALEU is named above whatever ended it; a header word that ends no run is the
+        // generic diagnosis's (HeaderWords).
+        if (HeaderWords(atn).Contains(token.Type)) return null;
         int k = at.Lookahead;
         var probe = walk.Probe();
         // A token that may begin what follows the period is the missing period's, unless it HEADS a longer literal: the
