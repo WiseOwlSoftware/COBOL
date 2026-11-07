@@ -7,8 +7,9 @@ Run: python scripts/spec/test_audit_batch.py   (every gate and CI run it through
 Cases: the map plan's candidates and its write-once plan; a full submit refused before a canary; the canary, with a crash
 between `create` and the state write adopted on the next run; a text-only request; collect before and after the batch ends,
 an answer outside the pass's shape kept in raw/ and retried; the full submit priced by the canary's measured cost and refused
-past --max-usd; an answer never overwritten; the verify plan from the SAME answers, and the dispositions; the drafts plan;
-the claims plan from the 1985 text and its citation check; a stamp in a prompt refused before any batch; the key never
+past --max-usd; an answer never overwritten; the cost so far counting every billed reply (a retried item's refused or
+cut-off first reply too, and each reply once when a collect is repeated); the verify plan from the SAME answers, and the
+dispositions; the drafts plan; the claims plan from the 1985 text and its citation check; a stamp in a prompt refused before any batch; the key never
 printed or stored, and the account recorded.
 """
 import contextlib
@@ -22,6 +23,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import audit_batch as A  # noqa: E402
 import spec_pdf  # noqa: E402
 from fake_batches import Crash, FakeBatches, client, succeeded  # noqa: E402  (THE fake client)
+from message_batches import BatchRun, usd  # noqa: E402
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
@@ -176,6 +178,10 @@ def main() -> int:
         first = json.loads((state / "map" / "answers" / f"{canary_ids[0]}.json").read_text(encoding="utf-8"))
         check("every item is answered and a stored answer is never overwritten",
               "answered 3" in out and first["answer"]["verdict"] == "SAME")
+        st = json.loads((state / "map" / "state.json").read_text(encoding="utf-8"))
+        billed = 4 * usd("claude-opus-5-5", 3000, 800)   # the canary's 2 replies, the full submit's 1, the retry's 1
+        check("the cost so far counts every billed reply, the retried item's refused first reply too",
+              len(st["usage"]) == 4 and abs(A.Pass(state, "map").batches.cost_so_far(st) - billed) < 1e-9)
         check("the key is never printed or stored, the account recorded as the one unlabeled key",
               KEY not in out and KEY not in (state / "map" / "state.json").read_text(encoding="utf-8")
               and "(one unlabeled key)" in out)
@@ -233,6 +239,25 @@ def main() -> int:
         except SystemExit as e:
             refused = "VI.9.9" in str(e)
         check("a claim naming a locator the 1985 text lacks is refused", refused)
+
+        print("the spend of a retried reply that was cut off")
+        run_ = BatchRun(root / "cut" / "state.json", "items", str, str, "test")
+        cst, fake3 = run_.load(), FakeBatches()
+        req = {"custom_id": "map-a", "params": {}}
+        run_.submit(cst, client(fake3), [req])
+        fake3.ended.add("msgbatch_1")
+        fake3.results_by_id["msgbatch_1"] = [succeeded("map-a", "x", stop="max_tokens", input_tokens=3000, output_tokens=8000)]
+        run_.collect(cst, client(fake3), lambda m, msg, b: None)
+        run_.submit(cst, client(fake3), [req])
+        fake3.ended.add("msgbatch_2")
+        fake3.results_by_id["msgbatch_2"] = [succeeded("map-a", "{}", input_tokens=3000, output_tokens=800)]
+        run_.collect(cst, client(fake3), lambda m, msg, b: None)
+        both = usd("claude-opus-5-5", 3000, 8000) + usd("claude-opus-5-5", 3000, 800)
+        check("a cut-off reply and its retry are both in the cost so far",
+              abs(run_.cost_so_far(cst) - both) < 1e-9 and sorted(cst["usage"]) == ["msgbatch_1/map-a", "msgbatch_2/map-a"])
+        cst["batches"][1]["collected"] = False   # a crash after the usage, before the batch was marked collected
+        run_.collect(cst, client(fake3), lambda m, msg, b: None)
+        check("a collect repeated after a crash records each reply once", abs(run_.cost_so_far(cst) - both) < 1e-9)
 
         print("public text only")
         dirty = root / "dirty.json"

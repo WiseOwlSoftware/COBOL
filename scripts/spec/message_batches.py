@@ -11,7 +11,9 @@ a run restartable with minimal loss, so neither carries a copy:
   - `collect` takes each batch once it has ENDED and hands every succeeded reply that stopped at `end_turn` to the
     caller's `take`; a reply that errored, expired or was cut off, and one `take` refuses, is recorded as bad, and a
     member no answer covers and no uncollected batch holds is the caller's to retry;
-  - the usage of EVERY succeeded reply is recorded (a cut-off reply is billed too), so `cost_so_far` is what was spent;
+  - the usage of EVERY succeeded reply is recorded (a cut-off reply is billed too), keyed by its batch AND its custom id
+    (`usage_key`): a retried member's earlier billed reply keeps its own entry beside the retry's, and a collect repeated
+    after a crash rewrites the same entries, so `cost_so_far` is what was spent;
   - the API key goes to the SDK client only (`load_key`): `state.json` records the NAME of the account the run bills
     (api_key.read_run_key keeps a later command to it), never a key.
 
@@ -70,8 +72,8 @@ def reply_text(message: Any) -> str:
 
 class BatchRun(Generic[M]):
     """One run's `state.json`: `model`, `batches` (each `{id, <members key>: [...], collected?, bad?}` plus the caller's
-    fields), `pending` (the intent of a create not yet recorded), `usage` (custom id -> [input, output] tokens) and
-    `api_account`."""
+    fields), `pending` (the intent of a create not yet recorded), `usage` (`usage_key` -> [input, output] tokens, one
+    entry per billed reply) and `api_account`."""
 
     def __init__(self, state_file: pathlib.Path, members: str, member_of: Callable[[str], M],
                  custom_id: Callable[[M], str], tool: str):
@@ -106,7 +108,14 @@ class BatchRun(Generic[M]):
         """The members of every batch not yet collected."""
         return [m for b in st["batches"] if not b.get("collected") for m in b[self.members]]
 
+    @staticmethod
+    def usage_key(batch_id: str, custom_id: str) -> str:
+        """One billed reply. A member retried in a later batch is billed again, so its custom id alone would overwrite the
+        earlier reply's usage and drop it from `cost_so_far`."""
+        return f"{batch_id}/{custom_id}"
+
     def cost_so_far(self, st: dict[str, Any]) -> float:
+        """The batch price of every reply `usage` records: what the run has been billed."""
         return sum(usd(st["model"], i, o) for i, o in st.get("usage", {}).values())
 
     def adopt_pending(self, st: dict[str, Any], client: Any) -> None:
@@ -173,7 +182,8 @@ class BatchRun(Generic[M]):
                     bad.append([res.custom_id, res.result.type])
                     continue
                 m = res.result.message
-                st.setdefault("usage", {})[res.custom_id] = [m.usage.input_tokens, m.usage.output_tokens]
+                st.setdefault("usage", {})[self.usage_key(b["id"], res.custom_id)] = [
+                    m.usage.input_tokens, m.usage.output_tokens]
                 if m.stop_reason != "end_turn":
                     bad.append([res.custom_id, m.stop_reason])
                     continue

@@ -793,7 +793,8 @@ each a DETECTION a fleet agent turns into a verdict, never a verdict itself:
 
 - **Restartable**, on the ONE batch state the transcriber shares (`scripts/spec/message_batches.py`, `BatchRun`): an
   intent written before every create and the batch after, a crash between them adopted from the server's list on the next
-  run, the usage of every reply recorded. A pass's items are planned once (`items.json`, every input its prompts need);
+  run, the usage of every billed reply recorded under its batch and custom id (a retried item's earlier reply stays in the
+  spend `--max-usd` checks). A pass's items are planned once (`items.json`, every input its prompts need);
   each answer is written once and never overwritten; a reply outside the pass's answer shape is kept in `raw/` and its item
   retried.
 - **A canary before each full submit**: `submit --canary N` first, and a full submit is refused until that pass holds a

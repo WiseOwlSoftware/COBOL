@@ -39,4 +39,10 @@ self-test that did not state `newline=`. The re-gate of the tooling at 0e712ea r
 Conformance 22,482/22,482 · Unit 40,428/40,428 · Characterization 37/37 cases ran (skipped 0)` (run
 000002-20261107T210023Z).
 
+**Branch review** (round 1) found that the batch state keyed each reply's usage by its custom id alone. A retried item
+has the same custom id, so the retry's usage overwrote the earlier billed reply, a cut-off one usually the costliest. The
+reviewer's probe showed $0.0140 spent where $0.1000 was billed, so `--max-usd` checked a spend that was too low. Usage is
+now keyed by batch and custom id (`BatchRun.usage_key`). The probe now reads $0.1000, and three new self-test cases cover
+the retried reply, the cut-off reply and a repeated collect.
+
 PB4886 stays open: the audit itself, and the edition parameter of `build_inventory.py` and the ledger, wait for PB4850.
