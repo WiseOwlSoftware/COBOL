@@ -1,4 +1,4 @@
-## Messaging slice S2b: the socket transport, the peer, and run-unit start and end (PB4742)
+## Entry 3230 — 2026-11-06 18:46 PST — Messaging slice S2b: the socket transport, the peer, and run-unit start and end (PB4742)
 
 DESIGN-message-control.md section 9 slice S2b puts the 2023 messaging protocol (S2a, which ran only over `InMemoryTransport`) on real AF_UNIX
 sockets and joins it to the run unit. Nothing in the compiler or the emitted code reaches it yet (S3 and S4 do), so every existing program is
@@ -42,3 +42,4 @@ program's hot path; a run unit that never messages pays one object and one deleg
 because it scripts what the production one runs.
 
 **Review round 1.** R1-1: `RunUnit.StartAfter` takes `serve`; the ambient replacement `EndForHost` creates serves nothing (as the first lazy ambient run unit), so a served name is not republished with no program behind it (`TheAmbientReplacementOfAHostEndedRunUnitPublishesNothing`). R1-2: `PeerLink.PumpAsync` posts its one `LinkLost` for every fault, including the OutOfMemoryException of a legal-but-unallocatable length (`ALinkWhoseAnnouncedLengthCannotBeAllocatedIsLostNotLeftWaiting`). Leads R1-3 to R1-7 are left for the clerk.
+
