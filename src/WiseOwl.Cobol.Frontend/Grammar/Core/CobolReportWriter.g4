@@ -129,8 +129,18 @@ reportPageSubclause
 // hand-written name rule of its own (kb/Work PB1226/PB1287): two arms with two name lists is the shape in which
 // one of them forgets FILLER, and one entry-name rule makes the next word it admits automatic here too.
 // DataBinder reads the name through CstExtensions.NameOrNull (null for the omitted and the FILLER forms).
+// ⛔ THE ENTRY-NAME SLOT YIELDS TO THE CLAUSE A RESERVED WORD BEGINS, HERE AS IN THE DATA DESCRIPTION ENTRY (kb/Work PB4889,
+// PB845). §2023:13.15.2 prints `[ USAGE IS ] { DISPLAY | NATIONAL }`, so `10 NATIONAL COLUMN 1 PIC N(3) VALUE N"ABC".` is a
+// conforming unnamed USAGE NATIONAL item wherever §2023:8.9 reserves NATIONAL. The name slot admits a reservation-gated word
+// (dataName's reservedGatedWord), so without the predicate ANTLR took the name and the funnel's COBOL0901 refused legal
+// source. entryNameHere asks the grammar whether the entry's clauses read the rest of the entry, which is why the clause
+// list is its own rule (reportGroupBody, the probe's rule, followed by the period alone: ReadingParsesFollowDriftTests).
 reportGroupEntry
-    : levelNumber dataName? reportGroupClause* DOT
+    : levelNumber ({entryNameHere(RULE_reportGroupBody)}? dataName)? reportGroupBody DOT
+    ;
+
+reportGroupBody
+    : reportGroupClause*
     ;
 
 reportGroupClause

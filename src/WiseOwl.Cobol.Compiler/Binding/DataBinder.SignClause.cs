@@ -60,7 +60,7 @@ public sealed partial class DataBinder
         for (int i = 0; i < entries.Length; i++)
         {
             var ge = entries[i];
-            var sign = ge.reportGroupClause().Select(c => c.signClause()).FirstOrDefault(s => s is not null);
+            var sign = ge.reportGroupBody().reportGroupClause().Select(c => c.signClause()).FirstOrDefault(s => s is not null);
             if (sign is null) continue;
             string where = $"RD '{model.Name}' entry '{ge.dataName().NameOrNull() ?? "FILLER"}'";
             using var _ = Edition.At(ge);

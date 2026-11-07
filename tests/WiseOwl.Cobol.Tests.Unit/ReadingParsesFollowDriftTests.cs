@@ -1,8 +1,10 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 
+using System.Text.RegularExpressions;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Parsing;
+using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Unit;
@@ -25,12 +27,29 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 public sealed class ReadingParsesFollowDriftTests
 {
+    /// <summary>Every rule an <c>entryNameHere</c> predicate in the grammar is asked to read (the data description entry's
+    /// <c>dataDescriptionBody</c>, the report group description entry's <c>reportGroupBody</c>, kb/Work PB4889) is followed
+    /// by the period alone. The rules are read off the grammar files, so the next entry that asks the predicate is held
+    /// here without an edit.</summary>
     [Fact]
-    public void TheDataDescriptionBody_IsFollowedByThePeriodAlone()
+    public void EveryEntryBodyTheNamePredicateReads_IsFollowedByThePeriodAlone()
     {
-        var follow = CobolParserCoreBase.FollowSet(CobolParserCore._ATN, CobolParserCore.RULE_dataDescriptionBody);
-        Assert.Equal([CobolParserCore.DOT], follow.ToList());
+        var bodies = Directory.EnumerateFiles(TestRepo.Src("WiseOwl.Cobol.Frontend", "Grammar"), "*.g4", SearchOption.AllDirectories)
+            .SelectMany(g4 => EntryNamePredicate.Matches(File.ReadAllText(g4)))
+            .Select(m => m.Groups["rule"].Value)
+            .Distinct(StringComparer.Ordinal)
+            .Order(StringComparer.Ordinal)
+            .ToList();
+        Assert.Subset(bodies.ToHashSet(), new HashSet<string> { "dataDescriptionBody", "reportGroupBody" });   // the scan found the predicates
+        Assert.All(bodies, body =>
+        {
+            int rule = Array.IndexOf(CobolParserCore.ruleNames, body);
+            Assert.True(rule >= 0, $"{body} is not a parser rule");
+            Assert.Equal([CobolParserCore.DOT], CobolParserCoreBase.FollowSet(CobolParserCore._ATN, rule).ToList());
+        });
     }
+
+    private static readonly Regex EntryNamePredicate = new(@"entryNameHere\(RULE_(?<rule>\w+)\)", RegexOptions.CultureInvariant);
 
     /// <summary>The fact <c>noHeaderWrittenHere</c> rests on (kb/Work PB4706): no format follows a data-name with SECTION or
     /// DIVISION, so refusing the gated word before either loses no reading. And PROCEDURE is out of the rule: §2023:8.9 reserves it

@@ -149,6 +149,7 @@ sys.path.insert(0, str(REPO / "scripts" / "spec"))
 import config as suite_config  # noqa: E402
 import run as suite_run  # noqa: E402
 from spec_headings import GENERAL_FORMAT_NOUN  # noqa: E402  — THE one spelling of the heading (kb/Work PB284)
+import api_key  # noqa: E402  (THE reader of an API key file and its accounts, kb/Work PB4916)
 import fuzz_claude  # noqa: E402  (the Claude program writer, kb/Work PB4504)
 from fuzz_ollama import (ABORTED, DEGENERATE, DEGENERATE_FORMS, DEGENERATE_LINES, DEGENERATE_REASONS, MODEL_ERRORS,  # noqa: E402
                          NUM_CTX, NUM_PREDICT, OllamaError, PauseGate, lossless, ollama_chat, parse_model_options,
@@ -1051,6 +1052,9 @@ class Settings:
     max_usd: float | None = None
     #: With writer "files": the directory of a collected batch's replies (scripts/fuzz_batch.py, kb/Work PB4506).
     replies: str | None = None
+    #: The account NAME the Claude writer's API key bills (`--api-account`, kb/Work PB4916), which run.json records; None:
+    #: no key file (the CLI's own sign-in pays) or the file's one unlabeled key. Never the key.
+    api_account: str | None = None
 
 
 def prompt_plan(prefixes: tuple[str, ...], seed: int, in_order: bool) -> tuple[list[tuple[str, str, str]], int, dict[str, str]]:
@@ -2364,6 +2368,36 @@ def self_test() -> int:
           "the plan the guard checked (review R2-1)",
           bool(ran) and ran[0].variations == other and ran[0].count == 4 and built == plan_entries(tuple(DEFAULT_CLAUSES), 20261020, False, other, 4),
           [(r.variations, r.count) for r in ran])
+    # kb/Work PB4916: --api-account names which key of a labeled key file bills the Claude writer, and the run records the
+    # account's NAME (Settings.api_account, so run.json), never the key. Planted file, invented labels, a fake run.
+    keys = files_run / "keys.txt"
+    keys.write_text("account1 (planted)\nsk-planted-fuzz-one\n\naccount2 (planted)\nsk-planted-fuzz-two\n", encoding="utf-8", newline="\n")
+    claude_run = ["--writer", "claude", "--model", "sonnet", "--count", "1", "--force-open-notes", "--cobol", sys.executable,
+                  "--out", str(files_run / "claude"), "--api-key-file", str(keys)]
+    account_errors: dict[str, str] = {}
+    ran.clear()
+    globals()["Fuzz"] = Capture
+    try:
+        for case, argv in (("chosen", [*claude_run, "--api-account", "account2"]), ("unnamed", claude_run),
+                           ("no-file", ["--writer", "claude", "--model", "sonnet", "--count", "1", "--api-account", "account2"])):
+            err = io.StringIO()
+            with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(err):
+                try:
+                    main(argv)
+                    code = 0
+                except SystemExit as e:
+                    code = e.code
+            account_errors[case] = f"{code}|{err.getvalue()}"
+        chosen_key = fuzz_claude._api_key
+    finally:
+        globals()["Fuzz"] = saved_fuzz
+        fuzz_claude._api_key = None
+    check("writer: --api-account selects the writer's key from a labeled file and the run records the account's name; a pair "
+          "with no account, and an account with no key file, are refused, and no error carries a key",
+          len(ran) == 1 and ran[0].api_account == "account2" and chosen_key == "sk-planted-fuzz-two"
+          and account_errors["unnamed"].startswith("2|") and "--api-account" in account_errors["unnamed"]
+          and account_errors["no-file"].startswith("2|") and "give the key file" in account_errors["no-file"]
+          and "sk-planted" not in "".join(account_errors.values()), (account_errors, [r.api_account for r in ran]))
     # writer_reply routes to the run's writer and Fuzz.spent_out reads the Claude writer's meter
     probe = Fuzz.__new__(Fuzz)
     probe.model_options = {}
@@ -2429,8 +2463,9 @@ def main(argv: list[str]) -> int:
     ap.add_argument("--replies", help="with --writer files: the batch's replies directory (fuzz_batch.py collect writes it)")
     ap.add_argument("--max-usd", type=float, help="with --writer claude: start no new program, and ask no further correction, once the "
                     "writer has spent this many US dollars (the generations in flight finish: at most --jobs calls past it)")
-    ap.add_argument("--api-key-file", help="with --writer claude: bill the Claude writer to the API key in this file (its first non-empty line), "
-                    "passed only in the CLI's environment")
+    ap.add_argument("--api-key-file", help="with --writer claude: bill the Claude writer to an API key in this file (api_key.py: "
+                    "one labeled key per account), passed only in the CLI's environment")
+    ap.add_argument("--api-account", help="with --api-key-file: " + api_key.ACCOUNT_HELP + "; run.json records it")
     ap.add_argument("--bake-off", help="comma-separated model tags; each writes --count programs, scored by GnuCOBOL acceptance")
     ap.add_argument("--count", type=int, help="programs to write (per model in a bake-off)")
     ap.add_argument("--hours", type=float, help="stop starting new programs after this many hours")
@@ -2466,8 +2501,9 @@ def main(argv: list[str]) -> int:
     if a.writer == "files":
         if not a.replies or not Path(a.replies).is_dir():
             ap.error("--writer files needs --replies, the directory fuzz_batch.py collect wrote")
-        if a.bake_off or a.model_option or a.max_usd is not None or a.api_key_file or a.hours is not None:
-            ap.error("--writer files judges replies already written: no --bake-off, --model-option, --max-usd, --api-key-file or --hours")
+        if a.bake_off or a.model_option or a.max_usd is not None or a.api_key_file or a.api_account or a.hours is not None:
+            ap.error("--writer files judges replies already written: no --bake-off, --model-option, --max-usd, --api-key-file, "
+                     "--api-account or --hours")
         # THE PLAN IS THE BATCH'S (review R1-1, R2-1): reply i is program i only under the plan the batch was submitted with,
         # so a files run takes --count, --clauses, --seed, --in-order and the variations from batch.json (beside the replies),
         # refuses them on its command line (review R2-3: an explicit value would be silently overridden), and refuses to
@@ -2494,9 +2530,12 @@ def main(argv: list[str]) -> int:
         ap.error("--max-usd bounds the Claude writer's spend; the Ollama writer spends nothing")
     if a.api_key_file and a.writer != "claude":
         ap.error("--api-key-file bills the Claude writer; the Ollama writer needs no key")
+    if a.api_account and not a.api_key_file:
+        ap.error("--api-account names which key of --api-key-file bills the writer; give the key file")
+    api_account = None
     if a.api_key_file:
         try:
-            fuzz_claude.use_api_key_file(a.api_key_file)
+            api_account = fuzz_claude.use_api_key_file(a.api_key_file, a.api_account)
         except (OSError, RuntimeError) as e:
             ap.error(str(e))
     models = [m.strip() for m in a.bake_off.split(",") if m.strip()] if a.bake_off else [a.model]
@@ -2515,7 +2554,8 @@ def main(argv: list[str]) -> int:
     s = Settings(model=a.model or "", out=out, jobs=a.jobs, count=a.count, hours=a.hours,
                  prefixes=tuple(p.strip() for p in a.clauses.split(",") if p.strip()), temperature=a.temperature,
                  cobol_exe=str(Path(a.cobol).resolve()), keep=a.keep, repairs=max(0, a.repairs), seed=a.seed, in_order=a.in_order,
-                 model_options=model_options, writer=a.writer, max_usd=a.max_usd, replies=a.replies, variations=variations)
+                 model_options=model_options, writer=a.writer, max_usd=a.max_usd, replies=a.replies, variations=variations,
+                 api_account=api_account)
     if a.bake_off:
         bake_off(models, s)
     else:
