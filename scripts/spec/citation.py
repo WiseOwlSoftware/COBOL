@@ -37,7 +37,15 @@ A BARE `§N` IS NO CITATION (kb/Work PB4887 phase 2: the tree's 94,513 bare cita
 rewritten once into the edition form, and the transition that read the bare form as 2023 is gone). `parse` refuses a
 bare `§13.18.35.4 GR1`, naming the edition it lacks; `scan` does not read one unless asked (`bare=True`), which only
 the BARE refusal does: `audit_code_citations.py` refuses a bare `§N` that `bare_standard` classifies as a citation
-of the 2023 standard, and leaves a document's own section ("plan §0", "DESIGN-x §4.4.3") alone.
+of the 2023 standard, and leaves a document's own section ("plan §0", "DESIGN-x §4.4.3") alone. The audit reads the
+whole repository, the tooling's scripts and their string literals included (kb/Work PB4911).
+
+THE ONE EXEMPTION: THE EXAMPLE MARKER (kb/Work PB4911). A line that shows the refused form ON PURPOSE (this module's
+own examples of a bare `§N`, an audit's planted test data, a malformed `§5000:` a self-test feeds a parser) carries the
+text `citation-audit: example` (`EXAMPLE_MARKER`), written in that line's comment or, inside a docstring, at the line's
+end. The audit reports nothing on a marked line, PHANTOM, CITATION and BARE alike, and reads only that line: the marker
+is visible beside the text it excuses, so it cannot rot the way a hand-kept list of exempt lines would. It is the only
+exemption; a citation of the standard is written in the edition form, and a document's section names its document.
 
     parse(text)           a WHOLE citation ("§2023:14.9.8.4 GR1") -> Citation, or CitationError naming the defect
     scan(text)            every citation in free text, left to right (malformed ones carry their `error`)
@@ -46,6 +54,7 @@ of the 2023 standard, and leaves a document's own section ("plan §0", "DESIGN-x
     regions(edition)      (locator, title, start, end) of every citable region of that edition's transcription
     universe(edition)     the set of locators `validate` accepts, or None for a parsed-only edition
     bare_standard(...)    whether a bare `§N` in context is a citation of the 2023 standard (the BARE refusal's classifier)
+    example(line)         whether `line` carries the example marker (the audit's one exemption)
 
 Run `python scripts/spec/citation.py --self-test` (planted cases for every edition, every locator shape and each
 rejection: no edition, an unknown edition, a phantom clause, a 1985 paragraph outside its section).
@@ -359,14 +368,16 @@ _DOCUMENT_NAME = r"""(?:
     | (?i:\b(?:doc|scout\s+brief)\b)                                          # "P11 doc §3.1", "the scout brief §4.1"
     | \b[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)*_DESIGN\b                               # OO_DESIGN, CONDITIONS_EXCEPTIONS_DESIGN
     | \b(?:ADR|PLAN|PROMPT|README|CLAUDE|DESIGN|DEVLOG|SSOT)\b                # named documents; SSOT is DESIGN.md
+    | \bUnicode(?:\s+Standard)?\b                                            # another standard: "the Unicode Standard §3.11"
     | (?i:\b(?:the|this|that)\s+(?:design|doc|document|deep-dive|ADR)         # prose: "the design's", "this document"
           (?:\s+(?:doc|document|SSOT))?)
     | (?i:\bdesign(?:\s+(?:doc|document|SSOT))?)                              # "design §8", "(design SSOT §9.10)"
 )"""
 #: What may stand between the name and the `§`: the close of an XML-doc `<c>` wrapping the name
-#: (`<c>X-DESIGN.md</c> §9.2`), a line number (`DESIGN-x.md:848`), a possessive, punctuation, the word "section", and
-#: the earlier members of a list or a range (`§8.1–§8.7`) of the document's sections.
-_DOCUMENT_GAP = r"""(?:</c>)?(?::\d+(?:[-–]\d+)?)?(?:'s|’s)?[\s`*"'(\[]*(?:sections?\s+)?(?:§\s?\w[\w.]*\w?[\s,;/–`*)]*(?:and\s+|or\s+)?)*$"""
+#: (`<c>X-DESIGN.md</c> §9.2`) or of the interpolation hole that prints it (`f"{BINDER_DESIGN} §3.6"`), a line number
+#: (`DESIGN-x.md:848`), a possessive, punctuation, the word "section", and the earlier members of a list or a range
+#: (`§8.1–§8.7`) of the document's sections.
+_DOCUMENT_GAP = r"""(?:</c>|\})?(?::\d+(?:[-–]\d+)?)?(?:'s|’s)?[\s`*"'(\[]*(?:sections?\s+)?(?:§\s?\w[\w.]*\w?[\s,;/–`*)]*(?:and\s+|or\s+)?)*$"""
 DOCUMENT_SECTION = re.compile(_DOCUMENT_NAME + _DOCUMENT_GAP, re.VERBOSE)
 #: A free-text citation of ANOTHER edition, just left of a bare `§`: "COBOL-85 §4.3.3", "ISO 1989:2002 §14.8.4".
 OTHER_EDITION = re.compile(
@@ -384,25 +395,40 @@ def other_edition(before: str) -> int | None:
 
 
 def bare_standard(line: str, c: Citation, own_sections: frozenset[str] | set[str] = frozenset(),
-                  known: frozenset[str] | None = None) -> bool:
-    """Whether the bare citation `c` (found in `line`) is a citation of the 2023 standard: its number is a clause of
-    the standard (`known`, the 2023 universe), the file does not head a section of its own with that number, no
-    document name or other edition stands just left of it, and it is not a design doc's own item label (`§9.10.1-C2`)."""
+                  known: frozenset[str] | None = None, prev: str = "") -> bool:
+    """Whether the bare citation `c` (found in `line`, `prev` the line above it) is a citation of the 2023 standard:
+    its number is a clause of the standard (`known`, the 2023 universe), the file does not head a section of its own
+    with that number, no document name or other edition stands just left of it, and it is not a design doc's own item
+    label (`§9.10.1-C2`)."""
     if not c.bare or c.locator in own_sections:
         return False
     if known is not None and c.locator not in known:
         return False
-    return not names_another_text(line, c)
+    return not names_another_text(line, c, prev)
 
 
-def names_another_text(line: str, c: Citation) -> bool:
+#: What may open a line before a `§` that continues the line above: a comment's leader (`#`, `#:`, `//`, `///`, `*>`,
+#: `*`, `--`, `;`, `<!--`) and the gap characters `_DOCUMENT_GAP` allows. A line whose text before the `§` is only
+#: these carries the sentence on from the line above, so the document named at the end of that line owns the number.
+_CONTINUES = re.compile(r"""^[\s#:/*>;!<-]*?[\s`*"'(\[]*$""")
+_LEADER = re.compile(r"^\s*(?:#:?|//+|\*>|\*|--|;+|<!--)?")
+
+
+def names_another_text(line: str, c: Citation, prev: str = "") -> bool:
     """Whether the bare `c` is another text's number by its context (THE ONE SCREEN `bare_standard` and the PHANTOM
     audit share): a document's name stands just left of it, another edition is named just left of it, or it is a
     design doc's own item label (`§9.10.1-C2`, the label glued to the number). A rule range (`§11.9.9.3 SR1-SR6`) is
     not a label, nor is a rule glued with a hyphen (`§13.5.3-SR1`): the check reads the text after the LOCATOR, and
     only when no rule follows it. ("plan §0" is not screened here: 0 is no clause of the standard, and "the plan's
-    §13.18.63.4" in a code comment is the codegen plan citing the standard.)"""
+    §13.18.63.4" in a code comment is the codegen plan citing the standard.)
+
+    ⛔ THE CONTEXT CROSSES A LINE BREAK (kb/Work PB4911). Prose wraps, so a document's name may END the line above
+    (`prev`) while its section number OPENS this one ("... DESIGN-test-build-ci.md" / "# §3.14.1"). When nothing but a
+    comment's leader and gap punctuation stands before `c` on its own line, the screen reads the line above, its own
+    leader removed, as the text just left of it."""
     before = line[:c.start]
+    if prev and _CONTINUES.match(before):
+        before = _LEADER.sub("", prev).rstrip() + " " + _LEADER.sub("", before).lstrip()
     if DOCUMENT_SECTION.search(before) or other_edition(before) is not None:
         return True
     if c.rule:
@@ -413,6 +439,14 @@ def names_another_text(line: str, c: Citation) -> bool:
 
 #: A design doc's own item label glued to a number (`§9.10.1-C2`, `§9.1-B`), never a rule (`§13.5.3-SR1`).
 ITEM_LABEL = re.compile(r"-(?![GS]R\d)[A-Z]")
+
+#: THE EXAMPLE MARKER (see the module docstring): a line carrying it shows the refused form on purpose.
+EXAMPLE_MARKER = "citation-audit: example"
+
+
+def example(line: str) -> bool:
+    """Whether `line` carries the example marker: the citations audit reports nothing on it."""
+    return EXAMPLE_MARKER in line
 
 
 # ── SELF-TEST ────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -550,7 +584,17 @@ def self_test() -> int:
              "per `DESIGN.md` §14.4", "DESIGN §3.3 / §14.1", "the interceptor (§9.1-B)",
              # review round 2 R1-1: the SSOT is DESIGN.md, and an XML-doc <c> may wrap the document's name
              "[canonical: SSOT §14.1]", "(see SSOT §5.1/§14.6)", "<c>PHASE-13-c5-perform-format3-DESIGN.md</c> §9.2",
-             "the P11 doc §3.2 places", "per the scout brief §4.1", "(PLAN-bindtime-gating-migration §4.1 task", "Written as design §8.1–§8.7 of"))),
+             "the P11 doc §3.2 places", "per the scout brief §4.1", "(PLAN-bindtime-gating-migration §4.1 task", "Written as design §8.1–§8.7 of",
+             # kb/Work PB4911: an interpolated document name, and another standard named in prose
+             'f"{BINDER_DESIGN} §3.6 does not name"', "the Unicode Standard (§4.6, \"Numeric Value\")"))),
+        ("bare_standard reads a document's name ending the line above (kb/Work PB4911)",
+         not _bare_in("# §8.3 the gate's slot", prev="# the gate's design, DESIGN-test-build-ci.md")
+         and not _bare_in("    §5.2 duplication", prev="    per DESIGN-architecture-review")
+         and not _bare_in("//   (§4.5, §8.1)", prev="// see `docs/rearchitecture/DESIGN-locale-facility.md`")
+         and _bare_in("the MOVE statement §14.9.25", prev="# see DESIGN-x.md")
+         and _bare_in("# §14.9.25 moves it", prev="# the MOVE statement")),
+        ("the example marker is read on its own line only",
+         example(f"x = '§14.9.24'  # {EXAMPLE_MARKER}") and not example("x = '§14.9.24'")),
         ("other_edition names the edition", other_edition("COBOL-85 ") == 1985 and other_edition("ISO 1989:2002 ") == 2002),
     ]
     for name, ok in cases:
@@ -560,10 +604,11 @@ def self_test() -> int:
     return 1 if failed else 0
 
 
-def _bare_in(line: str) -> bool:
-    """Whether the first bare `§N` of `line` is a citation of the 2023 standard written without its edition."""
-    c = next(scan(line, bare=True))
-    return bare_standard(line, c, known=universe(2023))
+def _bare_in(line: str, prev: str = "") -> bool:
+    """Whether the first bare `§N` of `line` (`prev` the line above) is a citation of the 2023 standard written
+    without its edition."""
+    c = next(c for c in scan(line, bare=True) if c.bare)
+    return bare_standard(line, c, known=universe(2023), prev=prev)
 
 
 def main() -> int:

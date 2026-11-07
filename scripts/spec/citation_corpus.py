@@ -92,6 +92,25 @@ def declaration_files() -> list[pathlib.Path]:
     return [p for p in out if _keep(p)]
 
 
+#: The repository's TOOLING trees, and the text files in them a citation can stand in (kb/Work PB4911).
+TOOLING = ("scripts/", "tools/", ".github/", ".claude/")
+TOOLING_SUFFIXES = frozenset({".py", ".ps1", ".psm1", ".js", ".mjs", ".sh", ".yml", ".yaml", ".md", ".json", ".cs",
+                              ".csproj", ".toml", ".txt"})
+
+
+def tooling(rel: str) -> bool:
+    """Whether the repository path `rel` (posix, relative) is a tooling text file `tooling_files` audits."""
+    return rel.startswith(TOOLING) and pathlib.PurePosixPath(rel).suffix in TOOLING_SUFFIXES
+
+
+def tooling_files() -> list[pathlib.Path]:
+    """The scripts, tools, workflows and skills, their string literals included: a citation a script PRINTS reaches a
+    published page (`gen_ledger.py`'s conformance ledger) or an agent's brief, so the BARE, PHANTOM and CITATION
+    checks read them (kb/Work PB4911: after the one-time rewrite of kb/Work PB4887 left the tooling's literals, about
+    330 bare citations stood there unrefused). The checks that need a comment convention or a quote do not run here."""
+    return sorted(p for p in repository_files() if tooling(p.relative_to(REPO).as_posix()) and _keep(p))
+
+
 def all_files() -> list[pathlib.Path]:
     """Every file that carries a citation — grammars, C#, goldens, design docs, the work register and the vault
     notes. Used by the checks that need no convention at all (does this clause EXIST), which are exactly the

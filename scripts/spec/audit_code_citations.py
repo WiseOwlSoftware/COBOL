@@ -373,8 +373,8 @@ def _phantoms(line: str, universe: set[str], skip: set[str] = frozenset(), prev:
             continue                                     # not ISO-shaped: a doc's own bare §4.2, a two-part bare §13.16
         if c.locator in universe or c.locator in skip:
             continue
-        if citation.names_another_text(line, c):
-            continue                                     # "DESIGN-… §4.4.3", "COBOL-85 §4.3.3", an item label "§9.10.1-C2"
+        if citation.names_another_text(line, c, prev):
+            continue                                    # "DESIGN-… §4.4.3", "COBOL-85 §4.3.3", an item label "§9.10.1-C2"
         if not _reported(line, c, prev):
             yield "PHANTOM", c.locator, "the standard has no clause §" + c.locator
 
@@ -383,7 +383,7 @@ def _bares(line: str, universe: set[str], skip: set[str], prev: str):
     """BARE (kb/Work PB4887 phase 2): a bare `§N` that `citation.bare_standard` classifies as a citation of the 2023
     standard (the set the one-time rewrite of kb/Work PB4887 put in the edition form) must carry its edition."""
     for c in citation.scan(line, bare=True):
-        if c.bare and citation.bare_standard(line, c, skip, universe) and not _reported(line, c, prev):
+        if c.bare and citation.bare_standard(line, c, skip, universe, prev) and not _reported(line, c, prev):
             yield "BARE", c.locator, f"write §2023:{c.locator}: a citation of the standard carries its edition"
 
 
@@ -405,29 +405,41 @@ def phantom_scan(universe: set[str] | None):
     findings: list[tuple[str, str, str, str]] = []
     if universe is None:
         return findings
-    for path in citation_corpus.all_files():
-        rel = path.relative_to(REPO).as_posix()
+    # ⛔ THE TOOLING IS IN THE POPULATION, STRING LITERALS INCLUDED (kb/Work PB4911): the one-time rewrite of kb/Work
+    # PB4887 left the tooling's literals, and `gen_ledger.py` went on publishing clause 4.2.16 after a bare section
+    # sign on the conformance ledger while this audit, which read no script, stayed green. Every line of a tooling
+    # file is read.
+    for path in dict.fromkeys(citation_corpus.all_files() + citation_corpus.tooling_files()):
         try:
             lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
         except OSError:
             continue
-        # ⛔ THE ONE NOTE WHOSE SUBJECT *IS* THE PHANTOM FAMILY HAS TO BE ABLE TO NAME ITS MEMBERS. kb/Work
-        # PB290 is a table of "this clause number does not exist and here is what each site meant"; every row
-        # spells a phantom, on purpose, and no per-line disclaimer survives being tabulated. A file may
-        # therefore declare itself with the marker below, which says "the § spellings in here are QUOTED, not
-        # asserted". It is a whole-file opt-out and it is visible in the file, so it cannot rot silently the
-        # way a checked-in list of exempt SITES would.
-        if MARKER in "\n".join(lines[:40]):
-            continue
-        # A design doc numbers its OWN sections and then points at them; those are not citations of anything.
-        mine = own_sections(lines) if path.suffix == ".md" else set()
-        for i, line in enumerate(lines, 1):
-            if "§" not in line:
-                continue
-            prev = lines[i - 2] if i >= 2 else ""
-            for kind, c, msg in [*_phantoms(line, universe, mine, prev), *_bares(line, universe, mine, prev)]:
-                findings.append((kind, f"{rel}:{i}", c, msg))
+        findings += file_findings(path.relative_to(REPO).as_posix(), lines, universe)
     return findings
+
+
+def file_findings(rel: str, lines: list[str], universe: set[str]) -> list[tuple[str, str, str, str]]:
+    """PHANTOM, CITATION and BARE over ONE file's lines (`rel` its repository path): the one implementation the audit
+    and its self-test share."""
+    # ⛔ THE ONE NOTE WHOSE SUBJECT *IS* THE PHANTOM FAMILY HAS TO BE ABLE TO NAME ITS MEMBERS. kb/Work
+    # PB290 is a table of "this clause number does not exist and here is what each site meant"; every row
+    # spells a phantom, on purpose, and no per-line disclaimer survives being tabulated. A file may
+    # therefore declare itself with the marker below, which says "the § spellings in here are QUOTED, not
+    # asserted". It is a whole-file opt-out and it is visible in the file, so it cannot rot silently the
+    # way a checked-in list of exempt SITES would.
+    if MARKER in "\n".join(lines[:40]):
+        return []
+    # A design doc numbers its OWN sections and then points at them; those are not citations of anything.
+    mine = own_sections(lines) if rel.endswith(".md") else set()
+    out = []
+    for i, line in enumerate(lines, 1):
+        # A line carrying `citation.EXAMPLE_MARKER` shows the refused form on purpose (kb/Work PB4911).
+        if "§" not in line or citation.example(line):
+            continue
+        prev = lines[i - 2] if i >= 2 else ""
+        for kind, c, msg in [*_phantoms(line, universe, mine, prev), *_bares(line, universe, mine, prev)]:
+            out.append((kind, f"{rel}:{i}", c, msg))
+    return out
 
 
 # ── THE ORDINAL FAMILY (kb/Work PB388) ───────────────────────────────────────────────────────────────────
@@ -1466,7 +1478,18 @@ def edition_self_test(universe: set[str]) -> bool:
     heads = own == {"3.1", "3.2", "4.1"}
     print(f"  {'ok  ' if heads else 'FAIL'} own_sections reads plain and §-signed headings, never an edition-form one"
           + ("" if heads else f"  (got {sorted(own)})"))
-    return ok and good and heads
+    # ⛔ THE TOOLING IS AUDITED, ITS STRING LITERALS INCLUDED (kb/Work PB4911): a script that prints a bare citation of
+    # the standard is refused, the example marker is the one exemption, and the population reaches every tooling tree.
+    planted = 'print(f"<h2>the ' + "§" + '4.2.16 documentation posture</h2>")'
+    script = [kind for kind, *_ in file_findings("scripts/spec/planted.py", [planted], universe)]
+    marked = file_findings("scripts/spec/planted.py", [f"{planted}  # {citation.EXAMPLE_MARKER}"], universe)
+    reach = all(citation_corpus.tooling(p) for p in (
+        "scripts/spec/gen_ledger.py", "tools/x/Program.cs", ".github/workflows/ci.yml", ".claude/skills/x/SKILL.md"))
+    tooled = script == ["BARE"] and not marked and reach and not citation_corpus.tooling("scripts/x.png")
+    print(f"  {'ok  ' if tooled else 'FAIL'} BARE fires on a bare 4.2.16 in a script's string literal, silent on its "
+          "marked twin; the population reaches scripts/, tools/, .github/ and .claude/"
+          + ("" if tooled else f"  (got {script}, marked {marked}, reach {reach})"))
+    return ok and good and heads and tooled
 
 
 def self_test(subjects, own, universe, ordinals=None, tops=None, direct=None) -> int:
@@ -1590,7 +1613,7 @@ def main() -> int:
     findings = audit(subjects, own, universe, ordinals, tops, direct)
     gating = [f for f in findings if _gates(f)]
     backlog = [f for f in findings if not _gates(f)]
-    print(f"{len(citation_corpus.all_files())} files scanned for phantoms, {len(citation_corpus.declaration_files())} for construct agreement · {len(own)} constructs keyed to their own clause")
+    print(f"{len(citation_corpus.all_files())} files and {len(citation_corpus.tooling_files())} tooling files scanned for phantoms,{len(citation_corpus.declaration_files())} for construct agreement · {len(own)} constructs keyed to their own clause")
     print(f"⛔ {len(gating)} finding(s)\n")
     for kind, site, cited, msg in gating:
         print(f"  [{kind}] {site}\n      {msg}")
