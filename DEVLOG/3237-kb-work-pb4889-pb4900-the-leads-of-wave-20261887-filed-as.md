@@ -1,4 +1,4 @@
-## kb/Work PB4889-PB4900: the leads of wave 20261887 filed as notes
+## Entry 3237 — 2026-11-06 19:57 PST — kb/Work PB4889-PB4900: the leads of wave 20261887 filed as notes
 
 The clerk filed twelve notes from the wave's reports. PB4889 (an unnamed report item with a gated USAGE word is read as a name,
 legal source refused; rejects_legal_source), PB4890 (a reserved screen-item name draws "expected CONSTANT"; misleads_diagnosis),
@@ -12,3 +12,4 @@ eye), and PB4900 (a gated DONE naming a report file that was never written is dr
 witnesses are a wrong path). Already covered and not filed: PB4816's lead (1), closed by the Mythos lane (PB4816, "Closed
 2026-11-06"); PB4860's R1-3, PB4866's R1-3 and R1-4, and PB4865's R1-2, which their reports say are fixed. PB4867's text was
 corrected for the reviewer's R2-2 lead. PB4901 and PB4902 stay unused.
+
