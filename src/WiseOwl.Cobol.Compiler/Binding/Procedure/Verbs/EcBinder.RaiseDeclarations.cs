@@ -253,6 +253,15 @@ internal sealed partial class EcBinder
         // CONTINUE AFTER (§2023:14.9.9.4 GR1; kb/Work PB138): the raise is CobolTiming's, through
         // BoundContinueAfter.CheckLessThanZero, and 2-argument; the row supplies the ambient pair like SEARCH.
         new(s => s is BoundContinueAfter, ["EC-CONTINUE-LESS-THAN-ZERO"]),
+        // The asynchronous messaging facility (DESIGN-message-control.md §4.5; kb/Work PB4744). PRECISE per format: the message control system names the condition
+        // at run time and AsyncMessaging raises it against the statement's own checking profile (IProfiledStatement), so these rows supply the statement's
+        // ambient context (WITH LOCATION, EXCEPTION-STATUS) and the wrapper that carries the profile. A RECEIVE that waits on seconds can also set the CONTINUE
+        // statement's condition for a negative value (Q5).
+        new(s => s is BoundSendToServer, ["EC-MCS-NO-SERVER", "EC-MCS-MESSAGE-LENGTH", "EC-MCS-IMP"]),
+        new(s => s is BoundSendResponse, ["EC-MCS-NO-REQUESTER", "EC-MCS-INVALID-TAG", "EC-MCS-MESSAGE-LENGTH", "EC-MCS-IMP"]),
+        new(s => s is BoundReceiveMessage, ["EC-MCS-INVALID-TAG", "EC-MCS-REQUESTOR-FAILED", "EC-MCS-MESSAGE-LENGTH", "EC-MCS-NO-REQUESTER",
+            "EC-MCS-NORMAL-TERMINATION", "EC-MCS-ABNORMAL-TERMINATION", "EC-MCS-IMP"]),
+        new(s => s is BoundReceiveMessage { Wait: ReceiveWait.Seconds }, ["EC-CONTINUE-LESS-THAN-ZERO"]),
         // CALL: the EC-PROGRAM family, the EC-EXTERNAL trio (§2023:14.9.4.4 GR3e — the CALL is the EC-EXTERNAL raise point,
         // §2023:14.8.4) and the activation's resources (§2023:14.9.4.4 GR3c / §2023:8.4.3.2.4 GR6c; kb/Work PB2659 — PRECISE: an
         // ACTIVATION raises it, so it is not in ProgramNames, which a CANCEL queries too). EC-FLOW-APPLY-COMMIT likewise

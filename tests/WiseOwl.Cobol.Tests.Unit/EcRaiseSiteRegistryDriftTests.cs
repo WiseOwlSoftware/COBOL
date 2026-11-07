@@ -105,6 +105,12 @@ public sealed class EcRaiseSiteRegistryDriftTests
         return false;
     }
 
+    /// <summary>The public and internal string constants of <see cref="ExceptionCatalog"/> by field name (<c>McsNoServer</c> to <c>"EC-MCS-NO-SERVER"</c>).</summary>
+    private static readonly Lazy<Dictionary<string, string>> CatalogConstants = new(() =>
+        typeof(ExceptionCatalog).GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
+            .Where(f => f is { IsLiteral: true } && f.FieldType == typeof(string))
+            .ToDictionary(f => f.Name, f => (string)f.GetRawConstantValue()!, StringComparer.Ordinal));
+
     /// <summary>The string literals of a source tree that ARE a name or quote one (<c>"EC-X"</c> inside emitted text).</summary>
     private static HashSet<string> NamesQuotedBy(string root, Func<string, bool> skipFile, HashSet<string> universe)
     {
@@ -118,6 +124,15 @@ public sealed class EcRaiseSiteRegistryDriftTests
             var tree = CSharpSyntaxTree.ParseText(File.ReadAllText(file));
             foreach (var token in tree.GetRoot().DescendantTokens())
             {
+                // A REFERENCE TO A CATALOG CONSTANT IS A RAISE SITE TOO (kb/Work PB4744): the message control protocol names the condition it ends a statement with
+                // as ExceptionCatalog.McsNoServer and its kin, so the spelling lives once, in the catalog, and AsyncMessaging sets what the protocol names.
+                if (token.Kind() == SyntaxKind.IdentifierToken && token.Parent is MemberAccessExpressionSyntax { Expression: IdentifierNameSyntax { Identifier.Text: "ExceptionCatalog" } } access
+                    && access.Name.Identifier == token && CatalogConstants.Value.TryGetValue(token.Text, out string? constant)
+                    && universe.Contains(constant) && !IsComparisonOperand(token))
+                {
+                    found.Add(constant);
+                    continue;
+                }
                 if (token.Kind() is not (SyntaxKind.StringLiteralToken or SyntaxKind.InterpolatedStringTextToken
                     or SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.MultiLineRawStringLiteralToken))
                     continue;

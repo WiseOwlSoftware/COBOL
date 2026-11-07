@@ -439,7 +439,7 @@ Each of these fixed names follows `CheckingFlags`' five declarations (a field, t
 
 A forwarded name (Q6) is not fixed: the server chooses it, and the requestor learns it at run time, so no flag and no
 declaration can name it. `BoundReceiveMessage` therefore carries the profile an activating statement carries
-(`IActivatingStatement.ActivatorChecking`, an `EcCheckingProfile` "queryable at run time for a name chosen at run time",
+(`IProfiledStatement.CheckingProfile`, an `EcCheckingProfile` "queryable at run time for a name chosen at run time",
 stamped by `BindStatement`'s one exit); a RECEIVE is no activation, so the slice renames that interface for what it
 carries and changes every implementer. `AsyncMessaging.Receive` takes the profile and asks
 `profile.Enabled(name)` before `ExceptionState.Set(name, fatal)`, the test the activating statement of a GOBACK or EXIT

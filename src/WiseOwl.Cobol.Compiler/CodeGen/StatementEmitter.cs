@@ -41,6 +41,7 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
     private readonly SortEmitter _sort;
     private readonly TransactionEmitter _transactions;
     private readonly CommunicationEmitter _communication;
+    private readonly MessagingEmitter _messaging;
     private readonly ReportWriterEmitter _reportWriter;
     private readonly ControlFlowEmitter _controlFlow;
     private readonly CallEmitter _call;
@@ -72,6 +73,7 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
         _sort = u.Sort;
         _transactions = u.Transactions;
         _communication = u.Communication;
+        _messaging = u.Messaging;
         _reportWriter = u.ReportWriter;
         _controlFlow = u.ControlFlow;
         _call = u.Call;
@@ -213,13 +215,10 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
     // clause is active is the runtime's answer, because a clause of ANY element of the run unit makes it act.
     public bool Visit(BoundCommitRollback n) { _transactions.EmitStatement(n); return false; }
     public bool Visit(BoundCommunicationStatement n) { _communication.Emit(n); return false; }
-    // The messaging facility's statements (ISO §2023:14.9.38, §2023:14.9.31; kb/Work PB4743, PB4744): the binder builds them and the declined-statement seam still
-    // answers COBOL1578 instead of passing them on, so none reaches here until the exchange is rendered.
-    public bool Visit(BoundSendToServer n) => throw MessagingNotRendered(n);
-    public bool Visit(BoundSendResponse n) => throw MessagingNotRendered(n);
-    public bool Visit(BoundReceiveMessage n) => throw MessagingNotRendered(n);
-    private static InvalidOperationException MessagingNotRendered(BoundStatement n) => new(
-        $"{n.GetType().Name} reached code generation, which renders no messaging statement before kb/Work PB4744: StatementBinder answers COBOL1578 for SEND and RECEIVE instead of passing the node on");
+    // The asynchronous messaging facility's statements (ISO §2023:14.9.38, §2023:14.9.31; DESIGN-message-control.md §4.4; kb/Work PB4743, PB4744).
+    public bool Visit(BoundSendToServer n) { _messaging.Emit(n); return false; }
+    public bool Visit(BoundSendResponse n) { _messaging.Emit(n); return false; }
+    public bool Visit(BoundReceiveMessage n) { _messaging.Emit(n); return false; }
     /// <summary>⛔ THE CONTINUE AFTER SUSPENSION CALL, ONE ARM PER CARRIER (kb/Work PB1529). §2023:14.9.9.4 GR1: the sign
     /// test (GR1a/GR1b: a fractional (-1,0) still sets the EC) and the m=0 truncation (the implicit COMPUTE without
     /// ROUNDED) are taken by <c>CobolTiming.ContinueAfter</c> from the value in ITS OWN DOMAIN, which then clamps to
@@ -234,6 +233,17 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
         NumXCarrier.UnsignedWide => RuntimeApi.ContinueAfterScaled($"(UInt128)({x.Expr})", x.Scale.ToString(), check),
         NumXCarrier.Scaled => RuntimeApi.ContinueAfterScaled($"(Int128)({x.Expr})", x.Scale.ToString(), check),
         _ => throw new InvalidOperationException($"CONTINUE AFTER: no suspension call for the carrier {x.Carrier}"),
+    };
+
+    /// <summary>⛔ THE INTERVAL OF A RECEIVE'S CONTINUE AFTER, ONE ARM PER CARRIER, THE SIBLING OF <see cref="ContinueAfterCall"/> (kb/Work PB4744; DESIGN-message-control.md
+    /// §0 Q5): <c>CobolTiming.Interval</c> takes GR1's sign and whole seconds from the value in its own domain, the rule CONTINUE AFTER suspends by, so a RECEIVE waits exactly as
+    /// long as the CONTINUE statement would. A carrier this switch does not map throws.</summary>
+    internal static string IntervalCall(NumX x) => x.Carrier switch
+    {
+        NumXCarrier.Binary64 or NumXCarrier.Sdidi => RuntimeApi.TimingInterval(x.Expr),
+        NumXCarrier.UnsignedWide => RuntimeApi.TimingIntervalScaled($"(UInt128)({x.Expr})", x.Scale.ToString()),
+        NumXCarrier.Scaled => RuntimeApi.TimingIntervalScaled($"(Int128)({x.Expr})", x.Scale.ToString()),
+        _ => throw new InvalidOperationException($"CONTINUE AFTER: no interval call for the carrier {x.Carrier}"),
     };
 
     public bool Visit(BoundContinueAfter n)

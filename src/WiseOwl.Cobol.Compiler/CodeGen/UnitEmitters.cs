@@ -43,6 +43,7 @@ internal sealed class UnitEmitters
     public SortEmitter Sort { get; }
     public TransactionEmitter Transactions { get; }
     public CommunicationEmitter Communication { get; }
+    public MessagingEmitter Messaging { get; }
     public ReportWriterEmitter ReportWriter { get; }
     public ControlFlowEmitter ControlFlow { get; }
     public CallEmitter Call { get; }
@@ -80,6 +81,7 @@ internal sealed class UnitEmitters
         SeqIo = new SequentialIoEmitter(Ctx, Num, Places, dispatchState, ecState, KeyedIo, Arith, Ec, Move);
         Transactions = new TransactionEmitter(Ctx, Places, SeqIo);   // APPLY COMMIT, COMMIT, ROLLBACK (kb/Work PB3338)
         Communication = new CommunicationEmitter(Ctx, Num, Places, SeqIo);   // the communication facility (kb/Work PB4677)
+        Messaging = new MessagingEmitter(Ctx, Num, ecState, Ec, SeqIo, Arith);   // the asynchronous messaging facility (kb/Work PB4744)
         Sort = new SortEmitter(Ctx, Places, dispatchState, SeqIo, Move, Arith, Ec);   // no NumericRenderer since RELEASE moved to the ONE record-area channel (kb/Work PB327)
         ReportWriter = new ReportWriterEmitter(Ctx, Num, Places, Move, Cond, dispatchState, ecState, Ec);
         ControlFlow = new ControlFlowEmitter(Ctx, Num, Cond, dispatchState, Set, Brackets);
@@ -100,6 +102,7 @@ internal sealed class UnitEmitters
         SeqIo.Statements = Statements;
         Sort.Statements = Statements;
         Communication.Statements = Statements;
+        Messaging.Statements = Statements;
         Communication.Debug = Debug;
         KeyedIo.Debug = Debug;
         SeqIo.Debug = Debug;

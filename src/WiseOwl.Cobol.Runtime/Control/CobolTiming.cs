@@ -50,40 +50,57 @@ public static class CobolTiming
         //              no condition (`seconds < 0.0` is false for a NaN).
         // GR1a/GR1b operate on arithmetic-expression-1's EVALUATED value (the sign test precedes the m=0
         // truncation), so a negative FRACTIONAL interval in (-1, 0) must still set the exception.
-        return Continue(seconds < 0.0, CobolNum.PositionOf(seconds), checkLessThanZero);
+        return Continue(Interval(seconds), checkLessThanZero);
     }
 
     /// <summary>The scaled-<see cref="Int128"/> interval (a fixed-point item or expression: <paramref name="unscaled"/>
     /// × 10^-<paramref name="scale"/>). The sign is the unscaled value's, exactly, so a fraction in (-1, 0) still
     /// raises GR1b while truncating to 0 seconds, and a binary64 image that would round across an integer boundary
     /// is never consulted (kb/Work PB138).</summary>
-    public static bool ContinueAfter(Int128 unscaled, int scale, bool checkLessThanZero) =>
-        Continue(unscaled < 0, CobolNum.PositionOf(unscaled, scale), checkLessThanZero);
+    public static bool ContinueAfter(Int128 unscaled, int scale, bool checkLessThanZero) => Continue(Interval(unscaled, scale), checkLessThanZero);
 
     /// <summary>The unsigned-wide interval (a 16-byte unsigned COMP-5 item's full [0, 2^128) range, kb/Work R10):
     /// never negative, and every value past the <see cref="long"/> range is above the maximum.</summary>
-    public static bool ContinueAfter(UInt128 unscaled, int scale, bool checkLessThanZero) =>
-        Continue(false, CobolNum.PositionOf(unscaled, scale), checkLessThanZero);
+    public static bool ContinueAfter(UInt128 unscaled, int scale, bool checkLessThanZero) => Continue(Interval(unscaled, scale), checkLessThanZero);
 
     /// <summary>The standard-decimal interval (§2023:8.8.1.5 SDIDI: an expression the arithmetic planner lifted to
     /// <see cref="CobolDec"/>). The sign is the significand's and the whole seconds are the saturating truncation
     /// <see cref="CobolNum.PositionOf(CobolDec)"/> reads, so 10^40 suspends for the maximum and not for the zero its
     /// 38 low-order digits make.</summary>
-    public static bool ContinueAfter(CobolDec seconds, bool checkLessThanZero) =>
-        Continue(seconds.Sig < 0, CobolNum.PositionOf(seconds), checkLessThanZero);
+    public static bool ContinueAfter(CobolDec seconds, bool checkLessThanZero) => Continue(Interval(seconds), checkLessThanZero);
 
-    /// <summary>GR1 a-c and the suspension, once: a value below zero is set to 0 and raises the nonfatal
+    // ⛔ THE INTERVAL RULE, SPLIT FROM THE SUSPENSION SO ITS OTHER READER SHARES IT (kb/Work PB4744; DESIGN-message-control.md §0 Q5, §5.4.4). CONTINUE AFTER
+    // arithmetic-expression-1 SECONDS of a RECEIVE evaluates its interval by this rule and not by a second copy: GR1's sign test, its truncation to whole seconds
+    // and its replacement of a value above the maximum meaningful value. An interval is -1 for a value below zero (GR1 a-c), else 0 to MaxSeconds. The
+    // non-finite dispositions of ContinueAfter(double, bool) are the rule's too.
+
+    /// <summary>The interval of a BINARY64 value.</summary>
+    public static long Interval(double seconds) => IntervalOf(seconds < 0.0, CobolNum.PositionOf(seconds));
+
+    /// <summary>The interval of a scaled <see cref="Int128"/> value.</summary>
+    public static long Interval(Int128 unscaled, int scale) => IntervalOf(unscaled < 0, CobolNum.PositionOf(unscaled, scale));
+
+    /// <summary>The interval of an unsigned-wide value, never below zero.</summary>
+    public static long Interval(UInt128 unscaled, int scale) => IntervalOf(false, CobolNum.PositionOf(unscaled, scale));
+
+    /// <summary>The interval of a standard-decimal value.</summary>
+    public static long Interval(CobolDec seconds) => IntervalOf(seconds.Sig < 0, CobolNum.PositionOf(seconds));
+
+    private static long IntervalOf(bool negative, long wholeSeconds) =>
+        negative ? -1 : System.Math.Clamp(wholeSeconds, 0, MaxSeconds);
+
+    /// <summary>GR1 a-c and the suspension, once: a value below zero (interval -1) is set to 0 and raises the nonfatal
     /// EC-CONTINUE-LESS-THAN-ZERO when its checking is enabled (the return value reports it to the site); any
     /// other value suspends for its whole seconds, never above <see cref="MaxSeconds"/>.</summary>
-    private static bool Continue(bool negative, long wholeSeconds, bool checkLessThanZero)
+    private static bool Continue(long interval, bool checkLessThanZero)
     {
-        if (negative)
+        if (interval < 0)
         {
             if (checkLessThanZero) { ExceptionState.Set("EC-CONTINUE-LESS-THAN-ZERO", fatal: false); return true; }
             return false;                                           // GR1a - value set to 0 → no suspension
         }
-        if (wholeSeconds <= 0) return false;                        // GR1 - no suspension for a zero interval
-        int ms = (int)System.Math.Min(wholeSeconds, MaxSeconds) * 1000;
+        if (interval == 0) return false;                            // GR1 - no suspension for a zero interval
+        int ms = (int)interval * 1000;
         if (SuspensionObserver.Value is { } observe) { observe(ms); return false; }
         System.Threading.Thread.Sleep(ms);
         return false;

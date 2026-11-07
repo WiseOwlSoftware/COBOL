@@ -2283,28 +2283,27 @@ public sealed record EcStatementInfo(
 /// per-raise-point guards, and clears it. Absent wherever checking is off — checking-off emits NOTHING new.</summary>
 public sealed record BoundEcChecked(BoundStatement Inner, EcStatementInfo Info) : BoundStatement;
 
-/// <summary>A statement that ACTIVATES another runtime element — CALL, INVOKE (typed or universal), and the
-/// lowered user-defined-function reference — and therefore owns ISO §2023:14.9.18.4 GR1 b)'s question: a condition a
-/// <c>GOBACK / EXIT … RAISING</c> stages in the activated element "is raised in the activating runtime element
-/// if checking for that exception condition is enabled in the ACTIVATING runtime element".
-///
-/// <para>The activated element cannot answer that — under separate compilation it cannot even see this element —
-/// and the propagated name is not known until run time (<c>RAISING LAST EXCEPTION</c>), so the answer travels as
-/// the activating STATEMENT's own §2023:7.3.25 checking state and is consulted by the site's propagation pickup.
-/// Implementing this interface is the one thing that obliges a bound node to carry it; before kb/Work PB408 the
-/// test was taken in the callee at bind time and the pickup was gated on nothing finer than the compilation
-/// group's EC participation.</para></summary>
-public interface IActivatingStatement
+/// <summary>A statement that carries its own §2023:7.3.25 checking state to run time because the exception-name it may raise is NOT known at compile time:
+/// the activating statements CALL, INVOKE (typed or universal) and the lowered user-defined-function reference, and the messaging statements SEND and RECEIVE.
+/// <para><b>Activation.</b> ISO §2023:14.9.18.4 GR1 b): a condition a <c>GOBACK / EXIT … RAISING</c> stages in the activated element "is raised in the activating
+/// runtime element if checking for that exception condition is enabled in the ACTIVATING runtime element". The activated element cannot answer that — under
+/// separate compilation it cannot even see this element — and the propagated name is not known until run time (<c>RAISING LAST EXCEPTION</c>), so the answer
+/// travels as the activating STATEMENT's own checking state and is consulted by the site's propagation pickup.</para>
+/// <para><b>Messaging.</b> The message control system raises every EC-MCS condition, and a requestor's RECEIVE raises the name a server chose to send (§2023:14.9.38.4
+/// GR8): the runtime asks the statement's profile whether checking for the name is enabled (DESIGN-message-control.md §4.5, kb/Work PB4744).</para>
+/// Implementing this interface is the one thing that obliges a bound node to carry the profile; before kb/Work PB408 the test was taken in the callee at bind
+/// time and the pickup was gated on nothing finer than the compilation group's EC participation.</summary>
+public interface IProfiledStatement
 {
     /// <summary>The §2023:7.3.25 checking state governing THIS statement in THIS source element
     /// (<c>TurnState.ProfileAt</c>), queryable at run time for a name chosen at run time.</summary>
-    WiseOwl.Cobol.Runtime.Exceptions.EcCheckingProfile ActivatorChecking { get; }
+    WiseOwl.Cobol.Runtime.Exceptions.EcCheckingProfile CheckingProfile { get; }
 
     /// <summary>Return this node carrying <paramref name="profile"/>. It exists so ONE site — the
     /// <c>BindStatement</c> exit every statement funnels through — stamps every activating node, including the
     /// hoisted ones inside a desugar sequence: a new activating node inherits the stamp by implementing the
     /// interface, never by remembering to set a property at its own construction site.</summary>
-    BoundStatement WithActivatorChecking(WiseOwl.Cobol.Runtime.Exceptions.EcCheckingProfile profile);
+    BoundStatement WithCheckingProfile(WiseOwl.Cobol.Runtime.Exceptions.EcCheckingProfile profile);
 }
 
 /// <summary>⛔ THE STATEMENT AN OPERAND ACTIVATION BELONGS TO (kb/Work PB892) — the lowest-level statement whose

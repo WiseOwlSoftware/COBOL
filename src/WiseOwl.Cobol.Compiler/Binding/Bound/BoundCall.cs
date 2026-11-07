@@ -86,15 +86,15 @@ public sealed record BoundCallProgram(
     IReadOnlyList<BoundCallArg> Args,
     Place? Returning,
     IReadOnlyList<BoundStatement>? OnException,
-    IReadOnlyList<BoundStatement>? NotOnException) : BoundStatement, IActivatingStatement
+    IReadOnlyList<BoundStatement>? NotOnException) : BoundStatement, IProfiledStatement
 {
     /// <inheritdoc/>
-    public WiseOwl.Cobol.Runtime.Exceptions.EcCheckingProfile ActivatorChecking { get; init; }
+    public WiseOwl.Cobol.Runtime.Exceptions.EcCheckingProfile CheckingProfile { get; init; }
         = WiseOwl.Cobol.Runtime.Exceptions.EcCheckingProfile.None;
 
     /// <inheritdoc/>
-    public BoundStatement WithActivatorChecking(WiseOwl.Cobol.Runtime.Exceptions.EcCheckingProfile profile)
-        => this with { ActivatorChecking = profile };
+    public BoundStatement WithCheckingProfile(WiseOwl.Cobol.Runtime.Exceptions.EcCheckingProfile profile)
+        => this with { CheckingProfile = profile };
 
     /// <summary>The CALL's RECEIVING operands in written order — each BY REFERENCE argument (the activated program may
     /// change it) and the RETURNING item (§2023:14.9.4.4 GR4) — every one identified at the start of the statement (GR3 a)).
