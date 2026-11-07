@@ -32,6 +32,9 @@ internal sealed class MessagingProtocol
         internal string RunId { get; } = runId;
         internal string Name { get; } = name;
         internal OutPhase Phase { get; set; } = OutPhase.AwaitHello;
+
+        /// <summary>The serial of a SEND that ended with this link still granted: its ACK is still owed, and the link is not offered anything until it arrives.</summary>
+        internal long? OwedAck { get; set; }
     }
 
     private sealed class InLink(PeerLinkId id)
@@ -46,6 +49,12 @@ internal sealed class MessagingProtocol
         internal InLink Link { get; } = link;
         internal long Serial { get; } = serial;
         internal int Round { get; } = round;
+
+        /// <summary>The RECEIVE that claimed this offer ended before its GRANT, while the server still owed replies on the link (design 5.4.2): the requestor
+        /// still answers that claim, so the next RECEIVE adopts the offer, and a GRANT that arrives with no RECEIVE to take it is held here.</summary>
+        internal bool InFlight { get; set; }
+
+        internal MessageBody? Held { get; set; }
     }
 
     private sealed class SendState(long serial, string name, string spelling, MessageBody body, int round)
@@ -380,6 +389,12 @@ internal sealed class MessagingProtocol
                 else if (_receive is { } receiving) CompleteReceive(receiving, StatementResult.Failed(ExceptionCatalog.McsImp, detail));
                 break;
         }
+        // A write that failed leaves its link in an unknown state, whatever statement was current: the link is over (the statement above has already ended).
+        if (failed.Action is Write write)
+        {
+            if (_outByLink.TryGetValue(write.Link, out var outLink)) EndOut(outLink, closeIt: true);
+            else if (_inByLink.TryGetValue(write.Link, out var inLink)) EndIn(inLink, closeIt: true);
+        }
     }
 
     /// <summary>The answers owed to a statement that has since ended arrive first, in the order their actions were issued; they are consumed, not applied.</summary>
@@ -479,10 +494,19 @@ internal sealed class MessagingProtocol
                 WithdrawOffers(send);
                 break;
             case AckFrame ack when link.Phase == OutPhase.Granted:
-                if (send is null || send.Granted != link || ack.Serial != send.Serial) break;
-                link.Phase = OutPhase.Ready;
-                _sent[send.Serial] = link;
-                FinishSend(send, StatementResult.Sent(new MessageTag(_mcs, MessageParty.Server, send.Name, send.Serial)));
+                if (send is not null && send.Granted == link && ack.Serial == send.Serial)
+                {
+                    link.Phase = OutPhase.Ready;
+                    _sent[send.Serial] = link;
+                    FinishSend(send, StatementResult.Sent(new MessageTag(_mcs, MessageParty.Server, send.Name, send.Serial)));
+                }
+                else if (link.OwedAck == ack.Serial)
+                {
+                    // The ACK of a SEND that ended IMP (design 5.4.1): the link is whole again, and a SEND waiting on it offers it its round.
+                    link.OwedAck = null;
+                    link.Phase = OutPhase.Ready;
+                    if (send is { Granted: null } waiting && waiting.Name == link.Name) OfferTo(waiting, link);
+                }
                 break;
             case ReplyFrame reply:
                 if (!_sent.TryGetValue(reply.Serial, out var holder) || holder != link) break;     // a reply to nothing sent on this link is dropped
@@ -529,7 +553,8 @@ internal sealed class MessagingProtocol
         AfterLinkLoss(send);
     }
 
-    /// <summary>Every completion of the SEND closes its bell and deletes <c>p/&lt;N&gt;/&lt;r&gt;</c> (design 5.4.1), withdraws what is still offered and closes a link left granted.</summary>
+    /// <summary>Every completion of the SEND closes its bell and deletes <c>p/&lt;N&gt;/&lt;r&gt;</c> (design 5.4.1), withdraws what is still offered and leaves a link
+    /// still granted owing its ACK: the server holds the GRANT and answers it (or closes the link, design 5.4.2), and the link carries the replies owed to earlier serials meanwhile.</summary>
     private void FinishSend(SendState send, StatementResult result)
     {
         if (!ReferenceEquals(_send, send)) return;
@@ -537,8 +562,9 @@ internal sealed class MessagingProtocol
         if (send.BellPublished) _actions.Add(new Unpublish(Bell(send)));
         _staleAnswers += send.Outstanding;
         _send = null;
-        // A link still granted is one whose ACK this SEND will never read (it ended IMP): close it, or it stays granted and every later SEND waits on it.
-        if (send.Granted is { Phase: OutPhase.Granted } abandoned) EndOut(abandoned, closeIt: true);
+        // A link still granted is one whose ACK this SEND will never read (it ended IMP). Closing it would end every reply owed for an earlier serial on it
+        // (EndOut: "server ended"), so it is kept, marked, and its ACK consumed when it arrives.
+        if (send.Granted is { Phase: OutPhase.Granted } abandoned) abandoned.OwedAck = send.Serial;
         _actions.Add(new Complete(result));
     }
 
@@ -572,6 +598,8 @@ internal sealed class MessagingProtocol
             case GrantFrame grant when link.RequestorRunId is not null:
                 if (_receive is { Claim: { } granted } taking && granted.Link == link && granted.Serial == grant.Serial && granted.Round == grant.Round)
                     Take(taking, granted, grant.Message);
+                else if (_offers.Find(o => o.InFlight && o.Link == link && o.Serial == grant.Serial && o.Round == grant.Round) is { } adopted)
+                    adopted.Held = grant.Message;
                 break;
             default:
                 EndIn(link, closeIt: true);
@@ -633,7 +661,9 @@ internal sealed class MessagingProtocol
             if (next is not null)
             {
                 receive.Claim = next;
-                _actions.Add(new Write(next.Link.Id, new ClaimFrame(next.Serial, next.Round)));
+                if (next.Held is { } held) Take(receive, next, held);                                  // its GRANT came between two RECEIVEs
+                else if (!next.InFlight) _actions.Add(new Write(next.Link.Id, new ClaimFrame(next.Serial, next.Round)));
+                if (!ReferenceEquals(_receive, receive)) return;
             }
         }
         if (receive.Claim is null && receive.DeadlinePassed) CompleteReceive(receive, StatementResult.TimedOut());
@@ -658,6 +688,16 @@ internal sealed class MessagingProtocol
     {
         if (!ReferenceEquals(_receive, receive)) return;
         _receive = null;
+        // A RECEIVE that ends with a CLAIM in flight (Take and EndIn have cleared theirs) will never read the GRANT, and an unanswered GRANT leaves the requestor
+        // granted forever. design 5.4.1's invariant allows the link to end instead: the requestor, still holding the message, goes on to a new round (step 9).
+        // A link on which this server still owes a reply is not ended (the requestor would mark that reply "server ended"): the offer stays claimed for the next RECEIVE.
+        if (receive.Claim is { } claimed)
+        {
+            receive.Claim = null;
+            string? requestor = claimed.Link.RequestorRunId;
+            if (_active.Keys.Any(k => k.Item1 == requestor)) claimed.InFlight = true;
+            else EndIn(claimed.Link, closeIt: true);
+        }
         _actions.Add(new Complete(result));
     }
 

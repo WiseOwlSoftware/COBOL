@@ -85,11 +85,6 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         // `setReceivingIdentifier`, and setToStatement's `setToReceiver`) so each is refused by its OWN rule at the
         // receiving chokepoint — once, here, before a format is selected from a list that holds a non-reference.
         if (RefuseNonReceivable(set) is { } nonReceivable) return nonReceivable;
-        // ⛔ BELOW THE MESSAGE-TAG INTRODUCTION THE STATEMENT IS THE GATE'S, WHATEVER ITS FORMAT (kb/Work PB4771, PB4836):
-        // see NamesGatedMessageTag. One question, asked of the statement before any format is selected, because every
-        // format a message-tag operand can reach (Format 17 by its own, Formats 7, 5, 10 and 2 by a partner) would
-        // otherwise draw its own class diagnostic beside COBOL0900.
-        if (MessageTagUsageIsNotThisEditions && NamesGatedMessageTag(set)) return new BoundNop();
         // F11 set-locale / F12 save-locale (§14.9.39; Annex A.4.9 item 9) — IMPLEMENTED since kb/Work PB64 T1 (it
         // used to be refused by name with COBOL1518 — kb/Work PB92 before that: "'LOCALE' is not defined").
         if (set.setLocaleStatement() is { } sl)
@@ -553,8 +548,8 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     /// <para>The printed format has ONE receiving operand (no repetition, unlike Formats 7, 8 and 9), so a list of
     /// receivers is refused.</para>
     /// <para>⛔ BELOW 2023 THE STATEMENT DOES NOT REACH HERE WHEN THE GATE REFUSED IT (kb/Work PB916, PB4771, PB4836, PB4837):
-    /// <see cref="BindSet"/> and <see cref="BindSetTo"/> bind a statement naming a gated message-tag item to a no-op for
-    /// every SET format (<see cref="NamesGatedMessageTag"/>), so the SR35 class refusals below speak only where the usage
+    /// <c>StatementBinder.BindStatement</c> binds a statement naming a gated message-tag item to a no-op for every verb and
+    /// every SET format (<c>StatementBinder.NamesGatedMessageTag</c>), so the SR35 class refusals below speak only where the usage
     /// exists, or where the operand is imported and so ungated (§8.4.3.9.2).</para></summary>
     private BoundStatement BindMessageTagSet(
         IReadOnlyList<Core.DataReferenceContext> receivers, SetSender? sender, bool toNull, string senderText)
@@ -588,32 +583,6 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         }
         return new BoundSetMessageTag(target, source, toNull);
     }
-
-    /// <summary>The <c>usage-message-tag-2023</c> introduction gate refuses USAGE MESSAGE-TAG at this edition: the usage exists
-    /// from 2023 only (§8.9; <c>VersionConformancePass</c>), and below it a message-tag entry draws the COBOL0900
-    /// introduction gate, which fails the compile.</summary>
-    private bool MessageTagUsageIsNotThisEditions =>
-        !ConstructRegistry.IsAvailable(ctx.Edition.Edition, Constructs.UsageMessageTag2023);
-
-    /// <summary>Whether <paramref name="item"/> is a message-tag data item whose DATA DIVISION entry THIS compilation walks, so
-    /// that entry's <c>usage-message-tag-2023</c> gate (COBOL0900) refuses the compile below 2023: any item of the
-    /// compilation's own sources, a same-file function's RETURNING item and a same-file class's property or method result
-    /// included. An IMPORTED item (<see cref="DataItem.IsImported"/>: a repository function's, method's or class property's
-    /// description, read from an assembly) has no entry here and so no gate.</summary>
-    private static bool IsGatedMessageTag(DataItem item) => !item.IsImported && ItemCategory.IsMessageTag(item);
-
-    /// <summary>⛔ WHETHER THE INTRODUCTION GATE HAS ALREADY REFUSED THIS STATEMENT'S COMPILE: some data reference of the
-    /// statement names a message-tag item whose entry the gate walks (<see cref="IsGatedMessageTag"/>). DESIGN-message-control.md
-    /// §7.1: each refusal also runs at 2014, "where COBOL0900 is the expected diagnosis and no second one may appear", so
-    /// such a statement binds to a no-op and the class refusals of its formats (SR35 for Format 17, the sender rules of
-    /// Formats 7, 9 and 5, the receiving-operand screens of Formats 10 and 2) speak only where the usage exists. ⛔ THE NO-OP
-    /// IS EARNED BY A GATED OPERAND, NOT BY THE EDITION: an operand that is imported has no entry here and no gate fires on
-    /// it, so the statement is bound and checked at every edition and SR35 refuses it as at 2023, rather than the SET
-    /// vanishing unrefused (kb/Work PB4771 review R1-1, R2-1). Pure: the probe reports nothing, and the walk reads the one
-    /// statement's own references (a SET holds no nested statement).</summary>
-    private bool NamesGatedMessageTag(Core.SetStatementContext set) =>
-        ParseTreeWalk.SelfAndDescendants(set).OfType<Core.DataReferenceContext>()
-            .Any(dref => ctx.Refs.Probe(dref) is { } p && IsGatedMessageTag(p.Item));
 
     /// <summary>SET program-pointer assignment (ISO §14.9.39 Format 9; SR21 — every target AND the sender
     /// shall be category program-pointer; P10 Step 7): the data-pointer Format-7 twin over the ProgramPointer
@@ -1381,10 +1350,6 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         // for a literal or an expression, which each format's own syntax rule then refuses (kb/Work PB1399/PB1929).
         var sender = _senders.Classify(amount);
         if (SetSenders.IsRefused(sender)) return BoundRejected.Reported(ctx.Edition);
-        // A function-identifier or inline invocation sender that RETURNS a gated message-tag item (BindSet's walk reads data
-        // references only, and this sender is bound by the classifier just above): the same no-op, for the same reason.
-        if (MessageTagUsageIsNotThisEditions && sender.TemporaryItem is { } returned && IsGatedMessageTag(returned.Item))
-            return new BoundNop();   // no-op: the returned item's declaring entry draws COBOL0900 in this compilation (kb/Work PB4837)
         // ⛔ SelectForTo, not Select: the receiving list decides, EXCEPT against Format 1's `identifier-1`
         // catch-all brace, where a sender of class object or of category data-/program-/function-pointer is
         // admissible in no Format-1 sending position (§8.8.1.1 / §14.9.39.3 SR2) and names exactly one other
