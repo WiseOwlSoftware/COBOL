@@ -74,6 +74,17 @@ def brace(img, x, y0, y1, side):
     line(img, x, y1 - 5, x - d * 3, y1)
 
 
+def curly(img, x, y0, y1, side):
+    """A printed brace as page 217 shows it: no straight half. The edge bows in a smooth S, the ends hook away from
+    the point, and a cusp of 2.2 pt marks the middle."""
+    d = 1 if side == "L" else -1
+    for y in np.arange(y0, y1, 0.1):
+        t = (y - y0) / (y1 - y0)
+        u = abs(2 * t - 1)
+        off = 2.2 + 2.5 * u ** 6 + 0.6 * math.sin(6 * math.pi * t) - 2.2 * math.exp(-(u / 0.12) ** 2)
+        fill(img, x + d * off, y, x + d * off + STROKE + 0.3, y + 0.2)
+
+
 def paren(img, x, y0, y1):
     """A parenthesis: an arc with no straight half and no point."""
     for y in np.arange(y0, y1, 0.1):
@@ -212,6 +223,101 @@ def main() -> int:
     total += 1
     check("an underlined word with unpaired components is a disagreement",
           len(rp.disagreements) == 1 and rp.disagreements[0].get("components") == 4, f"got {rp.disagreements}")
+
+    # 8. Planted cases for what the real pages taught (kb/Work PB4848).
+    # 8a. An underline FUSED to a descender (a 'g' crosses the rule): the rule is found whole and the word keeps its
+    #     letters, which a bar-only test could not do (the word and its rule were one component).
+    img = canvas()
+    word(img, 10, 20, 5)
+    fill(img, 10 + 2 * 5.2, 20, 10 + 2 * 5.2 + 4, 20 + 9.3)                # letter 3 descends through the rule (7 pt + 2.3)
+    underline(img, 10, 10 + 5 * 5.2 - 1.2, 20)
+    rp = R.measure_image(img, tokens=[["ABCDE"]])
+    total += 3
+    check("a fused underline is found whole", len(rp.rules) == 1 and near(rp.rules[0].x0, 10, 1.0)
+          and near(rp.rules[0].x1, 10 + 5 * 5.2 - 1.2, 1.0), f"got {[tuple(round(v, 1) for v in r) for r in rp.rules]}")
+    check("the fused word keeps its five letters and reads underlined",
+          not rp.disagreements and [w["underlined"] for w in rp.words] == [True], f"got {rp.disagreements} {[w['underlined'] for w in rp.words]}")
+    check("the descender's tail is one letter with its body", len(rp.words) == 1 and rp.words[0]["text"] == "ABCDE")
+
+    # 8b. A hyphen stands between letters at mid height; an underline lies below them.
+    img = canvas()
+    word(img, 10, 20, 2)
+    fill(img, 10 + 2 * 5.2, 23.0, 10 + 2 * 5.2 + 4.7, 24.2)
+    word(img, 10 + 2 * 5.2 + 4.7 + 1.0, 20, 2)
+    rp = R.measure_image(img)
+    total += 1
+    check("a hyphen is not an underline", rp.rules == [], f"got {rp.rules}")
+
+    # 8c. A ragged, tilted rule is a rule although its box is mostly empty (page 196: boxes filled 0.42).
+    img = canvas()
+    line(img, 10, 28, 120, 29.6)
+    rp = R.measure_image(img)
+    total += 1
+    check("a tilted rule is found", len(rp.rules) == 1 and rp.rules[0].width > 100, f"got {rp.rules}")
+
+    # 8d. One tall brace overstruck from two glyphs with a gap between them is one brace.
+    img = canvas()
+    curly(img, 20, 20, 90, "L")
+    img[int(54.2 * S):int(55.8 * S), :int(30 * S)] = 255                    # the gap lies at the point, as on page 217
+    rp = R.measure_image(img)
+    total += 2
+    check("a brace broken by a gap is one brace", len(rp.braces) == 1 and rp.braces[0]["side"] == "L"
+          and near(rp.braces[0]["y1"] - rp.braces[0]["y0"], 70, 1.5), f"got {rp.braces} unclassified {rp.unclassified}")
+    check("a tall brace is no bracket stem", R.classify_page(rp) == [], f"got {R.classify_page(rp)}")
+
+    # 8e. A glyph touching a bracket's stem makes a bump, not a point: it stays a bracket.
+    img = canvas()
+    stem(img, 20, 20, 70, "L")
+    fill(img, 20, 42, 24.5, 49)
+    rp = R.measure_image(img)
+    total += 1
+    check("a bracket with a glyph fused to its stem is a bracket", [(s["kind"], s["side"]) for s in R.classify_page(rp)] == [("bracket", "L")]
+          and rp.braces == [], f"got {R.classify_page(rp)} {rp.braces}")
+
+    # 8f. A leaning closing bracket (page 196: 1.8 pt over 50) keeps its feet.
+    img = canvas()
+    line(img, 40, 20, 41.8, 70)
+    fill(img, 36.5, 20, 40.5, 20.5)
+    fill(img, 38.3, 69.5, 42.3, 70)
+    rp = R.measure_image(img)
+    total += 1
+    check("a leaning bracket is a closing bracket", [(s["kind"], s["side"]) for s in R.classify_page(rp)] == [("bracket", "R")],
+          f"got {R.classify_page(rp)}")
+
+    # 8g. A BOX: four rules around words, one of them touched by a bracket's stem; the box and its words are found.
+    img = canvas()
+    fill(img, 20, 20, 100, 20.6)
+    fill(img, 20, 40, 100, 40.6)
+    fill(img, 20, 20, 20.6, 40.6)
+    fill(img, 99.4, 20, 100, 40.6)
+    word(img, 30, 26, 4)
+    stem(img, 100.6, 22, 38, "L")
+    rp = R.measure_image(img, tokens=[["ABCD"]])
+    total += 2
+    check("a box is found with the word it encloses", len(rp.boxes) == 1 and near(rp.boxes[0]["x0"], 20, 1.0)
+          and near(rp.boxes[0]["x1"], 100, 1.0) and len(rp.boxes[0]["words"]) == 1, f"got {rp.boxes}")
+    check("a box's rules are neither underlines nor choice bars", rp.rules == [] and all(s["kind"] != "bar" for s in R.classify_page(rp)),
+          f"got {rp.rules} {R.classify_page(rp)}")
+
+    # 9. REAL 1985 pages (kb/Work PB4848): twelve general-format regions cropped from the licensed scan, binarized,
+    #    the stamp margins excluded, each counted BY EYE against the rendered page. The calibration table is
+    #    figure_raster_pages/calibration.json; a crop is measured with its page's skew.
+    import json
+    import pymupdf
+    pages = pathlib.Path(__file__).resolve().parent / "figure_raster_pages"
+    cal = json.loads((pages / "calibration.json").read_text(encoding="utf-8"))
+    for e in cal["pages"]:
+        pix = pymupdf.Pixmap(str(pages / e["file"]))
+        gray = np.frombuffer(pix.samples, dtype=np.uint8).reshape(pix.height, pix.width, pix.n)[:, :, 0].copy()
+        rp = R.measure_image(gray, cal["dpi"], skew=e["skew_deg"])
+        got = {"stems_L": sum(s["side"] == "L" for s in rp.stems), "stems_R": sum(s["side"] == "R" for s in rp.stems),
+               "bars": sum(s["kind"] == "bar" for s in rp.stems), "braces_L": sum(b["side"] == "L" for b in rp.braces),
+               "braces_R": sum(b["side"] == "R" for b in rp.braces), "boxes": len(rp.boxes)}
+        if e["underlines"] is not None:
+            got["underlines"] = sum(1 for r in rp.rules if e["region_pt"][0] <= r.y0 + e["y0_pt"] and r.y1 + e["y0_pt"] + 8 <= e["region_pt"][1])
+        total += 1
+        check(f"PDF page {e['page']}: every stroke the eye counts is measured", all(got[k] == e[k] for k in got) and not rp.unclassified,
+              f"got {got} want {({k: e[k] for k in got})} unclassified {rp.unclassified}")
 
     for f in fails:
         print(f"FAIL: {f}")
