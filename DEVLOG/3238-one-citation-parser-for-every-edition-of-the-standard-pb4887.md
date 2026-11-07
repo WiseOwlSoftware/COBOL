@@ -1,4 +1,4 @@
-## One citation parser for every edition of the standard (PB4887 phase 1)
+## Entry 3238 — 2026-11-06 20:05 PST — One citation parser for every edition of the standard (PB4887 phase 1)
 
 The owner asked on 2026-11-06 for one citation format across every edition of the COBOL standard, with the edition
 mandatory: `§<edition>:<locator>[ <rule>]` (kb/Work PB4887). This branch lands phase 1 of 2. It adds the parser, moves
@@ -49,3 +49,4 @@ runs.
 and the refusal. Code: the rule check compares only the top-level ordinal that `rule_path` prints, and does not check a
 1985 rule. Performance: the phantom scan skips a line without a `§`. Duplication: the ISO heading reader of `cite.py`
 and of `vcr.py` is now `citation.iso_regions`.
+
