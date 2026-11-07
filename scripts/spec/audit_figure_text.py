@@ -111,6 +111,7 @@ def main() -> int:
     ap.add_argument("--json")
     spec_pdf.add_edition_argument(ap)
     args = ap.parse_args()
+    spec_pdf.require_vector(args.edition, "audit_figure_text.py")   # it reads the text layer `figure_extract.extract` reads
     pdf = spec_pdf.require(args.edition)
     import pymupdf
 
