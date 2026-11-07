@@ -1,4 +1,4 @@
-## PB4818: a report group's level-number before a header reports at the header's first word, and the slot has one wording
+## Entry 3234 — 2026-11-06 19:38 PST — PB4818: a report group's level-number before a header reports at the header's first word, and the slot has one wording
 
 **Re-probe.** `REPORT SECTION.`, `RD R.`, `01 SCREEN SECTION.` drew COBOL0307 at (6,18), the word SECTION; the same line in the working-storage, linkage, file and communication sections draws it at SCREEN. The sweep found two more faces. `01 LOCAL-STORAGE SECTION.` after an RD drew COBOL0001 at SECTION where the screen and data slots stop at the word. At 85, where SCREEN is a user word and the format prints no such section, the report-group line named a missing period where the working-storage line draws the plain report at SECTION. The slot also had two wordings of one fault: `unexpected 'FILE'` and `cannot parse construct near 'LINKAGE'`.
 
@@ -15,3 +15,4 @@ Also corrected the clause numbers in `ClosedFormats.EntryAwaitingItsName`'s comm
 **Self-review.** Architecture: the rule is one test in the report path, and it asks the slot's own question rather than a second copy; the first draft compared token indices by hand and could have fired after an integer in a procedure statement, so it was replaced by `FollowsALevelNumber`. Performance: error path only, and only at SECTION or DIVISION. Duplication: no second predicate; the design doc carries the paragraph. Found and left for the registrar, as other mechanisms: an unnamed report item with a gated USAGE word is read as a name (`10 NATIONAL COLUMN 1 PIC N(3) ...` draws COBOL0901), and `SCREEN SECTION.` then `01 SCREEN LINE 1.` draws COBOL5506 "expected CONSTANT" rather than naming the reserved word.
 
 **Gate.** `=== BUILD-LOCAL GATE: GREEN — Conformance 22,400/22,400 · Unit 40,366/40,366 · Characterization 37/37 cases ran (skipped 0) ===` on the code commit; the only commit after it touches this entry and the note. No script self-test or Linux step is part of the per-change gate (PB4327).
+
