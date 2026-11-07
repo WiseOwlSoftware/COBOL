@@ -64,7 +64,7 @@ publications.
 
 ## Page 1
 
-**ANSI INCITS 23-1985 (R2001)**
+***ANSI INCITS 23-1985 (R2001)***
 
 (formerly ANSI X3.23-1985 (R2001))
 
@@ -149,7 +149,7 @@ The American National Standards Institute does not develop standards and will in
 Published by
 
 **American National Standards Institute**
-11 West 42nd Street, New York, New York 10036
+**11 West 42nd Street, New York, New York 10036**
 
 Copyright ©1985 by Information Technology Industry Council (ITI)
 All rights reserved.
@@ -320,7 +320,7 @@ Others who contributed to the work on the revision were as follows.
 
 # Contents
 
-SECTION I:  INTRODUCTORY INFORMATION
+<u>SECTION I:  INTRODUCTORY INFORMATION</u>
 
 Chapter 1:  Introduction to the Standard
 
@@ -366,7 +366,7 @@ i
 
 ## Page 10
 
-SECTION II: CONCEPTS
+<u>SECTION II: CONCEPTS</u>
 
 | | | |
 |---|---|---|
@@ -378,14 +378,14 @@ SECTION II: CONCEPTS
 | 6. | Program and Run Unit Organization and Communication ............ | II-18 |
 | 7. | Communication Facility ............................................... | II-28 |
 
-SECTION III: GLOSSARY
+<u>SECTION III: GLOSSARY</u>
 
 | | | |
 |---|---|---|
 | 1. | Introduction ............................................................. | III-1 |
 | 2. | Definitions .............................................................. | III-1 |
 
-SECTION IV: OVERALL LANGUAGE CONSIDERATION
+<u>SECTION IV: OVERALL LANGUAGE CONSIDERATION</u>
 
 | | |
 |---|---|
@@ -427,13 +427,13 @@ Chapter 6: Divisions
 
 | | |
 |---|---|
-| SECTION V: COMPOSITE LANGUAGE SKELETON ............................ | V-1 |
+| <u>SECTION V: COMPOSITE LANGUAGE SKELETON</u> ............................ | V-1 |
 
 ii
 
 ## Page 11
 
-SECTION VI:  NUCLEUS MODULE
+<u>SECTION VI:  NUCLEUS MODULE</u>
 
 Chapter 1:  Introduction to the Nucleus Module
 
@@ -692,7 +692,7 @@ vi
 
 ## Page 15
 
-## SECTION X: INTER-PROGRAM COMMUNICATION MODULE
+## <u>SECTION X: INTER-PROGRAM COMMUNICATION MODULE</u>
 
 Chapter 1: Introduction to the Inter-Program Communication Module
 
@@ -740,7 +740,7 @@ Chapter 5: Procedure Division in the Inter-Program Communication Module
 | 5.5 | The USE Statement ................................................... | X-34 |
 | 5.6 | The USE BEFORE REPORTING Statement .................................. | X-35 |
 
-## SECTION XI: SORT-MERGE MODULE
+## <u>SECTION XI: SORT-MERGE MODULE</u>
 
 Chapter 1: Introduction to the Sort-Merge Module
 
@@ -948,9 +948,9 @@ x
 
 ## Page 19
 
-SECTION XVII: APPENDICES
+<u>SECTION XVII: APPENDICES</u>
 
-APPENDIX A: THE HISTORY OF COBOL
+<u>APPENDIX A: THE HISTORY OF COBOL</u>
 
 Chapter 1: The Development of COBOL
 
@@ -996,7 +996,7 @@ Chapter 4: International Standardization of COBOL
 | 4.2 | ISO Standard 1989-1978 for COBOL ................................ | XVII-14 |
 | 4.3 | ISO Standard 1989-1985 for COBOL ................................ | XVII-15 |
 
-APPENDIX B: DIFFERENCES BETWEEN SECOND AND THIRD STANDARD COBOL
+<u>APPENDIX B: DIFFERENCES BETWEEN SECOND AND THIRD STANDARD COBOL</u>
 
 Chapter 1: Summary of Differences Between Second and Third Standard COBOL ........................................... XVII-16
 
@@ -1113,7 +1113,7 @@ I-3
 
 Introduction
 
-COBOL and their occurrences within the various modules. Those elements which are not completely contained within one level of a module are shown in sufficient detail to specify the location of each subelement. For example, the READ statement appears in level 1 of the Sequential I-O module, the Relative I-O module, and the Indexed I-O module. Because certain phrases of the READ statement appear only in level 2 of these modules, the subelements of the READ statement are listed separately (see page I-59).
+COBOL and their occurrences within the various modules. Those elements which are not completely contained within one level of a module are shown in sufficient detail to specify the location of each subelement. For example, the READ statement appears in level 1 of the Sequential I-O module, the Relative I-O module, and the Indexed I-O module. Because certain phrases of the READ statement appear only in level 2 of these modules; the subelements of the READ statement are listed separately (see page I-59).
 
 The schematic diagram on page I-5 is a graphic representation of the 11 functional processing modules forming the content of Standard COBOL. This schematic diagram shows the hierarchy of levels within each functional processing module. Within the schematic diagram a shorthand notation (such as 2 INX 0,2) indicates the hierarchical position of any level within the functional processing module as well as the number of levels into which the elements of the module have been divided. This shorthand notation is composed of, from left to right, a one-digit number indicating the level's position in the hierarchy, a three-character module abbreviation, and a two-digit number indicating the minimum and maximum levels of the module to which the level belongs. The number zero indicates a null level for the lowest level within a module. For example, 2 INX 0,2 indicates that this level is the second non-null level (level 2) of the Indexed I-O module which contains a null level and two non-null levels (level 1 and level 2). 2 NUC 1,2 indicates that this level is the second non-null level of the Nucleus module which contains two non-null levels (level 1 and level 2).
 
@@ -1142,7 +1142,7 @@ Introduction
 <table>
 <tr>
 <th rowspan="2" colspan="2"></th>
-<th colspan="8">REQUIRED MODULES<br>(Required in Subsets)</th>
+<th colspan="7">REQUIRED MODULES<br>(Required in Subsets)</th>
 <th colspan="4">OPTIONAL MODULES<br>(Not Required in Subsets)</th>
 </tr>
 <tr>
@@ -1352,12 +1352,12 @@ I-10
 
 Nucleus Element Summary
 
-SUMMARY OF ELEMENTS IN THE NUCLEUS MODULE
+<u>SUMMARY OF ELEMENTS IN THE NUCLEUS MODULE</u>
 
 | ELEMENT | LEVEL 1 | LEVEL 2 |
 |---|---|---|
-| LANGUAGE CONCEPTS | | |
-| Character Set | | |
+| <u>LANGUAGE CONCEPTS</u> | | |
+| <u>Character Set</u> | | |
 | Characters used in words 0-9 A-Z - (hyphen) ................. | X | X |
 | Characters used in punctuation " ( ) . , ; space ............ | X | X |
 | Characters used in punctuation : (colon) .................... | N | X |
@@ -1367,10 +1367,10 @@ SUMMARY OF ELEMENTS IN THE NUCLEUS MODULE
 | Characters used in subscripting + - ......................... | X | X |
 | Single character substitution allowed ....................... | X | X |
 | Double character substitution allowed ....................... | Z | Z |
-| Separators | | |
+| <u>Separators</u> | | |
 | " ( ) . , ; space ........................................... | X | X |
 | : (colon) ................................................... | N | X |
-| Character-Strings | | |
+| <u>Character-Strings</u> | | |
 | COBOL words | | |
 | Maximum of 30 characters .................................... | X | X |
 | User-defined words | | |
@@ -1459,11 +1459,11 @@ I-12
 
 Nucleus Element Summary
 
-SUMMARY OF ELEMENTS IN THE NUCLEUS MODULE
+<u>SUMMARY OF ELEMENTS IN THE NUCLEUS MODULE</u>
 
 | ELEMENT | LEVEL 1 | LEVEL 2 |
 |---|---|---|
-| IDENTIFICATION DIVISION | | |
+| <u>IDENTIFICATION DIVISION</u> | | |
 | PROGRAM-ID paragraph | X | X |
 | Program-name | X | X |
 | AUTHOR paragraph | Z | Z |
@@ -1471,8 +1471,8 @@ SUMMARY OF ELEMENTS IN THE NUCLEUS MODULE
 | DATE-WRITTEN paragraph | Z | Z |
 | DATE-COMPILED paragraph | N | Z |
 | SECURITY paragraph | Z | Z |
-| ENVIRONMENT DIVISION | | |
-| Configuration Section | X | X |
+| <u>ENVIRONMENT DIVISION</u> | | |
+| <u>Configuration Section</u> | X | X |
 | SOURCE-COMPUTER paragraph | X | X |
 | Computer-name | X | X |
 | WITH DEBUGGING MODE clause | X | X |
@@ -1495,8 +1495,8 @@ SUMMARY OF ELEMENTS IN THE NUCLEUS MODULE
 | ON STATUS IS condition-name option | X | X |
 | OFF STATUS IS condition-name option | X | X |
 | SYMBOLIC CHARACTERS clause | N | X |
-| DATA DIVISION | | |
-| Working-Storage Section | X | X |
+| <u>DATA DIVISION</u> | | |
+| <u>Working-Storage Section</u> | X | X |
 | Record description entry | X | X |
 | 77 level description entry | X | X |
 | Data description entry | X | X |
@@ -1516,7 +1516,7 @@ I-13
 
 Nucleus Element Summary
 
-## SUMMARY OF ELEMENTS IN THE NUCLEUS MODULE
+## <u>SUMMARY OF ELEMENTS IN THE NUCLEUS MODULE</u>
 
 | ELEMENT | LEVEL 1 | LEVEL 2 |
 |---|---|---|
@@ -1699,7 +1699,7 @@ I-16
 
 Nucleus Element Summary
 
-# SUMMARY OF ELEMENTS IN THE NUCLEUS MODULE
+# <u>SUMMARY OF ELEMENTS IN THE NUCLEUS MODULE</u>
 
 | ELEMENT | LEVEL 1 | LEVEL 2 |
 |---|---|---|
@@ -1943,7 +1943,7 @@ I-21
 
 Relative I-O Element Summary
 
-## SUMMARY OF ELEMENTS IN THE RELATIVE I-O MODULE
+## <u>SUMMARY OF ELEMENTS IN THE RELATIVE I-O MODULE</u>
 
 | ELEMENT | LEVEL 1 | LEVEL 2 |
 |---|---|---|
@@ -2002,7 +2002,7 @@ I-22
 
 Relative I-O Element Summary
 
-# SUMMARY OF ELEMENTS IN THE RELATIVE I-O MODULE
+# <u>SUMMARY OF ELEMENTS IN THE RELATIVE I-O MODULE</u>
 
 | ELEMENT | LEVEL 1 | LEVEL 2 |
 |---|---|---|
@@ -2084,7 +2084,7 @@ I-24
 
 Indexed I-O Element Summary
 
-# SUMMARY OF ELEMENTS IN THE INDEXED I-O MODULE
+# <u>SUMMARY OF ELEMENTS IN THE INDEXED I-O MODULE</u>
 
 | ELEMENT | LEVEL 1 | LEVEL 2 |
 |---|---|---|
@@ -2192,7 +2192,7 @@ I-26
 
 Indexed I-O Element Summary
 
-# SUMMARY OF ELEMENTS IN THE INDEXED I-O MODULE
+# <u>SUMMARY OF ELEMENTS IN THE INDEXED I-O MODULE</u>
 
 | ELEMENT | LEVEL 1 | LEVEL 2 |
 |---|---|---|
@@ -2286,7 +2286,7 @@ I-28
 
 Inter-Program Communication Element Summary
 
-## SUMMARY OF ELEMENTS IN THE INTER-PROGRAM COMMUNICATION MODULE
+## <u>SUMMARY OF ELEMENTS IN THE INTER-PROGRAM COMMUNICATION MODULE</u>
 
 | ELEMENT | LEVEL 1 | LEVEL 2 |
 |---|---|---|
@@ -2379,7 +2379,7 @@ I-31
 
 Source Text Manipulation Element Summary
 
-## SUMMARY OF ELEMENTS IN THE SOURCE TEXT MANIPULATION MODULE
+## <u>SUMMARY OF ELEMENTS IN THE SOURCE TEXT MANIPULATION MODULE</u>
 
 | ELEMENT | LEVEL 1 | LEVEL 2 |
 |---|---|---|
@@ -2840,7 +2840,7 @@ I-42
 
 Language Concepts Element Summary
 
-# SUMMARY OF ELEMENTS IN LANGUAGE CONCEPTS
+# <u>SUMMARY OF ELEMENTS IN LANGUAGE CONCEPTS</u>
 
 | ELEMENT | MODULE |
 |---|---|
@@ -2868,7 +2868,7 @@ I-43
 
 Identification Division Element Summary
 
-## SUMMARY OF ELEMENTS IN IDENTIFICATION DIVISION
+## <u>SUMMARY OF ELEMENTS IN IDENTIFICATION DIVISION</u>
 
 | ELEMENT | MODULE |
 |---|---|
@@ -2900,12 +2900,12 @@ I-44
 
 Environment Division Element Summary
 
-## SUMMARY OF ELEMENTS IN ENVIRONMENT DIVISION
+## <u>SUMMARY OF ELEMENTS IN ENVIRONMENT DIVISION</u>
 
 | ELEMENT | MODULE |
 |---|---|
-| ENVIRONMENT DIVISION | |
-| Configuration Section | 1 NUC |
+| <u>ENVIRONMENT DIVISION</u> | |
+| <u>Configuration Section</u> | 1 NUC |
 | SOURCE-COMPUTER paragraph | 1 NUC |
 | Computer-name | 1 NUC |
 | WITH DEBUGGING MODE clause | 1 NUC |
@@ -2930,7 +2930,7 @@ Environment Division Element Summary
 | ON STATUS IS condition-name option | 1 NUC |
 | OFF STATUS IS condition-name option | 1 NUC |
 | SYMBOLIC CHARACTERS clause | 2 NUC |
-| Input-Output Section | 1 SEQ |
+| <u>Input-Output Section</u> | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
 | | 1 SRT |
@@ -2957,7 +2957,7 @@ I-45
 
 Environment Division Element Summary
 
-## SUMMARY OF ELEMENTS IN ENVIRONMENT DIVISION
+## <u>SUMMARY OF ELEMENTS IN ENVIRONMENT DIVISION</u>
 
 | ELEMENT | MODULE |
 |---|---|
@@ -3155,7 +3155,7 @@ I-50
 
 Data Division Element Summary
 
-# SUMMARY OF ELEMENTS IN DATA DIVISION
+# <u>SUMMARY OF ELEMENTS IN DATA DIVISION</u>
 
 | ELEMENT | MODULE |
 |---|---|
@@ -3237,7 +3237,7 @@ I-52
 
 Procedure Division Element Summary
 
-# SUMMARY OF ELEMENTS IN PROCEDURE DIVISION
+# <u>SUMMARY OF ELEMENTS IN PROCEDURE DIVISION</u>
 
 | ELEMENT | MODULE |
 |---|---|
@@ -3285,7 +3285,7 @@ I-53
 
 Procedure Division Element Summary
 
-## SUMMARY OF ELEMENTS IN PROCEDURE DIVISION
+## <u>SUMMARY OF ELEMENTS IN PROCEDURE DIVISION</u>
 
 | ELEMENT | MODULE |
 |---|---|
@@ -3344,7 +3344,7 @@ I-54
 
 Procedure Division Element Summary
 
-## SUMMARY OF ELEMENTS IN PROCEDURE DIVISION
+## <u>SUMMARY OF ELEMENTS IN PROCEDURE DIVISION</u>
 
 | ELEMENT | MODULE |
 |---|---|
@@ -3399,7 +3399,7 @@ I-55
 
 Procedure Division Element Summary
 
-SUMMARY OF ELEMENTS IN PROCEDURE DIVISION
+<u>SUMMARY OF ELEMENTS IN PROCEDURE DIVISION</u>
 
 | ELEMENT | MODULE |
 |---|---|
@@ -3511,7 +3511,7 @@ I-57
 
 Procedure Division Element Summary
 
-## SUMMARY OF ELEMENTS IN PROCEDURE DIVISION
+## <u>SUMMARY OF ELEMENTS IN PROCEDURE DIVISION</u>
 
 | ELEMENT | MODULE |
 |---|---|
@@ -3571,7 +3571,7 @@ I-58
 
 Procedure Division Element Summary
 
-# SUMMARY OF ELEMENTS IN PROCEDURE DIVISION
+# <u>SUMMARY OF ELEMENTS IN PROCEDURE DIVISION</u>
 
 | ELEMENT | MODULE |
 |---|---|
@@ -3610,7 +3610,7 @@ I-59
 
 Procedure Division Element Summary
 
-## SUMMARY OF ELEMENTS IN PROCEDURE DIVISION
+## <u>SUMMARY OF ELEMENTS IN PROCEDURE DIVISION</u>
 
 | ELEMENT | MODULE |
 |---|---|
@@ -3659,7 +3659,7 @@ I-60
 
 Procedure Division Element Summary
 
-## SUMMARY OF ELEMENTS IN PROCEDURE DIVISION
+## <u>SUMMARY OF ELEMENTS IN PROCEDURE DIVISION</u>
 
 | ELEMENT | MODULE |
 |---|---|
@@ -3766,7 +3766,7 @@ I-62
 
 Procedure Division Element Summary
 
-# SUMMARY OF ELEMENTS IN PROCEDURE DIVISION
+# <u>SUMMARY OF ELEMENTS IN PROCEDURE DIVISION</u>
 
 | ELEMENT | MODULE |
 |---|---|
@@ -3819,13 +3819,13 @@ I-63
 
 Concepts
 
-SECTION II: CONCEPTS
+<u>SECTION II: CONCEPTS</u>
 
-1. INTRODUCTION
+1. <u>INTRODUCTION</u>
 
 COBOL offers many features which allow the user to obtain a necessary function without programming the function in detail. In this section each of these features is discussed, considering the reason for its inclusion in the language and the concept of its use and organization.
 
-2. FILES
+2. <u>FILES</u>
 
 A file is a collection of records which may be placed into or retrieved from a storage medium. The user not only chooses the file organization, but also chooses the file processing method and sequence. Although the file organization and processing method are restricted for sequential media, no such restrictions exist for mass storage media.
 
@@ -4360,7 +4360,7 @@ Concepts - Program Communication
 
 files be stored. The storage associated with a data item or a file connector may be external or internal to the program in which the object is declared.
 
-5.2.2.1 Object Types
+6.2.2.1 Object Types
 
 6.2.2.1.1 Working Storage Records
 
@@ -5169,9 +5169,9 @@ III-7
 
 Glossary
 
-Division. A collection of zero, one, or more sections or paragraphs, called the division body, that are formed and combined in accordance with a specific set of rules. Each division consists of the division header and the related division body. There are four divisions in a COBOL program: Identification, Environment, Data, and Procedure.
+<u>Division</u>. A collection of zero, one, or more sections or paragraphs, called the division body, that are formed and combined in accordance with a specific set of rules. Each division consists of the division header and the related division body. There are four divisions in a COBOL program: Identification, Environment, Data, and Procedure.
 
-Division Header. A combination of words, followed by a separator period, that indicates the beginning of a division. The division headers in a COBOL program are:
+<u>Division Header</u>. A combination of words, followed by a separator period, that indicates the beginning of a division. The division headers in a COBOL program are:
 
 <pre style="line-height:1">
 IDENTIFICATION DIVISION.
@@ -5180,9 +5180,9 @@ DATA DIVISION.
 PROCEDURE DIVISION [USING {data-name-1} ... ].
 </pre>
 
-Dynamic Access. An access mode in which specific logical records can be obtained from or placed into a mass storage file in a nonsequential manner and obtained from a file in a sequential manner during the scope of the same OPEN statement. (See page III-19, Random Access, and page III-22, Sequential Access.)
+<u>Dynamic Access</u>. An access mode in which specific logical records can be obtained from or placed into a mass storage file in a nonsequential manner and obtained from a file in a sequential manner during the scope of the same OPEN statement. (See page III-19, Random Access, and page III-22, Sequential Access.)
 
-Editing Character. A single character or a fixed two-character combination belonging to the following set:
+<u>Editing Character</u>. A single character or a fixed two-character combination belonging to the following set:
 
 | Character | Meaning |
 |---|---|
@@ -5199,19 +5199,19 @@ Editing Character. A single character or a fixed two-character combination belon
 | . | period (decimal point) |
 | / | slant (solidus) |
 
-Elementary Item. A data item that is described as not being further logically subdivided.
+<u>Elementary Item</u>. A data item that is described as not being further logically subdivided.
 
-End of Procedure Division. The physical position of a COBOL source program after which no further procedures appear.
+<u>End of Procedure Division</u>. The physical position of a COBOL source program after which no further procedures appear.
 
-End Program Header. A combination of words, followed by a separator period, that indicates the end of a COBOL source program. The end program header is:
+<u>End Program Header</u>. A combination of words, followed by a separator period, that indicates the end of a COBOL source program. The end program header is:
 
 <pre style="line-height:1">
 END PROGRAM program-name.
 </pre>
 
-Entry. Any descriptive set of consecutive clauses terminated by a separator period and written in the Identification Division, Environment Division, or Data Division of a COBOL program.
+<u>Entry</u>. Any descriptive set of consecutive clauses terminated by a separator period and written in the Identification Division, Environment Division, or Data Division of a COBOL program.
 
-Environment Clause. A clause that appears as part of an Environment Division entry.
+<u>Environment Clause</u>. A clause that appears as part of an Environment Division entry.
 
 III-8
 
@@ -5628,7 +5628,7 @@ III-19
 
 Glossary
 
-Relational Operator. A reserved word, a relation character, a group of consecutive reserved words, or a group of consecutive reserved words and relation characters used in the construction of a relation condition. The permissible operators and their meanings are:
+<u>Relational Operator</u>. A reserved word, a relation character, a group of consecutive reserved words, or a group of consecutive reserved words and relation characters used in the construction of a relation condition. The permissible operators and their meanings are:
 
 | Relational Operator | Meaning |
 |---|---|
@@ -5638,25 +5638,25 @@ Relational Operator. A reserved word, a relation character, a group of consecuti
 | IS GREATER THAN OR EQUAL TO<br>IS &gt;= | Greater than or equal to |
 | IS LESS THAN OR EQUAL TO<br>IS &lt;= | Less than or equal to |
 
-Relative File. A file with relative organization.
+<u>Relative File</u>. A file with relative organization.
 
-Relative Key. A key whose contents identify a logical record in a relative file.
+<u>Relative Key</u>. A key whose contents identify a logical record in a relative file.
 
-Relative Organization. The permanent logical file structure in which each record is uniquely identified by an integer value greater than zero, which specifies the record's logical ordinal position in the file.
+<u>Relative Organization</u>. The permanent logical file structure in which each record is uniquely identified by an integer value greater than zero, which specifies the record's logical ordinal position in the file.
 
-Relative Record Number. The ordinal number of a record in a file whose organization is relative. This number is treated as a numeric literal which is an integer.
+<u>Relative Record Number</u>. The ordinal number of a record in a file whose organization is relative. This number is treated as a numeric literal which is an integer.
 
-Report Clause. A clause, in the Report Section of the Data Division, that appears in a report description entry or a report group description entry.
+<u>Report Clause</u>. A clause, in the Report Section of the Data Division, that appears in a report description entry or a report group description entry.
 
-Report Description Entry. An entry in the Report Section of the Data Division that is composed of the level indicator RD, followed by the report-name, followed by a set of report clauses as required.
+<u>Report Description Entry</u>. An entry in the Report Section of the Data Division that is composed of the level indicator RD, followed by the report-name, followed by a set of report clauses as required.
 
-Report File. An output file whose file description entry contains a REPORT clause. The contents of a report file consist of records that are written under control of the report writer control system.
+<u>Report File</u>. An output file whose file description entry contains a REPORT clause. The contents of a report file consist of records that are written under control of the report writer control system.
 
-Report Footing. A report group that is presented only at the end of a report.
+<u>Report Footing</u>. A report group that is presented only at the end of a report.
 
-Report Group. In the Report Section of the Data Division, an 01 level-number entry and its subordinate entries.
+<u>Report Group</u>. In the Report Section of the Data Division, an 01 level-number entry and its subordinate entries.
 
-Report Group Description Entry. An entry in the Report Section of the Data Division that is composed of the level-number 01, an optional data-name, a TYPE clause, and an optional set of report clauses.
+<u>Report Group Description Entry</u>. An entry in the Report Section of the Data Division that is composed of the level-number 01, an optional data-name, a TYPE clause, and an optional set of report clauses.
 
 III-20
 
@@ -6336,7 +6336,7 @@ A physical record is a physical unit of information whose size and recording mod
 
 A logical record may be contained within a single physical unit; or several logical records may be contained within a single physical unit; or a logical record may require more than one physical unit to contain it. There are several source language methods available for describing the relationship of logical records and physical units. When a permissible relationship has been established, control of the accessibility of logical records as related to the physical unit must be provided by the interaction of the object program on the implementor's hardware and/or software system. In this document, references to records means to logical records, unless the term 'physical record' is specifically used.
 
-The concept of a logical record is not restricted to file data but is carried over into the definition of working storage. Thus, working storage is grouped intc logical records and defined by a series of record description entries.
+The concept of a logical record is not restricted to file data but is carried over into the definition of working storage. Thus, working storage is grouped into logical records and defined by a series of record description entries.
 
 IV-13
 
@@ -6495,7 +6495,7 @@ Qualification
 
 The general formats for qualification are:
 
-Format 1:
+<u>Format 1</u>:
 
 <pre style="line-height:1">
                      ╭ ╭ ╭ <u>IN</u> ╮ data-name-2  ╮ …   ┌ ╭ <u>IN</u> ╮ ╭ file-name-1 ╮ ┐ ╮
@@ -6507,7 +6507,7 @@ Format 1:
                      ╰   ╰ <u>OF</u> ╯ ╰cd-name-1   ╯                                ╯
 </pre>
 
-Format 2:
+<u>Format 2</u>:
 
 <pre style="line-height:1">
                  ╭ <u>IN</u> ╮
@@ -6515,7 +6515,7 @@ Format 2:
 paragraph-name-1 ╰ <u>OF</u> ╯ section-name-1
 </pre>
 
-Format 3:
+<u>Format 3</u>:
 
 <pre style="line-height:1">
             ╭ <u>IN</u> ╮
@@ -6523,7 +6523,7 @@ text-name-1 ┤    ├ library-name-1
             ╰ <u>OF</u> ╯
 </pre>
 
-Format 4:
+<u>Format 4</u>:
 
 <pre style="line-height:1">
                ╭ <u>IN</u> ╮
@@ -6531,7 +6531,7 @@ Format 4:
                ╰ <u>OF</u> ╯
 </pre>
 
-Format 5:
+<u>Format 5</u>:
 
 <pre style="line-height:1">
 ╭ <u>PAGE-COUNTER</u> ╮ ╭ <u>IN</u> ╮
@@ -6539,7 +6539,7 @@ Format 5:
 ╰ <u>LINE-COUNTER</u> ╯ ╰ <u>OF</u> ╯
 </pre>
 
-Format 6:
+<u>Format 6</u>:
 
 <pre style="line-height:1">
             ╭ ╭ <u>IN</u> ╮             ┌ ╭ <u>IN</u> ╮               ┐ ╮
@@ -8200,7 +8200,7 @@ Data Division - Report Description Entry
 
 ## GENERAL FORMAT FOR REPORT GROUP DESCRIPTION ENTRY
 
-FORMAT 1:
+<u>FORMAT 1</u>:
 
 <pre style="line-height:1">
 01 [ data-name-1 ]
@@ -10181,6 +10181,8 @@ VI-20
 
 ## Page 253
 
+Nucleus - Data Description Entry
+
 <pre style="line-height:1">
 ╔ <u>Format</u> <u>2</u>:                                                                      ╗
 ║                                                                                ║
@@ -11082,13 +11084,13 @@ The VALUE clause defines the initial value of Communication Section and Working-
 
 ### 5.15.2 General Format
 
-Format 1:
+<u>Format 1</u>:
 
 <pre style="line-height:1">
 <u>VALUE</u> IS literal-1
 </pre>
 
-Format 2:
+<u>Format 2</u>:
 
 <pre style="line-height:1">
 ╔╭ <u>VALUE</u> IS   ╮ ╭             ┌ ╭ <u>THROUGH</u> ╮           ┐ ╮      ╗
@@ -11178,7 +11180,7 @@ The Procedure Division contains procedures to be executed by the object program 
 
 The general formats of the Procedure Division in the Nucleus are shown below.
 
-Format 1:
+<u>Format 1</u>:
 
 <pre style="line-height:1">
 <u>PROCEDURE</u> <u>DIVISION</u>.
@@ -11187,7 +11189,7 @@ Format 1:
 [ sentence ] … ] … } …
 </pre>
 
-Format 2:
+<u>Format 2</u>:
 
 <pre style="line-height:1">
 <u>PROCEDURE</u> <u>DIVISION</u>.
@@ -11937,7 +11939,7 @@ b. If the size of the transferred data exceeds the size of the receiving data it
 
 (5) If the FROM option is not given, the device that the implementor specifies as standard is used.
 
-FORMAT 2:
+<u>FORMAT 2</u>:
 
 (6) The ACCEPT statement causes the information requested to be transferred to the data item specified by identifier-2 according to the rules for the MOVE statement. (See page VI-103, The MOVE Statement.) DATE, DAY, DAY-OF-WEEK, and TIME are conceptual data items and, therefore, are not described in the COBOL program.
 
@@ -12759,6 +12761,8 @@ VI-94
 
 ## Page 327
 
+Nucleus - INSPECT
+
 <pre style="line-height:1">
 ╔<u>Format</u> <u>4</u>:                                                              ╗
 ║                                                                       ║
@@ -12773,7 +12777,7 @@ VI-94
 
 6.18.3 Syntax Rules
 
-ALL FORMATS:
+<u>ALL FORMATS</u>:
 
 (1) Identifier-1 must reference either a group item or any category of elementary item described, implicitly or explicitly, as USAGE IS DISPLAY.
 
@@ -12785,17 +12789,17 @@ ALL FORMATS:
 
 (5) In level 1, literal-1, literal-2, and literal-3, and the data items referenced by identifier-3, identifier-4, and identifier-5 must be one character in length. Except as specifically noted in syntax and general rules, this restriction on length does not apply to level 2.
 
-FORMATS 1 AND 3:
+<u>FORMATS 1 AND 3</u>:
 
 (6) Identifier-2 must reference an elementary numeric data item.
 
-FORMATS 2 AND 3:
+<u>FORMATS 2 AND 3</u>:
 
 (7) The size of literal-3 or the data item referenced by identifier-5 must be equal to the size of literal-1 or the data item referenced by identifier-3. When a figurative constant is used as literal-3, the size of the figurative constant is equal to the size of literal-1 or the size of the data item referenced by identifier-3.
 
 (8) When the CHARACTERS phrase is used, literal-2, literal-3, or the size of the data item referenced by identifier-4, identifier-5 must be one character in length.
 
-FORMAT 4:
+<u>FORMAT 4</u>:
 
 (9) The size of literal-5 or the data item referenced by identifier-7 must be equal to the size of literal-4 or the data item referenced by identifier-6. When a figurative constant is used as literal-5, the size of the figurative constant is equal to the size of literal-4 or the size of the data item referenced by identifier-6.
 
@@ -12810,7 +12814,7 @@ Nucleus - INSPECT
 
 ### 6.18.4 General Rules
 
-ALL FORMATS:
+<u>ALL FORMATS</u>:
 
 (1) Inspection (which includes the comparison cycle, the establishment of boundaries for the BEFORE or AFTER phrase, and the mechanism for tallying and/or replacing) begins at the leftmost character position of the data item referenced by identifier-1, regardless of its class, and proceeds from left to right to the rightmost character position as described in general rules 5 through 7.
 
@@ -12826,7 +12830,7 @@ c. If any of identifier-1, identifier-3, identifier-4, identifier-5, identifier-
 
 (4) Subscripting associated with any identifier is evaluated only once as the first operation in the execution of the INSPECT statement.
 
-FORMATS 1 AND 2:
+<u>FORMATS 1 AND 2</u>:
 
 (5) During inspection of the content of the data item referenced by identifier-1, each properly matched occurrence of literal-1 is tallied (format 1) or replaced by literal-3 (format 2).
 
@@ -12964,7 +12968,7 @@ VI-100
 
 Nucleus - INSPECT
 
-Example 2:
+<u>Example 2</u>:
 
 ```
 INSPECT ITEM TALLYING
@@ -12983,7 +12987,7 @@ INSPECT ITEM REPLACING
 | BBB | 3 | 0 | ZZZ |
 | ABA | 3 | 0 | ZZZ |
 
-Example 3:
+<u>Example 3</u>:
 
 ```
 INSPECT ITEM TALLYING
@@ -13198,7 +13202,7 @@ The MULTIPLY statement causes numeric data items to be multiplied and sets the v
 
 ### 6.20.2 General Format
 
-Format 1:
+<u>Format 1</u>:
 
 <pre style="line-height:1">
          ╭ identifier-1 ╮
@@ -13210,7 +13214,7 @@ Format 1:
 [ <u>END-MULTIPLY</u> ]
 </pre>
 
-Format 2:
+<u>Format 2</u>:
 
 <pre style="line-height:1">
          ╭ identifier-1 ╮    ╭ identifier-2 ╮
@@ -13261,7 +13265,7 @@ The PERFORM statement is used to transfer control explicitly to one or more proc
 
 ### 6.21.2 General Format
 
-Format 1:
+<u>Format 1</u>:
 
 <pre style="line-height:1">
         ┌                  ┌ ╭ <u>THROUGH</u> ╮                  ┐ ┐
@@ -13271,7 +13275,7 @@ Format 1:
 [ imperative-statement-1 <u>END-PERFORM</u> ]
 </pre>
 
-Format 2:
+<u>Format 2</u>:
 
 <pre style="line-height:1">
         ┌                  ┌ ╭ <u>THROUGH</u> ╮                  ┐ ┐
@@ -13283,7 +13287,7 @@ Format 2:
 ╰ integer-1    ╯
 </pre>
 
-Format 3:
+<u>Format 3</u>:
 
 <pre style="line-height:1">
          ┌                  ┌ ╭ <u>THROUGH</u> ╮                 ┐ ┐
@@ -13300,6 +13304,8 @@ Format 3:
 VI-109
 
 ## Page 342
+
+Nucleus - PERFORM
 
 <pre style="line-height:1">
 ╔<u>Format 4</u>:                                                 ╗
@@ -15367,20 +15373,20 @@ The RECORD clause specifies the number of character positions in a fixed length 
 
 ### 3.8.2 General Format
 
-Format 1:
+<u>Format 1</u>:
 
 <pre style="line-height:1">
 <u>RECORD</u> CONTAINS integer-1 CHARACTERS
 </pre>
 
-Format 2:
+<u>Format 2</u>:
 
 <pre style="line-height:1">
 ╔ <u>RECORD</u> IS <u>VARYING</u> IN SIZE [ [ FROM integer-2 ] [ <u>TO</u> integer-3 ] CHARACTERS ] ╗
 ╚ [ <u>DEPENDING</u> ON data-name-1 ]                                                 ╝
 </pre>
 
-Format 3:
+<u>Format 3</u>:
 
 <pre style="line-height:1">
 <u>RECORD</u> CONTAINS integer-4 <u>TO</u> integer-5 CHARACTERS
@@ -15388,11 +15394,11 @@ Format 3:
 
 ### 3.8.3 Syntax Rules
 
-FORMAT 1:
+<u>FORMAT 1</u>:
 
 (1) No record description entry for the file may specify a number of character positions greater than integer-1.
 
-FORMAT 2:
+<u>FORMAT 2</u>:
 
 (2) Record descriptions for the file must not describe records which contain a lesser number of character positions than that specified by integer-2 nor records which contain a greater number of character positions than that specified by integer-3.
 
@@ -15402,7 +15408,7 @@ FORMAT 2:
 
 ### 3.8.4 General Rules
 
-ALL FORMATS:
+<u>ALL FORMATS</u>:
 
 (1) If the RECORD clause is not specified, the size of each data record is completely defined in the record description entry.
 
@@ -18424,7 +18430,7 @@ For sequential access, the READ statement makes available the next logical recor
 
 ### 4.5.2 General Format
 
-Format 1:
+<u>Format 1</u>:
 
 <pre style="line-height:1">
 <u>READ</u> file-name-1║[<u>NEXT</u>]║RECORD  [<u>INTO</u> identifier-1]
@@ -18436,7 +18442,7 @@ Format 1:
    [<u>END-READ</u>]
 </pre>
 
-Format 2:
+<u>Format 2</u>:
 
 <pre style="line-height:1">
 <u>READ</u> file-name-1 RECORD [ <u>INTO</u> identifier-1 ]
@@ -22026,7 +22032,7 @@ XIII-28
 <table>
 <thead>
 <tr>
-<th colspan="2" rowspan="3">**</th>
+<th colspan="2" rowspan="2">**</th>
 <th colspan="7">Applicable Rules ***</th>
 </tr>
 <tr>
@@ -22034,6 +22040,8 @@ XIII-28
 <th colspan="2">If the PAGE clause is omitted.</th>
 </tr>
 <tr>
+<th>Sequence of LINE NUMBER clauses*</th>
+<th>NEXT GROUP clause</th>
 <th>Upper Limit</th>
 <th>Lower Limit</th>
 <th>First Print Line Position</th>
@@ -22041,11 +22049,6 @@ XIII-28
 <th>Final LINE-COUNTER Setting</th>
 <th>First Print Line Position</th>
 <th>Final LINE-COUNTER Setting</th>
-</tr>
-<tr>
-<th>Sequence of LINE NUMBER clauses*</th>
-<th>NEXT GROUP clause</th>
-<th colspan="7"></th>
 </tr>
 </thead>
 <tbody>
@@ -23666,7 +23669,7 @@ XIV-3
 
 Communication - CD Entry
 
-Format 2:
+<u>Format 2</u>:
 
 <pre style="line-height:1">
 <u>CD</u>  cd-name-1 FOR <u>OUTPUT</u>
@@ -23686,7 +23689,7 @@ Format 2:
      [SYMBOLIC <u>DESTINATION</u> IS data-name-5].
 </pre>
 
-Format 3:
+<u>Format 3</u>:
 
 <pre style="line-height:1">
 <u>CD</u>  cd-name-1
@@ -23705,11 +23708,11 @@ Format 3:
 
 **2.2.3 Syntax Rules**
 
-ALL FORMATS:
+<u>ALL FORMATS</u>:
 
 (1) A CD entry must appear only in the Communication Section.
 
-FORMATS 1 AND 3:
+<u>FORMATS 1 AND 3</u>:
 
 (2) Within a single program, the INITIAL clause may be specified in only one CD entry. The INITIAL clause must not be used in a program that specifies the USING phrase of the Procedure Division header. (See page X-25, The Procedure Division Header.)
 
@@ -24094,7 +24097,7 @@ XIV-15
 
 Communication - Error Key Values
 
-## 2.2.6 Error Key Valùes
+## 2.2.6 Error Key Values
 
 Table 2 below indicates the possible content of the data item referenced by data-name-4 for format 2 at the completion of each statement shown. An 'X' on a line in a statement column indicates that the associated error key value shown for that line is possible for that statement. The symbol ² indicates a level 2 element that is not available in level 1.
 
@@ -24380,13 +24383,13 @@ The SEND statement causes a message, a message segment, or a portion of a messag
 
 ### 3.6.2 General Format
 
-Format 1:
+<u>Format 1</u>:
 
 <pre style="line-height:1">
 ║ <u>SEND</u> cd-name-1 <u>FROM</u> identifier-1 ║
 </pre>
 
-Format 2:
+<u>Format 2</u>:
 
 <pre style="line-height:1">
                                      ╭ ║ WITH identifier-2 ║ ╮
@@ -24418,7 +24421,7 @@ Format 2:
 
 ### 3.6.4 General Rules
 
-ALL FORMATS:
+<u>ALL FORMATS</u>:
 
 (1) When a receiving communication device (printer, display screen, card punch, etc.) is oriented to a fixed line size:
 
@@ -24464,7 +24467,7 @@ message does not logically exist for the MCS and hence cannot be sent to a desti
 
 (8) Once the execution of a SEND statement has released a portion of a message to the MCS, only subsequent execution of SEND statements in the same run unit can cause the remaining portion of the message to be released.
 
-FORMAT 2:
+<u>FORMAT 2</u>:
 
 (9) The content of the data item referenced by identifier-2 indicates that the content of the data item referenced by identifier-1, when specified, is to have an associated end of segment indicator, end of message indicator, end of group indicator, or no indicator (which implies a portion of a message or a portion of a segment). If identifier-1 is not specified, only the indicator is transmitted to the MCS.
 
@@ -25209,7 +25212,7 @@ History of COBOL
 
         On May 28 and 29, 1959, a meeting was held for the purpose of considering both the desirability and the feasibility of establishing a common language for programming of computers in business data processing applications. This meeting was attended by representatives from users, both in private industry and in government, computer manufacturers, and other interested parties. It was agreed that the language must be open-ended and capable of accepting change and amendment, that it should be problem-oriented and machine-independent, and that it should use simple English or pseudo-English and avoid symbolism as far as possible. The COnference on DAta SYstems Languages (CODASYL) developed out of this meeting.
 
-        The original COBOL specifications resulted from the work of a committee of CODASYL. By September 1959 this committee had specified a framework upon which an effective common business language could be built. The name COBOL which suggests a CCommon BBusiness OOriented LLanguage was adopted for these specifications. The final report of this committee was accepted by the Executive Committee of CODASYL and published in April 1960. The document was titled: "COBOL - A Report to the Conference on Data Systems Languages, including Initial Specifications for a Common Business Oriented Language (COBOL) for Programming Electronic Digital Computers". The language described in this report has since become known as COBOL-60.
+        The original COBOL specifications resulted from the work of a committee of CODASYL. By September 1959 this committee had specified a framework upon which an effective common business language could be built. The name COBOL which suggests a COmmon Business Oriented Language was adopted for these specifications. The final report of this committee was accepted by the Executive Committee of CODASYL and published in April 1960. The document was titled: "COBOL - A Report to the Conference on Data Systems Languages, including Initial Specifications for a Common Business Oriented Language (COBOL) for Programming Electronic Digital Computers". The language described in this report has since become known as COBOL-60.
 
     1.2 **THE COBOL MAINTENANCE COMMITTEE**
 
@@ -25921,11 +25924,11 @@ XVII-19
 
 Identification Division Difference Summary
 
-## SUMMARY OF DIFFERENCES IN IDENTIFICATION DIVISION
+## <u>SUMMARY OF DIFFERENCES IN IDENTIFICATION DIVISION</u>
 
 | ELEMENT | 2ND STD | 3RD STD |
 |---|---|---|
-| **IDENTIFICATION DIVISION** | | |
+| <u>IDENTIFICATION DIVISION</u> | | |
 | PROGRAM-ID paragraph ............................................ | 1 NUC | 1 NUC |
 | &nbsp;Program-name ................................................ | 1 NUC | 1 NUC |
 | &nbsp;&nbsp;Identifies source program and listings ......................... | 1 NUC | 1 NUC |
@@ -25944,7 +25947,7 @@ XVII-20
 
 Environment Division Difference Summary
 
-## SUMMARY OF DIFFERENCES IN ENVIRONMENT DIVISION
+## <u>SUMMARY OF DIFFERENCES IN ENVIRONMENT DIVISION</u>
 
 | ELEMENT | 2ND STD | 3RD STD | |
 |---|---|---|---|
@@ -25995,7 +25998,7 @@ XVII-21
 
 Environment Division Difference Summary
 
-SUMMARY OF DIFFERENCES IN ENVIRONMENT DIVISION
+<u>SUMMARY OF DIFFERENCES IN ENVIRONMENT DIVISION</u>
 
 | ELEMENT | 2ND STD | 3RD STD |
 |---|---|---|
@@ -26080,11 +26083,11 @@ XVII-23
 
 Environment Division Difference Summary
 
-## SUMMARY OF DIFFERENCES IN ENVIRONMENT DIVISION
+## <u>SUMMARY OF DIFFERENCES IN ENVIRONMENT DIVISION</u>
 
 | ELEMENT | 2ND STD | 3RD STD |
 |---|---|---|
-| I-O-CONTROL paragraph (continued) | | |
+| <u>I-O-CONTROL paragraph (continued)</u> | | |
 | SAME AREA clause ........................................................ | 1 SEQ | 1 SEQ |
 | | 1 REL | 1 REL |
 | | 1 INX | 1 INX |
@@ -26268,7 +26271,7 @@ XVII-27
 
 Data Division Difference Summary
 
-## SUMMARY OF DIFFERENCES IN DATA DIVISION
+## <u>SUMMARY OF DIFFERENCES IN DATA DIVISION</u>
 
 | ELEMENT | 2ND STD | 3RD STD |
 |---|---|---|
@@ -26327,7 +26330,7 @@ XVII-28
 
 Data Division Difference Summary
 
-# SUMMARY OF DIFFERENCES IN DATA DIVISION
+# <u>SUMMARY OF DIFFERENCES IN DATA DIVISION</u>
 
 | ELEMENT | 2ND STD | 3RD STD |
 |---|---|---|
@@ -26478,7 +26481,7 @@ XVII-31
 
 Procedure Division Difference Summary
 
-## SUMMARY OF DIFFERENCES IN PROCEDURE DIVISION
+## <u>SUMMARY OF DIFFERENCES IN PROCEDURE DIVISION</u>
 
 | ELEMENT | 2ND STD | 3RD STD |
 |---|---|---|
@@ -26596,7 +26599,7 @@ XVII-33
 
 Procedure Division Difference Summary
 
-SUMMARY OF DIFFERENCES IN PROCEDURE DIVISION
+<u>SUMMARY OF DIFFERENCES IN PROCEDURE DIVISION</u>
 
 | ELEMENT | 2ND STD | 3RD STD | |
 |---|---|---|---|
@@ -26762,7 +26765,7 @@ XVII-36
 
 Procedure Division Difference Summary
 
-# SUMMARY OF DIFFERENCES IN PROCEDURE DIVISION
+# <u>SUMMARY OF DIFFERENCES IN PROCEDURE DIVISION</u>
 
 | ELEMENT | 2ND STD | 3RD STD |
 |---|---|---|
@@ -26819,7 +26822,7 @@ XVII-37
 
 Procedure Division Difference Summary
 
-SUMMARY OF DIFFERENCES IN PROCEDURE DIVISION
+<u>SUMMARY OF DIFFERENCES IN PROCEDURE DIVISION</u>
 
 | ELEMENT | 2ND STD | 3RD STD |
 |---|---|---|
@@ -26862,7 +26865,7 @@ XVII-38
 
 Procedure Division Difference Summary
 
-## SUMMARY OF DIFFERENCES IN PROCEDURE DIVISION
+## <u>SUMMARY OF DIFFERENCES IN PROCEDURE DIVISION</u>
 
 | ELEMENT | 2ND STD | 3RD STD |
 |---|---|---|
@@ -30629,7 +30632,7 @@ XVIII-13
 
 ## Page 821
 
-**ANSI INCITS 23a-1989 (R2001)**
+***ANSI INCITS 23a-1989 (R2001)***
 
 (formerly ANSI X3.23a-1989 (R2001))
 
@@ -30709,7 +30712,7 @@ The American National Standards Institute does not develop standards and will in
 Published by
 
 **American National Standards Institute**
-11 West 42nd Street, New York, New York 10036
+**11 West 42nd Street, New York, New York 10036**
 
 Copyright ©1989 by Information Technology Industry Council (ITI)
 All rights reserved.
@@ -30956,7 +30959,7 @@ for Information Systems –
 
 The following are the changes to be applied to the document entitled "American National Standard for Information Systems - Programming Language - COBOL, ANSI X3.23-1985, ISO 1989-1985", in order to include the language elements of the Intrinsic Function module and to correct typographical errors (indicated by the symbols (T) in the page number column). The changes add totally upward compatible language extensions to Standard COBOL except for the addition of the reserved word FUNCTION.
 
-| Page No. | Change to ANSI X3.23-1985 and ISO 1989-1985 |
+| <u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u> |
 |---|---|
 | ii | Add the following after the entry for section II, paragraph 7:<br><br>8. Intrinsic Function Facility . . . . . . . . . . . . . . . . . . . . . . . . . . . . II-36 |
 | iii | Change the entry for section VI, paragraph 1.3 to read:<br><br>1.3 Restrictions on Overall Language. . . . . . . . . . . . . . . . . . . . . . . . VI-1 |
@@ -30970,7 +30973,7 @@ A-1
 
 ## Page 832
 
-| Page No. | Change to ANSI X3.23-1985 and ISO 1989-1985 |
+| <u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u> |
 |---|---|
 | I-3 | Paragraph 1.3, first paragraph, first sentence, change to read: "...into nineteen sections." |
 | I-3 | Paragraph 1.3, third paragraph, first sentence, change to read: "Sections VI through XVI and section A contain specifications for the twelve functional...". |
@@ -31000,7 +31003,7 @@ A-3
 
 ## Page 834
 
-| Page No. | Change to ANSI X3.23-1985 and ISO 1989-1985 |
+| <u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u> |
 |---|---|
 | I-6 | Paragraph 1.5, second sentence, change "consists of 11 modules, seven of which are required and four of which are optional." to "consists of 12 modules, seven of which are required and five of which are optional. (It is the intention of X3J4 to require the Intrinsic Function module in the next complete revision of Standard COBOL.)" |
 | I-6 | Paragraph 1.5.1, first paragraph, last sentence, change to read: "The five optional modules (Report Writer, Communication, Debug, Segmentation, and Intrinsic Function) are not...". |
@@ -31010,7 +31013,7 @@ A-3
 
 An implementation of Standard COBOL must recognize as reserved words all of the COBOL reserved words occurring in the specification of the seven required modules and the four optional modules of Report Writer, Communication, Debug, and Segmentation. An implementation of Standard COBOL need not recognize any new reserved words introduced by the optional Intrinsic Function module until that module is included in the implementation. (See page IV-45, COBOL Reserved Words.)
 
-| Page No. | Change to ANSI X3.23-1985 and ISO 1989-1985 |
+| <u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u> |
 |---|---|
 | I-10 | Paragraph 2.1, last paragraph, add the following to the list:<br>• Page I-39: Summary of elements in the Intrinsic Function module |
 | I-12 | Change the entry for "Reference modification" to "Reference-modifier". |
@@ -31079,7 +31082,7 @@ A-5
 
 ## Page 836
 
-| Page No. | Change to ANSI X3.23-1985 and ISO 1989-1985 |
+| <u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u> |
 |---|---|
 | I-40 | Paragraph 3.1, second paragraph, add the following to the list: |
 
@@ -31087,7 +31090,7 @@ A-5
           ITR     Intrinsic Function
 </pre>
 
-| Page No. | Change to ANSI X3.23-1985 and ISO 1989-1985 |
+| <u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u> |
 |---|---|
 | I-41 (T) | Under "Character Set", change entry in MODULE column for "Characters used in punctuation =" from "1 STM" to "2 STM". |
 | I-42 | Add the following before the entry for "Literals"; align the word "Function-names" one position to the right of the word "Literals": |
@@ -31096,7 +31099,7 @@ A-5
 Function-names . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   1 ITR
 </pre>
 
-| Page No. | Change to ANSI X3.23-1985 and ISO 1989-1985 |
+| <u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u> |
 |---|---|
 | I-42 | Change the entry for "Reference modification" to "Reference-modifier". |
 | I-42 | Add the following before the entry for "Reference-modifier"; align the word "Function-identifier" with the word "Reference-modifier": |
@@ -31105,7 +31108,7 @@ Function-names . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   1 I
 Function-identifier . . . . . . . . . . . . . . . . . . . . . . . . . . . .   1 ITR
 </pre>
 
-| Page No. | Change to ANSI X3.23-1985 and ISO 1989-1985 |
+| <u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u> |
 |---|---|
 | I-45 (T) | Under "OBJECT-COMPUTER paragraph", change entry in MODULE column for "SEGMENT-LIMIT clause" from "1 SEG Z" to "2 SEG Z". |
 | I-51 (T) | In the line following "Level-number clause", change "may be 1 or 1 digits" to "may be 1 or 2 digits". |
@@ -31143,7 +31146,7 @@ A-6
 
 ## Page 837
 
-**Page No.** — **Change to ANSI X3.23-1985 and ISO 1989-1985**
+**<u>Page No.</u>** — **<u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>**
 
 | Entry | |
 |---|---|
@@ -31185,7 +31188,7 @@ A-7
 
 ## Page 838
 
-| Page No. | Change to ANSI X3.23-1985 and ISO 1989-1985 |
+| <u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u> |
 |---|---|
 | III-1<br>thru<br>III-26 | Insert the following terms into the glossary at the appropriate position in the alphabetic sequence:<br><br><u>Alphanumeric Function</u>. A function whose value is composed of a string of one or more characters from the computer's character set.<br><br><u>Argument</u>. An identifier, a literal, or an arithmetic expression that specifies a value to be used in the evaluation of a function.<br><br><u>Function</u>. A temporary data item whose value is determined by invoking a mechanism provided by the implementor at the time the function is referenced during the execution of a statement.<br><br><u>Function-Identifier</u>. A syntactically correct combination of character-strings and separators that references a function. The data item represented by a function is uniquely identified by a function-name with its arguments, if any. A function-identifier may include a reference-modifier. A function-identifier that references an alphanumeric function may be specified anywhere in the general formats that an identifier may be specified, subject to certain restrictions. A function-identifier that references an integer or numeric function may be referenced anywhere in the general formats that an arithmetic expression may be specified. (See page IV-22, Function-Identifier.)<br><br><u>Function-Name</u>. A word that names a mechanism provided by the implementor to determine the value of a function.<br><br><u>Integer Function</u>. A function whose category is numeric and whose definition provides that all digits to the right of the decimal point are zero in the returned value for any possible evaluation of the function.<br><br><u>Numeric Function</u>. A function whose class and category are numeric but which for some possible evaluation does not satisfy the requirements of an integer function. |
 | III-1<br>thru<br>III-26 | Replace the definitions as follows:<br><br><u>Data Item</u>. A unit of data (excluding literals) defined by a COBOL program or by the rules for function evaluation.<br><br><u>Identifier</u>. A syntactically correct combination of character-strings and separators that names a data item. When referencing a data item which is not a function, an identifier consists of a data-name, together with its qualifiers, subscripts, and reference-modifier, as required for uniqueness of reference. When referencing a data item which is a function, a function-identifier is used. The rules for 'identifier' associated with general formats may, however, specifically prohibit reference to functions, qualification, subscripting, or reference modification.<br><br><u>Integer</u>. (1) A numeric literal that does not include any digit positions to the right of the decimal point.<br><br>(2) A numeric data item defined in the Data Division that does not include any digit positions to the right of the decimal point. |
@@ -31194,7 +31197,7 @@ A-8
 
 ## Page 839
 
-Page No. | Change to ANSI X3.23-1985 and ISO 1989-1985
+<u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>
 
 (3) A numeric function whose definition provides that all digits to the right of the decimal point are zero in the returned value for any possible evaluation of the function.
 
@@ -31224,7 +31227,7 @@ A-9
 
 ## Page 840
 
-| Page No. | Change to ANSI X3.23-1985 and ISO 1989-1985 |
+| <u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u> |
 |---|---|
 | IV-9 | Add the following before paragraph 4.2.2.2:<br><br>**4.2.2.1.4 Function-Names**<br><br>A function-name is a word that is one of a specified list of words which may be used in COBOL source programs. The same word, in a different context, may appear in a program as a user-defined word or a system-name. (See page A-29, Definitions of Functions.) |
 | IV-15 | Paragraph 4.3.3, delete the last sentence and add the following new paragraphs:<br><br>Every data item which is a function is an elementary item, and belongs to one of the categories alphanumeric or numeric, and to the corresponding class; the category of each function is determined by the definition of the function. This definition is made in these specifications. (See page A-27, Intrinsic Function Module.)<br><br>The following table depicts the relationship of the class and categories of data items. |
@@ -31236,7 +31239,7 @@ A-10
 
 ## Page 841
 
-Page No. | **Change to ANSI X3.23-1985 and ISO 1989-1985**
+<u>Page No.</u> | **<u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>**
 
 IV-21 Paragraph 4.3.8.2.2, replace the general format with the following:
 
@@ -31284,7 +31287,7 @@ A-11
 
 ## Page 842
 
-Page No. Change to ANSI X3.23-1985 and ISO 1989-1985
+<u>Page No.</u> <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>
 
 a. As a receiving operand of any statement.
 
@@ -31326,7 +31329,7 @@ A-12
 
 ## Page 843
 
-| Page No. | Change to ANSI X3.23-1985 and ISO 1989-1985 |
+| <u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u> |
 |---|---|
 | IV-23 | New paragraph 4.3.8.4.4, general rule 4, change the first sentence to read: "Reference modification creates a unique data item that is a subset of the data item referenced by data-name-1 or by function-name-1 and its arguments, if any." |
 | IV-23 | New paragraph 4.3.8.4.4, general rule 4, paragraphs a and b, replace four occurrences of "the data item referenced by data-name-1" by "the data item referenced by data-name-1 or function-name-1 and its arguments, if any". |
@@ -31364,7 +31367,7 @@ data-name-1 │┤  ├ data-name-2 │ …   │┤  ├ ┤file-name-1   ├ �
 
 (1) The words IN and OF are equivalent.
 
-| Page No. | Change to ANSI X3.23-1985 and ISO 1989-1985 |
+| <u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u> |
 |---|---|
 | IV-45 | Paragraph 8, insert the following before the list of reserved words: |
 
@@ -31374,7 +31377,7 @@ A-13
 
 ## Page 844
 
-Page No. | Change to ANSI X3.23-1985 and ISO 1989-1985
+<u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>
 
 **IV-46** Paragraph 8, insert the following after the list of reserved words:
 
@@ -31432,17 +31435,17 @@ A-14
 
 ## Page 845
 
-| Page No. | Change to ANSI X3.23-1985 and ISO 1989-1985 |
+| <u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u> |
 |---|---|
 | V-38 | Change the format for identifier to read: |
 
-Format 1:
+<u>Format 1</u>:
 
 <pre style="line-height:1">
 function-identifier-1
 </pre>
 
-Format 2:
+<u>Format 2</u>:
 
 <pre style="line-height:1">
                                    ┌     ╭cd-name-1     ╮ ┐
@@ -31454,7 +31457,7 @@ data-name-1 │┤  ├ data-name-2│ …   │┤  ├ ┤file-name-1   ├ �
      [({subscript} …   )] [reference-modifier]
 </pre>
 
-| Page No. | Change to ANSI X3.23-1985 and ISO 1989-1985 |
+| <u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u> |
 |---|---|
 | V-38 | Insert after page V-38 the contents of pages A-16 and A-17 which contain the general format for functions. |
 
@@ -31566,7 +31569,7 @@ A-17
 
 ## Page 848
 
-| Page No. | Change to ANSI X3.23-1985 and ISO 1989-1985 |
+| <u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u> |
 |---|---|
 | VI-1 | Paragraph 1.3, change title to read: "RESTRICTIONS ON OVERALL LANGUAGE". |
 | VI-2 | Renumber paragraphs 1.3.5 and 1.3.6 to 1.3.6 and 1.3.7, respectively; and add new paragraph 1.3.5 without boxing as follows:<br><br>1.3.5 Function-Identifier<br><br>The availability of function-identifiers is dependent on whether the Intrinsic Function module is supported by the implementation. |
@@ -31586,7 +31589,7 @@ A-18
 
 ## Page 849
 
-| Page No. | Change to ANSI X3.23-1985 and ISO 1989-1985 |
+| <u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u> |
 |---|---|
 | VII-6 (T) | Paragraph 2.1, in the Input-Output Section of the Sequential I-O module, delete the box around the general format: |
 
@@ -31594,7 +31597,7 @@ A-18
 [ <u>I-O-CONTROL</u>. [ input-output-control-entry ] ]
 </pre>
 
-| Page No. | Change to ANSI X3.23-1985 and ISO 1989-1985 |
+| <u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u> |
 |---|---|
 | VII-48 | Paragraph 4.5.3, change syntax rule 1 to read:<br><br>(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area. |
 | VII-52 | Paragraph 4.7.3, change syntax rule 1 to read:<br><br>(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area. |
@@ -31612,7 +31615,7 @@ A-19
 
 ## Page 850
 
-Page No. | Change to ANSI X3.23-1985 and ISO 1989-1985
+<u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>
 ---|---
 IX-41 | Paragraph 4.9.3, change syntax rule 1 to read:<br><br>(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.
 X-1 (T) | Paragraph 1.1, Function for Inter-Program Communication module, fifth line, change "data value available" to "data values available".
@@ -31633,7 +31636,7 @@ A-20
 
 ## Page 851
 
-Page No. | Change to ANSI X3.23-1985 and ISO 1989-1985
+<u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>
 ---|---
 XIII-7 (T) | Paragraph 3.2.2 of the file description entry in the Report Writer module, VALUE OF clause, delete the fourth period in the ellipsis.
 XIV-3 (T) | Paragraph 2.2.2 of the communication description entry, delete the commas between data-name-1 through data-name-11, inclusively, in format 1.
@@ -31658,7 +31661,7 @@ A-21
 
 ## Page 852
 
-Page No. | Change to ANSI X3.23-1985 and ISO 1989-1985
+<u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>
 ---|---
 
 addendum to American National Standard COBOL X3.23-1985. The specifications of this approved Addendum 1 are published in the American National Standards Institute document X3.23A-1989.
@@ -31698,7 +31701,7 @@ A-22
 
 ## Page 853
 
-**Page No.** | **Change to ANSI X3.23-1985 and ISO 1989-1985**
+**<u>Page No.</u>** | **<u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>**
 
 **XVII-31** Add the following before the entry for "ACCEPT statement":
 
@@ -31756,7 +31759,7 @@ A-23
 
 ## Page 854
 
-| Page No. | Change to ANSI X3.23-1985 and ISO 1989-1985 |
+| <u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u> |
 |---|---|
 | XVII-64 (T) | Substantive change 26, entitled "PERFORM statement", prior to the last paragraph on the page, delete: "Under second Standard COBOL, PARA3 will be executed 8 times as shown above. Under third Standard COBOL, PARA3 will be executed 6 times as shown above." |
 | XVII-70 (T) | Substantive change 37, entitled "File position indicator", first paragraph, second line, change "access made" to "access mode". |
@@ -31770,7 +31773,7 @@ A-24
 
 ## Page 855
 
-**Page No.** **Change to ANSI X3.23-1985 and ISO 1989-1985**
+**<u>Page No.</u>** **<u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>**
 
 Cosine function, A-38
 CURRENT-DATE function, A-39
@@ -31829,7 +31832,7 @@ A-25
 
 ## Page 856
 
-| Page No. | Change to ANSI X3.23-1985 and ISO 1989-1985 |
+| <u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u> |
 |---|---|
 | | UPPER-CASE function, A-73<br>VARIANCE function, A-74<br>WHEN-COMPILED function, A-75 |
 
@@ -33414,7 +33417,7 @@ The American National Standards Institute does not develop standards and will in
 Published by
 
 **American National Standards Institute**
-11 West 42nd Street, New York, New York 10036
+**11 West 42nd Street, New York, New York 10036**
 
 Copyright ©1994 by Information Technology Industry Council (ITI)
 All rights reserved.
@@ -34344,7 +34347,7 @@ For example, third Standard COBOL does not define what would happen when the fol
 <pre style="line-height:1">
 01  GROUP-ITEM-1.
     05  ODO-DEPEND  PIC 9.
-    05  ODO-TABL.
+    05  0D0-TABL.
         10  ELEM  OCCURS 0 TO 9 TIMES
                 DEPENDING ON ODO-DEPEND
                 PIC X.
