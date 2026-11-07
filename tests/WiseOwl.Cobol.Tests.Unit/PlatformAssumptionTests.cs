@@ -49,15 +49,23 @@ public sealed class PlatformAssumptionTests : IDisposable
     private readonly ITestOutputHelper _output;
     private readonly string _work = ScratchDirectory.Create("pb4739-");
 
+    /// <summary>Where every socket of this class lives, a fresh directory of the socket directory's own shape, because that is the shape the product's budget covers. Never under
+    /// <see cref="_work"/>: a scratch directory's depth depends on the host's user name and process id, and a CI runner's left eight bytes of the limit for a name (kb/Work PB4742).</summary>
+    private readonly string _sockets = WiseOwl.Cobol.Runtime.Mcs.McsSocketDirectory.Resolve(WiseOwl.Cobol.Runtime.Mcs.McsSocketDirectory.NewRunId()).Path.TrimEnd(Path.DirectorySeparatorChar);
+
     public PlatformAssumptionTests(ITestOutputHelper output)
     {
         _output = output;
         Assert.True(Socket.OSSupportsUnixDomainSockets, "this host's .NET reports no AF_UNIX support");
     }
 
-    public void Dispose() => ScratchDirectory.Remove(_work);
+    public void Dispose()
+    {
+        ScratchDirectory.Remove(_sockets);
+        ScratchDirectory.Remove(_work);
+    }
 
-    private string SocketPath(string name) => Path.Combine(_work, name);
+    private string SocketPath(string name) => Path.Combine(_sockets, name);
 
     private static Socket NewSocket() => new(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
 
@@ -238,11 +246,11 @@ public sealed class PlatformAssumptionTests : IDisposable
     /// more that it refuses: the constant <c>McsSocketDirectory.Fits</c> will be written against (§6).</summary>
     private int MeasureMaxPathBytes()
     {
-        int baseBytes = Encoding.UTF8.GetByteCount(_work) + 1;
+        int baseBytes = Encoding.UTF8.GetByteCount(_sockets) + 1;
         int longest = 0;
         for (int name = 1; baseBytes + name <= 240; name++)
         {
-            string path = Path.Combine(_work, new string('p', name));
+            string path = SocketPath(new string('p', name));
             using var socket = NewSocket();
             try { Bind(socket, path); }
             catch (Exception e) when (e is SocketException or ArgumentOutOfRangeException)
@@ -267,8 +275,8 @@ public sealed class PlatformAssumptionTests : IDisposable
         else if (OperatingSystem.IsMacOS()) Assert.Equal(103, max);     // sys/un.h: char sun_path[104]
 
         // The path at the limit binds, listens and is connectable; one byte more is refused.
-        int baseBytes = Encoding.UTF8.GetByteCount(_work) + 1;
-        string atLimit = Path.Combine(_work, new string('q', max - baseBytes));
+        int baseBytes = Encoding.UTF8.GetByteCount(_sockets) + 1;
+        string atLimit = SocketPath(new string('q', max - baseBytes));
         using (var server = Listening(atLimit))
         using (var client = NewSocket())
         {
@@ -278,7 +286,7 @@ public sealed class PlatformAssumptionTests : IDisposable
         }
         File.Delete(atLimit);
         using var tooLong = NewSocket();
-        Assert.ThrowsAny<Exception>(() => Bind(tooLong, Path.Combine(_work, new string('q', max - baseBytes + 1))));
+        Assert.ThrowsAny<Exception>(() => Bind(tooLong, SocketPath(new string('q', max - baseBytes + 1))));
     }
 
     [Fact]
@@ -290,7 +298,7 @@ public sealed class PlatformAssumptionTests : IDisposable
         var cases = new List<(string Label, string Directory)>();
         if (OperatingSystem.IsWindows())
         {
-            cases.Add(("Path.GetTempPath()", Path.GetTempPath() + "wiseowl-mcs\\" + hash + "\\"));
+            cases.Add(("Path.GetTempPath()", WiseOwl.Cobol.Runtime.Mcs.McsSocketDirectory.WindowsDirectory(Path.GetTempPath(), hash)));
         }
         else
         {

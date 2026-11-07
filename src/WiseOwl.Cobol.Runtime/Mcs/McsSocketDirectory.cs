@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Globalization;
+using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
@@ -55,8 +56,7 @@ internal sealed class McsSocketDirectory
     {
         if (OperatingSystem.IsWindows())
         {
-            string windows = System.IO.Path.GetTempPath() + WindowsFolder + "\\" + identity + "\\";
-            return new McsSocketDirectory(Create(windows));
+            return new McsSocketDirectory(Create(WindowsDirectory(System.IO.Path.GetTempPath(), identity)));
         }
         string? runtime = Environment.GetEnvironmentVariable(RuntimeDirectoryVariable);
         uint uid = EffectiveUserId();
@@ -75,6 +75,25 @@ internal sealed class McsSocketDirectory
             if (FitsUnder(underRuntime, LongestEntryBytes)) return underRuntime;
         }
         return "/tmp/" + tail;
+    }
+
+    /// <summary>The Windows socket directory under <paramref name="tempPath"/> (<see cref="System.IO.Path.GetTempPath"/>, which ends in its separator).</summary>
+    internal static string WindowsDirectory(string tempPath, string identity) => tempPath + WindowsFolder + "\\" + identity + "\\";
+
+    /// <summary>The socket directory at <paramref name="path"/> as it stands: nothing is created or checked. For a caller that has already formed a path by
+    /// <see cref="UnixDirectory"/> or <see cref="WindowsDirectory"/> and asks the budget of it; no setting reaches this, so a user still cannot name another directory.</summary>
+    internal static McsSocketDirectory Under(string path) => new(path);
+
+    /// <summary>⛔ THE ONE PLACE AN AF_UNIX PATH BECOMES AN ENDPOINT (DESIGN-message-control.md §6 "The budget"; <c>AfUnixEndPointDriftTests</c> holds the runtime to it).
+    /// .NET's constructor answers a path it cannot hold with an <see cref="ArgumentOutOfRangeException"/>; a path comes from the host's temp directory or from
+    /// <c>WISEOWL_COBOL_MCS_NOTIFY</c>, so that is a failure of the run unit's environment, never of the program, and it is an <see cref="IOException"/> naming the path and the limit.
+    /// Ask before making the socket, so a path refused leaves nothing to dispose. A NUL is refused too: a leading one names a Linux abstract socket, which is no file of the socket directory.</summary>
+    internal static UnixDomainSocketEndPoint EndPointOf(string path)
+    {
+        int bytes = Encoding.UTF8.GetByteCount(path);
+        if (bytes == 0 || bytes > MaxPathBytes || path.Contains('\0'))
+            throw new IOException($"'{path}' cannot be an AF_UNIX path: it is {bytes} bytes, and such a path holds 1 to {MaxPathBytes} bytes and no NUL");
+        return new UnixDomainSocketEndPoint(path);
     }
 
     private static bool FitsUnder(string directory, int tailBytes) => Encoding.UTF8.GetByteCount(directory) + tailBytes <= MaxPathBytes;

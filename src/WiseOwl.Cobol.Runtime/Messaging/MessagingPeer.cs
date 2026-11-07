@@ -34,9 +34,17 @@ internal sealed class MessagingPeer
     private string? _failure;
     private bool _started, _ended;
     private StatementResult? _result;
+    private readonly Func<string, McsSocketDirectory> _sockets;
 
     /// <summary>A peer whose settings are read when it starts: <paramref name="settings"/> is the run unit's, which a host may replace until the first statement.</summary>
-    internal MessagingPeer(Func<MessagingSettings> settings) => _settings = settings;
+    internal MessagingPeer(Func<MessagingSettings> settings) : this(settings, McsSocketDirectory.Resolve) { }
+
+    /// <summary>A peer that resolves its socket directory with <paramref name="sockets"/>: how a test stands on a host whose temp path is long, whatever this host's is.</summary>
+    internal MessagingPeer(Func<MessagingSettings> settings, Func<string, McsSocketDirectory> sockets)
+    {
+        _settings = settings;
+        _sockets = sockets;
+    }
 
     /// <summary>The run id <c>&lt;r&gt;</c> of this run unit, once it has started (null before, and when the start failed).</summary>
     internal string? RunId { get; private set; }
@@ -228,7 +236,7 @@ internal sealed class MessagingPeer
         {
             var directory = McsDirectory.Resolve(settings.Directory);
             string identity = directory.Identity;
-            var sockets = McsSocketDirectory.Resolve(identity);
+            var sockets = _sockets(identity);
             if (!sockets.Fits(McsSocketDirectory.LongestEntryBytes))
                 throw new IOException($"the socket directory '{sockets.Path}' leaves no room for a socket entry: an AF_UNIX path holds at most {McsSocketDirectory.MaxPathBytes} bytes, and the longest entry adds {McsSocketDirectory.LongestEntryBytes}");
             string runId = McsSocketDirectory.NewRunId();
@@ -238,10 +246,11 @@ internal sealed class MessagingPeer
             if (settings.ServedName is not null)
             {
                 Execute(_protocol.Serve());                // publish the listener, then ring the pending bells (design 5.4.1)
-                if (settings.NotifyPath is { } notify) _transport.Notify(notify);   // design 5.4.5: the requestor that started this server learns its listener is published
+                // design 5.4.5: the requestor that started this server learns its listener is published, so a Publish that failed tells it nothing (the first RECEIVE that needs a requestor says why, design 5.4)
+                if (settings.NotifyPath is { } notify && !_answers.Any(answer => answer is ActionFailed { Action: Publish })) _transport.Notify(notify);
             }
         }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException or System.Net.Sockets.SocketException)
         {
             _failure = e.Message;
             _transport?.Dispose();

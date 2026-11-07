@@ -31,10 +31,10 @@ public sealed class MessagingPeerTests : IDisposable
         ScratchDirectory.Remove(_work);
     }
 
-    private MessagingPeer Peer(string? served, TimeProvider? time = null, string? notify = null)
+    private MessagingPeer Peer(string? served, TimeProvider? time = null, string? notify = null, Func<string, McsSocketDirectory>? sockets = null)
     {
         var settings = new MessagingSettings { Directory = _work, ServedName = served, NotifyPath = notify, Time = time ?? TimeProvider.System };
-        var peer = new MessagingPeer(() => settings);
+        var peer = new MessagingPeer(() => settings, sockets ?? McsSocketDirectory.Resolve);
         _peers.Add(peer);
         peer.StartServing();
         return peer;
@@ -45,8 +45,11 @@ public sealed class MessagingPeerTests : IDisposable
 
     private static StatementResult Result(Task<StatementResult> task) => task.GetAwaiter().GetResult();
 
-    private string SocketFile(string kind, string spelling, string runId) =>
-        Path.Combine(McsSocketDirectory.Resolve(McsDirectory.Resolve(_work).Identity).Path, kind, spelling, runId);
+    /// <summary><c>&lt;S&gt;</c>. A socket a test binds or names lives here, as <c>n/&lt;r&gt;</c> does (design 5.1), because the budget covers <c>&lt;S&gt;</c>:
+    /// the test's scratch directory is deep under the temp directory, and how deep depends on the host's user name and process id.</summary>
+    private string SocketDirectory => McsSocketDirectory.Resolve(McsDirectory.Resolve(_work).Identity).Path;
+
+    private string SocketFile(string kind, string spelling, string runId) => Path.Combine(SocketDirectory, kind, spelling, runId);
 
     [Fact]
     public void ARequestAndItsReplyCrossTheSocketsAndTheTagsRouteThem()
@@ -193,26 +196,72 @@ public sealed class MessagingPeerTests : IDisposable
     [Fact]
     public void AServerStartedByARequestorConnectsToItsNotifySocketOncePublished()
     {
-        string notify = Path.Combine(_work, "notify");
+        string notify = Path.Combine(SocketDirectory, "n-test");
         using var listener = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
         listener.Bind(new UnixDomainSocketEndPoint(notify));
         listener.Listen(1);
         var server = Peer("NOTE", notify: notify);
+        Assert.Null(server.StartFailure);                                             // first: a start that failed connected to nothing, and the Accept would wait for ever
         using var accepted = listener.Accept();
-        Assert.Null(server.StartFailure);
         Assert.True(File.Exists(SocketFile("s", "NOTE", server.RunId!)));             // the listener was published before the notification
     }
 
     [Fact]
     public void ANotifySocketThatRefusesIsAStartFailureAndEveryStatementIsImpWithTheReason()
     {
-        var server = Peer("NOTIFAIL", notify: Path.Combine(_work, "nobody-listens"));
-        Assert.NotNull(server.StartFailure);
+        var server = Peer("NOTIFAIL", notify: Path.Combine(SocketDirectory, "n-none"));
+        Assert.Contains("refused", server.StartFailure);                              // the refusal itself, not a path the socket could not hold
         var result = server.Receive(default, 1, MessageWait.Poll);
         Assert.Equal(ExceptionCatalog.McsImp, result.ExceptionName);
         Assert.Equal(server.StartFailure, result.Detail);
         Assert.False(File.Exists(SocketFile("s", "NOTIFAIL", server.RunId ?? "")));   // the half-started listener was unpublished
         Assert.Equal(ExceptionCatalog.McsImp, server.Send("ANY", MessageBody.Of("X")).ExceptionName);
+    }
+
+    [Fact]
+    public void ANotifyPathOverTheAfUnixLimitIsAStartFailureWithItsReasonNeverAnException()
+    {
+        string tooLong = Path.Combine(SocketDirectory, new string('n', McsSocketDirectory.MaxPathBytes));      // over the limit on every host, whatever <S> is
+        var server = Peer("NOTELONG", notify: tooLong);
+        Assert.Contains(tooLong, server.StartFailure);
+        Assert.Contains(McsSocketDirectory.MaxPathBytes.ToString(System.Globalization.CultureInfo.InvariantCulture), server.StartFailure);
+        var result = server.Receive(default, 1, MessageWait.Poll);
+        Assert.Equal(ExceptionCatalog.McsImp, result.ExceptionName);
+        Assert.Equal(server.StartFailure, result.Detail);
+        Assert.Empty(Directory.EnumerateFileSystemEntries(Path.GetDirectoryName(SocketFile("s", "NOTELONG", "x"))!));   // the half-started listener was unpublished
+    }
+
+    [Fact]
+    public void ASocketDirectoryWithNoRoomOnALongTempRootIsAStartFailureAndCreatesNothing()
+    {
+        string longTemp = Path.Combine(_work, new string('t', McsSocketDirectory.MaxPathBytes)) + Path.DirectorySeparatorChar;     // a host whose temp path is long
+        foreach (bool serves in new[] { true, false })
+        {
+            var peer = Peer(serves ? "LONGROOT" : null, sockets: identity => McsSocketDirectory.Under(McsSocketDirectory.WindowsDirectory(longTemp, identity)));
+            var result = peer.Send("ANY", MessageBody.Of("X"));                       // a run unit that serves nothing starts at its first statement
+            Assert.Equal(ExceptionCatalog.McsImp, result.ExceptionName);
+            Assert.Contains("leaves no room", result.Detail);
+            Assert.Contains(longTemp, result.Detail);
+            Assert.Equal(peer.StartFailure, result.Detail);
+            Assert.Null(peer.RunId);
+        }
+        Assert.False(Directory.Exists(longTemp));
+    }
+
+    [Fact]
+    public void APublishThatFailsTellsTheNotifySocketNothingAndTheReceiveThatNeedsARequestorIsImp()
+    {
+        string notify = Path.Combine(SocketDirectory, "n-test");
+        using var listener = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
+        listener.Bind(new UnixDomainSocketEndPoint(notify));
+        listener.Listen(1);
+        File.WriteAllText(Path.Combine(SocketDirectory, "t"), "");                    // a file where Publish needs its directory t/: every Publish is refused
+        var server = Peer("NOPUB", notify: notify);
+        Assert.Null(server.StartFailure);                                             // design 5.4: a Publish owes no answer; the listener never published
+        Assert.False(listener.Poll(0, SelectMode.SelectRead));                        // Start has returned, so a notification would already be pending
+        var result = server.Receive(default, 1, MessageWait.Poll);
+        Assert.Equal(ExceptionCatalog.McsImp, result.ExceptionName);
+        Assert.False(File.Exists(SocketFile("s", "NOPUB", server.RunId!)));
     }
 
     [Fact]

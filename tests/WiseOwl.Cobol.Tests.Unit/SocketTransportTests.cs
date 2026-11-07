@@ -323,6 +323,48 @@ public sealed class SocketTransportTests : IDisposable
         Assert.Throws<IOException>(() => notifier.Notify(path));
     }
 
+    [Fact]
+    public void APathNoAfUnixSocketCanHoldIsAnIoFailureOnEveryPathAndLeavesNothingBehind()
+    {
+        var (transport, _, runId) = Run();
+        string tooLong = new('n', McsSocketDirectory.MaxPathBytes);                   // too long under any <S>, whatever this host's temp path is
+        int room = McsSocketDirectory.MaxPathBytes - System.Text.Encoding.UTF8.GetByteCount(_sockets.Path);
+
+        Assert.Contains("AF_UNIX", Assert.Throws<IOException>(() => transport.Notify(Path.Combine(_sockets.Path, tooLong))).Message);
+        Assert.Contains("AF_UNIX", Assert.Throws<IOException>(() => transport.Notify("")).Message);
+        Assert.Contains("AF_UNIX", Assert.Throws<IOException>(() => transport.Notify("a\0b")).Message);
+        Assert.Contains("AF_UNIX", Assert.Throws<IOException>(() => transport.Connect(Server(tooLong, runId))).Message);
+        Assert.Contains("AF_UNIX", Assert.Throws<IOException>(() => transport.Publish(Server(tooLong, runId))).Message);
+        Assert.False(Directory.Exists(Path.Combine(_sockets.Path, "s")));             // refused before anything was made
+        Assert.False(Directory.Exists(Path.Combine(_sockets.Path, "t")));
+
+        // At the limit the path reaches the socket: nobody listens there, so the answer is the refusal.
+        Assert.Contains("refused", Assert.Throws<IOException>(() => transport.Notify(_sockets.Path + new string('n', room))).Message);
+
+        // A ring decides nothing (design 5.4.1): an entry too long to reach under p/ costs that one ring.
+        Directory.CreateDirectory(Path.Combine(_sockets.Path, "p", "RING"));
+        File.WriteAllText(Path.Combine(_sockets.Path, "p", "RING", tooLong), "");
+        transport.RingBells("RING");
+
+        // The refusals left the transport whole.
+        transport.Publish(Server("WHOLE", runId));
+        Assert.True(File.Exists(FileOf("s", "WHOLE", runId)));
+    }
+
+    [Fact]
+    public void ATransportUnderALongTempRootRefusesEveryPathAndCreatesNothing()
+    {
+        string longRoot = Path.Combine(_work, new string('t', McsSocketDirectory.MaxPathBytes)) + Path.DirectorySeparatorChar;     // a host whose temp path is long
+        string runId = McsSocketDirectory.NewRunId();
+        using var transport = new SocketTransport(McsSocketDirectory.Under(longRoot), runId, () => { });
+        Assert.Throws<IOException>(() => transport.Publish(Server("SRV", runId)));
+        Assert.Throws<IOException>(() => transport.Publish(Bell("SRV", runId)));
+        Assert.Throws<IOException>(() => transport.Connect(Server("SRV", runId)));
+        Assert.Empty(transport.EnumerateServers("SRV"));
+        transport.RingBells("SRV");
+        Assert.False(Directory.Exists(longRoot));
+    }
+
     [Theory]
     [InlineData(new byte[] { })]                                         // the stream ends between frames: null, not an error
     [InlineData(new byte[] { 3, 0, 0, 0, 3, 1, 2, 3 })]                  // an Offer with three payload bytes

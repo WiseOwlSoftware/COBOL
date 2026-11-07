@@ -70,12 +70,14 @@ internal sealed class SocketTransport : IPeerTransport
         if (endpoint.RunId != _runId) throw new ArgumentException("a transport publishes only its own run id", nameof(endpoint));
         if (_listeners.ContainsKey(endpoint)) throw new IOException($"{endpoint} is already published");
         string final = PathOf(endpoint), temp = Path.Combine(_directory.Path, "t", _runId);
+        var bindAt = McsSocketDirectory.EndPointOf(temp);
+        _ = McsSocketDirectory.EndPointOf(final);         // a listener renamed past the limit could bind, and no connect could ever reach it
         CreateDirectory(Path.GetDirectoryName(final)!);
         CreateDirectory(Path.GetDirectoryName(temp)!);
         var socket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
         try
         {
-            socket.Bind(new UnixDomainSocketEndPoint(temp));
+            socket.Bind(bindAt);
             socket.Listen(ListenBacklog);
             BetweenListenAndRename?.Invoke(endpoint);
             File.Move(temp, final);
@@ -223,14 +225,15 @@ internal sealed class SocketTransport : IPeerTransport
     }
 
     /// <summary>Connects to the socket file <paramref name="path"/>. Null when its owner has ended: a refused connect deletes the file and a file already gone is skipped
-    /// (the refusal rule, design 5.4.1). Any other failure is an <see cref="IOException"/>.</summary>
+    /// (the refusal rule, design 5.4.1). Any other failure is an <see cref="IOException"/>, a path no AF_UNIX socket can hold among them (<see cref="McsSocketDirectory.EndPointOf"/>).</summary>
     private static Socket? ConnectTo(string path)
     {
+        var endPoint = McsSocketDirectory.EndPointOf(path);
         var socket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
         try
         {
             using var timeout = new CancellationTokenSource(ConnectTimeout);
-            socket.ConnectAsync(new UnixDomainSocketEndPoint(path), timeout.Token).AsTask().GetAwaiter().GetResult();
+            socket.ConnectAsync(endPoint, timeout.Token).AsTask().GetAwaiter().GetResult();
             return socket;
         }
         catch (SocketException e)

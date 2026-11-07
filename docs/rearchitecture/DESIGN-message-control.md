@@ -657,12 +657,16 @@ EC-MCS-IMP. The requestor releases the lock, closes and deletes `n/<r>`, and con
 
 `RunUnit.Messaging` is a cheap `MessagingPeer` shell that exists with every run unit; its socket directory, `SocketTransport`
 and `MessagingProtocol` are created at the run unit's first messaging statement, or when the run unit begins if
-`MessagingSettings.ServedName` is set (`RunUnit.StartAfter` calls `Messaging.StartServing()`), so a run unit that never
+`MessagingSettings.ServedName` is set (`RunUnit.Run` and `RunUnit.Begin` ask `StartAfter` to serve, and `StartAfter` calls `Messaging.StartServing()`;
+the ambient run unit, which `EndForHost` replaces and no program runs in, serves nothing until its first messaging statement), so a run unit that never
 messages creates no directory and reads no variable beyond that one. `MessagingSettings` joins `RunUnit.HostConfiguration`
 beside `Clock` and `DebugMode`, so two run units of one process can differ (§7.2); it reads `WISEOWL_COBOL_MCS_SERVER` and
 `WISEOWL_COBOL_MCS_NOTIFY` when a member is first asked and not set by the host, and carries `Time` (a `TimeProvider`) and
 the server `Definitions`. A start that fails (a socket directory the host refuses, a path too long for `AF_UNIX`, a notify
-socket that refuses) is never an exception: every statement of that run unit is EC-MCS-IMP with the reason (Q8).
+socket that refuses) is never an exception: every statement of that run unit is EC-MCS-IMP with the reason (Q8). A notify path comes
+from outside the run unit and has no budget of its own, so `McsSocketDirectory.EndPointOf` refuses one the socket cannot hold. A `Publish` that
+fails at the start answers as §5.4 says (the first RECEIVE that needs a requestor is EC-MCS-IMP), and the server connects to no notify socket,
+because the connection says that the listener is published.
 
 The protocol stays single-threaded. Each `PeerLink` runs one thread-pool read pump, an awaited loop (`McsFrame.ReadAsync`)
 that holds no thread while its peer is silent, and posts a `FrameReceived` per frame and one `LinkLost` when the stream ends,
@@ -753,6 +757,11 @@ to the enumeration. `MaxPathBytes` is pinned by S0.
   man7.org, read 2026-11-04) and macOS's is `char sun_path[104]` (`bsd/sys/un.h`, apple-oss-distributions/xnu main,
   read 2026-11-04), each counting the terminating NUL; "AF_UNIX comes to Windows" states no limit. §5.1 states the 2023 facility's longest entry (33 bytes) and
   its worst case per OS, and `DESIGN-communication-facility.md` §6 its bell's (21 bytes).
+- **The endpoint.** `McsSocketDirectory.EndPointOf(path)` is the one place the runtime forms an AF_UNIX endpoint, and `AfUnixEndPointDriftTests` holds it so. A path of no
+  bytes, over `MaxPathBytes` or holding a NUL is an `IOException` naming the path and the limit, where .NET's constructor would throw `ArgumentOutOfRangeException`.
+  `Fits(33)` keeps every entry of `<S>` within the limit; this answers what `Fits` does not cover (a notify path from `WISEOWL_COBOL_MCS_NOTIFY`), and it is asked before a
+  socket is made and, by `SocketTransport.Publish`, for the final name as well as the bind name. A test binds its sockets under `<S>` too, never under a scratch directory,
+  whose depth depends on the host (`MessagingPeerTests`, `SocketTransportTests`, `PlatformAssumptionTests`).
 - **The run id `<r>`**: `McsSocketDirectory.NewRunId()`, 16 random lower-case hex digits. Each facility draws its own.
 - **`McsFrame`**: `u32 length | u8 kind | payload`, little-endian, where `length` counts the payload only (not the kind byte), with a 2^31-byte guard (a payload of 2^31 bytes or more is refused,
   writing and reading). `Read` answers the kind and the caller compares it; a truncated frame, a kind byte no build knows, a `Ring` with a payload

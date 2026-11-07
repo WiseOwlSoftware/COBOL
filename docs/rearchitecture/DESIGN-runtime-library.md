@@ -111,7 +111,7 @@ public sealed class RunUnit
     public static void Run(Action<RunUnit> body)
     {
         var prior = _current.Value;
-        var ru = StartAfter(prior);   // a NEW object; only HostConfiguration carries over
+        var ru = StartAfter(prior, serve: true);   // a NEW object; only HostConfiguration carries over
         _current.Value = ru;
         try { body(ru); }
         finally { ru.Terminate(); _current.Value = prior; }   // the ONE §14.6.11 epilogue (RunMain calls it too)
