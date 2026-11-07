@@ -10,7 +10,7 @@ WHY THIS IS NOW POSSIBLE. Two facts about the PDF had to be established first:
 Put together, a printed general format can be read off mechanically instead of by eye: the WORDS come from the
 text layer, and the NOTATION — brackets, choice-indicator bars, and underlining — comes from the geometry.
 
-WHY UNDERLINING SPECIFICALLY MATTERS. §5.2.2 makes an underlined uppercase word REQUIRED; §5.2.3 makes a
+WHY UNDERLINING SPECIFICALLY MATTERS. §2023:5.2.2 makes an underlined uppercase word REQUIRED; §2023:5.2.3 makes a
 non-underlined one an OPTIONAL word that may be written or omitted. Underlining is therefore load-bearing
 grammar, and it is exactly the detail a transcription loses silently — the repairs so far have repeatedly found
 words called "underlined in the printed standard" that are not, each one turning a legal omission into an
@@ -97,7 +97,7 @@ def underline_runs(chars, rules):
     x 81.0–185.5, the rule 95.0–184.4). Coverage there is 86% of the token, so a per-word test says "wholly
     underlined" and the transcription then marks `>>` as a required WORD. It is not a word at all.
 
-    The split is not a geometry hack — §7.3 syntax rule 5 makes it normative: "A compiler directive is composed
+    The split is not a geometry hack — §2023:7.3.3 syntax rule 5 makes it normative: "A compiler directive is composed
     of the compiler directive indicator, optionally followed by the COBOL character space, followed by
     compiler-instruction. The compiler directive indicator shall be treated as though it were followed by a
     space if no space is specified after the indicator." So `>>CALL-CONVENTION` IS two tokens; whitespace
@@ -108,7 +108,7 @@ def underline_runs(chars, rules):
     it are passed in. Per-character measurement on its own is dangerous in exactly the way this file's header
     warns about: a bracket FOOT is a short horizontal rule indistinguishable from an underline by width, and
     while it can never cover 55% of a word it easily covers ONE GLYPH. Unguarded, the two 3.7 pt feet flanking
-    `AREAS` on folio 312 marked its `S` alone, and three feet under §13.14.2 turned `code-clause`,
+    `AREAS` on folio 312 marked its `S` alone, and three feet under §2023:13.14.2 turned `code-clause`,
     `control-clause` and `page-clause` into `code-claus`, `e`, `e`, `e`. So promotion is impossible here by
     construction; the only thing this can do is remove characters from a span.
 

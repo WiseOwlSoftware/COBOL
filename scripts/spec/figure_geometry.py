@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """Measure the DELIMITER GEOMETRY of the printed general-format figures, straight from the PDF's vector data.
 
-WHY THIS EXISTS. The reconciliation sweep repeatedly had to decide whether a printed figure carries the §5.2.6.4
+WHY THIS EXISTS. The reconciliation sweep repeatedly had to decide whether a printed figure carries the §2023:5.2.6.4
 CHOICE INDICATOR — a pair of vertical bars just inside a bracket or brace — because the difference is normative:
 
-    [  A / B  ]     per §5.2.6.2   at most ONE of A, B
-    [ |A / B| ]     per §5.2.6.4   ZERO OR MORE of A, B, each at most once, in any order
-    {  A / B  }     per §5.2.6.3   exactly ONE of A, B
-    { |A / B| }     per §5.2.6.4   ONE OR MORE of A, B, each at most once, in any order
+    [  A / B  ]     per §2023:5.2.6.2   at most ONE of A, B
+    [ |A / B| ]     per §2023:5.2.6.4   ZERO OR MORE of A, B, each at most once, in any order
+    {  A / B  }     per §2023:5.2.6.3   exactly ONE of A, B
+    { |A / B| }     per §2023:5.2.6.4   ONE OR MORE of A, B, each at most once, in any order
 
 Dropping the bars turns legal COBOL into apparently illegal COBOL, which is the falsely-restrictive loss this
 whole effort is hunting. Until now that call was made by rendering the page and squinting at it — slow, and a
@@ -26,7 +26,7 @@ it sits inside. Measured on page 632, the ON SIZE ERROR group of COMPUTE Format 
     x=304.36  h=37.58  no feet, taller                    -> '|' choice indicator
     x=309.72  h=31.98  feet at both ends, turning left    -> ']' bracket stem
 
-A foot is distinguished from an UNDERLINE (which marks a required word, §5.2.2) by length: feet are 2-8 pt and
+A foot is distinguished from an UNDERLINE (which marks a required word, §2023:5.2.2) by length: feet are 2-8 pt and
 start at the stem's own x, underlines are far longer and sit under text.
 
 CAVEAT, stated because it bounds what this tool may be used for. Curly braces are typeset as FONT GLYPHS, not

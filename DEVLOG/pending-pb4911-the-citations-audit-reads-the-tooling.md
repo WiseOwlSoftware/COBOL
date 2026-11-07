@@ -36,8 +36,11 @@ document's own section 3.N): 22 were a document's section and name it again (13 
 DESIGN-binder-bound-tree), 27 are genuine term citations. Five more in the next ranks were a document's section
 (FILES_DESIGN's `DESIGN.md` 14.4, SURVEY-runtime-value's own items). 580 remain undecided, and they are not all genuine.
 
-**Left for the 1985 wave.** Ten bare citations in `figure_extract.py` and `figure_geometry.py`, which the in-flight
-wave 20261893 owns, are refused with no exemption; its successor fixes them before it lands (PB4911 lists them).
+**The figure tools.** Once the 1985 wave landed (PR 1272), main was merged in and the ten bare lines of
+`figure_extract.py` and `figure_geometry.py` were decided: each cites the 2023 standard's notation clauses, 7.3.3 or
+13.14.2 and now carries the edition. One was wrong as well as bare: `figure_extract.py:100` cited 7.3 syntax rule 5
+for a rule that `cite.py --find` places in §2023:7.3.3 syntax rule 5. PR 1272 added no other line the extended audit
+flags.
 
 **Self-tests.** `citation.py --self-test` plants the line-above screen (a comment, a docstring, a Markdown quote, a
 concatenated f-string, a section list, and the negative where words stand before the number) and the marker;
