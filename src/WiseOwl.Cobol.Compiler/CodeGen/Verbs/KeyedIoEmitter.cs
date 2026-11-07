@@ -258,14 +258,15 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
                 Statements.EmitStatementList(at);                                                // §14.9.30 GR24c
         // X3.23-1985 USE FOR DEBUGGING general rule 2 b: an unsuccessful READ that ran neither its INVALID KEY nor its AT END statement still
         // runs the file-name section, after the USE procedure above (D20).
-        if (fires)
+        if (Debug.HasFileNameAfterAction)
         {
             var ran = new List<string> { IoStatusClass.Successful(st) };
             if (hasInv) ran.Add(IoStatusClass.InvalidKey(st));
             if (rd.AtEnd is not null) ran.Add(IoStatusClass.AtEnd(st));
             using (w.Block($"if (!({string.Join(" || ", ran)}))"))
-                Debug.LandAfterAction();
+                Debug.LandFileNameAfterFailure();
         }
+        Debug.DiscardAfterAction();
     }
 
     // ── WRITE (ISO §14.9.51) ───────────────────────────────────────────────────────────────────────────────────

@@ -1023,11 +1023,12 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             {
                 using (w.Block($"if ({IoStatusClass.AtEnd(RuntimeApi.FileStatus(name))})"))
                     Statements.EmitStatementList(at);
-                if (Debug.HasAfterAction)
+                if (Debug.HasFileNameAfterAction)
                     using (w.Block("else"))
-                        Debug.LandAfterAction();
+                        Debug.LandFileNameAfterFailure();
             }
-            else Debug.LandAfterAction();
+            else Debug.LandFileNameAfterFailure();
+            Debug.DiscardAfterAction();
         }
     }
 

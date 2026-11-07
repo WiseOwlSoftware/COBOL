@@ -2270,13 +2270,24 @@ of an unsupported facility.
   choice: (1) a DELETE or START section runs whatever the outcome of the I-O, because rule 2 c states no condition (GnuCOBOL 3.3-dev `typeck.c:9243`,
   `9279`, `14423`: "after delete but before exception test"), and BEFORE the statement's INVALID KEY imperative statement, because rule 7 makes
   each imperative verb a statement of its own. (2) A READ section runs after the INTO move and any USE procedure and before the NOT AT END
-  statements, on the path that delivered a record only (`typeck.c:13301-13317`, `codegen.c:8527-8532`); a READ whose status is neither success nor
-  at end (a failure a USE procedure or the FILE STATUS item handles) runs none. (3) DELETE FILE, which the 1985 text does not have, is a DELETE
+  statements, on the path that delivered a record, with the record read in DEBUG-CONTENTS (rule 23 c); a READ that delivered none and ran no AT END or INVALID
+  KEY statement (status 10 with no AT END phrase, 46, 47, a keyed 23 with no INVALID KEY phrase) runs it too, after the USE procedure (rule 2 b), with
+  DEBUG-CONTENTS spaces because no record was read (rule 11: a member no rule updates stays spaces), and runs nothing else held for the statement: an
+  INTO receiver's ALL REFERENCES section is not executed when the INTO move did not run (rule 5, last sentence). (3) DELETE FILE, which the 1985 text does not have, is a DELETE
   statement that references the file-name and runs the section as GnuCOBOL's `cb_emit_delete_file` does. (4) WRITE, REWRITE, SORT, MERGE, RELEASE and
   RETURN are not in rule 2 and run no file-name section (GnuCOBOL agrees). (5) DEBUG-CONTENTS is the file's record area, as wide as the largest
   record of the file. (6) A sort-merge file may be named, and no statement references it in rule 2's sense, so its section never runs.
   Witnesses: `conformance:cases/_unassigned/pb4811-debug-file-name-triggers`, `conformance:cases/_unassigned/pb4811-debug-file-name-repeated`
-  (COBOL6335), `conformance:cases/_unassigned/pb4811-debug-file-name-removed-2002` (COBOL0902).
+  (COBOL6335), `conformance:cases/_unassigned/pb4811-debug-file-name-failures` (the failing OPEN, CLOSE, READ, START and DELETE under a USE procedure
+  and without one, DEBUG-CONTENTS, an INTO receiver), `conformance:cases/_unassigned/pb4811-debug-file-name-removed-2002` (COBOL0902).
+
+- **D-DEBUG-STORE — a program's store into DEBUG-ITEM or a member** (kb/Work PB4858, review round 2 R2-3). General rule 11 says how the facility
+  updates the members "immediately before control is passed to that debugging section"; no rule of the 1985 Debug module bars a program's own
+  store (it states the bar where it means one: LINAGE-COUNTER may be changed only by the input-output control system), and syntax rule 11 restricts
+  only where the register is referenced, within a debugging section. **Determination (ISO silent, so GnuCOBOL 3.2, which compiles and stores):**
+  `MOVE`, `STRING` and the other receiving statements accept DEBUG-ITEM, each member and a reference-modified DEBUG-CONTENTS as receivers; the store
+  lands in the register (`DebugItem.StoreImage`, `StoreLine`, `StoreName`, `StoreSub`, `StoreContents`, fitted to the member's width) and stands until
+  the facility updates the register for the next section. Witness: `conformance:cases/_unassigned/pb4858-debug-register-receiving`.
 
 - **D-DEBUG-SUB — what DEBUG-SUB-1 to DEBUG-SUB-3 are** (kb/Work PB4810). General rule 10 of the 1985 text describes each as `PICTURE S9999
   SIGN IS LEADING SEPARATE`, and a member the reference does not use is SPACES. **Determination (the text decides, no latitude):** each is a

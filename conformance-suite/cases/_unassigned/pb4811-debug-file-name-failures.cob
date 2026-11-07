@@ -24,10 +24,17 @@
       *> after the whole statement runs for the AT END and INVALID KEY
       *> arms too; one that skips a failed OPEN, CLOSE, START or DELETE
       *> misses rule 2 a and c.
-      *> The START and DELETE of the file with no USE procedure show the
-      *> section runs with no INVALID KEY phrase at all; their order
-      *> against a USE procedure is not stated by rule 2 c, so no file
-      *> here has both.
+      *> The START and DELETE of KF (no USE procedure) show the section
+      *> runs with no INVALID KEY phrase at all; those of KU (a USE
+      *> procedure too) pin the order the standard leaves open, rule 2 c
+      *> naming none: the section runs when the verb's own I-O is done,
+      *> before the exception test, so before the USE procedure
+      *> (docs/CONFORMANCE.md D-DEBUG-FILE).
+      *> A READ that delivered no record read none into DEBUG-CONTENTS,
+      *> which stays spaces (rules 23 c and 11), and an INTO receiver
+      *> named by ALL REFERENCES is not referenced by a READ whose INTO
+      *> move did not run (rule 5, last sentence): DBX fires on the
+      *> READ that delivered a record only.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB4811FF.
        ENVIRONMENT DIVISION.
@@ -59,6 +66,7 @@
        01 FS1 PIC XX.
        01 FS2 PIC XX.
        01 FS3 PIC XX.
+       01 X1 PIC X(8).
        PROCEDURE DIVISION.
        DECLARATIVES.
        USES SECTION.
@@ -72,7 +80,8 @@
        DBS SECTION.
            USE FOR DEBUGGING ON SF.
        DBS-B.
-           DISPLAY "  DBG [" DEBUG-NAME (1:2) "]".
+           DISPLAY "  DBG [" DEBUG-NAME (1:2) "] [" DEBUG-CONTENTS (1:8)
+               "]".
        DBK SECTION.
            USE FOR DEBUGGING ON KF.
        DBK-B.
@@ -81,6 +90,10 @@
            USE FOR DEBUGGING ON KU.
        DBU-B.
            DISPLAY "  DBG [" DEBUG-NAME (1:2) "]".
+       DBX SECTION.
+           USE FOR DEBUGGING ON ALL REFERENCES OF X1.
+       DBX-B.
+           DISPLAY "  DBX".
        END DECLARATIVES.
        MAIN SECTION.
        M1.
@@ -141,6 +154,13 @@
            READ KU.
            DISPLAY "READ KU QQQ INVALID KEY".
            READ KU INVALID KEY DISPLAY "INVALID".
+           MOVE "ZZZ" TO UK.
+           DISPLAY "START KU ZZZ, no phrase".
+           START KU KEY = UK.
+           DISPLAY "FS3 " FS3.
+           DISPLAY "DELETE KU ZZZ, no phrase".
+           DELETE KU.
+           DISPLAY "FS3 " FS3.
            MOVE "AAA" TO UK.
            DISPLAY "START KU AAA".
            START KU KEY = UK.
@@ -155,5 +175,13 @@
            DISPLAY "READ KU NEXT AT END, past the end".
            READ KU NEXT AT END DISPLAY "END".
            CLOSE KU.
+           OPEN INPUT SF.
+           DISPLAY "READ SF INTO X1, a record".
+           READ SF INTO X1.
+           DISPLAY "READ SF INTO X1, at end, no phrase".
+           READ SF INTO X1.
+           DISPLAY "READ SF INTO X1, past the end".
+           READ SF INTO X1.
+           CLOSE SF.
            DISPLAY "END".
            STOP RUN.

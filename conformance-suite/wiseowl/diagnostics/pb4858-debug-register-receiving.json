@@ -1,1 +1,0 @@
-{"refuse-at": ["85"], "expect": "COBOL6361: the debugging register 'DEBUG-CONTENTS (1:1)' shall not be a receiving operand"}

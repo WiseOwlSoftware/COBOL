@@ -143,20 +143,36 @@ internal sealed class DebugTriggerEmitter(EmitContext ctx, PlaceTable places)
     public bool HasAfterAction => _afterAction.Count > 0;
 
     /// <summary>A READ, RETURN, RECEIVE, DELETE or START emitter calls this where the verb's own action is done, before the phrases' imperative
-    /// statements (general rules 2 and 8 b; a RETURN's and RECEIVE's only on the path that delivered data; a READ's on that path and on the one that delivered none and ran no AT END or INVALID KEY statement).</summary>
+    /// statements (general rules 2 and 8 b; a RETURN's and RECEIVE's only on the path that delivered data; a READ's on that path, and on the one
+    /// that delivered none through <see cref="LandFileNameAfterFailure"/>).</summary>
     public void LandAfterAction()
     {
         LandAfterActionKeeping();
         _afterAction = [];
     }
 
-    /// <summary>As <see cref="LandAfterAction"/>, but the fires stay held for a later arm of the same verb: a READ lands its file-name section on
-    /// the arm that delivered a record and again on the arm that delivered none and ran no AT END or INVALID KEY statement (rule 2 b), so the
-    /// first arm keeps and the last consumes.</summary>
+    /// <summary>As <see cref="LandAfterAction"/>, but the fires stay held for the READ's other arm (<see cref="LandFileNameAfterFailure"/>), which
+    /// lands the file-name section and then <see cref="DiscardAfterAction"/>s the rest.</summary>
     public void LandAfterActionKeeping()
     {
         foreach (var fire in _afterAction) EmitFire(fire, _line, PhraseFlags.None);
     }
+
+    /// <summary>Whether a held after-action fire is a file-name section (rule 2): the only kind a READ that delivered no record runs.</summary>
+    public bool HasFileNameAfterAction => _afterAction.Any(f => f.Target.Kind is DebugTargetKind.FileName);
+
+    /// <summary>The READ arm that delivered no record and ran no AT END or INVALID KEY statement: rule 2 b still runs the file-name section, but
+    /// nothing else held for the statement. An INTO receiver's section does not run ("If identifier-1 is specified in a phrase that is not
+    /// executed or evaluated, the associated debugging section is not executed", rule 5; no content changed, rule 6 c), and DEBUG-CONTENTS holds
+    /// spaces, no record having been read (rules 23 c, 11). The fires stay held for <see cref="DiscardAfterAction"/>.</summary>
+    public void LandFileNameAfterFailure()
+    {
+        foreach (var fire in _afterAction.Where(f => f.Target.Kind is DebugTargetKind.FileName))
+            EmitFire(fire with { Contents = DebugContents.Spaces }, _line, PhraseFlags.None);
+    }
+
+    /// <summary>The READ's last arm has landed what it owes: the held fires are done.</summary>
+    public void DiscardAfterAction() => _afterAction = [];
 
     /// <summary>A PERFORM emitter takes the loop-phase fires of the statement it emits, once, before it emits anything nested (a nested
     /// statement is another statement, with its own fires).</summary>

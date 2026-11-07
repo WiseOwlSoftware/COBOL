@@ -8060,16 +8060,6 @@ public static class DiagnosticCatalog
         + "has its own targets and a statement never runs two sections for one operand.",
         "X3.23-1985 USE FOR DEBUGGING syntax rule 6 (VCR Table 7 row 7.17)");
 
-    // kb/Work PB4858 review round 1 R1-3: a DEBUG-ITEM member as a receiving operand. Emitted by ExpressionBinder.ReceivingPlaceBar.
-    public static readonly DiagnosticDescriptor DebugRegisterReceiving = new(
-        "COBOL6361", "debug-register-receiving", EditionSeverity.Error,
-        "The X3.23-1985 special register DEBUG-ITEM, or one of its members DEBUG-LINE, DEBUG-NAME, DEBUG-SUB-1 to "
-        + "DEBUG-SUB-3 and DEBUG-CONTENTS, is a receiving operand. General rule 11 gives the debugging facility alone the "
-        + "store: \"The contents of data items subordinate to DEBUG-ITEM are then updated, according to the following "
-        + "general rules, immediately before control is passed to that debugging section\", and the standard describes "
-        + "no statement that stores into the register, so a program only reads it.",
-        "X3.23-1985 USE FOR DEBUGGING general rule 11 (VCR Table 7 row 7.17)");
-
     // kb/Work PB4307: `MULTIPLE FILE TAPE.` and `MULTIPLE FILE.` compiled clean at --std 85, where `TAPE CONTAINS.`
     // drew COBOL0001. Emitted by FileControlBinder.BindIoControl, the I-O-CONTROL clauses' own syntax rules, at every edition:
     // from 2002 the clause is also COBOL0902 (removed), and a removed clause written without its files is malformed too.

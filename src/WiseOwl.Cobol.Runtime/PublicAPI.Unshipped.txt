@@ -122,6 +122,11 @@ WiseOwl.Cobol.Runtime.ConfigEntry.FamilyMember.init -> void
 WiseOwl.Cobol.Runtime.DebugItem.ContentsWidth.get -> int
 WiseOwl.Cobol.Runtime.DebugItem.DebugItem(int contentsWidth = 30) -> void
 WiseOwl.Cobol.Runtime.DebugItem.PopulateReference(int line, string! name, string! contents, params long[]! occurrences) -> void
+WiseOwl.Cobol.Runtime.DebugItem.StoreContents(string! image) -> void
+WiseOwl.Cobol.Runtime.DebugItem.StoreImage(string! image) -> void
+WiseOwl.Cobol.Runtime.DebugItem.StoreLine(string! image) -> void
+WiseOwl.Cobol.Runtime.DebugItem.StoreName(string! image) -> void
+WiseOwl.Cobol.Runtime.DebugItem.StoreSub(int level, string! image) -> void
 WiseOwl.Cobol.Runtime.DialectBehavior.FileSharingFacility = 2 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.Exceptions.CheckingFlags.FlowApplyCommit -> bool
 WiseOwl.Cobol.Runtime.Exceptions.CheckingFlags.FlowCommit -> bool

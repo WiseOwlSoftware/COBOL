@@ -163,8 +163,10 @@ internal static class DebugTriggerPlanner
     /// the statement's own action. OPEN and CLOSE have no imperative phrase, so the section runs after the statement (<see cref="DebugWhen.After"/>);
     /// READ, DELETE and START do, and "each individual occurrence of an imperative verb identifies a separate statement" (rule 7), so the section
     /// runs when the verb's own I-O is done and before its phrases (<see cref="DebugWhen.AfterAction"/>, landed by the verb's emitter). A READ
-    /// runs it only when it delivered a record ("not resulting in the execution of an associated AT END or INVALID KEY imperative statement",
-    /// rule 2 b), with the entire record read in DEBUG-CONTENTS (rule 23 c); every other reference leaves spaces there (rule 23 d). WRITE and
+    /// runs it when it delivered a record, with the entire record read in DEBUG-CONTENTS (rule 23 c), and when it delivered none and ran no AT END
+    /// or INVALID KEY statement ("not resulting in the execution of an associated AT END or INVALID KEY imperative statement", rule 2 b; the
+    /// verb's emitter lands it on that arm through <c>LandFileNameAfterFailure</c>, spaces in DEBUG-CONTENTS, no record having been read);
+    /// every other reference leaves spaces there (rule 23 d). WRITE and
     /// REWRITE are not listed, nor are the SORT and MERGE verbs, RELEASE and RETURN: they run no file-name section (GnuCOBOL's typeck.c agrees).
     /// DELETE FILE (ISO/IEC 1989:2023 §14.9.10 Format 2, not in the 1985 text) is a DELETE statement that references the file-name, and runs it
     /// as GnuCOBOL's cb_emit_delete_file does, after the I-O and before the exception test.</summary>
