@@ -61,4 +61,5 @@ closing piece disagree by a row, and `render_figure.build` places each piece's p
 closing brace also ran one row short. All four figures were corrected from the page, as `neither` verdicts (559 had
 no verdict until now). The renderer root cause is filed as a lead in the wave report.
 
-**Gate.** See the wave report for the verdict line.
+**Gate.** Run 000002-20261107T175931Z: `=== BUILD-LOCAL GATE: GREEN — Conformance 22,463/22,463 · Unit 40,427/40,427 ·
+Characterization 37/37 cases ran (skipped 0)`.
