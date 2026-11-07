@@ -42,3 +42,12 @@ unchanged; its two drifts are PB4913's, present on main.
 **Self-review.** One reader per job: `read_drawn` adds no second holder reading, and `pair_glyphs` uses the same pairing
 rule as `enclosures`. The scan's coverage claim is pinned by a drift test, not prose. Performance: the 1985 audit runs
 in seconds, and `pair_glyphs` is linear in a figure's glyph pieces.
+
+**PB4850, begun.** With PB4849 landed, the 1985 transcription's publishing gates were run. `lint_rendering.py
+--edition 1985` found 205 rendering defects, and now finds none. The fixes: 107 rule labels escaped, 66 bare `<pre>`
+blocks (examples and tables) opened with `line-height:1`, and 31 literal asterisks escaped. The composite skeleton's
+module marks (`S`, `SW`, `RI`, PDF pages 213 and 225) had been drawn as `<i>` tags, one escaped so that it rendered as
+literal text; they are now plain text, and their four verdicts are updated. `sweep_figures.py --edition 1985 --check`
+stays clean. `docs/DOC_INDEX.md` gains the transcription's row, and `docs/VERSION_CHANGE_REFERENCE.md` says the repo
+now holds the 1985 text. Still open (PB4850): the page-by-page reconciliation, the Preface and acknowledgment (both
+gates exit naming their tables, which have no 1985 row), and the check of the reference's 1985 claims.
