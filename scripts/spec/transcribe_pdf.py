@@ -37,6 +37,12 @@ recorded in `local.json` with the error and the model, the run goes on, `status`
 nonzero. `pages <list> --local ANOTHER` retries them. `check` compares a
 page with the PDF's text layer (word recall and precision) and prints numbers only, never page text.
 
+A REPLY IS JUDGED BEFORE IT IS WRITTEN (kb/Work PB4917). A model that declines the task ends its turn normally, so a
+`stop_reason` of `end_turn` does not make a reply a page. `collect` and `pages --local` ask `judge` of every reply: a
+first-person declining of the task or a sentence naming a summary (REFUSAL), or, where the page has a text layer, too few
+of its printed words (MIN_RECALL), records the page as failed with the reason and the model (`state.json`'s `failed`, or
+`local.json`) and writes nothing. `status` lists those pages; `retry` resubmits them and `pages --local` converts them.
+
 THE STAMP. Every page of a bought PDF carries the reseller's per-copy stamp, which no tracked file may carry
 (verify_publishable). The prompt asks the model to omit it; every page written, and every page assembled, has any line that
 matches the edition's stamp shapes (verify_publishable.FORBIDDEN, TREE_FORBIDDEN) dropped, and a page that still matches is
@@ -135,9 +141,21 @@ PARTS: dict[int, list[tuple[int, str]]] = {
     ],
 }
 
-#: A model that declined or summarised instead of transcribing says so in one of these ways (validate_doc's list).
-REFUSAL = re.compile(r"I've chosen to summarize|I cannot reproduce|copyrighted.*verbatim|rather than reproduc|Here is a summary of",
-                     re.I)
+#: A model that declined or summarised instead of transcribing says so: a first-person declining of the task (the 2002
+#: canary's "I can't transcribe this page verbatim ...", kb/Work PB4917), or a sentence naming a summary or an omission in
+#: place of the text. A standard never speaks in the first person, so "I" followed by a declining verb is never its text;
+#: a bare "In summary" is the standard's own prose (1985 page 93, 2023's Annex D) and is not a shape.
+REFUSAL = re.compile(
+    r"\bI(?:'m| am)?\s+(?:can(?:no|['’])t|cannot|(?:am\s+|['’]m\s+)?(?:unable|not able)\s+to|won['’]t|will\s+not|must\s+decline|decline\s+to)\b"
+    r"|\bI(?:['’]ve|\s+have)\s+(?:chosen\s+to\s+)?(?:summari[sz]ed?|omitted|left\s+out|paraphrased)\b"
+    r"|copyrighted.*verbatim|rather\s+than\s+reproduc|\bhere\s+is\s+a\s+summary\b|\bsummary\s+of\s+(?:the|this)\s+page\b",
+    re.I)
+#: The word-agreement arm (kb/Work PB4917): a page whose text layer holds at least MIN_LAYER_WORDS words and whose
+#: transcription carries less than MIN_RECALL of them is a summary, whatever its tone. Measured on the 1985 run's 976
+#: pages (an OCR layer, the noisiest there is): one page of OCR-mangled table codes falls under it, every other page
+#: reads at 0.69 or more; a summary keeps a few dozen of a page's several hundred printed words.
+MIN_LAYER_WORDS = 30
+MIN_RECALL = 0.5
 FENCE = re.compile(r"\A\s*```[a-z]*[ \t]*\n(.*?)\n```\s*\Z", re.S)
 WORD = re.compile(r"[A-Za-z]{3,}")
 
@@ -258,11 +276,24 @@ def submit_pages(run: Run, st: dict[str, Any], client: Any, pdf: pathlib.Path, p
     run.batches.submit(st, client, (batch_request(pdf, p, st["model"], run.edition) for p in pages), replace=replace)
 
 
-def collect_batches(run: Run, st: dict[str, Any], client: Any) -> None:
-    """Take every batch that has ENDED and is not yet collected; write each succeeded page once."""
+def collect_batches(run: Run, st: dict[str, Any], client: Any, pdf: pathlib.Path) -> None:
+    """Take every batch that has ENDED and is not yet collected; write each succeeded page once. A reply the page's `judge`
+    refuses (a refusal, a summary) is recorded in `st["failed"]` with the reason and the model, and never written; `retry`
+    resubmits it (it has no file) and `pages --local` may convert it instead (kb/Work PB4917)."""
+    failed = st.setdefault("failed", {})
+
     def take(pno: int, message: Any, batch: dict[str, Any]) -> str | None:
-        if not run.put(pno, reply_text(message), replace=bool(batch.get("replace"))) and not run.page_file(pno).exists():
+        text = reply_text(message)
+        cid = page_name(pno)
+        why = judge(clean_page(text, run.edition)[0], page_text(pdf, pno), run.edition)
+        if why:
+            if not run.page_file(pno).exists():  # a refused --replace keeps the written page, which is not a failure
+                failed[cid] = {"model": st["model"], "batch": batch["id"], "error": why,
+                               "at": datetime.datetime.now().astimezone().isoformat()}
+            return why
+        if not run.put(pno, text, replace=bool(batch.get("replace"))) and not run.page_file(pno).exists():
             return "stamp-or-empty"
+        failed.pop(cid, None)
         return None
     run.batches.collect(st, client, take)
 
@@ -286,6 +317,10 @@ def print_status(run: Run, st: dict[str, Any]) -> None:
     if failed:
         print(f"local conversions failed {len(failed)}: " + "; ".join(f"{p} ({log[page_name(p)]['model']}: {log[page_name(p)]['error']})" for p in failed[:20]),
               flush=True)
+    refused = {n: rec for n, rec in st.get("failed", {}).items() if not run.page_file(int(n[1:])).exists()}
+    if refused:
+        print(f"batch replies refused {len(refused)} (retry resubmits them, pages --local converts them): "
+              + "; ".join(f"{int(n[1:])} ({rec['model']}: {rec['error']})" for n, rec in sorted(refused.items())[:20]), flush=True)
 
 
 # -- the local backend --------------------------------------------------------------------------------------------------
@@ -349,6 +384,10 @@ def local_pages(run: Run, pdf: pathlib.Path, model: str, pages: list[int], repla
         if r.get("done_reason") != "stop":
             fail(pno, f"done_reason={r.get('done_reason')}")
             continue
+        why = judge(clean_page(r["message"]["content"], run.edition)[0], page_text(pdf, pno), run.edition)
+        if why:
+            fail(pno, why)
+            continue
         if not run.put(pno, r["message"]["content"], replace=replace):
             fail(pno, "the stamp check refused it or it was empty")
             continue
@@ -374,6 +413,21 @@ def agreement(layer: str, markdown: str, edition: int) -> tuple[float, float, in
     recall = sum(min(a[w], b[w]) for w in a) / max(1, sum(a.values()))
     precision = sum(min(a[w], b[w]) for w in b) / max(1, sum(b.values()))
     return recall, precision, sum(b.values()), sum(a.values())
+
+
+def judge(text: str, layer: str | None, edition: int) -> str | None:
+    """Why a model's reply is NOT a transcription of its page, or None when it may be written (kb/Work PB4917). A reply that
+    ended its turn normally can still decline the task and summarise the page; both backends ask this before a page is
+    written. Two arms: the refusal shape (REFUSAL), and, where the page has a text layer, word agreement with it."""
+    m = REFUSAL.search(text)
+    if m:
+        return f"a refusal or summary, not a transcription (it says {m.group(0)!r})"
+    if layer is not None:
+        recall, _, md_words, layer_words = agreement(layer, text, edition)
+        if layer_words >= MIN_LAYER_WORDS and recall < MIN_RECALL:
+            return (f"a summary, not a transcription: it carries {recall:.2f} of the text layer's {layer_words} words "
+                    f"(under {MIN_RECALL}), in {md_words} words")
+    return None
 
 
 def page_text(pdf: pathlib.Path, pno: int) -> str:
@@ -412,8 +466,9 @@ def assemble(run: Run, count: int, parts: list[tuple[int, str]]) -> tuple[str, l
         dropped += n
         if not text.strip():
             problems.append(f"{page_name(pno)}: empty")
-        if REFUSAL.search(text):
-            problems.append(f"{page_name(pno)}: a refusal or summary instead of a transcription")
+        why = judge(text, None, run.edition)  # the refusal arm; the pages were judged against the text layer when written
+        if why:
+            problems.append(f"{page_name(pno)}: {why}")
         if any(p.search(text) for p in stamp_patterns(run.edition)):
             problems.append(f"{page_name(pno)}: a per-copy stamp survives")
         if pno in starts:
@@ -462,7 +517,7 @@ def main(argv: list[str] | None = None, client_factory: Callable[[str], Any] = m
          pdf_override: pathlib.Path | None = None, parts: list[tuple[int, str]] | None = None) -> int:
     a = build_parser().parse_args(argv)
     run = Run(pathlib.Path(a.state), a.edition)
-    needs_pdf = a.cmd in ("submit", "retry", "pages", "check")
+    needs_pdf = a.cmd in ("submit", "retry", "pages", "check", "collect")  # collect judges a reply against the page's text layer
     pdf = pdf_override or (spec_pdf.require(a.edition) if needs_pdf else None)
     model = getattr(a, "model", DEFAULT_MODEL)
     if a.cmd in ("check", "assemble"):
@@ -518,7 +573,7 @@ def main(argv: list[str] | None = None, client_factory: Callable[[str], Any] = m
             print(b["id"], client.messages.batches.retrieve(b["id"]).processing_status, flush=True)
         print_status(run, st)
     elif a.cmd == "collect":
-        collect_batches(run, st, client)
+        collect_batches(run, st, client, pdf)
         print_status(run, st)
     elif a.cmd == "retry":
         todo = retry_pages(st, run)

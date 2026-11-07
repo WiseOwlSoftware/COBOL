@@ -7,7 +7,9 @@ Cases: submit; a crash between `create` and the state write, adopted on the next
 ends; an errored page and a cut-off page retried; a written page never overwritten, and replaced only by `--replace` (the
 old text kept); the stamp line dropped; the cost guard; the key never printed or stored; a key file of labeled keys, the
 account chosen by --api-account, recorded in the state and kept by a later command (kb/Work PB4916); the local backend;
-adoption of a run that already exists; the check numbers; the assembly and its refusals.
+adoption of a run that already exists; a reply that declines or summarises the page recorded as failed and never written,
+by its refusal shape or by word agreement with the text layer (kb/Work PB4917); the check numbers; the assembly and its
+refusals.
 """
 import base64
 import contextlib
@@ -312,6 +314,58 @@ def main() -> int:
         check("a failed --replace is returned but leaves the written page and its provenance untouched",
               got == [1] and flk.local_log()["p0001"] == before and flk.page_file(1).read_text(encoding="utf-8") == text_before
               and 1 not in flk.local_failed())
+
+        print("a reply that is not a transcription is never written (PB4917)")
+        printed = ("The MOVE statement transfers data, in accordance with the rules of editing, to one or more data areas. "
+                   "When a sending and a receiving item share a part of their storage areas, the result of the execution of "
+                   "such a statement is undefined. Any subscripting associated with the receiving identifier is evaluated "
+                   "immediately before the data is moved to the respective data item.")
+        pdf4 = root / "planted4.pdf"
+        plant_pdf(pdf4, [printed, printed, printed, printed])
+        refusal = ("I can't transcribe this page verbatim, because of the notice printed on it. In its place, the page "
+                   "explains how MOVE copies data to receiving items and when the outcome is undefined.\n")
+        partial = printed[:120] + "\n\nI'm unable to reproduce the remainder of this page.\n"
+        paraphrase = ("This part of the standard says that MOVE copies a value into receiving items, that overlapping "
+                      "storage gives an unspecified outcome, and that subscripts are worked out before copying.\n")
+        judged = root / "judged"
+        jb = ["--edition", "1985", "--state", str(judged), *key]
+        fake5 = FakeBatches()
+        run(["submit", *jb], fake5, pdf4)
+        fake5.ended.add("msgbatch_1")
+        fake5.results_by_id["msgbatch_1"] = [page_ok(1, refusal), page_ok(2, partial), page_ok(3, printed + "\n"), page_ok(4, paraphrase)]
+        code, out = run(["collect", *jb], fake5, pdf4)
+        st = json.loads((judged / "state.json").read_text(encoding="utf-8"))
+        check("a refusal followed by a summary is not written", not (judged / "pages" / "p0001.md").exists())
+        check("a polite partial reply is not written", not (judged / "pages" / "p0002.md").exists())
+        check("a correct reply is written", (judged / "pages" / "p0003.md").read_text(encoding="utf-8") == printed + "\n")
+        check("a paraphrase with no refusal sentence is caught by the word-agreement arm",
+              not (judged / "pages" / "p0004.md").exists() and "word" in st["failed"]["p0004"]["error"]
+              and "refusal" not in st["failed"]["p0004"]["error"])
+        check("each refused page is recorded with its reason, the model and the batch",
+              sorted(st["failed"]) == ["p0001", "p0002", "p0004"] and "refusal" in st["failed"]["p0001"]["error"]
+              and st["failed"]["p0002"]["model"] == "claude-opus-5-5" and st["failed"]["p0001"]["batch"] == "msgbatch_1")
+        check("collect reports the refused pages as bad, and status lists them",
+              "p0001" in out and "batch replies refused 3" in out and "1 (claude-opus-5-5: a refusal" in out)
+        check("a refused reply is still counted in the cost", sorted(st["usage"]) == [f"msgbatch_1/p000{n}" for n in (1, 2, 3, 4)])
+        code, out = run(["retry", *jb], fake5, pdf4)
+        check("retry resubmits the refused pages", fake5.created[-1]["ids"] == ["p0001", "p0002", "p0004"])
+        fake5.ended.add("msgbatch_2")
+        fake5.results_by_id["msgbatch_2"] = [page_ok(1, printed + "\n"), page_ok(2, partial), page_ok(4, printed + "\n")]
+        code, out = run(["collect", *jb], fake5, pdf4)
+        st = json.loads((judged / "state.json").read_text(encoding="utf-8"))
+        check("a later good reply is written and leaves the failed record", sorted(st["failed"]) == ["p0002"]
+              and (judged / "pages" / "p0001.md").exists() and "batch replies refused 1" in out)
+        refused_local = T.Run(root / "judged-local", 1985)
+        with contextlib.redirect_stdout(io.StringIO()):
+            got = T.local_pages(refused_local, pdf4, "planted:1b", [1, 3], False, sleep=lambda s: None,
+                                post=lambda path, body: post(path, body) if path == "/api/tags" else
+                                {"done_reason": "stop", "message": {"content": refusal if body["messages"][0]["images"][0] == base64.standard_b64encode(T.render_png(pdf4, 1)).decode() else printed}})
+        check("the local backend records a refusal as a failed page with its reason and writes the good one",
+              got == [1] and not refused_local.page_file(1).exists() and refused_local.page_file(3).exists()
+              and "refusal" in refused_local.local_log()["p0001"]["error"])
+        check("the standard's own 'In summary' is not a refusal shape", T.judge("In summary, for such cases as these.", None, 1985) is None)
+        check("a page with a short text layer is not judged by agreement", T.judge("other words entirely", "alpha beta gamma", 1985) is None)
+        plant_pdf(pdf, ["alpha beta gamma", "delta epsilon zeta"])  # the cases below read the first planted PDF again
 
         print("check and agreement")
         recall, precision, md_words, layer_words = T.agreement("alpha beta gamma\n" + STAMP, "alpha beta gamma delta", 1985)
