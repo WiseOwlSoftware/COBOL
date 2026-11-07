@@ -250,11 +250,11 @@ public sealed class ExactWideSettlementDriftTests
         Assert.Contains("if (x.Exact) return new NumX(RuntimeApi.IntegerArgExact(x.Expr)", BodyOf(intrinsic, "private NumX RawWideArg("));
         Assert.Contains("xs.Any(x => x.Dec || x.Real || x.Exact)", BodyOf(intrinsic, "private NumX? RenderWide("));
         string device = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "CodeGen", "Emit", "FunctionDeviceText.cs"));
-        Assert.Contains(": value.Exact ? RuntimeApi.FunctionFieldOfExact(value.Expr)", device);
+        Assert.Contains(": value.Exact ? RuntimeApi.FunctionFieldOfExact(value.Expr, num.IntermediateMode)", device);
         // A function's value on the exact carrier (RenderExactUnary, review finding R1-2) settles in DISPLAY's text and temporary and
         // in the string-image channel, as a wide one does.
-        Assert.Contains("if (x.Exact) return RuntimeApi.FunctionFieldText(RuntimeApi.FunctionFieldOfExact(x.Expr), Comma);", device);
-        Assert.Contains(": x.Exact ? RuntimeApi.FunctionFieldOfExact(x.Expr)", device);
+        Assert.Contains("if (x.Exact) return RuntimeApi.FunctionFieldText(RuntimeApi.FunctionFieldOfExact(x.Expr, num.IntermediateMode), Comma);", device);
+        Assert.Contains(": x.Exact ? RuntimeApi.FunctionFieldOfExact(x.Expr, num.IntermediateMode)", device);
         string text = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "CodeGen", "Emit", "OperandText.cs"));
         Assert.Contains(": x.Exact ? RuntimeApi.ExactFunctionText(x.Expr, deSign, comma)", text);
     }
