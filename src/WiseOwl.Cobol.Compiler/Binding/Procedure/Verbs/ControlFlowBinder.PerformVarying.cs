@@ -3,6 +3,7 @@
 using System.Globalization;
 using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Editions.Diagnostics;
+using WiseOwl.Cobol.Frontend.Expressions;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Parsing;
 
@@ -209,7 +210,17 @@ internal sealed partial class ControlFlowBinder
         // (§8.8.1.1) and keeps the Classify verdict.
         bool functionIdentifier = e is not BoundExprError && op.arithmeticExpression() is { } written
             && ConditionBinder.SoleFunctionCall(written) is not null;
-        var (kind, literal) = functionIdentifier ? (VaryingOperandKind.Identifier, null) : Classify(e);
+        // ⛔ ONLY A SOLE PRIMARY OR ONE SIGNED LITERAL IS A MEMBER OF THE BRACE GROUP (§8.8.1.1, §8.3.3.3.2 rule 2; kb/Work PB4865):
+        // the binder drops grouping parentheses and a separated unary sign, so Classify sees only the BoundNumRef or literal
+        // underneath and would admit `BY (FUNCTION TWO)`, `BY + FUNCTION TWO` or `FROM + (1)` as the identifier or literal
+        // §14.9.28.2 prints. The WRITTEN shape decides, through the ONE sole-operand readers: a single unparenthesized primary
+        // (SoleOperand.Primary, which a grouping parenthesis makes compound) or a single numeric literal with its contiguous sign (SoleOperand.NumericLiteral);
+        // anything else written is an arithmetic expression.
+        // GROUPING-PAREN-ONLY: the primary's own plain paren is the arithmetic grouping one, never the function-argument or subscript twin.
+        bool arithmeticExpression = op.arithmeticExpression() is { } whole
+            && !(SoleOperand.Primary(whole) is { } sole && sole.LPAREN() is null) && SoleOperand.NumericLiteral(whole) is null;
+        var (kind, literal) = arithmeticExpression ? (VaryingOperandKind.Invalid, null)
+            : functionIdentifier ? (VaryingOperandKind.Identifier, null) : Classify(e);
         if (kind is VaryingOperandKind.Invalid && e is not BoundExprError)
             ctx.Edition.Error(DiagnosticCatalog.PerformVaryingOperandShape,
                 $"'{text}' is not one of the operands ISO §14.9.28.2's varying-phrase prints in this slot — "
@@ -219,9 +230,12 @@ internal sealed partial class ControlFlowBinder
                 + ". An arithmetic expression is not admitted here; compute it into a data item first");
         // The §5.5 2) integer test reads the function value through its OPERAND twin, so the LENGTH sum is the integer function
         // value it is (IntrinsicBinder.OperandOf marks it FunctionValue) and not the unmarked BoundBinary of an expression.
+        // The per-evaluation carrier (BoundUdfEvaluatedExpr, the GR12 window's function activations) is transparent to the
+        // TYPE as Classify makes it transparent to the KIND: the integer test reads the value the carrier wraps (kb/Work PB4865).
+        var valued = e is BoundUdfEvaluatedExpr carrier ? carrier.Inner : e;
         bool isInteger = functionIdentifier
-            ? IntrinsicResultType.IsIntegerOperand(IntrinsicBinder.OperandOf(e, functionValue: true))
-            : IntrinsicResultType.IsIntegerOperand(e);
+            ? IntrinsicResultType.IsIntegerOperand(IntrinsicBinder.OperandOf(valued, functionValue: true))
+            : IntrinsicResultType.IsIntegerOperand(valued);
         return new VaryingOperand(kind, e, literal, isInteger, text);
     }
 
