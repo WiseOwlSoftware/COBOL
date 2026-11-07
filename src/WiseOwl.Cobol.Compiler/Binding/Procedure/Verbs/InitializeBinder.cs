@@ -287,9 +287,9 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         // zero, where one alphanumeric store of the whole image made them spaces. The entries are the register's own members.
         if (place.Undecorated is DebugRegisterPlace { Member: DebugRegisterMember.Item })
         {
-            foreach (var (member, memberKind) in ctx.Data.State.Implicit.DebugItemMembers)
-                if (InitializeItemCategory(member) is { } memberCat)
-                    BindRegisterReceiver(new DebugRegisterPlace(member, memberKind), memberCat, spec, actions);
+            foreach (var member in ctx.Refs.DebugItemMemberPlaces())
+                if (InitializeItemCategory(member.Item) is { } memberCat)
+                    BindRegisterReceiver(member, memberCat, spec, actions);
             return;
         }
         // ⛔ THE CURSOR IS BUILT OVER THE UNDECORATED PLACE (kb/Work PB393; PlaceCursor.Over). identifier-1 is a

@@ -801,6 +801,11 @@ public sealed class ReferenceResolver(DataBinder data)
     /// (MOVE CORRESPONDING's pair walk), or <see langword="null"/> for an item that is no register entry.</summary>
     internal DebugRegisterPlace? DebugRegisterPlaceOf(DataItem entry) => data.State.Implicit.DebugPlaceOf(entry);
 
+    /// <summary>The places of the named entries of the X3.23-1985 DEBUG-ITEM group, in the order of its description (general rule 10);
+    /// the FILLER entries are not receivers (INITIALIZE: §2023:14.9.20.4 GR5a2) and have no place.</summary>
+    internal IEnumerable<DebugRegisterPlace> DebugItemMemberPlaces() =>
+        data.State.Implicit.DebugItemMembers.Select(m => new DebugRegisterPlace(m.Item, m.Member));
+
     /// <summary>The place a matched <see cref="CapacityRef"/> resolves to, REPORTING its fault when it has one —
     /// the single reporting site for every ill-formed reference to a named CAPACITY register (kb/Work PB457). Every
     /// arm names the rule the reference breaks; none of them can be "not defined", because the name IS defined.
