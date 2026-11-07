@@ -277,9 +277,19 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         if (!place.Item.IsGroup && place.Undecorated is not (MemberPlace or RedefViewPlace or DynTablePlace)
             && InitializeItemCategory(place.Item) is { } regCat)
         {
-            var regQ = Qualify(regCat, effectiveValue: null, spec);
-            if (SenderFor(regQ, regCat, effectiveValue: null, spec) is { } regSrc)
-                actions.Add(Store(place, regSrc));
+            BindRegisterReceiver(place, regCat, spec, actions);
+            return;
+        }
+        // ⛔ THE DEBUG-ITEM GROUP IS WALKED BY ITS ENTRIES, NOT STORED AS ONE ALPHANUMERIC ITEM (kb/Work PB4903). §2023:14.9.20.4
+        // GR4 makes INITIALIZE of a group "a series of implicit MOVE or SET statements, each of which has an elementary data item
+        // as its receiving operand", GR5a2 leaves the FILLER entries alone, and GR6 sends each its category's value: the
+        // DEBUG-SUB-n entries (PICTURE S9999 SIGN IS LEADING SEPARATE, X3.23-1985 USE FOR DEBUGGING general rule 10) become
+        // zero, where one alphanumeric store of the whole image made them spaces. The entries are the register's own members.
+        if (place.Undecorated is DebugRegisterPlace { Member: DebugRegisterMember.Item })
+        {
+            foreach (var member in ctx.Refs.DebugItemMemberPlaces())
+                if (InitializeItemCategory(member.Item) is { } memberCat)
+                    BindRegisterReceiver(member, memberCat, spec, actions);
             return;
         }
         // ⛔ THE CURSOR IS BUILT OVER THE UNDECORATED PLACE (kb/Work PB393; PlaceCursor.Over). identifier-1 is a
@@ -296,6 +306,16 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
             return;
         }
         ExpandInitialize(cursor, spec, actions, place.Item, SeedOccurrenceKey(place), identifier1: true);
+    }
+
+    /// <summary>One implicitly-defined elementary register as ONE receiver of the statement: its category's qualification
+    /// (§2023:14.9.20.4 GR5/GR6) and the single store GR6 sends it; no VALUE clause can attach to a register, so the effective
+    /// value is null.</summary>
+    private void BindRegisterReceiver(Place register, InitializeCategory category, in InitializeSpec spec, List<InitializeAction> actions)
+    {
+        var q = Qualify(category, effectiveValue: null, spec);
+        if (SenderFor(q, category, effectiveValue: null, spec) is { } src)
+            actions.Add(Store(register, src));
     }
 
     /// <summary>The occurrence key identifier-1's OWN reference already pins (ISO §2023:13.18.63.3 SR20 keys a Format-2
