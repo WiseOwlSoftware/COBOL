@@ -287,34 +287,120 @@ internal sealed partial class OoBinder
         return new BoundNumRef(place);
     }
 
-    /// <summary>⛔ THE DIAGNOSTIC-FREE ANSWER TO "WHAT DOES THIS INLINE METHOD INVOCATION RETURN" (§2023:8.4.3.4.4 GR1 b): the temporary takes the
-    /// description of the invoked method's RETURNING item). Nothing is bound and nothing is reported, so a statement-level question may ask it
-    /// (<c>StatementBinder.NamesGatedMessageTag</c>, kb/Work PB4868), as <see cref="IntrinsicBinder.ReturningItemOf(Core.FunctionCallContext)"/>
-    /// answers it for a function. It follows the chain of segments from a receiver that is a data item of a named class
-    /// (<see cref="ObjectRefKind.ObjectClass"/>) and each segment's returned object reference; a receiver it cannot resolve without binding (a universal,
-    /// interface or ACTIVE-CLASS reference, SELF, an object view, a computed receiver) or a method the class does not
-    /// have answers null, and the binder's own refusals speak when the invocation is bound.</summary>
-    internal DataItem? InlineInvocationReturningItem(Core.InlineMethodInvocationContext imi)
+    // ── THE DIAGNOSTIC-FREE PROBE OF THE METHODS AN INVOCATION ACTIVATES (kb/Work PB4868, PB4893) ─────────────────────
+
+    /// <summary>⛔ THE METHODS AN INLINE METHOD INVOCATION ACTIVATES, SELECTED WITHOUT BINDING OR REPORTING ANYTHING, so a
+    /// statement-level question may ask it (<c>StatementBinder.NamesGatedMessageTag</c>, kb/Work PB4868, PB4893) as
+    /// <see cref="IntrinsicBinder.SignatureOf(Core.FunctionCallContext)"/> answers it for a function. One method per segment,
+    /// in order: each segment's identifier-1 is the previous segment's temporary (§2023:8.4.3.1.3 SR1), whose description is
+    /// the RETURNING item of the method that segment invoked (§2023:8.4.3.4.4 GR1b), and the first segment's is the written
+    /// receiver's (<see cref="ProbedRoster(Core.ObjectReferenceAtomContext)"/>). The list stops at the first segment whose
+    /// roster or method the probe cannot select — a universal receiver (dynamic, and SR2's refusal inline), a description
+    /// through a parameter-name (each expansion's), a method name that is no literal, a method the roster lacks — and the
+    /// binder's own refusals speak when the invocation is bound.</summary>
+    internal IReadOnlyList<OoMethodSymbol> InvokedMethodsOf(Core.InlineMethodInvocationContext imi)
     {
-        if (imi.objectReferenceAtom().objectReferenceTerm()?.dataReference() is not { } receiver
-            || ctx.Refs.Probe(receiver) is not { } probed) return null;
-        DataItem? returning = null;
-        var holder = probed.Item;
+        var methods = new List<OoMethodSymbol>();
+        var roster = ProbedRoster(imi.objectReferenceAtom());
         foreach (var seg in imi.inlineInvocationSegment())
         {
-            if (holder.Pic?.ObjectRef is not { Kind: ObjectRefKind.ObjectClass, Name: { } className } rdesc
-                || host.OoClasses?.Find(className) is not { } cls) return null;
-            string? written = seg.cobolWord() is { } methodWord
-                ? host.Expr.LiteralAliasOf(methodWord) is { } alias ? OoMethodNameOf(alias) : null
-                : OoMethodNameOf(seg.literal());
-            if (written is not { Length: > 0 } methodName) return null;
-            methodName = WiseOwl.Cobol.Runtime.ExternalizedNames.Form(methodName);
-            var method = rdesc.Factory ? cls.FindFactoryMethod(methodName) : cls.FindMethod(methodName);
-            if (method?.Binding?.Returning is not { } result) return null;
-            returning = holder = result;
+            if (roster is not { } r
+                || ProbedMethodName(seg.cobolWord() is { } word ? host.Expr.LiteralAliasOf(word) : null, seg.literal()) is not { } name
+                || r.Find(name) is not { } method)
+                break;
+            methods.Add(method);
+            roster = method.Binding?.Returning is { } returned ? ProbedRoster(returned) : null;
         }
-        return returning;
+        return methods;
     }
+
+    /// <summary>The method an INVOKE statement activates, selected as <see cref="InvokedMethodsOf"/> selects an inline
+    /// segment's — the same receiver, the same roster, the same externalized name (§2023:8.4.3.4.4 GR1 defines the inline form
+    /// as this statement) — or null where the probe cannot select it, identifier-2 included (SR7: a universal receiver's
+    /// method is chosen at run time).</summary>
+    internal OoMethodSymbol? InvokedMethodOf(Core.InvokeStatementContext inv)
+    {
+        var target = inv.invokeTarget().objectReference();
+        var roster = target.inlineMethodInvocation() is { } chain ? ProbedResultRoster(chain) : ProbedRoster(target.objectReferenceAtom()!);
+        var written = inv.invokeMethodName();
+        return roster is { } r
+               && ProbedMethodName(written.dataReference() is { } word ? host.Expr.LiteralAliasOf(word) : null, written.literal()) is { } name
+            ? r.Find(name)
+            : null;
+    }
+
+    /// <summary>The roster an inline invocation's RESULT selects when it is itself a receiver (<c>INVOKE A :: "M" "N"</c>):
+    /// its last method's RETURNING item's (§2023:8.4.3.4.4 GR1b), only when every segment was selected.</summary>
+    private MethodRoster? ProbedResultRoster(Core.InlineMethodInvocationContext imi) =>
+        InvokedMethodsOf(imi) is var methods && methods.Count == imi.inlineInvocationSegment().Length
+        && methods[^1].Binding?.Returning is { } returned
+            ? ProbedRoster(returned)
+            : null;
+
+    /// <summary>The roster a written receiver selects, read without binding it, in <see cref="OoBindByReceiver"/>'s order:
+    /// an object-view's last AS phrase (<see cref="ViewRoster"/>); SELF, SUPER and <c>object-class-name-1 OF SUPER</c> through
+    /// the ONE search root (<see cref="OoPredefinedSearchRoot"/>, not reporting) over the containing method's factory or
+    /// instance interface (§2023:14.9.23.3 SR4 f)–i)); a function-identifier's RETURNING item (§2023:8.4.3.2.4 GR1); a data
+    /// item's description; and a class-name, whose factory interface it invokes (§2023:14.9.23.4 GR2). Null for NULL and for
+    /// a receiver no roster answers.</summary>
+    private MethodRoster? ProbedRoster(Core.ObjectReferenceAtomContext atom)
+    {
+        if (atom.objectView() is { } view) return ViewRoster(view);
+        var term = atom.objectReferenceTerm();
+        if (term?.selfAndSuper() is { } predefined)
+            return ProbedPredefinedRoster(predefined.SUPER() is not null, predefined.Start, qualifier: null);
+        if (term?.functionCall() is { } call)
+            return host.Intrinsic.SignatureOf(call)?.Returning is { } returned ? ProbedRoster(returned) : null;
+        if (term?.dataReference() is not { } dref) return null;
+        if (ctx.Refs.ObjectProperties.QualifiedSuperClass(dref) is { } qualifier)
+            return ProbedPredefinedRoster(isSuper: true, dref.dataReferenceSuffix()[0].propertyObject().SUPER().Symbol, qualifier);
+        if (ctx.Refs.Probe(dref) is { } probed) return ProbedRoster(probed.Item);
+        return Compiler.Oo.OoNameResolution.Lookup(host.OoClasses, dref, dref.GetText(), Compiler.Oo.OoNameResolution.Want.Class).Class
+            is { } cls ? MethodRoster.Of(cls, factory: true) : null;
+    }
+
+    /// <summary>The roster SELF or [object-class-name-1 OF] SUPER selects, or null wherever <see cref="OoPredefinedSearchRoot"/>
+    /// would refuse or defer.</summary>
+    private MethodRoster? ProbedPredefinedRoster(bool isSuper, Antlr4.Runtime.IToken word, Core.CobolWordContext? qualifier) =>
+        OoPredefinedSearchRoot(isSuper, word, qualifier, "", report: false) is { SearchRoot: { } root }
+            ? MethodRoster.Of(root, host.OoInFactory)
+            : null;
+
+    /// <summary>The roster an object reference described as <paramref name="item"/> selects (§2023:14.9.23.3 SR4 a)–e)):
+    /// an interface's prototype closure, or a class's (or ACTIVE-CLASS's) factory or instance interface by its FACTORY phrase.
+    /// Null for a universal reference, one described through a parameter-name, and any item that is no object reference.</summary>
+    private MethodRoster? ProbedRoster(DataItem item)
+    {
+        if (item.Pic is not { Category: PicCategory.ObjectReference, ObjectRef: { IsUniversal: false, Formal: false, Name: { } name } described })
+            return null;
+        // Re-looks-up a name the data description entry already scope-checked (COBOL0813), as OoBindInstanceInvoke does.
+        return described.Kind is ObjectRefKind.Interface
+            ? host.OoClasses?.FindInterface(name) is { } iface ? MethodRoster.Of(iface) : null
+            : host.OoClasses?.Find(name) is { } cls ? MethodRoster.Of(cls, described.Factory) : null;
+    }
+
+    /// <summary>The roster an object-view selects: its LAST AS phrase's description, because each phrase views the identifier
+    /// on its left (§2023:8.4.3.1.4 GR1 c)) and the reference "is treated at compile-time as though it had the description
+    /// specified by the AS phrase" (§2023:8.4.3.5.4 GR1). Null for AS UNIVERSAL and for a name no roster answers. Diagnostic-free:
+    /// the invocation probe and the property-object probe (<see cref="OoBindPropertyObject"/>) both read it.</summary>
+    internal MethodRoster? ViewRoster(Core.ObjectViewContext view)
+    {
+        var last = view.objectViewPhrase()[^1];
+        if (last.UNIVERSAL() is not null) return null;
+        var found = Compiler.Oo.OoNameResolution.Lookup(host.OoClasses, last, last.className().GetText(), Compiler.Oo.OoNameResolution.Want.Either);
+        return !found.Ok ? null
+            : found.Interface is { } iface ? MethodRoster.Of(iface)
+            : found.Class is { } cls ? MethodRoster.Of(cls, last.FACTORY() is not null)
+            : null;
+    }
+
+    /// <summary>literal-1 of an invocation as the probe reads it — the written literal, or the constant-name spelling it
+    /// (§2023:13.10.3 SR2) — FORMED as the binder forms it (DOC-A.1-68), or null for a word that spells no literal and for a
+    /// zero-length name. A concatenation is folded by <see cref="ConcatFolder.Peek"/>, which reports nothing.</summary>
+    private string? ProbedMethodName(ExpressionBinder.LiteralAlias? alias, Core.LiteralContext? literal) =>
+        (alias is { } spelled ? OoMethodNameOf(spelled) : OoMethodNameOf(literal, probe: true)) is { Length: > 0 } name
+            ? WiseOwl.Cobol.Runtime.ExternalizedNames.Form(name)
+            : null;
 
     /// <summary>The universal half of §2023:8.4.3.4.3 SR2 — "Identifier-1 shall be of class object; neither the predefined
     /// object reference NULL nor a universal object reference shall be specified" — asked of ONE receiver, the
