@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """fuzz_batch.py — write a differential-fuzz run's programs as ONE Message Batch, then judge them locally (kb/Work PB4506).
 
-    python scripts/fuzz_batch.py submit  --out DIR --count 6000 --api-key-file KEYFILE [--model claude-sonnet-5-5] [--clauses ...] [--seed N]
-    python scripts/fuzz_batch.py collect --out DIR --api-key-file KEYFILE [--no-wait]
+    python scripts/fuzz_batch.py submit  --out DIR --count 6000 --api-key-file KEYFILE [--api-account NAME] [--model claude-sonnet-5-5] [--clauses ...] [--seed N]
+    python scripts/fuzz_batch.py collect --out DIR --api-key-file KEYFILE [--api-account NAME] [--no-wait]
     python scripts/differential_fuzz.py --writer files --replies DIR/replies --out DIR/judged --cobol JUDGE
     python scripts/fuzz_batch.py --self-test
 
@@ -23,8 +23,10 @@ THE FILES. `DIR/batch.json` (the batch id, the model and the plan), `DIR/replies
 one per request that succeeded; an errored, canceled or expired request writes none, and the judge records its row as a
 RUNNER_ERROR naming why) and `DIR/collect.json` (the counts and the token totals).
 
-BILLING. The API key is read from `--api-key-file` (`api_key.read_api_key`: its first non-empty line) and handed to the SDK client only; it is never printed
-or written. The system prompt of each clause family is marked for prompt caching, so the requests of one family share it.
+BILLING. The API key is read from `--api-key-file`, the key of the account `--api-account` names when the file holds more
+than one (`api_key.read_api_key`, kb/Work PB4916), and handed to the SDK client only; it is never printed or written.
+`batch.json` records the account's NAME (`api_account`): a batch belongs to the account that created it, so `collect` takes
+that account from the record, and refuses another (`api_key.read_run_key`). The system prompt of each clause family is marked for prompt caching, so the requests of one family share it.
 """
 from __future__ import annotations
 
@@ -41,7 +43,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from standard_streams import ensure_utf8  # noqa: E402  (scripts/: UTF-8 standard streams)
 
 import differential_fuzz as df  # noqa: E402
-from api_key import read_api_key  # noqa: E402  (THE reader of an API key file, kb/Work PB4816)
+from api_key import ACCOUNT_HELP, read_run_key  # noqa: E402  (THE reader of an API key file, kb/Work PB4816, PB4916)
 
 #: The default writer: the model of the 2026-11-03 calibration, chosen by the owner for the batch run.
 DEFAULT_MODEL = "claude-sonnet-5-5"
@@ -95,16 +97,24 @@ def write_replies(results: Iterable[Any], replies: Path) -> dict[str, Any]:
     return {"counts": counts, "tokens": tokens}
 
 
-def client_for(key_file: str) -> Any:
+def anthropic_client(key: str) -> Any:
     import anthropic  # noqa: PLC0415  (only the network commands need the SDK)
-    try:
-        key = read_api_key(key_file)
-    except RuntimeError as e:
-        raise SystemExit(f"fuzz_batch: {e}") from None
     return anthropic.Anthropic(api_key=key)
 
 
-def submit(a: argparse.Namespace, client: Any = None) -> int:
+def client_for(key_file: str, account: str | None, make: Callable[[str], Any] = anthropic_client,
+               recorded: str | None = None, record: Path | None = None) -> tuple[Any, str | None]:
+    """(the SDK client for the key of `account` in `key_file`, the account NAME it bills). A batch's `record` that names
+    the account it was billed to (`recorded`) keeps that account (`api_key.read_run_key`). `make` builds the client from
+    the key (the self-test's fake); a file with no such key exits naming the path, never a key."""
+    try:
+        chosen = read_run_key(key_file, account, recorded, record or Path(key_file))
+    except RuntimeError as e:
+        raise SystemExit(f"fuzz_batch: {e}") from None
+    return make(chosen.key), chosen.account
+
+
+def submit(a: argparse.Namespace, make_client: Callable[[str], Any] = anthropic_client) -> int:
     out = Path(a.out)
     if (out / "batch.json").exists():
         raise SystemExit(f"fuzz_batch: {out / 'batch.json'} exists: one batch per run directory")
@@ -121,7 +131,7 @@ def submit(a: argparse.Namespace, client: Any = None) -> int:
     # timeout, and a 5xx answer (review R3-1). The create is ONE attempt (`max_retries=0`, review R4-1): the SDK retries
     # 408, 409, 429 and every 5xx with no idempotency key, so after its retries the error caught here is only the LAST
     # answer, and a 429 after a 504 would "prove" no batch exists when the first attempt may have made one.
-    client = client or client_for(a.api_key_file)
+    client, record["api_account"] = client_for(a.api_key_file, a.api_account, make_client)
     out.mkdir(parents=True, exist_ok=True)
     (out / "batch.json").write_text(json.dumps(record, indent=1), encoding="utf-8", newline="\n")
     try:
@@ -145,12 +155,13 @@ def judge_command(out: Path) -> str:
     return f"python scripts/differential_fuzz.py --writer files --replies \"{out / 'replies'}\" --out \"{out / 'judged'}\" --cobol <judge>"
 
 
-def collect(a: argparse.Namespace, sleep: Callable[[float], None] = time.sleep, client: Any = None) -> int:
+def collect(a: argparse.Namespace, sleep: Callable[[float], None] = time.sleep,
+            make_client: Callable[[str], Any] = anthropic_client) -> int:
     out = Path(a.out)
     rec = json.loads((out / "batch.json").read_text(encoding="utf-8"))
     if not rec.get("batch_id"):
         raise SystemExit(f"fuzz_batch: {out / 'batch.json'} names no batch: its submit did not reach the API")
-    client = client or client_for(a.api_key_file)
+    client, _billed = client_for(a.api_key_file, a.api_account, make_client, rec.get("api_account"), out / "batch.json")
     while True:
         batch = client.messages.batches.retrieve(rec["batch_id"])
         c = batch.request_counts
@@ -236,17 +247,43 @@ def self_test() -> int:
         retries_asked: list[int] = []
         fake = Obj(messages=Obj(batches=FakeBatches()))
         fake.with_options = lambda max_retries, c=fake: (retries_asked.append(max_retries), c)[1]
+        # kb/Work PB4916: a planted file of two labeled keys (invented labels); the fake client exists only for account2's key.
+        keys = Path(tmp) / "keys.txt"
+        keys.write_text("account1 (planted)\nsk-planted-batch-one\n\naccount2 (planted)\nsk-planted-batch-two\n",
+                        encoding="utf-8", newline="\n")
+        makes: list[str] = []
+
+        def make(key: str, client: Any = fake) -> Any:
+            makes.append(key)
+            if key != "sk-planted-batch-two":
+                raise AssertionError("the client was built from another account's key")
+            return client
+
         args = types_ns(out=str(Path(tmp) / "run"), count=2, model=DEFAULT_MODEL, clauses=",".join(df.DEFAULT_CLAUSES),
-                        seed=20261020, in_order=False, api_key_file="unused", no_wait=False)
-        submit(args, client=fake)
+                        seed=20261020, in_order=False, api_key_file=str(keys), api_account="account2", no_wait=False)
+        submit(args, make_client=make)
         rec = json.loads((Path(tmp) / "run" / "batch.json").read_text(encoding="utf-8"))
         check("submit creates the batch in ONE attempt, no SDK retry (review R4-1)", retries_asked == [0])
         check("submit records the batch id and every program's plan entry", rec["batch_id"] == "msgbatch_test"
               and sorted(rec["plan"]) == ["fz00000", "fz00001"] and not df.batch_plan_problems(rec))
+        check("submit bills --api-account's key and records the account's NAME, never a key (kb/Work PB4916)",
+              rec["api_account"] == "account2" and "sk-planted" not in (Path(tmp) / "run" / "batch.json").read_text(encoding="utf-8"))
         slept: list[float] = []
-        check("collect polls until the batch ends, then writes the replies and the summary",
-              collect(args, sleep=slept.append, client=fake) == 0 and slept == [POLL_SECONDS]
+        check("collect polls until the batch ends, then writes the replies and the summary, billing the record's account",
+              collect(types_ns(**{**vars(args), "api_account": None}), sleep=slept.append, make_client=make) == 0
+              and slept == [POLL_SECONDS] and makes == ["sk-planted-batch-two"] * 2
               and (Path(tmp) / "run" / "replies" / "fz00000.json").exists() and (Path(tmp) / "run" / "collect.json").exists())
+        for name, bad in (("another account than the record's", {"api_account": "account1"}),
+                          ("a labeled pair with no account", {"api_account": None, "out": str(Path(tmp) / "unbound")})):
+            if "out" in bad:
+                (Path(tmp) / "unbound").mkdir()
+                (Path(tmp) / "unbound" / "batch.json").write_text(json.dumps(dict(rec, api_account=None)), encoding="utf-8", newline="\n")
+            try:
+                collect(types_ns(**{**vars(args), **bad}), sleep=slept.append, make_client=make)
+                check(f"collect: {name} is refused before any client is built", False)
+            except SystemExit as e:
+                check(f"collect: {name} is refused before any client is built, naming no key",
+                      len(makes) == 2 and "sk-planted" not in str(e))
         # review R2-2: a create the API answered with an error made no batch, so its record goes and a retry can start; a
         # create with no answer may have made one, so its record stays.
         class Refused(Exception):
@@ -262,7 +299,7 @@ def self_test() -> int:
             failing = Obj(messages=Obj(batches=Obj(create=lambda requests, f=failure: (_ for _ in ()).throw(f))))
             failing.with_options = lambda max_retries, c=failing: c
             try:
-                submit(types_ns(**{**vars(args), "out": str(run)}), client=failing)
+                submit(types_ns(**{**vars(args), "out": str(run)}), make_client=lambda key, c=failing: c)
                 check(f"submit: {name} is an error", False)
             except SystemExit as e:
                 check(f"submit: {name} is an error, and the record {'stays' if stays else 'is removed'}",
@@ -295,6 +332,7 @@ def main(argv: list[str]) -> int:
     s.add_argument("--out", required=True)
     s.add_argument("--count", type=int, required=True)
     s.add_argument("--api-key-file", required=True)
+    s.add_argument("--api-account", help=ACCOUNT_HELP + "; batch.json records it")
     s.add_argument("--model", default=DEFAULT_MODEL)
     s.add_argument("--clauses", default=",".join(df.DEFAULT_CLAUSES))
     s.add_argument("--seed", type=int, default=20261020)
@@ -302,6 +340,7 @@ def main(argv: list[str]) -> int:
     c = sub.add_parser("collect")
     c.add_argument("--out", required=True)
     c.add_argument("--api-key-file", required=True)
+    c.add_argument("--api-account", help=ACCOUNT_HELP + "; default: the account batch.json records")
     c.add_argument("--no-wait", action="store_true", help="report the status and exit 3 while the batch still runs")
     a = ap.parse_args(argv)
     return submit(a) if a.cmd == "submit" else collect(a)
