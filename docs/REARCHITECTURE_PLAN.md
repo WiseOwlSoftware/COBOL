@@ -1918,7 +1918,7 @@ result. Run the long legs ONE AT A TIME.
   derived filter was the whole assembly for every replayed cluster) are what ordering replaced. There is no lander
   form: CI's merge-group run is the whole-population net (kb/Work PB3015). The concurrency facts that still bound the legs: the [[A13]]
   collection split took the Conformance leg from 721 s to 600 s on the dev box — the box is saturated, so the next
-  lever is less WORK, never more partitions (§2023:3.11). ⛔ Every OTHER filtered `dotnet test` in the repo (the two doc
+  lever is less WORK, never more partitions (DESIGN-test-build-ci.md §3.11). ⛔ Every OTHER filtered `dotnet test` in the repo (the two doc
   regenerators, the verdict recorder, the two single-purpose CI legs) puts each term back to vstest first
   (`scripts/filter_population.py`, PB708/PB751/PB752), and `test_population.py`'s self-test (`audit_filtered_runs`,
   over the real tree) fails if a new one does not. It is NOT the comprehensive gate.
@@ -5233,7 +5233,7 @@ lowering **privately**, and the bound tree it consumes is the SAME neutral tree 
 > > unit 1196 + integration 636 ALL GREEN) · solution build 0 warnings 0 errors.
 > >
 > > **The Step-1 enumeration is DONE:** the live `IntrinsicBind.Deferred` set is **17 rows** (catalog lines
-> > 133–174) = §2023:3.1's 22 minus the 5 P10-landed rows (CHAR-NATIONAL, DISPLAY-OF, NATIONAL-OF,
+> > 133–174) = PHASE-11-intrinsics-backlog-tierc-codec.md §3.1's 22 minus the 5 P10-landed rows (CHAR-NATIONAL, DISPLAY-OF, NATIONAL-OF,
 > > EXCEPTION-FILE-N, EXCEPTION-LOCATION-N — already `Runtime`, verified in the catalog source).
 > >
 > > **The P10-lesson anchor re-scout is DONE** (11 parallel scouts over the spec + code, 2026-07-17):

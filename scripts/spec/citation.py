@@ -408,13 +408,13 @@ def bare_standard(line: str, c: Citation, own_sections: frozenset[str] | set[str
 
 
 #: What may open a line before a `§` that continues the line above: a comment's leader (`#`, `#:`, `//`, `///`, `*>`,
-#: `*`, `--`, `;`, `<!--`) and a string literal's prefix and opening quote (`f"`, the next piece of an implicitly
-#: concatenated string), then only what `_DOCUMENT_GAP` allows (punctuation, and the earlier members of a list or a
-#: range of sections: `# §3.14.1–` before `§3.14.6`, citation-audit: example). Such a line carries the sentence on from the line above, so the
-#: document named at the end of that line owns the number.
-_OPENING = re.compile(r"""^\s*(?:#:?|//+|\*>|\*|--|;+|<!--)?\s*(?:[rRbBfFuU]{0,2}["'])?""")
+#: `*`, `--`, `;`, `<!--`, a Markdown quote's `>`) and a string literal's prefix and opening quote (`f"`, the next
+#: piece of an implicitly concatenated string), then only what `_DOCUMENT_GAP` allows (punctuation, and the earlier
+#: members of a list or a range of sections: `# §3.14.1–` before `§3.14.6`, citation-audit: example). Such a line
+#: carries the sentence on from the line above, so the document named at the end of that line owns the number. The
+#: same pattern strips the line above's own leader.
+_OPENING = re.compile(r"""^\s*(?:#:?|//+|\*>|\*|--|;+|<!--|(?:>\s*)+)?\s*(?:[rRbBfFuU]{0,2}["'])?""")
 _GAP = re.compile(_DOCUMENT_GAP, re.VERBOSE)
-_LEADER = re.compile(r"^\s*(?:#:?|//+|\*>|\*|--|;+|<!--)?")
 
 
 def names_another_text(line: str, c: Citation, prev: str = "") -> bool:
@@ -431,7 +431,7 @@ def names_another_text(line: str, c: Citation, prev: str = "") -> bool:
     screen reads the line above, its own leader removed, as the text just left of it."""
     before = line[:c.start]
     if prev and (o := _OPENING.match(before)) and _GAP.match(before, o.end()):
-        before = _LEADER.sub("", prev).rstrip() + " " + before[o.end():]
+        before = _OPENING.sub("", prev).rstrip() + " " + before[o.end():]
     if DOCUMENT_SECTION.search(before) or other_edition(before) is not None:
         return True
     if c.rule:
@@ -592,6 +592,7 @@ def self_test() -> int:
              'f"{BINDER_DESIGN} §3.6 does not name"', "the Unicode Standard (§4.6, \"Numeric Value\")"))),
         ("bare_standard reads a document's name ending the line above (kb/Work PB4911)",
          not _bare_in("# §8.3 the gate's slot", prev="# the gate's design, DESIGN-test-build-ci.md")  # citation-audit: example
+         and not _bare_in("> §8.3, the SSOT for it)", prev="> the design is `DESIGN-test-build-ci.md`")  # citation-audit: example
          and not _bare_in("    §5.2 duplication", prev="    per DESIGN-architecture-review")  # citation-audit: example
          and not _bare_in("//   (§4.5, §8.1)", prev="// see `docs/rearchitecture/DESIGN-locale-facility.md`")  # citation-audit: example
          and not _bare_in('    f"§8.1), which needs the walk"', prev='    f"its neutrality (DESIGN-architecture-review "')  # citation-audit: example

@@ -170,7 +170,7 @@ def spec_ref_problems(refs) -> list[str]:
             bad.append("spec_ref %r is not {clause, text}" % (r,))
         # a spec_ref's `clause` is a clause of ISO/IEC 1989:2023 by the record's schema (the R2 collection reads 2023)
         elif cite.check(lines, cls, cite.citation.Citation(2023, str(r["clause"])), str(r["text"]))[0] != 0:
-            bad.append("spec_ref §2023:%s does not contain %r (cite.py --check)" % (r["clause"], r["text"]))
+            bad.append(f"spec_ref §2023:{r['clause']} does not contain {r['text']!r} (cite.py --check)")
     return bad
 
 

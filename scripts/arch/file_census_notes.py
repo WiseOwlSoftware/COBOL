@@ -708,7 +708,8 @@ def render_r2(rec, nid, pin, areas):
         measured += " Analyzer rule: `%s`." % rec["analyzer_rule"]
     body += ["**Measured how:** " + measured, ""]
     if clauses:
-        body += ["**Spec:** " + "; ".join("§2023:%s \"%s\" (`cite.py --check` passed at collection)" % (r["clause"], r["text"])
+        # A spec_ref's clause is a clause of the 2023 standard (r2_collect validates it so): the edition form.
+        body += ["**Spec:** " + "; ".join(f'§2023:{r["clause"]} "{r["text"]}" (`cite.py --check` passed at collection)'
                                           for r in rec["spec_refs"]), ""]
     if rec.get("corrections_applied"):
         body += ["**Skeptics' corrections applied:** " + " | ".join(
