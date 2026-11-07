@@ -475,7 +475,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         // are (SlotImageOf) - the pointer's storage image of DOC-A.1-216, or the object's reserved placeholder. The
         // carrier never asks this arm: CurrentExtentImageCapable refuses a slot-carried element.
         : SlotWindow.CarriedBySlot(d)
-            ? SlotWindow.CarriesPointerImage(d) ? $"static __e => {RuntimeApi.PointerImageOf("__e")}"
+            ? SlotWindow.CarriesTokenImage(d) ? $"static __e => {RuntimeApi.SlotImageOf(d, "__e")}"
                                                 : $"static __e => {SlotPlaceholder(d.ByteWidth)}"
         // The element lane mirrors PhysicalModel's numLeaf rule exactly: a NATIVE numeric element goes
         // through its byte-form lane (float via the distinctly-named IEEE lane), a string-carried element
@@ -902,32 +902,34 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     private static string SpaceElementImage(DataItem d, int width) =>
         d.ImageUnit > 1 ? RuntimeApi.NatBytes($"new string(' ', {width / d.ImageUnit})") : $"new string(' ', {width})";
 
-    /// <summary>THE ONE RECIPE for what a class pointer/object leaf occupies in a byte image (kb/Work PB231 ->
-    /// PB244, PB1071). A class-object leaf has no image: <paramref name="width"/> RESERVED placeholder positions,
-    /// spaces. A POINTER leaf's positions hold the image <c>PointerImage</c> defines (DOC-A.1-216 - the address in
-    /// the implementation's binary order, NULL as zero): <see cref="SlotSeedOf"/> is its seed, the NULL image, and
-    /// <see cref="SlotImageOf"/> its live value in a record struct. A shared cell keeps the same positions equal to
-    /// its slot through <c>CobolPtr.SlotWrite</c> and ALLOCATE's seed, so a strongly-typed group DISPLAYs the same
-    /// characters whether it lives in a record struct or in a BASED/ADDRESS-OF storage cell.</summary>
+    /// <summary>THE ONE RECIPE for what a class pointer/object/message-tag leaf occupies in a byte image (kb/Work PB231 ->
+    /// PB244, PB1071, PB4838). A class-object leaf has no image: <paramref name="width"/> RESERVED placeholder positions,
+    /// spaces. A POINTER or MESSAGE-TAG leaf's positions hold the token image <c>PointerImage</c> / <c>MessageTagImage</c> define
+    /// (DOC-A.1-216, DOC-A.1-212 - the address or identifier in the implementation's binary order, NULL as zero):
+    /// <see cref="SlotSeedOf"/> is its seed, the NULL image, and <see cref="SlotImageOf"/> its live value in a record struct. A
+    /// shared cell keeps the same positions equal to its slot through <c>CobolPtr.SlotWrite</c> and ALLOCATE's seed, so a
+    /// strongly-typed group DISPLAYs the same characters whether it lives in a record struct or in a BASED/ADDRESS-OF storage
+    /// cell, and a file record carries the token and reads it back (<see cref="EmitMemberFromImage"/>).</summary>
     private static string SlotPlaceholder(int width) => $"new string(' ', {width})";
 
     /// <summary>A slot-carried leaf's positions in a freshly seeded byte-addressed area: the NULL pointer image
-    /// (<see cref="SlotWindow.CarriesPointerImage"/>; ISO 14.9.3.4 GR9 and 13.18.63.4 initialize class pointer to
+    /// (<see cref="SlotWindow.CarriesTokenImage"/>; ISO 14.9.3.4 GR9 and 13.18.63.4 initialize class pointer to
     /// null) or the object's placeholder (<see cref="ImageInitOfOne"/> - D-SLOT).</summary>
     private static string SlotSeedOf(DataItem item) =>
-        SlotWindow.CarriesPointerImage(item) ? RuntimeApi.PointerNullImage() : SlotPlaceholder(item.ByteWidth);
+        SlotWindow.CarriesTokenImage(item) ? RuntimeApi.PointerNullImage() : SlotPlaceholder(item.ByteWidth);
 
     /// <summary>A slot-carried leaf field's slice of a record struct's one-way transfer image (<see cref="AsImageOf"/>),
     /// every occurrence of a fixed table at once: the field's current pointer image, or the placeholder.</summary>
     private static string SlotImageOf(PhysicalModel.Physical f, DataItem slot) =>
-        !SlotWindow.CarriesPointerImage(slot) ? SlotPlaceholder(f.Width)
-        : f.Occurs == 0 ? RuntimeApi.PointerImageOf(f.Name)
-        : $"string.Concat(global::System.Array.ConvertAll({f.Name}, __e => {RuntimeApi.PointerImageOf("__e")}))";
+        !SlotWindow.CarriesTokenImage(slot) ? SlotPlaceholder(f.Width)
+        : f.Occurs == 0 ? RuntimeApi.SlotImageOf(slot, f.Name)
+        : $"string.Concat(global::System.Array.ConvertAll({f.Name}, __e => {RuntimeApi.SlotImageOf(slot, "__e")}))";
 
     /// <summary>The whole-group image facility of a record struct. <c>AsImage()</c> is emitted for every
     /// <see cref="DataItem.ElementTransferImageCapable"/> group; <c>FromImage</c> (and the bit / national faces)
-    /// only for the two-way <see cref="DataItem.ElementImageCapable"/> ones - a group with a class pointer/object
-    /// leaf has a one-way image and no inverse (kb/Work PB244; see <see cref="DataItem.TransferImageCapable"/>).</summary>
+    /// only for the two-way <see cref="DataItem.ElementRecordImageCapable"/> ones - a group with a class-object leaf has a
+    /// one-way image and no inverse (kb/Work PB244; see <see cref="DataItem.TransferImageCapable"/>), while a pointer or
+    /// message-tag leaf decodes its token (kb/Work PB4838).</summary>
     public void EmitImageMethods(DataItem group, CodeWriter w)
     {
         var members = phys.PhysicalChildrenOf(group);
@@ -945,7 +947,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             return;
         }
         w.Line($"public readonly string AsImage() => {(members.Count > 0 ? string.Join(" + ", members.Select(AsImageOf)) : "\"\"")};");
-        if (!group.ElementImageCapable) return;   // one-way (PB244): no FromImage over a pointer/object leaf
+        if (!group.ElementRecordImageCapable) return;   // one-way (PB244): no FromImage over an object leaf, which has no token
         using (w.Block("public void FromImage(string __s)"))
         {
             w.Line($"__s = {RuntimeApi.StrStore("__s", $"{members.Sum(f => f.Width)}")};");   // pad/truncate to the image width
@@ -1226,8 +1228,8 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         : f.Width == 0 ? "\"\""
         // A class pointer/object leaf (kb/Work PB244) contributes its slice of the one-way transfer image, every
         // occurrence at once: the pointer's storage image (kb/Work PB1071) or the object's reserved placeholder
-        // positions. Reached only through the one-way AsImage of a TransferImageCapable group - FromImage is never
-        // emitted over such a leaf.
+        // positions. Reached through the AsImage of a TransferImageCapable group; FromImage inverts it for a token leaf
+        // (EmitMemberFromImage) and is never emitted over an object leaf.
         : f.SlotLeaf is { } slot ? SlotImageOf(f, slot)
         // ⛔ A NATIONAL LEAF IMAGES AS ITS BYTES (kb/Work PB327): two per character position, high-order first
         // (ISO §2023:13.18.60.4 GR8 leaves the size to the implementor — D-N1 pins two, UTF-16BE), through the ONE
@@ -1302,6 +1304,21 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             return;
         }
         if (f.Width == 0) return;   // a run continuation — its value came from the leader's unpack
+        // ⛔ A POINTER OR MESSAGE-TAG LEAF DECODES ITS TOKEN (kb/Work PB4838): the inverse of SlotImageOf, through the decoder of the
+        // leaf's own category (RuntimeApi.SlotFromImage), every occurrence of a fixed table in turn. Reached only through a group
+        // whose every slot leaf CarriesTokenImage (DataItem.ElementRecordImageCapable) - an object leaf never gets a FromImage.
+        if (f.SlotLeaf is { } slot)
+        {
+            if (f.Occurs == 0)
+            {
+                w.Line($"{f.Name} = {RuntimeApi.SlotFromImage(slot, $"__s.Substring({off}, {f.Width})")};");
+                return;
+            }
+            int unit = f.Width / f.Occurs;
+            using (w.Block($"for (int __i = 0; __i < {f.Occurs}; __i++)"))
+                w.Line($"{f.Name}[__i] = {RuntimeApi.SlotFromImage(slot, $"__s.Substring({off} + __i * {unit}, {unit})")};");
+            return;
+        }
         // ⛔ THE INVERSE OF AsImageOf's national arm (kb/Work PB327): decode the UTF-16BE byte pairs back to the
         // leaf's character positions through CobolBits.NatReadWindow — the inverse CobolBits.NatBytes names, never
         // a second decoder. A pair the image is too short to hold decodes as the NATIONAL space, which is exactly

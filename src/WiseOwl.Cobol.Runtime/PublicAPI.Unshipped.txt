@@ -1013,3 +1013,12 @@ static readonly WiseOwl.Cobol.Runtime.MessageTag.Null -> WiseOwl.Cobol.Runtime.M
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome.ToString() -> string
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.Equals(object obj) -> bool
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.ToString() -> string
+static WiseOwl.Cobol.Runtime.PointerImage.DataPointerOf(string! image) -> WiseOwl.Cobol.Runtime.ManagedPointer!
+static WiseOwl.Cobol.Runtime.PointerImage.ProgramPointerOf(string! image) -> WiseOwl.Cobol.Runtime.ProgramPointer
+static WiseOwl.Cobol.Runtime.PointerImage.FunctionPointerOf(string! image) -> WiseOwl.Cobol.Runtime.FunctionPointer
+WiseOwl.Cobol.Runtime.MessageParty.Unresolved = 3 -> WiseOwl.Cobol.Runtime.MessageParty
+WiseOwl.Cobol.Runtime.MessageTagImage
+static WiseOwl.Cobol.Runtime.MessageTagImage.Of(WiseOwl.Cobol.Runtime.MessageTag tag) -> string!
+static WiseOwl.Cobol.Runtime.MessageTagImage.TagOf(string! image) -> WiseOwl.Cobol.Runtime.MessageTag
+*REMOVED*static WiseOwl.Cobol.Runtime.IO.CobolSort.Release(string! name, string! image, int readSize, int min, int max, WiseOwl.Cobol.Runtime.RecordExtents? extents = null) -> void
+static WiseOwl.Cobol.Runtime.IO.CobolSort.Release(string! name, string! image, int readSize, int min, int max, WiseOwl.Cobol.Runtime.RecordExtents? extents = null, object?[]? slots = null) -> void

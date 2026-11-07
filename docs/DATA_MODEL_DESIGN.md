@@ -686,8 +686,8 @@ content-validation half is separately answered by the declined A.4.14 facility (
     three keep-in-step sites: `CobolPtr.SlotWrite<T>` writes the image beside every slot store (a class-object member
     has none and keeps its placeholder spaces); the cell seeds (`GroupImageCodec.SlotSeedOf`) start the positions at
     `PointerImage.NullImage`; and ALLOCATE form 2 passes `CobolPtr.Allocate` the member offsets
-    `SlotWindow.PointerImageOffsetsOf` (each OCCURS occurrence, at the stride a reference applies) so its uniform fill
-    does not cover them (§2023:14.9.3.4 GR9). `SlotWindow.CarriesPointerImage` is the one test of which slot members have an
+    `SlotWindow.TokenImageOffsetsOf` (each OCCURS occurrence, at the stride a reference applies) so its uniform fill
+    does not cover them (§2023:14.9.3.4 GR9). `SlotWindow.CarriesTokenImage` is the one test of which slot members have an
     image. Only a byte WRITE over the positions can disagree afterwards, and it is one-way: a pointer is never decoded
     back from its bytes.
   - **The RECORD-STRUCT twin: a ONE-WAY transfer image (kb/Work PB244).** A strongly-typed group holding such a

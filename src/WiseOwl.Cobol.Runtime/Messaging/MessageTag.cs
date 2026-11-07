@@ -11,6 +11,9 @@ public enum MessageParty
     Server,
     /// <summary>A message requestor, identified by its run unit.</summary>
     Requestor,
+    /// <summary>A tag decoded from storage positions this run unit never rendered (<see cref="MessageTagImage.TagOf"/>; kb/Work PB4838): it
+    /// names no party, is not NULL, keeps its positions as its name, and belongs to no message control system of this run unit.</summary>
+    Unresolved,
 }
 
 /// <summary>

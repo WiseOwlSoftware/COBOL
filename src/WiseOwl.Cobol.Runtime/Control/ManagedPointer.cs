@@ -31,6 +31,7 @@ public abstract class ManagedPointer
         if (b is null || b.IsNull) return false;
         if (a is CellPointer wa && b is CellPointer wb)
             return ReferenceEquals(wa.Cell, wb.Cell) && wa.Offset == wb.Offset;
+        if (a is ForeignAddress fa && b is ForeignAddress fb) return fa.Image == fb.Image;   // the same unresolved eight positions (kb/Work PB4838)
         return ReferenceEquals(a, b);
     }
 
