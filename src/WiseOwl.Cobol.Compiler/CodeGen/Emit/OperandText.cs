@@ -200,9 +200,9 @@ internal static class OperandText
     /// the dynamic-length elementary item's current length"; the storage arm below already renders exactly that),
     /// and a POINTER-CLASS record the zero-length image — it has no character image (A.1 items 210/216), so there
     /// is nothing of it for a file to carry.</para></summary>
-    public static string RecordAreaImage(Place record) =>
+    public static string RecordAreaImage(Place record, bool transfer = false) =>
         IsVarGroupRecord(record)
-            ? PlaceRenderer.VarGroupCurrentImage(record, "record-area image of")
+            ? PlaceRenderer.VarGroupCurrentImage(record, "record-area image of", transfer)
         : record.Item.IsElementary && SlotWindow.CarriedBySlot(record.Item) ? "\"\""
         : AsStorageImage(record, "record-area image of");
 
@@ -215,8 +215,8 @@ internal static class OperandText
     /// arm, so an image and its table can never come from different shapes. Every emitter that hands a record-area
     /// image to the runtime (WRITE, REWRITE, RELEASE, and the keyed READ / START / DELETE whose key the record's
     /// members may precede) passes this beside it.</summary>
-    public static string? RecordAreaExtents(Place record) =>
-        IsVarGroupRecord(record) ? PlaceRenderer.VarGroupCurrentExtents(record) : null;
+    public static string? RecordAreaExtents(Place record, bool transfer = false) =>
+        IsVarGroupRecord(record) ? PlaceRenderer.VarGroupCurrentExtents(record, transfer) : null;
 
     /// <summary>⛔ THE IMAGE A RECORD IS SENT AS — the record the FILE (or the sort store) holds, which is
     /// <see cref="RecordAreaImage"/> (the procedural, contiguous view, §2023:8.5.1.11.2) except where a DYNAMIC LENGTH

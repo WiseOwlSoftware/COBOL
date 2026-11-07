@@ -63,7 +63,12 @@ public static class AsyncMessaging
     public static MessageOutcome SendResponse(MessageTag to, string image, RecordExtents? extents, object?[] slots, string? raising, bool raisingLast, string checking) =>
         Outcome(RunUnit.Current.Messaging.SendResponse(to, new MessageBody(image, extents, slots), raisingLast ? LastExceptionName() : raising), checking);
 
-    /// <summary>RECEIVE (§2023:14.9.31.4): <paramref name="capacity"/> is identifier-1's maximum length in character positions.</summary>
+    /// <summary>The capacity of a message area that holds an OCCURS DYNAMIC table: it has no allocated maximum (§2023:8.5.1.9.1 - the number of occurrences is the implementor's
+    /// maximum), and a RECEIVE recreates the table to the message, so no message is too long for it (kb/Work PB4744). The temporary the run unit's end answers an unreceived
+    /// message with is then empty: the area's size at that point is no value the protocol holds.</summary>
+    public const int UnboundedCapacity = int.MaxValue;
+
+    /// <summary>RECEIVE (§2023:14.9.31.4): <paramref name="capacity"/> is identifier-1's maximum length in character positions, or <see cref="UnboundedCapacity"/>.</summary>
     public static MessageOutcome Receive(MessageTag from, int capacity, MessageWait wait, string checking) =>
         Outcome(RunUnit.Current.Messaging.Receive(from, capacity, wait), checking, lessThanZero: wait.Kind == MessageWaitKind.Seconds && wait.Seconds < 0);
 

@@ -2589,8 +2589,8 @@ standard (27 listed elements) — which `docs/CONFORMANCE.md` §5 records as **N
 implementation shall accept the syntax and provide the functionality for an optional element **only when**
 support for that language element is claimed by the implementor."* That is a prohibition on accepting, so an
 unclaimed A.4 module is a named **error** (`COBOL1560` / `COBOL1707`). Contrast the Annex **A.3
-processor-dependent** facilities — MCS — whose licence is §2023:4.2.6 and whose posture is
-accept-inert plus a mandatory compile-time **warning** (`COBOL1578`; `COBOL1580` VALIDATE
+processor-dependent** facilities (COMMIT/ROLLBACK, VALIDATE) — whose licence is §2023:4.2.6 and whose posture is
+accept-inert plus a mandatory compile-time **warning** (`COBOL1579`; `COBOL1580` VALIDATE
 rides the same band). The severity is carried by the `DiagnosticDescriptor` and dispatched once in
 `EditionContext.Report(descriptor, message)` — never by a local test at an emit site.
 

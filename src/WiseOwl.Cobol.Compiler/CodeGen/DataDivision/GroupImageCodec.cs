@@ -767,7 +767,9 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                             // CURRENT image from the first unused occurrence on).
                             w.Line(OdoMemberTail.Of(p).KeepUnusedOccurrences(off, AsImageOf(p.Field)));
                         }
-                        EmitMemberFromImage(p.Field, off, w);
+                        // A message tag is no part of the image (kb/Work PB4744): its placeholder positions are skipped and a fixed group holding tags distributes by
+                        // FromMessageImage, so a variable-length message area decomposes like any other and its tags travel beside it as slots.
+                        EmitMemberFromImage(p.Field, off, w, messageImage: true);
                         off += p.Field.Width;
                         break;
                     case VarPartKind.NestedTable:
@@ -951,7 +953,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             // FromMessageImage: the image's other positions distribute as FromImage does and a tag's placeholder positions are skipped, the tag itself arriving beside
             // the image as a slot (kb/Work PB4744; §2023:14.9.31.4 GR1; DESIGN-message-control.md section 4.4). It is no FromImage because the placeholder image is not
             // injective (equality and a group MOVE must keep asking the two-way capability).
-            if (HoldsOnlyMessageTagSlots(group)) EmitFromImage("FromMessageImage", messageImage: true);
+            if (group.HoldsOnlyMessageTagSlots) EmitFromImage("FromMessageImage", messageImage: true);
             return;
         }
         EmitFromImage("FromImage", messageImage: false);
@@ -972,13 +974,6 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             }
         }
     }
-
-    /// <summary>⛔ THE ONE QUESTION "does this group's receiving half skip message-tag positions?" (kb/Work PB4744): the group holds at least one managed slot and every
-    /// slot it holds is a message tag. A pointer or object-reference slot is no case - SEND SR3 and RECEIVE SR2 refuse them in a message area, and their groups keep the
-    /// one-way image alone. The nested-struct arm of <see cref="EmitMemberFromImage"/> asks it of the nested group, so a struct and the struct inside it agree on the method
-    /// that distributes the image.</summary>
-    private static bool HoldsOnlyMessageTagSlots(DataItem group) =>
-        SlotWindow.MembersOf(group) is var slots && slots.Any() && slots.All(ItemCategory.IsMessageTag);
 
     /// <summary>A NATIONAL GROUP's elementary face (ISO §2023:13.18.29.4 GR2b — "a national group is treated as though
     /// it were an elementary data item of usage national and class and category national described with PICTURE
@@ -1325,7 +1320,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         // A message tag rides beside the image as a slot (kb/Work PB4744): in the message image its placeholder positions are skipped.
         if (messageImage && f.SlotLeaf is not null) return;
         // A nested struct that holds message tags distributes by its own FromMessageImage in the message image (HoldsOnlyMessageTagSlots), else by FromImage.
-        string fromImage = messageImage && f.Group is { } nested && HoldsOnlyMessageTagSlots(nested) ? "FromMessageImage" : "FromImage";
+        string fromImage = messageImage && f.Group is { } nested && nested.HoldsOnlyMessageTagSlots ? "FromMessageImage" : "FromImage";
         // ⛔ THE INVERSE OF AsImageOf's national arm (kb/Work PB327): decode the UTF-16BE byte pairs back to the
         // leaf's character positions through CobolBits.NatReadWindow — the inverse CobolBits.NatBytes names, never
         // a second decoder. A pair the image is too short to hold decodes as the NATIONAL space, which is exactly

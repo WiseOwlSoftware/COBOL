@@ -341,6 +341,74 @@ public sealed class MessagingProcessTests : IDisposable
         Assert.Equal(0, srv.WaitForExit());
     }
 
+    private const string TaggedVarGroup = """
+       01 TV IS TYPEDEF STRONG.
+          05 VA PIC X(3).
+          05 VT USAGE MESSAGE-TAG.
+          05 VI PIC X OCCURS DYNAMIC FROM 2 TO 4.
+""";
+
+    [Fact]
+    public void AVariableLengthGroupHoldingAMessageTag_CarriesItsTagBesideItsCurrentImage()
+    {
+        // §2023:14.9.38.3 SR3 and §2023:14.9.31.3 SR2 list neither OCCURS DYNAMIC nor the message tag, so a variable-length group that holds a tag is a legal message area:
+        // the message is its current-extent image (§2023:14.9.38.4 GR4), 3 + 8 (the tag's placeholder positions) + 2 elements, and the tag arrives beside it as a slot.
+        string client = $"""
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB4744C6.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 MT        USAGE MESSAGE-TAG.
+       01 MT2       USAGE MESSAGE-TAG.
+       01 REQ       PIC X(8) VALUE "FIRST".
+{TaggedVarGroup}
+       01 G1 TYPE TV.
+       PROCEDURE DIVISION.
+       MAIN-P.
+           SEND TO "srv" FROM REQ RETURNING MT
+               ON EXCEPTION DISPLAY "CLI SEND-EXC " FUNCTION TRIM(FUNCTION EXCEPTION-STATUS)
+           END-SEND
+           MOVE "ABC" TO VA OF G1
+           SET VT OF G1 TO MT
+           SEND TO "srv" FROM G1 RETURNING MT2
+               ON EXCEPTION DISPLAY "CLI SEND2-EXC " FUNCTION TRIM(FUNCTION EXCEPTION-STATUS)
+           END-SEND
+           DISPLAY "SENT"
+           STOP RUN.
+""";
+        string server = $"""
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB4744S6.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 RT        USAGE MESSAGE-TAG.
+       01 BUF       PIC X(8).
+       01 LEN       PIC 9(4).
+{TaggedVarGroup}
+       01 G2 TYPE TV.
+       PROCEDURE DIVISION.
+       MAIN-P.
+           DISPLAY "READY"
+           RECEIVE RT GIVING BUF LEN
+           RECEIVE RT GIVING G2 LEN
+               ON EXCEPTION DISPLAY "SRV EXC " FUNCTION TRIM(FUNCTION EXCEPTION-STATUS)
+           END-RECEIVE
+           DISPLAY "VA=" VA OF G2 " LEN=" LEN
+           IF VT OF G2 = NULL DISPLAY "VT NULL" ELSE DISPLAY "VT SET" END-IF
+           STOP RUN.
+""";
+        Compile("PB4744S6", server);
+        Compile("PB4744C6", client);
+        var srv = Start("PB4744S6", serves: "SRV");
+        Assert.Equal("READY", srv.ExpectLine());
+        var cli = Start("PB4744C6");
+        Assert.Equal("SENT", cli.ExpectLine());
+        Assert.Equal("VA=ABC LEN=0013", srv.ExpectLine());
+        Assert.Equal("VT SET", srv.ExpectLine());
+        Assert.Equal(0, cli.WaitForExit());
+        int srvExit = srv.WaitForExit(); Assert.True(srvExit == 0, srv.Stderr);
+    }
+
     [Fact]
     public void ASuccessfulReceiveWhoseNonfatalConditionADeclarativeHandled_DoesNotRunItsNotOnExceptionPhrase()
     {

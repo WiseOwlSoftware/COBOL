@@ -772,6 +772,7 @@ static WiseOwl.Cobol.Runtime.ActivationRelations.SignatureDifference(WiseOwl.Cob
 static WiseOwl.Cobol.Runtime.AsyncMessaging.Receive(WiseOwl.Cobol.Runtime.MessageTag from, int capacity, WiseOwl.Cobol.Runtime.MessageWait wait, string! checking) -> WiseOwl.Cobol.Runtime.MessageOutcome
 static WiseOwl.Cobol.Runtime.AsyncMessaging.SendResponse(WiseOwl.Cobol.Runtime.MessageTag to, string! image, WiseOwl.Cobol.Runtime.RecordExtents? extents, object?[]! slots, string? raising, bool raisingLast, string! checking) -> WiseOwl.Cobol.Runtime.MessageOutcome
 static WiseOwl.Cobol.Runtime.AsyncMessaging.SendToServer(string! server, string! image, WiseOwl.Cobol.Runtime.RecordExtents? extents, object?[]! slots, string! checking) -> WiseOwl.Cobol.Runtime.MessageOutcome
+const WiseOwl.Cobol.Runtime.AsyncMessaging.UnboundedCapacity = 2147483647 -> int
 static WiseOwl.Cobol.Runtime.AsyncMessaging.TagsOf(object?[]! leaves) -> object?[]!
 static WiseOwl.Cobol.Runtime.AsyncMessaging.WithTags(object?[]! leaves, object?[]? tags) -> object?[]!
 static WiseOwl.Cobol.Runtime.CobolArgAdapt.SdidiValue(WiseOwl.Cobol.Runtime.CobolPassMode mode, WiseOwl.Cobol.Runtime.CobolDec value, WiseOwl.Cobol.Runtime.SignEncoding signEncoding) -> WiseOwl.Cobol.Runtime.CobolArg

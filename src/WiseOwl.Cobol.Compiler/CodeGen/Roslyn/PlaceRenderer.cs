@@ -988,7 +988,7 @@ internal static class PlaceRenderer
     /// <c>CurrentExtents()</c>, or the cell's composition of the same table. Arm for arm the twin of
     /// <see cref="VarGroupCurrentImage"/>, so a record is never sent with a table computed from another shape than
     /// its image; a group whose image is the loud Tier-C island sends none (the statement is already loud).</summary>
-    public static string VarGroupCurrentExtents(Place group)
+    public static string VarGroupCurrentExtents(Place group, bool transfer = false)
     {
         var (inner, odo) = PeelOdo(group, maximum: false);
         return inner.Undecorated switch
@@ -996,7 +996,8 @@ internal static class PlaceRenderer
             RedefViewPlace { Coding: VarGroupWindow g } v when WindowComposes(v, odo) => RuntimeApi.CellVarContiguousExtents(
                 RenderPath(g.Cell, AccessDir.Sending), v.Width, PositionRenderer.Render(g.DynBase), g.DynFixedAt, g.DynMax, g.DynStructure, g.DynTable,
                 g.Odo, CellOdoCount(odo)),
-            _ when odo is null || inner.Undecorated is RedefViewPlace { Coding: VarGroupWindow } || !inner.Item.CurrentExtentImageCapable => "null",
+            _ when odo is null || inner.Undecorated is RedefViewPlace { Coding: VarGroupWindow }
+                   || !(transfer ? inner.Item.CurrentExtentTransferImageCapable : inner.Item.CurrentExtentImageCapable) => "null",
             _ => $"{Read(inner)}.CurrentExtents({odo})",
         };
     }
@@ -1034,7 +1035,8 @@ internal static class PlaceRenderer
                 RuntimeApi.CellVarStoreContiguous(RenderPath(g.Cell, AccessDir.Receiving),
                     $"(int)({PositionRenderer.Render(v.Offset)})", v.Width, PositionRenderer.Render(g.DynBase), g.DynFixedAt,
                     g.DynMax, g.DynStructure, g.DynTable, g.Odo, record, ext, fixedForm, n),
-            _ when inner.Undecorated is RedefViewPlace { Coding: VarGroupWindow } || !inner.Item.CurrentExtentImageCapable => null,
+            _ when inner.Undecorated is RedefViewPlace { Coding: VarGroupWindow }
+                   || !(inner.Item.CurrentExtentImageCapable || inner.Item.CurrentExtentMessageImageCapable) => null,
             _ => $"{GroupTarget(inner)}.FromContiguousImage({record}, {ext}{(fixedForm ? ", true" : "")}{(n is null ? "" : $", __odo: {n}")})",
         };
         if (Store(extents, null) is not { } store) return EmitText.LoudStmt(TierCIsland.Reason(inner.Item, context));

@@ -67,8 +67,11 @@ internal sealed class MessagingEmitter(EmitContext ctx, NumericRenderer num, EcS
             _ => RuntimeApi.MessageWaitOf(MessageWaitKind.Forever),
         };
         // GR3: a message longer than identifier-1's capacity is EC-MCS-MESSAGE-LENGTH. A slot-carried identifier-1 (an elementary message tag) holds no character
-        // position, so every message is too long for it.
-        string capacity = SlotWindow.CarriedBySlot(n.Into.Item) ? "0" : FileModel.MaxRecordSize(n.Into.Item).ToString(System.Globalization.CultureInfo.InvariantCulture);
+        // position, so every message is too long for it; one that holds an OCCURS DYNAMIC table has no allocated maximum (its capacity is the implementor's maximum,
+        // §2023:8.5.1.9.1, which FileModel.MaxRecordSize leaves out as no record holds one), so no message is too long for it.
+        string capacity = SlotWindow.CarriedBySlot(n.Into.Item) ? "0"
+            : DataItem.SelfAndDescendantsOf(n.Into.Item).Any(i => i.IsDynamicTable) ? $"{nameof(AsyncMessaging)}.{nameof(AsyncMessaging.UnboundedCapacity)}"
+            : FileModel.MaxRecordSize(n.Into.Item).ToString(System.Globalization.CultureInfo.InvariantCulture);
         w.Line($"var {m} = {RuntimeApi.AsyncReceive(PlaceRenderer.Read(n.From), capacity, wait, Checking(n))};");
         using (w.Block($"if ({m}.Image is not null)"))
         {
@@ -99,9 +102,9 @@ internal sealed class MessagingEmitter(EmitContext ctx, NumericRenderer num, EcS
             // as spaces, which is all the length checks and the receiver's positions need - and its tags travel beside the image as the message's slots (design section 4.4).
             string image = place.Item.IsGroup && !place.ImageCapable && place.TransferImageCapable
                 ? OperandText.AsStorageImage(place, "SEND FROM", transfer: true)
-                : OperandText.RecordAreaImage(place);
+                : OperandText.RecordAreaImage(place, transfer: true);   // a variable-length group holding a tag: its one-way current-extent image
             string slots = HoldsTags(place) ? RuntimeApi.AsyncTagsOf(PlaceRenderer.GroupLeaves(place)) : "[]";
-            return (image, OperandText.RecordAreaExtents(place) ?? "null", slots);
+            return (image, OperandText.RecordAreaExtents(place, transfer: true) ?? "null", slots);
         }
         return (OperandText.AsTransferString(from, num, "SEND FROM"), "null", "[]");
     }

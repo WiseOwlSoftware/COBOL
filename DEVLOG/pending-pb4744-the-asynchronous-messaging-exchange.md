@@ -22,8 +22,9 @@ was refused as a message area (COBOL6460) though SEND SR3 and RECEIVE SR2 do not
 gets a generated `FromMessageImage` (the `FromImage` distribution minus the tags' placeholder positions; a nested struct calls its own) and the message's slots are
 `AsyncMessaging.TagsOf` of the group's `AsLeaves` vector on SEND and `WithTags` over it on RECEIVE (storage order, inner OCCURS included, a storage-cell group through
 `GroupLeaves`/`WriteGroupLeaves`; a tag the message did not carry is NULL). Golden `send-group-holding-tag`; `MessagingProcessTests` sends a group holding a tag, a tag table
-and a nested group's tag between two processes. Only a VARIABLE-LENGTH group (OCCURS DYNAMIC, a dynamic-length member) holding a tag stays COBOL6460, because its receiving half is
-the contiguous decomposition, which has no tag-skipping form yet (`pb4744-send-from-group-holding-tag`).
+and a nested group's tag between two processes. Round 2 (blocking): the first round left a VARIABLE-LENGTH group (OCCURS DYNAMIC) holding a tag refused with COBOL6460, a refusal of legal source with no owner decision.
+It is built instead: `FromVarImage`'s fixed-part distribution skips a tag's positions (`EmitMemberFromImage(messageImage: true)`), the tags travel over the same leaf vector, COBOL6460
+and its refusal golden are deleted (the code is returned), the SEND takes the group's one-way current-extent image (`RecordAreaImage(transfer: true)`), a RECEIVE into an area holding an OCCURS DYNAMIC table is `UnboundedCapacity` (its capacity was the file-record maximum, which omits a dynamic table, so any message was too long: a sibling bug of the same mechanism), and golden `send-var-group-holding-tag` plus `MessagingProcessTests.AVariableLengthGroupHoldingAMessageTag_...` pin it.
 
-**Goldens:** `send-no-server`, `send-response-no-requester`, `receive-no-requester`, `pb374_ec_mcs_names_raise`, `w59_mcs_facility_witness` (rewritten to the exchange), the refusal `pb4744-send-from-group-holding-tag`; the runner gives each test its
+**Goldens:** `send-no-server`, `send-response-no-requester`, `receive-no-requester`, `pb374_ec_mcs_names_raise`, `w59_mcs_facility_witness` (rewritten to the exchange), `send-group-holding-tag`, `send-var-group-holding-tag`; the runner gives each test its
 own MCS directory. **Registry:** fourteen rows CONFORMS (GR-14.9.31.4-1 to -5, GR-14.9.38.4-1 to -8, GR-14.6.11-7). Gate: see the landing.

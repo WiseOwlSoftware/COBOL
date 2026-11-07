@@ -409,8 +409,11 @@ outcome back through the ordinary channels:
   occurrences and a nested group a nested vector, so the inner OCCURS levels fall out of the walk the vector already is; a storage-cell group's vector comes from
   `PlaceRenderer.GroupLeaves` over `PlaceCursor`), and on RECEIVE `AsyncMessaging.WithTags(<leaf vector>, slots)` rebuilds the vector with the message's tags in place of
   the area's and `PlaceRenderer.WriteGroupLeaves` stores it back after the image. A tag the message did not carry (the receiving group holds more) is NULL. A
-  VARIABLE-LENGTH group (an OCCURS DYNAMIC table or a dynamic-length member) that holds a tag is refused with COBOL6460 (`MessagingBinder.ScreenMessageArea`): its receiving half
-  is the contiguous decomposition (`FromContiguousImage`), which has no tag-skipping form yet (a lead of PB4744). An identifier-1
+  VARIABLE-LENGTH group (an OCCURS DYNAMIC table) that holds a tag is a message area too: its SEND image is the current-extent image and its receiving half is the
+  contiguous decomposition (`FromContiguousImage` to `FromVarImage`), whose fixed-part distribution skips a tag's placeholder positions (`GroupImageCodec.EmitVarImageMethods`,
+  `EmitMemberFromImage(messageImage: true)`; the gate is `DataItem.CurrentExtentMessageImageCapable`); the tags travel as slots over the same `AsLeaves` vector, a dynamic table's occurrences included.
+  An area that holds an OCCURS DYNAMIC table has no allocated maximum (§2023:8.5.1.9.1), so its RECEIVE capacity is `AsyncMessaging.UnboundedCapacity` and the run unit's end answers an unreceived
+  message with an empty temporary. An identifier-1
   that is a single elementary message tag has the image `""` (`RecordAreaImage`'s slot-carried arm), zero character
   positions, so its SEND is EC-MCS-MESSAGE-LENGTH under GR1 and a RECEIVE into it takes any message as too long (GR3).
 - RECEIVE stores the message by the receiving inverse a READ uses, arm for arm. An identifier-1 that is a
