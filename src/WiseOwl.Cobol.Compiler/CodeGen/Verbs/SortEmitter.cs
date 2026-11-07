@@ -58,7 +58,7 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
             if (so.Using.Count > 0)
                 foreach (var input in so.Using)
                 {
-                    EmitInputFile(input, sd, so.File.RecordWidth, so.Varying, tx);
+                    EmitInputFile(input, sd, so.File, so.Varying, tx);
                     EmitInputClose(input, tx);   // GR12c — the release phase ends with each file's as-if CLOSE
                 }
             else if (so.InputProcedure is { IsEmpty: false } ip)   // an EMPTY procedure releases nothing (kb/Work PB440)
@@ -211,7 +211,7 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
             foreach (var input in mg.Using)
             {
                 w.Line($"{RuntimeApi.SortNextInput(sd)};   // a new pre-sorted USING stream (GR4 — file order breaks ties)");
-                EmitInputFile(input, sd, mg.File.RecordWidth, mg.Varying, tx);
+                EmitInputFile(input, sd, mg.File, mg.Varying, tx);
                 if (!closeAfterOutputProcedure) EmitInputClose(input, tx);
             }
             w.Line($"{RuntimeApi.SortMerge(sd)};   // the keys and the GR5 sequences are Init's; GR6's sequence test");
@@ -240,9 +240,10 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
     /// file's failed OPEN makes the first READ unsuccessful — never a spin). Each of the three as-if statements
     /// stores its own status and offers it to its own USE hook (kb/Work PB837); the file's FILE STATUS item then
     /// holds the final (CLOSE) status, the only value visible after the statement.</summary>
-    private void EmitInputFile(FileModel input, string sdLit, int sdWidth, SortVaryingInfo? varying, Transfer tx)
+    private void EmitInputFile(FileModel input, string sdLit, FileModel sdFile, SortVaryingInfo? varying, Transfer tx)
     {
         var w = ctx.Writer;
+        int sdWidth = sdFile.RecordWidth;
         string f = FileKeyExpr(input);
         string tmp = $"__srt{ctx.Names.NextSort()}";
         // ISO §2023:14.9.40.4 GR12 a) / §2023:14.9.24.4 GR7 a) — the SHARING phrase of the as-if OPEN is CONDITIONAL on the
@@ -303,9 +304,20 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
             // the character area, determination D-FRA, kb/Work PB981), WITH the extent table it was read with
             // (D-FRA (v); kb/Work PB1053), so a variable-length record crosses the sort exactly as it crossed the file.
             var (min, max) = RecordRange(varying, sdWidth);
+            // ⛔ A SD RECORD THAT HOLDS POINTER OR MESSAGE-TAG LEAVES (kb/Work PB4838): the file record carried each leaf as its
+            // 8-position token, so the transfer decodes the record into the SD record area (undefined during a USING transfer,
+            // the SD record being the sort's own) and releases the managed slots beside the image, as RELEASE does (kb/Work
+            // PB4772). A fixed record only: SortBinder.SortRecordCarriesSlots refuses a variable-length SD.
+            string? slots = null;
+            if (places.RecordArea(sdFile) is { } sdArea && HoldsSlots(sdArea.Item))
+            {
+                w.Line(PlaceRenderer.WriteRecordAreaImage(sdArea, RuntimeApi.SortFillTo(tmp, $"{sdWidth}", input.ShortRecordFillNational),
+                    $"USING record of '{input.CobolName}' into SD record"));
+                slots = PlaceRenderer.GroupLeaves(sdArea);
+            }
             w.Line(varying is not null
                 ? $"{RuntimeApi.SortRelease(sdLit, RuntimeApi.FileCurrentRecord(f), RuntimeApi.FileLastReadLength(f), min, max, RuntimeApi.FileCurrentRecordExtents(f))};"
-                : $"{RuntimeApi.SortRelease(sdLit, RuntimeApi.SortFillTo(tmp, $"{sdWidth}", input.ShortRecordFillNational), RuntimeApi.FileLastReadLength(f), min, max)};");
+                : $"{RuntimeApi.SortRelease(sdLit, RuntimeApi.SortFillTo(tmp, $"{sdWidth}", input.ShortRecordFillNational), RuntimeApi.FileLastReadLength(f), min, max, slots: slots)};");
         }
         // ⛔ TWO as-if statements, TWO statuses, TWO hooks (kb/Work PB837). The loop above exits ONLY on an
         // unsuccessful retrieval, so the connector's status here IS that retrieval's — the as-if READ of

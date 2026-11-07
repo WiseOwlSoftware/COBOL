@@ -223,7 +223,7 @@ public static class CobolPtr
     /// clause is written (GR8), else the space (content undefined; space-filling is the conformant
     /// choice).</summary>
     /// <param name="nullImageAt">The positions of the area's class-pointer members (a based item's
-    /// <c>SlotWindow.PointerImageOffsetsOf</c>), each seeded with <see cref="PointerImage.NullImage"/> rather than
+    /// <c>SlotWindow.TokenImageOffsetsOf</c>), each seeded with <see cref="PointerImage.NullImage"/> rather than
     /// <paramref name="fill"/> - GR9's null initial state as the member's byte view sees it (kb/Work PB1071). Empty
     /// for the CHARACTERS form, which has no members.</param>
     public static ManagedPointer Allocate(Int128 size, char fill, out bool notAvail, ReadOnlySpan<int> nullImageAt = default)

@@ -75,7 +75,7 @@ internal sealed class PhysicalModel(EmitContext ctx)
     /// <param name="SlotLeaf">Set on a class pointer / class object leaf (<see cref="SlotWindow.CarriedBySlot"/>; kb/Work
     /// PB244): the item whose slice of the one-way transfer image <c>GroupImageCodec.AsImageOf</c> renders — the
     /// pointer's storage image (<c>PointerImage</c>, DOC-A.1-216; kb/Work PB1071) when
-    /// <see cref="SlotWindow.CarriesPointerImage"/>, else the reserved placeholder positions. Null on every other field.</param>
+    /// <see cref="SlotWindow.CarriesTokenImage"/>, else the reserved placeholder positions. Null on every other field.</param>
     /// <param name="FillerBits">⛔ Non-zero ONLY on a STORED IMPLICIT FILLER (ISO §2023:8.5.1.6.3, kb/Work PB3564): the hidden string
     /// field of boolean positions that holds <c>BitLayout.FillersOf</c>'s entry — the bits after a run's last member, or
     /// between a strided table's occurrences — whose value is data of the owner group (a group move writes it, the next

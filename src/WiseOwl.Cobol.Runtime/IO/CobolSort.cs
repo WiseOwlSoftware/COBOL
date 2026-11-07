@@ -324,19 +324,24 @@ public static class CobolSort
     /// the size the record had when it was READ, not the image's length after the fixed-length fit. A raise
     /// releases nothing and the SORT/MERGE statement's guard terminates the statement (§2023:14.6.13.1.3 2)); with
     /// checking off the store accepts the record as the transfer shaped it. <paramref name="extents"/> is the
-    /// record's EXTENT TABLE when a variable-length group record is released (D-FRA (v); kb/Work PB1053).</summary>
-    public static void Release(string name, string image, int readSize, int min, int max, RecordExtents? extents = null)
+    /// record's EXTENT TABLE when a variable-length group record is released (D-FRA (v); kb/Work PB1053). <paramref name="slots"/> are the
+    /// managed-slot values of a record that holds a pointer or message tag (<see cref="ReleaseStatement"/>; kb/Work PB4838): the
+    /// transfer decoded them from the file record's tokens.</summary>
+    public static void Release(string name, string image, int readSize, int min, int max, RecordExtents? extents = null,
+        object?[]? slots = null)
     {
-        try { ReleaseCore(name, image, readSize, min, max, extents); }
+        try { ReleaseCore(name, image, readSize, min, max, extents, slots); }
         catch (CobolFatalException e) when (RaisedByTheStatement(e)) { }
     }
 
-    private static void ReleaseCore(string name, string image, int readSize, int min, int max, RecordExtents? extents)
+    private static void ReleaseCore(string name, string image, int readSize, int min, int max, RecordExtents? extents,
+        object?[]? slots)
     {
         if (readSize < min || readSize > max)
             ExceptionState.SortMergeReleaseError($"implicit release to sort-merge file {name}: a {readSize}-byte "
                 + $"record is outside the record range {min} to {max} (ISO §2023:14.9.40.4 GR12 b), §2023:14.9.24.4 GR7 b))");
-        Get(name).Work.Add(new StoredFrame(image ?? "", extents));
+        var work = Get(name).Work;
+        work.Add(new StoredFrame(image ?? "", extents, Carried: slots is null ? StoredFrame.NotCarried : work.Carry(slots)));
     }
 
     /// <summary>⛔ THE SORT/MERGE STATEMENT'S OWN ASSOCIATION (§2023:12.4.5.3 GR3; kb/Work PB1097): <i>"The association

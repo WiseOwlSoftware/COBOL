@@ -237,7 +237,7 @@ internal static class PeerFrameCodec
             {
                 string? mcs = NullableText();
                 byte party = Byte();
-                if (party > (byte)MessageParty.Requestor) throw new InvalidDataException($"a message tag names party {party}, which is none");
+                if (party > (byte)MessageParty.Unresolved) throw new InvalidDataException($"a message tag names party {party}, which is none");
                 string? name = NullableText();
                 slots[k] = new MessageTag(mcs!, (MessageParty)party, name!, Long());
             }

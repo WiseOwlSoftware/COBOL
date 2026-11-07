@@ -28,6 +28,7 @@
 *REMOVED*static WiseOwl.Cobol.Runtime.CobolIntrinsics.Variance(WiseOwl.Cobol.Runtime.CobolRounding mode, params WiseOwl.Cobol.Runtime.CobolDec[]! xs) -> double
 *REMOVED*static WiseOwl.Cobol.Runtime.CobolNum.AddChecked(System.Int128 a, System.Int128 b) -> System.Int128
 *REMOVED*static WiseOwl.Cobol.Runtime.CobolNum.SubChecked(System.Int128 a, System.Int128 b) -> System.Int128
+*REMOVED*static WiseOwl.Cobol.Runtime.IO.CobolSort.Release(string! name, string! image, int readSize, int min, int max, WiseOwl.Cobol.Runtime.RecordExtents? extents = null) -> void
 WiseOwl.Cobol.Runtime.ActivationDescription.AnyLengthClauses.get -> string?
 WiseOwl.Cobol.Runtime.ActivationDescription.AnyLengthClauses.init -> void
 WiseOwl.Cobol.Runtime.ActivationDescription.ClausePhrases.get -> string![]?
@@ -187,9 +188,11 @@ WiseOwl.Cobol.Runtime.MessageParty
 WiseOwl.Cobol.Runtime.MessageParty.None = 0 -> WiseOwl.Cobol.Runtime.MessageParty
 WiseOwl.Cobol.Runtime.MessageParty.Requestor = 2 -> WiseOwl.Cobol.Runtime.MessageParty
 WiseOwl.Cobol.Runtime.MessageParty.Server = 1 -> WiseOwl.Cobol.Runtime.MessageParty
+WiseOwl.Cobol.Runtime.MessageParty.Unresolved = 3 -> WiseOwl.Cobol.Runtime.MessageParty
 WiseOwl.Cobol.Runtime.MessageTag
 WiseOwl.Cobol.Runtime.MessageTag.IsNull.get -> bool
 WiseOwl.Cobol.Runtime.MessageTag.MessageTag() -> void
+WiseOwl.Cobol.Runtime.MessageTagImage
 WiseOwl.Cobol.Runtime.Messaging.MessagingSettings
 WiseOwl.Cobol.Runtime.Messaging.MessagingSettings.Directory.get -> string?
 WiseOwl.Cobol.Runtime.Messaging.MessagingSettings.Directory.init -> void
@@ -948,6 +951,7 @@ static WiseOwl.Cobol.Runtime.IO.CobolFile.TerminateOnRefusalWithoutStatusItem(st
 static WiseOwl.Cobol.Runtime.IO.CobolSort.AfterActivationReturn() -> void
 static WiseOwl.Cobol.Runtime.IO.CobolSort.AfterUseProcedure(object! useScope, int action) -> int
 static WiseOwl.Cobol.Runtime.IO.CobolSort.RegisterFormat1Sort(string! name, object? useScope) -> void
+static WiseOwl.Cobol.Runtime.IO.CobolSort.Release(string! name, string! image, int readSize, int min, int max, WiseOwl.Cobol.Runtime.RecordExtents? extents = null, object?[]? slots = null) -> void
 static WiseOwl.Cobol.Runtime.IO.CobolSort.TakeActivationReturnTermination() -> string?
 static WiseOwl.Cobol.Runtime.IO.CobolSort.TerminateAfterActivation(string? terminated) -> void
 static WiseOwl.Cobol.Runtime.IO.CobolSort.UseProcedureExited(object! useScope) -> bool
@@ -957,6 +961,8 @@ static WiseOwl.Cobol.Runtime.IO.KeySegment.operator !=(WiseOwl.Cobol.Runtime.IO.
 static WiseOwl.Cobol.Runtime.IO.KeySegment.operator ==(WiseOwl.Cobol.Runtime.IO.KeySegment left, WiseOwl.Cobol.Runtime.IO.KeySegment right) -> bool
 static WiseOwl.Cobol.Runtime.ManagedPointer<T>.OverStorage(System.Func<T>! get, System.Action<T, WiseOwl.Cobol.Runtime.ReceivingReferences?>! store) -> WiseOwl.Cobol.Runtime.ManagedPointer<T>!
 static WiseOwl.Cobol.Runtime.MessageTag.SameParty(WiseOwl.Cobol.Runtime.MessageTag a, WiseOwl.Cobol.Runtime.MessageTag b) -> bool
+static WiseOwl.Cobol.Runtime.MessageTagImage.Of(WiseOwl.Cobol.Runtime.MessageTag tag) -> string!
+static WiseOwl.Cobol.Runtime.MessageTagImage.TagOf(string! image) -> WiseOwl.Cobol.Runtime.MessageTag
 static WiseOwl.Cobol.Runtime.MoveValidity.FigurativeRefusal(WiseOwl.Cobol.Runtime.FigurativeSender sender, WiseOwl.Cobol.Runtime.Table16Category receiver) -> string?
 static WiseOwl.Cobol.Runtime.ObjectReferenceOperand.operator !=(WiseOwl.Cobol.Runtime.ObjectReferenceOperand left, WiseOwl.Cobol.Runtime.ObjectReferenceOperand right) -> bool
 static WiseOwl.Cobol.Runtime.ObjectReferenceOperand.operator ==(WiseOwl.Cobol.Runtime.ObjectReferenceOperand left, WiseOwl.Cobol.Runtime.ObjectReferenceOperand right) -> bool
@@ -969,6 +975,9 @@ static WiseOwl.Cobol.Runtime.OverlappingMove.AlphanumericToDisplay(string! sende
 static WiseOwl.Cobol.Runtime.OverlappingMove.DisplayToDisplay(string! sender, string! receiver, int receiverAt, in WiseOwl.Cobol.Runtime.NumProfile from, in WiseOwl.Cobol.Runtime.NumProfile to) -> string!
 static WiseOwl.Cobol.Runtime.OverlappingMove.DisplayToPacked(string! sender, string! receiver, int receiverAt, in WiseOwl.Cobol.Runtime.NumProfile from, in WiseOwl.Cobol.Runtime.NumProfile to) -> string!
 static WiseOwl.Cobol.Runtime.OverlappingMove.PackedToDisplay(string! sender, string! receiver, int receiverAt, in WiseOwl.Cobol.Runtime.NumProfile from, in WiseOwl.Cobol.Runtime.NumProfile to) -> string!
+static WiseOwl.Cobol.Runtime.PointerImage.DataPointerOf(string! image) -> WiseOwl.Cobol.Runtime.ManagedPointer!
+static WiseOwl.Cobol.Runtime.PointerImage.FunctionPointerOf(string! image) -> WiseOwl.Cobol.Runtime.FunctionPointer
+static WiseOwl.Cobol.Runtime.PointerImage.ProgramPointerOf(string! image) -> WiseOwl.Cobol.Runtime.ProgramPointer
 static WiseOwl.Cobol.Runtime.ProgramRegistry.AddressNotLocated(string! name, bool function) -> string!
 static WiseOwl.Cobol.Runtime.ProgramRegistry.RunModule(System.Action! ensureRegistered, string! mainPath) -> void
 static WiseOwl.Cobol.Runtime.ProgramTable.ClassHalfPath(string! externalizedName, bool factory) -> string!
