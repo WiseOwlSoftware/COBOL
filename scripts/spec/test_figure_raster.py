@@ -347,6 +347,11 @@ def main() -> int:
           and near(rp.boxes[0]["x1"], 100, 1.0) and len(rp.boxes[0]["words"]) == 1, f"got {rp.boxes}")
     check("a box's rules are neither underlines nor choice bars", rp.rules == [] and all(s["kind"] != "bar" for s in R.classify_page(rp)),
           f"got {rp.rules} {R.classify_page(rp)}")
+    total += 1
+    sides = sorted((s["side"], round(s["x"]), round(s["y0"]), round(s["y1"])) for s in R.classify_page(rp) if s["kind"] == "box")
+    check("classify_page gives a box as its two sides, the left opening and the right closing (kb/Work PB4849)",
+          [(sd, x) for sd, x, _, _ in sides] == [("L", 20), ("R", 100)] and all(near(y0, 20, 1.0) and near(y1, 40.6, 1.0)
+                                                                              for _, _, y0, y1 in sides), f"got {sides}")
 
     # 10. Reading the converted figure's words onto the scan (kb/Work PB4849).
     def dot(img, x, y):
@@ -432,7 +437,9 @@ def main() -> int:
 
     # 9. REAL 1985 pages (kb/Work PB4848): twelve general-format regions cropped from the licensed scan, binarized,
     #    the stamp margins excluded, each counted BY EYE against the rendered page. The calibration table is
-    #    figure_raster_pages/calibration.json; a crop is measured with its page's skew.
+    #    figure_raster_pages/calibration.json; a crop is measured with its page's skew. PDF page 222's crop holds no
+    #    box: its underline fused to `SEQUENCE`'s Q read as a box 1.3 pt tall, and erased, until `find_boxes` required
+    #    the rectangle its rules enclose to be a box's size (kb/Work PB4849).
     pages = pathlib.Path(__file__).resolve().parent / "figure_raster_pages"
     cal = json.loads((pages / "calibration.json").read_text(encoding="utf-8"))
     for e in cal["pages"]:

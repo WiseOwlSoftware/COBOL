@@ -567,6 +567,12 @@ def find_boxes(ink: np.ndarray, labels: np.ndarray, comps: list, scale: float):
         if left is None or right is None:
             continue
         c0, c1 = int(np.percentile(left[0][left[0] >= 0], 1)), band.shape[1] - int(np.percentile(right[0][right[0] >= 0], 1))
+        # The rules found may enclose far less than the component: one side of a drawn diagram's frame read as "two
+        # sides" 1.4 pt apart (PDF page 353), an underline fused to its word's descender as "a top and a bottom" 1.3 pt
+        # apart (page 222; its crop is a calibration case), and the false box's "rules" were erased. A box is the
+        # rectangle its rules enclose, so that rectangle must itself be a box's size (kb/Work PB4849).
+        if (c1 - c0) < BOX_MIN_W * scale or (r1 - r0) < BOX_MIN_H * scale:
+            continue
         box = band[:, c0:c1]
         sides = [_side(box, scale), _side(box[::-1], scale), _side(box.T, scale), _side(box.T[::-1], scale)]
         if any(x is None for x in sides):
@@ -1224,9 +1230,18 @@ def measure_figures(edition: int, page: int, figures: list, doc=None, dpi: int =
 
 
 def classify_page(rp: RasterPage) -> list:
-    """`figure_geometry.classify_page`'s result for a raster page: brackets and bars only (a brace is no stem
-    there; `extract` reports it as the Symbol glyph pieces `render_figure.GLYPH_PIECES` decodes)."""
-    return rp.stems
+    """`figure_geometry.classify_page`'s result for a raster page: its brackets and bars, and each level-2 box as its
+    two sides, stems of kind "box" with the side they close (a vector page has no box; `render_figure` draws them by
+    FIGURE-STYLE.md rule 9, kb/Work PB4849). A brace is no stem there: `extract` reports it as the Symbol glyph pieces
+    `render_figure.GLYPH_PIECES` decodes."""
+    return rp.stems + [box_side(b, side) for b in rp.boxes for side in ("L", "R")]
+
+
+def box_side(b: dict, side: str) -> dict:
+    """One side of a measured box as a stem: the left edge opens, the right edge closes, and both span the box's
+    rules, so `render_figure` encloses the rows between them as it does a bracket's."""
+    return {"x": b["x0"] if side == "L" else b["x1"], "y0": b["y0"], "y1": b["y1"], "h": b["y1"] - b["y0"],
+            "kind": "box", "side": side}
 
 
 def brace_pieces(b: dict) -> list:

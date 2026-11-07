@@ -38,6 +38,24 @@
    "underlines": 10
   },
   {
+   "page": 222,
+   "file": "p0222.png",
+   "x0_pt": 40.0,
+   "y0_pt": 288.0,
+   "region_pt": [
+    288,
+    309
+   ],
+   "skew_deg": -0.05,
+   "stems_L": 0,
+   "stems_R": 0,
+   "bars": 0,
+   "braces_L": 0,
+   "braces_R": 0,
+   "boxes": 0,
+   "underlines": null
+  },
+  {
    "page": 252,
    "file": "p0252.png",
    "x0_pt": 40.0,

@@ -11,6 +11,10 @@ general format carries are what they must agree on (PB4812, FIGURE-STYLE.md):
     underlines   which of its letters are underlined (§5.2.2: an underlined word is required)
     alignment    whether the next word is printed beside it or stacked below it (§5.2.6.1: stacked words are alternatives)
 
+and, on a scan, a fifth: the BOXES that hold it (a 1985 box marks syntax unique to level 2 of a module; it groups and
+chooses nothing, FIGURE-STYLE.md rule 9). Either drawing's box is read: the house style's double-line sides, and the
+batch's full double-line rectangle.
+
 The two drawings are TEXT: the generated one in the house style (box drawing, FIGURE-STYLE.md), the batch's in whatever
 it chose (box drawing, the Miscellaneous Technical brace pieces, typed `[ ]`). `read` turns either into words, each with
 its row, its column, its underlined letters and the delimiters around it; `compare` pairs the two word lists and names
@@ -42,14 +46,15 @@ BOTTOM = {"└": ("bracket", "L"), "┘": ("bracket", "R"), "⎣": ("bracket", "
           "╰": ("round", "L"), "╯": ("round", "R"), "⎩": ("brace", "L"), "⎭": ("brace", "R"),
           "╚": ("box", "L"), "╝": ("box", "R")}
 POINT = {"┤": "L", "├": "R", "⎨": "L", "⎬": "R"}
-EXTEND = set("│⎪⎢⎥║")
+BOX_SIDE = "║"                       # a level-2 box's side, in double lines: no other family uses them
+EXTEND = set("│⎪⎢⎥") | {BOX_SIDE}
 COLUMN_GLYPHS = set(TOP) | set(BOTTOM) | set(POINT) | EXTEND
 RULE_GLYPHS = set("─═┬┴┼")            # a box's top and bottom rules: no word, no delimiter
 ONE_ROW = {"[": ("bracket", "L"), "]": ("bracket", "R"), "{": ("brace", "L"), "}": ("brace", "R"),
            "(": ("paren", "L"), ")": ("paren", "R")}
 BAR = "|"
-#: The four things, in the order a report names them.
-THINGS = ("grouping", "bars", "underlines", "alignment")
+#: The four things, in the order a report names them, and a scan's level-2 boxes (FIGURE-STYLE.md rule 9).
+THINGS = ("grouping", "bars", "underlines", "alignment", "boxes")
 
 
 class Enclosure(NamedTuple):
@@ -138,10 +143,10 @@ def _column(c: int, run: list[tuple[int, str]]):
     elif family is None:
         if points:
             family, side = "brace", points[0]
-        elif len(run) == 1 and glyphs[0] in EXTEND:
-            family = "bar"                         # a one-row choice bar drawn with the column glyph
+        elif set(glyphs) == {BOX_SIDE}:
+            family = "box"                         # a box side with no corner: a one-row box (FIGURE-STYLE.md rule 9)
         else:
-            family = "bar"
+            family = "bar"                         # a choice bar, one row or more, drawn with the column glyph
     return family, side, c, run[0][0], run[-1][0]
 
 
@@ -162,35 +167,41 @@ def _pair(delims: list[tuple[str, str | None, int, int, int]]) -> list[Enclosure
         if best is not None:
             used.add(best)
             out.append(Enclosure(fam, min(r0, delims[best][3]), max(r1, delims[best][4]), c, delims[best][2]))
-    bars = sorted((d for d in delims if d[0] == "bar"), key=lambda d: d[2])
-    taken = set()
-    for a in range(len(bars)):
-        if a in taken:
-            continue
-        for b in range(a + 1, len(bars)):
-            if b in taken:
+    for family in ("bar", "box"):                 # a bar, and a box side drawn without a corner, have no hand
+        bars = sorted((d for d in delims if d[0] == family and d[1] is None), key=lambda d: d[2])
+        taken = set()
+        for a in range(len(bars)):
+            if a in taken:
                 continue
-            _, _, c0, r0, r1 = bars[a]
-            _, _, c1, q0, q1 = bars[b]
-            if min(r1, q1) - max(r0, q0) + 1 >= 0.5 * min(r1 - r0 + 1, q1 - q0 + 1):
-                taken |= {a, b}
-                out.append(Enclosure("bar", min(r0, q0), max(r1, q1), c0, c1))
-                break
+            for b in range(a + 1, len(bars)):
+                if b in taken:
+                    continue
+                _, _, c0, r0, r1 = bars[a]
+                _, _, c1, q0, q1 = bars[b]
+                if min(r1, q1) - max(r0, q0) + 1 >= 0.5 * min(r1 - r0 + 1, q1 - q0 + 1):
+                    taken |= {a, b}
+                    out.append(Enclosure(family, min(r0, q0), max(r1, q1), c0, c1))
+                    break
     return out
 
 
-def read(lines: list[str]) -> list[Word]:
-    """The words of a drawn figure in reading order (row, then column), each with what holds it."""
-    rows = [plain_row(line) for line in lines]
-    grid = [t for t, _ in rows]
-    delims = _columns(grid)
-    for r, (text, _) in enumerate(rows):
+def enclosures(lines: list[str]) -> list[Enclosure]:
+    """Every delimiter pair a drawn figure draws: brackets, braces, parentheses, choice bars and boxes."""
+    rows = [plain_row(line)[0] for line in lines]
+    delims = _columns(rows)
+    for r, text in enumerate(rows):
         for c, ch in enumerate(text):
             if ch in ONE_ROW:
                 delims.append((ONE_ROW[ch][0], ONE_ROW[ch][1], c, r, r))
             elif ch == BAR:
                 delims.append(("bar", None, c, r, r))
-    encl = _pair(delims)
+    return _pair(delims)
+
+
+def read(lines: list[str]) -> list[Word]:
+    """The words of a drawn figure in reading order (row, then column), each with what holds it."""
+    rows = [plain_row(line) for line in lines]
+    encl = enclosures(lines)
     words = []
     stop = COLUMN_GLYPHS | RULE_GLYPHS | set(ONE_ROW) | {BAR, " "}
     for r, (text, under) in enumerate(rows):
@@ -217,6 +228,10 @@ def _grouping(w: Word) -> tuple:
 
 def _bars(w: Word) -> int:
     return sum(1 for f in w.holders if f == "bar")
+
+
+def _boxes(w: Word) -> int:
+    return sum(1 for f in w.holders if f == "box")
 
 
 def compare(drawn: list[str], generated: list[str]) -> dict:
@@ -247,6 +262,8 @@ def compare(drawn: list[str], generated: list[str]) -> dict:
             out["grouping"].append(f"{x.text}: drawn {'/'.join(_grouping(x)) or '-'}, generated {'/'.join(_grouping(y)) or '-'}")
         if _bars(x) != _bars(y):
             out["bars"].append(f"{x.text}: drawn {_bars(x)}, generated {_bars(y)}")
+        if _boxes(x) != _boxes(y):
+            out["boxes"].append(f"{x.text}: drawn {_boxes(x)}, generated {_boxes(y)}")
         if x.underlined != y.underlined:
             out["underlines"].append(f"{x.text}: drawn {list(x.underlined)}, generated {list(y.underlined)}")
     # ALIGNMENT is §5.2.6.1's: inside one group, words on one row are in sequence and words on different rows are
@@ -305,7 +322,33 @@ def self_test() -> int:
     check("an alternative set beside instead of below is an alignment difference",
           diff["alignment"] == ["ALPHA -> BETA: drawn stacked, generated beside"], str(diff))
     check("entities are one column", plain_row("&lt;<u>A</u>") == ("<A", {1}), str(plain_row("&lt;<u>A</u>")))
-    total = 13
+    # Level-2 boxes (FIGURE-STYLE.md rule 9): the house style's sides, one row and several, and the batch's rectangle.
+    boxed = ["[ <u>SAME</u> ║ [ <u>RECORD</u> ] ║ AREA ]",
+             "",
+             "╔ <u>RERUN</u> ┌ ON ┐ ╗",
+             "║          │    │ ║",
+             "╚          └ IN ┘ ╝"]
+    w = {x.text: x for x in read(boxed)}
+    check("a one-row box holds its words and groups nothing", w["RECORD"].holders == ("bracket", "box", "bracket")
+          and _grouping(w["RECORD"]) == ("bracket", "bracket") and w["AREA"].holders == ("bracket",), str(w["RECORD"]))
+    check("a multi-row box holds every row between its corners", w["RERUN"].holders == ("box",)
+          and w["IN"].holders == ("box", "bracket"), str(w["IN"]))
+    rectangle = ["[ <u>SAME</u>  ╔════════════╗  AREA ]",
+                 "          ║[ <u>RECORD</u> ]║",
+                 "          ╚════════════╝",
+                 "╔═══════════════════╗",
+                 "║ <u>RERUN</u> ┌ ON ┐",
+                 "║          │    │",
+                 "║          └ IN ┘",
+                 "╚═══════════════════╝"]
+    w = {x.text: x for x in read(rectangle)}
+    check("the batch's rectangle is read as a box", _boxes(w["RECORD"]) == 1 and _boxes(w["IN"]) == 1
+          and _boxes(w["AREA"]) == 0, str(w["RECORD"]) + str(w["IN"]))
+    unboxed = [re.sub(r" ?[║╔╚╗╝] ?", " ", b).strip() for b in boxed]
+    diff = compare(unboxed, boxed)
+    check("a lost box is named on every word it held", diff["boxes"] == ["RECORD: drawn 0, generated 1",
+          "RERUN: drawn 0, generated 1", "ON: drawn 0, generated 1", "IN: drawn 0, generated 1"], str(diff))
+    total = 17
     print(f"figure_reading self-test: {total - len(fails)}/{total} " + ("GREEN" if not fails else "RED"))
     for f in fails:
         print("  FAIL", f)

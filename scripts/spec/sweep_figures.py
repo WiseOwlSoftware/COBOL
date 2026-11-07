@@ -398,7 +398,7 @@ def regenerated(edition: int, doc, drawn: list[Drawn], R) -> list[tuple]:
     A scan has no text layer to find a figure by, so the figure is found by its WORDS: the transcription's drawing
     gives them, `figure_raster.measure_figures` places each figure on its page and pairs each word with the measured
     ink, and `render_figure.build` draws the figure from the measurement, exactly as for a vector page. The words are
-    the drawing's; everything else (grouping, choice bars, underlines, alignment) is measured."""
+    the drawing's; everything else (grouping, choice bars, underlines, alignment, level-2 boxes) is measured."""
     import figure_raster as FR
     import figure_reading
     from figure_extract import page_extractor
@@ -421,7 +421,15 @@ def regenerated(edition: int, doc, drawn: list[Drawn], R) -> list[tuple]:
                         body = R.render(grid, marks, False) if grid else None
                     except SystemExit as exc:
                         bad.append({"reason": f"render_figure refused the figure: {exc}"})
-            boxes = [b for b in rp.boxes if band is not None and band[0] <= b["y0"] <= band[1]]
+            # The boxes `build` draws are the ones reaching into the band (`classify_page`'s box sides, FIGURE-STYLE.md
+            # rule 9). A box is drawn only around words that were read, so one whose words stayed unread is lost from
+            # the drawing, and that loss is named, never silent.
+            boxes = [b for b in rp.boxes if band is not None and not (b["y1"] < band[0] or b["y0"] > band[1])]
+            if body is not None:
+                drawn_boxes = sum(1 for e in figure_reading.enclosures(body) if e.family == "box")
+                if drawn_boxes < len(boxes):
+                    bad.append({"reason": f"{len(boxes) - drawn_boxes} of {len(boxes)} measured level-2 box(es) not "
+                                          "drawn: no word they hold was read"})
             out[d.start] = (d, body, bad, boxes)
     return [out[d.start] for d in drawn]
 
