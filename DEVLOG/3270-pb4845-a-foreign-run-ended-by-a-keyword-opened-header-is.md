@@ -1,0 +1,6 @@
+## Entry 3270 — 2026-11-07 13:44 PST — PB4845 - a foreign run ended by a keyword-opened header is named
+
+Re-probe on a fresh Debug build: `01 W-A PIC X VALEU` then `LINKAGE SECTION.` (also `LOCAL-STORAGE SECTION.`, `PROCEDURE DIVISION.`) drew only COBOL0307 "missing token before 'LINKAGE'", never naming VALEU, while `VALEU MAIN SECTION.` (PB4770) and `VALEU 01 B PIC X.` named it with COBOL1941. Root cause: `CobolErrorStrategy.ClosedFormatResidue` returned null on `HeaderWords(atn).Contains(token.Type)` at its top, before the `ResidueRun` check that PB4301 and PB4770 made authoritative for a run whatever ended it. The test now follows the run check and the `WritesAHeader` return, so a header word that ends no run still gets the generic diagnosis (unchanged probes: `01 W-A PIC X` then `LINKAGE SECTION.` is COBOL0307, `MAIN SECTION.` is COBOL0001). The sibling arm, `WritesAHeader` (SECTION or DIVISION as the token), was PB4770's; line 708 (`ReservedWordUse`) asks a different question (a reserved word where a name is due) and reads no run.
+
+Goldens: `AForeignRunEndedByAHeader_IsNamed` gains LINKAGE, FILE and PROCEDURE rows; `conformance-suite/wiseowl/diagnostics/pb4845-foreign-run-ended-by-a-keyword-header-in-an-entry.json` refuses at all four editions. No inventory row claimed or closed. Gate: see the landing record.
+
