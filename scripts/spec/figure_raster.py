@@ -1032,6 +1032,12 @@ DELIMS = frozenset("[]{}()")
 DELIM_SIDE = {ch: frozenset("[{(") if ch in "[{(" else frozenset("]})") for ch in DELIMS}
 
 
+def _is_speck(box) -> bool:
+    """A measured word that is no word: one glyph no taller than a dot (a speck of the scan), or a sliver an erased box
+    rule left behind (`align` pairs no converted word with it and names no disagreement for it)."""
+    return (len(box[4]) == 1 and (box[3] - box[1]) <= DOT_MAX) or (box[3] - box[1]) <= SLIVER_MAX
+
+
 def _is_delimiter_box(box) -> bool:
     """A measured word that is one typed delimiter glyph (`_is_delimiter_glyph`, in points)."""
     x0, y0, x1, y1, _ = box
@@ -1044,10 +1050,13 @@ class _Frame:
 
     def __init__(self, flat: list, tops: list, toks: list, nrow: int):
         self.flat, self.tops, self.toks, self.nrow = flat, tops, toks, nrow
-        self.ymin = min(tops)                         # a box's height is its LINE's (`_line_top`): an ellipsis's ink
-        self.yspan = max(max(tops) - self.ymin, 1.0)  # starts 4.5 pt below its line's, which is no row of its own
-        self.xmin = min(b[0] for _, _, b in flat)
-        self.xspan = max(max(b[2] for _, _, b in flat) - self.xmin, 1.0)
+        # The extents are the WORDS': a speck on a line of its own above a one-line format (PDF page 321, 4 pt above
+        # `GO TO [procedure-name-1]`) stretched the figure's height over it and priced every pair 2.0 more (PB4849).
+        real = [k for k, (_, _, b) in enumerate(flat) if not _is_speck(b)] or list(range(len(flat)))
+        self.ymin = min(tops[k] for k in real)        # a box's height is its LINE's (`_line_top`): an ellipsis's ink
+        self.yspan = max(max(tops[k] for k in real) - self.ymin, 1.0)  # starts 4.5 pt below its line's: no row of its own
+        self.xmin = min(flat[k][2][0] for k in real)
+        self.xspan = max(max(flat[k][2][2] for k in real) - self.xmin, 1.0)
         self.cmin = min((c for _, _, c in toks), default=0)
         self.cspan = max(max((c + len(t) for t, _, c in toks), default=1) - self.cmin, 1)
         # The typewriter's PITCH, so a word's length can be read from its width as well as from its glyph count: a scan
@@ -1069,7 +1078,9 @@ class _Frame:
         right = min((p for p in same if p[0] > at), default=None)
         return (left[1] if left else None, right[1] if right else None)
 
-    def cost(self, t: int, k: int, near, words: dict | None) -> float:
+    def cost(self, t: int, k: int, near, words: dict | None, placed: dict | None = None) -> float:
+        """What pairing converted word `t` with measured box `k` costs. When `t` is a typed delimiter, `words` is the
+        words' pairing ({box: (word, cost)}) and `placed` its inverse ({word: box})."""
         word, r, c = self.toks[t]
         box = self.flat[k][2]
         miss = abs(len(box[4]) - len(word))
@@ -1085,14 +1096,28 @@ class _Frame:
             if not said:
                 v += PAIR_W_HINT / 2                  # the OCR layer drops punctuation and ellipses: no evidence either way
             elif word in DELIMS:
-                v += 0.0 if any(DELIM_SIDE[word] & set(h) for h in said) else PAIR_W_HINT
+                # Only a delimiter of the other side is evidence against: the OCR reads a typed `}` as `1` too (PDF
+                # page 182), which says nothing of its side, as a dropped one says nothing (kb/Work PB4849).
+                v += (0.0 if any(DELIM_SIDE[word] & set(h) for h in said)
+                      else PAIR_W_HINT if any(DELIMS & set(h) for h in said) else PAIR_W_HINT / 2)
             else:
                 v += (1 - max(_similarity(h, word) for h in said)) * PAIR_W_HINT
         if words is not None:                         # a delimiter: its neighbours must be the word's
+            line = self.flat[k][0]
+            placed = placed if placed is not None else {w: b for b, (w, _) in words.items()}
             for box_side, tok_side in zip(self.box_side[k], self.tok_side[t]):
                 got = words.get(box_side, (None,))[0] if box_side is not None else None
-                if got != tok_side:
-                    v += PAIR_W_NEIGHBOUR
+                if got == tok_side:
+                    continue
+                # A neighbour missing on one side contradicts nothing when the other side's neighbour is printed on
+                # another line, or drawn on another row: the converted row sets a brace's alternative, printed half a
+                # line off, beside the delimiter (`[USAGE IS] {COMP ...`, PDF page 205: the `]` ends its printed line,
+                # and COMP, drawn after it on its row, is printed half a line below; kb/Work PB4849).
+                if box_side is None and tok_side in placed and self.flat[placed[tok_side]][0] != line:
+                    continue
+                if tok_side is None and got is not None and self.toks[got][1] != r:
+                    continue
+                v += PAIR_W_NEIGHBOUR
         return v
 
 
@@ -1138,8 +1163,27 @@ def _assign(frame: _Frame, toks: list, boxes: list, near, words: dict | None) ->
     frame): {box: (word, cost)}."""
     if not toks or not boxes:
         return {}
-    cost = np.array([[frame.cost(t, k, near, words) for k in boxes] for t in toks])
+    placed = {w: b for b, (w, _) in words.items()} if words is not None else None
+    cost = np.array([[frame.cost(t, k, near, words, placed) for k in boxes] for t in toks])
     return {boxes[c]: (toks[r], float(cost[r, c])) for r, c in hungarian(cost)}
+
+
+def _deal(frame: _Frame, paired: dict, near) -> dict:
+    """`paired` ({box: (word, cost)}) with the words of one spelling from one row that are paired on one printed line
+    dealt out to those boxes in order: they are interchangeable, so which went to which box carries no information,
+    and the typed delimiters are placed by them next (`[sentence] ... } ...`, PDF page 182: the two `...` came out
+    crossed, and so did the `]` and the `}` placed by them; kb/Work PB4849)."""
+    groups = collections.defaultdict(list)
+    for k, (t, _) in paired.items():
+        word, row, _ = frame.toks[t]
+        groups[(frame.flat[k][0], row, word)].append(k)
+    out = dict(paired)
+    for ks in groups.values():
+        if len(ks) > 1:
+            boxes = sorted(ks, key=lambda k: frame.flat[k][1])
+            words = sorted((paired[k][0] for k in ks), key=lambda t: frame.toks[t][2])
+            out.update({k: (t, frame.cost(t, k, near, None)) for k, t in zip(boxes, words)})
+    return out
 
 
 def align(lines: list, tokens: list | None, rules: list, hints: list | None = None):
@@ -1173,15 +1217,15 @@ def align(lines: list, tokens: list | None, rules: list, hints: list | None = No
         index = {(i, j): k for k, (i, j, _) in enumerate(flat)}
         # Words first, then the typed delimiters by the words beside them: every `[` looks alike, so a bracket is
         # placed by its neighbours, never by its shape alone (`[ROUNDED]` came out `] ROUNDED [`, page 305).
-        paired = _assign(frame, [t for t in range(len(toks)) if toks[t][0] not in DELIMS],
-                         [k for k in range(len(flat)) if not is_delim[k]], near, None)
+        paired = _deal(frame, _assign(frame, [t for t in range(len(toks)) if toks[t][0] not in DELIMS],
+                                      [k for k in range(len(flat)) if not is_delim[k]], near, None), near)
         paired.update(_assign(frame, [t for t in range(len(toks)) if toks[t][0] in DELIMS],
                               [k for k in range(len(flat)) if is_delim[k]], near, paired))
         spoiled = set()
         for k, (i, j, box) in enumerate(flat):
             got = paired.get(k)
             if got is None:
-                if (len(box[4]) == 1 and (box[3] - box[1]) <= DOT_MAX) or (box[3] - box[1]) <= SLIVER_MAX:
+                if _is_speck(box):
                     continue                                   # a speck, or a sliver a box's erased rule left: no word
                 bad.append({"line": i, "word": j, "reason": "no converted word pairs with this measured word",
                             "box": [round(v, 1) for v in box[:4]]})

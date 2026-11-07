@@ -469,6 +469,66 @@ def main() -> int:
     check("an OCR `{` does not support a typed `}`",
           frame.cost(0, 0, said("{"), None) - frame.cost(0, 0, said("}"), None) == R.PAIR_W_HINT,
           f"got {frame.cost(0, 0, said('{'), None)}")
+    # ... and an OCR misreading of no delimiter at all (page 182 reads a typed `}` as `1`) is no evidence of its side:
+    #     it costs what a dropped one does (kb/Work PB4849).
+    total += 1
+    check("an OCR `1` neither supports nor contradicts a typed `}`",
+          frame.cost(0, 0, said("1"), None) == frame.cost(0, 0, {0: []}, None) == frame.cost(0, 0, said("}"), None) + R.PAIR_W_HINT / 2,
+          f"got {frame.cost(0, 0, said('1'), None)} {frame.cost(0, 0, {0: []}, None)}")
+
+    # 10h. A typed delimiter that ends its printed line, the word drawn after it on its row printed half a line below
+    #      (a brace's alternative: `[USAGE IS] {COMP ...`, PDF page 205): the missing neighbour contradicts nothing,
+    #      and the `]` is read (kb/Work PB4849).
+    img = canvas()
+    delim(img, 10, 20)
+    right = word(img, 13.7, 20, 5)                              # USAGE
+    right = word(img, right + 6.0, 20, 2)                       # IS
+    delim(img, right + 1.2, 20)
+    word(img, right + 12.0, 26.0, 4)                            # COMP, half a line below
+    word(img, right + 12.0, 38.0, 7)                            # DISPLAY, the next alternative
+    rp = R.measure_image(img, skew=0.0, tokens=[["[USAGE", "IS]", "COMP"], ["DISPLAY"]], hints=[])  # the OCR read nothing
+    total += 1
+    check("a delimiter ending its line, the word after it on its row printed half a line below, is read",
+          [w["text"] for w in rp.words] == ["[", "USAGE", "IS", "]", "COMP", "DISPLAY"] and not rp.disagreements,
+          f"got {[w['text'] for w in rp.words]} {rp.disagreements}")
+
+    # 10i. Two equal words of one row on one line are dealt out in order BEFORE the typed delimiters are placed by them
+    #      (`[sentence] ... } ...`, PDF page 182: the two `...` came out crossed, and the `]` and `}` with them).
+    img = canvas()
+    delim(img, 10, 20)
+    right = word(img, 13.7, 20, 8)                              # sentence
+    delim(img, right + 1.2, 20)
+    for x0 in (right + 8.0, right + 32.0):                      # two ellipses, a typed `}` between them
+        for n in range(3):
+            dot(img, x0 + n * 4.0, 25.4)
+    delim(img, right + 24.0, 20)
+    rp = R.measure_image(img, skew=0.0, tokens=[["[sentence]", "...", "}", "..."]], hints=[])
+    total += 1
+    check("equal words are dealt in order before the delimiters beside them are placed",
+          [w["text"] for w in rp.words] == ["[", "sentence", "]", "...", "}", "..."] and not rp.disagreements,
+          f"got {[w['text'] for w in rp.words]} {rp.disagreements}")
+    # The assignment is free to cross two equal words (their costs tie whenever both lie on one side of both boxes),
+    # so the dealing is checked on a crossed pairing itself.
+    dots = [(x, 25.4, x + 9.8, 27.0, [(x + 4.0 * n, 25.4, x + 4.0 * n + 1.8, 27.0) for n in range(3)]) for x in (70.0, 94.0)]
+    frame = R._Frame([(0, 0, dots[0]), (0, 1, dots[1])], [20.0, 20.0], [("...", 0, 11), ("...", 0, 17)], 1)
+    dealt = R._deal(frame, {0: (1, 0.0), 1: (0, 0.0)}, None)
+    total += 1
+    check("a crossed pairing of equal words is dealt out in order", [dealt[0][0], dealt[1][0]] == [0, 1], f"got {dealt}")
+
+    # 10j. A speck on a line of its own above a one-line format does not stretch the figure's frame (PDF page 321: a
+    #      speck 4 pt above `GO TO [procedure-name-1]` priced every pair 2.0 more, and both brackets went unread).
+    img = canvas()
+    fill(img, 60, 15.0, 61.0, 15.4)                              # the speck: 1.0 x 0.4 pt
+    right = word(img, 10, 20, 2)                                 # GO
+    right = word(img, right + 6.0, 20, 2)                        # TO
+    delim(img, right + 6.0, 20)
+    right = word(img, right + 9.7, 20, 16)                       # procedure-name-1
+    delim(img, right + 1.2, 20)
+    rp = R.measure_image(img, skew=0.0, tokens=[["GO", "TO", "[procedure-name-1]"]])
+    total += 1
+    check("a speck on a line of its own leaves the frame and the pairing alone",
+          [w["text"] for w in rp.words if w["text"]] == ["GO", "TO", "[", "procedure-name-1", "]"] and not rp.disagreements,
+          f"got {[w['text'] for w in rp.words]} {rp.disagreements}")
 
     # 10e. Two figures that share words are placed TOGETHER, in order (ADD's formats share `[ON SIZE ERROR ...]`).
     def hint(y, *words_):
