@@ -49,6 +49,12 @@ internal sealed class MessagingProtocol
         internal InLink Link { get; } = link;
         internal long Serial { get; } = serial;
         internal int Round { get; } = round;
+
+        /// <summary>The RECEIVE that claimed this offer ended before its GRANT, while the server still owed replies on the link (design 5.4.2): the requestor
+        /// still answers that claim, so the next RECEIVE adopts the offer, and a GRANT that arrives with no RECEIVE to take it is held here.</summary>
+        internal bool InFlight { get; set; }
+
+        internal MessageBody? Held { get; set; }
     }
 
     private sealed class SendState(long serial, string name, string spelling, MessageBody body, int round)
@@ -592,6 +598,8 @@ internal sealed class MessagingProtocol
             case GrantFrame grant when link.RequestorRunId is not null:
                 if (_receive is { Claim: { } granted } taking && granted.Link == link && granted.Serial == grant.Serial && granted.Round == grant.Round)
                     Take(taking, granted, grant.Message);
+                else if (_offers.Find(o => o.InFlight && o.Link == link && o.Serial == grant.Serial && o.Round == grant.Round) is { } adopted)
+                    adopted.Held = grant.Message;
                 break;
             default:
                 EndIn(link, closeIt: true);
@@ -653,7 +661,9 @@ internal sealed class MessagingProtocol
             if (next is not null)
             {
                 receive.Claim = next;
-                _actions.Add(new Write(next.Link.Id, new ClaimFrame(next.Serial, next.Round)));
+                if (next.Held is { } held) Take(receive, next, held);                                  // its GRANT came between two RECEIVEs
+                else if (!next.InFlight) _actions.Add(new Write(next.Link.Id, new ClaimFrame(next.Serial, next.Round)));
+                if (!ReferenceEquals(_receive, receive)) return;
             }
         }
         if (receive.Claim is null && receive.DeadlinePassed) CompleteReceive(receive, StatementResult.TimedOut());
@@ -680,10 +690,13 @@ internal sealed class MessagingProtocol
         _receive = null;
         // A RECEIVE that ends with a CLAIM in flight (Take and EndIn have cleared theirs) will never read the GRANT, and an unanswered GRANT leaves the requestor
         // granted forever. design 5.4.1's invariant allows the link to end instead: the requestor, still holding the message, goes on to a new round (step 9).
+        // A link on which this server still owes a reply is not ended (the requestor would mark that reply "server ended"): the offer stays claimed for the next RECEIVE.
         if (receive.Claim is { } claimed)
         {
             receive.Claim = null;
-            EndIn(claimed.Link, closeIt: true);
+            string? requestor = claimed.Link.RequestorRunId;
+            if (_active.Keys.Any(k => k.Item1 == requestor)) claimed.InFlight = true;
+            else EndIn(claimed.Link, closeIt: true);
         }
         _actions.Add(new Complete(result));
     }

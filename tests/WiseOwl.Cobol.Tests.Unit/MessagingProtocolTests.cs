@@ -977,6 +977,33 @@ public sealed class MessagingProtocolTests
     }
 
     [Fact]
+    public void AReceiveEndedImpWithAClaimInFlightKeepsTheLinkWhileRepliesAreOwedOnItAndTheNextReceiveTakesTheMessage()
+    {
+        var (_, server, requestor) = Pair();
+        requestor.Send("SRV", "FIRST");
+        Pump(requestor, server);
+        server.Receive(default);
+        Pump(requestor, server);
+        var owed = requestor.Last.Tag;                                   // FIRST was sent on the link; its reply is owed
+        var asked = server.Last.Tag;
+        requestor.Send("SRV", "SECOND");
+        Pump(requestor, server);
+        server.Receive(default);                                         // the claim is in flight ...
+        while (requestor.Log.OfType<Write>().Count(w => w.Frame is GrantFrame) < 2) Assert.True(requestor.Step());
+        server.Post(new ActionFailed(new CloseLink(default), "late failure"));                   // ... when an unrelated action fails and ends the RECEIVE
+        Assert.Equal(ExceptionCatalog.McsImp, server.Last.ExceptionName);
+        Pump(requestor, server);
+        server.SendResponse(asked, "REPLY TO FIRST");                    // neither party ended: the link still carries this
+        server.Receive(default);                                         // the held GRANT is taken by the next RECEIVE
+        Pump(requestor, server);
+        Assert.Equal("SECOND", server.Last.Image);
+        Assert.True(requestor.Last.Successful);                          // the SEND of SECOND completed
+        requestor.Receive(owed, 50);
+        Assert.Equal("REPLY TO FIRST", requestor.Last.Image);            // not EC-MCS-ABNORMAL-TERMINATION
+        Assert.True(requestor.Last.Successful);
+    }
+
+    [Fact]
     public void AWriteThatFailsEndsItsLinkWhateverStatementWasCurrent()
     {
         var (_, server, requestor) = Pair();

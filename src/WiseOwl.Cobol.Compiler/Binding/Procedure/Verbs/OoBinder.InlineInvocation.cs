@@ -287,7 +287,7 @@ internal sealed partial class OoBinder
         return new BoundNumRef(place);
     }
 
-    /// <summary>⛔ THE DIAGNOSTIC-FREE ANSWER TO "WHAT DOES THIS INLINE METHOD INVOCATION RETURN" (§8.4.3.4.4 GR1 c): the temporary takes the
+    /// <summary>⛔ THE DIAGNOSTIC-FREE ANSWER TO "WHAT DOES THIS INLINE METHOD INVOCATION RETURN" (§8.4.3.4.4 GR1 b): the temporary takes the
     /// description of the invoked method's RETURNING item). Nothing is bound and nothing is reported, so a statement-level question may ask it
     /// (<c>StatementBinder.NamesGatedMessageTag</c>, kb/Work PB4868), as <see cref="IntrinsicBinder.ReturningItemOf(Core.FunctionCallContext)"/>
     /// answers it for a function. It follows the chain of segments from a receiver that is a data item of a named class

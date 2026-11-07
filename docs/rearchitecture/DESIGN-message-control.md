@@ -610,7 +610,7 @@ its bell behind, and the next server that rings it is refused and deletes it.
 RECEIVE FROM NULL in a run unit that serves no name is EC-MCS-NO-REQUESTER (Q2). Otherwise the server writes `CLAIM` for
 its oldest offer and moves on at a `WITHDRAW`. At a `GRANT` it writes `ACK`, records the message in `Active` with
 identifier-1's maximum length, and only then completes with the requestor tag (Requestor, `<r>`, serial); a message longer than
-identifier-1 is taken and answered EC-MCS-MESSAGE-LENGTH (Q7). A RECEIVE that ends EC-MCS-IMP with a CLAIM in flight closes the claimed link: it will never read the `GRANT`, and the requestor, still holding the message, goes on to a new round (§5.4.1 step 9). RECEIVE FROM a requestor tag considers only that link, and
+identifier-1 is taken and answered EC-MCS-MESSAGE-LENGTH (Q7). A RECEIVE that ends EC-MCS-IMP with a CLAIM in flight closes the claimed link when the server owes no reply on it: it will never read the `GRANT`, and the requestor, still holding the message, goes on to a new round (§5.4.1 step 9). With a reply owed on the link it stays open (the requestor would answer that reply "server ended"): the offer stays claimed, the next RECEIVE adopts it, and a `GRANT` that arrives between the two is held on the offer. RECEIVE FROM a requestor tag considers only that link, and
 a missing or ended link gives "the EC-MCS-REQUESTOR-FAILED exception condition is set to exist" (§14.9.31.4 GR1 b).
 
 SEND Format 2 tests in GR order. A message of zero character positions is EC-MCS-MESSAGE-LENGTH (GR1); `maxLength` does
