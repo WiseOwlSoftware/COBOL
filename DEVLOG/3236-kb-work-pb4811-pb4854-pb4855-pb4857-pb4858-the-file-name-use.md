@@ -1,4 +1,4 @@
-## kb/Work PB4811, PB4854, PB4855, PB4857, PB4858: the file-name USE FOR DEBUGGING trigger runs, and the debug reach walk stops counting operands the program did not write
+## Entry 3236 — 2026-11-06 19:53 PST — kb/Work PB4811, PB4854, PB4855, PB4857, PB4858: the file-name USE FOR DEBUGGING trigger runs, and the debug reach walk stops counting operands the program did not write
 
 Five notes, one root: the debug facility's reach walk (`BoundReferences`, `DebugTriggerPlanner`) and its emitters. Every note was re-probed on this
 build first with a program of its own (`E:/COBOL-coord/scratch/w20261887a/p1..p7.cob`); PB4811, PB4854, PB4857 reproduced, PB4855 and PB4858
@@ -57,3 +57,4 @@ the first run was RED on LINE ENDINGS only (the three new `.out` goldens written
 - R1-5 fixed: the COBOL1571 text names only LINAGE-COUNTER, LINE-COUNTER and PAGE-COUNTER as still staged. R1-4 (rule 11 restricts DEBUG-ITEM to debugging sections) stays a lead: the resolver has no bind-position section to test.
 - Review round 2: R2-1 and R2-2: a READ that delivered no record now lands only the FILE-NAME fire (`LandFileNameAfterFailure`), with DEBUG-CONTENTS spaces; the INTO receiver's section does not run there. R2-4: golden `pb4811-debug-file-name-failures` gains START and DELETE with invalid key and no phrase on KU (a USE procedure and a debug section: the section runs first), DEBUG-CONTENTS in the file-name section and an INTO receiver's ALL REFERENCES section. R2-5: D-DEBUG-FILE (2) and the planner text state the final READ behavior.
 - Round-2 gate: `=== BUILD-LOCAL GATE: GREEN — Conformance 22,429/22,429 · Unit 40,360/40,360 · Characterization 37/37 cases ran (skipped 0) (run 000001-20261107T032247Z) ===`.
+
