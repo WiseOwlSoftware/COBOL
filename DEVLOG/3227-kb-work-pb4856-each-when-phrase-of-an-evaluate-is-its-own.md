@@ -1,4 +1,4 @@
-## kb/Work PB4856: each WHEN phrase of an EVALUATE is its own USE FOR DEBUGGING moment
+## Entry 3227 — 2026-11-06 17:58 PST — kb/Work PB4856: each WHEN phrase of an EVALUATE is its own USE FOR DEBUGGING moment
 
 PB4856 (a review lead of PB4810): consecutive WHEN phrases over one body were composed into one `BoundEvaluateWhen.Match` (an OR), so the
 per-phrase "evaluated" flag of the debugging planner covered the whole OR. With `WHEN 1 WHEN D` and K = 1 the OR short-circuited at the
@@ -10,3 +10,4 @@ Fix: `BoundEvaluateWhen` holds `Matches`, one condition per WHEN phrase; `BoundE
 No diagnostic code used. Golden `pb4856-debug-evaluate-consecutive-when` (accept 85: first phrase selects, second evaluated, ALSO subjects,
 first phrase names D) and the 2002 refusal `pb4856-debug-evaluate-phrase-removed`. No inventory row closed. Sibling sweep: SEARCH's WHENs
 were already one phrase each (`BoundSearch.PhraseOperands`); no other node ORs phrases.
+
