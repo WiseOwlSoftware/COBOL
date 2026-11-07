@@ -344,9 +344,28 @@ def validate(c: Citation, repo: pathlib.Path = spec_pdf.REPO) -> str | None:
 #: "`docs/VERSION_CHANGE_REFERENCE.md` (§4.2)", a Markdown file named just before). This screen says "the `§` just right
 #: of a document's name is that document's section". Other EDITIONS of COBOL are not in it: they carry their own edition
 #: token now (`§1985:VI.5.3.2`), and a free-text "COBOL-85 §4.3.3" is the rewrite's hand-repair item.
-DOCUMENT_SECTION = re.compile(
-    r"(?:DESIGN|ADR|PLAN|PROMPT|DEVLOG|SURVEY|CRITIQUE|EVAL|README|CONFORMANCE\.md|REDEFINES_DESIGN|\.md\b"
-    r"|this doc|its own)[^§\n]{0,45}$", re.IGNORECASE)
+#: ⛔ THE NAME IS A WHOLE NAME AND IT STANDS RIGHT AGAINST THE `§` (kb/Work PB4887 review R1-1). The first screen matched
+#: its names as case-blind SUBSTRINGS anywhere in the 45 characters left of the `§`, so "the EVALUATE statement
+#: (§14.9.13)", "evaluated per §8.8.1.5", "statement designated archaic | §F.1", "ReadRandom … owns the §9.1.13" and "a
+#: capacity of its own (§8.5.1.9.2)" were all a document's section: 2,570 genuine citations of the standard the rewrite
+#: would have left bare and the phase-2 BARE refusal would never have seen. Now a name is a whole token (a Markdown
+#: file, a design document's identifier, one of the repository's named documents, or a prose "the design's"), and
+#: between it and the `§` stand only punctuation, a possessive, the word "section", or the earlier members of a list of
+#: its sections ("DESIGN-x §4.6, §4.7"). The standard's own transcription is not a document of the repository: "in
+#: specs/ISO_COBOL_2023.md §8.7.5.2" cites the standard.
+_DOCUMENT_NAME = r"""(?:
+      (?<![\w./-])(?![\w./-]*ISO_COBOL_2023\.md)[\w./-]*\w\.md(?!\w)        # a Markdown file: docs/X.md, DESIGN-x.md
+    | \b(?:DESIGN|SURVEY|CRITIQUE|EVAL|PHASE|PIPELINE)-\w[\w.-]*\w            # a design document's identifier
+    | \b[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)*_DESIGN\b                               # OO_DESIGN, CONDITIONS_EXCEPTIONS_DESIGN
+    | \b(?:ADR|PLAN|PROMPT|README|CLAUDE|DESIGN|DEVLOG)\b                     # the repository's named documents
+    | (?i:\b(?:the|this|that)\s+(?:design|doc|document|deep-dive|ADR)         # prose: "the design's", "this document"
+          (?:\s+(?:doc|document|SSOT))?)
+    | (?i:\bdesign(?:\s+(?:doc|document|SSOT))?)                              # "design §8", "(design SSOT §9.10)"
+)"""
+#: What may stand between the name and the `§`: a line number (`DESIGN-x.md:848`), a possessive, punctuation, the word
+#: "section", and the earlier members of a list of the document's sections.
+_DOCUMENT_GAP = r"""(?::\d+(?:[-–]\d+)?)?(?:'s|’s)?[\s`*"'(\[]*(?:sections?\s+)?(?:§\s?\w[\w.]*\w?[\s,;/`*)]*(?:and\s+|or\s+)?)*$"""
+DOCUMENT_SECTION = re.compile(_DOCUMENT_NAME + _DOCUMENT_GAP, re.VERBOSE)
 #: A free-text citation of ANOTHER edition, just left of a bare `§`: "COBOL-85 §4.3.3", "ISO 1989:2002 §14.8.4".
 OTHER_EDITION = re.compile(
     r"(?:COBOL[- ]?(?P<cobol>85|1985|2002|2014)|1989:(?P<iso>1985|2002|2014)|X3\.23-?(?P<ansi>1985|85))[^§\n]{0,45}$",
@@ -371,10 +390,27 @@ def bare_standard(line: str, c: Citation, own_sections: frozenset[str] | set[str
         return False
     if known is not None and c.locator not in known:
         return False
+    return not names_another_text(line, c)
+
+
+def names_another_text(line: str, c: Citation) -> bool:
+    """Whether the bare `c` is another text's number by its context (THE ONE SCREEN `bare_standard` and the PHANTOM
+    audit share): a document's name stands just left of it, another edition is named just left of it, or it is a
+    design doc's own item label (`§9.10.1-C2`, the label glued to the number). A rule range (`§11.9.9.3 SR1-SR6`) is
+    not a label, nor is a rule glued with a hyphen (`§13.5.3-SR1`): the check reads the text after the LOCATOR, and
+    only when no rule follows it. ("plan §0" is not screened here: 0 is no clause of the standard, and "the plan's
+    §13.18.63.4" in a code comment is the codegen plan citing the standard.)"""
     before = line[:c.start]
     if DOCUMENT_SECTION.search(before) or other_edition(before) is not None:
+        return True
+    if c.rule:
         return False
-    return not re.match(r"-[A-Z]", line[c.end:c.end + 2])
+    after = line.index(c.locator, c.start) + len(c.locator)
+    return ITEM_LABEL.match(line, after) is not None
+
+
+#: A design doc's own item label glued to a number (`§9.10.1-C2`, `§9.1-B`), never a rule (`§13.5.3-SR1`).
+ITEM_LABEL = re.compile(r"-(?![GS]R\d)[A-Z]")
 
 
 # ── SELF-TEST ────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -491,6 +527,18 @@ def self_test() -> int:
         ("bare_standard leaves a document's section and another edition alone",
          not _bare_in("DESIGN-locale-facility §4.4.3") and not _bare_in("COBOL-85 §14.9.24")
          and _bare_in("the MOVE statement §14.9.25")),
+        ("bare_standard reads a document's name as a whole name right against the § (review R1-1)",
+         all(_bare_in(s) for s in (
+             "the EVALUATE statement (§14.9.13) selects the first WHEN", "evaluated per §8.8.1.5",
+             "while its owner lives (§9.1.16)", "useValues says (§8.5.1.9.5", "statement designated archaic | §F.1",
+             "`ReadNext`, `ReadRandom`) owns the §9.1.13", "a capacity of its own (§8.5.1.9.2)",
+             "see `docs/CONFORMANCE.md` DOC-A.1-8, §12.3.7.4", "in specs/ISO_COBOL_2023.md §8.7.5.2",
+             "DEVLOG 380).** §13.18.60", "into the plan's §13.18.63.4 GR12", "(§11.9.9.3 SR1-SR6)",
+             "Method WS is §13.5.3-SR1"))
+         and not any(_bare_in(s) for s in (
+             "DESIGN-external-repository §4.5, §11.2", "`docs/rearchitecture/DESIGN-message-control.md` (§7.2",
+             "CONDITIONS_EXCEPTIONS_DESIGN §14.9.29", "the design's §5.5", "(design §5.2; dim", "ADR §4.2",
+             "per `DESIGN.md` §14.4", "DESIGN §3.3 / §14.1", "the interceptor (§9.1-B)"))),
         ("other_edition names the edition", other_edition("COBOL-85 ") == 1985 and other_edition("ISO 1989:2002 ") == 2002),
     ]
     for name, ok in cases:

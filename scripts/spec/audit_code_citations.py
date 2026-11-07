@@ -25,7 +25,7 @@ THE CHECKS, each narrow on purpose:
               (`§2023:13.18.35.4`, `§1985:VI.5.3.2`; `scripts/spec/citation.py`, kb/Work PB4887) is checked against
               its own edition's transcription, whatever its shape. A BARE `§N` (the transition, while
               `citation.BARE_MEANS_2023`) is read as 2023 only when ISO-SHAPED — at least three dot-separated
-              segments under a real top-level clause — because a design doc legitimately writes "§4.2" and "§2023:14.4"
+              segments under a real top-level clause — because a design doc legitimately writes "§4.2" and "§14.4"
               about its OWN sections and those are not citations of the standard.
 
   CITATION  — a malformed edition-form citation: an edition the format does not have (`§5000:`), or a locator
@@ -371,14 +371,11 @@ def _phantoms(line: str, universe: set[str], skip: set[str] = frozenset(), prev:
             continue
         segs = c.locator.split(".")
         if len(segs) < 3 or not segs[0].isdigit() or not 1 <= int(segs[0]) <= 15:
-            continue                                     # not ISO-shaped: a doc's own §2023:4.2, a two-part §2023:13.16
+            continue                                     # not ISO-shaped: a doc's own bare §4.2, a two-part bare §13.16
         if c.locator in universe or c.locator in skip:
             continue
-        before = line[:c.start]
-        if citation.DOCUMENT_SECTION.search(before) or citation.other_edition(before) is not None:
-            continue                                     # "DESIGN-… §4.4.3", "COBOL-85 §4.3.3"
-        if re.match(r"-[A-Z]", line[c.end:c.end + 2]):
-            continue                                     # "§9.10.1-C2" — a design doc's own item label
+        if citation.names_another_text(line, c):
+            continue                                     # "DESIGN-… §4.4.3", "COBOL-85 §4.3.3", an item label "§9.10.1-C2"
         if not _reported(line, c, prev):
             yield "PHANTOM", c.locator, "the standard has no clause §" + c.locator
 
@@ -451,16 +448,16 @@ def _sub(m: re.Match) -> str | None:
     return m.group(3) or m.group(4) or m.group(5) or m.group(6)
 
 #: An ISO-shaped clause number, with or without the `§` — `(ISO 14.9.39 Format 10 GR18)` is how half the
-#: goldens write it. Three segments minimum, so a doc's own `§2023:4.2` is not read as a citation; the clause number of
+#: goldens write it. Three segments minimum, so a doc's own bare `§4.2` is not read as a citation; the clause number of
 #: ANOTHER edition's citation (`§2002:14.8.4`) is not a 2023 token (`citation.NOT_ANOTHER_EDITION`, kb/Work PB4887).
 CLAUSE_TOKEN = re.compile(r"(?<![\d.])" + citation.NOT_ANOTHER_EDITION + r"(\d+(?:\.\d+){2,4})(?![\d.])")
 
 #: ⛔ INSIDE A MESSAGE STRING A TWO-SEGMENT CLAUSE IS A CITATION WHEN IT CARRIES THE `§` — `(ISO §2023:11.7 SR6)`,
-#: `(ISO §2023:13.16 SR16 …)`. The three-segment floor exists for PROSE (a doc's own `§2023:4.2`), and it made the
+#: `(ISO §2023:13.16 SR16 …)`. The three-segment floor exists for PROSE (a doc's own bare `§4.2`), and it made the
 #: diagnostic family blind to exactly the unqualified citations it exists to catch: fourteen shipped in
 #: `OoClassTable`/`DataBinder` messages while DIAG-UNQUALIFIED read zero (kb/Work PB388, wave 47). The `§` is
 #: the evidence; a bare `11.7` in a message is still not read. The mark is the 2023 one (`§2023:11.7`, and the bare
-#: `§2023:11.7` while `citation.BARE_MEANS_2023`).
+#: `§11.7` while `citation.BARE_MEANS_2023`).
 DIAG_CLAUSE_TOKEN = re.compile(r"(?<![\d.])" + citation.NOT_ANOTHER_EDITION
                                + r"(?:" + citation.MARK_2023 + r"(\d+\.\d+)|(\d+(?:\.\d+){2,4}))(?![\d.])")
 
