@@ -435,7 +435,7 @@ def main() -> int:
           bands[0] is not None and bands[1] is not None and bands[0][0] < 120 < 148 < bands[0][1] <= bands[1][0] < 190
           and bands[1][1] > 218, f"got {bands}")
 
-    # 9. REAL 1985 pages (kb/Work PB4848): twelve general-format regions cropped from the licensed scan, binarized,
+    # 9. REAL 1985 pages (kb/Work PB4848, PB4899): thirteen general-format regions cropped from the licensed scan, binarized,
     #    the stamp margins excluded, each counted BY EYE against the rendered page. The calibration table is
     #    figure_raster_pages/calibration.json; a crop is measured with its page's skew. PDF page 222's crop holds no
     #    box: its underline fused to `SEQUENCE`'s Q read as a box 1.3 pt tall, and erased, until `find_boxes` required

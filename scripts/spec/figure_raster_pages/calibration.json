@@ -182,6 +182,24 @@
    "underlines": null
   },
   {
+   "page": 602,
+   "file": "p0602.png",
+   "x0_pt": 40.0,
+   "y0_pt": 197.0,
+   "region_pt": [
+    200,
+    670
+   ],
+   "skew_deg": -0.05,
+   "stems_L": 3,
+   "stems_R": 3,
+   "bars": 0,
+   "braces_L": 13,
+   "braces_R": 13,
+   "boxes": 0,
+   "underlines": null
+  },
+  {
    "page": 684,
    "file": "p0684.png",
    "x0_pt": 40.0,

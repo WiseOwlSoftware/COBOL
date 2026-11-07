@@ -49,13 +49,15 @@ HOW IT MEASURES (each step is a function below; every constant carries the PDF p
      DISAGREEMENT in `RasterPage.disagreements`, and the word keeps text None: the tool never picks silently. Each box
      lists the words it encloses.
 
-WHAT IT WAS CALIBRATED ON. Twelve general-format regions of the 1985 scan (PDF pages 196, 217, 252, 389, 396, 426, 444,
-493, 568, 684, 693, 845: the Environment, Nucleus, Sequential, Relative, Indexed, Sort-Merge and Communication modules,
-Debug, and Amendment 1), each counted BY EYE against the rendered page: brackets by side, braces by side, boxes and
-(on three pages) underlines. The crops, with the stamp margins excluded, and the counts are in `figure_raster_pages/`
-(`calibration.json`); `test_figure_raster.py` measures every crop and asserts the counts. PB4848's table in kb/Work
-lists the measured values and what is not yet right (Amendment 1's bold face, PDF pages 841 and 844). The measurer is
-for the MONOSPACED general-format band: on proportional prose (the amendments' Times text) serif chains read as rules.
+WHAT IT WAS CALIBRATED ON. Thirteen general-format regions of the 1985 scan (PDF pages 196, 217, 252, 389, 396, 426, 444,
+493, 568, 602, 684, 693, 845: the Environment, Nucleus, Sequential, Relative, Indexed, Sort-Merge, Report Writer and
+Communication modules, Debug, and Amendment 1), each counted BY EYE against the rendered page: brackets by side, braces
+by side, boxes and (on three pages) underlines. The crops, with the stamp margins excluded, and the counts are in
+`figure_raster_pages/` (`calibration.json`); `test_figure_raster.py` measures every crop and asserts the counts. PB4848's
+table in kb/Work lists the measured values and what is not yet right (Amendment 1's bold face, PDF pages 841 and 844;
+on page 602 the eye counts 41 underlines and the measurer 42, the extra one the fused foot serifs of "am" in
+"data-name-3", so that page asserts no underline count). The measurer is for the MONOSPACED general-format band: on
+proportional prose (the amendments' Times text) serif chains read as rules.
 
     python scripts/spec/figure_raster.py --calibrate 196 217 --edition 1985 --out DIR
         writes one side-by-side image per page (the scan; the same scan with every measured mark drawn on it: brackets
