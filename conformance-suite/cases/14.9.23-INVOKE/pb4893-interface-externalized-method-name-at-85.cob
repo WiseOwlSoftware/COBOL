@@ -1,0 +1,35 @@
+*>--- conformance-case
+*> id: pb4893-interface-externalized-method-name-at-85
+*> rules: [GR-14.9.23.4-2]
+*> source-format: free
+*>---
+*> kb/Work PB4893: the INVOKE of a method through an interface-typed receiver by its externalized name is a COBOL-2002
+*> facility (INTERFACE-ID, CLASS-ID, METHOD-ID ... AS and the INVOKE statement are each 2002 introductions), so at
+*> --std 85 the version-conformance pass refuses the program (COBOL0900) rather than binding the invocation.
+IDENTIFICATION DIVISION.
+INTERFACE-ID. PB4893J.
+PROCEDURE DIVISION.
+METHOD-ID. PB4893JGETX AS "PB4893JGETY".
+DATA DIVISION.
+LINKAGE SECTION.
+01 R PIC X(4).
+PROCEDURE DIVISION RETURNING R.
+END METHOD PB4893JGETX.
+END INTERFACE PB4893J.
+
+IDENTIFICATION DIVISION.
+PROGRAM-ID. PB4893Q.
+ENVIRONMENT DIVISION.
+CONFIGURATION SECTION.
+REPOSITORY.
+    INTERFACE PB4893J.
+DATA DIVISION.
+WORKING-STORAGE SECTION.
+01 N PIC X(4) VALUE "0007".
+01 I USAGE OBJECT REFERENCE PB4893J.
+PROCEDURE DIVISION.
+MAIN-P.
+    INVOKE I "PB4893JGETY" RETURNING N.
+    DISPLAY N.
+    STOP RUN.
+END PROGRAM PB4893Q.

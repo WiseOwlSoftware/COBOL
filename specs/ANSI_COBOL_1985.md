@@ -49,7 +49,9 @@ publications.
 > the rendered page, so each `## Page N` heading opens the text of PDF page N. The printed folios (`VI-21`, `XVII-3`)
 > stay where the page prints them. The page furniture that is not the standard's (the reseller's per-copy stamp) is
 > removed. The scan prints folios X-11 and X-12 twice (PDF pages 525-526 and 527-528); both copies
-> are transcribed, and the repeat is marked with a comment where it begins.
+> are transcribed, and the repeat is marked with a comment where it begins. The scan also lacks four printed
+> pages of the Report Writer module, folios XIII-30, XIII-31, XIII-54 and XIII-55; a comment marks each gap, and
+> their text is not here.
 >
 > **Notation.** A key word the standard underlines is underlined (`<u>…</u>`, or the drawn underline of a general
 > format); the general formats are drawn as the printed page draws them, in the house style
@@ -9626,8 +9628,7 @@ Nucleus - COBOL Source Program
 
 c. That physical position after which no more source program lines occur.
 
-| ║(2) All separately compiled source programs in a sequence of programs must be terminated by an end program header except for the last program in the sequence.║ |
-|---|
+║(2) All separately compiled source programs in a sequence of programs must be terminated by an end program header except for the last program in the sequence.║
 
 VI-4
 
@@ -12811,8 +12812,7 @@ VI-95
 
 Nucleus - INSPECT
 
-| ║(10) The same character must not appear more than once either in literal-4 or in the data item referenced by identifier-6.║ |
-|---|
+║(10) The same character must not appear more than once either in literal-4 or in the data item referenced by identifier-6.║
 
 ### 6.18.4 General Rules
 
@@ -13113,7 +13113,7 @@ VI-103
 
 Nucleus - MOVE
 
-> ║The evaluation of the length of identifier-1 or identifier-2 may be affected by the DEPENDING ON phrase of the OCCURS clause. (See page VI-26, The OCCURS Clause.)║
+║The evaluation of the length of identifier-1 or identifier-2 may be affected by the DEPENDING ON phrase of the OCCURS clause. (See page VI-26, The OCCURS Clause.)║
 
 The result of the statement
 
@@ -13369,27 +13369,27 @@ VI-110
 
 Nucleus - PERFORM
 
-> ║(8) If an index-name is specified in the FROM phrase, then:║
->
-> ║a. The identifier in the associated VARYING or AFTER phrase must reference an integer data item.║
->
-> ║b. The identifier in the associated BY phrase must reference an integer data item.║
->
-> ║c. The literal in the associated BY phrase must be an integer.║
->
-> ║(9) Literal in the BY phrase must not be zero.║
+║(8) If an index-name is specified in the FROM phrase, then:║
+
+║a. The identifier in the associated VARYING or AFTER phrase must reference an integer data item.║
+
+║b. The identifier in the associated BY phrase must reference an integer data item.║
+
+║c. The literal in the associated BY phrase must be an integer.║
+
+║(9) Literal in the BY phrase must not be zero.║
 
 (10) Condition-1, ║condition-2, ... ,║ may be any conditional expression. (See page VI-54, Conditional Expressions.)
 
 (11) Where procedure-name-1 and procedure-name-2 are both specified and either is the name of a procedure in the declaratives portion of the Procedure Division, both must be procedure-names in the same declarative section.
 
-> ║(12) At least six AFTER phrases must be permitted in format 4 of the PERFORM statement.║
+║(12) At least six AFTER phrases must be permitted in format 4 of the PERFORM statement.║
 
 ### 6.21.4 General Rules
 
-> ║(1) The data items referenced by identifier-4 and identifier-7 must not have a zero value.║
->
-> ║(2) If an index-name is specified in the VARYING or AFTER phrase, and an identifier is specified in the associated FROM phrase, the data item referenced by the identifier must have a positive value.║
+║(1) The data items referenced by identifier-4 and identifier-7 must not have a zero value.║
+
+║(2) If an index-name is specified in the VARYING or AFTER phrase, and an identifier is specified in the associated FROM phrase, the data item referenced by the identifier must have a positive value.║
 
 (3) When procedure-name-1 is specified, the PERFORM statement is referred to as an out-of-line PERFORM statement; when procedure-name-1 is omitted, the PERFORM statement is referred to as an in-line PERFORM statement.
 
@@ -13537,7 +13537,7 @@ VI-115
 
 Nucleus - PERFORM
 
-> ║At the termination of the PERFORM statement, the data item referenced by identifier-5 contains literal-3 or the current value of the data item referenced by identifier-6. The data item referenced by identifier-2 contains a value that exceeds the last used setting by one increment or decrement value, unless condition-1 was true when the PERFORM statement was entered, in which case, the data item referenced by identifier-2 contains literal-1 or the current value of the data item referenced by identifier-3.║
+║At the termination of the PERFORM statement, the data item referenced by identifier-5 contains literal-3 or the current value of the data item referenced by identifier-6. The data item referenced by identifier-2 contains a value that exceeds the last used setting by one increment or decrement value, unless condition-1 was true when the PERFORM statement was entered, in which case, the data item referenced by identifier-2 contains literal-1 or the current value of the data item referenced by identifier-3.║
 
 VI-116
 
@@ -13618,9 +13618,9 @@ VI-119
 
 Nucleus - PERFORM
 
-> ║During the execution of the specified set of statements associated with the PERFORM statement, any change to the VARYING variable (the data item referenced by identifier-2 and index-name-1), the BY variable (the data item referenced by identifier-4), the AFTER variable (the data item referenced by identifier-5 and index-name-3), or the FROM variable (the data item referenced by identifier-3 and index-name-2) will be taken into consideration and will affect the operation of the PERFORM statement.║
->
-> ║When the data items referenced by two identifiers are varied, the data item referenced by identifier-5 goes through a complete cycle (FROM, BY, UNTIL) each time the content of the data item referenced by identifier-2 is varied. When the contents of three or more data items referenced by identifiers are varied, the mechanism is the same as for two identifiers except that the data item being varied by each AFTER phrase goes through a complete cycle each time the data item being varied by the preceding AFTER phrase is augmented.║
+║During the execution of the specified set of statements associated with the PERFORM statement, any change to the VARYING variable (the data item referenced by identifier-2 and index-name-1), the BY variable (the data item referenced by identifier-4), the AFTER variable (the data item referenced by identifier-5 and index-name-3), or the FROM variable (the data item referenced by identifier-3 and index-name-2) will be taken into consideration and will affect the operation of the PERFORM statement.║
+
+║When the data items referenced by two identifiers are varied, the data item referenced by identifier-5 goes through a complete cycle (FROM, BY, UNTIL) each time the content of the data item referenced by identifier-2 is varied. When the contents of three or more data items referenced by identifiers are varied, the mechanism is the same as for two identifiers except that the data item being varied by each AFTER phrase goes through a complete cycle each time the data item being varied by the preceding AFTER phrase is augmented.║
 
 (11) The range of a PERFORM statement consists logically of all those statements that are executed as a result of executing the PERFORM statement through execution of the implicit transfer of control to the end of the PERFORM statement. The range includes all statements that are executed as the result of a transfer of control by CALL, EXIT, GO TO, and PERFORM statements in the range of the PERFORM statement, as well as all statements in declarative procedures that are executed as a result of the execution of statements in the range of the PERFORM statement. The statements in the range of a PERFORM statement need not appear consecutively in the source program.
 
@@ -15690,13 +15690,13 @@ G. Rewind
 
 The current reel or analogous device is positioned at its physical beginning.
 
-| ║H. Optional Phrases Ignored<br><br>The CLOSE statement is executed as if none of the optional phrases is present.║ |
-|---|
+║H. Optional Phrases Ignored║
+
+║The CLOSE statement is executed as if none of the optional phrases is present.║
 
 (4) The execution of the CLOSE statement causes the value of the I-O status associated with file-name-1 to be updated. (See page VII-2, I-O Status.)
 
-| ║(5) If an optional input file is not present, no end-of-file or reel/unit processing is performed for the file and the file position indicator and the current volume pointer are unchanged.║ |
-|---|
+║(5) If an optional input file is not present, no end-of-file or reel/unit processing is performed for the file and the file position indicator and the current volume pointer are unchanged.║
 
 (6) Following the successful execution of a CLOSE statement without the REEL or UNIT phrase, the record area associated with a file-name-1 is no longer available. The unsuccessful execution of such a CLOSE statement leaves the availability of the record area undefined.
 
@@ -16318,7 +16318,7 @@ The Relative I-O module provides a capability to access records of a mass storag
 
 Relative I-O level 1 provides limited capabilities for the file control entry, the file description entry, and the entries in the I-O CONTROL paragraph. Within the Procedure Division, the Relative I-O level 1 provides limited capabilities for the CLOSE, OPEN, READ, REWRITE, USE, and WRITE statements and full capabilities for the DELETE statement.
 
-> ║Relative I-O level 2 provides full capabilities for the file control entry, the file description entry, and the entries in the I-O CONTROL paragraph. Within the Procedure Division, the Relative I-O level 2 provides full capabilities for the CLOSE, DELETE, OPEN, READ, REWRITE, START, USE, and WRITE statements.║
+║Relative I-O level 2 provides full capabilities for the file control entry, the file description entry, and the entries in the I-O CONTROL paragraph. Within the Procedure Division, the Relative I-O level 2 provides full capabilities for the CLOSE, DELETE, OPEN, READ, REWRITE, START, USE, and WRITE statements.║
 
 ### 1.3 LANGUAGE CONCEPTS.
 
@@ -17040,21 +17040,21 @@ The behavior of the OPEN statement when label records are specified but not pres
 
 (8) If during the execution of an OPEN statement a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful. (See page VIII-6, The File Attribute Conflict Condition.)
 
-> ║(9) If a file opened with the INPUT phrase is an optional file which is not present, the OPEN statement sets the file position indicator to indicate that an optional input file is not present.║
+║(9) If a file opened with the INPUT phrase is an optional file which is not present, the OPEN statement sets the file position indicator to indicate that an optional input file is not present.║
 
 (10) When files are opened with the INPUT or I-O phrase, the file position indicator is set to 1.
 
-> ║(11) When the EXTEND phrase is specified, the OPEN statement positions the file immediately after the last logical record for that file. The last logical record for a relative file is the currently existing record with the highest relative record number.║
->
-> ║(12) When the EXTEND phrase is specified and the LABEL RECORDS clause indicates label records are present, the execution of the OPEN statement includes the following steps.║
->
-> ║a. The beginning file labels are processed only in the case of a single reel/unit file.║
->
-> ║b. The beginning reel/unit labels on the last existing reel/unit are processed as though the file was being opened with the INPUT phrase.║
->
-> ║c. The existing ending file labels are processed as though the file is being opened with the INPUT phrase. These labels are then deleted.║
->
-> ║d. Processing then proceeds as though the file had been opened with the OUTPUT phrase.║
+║(11) When the EXTEND phrase is specified, the OPEN statement positions the file immediately after the last logical record for that file. The last logical record for a relative file is the currently existing record with the highest relative record number.║
+
+║(12) When the EXTEND phrase is specified and the LABEL RECORDS clause indicates label records are present, the execution of the OPEN statement includes the following steps.║
+
+║a. The beginning file labels are processed only in the case of a single reel/unit file.║
+
+║b. The beginning reel/unit labels on the last existing reel/unit are processed as though the file was being opened with the INPUT phrase.║
+
+║c. The existing ending file labels are processed as though the file is being opened with the INPUT phrase. These labels are then deleted.║
+
+║d. Processing then proceeds as though the file had been opened with the OUTPUT phrase.║
 
 (13) The OPEN statement with the I-O phrase must reference a file that supports the input and output operations that are permitted for a relative file when opened in the I-O mode. The execution of the OPEN statement with the I-O phrase places the referenced file in the open mode for both input and output operations.
 
@@ -17564,7 +17564,7 @@ The Indexed I-O module provides a capability to access records of a mass storage
 
 Indexed I-O level 1 provides limited capabilities for the file control entry, the file description entry, and the entries in the I-O-CONTROL paragraph. Within the Procedure Division, the Indexed I-O level 1 provides limited capabilities for the CLOSE, OPEN, READ, REWRITE, USE, and WRITE statements and full capabilities for the DELETE statement.
 
-> ║Indexed I-O level 2 provides full capabilities for the file control entry, the file description entry, and the entries in the I-O-CONTROL paragraph. Within the Procedure Division, the Indexed I-O level 2 provides full capabilities for the CLOSE, DELETE, OPEN, READ, REWRITE, START, USE, and WRITE statements.║
+║Indexed I-O level 2 provides full capabilities for the file control entry, the file description entry, and the entries in the I-O-CONTROL paragraph. Within the Procedure Division, the Indexed I-O level 2 provides full capabilities for the CLOSE, DELETE, OPEN, READ, REWRITE, START, USE, and WRITE statements.║
 
 ### 1.3 LANGUAGE CONCEPTS
 
@@ -17574,7 +17574,7 @@ A file with indexed organization is a mass storage file from which any record ma
 
 Each indexed file has a primary index which represents the prime record key of each record in the file. Each record is inserted in the file, changed, or deleted from the file based solely upon the value of its prime record key. The prime record key of each record in the file must be unique, and it must not be changed when updating a record. The prime record key is declared in the RECORD KEY clause of the file control entry for the file.
 
-> ║Alternate record keys provide alternate means of retrieval for the records of a file. Such keys are named in the ALTERNATE RECORD KEY clause of the file control entry. The value of a particular alternate record key in each record need not be unique. When these values may not be unique, the DUPLICATES phrase is specified in the ALTERNATE RECORD KEY clause.║
+║Alternate record keys provide alternate means of retrieval for the records of a file. Such keys are named in the ALTERNATE RECORD KEY clause of the file control entry. The value of a particular alternate record key in each record need not be unique. When these values may not be unique, the DUPLICATES phrase is specified in the ALTERNATE RECORD KEY clause.║
 
 IX-1
 
@@ -17894,7 +17894,7 @@ The ACCESS MODE clause specifies the order in which records are to be accessed i
 
 (3) If the access mode is random, the value of a record key data item for indexed files indicates the record to be accessed.
 
-> ║(4) If the access mode is dynamic, records in the file may be accessed sequentially and/or randomly.║
+║(4) If the access mode is dynamic, records in the file may be accessed sequentially and/or randomly.║
 
 (5) If the associated file connector is an external file connector, every file control entry in the run unit which is associated with that file connector must specify the same access mode.
 
@@ -18653,9 +18653,9 @@ IX-34
 
 Indexed I-O - REWRITE
 
-> ║a. When the value of a specific alternate record key is not changed, the order of retrieval when that key is the key of reference remains unchanged.║
->
-> ║b. When the value of a specific alternate record key is changed, the subsequent order of retrieval of that record may be changed when that specific alternate record key is the key of reference. When duplicate key values are permitted, the record is logically positioned last within the set of duplicate records containing the same alternate record key value as the alternate record key value that was placed in the record.║
+║a. When the value of a specific alternate record key is not changed, the order of retrieval when that key is the key of reference remains unchanged.║
+
+║b. When the value of a specific alternate record key is changed, the subsequent order of retrieval of that record may be changed when that specific alternate record key is the key of reference. When duplicate key values are permitted, the record is logically positioned last within the set of duplicate records containing the same alternate record key value as the alternate record key value that was placed in the record.║
 
 (16) The invalid key condition exists under the following circumstances:
 
@@ -18663,7 +18663,7 @@ a. When the file is open in the sequential access mode, and the value of the pri
 
 b. When the file is open in the [║dynamic or║] random access mode, and the value of the prime record key of the record to be replaced is not equal to the value of the prime record key of any record existing in the file, or
 
-> ║c. When the value of an alternate record key of the record to be replaced, for which duplicates are not allowed, equals the value of the corresponding data item of a record already existing in the file.║
+║c. When the value of an alternate record key of the record to be replaced, for which duplicates are not allowed, equals the value of the corresponding data item of a record already existing in the file.║
 
 (17) When the invalid key condition is recognized, the execution of the REWRITE statement is unsuccessful, the updating operation does not take place, the content of the record area is unaffected and the I-O status of the file-name associated with record-name-1 is set to a value indicating the cause of the condition. (See page IX-2, I-O Status.)
 
@@ -19845,7 +19845,7 @@ Data-name-1 must be defined as a level 01 entry or a level 77 entry in the Linka
 
 The following additional rules apply:
 
-> ║(1) If the reference to the corresponding data item in the CALL statement declares the parameter to be passed by content, the value of the item is moved when the CALL statement is executed and placed into a system-defined storage item possessing the attributes declared in the Linkage Section for data-name-1. The data description of each parameter in the BY CONTENT phrase of the CALL statement must be the same, meaning no conversion or extension or truncation, as the data description of the corresponding parameter in the USING phrase of the Procedure Division header. (See page X-27, The CALL Statement.)║
+║(1) If the reference to the corresponding data item in the CALL statement declares the parameter to be passed by content, the value of the item is moved when the CALL statement is executed and placed into a system-defined storage item possessing the attributes declared in the Linkage Section for data-name-1. The data description of each parameter in the BY CONTENT phrase of the CALL statement must be the same, meaning no conversion or extension or truncation, as the data description of the corresponding parameter in the USING phrase of the Procedure Division header. (See page X-27, The CALL Statement.)║
 
 (2) If the reference to the corresponding data item in the CALL statement declares the parameter to be passed by reference, the object program operates as if the data item in the called program occupies the same storage area as the data item in the calling program. The description of the data item in the called program must describe the same number of character positions as described by the description of the corresponding data item in the calling program.
 
@@ -19993,7 +19993,7 @@ Inter-Program Communication - CALL
 
 the same number of character positions as described by the description of the corresponding data item in the calling program.
 
-> ║(14) If the BY CONTENT phrase is specified or implied for a parameter, the called program cannot change the value of this parameter as referenced in the CALL statement's USING phrase, though the called program may change the value of the data item referenced by the coresponding data-name in the called program's Procedure Division header. The data description of each parameter in the BY CONTENT phrase of the CALL statement must be the same, meaning no conversion or extension or truncation, as the data description of the corresponding parameter in the USING phrase of the Procedure Division header. (See page X-25, The Procedure Division Header.)║
+║(14) If the BY CONTENT phrase is specified or implied for a parameter, the called program cannot change the value of this parameter as referenced in the CALL statement's USING phrase, though the called program may change the value of the data item referenced by the coresponding data-name in the called program's Procedure Division header. The data description of each parameter in the BY CONTENT phrase of the CALL statement must be the same, meaning no conversion or extension or truncation, as the data description of the corresponding parameter in the USING phrase of the Procedure Division header. (See page X-25, The Procedure Division Header.)║
 
 (15) Called programs may contain CALL statements. However, a called program must not execute a CALL statement that directly or indirectly calls the calling program. If a CALL statement is executed within the range of a declarative, that CALL statement cannot directly or indirectly reference any called program to which control has been transferred and which has not completed execution.
 
@@ -20085,7 +20085,7 @@ The EXIT PROGRAM statement marks the logical end of a called program.
 
 (2) The execution of an EXIT PROGRAM statement in a called program which does not possess the initial attribute causes execution to continue with the next executable statement following the CALL statement in the calling program. The program state of the calling program is not altered and is identical to that which existed at the time it executed the CALL statement except that the contents of data items and the contents of data files shared between the calling and called program may have been changed. The program state of the called program is not altered except that the ends of the ranges of all PERFORM statements executed by that called program are considered to have been reached.
 
-> ║(3) Besides the actions specified in general rule 2, the execution of an EXIT PROGRAM statement in a called program which possesses the initial attribute is equivalent also to executing a CANCEL statement referencing that program. (See page X-31, The CANCEL Statement.)║
+║(3) Besides the actions specified in general rule 2, the execution of an EXIT PROGRAM statement in a called program which possesses the initial attribute is equivalent also to executing a CANCEL statement referencing that program. (See page X-31, The CANCEL Statement.)║
 
 X-33
 
@@ -22102,6 +22102,8 @@ XIII-29
 
 ## Page 612
 
+<!-- The scan lacks the printed pages XIII-30 and XIII-31: PDF page 611 ends at folio XIII-29 and this page opens the next folio after them. Their text is not in this transcription. -->
+
 Report Writer - Body Group Presentation Rules
 
 ### 3.10.8 Body Group Presentation Rules
@@ -22788,6 +22790,8 @@ Crossfooting occurs when a control break takes place and at the time the control
 XIII-53
 
 ## Page 634
+
+<!-- The scan lacks the printed pages XIII-54 and XIII-55: PDF page 633 ends at folio XIII-53 and this page opens the next folio after them. Their text is not in this transcription. -->
 
 Report Writer - TYPE
 
@@ -23595,7 +23599,7 @@ The Communication module provides the ability to access, process, and create mes
 
 Communication level 1 provides limited capabilities for the communication description entry. Within the Procedure Division, Communication level 1 provides limited capabilities for the RECEIVE and SEND statements and full capabilities for the ACCEPT MESSAGE COUNT statement.
 
-> ║Communication level 2 provides full capabilities for the communication description entry. Within the Procedure Division, Communication level 2 provides full capabilities for the ACCEPT MESSAGE COUNT, DISABLE, ENABLE, PURGE, RECEIVE, and SEND statements.║
+║Communication level 2 provides full capabilities for the communication description entry. Within the Procedure Division, Communication level 2 provides full capabilities for the ACCEPT MESSAGE COUNT, DISABLE, ENABLE, PURGE, RECEIVE, and SEND statements.║
 
 XIV-1
 
@@ -23778,11 +23782,11 @@ redefinitions of this record are permitted; however, only the first redefinition
 
 a. The SYMBOLIC QUEUE clause defines data-name-1 as the name of an elementary alphanumeric data item of 12 characters occupying positions 1 through 12 in the record.
 
-> ║b. The SYMBOLIC SUB-QUEUE-1 clause defines data-name-2 as the name of an elementary alphanumeric data item of 12 characters occupying positions 13 through 24 in the record.║
->
-> ║c. The SYMBOLIC SUB-QUEUE-2 clause defines data-name-3 as the name of an elementary alphanumeric data item of 12 characters occupying positions 25 through 36 in the record.║
->
-> ║d. The SYMBOLIC SUB-QUEUE-3 clause defines data-name-4 as the name of an elementary alphanumeric data item of 12 characters occupying positions 37 through 48 in the record.║
+║b. The SYMBOLIC SUB-QUEUE-1 clause defines data-name-2 as the name of an elementary alphanumeric data item of 12 characters occupying positions 13 through 24 in the record.║
+
+║c. The SYMBOLIC SUB-QUEUE-2 clause defines data-name-3 as the name of an elementary alphanumeric data item of 12 characters occupying positions 25 through 36 in the record.║
+
+║d. The SYMBOLIC SUB-QUEUE-3 clause defines data-name-4 as the name of an elementary alphanumeric data item of 12 characters occupying positions 37 through 48 in the record.║
 
 e. The MESSAGE DATE clause defines data-name-5 as the name of a data item whose implicit description is that of an integer of 6 digits, without an operational sign, occupying character positions 49 through 54 in the record.
 
@@ -23983,7 +23987,7 @@ Communication - CD Entry
 
 f. The STATUS KEY clause defines data-name-6 as the name of an elementary alphanumeric data item of 2 characters occupying positions 32 and 33 in the record.
 
-> ║The second option may be used to replace the above clauses by a series of data-names which, taken in order, correspond to the data-names defined by these clauses.║
+║The second option may be used to replace the above clauses by a series of data-names which, taken in order, correspond to the data-names defined by these clauses.║
 
 Use of either option results in a record whose implicit description is equivalent to the following:
 
@@ -24001,7 +24005,7 @@ Use of either option results in a record whose implicit description is equivalen
 
 NOTE: In the above, the information under 'COMMENT' is for clarification and is not part of the data description.
 
-> ║(25) When a program is scheduled by the MCS to process a message, the first RECEIVE statement referencing the input-output CD with the INITIAL clause returns the actual message that caused the program to be scheduled.║
+║(25) When a program is scheduled by the MCS to process a message, the first RECEIVE statement referencing the input-output CD with the INITIAL clause returns the actual message that caused the program to be scheduled.║
 
 (26) Data-name-1 has the format 'YYMMDD' (year, month, day). Its content represents the date on which the MCS recognizes that the message is complete.
 
@@ -24011,11 +24015,11 @@ The content of the data item referenced by data-name-1 is updated only by the MC
 
 The content of the data item referenced by data-name-2 is updated only by the MCS as part of the execution of the RECEIVE statement.
 
-> ║(28) Whenever a program is scheduled by the MCS to process a message, that program establishes a run unit and the symbolic name of the communication terminal that is the source of the message that invoked this program is placed in the data item referenced by data-name-3 of the input-output CD associated with the INITIAL clause as applicable. This symbolic name must follow the rules for the formation of system-names.║
->
-> ║In all other cases, the content of the data item referenced by data-name-3 of the input-output CD associated with the INITIAL clause is initialized to spaces.║
->
-> ║The symbolic name is inserted, or the initialization to spaces is completed, prior to the execution of the first Procedure Division statement.║
+║(28) Whenever a program is scheduled by the MCS to process a message, that program establishes a run unit and the symbolic name of the communication terminal that is the source of the message that invoked this program is placed in the data item referenced by data-name-3 of the input-output CD associated with the INITIAL clause as applicable. This symbolic name must follow the rules for the formation of system-names.║
+
+║In all other cases, the content of the data item referenced by data-name-3 of the input-output CD associated with the INITIAL clause is initialized to spaces.║
+
+║The symbolic name is inserted, or the initialization to spaces is completed, prior to the execution of the first Procedure Division statement.║
 
 XIV-12
 
@@ -24566,8 +24570,7 @@ The Debug module is an obsolete element in Standard COBOL because it is to be de
 
 Debug level 1 provides a basic debugging capability including the ability to specify selective procedure monitoring.
 
-| ║Debug level 2 provides the full COBOL debugging facility.║ |
-|---|
+║Debug level 2 provides the full COBOL debugging facility.║
 
 ### 1.3 LANGUAGE CONCEPTS
 
@@ -24809,7 +24812,7 @@ Updating is accomplished in accordance with the rules for the MOVE statement, th
 
 All qualifiers of the name are separated in DEBUG-NAME by the word 'IN' or 'OF'. Subscripts/indices, if any, are not entered into DEBUG-NAME.
 
-> ║(14) If the reference to a data item that causes the debugging section to be executed is subscripted or indexed, the occurrence number of each level is entered in DEBUG-SUB-1, DEBUG-SUB-2, DEBUG-SUB-3 respectively as necessary.║
+║(14) If the reference to a data item that causes the debugging section to be executed is subscripted or indexed, the occurrence number of each level is entered in DEBUG-SUB-1, DEBUG-SUB-2, DEBUG-SUB-3 respectively as necessary.║
 
 (15) DEBUG-CONTENTS is a data item that is large enough to contain the data required by the following general rules.
 

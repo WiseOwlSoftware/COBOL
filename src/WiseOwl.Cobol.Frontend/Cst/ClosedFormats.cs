@@ -188,7 +188,7 @@ public static class ClosedFormats
             switch (p)
             {
                 case Core.DataDescriptionEntryContext d: return d.dataName() is null ? new(d, d.levelNumber()?.Stop) : null;
-                case Core.ScreenDescriptionEntryContext s: return s.screenName() is null ? new(s, s.levelNumber()?.Stop) : null;
+                case Core.ScreenDescriptionEntryContext s: return s.dataName() is null ? new(s, s.levelNumber()?.Stop) : null;
                 case Core.ReportGroupEntryContext r: return r.dataName() is null ? new(r, r.levelNumber()?.Stop) : null;
                 case Core.ConstantEntryContext c: return c.dataName() is null ? new(c, c.levelNumber()?.Stop) : null;
             }

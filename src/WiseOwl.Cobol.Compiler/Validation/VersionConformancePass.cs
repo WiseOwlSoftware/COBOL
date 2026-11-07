@@ -515,7 +515,7 @@ internal sealed class VersionConformancePass
     /// <c>cobolWord</c> can legally occupy it, proven against the grammar rule by rule below. Mis-parse-prone
     /// OPTIONAL entry-name slots stay UNCHECKED — the report-group entry-name (<c>dataName?</c> under <c>reportGroupEntry</c>
     /// swallows the keyword of RW102A/103A/104A's report COLUMN clause, §2023:13.18.14) and the screen entry-name
-    /// (<c>screenName?</c> would swallow a screen attribute keyword) — as does every REFERENCE position
+    /// (<c>dataName?</c> under <c>screenDescriptionEntry</c> would swallow a screen attribute keyword) — as does every REFERENCE position
     /// (dataReference, qualification, procedure-name refs, DISPLAY UPON, SPECIAL-NAMES operands, …), keeping
     /// the funnel's no-false-reject guarantee (VCR scope-limit rule). Consumed by the <see cref="ParseArm"/>
     /// §2023:8.9 funnel and by <c>ReservedWordPositionTests</c> (kept <c>internal static</c> for that witness).

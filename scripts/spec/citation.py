@@ -238,19 +238,23 @@ def render(c: Citation) -> str:
 #: are a bare number, the term itself being the bold line beneath. The annex alternative needs a dot segment, which is
 #: what keeps the annex TITLE headings ("## Annex A") out.
 ISO_HEADING = re.compile(r"^#{2,6}\s+([0-9]+(?:\.[0-9]+)*|[A-Z](?:\.[0-9]+)+)(?:\s+(.*?))?\s*$")
-#: The 1985 transcription (kb/Work PB4816; not yet reconciled, PB4850) marks a section with a `SECTION <roman>:` heading,
+#: The 1985 transcription (kb/Work PB4816; reconciled against the page, PB4850) marks a section with a `SECTION <roman>:` heading,
 #: an appendix with `APPENDIX <letter>:`, a paragraph with a numbered heading (`### 5.3.2 General Format`, `## 1. <u>…`)
 #: or, where the transcription did not head it, a line opening with the number and a capitalised title, and the end of
 #: each printed page with its folio alone on a line (`VI-20`).
 #: `SECTION A: INTRINSIC FUNCTION MODULE` is Amendment 1 (ANSI X3.23a-1989), cited `§1989:`: it ends the 1985 sections.
+#: So does each amendment's own part heading (`# AMENDMENT 1: ...`, the assembly's PARTS): the pages between it and Section A
+#: are Amendment 1's front matter and its Addendum 1, whose numbered paragraphs (`8. INTRINSIC FUNCTION FACILITY`) are
+#: no paragraph of Section XVIII, the Index.
 #: The markup that may open a 1985 heading or paragraph line: an underline, bold, and the side of a level-2 box (`║`,
 #: the Preface's notation note; kb/Work PB4850). None of it is part of the number the line carries.
-_MARK_85 = rf"(?:<u>|\*\*|{spec_pdf.BOX_SIDE})*"
-_SECTION_85 = re.compile(rf"^#{{1,2}}\s+{_MARK_85}SECTION ([IVX]+|[A-Z]):")
-_APPENDIX_85 = re.compile(rf"^#{{1,6}}\s+{_MARK_85}APPENDIX ([A-F]):")
-_PARAGRAPH_85 = re.compile(rf"^(?:#{{1,6}}\s+{_MARK_85}(\d+(?:\.\d+)*)\.?(?:\s|<)|{_MARK_85}(\d+(?:\.\d+)+)\s+[A-Z])")
-_FOLIO_85 = re.compile(r"^((?:[IVX]+|[A-F])-\d+)\s*$")
-_PAGE_85 = re.compile(r"^## Page \d+\s*$")
+MARK_85 = rf"(?:<u>|\*\*|{spec_pdf.BOX_SIDE})*"
+SECTION_85 = re.compile(rf"^#{{1,2}}\s+{MARK_85}SECTION ([IVX]+|[A-Z]):")
+AMENDMENT_85 = re.compile(r"^#\s+AMENDMENT \d+:")
+APPENDIX_85 = re.compile(rf"^#{{1,6}}\s+{MARK_85}APPENDIX ([A-F]):")
+PARAGRAPH_85 = re.compile(rf"^(?:#{{1,6}}\s+{MARK_85}(\d+(?:\.\d+)*)\.?(?:\s|<)|{MARK_85}(\d+(?:\.\d+)+)\s+[A-Z])")
+FOLIO_85 = re.compile(r"^((?:[IVX]+|[A-F])-\d+)\s*$")
+PAGE_85 = re.compile(r"^## Page \d+\s*$")
 #: The Roman sections ANSI X3.23-1985 has (I Introductory information ... XVIII Index).
 SECTIONS_85 = ("I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII", "XIV", "XV", "XVI",
                "XVII", "XVIII")
@@ -270,7 +274,7 @@ def iso_regions(lines: list[str]):
     return [(n, t, s, heads[k + 1][2] if k + 1 < len(heads) else len(lines)) for k, (n, t, s) in enumerate(heads)]
 
 
-def _regions_1985(lines: list[str]):
+def regions_1985(lines: list[str]):
     """Every citable region of the 1985 transcription. A section's paragraph runs to the next paragraph of the SAME
     section (its region nests nothing: `VI.5.3` ends where `VI.5.3.1` begins, the clause-region convention of the ISO
     transcription); a section or an appendix runs to the next one; a printed page runs from the page break above its
@@ -283,15 +287,21 @@ def _regions_1985(lines: list[str]):
             out.append((f"{owner}.{para}", title, para_start, at))
 
     for i, line in enumerate(lines):
-        if _PAGE_85.match(line):
+        if PAGE_85.match(line):
             page_start = i
-        if (f := _FOLIO_85.match(line)) is not None:
+        if (f := FOLIO_85.match(line)) is not None:
             out.append((f"p.{f.group(1)}", "", page_start, i + 1))
             continue
-        head = _SECTION_85.match(line) or _APPENDIX_85.match(line)
+        if AMENDMENT_85.match(line):
+            close_para(i)
+            if owner:
+                out.append((owner, "", owner_start, i))
+            owner, para = None, None
+            continue
+        head = SECTION_85.match(line) or APPENDIX_85.match(line)
         if head is not None:
             name = head.group(1)
-            if _SECTION_85.match(line) and name not in SECTIONS_85:
+            if SECTION_85.match(line) and name not in SECTIONS_85:
                 name = None                       # an amendment's lettered section: not a 1985 locator
             if name != owner:
                 close_para(i)
@@ -299,7 +309,7 @@ def _regions_1985(lines: list[str]):
                     out.append((owner, "", owner_start, i))
                 owner, owner_start, para = name, i, None
             continue
-        if owner and (p := _PARAGRAPH_85.match(line)) is not None:
+        if owner and (p := PARAGRAPH_85.match(line)) is not None:
             close_para(i)
             para, para_start, title = (p.group(1) or p.group(2)), i, line.lstrip("#* ").strip()
     close_para(len(lines))
@@ -315,7 +325,7 @@ def _loaded(edition: int, repo: pathlib.Path) -> tuple[tuple[str, ...], tuple[tu
         return None
     lines = path.read_text(encoding="utf-8").splitlines()
     shape = EDITIONS[edition].locator
-    return tuple(lines), tuple(_regions_1985(lines) if shape == "section" else iso_regions(lines))
+    return tuple(lines), tuple(regions_1985(lines) if shape == "section" else iso_regions(lines))
 
 
 def regions(edition: int, repo: pathlib.Path = spec_pdf.REPO):
@@ -494,6 +504,16 @@ VI-20
 ### 2.1 Planted
 
 the planted appendix sentence
+
+# SECTION XVIII: INDEX
+
+## 1. PLANTED INDEX
+
+# AMENDMENT 1: INTRINSIC FUNCTION MODULE (ANSI X3.23a-1989)
+
+## 8. INTRINSIC FUNCTION FACILITY
+
+the planted addendum sentence
 """
 
 
@@ -528,6 +548,8 @@ def self_test() -> int:
              "Section I of the 1985 standard has no paragraph 5.3.2 (paragraph numbers restart in each section: VI.5.3.2"
              in (bad("§1985:I.5.3.2", planted) or "")),
             ("1985 printed page that does not exist is refused", bad("§1985:p.VI-21", planted) is not None),
+            ("an amendment's part heading ends the 1985 sections: its addendum paragraph is no paragraph of Section XVIII",
+             bad("§1985:XVIII.1", planted) is None and bad("§1985:XVIII.8", planted) is not None),
             ("2002 validates against its transcription once it exists", bad("§2002:14.8.4 SR2", planted) is None),
             ("2002 phantom refused once its transcription exists", bad("§2002:14.8.5", planted) is not None),
         ]

@@ -110,7 +110,7 @@ public static class OoConformance
             foreach (var iface in closure)
                 foreach (var proto in iface.AllPrototypes())
                 {
-                    var impl = factory ? cls.FindFactoryMethod(proto.ExternalizedName) : cls.FindMethod(proto.ExternalizedName);   // the roster key (PB303)
+                    var impl = MethodRoster.Of(cls, factory).Find(proto.ExternalizedName);   // the roster key (PB303)
                     if (impl is null)
                     {
                         using var atClass = edition.At(sources.Of(cls).classIdParagraph().className(0));

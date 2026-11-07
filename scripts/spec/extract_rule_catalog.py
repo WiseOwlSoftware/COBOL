@@ -26,6 +26,12 @@ reported as a PARSE GAP rather than silently dropped.
 Usage:
     python scripts/spec/extract_rule_catalog.py                 # write the catalog + print the summary
     python scripts/spec/extract_rule_catalog.py --check         # parse only; non-zero exit if gaps exist
+    python scripts/spec/extract_rule_catalog.py --edition 1985 --check   # the 1985 arm (rule_catalog_1985.py, kb/Work
+                                                                         # PB4886): counts and findings, writes nothing
+
+The 1985 standard is not built like ISO's (Roman sections, modules, levels and level-2 boxes, two amendments), so its
+arm is its own reader, `rule_catalog_1985.py`, which shares this module's heading rules; `--edition` takes the edition
+from spec_pdf's one table, and an edition with no arm here (2002) exits naming the table.
 """
 from __future__ import annotations
 
@@ -49,6 +55,8 @@ REPO = pathlib.Path(__file__).resolve().parents[2]
 import spec_pdf  # noqa: E402  (scripts/spec: the one edition table, kb/Work PB4815)
 SPEC = spec_pdf.markdown(2023)
 OUT = REPO / "docs" / "rearchitecture" / "spec-rule-catalog.json"
+#: The 1985 catalog (`--edition 1985`, kb/Work PB4886): written once the 1985 transcription is reconciled (PB4850).
+OUT_1985 = REPO / "docs" / "rearchitecture" / "spec-rule-catalog-1985.json"
 #: The COMMITTED inventory of clauses that carry ``N)``-shaped rules this extractor does not harvest — the
 #: manifest the content-keyed scan compares against, so "nothing new fell out of the denominator" is an
 #: observation rather than a memory. See unharvested_rule_blocks() and fix-queue PB29.
@@ -400,11 +408,43 @@ def subject_for(num: str, titles: dict[str, str]) -> str:
     return titles.get(num, "?")
 
 
+def main_1985(args: argparse.Namespace) -> int:
+    """The 1985 arm (kb/Work PB4886; DESIGN-spec-conformance-review.md §10): the 1985 document's own structure, read by
+    rule_catalog_1985.py. `--check` prints the counts and the findings and writes nothing; otherwise the catalog is
+    written to OUT_1985. Either way a committed catalog that differs from this run is reported, and fails `--check`."""
+    import rule_catalog_1985  # noqa: PLC0415  (it imports this module's heading rules; only the 1985 arm needs it)
+    spec = spec_pdf.markdown(1985)
+    if not spec.exists():
+        sys.exit(f"spec not found: {spec}")
+    lines = spec.read_text(encoding="utf-8").splitlines()
+    cat = rule_catalog_1985.parse(lines)
+    print(f"spec:            {spec.relative_to(REPO)}  ({len(lines):,} lines)")
+    for line in rule_catalog_1985.summary(cat):
+        print(line)
+    stale = False
+    if OUT_1985.exists():
+        stale = json.loads(OUT_1985.read_text(encoding="utf-8"))["rules"] != cat.rules
+        if stale:
+            print(f"⛔ THE COMMITTED 1985 CATALOG IS STALE: {OUT_1985.relative_to(REPO)} differs from this run; regenerate it")
+    if args.check:
+        return 1 if cat.findings() or stale else 0
+    OUT_1985.write_text(json.dumps({"generated_from": spec.relative_to(REPO).as_posix(), "rule_count": len(cat.rules),
+                                    "blocks": len(cat.blocks), "rules": cat.rules}, indent=1, ensure_ascii=False) + "\n",
+                        encoding="utf-8", newline="\n")
+    print(f"\nwrote {OUT_1985.relative_to(REPO)}")
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--check", action="store_true", help="parse only; exit non-zero if parse gaps exist")
+    spec_pdf.add_edition_argument(ap)
     args = ap.parse_args()
+    return spec_pdf.edition_data({2023: main_2023, 1985: main_1985}, args.edition, "rule catalog arm")(args)
 
+
+def main_2023(args: argparse.Namespace) -> int:
+    """The 2023 arm: ISO/IEC 1989:2023's clause structure (the module docstring)."""
     if not SPEC.exists():
         sys.exit(f"spec not found: {SPEC}\nRun: git submodule update --init --recursive")
 

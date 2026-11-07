@@ -463,6 +463,160 @@ public sealed class MessageTagIntroductionGateTests
         Assert.DoesNotContain(errors, e => e.Contains("COBOL0809"));
     }
 
+    /// <summary>kb/Work PB4893: a statement that ACTIVATES a same-file method or function whose signature has a message-tag item — its
+    /// RETURNING item, which the operand's temporary takes the description of (§2023:8.4.3.4.4 GR1b, §2023:8.4.3.2.4 GR1), or a formal its
+    /// argument conforms to (§2023:14.8.2) — is the gate's below 2023, through EVERY receiver the invocation can name: a typed data item, a
+    /// FACTORY OF reference, a class-name, an interface-typed reference, SELF, SUPER, an object view of SELF or of a universal reference,
+    /// a chained segment, and the INVOKE statement with or without RETURNING. The funnel's diagnostic-free probe
+    /// (<c>OoBinder.InvokedMethodsOf</c> / <c>InvokedMethodOf</c>) selects the method as the binding does, so at 2023 the same statements
+    /// draw the class refusal the gate suppressed (COBOL0869, COBOL0809, COBOL0828, COBOL2470) and no COBOL0900. A statement in the
+    /// method of the class (<c>inMethod</c>) is written in MTQ's method MUSE, whose SUPER is MTP.</summary>
+    [Theory]
+    [InlineData("SET N TO SELF :: \"MGET\" (N)", true, "COBOL0869")]
+    [InlineData("MOVE SELF :: \"MGET\" (N) TO N", true, "COBOL0809")]
+    [InlineData("MOVE SUPER :: \"MGET\" (N) TO N", true, "COBOL0809")]
+    [InlineData("MOVE SELF AS MTP :: \"MGET\" (N) TO N", true, "COBOL0809")]
+    [InlineData("INVOKE SELF \"MGET\" USING N RETURNING N", true, "COBOL0828")]
+    [InlineData("INVOKE SUPER \"MGET\" USING N RETURNING N", true, "COBOL0828")]
+    [InlineData("SET N TO U AS MTP :: \"MGET\" (N)", false, "COBOL0869")]
+    [InlineData("MOVE MTP :: \"FGET\" TO N", false, "COBOL0809")]
+    [InlineData("MOVE I :: \"MGET\" (N) TO N", false, "COBOL0809")]
+    [InlineData("MOVE O :: \"ME\" :: \"MGET\" (N) TO N", false, "COBOL0809")]
+    [InlineData("INVOKE O \"MGET\" USING N RETURNING N", false, "COBOL0828")]
+    [InlineData("INVOKE U AS MTP \"MGET\" USING N RETURNING N", false, "COBOL0828")]
+    [InlineData("INVOKE MTP \"FGET\" RETURNING N", false, "COBOL0828")]
+    [InlineData("INVOKE F \"FGET\" RETURNING N", false, "COBOL0828")]
+    [InlineData("INVOKE I \"MGET\" USING N RETURNING N", false, "COBOL0828")]
+    [InlineData("INVOKE O :: \"ME\" \"MGET\" USING N RETURNING N", false, "COBOL0828")]
+    [InlineData("INVOKE O \"MSET\" USING N", false, "COBOL0828")]
+    [InlineData("MOVE O :: \"MSET\" (N) TO N", false, "COBOL0828")]
+    [InlineData("MOVE FUNCTION MTF2(N) TO N", false, "COBOL2470")]
+    public void AStatementActivatingASignatureWithATag_IsTheGateAloneBelowTheIntroduction(string statement, bool inMethod, string refusalAt2023)
+    {
+        foreach (int edition in (ReadOnlySpan<int>)[2014, 2023])
+        {
+            var errors = EditionHarness.CompileFull($"""
+                IDENTIFICATION DIVISION.
+                FUNCTION-ID. MTF2.
+                DATA DIVISION.
+                LINKAGE SECTION.
+                01 A USAGE MESSAGE-TAG.
+                01 R PIC 9(4).
+                PROCEDURE DIVISION USING A RETURNING R.
+                    MOVE 1 TO R.
+                    GOBACK.
+                END FUNCTION MTF2.
+
+                IDENTIFICATION DIVISION.
+                INTERFACE-ID. MTI.
+                PROCEDURE DIVISION.
+                METHOD-ID. MGET.
+                DATA DIVISION.
+                LINKAGE SECTION.
+                01 MA PIC 9(4).
+                01 MR USAGE MESSAGE-TAG.
+                PROCEDURE DIVISION USING MA RETURNING MR.
+                END METHOD MGET.
+                END INTERFACE MTI.
+
+                IDENTIFICATION DIVISION.
+                CLASS-ID. MTP.
+                ENVIRONMENT DIVISION.
+                CONFIGURATION SECTION.
+                REPOSITORY.
+                    INTERFACE MTI.
+                FACTORY.
+                PROCEDURE DIVISION.
+                METHOD-ID. FGET.
+                DATA DIVISION.
+                LINKAGE SECTION.
+                01 FR USAGE MESSAGE-TAG.
+                PROCEDURE DIVISION RETURNING FR.
+                    SET FR TO NULL.
+                    GOBACK.
+                END METHOD FGET.
+                END FACTORY.
+                OBJECT. IMPLEMENTS MTI.
+                PROCEDURE DIVISION.
+                METHOD-ID. MGET.
+                DATA DIVISION.
+                LINKAGE SECTION.
+                01 MA PIC 9(4).
+                01 MR USAGE MESSAGE-TAG.
+                PROCEDURE DIVISION USING MA RETURNING MR.
+                    SET MR TO NULL.
+                    GOBACK.
+                END METHOD MGET.
+                METHOD-ID. MSET.
+                DATA DIVISION.
+                LINKAGE SECTION.
+                01 MS USAGE MESSAGE-TAG.
+                PROCEDURE DIVISION USING MS.
+                    GOBACK.
+                END METHOD MSET.
+                METHOD-ID. ME.
+                DATA DIVISION.
+                LINKAGE SECTION.
+                01 MO USAGE OBJECT REFERENCE MTP.
+                PROCEDURE DIVISION RETURNING MO.
+                    SET MO TO SELF.
+                    GOBACK.
+                END METHOD ME.
+                END OBJECT.
+                END CLASS MTP.
+
+                IDENTIFICATION DIVISION.
+                CLASS-ID. MTQ INHERITS MTP.
+                ENVIRONMENT DIVISION.
+                CONFIGURATION SECTION.
+                REPOSITORY.
+                    CLASS MTP.
+                OBJECT.
+                PROCEDURE DIVISION.
+                METHOD-ID. MUSE.
+                DATA DIVISION.
+                LOCAL-STORAGE SECTION.
+                01 N PIC 9(4) VALUE 7.
+                PROCEDURE DIVISION.
+                    {(inMethod ? statement : "CONTINUE")}.
+                    GOBACK.
+                END METHOD MUSE.
+                END OBJECT.
+                END CLASS MTQ.
+
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. MTISIG.
+                ENVIRONMENT DIVISION.
+                CONFIGURATION SECTION.
+                REPOSITORY.
+                    FUNCTION MTF2
+                    CLASS MTP
+                    INTERFACE MTI.
+                DATA DIVISION.
+                WORKING-STORAGE SECTION.
+                01 N PIC 9(4) VALUE 7.
+                01 O USAGE OBJECT REFERENCE MTP.
+                01 U USAGE OBJECT REFERENCE.
+                01 I USAGE OBJECT REFERENCE MTI.
+                01 F USAGE OBJECT REFERENCE FACTORY OF MTP.
+                PROCEDURE DIVISION.
+                MAIN-P.
+                    {(inMethod ? "CONTINUE" : statement)}.
+                    STOP RUN.
+                """, edition).Errors;
+            if (edition >= 2023)
+            {
+                EditionHarness.AssertHasDiagnostic(errors, refusalAt2023);
+                EditionHarness.AssertNoDiagnostic(errors, "COBOL0900");
+            }
+            else
+            {
+                EditionHarness.AssertHasDiagnostic(errors, "COBOL0900");
+                Assert.All(errors, e => Assert.Contains("COBOL0900", e));   // the gate alone: no class diagnostic beside it
+            }
+        }
+    }
+
     /// <summary>The note's arm 2 from the other side: a group's message-tag usage handed to a leaf that wrote a
     /// PICTURE is refused as a MESSAGE-TAG usage at every edition, and never as a floating-point one.</summary>
     [Theory]

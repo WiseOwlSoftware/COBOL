@@ -41,6 +41,14 @@ repair, every sweep and every box. `verify_publishable.check_ledger` holds the t
 undecided claim, or a box side no marked box accounts for is refused. It runs as the gate audit `SPEC CORRECTIONS 1985`
 and as a CI step.
 
+**PB4886's catalog, on the reconciled text.** PB4886 landed while this branch ran, with `rule_catalog_1985` reading a
+box as `<ins>`. On the merged tree its counts fell from 1988 rules to 1502, because a boxed heading or rule no longer
+parsed. It now reads the box side (`BOX_SPAN`, `ORDINAL`, its titles; `citation.MARK_85`), with a planted boxed
+heading and rule. Its ordinal gaps fell from 11 to 1 once the 28 boxes the batch had drawn as a blockquote or a
+one-cell table became boxed paragraphs: those hid 17 rules. The last gap is the scan's. It lacks the printed pages
+XIII-54 and XIII-55 (the TYPE clause's heading and syntax rules (1)-(4)) and XIII-30 and XIII-31, read on the page
+from the folios on either side. A comment marks each gap, and the Preface says so.
+
 **Also.** PDF pages 527-528 repeat 525-526 (the scan prints folios X-11 and X-12 twice, read on the page). Both copies
 stay, and each repeat is marked. `transcribe_pdf assemble` no longer overwrites the reconciled file. DOC_INDEX and
 VERSION_CHANGE_REFERENCE name the `cite.py` call that works (`--check "§1985:…"`; the edition comes from the citation).
@@ -49,4 +57,4 @@ Rows 7.13, 7.19 and 7.20 agree with the 1985 text (§1985:IV.4.2.2.2.3; no ORDER
 
 **Leads, not fixed here.** Figure 1's two missing connectors (page 114). The element-summary tables' remaining group
 labels and indentation (pages 31-84; only the claimed rows and the titles were checked). Underlines on Section headings
-in the body beyond the claimed ones. Page 837's head (`| Page No. | Change |`). The ordinal gaps PB4886 measured.
+in the body beyond the claimed ones. Page 837's head (`| Page No. | Change |`). The four printed pages the scan lacks (they need another copy of the standard).

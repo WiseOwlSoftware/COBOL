@@ -32,13 +32,17 @@ screenSection
     : SCREEN SECTION DOT (constantEntry | screenDescriptionEntry)*
     ;
 
+// level-number [ entry-name-clause ] [ clause ] ... .  (§2023:13.17.2; §2023:13.17.3 SR1: "If the entry-name clause is specified,
+// only the screen-name format or filler format may be specified"). The entry-name clause is §2023:13.18.20, THE SAME RULE as
+// the data and report group description entries' (§2023:13.18.20.4 GR1: "The word FILLER may be used to name a data, report,
+// or screen item"), so the screen arm reads `dataName` like CobolReportWriter.g4's reportGroupEntry (kb/Work PB4890). A
+// screen-name rule of its own (`cobolWord | FILLER`) admitted no reservation-gated word, so `01 SCREEN LINE 1.` left the
+// section loop constantEntry as its one surviving alternative and drew "expected CONSTANT" where WORKING-STORAGE names
+// §2023:8.9 with the funnel's COBOL0901. ⛔ THE NAME SLOT YIELDS TO THE CLAUSE A RESERVED WORD BEGINS (entryNameHere, kb/Work
+// PB845, PB4889): the clause list is its own rule, screenDescriptionBody, followed by the period alone
+// (ReadingParsesFollowDriftTests), so the predicate's probe reads exactly the entry's clauses.
 screenDescriptionEntry
-    : levelNumber screenName? screenDescriptionBody DOT
-    ;
-
-screenName
-    : cobolWord
-    | FILLER
+    : levelNumber ({entryNameHere(RULE_screenDescriptionBody)}? dataName)? screenDescriptionBody DOT
     ;
 
 screenDescriptionBody

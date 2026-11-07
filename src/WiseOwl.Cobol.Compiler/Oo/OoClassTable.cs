@@ -1223,7 +1223,7 @@ public sealed class OoClassTable
         foreach (var cls in _classes)
             foreach (bool factory in new[] { false, true })
                 foreach (var proto in ImplementsClosure(cls, factory).SelectMany(i => i.AllPrototypes()))
-                    if ((factory ? cls.FindFactoryMethod(proto.ExternalizedName) : cls.FindMethod(proto.ExternalizedName)) is { } impl)
+                    if (MethodRoster.Of(cls, factory).Find(proto.ExternalizedName) is { } impl)
                     {
                         // An imported interface's prototype is in no roster above; it joins the slot of the method that implements it,
                         // under the name the built assembly gave it.

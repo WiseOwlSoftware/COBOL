@@ -3831,7 +3831,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║in the SYMBOLIC CHARACTERS clause or║ in a CODE-SET clause "
+    "║in the SYMBOLIC CHARACTERS clause or║ in a CODE-SET clause"
    ]
   },
   {
@@ -3957,7 +3957,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║b. Level-number 66 is assigned to identify RENAMES entries "
+    "║b. Level-number 66 is assigned to identify RENAMES entries"
    ]
   },
   {
@@ -3999,7 +3999,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║(7) In format 2, the data item defined by data-name-1 must "
+    "║(7) In format 2, the data item defined by data-name-1 must"
    ]
   },
   {
@@ -4035,7 +4035,7 @@
    "decision": "MARKED",
    "blocks": 6,
    "opens": [
-    "║At the time the subject of entry is referenced or any data "
+    "║At the time the subject of entry is referenced or any data"
    ]
   },
   {
@@ -4284,7 +4284,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║EVALUATE,║ IF, PERFORM, ║and SEARCH║ statements. There are "
+    "║EVALUATE,║ IF, PERFORM, ║and SEARCH║ statements. There are"
    ]
   },
   {
@@ -4296,7 +4296,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║EVALUATE,║ IF, PERFORM, ║and SEARCH║ statements. There are "
+    "║EVALUATE,║ IF, PERFORM, ║and SEARCH║ statements. There are"
    ]
   },
   {
@@ -4308,7 +4308,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║EVALUATE,║ IF, PERFORM, ║and SEARCH║ statements. There are "
+    "║EVALUATE,║ IF, PERFORM, ║and SEARCH║ statements. There are"
    ]
   },
   {
@@ -4398,7 +4398,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║or arithmetic expression║ operands, in terms of the number "
+    "║or arithmetic expression║ operands, in terms of the number"
    ]
   },
   {
@@ -4458,7 +4458,7 @@
    "decision": "MARKED",
    "blocks": 15,
    "opens": [
-    "║(2) The omission of the subject and relational operator of "
+    "║(2) The omission of the subject and relational operator of"
    ]
   },
   {
@@ -4755,7 +4755,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║(8) If the WITH NO ADVANCING phrase is specified, then the "
+    "║(8) If the WITH NO ADVANCING phrase is specified, then the"
    ]
   },
   {
@@ -5289,7 +5289,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║in the order in which it is specified. The rules referring "
+    "║in the order in which it is specified. The rules referring"
    ]
   },
   {
@@ -5337,7 +5337,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║except as noted in the OCCURS clause. (See page VI-26, The "
+    "║except as noted in the OCCURS clause. (See page VI-26, The"
    ]
   },
   {
@@ -5367,7 +5367,7 @@
    "decision": "MARKED",
    "blocks": 2,
    "opens": [
-    "║(2) In format 4, if procedure-name-1 is omitted, the AFTER "
+    "║(2) In format 4, if procedure-name-1 is omitted, the AFTER"
    ]
   },
   {
@@ -5499,7 +5499,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║At the termination of the PERFORM statement, the data item "
+    "║At the termination of the PERFORM statement, the data item"
    ]
   },
   {
@@ -5625,7 +5625,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║(6) Condition-name-1 must be associated with a conditional "
+    "║(6) Condition-name-1 must be associated with a conditional"
    ]
   },
   {
@@ -5661,7 +5661,7 @@
    "decision": "MARKED",
    "blocks": 11,
    "opens": [
-    "║When a figurative constant is used as the delimiter, it is "
+    "║When a figurative constant is used as the delimiter, it is"
    ]
   },
   {
@@ -5673,7 +5673,7 @@
    "decision": "MARKED",
    "blocks": 5,
    "opens": [
-    "║the STRING statement is changed. All other portions of the "
+    "║the STRING statement is changed. All other portions of the"
    ]
   },
   {
@@ -5814,7 +5814,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║except in the case where records are added to the end of a "
+    "║except in the case where records are added to the end of a"
    ]
   },
   {
@@ -5898,7 +5898,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║2\\) A sequential READ statement is attempted for the first "
+    "║2\\) A sequential READ statement is attempted for the first"
    ]
   },
   {
@@ -5910,7 +5910,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║or EXTEND║] phrase is attempted on a [║non-optional║] file "
+    "║or EXTEND║] phrase is attempted on a [║non-optional║] file"
    ]
   },
   {
@@ -5922,7 +5922,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║or EXTEND║] phrase is attempted on a [║non-optional║] file "
+    "║or EXTEND║] phrase is attempted on a [║non-optional║] file"
    ]
   },
   {
@@ -6066,7 +6066,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║the PADDING CHARACTER clause, the RECORD DELIMITER clause, "
+    "║the PADDING CHARACTER clause, the RECORD DELIMITER clause,"
    ]
   },
   {
@@ -6225,7 +6225,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║(2) The SAME RECORD AREA clause specifies that two or more "
+    "║(2) The SAME RECORD AREA clause specifies that two or more"
    ]
   },
   {
@@ -6342,7 +6342,7 @@
    "decision": "MARKED",
    "blocks": 9,
    "opens": [
-    "║2\\) When the ADVANCING identifier-2 or integer-1 phrase of "
+    "║2\\) When the ADVANCING identifier-2 or integer-1 phrase of"
    ]
   },
   {
@@ -6399,7 +6399,7 @@
    "decision": "MARKED",
    "blocks": 6,
    "opens": [
-    "║b. If data-name-1 is not specified and the record does not "
+    "║b. If data-name-1 is not specified and the record does not"
    ]
   },
   {
@@ -6432,7 +6432,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║or the content of the data item referenced by data-name-1, "
+    "║or the content of the data item referenced by data-name-1,"
    ]
   },
   {
@@ -6444,7 +6444,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║or the content of the data item referenced by data-name-1, "
+    "║or the content of the data item referenced by data-name-1,"
    ]
   },
   {
@@ -6499,9 +6499,9 @@
    "where": "H. Optional Phrases Ignored",
    "certainty": "high",
    "decision": "MARKED",
-   "blocks": 1,
+   "blocks": 2,
    "opens": [
-    "║H. Optional Phrases Ignored<br><br>The CLOSE statement is e"
+    "║H. Optional Phrases Ignored"
    ]
   },
   {
@@ -6627,7 +6627,7 @@
    "decision": "MARKED",
    "blocks": 2,
    "opens": [
-    "║(12) When the REVERSED phrase is specified, the subsequent "
+    "║(12) When the REVERSED phrase is specified, the subsequent"
    ]
   },
   {
@@ -6651,7 +6651,7 @@
    "decision": "MARKED",
    "blocks": 3,
    "opens": [
-    "║(19) Treatment of a file contained in a multiple file tape "
+    "║(19) Treatment of a file contained in a multiple file tape"
    ]
   },
   {
@@ -6744,7 +6744,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║If the file description entry contains a RECORD IS VARYING "
+    "║If the file description entry contains a RECORD IS VARYING"
    ]
   },
   {
@@ -6822,7 +6822,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║and EXTEND║ phrases may each be specified only once in the "
+    "║and EXTEND║ phrases may each be specified only once in the"
    ]
   },
   {
@@ -7032,7 +7032,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║g. If PAGE is specified and the LINAGE clause is specified "
+    "║g. If PAGE is specified and the LINAGE clause is specified"
    ]
   },
   {
@@ -7164,7 +7164,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║2\\) A sequential READ statement is attempted for the first "
+    "║2\\) A sequential READ statement is attempted for the first"
    ]
   },
   {
@@ -7260,7 +7260,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║or START║ statement is attempted on a file not open in the "
+    "║or START║ statement is attempted on a file not open in the"
    ]
   },
   {
@@ -7284,7 +7284,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║START,║ or WRITE statement. When the invalid key condition "
+    "║START,║ or WRITE statement. When the invalid key condition"
    ]
   },
   {
@@ -7380,7 +7380,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║(5) If a relative file is referenced by a START statement, "
+    "║(5) If a relative file is referenced by a START statement,"
    ]
   },
   {
@@ -7392,7 +7392,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║(4) If the access mode is dynamic, records in the file may "
+    "║(4) If the access mode is dynamic, records in the file may"
    ]
   },
   {
@@ -7623,7 +7623,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║(3) The NEXT phrase must be specified for files in dynamic "
+    "║(3) The NEXT phrase must be specified for files in dynamic"
    ]
   },
   {
@@ -7635,7 +7635,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║or for files in dynamic access mode when records are to be "
+    "║or for files in dynamic access mode when records are to be"
    ]
   },
   {
@@ -7671,7 +7671,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║If the file description entry contains a RECORD IS VARYING "
+    "║If the file description entry contains a RECORD IS VARYING"
    ]
   },
   {
@@ -7869,7 +7869,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║and EXTEND║ phrases may each be specified only once in the "
+    "║and EXTEND║ phrases may each be specified only once in the"
    ]
   },
   {
@@ -7941,7 +7941,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║or dynamic,║ prior to the execution of the WRITE statement "
+    "║or dynamic,║ prior to the execution of the WRITE statement"
    ]
   },
   {
@@ -8001,7 +8001,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║Alternate record keys provide alternate means of retrieval "
+    "║Alternate record keys provide alternate means of retrieval"
    ]
   },
   {
@@ -8097,7 +8097,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║2\\) A sequential READ statement is attempted for the first "
+    "║2\\) A sequential READ statement is attempted for the first"
    ]
   },
   {
@@ -8109,7 +8109,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║or a duplicate alternate record key without the DUPLICATES "
+    "║or a duplicate alternate record key without the DUPLICATES"
    ]
   },
   {
@@ -8205,7 +8205,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║or START║ statement is attempted on a file not open in the "
+    "║or START║ statement is attempted on a file not open in the"
    ]
   },
   {
@@ -8229,7 +8229,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║START,║ or WRITE statement. When the invalid key condition "
+    "║START,║ or WRITE statement. When the invalid key condition"
    ]
   },
   {
@@ -8241,7 +8241,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║START,║ or WRITE statement. When the invalid key condition "
+    "║START,║ or WRITE statement. When the invalid key condition"
    ]
   },
   {
@@ -8358,7 +8358,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║(4) If the access mode is dynamic, records in the file may "
+    "║(4) If the access mode is dynamic, records in the file may"
    ]
   },
   {
@@ -8646,7 +8646,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║(5) The NEXT phrase must be specified for files in dynamic "
+    "║(5) The NEXT phrase must be specified for files in dynamic"
    ]
   },
   {
@@ -8694,7 +8694,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║or START║ statement, the first existing record in the file "
+    "║or START║ statement, the first existing record in the file"
    ]
   },
   {
@@ -8730,7 +8730,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║If the file description entry contains a RECORD IS VARYING "
+    "║If the file description entry contains a RECORD IS VARYING"
    ]
   },
   {
@@ -8802,7 +8802,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║In the case of an alternate key with duplicate values, the "
+    "║In the case of an alternate key with duplicate values, the"
    ]
   },
   {
@@ -8874,7 +8874,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║(15) Execution of the REWRITE statement for a record which "
+    "║(15) Execution of the REWRITE statement for a record which"
    ]
   },
   {
@@ -8910,7 +8910,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║c. When the value of an alternate record key of the record "
+    "║c. When the value of an alternate record key of the record"
    ]
   },
   {
@@ -8946,7 +8946,7 @@
    "decision": "MARKED",
    "blocks": 3,
    "opens": [
-    "║This key of reference is used to establish the ordering of "
+    "║This key of reference is used to establish the ordering of"
    ]
   },
   {
@@ -8976,7 +8976,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║and EXTEND║ phrases may each be specified only once in the "
+    "║and EXTEND║ phrases may each be specified only once in the"
    ]
   },
   {
@@ -9048,7 +9048,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║When the file is open in the extend mode, the first record "
+    "║When the file is open in the extend mode, the first record"
    ]
   },
   {
@@ -9060,7 +9060,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║a prime record key whose value is greater than the highest "
+    "║a prime record key whose value is greater than the highest"
    ]
   },
   {
@@ -9216,7 +9216,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║External and║ internal objects may have ║either global or║ "
+    "║External and║ internal objects may have ║either global or║"
    ]
   },
   {
@@ -9228,7 +9228,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║External and║ internal objects may have ║either global or║ "
+    "║External and║ internal objects may have ║either global or║"
    ]
   },
   {
@@ -9264,7 +9264,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║If the EXTERNAL clause is included in the file description "
+    "║If the EXTERNAL clause is included in the file description"
    ]
   },
   {
@@ -9456,7 +9456,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║(3) If the program terminated by the end program header is "
+    "║(3) If the program terminated by the end program header is"
    ]
   },
   {
@@ -9468,7 +9468,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║If the program terminated by the end program header is not "
+    "║If the program terminated by the end program header is not"
    ]
   },
   {
@@ -9516,7 +9516,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║(3) If the program terminated by the end program header is "
+    "║(3) If the program terminated by the end program header is"
    ]
   },
   {
@@ -9528,7 +9528,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║If the program terminated by the end program header is not "
+    "║If the program terminated by the end program header is not"
    ]
   },
   {
@@ -9693,7 +9693,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║(1) If the reference to the corresponding data item in the "
+    "║(1) If the reference to the corresponding data item in the"
    ]
   },
   {
@@ -9831,7 +9831,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║If the ON OVERFLOW or ON EXCEPTION phrase is not specified "
+    "║If the ON OVERFLOW or ON EXCEPTION phrase is not specified"
    ]
   },
   {
@@ -9843,7 +9843,7 @@
    "decision": "MARKED",
    "blocks": 7,
    "opens": [
-    "║(4) Two or more programs in the run unit may have the same "
+    "║(4) Two or more programs in the run unit may have the same"
    ]
   },
   {
@@ -9855,7 +9855,7 @@
    "decision": "MARKED",
    "blocks": 2,
    "opens": [
-    "║includes the CALL statement, that common program is called "
+    "║includes the CALL statement, that common program is called"
    ]
   },
   {
@@ -9927,7 +9927,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║(6) If the called program possesses the initial attribute, "
+    "║(6) If the called program possesses the initial attribute,"
    ]
   },
   {
@@ -9999,7 +9999,7 @@
    "decision": "MARKED",
    "blocks": 3,
    "opens": [
-    "║called and is at present cancelled. Control is transferred "
+    "║called and is at present cancelled. Control is transferred"
    ]
   },
   {
@@ -10140,7 +10140,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║(9) Pseudo-text-1 must not consist entirely of a separator "
+    "║(9) Pseudo-text-1 must not consist entirely of a separator"
    ]
   },
   {
@@ -10470,7 +10470,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║The second option may be used to replace the above clauses "
+    "║The second option may be used to replace the above clauses"
    ]
   },
   {
@@ -10482,7 +10482,7 @@
    "decision": "MARKED",
    "blocks": 2,
    "opens": [
-    "║SYMBOLIC SUB-QUEUE-1║ |"
+    "║SYMBOLIC SUB-QUEUE-1║"
    ]
   },
   {
@@ -10554,7 +10554,7 @@
    "decision": "MARKED",
    "blocks": 4,
    "opens": [
-    "║(6) Whenever a program is scheduled by the message control "
+    "║(6) Whenever a program is scheduled by the message control"
    ]
   },
   {
@@ -10602,7 +10602,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║In level 2 a record area of contiguous character positions "
+    "║In level 2 a record area of contiguous character positions"
    ]
   },
   {
@@ -10614,7 +10614,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║and every set of 13 characters thereafter║ will form table "
+    "║and every set of 13 characters thereafter║ will form table"
    ]
   },
   {
@@ -10626,7 +10626,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║OCCURS integer-1 TIMES.║ | DESTINATION TABLE |"
+    "║OCCURS integer-1 TIMES.║ | DESTINATION TABLE"
    ]
   },
   {
@@ -10770,7 +10770,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║The second option may be used to replace the above clauses "
+    "║The second option may be used to replace the above clauses"
    ]
   },
   {
@@ -10794,7 +10794,7 @@
    "decision": "MARKED",
    "blocks": 3,
    "opens": [
-    "║(28) Whenever a program is scheduled by the MCS to process "
+    "║(28) Whenever a program is scheduled by the MCS to process"
    ]
   },
   {
@@ -10818,7 +10818,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║without the INITIAL clause, or for an input-output CD with "
+    "║without the INITIAL clause, or for an input-output CD with"
    ]
   },
   {
@@ -10842,7 +10842,7 @@
    "decision": "MARKED",
    "blocks": 2,
    "opens": [
-    "║3\\) If an end of segment has been detected, the content of "
+    "║3\\) If an end of segment has been detected, the content of"
    ]
   },
   {
@@ -10938,7 +10938,7 @@
    "decision": "MARKED",
    "blocks": 3,
    "opens": [
-    "║(5) When the OUTPUT phrase is specified, the logical paths "
+    "║(5) When the OUTPUT phrase is specified, the logical paths"
    ]
   },
   {
@@ -11031,7 +11031,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║In level 2, further RECEIVE statements which reference the "
+    "║In level 2, further RECEIVE statements which reference the"
    ]
   },
   {
@@ -11151,7 +11151,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║or message segment║ that is smaller than the physical line "
+    "║or message segment║ that is smaller than the physical line"
    ]
   },
   {
@@ -11199,7 +11199,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║by the content of the data item referenced by identifier-2 "
+    "║by the content of the data item referenced by identifier-2"
    ]
   },
   {
@@ -11211,7 +11211,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║by the content of the data item referenced by identifier-2 "
+    "║by the content of the data item referenced by identifier-2"
    ]
   },
   {
@@ -11331,7 +11331,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║c. If mnemonic-name-1 is specified, characters transmitted "
+    "║c. If mnemonic-name-1 is specified, characters transmitted"
    ]
   },
   {
@@ -11451,7 +11451,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║Debug level 2 provides the full COBOL debugging facility.║ "
+    "║Debug level 2 provides the full COBOL debugging facility.║"
    ]
   },
   {
@@ -11556,7 +11556,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║identifier-1, cd-name-1, file-name-1, or║ procedure-name-1 "
+    "║identifier-1, cd-name-1, file-name-1, or║ procedure-name-1"
    ]
   },
   {
@@ -11592,7 +11592,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║Segmentation level 2 provides the facility for intermixing "
+    "║Segmentation level 2 provides the facility for intermixing"
    ]
   },
   {
@@ -11640,7 +11640,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║either a fixed overlayable segment or║ another independent "
+    "║either a fixed overlayable segment or║ another independent"
    ]
   },
   {
@@ -11652,7 +11652,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║either to one of the overlayable fixed segments or║ to one "
+    "║either to one of the overlayable fixed segments or║ to one"
    ]
   },
   {
@@ -11688,7 +11688,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║In level 2 sections with the same segment-numbers need not "
+    "║In level 2 sections with the same segment-numbers need not"
    ]
   },
   {
@@ -11772,7 +11772,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║either:║<br><br>║1)║ to write a record that would create a "
+    "║either:║<br><br>║1)║ to write a record that would create a"
    ]
   },
   {
@@ -11784,7 +11784,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║either:║<br><br>║1)║ to write a record that would create a "
+    "║either:║<br><br>║1)║ to write a record that would create a"
    ]
   },
   {
@@ -11796,7 +11796,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║either:║<br><br>║1)║ to write a record that would create a "
+    "║either:║<br><br>║1)║ to write a record that would create a"
    ]
   },
   {
@@ -11808,7 +11808,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║either:║<br><br>║1)║ to write a record that would create a "
+    "║either:║<br><br>║1)║ to write a record that would create a"
    ]
   },
   {
@@ -11892,7 +11892,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║A comment line or blank line in source program text is not "
+    "║A comment line or blank line in source program text is not"
    ]
   }
  ]
