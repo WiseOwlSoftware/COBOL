@@ -153,10 +153,14 @@ internal sealed class McsStore : IDisposable
             McsSeeding.Seed(tables, definitions, RunUnit.Current.Clock.Now());
             var defined = definitions.Parsed.Devices.ToHashSet(StringComparer.Ordinal);
             var known = new HashSet<string>(StringComparer.Ordinal);
-            foreach (var (device, _) in tables.DeviceEnds())
+            foreach (var (device, end) in tables.DeviceEnds())
             {
                 if (defined.Contains(device)) known.Add(device);
-                else tables.RetireDeviceEnd(device);
+                else
+                {
+                    CutDevice(device, end);   // a dead statement's tail is cut before the row goes, so it is never taken for delivered output
+                    tables.RetireDeviceEnd(device);
+                }
             }
             foreach (var device in defined.Where(d => !known.Contains(d)))
                 tables.SetDeviceEnd(device, File.Exists(DeviceFile(device)) ? new FileInfo(DeviceFile(device)).Length : 0);
@@ -167,19 +171,22 @@ internal sealed class McsStore : IDisposable
                 throw new McsRefusalException("the store did not promote the seeding");
             tables = new McsTables(new BTree(file, KeyOrders.Ordinal, file.Meta.PrimeRoot));
         }
-        foreach (var (device, end) in tables.DeviceEnds())
-        {
-            string path = DeviceFile(device);
-            try
-            {
-                if (!File.Exists(path) || new FileInfo(path).Length <= end) continue;
-                using var handle = File.OpenHandle(path, FileMode.Open, FileAccess.Write, FileShare.ReadWrite);
-                RandomAccess.SetLength(handle, end);
-            }
-            catch (IOException) { }
-            catch (UnauthorizedAccessException) { }
-        }
+        foreach (var (device, end) in tables.DeviceEnds()) CutDevice(device, end);
         return tables;
+    }
+
+    /// <summary>Cuts the device file to its committed end when it is longer. Best effort (see <see cref="Prepare"/>).</summary>
+    private void CutDevice(string device, long end)
+    {
+        string path = DeviceFile(device);
+        try
+        {
+            if (!File.Exists(path) || new FileInfo(path).Length <= end) return;
+            using var handle = File.OpenHandle(path, FileMode.Open, FileAccess.Write, FileShare.ReadWrite);
+            RandomAccess.SetLength(handle, end);
+        }
+        catch (IOException) { }
+        catch (UnauthorizedAccessException) { }
     }
 
     private string DeviceFile(string device) => Path.Combine(_root, device + ".out");
@@ -196,7 +203,8 @@ internal sealed class McsStore : IDisposable
                 .Select(t => string.Concat(t.Message.Segments) + Environment.NewLine)));
             string file = DeviceFile(device);
             bool existed = File.Exists(file);
-            long end = existed ? Math.Min(tables.DeviceEnd(device), new FileInfo(file).Length) : 0;   // a file shorter than its committed end was changed outside the MCS
+            long length = existed ? new FileInfo(file).Length : 0;
+            long end = Math.Min(tables.DeviceEnd(device) ?? length, length);   // a file shorter than its committed end was changed outside the MCS; a device with no row (a run unit holding definitions a later seeding retired) keeps what its file holds, as seeding does
             written.Add(new Written(device, end, existed));
             using (var handle = File.OpenHandle(file, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite))
             {

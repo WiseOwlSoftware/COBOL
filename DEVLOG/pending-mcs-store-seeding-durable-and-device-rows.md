@@ -15,3 +15,5 @@ every row whose device the definitions do not name (`McsTables.RetireDeviceEnd`)
 file of a removed device is left alone. Witness: `DeviceRenamedOnlyByCase_LeavesNoStaleRow_AndItsDeliveredOutputIsNotCut`.
 
 Both notes close no inventory row. Self-review: the McsStore, McsTables and McsStoreCrashMatrixTests unit population (141 tests) green.
+
+**Review round 1.** A run unit still holding definitions a later seeding retired could send to the retired device, and `DeviceEnd` read the missing row as 0, so its SEND overwrote the file from offset 0. `DeviceEnd` is now `long?` and `Transmit` takes the file length for a row-less device (the seeding rule), and `Prepare` cuts a retired device's file to its old committed end before the row goes (`CutDevice`, shared with the run unit's cut loop). Witnesses: `RunUnitHoldingARetiredDevice_AppendsToItsFile_NeverOverwrites`, `RetiredDevice_HasItsDeadTailCut_BeforeItsRowGoes`.

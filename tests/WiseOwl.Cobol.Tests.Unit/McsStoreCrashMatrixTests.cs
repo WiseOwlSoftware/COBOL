@@ -380,6 +380,44 @@ public sealed class McsStoreCrashMatrixTests : IDisposable
         Assert.EndsWith("TWO" + line + "THREE" + line, text);
     }
 
+    /// <summary>A run unit that began before a seeding retired a device's row still holds the old definitions and may send to it (§6 "Devices", "Seeding"): with no row its committed end is
+    /// the file's length, so what the other run unit delivered is appended to, never overwritten from offset 0.</summary>
+    [Fact]
+    public void RunUnitHoldingARetiredDevice_AppendsToItsFile_NeverOverwrites()
+    {
+        string directory = Fresh();
+        string definitions = System.IO.Path.Combine(directory, "mcs.json");
+        File.WriteAllText(definitions, """{ "destinations": [ { "name": "X" }, { "name": "KEEP" } ] }""");
+        using var a = new Session(directory);
+        Assert.Equal("00", Sent(a.Control, "X", "ONE"));
+        Assert.Equal("00", Sent(a.Control, "X", "TWO"));
+        File.WriteAllText(definitions, """{ "destinations": [ { "name": "KEEP" } ] }""");
+        using (var b = new Session(directory))
+            Assert.Equal("00", Sent(b.Control, "KEEP", "B"));
+        Assert.DoesNotContain(McsInspector.Rows(directory), row => row.Key[0] == (byte)'D' && System.Text.Encoding.UTF8.GetString(row.Key, 1, row.Key.Length - 1) == "X");
+        Assert.Equal("00", Sent(a.Control, "X", "THREE"));
+        string line = Environment.NewLine;
+        Assert.Equal("ONE" + line + "TWO" + line + "THREE" + line, File.ReadAllText(System.IO.Path.Combine(directory, "X.out")));
+    }
+
+    /// <summary>A dead statement's tail in a device the definitions drop is cut to the committed end before the row is retired, so it is never left as delivered output (§6 "Devices").</summary>
+    [Fact]
+    public void RetiredDevice_HasItsDeadTailCut_BeforeItsRowGoes()
+    {
+        string directory = Fresh();
+        string definitions = System.IO.Path.Combine(directory, "mcs.json");
+        File.WriteAllText(definitions, """{ "destinations": [ { "name": "X" }, { "name": "KEEP" } ] }""");
+        using (var s = new Session(directory))
+            Assert.Equal("00", Sent(s.Control, "X", "ONE"));
+        string file = System.IO.Path.Combine(directory, "X.out");
+        long delivered = new FileInfo(file).Length;
+        File.AppendAllText(file, "DEAD");
+        File.WriteAllText(definitions, """{ "destinations": [ { "name": "KEEP" } ] }""");
+        using (var s = new Session(directory))
+            Assert.Equal("00", Sent(s.Control, "KEEP", "B"));
+        Assert.Equal(delivered, new FileInfo(file).Length);
+    }
+
     /// <summary>The queue, terminal and outbound messages of a store by their stored text, with how many of each (a serial is no content).</summary>
     private static Dictionary<string, int> Messages(string directory) =>
         McsInspector.Content(directory).Where(l => l[0] is 'M' or 'I' or 'O').GroupBy(l => l).ToDictionary(g => g.Key, g => g.Count());
