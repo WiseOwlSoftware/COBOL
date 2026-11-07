@@ -1,3 +1,65 @@
+# Preface
+
+> **This section is NOT part of American National Standard X3.23-1985.** It is supplied by the publisher of this
+> transcription. Every other word in this file is a transcription of the standard and of its two amendments; where
+> this file adds editorial matter it is marked as such, as here.
+
+This document is a transcription of **American National Standard X3.23-1985, *American National Standard for
+Information Systems — Programming Language — COBOL*** (now ANSI INCITS 23-1985 (R2001)), together with its two
+amendments: **ANSI X3.23a-1989, *Intrinsic Function Module for COBOL***, and **ANSI X3.23b-1993, *Correction Amendment
+for COBOL***. Each amendment follows the standard under its own heading (`AMENDMENT 1` and `AMENDMENT 2`), as it was
+published: an amendment is never merged into the text it amends. The standard is reproduced under the permission it
+grants on its own page 3 (PDF page 3), in the CODASYL acknowledgment:
+
+> Any organization interested in reproducing the COBOL standard and specifications in whole or in part, using ideas
+> from this document as the basis for an instruction manual or for any other purpose, is free to do so. However, all
+> such organizations are requested to reproduce the following acknowledgment paragraphs in their entirety as part of
+> the preface to any such publication […]
+
+The acknowledgment paragraphs are accordingly reproduced here **in their entirety**, exactly as printed. They also
+appear in position in the transcription of PDF page 3.
+
+---
+
+COBOL is an industry language and is not the property of any company or group of companies, or of any organization or
+group of organizations.
+
+No warranty, expressed or implied, is made by any contributor or by the CODASYL COBOL Committee as to the accuracy and
+functioning of the programming system and language. Moreover, no responsibility is assumed by any contributor, or by the
+committee, in connection therewith
+
+The authors and copyright holders of the copyrighted materials used herein
+
+FLOW-MATIC (trademark of Sperry Rand Corporation), Programming for the UNIVAC (R) I and II, Data Automation Systems
+copyrighted 1958, 1959, by Sperry Rand Corporation; IBM Commercial Translater Form No F 28-8013, copyrighted 1959 by
+IBM; FACT, DSI 27A5260-2760, copyrighted 1960 by Minneapolis-Honeywell
+
+have specifically authorized the use of this material in whole or in part, in the COBOL specifications Such
+authorization extends to the reproduction and use of COBOL specifications in programming manuals or similar
+publications.
+
+---
+
+> **About this transcription.** American National Standard X3.23-1985 and its amendments are the authoritative text;
+> where this transcription and the published standard differ, **the published standard governs**. The words, the
+> punctuation and the spelling are transcribed as printed, a printed slip included (the acknowledgment above omits two
+> periods because the printed page does).
+>
+> **The pages are kept.** The source is a scan, and the transcription was made and reconciled page by page against
+> the rendered page, so each `## Page N` heading opens the text of PDF page N. The printed folios (`VI-21`, `XVII-3`)
+> stay where the page prints them. The page furniture that is not the standard's (the reseller's per-copy stamp) is
+> removed.
+>
+> **Notation.** A key word the standard underlines is underlined (`<u>…</u>`, or the drawn underline of a general
+> format); the general formats are drawn as the printed page draws them, in the house style
+> (`docs/rearchitecture/spec-reconciliation/FIGURE-STYLE.md`). The standard encloses every specification unique to
+> level 2 of a module (the high level) in a box (Section I, 1.3; Section IV, 1). The box is drawn as its two sides,
+> double lines, wherever it falls: in a general format as `║` columns beside the rows it holds, and in prose as a `║`
+> at each end of the boxed text. A boxed paragraph, rule, list item or table cell opens and closes with `║`
+> (`║(4) Any necessary conversion …║`); a box around words inside a sentence encloses those words (`opened in the
+> output ║or extend║ mode`). A box never nests, so every `║` that opens a box is followed by the one that closes it.
+> The amendments draw boxes the same way.
+
 # Front matter: title, foreword, preface and contents
 
 ## Page 1

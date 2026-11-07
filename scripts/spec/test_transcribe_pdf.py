@@ -229,6 +229,16 @@ def main() -> int:
               text == "# Front matter\n\n## Page 1\n\nalpha beta gamma\n\n# SECTION A: SECOND\n\n## Page 2\n\ndelta epsilon zeta\n\n")
         code, out = run(["assemble", *base, "--out", str(root / "out.md")], fake, pdf, parts)
         check("assemble writes the Markdown with LF only", code == 0 and b"\r" not in (root / "out.md").read_bytes() and "2 pages" in out)
+        reconciled = root / "reconciled.md"
+        reconciled.write_text("# Preface\n\nthe reconciled text\n", encoding="utf-8", newline="\n")
+        saved_markdown = T.spec_pdf.markdown
+        T.spec_pdf.markdown = lambda edition, repo=None: reconciled
+        try:
+            code, out = run(["assemble", *base], fake, pdf, parts)
+        finally:
+            T.spec_pdf.markdown = saved_markdown
+        check("assemble never overwrites the reconciled transcription: without --out it refuses (kb/Work PB4850)",
+              code == 1 and "--out" in out and reconciled.read_text(encoding="utf-8") == "# Preface\n\nthe reconciled text\n")
         (state / "pages" / "p0002.md").unlink()
         code, out = run(["assemble", *base, "--out", str(root / "out2.md")], fake, pdf, parts)
         check("a missing page refuses the assembly", code == 1 and "missing pages: [2]" in out and not (root / "out2.md").exists())

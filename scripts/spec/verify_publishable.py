@@ -145,10 +145,22 @@ def check_tree(repo: pathlib.Path = REPO) -> list[str]:
 # Must be present. The acknowledgment's own opening words, and the preface framing that marks our editorial
 # matter as ours.
 #: Keyed by edition: an earlier edition's acknowledgment and Preface are worded by its own text (the 2002 PDF prints no
-#: CODASYL grant, PB4813), so its row is written from that text when its run begins, never borrowed from 2023's.
+#: CODASYL grant, PB4813), so its row is written from that text when its run begins, never borrowed from 2023's. 1985's
+#: rows are its PDF page 3's words, which are 2023's: the CODASYL acknowledgment did not change (kb/Work PB4850).
 REQUIRED: dict[int, list[tuple[str, str]]] = {
+    1985: [
+        (r"\A# Preface\n", "the file must open with the Preface (PDF page 3: 'as part of the preface')"),
+        (r"COBOL is an industry language and is not the property of any company",
+         "the acknowledgment's first paragraph"),
+        (r"No warranty, expressed or implied, is made by any contributor",
+         "the acknowledgment's no-warranty paragraph"),
+        (r"have specifically authorized the use of this material in whole or in part",
+         "the acknowledgment's authorization paragraph"),
+        (r"NOT part of American National Standard X3\.23-1985",
+         "the Preface must state that it is not part of the standard"),
+    ],
     2023: [
-        (r"^#\s*Preface", "the file must open with the Preface (page 28: 'as part of the preface')"),
+        (r"\A# Preface\n", "the file must open with the Preface (page 28: 'as part of the preface')"),
         (r"COBOL is an industry language and is not the property of any company",
          "the acknowledgment's first paragraph"),
         (r"No warranty, expressed or implied, is made by any contributor",
@@ -157,11 +169,12 @@ REQUIRED: dict[int, list[tuple[str, str]]] = {
          "the acknowledgment's authorization paragraph"),
         (r"NOT part of ISO/IEC 1989:2023",
          "the Preface must state that it is not part of the standard"),
+        (r"^# Addendum", "the Addendum that lists every correction (check_corrections)"),
     ],
 }
 
 #: The words that open the acknowledgment, which must precede clause 1 (the Preface), by edition.
-ACKNOWLEDGMENT_OPENING: dict[int, str] = {2023: "COBOL is an industry language"}
+ACKNOWLEDGMENT_OPENING: dict[int, str] = {1985: "COBOL is an industry language", 2023: "COBOL is an industry language"}
 
 
 #: An Addendum correction entry: `### C6 · page 607 · 14.9.10.4 … · printed → corrected`.
@@ -221,9 +234,10 @@ def check_corrections(text: str) -> list[str]:
         i += 1
     referenced = set(FLAG_REFERENCE.findall("\n".join(lines[:addendum_at])))
 
-    if not entries:
-        failures.append("the Addendum lists no corrections (### Cn entries)")
-        print("  ✗ no correction entries found in the Addendum")
+    if not entries and not referenced:
+        # A transcription that corrects nothing flags none and lists none. One that has an Addendum requires it by its
+        # REQUIRED row, so deleting the Addendum together with its flags is still refused there.
+        print("  ✓ no corrections: the text flags none and lists none")
     for cid in sorted(referenced | set(entries), key=lambda c: int(c[1:])):
         problems: list[str] = []
         entry = entries.get(cid)
@@ -279,7 +293,7 @@ def check_stamp(lines: list[str], edition: int) -> list[str]:
 
 def check_text(text: str, edition: int) -> list[str]:
     """The checks that read one transcription's text and nothing else: the stamp shapes of `edition` must be absent, its
-    acknowledgment and Preface present, and the acknowledgment before clause 1. Each row is keyed by edition; an
+    acknowledgment and Preface present, and the acknowledgment before the body. Each row is keyed by edition; an
     edition the table lacks exits naming the table (spec_pdf.edition_data)."""
     failures = check_stamp(text.splitlines(), edition)
     required = spec_pdf.edition_data(REQUIRED, edition, "acknowledgment and Preface patterns (verify_publishable.REQUIRED)")
@@ -294,14 +308,13 @@ def check_text(text: str, edition: int) -> list[str]:
             failures.append(f"missing: {what}")
             print(f"  ✗ MISSING — {what}")
 
-    # The acknowledgment has to be in the preface, i.e. before the body starts, not only in position at 0.2.
-    # The body is delimited by the FIRST CLAUSE, not by a page anchor: pages were removed from the document
-    # (they are a layout artifact of one typesetting and mean nothing in Markdown), so clause 1 Scope is the
-    # stable marker for where the front matter ends.
-    cut = text.find('<a id="section-1"></a>')
-    if cut < 0:
-        failures.append("the clause-1 anchor is missing; cannot locate where the front matter ends")
-    elif opening not in text[:cut]:
+    # The acknowledgment has to be in the preface, i.e. before the body starts, not only in position. Where the body
+    # starts is the edition's own line (spec_pdf.EDITIONS body): 2023's clause 1 anchor, 1985's Section I.
+    front = spec_pdf.front_matter(text, edition)
+    if front is None:
+        failures.append(f"the body's opening line ({spec_pdf.EDITIONS[edition].body}) is missing; cannot locate where "
+                        "the front matter ends")
+    elif opening not in front:
         failures.append("the acknowledgment appears in the body but NOT in the preface")
         print("  ✗ the acknowledgment is not in the preface (it must precede clause 1)")
     else:
@@ -345,7 +358,7 @@ def self_test() -> int:
     good = ("# Preface\n\nCOBOL is an industry language and is not the property of any company\n"
             "No warranty, expressed or implied, is made by any contributor\n"
             "have specifically authorized the use of this material in whole or in part\n"
-            "This preface is NOT part of ISO/IEC 1989:2023.\n\n<a id=\"section-1\"></a>\n\n## 1 Scope\n")
+            "This preface is NOT part of ISO/IEC 1989:2023.\n\n<a id=\"section-1\"></a>\n\n## 1 Scope\n\n# Addendum\n")
     check("a clean 2023 text passes", quietly(check_text, good, 2023) == [])
     # The planted pieces are ASSEMBLED, never written whole: check_tree reads this very file and refuses a download date or
     # an order number anywhere in the tracked tree.
@@ -370,13 +383,26 @@ def self_test() -> int:
           all(re.search(p, planted_2002) for p, _ in TREE_FORBIDDEN[2002]))
     check("2002 has a stamp row, so check_text reaches its acknowledgment row and exits there",
           2002 in FORBIDDEN and 2002 in TREE_FORBIDDEN and 2002 not in REQUIRED)
-    for edition in (1985, 2002):
-        try:
-            quietly(check_text, good, edition)
-            check(f"{edition} with no acknowledgment row exits instead of borrowing 2023's", False)
-        except SystemExit as ex:
-            check(f"{edition} with no row exits naming the table and the edition",
-                  str(edition) in str(ex.code) and "verify_publishable" in str(ex.code))
+    try:
+        quietly(check_text, good, 2002)
+        check("2002 with no acknowledgment row exits instead of borrowing 2023's", False)
+    except SystemExit as ex:
+        check("2002 with no row exits naming the table and the edition",
+              "2002" in str(ex.code) and "verify_publishable" in str(ex.code))
+    good_1985 = good.replace("ISO/IEC 1989:2023", "American National Standard X3.23-1985").replace(
+        '<a id="section-1"></a>\n\n## 1 Scope', "# SECTION I: INTRODUCTORY INFORMATION\n\n## Page 21")
+    check("a clean 1985 text passes, its body opening at Section I", quietly(check_text, good_1985, 1985) == [])
+    check("1985 reads its own body line: 2023's text, which has no Section I heading, has no 1985 front matter",
+          len(quietly(check_text, good, 1985)) == 2)
+    section_i = "# SECTION I: INTRODUCTORY INFORMATION\n"
+    body_only = good_1985.replace(section_i, "").replace("# Preface\n", "# Preface\n\n" + section_i)
+    check("a text whose acknowledgment is only in the body is refused",
+          "the acknowledgment appears in the body but NOT in the preface" in quietly(check_text, body_only, 1985))
+    check("a text that flags no correction and lists none passes the correction check",
+          quietly(check_corrections, good_1985) == [])
+    check("2023 requires its Addendum, so deleting it with its flags is still refused",
+          "missing: the Addendum that lists every correction (check_corrections)"
+          in quietly(check_text, good.replace("# Addendum\n", ""), 2023))
     check("the tree shapes of every edition are searched on every run",
           (r"\border\s*#\s*[A-Za-z_]*\d{4,}", "reseller order number") in tree_shapes()
           and (r"\bX_\d{6}\b", "reseller order number") in tree_shapes())
