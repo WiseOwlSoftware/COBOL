@@ -68,6 +68,9 @@ class Tally:
     left: collections.Counter = dataclasses.field(default_factory=collections.Counter)         # reason -> count
     files: int = 0
     hand: list[tuple[str, int, str, str]] = dataclasses.field(default_factory=list)            # (path, line, text, why)
+    #: the 2023 clause numbers left bare beside a document's name, LISTED so a screen regression is visible (PB4887
+    #: new defect 2: a count alone hid review R1-1's 1,258 genuine citations)
+    beside: list[tuple[str, int, str, str]] = dataclasses.field(default_factory=list)          # (path, line, cite, text)
 
 
 def population(repo: pathlib.Path = REPO) -> list[pathlib.Path]:
@@ -119,6 +122,7 @@ def rewrite_line(line: str, own: frozenset[str], known: frozenset[str], rel: str
             tally.left["not a 2023 clause (a document's section or a recorded phantom)"] += 1
         else:
             tally.left["a 2023 clause named beside a document (DOCUMENT_SECTION) or an item label"] += 1
+            tally.beside.append((rel, n, '§' + c.locator, line.strip()[:160]))
     for start, end, text in reversed(edits):
         line = line[:start] + text + line[end:]
     return line
@@ -183,6 +187,10 @@ def report(tally: Tally, apply: bool, repo: pathlib.Path = REPO) -> None:
     print("bare citations in the trees left out (never rewritten):")
     for prefix, n in sorted(left_out_counts(repo).items(), key=lambda kv: -kv[1]):
         print(f"  {n:7d}  {prefix}")
+    print(f"a 2023 clause left bare beside a document's name or as an item label: {len(tally.beside)}")
+    for rel, n, cite, text in tally.beside:
+        print(f"  {rel}:{n}: {cite}")
+        print(f"      {text}")
     print(f"hand repair: {len(tally.hand)}")
     for rel, n, text, why in tally.hand:
         print(f"  {rel}:{n}: {why}\n      {text}")
