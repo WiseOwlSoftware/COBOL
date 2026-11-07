@@ -7849,7 +7849,7 @@ Data Division - File Description Entry
 </pre>
 
 <pre style="line-height:1">
-<u>GENERAL</u> <u>FORMAT</u> <u>FOR</u> <u>FILE</u> <u>DESCRIPTION</u> <u>ENTRY</u>
+                         <u>GENERAL FORMAT FOR FILE DESCRIPTION ENTRY</u>
 </pre>
 
 <u>RELATIVE FILE</u>:
@@ -7881,7 +7881,7 @@ Data Division - File Description Entry
 </pre>
 
 <pre style="line-height:1">
-V-10
+                                   V-10
 </pre>
 
 ## Page 203
@@ -8287,7 +8287,7 @@ V-18
 </pre>
 
 <pre style="line-height:1">
-V-19
+                                        V-19
 </pre>
 
 ## Page 212
@@ -9102,7 +9102,7 @@ V-32
 ## Page 225
 
 <pre style="line-height:1">
-Verb Formats ( WRITE )
+                                                            Verb Formats (WRITE)
 </pre>
 
 <u>**GENERAL FORMAT FOR COBOL VERBS**</u>

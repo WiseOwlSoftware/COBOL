@@ -52,4 +52,14 @@ block having moved by comparing only the clause and label, but the blocks of a p
 an earlier `<pre>` (the furniture cleanup this entry's report proposes) shifted a verdict onto the next block without
 the FATAL firing. A verdict now carries `drawn_lines`, the block's lines as drawn (the cross-check ledger's new
 `drawn`), and `decide` accepts the block its ordinal names only when it holds those lines or the decided figure. The
-clause and label left the verdict format. The self-test plants the review's page 202 shape (23/23).
+clause and label left the verdict format. The self-test plants the review's page 202 shape.
+
+Its lead R1-2 sat in the same file. `Drawn.general_format` was true for a block that held only page furniture under a
+GENERAL FORMAT heading, so four of them agreed and were written in the house style: page 202's title and `V-10`, page
+211's `V-19`, and page 225's `Verb Formats (WRITE)`. Once decided, they never reached the refuters.
+`sweep_figures.FURNITURE_LINES` gains its 1985 row, which covers the folios (`[A-Z]{1,5}-n`), the module running heads
+(`Nucleus - DIVIDE`) and the composite skeleton's division, verb-format and page-title heads. These are shapes only.
+`drawn_figures` takes the edition's `page_furniture`, and a block of furniture alone is no general format. The four
+were restored to the batch's drawing. The re-run `--check` reports 144 written, all in their decided form, none
+drifted. 357 blocks await a verdict: 269 general formats and 88 other blocks, the 16 furniture-only blocks among them.
+`sweep_figures --self-test` passes 24/24.

@@ -157,7 +157,8 @@ names, per format, which of the four carried things (grouping, choice bars, unde
 **What is written into a scanned edition** (`sweep_figures.decide`). `--apply` writes a `<pre>` block in the house
 style only when it is DECIDED: either a refuter's verdict decides it against the printed page (one JSON file per
 block under `spec-reconciliation/figures-<edition>/`, README.md), or the block is a general format (it sits under a
-heading or after a sentence that names one, or carries a `Format N` label) whose every word was read and whose two
+heading or after a sentence that names one, or carries a `Format N` label, and holds more than page furniture: the
+folios, running heads and page titles the batch set in `<pre>`, `sweep_figures.FURNITURE_LINES`) whose every word was read and whose two
 drawings agree on every word and on the four things (and the boxes). The batch also set COBOL examples, flow diagrams
 and tables in `<pre>`; two drawings of an example can agree on every word while the regeneration loses its
 indentation, so no agreement rewrites a block that is not where a general format is printed: a refuter says what it is

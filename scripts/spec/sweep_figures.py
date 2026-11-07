@@ -77,11 +77,21 @@ HRULE = re.compile(r"^\s*-{3,}\s*$")           # a Markdown horizontal rule: pag
 # break falling inside a figure split that figure into two spans that matched nothing.
 #
 # The running header and the reseller's stamp line are each edition's own (kb/Work PB4815): `FURNITURE_LINES` is keyed by
-# edition, and an edition with no row exits naming the table (1985 and 2002 are written when their runs read those lines).
+# edition, and an edition with no row exits naming the table (2002 is written when its run reads those lines).
 FURNITURE_LINES: dict[int, str] = {
     2023: r"""\#*\s*\**ISO/IEC\s+1989:2023\s*\(E\)\**
         |\**©\s*ISO/IEC\s+\d{4}\**
         |Licensed\ to\ .*""",
+    # The 1985 scan's folios (`V-10`, `XIII-4`, `A-2`: a part numeral or an appendix letter and the page) and its
+    # running heads: a module's name over its pages (`Nucleus - DIVIDE`, `Sequential I-O - OPEN`), and the composite
+    # skeleton's division heads, verb-format heads and page titles (PDF pages 197-226: `Data Division - File
+    # Description Entry`, `Verb Formats (WRITE)`, `GENERAL FORMAT FOR DATA DIVISION`). Shapes only (PB4812 rule 2).
+    1985: r"""[A-Z]{1,5}-\d{1,3}
+        |(?:Nucleus|Sequential\ I-O|Relative\ I-O|Indexed\ I-O|Inter-Program\ Communication|Sort-Merge
+           |Source\ Text\ Manipulation|Report\ Writer|Communication|Debug|Segmentation|Intrinsic\ Function|Concepts
+           |(?:Identification|Environment|Data|Procedure)\ Division)(?:\ -\ .+)?
+        |Verb\ Formats\s*\(.+\)
+        |GENERAL\ FORMAT\ FOR\ .+""",
 }
 
 
@@ -366,7 +376,10 @@ class Drawn(NamedTuple):
     """One `<pre>` block of the transcription: lines[start] its opening tag and lines[end] its closing one, on the page
     whose `## Page N` heading precedes it, under the nearest clause heading and label. `general_format` says whether the
     block sits where a general format is printed: under a heading that names one (`spec_headings.GENERAL_FORMAT_NAMED`)
-    or with a `Format N` label. The batch also set COBOL examples, flow diagrams and tables in `<pre>` (the table
+    or with a `Format N` label, and holding more than page furniture (`page_furniture`: the batch set folios, running
+    heads and page titles in `<pre>` on the 1985 composite skeleton, under its GENERAL FORMAT headings, PDF pages
+    197-226; agreeing word for word, they were written as formats, and a refuter never saw them). The batch also set
+    COBOL examples, flow diagrams and tables in `<pre>` (the table
     definitions of PDF page 96, the appendix's examples from page 763): those are not general formats, and their layout
     is their content, so no agreement ever rewrites one (`decide`)."""
     page: int
@@ -383,14 +396,17 @@ PRE_OPEN_LINE = re.compile(r"^\s*<pre(?:\s[^>]*)?>\s*$")
 CLAUSE_LINE = re.compile(r"^\s*#*\s*\**(\d+(?:\.\d+)+)\s+(.+?)\**\s*$")
 
 
-def drawn_figures(lines: list[str]) -> list[Drawn]:
-    """Every `<pre>` block of a transcription assembled page by page (`## Page N`, kb/Work PB4816), in order."""
+def drawn_figures(lines: list[str], furniture: re.Pattern) -> list[Drawn]:
+    """Every `<pre>` block of a transcription assembled page by page (`## Page N`, kb/Work PB4816), in order;
+    `furniture` is the edition's `page_furniture`."""
     out, page, clause, label, heading, lead, start = [], None, None, None, "", "", None
     for i, line in enumerate(lines):
         if start is not None:
             if line.lstrip().startswith("</pre>"):
-                fmt = bool(label) or any(GENERAL_FORMAT_NAMED.search(t) for t in (heading, lead))
-                out.append(Drawn(page, start, i, lines[start + 1:i], clause, label, fmt))
+                rows = lines[start + 1:i]
+                fmt = ((bool(label) or any(GENERAL_FORMAT_NAMED.search(t) for t in (heading, lead)))
+                       and not all(not r.strip() or furniture.match(re.sub(r"</?u>", "", r)) for r in rows))
+                out.append(Drawn(page, start, i, rows, clause, label, fmt))
                 start = None
             continue
         if (m := PAGE_HEADING.match(line)):
@@ -459,7 +475,7 @@ def cross_check(edition: int, doc, lines: list[str], R, pages: tuple | None, lim
     differs, for a refuter to decide against the printed page (kb/Work PB4849). Writes the result to `ledger` as JSON."""
     import json
     import figure_reading
-    every = drawn_figures(lines)
+    every = drawn_figures(lines, page_furniture(edition))
     keyed = [(d, k) for d, k in zip(every, figure_ordinals(every)) if pages is None or pages[0] <= d.page <= pages[1]]
     drawn = [d for d, _ in keyed]
     results, stats = [], collections.Counter()
@@ -596,7 +612,7 @@ def raster_sweep(edition: int, doc, lines: list[str], R, pages: tuple | None, cl
     written as `decide` says; `--check` is clean when every block is in its decided form, none awaits a verdict and
     every verdict names a block of the file."""
     import figure_reading
-    every = drawn_figures(lines)
+    every = drawn_figures(lines, page_furniture(edition))
     keyed = [(d, k) for d, k in zip(every, figure_ordinals(every))
              if (pages is None or pages[0] <= d.page <= pages[1])
              and (clause is None or (d.clause or "").split(" ")[0] == clause)]
@@ -676,7 +692,8 @@ def self_test() -> int:
           "## Page 306", "### 4.1 TABLE DEFINITION", "", "<pre>", "01  TABLE-1.", "    02  DOG  PIC X.", "</pre>",
           "The general format of a sign condition is as follows:", "", "## Page 307", "<pre>", "identifier IS ZERO",
           "</pre>", "## GENERAL FORMAT FOR COBOL VERBS", "<pre>", "<u>ACCEPT</u> x", "</pre>"]
-    got = drawn_figures(md)
+    furniture = page_furniture(1985)
+    got = drawn_figures(md, furniture)
     want = [Drawn(304, 6, 8, ["<u>ADD</u> x"], "6.6.2 General Format", "Format 1:", True),
             Drawn(305, 14, 18, ["ADD y", "", "    GIVING z"], "6.6.2 General Format", "Format 2:", True),
             Drawn(305, 22, 24, ["ALTER"], "6.7.2 General Format", None, True),
@@ -684,6 +701,15 @@ def self_test() -> int:
             Drawn(307, 35, 37, ["identifier IS ZERO"], "4.1 TABLE DEFINITION", None, True),
             Drawn(307, 39, 41, ["<u>ACCEPT</u> x"], "4.1 TABLE DEFINITION", None, True)]
     check("drawn_figures, each block's general-format context", got == want, str(got))
+    # Review lead R1-2 (wave 20261897): the composite skeleton's furniture, set in `<pre>` under a GENERAL FORMAT
+    # heading (PDF pages 202, 211, 218, 225 and 313), is no general format; a block with a format line in it still is.
+    skeleton = ["## Page 202", "## GENERAL FORMAT FOR FILE DESCRIPTION ENTRY", "<pre>", "Data Division - File Description Entry",
+                "</pre>", "<pre>", "<u>GENERAL FORMAT FOR FILE DESCRIPTION ENTRY</u>", "</pre>", "<pre>", "<u>FD</u> file-name",
+                "</pre>", "<pre>", "V-10", "</pre>", "<pre>", "Verb Formats ( WRITE )", "", "XIII-4", "</pre>",
+                "<u>Format 3</u>:", "<pre>", "Nucleus - DIVIDE", "</pre>", "<pre>", "Sequential I-O - OPEN", "<u>OPEN</u> x", "</pre>"]
+    check("a block of page furniture alone is no general format",
+          [b.general_format for b in drawn_figures(skeleton, furniture)] == [False, False, True, False, False, False, True],
+          str([(b.rows, b.general_format) for b in drawn_figures(skeleton, furniture)]))
     check("a figure's ordinal counts from 0 on each page", figure_ordinals(got) == [0, 0, 1, 0, 0, 1],
           str(figure_ordinals(got)))
 
@@ -708,7 +734,7 @@ def self_test() -> int:
     # trailing furniture, under the same clause and label. The verdict must refuse it, not decide the furniture.
     page = ["## Page 202", "### 5.1 FILE DESCRIPTION", "<pre>", "GENERAL FORMAT", "</pre>", "<pre>", "<u>FD</u> file-name",
             "</pre>", "<pre>", "V-10", "</pre>"]
-    before, after = drawn_figures(page), drawn_figures(page[:2] + page[5:])
+    before, after = drawn_figures(page, furniture), drawn_figures(page[:2] + page[5:], furniture)
     fd = Verdict(202, 1, tuple(before[1].rows), "neither", ("<u>FD</u> <u>file-name</u>",), "the page underlines")
     check("the planted page keeps one clause and label on every block",
           {(b.clause, b.label) for b in before + after} == {("5.1 FILE DESCRIPTION", None)}, str(before + after))

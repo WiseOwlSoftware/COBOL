@@ -1055,7 +1055,8 @@ def raster_page(args, doc) -> int:
                  "--band, --bands-only and --sheet do not apply; give the page alone")
     import sweep_figures
     lines = spec_pdf.markdown(args.edition).read_text(encoding="utf-8").splitlines()
-    drawn = [d for d in sweep_figures.drawn_figures(lines) if d.page == args.page]
+    drawn = [d for d in sweep_figures.drawn_figures(lines, sweep_figures.page_furniture(args.edition))
+             if d.page == args.page]
     if not drawn:
         sys.exit(f"no figure is drawn on page {args.page} of {spec_pdf.markdown(args.edition).name}")
     for n, (d, body, bad, _) in enumerate(sweep_figures.regenerated(args.edition, doc, drawn, sys.modules[__name__]), 1):
