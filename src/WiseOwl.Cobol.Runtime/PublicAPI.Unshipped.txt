@@ -995,3 +995,15 @@ static readonly WiseOwl.Cobol.Runtime.MessageTag.Null -> WiseOwl.Cobol.Runtime.M
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome.ToString() -> string
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.Equals(object obj) -> bool
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.ToString() -> string
+WiseOwl.Cobol.Runtime.Messaging.MessagingSettings
+WiseOwl.Cobol.Runtime.Messaging.MessagingSettings.Directory.get -> string?
+WiseOwl.Cobol.Runtime.Messaging.MessagingSettings.Directory.init -> void
+WiseOwl.Cobol.Runtime.Messaging.MessagingSettings.MessagingSettings() -> void
+WiseOwl.Cobol.Runtime.Messaging.MessagingSettings.NotifyPath.get -> string?
+WiseOwl.Cobol.Runtime.Messaging.MessagingSettings.NotifyPath.init -> void
+WiseOwl.Cobol.Runtime.Messaging.MessagingSettings.ServedName.get -> string?
+WiseOwl.Cobol.Runtime.Messaging.MessagingSettings.ServedName.init -> void
+WiseOwl.Cobol.Runtime.Messaging.MessagingSettings.Time.get -> System.TimeProvider!
+WiseOwl.Cobol.Runtime.Messaging.MessagingSettings.Time.init -> void
+WiseOwl.Cobol.Runtime.RunUnit.MessagingSettings.get -> WiseOwl.Cobol.Runtime.Messaging.MessagingSettings!
+WiseOwl.Cobol.Runtime.RunUnit.MessagingSettings.set -> void

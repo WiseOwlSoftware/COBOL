@@ -655,14 +655,27 @@ EC-MCS-IMP. The requestor releases the lock, closes and deletes `n/<r>`, and con
 
 ### 5.5 The peer, its pumps and partner death
 
-`RunUnit.Messaging` is created at a run unit's first messaging statement, or when it begins if
-`MessagingSettings.ServedName` is set. `MessagingSettings` joins `RunUnit.HostConfiguration` beside `Clock` and
-`DebugMode`, so two run units of one process can differ (§7.2).
+`RunUnit.Messaging` is a cheap `MessagingPeer` shell that exists with every run unit; its socket directory, `SocketTransport`
+and `MessagingProtocol` are created at the run unit's first messaging statement, or when the run unit begins if
+`MessagingSettings.ServedName` is set (`RunUnit.StartAfter` calls `Messaging.StartServing()`), so a run unit that never
+messages creates no directory and reads no variable beyond that one. `MessagingSettings` joins `RunUnit.HostConfiguration`
+beside `Clock` and `DebugMode`, so two run units of one process can differ (§7.2); it reads `WISEOWL_COBOL_MCS_SERVER` and
+`WISEOWL_COBOL_MCS_NOTIFY` when a member is first asked and not set by the host, and carries `Time` (a `TimeProvider`) and
+the server `Definitions`. A start that fails (a socket directory the host refuses, a path too long for `AF_UNIX`, a notify
+socket that refuses) is never an exception: every statement of that run unit is EC-MCS-IMP with the reason (Q8).
 
-The protocol stays single-threaded. Each `PeerLink` runs one thread-pool read pump that posts `FrameArrived` or
-`LinkEnded` to the peer's `Channel<PeerEvent>`; accept loops post `LinkOpened` and `BellRang`. Pumps touch no protocol
-state; only the run unit's thread runs the protocol and writes. The pumps keep a server's reply from blocking on a busy
-requestor, at the price that unreceived replies stay in the requestor's memory.
+The protocol stays single-threaded. Each `PeerLink` runs one thread-pool read pump, an awaited loop (`McsFrame.ReadAsync`)
+that holds no thread while its peer is silent, and posts a `FrameReceived` per frame and one `LinkLost` when the stream ends,
+to the transport's event queue; the accept loops post `LinkAccepted` and `BellRung`; every post signals the peer's wake. Pumps
+touch no protocol state; only the run unit's thread runs the protocol and writes. `MessagingPeer` runs a statement by starting
+it and then taking, in this order, the answers owed to its own actions, the transport's events (decoded by
+`MessagingPeer.Decode`, which closes a link whose frame does not decode) and the deadlines that have passed, until the
+protocol completes it; events that arrived between statements are taken before the next begins. The pumps keep a server's
+reply from blocking on a busy requestor, at the price that unreceived replies stay in the requestor's memory. A bell's accept
+loop reads one `Ring` from each connection on its own task with a five-second limit, so a stalled connection costs a pending
+read and never the accept loop. A run unit started by a requestor connects to `WISEOWL_COBOL_MCS_NOTIFY` after it has
+published its listener (`SocketTransport.Notify`); `Activate`, the requestor's side of §5.4.5, is slice S5 (PB4745), and until
+it lands the peer answers an `Activate` with `ActionFailed`, which no definition can ask for because none has a `start`.
 
 `LinkEnded` is a zero-byte read or any `SocketException`. `Socket.Receive` returns zero "only if zero bytes were requested
 or if no more bytes are available because the peer socket performed a graceful shutdown". That the OS closes a killed

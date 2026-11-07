@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Runtime.Exceptions;
 using WiseOwl.Cobol.Runtime.IO;
+using WiseOwl.Cobol.Runtime.Messaging;
 
 namespace WiseOwl.Cobol.Runtime;
 
@@ -34,6 +35,7 @@ public sealed class RunUnit
 
     public RunUnit()
     {
+        Messaging = new MessagingPeer(() => MessagingSettings);
         Exceptions = new ExceptionEngine(Modules);   // the staged-RAISING slot names its activation (kb/Work PB892)
         Programs = new ProgramTable(this);
         Transactions = new TransactionControl(Files, Modules, SortFiles, Exceptions);
@@ -67,6 +69,17 @@ public sealed class RunUnit
     /// <summary>The run unit's dialogue with the message control system (ISO/IEC 1989:2002 Annex A.2; kb/Work PB4677): the portions of messages
     /// it has begun to send or receive, which ISO/IEC 1989:2002 14.5.10 rule 2 eliminates when the run unit ends.</summary>
     internal Communication.MessageControlSession MessageControl { get; } = new();
+
+    /// <summary>The run unit's peer of the 2023 asynchronous messaging facility (ISO §14.9.38 SEND, §14.9.31 RECEIVE; docs/rearchitecture/DESIGN-message-control.md §5.5;
+    /// kb/Work PB4742): a cheap shell whose socket directory, transport and protocol exist from the run unit's first messaging statement, or from its beginning when
+    /// <see cref="MessagingSettings.ServedName"/> is set. <see cref="Terminate"/> ends it (design 5.6). Independent of <see cref="MessageControl"/>,
+    /// the communication facility's.</summary>
+    internal MessagingPeer Messaging { get; }
+
+    /// <summary>What the host decides about this run unit's 2023 messaging: the MCS directory, the name it serves, its notify socket, the time source of a CONTINUE AFTER
+    /// deadline and the server definitions (docs/rearchitecture/DESIGN-message-control.md §5.5). HOST CONFIGURATION like <see cref="Clock"/> (<see cref="HostConfiguration"/>):
+    /// two run units of one process can differ, and the one <see cref="Begin"/> starts inherits it.</summary>
+    public MessagingSettings MessagingSettings { get; set; } = new();
 
     /// <summary>The run unit's sort-merge file stores (ISO §14.9.40 / §14.9.24; kb/Work PB1570) — the in-memory SD
     /// buffers of the SORT/MERGE statements this run unit executes, which no other run unit can see or mutate.</summary>
@@ -104,7 +117,7 @@ public sealed class RunUnit
     /// the one <see cref="Begin"/> starts in its place — a host that injects a fixed clock and then runs a compiled
     /// program's <c>Main</c> (whose first statement begins the run unit) keeps its clock. Every OTHER member is
     /// fresh in a new run unit; <c>RunUnitStateDriftTests</c> holds both halves by reflection.</summary>
-    public static IReadOnlyList<string> HostConfiguration { get; } = [nameof(Clock), nameof(DebugMode)];
+    public static IReadOnlyList<string> HostConfiguration { get; } = [nameof(Clock), nameof(DebugMode), nameof(MessagingSettings)];
 
     /// <summary>The run unit's FACTORY OBJECTS, one per class, created at the first reference in THIS run unit
     /// (ISO §9.3.14.2: "A factory object is created before it is first referenced by a run unit", and "deleted
@@ -201,11 +214,21 @@ public sealed class RunUnit
         {
             try
             {
-                MessageControl.Dispose();   // the message control system's store handle, endpoint and presence byte (DESIGN-communication-facility.md §6)
+                try
+                {
+                    MessageControl.Dispose();   // the message control system's store handle, endpoint and presence byte (DESIGN-communication-facility.md §6)
+                }
+                finally
+                {
+                    foreach (var reset in _staticStorage) reset();
+                }
             }
             finally
             {
-                foreach (var reset in _staticStorage) reset();
+                // ISO §14.6.11 item 7: each active message is answered EC-MCS-NORMAL-TERMINATION, and §14.6.12 has an abnormal ending perform the same
+                // operations after the rollback; the peer then closes its links and listeners and deletes its socket files (design 5.6). Last, and in its
+                // own finally, so no failed close above can skip it.
+                Messaging.End(EndedAbnormally);
             }
         }
     }
@@ -317,7 +340,9 @@ public sealed class RunUnit
         {
             ru.Clock = prior.Clock;
             ru.DebugMode = prior.DebugMode;
+            ru.MessagingSettings = prior.MessagingSettings;
         }
+        ru.Messaging.StartServing();   // design 5.5: a run unit that serves a name is reachable from its beginning
         return ru;
     }
 }
