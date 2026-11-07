@@ -96,13 +96,13 @@ def linage_claim_findings(conformance: str) -> list[str]:
     return findings
 
 
-# ── nonstandard extensions (§3.2) and the reserved words they add (D-RW1) ──────────────────────────────────────────
+# ── nonstandard extensions (CONFORMANCE.md §3.2) and the reserved words they add (D-RW1) ──────────────────────────────────────────
 
 def extension_register_findings(conformance: str, facts: dict) -> list[str]:
-    """ISO §2023:4.2.10 documentation: §3.2 lists exactly the nonstandard-extension register's rows."""
+    """ISO §2023:4.2.10 documentation: CONFORMANCE.md §3.2 lists exactly the nonstandard-extension register's rows."""
     section = re.search(r"### 3\.2 Nonstandard extensions.*?(?=\n## )", conformance, re.DOTALL)
     if section is None:
-        return [f"{common.CONFORMANCE} lost its §3.2 Nonstandard extensions section (ISO §2023:4.2.10 documentation)"]
+        return [f"{common.CONFORMANCE} lost its CONFORMANCE.md §3.2 Nonstandard extensions section (ISO §2023:4.2.10 documentation)"]
     documented = re.findall(r"^\| `([a-z0-9-]+)` \|", section.group(0), re.MULTILINE)
     ids = facts["nonstandardExtensionIds"]
     findings: list[str] = []
@@ -206,7 +206,7 @@ CHECKS = (
     Check("IMPLEMENTOR-NAMES (DOC-A.1-189..191) are all documented",
           lambda r: implementor_name_findings(_conf(r), common.facts(r))),
     Check("A.4.11 LINAGE claim is stated", lambda r: linage_claim_findings(_conf(r))),
-    Check("NONSTANDARD EXTENSIONS (§3.2) are the register's rows",
+    Check("NONSTANDARD EXTENSIONS (CONFORMANCE.md §3.2) are the register's rows",
           lambda r: extension_register_findings(_conf(r), common.facts(r))),
     Check("EXTENSION RESERVED WORDS (D-RW1) are cobol-words.json's",
           lambda r: reserved_word_findings(_conf(r), _extension_reserved(r))),

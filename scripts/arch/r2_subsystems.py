@@ -7,7 +7,7 @@ WHY. The fleet's first brief named sixteen subsystems as prose ("data binding", 
 nothing mapped a name to files: `ReferenceResolver.cs` sat in two of them, the runtime's collation, Unicode and
 globalization code (about 6,000 lines) and the source generator sat in none, and the binding family (about 76,000
 lines) was one reviewer's whole share, so most of it would never have been read and no record would have said so.
-The same lesson as §8.7: a file set is computed, never listed.
+The same lesson as DESIGN-architecture-review §8.7: a file set is computed, never listed.
 
 WHAT.
   * DOMAIN — the files under review: every tracked authored code file (C#, grammar, project, script, CI and agent

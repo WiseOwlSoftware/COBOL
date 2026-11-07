@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Audit the transcription's UNDERLINING against the printed page, for every general format in the standard.
 
-WHAT IS AT STAKE. §5.2.2 makes an underlined uppercase word REQUIRED; §5.2.3 makes a non-underlined one an
+WHAT IS AT STAKE. §2023:5.2.2 makes an underlined uppercase word REQUIRED; §2023:5.2.3 makes a non-underlined one an
 OPTIONAL word that may be written or omitted. Underlining is therefore load-bearing grammar carried entirely by
 typography — and it is the detail a transcription loses silently, because losing it changes nothing structural.
 Every gate stays green. The repairs so far have repeatedly found words *described* as underlined that are not

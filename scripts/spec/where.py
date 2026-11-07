@@ -5,7 +5,7 @@ Every rule the compiler implements carries its § citation in a comment (project
 so the citations ARE the index. Given a clause (and optionally a rule), print the source files that cite it,
 ranked by citation count, with the first few cited lines each — plus the kb/Work notes and goldens that name it.
 
-    python scripts/spec/where.py 13.18.63            # every file citing §13.18.63 or a sub-clause
+    python scripts/spec/where.py 13.18.63            # every file citing §2023:13.18.63 or a sub-clause
     python scripts/spec/where.py 13.18.63.3 SR2      # only lines that also name the rule
     python scripts/spec/where.py 14.9.39 --top 5 --lines 2
 
@@ -53,7 +53,7 @@ def main():
                     if cpat.search(line) and (rpat is None or rpat.search(line)):
                         hits[p.relative_to(ROOT).as_posix()].append((i, line.strip()))
     if not hits:
-        print(f'no citation of §{a.clause}' + (f' {a.rule}' if a.rule else '') + ' — the rule may be unimplemented; '
+        print(f'no citation of §2023:{a.clause}' + (f' {a.rule}' if a.rule else '') + ' — the rule may be unimplemented; '
               'check the traceability inventory row and kb/Work before surveying')
         return 1
     groups = collections.OrderedDict((k, []) for k in ('src', 'tests', 'kb/Work', 'docs'))

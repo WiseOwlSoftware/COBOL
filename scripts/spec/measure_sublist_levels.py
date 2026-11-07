@@ -15,7 +15,7 @@ located on the clause's pages and its ordinal glyph's x0 is set against that pag
 margin is the leftmost line start in the body band (63.49 pt on an even page, 80.04 pt on an odd one), and each
 nesting level sits 17.5 pt further right (`a)` at +17.5, a list under `a)` at +35). Level 0 is a list the
 standard prints at the block's own margin — a PEER list, introduced by its own prose lead-in ("The size error
-condition exists in the following cases:", §14.7.5), whose items are rules in their own right. Anything deeper
+condition exists in the following cases:", §2023:14.7.5), whose items are rules in their own right. Anything deeper
 is a flattened nested list and must be indented in `specs/ISO_COBOL_2023.md`, never recorded.
 
 `--write` records the measurement in `scripts/spec/data/sublist-levels.json`, which is committed so that

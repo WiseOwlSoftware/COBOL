@@ -3,7 +3,7 @@
 
 THE DEFECT. The PDF's text layer spells several of the standard's ASCII characters with look-alikes, and the
 transcription carried them over verbatim. They print identically to `-`, which is why they survived review, but
-the CHARACTER is wrong: §8.3.2.1 makes the hyphen-minus (U+002D) the only hyphen a COBOL word can contain, so
+the CHARACTER is wrong: §2023:8.3.2.1 makes the hyphen-minus (U+002D) the only hyphen a COBOL word can contain, so
 `integer<U+2011>1` is not the word `integer-1` the standard defines, and the same holds for the arithmetic
 operator and the PICTURE symbol. Every consumer that matches with an ASCII hyphen — a `\\bidentifier-1\\b` pattern,
 `cite.py`, a human's grep — silently matches NOTHING in such a rule (the under-selection direction: nothing goes red).

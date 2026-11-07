@@ -455,7 +455,7 @@ def findings(raw: dict, gods: list[dict], dead: list[dict]) -> list[dict]:
             "kind": "clone-family", "wave": "unify",
             "site": [f"{i['file']}:{i['start']}-{i['end']} ({i['member']})" for i in inst],
             "measure": {"copies": len(inst), "tokens": f["tokens"], "linesEach": inst[0]["end"] - inst[0]["start"] + 1},
-            "rule": "one rule in one place; duplicate code is found by structure, not text (§5.2)",
+            "rule": "one rule in one place; duplicate code is found by structure, not text (DESIGN-architecture-review §5.2)",
             "scenario": (f"{len(inst)} bodies with the same token structure: a fix made to one copy leaves "
                          f"{len(inst) - 1} unfixed — the forgotten-arm defect shape"),
             "target": ("triage semantically (roslyn-analysis §1): if the bodies bind the same members, extract one "
@@ -519,7 +519,7 @@ def findings(raw: dict, gods: list[dict], dead: list[dict]) -> list[dict]:
         out.append({
             "kind": "folder-namespace", "wave": "move-rename", "site": folder,
             "measure": {"disagreements": sorted(pairs)},
-            "rule": "folder equals namespace (§5.3)",
+            "rule": "folder equals namespace (DESIGN-architecture-review §5.3)",
             "scenario": "a reader looking for a type by its namespace looks in the wrong folder",
             "target": "move the files or rename the namespace so the two agree",
         })

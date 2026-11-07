@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Rebuild §8.9's reserved-word list as a real list, and stop Markdown eating the special-character words.
+"""Rebuild §2023:8.9's reserved-word list as a real list, and stop Markdown eating the special-character words.
 
 WHAT WAS WRONG. The 406 reserved words were transcribed one per line with no list marker. Markdown joins
 consecutive lines into ONE PARAGRAPH, so the printed three-column list rendered as run-on prose — the same

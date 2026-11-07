@@ -15,7 +15,7 @@ LIST ITEM. Three things follow, and only the first is cosmetic:
          `9) >= is an abbreviation for GREATER THAN OR EQUAL TO.` → renders "= is an abbreviation for GREATER
             THAN OR EQUAL TO." — which is a FALSE normative statement about `=`.
      Eight rules were affected: six compiler directives (>>IF/>>ELSE/>>END-IF/>>WHEN/>>END-EVALUATE) and two
-     relational-operator definitions in §8.7.5.2. A whole-document sweep found `>` to be the ONLY block
+     relational-operator definitions in §2023:8.7.5.2. A whole-document sweep found `>` to be the ONLY block
      syntax that bites — no rule begins with `#`, `-`, a fence or a pipe — so de-listing is what fixes the
      corruption AND the marker at once, rather than escaping eight `>` and leaving the rest wrong.
 

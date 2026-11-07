@@ -1,6 +1,6 @@
 """THE ONE DEFINITION of what a "general format" clause heading looks like (kb/Work PB284, branch review round 1).
 
-The standard heads 321 clauses "General format(s)" and exactly ONE "General forms" (§14.9.7.2, the COMMIT statement).
+The standard heads 321 clauses "General format(s)" and exactly ONE "General forms" (§2023:14.9.7.2, the COMMIT statement).
 Seven scripts and four tests each carried their own regex for the heading, and keyed on "format" alone: the extractor
 was repaired and the siblings kept silently skipping the one clause that spells the noun otherwise (the figure sweep
 reported ``figures generated: 0 / CHECK: clean`` for a hand-placed figure). One rule, one place: every script that

@@ -46,7 +46,7 @@ THE FINDING SCHEMA (B5; every field required unless marked):
   census_ids    the census findings it rests on (R0-nnnn), or []
   design_ref    "§8.x" or "PBnnnn" — the target section of the approved §8, or the open note that already plans it
   wave_kind     extract | unify | move-and-rename | data-ize | delete | modernize | defect-for-fix-lane
-  analyzer_rule required when wave_kind is modernize (the analyzer id, §5.5 analyzer-first)
+  analyzer_rule required when wave_kind is modernize (the analyzer id, DESIGN-architecture-review §5.5 analyzer-first)
   measurement   required for a performance finding: the measured number on the pin and how it was measured
   severity      Critical | Warning | Suggestion (scale = long-lived, consequence = high)
   harm          for a defect: a non-empty subset of wrong-answer, crashes, rejects-legal-source, under-rejects,
@@ -114,8 +114,8 @@ RANKED_HARMS = tuple(h for h in HARMS if h.replace("-", "_") in HARM_FLAGS)
 REQUIRED = ("id", "kind", "title", "rule", "scenario", "target", "files", "sites", "members", "census_ids",
             "design_ref", "wave_kind", "severity", "existing_note", "owner_question")
 # The reference is the LEADING token — a section of the approved §8 or the open note that plans the change; whatever
-# follows a non-word character is the finder's qualifier (`§8.3(2)`, `§8.4 (PB2291, PB2333)`, `§8.7 (R4 step 4); …`).
-# Batch 1 of cd85e4901 lost ten upheld findings to the earlier exact-match form. A non-§8 section (`§5.1 (…)`) or prose
+# follows a non-word character is the finder's qualifier (`§8.3(2)`, `§8.4 (PB2291, PB2333)`, `§8.7 (R4 step 4); …`). (citation-audit: example)
+# Batch 1 of cd85e4901 lost ten upheld findings to the earlier exact-match form. A non-§8 section (`§5.1 (…)`) or prose (citation-audit: example)
 # (`later`) is still INVALID: the finding names no target the approved design or the register holds.
 DESIGN_REF = re.compile(r"^(§8(\.\d+)*|PB\d+)(\W.*)?$")
 # the fields each lens judges, so a skeptic's correction lands only where its lens looked
@@ -170,7 +170,7 @@ def spec_ref_problems(refs) -> list[str]:
             bad.append("spec_ref %r is not {clause, text}" % (r,))
         # a spec_ref's `clause` is a clause of ISO/IEC 1989:2023 by the record's schema (the R2 collection reads 2023)
         elif cite.check(lines, cls, cite.citation.Citation(2023, str(r["clause"])), str(r["text"]))[0] != 0:
-            bad.append("spec_ref §%s does not contain %r (cite.py --check)" % (r["clause"], r["text"]))
+            bad.append("spec_ref §2023:%s does not contain %r (cite.py --check)" % (r["clause"], r["text"]))
     return bad
 
 
@@ -201,9 +201,9 @@ def demote(rec: dict, dimension: str) -> str | None:
     if rec.get("kind") == "lead":
         return "the reviewer marked it a lead"
     if rec.get("wave_kind") == "modernize" and not rec.get("analyzer_rule"):
-        return "a modern-C# point with no analyzer rule id is a suggestion (§5.5 analyzer-first; N2)"
+        return "a modern-C# point with no analyzer rule id is a suggestion (DESIGN-architecture-review §5.5 analyzer-first; N2)"
     if dimension == "performance" and rec.get("kind") == "finding" and not rec.get("measurement"):
-        return "a performance claim with no measurement on the pin is a lead (§5.4; N3)"
+        return "a performance claim with no measurement on the pin is a lead (DESIGN-architecture-review §5.4; N3)"
     if rec.get("severity") == "Suggestion":
         return "severity Suggestion"
     return None
@@ -657,9 +657,9 @@ def self_test():
         arm("a file not in the pin's tree and a bad design_ref are INVALID",
             "file not in the pin's tree: src/Nope.cs" in inv.get(f % 4, []) and f % 7 in inv)
         arm("a design_ref is its leading §8.x / PBnnnn token; a qualifier after it is commentary",
-            all(DESIGN_REF.match(s) for s in ("§8.3", "§8.3 (2)", "§8.3(2)", "§8.4 (PB2291, PB2333)", "§8.7 (b)",
-                                              "§8.7 (R4 step 4); escalating CA1305", "PB948", "PB948 (code half)"))
-            and not any(DESIGN_REF.match(s) for s in ("later", "§5.1 (consistent with §8)", "§80", "PB", "8.3")))
+            all(DESIGN_REF.match(s) for s in ("§8.3", "§8.3 (2)", "§8.3(2)", "§8.4 (PB2291, PB2333)", "§8.7 (b)",  # citation-audit: example
+                                              "§8.7 (R4 step 4); escalating CA1305", "PB948", "PB948 (code half)"))  # citation-audit: example
+            and not any(DESIGN_REF.match(s) for s in ("later", "§5.1 (consistent with §8)", "§80", "PB", "8.3")))  # citation-audit: example
         silent_only = rec(11, wave_kind=FIX_LANE_WAVE, kind="defect", harm=["silent"],
                           spec_refs=[{"clause": "14.9.27.4", "text": "Otherwise, arithmetic-expression-1 is evaluated to produce an algebraic value"}])
         arm("a defect whose only harm is `silent` is INVALID: work.py next ranks only HARM_FLAGS",

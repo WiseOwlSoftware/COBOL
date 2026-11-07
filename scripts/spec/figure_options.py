@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 """The OPTION STRUCTURE of a printed general format, measured: every word with the delimiters that hold it.
 
-WHY THIS EXISTS (kb/Work PB2024). An underlined word is REQUIRED (§5.2.2: "They are required in order to select the
+WHY THIS EXISTS (kb/Work PB2024). An underlined word is REQUIRED (§2023:5.2.2: "They are required in order to select the
 functionality associated with that keyword, subject to the conventions specified in 5.2.6"), and the conventions of
-§5.2.6 are what make a portion of a format omissible: brackets (§5.2.6.2, "that portion of the general format may be
-omitted") and choice indicators (§5.2.6.4, "zero or more of the alternatives contained within the choice indicators
+§2023:5.2.6 are what make a portion of a format omissible: brackets (§2023:5.2.6.2, "that portion of the general format may be
+omitted") and choice indicators (§2023:5.2.6.4, "zero or more of the alternatives contained within the choice indicators
 shall be specified"). So whether an underlined word may be left out is not a property of the word: it is a property
 of WHERE it is printed, and which brackets hold it apart from the words around it. `MULTIPLE` in `[ WITH LOCK ON
 [ MULTIPLE ] { RECORD / RECORDS } ]` is underlined and omissible, because a bracket of its own holds it; `ON` beside
 it is underlined and NOT omissible while `LOCK` is written, because every bracket that holds ON also holds LOCK.
 Underlining alone cannot tell those two apart, and that is why the grammar audit needs this structure.
 
-The same structure answers §5.2.7's question, which portion an ellipsis repeats: "scanning right to left, determine
+The same structure answers §2023:5.2.7's question, which portion an ellipsis repeats: "scanning right to left, determine
 the right bracket or right brace delimiter immediately to the left of the ellipsis; continue scanning right to left
 and determine the logically matching left bracket or left brace delimiter". A keyword outside that portion is
 written once, however often the portion after it is.
@@ -29,7 +29,7 @@ holds the words between its two delimiters whose height lies within the band `re
 (`top`, `bottom`), a glyph pair down to its bottom piece's line (`low`).
 
 WHEN TWO WORDS ARE IN SEQUENCE. Inside one holder, words printed on different lines are STACKED ALTERNATIVES
-(§5.2.6.1: "Options are indicated in a general format by vertically stacking alternative possibilities"), unless
+(§2023:5.2.6.1: "Options are indicated in a general format by vertically stacking alternative possibilities"), unless
 one of them sits inside a nested delimiter whose height spans the other's line — the alternatives of `{ RECORD /
 RECORDS }` are stacked, but the brace as a whole stands in sequence after `WITH LOCK ON`. At the top level of a
 format nothing is stacked: a line that wraps continues the format.
@@ -106,7 +106,7 @@ class Word(NamedTuple):
     row: float                      # the printed line it sits on (render_figure's row clustering)
     diagram: int                    # which diagram of the band it is printed in (`read`: a label or prose ends one)
     holders: tuple[Holder, ...]     # outermost first
-    repeated: bool                  # §5.2.7: inside the portion an ellipsis repeats, or the word one follows
+    repeated: bool                  # §2023:5.2.7: inside the portion an ellipsis repeats, or the word one follows
 
     def footprint(self, level: int) -> tuple[float, float]:
         """The height this word takes inside its holder at depth `level - 1`: its own line when it is held directly
@@ -289,10 +289,10 @@ class Layout:
         return [w for s in spellings for w in self.by_text.get(s, ())]
 
     def demands(self, x: Word, y: Word) -> bool:
-        """Whether the format demands the printed word `x` wherever `y` is written: `x` is underlined (§5.2.2), stands
+        """Whether the format demands the printed word `x` wherever `y` is written: `x` is underlined (§2023:5.2.2), stands
         in sequence with `y`, and no holder that holds `x` apart from `y` lets it go — not a bracket or a choice
-        indicator (§5.2.6.2, §5.2.6.4), and not a brace in which `x` is one of several stacked alternatives
-        (§5.2.6.3: then the brace demands one of them, not `x`)."""
+        indicator (§2023:5.2.6.2, §2023:5.2.6.4), and not a brace in which `x` is one of several stacked alternatives
+        (§2023:5.2.6.3: then the brace demands one of them, not `x`)."""
         if not x.underlined or x is y or not in_sequence(x, y):
             return False
         for h in x.holders:
@@ -312,7 +312,7 @@ class Layout:
         return bool(ys) and bool(xs) and all(any(self.demands(a, b) for a in xs) for b in ys)
 
     def repeatable(self, x: set[str]) -> bool:
-        """Whether some printed `x` lies in a portion an ellipsis repeats (§5.2.7), or among choice indicators: §5.2.6.4
+        """Whether some printed `x` lies in a portion an ellipsis repeats (§2023:5.2.7), or among choice indicators: §2023:5.2.6.4
         lets one or more of their alternatives be written, in any order, which a context-free grammar can only spell
         as a repetition of the choice (`initializeCategoryName+`); that each is written once is a rule the phase
         after the parser checks, not a shape the grammar can carry."""
@@ -380,9 +380,9 @@ def self_test() -> int:
     check("…and wherever the inner LOCK is written, but not the LOCK of LOCK MODE (a bracket holds ON apart)",
           not lock.demanded_with({"ON"}, {"LOCK"})
           and any(lock.demands(o, w) for o in on for w in lock.printed({"LOCK"})))
-    check("MULTIPLE is held by a bracket of its own, so nothing demands it (§5.2.6.2)",
+    check("MULTIPLE is held by a bracket of its own, so nothing demands it (§2023:5.2.6.2)",
           not lock.demanded_with({"MULTIPLE"}, {"RECORD"}) and not lock.demanded_with({"MULTIPLE"}, {"LOCK"}))
-    check("WITH is not underlined, so nothing demands it (§5.2.3)", not lock.demanded_with({"WITH"}, {"LOCK"}))
+    check("WITH is not underlined, so nothing demands it (§2023:5.2.3)", not lock.demanded_with({"WITH"}, {"LOCK"}))
     check("RECORD and RECORDS are stacked alternatives of one brace, never in sequence",
           not in_sequence(lock.printed({"RECORD"})[0], lock.printed({"RECORDS"})[0]))
     check("MANUAL demands nothing of RECORD: the brace's alternatives and the bracket stand apart",
@@ -393,11 +393,11 @@ def self_test() -> int:
           {w.diagram for w in comp.words})
     check("SIZE inside the choice indicators is demanded with ERROR, its own phrase",
           comp.demanded_with({"SIZE"}, {"ERROR"}))
-    check("…but not with COMPUTE: a bar pair and a bracket hold it apart (§5.2.6.4)",
+    check("…but not with COMPUTE: a bar pair and a bracket hold it apart (§2023:5.2.6.4)",
           not comp.demanded_with({"SIZE"}, {"COMPUTE"}) and not comp.demanded_with({"END_COMPUTE"}, {"COMPUTE"}))
     check("NOT ON SIZE ERROR and ON SIZE ERROR are stacked alternatives of the bars",
           not comp.demanded_with({"NOT"}, {"ERROR"}))
-    check("the ellipsis repeats `{ identifier-1 [ rounded-phrase ] }`, not COMPUTE (§5.2.7)",
+    check("the ellipsis repeats `{ identifier-1 [ rounded-phrase ] }`, not COMPUTE (§2023:5.2.7)",
           comp.repeatable({"identifier_1"}) and comp.repeatable({"rounded_phrase"}) and not comp.repeatable({"COMPUTE"}))
 
     pieces = _pieces([{"text": "[MULTIPLE]", "x0": 0.0, "x1": 50.0, "y0": 0.0, "underlined": True},

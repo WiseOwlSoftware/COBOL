@@ -2421,7 +2421,7 @@ def self_test() -> int:
         two = body('two', [('s', []), ('s', ['high'])], capped_at=2)
         glued = json.dumps({'kind': 'start', 'round': 3, 'branch': 'tpred', 'head': tips['tpred'],
                             'reviewer': 'w-cut-r3'}).encode() + b'\n'
-        sect = json.dumps({'kind': 'finding', 'round': 2, 'summary': '§14.9 wrong'}, ensure_ascii=False).encode()
+        sect = json.dumps({'kind': 'finding', 'round': 2, 'summary': '§14.9 wrong'}, ensure_ascii=False).encode()  # citation-audit: example
         one = body('one', [('s', [])])
         cuts = (('probe case 3: round 2 FINDINGS lost its newline, round 3 start glued on', two[:-1] + glued, 'IN FLIGHT', True),
                 ('round 2 FINDINGS lost its newline', two[:-1], 'IN FLIGHT', True),

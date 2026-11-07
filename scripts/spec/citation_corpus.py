@@ -77,13 +77,13 @@ def code_files() -> list[pathlib.Path]:
 
 def declaration_files() -> list[pathlib.Path]:
     """The files whose comments follow the DEFINITION-HEADER convention — "name the construct, then cite its
-    clause": the ANTLR grammars (`// MOVE (§14.9.25)` above `moveStatement`) and the golden program headers
-    (`*> ISO §14.7.4 + §14.9.2 — ROUNDED MODE on ADD CORRESPONDING`).
+    clause": the ANTLR grammars (`// MOVE (§2023:14.9.25)` above `moveStatement`) and the golden program headers
+    (`*> ISO §2023:14.7.4 + §2023:14.9.2 — ROUNDED MODE on ADD CORRESPONDING`).
 
     ⛔ C# IS DELIBERATELY NOT HERE, AND IT WAS MEASURED, NOT ASSUMED. Running the construct-vs-clause check over
     `src/**/*.cs` reported 1224 candidates, and the sample was almost entirely correct citations: a doc-comment
     cites a clause to SUPPORT a rule rather than to LABEL a construct, so the construct's name is legitimately
-    absent ("as though it were moved to an alphanumeric data item (§14.9.25.4 GR6)" names no MOVE). A check that
+    absent ("as though it were moved to an alphanumeric data item (§2023:14.9.25.4 GR6)" names no MOVE). A check that
     is wrong 95% of the time cannot gate anything, and gating on it would train the reader to skip it.
     C# doc-comments are still covered — by `audit_doc_citations.py`, whose quoted-fragment rule works there, and
     by this file's PHANTOM check, which needs no convention at all."""

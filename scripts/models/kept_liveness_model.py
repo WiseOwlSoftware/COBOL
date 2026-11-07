@@ -39,7 +39,7 @@ THE PROTOCOL UNDER TEST (the runtime's steps, in the model's terms):
 
 THE INVARIANTS:
   I1  B's OPEN after A's give-back rolls A's abandoned transaction back, whatever forks and execs fell where and however
-      many transient EINTR/ENOLCK answers the probe met (§9.1.18.5, "When a run unit terminates abnormally, all file
+      many transient EINTR/ENOLCK answers the probe met (§2023:9.1.18.5, "When a run unit terminates abnormally, all file
       changes made since the previous commit or, if none, the beginning of the run unit are rolled back").
   I2  B's OPEN before A's give-back never rolls A's live transaction back, whatever the host answered.
 A host that LASTINGLY cannot carry the lock is the documented Unknowable answer: nothing is rolled back on a guess, so I1 is

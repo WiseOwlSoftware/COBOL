@@ -2,21 +2,21 @@
 """Repair heading depth in specs/ISO_COBOL_2023.md against the PDF's embedded outline.
 
 WHY THE OUTLINE IS THE AUTHORITY. Heading level is nowhere in the printed page: the body does not distinguish
-levels typographically (a §13.18.41.4 heading is set identically to §13.18.40.4), and the printed Contents pages
+levels typographically (a §2023:13.18.41.4 heading is set identically to §2023:13.18.40.4), and the printed Contents pages
 carry no indentation — every entry sits flush at the same left margin. But the PDF carries an EMBEDDED OUTLINE of
 2,090 entries with explicit levels 1–5, and that is the document's own statement of its hierarchy.
 
 Measured before the repair: of 1,724 markdown headings matched to an outline entry, only **57 (3%)** sat at the
 right depth. The markdown was essentially flat while the standard nests five deep. The 19 heading findings the
 reconciliation sweep confirmed were symptoms of that, and their verifiers normalised each to its LOCAL siblings —
-which is why they proposed `###` for §10.6.3 where the outline says `####`. Local consistency is not depth.
+which is why they proposed `###` for §2023:10.6.3 where the outline says `####`. Local consistency is not depth.
 
 MAPPING: markdown level = outline level + 1. The offset exists because `#` is already taken by the transcription's
 running header (`# ISO/IEC 1989:2023 (E)`). Outline levels 1–5 therefore map to `##`–`######`, exactly filling
 markdown's six levels with no overflow.
 
 COVERAGE: every numbered heading is repaired, not only those the outline lists. The outline omits 374 leaves, and
-repairing §15.7 while leaving §15.7.1 behind would swap one inconsistency for another. This is sound because the
+repairing §2023:15.7 while leaving §2023:15.7.1 behind would swap one inconsistency for another. This is sound because the
 outline's level equals the dotted depth for all 1,728 numbered entries — verified, zero exceptions — so depth is a
 PROVEN proxy rather than an assumption, and the script asserts the equality still holds on every matched heading
 rather than trusting the measurement to survive a future spec revision.

@@ -49,11 +49,11 @@ This is the same lesson the figure audits taught (`plan §0`: "MY CHECKERS WERE 
 76 findings went to 1 as three tool bugs came out). Confirm a measured defect before changing anything.
 
 FOUND BY THE FIRST RUN (all corrected in the same change set):
-  · `DESIGN.md` cited "§12.3.7 GR7 k3 … distinct ascending" TWICE — a phrase that appears NOWHERE in the
+  · `DESIGN.md` cited "§2023:12.3.7 GR7 k3 … distinct ascending" TWICE — a phrase that appears NOWHERE in the
     standard. A Phase-B agent inherited it into a fix-queue finding. The real rule is §2023:12.3.7.4 GR7 1.3.
-  · `REDEFINES_DESIGN.md` cited §13.18.60 for GR4/GR11 text really in §2023:13.18.60.4 — one level short,
+  · `REDEFINES_DESIGN.md` cited §2023:13.18.60 for GR4/GR11 text really in §2023:13.18.60.4 — one level short,
     the CA37/CA38 shape.
-  · `PHASE-11-scout-notes.md` cited §13.18.62 for text really in §2023:13.18.63.4 GR4c.
+  · `PHASE-11-scout-notes.md` cited §2023:13.18.62 for text really in §2023:13.18.63.4 GR4c.
 """
 from __future__ import annotations
 
@@ -222,7 +222,7 @@ def citations(line: str):
 
     The POSTFIX form is resolved FIRST and its quote is then off limits to the prefix form: when both readings
     are available for one quoted fragment the citation written next to it wins, which is what makes
-    `"a" §1.2.3, "b" §4.5.6` read as two citations rather than as one misfiling."""
+    `"a" §1.2.3, "b" §4.5.6` read as two citations rather than as one misfiling (citation-audit: example)."""
     claimed: dict[tuple[int, int], tuple[citation.Citation | None, str, str]] = {}
     for m in POST.finditer(line):
         claimed[m.span("q")] = (_cited(m), m.group("q"), "postfix")

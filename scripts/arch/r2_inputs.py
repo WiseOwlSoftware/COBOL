@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """r2_inputs.py — the R2 review fleet's mechanical inputs, computed ONCE per pinned tree, and one self-contained input
 file per shard; plus the Workflow args of a batch (kb/Work PB2559; docs/rearchitecture/DESIGN-architecture-review.md
-§3 R2, §5.4; the R2 adversarial review's B4, N2, N3).
+§5.4 and §3 R2; the R2 adversarial review's B4, N2, N3).
 
 WHY. The review skill's first step is "run the mechanical checks — they are free", and design §5.4 puts the semgrep
 invariants, the analyzers at `latest-all` and the drift-rule query before any judgment. The first R2 brief told every
@@ -16,7 +16,7 @@ STEP_VERSION and what else it depends on — and reused only for the same key, s
                         file, "unread": the files semgrep cannot parse at all}`; any other scan error stops the step;
   mech/analyzers-<project>.json   `dotnet build <project> -p:AnalysisLevel=latest-all` per C# project, in dependency
                         order, in one detached worktree of the pin (`mech/tree`) whose `.globalconfig` raises the
-                        §5.5 IDE/SYSLIB rules (MODERN_RULES) to warning, every analyzer warning by file (the
+                        DESIGN-architecture-review §5.5 IDE/SYSLIB rules (MODERN_RULES) to warning, every analyzer warning by file (the
                         modern-C# dimension's ONLY evidence: a modern-C# finding without an analyzer rule id is a
                         suggestion, N2);
   mech/drift.json       `scripts/spec/drift_rules.py <files>`: the specific drift rules that govern each file;
@@ -77,7 +77,7 @@ from standard_streams import ensure_utf8  # noqa: E402
 
 CENSUS_DIR = Path("docs/rearchitecture/evidence/arch-census")
 PERF_DIR = Path("docs/rearchitecture/evidence/perf-baseline")
-# The dimensions (PROMPT.md §4's four, plus §5.5's modern-C#). Their criteria live in ONE place each — the review
+# The dimensions (PROMPT.md §4's four, plus DESIGN-architecture-review §5.5's modern-C#). Their criteria live in ONE place each — the review
 # skill and design §5 — and the workflow brief points there; nothing here restates them (N4).
 DIMENSIONS = ["architecture", "code", "performance", "duplication", "modern-csharp"]
 WARNING = re.compile(r"^(?P<path>[A-Za-z]:[^(]+|/[^(]+)\((?P<line>\d+),\d+\): warning (?P<id>[A-Za-z]+\d+): (?P<msg>.*?)(?: \[[^\]]+\])?$")
@@ -184,7 +184,7 @@ def parse_warnings(text: str, root: Path):
 # raising the rules below to warning, written AFTER the plain build (SYSLIB1045 is a generator analyzer, and the
 # pin's TreatWarningsAsErrors would fail that build). Measured on the pin 2026-10-07 (w1037s): WiseOwl.Cobol.Editions 4 s
 # and WiseOwl.Cobol.Runtime 6 s with the rules on, the same as without; Runtime then reports IDE0305, IDE0032, IDE0028,
-# IDE0300, IDE0290, IDE0078, IDE0306, IDE0330 and IDE0066. A §5.5 feature with no rule here has no analyzer: a point
+# IDE0300, IDE0290, IDE0078, IDE0306, IDE0330 and IDE0066. A DESIGN-architecture-review §5.5 feature with no rule here has no analyzer: a point
 # about it is a lead (N2). This table is the ONE place the mapping is written; each shard input carries it.
 MODERN_RULES = {
     "primary constructors": ["IDE0290"],
@@ -354,7 +354,7 @@ def shard_input(sh, m, mech, census, record, ns_of=None):
         "semgrep": {p: mech["semgrep"][p] for p in files if p in mech["semgrep"]},
         "semgrep_unread": [p for p in files if p in set(mech["semgrep_unread"])],   # no invariant rule can hit these: never "no hit"
         "analyzers": {p: mech["analyzers"][p] for p in files if p in mech["analyzers"]},
-        "modern_rules": MODERN_RULES,   # the §5.5 feature -> analyzer rule ids map the modern-C# dimension counts by
+        "modern_rules": MODERN_RULES,   # the DESIGN-architecture-review §5.5 feature -> analyzer rule ids map the modern-C# dimension counts by
         "drift_rules": {p: mech["drift"][p] for p in files if p in mech["drift"]},
         "open_notes": {p: mech["notes"][p] for p in files if p in mech["notes"]},
         "census": {k: v for k, v in rows.items()},
@@ -363,7 +363,7 @@ def shard_input(sh, m, mech, census, record, ns_of=None):
         "namespaces": namespaces,
         "namespace_edges": edges,
         "namespace_edges_how": "the census record's measured namespaceEdges [from, to, uses] touching this shard's "
-                               "namespaces; §8.1 of the design holds the allowed edges",
+                               "namespaces; DESIGN-architecture-review §8.1 holds the allowed edges",
     }
 
 
@@ -391,7 +391,7 @@ def perf_input():
     return {"baseline": r,
             "rule": "a performance claim needs a measurement ON THE PIN: a row of this baseline record, or a count at a "
                     "stated input size read from the pinned code (allocations per call, passes over a collection); "
-                    "without one it is a LEAD (`kind: lead` in the finding), never a finding (§4 item 5, §5.4)"}
+                    "without one it is a LEAD (`kind: lead` in the finding), never a finding (DESIGN-architecture-review §5.4 and its §4 item 5)"}
 
 
 def build(pin: Path, out: Path, max_lines: int, projects=None):
@@ -581,7 +581,7 @@ def self_test():
         arm("a cached step made for another key (pin, version, rules) is recomputed, never reused",
             runs == [1, 3] and v == {"x": 3} and cached_data(out, "s", k1) is None and cached_data(out, "s", k2) == {"x": 3})
     gc = modern_globalconfig()
-    arm("the analyzer tree's globalconfig raises every §5.5 IDE/SYSLIB rule to warning, and no CA rule",
+    arm("the analyzer tree's globalconfig raises every DESIGN-architecture-review §5.5 IDE/SYSLIB rule to warning, and no CA rule",
         gc.startswith("is_global = true") and "dotnet_diagnostic.IDE0290.severity = warning" in gc and
         "dotnet_diagnostic.SYSLIB1045.severity = warning" in gc and "IDE0330" in gc and "CA1845" not in gc)
     arm("the analyzer cache key moves with the rule table", analyzer_key("c")["modern_rules"] is MODERN_RULES)

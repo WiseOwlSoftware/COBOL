@@ -68,7 +68,7 @@ def build_notes(rows: list[dict]) -> dict[str, str]:
         subjects = Counter(i["subject"] for i in items)
         note = [
             "---",
-            f'title: "§{clause} conformance"',
+            f'title: "§2023:{clause} conformance"',
             f'description: "{len(items)} normative items in clause {clause}; {g} still GAP."',
             f'clause: "{clause}"', f"items: {len(items)}", f"gap: {g}",
             # `adjudicated` and `resolved` are separate on purpose: adjudicating a rule OPENS work (it records a
@@ -78,7 +78,7 @@ def build_notes(rows: list[dict]) -> dict[str, str]:
             "generated: true",
             "tags: [wiseowl-cobol, conformance, generated]",
             "---", "",
-            f"# §{clause} — {len(items)} items, {g} GAP", "",
+            f"# §2023:{clause} — {len(items)} items, {g} GAP", "",
             "> ⚙ **Generated** from `tests/version-matrix/inventory/`. Do not edit — record",
             "> verdicts in the inventory and re-render with `python scripts/rendered_views.py conformance-burn-down`.", "",
             "| kind | items |", "|---|---:|",
@@ -123,7 +123,7 @@ def build_notes(rows: list[dict]) -> dict[str, str]:
         dash.append(f"| {KIND_LABEL.get(kk, kk)} | {n} |")
     dash += ["", "## Burn-down by clause", "", "| clause | items | GAP | adjudicated |", "|---|---:|---:|---:|"]
     for c, i in sorted(by_clause.items(), key=lambda kv: clause_key(kv[0])):
-        dash.append(f"| [[kb/Conformance/clause-{c}|§{c}]] | {len(i)} | "
+        dash.append(f"| [[kb/Conformance/clause-{c}|§2023:{c}]] | {len(i)} | "
                     f"{sum(1 for r in i if r['state'] == 'GAP')} | "
                     f"{sum(1 for r in i if r['verdict'])} |")
     dash += ["",

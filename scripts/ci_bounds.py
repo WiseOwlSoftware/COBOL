@@ -19,7 +19,7 @@ fine, and the queue removed the pull request. The workflow had no `timeout-minut
 scripts/ci_workflow.py (kb/Work PB3819). Until kb/Work PB4395 these audits were a C# class of the compiler's test assembly
 (CiBoundsDriftTests), so a workflow edit was a compiler change that only a build could check; they are the pipeline's,
 and run in the tooling lane. The self-test also holds this docstring's design pointer to the section that states the
-bounds (kb/Work PB4349: the pointer named §3.17, the landing pipeline, while the paragraph sat in §1.4).
+bounds (kb/Work PB4349: the pointer named DESIGN-test-build-ci.md §3.17, the landing pipeline, while the paragraph sat in DESIGN-test-build-ci.md §1.4).
 """
 from __future__ import annotations
 

@@ -36,7 +36,7 @@ THE CHECKS, each narrow on purpose:
 
   SUBJECT   — the cited clause's catalog subject is a NAMED construct (`MERGE statement`, `HIGHLIGHT clause`,
               `ROUNDED phrase`) whose name appears NOWHERE in the citation's context, while the context DOES name
-              another construct that has a clause of its own. That is the exact `MOVE (§14.9.24)` shape.
+              another construct that has a clause of its own. That is the exact `MOVE (§2023:14.9.24)` shape.
 
   HEADER    — a definition-header comment (`MOVE (§2023:14.9.24)`, `LINAGE clause (ISO §2023:13.16)`, `IS GLOBAL
               (§2023:13.18.23)`) names a construct and then cites a clause that is neither that construct's own clause
@@ -352,7 +352,7 @@ def _phantoms(line: str, universe: set[str], skip: set[str] = frozenset(), prev:
     """`(kind, citation, message)` for every citation on ONE line that names nothing — PHANTOM, or CITATION for a
     malformed edition-form one — with the exclusions the check cannot do without.
 
-    An edition-form citation (`§2023:…`, `§1985:…`) is unambiguous, so it is validated against its own edition's
+    An edition-form citation (`§2023:<clause>`, `§1985:<locator>`) is unambiguous, so it is validated against its own edition's
     transcription whatever its shape (`citation.validate`). A bare one is no citation (BARE refuses it when it names
     a 2023 clause), but a bare number the 2023 standard does not have is a PHANTOM when it is ISO-shaped and no
     document's name or other edition stands just left of it (`citation.names_another_text`). `prev` is the preceding line: prose wraps, and "swept the repo for the
@@ -370,11 +370,11 @@ def _phantoms(line: str, universe: set[str], skip: set[str] = frozenset(), prev:
             continue
         segs = c.locator.split(".")
         if len(segs) < 3 or not segs[0].isdigit() or not 1 <= int(segs[0]) <= 15:
-            continue                                     # not ISO-shaped: a doc's own bare §4.2, a two-part bare §13.16
+            continue                                     # not ISO-shaped: a doc's own bare §4.2, a two-part bare §13.16 (citation-audit: example)
         if c.locator in universe or c.locator in skip:
             continue
         if citation.names_another_text(line, c, prev):
-            continue                                    # "DESIGN-… §4.4.3", "COBOL-85 §4.3.3", an item label "§9.10.1-C2"
+            continue                                    # "DESIGN-… §4.4.3", "COBOL-85 §4.3.3", an item label "§9.10.1-C2" (citation-audit: example)
         if not _reported(line, c, prev):
             yield "PHANTOM", c.locator, "the standard has no clause §" + c.locator
 
@@ -388,7 +388,7 @@ def _bares(line: str, universe: set[str], skip: set[str], prev: str):
 
 
 #: A Markdown heading that numbers the document's OWN section, written plain (`### 3.1 Shared state`) or with a section
-#: sign (`### §3.1 Shared state`, DESIGN-cc-in-copy's style). An edition-form heading (`### §2023:14.9.27.3 SR2
+#: sign (`### §3.1 Shared state`, DESIGN-cc-in-copy's style). An edition-form heading (`### §2023:14.9.27.3 SR2 (citation-audit: example)
 #: measured`) is a citation of the standard, not a section of the document (kb/Work PB4887 review round 2 R1-1).
 OWN_HEADING = re.compile(r"^#{1,6}\s+(?:§\s?)?(\d+(?:\.\d+)+)")
 
@@ -401,7 +401,7 @@ def own_sections(lines: list[str]) -> set[str]:
 def phantom_scan(universe: set[str] | None):
     """PHANTOM, CITATION and BARE over EVERY file that carries a citation, source and prose alike — they need no
     context, so they have no false-positive problem outside code and there is no reason to leave the design docs
-    unchecked (the §8.3.1.2 family lived in both)."""
+    unchecked (the §8.3.1.2 family lived in both; citation-audit: example)."""
     findings: list[tuple[str, str, str, str]] = []
     if universe is None:
         return findings
@@ -484,7 +484,7 @@ DIAG_CLAUSE_TOKEN = re.compile(r"(?<![\d.])" + citation.NOT_ANOTHER_EDITION
 #: necessary; bounding it stops a clause named at the head of a long prose line from claiming a rule at its end.
 CARRY = 60
 
-#: How close a `Format n` must sit to a rule designator to be read as CITING it (`§14.9.39 Format 10 GR18`).
+#: How close a `Format n` must sit to a rule designator to be read as CITING it (`§2023:14.9.39 Format 10 GR18`).
 ADJACENT = 12
 
 #: A file that spells wrong ordinals ON PURPOSE declares itself, exactly as it does for the phantom and
@@ -881,8 +881,8 @@ def _quote_findings(site: str, line: str):
             continue
         where = found
         out.append(("QUOTE-RULE", site, clause,
-                    f"§{clause} {kind} {'/'.join(map(str, sorted(nums)))} is cited beside \"{text.strip()[:60]}\", "
-                    f"which the standard prints in §{where[0]} rule {'/'.join(map(str, sorted(where[1])))}"))
+                    f"§2023:{clause} {kind} {'/'.join(map(str, sorted(nums)))} is cited beside \"{text.strip()[:60]}\", "
+                    f"which the standard prints in §2023:{where[0]} rule {'/'.join(map(str, sorted(where[1])))}"))
     return out
 
 
@@ -910,7 +910,7 @@ def _ordinal_findings(rel: str, lines: list[str], data, tops: dict[tuple[str, st
                 continue
             if n not in d:
                 out.append(("FORMAT", site, clause,
-                            f"§{clause} prints {len(d)} general formats ({', '.join(map(str, sorted(d)))}) — "
+                            f"§2023:{clause} prints {len(d)} general formats ({', '.join(map(str, sorted(d)))}) — "
                             f"there is no Format {n}"))
                 continue
             cited_formats.append((m.end(), clause, n))
@@ -919,7 +919,7 @@ def _ordinal_findings(rel: str, lines: list[str], data, tops: dict[tuple[str, st
             if named and n not in named:
                 k = sorted(named)[0]
                 out.append(("FORMAT-NAME", site, clause,
-                            f"§{clause} Format {n} is {d[n]}, but this line names Format {k} ({d[k]})"))
+                            f"§2023:{clause} Format {n} is {d[n]}, but this line names Format {k} ({d[k]})"))
         for m, clause in _rule_citations(line):
             kind, num, sub = m.group(1), int(m.group(2)), _sub(m)
             if (top := tops.get((clause, kind))) is None:
@@ -936,7 +936,7 @@ def _ordinal_findings(rel: str, lines: list[str], data, tops: dict[tuple[str, st
                 if _another_clause_admits(line, clause, kind, num, None, tops, spans):
                     continue                   # the line names a clause this ordinal fits — see the veto
                 out.append(("RULE", site, clause,
-                            f"§{clause} has {top} {kind}s — there is no {kind}{num}"))
+                            f"§2023:{clause} has {top} {kind}s — there is no {kind}{num}"))
                 continue
             body = block.get(num)
             # ⛔ ABSENCE OF THE LETTER IS ONLY EVIDENCE IN A RULE THAT HAS NO LETTERS AT ALL. A rule whose
@@ -949,7 +949,7 @@ def _ordinal_findings(rel: str, lines: list[str], data, tops: dict[tuple[str, st
             if (body and sub and not re.search(r"(?<![A-Za-z0-9])[a-z]\\?\)", body)
                     and not _another_clause_admits(line, clause, kind, num, sub, tops, spans)):
                 out.append(("SUBITEM", site, clause,
-                            f"§{clause} {kind}{num} has no sub-items — {kind}{num}{sub} names nothing"))
+                            f"§2023:{clause} {kind}{num} has no sub-items — {kind}{num}{sub} names nothing"))
             part = (owner.get((clause, kind)) or {}).get(num, "absent")
             if part in (None, "absent"):
                 continue                       # ALL FORMATS, or a block the standard does not partition
@@ -965,7 +965,7 @@ def _ordinal_findings(rel: str, lines: list[str], data, tops: dict[tuple[str, st
             fclause, fnum = near[0]
             if fclause.split(".")[:3] == clause.split(".")[:3] and fnum not in part:
                 out.append(("FORMAT-RULE", site, clause,
-                            f"§{clause} {kind}{num} is printed under FORMAT {'/'.join(map(str, sorted(part)))}"
+                            f"§2023:{clause} {kind}{num} is printed under FORMAT {'/'.join(map(str, sorted(part)))}"
                             f", not under the Format {fnum} this line cites"))
     return out
 
@@ -1006,9 +1006,9 @@ def _diagnostic_findings(rel: str, lines: list[str], direct: dict[tuple[str, str
                     continue
                 kinds = sorted(k for k in (clause, *_children_with(direct, clause, m.group(1)))
                                if (k, m.group(1)) in direct)
-                where = f" — that block is §{kinds[0]}" if kinds else ""
+                where = f" — that block is §2023:{kinds[0]}" if kinds else ""
                 out.append(("DIAG-NO-RULE", site, clause,
-                            f"§{clause} {m.group(1)} names no rule: a message a user reads carries the clause "
+                            f"§2023:{clause} {m.group(1)} names no rule: a message a user reads carries the clause "
                             f"and no ordinal{where}"))
             for m in RULE_CITE.finditer(s):
                 kind = m.group(1)
@@ -1020,8 +1020,8 @@ def _diagnostic_findings(rel: str, lines: list[str], direct: dict[tuple[str, str
                 if not kids:
                     continue                   # not a block the catalog knows under this clause at all
                 out.append(("DIAG-UNQUALIFIED", site, clause,
-                            f"§{clause} has no {kind} block of its own — {kind}{m.group(2)} is in "
-                            f"§{kids[0]}, and a message string is read without the context that supplies it"))
+                            f"§2023:{clause} has no {kind} block of its own — {kind}{m.group(2)} is in "
+                            f"§2023:{kids[0]}, and a message string is read without the context that supplies it"))
     return out
 
 
@@ -1361,8 +1361,8 @@ CONSTRUCT_SELF_TEST = [
      "ISO 14.9.13.2 (range-expression); a COBOL-2002 addition; bind-site gate (DataBinder.TryResolveRangeAlphabet)",
      "ISO 14.9.13.2 (range-expression); a COBOL-2002 addition"),
     ("an emit-site or gate pointer",
-     "ISO §2023:7.2.4.2 / §7.2.4.4 GR4-GR7 — emit site: the frontend",
-     "ISO §2023:7.2.4.2 / §7.2.4.4 GR4-GR7"),
+     "ISO §2023:7.2.4.2 / §2023:7.2.4.4 GR4-GR7 — emit site: the frontend",
+     "ISO §2023:7.2.4.2 / §2023:7.2.4.4 GR4-GR7"),
     ("a camelCase identifier",
      "ISO §2023:12.3.8 (OO); the repositoryEntry rule",
      "ISO §2023:12.3.8 (OO)"),
@@ -1448,8 +1448,8 @@ EDITION_SELF_TEST = [
     (None, "a figurative constant operand (§2023:8.3.3.6)"),
     ("PHANTOM", "the data description entry (§1985:VII.5.3.2)"),
     (None, "the data description entry (§1985:VI.5.3.2 GR3)"),
-    ("CITATION", "the default is EC-ALL CHECKING OFF (§5000: the line it was on)"),
-    ("CITATION", "a Roman locator for an ISO edition (§2023:VI.5)"),
+    ("CITATION", "the default is EC-ALL CHECKING OFF (§5000: the line it was on)"),  # citation-audit: example
+    ("CITATION", "a Roman locator for an ISO edition (§2023:VI.5)"),  # citation-audit: example
     (None, "an edition the repository has no transcription of (§2014:99.99)"),
     (None, "the old comment cited §2023:8.3.1.2, which does not exist"),
     (None, "DESIGN-locale-facility §4.4.3 and plan §0"),
@@ -1467,13 +1467,13 @@ def edition_self_test(universe: set[str]) -> bool:
     # ⛔ AND THE BARE REFUSAL (kb/Work PB4887): a bare citation of a 2023 clause is BARE; a document's own section,
     # another edition's free-text number and a reported phantom are not.
     bare = [{k for k, _c, _m in _bares(line, universe, set(), "")} for line in (
-        "the MOVE statement (§14.9.25.4 GR6)", "DESIGN-locale-facility §4.4.3", "COBOL-85 §5.3.2 GR3",
-        "the old comment cited §8.3.1.2")]
+        "the MOVE statement (§14.9.25.4 GR6)", "DESIGN-locale-facility §4.4.3", "COBOL-85 §5.3.2 GR3",  # citation-audit: example
+        "the old comment cited §8.3.1.2")]  # citation-audit: example
     good = bare == [{"BARE"}, set(), set(), set()]
     print(f"  {'ok  ' if good else 'FAIL'} BARE fires on a bare 2023 citation, silent on a document's section, "
           "another edition's free text and a reported phantom" + ("" if good else f"  (got {bare})"))
     # A document's own headings, plain or with a section sign, are its sections; an edition-form heading is not.
-    own = own_sections(["### 3.1 Shared state", "### §3.2 COPY expansion reuse", "## § 4.1 Execution",
+    own = own_sections(["### 3.1 Shared state", "### §3.2 COPY expansion reuse", "## § 4.1 Execution",  # citation-audit: example
                         "### §2023:14.9.27.3 SR2 measured"])
     heads = own == {"3.1", "3.2", "4.1"}
     print(f"  {'ok  ' if heads else 'FAIL'} own_sections reads plain and §-signed headings, never an edition-form one"
@@ -1563,8 +1563,8 @@ def _checks(parts, context, window, subjects, own, universe, phantom=False, labe
         other = sorted(w for w in ctx_names if w in own and not _related(own[w], c))
         if other:
             out.append(("SUBJECT", c,
-                        f"§{c} is {subj}, and {head} is named nowhere near here; this comment is about "
-                        + " / ".join(f"{w} (§{own[w]})" for w in other[:3])))
+                        f"§2023:{c} is {subj}, and {head} is named nowhere near here; this comment is about "
+                        + " / ".join(f"{w} (§2023:{own[w]})" for w in other[:3])))
 
     if head and (hm := HEADER.match(head[0].strip())):
         words = hm.group(1).split()
@@ -1578,7 +1578,7 @@ def _checks(parts, context, window, subjects, own, universe, phantom=False, labe
                 continue
             if not any(_related(c, t) for c in cited):
                 out.append(("HEADER", ",".join(cited),
-                            f"the header names {cand} (§{t}) but cites " + ", ".join("§" + c for c in cited)))
+                            f"the header names {cand} (§2023:{t}) but cites " + ", ".join("§2023:" + c for c in cited)))
             break
     return out
 
@@ -1613,7 +1613,7 @@ def main() -> int:
     findings = audit(subjects, own, universe, ordinals, tops, direct)
     gating = [f for f in findings if _gates(f)]
     backlog = [f for f in findings if not _gates(f)]
-    print(f"{len(citation_corpus.all_files())} files and {len(citation_corpus.tooling_files())} tooling files scanned for phantoms,{len(citation_corpus.declaration_files())} for construct agreement · {len(own)} constructs keyed to their own clause")
+    print(f"{len(citation_corpus.all_files())} files and {len(citation_corpus.tooling_files())} tooling files scanned for phantoms, {len(citation_corpus.declaration_files())} for construct agreement · {len(own)} constructs keyed to their own clause")
     print(f"⛔ {len(gating)} finding(s)\n")
     for kind, site, cited, msg in gating:
         print(f"  [{kind}] {site}\n      {msg}")

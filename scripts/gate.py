@@ -16,9 +16,9 @@ runs the WHOLE Unit, Conformance and Characterization populations on this host: 
 the previous run of this worktree, or the merge-group run that bounced its pull request, saw red go first, then the
 rest longest first by the committed weights file (tests/_shared/test-weights.json). Ordering changes WHEN a case runs,
 never WHETHER (owner, 2026-09-28: "order, don't skip"), and the population check proves it. CI's merge group is the
-first run of the merged tree, of Linux, of Release and of GitHub's runners (PB4323 §5.1).
+first run of the merged tree, of Linux, of Release and of GitHub's runners (kb/Work/PB4323.md §5.1).
 
-ONE GATE, ONE SHAPE (owner 2026-10-11, kb/Work PB3015 Q1a, PB3022; §3.17.3), in this order:
+ONE GATE, ONE SHAPE (owner 2026-10-11, kb/Work PB3015 Q1a, PB3022; DESIGN-test-build-ci.md §3.17.3), in this order:
   1. the worktree's GATE LOCK (`<worktree git dir>/cobol-gate.lock`): a second gate in the same worktree is REFUSED at
      once, naming the holder — its build would overwrite the binaries under this gate's test hosts — with the verdict
      BUSY (exit 3), never RED: it measured nothing (kb/Work PB3527);
@@ -701,7 +701,7 @@ class Host:
 
 
 def host_env(first: Path | None, observations: Path) -> dict[str, str]:
-    """⛔ THE ONLY PLACE A TEST HOST'S ENVIRONMENT IS MADE (§3.14.3): the scrubbed environment — no stray
+    """⛔ THE ONLY PLACE A TEST HOST'S ENVIRONMENT IS MADE (DESIGN-test-build-ci.md §3.14.3): the scrubbed environment — no stray
     WISEOWL_COBOL_GATE_*, WISEOWL_COBOL_SHARD, VSTest* or RunSettingsFilePath, so nothing can narrow the run — in English,
     with the one ordering channel (FIRST_CLASSES) when this gate has classes to run first. The test harness's observation
     log (every retry and non-observation of a child process, tests/_shared/ProcessObservation.cs) goes to `observations`
@@ -1475,7 +1475,7 @@ class Gate:
     @staticmethod
     def _assembly_walls(out: Outcome) -> dict[str, float]:
         """Per assembly, the seconds its host ran (kb/Work PB4326): what explains a slow test phase, the one the growth
-        trigger of PB4323 §3.4 judges (`_record_growth`, scripts/gate_growth.py), with `_concurrency`."""
+        trigger of kb/Work/PB4323.md §3.4 judges (`_record_growth`, scripts/gate_growth.py), with `_concurrency`."""
         return {r.asm: r.wall_s for r in out.runs}
 
     @staticmethod

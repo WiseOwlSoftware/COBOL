@@ -79,7 +79,7 @@ EXTERNAL_SLICE = re.compile(r"\A\S+ — external repository slice (?P<n>\d+)\b")
 GATES = (
     ("Zero GAP", ("gap", 0)),
     ("P15 Cut 3, the runtime namespace flip", ("title", r"\A\S+ — P15 Cut 3\b")),
-    ("The §4.2.16 user documentation", ("note", "PB1610")),
+    ("The §2023:4.2.16 user documentation", ("note", "PB1610")),
 )
 
 #: Verdicts whose GAP rows wait only on a witness (gen_ledger.RESOLVING's twin is the schema's `resolves` flag).
