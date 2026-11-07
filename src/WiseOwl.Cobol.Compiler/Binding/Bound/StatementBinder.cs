@@ -580,7 +580,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
 
     /// <summary>⛔ WHETHER THE INTRODUCTION GATE HAS ALREADY REFUSED THIS STATEMENT'S COMPILE: below 2023 (<c>usage-message-tag-2023</c>, §8.9) a
     /// message-tag entry draws COBOL0900, and DESIGN-message-control.md §7.1 says each refusal also runs at 2014, "where COBOL0900 is the expected
-    /// diagnosis and no second one may appear". So a statement whose OWN operands (<see cref="ParseTreeWalk.OwnDescendants"/>: a nested statement is
+    /// diagnosis and no second one may appear". So a statement whose OWN operands (<see cref="OwnDescendants"/>: a nested statement is
     /// asked on its own) name a message-tag item whose entry this compilation walks (<see cref="IsGatedMessageTag"/>) binds to a no-op, and the
     /// class refusals of its verb speak only where the usage exists. An operand is a data reference, a function-identifier whose RETURNING item
     /// is such a tag (<see cref="IntrinsicBinder.ReturningItemOf(Core.FunctionCallContext)"/>, the diagnostic-free answer; the keyword-omitted
@@ -591,7 +591,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     private bool NamesGatedMessageTag(Core.StatementContext s)
     {
         if (ConstructRegistry.IsAvailable(Ctx.Edition.Edition, Constructs.UsageMessageTag2023)) return false;
-        foreach (var node in ParseTreeWalk.OwnDescendants(s))
+        foreach (var node in OwnDescendants(s))
         {
             switch (node)
             {
@@ -610,6 +610,22 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             }
         }
         return false;
+    }
+
+    /// <summary>Every node under <paramref name="statement"/> that belongs to the statement itself: its operands and conditions, NOT those of a
+    /// statement nested in one of its phrases (an IF's branches, a PERFORM's inline body, an ON SIZE ERROR imperative), which is asked on its own.
+    /// Own stack, document order, as <c>ParseTreeWalk</c> (kb/Work PB4302) walks: the tree under a nested statement is never touched.</summary>
+    private static IEnumerable<IParseTree> OwnDescendants(Core.StatementContext statement)
+    {
+        var pending = new Stack<IParseTree>();
+        for (int i = statement.ChildCount - 1; i >= 0; i--) pending.Push(statement.GetChild(i));
+        while (pending.Count > 0)
+        {
+            var next = pending.Pop();
+            if (next is Core.StatementContext) continue;
+            yield return next;
+            for (int i = next.ChildCount - 1; i >= 0; i--) pending.Push(next.GetChild(i));
+        }
     }
 
     /// <summary>Whether <paramref name="item"/> is a message-tag data item whose DATA DIVISION entry THIS compilation walks, so that entry's
