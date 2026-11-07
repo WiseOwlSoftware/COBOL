@@ -27,6 +27,10 @@ GENERAL_FORMAT_NOUN = r"general\s+(?:formats?|forms?)"
 #: number, ``fullmatch`` it against a bare title.
 GENERAL_FORMAT_TITLE = re.compile(GENERAL_FORMAT_NOUN + r"\.?\s*$", re.IGNORECASE)
 
+#: A heading that NAMES the phrase anywhere, in any case: the 1985 composite language skeleton heads its figures
+#: ``GENERAL FORMAT FOR COBOL VERBS`` with no clause number (kb/Work PB4849).
+GENERAL_FORMAT_NAMED = re.compile(r"\b" + GENERAL_FORMAT_NOUN + r"\b", re.IGNORECASE)
+
 #: The phrase as printed ANYWHERE in a page's text layer (capitalised, as a heading is) — the cheap page filter.
 GENERAL_FORMAT_PRINTED = re.compile(r"General\s+(?:formats?|forms?)\b")
 
