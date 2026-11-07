@@ -31,3 +31,7 @@ formats on pages 245, 354, 409, 543 (both formats) and 661. Figures that disagre
 
 **Rows.** None: PB4898 is landed with `closes_rows: []` (tooling). PB4849 stays open for its pairing, refuter, apply
 and audit steps.
+
+**Gate.** At 54592b9451, run `000002-20261107T075043Z`: `=== BUILD-LOCAL GATE: GREEN — Conformance 22,463/22,463 ·
+Unit 40,427/40,427 · Characterization 37/37 cases ran (skipped 0) ... ===`. The carried commits gated GREEN first, at
+e8792aedea (run `000001-20261107T072118Z`).
