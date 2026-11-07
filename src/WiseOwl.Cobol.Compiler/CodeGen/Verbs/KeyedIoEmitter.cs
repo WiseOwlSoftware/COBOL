@@ -239,7 +239,8 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
         if (hasInv)
             using (w.Block($"if ({IoStatusClass.InvalidKey(st)})"))
                 Statements.EmitStatementList(rd.InvalidKey!.Invalid!);
-        if (into || rd.NotAtEnd is not null || rd.InvalidKey?.NotInvalid is not null || Debug.HasAfterAction)
+        bool fires = Debug.HasAfterAction;
+        if (into || rd.NotAtEnd is not null || rd.InvalidKey?.NotInvalid is not null || fires)
             using (w.Block($"{(hasInv ? "else " : "")}if ({IoStatusClass.Successful(st)})"))
             {
                 // GR4 b) — READ INTO is READ then MOVE THE CURRENT RECORD (the §13.18.43.4 GR16 slice of the
@@ -248,13 +249,23 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
                 // X3.23-1985 USE FOR DEBUGGING general rules 5 d / 6 c: the INTO phrase ran, so its receiver's section runs; rule 2 b: a READ that
                 // delivered a record runs its file-name section, with the record read in DEBUG-CONTENTS (D20).
                 if (into) move.Emit(rd.IntoMove!);
-                Debug.LandAfterAction();
+                Debug.LandAfterActionKeeping();   // kept for the arm below: a READ that delivered none runs the section too unless an AT END / INVALID KEY statement ran
                 if (rd.NotAtEnd is { } nae) SeqIo.EmitNotPhrase(hook, nae);                  // §14.9.30 — NOT AT END on success
                 if (rd.InvalidKey?.NotInvalid is { } nik) SeqIo.EmitNotPhrase(hook, nik);    // §9.1.14 — success only
             }
         if (rd.AtEnd is { } at)
             using (w.Block($"if ({IoStatusClass.AtEnd(st)})"))
                 Statements.EmitStatementList(at);                                                // §14.9.30 GR24c
+        // X3.23-1985 USE FOR DEBUGGING general rule 2 b: an unsuccessful READ that ran neither its INVALID KEY nor its AT END statement still
+        // runs the file-name section, after the USE procedure above (D20).
+        if (fires)
+        {
+            var ran = new List<string> { IoStatusClass.Successful(st) };
+            if (hasInv) ran.Add(IoStatusClass.InvalidKey(st));
+            if (rd.AtEnd is not null) ran.Add(IoStatusClass.AtEnd(st));
+            using (w.Block($"if (!({string.Join(" || ", ran)}))"))
+                Debug.LandAfterAction();
+        }
     }
 
     // ── WRITE (ISO §14.9.51) ───────────────────────────────────────────────────────────────────────────────────

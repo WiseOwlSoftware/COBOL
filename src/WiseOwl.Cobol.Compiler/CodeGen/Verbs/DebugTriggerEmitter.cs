@@ -143,12 +143,19 @@ internal sealed class DebugTriggerEmitter(EmitContext ctx, PlaceTable places)
     public bool HasAfterAction => _afterAction.Count > 0;
 
     /// <summary>A READ, RETURN, RECEIVE, DELETE or START emitter calls this where the verb's own action is done, before the phrases' imperative
-    /// statements (general rules 2 and 8 b; a READ's, RETURN's and RECEIVE's only on the path that delivered data).</summary>
+    /// statements (general rules 2 and 8 b; a RETURN's and RECEIVE's only on the path that delivered data; a READ's on that path and on the one that delivered none and ran no AT END or INVALID KEY statement).</summary>
     public void LandAfterAction()
     {
-        var fires = _afterAction;
+        LandAfterActionKeeping();
         _afterAction = [];
-        foreach (var fire in fires) EmitFire(fire, _line, PhraseFlags.None);
+    }
+
+    /// <summary>As <see cref="LandAfterAction"/>, but the fires stay held for a later arm of the same verb: a READ lands its file-name section on
+    /// the arm that delivered a record and again on the arm that delivered none and ran no AT END or INVALID KEY statement (rule 2 b), so the
+    /// first arm keeps and the last consumes.</summary>
+    public void LandAfterActionKeeping()
+    {
+        foreach (var fire in _afterAction) EmitFire(fire, _line, PhraseFlags.None);
     }
 
     /// <summary>A PERFORM emitter takes the loop-phase fires of the statement it emits, once, before it emits anything nested (a nested
