@@ -95,8 +95,8 @@ def main() -> int:
     with tempfile.TemporaryDirectory() as tmp:
         root = pathlib.Path(tmp)
         cat85, cat23 = root / "c85.json", root / "c23.json"
-        cat85.write_text(json.dumps({"rules": RULES_1985}), encoding="utf-8")
-        cat23.write_text(json.dumps({"rules": RULES_2023}), encoding="utf-8")
+        cat85.write_text(json.dumps({"rules": RULES_1985}), encoding="utf-8", newline="\n")
+        cat23.write_text(json.dumps({"rules": RULES_2023}), encoding="utf-8", newline="\n")
         keyfile = root / "key.txt"
         keyfile.write_text(KEY + chr(10), encoding="utf-8", newline=chr(10))
         state = root / "run"
@@ -117,7 +117,7 @@ def main() -> int:
         code, out = run(plan, fake)
         check("re-planning the same items keeps the plan", code == 0 and "unchanged" in out)
         other = root / "c23b.json"
-        other.write_text(json.dumps({"rules": RULES_2023[1:]}), encoding="utf-8")
+        other.write_text(json.dumps({"rules": RULES_2023[1:]}), encoding="utf-8", newline="\n")
         code, out = run(["plan", "--pass", "map", *base, "--catalog", str(cat85), "--catalog-2023", str(other)], fake)
         check("another plan in the same run is refused", code not in (0, None) and "another plan" in str(code))
 
@@ -215,7 +215,7 @@ def main() -> int:
         md.write_text(PLANTED_1985, encoding="utf-8", newline=chr(10))
         claims = root / "claims.json"
         claims.write_text(json.dumps([{"id": "VCR-1", "claim": "OCCURS may not be written at level 01.",
-                                       "locator": "VI.5.8.3"}]), encoding="utf-8")
+                                       "locator": "VI.5.8.3"}]), encoding="utf-8", newline="\n")
         citems = A.plan_claims(claims, planted)
         check("a claim carries the 1985 text of the locator it names",
               len(citems) == 1 and "must not be specified" in citems[0]["text"])
@@ -226,7 +226,7 @@ def main() -> int:
         check("a CONFIRMED claim with a 1985 citation is an answer; a citation not in the format is refused",
               ok is not None and bad is None and why.startswith("citation"))
         missing = root / "missing.json"
-        missing.write_text(json.dumps([{"id": "VCR-2", "claim": "x", "locator": "VI.9.9"}]), encoding="utf-8")
+        missing.write_text(json.dumps([{"id": "VCR-2", "claim": "x", "locator": "VI.9.9"}]), encoding="utf-8", newline="\n")
         try:
             A.plan_claims(missing, planted)
             refused = False
@@ -237,7 +237,7 @@ def main() -> int:
         print("public text only")
         dirty = root / "dirty.json"
         dirty.write_text(json.dumps({"rules": [dict(RULES_1985[0], text=RULES_1985[0]["text"] + " " + STAMP)]}),
-                         encoding="utf-8")
+                         encoding="utf-8", newline="\n")
         state2 = root / "run2"
         fake2 = FakeBatches()
         run(["plan", "--pass", "map", "--state", str(state2), "--catalog", str(dirty), "--catalog-2023", str(cat23)], fake2)

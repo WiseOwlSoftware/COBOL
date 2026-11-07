@@ -175,7 +175,7 @@ def parse(lines: list[str]) -> Catalog:
     page = 0
     page_top = False
     amendment: str | None = None       # the amendment whose part is being read
-    change_rows: list[tuple[str, str, str, str]] = []   # (document, page cell, change, the amendment's own folio)
+    change_rows: list[tuple[str, str, str, str, int]] = []   # (document, page cell, change, own folio, own page)
     open_change = False                # the last change row's new text follows the table row as prose
 
     def flush() -> None:
@@ -234,13 +234,13 @@ def parse(lines: list[str]) -> Catalog:
             if (row := CHANGE_ROW.match(line)) is not None:
                 open_change = CHANGE_PAGE.search(row["page"]) is not None
                 if open_change:
-                    change_rows.append((amendment, row["page"], row["change"], folio_of.get(page, "")))
+                    change_rows.append((amendment, row["page"], row["change"], folio_of.get(page, ""), page))
                 open_change = open_change and row["change"].endswith(":") and "<br>" not in row["change"]
             elif open_change and not ANY_HEADING.match(line) and not CHANGE_HEADER.match(line):
                 # A change whose new text the table prints BELOW its row ("add the following as the new general
                 # rule 19:", then the rule as prose): the text is the row's, as a `<br><br>` cell would carry it.
-                doc_, cell, change, own = change_rows[-1]
-                change_rows[-1] = (doc_, cell, f"{change}<br><br>{line.strip()}", own)
+                doc_, cell, change, own, own_page = change_rows[-1]
+                change_rows[-1] = (doc_, cell, f"{change}<br><br>{line.strip()}", own, own_page)
             continue
         p = PARAGRAPH_85.match(line)
         if p is not None:
@@ -291,8 +291,8 @@ def parse(lines: list[str]) -> Catalog:
             buf.append(line.strip())
     close_block()
     cat.changes = len(change_rows)
-    for doc, cell, change, own_folio in change_rows:
-        resolve_change(cat, doc, cell, change, own_folio)
+    for doc, cell, change, own_folio, own_page in change_rows:
+        resolve_change(cat, doc, cell, change, own_folio, own_page)
     return cat
 
 
@@ -314,7 +314,7 @@ def add_row(cat: Catalog, *, document: str, section: str | None, paragraph: str,
     return row
 
 
-def resolve_change(cat: Catalog, doc: str, cell: str, change: str, own_folio: str) -> None:
+def resolve_change(cat: Catalog, doc: str, cell: str, change: str, own_folio: str, own_page: int) -> None:
     """Record amendment `doc` on the rule one change row names, or add the rule the row adds ("add the following as the
     new general rule 4"), cited by the amendment's own printed page; a row naming a rule the catalog cannot find is
     reported. A row that names no rule (a heading, a figure, a table of contents) changes no row and is left alone.
@@ -322,17 +322,20 @@ def resolve_change(cat: Catalog, doc: str, cell: str, change: str, own_folio: st
     the ones the 1985 citations use."""
     pages = [(m["folio"], bool(m["amd"])) for m in CHANGE_PAGE.finditer(cell)]
     para = CHANGE_PARAGRAPH.search(change)
-    if (added := CHANGE_ADDS.search(change)) is not None and para is not None:
+    if (added := CHANGE_ADDS.search(change)) is not None:
+        if para is None:   # an added rule with no paragraph has no block to join: never read as a change to rule n
+            cat.unresolved.append((doc, cell, change[:100]))
+            return
         kind = KINDS.get(canonical_title(f"{added['kind']} rule"))
         folio, in_amendment = pages[0]
         sec = "A" if in_amendment else folio.split("-")[0]
         blocks = [loc for loc, k in cat.blocks if k == kind and loc.split(".", 1)[0] == sec
                   and para["num"] in (loc.split(".", 1)[1], loc.split(".", 1)[1].rsplit(".", 1)[0])]
-        if len(blocks) == 1:
+        if len(blocks) == 1 and "<br><br>" in change:
             paragraph = blocks[0].split(".", 1)[1]
-            text = re.sub(r"\s+", " ", change.split("<br><br>", 1)[-1].replace("<br>", " ")).strip()
+            text = re.sub(r"\s+", " ", change.split("<br><br>", 1)[1].replace("<br>", " ")).strip()
             add_row(cat, document=doc, section=sec, paragraph=paragraph, kind=kind, n=int(added["n"]), sublist=1,
-                    text=re.sub(r"^\\?\(\d+\\?\)\s*", "", text), page=0, folio=folio, band="",
+                    text=re.sub(r"^\\?\(\d+\\?\)\s*", "", text), page=own_page, folio=own_folio, band="",
                     subject=next((r["subject"] for r in cat.rules if r["locator"] == blocks[0]), ""),
                     citation=f"§{YEAR_OF[doc]}:p.{own_folio}")
         else:
