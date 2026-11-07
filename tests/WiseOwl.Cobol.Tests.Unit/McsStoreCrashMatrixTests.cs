@@ -183,7 +183,14 @@ public sealed class McsStoreCrashMatrixTests : IDisposable
                 status = run(s.Control);
                 fault.RefuseWritesFrom = null;
                 if (status == "00") Assert.Equal(after, McsInspector.Content(directory));
-                else if (status == "92") Assert.Equal(before, McsInspector.Content(directory));
+                else if (status == "92")
+                {
+                    // The seeding lands as a statement of its own and is then promoted (§6 "Devices"): a refusal of the promotion answers 92 with the seeding landed, which has no action
+                    // to undo (the writable reopen of the next statement fences it durable); every other statement leaves the state before it.
+                    var content = McsInspector.Content(directory);
+                    if (seeding && content.SequenceEqual(after)) { }
+                    else Assert.Equal(before, content);
+                }
                 else Assert.Equal("93", status);
             }
             McsInspector.AssertCountsEqualARecount(directory);
@@ -316,6 +323,61 @@ public sealed class McsStoreCrashMatrixTests : IDisposable
             Assert.True(from < 200, "the statements never completed");
         }
         Assert.True(refused, "the matrix refused no sync");
+    }
+
+    /// <summary>The prime tree of the COMMITTED meta slot (pages 0 and 1, the state a power loss returns the store to) and of the work slot (page 2), read through a handle of their own.</summary>
+    private static (PagePointer Committed, PagePointer Work) PrimeRoots(string directory)
+    {
+        using var stream = new FileStream(System.IO.Path.Combine(directory, "mcs.store"), FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+        var medium = new HandlePageMedium(stream.SafeFileHandle);
+        MetaPage? Slot(uint page)
+        {
+            var bytes = new byte[PageHeader.PageSize];
+            medium.Read(page, bytes);
+            return MetaPage.Decode(bytes, page);
+        }
+        var committed = MetaPage.Committed(Slot(MetaPage.SlotA), Slot(MetaPage.SlotB))!.Value.Meta;
+        return (committed.PrimeRoot, Slot(MetaPage.WorkSlot)!.PrimeRoot);
+    }
+
+    /// <summary>The seeding's DeviceEnds row is durable before any device is written (§6 "Devices", PB4862): the seeding is PROMOTED, so the committed slot, which is all a power loss keeps,
+    /// already names the seeded tree when the run unit's first statement, which changed nothing else, has answered.</summary>
+    [Fact]
+    public void Seeding_IsPromoted_SoAPowerLossKeepsItsDeviceEndsRows()
+    {
+        string directory = Fresh();
+        using var s = new Session(directory);
+        Assert.Equal("00", InputStatus(s.Control.AcceptMessageCount(InputArea("Q"))));
+        var (committed, work) = PrimeRoots(directory);
+        Assert.Equal(work, committed);
+        Assert.Contains(McsInspector.Rows(directory), row => row.Key[0] == (byte)'D' && row.Key.Length > 1);
+    }
+
+    /// <summary>A device renamed only by case is one file on a case-insensitive host, and its old row must not outlive the rename (§6 "Devices", PB4863): seeding retires the row of a
+    /// device the definitions no longer name, so the new name's output is never cut to the old end, and a device removed keeps its file.</summary>
+    [Fact]
+    public void DeviceRenamedOnlyByCase_LeavesNoStaleRow_AndItsDeliveredOutputIsNotCut()
+    {
+        string directory = Fresh();
+        string definitions = System.IO.Path.Combine(directory, "mcs.json");
+        File.WriteAllText(definitions, """{ "destinations": [ { "name": "dev" }, { "name": "GONE" } ] }""");
+        using (var s = new Session(directory))
+        {
+            Assert.Equal("00", Sent(s.Control, "dev", "ONE"));
+            Assert.Equal("00", Sent(s.Control, "GONE", "OLD"));
+        }
+        File.WriteAllText(definitions, """{ "destinations": [ { "name": "DEV" } ] }""");
+        using (var s = new Session(directory))
+            Assert.Equal("00", Sent(s.Control, "DEV", "TWO"));
+        var devices = McsInspector.Rows(directory).Where(row => row.Key[0] == (byte)'D').Select(row => System.Text.Encoding.UTF8.GetString(row.Key, 1, row.Key.Length - 1)).ToList();
+        Assert.Equal(["DEV"], devices);
+        Assert.True(File.Exists(System.IO.Path.Combine(directory, "GONE.out")));
+        // A run unit that follows cuts every device the store claims first; on a case-insensitive host a stale "dev" row at the old end would have cut TWO, one file with DEV.
+        using (var s = new Session(directory))
+            Assert.Equal("00", Sent(s.Control, "DEV", "THREE"));
+        string line = Environment.NewLine;
+        string text = File.ReadAllText(System.IO.Path.Combine(directory, "DEV.out"));
+        Assert.EndsWith("TWO" + line + "THREE" + line, text);
     }
 
     /// <summary>The queue, terminal and outbound messages of a store by their stored text, with how many of each (a serial is no content).</summary>
