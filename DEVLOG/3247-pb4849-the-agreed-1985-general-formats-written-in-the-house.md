@@ -1,4 +1,4 @@
-## PB4849: the agreed 1985 general formats written in the house style, and the refuters' verdict files read
+## Entry 3247 — 2026-11-07 03:34 PST — PB4849: the agreed 1985 general formats written in the house style, and the refuters' verdict files read
 
 **What the note asked, and this slice.** PB4849 regenerates every 1985 general format from the scan, compares it with
 the batch's drawing, sends each disagreement to a refuter and writes the decided figures. Earlier waves landed the
@@ -63,3 +63,4 @@ GENERAL FORMAT heading, so four of them agreed and were written in the house sty
 were restored to the batch's drawing. The re-run `--check` reports 144 written, all in their decided form, none
 drifted. 357 blocks await a verdict: 269 general formats and 88 other blocks, the 16 furniture-only blocks among them.
 `sweep_figures --self-test` passes 24/24.
+
