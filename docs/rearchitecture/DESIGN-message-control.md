@@ -557,7 +557,7 @@ the peer the next `FrameReceived`, `LinkLost`, `LinkAccepted` or `BellRung` in a
 `InMemoryNetwork` that stands for the socket directory: `Abort` ends every link as a kill does and leaves the published
 files, `Dispose` ends as `Terminate` does, and `BetweenListenAndRename` is the §5.4.1 window a test can probe. The peer
 answers every action in the order it issued them, and an action that fails answers with `ActionFailed` in place of its own
-answer; a statement that ends while answers are owed (EC-MCS-IMP) leaves them stale, and the protocol consumes them first. A SEND that ends with a link still granted closes it. A requestor never connects to its own listener (it cannot RECEIVE while its SEND is current), and a server tag is valid only for the server its serial was sent to.
+answer; a statement that ends while answers are owed (EC-MCS-IMP) leaves them stale, and the protocol consumes them first. A SEND that ends with a link still granted keeps it, owing the ACK of that SEND: the server answers the GRANT it holds (or closes the link, §5.4.2), the ACK is consumed when it arrives, and meanwhile the link carries the replies owed for earlier serials (closing it would end them). An action that fails with a `Write` ends the link it wrote to, after the statement it served, whatever role. A requestor never connects to its own listener (it cannot RECEIVE while its SEND is current), and a server tag is valid only for the server its serial was sent to.
 A requestor keeps a link per server across SENDs (`Sent`, `Replies`); a link the protocol closes after a bad `HELLO` is
 burned for the current SEND only.
 
@@ -610,7 +610,7 @@ its bell behind, and the next server that rings it is refused and deletes it.
 RECEIVE FROM NULL in a run unit that serves no name is EC-MCS-NO-REQUESTER (Q2). Otherwise the server writes `CLAIM` for
 its oldest offer and moves on at a `WITHDRAW`. At a `GRANT` it writes `ACK`, records the message in `Active` with
 identifier-1's maximum length, and only then completes with the requestor tag (Requestor, `<r>`, serial); a message longer than
-identifier-1 is taken and answered EC-MCS-MESSAGE-LENGTH (Q7). RECEIVE FROM a requestor tag considers only that link, and
+identifier-1 is taken and answered EC-MCS-MESSAGE-LENGTH (Q7). A RECEIVE that ends EC-MCS-IMP with a CLAIM in flight closes the claimed link: it will never read the `GRANT`, and the requestor, still holding the message, goes on to a new round (§5.4.1 step 9). RECEIVE FROM a requestor tag considers only that link, and
 a missing or ended link gives "the EC-MCS-REQUESTOR-FAILED exception condition is set to exist" (§14.9.31.4 GR1 b).
 
 SEND Format 2 tests in GR order. A message of zero character positions is EC-MCS-MESSAGE-LENGTH (GR1); `maxLength` does
