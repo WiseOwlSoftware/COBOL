@@ -1,4 +1,4 @@
-## Messaging protocol: an abandoned grant keeps its link, a RECEIVE ended with a claim closes it, and a message-tag operand is the gate's whatever the verb
+## Entry 3229 — 2026-11-06 18:44 PST — Messaging protocol: an abandoned grant keeps its link, a RECEIVE ended with a claim closes it, and a message-tag operand is the gate's whatever the verb
 
 Three review leads of the messaging slice, one group (wave 20261887 D).
 
@@ -18,3 +18,4 @@ program's specified behaviour (the protocol's internal frames, and the absence o
 
 Self-review: architecture (the tag question has one funnel; no parse-tree member in the backend input), full code (design sections only are cited; review R1-3 corrected an OoBinder citation to 8.4.3.4.4 GR1 b), performance (the gate walk runs only below 2023, edition test first), duplication (SetBinder's copies deleted). Residual: a compound statement whose own operand is a gated tag binds to a no-op, so its nested statements are not bound below 2023 (COBOL0900 already fails the compile); a SELF or object-view receiver of an inline invocation, and an INVOKE RETURNING, are not asked, so those still draw a class diagnostic beside COBOL0900 (review R1-2, left as a lead).
 Gate: see the branch report for the verdict line of the final run.
+
