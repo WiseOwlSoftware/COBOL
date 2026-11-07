@@ -6142,9 +6142,7 @@ IV-9
 
 ## Page 156
 
-<pre>
-"{character-1} ... "
-</pre>Numeric Literals
+Numeric Literals
 
 4.2.2.2.1.1 General Format
 
@@ -6919,34 +6917,6 @@ The Report Section describes the content and format of reports that are to be ge
 IV-33
 
 ## Page 180
-
-<pre>
-<u>DATA</u> <u>DIVISION</u>.
-
-[<u>FILE</u> <u>SECTION</u>.
-
-┌file-description-entry {record-description-entry} ...             ┐     ┐
-│sort-merge-file-description-entry {record-description-entry} ...  │ ... │
-└report-file-description-entry                                     ┘     ┘
-
-[<u>WORKING-STORAGE</u> <u>SECTION</u>.
-
-┌77-level-description-entry ┐     ┐
-└record-description-entry   ┘ ... ┘
-
-[<u>LINKAGE</u> <u>SECTION</u>.
-
-┌77-level-description-entry ┐     ┐
-└record-description-entry   ┘ ... ┘
-
-[<u>COMMUNICATION</u> <u>SECTION</u>.
-
-[communication-description-entry [record-description-entry] ... ] ... ]
-
-[<u>REPORT</u> <u>SECTION</u>.
-
-[report-description-entry {report-group-description-entry} ... ] ... ]
-</pre>
 
 Data Division
 
@@ -21399,15 +21369,6 @@ The inequality relation test is further explained in the appropriate paragraph. 
 XIII-16
 
 ## Page 599
-
-<pre>
-<u>PAGE</u>  ┌LIMIT IS  ┐  integer-1  ┌LINE ┐  [<u>HEADING</u> integer-2]
-      └LIMITS ARE┘             └LINES┘
-
-   [<u>FIRST</u> <u>DETAIL</u> integer-3]  [<u>LAST</u> <u>DETAIL</u> integer-4]
-
-   [<u>FOOTING</u> integer-5]
-</pre>
 
 <p>Report Writer - PAGE</p>
 
