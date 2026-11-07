@@ -1941,6 +1941,16 @@ joined the table the same way, which is the table doing its job: a tenth format 
   working-storage section (the header is out of order, §13.2.1, so no period lets it follow), and `01 PROCEDURE
   DIVISION.` is COBOL0307. Pinned by `ClosedFormatReservedWordTests.AnOutOfOrderHeaderAfterADanglingLevelNumber_IsNoKindExpected`
   and the `pb4788-*` conformance case.
+  **The name predicate past a loop's level-number, and one wording (kb/Work PB4818).** Adaptive prediction evaluates a
+  predicate only at the left edge of its decision. `reportDescriptionEntry`'s loop decides between its entry kinds before the
+  level-number, so `noHeaderWrittenHere()` reads as true there, both kinds' `dataName` admit a gated word, and `RD R.` then
+  `01 SCREEN SECTION.` dies at SECTION with the parser before the level-number. `CobolErrorStrategy.HeaderAnEntryLoopReadAsAName`
+  moves that report to the header's first word, where the predicate would have stopped the parse, and from there every
+  question is the data entry's: COBOL0307 where §13.2.1 lets the header follow, COBOL0001 where it does not, and the free word
+  of `NoteGatedOffender` at 85, which re-parses with the word as a name and reports at SECTION. ANTLR's kind of error
+  is the grammar's shape, so `Report` words every slot that yields (`EntrySlotYields`) as `unexpected 'WORD'`, whichever
+  decision met the word. Pinned by `ClosedFormatReservedWordTests.AHeaderAfterAReportGroupsLevelNumber_IsReportedAtTheDataEntrysWord`
+  and the `pb4818-*` conformance cases.
 - **The production's token set — the run holds every literal but the reserved words; a reserved word never opens
   it, and the data division's form holds no literal that begins with an unsigned integer (kb/Work PB3373,
   PB3390).** `unrecognizedClause : (residueOpening | residueInteger) (residueItem | residueInteger)*` and
