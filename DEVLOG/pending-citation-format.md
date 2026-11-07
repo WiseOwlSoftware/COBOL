@@ -1,0 +1,3 @@
+## One citation format for every edition of the standard
+
+The repository now holds the 1985 standard beside 2023, with 2002 to follow, but its 123,000 or so `§` citations do not say which edition they mean. The citations audit therefore skips other editions through a hand-kept word list, and it reads a 1985 paragraph as a phantom 2023 clause. The owner asked for one format for all editions and chose to make the edition mandatory: `§<edition>:<locator>[ <rule>]`, for example `§2023:13.18.35.4 GR1` and `§1985:VI.5.3.2 GR3`. PB4887 specifies the format and plans the work: one parser module, then one scripted rewrite of every existing citation, landed alone, with diagnostics, goldens and docs following the same format.
