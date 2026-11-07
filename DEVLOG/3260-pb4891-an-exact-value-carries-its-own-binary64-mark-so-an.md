@@ -1,4 +1,4 @@
-## PB4891: an exact value carries its own binary64 mark, so an even MEDIAN over a nested selection of a float item is the binary64 mean on COMPUTE as on DISPLAY
+## Entry 3260 — 2026-11-07 10:51 PST — PB4891: an exact value carries its own binary64 mark, so an even MEDIAN over a nested selection of a float item is the binary64 mean on COMPUTE as on DISPLAY
 
 **The defect.** `FUNCTION MEDIAN (FUNCTION MAX (F M2) M)`, with `F` a FLOAT-LONG 0.1 that MAX selects, DISPLAYed the binary64 mean
 0.3 and COMPUTE stored 0.30000000000000000277, the exact mean of the float's expansion. The re-probe on dec152346c reproduced it for
@@ -29,3 +29,4 @@ split; and the DISPLAY channel's binary64 mean is an approximation temporary (`O
 **Self-review.** Architecture: one mechanism (the value's own mark) replaces a parallel compile-time list; no C# text in a bound node.
 Code: the cited rules were re-checked with cite.py; the odd count now selects stably, as `FunctionValueField.Median` does. Performance:
 one bool and a struct copy on `FromBinary64`, and an index sort in place of the LINQ `OrderBy`. Duplication: two MEDIAN bodies became one.
+
