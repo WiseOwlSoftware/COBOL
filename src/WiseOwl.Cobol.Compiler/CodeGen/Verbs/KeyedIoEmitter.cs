@@ -156,6 +156,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
             if (Rrn(file) is not { } rrn)
             {
                 w.Line(LoudStmt($"relative READ on '{file.CobolName}' without a resolvable RELATIVE KEY item"));
+                Debug.LandAfterAction();
                 return;
             }
             w.Line($"{RuntimeApi.FileSetRelativeKey(name, rrn)};");
@@ -238,20 +239,33 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
         if (hasInv)
             using (w.Block($"if ({IoStatusClass.InvalidKey(st)})"))
                 Statements.EmitStatementList(rd.InvalidKey!.Invalid!);
-        if (into || rd.NotAtEnd is not null || rd.InvalidKey?.NotInvalid is not null)
+        bool fires = Debug.HasAfterAction;
+        if (into || rd.NotAtEnd is not null || rd.InvalidKey?.NotInvalid is not null || fires)
             using (w.Block($"{(hasInv ? "else " : "")}if ({IoStatusClass.Successful(st)})"))
             {
                 // GR4 b) — READ INTO is READ then MOVE THE CURRENT RECORD (the §13.18.43.4 GR16 slice of the
                 // record area, never the padded area): the BOUND move, built by the SAME binder call the
                 // sequential arm makes (kb/Work PB348 over PB339).
-                // X3.23-1985 USE FOR DEBUGGING general rules 5 d / 6 c: the INTO phrase ran, so its receiver's section runs (D20).
-                if (into) { move.Emit(rd.IntoMove!); Debug.LandAfterAction(); }
+                // X3.23-1985 USE FOR DEBUGGING general rules 5 d / 6 c: the INTO phrase ran, so its receiver's section runs; rule 2 b: a READ that
+                // delivered a record runs its file-name section, with the record read in DEBUG-CONTENTS (D20).
+                if (into) move.Emit(rd.IntoMove!);
+                Debug.LandAfterActionKeeping();   // kept for the arm below: a READ that delivered none runs the section too unless an AT END / INVALID KEY statement ran
                 if (rd.NotAtEnd is { } nae) SeqIo.EmitNotPhrase(hook, nae);                  // §14.9.30 — NOT AT END on success
                 if (rd.InvalidKey?.NotInvalid is { } nik) SeqIo.EmitNotPhrase(hook, nik);    // §9.1.14 — success only
             }
         if (rd.AtEnd is { } at)
             using (w.Block($"if ({IoStatusClass.AtEnd(st)})"))
                 Statements.EmitStatementList(at);                                                // §14.9.30 GR24c
+        // X3.23-1985 USE FOR DEBUGGING general rule 2 b: an unsuccessful READ that ran neither its INVALID KEY nor its AT END statement still
+        // runs the file-name section, after the USE procedure above (D20).
+        if (fires)
+        {
+            var ran = new List<string> { IoStatusClass.Successful(st) };
+            if (hasInv) ran.Add(IoStatusClass.InvalidKey(st));
+            if (rd.AtEnd is not null) ran.Add(IoStatusClass.AtEnd(st));
+            using (w.Block($"if (!({string.Join(" || ", ran)}))"))
+                Debug.LandAfterAction();
+        }
     }
 
     // ── WRITE (ISO §14.9.51) ───────────────────────────────────────────────────────────────────────────────────
@@ -353,6 +367,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
             if (Rrn(file) is not { } rrn)
             {
                 w.Line(LoudStmt($"relative DELETE on '{file.CobolName}' without a resolvable RELATIVE KEY item"));
+                Debug.LandAfterAction();
                 return;
             }
             w.Line($"{RuntimeApi.FileSetRelativeKey(name, rrn)};");
@@ -374,6 +389,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
         var (retryKind, retryAmount) = SeqIo.RenderRetry(del.Retry);
         w.Line($"var {st} = {RuntimeApi.FileDeleteShared(name, image, retryKind, retryAmount, areaExtents)};");
         SeqIo.EmitStoreFileStatus(file);
+        Debug.LandAfterAction();   // X3.23-1985 USE FOR DEBUGGING general rule 2 c: right after the I-O, whatever its outcome (D20)
         var hook = SeqIo.EmitUseHook(file, "DELETE", invalidKeyHandled: del.InvalidKey?.Invalid is not null);
         SeqIo.EmitInvalid(st, del.InvalidKey, hook);
     }
@@ -402,6 +418,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
         else
             w.Line($"var {st} = {RuntimeApi.FileDeleteFile(FileKeyExpr(df.File), ovr)};");
         SeqIo.EmitStoreFileStatus(df.File);
+        Debug.LandAfterAction();   // X3.23-1985 USE FOR DEBUGGING general rule 2 c: a DELETE statement that references file-name-1 (D20)
         // §14.9.10.4 GR20b: the enabled level-3 EC-I-O for the status is set to exist EVEN when the ON
         // EXCEPTION phrase is written — the phrase suppresses only the declarative dispatch and the fatal
         // default (GR20c), the same third-flag shape the AT END / INVALID KEY suppressions use. The old
@@ -481,6 +498,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
             w.Line($"var {st} = {RuntimeApi.FileStartIndexed(name, sta.KeyIndex, CsLiteral(sta.Op), areaImage, len, areaExtents)};");
         }
         SeqIo.EmitStoreFileStatus(file);
+        Debug.LandAfterAction();   // X3.23-1985 USE FOR DEBUGGING general rule 2 c: right after the I-O, whatever its outcome (D20)
         var hook = SeqIo.EmitUseHook(file, "START", invalidKeyHandled: sta.InvalidKey?.Invalid is not null);
         SeqIo.EmitInvalid(st, sta.InvalidKey, hook);   // §14.9.41 GR6 — transfer per §9.1.14
     }

@@ -945,7 +945,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     public void EmitRead(BoundRead rd)
     {
         var w = ctx.Writer;
-        if (rd.Unsupported is { } u) { w.Line(LoudStmt(u)); return; }
+        if (rd.Unsupported is { } u) { w.Line(LoudStmt(u)); Debug.LandAfterAction(); return; }
         string name = FileKeyExpr(rd.File);
         string tmp = $"__rd{ctx.Names.NextRead()}";
         // The read record is made available in the WHOLE record area — store through the LARGEST record's view
@@ -994,8 +994,10 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             // READ … INTO is READ then MOVE THE CURRENT RECORD to the target (ISO §14.9.30.4 GR4 b)) — the
             // move is BOUND (kb/Work PB348), its sender the record sliced to the §13.18.43.4 GR16 byte count
             // through the ONE builder the keyed READ and the sort RETURN also use (kb/Work PB339).
-            // X3.23-1985 USE FOR DEBUGGING general rules 5 d / 6 c: the INTO phrase ran, so its receiver's section runs (D20).
-            if (rd.IntoMove is { } intoMove) { move.Emit(intoMove); Debug.LandAfterAction(); }
+            // X3.23-1985 USE FOR DEBUGGING general rules 5 d / 6 c: the INTO phrase ran, so its receiver's section runs; rule 2 b: a READ that
+            // delivered a record runs its file-name section, with the record read in DEBUG-CONTENTS (D20).
+            if (rd.IntoMove is { } intoMove) move.Emit(intoMove);
+            Debug.LandAfterActionKeeping();   // kept for the arm below: a READ that delivered none runs the section too unless its AT END statement ran
             if (rd.NotAtEnd is { } not) EmitNotPhrase(hook, not);
             // §14.9.30.4 GR13c — on a successful READ "control is transferred to the end of the READ statement,
             // or, if the NOT AT END phrase or NOT INVALID KEY phrase is specified, to imperative-statement-2".
@@ -1014,9 +1016,18 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             // GR21's '46' included (a LOGIC ERROR, §9.1.13.7 6)), is §14.9.30.4 GR13's "neither an at end nor an invalid
             // key condition" and reaches a USE declarative through §9.1.12 instead. The determination is on
             // IoStatusClass (kb/Work PB810).
+            // X3.23-1985 USE FOR DEBUGGING general rule 2 b: the file-name section runs "after the execution of any READ statement (after any
+            // other specified USE procedure) not resulting in the execution of an associated AT END or INVALID KEY imperative statement" —
+            // so after the USE hook above, on every unsuccessful READ whose AT END statement did not run (D20).
             if (rd.AtEnd is { } at)
+            {
                 using (w.Block($"if ({IoStatusClass.AtEnd(RuntimeApi.FileStatus(name))})"))
                     Statements.EmitStatementList(at);
+                if (Debug.HasAfterAction)
+                    using (w.Block("else"))
+                        Debug.LandAfterAction();
+            }
+            else Debug.LandAfterAction();
         }
     }
 

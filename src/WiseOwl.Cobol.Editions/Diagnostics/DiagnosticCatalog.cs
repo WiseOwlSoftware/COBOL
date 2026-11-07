@@ -2264,10 +2264,10 @@ public static class DiagnosticCatalog
         "ISO §13.18.63.3 SR4 (VCR row 34)");
     public static readonly DiagnosticDescriptor DebugSubFacilityStaged = new(
         "COBOL1571", "debug-sub-facility-staged", EditionSeverity.Error,
-        "The X3.23-1985 USE FOR DEBUGGING ON procedure-name / ALL PROCEDURES, data-name (incl. ALL REFERENCES OF) and "
-        + "cd-name trigger legs + the DEBUG-ITEM special register are modeled at --std 85; the file-name subject kind, "
-        + "a special register or report sum counter as a data-name target, and the SORT/MERGE INPUT/OUTPUT-procedure "
-        + "DEBUG-CONTENTS cause are staged — rejected loud rather than compiled with a missing/stale trigger.",
+        "The X3.23-1985 USE FOR DEBUGGING ON procedure-name / ALL PROCEDURES, data-name (incl. ALL REFERENCES OF), "
+        + "file-name and cd-name trigger legs + the DEBUG-ITEM special register are modeled at --std 85; "
+        + "the LINAGE-COUNTER, LINE-COUNTER and PAGE-COUNTER special registers as a data-name target, and the SORT/MERGE "
+        + "INPUT/OUTPUT-procedure DEBUG-CONTENTS cause are staged — rejected loud rather than compiled with a missing/stale trigger.",
         "VCR Table 7 row 7.17 (X3.23-1985 debug module)");
     public static readonly DiagnosticDescriptor MergeInSortMergeProc = new(
         "COBOL1572", "merge-in-sort-merge-proc", EditionSeverity.Error,
@@ -8059,6 +8059,16 @@ public static class DiagnosticCatalog
         + "one USE FOR DEBUGGING statement and may appear only once in that statement\"), so each debugging section "
         + "has its own targets and a statement never runs two sections for one operand.",
         "X3.23-1985 USE FOR DEBUGGING syntax rule 6 (VCR Table 7 row 7.17)");
+
+    // kb/Work PB4858 review round 1 R1-3: a DEBUG-ITEM member as a receiving operand. Emitted by ExpressionBinder.ReceivingPlaceBar.
+    public static readonly DiagnosticDescriptor DebugRegisterReceiving = new(
+        "COBOL6361", "debug-register-receiving", EditionSeverity.Error,
+        "The X3.23-1985 special register DEBUG-ITEM, or one of its members DEBUG-LINE, DEBUG-NAME, DEBUG-SUB-1 to "
+        + "DEBUG-SUB-3 and DEBUG-CONTENTS, is a receiving operand. General rule 11 gives the debugging facility alone the "
+        + "store: \"The contents of data items subordinate to DEBUG-ITEM are then updated, according to the following "
+        + "general rules, immediately before control is passed to that debugging section\", and the standard describes "
+        + "no statement that stores into the register, so a program only reads it.",
+        "X3.23-1985 USE FOR DEBUGGING general rule 11 (VCR Table 7 row 7.17)");
 
     // kb/Work PB4307: `MULTIPLE FILE TAPE.` and `MULTIPLE FILE.` compiled clean at --std 85, where `TAPE CONTAINS.`
     // drew COBOL0001. Emitted by FileControlBinder.BindIoControl, the I-O-CONTROL clauses' own syntax rules, at every edition:

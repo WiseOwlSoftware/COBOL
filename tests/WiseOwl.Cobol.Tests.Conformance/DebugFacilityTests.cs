@@ -10,9 +10,9 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// authoritative behavior is the 1985 standard; WiseOwl COBOL models it (accepted-and-ACTIVE) only at <c>--std 85</c>
 /// and rejects it ≥2002 (COBOL0902). Implemented: the ON procedure-name / ALL PROCEDURES trigger leg with the
 /// DEBUG-CONTENTS transfer-cause taxonomy (START PROGRAM / SPACES / PERFORM LOOP / FALL THROUGH — DB101A witness)
-/// and DEBUG-NAME, and the data-name, ALL REFERENCES OF and cd-name triggers (docs/CONTROL_FLOW_DESIGN.md D20; the behavior
-/// matrix is the <c>X3.23-1985-USE-FOR-DEBUGGING</c> conformance goldens). STAGED loud (COBOL1571): the file-name subject kind (kb/Work
-/// PB4811) and the SORT/MERGE-procedure cause.
+/// and DEBUG-NAME, and the data-name, ALL REFERENCES OF, cd-name and file-name triggers (docs/CONTROL_FLOW_DESIGN.md D20; the behavior
+/// matrix is the <c>X3.23-1985-USE-FOR-DEBUGGING</c> conformance goldens; the file-name trigger is general rule 2, kb/Work PB4811).
+/// STAGED loud (COBOL1571): the SORT/MERGE-procedure cause.
 /// </summary>
 public sealed class DebugFacilityTests
 {
@@ -446,14 +446,15 @@ public sealed class DebugFacilityTests
         EditionHarness.AssertEveryDiagnosticPositioned(diags, operand);
     }
 
-    /// <summary>The bare operand that IS a file stays the staged COBOL1571 (the file-name trigger is kb/Work PB4811's), and a file-name is
-    /// not mistaken for an undeclared word by the new resolution (kb/Work PB4363's sibling sweep of the bare-name arm).</summary>
+    /// <summary>The bare operand that IS a file is the file-name subject (X3.23-1985 USE FOR DEBUGGING general rule 2; kb/Work PB4811): it
+    /// compiles, and a file-name is not mistaken for an undeclared word by the resolution (kb/Work PB4363's sibling sweep of the bare-name arm).
+    /// The program opens no file, so no section runs.</summary>
     [Fact]
-    public void BareOperandNamingAFile_At85_StaysStaged()
+    public void BareOperandNamingAFile_At85_IsTheFileNameSubject()
     {
         var (ok, diags) = EditionHarness.Compile(OperandProgram("SF"), 85);
-        Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(diags, "COBOL1571: declarative section 'DBG': USE FOR DEBUGGING ON 'SF' names a file-name");
+        Assert.True(ok, string.Join("; ", diags));
+        EditionHarness.AssertNoDiagnostic(diags, "COBOL1571");
         EditionHarness.AssertNoDiagnostic(diags, "COBOL1639");
     }
 
@@ -714,5 +715,111 @@ public sealed class DebugFacilityTests
         EditionHarness.AssertHasDiagnostic(diags, "(25,");
         EditionHarness.AssertHasDiagnostic(diags, "COBOL1571: the SORT/MERGE INPUT PROCEDURE");
         EditionHarness.AssertEveryDiagnosticPositioned(diags, nameof(SortProcedureSubject_At85_StagedLoud1571));
+    }
+
+    /// <summary>RESUME AT procedure-name is a GO TO (ISO §14.9.33.4 GR3), so it abandons the statements around it and the sections they owe run
+    /// first (X3.23-1985 USE FOR DEBUGGING general rules 5 d and 6 c, kb/Work PB4857): the IF around a RAISE that a declarative resumes elsewhere,
+    /// and the IF around the RESUME inside the declarative. RESUME AT NEXT STATEMENT continues after the lowest statement, so the IF around the
+    /// RAISE completes and runs its section once. The statements are 2002 introductions and the facility is 1985's, so the one program that has
+    /// both is the 2002 compile that keeps the removed declarative (--permissive).</summary>
+    [Fact]
+    public void RaiseAndResume_LandTheSectionsTheAbandonedStatementsOwe()
+    {
+        const string src = """
+            >>TURN EC-USER-RZ CHECKING ON
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. DBGRESUME.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            SOURCE-COMPUTER. IBM-PC WITH DEBUGGING MODE.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 D PIC 9 VALUE 1.
+            01 K PIC 9 VALUE 1.
+            PROCEDURE DIVISION.
+            DECLARATIVES.
+            DB0 SECTION.
+                USE FOR DEBUGGING ON ALL REFERENCES OF D.
+            DB0-B.
+                DISPLAY "  DB0".
+            HZ SECTION.
+                USE AFTER EXCEPTION CONDITION EC-USER-RZ.
+            HZ-P.
+                DISPLAY "  HANDLER".
+                IF K = 1 IF D = 1 RESUME AT M3 END-IF END-IF.
+                RESUME AT NEXT STATEMENT.
+            END DECLARATIVES.
+            MAIN SECTION.
+            M1.
+                DISPLAY "A: RESUME AT M3".
+                IF D = 1 RAISE EXCEPTION EC-USER-RZ.
+                DISPLAY "NOT HERE".
+            M2.
+                DISPLAY "NOT HERE EITHER".
+            M3.
+                DISPLAY "M3".
+                MOVE 2 TO K.
+                DISPLAY "B: RESUME AT NEXT STATEMENT".
+                IF D = 1 RAISE EXCEPTION EC-USER-RZ.
+                DISPLAY "AFTER B".
+                STOP RUN.
+            """;
+        var (ok, stdout, detail) = EditionHarness.CompileAndRun(src, 2002, permissive: true);
+        Assert.True(ok, detail);
+        var lines = stdout.Replace("\r", "").TrimEnd('\n').Split('\n');
+        Assert.Equal(["A: RESUME AT M3", "  HANDLER", "  DB0", "  DB0", "M3", "B: RESUME AT NEXT STATEMENT", "  HANDLER", "  DB0", "AFTER B"], lines);
+    }
+
+    /// <summary>The pointer verbs hold a based item or an addressed item as a DATA ITEM only: ALLOCATE's based item, SET ADDRESS OF's receiver and
+    /// ADDRESS OF's operand are each an operand the statement explicitly references (X3.23-1985 USE FOR DEBUGGING general rule 5, kb/Work
+    /// PB4855), so the section of each runs after the statement. The verbs are 2002 introductions and the facility is 1985's, so the one
+    /// program that has both is the 2002 compile that keeps the removed declarative (--permissive).</summary>
+    [Fact]
+    public void PointerVerbOperands_AreReferences()
+    {
+        const string src = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. DBGPTRREF.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            SOURCE-COMPUTER. IBM-PC WITH DEBUGGING MODE.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 BP BASED.
+               02 BX PIC X(4).
+            01 BQ BASED.
+               02 BZ PIC X(4).
+            01 P USAGE POINTER.
+            01 AX PIC X(4) VALUE "ABCD".
+            PROCEDURE DIVISION.
+            DECLARATIVES.
+            DB1 SECTION.
+                USE FOR DEBUGGING ON ALL REFERENCES OF BP.
+            DB1-B.
+                DISPLAY "  DB1 " DEBUG-NAME (1:2).
+            DB2 SECTION.
+                USE FOR DEBUGGING ON ALL REFERENCES OF BQ.
+            DB2-B.
+                DISPLAY "  DB2 " DEBUG-NAME (1:2).
+            DB3 SECTION.
+                USE FOR DEBUGGING ON ALL REFERENCES OF AX.
+            DB3-B.
+                DISPLAY "  DB3 " DEBUG-NAME (1:2).
+            END DECLARATIVES.
+            MAIN SECTION.
+            M1.
+                DISPLAY "ALLOCATE BP".
+                ALLOCATE BP RETURNING P.
+                DISPLAY "SET ADDRESS OF BQ".
+                SET ADDRESS OF BQ TO P.
+                DISPLAY "SET P TO ADDRESS OF AX".
+                SET P TO ADDRESS OF AX.
+                DISPLAY "END".
+                STOP RUN.
+            """;
+        var (ok, stdout, detail) = EditionHarness.CompileAndRun(src, 2002, permissive: true);
+        Assert.True(ok, detail);
+        var lines = stdout.Replace("\r", "").TrimEnd('\n').Split('\n');
+        Assert.Equal(["ALLOCATE BP", "  DB1 BP", "SET ADDRESS OF BQ", "  DB2 BQ", "SET P TO ADDRESS OF AX", "  DB3 AX", "END"], lines);
     }
 }

@@ -1032,6 +1032,12 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         if (place is CapacityRegisterPlace cap)
             return new(DiagnosticCatalog.CapacityRegisterReceiving.Code, $"the CAPACITY register '{cap.RegisterItem.CobolName}' shall not be a "
                 + "receiving operand except in a SET statement Format 14 (ISO §13.18.38.3 SR32)");
+        // The X3.23-1985 DEBUG-ITEM register and its members (general rule 11: only the debugging facility updates them), whole or
+        // reference-modified (`MOVE "Z" TO DEBUG-CONTENTS (1:1)`): a view with no storage a program store could reach, so a receiver
+        // is refused here rather than at PlaceRenderer.Write's internal-error backstop (kb/Work PB4858 review R1-3).
+        if (place.Undecorated is DebugRegisterPlace)
+            return new(DiagnosticCatalog.DebugRegisterReceiving.Code, $"the debugging register '{DataBinder.WrittenText(dref)}' shall not be a receiving "
+                + "operand (X3.23-1985 USE FOR DEBUGGING general rule 11: the debugging facility alone updates DEBUG-ITEM)");
         // ISO §13.7.3 SR5 (kb/Work PB1250): "A formal parameter of a function shall not be used as a receiving operand."
         // A rule over the operand ROLE, so it is asked HERE and every statement's receiver — and §8.4.3.2.4 GR5's
         // BY-CONTENT choice for an argument — inherits it. The parameter in any reference form (whole or

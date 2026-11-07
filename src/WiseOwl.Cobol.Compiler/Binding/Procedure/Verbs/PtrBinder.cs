@@ -128,7 +128,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
                 if (!toNull && !ScreenBasedReceiverRestriction(based, senderRestriction, senderText,
                                                                addressSender: address is not null))
                     return BoundRejected.Reported(ctx.Edition);
-                receivers.Add(new BoundPointerReceiver(null, based));
+                receivers.Add(new BoundPointerReceiver(null, based) { BasedWritten = BasedPlace(based) });
                 continue;
             }
             // identifier-5 — SR17 "Identifier-5 shall reference a data item of category data-pointer";
@@ -382,7 +382,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
                 + $"cell storage ({why}; ISO §8.4.3.11)");
             return null;
         }
-        return new BoundAddressOf(item, r.OccursDisplacement, AddressRefModOf(r));
+        return new BoundAddressOf(item, r.OccursDisplacement, AddressRefModOf(r)) { Written = r.Written };
     }
 
     /// <summary>The leftmost-position facts of a reference-modified operand (<see cref="AddressRefMod"/>), or null when
@@ -494,7 +494,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
                 return BoundRejected.Reported(ctx.Edition);
             }
         }
-        var alloc = new BoundAllocate(based, null, al.INITIALIZED() is not null, returning);
+        var alloc = new BoundAllocate(based, null, al.INITIALIZED() is not null, returning) { Written = BasedPlace(based) };
         if (al.INITIALIZED() is null) return alloc;
         // GR7: "the allocated storage is initialized as if an INITIALIZE data-name-1 WITH FILLER ALL TO VALUE
         // THEN TO DEFAULT statement were executed" — the lowering IS that statement's bind-time expansion,
@@ -626,4 +626,9 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
             + "§14.9.3.3 SR1 — rebasing or allocating a non-BASED item is not ISO COBOL)");
         return null;
     }
+
+    /// <summary>The place of a BASED item as the statement wrote it (§14.9.39.3 SR18 / §14.9.3.3 SR1: a bare level-01/77 name, so no subscript
+    /// exists): the operand the statement explicitly references (X3.23-1985 USE FOR DEBUGGING general rule 5; kb/Work PB4855). The
+    /// statement's emitter works from the item; this place is read only by the debug reference walk.</summary>
+    private Place? BasedPlace(DataItem based) => ctx.Refs.Places.PlaceForItem(based, []);
 }

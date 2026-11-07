@@ -247,10 +247,23 @@ internal sealed class DispatchState
     /// function activation's propagation pickup, a §15.4 subscript temporary store's size-error selection, any
     /// raise a sending-value temp's MOVE makes — lands through this one method, so none of them decides the landing
     /// itself and a new raise site inherits the right one.</para>
+    /// <para>⛔ THE LANDING RUNS THE AFTER-STATEMENT DEBUGGING SECTIONS the statements around the raise site owe, before it leaves them
+    /// (<see cref="OwedBeforeTransfer"/>; X3.23-1985 USE FOR DEBUGGING general rules 5 d and 6 c, kb/Work PB4857): a RESUME AT
+    /// procedure-name is a GO TO (§14.9.33.4 GR3), so control never reaches the code after the statements it abandons, exactly as for a
+    /// nested GO TO (docs/CONTROL_FLOW_DESIGN.md D20). RESUME NEXT STATEMENT continues after the lowest statement, which reaches its enclosing
+    /// statements' ordinary fires, so it owes none here.</para>
     public string ResumeTransfer(string resultVar, string comment = "   // RESUME AT procedure-name (§14.9.33.4 GR3)")
         => InOperandEvaluation
             ? OperandEvaluationResume(resultVar)
-            : $"if (DispatchResult.IsTransfer({resultVar})) {{ {ExplicitTransferOut(resultVar)} }}{comment}";
+            : $"if (DispatchResult.IsTransfer({resultVar})) {{ {OwedBeforeTransferText()}{ExplicitTransferOut(resultVar)} }}{comment}";
+
+    /// <summary>The C# that runs the after-statement debugging sections the statements being emitted owe when control leaves them
+    /// (<c>DebugTriggerEmitter.OwedBeforeTransferText</c>), wired by <c>UnitEmitters</c>; null when no debug target exists. The dispatch state
+    /// owns every transfer's spelling, the debug emitter owns what the statements owe, and this is the one edge between them.</summary>
+    public Func<string>? OwedBeforeTransfer { get; set; }
+
+    /// <summary>The statements that run the owed sections, each followed by a space, or "" when none is owed.</summary>
+    public string OwedBeforeTransferText() => OwedBeforeTransfer?.Invoke() is { Length: > 0 } text ? text + " " : "";
 
     /// <summary>True while the statement emitter is emitting an operand-evaluation step
     /// (<see cref="Binding.Bound.BoundStatement.OperandEvaluation"/>) — opened by

@@ -173,7 +173,7 @@ Table 7 row 7.17 — the '85 dual posture: comment-treated without WITH DEBUGGIN
 switch, the ON procedure-name / ALL PROCEDURES leg is MODELED — the DEBUG-ITEM special register + procedure-entry
 triggers with the START PROGRAM / SPACES / PERFORM LOOP / FALL THROUGH DEBUG-CONTENTS taxonomy, object-time
 switch `RunUnit.DebugMode` default ON; a DEBUG-* register reference under the switch resolves to the register,
-never the false 0901; the data-name, ALL REFERENCES OF and cd-name triggers are modeled (CONTROL_FLOW_DESIGN D20); the file-name subject kind + the SORT/MERGE cause are staged loud
+never the false 0901; the data-name, ALL REFERENCES OF, file-name and cd-name triggers are modeled (CONTROL_FLOW_DESIGN D20); the SORT/MERGE cause is staged loud
 COBOL1571) · section-header
 segment-numbers (both header rules)**. 2014→2023: CLOSE WITH LOCK · CALL ON OVERFLOW (0882). Windows:
 EXIT METHOD/FUNCTION (2002→2023). Archaic 0903 @≥2023: EXIT PROGRAM · NEXT SENTENCE. Reserved-word intervals:

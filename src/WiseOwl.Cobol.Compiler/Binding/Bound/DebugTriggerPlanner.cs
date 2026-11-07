@@ -7,7 +7,7 @@ namespace WiseOwl.Cobol.Binding.Bound;
 /// <summary>
 /// ⛔ THE ONE PLACE THE X3.23-1985 USE FOR DEBUGGING TRIGGER RULES ARE APPLIED TO A STATEMENT (general rules 5, 6, 7 and 8;
 /// docs/CONTROL_FLOW_DESIGN.md D20). <see cref="StatementBinder"/>'s one funnel hands it each bound statement and the program's
-/// data-name, ALL REFERENCES OF and cd-name targets; it answers every <see cref="DebugFire"/> the statement causes, and the emitter
+/// data-name, ALL REFERENCES OF, cd-name and file-name targets; it answers every <see cref="DebugFire"/> the statement causes, and the emitter
 /// only places them. The rules, each cited to the 1985 text (USE FOR DEBUGGING general rules; quoted briefly):
 /// <list type="bullet">
 /// <item>Rule 5 — ALL REFERENCES OF identifier-1: the section runs "for every statement that explicitly references identifier-1".
@@ -24,6 +24,7 @@ namespace WiseOwl.Cobol.Binding.Bound;
 /// imperative statement, each individual occurrence of an imperative verb identifies a separate statement": the planner reads the
 /// statement ITSELF (<see cref="BoundReferences"/>, <see cref="BoundStores.DirectStoreOf"/>), and a statement nested in it is planned
 /// by its own funnel call.</item>
+/// <item>Rule 2 — file-name-1: after OPEN, CLOSE, READ (that delivered a record), DELETE and START (<see cref="PlanFile"/>).</item>
 /// <item>Rule 8 — cd-name-1: after ENABLE, DISABLE, SEND and ACCEPT MESSAGE COUNT, and after a RECEIVE that "does not result in the
 /// execution of the NO DATA imperative-statement" (<see cref="DebugWhen.AfterAction"/>). PURGE is not listed and runs nothing.</item>
 /// </list>
@@ -75,6 +76,11 @@ internal static class DebugTriggerPlanner
         if (target.Kind is DebugTargetKind.CdName)
         {
             PlanCd(leaf, target, fires);
+            return;
+        }
+        if (target.Kind is DebugTargetKind.FileName)
+        {
+            PlanFile(leaf, target, fires);
             return;
         }
         var item = target.Item!;
@@ -153,11 +159,37 @@ internal static class DebugTriggerPlanner
         }
     }
 
+    /// <summary>Rule 2: a file-name target is referenced by the OPEN, CLOSE, READ, DELETE and START of its own file, and the section runs after
+    /// the statement's own action. OPEN and CLOSE have no imperative phrase, so the section runs after the statement (<see cref="DebugWhen.After"/>);
+    /// READ, DELETE and START do, and "each individual occurrence of an imperative verb identifies a separate statement" (rule 7), so the section
+    /// runs when the verb's own I-O is done and before its phrases (<see cref="DebugWhen.AfterAction"/>, landed by the verb's emitter). A READ
+    /// runs it only when it delivered a record ("not resulting in the execution of an associated AT END or INVALID KEY imperative statement",
+    /// rule 2 b), with the entire record read in DEBUG-CONTENTS (rule 23 c); every other reference leaves spaces there (rule 23 d). WRITE and
+    /// REWRITE are not listed, nor are the SORT and MERGE verbs, RELEASE and RETURN: they run no file-name section (GnuCOBOL's typeck.c agrees).
+    /// DELETE FILE (ISO/IEC 1989:2023 §14.9.10 Format 2, not in the 1985 text) is a DELETE statement that references the file-name, and runs it
+    /// as GnuCOBOL's cb_emit_delete_file does, after the I-O and before the exception test.</summary>
+    private static void PlanFile(BoundStatement leaf, BoundDebugTarget target, List<DebugFire> fires)
+    {
+        var file = target.File!;
+        var fire = leaf switch
+        {
+            BoundOpen open when open.Files.Any(f => ReferenceEquals(f.File, file)) => (DebugWhen.After, DebugContents.Spaces),
+            BoundClose close when close.Files.Any(f => ReferenceEquals(f.File, file)) => (DebugWhen.After, DebugContents.Spaces),
+            BoundRead read when ReferenceEquals(read.File, file) => (DebugWhen.AfterAction, DebugContents.FileRecord),
+            BoundKeyedRead read when ReferenceEquals(read.File, file) => (DebugWhen.AfterAction, DebugContents.FileRecord),
+            BoundKeyedDelete del when ReferenceEquals(del.File, file) => (DebugWhen.AfterAction, DebugContents.Spaces),
+            BoundKeyedDeleteFile del when ReferenceEquals(del.File, file) => (DebugWhen.AfterAction, DebugContents.Spaces),
+            BoundKeyedStart start when ReferenceEquals(start.File, file) => (DebugWhen.AfterAction, DebugContents.Spaces),
+            _ => ((DebugWhen, DebugContents)?)null,
+        };
+        if (fire is { } f) fires.Add(new DebugFire(target, null, f.Item1, Contents: f.Item2));
+    }
+
     /// <summary>Rules 5 c / 6 b: the loop-control phrase's phases; everything else the PERFORM holds is an ordinary reference
     /// (the TIMES count, rule 5 d), planned like any statement's.</summary>
     private static void PlanPerform(BoundStatement perform, BoundPerformControl control, BoundDebugTarget target, List<DebugFire> fires)
     {
-        if (target.Kind is DebugTargetKind.CdName) return;
+        if (target.Kind is DebugTargetKind.CdName or DebugTargetKind.FileName) return;
         var item = target.Item!;
         switch (control)
         {
