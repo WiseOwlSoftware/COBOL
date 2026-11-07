@@ -1,0 +1,22 @@
+{
+ "page": 213,
+ "figure": 2,
+ "drawn_lines": [
+  "         ⎧            ┌⎧<u>REEL</u>⎫ [FOR <u>REMOVAL</u>] ┐⎫",
+  "         ⎪            │⎩<u>UNIT</u>⎭               │⎪",
+  "<i>SW</i> <u>CLOSE</u> ⎨file-name-1 │                     │⎬ ...",
+  "         ⎪            │     ⎧<u>NO</u> <u>REWIND</u>⎫     │⎪",
+  "         ⎩            └WITH ⎩<u>LOCK</u>     ⎭     ┘⎭"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "         ╭             ┌╭<u>REEL</u> ╮  [FOR <u>REMOVAL</u>] ┐ ╮",
+  "         ┤             │┤     ├                │ ├",
+  "         │             │╰<u>UNIT</u> ╯                │ │",
+  "&lt;i&gt;SW&lt;/i&gt; <u>CLOSE</u> ┤ file-name-1   │                      │ ├ …",
+  "         │             │      ╭ <u>NO</u> <u>REWIND</u>╮     │ │",
+  "         ┤             │      ┤          ├     │ ├",
+  "         ╰             └WITH  ╰ <u>LOCK</u>     ╯     ┘ ╯"
+ ],
+ "reason": "The printed page (the composite skeleton) sets the SW CLOSE format as the batch drew it, the italic SW module mark at its left: the REEL/UNIT brace and the WITH NO REWIND/LOCK brace inside one bracket, inside the file-name-1 brace, then the ellipsis. Drawn in the house style (figure_reading.restyle)."
+}

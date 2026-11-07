@@ -1,0 +1,24 @@
+{
+ "page": 308,
+ "figure": 0,
+ "drawn_lines": [
+  "<u>COMPUTE</u> {identifier-1 [<u>ROUNDED</u>]} ...  =  arithmetic-expression-1",
+  "",
+  "   [ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1]",
+  "",
+  "   [<u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2]",
+  "",
+  "   [<u>END-COMPUTE</u>]"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "╔<u>COMPUTE</u> {identifier-1 [<u>ROUNDED</u>]} …    =  arithmetic-expression-1 ╗",
+  "║                                                                 ║",
+  "║   [ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1]                        ║",
+  "║                                                                 ║",
+  "║   [<u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2]                    ║",
+  "║                                                                 ║",
+  "╚   [<u>END-COMPUTE</u>]                                                 ╝"
+ ],
+ "reason": "The printed page sets COMPUTE {identifier-1 [ROUNDED]} ... = arithmetic-expression-1 and its SIZE ERROR and END-COMPUTE phrases as the batch drew them, inside the page-wide level-2 box round the COMPUTE statement (the batch lost the box; the regeneration moved = to the next line). Drawn as the batch's drawing with the box's two sides round it."
+}

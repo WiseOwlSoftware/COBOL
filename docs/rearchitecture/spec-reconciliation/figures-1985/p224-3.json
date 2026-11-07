@@ -1,0 +1,16 @@
+{
+ "page": 224,
+ "figure": 3,
+ "drawn_lines": [
+  "                                                ⎧{file-name-1} ...⎫",
+  " W <u>USE</u> <u>AFTER</u> STANDARD ⎧<u>EXCEPTION</u>⎫ <u>PROCEDURE</u> ON ⎨<u>OUTPUT</u>           ⎬",
+  "                       ⎩<u>ERROR</u>    ⎭              ⎩<u>EXTEND</u>           ⎭"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "                     ╭ <u>EXCEPTION</u> ╮              ╭ {file-name-1} … ╮",
+  "W <u>USE</u> <u>AFTER</u> STANDARD ┤           ├ <u>PROCEDURE</u> ON ┤ <u>OUTPUT</u>          ├",
+  "                     ╰ <u>ERROR</u>     ╯              ╰ <u>EXTEND</u>          ╯"
+ ],
+ "reason": "The printed page sets the W USE format: AFTER STANDARD {EXCEPTION/ERROR} PROCEDURE ON {{file-name-1} ... / OUTPUT / EXTEND}; the batch typed the braces' corners. Hand-drawn from the page in the house style."
+}

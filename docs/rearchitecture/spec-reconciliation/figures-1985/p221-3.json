@@ -1,0 +1,34 @@
+{
+ "page": 221,
+ "figure": 3,
+ "drawn_lines": [
+  "                                    ⎧WITH identifier-2⎫",
+  "<u>SEND</u> cd-name-1  [<u>FROM</u> identifier-1] ⎨WITH <u>ESI</u>         ⎬",
+  "                                    ⎪WITH <u>EMI</u>         ⎪",
+  "                                    ⎩WITH <u>EGI</u>         ⎭",
+  "",
+  "    ┌⎧<u>BEFORE</u>⎫           ⎧⎧identifier-3⎫ ┌LINE ┐⎫┐",
+  "    │⎩<u>AFTER</u> ⎭ ADVANCING ⎨⎩integer-1   ⎭ └LINES┘⎬│",
+  "    │                   ⎪⎧mnemonic-name-1⎫     ⎪│",
+  "    └                   ⎩⎩<u>PAGE</u>           ⎭     ⎭┘",
+  "",
+  "    [<u>REPLACING</u> LINE]"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "                                     ╭WITH  identifier-2 ╮",
+  "<u>SEND</u>  cd-name-1  [<u>FROM</u> identifier-1] ┤WITH  <u>ESI</u>          ├",
+  "                                     │WITH  <u>EMI</u>          │",
+  "                                     ╰WITH  <u>EGI</u>          ╯",
+  "",
+  "    ┌ ╭<u>BEFORE</u>╮           ╭╭identifier-3╮ ┌ LINE ┐╮┐",
+  "    │ ┤      ├           │┤            ├ │      │││",
+  "    │ ╰<u>AFTER</u> ╯ ADVANCING ┤╰integer-1   ╯ └ LINES┘├│",
+  "    │                    │╭mnemonic-name-1 ╮     ││",
+  "    │                    │┤                ├     ││",
+  "    └                    ╰╰<u>PAGE</u>            ╯     ╯┘",
+  "",
+  "    [ <u>REPLACING</u> LINE]"
+ ],
+ "reason": "The printed page sets SEND format 2 as the batch drew it: the four WITH alternatives in one brace, the BEFORE/AFTER ADVANCING bracket round the {identifier-3/integer-1} [LINE/LINES] and {mnemonic-name-1/PAGE} brace, and [REPLACING LINE]. Drawn in the house style (figure_reading.restyle)."
+}

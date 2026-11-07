@@ -1,0 +1,39 @@
+{
+ "page": 662,
+ "figure": 0,
+ "drawn_lines": [
+  "<u>CD</u>  cd-name-1 FOR <u>OUTPUT</u>",
+  "",
+  "     [<u>DESTINATION</u> <u>COUNT</u> IS data-name-1]",
+  "",
+  "     [<u>TEXT</u> <u>LENGTH</u> IS data-name-2]",
+  "",
+  "     [<u>STATUS</u> <u>KEY</u> IS data-name-3]",
+  "",
+  "     ┌<u>DESTINATION</u> <u>TABLE</u> <u>OCCURS</u> integer-1 TIMES       ┐",
+  "     └    [<u>INDEXED</u> BY  {index-name-1} ... ]           ┘",
+  "",
+  "     [<u>ERROR</u> <u>KEY</u> IS data-name-4]",
+  "",
+  "     [SYMBOLIC <u>DESTINATION</u> IS data-name-5]."
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "<u>CD</u>  cd-name-1 FOR <u>OUTPUT</u>",
+  "",
+  "     [<u>DESTINATION</u> <u>COUNT</u> IS data-name-1]",
+  "",
+  "     [<u>TEXT</u> <u>LENGTH</u> IS data-name-2]",
+  "",
+  "     [<u>STATUS</u> <u>KEY</u> IS data-name-3]",
+  "",
+  "     ╔[<u>DESTINATION</u> <u>TABLE</u> <u>OCCURS</u> integer-1 TIMES    ╗",
+  "     ║                                             ║",
+  "     ╚    [<u>INDEXED</u> BY {index-name-1} … ]]          ╝",
+  "",
+  "     [<u>ERROR</u> <u>KEY</u> IS data-name-4]",
+  "",
+  "     [SYMBOLIC <u>DESTINATION</u> IS data-name-5]."
+ ],
+ "reason": "The printed page sets CD Format 2 with a level-2 box round the DESTINATION TABLE OCCURS ... [INDEXED BY {index-name-1} ...]] clause (two rows); the batch drew it as a bracket. Drawn from the page by FIGURE-STYLE.md rule 9."
+}

@@ -1,0 +1,42 @@
+{
+ "page": 209,
+ "figure": 0,
+ "drawn_lines": [
+  "<u>RD</u>  report-name-1",
+  "",
+  "    [IS <u>GLOBAL</u>]",
+  "",
+  "    [<u>CODE</u> literal-1]",
+  "",
+  "    ┌⎧<u>CONTROL</u> IS   ⎫ ⎧{data-name-1} ...          ⎫┐",
+  "    └⎩<u>CONTROLS</u> ARE ⎭ ⎩<u>FINAL</u> [data-name-1] ...⎭┘",
+  "",
+  "    ┌ <u>PAGE</u> ┌LIMIT IS  ┐ integer-1 ┌LINE ┐ [<u>HEADING</u> integer-2]┐",
+  "    │      └LIMITS ARE┘           └LINES┘                     │",
+  "    │                                                         │",
+  "    │     [<u>FIRST</u> <u>DETAIL</u> integer-3]  [<u>LAST</u> <u>DETAIL</u> integer-4]      │",
+  "    │                                                         │",
+  "    └     [<u>FOOTING</u> integer-5]                                 ┘."
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "<u>RD</u> report-name-1",
+  "",
+  "    [IS <u>GLOBAL</u>]",
+  "",
+  "    [ <u>CODE</u> literal-1 ]",
+  "",
+  "    ┌ ╭ <u>CONTROL</u> IS   ╮ ╭ { data-name-1 } …        ╮ ┐",
+  "    │ ┤              ├ ┤                          ├ │",
+  "    └ ╰ <u>CONTROLS</u> ARE ╯ ╰ <u>FINAL</u> [ data-name-1 ] …  ╯ ┘",
+  "",
+  "    ┌      ┌ LIMIT IS   ┐             ┌ LINE  ┐                        ┐",
+  "    │ <u>PAGE</u> │            │ integer-1   │       │ [ <u>HEADING</u> integer-2 ]  │",
+  "    │      └ LIMITS ARE ┘             └ LINES ┘                        │",
+  "    │                                                                  │",
+  "    │      [ <u>FIRST</u> <u>DETAIL</u> integer-3 ] [ <u>LAST</u> <u>DETAIL</u> integer-4 ]        │",
+  "    │                                                                  │",
+  "    └      [ <u>FOOTING</u> integer-5 ]                                       ┘ ."
+ ],
+ "reason": "The printed page (the composite skeleton, GENERAL FORMAT FOR REPORT DESCRIPTION ENTRY) sets the RD entry as the decided Report Writer RD format (3.5.2) draws it, with [IS GLOBAL] after report-name-1; the batch's columns were off in the CONTROL and PAGE brackets. Drawn from that decided figure, checked against the page."
+}

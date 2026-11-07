@@ -1,0 +1,24 @@
+{
+ "page": 324,
+ "figure": 0,
+ "drawn_lines": [
+  "<u>INITIALIZE</u>  {identifier-1} ...",
+  "",
+  "  ┌           ⎧⎧<u>ALPHABETIC</u>          ⎫                        ⎫     ┐",
+  "  │           ⎪⎪<u>ALPHANUMERIC</u>        ⎪          ⎧identifier-2⎫ ⎪     │",
+  "  │ <u>REPLACING</u> ⎨⎨<u>NUMERIC</u>             ⎬ DATA <u>BY</u>  ⎩literal-1   ⎭ ⎬ ... │",
+  "  │           ⎪⎪<u>ALPHANUMERIC-EDITED</u> ⎪                        ⎪     │",
+  "  └           ⎩⎩<u>NUMERIC-EDITED</u>      ⎭                        ⎭     ┘"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "╔<u>INITIALIZE</u> {identifier-1} …                                            ╗",
+  "║                                                                       ║",
+  "║  ┌           ╭ ╭ <u>ALPHABETIC</u>          ╮                          ╮   ┐ ║",
+  "║  │           │ │ <u>ALPHANUMERIC</u>        │         ╭ identifier-2 ╮ │   │ ║",
+  "║  │ <u>REPLACING</u> ┤ ┤ <u>NUMERIC</u>             ├ DATA <u>BY</u> ┤              ├ ├ … │ ║",
+  "║  │           │ │ <u>ALPHANUMERIC-EDITED</u> │         ╰ literal-1    ╯ │   │ ║",
+  "╚  └           ╰ ╰ <u>NUMERIC-EDITED</u>      ╯                          ╯   ┘ ╝"
+ ],
+ "reason": "The printed page sets INITIALIZE {identifier-1} ... [REPLACING {{ALPHABETIC / ALPHANUMERIC / NUMERIC / ALPHANUMERIC-EDITED / NUMERIC-EDITED} DATA BY {identifier-2 / literal-1}} ...] inside the page-wide level-2 box round the INITIALIZE statement. The batch set its closers a column off and lost the box. Drawn from the page."
+}

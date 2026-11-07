@@ -1,0 +1,33 @@
+{
+ "page": 366,
+ "figure": 2,
+ "drawn_lines": [
+  "┌──────────────────────────────────────────────────────────────────────────────┐",
+  "│<u>Format 3</u>:                                                                     │",
+  "│                                                                              │",
+  "│<u>SUBTRACT</u> ⎧<u>CORRESPONDING</u>⎫ identifier-1 <u>FROM</u> identifier-2 [<u>ROUNDED</u>]             │",
+  "│         ⎩<u>CORR</u>         ⎭                                                     │",
+  "│                                                                              │",
+  "│   [ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1]                                     │",
+  "│                                                                              │",
+  "│   [<u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2]                                 │",
+  "│                                                                              │",
+  "│   [<u>END-SUBTRACT</u>]                                                             │",
+  "└──────────────────────────────────────────────────────────────────────────────┘"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "╔<u>Format</u> <u>3</u>:                                                             ╗",
+  "║                                                                      ║",
+  "║         ╭ <u>CORRESPONDING</u> ╮                                            ║",
+  "║<u>SUBTRACT</u> ┤               ├ identifier-1 <u>FROM</u> identifier-2 [ <u>ROUNDED</u> ] ║",
+  "║         ╰ <u>CORR</u>          ╯                                            ║",
+  "║                                                                      ║",
+  "║   [ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1 ]                           ║",
+  "║                                                                      ║",
+  "║   [ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 ]                       ║",
+  "║                                                                      ║",
+  "╚   [ <u>END-SUBTRACT</u> ]                                                   ╝"
+ ],
+ "reason": "The printed page encloses SUBTRACT Format 3 (CORRESPONDING), its label included, in a level-2 box, which the batch drew as a full rectangle with a stray side; the words, underlines and groups are SUBTRACT {CORRESPONDING / CORR} identifier-1 FROM identifier-2 [ROUNDED] and the SIZE ERROR and END-SUBTRACT phrases. Drawn from the page."
+}

@@ -1,0 +1,32 @@
+{
+ "page": 253,
+ "figure": 0,
+ "drawn_lines": [
+  "Format 2:",
+  "",
+  "                                  ┌⎧ <u>THROUGH</u> ⎫               ┐",
+  "66 data-name-1 <u>RENAMES</u> data-name-2 │⎨         ⎬ data-name-3 │ .",
+  "                                  └⎩ <u>THRU</u>    ⎭               ┘",
+  "",
+  "Format 3:",
+  "",
+  "                      ⎧ <u>VALUE</u> IS  ⎫ ⎧           ┌⎧ <u>THROUGH</u> ⎫           ┐⎫",
+  "88  condition-name-1  ⎨           ⎬ ⎨ literal-1 │⎨         ⎬ literal-2 │⎬ ...  .",
+  "                      ⎩ <u>VALUES</u> ARE⎭ ⎩           └⎩ <u>THRU</u>    ⎭           ┘⎭"
+ ],
+ "decided": "generated",
+ "figure_lines": [
+  "╔ <u>Format</u> <u>2</u>:                                                                      ╗",
+  "║                                                                                ║",
+  "║                                    ┌ ╭ <u>THROUGH</u> ╮             ┐                 ║",
+  "║ 66 data-name-1 <u>RENAMES</u> data-name-2 │ ┤         ├ data-name-3 │ .               ║",
+  "║                                    └ ╰ <u>THRU</u>    ╯             ┘                 ║",
+  "║                                                                                ║",
+  "║ <u>Format</u> <u>3:</u>                                                                      ║",
+  "║                                                                                ║",
+  "║                     ╭ <u>VALUE</u> IS   ╮ ╭           ┌ ╭ <u>THROUGH</u> ╮           ┐ ╮     ║",
+  "║ 88 condition-name-1 ┤            ├ ┤ literal-1 │ ┤         ├ literal-2 │ ├ … . ║",
+  "╚                     ╰ <u>VALUES</u> ARE ╯ ╰           └ ╰ <u>THRU</u>    ╯           ┘ ╯     ╝"
+ ],
+ "reason": "The printed page encloses Formats 2 and 3 (66 RENAMES, 88 condition-name VALUE) in one level-2 box with their labels, as the regeneration draws them; the batch lost the box and set the RENAMES bracket's closer a column off. The labels are underlined on the page, as regenerated."
+}

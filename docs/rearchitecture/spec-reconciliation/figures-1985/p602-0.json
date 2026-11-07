@@ -29,7 +29,7 @@
   "",
   "    [[<u>USAGE</u> IS]  <u>DISPLAY</u>]."
  ],
- "decided": "generated",
+ "decided": "neither",
  "figure_lines": [
   "01 [ data-name-1 ]",
   "",
@@ -55,8 +55,8 @@
   "        │ ┤                 ├ ┤             ├ │",
   "        │ ╰ <u>CH</u>              ╯ ╰ <u>FINAL</u>       ╯ │",
   "        │                                     │",
-  "        ┤ ╭ <u>DETAIL</u> ╮                          │",
-  "<u>TYPE</u> IS │ ┤        ├                          ├",
+  "        │ ╭ <u>DETAIL</u> ╮                          │",
+  "<u>TYPE</u> IS ┤ ┤        ├                          ├",
   "        │ ╰ <u>DE</u>     ╯                          │",
   "        │                                     │",
   "        │ ╭ <u>CONTROL</u> <u>FOOTING</u> ╮ ╭ data-name-3 ╮ │",
@@ -73,5 +73,5 @@
   "",
   "[ [ <u>USAGE</u> IS ] <u>DISPLAY</u> ] ."
  ],
- "reason": "The printed page encloses both LINE NUMBER alternatives (integer-1 [ON NEXT PAGE] and PLUS integer-2) in one brace inside the bracket, as the regeneration draws it; the batch dropped the brace on the second alternative. Every other word and group agrees with the page."
+ "reason": "The printed page encloses both LINE NUMBER alternatives (integer-1 [ON NEXT PAGE] and PLUS integer-2) in one brace inside the bracket, as the regeneration draws it; the batch dropped the brace on the second alternative. Every other word and group agrees with the page. The regeneration set the TYPE brace's left point one row above its right point and the TYPE IS label; the page prints all three on the middle row, so the left point is drawn there (by hand, hence neither)."
 }

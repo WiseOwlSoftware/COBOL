@@ -1,0 +1,20 @@
+{
+ "page": 227,
+ "figure": 1,
+ "drawn_lines": [
+  "                      ⎧ <u>NUMERIC</u>          ⎫",
+  "                      ⎪ <u>ALPHABETIC</u>       ⎪",
+  "identifier-1 IS [<u>NOT</u>] ⎨ <u>ALPHABETIC-LOWER</u> ⎬",
+  "                      ⎪ <u>ALPHABETIC-UPPER</u> ⎪",
+  "                      ⎩ class-name-1     ⎭"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "                      ╭ <u>NUMERIC</u>          ╮",
+  "                      │ <u>ALPHABETIC</u>       │",
+  "identifier-1 IS [<u>NOT</u>] ┤ <u>ALPHABETIC-LOWER</u> ├",
+  "                      │ <u>ALPHABETIC-UPPER</u> │",
+  "                      ╰ class-name-1     ╯"
+ ],
+ "reason": "The printed page sets the class condition as the batch drew it: identifier-1 IS [NOT] and the NUMERIC / ALPHABETIC / ALPHABETIC-LOWER / ALPHABETIC-UPPER / class-name-1 brace. Drawn in the house style (figure_reading.restyle)."
+}

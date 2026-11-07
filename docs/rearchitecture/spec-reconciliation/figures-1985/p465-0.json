@@ -1,0 +1,20 @@
+{
+ "page": 465,
+ "figure": 0,
+ "drawn_lines": [
+  "                                            ⎧ {file-name-1} ... ⎫",
+  "                   ⎧<u>EXCEPTION</u>⎫              ⎪ <u>INPUT</u>             ⎪",
+  "<u>USE</u> <u>AFTER</u> STANDARD ⎩<u>ERROR</u>    ⎭ <u>PROCEDURE</u> ON ⎨ <u>OUTPUT</u>            ⎬",
+  "                                            ⎪ <u>I-O</u>               ⎪",
+  "                                            ⎩ <u>EXTEND</u>            ⎭"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "                                              ╭ { file-name-1 } ║ … ║  ╮",
+  "                   ╭ <u>EXCEPTION</u> ╮              │ <u>INPUT</u>                  │",
+  "<u>USE</u> <u>AFTER</u> STANDARD ┤           ├ <u>PROCEDURE</u> ON ┤ <u>OUTPUT</u>                 ├",
+  "                   ╰ <u>ERROR</u>     ╯              │ <u>I-O</u>                    │",
+  "                                              ╰ ║ <u>EXTEND</u> ║             ╯"
+ ],
+ "reason": "The printed page sets the relative USE format exactly as the sequential one (page 424): {EXCEPTION / ERROR} and the file brace, with level-2 boxes round the ellipsis after {file-name-1} and round EXTEND, which the batch lost. Drawn from the page."
+}

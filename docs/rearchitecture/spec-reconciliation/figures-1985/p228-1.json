@@ -1,0 +1,16 @@
+{
+ "page": 228,
+ "figure": 1,
+ "drawn_lines": [
+  "                    ⎧⎧<u>AND</u>⎫                                           ⎫",
+  "relation-condition  ⎨⎨   ⎬  [<u>NOT</u>]  [relational-operator]  object  ⎬ ...",
+  "                    ⎩⎩<u>OR</u> ⎭                                           ⎭"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "                    ╭ ╭ <u>AND</u> ╮                                        ╮",
+  "relation-condition  ┤ ┤     ├ [ <u>NOT</u> ] [ relational-operator ] object ├ …",
+  "                    ╰ ╰ <u>OR</u>  ╯                                        ╯"
+ ],
+ "reason": "The printed page sets the abbreviated combined relation condition: relation-condition {{AND/OR} [NOT] [relational-operator] object} ...; the batch typed the outer brace's closing corners. Hand-drawn from the page in the house style."
+}

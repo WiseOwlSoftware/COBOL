@@ -1,0 +1,33 @@
+{
+ "page": 389,
+ "figure": 0,
+ "drawn_lines": [
+  "<u>I-O-CONTROL</u>.",
+  "",
+  "┌┌                                        ⎧ ⎧ [<u>END</u> OF] ⎧<u>REEL</u>⎫  ⎫                ⎫┐",
+  "││       ┌    ⎧file-name-1       ⎫┐       ⎪ ⎨          ⎩<u>UNIT</u>⎭  ⎬ OF file-name-2 ⎪│",
+  "││<u>RERUN</u>  └<u>ON</u>  ⎩implementor-name-1⎭┘ EVERY ⎨ ⎩integer-1 <u>RECORDS</u>⎭                ⎬│...",
+  "││                                        ⎪ integer-2 <u>CLOCK-UNITS</u>               ⎪│",
+  "└└                                        ⎩ condition-name-1                    ⎭┘",
+  "",
+  "  [<u>SAME</u> [<u>RECORD</u>] AREA FOR file-name-3 {file-name-4} ... ] ...",
+  "",
+  "  [<u>MULTIPLE</u> <u>FILE</u> TAPE CONTAINS {file-name-5 [<u>POSITION</u> integer-3]} ... ] ... .]"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "<u>I-O-CONTROL</u>.",
+  "",
+  "┌ ┌                                           ╭ ╭ [ <u>END</u> OF ] ╭ <u>REEL</u> ╮ ╮                ╮ ┐",
+  "│ │       ┌    ╭ file-name-1        ╮ ┐       │ ┤            ┤      ├ ├ OF file-name-2 │ │",
+  "│ │ <u>RERUN</u> │ <u>ON</u> ┤                    ├ │ EVERY ┤ │            ╰ <u>UNIT</u> ╯ │                ├ │ …",
+  "│ │       └    ╰ implementor-name-1 ╯ ┘       │ ╰ integer-1 <u>RECORDS</u>   ╯                │ │",
+  "│ │                                           │ integer-2 <u>CLOCK-UNITS</u>                  │ │",
+  "└ └                                           ╰ condition-name-1                       ╯ ┘",
+  "",
+  "  [ <u>SAME</u> ║ [ <u>RECORD</u> ] ║ AREA FOR file-name-3 { file-name-4 } … ] …",
+  "",
+  "  ║ [ <u>MULTIPLE</u> <u>FILE</u> TAPE CONTAINS { file-name-5 [ <u>POSITION</u> integer-3 ] } … ] … ║ . ]"
+ ],
+ "reason": "The printed page sets the I-O-CONTROL paragraph: [[RERUN [ON {file-name-1 / implementor-name-1}] EVERY {{[END OF] {REEL / UNIT} / integer-1 RECORDS} OF file-name-2 / integer-2 CLOCK-UNITS / condition-name-1}] ... with level-2 boxes round [RECORD] in the SAME clause and round the whole MULTIPLE FILE TAPE clause; the outer bracket opened before RERUN closes after the final period. The batch lost the boxes and set closers a column off. Drawn from the page."
+}

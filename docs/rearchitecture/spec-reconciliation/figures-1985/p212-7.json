@@ -1,0 +1,23 @@
+{
+ "page": 212,
+ "figure": 7,
+ "drawn_lines": [
+  "<u>CALL</u> ⎧identifier-1⎫ ┌<u>USING</u> ⎧[BY <u>REFERENCE</u>]  {identifier-2} ... ⎫ ...┐",
+  "     ⎩literal-1   ⎭ └      ⎩BY <u>CONTENT</u>    {identifier-2} ...    ⎭    ┘",
+  "",
+  "   [ON <u>OVERFLOW</u> imperative-statement-1]",
+  "",
+  "   [<u>END-CALL</u>]"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "     ╭ identifier-1 ╮ ┌       ╭ [ BY <u>REFERENCE</u> ] { identifier-2 } … ╮   ┐",
+  "<u>CALL</u> ┤              ├ │ <u>USING</u> ┤                                     ├ … │",
+  "     ╰ literal-1    ╯ └       ╰ BY <u>CONTENT</u> { identifier-2 } …       ╯   ┘",
+  "",
+  "[ ON <u>OVERFLOW</u> imperative-statement-1 ]",
+  "",
+  "[ <u>END-CALL</u> ]"
+ ],
+ "reason": "The printed page (the composite skeleton) sets CALL format 1 with the identifier-1/literal-1 brace and the USING bracket exactly as page 213's decided CALL format draws them, then [ON OVERFLOW imperative-statement-1] and [END-CALL]; the batch's columns were off in the USING brace. Drawn from page 213's figure, checked against the page."
+}

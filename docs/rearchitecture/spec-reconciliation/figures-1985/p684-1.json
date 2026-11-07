@@ -1,0 +1,34 @@
+{
+ "page": 684,
+ "figure": 1,
+ "drawn_lines": [
+  "                                     ⎧ WITH identifier-2 ⎫",
+  "<u>SEND</u> cd-name-1  [<u>FROM</u> identifier-1]  ⎨ WITH <u>ESI</u>          ⎬",
+  "                                     ⎪ WITH <u>EMI</u>          ⎪",
+  "                                     ⎩ WITH <u>EGI</u>          ⎭",
+  "",
+  "    ┌                    ⎧ ⎧identifier-3⎫ ┌LINE ┐ ⎫ ┐",
+  "    │ ⎧<u>BEFORE</u>⎫ ADVANCING ⎪ ⎩integer-1   ⎭ └LINES┘ ⎪ │",
+  "    │ ⎩<u>AFTER</u> ⎭           ⎨                        ⎬ │",
+  "    │                    ⎪ ⎧<u>mnemonic-name-1</u>⎫      ⎪ │",
+  "    └                    ⎩ ⎩<u>PAGE</u>           ⎭      ⎭ ┘",
+  "    [<u>REPLACING</u> LINE]"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "                                     ╭ ║ WITH identifier-2 ║ ╮",
+  "<u>SEND</u> cd-name-1 [ <u>FROM</u> identifier-1 ] ┤   WITH <u>ESI</u>            ├",
+  "                                     │   WITH <u>EMI</u>            │",
+  "                                     ╰   WITH <u>EGI</u>            ╯",
+  "",
+  "    ┌                      ╭ ╭ identifier-3 ╮ ┌ LINE  ┐ ╮ ┐",
+  "    │                      │ ┤              ├ │       │ │ │",
+  "    │ ╭ <u>BEFORE</u> ╮           │ ╰ integer-1    ╯ └ LINES ┘ │ │",
+  "    │ ┤        ├ ADVANCING ┤                            ├ │",
+  "    │ ╰ <u>AFTER</u>  ╯           │ ╭ ║ mnemonic-name-1 ║ ╮    │ │",
+  "    │                      │ ┤                     ├    │ │",
+  "    └                      ╰ ╰ <u>PAGE</u>                ╯    ╯ ┘",
+  "    ║ [ <u>REPLACING</u> LINE ] ║"
+ ],
+ "reason": "The printed page sets SEND Format 2 (3.6.2) with level-2 boxes round WITH identifier-2, round mnemonic-name-1 and round [REPLACING LINE] (one row each); the batch lost the boxes and underlined mnemonic-name-1, whose rule is the box's lower side. Drawn from the page by FIGURE-STYLE.md rule 9."
+}

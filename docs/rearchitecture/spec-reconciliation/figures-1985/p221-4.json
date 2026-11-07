@@ -1,0 +1,17 @@
+{
+ "page": 221,
+ "figure": 4,
+ "drawn_lines": [
+  "    ⎧index-name-1⎫        ⎧index-name-2⎫",
+  "<u>SET</u> ⎩identifier-1⎭ ... <u>TO</u> ⎨identifier-2⎬",
+  "                          ⎩integer-1   ⎭"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "    ╭ index-name-1 ╮        ╭ index-name-2 ╮",
+  "    ┤              ├        │              │",
+  "<u>SET</u> ╰ identifier-1 ╯ …   <u>TO</u> ┤ identifier-2 ├",
+  "                            ╰ integer-1    ╯"
+ ],
+ "reason": "The printed page sets SET format 1 as the batch drew it: {index-name-1/identifier-1} ... TO {index-name-2/identifier-2/integer-1}. Drawn in the house style (figure_reading.restyle)."
+}

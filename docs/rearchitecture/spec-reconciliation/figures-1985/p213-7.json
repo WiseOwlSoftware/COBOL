@@ -1,0 +1,16 @@
+{
+ "page": 213,
+ "figure": 7,
+ "drawn_lines": [
+  "        ⎧<u>INPUT</u> [<u>TERMINAL</u>]⎫           ┌         ⎧identifier-1⎫┐",
+  "<u>DISABLE</u> ⎨<u>I-O</u> <u>TERMINAL</u>    ⎬ cd-name-1 │WITH <u>KEY</u> ⎨            ⎬│",
+  "        ⎩<u>OUTPUT</u>          ⎭           └         ⎩literal-1   ⎭┘"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "        ╭ <u>INPUT</u> [<u>TERMINAL</u>] ╮           ┌          ╭ identifier-1 ╮ ┐",
+  "<u>DISABLE</u> ┤ <u>I-O</u> <u>TERMINAL</u>     ├ cd-name-1 │ WITH <u>KEY</u> ┤              ├ │",
+  "        ╰ <u>OUTPUT</u>           ╯           └          ╰ literal-1    ╯ ┘"
+ ],
+ "reason": "The printed page sets DISABLE as the batch drew it: the INPUT [TERMINAL] / I-O TERMINAL / OUTPUT brace, cd-name-1, and the WITH KEY bracket round the identifier-1/literal-1 brace. Drawn in the house style (figure_reading.restyle)."
+}
