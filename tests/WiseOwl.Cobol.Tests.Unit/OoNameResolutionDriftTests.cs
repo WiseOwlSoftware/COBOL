@@ -46,8 +46,9 @@ public sealed class OoNameResolutionDriftTests
             (4, "re-lookup of a receiver's/target's declared ObjectClassName (scope-checked at its data "
                 + "description entry, COBOL0813)"),
         [Path.Combine("Binding", "Procedure", "Verbs", "OoBinder.InlineInvocation.cs")] =
-            (1, "InlineInvocationReturningItem (kb/Work PB4868): the diagnostic-free probe of an inline invocation's returned item re-looks-up "
-                + "the receiver's declared ObjectClassName (scope-checked at its data description entry, COBOL0813), as OoBinder's own lookups do"),
+            (2, "ProbedRoster(DataItem) (kb/Work PB4868, PB4893): the statement funnel's diagnostic-free probe of the methods an invocation "
+                + "activates re-looks-up a receiver's declared class or interface name (scope-checked at its data description entry, "
+                + "COBOL0813), as OoBindInstanceInvoke's own lookups do"),
         [Path.Combine("Binding", "Procedure", "Verbs", "EcBinder.cs")] =
             (3, "the GOBACK §2023:14.9.18.3 SR4 / EXIT §2023:14.9.14.3 SR5 identifier check (RaisingObjectMismatch, kb/Work "
                 + "PB815/PB814): a) / c) the superclass walk from the operand's declared (or containing) class, "

@@ -260,10 +260,10 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// directive removed as null, so a boolean user function named by an UNDEFINE'd word bound as a function but was
     /// not routed as a boolean operand (`IF FUNCTION SUM(3)` refused as "a function reference" while the relation form
     /// compiled); and the intrinsic arm looked the written text up in the catalog, which a SUBSTITUTE'd name misses.
-    /// <c>IntrinsicBinder.ReturningItemOf(FunctionCallContext)</c> and <see cref="FunctionWord.Canonical"/> are the
+    /// <c>IntrinsicBinder.SignatureOf(FunctionCallContext)</c> and <see cref="FunctionWord.Canonical"/> are the
     /// bind path's own readings.</para></summary>
     private bool IsBooleanFunction(Core.FunctionCallContext sfc) =>
-        host.Intrinsic.ReturningItemOf(sfc) is { } returning
+        host.Intrinsic.SignatureOf(sfc)?.Returning is { } returning
             ? returning.OperandPic?.Category is PicCategory.Boolean
             : sfc.functionName() is { } fn && FunctionWord.OfToken(fn.Start, ctx.CobolWords).Canonical is { } canonical
               && IntrinsicCatalog.TryGet(canonical, out var sig) && sig.Type == IntrinsicType.Boolean;

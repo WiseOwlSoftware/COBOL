@@ -104,7 +104,12 @@ internal readonly record struct ExternalizedSubject(
 /// (§2023:12.3.8.4 GR11 a), or §2023:8.4.6.6's containing definition), so a reference to it activates the function whose formals
 /// were checked at bind time (<c>RepositoryOrigin.IsDefinitionCompiledHere</c>; DESIGN-external-repository §4.2).</param>
 public sealed record UserFunctionSignature(
-    string Name, string Externalized, DataItem? Returning, IReadOnlyList<LinkageFormal> Formals, bool DefinitionCompiledHere);
+    string Name, string Externalized, DataItem? Returning, IReadOnlyList<LinkageFormal> Formals, bool DefinitionCompiledHere)
+{
+    /// <summary>The items the signature describes: each formal parameter's, then the RETURNING item's when there is one.</summary>
+    public IEnumerable<DataItem> SignatureItems =>
+        Returning is { } returning ? Formals.Select(formal => formal.Item).Append(returning) : Formals.Select(formal => formal.Item);
+}
 
 /// <summary>ONE Format-2 callee's activation signature: its positional USING formals and its PROCEDURE DIVISION
 /// RETURNING item. §2023:14.9.4.3 SR25 makes BOTH §2023:14.8.2, Parameters and §2023:14.8.3, Returning items apply to a Format-2
