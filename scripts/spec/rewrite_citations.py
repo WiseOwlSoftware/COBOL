@@ -127,9 +127,10 @@ def rewrite_line(line: str, own: frozenset[str], known: frozenset[str], rel: str
 def rewrite_file(path: pathlib.Path, known: frozenset[str], tally: Tally, apply: bool, repo: pathlib.Path) -> None:
     rel = path.relative_to(repo).as_posix()
     try:
-        raw = path.read_bytes()
-        text = raw.decode("utf-8")
-    except (OSError, UnicodeDecodeError):
+        text = path.read_bytes().decode("utf-8")
+    except (OSError, UnicodeDecodeError) as e:
+        tally.left[f"unreadable as UTF-8, not rewritten ({type(e).__name__})"] += 1   # counted, never skipped silently
+        tally.hand.append((rel, 0, "", f"not read: {e}"))
         return
     if "§" not in text:
         return
