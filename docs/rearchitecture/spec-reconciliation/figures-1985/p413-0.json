@@ -1,0 +1,22 @@
+{
+ "page": 413,
+ "figure": 0,
+ "drawn_lines": [
+  "       ⎧ <u>INPUT</u>  ⎧            ┌<u>REVERSED</u>      ┐⎫     ⎫",
+  "       ⎪        ⎨file-name-1 │              │⎬ ... ⎪",
+  "       ⎪        ⎩            └WITH <u>NO</u> <u>REWIND</u>┘⎭     ⎪",
+  "<u>OPEN</u>   ⎨ <u>OUTPUT</u> {file-name-2 [WITH <u>NO</u> <u>REWIND</u>]} ... ⎬ ...",
+  "       ⎪ <u>I-O</u> {file-name-3} ...                     ⎪",
+  "       ⎩ <u>EXTEND</u> {file-name-4} ...                  ⎭"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "       ╭ <u>INPUT</u>  ╭            ┌ <u>REVERSED</u>       ┐ ╮     ╮",
+  "       │        ┤file-name-1 │                │ ├ …   │",
+  "       │        ╰            └ WITH <u>NO</u> <u>REWIND</u> ┘ ╯     │",
+  "<u>OPEN</u>   ┤ <u>OUTPUT</u> {file-name-2 [ WITH <u>NO</u> <u>REWIND</u> ] } …   ├ …",
+  "       │ <u>I-O</u> {file-name-3} …                          │",
+  "       ╰║<u>EXTEND</u> {file-name-4}  … ║                    ╯"
+ ],
+ "reason": "The printed page sets the sequential OPEN format as the batch drew it, with the EXTEND {file-name-4} ... alternative in a level-2 box, which the batch lost. Drawn as the batch's drawing with the box's sides on that line."
+}
