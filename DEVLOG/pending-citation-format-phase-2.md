@@ -43,6 +43,19 @@ as document sections, so about 1,258 were genuine citations. The tooling's full-
 pass had turned a conformance-suite design's own §3.1-§3.3 and a review design's §5.5 into 2023 definitions, the R1-2
 shape, and those were put back. Its docstrings and string literals are left (data its logic reads).
 
+**What the gate found.** The textual rewrite cannot see a citation the compiler COMPOSES: `$"ISO §{Clause} SR{rule}"`
+in EcRaiseSite, ChoiceIndicators, AcceptDisplayBinder, IntrinsicBinder, SetBinder, ScreenFacility, ClosedFormatPass,
+ClosedFormats and ConditionalCompilationProcessor emitted the bare form into COBOL0710/0717 and their siblings, and
+33 cases (suite refusals, the RAISING-context tests, nine drift-test classes that read citations by pattern or compose
+the one they expect) went red. Every interpolation is `§2023:{…}` now (`git grep -nP '§\{' -- 'src/*.cs'` is empty) and
+the tests' patterns read the edition form; two `TrimStart('§')` would have produced `§2023:2023:`. The parser then
+read `§2023:{` and a test's `§2023:(` as malformed citations: an interpolation hole and a regex group after the colon
+are templates like `§2023:<clause>`, and the format says so. Every golden, snapshot and version-matrix file the
+branch changed (1,964) differs from main only in citation text, checked by normalizing the edition token away (the
+register's lead fields are cut at a fixed length, so their tails shift).
+
 **Checks.** audit_code_citations.py --check and --check-all: 0 findings over 12,797 files; audit_doc_citations.py
 GREEN; citation.py, cite.py, audit_code_citations.py and doc_audits.py self-tests PASS; doc_audits.py --check GREEN;
-verify_publishable.py PUBLISHABLE; generate.py --check GREEN.
+verify_publishable.py PUBLISHABLE; generate.py --check GREEN; semgrep verify PASS (no count rose). The gate:
+`=== BUILD-LOCAL GATE: GREEN — Conformance 22,463/22,463 · Unit 40,427/40,427 · Characterization 37/37 cases ran
+(skipped 0) …` (run 000004-20261107T060203Z).
