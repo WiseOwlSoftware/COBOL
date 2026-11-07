@@ -92,6 +92,9 @@ public sealed class ImplicitRegisters
         Reg("DEBUG-CONTENTS", Alnum(contentsWidth), DebugRegisterMember.Contents);
     }
 
+    /// <summary>Whether <paramref name="item"/> is the description of DEBUG-ITEM or one of its members (the item a reference to the register carries).</summary>
+    public bool IsDebugRegister(DataItem item) => _debugRegisters.Values.Any(register => ReferenceEquals(register.Item1, item));
+
     /// <summary>The description every DEBUG-SUB-n member shares (general rule 10: <c>PICTURE S9999 SIGN IS LEADING SEPARATE</c>), null until
     /// <see cref="ActivateDebugRegisters"/> runs; the emitter declares its numeric profile.</summary>
     public DataItem? DebugSubRegister { get; private set; }

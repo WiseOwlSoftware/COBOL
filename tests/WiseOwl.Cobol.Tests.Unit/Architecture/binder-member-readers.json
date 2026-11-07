@@ -624,7 +624,7 @@
       "WiseOwl.Cobol.Binding.ReportSectionBinder"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::ReportLinageCounterOutsideProcedure": [
-      "WiseOwl.Cobol.Binding.Procedure.ExpressionBinder",
+      "WiseOwl.Cobol.Binding.CounterResolver",
       "WiseOwl.Cobol.Binding.ReportSectionBinder"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::ReportPrintablePicture": [

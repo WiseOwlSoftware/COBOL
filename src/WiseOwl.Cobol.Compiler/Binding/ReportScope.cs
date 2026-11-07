@@ -30,6 +30,10 @@ public sealed class ReportScope
     /// through the <c>__outer</c> chain <see cref="Depth"/> measures.</summary>
     public IReadOnlyList<ReportModel> Visible => _inherited.Count == 0 ? _declared : _visible;
     private readonly List<ReportModel> _visible = [];
+
+    /// <summary>The visible report description entry named <paramref name="name"/> (ISO §2023:8.4.2.2), or null: the ONE lookup of a report-name
+    /// a procedure division reference writes (a counter's qualifier, GENERATE, INITIATE, TERMINATE, a SUM operand's report).</summary>
+    public ReportModel? Named(string name) => Visible.FirstOrDefault(r => CobolNames.Same(r.Name, name));
     private readonly Dictionary<ReportModel, int> _inherited = new(ReferenceEqualityComparer.Instance);
 
     /// <summary>REPORT SECTION <b>sum counter</b> names (case-insensitive) → every SUM ENTRY that carries the name —

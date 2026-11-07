@@ -3556,7 +3556,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         }
         // §2023:8.4.3.14.3 SR1 — a bare LINAGE-COUNTER addend names no data item, so the lookup below would answer "does
         // not resolve" under SR5, a sentence about a different rule (kb/Work PB1431). The expression forms bind through
-        // ExpressionBinder.LinageFileOf, which asks the same rule by binding context.
+        // CounterResolver.LinageFileOf, which asks the same rule by binding context.
         if (addend.Reference?.LINAGE_COUNTER() is not null)
         {
             DataBinder.ReportLinageCounterOutsideProcedure(Edition, addend.Ctx, $"RD '{model.Name}': SUM addend", addend.Written);
