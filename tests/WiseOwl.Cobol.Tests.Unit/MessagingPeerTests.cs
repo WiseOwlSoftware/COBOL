@@ -250,6 +250,22 @@ public sealed class MessagingPeerTests : IDisposable
     }
 
     [Fact]
+    public void TheAmbientReplacementOfAHostEndedRunUnitPublishesNothing()
+    {
+        string file = "";
+        RunUnit.Run(ru =>
+        {
+            ru.MessagingSettings = new MessagingSettings { Directory = _work, ServedName = "HOSTEND" };
+            ru.Messaging.StartServing();
+            file = SocketFile("s", "HOSTEND", ru.Messaging.RunId!);
+            Assert.True(File.Exists(file));
+            ru.EndForHost();                                                          // a STOP RUN reached the host: the serving run unit ended (14.9.38.4 GR5)
+            Assert.False(File.Exists(file));
+            Assert.Null(RunUnit.Current.Messaging.RunId);                             // no program runs in the replacement, so it serves nothing
+        });
+    }
+
+    [Fact]
     public void ARunUnitThatSendsNothingCreatesNoSocketDirectory()
     {
         string socketDirectory = McsSocketDirectory.Resolve(McsDirectory.Resolve(_work).Identity).Path;

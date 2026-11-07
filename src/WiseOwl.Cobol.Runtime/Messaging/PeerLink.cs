@@ -45,9 +45,10 @@ internal sealed class PeerLink
                 _post(new FrameReceived(Id, frame.Kind, frame.Payload));
             }
         }
-        catch (Exception e) when (e is IOException or SocketException or ObjectDisposedException or InvalidDataException or OperationCanceledException)
+        catch (Exception)
         {
-            // The stream ended abnormally, or a frame cannot be read: either way the link is over.
+            // Any fault ends the link: an abnormal end (IOException, SocketException, ObjectDisposedException, OperationCanceledException), an unreadable frame
+            // (InvalidDataException) or a legal length that cannot be allocated (OutOfMemoryException). The LinkLost below is posted for every one.
         }
         if (Interlocked.Exchange(ref _ended, 1) == 0)
         {

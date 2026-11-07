@@ -210,6 +210,18 @@ public sealed class SocketTransportTests : IDisposable
     }
 
     [Fact]
+    public void ALinkWhoseAnnouncedLengthCannotBeAllocatedIsLostNotLeftWaiting()
+    {
+        var (server, serverWake, serverRun) = Run();
+        server.Publish(Server("HUGE", serverRun));
+        using var raw = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
+        raw.Connect(new UnixDomainSocketEndPoint(FileOf("s", "HUGE", serverRun)));
+        var accepted = Assert.IsType<LinkAccepted>(Next(server, serverWake));
+        raw.Send([0xF0, 0xFF, 0xFF, 0x7F, (byte)McsFrameKind.Offer]);                 // below the 2^31 guard, above Array.MaxLength: new byte[length] throws OutOfMemoryException
+        Assert.Equal(accepted.Link, Assert.IsType<LinkLost>(Next(server, serverWake)).Link);
+    }
+
+    [Fact]
     public void DisposeClosesLinksUnpublishesAndDeletesTheFiles()
     {
         var (server, serverWake, serverRun) = Run();

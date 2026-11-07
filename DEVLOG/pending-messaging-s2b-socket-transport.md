@@ -40,3 +40,5 @@ DESIGN-runtime-library.md names `McsStartByte`.
 implemented, not paraphrased; sibling arms (Server and Bell publication, the ring and the connect) share `ConnectTo`. Performance: nothing on a
 program's hot path; a run unit that never messages pays one object and one delegate. Duplication: the test scheduler's own action switch stays,
 because it scripts what the production one runs.
+
+**Review round 1.** R1-1: `RunUnit.StartAfter` takes `serve`; the ambient replacement `EndForHost` creates serves nothing (as the first lazy ambient run unit), so a served name is not republished with no program behind it (`TheAmbientReplacementOfAHostEndedRunUnitPublishesNothing`). R1-2: `PeerLink.PumpAsync` posts its one `LinkLost` for every fault, including the OutOfMemoryException of a legal-but-unallocatable length (`ALinkWhoseAnnouncedLengthCannotBeAllocatedIsLostNotLeftWaiting`). Leads R1-3 to R1-7 are left for the clerk.

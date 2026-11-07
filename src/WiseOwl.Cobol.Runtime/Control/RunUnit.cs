@@ -288,7 +288,7 @@ public sealed class RunUnit
     public static void Run(Action<RunUnit> body)
     {
         var prior = _current.Value;
-        var ru = StartAfter(prior);
+        var ru = StartAfter(prior, serve: true);
         _current.Value = ru;
         try { body(ru); }
         catch (Exception ending) when (ru.NoteEnding(ending)) { throw; }   // never taken: the filter records the ending
@@ -311,7 +311,7 @@ public sealed class RunUnit
     internal void EndForHost()
     {
         Terminate();
-        if (ReferenceEquals(_current.Value, this)) _current.Value = StartAfter(this);
+        if (ReferenceEquals(_current.Value, this)) _current.Value = StartAfter(this, serve: false);
     }
 
     /// <summary>Begin a NEW run unit and make it the ambient one — the emitted run-unit driver's first statement
@@ -325,7 +325,7 @@ public sealed class RunUnit
     /// (§14.6.11 items 3, 4 and 6 — ALLOCATEd storage, instance objects, dynamic items — are managed memory).</summary>
     public static RunUnit Begin()
     {
-        var ru = StartAfter(_current.Value);
+        var ru = StartAfter(_current.Value, serve: true);
         _current.Value = ru;
         return ru;
     }
@@ -333,7 +333,7 @@ public sealed class RunUnit
     /// <summary>A new run unit that follows <paramref name="prior"/> (null = none): fresh state, the prior's
     /// <see cref="HostConfiguration"/>. Its termination status is its own (0): the previous run unit's STOP RUN status is
     /// not inherited, and no process-wide cell is touched (kb/Work PB3163).</summary>
-    private static RunUnit StartAfter(RunUnit? prior)
+    private static RunUnit StartAfter(RunUnit? prior, bool serve)
     {
         var ru = new RunUnit();
         if (prior is not null)
@@ -342,7 +342,9 @@ public sealed class RunUnit
             ru.DebugMode = prior.DebugMode;
             ru.MessagingSettings = prior.MessagingSettings;
         }
-        ru.Messaging.StartServing();   // design 5.5: a run unit that serves a name is reachable from its beginning
+        // design 5.5: a run unit that serves a name is reachable from its beginning. The ambient replacement of EndForHost serves nothing: no program runs
+        // in it until the host's next activation, so a published name would have no server behind it (the first lazy ambient run unit serves nothing either).
+        if (serve) ru.Messaging.StartServing();
         return ru;
     }
 }
