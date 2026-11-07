@@ -28,6 +28,8 @@ is a user word there). Unit: `ScreenFacilityConstructDriftTests.AReservedWordAsA
 (every §2023:8.9 screen-surface word at every edition: COBOL0901 exactly where reserved, never COBOL5506) and
 `AClauseAReservedWordBegins_IsNotReadAsTheScreenEntrysName` (COLUMN/COL/COLS/COLUMNS/NATIONAL as unnamed clauses).
 
+**Gate.** The first gate (run 000001-20261107T213611Z) was RED on one case, `EditionReadDriftTests.EditionReads_AreExactlyTheAdjudicatedSet`: the new predicate is a front-end edition read, adjudicated WordStatus beside the report entry's and recorded there.
+
 **Rows.** None re-verdicted: FMT-13.17.2 and SR-13.17.3-1 stay DOCUMENTED-NON-SUPPORT (Annex A.4.2 is declined).
 
 **Found, not fixed.** At COBOL-85 a program that names a screen item SCREEN draws COBOL0001 at the `SCREEN SECTION` header: the

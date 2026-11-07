@@ -165,6 +165,8 @@ public sealed class EditionReadDriftTests
         ["src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4 | dataDescriptionEntry | entryNameHere"] = (1, Verdict.WordStatus),
         // ... and of the report group description entry, whose §2023:13.15.2 format prints the same optional name (kb/Work PB4889).
         ["src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4 | reportGroupEntry | entryNameHere"] = (1, Verdict.WordStatus),
+        // ... and of the screen description entry, whose §2023:13.17.2 format prints the same optional name (kb/Work PB4890).
+        ["src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolScreen.g4 | screenDescriptionEntry | entryNameHere"] = (1, Verdict.WordStatus),
         ["src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolWords.g4 | reservedGatedWord | gatedDeclaration"] = (1, Verdict.WordStatus),
         // A paragraph or section header names a word §2023:8.9 reserves here only where its period or SECTION follows it;
         // elsewhere the word is its keyword (a stray END-DISPLAY beginning a sentence, kb/Work PB4132 review R1-1).
