@@ -1,4 +1,4 @@
-## PB4923: SUM, MEAN, MIDRANGE, RANGE and arithmetic over a nested selection of a float item are binary64 evaluations
+## Entry 3308 — 2026-11-08 00:52 PST — PB4923: SUM, MEAN, MIDRANGE, RANGE and arithmetic over a nested selection of a float item are binary64 evaluations
 
 The note asked whether a nested selection's returned content that is a float item's binary64 "renders as floating-point" for the exact-family functions. Determination: yes,
 as PB4891 settled for MEDIAN (docs/CONFORMANCE.md DOC-A.1-92b; §2023:15.4.1 "an implementor-defined approximation of the value of that expression", cite.py-checked). Re-probe on this
@@ -15,3 +15,4 @@ for the four functions (was `Dec(...)`), `PublicAPI.Unshipped.txt` and `CobolExa
 Golden: `15.88.4-Returned-value-rule/pb4923_arithmetic_over_a_nested_selection_of_a_float_is_binary64` (values by Python floats) and its refused `_below_2002` twin.
 
 **Review round 1 (R1-1).** A non-integer power whose base or exponent is a nested selection of a float item (`M ** FUNCTION MAX (F M2)`, `FUNCTION MAX (F M2) ** M`) took the compile-time binary64 arm with the kind "approximation" and landed by its shortest decimal (+0.93303299153680740000) where `M ** F` lands by its exact binary value (+0.93303299153680741007). `NumericRenderer.Power` now hands an exact operand to `CobolExact.PowReal` before the lowering drops its float-item mark; it forms the binary64 power in the kind of its operands (the rule-6 screen and the range check are the same `CobolIntrinsics.PowNativeReal[Checked]`). Golden lines Z1/Z2 and the unit test `PowReal_OverAFloatContent_IsTheBinary64PowerInItsKind`. VARIANCE, STANDARD-DEVIATION, PRESENT-VALUE and ANNUITY over the same nested selection are the same root in bodies this change does not touch, left as a lead.
+
