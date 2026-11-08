@@ -54,7 +54,7 @@ version." And: "Fuzz generation is random and we want a comprehensive ISO spec t
 | 7 | A row is suite-witnessed at an edition only when EVERY applicable coverage point inside it is (format alternatives, table cells, lettered sub-items); otherwise it is partial, and points witnessed is a second axis | §3.4, §4.1 |
 | 8 | The coverage measure may read WiseOwl's parse tree to credit format points; cases stay compiler-neutral and no verdict depends on it | §3.4 |
 | 9 | A diagnostic away from the marked site is UNLOCATED; one that also fires on the control is NOT DISCRIMINATING; neither is a FAIL | §3.2, §5 |
-| 10 | The 1985 text will not be obtained: every COBOL-85 fact is inferred (the 2002 text, NIST-85, vendor documents) and marked as inferred | §3.2, §3.5 |
+| 10 | The 1985 text is held (`specs/ANSI_COBOL_1985.md`, PB4850): a COBOL-85 fact is proved from it through the rule lineage (owner 2026-11-08, kb/Work PB4991; DESIGN-spec-conformance-review.md §10.2) | §3.2, §3.5 |
 | 11 | NIST-85's 17 FIPS subset-flagging programs (177 "NON-CONFORMING STANDARD" flags; FIPS PUB 21-1, a US federal layer with no ISO text) are outside the suite: the NIST map lists them as excluded with that reason, and "subsumes NIST-85" means all of NIST's ISO-language tests | §6.3 |
 | 12 | WiseOwl implements the Communication facility at 85 and 2002 (NIST's CM module), so the suites can witness it; its current refusal gets a kb/Work note | §3.5, §6.3 |
 | 13 | Intake programs (fuzz, vetting and report repros) are committed as source material holding provenance only; their target rows and status live in their kb/Work notes | §6.2 |
@@ -412,7 +412,7 @@ A test's editions are checked against the inventory's bands (does the rule exist
 functions and reserved words (does the facility exist at V?). An edge is the edition where a band or window starts or
 ends.
 
-**Every edge records evidence that can prove it.** No 1985 text is held (decision 10). Held, untracked, in
+**Every edge records evidence that can prove it.** **Bands are a view of the rule lineage** (owner 2026-11-08, kb/Work PB4991, PB4996; DESIGN-spec-conformance-review.md §10.2): one rule list per edition and a change record between each adjacent pair, so a band is a KEPT chain's span and an 85 edge's evidence is the 1985 text (`iso-1985`, `cite.py --check`ed), as decision 10 states. The classes below remain for the editions whose text is not yet held (2002 and 2014, until PB4813). Held, untracked, in
 `E:/COBOL-coord/specs-drafts/`: the 2002 working document of 2001-12-04 (`t2002.txt`) and the 2014 FCD (`t2014.txt`),
 with their PDFs. Each edge carries `evidence: {class, source, locator}`, and the validator refuses a locator offered for
 an edge its source does not speak about:

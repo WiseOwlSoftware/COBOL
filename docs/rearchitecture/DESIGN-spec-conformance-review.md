@@ -710,9 +710,9 @@ So: **an all-CONFORMS report is a red flag, not a good result**, and that senten
 
 `--std=1985` is audited against ANSI X3.23-1985 itself (`specs/ANSI_COBOL_1985.md`, with Amendments 1 and 2), not against
 the reconstructed `VERSION_CHANGE_REFERENCE.md` and the NIST CCVS85 suite alone. **It is this audit with an edition
-parameter, not a second audit:** the same three phases (§3), the same definition of done (§1), the same inventory store and
+parameter, not a second audit:** the same three phases (§3), the same definition of done (§1), the same inventory store (one directory per edition, §10.2) and
 its one recording path (§4, §8), and the same rule that an omitted rule is silent false confidence (§7). Only the reader of
-the standard's structure, the row key and the mapping onto the 2023 rows are per edition, and each is below. The 2002
+the standard's structure, the row key and the change record between adjacent editions are per edition, and each is below. The 2002
 edition (kb/Work PB4813) takes the same path once it is transcribed; it is ISO-structured, so its reader is closer to
 2023's.
 
@@ -730,8 +730,8 @@ edition (kb/Work PB4813) takes the same path once it is transcribed; it is ISO-s
   column-0 `(n)`, and its lettered `a.` items and their `1)` items are its text (THE RULE IS THE UNIT, §3). A General
   Format paragraph is an FMT row. The page-break furniture (the folio, the page's running header) is never rule text.
 - **The row key** is `<year>-<kind>-<locator>-<n>` (`1985-SR-VI.5.7.3-1`; a list restarted inside a block `-L<k>.<n>`, an
-  FMT row `1985-FMT-VI.5.8.2`), with its citation (`§1985:VI.5.7.3 SR1`). The year prefix keeps the 1985 ids apart from
-  the 2023 ids in the one inventory store.
+  FMT row `1985-FMT-VI.5.8.2`), with its citation (`§1985:VI.5.7.3 SR1`). The year prefix names the edition (or amendment) the
+  rule is from, in the 1985 store (§10.2).
 - **Module and level.** Sections VI to XVI are the eleven modules and Section A the twelfth. Every module but Sort-Merge,
   Report Writer and Intrinsic Function has two levels (§1985:I.1.2; Amendment 1 adds the third one-level module), and the
   standard boxes every specification unique to level 2. A row's `box` is `none`, `part` or `whole` (the prose box is the
@@ -784,25 +784,77 @@ audit (`--edition 1985 --check`: no finding, and the committed catalog is this r
 2,253 rows from 664 blocks (SR 645, GR 1,253, AR 65, RV 80, FMT 210) and no finding; the content-keyed scan measures 90
 paragraphs (756 ordinals, an upper bound), of which the manifest admits 53 (254 rows) and records 37 as not rules.
 
-### 10.2 The mapping onto the 2023 inventory: SAME, DIFFERS, NONE
+### 10.2 Rule lineage: one rule list per edition, one change record per adjacent pair (owner 2026-11-08, kb/Work PB4991)
 
-Most 1985 rules have a 2023 counterpart that already carries a verdict. Each 1985 row is mapped to its 2023 rule or rules:
+The owner's model (2026-11-08): "separate lists for each version's rules. 1985 sets the original aka base set of them.
+Then 2002 can do one of three things for each 1985 rule": keep it (it applies to 2002 and is in effect a 2002 rule),
+deprecate it (it will be removed later), remove it, and it can define rules new to 2002, "and similarly for later
+versions". The mechanism below was approved the same day; it replaces the earlier plan of 1985 rows that carried a 2023
+verdict by reference into the one 2023 store.
 
-- **SAME** (the 2023 text states the same requirement in substance, and the adversarial verify pass upheld that): the 1985
-  row's verdict is the 2023 rows' verdict, held as a REFERENCE (`carries_from: [<2023 ids>]`), never a copy, so it is
-  re-derived whenever a 2023 row is re-verdicted, the §8.1 shape of one determination applied by a predicate. Its evidence
-  is the 2023 row's test run under `--std=1985`.
-- **DIFFERS** (same subject, different requirement) and **NONE** (no counterpart: a deleted, obsolete or changed feature):
-  a 1985 row of its own, adjudicated against `--std=1985` with a pinned compiler like any 2023 row (§8), its witness a
-  program run under `--std=1985`.
-- **DISPUTED** (the verify pass refuted or could not uphold a SAME): a fleet adjudicator decides SAME or DIFFERS before
-  the row is recorded.
+**One rule list per edition, from that edition's own text.** Each edition has its catalog (§10.1 for 1985, §3 for 2023;
+2002 and 2014 when transcribed, kb/Work PB4813), and its inventory rows live in a store of their own,
+`tests/version-matrix/inventory/` for 2023 and `tests/version-matrix/inventory-<edition>/` for each earlier one, one file
+per row as today (`inventory_store.py`, which takes the edition). Every reader of the 2023 store stays a 2023 reader and
+nothing it reads moves; a reader that spans editions names them.
 
-The 1985 rows live in the same store, `tests/version-matrix/inventory/<1985 id>.json`, with `edition: 1985`, are built by
-`build_inventory.py` from the 1985 catalog with the same edition parameter, and are recorded only through
-`record_verdicts.py`. **The progress metric is the 1985 GAP count, reported by the ledger beside 2023's**, and the 1985
-conformance statement (kb/Work PB4885: the high subset plus all four optional modules) is written from those rows, every
-open one named.
+**Change is recorded once, between ADJACENT editions only** (85 to 2002, 2002 to 2014, 2014 to 2023, and 2023 to 2027),
+never between every pair. Each rule of the older edition carries one classification against the next held edition, in a
+`next` field on its own row (so the record shares the row's file and adds no register):
+
+| kind | meaning | what the compiler owes |
+|---|---|---|
+| KEPT | the next edition states the same requirement (`to`: its rule or rules) | one verdict and one test, good at both editions |
+| CHANGED | same subject, a different requirement | its own expected behaviour at each side |
+| REMOVED | no counterpart | the older edition accepts it; the newer refuses it (syntax) or does not do it (semantics) |
+
+A rule of the newer edition that no older row's `to` names is NEW; that is derived, never written. Each `next` carries
+its evidence: the citation of the older rule and of each `to` rule, each `cite.py --check`ed against its own text.
+**Deprecation is not a fourth kind.** The standard itself marks an element obsolete or archaic in an edition
+(§1985:I.1.5.2.3 requires a conforming implementation to support the obsolete elements of what it claims), so `status`
+is an attribute of that edition's row: KEPT into a row whose status is obsolete, then REMOVED at the next edition, is the
+deprecate-then-remove lifecycle.
+
+**A verdict is held once per chain.** A run of KEPT links is one chain; its verdict, code location and test live on the
+chain's NEWEST row, and an older row in it holds none (the schema refuses them there), so 2023's adjudicated work serves
+every 1985 rule that carries into it without a copy. The older row's state is the chain's, evaluated at its own edition:
+the chain's test must also be placed at that edition (the conformance suite's placement, DESIGN-conformance-suite.md).
+CHANGED and REMOVED rows, and NEW ones, carry verdicts of their own. The fleet's work is therefore only what changed.
+
+**The audit fills the change records** (§10.3). Its passes are detections. A SAME that the verify pass upholds is
+recorded as KEPT through the one recording path (`record_verdicts.py`, a batch derived from the run's `results.json`, as
+the 2023 derived batches are); a DISPUTED rule goes to a fleet adjudicator, who records KEPT or CHANGED; a DIFFERS or
+NONE answer is a CHANGED or REMOVED candidate that an adjudicator confirms with its evidence, and then a verdict of its own
+under `--std=<edition>`, its witness a draft from the drafts pass checked against the rule text.
+
+**Everything else is derived from the chains, never written by hand:** each edition's GAP count (the session probe and
+the ledger report one per edition), the conformance statement of each edition (kb/Work PB4885 for 1985), the conformance
+suite's edition bands (a band is a chain's span: DESIGN-conformance-suite.md §3.5), the drift test that the
+compiler's edition gates (`constructs.json` windows, the grammar's version predicates) agree with every NEW and REMOVED
+edge, and **each diagnostic's citation at each edition** (kb/Work PB4950, the owner on 2026-11-08: "a way for a
+compilation error to accurately describe the edition + rule violated"). A diagnostic cites one rule; walking that rule's
+chain gives the rule of the compilation's edition (a 2023 SR read back along KEPT and CHANGED links to its 1985 rule),
+and a chain that does not reach that edition gives the gate's own message from its edge: the construct is NEW at a later
+edition, or REMOVED after an earlier one, each with the citation that proves it. The per-edition citations are generated
+from the chains into the compiler's diagnostic data and checked by a drift test, never kept by hand.
+
+**A missing edition is bridged, provisionally.** Until the 2002 and 2014 texts are transcribed, the 1985 rows' `next`
+points straight at 2023 and is marked `bridge`. When 2002 is held, its two adjacent records replace the bridge, and
+composing them must give the bridge's answer: a cross-check of both audits, held by a drift test, at no extra cost.
+
+**Why it stays maintainable.** A new edition costs one rule list, one adjacent change record and the adjudication of what
+changed; every change carries a checked citation in both texts; and the drift tests hold that every older rule is
+classified exactly once and every newer rule is reached or NEW.
+
+**The slices** (kb/Work PB4992 to PB4997, in this order):
+1. the store takes the edition; the 1985 rows seeded from the 1985 catalog (no `next` yet), with a 1985 row key
+   `row_name` accepts;
+2. the schema for `next` and `status`, the recording path for it, and the derived batch that records the audit's
+   upheld SAME answers as KEPT;
+3. chain state: an older row's state from its chain, and the GAP count per edition in the probe and the ledger;
+4. the fleet adjudication of the disputed and own-row rules against `--std=1985`;
+5. the derived bands (the conformance suite's S5 reads the chains) and the edition-gate drift test;
+6. the 1985 conformance statement (kb/Work PB4885).
 
 ### 10.3 The Message Batches arm — `scripts/spec/audit_batch.py`
 

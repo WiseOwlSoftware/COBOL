@@ -2776,6 +2776,177 @@ public sealed class CommitRollbackRuntimeReplacedFileTests : CommitRollbackRunti
         finally { TryDelete(host); }
     }
 
+    /// <summary>⛔ A RE-OPEN THAT FAILS AT ANY MEDIUM READ, BEFORE OR AFTER ITS ATTACH CARRIED THE KEPT RECORD LOCKS TO ITS OWN HANDLE, AND WHOSE
+    /// RETAKE OF THE KEPT HANDLE THE MEDIUM REFUSES TOO, LEAVES THEM STANDING (kb/Work PB3631; §2023:14.9.27.4 GR25, <i>"If the
+    /// execution of the OPEN statement is unsuccessful, the file is not affected"</i>; §2023:14.9.6.4 GR9; §2023:9.1.16;
+    /// §2023:9.1.13.8): the arm of <c>KeyedConnector.RetakeKeptHandle</c> where <c>Attach</c> fails while <c>AbandonOpen</c> holds a
+    /// non-empty <c>unpublished</c> list. The OPEN's attach moves the locks to its own endpoint only after the adoption's reads, so a
+    /// read the adoption itself refuses leaves nothing unpublished (PB3497's witnesses), and an INPUT OPEN makes no read after it
+    /// unless the dead-owner probe finds a dead run unit's transaction (<c>KeyedConnector.SettleDeadOwnersOfTheOpen</c>), whose
+    /// settle through a handle of its own the OPEN's exclusive handle refuses (<paramref name="deadOwner"/>). So the medium here
+    /// refuses the <c>k</c>-th read of the re-OPEN and every read after it, for every <c>k</c> from the first to the last a
+    /// healthy re-OPEN makes: whichever read the OPEN dies at, and whether or not the retake can read the store again, the record
+    /// locks A's CLOSE kept stand. A, under SHARING WITH ALL OTHER, READs record 1 (its record lock) and is CLOSEd (with
+    /// <paramref name="deadOwner"/> another run unit D has WRITten record 7 and died by then); its re-OPEN INPUT SHARING WITH NO OTHER
+    /// takes the kept handle's place. Whatever the re-OPEN answers, another connector of the same run unit and another run unit
+    /// READing record 1 meet '51' and record 2 '00' when it was refused; after A's ROLLBACK (§2023:14.9.36.4 GR3) record 1 reads
+    /// '00' for both and the file is the seeded one.</summary>
+    [Theory]
+    [InlineData(FileOrg.Relative, false, false)]
+    [InlineData(FileOrg.Indexed, false, false)]
+    [InlineData(FileOrg.Relative, true, false)]
+    [InlineData(FileOrg.Indexed, true, false)]
+    [InlineData(FileOrg.Relative, true, true)]
+    [InlineData(FileOrg.Indexed, true, true)]
+    public void A_reopen_refused_at_any_read_whose_retake_cannot_adopt_the_store_leaves_the_kept_record_locks_standing(FileOrg org, bool deadOwner, bool reopenAllOther)
+    {
+        var reopenSharing = reopenAllOther ? FileSharing.AllOther : FileSharing.NoOther;
+        int healthy = RefusedReopen(org, deadOwner, reopenSharing, refuseFrom: int.MaxValue, out string healthyStatus, out int healthyArm);
+        Assert.True(healthy > 0, "a re-OPEN reads the store");
+        Assert.Equal("00", healthyStatus);   // nobody else has the file: a dead owner is settled, never a sharing conflict (§2023:9.1.13.9)
+        Assert.Equal(0, healthyArm);
+        int refusedOpens = 0, armReached = 0;
+        for (int k = 1; k <= healthy; k++)
+        {
+            RefusedReopen(org, deadOwner, reopenSharing, refuseFrom: k, out string status, out int arm);
+            if (status != "00") refusedOpens++;
+            armReached += arm;
+        }
+        Assert.True(refusedOpens > 0, "no k refused the re-OPEN: the sweep reached nothing");
+        // The arm itself (review finding R1-2): a retake whose store the medium refuses to adopt while the OPEN held record-lock ids off
+        // the host. The dead owner's settle gives the OPEN's handle back after the locks moved to it, so only that sweep reaches it.
+        // A re-OPEN SHARING WITH ALL OTHER leaves the kept handle on the file beside its own (second review, R1-1): the settle goes
+        // beside the kept handle, nothing is given back, and the record locks never leave the table.
+        if (reopenAllOther) Assert.Equal(0, armReached);
+        if (deadOwner && !reopenAllOther) Assert.True(armReached > 0, "no refused re-OPEN reached RetakeKeptHandle's Attach-fails-with-unpublished-locks arm");
+    }
+
+    /// <summary>⛔ A RE-OPEN BESIDE NOTHING BUT ITS OWN CONNECTOR'S KEPT STATE SETTLES A DEAD RUN UNIT'S TRANSACTION AND SUCCEEDS (kb/Work
+    /// PB3631, review finding R1-1; §2023:9.1.18.5, <i>"When a run unit terminates abnormally, all file changes made since the previous
+    /// commit or, if none, the beginning of the run unit are rolled back for all files for which there are active APPLY COMMIT
+    /// clauses"</i>; §2023:9.1.13.9, I-O status 61 only for a file already open by ANOTHER file connector in a conflicting manner):
+    /// A, under SHARING WITH ALL OTHER, READs record 1 and is CLOSEd; run unit D has WRITten record 7 and died; A's re-OPEN
+    /// INPUT SHARING WITH NO OTHER gives the kept handle back for the share-mode swap, and the settle of D's transaction goes
+    /// beside A's own handle alone. No other file connector has the file open, so the OPEN answers '00', record 7 is not in the file
+    /// (D's change was rolled back), and A's ROLLBACK leaves the seeded file.</summary>
+    [Theory]
+    [InlineData(FileOrg.Relative)]
+    [InlineData(FileOrg.Indexed)]
+    public void A_reopen_that_gave_the_kept_handle_back_settles_a_dead_owner_and_succeeds(FileOrg org)
+    {
+        string host = Tmp($"pb3631-settle-{org}");
+        try
+        {
+            Seed(host, org);
+            var a = Open(host, org, commit: true, sharing: FileSharing.AllOther);
+            Assert.Equal("00", Read(a, org, 1, out _));
+            DyingPageMedium? medium = null;
+            PageMediumObserver.Value = inner => medium = new DyingPageMedium(inner);
+            FileRegistry d;
+            try { d = Open(host, org, commit: true, sharing: FileSharing.AllOther); }
+            finally { PageMediumObserver.Value = null; }
+            Assert.Equal("00", Write(d, org, 7, "D007"));
+            medium!.DieAfter = medium.Writes;
+            d.CloseAll();
+            a.Close("F");
+            Assert.Equal("00", a.Status("F"));
+            a.OpenShared("F", FileOpenMode.Input, hasSharingOverride: true, FileSharing.NoOther, FileRetryKind.None, 0,
+                OpenTapePhrase.None, assign: "", assignDynamic: false, page: null);
+            Assert.Equal("00", a.Status("F"));
+            Assert.Equal("23", Read(a, org, 7, out _));
+            Assert.Null(a.Rollback());
+            a.CloseAll();
+            Assert.Equal(Seeded(), Settled(host, org));
+        }
+        finally { PageMediumObserver.Value = null; TryDelete(host); }
+    }
+
+    /// <summary>One case of <see cref="A_reopen_refused_at_any_read_whose_retake_cannot_adopt_the_store_leaves_the_kept_record_locks_standing"/>:
+    /// the medium refuses the <paramref name="refuseFrom"/>-th read of the re-OPEN (counted from 1) and every later one until the OPEN
+    /// statement returns. Returns the reads the re-OPEN made; its status and the retakes that lost the adoption holding locks
+    /// (<see cref="KeyedConnector.RetakesThatLostTheAdoptionHoldingLocks"/>) are the out parameters.</summary>
+    private int RefusedReopen(FileOrg org, bool deadOwner, FileSharing reopenSharing, int refuseFrom, out string reopenStatus, out int retakesThatLostTheAdoption)
+    {
+        string host = Tmp($"pb3631-sweep-{org}-{deadOwner}-{reopenSharing}-{(refuseFrom == int.MaxValue ? "healthy" : refuseFrom.ToString())}");
+        try
+        {
+            Seed(host, org);
+            bool armed = false;
+            int reads = 0;
+            PageMediumObserver.Value = inner => new RefusingPageMedium(inner,
+                read: _ => armed && ++reads >= refuseFrom ? new IOException("refused by the host") : null);
+            FileRegistry a;
+            try { a = Open(host, org, commit: true, sharing: FileSharing.AllOther); }
+            finally { PageMediumObserver.Value = null; }
+            Assert.Equal("00", Read(a, org, 1, out _));
+            if (deadOwner)
+            {
+                DyingPageMedium? medium = null;
+                PageMediumObserver.Value = inner => medium = new DyingPageMedium(inner);
+                FileRegistry d;
+                try { d = Open(host, org, commit: true, sharing: FileSharing.AllOther); }
+                finally { PageMediumObserver.Value = null; }
+                Assert.Equal("00", Write(d, org, 7, "D007"));
+                medium!.DieAfter = medium.Writes;   // nothing it does afterwards reaches the file
+                d.CloseAll();                       // its handles and their bytes go with it
+            }
+            a.Close("F");
+            Assert.Equal("00", a.Status("F"));
+            a.PagedStoreOf("F")!.DropCache();
+            armed = true;
+            a.OpenShared("F", FileOpenMode.Input, hasSharingOverride: true, reopenSharing, FileRetryKind.None, 0,
+                OpenTapePhrase.None, assign: "", assignDynamic: false, page: null);
+            int made = reads;
+            reopenStatus = a.Status("F");
+            retakesThatLostTheAdoption = a.RetakesThatLostTheAdoptionOf("F");
+            armed = false;
+            FileRegistry? b = null;
+            bool gOpen = false;
+            if (reopenStatus == "00")
+            {
+                // The success arm (review finding R1-2): the locks the CLOSE kept were published again through the handle that took
+                // the kept one's place, so A's second CLOSE under commit control keeps them and another run unit still meets '51'.
+                a.Close("F");
+                Assert.Equal("00", a.Status("F"));
+                // (Only a kept handle that shares with ALL OTHER lets a second connector open the file beside it: Table 19.)
+                if (reopenSharing == FileSharing.AllOther)
+                {
+                    gOpen = true;
+                    Declare(a, host, org, commit: false, name: "G");
+                    a.OpenStatic("G", FileOpenMode.IO);
+                    Assert.Equal("00", a.Status("G"));
+                    Assert.Equal("51", Read(a, org, 1, out _, name: "G"));
+                    Assert.Equal("00", Read(a, org, 2, out _, name: "G"));
+                }
+            }
+            else
+            {
+                // The refused OPEN left the file as the CLOSE left it: its locks stand against the run unit's own other connector and
+                // against another run unit alike.
+                gOpen = !(deadOwner && reopenSharing == FileSharing.AllOther);
+                if (gOpen) Declare(a, host, org, commit: false, name: "G");
+                if (gOpen) a.OpenStatic("G", FileOpenMode.IO);
+                if (gOpen) Assert.True(a.Status("G") == "00", $"G status {a.Status("G")} after a re-OPEN refused from read {refuseFrom}");
+                if (gOpen) Assert.Equal("51", Read(a, org, 1, out _, name: "G"));
+                if (gOpen) Assert.Equal("00", Read(a, org, 2, out _, name: "G"));
+                b = Open(host, org, commit: false, name: "B");
+                Assert.Equal("51", Read(b, org, 1, out _, name: "B"));
+                Assert.Equal("00", Read(b, org, 2, out _, name: "B"));
+            }
+            Assert.Null(a.Rollback());
+            if (gOpen) Assert.Equal("00", Read(a, org, 1, out _, name: "G"));
+            if (b is not null)
+            {
+                Assert.Equal("00", Read(b, org, 1, out _, name: "B"));
+                b.CloseAll();
+            }
+            a.CloseAll();
+            Assert.Equal(Seeded(), Settled(host, org));
+            return made;
+        }
+        finally { PageMediumObserver.Value = null; TryDelete(host); }
+    }
+
     /// <summary>⛔ THE COMMIT AND THE ROLLBACK REACH A FILE WHOSE RETAKE THE MEDIUM REFUSED, ONCE THE MEDIUM ANSWERS (kb/Work PB3630;
     /// §2023:14.9.36.4 GR3, <i>"All files and data-items referenced in active APPLY COMMIT clauses are restored to the state they were in
     /// at the execution of the last COMMIT statement or the start of the run unit if no COMMIT statements had previously been

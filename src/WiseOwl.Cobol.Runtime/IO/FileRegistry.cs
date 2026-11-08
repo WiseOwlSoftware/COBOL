@@ -622,6 +622,11 @@ public sealed class FileRegistry
     internal PagedFile? PagedStoreOf(string name) =>
         _files.TryGetValue(name, out var c) && c is KeyedConnector k ? k.PagedStore : null;
 
+    /// <summary>The keyed connector <paramref name="name"/>'s count of retakes that lost the store's adoption holding record locks
+    /// (<see cref="KeyedConnector.RetakesThatLostTheAdoptionHoldingLocks"/>; kb/Work PB3631's witness seam).</summary>
+    internal int RetakesThatLostTheAdoptionOf(string name) =>
+        _files.TryGetValue(name, out var c) && c is KeyedConnector k ? k.RetakesThatLostTheAdoptionHoldingLocks : 0;
+
     /// <summary>The sequential connector a sequential-surface entry acts on: an unregistered name and a keyed
     /// connector are both compiler defects (the binder routes keyed files to the keyed entries), so both are
     /// LOUD — the old <c>TryGetValue</c> guard wrote nothing and reported nothing (kb/Work PB360).</summary>
