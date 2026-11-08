@@ -227,7 +227,7 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         // which sends a reader looking for a KEY phrase edit that would not help. A level-88 that a NEARER data item of
         // the spelling hides is not what the operand names (ISO §2023:8.4.6.2.1 3) a), kb/Work PB4219 review R1-1): the
         // operand is that data item, and SR8 is its verdict.
-        string word = dref.cobolWord()?.GetText() ?? "";
+        string word = ReferenceResolver.WrittenWordOf(dref) ?? "";   // a register names no condition-name (kb/Work PB4154)
         if (item is null
             && data.Symbols.TryResolveCondition(word, data.ActiveScope, out var cn)
             && cn.Count > 0
@@ -272,7 +272,8 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
                 + "relational operator is Format 2's condition-name-1 alternative, and this operand is not a "
                 + "condition-name (ISO §2023:14.9.37.2 Format 2)");
 
-        string name = dref.cobolWord()?.GetText() ?? dref.GetText();
+        // WrittenWordOf: a counter register's cobolWord() is its QUALIFIER, so `WHEN LINAGE-COUNTER OF F` would name F (kb/Work PB4154, PB4947).
+        string name = ReferenceResolver.WrittenWordOf(dref) ?? DataBinder.WrittenText(dref);
         if (!data.Symbols.TryResolveCondition(name, data.ActiveScope, out var conds) || conds.Count == 0)
             return validation.RejectStatementOperand(
                 $"SEARCH ALL '{table.CobolName}' WHEN {DataBinder.WrittenText(operand)} — '{name}' is not a condition-name, and "
