@@ -120,6 +120,7 @@ def main() -> int:
         cid = {r["id"]: A.custom_id("map", r["id"]) for r in RULES_1985}
 
         print("the route plan (kb/Work PB4971)")
+        (root / "c23b.json").write_text(json.dumps({"rules": RULES_2023[:2] + RULES_2023[3:]}), encoding="utf-8", newline="\n")
         route = ["plan", "--pass", "route", *base, "--catalog", str(cat85), "--catalog-2023", str(cat23)]
         plan = ["plan", "--pass", "map", *base, "--catalog", str(cat85), "--catalog-2023", str(cat23), "--candidates", "2"]
         code, out = run(plan, fake)
@@ -140,7 +141,15 @@ def main() -> int:
               and A.parse_answer("route", inspect_item, json.dumps({"verdict": "ROUTED", "clauses_2023": ["99.1"], "reason": "r"}))[0]
               is None
               and A.parse_answer("route", inspect_item, json.dumps({"verdict": "NONE", "clauses_2023": ["14.9.21"], "reason": "r"}))[0]
+              is None
+              and A.parse_answer("route", inspect_item, json.dumps({"verdict": "ROUTED", "clauses_2023": [], "reason": "r"}))[0]
               is None)
+        wide = dict(inspect_item, clauses_2023=[{"id": f"1.{n}", "subject": "s"} for n in range(A.MAX_ROUTES + 1)])
+        check("a route answer naming more than MAX_ROUTES clauses is refused, and MAX_ROUTES is accepted",
+              A.parse_answer("route", wide, json.dumps({"verdict": "ROUTED", "clauses_2023": [c["id"] for c in
+                             wide["clauses_2023"]], "reason": "r"}))[0] is None
+              and A.parse_answer("route", wide, json.dumps({"verdict": "ROUTED", "clauses_2023": [c["id"] for c in
+                                 wide["clauses_2023"][:A.MAX_ROUTES]], "reason": "r"}))[0] is not None)
         code, out = run(plan, fake)
         check("the map plan refuses an unanswered route pass", code not in (0, None) and "route item(s) are unanswered" in str(code))
         (state / "route" / "answers").mkdir()
@@ -161,6 +170,23 @@ def main() -> int:
               near["1985-GR-XV.3.2.4-1"][0] == "GR-14.9.1.4-1")
         check("a rule named by its clause is not named again by its wording",
               all(len(v) == len(set(v)) for v in near.values()))
+        twin = dict(RULES_1985[1], id="1993-GR-VI.6.18.4-2", document="X3.23b-1993")
+        both = A.candidates([RULES_1985[1], twin], RULES_2023, 0,
+                            {"X3.23-1985 VI.6.18": ["14.9.1", "14.9.21"], "X3.23b-1993 VI.6.18": ["14.9.21"]})
+        check("the clause key carries the document: the same locator in another document has its own route",
+              both["1985-GR-VI.6.18.4-2"][0] == "GR-14.9.1.4-1" and both["1993-GR-VI.6.18.4-2"][0] == "GR-14.9.21.4-2")
+        check("several routed clauses keep the route's closest-first order, not their numbers' order",
+              both["1985-GR-VI.6.18.4-2"] == ["GR-14.9.1.4-1", "GR-14.9.21.4-2", "GR-14.9.21.4-7"])
+        extra = root / "c85x.json"
+        extra.write_text(json.dumps({"rules": RULES_1985 + [dict(RULES_1985[0], id="1985-SR-VI.5.9.3-1",
+                                                                 locator="VI.5.9.3", citation="§1985:VI.5.9.3 SR1")]}),
+                         encoding="utf-8", newline="\n")
+        code, out = run(["plan", "--pass", "map", *base, "--catalog", str(extra), "--catalog-2023", str(cat23)], fake)
+        check("a map plan from a 1985 catalog with a clause the route pass never saw is refused (review R1-1)",
+              code not in (0, None) and "have no route item" in str(code) and not (state / "map").exists())
+        code, out = run(["plan", "--pass", "map", *base, "--catalog", str(cat85), "--catalog-2023", str(root / "c23b.json")], fake)
+        check("a map plan from a 2023 catalog that lacks a routed clause is refused",
+              code not in (0, None) and "lacks" in str(code) and not (state / "map").exists())
         code, out = run(plan, fake)
         items = json.loads((state / "map" / "items.json").read_text(encoding="utf-8"))
         check("the plan holds one item per 1985 rule, keyed by a custom id the API accepts",

@@ -330,7 +330,16 @@ def load_catalogs(catalog: pathlib.Path, catalog_2023: pathlib.Path) -> tuple[li
 def plan_map(catalog: pathlib.Path, catalog_2023: pathlib.Path, k: int, state: pathlib.Path) -> list[dict[str, Any]]:
     rules, rules_2023 = load_catalogs(catalog, catalog_2023)
     by_id = {r["id"]: r for r in rules_2023}
-    near = candidates(rules, rules_2023, k, routes(state))
+    routed = routes(state)
+    # The routes must be THESE catalogs' (review R1-1): a rule whose clause the route pass never saw would be planned
+    # without its strongest signal, and a routed clause the 2023 catalog lacks would name no rule.
+    if unseen := sorted({clause_key_1985(r) for r in rules} - set(routed)):
+        raise SystemExit(f"{TOOL}: {len(unseen)} 1985 clause(s) of this catalog have no route item (e.g. {unseen[0]}): "
+                         "the route pass was planned from another catalog; plan the run again from one catalog")
+    if stale := sorted({c for to in routed.values() for c in to} - {c["id"] for c in clauses_2023(rules_2023)}):
+        raise SystemExit(f"{TOOL}: the route answers name 2023 clause(s) this 2023 catalog lacks (e.g. {stale[0]}): the "
+                         "route pass was planned from another 2023 catalog")
+    near = candidates(rules, rules_2023, k, routed)
     return [{"id": r["id"], "rule": {f: r.get(f) for f in ("citation", "module", "level", "box", "subject", "kind", "text")},
              "candidates": [{"id": c, "section": by_id[c].get("section"), "subject": by_id[c].get("subject", ""),
                              "kind": by_id[c]["kind"], "text": by_id[c].get("text", "")} for c in near[r["id"]]]}
