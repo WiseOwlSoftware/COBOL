@@ -9,6 +9,9 @@ candidates for every rule of that clause and kind, 47 % of its input on the last
 read in its recorded usage, and `usd` pricing them, so the `--max-usd` guard sees what a cached run costs. `audit_batch.py`
 builds each request in three layers: the pass's instructions as the cached system, the group's shared part as a cached
 first user block (the route pass's clause list, a map request's clause candidates), and the item's own part last. A map
-item now stores its clause candidates and its wording candidates apart. The transcriber's prompt is below Opus 5.5's
+item now stores its clause candidates and its wording candidates apart. A group block is cached only when at least
+three requests share it, since the hour's cache write costs twice the input, and the estimate before a canary prices
+the layers the way the batch caches them. The fuzz writer reads its usage and caches its system prompt through the
+same module. The transcriber's prompt is below Opus 5.5's
 512-token minimum and is unchanged. The branch review's lead on the closest-first order case (it planted an order that
 was already numeric) is fixed in the same test file.

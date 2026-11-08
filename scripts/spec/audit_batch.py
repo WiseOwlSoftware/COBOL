@@ -71,7 +71,8 @@ import citation  # noqa: E402  (THE citation format and the 1985 regions, kb/Wor
 import spec_pdf  # noqa: E402  (the one edition table, kb/Work PB4815)
 import verify_publishable  # noqa: E402  (the stamp shapes)
 from extract_rule_catalog import OUT, OUT_1985  # noqa: E402  (the 2023 and the 1985 catalogs)
-from message_batches import DEFAULT_MODEL, BatchRun, cached_system, cached_text, make_client, reply_text, usd, write_atomic  # noqa: E402  (THE batch state)
+from message_batches import (CACHE_MIN_SHARERS, DEFAULT_MODEL, BatchRun, cached_system, cached_text,  # noqa: E402
+                             make_client, reply_text, usd, write_atomic)  # noqa: E402  (THE batch state)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/
 from api_key import ACCOUNT_HELP  # noqa: E402
 from standard_streams import ensure_utf8  # noqa: E402
@@ -103,9 +104,9 @@ CITATION_FIELDS = ('"locator": "the 1985 locator alone: a Roman section and its 
 
 PROMPTS: dict[str, str] = {
     "route": COMMON + """
-Below is one clause of ANSI X3.23-1985 (as amended by X3.23a-1989 and X3.23b-1993): its subject, its module and its first
-rules, and then the list of every clause of ISO/IEC 1989:2023 that has rules, each with its number and subject. Name every
-2023 clause whose rules state the same language feature as this 1985 clause, however it is now named or organized: a 1985
+Below is the list of every clause of ISO/IEC 1989:2023 that has rules, each with its number and subject, and then one
+clause of ANSI X3.23-1985 (as amended by X3.23a-1989 and X3.23b-1993): its subject, its module and its first rules. Name
+every 2023 clause whose rules state the same language feature as this 1985 clause, however it is now named or organized: a 1985
 module's copy of a clause (the OPEN statement of the indexed I-O module) and the one 2023 clause that now holds it, a clause
 renamed, a 1985 clause whose rules 2023 spreads over several clauses (a general concept and the statement that uses it).
 - ROUTED: one or more 2023 clauses state this feature; name them, the closest first;
@@ -113,7 +114,9 @@ renamed, a 1985 clause whose rules 2023 spreads over several clauses (a general 
 The JSON object: {"verdict": "ROUTED|NONE", "clauses_2023": ["clause number", ...], "reason": "at most 200 characters"}.
 "clauses_2023" names only clause numbers of the list, at most 8, and is empty for NONE.""",
     "map": COMMON + """
-Compare one rule of ANSI X3.23-1985 (as amended by X3.23a-1989 and X3.23b-1993) with candidate rules of ISO/IEC 1989:2023.
+Compare one rule of ANSI X3.23-1985 (as amended by X3.23a-1989 and X3.23b-1993) with candidate rules of ISO/IEC 1989:2023:
+first the candidates from the 2023 clauses that hold the 1985 rule's feature, then the 1985 rule, then more candidates
+found by its wording.
 - SAME: one or more candidates state the same requirement in substance: the same programs are accepted or refused, and with
   the same effect. Different wording, numbering or terms for the same thing ("must" and "shall", "nonnumeric literal" and
   "alphanumeric literal") are not a difference.
@@ -450,7 +453,8 @@ def prompt_parts(pass_name: str, item: dict[str, Any]) -> tuple[str, str, str]:
     every 2023 clause; a map request shares its clause's candidates with the other rules of that clause and kind."""
     shared, group = PROMPTS[pass_name], ""
     if pass_name == "map":
-        group = f"THE 2023 CANDIDATES OF ITS CLAUSE:\n{candidate_block(item['clause_candidates']) or '(none)'}"
+        group = (f"THE 2023 CANDIDATES FROM THE CLAUSES THAT HOLD THE 1985 RULE'S FEATURE:\n"
+                 f"{candidate_block(item['clause_candidates']) or '(none)'}")
         own = (f"{rule_block(item['rule'])}\n\nTHE 2023 CANDIDATES BY WORDING:\n"
                f"{candidate_block(item['word_candidates']) or '(none)'}")
     elif pass_name == "verify":
@@ -478,15 +482,24 @@ def stamp_shapes() -> list[re.Pattern[str]]:
     return [re.compile(p) for p, _ in dict.fromkeys(shapes + verify_publishable.tree_shapes())]
 
 
-def request(pass_name: str, cid: str, item: dict[str, Any], model: str, shapes: list[re.Pattern[str]]) -> dict[str, Any]:
+def shared_groups(pass_name: str, items: Iterable[dict[str, Any]]) -> set[str]:
+    """The group blocks (`prompt_parts`' middle layer) at least CACHE_MIN_SHARERS of the pass's items share: the ones
+    worth caching. A clause whose rules are fewer than that sends its block uncached (review w20261922c R1-3)."""
+    counts = collections.Counter(prompt_parts(pass_name, it)[1] for it in items)
+    return {g for g, n in counts.items() if g and n >= CACHE_MIN_SHARERS}
+
+
+def request(pass_name: str, cid: str, item: dict[str, Any], model: str, shapes: list[re.Pattern[str]],
+            cached_groups: set[str]) -> dict[str, Any]:
     shared, group, own = prompt_parts(pass_name, item)
     if any(p.search(part) for p in shapes for part in (shared, group, own)):
         raise SystemExit(f"{TOOL}: the {pass_name} request for {item['id']} carries a per-copy stamp shape; nothing submitted")
     return {"custom_id": cid, "params": {"model": model, "max_tokens": MAX_OUTPUT_TOKENS,
                                          "output_config": {"effort": EFFORT[pass_name]},
                                          "system": cached_system(shared),
-                                         "messages": [{"role": "user", "content": [cached_text(group)] * bool(group)
-                                                       + [{"type": "text", "text": own}]}]}}
+                                         "messages": [{"role": "user", "content": (
+                                             [cached_text(group) if group in cached_groups else {"type": "text", "text": group}]
+                                             * bool(group) + [{"type": "text", "text": own}])}]}}
 
 
 # -- the answers ----------------------------------------------------------------------------------------------------------
@@ -574,8 +587,23 @@ def per_request_usd(p: Pass, st: dict[str, Any], sample: Iterable[str]) -> tuple
     chosen = list(sample)[:50] or list(items)[:50]
     if not chosen:
         return 0.0, "nothing to estimate"
-    chars = sum(len(prompt_text(p.name, items[c])) for c in chosen) / len(chosen)
-    return usd(st["model"], int(chars / CHARS_PER_TOKEN), EST_OUTPUT_TOKENS[p.name]), "estimated before a canary"
+    # Priced as the batch caches it (review w20261922c R1-4): a cached layer is written by the first request of the
+    # sample that sends it and read by the rest; an uncached one is input every time.
+    groups, seen, total = shared_groups(p.name, items.values()), set(), 0.0
+    for c in chosen:
+        shared, group, own = prompt_parts(p.name, items[c])
+        plain, write, read = len(own), 0, 0
+        for part, cached in ((shared, True), (group, group in groups)):
+            if not cached:
+                plain += len(part)
+            elif part in seen:
+                read += len(part)
+            else:
+                write += len(part)
+                seen.add(part)
+        total += usd(st["model"], int(plain / CHARS_PER_TOKEN), EST_OUTPUT_TOKENS[p.name],
+                     int(write / CHARS_PER_TOKEN), int(read / CHARS_PER_TOKEN))
+    return total / len(chosen), "estimated before a canary"
 
 
 def guard(p: Pass, st: dict[str, Any], todo: list[str], max_usd: float) -> None:
@@ -695,7 +723,8 @@ def main(argv: list[str] | None = None, client_factory: Callable[[str], Any] = m
             raise SystemExit(f"{TOOL}: the {p.name} pass has no collected canary with a valid answer: submit --canary N "
                              "first, collect it, and read its answers and cost")
         guard(p, st, todo, a.max_usd)
-        reqs = [request(p.name, cid, items[cid], st["model"], shapes) for cid in todo]   # every request checked first
+        groups = shared_groups(p.name, items.values())
+        reqs = [request(p.name, cid, items[cid], st["model"], shapes, groups) for cid in todo]   # every request checked first
         p.batches.submit(st, client, reqs, canary=canary)
         print_status(p, st)
     elif a.cmd == "status":

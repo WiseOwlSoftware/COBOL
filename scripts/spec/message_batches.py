@@ -46,6 +46,12 @@ BATCH_DISCOUNT = 0.5
 CACHE_TTL = "1h"
 CACHE_WRITE_MULTIPLIER = 2.0
 CACHE_READ_MULTIPLIER: dict[str, float] = {"claude-opus-5-5": 0.05}
+#: The fewest requests that must share a block for caching it to pay: the first writes it at CACHE_WRITE_MULTIPLIER and
+#: each later one reads it, so n requests cost 2 + 0.05 (n - 1) times the input against n uncached: from 3 on (review
+#: w20261922c R1-3). A block fewer requests share is sent uncached.
+CACHE_MIN_SHARERS = 3
+#: A reply's usage counts, in the order `usd` takes them (THE one reader of them: `usage_of`).
+USAGE_FIELDS = ("input_tokens", "output_tokens", "cache_creation_input_tokens", "cache_read_input_tokens")
 #: One batch is capped at 256 MB by the API; a submit splits under this budget.
 BATCH_BYTES = 180 * 1024 * 1024
 #: The SDK retries a network error or a 5xx this many times, and waits this long for one reply.
@@ -75,10 +81,8 @@ def usd(model: str, input_tokens: int, output_tokens: int, cache_write_tokens: i
 
 
 def usage_of(message: Any) -> list[int]:
-    """A reply's usage as `usd` takes it: input, output, cache write and cache read tokens."""
-    u = message.usage
-    return [u.input_tokens, u.output_tokens, getattr(u, "cache_creation_input_tokens", 0) or 0,
-            getattr(u, "cache_read_input_tokens", 0) or 0]
+    """A reply's usage as `usd` takes it (USAGE_FIELDS), a count the reply does not report as none."""
+    return [int(getattr(message.usage, f, 0) or 0) for f in USAGE_FIELDS]
 
 
 def cached_text(text: str) -> dict[str, Any]:

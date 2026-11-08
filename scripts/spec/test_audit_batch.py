@@ -134,6 +134,13 @@ def main() -> int:
         rtext = A.prompt_text("route", rby["X3.23-1985 VI.6.18"][1])
         check("a route prompt quotes the clause's rules and lists the 2023 clauses by number and subject",
               "§1985:VI.6.18.4 GR2" in rtext and "14.9.21 INSPECT statement" in rtext and "13.18.38 OCCURS clause" in rtext)
+        est = A.Pass(root / "run7", "route")
+        A.write_plan(est, [it for _c, it in rby.values()])
+        per_cached, _how = A.per_request_usd(est, {"model": "claude-opus-5-5"}, list(est.items()))
+        whole = sum(len(A.prompt_text("route", it)) for it in est.items().values()) / len(est.items())
+        check("the estimate before a canary prices the cached system a write once and a read after (review "
+              "w20261922c R1-4): it differs from pricing the whole prompt as input",
+              abs(per_cached - usd("claude-opus-5-5", int(whole / A.CHARS_PER_TOKEN), A.EST_OUTPUT_TOKENS["route"])) > 1e-9)
         layers = {k: A.prompt_parts("route", it) for k, (_c, it) in rby.items()}
         check("every route request shares one system text, the 2023 clause list, and its own part is its clause",
               len({sh for sh, _g, _o in layers.values()}) == 1
@@ -240,11 +247,31 @@ def main() -> int:
         ttl = {"type": "ephemeral", "ttl": "1h"}
         check("a request's pass instructions are its cached system block, an hour's TTL (Anthropic notice 2026-11-08)",
               req["params"]["system"] == [{"type": "text", "text": A.PROMPTS["map"], "cache_control": ttl}])
-        check("a map request's clause candidates are its cached first user block, before the rule; the rule and its "
-              "wording candidates are its own, uncached",
-              len(content) == 2 and content[0].get("cache_control") == ttl and "OF ITS CLAUSE" in content[0]["text"]
-              and "[SR-13.18.38.3-1]" in content[0]["text"] and "cache_control" not in content[1]
-              and "§1985:VI.5.8.3 SR1" not in content[0]["text"])
+        check("a map request's clause candidates are its first user block, before the rule; a block fewer than "
+              "CACHE_MIN_SHARERS requests share (each planted rule has a clause of its own) is sent uncached",
+              len(content) == 2 and "HOLD THE 1985 RULE'S FEATURE" in content[0]["text"]
+              and "cache_control" not in content[0] and "[SR-13.18.38.3-1]" in content[0]["text"]
+              and "cache_control" not in content[1] and "§1985:VI.5.8.3 SR1" not in content[0]["text"])
+        c_a, c_b = RULES_2023[0], RULES_2023[1]
+        word_item = {"id": "1985-GR-VI.6.18.4-9", "rule": dict(RULES_1985[1], id="1985-GR-VI.6.18.4-9"),
+                     "clause_candidates": [c_a], "word_candidates": [c_b]}
+        same_on_word = json.dumps({"verdict": "SAME", "rules_2023": [c_b["id"]], "differs": {}, "reason": "by wording"})
+        check("a SAME answer naming a wording candidate is accepted (review w20261922c R1-1)",
+              A.parse_answer("map", word_item, same_on_word)[0] is not None
+              and A.parse_answer("map", dict(word_item, word_candidates=[]), same_on_word)[0] is None)
+        state6 = root / "run6"
+        A.write_plan(A.Pass(state6, "map"), [word_item])
+        (state6 / "map" / "answers").mkdir(parents=True)
+        (state6 / "map" / "answers" / f"{A.custom_id('map', word_item['id'])}.json").write_text(
+            json.dumps({"id": word_item["id"], "answer": json.loads(same_on_word)}), encoding="utf-8", newline="\n")
+        check("the verify plan carries a SAME answer's wording candidate (review w20261922c R1-1)",
+              [c["id"] for v in A.plan_verify(state6) for c in v["candidates"]] == [c_b["id"]])
+        trio = [dict(word_item, id=f"1985-GR-VI.6.18.4-{n}") for n in (11, 12, 13)]
+        shared = A.shared_groups("map", trio)
+        req3 = A.request("map", "c3", trio[0], "claude-opus-5-5", [], shared)
+        check("a clause block CACHE_MIN_SHARERS requests share is cached, and one fewer share is not",
+              len(shared) == 1 and req3["params"]["messages"][0]["content"][0].get("cache_control") == ttl
+              and A.shared_groups("map", trio[:2]) == set())
 
         print("collect: before and after the canary ends")
         run(["collect", "--pass", "map", *base, *key], fake)
