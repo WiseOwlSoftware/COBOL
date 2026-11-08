@@ -56,3 +56,5 @@ declared (2002, 2014, 2023, COBOL0902).
 determined word the program declares, so a program that declares none of these words parses exactly as before. A
 `>>COBOL-WORDS UNDEFINE` of such a word still withdraws its header (§2023:7.3.10.4 GR3): the lexer makes the word an IDENTIFIER
 before any parse, so no keyword token exists to keep.
+
+**Gate.** Run 000001 RED (the keyword-rule shape, withdrawn); run 000002 RED on two cases (the recovery-restored SCREEN under `--permissive`, and the edition-read record for `FreeGatedWord`), both fixed; run 000003-20261108T021921Z: `=== BUILD-LOCAL GATE: GREEN — Conformance 22,533/22,533 · Unit 40,483/40,483 · Characterization 37/37 cases ran (skipped 0) ===`.
