@@ -17,6 +17,25 @@ namespace WiseOwl.Cobol.Binding.Procedure;
 /// <param name="Conformance">The descriptor a §2023:14.8.2 non-conformance reports under.</param>
 internal sealed record ActivationSite(string Callee, string ImportingRule, DiagnosticDescriptor Conformance);
 
+/// <summary>The storage-section rule a CALL or INVOKE operand is screened against, as ONE value: the clause the message
+/// cites and the section list that clause states (kb/Work PB4938). The two were once chosen by independent edition tests;
+/// a caller can no longer pass one edition's clause with the other's list, because the list comes from the factory
+/// that made the rule.</summary>
+/// <param name="Clause">The edition-qualified rule the message cites.</param>
+/// <param name="Sections">The sections that rule names, as the message states them.</param>
+internal readonly record struct StorageSectionRule(string Clause, string Sections)
+{
+    /// <summary>§1985:X.5.2.3 SR3 - the '85 list has a Communication Section and no Local-Storage Section.</summary>
+    internal static StorageSectionRule Cobol85 { get; } = new("§1985:X.5.2.3 SR3",
+        "a data item defined in the file, working-storage, communication, or linkage section");
+
+    /// <summary>A COBOL-2002-and-later rule (§2023:14.9.4.3 SR3/SR7, §2023:14.9.23.3 SR9/SR11): the list names the
+    /// Local-Storage Section and no Communication Section.</summary>
+    /// <param name="clause">The §2023 clause the message cites.</param>
+    internal static StorageSectionRule Of2023(string clause) => new(clause,
+        "a data item defined in the file, working-storage, local-storage, or linkage section");
+}
+
 /// <summary>
 /// ⛔ THE ONE ARGUMENT HALF OF ISO §2023:14.8.2, PARAMETERS — for every activation whose activated element's formal
 /// parameters are known when the activating statement binds (kb/Work PB1418 / PB1115). Two syntax rules import the
@@ -315,21 +334,18 @@ internal sealed class ParameterConformance(BinderContext ctx, StatementBinder ho
     /// <param name="code">The descriptor the violation reports under.</param>
     /// <param name="subject">How the message names the operand — <c>CALL USING argument</c>,
     /// <c>INVOKE RETURNING item</c>.</param>
-    /// <param name="clause">The rule the message cites.</param>
+    /// <param name="rule">The rule the message cites and the section list it states, as one value.</param>
     /// <param name="addressAdmitted">The rule also admits an address-identifier (a USING argument; never the
     /// RETURNING item).</param>
     internal bool ScreenSection(Place p, WiseOwl.Cobol.Frontend.Generated.CobolParserCore.DataReferenceContext written,
-        DiagnosticDescriptor code, string subject, string clause, bool addressAdmitted)
+        DiagnosticDescriptor code, string subject, StorageSectionRule rule, bool addressAdmitted)
     {
         if (SectionDataItem.NonSectionKind(p) is not { } kind || ctx.Refs.ObjectProperties.IsObjectPropertyReference(written))
             return true;
         ctx.Edition.Error(code,
-            $"{subject} '{DataBinder.WrittenText(written)}' references {kind}; ISO {clause} requires "
+            $"{subject} '{DataBinder.WrittenText(written)}' references {kind}; ISO {rule.Clause} requires "
             + (addressAdmitted ? "an address-identifier or " : "")
-            + (ctx.Edition.Edition.Year < 2002
-                // §1985:X.5.2.3 SR3 — the '85 list has a Communication Section and no Local-Storage Section.
-                ? "a data item defined in the file, working-storage, communication, or linkage section"
-                : "a data item defined in the file, working-storage, local-storage, or linkage section"));
+            + rule.Sections);
         return false;
     }
 

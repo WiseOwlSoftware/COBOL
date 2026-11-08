@@ -1465,10 +1465,11 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         // (kb/Work PB4901).
         if (ctx.Edition.Edition.Year < 2002)
             host.Params.ScreenSection(p, written, DiagnosticCatalog.CallOperandSection, $"CALL {role}",
-                "§1985:X.5.2.3 SR3", addressAdmitted: false);
+                StorageSectionRule.Cobol85, addressAdmitted: false);
         else if (isReturning || !formatTwo || mode is CobolPassMode.Reference)
             host.Params.ScreenSection(p, written, DiagnosticCatalog.CallOperandSection, $"CALL {role}",
-                isReturning ? "§2023:14.9.4.3 SR7" : "§2023:14.9.4.3 SR3", addressAdmitted: !isReturning);
+                StorageSectionRule.Of2023(isReturning ? "§2023:14.9.4.3 SR7" : "§2023:14.9.4.3 SR3"),
+                addressAdmitted: !isReturning);
 
         // ⛔ THE ANY LENGTH SCREEN IS EXACTLY AS WIDE AS THE TWO RULES THAT STATE IT (kb/Work PB240):
         //   SR11 (FORMAT 1) — "Identifier-2 and identifier-3 shall not be described with the ANY LENGTH clause":
