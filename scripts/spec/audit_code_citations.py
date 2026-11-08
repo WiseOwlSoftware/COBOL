@@ -1229,10 +1229,11 @@ ORDINAL_SELF_TEST = [
      '    + "(ISO §2023:14.9.12.2 / §2023:14.9.12.3 SR6)");',
      '    + "(ISO §2023:14.9.12.2)");'),
     # ⛔ THE EDITION FORM IS MEASURED THE SAME WAY, AND ANOTHER EDITION'S RULE IS NOT MEASURED AGAINST 2023'S
-    # (kb/Work PB4887): the silent twin is the same designator filed under a 2002 clause.
+    # (kb/Work PB4887): the silent twin is the same designator filed under a 2002 clause that HAS it (2002 numbers its
+    # statements 14.8, and its EVALUATE statement carries a sixth syntax rule; 2023's DIVIDE at 14.9.12.3 has none).
     ("RULE",
      '    + "(§2023:14.9.12.2 / §2023:14.9.12.3 SR6)");',
-     '    + "(§2023:14.9.12.2 / §2002:14.9.12.3 SR6)");'),
+     '    + "(§2023:14.9.12.2 / §2002:14.8.12.2 SR6)");'),
     ("SUBITEM",
      "/// serial SEARCH with VARYING index-of-ANOTHER-table (ISO §2023:14.9.37.4 GR8b) falls through",
      "/// serial SEARCH with VARYING index-of-ANOTHER-table (ISO §2023:14.9.37.4 GR3 c) 2) falls through"),
