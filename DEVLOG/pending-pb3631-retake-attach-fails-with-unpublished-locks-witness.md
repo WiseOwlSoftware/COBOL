@@ -14,8 +14,9 @@ share-mode swap, so its own exclusive handle refused the scratch handle and the 
 file open (§2023:9.1.13.9 answers '61' only for another one) and a dead run unit's uncommitted write (§2023:9.1.18.5) stood unsettled. Relative and
 indexed alike. The first version of the witness pinned that '61' as expected.
 
-**Fix.** `SettleDeadOwnersOfTheOpen` keeps the beside-the-kept-handle settle only for an ADOPTED kept handle; every other OPEN (no kept state, or
-one whose kept handle was given back) gives its own handle back first and takes it again, as the OPEN with no kept state always did. For a kept
+**Fix.** `SettleDeadOwnersOfTheOpen` keeps the beside-the-kept-handle settle for every kept handle still on the file (adopted, or beside the
+OPEN's own handle; the second review's R1-1 found the first version narrowed it to adopted ones only, and the ALL OTHER re-OPEN rows now witness the
+widened form); every other OPEN (no kept state, or one whose kept handle was given back) gives its own handle back first and takes it again, as the OPEN with no kept state always did. For a kept
 state the record-lock ids on the OPEN's endpoint are taken off it (`PhysicalFileTable.Unpublish`) before the handle goes and published through
 the handle that takes its place; if that retake is refused they wait in `_unpublishedBySettle`, and `AbandonOpen` publishes them through the kept
 handle it retakes, so the refused OPEN still leaves the locks standing (§2023:14.9.27.4 GR25, §2023:14.9.6.4 GR9). Design doc

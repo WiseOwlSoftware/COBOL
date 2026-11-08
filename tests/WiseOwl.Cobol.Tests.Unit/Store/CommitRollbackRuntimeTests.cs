@@ -2792,27 +2792,33 @@ public sealed class CommitRollbackRuntimeReplacedFileTests : CommitRollbackRunti
     /// READing record 1 meet '51' and record 2 '00' when it was refused; after A's ROLLBACK (§2023:14.9.36.4 GR3) record 1 reads
     /// '00' for both and the file is the seeded one.</summary>
     [Theory]
-    [InlineData(FileOrg.Relative, false)]
-    [InlineData(FileOrg.Indexed, false)]
-    [InlineData(FileOrg.Relative, true)]
-    [InlineData(FileOrg.Indexed, true)]
-    public void A_reopen_refused_at_any_read_whose_retake_cannot_adopt_the_store_leaves_the_kept_record_locks_standing(FileOrg org, bool deadOwner)
+    [InlineData(FileOrg.Relative, false, false)]
+    [InlineData(FileOrg.Indexed, false, false)]
+    [InlineData(FileOrg.Relative, true, false)]
+    [InlineData(FileOrg.Indexed, true, false)]
+    [InlineData(FileOrg.Relative, true, true)]
+    [InlineData(FileOrg.Indexed, true, true)]
+    public void A_reopen_refused_at_any_read_whose_retake_cannot_adopt_the_store_leaves_the_kept_record_locks_standing(FileOrg org, bool deadOwner, bool reopenAllOther)
     {
-        int healthy = RefusedReopen(org, deadOwner, refuseFrom: int.MaxValue, out string healthyStatus, out int healthyArm);
+        var reopenSharing = reopenAllOther ? FileSharing.AllOther : FileSharing.NoOther;
+        int healthy = RefusedReopen(org, deadOwner, reopenSharing, refuseFrom: int.MaxValue, out string healthyStatus, out int healthyArm);
         Assert.True(healthy > 0, "a re-OPEN reads the store");
         Assert.Equal("00", healthyStatus);   // nobody else has the file: a dead owner is settled, never a sharing conflict (§2023:9.1.13.9)
         Assert.Equal(0, healthyArm);
         int refusedOpens = 0, armReached = 0;
         for (int k = 1; k <= healthy; k++)
         {
-            RefusedReopen(org, deadOwner, refuseFrom: k, out string status, out int arm);
+            RefusedReopen(org, deadOwner, reopenSharing, refuseFrom: k, out string status, out int arm);
             if (status != "00") refusedOpens++;
             armReached += arm;
         }
         Assert.True(refusedOpens > 0, "no k refused the re-OPEN: the sweep reached nothing");
         // The arm itself (review finding R1-2): a retake whose store the medium refuses to adopt while the OPEN held record-lock ids off
         // the host. The dead owner's settle gives the OPEN's handle back after the locks moved to it, so only that sweep reaches it.
-        if (deadOwner) Assert.True(armReached > 0, "no refused re-OPEN reached RetakeKeptHandle's Attach-fails-with-unpublished-locks arm");
+        // A re-OPEN SHARING WITH ALL OTHER leaves the kept handle on the file beside its own (second review, R1-1): the settle goes
+        // beside the kept handle, nothing is given back, and the record locks never leave the table.
+        if (reopenAllOther) Assert.Equal(0, armReached);
+        if (deadOwner && !reopenAllOther) Assert.True(armReached > 0, "no refused re-OPEN reached RetakeKeptHandle's Attach-fails-with-unpublished-locks arm");
     }
 
     /// <summary>⛔ A RE-OPEN BESIDE NOTHING BUT ITS OWN CONNECTOR'S KEPT STATE SETTLES A DEAD RUN UNIT'S TRANSACTION AND SUCCEEDS (kb/Work
@@ -2859,9 +2865,9 @@ public sealed class CommitRollbackRuntimeReplacedFileTests : CommitRollbackRunti
     /// the medium refuses the <paramref name="refuseFrom"/>-th read of the re-OPEN (counted from 1) and every later one until the OPEN
     /// statement returns. Returns the reads the re-OPEN made; its status and the retakes that lost the adoption holding locks
     /// (<see cref="KeyedConnector.RetakesThatLostTheAdoptionHoldingLocks"/>) are the out parameters.</summary>
-    private int RefusedReopen(FileOrg org, bool deadOwner, int refuseFrom, out string reopenStatus, out int retakesThatLostTheAdoption)
+    private int RefusedReopen(FileOrg org, bool deadOwner, FileSharing reopenSharing, int refuseFrom, out string reopenStatus, out int retakesThatLostTheAdoption)
     {
-        string host = Tmp($"pb3631-sweep-{org}-{deadOwner}-{(refuseFrom == int.MaxValue ? "healthy" : refuseFrom.ToString())}");
+        string host = Tmp($"pb3631-sweep-{org}-{deadOwner}-{reopenSharing}-{(refuseFrom == int.MaxValue ? "healthy" : refuseFrom.ToString())}");
         try
         {
             Seed(host, org);
@@ -2888,30 +2894,49 @@ public sealed class CommitRollbackRuntimeReplacedFileTests : CommitRollbackRunti
             Assert.Equal("00", a.Status("F"));
             a.PagedStoreOf("F")!.DropCache();
             armed = true;
-            a.OpenShared("F", FileOpenMode.Input, hasSharingOverride: true, FileSharing.NoOther, FileRetryKind.None, 0,
+            a.OpenShared("F", FileOpenMode.Input, hasSharingOverride: true, reopenSharing, FileRetryKind.None, 0,
                 OpenTapePhrase.None, assign: "", assignDynamic: false, page: null);
             int made = reads;
             reopenStatus = a.Status("F");
             retakesThatLostTheAdoption = a.RetakesThatLostTheAdoptionOf("F");
             armed = false;
             FileRegistry? b = null;
-            if (reopenStatus != "00")
+            bool gOpen = false;
+            if (reopenStatus == "00")
+            {
+                // The success arm (review finding R1-2): the locks the CLOSE kept were published again through the handle that took
+                // the kept one's place, so A's second CLOSE under commit control keeps them and another run unit still meets '51'.
+                a.Close("F");
+                Assert.Equal("00", a.Status("F"));
+                // (Only a kept handle that shares with ALL OTHER lets a second connector open the file beside it: Table 19.)
+                if (reopenSharing == FileSharing.AllOther)
+                {
+                    gOpen = true;
+                    Declare(a, host, org, commit: false, name: "G");
+                    a.OpenStatic("G", FileOpenMode.IO);
+                    Assert.Equal("00", a.Status("G"));
+                    Assert.Equal("51", Read(a, org, 1, out _, name: "G"));
+                    Assert.Equal("00", Read(a, org, 2, out _, name: "G"));
+                }
+            }
+            else
             {
                 // The refused OPEN left the file as the CLOSE left it: its locks stand against the run unit's own other connector and
-                // against another run unit alike. (A re-OPEN that succeeded holds the file SHARING WITH NO OTHER: nothing else opens.)
-                Declare(a, host, org, commit: false, name: "G");
-                a.OpenStatic("G", FileOpenMode.IO);
-                Assert.Equal("00", a.Status("G"));
-                Assert.Equal("51", Read(a, org, 1, out _, name: "G"));
-                Assert.Equal("00", Read(a, org, 2, out _, name: "G"));
+                // against another run unit alike.
+                gOpen = !(deadOwner && reopenSharing == FileSharing.AllOther);
+                if (gOpen) Declare(a, host, org, commit: false, name: "G");
+                if (gOpen) a.OpenStatic("G", FileOpenMode.IO);
+                if (gOpen) Assert.True(a.Status("G") == "00", $"G status {a.Status("G")} after a re-OPEN refused from read {refuseFrom}");
+                if (gOpen) Assert.Equal("51", Read(a, org, 1, out _, name: "G"));
+                if (gOpen) Assert.Equal("00", Read(a, org, 2, out _, name: "G"));
                 b = Open(host, org, commit: false, name: "B");
                 Assert.Equal("51", Read(b, org, 1, out _, name: "B"));
                 Assert.Equal("00", Read(b, org, 2, out _, name: "B"));
             }
             Assert.Null(a.Rollback());
+            if (gOpen) Assert.Equal("00", Read(a, org, 1, out _, name: "G"));
             if (b is not null)
             {
-                Assert.Equal("00", Read(a, org, 1, out _, name: "G"));
                 Assert.Equal("00", Read(b, org, 1, out _, name: "B"));
                 b.CloseAll();
             }
