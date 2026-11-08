@@ -124,7 +124,7 @@ public sealed class CobolWideIntrinsicsTests
         Assert.Equal(W(Product39).ToDec(0), W(Product39 + 1).ToDec(0));
         Assert.Equal("998999999999999998002000000000000001000", FunctionValueField.Max(low, high).DeviceText(false));
         Assert.Equal("998999999999999998002000000000000000999", FunctionValueField.Min(high, low).DeviceText(false));
-        Assert.Equal("998999999999999998002000000000000000999.5", FunctionValueField.Median(high, low).DeviceText(false));
+        Assert.Equal("998999999999999998002000000000000000999.5", FunctionValueField.Median(CobolRounding.NearestEven, high, low).DeviceText(false));
         // A value that fits Int128 is the SDIDI's temporary, exactly as OfValue describes it.
         Assert.Equal(FunctionValueField.OfValue(CobolDec.From(12345, 2)).DeviceText(false), FunctionValueField.OfWide(CobolWide.From(12345), 2).DeviceText(false));
     }
@@ -147,8 +147,8 @@ public sealed class CobolWideIntrinsicsTests
         Assert.Equal(Text(a + 1000), FunctionValueField.Max(wide, narrow).DeviceText(false));
         Assert.Equal(Text(a), FunctionValueField.Min(narrow, wide).DeviceText(false));
         Assert.Equal(Text(a), FunctionValueField.Min(wide, narrow).DeviceText(false));
-        Assert.Equal(Text(a + 1000), FunctionValueField.Median(wide, narrow, wider).DeviceText(false));
-        Assert.Equal(Text(a + 1000), FunctionValueField.Median(wider, wide, narrow).DeviceText(false));
+        Assert.Equal(Text(a + 1000), FunctionValueField.Median(CobolRounding.NearestEven, wide, narrow, wider).DeviceText(false));
+        Assert.Equal(Text(a + 1000), FunctionValueField.Median(CobolRounding.NearestEven, wider, wide, narrow).DeviceText(false));
         // The same off-grid trap with a fraction: a 38-digit SDIDI at scale 4 against a wide value at scale 4 just above it.
         BigInteger f = BigInteger.Parse("17014118346046923173168730371588410500", CultureInfo.InvariantCulture);   // at scale 4
         FunctionValueField narrowF = FunctionValueField.OfValue(CobolDec.From((Int128)f, 4));

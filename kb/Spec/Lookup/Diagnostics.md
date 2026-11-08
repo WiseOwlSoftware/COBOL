@@ -39,7 +39,6 @@ serves as the diagnostic→phase map). See [[kb/Semantics/Validation Rules]] and
 ## Documented non-support (recognized + warned/rejected)
 | Code | Meaning (Id) | Sev | ISO § | Phase | Facility |
 |---|---|---|---|---|---|
-| `COBOL1578` | MCS SEND/RECEIVE unsupported | Warning | §2023:4.2.6 / Annex A.3.4 / §2023:14.9.31/.38 | Validate | asynchronous messaging |
 | `COBOL1579` | COMMIT/ROLLBACK unsupported (behaves as CONTINUE) | Warning | §2023:4.2.6 / A.3.6-7 / §2023:14.9.7/.36 | Validate | commit/rollback |
 | `COBOL1580` | VALIDATE unsupported (optional + obsolete 2023) | Warning | §2023:4.2.7 / A.4.14 / §2023:14.9.50 | Validate | VALIDATE |
 

@@ -3,7 +3,9 @@
 using System.Globalization;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
+using System.Security.AccessControl;
 using System.Security.Cryptography;
+using System.Security.Principal;
 using System.Text;
 
 namespace WiseOwl.Cobol.Runtime.Mcs;
@@ -18,7 +20,8 @@ internal sealed class McsSocketDirectoryRefusedException(string message, Excepti
 /// <para>On Unix <c>&lt;S&gt;</c> is <c>&lt;base&gt;/wiseowl-mcs-&lt;uid&gt;/&lt;h&gt;/</c>: <c>&lt;uid&gt;</c> the effective user id in decimal, <c>&lt;base&gt;</c>
 /// <c>$XDG_RUNTIME_DIR</c> when it is set, absolute, exists and leaves room for the longest entry of either facility
 /// (<see cref="LongestEntryBytes"/>), else <c>/tmp</c> (never <see cref="Path.GetTempPath"/>, which on macOS is a per-user directory too long
-/// for the limit). On Windows it is <see cref="Path.GetTempPath"/> followed by <c>wiseowl-mcs\&lt;h&gt;\</c>, inside the user's own temp directory.
+/// for the limit). On Windows it is <see cref="Path.GetTempPath"/> followed by <c>wiseowl-mcs\&lt;h&gt;\</c>, inside the user's own temp directory, when the longest
+/// entry fits there, else <c>%ProgramData%\wiseowl-mcs-&lt;u&gt;\&lt;h&gt;\</c> with a user level only the user may use (<see cref="WindowsDirectory"/>, kb/Work PB4922).
 /// On Unix every directory created is mode 0700 and one that already exists with any group or other permission is refused
 /// (<see cref="McsSocketDirectoryRefusedException"/>): a directory this user can create entries in whose mode grants nothing to anyone
 /// else is this user's, so no owner test is needed, and a directory another user made first denies access and is refused the same way.
@@ -56,7 +59,10 @@ internal sealed class McsSocketDirectory
     {
         if (OperatingSystem.IsWindows())
         {
-            return new McsSocketDirectory(Create(WindowsDirectory(System.IO.Path.GetTempPath(), identity)));
+            var (windows, userLevel) = WindowsDirectory(System.IO.Path.GetTempPath(), Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+                WindowsUserKey(), identity);
+            if (userLevel is not null) SecureWindowsUserLevel(userLevel);
+            return new McsSocketDirectory(Create(windows));
         }
         string? runtime = Environment.GetEnvironmentVariable(RuntimeDirectoryVariable);
         uint uid = EffectiveUserId();
@@ -77,8 +83,61 @@ internal sealed class McsSocketDirectory
         return "/tmp/" + tail;
     }
 
-    /// <summary>The Windows socket directory under <paramref name="tempPath"/> (<see cref="System.IO.Path.GetTempPath"/>, which ends in its separator).</summary>
-    internal static string WindowsDirectory(string tempPath, string identity) => tempPath + WindowsFolder + "\\" + identity + "\\";
+    /// <summary>⛔ THE WINDOWS SOCKET DIRECTORY, THE TWIN OF <see cref="UnixDirectory"/> (kb/Work PB4922; DESIGN-message-control.md §5.1, §6): under
+    /// <paramref name="tempPath"/> (<see cref="System.IO.Path.GetTempPath"/>, which ends in its separator, a directory the user's own profile already restricts) when the
+    /// longest entry of either facility still fits under it, else under <paramref name="commonData"/> (<c>%ProgramData%</c>, short and the same for every user) in
+    /// <c>wiseowl-mcs-&lt;u&gt;</c>, <c>&lt;u&gt;</c> the user's key (<see cref="WindowsUserKey"/>). The second result is that user level, which the caller restricts to the
+    /// user (<see cref="SecureWindowsUserLevel"/>), as the Unix user level is mode 0700; null under the temp directory. A user name longer than 16 characters makes the
+    /// default temp path too long (91 bytes plus the name against 107), and that user's messaging was EC-MCS-IMP.</summary>
+    internal static (string Path, string? UserLevel) WindowsDirectory(string tempPath, string commonData, string userKey, string identity)
+    {
+        string underTemp = tempPath + WindowsFolder + "\\" + identity + "\\";
+        if (FitsUnder(underTemp, LongestEntryBytes) || commonData.Length == 0) return (underTemp, null);
+        string userLevel = commonData.TrimEnd('\\') + "\\" + UnixFolder + userKey;
+        return (userLevel + "\\" + identity + "\\", userLevel);
+    }
+
+    /// <summary>The Windows user's key <c>&lt;u&gt;</c>: the first 16 lower-case hex digits of the SHA-256 of the user's SID string (a SID is up to 184 characters, so it
+    /// is hashed to a fixed width as the MCS identity <c>&lt;h&gt;</c> is). Windows only.</summary>
+    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
+    internal static string WindowsUserKey() =>
+        Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(WindowsIdentity.GetCurrent().User!.Value)))[..16];
+
+    /// <summary>⛔ THE WINDOWS USER LEVEL IS THE USER'S ALONE (kb/Work PB4922), as the Unix one is mode 0700: <c>%ProgramData%</c> lets every user create a directory, so
+    /// the level is created owned by the user with a PROTECTED access list that grants the user alone full control (nothing inherited from <c>%ProgramData%</c>), and
+    /// one that already exists is refused (<see cref="McsSocketDirectoryRefusedException"/>) unless the user owns it, its list is protected, and it allows no one else
+    /// anything. Another user can therefore deny a user the fallback by making the directory first, but never read or plant a socket in it: the Unix posture under
+    /// <c>/tmp</c>. The sockets and directories beneath inherit the list.</summary>
+    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
+    internal static void SecureWindowsUserLevel(string userLevel)
+    {
+        var user = WindowsIdentity.GetCurrent().User!;
+        var info = new DirectoryInfo(userLevel);
+        try
+        {
+            if (!info.Exists)
+            {
+                var security = new DirectorySecurity();
+                security.SetOwner(user);
+                security.SetAccessRuleProtection(isProtected: true, preserveInheritance: false);
+                security.AddAccessRule(new FileSystemAccessRule(user, FileSystemRights.FullControl,
+                    InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit, PropagationFlags.None, AccessControlType.Allow));
+                info.Create(security);
+            }
+            var acl = info.GetAccessControl();
+            if (acl.GetOwner(typeof(SecurityIdentifier)) is not SecurityIdentifier owner || owner != user)
+                throw new McsSocketDirectoryRefusedException($"the socket directory '{userLevel}' is not owned by this user");
+            if (!acl.AreAccessRulesProtected)
+                throw new McsSocketDirectoryRefusedException($"the socket directory '{userLevel}' inherits access from its parent");
+            foreach (FileSystemAccessRule rule in acl.GetAccessRules(includeExplicit: true, includeInherited: true, typeof(SecurityIdentifier)))
+                if (rule.AccessControlType == AccessControlType.Allow && rule.IdentityReference != user)
+                    throw new McsSocketDirectoryRefusedException($"the socket directory '{userLevel}' grants access to {rule.IdentityReference}, beyond its user");
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException && e is not McsSocketDirectoryRefusedException)
+        {
+            throw new McsSocketDirectoryRefusedException($"the socket directory '{userLevel}' cannot be used: {e.Message}", e);
+        }
+    }
 
     /// <summary>The socket directory at <paramref name="path"/> as it stands: nothing is created or checked. For a caller that has already formed a path by
     /// <see cref="UnixDirectory"/> or <see cref="WindowsDirectory"/> and asks the budget of it; no setting reaches this, so a user still cannot name another directory.</summary>

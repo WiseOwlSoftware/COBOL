@@ -1090,10 +1090,18 @@ internal sealed class VersionConformancePass
                 _p.Check(Constructs.UseAfterExceptionObject2002, "USE AFTER EXCEPTION OBJECT (Format 4)");
             else if (ctx.CONDITION() is not null || ctx.EC() is not null)
                 _p.Check(Constructs.UseAfterExceptionCondition2002, "USE AFTER EXCEPTION CONDITION (Format 3)");
-            // ISO/IEC 1989:2002 Annex F.2 item 141: "The word PROCEDURE, previously required, is optional" — Format 1,
-            // the one format that writes it (use-without-procedure-2002; kb/Work PB4305).
-            else if (ctx.useOnTarget() is not null && ctx.PROCEDURE() is null)
-                _p.Check(Constructs.UseWithoutProcedure2002, "a USE AFTER EXCEPTION/ERROR statement without the word PROCEDURE");
+            // Format 1's two words that COBOL-85 underlines and ISO/IEC 1989:2002 does not (§1985:VII.4.6.2 prints
+            // `USE AFTER STANDARD {EXCEPTION | ERROR} PROCEDURE ON`): PROCEDURE, which 2002 Annex F.2 item 141 names
+            // ("The word PROCEDURE, previously required, is optional"; use-without-procedure-2002, kb/Work PB4305), and
+            // AFTER, which F.2 does not name and the 2002 format prints optional (use-without-after-2002, kb/Work
+            // PB4919). Both are asked of the one statement, so a USE that omits both names both.
+            else if (ctx.useOnTarget() is not null)
+            {
+                if (ctx.AFTER() is null)
+                    _p.Check(Constructs.UseWithoutAfter2002, "a USE STANDARD EXCEPTION/ERROR statement without the word AFTER");
+                if (ctx.PROCEDURE() is null)
+                    _p.Check(Constructs.UseWithoutProcedure2002, "a USE AFTER EXCEPTION/ERROR statement without the word PROCEDURE");
+            }
             return base.VisitChildren(ctx);
         }
 
@@ -1272,8 +1280,14 @@ internal sealed class VersionConformancePass
             // `SET A TO TRUE B TO FALSE` writes ONE FALSE arm inside the second group. Asking the statement
             // node for FALSE_ after the phrase rule landed would have found none and let the COBOL-2002
             // introduction through unmeasured at --std 85.
-            if (ctx.setConditionPhrase().Any(p => p.FALSE_() is not null))
+            var phrases = ctx.setConditionPhrase();
+            if (phrases.Any(p => p.FALSE_() is not null))
                 _p.Check(Constructs.SetConditionFalse2002, "SET condition-name TO FALSE");
+            // The outer `…` itself is the 2002 addition: COBOL-85's Format 4 is `SET {condition-name-1}… TO TRUE` with no
+            // ellipsis on the unit (§1985:VI.6.23.2), so a second phrase is the repetition 2002 introduced (kb/Work
+            // PB4919). Reported once per statement, however many phrases follow the first.
+            if (phrases.Length > 1)
+                _p.Check(Constructs.SetConditionRepeated2002, "a second condition-name TO TRUE phrase in one SET statement");
             return base.VisitChildren(ctx);
         }
 
@@ -2444,7 +2458,7 @@ internal sealed class VersionConformancePass
         /// they parse at every edition, because §2023:8.9 reserves the two verbs at COBOL-85 for the '85 communication
         /// module and at 2023 for this facility with a user-word gap between, so the reservation predicate they used to
         /// carry recognized the 2023 formats at --std 85 and compiled them under a warning naming the 2023 facility.
-        /// At 2023 the statement is accepted inert by the binder (COBOL1578).</summary>
+        /// At 2023 the binder binds it (MessagingBinder).</summary>
         public override object? VisitMessagingReceiveStatement(CobolParserCore.MessagingReceiveStatementContext ctx)
         { _p.Check(Constructs.AsyncMessaging2023, "the RECEIVE statement (asynchronous messaging)"); return base.VisitChildren(ctx); }
 

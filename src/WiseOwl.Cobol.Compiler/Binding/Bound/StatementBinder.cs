@@ -597,7 +597,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// ACTIVATES a function or method whose signature has one — its RETURNING item, which the operand's temporary takes the description of
     /// (§2023:8.4.3.2.4 GR1, §2023:8.4.3.4.4 GR1b), or a formal parameter its argument conforms to (§2023:14.8.2): a function-identifier
     /// (<see cref="IntrinsicBinder.SignatureOf(Core.FunctionCallContext)"/>; the keyword-omitted form is a data reference no data item answers
-    /// to), an inline method invocation through any receiver (<see cref="OoBinder.InvokedMethodsOf"/>: a typed data item, a class-name, SELF,
+    /// to), a Format-2 CALL (<see cref="CallBinder.CalleeSignatureOf"/>; kb/Work PB4934), an inline method invocation through any receiver (<see cref="OoBinder.InvokedMethodsOf"/>: a typed data item, a class-name, SELF,
     /// SUPER, an object view, a function-identifier, a previous segment) and an INVOKE statement, RETURNING phrase or not
     /// (<see cref="OoBinder.InvokedMethodOf"/>; kb/Work PB4893). Each is the diagnostic-free answer the binding reads again when it binds.
     /// ⛔ THE NO-OP IS EARNED BY A GATED OPERAND, NOT BY THE EDITION: an operand that is
@@ -631,6 +631,9 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
                 case Core.InvokeStatementContext invoke:
                     if (Oo.InvokedMethodOf(invoke) is { } method && NamesGatedMessageTag(method)) return true;
                     break;
+                case Core.CallStatementContext call:
+                    if (Call.CalleeSignatureOf(call) is { } callee && NamesGatedMessageTag(callee)) return true;
+                    break;
             }
             for (int i = node.ChildCount - 1; i >= 0; i--) pending.Push(node.GetChild(i));
         }
@@ -645,6 +648,9 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
 
     /// <summary>Whether the signature of the user function an operand activates has a gated message-tag item: its RETURNING item or a formal.</summary>
     private static bool NamesGatedMessageTag(UserFunctionSignature function) => function.SignatureItems.Any(IsGatedMessageTag);
+
+    /// <summary>Whether the signature a Format-2 CALL activates (<see cref="CallBinder.CalleeSignatureOf"/>) has a gated message-tag item: its RETURNING item or a formal.</summary>
+    private static bool NamesGatedMessageTag(CalleeSignature callee) => callee.SignatureItems.Any(IsGatedMessageTag);
 
     /// <summary>Whether the signature of the method an invocation activates has a gated message-tag item: its RETURNING item or a formal.</summary>
     private static bool NamesGatedMessageTag(OoMethodSymbol method) => method.Binding?.SignatureItems.Any(IsGatedMessageTag) == true;
@@ -688,18 +694,18 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         _ when s.communicationReceiveStatement() is { } crv => Communication.BindReceive(crv),
         _ when s.communicationSendStatement() is { } csn => Communication.BindSend(csn),
         _ when s.initializeStatement() is { } ini => Init.Bind(ini),
+        // ── The asynchronous messaging facility (ISO §2023:14.9.31 RECEIVE, §2023:14.9.38 SEND; DESIGN-message-control.md §4.3; kb/Work PB4744). It exists from 2023
+        //    (Constructs.AsyncMessaging2023): below that the statement binds to a no-op and the edition pass's COBOL0900 is the whole answer. ──
+        _ when s.messagingReceiveStatement() is { } rcv => BindIntroducedAt(Constructs.AsyncMessaging2023, () => Messaging.BindReceive(rcv)),
+        _ when s.messagingSendStatement() is { } snd => BindIntroducedAt(Constructs.AsyncMessaging2023, () => Messaging.BindSend(snd)),
         // ── Wave H — recognize-and-name the unsupported facilities. ISO §2023:4.2.6 ¶3 makes the compile-time
-        //    warning mechanism MANDATORY for the Annex A.3 halves (MCS, A.3 item 4; COMMIT/ROLLBACK, A.3 items
-        //    6-7); the A.4.14 VALIDATE statement is an OPTIONAL element §2023:4.2.7 requires us only to DOCUMENT,
-        //    and naming it is the choice docs/CONFORMANCE.md §4 item 3 records (kb/Work PB709). Each binds
+        //    warning mechanism MANDATORY for the Annex A.3 halves (COMMIT/ROLLBACK, A.3 items 6-7); the A.4.14
+        //    VALIDATE statement is an OPTIONAL element §2023:4.2.7 requires us only to DOCUMENT, and naming it is
+        //    the choice docs/CONFORMANCE.md §4 item 3 records (kb/Work PB709). Each binds
         //    to BoundNop: the program compiles, runs, and the facility is inert — never a silent wrong answer,
         //    and never an EC (licensed off by §2023:14.6.13.1.1). The statement's IDENTIFIERS are still read first
-        //    (VALIDATE by DeclinedFacilityBinder, kb/Work PB3568; SEND and RECEIVE by MessagingBinder, PB4743); BindDeclinedStatement says why below the statement's
-        //    introduction (VALIDATE 2002, RECEIVE / SEND 2023) it does neither. ──
-        _ when s.messagingReceiveStatement() is { } rcv => BindDeclinedStatement(Constructs.AsyncMessaging2023,
-            DiagnosticCatalog.McsFacilityUnsupported, r => _ = Messaging.BindReceive(r), rcv),
-        _ when s.messagingSendStatement() is { } snd => BindDeclinedStatement(Constructs.AsyncMessaging2023,
-            DiagnosticCatalog.McsFacilityUnsupported, sn => _ = Messaging.BindSend(sn), snd),
+        //    (VALIDATE by DeclinedFacilityBinder, kb/Work PB3568); BindDeclinedStatement says why below the statement's
+        //    introduction (VALIDATE 2002) it does neither. ──
         _ when s.commitFacilityStatement() is not null || s.rollbackFacilityStatement() is not null
             => BindCommitRollback(s.commitFacilityStatement() is not null),
         _ when s.validateFacilityStatement() is { } val => BindDeclinedStatement(Constructs.ValidateStatement2002,
@@ -827,8 +833,13 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         return new BoundNop();
     }
 
-    /// <summary>A statement of a DECLINED facility — the MCS RECEIVE and SEND (ISO §2023:14.9.31, §2023:14.9.38; COBOL1578) and
-    /// VALIDATE (§2023:14.9.50; COBOL1580). Each parses at EVERY edition (the union grammar, kb/Work PB374, PB3148), so below
+    /// <summary>A statement of a facility that exists from an edition on (<paramref name="construct"/>): bound by <paramref name="bind"/> where it exists, and below
+    /// that edition a no-op, because the statement parses at EVERY edition (the union grammar, kb/Work PB374, PB3148) and the edition pass's COBOL0900 is the whole
+    /// answer there, with no second diagnosis of operands the edition does not give a meaning.</summary>
+    private BoundStatement BindIntroducedAt(string construct, Func<BoundStatement> bind) =>
+        ConstructRegistry.IsAvailable(Ctx.Edition.Edition, construct) ? bind() : new BoundNop();
+
+    /// <summary>A statement of a DECLINED facility — VALIDATE (§2023:14.9.50; COBOL1580). It parses at EVERY edition (the union grammar, kb/Work PB374, PB3148), so below
     /// the edition that introduced it (<paramref name="construct"/>) the facility is not this edition's to decline: the
     /// edition pass's COBOL0900 is the whole answer there, and a facility warning beside it would name a later edition's
     /// facility to a program of an earlier one. Where the statement exists the facility is declined

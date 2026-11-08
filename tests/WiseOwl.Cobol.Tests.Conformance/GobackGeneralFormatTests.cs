@@ -142,9 +142,8 @@ public sealed class GobackGeneralFormatTests
     /// alternatives where <c>raisingPhrase</c> has three: SEND's format prints no identifier-1 arm), so
     /// relaxing the shared rule left this one requiring the word, and <c>SEND … RAISING LAST</c> was
     /// <c>COBOL0001: missing token before '.'</c> — measured on this tree before the fix.
-    /// <para>The MCS facility is declined ACCEPT-INERT (Annex A.3 item 4), so the contract here is that the
-    /// program COMPILES and the decline rides the warning channel: a parse error would deny §2023:4.2.6 ¶3's named
-    /// warning entirely, which is the conformance obligation the decline rests on.</para></summary>
+    /// <para>The contract here is that the program COMPILES with no diagnostic at all: the asynchronous messaging
+    /// facility is provided (kb/Work PB4744), so a SEND naming the optional word is a legal statement, not a decline.</para></summary>
     [Theory]
     [InlineData("PBFM31", "SEND TO D-NAME FROM MSG-OUT RAISING LAST END-SEND")]
     [InlineData("PBFM32", "SEND TO D-NAME FROM MSG-OUT RAISING LAST EXCEPTION END-SEND")]
@@ -166,7 +165,7 @@ public sealed class GobackGeneralFormatTests
             """;
         var (ok, errors, warnings) = EditionHarness.CompileFull(source, 2023);
         Assert.True(ok, string.Join("\n", errors));
-        EditionHarness.AssertHasDiagnostic(warnings, "COBOL1578");   // the A.3 item 4 decline, still named
+        Assert.Empty(warnings);   // the facility is provided (kb/Work PB4744): SEND draws no decline
     }
 
     /// <summary>§2023:5.2.6.4's "only once" half — the part a parser rule cannot state. Relaxing the tail to a

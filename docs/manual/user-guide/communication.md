@@ -8,8 +8,7 @@ sidebar:
 COBOL 1985 and COBOL 2002 define a communication facility: a `COMMUNICATION SECTION` with CD entries, and the statements
 `ACCEPT cd-name MESSAGE COUNT`, `ENABLE`, `DISABLE`, `PURGE`, `RECEIVE` and `SEND`. WiseOwl COBOL compiles them at `--std 85` and
 `--std 2002`, where each draws the obsolete-element warning COBOL0903. COBOL 2014 removed the facility, so from `--std 2014` each is
-COBOL0902 (a warning under `--permissive`, and the program still runs). The `RECEIVE` and `SEND` of COBOL 2023 are a different facility,
-which this compiler declines (`docs/CONFORMANCE.md`, section 4).
+COBOL0902 (a warning under `--permissive`, and the program still runs). The `RECEIVE` and `SEND` of COBOL 2023 are a different facility, the asynchronous messaging facility, described in the last section of this page.
 
 ## The message control system
 
@@ -77,6 +76,39 @@ or a tag and `NULL`, for equality only (`=`, `NOT =`, `<>`, `IS [NOT] EQUAL TO`)
 same message server or the same requestor. `INITIALIZE` sets a tag to `NULL`, and `INITIALIZE g REPLACING MESSAGE-TAG DATA BY other-tag` copies one.
 A tag passes to a program `BY REFERENCE` or `BY CONTENT`, and a `PROCEDURE DIVISION USING BY VALUE` formal may be one; a `CALL` cannot pass one
 `BY VALUE`. A message tag takes no `PICTURE` or `VALUE` clause, and it cannot be moved, displayed, accepted, added to or compared in order.
-`FUNCTION BYTE-LENGTH` of a tag is 8. At this release no statement makes a tag that is not `NULL`: `SEND` and `RECEIVE` are accepted and do nothing
-(`docs/CONFORMANCE.md`, section 4, item 1), so a program can hold and compare only the null content. Section 7 of that document records the
-representation (item 212) and how Format 17 of `SET` is read (D-SET17).
+`FUNCTION BYTE-LENGTH` of a tag is 8. Section 7 of `docs/CONFORMANCE.md` records the representation (item 212) and how Format 17 of `SET` is read (D-SET17).
+
+## Asynchronous messaging (COBOL 2023)
+
+`SEND` and `RECEIVE` exchange messages between run units of one user on one machine, with no broker: each run unit holds its messages in memory and the run units
+talk directly over `AF_UNIX` stream sockets. A run unit that answers requests is a **server**. It serves a name when it is started with
+`WISEOWL_COBOL_MCS_SERVER=<name>`; the name is compared without regard to case and trailing spaces. Run units share one message control system when they name
+the same directory in `WISEOWL_COBOL_MCS` (default: the current directory).
+
+```cobol
+*> the requestor
+SEND TO "BALANCE" FROM REQUEST-REC RETURNING SERVER-TAG
+    ON EXCEPTION DISPLAY "no server: " FUNCTION EXCEPTION-STATUS
+END-SEND
+RECEIVE SERVER-TAG GIVING REPLY-REC REPLY-LEN
+    ON EXCEPTION DISPLAY "no reply"
+END-RECEIVE
+
+*> the server
+RECEIVE ANY-TAG GIVING REQUEST-REC REQUEST-LEN       *> ANY-TAG holds NULL
+SEND TO ANY-TAG FROM REPLY-REC                       *> ANY-TAG now names the requestor
+```
+
+A `SEND` waits until a server takes the message, then sets the tag after `RETURNING` to the server's. A `RECEIVE` whose tag is `NULL` waits for any requestor and sets
+the tag to the one it received from; a `RECEIVE` of a server's tag waits for that server's reply. The message is `FROM` / `GIVING` item's storage, so both run units
+describe it alike, and the length of the message received lands in the last operand. `CONTINUE AFTER MESSAGE RECEIVED` and `CONTINUE AFTER n SECONDS` stop a
+`RECEIVE` from waiting: it is then successful, the item is spaces and the length is zero. A server that ends without replying is answered for with
+`EC-MCS-NORMAL-TERMINATION`; one that is killed, with `EC-MCS-ABNORMAL-TERMINATION`. `SEND ... RAISING EXCEPTION name` sends a condition to the requestor, whose
+`RECEIVE` is then unsuccessful with it. A `RECEIVE` of `NULL` in a run unit that serves no name is `EC-MCS-NO-REQUESTER` at once.
+
+Whether a statement is successful never depends on checking: `ON EXCEPTION` and `NOT ON EXCEPTION` follow the outcome. The exception condition is set only when
+checking for it is enabled (`>>TURN EC-MCS CHECKING ON`); `EC-MCS-IMP`, a failure of the message control system itself, is fatal. The determinations are
+`docs/CONFORMANCE.md` section 3 (D-MCS-SERVER, D-MCS-LENGTH, D-MCS-WAIT, D-MCS-RAISE, D-MCS-CHECK, D-MCS-TRANSPORT) and the design is
+`docs/rearchitecture/DESIGN-message-control.md`. Linux and Windows are claimed; macOS runs the same Unix code but has no CI leg. A group item that holds message tags can be the message area: the tags travel
+with the message in storage order, and a receiving group that holds more tags than the message carried gets NULL for the rest. So does a variable-length group (an OCCURS
+DYNAMIC table) that holds a tag.

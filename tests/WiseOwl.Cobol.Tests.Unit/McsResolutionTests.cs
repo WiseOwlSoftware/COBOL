@@ -168,14 +168,48 @@ public sealed class McsResolutionTests : IDisposable
     }
 
     [Fact]
-    public void TheWindowsDirectoryOnATempPathTooLongLeavesNoRoomAndOneJustShortEnoughDoes()
+    public void TheWindowsDirectoryStaysUnderATempPathWithRoom_AndFallsBackToTheUsersProgramDataLevelOnOneTooLong()
     {
-        string h = "0123456789abcdef";
+        // kb/Work PB4922: a temp path one byte too long for the longest entry falls back to %ProgramData%\wiseowl-mcs-<u>\<h>\ (with its user level, which the caller
+        // restricts to the user), as Unix falls back from $XDG_RUNTIME_DIR to /tmp; a host with no %ProgramData% keeps the temp directory and its start then fails.
+        string h = "0123456789abcdef", u = "fedcba9876543210";
         const string Tail = "wiseowl-mcs\\0123456789abcdef\\";
         string room = new('t', McsSocketDirectory.MaxPathBytes - McsSocketDirectory.LongestEntryBytes - Tail.Length - 1);
-        Assert.Equal(room + "\\" + Tail, McsSocketDirectory.WindowsDirectory(room + "\\", h));
-        Assert.True(McsSocketDirectory.Under(McsSocketDirectory.WindowsDirectory(room + "\\", h)).Fits(McsSocketDirectory.LongestEntryBytes));
-        Assert.False(McsSocketDirectory.Under(McsSocketDirectory.WindowsDirectory(room + "t\\", h)).Fits(McsSocketDirectory.LongestEntryBytes));
+        Assert.Equal((room + "\\" + Tail, (string?)null), McsSocketDirectory.WindowsDirectory(room + "\\", @"C:\ProgramData", u, h));
+        Assert.True(McsSocketDirectory.Under(McsSocketDirectory.WindowsDirectory(room + "\\", @"C:\ProgramData", u, h).Path).Fits(McsSocketDirectory.LongestEntryBytes));
+        Assert.Equal((@"C:\ProgramData\wiseowl-mcs-fedcba9876543210\0123456789abcdef\", @"C:\ProgramData\wiseowl-mcs-fedcba9876543210"),
+            McsSocketDirectory.WindowsDirectory(room + "t\\", @"C:\ProgramData\", u, h));
+        Assert.True(McsSocketDirectory.Under(McsSocketDirectory.WindowsDirectory(room + "t\\", @"C:\ProgramData", u, h).Path).Fits(McsSocketDirectory.LongestEntryBytes));
+        Assert.Equal((room + "t\\" + Tail, (string?)null), McsSocketDirectory.WindowsDirectory(room + "t\\", "", u, h));
+        Assert.False(McsSocketDirectory.Under(McsSocketDirectory.WindowsDirectory(room + "t\\", "", u, h).Path).Fits(McsSocketDirectory.LongestEntryBytes));
+    }
+
+    [Fact]
+    public void TheWindowsUserLevelIsTheUsersAlone_AndOneThatInheritsOrGrantsAnotherIsRefused()
+    {
+        if (OperatingSystem.IsWindows()) WindowsUserLevelWitness();   // the access-list witness is Windows' (the Unix mode witness is the test below)
+    }
+
+    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
+    private void WindowsUserLevelWitness()
+    {
+        string level = Path.Combine(_work, "wiseowl-mcs-fedcba9876543210");
+        McsSocketDirectory.SecureWindowsUserLevel(level);
+        McsSocketDirectory.SecureWindowsUserLevel(level);             // an existing level of the user's is accepted again
+        var acl = new DirectoryInfo(level).GetAccessControl();
+        var user = System.Security.Principal.WindowsIdentity.GetCurrent().User!;
+        Assert.True(acl.AreAccessRulesProtected);
+        Assert.Equal(user, acl.GetOwner(typeof(System.Security.Principal.SecurityIdentifier)));
+        var rules = acl.GetAccessRules(true, true, typeof(System.Security.Principal.SecurityIdentifier)).Cast<System.Security.AccessControl.FileSystemAccessRule>().ToList();
+        Assert.Equal(user, Assert.Single(rules).IdentityReference);
+        string inheriting = Path.Combine(_work, "wiseowl-mcs-inherits");
+        Directory.CreateDirectory(inheriting);                         // made first by someone else's ordinary create: it inherits its parent's list
+        Assert.Contains("inherits", Assert.Throws<McsSocketDirectoryRefusedException>(() => McsSocketDirectory.SecureWindowsUserLevel(inheriting)).Message);
+        var open = new DirectoryInfo(level).GetAccessControl();
+        open.AddAccessRule(new System.Security.AccessControl.FileSystemAccessRule(new System.Security.Principal.SecurityIdentifier(
+            System.Security.Principal.WellKnownSidType.WorldSid, null), System.Security.AccessControl.FileSystemRights.Read, System.Security.AccessControl.AccessControlType.Allow));
+        new DirectoryInfo(level).SetAccessControl(open);
+        Assert.Contains("beyond its user", Assert.Throws<McsSocketDirectoryRefusedException>(() => McsSocketDirectory.SecureWindowsUserLevel(level)).Message);
     }
 
     [Fact]

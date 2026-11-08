@@ -159,10 +159,11 @@ public sealed class ExternalRepositoryResolutionTests
 
     /// <summary>kb/Work PB4708: the SECOND route to a declared word with no prototype. <c>PROGRAM R4708P AS ""</c> is refused
     /// by §2023:12.3.8.3 SR2 (a zero-length literal-3), so it registers no ProgramSpecifiers row, yet the REPOSITORY paragraph
-    /// DECLARES the word: CALL, CANCEL and CALL AS say so, cite SR2 rather than SR14 (no REPO-1 exists on this route), and
-    /// the USAGE PROGRAM-POINTER TO screen does not add its own "not declared" refusal.</summary>
+    /// DECLARES the word: the refusal is reported once, where the specifier is written (COBOL1761), and CALL, CANCEL and CALL AS
+    /// are its silent cascade (kb/Work PB4936) rather than a second COBOL1760, which would call the word undeclared or repeat SR2;
+    /// the USAGE PROGRAM-POINTER TO screen adds no "not declared" refusal either.</summary>
     [Fact]
-    public void ASpecifierWhoseLiteral3IsRefused_IsDeclaredAndNamesSr2()
+    public void AReferenceThroughASpecifierWhoseLiteral3IsRefused_IsItsSilentCascade()
     {
         WithDirectory("repo-literal3-refused", dir =>
         {
@@ -186,23 +187,15 @@ public sealed class ExternalRepositoryResolutionTests
                 """;
             var r = Compile(dir, "R4708C", source);
             Assert.False(r.Success);
-            foreach (string declared in new[] { "CALL R4708P", "CANCEL R4708P", "CALL AS R4708P" })
-            {
-                string text = Refusal1760(r, declared);
-                Assert.Contains("declared by a PROGRAM specifier in the REPOSITORY paragraph", text, StringComparison.Ordinal);
-                Assert.Contains("AS literal-3 was refused (ISO §2023:12.3.8.3 SR2)", text, StringComparison.Ordinal);
-                Assert.DoesNotContain("neither declared", text, StringComparison.Ordinal);
-                Assert.DoesNotContain("SR14", text, StringComparison.Ordinal);
-            }
-            Assert.DoesNotContain(r.Errors, e => e.Contains("PROGRAM-POINTER TO R4708P", StringComparison.Ordinal)
-                                                 && e.Contains("is not a program-prototype-name", StringComparison.Ordinal));
+            Assert.Single(r.Errors, e => e.Contains("COBOL1761", StringComparison.Ordinal) && e.Contains("literal-3", StringComparison.Ordinal));
+            Assert.Single(r.Errors);   // nothing else: no COBOL1760 for the three references, no pointer-screen refusal, no COBOL2362
         });
     }
 
     /// <summary>kb/Work PB4708 (review R1-1, R1-2): SET ... ADDRESS OF PROGRAM, the third reader of the declared-word
-    /// question, names the same route as CALL, and a contained program inherits the container's refused literal-3.</summary>
+    /// question, is the same silent cascade as CALL (kb/Work PB4936), and a contained program inherits the container's refused literal-3.</summary>
     [Fact]
-    public void ASpecifierWhoseLiteral3IsRefused_IsDeclaredForSetAddressOfProgramAndInContainedUnits()
+    public void AReferenceThroughASpecifierWhoseLiteral3IsRefused_IsSilentForSetAddressOfProgramAndInContainedUnits()
     {
         WithDirectory("repo-literal3-refused-set", dir =>
         {
@@ -230,17 +223,8 @@ public sealed class ExternalRepositoryResolutionTests
                 """;
             var r = Compile(dir, "R4708S", source);
             Assert.False(r.Success);
-            string set = Assert.Single(r.Errors, e => e.Contains("COBOL2157", StringComparison.Ordinal)
-                                                      && e.Contains("ADDRESS OF PROGRAM R4708Q", StringComparison.Ordinal));
-            Assert.Contains("AS literal-3 was refused (ISO §2023:12.3.8.3 SR2)", set, StringComparison.Ordinal);
-            Assert.DoesNotContain("not declared in the REPOSITORY", set, StringComparison.Ordinal);
-            Assert.DoesNotContain("neither declared", set, StringComparison.Ordinal);
-            // The resolver is not asked about a declared word: no COBOL1639 "no declaration gives the name" beside it (R2-1).
-            Assert.DoesNotContain(r.Errors, e => e.Contains("COBOL1639", StringComparison.Ordinal));
-            // Both CALLs: the outer one and the contained program's, which inherits the refused row.
-            Assert.Equal(2, r.Errors.Count(e => e.Contains("COBOL1760", StringComparison.Ordinal)
-                                                && e.Contains("AS literal-3 was refused (ISO §2023:12.3.8.3 SR2)", StringComparison.Ordinal)
-                                                && !e.Contains("neither declared", StringComparison.Ordinal)));
+            Assert.Single(r.Errors, e => e.Contains("COBOL1761", StringComparison.Ordinal) && e.Contains("literal-3", StringComparison.Ordinal));
+            Assert.Single(r.Errors);   // no COBOL2157 / COBOL1760 / COBOL1639 / COBOL2362 for the SET, the outer CALL and the contained CALL
         });
     }
 
@@ -315,6 +299,39 @@ public sealed class ExternalRepositoryResolutionTests
             Assert.Single(r.Errors, e => e.Contains("COBOL1761", StringComparison.Ordinal) && e.Contains("literal-5", StringComparison.Ordinal));
             Assert.DoesNotContain("COBOL1505", Codes(r), StringComparison.Ordinal);
             Assert.DoesNotContain("COBOL2362", Codes(r), StringComparison.Ordinal);
+        });
+    }
+
+    /// <summary>kb/Work PB4936: ONE cascade rule for every specifier kind whose <c>AS literal-n</c> is refused (§2023:12.3.8.3 SR2):
+    /// the refusal is reported where the specifier is written and a reference through the word adds nothing. A kind is a row here.</summary>
+    [Theory]
+    [InlineData("PROGRAM R4936X AS \"\"", "literal-3", "CALL R4936X")]
+    [InlineData("PROGRAM R4936X AS \"\"", "literal-3", "CANCEL R4936X")]
+    [InlineData("PROGRAM R4936X AS \"\"", "literal-3", "CALL \"ZZ\" AS R4936X")]
+    [InlineData("FUNCTION R4936X AS \"\"", "literal-5", "COMPUTE R = FUNCTION R4936X(1)")]
+    public void AReferenceThroughAnyRefusedSpecifier_AddsNothingToItsRefusal(string specifier, string literal, string reference)
+    {
+        WithDirectory("repo-refused-cascade", dir =>
+        {
+            string source = $"""
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. R4936C.
+                ENVIRONMENT DIVISION.
+                CONFIGURATION SECTION.
+                REPOSITORY.
+                    {specifier}.
+                DATA DIVISION.
+                WORKING-STORAGE SECTION.
+                01 R PIC 9(4).
+                PROCEDURE DIVISION.
+                    {reference}
+                    GOBACK.
+                END PROGRAM R4936C.
+                """;
+            var r = Compile(dir, "R4936C", source);
+            Assert.False(r.Success);
+            Assert.Single(r.Errors, e => e.Contains("COBOL1761", StringComparison.Ordinal) && e.Contains(literal, StringComparison.Ordinal));
+            Assert.Single(r.Errors);
         });
     }
 

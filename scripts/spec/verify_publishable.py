@@ -18,6 +18,10 @@ and the acknowledgment's wording, is keyed by edition below, and an edition with
      part of the preface to any such publication". That request is the condition the transcription is published
      under.
 
+  3. **A transcription that keeps its pages agrees with its reconciliation ledger** (`LEDGER`, 1985: kb/Work PB4850):
+     every repair on its page, every claim decided, and each page's prose carrying exactly the level-2 box sides its
+     marked boxes account for (`check_ledger`).
+
 THE WHOLE TRACKED TREE, TOO (owner 2026-11-05: redact the stamp everywhere, history included). The repository is
 public, and a reconciliation agent once quoted the stamp, purchaser's name and order number included, into its ledger.
 `check_tree` therefore reads EVERY tracked file, as the index holds it, for the personally identifying pieces of a stamp:
@@ -37,6 +41,7 @@ complements, not duplicates.
 from __future__ import annotations
 
 import argparse
+import json
 import pathlib
 import re
 import sys
@@ -145,10 +150,22 @@ def check_tree(repo: pathlib.Path = REPO) -> list[str]:
 # Must be present. The acknowledgment's own opening words, and the preface framing that marks our editorial
 # matter as ours.
 #: Keyed by edition: an earlier edition's acknowledgment and Preface are worded by its own text (the 2002 PDF prints no
-#: CODASYL grant, PB4813), so its row is written from that text when its run begins, never borrowed from 2023's.
+#: CODASYL grant, PB4813), so its row is written from that text when its run begins, never borrowed from 2023's. 1985's
+#: rows are its PDF page 3's words, which are 2023's: the CODASYL acknowledgment did not change (kb/Work PB4850).
 REQUIRED: dict[int, list[tuple[str, str]]] = {
+    1985: [
+        (r"\A# Preface\n", "the file must open with the Preface (PDF page 3: 'as part of the preface')"),
+        (r"COBOL is an industry language and is not the property of any company",
+         "the acknowledgment's first paragraph"),
+        (r"No warranty, expressed or implied, is made by any contributor",
+         "the acknowledgment's no-warranty paragraph"),
+        (r"have specifically authorized the use of this material in whole or in part",
+         "the acknowledgment's authorization paragraph"),
+        (r"NOT part of American National Standard X3\.23-1985",
+         "the Preface must state that it is not part of the standard"),
+    ],
     2023: [
-        (r"^#\s*Preface", "the file must open with the Preface (page 28: 'as part of the preface')"),
+        (r"\A# Preface\n", "the file must open with the Preface (page 28: 'as part of the preface')"),
         (r"COBOL is an industry language and is not the property of any company",
          "the acknowledgment's first paragraph"),
         (r"No warranty, expressed or implied, is made by any contributor",
@@ -157,11 +174,12 @@ REQUIRED: dict[int, list[tuple[str, str]]] = {
          "the acknowledgment's authorization paragraph"),
         (r"NOT part of ISO/IEC 1989:2023",
          "the Preface must state that it is not part of the standard"),
+        (r"^# Addendum", "the Addendum that lists every correction (check_corrections)"),
     ],
 }
 
 #: The words that open the acknowledgment, which must precede clause 1 (the Preface), by edition.
-ACKNOWLEDGMENT_OPENING: dict[int, str] = {2023: "COBOL is an industry language"}
+ACKNOWLEDGMENT_OPENING: dict[int, str] = {1985: "COBOL is an industry language", 2023: "COBOL is an industry language"}
 
 
 #: An Addendum correction entry: `### C6 · page 607 · 14.9.10.4 … · printed → corrected`.
@@ -221,9 +239,10 @@ def check_corrections(text: str) -> list[str]:
         i += 1
     referenced = set(FLAG_REFERENCE.findall("\n".join(lines[:addendum_at])))
 
-    if not entries:
-        failures.append("the Addendum lists no corrections (### Cn entries)")
-        print("  ✗ no correction entries found in the Addendum")
+    if not entries and not referenced:
+        # A transcription that corrects nothing flags none and lists none. One that has an Addendum requires it by its
+        # REQUIRED row, so deleting the Addendum together with its flags is still refused there.
+        print("  ✓ no corrections: the text flags none and lists none")
     for cid in sorted(referenced | set(entries), key=lambda c: int(c[1:])):
         problems: list[str] = []
         entry = entries.get(cid)
@@ -262,6 +281,88 @@ def check_corrections(text: str) -> list[str]:
     return failures
 
 
+#: The reconciliation ledger of a transcription that keeps its pages (`## Page N`), by edition (kb/Work PB4850): every
+#: batch claim with its decision, every repair, and every level-2 box. 2023 dropped its pages; its reconciliation is
+#: LEDGER.json (merge_reconciliation.py) and its corrections the Addendum (check_corrections).
+LEDGER: dict[int, str] = {1985: "docs/rearchitecture/spec-reconciliation/LEDGER-1985.json"}
+#: What a claim's decision may be; each but APPLIED states its reason.
+DECISIONS = {"APPLIED", "REFUTED", "ALREADY", "FORMAT", "BOX", "FIGURE", "KEPT"}
+BOX_SIDE = spec_pdf.BOX_SIDE
+PAGE_HEADING = re.compile(r"^## Page (\d+)$", re.M)
+CODE_SPAN = re.compile(r"`[^`\n]*`")
+
+
+def pages_of(text: str) -> dict[int, str]:
+    """The transcription's text by PDF page (`## Page N` opens page N); the front matter before page 1 is page 0."""
+    cuts = [(int(m.group(1)), m.start()) for m in PAGE_HEADING.finditer(text)]
+    out = {0: text[:cuts[0][1]] if cuts else text}
+    for (page, at), (_, end) in zip(cuts, cuts[1:] + [(0, len(text))]):
+        out[page] = text[at:end]
+    return out
+
+
+def prose_box_sides(page: str) -> int:
+    """The ║ of `page` outside a figure (`<pre>`), a fenced block and a code span: the sides of its prose boxes."""
+    count, figure, fence = 0, False, False
+    for line in page.split("\n"):
+        if line.lstrip().startswith("```"):
+            fence = not fence
+            continue
+        if "<pre" in line:
+            figure = True
+        if not figure and not fence:
+            count += CODE_SPAN.sub("", line).count(BOX_SIDE)
+        if "</pre>" in line:
+            figure = False
+    return count
+
+
+def check_ledger(text: str, ledger: dict) -> list[str]:
+    """The transcription agrees with its reconciliation ledger: every applied repair and sweep is on its page, every claim
+    is decided, every marked box opens where the ledger says, and each page's prose carries exactly the box sides its
+    marked boxes account for (two per marked block), so a box added, lost or moved without the ledger is refused."""
+    failures: list[str] = []
+    pages = pages_of(text)
+    print(f"\nreconciliation ledger ({len(ledger['claims'])} claims, {len(ledger['sweeps'])} sweeps, "
+          f"{len(ledger['boxes'])} boxes) — the transcription must agree:")
+
+    def on_page(page: int, now: str, what: str) -> None:
+        if now not in pages.get(page, ""):
+            failures.append(f"{what} (page {page}): {now[:70]!r} is not on the page")
+
+    for c in ledger["claims"]:
+        label = f"claim p{c['page']}-{c['i']}"
+        if c.get("decision") not in DECISIONS:
+            failures.append(f"{label}: decision {c.get('decision')!r} is not one of {sorted(DECISIONS)}")
+        elif c["decision"] == "APPLIED":
+            for e in c.get("edits") or [None]:
+                if e is None:
+                    failures.append(f"{label}: APPLIED with no edit")
+                else:
+                    on_page(c["page"], e["now"], label)
+        elif not c.get("reason"):
+            failures.append(f"{label}: {c['decision']} with no reason")
+    for s in ledger["sweeps"]:
+        on_page(s["page"], s["now"], f"sweep {s['sweep']}")
+    sides: dict[int, int] = {}
+    for b in ledger["boxes"]:
+        if b["decision"] == "MARKED":
+            sides[b["page"]] = sides.get(b["page"], 0) + 2 * b["blocks"]
+            for opening in b["opens"]:
+                on_page(b["page"], opening, f"box {b['n']}")
+    for page, body in pages.items():
+        found = prose_box_sides(body)
+        if found != sides.get(page, 0):
+            failures.append(f"page {page}: its prose carries {found} box sides (║) and its marked boxes account for "
+                            f"{sides.get(page, 0)}")
+    for f in failures[:20]:
+        print(f"  ✗ {f}")
+    if not failures:
+        print(f"  ✓ every repair on its page, every claim decided, {sum(sides.values()) // 2} boxed blocks where the ledger "
+              "puts them")
+    return failures
+
+
 def check_stamp(lines: list[str], edition: int) -> list[str]:
     """The stamp shapes of `edition` must be absent from `lines`; an edition the table lacks exits naming the table."""
     forbidden = spec_pdf.edition_data(FORBIDDEN, edition, "per-copy stamp shapes (verify_publishable.FORBIDDEN)")
@@ -279,7 +380,7 @@ def check_stamp(lines: list[str], edition: int) -> list[str]:
 
 def check_text(text: str, edition: int) -> list[str]:
     """The checks that read one transcription's text and nothing else: the stamp shapes of `edition` must be absent, its
-    acknowledgment and Preface present, and the acknowledgment before clause 1. Each row is keyed by edition; an
+    acknowledgment and Preface present, and the acknowledgment before the body. Each row is keyed by edition; an
     edition the table lacks exits naming the table (spec_pdf.edition_data)."""
     failures = check_stamp(text.splitlines(), edition)
     required = spec_pdf.edition_data(REQUIRED, edition, "acknowledgment and Preface patterns (verify_publishable.REQUIRED)")
@@ -294,14 +395,13 @@ def check_text(text: str, edition: int) -> list[str]:
             failures.append(f"missing: {what}")
             print(f"  ✗ MISSING — {what}")
 
-    # The acknowledgment has to be in the preface, i.e. before the body starts, not only in position at 0.2.
-    # The body is delimited by the FIRST CLAUSE, not by a page anchor: pages were removed from the document
-    # (they are a layout artifact of one typesetting and mean nothing in Markdown), so clause 1 Scope is the
-    # stable marker for where the front matter ends.
-    cut = text.find('<a id="section-1"></a>')
-    if cut < 0:
-        failures.append("the clause-1 anchor is missing; cannot locate where the front matter ends")
-    elif opening not in text[:cut]:
+    # The acknowledgment has to be in the preface, i.e. before the body starts, not only in position. Where the body
+    # starts is the edition's own line (spec_pdf.EDITIONS body): 2023's clause 1 anchor, 1985's Section I.
+    front = spec_pdf.front_matter(text, edition)
+    if front is None:
+        failures.append(f"the body's opening line ({spec_pdf.EDITIONS[edition].body}) is missing; cannot locate where "
+                        "the front matter ends")
+    elif opening not in front:
         failures.append("the acknowledgment appears in the body but NOT in the preface")
         print("  ✗ the acknowledgment is not in the preface (it must precede clause 1)")
     else:
@@ -317,6 +417,8 @@ def main(edition: int = spec_pdf.DEFAULT_EDITION) -> int:
 
     failures = check_text(text, edition)
     failures.extend(check_corrections(text))
+    if edition in LEDGER:
+        failures.extend(check_ledger(text, json.loads((REPO / LEDGER[edition]).read_text(encoding="utf-8"))))
     failures.extend(check_tree())
 
     if failures:
@@ -345,7 +447,7 @@ def self_test() -> int:
     good = ("# Preface\n\nCOBOL is an industry language and is not the property of any company\n"
             "No warranty, expressed or implied, is made by any contributor\n"
             "have specifically authorized the use of this material in whole or in part\n"
-            "This preface is NOT part of ISO/IEC 1989:2023.\n\n<a id=\"section-1\"></a>\n\n## 1 Scope\n")
+            "This preface is NOT part of ISO/IEC 1989:2023.\n\n<a id=\"section-1\"></a>\n\n## 1 Scope\n\n# Addendum\n")
     check("a clean 2023 text passes", quietly(check_text, good, 2023) == [])
     # The planted pieces are ASSEMBLED, never written whole: check_tree reads this very file and refuses a download date or
     # an order number anywhere in the tracked tree.
@@ -370,13 +472,41 @@ def self_test() -> int:
           all(re.search(p, planted_2002) for p, _ in TREE_FORBIDDEN[2002]))
     check("2002 has a stamp row, so check_text reaches its acknowledgment row and exits there",
           2002 in FORBIDDEN and 2002 in TREE_FORBIDDEN and 2002 not in REQUIRED)
-    for edition in (1985, 2002):
-        try:
-            quietly(check_text, good, edition)
-            check(f"{edition} with no acknowledgment row exits instead of borrowing 2023's", False)
-        except SystemExit as ex:
-            check(f"{edition} with no row exits naming the table and the edition",
-                  str(edition) in str(ex.code) and "verify_publishable" in str(ex.code))
+    try:
+        quietly(check_text, good, 2002)
+        check("2002 with no acknowledgment row exits instead of borrowing 2023's", False)
+    except SystemExit as ex:
+        check("2002 with no row exits naming the table and the edition",
+              "2002" in str(ex.code) and "verify_publishable" in str(ex.code))
+    good_1985 = good.replace("ISO/IEC 1989:2023", "American National Standard X3.23-1985").replace(
+        '<a id="section-1"></a>\n\n## 1 Scope', "# SECTION I: INTRODUCTORY INFORMATION\n\n## Page 21")
+    check("a clean 1985 text passes, its body opening at Section I", quietly(check_text, good_1985, 1985) == [])
+    check("1985 reads its own body line: 2023's text, which has no Section I heading, has no 1985 front matter",
+          len(quietly(check_text, good, 1985)) == 2)
+    section_i = "# SECTION I: INTRODUCTORY INFORMATION\n"
+    body_only = good_1985.replace(section_i, "").replace("# Preface\n", "# Preface\n\n" + section_i)
+    check("a text whose acknowledgment is only in the body is refused",
+          "the acknowledgment appears in the body but NOT in the preface" in quietly(check_text, body_only, 1985))
+    check("a text that flags no correction and lists none passes the correction check",
+          quietly(check_corrections, good_1985) == [])
+    check("2023 requires its Addendum, so deleting it with its flags is still refused",
+          "missing: the Addendum that lists every correction (check_corrections)"
+          in quietly(check_text, good.replace("# Addendum\n", ""), 2023))
+    planted_pages = ("# Preface\n\nthe notation `║boxed║`\n\n## Page 1\n\n<u>Format 1</u>:\n\n(4) a rule ║or extend║ here.\n\n"
+                     "<pre style=\"line-height:1\">\n║ a drawn box ║\n</pre>\n\n## Page 2\n\nplain\n")
+    planted_ledger = {"claims": [{"page": 1, "i": 0, "decision": "APPLIED",
+                                  "edits": [{"was": "Format 1:", "now": "<u>Format 1</u>:"}]},
+                                 {"page": 2, "i": 0, "decision": "REFUTED", "reason": "the page prints it so"}],
+                      "sweeps": [], "boxes": [{"page": 1, "n": 0, "decision": "MARKED", "blocks": 1, "opens": ["║or extend║"]},
+                                              {"page": 1, "n": 1, "decision": "FORMAT", "reason": "drawn"}]}
+    check("a transcription that agrees with its ledger passes: a code span and a drawn box are not prose box sides",
+          quietly(check_ledger, planted_pages, planted_ledger) == [])
+    check("a box side the ledger does not account for is refused",
+          len(quietly(check_ledger, planted_pages.replace("plain", "║plain║"), planted_ledger)) == 1)
+    check("a lost repair is refused", len(quietly(check_ledger, planted_pages.replace("<u>Format 1</u>", "Format 1"),
+                                                  planted_ledger)) == 1)
+    undecided = dict(planted_ledger, claims=planted_ledger["claims"] + [{"page": 2, "i": 1, "decision": "REFUTED"}])
+    check("a claim decided with no reason is refused", len(quietly(check_ledger, planted_pages, undecided)) == 1)
     check("the tree shapes of every edition are searched on every run",
           (r"\border\s*#\s*[A-Za-z_]*\d{4,}", "reseller order number") in tree_shapes()
           and (r"\bX_\d{6}\b", "reseller order number") in tree_shapes())

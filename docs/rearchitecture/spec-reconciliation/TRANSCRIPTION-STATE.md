@@ -1,7 +1,8 @@
 # Transcription state — what is done, what is next
 
-> Live state for `specs/ISO_COBOL_2023.md` specifically. Plan §0 remains the SSOT for the project; this is the
-> detail behind its spec-reconciliation bullets, kept here so a new session can resume without re-deriving it.
+> Live state for `specs/ISO_COBOL_2023.md`, and for `specs/ANSI_COBOL_1985.md` in its own section below ("The 1985
+> transcription"). Plan §0 remains the SSOT for the project; this is the detail behind its spec-reconciliation
+> bullets, kept here so a new session can resume without re-deriving it.
 
 ## Run these first
 
@@ -146,3 +147,37 @@ lists, with the index's sub-entry levels MEASURED off the printed page (`data/in
 page-break table joints merged and Table 10's 24×24 matrix rebuilt from geometry · 137 literal `*` escaped ·
 all 484 figures carrying `line-height:1` · `figure_extract.is_underlined` widened to catch underlines drawn
 inside a word's descender space (changes no figure — verified).
+
+## The 1985 transcription
+
+`specs/ANSI_COBOL_1985.md` is ANSI X3.23-1985 with its amendments X3.23a-1989 and X3.23b-1993, each under its own
+`AMENDMENT` heading. Unlike 2023's, it keeps its pages: `## Page N` opens the text of PDF page N, because the source is a
+scan and every repair is read against the rendered page (`render-spec-page.py --edition 1985 <page>`).
+
+```
+python scripts/spec/lint_rendering.py --edition 1985         # legibility
+python scripts/spec/sweep_figures.py --edition 1985 --check  # every general format in its decided form (about 12 min)
+python scripts/spec/verify_publishable.py --edition 1985     # no stamp, the Preface, and the reconciliation ledger
+python scripts/spec/verify_acknowledgment.py --edition 1985  # the acknowledgment verbatim against PDF page 3
+```
+
+**The reconciliation is recorded in `LEDGER-1985.json`** (kb/Work PB4850): every claim of the batch passes with its
+decision, every repair with the text it wrote, every sweep of a repair's siblings, and every level-2 box. The batch
+passes compared all 976 pages, so a page with no claim was found to agree. `verify_publishable.py --edition 1985`
+holds the transcription to the ledger (a gate audit and a CI step run it): a repair lost, a claim left undecided or a
+box side the ledger does not account for is refused. A new repair adds its ledger entry in the same change.
+
+**A level-2 box in prose is a `║` at each end of each boxed block** (`spec_pdf.BOX_SIDE`; the 1985 standard boxes every
+specification unique to level 2 of a module, §1985:I.1.3 and §1985:IV.1). One markup, used everywhere:
+
+- a boxed heading, paragraph, rule or list item opens and closes with `║`, after any heading or list marker
+  (`### ║2.7 THE PADDING CHARACTER CLAUSE║`, `║(4) Any necessary conversion …║`);
+- boxed words inside a sentence are enclosed where they stand (`opened in the output ║or extend║ mode`), and a box
+  opens before the underline or bold that opens its words (`║<u>FORMAT 2</u>:║`);
+- a boxed table row opens in its first cell and closes in its last; a box never sits outside an HTML cell;
+- a box holding several paragraphs marks each of them;
+- a general format draws its boxes as columns (FIGURE-STYLE.md rule 9), and a drawn flowchart carries none.
+
+Every reader of a 1985 heading reads it through the box side (`citation._MARK_85`, `sweep_figures.CLAUSE_LINE` and
+`MD_HEADING`, `audit_grammar_optional_words.MD_HEADING`): a boxed heading once hid 30 of the 213 general formats from
+the grammar audit and a clause from `cite.py`. A new reader of the headings does the same.

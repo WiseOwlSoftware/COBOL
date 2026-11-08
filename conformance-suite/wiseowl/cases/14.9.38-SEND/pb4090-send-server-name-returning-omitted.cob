@@ -12,8 +12,7 @@
       *> whose RETURNING phrase is required: only brackets make a portion omissible (5.2.6.2).
       *>   cite.py: OK  14.9.38.2  OK  14.9.38.3 2)  OK  5.2.6.2 (Brackets)
       *> Before kb/Work PB4090 only a literal-1 operand was known to be Format 1, so this statement compiled.
-      *> SEND is the declined asynchronous messaging facility (COBOL1578, docs/CONFORMANCE.md section 4 item 1):
-      *> declining it declines its behaviour, not the syntax rules of its statements.
+      *> SEND and RECEIVE are the asynchronous messaging facility (Annex A.3 item 4, docs/CONFORMANCE.md section 2): the statement binds, and every operand and syntax rule is asked at bind (kb/Work PB3568, PB4743).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB4090N1.
        DATA DIVISION.
