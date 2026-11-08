@@ -39,7 +39,7 @@ import json
 import pathlib
 import sys
 
-from inventory_schema import Schema, load_catalog as load_rules, load_schema
+from inventory_schema import NEWEST, Schema, load_schema
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
@@ -55,7 +55,7 @@ GRAMMAR_KINDS = {"FMT", "SR"}
 
 def load_catalog() -> dict[str, dict]:
     """The rule catalog by id, read through `inventory_schema` — the one loader of the catalog file."""
-    return {r["id"]: r for r in load_rules()}
+    return {r["id"]: r for r in NEWEST.rules()}
 
 
 def convert(findings: list[dict], catalog: dict[str, dict], schema: Schema) -> tuple[list[dict], list[str]]:

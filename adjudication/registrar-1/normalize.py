@@ -13,7 +13,8 @@ Inputs: <scratch>/in/<branch>/final.jsonl.  Owner ids come from owners.json {rul
 """
 import json, re, sys, glob, pathlib
 sys.path.insert(0, 'scripts/spec')
-from inventory_schema import load_schema, load_inventory  # noqa
+from inventory_schema import load_schema  # noqa
+from inventory_view import inventory  # noqa
 
 ROOT = pathlib.Path('.')
 PAT = re.compile(r'^[A-Za-z0-9_./-]+(#[A-Za-z0-9_.<>-]+)?$')
@@ -102,7 +103,7 @@ def norm(rec, schema, rows, owners):
 if __name__ == '__main__':
     scratch = sys.argv[1]
     schema = load_schema()
-    rows = {r['rule-id']: r for r in load_inventory()}
+    rows = {r['rule-id']: r for r in inventory()}
     owners = json.load(open('adjudication/registrar-1/owners.json')) if pathlib.Path('adjudication/registrar-1/owners.json').exists() else {}
     overrides = json.load(open('adjudication/registrar-1/r42.json')) if pathlib.Path('adjudication/registrar-1/r42.json').exists() else {}
     recs = []

@@ -45,8 +45,8 @@ import pathlib
 import sys
 from collections import Counter
 
-from inventory_schema import DerivedSelector, load_catalog, load_schema
-from inventory_store import load_inventory
+from inventory_schema import NEWEST, DerivedSelector, load_schema
+import inventory_view  # noqa: E402  (the one view of the inventory, kb/Work PB4992)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
@@ -264,8 +264,8 @@ def main() -> int:
         return self_test()
 
     schema = load_schema()
-    rules = load_catalog()
-    inventory = {r["rule-id"]: r for r in load_inventory()}
+    rules = NEWEST.rules()
+    inventory = {r["rule-id"]: r for r in inventory_view.inventory()}
 
     if args.list:
         for name, sel in schema.derived.items():
@@ -283,7 +283,6 @@ def main() -> int:
 
     records: list[dict[str, str]] = []
     conflicts: list[str] = []
-    orphans: list[str] = []
     held: Counter[str] = Counter()
     emitted: Counter[str] = Counter()
     anchored: Counter[str] = Counter()
@@ -296,11 +295,7 @@ def main() -> int:
     for name in names:
         sel = schema.derived[name]
         for rid in selected[name]:
-            row = inventory.get(rid)
-            if row is None:
-                # The catalog and the inventory disagree about what rules exist. That is a rebuild, not a batch.
-                orphans.append(f"{rid} (selected by {name})")
-                continue
+            row = inventory[rid]                # the view has one row per catalog rule (kb/Work PB4992)
             if rid in seen and seen[rid] != name:
                 conflicts.append(f"{rid}: selected by BOTH {seen[rid]} and {name} — two determinations, one row")
                 continue
@@ -353,12 +348,6 @@ def main() -> int:
                 "notes": row.get("notes", "") or args.notes or sel.decision,
             })
 
-    if orphans:
-        print(f"⛔ {len(orphans)} selected rule(s) have NO INVENTORY ROW — rebuild first "
-              f"(python scripts/spec/build_inventory.py):")
-        for o in orphans[:10]:
-            print(f"   {o}")
-        return 1
     if conflicts:
         print(f"⛔ {len(conflicts)} CONFLICT(S) — NOTHING was written. A derived verdict claims its rules are "
               f"unreachable; a row that already carries a different verdict is a contradiction to resolve, "

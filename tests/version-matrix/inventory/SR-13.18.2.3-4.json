@@ -1,15 +1,9 @@
 {
  "rule-id": "SR-13.18.2.3-4",
- "section": "13.18.2.3",
- "kind": "SR",
- "ordinal": 4,
- "subject": "ANY LENGTH clause",
  "rule-digest": "b36b98ef8c87",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#AnyLengthValidateUnit",
  "test-ref": "conformance:cases/13.18.2-ANY-LENGTH/l1-any-length-function-returning; conformance:cases/13.18.2-ANY-LENGTH/l1-any-length-function-unreferenced",
- "derivation": "",
  "editions": "2002,2014,2023",
- "notes": "SR4: a function's ANY LENGTH item used only as RETURNING, or unreferenced, is rejected (the SR4 arm of COBOL1542) retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Linkage.cs#AnyLengthValidateUnit (kb/Work PB2359 moved the member, unchanged, out of the DataBinder.Linkage.cs partial: the LINKAGE / EXTERNAL / GLOBAL binder is LinkageBinder, and the cell-backing forcer and the inherited-name tier went to the data binder files that own the name tables)",
- "state": "OK"
+ "notes": "SR4: a function's ANY LENGTH item used only as RETURNING, or unreferenced, is rejected (the SR4 arm of COBOL1542) retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Linkage.cs#AnyLengthValidateUnit (kb/Work PB2359 moved the member, unchanged, out of the DataBinder.Linkage.cs partial: the LINKAGE / EXTERNAL / GLOBAL binder is LinkageBinder, and the cell-backing forcer and the inherited-name tier went to the data binder files that own the name tables)"
 }

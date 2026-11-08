@@ -1,15 +1,9 @@
 {
  "rule-id": "SR-12.3.8.3-6",
- "section": "12.3.8.3",
- "kind": "SR",
- "ordinal": 6,
- "subject": "REPOSITORY paragraph",
  "rule-digest": "84b528d40dab",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#UnansweredClassSpecifier; src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#ImportClass; src/WiseOwl.Cobol.Compiler/Binding/MetadataRepositoryProvider.cs#Skeleton",
  "test-ref": "conformance:wiseowl/cases/12.3.8-REPOSITORY/pb2104_import_class_under_another_word; conformance-test:ExternalRepositoryClassImportTests.AClassSpecifierNothingAnswers_IsRepo1_NamingThePlacesSearched; conformance-test:ExternalRepositoryClassImportTests.AClassOfAnotherGroup_IsFoundByIdentity_AndItsMethodsRun; conformance:wiseowl/cases/12.3.8-REPOSITORY/pb2104_expand_skeleton_from_repository; unit:ExternalRepositoryExpansionTests.ASkeletonNothingAnswers_IsRepo1",
- "derivation": "",
  "editions": "2002,2014,2023",
- "notes": "a) and b): a class-specifier no definition of the group, no BASE, no parameterized definition and no entry of the external repository answers is REPO-1 (COBOL5962) at the specifier, used or not; a skeleton another group published is read from the repository (PB2104).",
- "state": "OK"
+ "notes": "a) and b): a class-specifier no definition of the group, no BASE, no parameterized definition and no entry of the external repository answers is REPO-1 (COBOL5962) at the specifier, used or not; a skeleton another group published is read from the repository (PB2104)."
 }

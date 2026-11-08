@@ -110,7 +110,9 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 import citation  # noqa: E402  (the one citation format, kb/Work PB4887)
 import coord  # noqa: E402  (names the coordination directory)
 import git_batch  # noqa: E402  (scripts/: one git process for many objects)
-import inventory_store  # noqa: E402  (the one reader of the inventory: the tree and a commit's own)
+import inventory_schema  # noqa: E402  (a commit's schema, for its view)
+import inventory_store  # noqa: E402  (the store's paths, for reading a commit's trees)
+import inventory_view  # noqa: E402  (the one view of the inventory: the tree and a commit's own)
 import ledger_plan  # noqa: E402  (the plan's lanes: measured there, rendered here)
 from standard_streams import ensure_utf8  # noqa: E402
 
@@ -184,7 +186,8 @@ def git(*args: str, stdin: str | None = None) -> str:
 #: from. Deliberately absent from this set: the rendered page and the trend series — including either would make
 #: regenerating move the stamp, so `--check` would never converge.
 STAMP_PATHS = (
-    inventory_store.INVENTORY_DIR_REL,
+    *(ed.store for ed in inventory_schema.EDITIONS if ed.held),
+    *(ed.catalog for ed in inventory_schema.EDITIONS if ed.held),
     "tests/version-matrix/inventory-schema.json",
     "tests/version-matrix/constructs.json",
     "conformance-suite",
@@ -206,7 +209,7 @@ def measure_head() -> dict:
 
 
 def measure_inventory() -> dict:
-    rows = inventory_store.load_inventory()
+    rows = inventory_view.inventory()
     verdict = collections.Counter(r["verdict"] for r in rows)
     kind = collections.Counter(r["kind"] for r in rows)
 
@@ -432,42 +435,78 @@ def measure_commits(shas: typing.Sequence[str], register: bool = True) -> dict[s
     (`git_batch.blobs`): a note or an inventory row that two commits share is read and parsed ONCE, so a commit that moved
     one note, or closed one row, costs one blob. Each blob is reduced to its summary (a row's id, state and verdict, a
     note's frontmatter) as it arrives and then dropped. A commit's inventory is its `tests/version-matrix/inventory/`
-    directory, or for a commit before kb/Work PB4148 the one legacy file. `--self-test` holds the process count constant in the number of commits (a structural bound, never a
+    directory, or for a commit before kb/Work PB4148 the one legacy file; from kb/Work PB4992 on it is the commit's view,
+    and every file that view reads (the schema, the catalog, docs/CONFORMANCE.md's registers, the Annex A.2 list) is read
+    as that commit has it, in the same two processes (branch review R1-3). `--self-test` holds the process count constant in the number of commits (a structural bound, never a
     wall-clock one)."""
     uniq = list(dict.fromkeys(shas))
     if not uniq:
         return {}
-    legacy_dir, legacy_name = inventory_store.LEGACY_FILE_REL.rsplit("/", 1)
-    asked = ("kb/Work", inventory_store.INVENTORY_DIR_REL, legacy_dir) if register \
-        else (inventory_store.INVENTORY_DIR_REL, legacy_dir)
+    # A commit's inventory is its per-rule store or, before kb/Work PB4148, the one legacy file; from kb/Work PB4992 on, the
+    # store holds adjudications only and the commit's rows are its VIEW, read under the files that commit holds. Each is
+    # located by the working tree's newest edition (a commit before the editions were the schema's names none).
+    ed = inventory_schema.NEWEST
+    viewed = sorted({inventory_schema.SCHEMA_REL, ed.catalog, inventory_schema.REGISTER_EXTRACT_REL,
+                     inventory_schema.load_schema().derivation.undefined_list})
+    dirs = sorted({f.rpartition("/")[0] for f in (*viewed, *((ed.legacy_file,) if ed.legacy_file else ()))})
+    asked = (*(("kb/Work",) if register else ()), ed.store, *dirs)
     trees = git_batch.tree_entries(REPO, [f"{sha}:{directory}" for sha in uniq for directory in asked])
     width = len(asked)
     work_trees = trees[0::width] if register else [None] * len(uniq)
-    row_trees, legacy_trees = trees[width - 2::width], trees[width - 1::width]
-    # A commit's inventory is its per-row directory or, before kb/Work PB4148, the one legacy file.
+    first_dir = width - len(dirs)
+    row_trees = trees[first_dir - 1::width]
+    dir_trees = [{d: trees[i + first_dir + k] for k, d in enumerate(dirs)} for i in range(0, len(trees), width)]
+
+    def oid_at(entries: dict[str, typing.Any], rel: str) -> str | None:
+        directory, _, name = rel.rpartition("/")
+        return (entries[directory] or {}).get(name)
+
     row_ids = [[oid for name, oid in (t or {}).items() if name.endswith(".json")] for t in row_trees]
-    legacy_ids = [None if rows else (t or {}).get(legacy_name) for t, rows in zip(legacy_trees, row_ids)]
+    legacy_ids = [None if rows or not ed.legacy_file else oid_at(entries, ed.legacy_file)
+                  for entries, rows in zip(dir_trees, row_ids)]
+    viewed_ids = [{rel: oid for rel in viewed if (oid := oid_at(entries, rel))} for entries in dir_trees]
     note_ids = [[oid for name, oid in (t or {}).items() if name.endswith(".md")] for t in work_trees]
     import work  # noqa: PLC0415
 
     inventory_oids = {o for ids in row_ids for o in ids} | {o for o in legacy_ids if o}
-    facts: dict[str, list[tuple[str, str, str]] | None] = {}   # blob -> its rows' (rule-id, state, verdict); None: unreadable
+    joined_oids = {o for ids in viewed_ids for o in ids.values()}
+    records: dict[str, list[dict] | None] = {}   # blob -> its rows (whole, before PB4992) or its record; None: unreadable
+    joined: dict[str, str] = {}   # a blob the view reads (schema, catalog, register, A.2 list) -> its text
     notes: dict[str, dict | None] = {}   # a file without frontmatter counts as no note: these are HISTORICAL trees, which may hold one a later `work.py check` refuses (PB3654)
-    for oid, data in git_batch.blobs(REPO, [*inventory_oids, *(o for ids in note_ids for o in ids)]):
+    for oid, data in git_batch.blobs(REPO, [*inventory_oids, *joined_oids, *(o for ids in note_ids for o in ids)]):
         text = data.decode("utf-8", errors="replace")
-        if oid not in inventory_oids:
+        if oid in joined_oids:
+            joined[oid] = text
+        elif oid not in inventory_oids:
             notes[oid] = work.parse_frontmatter(text)
-            continue
-        try:
-            parsed = json.loads(text)
-            facts[oid] = [(r["rule-id"], r["state"], r["verdict"]) for r in (parsed if isinstance(parsed, list) else [parsed])]
-        except (ValueError, KeyError):
-            facts[oid] = None
+        else:
+            try:
+                parsed = json.loads(text)
+                records[oid] = parsed if isinstance(parsed, list) else [parsed]
+            except ValueError:
+                records[oid] = None
+
+    def rows_of(sha: str, blobs: list[str], files: dict[str, str]) -> list[dict] | None:
+        found = [records[o] for o in blobs]
+        if not blobs or None in found:
+            return None
+        rows = [r for part in found for r in part]
+        if all("state" in r for r in rows):          # a commit before PB4992: its rows as committed
+            return rows
+        if inventory_schema.SCHEMA_REL not in files or ed.catalog not in files:
+            return None
+        tree = inventory_schema.Tree(REPO, sha, {rel: joined[oid] for rel, oid in files.items()})
+        schema = inventory_schema.load_schema(tree)
+        newest = schema.newest
+        return inventory_view.join(newest, newest.rules(tree), {r["rule-id"]: r for r in rows}, schema, {}).rows
+
     out: dict[str, Committed] = {}
-    for sha, ids, legacy_id, note_oids in zip(uniq, row_ids, legacy_ids, note_ids):
-        blobs = [*ids] if ids else [legacy_id] if legacy_id else []
-        found = [facts[o] for o in blobs]
-        rows = None if not blobs or None in found else [r for part in found for r in part]
+    for sha, ids, legacy_id, files, note_oids in zip(uniq, row_ids, legacy_ids, viewed_ids, note_ids):
+        try:
+            rows = rows_of(sha, [*ids] if ids else [legacy_id] if legacy_id else [], files)
+            rows = None if rows is None else [(r["rule-id"], r["state"], r["verdict"]) for r in rows]
+        except KeyError:
+            rows = None
         summary = None if rows is None else (
             {"gap": sum(1 for _, state, _ in rows if state == "GAP"),
              "closed": sum(1 for _, state, _ in rows if state == "OK"),
@@ -480,7 +519,8 @@ def measure_commits(shas: typing.Sequence[str], register: bool = True) -> dict[s
 
 
 def missed_points(pts: list[dict]) -> list[dict]:
-    """The measurement-moving commits that no generator run recorded: reachable from HEAD and from no recorded point.
+    """The measurement-moving commits that no generator run recorded: on main's first-parent line up to the newest LANDED
+    commit HEAD holds (its merge base with origin/main), and reachable from no recorded point.
 
     ⛔ A generator run measures ONE tree, so a session that landed three trains between runs recorded one point
     for three landings (2026-10-04: trains 1011 and 1012 were missing until the owner noticed the page stale).
@@ -488,7 +528,12 @@ def missed_points(pts: list[dict]) -> list[dict]:
     so the series is one point per GAP-moving landing no matter how rarely the generator runs. Each such point
     carries the register's series too, measured from the same tree (kb/Work PB2912), and a commit that moves only the
     register (a `kb/Work` landing that leaves the inventory alone) is a point as well: the movement test is
-    MOVING_KEYS, the same one `trend_series` applies to the current point (train 1052 review)."""
+    MOVING_KEYS, the same one `trend_series` applies to the current point (train 1052 review).
+
+    ⛔ A POINT IS A STATE MAIN HAD (branch review R2-1 of PB4992). The merge queue keeps a branch's commits, so a plain walk
+    reaches a branch's WIP checkpoints, trees main never held (one stored adjudications under a schema the view of that
+    era could not read, and a silent `KeyError` dropped it). The walk is `--first-parent` from the landed head: each step
+    is a landing, and a landed tree whose schema the view cannot read is refused loudly (`load_schema`)."""
     last = pts[-1] if pts else None
     # the recorded points' full commit ids: a point's sha may never have reached this clone (None)
     known = git_batch.resolve(REPO, [p["sha"] for p in pts])
@@ -499,9 +544,11 @@ def missed_points(pts: list[dict]) -> list[dict]:
     # `last..HEAD` also lists commits older than `last` that are not its ancestors (a branch merged after the point
     # was taken), and those were walked when an earlier point was recorded (kb/Work PB3161, review finding R1-2: nine
     # shas appeared twice in the frozen series).
-    revs = ["HEAD", *(f"^{sha}" for sha in recorded)]
-    log = git("log", "--reverse", "--format=%h|%cI|%s", "--abbrev=8", "--stdin", "--", *inventory_store.HISTORY_PATHSPECS, "kb/Work",
-              stdin="\n".join(revs) + "\n")
+    revs = [inventory_store.landed_head(REPO), *(f"^{sha}" for sha in recorded)]
+    # A commit moves the view when it touches the store or the catalog it is joined with (kb/Work PB4992).
+    newest = inventory_schema.NEWEST
+    log = git("log", "--reverse", "--first-parent", "--format=%h|%cI|%s", "--abbrev=8", "--stdin", "--",
+              *inventory_store.history_pathspecs(newest), newest.catalog, "kb/Work", stdin="\n".join(revs) + "\n")
     walked = [line.split("|", 2) for line in log.splitlines() if line]
     measured = measure_commits([sha for sha, _, _ in walked])   # two processes however many commits (PB3315)
     out: list[dict] = []
@@ -1273,7 +1320,7 @@ def build() -> tuple[str, dict]:
     inv = measure_inventory()
     head = measure_head()
     bat = measure_battery(head["sha"])
-    items, rows = work.load(), inventory_store.load_inventory()
+    items, rows = work.load(), inventory_view.inventory()
     rem = ledger_plan.remaining(items, rows, inv["gap"])
     pts, is_new = trend_series(inv, head, bat, rem["counts"])
     plan = ledger_plan.measure(items, inv["gap"])
@@ -1409,7 +1456,7 @@ def self_test() -> int:
 
         REPO = tmp / "repo"
         (REPO / "kb" / "Work").mkdir(parents=True)
-        legacy = REPO / inventory_store.LEGACY_FILE_REL   # a commit before kb/Work PB4148 holds the inventory as ONE file
+        legacy = REPO / inventory_schema.NEWEST.legacy_file   # a commit before kb/Work PB4148 holds the inventory as ONE file
         legacy.parent.mkdir(parents=True)
         legacy.write_text(json.dumps(rows), encoding="utf-8", newline="\n")
         fm = ("---\ntitle: \"{i} — x\"\nid: {i}\nkind: defect\nstatus: {s}\nwrong_answer: true\ncrashes: false\n"
@@ -1431,18 +1478,34 @@ def self_test() -> int:
 
         # kb/Work PB4148: the same rows as one file per row give the same counts, from the commit's own directory.
         legacy.unlink()
-        inventory_store.write_inventory(rows, REPO / inventory_store.INVENTORY_DIR_REL)
+        store = REPO / inventory_schema.NEWEST.store
+        inventory_store.write_store(rows, store)
         scratch.commit("per-row layout")
         after = measure_commits(["HEAD", "HEAD~1"], register=False)
         check("a commit's inventory is read from its per-row directory, and from the legacy file before it",
               after["HEAD"].inventory == got.inventory == after["HEAD~1"].inventory and gap_at("HEAD") == 2,
               f"{after}")
 
+        # kb/Work PB4992: a store of adjudications only is joined with the commit's own catalog under its own schema, in
+        # the same two processes; a rule with no store file is a GAP of that commit's view.
+        catalog_rel, schema_rel = inventory_schema.NEWEST.catalog, inventory_schema.SCHEMA_REL
+        rules = [{"id": f"GR-4.4-{i}", "section": "4.4", "kind": "GR", "ordinal": i, "subject": "s", "text": f"Rule {i}."}
+                 for i in (1, 2, 3)]
+        inventory_store.write_store([{"rule-id": "GR-4.4-1", "rule-digest": inventory_view.rule_digest("Rule 1."),
+                                      "verdict": "DOCUMENTED-NON-SUPPORT", "notes": "n"}], store)
+        scratch.commit("the view", {catalog_rel: json.dumps({"rules": rules}),
+                                    schema_rel: inventory_schema.WORKING_TREE.text(schema_rel)})
+        viewed = measure_commits(["HEAD"], register=False)["HEAD"].inventory
+        check("a commit after PB4992 is measured as its view: its catalog joined with its store under its schema",
+              viewed == {"gap": 3, "closed": 0, "dns": 1} and gap_at("HEAD") == 3, f"{viewed}")
+        scratch.write({catalog_rel: None, schema_rel: None})
+        scratch.commit("the fixture's old shape again")
+
         # missed_points in a merge DAG (review finding R1-2): a branch merged AFTER the last point was recorded is
         # not an ancestor of it, but its commits were recorded earlier; `last..HEAD` listed them again.
         def commit(gap_rows: int, msg: str) -> str:
-            inventory_store.write_inventory([{"rule-id": f"R-{i}", "state": "GAP", "verdict": "PARTIAL"}
-                                             for i in range(gap_rows)], REPO / inventory_store.INVENTORY_DIR_REL)
+            inventory_store.write_store([{"rule-id": f"R-{i}", "state": "GAP", "verdict": "PARTIAL"}
+                                         for i in range(gap_rows)], store)
             scratch.commit(msg)
             return scratch.git("rev-parse", "--short=8", "HEAD")
 

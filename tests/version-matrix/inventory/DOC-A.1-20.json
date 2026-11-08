@@ -1,15 +1,9 @@
 {
  "rule-id": "DOC-A.1-20",
- "section": "A.1",
- "kind": "DOC",
- "ordinal": 20,
- "subject": "Case mapping",
  "rule-digest": "9d72e1a03272",
  "verdict": "CONFORMS",
  "code-location": "docs/CONFORMANCE.md#DOC-A.1-20; src/WiseOwl.Cobol.Runtime/CobolNames.cs#Fold",
  "test-ref": "unit:CobolNameFoldDriftTests.Same_IsTheAnnexCFold; unit:AnnexBCDriftTests.AnnexCLists_EqualTheSpec; conformance:cases/8.1.3-COBOL-character-repertoire/pb1402_extended_letters_2023; unit:AnnexBCDriftTests.NotApplied_IsExactlyTheCrossingPairs_OfTheMeasuredTable; conformance:cases/8.1.3-COBOL-character-repertoire/pb4420-dotted-capital-i-name-is-a-word-of-its-own",
- "derivation": "",
  "editions": "2002,2014,2023",
- "notes": "kb/Work PB1402: the determination (Annex C of the edition compiled) is implemented by CobolNames and pinned by value and against the spec lists. kb/Work PB4420 (owner decision 2026-11-01): the fold applies a C.2 pair only when both letters are basic or both extended (GR4 b names the corresponding lowercase extended letter; GnuCOBOL by CLAUDE.md rule 1); the crossing pairs are listed in CobolNames.NotApplied and applied at no edition.",
- "state": "OK"
+ "notes": "kb/Work PB1402: the determination (Annex C of the edition compiled) is implemented by CobolNames and pinned by value and against the spec lists. kb/Work PB4420 (owner decision 2026-11-01): the fold applies a C.2 pair only when both letters are basic or both extended (GR4 b names the corresponding lowercase extended letter; GnuCOBOL by CLAUDE.md rule 1); the crossing pairs are listed in CobolNames.NotApplied and applied at no edition."
 }

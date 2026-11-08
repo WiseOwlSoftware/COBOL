@@ -44,9 +44,8 @@ TESTREF_CLEARED = re.compile(
 #: lost — it lands as a kb/Work note that claims the row.
 OWNER_VERDICTS = {"DOCUMENTED-NON-SUPPORT"}
 sys.path.insert(0, "scripts/spec")
-from inventory_store import INVENTORY_DIR, load_inventory  # noqa: E402  (the one reader of the inventory, kb/Work PB4148)
-OWNED_ROWS = ({r["rule-id"] for r in load_inventory()
-               if r.get("verdict") in OWNER_VERDICTS} if INVENTORY_DIR.is_dir() else set())
+from inventory_view import inventory  # noqa: E402  (the one view of the inventory, kb/Work PB4992)
+OWNED_ROWS = {r["rule-id"] for r in inventory() if r["verdict"] in OWNER_VERDICTS}
 
 records, digest, unrefuted, skipped = [], collections.OrderedDict(), [], []
 for f in sorted(out.glob("out-*.json")) + sorted(out.glob("adjudicate-*.jsonl")):

@@ -452,6 +452,9 @@ jobs:
       - name: Rule catalog 1985 — complete, and the committed catalog is this run's (extract_rule_catalog.py --edition 1985 --check)
         if: ${{ !cancelled() }}
         run: python3 scripts/spec/extract_rule_catalog.py --edition 1985 --check
+      - name: Inventory view — every held edition's catalog joined with its store, nothing refused (inventory_view.py --check)
+        if: ${{ !cancelled() }}
+        run: python3 scripts/spec/inventory_view.py --check
       - name: Spec corrections — every flag, Addendum entry, printed form and page agree (verify_publishable.py)
         if: ${{ !cancelled() }}
         run: python3 scripts/spec/verify_publishable.py

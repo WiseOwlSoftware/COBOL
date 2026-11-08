@@ -42,7 +42,7 @@ from standard_streams import ensure_utf8  # noqa: E402
 
 import spec_pdf  # noqa: E402  (scripts/spec: the one PDF locator, kb/Work PB3208)
 PDF = spec_pdf.path(2023)
-CATALOG = REPO / "docs" / "rearchitecture" / "spec-rule-catalog.json"
+import inventory_schema  # noqa: E402  (the 2023 catalog: its edition in the schema's `editions.of`, the one home)
 DATA = REPO / "scripts" / "spec" / "data" / "sublist-levels.json"
 
 LEVEL_PT = 17.5            # one nesting step on the printed page (a) under 1), 1. under a))
@@ -118,7 +118,7 @@ def main() -> int:
     spec_pdf.require(2023)
     import pymupdf                                                    # PyMuPDF, as the sibling tools use it
 
-    rules = json.loads(CATALOG.read_text(encoding="utf-8"))["rules"]
+    rules = inventory_schema.edition(2023).rules()
     with pymupdf.open(PDF) as doc:
         measured = measure(doc, rules)
     bad = [m for m in measured if m["level"] != 0]

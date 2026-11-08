@@ -53,13 +53,15 @@ import subprocess
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-import inventory_store  # noqa: E402  (the inventory's one reader, in the tree and at a commit)
+import inventory_schema  # noqa: E402  (the newest held edition: its store)
+import inventory_store  # noqa: E402  (the store's history pathspecs)
+import inventory_view  # noqa: E402  (the one view of the inventory, in the tree and at a commit)
 import work  # noqa: E402  (same directory; this is the register's ONE reader)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
-SCHEMA = REPO / "tests" / "version-matrix" / "inventory-schema.json"
+SCHEMA = inventory_schema.SCHEMA_PATH
 PB = re.compile(r"\b(PB\d+[a-z]?)\b")
 #: The one sentence a back-filled empty answer carries. It names its own provenance on purpose: a reader can
 #: then tell a DERIVED "nothing" from an implementer's stated one, and re-derive it rather than believe it.
@@ -67,8 +69,8 @@ DERIVED_REASON = ("no inventory row is attributable to this landing — derived 
                   "scripts/spec/backfill_closes_rows.py from the inventory's own commit history, re-derivable")
 
 
-def git(*args: str) -> str:
-    return subprocess.run(["git", *args], cwd=REPO, capture_output=True, text=True,
+def git(*args: str, repo: pathlib.Path = REPO) -> str:
+    return subprocess.run(["git", *args], cwd=repo, capture_output=True, text=True,
                           encoding="utf-8", errors="replace", check=True).stdout
 
 
@@ -95,21 +97,29 @@ def attribute(commit_message: str, row_notes: str) -> set[str]:
     return set()
 
 
-def verdicts_at(sha: str) -> dict[str, tuple[str, str]]:
+def verdicts_at(sha: str, repo: pathlib.Path = REPO) -> dict[str, tuple[str, str]]:
     """`rule-id -> (verdict, notes)` as of one commit, or `{}` when the commit has no inventory."""
-    return {r["rule-id"]: (r.get("verdict") or "", r.get("notes") or "") for r in inventory_store.inventory_at(sha) or ()}
+    return {r["rule-id"]: (r.get("verdict") or "", r.get("notes") or "")
+            for r in inventory_view.inventory_at(sha, repo=repo) or ()}
 
 
-def closures_from_history(resolving: set[str], progress=None) -> tuple[dict[str, set[str]], dict]:
-    """`note id -> rule-ids it closed`, walked over every commit that touched the inventory."""
-    log = git("log", "--reverse", "--format=%H%x1f%B%x1e", "--", *inventory_store.HISTORY_PATHSPECS)
+def closures_from_history(resolving: set[str], progress=None,
+                          repo: pathlib.Path = REPO) -> tuple[dict[str, set[str]], dict]:
+    """`note id -> rule-ids it closed`, walked over every LANDING that touched the inventory: main's `--first-parent` line,
+    each step a state main had (branch review R2-1 of PB4992: a branch's WIP checkpoints, which the merge queue keeps, are
+    trees main never held). A landing's message is the messages of every commit it brought in, so a note named by the
+    branch's commit is still the one it attributes to."""
+    log = git("log", "--reverse", "--first-parent", "--format=%H%x1f%P%x1f%B%x1e", inventory_store.landed_head(repo), "--",
+              *inventory_store.history_pathspecs(inventory_schema.NEWEST), repo=repo)
     commits = [c.strip() for c in log.split("\x1e") if c.strip()]
     closed: dict[str, set[str]] = collections.defaultdict(set)
     stats = {"commits": len(commits), "transitions": 0, "unattributed": 0, "by-arm": collections.Counter()}
     previous: dict[str, tuple[str, str]] = {}
     for i, entry in enumerate(commits):
-        sha, _, message = entry.partition("\x1f")
-        current = verdicts_at(sha)
+        sha, parents, message = entry.split("\x1f", 2)
+        if len(parents.split()) > 1:        # a merge: what it lands is every commit its first parent lacks
+            message = git("log", "--format=%B", f"{sha}^1..{sha}", repo=repo)
+        current = verdicts_at(sha, repo)
         if progress and i % 25 == 0:
             progress(i, len(commits))
         for rule_id, (verdict, notes) in current.items():
@@ -245,6 +255,29 @@ def self_test() -> int:
     def check(name: str, ok: bool, detail: str = "") -> None:
         cases.append((name, ok, detail))
 
+    # ── the walk is main's landings (branch review R2-1 of PB4992) ───────────────────────────────────
+    # A merged branch's WIP checkpoint holds a tree main never had (here: adjudication-only records under a schema with
+    # no `editions.of`, which the view refuses by name). The --first-parent walk never reads it, and the landing's
+    # message is its branch's, so the closure is still attributed to the note the branch named.
+    from scratch_repo import ScratchRepo, scratch_dir  # noqa: PLC0415  (scripts/: the one scratch fixture)
+    store = inventory_schema.NEWEST.store
+    sr = ScratchRepo.init(scratch_dir("backfill-history-") / "repo")
+    sr.commit("base", {f"{store}/R-1.json": json.dumps({"rule-id": "R-1", "section": "1.1", "ordinal": 1, "verdict": "", "state": "GAP"})})
+    sr.git("checkout", "-q", "-b", "side")
+    old_schema = json.loads(SCHEMA.read_text(encoding="utf-8"))
+    old_schema["editions"].pop("of")
+    sr.commit("PB9001: WIP", {f"{store}/R-1.json": json.dumps({"rule-id": "R-1", "rule-digest": "d", "verdict": "CONFORMS"}),
+                              inventory_schema.SCHEMA_REL: json.dumps(old_schema)})
+    sr.commit("PB9001: close R-1", {f"{store}/R-1.json": json.dumps({"rule-id": "R-1", "section": "1.1", "ordinal": 1, "verdict": "CONFORMS", "state": "OK"})})
+    sr.git("checkout", "-q", "main")
+    sr.git("merge", "-q", "--no-ff", "-m", "Merge pull request #1 from side", "side")
+    try:
+        walked, _ = closures_from_history({"CONFORMS"}, repo=sr.path)
+    except SystemExit as e:
+        walked = {"refused": {str(e.code)}}
+    check("the history walk reads main's landings only, and a landing carries its branch's note",
+          walked == {"PB9001": {"R-1"}}, str(walked))
+
     # ── the attribution rule, arm by arm ─────────────────────────────────────────────────────────────
     check("arm 1 — commit and row agree, and the INTERSECTION wins over either alone",
           attribute("PB11+PB33: land the cap", "closed by PB33; PB11 recorded the guard") == {"PB11", "PB33"})
@@ -335,7 +368,7 @@ def main() -> int:
         return self_test()
 
     resolving = resolving_verdicts()
-    rows = inventory_store.load_inventory()
+    rows = inventory_view.inventory()
     state_now = {r["rule-id"]: r.get("state") or "" for r in rows}
     items = work.load()
 
@@ -346,7 +379,7 @@ def main() -> int:
             print(f"   {f}")
         return 0
 
-    print(f"walking {inventory_store.INVENTORY_DIR_REL} (and, before kb/Work PB4148, the one legacy file) through its history …")
+    print(f"walking {inventory_schema.NEWEST.store} (and, before kb/Work PB4148, the one legacy file) through its history …")
     closed, stats = closures_from_history(
         resolving, progress=lambda i, n: print(f"   {i}/{n} commits", flush=True))
     want = derive(items, state_now, closed)

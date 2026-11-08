@@ -1,15 +1,9 @@
 {
  "rule-id": "GR-13.18.57.4-8",
- "section": "13.18.57.4",
- "kind": "GR",
- "ordinal": 8,
- "subject": "TYPE clause",
  "rule-digest": "ae3e5dd98aca",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#LowerLimit; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#GroupLimits; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportGroupLines",
  "test-ref": "conformance-test:ReportWriterConformanceTests.PageFit_Gr4c_TrialSumOverflow_AdvancesAndResets; conformance:cases/13.18.35-LINE/pb1270-page-heading-below-first-detail; conformance:cases/13.18.35-LINE/pb1270-detail-below-last-detail; conformance:cases/13.18.39-PAGE/pb1270-report-heading-after-page-heading; conformance:cases/13.18.39-PAGE/pb1270-page-heading-relative-past-first-detail; conformance:cases/13.18.35-LINE/pb1270_report_page_region_boundaries",
- "derivation": "",
  "editions": "85,2002,2014,2023",
- "notes": "kb/Work PB1270 landed 2026-10-04: GroupLimits computes the lower limit of every group type at bind, a) to g) (a report heading by itself is its NEXT GROUP NEXT PAGE); the body-group lower limits are also the run-time page-fit test's. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#GroupLimits (kb/Work PB2357 split DataBinder.Reports.cs: the same code, unchanged, now lives in ReportSectionBinder.cs (the binder), ReportModel.cs (the model types) and ReportScope.cs (the visible-report lookups)) retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ScreenReportGroupLines (kb/Work PB2357 split DataBinder.Reports.cs: the same code, unchanged, now lives in ReportSectionBinder.cs (the binder), ReportModel.cs (the model types) and ReportScope.cs (the visible-report lookups))",
- "state": "OK"
+ "notes": "kb/Work PB1270 landed 2026-10-04: GroupLimits computes the lower limit of every group type at bind, a) to g) (a report heading by itself is its NEXT GROUP NEXT PAGE); the body-group lower limits are also the run-time page-fit test's. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#GroupLimits (kb/Work PB2357 split DataBinder.Reports.cs: the same code, unchanged, now lives in ReportSectionBinder.cs (the binder), ReportModel.cs (the model types) and ReportScope.cs (the visible-report lookups)) retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ScreenReportGroupLines (kb/Work PB2357 split DataBinder.Reports.cs: the same code, unchanged, now lives in ReportSectionBinder.cs (the binder), ReportModel.cs (the model types) and ReportScope.cs (the visible-report lookups))"
 }

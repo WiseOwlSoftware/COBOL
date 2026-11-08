@@ -54,9 +54,10 @@ from standard_streams import ensure_utf8  # noqa: E402
 REPO = pathlib.Path(__file__).resolve().parents[2]
 import spec_pdf  # noqa: E402  (scripts/spec: the one edition table, kb/Work PB4815)
 SPEC = spec_pdf.markdown(2023)
-OUT = REPO / "docs" / "rearchitecture" / "spec-rule-catalog.json"
+import inventory_schema  # noqa: E402  (each edition's catalog path: the schema's `editions.of`, the one home)
+OUT = REPO / inventory_schema.edition(2023).catalog
 #: The 1985 catalog (`--edition 1985`, kb/Work PB4886): written once the 1985 transcription is reconciled (PB4850).
-OUT_1985 = REPO / "docs" / "rearchitecture" / "spec-rule-catalog-1985.json"
+OUT_1985 = REPO / inventory_schema.edition(1985).catalog
 #: The COMMITTED inventory of clauses that carry ``N)``-shaped rules this extractor does not harvest — the
 #: manifest the content-keyed scan compares against, so "nothing new fell out of the denominator" is an
 #: observation rather than a memory. See unharvested_rule_blocks() and fix-queue PB29.
@@ -1160,7 +1161,7 @@ def main_2023(args: argparse.Namespace) -> int:
         for rid in stale[:10]:
             print(f"      {rid}")
         print("   Regenerate it in the same change as the transcription edit: python scripts/spec/extract_rule_catalog.py")
-        print("   (then python scripts/spec/build_inventory.py, whose rule-digest check names any verdict on changed text).")
+        print("   (then python scripts/spec/inventory_view.py --check, which refuses any adjudication decided against changed text).")
 
     if args.check:
         return 1 if (gaps or unrecognised or drifts or unexplained

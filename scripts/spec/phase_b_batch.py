@@ -65,7 +65,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import citation  # noqa: E402  (THE citation format and its parser, kb/Work PB4887)
 import grammar_source  # noqa: E402  (THE reader of the grammar's rules, kb/Work PB3204)
 import inventory_schema  # noqa: E402  (THE reader of the catalog and the §7 register, kb/Work PB3209)
-import inventory_store  # noqa: E402  (THE reader of the inventory)
+import inventory_view  # noqa: E402  (THE view of the inventory, kb/Work PB4992)
 import work  # noqa: E402  (path must be set first)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
@@ -713,9 +713,9 @@ def main() -> int:
     if not args.clauses:
         ap.error("name at least one clause or range")
 
-    rules = inventory_schema.load_catalog()
+    rules = inventory_schema.NEWEST.rules()
     done = set() if args.include_adjudicated else {
-        r["rule-id"] for r in inventory_store.load_inventory() if r.get("verdict")}
+        r["rule-id"] for r in inventory_view.inventory() if r.get("verdict")}
 
     chosen = [r for r in rules if selected(r["section"], args.clauses) and r["id"] not in done]
     skipped = sum(1 for r in rules if selected(r["section"], args.clauses) and r["id"] in done)

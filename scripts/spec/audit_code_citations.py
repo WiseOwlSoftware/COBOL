@@ -145,7 +145,8 @@ from standard_streams import ensure_utf8  # noqa: E402
 REPO = citation_corpus.REPO
 import spec_pdf  # noqa: E402  (scripts/spec: the one edition table, kb/Work PB4815)
 SPEC = spec_pdf.markdown(2023)
-CATALOG = REPO / "docs" / "rearchitecture" / "spec-rule-catalog.json"
+import inventory_schema  # noqa: E402  (the 2023 catalog: its edition in the schema's `editions.of`, the one home)
+CATALOG_2023 = inventory_schema.edition(2023)
 
 def cited_2023(text: str) -> list[str]:
     """The clauses of the 2023 standard `text` cites, left to right, read by the one citation parser
@@ -228,7 +229,7 @@ def catalog_subjects() -> dict[str, str]:
     """clause -> the construct heading it belongs to, from the derived rule catalog (committed, so this half
     of the audit runs with no submodule). A rule's `section` is the RULE block (`14.9.4.3`); its parent is the
     construct (`14.9.4`), and both are keyed here."""
-    rules = json.loads(CATALOG.read_text(encoding="utf-8"))["rules"]
+    rules = CATALOG_2023.rules()
     seen: dict[str, set[str]] = {}
     for r in rules:
         for key in (r["section"], r["section"].rsplit(".", 1)[0]):
@@ -571,7 +572,7 @@ def catalog_rule_tops(alias: bool = True) -> dict[tuple[str, str], int]:
     here read a sub-item as a rule and reported `§2023:14.9.10.4 has 21 GRs — there is no GR1` about a block whose
     rule 1 it had simply mis-parsed. `extract_rule_catalog.py` settled that ambiguity once (`place()`, the
     sublist machinery); one mechanism, one place (feedback_one_rule_one_place)."""
-    rules = json.loads(CATALOG.read_text(encoding="utf-8"))["rules"]
+    rules = CATALOG_2023.rules()
     tops: dict[tuple[str, str], int] = {}
     for r in rules:
         if r["sublist"] != 1:
@@ -624,7 +625,7 @@ def spec_ordinals():
                for i, (start, cl, _t) in enumerate(heads)}
 
     by_block: dict[tuple[str, str], list[tuple[int, str]]] = {}
-    for r in json.loads(CATALOG.read_text(encoding="utf-8"))["rules"]:
+    for r in CATALOG_2023.rules():
         if r["sublist"] == 1 and r["section"] in segment:
             by_block.setdefault((r["section"], r["kind"]), []).append((r["ordinal"], r["text"]))
 

@@ -1,15 +1,9 @@
 {
  "rule-id": "SR-13.18.37.3-4",
- "section": "13.18.37.3",
- "kind": "SR",
- "ordinal": 4,
- "subject": "NEXT GROUP clause",
  "rule-digest": "85e60a9302fb",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindNextGroupClauses",
  "test-ref": "conformance:cases/13.18.37-NEXT-GROUP/pb957-next-group-in-page-heading",
- "derivation": "",
  "editions": "85,2002,2014,2023",
- "notes": "kb/Work PB957. NEXT GROUP in a page heading or a report footing draws COBOL2284 (the group's TYPE is read after the whole entry is bound, so the clause order within the entry does not matter). retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#BindNextGroupClauses (kb/Work PB2357 split DataBinder.Reports.cs: the same code, unchanged, now lives in ReportSectionBinder.cs (the binder), ReportModel.cs (the model types) and ReportScope.cs (the visible-report lookups))",
- "state": "OK"
+ "notes": "kb/Work PB957. NEXT GROUP in a page heading or a report footing draws COBOL2284 (the group's TYPE is read after the whole entry is bound, so the clause order within the entry does not matter). retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#BindNextGroupClauses (kb/Work PB2357 split DataBinder.Reports.cs: the same code, unchanged, now lives in ReportSectionBinder.cs (the binder), ReportModel.cs (the model types) and ReportScope.cs (the visible-report lookups))"
 }

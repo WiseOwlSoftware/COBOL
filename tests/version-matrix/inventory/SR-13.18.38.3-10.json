@@ -1,15 +1,9 @@
 {
  "rule-id": "SR-13.18.38.3-10",
- "section": "13.18.38.3",
- "kind": "SR",
- "ordinal": 10,
- "subject": "OCCURS clause",
  "rule-digest": "b8d43362dc39",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/OdoResolvePass.cs#OdoResolvePass",
  "test-ref": "conformance:cases/13.18.38-OCCURS/pb1260-table-needs-eight-subscripts; conformance:cases/13.18.38-OCCURS/pb1260_seven_nested_tables_are_legal",
- "derivation": "",
  "editions": "85,2002,2014,2023",
- "notes": "kb/Work PB1260: an OCCURS entry that would need eight subscripts is COBOL2646; seven nested tables compile and run. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs#OdoResolve (the pass body moved from the DataBinder partial to its own IBindPass class under Binding/Passes (kb/Work PB2352, PB2353, PB2354))",
- "state": "OK"
+ "notes": "kb/Work PB1260: an OCCURS entry that would need eight subscripts is COBOL2646; seven nested tables compile and run. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs#OdoResolve (the pass body moved from the DataBinder partial to its own IBindPass class under Binding/Passes (kb/Work PB2352, PB2353, PB2354))"
 }

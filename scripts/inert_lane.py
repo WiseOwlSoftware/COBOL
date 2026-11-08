@@ -421,6 +421,9 @@ CLASSIFICATION = Classification(inert={
        "scripts/scratch_repo.py": "imported by conformance-suite/harness/generate.py (SuiteManifest) and "
                                   "test_population.py",
        "scripts/ci_workflow.py": "imported by scripts/test_population.py",
+       "scripts/git_batch.py": "imported by scripts/spec/inventory_schema.py and inventory_store.py (the inventory view "
+                               "conformance-suite/harness/generate.py reads, SuiteManifest; a partial clone's batched "
+                               "blob reads, kb/Work PB4992)",
        "scripts/rendered_views.py": "imported by scripts/spec/work.py (scripts/arch/r2_inputs.py, ArchReviewFleetDriftTests)",
        "scripts/semgrep/verify.py": "imported by scripts/arch/r2_inputs.py (its semgrep step reads errors[] through verify's "
                                     "helpers, kb/Work PB4462 review R1-1; ArchReviewFleetDriftTests runs the self-test)",

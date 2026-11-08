@@ -1,15 +1,9 @@
 {
  "rule-id": "SR-8.3.2.1-2",
- "section": "8.3.2.1",
- "kind": "SR",
- "ordinal": 2,
- "subject": "COBOL words",
  "rule-digest": "cc59758fb83b",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitCobolWord; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolWords.g4#cobolWord; src/WiseOwl.Cobol.Editions/CompilerDirectiveCatalog.cs#CompilerDirectiveCatalog; src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs#Entries",
  "test-ref": "conformance:cases/8.3.2-COBOL-words/pb656_directive_words_as_user_words",
- "derivation": "",
  "editions": "85,2002,2014,2023",
- "notes": "kb/Work PB656 (w1084b), revised by kb/Work PB4297 (w20261825a). The 8.3.2.1 2) EXCEPT half (a compiler-directive word that is also reserved) bites only at an edition whose 8.9 reserves the word. COBOL is reserved at 85 (GnuCOBOL's 85 list, no 1985 text held) and on neither the 2002 standard's 8.9 list (tests/version-matrix/reserved-words-2002.json) nor the 2009 draft's or 2023's, so it is a user-defined word from 2002 on (docs/CONFORMANCE.md D-RW3); the earlier refusal at 2002/2014 followed GnuCOBOL's lists, which add implementor words. Positive: the 2023 golden uses 8.12 words as computer-names (system-names), data-names, a condition-name, a section-name and a paragraph-name in the same compilation as >>DEFINE/>>TURN/>>IF and prints CBL 3 P LS / 42 1 F / CK=7 / DEFINED (computed from the VALUE clauses and SET CHECKING TO TRUE). retired-witness: conformance:cases/8.3.2-COBOL-words/pb656-cobol-reserved-through-2014 (kb/Work PB4297: COBOL is not on the 2002 standard's 8.9 list nor the 2009 draft's, so it is a user-defined word from 2002 on; the negative that refused it at 2002 and 2014 pinned GnuCOBOL's implementor reservation and is deleted. COBOL at 2002/2014 is now witnessed by pb4297_1985_words_user_defined_from_2002 (SR-8.3.2.1-1).)",
- "state": "OK"
+ "notes": "kb/Work PB656 (w1084b), revised by kb/Work PB4297 (w20261825a). The 8.3.2.1 2) EXCEPT half (a compiler-directive word that is also reserved) bites only at an edition whose 8.9 reserves the word. COBOL is reserved at 85 (GnuCOBOL's 85 list, no 1985 text held) and on neither the 2002 standard's 8.9 list (tests/version-matrix/reserved-words-2002.json) nor the 2009 draft's or 2023's, so it is a user-defined word from 2002 on (docs/CONFORMANCE.md D-RW3); the earlier refusal at 2002/2014 followed GnuCOBOL's lists, which add implementor words. Positive: the 2023 golden uses 8.12 words as computer-names (system-names), data-names, a condition-name, a section-name and a paragraph-name in the same compilation as >>DEFINE/>>TURN/>>IF and prints CBL 3 P LS / 42 1 F / CK=7 / DEFINED (computed from the VALUE clauses and SET CHECKING TO TRUE). retired-witness: conformance:cases/8.3.2-COBOL-words/pb656-cobol-reserved-through-2014 (kb/Work PB4297: COBOL is not on the 2002 standard's 8.9 list nor the 2009 draft's, so it is a user-defined word from 2002 on; the negative that refused it at 2002 and 2014 pinned GnuCOBOL's implementor reservation and is deleted. COBOL at 2002/2014 is now witnessed by pb4297_1985_words_user_defined_from_2002 (SR-8.3.2.1-1).)"
 }

@@ -156,18 +156,30 @@ different rows touch different files and merge with git's plain merge; a conflic
 row. A file is named by its rule id, nothing else lives in the directory, and two names differing only in case are
 refused (`merge_drivers.py --self-test`, its real-tree arm).
 
-**The view, ONE PER LANGUAGE.** `scripts/spec/inventory_store.py` (`inventory(edition)`, and `inventory_at(rev,
-edition)` for a commit) and `tests/_shared/TraceabilityInventory.cs` join the catalog and the store and compute each
-rule's state with the one state rule (`inventory_schema.Schema.state_for` and its C# twin, and for an older edition the
-chain, §10.2). Every reader reads the view; none opens a store file or a catalog to rebuild it. The view refuses: a store
-file of a rule the catalog no longer has, a store file whose `rule-digest` is not the catalog's text (an adjudication
-decided against other text, kb/Work PB698), a stray or misnamed file, and two names that differ only in case. Its order
-is the spec's (section or locator, ordinal, id).
+**The view, ONE PER LANGUAGE.** `scripts/spec/inventory_view.py` (`inventory(edition)` over a working tree, its root
+the repository's or another worktree's, and `inventory_at(rev, edition)` for a commit: every file the state rule reads,
+the store, the catalog, the schema, `docs/CONFORMANCE.md`'s registers and the Annex A.2 list, read as that one tree has
+it, `inventory_schema.Tree`) and
+`tests/_shared/TraceabilityInventory.cs` join the catalog and the store; the state is computed by the one state rule
+(`inventory_schema.Schema.state_for`, and for an older edition the chain, §10.2) and, on the C# side, by its twin
+(`SpecTraceabilityInventoryDriftTests.DerivedState`), which `EveryRuleState_AgreesWithThePythonView` holds to the Python
+view's state of every rule (`inventory_view.py --states`). Every reader reads the view; none opens a store file or a
+catalog to rebuild it. The store (`inventory_store.py`) is the files only, and the view is a second module because it
+is a second job. The view refuses: a store file of a rule the catalog no longer has, a store file holding a field no
+store file holds (a catalog field or a state copied in), and a store file whose `rule-digest` is not the catalog's text
+(an adjudication decided against other text, kb/Work PB698; `record_verdicts.py` accepts that one only for a rule its
+batch re-adjudicates). The store refuses a stray or misnamed file and two names that differ only in case. The refusals
+are said once, in Python: `inventory_view.py --check` is the gate's INVENTORY VIEW audit, in every lane, and no C# test
+re-checks them; the C# tests hold the C# view to the Python one. The view's order is the spec's (section or locator,
+ordinal, id). The editions are DATA, `inventory-schema.json`'s `editions.of`, read by both languages: each edition's
+year, its band spelling and, for a held edition, its catalog, locator, store directory, legacy single file and the
+`adjudicated` fields its store holds (beside `store.keys`). No code names an edition's year: adding an edition is an
+entry there (`lineage.py --self-test` adds a 2027 and watches the order, the bridges and the store follow).
 
 | store field | meaning |
 |---|---|
 | `rule-id` | the catalog id; the file's name |
-| `rule-digest` | the catalog text the adjudication was decided against (`build_inventory.rule_digest`'s squash) |
+| `rule-digest` | the catalog text the adjudication was decided against (`inventory_view.rule_digest`'s squash) |
 | `verdict` | one of the six defined in `inventory-schema.json` — the vocabulary lives THERE, not here, so it cannot drift between this doc and the tools |
 | `code-location` | the traceability link: `path` or `path#Symbol` (see the correction below), or `""` if not located |
 | `test-ref` | the spec-derived test covering it, in a form that RESOLVES on disk (§8), or `""` |
@@ -341,9 +353,8 @@ sizing above is a consequence of that budget, not a separate rule.
 
 ## 8. HOW A VERDICT IS RECORDED — the Phase-B mechanism
 
-Phase A left a 3,790-row inventory and no way to write a verdict into one: `build_inventory.py` only ever
-*preserves* the adjudicated fields across a rebuild, and nothing checked what a row claimed. That gap is not a
-missing convenience. **The GAP count is the definition of v1.0** (D13), so a row is a claim about completion, and
+An inventory row is a claim, and nothing writes one but this mechanism: the store holds adjudications only (§4),
+so the one way a verdict, a witness or a change record enters it is a checked batch. That is not a convenience. **The GAP count is the definition of v1.0** (D13), so a row is a claim about completion, and
 an unaudited claim about completion is a self-report. The mechanism below exists to make each of the three claims
 in §1 — located, verified, tested — cost what it is supposed to cost.
 
@@ -623,7 +634,7 @@ row, cross-checked against a register PARSED by one reader per language.
   `specs/ISO_COBOL_2023.md` and resolves each item's citation against `spec-rule-catalog.json` — and both engines then
   read the resolved `rule-ids` as data. Parsing the spec markdown in C# as well would be the second parser this
   design spends its whole length avoiding, and re-parsing 66 items per row would put a 1.3 MB read on the path
-  `EveryRowState_IsDerived_NotAsserted` walks 4,311 times. `extract_annex_a2.py --check` regenerates and diffs, so
+  `EveryRuleState_AgreesWithThePythonView` walks 4,311 times. `extract_annex_a2.py --check` regenerates and diffs, so
   the artifact cannot go stale silently; `AnnexA2UndefinedListDriftTests` runs it every build, the
   gate-audit precedent of `audit_annex_a1.py` (kb/Work PB4453).
 - **Adding an A.2-arm row costs one register row.** The item→rule-id resolution is mechanical, so the next rule
@@ -812,7 +823,9 @@ verdict by reference into the one 2023 store.
 **One rule list per edition, from that edition's own text.** Each edition has its catalog (§10.1 for 1985, §3 for 2023;
 2002 and 2014 when transcribed, kb/Work PB4813), and its inventory is the view of §4 over a store of its own,
 `tests/version-matrix/inventory/` for 2023 and `tests/version-matrix/inventory-<edition>/` for each earlier one
-(`inventory_store.py`, which takes the edition). A reader names the edition it reads.
+(`inventory_store.py` and the view `inventory_view.py`, each of which takes the edition; `inventory_schema.Edition`,
+read from the schema's `editions.of`, carries what differs: the catalog, the key that locates a rule, the store's
+directory and fields). A reader names the edition it reads, or reads the newest held one.
 
 **Change is recorded once, between ADJACENT editions only** (85 to 2002, 2002 to 2014, 2014 to 2023, and 2023 to 2027),
 never between every pair. Each rule of the older edition carries one classification against the next held edition, in a
