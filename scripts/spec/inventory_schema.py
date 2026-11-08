@@ -949,25 +949,10 @@ class Derivation:
                         "evaluator does not implement — the schema and the writer disagree")]
 
 
-_DERIVATION_CACHE: dict[str, DerivationRow] | None = None
-
-
 def derivation_rows(text: str, heading: str, header_cell: str = "Rule") -> list[DerivationRow]:
     """Every data row of the §8 derivation register, in document order."""
     return [DerivationRow(c[0], c[1], _cell(c, 2), _cell(c, 3), _cell(c, 4))
             for c in register_section(text, heading, header_cell)]
-
-
-def register_derivations(heading: str, text: str | None = None,
-                         header_cell: str = "Rule") -> dict[str, DerivationRow]:
-    """`{§8 row key -> row}` — cached when read from disk, like `register_determinations`."""
-    global _DERIVATION_CACHE
-    if text is not None:
-        return {r.key: r for r in reversed(derivation_rows(text, heading, header_cell))}
-    if _DERIVATION_CACHE is None:
-        _DERIVATION_CACHE = register_derivations(heading, REGISTER_PATH.read_text(encoding="utf-8"),
-                                                 header_cell)
-    return _DERIVATION_CACHE
 
 
 class Schema:
