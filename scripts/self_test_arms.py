@@ -155,6 +155,7 @@ DECLARED: dict[str, tuple[str, ...]] = {
     'scripts/orchestrator/group_sizes.py': (
         'an empty history keeps the turn cap',
         'an entry keeps the longest run seen and stays over-size once counted so',
+        'a group a tick did not see running is finished, and a group still running is read by neither test',
         'a campaign whose latest groups all ran over is held to the notes its pace fits, at least one',
         'fewer than MIN_SAMPLES recorded groups say nothing',
         'one recent group that fitted keeps the turn cap',

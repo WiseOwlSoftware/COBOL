@@ -12,12 +12,14 @@ rule, which `campaign_running_limit` reads through as well), its limit, the long
 once a tick counts the group over-size. A stalled group is not over-size. An entry is kept for 30 days after it was last
 seen. `progress.py --record` writes it on every supervisor tick, and `orchestrate.ps1` passes the flag.
 
-`plan_wave.py --cluster` asks `group_sizes.campaign_cap`. When the campaign's latest 5 recorded groups (at least 3) all
+`plan_wave.py --cluster` asks `group_sizes.campaign_cap`. When the campaign's latest 5 finished groups (at least 3) all
 ran over, the group size becomes `limit // median(minutes per note)`, at least one note and never above the turn cap.
 The plan prints `group size <n> notes: <why>`. The cap reaches `campaign_clusters` and the partition
 (`PlanState.group_size`), and an overflow's reason names the measurement, not turns. If one recent group fitted, the
-campaign keeps the turn cap, because the owner's rule speaks of groups that ALWAYS run over. The fix lane always plans
-at the turn cap.
+campaign keeps the turn cap, because the owner's rule speaks of groups that ALWAYS run over. A group still in flight
+counts for neither test: the branch review (R1-1) showed that a group dispatched five minutes earlier, read as one that
+fitted, suppressed the cap of a campaign whose every finished group ran over. Each entry therefore records whether the
+latest tick, which reads the whole shared ledger, still saw it running. The fix lane always plans at the turn cap.
 
 Tests: the `group_sizes.py` self-test (7 arms: the empty history, the sticky maximum, the cap at least one note, too few
 samples, one fitting group, the campaign's own 150-minute limit under the turn cap, the 30-day drop). The `progress.py`

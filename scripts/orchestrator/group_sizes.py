@@ -13,17 +13,23 @@ planner derives from it.
 
 THE RECORD (`record`, called by progress.py `--record` on every progress tick the supervisor runs): one entry per
 dispatch-ledger group seen RUNNING, keyed by its slug (`w<wave><letter>`), `{wave, notes, campaigns, limit, minutes,
-over, seen}`. `minutes` is the longest run seen (dispatch to the tick), `over` is sticky once a tick counted the group
-OVER-SIZE (still moving and past its limit; a STALL is not over-size, it stopped), `campaigns` is work.note_campaigns
-(the clusters its notes belong to), `limit` the one it was held to. A tick rewrites the entries it saw and keeps the
-rest; an entry not seen for `KEEP_DAYS` is dropped. It lives in the coordination directory beside the dispatch ledger,
+over, running, seen}`. `minutes` is the longest run seen (dispatch to the tick), `over` is sticky once a tick counted the
+group OVER-SIZE (still moving and past its limit; a STALL is not over-size, it stopped), `campaigns` is work.note_campaigns
+(the clusters its notes belong to), `limit` the one it was held to. `running` says the latest tick saw the group still
+running: a tick reads the WHOLE shared dispatch ledger (progress.progress walks coord.ledger_groups), so a group missing
+from its running list has stopped running (its report is in, it waits on review, or it landed) and its entry is FINISHED,
+`running: false`; a finisher's later run of the same group makes it running again. A tick rewrites the entries it saw,
+marks the rest finished and keeps them; an entry not seen for `KEEP_DAYS` is dropped. It lives in the coordination directory beside the dispatch ledger,
 whose groups leave it when they land, which is why the history cannot be read back from the ledger.
 
-THE CAP (`campaign_cap`, read by plan_wave.py for a `--cluster` wave): a campaign whose latest `WINDOW` recorded groups
+THE CAP (`campaign_cap`, read by plan_wave.py for a `--cluster` wave): a campaign whose latest `WINDOW` FINISHED groups
 were ALL over-size, with at least `MIN_SAMPLES` of them, is held to the notes its measured pace fits in its limit:
 `limit // median(minutes per note)`, never fewer than one note (a note is never split) and never more than the turn cap.
 A campaign one of whose recent groups fitted keeps the turn cap: the rule acts on a campaign whose groups ALWAYS run
-over, the owner's wording, and one fast group says the size is not the cause. The fix lane keeps the turn cap (its
+over, the owner's wording, and one fast group says the size is not the cause. A group still RUNNING is read by neither
+test: it has not fitted (its run is not over, and the planner plans while dispatches run), and its minutes so far are
+not its pace (kb/Work PB4944 review R1-1: a group five minutes old suppressed the cap of a campaign whose every finished
+group ran over). The fix lane keeps the turn cap (its
 limit is always the owner's 60 minutes, and its groups are many campaigns' notes, not one pace).
 
 Usage:
@@ -58,22 +64,25 @@ def read(cdir: pathlib.Path) -> dict[str, dict[str, Any]]:
 
 def record(cdir: pathlib.Path, running: list[dict[str, Any]], now: float | None = None) -> int:
     """Upsert one entry per RUNNING group of a progress tick (progress.progress's `running`: each `{slug, wave, notes,
-    campaigns, limit, minutes, over}`), drop the entries unseen for KEEP_DAYS, and return how many were written."""
+    campaigns, limit, minutes, over}`: every running group of the shared ledger), mark every other kept entry finished,
+    drop the entries unseen for KEEP_DAYS, and return how many were written."""
     now = time.time() if now is None else now
     groups = {s: e for s, e in read(cdir).items() if now - float(e.get("seen", 0)) <= KEEP_DAYS * 86400}
+    for e in groups.values():
+        e["running"] = False   # the tick read the whole ledger: a group it did not see running has finished
     for w in running:
         was = groups.get(w["slug"], {})
         groups[w["slug"]] = {"wave": str(w["wave"]), "notes": list(w["notes"]), "campaigns": list(w["campaigns"]),
                              "limit": int(w["limit"]), "minutes": round(max(float(was.get("minutes", 0)), w["minutes"]), 1),
-                             "over": bool(was.get("over")) or bool(w["over"]), "seen": now}
+                             "over": bool(was.get("over")) or bool(w["over"]), "running": True, "seen": now}
     coord.write_json(cdir / FILE, {"groups": groups})
     return len(running)
 
 
 def campaign_cap(cdir: pathlib.Path, campaign: str, cap: int) -> tuple[int, str | None]:
     """The group size a `--cluster` wave of `campaign` plans at, from the turn cap `cap` (clusters.notes_cap), and why
-    when the history lowered it (None when it did not; the module docstring's THE CAP)."""
-    mine = sorted((e for e in read(cdir).values() if campaign in e.get("campaigns", [])),
+    when the history lowered it (None when it did not; the module docstring's THE CAP). Only FINISHED groups are read."""
+    mine = sorted((e for e in read(cdir).values() if campaign in e["campaigns"] and not e["running"]),
                   key=lambda e: -float(e.get("seen", 0)))[:WINDOW]
     if len(mine) < MIN_SAMPLES or not all(e.get("over") for e in mine):
         return cap, None
@@ -82,7 +91,7 @@ def campaign_cap(cdir: pathlib.Path, campaign: str, cap: int) -> tuple[int, str 
     fit = max(1, int(limit // pace)) if pace > 0 else cap
     if fit >= cap:
         return cap, None
-    return fit, (f"campaign {campaign}'s latest {len(mine)} groups all ran past their {limit}-minute limit, at a median "
+    return fit, (f"campaign {campaign}'s latest {len(mine)} finished groups all ran past their {limit}-minute limit, at a median "
                  f"{pace:.0f} minutes per note, so a group holds {fit} note{'s' if fit != 1 else ''} (the turn cap is "
                  f"{cap}; kb/Work PB4944, group_sizes.campaign_cap)")
 
@@ -107,19 +116,26 @@ def self_test() -> int:
     record(cdir, [run("w1a", 2, 50, False)], now - 3600)
     record(cdir, [run("w1a", 2, 40, True)], now - 3000)   # an earlier tick saw it longer; a later one counted it over
     e = read(cdir)["w1a"]
-    check(e["minutes"] == 50 and e["over"] is True and e["seen"] == now - 3000,
+    check(e["minutes"] == 50 and e["over"] is True and e["seen"] == now - 3000 and e["running"] is True,
           f"an entry keeps the longest run seen and stays over-size once counted so: {e}")
     record(cdir, [run("w2a", 2, 130, True), run("w3a", 3, 200, True, ("PB10", "PB20"))], now - 600)
+    check(read(cdir)["w1a"]["running"] is False and campaign_cap(cdir, "PB10", 4) == (4, None),
+          "a group a tick did not see running is finished, and a group still running is read by neither test "
+          f"(one finished group says nothing yet): {read(cdir)}")
+    # the next group of the campaign was dispatched five minutes ago (kb/Work PB4944 review R1-1): it has not fitted
+    record(cdir, [run("w4y", 2, 5, False)], now - 500)
     cap, why = campaign_cap(cdir, "PB10", 4)
-    # paces per note: w1a 25, w2a 65, w3a 66.7 -> median 65; 60 // 65 = 0 -> never fewer than one note
-    check(cap == 1 and why and "latest 3 groups" in why and "65 minutes per note" in why,
-          f"a campaign whose latest groups all ran over is held to the notes its pace fits, at least one: {cap} {why}")
+    # finished paces per note: w1a 25, w2a 65, w3a 66.7 -> median 65; 60 // 65 = 0 -> never fewer than one note
+    check(cap == 1 and why and "latest 3 finished groups" in why and "65 minutes per note" in why,
+          f"a campaign whose latest groups all ran over is held to the notes its pace fits, at least one, whatever a "
+          f"group still running has taken so far: {cap} {why}")
     check(campaign_cap(cdir, "PB20", 4) == (4, None), "fewer than MIN_SAMPLES recorded groups say nothing")
-    record(cdir, [run("w4a", 1, 30, False)], now - 300)
+    record(cdir, [], now - 300)   # w4y finished inside its limit
     check(campaign_cap(cdir, "PB10", 4) == (4, None), "one recent group that fitted keeps the turn cap")
     long = cdir / "long"
     long.mkdir()
-    record(long, [run(f"w{k}a", 4, 160, True, limit=150) for k in range(1, 4)], now)
+    record(long, [run(f"w{k}a", 4, 160, True, limit=150) for k in range(1, 4)], now - 60)
+    record(long, [], now)
     check(campaign_cap(long, "PB10", 6) == (3, campaign_cap(long, "PB10", 6)[1]) and campaign_cap(long, "PB10", 2) == (2, None),
           f"the cap is the campaign's own limit over its pace (150 // 40 = 3), never above the turn cap: "
           f"{campaign_cap(long, 'PB10', 6)}")
