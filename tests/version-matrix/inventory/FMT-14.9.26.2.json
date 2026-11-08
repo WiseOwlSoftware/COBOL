@@ -4,7 +4,7 @@
  "kind": "FMT",
  "ordinal": 0,
  "subject": "MULTIPLY statement",
- "rule-digest": "a8a272b3231e",
+ "rule-digest": "d6d62317478b",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#multiplyStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindMultiply; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#Receivers; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticOperandRole.cs#FirstNonReceiver; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#Format1Receivers; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#conditionalPhrases; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#arithmeticPhraseOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#GivingSendingOperand",
  "test-ref": "conformance:cases/14.9.2-ADD/phrase_order_arithmetic; conformance:cases/14.9.26-MULTIPLY/pb1142_arithmetic_identifier_operands; conformance:cases/8.4.3.4-Inline-method-invocation/pb1142-divide-into-inline-receiver; conformance-test:ArithmeticIdentifierOperandTests.Format1_NonReceiverOperand_IsRejected_NotDroppedOrCrashed; unit:ArithmeticOperandRoleDriftTests.TheClassifier_PartitionsEveryOperandArm; conformance:cases/14.9.26-MULTIPLY/pb2144-multiply-by-function-rounded",

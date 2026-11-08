@@ -3657,8 +3657,8 @@ Format 1 (evaluate-value)
             ╰ boolean-expression-1    ╯
 
 ╭         ╭ literal-2               ╮                                                        ╮
-│         │                         │ ┌ ╭ <u>THROUGH</u> ╮ ╭ literal-3               ╮ ┐            │ …
-┤ >> <u>WHEN</u> ┤ arithmetic-expression-2 ├ │ ┤         ├ ┤                         ├ │ [ text-1 ] ├
+│         │                         │ ┌ ╭ <u>THROUGH</u> ╮ ╭ literal-3               ╮ ┐            │
+┤ >> <u>WHEN</u> ┤ arithmetic-expression-2 ├ │ ┤         ├ ┤                         ├ │ [ text-1 ] ├ …
 │         │                         │ └ ╰ <u>THRU</u>    ╯ ╰ arithmetic-expression-3 ╯ ┘            │
 ╰         ╰ boolean-expression-2    ╯                                                        ╯
 
@@ -12462,8 +12462,8 @@ where symbolic-characters-clause is:
 │ FOR ┤              ├ │
 └     ╰ <u>NATIONAL</u>     ╯ ┘
 
-╭                            ┌ IS  ┐                 ╮ …
-┤ { symbolic-character-1 } … │     │ { integer-1 } … ├
+╭                            ┌ IS  ┐                 ╮
+┤ { symbolic-character-1 } … │     │ { integer-1 } … ├ …
 ╰                            └ ARE ┘                 ╯
 
 [ <u>IN</u> alphabet-name-3 ]
@@ -19305,8 +19305,8 @@ The SUM clause specifies one or more data items that are to be totaled to provid
 
 <pre style="line-height:1">
 ╭        ╭ data-name-1             ╮                              ╮
-┤ <u>SUM</u> OF │                         │ … [ <u>UPON</u> { data-name-2 } … ] ├ …
-│        ┤ identifier-1            ├                              │
+│        │                         │                              │
+┤ <u>SUM</u> OF ┤ identifier-1            ├ … [ <u>UPON</u> { data-name-2 } … ] ├ …
 │        │                         │                              │
 ╰        ╰ arithmetic-expression-1 ╯                              ╯
 
@@ -25462,9 +25462,8 @@ The MULTIPLY statement causes numeric data items to be multiplied and sets the v
 Format 1 (by):
 
 <pre style="line-height:1">
-         ╭ identifier-1 ╮ …
-         │              │
-<u>MULTIPLY</u> ┤              ├ <u>BY</u> { identifier-2 [ rounded-phrase ] }
+         ╭ identifier-1 ╮
+<u>MULTIPLY</u> ┤              ├ <u>BY</u> { identifier-2 [ rounded-phrase ] } …
          ╰ literal-1    ╯
 
 ┌ │ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1     │ ┐
@@ -28324,8 +28323,8 @@ The STRING statement provides concatenation of the partial or complete contents 
 
 <pre style="line-height:1">
        ╭                    ┌              ╭ identifier-2 ╮ ┐ ╮
-<u>STRING</u> │ ╭ identifier-1 ╮   │              │              │ │ │ …
-       ┤ ┤              ├ … │ <u>DELIMITED</u> BY ┤ literal-2    ├ │ ├
+<u>STRING</u> ┤ ╭ identifier-1 ╮   │              │              │ │ ├ …
+       │ ┤              ├ … │ <u>DELIMITED</u> BY ┤ literal-2    ├ │ │
        │ ╰ literal-1    ╯   │              │              │ │ │
        ╰                    └              ╰ <u>SIZE</u>         ╯ ┘ ╯
 

@@ -621,7 +621,7 @@ def piece(text, x, y):
     return {"text": text, "x0": x, "x1": x + 5.0, "y0": y, "underlined": False}
 
 
-UNIT_CHECKS = 13                      # the checks unit_failures makes, so the verdict counts every one
+UNIT_CHECKS = 14                      # the checks unit_failures makes, so the verdict counts every one
 
 
 def unit_failures():
@@ -710,6 +710,16 @@ def unit_failures():
         fails.append("cluster: a 3.6 pt step inside the row width did not end the row")
     if len(set(R.cluster([0.0, 3.6], R.ROW_TOL).values())) != 1:
         fails.append("cluster: without a gap the width bound alone no longer groups a 3.6 pt step")
+    # 2002's text layer decodes a brace's pieces as Adobe's private-use code points, 2023's as the Symbol font's bytes:
+    # MULTIPLY Format 1's operand brace (2002 folio 482) draws the same from either (kb/Work PB4813).
+    def multiply(top, mid, bot, rtop, rmid, rbot):
+        return [(top, 111.7, 116.2, 195.3, False), (mid, 111.7, 116.2, 203.0, False), (bot, 111.7, 116.2, 210.7, False),
+                (rtop, 172.8, 177.3, 195.3, False), (rmid, 172.8, 177.3, 203.0, False), (rbot, 172.8, 177.3, 210.7, False),
+                ("MULTIPLY", 62.4, 107.4, 203.7, True), ("identifier-1", 121.6, 167.7, 199.5, False),
+                ("literal-1", 121.6, 153.7, 211.4, False), ("BY", 181.1, 193.1, 203.7, True)]
+    adobe = draw(multiply("\uf8f1", "\uf8f2", "\uf8f3", "\uf8fc", "\uf8fd", "\uf8fe"), [])
+    if adobe != draw(multiply("ì", "í", "î", "ü", "ý", "þ"), []) or "┤" not in "".join(adobe):
+        fails.append(f"GLYPH_PIECES: a brace of Adobe private-use pieces drew as {adobe}")
     return fails
 
 

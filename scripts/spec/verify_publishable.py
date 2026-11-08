@@ -177,10 +177,19 @@ REQUIRED: dict[int, list[tuple[str, str]]] = {
          "the Preface must state that it is not part of the standard"),
         (r"^# Addendum", "the Addendum that lists every correction (check_corrections)"),
     ],
+    # 2002 prints no acknowledgment and no reproduction grant; it is reproduced under the permission the owner confirmed
+    # on 2026-11-05 (kb/Work PB4813), which the Preface states without naming anyone.
+    2002: [
+        (r"\A# Preface\n", "the file must open with the Preface"),
+        (r"NOT part of ISO/IEC 1989:2002", "the Preface must state that it is not part of the standard"),
+        (r"reproduced with permission", "the Preface must state the permission the transcription is reproduced under"),
+    ],
 }
 
-#: The words that open the acknowledgment, which must precede clause 1 (the Preface), by edition.
-ACKNOWLEDGMENT_OPENING: dict[int, str] = {1985: "COBOL is an industry language", 2023: "COBOL is an industry language"}
+#: The words that open the acknowledgment, which must precede clause 1 (the Preface), by edition; None for an edition
+#: that prints no acknowledgment (2002), whose Preface carries none.
+ACKNOWLEDGMENT_OPENING: dict[int, str | None] = {1985: "COBOL is an industry language", 2002: None,
+                                                 2023: "COBOL is an industry language"}
 
 
 #: The closing section that lists every correction a transcription makes to its printed standard, by edition (kb/Work R66,
@@ -426,6 +435,8 @@ def check_text(text: str, edition: int) -> list[str]:
     if front is None:
         failures.append(f"the body's opening line ({spec_pdf.EDITIONS[edition].body}) is missing; cannot locate where "
                         "the front matter ends")
+    elif opening is None:
+        print(f"  ✓ the {edition} edition prints no acknowledgment, so its preface carries none")
     elif opening not in front:
         failures.append("the acknowledgment appears in the body but NOT in the preface")
         print("  ✗ the acknowledgment is not in the preface (it must precede clause 1)")
@@ -495,14 +506,15 @@ def self_test() -> int:
           quietly(check_stamp, [long_order], 2002) != [] and quietly(check_stamp, [long_order], 2023) == [])
     check("2002's tree shapes catch the order number, the download date and a purchaser's name",
           all(re.search(p, planted_2002) for p, _ in TREE_FORBIDDEN[2002]))
-    check("2002 has a stamp row, so check_text reaches its acknowledgment row and exits there",
-          2002 in FORBIDDEN and 2002 in TREE_FORBIDDEN and 2002 not in REQUIRED)
-    try:
-        quietly(check_text, good, 2002)
-        check("2002 with no acknowledgment row exits instead of borrowing 2023's", False)
-    except SystemExit as ex:
-        check("2002 with no row exits naming the table and the edition",
-              "2002" in str(ex.code) and "verify_publishable" in str(ex.code))
+    good_2002 = ("# Preface\n\n> **This section is NOT part of ISO/IEC 1989:2002.**\n\nIt is reproduced with permission.\n\n"
+                 "# Front matter: covers, contents, foreword and introduction\n\n# Clauses 1 to 16\n\n## Page 23\n")
+    check("a clean 2002 text passes: its Preface states the permission, and it prints no acknowledgment to carry",
+          quietly(check_text, good_2002, 2002) == [])
+    check("a 2002 Preface that does not state the permission is refused",
+          quietly(check_text, good_2002.replace("reproduced with permission", "reproduced"), 2002)
+          == ["missing: the Preface must state the permission the transcription is reproduced under"])
+    check("2002 never borrows 2023's acknowledgment: a 2023 text lacks the 2002 Preface's statements",
+          len(quietly(check_text, good, 2002)) >= 2)
     good_1985 = good.replace("ISO/IEC 1989:2023", "American National Standard X3.23-1985").replace(
         '<a id="section-1"></a>\n\n## 1 Scope', "# SECTION I: INTRODUCTORY INFORMATION\n\n## Page 21").replace(
         "# Addendum\n", "# Errata\n")

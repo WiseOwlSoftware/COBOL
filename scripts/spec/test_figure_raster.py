@@ -248,6 +248,7 @@ def main() -> int:
 
     # 6. A brace reaches render_figure as the Symbol glyph pieces a vector page holds: { ALFA / BETA } is a
     #    required choice (5.2.6.3), never the optional brackets of 5.2.6.2.
+    import figure_extract as FE
     import render_figure as RF
     img = canvas()
     brace(img, 20, 20, 60, "L")
@@ -256,7 +257,7 @@ def main() -> int:
     brace(img, 60, 20, 60, "R")
     rp = R.measure_image(img, tokens=[["ALFA"], ["BETA"]])
     total += 3
-    pieces = sorted(w["text"] for w in R.extract(rp) if w["text"] in RF.GLYPH_PIECES)
+    pieces = sorted(w["text"] for w in R.extract(rp) if w["text"] in FE.GLYPH_PIECES)
     check("each brace is three glyph pieces", pieces == sorted("ìíîüýþ"), f"got {pieces}")
     grid, _ = RF.build(rp, 0, 200, R.extract, R.classify_page)
     text = chr(10).join("".join(r).rstrip() for r in grid) if grid else ""

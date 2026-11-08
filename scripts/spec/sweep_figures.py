@@ -52,7 +52,7 @@ import verify_publishable  # noqa: E402  (THE flag of a documented correction, k
 
 PAGE_ANCHOR = re.compile(r'^<a id="page-(\d+)"></a>\s*$')
 #: A clause heading, read through its bold and a level-2 box's sides (spec_pdf.BOX_SIDE).
-MD_HEADING = re.compile(rf"^\s*#{{1,6}}\s+[*{spec_pdf.BOX_SIDE}]*(\d+(?:\.\d+)+)\s+(.+?)[*{spec_pdf.BOX_SIDE}]*\s*$")
+MD_HEADING = re.compile(rf"^\s*#{{1,6}}\s+[*{spec_pdf.BOX_SIDE}]*((?:\d+|[A-Z])(?:\.\d+)+)\s+(.+?)[*{spec_pdf.BOX_SIDE}]*\s*$")
 MD_FORMAT = re.compile(r"^\s*\**Formats?\s+(\d+)")
 # A fence may carry a LANGUAGE TAG (```cobol on the example programs). Not matching it would leave the
 # example's lines loose, where the bare-run scanner could mistake a COBOL example for a figure.
@@ -78,7 +78,7 @@ HRULE = re.compile(r"^\s*-{3,}\s*$")           # a Markdown horizontal rule: pag
 # break falling inside a figure split that figure into two spans that matched nothing.
 #
 # The running header and the reseller's stamp line are each edition's own (kb/Work PB4815): `FURNITURE_LINES` is keyed by
-# edition, and an edition with no row exits naming the table (2002 is written when its run reads those lines).
+# edition, and an edition with no row exits naming the table.
 FURNITURE_LINES: dict[int, str] = {
     2023: r"""\#*\s*\**ISO/IEC\s+1989:2023\s*\(E\)\**
         |\**©\s*ISO/IEC\s+\d{4}\**
@@ -93,6 +93,11 @@ FURNITURE_LINES: dict[int, str] = {
            |(?:Identification|Environment|Data|Procedure)\ Division)(?:\ -\ .+)?
         |Verb\ Formats\s*\(.+\)
         |GENERAL\ FORMAT\ FOR\ .+""",
+    # 2002's running head and footer (kb/Work PB4813). The text-layer backend drops them, and its stamp line, from every
+    # page it writes (text_layer.FOOTER, HEADER_FRACTION; verify_publishable.FORBIDDEN[2002]), so this row only keeps a
+    # stray one transparent.
+    2002: r"""\**ISO/IEC\s+1989:2002\s*\(E\)\**
+        |\**©\s*ISO/IEC\s+2002(?:\s*-\s*All\ rights\ reserved)?\**""",
 }
 
 
@@ -395,7 +400,7 @@ class Drawn(NamedTuple):
 PAGE_HEADING = re.compile(r"^## Page (\d+)\s*$")
 PRE_OPEN_LINE = re.compile(r"^\s*<pre(?:\s[^>]*)?>\s*$")
 #: A clause's opening line, headed or not, read through its bold and a level-2 box's sides (spec_pdf.BOX_SIDE).
-CLAUSE_LINE = re.compile(rf"^\s*#*\s*[*{spec_pdf.BOX_SIDE}]*(\d+(?:\.\d+)+)\s+(.+?)[*{spec_pdf.BOX_SIDE}]*\s*$")
+CLAUSE_LINE = re.compile(rf"^\s*#*\s*[*{spec_pdf.BOX_SIDE}]*((?:\d+|[A-Z])(?:\.\d+)+)\s+(.+?)[*{spec_pdf.BOX_SIDE}]*\s*$")
 
 
 def drawn_figures(lines: list[str], furniture: re.Pattern) -> list[Drawn]:
