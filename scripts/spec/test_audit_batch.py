@@ -102,7 +102,7 @@ def unrouted(state: pathlib.Path, cat85: pathlib.Path, cat23: pathlib.Path, fake
     (state / "route" / "answers").mkdir(parents=True, exist_ok=True)
     for c, it in json.loads((state / "route" / "items.json").read_text(encoding="utf-8")).items():
         (state / "route" / "answers" / f"{c}.json").write_text(json.dumps(
-            {"id": it["id"], "answer": {"verdict": "NONE", "clauses_2023": [], "reason": "planted"}}), encoding="utf-8")
+            {"id": it["id"], "answer": {"verdict": "NONE", "clauses_2023": [], "reason": "planted"}}), encoding="utf-8", newline="\n")
 
 
 def main() -> int:
@@ -149,7 +149,7 @@ def main() -> int:
         for key_, (verdict, to) in routed_to.items():
             c_, _it = rby[key_]
             (state / "route" / "answers" / f"{c_}.json").write_text(json.dumps(
-                {"id": key_, "answer": {"verdict": verdict, "clauses_2023": to, "reason": "planted"}}), encoding="utf-8")
+                {"id": key_, "answer": {"verdict": verdict, "clauses_2023": to, "reason": "planted"}}), encoding="utf-8", newline="\n")
 
         print("the map plan")
         near = A.candidates(RULES_1985, RULES_2023, 1, A.routes(state))
