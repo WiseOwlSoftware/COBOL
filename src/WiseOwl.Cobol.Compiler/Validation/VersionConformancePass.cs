@@ -952,7 +952,7 @@ internal sealed class VersionConformancePass
         public override object? VisitUnstringStatement(CobolParserCore.UnstringStatementContext ctx)
         {
             if (ctx.strUnstrSender()?.dataReference() is { } sender
-                && sender.dataReferenceSuffix().Any(s => s.refModPart() is not null || s.qualification()?.refModPart().Length > 0))
+                && new DataReferenceCst(sender).IsReferenceModified)
             {
                 using var _ = Sink.At(sender);
                 _p.Check(Constructs.UnstringSenderReferenceModified2002, "a reference-modified UNSTRING sending operand");

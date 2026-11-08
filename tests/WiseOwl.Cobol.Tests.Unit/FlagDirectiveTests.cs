@@ -582,6 +582,26 @@ public sealed class FlagDirectiveTests
         "       PROCEDURE DIVISION.\n       MAIN.\n" + directive + "           " + moveStmt + "\n           STOP RUN.\n";
 
     [Fact]
+    public void Compile_MoveToSameNameOn_AmbiguousOperand_ReportsCobol1639OncePerOperand_NotAgainAtTheVerb()
+    {
+        // kb/Work PB4119: the flag pass's declaration lookup is the resolver's silent ProbeDeclaration, so the ambiguous
+        // `X` (declared under G1 and G2, §2023:8.4.2.2.1) is COBOL1639's once at each operand and never again at the MOVE.
+        string dir = ScratchDirectory.Create("WiseOwlCobol_Flag_");
+        try
+        {
+            string src = Path.Combine(dir, "flag.cob");
+            File.WriteAllText(src, MoveProgram(
+                "       01 G1.\n          05 X PIC X(3).\n       01 G2.\n          05 X PIC X(3).\n",
+                "       >>FLAG-02 MOVE-TO-SAME-NAME ON\n", "MOVE X TO X."));
+            var r = CompilerDriver.Compile(new CompilerDriver.Options(
+                src, Path.Combine(dir, "flag.dll"), DialectLevel: 2023, CheckOnly: true,
+                SourceFormat: InitialReferenceFormat.Auto, Permissive: true));
+            Assert.Equal(2, r.Warnings.Count(w => w.Contains("COBOL1639", StringComparison.Ordinal)));
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
+
+    [Fact]
     public void Compile_MoveToSameNameOn_Flags_AlphanumericEditedSelfMove()
     {
         // MOVE AE TO AE where AE is alphanumeric-edited (PIC X(3)BX(3), a 'B' insertion) — GR4 d condition (1).
