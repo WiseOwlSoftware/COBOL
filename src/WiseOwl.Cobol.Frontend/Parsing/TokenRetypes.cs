@@ -26,6 +26,13 @@ public sealed record TokenRetypes(CobolWordsMap CobolWords, IReadOnlySet<string>
     /// <summary>No directive and no freed word — every parse's token stream is the lexer's, unchanged.</summary>
     public static readonly TokenRetypes None = new(CobolWordsMap.Empty, new HashSet<string>(StringComparer.Ordinal));
 
+    /// <summary>The keyword tokens of a freed word that the retype KEEPS, by their character offset in the source text
+    /// (<see cref="IToken.StartIndex"/>): the occurrences a parse read in a keyword position of a word carrying the
+    /// <c>refusalWhereFree</c> determination (<see cref="CobolLexer.IsRefusalWhereFree"/>, kb/Work PB4933). Offsets of the
+    /// whole source, so only a stream lexed from that text applies them (<see cref="Rewrite"/>); a fragment, a slice of
+    /// it, holds no such position (<see cref="RewriteSlice"/>).</summary>
+    public IReadOnlySet<int> KeptKeywords { get; init; } = new HashSet<int>();
+
     /// <summary>Prime <paramref name="lexer"/> BEFORE any tokenization with this compile's decisions about words, which
     /// the lexer must take before any parser predicate runs:
     /// <list type="bullet">
@@ -102,10 +109,19 @@ public sealed record TokenRetypes(CobolWordsMap CobolWords, IReadOnlySet<string>
             ? name.TrimEnd('_').Replace('_', '-')
             : null;
 
-    /// <summary>Apply the §2023:8.9 reservation-gate retype to the filled token stream (the <c>&gt;&gt;COBOL-WORDS</c> retype
-    /// is already done: the lexer applied it as it emitted each token). Byte-identical when <see cref="None"/>.</summary>
+    /// <summary>Apply the §2023:8.9 reservation-gate retype to the filled token stream of the WHOLE source text these
+    /// decisions were taken on, keeping <see cref="KeptKeywords"/> (the <c>&gt;&gt;COBOL-WORDS</c> retype is already done:
+    /// the lexer applied it as it emitted each token). Byte-identical when <see cref="None"/>.</summary>
     public void Rewrite(CommonTokenStream tokens)
     {
-        ReservationGateRewriter.Retype(tokens, FreedReservedWords);
+        ReservationGateRewriter.Retype(tokens, FreedReservedWords, KeptKeywords);
+    }
+
+    /// <summary>The retype of a stream lexed from a SLICE of the source (the D18 and D2 fragments): its offsets are the
+    /// slice's, so no kept keyword applies, and a fragment never holds a construct's keyword position anyway (a subscript
+    /// or an argument list reads the word as a reference).</summary>
+    public void RewriteSlice(CommonTokenStream tokens)
+    {
+        ReservationGateRewriter.Retype(tokens, FreedReservedWords, new HashSet<int>());
     }
 }

@@ -221,7 +221,7 @@ workingStorageSection
     ;
 
 localStorageSection
-    : localStorageKeyword SECTION DOT dataDescriptionEntry*
+    : LOCAL_STORAGE SECTION DOT dataDescriptionEntry*
     ;
 
 // ISO §2023:13.7.2: `LINKAGE SECTION. [ { 77-level-description-entry | constant-entry | record-description-entry |

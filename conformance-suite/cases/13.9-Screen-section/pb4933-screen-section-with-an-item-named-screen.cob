@@ -8,8 +8,8 @@
       *> is a user-defined word, and the SCREEN SECTION (§2023:13.9.2), a COBOL-2002 facility this
       *> compiler declines (Annex A.4.2, docs/CONFORMANCE.md section 5), draws the same named
       *> refusal COBOL1560 as without the item.
-      *> The reservation gate retypes EVERY occurrence of a declared free word to a user-defined
-      *> word, the header's too (kb/Work PB4933), so the header must read the retyped spelling.
+      *> The reservation gate retypes the declared free word to a user-defined word, but keeps
+      *> the keyword token a parse read in its header (kb/Work PB4933, refusalWhereFree).
       *> Fails if the header draws COBOL0001 "unexpected 'SCREEN'".
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB4933S.

@@ -248,7 +248,7 @@ identificationParagraph
 //   once a clause is written. The two alternatives below are exactly those two cases. No clause body contains a
 //   period, so the loop ends cleanly at it.
 optionsParagraph
-    : optionsKeyword DOT (optionsClause+ DOT | DOT)?
+    : OPTIONS DOT (optionsClause+ DOT | DOT)?
     ;
 
 optionsClause
@@ -351,8 +351,8 @@ optionsInitializeTarget
     ;
 
 optionsInitializeSection
-    : localStorageKeyword
-    | screenKeyword
+    : LOCAL_STORAGE
+    | SCREEN
     | WORKING_STORAGE
     ;
 
@@ -394,31 +394,31 @@ commentEntry
 
 // AUTHOR.
 authorParagraph
-    : authorKeyword DOT commentEntry? DOT
+    : AUTHOR DOT commentEntry? DOT
     ;
 
 
 // INSTALLATION.
 installationParagraph
-    : installationKeyword DOT commentEntry? DOT
+    : INSTALLATION DOT commentEntry? DOT
     ;
 
 
 // DATE-WRITTEN.
 dateWrittenParagraph
-    : dateWrittenKeyword DOT commentEntry? DOT
+    : DATE_WRITTEN DOT commentEntry? DOT
     ;
 
 
 // DATE-COMPILED.
 dateCompiledParagraph
-    : dateCompiledKeyword DOT commentEntry? DOT
+    : DATE_COMPILED DOT commentEntry? DOT
     ;
 
 
 // SECURITY.
 securityParagraph
-    : securityKeyword DOT commentEntry? DOT
+    : SECURITY DOT commentEntry? DOT
     ;
 
 
@@ -491,7 +491,7 @@ configurationParagraph
 // name only refused `FUNCTION PI E INTRINSIC` (COBOL0307). The user-defined-function specifier is the one-name form
 // WITHOUT INTRINSIC; ALL(*) tells the two apart on the trailing INTRINSIC keyword.
 repositoryParagraph
-    : repositoryKeyword DOT (repositoryEntry DOT?)*
+    : REPOSITORY DOT (repositoryEntry DOT?)*
     ;
 
 repositoryEntry

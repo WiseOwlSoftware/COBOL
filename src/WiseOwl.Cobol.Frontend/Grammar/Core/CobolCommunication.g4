@@ -18,14 +18,14 @@ options {
 // A.1.1: `COMMUNICATION SECTION. [ { communication-description-entry [ { constant-entry | record-description-entry } ... ] } ... ]`.
 // A constant entry and a record description entry ride dataDescriptionEntry, as they do in every other section.
 communicationSection
-    : communicationKeyword SECTION DOT communicationDescriptionEntry*
+    : COMMUNICATION SECTION DOT communicationDescriptionEntry*
     ;
 
 // A.1.2.1, the three formats as one rule. The written INPUT, OUTPUT or I-O decides the format, and which clause belongs to
 // which format is a table (CommunicationFormats), so a clause of another format is refused by name rather than as a token
 // error. The series of data-names is A.1.2.1's second option of Formats 1 and 3, its count asked by the binder.
 communicationDescriptionEntry
-    : cdKeyword cdName FOR? cdMode (cdClause+ | cdSeriesName+)? DOT dataDescriptionEntry*
+    : CD cdName FOR? cdMode (cdClause+ | cdSeriesName+)? DOT dataDescriptionEntry*
     ;
 
 // cd-name-1 is a user-defined word (ISO/IEC 1989:2002 8.3.1.1.1, A.1.2.1), so it does not ride dataName, whose FILLER is a reserved

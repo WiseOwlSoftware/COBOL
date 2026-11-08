@@ -315,7 +315,7 @@ internal static class OptionsBinder
 
     /// <summary>The alternative a storage-section target is, as the figure spells it.</summary>
     private static string SectionWord(Core.OptionsInitializeSectionContext s)
-        => s.localStorageKeyword() is not null ? "LOCAL-STORAGE" : s.screenKeyword() is not null ? "SCREEN" : "WORKING-STORAGE";
+        => s.LOCAL_STORAGE() is not null ? "LOCAL-STORAGE" : s.SCREEN() is not null ? "SCREEN" : "WORKING-STORAGE";
 
     /// <summary>One target of the OPTIONS INITIALIZE clause (ISO §2023:11.9.10.2).
     /// <para>⛔ THE EXPLICIT <c>SCREEN</c> LEG IS REFUSED; THE <c>ALL</c> LEG IS NOT — and the standard itself
@@ -328,8 +328,8 @@ internal static class OptionsBinder
     /// facility a program could write and get a clean compile out of.</para></summary>
     private static OptionsSections SectionOf(Core.OptionsInitializeSectionContext s, EditionContext? edition)
     {
-        if (s.localStorageKeyword() is not null) return OptionsSections.LocalStorage;
-        if (s.screenKeyword() is null) return OptionsSections.WorkingStorage;
+        if (s.LOCAL_STORAGE() is not null) return OptionsSections.LocalStorage;
+        if (s.SCREEN() is null) return OptionsSections.WorkingStorage;
         if (edition is not null) ScreenFacility.ReportOptionsInitializeScreen(edition, s);
         return OptionsSections.Screen;
     }

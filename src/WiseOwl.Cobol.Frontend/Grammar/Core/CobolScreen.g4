@@ -28,11 +28,8 @@ options {
 // (§2023:13.10) may stand among the screen description entries, as it does among a report's (CobolReportWriter.g4's
 // reportDescriptionEntry). Without the alternative `01 K CONSTANT AS 5.` drew a syntax error instead of the section's
 // named refusal; DataBinder binds the constant as the report host does, so a reference to it is not "undefined".
-// SCREEN is read through screenKeyword (the row's refusalWhereFree determination, kb/Work PB4933): at COBOL-85, where
-// §2023:8.9 leaves SCREEN free, a program that declares it has every SCREEN retyped by the reservation gate, the header's too,
-// and the bare token left the header unreachable (COBOL0001 "unexpected 'SCREEN'" in place of COBOL1560).
 screenSection
-    : screenKeyword SECTION DOT (constantEntry | screenDescriptionEntry)*
+    : SCREEN SECTION DOT (constantEntry | screenDescriptionEntry)*
     ;
 
 // level-number [ entry-name-clause ] [ clause ] ... .  (§2023:13.17.2; §2023:13.17.3 SR1: "If the entry-name clause is specified,
@@ -105,7 +102,7 @@ screenColumnClause
 // where it may appear — format 1 (group) admits SCREEN only, bind-narrowed rather than grammar-narrowed,
 // since the whole entry is refused anyway)
 screenBlankClause
-    : BLANK (LINE | screenKeyword)
+    : BLANK (LINE | SCREEN)
     ;
 
 // ERASE {[END] [OF] {LINE | SCREEN} | EOL | EOS}   (§2023:13.17.2 format 2 / §2023:13.18.21.3 SR1: "The word EOL is
@@ -120,7 +117,7 @@ screenBlankClause
 // screenLineClause; that is unambiguous because ANTLR is deciding INSIDE screenEraseClause once ERASE is
 // consumed, and screenClause* only resumes after the alternative completes.
 screenEraseClause
-    : ERASE (END? OF? (LINE | screenKeyword) | EOL | EOS)
+    : ERASE (END? OF? (LINE | SCREEN) | EOL | EOS)
     ;
 
 // Screen attribute clauses
