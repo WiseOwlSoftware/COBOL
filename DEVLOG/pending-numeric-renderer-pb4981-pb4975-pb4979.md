@@ -32,3 +32,7 @@ INTRINSICS_DESIGN carry the determination. Sibling sweep: ABS, FRACTION-PART, RE
 float item's value.
 
 No inventory row is claimed or closed by any of the three (`closes_rows: []` with the reason in each note). No diagnostic code was needed.
+
+### Merge note (wave 20261926 C)
+
+The first gate of the cherry-picked branch was RED on one drift test: `FunctionValueLaneDriftTests.NativeSdidiBodiesWithExactResult_AreTheRenderDecArmsNotBuiltByDec` found PRESENT-VALUE built as `new NumX(..., Exact: true)` (a Scalar arm by the scan) while `FunctionValueLane` lists it as a whole result. The arm now builds through an `Exact(call)` overload, so every whole-result arm has one shape; the drift test passes. PB4981 stays retired: a fixed-format line overran column 72 in the reviewer probe.

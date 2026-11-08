@@ -1395,7 +1395,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             "Variance" when !num.StandardDecimal => Exact("VarianceExact", $"{mode}, {ExactValueArgList(ic)}", null),
             "StandardDeviation" when !num.StandardDecimal => Exact("StdDevExact", $"{mode}, {ExactValueArgList(ic)}", null),
             "PresentValue" when !num.StandardDecimal =>
-                new NumX(LeadThenTail(ic, "PresentValueExact", $"{mode}, ", RuntimeApi.ExactType, a => ExactValueOf(ic, a)), 0, Exact: true),
+                Exact(LeadThenTail(ic, "PresentValueExact", $"{mode}, ", RuntimeApi.ExactType, a => ExactValueOf(ic, a))),
             "Annuity" when !num.StandardDecimal => Exact("AnnuityExact", $"{mode}, {ExactValueArg(ic, 0)}, {DecArg(ic, 1)}", null),
             "ModScaled" => Dec(RuntimeApi.Intrinsic("ModDec", $"{mode}, {DecArg(ic, 0)}, {DecArg(ic, 1)}")),
             "RemScaled" => Dec(RuntimeApi.Intrinsic("RemDec", $"{mode}, {DecArg(ic, 0)}, {DecArg(ic, 1)}")),
@@ -1447,6 +1447,9 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
 
     private static NumX Exact(string body, string args, int? precision) =>
         new(RuntimeApi.Intrinsic(body, args), 0, Exact: true, Precision: precision);
+
+    /// <summary>A run-time-scaled exact value whose call text the arm built itself (PRESENT-VALUE's lead-then-tail enumeration).</summary>
+    private static NumX Exact(string call) => new(call, 0, Exact: true);
 
     /// <summary>
     /// ⛔ THE EXACT FAMILY ON THE EXACT WIDE INTERMEDIATE (kb/Work PB3953; docs/CONFORMANCE.md DOC-A.1-123): under native arithmetic,
