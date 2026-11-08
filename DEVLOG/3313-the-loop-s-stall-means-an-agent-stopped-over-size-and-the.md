@@ -1,4 +1,4 @@
-## The loop's STALL means an agent stopped; over-size and the review rate join the PROGRESS line (PB4944, PB4888 lever 5)
+## Entry 3313 — 2026-11-08 02:27 PST — The loop's STALL means an agent stopped; over-size and the review rate join the PROGRESS line (PB4944, PB4888 lever 5)
 
 Re-probe. `python scripts/orchestrator/progress.py --coord E:/COBOL-coord` on this tree raised STALL on elapsed minutes alone
 (60 for a running group, 15 for a DONE report awaiting review), so a healthy 90-minute campaign implementer drew the same mail
@@ -23,3 +23,4 @@ that always runs over (nothing records the counts per unit yet), and a lead note
 process-only, no compiled program changes. PB4888 stays open for the post-lever measurement.
 
 Review round 1 (3 blocking, all fixed in progress.py): group_activity now takes the ledger group and also reads one directory below scratch/ (a campaign wave keeps its groups under the wave scratch, so Mythos groups no longer showed no act) and the branch review hyphenated review-w<wave>-<letter> findings file and scratch (the slug never matched it). queue_empty_minutes counts a record with no merged stamp as queued for at most 60 minutes after its enqueue (12 closed, never-merged records from October had made the figure 0 for every window). The self-test plants a wave-scratch group, a review findings file and a closed record.
+
