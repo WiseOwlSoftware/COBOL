@@ -223,9 +223,9 @@ DECLARED: dict[str, tuple[str, ...]] = {
         'status shows every held slot, one above the cap in force included',
         'the coded default, with no setting: cap 3 (three gates at once, a fourth queues), and no scope or light pool',
         'clear returns the cap to its coded default, and repairs a malformed file',
-        'landing gates first: a landing ticket is served before every implementer ticket, FIFO within each class',
+        'gate classes in service order: landing, then fix, then implementer tickets, FIFO within each class',
         "a hold far past the median of its kind's recorded holds is flagged by status, never killed",
-        'a waiting gate says why a later ticket is served first (landing before implementer) and what the gate next in line waits for',
+        'a waiting gate says why a later ticket is served first (fix before implementer) and what the gate next in line waits for',
     ),
     'scripts/spec/audit_code_citations.py': (
         '("SUBJECT",', '("HEADER",', '("PHANTOM",', '("FORMAT",', '("RULE",', '("SUBITEM",', '("FORMAT-NAME",',

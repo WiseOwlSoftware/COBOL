@@ -223,7 +223,10 @@ HALF_RULE = shared_rule(
 FINDINGS_ANSWER = shared_rule(
     "Then answer EVERY finding of every branch review named in this spec by its id: fix it at its root (a regression "
     "test or golden with it) or answer `no_change_needed` with the reason, one line each in your report's "
-    "`## Review findings` section; re-gate; your branch is reviewed again when it returns DONE (kb/Work PB3027).")
+    "`## Review findings` section; before you gate, run the targeted tests (P12's filter rules) over the tests that cover "
+    "what each finding touched (MANDATORY-PRACTICES I12, kb/Work PB4888), then launch the gate as a FIX gate: "
+    "`$env:COBOL_GATE_CLASS = 'fix'` in the PowerShell that starts `pwsh scripts/build-local.ps1 -Priority BelowNormal`; "
+    "re-gate; your branch is reviewed again when it returns DONE (kb/Work PB3027).")
 #: The --drain clause of a finisher group's pred (plan_wave.py --drain, the owner's: no new work); Group.close_pred adds it.
 DRAIN_CLAUSE = shared_rule(
     "DRAIN (plan_wave.py --drain, the owner's: no new work, only in-process work to main): finish only what each branch "

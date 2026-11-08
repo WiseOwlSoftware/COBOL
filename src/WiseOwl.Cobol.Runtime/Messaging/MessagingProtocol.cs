@@ -115,6 +115,10 @@ internal sealed class MessagingProtocol
     private long _offerSequence;
 
     private ReceiveState? _receive;
+
+    /// <summary>The RECEIVE that completed through a <see cref="Deliver"/> not yet known to have been performed, and the offer it took: the RECEIVE is current
+    /// again if the ACK write fails (<see cref="OnActionFailed"/>), and the next statement's start is the proof that it was performed.</summary>
+    private (Deliver Action, ReceiveState Receive, Offer Taken)? _delivery;
     private string? _serveFailure;
     private int _token;
     private bool _ended;
@@ -181,6 +185,7 @@ internal sealed class MessagingProtocol
         // To an ended link the SEND succeeds and the reply is dropped.
         if (_inByRequestor.TryGetValue(to.Name!, out var link))
             _actions.Add(new Write(link.Id, new ReplyFrame(to.Message, message, raising)));
+        ReleaseKeptOffers(to.Name!);
         _actions.Add(new Complete(StatementResult.SentResponse()));
         return Flush();
     }
@@ -380,6 +385,16 @@ internal sealed class MessagingProtocol
                 _serveFailure ??= detail;
                 if (_receive is { Kind: not ReceiveKind.FromServer } waiting) CompleteReceive(waiting, StatementResult.Failed(ExceptionCatalog.McsImp, detail));
                 break;
+            case Deliver deliver:
+                // The ACK was not written, so no program saw the message and the requestor, which never learned it was taken, will send it again: the RECEIVE
+                // that took it is current again, and the link, whose state is unknown, ends below (design 5.4.1 step 9 starts the requestor's new round).
+                if (_delivery is { } delivery && ReferenceEquals(delivery.Action, deliver))
+                {
+                    _delivery = null;
+                    _active.Remove((delivery.Taken.Link.RequestorRunId!, delivery.Taken.Serial));
+                    _receive = delivery.Receive;
+                }
+                break;
             case RingBells:
                 break;                                             // design 5.4.1: a ring decides nothing; a lost one costs one enumeration
             case Unpublish:
@@ -390,10 +405,11 @@ internal sealed class MessagingProtocol
                 break;
         }
         // A write that failed leaves its link in an unknown state, whatever statement was current: the link is over (the statement above has already ended).
-        if (failed.Action is Write write)
+        if (failed.Action is Write or Deliver)
         {
-            if (_outByLink.TryGetValue(write.Link, out var outLink)) EndOut(outLink, closeIt: true);
-            else if (_inByLink.TryGetValue(write.Link, out var inLink)) EndIn(inLink, closeIt: true);
+            var written = failed.Action is Deliver ack ? ack.Ack.Link : ((Write)failed.Action).Link;
+            if (_outByLink.TryGetValue(written, out var outLink)) EndOut(outLink, closeIt: true);
+            else if (_inByLink.TryGetValue(written, out var inLink)) EndIn(inLink, closeIt: true);
         }
     }
 
@@ -614,7 +630,6 @@ internal sealed class MessagingProtocol
         _offers.Remove(offer);
         receive.Claim = null;
         string requestor = offer.Link.RequestorRunId!;
-        _actions.Add(new Write(offer.Link.Id, new AckFrame(offer.Serial)));
         // The temporary of ISO §2023:14.6.11 7): identifier-1's size. An area with no allocated maximum is recreated by the store that follows, so its program
         // states the size it took (Received); until then the message's own length stands.
         _active[(requestor, offer.Serial)] = receive.Capacity == AsyncMessaging.UnboundedCapacity ? message.Image.Length : receive.Capacity;
@@ -623,7 +638,7 @@ internal sealed class MessagingProtocol
         var body = message.Truncated(receive.Capacity);
         CompleteReceive(receive, tooLong
             ? new StatementResult(ExceptionCatalog.McsMessageLength, tag, body.Image, body.Extents, body.Slots, null)
-            : new StatementResult(null, tag, body.Image, body.Extents, body.Slots, body.Image.Length));
+            : new StatementResult(null, tag, body.Image, body.Extents, body.Slots, body.Image.Length), taken: offer);
     }
 
     /// <summary>A RECEIVE into an area with no allocated maximum (<see cref="AsyncMessaging.UnboundedCapacity"/>) stored the message and the area is now
@@ -696,7 +711,10 @@ internal sealed class MessagingProtocol
         CompleteReceive(receive, new StatementResult(exception, default, body.Image, body.Extents, body.Slots, tooLong ? null : body.Image.Length));
     }
 
-    private void CompleteReceive(ReceiveState receive, StatementResult result)
+    /// <summary>Ends <paramref name="receive"/> with <paramref name="result"/>. A message taken (<paramref name="taken"/>) owes its ACK first: the RECEIVE completes
+    /// only when that write was performed (<see cref="Deliver"/>), so a requestor that never saw its ACK is not left to send again a message a program holds
+    /// (design 5.4.1 step 9: "a server writes ACK before its RECEIVE returns").</summary>
+    private void CompleteReceive(ReceiveState receive, StatementResult result, Offer? taken = null)
     {
         if (!ReferenceEquals(_receive, receive)) return;
         _receive = null;
@@ -707,16 +725,36 @@ internal sealed class MessagingProtocol
         {
             receive.Claim = null;
             string? requestor = claimed.Link.RequestorRunId;
-            if (_active.Keys.Any(k => k.Item1 == requestor)) claimed.InFlight = true;
+            if (requestor is not null && Owes(requestor)) claimed.InFlight = true;
             else EndIn(claimed.Link, closeIt: true);
         }
-        _actions.Add(new Complete(result));
+        if (taken is null)
+        {
+            _actions.Add(new Complete(result));
+            return;
+        }
+        var deliver = new Deliver(new Write(taken.Link.Id, new AckFrame(taken.Serial)), result);
+        _delivery = (deliver, receive, taken);
+        _actions.Add(deliver);
+    }
+
+    /// <summary>True while this server still owes a reply to <paramref name="requestor"/>.</summary>
+    private bool Owes(string requestor) => _active.Keys.Any(key => key.Requestor == requestor);
+
+    /// <summary>The server answered the last message it owed <paramref name="requestor"/>: an offer kept InFlight only because that reply was owed is decided now,
+    /// as <see cref="CompleteReceive"/> would have decided it, because no RECEIVE is current to take it (<see cref="EnsureIdle"/>) and the requestor stays granted
+    /// to this server until the link ends (design 5.4.2).</summary>
+    private void ReleaseKeptOffers(string requestor)
+    {
+        if (!Owes(requestor) && _inByRequestor.TryGetValue(requestor, out var link) && _offers.Any(o => o.InFlight && o.Link == link))
+            EndIn(link, closeIt: true);
     }
 
     // ---------------------------------------------------------------- plumbing
 
     private void EnsureIdle()
     {
+        _delivery = null;                                                // a program that started a statement saw the RECEIVE complete: its ACK was written
         if (_ended) throw new InvalidOperationException("the run unit has ended its messaging");
         if (Busy) throw new InvalidOperationException("a messaging statement is already current");
     }
