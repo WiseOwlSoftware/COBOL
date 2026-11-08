@@ -40,7 +40,7 @@ internal sealed class DeclinedFacilityBinder(BinderContext ctx, StatementBinder 
     private void ScreenValidateOperand(Core.DataReferenceContext dref)
     {
         string written = DataBinder.WrittenText(dref);
-        if (new DataReferenceCst(dref).IsReferenceModified)
+        if (ReferenceResolver.ReadWritten(dref).IsReferenceModified)
         {
             ctx.Edition.Error(DiagnosticCatalog.ValidateOperandForm,
                 $"VALIDATE '{written}' — identifier-1 shall not be reference-modified (ISO §2023:14.9.50.3 SR1)");

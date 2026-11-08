@@ -8,10 +8,11 @@ Pinned by `FlagDirectiveTests.Compile_MoveToSameNameOn_AmbiguousOperand_ReportsC
 
 **PB4948.** `VALIDATE X OF G (1:3)` compiled while `VALIDATE X (1:3)` was refused with COBOL4777 (§2023:14.9.50.3 SR1),
 because the grammar's `qualification` absorbs the reference modifier and `ScreenValidateOperand` read the flat suffix
-only. The test now lives once, as `DataReferenceCst.IsReferenceModified`; `ScreenValidateOperand`,
+only. The test lives once, in `ReferenceResolver.ReadWritten` (`WrittenReference.IsReferenceModified`, which also counts a function-object property result reference modifier, PB1425); `ScreenValidateOperand`,
 `VersionConformancePass.VisitUnstringStatement` (which carried a third copy) and `FlagConformancePass` (whose private
 `IsRefModified` is deleted) all call it. Golden: `conformance-suite/cases/14.9.50-VALIDATE/pb4948-validate-qualified-ref-modified-operand`
 (refused at 2002, 2014, 2023 with COBOL4777). No inventory rows claimed or closed.
 
-Self-review: sibling readers that still spell the check inline (ProcedureTableBuilder USE FOR DEBUGGING at 809, which
-also tests subscripts, and ReferenceResolver.ReadWritten, which counts) test a different question and were left.
+Self-review: review round 1 (R1-1) found a first draft had added a second reader, DataReferenceCst.IsReferenceModified,
+that disagreed with ReadWritten on a property suffix; it is deleted and the three callers use the resolver decomposition.
+The USE FOR DEBUGGING check at ProcedureTableBuilder 809 also tests subscripts and was left.

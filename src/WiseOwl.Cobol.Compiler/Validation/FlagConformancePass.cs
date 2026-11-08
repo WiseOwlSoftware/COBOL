@@ -580,7 +580,7 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
         if (send is not null && ResolveItem(send) is { } sendItem)
             foreach (var recv in recvs)
                 if (ResolveItem(recv) is { } recvItem && ReferenceEquals(sendItem, recvItem)
-                    && MoveToSameNameFlaggable(sendItem, operandsRefModified: new DataReferenceCst(send).IsReferenceModified || new DataReferenceCst(recv).IsReferenceModified))
+                    && MoveToSameNameFlaggable(sendItem, operandsRefModified: ReferenceResolver.ReadWritten(send).IsReferenceModified || ReferenceResolver.ReadWritten(recv).IsReferenceModified))
                 {
                     Flag(FlagOption.Flag02MoveToSameName, ctx.Start.Line,
                         "the MOVE whose sending and receiving operands are the same data description entry");
