@@ -51,8 +51,8 @@ account in the coordination directory, and this script prints it after a render 
     docs/VERSION_CHANGE_REFERENCE.md                   the anchor dispositions (todo · gated · ref-only · pinned)
     tests/version-matrix/constructs.json               the matrix registry size
     conformance-suite/ (its generator's reader)        the conformance suite: tests accepted by edition, refusals
-    kb/Work, through ledger_plan.py                    what remains: the buckets, each note's lane (`.agent-fleet.json`'s
-                                                       fix-lane population, the campaign and held clusters of the
+    kb/Work, through ledger_plan.py                    what remains: the buckets, each note's lane (the fix lane's
+                                                       population `work.fixable`, the campaign and held clusters of the
                                                        owner's decision PB2911), the external repository's slices
                                                        and v1.0's gates
     <coord>/readings.json + model_rules.json          pacing and the estimate: the newest meter reading against the
@@ -791,7 +791,7 @@ def alerts(rem: dict) -> str:
                    f'<span class="mono">{e(" ".join(g["outside_campaign"]))}</span>')
     if c["no_lane"]:
         out.append(f'⛔ <strong>{n(len(c["no_lane"]))} open compiler note(s) no lane plans</strong> (the fix lane plans '
-                   f'<span class="mono">.agent-fleet.json</span>\'s population; none of these is in a campaign or held '
+                   f'the harmed notes <span class="mono">work.fixable</span> admits; none of these is in a campaign or held '
                    f'cluster; {kinds_text(c["no_lane_kind"])}): '
                    f'<span class="mono">{e(" ".join(c["no_lane"]))}</span>')
     if g["unclaimed"]:
@@ -835,7 +835,7 @@ def inputs_text(inputs: dict) -> str:
         items.append(f'the fix lane\'s groups: <span class="mono">fix_clusters.py</span> forms '
                      f'<span class="num">{n(len(groups))}</span> groups, <span class="num">{n(unsited)}</span> of them '
                      f'an unsited note planned on its own, over '
-                     f'<span class="mono">.agent-fleet.json</span>\'s population (a blocked defect it skips counts as a group of its own)')
+                     f'the fix lane\'s population, <span class="mono">work.fixable</span> (a blocked note it skips counts as a group of its own)')
     else:
         items.append(f'the fix lane\'s groups: {UNMEASURED} (the <span class="mono">tools/claude-skills</span> submodule '
                      f'is not checked out here)')
@@ -915,7 +915,7 @@ def render_remaining(rem: dict, est: dict, cp: dict, inputs: dict) -> str:
         estimate_row("The rest of v1.0", None, "no planner input sizes these gates until their notes are filed"),
         estimate_row("Held work, once released", est["held"]),
     ])
-    return f"""<p>v1.0 is zero GAP (D13), P15 Cut 3 and the §2023:4.2.16 user documentation; the owner put the compiler and zero GAP first (2026-10-10, <span class="mono">{e(ledger_plan.DECISION)}</span>). One row per bucket, counted from the register and the inventory; a note can count in more than one bucket (a defect that holds a GAP row). <em>Planned by</em> is the lane that plans each note: the fix lane (<span class="mono">.agent-fleet.json</span>'s population), a campaign lane, held, or none.</p>
+    return f"""<p>v1.0 is zero GAP (D13), P15 Cut 3 and the §2023:4.2.16 user documentation; the owner put the compiler and zero GAP first (2026-10-10, <span class="mono">{e(ledger_plan.DECISION)}</span>). One row per bucket, counted from the register and the inventory; a note can count in more than one bucket (a defect that holds a GAP row). <em>Planned by</em> is the lane that plans each note: the fix lane (the harmed notes <span class="mono">work.fixable</span> admits), a campaign lane, held, or none.</p>
   {alerts(rem)}
   <div class="tablecard">
     <table>
@@ -1257,7 +1257,7 @@ TEMPLATE = """<title>{title}</title>
 
 
 <footer>
-  <p><strong>Every number on this page is computed — none is remembered, none is hand-written.</strong> Inventory from <span class="mono">tests/version-matrix/inventory/</span>, work standing from <span class="mono">kb/Work</span> through <span class="mono">work.py</span>'s own predicates, what remains and its lanes through <span class="mono">ledger_plan.py</span> (the fix lane's population from <span class="mono">.agent-fleet.json</span>, the campaign and held clusters from the owner's decision PB2911), the estimate from <span class="mono">fix_clusters.py</span>, <span class="mono">model_rules.json</span>, <span class="mono">landing_measure.py</span> and the orchestrator's meter readings, gates from plan §0's battery reference, documentation posture from <span class="mono">docs/CONFORMANCE.md</span> §2/§4/§5 and <span class="mono">audit_annex_a1.py --json</span>, the suite and anchor counts from the trees themselves, the trend series from <span class="mono">ledger-trend.json</span> in the coordination directory. Rendered by <span class="mono">scripts/spec/gen_ledger.py</span>. The work register remains <span class="mono">kb/Work/</span> — this ledger is a derived view, never a tracker.</p>
+  <p><strong>Every number on this page is computed — none is remembered, none is hand-written.</strong> Inventory from <span class="mono">tests/version-matrix/inventory/</span>, work standing from <span class="mono">kb/Work</span> through <span class="mono">work.py</span>'s own predicates, what remains and its lanes through <span class="mono">ledger_plan.py</span> (the fix lane's population from <span class="mono">work.fixable</span>, the campaign and held clusters from the owner's decision PB2911), the estimate from <span class="mono">fix_clusters.py</span>, <span class="mono">model_rules.json</span>, <span class="mono">landing_measure.py</span> and the orchestrator's meter readings, gates from plan §0's battery reference, documentation posture from <span class="mono">docs/CONFORMANCE.md</span> §2/§4/§5 and <span class="mono">audit_annex_a1.py --json</span>, the suite and anchor counts from the trees themselves, the trend series from <span class="mono">ledger-trend.json</span> in the coordination directory. Rendered by <span class="mono">scripts/spec/gen_ledger.py</span>. The work register remains <span class="mono">kb/Work/</span> — this ledger is a derived view, never a tracker.</p>
   <p class="mono">Snapshot: {head_date} · measured tree {head_sha} — the last commit that touched an input this page reports, so an unrelated commit cannot make a correct page look stale · {rows} rows · {closed} closed · {gap} GAP · {adjudicated} adjudicated · battery #{bat_n} on {bat_sha} · A.1 {a1_discharged}/{a1_scope} · register {work_items} notes, {work_open} open, {work_actionable} actionable · {comp_n} known compiler notes.</p>
 </footer>
 
