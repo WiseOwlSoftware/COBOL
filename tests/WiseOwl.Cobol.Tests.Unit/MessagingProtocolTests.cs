@@ -40,6 +40,9 @@ public sealed class MessagingProtocolTests
         internal Func<Activate, bool>? OnActivate { get; set; }
         internal Action<ProtocolAction>? AfterAction { get; set; }
 
+        /// <summary>The next action this matches fails once, as the peer reports it (<see cref="ActionFailed"/> in place of its answer), and is not performed.</summary>
+        internal Func<ProtocolAction, bool>? FailNext { get; set; }
+
         internal PeerEndpoint ListenerEndpoint => new(PeerEndpointKind.Server, Spelling!, RunId);
 
         internal StatementResult Last => Results[^1];
@@ -57,6 +60,12 @@ public sealed class MessagingProtocolTests
             foreach (var action in actions)
             {
                 Log.Add(action);
+                if (FailNext?.Invoke(action) == true)
+                {
+                    FailNext = null;
+                    _answers.Enqueue(new ActionFailed(action, "scripted failure"));
+                    continue;
+                }
                 switch (action)
                 {
                     case Write w: Transport.Write(w.Link, w.Frame.Kind, PeerFrameCodec.Encode(w.Frame)); break;
@@ -70,6 +79,10 @@ public sealed class MessagingProtocolTests
                     case Activate a:
                         Activations.Add(a);
                         if (OnActivate is not null) _answers.Enqueue(new ActivationEnded(OnActivate(a), null));
+                        break;
+                    case Deliver d:
+                        Transport.Write(d.Ack.Link, d.Ack.Frame.Kind, PeerFrameCodec.Encode(d.Ack.Frame));
+                        Results.Add(d.Result);
                         break;
                     case Complete c: Results.Add(c.Result); break;
                 }
@@ -993,6 +1006,51 @@ public sealed class MessagingProtocolTests
         Assert.True(requestor.Last.Successful);                          // the SEND of SECOND completed
         requestor.Receive(owed, 50);
         Assert.Equal("REPLY TO FIRST", requestor.Last.Image);            // not EC-MCS-ABNORMAL-TERMINATION
+        Assert.True(requestor.Last.Successful);
+    }
+
+    [Fact]
+    public void AnAckThatCannotBeWrittenDeliversNothingSoTheRequestorsNewRoundIsTheOnlyDelivery()
+    {
+        var (_, server, requestor) = Pair();
+        requestor.Send("SRV", "ONCE");
+        Pump(requestor, server);
+        server.Receive(default);
+        while (!requestor.Log.OfType<Write>().Any(w => w.Frame is GrantFrame)) Assert.True(requestor.Step());
+        server.FailNext = action => action is Deliver;
+        Assert.True(server.StepTransport());                             // the GRANT arrives, and the ACK cannot be written
+        Assert.Empty(server.Results);                                    // no program saw the message: the requestor never learned it was taken
+        Pump(requestor, server);                                         // the closed link sends the requestor into a new round, which this RECEIVE takes
+        Assert.Equal("ONCE", server.Last.Image);
+        Assert.Single(server.Results);
+        Assert.True(requestor.Last.Successful);
+        server.Receive(default, wait: MessageWait.Poll);                 // exactly once: a second RECEIVE finds nothing
+        Assert.Equal("", server.Last.Image);
+        Assert.True(server.Last.Tag.IsNull);
+    }
+
+    [Fact]
+    public void AReplyThatAnswersTheLastOwedMessageEndsTheLinkOfAnOfferKeptInFlightForIt()
+    {
+        var (_, server, requestor) = Pair();
+        requestor.Send("SRV", "FIRST");
+        Pump(requestor, server);
+        server.Receive(default);
+        Pump(requestor, server);
+        var asked = server.Last.Tag;
+        requestor.Send("SRV", "SECOND");
+        Pump(requestor, server);
+        server.Receive(default);                                         // the claim is in flight ...
+        while (requestor.Log.OfType<Write>().Count(w => w.Frame is GrantFrame) < 2) Assert.True(requestor.Step());
+        server.Post(new ActionFailed(new CloseLink(default), "late failure"));                   // ... when the RECEIVE ends: the offer is kept, a reply is owed on its link
+        Pump(requestor, server);
+        Assert.Equal(1, requestor.Log.OfType<Write>().Count(w => w.Frame is OfferFrame { Serial: 2 }));   // still granted to this server
+        server.SendResponse(asked, "REPLY TO FIRST");                    // the reply owed is answered: nothing keeps the offer, and no RECEIVE is current to take it
+        Pump(requestor, server);
+        Assert.Equal(2, requestor.Log.OfType<Write>().Count(w => w.Frame is OfferFrame { Serial: 2 }));   // the requestor went on to a new round
+        server.Receive(default);
+        Pump(requestor, server);
+        Assert.Equal("SECOND", server.Last.Image);
         Assert.True(requestor.Last.Successful);
     }
 
