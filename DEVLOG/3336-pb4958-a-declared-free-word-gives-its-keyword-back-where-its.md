@@ -1,4 +1,4 @@
-## PB4958: a declared free word gives its keyword back where its user-word reading fails
+## Entry 3336 — 2026-11-08 14:55 PST — PB4958: a declared free word gives its keyword back where its user-word reading fails
 
 kb/Work PB4958 (wave 20261930 H). At an edition where §2023:8.9 leaves a reservation-gated word free, a program that declares
 it had every occurrence retyped to a user-defined word, the keyword of a later edition's clause included, so the clause's
@@ -39,3 +39,4 @@ diagnostics must agree by code. With the put-back disabled, 36 of the 42 fail. G
 No inventory row is re-verdicted (a diagnosis fix).
 
 Self-review (architecture, full code, performance, duplication): one mechanism replaces two; the restore is per occurrence and acts only where a name reading failed; the tree walks run only for a program that frees a gated word; no rule is written twice. Gate: `=== BUILD-LOCAL GATE: GREEN — Conformance 22,672/22,672 · Unit 40,556/40,556 · Characterization 37/37 cases ran (skipped 0)` (run 000002-20261108T213342Z); the first run was RED on a harness non-observation only (TrackedTreeScopeDriftTests: drift_rules.py --scopes timed out at 100 % host load, 6 s standalone).
+
