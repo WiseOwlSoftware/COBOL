@@ -14,3 +14,11 @@ other run units. The set is registered in `RunUnitStateDriftTests.ProcessLifetim
 
 DOC-A.1-167's "Diverges today" sentence is replaced by the behaviour, with the new witness. Closes no inventory row (the note
 claimed none).
+
+Review round 1 (two blocking findings). R1-1: the set pinned every run unit that ever opened a file until exit. The registry now
+tells its run unit when it starts and stops owing an ending (`FileRegistry.Owing`; owing = a file open, a retired/kept
+transaction, or a standing transaction, `OwesAnEnding`); a CLOSE, COMMIT or ROLLBACK settles it (`SettleOwing`), which removes the
+run unit from the set so a per-request ambient run unit that closed everything is collectable
+(`AnAmbientRunUnit_ThatClosedEverythingItOpened_IsNotPinnedForTheLifeOfTheProcess`, a host that GCs a WeakReference; fails with the
+removal disabled). R1-2: `AnAmbientRunUnit_ThatClosedItsFileUnderApplyCommit_IsCommittedAtTheHostProcessExit` covers the
+§2023:9.1.18.5 commit of a file already closed under APPLY COMMIT (fails with the ProcessExit subscription removed).

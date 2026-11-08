@@ -35,7 +35,7 @@ public sealed class RunUnit
 
     public RunUnit()
     {
-        Files.Opening = NoteOpening;
+        Files.Owing = NoteOwing;
         Messaging = new MessagingPeer(() => MessagingSettings);
         Exceptions = new ExceptionEngine(Modules);   // the staged-RAISING slot names its activation (kb/Work PB892)
         Programs = new ProgramTable(this);
@@ -287,15 +287,16 @@ public sealed class RunUnit
     /// <summary>The run units that have opened a file and not yet ended. A run unit ends at its own boundary
     /// (<see cref="Run"/>, <see cref="ProgramTable.RunMain"/>, <see cref="EndForHost"/>); the AMBIENT run unit that a host's
     /// activation outside <see cref="Run"/> joins has none, so its end is the process's: <see cref="EndAtProcessExit"/> ends
-    /// every run unit still listed. A run unit enters on its first OPEN, the only thing a process exit has to answer for, so
-    /// a host's idle ambient run units are not pinned in memory.</summary>
+    /// every run unit still listed. A run unit is listed while its files owe an ending (a file open, a transaction standing,
+    /// <see cref="IO.FileRegistry"/>'s <c>Owing</c>) and leaves when a CLOSE, COMMIT or ROLLBACK settles it, so a host's
+    /// per-request ambient run units that closed their files are not pinned in memory.</summary>
     private static readonly HashSet<RunUnit> _openRunUnits = [];
 
     static RunUnit() => AppDomain.CurrentDomain.ProcessExit += (_, _) => EndAtProcessExit();
 
-    private void NoteOpening()
+    private void NoteOwing(bool owes)
     {
-        lock (_openRunUnits) _openRunUnits.Add(this);
+        lock (_openRunUnits) _ = owes ? _openRunUnits.Add(this) : _openRunUnits.Remove(this);
     }
 
     /// <summary>End every run unit the process leaves running, as a NORMAL termination (§2023:14.6.11 2): "These implicit

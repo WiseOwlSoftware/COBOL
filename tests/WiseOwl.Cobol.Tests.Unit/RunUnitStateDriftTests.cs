@@ -265,8 +265,8 @@ public sealed class RunUnitStateDriftTests
         ["WiseOwl.Cobol.Runtime.Repository.RepositoryLocator::Cache"] =
             "memo of what reading a repository file established (its Units rows and header), keyed by the file's path and valid only for its length and last write time: derived from the file, never from a run unit (kb/Work PB2101)",
         ["WiseOwl.Cobol.Runtime.RunUnit::_openRunUnits"] =
-            "the run units of this PROCESS that have opened a file and not yet ended, so the process's exit can end them (§2023:14.6.11 2), "
-            + "§2023:9.1.18.5; kb/Work PB4946): it holds the run units themselves, not state of any one, and Terminate removes its own",
+            "the run units of this PROCESS whose files owe an ending (open, or a transaction standing), so the process's exit can end them (§2023:14.6.11 2), "
+            + "§2023:9.1.18.5; kb/Work PB4946): it holds the run units themselves, not state of any one; Terminate and the settling CLOSE, COMMIT or ROLLBACK remove its own",
         ["WiseOwl.Cobol.Runtime.IO.RecordLayoutNotice::Reported"] =
             "the (file, host path) pairs already noticed on standard error: a once-per-process diagnostic latch, locked",
     };
