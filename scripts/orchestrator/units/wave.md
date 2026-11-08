@@ -30,7 +30,7 @@ UNIT: wave.
    stall watchdog's log between waits. Never end a turn while that file is empty.
    Judge each implementer report: a branch that is not DONE gets its reason into its kb/Work note.
    NO WAVE TAKES HOURS (the owner, kb/Work PB3638): the plan runs one link of each same-file chain (the rest wait for
-   the next wave), the supervisor logs a PROGRESS line every ten minutes and posts each stalled item to the operator,
+   the next wave), the supervisor logs a PROGRESS line every ten minutes and posts each stalled item (no act for 20 minutes) to the lane that dispatched it,
    and at 60 minutes it writes {STOP_UNIT}: the running Workflow finishes, and once it returns you start nothing new
    and hand off.
 5. In the same turn as the Workflow's result, render the ledger: `python scripts/spec/gen_ledger.py --out '{COORD}\ledger.html'`
