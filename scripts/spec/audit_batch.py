@@ -30,6 +30,8 @@ Batches API in five passes, each a first pass whose answers are DETECTIONS (a ve
     python scripts/spec/audit_batch.py collect --pass P --state DIR --api-key-file KEY
     python scripts/spec/audit_batch.py retry   --pass P --state DIR --api-key-file KEY --max-usd N
     python scripts/spec/audit_batch.py results --state DIR                        # DIR/results.json: each rule's disposition
+    python scripts/spec/audit_batch.py kept-batch --state DIR --out FILE          # the CARRIES rules as KEPT change records
+                                                                                   # (record_verdicts.py --edition 1985)
     python scripts/spec/test_audit_batch.py                                       # its self-test: a fake client, no API call
 
 RESTARTABLE. A pass lives in `DIR/<pass>/`: `items.json` (written once by `plan`: custom id -> the item, every input its
@@ -71,6 +73,7 @@ import citation  # noqa: E402  (THE citation format and the 1985 regions, kb/Wor
 import spec_pdf  # noqa: E402  (the one edition table, kb/Work PB4815)
 import verify_publishable  # noqa: E402  (the stamp shapes)
 from extract_rule_catalog import OUT, OUT_1985  # noqa: E402  (the 2023 and the 1985 catalogs)
+from inventory_schema import edition, load_schema  # noqa: E402  (the 1985 edition and its change record, kept-batch)
 from message_batches import (CACHE_MIN_SHARERS, DEFAULT_MODEL, BatchRun, cached_system, cached_text,  # noqa: E402
                              make_client, reply_text, usd, write_atomic)  # noqa: E402  (THE batch state)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/
@@ -85,6 +88,9 @@ REGION_CHARS = 12000
 CHARS_PER_TOKEN = 3.5
 
 SAME, DIFFERS, NONE = "SAME", "DIFFERS", "NONE"
+#: A mapped 1985 rule's disposition (`dispositions`, the run's results.json): CARRIES is a SAME the verify pass upheld, which
+#: `kept-batch` writes as the chained (KEPT) change record (kb/Work PB4993); the others are the fleet's, or still in flight.
+CARRIES, OWN_ROW, DISPUTED, UNVERIFIED, OPEN = "CARRIES", "OWN-ROW", "DISPUTED", "UNVERIFIED", "OPEN"
 
 #: The preamble of every pass. Its box sentence names the transcription's OWN level-2 markup (spec_pdf.BOX_SIDE for prose,
 #: FIGURE-STYLE.md rule 9's double lines for a general format; TRANSCRIPTION-STATE.md "The 1985 transcription", kb/Work
@@ -414,23 +420,34 @@ def dispositions(state: pathlib.Path) -> dict[str, dict[str, Any]]:
         row: dict[str, Any] = {"citation": it["rule"]["citation"], "map": a and a["verdict"],
                                "rules_2023": a["rules_2023"] if a else [], "verify": None}
         if a is None:
-            row["disposition"] = "OPEN"
+            row["disposition"] = OPEN
         elif a["verdict"] != SAME:
-            row["disposition"] = "OWN-ROW"
+            row["disposition"] = OWN_ROW
         else:
             got = verify.get(it["id"])
             row["verify"] = got and got["verdict"]
-            row["disposition"] = "UNVERIFIED" if got is None else "CARRIES" if got["verdict"] == "UPHELD" else "DISPUTED"
+            row["disposition"] = UNVERIFIED if got is None else CARRIES if got["verdict"] == "UPHELD" else DISPUTED
         out[it["id"]] = row
     return out
 
 
+def kept_records(disp: dict[str, dict[str, Any]], source: str) -> list[dict[str, Any]]:
+    """The run's CARRIES rules as record_verdicts records of the 1985 edition's change record (the schema's `next`), each of
+    the chained kind (KEPT) into the 2023 rules its SAME named, with no reason (the requirement is the same) and the run as
+    its source (kb/Work PB4993; DESIGN-spec-conformance-review.md section 10.2). The DISPUTED and OWN-ROW rules are the
+    fleet's (kb/Work PB4995)."""
+    ed, kind = edition(1985), load_schema().next.chained.name
+    return [{"rule-id": rid, "next": {"kind": kind, "edition": ed.next_held, "to": d["rules_2023"], "bridge": ed.bridged,
+                                      "source": source}}
+            for rid, d in sorted(disp.items()) if d["disposition"] == CARRIES]
+
+
 def plan_drafts(state: pathlib.Path) -> list[dict[str, Any]]:
     disp = dispositions(state)
-    if waiting := [i for i, d in disp.items() if d["disposition"] in ("OPEN", "UNVERIFIED")]:
+    if waiting := [i for i, d in disp.items() if d["disposition"] in (OPEN, UNVERIFIED)]:
         raise SystemExit(f"{TOOL}: {len(waiting)} rule(s) have no final disposition yet; finish the map and verify passes")
     items = Pass(state, "map").items()
-    return [{"id": it["id"], "rule": it["rule"]} for it in items.values() if disp[it["id"]]["disposition"] == "OWN-ROW"]
+    return [{"id": it["id"], "rule": it["rule"]} for it in items.values() if disp[it["id"]]["disposition"] == OWN_ROW]
 
 
 # -- the requests ---------------------------------------------------------------------------------------------------------
@@ -505,12 +522,18 @@ def request(pass_name: str, cid: str, item: dict[str, Any], model: str, shapes: 
 # -- the answers ----------------------------------------------------------------------------------------------------------
 
 def parse_answer(pass_name: str, item: dict[str, Any], text: str) -> tuple[dict[str, Any] | None, str]:
-    """The reply as the pass's answer, or None and why it is not one."""
+    """The reply as the pass's answer, or None and why it is not one. The answer is the ONE JSON value that starts at the
+    reply's first `{`, read to its own end (`raw_decode`), so a fence, prose or a stray brace after it is never part of it:
+    cutting at the reply's LAST `}` failed a complete answer that a model followed with an extra `}` (PB4995's drafts). A
+    reply that opens a second object after it (a self-correction) holds two answers, and neither is taken (review
+    w20261932a R1-1)."""
     body = re.sub(r"\A\s*```[a-z]*\s*|\s*```\s*\Z", "", text)
     try:
-        obj = json.loads(body[body.index("{"):body.rindex("}") + 1])
+        obj, end = json.JSONDecoder().raw_decode(body, body.index("{"))
     except ValueError:
         return None, "unparsed"
+    if "{" in body[end:]:
+        return None, "two answers"
     if not isinstance(obj, dict):
         return None, "not an object"
     if pass_name == "drafts":
@@ -655,6 +678,10 @@ def build_parser() -> argparse.ArgumentParser:
     common(sub.add_parser("status", help="items, answers, verdicts and cost; with a key, each batch's state too"))
     common(sub.add_parser("collect", help="store the answers of every ended batch"))
     common(sub.add_parser("results", help="write DIR/results.json: each mapped rule's disposition"), key=False, pass_arg=False)
+    kb = sub.add_parser("kept-batch", help="write the CARRIES rules as a record_verdicts batch of KEPT change records")
+    common(kb, key=False, pass_arg=False)
+    kb.add_argument("--out", required=True, help="the batch file to write")
+    kb.add_argument("--source", help="each record's next.source (default: audit-1985/<the state directory's name>)")
     return ap
 
 
@@ -676,6 +703,15 @@ def main(argv: list[str] | None = None, client_factory: Callable[[str], Any] = m
         write_atomic(state / "results.json", json.dumps(disp, indent=1, ensure_ascii=False))
         print(f"results: {dict(sorted(collections.Counter(d['disposition'] for d in disp.values()).items()))} "
               f"-> {state / 'results.json'}", flush=True)
+        return 0
+    if a.cmd == "kept-batch":
+        records = kept_records(dispositions(state), a.source or f"audit-1985/{state.name}")
+        out = pathlib.Path(a.out)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        write_atomic(out, json.dumps({"batch": f"lineage-kept:{state.name}", "records": records}, indent=1,
+                                     ensure_ascii=False) + "\n")
+        print(f"kept-batch: {len(records)} kept change record(s) -> {out}\n"
+              f"  validate: python scripts/spec/record_verdicts.py --edition 1985 --dry-run {out}", flush=True)
         return 0
     p = Pass(state, a.pass_name)
     if a.cmd == "plan":

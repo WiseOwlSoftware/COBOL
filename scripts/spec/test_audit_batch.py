@@ -21,6 +21,8 @@ import tempfile
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import audit_batch as A  # noqa: E402
+import inventory_schema  # noqa: E402  (the 1985 edition and the change record, kept-batch)
+import lineage  # noqa: E402  (THE validator of a change record)
 import rule_catalog_1985  # noqa: E402  (THE reader of a level-2 box)
 import spec_pdf  # noqa: E402
 from fake_batches import Crash, FakeBatches, client, succeeded  # noqa: E402  (THE fake client)
@@ -168,6 +170,15 @@ def main() -> int:
               is None
               and A.parse_answer("route", inspect_item, json.dumps({"verdict": "ROUTED", "clauses_2023": [], "reason": "r"}))[0]
               is None)
+        routed = json.dumps({"verdict": "ROUTED", "clauses_2023": ["14.9.21"], "reason": "r"})
+        check("an answer is the one object at the reply's first brace: a stray brace or prose after it is not part of it",
+              A.parse_answer("route", inspect_item, routed + "}")[0] is not None
+              and A.parse_answer("route", inspect_item, "```json" + chr(10) + routed + chr(10) + "```")[0] is not None
+              and A.parse_answer("route", inspect_item, "Answer: " + routed + " (from the text)")[0] is not None
+              and A.parse_answer("route", inspect_item, routed[:-1]) == (None, "unparsed"))
+        nonroute = json.dumps({"verdict": "NONE", "clauses_2023": [], "reason": "r"})
+        check("a reply that answers twice (a self-correction after the first object) is refused, never read as its first",
+              A.parse_answer("route", inspect_item, routed + " Correction: " + nonroute) == (None, "two answers"))
         wide = dict(inspect_item, clauses_2023=[{"id": f"1.{n}", "subject": "s"} for n in range(A.MAX_ROUTES + 1)])
         check("a route answer naming more than MAX_ROUTES clauses is refused, and MAX_ROUTES is accepted",
               A.parse_answer("route", wide, json.dumps({"verdict": "ROUTED", "clauses_2023": [c["id"] for c in
@@ -334,6 +345,20 @@ def main() -> int:
         check("a refuted SAME is DISPUTED, a DIFFERS and a NONE are rows of their own",
               results[same_rule]["disposition"] == "DISPUTED" and results[same_rule]["verify"] == "REFUTED"
               and sorted(d["disposition"] for d in results.values()) == ["DISPUTED", "OWN-ROW", "OWN-ROW"])
+        kept = root / "kept.json"
+        code, out = run(["kept-batch", *base, "--out", str(kept)], fake)
+        check("kept-batch writes no record while no SAME is upheld (kb/Work PB4993)",
+              code == 0 and json.loads(kept.read_text(encoding="utf-8"))["records"] == [])
+        planted = {"1985-SR-VI.5.8.3-1": {"disposition": A.CARRIES, "rules_2023": ["SR-13.18.38.3-1"]},
+                   "1985-SR-VI.5.8.3-2": {"disposition": A.DISPUTED, "rules_2023": ["SR-13.18.38.3-1"]},
+                   "1985-GR-VI.5.8.4-1": {"disposition": A.OWN_ROW, "rules_2023": []}}
+        recs = A.kept_records(planted, "audit-1985/planted")
+        schema = inventory_schema.load_schema()
+        targets = {"SR-13.18.38.3-1": {"rule-id": "SR-13.18.38.3-1", "state": "OK", "editions": "85,2002,2014,2023"}}
+        check("the kept records are the CARRIES rules only, each a legal chained change record with no reason",
+              [r["rule-id"] for r in recs] == ["1985-SR-VI.5.8.3-1"] and "reason" not in recs[0]["next"]
+              and lineage.next_errors({**recs[0], "verdict": ""}, inventory_schema.edition(1985), schema, targets) == []
+              and lineage.chained(recs[0], schema))
         code, out = run(["plan", "--pass", "drafts", *base], fake)
         ditems = json.loads((state / "drafts" / "items.json").read_text(encoding="utf-8"))
         check("the drafts plan holds the rows of their own only", code == 0 and len(ditems) == 2
