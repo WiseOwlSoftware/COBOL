@@ -27,10 +27,10 @@ public sealed record TokenRetypes(CobolWordsMap CobolWords, IReadOnlySet<string>
     public static readonly TokenRetypes None = new(CobolWordsMap.Empty, new HashSet<string>(StringComparer.Ordinal));
 
     /// <summary>The keyword tokens of a freed word that the retype KEEPS, by their character offset in the source text
-    /// (<see cref="IToken.StartIndex"/>): the occurrences a parse read in a keyword position of a word carrying the
-    /// <c>refusalWhereFree</c> determination (<see cref="CobolLexer.IsRefusalWhereFree"/>, kb/Work PB4933). Offsets of the
-    /// whole source, so only a stream lexed from that text applies them (<see cref="Rewrite"/>); a fragment, a slice of
-    /// it, holds no such position (<see cref="RewriteSlice"/>).</summary>
+    /// (<see cref="IToken.StartIndex"/>): the occurrences a parse read in a keyword position and whose user-word reading
+    /// then failed (<see cref="ReservationGateRewriter.ParseToFixpoint"/>, kb/Work PB4933, PB4958). Offsets of the whole
+    /// source, so only a stream lexed from that text applies them (<see cref="Rewrite"/>); a fragment, a slice of it,
+    /// holds no such position (<see cref="RewriteSlice"/>).</summary>
     public IReadOnlySet<int> KeptKeywords { get; init; } = new HashSet<int>();
 
     /// <summary>Prime <paramref name="lexer"/> BEFORE any tokenization with this compile's decisions about words, which

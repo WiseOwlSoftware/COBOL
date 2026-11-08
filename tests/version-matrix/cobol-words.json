@@ -1,5 +1,5 @@
 {
- "_comment": "GENERATED-INPUT / hand-curated single source for the context-sensitive word set (rearchitecture PHASE 04, Group A). Each word: 'token' = the lexer token name (ANTLR spelling, '_' where the COBOL word has '-'; a trailing '_' avoids a generator clash, e.g. FULL_ = 'FULL'); 'nameSlot' = the token appears in the parser cobolWord rule (admitted in a user-defined-name slot); 'subscriptTrigger' = the token is in the lexer _dataNameTokens set (a '(' after it enters SUBSCRIPT mode); 'keywordWhereFree' (optional) = the DETERMINATION, with its citation, that a general format spells this reservation-gated word as a keyword at an edition where 8.9 leaves it free, so a program may both declare the word and write that format: the generator then emits the word's keyword rule (TOKEN | {wordAhead(\"WORD\")}? IDENTIFIER, named <word>Keyword) and the hand grammar spells the word ONLY through it, because the token-level gate retypes every occurrence of a declared free word (kb/Work PB2623, PB3794); 'refusalWhereFree' (optional) = the second keyword-rule DETERMINATION, with its citation, that the union grammar spells this reservation-gated word as the keyword of a construct the editions where 8.9 leaves it free LACK (a later edition's, or one an edition deleted), in positions no reading of the free word competes for, so a program that declares the word still reaches the construct's named edition refusal: the generator emits the word into CobolLexer.IsRefusalWhereFree, and ReservationGateRewriter keeps the keyword token a parse read in a keyword position of it while it retypes the word's other occurrences (no grammar rule changes; a row carries this or keywordWhereFree, never both; kb/Work PB4933); 'note' = context/provenance. scripts/gen-cobol-words.ps1 emits src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolWords.g4 (cobolWord, reservedGatedWord and the keyword rules) + src/WiseOwl.Cobol.Frontend/Parsing/CobolLexerWordSet.g.cs (_dataNameTokens, the gated token set) from this file, ordinally sorted; CobolWordsDriftTests asserts the two generated artifacts equal this file (both directions) and cross-checks reserved-words.json. Rows are captured AS-IS to preserve today's behavior byte-for-byte (the two known asymmetries — BIT nameSlot-only, the six functionName-collision words subscriptTrigger-only — are ledgered as follow-up FU-1). The RESERVATION GATE IS DERIVED, NEVER DECLARED HERE (kb/Work PB693): a nameSlot word that ISO 8.9 reserves at any edition is never a cobolWord alternative; its only name home is the reservedGatedWord definition rule, and ReservationGateRewriter retypes it to IDENTIFIER where 8.9 leaves it free and the program declares it (kb/Work PB655). The set is computed by the generator from reserved-words.json - there is no per-row flag to forget, and 8.3.2.1 rule 1 (reserved words shall not be used as user-defined words) therefore holds by construction. CONTENT-FILTER RULE: never print this file's word list into a conversation stream.",
+ "_comment": "GENERATED-INPUT / hand-curated single source for the context-sensitive word set (rearchitecture PHASE 04, Group A). Each word: 'token' = the lexer token name (ANTLR spelling, '_' where the COBOL word has '-'; a trailing '_' avoids a generator clash, e.g. FULL_ = 'FULL'); 'nameSlot' = the token appears in the parser cobolWord rule (admitted in a user-defined-name slot); 'subscriptTrigger' = the token is in the lexer _dataNameTokens set (a '(' after it enters SUBSCRIPT mode); 'keywordWhereFree' (optional) = the DETERMINATION, with its citation, that a general format spells this reservation-gated word as a keyword at an edition where 8.9 leaves it free, so a program may both declare the word and write that format: the generator then emits the word's keyword rule (TOKEN | {wordAhead(\"WORD\")}? IDENTIFIER, named <word>Keyword) and the hand grammar spells the word ONLY through it, because the token-level gate retypes every occurrence of a declared free word (kb/Work PB2623, PB3794); 'note' = context/provenance. scripts/gen-cobol-words.ps1 emits src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolWords.g4 (cobolWord, reservedGatedWord and the keyword rules) + src/WiseOwl.Cobol.Frontend/Parsing/CobolLexerWordSet.g.cs (_dataNameTokens, the gated token set) from this file, ordinally sorted; CobolWordsDriftTests asserts the two generated artifacts equal this file (both directions) and cross-checks reserved-words.json. Rows are captured AS-IS to preserve today's behavior byte-for-byte (the two known asymmetries — BIT nameSlot-only, the six functionName-collision words subscriptTrigger-only — are ledgered as follow-up FU-1). The RESERVATION GATE IS DERIVED, NEVER DECLARED HERE (kb/Work PB693): a nameSlot word that ISO 8.9 reserves at any edition is never a cobolWord alternative; its only name home is the reservedGatedWord definition rule, and ReservationGateRewriter retypes it to IDENTIFIER where 8.9 leaves it free and the program declares it (kb/Work PB655). The set is computed by the generator from reserved-words.json - there is no per-row flag to forget, and 8.3.2.1 rule 1 (reserved words shall not be used as user-defined words) therefore holds by construction. CONTENT-FILTER RULE: never print this file's word list into a conversation stream.",
  "words": [
   {
    "token": "ACTIVE_CLASS",
@@ -53,7 +53,6 @@
    "token": "AUTHOR",
    "nameSlot": true,
    "subscriptTrigger": true,
-   "refusalWhereFree": "the AUTHOR comment paragraph header of the IDENTIFICATION DIVISION is a COBOL-85 construct COBOL-2002 deleted (VCR Table 7); at 2002, 2014 and 2023, where 8.9 leaves AUTHOR free, the IDENTIFICATION DIVISION offers no other reading of the free word there, so a program that declares AUTHOR still draws the paragraph's named removal COBOL0902 (kb/Work PB4933)",
    "note": "ISO 8.9 reserves it at 85 only, so it is a legal user-defined word at 2002/2014/2023; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
   },
   {
@@ -210,7 +209,6 @@
    "token": "CD",
    "nameSlot": true,
    "subscriptTrigger": true,
-   "refusalWhereFree": "the CD level indicator of the communication description entry (ISO/IEC 1989:2002 Annex A.1.2.1) belongs to the communication facility COBOL-2014 deleted; at 2014 and 2023, where 8.9 leaves CD free, it stands only inside a COMMUNICATION SECTION, where no reading of the free word competes, so a program that declares CD still reaches the facility's named removal (kb/Work PB4933)",
    "note": "CD (A.1.2.1 communication description entry, kb/Work PB4677): the communication facility, which ISO/IEC 1989:2002 Annex A prints and 2014 deleted. 8.9 reserves it at 85 and 2002 only, so it is a legal user-defined word at 2014 and 2023: RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b), the RECEIVE and SEND precedent."
   },
   {
@@ -265,7 +263,6 @@
    "token": "COMMUNICATION",
    "nameSlot": true,
    "subscriptTrigger": true,
-   "refusalWhereFree": "the COMMUNICATION SECTION header (ISO/IEC 1989:2002 Annex A.1) is the communication facility COBOL-2014 deleted; at 2014 and 2023, where 8.9 leaves COMMUNICATION free, no reading of the free word stands in the data division's section position, so a program that declares COMMUNICATION still draws the facility's named removal COBOL0902 (kb/Work PB4933)",
    "note": "COMMUNICATION (A.1.1 communication section, kb/Work PB4677): the communication facility, which ISO/IEC 1989:2002 Annex A prints and 2014 deleted. 8.9 reserves it at 85 and 2002 only, so it is a legal user-defined word at 2014 and 2023: RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b), the RECEIVE and SEND precedent."
   },
   {
@@ -308,14 +305,12 @@
    "token": "DATE_COMPILED",
    "nameSlot": true,
    "subscriptTrigger": true,
-   "refusalWhereFree": "the DATE-COMPILED comment paragraph header of the IDENTIFICATION DIVISION is a COBOL-85 construct COBOL-2002 deleted (VCR Table 7); at 2002, 2014 and 2023, where 8.9 leaves DATE-COMPILED free, the IDENTIFICATION DIVISION offers no other reading of the free word there, so a program that declares DATE-COMPILED still draws the paragraph's named removal COBOL0902 (kb/Work PB4933)",
    "note": "ISO 8.9 reserves it at 85 only, so it is a legal user-defined word at 2002/2014/2023; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
   },
   {
    "token": "DATE_WRITTEN",
    "nameSlot": true,
    "subscriptTrigger": true,
-   "refusalWhereFree": "the DATE-WRITTEN comment paragraph header of the IDENTIFICATION DIVISION is a COBOL-85 construct COBOL-2002 deleted (VCR Table 7); at 2002, 2014 and 2023, where 8.9 leaves DATE-WRITTEN free, the IDENTIFICATION DIVISION offers no other reading of the free word there, so a program that declares DATE-WRITTEN still draws the paragraph's named removal COBOL0902 (kb/Work PB4933)",
    "note": "ISO 8.9 reserves it at 85 only, so it is a legal user-defined word at 2002/2014/2023; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
   },
   {
@@ -676,7 +671,6 @@
    "token": "INSTALLATION",
    "nameSlot": true,
    "subscriptTrigger": true,
-   "refusalWhereFree": "the INSTALLATION comment paragraph header of the IDENTIFICATION DIVISION is a COBOL-85 construct COBOL-2002 deleted (VCR Table 7); at 2002, 2014 and 2023, where 8.9 leaves INSTALLATION free, the IDENTIFICATION DIVISION offers no other reading of the free word there, so a program that declares INSTALLATION still draws the paragraph's named removal COBOL0902 (kb/Work PB4933)",
    "note": "ISO 8.9 reserves it at 85 only, so it is a legal user-defined word at 2002/2014/2023; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
   },
   {
@@ -731,7 +725,6 @@
    "token": "LOCAL_STORAGE",
    "nameSlot": true,
    "subscriptTrigger": true,
-   "refusalWhereFree": "the LOCAL-STORAGE SECTION header (§2023:13.6.2) and the LOCAL-STORAGE of OPTIONS INITIALIZE (§2023:11.9.10.2) are COBOL-2002 constructs; at COBOL-85, where 8.9 leaves LOCAL-STORAGE free, no reading of the free word stands in those positions, so a program that declares LOCAL-STORAGE still draws the section's named edition refusal (kb/Work PB4933)",
    "note": "ISO 8.9 reserves it at 2002/2014/2023 only, so it is a legal user-defined word at 85; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
   },
   {
@@ -867,7 +860,6 @@
    "token": "OPTIONS",
    "nameSlot": true,
    "subscriptTrigger": true,
-   "refusalWhereFree": "the OPTIONS paragraph header (§2023:11.9.2) is a COBOL-2002 construct; at COBOL-85, where 8.9 leaves OPTIONS free, the IDENTIFICATION DIVISION offers no other reading of the free word there, so a program that declares OPTIONS still draws the paragraph's named edition refusal COBOL0804 (kb/Work PB4933)",
    "note": "ISO 8.9 reserves it at 2002/2014/2023 only, so it is a legal user-defined word at 85; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
   },
   {
@@ -1036,7 +1028,6 @@
    "token": "REPOSITORY",
    "nameSlot": true,
    "subscriptTrigger": true,
-   "refusalWhereFree": "the REPOSITORY paragraph header (§2023:12.3.8.2) is a COBOL-2002 construct; at COBOL-85, where 8.9 leaves REPOSITORY free, the CONFIGURATION SECTION offers no other reading of the free word there, so a program that declares REPOSITORY still draws the paragraph's named edition refusal (kb/Work PB4933)",
    "note": "ISO 8.9 reserves it at 2002/2014/2023 only, so it is a legal user-defined word at 85; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
   },
   {
@@ -1097,7 +1088,6 @@
    "token": "SCREEN",
    "nameSlot": true,
    "subscriptTrigger": true,
-   "refusalWhereFree": "the SCREEN SECTION header (§2023:13.9.2) and the SCREEN of the BLANK and ERASE screen clauses and of OPTIONS INITIALIZE (§2023:11.9.10.2) are COBOL-2002 constructs; at COBOL-85, where 8.9 leaves SCREEN free, no reading of the free word stands in those positions, so a program that declares SCREEN still draws the named COBOL1560 for its SCREEN SECTION (kb/Work PB4933)",
    "note": "the SCREEN section word: a legal data-name in non-screen contexts"
   },
   {
@@ -1116,7 +1106,6 @@
    "token": "SECURITY",
    "nameSlot": true,
    "subscriptTrigger": true,
-   "refusalWhereFree": "the SECURITY comment paragraph header of the IDENTIFICATION DIVISION is a COBOL-85 construct COBOL-2002 deleted (VCR Table 7); at 2002, 2014 and 2023, where 8.9 leaves SECURITY free, the IDENTIFICATION DIVISION offers no other reading of the free word there, so a program that declares SECURITY still draws the paragraph's named removal COBOL0902 (kb/Work PB4933)",
    "note": "ISO 8.9 reserves it at 85 only, so it is a legal user-defined word at 2002/2014/2023; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
   },
   {

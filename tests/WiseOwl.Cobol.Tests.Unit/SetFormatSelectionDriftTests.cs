@@ -108,6 +108,33 @@ public sealed class SetFormatSelectionDriftTests : WiseOwlCobolTestBase
         }
     }
 
+    /// <summary>kb/Work PB4954 — a row's introducing edition and its 1985 wording say the same thing: a row the 1985
+    /// standard prints (Formats 1 and 2 of §1985:VI.6.23.2) carries 1985 wording, and a row introduced later has none,
+    /// so a new row with no form for an edition is absent from that edition's list and cannot print other-edition
+    /// wording.</summary>
+    [Fact]
+    public void ARowHas1985WordingExactlyWhenItIsIntroducedAt1985()
+    {
+        foreach (var (format, introducedIn, hasWording1985) in SetFormatSelection.RowEditions)
+            Assert.True(hasWording1985 == (introducedIn <= 85),
+                $"{format}: introduced in {introducedIn} but {(hasWording1985 ? "has" : "lacks")} 1985 wording");
+    }
+
+    /// <summary>The introducing edition of every row that the construct registry also gates is the registry's, not a
+    /// second hand-kept year (one rule, one place).</summary>
+    [Theory]
+    [InlineData((int)SetFormat.F5, "set-object-reference-2002")]
+    [InlineData((int)SetFormat.F8, "set-function-pointer-2014")]
+    [InlineData((int)SetFormat.F9, "set-program-pointer-2002")]
+    [InlineData((int)SetFormat.F10, "pointer-arithmetic-2002")]
+    public void ARowsIntroducingEditionAgreesWithTheConstructRegistry(int format, string constructId)
+    {
+        var row = SetFormatSelection.RowEditions.Single(r => r.Format == (SetFormat)format);
+        var status = WiseOwl.Cobol.Editions.ConstructRegistry.Find(constructId);
+        Assert.NotNull(status);
+        Assert.Equal(status.IntroducedIn, row.IntroducedIn);
+    }
+
     [Fact]
     public void FormatOne_IsTheLastRow_SoTheNearestMatchPrefersACarrierFormat()
     {
@@ -168,5 +195,30 @@ public sealed class SetFormatSelectionDriftTests : WiseOwlCobolTestBase
             SetFormatSelection.Select([SetOperandKind.Unclassified], SetDirections.To, out _));
         Assert.Equal(SetFormat.F2,
             SetFormatSelection.Select([SetOperandKind.Unclassified], SetDirections.UpDown, out _));
+    }
+
+    /// <summary>kb/Work PB4954 — COBOL2112's list of formats names only the formats the COMPILED edition prints.
+    /// <c>SET WS-N UP BY 1</c> over an integer item is admitted by no UP/DOWN format at any edition; the message
+    /// lists Format 2 (all), Format 10 (from 2002) and Format 14 (from 2014) as the edition has them.</summary>
+    [Theory]
+    [InlineData(85, new[] { "Format 2's" }, new[] { "Format 10's", "Format 14's" })]
+    [InlineData(2002, new[] { "Format 2's", "Format 10's" }, new[] { "Format 14's" })]
+    [InlineData(2014, new[] { "Format 2's", "Format 10's", "Format 14's" }, new string[0])]
+    [InlineData(2023, new[] { "Format 2's", "Format 10's", "Format 14's" }, new string[0])]
+    public void TheNoFormatListNamesOnlyTheFormatsTheEditionPrints(int dialect, string[] named, string[] absent)
+    {
+        string id = $"PB4954-{dialect}";
+        string src = Path.Combine(TempDir, $"{id}.cob");
+        File.WriteAllLines(src,
+        [
+            "       IDENTIFICATION DIVISION.", $"       PROGRAM-ID. {id}.", "       DATA DIVISION.",
+            "       WORKING-STORAGE SECTION.", "       01 WS-N PIC 9(4) VALUE 1.", "       PROCEDURE DIVISION.",
+            "           SET WS-N UP BY 1", "           STOP RUN.",
+        ]);
+        var r = CompilerDriver.Compile(new CompilerDriver.Options(src, DialectLevel: dialect,
+            SourceFormat: WiseOwl.Cobol.Frontend.Preprocessor.InitialReferenceFormat.Auto));
+        string message = Assert.Single(r.Errors, e => e.Contains("COBOL2112", StringComparison.Ordinal));
+        foreach (var n in named) Assert.Contains(n, message, StringComparison.Ordinal);
+        foreach (var a in absent) Assert.DoesNotContain(a, message, StringComparison.Ordinal);
     }
 }
