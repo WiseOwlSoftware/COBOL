@@ -1,4 +1,4 @@
-## PB4886: the 1985 audit's map and verify passes are run, and four leads are filed
+## Entry 3304 — 2026-11-07 22:48 PST — PB4886: the 1985 audit's map and verify passes are run, and four leads are filed
 
 The 1985 audit's Message Batches passes ran on account 1, with state under `E:/COBOL-coord/scratch/audit-1985/`.
 - The claims pass (63 claims, $0.48): 59 CONFIRMED, 7 NOT-ADDRESSED, 0 REFUTED. VERSION_CHANGE_REFERENCE.md's 1985
@@ -17,3 +17,4 @@ Fixed in place: "fopting" on PDF page 634 (TYPE clause, syntax rule 5) is the pr
 rendered page, so it is kept as printed and recorded KEPT in LEDGER-1985. The comment above `extract_rule_catalog.KINDS`
 named the deleted `rule_catalog_1985.BLOCK_KINDS`; it now names the 1985 manifest. PB4886's note now says the addenda's
 25 pipe-less change rows are on four pages, not one.
+
