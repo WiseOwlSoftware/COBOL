@@ -85,6 +85,9 @@ REGION_CHARS = 12000
 CHARS_PER_TOKEN = 3.5
 
 SAME, DIFFERS, NONE = "SAME", "DIFFERS", "NONE"
+#: A mapped 1985 rule's disposition (`dispositions`, the run's results.json): CARRIES is a SAME the verify pass upheld, which
+#: lineage.py records as the chained change record (kb/Work PB4993); the others are the fleet's, or still in flight.
+CARRIES, OWN_ROW, DISPUTED, UNVERIFIED, OPEN = "CARRIES", "OWN-ROW", "DISPUTED", "UNVERIFIED", "OPEN"
 
 #: The preamble of every pass. Its box sentence names the transcription's OWN level-2 markup (spec_pdf.BOX_SIDE for prose,
 #: FIGURE-STYLE.md rule 9's double lines for a general format; TRANSCRIPTION-STATE.md "The 1985 transcription", kb/Work
@@ -414,23 +417,23 @@ def dispositions(state: pathlib.Path) -> dict[str, dict[str, Any]]:
         row: dict[str, Any] = {"citation": it["rule"]["citation"], "map": a and a["verdict"],
                                "rules_2023": a["rules_2023"] if a else [], "verify": None}
         if a is None:
-            row["disposition"] = "OPEN"
+            row["disposition"] = OPEN
         elif a["verdict"] != SAME:
-            row["disposition"] = "OWN-ROW"
+            row["disposition"] = OWN_ROW
         else:
             got = verify.get(it["id"])
             row["verify"] = got and got["verdict"]
-            row["disposition"] = "UNVERIFIED" if got is None else "CARRIES" if got["verdict"] == "UPHELD" else "DISPUTED"
+            row["disposition"] = UNVERIFIED if got is None else CARRIES if got["verdict"] == "UPHELD" else DISPUTED
         out[it["id"]] = row
     return out
 
 
 def plan_drafts(state: pathlib.Path) -> list[dict[str, Any]]:
     disp = dispositions(state)
-    if waiting := [i for i, d in disp.items() if d["disposition"] in ("OPEN", "UNVERIFIED")]:
+    if waiting := [i for i, d in disp.items() if d["disposition"] in (OPEN, UNVERIFIED)]:
         raise SystemExit(f"{TOOL}: {len(waiting)} rule(s) have no final disposition yet; finish the map and verify passes")
     items = Pass(state, "map").items()
-    return [{"id": it["id"], "rule": it["rule"]} for it in items.values() if disp[it["id"]]["disposition"] == "OWN-ROW"]
+    return [{"id": it["id"], "rule": it["rule"]} for it in items.values() if disp[it["id"]]["disposition"] == OWN_ROW]
 
 
 # -- the requests ---------------------------------------------------------------------------------------------------------

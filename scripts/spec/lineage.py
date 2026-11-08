@@ -9,21 +9,24 @@ The design is DESIGN-spec-conformance-review.md §10.2 (owner, 2026-11-08). In s
 - Each edition has its own catalog and its own inventory store (`inventory_store.inventory_dir`). The 2023 store is the
   newest held edition's; an OLDER edition's row carries `next`, its one change record against the next HELD edition:
   `{"kind": "KEPT"|"CHANGED"|"REMOVED", "edition": <int>, "to": [<rule ids of that edition>], "bridge": <bool>,
-  "reason": "<why>", "source": "<the audit run or adjudication that decided it>"}`. A rule of the newer edition that no
-  older `to` names is NEW: derived, never written. `bridge` is true while an edition between the two is not held (1985
-  straight to 2023 until 2002 and 2014 are transcribed, kb/Work PB4813).
-- `status` is the rule's standing in its own edition: `normal`, or `obsolete` (§1985:I.1.5.2.3: an obsolete element is
-  still required, and is to be deleted at the next revision), a fact of the rule read from its text into its catalog,
-  never stored. Deprecation is KEPT into an obsolete rule, then REMOVED.
-- A verdict is held once per KEPT chain, on the chain's newest row: a KEPT row carries no verdict, witness or derivation
-  of its own (`next_errors` refuses them), and its state is its chain's at its own edition (`state_of`): every `to` row
-  is OK, and every `to` row's `editions` band includes the older edition, which is what places the chain's test there.
-  A CHANGED or REMOVED row, and a row not yet classified, is judged on its own fields by `Schema.state_for`.
+  "reason": "<why>", "source": "<the audit run or adjudication that decided it>"}`. Its keys and its kinds are DATA, the
+  schema's `next` (`inventory_schema.ChangeRecord`, kb/Work PB4993): no code here spells a kind. A rule of the newer
+  edition that no older `to` names is NEW: derived, never written. `bridge` is true while an edition between the two is
+  not held (1985 straight to 2023 until 2002 and 2014 are transcribed, kb/Work PB4813).
+- `status` is the rule's standing in its own edition: `normal`, or obsolete (§1985:I.1.5.2.3: an obsolete element is
+  still required, and is to be deleted at the next revision), a fact of the rule read from its text into its catalog
+  (`obsolete_elements.py`), never stored. Deprecation is KEPT into an obsolete rule, then REMOVED.
+- A verdict is held once per chain, on the chain's newest row: a row whose record is of the chained kind (KEPT) carries
+  none of the schema's `next.verdict-fields` (`next_errors` refuses them), and its state is its chain's at its own edition
+  (`state_of`): every `to` row is OK, and every `to` row's `editions` band includes the older edition, which is what
+  places the chain's test there. A CHANGED or REMOVED row, and a row not yet classified, is judged on its own fields by
+  `Schema.state_for`.
 
 Each edition (its catalog, the catalog key that locates a rule, its store and the adjudicated fields the store holds)
-is the schema's `editions.of`, read as `inventory_schema.Edition`; this module is the one definition of the change
-record's shape (`next_errors`) and of an older row's state (`state_of`). The view (`inventory_view.py`) joins each edition's catalog with its store through it and runs the audit,
-and `record_verdicts.py --edition` writes through it; nothing else spells the rules.
+is the schema's `editions.of`, read as `inventory_schema.Edition`; this module is the one reader of the change record's
+shape (`next_errors`) and the one definition of an older row's state (`state_of`). The view (`inventory_view.py`) joins
+each edition's catalog with its store through it and runs the audit, and `record_verdicts.py --edition` writes through
+it; nothing else spells the rules.
 """
 from __future__ import annotations
 
@@ -34,29 +37,31 @@ import sys
 from typing import Any, Iterable
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-from inventory_schema import Edition, edition  # noqa: E402  (each edition: the schema's `editions.of`)
+from inventory_schema import Edition, Schema, edition, load_schema  # noqa: E402  (the schema's `editions.of`, `next`)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
-KEPT, CHANGED, REMOVED = "KEPT", "CHANGED", "REMOVED"
-NEXT_KINDS = (KEPT, CHANGED, REMOVED)
-NEXT_KEYS = frozenset({"kind", "edition", "to", "bridge", "reason", "source"})
+
+def chained(row: dict[str, Any], schema: Schema) -> bool:
+    """Is `row`'s change record of the chained kind (KEPT), whose verdict is its chain's newest row's?"""
+    return (row.get("next") or {}).get("kind") == schema.next.chained.name
 
 
-def next_errors(row: dict[str, Any], ed: Edition, targets: dict[str, dict[str, Any]]) -> list[str]:
-    """Why `row`'s `next` is not a legal change record of edition `ed` — empty when it is, or when the row has none yet.
-    `targets` are the next held edition's rows by id."""
+def next_errors(row: dict[str, Any], ed: Edition, schema: Schema, targets: dict[str, dict[str, Any]]) -> list[str]:
+    """Why `row`'s `next` is not a legal change record of edition `ed` (the schema's `next`) — empty when it is, or when
+    the row has none yet. `targets` are the next held edition's rows by id."""
     errs: list[str] = []
     nxt = row.get("next")
     if nxt in (None, {}, ""):
         return errs
     if not isinstance(nxt, dict):
         return [f"next is {type(nxt).__name__}, not an object"]
-    if unknown := set(nxt) - NEXT_KEYS:
-        errs.append(f"next carries unknown key(s) {sorted(unknown)}; it may carry {sorted(NEXT_KEYS)}")
-    kind, to = nxt.get("kind"), nxt.get("to")
-    if kind not in NEXT_KINDS:
-        errs.append(f"next.kind {kind!r} is not one of {list(NEXT_KINDS)}")
+    shape = schema.next
+    if unknown := set(nxt) - shape.keys:
+        errs.append(f"next carries unknown key(s) {sorted(unknown)}; it may carry {sorted(shape.keys)}")
+    kind, to = shape.kinds.get(nxt.get("kind")), nxt.get("to")
+    if kind is None:
+        errs.append(f"next.kind {nxt.get('kind')!r} is not one of {list(shape.kinds)}")
     want = ed.next_held
     if nxt.get("edition") != want:
         errs.append(f"next.edition must be {want}, the next held edition after {ed.year}")
@@ -67,36 +72,38 @@ def next_errors(row: dict[str, Any], ed: Edition, targets: dict[str, dict[str, A
     if not isinstance(to, list) or not all(isinstance(t, str) for t in to):
         errs.append("next.to must be a list of rule ids")
         to = []
-    if kind == REMOVED and to:
-        errs.append("a REMOVED rule names no rule of the next edition")
-    if kind in (KEPT, CHANGED) and not to:
-        errs.append(f"a {kind} rule names the rule(s) of the next edition it carries into")
     for t in to:
         if t not in targets:
             errs.append(f"next.to names {t!r}, which is no rule of edition {want}")
-    if kind in (CHANGED, REMOVED) and not (nxt.get("reason") or "").strip():
-        errs.append(f"a {kind} record states its reason (the words that differ, or what deleted the feature)")
     if not (nxt.get("source") or "").strip():
         errs.append("next.source names the audit run or the adjudication that decided it")
-    if kind == KEPT and (own := [f for f in ("verdict", "code-location", "test-ref", "derivation") if row.get(f)]):
-        errs.append(f"a KEPT rule holds no verdict of its own (its chain's newest rule does), but it carries {own}")
+    if kind is None:
+        return errs
+    if kind.to and not to:
+        errs.append(f"a {kind.name} record names the rule(s) of the next edition it carries into")
+    if not kind.to and to:
+        errs.append(f"a {kind.name} record names no rule of the next edition")
+    if kind.reason and not (nxt.get("reason") or "").strip():
+        errs.append(f"a {kind.name} record states its reason (the words that differ, or what deleted the feature)")
+    if kind.chained and (own := [f for f in shape.verdict_fields if row.get(f)]):
+        errs.append(f"a {kind.name} rule holds no verdict of its own (its chain's newest rule does), but it carries {own}")
     return errs
 
 
-def state_of(row: dict[str, Any], ed: Edition, schema, targets: dict[str, dict[str, Any]]) -> str:
-    """`row`'s state at its own edition: a KEPT row's is its chain's, every other row's is its own (`Schema.state_for`).
-    `targets` are the next held edition's rows by id, each with its own state."""
-    nxt = row.get("next") or {}
-    if nxt.get("kind") != KEPT:
+def state_of(row: dict[str, Any], ed: Edition, schema: Schema, targets: dict[str, dict[str, Any]]) -> str:
+    """`row`'s state at its own edition: a chained (KEPT) row's is its chain's, every other row's is its own
+    (`Schema.state_for`). `targets` are the next held edition's rows by id, each with its own state."""
+    if not chained(row, schema):
         return schema.state_for(row)
     band = ed.spelling
-    for t in nxt.get("to") or []:
+    to = row["next"].get("to") or []
+    for t in to:
         target = targets.get(t)
         if target is None or target.get("state") != "OK":
             return "GAP"
         if "editions" in target and band not in schema.split(target.get("editions", "") or "", schema.editions_sep):
             return "GAP"
-    return "OK" if nxt.get("to") else "GAP"
+    return "OK" if to else "GAP"
 
 
 def new_rules(ed: Edition, rows: Iterable[dict[str, Any]], targets: dict[str, dict[str, Any]]) -> list[str]:
@@ -105,28 +112,36 @@ def new_rules(ed: Edition, rows: Iterable[dict[str, Any]], targets: dict[str, di
     return [t for t in targets if t not in reached]
 
 
-# -- the audit's KEPT records ---------------------------------------------------------------------------------------------
+# -- the audit's kept records ---------------------------------------------------------------------------------------------
 
-def kept_batch(state: pathlib.Path, out: pathlib.Path, source: str) -> int:
-    """A record_verdicts batch of the edition audit's CARRIES rules (map SAME, verify UPHELD) as KEPT change records.
-    The audit's DISPUTED and OWN-ROW rules are the fleet's (kb/Work PB4995) and are not in it."""
+def kept_batch(state: pathlib.Path, out: pathlib.Path, source: str, schema: Schema) -> int:
+    """A record_verdicts batch of the edition audit's CARRIES rules (map SAME, verify UPHELD), read from the run's
+    results.json (`audit_batch.py results`), each as a change record of the chained kind (KEPT). The audit's DISPUTED and
+    OWN-ROW rules are the fleet's (kb/Work PB4995) and are not in it."""
+    from audit_batch import CARRIES  # noqa: PLC0415  (the disposition vocabulary's one home)
     results = json.loads((state / "results.json").read_text(encoding="utf-8"))
     ed = edition(1985)
-    want, bridged = ed.next_held, ed.bridged
-    records = [{"rule-id": rid, "next": {"kind": KEPT, "edition": want, "to": d["rules_2023"], "bridge": bridged,
-                                         "reason": "", "source": source}}
-               for rid, d in sorted(results.items()) if d["disposition"] == "CARRIES"]
+    kind = schema.next.chained.name
+    records = [{"rule-id": rid, "next": {"kind": kind, "edition": ed.next_held, "to": d["rules_2023"],
+                                         "bridge": ed.bridged, "reason": "", "source": source}}
+               for rid, d in sorted(results.items()) if d["disposition"] == CARRIES]
+    out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps({"batch": f"lineage-kept:{source}", "records": records}, indent=1, ensure_ascii=False) + "\n",
                    encoding="utf-8", newline="\n")
-    print(f"kept-batch: {len(records)} KEPT record(s) -> {out}")
+    print(f"kept-batch: {len(records)} {kind} record(s) -> {out}\n"
+          f"  validate: python scripts/spec/record_verdicts.py --edition {ed.year} --dry-run {out}")
     return 0
 
 
 # -- self-test ------------------------------------------------------------------------------------------------------------
 
 def self_test() -> int:
-    from inventory_schema import load_schema  # noqa: PLC0415
+    import copy  # noqa: PLC0415
+    import tempfile  # noqa: PLC0415
+    from inventory_schema import SCHEMA_PATH, editions_of, held_edition  # noqa: PLC0415
+    from inventory_store import inventory_dir  # noqa: PLC0415
     schema = load_schema()
+    raw = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
     fails: list[str] = []
 
     def ok(cond: bool, what: str) -> None:
@@ -140,8 +155,11 @@ def self_test() -> int:
                "GR-14.9.21.4-2": {"rule-id": "GR-14.9.21.4-2", "state": "GAP", "editions": "85,2002,2014,2023"}}
 
     def row(**nxt: Any) -> dict[str, Any]:
-        base = {"kind": KEPT, "edition": 2023, "to": ["SR-13.18.38.3-1"], "bridge": True, "reason": "", "source": "planted"}
+        base = {"kind": "KEPT", "edition": 2023, "to": ["SR-13.18.38.3-1"], "bridge": True, "reason": "", "source": "planted"}
         return {"rule-id": "1985-SR-VI.5.8.3-1", "verdict": "", "next": {**base, **nxt}}
+
+    def errs(r: dict[str, Any], s: Schema = schema) -> list[str]:
+        return next_errors(r, ed, s, targets)
 
     ok(ed.adjudicated[-1] == "next" and "editions" not in ed.adjudicated and "status" not in ed.adjudicated
        and edition(2023).newest and not ed.newest,
@@ -150,19 +168,38 @@ def self_test() -> int:
        "1985's next held edition is 2023, a bridge while 2002 and 2014 are not held")
     ok(ed.blank()["next"] == {} and edition(2023).blank()["editions"] == "" and ed.locator == "locator",
        "an unadjudicated rule's fields are empty, and each edition names the catalog key that locates a rule")
-    ok(next_errors(row(), ed, targets) == [], "a KEPT record into a rule of the next edition, bridged, is legal")
-    ok(any("bridge must be True" in e for e in next_errors(row(bridge=False), ed, targets)),
+    ok(schema.next.chained.name == "KEPT" and set(schema.next.kinds) == {"KEPT", "CHANGED", "REMOVED"},
+       "the schema's next names the three kinds of section 10.2, and KEPT is the chained one")
+    ok(errs(row()) == [], "a KEPT record into a rule of the next edition, bridged, is legal")
+    ok(any("bridge must be True" in e for e in errs(row(bridge=False))),
        "a 1985 record that does not say it bridges 2002 and 2014 is refused")
-    ok(any("no rule of edition 2023" in e for e in next_errors(row(to=["SR-99.9.9-1"]), ed, targets)),
+    ok(any("no rule of edition 2023" in e for e in errs(row(to=["SR-99.9.9-1"]))),
        "a KEPT record into a rule the next edition lacks is refused")
-    ok(any("names no rule" in e for e in next_errors(row(kind=REMOVED, reason="deleted"), ed, targets))
-       and next_errors(row(kind=REMOVED, to=[], reason="the communication module is deleted"), ed, targets) == [],
+    ok(any("names no rule" in e for e in errs(row(kind="REMOVED", reason="deleted")))
+       and errs(row(kind="REMOVED", to=[], reason="the communication module is deleted")) == [],
        "a REMOVED record names no rule, and states its reason")
-    ok(any("states its reason" in e for e in next_errors(row(kind=CHANGED), ed, targets)),
-       "a CHANGED record states its reason")
-    held_verdict = dict(row(), verdict="CONFORMS")
-    ok(any("holds no verdict" in e for e in next_errors(held_verdict, ed, targets)),
+    ok(any("states its reason" in e for e in errs(row(kind="CHANGED"))), "a CHANGED record states its reason")
+    ok(any("carries into" in e for e in errs(row(kind="CHANGED", to=[], reason="x"))),
+       "a CHANGED record names the rule(s) it carries into")
+    ok(any("is not one of" in e for e in errs(row(kind="DEPRECATED"))), "a kind the schema does not name is refused")
+    ok(any("unknown key" in e for e in errs(row(evidence="§2023:13.18.38.3 SR1"))),
+       "a record carrying a key the schema does not name (its evidence is read from the catalogs) is refused")
+    ok(any("holds no verdict" in e for e in errs(dict(row(), verdict="CONFORMS"))),
        "a KEPT rule holding a verdict of its own is refused: the chain's newest rule holds it")
+    # The kinds are DATA (kb/Work PB4993): a kind the schema alone adds is validated by its flags, with no code change.
+    split = copy.deepcopy(raw)
+    split["next"]["kinds"]["SPLIT"] = {"meaning": "planted", "to": True, "reason": True, "chained": False}
+    s_split = Schema(split)
+    ok(errs(row(kind="SPLIT", reason="two rules"), s_split) == []
+       and any("states its reason" in e for e in errs(row(kind="SPLIT"), s_split)),
+       "a kind the schema alone adds is read from its flags")
+    two = copy.deepcopy(raw)
+    two["next"]["kinds"]["CHANGED"]["chained"] = True
+    try:
+        Schema(two)
+        ok(False, "a schema with two chained kinds is refused")
+    except SystemExit:
+        ok(True, "a schema with two chained kinds is refused")
     ok(state_of(row(), ed, schema, targets) == "OK", "a KEPT row is OK when its chain's row is OK and its band includes 85")
     ok(state_of(row(to=["SR-13.18.38.3-2"]), ed, schema, targets) == "GAP",
        "a KEPT row whose chain's test is not placed at 85 (the band starts at 2002) is a GAP")
@@ -172,12 +209,23 @@ def self_test() -> int:
     ok(new_rules(ed, [row()], targets) == ["SR-13.18.38.3-2", "GR-14.9.21.4-2"],
        "a rule of the next edition no record reaches is NEW")
 
+    # The audit's results.json (`audit_batch.py results`) becomes one KEPT record per CARRIES rule, and nothing else.
+    with tempfile.TemporaryDirectory() as tmp:
+        run = pathlib.Path(tmp) / "state-planted"
+        run.mkdir()
+        (run / "results.json").write_text(json.dumps({
+            "1985-SR-VI.5.8.3-1": {"disposition": "CARRIES", "rules_2023": ["SR-13.18.38.3-1"]},
+            "1985-SR-VI.5.8.3-2": {"disposition": "DISPUTED", "rules_2023": ["SR-13.18.38.3-2"]},
+            "1985-GR-VI.5.8.4-1": {"disposition": "OWN-ROW", "rules_2023": []}}), encoding="utf-8")
+        out = run / "kept.json"
+        kept_batch(run, out, "audit-1985/state-planted", schema)
+        recs = json.loads(out.read_text(encoding="utf-8"))["records"]
+        ok([r["rule-id"] for r in recs] == ["1985-SR-VI.5.8.3-1"]
+           and errs({"rule-id": recs[0]["rule-id"], "verdict": "", **recs[0]}) == [],
+           "the kept batch holds the audit's CARRIES rules only, each a legal KEPT record")
+
     # Branch review R1-1: an edition is the schema's `editions.of` and nothing else, so adding one there is the whole
     # change: the order, the bridges, the newest edition, the band spelling and the store all follow, with no KeyError.
-    import copy  # noqa: PLC0415
-    from inventory_schema import SCHEMA_PATH, Schema, editions_of, held_edition  # noqa: PLC0415
-    from inventory_store import inventory_dir  # noqa: PLC0415
-    raw = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
     unheld, held = copy.deepcopy(raw), copy.deepcopy(raw)
     unheld["editions"]["of"].append({"year": 2027, "spelling": "2027"})
     held["editions"]["of"].append({"year": 2027, "spelling": "2027", "catalog": "docs/rearchitecture/spec-rule-catalog-2027.json",
@@ -192,9 +240,9 @@ def self_test() -> int:
        and e85.next_held == 2023 and e85.bridged and inventory_dir(e27).name == "inventory-2027",
        "a held edition named in the schema alone becomes the newest; 2023 then carries a change record into it, unbridged")
     kept23 = {"rule-id": "SR-13.18.38.3-1", "verdict": "",
-              "next": {"kind": KEPT, "edition": 2027, "to": ["SR-1"], "bridge": False, "reason": "", "source": "planted"}}
+              "next": {"kind": "KEPT", "edition": 2027, "to": ["SR-1"], "bridge": False, "reason": "", "source": "planted"}}
     t27 = {"SR-1": {"rule-id": "SR-1", "state": "OK", "editions": "85,2002,2014,2023,2027"}}
-    ok(next_errors(kept23, e23, t27) == [] and state_of(kept23, e23, s_held, t27) == "OK"
+    ok(next_errors(kept23, e23, s_held, t27) == [] and state_of(kept23, e23, s_held, t27) == "OK"
        and state_of(kept23, e23, s_held, {"SR-1": dict(t27["SR-1"], editions="2027")}) == "GAP",
        "a 2023 row KEPT into 2027 is judged by its chain at its own spelling, 2023")
     print(f"=== LINEAGE SELF-TEST: {'PASS' if not fails else 'FAIL - ' + str(len(fails))} ===")
@@ -213,7 +261,7 @@ def main(argv: list[str] | None = None) -> int:
     if a.self_test:
         return self_test()
     if a.cmd == "kept-batch":
-        return kept_batch(a.state, a.out, a.source or f"audit-1985/{a.state.name}")
+        return kept_batch(a.state, a.out, a.source or f"audit-1985/{a.state.name}", load_schema())
     ap.print_help()
     return 2
 

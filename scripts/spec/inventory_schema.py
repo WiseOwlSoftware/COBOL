@@ -179,6 +179,45 @@ def held_edition(editions: Iterable[Edition], year: int) -> Edition:
     return held[year]
 
 
+@dataclasses.dataclass(frozen=True)
+class ChangeKind:
+    """A kind of change record (the schema's `next.kinds`): does it name rules of the next edition (`to`), must it state
+    its `reason`, and is its verdict its chain's (`chained`) rather than its own?"""
+    name: str
+    meaning: str
+    to: bool
+    reason: bool
+    chained: bool
+
+
+@dataclasses.dataclass(frozen=True)
+class ChangeRecord:
+    """The shape of an older edition's change record, the schema's `next` (DESIGN-spec-conformance-review.md section
+    10.2, kb/Work PB4993): the keys it may carry, the fields that state a verdict and its evidence, and its kinds. Exactly
+    one kind is `chained` (KEPT): its record carries none of `verdict_fields`, and its rule is judged by its chain."""
+    keys: frozenset[str]
+    verdict_fields: tuple[str, ...]
+    kinds: Mapping[str, ChangeKind]
+
+    @property
+    def chained(self) -> ChangeKind:
+        return next(k for k in self.kinds.values() if k.chained)
+
+
+def change_record_of(raw: dict[str, Any]) -> ChangeRecord:
+    """The schema `raw`'s `next`; a kind that is not one object of the three flags, or a count of chained kinds other
+    than one, is a SystemExit."""
+    spec = raw["next"]
+    kinds: dict[str, ChangeKind] = {}
+    for name, k in spec["kinds"].items():
+        if not all(isinstance(k.get(f), bool) for f in ("to", "reason", "chained")):
+            raise SystemExit(f"{SCHEMA_REL}: next.kinds.{name} states `to`, `reason` and `chained` as booleans")
+        kinds[name] = ChangeKind(name, k.get("meaning", ""), k["to"], k["reason"], k["chained"])
+    if sum(k.chained for k in kinds.values()) != 1:
+        raise SystemExit(f"{SCHEMA_REL}: exactly one of next.kinds is `chained` (the kind whose verdict is its chain's)")
+    return ChangeRecord(frozenset(spec["keys"]), tuple(spec["verdict-fields"]), kinds)
+
+
 _RAW_SCHEMA: dict[str, Any] = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
 #: Every edition, oldest first (the schema's `editions.of`); `HELD` are the years of those with a catalog and a store, and
 #: `NEWEST` is the newest of them, whose rows carry the `editions` band.
@@ -979,6 +1018,8 @@ class Schema:
         #: The editions' band spellings, ascending — the order IS the spelling's order (`spell_editions`).
         self.editions: list[str] = [e.spelling for e in self.all_editions]
         self.editions_sep: str = raw["editions"]["separator"]
+        #: An older edition's change record (`next`): its keys, its verdict fields and its kinds (kb/Work PB4993).
+        self.next: ChangeRecord = change_record_of(raw)
         #: A row must name its band (kb/Work PB3173, S0b), and the band runs from the rule's introducing edition
         #: THROUGH the last edition: every catalog rule is a rule of the newest text, so it exists there.
         self.editions_required: bool = raw["editions"]["required"]
