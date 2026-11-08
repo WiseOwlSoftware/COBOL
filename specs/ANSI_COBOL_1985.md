@@ -22821,7 +22821,7 @@ Report Writer - TYPE
 
 (5) In control footing, page heading, page footing, and report footing report groups, SOURCE clauses and associated USE statements must not reference any of the following:
 
-> ⚠ **CORRECTED — see the Errata (C12).** The standard prints `In control fopting, page heading` (page 634, folio XIII-56): a misspelling on the printed page. Corrected to `footing`.
+> ⚠ **CORRECTED — see the Errata (C12).** The standard prints `In control fopting, page heading` (page 634, folio XIII-56): a damaged letter on the printed page, which the transcription had reproduced. Corrected to `footing`.
 
 a. Group data items containing a control data item.
 
@@ -22843,11 +22843,13 @@ In page heading and page footing report groups, SOURCE clauses and USE statement
 
 (3) The PAGE HEADING phrase specifies a report group that is processed by the report writer control system as the first report group on each page of that report except under the following conditions:
 
-a. A page heading report group is not processed on a page that is to contain only a report heading report group or only a rêport footing report group.
+a. A page heading report group is not processed on a page that is to contain only a report heading report group or only a report footing report group.
+
+> ⚠ **CORRECTED — see the Errata (C18).** The standard prints `or only a rêport footing report group` (page 634, folio XIII-56): a damaged letter on the printed page, which the transcription had reproduced. Corrected to `report`.
 
 b. A page heading report group is processed as the second report group on a page when it is preceded by a report heading report group that is not to be presented on a page by itself.
 
-> ⚠ **CORRECTED — see the Errata (C13).** The standard prints `report heading report group thac is not` (page 634, folio XIII-56): a misspelling on the printed page. Corrected to `that`.
+> ⚠ **CORRECTED — see the Errata (C13).** The standard prints `report heading report group thac is not` (page 634, folio XIII-56): a damaged letter on the printed page, which the transcription had reproduced. Corrected to `that`.
 
 (See page XIII-24, Presentation Rules Tables.)
 
@@ -29726,7 +29728,9 @@ Index
 JUSTIFIED (JUST) clause, VI-24
    Condition-name, VI-21
    Figurative constant, IV-11
-   Report group desçription entry, XIII-21
+   Report group description entry, XIII-21
+
+> ⚠ **CORRECTED — see the Errata (C19).** The standard prints `Report group desçription entry` (page 813, folio XVIII-7): a damaged letter on the printed page, which the transcription had reproduced. Corrected to `description`.
    Standard alignment, IV-17
    STRING statement, VI-131
    USAGE IS INDEX clause, VI-46
@@ -36714,8 +36718,8 @@ printed form or page each fail it.
 > **Page numbers here are PDF pages**, the `## Page N` headings of this transcription, because the scanned
 > standard numbers its pages per section (`XIII-56`). The printed folio follows where the page prints one.
 
-Every correction was found by a scan of the transcription for rare words one letter from a common word, or
-carrying a letter no English word has, and each was read on the rendered page before it was corrected (kb/Work
+Every correction was found by a scan of the transcription for rare words one letter from a common word, and by a
+sweep of the body for every accented or foreign letter (U+00C0 to U+024F, and the dotless i), and each was read on the rendered page before it was corrected (kb/Work
 PB4972). A damaged letter the transcription reproduced is listed here too: the printed page shows it, so the
 correction is a departure from the page.
 
@@ -36734,12 +36738,14 @@ correction is a departure from the page.
 | [C9](#errata-c9) | 546 | X-30 | Section X, the CALL statement, general rule 14 | `coresponding` | `corresponding` | spelling |
 | [C10](#errata-c10) | 547 | X-31 | Section X, the CANCEL statement, general rule 8 | `statment` | `statement` | spelling |
 | [C11](#errata-c11) | 601 | XIII-19 | Section XIII, the PAGE clause, general rule 2, item e | `omi-ted` | `omitted` | damage |
-| [C12](#errata-c12) | 634 | XIII-56 | Section XIII, the TYPE clause, syntax rule 5 | `fopting` | `footing` | spelling |
-| [C13](#errata-c13) | 634 | XIII-56 | Section XIII, the TYPE clause, general rule 3, item b | `thac` | `that` | spelling |
+| [C12](#errata-c12) | 634 | XIII-56 | Section XIII, the TYPE clause, syntax rule 5 | `fopting` | `footing` | damage |
+| [C13](#errata-c13) | 634 | XIII-56 | Section XIII, the TYPE clause, general rule 3, item b | `thac` | `that` | damage |
 | [C14](#errata-c14) | 778 | XVII-70 | Appendix A of Section XVII, the substantive changes (WITH DUPLICATES and the RERUN techniques) | `techñique` | `technique` | damage |
 | [C15](#errata-c15) | 822 | — | Amendment 1's front matter, the note on Federal Government use | `concernings` | `concerning` | spelling |
 | [C16](#errata-c16) | 881 | A-51 | Amendment 1, Addendum 1, the LOWER-CASE function, its description | `upppercase` | `uppercase` | spelling |
 | [C17](#errata-c17) | 889 | A-59 | Amendment 1, Addendum 1, the NUMVAL-C function, its description | `ıeturns` | `returns` | damage |
+| [C18](#errata-c18) | 634 | XIII-56 | Section XIII, the TYPE clause, general rule 3, item a | `rêport` | `report` | damage |
+| [C19](#errata-c19) | 813 | XVIII-7 | Section XVIII, the index, under Report | `desçription` | `description` | damage |
 
 <a id="errata-c1"></a>
 
@@ -36871,7 +36877,7 @@ A damaged letter on the printed page, which the transcription had reproduced, re
 | **Printed** | `In control fopting, page heading` |
 | **This transcription** | `In control footing, page heading` |
 
-A misspelling on the printed page, read on the rendered page.
+A damaged letter on the printed page, which the transcription had reproduced, read on the rendered page.
 
 <a id="errata-c13"></a>
 
@@ -36882,7 +36888,7 @@ A misspelling on the printed page, read on the rendered page.
 | **Printed** | `report heading report group thac is not` |
 | **This transcription** | `report heading report group that is not` |
 
-A misspelling on the printed page, read on the rendered page.
+A damaged letter on the printed page, which the transcription had reproduced, read on the rendered page.
 
 <a id="errata-c14"></a>
 
@@ -36925,6 +36931,28 @@ A misspelling on the printed page, read on the rendered page.
 |---|---|
 | **Printed** | `The NUMVAL-C function ıeturns the numeric value` |
 | **This transcription** | `The NUMVAL-C function returns the numeric value` |
+
+A damaged letter on the printed page, which the transcription had reproduced, read on the rendered page.
+
+<a id="errata-c18"></a>
+
+### C18 · page 634 (folio XIII-56) · Section XIII, the TYPE clause, general rule 3, item a · `rêport` → `report`
+
+| | |
+|---|---|
+| **Printed** | `or only a rêport footing report group` |
+| **This transcription** | `or only a report footing report group` |
+
+A damaged letter on the printed page, which the transcription had reproduced, read on the rendered page.
+
+<a id="errata-c19"></a>
+
+### C19 · page 813 (folio XVIII-7) · Section XVIII, the index, under Report · `desçription` → `description`
+
+| | |
+|---|---|
+| **Printed** | `Report group desçription entry` |
+| **This transcription** | `Report group description entry` |
 
 A damaged letter on the printed page, which the transcription had reproduced, read on the rendered page.
 

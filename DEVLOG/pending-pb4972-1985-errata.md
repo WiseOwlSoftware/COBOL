@@ -1,4 +1,4 @@
-## PB4972: the 1985 transcription corrects 17 misprints of the printed standard and lists them in an Errata
+## PB4972: the 1985 transcription corrects 19 misprints of the printed standard and lists them in an Errata
 
 The owner decided on 2026-11-08 that `specs/ANSI_COBOL_1985.md` corrects the misprints it inherits from the printed
 standard and ends with a section listing every correction. Until then the file transcribed misprints as printed.
@@ -10,10 +10,11 @@ already has an Addendum of its own (Amendment 1, Addendum 1). `sweep_figures.py`
 pattern; it now reads `flag_reference`. The 1985 rule catalog's reader did not skip a correction note, as the 2023
 reader does; it does now, with a planted case.
 
-A scan for rare words one edit from a common word, or carrying a letter no English word has, gave the candidates. Each
-was read on the rendered page. Nine are misspellings (suppported, constitutent, statment twice, coresponding, fopting,
-thac, concernings, upppercase). Eight are letters the print damaged and the transcription had reproduced (piovides,
-_ables, comment-entrıes, BEFCRE, Fil'es, omi-ted, techñique, ıeturns). BEFCRE sits in INSPECT's general format on page
+A scan for rare words one edit from a common word, and a sweep for every accented or foreign letter (the branch review
+found two more that way), gave the candidates. Each was read on the rendered page. Seven are misspellings (suppported,
+constitutent, statment twice, coresponding, concernings, upppercase). Twelve are letters the print damaged and the
+transcription had reproduced (piovides, _ables, comment-entrıes, BEFCRE, Fil'es, omi-ted, fopting, thac, techñique,
+ıeturns, rêport, desçription). BEFCRE sits in INSPECT's general format on page
 217, so its figure verdict now carries BEFORE and is decided `neither`. The acknowledgment stays exactly as printed;
-Amendment 1's copy of it misprints "Commerical", recorded as D2 and not corrected. Eight catalog rule texts changed.
+Amendment 1's copy of it misprints "Commerical", recorded as D2 and not corrected. Nine catalog rule texts changed.
 The KEPT ledger claim for "fopting" written the day before is removed, since the word is now corrected.

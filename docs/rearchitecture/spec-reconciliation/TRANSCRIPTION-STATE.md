@@ -176,8 +176,8 @@ together. The ledger records how the transcription reads the page; the Errata re
 The acknowledgment is never corrected (its slips are Errata `D` entries). A correction inside a general format changes
 its figure verdict's `figure_lines` too, and the verdict becomes `neither` (sweep_figures.load_verdicts: a figure that
 reads differently from the batch's drawing is neither drawing), with the Errata entry named in its reason (C4, page 217).
-The 17 corrections of 2026-11-08 came from a scan for rare words one edit from a common word or carrying a letter no
-English word has, each read on the rendered page; the scan finds a misprint that makes a non-word, not one that makes
+The 19 corrections of 2026-11-08 came from a scan for rare words one edit from a common word and a sweep of the body
+for every accented or foreign letter (U+00C0 to U+024F, the dotless i), each read on the rendered page; the scan finds a misprint that makes a non-word, not one that makes
 another real word.
 
 **A level-2 box in prose is a `║` at each end of each boxed block** (`spec_pdf.BOX_SIDE`; the 1985 standard boxes every

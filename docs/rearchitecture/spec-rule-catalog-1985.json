@@ -35187,7 +35187,7 @@
    "page": 634,
    "folio": "XIII-56",
    "band": "",
-   "text": "The PAGE HEADING phrase specifies a report group that is processed by the report writer control system as the first report group on each page of that report except under the following conditions:\na. A page heading report group is not processed on a page that is to contain only a report heading report group or only a rêport footing report group.\nb. A page heading report group is processed as the second report group on a page when it is preceded by a report heading report group that is not to be presented on a page by itself.\n(See page XIII-24, Presentation Rules Tables.)"
+   "text": "The PAGE HEADING phrase specifies a report group that is processed by the report writer control system as the first report group on each page of that report except under the following conditions:\na. A page heading report group is not processed on a page that is to contain only a report heading report group or only a report footing report group.\nb. A page heading report group is processed as the second report group on a page when it is preceded by a report heading report group that is not to be presented on a page by itself.\n(See page XIII-24, Presentation Rules Tables.)"
   },
   {
    "id": "1985-GR-XIII.3.20.4-4",
