@@ -323,17 +323,65 @@ public sealed class HostRunUnitEndingTests
         }
         """;
 
-    /// <summary>kb/Work PB4946, review finding R1-1: the process-exit set must not pin a run unit that has closed every file
-    /// and owes no commit, or a host serving requests leaks one run unit per request.</summary>
-    [Fact]
-    public void AnAmbientRunUnit_ThatClosedEverythingItOpened_IsNotPinnedForTheLifeOfTheProcess()
+    /// <summary>Probes for an absent input file and handles status 35: the OPEN opens nothing, so nothing is owed.</summary>
+    private const string Prober = """
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. PB4946P.
+        ENVIRONMENT DIVISION.
+        INPUT-OUTPUT SECTION.
+        FILE-CONTROL.
+            SELECT F ASSIGN TO "pb4946p-absent.dat" ORGANIZATION IS LINE SEQUENTIAL
+                FILE STATUS IS FS.
+        DATA DIVISION.
+        FILE SECTION.
+        FD F.
+        01 F-REC PIC X(5).
+        WORKING-STORAGE SECTION.
+        01 FS PIC XX.
+        PROCEDURE DIVISION.
+        P1.
+            OPEN INPUT F.
+            GOBACK.
+        END PROGRAM PB4946P.
+        """;
+
+    /// <summary>Closes its file WITH NO REWIND, the CLOSE form that does not go through the plain CLOSE entry point.</summary>
+    private const string NoRewindCloser = """
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. PB4946N.
+        ENVIRONMENT DIVISION.
+        INPUT-OUTPUT SECTION.
+        FILE-CONTROL.
+            SELECT F ASSIGN TO "pb4946n.dat" ORGANIZATION IS LINE SEQUENTIAL.
+        DATA DIVISION.
+        FILE SECTION.
+        FD F.
+        01 F-REC PIC X(5).
+        PROCEDURE DIVISION.
+        P1.
+            OPEN OUTPUT F.
+            MOVE "CLOSE" TO F-REC.
+            WRITE F-REC.
+            CLOSE F WITH NO REWIND.
+            GOBACK.
+        END PROGRAM PB4946N.
+        """;
+
+    /// <summary>kb/Work PB4946, review finding R1-1 (and R2-1): the process-exit set must not pin a run unit that owes
+    /// nothing, or a host serving requests leaks one run unit per request. The settlement rides the file state
+    /// transitions: a plain CLOSE, CLOSE WITH NO REWIND, and an OPEN that opens nothing (status 35) all reach it.</summary>
+    [Theory]
+    [InlineData("PB4946K", Closer)]
+    [InlineData("PB4946N", NoRewindCloser)]
+    [InlineData("PB4946P", Prober)]
+    public void AnAmbientRunUnit_ThatOwesNothing_IsNotPinnedForTheLifeOfTheProcess(string id, string cobol)
     {
         string dir = ScratchDirectory.Create("pb4946flow");
         try
         {
-            NonCobolElement.CompileCobol(dir, "PB4946K", Closer);
-            NonCobolElement.CompileCSharp(dir, "PB4946KHOST", FlowHost, "PB4946K", "PB4946K");
-            var (exit, stdout, stderr) = CutRunner.RunExit(Path.Combine(dir, "PB4946KHOST.dll"), dir);
+            NonCobolElement.CompileCobol(dir, id, cobol);
+            NonCobolElement.CompileCSharp(dir, id + "HOST", FlowHost.Replace("PB4946K", id), id, id);
+            var (exit, stdout, stderr) = CutRunner.RunExit(Path.Combine(dir, id + "HOST.dll"), dir);
             Assert.Equal(0, exit);
             Assert.Equal("", stderr);
             Assert.Equal("COLLECTED", stdout);

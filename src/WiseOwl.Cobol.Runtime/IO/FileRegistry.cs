@@ -431,7 +431,6 @@ public sealed class FileRegistry
     public void Close(string name)
     {
         CloseByFormat(name, CloseFormat.Normal);
-        SettleOwing();
     }
 
     /// <summary>⛔ THE ONE CLOSE DISPATCH — §2023:14.9.6.4 GR3: <i>"The results of executing each type of CLOSE for
@@ -448,6 +447,12 @@ public sealed class FileRegistry
     /// what keeps <see cref="SharedClose"/>'s lock release off the unsuccessful path, where the connector holds
     /// nothing to release and GR9's "execution of the CLOSE statement" has performed none of its actions.</para></summary>
     private void CloseByFormat(string name, CloseFormat format)
+    {
+        try { CloseCell(name, format); }
+        finally { SettleOwing(); }   // the settlement rides the state transition, not its callers (kb/Work PB4946)
+    }
+
+    private void CloseCell(string name, CloseFormat format)
     {
         var c = Require(name);
         var cell = Table14.Cell(format, c.Category);
@@ -1848,6 +1853,14 @@ public sealed class FileRegistry
     {
         DrainPendingObjectCloses();   // reclaim any GC-finalized per-object connectors on this (mutator) thread first
         NoteOwing();
+        try { OpenArbitrated(name, mode, sharingOverride, retryKind, retryAmount, tape, assign, assignDynamic, page); }
+        finally { SettleOwing(); }   // an OPEN that opened nothing (status 35, 41, a refused association) owes nothing (kb/Work PB4946)
+    }
+
+    private void OpenArbitrated(string name, FileOpenMode mode, FileSharing? sharingOverride,
+        FileRetryKind retryKind, long retryAmount, OpenTapePhrase tape, string assign, bool assignDynamic,
+        LinagePage? page)
+    {
         if (RefusedAsAlreadyOpen(name, mode)) return;   // §2023:14.9.27.4 GR2 — before anything below touches the connector
         // §2023:14.9.27.4 GR26 → §2023:12.4.5.3 GR3, and BEFORE the Table-19 arbitration: a sharing conflict is defined
         // over "another file connector" holding THE PHYSICAL FILE this OPEN names (§2023:9.1.13.9), so the association
