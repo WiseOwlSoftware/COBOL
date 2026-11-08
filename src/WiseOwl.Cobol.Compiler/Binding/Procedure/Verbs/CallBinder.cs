@@ -1147,6 +1147,32 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         return null;
     }
 
+    /// <summary>The signature a Format-2 CALL activates, asked WITHOUT binding the statement (kb/Work PB4934): the statement funnel
+    /// (<see cref="StatementBinder"/>'s gated-message-tag question) needs it before <see cref="BindCall"/> runs, and a
+    /// pure question reports nothing. The same three producers <see cref="BindCall"/> reads into <c>callee</c> -- AS NESTED
+    /// literal-1 through the contained-program table (§2023:14.9.4.3 SR15), AS program-prototype-name-1 and a bare
+    /// program-prototype-name-1 (§2023:14.9.4.4 GR7, spelling (b) of §2023:14.9.4.2) through the prototype table -- so the
+    /// two cannot name different callees. Null when the callee is not statically known (a Format 1 CALL, an unresolved name,
+    /// a separately compiled prototype). The literal-1 read is muted: it reports a malformed literal, which
+    /// <see cref="BindCall"/> reports when the statement binds.</summary>
+    internal CalleeSignature? CalleeSignatureOf(Core.CallStatementContext call)
+    {
+        var target = call.callTarget();
+        if (call.callAsPhrase() is { } asPhrase)
+        {
+            if (asPhrase.formatWord() is null)
+                return host.ProgramPrototypes?.GetValueOrDefault(asPhrase.cobolWord().GetText())?.Signature;
+            using var _ = ctx.Edition.Muted(true);
+            return Literal1Of(target?.literal(), target?.dataReference())?.Form(ctx.Edition.Edition.Year).Name is { } nested
+                && host.NestedCallables is { } nestedCallables && nestedCallables.TryGetValue(nested, out var sig) ? sig : null;
+        }
+        if (!ProgramPrototypeNamesExist || target?.dataReference() is not { } dref
+            || BarePrototypeWord(dref) is not { } word || ctx.Refs.Probe(dref) is not null)
+            return null;
+        using var __ = ctx.Edition.Muted(true);
+        return Literal1Of(null, dref) is null ? host.ProgramPrototypes?.GetValueOrDefault(word)?.Signature : null;
+    }
+
     /// <summary>The BARE user-defined word a data reference spells, or null when it is qualified, subscripted,
     /// reference-modified, or one of the special registers the rule lists first. A program-prototype-name is a
     /// plain word (§2023:8.4.6.8 — it names a source unit, so it takes no qualification and no subscript), so this is

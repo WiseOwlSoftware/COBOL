@@ -617,6 +617,65 @@ public sealed class MessageTagIntroductionGateTests
         }
     }
 
+    /// <summary>kb/Work PB4934: a Format-2 CALL whose callee's signature has a message-tag formal is the gate's below 2023 (§2023:14.9.4.3 SR25 imports
+    /// §2023:14.8.2 to it), through each spelling that names the callee statically: <c>AS NESTED</c> (SR15), <c>AS program-prototype-name-1</c> and the
+    /// bare <c>CALL program-prototype-name-1</c> (§2023:14.9.4.2 Format 2). The funnel's diagnostic-free <c>CallBinder.CalleeSignatureOf</c> names the
+    /// callee as the binding does, so at 2023 the same CALL draws the argument-conformance refusal the gate suppressed (COBOL1688) and no COBOL0900.</summary>
+    [Theory]
+    [InlineData("CALL \"SUBN\" AS NESTED USING N", "")]
+    [InlineData("CALL \"SUBN\" AS SUBN USING N", "PROGRAM SUBN.")]
+    [InlineData("CALL SUBN USING N", "PROGRAM SUBN.")]
+    public void AFormatTwoCallToAMessageTagFormal_IsTheGateAloneBelowTheIntroduction(string call, string repository)
+    {
+        foreach (int edition in (ReadOnlySpan<int>)[2014, 2023])
+        {
+            // AS NESTED needs SUBN contained in the caller; a prototype needs a program definition specified BEFORE the
+            // REPOSITORY paragraph that names it (§2023:12.3.8.4 GR10), so SUBN is then a separate program ahead of the caller.
+            bool nested = repository.Length == 0;
+            const string Subn = """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. SUBN.
+                DATA DIVISION.
+                LINKAGE SECTION.
+                01 A USAGE MESSAGE-TAG.
+                PROCEDURE DIVISION USING A.
+                    GOBACK.
+                END PROGRAM SUBN.
+                """;
+            string repositoryParagraph = nested ? "" : $"""
+                ENVIRONMENT DIVISION.
+                CONFIGURATION SECTION.
+                REPOSITORY.
+                    {repository}
+                """;
+            string caller = $"""
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. CNMAIN.
+                {repositoryParagraph}
+                DATA DIVISION.
+                WORKING-STORAGE SECTION.
+                01 N PIC 9(4) VALUE 7.
+                PROCEDURE DIVISION.
+                MAIN-P.
+                    {call}.
+                    STOP RUN.
+                {(nested ? Subn : "")}
+                END PROGRAM CNMAIN.
+                """;
+            var errors = EditionHarness.CompileFull(nested ? caller : Subn + "\n" + caller, edition).Errors;
+            if (edition >= 2023)
+            {
+                EditionHarness.AssertHasDiagnostic(errors, "COBOL1688");
+                EditionHarness.AssertNoDiagnostic(errors, "COBOL0900");
+            }
+            else
+            {
+                EditionHarness.AssertHasDiagnostic(errors, "COBOL0900");
+                Assert.All(errors, e => Assert.Contains("COBOL0900", e));   // the gate alone: no class diagnostic beside it
+            }
+        }
+    }
+
     /// <summary>The note's arm 2 from the other side: a group's message-tag usage handed to a leaf that wrote a
     /// PICTURE is refused as a MESSAGE-TAG usage at every edition, and never as a floating-point one.</summary>
     [Theory]
