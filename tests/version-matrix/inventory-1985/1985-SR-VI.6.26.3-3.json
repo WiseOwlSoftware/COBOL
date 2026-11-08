@@ -9,7 +9,7 @@
    "SR-14.7.7-2"
   ],
   "bridge": true,
-  "reason": "1985: 'The composite of operands must not contain more than 18 digits.'; 2023: 'When native arithmetic is in effect ... the composite of operands shall not contain more than 31 digits.'. Per-format determination of the composite is the same. The limit rises from 18 to 31 digits, applies only under native arithmetic, and excludes intrinsic functions, binary/float items and float literals.",
+  "reason": "1985: \"The composite of operands must not contain more than 18 digits.\"; 2023: \"When native arithmetic is in effect ... the composite of operands shall not contain more than 31 digits.\". Per-format determination of the composite is the same. The limit rises from 18 to 31 digits, applies only under native arithmetic, and excludes intrinsic functions, binary/float items and float literals.",
   "source": "audit-1985/state-route"
  }
 }

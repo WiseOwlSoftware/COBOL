@@ -8,7 +8,7 @@
    "FMT-11.2.1"
   ],
   "bridge": true,
-  "reason": "1985: 'IDENTIFICATION DIVISION. PROGRAM-ID. ... [ AUTHOR. [ comment-entry ] … ] ... [ SECURITY. [ comment-entry ] … ]'; 2023: '[ IDENTIFICATION DIVISION. ] { program-id-paragraph | ... } [ options-paragraph ]'. 2023 makes the division header optional and drops the AUTHOR through SECURITY comment paragraphs. It adds other ID paragraphs and an OPTIONS paragraph.",
+  "reason": "1985: \"IDENTIFICATION DIVISION. PROGRAM-ID. ... [ AUTHOR. [ comment-entry ] … ] ... [ SECURITY. [ comment-entry ] … ]\"; 2023: \"[ IDENTIFICATION DIVISION. ] { program-id-paragraph | ... } [ options-paragraph ]\". 2023 makes the division header optional and drops the AUTHOR through SECURITY comment paragraphs. It adds other ID paragraphs and an OPTIONS paragraph.",
   "source": "audit-1985/state-route"
  }
 }

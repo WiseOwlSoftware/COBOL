@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'When the SIGN clause is included in a report group description entry, the SEPARATE CHARACTER phrase must be specified.'; 2023: \"SR-13.18.52.3-1 allows SIGN in 'a numeric report group description entry whose picture...contains the symbol 'S'' with no SEPARATE requirement\". 2023 SIGN rules still allow SIGN in report group entries, and the format leaves SEPARATE optional. No candidate requires SEPARATE CHARACTER there, so the 1985 requirement is dropped.",
+  "reason": "1985: \"When the SIGN clause is included in a report group description entry, the SEPARATE CHARACTER phrase must be specified.\"; 2023: \"SR-13.18.52.3-1 allows SIGN in 'a numeric report group description entry whose picture...contains the symbol 'S'' with no SEPARATE requirement\". 2023 SIGN rules still allow SIGN in report group entries, and the format leaves SEPARATE optional. No candidate requires SEPARATE CHARACTER there, so the 1985 requirement is dropped.",
   "source": "audit-1985/state-route"
  }
 }

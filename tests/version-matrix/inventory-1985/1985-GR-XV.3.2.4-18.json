@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'DEBUG-LINE identifies the GO TO statement whose execution transfers control to procedure-name-1.'; 2023: 'No 2023 clause holds the debugging feature; USE and GO TO rules omit DEBUG-LINE, DEBUG-NAME and USE FOR DEBUGGING'. No 2023 clause holds the Debug feature. The USE and GO TO candidates never mention USE FOR DEBUGGING, DEBUG-LINE or DEBUG-NAME, so the feature and this rule are dropped.",
+  "reason": "1985: \"DEBUG-LINE identifies the GO TO statement whose execution transfers control to procedure-name-1.\"; 2023: \"No 2023 clause holds the debugging feature; USE and GO TO rules omit DEBUG-LINE, DEBUG-NAME and USE FOR DEBUGGING\". No 2023 clause holds the Debug feature. The USE and GO TO candidates never mention USE FOR DEBUGGING, DEBUG-LINE or DEBUG-NAME, so the feature and this rule are dropped.",
   "source": "audit-1985/state-route"
  }
 }

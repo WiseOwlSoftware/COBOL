@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'The VALUE clause must not be specified in any entry which is part of the description or redefinition of an external data record.'; 2023: 'None of the VALUE clause syntax rules 1-39 (SR-13.18.63.3-1..39) bars VALUE in external data; SR-12 bars it only under REDEFINES.'. 2023's full set of VALUE clause syntax rules is shown, and none forbids VALUE in external records, so the restriction appears dropped. Its REDEFINES rule covers only part of it.",
+  "reason": "1985: \"The VALUE clause must not be specified in any entry which is part of the description or redefinition of an external data record.\"; 2023: \"None of the VALUE clause syntax rules 1-39 (SR-13.18.63.3-1..39) bars VALUE in external data; SR-12 bars it only under REDEFINES.\". 2023's full set of VALUE clause syntax rules is shown, and none forbids VALUE in external records, so the restriction appears dropped. Its REDEFINES rule covers only part of it.",
   "source": "audit-1985/state-route"
  }
 }

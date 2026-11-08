@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'Except for the USE FOR DEBUGGING statement itself, statements appearing within a given debugging section may reference'; 2023: 'No 2023 clause holds USE FOR DEBUGGING. Debugging sections are gone; SR-14.9.49.3-4 is only the general declaratives PERFORM rule.'. The Debug module and USE FOR DEBUGGING are absent from 2023. No candidate covers debugging sections or the exception for the USE FOR DEBUGGING statement's references.",
+  "reason": "1985: \"Except for the USE FOR DEBUGGING statement itself, statements appearing within a given debugging section may reference\"; 2023: \"No 2023 clause holds USE FOR DEBUGGING. Debugging sections are gone; SR-14.9.49.3-4 is only the general declaratives PERFORM rule.\". The Debug module and USE FOR DEBUGGING are absent from 2023. No candidate covers debugging sections or the exception for the USE FOR DEBUGGING statement's references.",
   "source": "audit-1985/state-route"
  }
 }

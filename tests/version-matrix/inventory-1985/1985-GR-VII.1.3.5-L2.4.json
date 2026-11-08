@@ -15,7 +15,7 @@
    "GR-9.1.13.7-9"
   ],
   "bridge": true,
-  "reason": "1985: '1) ...allowed by the RECORD IS VARYING clause of the associated file-name, or 2) ...not the same size as the record being replaced.'; 2023: 'c) ...allowed by the fixed-or-variable-length format of the RECORD clause when the implementor has specified that variable-length records'. Statuses 41-49 carry over, but status 44 gains cases c) (RECORD clause variable format) and d) (line sequential rewrite after 06), which make more I-O statements fail.",
+  "reason": "1985: \"1) ...allowed by the RECORD IS VARYING clause of the associated file-name, or 2) ...not the same size as the record being replaced.\"; 2023: \"c) ...allowed by the fixed-or-variable-length format of the RECORD clause when the implementor has specified that variable-length records\". Statuses 41-49 carry over, but status 44 gains cases c) (RECORD clause variable format) and d) (line sequential rewrite after 06), which make more I-O statements fail.",
   "source": "audit-1985/state-route"
  }
 }

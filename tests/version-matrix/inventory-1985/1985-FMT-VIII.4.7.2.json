@@ -10,7 +10,7 @@
    "GR-14.9.41.4-9"
   ],
   "bridge": true,
-  "reason": "1985: 'KEY { IS EQUAL TO | IS = | IS GREATER THAN | IS > | IS NOT LESS THAN | IS NOT < | IS GREATER THAN OR EQUAL TO | IS >= }'; 2023: 'START file-name-1 [ FIRST | KEY relational-operator {data-name-1|record-key-name-1} [WITH LENGTH ...] | LAST ]'. 2023 START admits FIRST, LAST, WITH LENGTH and LESS/NOT GREATER/LESS OR EQUAL (reverse search), and INVALID KEY phrases in any order; 1985 refused these.",
+  "reason": "1985: \"KEY { IS EQUAL TO | IS = | IS GREATER THAN | IS > | IS NOT LESS THAN | IS NOT < | IS GREATER THAN OR EQUAL TO | IS >= }\"; 2023: \"START file-name-1 [ FIRST | KEY relational-operator {data-name-1|record-key-name-1} [WITH LENGTH ...] | LAST ]\". 2023 START admits FIRST, LAST, WITH LENGTH and LESS/NOT GREATER/LESS OR EQUAL (reverse search), and INVALID KEY phrases in any order; 1985 refused these.",
   "source": "audit-1985/state-route"
  }
 }

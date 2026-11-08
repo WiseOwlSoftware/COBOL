@@ -8,7 +8,7 @@
    "SR-14.9.5.3-2"
   ],
   "bridge": true,
-  "reason": "1985: 'Literal-1 must be a nonnumeric literal.'; 2023: 'Literal-1 shall be an alphanumeric or national literal'. 2023 also accepts a national literal for CANCEL literal-1. The zero-length ban adds nothing, since a 1985 nonnumeric literal always held at least one character.",
+  "reason": "1985: \"Literal-1 must be a nonnumeric literal.\"; 2023: \"Literal-1 shall be an alphanumeric or national literal\". 2023 also accepts a national literal for CANCEL literal-1. The zero-length ban adds nothing, since a 1985 nonnumeric literal always held at least one character.",
   "source": "audit-1985/state-route"
  }
 }

@@ -16,7 +16,7 @@
    "GR-9.1.13.7-9"
   ],
   "bridge": true,
-  "reason": "1985: 'improper sequence of input-output operations ... or as a result of violating a limit defined by the user'; 2023: 'I-O status = 45. Record identification failure. ... no record description entry was selected for processing'. The 2023 4x codes keep sequence and limit errors, but code 45 (record identification failure) adds a logic-error case that is neither. The 2023 class heading text is not among the candidates.",
+  "reason": "1985: \"improper sequence of input-output operations ... or as a result of violating a limit defined by the user\"; 2023: \"I-O status = 45. Record identification failure. ... no record description entry was selected for processing\". The 2023 4x codes keep sequence and limit errors, but code 45 (record identification failure) adds a logic-error case that is neither. The 2023 class heading text is not among the candidates.",
   "source": "audit-1985/state-route"
  }
 }

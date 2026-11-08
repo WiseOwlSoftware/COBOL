@@ -8,7 +8,7 @@
    "SR-13.18.37.3-1"
   ],
   "bridge": true,
-  "reason": "1985: 'Integer-1 and integer-2 must not exceed three significant digits in length.'; 2023: 'Integer-1 and integer-2 shall not exceed the page limit, or 9999 if the report is not divided into pages.'. 1985 caps both integers at three digits (999). 2023 caps them at the page limit, which may reach 9999, or at 9999 for unpaged reports, so values above 999 are now accepted.",
+  "reason": "1985: \"Integer-1 and integer-2 must not exceed three significant digits in length.\"; 2023: \"Integer-1 and integer-2 shall not exceed the page limit, or 9999 if the report is not divided into pages.\". 1985 caps both integers at three digits (999). 2023 caps them at the page limit, which may reach 9999, or at 9999 for unpaged reports, so values above 999 are now accepted.",
   "source": "audit-1985/state-route"
  }
 }

@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'If the WITH DEBUGGING MODE clause is not specified in a program ... any debugging lines are compiled as if they were comment lines.'; 2023: 'SOURCE-COMPUTER. [ computer-name-1 ] . (format has no WITH DEBUGGING MODE clause)'. The 2023 SOURCE-COMPUTER format offers only computer-name-1, and no candidate mentions the WITH DEBUGGING MODE clause or debugging lines, so the clause and its default rule are dropped.",
+  "reason": "1985: \"If the WITH DEBUGGING MODE clause is not specified in a program ... any debugging lines are compiled as if they were comment lines.\"; 2023: \"SOURCE-COMPUTER. [ computer-name-1 ] . (format has no WITH DEBUGGING MODE clause)\". The 2023 SOURCE-COMPUTER format offers only computer-name-1, and no candidate mentions the WITH DEBUGGING MODE clause or debugging lines, so the clause and its default rule are dropped.",
   "source": "audit-1985/state-route"
  }
 }

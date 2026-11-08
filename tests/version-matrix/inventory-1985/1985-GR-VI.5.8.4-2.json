@@ -9,7 +9,7 @@
    "GR-13.18.38.4-7"
   ],
   "bridge": true,
-  "reason": "1985: 'the value of the data item referenced by data-name-1 must fall within the range integer-1 through integer-2.'; 2023: 'If the value of the data item does not fall within the specified bounds, the EC-BOUND-ODO exception condition is set to exist.'. Fixed count, variable count, minimum/maximum and undefined excess contents all match. 2023 adds a defined effect for an out-of-range DEPENDING value (EC-BOUND-ODO set); 1985 stated none.",
+  "reason": "1985: \"the value of the data item referenced by data-name-1 must fall within the range integer-1 through integer-2.\"; 2023: \"If the value of the data item does not fall within the specified bounds, the EC-BOUND-ODO exception condition is set to exist.\". Fixed count, variable count, minimum/maximum and undefined excess contents all match. 2023 adds a defined effect for an out-of-range DEPENDING value (EC-BOUND-ODO set); 1985 stated none.",
   "source": "audit-1985/state-route"
  }
 }

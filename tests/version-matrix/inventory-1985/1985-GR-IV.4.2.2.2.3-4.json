@@ -9,7 +9,7 @@
    "GR-12.3.7.4-9"
   ],
   "bridge": true,
-  "reason": "1985: 'Except in the SPECIAL-NAMES paragraph, represents one or more of the character that has the lowest ordinal position in the program collating sequence'; 2023: 'At compile time ... collating sequence used during compilation. At runtime ... runtime collating sequence. When locale category LC_COLLATE is in effect'. 2023 splits compile-time and runtime collating sequences, adds multiple-character combinations, a locale (LC_COLLATE) case, and a choice between national and alphanumeric sequences.",
+  "reason": "1985: \"Except in the SPECIAL-NAMES paragraph, represents one or more of the character that has the lowest ordinal position in the program collating sequence\"; 2023: \"At compile time ... collating sequence used during compilation. At runtime ... runtime collating sequence. When locale category LC_COLLATE is in effect\". 2023 splits compile-time and runtime collating sequences, adds multiple-character combinations, a locale (LC_COLLATE) case, and a choice between national and alphanumeric sequences.",
   "source": "audit-1985/state-route"
  }
 }

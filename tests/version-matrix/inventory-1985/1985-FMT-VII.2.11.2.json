@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'MULTIPLE FILE TAPE CONTAINS { file-name-1 [ POSITION integer-1 ] } …'; 2023: 'No 2023 clause holds the feature; the file control and file description candidates have no MULTIPLE FILE TAPE clause'. No 2023 clause holds the MULTIPLE FILE TAPE clause. The file control and file description candidates never mention it, so 2023 lacks the feature.",
+  "reason": "1985: \"MULTIPLE FILE TAPE CONTAINS { file-name-1 [ POSITION integer-1 ] } …\"; 2023: \"No 2023 clause holds the feature; the file control and file description candidates have no MULTIPLE FILE TAPE clause\". No 2023 clause holds the MULTIPLE FILE TAPE clause. The file control and file description candidates never mention it, so 2023 lacks the feature.",
   "source": "audit-1985/state-route"
  }
 }

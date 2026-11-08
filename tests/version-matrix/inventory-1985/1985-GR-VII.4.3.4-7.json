@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'If label records are specified for the file, the beginning labels are processed as follows'; 2023: 'None of the 2023 OPEN general rules 1-26 mentions label records or label checking/writing.'. The 2023 OPEN rules cover the same statement but state no beginning-label checking or writing. The LABEL RECORDS feature no longer appears there, so the requirement is dropped.",
+  "reason": "1985: \"If label records are specified for the file, the beginning labels are processed as follows\"; 2023: \"None of the 2023 OPEN general rules 1-26 mentions label records or label checking/writing.\". The 2023 OPEN rules cover the same statement but state no beginning-label checking or writing. The LABEL RECORDS feature no longer appears there, so the requirement is dropped.",
   "source": "audit-1985/state-route"
  }
 }

@@ -10,7 +10,7 @@
    "GR-13.18.37.4-5"
   ],
   "bridge": true,
-  "reason": "1985: 'The NEXT GROUP clause of a report heading report group can affect the location at which the page heading report group is presented.'; 2023: 'namely the first body group when the report is not divided into pages, or the first page heading when the page heading consists only of relative lines'. Body group and page footing effects match. In 2023 a report heading's NEXT GROUP also positions the first body group of an unpaged report, a case the 1985 rule does not state.",
+  "reason": "1985: \"The NEXT GROUP clause of a report heading report group can affect the location at which the page heading report group is presented.\"; 2023: \"namely the first body group when the report is not divided into pages, or the first page heading when the page heading consists only of relative lines\". Body group and page footing effects match. In 2023 a report heading's NEXT GROUP also positions the first body group of an unpaged report, a case the 1985 rule does not state.",
   "source": "audit-1985/state-route"
  }
 }

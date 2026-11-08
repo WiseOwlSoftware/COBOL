@@ -9,7 +9,7 @@
    "GR-14.9.49.4-10"
   ],
   "bridge": true,
-  "reason": "1985: 'A PERFORM statement in a USE BEFORE REPORTING procedure must not have GENERATE, INITIATE, or TERMINATE statements in its range.'; 2023: 'If a GENERATE, INITIATE, or TERMINATE statement is executed within the range of a declarative ... EC-FLOW-REPORT ... is set'. The paragraph ban is kept verbatim. The PERFORM-range ban is no longer a syntax rule: execution in the range is defined as unsuccessful and sets EC-FLOW-REPORT.",
+  "reason": "1985: \"A PERFORM statement in a USE BEFORE REPORTING procedure must not have GENERATE, INITIATE, or TERMINATE statements in its range.\"; 2023: \"If a GENERATE, INITIATE, or TERMINATE statement is executed within the range of a declarative ... EC-FLOW-REPORT ... is set\". The paragraph ban is kept verbatim. The PERFORM-range ban is no longer a syntax rule: execution in the range is defined as unsuccessful and sets EC-FLOW-REPORT.",
   "source": "audit-1985/state-route"
  }
 }

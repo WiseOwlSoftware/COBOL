@@ -10,7 +10,7 @@
    "GR-13.18.37.4-3"
   ],
   "bridge": true,
-  "reason": "1985: 'R | Absolute | ... | Illegal Combination++ (If the PAGE clause is omitted.)'; 2023: 'the effect of the absolute and relative forms is to increase the line number ... namely the first body group when the report is not divided'. Limits a and b and NEXT PAGE rule c are kept, but 1985 refuses an absolute NEXT GROUP in an unpaged report heading; 2023 gives it an effect on the first body group.",
+  "reason": "1985: \"R | Absolute | ... | Illegal Combination++ (If the PAGE clause is omitted.)\"; 2023: \"the effect of the absolute and relative forms is to increase the line number ... namely the first body group when the report is not divided\". Limits a and b and NEXT PAGE rule c are kept, but 1985 refuses an absolute NEXT GROUP in an unpaged report heading; 2023 gives it an effect on the first body group.",
   "source": "audit-1985/state-route"
  }
 }

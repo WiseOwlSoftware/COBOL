@@ -13,7 +13,7 @@
    "GR-14.9.28.4-3"
   ],
   "bridge": true,
-  "reason": "1985: 'the value of the data item referenced by identifier-2 or identifier-5 ... must be equal to an occurrence number of an element in a table'; 2023: 'the data item shall have a positive value. If the data item does not have a positive value, the EC-RANGE-PERFORM-VARYING exception'. Basic, TIMES, UNTIL and VARYING semantics carry over. The 1985 occurrence-number and index-range requirements become a positive-value rule with an exception, and BY may be omitted (default 1).",
+  "reason": "1985: \"the value of the data item referenced by identifier-2 or identifier-5 ... must be equal to an occurrence number of an element in a table\"; 2023: \"the data item shall have a positive value. If the data item does not have a positive value, the EC-RANGE-PERFORM-VARYING exception\". Basic, TIMES, UNTIL and VARYING semantics carry over. The 1985 occurrence-number and index-range requirements become a positive-value rule with an exception, and BY may be omitted (default 1).",
   "source": "audit-1985/state-route"
  }
 }

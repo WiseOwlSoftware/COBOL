@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'For an input file, the appropriate label routine checks to see if the value of implementor-name-1 is equal to literal-1'; 2023: 'No 2023 clause holds the VALUE OF clause; the candidates cover ASSIGN, RECORD and screen USING, not label values.'. No 2023 clause carries the VALUE OF clause, and no candidate checks or sets implementor-name label values for input or output files. The feature is dropped.",
+  "reason": "1985: \"For an input file, the appropriate label routine checks to see if the value of implementor-name-1 is equal to literal-1\"; 2023: \"No 2023 clause holds the VALUE OF clause; the candidates cover ASSIGN, RECORD and screen USING, not label values.\". No 2023 clause carries the VALUE OF clause, and no candidate checks or sets implementor-name label values for input or output files. The feature is dropped.",
   "source": "audit-1985/state-route"
  }
 }

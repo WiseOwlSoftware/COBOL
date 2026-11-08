@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'all LABEL RECORDS clauses in the run unit which are associated with this file connector must have the same specification'; 2023: '13.4.5.4 GR2 lists BLOCK CONTAINS, CODE-SET, LINAGE, record size, REPORT for external files; no LABEL RECORDS clause exists'. No 2023 clause holds LABEL RECORDS. The external-file consistency rules in 13.4.5.4 GR2 omit it, so the clause and this requirement are dropped.",
+  "reason": "1985: \"all LABEL RECORDS clauses in the run unit which are associated with this file connector must have the same specification\"; 2023: \"13.4.5.4 GR2 lists BLOCK CONTAINS, CODE-SET, LINAGE, record size, REPORT for external files; no LABEL RECORDS clause exists\". No 2023 clause holds LABEL RECORDS. The external-file consistency rules in 13.4.5.4 GR2 omit it, so the clause and this requirement are dropped.",
   "source": "audit-1985/state-route"
  }
 }

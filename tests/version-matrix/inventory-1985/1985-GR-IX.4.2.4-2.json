@@ -9,7 +9,7 @@
    "GR-14.9.6.4-3"
   ],
   "bridge": true,
-  "reason": "1985: 'CLOSE WITH LOCK | A,B ... B. File Lock The file is locked and cannot be opened again during this execution of this run unit.'; 2023: 'Table 14 has no WITH LOCK row; non-sequential: CLOSE | c ... c) Close file Closing operations specified by the implementor are executed.'. 2023 keeps the non-sequential category and CLOSE as an implementor close. It drops CLOSE WITH LOCK (file lock B) and the label-record processing and its undefined cases.",
+  "reason": "1985: \"CLOSE WITH LOCK | A,B ... B. File Lock The file is locked and cannot be opened again during this execution of this run unit.\"; 2023: \"Table 14 has no WITH LOCK row; non-sequential: CLOSE | c ... c) Close file Closing operations specified by the implementor are executed.\". 2023 keeps the non-sequential category and CLOSE as an implementor close. It drops CLOSE WITH LOCK (file lock B) and the label-record processing and its undefined cases.",
   "source": "audit-1985/state-route"
  }
 }

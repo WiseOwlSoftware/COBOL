@@ -8,7 +8,7 @@
    "FMT-14.9.1.2"
   ],
   "bridge": true,
-  "reason": "1985: 'ACCEPT identifier-2 FROM { DATE | DAY | DAY-OF-WEEK | TIME }'; 2023: 'DATE [ YYYYMMDD ] ... DAY [ YYYYDDD ] ... [ END-ACCEPT ]; plus Format 3 (screen): ACCEPT screen-name-1 ...'. 2023 keeps both 1985 formats but adds the YYYYMMDD and YYYYDDD phrases, END-ACCEPT and a screen format. These are added cases, so it accepts programs that 1985 refused.",
+  "reason": "1985: \"ACCEPT identifier-2 FROM { DATE | DAY | DAY-OF-WEEK | TIME }\"; 2023: \"DATE [ YYYYMMDD ] ... DAY [ YYYYDDD ] ... [ END-ACCEPT ]; plus Format 3 (screen): ACCEPT screen-name-1 ...\". 2023 keeps both 1985 formats but adds the YYYYMMDD and YYYYDDD phrases, END-ACCEPT and a screen format. These are added cases, so it accepts programs that 1985 refused.",
   "source": "audit-1985/state-route"
  }
 }

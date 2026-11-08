@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'DATA { RECORD IS | RECORDS ARE } { data-name-1 } …'; 2023: 'No 2023 clause holds the DATA RECORDS clause; no candidate gives its format or rules'. No 2023 clause carries the DATA RECORDS feature. The wording candidates cover other clauses (RECORD, RECORD DELIMITER, SAME AS, UNLOCK, FREE), so 2023 lacks the feature.",
+  "reason": "1985: \"DATA { RECORD IS | RECORDS ARE } { data-name-1 } …\"; 2023: \"No 2023 clause holds the DATA RECORDS clause; no candidate gives its format or rules\". No 2023 clause carries the DATA RECORDS feature. The wording candidates cover other clauses (RECORD, RECORD DELIMITER, SAME AS, UNLOCK, FREE), so 2023 lacks the feature.",
   "source": "audit-1985/state-route"
  }
 }

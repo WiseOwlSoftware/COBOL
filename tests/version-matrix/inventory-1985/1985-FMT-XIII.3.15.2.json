@@ -11,7 +11,7 @@
    "SR-13.18.35.3-10"
   ],
   "bridge": true,
-  "reason": "1985: 'LINE NUMBER IS { integer-1 [ ON NEXT PAGE ] | PLUS integer-2 }'; 2023: '{LINE NUMBER IS|LINE NUMBERS ARE|LINES ARE} {integer-1 [ON NEXT PAGE]|{PLUS|+} integer-2|ON NEXT PAGE} …'. 2023 still accepts the 1985 forms but adds LINES/NUMBERS ARE, the + synonym, ON NEXT PAGE alone and repeated operands, so it accepts programs 1985 refuses.",
+  "reason": "1985: \"LINE NUMBER IS { integer-1 [ ON NEXT PAGE ] | PLUS integer-2 }\"; 2023: \"{LINE NUMBER IS|LINE NUMBERS ARE|LINES ARE} {integer-1 [ON NEXT PAGE]|{PLUS|+} integer-2|ON NEXT PAGE} …\". 2023 still accepts the 1985 forms but adds LINES/NUMBERS ARE, the + synonym, ON NEXT PAGE alone and repeated operands, so it accepts programs 1985 refuses.",
   "source": "audit-1985/state-route"
  }
 }

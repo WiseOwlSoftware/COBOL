@@ -8,7 +8,7 @@
    "GR-13.4.5.4-2"
   ],
   "bridge": true,
-  "reason": "1985: 'all CODE-SET clauses in the run unit which are associated with that file connector must have the same character set'; 2023: 'If any of the file description entries has a CODE-SET clause, all shall have a CODE-SET clause specifying the same character set.'. 1985 constrains only the CODE-SET clauses present. 2023 also requires every entry for the external connector to have CODE-SET once any has one, so mixing entries with and without it is refused.",
+  "reason": "1985: \"all CODE-SET clauses in the run unit which are associated with that file connector must have the same character set\"; 2023: \"If any of the file description entries has a CODE-SET clause, all shall have a CODE-SET clause specifying the same character set.\". 1985 constrains only the CODE-SET clauses present. 2023 also requires every entry for the external connector to have CODE-SET once any has one, so mixing entries with and without it is refused.",
   "source": "audit-1985/state-route"
  }
 }

@@ -8,7 +8,7 @@
    "GR-14.9.51.4-5"
   ],
   "bridge": true,
-  "reason": "1985: 'Record-name-1 and identifier-1 must not refer to the same storage area.'; 2023: '14.6.10, Overlapping operands, and 14.9.25, MOVE statement, general rules, apply to any cases in which the storage area'. 1985 refuses shared storage of identifier-1 and record-name-1 as a syntax rule. 2023 allows it and leaves the result to the overlapping-operand and MOVE rules, possibly undefined.",
+  "reason": "1985: \"Record-name-1 and identifier-1 must not refer to the same storage area.\"; 2023: \"14.6.10, Overlapping operands, and 14.9.25, MOVE statement, general rules, apply to any cases in which the storage area\". 1985 refuses shared storage of identifier-1 and record-name-1 as a syntax rule. 2023 allows it and leaves the result to the overlapping-operand and MOVE rules, possibly undefined.",
   "source": "audit-1985/state-route"
  }
 }

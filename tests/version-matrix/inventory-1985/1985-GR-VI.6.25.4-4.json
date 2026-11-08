@@ -8,7 +8,7 @@
    "GR-14.9.43.4-3"
   ],
   "bridge": true,
-  "reason": "1985: 'If the DELIMITED phrase is specified without the SIZE phrase, the content of the data item referenced by identifier-1'; 2023: 'or identifier-2 is specified and is a zero-length item, the entire content of literal-1 ... is transferred; If an identifier-1 references a zero-length item, that sending operand is ignored'. Rules a-c carried over intact, but 2023 adds cases: national-to-national moves, a zero-length identifier-1 is ignored, and a zero-length identifier-2 delimiter acts as SIZE.",
+  "reason": "1985: \"If the DELIMITED phrase is specified without the SIZE phrase, the content of the data item referenced by identifier-1\"; 2023: \"or identifier-2 is specified and is a zero-length item, the entire content of literal-1 ... is transferred; If an identifier-1 references a zero-length item, that sending operand is ignored\". Rules a-c carried over intact, but 2023 adds cases: national-to-national moves, a zero-length identifier-1 is ignored, and a zero-length identifier-2 delimiter acts as SIZE.",
   "source": "audit-1985/state-route"
  }
 }

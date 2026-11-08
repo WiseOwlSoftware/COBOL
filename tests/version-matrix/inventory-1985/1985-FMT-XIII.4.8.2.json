@@ -8,7 +8,7 @@
    "FMT-14.9.49.2"
   ],
   "bridge": true,
-  "reason": "1985: 'USE AFTER STANDARD {EXCEPTION|ERROR} PROCEDURE ON {file-name-1 …|OUTPUT|EXTEND}, with AFTER underlined'; 2023: 'USE [GLOBAL] AFTER STANDARD … ON {file-name-1…|INPUT|OUTPUT|I-O|EXTEND}; AFTER is not underlined'. 2023 Format 1 adds INPUT, I-O and optional GLOBAL, and makes AFTER an optional word, so it accepts programs the 1985 Report Writer format refuses.",
+  "reason": "1985: \"USE AFTER STANDARD {EXCEPTION|ERROR} PROCEDURE ON {file-name-1 …|OUTPUT|EXTEND}, with AFTER underlined\"; 2023: \"USE [GLOBAL] AFTER STANDARD … ON {file-name-1…|INPUT|OUTPUT|I-O|EXTEND}; AFTER is not underlined\". 2023 Format 1 adds INPUT, I-O and optional GLOBAL, and makes AFTER an optional word, so it accepts programs the 1985 Report Writer format refuses.",
   "source": "audit-1985/state-route"
  }
 }

@@ -9,7 +9,7 @@
    "GR-13.18.39.4-3"
   ],
   "bridge": true,
-  "reason": "1985: 'LAST DETAIL integer-4 defines the last line number on which a control heading or detail report group may be presented.'; 2023: 'Integer-5 is the LAST CONTROL HEADING integer. It defines the last line position on which any line of a control heading may be printed.'. 2023 adds a separate LAST CONTROL HEADING limit for control headings, so LAST DETAIL limits only details. When it is omitted it defaults to LAST DETAIL. The other regions match.",
+  "reason": "1985: \"LAST DETAIL integer-4 defines the last line number on which a control heading or detail report group may be presented.\"; 2023: \"Integer-5 is the LAST CONTROL HEADING integer. It defines the last line position on which any line of a control heading may be printed.\". 2023 adds a separate LAST CONTROL HEADING limit for control headings, so LAST DETAIL limits only details. When it is omitted it defaults to LAST DETAIL. The other regions match.",
   "source": "audit-1985/state-route"
  }
 }

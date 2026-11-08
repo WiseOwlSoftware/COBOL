@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'Wholly within the same independent segment as that SORT statement.'; 2023: 'No 2023 clause holds the Segmentation feature; no candidate addresses independent segments or where SORT procedures may be placed.'. The rule belongs to the Segmentation module. No 2023 clause covers that feature, and no candidate restricts SORT input/output procedures to a segment, so the requirement is dropped.",
+  "reason": "1985: \"Wholly within the same independent segment as that SORT statement.\"; 2023: \"No 2023 clause holds the Segmentation feature; no candidate addresses independent segments or where SORT procedures may be placed.\". The rule belongs to the Segmentation module. No 2023 clause covers that feature, and no candidate restricts SORT input/output procedures to a segment, so the requirement is dropped.",
   "source": "audit-1985/state-route"
  }
 }

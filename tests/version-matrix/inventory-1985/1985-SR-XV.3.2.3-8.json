@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'When the ALL PROCEDURES phrase is specified, procedure-name-1 must not be specified in any USE FOR DEBUGGING statement.'; 2023: \"No USE FOR DEBUGGING format among the 2023 USE statement rules; the Debug module's ALL PROCEDURES phrase is not carried.\". The 2023 USE statement rules cover exceptions, reporting and objects but have no FOR DEBUGGING or ALL PROCEDURES. The Debug feature is dropped, so the restriction is gone.",
+  "reason": "1985: \"When the ALL PROCEDURES phrase is specified, procedure-name-1 must not be specified in any USE FOR DEBUGGING statement.\"; 2023: \"No USE FOR DEBUGGING format among the 2023 USE statement rules; the Debug module's ALL PROCEDURES phrase is not carried.\". The 2023 USE statement rules cover exceptions, reporting and objects but have no FOR DEBUGGING or ALL PROCEDURES. The Debug feature is dropped, so the restriction is gone.",
   "source": "audit-1985/state-route"
  }
 }

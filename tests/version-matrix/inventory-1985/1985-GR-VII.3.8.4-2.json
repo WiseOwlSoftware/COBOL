@@ -8,7 +8,7 @@
    "GR-13.4.5.4-2"
   ],
   "bridge": true,
-  "reason": "1985: 'If the RECORD clause is not specified, all record description entries associated with this file connector must be the same length.'; 2023: 'd) All file description entries shall have the same smallest and largest record size.'. 2023 requires only equal smallest and largest record sizes across the FDs. Without a RECORD clause, record descriptions of different lengths are no longer refused.",
+  "reason": "1985: \"If the RECORD clause is not specified, all record description entries associated with this file connector must be the same length.\"; 2023: \"d) All file description entries shall have the same smallest and largest record size.\". 2023 requires only equal smallest and largest record sizes across the FDs. Without a RECORD clause, record descriptions of different lengths are no longer refused.",
   "source": "audit-1985/state-route"
  }
 }

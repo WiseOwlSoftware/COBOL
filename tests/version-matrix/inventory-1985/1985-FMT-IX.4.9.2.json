@@ -9,7 +9,7 @@
    "SR-14.9.51.3-3"
   ],
   "bridge": true,
-  "reason": "1985: 'WRITE record-name-1 [FROM identifier-1] [INVALID KEY imperative-statement-1] [NOT INVALID KEY ...]'; 2023: 'WRITE {record-name-1|FILE file-name-1} [FROM {identifier-1|literal-1}] [retry-phrase] [WITH LOCK|WITH NO LOCK]'. 2023 Format 2 (indexed/relative) adds the FILE phrase, a FROM literal, RETRY and LOCK phrases. Choice indicators let INVALID KEY and NOT INVALID KEY appear in either order.",
+  "reason": "1985: \"WRITE record-name-1 [FROM identifier-1] [INVALID KEY imperative-statement-1] [NOT INVALID KEY ...]\"; 2023: \"WRITE {record-name-1|FILE file-name-1} [FROM {identifier-1|literal-1}] [retry-phrase] [WITH LOCK|WITH NO LOCK]\". 2023 Format 2 (indexed/relative) adds the FILE phrase, a FROM literal, RETRY and LOCK phrases. Choice indicators let INVALID KEY and NOT INVALID KEY appear in either order.",
   "source": "audit-1985/state-route"
  }
 }

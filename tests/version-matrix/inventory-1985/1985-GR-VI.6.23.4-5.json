@@ -10,7 +10,7 @@
    "SR-14.9.39.3-2"
   ],
   "bridge": true,
-  "reason": "1985: 'Integer literal ... Valid/3a ... Integer data item ... Valid/3a'; 2023: 'If arithmetic-expression-1 is specified, ... index-name-1 is set to a value causing it to refer to the table element'. 2023 keeps the index, index data item and integer item combinations, but accepts any arithmetic expression as the sending item for an index and adds EC-RANGE-INDEX checks.",
+  "reason": "1985: \"Integer literal ... Valid/3a ... Integer data item ... Valid/3a\"; 2023: \"If arithmetic-expression-1 is specified, ... index-name-1 is set to a value causing it to refer to the table element\". 2023 keeps the index, index data item and integer item combinations, but accepts any arithmetic expression as the sending item for an index and adds EC-RANGE-INDEX checks.",
   "source": "audit-1985/state-route"
  }
 }

@@ -8,7 +8,7 @@
    "GR-13.18.46.4-2"
   ],
   "bridge": true,
-  "reason": "1985: 'no input-output statement may be executed which references that report file'; 2023: 'no OPEN or CLOSE statements shall be executed that reference the report file'. Both bar statements on the report file between INITIATE and TERMINATE. 1985 bars every input-output statement; 2023 bars only OPEN and CLOSE, so other I-O statements are no longer refused.",
+  "reason": "1985: \"no input-output statement may be executed which references that report file\"; 2023: \"no OPEN or CLOSE statements shall be executed that reference the report file\". Both bar statements on the report file between INITIATE and TERMINATE. 1985 bars every input-output statement; 2023 bars only OPEN and CLOSE, so other I-O statements are no longer refused.",
   "source": "audit-1985/state-route"
  }
 }

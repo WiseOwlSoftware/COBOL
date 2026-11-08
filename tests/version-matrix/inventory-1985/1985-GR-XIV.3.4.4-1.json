@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'Execution of a PURGE statement causes the MCS to eliminate any partial message awaiting transmission'; 2023: 'No PURGE statement; the 2023 SEND/RECEIVE candidates concern message-server run units, not CD-based MCS queues.'. The 1985 Communication module, with CD and PURGE, is absent. No candidate covers purging partial messages, and the 2023 SEND/RECEIVE rules are a different message-server facility.",
+  "reason": "1985: \"Execution of a PURGE statement causes the MCS to eliminate any partial message awaiting transmission\"; 2023: \"No PURGE statement; the 2023 SEND/RECEIVE candidates concern message-server run units, not CD-based MCS queues.\". The 1985 Communication module, with CD and PURGE, is absent. No candidate covers purging partial messages, and the 2023 SEND/RECEIVE rules are a different message-server facility.",
   "source": "audit-1985/state-route"
  }
 }

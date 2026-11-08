@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'Totally within non-independent segments, or'; 2023: 'No Segmentation module or segments in 2023; no candidate covers segment-based restrictions on program flow'. The rule restricts program flow by segment type. 2023 has no segmentation feature, no candidate from a holding clause exists, and the wording candidates cover unrelated subjects.",
+  "reason": "1985: \"Totally within non-independent segments, or\"; 2023: \"No Segmentation module or segments in 2023; no candidate covers segment-based restrictions on program flow\". The rule restricts program flow by segment type. 2023 has no segmentation feature, no candidate from a holding clause exists, and the wording candidates cover unrelated subjects.",
   "source": "audit-1985/state-route"
  }
 }

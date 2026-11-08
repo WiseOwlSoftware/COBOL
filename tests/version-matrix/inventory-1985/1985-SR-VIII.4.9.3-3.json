@@ -8,7 +8,7 @@
    "GR-9.1.14-4"
   ],
   "bridge": true,
-  "reason": "1985: 'The INVALID KEY phrase must be specified if an applicable USE AFTER STANDARD EXCEPTION procedure is not specified'; 2023: 'If the INVALID KEY phrase is not specified ... and there are no applicable exception processing statements, control is transferred to the end'. 1985 refuses a WRITE with neither INVALID KEY nor a USE procedure. 2023 has no such syntax rule, accepts that WRITE and sends control to the end of the statement.",
+  "reason": "1985: \"The INVALID KEY phrase must be specified if an applicable USE AFTER STANDARD EXCEPTION procedure is not specified\"; 2023: \"If the INVALID KEY phrase is not specified ... and there are no applicable exception processing statements, control is transferred to the end\". 1985 refuses a WRITE with neither INVALID KEY nor a USE procedure. 2023 has no such syntax rule, accepts that WRITE and sends control to the end of the statement.",
   "source": "audit-1985/state-route"
  }
 }

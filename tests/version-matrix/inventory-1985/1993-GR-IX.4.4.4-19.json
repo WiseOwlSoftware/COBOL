@@ -8,7 +8,7 @@
    "GR-14.9.27.4-25"
   ],
   "bridge": true,
-  "reason": "1985: 'b. Any applicable USE AFTER EXCEPTION procedure is executed.'; 2023: 'c) If the OPEN statement is specified in imperative-statement-1 in an exception-checking PERFORM ... No applicable USE declarative is executed.'. Same order (file unaffected, I-O status set, then USE). 2023 adds raising EC-I-O if enabled, and a case where a PERFORM WHEN phrase applies and no USE declarative runs.",
+  "reason": "1985: \"b. Any applicable USE AFTER EXCEPTION procedure is executed.\"; 2023: \"c) If the OPEN statement is specified in imperative-statement-1 in an exception-checking PERFORM ... No applicable USE declarative is executed.\". Same order (file unaffected, I-O status set, then USE). 2023 adds raising EC-I-O if enabled, and a case where a PERFORM WHEN phrase applies and no USE declarative runs.",
   "source": "audit-1985/state-route"
  }
 }

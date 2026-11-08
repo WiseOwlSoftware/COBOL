@@ -9,7 +9,7 @@
    "SR-13.18.35.3-6"
   ],
   "bridge": true,
-  "reason": "1985: 'Integer-1 and integer-2 must not exceed three significant digits in length.'; 2023: 'Neither integer-1 nor integer-2 shall exceed the page limit, or 9999 if the report is not divided into pages.'. 2023 drops the three-digit limit for the page limit (itself up to 9999), or 9999 for unpaged reports. The vertical-subdivision rule (6c, 6d) and 'Integer-2 may be zero' are kept.",
+  "reason": "1985: \"Integer-1 and integer-2 must not exceed three significant digits in length.\"; 2023: \"Neither integer-1 nor integer-2 shall exceed the page limit, or 9999 if the report is not divided into pages.\". 2023 drops the three-digit limit for the page limit (itself up to 9999), or 9999 for unpaged reports. The vertical-subdivision rule (6c, 6d) and 'Integer-2 may be zero' are kept.",
   "source": "audit-1985/state-route"
  }
 }

@@ -9,7 +9,7 @@
    "GR-14.9.25.4-9"
   ],
   "bridge": true,
-  "reason": "1985: 'Any move that is not an elementary move is treated exactly as if it were an alphanumeric to alphanumeric elementary move'; 2023: 'Any move that is not an elementary move, and does not reference a variable-length group, is treated exactly as if'. 2023 drops the alphanumeric-move treatment for variable-length groups (incl. occurs-depending); GR 9 moves corresponding tables separately and space-fills excess.",
+  "reason": "1985: \"Any move that is not an elementary move is treated exactly as if it were an alphanumeric to alphanumeric elementary move\"; 2023: \"Any move that is not an elementary move, and does not reference a variable-length group, is treated exactly as if\". 2023 drops the alphanumeric-move treatment for variable-length groups (incl. occurs-depending); GR 9 moves corresponding tables separately and space-fills excess.",
   "source": "audit-1985/state-route"
  }
 }

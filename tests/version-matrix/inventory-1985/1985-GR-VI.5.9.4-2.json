@@ -9,7 +9,7 @@
    "GR-13.18.40.4-14"
   ],
   "bridge": true,
-  "reason": "1985: 'Its content, when represented in standard data format, must be one or more alphabetic characters.'; 2023: \"Each symbol 'A' represents a character position that shall contain any character from the computer's alphanumeric character set.\". Both still limit the picture string to 'A'. 2023 drops the rule that the content be alphabetic: an 'A' position may hold any alphanumeric character, and is checked only by VALIDATE.",
+  "reason": "1985: \"Its content, when represented in standard data format, must be one or more alphabetic characters.\"; 2023: \"Each symbol 'A' represents a character position that shall contain any character from the computer's alphanumeric character set.\". Both still limit the picture string to 'A'. 2023 drops the rule that the content be alphabetic: an 'A' position may hold any alphanumeric character, and is checked only by VALIDATE.",
   "source": "audit-1985/state-route"
  }
 }

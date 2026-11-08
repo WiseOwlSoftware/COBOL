@@ -8,7 +8,7 @@
    "FMT-11.2.1"
   ],
   "bridge": true,
-  "reason": "1985: 'IDENTIFICATION DIVISION. PROGRAM-ID. program-name. [ AUTHOR. [ comment-entry ] … ] [ INSTALLATION. …] … [ SECURITY. …]'; 2023: '[ IDENTIFICATION DIVISION. ] program-id-paragraph … [ options-paragraph ]'. 2023 makes the division header optional and drops the AUTHOR, INSTALLATION, DATE-WRITTEN, DATE-COMPILED and SECURITY paragraphs. It adds other identification paragraphs and OPTIONS.",
+  "reason": "1985: \"IDENTIFICATION DIVISION. PROGRAM-ID. program-name. [ AUTHOR. [ comment-entry ] … ] [ INSTALLATION. …] … [ SECURITY. …]\"; 2023: \"[ IDENTIFICATION DIVISION. ] program-id-paragraph … [ options-paragraph ]\". 2023 makes the division header optional and drops the AUTHOR, INSTALLATION, DATE-WRITTEN, DATE-COMPILED and SECURITY paragraphs. It adds other identification paragraphs and OPTIONS.",
   "source": "audit-1985/state-route"
  }
 }

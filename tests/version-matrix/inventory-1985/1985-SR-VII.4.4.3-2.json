@@ -8,7 +8,7 @@
    "GR-14.9.30.4-24"
   ],
   "bridge": true,
-  "reason": "1985: 'The AT END phrase must be specified if no applicable USE AFTER STANDARD EXCEPTION procedure is specified for file-name-1.'; 2023: 'If there are no applicable at end exception processing statements, control is transferred to the end of the READ statement.'. 2023 READ syntax rules no longer require AT END. A READ with neither AT END nor an applicable USE, refused in 1985, is now accepted, and 2023 defines its execution.",
+  "reason": "1985: \"The AT END phrase must be specified if no applicable USE AFTER STANDARD EXCEPTION procedure is specified for file-name-1.\"; 2023: \"If there are no applicable at end exception processing statements, control is transferred to the end of the READ statement.\". 2023 READ syntax rules no longer require AT END. A READ with neither AT END nor an applicable USE, refused in 1985, is now accepted, and 2023 defines its execution.",
   "source": "audit-1985/state-route"
  }
 }

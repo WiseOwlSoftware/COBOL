@@ -8,7 +8,7 @@
    "RV-15.97.4-5"
   ],
   "bridge": true,
-  "reason": "1985: 'The character string returned has the same length as argument-1.'; 2023: 'When the correspondence of lowercase and uppercase letters is not one-to-one, the character string returned may be longer or shorter'. 1985 always returns a result as long as argument-1. 2023 keeps that only for one-to-one case mapping; otherwise the length may differ.",
+  "reason": "1985: \"The character string returned has the same length as argument-1.\"; 2023: \"When the correspondence of lowercase and uppercase letters is not one-to-one, the character string returned may be longer or shorter\". 1985 always returns a result as long as argument-1. 2023 keeps that only for one-to-one case mapping; otherwise the length may differ.",
   "source": "audit-1985/state-route"
  }
 }

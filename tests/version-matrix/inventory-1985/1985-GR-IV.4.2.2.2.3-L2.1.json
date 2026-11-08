@@ -8,7 +8,7 @@
    "GR-8.3.3.6.4-2"
   ],
   "bridge": true,
-  "reason": "1985: 'truncated from the right until it is equal to the number of character positions in the associated data item'; 2023: 'fixed-length data item, literal, or intermediate result ... equal either to 1 or to the number of character positions ... whichever is greater'. Same repeat-and-truncate rule, but 2023 adds cases (literals, intermediate results), limits it to fixed-length items, and keeps at least one character.",
+  "reason": "1985: \"truncated from the right until it is equal to the number of character positions in the associated data item\"; 2023: \"fixed-length data item, literal, or intermediate result ... equal either to 1 or to the number of character positions ... whichever is greater\". Same repeat-and-truncate rule, but 2023 adds cases (literals, intermediate results), limits it to fixed-length items, and keeps at least one character.",
   "source": "audit-1985/state-route"
  }
 }

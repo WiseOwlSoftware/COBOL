@@ -9,7 +9,7 @@
    "GR-14.9.6.4-8"
   ],
   "bridge": true,
-  "reason": "1985: 'must be preceded by the execution of a CLOSE statement, without the LOCK phrase, for that file'; 2023: \"The file connector referenced by file-name-1 shall not be open. If it is open, ... the I-O status ... is set to '41'.\". 2023 keeps the close-before-reopen rule (status 41), but any successful CLOSE without UNIT allows a reopen. No LOCK exclusion is stated, and status 38 is absent from the list.",
+  "reason": "1985: \"must be preceded by the execution of a CLOSE statement, without the LOCK phrase, for that file\"; 2023: \"The file connector referenced by file-name-1 shall not be open. If it is open, ... the I-O status ... is set to '41'.\". 2023 keeps the close-before-reopen rule (status 41), but any successful CLOSE without UNIT allows a reopen. No LOCK exclusion is stated, and status 38 is absent from the list.",
   "source": "audit-1985/state-route"
  }
 }

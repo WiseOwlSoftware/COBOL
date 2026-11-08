@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'Literal-1 must be a one-character nonnumeric literal.'; 2023: 'No 2023 clause holds the PADDING CHARACTER clause; no candidate states this rule.'. No 2023 clause holds the PADDING CHARACTER feature, and every wording candidate is about another clause's literal-1. The clause and its rule appear dropped from 2023.",
+  "reason": "1985: \"Literal-1 must be a one-character nonnumeric literal.\"; 2023: \"No 2023 clause holds the PADDING CHARACTER clause; no candidate states this rule.\". No 2023 clause holds the PADDING CHARACTER feature, and every wording candidate is about another clause's literal-1. The clause and its rule appear dropped from 2023.",
   "source": "audit-1985/state-route"
  }
 }

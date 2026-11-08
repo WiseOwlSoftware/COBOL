@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'ACCEPT cd-name-1 MESSAGE COUNT'; 2023: 'No candidate has a cd-name or MESSAGE COUNT format; the ACCEPT rules cover only device and screen transfer'. No clause holds the 1985 Communication module feature. The 2023 ACCEPT candidates cover device and screen formats, and NULL message-tag concerns message servers, not cd-name counts.",
+  "reason": "1985: \"ACCEPT cd-name-1 MESSAGE COUNT\"; 2023: \"No candidate has a cd-name or MESSAGE COUNT format; the ACCEPT rules cover only device and screen transfer\". No clause holds the 1985 Communication module feature. The 2023 ACCEPT candidates cover device and screen formats, and NULL message-tag concerns message servers, not cd-name counts.",
   "source": "audit-1985/state-route"
  }
 }

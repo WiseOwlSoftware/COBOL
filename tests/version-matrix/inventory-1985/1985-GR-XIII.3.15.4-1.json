@@ -9,7 +9,7 @@
    "GR-13.18.35.4-9"
   ],
   "bridge": true,
-  "reason": "1985: 'A LINE NUMBER clause must be specified to establish each print line of a report group.'; 2023: 'Each LINE clause in a given report group description defines a report line, or set of report lines'. Report lines still come from LINE clauses, but in 2023 one clause may define several lines (multiple operands or OCCURS). A LINE clause is no longer needed for each print line.",
+  "reason": "1985: \"A LINE NUMBER clause must be specified to establish each print line of a report group.\"; 2023: \"Each LINE clause in a given report group description defines a report line, or set of report lines\". Report lines still come from LINE clauses, but in 2023 one clause may define several lines (multiple operands or OCCURS). A LINE clause is no longer needed for each print line.",
   "source": "audit-1985/state-route"
  }
 }

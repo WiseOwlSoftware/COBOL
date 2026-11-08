@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'Sections and/or paragraphs wholly contained in one or more non-independent segments.'; 2023: 'No 2023 clause holds the Segmentation feature; no candidate mentions segments or non-independent segments.'. No 2023 clause holds the Segmentation feature, and no candidate addresses segments or their program-flow restrictions, so the feature and this rule are dropped.",
+  "reason": "1985: \"Sections and/or paragraphs wholly contained in one or more non-independent segments.\"; 2023: \"No 2023 clause holds the Segmentation feature; no candidate mentions segments or non-independent segments.\". No 2023 clause holds the Segmentation feature, and no candidate addresses segments or their program-flow restrictions, so the feature and this rule are dropped.",
   "source": "audit-1985/state-route"
  }
 }

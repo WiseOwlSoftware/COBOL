@@ -8,7 +8,7 @@
    "GR-12.4.5.3-3"
   ],
   "bridge": true,
-  "reason": "1985: 'to a storage medium referenced by implementor-name-1 or literal-1.'; 2023: 'to a physical file identified by device-name-1, literal-1, or the content of the data item referenced by data-name-1.'. Same association rule, but 2023 adds the USING data-name-1 case. It also fixes the association at OPEN/SORT/MERGE and makes the statement unsuccessful on inconsistent content.",
+  "reason": "1985: \"to a storage medium referenced by implementor-name-1 or literal-1.\"; 2023: \"to a physical file identified by device-name-1, literal-1, or the content of the data item referenced by data-name-1.\". Same association rule, but 2023 adds the USING data-name-1 case. It also fixes the association at OPEN/SORT/MERGE and makes the statement unsuccessful on inconsistent content.",
   "source": "audit-1985/state-route"
  }
 }

@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'A RECEIVE statement that specifies a NO DATA or WITH DATA phrase.'; 2023: '2023 RECEIVE (14.9.31.4) has only ON EXCEPTION / NOT ON EXCEPTION and CONTINUE phrases; no NO DATA or WITH DATA phrase'. The 1985 communication RECEIVE with NO DATA/WITH DATA is gone. The 2023 RECEIVE is an MCS statement with exception phrases only, so this conditional-statement case has no counterpart.",
+  "reason": "1985: \"A RECEIVE statement that specifies a NO DATA or WITH DATA phrase.\"; 2023: \"2023 RECEIVE (14.9.31.4) has only ON EXCEPTION / NOT ON EXCEPTION and CONTINUE phrases; no NO DATA or WITH DATA phrase\". The 1985 communication RECEIVE with NO DATA/WITH DATA is gone. The 2023 RECEIVE is an MCS statement with exception phrases only, so this conditional-statement case has no counterpart.",
   "source": "audit-1985/state-route"
  }
 }

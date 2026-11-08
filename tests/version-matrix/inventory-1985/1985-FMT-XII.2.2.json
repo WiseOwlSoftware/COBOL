@@ -8,7 +8,7 @@
    "FMT-7.2.3.2"
   ],
   "bridge": true,
-  "reason": "1985: 'REPLACING {==pseudo-text-1== | identifier-1 | literal-1 | word-1} BY {==pseudo-text-2== | identifier-2 | literal-2 | word-2}'; 2023: 'REPLACING {==pseudo-text-1== BY ==pseudo-text-2== | {LEADING|TRAILING} ==partial-word-1== BY ==partial-word-2==}'. 2023 COPY REPLACING accepts only pseudo-text or partial-word operands; the identifier, literal and word operands are gone. It adds a literal text name, a literal library name and SUPPRESS PRINTING.",
+  "reason": "1985: \"REPLACING {==pseudo-text-1== | identifier-1 | literal-1 | word-1} BY {==pseudo-text-2== | identifier-2 | literal-2 | word-2}\"; 2023: \"REPLACING {==pseudo-text-1== BY ==pseudo-text-2== | {LEADING|TRAILING} ==partial-word-1== BY ==partial-word-2==}\". 2023 COPY REPLACING accepts only pseudo-text or partial-word operands; the identifier, literal and word operands are gone. It adds a literal text name, a literal library name and SUPPRESS PRINTING.",
   "source": "audit-1985/state-route"
  }
 }

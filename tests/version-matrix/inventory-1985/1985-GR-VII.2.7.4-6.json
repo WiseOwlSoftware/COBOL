@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'all PADDING CHARACTER clauses in the run unit which are associated with that file connector must have the same specifications'; 2023: 'No PADDING CHARACTER clause in the candidates; the external file control entry consistency list (GR-12.4.5.3-1 a-m) omits it'. No 2023 clause holds the PADDING CHARACTER feature. The external-file consistency rules for file control entries list other clauses but not PADDING CHARACTER.",
+  "reason": "1985: \"all PADDING CHARACTER clauses in the run unit which are associated with that file connector must have the same specifications\"; 2023: \"No PADDING CHARACTER clause in the candidates; the external file control entry consistency list (GR-12.4.5.3-1 a-m) omits it\". No 2023 clause holds the PADDING CHARACTER feature. The external-file consistency rules for file control entries list other clauses but not PADDING CHARACTER.",
   "source": "audit-1985/state-route"
  }
 }

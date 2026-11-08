@@ -10,7 +10,7 @@
    "GR-6.5-2"
   ],
   "bridge": true,
-  "reason": "1985: 'Comment lines or blank lines in pseudo-text-2 are placed into the resultant program unchanged'; 2023: 'The text produced as a result of processing a REPLACE statement shall not contain ... a comment, or a blank line.'. Comments are still ignored in matching, but 2023 discards comment and blank lines beforehand and forbids them in the result; 1985 carried pseudo-text-2 comment lines into it.",
+  "reason": "1985: \"Comment lines or blank lines in pseudo-text-2 are placed into the resultant program unchanged\"; 2023: \"The text produced as a result of processing a REPLACE statement shall not contain ... a comment, or a blank line.\". Comments are still ignored in matching, but 2023 discards comment and blank lines beforehand and forbids them in the result; 1985 carried pseudo-text-2 comment lines into it.",
   "source": "audit-1985/state-route"
  }
 }

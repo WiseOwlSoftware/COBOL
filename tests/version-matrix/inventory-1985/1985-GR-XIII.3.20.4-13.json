@@ -10,7 +10,7 @@
    "GR-14.9.46.4-3"
   ],
   "bridge": true,
-  "reason": "1985: 'All other data item references within report groups and their USE procedures access the current values'; 2023: 'If the printing of the control footing causes a page advance and the page heading or page footing refers to a control data item, the value produced is similarly the prior value'. Prior values still go to control footings and, on TERMINATE, to report footings. 2023 also gives prior values to page heading/footing printed during a control footing's page advance.",
+  "reason": "1985: \"All other data item references within report groups and their USE procedures access the current values\"; 2023: \"If the printing of the control footing causes a page advance and the page heading or page footing refers to a control data item, the value produced is similarly the prior value\". Prior values still go to control footings and, on TERMINATE, to report footings. 2023 also gives prior values to page heading/footing printed during a control footing's page advance.",
   "source": "audit-1985/state-route"
  }
 }

@@ -8,7 +8,7 @@
    "SR-14.9.43.3-1"
   ],
   "bridge": true,
-  "reason": "1985: 'All literals must be described as nonnumeric literals, and all identifiers, except identifier-4, must be described ... USAGE IS DISPLAY.'; 2023: 'All literals shall be described as alphanumeric, boolean, or national literals, ... usage display or national.'. 2023 also allows boolean and national literals and usage national identifiers, which 1985 refused. It adds a rule that national operands must all be national.",
+  "reason": "1985: \"All literals must be described as nonnumeric literals, and all identifiers, except identifier-4, must be described ... USAGE IS DISPLAY.\"; 2023: \"All literals shall be described as alphanumeric, boolean, or national literals, ... usage display or national.\". 2023 also allows boolean and national literals and usage national identifiers, which 1985 refused. It adds a rule that national operands must all be national.",
   "source": "audit-1985/state-route"
  }
 }

@@ -9,7 +9,7 @@
    "GR-14.9.22.4-15"
   ],
   "bridge": true,
-  "reason": "1985: 'literal-2, literal-3, or the size of the data item referenced by identifier-4, identifier-5 must be one character in length'; 2023: 'literal-3 shall be one character in length; identifier-5 ... If it is not, the EC-RANGE-INSPECT-SIZE exception condition is set'. 2023 keeps the one-character syntax rule only for literal-3. Literal-2 and identifier-4 are no longer restricted. Identifier-5 size becomes a runtime exception with undefined results.",
+  "reason": "1985: \"literal-2, literal-3, or the size of the data item referenced by identifier-4, identifier-5 must be one character in length\"; 2023: \"literal-3 shall be one character in length; identifier-5 ... If it is not, the EC-RANGE-INSPECT-SIZE exception condition is set\". 2023 keeps the one-character syntax rule only for literal-3. Literal-2 and identifier-4 are no longer restricted. Identifier-5 size becomes a runtime exception with undefined results.",
   "source": "audit-1985/state-route"
  }
 }

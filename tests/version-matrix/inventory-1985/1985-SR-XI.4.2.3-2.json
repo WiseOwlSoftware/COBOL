@@ -8,7 +8,7 @@
    "GR-14.9.32.4-1"
   ],
   "bridge": true,
-  "reason": "1985: 'A RELEASE statement may be used only within the range of an input procedure associated with a SORT statement'; 2023: 'may be executed only when it is within the range of an input procedure ... If it is executed at any other time, the EC-FLOW-RELEASE'. 1985 states a syntax rule restricting where RELEASE may appear. 2023 makes it an execution-time condition: outside an input procedure, execution sets EC-FLOW-RELEASE.",
+  "reason": "1985: \"A RELEASE statement may be used only within the range of an input procedure associated with a SORT statement\"; 2023: \"may be executed only when it is within the range of an input procedure ... If it is executed at any other time, the EC-FLOW-RELEASE\". 1985 states a syntax rule restricting where RELEASE may appear. 2023 makes it an execution-time condition: outside an input procedure, execution sets EC-FLOW-RELEASE.",
   "source": "audit-1985/state-route"
  }
 }

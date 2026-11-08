@@ -8,7 +8,7 @@
    "GR-12.3.6.4-13"
   ],
   "bridge": true,
-  "reason": "1985: 'is applied to any nonnumeric merge or sort keys unless the COLLATING SEQUENCE phrase is specified in the respective SORT or MERGE'; 2023: 'unless the sort or merge collating sequence has been modified by execution of a SET statement or a COLLATING SEQUENCE phrase is specified'. Same rule, but 2023 adds a second exception: a sort or merge collating sequence modified by executing a SET statement overrides the program collating sequence for keys.",
+  "reason": "1985: \"is applied to any nonnumeric merge or sort keys unless the COLLATING SEQUENCE phrase is specified in the respective SORT or MERGE\"; 2023: \"unless the sort or merge collating sequence has been modified by execution of a SET statement or a COLLATING SEQUENCE phrase is specified\". Same rule, but 2023 adds a second exception: a sort or merge collating sequence modified by executing a SET statement overrides the program collating sequence for keys.",
   "source": "audit-1985/state-route"
  }
 }

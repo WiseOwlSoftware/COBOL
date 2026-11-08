@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'Cd-name-1 must reference an input CD.'; 2023: 'No candidate covers ACCEPT MESSAGE COUNT or CDs; the 2023 ACCEPT rules address other formats only.'. The Communication module and ACCEPT MESSAGE COUNT are absent from 2023. The 2023 ACCEPT rules cover only identifiers, screens and devices, not CDs.",
+  "reason": "1985: \"Cd-name-1 must reference an input CD.\"; 2023: \"No candidate covers ACCEPT MESSAGE COUNT or CDs; the 2023 ACCEPT rules address other formats only.\". The Communication module and ACCEPT MESSAGE COUNT are absent from 2023. The 2023 ACCEPT rules cover only identifiers, screens and devices, not CDs.",
   "source": "audit-1985/state-route"
  }
 }

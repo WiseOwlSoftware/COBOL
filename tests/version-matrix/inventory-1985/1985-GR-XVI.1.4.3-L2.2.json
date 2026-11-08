@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'Control is transferred explicitly to that segment as the result of the execution of an EXIT PROGRAM statement.'; 2023: 'No 2023 clause holds the Segmentation module; the EXIT PROGRAM candidates say nothing about segments or segment state.'. No 2023 clause holds the Segmentation feature. The EXIT PROGRAM transfer rules (14.6.3, 14.9.14) never mention segments, so the segment-state requirement is dropped with the module.",
+  "reason": "1985: \"Control is transferred explicitly to that segment as the result of the execution of an EXIT PROGRAM statement.\"; 2023: \"No 2023 clause holds the Segmentation module; the EXIT PROGRAM candidates say nothing about segments or segment state.\". No 2023 clause holds the Segmentation feature. The EXIT PROGRAM transfer rules (14.6.3, 14.9.14) never mention segments, so the segment-state requirement is dropped with the module.",
   "source": "audit-1985/state-route"
  }
 }

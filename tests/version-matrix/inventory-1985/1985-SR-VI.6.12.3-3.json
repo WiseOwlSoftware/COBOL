@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'The sentence ENTER COBOL must follow the last other-language statement'; 2023: 'No 2023 clause holds the ENTER statement; no candidate covers other-language entry or ENTER COBOL'. No 2023 clause covers the ENTER statement, and no worded candidate addresses returning to COBOL from other-language statements. The feature is absent from 2023.",
+  "reason": "1985: \"The sentence ENTER COBOL must follow the last other-language statement\"; 2023: \"No 2023 clause holds the ENTER statement; no candidate covers other-language entry or ENTER COBOL\". No 2023 clause covers the ENTER statement, and no worded candidate addresses returning to COBOL from other-language statements. The feature is absent from 2023.",
   "source": "audit-1985/state-route"
  }
 }

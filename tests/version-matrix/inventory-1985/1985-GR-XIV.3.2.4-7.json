@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'The DISABLE statement will be honored only if literal-1 or the content of the data item referenced by identifier-1 match the system password'; 2023: 'No 2023 clause holds the DISABLE statement; the communication module and its DISABLE statement are not carried.'. No 2023 clause holds the DISABLE feature. Candidates on INSPECT, STOP, I-O status and the RECEIVE CONTINUE phrase do not cover DISABLE or its password check.",
+  "reason": "1985: \"The DISABLE statement will be honored only if literal-1 or the content of the data item referenced by identifier-1 match the system password\"; 2023: \"No 2023 clause holds the DISABLE statement; the communication module and its DISABLE statement are not carried.\". No 2023 clause holds the DISABLE feature. Candidates on INSPECT, STOP, I-O status and the RECEIVE CONTINUE phrase do not cover DISABLE or its password check.",
   "source": "audit-1985/state-route"
  }
 }

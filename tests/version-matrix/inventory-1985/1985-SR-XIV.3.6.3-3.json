@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'Identifier-3 must reference an integer data item.'; 2023: '2023 SEND (14.9.38) sends to a message server via literal-1/identifier-1; it has no ADVANCING phrase and no identifier-3 operand'. The 1985 SEND identifier-3 is the ADVANCING line count of the communication module. 2023's SEND is a message-server statement with no advancing operand. WRITE's similar rule belongs to another statement.",
+  "reason": "1985: \"Identifier-3 must reference an integer data item.\"; 2023: \"2023 SEND (14.9.38) sends to a message server via literal-1/identifier-1; it has no ADVANCING phrase and no identifier-3 operand\". The 1985 SEND identifier-3 is the ADVANCING line count of the communication module. 2023's SEND is a message-server statement with no advancing operand. WRITE's similar rule belongs to another statement.",
   "source": "audit-1985/state-route"
  }
 }

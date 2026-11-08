@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'If the WITH DEBUGGING MODE clause is not specified in the SOURCE-COMPUTER paragraph ... compiled as if they were comment lines'; 2023: 'SOURCE-COMPUTER rules cover only computer-name-1 and the source computer; no WITH DEBUGGING MODE or USE FOR DEBUGGING'. The 2023 SOURCE-COMPUTER rules no longer mention debugging mode, and no candidate has USE FOR DEBUGGING. The Debug module feature is absent from 2023.",
+  "reason": "1985: \"If the WITH DEBUGGING MODE clause is not specified in the SOURCE-COMPUTER paragraph ... compiled as if they were comment lines\"; 2023: \"SOURCE-COMPUTER rules cover only computer-name-1 and the source computer; no WITH DEBUGGING MODE or USE FOR DEBUGGING\". The 2023 SOURCE-COMPUTER rules no longer mention debugging mode, and no candidate has USE FOR DEBUGGING. The Debug module feature is absent from 2023.",
   "source": "audit-1985/state-route"
  }
 }

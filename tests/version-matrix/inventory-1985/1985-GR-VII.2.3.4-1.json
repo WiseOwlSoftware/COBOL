@@ -8,7 +8,7 @@
    "GR-12.4.5.3-1"
   ],
   "bridge": true,
-  "reason": "1985: 'g. The same specification for the PADDING CHARACTER clause.'; 2023: 'g) The same specification of COLLATING SEQUENCE clauses. ... i) The same specification of the FILE STATUS clause'. 2023 keeps items a-f (OPTIONAL, ASSIGN, RECORD DELIMITER, RESERVE, organization, access mode) but drops the PADDING CHARACTER item and adds new ones, e.g. FILE STATUS.",
+  "reason": "1985: \"g. The same specification for the PADDING CHARACTER clause.\"; 2023: \"g) The same specification of COLLATING SEQUENCE clauses. ... i) The same specification of the FILE STATUS clause\". 2023 keeps items a-f (OPTIONAL, ASSIGN, RECORD DELIMITER, RESERVE, organization, access mode) but drops the PADDING CHARACTER item and adds new ones, e.g. FILE STATUS.",
   "source": "audit-1985/state-route"
  }
 }

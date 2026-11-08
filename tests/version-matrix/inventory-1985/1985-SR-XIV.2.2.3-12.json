@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'If the DESTINATION TABLE OCCURS clause is specified, data-name-4 and data-name-5 may be referenced only by subscripting.'; 2023: 'No 2023 clause holds the communication description entry or DESTINATION TABLE OCCURS; the CD feature is absent'. No 2023 clause holds the CD entry. No candidate covers DESTINATION TABLE OCCURS; SR-14.9.39.3-35's data-name-4/5 are SET message-tag operands, an unrelated subject.",
+  "reason": "1985: \"If the DESTINATION TABLE OCCURS clause is specified, data-name-4 and data-name-5 may be referenced only by subscripting.\"; 2023: \"No 2023 clause holds the communication description entry or DESTINATION TABLE OCCURS; the CD feature is absent\". No 2023 clause holds the CD entry. No candidate covers DESTINATION TABLE OCCURS; SR-14.9.39.3-35's data-name-4/5 are SET message-tag operands, an unrelated subject.",
   "source": "audit-1985/state-route"
  }
 }

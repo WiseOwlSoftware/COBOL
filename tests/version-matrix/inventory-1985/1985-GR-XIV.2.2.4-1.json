@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'The input CD information constitutes the communication between the message control system (MCS) and the program'; 2023: 'No candidate covers the communication description entry; the Communication module and the CD entry are absent from 2023.'. No candidate covers the CD entry or the MCS. The 2023 data division candidates (file, sort-merge, report, screen, data description) have no CD entry, so the feature is dropped.",
+  "reason": "1985: \"The input CD information constitutes the communication between the message control system (MCS) and the program\"; 2023: \"No candidate covers the communication description entry; the Communication module and the CD entry are absent from 2023.\". No candidate covers the CD entry or the MCS. The 2023 data division candidates (file, sort-merge, report, screen, data description) have no CD entry, so the feature is dropped.",
   "source": "audit-1985/state-route"
  }
 }

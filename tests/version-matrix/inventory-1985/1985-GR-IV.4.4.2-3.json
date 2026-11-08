@@ -8,7 +8,7 @@
    "GR-14.6.3-3"
   ],
   "bridge": true,
-  "reason": "1985: 'The execution of the procedure branching statement ALTER does not in itself constitute an explicit transfer of control, but affects'; 2023: 'An explicit transfer of control may be caused only by the execution of a procedure branching or conditional statement. (no ALTER)'. 2023 keeps the implicit transfer to declaratives, the explicit-transfer, EXIT PROGRAM and next-executable-statement rules, but drops the ALTER sentence because ALTER is deleted.",
+  "reason": "1985: \"The execution of the procedure branching statement ALTER does not in itself constitute an explicit transfer of control, but affects\"; 2023: \"An explicit transfer of control may be caused only by the execution of a procedure branching or conditional statement. (no ALTER)\". 2023 keeps the implicit transfer to declaratives, the explicit-transfer, EXIT PROGRAM and next-executable-statement rules, but drops the ALTER sentence because ALTER is deleted.",
   "source": "audit-1985/state-route"
  }
 }

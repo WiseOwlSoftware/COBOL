@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'The RERUN clause for the Indexed I-O module is a subset of the RERUN clause for the Sequential I-O module.'; 2023: 'FMT-12.4.6.2: I-O-CONTROL . [ [ apply-commit-clause] . ] [ [ { same-clause }… ]. ] (no RERUN clause)'. The 2023 I-O-CONTROL format allows only APPLY COMMIT and SAME clauses. RERUN is gone, so the 1985 rule on the Indexed I-O RERUN clause has no counterpart.",
+  "reason": "1985: \"The RERUN clause for the Indexed I-O module is a subset of the RERUN clause for the Sequential I-O module.\"; 2023: \"FMT-12.4.6.2: I-O-CONTROL . [ [ apply-commit-clause] . ] [ [ { same-clause }… ]. ] (no RERUN clause)\". The 2023 I-O-CONTROL format allows only APPLY COMMIT and SAME clauses. RERUN is gone, so the 1985 rule on the Indexed I-O RERUN clause has no counterpart.",
   "source": "audit-1985/state-route"
  }
 }

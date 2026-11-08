@@ -10,7 +10,7 @@
    "AR-15.68.3-7"
   ],
   "bridge": true,
-  "reason": "1985: 'The number of digits returned is 18.'; 2023: 'The returned value is the numeric value represented by argument-1. ... shall not exceed 31 ... 35 ... 34.'. 1985 fixes the NUMVAL-C result at 18 digits. 2023 returns the value of argument-1 itself, with a digit limit of 31, 34 or 35 set by the arithmetic mode in effect.",
+  "reason": "1985: \"The number of digits returned is 18.\"; 2023: \"The returned value is the numeric value represented by argument-1. ... shall not exceed 31 ... 35 ... 34.\". 1985 fixes the NUMVAL-C result at 18 digits. 2023 returns the value of argument-1 itself, with a digit limit of 31, 34 or 35 set by the arithmetic mode in effect.",
   "source": "audit-1985/state-route"
  }
 }

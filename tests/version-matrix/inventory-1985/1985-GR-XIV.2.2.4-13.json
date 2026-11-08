@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'The content of the data item referenced by data-name-10 indicates the status condition of the previously executed RECEIVE'; 2023: 'No communication description entry in 2023; no candidate covers CD entries, RECEIVE or ENABLE INPUT status keys'. The Communication module and its CD entry, with the status key for RECEIVE, ENABLE and DISABLE, are absent from 2023. No candidate covers them.",
+  "reason": "1985: \"The content of the data item referenced by data-name-10 indicates the status condition of the previously executed RECEIVE\"; 2023: \"No communication description entry in 2023; no candidate covers CD entries, RECEIVE or ENABLE INPUT status keys\". The Communication module and its CD entry, with the status key for RECEIVE, ENABLE and DISABLE, are absent from 2023. No candidate covers them.",
   "source": "audit-1985/state-route"
  }
 }

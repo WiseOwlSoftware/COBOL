@@ -8,7 +8,7 @@
    "SR-13.4.5.3-8"
   ],
   "bridge": true,
-  "reason": "1985: 'The availability of the file description entry for a report file is dependent on whether the Report Writer module is supported'; 2023: 'Format 3 is the file description entry for a report file. No record description entries or constant entries shall be associated'. Both make Format 3 the report-file FD, but 2023 states it unconditionally, without the 1985 dependency on support of the Report Writer module.",
+  "reason": "1985: \"The availability of the file description entry for a report file is dependent on whether the Report Writer module is supported\"; 2023: \"Format 3 is the file description entry for a report file. No record description entries or constant entries shall be associated\". Both make Format 3 the report-file FD, but 2023 states it unconditionally, without the 1985 dependency on support of the Report Writer module.",
   "source": "audit-1985/state-route"
  }
 }

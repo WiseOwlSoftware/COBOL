@@ -8,7 +8,7 @@
    "GR-7.2.4.4-9"
   ],
   "bridge": true,
-  "reason": "1985: 'must not contain a REPLACE statement'; 2023: 'shall not contain a COPY statement, a REPLACE statement, a SOURCE FORMAT directive, a comment, or a blank line'. 2023 keeps the ban on a REPLACE statement in REPLACE output but adds cases: COPY statement, SOURCE FORMAT directive, comment and blank line. So more programs are refused.",
+  "reason": "1985: \"must not contain a REPLACE statement\"; 2023: \"shall not contain a COPY statement, a REPLACE statement, a SOURCE FORMAT directive, a comment, or a blank line\". 2023 keeps the ban on a REPLACE statement in REPLACE output but adds cases: COPY statement, SOURCE FORMAT directive, comment and blank line. So more programs are refused.",
   "source": "audit-1985/state-route"
  }
 }

@@ -9,7 +9,7 @@
    "SR-13.18.43.3-1"
   ],
   "bridge": true,
-  "reason": "1985: 'One or more record description entries must follow the file description entry.'; 2023: 'When no record description entries are specified: a) a RECORD clause shall be specified in the file description entry'. 1985 always requires record descriptions after a sequential FD. 2023 allows none if a RECORD clause is given and FROM/INTO phrases are used on WRITE, REWRITE and READ.",
+  "reason": "1985: \"One or more record description entries must follow the file description entry.\"; 2023: \"When no record description entries are specified: a) a RECORD clause shall be specified in the file description entry\". 1985 always requires record descriptions after a sequential FD. 2023 allows none if a RECORD clause is given and FROM/INTO phrases are used on WRITE, REWRITE and READ.",
   "source": "audit-1985/state-route"
  }
 }

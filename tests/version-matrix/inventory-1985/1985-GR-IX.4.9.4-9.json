@@ -9,7 +9,7 @@
    "GR-9.1.14-L2.1"
   ],
   "bridge": true,
-  "reason": "1985: 'If the execution of the WRITE statement is unsuccessful for a reason other than an invalid key condition'; 2023: 'If control is returned from those statements, then control is transferred to the end of the input-output statement.'. Both run NOT INVALID KEY on success. On a failure that is not invalid key, 1985 still runs it after the USE procedure; 2023 goes to the end of the statement instead.",
+  "reason": "1985: \"If the execution of the WRITE statement is unsuccessful for a reason other than an invalid key condition\"; 2023: \"If control is returned from those statements, then control is transferred to the end of the input-output statement.\". Both run NOT INVALID KEY on success. On a failure that is not invalid key, 1985 still runs it after the USE procedure; 2023 goes to the end of the statement instead.",
   "source": "audit-1985/state-route"
  }
 }

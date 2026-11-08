@@ -8,7 +8,7 @@
    "FMT-12.3.7.2"
   ],
   "bridge": true,
-  "reason": "1985: '[CURRENCY SIGN IS literal-6]'; 2023: '[ CURRENCY SIGN IS literal-7 [ WITH PICTURE SYMBOL literal-8 ] ] …'. Same SPECIAL-NAMES format, and the 1985 clauses survive, but 2023 accepts more: repeatable CURRENCY with PICTURE SYMBOL, CLASS FOR/IN, LOCALE, CRT STATUS, CURSOR, ORDER TABLE.",
+  "reason": "1985: \"[CURRENCY SIGN IS literal-6]\"; 2023: \"[ CURRENCY SIGN IS literal-7 [ WITH PICTURE SYMBOL literal-8 ] ] …\". Same SPECIAL-NAMES format, and the 1985 clauses survive, but 2023 accepts more: repeatable CURRENCY with PICTURE SYMBOL, CLASS FOR/IN, LOCALE, CRT STATUS, CURSOR, ORDER TABLE.",
   "source": "audit-1985/state-route"
  }
 }

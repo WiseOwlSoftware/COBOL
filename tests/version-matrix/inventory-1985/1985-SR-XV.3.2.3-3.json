@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'must not reference procedure-names defined within the set of debugging sections'; 2023: 'No debugging sections: the 2023 USE rules cover only file exceptions, BEFORE REPORTING, EC and EO; no FOR DEBUGGING format.'. 2023 drops USE FOR DEBUGGING and debugging sections. SR-4 governs declarative references in general (PERFORM only), not debugging sections, so the rule has no counterpart.",
+  "reason": "1985: \"must not reference procedure-names defined within the set of debugging sections\"; 2023: \"No debugging sections: the 2023 USE rules cover only file exceptions, BEFORE REPORTING, EC and EO; no FOR DEBUGGING format.\". 2023 drops USE FOR DEBUGGING and debugging sections. SR-4 governs declarative references in general (PERFORM only), not debugging sections, so the rule has no counterpart.",
   "source": "audit-1985/state-route"
  }
 }

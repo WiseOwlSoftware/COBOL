@@ -8,7 +8,7 @@
    "GR-14.9.27.4-4"
   ],
   "bridge": true,
-  "reason": "1985: 'Table 1 on page IX-24 shows the results of opening available and unavailable files.'; 2023: 'Table 18, Opening available and unavailable files (file not currently open)... Table 19... shows the results of opening available files that are currently open'. Same open-mode and availability rules and the same table, but 2023 limits it to files not currently open. Under Table 19 sharing rules an available file can now fail to open.",
+  "reason": "1985: \"Table 1 on page IX-24 shows the results of opening available and unavailable files.\"; 2023: \"Table 18, Opening available and unavailable files (file not currently open)... Table 19... shows the results of opening available files that are currently open\". Same open-mode and availability rules and the same table, but 2023 limits it to files not currently open. Under Table 19 sharing rules an available file can now fail to open.",
   "source": "audit-1985/state-route"
  }
 }

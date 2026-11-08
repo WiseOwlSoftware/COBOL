@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'The LABEL RECORDS clause for the Indexed I-O module is the same as the LABEL RECORDS clause for the Sequential I-O module.'; 2023: 'No LABEL RECORDS clause in 2023 file description entry rules; obsolete element deleted'. LABEL RECORDS was obsolete and slated for deletion. None of the 2023 file description candidates mentions it, so 2023 lacks the clause.",
+  "reason": "1985: \"The LABEL RECORDS clause for the Indexed I-O module is the same as the LABEL RECORDS clause for the Sequential I-O module.\"; 2023: \"No LABEL RECORDS clause in 2023 file description entry rules; obsolete element deleted\". LABEL RECORDS was obsolete and slated for deletion. None of the 2023 file description candidates mentions it, so 2023 lacks the clause.",
   "source": "audit-1985/state-route"
  }
 }

@@ -8,7 +8,7 @@
    "SR-13.18.54.3-7"
   ],
   "bridge": true,
-  "reason": "1985: 'must be the name of a detail report group described in the same report as the control footing report group in which the SUM clause appears'; 2023: 'Data-name-2 shall be the name of a detail. It may be qualified only by a report-name.'. The 1985 UPON operand is 2023 data-name-2. The 2023 rule no longer requires the detail to be in the same report, nor the SUM clause to be in a control footing.",
+  "reason": "1985: \"must be the name of a detail report group described in the same report as the control footing report group in which the SUM clause appears\"; 2023: \"Data-name-2 shall be the name of a detail. It may be qualified only by a report-name.\". The 1985 UPON operand is 2023 data-name-2. The 2023 rule no longer requires the detail to be in the same report, nor the SUM clause to be in a control footing.",
   "source": "audit-1985/state-route"
  }
 }

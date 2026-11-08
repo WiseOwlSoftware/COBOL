@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: \"The comment-entry may be any combination of the characters from the computer's character set.\"; 2023: 'No 2023 clause holds the DATE-COMPILED paragraph; no candidate covers its comment-entry.'. No 2023 clause holds the DATE-COMPILED paragraph. The wording candidates cover SPECIAL-NAMES, PICTURE, PROGRAM-ID and PAGE, not this comment-entry, so the feature is dropped.",
+  "reason": "1985: \"The comment-entry may be any combination of the characters from the computer's character set.\"; 2023: \"No 2023 clause holds the DATE-COMPILED paragraph; no candidate covers its comment-entry.\". No 2023 clause holds the DATE-COMPILED paragraph. The wording candidates cover SPECIAL-NAMES, PICTURE, PROGRAM-ID and PAGE, not this comment-entry, so the feature is dropped.",
   "source": "audit-1985/state-route"
  }
 }

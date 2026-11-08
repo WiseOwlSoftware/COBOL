@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'Integer-1 or the value of the data item referenced by identifier-3 may be zero.'; 2023: \"SEND now sends to a message server run unit (SR-14.9.38.3-2); the communication module's SEND with ADVANCING integer is gone\". The 1985 rule allows a zero ADVANCING count in the communication SEND. The 2023 SEND is a message-server statement with no ADVANCING phrase, so the requirement is dropped.",
+  "reason": "1985: \"Integer-1 or the value of the data item referenced by identifier-3 may be zero.\"; 2023: \"SEND now sends to a message server run unit (SR-14.9.38.3-2); the communication module's SEND with ADVANCING integer is gone\". The 1985 rule allows a zero ADVANCING count in the communication SEND. The 2023 SEND is a message-server statement with no ADVANCING phrase, so the requirement is dropped.",
   "source": "audit-1985/state-route"
  }
 }

@@ -10,7 +10,7 @@
    "GR-13.18.63.4-8"
   ],
   "bridge": true,
-  "reason": "1985: 'Initialization is not affected by any BLANK WHEN ZERO or JUSTIFIED clause that may be specified.'; 2023: 'the VALUE clause uses either an alphanumeric or national literal, the BLANK WHEN ZERO clause has no effect on initialization'. 1985 says BLANK WHEN ZERO never affects initialization. 2023 limits that to alphanumeric/national literals, and its NOTE says a zero literal is affected. JUSTIFIED and no-editing are kept.",
+  "reason": "1985: \"Initialization is not affected by any BLANK WHEN ZERO or JUSTIFIED clause that may be specified.\"; 2023: \"the VALUE clause uses either an alphanumeric or national literal, the BLANK WHEN ZERO clause has no effect on initialization\". 1985 says BLANK WHEN ZERO never affects initialization. 2023 limits that to alphanumeric/national literals, and its NOTE says a zero literal is affected. JUSTIFIED and no-editing are kept.",
   "source": "audit-1985/state-route"
  }
 }

@@ -8,7 +8,7 @@
    "GR-8.3.3.2.4-3"
   ],
   "bridge": true,
-  "reason": "1985: 'The value of a nonnumeric literal in the object program is the value represented by character-1.'; 2023: 'If character-1 is not specified, the literal is a zero-length literal. ... the implementor shall specify the applicable general rules.'. 2023 keeps the value as character-1 converted to runtime. It adds a zero-length literal case and leaves UTF-8 or mixed content to implementor-specified rules; neither appears in 1985.",
+  "reason": "1985: \"The value of a nonnumeric literal in the object program is the value represented by character-1.\"; 2023: \"If character-1 is not specified, the literal is a zero-length literal. ... the implementor shall specify the applicable general rules.\". 2023 keeps the value as character-1 converted to runtime. It adds a zero-length literal case and leaves UTF-8 or mixed content to implementor-specified rules; neither appears in 1985.",
   "source": "audit-1985/state-route"
  }
 }

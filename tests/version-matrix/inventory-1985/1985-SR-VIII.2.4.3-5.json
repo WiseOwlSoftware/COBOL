@@ -9,7 +9,7 @@
    "SR-12.4.5.2-10"
   ],
   "bridge": true,
-  "reason": "1985: 'If a relative file is referenced by a START statement, the RELATIVE KEY phrase within the ACCESS MODE clause must be specified'; 2023: 'For relative files, data-name-1, if specified, shall be the data item specified in the RELATIVE KEY clause'. 2023 requires RELATIVE KEY only for dynamic or random access, or when START names data-name-1. A sequential-access relative file used by START without a key is no longer refused.",
+  "reason": "1985: \"If a relative file is referenced by a START statement, the RELATIVE KEY phrase within the ACCESS MODE clause must be specified\"; 2023: \"For relative files, data-name-1, if specified, shall be the data item specified in the RELATIVE KEY clause\". 2023 requires RELATIVE KEY only for dynamic or random access, or when START names data-name-1. A sequential-access relative file used by START without a key is no longer refused.",
   "source": "audit-1985/state-route"
  }
 }

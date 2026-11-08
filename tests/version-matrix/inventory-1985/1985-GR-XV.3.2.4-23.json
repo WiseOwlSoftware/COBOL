@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'If reference to file-name-1 or cd-name-1 causes the debugging section to be executed, then: a. DEBUG-LINE identifies'; 2023: 'No USE FOR DEBUGGING or DEBUG-ITEM in 2023; the USE candidates cover only exception declaratives, not debugging sections'. 2023 lacks the Debug module and USE FOR DEBUGGING. No candidate sets DEBUG-LINE, DEBUG-NAME or DEBUG-CONTENTS for file-name or cd-name references.",
+  "reason": "1985: \"If reference to file-name-1 or cd-name-1 causes the debugging section to be executed, then: a. DEBUG-LINE identifies\"; 2023: \"No USE FOR DEBUGGING or DEBUG-ITEM in 2023; the USE candidates cover only exception declaratives, not debugging sections\". 2023 lacks the Debug module and USE FOR DEBUGGING. No candidate sets DEBUG-LINE, DEBUG-NAME or DEBUG-CONTENTS for file-name or cd-name references.",
   "source": "audit-1985/state-route"
  }
 }

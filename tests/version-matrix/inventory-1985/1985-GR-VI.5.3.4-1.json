@@ -8,7 +8,7 @@
    "SR-13.16.3-11"
   ],
   "bridge": true,
-  "reason": "1985: 'The clauses SYNCHRONIZED, PICTURE, JUSTIFIED, and BLANK WHEN ZERO must not be specified except for an elementary data item.'; 2023: 'The PICTURE, JUSTIFIED, and BLANK WHEN ZERO clauses may be specified only for an elementary data item.'. 2023 keeps the elementary-only rule for PICTURE, JUSTIFIED and BLANK WHEN ZERO but drops SYNCHRONIZED. SYNCHRONIZED on a group item is no longer refused by this rule.",
+  "reason": "1985: \"The clauses SYNCHRONIZED, PICTURE, JUSTIFIED, and BLANK WHEN ZERO must not be specified except for an elementary data item.\"; 2023: \"The PICTURE, JUSTIFIED, and BLANK WHEN ZERO clauses may be specified only for an elementary data item.\". 2023 keeps the elementary-only rule for PICTURE, JUSTIFIED and BLANK WHEN ZERO but drops SYNCHRONIZED. SYNCHRONIZED on a group item is no longer refused by this rule.",
   "source": "audit-1985/state-route"
  }
 }

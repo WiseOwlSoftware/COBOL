@@ -8,7 +8,7 @@
    "FMT-12.4.5.12.2"
   ],
   "bridge": true,
-  "reason": "1985: 'RECORD KEY IS data-name-1'; 2023: 'RECORD KEY IS { data-name-1 | record-key-name-1 SOURCE IS { data-name-2 } … }'. 2023 keeps the data-name-1 form but adds a split-key alternative (record-key-name-1 SOURCE IS data-name-2 …), so the format accepts a case 1985 did not.",
+  "reason": "1985: \"RECORD KEY IS data-name-1\"; 2023: \"RECORD KEY IS { data-name-1 | record-key-name-1 SOURCE IS { data-name-2 } … }\". 2023 keeps the data-name-1 form but adds a split-key alternative (record-key-name-1 SOURCE IS data-name-2 …), so the format accepts a case 1985 did not.",
   "source": "audit-1985/state-route"
  }
 }

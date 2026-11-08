@@ -8,7 +8,7 @@
    "GR-13.18.57.4-7"
   ],
   "bridge": true,
-  "reason": "1985: 'one greater than the final LINE-COUNTER setting established by the page footing report group'; 2023: 'the line following the last line of the page footing, if specified, or ... adding 1 to the FOOTING integer, if no page footing is defined'. 1985 counts PF's final LINE-COUNTER (after NEXT GROUP) when a PF was presented on the page; 2023 counts the PF's last line when one is defined. The HEADING case is the same.",
+  "reason": "1985: \"one greater than the final LINE-COUNTER setting established by the page footing report group\"; 2023: \"the line following the last line of the page footing, if specified, or ... adding 1 to the FOOTING integer, if no page footing is defined\". 1985 counts PF's final LINE-COUNTER (after NEXT GROUP) when a PF was presented on the page; 2023 counts the PF's last line when one is defined. The HEADING case is the same.",
   "source": "audit-1985/state-route"
  }
 }

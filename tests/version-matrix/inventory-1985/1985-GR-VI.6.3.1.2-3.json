@@ -8,7 +8,7 @@
    "GR-8.8.4.4.4-3"
   ],
   "bridge": true,
-  "reason": "1985: 'An operand is alphabetic-lower if it consists entirely of the lowercase letters a, b, c, ... , z, and space.'; 2023: 'If a locale is in effect for character classification, the condition is true if the content ... lowercase alphabetic in locale category LC_CTYPE'. Without a locale, 2023 keeps the 1985 rule (a-z and space). It adds a case: with a locale in effect, the LC_CTYPE lowercase characters decide the result instead.",
+  "reason": "1985: \"An operand is alphabetic-lower if it consists entirely of the lowercase letters a, b, c, ... , z, and space.\"; 2023: \"If a locale is in effect for character classification, the condition is true if the content ... lowercase alphabetic in locale category LC_CTYPE\". Without a locale, 2023 keeps the 1985 rule (a-z and space). It adds a case: with a locale in effect, the LC_CTYPE lowercase characters decide the result instead.",
   "source": "audit-1985/state-route"
  }
 }

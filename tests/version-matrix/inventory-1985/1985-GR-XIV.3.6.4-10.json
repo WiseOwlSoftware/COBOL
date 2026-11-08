@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'The WITH EGI phrase indicates to the MCS that the group of messages is complete.'; 2023: '2023 SEND (14.9.38) is a message-server statement with no WITH EGI/EMI/ESI phrases; the 1985 communication module is dropped'. The 2023 SEND sends a message to a message server run unit and has no group, message or segment end indicators. The 1985 EGI/EMI/ESI semantics are not carried.",
+  "reason": "1985: \"The WITH EGI phrase indicates to the MCS that the group of messages is complete.\"; 2023: \"2023 SEND (14.9.38) is a message-server statement with no WITH EGI/EMI/ESI phrases; the 1985 communication module is dropped\". The 2023 SEND sends a message to a message server run unit and has no group, message or segment end indicators. The 1985 EGI/EMI/ESI semantics are not carried.",
   "source": "audit-1985/state-route"
  }
 }

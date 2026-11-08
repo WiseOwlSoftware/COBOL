@@ -9,7 +9,7 @@
    "AR-15.68.3-7"
   ],
   "bridge": true,
-  "reason": "1985: 'The total number of digits in argument-1 must not exceed 18.'; 2023: 'If native arithmetic is in effect, ... shall not exceed 31. ... standard-binary ... 35. ... standard-decimal ... 34.'. The digit limit on NUMVAL-C argument-1 remains but rises from 18 to 31, 35 or 34, depending on the arithmetic in effect. Arguments of 19 or more digits are now allowed.",
+  "reason": "1985: \"The total number of digits in argument-1 must not exceed 18.\"; 2023: \"If native arithmetic is in effect, ... shall not exceed 31. ... standard-binary ... 35. ... standard-decimal ... 34.\". The digit limit on NUMVAL-C argument-1 remains but rises from 18 to 31, 35 or 34, depending on the arithmetic in effect. Arguments of 19 or more digits are now allowed.",
   "source": "audit-1985/state-route"
  }
 }

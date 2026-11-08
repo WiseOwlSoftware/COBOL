@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'The RERUN clause for the Relative I-O module is a subset of the RERUN clause for the Sequential I-O module.'; 2023: 'I-O-CONTROL format lists only [apply-commit-clause] and { same-clause }…; no RERUN clause'. The 2023 I-O-CONTROL paragraph format (FMT-12.4.6.2) has only the APPLY COMMIT and SAME clauses, so the RERUN clause the 1985 rule refers to is deleted.",
+  "reason": "1985: \"The RERUN clause for the Relative I-O module is a subset of the RERUN clause for the Sequential I-O module.\"; 2023: \"I-O-CONTROL format lists only [apply-commit-clause] and { same-clause }…; no RERUN clause\". The 2023 I-O-CONTROL paragraph format (FMT-12.4.6.2) has only the APPLY COMMIT and SAME clauses, so the RERUN clause the 1985 rule refers to is deleted.",
   "source": "audit-1985/state-route"
  }
 }

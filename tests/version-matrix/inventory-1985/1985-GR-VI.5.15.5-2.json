@@ -10,7 +10,7 @@
    "GR-13.16.4-3"
   ],
   "bridge": true,
-  "reason": "1985: 'Wherever the THRU phrase is used, literal-2 must be less than literal-3.'; 2023: 'when literal-2 is of class alphanumeric or national, and the runtime collating sequence is known, the value of literal-2 shall be less'. Level 88 is still for condition-names. But 2023 requires literal-2 < literal-3 for alphanumeric/national literals only when the runtime collating sequence is known; 1985 required it for every THRU.",
+  "reason": "1985: \"Wherever the THRU phrase is used, literal-2 must be less than literal-3.\"; 2023: \"when literal-2 is of class alphanumeric or national, and the runtime collating sequence is known, the value of literal-2 shall be less\". Level 88 is still for condition-names. But 2023 requires literal-2 < literal-3 for alphanumeric/national literals only when the runtime collating sequence is known; 1985 required it for every THRU.",
   "source": "audit-1985/state-route"
  }
 }

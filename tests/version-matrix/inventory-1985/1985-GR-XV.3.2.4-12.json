@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'The content of DEBUG-LINE is the implementor-defined means of identifying a particular source statement.'; 2023: 'No candidate covers the Debug module or DEBUG-LINE; the 2023 USE statement rules cover only exception, file and report declaratives'. No 2023 clause holds the Debug feature, and the 2023 USE rules have no FOR DEBUGGING form or DEBUG-LINE special register. The Debug module is dropped.",
+  "reason": "1985: \"The content of DEBUG-LINE is the implementor-defined means of identifying a particular source statement.\"; 2023: \"No candidate covers the Debug module or DEBUG-LINE; the 2023 USE statement rules cover only exception, file and report declaratives\". No 2023 clause holds the Debug feature, and the 2023 USE rules have no FOR DEBUGGING form or DEBUG-LINE special register. The Debug module is dropped.",
   "source": "audit-1985/state-route"
  }
 }

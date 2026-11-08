@@ -8,7 +8,7 @@
    "FMT-8.4.2.3.2"
   ],
   "bridge": true,
-  "reason": "1985: 'integer-1 | data-name-2 [{±} integer-2] | index-name-1 [{±} integer-3]'; 2023: 'ALL | arithmetic-expression-1 | index-name-1 [{+|-} integer-1]'. 2023 subscripts allow any arithmetic-expression, not only integer or data-name±integer, and add ALL. Subscripts refused in 1985 are now accepted; the index-name form is unchanged.",
+  "reason": "1985: \"integer-1 | data-name-2 [{±} integer-2] | index-name-1 [{±} integer-3]\"; 2023: \"ALL | arithmetic-expression-1 | index-name-1 [{+|-} integer-1]\". 2023 subscripts allow any arithmetic-expression, not only integer or data-name±integer, and add ALL. Subscripts refused in 1985 are now accepted; the index-name form is unchanged.",
   "source": "audit-1985/state-route"
  }
 }

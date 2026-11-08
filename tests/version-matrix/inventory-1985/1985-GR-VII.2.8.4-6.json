@@ -8,7 +8,7 @@
    "GR-12.4.5.3-1"
   ],
   "bridge": true,
-  "reason": "1985: 'all RECORD DELIMITER clauses in the run unit which are associated with that file connector must have the same specifications'; 2023: 'Either the STANDARD-1 phrase or a consistent value of feature-name-1 ... The implementor shall specify the consistency rules for feature-name-1.'. 1985 demands identical RECORD DELIMITER specifications for an external file connector. 2023 requires only a 'consistent' feature-name-1, under implementor-defined consistency rules.",
+  "reason": "1985: \"all RECORD DELIMITER clauses in the run unit which are associated with that file connector must have the same specifications\"; 2023: \"Either the STANDARD-1 phrase or a consistent value of feature-name-1 ... The implementor shall specify the consistency rules for feature-name-1.\". 1985 demands identical RECORD DELIMITER specifications for an external file connector. 2023 requires only a 'consistent' feature-name-1, under implementor-defined consistency rules.",
   "source": "audit-1985/state-route"
  }
 }

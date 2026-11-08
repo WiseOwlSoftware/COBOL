@@ -8,7 +8,7 @@
    "FMT-14.9.35.2"
   ],
   "bridge": true,
-  "reason": "1985: 'REWRITE record-name-1 [ FROM identifier-1 ] [ END-REWRITE ]'; 2023: 'REWRITE { record-name-1 RECORD | FILE file-name-1 } [ FROM { identifier-1 | literal-1 } ] [ retry-phrase ] [ WITH LOCK | WITH NO LOCK ]'. Every 1985 form remains valid, but 2023 adds cases: FILE file-name-1, FROM literal-1, the RETRY phrase and the LOCK phrases. More programs are accepted.",
+  "reason": "1985: \"REWRITE record-name-1 [ FROM identifier-1 ] [ END-REWRITE ]\"; 2023: \"REWRITE { record-name-1 RECORD | FILE file-name-1 } [ FROM { identifier-1 | literal-1 } ] [ retry-phrase ] [ WITH LOCK | WITH NO LOCK ]\". Every 1985 form remains valid, but 2023 adds cases: FILE file-name-1, FROM literal-1, the RETRY phrase and the LOCK phrases. More programs are accepted.",
   "source": "audit-1985/state-route"
  }
 }

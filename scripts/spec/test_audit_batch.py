@@ -376,6 +376,16 @@ def main() -> int:
             {"program": "       IDENTIFICATION DIVISION.", "expected": {"outcome": "output", "output": ["A"]}, "basis": "GR2"}))
         check("a draft answer is a program and an expected outcome", draft is not None and why == "")
         check("a draft with no outcome is refused", A.parse_answer("drafts", ditems[dcid], '{"program": "x"}')[0] is None)
+        two_lines = chr(10).join(["       IDENTIFICATION DIVISION.", "       PROGRAM-ID. P."])
+
+        def refused(**exp: Any) -> tuple[Any, str]:
+            return A.parse_answer("drafts", ditems[dcid], json.dumps(
+                {"program": two_lines, "expected": {"outcome": "refused", **exp}, "basis": "SR1"}))
+        check("a refused draft names its violating line and carries its control (review w20261931a R1-1)",
+              refused(line=2, control="       IDENTIFICATION DIVISION.")[0] is not None
+              and "line" in refused(control="x")[1] and "line" in refused(line=3, control="x")[1]
+              and "line" in refused(line=True, control="x")[1] and "control" in refused(line=2)[1]
+              and "control" in refused(line=2, control=two_lines)[1])
 
         print("adjudicate and refute: the decided change records (kb/Work PB4995)")
         code, out = run(["plan", "--pass", "refute", *base], fake)
@@ -412,6 +422,10 @@ def main() -> int:
               and A.parse_answer("adjudicate", ait, json.dumps({"verdict": "REMOVED", "rules_2023": ["GR-14.9.21.4-2"],
                                                                 "differs": {}, "reason": "deleted"}))[0] is None
               and A.parse_answer("adjudicate", ait, json.dumps({"verdict": "SAME", "rules_2023": [], "reason": "x"}))[0] is None)
+        quoted = A.change_of(dict(changed, differs={"1985": "the ' [character-1] ' word", "2023": 'a "position"'}))
+        check("a change record's reason quotes the differing words as written, never escaped (review w20261931a R1-6)",
+              quoted["reason"] == '''1985: "the ' [character-1] ' word"; 2023: "a "position"". the unit changed'''
+              and quoted["kind"] == "CHANGED" and quoted["to"] == ["GR-14.9.21.4-2"])
         removed = {"verdict": "REMOVED", "rules_2023": [], "differs": {"1985": "USE FOR DEBUGGING", "2023": "the Debug "
                    "module is deleted"}, "reason": "the debugging declaratives are gone"}
         adjudicated = {same_rule: {"verdict": "OPEN", "rules_2023": [], "differs": {}, "reason": "undecided"},
@@ -443,7 +457,7 @@ def main() -> int:
         check("an upheld adjudication is the rule's change, its reason the differing words before the why; a refuted "
               "one is contested, never a change",
               final[inspect_rule]["change"] == {"kind": "CHANGED", "to": ["GR-14.9.21.4-2"],
-                                                "reason": "1985: 'character'; 2023: 'position'. the unit changed"}
+                                                "reason": '1985: "character"; 2023: "position". the unit changed'}
               and final[debug_rule].get("contested") is True and "change" not in final[debug_rule]
               and final[inspect_rule]["refute"] == "UPHELD" and "decided {'CHANGED': 1}; contested 2" in out)
         batch = root / "change-batch.json"

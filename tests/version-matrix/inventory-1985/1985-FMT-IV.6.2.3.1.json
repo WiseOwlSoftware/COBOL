@@ -12,7 +12,7 @@
    "FMT-12.4.6.2"
   ],
   "bridge": true,
-  "reason": "1985: '[INPUT-OUTPUT SECTION. FILE-CONTROL. {file-control-entry} …'; 2023: 'INPUT-OUTPUT SECTION. [ file-control-paragraph ] [ i-o-control-paragraph ] / FILE-CONTROL. [ file-control-entry ] …'. 1985 requires FILE-CONTROL with at least one entry in an input-output section. 2023 makes both optional, and its configuration section also allows a REPOSITORY paragraph.",
+  "reason": "1985: \"[INPUT-OUTPUT SECTION. FILE-CONTROL. {file-control-entry} …\"; 2023: \"INPUT-OUTPUT SECTION. [ file-control-paragraph ] [ i-o-control-paragraph ] / FILE-CONTROL. [ file-control-entry ] …\". 1985 requires FILE-CONTROL with at least one entry in an input-output section. 2023 makes both optional, and its configuration section also allows a REPOSITORY paragraph.",
   "source": "audit-1985/state-route"
  }
 }

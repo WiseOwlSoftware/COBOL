@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'The availability of specific clauses in the data description entry is dependent on the level of the Nucleus module supported'; 2023: 'None; 13.16.3 states data description entry rules with no dependency on a module level, because 2023 has no Nucleus levels'. The 1985 rule only ties clause availability to the Nucleus level supported. 2023 has no modules or levels, and the 13.16.3 candidates state clause rules with no such dependency.",
+  "reason": "1985: \"The availability of specific clauses in the data description entry is dependent on the level of the Nucleus module supported\"; 2023: \"None; 13.16.3 states data description entry rules with no dependency on a module level, because 2023 has no Nucleus levels\". The 1985 rule only ties clause availability to the Nucleus level supported. 2023 has no modules or levels, and the 13.16.3 candidates state clause rules with no such dependency.",
   "source": "audit-1985/state-route"
  }
 }

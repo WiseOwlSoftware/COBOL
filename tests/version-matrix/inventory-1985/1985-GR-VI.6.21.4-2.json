@@ -8,7 +8,7 @@
    "GR-14.9.28.4-3"
   ],
   "bridge": true,
-  "reason": "1985: 'the data item referenced by the identifier must have a positive value.'; 2023: 'If the data item does not have a positive value, the EC-RANGE-PERFORM-VARYING exception condition is set to exist.'. Both require a positive FROM value when it initializes an index. 1985 states no result for a violation; 2023 defines one by raising EC-RANGE-PERFORM-VARYING.",
+  "reason": "1985: \"the data item referenced by the identifier must have a positive value.\"; 2023: \"If the data item does not have a positive value, the EC-RANGE-PERFORM-VARYING exception condition is set to exist.\". Both require a positive FROM value when it initializes an index. 1985 states no result for a violation; 2023 defines one by raising EC-RANGE-PERFORM-VARYING.",
   "source": "audit-1985/state-route"
  }
 }

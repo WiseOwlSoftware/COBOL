@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'More than one RERUN clause may be specified for a given file-name-2 subject to the following restrictions'; 2023: 'No 2023 clause holds the RERUN feature; no candidate states a RERUN clause or its restrictions'. No 2023 clause holds RERUN, and the wording candidates cover CLOSE, READ, USE, COLUMN and others. 2023 lacks the RERUN clause, so this restriction is gone.",
+  "reason": "1985: \"More than one RERUN clause may be specified for a given file-name-2 subject to the following restrictions\"; 2023: \"No 2023 clause holds the RERUN feature; no candidate states a RERUN clause or its restrictions\". No 2023 clause holds RERUN, and the wording candidates cover CLOSE, READ, USE, COLUMN and others. 2023 lacks the RERUN clause, so this restriction is gone.",
   "source": "audit-1985/state-route"
  }
 }

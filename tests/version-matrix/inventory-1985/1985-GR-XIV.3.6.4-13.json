@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'If identifier-2 is specified and the content of the data item referenced by identifier-2 is zero, the ADVANCING phrase and the REPLACING phrase'; 2023: 'The 2023 SEND statement (14.9.38) is a message-server SEND that has no identifier-2 count and no ADVANCING or REPLACING phrase.'. 2023 SEND sends to a message server run unit. The candidates have no MCS identifier-2 count and no ADVANCING or REPLACING phrase, so the 1985 communication-module rule is dropped.",
+  "reason": "1985: \"If identifier-2 is specified and the content of the data item referenced by identifier-2 is zero, the ADVANCING phrase and the REPLACING phrase\"; 2023: \"The 2023 SEND statement (14.9.38) is a message-server SEND that has no identifier-2 count and no ADVANCING or REPLACING phrase.\". 2023 SEND sends to a message server run unit. The candidates have no MCS identifier-2 count and no ADVANCING or REPLACING phrase, so the 1985 communication-module rule is dropped.",
   "source": "audit-1985/state-route"
  }
 }

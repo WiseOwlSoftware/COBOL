@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'The DATA RECORDS clause for the Sort-Merge module is the same as the DATA RECORDS clause for the Sequential I-O module.'; 2023: 'SD file-name-1 [ record-clause ] . (FMT-13.4.6.2: only the RECORD clause; no DATA RECORDS clause)'. The 2023 SD format allows only the RECORD clause. The DATA RECORDS clause, obsolete in 1985, is deleted, and no candidate states it.",
+  "reason": "1985: \"The DATA RECORDS clause for the Sort-Merge module is the same as the DATA RECORDS clause for the Sequential I-O module.\"; 2023: \"SD file-name-1 [ record-clause ] . (FMT-13.4.6.2: only the RECORD clause; no DATA RECORDS clause)\". The 2023 SD format allows only the RECORD clause. The DATA RECORDS clause, obsolete in 1985, is deleted, and no candidate states it.",
   "source": "audit-1985/state-route"
  }
 }

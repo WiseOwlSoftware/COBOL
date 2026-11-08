@@ -11,7 +11,7 @@
    "FMT-13.18.34.2"
   ],
   "bridge": true,
-  "reason": "1985: 'LABEL {RECORD IS|RECORDS ARE} {STANDARD|OMITTED} VALUE OF implementor-name-1 IS ... DATA {RECORD IS|RECORDS ARE}'; 2023: 'FD file-name-1 [IS EXTERNAL..] [IS GLOBAL] [FORMAT..] [BLOCK CONTAINS..] [record-clause] [linage-clause] [CODE-SET..].'. The 2023 sequential FD keeps BLOCK, RECORD, LINAGE and CODE-SET. It drops the LABEL RECORDS, VALUE OF and DATA RECORDS clauses, so programs using them are no longer accepted.",
+  "reason": "1985: \"LABEL {RECORD IS|RECORDS ARE} {STANDARD|OMITTED} VALUE OF implementor-name-1 IS ... DATA {RECORD IS|RECORDS ARE}\"; 2023: \"FD file-name-1 [IS EXTERNAL..] [IS GLOBAL] [FORMAT..] [BLOCK CONTAINS..] [record-clause] [linage-clause] [CODE-SET..].\". The 2023 sequential FD keeps BLOCK, RECORD, LINAGE and CODE-SET. It drops the LABEL RECORDS, VALUE OF and DATA RECORDS clauses, so programs using them are no longer accepted.",
   "source": "audit-1985/state-route"
  }
 }

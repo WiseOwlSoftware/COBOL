@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'Whenever a set of files resides on a multiple file reel, and one of this set of files is referenced in an OPEN statement'; 2023: 'No multiple file reel rule in OPEN GRs 14.9.27.4-1..26 or any candidate; position numbers are not addressed anywhere'. 2023 OPEN rules and the file clauses shown lack multiple file reels and position numbers; the MULTIPLE FILE feature these rules govern is absent from 2023.",
+  "reason": "1985: \"Whenever a set of files resides on a multiple file reel, and one of this set of files is referenced in an OPEN statement\"; 2023: \"No multiple file reel rule in OPEN GRs 14.9.27.4-1..26 or any candidate; position numbers are not addressed anywhere\". 2023 OPEN rules and the file clauses shown lack multiple file reels and position numbers; the MULTIPLE FILE feature these rules govern is absent from 2023.",
   "source": "audit-1985/state-route"
  }
 }

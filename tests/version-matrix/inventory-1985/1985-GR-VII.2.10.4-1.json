@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'The MULTIPLE FILE TAPE clause, the RERUN clause, and the SAME clause are presented in alphabetical order'; 2023: 'I-O-CONTROL . [ [ apply-commit-clause] . ] [ [ { same-clause }… ]. ] (no MULTIPLE FILE TAPE or RERUN clause)'. The 1985 rule only lists the I-O-CONTROL clauses described; 2023's format drops MULTIPLE FILE TAPE and RERUN, and no 2023 rule restates the listing.",
+  "reason": "1985: \"The MULTIPLE FILE TAPE clause, the RERUN clause, and the SAME clause are presented in alphabetical order\"; 2023: \"I-O-CONTROL . [ [ apply-commit-clause] . ] [ [ { same-clause }… ]. ] (no MULTIPLE FILE TAPE or RERUN clause)\". The 1985 rule only lists the I-O-CONTROL clauses described; 2023's format drops MULTIPLE FILE TAPE and RERUN, and no 2023 rule restates the listing.",
   "source": "audit-1985/state-route"
  }
 }

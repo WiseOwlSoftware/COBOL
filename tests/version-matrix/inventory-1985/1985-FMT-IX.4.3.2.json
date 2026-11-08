@@ -8,7 +8,7 @@
    "FMT-14.9.10.2"
   ],
   "bridge": true,
-  "reason": "1985: 'DELETE file-name-1 RECORD [ INVALID KEY imperative-statement-1 ] [ NOT INVALID KEY imperative-statement-2 ]'; 2023: 'DELETE file-name-1 RECORD [ retry-phrase ] ┌ │ INVALID KEY imperative-statement-1 │ … NOT INVALID KEY … │ ┘ (choice indicators)'. Same record format, but 2023 adds an optional retry-phrase. Its choice indicators also allow INVALID KEY and NOT INVALID KEY in either order, so it accepts programs 1985 refuses.",
+  "reason": "1985: \"DELETE file-name-1 RECORD [ INVALID KEY imperative-statement-1 ] [ NOT INVALID KEY imperative-statement-2 ]\"; 2023: \"DELETE file-name-1 RECORD [ retry-phrase ] ┌ │ INVALID KEY imperative-statement-1 │ … NOT INVALID KEY … │ ┘ (choice indicators)\". Same record format, but 2023 adds an optional retry-phrase. Its choice indicators also allow INVALID KEY and NOT INVALID KEY in either order, so it accepts programs 1985 refuses.",
   "source": "audit-1985/state-route"
  }
 }

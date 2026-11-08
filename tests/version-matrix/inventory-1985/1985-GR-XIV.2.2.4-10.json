@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'the MCS provides, in the data item referenced by data-name-7, the symbolic name of the communication terminal'; 2023: 'No communication description entry exists; no candidate holds the CD feature, and the 2023 RECEIVE candidate covers only CONTINUE'. The 2023 texts lack the communication description entry and its SYMBOLIC SOURCE item. No candidate states that the MCS supplies the source terminal name, or spaces when it is unknown.",
+  "reason": "1985: \"the MCS provides, in the data item referenced by data-name-7, the symbolic name of the communication terminal\"; 2023: \"No communication description entry exists; no candidate holds the CD feature, and the 2023 RECEIVE candidate covers only CONTINUE\". The 2023 texts lack the communication description entry and its SYMBOLIC SOURCE item. No candidate states that the MCS supplies the source terminal name, or spaces when it is unknown.",
   "source": "audit-1985/state-route"
  }
 }

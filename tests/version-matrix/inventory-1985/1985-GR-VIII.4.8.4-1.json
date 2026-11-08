@@ -9,7 +9,7 @@
    "GR-14.9.49.4-3"
   ],
   "bridge": true,
-  "reason": "1985: 'Only a declarative within the separately compiled program that contains the statement which caused the qualifying condition is invoked'; 2023: 'a) the qualifying declarative in the source element that contains the statement ... b) a qualifying declarative with the GLOBAL attribute'. 1985 admits any qualifying declarative in the separately compiled program. 2023 confines it to the statement's own source element, plus only GLOBAL declaratives of containing elements.",
+  "reason": "1985: \"Only a declarative within the separately compiled program that contains the statement which caused the qualifying condition is invoked\"; 2023: \"a) the qualifying declarative in the source element that contains the statement ... b) a qualifying declarative with the GLOBAL attribute\". 1985 admits any qualifying declarative in the separately compiled program. 2023 confines it to the statement's own source element, plus only GLOBAL declaratives of containing elements.",
   "source": "audit-1985/state-route"
  }
 }

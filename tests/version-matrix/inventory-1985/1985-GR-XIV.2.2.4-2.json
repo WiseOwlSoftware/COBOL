@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'For each input CD entry, a record area of 87 contiguous character positions is allocated.'; 2023: 'No candidate covers CD entries; the communication module and the communication description entry are absent from 2023.'. No 2023 candidate covers the communication description entry or the MCS record layout. The communication feature is dropped in 2023, so the requirement is removed.",
+  "reason": "1985: \"For each input CD entry, a record area of 87 contiguous character positions is allocated.\"; 2023: \"No candidate covers CD entries; the communication module and the communication description entry are absent from 2023.\". No 2023 candidate covers the communication description entry or the MCS record layout. The communication feature is dropped in 2023, so the requirement is removed.",
   "source": "audit-1985/state-route"
  }
 }

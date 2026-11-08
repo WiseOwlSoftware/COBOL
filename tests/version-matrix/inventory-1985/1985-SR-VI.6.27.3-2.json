@@ -8,7 +8,7 @@
    "SR-14.9.48.3-2"
   ],
   "bridge": true,
-  "reason": "1985: 'must reference data items described, implicitly or explicitly, as category alphanumeric.'; 2023: 'shall reference data items of category alphanumeric or national.'. Same operands and the same restriction, but 2023 adds category national as an allowed case (constrained by SR-3), so operands refused in 1985 are accepted.",
+  "reason": "1985: \"must reference data items described, implicitly or explicitly, as category alphanumeric.\"; 2023: \"shall reference data items of category alphanumeric or national.\". Same operands and the same restriction, but 2023 adds category national as an allowed case (constrained by SR-3), so operands refused in 1985 are accepted.",
   "source": "audit-1985/state-route"
  }
 }

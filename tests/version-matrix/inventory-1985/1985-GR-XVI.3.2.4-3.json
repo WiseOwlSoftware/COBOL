@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'Segments with segment-number 50 through 99 are independent segments.'; 2023: 'No 2023 clause holds segmentation; no candidate covers segment-numbers or independent segments.'. No 2023 clause holds the Segmentation feature, and the wording candidates (directives, VARYING, THROUGH and others) do not address segment-numbers or independent segments.",
+  "reason": "1985: \"Segments with segment-number 50 through 99 are independent segments.\"; 2023: \"No 2023 clause holds segmentation; no candidate covers segment-numbers or independent segments.\". No 2023 clause holds the Segmentation feature, and the wording candidates (directives, VARYING, THROUGH and others) do not address segment-numbers or independent segments.",
   "source": "audit-1985/state-route"
  }
 }

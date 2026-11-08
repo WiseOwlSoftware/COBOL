@@ -8,7 +8,7 @@
    "GR-12.4.5.3-1"
   ],
   "bridge": true,
-  "reason": "1985: 'data-name-1 must reference an external data item and the RELATIVE KEY phrase ... must reference that same external data item'; 2023: 'h) The same specification of the RELATIVE KEY clause, where data-name-7 references an external data item.'. Item f) keeps the same access mode. Item h) only states the external key as a condition, unlike i)'s 'shall reference'. The 1985 requirement that the relative key be external is no longer stated.",
+  "reason": "1985: \"data-name-1 must reference an external data item and the RELATIVE KEY phrase ... must reference that same external data item\"; 2023: \"h) The same specification of the RELATIVE KEY clause, where data-name-7 references an external data item.\". Item f) keeps the same access mode. Item h) only states the external key as a condition, unlike i)'s 'shall reference'. The 1985 requirement that the relative key be external is no longer stated.",
   "source": "audit-1985/state-route"
  }
 }

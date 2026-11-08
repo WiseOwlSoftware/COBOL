@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'routine-name-1 is given to identify the portion of the other language coding to be executed at this point'; 2023: 'No ENTER statement: no clause holds the feature and no candidate covers in-line or named other-language coding'. No 2023 clause holds the ENTER statement, and no candidate states the routine-name-1 or in-line other-language rule. The feature is absent from 2023.",
+  "reason": "1985: \"routine-name-1 is given to identify the portion of the other language coding to be executed at this point\"; 2023: \"No ENTER statement: no clause holds the feature and no candidate covers in-line or named other-language coding\". No 2023 clause holds the ENTER statement, and no candidate states the routine-name-1 or in-line other-language rule. The feature is absent from 2023.",
   "source": "audit-1985/state-route"
  }
 }

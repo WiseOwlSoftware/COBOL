@@ -8,7 +8,7 @@
    "GR-13.18.57.4-8"
   ],
   "bridge": true,
-  "reason": "1985: 'obtained by subtracting 1 from the value of integer-3 of the FIRST DETAIL phrase of the PAGE clause'; 2023: 'is the line preceding the first line of the page heading. If no page heading is defined for the report, the lower limit is'. Rule b (page limit for an RH on its own page) is kept. For an RH not on its own page, 2023 caps it before the page heading. FIRST DETAIL-1 now applies only when no page heading is defined.",
+  "reason": "1985: \"obtained by subtracting 1 from the value of integer-3 of the FIRST DETAIL phrase of the PAGE clause\"; 2023: \"is the line preceding the first line of the page heading. If no page heading is defined for the report, the lower limit is\". Rule b (page limit for an RH on its own page) is kept. For an RH not on its own page, 2023 caps it before the page heading. FIRST DETAIL-1 now applies only when no page heading is defined.",
   "source": "audit-1985/state-route"
  }
 }

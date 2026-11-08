@@ -13,7 +13,7 @@
    "DOC-A.1-123"
   ],
   "bridge": true,
-  "reason": "1985: 'Each implementor will indicate the techniques used in handling arithmetic expressions.'; 2023: 'If the STANDARD-DECIMAL phrase is specified, the techniques used in handling arithmetic expressions ... shall be as described'. First sentence kept verbatim. Implementor-defined techniques now hold only for NATIVE, the default. STANDARD-DECIMAL and STANDARD-BINARY make them standard-defined.",
+  "reason": "1985: \"Each implementor will indicate the techniques used in handling arithmetic expressions.\"; 2023: \"If the STANDARD-DECIMAL phrase is specified, the techniques used in handling arithmetic expressions ... shall be as described\". First sentence kept verbatim. Implementor-defined techniques now hold only for NATIVE, the default. STANDARD-DECIMAL and STANDARD-BINARY make them standard-defined.",
   "source": "audit-1985/state-route"
  }
 }

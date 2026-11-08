@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'Within a single program, the INITIAL clause may be specified in only one CD entry.'; 2023: 'No 2023 candidate covers CD entries; the communication description entry with its INITIAL clause is absent.'. None of the 2023 candidates covers the communication description entry or its INITIAL clause. The 2023 standard lacks the Communication module, so this requirement is dropped.",
+  "reason": "1985: \"Within a single program, the INITIAL clause may be specified in only one CD entry.\"; 2023: \"No 2023 candidate covers CD entries; the communication description entry with its INITIAL clause is absent.\". None of the 2023 candidates covers the communication description entry or its INITIAL clause. The 2023 standard lacks the Communication module, so this requirement is dropped.",
   "source": "audit-1985/state-route"
  }
 }

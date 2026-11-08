@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'Cd-name-1 must reference an input CD when the INPUT phrase is specified.'; 2023: 'No DISABLE statement or communication description entry in 2023; no clause holds the feature'. No 2023 clause holds the DISABLE statement or CDs, so the communication module is gone. The wording candidates concern OPEN, SORT, CALL and the like, not DISABLE.",
+  "reason": "1985: \"Cd-name-1 must reference an input CD when the INPUT phrase is specified.\"; 2023: \"No DISABLE statement or communication description entry in 2023; no clause holds the feature\". No 2023 clause holds the DISABLE statement or CDs, so the communication module is gone. The wording candidates concern OPEN, SORT, CALL and the like, not DISABLE.",
   "source": "audit-1985/state-route"
  }
 }

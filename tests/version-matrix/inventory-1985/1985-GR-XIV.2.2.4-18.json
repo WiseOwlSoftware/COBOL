@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'the value of the data item referenced by data-name-1 is valid at the time of execution of the SEND, PURGE, ENABLE OUTPUT'; 2023: 'No 2023 clause holds the communication description entry; the communication module and its SEND/PURGE statements are absent.'. No 2023 clause holds the communication description entry, and no wording candidate covers it or SEND/PURGE/ENABLE OUTPUT, so the feature and this user-responsibility rule are dropped.",
+  "reason": "1985: \"the value of the data item referenced by data-name-1 is valid at the time of execution of the SEND, PURGE, ENABLE OUTPUT\"; 2023: \"No 2023 clause holds the communication description entry; the communication module and its SEND/PURGE statements are absent.\". No 2023 clause holds the communication description entry, and no wording candidate covers it or SEND/PURGE/ENABLE OUTPUT, so the feature and this user-responsibility rule are dropped.",
   "source": "audit-1985/state-route"
  }
 }

@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'If a MERGE statement appears in an independent segment, then any output procedure referenced by that MERGE statement must be contained'; 2023: 'No 2023 clause holds the Segmentation feature; independent segments are absent, so no candidate states this restriction'. The rule restricts output procedures relative to independent segments. No 2023 clause holds segmentation, and the MERGE syntax rule (SR-14.9.24.3-1) does not mention segments.",
+  "reason": "1985: \"If a MERGE statement appears in an independent segment, then any output procedure referenced by that MERGE statement must be contained\"; 2023: \"No 2023 clause holds the Segmentation feature; independent segments are absent, so no candidate states this restriction\". The rule restricts output procedures relative to independent segments. No 2023 clause holds segmentation, and the MERGE syntax rule (SR-14.9.24.3-1) does not mention segments.",
   "source": "audit-1985/state-route"
  }
 }

@@ -8,7 +8,7 @@
    "SR-13.18.8.3-2"
   ],
   "bridge": true,
-  "reason": "1985: 'must be described, either implicitly or explicitly, as USAGE IS DISPLAY.'; 2023: 'shall be implicitly or explicitly described as usage display or usage national.'. Same usage restriction on the BLANK WHEN ZERO subject, but 2023 adds usage national as a permitted case beyond 1985's DISPLAY-only rule.",
+  "reason": "1985: \"must be described, either implicitly or explicitly, as USAGE IS DISPLAY.\"; 2023: \"shall be implicitly or explicitly described as usage display or usage national.\". Same usage restriction on the BLANK WHEN ZERO subject, but 2023 adds usage national as a permitted case beyond 1985's DISPLAY-only rule.",
   "source": "audit-1985/state-route"
  }
 }

@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'the characters transmitted by the SEND statement replace all characters which may have previously been transmitted to the same line'; 2023: '2023 SEND only sends a message to a message server run unit; no communication device, line, REPLACING or superimposition rule'. The 2023 SEND is message-server based and has no device lines or REPLACING phrase. The 1985 communication-device rule on superimposed characters is dropped.",
+  "reason": "1985: \"the characters transmitted by the SEND statement replace all characters which may have previously been transmitted to the same line\"; 2023: \"2023 SEND only sends a message to a message server run unit; no communication device, line, REPLACING or superimposition rule\". The 2023 SEND is message-server based and has no device lines or REPLACING phrase. The 1985 communication-device rule on superimposed characters is dropped.",
   "source": "audit-1985/state-route"
  }
 }

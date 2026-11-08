@@ -8,7 +8,7 @@
    "FMT-10.6.1"
   ],
   "bridge": true,
-  "reason": "1985: 'identification-division [ environment-division ] [ data-division ] [ procedure-division ]'; 2023: '[ IDENTIFICATION DIVISION. ] PROGRAM-ID. program-name-1 ... [ options-paragraph ] [ environment-division ]'. Same program structure, but 2023 accepts more programs: the IDENTIFICATION DIVISION header becomes optional and an options paragraph is added. The level-2 box on END PROGRAM is no difference.",
+  "reason": "1985: \"identification-division [ environment-division ] [ data-division ] [ procedure-division ]\"; 2023: \"[ IDENTIFICATION DIVISION. ] PROGRAM-ID. program-name-1 ... [ options-paragraph ] [ environment-division ]\". Same program structure, but 2023 accepts more programs: the IDENTIFICATION DIVISION header becomes optional and an options paragraph is added. The level-2 box on END PROGRAM is no difference.",
   "source": "audit-1985/state-route"
  }
 }

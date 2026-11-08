@@ -9,7 +9,7 @@
    "SR-13.18.37.3-7"
   ],
   "bridge": true,
-  "reason": "1985: 'In addition, the NEXT GROUP integer must not be greater than the line number specified by integer-1 of the PAGE clause.'; 2023: 'c) If the current report group is a page footing, integer-1 shall be greater than the minimum last line number of the report group.'. The relative-form limit, sum not over the page limit, is kept in SR 7b. For the absolute form in a page footing, 2023 keeps only the lower bound and drops the page-limit upper bound.",
+  "reason": "1985: \"In addition, the NEXT GROUP integer must not be greater than the line number specified by integer-1 of the PAGE clause.\"; 2023: \"c) If the current report group is a page footing, integer-1 shall be greater than the minimum last line number of the report group.\". The relative-form limit, sum not over the page limit, is kept in SR 7b. For the absolute form in a page footing, 2023 keeps only the lower bound and drops the page-limit upper bound.",
   "source": "audit-1985/state-route"
  }
 }

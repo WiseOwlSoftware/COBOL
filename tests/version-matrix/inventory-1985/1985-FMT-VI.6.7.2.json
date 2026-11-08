@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'ALTER { procedure-name-1 TO [ PROCEED TO ] procedure-name-2 }'; 2023: 'No ALTER statement among the candidates; the GO TO format holds only the unconditional and DEPENDING forms'. No candidate covers ALTER. 2023 GO TO has only the unconditional and DEPENDING formats, and nothing changes a GO TO target at run time, so the statement is dropped.",
+  "reason": "1985: \"ALTER { procedure-name-1 TO [ PROCEED TO ] procedure-name-2 }\"; 2023: \"No ALTER statement among the candidates; the GO TO format holds only the unconditional and DEPENDING forms\". No candidate covers ALTER. 2023 GO TO has only the unconditional and DEPENDING formats, and nothing changes a GO TO target at run time, so the statement is dropped.",
   "source": "audit-1985/state-route"
  }
 }

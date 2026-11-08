@@ -9,7 +9,7 @@
    "GR-13.18.35.4-7"
   ],
   "bridge": true,
-  "reason": "1985: 'successive absolute LINE NUMBER clauses must specify integers that are in ascending order.'; 2023: 'not in increasing numerical order, they shall each be subject to a different PRESENT WHEN clause.'. 1985 requires ascending absolute line numbers with no exception. 2023 accepts non-ascending absolute lines if each is under a different PRESENT WHEN clause. Need not be consecutive is kept.",
+  "reason": "1985: \"successive absolute LINE NUMBER clauses must specify integers that are in ascending order.\"; 2023: \"not in increasing numerical order, they shall each be subject to a different PRESENT WHEN clause.\". 1985 requires ascending absolute line numbers with no exception. 2023 accepts non-ascending absolute lines if each is under a different PRESENT WHEN clause. Need not be consecutive is kept.",
   "source": "audit-1985/state-route"
  }
 }

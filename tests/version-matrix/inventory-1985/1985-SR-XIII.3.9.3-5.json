@@ -8,7 +8,7 @@
    "SR-13.15.3-7"
   ],
   "bridge": true,
-  "reason": "1985: 'may be referenced only by a GENERATE statement, the UPON phrase of a SUM clause, a USE BEFORE REPORTING sentence, or as a sum counter qualifier'; 2023: 'in the UPON phrase of the SUM clause, or as an operand in a SUM clause. The data-name shall not be referenced in any other way.'. Same rule on when the group data-name is required and how it may be referenced, but 2023 adds a permitted reference as an operand in a SUM clause, which 1985 forbids.",
+  "reason": "1985: \"may be referenced only by a GENERATE statement, the UPON phrase of a SUM clause, a USE BEFORE REPORTING sentence, or as a sum counter qualifier\"; 2023: \"in the UPON phrase of the SUM clause, or as an operand in a SUM clause. The data-name shall not be referenced in any other way.\". Same rule on when the group data-name is required and how it may be referenced, but 2023 adds a permitted reference as an operand in a SUM clause, which 1985 forbids.",
   "source": "audit-1985/state-route"
  }
 }

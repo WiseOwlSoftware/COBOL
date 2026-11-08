@@ -8,7 +8,7 @@
    "SR-13.18.52.3-2"
   ],
   "bridge": true,
-  "reason": "1985: 'must be described, implicitly or explicitly, as USAGE IS DISPLAY.'; 2023: 'The usage of an elementary item for which the SIGN clause is specified shall be display or national.'. 2023 adds a case: the SIGN clause is also allowed on items of usage national, where 1985 allowed only USAGE DISPLAY.",
+  "reason": "1985: \"must be described, implicitly or explicitly, as USAGE IS DISPLAY.\"; 2023: \"The usage of an elementary item for which the SIGN clause is specified shall be display or national.\". 2023 adds a case: the SIGN clause is also allowed on items of usage national, where 1985 allowed only USAGE DISPLAY.",
   "source": "audit-1985/state-route"
  }
 }

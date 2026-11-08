@@ -8,7 +8,7 @@
    "FMT-14.9.27.2"
   ],
   "bridge": true,
-  "reason": "1985: 'OPEN {INPUT {file-name-1} … / OUTPUT {file-name-2} … / I-O {file-name-3} … / EXTEND {file-name-4} …} …'; 2023: 'OPEN {{INPUT/OUTPUT/I-O/EXTEND} [ sharing-phrase ] [ retry-phrase ] { file-name-1 [ WITH NO REWIND ] } …} …'. Same four open modes, repeatable in one statement. 2023 adds the optional SHARING, RETRY and NO REWIND phrases, so it accepts OPEN statements the 1985 relative format refused.",
+  "reason": "1985: \"OPEN {INPUT {file-name-1} … / OUTPUT {file-name-2} … / I-O {file-name-3} … / EXTEND {file-name-4} …} …\"; 2023: \"OPEN {{INPUT/OUTPUT/I-O/EXTEND} [ sharing-phrase ] [ retry-phrase ] { file-name-1 [ WITH NO REWIND ] } …} …\". Same four open modes, repeatable in one statement. 2023 adds the optional SHARING, RETRY and NO REWIND phrases, so it accepts OPEN statements the 1985 relative format refused.",
   "source": "audit-1985/state-route"
  }
 }

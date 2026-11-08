@@ -8,7 +8,7 @@
    "SR-12.4.5.12.3-2"
   ],
   "bridge": true,
-  "reason": "1985: 'Data-name-1 must reference a data item of the category alphanumeric'; 2023: 'shall reference a data item of category alphanumeric or category national'. Both require the key to lie in a record of the associated file. 2023 also accepts a category national key (and data-name-2), which 1985 refused.",
+  "reason": "1985: \"Data-name-1 must reference a data item of the category alphanumeric\"; 2023: \"shall reference a data item of category alphanumeric or category national\". Both require the key to lie in a record of the associated file. 2023 also accepts a category national key (and data-name-2), which 1985 refused.",
   "source": "audit-1985/state-route"
  }
 }

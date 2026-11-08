@@ -9,7 +9,7 @@
    "SR-7.2.4.3-2"
   ],
   "bridge": true,
-  "reason": "1985: 'It must be preceded by a separator period except when it is the first statement in a separately compiled program.'; 2023: 'A REPLACE statement shall be preceded by a space except when it is the first statement in a compilation group.'. 2023 drops the required preceding separator period and needs only a space. It also allows REPLACE where a separator may appear and in library text, so more programs are accepted.",
+  "reason": "1985: \"It must be preceded by a separator period except when it is the first statement in a separately compiled program.\"; 2023: \"A REPLACE statement shall be preceded by a space except when it is the first statement in a compilation group.\". 2023 drops the required preceding separator period and needs only a space. It also allows REPLACE where a separator may appear and in library text, so more programs are accepted.",
   "source": "audit-1985/state-route"
  }
 }

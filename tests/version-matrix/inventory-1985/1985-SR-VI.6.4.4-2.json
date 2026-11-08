@@ -8,7 +8,7 @@
    "SR-14.7.7-2"
   ],
   "bridge": true,
-  "reason": "1985: 'The maximum size of each operand is 18 decimal digits. ... must not contain more than 18 decimal digits.'; 2023: 'when native arithmetic is in effect: ... the composite of operands shall not contain more than 31 digits.'. The composite limit rises from 18 to 31 digits and applies only under native arithmetic. Some operand kinds are excluded, and the separate 18-digit per-operand limit is not restated.",
+  "reason": "1985: \"The maximum size of each operand is 18 decimal digits. ... must not contain more than 18 decimal digits.\"; 2023: \"when native arithmetic is in effect: ... the composite of operands shall not contain more than 31 digits.\". The composite limit rises from 18 to 31 digits and applies only under native arithmetic. Some operand kinds are excluded, and the separate 18-digit per-operand limit is not restated.",
   "source": "audit-1985/state-route"
  }
 }

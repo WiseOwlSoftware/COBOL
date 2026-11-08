@@ -8,7 +8,7 @@
    "GR-12.4.5.3-1"
   ],
   "bridge": true,
-  "reason": "1985: 'g. The same specification for the PADDING CHARACTER clause.'; 2023: 'g) The same specification of COLLATING SEQUENCE clauses. h) The same specification of the RELATIVE KEY clause'. Same external-connector consistency rule, but the PADDING CHARACTER item is gone and new items are added (collating sequence, keys, FILE STATUS, sharing, lock modes), so different programs are refused.",
+  "reason": "1985: \"g. The same specification for the PADDING CHARACTER clause.\"; 2023: \"g) The same specification of COLLATING SEQUENCE clauses. h) The same specification of the RELATIVE KEY clause\". Same external-connector consistency rule, but the PADDING CHARACTER item is gone and new items are added (collating sequence, keys, FILE STATUS, sharing, lock modes), so different programs are refused.",
   "source": "audit-1985/state-route"
  }
 }

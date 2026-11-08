@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'Segmentation as defined in Section XVI can be applied to programs containing the SORT statement. However, the following restrictions apply'; 2023: 'No candidate mentions segments; the SORT rules in 14.9.40 state no segment restriction on input or output procedures.'. The 1985 rule restricts where SORT input/output procedures sit relative to independent segments. No 2023 candidate mentions segmentation or carries this restriction.",
+  "reason": "1985: \"Segmentation as defined in Section XVI can be applied to programs containing the SORT statement. However, the following restrictions apply\"; 2023: \"No candidate mentions segments; the SORT rules in 14.9.40 state no segment restriction on input or output procedures.\". The 1985 rule restricts where SORT input/output procedures sit relative to independent segments. No 2023 candidate mentions segmentation or carries this restriction.",
   "source": "audit-1985/state-route"
  }
 }

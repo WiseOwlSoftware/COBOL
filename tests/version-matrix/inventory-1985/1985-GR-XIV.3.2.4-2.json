@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'the execution of a DISABLE statement will cause the logical disconnection at the earliest time the source or destination is inactive'; 2023: 'No 2023 clause holds the DISABLE statement; the 2023 SEND/RECEIVE rules use a message server, with no enable/disable'. No 2023 clause holds the DISABLE feature. The 2023 communication candidates (SEND, RECEIVE) use a message server and have no DISABLE statement, so the 1985 rule is dropped.",
+  "reason": "1985: \"the execution of a DISABLE statement will cause the logical disconnection at the earliest time the source or destination is inactive\"; 2023: \"No 2023 clause holds the DISABLE statement; the 2023 SEND/RECEIVE rules use a message server, with no enable/disable\". No 2023 clause holds the DISABLE feature. The 2023 communication candidates (SEND, RECEIVE) use a message server and have no DISABLE statement, so the 1985 rule is dropped.",
   "source": "audit-1985/state-route"
  }
 }

@@ -9,7 +9,7 @@
    "GR-13.18.63.4-8"
   ],
   "bridge": true,
-  "reason": "1985: 'Initialization is not affected by any BLANK WHEN ZERO or JUSTIFIED clause that may be specified.'; 2023: 'literal-1 in the VALUE clause is specified as zero, then the BLANK WHEN ZERO clause does affect initialization.'. Alignment, the JUSTIFIED exemption and no editing are the same. But 2023 lets BLANK WHEN ZERO affect a numeric-edited item whose VALUE is zero; 1985 says it never affects initialization.",
+  "reason": "1985: \"Initialization is not affected by any BLANK WHEN ZERO or JUSTIFIED clause that may be specified.\"; 2023: \"literal-1 in the VALUE clause is specified as zero, then the BLANK WHEN ZERO clause does affect initialization.\". Alignment, the JUSTIFIED exemption and no editing are the same. But 2023 lets BLANK WHEN ZERO affect a numeric-edited item whose VALUE is zero; 1985 says it never affects initialization.",
   "source": "audit-1985/state-route"
  }
 }

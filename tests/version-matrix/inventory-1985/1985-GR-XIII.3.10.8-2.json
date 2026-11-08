@@ -9,7 +9,7 @@
    "GR-13.18.39.4-3"
   ],
   "bridge": true,
-  "reason": "1985: 'The last line number on which a control heading report group or detail report group can be presented is ... LAST DETAIL'; 2023: 'd) The lower limit for a control heading is the line given by the LAST CONTROL HEADING integer.'. Detail and control footing limits are unchanged. Control heading limit is now LAST CONTROL HEADING, which may differ from LAST DETAIL; it equals it only by default.",
+  "reason": "1985: \"The last line number on which a control heading report group or detail report group can be presented is ... LAST DETAIL\"; 2023: \"d) The lower limit for a control heading is the line given by the LAST CONTROL HEADING integer.\". Detail and control footing limits are unchanged. Control heading limit is now LAST CONTROL HEADING, which may differ from LAST DETAIL; it equals it only by default.",
   "source": "audit-1985/state-route"
  }
 }

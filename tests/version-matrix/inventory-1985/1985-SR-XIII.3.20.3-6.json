@@ -8,7 +8,7 @@
    "SR-13.18.57.3-16"
   ],
   "bridge": true,
-  "reason": "1985: 'the corresponding report description entry must include no more than one detail report group'; 2023: 'If no GENERATE data-name statements are specified in the procedure division, the report description need not contain a DETAIL.'. The 2023 TYPE clause keeps the rule that DETAIL is optional, but it drops the limit of one detail group when GENERATE report-name is used. The GENERATE candidate does not restore that limit.",
+  "reason": "1985: \"the corresponding report description entry must include no more than one detail report group\"; 2023: \"If no GENERATE data-name statements are specified in the procedure division, the report description need not contain a DETAIL.\". The 2023 TYPE clause keeps the rule that DETAIL is optional, but it drops the limit of one detail group when GENERATE report-name is used. The GENERATE candidate does not restore that limit.",
   "source": "audit-1985/state-route"
  }
 }

@@ -9,7 +9,7 @@
    "GR-14.9.27.4-11"
   ],
   "bridge": true,
-  "reason": "1985: 'The NO REWIND and REVERSED phrases must only be used with: a. Sequential single reel/unit files.'; 2023: 'The NO REWIND phrase may be specified only for sequential files.'. 2023 drops REVERSED and the single reel/unit and multiple-file-tape limits. NO REWIND needs only sequential organization; where the medium does not apply it is ignored with status 07.",
+  "reason": "1985: \"The NO REWIND and REVERSED phrases must only be used with: a. Sequential single reel/unit files.\"; 2023: \"The NO REWIND phrase may be specified only for sequential files.\". 2023 drops REVERSED and the single reel/unit and multiple-file-tape limits. NO REWIND needs only sequential organization; where the medium does not apply it is ignored with status 07.",
   "source": "audit-1985/state-route"
  }
 }

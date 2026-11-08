@@ -8,7 +8,7 @@
    "GR-14.9.6.4-7"
   ],
   "bridge": true,
-  "reason": "1985: 'the record area associated with a file-name-1 is no longer available'; 2023: 'the record area is available to the runtime element if any of the file connectors referenced by the other file-names in that SAME RECORD AREA clause are open'. The base rule is kept: unavailable after success, undefined after failure. 2023 adds a SAME RECORD AREA case where the area stays available while another file sharing it is open.",
+  "reason": "1985: \"the record area associated with a file-name-1 is no longer available\"; 2023: \"the record area is available to the runtime element if any of the file connectors referenced by the other file-names in that SAME RECORD AREA clause are open\". The base rule is kept: unavailable after success, undefined after failure. 2023 adds a SAME RECORD AREA case where the area stays available while another file sharing it is open.",
   "source": "audit-1985/state-route"
  }
 }

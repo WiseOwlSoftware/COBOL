@@ -9,7 +9,7 @@
    "SR-13.18.57.3-15"
   ],
   "bridge": true,
-  "reason": "1985: 'b. Not more than one detail report group, and'; 2023: 'Report-name-1 may be used only if the referenced report description entry contains a CONTROL clause.'. 2023 keeps the CONTROL clause condition, and every report must have a body group, but the one-detail-group limit is gone, so GENERATE report-name is allowed with several details.",
+  "reason": "1985: \"b. Not more than one detail report group, and\"; 2023: \"Report-name-1 may be used only if the referenced report description entry contains a CONTROL clause.\". 2023 keeps the CONTROL clause condition, and every report must have a body group, but the one-detail-group limit is gone, so GENERATE report-name is allowed with several details.",
   "source": "audit-1985/state-route"
  }
 }

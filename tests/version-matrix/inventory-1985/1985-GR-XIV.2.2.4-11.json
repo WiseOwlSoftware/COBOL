@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'The MCS indicates via the content of the data item referenced by data-name-8 the number of character positions filled'; 2023: 'No communication description entry in 2023. The RECEIVE/SEND candidates use identifier-1 and set no text-length item.'. 2023 drops the CD entry and its text-length field. No candidate states that the MCS reports the count of character positions filled by RECEIVE.",
+  "reason": "1985: \"The MCS indicates via the content of the data item referenced by data-name-8 the number of character positions filled\"; 2023: \"No communication description entry in 2023. The RECEIVE/SEND candidates use identifier-1 and set no text-length item.\". 2023 drops the CD entry and its text-length field. No candidate states that the MCS reports the count of character positions filled by RECEIVE.",
   "source": "audit-1985/state-route"
  }
 }

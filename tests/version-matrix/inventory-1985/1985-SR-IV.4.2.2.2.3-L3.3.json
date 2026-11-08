@@ -9,7 +9,7 @@
    "GR-8.3.3.6.4-7"
   ],
   "bridge": true,
-  "reason": "1985: 'the actual characters associated with each figurative constant depend upon the program collating sequence specified.'; 2023: 'At compile time ... collating sequence used during compilation. At runtime ... runtime collating sequence. When locale category LC_COLLATE'. HIGH/LOW-VALUE now depend on the compile-time or runtime collating sequence, a locale, or national context, not just the program collating sequence. ALL-redundancy parts not shown.",
+  "reason": "1985: \"the actual characters associated with each figurative constant depend upon the program collating sequence specified.\"; 2023: \"At compile time ... collating sequence used during compilation. At runtime ... runtime collating sequence. When locale category LC_COLLATE\". HIGH/LOW-VALUE now depend on the compile-time or runtime collating sequence, a locale, or national context, not just the program collating sequence. ALL-redundancy parts not shown.",
   "source": "audit-1985/state-route"
  }
 }

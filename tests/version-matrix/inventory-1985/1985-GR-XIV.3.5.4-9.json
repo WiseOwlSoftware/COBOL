@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'When the SEGMENT phrase is used, the following rules apply: a. If a segment is the same size as the area referenced by identifier-1'; 2023: 'RECEIVE now only \"receives a message from a server run unit\"; no SEGMENT phrase or segment indicators in its rules'. The 2023 RECEIVE is a run-unit message facility. The 1985 communication module and its SEGMENT phrase are gone, and no candidate states the segment transfer rules.",
+  "reason": "1985: \"When the SEGMENT phrase is used, the following rules apply: a. If a segment is the same size as the area referenced by identifier-1\"; 2023: \"RECEIVE now only \"receives a message from a server run unit\"; no SEGMENT phrase or segment indicators in its rules\". The 2023 RECEIVE is a run-unit message facility. The 1985 communication module and its SEGMENT phrase are gone, and no candidate states the segment transfer rules.",
   "source": "audit-1985/state-route"
  }
 }

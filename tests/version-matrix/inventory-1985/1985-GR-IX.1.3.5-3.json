@@ -9,7 +9,7 @@
    "GR-9.1.14-4"
   ],
   "bridge": true,
-  "reason": "1985: 'a USE AFTER EXCEPTION procedure must be associated with the file connector and that procedure is executed'; 2023: 'If the INVALID KEY phrase is not specified ... and there are no applicable exception processing statements, control is transferred to the end'. 1985 requires a USE procedure when INVALID KEY is omitted. 2023 allows none and goes to the end of the statement. The paragraph on no invalid key condition is carried in GR-9.1.14-4.",
+  "reason": "1985: \"a USE AFTER EXCEPTION procedure must be associated with the file connector and that procedure is executed\"; 2023: \"If the INVALID KEY phrase is not specified ... and there are no applicable exception processing statements, control is transferred to the end\". 1985 requires a USE procedure when INVALID KEY is omitted. 2023 allows none and goes to the end of the statement. The paragraph on no invalid key condition is carried in GR-9.1.14-4.",
   "source": "audit-1985/state-route"
  }
 }

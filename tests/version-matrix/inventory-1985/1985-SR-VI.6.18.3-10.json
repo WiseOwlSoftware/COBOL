@@ -8,7 +8,7 @@
    "GR-14.9.22.4-23"
   ],
   "bridge": true,
-  "reason": "1985: 'The same character must not appear more than once either in literal-4 or in the data item referenced by identifier-6.'; 2023: 'If the same character appears more than once in ... identifier-6 or in literal-4, the first occurrence of the character is used for replacement.'. 1985 forbids duplicate characters in literal-4/identifier-6. 2023 accepts such programs and defines the result: the first occurrence is used for replacement.",
+  "reason": "1985: \"The same character must not appear more than once either in literal-4 or in the data item referenced by identifier-6.\"; 2023: \"If the same character appears more than once in ... identifier-6 or in literal-4, the first occurrence of the character is used for replacement.\". 1985 forbids duplicate characters in literal-4/identifier-6. 2023 accepts such programs and defines the result: the first occurrence is used for replacement.",
   "source": "audit-1985/state-route"
  }
 }

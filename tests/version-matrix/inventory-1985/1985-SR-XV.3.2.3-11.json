@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'References to the special register DEBUG-ITEM are restricted to references from within a debugging section.'; 2023: 'No clause holds the feature; the 2023 USE rules cover only EXCEPTION, EXCEPTION OBJECT/CONDITION and BEFORE REPORTING, not DEBUGGING.'. No 2023 clause holds the Debug feature, and the 2023 USE rules never mention USE FOR DEBUGGING or DEBUG-ITEM. The debugging section and its register are dropped.",
+  "reason": "1985: \"References to the special register DEBUG-ITEM are restricted to references from within a debugging section.\"; 2023: \"No clause holds the feature; the 2023 USE rules cover only EXCEPTION, EXCEPTION OBJECT/CONDITION and BEFORE REPORTING, not DEBUGGING.\". No 2023 clause holds the Debug feature, and the 2023 USE rules never mention USE FOR DEBUGGING or DEBUG-ITEM. The debugging section and its register are dropped.",
   "source": "audit-1985/state-route"
  }
 }

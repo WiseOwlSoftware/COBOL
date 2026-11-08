@@ -8,7 +8,7 @@
    "GR-14.9.35.4-3"
   ],
   "bridge": true,
-  "reason": "1985: 'must be a mass storage file and must be open in the I-O mode at the time of execution of this statement'; 2023: \"shall have an open mode of I-O. If the open mode is some other value or the file is not open, the I-O status ... is set to '49'\". The I-O open-mode rule is kept, but 2023 REWRITE no longer requires a mass storage file (unlike its DELETE rule) and provides for line sequential files.",
+  "reason": "1985: \"must be a mass storage file and must be open in the I-O mode at the time of execution of this statement\"; 2023: \"shall have an open mode of I-O. If the open mode is some other value or the file is not open, the I-O status ... is set to '49'\". The I-O open-mode rule is kept, but 2023 REWRITE no longer requires a mass storage file (unlike its DELETE rule) and provides for line sequential files.",
   "source": "audit-1985/state-route"
  }
 }

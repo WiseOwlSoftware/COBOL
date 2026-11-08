@@ -9,7 +9,7 @@
    "FMT-13.18.38.2"
   ],
   "bridge": true,
-  "reason": "1985: 'level-number [data-name-1/FILLER] [REDEFINES data-name-2] [PICTURE...] ... [BLANK WHEN ZERO] [VALUE IS literal-1].'; 2023: '[ IS TYPEDEF [ STRONG ] ] [ ALIGNED ] [ ANY LENGTH ] [ BASED ] ... [ IS EXTERNAL [ AS literal-1 ] ] [ IS GLOBAL ]'. All 1985 clauses and formats 2/3 are carried, and the name was already optional (brackets) in 1985. 2023 adds many clauses (TYPEDEF, BASED, EXTERNAL, etc.), so more entries are accepted.",
+  "reason": "1985: \"level-number [data-name-1/FILLER] [REDEFINES data-name-2] [PICTURE...] ... [BLANK WHEN ZERO] [VALUE IS literal-1].\"; 2023: \"[ IS TYPEDEF [ STRONG ] ] [ ALIGNED ] [ ANY LENGTH ] [ BASED ] ... [ IS EXTERNAL [ AS literal-1 ] ] [ IS GLOBAL ]\". All 1985 clauses and formats 2/3 are carried, and the name was already optional (brackets) in 1985. 2023 adds many clauses (TYPEDEF, BASED, EXTERNAL, etc.), so more entries are accepted.",
   "source": "audit-1985/state-route"
  }
 }

@@ -8,7 +8,7 @@
    "SR-10.7.3-1"
   ],
   "bridge": true,
-  "reason": "1985: 'must be present in every program which either contains or is contained within another program'; 2023: 'shall be present in every source unit that contains, is contained in, or precedes another source unit'. 2023 adds a case: an end marker is also required in a source unit that precedes another source unit, not only in containing or contained programs.",
+  "reason": "1985: \"must be present in every program which either contains or is contained within another program\"; 2023: \"shall be present in every source unit that contains, is contained in, or precedes another source unit\". 2023 adds a case: an end marker is also required in a source unit that precedes another source unit, not only in containing or contained programs.",
   "source": "audit-1985/state-route"
  }
 }

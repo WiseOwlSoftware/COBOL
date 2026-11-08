@@ -8,7 +8,7 @@
    "SR-7.2.3.3-9"
   ],
   "bridge": true,
-  "reason": "1985: 'The implementor must allow a length from 1 through 322 characters for a text word within pseudo-text and within library text.'; 2023: 'The length of a text-word within pseudo-text and within library text shall be from 1 through 65,535 character positions.'. Same subject, but the limit rises from 322 to 65,535. Text words of 323 to 65,535 characters, which 1985 did not require compilers to allow, must now be accepted.",
+  "reason": "1985: \"The implementor must allow a length from 1 through 322 characters for a text word within pseudo-text and within library text.\"; 2023: \"The length of a text-word within pseudo-text and within library text shall be from 1 through 65,535 character positions.\". Same subject, but the limit rises from 322 to 65,535. Text words of 323 to 65,535 characters, which 1985 did not require compilers to allow, must now be accepted.",
   "source": "audit-1985/state-route"
  }
 }

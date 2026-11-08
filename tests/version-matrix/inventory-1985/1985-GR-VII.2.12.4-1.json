@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'The RERUN clause specifies when and where the rerun information is recorded.'; 2023: 'No 2023 clause holds the RERUN clause; no candidate covers rerun information or its recording.'. No 2023 clause carries the RERUN clause. The wording candidates cover DELETE, READ, OPEN, CLOSE and similar statements, none of them rerun information, so the clause is dropped.",
+  "reason": "1985: \"The RERUN clause specifies when and where the rerun information is recorded.\"; 2023: \"No 2023 clause holds the RERUN clause; no candidate covers rerun information or its recording.\". No 2023 clause carries the RERUN clause. The wording candidates cover DELETE, READ, OPEN, CLOSE and similar statements, none of them rerun information, so the clause is dropped.",
   "source": "audit-1985/state-route"
  }
 }

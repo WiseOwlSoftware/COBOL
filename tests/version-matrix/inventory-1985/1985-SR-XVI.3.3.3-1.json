@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'Totally within non-independent segments, or'; 2023: 'No candidate covers segmentation or non-independent segments; the Segmentation module is absent from 2023'. The 1985 rule restricts program flow within the Segmentation module. No 2023 candidate addresses segments, and segmentation is not a feature of 2023, so the requirement is dropped.",
+  "reason": "1985: \"Totally within non-independent segments, or\"; 2023: \"No candidate covers segmentation or non-independent segments; the Segmentation module is absent from 2023\". The 1985 rule restricts program flow within the Segmentation module. No 2023 candidate addresses segments, and segmentation is not a feature of 2023, so the requirement is dropped.",
   "source": "audit-1985/state-route"
  }
 }

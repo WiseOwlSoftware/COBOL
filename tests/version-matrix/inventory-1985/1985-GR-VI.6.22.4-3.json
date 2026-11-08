@@ -10,7 +10,7 @@
    "GR-14.9.37.4-7"
   ],
   "bridge": true,
-  "reason": "1985: 'results of the SEARCH ALL operation are predictable only when: ... b. The contents of the key(s) ... identify a unique table element'; 2023: 'more than one setting ... the search operation is successful. The final setting of the search index is equal to one of them'. 1985 leaves results unpredictable for non-unique keys or unordered data. 2023 makes non-unique matches succeed and limits unordered data to two stated outcomes.",
+  "reason": "1985: \"results of the SEARCH ALL operation are predictable only when: ... b. The contents of the key(s) ... identify a unique table element\"; 2023: \"more than one setting ... the search operation is successful. The final setting of the search index is equal to one of them\". 1985 leaves results unpredictable for non-unique keys or unordered data. 2023 makes non-unique matches succeed and limits unordered data to two stated outcomes.",
   "source": "audit-1985/state-route"
  }
 }

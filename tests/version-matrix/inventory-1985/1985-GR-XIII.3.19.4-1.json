@@ -8,7 +8,7 @@
    "GR-13.18.54.4-1"
   ],
   "bridge": true,
-  "reason": "1985: 'If the associated data item is alphanumeric or alphanumeric edited, the size ... or 18 characters, whichever is smaller, and ... an integer'; 2023: 'derived from the corresponding number of digits, excluding insertion editing characters, in the PICTURE clause'. Both define a signed numeric sum counter sized from the item's digits. 2023 no longer has the alphanumeric/alphanumeric-edited case with its 18-character limit and integer result.",
+  "reason": "1985: \"If the associated data item is alphanumeric or alphanumeric edited, the size ... or 18 characters, whichever is smaller, and ... an integer\"; 2023: \"derived from the corresponding number of digits, excluding insertion editing characters, in the PICTURE clause\". Both define a signed numeric sum counter sized from the item's digits. 2023 no longer has the alphanumeric/alphanumeric-edited case with its 18-character limit and integer result.",
   "source": "audit-1985/state-route"
  }
 }

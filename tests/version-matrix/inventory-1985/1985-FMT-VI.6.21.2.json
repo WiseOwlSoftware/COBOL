@@ -9,7 +9,7 @@
    "GR-14.9.28.4-12"
   ],
   "bridge": true,
-  "reason": "1985: 'VARYING ... BY {identifier-4 | literal-2} UNTIL condition-1 (BY required; UNTIL takes condition-1 only)'; 2023: '[ BY {identifier-4 | literal-2} ] ... UNTIL {condition-1 | EXIT}; \"For any BY phrase that is omitted, the augment value is 1\"'. The 2023 PERFORM format makes BY optional (augment value 1), adds UNTIL EXIT and adds an exception-checking format, so it accepts programs the 1985 format refused.",
+  "reason": "1985: \"VARYING ... BY {identifier-4 | literal-2} UNTIL condition-1 (BY required; UNTIL takes condition-1 only)\"; 2023: \"[ BY {identifier-4 | literal-2} ] ... UNTIL {condition-1 | EXIT}; \"For any BY phrase that is omitted, the augment value is 1\"\". The 2023 PERFORM format makes BY optional (augment value 1), adds UNTIL EXIT and adds an exception-checking format, so it accepts programs the 1985 format refused.",
   "source": "audit-1985/state-route"
  }
 }

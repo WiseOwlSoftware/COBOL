@@ -8,7 +8,7 @@
    "GR-7.2.4.4-8"
   ],
   "bridge": true,
-  "reason": "1985: 'is equal, character for character, to the ordered sequence of source program text words.'; 2023: 'each alphanumeric character is equivalent to its corresponding national character and each lowercase letter is equivalent to its corresponding uppercase'. Same comparison cycle (a-f) is kept, but 2023 adds matching equivalences (case, national, quote forms, doubled quotes, directive lines), so different text now matches.",
+  "reason": "1985: \"is equal, character for character, to the ordered sequence of source program text words.\"; 2023: \"each alphanumeric character is equivalent to its corresponding national character and each lowercase letter is equivalent to its corresponding uppercase\". Same comparison cycle (a-f) is kept, but 2023 adds matching equivalences (case, national, quote forms, doubled quotes, directive lines), so different text now matches.",
   "source": "audit-1985/state-route"
  }
 }

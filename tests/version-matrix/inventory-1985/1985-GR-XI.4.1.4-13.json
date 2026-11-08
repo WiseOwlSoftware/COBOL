@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'Segmentation, as defined in Section XVI, can be applied to programs containing the MERGE statement. However, the following restrictions apply'; 2023: 'No 2023 MERGE general rule (GR 1-14) or other candidate mentions segments; the segmentation feature is absent from 2023.'. The rule only restricts where output procedures lie in segmented programs. None of the 2023 MERGE rules or other candidates mention segmentation or independent segments.",
+  "reason": "1985: \"Segmentation, as defined in Section XVI, can be applied to programs containing the MERGE statement. However, the following restrictions apply\"; 2023: \"No 2023 MERGE general rule (GR 1-14) or other candidate mentions segments; the segmentation feature is absent from 2023.\". The rule only restricts where output procedures lie in segmented programs. None of the 2023 MERGE rules or other candidates mention segmentation or independent segments.",
   "source": "audit-1985/state-route"
  }
 }

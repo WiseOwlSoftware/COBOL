@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'If neither option for specifying the interface area is used, a level 01 data description entry must follow the CD entry.'; 2023: 'No CD entry or Communication module; no candidate covers communication description entries.'. The 2023 standard has no communication description entry. None of the candidates covers the CD entry, so the rule is dropped along with the feature.",
+  "reason": "1985: \"If neither option for specifying the interface area is used, a level 01 data description entry must follow the CD entry.\"; 2023: \"No CD entry or Communication module; no candidate covers communication description entries.\". The 2023 standard has no communication description entry. None of the candidates covers the CD entry, so the rule is dropped along with the feature.",
   "source": "audit-1985/state-route"
  }
 }

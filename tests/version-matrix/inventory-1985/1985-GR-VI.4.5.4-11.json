@@ -10,7 +10,7 @@
    "SR-12.3.7.3-23"
   ],
   "bridge": true,
-  "reason": "1985: 'uppercase letters A, B, C, D, P, R, S, V, X, Z; the lowercase letters a through z; or the space'; 2023: 'alphabetic characters A, B, C, D, E, N, P, R, S, V, X, Z, or their lowercase equivalents; or the space'. 2023 also bars E and N but allows other lowercase letters (e.g. 'm'). PICTURE SYMBOL permits multi-character currency strings, and '$' stays implied unless specified.",
+  "reason": "1985: \"uppercase letters A, B, C, D, P, R, S, V, X, Z; the lowercase letters a through z; or the space\"; 2023: \"alphabetic characters A, B, C, D, E, N, P, R, S, V, X, Z, or their lowercase equivalents; or the space\". 2023 also bars E and N but allows other lowercase letters (e.g. 'm'). PICTURE SYMBOL permits multi-character currency strings, and '$' stays implied unless specified.",
   "source": "audit-1985/state-route"
  }
 }

@@ -8,7 +8,7 @@
    "GR-14.9.28.4-1"
   ],
   "bridge": true,
-  "reason": "1985: 'as the result of a transfer of control by CALL, EXIT, GO TO, and PERFORM statements in the range of the PERFORM statement'; 2023: 'except for statements executed as the result of a transfer of control by an EXIT PROGRAM or GOBACK statement specified in the same instance'. 2023 counts any transfer of control in the range, not just the four listed statements. It also newly excludes statements reached via EXIT PROGRAM or GOBACK in the same instance of the source element.",
+  "reason": "1985: \"as the result of a transfer of control by CALL, EXIT, GO TO, and PERFORM statements in the range of the PERFORM statement\"; 2023: \"except for statements executed as the result of a transfer of control by an EXIT PROGRAM or GOBACK statement specified in the same instance\". 2023 counts any transfer of control in the range, not just the four listed statements. It also newly excludes statements reached via EXIT PROGRAM or GOBACK in the same instance of the source element.",
   "source": "audit-1985/state-route"
  }
 }

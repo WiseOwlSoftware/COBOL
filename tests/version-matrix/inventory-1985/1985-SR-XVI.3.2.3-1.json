@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'The segment-number must be an integer ranging in value from 0 through 99.'; 2023: 'No 2023 clause holds segmentation or segment-numbers; the Segmentation module is not carried.'. No 2023 clause holds the Segmentation feature. The wording candidates cover only level-numbers, THRU and integer operands, so the segment-number range rule is dropped with the module.",
+  "reason": "1985: \"The segment-number must be an integer ranging in value from 0 through 99.\"; 2023: \"No 2023 clause holds segmentation or segment-numbers; the Segmentation module is not carried.\". No 2023 clause holds the Segmentation feature. The wording candidates cover only level-numbers, THRU and integer operands, so the segment-number range rule is dropped with the module.",
   "source": "audit-1985/state-route"
  }
 }

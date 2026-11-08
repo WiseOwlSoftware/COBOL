@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'Implementors will specify, for their compilers, all details on how the other language(s) are to be written.'; 2023: 'No ENTER statement in 2023; no candidate covers other-language text written within COBOL source'. 2023 has no ENTER statement clause. Candidates cover inter-language calls and pointers only, not other-language code written in a COBOL program, so the rule is gone.",
+  "reason": "1985: \"Implementors will specify, for their compilers, all details on how the other language(s) are to be written.\"; 2023: \"No ENTER statement in 2023; no candidate covers other-language text written within COBOL source\". 2023 has no ENTER statement clause. Candidates cover inter-language calls and pointers only, not other-language code written in a COBOL program, so the rule is gone.",
   "source": "audit-1985/state-route"
  }
 }

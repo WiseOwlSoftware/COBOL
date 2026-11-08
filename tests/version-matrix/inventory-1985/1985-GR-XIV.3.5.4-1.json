@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'the contents of the data items specified by data-name-1 (SYMBOLIC QUEUE) through data-name-4 (SYMBOLIC SUB-QUEUE-3) ... designate the queue structure'; 2023: 'Input CDs and queues are gone; 2023 RECEIVE uses a message tag: \"Data-name-1 shall be the name of a message-tag data item.\"'. The 2023 RECEIVE takes messages between run units, identified by a message tag. It has no input CD or symbolic queue/sub-queue fields, so the 1985 queue-designation rule is gone.",
+  "reason": "1985: \"the contents of the data items specified by data-name-1 (SYMBOLIC QUEUE) through data-name-4 (SYMBOLIC SUB-QUEUE-3) ... designate the queue structure\"; 2023: \"Input CDs and queues are gone; 2023 RECEIVE uses a message tag: \"Data-name-1 shall be the name of a message-tag data item.\"\". The 2023 RECEIVE takes messages between run units, identified by a message tag. It has no input CD or symbolic queue/sub-queue fields, so the 1985 queue-designation rule is gone.",
   "source": "audit-1985/state-route"
  }
 }

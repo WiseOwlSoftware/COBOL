@@ -16,7 +16,7 @@
    "SR-8.4.2.2.3-10"
   ],
   "bridge": true,
-  "reason": "1985: 'uniqueness must then be established through qualification for each user-defined name explicitly referenced, except in the case of redefinition'; 2023: 'the names of any group items superordinate to both the data-name and the subject ... are used as implicit qualifiers'. 2023 still requires qualification for uniqueness but exempts more cases than redefinition: VARYING, unreferenced type declarations, implicit qualifiers. More programs are accepted.",
+  "reason": "1985: \"uniqueness must then be established through qualification for each user-defined name explicitly referenced, except in the case of redefinition\"; 2023: \"the names of any group items superordinate to both the data-name and the subject ... are used as implicit qualifiers\". 2023 still requires qualification for uniqueness but exempts more cases than redefinition: VARYING, unreferenced type declarations, implicit qualifiers. More programs are accepted.",
   "source": "audit-1985/state-route"
  }
 }

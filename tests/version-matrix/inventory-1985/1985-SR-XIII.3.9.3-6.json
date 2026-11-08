@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'A format 2 entry must contain at least one optional clause.'; 2023: '13.15.3 syntax rules (SR-1 to SR-17) state clause order, placement and dependencies; none sets a minimum clause count'. 2023 report group entry rules cover the same entries, but no candidate keeps the at-least-one-optional-clause requirement, so a clause-less entry is no longer refused.",
+  "reason": "1985: \"A format 2 entry must contain at least one optional clause.\"; 2023: \"13.15.3 syntax rules (SR-1 to SR-17) state clause order, placement and dependencies; none sets a minimum clause count\". 2023 report group entry rules cover the same entries, but no candidate keeps the at-least-one-optional-clause requirement, so a clause-less entry is no longer refused.",
   "source": "audit-1985/state-route"
  }
 }

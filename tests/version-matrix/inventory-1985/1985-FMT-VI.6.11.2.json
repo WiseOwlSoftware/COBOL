@@ -9,7 +9,7 @@
    "FMT-14.7.4.2"
   ],
   "bridge": true,
-  "reason": "1985: 'identifier-2 [ ROUNDED ] … [ ON SIZE ERROR imperative-statement-1 ] [ NOT ON SIZE ERROR imperative-statement-2 ]'; 2023: 'identifier-2 [ rounded-phrase ] … choice indicators: zero or more of the alternatives, each at most once, in any order'. 2023 replaces ROUNDED with rounded-phrase, which adds MODE IS options. Its choice indicators also accept NOT ON SIZE ERROR before ON SIZE ERROR, an order 1985 refused.",
+  "reason": "1985: \"identifier-2 [ ROUNDED ] … [ ON SIZE ERROR imperative-statement-1 ] [ NOT ON SIZE ERROR imperative-statement-2 ]\"; 2023: \"identifier-2 [ rounded-phrase ] … choice indicators: zero or more of the alternatives, each at most once, in any order\". 2023 replaces ROUNDED with rounded-phrase, which adds MODE IS options. Its choice indicators also accept NOT ON SIZE ERROR before ON SIZE ERROR, an order 1985 refused.",
   "source": "audit-1985/state-route"
  }
 }

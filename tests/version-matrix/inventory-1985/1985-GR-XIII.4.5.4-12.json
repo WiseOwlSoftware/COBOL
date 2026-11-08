@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'Treatment of a file contained in a multiple file tape environment is logically equivalent to the treatment of a sequential file'; 2023: 'No OPEN rule mentions multiple file tape; the CLOSE categories list only non-unit, single-unit, multi-unit and non-sequential files'. No 2023 candidate mentions a multiple file tape environment. The 2023 OPEN rules and the CLOSE file categories omit it, so the 2023 standard lacks this feature.",
+  "reason": "1985: \"Treatment of a file contained in a multiple file tape environment is logically equivalent to the treatment of a sequential file\"; 2023: \"No OPEN rule mentions multiple file tape; the CLOSE categories list only non-unit, single-unit, multi-unit and non-sequential files\". No 2023 candidate mentions a multiple file tape environment. The 2023 OPEN rules and the CLOSE file categories omit it, so the 2023 standard lacks this feature.",
   "source": "audit-1985/state-route"
  }
 }

@@ -44,8 +44,9 @@ held edition (kb/Work PB4995), and the fleet decides only what they leave open:
                                                                                    # --edition 1985)
     python scripts/spec/test_audit_batch.py                                       # its self-test: a fake client, no API call
 
-RESTARTABLE. A pass lives in `DIR/<pass>/`: `items.json` (written once by `plan`: custom id -> the item, every input its
-prompt needs, so a prompt is rebuilt from the run alone), `state.json` (message_batches.BatchRun, THE restartable batch state
+RESTARTABLE. A pass lives in `DIR/<pass>/`: `items.json` (written by `plan`: custom id -> the item, every input its prompt
+needs, so a prompt is rebuilt from the run alone; a re-plan keeps it when it is the same, GROWS it when the new plan keeps
+every planned item unchanged and adds others, and is refused otherwise: `write_plan`), `state.json` (message_batches.BatchRun, THE restartable batch state
 transcribe_pdf.py shares: an intent before every create, the batch after, a crash adopted on the next run) and
 `answers/<custom id>.json`, each written once, atomically. A reply that does not parse into the pass's answer shape is kept in
 `raw/` and its item stays unanswered, so `retry` resubmits it. Every command can be re-run at any time.
@@ -173,8 +174,13 @@ unless NOT-ADDRESSED.""",
 Write a minimal ANSI X3.23-1985 COBOL program (fixed reference format: sequence area in columns 1-6, indicator in column 7,
 area A from column 8) that exercises the 1985 rule below, and state the outcome the rule requires: either the compiler must
 refuse the program, or the program must run and DISPLAY the exact lines given. Use only language the 1985 standard defines.
+A program the compiler must refuse violates the rule on exactly one line and nothing else: give that line's number (counting
+the program's first line as 1) and a control, the same program with that line made conforming, which the compiler must
+accept, so that a refusal is tied to the rule and never to another error.
 The JSON object: {"program": "the source text, lines separated by \\n", "expected": {"outcome": "refused|output",
-"output": ["each DISPLAYed line", ...]}, "basis": "the words of the rule that decide the outcome, at most 200 characters"}.""",
+"output": ["each DISPLAYed line", ...], "line": the violating line's number, "control": "the conforming program"},
+"basis": "the words of the rule that decide the outcome, at most 200 characters"}; "output" is given for output only,
+"line" and "control" for refused only.""",
     "adjudicate": COMMON + """
 Decide how ISO/IEC 1989:2023 carries one rule of ANSI X3.23-1985 (as amended by X3.23a-1989 and X3.23b-1993). You get
 candidate 2023 rules, the 1985 rule, and two earlier readers' answers, which disagree or found a difference: judge the texts
@@ -478,7 +484,7 @@ def change_of(adjudicated: dict[str, Any]) -> dict[str, Any]:
     """An upheld adjudication as its change record's decided part (`change_records` adds the edition, the bridge and the source):
     its kind, the 2023 rules it carries into, and its reason, the words that differ before the adjudicator's why."""
     differs = adjudicated.get("differs") or {}
-    words = "; ".join(f"{ed}: {differs[ed]!r}" for ed in ("1985", "2023") if differs.get(ed))
+    words = "; ".join(f'{ed}: "{differs[ed]}"' for ed in ("1985", "2023") if differs.get(ed))   # the words, as written
     reason = (f"{words}. {adjudicated['reason']}" if words else adjudicated["reason"]).strip()
     return {"kind": adjudicated["verdict"], "to": adjudicated["rules_2023"], **({"reason": reason} if reason else {})}
 
@@ -557,8 +563,7 @@ def plan_adjudicate(state: pathlib.Path) -> list[dict[str, Any]]:
     pass's for a SAME)."""
     disp = final_dispositions(state)
     m = Pass(state, "map")
-    verify = answers_by_id(state, "verify")
-    answers = {a["id"]: a["answer"] for a in m.answers().values()}
+    verify, answers = answers_by_id(state, "verify"), answers_by_id(state, "map")
     return [{**it, "readers": {"map": answers[it["id"]], "verify": verify.get(it["id"])}}
             for it in m.items().values() if disp[it["id"]]["disposition"] in ADJUDICATED]
 
@@ -671,7 +676,15 @@ def parse_answer(pass_name: str, item: dict[str, Any], text: str) -> tuple[dict[
         ok = (isinstance(obj.get("program"), str) and obj["program"].strip() and isinstance(exp, dict)
               and exp.get("outcome") in ("refused", "output")
               and (exp["outcome"] == "refused" or isinstance(exp.get("output"), list)))
-        return (obj, "") if ok else (None, "not a draft")
+        if not ok:
+            return None, "not a draft"
+        if exp["outcome"] == "refused":   # what the harness's flagged-test judge needs (run_drafts.py; run.py Run.flagged)
+            line, control = exp.get("line"), exp.get("control")
+            if not (type(line) is int and 1 <= line <= len(obj["program"].splitlines())):
+                return None, "a refused draft names the line of its program that violates the rule"
+            if not (isinstance(control, str) and control.strip() and control.strip() != obj["program"].strip()):
+                return None, "a refused draft carries its control, the program with that line made conforming"
+        return obj, ""
     if obj.get("verdict") not in verdicts(pass_name):
         return None, f"verdict {obj.get('verdict')!r}"
     if pass_name == "route":

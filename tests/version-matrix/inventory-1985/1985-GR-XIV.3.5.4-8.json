@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'When the MESSAGE phrase is used, end of segment indicators are ignored, and the following rules apply to the data transfer'; 2023: 'RECEIVE now gets a message from a server/requestor run unit; no MESSAGE phrase, queues, or segment/group indicators remain'. The 1985 Communication module (CD queues, MESSAGE/SEGMENT phrases) is deleted. The 2023 RECEIVE is a different run-unit messaging facility and does not carry these transfer rules.",
+  "reason": "1985: \"When the MESSAGE phrase is used, end of segment indicators are ignored, and the following rules apply to the data transfer\"; 2023: \"RECEIVE now gets a message from a server/requestor run unit; no MESSAGE phrase, queues, or segment/group indicators remain\". The 1985 Communication module (CD queues, MESSAGE/SEGMENT phrases) is deleted. The 2023 RECEIVE is a different run-unit messaging facility and does not carry these transfer rules.",
   "source": "audit-1985/state-route"
  }
 }

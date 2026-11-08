@@ -8,7 +8,7 @@
    "GR-12.3.7.4-7"
   ],
   "bridge": true,
-  "reason": "1985: 'If the literal phrase is specified, the alphabet-name may not be referenced in a CODE-SET clause'; 2023: 'If a character code set is being specified, the implementor defines the ordinal number within the character code set'. 2023 lets a literal-phrase alphabet define a coded character set (Table 6: Y), so CODE-SET may use it. STANDARD-2 may also be the IRV or a national version, as the implementor specifies.",
+  "reason": "1985: \"If the literal phrase is specified, the alphabet-name may not be referenced in a CODE-SET clause\"; 2023: \"If a character code set is being specified, the implementor defines the ordinal number within the character code set\". 2023 lets a literal-phrase alphabet define a coded character set (Table 6: Y), so CODE-SET may use it. STANDARD-2 may also be the IRV or a national version, as the implementor specifies.",
   "source": "audit-1985/state-route"
  }
 }

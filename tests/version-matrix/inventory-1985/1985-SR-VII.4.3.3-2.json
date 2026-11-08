@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'The EXTEND phrase must not be specified for a multiple file reel.'; 2023: 'The EXTEND phrase shall be specified only if the access mode ... is sequential and the LINAGE clause is not specified'. The 2023 EXTEND restrictions (SR-14.9.27.3-2) cover only access mode and LINAGE. No candidate mentions multiple file reels, so the 1985 prohibition is no longer stated.",
+  "reason": "1985: \"The EXTEND phrase must not be specified for a multiple file reel.\"; 2023: \"The EXTEND phrase shall be specified only if the access mode ... is sequential and the LINAGE clause is not specified\". The 2023 EXTEND restrictions (SR-14.9.27.3-2) cover only access mode and LINAGE. No candidate mentions multiple file reels, so the 1985 prohibition is no longer stated.",
   "source": "audit-1985/state-route"
  }
 }

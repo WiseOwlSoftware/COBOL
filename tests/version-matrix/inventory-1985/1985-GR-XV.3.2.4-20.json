@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: \"DEBUG-CONTENTS contains 'PERFORM LOOP'.\"; 2023: 'No candidate covers USE FOR DEBUGGING or DEBUG-LINE/DEBUG-NAME/DEBUG-CONTENTS; the Debug module is absent from 2023.'. No clause holds the Debug feature. The USE and PERFORM candidates cover transfer of control only and set no debugging special registers, so the requirement is dropped.",
+  "reason": "1985: \"DEBUG-CONTENTS contains 'PERFORM LOOP'.\"; 2023: \"No candidate covers USE FOR DEBUGGING or DEBUG-LINE/DEBUG-NAME/DEBUG-CONTENTS; the Debug module is absent from 2023.\". No clause holds the Debug feature. The USE and PERFORM candidates cover transfer of control only and set no debugging special registers, so the requirement is dropped.",
   "source": "audit-1985/state-route"
  }
 }

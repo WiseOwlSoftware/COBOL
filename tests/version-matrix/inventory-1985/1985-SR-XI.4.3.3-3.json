@@ -8,7 +8,7 @@
    "GR-14.9.34.4-1"
   ],
   "bridge": true,
-  "reason": "1985: 'A RETURN statement may only be used within the range of an output procedure associated with a SORT or MERGE statement'; 2023: 'may be executed only when it is within the range of an output procedure ... If it is executed at any other time, the EC-FLOW-RETURN'. 1985 limits where RETURN may be used as a syntax rule. 2023 states only an execution-time rule: RETURN executed outside an output procedure sets EC-FLOW-RETURN.",
+  "reason": "1985: \"A RETURN statement may only be used within the range of an output procedure associated with a SORT or MERGE statement\"; 2023: \"may be executed only when it is within the range of an output procedure ... If it is executed at any other time, the EC-FLOW-RETURN\". 1985 limits where RETURN may be used as a syntax rule. 2023 states only an execution-time rule: RETURN executed outside an output procedure sets EC-FLOW-RETURN.",
   "source": "audit-1985/state-route"
  }
 }

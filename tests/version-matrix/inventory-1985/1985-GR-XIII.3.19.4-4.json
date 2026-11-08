@@ -8,7 +8,7 @@
    "GR-13.18.54.4-4"
   ],
   "bridge": true,
-  "reason": "1985: 'The report writer control system moves the data contained in the sum counter, according to the rules of the MOVE statement'; 2023: 'If the associated size error indicator is set, an EC-REPORT-SUM-SIZE exception condition is set to exist and the printable item is filled with spaces.'. Both treat the sum counter as a source item moved by MOVE rules. 2023 adds a ROUNDED case computed by COMPUTE rules, and on size error it fills the item with spaces instead of moving.",
+  "reason": "1985: \"The report writer control system moves the data contained in the sum counter, according to the rules of the MOVE statement\"; 2023: \"If the associated size error indicator is set, an EC-REPORT-SUM-SIZE exception condition is set to exist and the printable item is filled with spaces.\". Both treat the sum counter as a source item moved by MOVE rules. 2023 adds a ROUNDED case computed by COMPUTE rules, and on size error it fills the item with spaces instead of moving.",
   "source": "audit-1985/state-route"
  }
 }

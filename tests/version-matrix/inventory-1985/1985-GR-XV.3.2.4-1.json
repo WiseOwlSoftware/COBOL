@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'Automatic execution of a debugging section is not caused by a statement appearing in a debugging section.'; 2023: 'No USE FOR DEBUGGING: the 2023 USE rules cover only exception, EC-I-O and BEFORE REPORTING declaratives'. No 2023 clause holds the Debug feature. The USE candidates treat exception, I-O and report declaratives only, so debugging sections and this rule are gone.",
+  "reason": "1985: \"Automatic execution of a debugging section is not caused by a statement appearing in a debugging section.\"; 2023: \"No USE FOR DEBUGGING: the 2023 USE rules cover only exception, EC-I-O and BEFORE REPORTING declaratives\". No 2023 clause holds the Debug feature. The USE candidates treat exception, I-O and report declaratives only, so debugging sections and this rule are gone.",
   "source": "audit-1985/state-route"
  }
 }

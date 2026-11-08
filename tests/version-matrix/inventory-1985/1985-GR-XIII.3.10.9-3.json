@@ -8,7 +8,7 @@
    "GR-13.18.35.4-5"
   ],
   "bridge": true,
-  "reason": "1985: 'a. The first print line of the page footing report group is presented on the line specified by the integer of its LINE NUMBER clause.'; 2023: 'If the report group is a page footing, the line number is given by (FOOTING integer + integer-2).'. The absolute first LINE still gives integer-1. 2023 adds a relative first-line case for page footings that the 1985 rule lacks. A group with no LINE clause has no lines, so case b stands only by inference.",
+  "reason": "1985: \"a. The first print line of the page footing report group is presented on the line specified by the integer of its LINE NUMBER clause.\"; 2023: \"If the report group is a page footing, the line number is given by (FOOTING integer + integer-2).\". The absolute first LINE still gives integer-1. 2023 adds a relative first-line case for page footings that the 1985 rule lacks. A group with no LINE clause has no lines, so case b stands only by inference.",
   "source": "audit-1985/state-route"
  }
 }

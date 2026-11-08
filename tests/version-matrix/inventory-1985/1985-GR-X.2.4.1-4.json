@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'A GO TO statement referred to by an ALTER statement contained in the same program is set to its initial state.'; 2023: 'Initial-state list (14.6.2.3.2) covers fill, VALUE data, file connectors, screen items, based items, tables, lengths; no GO TO/ALTER'. The 2023 initial-state rules list every action taken and none resets altered GO TO statements; the ALTER feature this rule served is absent from the 2023 texts.",
+  "reason": "1985: \"A GO TO statement referred to by an ALTER statement contained in the same program is set to its initial state.\"; 2023: \"Initial-state list (14.6.2.3.2) covers fill, VALUE data, file connectors, screen items, based items, tables, lengths; no GO TO/ALTER\". The 2023 initial-state rules list every action taken and none resets altered GO TO statements; the ALTER feature this rule served is absent from the 2023 texts.",
   "source": "audit-1985/state-route"
  }
 }

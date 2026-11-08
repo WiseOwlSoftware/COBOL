@@ -8,7 +8,7 @@
    "FMT-15.57.2"
   ],
   "bridge": true,
-  "reason": "1985: 'FUNCTION LOWER-CASE ( argument-1 )'; 2023: 'FUNCTION LOWER-CASE ( argument-1 [ LOCALE locale-name-1 ] )'. 2023 keeps the 1985 format and adds an optional LOCALE locale-name-1 phrase, so it accepts programs the 1985 format refuses.",
+  "reason": "1985: \"FUNCTION LOWER-CASE ( argument-1 )\"; 2023: \"FUNCTION LOWER-CASE ( argument-1 [ LOCALE locale-name-1 ] )\". 2023 keeps the 1985 format and adds an optional LOCALE locale-name-1 phrase, so it accepts programs the 1985 format refuses.",
   "source": "audit-1985/state-route"
  }
 }

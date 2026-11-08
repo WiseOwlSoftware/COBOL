@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'If more than one COBOL library is available to the compiler during compilation, text-name must be qualified each time it is referenced.'; 2023: \"Only 'Within one COBOL library, each text-name shall be unique.'; 8.4.2.2.3 lists no text-name qualification rule\". 2023 still covers COPY text-name uniqueness and qualification but no longer requires text-name to be qualified when several libraries are available.",
+  "reason": "1985: \"If more than one COBOL library is available to the compiler during compilation, text-name must be qualified each time it is referenced.\"; 2023: \"Only 'Within one COBOL library, each text-name shall be unique.'; 8.4.2.2.3 lists no text-name qualification rule\". 2023 still covers COPY text-name uniqueness and qualification but no longer requires text-name to be qualified when several libraries are available.",
   "source": "audit-1985/state-route"
  }
 }

@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'ENTER language-name-1 [ routine-name-1 ] .'; 2023: \"No 2023 clause holds the ENTER statement; the only wording match is CRT status for the operator's enter key.\". No 2023 clause carries the ENTER statement. The wording candidate concerns CRT status after pressing the enter key, a different subject, so 2023 lacks the statement.",
+  "reason": "1985: \"ENTER language-name-1 [ routine-name-1 ] .\"; 2023: \"No 2023 clause holds the ENTER statement; the only wording match is CRT status for the operator's enter key.\". No 2023 clause carries the ENTER statement. The wording candidate concerns CRT status after pressing the enter key, a different subject, so 2023 lacks the statement.",
   "source": "audit-1985/state-route"
  }
 }

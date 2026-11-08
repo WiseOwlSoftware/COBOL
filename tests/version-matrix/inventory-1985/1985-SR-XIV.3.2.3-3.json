@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'Cd-name-1 must reference an output CD when the OUTPUT phrase is specified.'; 2023: 'No candidate covers the DISABLE statement or the communication module; 2023 lacks the feature.'. No 2023 clause holds the DISABLE statement, and no worded candidate addresses CDs. The communication module is not carried into 2023, so the rule is dropped.",
+  "reason": "1985: \"Cd-name-1 must reference an output CD when the OUTPUT phrase is specified.\"; 2023: \"No candidate covers the DISABLE statement or the communication module; 2023 lacks the feature.\". No 2023 clause holds the DISABLE statement, and no worded candidate addresses CDs. The communication module is not carried into 2023, so the rule is dropped.",
   "source": "audit-1985/state-route"
  }
 }

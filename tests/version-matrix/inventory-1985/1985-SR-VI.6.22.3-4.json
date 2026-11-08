@@ -11,7 +11,7 @@
    "SR-14.9.37.3-11"
   ],
   "bridge": true,
-  "reason": "1985: 'must be subscripted by the first index-name associated with identifier-1 along with other subscripts as required'; 2023: \"The index-name subscript shall not be followed by a '+' or a '-'. ... condition-names ... shall be subscripted by the first index-name\". The rules match in substance, but 2023 adds two refusals: relative indexing on the key's index-name subscript, and condition-names not subscripted by the first index-name.",
+  "reason": "1985: \"must be subscripted by the first index-name associated with identifier-1 along with other subscripts as required\"; 2023: \"The index-name subscript shall not be followed by a '+' or a '-'. ... condition-names ... shall be subscripted by the first index-name\". The rules match in substance, but 2023 adds two refusals: relative indexing on the key's index-name subscript, and condition-names not subscripted by the first index-name.",
   "source": "audit-1985/state-route"
  }
 }

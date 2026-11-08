@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: \"Data-name-2 has the format 'HHMMSSTT' ... the time at which the MCS recognizes that the message is complete\"; 2023: 'No 2023 clause holds the communication description entry; the CD message-time field is absent'. No 2023 clause carries the CD entry. The RECEIVE CONTINUE rule and the ACCEPT TIME rule are different subjects and state no MCS message-completion time field.",
+  "reason": "1985: \"Data-name-2 has the format 'HHMMSSTT' ... the time at which the MCS recognizes that the message is complete\"; 2023: \"No 2023 clause holds the communication description entry; the CD message-time field is absent\". No 2023 clause carries the CD entry. The RECEIVE CONTINUE rule and the ACCEPT TIME rule are different subjects and state no MCS message-completion time field.",
   "source": "audit-1985/state-route"
  }
 }

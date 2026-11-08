@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'The LABEL RECORDS clause is an obsolete element in Standard COBOL because it is to be deleted from the next revision'; 2023: 'No LABEL RECORDS clause: the 13.4.5 file description entry rules name BLOCK CONTAINS, CODE-SET, LINAGE, RECORD, REPORT only'. 1985 marked LABEL RECORDS obsolete and due for deletion. The 2023 FD rules cover the other FD clauses and none states or mentions LABEL RECORDS, so the clause is dropped.",
+  "reason": "1985: \"The LABEL RECORDS clause is an obsolete element in Standard COBOL because it is to be deleted from the next revision\"; 2023: \"No LABEL RECORDS clause: the 13.4.5 file description entry rules name BLOCK CONTAINS, CODE-SET, LINAGE, RECORD, REPORT only\". 1985 marked LABEL RECORDS obsolete and due for deletion. The 2023 FD rules cover the other FD clauses and none states or mentions LABEL RECORDS, so the clause is dropped.",
   "source": "audit-1985/state-route"
  }
 }

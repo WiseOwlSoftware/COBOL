@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'A single execution of a SEND statement represented by format 2 never releases to the MCS more than a single message or a single message segment'; 2023: 'SEND only sends a message to a message server run unit: \"A message is sent to the run unit identified by the content of literal-1 or message-server-name-1\"'. 2023 drops the 1985 communication SEND with segments, ESI/EMI/EGI and MCS release. Its SEND is a message-server SEND between run units, and no candidate keeps the release rule.",
+  "reason": "1985: \"A single execution of a SEND statement represented by format 2 never releases to the MCS more than a single message or a single message segment\"; 2023: \"SEND only sends a message to a message server run unit: \"A message is sent to the run unit identified by the content of literal-1 or message-server-name-1\"\". 2023 drops the 1985 communication SEND with segments, ESI/EMI/EGI and MCS release. Its SEND is a message-server SEND between run units, and no candidate keeps the release rule.",
   "source": "audit-1985/state-route"
  }
 }

@@ -9,7 +9,7 @@
    "GR-14.9.30.4-21"
   ],
   "bridge": true,
-  "reason": "1985: 'If the AT END phrase is not specified, a USE AFTER STANDARD EXCEPTION procedure must be associated with file-name-1'; 2023: 'If there are no applicable at end exception processing statements, control is transferred to the end of the READ statement.'. The same at end cases (no next record, key digits too large, optional file absent) are kept. 2023 drops the required USE procedure and defines the outcome when none applies.",
+  "reason": "1985: \"If the AT END phrase is not specified, a USE AFTER STANDARD EXCEPTION procedure must be associated with file-name-1\"; 2023: \"If there are no applicable at end exception processing statements, control is transferred to the end of the READ statement.\". The same at end cases (no next record, key digits too large, optional file absent) are kept. 2023 drops the required USE procedure and defines the outcome when none applies.",
   "source": "audit-1985/state-route"
  }
 }

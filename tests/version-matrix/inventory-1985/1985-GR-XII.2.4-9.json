@@ -8,7 +8,7 @@
    "GR-7.2.3.4-11"
   ],
   "bridge": true,
-  "reason": "1985: 'is copied so as to start in the same area of the line in the resultant program as it begins in the line within the library.'; 2023: 'The resultant text after replacement shall be in logical free-form reference format.'. Both govern the layout of COPY resultant text. 1985 fixes area A/B placement, debugging lines and literal continuation; 2023 requires logical free-form text, with no area rules.",
+  "reason": "1985: \"is copied so as to start in the same area of the line in the resultant program as it begins in the line within the library.\"; 2023: \"The resultant text after replacement shall be in logical free-form reference format.\". Both govern the layout of COPY resultant text. 1985 fixes area A/B placement, debugging lines and literal continuation; 2023 requires logical free-form text, with no area rules.",
   "source": "audit-1985/state-route"
  }
 }

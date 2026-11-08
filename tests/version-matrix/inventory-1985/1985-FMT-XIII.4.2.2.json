@@ -8,7 +8,7 @@
    "FMT-14.9.6.2"
   ],
   "bridge": true,
-  "reason": "1985: 'WITH ╭ NO REWIND╮ ┤ ├ ╰ LOCK ╯'; 2023: 'WITH NO REWIND (no LOCK alternative in the 2023 CLOSE format)'. The CLOSE format is carried with {REEL|UNIT} [FOR REMOVAL] and WITH NO REWIND, but the WITH LOCK alternative is gone, so CLOSE file WITH LOCK is no longer accepted.",
+  "reason": "1985: \"WITH ╭ NO REWIND╮ ┤ ├ ╰ LOCK ╯\"; 2023: \"WITH NO REWIND (no LOCK alternative in the 2023 CLOSE format)\". The CLOSE format is carried with {REEL|UNIT} [FOR REMOVAL] and WITH NO REWIND, but the WITH LOCK alternative is gone, so CLOSE file WITH LOCK is no longer accepted.",
   "source": "audit-1985/state-route"
  }
 }

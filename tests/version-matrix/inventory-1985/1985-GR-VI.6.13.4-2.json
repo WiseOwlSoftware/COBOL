@@ -8,7 +8,7 @@
    "GR-14.9.13.4-4"
   ],
   "bridge": true,
-  "reason": "1985: 'the comparison is satisfied if the value, or one of the range of values, assigned to the selection object is equal to the value'; 2023: 'If the selection object is partial-expression-1, the selection subject is placed to the left of the leading relational operator'. Same left-to-right pairing for ANY, truth values, equality and THROUGH ranges, but 2023 adds partial-expression objects and NOT-negated objects (including NOT ranges), cases 1985 lacks.",
+  "reason": "1985: \"the comparison is satisfied if the value, or one of the range of values, assigned to the selection object is equal to the value\"; 2023: \"If the selection object is partial-expression-1, the selection subject is placed to the left of the leading relational operator\". Same left-to-right pairing for ANY, truth values, equality and THROUGH ranges, but 2023 adds partial-expression objects and NOT-negated objects (including NOT ranges), cases 1985 lacks.",
   "source": "audit-1985/state-route"
  }
 }

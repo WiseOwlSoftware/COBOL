@@ -11,7 +11,7 @@
    "SR-14.9.37.3-7"
   ],
   "bridge": true,
-  "reason": "1985: 'identifier-1 must not be subscripted or reference modified'; 2023: 'shall not be subscripted at the level for which the SEARCH is applicable ... for which the subscripting is still required'. 1985 bars all subscripting of identifier-1. 2023 bars it only at the searched level and requires subscripts for containing tables. INDEXED, KEY and no ref-mod are kept.",
+  "reason": "1985: \"identifier-1 must not be subscripted or reference modified\"; 2023: \"shall not be subscripted at the level for which the SEARCH is applicable ... for which the subscripting is still required\". 1985 bars all subscripting of identifier-1. 2023 bars it only at the searched level and requires subscripts for containing tables. INDEXED, KEY and no ref-mod are kept.",
   "source": "audit-1985/state-route"
  }
 }

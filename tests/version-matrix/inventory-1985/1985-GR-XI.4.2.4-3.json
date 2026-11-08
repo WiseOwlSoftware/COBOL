@@ -8,7 +8,7 @@
    "GR-14.9.32.4-4"
   ],
   "bridge": true,
-  "reason": "1985: 'MOVE identifier-1 TO record-name-1 according to the rules specified for the MOVE statement.'; 2023: 'MOVE identifier-1 TO record-name-1 or MOVE literal-1 TO record-name-1 according to the rules specified for the MOVE statement'. The MOVE-then-RELEASE equivalence is kept. 2023 adds a FROM literal-1 case that 1985 lacks. The added undefined-result sentence follows from the equivalence.",
+  "reason": "1985: \"MOVE identifier-1 TO record-name-1 according to the rules specified for the MOVE statement.\"; 2023: \"MOVE identifier-1 TO record-name-1 or MOVE literal-1 TO record-name-1 according to the rules specified for the MOVE statement\". The MOVE-then-RELEASE equivalence is kept. 2023 adds a FROM literal-1 case that 1985 lacks. The added undefined-result sentence follows from the equivalence.",
   "source": "audit-1985/state-route"
  }
 }

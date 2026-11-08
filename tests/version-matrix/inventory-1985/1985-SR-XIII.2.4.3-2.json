@@ -8,7 +8,7 @@
    "SR-12.4.6.4.3-5"
   ],
   "bridge": true,
-  "reason": "1985: 'can appear in a MULTIPLE FILE TAPE clause or in a SAME clause for which the RECORD phrase is not specified'; 2023: 'may be specified in one file-area format SAME clause and shall not be specified in a record-area format or sort-merge-area format SAME clause'. 1985 allowed a report file in any SAME without RECORD, SORT AREA included; 2023 refuses it in sort-merge-area SAME. The MULTIPLE FILE TAPE case is not carried.",
+  "reason": "1985: \"can appear in a MULTIPLE FILE TAPE clause or in a SAME clause for which the RECORD phrase is not specified\"; 2023: \"may be specified in one file-area format SAME clause and shall not be specified in a record-area format or sort-merge-area format SAME clause\". 1985 allowed a report file in any SAME without RECORD, SORT AREA included; 2023 refuses it in sort-merge-area SAME. The MULTIPLE FILE TAPE case is not carried.",
   "source": "audit-1985/state-route"
  }
 }

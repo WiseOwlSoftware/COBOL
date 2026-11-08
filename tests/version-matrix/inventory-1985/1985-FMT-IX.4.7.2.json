@@ -9,7 +9,7 @@
    "GR-14.9.41.4-9"
   ],
   "bridge": true,
-  "reason": "1985: 'KEY { IS EQUAL TO | IS = | IS GREATER THAN | IS > | IS NOT LESS THAN | IS NOT < | IS GREATER THAN OR EQUAL TO | IS >= } data-name-1'; 2023: '[ FIRST | KEY relational-operator {data-name-1|record-key-name-1} [WITH LENGTH ...] | LAST ]; LESS, NOT GREATER, or LESS OR EQUAL'. 2023 adds FIRST, LAST, record-key-name-1, the LENGTH phrase and backward operators. Its choice indicators also let INVALID KEY and NOT INVALID KEY appear in any order; 1985 fixed it.",
+  "reason": "1985: \"KEY { IS EQUAL TO | IS = | IS GREATER THAN | IS > | IS NOT LESS THAN | IS NOT < | IS GREATER THAN OR EQUAL TO | IS >= } data-name-1\"; 2023: \"[ FIRST | KEY relational-operator {data-name-1|record-key-name-1} [WITH LENGTH ...] | LAST ]; LESS, NOT GREATER, or LESS OR EQUAL\". 2023 adds FIRST, LAST, record-key-name-1, the LENGTH phrase and backward operators. Its choice indicators also let INVALID KEY and NOT INVALID KEY appear in any order; 1985 fixed it.",
   "source": "audit-1985/state-route"
  }
 }

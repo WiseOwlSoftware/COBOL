@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'If the REPLACING phrase is specified, the characters transmitted by the SEND statement replace all characters'; 2023: '2023 SEND (14.9.38) sends messages between run units and has no REPLACING phrase or character-imaging device rules'. The communication module and its device-oriented SEND are gone. The 2023 SEND is a message-server statement with no REPLACING or superimposing rules, and no candidate states them.",
+  "reason": "1985: \"If the REPLACING phrase is specified, the characters transmitted by the SEND statement replace all characters\"; 2023: \"2023 SEND (14.9.38) sends messages between run units and has no REPLACING phrase or character-imaging device rules\". The communication module and its device-oriented SEND are gone. The 2023 SEND is a message-server statement with no REPLACING or superimposing rules, and no candidate states them.",
   "source": "audit-1985/state-route"
  }
 }

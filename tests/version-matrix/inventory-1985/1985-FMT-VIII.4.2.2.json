@@ -9,7 +9,7 @@
    "SR-14.9.6.3-1"
   ],
   "bridge": true,
-  "reason": "1985: 'CLOSE { file-name-1 ║ [ WITH LOCK ] ║ } …'; 2023: 'CLOSE file-name-1 [{REEL|UNIT} [FOR REMOVAL] | WITH NO REWIND] …; REEL, UNIT, NO REWIND only for sequential files'. The 2023 format still allows CLOSE file-name-1 … for relative files, but it has no WITH LOCK phrase, so CLOSE … WITH LOCK is no longer accepted.",
+  "reason": "1985: \"CLOSE { file-name-1 ║ [ WITH LOCK ] ║ } …\"; 2023: \"CLOSE file-name-1 [{REEL|UNIT} [FOR REMOVAL] | WITH NO REWIND] …; REEL, UNIT, NO REWIND only for sequential files\". The 2023 format still allows CLOSE file-name-1 … for relative files, but it has no WITH LOCK phrase, so CLOSE … WITH LOCK is no longer accepted.",
   "source": "audit-1985/state-route"
  }
 }

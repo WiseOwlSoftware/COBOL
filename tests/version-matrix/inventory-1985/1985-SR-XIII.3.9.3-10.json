@@ -11,7 +11,7 @@
    "SR-13.15.3-13"
   ],
   "bridge": true,
-  "reason": "1985: 'Data-name-1 may be referenced only if the entry defines a sum counter.'; 2023: 'shall be specified when the data-name is referenced in a GENERATE statement, a USE BEFORE REPORTING statement, as a qualifier'. a, c, e kept. 2023 narrows data-name references to listed SUM/GENERATE/USE uses, not tied to sum counters. No candidate keeps SUM being only in control footing groups.",
+  "reason": "1985: \"Data-name-1 may be referenced only if the entry defines a sum counter.\"; 2023: \"shall be specified when the data-name is referenced in a GENERATE statement, a USE BEFORE REPORTING statement, as a qualifier\". a, c, e kept. 2023 narrows data-name references to listed SUM/GENERATE/USE uses, not tied to sum counters. No candidate keeps SUM being only in control footing groups.",
   "source": "audit-1985/state-route"
  }
 }

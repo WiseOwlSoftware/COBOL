@@ -8,7 +8,7 @@
    "GR-14.9.20.4-5"
   ],
   "bridge": true,
-  "reason": "1985: 'Index data items and elementary FILLER data items are not affected by the execution of an INITIALIZE statement.'; 2023: 'If the FILLER phrase is not specified, elementary data items with an explicit or implicit FILLER clause.'. Index items stay excluded because they are not valid MOVE receivers. FILLER items are now excluded only without the new FILLER phrase; WITH FILLER initializes them, an added case.",
+  "reason": "1985: \"Index data items and elementary FILLER data items are not affected by the execution of an INITIALIZE statement.\"; 2023: \"If the FILLER phrase is not specified, elementary data items with an explicit or implicit FILLER clause.\". Index items stay excluded because they are not valid MOVE receivers. FILLER items are now excluded only without the new FILLER phrase; WITH FILLER initializes them, an added case.",
   "source": "audit-1985/state-route"
  }
 }

@@ -9,7 +9,7 @@
    "SR-13.16.3-9"
   ],
   "bridge": true,
-  "reason": "1985: 'The PICTURE clause must be specified for every elementary item except an index data item and the subject of the RENAMES clause'; 2023: 'The PICTURE clause may be omitted for an elementary item when an alphanumeric, boolean, or national literal ... is specified in ... VALUE'. 2023 accepts an elementary item without PICTURE when a nonzero-length literal VALUE is given (PICTURE implied); 1985 refuses such programs.",
+  "reason": "1985: \"The PICTURE clause must be specified for every elementary item except an index data item and the subject of the RENAMES clause\"; 2023: \"The PICTURE clause may be omitted for an elementary item when an alphanumeric, boolean, or national literal ... is specified in ... VALUE\". 2023 accepts an elementary item without PICTURE when a nonzero-length literal VALUE is given (PICTURE implied); 1985 refuses such programs.",
   "source": "audit-1985/state-route"
  }
 }

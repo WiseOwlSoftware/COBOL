@@ -8,7 +8,7 @@
    "SR-14.9.49.3-3"
   ],
   "bridge": true,
-  "reason": "1985: 'Within a declarative procedure, there must be no reference to any nondeclarative procedures.'; 2023: 'there shall be no reference to any nondeclarative procedures except in a RESUME statement.'. 2023 keeps the ban but adds an exception: a declarative may reference a nondeclarative procedure in a RESUME statement, a case the 1985 rule refused.",
+  "reason": "1985: \"Within a declarative procedure, there must be no reference to any nondeclarative procedures.\"; 2023: \"there shall be no reference to any nondeclarative procedures except in a RESUME statement.\". 2023 keeps the ban but adds an exception: a declarative may reference a nondeclarative procedure in a RESUME statement, a case the 1985 rule refused.",
   "source": "audit-1985/state-route"
  }
 }

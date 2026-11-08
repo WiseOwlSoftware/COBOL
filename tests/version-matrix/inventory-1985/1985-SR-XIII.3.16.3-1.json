@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'must not contain a NEXT GROUP clause unless the description of that report group contains at least one LINE NUMBER clause'; 2023: 'NEXT GROUP syntax rules (13.18.37.3) and report group rules (13.15.3) restrict only level and group type; no LINE clause required'. 2023 limits NEXT GROUP to level 1 entries and bars it in page heading/report footing, but no rule requires a LINE clause in the group. A group without one is no longer refused.",
+  "reason": "1985: \"must not contain a NEXT GROUP clause unless the description of that report group contains at least one LINE NUMBER clause\"; 2023: \"NEXT GROUP syntax rules (13.18.37.3) and report group rules (13.15.3) restrict only level and group type; no LINE clause required\". 2023 limits NEXT GROUP to level 1 entries and bars it in page heading/report footing, but no rule requires a LINE clause in the group. A group without one is no longer refused.",
   "source": "audit-1985/state-route"
  }
 }

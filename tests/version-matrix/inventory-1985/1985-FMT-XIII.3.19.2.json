@@ -8,7 +8,7 @@
    "FMT-13.18.54.2"
   ],
   "bridge": true,
-  "reason": "1985: '{ SUM { identifier-1 } … [ UPON { data-name-1 } … ] } … [ RESET ON { data-name-2 | FINAL } ]'; 2023: 'SUM OF { data-name-1 | identifier-1 | arithmetic-expression-1 } … [ UPON … ] … [ RESET ON … ] [ rounded-phrase ]'. Same SUM clause format, but 2023 adds arithmetic-expression-1 addends, an optional OF and an optional rounded-phrase, so more programs are accepted.",
+  "reason": "1985: \"{ SUM { identifier-1 } … [ UPON { data-name-1 } … ] } … [ RESET ON { data-name-2 | FINAL } ]\"; 2023: \"SUM OF { data-name-1 | identifier-1 | arithmetic-expression-1 } … [ UPON … ] … [ RESET ON … ] [ rounded-phrase ]\". Same SUM clause format, but 2023 adds arithmetic-expression-1 addends, an optional OF and an optional rounded-phrase, so more programs are accepted.",
   "source": "audit-1985/state-route"
  }
 }

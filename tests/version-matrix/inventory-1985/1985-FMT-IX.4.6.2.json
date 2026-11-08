@@ -8,7 +8,7 @@
    "FMT-14.9.35.2"
   ],
   "bridge": true,
-  "reason": "1985: 'REWRITE record-name-1 [ FROM identifier-1 ] [ INVALID KEY imperative-statement-1 ] [ NOT INVALID KEY ... ]'; 2023: 'FILE file-name-1 ... FROM literal-1 ... [ retry-phrase ] WITH LOCK / WITH NO LOCK; INVALID KEY group in choice indicators'. 2023 format adds FILE file-name-1, FROM literal-1, the RETRY and LOCK phrases, and allows INVALID KEY and NOT INVALID KEY in either order, so it accepts programs 1985 refused.",
+  "reason": "1985: \"REWRITE record-name-1 [ FROM identifier-1 ] [ INVALID KEY imperative-statement-1 ] [ NOT INVALID KEY ... ]\"; 2023: \"FILE file-name-1 ... FROM literal-1 ... [ retry-phrase ] WITH LOCK / WITH NO LOCK; INVALID KEY group in choice indicators\". 2023 format adds FILE file-name-1, FROM literal-1, the RETRY and LOCK phrases, and allows INVALID KEY and NOT INVALID KEY in either order, so it accepts programs 1985 refused.",
   "source": "audit-1985/state-route"
  }
 }

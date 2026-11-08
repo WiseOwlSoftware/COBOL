@@ -8,7 +8,7 @@
    "FMT-13.18.14.2"
   ],
   "bridge": true,
-  "reason": "1985: 'COLUMN NUMBER IS integer-1'; 2023: 'COLUMN|COLUMNS|COL|COLS NUMBER(S) [IS|ARE] {LEFT|CENTER|RIGHT} {integer-1 | {PLUS|+} integer-2} …'. The 2023 format still accepts the 1985 form. It adds cases: synonyms, CENTER/RIGHT alignment, PLUS relative columns and repeated column entries. The 1985 format refuses these.",
+  "reason": "1985: \"COLUMN NUMBER IS integer-1\"; 2023: \"COLUMN|COLUMNS|COL|COLS NUMBER(S) [IS|ARE] {LEFT|CENTER|RIGHT} {integer-1 | {PLUS|+} integer-2} …\". The 2023 format still accepts the 1985 form. It adds cases: synonyms, CENTER/RIGHT alignment, PLUS relative columns and repeated column entries. The 1985 format refuses these.",
   "source": "audit-1985/state-route"
  }
 }

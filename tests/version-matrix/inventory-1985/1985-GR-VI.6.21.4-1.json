@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'The data items referenced by identifier-4 and identifier-7 must not have a zero value.'; 2023: 'GR-12 defines the augment value from the BY identifier with no ban on zero; only \"The literal in the BY phrase shall not be zero.\"'. 2023 still has BY identifiers, but no candidate requires their value to be nonzero. Only a zero BY literal is barred (SR-6), so the runtime requirement on identifiers is dropped.",
+  "reason": "1985: \"The data items referenced by identifier-4 and identifier-7 must not have a zero value.\"; 2023: \"GR-12 defines the augment value from the BY identifier with no ban on zero; only \"The literal in the BY phrase shall not be zero.\"\". 2023 still has BY identifiers, but no candidate requires their value to be nonzero. Only a zero BY literal is barred (SR-6), so the runtime requirement on identifiers is dropped.",
   "source": "audit-1985/state-route"
  }
 }

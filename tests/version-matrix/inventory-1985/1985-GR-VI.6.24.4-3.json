@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'the STOP RUN statement causes the message control system (MCS) to eliminate from the queue any message partially received'; 2023: 'Communication module (queues, EMI/EGI) deleted; STOP rules 14.9.42.4 state no purge; 14.6.11 only does an implicit SEND to unreplied messages'. The 1985 purge of partial queue messages and EMI/EGI belongs to the deleted Communication module. The 2023 message-server SEND/RECEIVE is a different feature with no purge rule.",
+  "reason": "1985: \"the STOP RUN statement causes the message control system (MCS) to eliminate from the queue any message partially received\"; 2023: \"Communication module (queues, EMI/EGI) deleted; STOP rules 14.9.42.4 state no purge; 14.6.11 only does an implicit SEND to unreplied messages\". The 1985 purge of partial queue messages and EMI/EGI belongs to the deleted Communication module. The 2023 message-server SEND/RECEIVE is a different feature with no purge rule.",
   "source": "audit-1985/state-route"
  }
 }

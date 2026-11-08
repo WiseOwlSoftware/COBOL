@@ -10,7 +10,7 @@
    "SR-14.9.4.3-19"
   ],
   "bridge": true,
-  "reason": "1985: 'The data description of each parameter in the BY CONTENT phrase ... must be the same, meaning no conversion or extension or truncation'; 2023: 'no program-specifier in the REPOSITORY paragraph ... and there is no NESTED phrase ... the formal parameter shall be of the same length'. A BY CONTENT argument maps to a BY REFERENCE formal. 2023 needs only equal length without prototype or NESTED, else matching clauses with exceptions such as ANY LENGTH. 1985 required identical descriptions.",
+  "reason": "1985: \"The data description of each parameter in the BY CONTENT phrase ... must be the same, meaning no conversion or extension or truncation\"; 2023: \"no program-specifier in the REPOSITORY paragraph ... and there is no NESTED phrase ... the formal parameter shall be of the same length\". A BY CONTENT argument maps to a BY REFERENCE formal. 2023 needs only equal length without prototype or NESTED, else matching clauses with exceptions such as ANY LENGTH. 1985 required identical descriptions.",
   "source": "audit-1985/state-route"
  }
 }

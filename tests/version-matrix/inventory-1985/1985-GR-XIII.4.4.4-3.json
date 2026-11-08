@@ -9,7 +9,7 @@
    "GR-14.9.21.4-4"
   ],
   "bridge": true,
-  "reason": "1985: 'A subsequent INITIATE statement for report-name-1 must not be executed unless an intervening TERMINATE statement has been executed'; 2023: 'If it is in the active state, the EC-REPORT-ACTIVE exception condition is set to exist and the execution of the INITIATE statement has no other effect.'. Both forbid re-initiating an active report. 1985 leaves a violation undefined; 2023 defines its result: EC-REPORT-ACTIVE is set and the INITIATE has no other effect.",
+  "reason": "1985: \"A subsequent INITIATE statement for report-name-1 must not be executed unless an intervening TERMINATE statement has been executed\"; 2023: \"If it is in the active state, the EC-REPORT-ACTIVE exception condition is set to exist and the execution of the INITIATE statement has no other effect.\". Both forbid re-initiating an active report. 1985 leaves a violation undefined; 2023 defines its result: EC-REPORT-ACTIVE is set and the INITIATE has no other effect.",
   "source": "audit-1985/state-route"
  }
 }

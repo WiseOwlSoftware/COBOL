@@ -9,7 +9,7 @@
    "SR-13.4.5.3-9"
   ],
   "bridge": true,
-  "reason": "1985: 'only by the USE statement, the CLOSE statement, or the OPEN statement with the OUTPUT or EXTEND phrase'; 2023: 'only by the USE statement, the WHEN phrase of a PERFORM statement, the CLOSE statement, or the OPEN statement'. 2023 adds the WHEN phrase of a PERFORM statement as a permitted reference to the report file, so it accepts programs that 1985 refused.",
+  "reason": "1985: \"only by the USE statement, the CLOSE statement, or the OPEN statement with the OUTPUT or EXTEND phrase\"; 2023: \"only by the USE statement, the WHEN phrase of a PERFORM statement, the CLOSE statement, or the OPEN statement\". 2023 adds the WHEN phrase of a PERFORM statement as a permitted reference to the report file, so it accepts programs that 1985 refused.",
   "source": "audit-1985/state-route"
  }
 }

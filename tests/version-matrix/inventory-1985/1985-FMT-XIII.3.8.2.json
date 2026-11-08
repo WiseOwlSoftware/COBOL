@@ -10,7 +10,7 @@
    "SR-13.18.39.3-4"
   ],
   "bridge": true,
-  "reason": "1985: 'PAGE LIMIT IS integer-1 LINE [HEADING integer-2] [FIRST DETAIL integer-3] [LAST DETAIL integer-4] [FOOTING integer-5]'; 2023: 'Either integer-1 or integer-2 or both shall be specified. ... phrases may be written in any order.'. 2023 accepts every 1985 form but adds cases: integer-1 optional with a COLUMNS width, LAST CONTROL HEADING, DE/CH abbreviations and free phrase order.",
+  "reason": "1985: \"PAGE LIMIT IS integer-1 LINE [HEADING integer-2] [FIRST DETAIL integer-3] [LAST DETAIL integer-4] [FOOTING integer-5]\"; 2023: \"Either integer-1 or integer-2 or both shall be specified. ... phrases may be written in any order.\". 2023 accepts every 1985 form but adds cases: integer-1 optional with a COLUMNS width, LAST CONTROL HEADING, DE/CH abbreviations and free phrase order.",
   "source": "audit-1985/state-route"
  }
 }

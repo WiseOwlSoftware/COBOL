@@ -9,7 +9,7 @@
    "GR-14.9.39.4-4"
   ],
   "bridge": true,
-  "reason": "1985: 'the content of index-name-3 is incremented (UP BY) or decremented (DOWN BY) by a value that corresponds to the number of occurrences'; 2023: 'is outside the limit specified in General rule 2 of 13.18.38 ... EC-RANGE-INDEX exception condition is set to exist ... content of the receiving operand is unchanged'. Both apply a once-evaluated increment to each index-name-3. 2023 adds a case: an out-of-range result raises EC-RANGE-INDEX and leaves the index unchanged; 1985 always increments.",
+  "reason": "1985: \"the content of index-name-3 is incremented (UP BY) or decremented (DOWN BY) by a value that corresponds to the number of occurrences\"; 2023: \"is outside the limit specified in General rule 2 of 13.18.38 ... EC-RANGE-INDEX exception condition is set to exist ... content of the receiving operand is unchanged\". Both apply a once-evaluated increment to each index-name-3. 2023 adds a case: an out-of-range result raises EC-RANGE-INDEX and leaves the index unchanged; 1985 always increments.",
   "source": "audit-1985/state-route"
  }
 }

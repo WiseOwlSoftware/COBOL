@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'DATE-COMPILED. [ comment-entry ] …'; 2023: 'no 2023 clause holds the DATE-COMPILED paragraph; candidates cover other paragraphs only'. No 2023 clause holds the DATE-COMPILED paragraph, and no candidate covers it; the candidates are other paragraphs, so 2023 lacks the feature.",
+  "reason": "1985: \"DATE-COMPILED. [ comment-entry ] …\"; 2023: \"no 2023 clause holds the DATE-COMPILED paragraph; candidates cover other paragraphs only\". No 2023 clause holds the DATE-COMPILED paragraph, and no candidate covers it; the candidates are other paragraphs, so 2023 lacks the feature.",
   "source": "audit-1985/state-route"
  }
 }

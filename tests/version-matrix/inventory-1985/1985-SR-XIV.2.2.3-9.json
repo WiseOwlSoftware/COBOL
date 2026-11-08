@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry.'; 2023: 'No 2023 clause holds the CD entry feature; no candidate covers the communication description entry or the MCS.'. No 2023 clause holds the Communication module's CD entry, and the wording candidates cover only file, sort-merge, report and data entries, so 2023 lacks the feature.",
+  "reason": "1985: \"Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry.\"; 2023: \"No 2023 clause holds the CD entry feature; no candidate covers the communication description entry or the MCS.\". No 2023 clause holds the Communication module's CD entry, and the wording candidates cover only file, sort-merge, report and data entries, so 2023 lacks the feature.",
   "source": "audit-1985/state-route"
  }
 }

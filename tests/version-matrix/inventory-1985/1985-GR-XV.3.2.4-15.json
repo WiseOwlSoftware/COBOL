@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'DEBUG-CONTENTS is a data item that is large enough to contain the data required by the following general rules.'; 2023: 'No candidate covers DEBUG-CONTENTS or USE FOR DEBUGGING; the 2023 USE statement rules list no debugging phrase.'. The 2023 USE statement rules cover exception, I-O and report declaratives only. None mentions DEBUG-CONTENTS or debugging declaratives, so the Debug module feature is dropped.",
+  "reason": "1985: \"DEBUG-CONTENTS is a data item that is large enough to contain the data required by the following general rules.\"; 2023: \"No candidate covers DEBUG-CONTENTS or USE FOR DEBUGGING; the 2023 USE statement rules list no debugging phrase.\". The 2023 USE statement rules cover exception, I-O and report declaratives only. None mentions DEBUG-CONTENTS or debugging declaratives, so the Debug module feature is dropped.",
   "source": "audit-1985/state-route"
  }
 }

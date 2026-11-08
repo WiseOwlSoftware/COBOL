@@ -15,7 +15,7 @@
    "GR-9.1.13.7-9"
   ],
   "bridge": true,
-  "reason": "1985: 'The execution of a WRITE statement is attempted on a file not open in the I-O, output, or extend mode.'; 2023: 'a) If the access mode is sequential, the file connector is not open in the extend or output mode. b) If ... dynamic or random, ... not open in the I-O or output mode.'. Statuses 41-49 carry over, but 48 now also covers sequential-access WRITE in I-O mode; 44's relative-file same-size rewrite case now names sequential files.",
+  "reason": "1985: \"The execution of a WRITE statement is attempted on a file not open in the I-O, output, or extend mode.\"; 2023: \"a) If the access mode is sequential, the file connector is not open in the extend or output mode. b) If ... dynamic or random, ... not open in the I-O or output mode.\". Statuses 41-49 carry over, but 48 now also covers sequential-access WRITE in I-O mode; 44's relative-file same-size rewrite case now names sequential files.",
   "source": "audit-1985/state-route"
  }
 }

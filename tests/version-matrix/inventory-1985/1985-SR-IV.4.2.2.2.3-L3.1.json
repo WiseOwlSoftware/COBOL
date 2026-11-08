@@ -8,7 +8,7 @@
    "SR-8.3.3.6.3-1"
   ],
   "bridge": true,
-  "reason": "1985: 'the only figurative constant permitted is ZERO (ZEROS, ZEROES).'; 2023: 'the only figurative constant permitted is ZERO (ZEROS, ZEROES) without the ALL phrase.'. Same rule, but 2023 adds an explicit refusal of ALL ZERO where a numeric literal is required. The 1985 text does not exclude the ALL form.",
+  "reason": "1985: \"the only figurative constant permitted is ZERO (ZEROS, ZEROES).\"; 2023: \"the only figurative constant permitted is ZERO (ZEROS, ZEROES) without the ALL phrase.\". Same rule, but 2023 adds an explicit refusal of ALL ZERO where a numeric literal is required. The 1985 text does not exclude the ALL form.",
   "source": "audit-1985/state-route"
  }
 }

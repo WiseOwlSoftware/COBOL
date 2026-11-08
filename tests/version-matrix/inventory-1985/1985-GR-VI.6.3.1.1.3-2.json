@@ -8,7 +8,7 @@
    "GR-8.8.4.2.13-2"
   ],
   "bridge": true,
-  "reason": "1985: 'An index-name and a data item (other than an index data item) or literal.'; 2023: 'an index-name and a numeric data item or numeric literal.'. Both compare the index-name's occurrence number to the other operand. As worded, 2023 limits that operand to numeric data items and numeric literals, where 1985 allowed any non-index data item or literal.",
+  "reason": "1985: \"An index-name and a data item (other than an index data item) or literal.\"; 2023: \"an index-name and a numeric data item or numeric literal.\". Both compare the index-name's occurrence number to the other operand. As worded, 2023 limits that operand to numeric data items and numeric literals, where 1985 allowed any non-index data item or literal.",
   "source": "audit-1985/state-route"
  }
 }

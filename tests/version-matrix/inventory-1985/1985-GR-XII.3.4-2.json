@@ -9,7 +9,7 @@
    "GR-7.2.4.4-6"
   ],
   "bridge": true,
-  "reason": "1985: 'The format 2 REPLACE statement specifies that any text replacement currently in effect is discontinued.'; 2023: 'A format 2 REPLACE statement with the LAST phrase cancels the active REPLACE statement and pops the last statement'. REPLACE OFF without LAST still ends all replacement. The new LAST phrase is an added case: it reactivates the stacked statement instead of discontinuing all replacement.",
+  "reason": "1985: \"The format 2 REPLACE statement specifies that any text replacement currently in effect is discontinued.\"; 2023: \"A format 2 REPLACE statement with the LAST phrase cancels the active REPLACE statement and pops the last statement\". REPLACE OFF without LAST still ends all replacement. The new LAST phrase is an added case: it reactivates the stacked statement instead of discontinuing all replacement.",
   "source": "audit-1985/state-route"
  }
 }

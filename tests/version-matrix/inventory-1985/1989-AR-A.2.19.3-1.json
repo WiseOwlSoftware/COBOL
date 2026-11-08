@@ -8,7 +8,7 @@
    "AR-15.50.3-1"
   ],
   "bridge": true,
-  "reason": "1985: 'Argument-1 may be a nonnumeric literal or a data item of any class or category.'; 2023: 'an alphanumeric, national, or boolean literal; a data item of any class or category; a based entry; or a type-name'. The 2023 LENGTH rule keeps literal and any-class data item arguments, and adds national and boolean literals, based entries and type-names as permitted argument-1.",
+  "reason": "1985: \"Argument-1 may be a nonnumeric literal or a data item of any class or category.\"; 2023: \"an alphanumeric, national, or boolean literal; a data item of any class or category; a based entry; or a type-name\". The 2023 LENGTH rule keeps literal and any-class data item arguments, and adds national and boolean literals, based entries and type-names as permitted argument-1.",
   "source": "audit-1985/state-route"
  }
 }

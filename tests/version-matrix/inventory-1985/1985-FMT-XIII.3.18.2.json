@@ -8,7 +8,7 @@
    "FMT-13.18.53.2"
   ],
   "bridge": true,
-  "reason": "1985: 'SOURCE IS identifier-1'; 2023: '{SOURCE IS | SOURCES ARE} {identifier-1 | arithmetic-expression-1} … [ rounded-phrase ]'. The 2023 format accepts every 1985 form but adds cases: the SOURCES ARE synonym, arithmetic-expression-1, repeated operands and the ROUNDED phrase.",
+  "reason": "1985: \"SOURCE IS identifier-1\"; 2023: \"{SOURCE IS | SOURCES ARE} {identifier-1 | arithmetic-expression-1} … [ rounded-phrase ]\". The 2023 format accepts every 1985 form but adds cases: the SOURCES ARE synonym, arithmetic-expression-1, repeated operands and the ROUNDED phrase.",
   "source": "audit-1985/state-route"
  }
 }

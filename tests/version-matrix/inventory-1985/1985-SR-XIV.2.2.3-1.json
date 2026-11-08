@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'A CD entry must appear only in the Communication Section.'; 2023: 'No 2023 clause holds the CD entry or Communication Section; the candidates cover only report, data, screen and file entries.'. No 2023 clause holds the communication feature. The wording candidates restrict other entries only, so 2023 lacks the CD entry and its placement rule.",
+  "reason": "1985: \"A CD entry must appear only in the Communication Section.\"; 2023: \"No 2023 clause holds the CD entry or Communication Section; the candidates cover only report, data, screen and file entries.\". No 2023 clause holds the communication feature. The wording candidates restrict other entries only, so 2023 lacks the CD entry and its placement rule.",
   "source": "audit-1985/state-route"
  }
 }

@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'Procedure-name-1 is the name of a paragraph that contains a single sentence consisting of a GO TO statement without the DEPENDING phrase.'; 2023: 'No ALTER statement: no candidate covers it; the GO TO format (14.9.17.2) has only unconditional and DEPENDING forms, no ALTER target.'. 2023 has no ALTER statement. No candidate comes from an ALTER clause, and none covers altering a paragraph that holds a single GO TO sentence, so the feature and its rule are gone.",
+  "reason": "1985: \"Procedure-name-1 is the name of a paragraph that contains a single sentence consisting of a GO TO statement without the DEPENDING phrase.\"; 2023: \"No ALTER statement: no candidate covers it; the GO TO format (14.9.17.2) has only unconditional and DEPENDING forms, no ALTER target.\". 2023 has no ALTER statement. No candidate comes from an ALTER clause, and none covers altering a paragraph that holds a single GO TO sentence, so the feature and its rule are gone.",
   "source": "audit-1985/state-route"
  }
 }

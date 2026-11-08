@@ -8,7 +8,7 @@
    "FMT-14.9.40.2"
   ],
   "bridge": true,
-  "reason": "1985: '[ COLLATING SEQUENCE IS alphabet-name-1 ]'; 2023: 'COLLATING SEQUENCE { IS alphabet-name-1 [ alphabet-name-2 ] | FOR ALPHANUMERIC IS alphabet-name-1 / FOR NATIONAL IS alphabet-name-2 }'. Format 1 matches 1985 except COLLATING SEQUENCE, which adds alphabet-name-2 and FOR ALPHANUMERIC/NATIONAL forms, so more programs are accepted.",
+  "reason": "1985: \"[ COLLATING SEQUENCE IS alphabet-name-1 ]\"; 2023: \"COLLATING SEQUENCE { IS alphabet-name-1 [ alphabet-name-2 ] | FOR ALPHANUMERIC IS alphabet-name-1 / FOR NATIONAL IS alphabet-name-2 }\". Format 1 matches 1985 except COLLATING SEQUENCE, which adds alphabet-name-2 and FOR ALPHANUMERIC/NATIONAL forms, so more programs are accepted.",
   "source": "audit-1985/state-route"
  }
 }

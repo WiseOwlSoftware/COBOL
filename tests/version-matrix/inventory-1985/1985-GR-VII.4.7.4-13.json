@@ -9,7 +9,7 @@
    "GR-14.9.51.4-15"
   ],
   "bridge": true,
-  "reason": "1985: 'If a USE AFTER STANDARD EXCEPTION declarative is not explicitly or implicitly specified ... the result is undefined.'; 2023: 'The transfer of control depends on other clauses and the value of the I-O status as described in 9.1.12, Input-output exception processing'. Both set status 34 and leave the record area unaffected. With no USE declarative, 1985 leaves the result undefined; 2023 defers to 9.1.12 (text not given) instead of undefined.",
+  "reason": "1985: \"If a USE AFTER STANDARD EXCEPTION declarative is not explicitly or implicitly specified ... the result is undefined.\"; 2023: \"The transfer of control depends on other clauses and the value of the I-O status as described in 9.1.12, Input-output exception processing\". Both set status 34 and leave the record area unaffected. With no USE declarative, 1985 leaves the result undefined; 2023 defers to 9.1.12 (text not given) instead of undefined.",
   "source": "audit-1985/state-route"
  }
 }

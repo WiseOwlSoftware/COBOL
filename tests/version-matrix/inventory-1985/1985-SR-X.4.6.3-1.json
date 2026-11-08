@@ -8,7 +8,7 @@
    "SR-13.18.27.3-1"
   ],
   "bridge": true,
-  "reason": "1985: 'data description entries whose level-number is 01 in the File Section or the Working-Storage Section'; 2023: 'a) A constant entry. b) ...file, working-storage, local-storage, or linkage section. c) A screen-description entry whose level-number is 1.'. 2023 also permits GLOBAL in constant entries, level-1 local-storage and linkage entries, and level-1 screen description entries, which the 1985 rule refused.",
+  "reason": "1985: \"data description entries whose level-number is 01 in the File Section or the Working-Storage Section\"; 2023: \"a) A constant entry. b) ...file, working-storage, local-storage, or linkage section. c) A screen-description entry whose level-number is 1.\". 2023 also permits GLOBAL in constant entries, level-1 local-storage and linkage entries, and level-1 screen description entries, which the 1985 rule refused.",
   "source": "audit-1985/state-route"
  }
 }

@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'all VALUE OF clauses in the run unit which are associated with that file connector must be consistent'; 2023: 'No VALUE OF clause in 2023; no clause holds the feature, and the external-connector rules cover only ASSIGN, FORMAT, etc.'. No 2023 clause carries the VALUE OF clause. The external file connector consistency rules found (file control entry, FORMAT) cover other clauses, so this requirement is dropped.",
+  "reason": "1985: \"all VALUE OF clauses in the run unit which are associated with that file connector must be consistent\"; 2023: \"No VALUE OF clause in 2023; no clause holds the feature, and the external-connector rules cover only ASSIGN, FORMAT, etc.\". No 2023 clause carries the VALUE OF clause. The external file connector consistency rules found (file control entry, FORMAT) cover other clauses, so this requirement is dropped.",
   "source": "audit-1985/state-route"
  }
 }

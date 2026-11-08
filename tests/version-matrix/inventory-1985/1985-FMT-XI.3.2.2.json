@@ -9,7 +9,7 @@
    "FMT-13.18.43.2"
   ],
   "bridge": true,
-  "reason": "1985: 'DATA { RECORD IS | RECORDS ARE } { data-name-2 } … .'; 2023: 'SD file-name-1 [ record-clause ] .'. The 2023 SD format keeps the RECORD clause but drops the DATA RECORDS clause, so SD entries using it are refused. It also adds BYTES as an alternative to CHARACTERS.",
+  "reason": "1985: \"DATA { RECORD IS | RECORDS ARE } { data-name-2 } … .\"; 2023: \"SD file-name-1 [ record-clause ] .\". The 2023 SD format keeps the RECORD clause but drops the DATA RECORDS clause, so SD entries using it are refused. It also adds BYTES as an alternative to CHARACTERS.",
   "source": "audit-1985/state-route"
  }
 }

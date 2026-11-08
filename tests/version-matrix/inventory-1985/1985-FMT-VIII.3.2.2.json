@@ -10,7 +10,7 @@
    "FMT-13.18.43.2"
   ],
   "bridge": true,
-  "reason": "1985: 'LABEL {RECORD IS|RECORDS ARE} {STANDARD|OMITTED} ... VALUE OF implementor-name-1 IS ... DATA {RECORD IS|RECORDS ARE}'; 2023: 'FD file-name-1 [IS EXTERNAL [AS literal-1]] [IS GLOBAL] [BLOCK CONTAINS ...] [ record-clause ] .'. The 2023 Format 2 FD keeps BLOCK CONTAINS and RECORD but drops the LABEL RECORDS, VALUE OF and DATA RECORDS clauses, so 1985 entries using them are refused.",
+  "reason": "1985: \"LABEL {RECORD IS|RECORDS ARE} {STANDARD|OMITTED} ... VALUE OF implementor-name-1 IS ... DATA {RECORD IS|RECORDS ARE}\"; 2023: \"FD file-name-1 [IS EXTERNAL [AS literal-1]] [IS GLOBAL] [BLOCK CONTAINS ...] [ record-clause ] .\". The 2023 Format 2 FD keeps BLOCK CONTAINS and RECORD but drops the LABEL RECORDS, VALUE OF and DATA RECORDS clauses, so 1985 entries using them are refused.",
   "source": "audit-1985/state-route"
  }
 }

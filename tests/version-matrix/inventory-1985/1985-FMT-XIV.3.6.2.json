@@ -6,7 +6,7 @@
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: 'SEND cd-name-1 [ FROM identifier-1 ] WITH identifier-2 / WITH ESI / WITH EMI / WITH EGI ... BEFORE/AFTER ADVANCING'; 2023: 'SEND TO {literal-1|message-server-name-1} FROM identifier-1 RETURNING data-name-1 ... END-SEND (no cd-name formats)'. 2023 SEND only sends to message servers. No cd-name, ESI/EMI/EGI, ADVANCING or REPLACING LINE form remains: the Communication-module SEND is dropped.",
+  "reason": "1985: \"SEND cd-name-1 [ FROM identifier-1 ] WITH identifier-2 / WITH ESI / WITH EMI / WITH EGI ... BEFORE/AFTER ADVANCING\"; 2023: \"SEND TO {literal-1|message-server-name-1} FROM identifier-1 RETURNING data-name-1 ... END-SEND (no cd-name formats)\". 2023 SEND only sends to message servers. No cd-name, ESI/EMI/EGI, ADVANCING or REPLACING LINE form remains: the Communication-module SEND is dropped.",
   "source": "audit-1985/state-route"
  }
 }

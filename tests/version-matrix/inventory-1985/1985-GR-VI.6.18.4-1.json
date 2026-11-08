@@ -8,7 +8,7 @@
    "GR-14.9.22.4-3"
   ],
   "bridge": true,
-  "reason": "1985: 'begins at the leftmost character position of the data item referenced by identifier-1, regardless of its class, and proceeds from left to right'; 2023: 'unless BACKWARD is specified, in which case, inspection ... begins at the rightmost character position ... and proceeds from right to left'. Left-to-right inspection is kept, but 2023 adds a BACKWARD case that scans right to left. 1985 programs behave the same; the rule gains a case.",
+  "reason": "1985: \"begins at the leftmost character position of the data item referenced by identifier-1, regardless of its class, and proceeds from left to right\"; 2023: \"unless BACKWARD is specified, in which case, inspection ... begins at the rightmost character position ... and proceeds from right to left\". Left-to-right inspection is kept, but 2023 adds a BACKWARD case that scans right to left. 1985 programs behave the same; the rule gains a case.",
   "source": "audit-1985/state-route"
  }
 }

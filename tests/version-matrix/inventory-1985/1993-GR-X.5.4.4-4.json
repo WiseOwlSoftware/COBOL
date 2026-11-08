@@ -8,7 +8,7 @@
    "SR-14.9.14.3-2"
   ],
   "bridge": true,
-  "reason": "1985: 'An EXIT PROGRAM statement must not be executed while executing within the range of a declarative procedure in which the GLOBAL phrase'; 2023: 'The EXIT statement shall not be specified in a declarative procedure for which the GLOBAL phrase is specified in the associated USE'. 1985 bars executing EXIT PROGRAM anywhere in a GLOBAL declarative's range. 2023 bars writing any EXIT form in that declarative, so code performed from outside it is not covered.",
+  "reason": "1985: \"An EXIT PROGRAM statement must not be executed while executing within the range of a declarative procedure in which the GLOBAL phrase\"; 2023: \"The EXIT statement shall not be specified in a declarative procedure for which the GLOBAL phrase is specified in the associated USE\". 1985 bars executing EXIT PROGRAM anywhere in a GLOBAL declarative's range. 2023 bars writing any EXIT form in that declarative, so code performed from outside it is not covered.",
   "source": "audit-1985/state-route"
  }
 }
