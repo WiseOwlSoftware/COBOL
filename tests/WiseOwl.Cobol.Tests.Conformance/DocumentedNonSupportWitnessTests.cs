@@ -15,7 +15,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// tell those apart.
 ///
 /// <para>⛔ WHY THESE ARE NOT GOLDENS. The facilities left in this class are declined <b>ACCEPT-INERT</b>, so
-/// their named diagnostics are <b>warnings</b> (COBOL1578-1580, docs/CONFORMANCE.md §1): the positive corpus
+/// their named diagnostics are <b>warnings</b> (COBOL1580, COBOL1778, COBOL2424, docs/CONFORMANCE.md §1): the positive corpus
 /// asserts a program COMPILES and byte-matches its <c>.out</c> and never looks at the warning channel, and the
 /// negative corpus requires the compile to FAIL, which a warning does not. So a corpus golden can pin the
 /// INERTNESS half and only a compile-diagnostic assertion can pin the DECLINE half. Each test below therefore
@@ -39,15 +39,15 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// built it on the keyed store engine.) VALIDATE (Annex A.4.14) is
 /// OPTIONAL and additionally OBSOLETE (§2023:4.2.13; Annex F.2 item 5): §2023:4.2.7 requires only that the decline be
 /// identified in user documentation, so COBOL1580 is this implementation's own stronger posture — and a
-/// posture that is documented but unmeasured is exactly what these rows owe. Asynchronous messaging (Annex A.3 item 4) and the OPTIONS FLOAT-DECIMAL clause (A.3
-/// item 13) are processor-dependent too, so their warnings (COBOL1578, COBOL2424) are §2023:4.2.6 ¶3
-/// obligations; kb/Work R43 made the rows conditioned solely on them derived verdicts that these facts witness.</para>
+/// posture that is documented but unmeasured is exactly what these rows owe. The OPTIONS FLOAT-DECIMAL clause (A.3
+/// item 13) is processor-dependent too, so its warning (COBOL2424) is a §2023:4.2.6 ¶3
+/// obligation; kb/Work R43 made the rows conditioned solely on them derived verdicts that these facts witness. (Asynchronous messaging,
+/// Annex A.3 item 4, left this class with kb/Work PB4744, which built the facility.)</para>
 /// </summary>
 public sealed class DocumentedNonSupportWitnessTests
 {
     private const string ValidateNonSupport = "COBOL1580";   // VALIDATE — A.4.14 / §2023:4.2.7 / F.2 item 5
     private const string RecordDelimiterNonSupport = "COBOL1778";   // RECORD DELIMITER — A.3 item 26 + A.1 item 150
-    private const string McsNonSupport = "COBOL1578";               // SEND/RECEIVE — A.3 item 4 / §2023:4.2.6 ¶3
     private const string FloatDecimalClauseNonSupport = "COBOL2424"; // OPTIONS FLOAT-DECIMAL — A.3 items 13, 19
 
     /// <summary>The conformance-suite test's source text — the witness and the suite run the SAME file.</summary>
@@ -148,33 +148,11 @@ public sealed class DocumentedNonSupportWitnessTests
         Assert.DoesNotContain(raised, w => w.Contains("on file 'F4'", StringComparison.OrdinalIgnoreCase));
     }
 
-    /// <summary>ASYNCHRONOUS MESSAGING → COBOL1578, ONCE PER STATEMENT (kb/Work R43 / PB1198). Annex A.3
-    /// item 4 makes the facility processor-dependent ("dependent on the capability of a processor to allow run
-    /// units to communicate with each other") and §2023:4.2.6 ¶3 makes the compile-time warning mandatory for a
-    /// declined one. The facility has TWO statements, RECEIVE (§2023:14.9.31) and SEND (§2023:14.9.38), and until this test
-    /// only the SEND site was asserted anywhere (GobackGeneralFormatTests) — so the count, not the code, is the
-    /// assertion: a decline wired into one statement's binder arm and not the other would still produce one
-    /// COBOL1578 (feedback_two_arm_dispatch). The facility is a COBOL-2023 introduction; below it the two formats
-    /// draw COBOL0900 and no COBOL1578 (negative/pb374-async-messaging-below-2023, kb/Work PB374), and at
-    /// 2014 both words are ordinary user-defined words (at 2002 they are still reserved for the obsolete communication
-    /// facility, kb/Work PB656; negative/user-word-receive, version-matrix row receive-as-user-word).
-    /// <para>The golden's <c>.out</c> pins the INERT half: with no message I-O neither ON EXCEPTION nor NOT ON
-    /// EXCEPTION runs, where a conforming facility runs exactly one of them at each statement (§2023:14.9.31.4 GR4/GR5,
-    /// §2023:14.9.38.4 GR2/GR3).</para></summary>
-    [Fact]
-    public void McsFacility_NamedNonSupportWarning_AtBothStatements_PinnedToSpec()
-    {
-        string source = Golden("w59_mcs_facility_witness");
-        var (ok, errors, warnings) = EditionHarness.CompileFull(source, 2023);
-        Assert.True(ok, $"an ACCEPT-INERT declined facility must still COMPILE: {string.Join("\n", errors)}");
-        Assert.Equal(2, warnings.Count(w => w.Contains(McsNonSupport, StringComparison.Ordinal)));
-    }
-
     /// <summary>BELOW 2023 THE FORMATS ARE AN INTRODUCTION, NOT THE FACILITY (kb/Work PB374). RECEIVE and SEND are
     /// §2023:8.9-reserved at COBOL-85 too (the '85 communication module), so a reservation test recognized the 2023 formats
-    /// at --std 85 and compiled them under the 2023 facility's COBOL1578. Every edition below 2023 now refuses each
-    /// statement with the introduction gate, and names no facility it does not have: the negative corpus asserts the
-    /// error code only, so the absence of the warning is asserted here.</summary>
+    /// at --std 85 and compiled them as the 2023 facility. Every edition below 2023 now refuses each
+    /// statement with the introduction gate, once each, and nothing else: the negative corpus asserts the error code only,
+    /// so the count is asserted here.</summary>
     [Theory]
     [InlineData(85)]
     [InlineData(2002)]
@@ -185,27 +163,7 @@ public sealed class DocumentedNonSupportWitnessTests
         var (ok, errors, warnings) = EditionHarness.CompileFull(source, edition);
         Assert.False(ok, $"the asynchronous messaging formats compiled at COBOL-{edition}");
         Assert.Equal(2, errors.Count(e => e.Contains("COBOL0900", StringComparison.Ordinal)));
-        Assert.DoesNotContain(warnings, w => w.Contains(McsNonSupport, StringComparison.Ordinal));
-    }
-
-    /// <summary>THE SAME FACILITY'S EXCEPTION-NAMES → COBOL1578, ONCE PER WRITTEN NAME, AND STILL ACCEPTED (kb/Work
-    /// PB374). The EC-MCS names compiled in SILENCE against a facility with no setting site; asynchronous messaging is
-    /// Annex A.3 item 4, processor-dependent, so §2023:4.2.6's warning mechanism is owed for them as for SEND and RECEIVE,
-    /// and the posture is accept-inert, never the refusal the optional modules' names get. The golden writes the names
-    /// at four of the six sites one funnel serves (TURN, USE, RAISE twice, a PERFORM WHEN), so the count is the
-    /// assertion: a site that bypassed the funnel would drop one (feedback_two_arm_dispatch). Every warning names the
-    /// exception-name it is about, and the golden's <c>.out</c> pins that the accepted names still work: the RAISE
-    /// reaches the USE declarative and the WHEN phrase (§2023:14.9.29.4 GR1).</summary>
-    [Fact]
-    public void McsExceptionNames_NamedNonSupportWarning_AtEverySite_AndAccepted()
-    {
-        string source = Golden("pb374_ec_mcs_names_accept_inert");
-        var (ok, errors, warnings) = EditionHarness.CompileFull(source, 2023);
-        Assert.True(ok, $"an accept-inert facility's exception-names must still COMPILE: {string.Join("\n", errors)}");
-        var mcs = warnings.Where(w => w.Contains(McsNonSupport, StringComparison.Ordinal)).ToList();
-        Assert.Equal(5, mcs.Count);
-        Assert.Equal(3, mcs.Count(w => w.Contains("EC-MCS-INVALID-TAG", StringComparison.Ordinal)));
-        Assert.Equal(2, mcs.Count(w => w.Contains("EC-MCS-MESSAGE-LENGTH", StringComparison.Ordinal)));
+        Assert.Empty(warnings);
     }
 
     /// <summary>A DECLINED OPTIONAL MODULE'S EXCEPTION-NAME UNDER <c>--permissive</c> IS ACCEPTED, AND THEN IT RESOLVES

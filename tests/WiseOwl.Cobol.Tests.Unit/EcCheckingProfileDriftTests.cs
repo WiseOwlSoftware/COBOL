@@ -25,7 +25,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 ///
 /// <para><b>What is structurally guarded here.</b> Three things the behavioural goldens cannot see.
 /// (1) <see cref="BoundRaising"/> carries NO bind-time enablement decision at all — the field's absence is the
-/// fix, not a value it happens to hold. (2) Every <see cref="IActivatingStatement"/> really carries and
+/// fix, not a value it happens to hold. (2) Every <see cref="IProfiledStatement"/> really carries and
 /// round-trips a profile, so the central stamp at the one <c>BindStatement</c> exit reaches it. (3) The RUNTIME
 /// fold and the COMPILE-TIME fold agree for every catalogued level-3 name over every directive shape — they are
 /// two readers of §2023:7.3.25.4's expansion, and <c>ExceptionCatalog.DirectiveCovers</c> exists so the expansion is
@@ -58,7 +58,7 @@ public sealed class EcCheckingProfileDriftTests
     public void EveryActivatingStatement_RoundTripsItsProfile()
     {
         var kinds = typeof(BoundRaising).Assembly.GetTypes()
-            .Where(t => t is { IsAbstract: false, IsInterface: false } && typeof(IActivatingStatement).IsAssignableFrom(t))
+            .Where(t => t is { IsAbstract: false, IsInterface: false } && typeof(IProfiledStatement).IsAssignableFrom(t))
             .ToList();
         Assert.True(kinds.Count >= 3,
             "expected at least the CALL, INVOKE and universal-INVOKE activating nodes; found "
@@ -66,11 +66,11 @@ public sealed class EcCheckingProfileDriftTests
         var profile = EcCheckingProfile.FromEvents([("EC-USER", true)]);
         foreach (var t in kinds)
         {
-            var blank = (IActivatingStatement)System.Runtime.CompilerServices
+            var blank = (IProfiledStatement)System.Runtime.CompilerServices
                 .RuntimeHelpers.GetUninitializedObject(t);
-            Assert.True(blank.WithActivatorChecking(profile) is IActivatingStatement stamped
-                && ReferenceEquals(stamped.ActivatorChecking, profile),
-                $"{t.Name}.WithActivatorChecking must return a node carrying the profile it was given");
+            Assert.True(blank.WithCheckingProfile(profile) is IProfiledStatement stamped
+                && ReferenceEquals(stamped.CheckingProfile, profile),
+                $"{t.Name}.WithCheckingProfile must return a node carrying the profile it was given");
         }
     }
 

@@ -303,7 +303,11 @@ public sealed class PlatformAssumptionTests : IDisposable
         var cases = new List<(string Label, string Directory)>();
         if (OperatingSystem.IsWindows())
         {
-            cases.Add(("Path.GetTempPath()", WiseOwl.Cobol.Runtime.Mcs.McsSocketDirectory.WindowsDirectory(Path.GetTempPath(), hash)));
+            // The directory this host resolves (its temp path, or the fallback when that is too long), and the fallback itself (kb/Work PB4922): a temp path of any length
+            // leaves the fallback, so the worst-case entry must fit under %ProgramData%\wiseowl-mcs-<u>\<h>\ on every host.
+            string programData = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), user = new('u', 16);
+            cases.Add(("this host", WiseOwl.Cobol.Runtime.Mcs.McsSocketDirectory.WindowsDirectory(Path.GetTempPath(), programData, user, hash).Path));
+            cases.Add(("%ProgramData%", WiseOwl.Cobol.Runtime.Mcs.McsSocketDirectory.WindowsDirectory(new string('t', 200) + "\\", programData, user, hash).Path));
         }
         else
         {

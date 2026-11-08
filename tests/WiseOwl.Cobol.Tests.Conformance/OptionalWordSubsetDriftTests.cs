@@ -890,8 +890,8 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
 
     // RECEIVE (§2023:14.9.31.2). PDF p732 / folio 702: CONTINUE, MESSAGE and RECEIVED carry rules; AFTER and SECONDS carry
     // none in THIS format (§2023:8.3.2.4.3 decides "within each format"; the CONTINUE statement's own p634 format rules
-    // both and keeps them). The facility is declined and inert (COBOL1578), so the row pins the SPELLINGS: every
-    // subset must compile, and the run around the statements must not change.
+    // both and keeps them). Every subset must compile and bind to the same statement: the row pins the SPELLINGS, and the
+    // run around the statements must not change.
     private const string ReceiveContinueWords = """
            IDENTIFICATION DIVISION.
            PROGRAM-ID. OPW1.

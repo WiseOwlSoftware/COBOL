@@ -20,7 +20,7 @@ public sealed class PointerImageTests
     {
         Assert.Equal(PointerImage.Width, image.Length);
         long v = 0;
-        foreach (char c in image) { Assert.True(c <= 0xFF); v = (v << 8) | c; }
+        foreach (char c in image) { Assert.True(StorageByte.HasByte(c)); v = (v << 8) | StorageByte.ToByte(c); }   // byte 0xFF is HIGH-VALUE U+FFFF, and a random epoch can carry it
         return v;
     }
 

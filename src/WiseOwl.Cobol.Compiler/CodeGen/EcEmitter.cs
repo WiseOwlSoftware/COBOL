@@ -82,12 +82,14 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     /// <c>EcRaiseSelectionDriftTests</c> pins that no emitter outside this class renders the selector.</para>
     /// </summary>
     /// <param name="ecNameExpr">The C# expression naming the raised level-3 exception-name.</param>
+    /// <returns>The name of the C# <c>int</c> local holding the selection's <c>DispatchResult</c>, for a site whose NOT phrase must
+    /// ask whether a handler ran (<c>DispatchResult.RanAHandler</c>; §2023:14.6.13.1.4 3)).</returns>
     /// <param name="terminate">The C# statement that terminates the run unit (normally <see cref="FatalTermination"/>),
     /// or <c>null</c> for a NONFATAL condition. Prefer <see cref="EmitConditionRaise"/>, which takes the fatality
     /// from Table 13 instead of from the caller, whenever the name is known at compile time.</param>
     /// <param name="fatalWhen">An extra C# condition ANDed onto the fatal default, for a site whose name — and so its
     /// fatality — is chosen at run time (the GOBACK … RAISING pickup's propagated fatal flag).</param>
-    public void EmitSelection(string ecNameExpr, string? terminate, string? fatalWhen = null)
+    public string EmitSelection(string ecNameExpr, string? terminate, string? fatalWhen = null)
     {
         var w = ctx.Writer;
         string r = $"__r{ctx.Names.NextEc()}";
@@ -95,7 +97,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         // The ONE landing — it unwinds by itself inside an operand-evaluation step (kb/Work PB892, PB1432).
         w.Line(dispatch.ResumeTransfer(r));
         if (terminate is null)
-            return;   // nonfatal: declarative completed / RESUME NEXT / no handler all continue (§2023:14.6.13.1.4 3)/4))
+            return r;   // nonfatal: declarative completed / RESUME NEXT / no handler all continue (§2023:14.6.13.1.4 3)/4))
         string when = fatalWhen is null ? "" : $" && {fatalWhen}";
         // §2023:14.6.13.1.3 6) sits between 5) (a declarative ran: Normal terminates below) and 7): with NO handler (NoHandler) and
         // the element under >>PROPAGATE ON, the condition propagates as if GOBACK RAISING LAST EXCEPTION.
@@ -103,6 +105,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
             w.Line($"if ({r} == DispatchResult.NoHandler{when}) {propagate}   // no handler: automatic propagation (§2023:14.6.13.1.3 6); §2023:7.3.21.4 GR2)");
         w.Line($"if ({r} != DispatchResult.ResumeNext{when}) {terminate}"
             + "   // fatal, not resumed → abnormal run-unit termination (§2023:14.6.13.1.3 5)/7))");
+        return r;
     }
 
     /// <summary>⛔ THE ONE RENDERING OF AUTOMATIC PROPAGATION of an unhandled fatal condition (ISO §2023:14.6.13.1.3 6); the

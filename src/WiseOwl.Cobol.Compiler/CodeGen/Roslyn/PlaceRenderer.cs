@@ -590,6 +590,17 @@ internal static class PlaceRenderer
         _ => WriteGroupImage(record, image, context),
     };
 
+    /// <summary>The store of a received message's image into a group that holds message tags (kb/Work PB4744; §2023:14.9.31.4 GR1): the record struct's generated
+    /// <c>FromMessageImage</c>, which distributes every position but a tag's token (<c>DataItem.HoldsOnlyMessageTagSlots</c>). A group in a storage cell
+    /// takes the image through its window as any group image does - its tags are slots of the cell beside the bytes - and an occurs-depending wrapper is unwrapped.
+    /// The tags follow through <see cref="GroupLeaves"/> / <see cref="WriteGroupLeaves"/>.</summary>
+    public static string WriteMessageGroupImage(Place group, string image, string context) => group switch
+    {
+        OdoGroupPlace o => WriteMessageGroupImage(o.Inner, image, context),
+        RedefViewPlace or RenamesPlace => WriteGroupImage(group, image, context),
+        _ => $"{GroupTarget(group)}.FromMessageImage({image});",
+    };
+
     /// <summary>The LEAF VECTOR of a strongly-typed group that has no character image — the activation-boundary carrier
     /// <c>ActivationCrossing.LeafCarried</c> selects (kb/Work PB1116): its record struct's generated <c>AsLeaves()</c>.
     /// <para>⛔ A GROUP THAT LIVES IN A STORAGE CELL HAS NO RECORD STRUCT (kb/Work PB2087): an area formal, or a group the
@@ -995,7 +1006,7 @@ internal static class PlaceRenderer
     /// <c>CurrentExtents()</c>, or the cell's composition of the same table. Arm for arm the twin of
     /// <see cref="VarGroupCurrentImage"/>, so a record is never sent with a table computed from another shape than
     /// its image; a group whose image is the loud Tier-C island sends none (the statement is already loud).</summary>
-    public static string VarGroupCurrentExtents(Place group)
+    public static string VarGroupCurrentExtents(Place group, bool transfer = false)
     {
         var (inner, odo) = PeelOdo(group, maximum: false);
         return inner.Undecorated switch
@@ -1003,7 +1014,8 @@ internal static class PlaceRenderer
             RedefViewPlace { Coding: VarGroupWindow g } v when WindowComposes(v, odo) => RuntimeApi.CellVarContiguousExtents(
                 RenderPath(g.Cell, AccessDir.Sending), v.Width, PositionRenderer.Render(g.DynBase), g.DynFixedAt, g.DynMax, g.DynStructure, g.DynTable,
                 g.Odo, CellOdoCount(odo)),
-            _ when odo is null || inner.Undecorated is RedefViewPlace { Coding: VarGroupWindow } || !inner.Item.CurrentExtentImageCapable => "null",
+            _ when odo is null || inner.Undecorated is RedefViewPlace { Coding: VarGroupWindow }
+                   || !(transfer ? inner.Item.CurrentExtentTransferImageCapable : inner.Item.CurrentExtentImageCapable) => "null",
             _ => $"{Read(inner)}.CurrentExtents({odo})",
         };
     }
@@ -1041,7 +1053,8 @@ internal static class PlaceRenderer
                 RuntimeApi.CellVarStoreContiguous(RenderPath(g.Cell, AccessDir.Receiving),
                     $"(int)({PositionRenderer.Render(v.Offset)})", v.Width, PositionRenderer.Render(g.DynBase), g.DynFixedAt,
                     g.DynMax, g.DynStructure, g.DynTable, g.Odo, record, ext, fixedForm, n),
-            _ when inner.Undecorated is RedefViewPlace { Coding: VarGroupWindow } || !inner.Item.CurrentExtentImageCapable => null,
+            _ when inner.Undecorated is RedefViewPlace { Coding: VarGroupWindow }
+                   || !(inner.Item.CurrentExtentImageCapable || inner.Item.CurrentExtentMessageImageCapable) => null,
             _ => $"{GroupTarget(inner)}.FromContiguousImage({record}, {ext}{(fixedForm ? ", true" : "")}{(n is null ? "" : $", __odo: {n}")})",
         };
         if (Store(extents, null) is not { } store) return EmitText.LoudStmt(TierCIsland.Reason(inner.Item, context));

@@ -11,8 +11,7 @@
       *>   cite.py: OK  14.9.38.2  OK  5.2.1  (General)
       *> Before kb/Work PB4090 the RAISING phrase was never compared with the operand, and the statement drew only
       *> the missing-RETURNING screen of its Format 1 half.
-      *> SEND is the declined asynchronous messaging facility (COBOL1578, docs/CONFORMANCE.md section 4 item 1);
-      *> declining it declines its behaviour, not the syntax rules of its statements.
+      *> SEND and RECEIVE are the asynchronous messaging facility (Annex A.3 item 4, docs/CONFORMANCE.md section 2): the statement binds, and every operand and syntax rule is asked at bind (kb/Work PB3568, PB4743).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB4090N3.
        DATA DIVISION.

@@ -176,7 +176,7 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
             else if (item.CurrentExtentTransferImageCapable)
             {
                 codec.EmitCurrentImageMethod(item, w);
-                if (item.CurrentExtentImageCapable) codec.EmitVarImageMethods(item, w);
+                if (item.CurrentExtentImageCapable || item.CurrentExtentMessageImageCapable) codec.EmitVarImageMethods(item, w);
             }
             // A strong group with no character image crosses an activation boundary as its LEAF VECTOR (kb/Work
             // PB1116; ActivationCrossing.LeafCarried) — so it, and every group struct nested in it, gets the pair.

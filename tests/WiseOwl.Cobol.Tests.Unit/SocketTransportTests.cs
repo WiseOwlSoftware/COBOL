@@ -252,6 +252,70 @@ public sealed class SocketTransportTests : IDisposable
         Assert.True(File.Exists(FileOf("s", "UNPUB", serverRun)));
     }
 
+    /// <summary>An accept that fails with <paramref name="failure"/> once and then accepts for real.</summary>
+    private static Func<Socket, CancellationToken, ValueTask<Socket>> FailsOnce(SocketError failure, Action failed)
+    {
+        int calls = 0;
+        return (socket, token) =>
+        {
+            if (Interlocked.Increment(ref calls) != 1) return socket.AcceptAsync(token);
+            failed();
+            throw new SocketException((int)failure);
+        };
+    }
+
+    [Fact]
+    public void AnAcceptFailureThatIsNotTheListenerClosingLeavesTheServerAcceptingAndTheBellRinging()
+    {
+        var (server, serverWake, serverRun) = Run();
+        var (requestor, _, _) = Run();
+        using var serverFailed = new ManualResetEventSlim(false);
+        server.AcceptSocketAsync = FailsOnce(SocketError.TooManyOpenSockets, serverFailed.Set);
+        server.Publish(Server("FAIL", serverRun));
+        Assert.True(serverFailed.Wait(Guard), "the accept never failed");
+        Assert.Equal(ConnectOutcome.Connected, requestor.Connect(Server("FAIL", serverRun)).Outcome);
+        Assert.IsType<LinkAccepted>(Next(server, serverWake));
+
+        var (bell, bellWake, bellRun) = Run();
+        using var bellFailed = new ManualResetEventSlim(false);
+        bell.AcceptSocketAsync = FailsOnce(SocketError.ConnectionAborted, bellFailed.Set);
+        bell.Publish(Bell("RINGS", bellRun));
+        Assert.True(bellFailed.Wait(Guard), "the accept never failed");
+        requestor.RingBells("RINGS");
+        Assert.Equal("RINGS", Assert.IsType<BellRung>(Next(bell, bellWake)).Spelling);
+    }
+
+    [Fact]
+    public async Task AnAcceptThatArrivesAfterTheTransportEndedIsClosedAtOnceAndMakesNoLink()
+    {
+        string raw = Path.Combine(_sockets.Path, "t", "raw");
+        Directory.CreateDirectory(Path.GetDirectoryName(raw)!);
+        using var rawListener = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
+        rawListener.Bind(McsSocketDirectory.EndPointOf(raw));
+        rawListener.Listen(1);
+        using var client = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
+        await client.ConnectAsync(McsSocketDirectory.EndPointOf(raw));
+        var late = await rawListener.AcceptAsync();                                   // the connection an accept had already won when the transport ended
+
+        var (server, serverWake, serverRun) = Run();
+        var entered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        server.AcceptSocketAsync = async (_, _) =>
+        {
+            entered.TrySetResult();
+            await release.Task;                                                       // past the await only once Dispose has ended the listener
+            return late;
+        };
+        server.Publish(Server("LATE", serverRun));
+        await entered.Task.WaitAsync(Guard);
+        server.Dispose();
+        release.SetResult();
+
+        using var guard = new CancellationTokenSource(Guard);
+        Assert.Equal(0, await client.ReceiveAsync(new byte[1], SocketFlags.None, guard.Token));   // end-of-stream: the accepted socket was closed
+        Assert.False(server.TryTake(out _));                                          // no LinkAccepted for it
+    }
+
     [Fact]
     public void ARingReachesEveryOtherRunUnitsBellAndOnlyThatSpellingsBells()
     {

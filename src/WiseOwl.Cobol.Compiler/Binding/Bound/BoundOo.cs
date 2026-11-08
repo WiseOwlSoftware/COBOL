@@ -55,15 +55,15 @@ public sealed record BoundInvoke(
     InvokeForm Form, string? ClassClrName, Place? Receiver, string? MethodClrName, Place? Returning,
     IReadOnlyList<BoundInvokeArg>? Args = null, DataItem? ReturningSource = null,
     string? OwnerClrName = null)
-    : BoundStatement, IActivatingStatement
+    : BoundStatement, IProfiledStatement
 {
     /// <inheritdoc/>
-    public WiseOwl.Cobol.Runtime.Exceptions.EcCheckingProfile ActivatorChecking { get; init; }
+    public WiseOwl.Cobol.Runtime.Exceptions.EcCheckingProfile CheckingProfile { get; init; }
         = WiseOwl.Cobol.Runtime.Exceptions.EcCheckingProfile.None;
 
     /// <inheritdoc/>
-    public BoundStatement WithActivatorChecking(WiseOwl.Cobol.Runtime.Exceptions.EcCheckingProfile profile)
-        => this with { ActivatorChecking = profile };
+    public BoundStatement WithCheckingProfile(WiseOwl.Cobol.Runtime.Exceptions.EcCheckingProfile profile)
+        => this with { CheckingProfile = profile };
 
 }
 
@@ -150,15 +150,15 @@ public sealed record BoundInvokeUniversal(
     Place Receiver, string? MethodLiteral, Place? MethodSource,
     IReadOnlyList<BoundUniversalArg> Args, Place? Returning,
     WiseOwl.Cobol.Runtime.ActivationDescription? ReturningDescription)
-    : BoundStatement, IActivatingStatement
+    : BoundStatement, IProfiledStatement
 {
     /// <inheritdoc/>
-    public WiseOwl.Cobol.Runtime.Exceptions.EcCheckingProfile ActivatorChecking { get; init; }
+    public WiseOwl.Cobol.Runtime.Exceptions.EcCheckingProfile CheckingProfile { get; init; }
         = WiseOwl.Cobol.Runtime.Exceptions.EcCheckingProfile.None;
 
     /// <inheritdoc/>
-    public BoundStatement WithActivatorChecking(WiseOwl.Cobol.Runtime.Exceptions.EcCheckingProfile profile)
-        => this with { ActivatorChecking = profile };
+    public BoundStatement WithCheckingProfile(WiseOwl.Cobol.Runtime.Exceptions.EcCheckingProfile profile)
+        => this with { CheckingProfile = profile };
 
 }
 

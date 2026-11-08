@@ -799,57 +799,7 @@
         "a sending item is processed in a VALIDATE statement"
       ]
     },
-    "mcs-only": {
-      "verdict": "DOCUMENTED-NON-SUPPORT",
-      "decision": "kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 row 4 'Asynchronous messaging (MCS) facility | Not claimed' + §4 item 1. Licence: §4.2.6 — a processor-dependent element whose support is not claimed 'need not be implemented', with the §4.2.6 compile-time warning COBOL1578 at every SEND/RECEIVE. The owner approved the facility on 2026-11-04 (DESIGN-message-control.md, kb/Work PB4700): each slice that implements part of it narrows this selector to the rows still declined (slice S1, kb/Work PB4740, took the message-tag type: USAGE MESSAGE-TAG, NULL, SET Format 17, the relation, INITIALIZE and BY VALUE; slice S3, kb/Work PB4743, took the statements' general formats and syntax rules, which the compiler binds and screens), and slice S4 deletes it.",
-      "$selector": [
-        "A rule is SOLELY conditioned on the MCS facility when it lives in the facility's own statements' general",
-        "rules — §14.9.31 RECEIVE and §14.9.38 SEND, kind GR — whose behavior is the message exchange the compiler",
-        "does not yet render — or when its content is the message server protocol stated from elsewhere: the EC-MCS",
-        "exception conditions, the implicit SEND at run-unit termination for an active message (GR-14.6.11-7) and the",
-        "message servers themselves.",
-        "",
-        "⛔ THE STATEMENTS' FORMATS AND SYNTAX RULES ARE NO LONGER HERE (kb/Work PB4743, slice S3). The binder",
-        "(MessagingBinder) parses, binds and screens both statements: FMT-14.9.31.2, FMT-14.9.38.2, SR-14.9.31.3-1 to -3",
-        "and SR-14.9.38.3-1 to -4 are adjudicated CONFORMS rows, so the clause arm takes the general rules alone",
-        "(kind GR), and SR-14.9.38.3-2 — the one syntax rule the text arm would still select, by its 'message server'",
-        "— is excluded by its own words.",
-        "",
-        "⛔ THE MESSAGE-TAG CLASS IS NO LONGER HERE (kb/Work PB4740). The data half of the facility is implemented:",
-        "the null message-tag content (GR-8.4.3.10.4-4), a message-tag comparison (GR-8.8.4.2.1-9), the USAGE",
-        "MESSAGE-TAG clause (GR-13.18.60.4-9), SET Format 17 (SR-14.9.39.3-35) and Annex A.1 item 212 (DOC-A.1-212) are",
-        "adjudicated CONFORMS rows, so a text arm that selected them by 'class message-tag' would hold them at a",
-        "verdict the tree no longer has.",
-        "",
-        "The null message-tag content (GR-8.4.3.10.4-4) names a message server in passing and is excluded by its own words.",
-        "",
-        "MEASURED 2026-11-05: see TheMcsSelector_IsStillSharp for the floor."
-      ],
-      "arms": [
-        {
-          "$arm": "clause — the facility's own two statements' general rules, whose exchange is not yet rendered",
-          "sections": [
-            "14.9.31",
-            "14.9.38"
-          ],
-          "kinds": [
-            "GR"
-          ]
-        },
-        {
-          "$arm": "text — the message server protocol stated inside a shared clause; never a general format",
-          "pattern": "\\bEC-MCS\\b|\\bactive messages?\\b|\\bmessage servers?\\b",
-          "excludes-kinds": [
-            "FMT"
-          ]
-        }
-      ],
-      "excludes-patterns": [
-        "\\bnull content\\b",
-        "\\bMessage-server-name-1 is the name of a message server run unit\\b"
-      ]
-    },
-    "float-formats-not-provided": {
+"float-formats-not-provided": {
       "verdict": "DOCUMENTED-NON-SUPPORT",
       "decision": "kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 rows 13 (FLOAT-DECIMAL clause, Not claimed), 17 (FLOAT-BINARY-128 — binary128 not provided), 19 (FLOAT-DECIMAL-16/-34, Not claimed) and 20-21 (the encoding phrase, N/A with item 19). Licence: §4.2.6. The usages are refused by name (COBOL1564, PictureAnalyzer.ParseUsage) and the OPTIONS FLOAT-DECIMAL clause draws the §4.2.6 warning COBOL2424 (OptionsBinder.DeclineFloatDecimal).",
       "$selector": [
