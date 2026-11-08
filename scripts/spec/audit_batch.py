@@ -30,6 +30,8 @@ Batches API in five passes, each a first pass whose answers are DETECTIONS (a ve
     python scripts/spec/audit_batch.py collect --pass P --state DIR --api-key-file KEY
     python scripts/spec/audit_batch.py retry   --pass P --state DIR --api-key-file KEY --max-usd N
     python scripts/spec/audit_batch.py results --state DIR                        # DIR/results.json: each rule's disposition
+    python scripts/spec/audit_batch.py kept-batch --state DIR --out FILE          # the CARRIES rules as KEPT change records
+                                                                                   # (record_verdicts.py --edition 1985)
     python scripts/spec/test_audit_batch.py                                       # its self-test: a fake client, no API call
 
 RESTARTABLE. A pass lives in `DIR/<pass>/`: `items.json` (written once by `plan`: custom id -> the item, every input its
@@ -71,6 +73,7 @@ import citation  # noqa: E402  (THE citation format and the 1985 regions, kb/Wor
 import spec_pdf  # noqa: E402  (the one edition table, kb/Work PB4815)
 import verify_publishable  # noqa: E402  (the stamp shapes)
 from extract_rule_catalog import OUT, OUT_1985  # noqa: E402  (the 2023 and the 1985 catalogs)
+from inventory_schema import edition, load_schema  # noqa: E402  (the 1985 edition and its change record, kept-batch)
 from message_batches import (CACHE_MIN_SHARERS, DEFAULT_MODEL, BatchRun, cached_system, cached_text,  # noqa: E402
                              make_client, reply_text, usd, write_atomic)  # noqa: E402  (THE batch state)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/
@@ -86,7 +89,7 @@ CHARS_PER_TOKEN = 3.5
 
 SAME, DIFFERS, NONE = "SAME", "DIFFERS", "NONE"
 #: A mapped 1985 rule's disposition (`dispositions`, the run's results.json): CARRIES is a SAME the verify pass upheld, which
-#: lineage.py records as the chained change record (kb/Work PB4993); the others are the fleet's, or still in flight.
+#: `kept-batch` writes as the chained (KEPT) change record (kb/Work PB4993); the others are the fleet's, or still in flight.
 CARRIES, OWN_ROW, DISPUTED, UNVERIFIED, OPEN = "CARRIES", "OWN-ROW", "DISPUTED", "UNVERIFIED", "OPEN"
 
 #: The preamble of every pass. Its box sentence names the transcription's OWN level-2 markup (spec_pdf.BOX_SIDE for prose,
@@ -428,6 +431,17 @@ def dispositions(state: pathlib.Path) -> dict[str, dict[str, Any]]:
     return out
 
 
+def kept_records(disp: dict[str, dict[str, Any]], source: str) -> list[dict[str, Any]]:
+    """The run's CARRIES rules as record_verdicts records of the 1985 edition's change record (the schema's `next`), each of
+    the chained kind (KEPT) into the 2023 rules its SAME named, with no reason (the requirement is the same) and the run as
+    its source (kb/Work PB4993; DESIGN-spec-conformance-review.md section 10.2). The DISPUTED and OWN-ROW rules are the
+    fleet's (kb/Work PB4995)."""
+    ed, kind = edition(1985), load_schema().next.chained.name
+    return [{"rule-id": rid, "next": {"kind": kind, "edition": ed.next_held, "to": d["rules_2023"], "bridge": ed.bridged,
+                                      "source": source}}
+            for rid, d in sorted(disp.items()) if d["disposition"] == CARRIES]
+
+
 def plan_drafts(state: pathlib.Path) -> list[dict[str, Any]]:
     disp = dispositions(state)
     if waiting := [i for i, d in disp.items() if d["disposition"] in (OPEN, UNVERIFIED)]:
@@ -658,6 +672,10 @@ def build_parser() -> argparse.ArgumentParser:
     common(sub.add_parser("status", help="items, answers, verdicts and cost; with a key, each batch's state too"))
     common(sub.add_parser("collect", help="store the answers of every ended batch"))
     common(sub.add_parser("results", help="write DIR/results.json: each mapped rule's disposition"), key=False, pass_arg=False)
+    kb = sub.add_parser("kept-batch", help="write the CARRIES rules as a record_verdicts batch of KEPT change records")
+    common(kb, key=False, pass_arg=False)
+    kb.add_argument("--out", required=True, help="the batch file to write")
+    kb.add_argument("--source", help="each record's next.source (default: audit-1985/<the state directory's name>)")
     return ap
 
 
@@ -679,6 +697,15 @@ def main(argv: list[str] | None = None, client_factory: Callable[[str], Any] = m
         write_atomic(state / "results.json", json.dumps(disp, indent=1, ensure_ascii=False))
         print(f"results: {dict(sorted(collections.Counter(d['disposition'] for d in disp.values()).items()))} "
               f"-> {state / 'results.json'}", flush=True)
+        return 0
+    if a.cmd == "kept-batch":
+        records = kept_records(dispositions(state), a.source or f"audit-1985/{state.name}")
+        out = pathlib.Path(a.out)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        write_atomic(out, json.dumps({"batch": f"lineage-kept:{state.name}", "records": records}, indent=1,
+                                     ensure_ascii=False) + "\n")
+        print(f"kept-batch: {len(records)} kept change record(s) -> {out}\n"
+              f"  validate: python scripts/spec/record_verdicts.py --edition 1985 --dry-run {out}", flush=True)
         return 0
     p = Pass(state, a.pass_name)
     if a.cmd == "plan":

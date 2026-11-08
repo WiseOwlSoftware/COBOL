@@ -51,8 +51,8 @@ from standard_streams import ensure_utf8  # noqa: E402
 NORMAL = "normal"
 OBSOLETE = "obsolete"
 FORMAT = "FMT"
-#: A sentence of the text that calls an element obsolete (§1985: "is an obsolete element in Standard COBOL", "are obsolete
-#: elements", "is an obsolete feature").
+#: A sentence of the text that calls an element obsolete: "is an obsolete element in Standard COBOL" (§1985:VI.6.7.1),
+#: "are obsolete elements" (§1985:VI.3.2), "is an obsolete feature" (§1985:IV.4.1).
 OBSOLETE_SENTENCE = re.compile(r"\b(?:is an|are) obsolete (?:element|feature)s?\b")
 #: An item of the list: `(n) <u>name</u>.`
 LIST_ITEM = re.compile(r"^\((?P<n>\d+)\)\s+<u>(?P<name>[^<]+)</u>")

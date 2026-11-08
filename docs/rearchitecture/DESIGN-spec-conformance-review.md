@@ -872,8 +872,9 @@ the chain's test must also be placed at that edition (the conformance suite's pl
 CHANGED and REMOVED rows, and NEW ones, carry verdicts of their own. The fleet's work is therefore only what changed.
 
 **The audit fills the change records** (§10.3). Its passes are detections. A SAME that the verify pass upholds is
-recorded as KEPT through the one recording path (`record_verdicts.py`, a batch derived from the run's `results.json`, as
-the 2023 derived batches are); a DISPUTED rule goes to a fleet adjudicator, who records KEPT or CHANGED; a DIFFERS or
+recorded as KEPT through the one recording path (`record_verdicts.py --edition 1985`, a batch the run itself writes from
+its dispositions, `audit_batch.py kept-batch`, as the 2023 derived batches are written by `derive_verdict_batch.py`; the
+1985 audit's 759 upheld SAME rules are recorded, kb/Work PB4993); a DISPUTED rule goes to a fleet adjudicator, who records KEPT or CHANGED; a DIFFERS or
 NONE answer is a CHANGED or REMOVED candidate that an adjudicator confirms with its evidence, and then a verdict of its own
 under `--std=<edition>`, its witness a draft from the drafts pass checked against the rule text.
 

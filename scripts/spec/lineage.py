@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """THE RULE LINEAGE: one rule list per COBOL edition, linked by one change record per adjacent pair (kb/Work PB4991).
 
-    python scripts/spec/lineage.py kept-batch --state DIR --out FILE   # the audit's upheld SAME answers as KEPT records
     python scripts/spec/lineage.py --self-test
 
 The design is DESIGN-spec-conformance-review.md §10.2 (owner, 2026-11-08). In short:
@@ -112,33 +111,10 @@ def new_rules(ed: Edition, rows: Iterable[dict[str, Any]], targets: dict[str, di
     return [t for t in targets if t not in reached]
 
 
-# -- the audit's kept records ---------------------------------------------------------------------------------------------
-
-def kept_batch(state: pathlib.Path, out: pathlib.Path, source: str, schema: Schema) -> int:
-    """A record_verdicts batch of the edition audit's CARRIES rules (map SAME, verify UPHELD), read from the run's
-    results.json (`audit_batch.py results`), each as a change record of the chained kind (KEPT). The audit's DISPUTED and
-    OWN-ROW rules are the fleet's (kb/Work PB4995) and are not in it. A kept record states no reason (the requirement is
-    the same), so it carries none: a store holds only what says something."""
-    from audit_batch import CARRIES  # noqa: PLC0415  (the disposition vocabulary's one home)
-    results = json.loads((state / "results.json").read_text(encoding="utf-8"))
-    ed = edition(1985)
-    kind = schema.next.chained.name
-    records = [{"rule-id": rid, "next": {"kind": kind, "edition": ed.next_held, "to": d["rules_2023"],
-                                         "bridge": ed.bridged, "source": source}}
-               for rid, d in sorted(results.items()) if d["disposition"] == CARRIES]
-    out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps({"batch": f"lineage-kept:{source}", "records": records}, indent=1, ensure_ascii=False) + "\n",
-                   encoding="utf-8", newline="\n")
-    print(f"kept-batch: {len(records)} {kind} record(s) -> {out}\n"
-          f"  validate: python scripts/spec/record_verdicts.py --edition {ed.year} --dry-run {out}")
-    return 0
-
-
 # -- self-test ------------------------------------------------------------------------------------------------------------
 
 def self_test() -> int:
     import copy  # noqa: PLC0415
-    import tempfile  # noqa: PLC0415
     from inventory_schema import SCHEMA_PATH, editions_of, held_edition  # noqa: PLC0415
     from inventory_store import inventory_dir  # noqa: PLC0415
     schema = load_schema()
@@ -221,21 +197,6 @@ def self_test() -> int:
     ok(new_rules(ed, [row()], targets) == ["SR-13.18.38.3-2", "GR-14.9.21.4-2"],
        "a rule of the next edition no record reaches is NEW")
 
-    # The audit's results.json (`audit_batch.py results`) becomes one KEPT record per CARRIES rule, and nothing else.
-    with tempfile.TemporaryDirectory() as tmp:
-        run = pathlib.Path(tmp) / "state-planted"
-        run.mkdir()
-        (run / "results.json").write_text(json.dumps({
-            "1985-SR-VI.5.8.3-1": {"disposition": "CARRIES", "rules_2023": ["SR-13.18.38.3-1"]},
-            "1985-SR-VI.5.8.3-2": {"disposition": "DISPUTED", "rules_2023": ["SR-13.18.38.3-2"]},
-            "1985-GR-VI.5.8.4-1": {"disposition": "OWN-ROW", "rules_2023": []}}), encoding="utf-8")
-        out = run / "kept.json"
-        kept_batch(run, out, "audit-1985/state-planted", schema)
-        recs = json.loads(out.read_text(encoding="utf-8"))["records"]
-        ok([r["rule-id"] for r in recs] == ["1985-SR-VI.5.8.3-1"]
-           and errs({"rule-id": recs[0]["rule-id"], "verdict": "", **recs[0]}) == [],
-           "the kept batch holds the audit's CARRIES rules only, each a legal KEPT record")
-
     # Branch review R1-1: an edition is the schema's `editions.of` and nothing else, so adding one there is the whole
     # change: the order, the bridges, the newest edition, the band spelling and the store all follow, with no KeyError.
     unheld, held = copy.deepcopy(raw), copy.deepcopy(raw)
@@ -262,18 +223,12 @@ def self_test() -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
-    ap = argparse.ArgumentParser(description="The rule lineage across editions (kb/Work PB4991).")
+    ap = argparse.ArgumentParser(description="The rule lineage across editions (kb/Work PB4991). The audit's kept change "
+                                             "records are written by audit_batch.py kept-batch.")
     ap.add_argument("--self-test", action="store_true")
-    sub = ap.add_subparsers(dest="cmd")
-    kb = sub.add_parser("kept-batch", help="the audit's upheld SAME answers as KEPT records")
-    kb.add_argument("--state", required=True, type=pathlib.Path, help="the audit run's directory (results.json)")
-    kb.add_argument("--out", required=True, type=pathlib.Path)
-    kb.add_argument("--source", help="the run named in each record's next.source (default: the state directory's name)")
     a = ap.parse_args(argv)
     if a.self_test:
         return self_test()
-    if a.cmd == "kept-batch":
-        return kept_batch(a.state, a.out, a.source or f"audit-1985/{a.state.name}", load_schema())
     ap.print_help()
     return 2
 
