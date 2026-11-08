@@ -146,6 +146,7 @@ public static class ReservationGateRewriter
         var words = newlyFreed.Where(w => CobolLexer.IsRefusalWhereFree(w) && declared.Contains(w)).ToHashSet(StringComparer.Ordinal);
         if (words.Count == 0) return kept;
         var result = new HashSet<int>(kept);
+        var spells = new Dictionary<(int Rule, int Token), bool>();
         var work = new Stack<IParseTree>();
         work.Push(tree);
         while (work.TryPop(out var node))
@@ -153,14 +154,29 @@ public static class ReservationGateRewriter
             if (node is ITerminalNode { Symbol: { } symbol } terminal)
             {
                 if (terminal is not IErrorNode && symbol.TokenIndex >= 0 && CobolLexer.IsReservationGated(symbol.Type)
-                    && terminal.Parent is not CobolParserCore.ReservedGatedWordContext
-                    && words.Contains(CobolNames.UpperFold(symbol.Text)))
+                    && terminal.Parent is ParserRuleContext { RuleIndex: var rule } && rule != CobolParserCore.RULE_reservedGatedWord
+                    && words.Contains(CobolNames.UpperFold(symbol.Text))
+                    && (spells.TryGetValue((rule, symbol.Type), out bool known) ? known : spells[(rule, symbol.Type)] = RuleSpells(rule, symbol.Type)))
                     result.Add(symbol.StartIndex);
                 continue;
             }
             for (int i = 0; i < node.ChildCount; i++) work.Push(node.GetChild(i));
         }
         return result;
+    }
+
+    /// <summary>Does <paramref name="rule"/> itself match <paramref name="tokenType"/> (a token edge of one of its own ATN
+    /// states)? The terminal of a keyword the format spells sits in the rule that spells it; a word the error recovery read
+    /// as a name and then gave back its keyword type (<see cref="CobolParserCoreBase.RestoreWordsReadAsNames"/>, kb/Work
+    /// PB4218) sits in a name rule that spells no such token, and is no keyword read (<c>DISPLAY SCREEN.</c> at 2002 under
+    /// <c>--permissive</c>).</summary>
+    private static bool RuleSpells(int rule, int tokenType)
+    {
+        foreach (var state in CobolParserCore._ATN.states)
+            if (state.ruleIndex == rule)
+                for (int i = 0; i < state.NumberOfTransitions; i++)
+                    if (state.Transition(i) is { IsEpsilon: false, Label: { } label } && label.Contains(tokenType)) return true;
+        return false;
     }
 
     /// <summary>Retype every default-channel reservation-gated keyword token whose word is in

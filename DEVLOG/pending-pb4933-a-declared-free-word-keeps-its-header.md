@@ -27,7 +27,7 @@ at some edition, never also `keywordWhereFree`) and step 6 emits `CobolLexer.IsR
 that it DECLARED in a user-defined-word slot, `ReservationGateRewriter.ParseToFixpoint` keeps every keyword token of the word that
 the pass's tree holds outside `reservedGatedWord` (`TokenRetypes.KeptKeywords`, by source offset) and retypes the rest. A re-lex
 of the same text keeps them; a fragment, a slice of the text, applies none (`TokenRetypes.RewriteSlice`). A word freed only by the
-second witness (a syntax error at it, `CobolParserCoreBase.DeclaredGatedWords` separates the two) keeps nothing, so `01
+second witness (a syntax error at it, `CobolParserCoreBase.DeclaredGatedWords` separates the two) keeps nothing, and a terminal counts only in a rule that itself spells the token (`RuleSpells`): the second gate found `DISPLAY SCREEN.` at 2002 under `--permissive` keeping a SCREEN the recovery had read as a name and then given back its keyword type (kb/Work PB4218). So `01
 LOCAL-STORAGE SECTION.` at 85 stays an entry named LOCAL-STORAGE. No grammar rule changes. The six source-unit words (CLASS-ID,
 FUNCTION-ID, INTERFACE-ID, METHOD-ID, FACTORY, OBJECT) carry no determination: a unit can begin without its IDENTIFICATION DIVISION
 header in the union grammar, so `FUNCTION-ID. X.` after a COBOL-85 program's paragraphs is two paragraphs, and FACTORY and OBJECT

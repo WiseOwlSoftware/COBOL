@@ -1766,7 +1766,8 @@ transitive scan), the rule finds these members: `is85`, `is2002`, `is2014`, `is2
 `facilityWord` (`:557-563`) and `screenPositionAhead` (`:288-298`, COL, COLS and COLUMNS), both through `reservedHere`;
 `keywordContinuesHere` (`:437`) through `IsKeywordReadingHere` (`:467`); `userWordHere` (`:371-375`); the action
 `gatedDeclaration` (`:389-392`, through `userWordHere`) and `NoteGatedOffender` (`:401-404`, called by the
-authoritative pass's syntax-error listener); and `ReservedUserWordViolation` (`:545-554`, the COBOL0901 message, not
+authoritative pass's syntax-error listener), both now through their one helper `FreeGatedWord`, which records which
+words the pass declared (kb/Work PB4933); and `ReservedUserWordViolation` (`:545-554`, the COBOL0901 message, not
 a predicate); the `DialectLevel` setter shim is deleted (the front end sets `Edition`, both axes). And these sites: five spelled `{isXXXX()}?` —
 `| {is2023()}? LOCATION` (`CobolControlFlow.g4:66`), `| {is2002()}? validationClause` (`CobolData.g4:379`),
 `({is2002()}? validateValidPhrase)?` (`CobolData.g4:828`), `| {is2023()}? applyCommitClause` (`CobolIO.g4:334`) and
