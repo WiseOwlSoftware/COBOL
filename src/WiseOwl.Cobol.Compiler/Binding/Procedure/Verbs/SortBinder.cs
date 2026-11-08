@@ -331,7 +331,9 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
                 // removed. The comparator now selects on the key's class (kb/Work PB678), so both formats sort a
                 // national key under the national sequence and nothing is staged.
                 if (TableSortKey(table, storage, outer, desc, key) is not { } k) return TableSortKeyUnsupported(kn);
-                keys.Add(k);
+                // The key as written, in every current occurrence: an operand the statement explicitly references (kb/Work PB4855).
+                if (ctx.Refs.Places.WholeTable(key, outer) is not { } writtenKey) return TableSortKeyUnsupported(kn);
+                keys.Add(k with { Written = writtenKey });
             }
         }
 
@@ -355,7 +357,11 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
 
         var (collating, collErr) = SortBindCollating(s.sortCollatingPhrase(), merge: false);
         if (collErr is { } ce) return ce;
-        return new BoundTableSort(storage, table, count, keys, s.sortDuplicatesPhrase() is not null, collating);
+        // data-name-2 as written: the whole table under the enclosing occurrences the statement names (kb/Work PB4855). Its element is
+        // the one the statement's own storage reaches, so a table the sort can address always has one.
+        if (ctx.Refs.Places.WholeTable(table, outer) is not { } written)
+            return new BoundUnsupported($"SORT of table '{name}': " + DeferredShapes.Describe(DeferredShape.UnbuiltAccessPath));
+        return new BoundTableSort(storage, table, count, keys, s.sortDuplicatesPhrase() is not null, collating, written);
 
         // §2023:14.9.40.3 SR14 c) and d) for one key, through the ONE key-admissibility predicate shared with SORT Format 1
         // and MERGE (kb/Work PB1173): the refusal node when the key may not be one, else null.

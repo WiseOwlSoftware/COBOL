@@ -822,7 +822,9 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             return;
         }
         _debugTargets.Add(new BoundDebugTarget(kind, written, item, null, section.StartPc, section.EndPc, Register: register));
-        if (register is null) _debugContentsWidth = Math.Max(_debugContentsWidth, item!.ImageWidth);   // a counter register's image is at most 10 digits, inside the minimum
+        // A data item's widest reference is every occurrence of it, a whole table (rule 24 c; kb/Work PB4855); a counter register's image is at
+        // most 10 digits, inside the minimum.
+        if (register is null) _debugContentsWidth = (int)Math.Min(Math.Max(_debugContentsWidth, RecordLayout.AllOccurrencesImageWidth(item!)), int.MaxValue);
     }
 
     /// <summary>The counter register a USE FOR DEBUGGING operand names, and the data item a store to it names: the file whose LINAGE clause

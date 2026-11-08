@@ -1689,6 +1689,11 @@ internal static class RuntimeApi
         $"{nameof(CobolTable)}.{nameof(CobolTable.AllArgs)}<{csType}>(new Func<long[], long>[] {{ {string.Join(", ", countLambdas)} }}, {elementLambda}"
         + (leadLambda is null ? ")" : $", {leadLambda})");
 
+    /// <summary>The storage image of a whole table, its current occurrences in storage order — <c>CobolTable.AllImage</c>
+    /// (X3.23-1985 USE FOR DEBUGGING general rule 24 c; kb/Work PB4855).</summary>
+    public static string TableAllImage(IEnumerable<string> countLambdas, string elementLambda) =>
+        $"{nameof(CobolTable)}.{nameof(CobolTable.AllImage)}(new Func<long[], long>[] {{ {string.Join(", ", countLambdas)} }}, {elementLambda})";
+
     /// <summary>The statement that ends the reference when a held table(ALL) argument's copy found no occurrence —
     /// <c>CobolTable.RequireOccurrences(count)</c> (ISO §2023:15.3 14); kb/Work PB4162).</summary>
     public static string TableRequireOccurrences(string count) =>

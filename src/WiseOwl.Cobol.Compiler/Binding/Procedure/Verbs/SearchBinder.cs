@@ -41,8 +41,8 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
     /// <param name="bail">What to bind INSTEAD when this returns null: a <c>BoundRejected</c> after a reported syntax
     /// rule (the compile has already failed — ISO §2023:4.2.2 ¶2), or the deferral of an access path the one builder
     /// has not built.</param>
-    /// <param name="written">The enclosing subscripts identifier-1 wrote for a dynamic-capacity table nested under
-    /// other tables, outermost first; null when it wrote none (or the table is not dynamic or not nested).</param>
+    /// <param name="written">The enclosing subscripts identifier-1 wrote for a table nested under other tables, outermost
+    /// first; null when it wrote none (or the table is not nested).</param>
     /// <returns>The table identifier-1 names, or null.</returns>
     private DataItem? Identifier1(Core.DataReferenceContext dref, string verb, out BoundStatement bail,
         out IReadOnlyList<Position>? written)
@@ -55,7 +55,7 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
             return null;
         }
         var table = operand.Item;
-        if (table.IsDynamicTable && table.SubscriptArity > 1 && operand.SubscriptCount == table.SubscriptArity - 1)
+        if (table.SubscriptArity > 1 && operand.SubscriptCount == table.SubscriptArity - 1)
         {
             if (ctx.Refs.Subscripts.ReadTableSubjectSubscripts(dref, table, TableSubject.Search, out var subscripts) is { } answer)
             {
@@ -104,6 +104,25 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
         return true;
     }
 
+    /// <summary>identifier-1 as the statement wrote it: the WHOLE table (<c>PlaceBuilder.WholeTable</c>), the operand SEARCH explicitly
+    /// references (X3.23-1985 USE FOR DEBUGGING general rule 5; kb/Work PB4855), under the enclosing occurrence the statement names —
+    /// identifier-1's own subscripts, else the WHEN phrases' (§2023:14.9.37.4 GR1). A nested table whose statement names no enclosing
+    /// occurrence is referenced in every occurrence of the tables around it. Null with <paramref name="bail"/> set when the place
+    /// builder has no element access for the table.</summary>
+    private TableAllPlace? WrittenTable(string verb, DataItem table, IReadOnlyList<Position>? written, EnclosingOccurrence? fromWhens,
+        out BoundStatement bail)
+    {
+        bail = null!;
+        if (ctx.Refs.Places.WholeTable(table, written ?? fromWhens?.Subscripts ?? []) is { } whole) return whole;
+        bail = new BoundUnsupported($"{verb} of the table '{table.CobolName}': " + DeferredShapes.Describe(DeferredShape.UnbuiltAccessPath));
+        return null;
+    }
+
+    /// <summary>The enclosing-occurrence subscripts the statement BORROWS from its WHEN phrases (<see cref="BoundSearch.WhenSubscripts"/>):
+    /// the WHEN phrases' when identifier-1 wrote none, else none.</summary>
+    private static IReadOnlyList<Position> Borrowed(IReadOnlyList<Position>? written, EnclosingOccurrence? fromWhens) =>
+        written is null ? fromWhens?.Subscripts ?? [] : [];
+
     /// <summary>The SEARCH statement preceded by the pre-ops that fix the enclosing occurrence of a dynamic-capacity
     /// table (<see cref="DynamicTablePath"/>); the search itself when there are none.</summary>
     private static BoundStatement Preceded(IReadOnlyList<BoundStatement> prelude, BoundSearch search) =>
@@ -129,7 +148,9 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
         // process is then repeated using the new index setting" (Format 1) and per probe of GR9's
         // implementor-specified technique (Format 2) — so a user-function reference inside it activates per
         // evaluation: the per-evaluation wrapper (§2023:8.4.3.2.4 GR1/GR6a; §2023:8.8.4.13 r2).
-        bool capture = table.IsDynamicTable && table.SubscriptArity > 1;
+        // A nested table's enclosing occurrence is named by the WHEN phrases (GR1): a dynamic-capacity table's scan is bounded by that
+        // occurrence's capacity, and every nested table's whole-table operand (WrittenTable) is that occurrence's.
+        bool capture = table.SubscriptArity > 1;
         EnclosingOccurrence? whenEnclosing = null;
         var bound = whens.Select(w =>
             {
@@ -202,7 +223,8 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
             [.. s.searchWhenClause().Select(wc => (wc.condition(), wc.statementBlock()))]);
         if (!DynamicTablePath(s.dataReference(), "SEARCH", table, written, whenEnclosing, out var dynTable, out var prelude, out bail))
             return bail;
-        return Preceded(prelude, new BoundSearch(searchIx, table.Occurs ?? 0, also, atEnd, whens,
+        if (WrittenTable("SEARCH", table, written, whenEnclosing, out bail) is not { } whole) return bail;
+        return Preceded(prelude, new BoundSearch(searchIx, table.Occurs ?? 0, whole, also, atEnd, whens, Borrowed(written, whenEnclosing),
             DependItem: OdoModel.SearchDepending(table, ctx.Refs.Places),
             DynTable: dynTable,   // EC-FLOW-SEARCH bracket (GR31, D9)
             // §2023:14.9.37.4 GR4: an out-of-range initial index (SEARCH-INDEX) / a scan advancing off the end (NO-MATCH)
@@ -250,8 +272,9 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
             [(wc.condition(), wc.statementBlock())]);
         if (!DynamicTablePath(s.dataReference(), "SEARCH ALL", table, written, whenEnclosing, out var dynTable, out var prelude, out bail))
             return bail;
-        return Preceded(prelude, new BoundSearch(table.Indexes[0].Cell, table.Occurs ?? 0,
-            AlsoVaried: null, atEnd, whens, IsAll: true, DependItem: OdoModel.SearchDepending(table, ctx.Refs.Places),
+        if (WrittenTable("SEARCH ALL", table, written, whenEnclosing, out bail) is not { } whole) return bail;
+        return Preceded(prelude, new BoundSearch(table.Indexes[0].Cell, table.Occurs ?? 0, whole,
+            AlsoVaried: null, atEnd, whens, Borrowed(written, whenEnclosing), IsAll: true, DependItem: OdoModel.SearchDepending(table, ctx.Refs.Places),
             DynTable: dynTable,   // EC-FLOW-SEARCH bracket (GR31, D9)
             // SEARCH ALL forces the index to 1 (GR9 ignores the initial setting) so SEARCH-INDEX can never arise;
             // only an unsuccessful scan (incl. an empty table) sets EC-RANGE-SEARCH-NO-MATCH.
