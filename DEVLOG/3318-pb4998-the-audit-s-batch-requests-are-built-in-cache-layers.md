@@ -1,4 +1,4 @@
-## PB4998: the audit's batch requests are built in cache layers
+## Entry 3318 — 2026-11-08 04:03 PST — PB4998: the audit's batch requests are built in cache layers
 
 Anthropic told the owner on 2026-11-08 that this account's prompt-cache hit rate was low. The direct API traffic is the
 edition audit's Message Batches passes, and none of their requests carried a cache breakpoint. The route pass sent the
@@ -15,3 +15,4 @@ the layers the way the batch caches them. The fuzz writer reads its usage and ca
 same module. The transcriber's prompt is below Opus 5.5's
 512-token minimum and is unchanged. The branch review's lead on the closest-first order case (it planted an order that
 was already numeric) is fixed in the same test file.
+
