@@ -1,4 +1,4 @@
-## PB4886: the 1985 rule catalog is complete, committed and held by the gate
+## Entry 3297 — 2026-11-07 20:11 PST — PB4886: the 1985 rule catalog is complete, committed and held by the gate
 
 kb/Work PB4886's step 1. On main, `python scripts/spec/extract_rule_catalog.py --edition 1985 --check` exited 1 with
 FINDINGS: 39 (re-probed on this tree: the same 39), so the 1985 audit's map pass had no denominator to run on. Now it
@@ -44,3 +44,4 @@ Phrase among them). DESIGN-spec-conformance-review.md §10.1 now says so, and th
 Self-tests: `rule_catalog_1985.py --self-test` covers every new mechanism with planted cases, and `citation.py
 --self-test` holds the repeat and the gap against the real file. `audit_batch.py plan --pass map` plans 2,057 items, so
 every row's citation parses. The 2023 catalog's check is unchanged.
+
