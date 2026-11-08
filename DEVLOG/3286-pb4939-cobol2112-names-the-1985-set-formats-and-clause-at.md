@@ -1,4 +1,4 @@
-## PB4939: COBOL2112 names the 1985 SET formats and clause at --std 85
+## Entry 3286 — 2026-11-07 17:38 PST — PB4939: COBOL2112 names the 1985 SET formats and clause at --std 85
 
 COBOL2112's text (the no-format arm, the not-admitted arm and the not-sole-receiver arm of `SetFormatSelection`) listed
 the 2023 formats (Format 14, Format 10) and cited only `§2023:14.9.39.2` at every edition. The verdict was right at 85
@@ -13,3 +13,4 @@ needs nothing: it is simply absent from the 85 list.
 
 Goldens: `pb4939-set-no-format-names-1985-clause-at-85` and `pb4939-set-not-admitted-cites-1985-rules-at-85`, each
 refused at 85 with the clause substring pinned. No inventory row closed.
+
