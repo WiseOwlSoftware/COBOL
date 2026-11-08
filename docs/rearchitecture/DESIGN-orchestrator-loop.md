@@ -395,8 +395,18 @@ one chain link per wave, hand off at ~60 min". Three mechanisms carry it:
 - **The progress line** (`-ProgressSeconds`, default 600): `progress.py`, started in the background like the lane tick
   (never on the event loop, never fatal), prints `PROGRESS <unit> at <n> min:` with the dispatch-ledger groups by state
   (running, DONE reviewed CLEAN, FINDINGS, unreviewed, other), the landings enqueued and merged since the unit started
-  and the oldest waiting item, plus a `STALL` line for each group running past 60 minutes or DONE and unreviewed past 15
-  (half the 30-minute dispatch-to-queue bar, counted from the implementer's LAST ACT: a DONE report is not a return, since
+  the oldest waiting item, the round-1 FINDINGS rate (reviewed groups whose round 1 drew findings, a CLEAN stamp at round 2 or
+  later included), the minutes the merge queue sat empty in the unit's window (a landing record with no merged stamp counts
+  as in the queue for at most 60 minutes after its enqueue, so a closed, never-merged record, kb/Work PB3725, cannot fill the
+  window forever; PB4888 lever 5) and the OVER-SIZE count per
+  wave, plus a `STALL` line for each group that STOPPED: a running group or a DONE report awaiting review with no act in the
+  coordination directory for 20 minutes (`progress.group_activity`: its scratch directory and files at the top of `scratch/`
+  and one level below it, where a campaign wave's groups write, its review's `review-w<wave>-<letter>` findings file and
+  scratch, and its reports; a gate waiting for a slot writes its log, 17 minutes at worst, so it is not a stall; kb/Work PB4944).
+  OVER-SIZE is a different finding, about the size of the work, counted and never mailed: a still-moving group past 60
+  minutes (the owner's hand-off), or past the `running_limit_min:` of its campaign's lead note
+  (`work.campaign_running_limit`, the owner's decision of 2026-11-07; validated by `work.py check`), or a DONE report awaiting
+  review past 15 (half the 30-minute dispatch-to-queue bar, counted from the implementer's LAST ACT: a DONE report is not a return, since
   the implementer gates the tip it reports and fills the gate line in at the verdict, so a gate holding its worktree's lock
   counts the group as running and otherwise the clock starts at the newest of the report, the worktree's HEAD log and its
   STATUS.md, `progress.implementer_activity`, kb/Work PB4918). The supervisor says every line in its log, and `progress.py --post` sends

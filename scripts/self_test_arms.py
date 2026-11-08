@@ -152,6 +152,15 @@ DECLARED: dict[str, tuple[str, ...]] = {
         'a queue stall is recorded once per read with its cause and what the watch did, never as a bounce (complete re-reads the bounces and keeps the stalls), a malformed stall is refused, and summary counts the stalls',
         "the dispatch and review-clean stamps are read at enqueue from the dispatch ledger and the CLEAN verdict's findings record, a stamp out of order stays null, a re-enqueue after a bounce and a re-review is bounded by the record's first enqueue, for its DONE and its CLEAN alike (its record is never refused, kb/Work PB3710), and summary prints each stage and marks a span over the owner's bar",
     ),
+    'scripts/orchestrator/progress.py': (
+        'a DONE report whose implementer still gates is running, not a review stall',
+        'a group still writing past its limit is OVER-SIZE, never a stall',
+        'a group or a DONE report with no act for',
+        'two reviewed groups, one of which drew FINDINGS at round 1',
+        "the window's 100 minutes less 20 (a merged record) and 10 (an open one) in the queue",
+        "a reviewer id's -rN suffix is its round",
+        'each stalled item is posted once, never once per tick',
+    ),
     'scripts/orchestrator/review_lane.py': (
         'a branch WAITING FOR REVIEW starts ONE reviewer, and no other state does',
         "the reviewer runs the role's own definition in a headless session, the prompt on stdin",

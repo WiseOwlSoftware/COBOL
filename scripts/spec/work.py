@@ -718,6 +718,7 @@ def register_problems(work_dir: pathlib.Path = WORK) -> tuple[list[dict], list[s
         bad += process_only_problems(it)
         bad += upstream_problems(it)
     bad += topology_problems(items)
+    bad += running_limit_problems(items)
     bad += sites_problems(items)
     ids = [it.get("id") for it in items]
     for i in set(ids):
@@ -1263,6 +1264,47 @@ def frontier_model_shape(it: dict) -> list[str]:
         return []
     return [f'{it["_file"]}: frontier_model is {fm!r}, not one of {sorted(frontier_models())} — name the frontier model '
             f'the note\'s work runs on, or drop the field when it runs on the default models']
+
+
+#: A campaign's own running limit, in minutes (kb/Work PB4944, owner 2026-11-07: "a long campaign like the 1985 audit gets
+#: its own limit"): `running_limit_min:` in the frontmatter of the cluster's LEAD note, a campaign's data and never a
+#: hand-kept list. A campaign without it keeps the owner's 60 minutes (progress.RUNNING_LIMIT_MIN), and the fix lane
+#: always does. `campaign_running_limit` is the ONE reader; progress.py's over-size count asks it.
+RUNNING_LIMIT_FIELD = "running_limit_min"
+
+
+def running_limit_value(it: dict) -> int | None:
+    """The note's `running_limit_min` as a positive whole number of minutes, or None when it is absent or malformed."""
+    v = it.get(RUNNING_LIMIT_FIELD)
+    return int(v) if isinstance(v, str) and v.isascii() and v.isdigit() and int(v) > 0 else None
+
+
+def running_limit_problems(items: list[dict]) -> list[str]:
+    """`running_limit_min:`, when present, is a positive whole number of minutes on a note that LEADS a cluster (some
+    note's `cluster` list names its id): the field says how long a campaign's groups may run, so on any other note
+    nothing would ever read it and it would mislead."""
+    led = {c for it in items if isinstance(it.get("cluster"), list) for c in it["cluster"]}
+    bad: list[str] = []
+    for it in items:
+        if RUNNING_LIMIT_FIELD not in it:
+            continue
+        if running_limit_value(it) is None:
+            bad.append(f'{it["_file"]}: {RUNNING_LIMIT_FIELD} is {it[RUNNING_LIMIT_FIELD]!r}, not a positive whole '
+                       f'number of minutes')
+        elif it.get("id") not in led:
+            bad.append(f'{it["_file"]}: {RUNNING_LIMIT_FIELD} on a note that leads no cluster (no note\'s `cluster` '
+                       f'names {it.get("id")!r}): put it on the campaign\'s lead note, where the loop reads it')
+    return bad
+
+
+def campaign_running_limit(items: list[dict], note_ids: list[str]) -> int | None:
+    """The running limit, in minutes, of the campaign(s) the notes `note_ids` belong to: the largest
+    `running_limit_min` of the lead notes their `cluster` lists name, or None when no campaign declares one (the caller
+    keeps the owner's 60 minutes)."""
+    by_id = {it.get("id"): it for it in items}
+    limits = [lim for nid in note_ids for c in (by_id.get(nid) or {}).get("cluster") or []
+              if (lim := running_limit_value(by_id.get(c) or {})) is not None]
+    return max(limits, default=None)
 
 
 @functools.lru_cache(maxsize=1)
@@ -2258,6 +2300,20 @@ def self_test() -> int:
                  if not frontier_model_shape({"_file": "PB1.md", "frontier_model": m})]
     if not frontier_models() or frontier_model_shape({"_file": "PB1.md"}):
         findings.append("frontier_model_shape: no frontier family is configured, or a note with no field is refused")
+
+    # `running_limit_min:` (kb/Work PB4944): a positive whole number on a cluster's lead note, refused anywhere else, and
+    # a campaign's limit is the largest its notes' lead notes declare.
+    lead = {"_file": "PB10.md", "id": "PB10", "cluster": ["PB10"], RUNNING_LIMIT_FIELD: "150"}
+    member = {"_file": "PB11.md", "id": "PB11", "cluster": ["PB10"]}
+    if running_limit_problems([lead, member]):
+        findings.append(f"running_limit_problems refuses a lead note's limit: {running_limit_problems([lead, member])}")
+    if len(running_limit_problems([{"_file": "PB12.md", "id": "PB12", "cluster": [], RUNNING_LIMIT_FIELD: "150"}])) != 1:
+        findings.append("running_limit_problems accepts a running limit on a note that leads no cluster")
+    findings += [f"running_limit_problems accepts the limit {v!r}" for v in ("0", "-5", "ninety", "1.5", "")
+                 if len(running_limit_problems([{**lead, RUNNING_LIMIT_FIELD: v}, member])) != 1]
+    if (campaign_running_limit([lead, member], ["PB11"]) != 150 or campaign_running_limit([lead, member], ["PB99"]) is not None
+            or campaign_running_limit([{**lead, RUNNING_LIMIT_FIELD: "x"}, member], ["PB11"]) is not None):
+        findings.append("campaign_running_limit does not read the lead note's limit (or invents one)")
 
     # FALSIFICATION — the comparison must be able to fail, or "no disagreement" is a statement about nothing.
     corrupted = json.loads(json.dumps(fixture))
