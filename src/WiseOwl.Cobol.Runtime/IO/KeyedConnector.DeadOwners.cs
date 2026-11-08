@@ -60,16 +60,41 @@ public abstract partial class KeyedConnector
         });
         if (status != StoreStatus.Ok) return Failed(status);
         if (!found) return null;
-        if (_kept is not null)
+        if (_kept is { Adopted: true })
         {
             SettleDeadOwnersBeside();
             return Failed(InStoreMutex(() => store.File is { } file ? file.Enter(exclusive: false) : StoreStatus.Ok));
         }
+        // ⛔ THE RECORD LOCKS A CLOSE UNDER COMMIT CONTROL KEPT (§2023:14.9.6.4 GR9) LEAVE THE HOST WITH THE HANDLE THEY ARE HELD THROUGH
+        // AND STAY THIS RUN UNIT'S, IN ITS TABLE (kb/Work PB3631, review finding R1-1; AbandonOpen's rule for the same step): this OPEN
+        // gave the kept handle back to take its own share mode, so the OPEN's handle is the connector's alone and the scratch handle of
+        // the settle is refused beside it exactly when that share mode excludes a writer. Nobody else has the file open (§2023:9.1.13.9
+        // item 1 answers '61' only for ANOTHER file connector), so the OPEN's handle goes first as it does with no kept state; the locks
+        // it carried are published through the handle that takes its place, and if that handle is refused they wait in the table with
+        // the rest of what the kept state holds, for AbandonOpen to publish through the kept handle it retakes.
+        List<string>? carried = _kept is not null && Physical is { } physical && _regions is { } own ? PhysicalFileTable.Unpublish(physical, own) : null;
+        _unpublishedBySettle = carried;
         try { _ = Detach(); }
         finally { ReleaseFileLock(); }
         SettleDeadOwnersBeside();
-        return Lock(FileTaking.Existing) ?? Attach(create: false);
+        var retaken = Lock(FileTaking.Existing) ?? Attach(create: false);
+        if (retaken is not null) return retaken;
+        if (carried is { Count: > 0 } && Physical is { } now)
+        {
+            var regions = _regions!;
+            InStoreMutex(() =>
+            {
+                PhysicalFileTable.Republish(now, carried, regions);
+                return StoreStatus.Ok;
+            });
+        }
+        _unpublishedBySettle = null;
+        return null;
     }
+
+    /// <summary>The record-lock ids <see cref="SettleDeadOwnersOfTheOpen"/> took off the OPEN's own handle before giving it back and has
+    /// not published through the handle that took its place: <see cref="AbandonOpen"/> publishes them through the kept handle it retakes.</summary>
+    private List<string>? _unpublishedBySettle;
 
     /// <summary>⛔ ROLL BACK EVERY DEAD OWNER'S TRANSACTION THROUGH A WRITABLE HANDLE OPENED FOR THE PURPOSE (§2023:9.1.18.5; 2.2.1.10): a
     /// scratch store of this organization (<see cref="NewStore"/>, which no table and no connector holds) is adopted through the

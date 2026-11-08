@@ -2779,7 +2779,7 @@ public sealed class CommitRollbackRuntimeReplacedFileTests : CommitRollbackRunti
     /// <summary>⛔ A RE-OPEN THAT FAILS AT ANY MEDIUM READ, BEFORE OR AFTER ITS ATTACH CARRIED THE KEPT RECORD LOCKS TO ITS OWN HANDLE, AND WHOSE
     /// RETAKE OF THE KEPT HANDLE THE MEDIUM REFUSES TOO, LEAVES THEM STANDING (kb/Work PB3631; §2023:14.9.27.4 GR25, <i>"If the
     /// execution of the OPEN statement is unsuccessful, the file is not affected"</i>; §2023:14.9.6.4 GR9; §2023:9.1.16;
-    /// §2023:9.1.13.8 1)): the arm of <c>KeyedConnector.RetakeKeptHandle</c> where <c>Attach</c> fails while <c>AbandonOpen</c> holds a
+    /// §2023:9.1.13.8): the arm of <c>KeyedConnector.RetakeKeptHandle</c> where <c>Attach</c> fails while <c>AbandonOpen</c> holds a
     /// non-empty <c>unpublished</c> list. The OPEN's attach moves the locks to its own endpoint only after the adoption's reads, so a
     /// read the adoption itself refuses leaves nothing unpublished (PB3497's witnesses), and an INPUT OPEN makes no read after it
     /// unless the dead-owner probe finds a dead run unit's transaction (<c>KeyedConnector.SettleDeadOwnersOfTheOpen</c>), whose
@@ -2798,22 +2798,68 @@ public sealed class CommitRollbackRuntimeReplacedFileTests : CommitRollbackRunti
     [InlineData(FileOrg.Indexed, true)]
     public void A_reopen_refused_at_any_read_whose_retake_cannot_adopt_the_store_leaves_the_kept_record_locks_standing(FileOrg org, bool deadOwner)
     {
-        int healthy = RefusedReopen(org, deadOwner, refuseFrom: int.MaxValue, out string healthyStatus);
+        int healthy = RefusedReopen(org, deadOwner, refuseFrom: int.MaxValue, out string healthyStatus, out int healthyArm);
         Assert.True(healthy > 0, "a re-OPEN reads the store");
-        Assert.Equal(deadOwner ? "61" : "00", healthyStatus);
-        int refusedOpens = 0;
+        Assert.Equal("00", healthyStatus);   // nobody else has the file: a dead owner is settled, never a sharing conflict (§2023:9.1.13.9)
+        Assert.Equal(0, healthyArm);
+        int refusedOpens = 0, armReached = 0;
         for (int k = 1; k <= healthy; k++)
         {
-            RefusedReopen(org, deadOwner, refuseFrom: k, out string status);
+            RefusedReopen(org, deadOwner, refuseFrom: k, out string status, out int arm);
             if (status != "00") refusedOpens++;
+            armReached += arm;
         }
         Assert.True(refusedOpens > 0, "no k refused the re-OPEN: the sweep reached nothing");
+        // The arm itself (review finding R1-2): a retake whose store the medium refuses to adopt while the OPEN held record-lock ids off
+        // the host. The dead owner's settle gives the OPEN's handle back after the locks moved to it, so only that sweep reaches it.
+        if (deadOwner) Assert.True(armReached > 0, "no refused re-OPEN reached RetakeKeptHandle's Attach-fails-with-unpublished-locks arm");
+    }
+
+    /// <summary>⛔ A RE-OPEN BESIDE NOTHING BUT ITS OWN CONNECTOR'S KEPT STATE SETTLES A DEAD RUN UNIT'S TRANSACTION AND SUCCEEDS (kb/Work
+    /// PB3631, review finding R1-1; §2023:9.1.18.5, <i>"When a run unit terminates abnormally, all file changes made since the previous
+    /// commit or, if none, the beginning of the run unit are rolled back for all files for which there are active APPLY COMMIT
+    /// clauses"</i>; §2023:9.1.13.9, I-O status 61 only for a file already open by ANOTHER file connector in a conflicting manner):
+    /// A, under SHARING WITH ALL OTHER, READs record 1 and is CLOSEd; run unit D has WRITten record 7 and died; A's re-OPEN
+    /// INPUT SHARING WITH NO OTHER gives the kept handle back for the share-mode swap, and the settle of D's transaction goes
+    /// beside A's own handle alone. No other file connector has the file open, so the OPEN answers '00', record 7 is not in the file
+    /// (D's change was rolled back), and A's ROLLBACK leaves the seeded file.</summary>
+    [Theory]
+    [InlineData(FileOrg.Relative)]
+    [InlineData(FileOrg.Indexed)]
+    public void A_reopen_that_gave_the_kept_handle_back_settles_a_dead_owner_and_succeeds(FileOrg org)
+    {
+        string host = Tmp($"pb3631-settle-{org}");
+        try
+        {
+            Seed(host, org);
+            var a = Open(host, org, commit: true, sharing: FileSharing.AllOther);
+            Assert.Equal("00", Read(a, org, 1, out _));
+            DyingPageMedium? medium = null;
+            PageMediumObserver.Value = inner => medium = new DyingPageMedium(inner);
+            FileRegistry d;
+            try { d = Open(host, org, commit: true, sharing: FileSharing.AllOther); }
+            finally { PageMediumObserver.Value = null; }
+            Assert.Equal("00", Write(d, org, 7, "D007"));
+            medium!.DieAfter = medium.Writes;
+            d.CloseAll();
+            a.Close("F");
+            Assert.Equal("00", a.Status("F"));
+            a.OpenShared("F", FileOpenMode.Input, hasSharingOverride: true, FileSharing.NoOther, FileRetryKind.None, 0,
+                OpenTapePhrase.None, assign: "", assignDynamic: false, page: null);
+            Assert.Equal("00", a.Status("F"));
+            Assert.Equal("23", Read(a, org, 7, out _));
+            Assert.Null(a.Rollback());
+            a.CloseAll();
+            Assert.Equal(Seeded(), Settled(host, org));
+        }
+        finally { PageMediumObserver.Value = null; TryDelete(host); }
     }
 
     /// <summary>One case of <see cref="A_reopen_refused_at_any_read_whose_retake_cannot_adopt_the_store_leaves_the_kept_record_locks_standing"/>:
     /// the medium refuses the <paramref name="refuseFrom"/>-th read of the re-OPEN (counted from 1) and every later one until the OPEN
-    /// statement returns. Returns the reads the re-OPEN made and its status.</summary>
-    private int RefusedReopen(FileOrg org, bool deadOwner, int refuseFrom, out string reopenStatus)
+    /// statement returns. Returns the reads the re-OPEN made; its status and the retakes that lost the adoption holding locks
+    /// (<see cref="KeyedConnector.RetakesThatLostTheAdoptionHoldingLocks"/>) are the out parameters.</summary>
+    private int RefusedReopen(FileOrg org, bool deadOwner, int refuseFrom, out string reopenStatus, out int retakesThatLostTheAdoption)
     {
         string host = Tmp($"pb3631-sweep-{org}-{deadOwner}-{(refuseFrom == int.MaxValue ? "healthy" : refuseFrom.ToString())}");
         try
@@ -2846,6 +2892,7 @@ public sealed class CommitRollbackRuntimeReplacedFileTests : CommitRollbackRunti
                 OpenTapePhrase.None, assign: "", assignDynamic: false, page: null);
             int made = reads;
             reopenStatus = a.Status("F");
+            retakesThatLostTheAdoption = a.RetakesThatLostTheAdoptionOf("F");
             armed = false;
             FileRegistry? b = null;
             if (reopenStatus != "00")
