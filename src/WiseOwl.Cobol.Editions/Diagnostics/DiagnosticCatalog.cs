@@ -8084,7 +8084,7 @@ public static class DiagnosticCatalog
         "VCR Table 7 row 7.6 (X3.23-1985 MULTIPLE FILE TAPE clause)");
 
     // kb/Work PB4919: `RERUN ON SYSRR EVERY 100 RECORDS.` compiled clean at --std 85, because the grammar transcribed the
-    // RECORDS arm as `integer-1 RECORDS [OF file-name-2]`. Emitted by FileControlBinder.ScreenRerunClause at every edition:
+    // RECORDS arm as `integer-1 RECORDS [OF file-name-2]`. Emitted by FileControlBinder.ScreenRerunClauses at every edition:
     // from 2002 the clause is also COBOL0902 (removed), and a removed clause written without its file is malformed too.
     public static readonly DiagnosticDescriptor RerunRecordsNoFile = new(
         "COBOL6496", "rerun-records-no-file", EditionSeverity.Error,
@@ -8094,6 +8094,37 @@ public static class DiagnosticCatalog
         + "follows it with OF file-name-2, which is not in brackets: the RECORDS phrase counts the records of "
         + "file-name-2, so file-name-2 is required (OF is an optional word).",
         "X3.23-1985 RERUN clause general format (§1985:VII.2.12.2; VCR Table 7 row 7.15)");
+
+    // kb/Work PB4945: the RERUN clause's syntax rules were never checked, so `RERUN ON REL-FILE EVERY END OF REEL OF F`
+    // compiled clean at --std 85. Emitted by FileControlBinder.ScreenRerunClauses at every edition, as COBOL6496 is.
+    public static readonly DiagnosticDescriptor RerunFileNotSequential = new(
+        "COBOL6529", "rerun-file-not-sequential", EditionSeverity.Error,
+        "A file of the X3.23-1985 RERUN clause is not a sequentially organized file where the clause requires one. "
+        + "Syntax rule 1: \"File-name-1 must be a sequentially organized file.\" Syntax rule 2: \"The END OF REEL/UNIT "
+        + "phrase may only be used if file-name-2 is a sequentially organized file.\" A relative or indexed file has "
+        + "no reel or unit to end and receives no rerun information; the integer-1 RECORDS phrase alone admits a "
+        + "file-name-2 \"with any organization or access\" (general rule 2d).",
+        "X3.23-1985 RERUN clause syntax rules 1 and 2 (§1985:VII.2.12.3; VCR Table 7 row 7.15)");
+
+    // kb/Work PB4945: `RERUN EVERY 100 RECORDS OF F` and `RERUN ON F EVERY 10 CLOCK-UNITS` compiled clean at --std 85.
+    public static readonly DiagnosticDescriptor RerunOnPhraseRequired = new(
+        "COBOL6530", "rerun-on-phrase-required", EditionSeverity.Error,
+        "An X3.23-1985 RERUN clause omits the ON operand its EVERY phrase requires. Syntax rule 3: \"When either the "
+        + "integer-1 RECORDS phrase or the integer-2 CLOCK-UNITS phrase is specified, implementor-name-1 must be given "
+        + "in the RERUN clause\", so ON file-name-1 or no ON phrase is refused there. General rule 2 lists the seven "
+        + "forms of the clause, and both forms of the condition-name-1 phrase (f and g) specify an ON phrase, naming "
+        + "implementor-name-1 or file-name-1: condition-name-1 without one is no form of the clause.",
+        "X3.23-1985 RERUN clause syntax rule 3 and general rule 2 (§1985:VII.2.12.3, §1985:VII.2.12.4; VCR Table 7 row 7.15)");
+
+    // kb/Work PB4945: two RERUN clauses counting the records of one file, or two CLOCK-UNITS clauses, compiled clean at --std 85.
+    public static readonly DiagnosticDescriptor RerunPhraseRepeated = new(
+        "COBOL6531", "rerun-phrase-repeated", EditionSeverity.Error,
+        "Two X3.23-1985 RERUN clauses of one I-O-CONTROL paragraph repeat a phrase the syntax rules allow once. Syntax "
+        + "rule 4: \"a. When multiple integer-1 RECORDS phrases are specified, no two of them may specify the same "
+        + "file-name-2. b. When multiple END OF REEL or END OF UNIT phrases are specified, no two of them may specify "
+        + "the same file-name-2.\" Syntax rule 5: \"Only one RERUN clause containing the CLOCK-UNITS phrase may be "
+        + "specified.\" A RECORDS phrase and an END OF REEL/UNIT phrase may name the same file-name-2.",
+        "X3.23-1985 RERUN clause syntax rules 4 and 5 (§1985:VII.2.12.3; VCR Table 7 row 7.15)");
 
     // ── One descriptor per rule (kb/Work PB4463): OCCURS, REDEFINES, ANY LENGTH, VALUE, TYPE, SPECIAL-NAMES collating, file locking ──
 

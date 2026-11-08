@@ -2690,7 +2690,7 @@
   },
   {
    "id": "rerun-removed-2002",
-   "description": "RERUN clause (I-O-CONTROL) - the '85 checkpoint hint (RERUN [ON file/implementor-name] EVERY {[END OF] REEL/UNIT OF f | n RECORDS [OF f] | n CLOCK-UNITS | condition-name}); no program-visible effect, parsed-and-ignored at 85 (a null rerun facility is conforming); deleted by ISO 2002 (absent from the whole 2023 text, 8.9 included).",
+   "description": "RERUN clause (I-O-CONTROL) - the '85 checkpoint hint (RERUN [ON file/implementor-name] EVERY {{[END OF] REEL/UNIT | n RECORDS} OF f | n CLOCK-UNITS | condition-name}); no program-visible effect, parsed-and-ignored at 85 (a null rerun facility is conforming) once its five syntax rules are screened (COBOL6529-COBOL6531, kb/Work PB4945); deleted by ISO 2002 (absent from the whole 2023 text, 8.9 included).",
    "display": "the RERUN clause (I-O-CONTROL)",
    "diagnosticCode": "COBOL0902",
    "citation": "obsolete '85 checkpoint hint deleted by ISO 2002 (absent from the whole 2023 text; §2023:8.9 absence); parsed-and-ignored at 85; VCR Table 7 row 7.15",
@@ -2698,7 +2698,7 @@
    "removedIn": 2002,
    "expectDiagnostic": "COBOL0902",
    "vcr": "VCR Table 7 row 7.15; the W3 notInGrammar 85-acceptance batch (DEVLOG 599)",
-   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMRR1.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F ASSIGN TO \"vmrr\" ORGANIZATION IS SEQUENTIAL.\nI-O-CONTROL.\n    RERUN ON F EVERY 10 RECORDS OF F.\nDATA DIVISION.\nFILE SECTION.\nFD F.\n01 R PIC X(10).\nPROCEDURE DIVISION.\nMAIN.\n    OPEN OUTPUT F.\n    MOVE \"CHECKPOINT\" TO R.\n    WRITE R.\n    CLOSE F.\n    STOP RUN.\n"
+   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMRR1.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F ASSIGN TO \"vmrr\" ORGANIZATION IS SEQUENTIAL.\nI-O-CONTROL.\n    RERUN ON SYSRR EVERY 10 RECORDS OF F.\nDATA DIVISION.\nFILE SECTION.\nFD F.\n01 R PIC X(10).\nPROCEDURE DIVISION.\nMAIN.\n    OPEN OUTPUT F.\n    MOVE \"CHECKPOINT\" TO R.\n    WRITE R.\n    CLOSE F.\n    STOP RUN.\n"
   },
   {
    "id": "enter-removed-2002",

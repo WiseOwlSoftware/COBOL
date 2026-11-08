@@ -393,7 +393,7 @@ multipleFileTapeEntry
 // and file-name-2 is REQUIRED after integer-1 RECORDS as after REEL/UNIT, because one brace pair shares the trailing
 // `OF file-name-2` (kb/Work PB4919). The RECORDS arm keeps file-name-2 optional HERE ON PURPOSE, the MULTIPLE FILE
 // posture above: a required file-name sends `RERUN ON X EVERY 100 RECORDS.` to a bare "unexpected '.'", so
-// FileControlBinder.ScreenRerunClause refuses the missing file by name (COBOL6496).
+// FileControlBinder.ScreenRerunClauses refuses the missing file by name (COBOL6496).
 // The ON operand and condition-name-1 (a switch-status condition) are both plain words → cobolWord.
 rerunClause
     : RERUN (ON cobolWord)? EVERY? rerunEvery
