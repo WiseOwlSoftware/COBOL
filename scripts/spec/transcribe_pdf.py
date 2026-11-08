@@ -11,6 +11,7 @@ build_links, validate_doc), which had a retired checkout's paths, a retired mode
     python scripts/spec/transcribe_pdf.py retry    --edition 1985 --state DIR --api-key-file KEY
     python scripts/spec/transcribe_pdf.py pages 12 40-44 --edition 1985 --state DIR --api-key-file KEY [--api-account NAME] [--replace]
     python scripts/spec/transcribe_pdf.py pages 4 122 --edition 1985 --state DIR --local qwen3.6:35b [--replace]
+    python scripts/spec/transcribe_pdf.py text     --edition 2002 --state DIR [PAGES] [--replace]  # the PDF's own text layer
     python scripts/spec/transcribe_pdf.py check    --edition 1985 --state DIR 4 122      # word agreement, numbers only
     python scripts/spec/transcribe_pdf.py assemble --edition 1985 --state DIR [--out F]  # the pages -> specs/<edition>.md (refused once it exists)
     python scripts/spec/test_transcribe_pdf.py                                          # its self-test: planted PDF, fake client, no API call
@@ -37,6 +38,22 @@ recorded in `local.json` with the error and the model, the run goes on, `status`
 nonzero. `pages <list> --local ANOTHER` retries them. `check` compares a
 page with the PDF's text layer (word recall and precision) and prints numbers only, never page text.
 
+TEXT-LAYER BACKEND (kb/Work PB4813). `text [PAGES]` converts pages of a PDF with a true text layer (2002) from that layer,
+with no model: text_layer.py reads the words with their fonts and positions and writes the headings, rules, notes, lists,
+tables and code the page sets, the standard's defects kept as printed. A general format is never typed from text: the text
+layer places it (text_layer.FIGURE_MARK: page, figure, its rows' tops) and the vector arm draws it there from the page's
+words, underlines, strokes and Symbol glyph pieces (`draw_figure`, render_figure.draw); a figure the arm refuses stays a
+placeholder, and `assemble` refuses a page that still holds one. `local.json` records each page as `model: text-layer`
+with its folio, its figures, those left undrawn and what the text layer left ambiguous; `status` counts them. A page the layer cannot write (an image) is recorded as
+failed, and `pages <list> --local MODEL` may read it, as may a page whose structure is ambiguous, only as a reading the
+page decides.
+
+A REPLY IS JUDGED BEFORE IT IS WRITTEN (kb/Work PB4917). A model that declines the task ends its turn normally, so a
+`stop_reason` of `end_turn` does not make a reply a page. `collect` and `pages --local` ask `judge` of every reply: a
+first-person declining of the task or a sentence naming a summary (REFUSAL), or, where the page has a text layer, too few
+of its printed words (MIN_RECALL), records the page as failed with the reason and the model (`state.json`'s `failed`, or
+`local.json`) and writes nothing. `status` lists those pages; `retry` resubmits them and `pages --local` converts them.
+
 THE STAMP. Every page of a bought PDF carries the reseller's per-copy stamp, which no tracked file may carry
 (verify_publishable). The prompt asks the model to omit it; every page written, and every page assembled, has any line that
 matches the edition's stamp shapes (verify_publishable.FORBIDDEN, TREE_FORBIDDEN) dropped, and a page that still matches is
@@ -45,7 +62,8 @@ not written. The state directory is private (it holds the raw pages); only the a
 ASSEMBLY. The pages become the edition's Markdown: a `# ` heading opens each PART (front matter, the Sections of the
 standard, an amendment: `PARTS`), a `## Page N` heading opens each PDF page, and the page text follows as converted: the
 general formats keep the drawn figures the model produced (the figure tools cross-check them). The assembly refuses a
-missing page, an empty page, a refusal or summary in place of a page, and a stamp.
+missing page, an empty page, a refusal or summary in place of a page, a stamp, and a general format the vector arm has not
+yet drawn (a text-layer page's FIGURE_MARK).
 
 COST. `submit --max-usd N` refuses a batch whose estimate (pages x the measured tokens per page, at the model's batch
 rate) exceeds N.
@@ -55,8 +73,10 @@ from __future__ import annotations
 import argparse
 import base64
 import collections
+import contextlib
 import datetime
 import http.client
+import io
 import json
 import pathlib
 import re
@@ -67,6 +87,7 @@ from typing import Any, Callable, Iterable
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import spec_pdf  # noqa: E402  (the one edition table, kb/Work PB4815)
+import text_layer  # noqa: E402  (the text-layer backend, kb/Work PB4813)
 import verify_publishable  # noqa: E402  (the stamp shapes of each edition)
 from message_batches import DEFAULT_MODEL, BatchRun, make_client, reply_text, usd, write_atomic  # noqa: E402  (THE batch state)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/
@@ -133,11 +154,32 @@ PARTS: dict[int, list[tuple[int, str]]] = {
         (821, "AMENDMENT 1: INTRINSIC FUNCTION MODULE (ANSI X3.23a-1989)"),
         (907, "AMENDMENT 2: CORRECTION AMENDMENT (ANSI X3.23b-1993)"),
     ],
+    # Measured from the 2002 PDF's pages (kb/Work PB4813): the INCITS cover and the ISO front matter to the Introduction
+    # (roman folios), the sixteen clauses (folio 1 on PDF page 23), the eight annexes (Annex A on page 676), then the
+    # bibliography and the index.
+    2002: [
+        (1, "Front matter: covers, contents, foreword and introduction"),
+        (23, "Clauses 1 to 16"),
+        (676, "Annexes A to H"),
+        (858, "Bibliography and index"),
+    ],
 }
 
-#: A model that declined or summarised instead of transcribing says so in one of these ways (validate_doc's list).
-REFUSAL = re.compile(r"I've chosen to summarize|I cannot reproduce|copyrighted.*verbatim|rather than reproduc|Here is a summary of",
-                     re.I)
+#: A model that declined or summarised instead of transcribing says so: a first-person declining of the task (the 2002
+#: canary's "I can't transcribe this page verbatim ...", kb/Work PB4917), or a sentence naming a summary or an omission in
+#: place of the text. A standard never speaks in the first person, so "I" followed by a declining verb is never its text;
+#: a bare "In summary" is the standard's own prose (1985 page 93, 2023's Annex D) and is not a shape.
+REFUSAL = re.compile(
+    r"\bI(?:'m| am)?\s+(?:can(?:no|['’])t|cannot|(?:am\s+|['’]m\s+)?(?:unable|not able)\s+to|won['’]t|will\s+not|must\s+decline|decline\s+to)\b"
+    r"|\bI(?:['’]ve|\s+have)\s+(?:chosen\s+to\s+)?(?:summari[sz]ed?|omitted|left\s+out|paraphrased)\b"
+    r"|copyrighted.*verbatim|rather\s+than\s+reproduc|\bhere\s+is\s+a\s+summary\b|\bsummary\s+of\s+(?:the|this)\s+page\b",
+    re.I)
+#: The word-agreement arm (kb/Work PB4917): a page whose text layer holds at least MIN_LAYER_WORDS words and whose
+#: transcription carries less than MIN_RECALL of them is a summary, whatever its tone. Measured on the 1985 run's 976
+#: pages (an OCR layer, the noisiest there is): one page of OCR-mangled table codes falls under it, every other page
+#: reads at 0.69 or more; a summary keeps a few dozen of a page's several hundred printed words.
+MIN_LAYER_WORDS = 30
+MIN_RECALL = 0.5
 FENCE = re.compile(r"\A\s*```[a-z]*[ \t]*\n(.*?)\n```\s*\Z", re.S)
 WORD = re.compile(r"[A-Za-z]{3,}")
 
@@ -258,11 +300,24 @@ def submit_pages(run: Run, st: dict[str, Any], client: Any, pdf: pathlib.Path, p
     run.batches.submit(st, client, (batch_request(pdf, p, st["model"], run.edition) for p in pages), replace=replace)
 
 
-def collect_batches(run: Run, st: dict[str, Any], client: Any) -> None:
-    """Take every batch that has ENDED and is not yet collected; write each succeeded page once."""
+def collect_batches(run: Run, st: dict[str, Any], client: Any, pdf: pathlib.Path) -> None:
+    """Take every batch that has ENDED and is not yet collected; write each succeeded page once. A reply the page's `judge`
+    refuses (a refusal, a summary) is recorded in `st["failed"]` with the reason and the model, and never written; `retry`
+    resubmits it (it has no file) and `pages --local` may convert it instead (kb/Work PB4917)."""
+    failed = st.setdefault("failed", {})
+
     def take(pno: int, message: Any, batch: dict[str, Any]) -> str | None:
-        if not run.put(pno, reply_text(message), replace=bool(batch.get("replace"))) and not run.page_file(pno).exists():
+        text = reply_text(message)
+        cid = page_name(pno)
+        why = judge(clean_page(text, run.edition)[0], page_text(pdf, pno), run.edition)
+        if why:
+            if not run.page_file(pno).exists():  # a refused --replace keeps the written page, which is not a failure
+                failed[cid] = {"model": st["model"], "batch": batch["id"], "error": why,
+                               "at": datetime.datetime.now().astimezone().isoformat()}
+            return why
+        if not run.put(pno, text, replace=bool(batch.get("replace"))) and not run.page_file(pno).exists():
             return "stamp-or-empty"
+        failed.pop(cid, None)
         return None
     run.batches.collect(st, client, take)
 
@@ -286,6 +341,18 @@ def print_status(run: Run, st: dict[str, Any]) -> None:
     if failed:
         print(f"local conversions failed {len(failed)}: " + "; ".join(f"{p} ({log[page_name(p)]['model']}: {log[page_name(p)]['error']})" for p in failed[:20]),
               flush=True)
+    layer = {n: rec for n, rec in log.items() if rec.get("model") == TEXT_LAYER and "error" not in rec}
+    if layer:
+        unsure = sorted(int(n[1:]) for n, rec in layer.items() if rec.get("ambiguous"))
+        undrawn = sorted(int(n[1:]) for n, rec in layer.items() if rec.get("undrawn", rec.get("figures", 0)))
+        print(f"text layer: {len(layer)} page(s), {sum(rec.get('figures', 0) for rec in layer.values())} general format(s), "
+              f"{sum(rec.get('undrawn', rec.get('figures', 0)) for rec in layer.values())} not drawn by the vector arm "
+              f"on {len(undrawn)} page(s) {undrawn[:20]}; "
+              f"structure ambiguous on {len(unsure)} page(s) {unsure[:20]}", flush=True)
+    refused = {n: rec for n, rec in st.get("failed", {}).items() if not run.page_file(int(n[1:])).exists()}
+    if refused:
+        print(f"batch replies refused {len(refused)} (retry resubmits them, pages --local converts them): "
+              + "; ".join(f"{int(n[1:])} ({rec['model']}: {rec['error']})" for n, rec in sorted(refused.items())[:20]), flush=True)
 
 
 # -- the local backend --------------------------------------------------------------------------------------------------
@@ -349,6 +416,10 @@ def local_pages(run: Run, pdf: pathlib.Path, model: str, pages: list[int], repla
         if r.get("done_reason") != "stop":
             fail(pno, f"done_reason={r.get('done_reason')}")
             continue
+        why = judge(clean_page(r["message"]["content"], run.edition)[0], page_text(pdf, pno), run.edition)
+        if why:
+            fail(pno, why)
+            continue
         if not run.put(pno, r["message"]["content"], replace=replace):
             fail(pno, "the stamp check refused it or it was empty")
             continue
@@ -358,6 +429,105 @@ def local_pages(run: Run, pdf: pathlib.Path, model: str, pages: list[int], repla
         print(f"{name}: written, {r.get('eval_count')} tokens", flush=True)
     if failed:
         print(f"local conversion FAILED for {len(failed)} page(s): {failed}; rerun with --local ANOTHER-MODEL to retry them", flush=True)
+    return failed
+
+
+# -- the text-layer backend ---------------------------------------------------------------------------------------------
+
+#: The provenance `model` of a page the text-layer backend wrote: no model read it.
+TEXT_LAYER = "text-layer"
+
+
+def open_pdf(pdf: pathlib.Path) -> Any:
+    import pymupdf  # noqa: PLC0415
+    return pymupdf.open(pdf)
+
+
+def draw_figure(doc: Any, pno: int, rows: tuple[float, float], edition: int) -> list[str] | None:
+    """The general format whose rows' tops run over `rows` on page `pno`, drawn by the vector arm (render_figure.draw)
+    as the lines of its `<pre>` block; None when the arm draws nothing there or refuses the band (its reason printed)."""
+    import render_figure  # noqa: PLC0415  (the vector arm; imported only by a run that draws)
+    from figure_extract import page_extractor  # noqa: PLC0415
+    from figure_geometry import page_classifier  # noqa: PLC0415
+    try:
+        with contextlib.redirect_stdout(io.StringIO()):
+            return render_figure.draw(doc[pno - 1], page_extractor(edition), page_classifier(edition), *rows)
+    except SystemExit as exc:
+        print(f"{page_name(pno)}: the vector arm refused the figure at y {rows[0]:.1f}-{rows[1]:.1f}: {exc}", flush=True)
+        return None
+
+
+def draw_figures(markdown: str, figures: list[tuple[float, float]],
+                 drawer: Callable[[tuple[float, float]], list[str] | None]) -> tuple[str, int]:
+    """The page with each FIGURE_MARK the vector arm can draw replaced by its drawn figure, in order (the n-th mark is the
+    n-th figure), and how many marks stay undrawn (`assemble` refuses a page that keeps one)."""
+    lines, undrawn, n = markdown.split("\n"), 0, 0
+    for i, line in enumerate(lines):
+        if not line.startswith(text_layer.FIGURE_MARK):
+            continue
+        drawn = drawer(figures[n])
+        n += 1
+        if drawn is None:
+            undrawn += 1
+        else:
+            lines[i] = "\n".join(drawn)
+    return "\n".join(lines), undrawn
+
+
+def text_pages(run: Run, pdf: pathlib.Path, pages: list[int], replace: bool,
+               read: Callable[[Any, int], text_layer.Layout] = text_layer.read_layout,
+               opener: Callable[[pathlib.Path], Any] = open_pdf,
+               drawer: Callable[[Any, int, tuple[float, float], int], list[str] | None] = draw_figure) -> list[int]:
+    """Convert named pages from the PDF's own text layer (text_layer.py; kb/Work PB4813), in page order. A page whose text
+    layer holds nothing to write (an image page), or whose stamp cannot be dropped, is recorded in local.json as failed and
+    returned; each written page's provenance records the backend, its general formats awaiting the vector arm, what the text
+    layer left ambiguous, and its folio. A General format clause open at the end of a page carries to the next: the first
+    page named learns it from the nearest earlier page with a heading."""
+    pats = stamp_patterns(run.edition)
+
+    def stamp(t: str) -> bool:
+        return any(p.search(t) for p in pats)
+
+    log = run.local_log()
+    failed: list[int] = []
+    pages = sorted(pages)
+    with opener(pdf) as doc:
+        open_format = False
+        for q in range(pages[0] - 1, 0, -1) if pages else ():
+            known = text_layer.opens_format(read(doc, q), stamp)
+            if known is not None:
+                open_format = known
+                break
+        expected = pages[0] if pages else 0
+        for pno in pages:
+            if pno != expected:   # a gap in the pages named: learn the clause state again
+                open_format = next((k for k in (text_layer.opens_format(read(doc, q), stamp) for q in range(pno - 1, 0, -1))
+                                    if k is not None), False)
+            expected = pno + 1
+            c = text_layer.convert(read(doc, pno), pno, stamp, open_format)
+            open_format = c.format_open
+            name = page_name(pno)
+            if run.page_file(pno).exists() and not replace:
+                print(f"{name}: already written, skipped", flush=True)
+                continue
+            markdown, undrawn = c.markdown, len(c.figures)
+            if c.figures and spec_pdf.geometry(run.edition) == "vector":
+                markdown, undrawn = draw_figures(markdown, c.figures,
+                                                 lambda rows: drawer(doc, pno, rows, run.edition))
+            if not run.put(pno, markdown, replace=replace):
+                why = "the text layer holds no text to write (" + ("; ".join(c.ambiguous) or "empty") + ")"
+                print(f"{name}: NOT written, {why}", flush=True)
+                failed.append(pno)
+                if not run.page_file(pno).exists():
+                    log[name] = {"model": TEXT_LAYER, "error": why, "at": datetime.datetime.now().astimezone().isoformat()}
+                continue
+            log[name] = {"model": TEXT_LAYER, "at": datetime.datetime.now().astimezone().isoformat(), "folio": c.folio,
+                         "figures": len(c.figures), "undrawn": undrawn, "ambiguous": c.ambiguous}
+            print(f"{name}: written{f', {len(c.figures)} general format(s), {undrawn} not drawn' if c.figures else ''}"
+                  f"{f', AMBIGUOUS: ' + '; '.join(c.ambiguous) if c.ambiguous else ''}", flush=True)
+    write_atomic(run.local_file, json.dumps(log, indent=1))
+    if failed:
+        print(f"text layer FAILED for {len(failed)} page(s): {failed}; `pages <list> --local MODEL` may read them", flush=True)
     return failed
 
 
@@ -374,6 +544,21 @@ def agreement(layer: str, markdown: str, edition: int) -> tuple[float, float, in
     recall = sum(min(a[w], b[w]) for w in a) / max(1, sum(a.values()))
     precision = sum(min(a[w], b[w]) for w in b) / max(1, sum(b.values()))
     return recall, precision, sum(b.values()), sum(a.values())
+
+
+def judge(text: str, layer: str | None, edition: int) -> str | None:
+    """Why a model's reply is NOT a transcription of its page, or None when it may be written (kb/Work PB4917). A reply that
+    ended its turn normally can still decline the task and summarise the page; both backends ask this before a page is
+    written. Two arms: the refusal shape (REFUSAL), and, where the page has a text layer, word agreement with it."""
+    m = REFUSAL.search(text)
+    if m:
+        return f"a refusal or summary, not a transcription (it says {m.group(0)!r})"
+    if layer is not None:
+        recall, _, md_words, layer_words = agreement(layer, text, edition)
+        if layer_words >= MIN_LAYER_WORDS and recall < MIN_RECALL:
+            return (f"a summary, not a transcription: it carries {recall:.2f} of the text layer's {layer_words} words "
+                    f"(under {MIN_RECALL}), in {md_words} words")
+    return None
 
 
 def page_text(pdf: pathlib.Path, pno: int) -> str:
@@ -412,10 +597,13 @@ def assemble(run: Run, count: int, parts: list[tuple[int, str]]) -> tuple[str, l
         dropped += n
         if not text.strip():
             problems.append(f"{page_name(pno)}: empty")
-        if REFUSAL.search(text):
-            problems.append(f"{page_name(pno)}: a refusal or summary instead of a transcription")
+        why = judge(text, None, run.edition)  # the refusal arm; the pages were judged against the text layer when written
+        if why:
+            problems.append(f"{page_name(pno)}: {why}")
         if any(p.search(text) for p in stamp_patterns(run.edition)):
             problems.append(f"{page_name(pno)}: a per-copy stamp survives")
+        if text_layer.FIGURE_MARK in text:
+            problems.append(f"{page_name(pno)}: {text.count(text_layer.FIGURE_MARK)} general format(s) not yet drawn by the vector arm")
         if pno in starts:
             out.append(f"# {starts[pno]}\n\n")
         out.append(f"## Page {pno}\n\n{text.rstrip()}\n\n")
@@ -449,6 +637,10 @@ def build_parser() -> argparse.ArgumentParser:
     g.add_argument("pages", nargs="+", help="page numbers and ranges: 12 40-44")
     g.add_argument("--local", metavar="MODEL", help="an Ollama vision model; no API call")
     g.add_argument("--replace", action="store_true", help="replace a written page (the old text is kept in orig/)")
+    t = sub.add_parser("text", help="convert pages from the PDF's own text layer (no model; general formats left to the vector arm)")
+    common(t, key=False)
+    t.add_argument("pages", nargs="*", help="page numbers and ranges (default: every page)")
+    t.add_argument("--replace", action="store_true", help="replace a written page (the old text is kept in orig/)")
     c = sub.add_parser("check", help="word agreement of converted pages with the PDF's text layer (numbers only)")
     common(c, key=False)
     c.add_argument("pages", nargs="+")
@@ -462,7 +654,7 @@ def main(argv: list[str] | None = None, client_factory: Callable[[str], Any] = m
          pdf_override: pathlib.Path | None = None, parts: list[tuple[int, str]] | None = None) -> int:
     a = build_parser().parse_args(argv)
     run = Run(pathlib.Path(a.state), a.edition)
-    needs_pdf = a.cmd in ("submit", "retry", "pages", "check")
+    needs_pdf = a.cmd in ("submit", "retry", "pages", "check", "collect", "text")  # collect judges a reply against the text layer
     pdf = pdf_override or (spec_pdf.require(a.edition) if needs_pdf else None)
     model = getattr(a, "model", DEFAULT_MODEL)
     if a.cmd in ("check", "assemble"):
@@ -489,6 +681,11 @@ def main(argv: list[str] | None = None, client_factory: Callable[[str], Any] = m
         print(f"=== TRANSCRIBE ASSEMBLE: {count} pages -> {out} ===")
         return 0
     st = run.batches.load(model=model, pages=pdf_page_count(pdf) if pdf else 0)
+    if a.cmd == "text":
+        pages = parse_pages(a.pages, st["pages"]) if a.pages else list(range(1, st["pages"] + 1))
+        failed = text_pages(run, pdf, pages, a.replace)
+        print_status(run, st)
+        return 1 if failed else 0
     if a.cmd == "pages" and a.local:
         return 1 if local_pages(run, pdf, a.local, parse_pages(a.pages, st["pages"]), a.replace) else 0
     if a.api_account and not a.api_key_file:
@@ -518,7 +715,7 @@ def main(argv: list[str] | None = None, client_factory: Callable[[str], Any] = m
             print(b["id"], client.messages.batches.retrieve(b["id"]).processing_status, flush=True)
         print_status(run, st)
     elif a.cmd == "collect":
-        collect_batches(run, st, client)
+        collect_batches(run, st, client, pdf)
         print_status(run, st)
     elif a.cmd == "retry":
         todo = retry_pages(st, run)

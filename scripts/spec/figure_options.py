@@ -47,6 +47,7 @@ from typing import Iterable, NamedTuple
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import render_figure  # noqa: E402  (the one pairing of multi-line delimiters, and the one row clustering)
+import figure_extract  # noqa: E402  (the text layer's delimiter pieces, GLYPH_PIECES)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
@@ -193,7 +194,7 @@ def read(pages: Iterable[tuple[int, list[dict], list[dict]]]) -> Reading:
         if not pieces:
             continue
         rowof = render_figure.cluster([p["y0"] for p in pieces], render_figure.ROW_TOL, render_figure.LINE_GAP)
-        glyphs = [p for p in pieces if p["text"] in render_figure.GLYPH_PIECES]
+        glyphs = [p for p in pieces if p["text"] in figure_extract.GLYPH_PIECES]
         holders, lost = _text_holders(page, pieces, rowof)
         unpaired += lost
         for e in render_figure.enclosures(glyphs, stems):
@@ -251,7 +252,7 @@ def _held_words(page: int, pieces: list[dict], holders: list[Holder], rowof: dic
     # left; a word standing nearer than any such closer is repeated alone (`identifier-1 …`).
     repeated_holders: set[Holder] = set()
     repeated_words: set[int] = set()
-    notation = set(TEXT_OPEN) | set(TEXT_CLOSE) | {TEXT_BAR, ELLIPSIS} | set(render_figure.GLYPH_PIECES)
+    notation = set(TEXT_OPEN) | set(TEXT_CLOSE) | {TEXT_BAR, ELLIPSIS} | set(figure_extract.GLYPH_PIECES)
     for e in (p for p in pieces if p["text"] == ELLIPSIS):
         row = rowof[e["y0"]]
         closer = max((h for h in holders if h.family in REPEATABLE and h.x_close <= e["x0"]

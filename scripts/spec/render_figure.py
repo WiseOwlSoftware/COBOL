@@ -40,6 +40,8 @@ sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, f
 from standard_streams import ensure_utf8  # noqa: E402
 
 import spec_pdf  # noqa: E402  (scripts/spec: the one edition table, kb/Work PB4815)
+import figure_extract  # noqa: E402  (`split_fused` re-measures a fused word's underline)
+from figure_extract import GLYPH_PIECES  # noqa: E402  (the text layer's delimiter pieces: decoded where the words are read)
 
 # THE HOUSE STYLE — see FIGURE-STYLE.md for the measurements behind each choice.
 # BOX DRAWING ONLY (U+2500–U+257F). The Miscellaneous Technical extension glyphs (⎡⎧⎪, U+23A1–U+23AD) look right
@@ -62,27 +64,6 @@ BOX_L     = ("╔", "║", "╚")
 BOX_R     = ("╗", "║", "╝")
 BOX_ONE_ROW = "║"                  # a box one row tall: corners would join nothing (rule 7's reason)
 
-# Symbol-face extensible DELIMITER pieces, as they decode from the PDF's text layer, each as
-# (family, side, role). A tall delimiter is assembled from a top hook, extenders and a bottom hook; a brace
-# additionally carries a middle POINT. `ê` is the brace extender and is written by both sides, so it carries
-# no side of its own — the side comes from whichever hook shares its column.
-#
-# The PARENTHESIS family was missing until the whole-standard sweep enumerated every non-ASCII glyph inside a
-# figure and found it: `æçè` / `ö÷ø` were being drawn as literal letters, which is the silent-corruption mode
-# this file exists to remove. They are COBOL's own `(` and `)` separators, set full height — Adobe Symbol
-# 0xE6-0xE8 and 0xF6-0xF8 are the extensible PAREN pieces, and the function-identifier format on page 157
-# confirms it by nesting them between two vector brackets, exactly as the transcription draws them.
-#
-# Brackets themselves never appear as glyphs: every one measured in the standard is a vector rectangle, which
-# is why `figure_geometry` alone accounts for them. `ê` is a bare vertical stroke and so is family-agnostic —
-# a brace extender and a bracket extender are the same shape, and the side comes from the hooks in its column.
-GLYPH_PIECES = {
-    "ì": ("brace", "L", "top"), "í": ("brace", "L", "mid"), "î": ("brace", "L", "bot"),
-    "ü": ("brace", "R", "top"), "ý": ("brace", "R", "mid"), "þ": ("brace", "R", "bot"),
-    "æ": ("paren", "L", "top"), "ç": ("paren", "L", "ext"), "è": ("paren", "L", "bot"),
-    "ö": ("paren", "R", "top"), "÷": ("paren", "R", "ext"), "ø": ("paren", "R", "bot"),
-    "ê": (None, None, "ext"),
-}
 # Symbol-face glyphs that are TEXT, not notation: the repetition ellipsis of 5.2.5. The standard sets that
 # ellipsis three ways — the Symbol glyph, a literal "...", and U+2026 — and the transcription has always
 # written U+2026, so all three are normalised to it BEFORE layout, where the width change still costs nothing.
@@ -177,6 +158,7 @@ def split_fused(page, words):
     # both also swallows the brace's other pieces, which share the hook's column.
     lines = [line for blk in page.get_text("rawdict")["blocks"] if blk["type"] == 0 for line in blk["lines"]]
     out = [w for w in words if id(w) not in {id(f) for f in fused}]
+    rules = figure_extract.underlines(page)
     for w in fused:
         run = None
         for line in lines:
@@ -195,10 +177,14 @@ def split_fused(page, words):
                      "splitting it by estimate would put the delimiter in the wrong column")
         for is_glyph, grp in itertools.groupby(run, key=lambda c: c["c"] in GLYPH_PIECES):
             piece = list(grp)
+            box = (piece[0]["bbox"][0], min(c["bbox"][1] for c in piece), piece[-1]["bbox"][2],
+                   max(c["bbox"][3] for c in piece))
+            # The fused word's underline state was measured over the hook AND the word, so the word is measured
+            # again on its own: 2002 sets `BY` hard against MULTIPLY's closing brace (folio 482), and the hook's
+            # width left the underline under `BY` covering too little of the fused box to count (PB4813).
             out.append({"text": "".join(c["c"] for c in piece),
-                        "x0": round(piece[0]["bbox"][0], 1), "x1": round(piece[-1]["bbox"][2], 1),
-                        "y0": round(min(c["bbox"][1] for c in piece), 1),
-                        "underlined": False if is_glyph else w["underlined"]})
+                        "x0": round(box[0], 1), "x1": round(box[2], 1), "y0": round(box[1], 1),
+                        "underlined": False if is_glyph else figure_extract.is_underlined(box, rules)})
     return out
 
 
@@ -808,9 +794,28 @@ BODY_TOP, BODY_BOTTOM = 60.0, 730.0     # inside the running header and the foli
 # laid out separately, and requiring a title on the line dropped every one of them — including `5.2 General
 # formats`, the clause that DEFINES underlining. Measured over the whole standard: 87 such lines, all genuine
 # clause headings, none a numbered list item or a table cell (kb/Work PB332).
-CLAUSE_HEADING = re.compile(r"^\d+(?:\.\d+)+(?:\s+\S|$)")
+CLAUSE_HEADING = re.compile(r"^(?:\d+|[A-Z])(?:\.\d+)+(?:\s+\S|$)")   # an annex clause too: 2002's `A.2.1.1` (Annex A)
 FORMAT_LABEL = re.compile(r"^Formats?\s+\d+\b")
 PAD_ABOVE, PAD_BELOW = 6.0, 14.0        # a band must reach the bracket feet below its last row of text
+
+
+HEADING_STEP = 0.5                      # a heading is at least this much larger than the body text (measured: 1 pt)
+
+
+def body_size(blocks) -> float:
+    """The page's body-text size: the size that sets the most letters in a regular (not bold) face in the body band
+    (`headings`' yardstick). Bold is left out because the headings are: a short 2002 function page (`15.55 NUMVAL-C`,
+    folio 624) sets more bold heading letters than regular ones."""
+    sizes = collections.Counter()
+    for blk in blocks:
+        if blk["type"] != 0:
+            continue
+        for line in blk["lines"]:
+            if BODY_TOP <= line["bbox"][1] <= BODY_BOTTOM:
+                for s in line["spans"]:
+                    if "bold" not in s["font"].lower():
+                        sizes[round(s["size"], 1)] += sum(c.isalpha() for c in s["text"])
+    return sizes.most_common(1)[0][0] if sizes else 0.0
 
 
 def headings(page):
@@ -823,9 +828,16 @@ def headings(page):
     directive` and `15.78.2 General format` — end in a Symbol-font glyph that is not bold, and requiring EVERY
     span to be bold silently dropped both. `15.78.2` is a general format, so the drop was invisible right up to
     the point where an audit asserted its own population (kb/Work PB332).
+
+    A HEADING IS SET LARGER THAN THE PAGE'S BODY TEXT (`body_size`), never at a fixed size: 2023 sets its body at
+    10.7 pt and its headings at 11.7, 2002 its body at 9 and its headings at 10 (kb/Work PB4813), so a fixed
+    11 pt found every 2023 heading and no 2002 one. A bold `Format N (by):` label is set at body size, so it is no
+    heading in either edition.
     """
     out = []
-    for blk in page.get_text("dict")["blocks"]:
+    blocks = page.get_text("dict")["blocks"]
+    body = body_size(blocks)
+    for blk in blocks:
         if blk["type"] != 0:
             continue
         for line in blk["lines"]:
@@ -836,11 +848,11 @@ def headings(page):
             worded = [s for s in spans if re.search(r"[A-Za-z0-9]", s["text"])]
             if not worded or not all("bold" in s["font"].lower() for s in worded):
                 continue
-            if max(s["size"] for s in spans) < 11.0:
+            if max(s["size"] for s in spans) < body + HEADING_STEP:
                 continue
             text = re.sub(r"\s+", " ", "".join(s["text"] for s in spans)).strip()
             if CLAUSE_HEADING.match(text):
-                out.append((y, text))
+                out.append((round(y, 1), text))   # rounded as `extract` rounds a word's top, so a heading row is never inside its own region
     return sorted(out)
 
 
@@ -957,10 +969,7 @@ def find_figures(page, extract):
     # Pad to reach the bracket feet, then clip to the MIDPOINT between the figure and whatever row delimits
     # it — the label or prose above, the next label or the closing heading below. A midpoint is the bound that
     # cannot clip a delimiter off the figure while still refusing to reach into its neighbour.
-    bands = []
-    for lo, hi, above, below, title, label in runs:
-        bands.append([max(lo - PAD_ABOVE, (above + lo) / 2), min(hi + PAD_BELOW, (hi + below) / 2),
-                      title, label])
+    bands = [[*pad_band(lo, hi, above, below), title, label] for lo, hi, above, below, title, label in runs]
     bands.sort(key=lambda b: b[0])
     for a, b in zip(bands, bands[1:]):
         if a[1] >= b[0]:
@@ -969,12 +978,36 @@ def find_figures(page, extract):
     return bands
 
 
+def pad_band(lo: float, hi: float, above: float, below: float) -> tuple[float, float]:
+    """The band a figure whose rows' tops run from `lo` to `hi` is built from, between the rows `above` and `below` it:
+    padded to reach the bracket feet, clipped to the midpoint with each neighbour (`find_figures`)."""
+    return max(lo - PAD_ABOVE, (above + lo) / 2), min(hi + PAD_BELOW, (hi + below) / 2)
+
+
+def figure_band(page, extract, lo: float, hi: float) -> tuple[float, float]:
+    """The band of a figure another reader located (its rows' tops `lo` to `hi`): the text backend of
+    `transcribe_pdf.py`, whose page structure places a 2002 figure (kb/Work PB4813). The neighbours are the nearest
+    body rows outside it, or the body's edges."""
+    tops = [y for y, _, _ in page_rows(page, extract)]
+    above = max((y for y in tops if y < lo - ROW_TOL), default=BODY_TOP)
+    below = min((y for y in tops if y > hi + ROW_TOL), default=BODY_BOTTOM)
+    return pad_band(lo, hi, above, below)
+
+
+def draw(page, extract, classify_page, lo: float, hi: float) -> list[str] | None:
+    """The figure whose rows' tops run from `lo` to `hi`, drawn (`build`, `render`) as the lines of its `<pre>` block;
+    None when the band holds no figure."""
+    band = figure_band(page, extract, lo, hi)
+    grid, marks = build(page, band[0], band[1], extract, classify_page)
+    return None if grid is None else [PRE_OPEN, *render(grid, marks, False), "</pre>"]
+
+
 def find_bands(page, extract):
     """The y-bands only — `find_figures` additionally reports which clause and Format each belongs to."""
     return [(b[0], b[1]) for b in find_figures(page, extract)]
 
 
-CLAUSE_NUMBER = re.compile(r"^(\d+(?:\.\d+)+)")
+CLAUSE_NUMBER = re.compile(r"^((?:\d+|[A-Z])(?:\.\d+)+)")
 FORMAT_NUMBER = re.compile(r"^Formats?\s+(\d+)")
 
 
