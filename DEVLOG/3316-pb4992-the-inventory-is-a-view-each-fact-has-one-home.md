@@ -1,4 +1,4 @@
-## PB4992: the inventory is a view: each fact has one home
+## Entry 3316 — 2026-11-08 03:24 PST — PB4992: the inventory is a view: each fact has one home
 
 The owner set two standing requirements on the lineage campaign (2026-11-08): "We must eliminate redundant code and
 data. The new implementation should be as if we originally architected it. No minimal hacks", and "Consolidate code
@@ -13,3 +13,4 @@ stored answers agree. A change record stores the ids it links, its reason and it
 the catalogs. The store's files and the view are two modules (`inventory_store.py`, a new `inventory_view.py`), one job
 each. PB4992 is rescoped to that view and every reader of it, PB4993 puts each rule's obsolete status in the catalog,
 and PB4991 carries the standing requirements for every slice.
+
