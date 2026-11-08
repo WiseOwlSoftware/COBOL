@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Editions.Diagnostics;
+using WiseOwl.Cobol.Frontend.Cst;
 using WiseOwl.Cobol.Frontend.Generated;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
@@ -39,7 +40,7 @@ internal sealed class DeclinedFacilityBinder(BinderContext ctx, StatementBinder 
     private void ScreenValidateOperand(Core.DataReferenceContext dref)
     {
         string written = DataBinder.WrittenText(dref);
-        if (dref.dataReferenceSuffix().Any(suffix => suffix.refModPart() is not null))
+        if (new DataReferenceCst(dref).IsReferenceModified)
         {
             ctx.Edition.Error(DiagnosticCatalog.ValidateOperandForm,
                 $"VALIDATE '{written}' — identifier-1 shall not be reference-modified (ISO §2023:14.9.50.3 SR1)");

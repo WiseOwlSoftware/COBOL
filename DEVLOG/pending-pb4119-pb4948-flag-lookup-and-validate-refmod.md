@@ -1,0 +1,17 @@
+## PB4119 and PB4948: one silent declaration lookup, one reference-modification reader
+
+**PB4119.** `FlagConformancePass.ResolveItem` was a second copy of `ReferenceResolver.ProbeDeclaration` and it did not
+probe, so under `--permissive` with a `>>FLAG-02` option an ambiguous name drew COBOL1639 a second time at the MOVE verb
+(re-probe: `MOVE X TO X` with two `X` gave three COBOL1639; now two, one per operand). It also read only the flat
+qualifier list, missing a qualifier that absorbed a subscript. `ResolveItem` now asks `ProbeDeclaration`, the one lookup.
+Pinned by `FlagDirectiveTests.Compile_MoveToSameNameOn_AmbiguousOperand_ReportsCobol1639OncePerOperand_NotAgainAtTheVerb`.
+
+**PB4948.** `VALIDATE X OF G (1:3)` compiled while `VALIDATE X (1:3)` was refused with COBOL4777 (§2023:14.9.50.3 SR1),
+because the grammar's `qualification` absorbs the reference modifier and `ScreenValidateOperand` read the flat suffix
+only. The test now lives once, as `DataReferenceCst.IsReferenceModified`; `ScreenValidateOperand`,
+`VersionConformancePass.VisitUnstringStatement` (which carried a third copy) and `FlagConformancePass` (whose private
+`IsRefModified` is deleted) all call it. Golden: `conformance-suite/cases/14.9.50-VALIDATE/pb4948-validate-qualified-ref-modified-operand`
+(refused at 2002, 2014, 2023 with COBOL4777). No inventory rows claimed or closed.
+
+Self-review: sibling readers that still spell the check inline (ProcedureTableBuilder USE FOR DEBUGGING at 809, which
+also tests subscripts, and ReferenceResolver.ReadWritten, which counts) test a different question and were left.

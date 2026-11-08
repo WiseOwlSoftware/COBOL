@@ -37,6 +37,13 @@ public readonly struct DataReferenceCst(Core.DataReferenceContext ctx)
     /// special register (whose <c>cobolWord</c>, if present, is a qualifier — see the register early-returns).</summary>
     public string? BaseName => ctx.cobolWord()?.GetText();
 
+    /// <summary>Whether the reference AS WRITTEN carries a reference modification (§2023:8.4.3.3): a <c>refModPart</c> suffix
+    /// of the base word, or one the qualification absorbed (<c>X OF G (1:3)</c>, the grammar's second tree shape,
+    /// <c>qualification : (OF | IN) cobolWord (subscriptPart | refModPart)*</c>). The ONE reader of that fact, so no
+    /// caller tests the flat suffix alone and misses the qualified spelling (kb/Work PB4948).</summary>
+    public bool IsReferenceModified => ctx.dataReferenceSuffix().Any(s => s.refModPart() is not null
+        || (s.qualification() is { } q && q.refModPart().Length > 0));
+
     /// <summary>Non-invasive adoption: an existing call site passes the raw context unchanged.</summary>
     public static implicit operator DataReferenceCst(Core.DataReferenceContext c) => new(c);
 }
