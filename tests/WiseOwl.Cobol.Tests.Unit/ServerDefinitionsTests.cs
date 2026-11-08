@@ -7,7 +7,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The <c>servers</c> member of <c>mcs.json</c> (docs/rearchitecture/DESIGN-message-control.md §0 Q3, Q8, §5.4.5; kb/Work PB4745). The standard leaves how a message server is named,
+/// The <c>servers</c> member of <c>mcs.json</c> (docs/rearchitecture/DESIGN-message-control.md §0 Q3, Q8, 5.4.5; kb/Work PB4745). The standard leaves how a message server is named,
 /// found and started to the implementor (§0 Q3 gives the answer), so the expected values here are the design's: a name compares with trailing spaces removed and without regard to
 /// case, <c>maxLength</c> is a positive whole number, <c>start</c> is a command line or an argument array, and a definition that cannot be used is an <see cref="IOException"/>
 /// (EC-MCS-IMP, §0 Q8). The process cases are <c>conformance-test:MessagingProcessTests</c>.

@@ -19,7 +19,7 @@ namespace WiseOwl.Cobol.Runtime.Messaging;
 /// <item>Bind and listen at <c>n/&lt;r&gt;</c>, then launch <c>start</c> in the MCS directory with <c>WISEOWL_COBOL_MCS</c>, <c>_SERVER</c>, <c>_NOTIFY</c> and <c>_LOG</c>
 /// (<c>servers/&lt;N&gt;.&lt;r&gt;.log</c>) set. The server publishes its listener, rings the pending bells and connects to the notify path (<see cref="MessagingPeer"/>'s start), and a
 /// process that ends before that connection is a failed start: <see cref="ActivationEnded"/> unsuccessful, EC-MCS-IMP.</item>
-/// <item>Release the lock, close and delete <c>n/&lt;r&gt;</c>; the protocol continues at §5.4.1 step 5.</item>
+/// <item>Release the lock, close and delete <c>n/&lt;r&gt;</c>; the protocol continues at design 5.4.1 step 5.</item>
 /// </list>
 /// The server's standard output and error go to its log, which the process entry of the started run unit opens (<see cref="StandardStreams.EnsureUtf8"/>, <c>WISEOWL_COBOL_MCS_LOG</c>);
 /// what the started command itself writes before that is drained into the same log while the start is awaited.

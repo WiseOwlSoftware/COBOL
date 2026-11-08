@@ -7,7 +7,7 @@ using System.Text.Json.Nodes;
 namespace WiseOwl.Cobol.Runtime.Messaging;
 
 /// <summary>
-/// ⛔ THE READER OF <c>mcs.json</c>'S <c>servers</c> MEMBER (docs/rearchitecture/DESIGN-message-control.md §0 Q3, §5.4.5; the communication facility reads the file's other
+/// ⛔ THE READER OF <c>mcs.json</c>'S <c>servers</c> MEMBER (docs/rearchitecture/DESIGN-message-control.md §0 Q3, 5.4.5; the communication facility reads the file's other
 /// members by name and ignores this one, DESIGN-communication-facility.md §6). Each entry is <c>{ "name": "BALANCE", "start": "...", "maxLength": 4096 }</c>: <c>name</c>
 /// is required and is a server name as <see cref="McsServerName.Normalize"/> spells it (two entries naming one server are refused), <c>start</c> is optional and is the command
 /// the MCS starts when a request finds no live server (a command line, split at spaces with double quotes grouping, or an array of strings: the program, then its

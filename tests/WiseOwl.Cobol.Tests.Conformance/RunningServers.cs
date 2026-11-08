@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// ⛔ THE MESSAGE SERVERS OF A CONFORMANCE TEST, RUNNING (DESIGN-message-control.md §0 Q9, §9 S5; DESIGN-conformance-suite.md §3.1 <c>servers</c>): a WiseOwl test whose header
 /// names servers has each one's compiled unit started as a concurrent run unit serving its name, in the test's own MCS directory, before the test runs, so a test file
 /// can witness a SEND and a RECEIVE across two run units where a portable case file runs one. They are started by <see cref="ServerActivation.Launch"/>, the very mechanism
-/// a requestor uses to start a server from <c>mcs.json</c> (§5.4.5), so the harness holds no second way: it returns when each server has published its listener, and a server that
+/// a requestor uses to start a server from <c>mcs.json</c> (design 5.4.5), so the harness holds no second way: it returns when each server has published its listener, and a server that
 /// ends first, or does not publish within the harness's one budget (<see cref="ObservationBudget.UnitMs"/>), is a harness failure and no verdict. <see cref="Dispose"/> kills
 /// every server and removes the socket directory the run left, as the test's own directory is removed.
 /// </summary>
