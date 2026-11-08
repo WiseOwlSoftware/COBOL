@@ -1,4 +1,4 @@
-## PB4993 lineage slice 2: the change record is schema data, both catalogs carry each rule's archaic or obsolete standing, and the audit's 759 upheld SAME rules are recorded as KEPT
+## Entry 3332 — 2026-11-08 14:34 PST — PB4993 lineage slice 2: the change record is schema data, both catalogs carry each rule's archaic or obsolete standing, and the audit's 759 upheld SAME rules are recorded as KEPT
 
 Wave 20261929, group A. The second slice of the rule lineage (kb/Work PB4991; DESIGN-spec-conformance-review.md
 section 10.2), after PB4992 made the inventory a view.
@@ -62,3 +62,4 @@ API-key tooling. The batch moved to `audit_batch.py`, which imports the schema, 
 (`test_audit_batch.py`) checks the records are the CARRIES rules only and legal change records.
 
 The gate at the branch head is the third run; its verdict line is in the wave report and the gate record `enqueue.py land` reads.
+
