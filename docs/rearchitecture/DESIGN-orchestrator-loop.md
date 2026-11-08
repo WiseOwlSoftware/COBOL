@@ -409,7 +409,12 @@ one chain link per wave, hand off at ~60 min". Three mechanisms carry it:
   review past 15 (half the 30-minute dispatch-to-queue bar, counted from the implementer's LAST ACT: a DONE report is not a return, since
   the implementer gates the tip it reports and fills the gate line in at the verdict, so a gate holding its worktree's lock
   counts the group as running and otherwise the clock starts at the newest of the report, the worktree's HEAD log and its
-  STATUS.md, `progress.implementer_activity`, kb/Work PB4918). The supervisor says every line in its log, and `progress.py --post` sends
+  STATUS.md, `progress.implementer_activity`, kb/Work PB4918). Every tick also RECORDS each running group's run time
+  (`progress.py --record`, `group_sizes.record`): one entry per group in the coordination directory's `group-sizes.json`,
+  its notes, its campaigns (`work.note_campaigns`), its limit, the longest run seen and whether a tick counted it
+  over-size (sticky; a stall is not over-size) and whether it is still running (a tick reads the whole shared ledger, so
+  a group it did not see running has finished), kept 30 days after it was last seen, because the dispatch ledger drops a
+  group when it lands. The planner reads it (item 3's group size). The supervisor says every line in its log, and `progress.py --post` sends
   each stalled item once to the inbox of the lane that dispatched its group (`kind: info`, `--unless-pending`, again
   only an hour later while it stays stalled: every message wakes the attended session, so a message per tick would cost
   it a turn every ten minutes for news it has). The ledger entry's `lane` (`operator` or `mythos`) is the account's lane
@@ -1138,7 +1143,13 @@ kb/Work PB4951) that wait on nothing, run twice: once over `status: open`, once 
    the notes whose predicted turns one implementer holds (`clusters.notes_cap`: `model_rules.json`
    `wave.turns_per_group` + `wave.turns_per_note` per note, the fit `turns_by_group_size.py` measures, under
    `wave.turn_budget_fraction` of the implementer's turn cap, `coord.agent_turn_cap`; kb/Work PB4396 retired the
-   4-note `wave.max_notes_per_group` of kb/Work PB3704; per-area turns are kb/Work PB3718).
+   4-note `wave.max_notes_per_group` of kb/Work PB3704; per-area turns are kb/Work PB3718). A CAMPAIGN WHOSE GROUPS
+   ALWAYS RUN OVER IS SPLIT SMALLER (kb/Work PB4944): a `--cluster` wave asks `group_sizes.campaign_cap`, and when the
+   campaign's latest 5 FINISHED groups (at least 3; a group still in flight has neither fitted nor shown its pace) were ALL over-size (the progress line's history, section 4.3), the
+   group size is the notes its measured pace fits in its limit, `limit // median(minutes per note)`, at least one note
+   and never above the turn cap; the plan prints `group size <n> notes: <why>`, the cap reaches `campaign_clusters` and
+   the partition, and an overflow's reason names the measurement. One recent group that fitted keeps the turn cap. The
+   fix lane always plans at the turn cap.
 4. **One step per file** (kb/Work PB4396, owner 2026-11-01: "One step per file"): a later group whose claim meets an
    earlier group's on ANY file both claim (the whole file, or a shared member: `inflight.collision` over `unit_meet`,
    the question the in-flight check asks too, kb/Work PB3696) is that group's WORK, absorbed into it (`Group.absorb`:

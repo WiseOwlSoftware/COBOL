@@ -1532,6 +1532,15 @@ check("PB4396: the overflow's reason names the group whose branch the next wave 
 OVF_JSON = as_group_json(s7c["groups"][0], "9400", notes, "COBOL0001-COBOL0003")
 check("PB4396: the overflow reaches groups.json (the ledger's record) and the spec body",
       (OVF_JSON.get("overflow") == s7c["groups"][0].overflow, "OVERFLOW CHAIN" in OVF_JSON["body"]), (True, True))
+# kb/Work PB4944: a campaign whose groups always ran over plans at the size its measured pace fits (group_sizes.campaign_cap,
+# passed as `group_size`), under the live turn budget's seven, and the overflow's reason names the measurement, not turns
+s7m = pw.plan(notes, SEVEN, [], [], lambda b: "ABSENT", {}, LIVE_RULES, budget_points=100,
+              group_size=(2, "campaign PB6's latest 3 groups all ran past their 60-minute limit"))
+check("PB4944: a campaign's measured group size holds the group below the turn cap, and its overflow says why",
+      ([len(g.notes) for g in s7m["groups"]], [len(g.overflow) for g in s7m["groups"]],
+       all("over the 2 notes a group holds, because campaign PB6's latest 3 groups" in s7m["waiting"][i]
+           for i in s7m["groups"][0].overflow) if s7m["groups"] else None),
+      ([2], [5], True))
 s7b = pw.plan(notes, SEVEN, [], [], lambda b: "ABSENT", {}, rules_capped(LIVE_RULES, 3), budget_points=0.0)
 check("PB4396: an overflow whose group this wave does not run says so",
       all("does not run that group either" in s7b["waiting"][i] for i in ("PB6", "PB7", "PB8", "PB9", "PB10", "PB11", "PB12")

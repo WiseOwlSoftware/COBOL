@@ -1297,13 +1297,20 @@ def running_limit_problems(items: list[dict]) -> list[str]:
     return bad
 
 
-def campaign_running_limit(items: list[dict], note_ids: list[str]) -> int | None:
-    """The running limit, in minutes, of the campaign(s) the notes `note_ids` belong to: the largest
-    `running_limit_min` of the lead notes their `cluster` lists name, or None when no campaign declares one (the caller
-    keeps the owner's 60 minutes)."""
+def note_campaigns(items: list[dict], note_ids: list[str]) -> list[str]:
+    """The campaigns the notes `note_ids` belong to: the lead ids their `cluster` lists name, sorted and once each. THE
+    membership rule the running limit and the group-size history (scripts/orchestrator/group_sizes.py, kb/Work PB4944)
+    both read."""
     by_id = {it.get("id"): it for it in items}
-    limits = [lim for nid in note_ids for c in (by_id.get(nid) or {}).get("cluster") or []
-              if (lim := running_limit_value(by_id.get(c) or {})) is not None]
+    return sorted({str(c) for nid in note_ids for c in (by_id.get(nid) or {}).get("cluster") or []}, key=id_order)
+
+
+def campaign_running_limit(items: list[dict], note_ids: list[str]) -> int | None:
+    """The running limit, in minutes, of the campaign(s) the notes `note_ids` belong to (`note_campaigns`): the largest
+    `running_limit_min` of their lead notes, or None when no campaign declares one (the caller keeps the owner's 60
+    minutes)."""
+    by_id = {it.get("id"): it for it in items}
+    limits = [lim for c in note_campaigns(items, note_ids) if (lim := running_limit_value(by_id.get(c) or {})) is not None]
     return max(limits, default=None)
 
 
@@ -2314,6 +2321,9 @@ def self_test() -> int:
     if (campaign_running_limit([lead, member], ["PB11"]) != 150 or campaign_running_limit([lead, member], ["PB99"]) is not None
             or campaign_running_limit([{**lead, RUNNING_LIMIT_FIELD: "x"}, member], ["PB11"]) is not None):
         findings.append("campaign_running_limit does not read the lead note's limit (or invents one)")
+    other = {"_file": "PB9.md", "id": "PB9", "cluster": ["PB10", "PB9"]}
+    if note_campaigns([lead, member, other], ["PB11", "PB9", "PB99"]) != ["PB9", "PB10"]:
+        findings.append("note_campaigns does not name each campaign of the notes once, in id order")
 
     # FALSIFICATION — the comparison must be able to fail, or "no disagreement" is a statement about nothing.
     corrupted = json.loads(json.dumps(fixture))

@@ -57,6 +57,7 @@ sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent / "spec"))   # work.py, THE register reader
 import coord  # noqa: E402
 import work  # noqa: E402  (a campaign's running limit: work.campaign_running_limit)
+import group_sizes  # noqa: E402  (THE history of the groups' run times, kb/Work PB4944)
 import landing_measure  # noqa: E402
 import reports  # noqa: E402  (THE fleet-report reader: a report, a ledger group's slug, "answered")
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
@@ -172,19 +173,23 @@ def progress(cdir: pathlib.Path, since: float, now: float | None = None,
     groups: dict[str, int] = {"running": 0, "clean": 0, "findings": 0, "unreviewed": 0, "other": 0}
     waiting: list[dict] = []   # {slug, wave, notes, minutes, idle, on, limit, lane}
     reviewed = {"total": 0, "round1_findings": 0}
-    register: list[dict] | None = None   # the notes, read once and only when a running group asks for its limit
+    register: list[dict] | None = None   # the notes, read once and only when a running group asks for its campaigns
 
-    def running_limit(g: dict) -> int:
+    def wait(g: dict, since_act: float, on: str, acts: float) -> dict:
+        """One waiting item: `minutes` since `since_act`, `idle` since the newest act (its own, or the dispatch). A
+        RUNNING item is held to its campaign's limit and names its campaigns (work.note_campaigns, what group_sizes
+        records); a review wait is held to REVIEW_LIMIT_MIN."""
         nonlocal register
-        if register is None:
-            register = work.read_notes(work_dir or work.WORK)[0]
-        return work.campaign_running_limit(register, list(g.get("notes", []))) or RUNNING_LIMIT_MIN
-
-    def wait(g: dict, since_act: float, on: str, limit: int, acts: float) -> dict:
-        """One waiting item: `minutes` since `since_act`, `idle` since the newest act (its own, or the dispatch)."""
-        return {"slug": reports.ledger_slug(g), "wave": str(g["wave"]), "notes": list(g.get("notes", [])),
-                "minutes": (now - since_act) / 60, "idle": (now - max(acts, since_act)) / 60, "on": on, "limit": limit,
-                "lane": stall_lane(g)}
+        notes = list(g.get("notes", []))
+        item = {"slug": reports.ledger_slug(g), "wave": str(g["wave"]), "notes": notes,
+                "minutes": (now - since_act) / 60, "idle": (now - max(acts, since_act)) / 60, "on": on,
+                "limit": REVIEW_LIMIT_MIN, "lane": stall_lane(g)}
+        if on == "running":
+            if register is None:
+                register = work.read_notes(work_dir or work.WORK)[0]
+            item["campaigns"] = work.note_campaigns(register, notes)
+            item["limit"] = work.campaign_running_limit(register, notes) or RUNNING_LIMIT_MIN
+        return item
 
     for g in coord.ledger_groups(cdir):
         slug = reports.ledger_slug(g)
@@ -193,7 +198,7 @@ def progress(cdir: pathlib.Path, since: float, now: float | None = None,
         if not mine:
             groups["running"] += 1
             if isinstance(g.get("at"), (int, float)):
-                waiting.append(wait(g, g["at"], "running", running_limit(g), acts))
+                waiting.append(wait(g, g["at"], "running", acts))
             continue
         r = mine[-1]   # load_reports' order: the newest last
         if r.status != "DONE":
@@ -208,12 +213,12 @@ def progress(cdir: pathlib.Path, since: float, now: float | None = None,
             if gating and isinstance(g.get("at"), (int, float)):
                 # its report is written but its implementer is still gating the tip: no review can have started
                 groups["running"] += 1
-                waiting.append(wait(g, g["at"], "running", running_limit(g), max(acts, last_act)))
+                waiting.append(wait(g, g["at"], "running", max(acts, last_act)))
                 continue
             groups["unreviewed"] += 1
             try:
                 returned = max(r.path.stat().st_mtime, last_act)
-                waiting.append(wait(g, returned, "its branch review", REVIEW_LIMIT_MIN, max(acts, returned)))
+                waiting.append(wait(g, returned, "its branch review", max(acts, returned)))
             except OSError:
                 pass
     recs = landing_measure.read_all(cdir / landing_measure.FILE)
@@ -228,8 +233,10 @@ def progress(cdir: pathlib.Path, since: float, now: float | None = None,
     by_wave: dict[str, int] = {}
     for w in oversize:
         by_wave[w["wave"]] = by_wave.get(w["wave"], 0) + 1
+    # the running groups as group_sizes.record keeps them (kb/Work PB4944): the planner's memory of a campaign's pace
+    running = [{**w, "over": any(w is o for o in oversize)} for w in waiting if w["on"] == "running"]
     return {"groups": groups, "landings": landings, "oldest": waiting[0] if waiting else None,
-            "stalls": stalls, "oversize": oversize, "oversize_by_wave": by_wave, "reviewed": reviewed,
+            "stalls": stalls, "oversize": oversize, "oversize_by_wave": by_wave, "running": running, "reviewed": reviewed,
             "queue_empty_min": queue_empty_minutes(recs, since, now), "unit_minutes": (now - since) / 60}
 
 
@@ -381,6 +388,16 @@ def self_test() -> int:
     check([(w["slug"], w["limit"]) for w in p["oversize"]] == [("w7j", RUNNING_LIMIT_MIN)] and p["oversize_by_wave"] == {"7": 1},
           f"a group still writing past its limit is OVER-SIZE, never a stall, and a campaign's own limit (150) lifts "
           f"group K above its 100 minutes (PB4944): {p['oversize']}")
+    run = {w["slug"]: w for w in p["running"]}
+    check(sorted(run) == ["w7a", "w7b", "w7g", "w7h", "w7j", "w7k", "w7l"] and run["w7j"]["over"] and not run["w7k"]["over"]
+          and not run["w7a"]["over"] and run["w7k"]["campaigns"] == ["PB710"] and run["w7k"]["limit"] == 150
+          and run["w7j"]["campaigns"] == [],
+          f"the running groups carry their campaigns, their limit and whether a tick counted them over-size, a stalled one "
+          f"not (what group_sizes.record keeps, PB4944): {p['running']}")
+    group_sizes.record(cdir, p["running"], now)
+    kept = group_sizes.read(cdir)
+    check(sorted(kept) == sorted(run) and kept["w7j"]["over"] and round(kept["w7k"]["minutes"]) == 100,
+          f"a tick's running groups are recorded in the group-size history: {kept}")
     check(p["reviewed"] == {"total": 2, "round1_findings": 1},
           f"two reviewed groups, one of which drew FINDINGS at round 1 (PB4888 lever 5): {p['reviewed']}")
     check(round(p["queue_empty_min"]) == 70,
@@ -441,6 +458,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--json", action="store_true")
     ap.add_argument("--post", metavar="REF", help="post each new stall to its dispatching lane's mailbox, pointing at REF (an "
                                                   "existing path: the unit's log)")
+    ap.add_argument("--record", action="store_true", help="record the running groups' sizes in the coordination "
+                                                           "directory's group_sizes history (the supervisor's tick)")
     ap.add_argument("--self-test", action="store_true")
     a = ap.parse_args(argv)
     if a.self_test:
@@ -448,6 +467,8 @@ def main(argv: list[str] | None = None) -> int:
     since = landing_measure.iso_time(a.since).timestamp() if a.since else time.time() - 3600
     cdir = coord.coord_path(a.coord)
     p = progress(cdir, since)
+    if a.record:
+        group_sizes.record(cdir, p["running"])
     if a.json:
         print(json.dumps(p, indent=1))
         return 0

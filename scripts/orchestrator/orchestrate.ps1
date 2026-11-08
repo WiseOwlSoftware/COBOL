@@ -242,7 +242,8 @@ function Start-PyBackground([string[]]$ArgList) {
 # THE PROGRESS LINE (kb/Work PB3638 defect 3; design section 4.3). The owner, 2026-10-24: "It's stupid to have work
 # running with no updates or progress for multiple hours." progress.py reads the dispatch ledger, the reports and the
 # landing records (no git, no GitHub), prints one PROGRESS line and a STALL line per item that stopped moving (kb/Work PB4944; an item past its size limit is only counted), and
-# posts each new stall once to the operator's mailbox (--post: the unit's log is the message's ref). Background, one at
+# posts each new stall once to the operator's mailbox (--post: the unit's log is the message's ref), and records each running
+# group's run time in group_sizes.py's history, the planner's measure of a campaign's pace (--record). Background, one at
 # a time, never fatal, as the lane tick.
 $script:ProgressTick = $null
 
@@ -257,7 +258,7 @@ function Complete-ProgressTick {
 function Start-ProgressTick([string]$unit, [datetime]$started, [string]$ref) {
     Complete-ProgressTick
     if ($script:ProgressTick) { return }   # the previous tick still runs: this one is skipped
-    $argList = @((Join-Path $Here 'progress.py'), '--coord', $CoordDir, '--unit', $unit, '--since', $started.ToString('o'))
+    $argList = @((Join-Path $Here 'progress.py'), '--coord', $CoordDir, '--unit', $unit, '--since', $started.ToString('o'), '--record')
     if (Test-Path $ref) { $argList += @('--post', $ref) }
     try { $script:ProgressTick = Start-PyBackground $argList }
     catch { Say "progress line not started (the unit continues): $_" }
