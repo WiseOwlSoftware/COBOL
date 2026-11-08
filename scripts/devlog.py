@@ -74,6 +74,7 @@ import sys
 import time
 import unicodedata
 from standard_streams import ensure_utf8
+import git_batch  # (scripts/: one git process for many objects, kb/Work PB3582)
 
 HERE = pathlib.Path(__file__).resolve().parent
 REPO = HERE.parent
@@ -187,33 +188,23 @@ def worktree_files(repo: pathlib.Path) -> dict[str, str]:
     return {p.name: p.read_bytes().decode("utf-8").replace("\r\n", "\n") for p in d.iterdir() if p.is_file()}
 
 
-def listing(repo: pathlib.Path, rev: str) -> list[str] | None:
-    """The paths of DEVLOG/ and the monolithic DEVLOG.md in commit `rev`'s tree, from ONE `git ls-tree` of
-    `<rev>^{commit}` (a name that is no commit fails it, so no separate `rev-parse --verify`: kb/Work PB3582); None
-    when `rev` names no commit."""
-    listed = _git(repo, "ls-tree", "--name-only", f"{rev}^{{commit}}", f"{DIR}/", MONOLITH)
-    return listed.stdout.splitlines() if listed.returncode == 0 else None
+def listing(repo: pathlib.Path, rev: str) -> dict[str, str] | None:
+    """{path: blob id} of DEVLOG/'s files and the monolithic DEVLOG.md in commit `rev`'s tree, from ONE `git ls-tree` of
+    `<rev>^{commit}` (`git_batch.path_ids`; a name that is no commit fails it, so no separate `rev-parse --verify`: kb/Work
+    PB3582); None when `rev` names no commit."""
+    return git_batch.path_ids(repo, rev, [f"{DIR}/", MONOLITH])
 
 
 def commit_files(repo: pathlib.Path, rev: str) -> tuple[dict[str, str], bool]:
     """({file name: text} of DEVLOG/ at commit `rev`, whether that tree has the monolithic DEVLOG.md); every blob is
-    read through ONE `git cat-file --batch` (two thousand `git show` processes would take a minute)."""
+    read in ONE batch (`git_batch.blobs`: two thousand `git show` processes would take a minute)."""
     paths = listing(repo, rev)
     if paths is None:
         raise RangeError(f"{rev} is not a commit")
-    names = [n for n in paths if n.startswith(f"{DIR}/")]
-    monolith = MONOLITH in paths
-    if not names:
-        return {}, monolith
-    out = subprocess.run(["git", "-C", str(repo), "cat-file", "--batch"], capture_output=True, check=True,
-                         input="".join(f"{rev}:{n}\n" for n in names).encode("utf-8")).stdout
-    files, at = {}, 0
-    for n in names:
-        nl = out.index(b"\n", at)
-        size = int(out[at:nl].split()[2])
-        files[n[len(DIR) + 1:]] = out[nl + 1:nl + 1 + size].decode("utf-8").replace("\r\n", "\n")
-        at = nl + 1 + size + 1
-    return files, monolith
+    names = {n: oid for n, oid in paths.items() if n.startswith(f"{DIR}/")}
+    data = dict(git_batch.blobs(repo, names.values()))
+    return ({n[len(DIR) + 1:]: data[oid].decode("utf-8").replace("\r\n", "\n") for n, oid in names.items()},
+            MONOLITH in paths)
 
 
 def monolith_headers(repo: pathlib.Path, rev: str, has_monolith: bool = True) -> list[str]:

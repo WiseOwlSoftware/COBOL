@@ -46,8 +46,8 @@ from typing import Any, NamedTuple
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import lineage  # noqa: E402  (an older edition's change record and its state)
-from inventory_schema import (HELD, NEWEST, REPO, WORKING_TREE, Edition, Schema, Tree, edition,  # noqa: E402
-                              load_schema)
+from inventory_schema import (HELD, NEWEST, REGISTER_EXTRACT_REL, REPO, SCHEMA_REL, WORKING_TREE, Edition,  # noqa: E402
+                              Schema, Tree, edition, load_schema)
 from inventory_store import STORE_KEYS, inventory_dir, read_store, store_at  # noqa: E402
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
@@ -216,6 +216,10 @@ def inventory_at(rev: str, year: int | None = None, repo: pathlib.Path = REPO) -
     if all("state" in r for r in records):      # a commit before PB4992: no record of the view's holds a state
         return spec_order(records)
     schema = load_schema(tree)
+    # Every other file the view reads at this commit, in ONE batch (a partial clone fetches them in one request).
+    tree = tree.read_ahead([SCHEMA_REL, REGISTER_EXTRACT_REL, *(e.catalog for e in schema.all_editions if e.held),
+                            *((schema.derivation.undefined_list,) if schema.derivation else ())])
+    schema = load_schema(tree)
     return _join_tree(_edition(schema, year), schema, tree, {r["rule-id"]: r for r in records}).rows
 
 
@@ -275,9 +279,36 @@ def states(year: int | None = None) -> dict[str, str]:
 
 # -- self-test ------------------------------------------------------------------------------------------------------------
 
+#: The probe `markdown_opened` runs: arm an open hook, THEN import the view and compute every held edition's states and
+#: every lazy input of the state rule, and print each Markdown file opened. `{plant}` is code run after the import (a
+#: regression the self-test plants to prove the probe can fail; empty for the real question).
+_NO_MARKDOWN_PROBE = """
+import json, sys
+sys.path.insert(0, {spec!r})
+opened = []
+sys.addaudithook(lambda e, a: opened.append(str(a[0])) if e == "open" and str(a[0]).lower().endswith(".md") else None)
+import inventory_schema, inventory_view
+{plant}
+schema = inventory_schema.load_schema()
+for year in inventory_schema.HELD:
+    inventory_view.inventory(year, schema)
+schema.register_items(), schema.derivation.register, schema.derivation.undefined, schema.rule_ids
+print("OPENED " + json.dumps(opened))
+"""
+
+
+def markdown_opened(plant: str = "") -> list[str]:
+    """Every Markdown file a fresh interpreter opens computing the view (see `_NO_MARKDOWN_PROBE`)."""
+    import subprocess  # noqa: PLC0415
+    code = _NO_MARKDOWN_PROBE.format(spec=str(pathlib.Path(__file__).resolve().parent), plant=plant)
+    r = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, encoding="utf-8", cwd=REPO)
+    line = next((ln for ln in r.stdout.splitlines() if ln.startswith("OPENED ")), None)
+    if r.returncode != 0 or line is None:
+        raise SystemExit(f"the no-Markdown probe failed (exit {r.returncode}):\n{r.stdout}\n{r.stderr}")
+    return json.loads(line[len("OPENED "):])
+
 def self_test() -> int:
     from scratch_repo import ScratchRepo, scratch_dir  # noqa: PLC0415  (scripts/: the one scratch fixture)
-    from inventory_schema import SCHEMA_REL  # noqa: PLC0415
     from inventory_store import write_store  # noqa: PLC0415
     schema = load_schema()
     fails: list[str] = []
@@ -348,19 +379,30 @@ def self_test() -> int:
        "a later commit's view joins its own catalog and store, its states computed under its own schema")
     ok(inventory_at("HEAD", 1985, repo.path) is None and inventory_at("no-such-rev", 2023, repo.path) is None,
        "a commit with no store of an edition has no view of it")
-    # Branch review R1-3: the state rule's other inputs (docs/CONFORMANCE.md's registers, the Annex A.2 list, the catalog's
-    # rule ids) are read as the commit has them, never from the working tree.
+    # Branch review R1-3: the state rule's other inputs (the registers' extract, the Annex A.2 list, the catalog's rule ids)
+    # are read as the commit has them, never from the working tree.
     at_schema = load_schema(Tree(repo.path, "HEAD"))
     undefined_rel = at_schema.derivation.undefined_list
     repo.commit("registers", {
-        "docs/CONFORMANCE.md": "## 7. Annex A.1\n\n| A.1 item | Element | Our determination | Pinned by |\n|---|---|---|---|\n"
-                               "| DOC-A.1-1 | e | Provided. | t |\n",
+        REGISTER_EXTRACT_REL: json.dumps({"annexA1": [{"key": "DOC-A.1-1", "lead": "Provided."}], "derivations": [
+            {"key": "DRV-GR-4.2-1", "arm": "undefined-A.2", "names": "A.2 item 1", "signature": "owner"}]}),
         undefined_rel: json.dumps({"items": [{"item": 1, "rule-ids": ["GR-4.2-1"]}]})})
     at_schema = load_schema(Tree(repo.path, "HEAD"))
     ok(at_schema.register_items() == {"DOC-A.1-1"} and at_schema.register_items() != schema.register_items()
-       and at_schema.derivation.undefined == {1: {"GR-4.2-1"}} and at_schema.derivation.register == {}
+       and at_schema.derivation.undefined == {1: {"GR-4.2-1"}}
+       and list(at_schema.derivation.register) == ["DRV-GR-4.2-1"]
        and at_schema.rule_ids == {"GR-4.10-1", "GR-4.2-1", "DOC-A.1-1"},
-       "a commit's schema reads that commit's §7 and §8 registers, Annex A.2 list and catalog, not the working tree's")
+       "a commit's schema reads that commit's register extract, Annex A.2 list and catalog, not the working tree's")
+    # The merge-queue bounce of PB4992 (inert watch): the view, states included, opens no document. The conformance
+    # manifest's generator runs it inside the compiler tests, where a document is inert (kb/Work PB4453, PB4395). Asked of
+    # a FRESH interpreter whose hook is armed before the view is imported (review R4-1): in this one, earlier arms have
+    # already filled every lazy input, so a hook armed here could see nothing.
+    opened = markdown_opened()
+    ok(opened == [], f"the view and the state rule open no Markdown document (opened {opened[:3]})")
+    planted = markdown_opened("inventory_schema.Schema.register_items = "
+                              "lambda self: set(inventory_schema.register_determinations())")
+    ok(any(p.replace("\\", "/").endswith("docs/CONFORMANCE.md") for p in planted),
+       f"the probe sees a state input that reads the Markdown register (planted; opened {planted[:3]})")
     # Branch review R2-1: a tree main never held (a WIP checkpoint whose schema predates `editions.of`) is refused by name.
     old_raw = json.loads(WORKING_TREE.text(SCHEMA_REL))
     old_raw["editions"]["values"] = [e["spelling"] for e in old_raw["editions"].pop("of")]

@@ -39,6 +39,7 @@ as committed; the view (`inventory_view.inventory_at`) decides what a commit's r
 from __future__ import annotations
 
 import json
+import os
 import pathlib
 import re
 import sys
@@ -49,6 +50,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from inventory_schema import REPO, STORE_KEYS, Edition, Tree  # noqa: E402  (the keys a store file carries; each edition)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
+import git_batch  # noqa: E402  (scripts/: one git process for many objects)
 
 #: A rule id is a file name: letters, digits, `.` and `-`, no `..` and no leading separator, so no id is a path. A 1985
 #: id begins with its year (`1985-SR-VI.5.7.3-1`, `1989-AR-A.2.5.3-1`).
@@ -177,16 +179,11 @@ def store_at(tree: Tree, edition: Edition) -> list[dict[str, Any]] | None:
     before PB4992 stored each rule's catalog fields and state beside its adjudication."""
     listing = tree.git("ls-tree", "-r", tree.rev, "--", edition.store)
     if listing:
-        entries = [ln.split(b"\t", 1) for ln in listing.splitlines()]
-        blobs = tree.git("cat-file", "--batch", stdin=b"".join(meta.split()[2] + b"\n" for meta, _ in entries))
-        records: list[dict[str, Any]] = []
-        pos = 0
-        for _ in entries:
-            end = blobs.index(b"\n", pos)
-            size = int(blobs[pos:end].split()[2])
-            records.append(json.loads(blobs[end + 1:end + 1 + size].decode("utf-8")))
-            pos = end + 1 + size + 1
-        return records
+        # Through git_batch.blobs, so a partial clone (CI's `filter: blob:none`) fetches the commit's records in ONE
+        # request, not one round trip per record (the merge-queue bounce of kb/Work PB4992).
+        oids = [ln.split(b"\t", 1)[0].split()[2].decode("ascii") for ln in listing.splitlines()]
+        data = dict(git_batch.blobs(tree.root, oids))
+        return [json.loads(data[oid].decode("utf-8")) for oid in oids]
     return tree.json(edition.legacy_file) if edition.legacy_file else None
 
 
@@ -295,6 +292,38 @@ def self_test() -> int:
     old.commit("legacy", {new.legacy_file: json.dumps([rec("GR-4.4-2"), rec("GR-4.4-1")])})
     check([r["rule-id"] for r in store_at(Tree(old.path, "HEAD"), new) or []] == ["GR-4.4-2", "GR-4.4-1"],
           "store_at reads the single legacy file of a commit before PB4148, as committed")
+
+    # The second merge-queue bounce of PB4992: CI checks out with `filter: blob:none`, and a base commit's store read
+    # blob by blob made one lazy fetch per record (cancelled after 8.5 minutes over 4,214). In a planted partial clone
+    # whose base records are all absent, store_at fetches them in ONE request, counted from git's own trace.
+    src = ScratchRepo.init(t / "promisor")
+    src.git("config", "uploadpack.allowFilter", "true")
+    src.git("config", "uploadpack.allowAnySHA1InWant", "true")
+    others = [f"docs/f{i}.json" for i in range(5)]   # the view's other base files: Tree.read_ahead (review R6-1)
+    write_store([rec(f"GR-9.9-{i}", verdict="PARTIAL") for i in range(8)], src.path / new.store)
+    src.commit("base", {rel: json.dumps({"at": "base", "n": rel}) for rel in others})
+    write_store([rec(f"GR-9.9-{i}", verdict="CONFORMS") for i in range(8)], src.path / new.store)
+    src.commit("every record changed", {rel: json.dumps({"at": "head", "n": rel}) for rel in others})
+    src.run("clone", "-q", "--filter=blob:none", "--no-checkout", (src.path).as_uri(), str(t / "partial"), cwd=t)
+    partial = t / "partial"
+
+    def fetches_of(read):
+        """(what `read()` returned, how many `git fetch` processes git's own trace2 log saw start during it)."""
+        trace = scratch_dir("trace2-") / "trace2.json"
+        os.environ["GIT_TRACE2_EVENT"] = str(trace)
+        try:
+            got = read()
+        finally:
+            del os.environ["GIT_TRACE2_EVENT"]
+        events = [json.loads(line) for line in trace.read_text(encoding="utf-8").splitlines()] if trace.exists() else []
+        return got, len([e for e in events if e.get("event") == "start" and "fetch" in (e.get("argv") or [])])
+
+    at_base, n = fetches_of(lambda: store_at(Tree(partial, "HEAD~1"), new))
+    check([r["verdict"] for r in at_base or []] == ["PARTIAL"] * 8 and n == 1,
+          f"a partial clone reads a base store of 8 absent records with ONE fetch, not one per record ({n} fetch(es))")
+    ahead, n = fetches_of(lambda: Tree(partial, "HEAD~1").read_ahead(others))
+    check([ahead.json(rel)["at"] for rel in others] == ["base"] * 5 and n == 1,
+          f"Tree.read_ahead reads 5 absent base files with ONE fetch, not one per file ({n} fetch(es))")
     for f in failures:
         print(f"FAIL: {f}")
     print(f"inventory_store self-test: {'FAIL' if failures else 'OK'}")

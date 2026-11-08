@@ -22,9 +22,9 @@ import inventory_schema as schema  # noqa: E402
 
 A3_HEADING = "## 2. Annex A.3"
 A4_HEADING = "## 5. Annex A.4"
-EXTRACT_PATH = "tests/version-matrix/conformance-register.json"
+EXTRACT_PATH = schema.REGISTER_EXTRACT_REL
 PROFILE_PATH = "conformance-suite/profiles/wiseowl.json"
-SCHEMA_PATH = "tests/version-matrix/inventory-schema.json"
+SCHEMA_PATH = schema.SCHEMA_REL
 EDITIONS = ["85", "2002", "2014", "2023"]
 CODE = re.compile(r"COBOL[0-9]{4}")
 #: An unresolved citation: a clause path whose last component is the literal `x` standing in for the part nobody derived.

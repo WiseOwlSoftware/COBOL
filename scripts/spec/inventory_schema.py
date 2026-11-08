@@ -42,6 +42,7 @@ from collections.abc import Iterable, Mapping
 from typing import Any, NamedTuple
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
+import git_batch  # noqa: E402  (scripts/: one git process for many objects)
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
 SCHEMA_REL = "tests/version-matrix/inventory-schema.json"
@@ -49,8 +50,13 @@ SCHEMA_PATH = REPO / SCHEMA_REL
 #: The IMPLEMENTOR-DEFINED ELEMENT REGISTER — docs/CONFORMANCE.md §7, whose rows are keyed by the inventory
 #: rule-id `DOC-A.1-<n>` because `kinds.DOC.anchor-template` computes that key as the row's own anchor. An item's FURTHER
 #: determinations are keyed by that id plus a letter (`DOC-A.1-92b`, kb/Work PB3840); no inventory row anchors on those.
-REGISTER_REL = "docs/CONFORMANCE.md"
-REGISTER_PATH = REPO / REGISTER_REL
+REGISTER_PATH = REPO / "docs" / "CONFORMANCE.md"
+#: THE REGISTERS' EXTRACT: what the tests and the state rule read of docs/CONFORMANCE.md's §7 and §8 (each §7 row's key
+#: and determination lead; each §8 row's key, arm, names and signature), written from the Markdown by this module's one
+#: parser (`doc_audits.py --write-register`) and held fresh by the DOC AUDITS audit (kb/Work PB4453). The state rule reads
+#: the EXTRACT, never the Markdown: a document is inert, so no compiler test, nor the Python it runs, may open one
+#: (PB4992's merge-queue bounce: the conformance manifest's generator computed states and opened CONFORMANCE.md).
+REGISTER_EXTRACT_REL = "tests/version-matrix/conformance-register.json"
 REGISTER_HEADING = "## 7. Annex A.1"
 #: The label in the §7 table's own header row, so the reader can tell a header from a determination.
 REGISTER_HEADER_CELL = "A.1 item"
@@ -86,6 +92,16 @@ class Tree:
     def json(self, rel: str) -> Any:
         text = self.text(rel)
         return None if text is None else json.loads(text)
+
+    def read_ahead(self, rels: Iterable[str]) -> Tree:
+        """This commit with the files `rels` read in one batch (`git_batch`): every file a reader will ask for, so a
+        partial clone (CI's `filter: blob:none`) fetches the commit's missing blobs in ONE request, not one per file (the
+        merge-queue bounce of kb/Work PB4992). A working tree reads its files directly and is returned as it is."""
+        if self.rev is None:
+            return self
+        ids = git_batch.path_ids(self.root, self.rev, list(dict.fromkeys(rels))) or {}   # trees only: no blob fetched
+        data = dict(git_batch.blobs(self.root, ids.values()))
+        return Tree(self.root, self.rev, {rel: data[i].decode("utf-8") for rel, i in ids.items()})
 
 
 WORKING_TREE = Tree()
@@ -825,9 +841,11 @@ class Derivation:
 
     @property
     def register(self) -> dict[str, DerivationRow]:
+        """The §8 register as this tree's extract has it (`REGISTER_EXTRACT_REL`): key, arm, names and signature; the
+        argument is prose, not data, and is not in it."""
         if self._register is None:
-            self._register = (register_derivations(self.heading, header_cell=self.header_cell) if self.tree == WORKING_TREE
-                              else register_derivations(self.heading, self.tree.text(REGISTER_REL) or "", self.header_cell))
+            self._register = {d["key"]: DerivationRow(d["key"], d["arm"], d["names"], "", d["signature"])
+                              for d in register_extract(self.tree)["derivations"]}
         return self._register
 
     @property
@@ -942,25 +960,10 @@ class Derivation:
                         "evaluator does not implement — the schema and the writer disagree")]
 
 
-_DERIVATION_CACHE: dict[str, DerivationRow] | None = None
-
-
 def derivation_rows(text: str, heading: str, header_cell: str = "Rule") -> list[DerivationRow]:
     """Every data row of the §8 derivation register, in document order."""
     return [DerivationRow(c[0], c[1], _cell(c, 2), _cell(c, 3), _cell(c, 4))
             for c in register_section(text, heading, header_cell)]
-
-
-def register_derivations(heading: str, text: str | None = None,
-                         header_cell: str = "Rule") -> dict[str, DerivationRow]:
-    """`{§8 row key -> row}` — cached when read from disk, like `register_determinations`."""
-    global _DERIVATION_CACHE
-    if text is not None:
-        return {r.key: r for r in reversed(derivation_rows(text, heading, header_cell))}
-    if _DERIVATION_CACHE is None:
-        _DERIVATION_CACHE = register_derivations(heading, REGISTER_PATH.read_text(encoding="utf-8"),
-                                                 header_cell)
-    return _DERIVATION_CACHE
 
 
 class Schema:
@@ -1075,15 +1078,15 @@ class Schema:
         return (row.get("rule-id") or "") in reg
 
     def register_items(self) -> set[str]:
-        """The rule-ids docs/CONFORMANCE.md §7 carries a determination for.
+        """The rule-ids docs/CONFORMANCE.md §7 carries a determination for, as this tree's extract has them
+        (`REGISTER_EXTRACT_REL`).
 
         Injectable through `_register_items` for the same reason the C# side makes it a Schema FIELD: a
         hermetic case has to be able to drive both arms of `anchor_obliged` against a fabricated register. Read
         once, from this schema's tree.
         """
         if self._register_items is None:
-            self._register_items = set(register_determinations() if self.tree == WORKING_TREE
-                                       else register_determinations(self.tree.text(REGISTER_REL) or ""))
+            self._register_items = {r["key"] for r in register_extract(self.tree)["annexA1"]}
         return self._register_items
 
     def is_observable(self, row: dict[str, Any]) -> bool:
@@ -1285,6 +1288,15 @@ class Schema:
                         f"its introducing edition through {last} with no gap: write '{run}' if {first} introduced "
                         f"it (kb/Work PB3173)")
         return None
+
+
+def register_extract(tree: Tree) -> dict[str, Any]:
+    """The registers' extract as `tree` has it (`REGISTER_EXTRACT_REL`); a tree without one is a SystemExit naming it."""
+    doc = tree.json(REGISTER_EXTRACT_REL)
+    if doc is None:
+        raise SystemExit(f"{REGISTER_EXTRACT_REL} not found in {tree.rev or tree.root} — "
+                         "run: python scripts/doc_audits.py --write-register")
+    return doc
 
 
 def load_schema(tree: Tree = WORKING_TREE) -> Schema:

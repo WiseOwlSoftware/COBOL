@@ -75,3 +75,11 @@ branch where data can carry it (the record validator branches on the edition's f
 readers' cost (the trend stays two processes), and shadowing in `audit_annex_a1` (renamed). No inventory row was
 re-verdicted; GAP 2023 stays 0.
 
+
+**Merge-queue bounce (run 42490763388).** Every Linux shard's inert watch saw `docs/CONFORMANCE.md` opened while the
+Unit and Conformance assemblies ran: the conformance manifest's generator, run when the Conformance fixture loads,
+computed the view's states, and the state rule parsed the Markdown registers (the Unit parity test did the same through
+`inventory_view.py --states`). Before this landing the state was stored. The state rule now reads the registers'
+EXTRACT, `tests/version-matrix/conformance-register.json`, the input the C# twin already reads (kb/Work PB4453), so
+both engines read one input and no compiler test opens a document. `inventory_view --self-test` runs the view and
+every lazy state input under an open-audit hook and requires no Markdown opened.
