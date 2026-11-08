@@ -1602,7 +1602,7 @@
       "from": "WiseOwl.Cobol.CodeGen",
       "to": "WiseOwl.Cobol.Binding",
       "uses": 66,
-      "walkUses": 72,
+      "walkUses": 71,
       "removedBy": [
         "PB2320",
         "PB2399",
@@ -2118,16 +2118,6 @@
           "to": "WiseOwl.Cobol.Binding.SortCollation",
           "removedBy": [
             "PB2399",
-            "PB2420"
-          ]
-        },
-        {
-          "from": "WiseOwl.Cobol.CodeGen.StringEmitter",
-          "to": "WiseOwl.Cobol.Binding.IntrinsicSig",
-          "removedBy": [
-            "PB2418",
-            "PB2399",
-            "PB2405",
             "PB2420"
           ]
         },

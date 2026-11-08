@@ -51,6 +51,7 @@ import argparse
 import json
 import pathlib
 import sys
+from typing import NamedTuple
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
@@ -65,14 +66,55 @@ TOL = 1.2             # coincidence tolerance for "touches the end of the stem"
 STROKE_EPS = 0.1      # how far a foot's anchored end may lie outside its stem's own stroke (measurement noise)
 
 
+class Stroke(NamedTuple):
+    """One stroke of a page's vector drawing, as the rectangle it covers."""
+    x0: float
+    y0: float
+    x1: float
+    y1: float
+
+    @property
+    def width(self) -> float:
+        return self.x1 - self.x0
+
+    @property
+    def height(self) -> float:
+        return self.y1 - self.y0
+
+
+def strokes(page) -> list[Stroke]:
+    """Every stroke of a page's vector drawing as its own rectangle — the one reader of the drawing for the vector arm
+    (`_load`'s stems and feet, `figure_extract.underlines`).
+
+    A DRAWING PATH IS NOT A STROKE. 2023 fills one rectangle per path, so a path's bounding box was the stroke; 2002
+    strokes LINES and puts many in one path (MULTIPLY Format 1, folio 482: one path of 17 lines holds its underlines
+    and both feet and stems of its brackets), whose bounding box is no stroke at all (kb/Work PB4813). So each item
+    of a path is measured: a rectangle as itself, a line as its two end points widened by the path's stroke width."""
+    out = []
+    for path in page.get_drawings():
+        if any(item[0] not in ("re", "l") for item in path["items"]):
+            out.append(Stroke(*path["rect"]))          # a curve or quad: no stem, foot or underline is drawn so
+            continue
+        half = (path.get("width") or 0.0) / 2
+        for item in path["items"]:
+            if item[0] == "re":
+                out.append(Stroke(*item[1]))
+                continue
+            (ax, ay), (bx, by) = item[1], item[2]
+            across, down = (half if ax == bx else 0.0), (half if ay == by else 0.0)
+            out.append(Stroke(min(ax, bx) - across, min(ay, by) - down, max(ax, bx) + across, max(ay, by) + down))
+    return out
+
+
 def _load(page):
-    """Split a page's vector rects into vertical stems and horizontal rules."""
+    """Split a page's vector strokes into vertical stems and horizontal rules."""
     verts, horzs = [], []
-    for it in page.get_drawings():
-        r = it["rect"]
+    for r in strokes(page):
         if r.height >= MIN_VERT_H and r.width <= MAX_VERT_W:
             verts.append(r)
-        elif r.width > MAX_HORZ_H and r.height <= MAX_HORZ_H:
+        # A rule as short as a foot (FOOT_MIN) is a horizontal: 2002's bracket feet are 2.7 pt (folio 482), under the
+        # 3 pt that every 2023 foot exceeds, so a floor of MAX_HORZ_H read each 2002 bracket as a bare bar (PB4813).
+        elif r.width >= FOOT_MIN and r.width > r.height and r.height <= MAX_HORZ_H:
             horzs.append(r)
     return verts, horzs
 

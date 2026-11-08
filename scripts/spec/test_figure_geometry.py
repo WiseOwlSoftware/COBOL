@@ -51,15 +51,44 @@ def main() -> int:
             fails.append(f"{name}: read as {got!r}, want {want!r}")
     dispatch = edition_dispatch()
     fails.extend(dispatch)
+    fails.extend(stroked_paths())
     for f in fails:
         print(f"FAIL: {f}")
-    total = len(CASES) + EDITION_CASES
+    total = len(CASES) + EDITION_CASES + STROKE_CASES
     print(f"figure_geometry self-test: {total - len(fails)}/{total} " + ("GREEN" if not fails else "RED"))
     return 1 if fails else 0
 
 
 #: How many checks `edition_dispatch` makes: the stems and the words of two vector editions and of the raster one.
 EDITION_CASES = 6
+#: How many checks `stroked_paths` makes.
+STROKE_CASES = 3
+
+
+class StrokedPage:
+    """A page whose drawing is 2002's: MULTIPLY Format 1's opening bracket (folio 482, PDF page 504) stroked as three
+    LINES of 0.405 pt in one path with an underline, and 2023's one filled rectangle per path beside it."""
+
+    def get_drawings(self):
+        return [{"width": 0.405, "rect": (63.48, 213.57, 106.33, 258.39), "items": [
+                    ("l", (63.48, 213.77), (106.33, 213.77)),                                   # MULTIPLY's underline
+                    ("l", (69.77, 231.55), (72.47, 231.55)), ("l", (69.77, 231.55), (69.77, 258.18)),
+                    ("l", (69.77, 258.18), (72.47, 258.18))]},                                  # foot, stem, foot
+                {"width": None, "rect": (300.0, 100.0, 300.47, 140.0), "items": [("re", (300.0, 100.0, 300.47, 140.0))]}]
+
+
+def stroked_paths() -> list[str]:
+    """`strokes` measures each item of a path, never the path's bounding box (kb/Work PB4813)."""
+    fails = []
+    got = G.strokes(StrokedPage())
+    if len(got) != 5 or abs(got[2].width - 0.405) > 1e-6 or abs(got[0].height - 0.405) > 1e-6:
+        fails.append(f"a path of four lines is four strokes widened by its stroke width, then a rectangle: {got}")
+    stems = G.classify_page(StrokedPage())
+    if [(s["kind"], s["side"]) for s in stems] != [("bar", None), ("bracket", "L")]:
+        fails.append(f"a 2.7 pt foot makes a stroked stem an opening bracket, a footless rectangle a bar: {stems}")
+    if not any(r.width > 40 and r.height < 1 for r in G.strokes(StrokedPage())):
+        fails.append("the underline inside the path is a stroke of its own")
+    return fails
 
 
 def edition_dispatch() -> list[str]:

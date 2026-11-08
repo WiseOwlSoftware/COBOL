@@ -43,6 +43,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from standard_streams import ensure_utf8  # noqa: E402  (scripts/: UTF-8 standard streams)
 
 import differential_fuzz as df  # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parent / "spec"))
+from message_batches import USAGE_FIELDS, cached_system, usage_of  # noqa: E402  (THE batch cache and usage reader, PB4998)
 from api_key import ACCOUNT_HELP, read_run_key  # noqa: E402  (THE reader of an API key file, kb/Work PB4816, PB4916)
 
 #: The default writer: the model of the 2026-11-03 calibration, chosen by the owner for the batch run.
@@ -70,8 +72,8 @@ def build_requests(count: int, model: str, prefixes: tuple[str, ...], seed: int,
     for i, name in enumerate(program_ids(count)):
         number, title, body, variation = df.seed_at(seeds, VARIATIONS, i)
         _family, messages = df.first_messages(system_prompts, number, title, body, variation)
-        system = [{"type": "text", "text": messages[0]["content"], "cache_control": {"type": "ephemeral"}}]
-        out.append({"custom_id": name, "params": {"model": model, "max_tokens": MAX_TOKENS, "system": system,
+        out.append({"custom_id": name, "params": {"model": model, "max_tokens": MAX_TOKENS,
+                                                  "system": cached_system(messages[0]["content"]),
                                                   "messages": [messages[1]]}})
     return out
 
@@ -80,7 +82,7 @@ def write_replies(results: Iterable[Any], replies: Path) -> dict[str, Any]:
     """Write each succeeded result's text to `replies`/<custom_id>.json and return the counts and token totals."""
     replies.mkdir(parents=True, exist_ok=True)
     counts: dict[str, int] = {}
-    tokens = {"input_tokens": 0, "output_tokens": 0, "cache_creation_input_tokens": 0, "cache_read_input_tokens": 0}
+    tokens = dict.fromkeys(USAGE_FIELDS, 0)
     for r in results:
         kind = r.result.type
         counts[kind] = counts.get(kind, 0) + 1
@@ -88,7 +90,7 @@ def write_replies(results: Iterable[Any], replies: Path) -> dict[str, Any]:
             continue
         msg = r.result.message
         text = "".join(b.text for b in msg.content if getattr(b, "type", "") == "text")
-        usage = {k: int(getattr(msg.usage, k, 0) or 0) for k in tokens}
+        usage = dict(zip(USAGE_FIELDS, usage_of(msg)))
         for k, v in usage.items():
             tokens[k] += v
         (replies / f"{r.custom_id}.json").write_text(
@@ -198,9 +200,10 @@ def self_test() -> int:
         same &= (r["custom_id"] == f"fz{i:05d}" and r["params"]["system"][0]["text"] == msgs[0]["content"]
                  and r["params"]["messages"] == [msgs[1]])
     check("request i carries the judge's id, system prompt and seed turn for program i", same)
-    check("every request names the model, the token cap and a cached system prompt",
+    check("every request names the model, the token cap and a system prompt cached by the one batch policy "
+          "(message_batches.cached_system, kb/Work PB4998)",
           all(r["params"]["model"] == DEFAULT_MODEL and r["params"]["max_tokens"] == MAX_TOKENS
-              and r["params"]["system"][0]["cache_control"] == {"type": "ephemeral"} for r in reqs))
+              and r["params"]["system"] == cached_system(r["params"]["system"][0]["text"]) for r in reqs))
 
     class Obj:
         def __init__(self, **kw: Any) -> None:
