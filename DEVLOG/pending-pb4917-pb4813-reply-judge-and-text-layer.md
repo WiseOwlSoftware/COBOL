@@ -16,4 +16,10 @@ drops the furniture and the stamp, takes headings, rules, notes, lists, tables a
 every general format as a placeholder for the vector arm, which the assembly refuses until it is drawn. 2002's folio
 offset (22) is recorded in `spec_pdf.EDITIONS`. Self-tests: `test_text_layer.py` (planted layouts, and a PDF it writes when
 PyMuPDF is present) and new cases in `test_transcribe_pdf.py`. The wave's stop file arrived before the run over the 882
-pages, so that run, the figures and the assembly continue in a later wave. No gate ran (the stop forbids starting one).
+pages, so that run, the figures and the assembly continue in a later wave.
+
+**Replayed onto main (wave 20261918).** The two commits were cherry-picked onto a main whose batch state had moved into
+`message_batches.BatchRun` (kb/Work PB4886). `collect_batches` now hands `BatchRun.collect` a `take` that asks `judge`
+and records a refused page in `failed`, so the one batch loop serves both batch tools; usage is keyed by batch and custom
+id there, and the self-test checks that key. `spec_pdf.EDITIONS[2002]` keeps main's body-anchor field with the measured
+offset 22. `docs/DOC_INDEX.md`'s converter row now names the `text` backend and `judge`. Gate: see the landing record.
