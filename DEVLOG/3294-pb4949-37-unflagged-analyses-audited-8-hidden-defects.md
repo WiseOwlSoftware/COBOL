@@ -1,4 +1,4 @@
-## PB4949: 37 unflagged analyses audited, 8 hidden defects surfaced, and work.py check now holds analyses to a harm flag
+## Entry 3294 — 2026-11-07 19:05 PST — PB4949: 37 unflagged analyses audited, 8 hidden defects surfaced, and work.py check now holds analyses to a harm flag
 
 The owner asked for the 37 analyses to be investigated for hidden defects. They were the open `kind: analysis` notes that set
 no harm flag and not `process_only`: `work.py next` ranks on harm flags alone, and `register_problems` refused that state only
@@ -16,3 +16,4 @@ reason each audit gave.
 `HARM_CHECKED_KINDS = ("defect", "analysis")` now drives the check, so an analysis declares a harm flag or `process_only` the
 day it is filed; `unflagged_kind_findings` is its self-test. PB4900 gains its second witness (wave 20261915 group B wrote no
 report; the operator wrote it by hand).
+
