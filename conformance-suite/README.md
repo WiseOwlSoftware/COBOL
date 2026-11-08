@@ -12,7 +12,7 @@ PB3160, PB4614); this folder is built slice by slice from its §13.
 | `cases/<clause>/` | The tests, filed by ISO clause (`14.9.8-COMPUTE/`), each `<id>.cob` with its expected outputs and the files it declares. `cases/_unassigned/` holds tests no rule cites yet; the suites leave them out |
 | `wiseowl/cases/<clause>/` | WiseOwl COBOL's own regression tests, in the same format, never part of a suite |
 | `wiseowl/diagnostics/<id>.json` | WiseOwl COBOL's refusals, one file per refused test: the editions at which it refuses the program and the code or text it reports |
-| `wiseowl/options/<id>.json` | The WiseOwl compile options of a WiseOwl test, one file per test (`<id>.<step file>.json` for one build step of a multi-unit test) |
+| `wiseowl/options/<id>.json` | The WiseOwl compile options of a WiseOwl test, one file per test (`<id>.<step file>.json` for one build step or one `servers` file of a multi-unit test) |
 | `implementor-defined.json` | The Annex A.1 items whose values the standard enumerates, and those values |
 | `harness/generate.py` | The one reader of the test headers: refuses a malformed test (and a malformed adapter, profile or baseline), writes the suites, reports completeness |
 | `harness/run.py` | The harness: runs the suites against a compiler through its adapter and reports a verdict per test |

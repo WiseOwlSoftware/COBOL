@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Runtime.Messaging;
 /// listener is published (design 5.4.5).</item>
 /// <item><see cref="Time"/>: the time source a CONTINUE AFTER deadline is armed on (design 5.4.4). It is never the run unit's <see cref="RunUnit.Clock"/>,
 /// which <c>WISEOWL_COBOL_CLOCK</c> may freeze: a frozen clock must not stop a deadline.</item>
-/// <item><see cref="Definitions"/>: what <c>mcs.json</c> defines for a normalized server name.</item>
+/// <item><see cref="Definitions"/>: what <c>mcs.json</c> defines for a normalized server name (<see cref="ServerDefinitions"/>).</item>
 /// </list>
 /// </summary>
 public sealed class MessagingSettings
@@ -47,8 +47,9 @@ public sealed class MessagingSettings
     /// <summary>The time source of a CONTINUE AFTER deadline.</summary>
     public TimeProvider Time { get; init; } = TimeProvider.System;
 
-    /// <summary>What <c>mcs.json</c> defines for a normalized server name, or null when it defines none. The default defines nothing.</summary>
-    internal Func<string, ServerDefinition?> Definitions { get; init; } = static _ => null;
+    /// <summary>What the server definitions answer for a normalized server name (null = it defines none). Unset = the <c>servers</c> member of the MCS directory's
+    /// <c>mcs.json</c>, read when the peer starts (<see cref="ServerDefinitions.Read"/>); a host or a test may supply its own.</summary>
+    internal Func<string, ServerDefinition?>? Definitions { get; init; }
 
     private static string? NonBlank(string? value) => string.IsNullOrWhiteSpace(value) ? null : value;
 }

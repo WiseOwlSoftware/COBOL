@@ -85,6 +85,19 @@ talk directly over `AF_UNIX` stream sockets. A run unit that answers requests is
 `WISEOWL_COBOL_MCS_SERVER=<name>`; the name is compared without regard to case and trailing spaces. Run units share one message control system when they name
 the same directory in `WISEOWL_COBOL_MCS` (default: the current directory).
 
+A server need not be running before the first request: the `servers` member of the MCS directory's `mcs.json` defines servers by name, and a `SEND` that finds no live
+server of a defined name with a `start` command runs the command and sends once the server is up.
+
+```json
+{ "servers": [ { "name": "BALANCE", "start": ["cobol-balance-server"], "maxLength": 4096 } ] }
+```
+
+`name` is compared as a server name is. `start` is a command line (`"dotnet balance.dll"`, a double quote groups) or an array of the program and its arguments; it runs in the MCS
+directory with `WISEOWL_COBOL_MCS`, `WISEOWL_COBOL_MCS_SERVER` (the name), `WISEOWL_COBOL_MCS_NOTIFY` and `WISEOWL_COBOL_MCS_LOG` set, and a compiled COBOL program that
+reads them serves the name and writes its output to the log, `servers/<name>.<run id>.log` in the MCS directory. Two requestors that find the name unserved start it once.
+`maxLength` is the longest message the server allows (`EC-MCS-MESSAGE-LENGTH` for a longer one). A command that ends before its server is up, a command that cannot be
+started, and an `mcs.json` whose `servers` member is of the wrong shape are `EC-MCS-IMP`.
+
 ```cobol
 *> the requestor
 SEND TO "BALANCE" FROM REQUEST-REC RETURNING SERVER-TAG
