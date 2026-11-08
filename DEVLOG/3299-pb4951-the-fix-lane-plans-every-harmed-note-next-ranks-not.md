@@ -1,4 +1,4 @@
-## PB4951: the fix lane plans every harmed note `next` ranks, not only `kind: defect`
+## Entry 3299 — 2026-11-07 20:38 PST — PB4951: the fix lane plans every harmed note `next` ranks, not only `kind: defect`
 
 After the PB4949 audit flagged six analyses, ledger v337 still listed them among the open compiler notes no lane plans,
 along with PB4929 and PB4923, the two notes `work.py next` ranked first. The cause was two predicates for one question.
@@ -12,3 +12,4 @@ for `fix_clusters.py`, and `ledger_plan.lanes_of` gives the fix lane exactly whe
 at e72a54d641 the planner's view is the 14 notes `next` lists, and the notes no lane plans fall from 16 to 7, all of them
 decisions that await the owner. New self-test cases in test_plan_wave and ledger_plan pin a harmed analysis in and an
 unharmed or process-only note out. The orchestrator-loop design and DOC_INDEX describe the new population.
+
