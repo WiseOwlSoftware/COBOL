@@ -191,8 +191,8 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             else if (spellingB && BarePrototypeWord(dref) is { } declaredWord
                      && ctx.Data.State.Configuration.DeclaresProgramSpecifier(declaredWord))
                 // The word is a declared PROGRAM specifier that registered no prototype — no provider answered it (REPO-1 at
-                // the specifier, DESIGN-external-repository §8.2 step 4) or its literal-3 was refused (kb/Work PB4708) — so
-                // this is SR16's undeclared prototype, never a data name.
+                // the specifier, DESIGN-external-repository §8.2 step 4) or its literal-3 was refused (kb/Work PB4708, silent: reported at the
+                // specifier, kb/Work PB4936) — so this is SR16's undeclared prototype, never a data name.
             {
                 _ = ResolvePrototype(declaredWord, "CALL");
                 return BoundRejected.Reported(ctx.Edition);
@@ -1142,6 +1142,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     private ProgramPrototype? ResolvePrototype(string name, string verb, string alsoNot = "")
     {
         if (host.ProgramPrototypes?.GetValueOrDefault(name) is { } proto) return proto;
+        if (ctx.Data.State.Configuration.IsRefusedProgramReference(name, ctx.Edition)) return null;   // reported at the specifier (kb/Work PB4936)
         ctx.Edition.Error(DiagnosticCatalog.ProgramPrototypeUndeclared,
             $"{verb} {name}: '{name}' is not a program prototype — {ctx.Data.State.Configuration.WhyNoPrototype(name)}{alsoNot}");
         return null;

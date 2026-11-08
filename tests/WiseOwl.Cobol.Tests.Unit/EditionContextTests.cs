@@ -115,4 +115,21 @@ public sealed class EditionContextTests
         }
         finally { ScratchDirectory.Remove(dir); }
     }
+
+    /// <summary>kb/Work PB4936: a cascade answers "reported earlier" only for a refusal the ledger holds, by kind and word, so a
+    /// caller that wrongly claims it leaves <see cref="EditionContext.ErrorsRecorded"/> at zero and the PB1029 backstop of
+    /// <see cref="EditionContext.NoteRefusal"/> still fires.</summary>
+    [Fact]
+    public void NoteCauseReportedEarlier_AnswersOnlyForARefusalTheLedgerHolds()
+    {
+        var ed = new EditionContext(2023);
+        Assert.False(ed.NoteCauseReportedEarlier(RefusedSpecifierKind.Program, "P"));
+        Assert.Equal(0, ed.ErrorsRecorded);
+
+        ed.NoteSpecifierRefusalReported(RefusedSpecifierKind.Program, "p");
+        Assert.True(ed.NoteCauseReportedEarlier(RefusedSpecifierKind.Program, "P"));   // a user-defined word folds case
+        Assert.Equal(1, ed.ErrorsRecorded);
+        Assert.False(ed.NoteCauseReportedEarlier(RefusedSpecifierKind.Function, "P"));   // the kind is part of the key
+        Assert.Equal(1, ed.ErrorsRecorded);
+    }
 }
