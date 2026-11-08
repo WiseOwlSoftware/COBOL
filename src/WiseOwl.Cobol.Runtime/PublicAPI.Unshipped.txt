@@ -915,6 +915,7 @@ static WiseOwl.Cobol.Runtime.CobolNum.SubChecked(System.Int128 a, System.Int128 
 static WiseOwl.Cobol.Runtime.CobolObject.CheckActiveClassFormal(bool enabledInMethod, string! what, WiseOwl.Cobol.Runtime.ActivationDescription! argument, WiseOwl.Cobol.Runtime.ActivationDescription! formal) -> void
 static WiseOwl.Cobol.Runtime.CobolObject.CheckActiveClassReturning(bool enabledInMethod, string! what, WiseOwl.Cobol.Runtime.ActivationDescription! receiving, WiseOwl.Cobol.Runtime.ActivationDescription! sending) -> void
 static WiseOwl.Cobol.Runtime.CobolSizeError.ProhibitedInexact() -> WiseOwl.Cobol.Runtime.CobolSizeError!
+static WiseOwl.Cobol.Runtime.CobolTable.AllImage(System.Func<long[]!, long>![]! counts, System.Func<long[]!, string!>! element) -> string!
 static WiseOwl.Cobol.Runtime.CobolTable.OdoExtentTrimmed(WiseOwl.Cobol.Runtime.Occurrence count, int min, int max, int fixedUnits, int strideUnits, int trailingUnits) -> int
 static WiseOwl.Cobol.Runtime.CobolTable.RequireOccurrences(long count) -> void
 static WiseOwl.Cobol.Runtime.CobolTiming.Interval(System.Int128 unscaled, int scale) -> long

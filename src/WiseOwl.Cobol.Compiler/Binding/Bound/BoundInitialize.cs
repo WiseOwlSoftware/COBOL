@@ -16,9 +16,10 @@ namespace WiseOwl.Cobol.Binding.Bound;
 /// definition order (GR8).</summary>
 public sealed record BoundInitialize(IReadOnlyList<InitializeAction> Actions) : BoundStatement, IBoundImplicitOperands
 {
-    /// <summary>identifier-1 as the statement WROTE it, or null for the whole-dynamic-table form and the compiler's own ALLOCATE lowering. The
-    /// one operand INITIALIZE explicitly references (X3.23-1985 USE FOR DEBUGGING general rule 5: "explicitly references"; rule 9: a group
-    /// reference does not reference its subordinates); the elementary stores of <see cref="Actions"/> are what the statement MEANS.</summary>
+    /// <summary>identifier-1 as the statement WROTE it — for a whole dynamic-capacity table, the whole table in every current occurrence
+    /// (<c>PlaceBuilder.WholeTable</c>, kb/Work PB4855) — or null for the compiler's own ALLOCATE lowering. The one operand INITIALIZE
+    /// explicitly references (X3.23-1985 USE FOR DEBUGGING general rule 5: "explicitly references"; rule 9: a group reference does not
+    /// reference its subordinates); the elementary stores of <see cref="Actions"/> are what the statement MEANS.</summary>
     public Place? Written { get; init; }
 
     /// <summary>True for the INITIALIZE that <c>ALLOCATE … INITIALIZED</c> performs (ISO §2023:14.9.3.4 GR7), which the program never wrote.</summary>
@@ -26,8 +27,7 @@ public sealed record BoundInitialize(IReadOnlyList<InitializeAction> Actions) : 
 
     /// <summary>The places of the expansion that the program did not write: the places each per-occurrence loop's count reads (an OCCURS
     /// DEPENDING ON item, a capacity register — the statement means them, <see cref="AllCount.Places"/>), and the receiving places below
-    /// <see cref="Written"/> (a group's members and a table's occurrences), or every receiver of the ALLOCATE lowering. With no
-    /// <see cref="Written"/> place the whole-table form's element places ARE its identifier-1 and stay references.</summary>
+    /// <see cref="Written"/> (a group's members and a table's occurrences), or every receiver of the ALLOCATE lowering.</summary>
     public IEnumerable<object> ImplicitOperands
     {
         get

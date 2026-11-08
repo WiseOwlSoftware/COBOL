@@ -2023,9 +2023,12 @@ public sealed record BoundSearchWhen(BoundCondition Condition, IReadOnlyList<Bou
 /// table's index or a data item, GR3 b)/c)) with it; Format 2 ignores the initial setting and, per GR9, is "At no
 /// time … set to a value that exceeds the value that corresponds to the last element of the table", so its index
 /// never leaves the table (kb/Work PB447). Format 2 has no VARYING phrase, so
-/// <paramref name="AlsoVaried"/> is null there.</para></summary>
+/// <paramref name="AlsoVaried"/> is null there.</para>
+/// <para><paramref name="Table"/> is identifier-1 as the statement wrote it: the WHOLE table under the enclosing occurrence the
+/// statement names (<c>PlaceBuilder.WholeTable</c>), the operand SEARCH explicitly references (X3.23-1985 USE FOR DEBUGGING general
+/// rule 5; kb/Work PB4855). The scan reads <paramref name="IndexField"/>, never it.</para></summary>
 public sealed record BoundSearch(
-    string IndexField, long Count, BoundSetTarget? AlsoVaried,
+    string IndexField, long Count, TableAllPlace Table, BoundSetTarget? AlsoVaried,
     IReadOnlyList<BoundStatement>? AtEnd, IReadOnlyList<BoundSearchWhen> Whens,
     bool IsAll = false, Place? DependItem = null, AccessPath? DynTable = null,
     bool CheckSearchIndex = false, bool CheckSearchNoMatch = false) : BoundStatement, IBoundEvaluatedPhrases, IBoundImplicitOperands
