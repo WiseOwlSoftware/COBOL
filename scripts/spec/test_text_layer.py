@@ -11,6 +11,7 @@ its format labels kept, and the clause carried to the next page; a general-forma
 table with a cell that lists items; an unruled table whose row the print barely separates; Courier as <pre>, escaped;
 Markdown's own syntax escaped in prose; a page in two columns; an image page and a stray stroke reported as ambiguous.
 """
+import dataclasses
 import pathlib
 import sys
 import tempfile
@@ -96,7 +97,7 @@ def main() -> int:
     check("a list mark opening a paragraph is escaped", "\n\n\\- a dash opens this row\n" in md)
 
     print("general formats")
-    brace = ""
+    brace = "\uf8f1"
     p = page(words("14.8.24 MOVE statement", 73.7, 84, 10, BOLD),
              words("14.8.24.1 General format", 73.7, 128, 10, BOLD),
              words("Format 1 (simple):", 73.7, 150, 9, BOLD),
@@ -104,9 +105,9 @@ def main() -> int:
              words("literal-1", 117.9, 192),
              words("14.8.24.2 Syntax rules", 73.7, 288, 10, BOLD), words("1)", 73.7, 332), words("The rule.", 91.7, 332))
     c = L.convert(p, 499, no_stamp)
-    check("a general format's rows become ONE placeholder with its extent, never its text",
-          c.markdown.count(L.FIGURE_MARK) == 1 and "p0499 #1 y 176.0-201.0" in c.markdown and "identifier-1" not in c.markdown
-          and c.figures == [(176.0, 201.0)])
+    check("a general format's rows become ONE placeholder with its rows' tops, never its text",
+          c.markdown.count(L.FIGURE_MARK) == 1 and "p0499 #1 y 176.0-192.0" in c.markdown and "identifier-1" not in c.markdown
+          and c.figures == [(176.0, 192.0)])
     check("the format label is kept, and the clause after the format is prose",
           "Format 1 (simple):" in c.markdown and "1\\) The rule." in c.markdown and not c.format_open)
     open_end = L.convert(page(words("7.1.2.1 General format", 56.7, 700, 10, BOLD), words("COPY", 72, 720)), 54, no_stamp)
@@ -120,6 +121,13 @@ def main() -> int:
     stray = L.convert(page(words("The glyph", 56.7, 100), words(brace, 120, 100, 9, "Symbol")), 76, no_stamp)
     check("a general-format glyph outside a General format clause is a placeholder and ambiguous",
           L.FIGURE_MARK in stray.markdown and any("outside a General format" in a for a in stray.ambiguous))
+
+    # 5.1 of 2002 (folio 17) is headed `General formats` and DESCRIBES them: prose and a dash list, no figure.
+    told = L.convert(page(words("5.1 General formats", 56.7, 84, 10, BOLD),
+                          words("Elements used in depicting general formats are:", 56.7, 106),
+                          words("— Keywords", 74.7, 128), words("— Optional words", 74.7, 140)), 39, no_stamp)
+    check("prose and a list under a General formats heading are text, never a figure (render_figure.classify_row)",
+          L.FIGURE_MARK not in told.markdown and "Elements used in depicting" in told.markdown and "— Keywords" in told.markdown)
 
     print("tables, code, columns, ambiguity")
     cells = (((74, 279, 296, 302), (296, 279, 557, 302)), ((74, 302, 296, 340), (296, 302, 557, 340)))
@@ -143,6 +151,12 @@ def main() -> int:
     p = page(*[words(f"Left{i} 1", 56.7, 100 + 11 * i) for i in range(4)], *[words(f"Right{i} 2", 322.7, 100 + 11 * i) for i in range(4)])
     md = L.convert(p, 862, no_stamp).markdown
     check("a two-column page is read column by column", md.index("Left3") < md.index("Right0"))
+    # Folio 170 of 2002: one column, its words leaving the middle clear by a 1.7 pt word gap (kb/Work PB4813).
+    p = page(*[words(f"Lead{i}", 56.7, 100 + 11 * i) for i in range(4)], *[words(f"Tail{i}", 307.5, 100 + 11 * i) for i in range(4)])
+    p = L.Layout(p.width, p.height, tuple(dataclasses.replace(s, x1=305.8) if s.text.startswith("Lead") else s for s in p.spans),
+                 p.tables, p.images, p.strokes)
+    md = L.convert(p, 192, no_stamp).markdown
+    check("a page whose middle is clear only by a word gap is one column", md.index("Tail0") < md.index("Lead1"))
     c = L.convert(page(images=1), 1, no_stamp)
     check("an image page has no text and is reported", c.markdown == "" and c.ambiguous == ["1 image(s)"])
     c = L.convert(page(words("Prose.", 56.7, 100), strokes=[(60, 400, 200, 400)]), 3, no_stamp)

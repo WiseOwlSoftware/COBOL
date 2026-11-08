@@ -42,13 +42,11 @@ import io
 import re
 from typing import Any, Callable, Iterable
 
+from figure_extract import GLYPH_PIECES  # THE Symbol font's delimiter pieces: a row carrying one is a figure's, never prose
 from spec_headings import GENERAL_FORMAT_TITLE  # THE general-format heading (kb/Work PB284)
 
 #: The printed ligatures the text layer carries as one glyph (2002: "identiﬁer"), and their letters.
 LIGATURES = {"ﬀ": "ff", "ﬁ": "fi", "ﬂ": "fl", "ﬃ": "ffi", "ﬄ": "ffl"}
-#: The Symbol font's brace, bracket and parenthesis pieces (U+F8EB..U+F8FE in its private-use encoding): a general format's
-#: drawn delimiters. A row carrying one is part of a figure, never prose.
-FIGURE_GLYPHS = re.compile("[-]")
 #: The placeholder a general format is written as until the vector arm draws it; the assembly refuses a page holding one.
 FIGURE_MARK = "<!-- GENERAL FORMAT"
 #: A heading's clause number: `9`, `9.2`, `14.8.24.1`, `A.1`, `E.1.3.2` (a lone letter is a word, not a number).
@@ -83,6 +81,8 @@ LEADING = 0.6
 FULL_SLACK = 75.0
 #: A gap between two spans of one row wider than this many font sizes is a column gap (an unruled table), not a space.
 COLUMN_GAP = 3.0
+#: The clear gutter, in points, between the two columns of a two-column page (`two_columns`).
+COLUMN_GUTTER = 10.0
 
 
 @dataclasses.dataclass(frozen=True)
@@ -160,7 +160,7 @@ class Row:
 
     @property
     def figure(self) -> bool:
-        return any(FIGURE_GLYPHS.search(s.text) for s in self.spans)
+        return any(c in GLYPH_PIECES for s in self.spans if "Symbol" in s.font for c in s.text)
 
 
 @dataclasses.dataclass
@@ -247,12 +247,19 @@ def rows_of(spans: Iterable[Span]) -> list[Row]:
 
 
 def two_columns(spans: list[Span], width: float) -> bool:
-    """A page set in two columns: text on both sides of the middle and no span crossing it."""
+    """A page set in two columns: text on both sides of the middle, and a GUTTER of at least COLUMN_GUTTER points clear
+    between them. A span is a word here (`read_layout`), so a single-column page leaves no span crossing the middle
+    whenever a word gap falls there: the old test (no span crossing the middle) split 26 single-column 2002 pages, the
+    contents and the program-prototype formats of folio 170 among them, whose clear gap at the middle is a word gap of
+    1.7 to 2.5 pt (kb/Work PB4813); the index's gutter is 14 to 111 pt."""
     mid = width / 2
-    right = [s for s in spans if s.x0 >= mid - 5]
-    left = [s for s in spans if s.x1 <= mid + 5]
-    crossing = [s for s in spans if s.x0 < mid - 5 and s.x1 > mid + 5]
-    return len(right) >= 3 and len(left) >= 3 and not crossing
+    left = [s for s in spans if (s.x0 + s.x1) / 2 < mid]
+    right = [s for s in spans if (s.x0 + s.x1) / 2 >= mid]
+    if len(right) < 3 or len(left) < 3 or min(s.x0 for s in right) - max(s.x1 for s in left) < COLUMN_GUTTER:
+        return False
+    # A column of running text has no column gap inside a row; an unruled TABLE does (the reserved-word list, three
+    # columns to a page, folios 138-143), and is read whole by `unruled_tables`, never split at the middle.
+    return not any(len(column_starts(r)) > 1 for side in (left, right) for r in rows_of(side))
 
 
 def inside(s: Span, box: tuple[float, float, float, float]) -> bool:
@@ -268,6 +275,14 @@ def heading_of(row: Row) -> tuple[str, str] | None:
     if len(words) == 2 and CLAUSE_NUMBER.match(words[0]) and not CAPTION.match(row.text):
         return words[0], words[1]
     return None
+
+
+def classify_row(r: Row) -> str:
+    """What a row of a General format clause IS, by the vector arm's one test (`render_figure.classify_row`): a `Format N`
+    label, prose, a figure row or glue. Prose there (`where rounded-phrase is described in …`, and the description of
+    general formats that 5.1's own `General formats` heading opens, folio 17) is written as text, never drawn."""
+    import render_figure  # noqa: PLC0415  (the vector arm, which reads a PDF page: imported by the one caller that needs it)
+    return render_figure.classify_row([{"text": t, "x0": s.x0} for s in r.spans for t in s.text.split()])
 
 
 def opens_format(layout: Layout, stamp: Callable[[str], bool]) -> bool | None:
@@ -378,15 +393,24 @@ def convert(layout: Layout, pno: int, stamp: Callable[[str], bool], format_open:
         items: list[tuple[float, Any]] = []
         in_fmt = in_format
         fmt_rows: set[int] = set()
+        run: list[tuple[int, str]] = []
         for i, r in enumerate(rows):
             h = heading_of(r)
             if h:
                 in_fmt = bool(GENERAL_FORMAT_TITLE.fullmatch(h[1]))
+                run = []
                 continue
-            if in_fmt or r.figure:
-                fmt_rows.add(i)
-                if r.figure and not in_fmt:
-                    ambiguous.append(f"a general-format glyph outside a General format clause (y {r.y0:.0f})")
+            kind = "figure" if r.figure else classify_row(r) if in_fmt else "prose"
+            if r.figure and not in_fmt:
+                ambiguous.append(f"a general-format glyph outside a General format clause (y {r.y0:.0f})")
+            # A run of figure and glue rows is a figure when it holds a figure row (`render_figure.find_figures`'
+            # rule: glue alone, such as 5.1's `— Keywords` list, is no figure); a label or prose closes the run.
+            if kind in ("figure", "glue"):
+                run.append((i, kind))
+                if any(k == "figure" for _, k in run):
+                    fmt_rows.update(j for j, _ in run)
+            else:
+                run = []
         in_format = in_fmt
         fmt_extent = [(rows[i].y0, rows[i].y1) for i in fmt_rows]
         kept_tables = [t for t in tables
@@ -469,9 +493,8 @@ def convert(layout: Layout, pno: int, stamp: Callable[[str], bool], format_open:
             prev = r
     for b in blocks:
         if b.kind == "figure":
-            y0, y1 = min(r.y0 for r in b.rows), max(r.y1 for r in b.rows)
-            figures.append((y0, y1))
-            covered.append((y0, y1))
+            figures.append(figure_rows(b))
+            covered.append((min(r.y0 for r in b.rows), max(r.y1 for r in b.rows)))
     strays = [s for s in layout.strokes if not any(a - 6 <= s[1] and s[3] <= b + 6 for a, b in covered)]
     if strays:
         ambiguous.append(f"{len(strays)} vector stroke(s) outside every table and general format")
@@ -506,6 +529,12 @@ def table_markdown(t: Table, spans: list[Span]) -> str:
     return "\n".join(lines)
 
 
+def figure_rows(b: Block) -> tuple[float, float]:
+    """Where a figure block's rows lie: the TOPS of its first and last rows, the extent `render_figure.draw` pads into the
+    band it builds the figure from (as `render_figure.find_figures` does with the rows it locates)."""
+    return min(r.y0 for r in b.rows), max(r.y0 for r in b.rows)
+
+
 def render(blocks: list[Block], pno: int) -> str:
     out: list[str] = []
     figure_no = 0
@@ -519,7 +548,7 @@ def render(blocks: list[Block], pno: int) -> str:
             out.append(b.text)
         elif b.kind == "figure":
             figure_no += 1
-            y0, y1 = min(r.y0 for r in b.rows), max(r.y1 for r in b.rows)
+            y0, y1 = figure_rows(b)
             out.append(f"{FIGURE_MARK} p{pno:04} #{figure_no} y {y0:.1f}-{y1:.1f}: drawn from the page by the vector arm, "
                        "never typed from its text -->")
         elif b.kind == "pre":

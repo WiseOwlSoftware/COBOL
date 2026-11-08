@@ -40,10 +40,11 @@ page with the PDF's text layer (word recall and precision) and prints numbers on
 
 TEXT-LAYER BACKEND (kb/Work PB4813). `text [PAGES]` converts pages of a PDF with a true text layer (2002) from that layer,
 with no model: text_layer.py reads the words with their fonts and positions and writes the headings, rules, notes, lists,
-tables and code the page sets, the standard's defects kept as printed. A general format is never typed from text: it is
-written as a text_layer.FIGURE_MARK placeholder (page, figure, measured extent) for the vector arm to draw, and `assemble`
-refuses a page that still holds one. `local.json` records each page as `model: text-layer` with its folio, its figures
-and what the text layer left ambiguous; `status` counts them. A page the layer cannot write (an image) is recorded as
+tables and code the page sets, the standard's defects kept as printed. A general format is never typed from text: the text
+layer places it (text_layer.FIGURE_MARK: page, figure, its rows' tops) and the vector arm draws it there from the page's
+words, underlines, strokes and Symbol glyph pieces (`draw_figure`, render_figure.draw); a figure the arm refuses stays a
+placeholder, and `assemble` refuses a page that still holds one. `local.json` records each page as `model: text-layer`
+with its folio, its figures, those left undrawn and what the text layer left ambiguous; `status` counts them. A page the layer cannot write (an image) is recorded as
 failed, and `pages <list> --local MODEL` may read it, as may a page whose structure is ambiguous, only as a reading the
 page decides.
 
@@ -72,8 +73,10 @@ from __future__ import annotations
 import argparse
 import base64
 import collections
+import contextlib
 import datetime
 import http.client
+import io
 import json
 import pathlib
 import re
@@ -332,8 +335,10 @@ def print_status(run: Run, st: dict[str, Any]) -> None:
     layer = {n: rec for n, rec in log.items() if rec.get("model") == TEXT_LAYER and "error" not in rec}
     if layer:
         unsure = sorted(int(n[1:]) for n, rec in layer.items() if rec.get("ambiguous"))
-        print(f"text layer: {len(layer)} page(s), {sum(rec.get('figures', 0) for rec in layer.values())} general format(s) "
-              f"awaiting the vector arm on {sum(1 for rec in layer.values() if rec.get('figures'))} page(s); "
+        undrawn = sorted(int(n[1:]) for n, rec in layer.items() if rec.get("undrawn", rec.get("figures", 0)))
+        print(f"text layer: {len(layer)} page(s), {sum(rec.get('figures', 0) for rec in layer.values())} general format(s), "
+              f"{sum(rec.get('undrawn', rec.get('figures', 0)) for rec in layer.values())} not drawn by the vector arm "
+              f"on {len(undrawn)} page(s) {undrawn[:20]}; "
               f"structure ambiguous on {len(unsure)} page(s) {unsure[:20]}", flush=True)
     refused = {n: rec for n, rec in st.get("failed", {}).items() if not run.page_file(int(n[1:])).exists()}
     if refused:
@@ -429,9 +434,41 @@ def open_pdf(pdf: pathlib.Path) -> Any:
     return pymupdf.open(pdf)
 
 
+def draw_figure(doc: Any, pno: int, rows: tuple[float, float], edition: int) -> list[str] | None:
+    """The general format whose rows' tops run over `rows` on page `pno`, drawn by the vector arm (render_figure.draw)
+    as the lines of its `<pre>` block; None when the arm draws nothing there or refuses the band (its reason printed)."""
+    import render_figure  # noqa: PLC0415  (the vector arm; imported only by a run that draws)
+    from figure_extract import page_extractor  # noqa: PLC0415
+    from figure_geometry import page_classifier  # noqa: PLC0415
+    try:
+        with contextlib.redirect_stdout(io.StringIO()):
+            return render_figure.draw(doc[pno - 1], page_extractor(edition), page_classifier(edition), *rows)
+    except SystemExit as exc:
+        print(f"{page_name(pno)}: the vector arm refused the figure at y {rows[0]:.1f}-{rows[1]:.1f}: {exc}", flush=True)
+        return None
+
+
+def draw_figures(markdown: str, figures: list[tuple[float, float]],
+                 drawer: Callable[[tuple[float, float]], list[str] | None]) -> tuple[str, int]:
+    """The page with each FIGURE_MARK the vector arm can draw replaced by its drawn figure, in order (the n-th mark is the
+    n-th figure), and how many marks stay undrawn (`assemble` refuses a page that keeps one)."""
+    lines, undrawn, n = markdown.split("\n"), 0, 0
+    for i, line in enumerate(lines):
+        if not line.startswith(text_layer.FIGURE_MARK):
+            continue
+        drawn = drawer(figures[n])
+        n += 1
+        if drawn is None:
+            undrawn += 1
+        else:
+            lines[i] = "\n".join(drawn)
+    return "\n".join(lines), undrawn
+
+
 def text_pages(run: Run, pdf: pathlib.Path, pages: list[int], replace: bool,
                read: Callable[[Any, int], text_layer.Layout] = text_layer.read_layout,
-               opener: Callable[[pathlib.Path], Any] = open_pdf) -> list[int]:
+               opener: Callable[[pathlib.Path], Any] = open_pdf,
+               drawer: Callable[[Any, int, tuple[float, float], int], list[str] | None] = draw_figure) -> list[int]:
     """Convert named pages from the PDF's own text layer (text_layer.py; kb/Work PB4813), in page order. A page whose text
     layer holds nothing to write (an image page), or whose stamp cannot be dropped, is recorded in local.json as failed and
     returned; each written page's provenance records the backend, its general formats awaiting the vector arm, what the text
@@ -464,7 +501,11 @@ def text_pages(run: Run, pdf: pathlib.Path, pages: list[int], replace: bool,
             if run.page_file(pno).exists() and not replace:
                 print(f"{name}: already written, skipped", flush=True)
                 continue
-            if not run.put(pno, c.markdown, replace=replace):
+            markdown, undrawn = c.markdown, len(c.figures)
+            if c.figures and spec_pdf.geometry(run.edition) == "vector":
+                markdown, undrawn = draw_figures(markdown, c.figures,
+                                                 lambda rows: drawer(doc, pno, rows, run.edition))
+            if not run.put(pno, markdown, replace=replace):
                 why = "the text layer holds no text to write (" + ("; ".join(c.ambiguous) or "empty") + ")"
                 print(f"{name}: NOT written, {why}", flush=True)
                 failed.append(pno)
@@ -472,8 +513,8 @@ def text_pages(run: Run, pdf: pathlib.Path, pages: list[int], replace: bool,
                     log[name] = {"model": TEXT_LAYER, "error": why, "at": datetime.datetime.now().astimezone().isoformat()}
                 continue
             log[name] = {"model": TEXT_LAYER, "at": datetime.datetime.now().astimezone().isoformat(), "folio": c.folio,
-                         "figures": len(c.figures), "ambiguous": c.ambiguous}
-            print(f"{name}: written{f', {len(c.figures)} general format(s) for the vector arm' if c.figures else ''}"
+                         "figures": len(c.figures), "undrawn": undrawn, "ambiguous": c.ambiguous}
+            print(f"{name}: written{f', {len(c.figures)} general format(s), {undrawn} not drawn' if c.figures else ''}"
                   f"{f', AMBIGUOUS: ' + '; '.join(c.ambiguous) if c.ambiguous else ''}", flush=True)
     write_atomic(run.local_file, json.dumps(log, indent=1))
     if failed:

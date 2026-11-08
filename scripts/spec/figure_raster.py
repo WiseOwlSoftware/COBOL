@@ -18,7 +18,7 @@ by `spec_pdf.geometry` (PB4815, PB4849); it is the raster arm and never a second
     stem   {"x", "y0", "y1", "h", "kind": "bracket"|"bar", "side": "L"|"R"|None}   (as figure_geometry)
            side "L" is an opening delimiter ('[' whose feet turn right)
     brace  no stem (figure_geometry has none): extract() returns three Symbol glyph words per brace, the top hook,
-           the point and the bottom hook (render_figure.GLYPH_PIECES), as a vector page's text layer does
+           the point and the bottom hook (figure_extract.GLYPH_PIECES), as a vector page's text layer does
     word   {"text", "x0", "y0", "x1", "underlined": True|False|[(offset, length), ...]}    (as figure_extract)
 
 HOW IT MEASURES (each step is a function below; every constant carries the PDF page that set it, kb/Work PB4848):
@@ -107,7 +107,7 @@ BRACE_HOOK_ROWS = 0.08         # ... judged over this share of the height at eac
 BRACE_SYMMETRY = 1.6           # the top and bottom halves of a brace mirror within this many points (median): 0.5 at 22 pt, 1.3 at the 57 pt braces of page 217
 BRACE_JOINT = 0.6             # two braces joined hook to hook bend their centre line toward the hooks this far or more at the joint: 1.1 on PDF page 841; a single brace's middle 0.3 at most (kb/Work PB4897)
 BRACE_GLYPH_H = 10.2           # a brace's last enclosed row begins this far above its bottom: median of 120 braces on PDF pages 196, 217, 252, 389, 396, 426 (p10 7.2, p90 11.9; kb/Work PB4848)
-BRACE_GLYPHS = {"L": ("ì", "í", "î"), "R": ("ü", "ý", "þ")}   # render_figure.GLYPH_PIECES: top, point, bottom
+BRACE_GLYPHS = {"L": ("ì", "í", "î"), "R": ("ü", "ý", "þ")}   # figure_extract.GLYPH_PIECES: top, point, bottom
 BRACE_POINT = 1.0              # the middle departs this far from the shoulders: 2.5 at 22 pt (page 196), 1.0 to 1.8 at 26 pt and 33 pt (page 844, 196); a parenthesis stays under 0.5
 WORD_GAP_PT = 3.5              # a horizontal gap between components wider than this separates two words
 MIN_COMPONENT_PX = 4           # smaller ink is speckle
@@ -1518,7 +1518,7 @@ def classify_page(rp: RasterPage) -> list:
     """`figure_geometry.classify_page`'s result for a raster page: its brackets and bars, and each level-2 box as its
     two sides, stems of kind "box" with the side they close (a vector page has no box; `render_figure` draws them by
     FIGURE-STYLE.md rule 9, kb/Work PB4849). A brace is no stem there: `extract` reports it as the Symbol glyph pieces
-    `render_figure.GLYPH_PIECES` decodes."""
+    `figure_extract.GLYPH_PIECES` decodes."""
     return rp.stems + [box_side(b, side) for b in rp.boxes for side in ("L", "R")]
 
 
