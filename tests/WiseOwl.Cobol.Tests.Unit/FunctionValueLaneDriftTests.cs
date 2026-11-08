@@ -144,9 +144,11 @@ public sealed class FunctionValueLaneDriftTests
     {
         var exact = new SortedSet<string>(NativeRenderDecArms().Where(a => !a.Value).Select(a => a.Key), StringComparer.Ordinal);
         var restated = new SortedSet<string>(FunctionValueLane.NativeSdidiBodiesWithExactResult, StringComparer.Ordinal);
+        Assert.Empty(FunctionValueLane.NativeSdidiBodiesWithExactResult.Intersect(FunctionValueLane.NativeSdidiBodiesWithWholeResult));
+        restated.UnionWith(FunctionValueLane.NativeSdidiBodiesWithWholeResult);
         Assert.NotEmpty(exact);
         Assert.True(exact.SetEquals(restated),
-            "FunctionValueLane.NativeSdidiBodiesWithExactResult must be exactly RenderDec's native arms not built by Dec(...).\n"
+            "FunctionValueLane.NativeSdidiBodiesWithExactResult and NativeSdidiBodiesWithWholeResult must be exactly RenderDec's native arms not built by Dec(...).\n"
             + "  in RenderDec only: [" + string.Join(", ", exact.Except(restated)) + "]\n"
             + "  in NativeSdidiBodiesWithExactResult only: [" + string.Join(", ", restated.Except(exact)) + "]");
     }
