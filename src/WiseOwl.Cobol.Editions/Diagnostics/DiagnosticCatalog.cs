@@ -8077,6 +8077,18 @@ public static class DiagnosticCatalog
         + "dialects.",
         "VCR Table 7 row 7.6 (X3.23-1985 MULTIPLE FILE TAPE clause)");
 
+    // kb/Work PB4919: `RERUN ON SYSRR EVERY 100 RECORDS.` compiled clean at --std 85, because the grammar transcribed the
+    // RECORDS arm as `integer-1 RECORDS [OF file-name-2]`. Emitted by FileControlBinder.ScreenRerunClause at every edition:
+    // from 2002 the clause is also COBOL0902 (removed), and a removed clause written without its file is malformed too.
+    public static readonly DiagnosticDescriptor RerunRecordsNoFile = new(
+        "COBOL6496", "rerun-records-no-file", EditionSeverity.Error,
+        "The X3.23-1985 RERUN clause's integer-1 RECORDS phrase names no file. The printed format, RERUN [ON {file-name-1 "
+        + "| implementor-name-1}] EVERY {{[END OF] {REEL | UNIT} | integer-1 RECORDS} OF file-name-2 | integer-2 "
+        + "CLOCK-UNITS | condition-name-1}, closes one brace pair over the END OF REEL/UNIT and RECORDS phrases and "
+        + "follows it with OF file-name-2, which is not in brackets: the RECORDS phrase counts the records of "
+        + "file-name-2, so file-name-2 is required (OF is an optional word).",
+        "X3.23-1985 RERUN clause general format (§1985:VII.2.12.2; VCR Table 7 row 7.15)");
+
     // ── One descriptor per rule (kb/Work PB4463): OCCURS, REDEFINES, ANY LENGTH, VALUE, TYPE, SPECIAL-NAMES collating, file locking ──
 
     /// <summary>COBOL0850 — occurs depending bounds invalid (kb/Work PB4463).</summary>
