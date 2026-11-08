@@ -26,9 +26,10 @@ if len(sys.argv) < 2 or not re.fullmatch(r"[a-z][a-z0-9]*", sys.argv[1]):
     sys.exit("usage: build_lane1_inputs.py <lane-prefix>   (e.g. gl3 — unique per lane; slugs become <prefix>-<family>)")
 LANE = sys.argv[1]
 
-cat = {r["id"]: r for r in json.loads((REPO / "docs/rearchitecture/spec-rule-catalog.json").read_text(encoding="utf-8"))["rules"]}
 sys.path.insert(0, str(REPO / "scripts" / "spec"))
+from inventory_schema import NEWEST  # noqa: E402  (the newest edition's catalog: the schema's `editions.of`)
 from inventory_view import inventory  # noqa: E402  (the one view of the inventory, kb/Work PB4992)
+cat = {r["id"]: r for r in NEWEST.rules()}
 inv = inventory()
 
 conf = [r for r in inv if r["verdict"] == "CONFORMS" and r["state"] == "GAP"]

@@ -43,14 +43,13 @@ import sys
 # `DerivedSelector`'s `determination-prefix` arm, which reads what the determination SAYS. A markdown table read
 # three ways is `feedback_one_rule_one_place` waiting to happen, so it moved down into the module every consumer
 # already imports, and the two names this file used keep working unchanged.
-from inventory_schema import SCHEMA_PATH, derivation_rows, load_schema
+from inventory_schema import NEWEST, SCHEMA_PATH, derivation_rows, load_schema
 from inventory_schema import register_cells as cells_of
 from inventory_schema import section7_rows
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
-CATALOG = ROOT / 'docs' / 'rearchitecture' / 'spec-rule-catalog.json'
 CONFORMANCE = ROOT / 'docs' / 'CONFORMANCE.md'
 
 #: Words that must appear in a §7 row for it to be judged as naming the same element as the catalog. Kept
@@ -105,8 +104,7 @@ def corresponds(element: str, entry: dict, register: dict[int, dict] | None = No
 
 
 def load_register() -> dict[int, dict]:
-    catalog = json.loads(CATALOG.read_text(encoding='utf-8'))
-    return {r['ordinal']: r for r in catalog['rules'] if r.get('kind') == 'DOC'}
+    return {r['ordinal']: r for r in NEWEST.rules() if r.get('kind') == 'DOC'}
 
 
 #: A §7 row key: the inventory rule-id of the A.1 item the row discharges (`DOC-A.1-92`), or — for a SECOND
@@ -151,7 +149,6 @@ def unreachable_items() -> dict[int, str]:
     element this register documents in full. The presence of the row is the test, and it is the same fact
     `Schema.anchor_obliged` keys on, read through the same parser.
     """
-    from inventory_schema import NEWEST, load_schema  # local: keeps this script standalone-runnable
     schema = load_schema()
     rules = NEWEST.rules()
     determined = schema.register_items()

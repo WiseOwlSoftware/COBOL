@@ -1292,7 +1292,14 @@ def load_schema(tree: Tree = WORKING_TREE) -> Schema:
     raw = tree.json(SCHEMA_REL)
     if raw is None:
         raise SystemExit(f"inventory schema not found: {SCHEMA_REL} in {tree.rev or tree.root}")
-    return Schema(raw, tree)
+    try:
+        return Schema(raw, tree)
+    except KeyError as e:
+        # A tree whose schema predates a key this reader needs (a WIP checkpoint of a merged branch is the one shape known:
+        # branch review R2-1 of PB4992). History readers walk main's --first-parent line, so meeting one is a defect of
+        # the walk or of a landing: refused by name, never read past.
+        raise SystemExit(f"inventory schema at {tree.rev or tree.root} lacks the key {e} this reader needs; a history "
+                         f"reader asks for landed states only (git log --first-parent main)") from None
 
 
 def self_test() -> int:

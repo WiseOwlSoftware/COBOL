@@ -44,14 +44,13 @@ import sys
 #: ⛔ THE CLAUSE-PATH RULE IS IMPORTED, NEVER RE-IMPLEMENTED. §2023:14.9.5 must not select §2023:14.9.50, and the one
 #: definition of that lives with the schema. The dependency runs ONE way — `inventory_schema` reads this
 #: script's ARTIFACT rather than importing this module, so there is no cycle.
-from inventory_schema import section_matches
+from inventory_schema import edition, section_matches
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
 import spec_pdf  # noqa: E402  (scripts/spec: the one edition table, kb/Work PB4815)
 SPEC = spec_pdf.markdown(2023)
-CATALOG = REPO / "docs" / "rearchitecture" / "spec-rule-catalog.json"
 ARTIFACT = REPO / "tests" / "version-matrix" / "annex-a2-undefined.json"
 ARTIFACT_REL = "tests/version-matrix/annex-a2-undefined.json"
 
@@ -152,11 +151,8 @@ def build() -> dict:
     if not SPEC.exists():
         raise SystemExit(
             f"spec not found: {SPEC}\nRun: git submodule update --init --recursive")
-    if not CATALOG.exists():
-        raise SystemExit(
-            f"catalog not found: {CATALOG}\nRun: python scripts/spec/extract_rule_catalog.py")
     items = parse_items(annex_a2_text(SPEC.read_text(encoding="utf-8")))
-    rules = json.loads(CATALOG.read_text(encoding="utf-8"))["rules"]
+    rules = edition(2023).rules()
     return {
         "$comment": COMMENT,
         "source": "specs/ISO_COBOL_2023.md#section-a-2",

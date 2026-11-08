@@ -161,6 +161,16 @@ def write_store(records: Iterable[dict[str, Any]], directory: pathlib.Path) -> i
     return changed
 
 
+def landed_head(repo: pathlib.Path = REPO) -> str:
+    """The newest commit main had that HEAD holds: HEAD's merge base with origin/main (or main), HEAD when neither exists.
+    A history reader walks `--first-parent` from here, so every commit it reads is a landing, a state main had, and never
+    a merged branch's WIP checkpoint (branch review R2-1 of PB4992)."""
+    for ref in ("origin/main", "main"):
+        if (base := Tree(repo).git("merge-base", "HEAD", ref)) is not None:
+            return base.decode("utf-8").strip()
+    return "HEAD"
+
+
 def store_at(tree: Tree, edition: Edition) -> list[dict[str, Any]] | None:
     """`edition`'s store as committed at `tree.rev`, in file order, or None when the commit has none. Reads the per-rule
     directory and, for a commit before PB4148, the edition's single legacy file. The records are as committed: a commit

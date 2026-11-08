@@ -519,7 +519,8 @@ def measure_commits(shas: typing.Sequence[str], register: bool = True) -> dict[s
 
 
 def missed_points(pts: list[dict]) -> list[dict]:
-    """The measurement-moving commits that no generator run recorded: reachable from HEAD and from no recorded point.
+    """The measurement-moving commits that no generator run recorded: on main's first-parent line up to the newest LANDED
+    commit HEAD holds (its merge base with origin/main), and reachable from no recorded point.
 
     ⛔ A generator run measures ONE tree, so a session that landed three trains between runs recorded one point
     for three landings (2026-10-04: trains 1011 and 1012 were missing until the owner noticed the page stale).
@@ -527,7 +528,12 @@ def missed_points(pts: list[dict]) -> list[dict]:
     so the series is one point per GAP-moving landing no matter how rarely the generator runs. Each such point
     carries the register's series too, measured from the same tree (kb/Work PB2912), and a commit that moves only the
     register (a `kb/Work` landing that leaves the inventory alone) is a point as well: the movement test is
-    MOVING_KEYS, the same one `trend_series` applies to the current point (train 1052 review)."""
+    MOVING_KEYS, the same one `trend_series` applies to the current point (train 1052 review).
+
+    ⛔ A POINT IS A STATE MAIN HAD (branch review R2-1 of PB4992). The merge queue keeps a branch's commits, so a plain walk
+    reaches a branch's WIP checkpoints, trees main never held (one stored adjudications under a schema the view of that
+    era could not read, and a silent `KeyError` dropped it). The walk is `--first-parent` from the landed head: each step
+    is a landing, and a landed tree whose schema the view cannot read is refused loudly (`load_schema`)."""
     last = pts[-1] if pts else None
     # the recorded points' full commit ids: a point's sha may never have reached this clone (None)
     known = git_batch.resolve(REPO, [p["sha"] for p in pts])
@@ -538,10 +544,10 @@ def missed_points(pts: list[dict]) -> list[dict]:
     # `last..HEAD` also lists commits older than `last` that are not its ancestors (a branch merged after the point
     # was taken), and those were walked when an earlier point was recorded (kb/Work PB3161, review finding R1-2: nine
     # shas appeared twice in the frozen series).
-    revs = ["HEAD", *(f"^{sha}" for sha in recorded)]
+    revs = [inventory_store.landed_head(REPO), *(f"^{sha}" for sha in recorded)]
     # A commit moves the view when it touches the store or the catalog it is joined with (kb/Work PB4992).
     newest = inventory_schema.NEWEST
-    log = git("log", "--reverse", "--format=%h|%cI|%s", "--abbrev=8", "--stdin", "--",
+    log = git("log", "--reverse", "--first-parent", "--format=%h|%cI|%s", "--abbrev=8", "--stdin", "--",
               *inventory_store.history_pathspecs(newest), newest.catalog, "kb/Work", stdin="\n".join(revs) + "\n")
     walked = [line.split("|", 2) for line in log.splitlines() if line]
     measured = measure_commits([sha for sha, _, _ in walked])   # two processes however many commits (PB3315)

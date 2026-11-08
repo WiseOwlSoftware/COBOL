@@ -52,6 +52,19 @@ inventory ignored its root; a self-test plants a root and finds that root's one 
 names in the design docs. R1-6: one C# row type, with the field map on the row and the schema test going through the
 view's own reader. The merge of main took PB4973's adjudication of GR-14.9.43.4-10 into the store's shape.
 
+**Branch review round 2.** R2-1: the merge queue keeps a branch's commits, so after landing this branch's own WIP
+checkpoint 47beeeca5e (adjudication-only records under a schema with no `editions.of`) would sit in main's history,
+where `backfill_closes_rows.py` crashed on it with a bare KeyError and `gen_ledger`'s trend silently dropped it. The
+root is the walk, not the reader: a history reader asks for LANDED states only. Both walks now go `--first-parent`
+from `inventory_store.landed_head` (HEAD's merge base with origin/main), so every commit they read is a landing;
+backfill attributes a landing by the messages of every commit it brought in. `load_schema` refuses a tree whose
+schema lacks a key it needs, naming the commit and the key, and no reader of the old shape was added. Self-tests plant
+the refusal (`inventory_view`) and a merged branch whose WIP checkpoint the walk must not read (`backfill_closes_rows`).
+No first-parent commit of main reads a schema at all today: every one before this landing stores whole rows, which the
+view returns as committed. R2-2: `audit_annex_a1`, `audit_code_citations`, `extract_annex_a2`, `measure_sublist_levels`
+and the fleet's `build_lane1_inputs` template each held their own copy of the 2023 catalog path; each reads it from
+its edition now.
+
 **What stays open.** PB4993 (the 1985 catalog's `status`, `next` as schema data, recording the audit's kept batch) and
 PB4994 (the ledger's per-edition counts, the C# chain state) are their own mechanisms and go to a fresh agent; their
 notes record what is already in place.

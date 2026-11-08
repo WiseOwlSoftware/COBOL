@@ -361,6 +361,18 @@ def self_test() -> int:
        and at_schema.derivation.undefined == {1: {"GR-4.2-1"}} and at_schema.derivation.register == {}
        and at_schema.rule_ids == {"GR-4.10-1", "GR-4.2-1", "DOC-A.1-1"},
        "a commit's schema reads that commit's §7 and §8 registers, Annex A.2 list and catalog, not the working tree's")
+    # Branch review R2-1: a tree main never held (a WIP checkpoint whose schema predates `editions.of`) is refused by name.
+    old_raw = json.loads(WORKING_TREE.text(SCHEMA_REL))
+    old_raw["editions"]["values"] = [e["spelling"] for e in old_raw["editions"].pop("of")]
+    repo.commit("a WIP checkpoint", {SCHEMA_REL: json.dumps(old_raw)})
+    wip = repo.git("rev-parse", "HEAD").strip()
+    try:
+        inventory_at(wip, 2023, repo.path)
+        refused = ""
+    except SystemExit as e:
+        refused = str(e.code)
+    ok(wip in refused and "'of'" in refused and "--first-parent" in refused,
+       "a commit whose schema the reader cannot read is refused, naming the commit and the key, never read past")
 
     live = view(2023, schema)
     ok(not live.problems and len(live.rows) == len(ed.rules()), "the working tree's 2023 view refuses nothing, one row per rule")
