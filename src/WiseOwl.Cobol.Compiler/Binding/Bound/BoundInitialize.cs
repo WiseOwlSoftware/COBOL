@@ -25,34 +25,17 @@ public sealed record BoundInitialize(IReadOnlyList<InitializeAction> Actions) : 
     /// <summary>True for the INITIALIZE that <c>ALLOCATE … INITIALIZED</c> performs (ISO §2023:14.9.3.4 GR7), which the program never wrote.</summary>
     public bool AllocateImplicit { get; init; }
 
-    /// <summary>The places of the expansion that the program did not write: the places each per-occurrence loop's count reads (an OCCURS
-    /// DEPENDING ON item, a capacity register — the statement means them, <see cref="AllCount.Places"/>), and the receiving places below
-    /// <see cref="Written"/> (a group's members and a table's occurrences), or every receiver of the ALLOCATE lowering.</summary>
+    /// <summary>The places of the expansion that the program did not write: the receiving places below <see cref="Written"/> (a group's
+    /// members and a table's occurrences), or every receiver of the ALLOCATE lowering. (The places each per-occurrence loop's count reads are
+    /// no reference either: <c>BoundReferences</c> reads no <see cref="AllCount"/> as one.)</summary>
     public IEnumerable<object> ImplicitOperands
     {
         get
         {
-            foreach (var place in CountPlaces(Actions)) yield return place;
             if (Written is null && !AllocateImplicit) yield break;
             foreach (var place in ReceivingPlaces(Actions))
                 if (!ReferenceEquals(place, Written)) yield return place;
         }
-    }
-
-    private static IEnumerable<Place> CountPlaces(IReadOnlyList<InitializeAction> actions)
-    {
-        foreach (var action in actions)
-            switch (action)
-            {
-                case InitializeLoop lp:
-                    foreach (var p in lp.Count.Places) yield return p;
-                    foreach (var p in CountPlaces(lp.Body)) yield return p;
-                    break;
-                case InitializeOccurrenceSelect sel:
-                    foreach (var arm in sel.Arms) foreach (var p in CountPlaces([arm.Do])) yield return p;
-                    if (sel.Otherwise is { } otherwise) foreach (var p in CountPlaces([otherwise])) yield return p;
-                    break;
-            }
     }
 
     private static IEnumerable<Place> ReceivingPlaces(IReadOnlyList<InitializeAction> actions)

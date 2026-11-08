@@ -22,6 +22,14 @@ keys are the table's) and `BoundInitialize.Written` on the whole-dynamic-table a
 keys (§2023:14.9.40.4 GR24 places the sorted elements back), so rule 6 c fires. SEARCH's enclosing occurrence is identifier-1's subscripts,
 now read for every nested table, else the WHEN phrases' first reference (§2023:14.9.37.4 GR1), now captured for every nested table.
 
+**A count is no reference, at one place.** The first gate was RED on two tests. `pb4854-debug-odo-count-is-implicit` ran N's section
+for `SEARCH E` over `OCCURS 1 TO 5 DEPENDING ON N`: the walk entered the whole table's `AllCount.Odo` through its default arm, which yields
+places again, so the count's depending item became a reference. The same path made `FUNCTION SUM (E (ALL))` reference N, a pre-existing
+sibling. `BoundReferences` now reads an `AllCount`'s places for the positions inside them only, and the two per-node lists PB4854 had added
+for the same fact (`BoundTableSort.ImplicitOperands`, `BoundInitialize.CountPlaces`) are deleted. `ArgumentOrderDriftTests` pinned the
+builders of a `TableAllPlace` to the two argument-list holders; it now also names `PlaceBuilder` and pins `WholeTable`'s callers to the three
+statement binders, so no argument list can hold a whole-table place the window never sees.
+
 **The image.** DEBUG-CONTENTS of a whole table is `CobolTable.AllImage`: the occurrences' storage images in storage order, the same
 row-major walk `AllArgs` uses (now one private `EnumerateOccurrences`), empty at a count of zero where `AllArgs` raises
 EC-ARGUMENT-FUNCTION. The count lambdas are one renderer, `PlaceRenderer.AllCountLambdas`, which the intrinsic argument list now uses too.

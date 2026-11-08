@@ -83,12 +83,7 @@ public sealed record BoundSort(
 /// it.</para></summary>
 public sealed record BoundTableSort(
     TableSortStorage Storage, DataItem Table, AllCount Count,
-    IReadOnlyList<BoundTableSortKey> Keys, bool DuplicatesInOrder, SortCollation Collating, TableAllPlace Written) : BoundStatement, IBoundImplicitOperands
-{
-    /// <summary>The places the table's current occurrence count reads (its OCCURS DEPENDING ON item, its capacity register) are the table's, not
-    /// operands the program wrote (X3.23-1985 USE FOR DEBUGGING general rule 5: "explicitly references").</summary>
-    public IEnumerable<object> ImplicitOperands => [.. Count.Places];
-}
+    IReadOnlyList<BoundTableSortKey> Keys, bool DuplicatesInOrder, SortCollation Collating, TableAllPlace Written) : BoundStatement;
 
 /// <summary>Where a Format-2 table SORT's elements are stored — the closed answer the binder reads off the table's
 /// data description (§2023:14.9.40.3 SR13, §2023:13.18.44.4 GR1). The data-name-2 reference's own subscripts are the ENCLOSING
