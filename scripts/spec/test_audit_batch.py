@@ -9,7 +9,9 @@ between `create` and the state write adopted on the next run; a text-only reques
 an answer outside the pass's shape kept in raw/ and retried; the full submit priced by the canary's measured cost and refused
 past --max-usd; an answer never overwritten; the cost so far counting every billed reply (a retried item's refused or
 cut-off first reply too, and each reply once when a collect is repeated); the verify plan from the SAME answers, and the
-dispositions; the drafts plan; the claims plan from the 1985 text and its citation check; a stamp in a prompt refused before any batch; the key never
+dispositions; the drafts plan; the adjudicate and refute plans, their answer shapes and the decided or contested change
+records they give (and the change batch that records them, kb/Work PB4995); the claims plan from the 1985 text and its
+citation check; a stamp in a prompt refused before any batch; the key never
 printed or stored, and the account recorded.
 """
 import contextlib
@@ -419,6 +421,25 @@ def main() -> int:
               [r["rule-id"] for r in records] == [inspect_rule]
               and records[0]["next"] == {"kind": "CHANGED", "edition": 2023, "to": ["GR-14.9.21.4-2"], "bridge": True,
                                          "reason": final[inspect_rule]["change"]["reason"], "source": "planted"})
+        grow = A.Pass(root / "run9", "drafts")
+        one, two = {"id": "r1", "rule": {"text": "a"}}, {"id": "r2", "rule": {"text": "b"}}
+        with contextlib.redirect_stdout(io.StringIO()) as said:
+            A.write_plan(grow, [one])
+            A.write_plan(grow, [one, two])
+        try:
+            A.write_plan(grow, [dict(one, rule={"text": "changed"}), two])
+            changed_refused = False
+        except SystemExit as e:
+            changed_refused = "another plan" in str(e)
+        try:
+            A.write_plan(grow, [two])
+            dropped_refused = False
+        except SystemExit as e:
+            dropped_refused = "another plan" in str(e)
+        check("a plan grows by new items (the drafts of the rules the adjudication changed), and a planned item that "
+              "changes or goes is refused",
+              "grew by 1" in said.getvalue() and sorted(it["id"] for it in grow.items().values()) == ["r1", "r2"]
+              and changed_refused and dropped_refused)
         state8 = root / "run8"
         A.write_plan(A.Pass(state8, "map"), [word_item])
         A.write_plan(A.Pass(state8, "verify"), [{"id": word_item["id"], "rule": word_item["rule"], "candidates": [c_b]}])

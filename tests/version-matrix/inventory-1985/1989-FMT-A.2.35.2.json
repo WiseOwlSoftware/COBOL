@@ -1,0 +1,14 @@
+{
+ "rule-id": "1989-FMT-A.2.35.2",
+ "rule-digest": "b8b6d908f8d2",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-15.75.2"
+  ],
+  "bridge": true,
+  "reason": "1985: 'FUNCTION RANDOM [ ( argument-1 ) ]'; 2023: 'FUNCTION RANDOM [ ( [ argument-1 ] ) ]'. The 2023 format makes argument-1 optional inside the parentheses, so FUNCTION RANDOM ( ) with empty parentheses is now accepted. The 1985 format does not allow that form.",
+  "source": "audit-1985/state-route"
+ }
+}

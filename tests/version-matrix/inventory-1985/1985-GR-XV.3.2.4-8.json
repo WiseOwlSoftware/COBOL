@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XV.3.2.4-8",
+ "rule-digest": "c821569791e3",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'When cd-name-1 is specified in a USE FOR DEBUGGING statement, that debugging section is executed'; 2023: 'USE statement rules cover only exception, I-O and BEFORE REPORTING declaratives; no FOR DEBUGGING; SEND uses message tags, not cd-name'. No candidate has USE FOR DEBUGGING or CDs. The 2023 USE rules cover only exception and report declaratives, and SEND uses message tags, so the Debug module and the cd-name feature are gone.",
+  "source": "audit-1985/state-route"
+ }
+}

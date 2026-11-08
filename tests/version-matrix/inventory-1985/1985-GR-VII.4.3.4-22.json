@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VII.4.3.4-22",
+ "rule-digest": "b22445c02526",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.27.4-19"
+  ],
+  "bridge": true,
+  "reason": "Same three cases: first reel for input/I-O, last-record reel for extend, new reel for unavailable output/I-O/extend. Dropping 'available' changes no defined effect.",
+  "source": "audit-1985/state-route"
+ }
+}

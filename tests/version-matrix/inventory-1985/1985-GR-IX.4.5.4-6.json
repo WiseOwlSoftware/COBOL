@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-IX.4.5.4-6",
+ "rule-digest": "9947f3c18787",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.30.4-3"
+  ],
+  "bridge": true,
+  "reason": "1985: 'The contents of any data items which lie beyond the range of the current data record are undefined'; 2023: 'the content of any data item, where any part of that data item lies beyond the range of the current record, is undefined'. 2023 extends undefinedness to the whole of an item lying only partly beyond the current record. 1985 names items lying beyond the range. The implicit-redefinition sentence is not restated here.",
+  "source": "audit-1985/state-route"
+ }
+}

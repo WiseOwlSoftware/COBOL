@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-FMT-XIII.3.6.2",
+ "rule-digest": "8a8d7a91c0f7",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-13.18.12.2"
+  ],
+  "bridge": true,
+  "reason": "1985: 'CODE literal-1'; 2023: 'CODE IS ┤ literal-1 / identifier-1 ├'. 2023 format adds an identifier-1 alternative and an optional IS. Programs with CODE identifier are now accepted, which the 1985 literal-only format refused.",
+  "source": "audit-1985/state-route"
+ }
+}

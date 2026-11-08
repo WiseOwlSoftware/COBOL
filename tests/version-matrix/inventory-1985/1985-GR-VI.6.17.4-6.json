@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VI.6.17.4-6",
+ "rule-digest": "66d978b7163c",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.20.4-3",
+   "GR-14.9.20.4-8"
+  ],
+  "bridge": true,
+  "reason": "2023 keeps both orderings: each identifier-1 in the order specified, and elementary items in definition sequence. The added sentences cover other subjects, not this ordering rule.",
+  "source": "audit-1985/state-route"
+ }
+}

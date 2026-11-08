@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-FMT-XV.2.1.2",
+ "rule-digest": "f7f66d3d1b79",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'SOURCE-COMPUTER. [ computer-name [ WITH DEBUGGING MODE ] . ]'; 2023: 'SOURCE-COMPUTER. [ computer-name-1 ] . (FMT-12.3.5.2 has no WITH DEBUGGING MODE phrase)'. The 2023 SOURCE-COMPUTER format covers the paragraph but drops the WITH DEBUGGING MODE phrase, so the Debug module's switch is removed.",
+  "source": "audit-1985/state-route"
+ }
+}

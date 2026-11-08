@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-FMT-VI.6.20.2",
+ "rule-digest": "c1c4c8f06144",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-14.9.26.2",
+   "FMT-14.7.4.2"
+  ],
+  "bridge": true,
+  "reason": "1985: '{ identifier-2 [ ROUNDED ] } … [ ON SIZE ERROR imperative-statement-1 ] [ NOT ON SIZE ERROR imperative-statement-2 ]'; 2023: '{ identifier-2 [ rounded-phrase ] } with choice indicators: zero or more, each at most once, in any order; ROUNDED [MODE IS …]'. 2023 accepts more programs: ROUNDED may take MODE IS with eight modes, and NOT ON SIZE ERROR may come before ON SIZE ERROR. In 1985 the order was fixed.",
+  "source": "audit-1985/state-route"
+ }
+}

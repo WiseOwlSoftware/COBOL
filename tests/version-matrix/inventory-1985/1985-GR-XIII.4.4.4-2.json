@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-XIII.4.4.4-2",
+ "rule-digest": "dc58ceae8ae6",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.21.4-3",
+   "GR-14.9.27.4-7"
+  ],
+  "bridge": true,
+  "reason": "1985: 'an OPEN statement with either the OUTPUT phrase or the EXTEND phrase for the file must be executed prior to the execution of the INITIATE'; 2023: 'If the file connector is not open in the output or extend mode, the EC-REPORT-FILE-MODE exception condition is set to exist and no action is taken'. Both require an OUTPUT or EXTEND open before INITIATE. 1985 states no result for a violation; 2023 defines one: an exception condition is set and the report is not acted on.",
+  "source": "audit-1985/state-route"
+ }
+}

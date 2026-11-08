@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-SR-VII.4.6.3-3",
+ "rule-digest": "8b3681274b75",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.49.3-8",
+   "GR-14.9.49.4-5",
+   "GR-14.9.49.4-6"
+  ],
+  "bridge": true,
+  "reason": "2023 bars a file-name in more than one USE AFTER EXCEPTION statement, and a file-name USE excludes the file from INPUT/OUTPUT/I-O/EXTEND USE, so one USE procedure runs.",
+  "source": "audit-1985/state-route"
+ }
+}

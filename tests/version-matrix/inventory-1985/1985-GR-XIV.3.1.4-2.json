@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.3.1.4-2",
+ "rule-digest": "05e2bfd727dd",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'Upon execution of the ACCEPT MESSAGE COUNT statement, the content of the area specified by a communication description entry'; 2023: 'No 2023 clause holds the Communication module; candidates cover only file I-O status, screen ACCEPT and message tags'. No 2023 clause carries ACCEPT MESSAGE COUNT or CD STATUS KEY/MESSAGE COUNT. The candidates treat file I-O status and screen ACCEPT, so the communication feature is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

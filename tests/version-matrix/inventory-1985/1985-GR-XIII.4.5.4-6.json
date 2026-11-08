@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XIII.4.5.4-6",
+ "rule-digest": "68d1250fe988",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.27.4-10"
+  ],
+  "bridge": true,
+  "reason": "Both make OPEN unsuccessful when a file attribute conflict occurs. Status '39' and which attributes are checked belong to the condition's definition, which 1985 puts on page VII-5.",
+  "source": "audit-1985/state-route"
+ }
+}

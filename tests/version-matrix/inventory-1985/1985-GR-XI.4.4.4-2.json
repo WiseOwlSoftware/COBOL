@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-XI.4.4.4-2",
+ "rule-digest": "56e68c494f33",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.40.4-2",
+   "GR-14.9.40.4-8"
+  ],
+  "bridge": true,
+  "reason": "2023 keeps key significance in order of specification, regardless of ASCENDING/DESCENDING grouping, and lower or higher values first by relation-condition comparison. Table sorting is a new format, not a file-sort change.",
+  "source": "audit-1985/state-route"
+ }
+}

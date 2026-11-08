@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-FMT-X.3.1.2",
+ "rule-digest": "25a905d4562e",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-11.10.2"
+  ],
+  "bridge": true,
+  "reason": "1985: 'PROGRAM-ID. program-name [ IS { |COMMON| |INITIAL| } PROGRAM ] .'; 2023: 'PROGRAM-ID. program-name-1 [ AS literal-1 ] [ IS { |COMMON| |{INITIAL|RECURSIVE}| } PROGRAM ] .'. Same paragraph, and COMMON/INITIAL in any order stay legal. 2023 adds an AS literal-1 phrase and a RECURSIVE alternative, so it accepts programs the 1985 format refuses.",
+  "source": "audit-1985/state-route"
+ }
+}

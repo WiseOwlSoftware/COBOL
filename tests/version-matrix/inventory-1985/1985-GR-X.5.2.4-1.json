@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-X.5.2.4-1",
+ "rule-digest": "29fa4e48c83c",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.4.4-3",
+   "GR-14.9.4.4-1"
+  ],
+  "bridge": true,
+  "reason": "1985: 'Literal-1 or the content of the data item referenced by identifier-1 is the name of the called program.'; 2023: 'If identifier-1 references a program-pointer data item, the data item referenced by identifier-1 contains the location of the program'. 2023 keeps literal/alphanumeric identifier content as the program-name and non-COBOL naming implementor-defined, but adds a case: identifier-1 as program-pointer holds a location, not a name.",
+  "source": "audit-1985/state-route"
+ }
+}

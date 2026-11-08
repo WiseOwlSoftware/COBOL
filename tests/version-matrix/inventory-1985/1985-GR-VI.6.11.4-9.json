@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.6.11.4-9",
+ "rule-digest": "4065118918e1",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.12.4-3"
+  ],
+  "bridge": true,
+  "reason": "Both are DIVIDE cross-reference rules. 2023 folds overlapping operands and multiple results into 14.7.7 (GR-14.7.7-4); the remainder rounding/size-error rules are now GR 6.",
+  "source": "audit-1985/state-route"
+ }
+}

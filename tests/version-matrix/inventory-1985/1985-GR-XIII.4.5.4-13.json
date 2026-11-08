@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIII.4.5.4-13",
+ "rule-digest": "9240c5f564a6",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'Whenever a set of files resides on a multiple file reel ... Not more than one of the files may be in the open mode at one time.'; 2023: 'No OPEN general rule (14.9.27.4 GR 1-26) addresses multiple file reels or position numbers; the multiple file reel feature is absent.'. The 2023 OPEN general rules, which hold this rule's subject, never mention multiple file reels or position numbers. No candidate carries the rule, so the 2023 standard drops it.",
+  "source": "audit-1985/state-route"
+ }
+}

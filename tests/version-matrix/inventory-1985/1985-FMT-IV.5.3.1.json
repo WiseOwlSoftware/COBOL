@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-FMT-IV.5.3.1",
+ "rule-digest": "9ab287b46d3a",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-10.6.1"
+  ],
+  "bridge": true,
+  "reason": "1985: 'identification-division [ environment-division ] [ data-division ] [ procedure-division ] [ end-program-header ]'; 2023: '[ IDENTIFICATION DIVISION. ] PROGRAM-ID. program-name-1 ... [ END PROGRAM program-name-1. ]'. Same division order with optional end marker, but 2023 makes the IDENTIFICATION DIVISION header optional, so a program opening with PROGRAM-ID alone is now accepted.",
+  "source": "audit-1985/state-route"
+ }
+}

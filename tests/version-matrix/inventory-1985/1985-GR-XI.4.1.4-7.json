@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XI.4.1.4-7",
+ "rule-digest": "3f668e5e3dc4",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.24.4-7"
+  ],
+  "bridge": true,
+  "reason": "1985: 'the files referenced by file-name-2 and file-name-3 must not be in the open mode.'; 2023: 'otherwise the EC-SORT-MERGE-FILE-OPEN exception condition is set to exist and the execution of the MERGE statement terminates.'. 2023 sets an exception and terminates MERGE if an input file is open. It also adds SHARING/IGNORING LOCK, record-size exceptions, nonfatal-exception continuation and undefined relative key.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,17 @@
+{
+ "rule-id": "1985-FMT-VIII.2.4.2",
+ "rule-digest": "a17f864bd05c",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-12.4.5.5.1",
+   "FMT-12.4.5.13.2",
+   "FMT-12.4.5.1",
+   "SR-12.4.5.2-10"
+  ],
+  "bridge": true,
+  "reason": "1985: 'ACCESS MODE IS SEQUENTIAL [ RELATIVE KEY IS data-name-1 ] ... RANDOM/DYNAMIC RELATIVE KEY IS data-name-1'; 2023: '[ ORGANIZATION IS ] RELATIVE [ RELATIVE KEY IS data-name-7 ]; ACCESS MODE IS {SEQUENTIAL|RANDOM|DYNAMIC} separate'. Key still required for RANDOM/DYNAMIC, but 2023 makes RELATIVE KEY its own clause, so it can be written without any ACCESS MODE clause; 1985 accepted it only inside ACCESS MODE.",
+  "source": "audit-1985/state-route"
+ }
+}

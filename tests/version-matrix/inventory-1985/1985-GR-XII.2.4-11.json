@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XII.2.4-11",
+ "rule-digest": "e9ba64a8d9e0",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'the indicator area of the introduced line contains the same character as the line on which the text being replaced begins'; 2023: 'GR-7.2.3.4-11: The resultant text after replacement shall be in logical free-form reference format.'. 2023 makes COPY's resultant text logical free-form, which has no indicator area or continuation lines. The rule on indicator content and hyphen continuation of introduced lines is gone.",
+  "source": "audit-1985/state-route"
+ }
+}

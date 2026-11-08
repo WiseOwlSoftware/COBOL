@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-VII.3.5.4-1",
+ "rule-digest": "ec2784811caf",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'The presence of more than one data-name indicates that the file contains more than one type of data record.'; 2023: 'No DATA RECORDS clause in 2023; no candidate clause holds the feature'. No 2023 clause holds the DATA RECORDS feature. The wording candidates (REPORT, MERGE, SORT, etc.) are other subjects, so 2023 lacks the clause and this rule.",
+  "source": "audit-1985/state-route"
+ }
+}

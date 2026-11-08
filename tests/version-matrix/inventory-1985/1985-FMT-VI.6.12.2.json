@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-FMT-VI.6.12.2",
+ "rule-digest": "a0ca4e5f5f59",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'ENTER language-name-1 [ routine-name-1 ] .'; 2023: \"No 2023 clause holds the ENTER statement; the only wording match is CRT status for the operator's enter key.\". No 2023 clause carries the ENTER statement. The wording candidate concerns CRT status after pressing the enter key, a different subject, so 2023 lacks the statement.",
+  "source": "audit-1985/state-route"
+ }
+}

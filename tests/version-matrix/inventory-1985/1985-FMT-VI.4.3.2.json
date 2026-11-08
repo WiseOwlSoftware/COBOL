@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-FMT-VI.4.3.2",
+ "rule-digest": "f7f66d3d1b79",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-12.3.5.2",
+   "SR-12.3.5.3-1"
+  ],
+  "bridge": true,
+  "reason": "1985: 'SOURCE-COMPUTER. [ computer-name [ WITH DEBUGGING MODE ] . ]'; 2023: 'SOURCE-COMPUTER. [ computer-name-1 ] .'. 2023 keeps the paragraph and the optional computer-name, but its format no longer has WITH DEBUGGING MODE, so 1985 programs using that phrase are refused.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-XIII.4.3.4-5",
+ "rule-digest": "a78f35e1aa33",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.16.4-4",
+   "GR-14.9.16.4-2"
+  ],
+  "bridge": true,
+  "reason": "Same order on the first GENERATE: report heading, page heading, control headings major to minor, then the detail, or summary steps for report-name. WITH RESET is a NEXT GROUP addition.",
+  "source": "audit-1985/state-route"
+ }
+}

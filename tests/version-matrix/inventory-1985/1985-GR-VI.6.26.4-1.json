@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VI.6.26.4-1",
+ "rule-digest": "9b7e265b2de4",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.44.4-1",
+   "GR-14.7.7-4"
+  ],
+  "bridge": true,
+  "reason": "Both sum operands before FROM into an intermediate item and subtract it from each identifier-2 in left-to-right order. The size-error effect belongs to separate size error rules.",
+  "source": "audit-1985/state-route"
+ }
+}

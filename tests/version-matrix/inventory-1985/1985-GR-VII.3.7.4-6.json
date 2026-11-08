@@ -1,0 +1,18 @@
+{
+ "rule-id": "1985-GR-VII.3.7.4-6",
+ "rule-digest": "901e62fcf12b",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.34.4-6",
+   "GR-13.18.34.4-2",
+   "GR-13.18.34.4-3",
+   "GR-13.18.34.4-4",
+   "GR-13.18.34.4-5"
+  ],
+  "bridge": true,
+  "reason": "A literal cannot change, so 'the value is always that literal' gives the same fixed sizes on every page as 1985. The footing range limit is a syntax rule (SR-3) in 2023, not a new limit here.",
+  "source": "audit-1985/state-route"
+ }
+}

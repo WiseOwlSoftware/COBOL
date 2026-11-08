@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-XIII.3.21.3-3",
+ "rule-digest": "dc19e3e54320",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.60.3-7"
+  ],
+  "bridge": true,
+  "reason": "1985: 'The USAGE clause for a report group item can specify only USAGE IS DISPLAY.'; 2023: 'Only the DISPLAY or NATIONAL phrase may be specified in any USAGE clause associated with a report group item.'. Same restriction on report group usage, but 2023 adds NATIONAL as a permitted usage beside DISPLAY, so it accepts a case the 1985 rule refused.",
+  "source": "audit-1985/state-route"
+ }
+}

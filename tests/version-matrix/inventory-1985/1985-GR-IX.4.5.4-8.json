@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-IX.4.5.4-8",
+ "rule-digest": "7a7a925cd7a0",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.30.4-4",
+   "GR-14.9.30.4-5"
+  ],
+  "bridge": true,
+  "reason": "Same READ-then-implicit-MOVE equivalence, VARYING group move and identification just before the move; no move on failure. The undefined-MOVE note follows from the MOVE rules already applying.",
+  "source": "audit-1985/state-route"
+ }
+}

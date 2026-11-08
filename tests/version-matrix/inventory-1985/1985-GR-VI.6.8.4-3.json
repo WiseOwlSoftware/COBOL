@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-GR-VI.6.8.4-3",
+ "rule-digest": "b3fe6d01842f",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-8.8.1.2-7",
+   "GR-11.9.5.2-1",
+   "GR-11.9.5.2-3"
+  ],
+  "bridge": true,
+  "reason": "1985: 'Thus, each implementor will indicate the techniques used in handling arithmetic expressions.'; 2023: 'If the NATIVE phrase is specified, the techniques used in handling arithmetic expressions ... shall be those specified by the implementor'. The freedom from composite-of-operands and receiving-item restrictions is kept. Implementor-defined expression techniques now apply only under NATIVE; STANDARD-DECIMAL and STANDARD-BINARY are standard-defined.",
+  "source": "audit-1985/state-route"
+ }
+}

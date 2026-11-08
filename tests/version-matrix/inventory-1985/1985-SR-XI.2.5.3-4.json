@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-XI.2.5.3-4",
+ "rule-digest": "a9ca6099b23d",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-12.4.6.4.3-6"
+  ],
+  "bridge": true,
+  "reason": "Both bar a sort/merge file from the plain (file-area) SAME clause and allow it in RECORD and SORT/SORT-MERGE AREA forms. The count limit belongs to other 1985 rules, not this one.",
+  "source": "audit-1985/state-route"
+ }
+}

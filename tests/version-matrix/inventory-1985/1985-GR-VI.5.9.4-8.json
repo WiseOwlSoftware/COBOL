@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VI.5.9.4-8",
+ "rule-digest": "3b066da29349",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.40.4-14",
+   "SR-13.18.40.3-16"
+  ],
+  "bridge": true,
+  "reason": "1985: \"Each 'A' in the character-string represents a character position which can contain only an alphabetic character\"; 2023: \"Each symbol 'A' represents a character position that shall contain any character from the computer's alphanumeric character set.\". Same symbol definitions, but 'A' now allows any alphanumeric character, not only alphabetic ones. The currency symbol now adds the length of the currency string, not one. The 18-digit limit is gone.",
+  "source": "audit-1985/state-route"
+ }
+}

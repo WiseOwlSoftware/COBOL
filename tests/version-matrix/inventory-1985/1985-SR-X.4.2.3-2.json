@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-X.4.2.3-2",
+ "rule-digest": "4eb7e8985a6e",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.4.5.3-7"
+  ],
+  "bridge": true,
+  "reason": "Both make Format 2 the FD for relative or indexed files. The 1985 clause availability by module level is subsetting, not a language rule. The added indexed-file sentence is outside this rule.",
+  "source": "audit-1985/state-route"
+ }
+}

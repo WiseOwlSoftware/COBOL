@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-XIII.3.17.3-1",
+ "rule-digest": "bf34d341e3f1",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.52.3-1"
+  ],
+  "bridge": true,
+  "reason": "1985: \"may be specified only for a numeric data description entry whose PICTURE contains the character 'S'\"; 2023: '— an alphanumeric group item, national group item, or strongly-typed group item.'. 2023 keeps numeric report group entries with 'S' but also allows SIGN on group items, with no exception for the report section; the 1985 Report Writer rule allowed numeric entries only.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-FMT-XIV.3.5.2",
+ "rule-digest": "03955162c207",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'RECEIVE cd-name-1 { MESSAGE | SEGMENT } INTO identifier-1 [ NO DATA imperative-statement-1 ] [ WITH DATA ...]'; 2023: 'RECEIVE FROM data-name-1 GIVING identifier-1 data-name-2 ... ON EXCEPTION: no cd-name, MESSAGE/SEGMENT or NO DATA phrase'. 2023 drops the Communication module's cd-name RECEIVE. Its RECEIVE is a new message-tag statement with GIVING and ON EXCEPTION, not the 1985 format.",
+  "source": "audit-1985/state-route"
+ }
+}

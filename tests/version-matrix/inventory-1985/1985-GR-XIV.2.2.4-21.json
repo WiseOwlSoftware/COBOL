@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.2.2.4-21",
+ "rule-digest": "0c5def3df471",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'The content of the data item referenced by data-name-3, indicates the status condition of the previously executed SEND'; 2023: 'No communication description entry in 2023; the communication module and the SEND/PURGE/ENABLE statements are not in the candidates'. The 1985 CD entry's status key belongs to the Communication module. No 2023 candidate covers communication descriptions, so the feature is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

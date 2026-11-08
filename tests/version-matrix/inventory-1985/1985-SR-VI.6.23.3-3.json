@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-VI.6.23.3-3",
+ "rule-digest": "b6d3746d2075",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'Identifier-3 must reference an elementary numeric integer.'; 2023: 'No syntax rule of 14.9.39.3 constrains the UP BY/DOWN BY operand; the 2023 identifier-3 is an object-class receiving item.'. The 2023 SET syntax rules shown never limit the UP BY/DOWN BY operand to an elementary numeric integer. The name identifier-3 now denotes an object reference, so the restriction is gone.",
+  "source": "audit-1985/state-route"
+ }
+}

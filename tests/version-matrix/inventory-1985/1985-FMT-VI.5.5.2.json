@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-FMT-VI.5.5.2",
+ "rule-digest": "0aca5554cc6e",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "FMT-13.18.20.2",
+   "SR-13.18.20.3-3"
+  ],
+  "bridge": true,
+  "reason": "For data description entries, 2023 still allows data-name-1 or FILLER. The added screen-name format covers only screen entries, a separate feature, so the 1985 data-entry rule is unchanged.",
+  "source": "audit-1985/state-route"
+ }
+}

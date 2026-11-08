@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-FMT-IV.4.3.8.3.2",
+ "rule-digest": "a5613a27e0a4",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-8.4.3.3.2"
+  ],
+  "bridge": true,
+  "reason": "1985: 'data-name-1 ( leftmost-character-position: [ length ] )'; 2023: 'identifier-1( leftmost-position : [ length ] )'. Same reference-modification format, but the operand is now identifier-1 instead of data-name-1. That is a broader class of operands, so more programs are accepted.",
+  "source": "audit-1985/state-route"
+ }
+}

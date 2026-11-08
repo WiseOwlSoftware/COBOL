@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.3.6.4-15",
+ "rule-digest": "2ea64ce71946",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'If the ADVANCING phrase is implicitly or explicitly specified and vertical positioning is applicable'; 2023: 'The 2023 SEND statement (14.9.38) is the message-server SEND and has no ADVANCING phrase; the communication module is gone.'. The 2023 SEND sends to message server run units and has no ADVANCING phrase. WRITE ADVANCING covers files, not communication devices. The 1985 rule has no counterpart.",
+  "source": "audit-1985/state-route"
+ }
+}

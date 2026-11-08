@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.6.27.4-19",
+ "rule-digest": "986d0e2eef1e",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "FMT-14.9.48.2"
+  ],
+  "bridge": true,
+  "reason": "The 2023 format keeps END-UNSTRING as UNSTRING's optional explicit scope terminator. The 1985 rule itself defers to the general scope rules for its effect, and nothing in 2023 shows a different effect.",
+  "source": "audit-1985/state-route"
+ }
+}

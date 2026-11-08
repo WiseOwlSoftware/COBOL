@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XIII.3.6.4-1",
+ "rule-digest": "0d6189182a30",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.12.4-1"
+  ],
+  "bridge": true,
+  "reason": "1985: 'literal-1 is automatically placed in the first two character positions of each report writer logical record'; 2023: 'literal-1 or identifier-1 is automatically placed in the first characters of each logical record written to the report file'. 2023 drops the fixed two-character position (its SR-13.18.12.3-1 sets no length) and adds identifier-1 as an alternative source of the code.",
+  "source": "audit-1985/state-route"
+ }
+}

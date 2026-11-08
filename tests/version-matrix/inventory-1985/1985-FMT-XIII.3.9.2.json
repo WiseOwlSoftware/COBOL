@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-FMT-XIII.3.9.2",
+ "rule-digest": "73f1114df081",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-13.15.2",
+   "SR-13.15.3-12"
+  ],
+  "bridge": true,
+  "reason": "1985: 'PICTURE IS character-string ... SOURCE IS identifier-1 | VALUE IS literal-1 | SUM ... [GROUP INDICATE].'; 2023: '[ picture-clause ] [ USAGE IS DISPLAY|NATIONAL ] ... [ PRESENT WHEN condition-1 ] [ GROUP INDICATE ] [ OCCURS ... ] [ varying-clause ]'. 2023 merges the three formats into one and adds PRESENT WHEN, OCCURS, VARYING and USAGE NATIONAL. PICTURE is now required only with SOURCE or SUM, so a VALUE entry may omit it.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-X.4.5.4-4",
+ "rule-digest": "a6fcb16296e8",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.22.4-4"
+  ],
+  "bridge": true,
+  "reason": "2023 GR4 a) makes the file connector of an EXTERNAL file description entry an external file connector, as 1985 did. Item b) covers record data, a separate rule, and changes nothing here.",
+  "source": "audit-1985/state-route"
+ }
+}

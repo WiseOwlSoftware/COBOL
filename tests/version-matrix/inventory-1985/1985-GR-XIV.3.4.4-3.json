@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.3.4.4-3",
+ "rule-digest": "6757d0a40a0a",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'The content of the status key data item and the content of the error key data item ... of the area referenced by cd-name-1 are updated by the MCS'; 2023: 'No candidate covers the PURGE statement or communication description areas; the Communication module is absent from 2023.'. The 2023 candidates cover only file I-O status, the cursor locator and overlapping operands. The PURGE statement and the Communication module are absent, so the rule is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

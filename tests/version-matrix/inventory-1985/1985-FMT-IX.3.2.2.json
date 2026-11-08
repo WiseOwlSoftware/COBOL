@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-FMT-IX.3.2.2",
+ "rule-digest": "b90a1c749e3c",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-13.4.5.2",
+   "FMT-13.18.10.2",
+   "FMT-13.18.43.2"
+  ],
+  "bridge": true,
+  "reason": "1985: 'LABEL {RECORD IS|RECORDS ARE} {STANDARD|OMITTED} ... VALUE OF implementor-name-1 IS ... DATA {RECORD IS|RECORDS ARE} {data-name-3} ...'; 2023: 'Format 2 (relative-or-indexed): FD file-name-1 [IS EXTERNAL [AS literal-1]] [IS GLOBAL] [BLOCK CONTAINS ...] [record-clause] .'. The indexed FD entry survives with BLOCK and RECORD clauses intact, but LABEL RECORDS, VALUE OF and DATA RECORDS are gone, so programs using them are refused. EXTERNAL and GLOBAL are added.",
+  "source": "audit-1985/state-route"
+ }
+}

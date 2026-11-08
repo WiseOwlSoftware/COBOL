@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-VI.6.10.3-1",
+ "rule-digest": "a9551f0beca7",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.11.3-2"
+  ],
+  "bridge": true,
+  "reason": "1985: 'Mnemonic-name-1 is associated with a hardware device in the SPECIAL-NAMES paragraph'; 2023: 'identified in the operating environment as a hardware or software device capable of receiving data from the program'. Same SPECIAL-NAMES association rule, but 2023 adds software devices to hardware ones, and requires the device to be capable of receiving data from the program.",
+  "source": "audit-1985/state-route"
+ }
+}

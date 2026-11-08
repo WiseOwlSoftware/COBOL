@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VII.3.8.4-1",
+ "rule-digest": "0ebd40fe4bc7",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.43.4-5"
+  ],
+  "bridge": true,
+  "reason": "1985: 'If the RECORD clause is not specified, the size of each data record is completely defined in the record description entry.'; 2023: 'an implicit format 1 or format 2 RECORD clause is assumed ... defined by the implementor ... integer-1 shall be the record size of the largest'. 1985 takes each record's size from its own description. 2023 assumes an implementor-chosen format 1 (each record the size of the largest) or format 2 (variable, min/max bounds).",
+  "source": "audit-1985/state-route"
+ }
+}

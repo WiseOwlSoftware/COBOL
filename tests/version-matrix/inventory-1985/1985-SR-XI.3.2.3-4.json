@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-XI.3.2.3-4",
+ "rule-digest": "05163874e391",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'The availability of the VARYING phrase in the RECORD clause is dependent on the level of Sequential I-O module supported'; 2023: 'SD file-name-1 [ record-clause ] . where record-clause is described in 13.18.43 (no module or level dependency)'. 2023 has no modules or levels. The SD format allows the full RECORD clause without condition, so the 1985 rule tying VARYING to the Sequential I-O level is gone.",
+  "source": "audit-1985/state-route"
+ }
+}

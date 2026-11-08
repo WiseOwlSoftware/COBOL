@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-FMT-VII.3.8.2",
+ "rule-digest": "04ffdc38ecdc",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-13.18.43.2"
+  ],
+  "bridge": true,
+  "reason": "1985: 'RECORD CONTAINS integer-1 CHARACTERS'; 2023: 'RECORD CONTAINS integer-1 ╭ BYTES ╮ ┤ ├ ╰ CHARACTERS ╯ (BYTES alternative also in formats 2 and 3)'. The same three formats remain, but 2023 adds BYTES as an alternative to CHARACTERS, so it accepts e.g. RECORD CONTAINS 80 BYTES, which the 1985 syntax refuses.",
+  "source": "audit-1985/state-route"
+ }
+}

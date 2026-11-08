@@ -1,0 +1,17 @@
+{
+ "rule-id": "1985-GR-VIII.3.2.4-5",
+ "rule-digest": "542c7262bb2a",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.43.4-1",
+   "GR-13.18.43.4-6",
+   "GR-13.18.43.4-7",
+   "SR-13.4.5.3-7"
+  ],
+  "bridge": true,
+  "reason": "The 1985 rule only says relative files use the sequential RECORD clause. 2023 has one RECORD clause (13.18.43) for every file description entry, relative and sequential alike.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-FMT-X.2.3.1",
+ "rule-digest": "7d655edb356f",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-10.6.1"
+  ],
+  "bridge": true,
+  "reason": "1985: '[ procedure-division ] [ source-program ] …'; 2023: '[ IDENTIFICATION DIVISION. ] PROGRAM-ID. ... [ procedure-division [ program-definition ] … ]'. 2023 allows nested programs only inside a present procedure division, which 1985 did not require. It also makes the IDENTIFICATION DIVISION header optional and adds options-paragraph.",
+  "source": "audit-1985/state-route"
+ }
+}

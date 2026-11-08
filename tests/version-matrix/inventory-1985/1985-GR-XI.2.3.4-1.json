@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XI.2.3.4-1",
+ "rule-digest": "b7eb79d86002",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-12.4.5.3-3"
+  ],
+  "bridge": true,
+  "reason": "1985: 'to a storage medium referenced by implementor-name-1 or literal-1.'; 2023: 'identified by device-name-1, literal-1, or the content of the data item referenced by data-name-1'. Same ASSIGN association rule, but 2023 adds the USING data-name-1 case. It fixes association at OPEN, SORT or MERGE time and makes the statement unsuccessful on inconsistent content.",
+  "source": "audit-1985/state-route"
+ }
+}

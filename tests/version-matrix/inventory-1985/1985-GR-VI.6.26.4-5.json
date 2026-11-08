@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.6.26.4-5",
+ "rule-digest": "bcf660e4f68f",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.44.4-6"
+  ],
+  "bridge": true,
+  "reason": "Both are pointer rules to the common arithmetic rules and impose nothing themselves. Multiple results and operand overlap now sit in 14.7.7, which 2023 cites. List changes alter no program.",
+  "source": "audit-1985/state-route"
+ }
+}

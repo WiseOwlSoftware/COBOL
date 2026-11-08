@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-SR-VIII.4.5.3-3",
+ "rule-digest": "4fe351a49bba",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.30.3-9",
+   "GR-14.9.30.4-19"
+  ],
+  "bridge": true,
+  "reason": "1985: 'The NEXT phrase must be specified for files in dynamic access mode when records are to be retrieved sequentially.'; 2023: 'ACCESS MODE DYNAMIC ... the NEXT phrase is implied if any of the following phrases is specified: ADVANCING, AT END, or NOT AT END.'. 1985 requires an explicit NEXT for a sequential read in dynamic mode. 2023 implies NEXT when ADVANCING or AT END/NOT AT END is given, and PREVIOUS also gives a sequential read.",
+  "source": "audit-1985/state-route"
+ }
+}

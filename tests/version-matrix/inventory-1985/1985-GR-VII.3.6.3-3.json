@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-VII.3.6.3-3",
+ "rule-digest": "f5571e4ef819",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"If the LABEL RECORDS clause is not specified for a file, label records for that file must conform to the implementor's label specifications.\"; 2023: 'No 2023 clause holds the LABEL RECORDS clause; the candidates cover SYNCHRONIZED, RECORD, RECORD DELIMITER and SORT.'. No 2023 clause holds the LABEL RECORDS feature, and no candidate addresses label records or implementor label specifications. 2023 lacks the clause, so the rule is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

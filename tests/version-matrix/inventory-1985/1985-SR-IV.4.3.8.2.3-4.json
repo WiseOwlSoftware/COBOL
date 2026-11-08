@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-IV.4.3.8.2.3-4",
+ "rule-digest": "17fdf4dba3f3",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-8.4.2.3.3-5"
+  ],
+  "bridge": true,
+  "reason": "1985: 'a. In a USE FOR DEBUGGING statement.'; 2023: 'd) In the KEY phrase of a SORT statement that references a table. ... g) As a data-name addend in the SUM clause'. Same subscripting rule and exceptions, but 2023 drops the USE FOR DEBUGGING exception and adds SORT table, screen FROM/TO/USING and report SUM addend exceptions.",
+  "source": "audit-1985/state-route"
+ }
+}

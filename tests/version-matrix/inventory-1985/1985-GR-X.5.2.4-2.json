@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-X.5.2.4-2",
+ "rule-digest": "f5ccecfe52c8",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.4.4-3"
+  ],
+  "bridge": true,
+  "reason": "1985: 'After control is returned from the called program, the ON OVERFLOW or ON EXCEPTION phrase, if specified, is ignored and control is transferred'; 2023: 'If an exception condition is propagated from the called program, execution continues as specified in 14.6.13.1'. Rule 3i keeps the return path (ON EXCEPTION ignored, then end of CALL or NOT ON EXCEPTION). It adds a case: an exception propagated from the called program bypasses that path. ON OVERFLOW is not mentioned.",
+  "source": "audit-1985/state-route"
+ }
+}

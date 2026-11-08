@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-IX.2.7.3-3",
+ "rule-digest": "1e084cdf46e7",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-12.4.5.12.3-3"
+  ],
+  "bridge": true,
+  "reason": "In 1985 terms, a variable-length item is a group with a variable occurrence item, and 2023 refuses it as the key. Data-name-2 and dynamic-length items are new 2023 features.",
+  "source": "audit-1985/state-route"
+ }
+}

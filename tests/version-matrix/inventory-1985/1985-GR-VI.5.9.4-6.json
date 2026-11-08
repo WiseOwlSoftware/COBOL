@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VI.5.9.4-6",
+ "rule-digest": "0514399bc53f",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.40.4-13",
+   "SR-13.18.40.3-14"
+  ],
+  "bridge": true,
+  "reason": "1985: 'The number of digit positions that can be represented in the PICTURE character-string must range from 1 to 18 inclusive'; 2023: 'for fixed-point data items of category numeric-edited, the number of digit positions ... shall range from 1 through 31.'. Both define the pictures that make an item numeric-edited, but the digit limit rose from 18 to 31, so 19-31 digit edited pictures are now accepted. 2023 also adds floating-point edited items.",
+  "source": "audit-1985/state-route"
+ }
+}

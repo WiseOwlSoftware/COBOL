@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-XIV.3.6.3-4",
+ "rule-digest": "d88a44086204",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'When the mnemonic-name phrase is used, the name is identified with a particular feature specified by the implementor.'; 2023: 'The communication module is deleted. The 2023 SEND (14.9.38) is a message-server statement whose rules name no mnemonic-name phrase.'. 1985 communication SEND with ADVANCING mnemonic-name is gone. The 2023 SEND rules cover message servers only. The WRITE mnemonic-name rule belongs to another statement.",
+  "source": "audit-1985/state-route"
+ }
+}

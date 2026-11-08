@@ -1,0 +1,14 @@
+{
+ "rule-id": "1989-RV-A.2.23.4-3",
+ "rule-digest": "51d71964dc81",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "RV-15.59.4-3"
+  ],
+  "bridge": true,
+  "reason": "The alphanumeric case is unchanged: the size equals that of the selected argument-1. Adding the national type extends a class absent in 1985; 1985 programs behave the same.",
+  "source": "audit-1985/state-route"
+ }
+}

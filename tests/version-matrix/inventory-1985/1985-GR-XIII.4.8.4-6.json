@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-XIII.4.8.4-6",
+ "rule-digest": "0a94b502b2d2",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.49.4-12",
+   "GR-14.9.49.4-7"
+  ],
+  "bridge": true,
+  "reason": "Same rule: control returns to I-O routine, resumes after the I-O statement unless fatal (critical), else implementor action. Added SORT/MERGE item only defers to those statements' own rules.",
+  "source": "audit-1985/state-route"
+ }
+}

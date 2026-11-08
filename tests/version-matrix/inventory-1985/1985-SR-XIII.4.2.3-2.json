@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-XIII.4.2.3-2",
+ "rule-digest": "5885ccab2f0f",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'The availability of the phrases within the CLOSE statement is dependent on the level of Sequential I-O module supported'; 2023: 'No modules or levels; SR-14.9.6.3-1 restricts the NO REWIND, REEL, UNIT phrases only to sequential files, with no level dependence'. 2023 has no module levels. The CLOSE phrases are limited only by file organization (SR-14.9.6.3-1), so the level-dependent availability rule is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

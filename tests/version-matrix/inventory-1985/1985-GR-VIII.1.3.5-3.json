@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VIII.1.3.5-3",
+ "rule-digest": "ac67ecd144fc",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-9.1.14-3",
+   "GR-9.1.14-4"
+  ],
+  "bridge": true,
+  "reason": "1985: 'a USE AFTER EXCEPTION procedure must be associated with the file connector and that procedure is executed'; 2023: 'or there are no applicable exception processing statements, control is transferred to the end of the input-output statement'. 1985 requires a USE procedure when INVALID KEY is absent. 2023 allows none: control then goes to the end of the statement. The rest of the rule, including the not-invalid-key part, is carried.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-GR-X.5.1-1",
+ "rule-digest": "21839da35e49",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.2.3-9",
+   "GR-14.8.2.3.3-L2.1",
+   "GR-14.8.2.3.3-L2.2"
+  ],
+  "bridge": true,
+  "reason": "1985: 'The data description of each parameter in the BY CONTENT phrase ... must be the same, meaning no conversion'; 2023: 'the formal parameter shall be of the same length as the corresponding argument; ...rules are the same as for a MOVE statement'. 1985 requires an identical description for BY CONTENT. 2023 requires only equal length for a plain CALL, and allows MOVE/COMPUTE conversion with a prototype or NESTED.",
+  "source": "audit-1985/state-route"
+ }
+}

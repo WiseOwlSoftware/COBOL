@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-VI.6.21.3-2",
+ "rule-digest": "ad29fdfffa6b",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'In format 4, if procedure-name-1 is omitted, the AFTER phrase must not be specified.'; 2023: 'No syntax rule bars AFTER in an inline PERFORM; SR-14.9.28.3-9: At least six AFTER phrases shall be permitted in varying-phrase.'. The 2023 PERFORM syntax rules allow AFTER phrases in varying-phrase and give no exception for an inline PERFORM. The 1985 ban on AFTER when procedure-name-1 is omitted is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

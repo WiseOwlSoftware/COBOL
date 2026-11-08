@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VIII.4.9.4-15",
+ "rule-digest": "cacd2cdae984",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.51.4-15",
+   "GR-14.9.51.4-33"
+  ],
+  "bridge": true,
+  "reason": "An unsuccessful WRITE (invalid key, GR33) still writes nothing, leaves the record area unaffected, sets I-O status to the cause, and defers to 9.1.14. EC-I-O-INVALID-KEY is outside this rule.",
+  "source": "audit-1985/state-route"
+ }
+}

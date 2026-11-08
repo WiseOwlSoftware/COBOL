@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-FMT-VI.6.13.2",
+ "rule-digest": "46f73072a94e",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-14.9.13.2"
+  ],
+  "bridge": true,
+  "reason": "1985: '[NOT] {identifier-3|literal-3|arithmetic-expression-1} [THROUGH|THRU {identifier-4|literal-4|arithmetic-expression-2}]'; 2023: '[ NOT ] boolean-expression-2 … partial-expression-1 … range-expression … [ IN alphabet-name-1 ]'. Same EVALUATE format, but 2023 adds boolean-expression subjects and objects, partial-expression objects and IN alphabet-name on ranges, so it accepts programs 1985 refused.",
+  "source": "audit-1985/state-route"
+ }
+}

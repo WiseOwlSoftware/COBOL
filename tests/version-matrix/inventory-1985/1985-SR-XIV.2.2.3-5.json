@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-XIV.2.2.3-5",
+ "rule-digest": "77a63aaca604",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'Record description entries following an input CD entry implicitly redefine the record area established by the input CD entry'; 2023: 'No 2023 clause holds the CD entry; the candidates cover only file, sort-merge, report and data description entries.'. No 2023 clause holds the communication description entry, and no candidate covers record areas redefined by an input CD, so the 2023 standard lacks this feature.",
+  "source": "audit-1985/state-route"
+ }
+}

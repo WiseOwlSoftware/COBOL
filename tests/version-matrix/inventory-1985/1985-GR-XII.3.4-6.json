@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XII.3.4-6",
+ "rule-digest": "ae5c92e43f5b",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-7.2.4.4-8"
+  ],
+  "bridge": true,
+  "reason": "1985: 'is equal, character for character, to the ordered sequence of source program text words.'; 2023: 'each alphanumeric character is equivalent to its corresponding national character and each lowercase letter is equivalent to its corresponding uppercase'. Same comparison cycle (a-f) is kept, but 2023 adds matching equivalences (case, national, quote forms, doubled quotes, directive lines), so different text now matches.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-SR-IV.4.3.8.1-L2.4",
+ "rule-digest": "3c8175ef8314",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-8.4.2.2.3-4",
+   "SR-8.4.2.2.3-5"
+  ],
+  "bridge": true,
+  "reason": "2023 keeps superordinate group qualifiers, the level-88 conditional variable and inclusive order. RENAMES/GENERATE/SUM rules show FD/SD and report-name qualifiers still exist.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-VI.5.12.3-1",
+ "rule-digest": "fb1a89d03a06",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.52.3-1"
+  ],
+  "bridge": true,
+  "reason": "1985: 'or a group item containing at least one such numeric data description entry'; 2023: 'an alphanumeric group item, national group item, or strongly-typed group item.'. 2023 lets SIGN appear on any alphanumeric, national or strongly-typed group, even one with no subordinate signed numeric item. It also adds screen and report group entries.",
+  "source": "audit-1985/state-route"
+ }
+}

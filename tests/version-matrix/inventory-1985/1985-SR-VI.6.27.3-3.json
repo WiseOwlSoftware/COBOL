@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-VI.6.27.3-3",
+ "rule-digest": "c8d68db1ae9c",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.48.3-4"
+  ],
+  "bridge": true,
+  "reason": "1985: 'must be described implicitly or explicitly, as USAGE IS DISPLAY.'; 2023: 'or as usage national and category national or numeric.'. Both allow display alphabetic, alphanumeric or numeric items without 'P'. 2023 also accepts usage national items of category national or numeric, an added case.",
+  "source": "audit-1985/state-route"
+ }
+}

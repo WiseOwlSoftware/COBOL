@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VIII.4.6.4-8",
+ "rule-digest": "3142f6fcf630",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.35.4-1",
+   "GR-14.9.35.4-2"
+  ],
+  "bridge": true,
+  "reason": "",
+  "source": "audit-1985/state-route"
+ }
+}

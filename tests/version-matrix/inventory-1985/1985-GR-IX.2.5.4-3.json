@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-IX.2.5.4-3",
+ "rule-digest": "b4527144c25c",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-12.4.5.6.4-4"
+  ],
+  "bridge": true,
+  "reason": "1985: 'the value of the associated alternate record key must not be duplicated among any of the records in the file'; 2023: 'The equality or inequality is based on the collating sequence used for the file according to the rules for a relation condition.'. Same DUPLICATES rule, but 2023 judges equality by the file's collating sequence. Under that sequence, byte-different keys that collate equal count as duplicates; 1985 states no such rule.",
+  "source": "audit-1985/state-route"
+ }
+}

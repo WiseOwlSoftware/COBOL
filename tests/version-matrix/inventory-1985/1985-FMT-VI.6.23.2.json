@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-FMT-VI.6.23.2",
+ "rule-digest": "284331ecef38",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-14.9.39.2"
+  ],
+  "bridge": true,
+  "reason": "1985: 'TO {index-name-2|identifier-2|integer-1}; UP BY/DOWN BY {identifier-3|integer-2}; SET {condition-name-1}... TO TRUE'; 2023: 'TO {arithmetic-expression-1|index-name-2|identifier-2}; UP BY/DOWN BY arithmetic-expression-2; TO {TRUE|FALSE}...'. Same SET formats, but 2023 allows arithmetic expressions as sending and increment operands, adds TO FALSE and repeated condition-name groups: more programs accepted.",
+  "source": "audit-1985/state-route"
+ }
+}

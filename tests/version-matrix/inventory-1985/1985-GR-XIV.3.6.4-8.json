@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.3.6.4-8",
+ "rule-digest": "bb4cf662ddf7",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'Once the execution of a SEND statement has released a portion of a message to the MCS, only subsequent execution of SEND statements'; 2023: 'GR-14.9.38.4-4: \"A message is sent to the run unit identified by...\" Each SEND sends one whole message; partial messages are gone.'. 2023 drops the 1985 communication module's partial message release. Its SEND sends a complete message to a message server run unit, so no rule governs releasing the rest of a message.",
+  "source": "audit-1985/state-route"
+ }
+}

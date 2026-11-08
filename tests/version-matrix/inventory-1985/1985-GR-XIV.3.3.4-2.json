@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.3.3.4-2",
+ "rule-digest": "da60210f62a7",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'When the INPUT phrase without the optional word TERMINAL is specified, the logical paths between the queue and sub-queues'; 2023: 'No ENABLE statement or Communication module clause in 2023; no candidate covers activating queue paths'. No 2023 clause holds the ENABLE feature, and no candidate found by wording deals with communication queues or ENABLE INPUT. The feature is absent from 2023.",
+  "source": "audit-1985/state-route"
+ }
+}

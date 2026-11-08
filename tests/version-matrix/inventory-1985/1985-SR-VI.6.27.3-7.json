@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-VI.6.27.3-7",
+ "rule-digest": "d552bdecfba1",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'Identifier-1 must not be reference modified.'; 2023: 'No rule in 14.9.48.3 (SR-1 to SR-10) forbids reference modification of identifier-1; only a variable-length group is barred'. The 2023 UNSTRING syntax rules, which appear complete, restrict identifier-1 only by category and variable-length group. The ban on reference modification is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "1989-AR-A.2.30.3-1",
+ "rule-digest": "4aae135cc48e",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "AR-15.68.3-1",
+   "AR-15.68.3-4"
+  ],
+  "bridge": true,
+  "reason": "1985: 'Argument-1 must be a nonnumeric literal or alphanumeric data item whose content has one of the following two formats'; 2023: 'Argument-1 shall be of category alphanumeric or national.'. The content formats match in substance (optional spaces, sign, currency, digits, CR/DB). 2023 also accepts national arguments, which 1985 refused, and adds a LOCALE alternative.",
+  "source": "audit-1985/state-route"
+ }
+}

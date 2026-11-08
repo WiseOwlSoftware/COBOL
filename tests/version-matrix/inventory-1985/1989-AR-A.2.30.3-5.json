@@ -1,0 +1,15 @@
+{
+ "rule-id": "1989-AR-A.2.30.3-5",
+ "rule-digest": "41c700338352",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "AR-15.68.3-3",
+   "AR-15.68.3-4"
+  ],
+  "bridge": true,
+  "reason": "Without argument-2 (and no new LOCALE), the currency is the compilation unit's single currency string: the default sign or the SPECIAL-NAMES one, as in 1985.",
+  "source": "audit-1985/state-route"
+ }
+}

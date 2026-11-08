@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XIII.3.20.4-12",
+ "rule-digest": "f205de3fbd6d",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.16.4-6"
+  ],
+  "bridge": true,
+  "reason": "2023 precedes each later body group with a page fit test; on failure the page footing, page advance and page heading come before the group prints, as the 1985 rule says.",
+  "source": "audit-1985/state-route"
+ }
+}

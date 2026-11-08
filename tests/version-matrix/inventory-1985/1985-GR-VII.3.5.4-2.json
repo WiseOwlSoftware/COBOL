@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-VII.3.5.4-2",
+ "rule-digest": "4a52f015b3f3",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'Conceptually, all data records within a file share the same area.'; 2023: 'No candidate holds the DATA RECORDS clause. SAME (12.4.6.4.4) covers areas shared across files, and READ/RETURN cover only undefined content.'. The DATA RECORDS clause has no 2023 counterpart among the candidates, and none restates that a file's records share one area. The feature is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

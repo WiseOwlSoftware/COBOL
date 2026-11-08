@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-IV.4.4.2-L2.2",
+ "rule-digest": "3b0f0af01ce4",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.6.3-3"
+  ],
+  "bridge": true,
+  "reason": "1985: 'The last statement in a declarative section when the statement is in the range of an active PERFORM statement executed in a different section'; 2023: 'In the declarative section for a fatal exception condition, there is no next executable statement after ... the run unit is terminated abnormally'. 2023 keeps the no-next-statement case only for fatal-exception declaratives, and now terminates the run unit abnormally, with implementor exceptions for SORT, MERGE and I-O.",
+  "source": "audit-1985/state-route"
+ }
+}

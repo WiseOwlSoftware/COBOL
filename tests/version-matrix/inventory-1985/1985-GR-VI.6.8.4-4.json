@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VI.6.8.4-4",
+ "rule-digest": "e4e9fbe0dac9",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.8.4-2",
+   "GR-14.7.7-4"
+  ],
+  "bridge": true,
+  "reason": "The 1985 rule only points COMPUTE to the ROUNDED, SIZE ERROR, arithmetic-statement and multiple-result rules; 2023 applies 14.7.4, 14.7.5 and 14.7.7 to COMPUTE.",
+  "source": "audit-1985/state-route"
+ }
+}

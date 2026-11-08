@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VI.6.23.4-3",
+ "rule-digest": "0eb3e64b95ec",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.39.4-2",
+   "SR-14.9.39.3-4"
+  ],
+  "bridge": true,
+  "reason": "1985: 'refer to the table element that corresponds in occurrence number to the table element referenced by index-name-2, identifier-2, or integer-1'; 2023: 'If arithmetic-expression-1 is specified, ... Otherwise, if ... outside the limit ... EC-RANGE-INDEX ... content of the receiving operand is unchanged'. 2023 keeps format-1 index setting but widens integer-1 to arithmetic-expression-1. It adds EC-BOUND-SUBSCRIPT and EC-RANGE-INDEX cases that leave the receiver unchanged; 1985 has neither.",
+  "source": "audit-1985/state-route"
+ }
+}

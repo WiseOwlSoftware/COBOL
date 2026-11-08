@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.2.2.4-15",
+ "rule-digest": "655e8ea46932",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'The nature of the output CD information is such that it is not sent to the terminal, but constitutes the communication between'; 2023: 'No communication description entry or MCS appears among the candidates; the 2023 SEND concerns server run units, not CDs.'. The 1985 Communication module (CD entry, MCS) has no 2023 counterpart. No candidate covers output CD information, so the feature is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-XV.3.2.3-10",
+ "rule-digest": "dc4eeeab89ab",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'identifier-1 must be specified without the subscripting or indexing normally required'; 2023: 'No 2023 clause holds USE FOR DEBUGGING; the USE statement candidates cover only EC/EO exception forms'. The rule restricts USE FOR DEBUGGING identifier-1. No 2023 clause holds the debug feature, and the USE rules shown cover only exceptions. FROM/TO/USING rules are unrelated screen clauses.",
+  "source": "audit-1985/state-route"
+ }
+}

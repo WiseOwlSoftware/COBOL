@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XVI.2.2.4-3",
+ "rule-digest": "e5d112c53528",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'The SEGMENT-LIMIT clause is presented on page XVI-5.'; 2023: 'No OBJECT-COMPUTER candidate mentions SEGMENT-LIMIT; the Segmentation module is not carried into 2023.'. The 2023 OBJECT-COMPUTER rules cover computer-name, character classification and collating sequence only. The SEGMENT-LIMIT clause of the Segmentation module is absent.",
+  "source": "audit-1985/state-route"
+ }
+}

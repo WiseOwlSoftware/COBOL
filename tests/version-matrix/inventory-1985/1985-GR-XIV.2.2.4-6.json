@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.2.2.4-6",
+ "rule-digest": "a4f309a1e3b1",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'the symbolic names of the queue structure that demanded this activity will be placed in the data items ... of the CD associated with the INITIAL clause'; 2023: 'No CD entry or INITIAL clause; RECEIVE (14.9.31.4) gets messages from server/requestor run units identified by a message tag'. 2023 has no communication description entry or INITIAL clause. No candidate covers this; the 2023 MCS RECEIVE/SEND model uses message tags, not CD queue names.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-XI.4.1.4-10",
+ "rule-digest": "6e9df0ca029e",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.24.4-10",
+   "GR-14.9.24.4-11"
+  ],
+  "bridge": true,
+  "reason": "Both prohibitions carry over. The USE procedures a MERGE invokes implicitly are its exception declaratives, so dropping 'AFTER EXCEPTION' does not change which programs are affected.",
+  "source": "audit-1985/state-route"
+ }
+}

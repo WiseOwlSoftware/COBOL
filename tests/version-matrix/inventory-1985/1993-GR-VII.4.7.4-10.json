@@ -1,0 +1,15 @@
+{
+ "rule-id": "1993-GR-VII.4.7.4-10",
+ "rule-digest": "9634a2d4675f",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.51.4-15",
+   "GR-14.9.51.4-1"
+  ],
+  "bridge": true,
+  "reason": "Both say an unsuccessful WRITE updates the I-O status and passes control per exception processing (USE declaratives). The record-area words add detail, not a different effect.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-FMT-VII.4.3.2",
+ "rule-digest": "a2e2e686c54b",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-14.9.27.2",
+   "SR-14.9.27.3-6"
+  ],
+  "bridge": true,
+  "reason": "1985: 'INPUT file-name-1 [ REVERSED | WITH NO REWIND ] …'; 2023: '{ file-name-1 [ WITH NO REWIND ] } … (no REVERSED phrase; sharing-phrase and retry-phrase added)'. The 2023 OPEN format keeps the four modes and NO REWIND for INPUT/OUTPUT only, but drops REVERSED, so OPEN INPUT f REVERSED is refused. It also adds the SHARING and RETRY phrases.",
+  "source": "audit-1985/state-route"
+ }
+}

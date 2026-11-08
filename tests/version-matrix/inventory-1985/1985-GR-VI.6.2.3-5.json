@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.6.2.3-5",
+ "rule-digest": "4e94e9d3a1df",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-8.8.1.2-6"
+  ],
+  "bridge": true,
+  "reason": "1985: 'c. If no real number exists as the result of the evaluation, the size error condition exists.'; 2023: 'c) If the value of an expression to be raised to a power is less than zero, the evaluation of the exponent shall result in an integer.'. Rules a and b match. 1985 errs only when no real result exists. 2023 errs for any negative base with a non-integer exponent, e.g. (-32)**0.2, whose real result is -2.",
+  "source": "audit-1985/state-route"
+ }
+}

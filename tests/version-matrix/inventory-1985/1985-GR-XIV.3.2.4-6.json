@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.3.2.4-6",
+ "rule-digest": "ac730e89f073",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'When the OUTPUT phrase is specified, the logical paths are deactivated for all destinations specified by the content of each'; 2023: 'No 2023 clause holds the DISABLE statement or the Communication module; no candidate covers this subject.'. No 2023 clause holds the DISABLE statement or the communication feature. The wording candidates cover unrelated statements (SET, WRITE, RELEASE and others), so the feature is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

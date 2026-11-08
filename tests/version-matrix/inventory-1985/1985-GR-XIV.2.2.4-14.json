@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.2.2.4-14",
+ "rule-digest": "c28d33813912",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'The MCS updates the content of the data item referenced by data-name-11 only as part of the execution of an ACCEPT MESSAGE COUNT statement.'; 2023: 'No 2023 clause holds the communication description entry; the CD entry and the ACCEPT MESSAGE COUNT statement are absent.'. No 2023 clause carries the communication description entry. No candidate covers the message count field or ACCEPT MESSAGE COUNT; the 2023 RECEIVE rule concerns a different mechanism.",
+  "source": "audit-1985/state-route"
+ }
+}

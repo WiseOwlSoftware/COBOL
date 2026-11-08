@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-VIII.4.2.3-1",
+ "rule-digest": "bd6653c35fa9",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.6.4-10"
+  ],
+  "bridge": true,
+  "reason": "2023 sets no CLOSE rule tying the files' organization or access. Each file-name-1 is closed as if by a separate CLOSE, so mixed files are accepted with the same effect.",
+  "source": "audit-1985/state-route"
+ }
+}

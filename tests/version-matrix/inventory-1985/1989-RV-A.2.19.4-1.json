@@ -1,0 +1,14 @@
+{
+ "rule-id": "1989-RV-A.2.19.4-1",
+ "rule-digest": "ce8e8120380e",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "RV-15.50.4-3"
+  ],
+  "bridge": true,
+  "reason": "For the 1985 cases (nonnumeric literal, elementary item, group without ODO) 2023 returns the integer length in alphanumeric positions; ODO groups fall under a separate rule (-4).",
+  "source": "audit-1985/state-route"
+ }
+}

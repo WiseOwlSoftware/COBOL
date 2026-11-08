@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-FMT-XI.4.3.2",
+ "rule-digest": "e898e7182449",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-14.9.34.2",
+   "SR-14.9.34.3-4"
+  ],
+  "bridge": true,
+  "reason": "1985: 'AT END imperative-statement-1 [ NOT AT END imperative-statement-2 ]'; 2023: 'The AT END phrase and the NOT AT END phrase, when specified, may be written in reversed order.'. The format is identical, but a 2023 syntax rule lets NOT AT END precede AT END. The 1985 format fixes AT END first, so 2023 accepts programs that 1985 refuses.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.3.5.4-6",
+ "rule-digest": "47dc080c4206",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'The data items identified by cd-name-1 are appropriately updated by the message control system (MCS) at each execution'; 2023: 'RECEIVE has no cd-name; it sets data-name-1 (message tag) and data-name-2 (length). No CD entry exists to update.'. 2023 drops the communication description entry. Its RECEIVE (GR-14.9.31.4-1, -3) is run-unit messaging with message tags, not cd-name-1 items, so the CD-update rule is gone.",
+  "source": "audit-1985/state-route"
+ }
+}

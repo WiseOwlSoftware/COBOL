@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VI.5.6.4-1",
+ "rule-digest": "40db0fe760f0",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.32.4-1",
+   "GR-13.18.32.4-2"
+  ],
+  "bridge": true,
+  "reason": "2023 still truncates the leftmost characters and right-aligns with space fill for character data. Boolean zero fill and national fill only cover item kinds absent from the 1985 rule.",
+  "source": "audit-1985/state-route"
+ }
+}

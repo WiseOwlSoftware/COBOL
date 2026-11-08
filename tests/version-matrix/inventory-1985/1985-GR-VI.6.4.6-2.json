@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.6.4.6-2",
+ "rule-digest": "ef0ce39d159d",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.7.7-4"
+  ],
+  "bridge": true,
+  "reason": "2023 step b stores or combines the intermediate into each result in left-to-right order, identifying each receiver when accessed. Native mode keeps an implementor-defined intermediate.",
+  "source": "audit-1985/state-route"
+ }
+}

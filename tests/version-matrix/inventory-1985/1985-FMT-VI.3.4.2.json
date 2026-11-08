@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-FMT-VI.3.4.2",
+ "rule-digest": "95b6595d1af0",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'DATE-COMPILED. [ comment-entry ] …'; 2023: 'no 2023 clause holds the DATE-COMPILED paragraph; candidates cover other paragraphs only'. No 2023 clause holds the DATE-COMPILED paragraph, and no candidate covers it; the candidates are other paragraphs, so 2023 lacks the feature.",
+  "source": "audit-1985/state-route"
+ }
+}

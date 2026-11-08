@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.6.3.1.2-2",
+ "rule-digest": "3b594c86bee7",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-8.8.4.4.4-3"
+  ],
+  "bridge": true,
+  "reason": "1985: 'An operand is alphabetic if it consists entirely of the uppercase letters A, B, C, ... , Z, space, or the lowercase letters'; 2023: 'If a locale is in effect for character classification, the condition is true if ... characters identified as alphabetic in ... LC_CTYPE'. 2023 keeps the A-Z/a-z/space test only when no locale is in effect. It adds a case where LC_CTYPE of the current locale decides what is alphabetic.",
+  "source": "audit-1985/state-route"
+ }
+}

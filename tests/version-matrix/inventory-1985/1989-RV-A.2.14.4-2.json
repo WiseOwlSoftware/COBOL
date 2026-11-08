@@ -1,0 +1,14 @@
+{
+ "rule-id": "1989-RV-A.2.14.4-2",
+ "rule-digest": "b0124800e224",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "RV-15.36.4-1"
+  ],
+  "bridge": true,
+  "reason": "For positive n, 2023's expression n*(n-1)*...*1, with 1 giving 1, is n factorial, as in 1985. Zero is a separate case, so this rule is unchanged.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-SR-VI.6.20.3-3",
+ "rule-digest": "5cb9d95f65f3",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.26.3-4",
+   "SR-14.7.7-2"
+  ],
+  "bridge": true,
+  "reason": "1985: 'superimposition of all receiving data items of a given statement ... must not contain more than 18 digits'; 2023: 'When native arithmetic is in effect ... using all of the operands in the statement ... shall not contain more than 31 digits'. Limit raised from 18 to 31 digits. Composite now built from all operands, not only receiving items. Applies only under native arithmetic, with exemptions for functions, binary and float.",
+  "source": "audit-1985/state-route"
+ }
+}

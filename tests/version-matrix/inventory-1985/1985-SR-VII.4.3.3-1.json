@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-VII.4.3.3-1",
+ "rule-digest": "80acad5a9018",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'The REVERSED phrase can only be used with sequential files.'; 2023: 'No REVERSED phrase in OPEN; only \"The NO REWIND phrase may be specified only for sequential files.\"'. The 2023 OPEN syntax rules cover INPUT, I-O, EXTEND, NO REWIND and sharing but never REVERSED. The phrase is dropped, so its sequential-only restriction goes with it.",
+  "source": "audit-1985/state-route"
+ }
+}

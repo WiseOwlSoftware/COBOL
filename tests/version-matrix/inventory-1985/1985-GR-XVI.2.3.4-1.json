@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XVI.2.3.4-1",
+ "rule-digest": "c61e6bddf9b6",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'When the SEGMENT-LIMIT clause is specified, only those segments having segment-numbers from 0 up to, but not including'; 2023: 'No 2023 clause holds segmentation; the OBJECT-COMPUTER candidates define the object computer only, with no SEGMENT-LIMIT'. No 2023 clause carries segmentation or SEGMENT-LIMIT. The wording candidates share only 'up to, but not including' on unrelated subjects. The feature is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

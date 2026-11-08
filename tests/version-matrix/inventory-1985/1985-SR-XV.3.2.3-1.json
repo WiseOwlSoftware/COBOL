@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-XV.3.2.3-1",
+ "rule-digest": "aebb7a6df724",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'Debugging section(s), if specified, must appear together immediately after the DECLARATIVES header.'; 2023: 'No USE FOR DEBUGGING: the 2023 USE rules cover only AFTER EXCEPTION, BEFORE REPORTING, EC and EO forms; the Debug feature is dropped'. No 2023 clause holds the Debug feature. The USE statement candidates never mention debugging sections or their placement, so the 1985 grouping requirement is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

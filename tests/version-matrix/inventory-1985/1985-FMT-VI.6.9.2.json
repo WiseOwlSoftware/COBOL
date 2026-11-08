@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-FMT-VI.6.9.2",
+ "rule-digest": "fd856dd99f06",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-14.9.9.2",
+   "SR-14.9.9.3-2"
+  ],
+  "bridge": true,
+  "reason": "1985: 'CONTINUE'; 2023: 'CONTINUE [ AFTER arithmetic-expression-1 SECONDS ]'. 2023 adds an optional AFTER ... SECONDS phrase that suspends execution, so programs 1985 refuses are now accepted. Plain CONTINUE is still valid and acts as AFTER zero seconds.",
+  "source": "audit-1985/state-route"
+ }
+}

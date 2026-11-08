@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-FMT-XVI.3.2.2",
+ "rule-digest": "6d353d6e29dc",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'section-name SECTION [ segment-number ] .'; 2023: 'no 2023 clause carries the Segmentation feature; no candidate gives a section header with a segment-number'. No 2023 clause holds the segmentation feature, and no wording candidate allows a segment-number on a section header. The optional segment-number appears dropped with the module.",
+  "source": "audit-1985/state-route"
+ }
+}

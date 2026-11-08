@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.2.2.4-17",
+ "rule-digest": "d83780f0397a",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'the content of the data item referenced by data-name-1 will indicate to the MCS the number of symbolic destinations'; 2023: 'No 2023 clause holds the communication description entry; none of the candidates covers CD destination counts.'. The communication module (CD entry, SEND/PURGE/ENABLE OUTPUT) has no 2023 counterpart. The candidates are about OCCURS, data, sort and screen entries, not MCS destinations.",
+  "source": "audit-1985/state-route"
+ }
+}

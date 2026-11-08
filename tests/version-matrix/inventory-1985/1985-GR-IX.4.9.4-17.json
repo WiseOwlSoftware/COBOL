@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-IX.4.9.4-17",
+ "rule-digest": "27981cc7f067",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.51.4-42"
+  ],
+  "bridge": true,
+  "reason": "Same four cases. Extend allows only sequential access, so case a already catches a duplicate prime key there. The file collating sequence only matters with 2023's new collating clauses.",
+  "source": "audit-1985/state-route"
+ }
+}

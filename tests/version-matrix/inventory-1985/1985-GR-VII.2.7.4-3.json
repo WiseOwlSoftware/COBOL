@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-VII.2.7.4-3",
+ "rule-digest": "31797cc9af1b",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'Literal-1 or the value of the data item referenced by data-name-1, at the time the OPEN statement which creates the file is executed'; 2023: 'No PADDING CHARACTER clause among the 2023 file control clauses; only COLLATING SEQUENCE and RECORD DELIMITER are set at OPEN'. No 2023 clause holds the PADDING CHARACTER feature. The wording candidates concern other fixed file attributes, so 2023 drops the clause and this rule.",
+  "source": "audit-1985/state-route"
+ }
+}

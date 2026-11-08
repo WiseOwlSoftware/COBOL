@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-XI.4.4.3-6",
+ "rule-digest": "2d9dabe70263",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.40.3-8"
+  ],
+  "bridge": true,
+  "reason": "1985: 'must be described in a file description entry, not in a sort-merge file description entry'; 2023: 'shall be described in a file description entry that is not for a report file and is not a sort-merge file description entry'. Both keep file-name-2/3 in an FD and not an SD, but 2023 also refuses an FD for a report file, which the 1985 rule allowed.",
+  "source": "audit-1985/state-route"
+ }
+}

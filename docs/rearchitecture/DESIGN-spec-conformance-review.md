@@ -854,9 +854,11 @@ CHANGED and REMOVED rows, and NEW ones, carry verdicts of their own. The fleet's
 
 **The audit fills the change records** (§10.3). Its passes are detections. A SAME that the verify pass upholds is
 recorded as KEPT through the one recording path (`record_verdicts.py`, a batch derived from the run's `results.json`, as
-the 2023 derived batches are); a DISPUTED rule goes to a fleet adjudicator, who records KEPT or CHANGED; a DIFFERS or
-NONE answer is a CHANGED or REMOVED candidate that an adjudicator confirms with its evidence, and then a verdict of its own
-under `--std=<edition>`, its witness a draft from the drafts pass checked against the rule text.
+the 2023 derived batches are); a DISPUTED rule, and a DIFFERS or NONE answer (a CHANGED or REMOVED candidate), is decided
+by the `adjudicate` pass and its independent `refute` pass (§10.3, kb/Work PB4995): an upheld decision is recorded through
+the same path, and only what they leave contested goes to a fleet adjudicator. A CHANGED or REMOVED rule then takes a
+verdict of its own under `--std=<edition>`, its witness a draft from the drafts pass that `run_drafts.py` ran and the fleet
+checked against the rule text.
 
 **Everything else is derived from the chains, never written by hand:** each edition's GAP count (the session probe and
 the ledger report one per edition), the conformance statement of each edition (kb/Work PB4885 for 1985), the conformance
@@ -900,7 +902,9 @@ each a DETECTION a fleet agent turns into a verdict, never a verdict itself:
 | `map` | 1985 catalog rule, with its candidates (below); planned only once every route item is answered | SAME, DIFFERS or NONE, the 2023 ids and the differing words |
 | `verify` | SAME answer | UPHELD, REFUTED or UNSURE: the adversarial pass tries to refute it |
 | `claims` | 1985 claim of `VERSION_CHANGE_REFERENCE.md` (a JSON list of claims the fleet prepares, each with its 1985 locator) | CONFIRMED, REFUTED or NOT-ADDRESSED, with the 1985 `locator` and `rule` (null where no numbered rule decides) as fields of their own |
-| `drafts` | rule whose disposition is a row of its own | a minimal program and the outcome the rule requires, which the fleet compiles and runs under `--std=1985` and checks against the rule text before any use |
+| `drafts` | rule whose disposition is a row of its own | a minimal program and the outcome the rule requires, which `scripts/spec/run_drafts.py` compiles and runs under `--std=1985` and the fleet checks against the rule text before any use |
+| `adjudicate` | DISPUTED or OWN-ROW rule, with its map candidates and both readers' answers (kb/Work PB4995) | its change record: KEPT or CHANGED (the 2023 candidates it carries into, and for CHANGED the differing words) or REMOVED (2023 drops it), or OPEN when the texts do not decide |
+| `refute` | KEPT, CHANGED or REMOVED adjudication, with every candidate the adjudicator saw | UPHELD, REFUTED or UNSURE: the independent refuter of the decision |
 
 **A rule's candidates are drawn from the strongest signal down** (`audit_batch.candidates`, kb/Work PB4971, owner
 2026-11-08: "Use the strongest appropriate signals"):
@@ -913,7 +917,15 @@ it" rather than a deleted feature; a heading alone matches no 2023 clause for 59
 a clause per module and names clauses differently. The route pass is the signal that reads the clause as a whole, one
 request per clause (247 for 1985), so it is cheap; the heading and the wording stay as the routes' complement.
 
-`results` writes each mapped rule's disposition (CARRIES, OWN-ROW, DISPUTED, or still open). The tool's rules:
+`results` writes each mapped rule's disposition (CARRIES, OWN-ROW, DISPUTED, or still open) and its DECIDED change
+(`audit_batch.dispositions`, the one derivation): KEPT for CARRIES, and the adjudicate pass's answer once the refute pass
+UPHELD it; an OPEN, refuted or unsure adjudication is `contested`, a fleet adjudicator's (`cobol-adjudicator`), never a
+vote. `python scripts/spec/lineage.py change-batch` turns every decided change into a `record_verdicts.py --edition 1985`
+batch. `python scripts/spec/run_drafts.py --state DIR` compiles and runs each draft at `--std=1985` through the
+conformance harness (`conformance-suite/harness/run.py`'s `Run` and the WiseOwl adapter, the one place a program is
+compiled, run and compared) and writes `DIR/drafts/runs.json`: MATCH, MISMATCH or NO VERDICT per rule, naming the
+compiler's commit. A MATCH is a candidate witness, placed in the conformance suite only after the fleet checks the draft
+against the rule text; a MISMATCH is a defect or a suspect draft for the fleet to tell apart. The tool's rules:
 
 - **Restartable**, on the ONE batch state the transcriber shares (`scripts/spec/message_batches.py`, `BatchRun`): an
   intent written before every create and the batch after, a crash between them adopted from the server's list on the next

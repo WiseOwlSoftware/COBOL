@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-XIII.3.13.3-1",
+ "rule-digest": "1f8fa530792f",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.28.3-1"
+  ],
+  "bridge": true,
+  "reason": "Both confine GROUP INDICATE to printable entries of a detail group. 2023 spells out printable as an elementary entry with COLUMN plus SOURCE or VALUE; same programs accepted.",
+  "source": "audit-1985/state-route"
+ }
+}

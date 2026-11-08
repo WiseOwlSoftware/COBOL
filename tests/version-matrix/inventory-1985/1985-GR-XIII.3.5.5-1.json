@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XIII.3.5.5-1",
+ "rule-digest": "b5cffd728ebf",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-8.4.3.15.4-1"
+  ],
+  "bridge": true,
+  "reason": "Both make PAGE-COUNTER a reserved word for a counter item kept for each report. 2023's added numeric detail matches what 1985 defers to the special-register pages; LINE-COUNTER is extra.",
+  "source": "audit-1985/state-route"
+ }
+}

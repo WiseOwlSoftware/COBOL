@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-VI.6.21.4-15",
+ "rule-digest": "9c8afeb01135",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'can have within its range ... only one of the following: a. Sections and/or paragraphs wholly contained in one or more non-independent segments'; 2023: 'No segments exist; GR-14.9.28.4-1 defines the PERFORM range with no segment restriction'. 2023 has no segmentation or independent segments. The PERFORM range rules (GR-14.9.28.4-1) set no limit tied to segments, so this restriction is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

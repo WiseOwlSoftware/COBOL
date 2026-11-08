@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-GR-XIII.3.16.4-2",
+ "rule-digest": "865e6613f710",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.37.4-2",
+   "GR-13.18.37.4-4",
+   "GR-8.4.3.15.4-4"
+  ],
+  "bridge": true,
+  "reason": "Both say NEXT GROUP yields a new LINE-COUNTER value by group type. 2023 rules still use PAGE clause values (FOOTING integer) and LINE-COUNTER, so no change in substance.",
+  "source": "audit-1985/state-route"
+ }
+}

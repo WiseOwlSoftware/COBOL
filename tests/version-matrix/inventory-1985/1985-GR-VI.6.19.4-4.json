@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VI.6.19.4-4",
+ "rule-digest": "0c1a969d802b",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.25.4-6",
+   "GR-14.9.25.4-5"
+  ],
+  "bridge": true,
+  "reason": "1985: 'When the sending operand is described as being alphanumeric, data is moved as if the sending operand were described as an unsigned numeric integer.'; 2023: 'unless the number of character positions is greater than 31, in which case the rightmost 31 character positions are used.'. Same conversion rules otherwise. 2023 caps an alphanumeric sender at 31 positions and makes non-numeric content set EC-DATA-INCOMPATIBLE with undefined results.",
+  "source": "audit-1985/state-route"
+ }
+}

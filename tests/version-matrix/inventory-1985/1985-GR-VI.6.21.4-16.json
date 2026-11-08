@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-VI.6.21.4-16",
+ "rule-digest": "cba2ec979603",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'A PERFORM statement that appears in an independent segment can have within its range ... only one of the following'; 2023: 'No segments: GR-14.9.28.4-1 defines the range with no segment limit (\"need not appear consecutively in the source element\")'. 2023 has no independent segments. Its PERFORM range rule sets no limit on which sections may be in a range, so the 1985 segment restriction is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

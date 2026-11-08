@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.5.11.4-2",
+ "rule-digest": "4e5eff2349b7",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.45.4-1"
+  ],
+  "bridge": true,
+  "reason": "Both give data-name-1 all data attributes of data-name-2 when no THROUGH/data-name-3 is given. The storage-area sentence states what renaming already means; program effect is unchanged.",
+  "source": "audit-1985/state-route"
+ }
+}

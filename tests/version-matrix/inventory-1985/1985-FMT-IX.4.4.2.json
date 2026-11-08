@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-FMT-IX.4.4.2",
+ "rule-digest": "eef6530f6d3f",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-14.9.27.2"
+  ],
+  "bridge": true,
+  "reason": "1985: 'OPEN { INPUT {file-name-1} … | OUTPUT {file-name-2} … | I-O {file-name-3} … | EXTEND {file-name-4} … } …'; 2023: 'OPEN {{INPUT|OUTPUT|I-O|EXTEND} [ sharing-phrase ] [ retry-phrase ] { file-name-1 [ WITH NO REWIND ] } …} …'. Same four repeatable open modes, but the 2023 format adds optional sharing-phrase, retry-phrase and WITH NO REWIND, so it accepts OPEN statements the 1985 format refuses.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "rule-id": "1989-RV-A.2.22.4-2",
+ "rule-digest": "60644b443ff9",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "RV-15.57.4-5"
+  ],
+  "bridge": true,
+  "reason": "1985: 'The character string returned has the same length as argument-1.'; 2023: 'When the correspondence of uppercase and lowercase letters is not one-to-one, the character string returned may be longer or shorter'. 1985 always returns a result the same length as argument-1. 2023 keeps that only for one-to-one case mapping; otherwise the result length may differ.",
+  "source": "audit-1985/state-route"
+ }
+}

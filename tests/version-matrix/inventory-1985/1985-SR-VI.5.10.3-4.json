@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-VI.5.10.3-4",
+ "rule-digest": "f7e9b276b900",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'This clause must not be used in level 01 entries in the Communication Section.'; 2023: 'No communication section; SR-13.18.44.3-3 bars REDEFINES only in level 1 file section entries; section lists name only file, WS, LS, linkage'. The 2023 data division has no Communication Section: candidate section lists omit it and the REDEFINES rules name only the file section, so this restriction has no counterpart.",
+  "source": "audit-1985/state-route"
+ }
+}

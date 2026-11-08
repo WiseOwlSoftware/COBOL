@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-X.1.3.8.1-2",
+ "rule-digest": "7be3f27434b9",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-8.4.6.3-2"
+  ],
+  "bridge": true,
+  "reason": "1985: 'except that program possessing the common attribute and any programs contained within it.'; 2023: 'may reference the program-name only if the program possesses the recursive attribute.'. Same scope rule for common program-names, but 2023 adds a case: the common program and programs it contains may reference the name if it is recursive. 1985 excluded them outright.",
+  "source": "audit-1985/state-route"
+ }
+}

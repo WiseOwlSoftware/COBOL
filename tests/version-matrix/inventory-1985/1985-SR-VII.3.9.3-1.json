@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-VII.3.9.3-1",
+ "rule-digest": "862aacdb659a",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'Data-name-1 should be qualified when necessary, but cannot be subscripted, nor can data-name-1 be an item described with the USAGE IS INDEX'; 2023: 'No 2023 clause holds the FD VALUE OF clause; the clause and its data-name-1 rule are absent from 2023.'. No 2023 clause holds the VALUE OF clause of the file description. The wording candidates restrict data-names of other clauses and statements, so 2023 lacks the feature.",
+  "source": "audit-1985/state-route"
+ }
+}

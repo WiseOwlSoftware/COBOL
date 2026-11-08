@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-FMT-IX.4.8.2",
+ "rule-digest": "ec80c8140ea3",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-14.9.49.2"
+  ],
+  "bridge": true,
+  "reason": "1985: 'USE AFTER STANDARD {EXCEPTION|ERROR} PROCEDURE ON ... (AFTER underlined, required; no GLOBAL)'; 2023: 'USE [ GLOBAL ] AFTER STANDARD ... (AFTER printed without underlining, so optional; GLOBAL added)'. Same file-exception alternatives, but 2023 adds an optional GLOBAL phrase and makes AFTER optional, so it accepts programs that the 1985 format refused.",
+  "source": "audit-1985/state-route"
+ }
+}

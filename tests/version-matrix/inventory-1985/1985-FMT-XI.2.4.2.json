@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-FMT-XI.2.4.2",
+ "rule-digest": "71532d375b6b",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "FMT-12.4.6.2",
+   "FMT-12.4.6.4.2",
+   "SR-12.4.6.4.3-1"
+  ],
+  "bridge": true,
+  "reason": "2023 still allows SAME RECORD/SORT/SORT-MERGE AREA FOR file-name-1 {file-name-2}... in I-O-CONTROL, repeatable, ended by a period. APPLY COMMIT and SAME AREA come from other clauses or modules.",
+  "source": "audit-1985/state-route"
+ }
+}

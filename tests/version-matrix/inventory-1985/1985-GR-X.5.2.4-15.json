@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-X.5.2.4-15",
+ "rule-digest": "409cd70922fb",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-11.10.4-4",
+   "GR-14.9.4.4-3"
+  ],
+  "bridge": true,
+  "reason": "1985: 'a called program must not execute a CALL statement that directly or indirectly calls the calling program.'; 2023: 'The program may be called while it is active and may call itself. If the RECURSIVE clause is not specified ... shall not be called'. 1985 forbids calling any active program. 2023 allows it for programs with the RECURSIVE attribute; for others EC-PROGRAM-RECURSIVE-CALL is raised and the call fails.",
+  "source": "audit-1985/state-route"
+ }
+}

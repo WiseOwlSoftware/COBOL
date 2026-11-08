@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XVI.1.4.3-2",
+ "rule-digest": "ed194666b080",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'Control is transferred to that segment as the result of the implicit transfer of control between a SORT or MERGE statement'; 2023: 'No Segmentation module or independent segments; candidates give only general SORT/MERGE implicit transfer of control (14.6.3)'. The rule says when an independent segment is entered in its initial state. 2023 has no segments, and no candidate covers segment state, so the requirement is gone.",
+  "source": "audit-1985/state-route"
+ }
+}

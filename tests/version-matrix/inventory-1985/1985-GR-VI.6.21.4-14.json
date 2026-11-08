@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.6.21.4-14",
+ "rule-digest": "e7e13a27ae45",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.28.4-2"
+  ],
+  "bridge": true,
+  "reason": "1985: 'furthermore, two or more such active PERFORM statements may not have a common exit'; 2023: 'c) the execution of the second PERFORM statement passes through the exit of the first PERFORM statement.'. 2023 makes only a nested PERFORM passing through the outer exit undefined. It drops the explicit bans on a common exit and on the inner sequence partly overlapping the outer range.",
+  "source": "audit-1985/state-route"
+ }
+}

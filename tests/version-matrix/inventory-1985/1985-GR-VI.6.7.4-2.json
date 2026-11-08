@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-VI.6.7.4-2",
+ "rule-digest": "fe618794dd53",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'A GO TO statement in a section whose segment-number is greater than or equal to 50 must not be referred to by an ALTER statement'; 2023: 'No candidate covers ALTER or segment-numbers; the GO TO rule 14.9.17.4-1 only states that format 1 transfers control'. No 2023 candidate states an ALTER or segmentation rule. The GO TO candidate covers only transfer of control, so the 2023 standard lacks the ALTER statement and this restriction.",
+  "source": "audit-1985/state-route"
+ }
+}

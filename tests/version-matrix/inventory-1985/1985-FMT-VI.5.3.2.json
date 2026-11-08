@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-FMT-VI.5.3.2",
+ "rule-digest": "8ff86880a8dd",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-13.16.2",
+   "FMT-13.18.38.2"
+  ],
+  "bridge": true,
+  "reason": "1985: 'level-number [data-name-1/FILLER] [REDEFINES data-name-2] [PICTURE...] ... [BLANK WHEN ZERO] [VALUE IS literal-1].'; 2023: '[ IS TYPEDEF [ STRONG ] ] [ ALIGNED ] [ ANY LENGTH ] [ BASED ] ... [ IS EXTERNAL [ AS literal-1 ] ] [ IS GLOBAL ]'. All 1985 clauses and formats 2/3 are carried, and the name was already optional (brackets) in 1985. 2023 adds many clauses (TYPEDEF, BASED, EXTERNAL, etc.), so more entries are accepted.",
+  "source": "audit-1985/state-route"
+ }
+}

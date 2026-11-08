@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VI.6.6.4-5",
+ "rule-digest": "f0fc1f458075",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.2.4-6",
+   "GR-14.7.7-4"
+  ],
+  "bridge": true,
+  "reason": "1985: 'page VI-69, Overlapping Operands; page VI-69, Multiple Results in Arithmetic Statements'; 2023: 'given in 14.6.13.2, Incompatible data; ... 14.7.7, Arithmetic statements (NOTE 3: results ... are defined regardless ... share storage)'. ADD no longer refers to Overlapping Operands: 14.7.7 NOTE 3 defines results despite shared storage, where 1985 left them undefined. Incompatible data is added; multiple results move into 14.7.7.",
+  "source": "audit-1985/state-route"
+ }
+}

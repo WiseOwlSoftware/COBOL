@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XI.4.4.4-9",
+ "rule-digest": "2b971b6f30cc",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.40.4-12"
+  ],
+  "bridge": true,
+  "reason": "1985: 'The initiation is performed as if an OPEN statement with the INPUT phrase had been executed.'; 2023: 'is larger than the largest record allowed in the file description entry for file-name-1, the EC-SORT-MERGE-RELEASE'. Same USING rule, but 2023 adds cases: SHARING on the implicit OPEN, IGNORING LOCK on the READ, continuing after nonfatal OPEN exceptions, and SORT termination on bad record size.",
+  "source": "audit-1985/state-route"
+ }
+}

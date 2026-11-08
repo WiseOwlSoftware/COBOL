@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VII.3.8.4-14",
+ "rule-digest": "43e2e71f3c12",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.43.4-3",
+   "GR-13.18.43.4-8"
+  ],
+  "bridge": true,
+  "reason": "1985: 'This sum may be different from the actual size of the record; see ... The SYNCHRONIZED Clause'; 2023: 'Implicit filler positions, if any, are included in the size.'. Both define record size as the sum of item sizes. 1985 leaves synchronization slack out of the sum, while 2023 counts implicit filler in the size, so the size checked against the integers differs.",
+  "source": "audit-1985/state-route"
+ }
+}

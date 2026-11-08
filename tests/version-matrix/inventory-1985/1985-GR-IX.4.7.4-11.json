@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-IX.4.7.4-11",
+ "rule-digest": "7618f3864d86",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.41.4-17",
+   "GR-14.9.41.4-16"
+  ],
+  "bridge": true,
+  "reason": "With KEY data-name-1 and no LENGTH phrase, 2023 compares a key taken from the record area at data-name-1's position and length. LENGTH and record-key-name-1 are added syntax only.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-VI.6.17.3-4",
+ "rule-digest": "6475576a4838",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'may not contain the DEPENDING phrase of the OCCURS clause.'; 2023: 'INITIALIZE syntax rules (SR-14.9.20.3-1..8) restrict identifier-1 only as to class, RENAMES etc.; no OCCURS DEPENDING ban'. 2023 INITIALIZE syntax rules cover identifier-1's description but no longer forbid OCCURS DEPENDING, so programs refused in 1985 are accepted.",
+  "source": "audit-1985/state-route"
+ }
+}

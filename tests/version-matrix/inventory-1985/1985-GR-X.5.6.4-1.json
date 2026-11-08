@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-X.5.6.4-1",
+ "rule-digest": "d021f0dc0cd4",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.49.4-4"
+  ],
+  "bridge": true,
+  "reason": "Same precedence: declarative in the program with the causing statement first, then GLOBAL ones in each directly containing program out to the outermost; none if no match.",
+  "source": "audit-1985/state-route"
+ }
+}

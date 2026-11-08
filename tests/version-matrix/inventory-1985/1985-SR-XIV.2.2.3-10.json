@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-XIV.2.2.3-10",
+ "rule-digest": "6a945732a924",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'Data-name-1, data-name-2, data-name-3, data-name-4, and data-name-5 must be unique within a CD entry.'; 2023: \"No communication module or CD entry; no candidate from the feature's clauses, and none by wording covers a CD entry.\". 2023 has no communication description entry, so this rule on unique data-names in a CD entry has no counterpart. The wording candidates concern unrelated entries.",
+  "source": "audit-1985/state-route"
+ }
+}

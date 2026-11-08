@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.3.6.4-2",
+ "rule-digest": "b95153261845",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'When a receiving communication device ... is oriented to handle variable length messages, each message ... will begin on the next available'; 2023: 'No communication devices: 2023 SEND sends a message to a message server run unit (GR-14.9.38.4-4); the communication module is gone'. The 2023 SEND belongs to the message-server feature, not the 1985 Communication module. No candidate addresses where variable-length messages are placed on a communication device.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-GR-XII.2.4-6",
+ "rule-digest": "a13246db693c",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-6.5-2",
+   "GR-7.2.3.4-13",
+   "GR-7.2.3.4-9"
+  ],
+  "bridge": true,
+  "reason": "1985: 'Comment lines or blank lines appearing in library text are copied into the resultant source program unchanged'; 2023: 'If the line is a comment line or a blank line, that line is logically discarded. / shall not introduce ... a comment, or a blank line'. Both ignore comments in matching (2023 treats them as a space). 1985 copies comment/blank lines from library text and pseudo-text-2 into the result; 2023 discards them.",
+  "source": "audit-1985/state-route"
+ }
+}

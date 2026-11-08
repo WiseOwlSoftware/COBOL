@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-VI.5.9.3-7",
+ "rule-digest": "18de4f70c8ea",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.40.3-22"
+  ],
+  "bridge": true,
+  "reason": "2023 still refuses '*' in the picture string with BLANK WHEN ZERO. The added 'S' ban is a separate case outside this rule's subject; it does not alter the asterisk requirement.",
+  "source": "audit-1985/state-route"
+ }
+}

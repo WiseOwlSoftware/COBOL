@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-XII.3.4-2",
+ "rule-digest": "3200cd9a100a",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-7.2.4.4-7",
+   "GR-7.2.4.4-6"
+  ],
+  "bridge": true,
+  "reason": "1985: 'The format 2 REPLACE statement specifies that any text replacement currently in effect is discontinued.'; 2023: 'A format 2 REPLACE statement with the LAST phrase cancels the active REPLACE statement and pops the last statement'. REPLACE OFF without LAST still ends all replacement. The new LAST phrase is an added case: it reactivates the stacked statement instead of discontinuing all replacement.",
+  "source": "audit-1985/state-route"
+ }
+}

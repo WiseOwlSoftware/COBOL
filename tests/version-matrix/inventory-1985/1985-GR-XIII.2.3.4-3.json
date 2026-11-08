@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XIII.2.3.4-3",
+ "rule-digest": "86544756e5c1",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-12.4.5.3-3"
+  ],
+  "bridge": true,
+  "reason": "1985: 'to a storage medium reference by implementor-name-1 or literal-1.'; 2023: 'identified by device-name-1, literal-1, or the content of the data item referenced by data-name-1'. 2023 keeps association by device-name/literal but adds a case: association by data-name-1 contents (USING), at OPEN time, with OPEN unsuccessful on a mismatch.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.3.2.4-1",
+ "rule-digest": "3a4fd0a82794",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'The DISABLE statement provides a logical disconnection between the MCS and the specified sources or destinations.'; 2023: 'No 2023 candidate covers the DISABLE statement or the MCS; the communication feature is not carried.'. None of the candidates covers the DISABLE statement or MCS disconnection. The CANCEL 'no action' rule is a different subject, so the communication feature is absent from 2023.",
+  "source": "audit-1985/state-route"
+ }
+}

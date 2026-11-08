@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-GR-VI.5.15.6-1",
+ "rule-digest": "09e61162665b",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.63.4-2",
+   "GR-13.18.63.4-3",
+   "GR-13.18.63.4-4"
+  ],
+  "bridge": true,
+  "reason": "1985: 'In the File Section, the VALUE clause may be used only in condition-name entries; ... take effect only when the program is placed into its initial state'; 2023: 'In the file section, VALUE clauses take effect only during the execution of an INITIALIZE statement.'. 2023 allows VALUE on File/Linkage data items, effective via INITIALIZE. Working-storage VALUE also takes effect on INITIALIZE. The Communication Section is gone.",
+  "source": "audit-1985/state-route"
+ }
+}

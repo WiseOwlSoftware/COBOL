@@ -1,0 +1,18 @@
+{
+ "rule-id": "1985-GR-VI.6.19.4-3",
+ "rule-digest": "b315b0f0d05b",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.25.4-4",
+   "GR-14.9.25.4-7",
+   "SR-14.9.25.3-10",
+   "SR-14.9.25.3-5",
+   "SR-14.9.25.3-6"
+  ],
+  "bridge": true,
+  "reason": "1985: 'All other figurative constants belong to the category alphanumeric. ... e. All other elementary moves are legal'; 2023: 'the move of an alphanumeric figurative constant (SPACE, QUOTE, HIGH-VALUE, LOW-VALUE, ALL \"literal\", ...) to ... numeric ... is prohibited'. 1985 allowed QUOTE, HIGH-VALUE, LOW-VALUE and ALL literal (alphanumeric) to be moved to numeric items. 2023 prohibits these, except ALL digits moved to an integer item.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XI.4.3.4-2",
+ "rule-digest": "c71adc76f57e",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.34.4-3"
+  ],
+  "bridge": true,
+  "reason": "1985: 'After the execution of imperative-statement-1 in the AT END phrase, no RETURN statement may be executed as part of the current output procedure.'; 2023: 'If such a RETURN statement is executed, the EC-SORT-MERGE-RETURN exception condition is set to exist and the results of the execution of the RETURN statement are undefined.'. Next-record, AT END transfer and undefined record area are the same. 1985 only forbids a RETURN after AT END; 2023 also defines the effect: EC-SORT-MERGE-RETURN is set.",
+  "source": "audit-1985/state-route"
+ }
+}

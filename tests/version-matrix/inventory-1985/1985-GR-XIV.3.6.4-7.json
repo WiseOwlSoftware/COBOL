@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.3.6.4-7",
+ "rule-digest": "ead50759bf39",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'the disposition of a portion of a message which is not terminated by an EMI or EGI or which has not been eliminated by the execution of a PURGE'; 2023: 'SEND is now a message-server statement: \"A message is sent to the run unit identified by the content of literal-1 or message-server-name-1\"'. 2023 SEND sends whole messages to a server run unit. It has no EMI/EGI partial messages and no PURGE, so the rule on unterminated message portions has no counterpart.",
+  "source": "audit-1985/state-route"
+ }
+}

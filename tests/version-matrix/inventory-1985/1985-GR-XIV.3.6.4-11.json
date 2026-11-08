@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.3.6.4-11",
+ "rule-digest": "cdd43cba1df9",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'The hierarchy of ending indicators is EGI, EMI, and ESI.'; 2023: 'SEND sends a message to a message server run unit; no ending indicators (ESI, EMI, EGI) exist in any candidate.'. The 2023 SEND is a message-server statement with no ending indicators. The communication-module SEND, with its EGI/EMI/ESI hierarchy, is dropped and no candidate covers it.",
+  "source": "audit-1985/state-route"
+ }
+}

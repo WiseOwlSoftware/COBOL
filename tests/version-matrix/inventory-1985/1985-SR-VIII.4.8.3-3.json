@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-SR-VIII.4.8.3-3",
+ "rule-digest": "8b3681274b75",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.49.3-8",
+   "GR-14.9.49.4-5"
+  ],
+  "bridge": true,
+  "reason": "1985: 'must not cause the simultaneous request for execution of more than one USE procedure.'; 2023: 'a USE statement specifying file-name-1 takes precedence over any USE statements specifying an INPUT, OUTPUT, I-O, or EXTEND phrase'. 1985 refuses any file-name USE that would request two procedures. 2023 bans only a repeated file-name and lets a file-name USE coexist with an open-mode USE, resolved by precedence.",
+  "source": "audit-1985/state-route"
+ }
+}

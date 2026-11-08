@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-VI.6.18.3-2",
+ "rule-digest": "3bec004a3eda",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.22.3-2"
+  ],
+  "bridge": true,
+  "reason": "1985: 'must reference an elementary item described, implicitly or explicitly, as USAGE IS DISPLAY.'; 2023: 'shall reference an elementary item described implicitly or explicitly as usage display or national.'. Same constraint on identifier-3 through identifier-n, but 2023 adds usage national as a permitted case. Programs using national items there are now accepted.",
+  "source": "audit-1985/state-route"
+ }
+}

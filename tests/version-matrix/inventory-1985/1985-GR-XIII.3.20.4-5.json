@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-GR-XIII.3.20.4-5",
+ "rule-digest": "4064dedbc07b",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.57.4-5",
+   "GR-13.18.57.4-6",
+   "GR-14.9.16.4-1"
+  ],
+  "bridge": true,
+  "reason": "2023 still ties a detail to its own GENERATE: 'A detail is printed as the result of ... an explicit GENERATE statement that references it'. GENERATE report-name processes it, unprinted.",
+  "source": "audit-1985/state-route"
+ }
+}

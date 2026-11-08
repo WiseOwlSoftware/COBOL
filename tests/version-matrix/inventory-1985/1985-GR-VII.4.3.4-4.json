@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VII.4.3.4-4",
+ "rule-digest": "307f93b2f7e4",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.27.4-8"
+  ],
+  "bridge": true,
+  "reason": "Both require a prior successful OPEN before permissible I-O statements. Table 20 matches 1985 for READ/WRITE/REWRITE; the START row is a new statement, not a change to this rule.",
+  "source": "audit-1985/state-route"
+ }
+}

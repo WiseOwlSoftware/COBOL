@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-IX.4.7.4-9",
+ "rule-digest": "ed89951360a6",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "FMT-14.9.41.2"
+  ],
+  "bridge": true,
+  "reason": "The 2023 START format keeps the optional END-START, START's explicit scope terminator. The level-2 box is no difference, and no candidate alters END-START's delimiting effect.",
+  "source": "audit-1985/state-route"
+ }
+}

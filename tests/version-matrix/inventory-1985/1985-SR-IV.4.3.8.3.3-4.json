@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-SR-IV.4.3.8.3.3-4",
+ "rule-digest": "333334bc30f3",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-8.4.3.3.3-1",
+   "SR-8.4.3.3.3-3"
+  ],
+  "bridge": true,
+  "reason": "2023 makes the base identifier-1, which by its form may be qualified or subscripted; only other reference-modified identifiers are barred. Category limits belong to other 1985 rules.",
+  "source": "audit-1985/state-route"
+ }
+}

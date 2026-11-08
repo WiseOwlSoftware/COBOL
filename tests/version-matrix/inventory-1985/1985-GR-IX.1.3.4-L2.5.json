@@ -1,0 +1,21 @@
+{
+ "rule-id": "1985-GR-IX.1.3.4-L2.5",
+ "rule-digest": "0e1de17fc10f",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-9.1.13.7-1",
+   "GR-9.1.13.7-2",
+   "GR-9.1.13.7-3",
+   "GR-9.1.13.7-4",
+   "GR-9.1.13.7-6",
+   "GR-9.1.13.7-7",
+   "GR-9.1.13.7-8",
+   "GR-9.1.13.7-9"
+  ],
+  "bridge": true,
+  "reason": "1985: 'attempted on a file not open in the I-O, output, or extend mode'; 2023: 'If the access mode is sequential, the file connector is not open in the extend or output mode.'. A sequential-access WRITE in I-O mode now gets status 48, which the 1985 list did not give. The 44 case for a different-size indexed rewrite is gone; 2023 covers only sequential files.",
+  "source": "audit-1985/state-route"
+ }
+}

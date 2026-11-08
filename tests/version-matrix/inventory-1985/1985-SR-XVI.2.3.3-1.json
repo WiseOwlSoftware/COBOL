@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-XVI.2.3.3-1",
+ "rule-digest": "b17e5abef5ae",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'Segment-number must be an integer ranging in value from 1 through 49.'; 2023: 'No SEGMENT-LIMIT clause or segment-number in 2023; candidates with range 1-49 concern level-numbers'. Segmentation module and SEGMENT-LIMIT clause are absent from 2023; no candidate covers segment-numbers, only unrelated level-number ranges.",
+  "source": "audit-1985/state-route"
+ }
+}

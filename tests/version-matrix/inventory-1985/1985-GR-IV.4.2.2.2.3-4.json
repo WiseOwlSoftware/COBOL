@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-IV.4.2.2.2.3-4",
+ "rule-digest": "1c82a9a62644",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-8.3.3.6.4-7",
+   "GR-12.3.7.4-9"
+  ],
+  "bridge": true,
+  "reason": "1985: 'Except in the SPECIAL-NAMES paragraph, represents one or more of the character that has the lowest ordinal position in the program collating sequence'; 2023: 'At compile time ... collating sequence used during compilation. At runtime ... runtime collating sequence. When locale category LC_COLLATE is in effect'. 2023 splits compile-time and runtime collating sequences, adds multiple-character combinations, a locale (LC_COLLATE) case, and a choice between national and alphanumeric sequences.",
+  "source": "audit-1985/state-route"
+ }
+}

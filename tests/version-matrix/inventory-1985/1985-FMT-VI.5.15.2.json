@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-FMT-VI.5.15.2",
+ "rule-digest": "e571f3e63aad",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-13.18.63.2"
+  ],
+  "bridge": true,
+  "reason": "1985: 'VALUE IS / VALUES ARE { literal-2 [ THROUGH/THRU literal-3 ] } …'; 2023: 'literal-2 [THROUGH literal-3] … [ IN alphabet-name-1 ] [ WHEN SET TO FALSE IS literal-4 ]'. Format 1 is unchanged. The condition-name format (2023 Format 3) adds the optional IN alphabet-name-1 and WHEN SET TO FALSE phrases, and 2023 adds table, report and validation formats.",
+  "source": "audit-1985/state-route"
+ }
+}

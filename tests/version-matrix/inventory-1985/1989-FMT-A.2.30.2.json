@@ -1,0 +1,14 @@
+{
+ "rule-id": "1989-FMT-A.2.30.2",
+ "rule-digest": "4e511f5a91d2",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-15.68.2"
+  ],
+  "bridge": true,
+  "reason": "1985: 'FUNCTION NUMVAL-C ( argument-1 [ argument-2 ] )'; 2023: 'FUNCTION NUMVAL-C ( argument-1 ┌ LOCALE [ locale-name-1 ] ┐ │ │ [ ANYCASE ] ) └ argument-2 ┘'. 2023 keeps optional argument-2 but adds a LOCALE [locale-name-1] alternative to it and an optional ANYCASE phrase, so it accepts forms the 1985 format refuses.",
+  "source": "audit-1985/state-route"
+ }
+}

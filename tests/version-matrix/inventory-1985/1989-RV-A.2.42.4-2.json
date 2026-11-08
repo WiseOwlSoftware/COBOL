@@ -1,0 +1,14 @@
+{
+ "rule-id": "1989-RV-A.2.42.4-2",
+ "rule-digest": "a79a2bf0b873",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "RV-15.88.4-1"
+  ],
+  "bridge": true,
+  "reason": "2023 defines SUM's value as the plain sum of its arguments. A sum of integers is an integer, so all-integer arguments still return an integer value; programs and results are the same.",
+  "source": "audit-1985/state-route"
+ }
+}

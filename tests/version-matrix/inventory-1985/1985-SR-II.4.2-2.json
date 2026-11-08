@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-II.4.2-2",
+ "rule-digest": "90157ed0e809",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.63.3-13"
+  ],
+  "bridge": true,
+  "reason": "2023 still allows a group-level VALUE on the entry defining the table and forbids VALUE at subordinate levels. The category limit on the literal is a separate VALUE-clause rule, not this one.",
+  "source": "audit-1985/state-route"
+ }
+}

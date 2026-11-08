@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VII.4.7.4-16",
+ "rule-digest": "bd9edcf73b8e",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.51.4-26",
+   "GR-14.9.51.4-27"
+  ],
+  "bridge": true,
+  "reason": "GR26a raises end-of-page when the LINAGE logical page end is reached, and GR27b runs imperative-statement-1 under END-OF-PAGE. The footing case is a separate 1985 rule.",
+  "source": "audit-1985/state-route"
+ }
+}

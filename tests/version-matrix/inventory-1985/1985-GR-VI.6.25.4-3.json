@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.6.25.4-3",
+ "rule-digest": "8e668ac78738",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.43.4-2"
+  ],
+  "bridge": true,
+  "reason": "1985: 'it refers to an implicit one character data item whose usage is DISPLAY.'; 2023: 'whose usage shall be the same as the usage of identifier-3, either display or national.'. The figurative constant's usage now follows identifier-3, which adds a national case. Results are the same when identifier-3 is display, as it always was in 1985.",
+  "source": "audit-1985/state-route"
+ }
+}

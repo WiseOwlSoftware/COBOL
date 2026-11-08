@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-IX.4.5.4-18",
+ "rule-digest": "16995fd05f34",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.30.4-14",
+   "GR-9.1.13.2-3"
+  ],
+  "bridge": true,
+  "reason": "1985: 'If the number of character positions in the record that is read is less than the minimum size specified by the record description entries'; 2023: 'For a record sequential file, if the number of bytes in the record that is read is less than the minimum size specified'. The 2023 undefined-remainder and truncation rule is limited to record sequential files. For indexed files only I-O status 04 (9.1.13.2) still covers a length conflict.",
+  "source": "audit-1985/state-route"
+ }
+}

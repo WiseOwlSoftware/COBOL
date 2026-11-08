@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-XIII.3.2.3-1",
+ "rule-digest": "7fa66eb33d66",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.4.5.3-8"
+  ],
+  "bridge": true,
+  "reason": "2023 still has a distinct file description entry (Format 3) for report files. The added ban on record entries is a separate rule and does not alter this one.",
+  "source": "audit-1985/state-route"
+ }
+}

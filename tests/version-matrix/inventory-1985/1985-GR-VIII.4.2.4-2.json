@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VIII.4.2.4-2",
+ "rule-digest": "0296530e2e90",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.6.4-2",
+   "GR-14.9.6.4-3"
+  ],
+  "bridge": true,
+  "reason": "1985: 'CLOSE WITH LOCK | A,B ... B. File Lock The file is locked and cannot be opened again during this execution of this run unit.'; 2023: '| CLOSE | c | c,f | a,c,f | c | ... c) Close file Closing operations specified by the implementor are executed.'. 2023 keeps the non-sequential category and plain CLOSE (implementor closing operations) but has no CLOSE WITH LOCK row (file lock B) and no label-record processing.",
+  "source": "audit-1985/state-route"
+ }
+}

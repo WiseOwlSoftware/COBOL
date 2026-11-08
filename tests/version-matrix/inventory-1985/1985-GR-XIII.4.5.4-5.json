@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIII.4.5.4-5",
+ "rule-digest": "f3ee1c81e20c",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'If label records are specified for the file, the beginning labels are processed as follows: a. When the OUTPUT phrase is specified'; 2023: 'OPEN general rules (e.g. GR 18 on OUTPUT) say nothing of label records or label writing'. The 2023 OPEN rules cover OPEN OUTPUT fully but never mention label records or beginning-label processing, so the LABEL RECORDS feature and this rule are gone.",
+  "source": "audit-1985/state-route"
+ }
+}

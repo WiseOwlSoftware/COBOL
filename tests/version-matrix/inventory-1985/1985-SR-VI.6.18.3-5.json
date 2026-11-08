@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-VI.6.18.3-5",
+ "rule-digest": "a2533d08ca12",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'In level 1, literal-1, literal-2, and literal-3, and the data items referenced by identifier-3, identifier-4, and identifier-5 must be one character'; 2023: 'No level subsets; one-character limit kept only for CHARACTERS phrase: \"literal-3 shall be one character in length\" (SR-14.9.22.3-7)'. The 1985 rule is a level-1 subset limit requiring one-character INSPECT operands. 2023 has no subsets and requires one character only with the CHARACTERS phrase.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XV.3.2.4-16",
+ "rule-digest": "4ee0f3a4cfa7",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"DEBUG-CONTENTS contains 'START PROGRAM'.\"; 2023: 'No candidate covers USE FOR DEBUGGING or DEBUG-ITEM; the 2023 USE rules address only file, exception and reporting declaratives.'. 2023 lacks the 1985 Debug module (USE FOR DEBUGGING, DEBUG-LINE/DEBUG-NAME/DEBUG-CONTENTS). No candidate covers it, consistent with the feature's deletion.",
+  "source": "audit-1985/state-route"
+ }
+}

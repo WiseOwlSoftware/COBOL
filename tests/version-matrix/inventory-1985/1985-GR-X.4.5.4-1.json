@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-X.4.5.4-1",
+ "rule-digest": "4e105eda2a4d",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.22.4-1",
+   "GR-13.18.22.4-6"
+  ],
+  "bridge": true,
+  "reason": "2023 keeps the record's data external and accessible to any describing runtime element, with full REDEFINES allowed. The strong-typing limit affects only new typed records.",
+  "source": "audit-1985/state-route"
+ }
+}

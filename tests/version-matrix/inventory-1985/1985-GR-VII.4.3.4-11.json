@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VII.4.3.4-11",
+ "rule-digest": "8c6a71bbef3e",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.27.4-12"
+  ],
+  "bridge": true,
+  "reason": "1985: 'When neither the REVERSED, the EXTEND, nor the NO REWIND phrase is specified ... c. When the REVERSED phrase is specified, the file is positioned at its end'; 2023: 'When neither the EXTEND, nor the NO REWIND phrase is specified, execution of the OPEN statement causes the file to be positioned at its beginning.'. Rules a and b carry over in substance. 2023 has no REVERSED phrase, so the case of positioning the file at its end on OPEN REVERSED (rule c) is gone.",
+  "source": "audit-1985/state-route"
+ }
+}

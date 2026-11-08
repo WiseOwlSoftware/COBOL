@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-IX.4.4.4-13",
+ "rule-digest": "035b8c1415f0",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.27.4-16",
+   "GR-9.1.13.6-6"
+  ],
+  "bridge": true,
+  "reason": "Both require a file opened I-O to support the input and output operations permitted for its organization, and both set I-O open mode. 2023's status '37' only spells out how the failure is reported.",
+  "source": "audit-1985/state-route"
+ }
+}

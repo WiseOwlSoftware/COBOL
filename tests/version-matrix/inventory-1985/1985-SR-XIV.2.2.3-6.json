@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-XIV.2.2.3-6",
+ "rule-digest": "c36ed37407cf",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'Data-name-1, ... data-name-11 must be unique within the CD entry. Within this series any data-name may be replaced by ... FILLER'; 2023: 'No 2023 clause holds the CD entry; the Communication module is absent and no candidate addresses CD data-names.'. No 2023 clause holds the communication description entry. The wording candidates cover other data entries and never CD data-names, so the feature is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

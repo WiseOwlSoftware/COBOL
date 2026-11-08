@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.2.2.4-29",
+ "rule-digest": "90625a07716a",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'If the MCS attempts to schedule a program lacking an INITIAL clause, the results are undefined.'; 2023: 'No 2023 clause holds the communication description entry; the Communication module, MCS and INITIAL clause are absent'. No 2023 clause carries the communication feature. The wording candidates cover only data, file, report and screen entries, none on MCS scheduling or the INITIAL clause.",
+  "source": "audit-1985/state-route"
+ }
+}

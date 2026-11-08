@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-XIII.3.21.3-2",
+ "rule-digest": "250d93d08ed6",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.60.3-2"
+  ],
+  "bridge": true,
+  "reason": "1985: 'it may also be written in the data description entry for a subordinate elementary item or group item.'; 2023: 'but the same usage shall be specified in both entries.'. Both allow USAGE on a group and on its subordinates. 2023 also requires the same usage in both entries, refusing mismatches that the 1985 rule as given does not restrict.",
+  "source": "audit-1985/state-route"
+ }
+}

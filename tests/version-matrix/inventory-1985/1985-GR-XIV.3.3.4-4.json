@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.3.3.4-4",
+ "rule-digest": "69fdba2e78b4",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'When the I-O TERMINAL phrase is specified, the logical path between the source ... and the program is activated.'; 2023: \"No 2023 clause holds the Communication module's ENABLE statement; no candidate covers it.\". No candidate covers the ENABLE statement or I-O TERMINAL; the 2023 standard has no clause holding the Communication module, so the feature is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

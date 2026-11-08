@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VII.4.6.4-6",
+ "rule-digest": "0a94b502b2d2",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.49.4-12",
+   "GR-14.9.49.4-7"
+  ],
+  "bridge": true,
+  "reason": "Same rule: control goes to the I-O control system, then to the statement after the I-O statement unless fatal (implementor-defined). The SORT/MERGE case only cross-refers to those statements' rules.",
+  "source": "audit-1985/state-route"
+ }
+}

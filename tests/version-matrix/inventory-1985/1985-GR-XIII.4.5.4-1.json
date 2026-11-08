@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XIII.4.5.4-1",
+ "rule-digest": "ff0d2c169eee",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.27.4-4"
+  ],
+  "bridge": true,
+  "reason": "1985: 'A file is available if it is physically present ... Table 1 shows the results of opening available and unavailable files.'; 2023: 'Table 18 ... (file not currently open) ... Table 19 ... currently open by another file connector ... OUTPUT | Unsuccessful open'. Same availability definition and OUTPUT/EXTEND rows, but 2023 adds a case: an available file already open via another connector makes OUTPUT/EXTEND opens unsuccessful or sharing-dependent.",
+  "source": "audit-1985/state-route"
+ }
+}

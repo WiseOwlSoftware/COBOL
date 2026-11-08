@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-FMT-VII.3.6.2",
+ "rule-digest": "736d6992b3e1",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'LABEL {RECORD IS / RECORDS ARE} {STANDARD / OMITTED}'; 2023: 'No 2023 clause holds the LABEL RECORDS clause; candidates cover only RECORD, BLOCK CONTAINS, LOCK MODE and other clauses.'. No 2023 clause carries the LABEL RECORDS feature. The wording matches (RECORD clause, BLOCK CONTAINS, OMITTED condition) are different subjects, so the clause is dropped from 2023.",
+  "source": "audit-1985/state-route"
+ }
+}

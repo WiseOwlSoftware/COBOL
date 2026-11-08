@@ -1,0 +1,14 @@
+{
+ "rule-id": "1989-AR-A.2.44.3-1",
+ "rule-digest": "979d36668590",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "AR-15.97.3-1"
+  ],
+  "bridge": true,
+  "reason": "1985: 'Argument-1 must be class alphabetic or alphanumeric'; 2023: 'Argument-1 shall be of class alphabetic, alphanumeric, or national'. Same UPPER-CASE argument rule and the same one-character minimum length, but 2023 adds class national as a permitted argument class.",
+  "source": "audit-1985/state-route"
+ }
+}

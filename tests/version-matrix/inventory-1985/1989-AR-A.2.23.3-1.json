@@ -1,0 +1,14 @@
+{
+ "rule-id": "1989-AR-A.2.23.3-1",
+ "rule-digest": "7492113b554a",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "AR-15.59.3-2"
+  ],
+  "bridge": true,
+  "reason": "1985: 'If more than one argument-1 is specified, all arguments must be of the same class.'; 2023: 'with the exception that mixing of arguments of alphabetic and alphanumeric classes is allowed.'. Both require all MAX arguments to be of the same class. 2023 adds an exception allowing alphabetic and alphanumeric arguments to be mixed, which the 1985 rule refused.",
+  "source": "audit-1985/state-route"
+ }
+}

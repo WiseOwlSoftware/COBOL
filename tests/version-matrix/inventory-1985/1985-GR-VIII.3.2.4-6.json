@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-VIII.3.2.4-6",
+ "rule-digest": "a2e820dabc75",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'The VALUE OF clause for the Relative I-O module is the same as the VALUE OF clause for the Sequential I-O module.'; 2023: 'No VALUE OF clause in the 2023 file description entry; the candidates (13.4.5) cover BLOCK CONTAINS, CODE-SET, LINAGE, RECORD and REPORT only'. VALUE OF was obsolete in 1985 and marked for deletion. None of the 2023 file description candidates provides it, so the clause is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

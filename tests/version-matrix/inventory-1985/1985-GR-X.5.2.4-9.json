@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-GR-X.5.2.4-9",
+ "rule-digest": "b59b70f6365f",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.4.4-11",
+   "GR-14.9.4.4-2",
+   "GR-14.9.4.4-3"
+  ],
+  "bridge": true,
+  "reason": "1985: 'in which case the number of operands in each USING phrase must be identical'; 2023: 'If an OMITTED phrase is specified or a trailing argument is omitted, the omitted-argument condition for that parameter evaluates to true'. 1985 requires equal operand counts in both USING phrases. 2023 allows trailing arguments to be omitted, so the CALL may have fewer arguments than the called program has formal parameters.",
+  "source": "audit-1985/state-route"
+ }
+}

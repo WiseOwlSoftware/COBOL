@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-XII.2.4-3",
+ "rule-digest": "49f059344120",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-7.2.3.4-7",
+   "GR-7.2.3.4-8"
+  ],
+  "bridge": true,
+  "reason": "1985: 'each properly matched occurrence of pseudo-text-1, identifier-1, word-1, and literal-1 in the library text is replaced'; 2023: 'Each matched occurrence of pseudo-text-1 or partial-word-1 in the library text is replaced by the corresponding pseudo-text-2 or partial-word-2'. The no-REPLACING case is unchanged. 2023 drops the identifier, word and literal REPLACING operands (the format keeps only pseudo-text) and adds partial-word LEADING/TRAILING.",
+  "source": "audit-1985/state-route"
+ }
+}

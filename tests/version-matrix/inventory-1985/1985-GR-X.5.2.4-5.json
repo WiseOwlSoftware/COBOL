@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-GR-X.5.2.4-5",
+ "rule-digest": "353b676aefd6",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.6.2.3.2-1",
+   "GR-14.6.2.3.2-3",
+   "GR-14.9.5.4-3"
+  ],
+  "bridge": true,
+  "reason": "2023 sets initial state on first activation in the run unit and after a CANCEL of the program or a container; the 'last-used state' clause gives the complement, unchanged otherwise.",
+  "source": "audit-1985/state-route"
+ }
+}

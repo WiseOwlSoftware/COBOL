@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.2.2.4-8",
+ "rule-digest": "df41ced208d1",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'the MCS provides, in the data item referenced by data-name-5, the date on which it recognized that the message was complete'; 2023: 'No communication description entry or MCS-supplied completion date field among candidates; RECEIVE GR covers only CONTINUE completion'. The CD entry and its MCS date field are absent. The 2023 RECEIVE candidate treats message receipt without any CD date field, so the requirement is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

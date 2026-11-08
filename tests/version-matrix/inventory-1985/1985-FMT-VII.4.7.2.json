@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-FMT-VII.4.7.2",
+ "rule-digest": "5385cc8af532",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-14.9.51.2"
+  ],
+  "bridge": true,
+  "reason": "1985: '{ BEFORE | AFTER } ADVANCING … [ AT END-OF-PAGE … ] [ NOT AT END-OF-PAGE … ]'; 2023: 'choice indicators around BEFORE/AFTER and around END-OF-PAGE/NOT END-OF-PAGE; adds FILE file-name-1, FROM literal-1, retry-phrase, LOCK'. 2023 allows BEFORE and AFTER together and the EOP phrases in any order, which 1985 refused. It also adds FILE, FROM literal, RETRY and LOCK phrases.",
+  "source": "audit-1985/state-route"
+ }
+}

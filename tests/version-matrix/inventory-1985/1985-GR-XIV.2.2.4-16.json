@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.2.2.4-16",
+ "rule-digest": "8def9df6b11d",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'a record area of 23 contiguous character positions is allocated for each output CD'; 2023: 'No candidate covers the communication description entry; the Communication module is absent from 2023.'. No 2023 clause holds the CD feature and no wording candidate covers output CD record areas. 2023 lacks the communication module, so the rule is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

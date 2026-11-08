@@ -1,0 +1,18 @@
+{
+ "rule-id": "1985-GR-VI.6.11.4-7",
+ "rule-digest": "34b1fd2530c2",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.12.4-7",
+   "GR-14.9.12.4-6",
+   "GR-14.7.7-3",
+   "GR-14.7.7-1",
+   "GR-14.6.8.4-2"
+  ],
+  "bridge": true,
+  "reason": "2023 defines the remainder by its calculation (GR 7) and stores it via alignment and transfer with truncation; ROUNDED does not apply. The size-error case is a separate rule, also in 1985.",
+  "source": "audit-1985/state-route"
+ }
+}

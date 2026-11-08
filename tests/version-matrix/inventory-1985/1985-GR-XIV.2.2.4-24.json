@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.2.2.4-24",
+ "rule-digest": "d08c490327e4",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'For each input-output CD, a record area of 33 contiguous character positions is allocated.'; 2023: 'No candidate covers the communication description entry; the 2023 standard lacks the communication module and CD.'. The communication module and its CD entry are absent from 2023. No candidate covers the input-output CD record area; the candidates are unrelated clauses.",
+  "source": "audit-1985/state-route"
+ }
+}

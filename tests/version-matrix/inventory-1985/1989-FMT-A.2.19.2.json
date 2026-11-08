@@ -1,0 +1,14 @@
+{
+ "rule-id": "1989-FMT-A.2.19.2",
+ "rule-digest": "89e2292d1bf6",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-15.50.2"
+  ],
+  "bridge": true,
+  "reason": "1985: 'FUNCTION LENGTH ( argument-1 )'; 2023: 'FUNCTION LENGTH ( argument-1 [ PHYSICAL ] )'. The 2023 format adds an optional PHYSICAL phrase, so it accepts programs the 1985 format refuses. The form without PHYSICAL is otherwise unchanged.",
+  "source": "audit-1985/state-route"
+ }
+}

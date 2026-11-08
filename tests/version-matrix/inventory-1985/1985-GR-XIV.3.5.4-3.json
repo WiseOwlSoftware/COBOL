@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.3.5.4-3",
+ "rule-digest": "f113c0adfad4",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'transferred to the receiving character positions of the area referenced by identifier-1 aligned to the left without space fill'; 2023: 'Communication module (CD/MCS queues) dropped; new RECEIVE says only \"The content of identifier-1 is the content of the message sent by that SEND statement\"'. The 2023 RECEIVE is a different run-unit messaging feature, not the 1985 CD-based statement, and it states no rule on left alignment or on omitting space fill.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-X.5.5.3-1",
+ "rule-digest": "214ea8834071",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'The availability of the multiple file-names and the EXTEND phrase is dependent on the level of Sequential I-O module'; 2023: 'No such dependency: the 14.9.49.3 USE rules allow file-names and EXTEND with no I-O module level, and 2023 defines no module levels'. 2023 has no module levels. The USE candidates cover file-names and EXTEND without any availability dependency, so the level-dependence requirement is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

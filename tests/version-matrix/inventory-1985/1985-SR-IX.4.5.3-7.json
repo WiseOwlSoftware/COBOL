@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-IX.4.5.3-7",
+ "rule-digest": "193fa3c20d6d",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'The INVALID KEY phrase or the AT END phrase must be specified if no applicable USE AFTER STANDARD EXCEPTION procedure is specified'; 2023: 'If there are no applicable at end exception processing statements, control is transferred to the end of the READ statement.'. No 2023 syntax rule requires AT END or INVALID KEY. Both are optional in the format, and the general rules define the result when neither they nor a declarative applies, so the requirement is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

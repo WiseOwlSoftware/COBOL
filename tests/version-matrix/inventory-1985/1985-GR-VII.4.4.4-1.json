@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VII.4.4.4-1",
+ "rule-digest": "7dcc32337030",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.30.4-2",
+   "GR-14.9.27.4-8"
+  ],
+  "bridge": true,
+  "reason": "Both require the file connector to be open in input or I-O mode when READ executes. The 2023 '47' status states the violation's outcome; it does not change which READs are permitted.",
+  "source": "audit-1985/state-route"
+ }
+}

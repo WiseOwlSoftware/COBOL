@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-VI.5.9.3-5",
+ "rule-digest": "9236af46c833",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-13.16.3-8"
+  ],
+  "bridge": true,
+  "reason": "1985: 'must be specified for every elementary item except an index data item or the subject of the RENAMES clause'; 2023: 'shall not be specified for ... binary-char, ... pointer ... a PICTURE clause shall be specified except as indicated in Syntax rule 9'. 2023 keeps the prohibition for index and RENAMES but forbids PICTURE for more usages. It relaxes the requirement for other elementary items with a Syntax rule 9 exception that 1985 lacks.",
+  "source": "audit-1985/state-route"
+ }
+}

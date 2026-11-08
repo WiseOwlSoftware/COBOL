@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-VIII.4.4.4-7",
+ "rule-digest": "391b424a3b69",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'If label records are specified for the file, the beginning labels are processed as follows'; 2023: 'No OPEN rule mentions label records; the 2023 OPEN rules (14.9.27.4) cover attribute checks, positioning and status only'. 2023 has no LABEL RECORDS feature, and no candidate checks or writes beginning labels on OPEN. GR-10 compares fixed file attributes, not labels.",
+  "source": "audit-1985/state-route"
+ }
+}

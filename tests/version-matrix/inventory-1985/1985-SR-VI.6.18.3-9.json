@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-SR-VI.6.18.3-9",
+ "rule-digest": "7b386c4c6392",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.22.4-22",
+   "SR-14.9.22.3-9"
+  ],
+  "bridge": true,
+  "reason": "1985: 'The size of literal-5 or the data item referenced by identifier-7 must be equal to the size of literal-4 or ... identifier-6.'; 2023: 'If these sizes are not equal, the EC-RANGE-INSPECT-SIZE exception condition is set to exist and the results ... are undefined.'. 1985 syntax rule requires equal sizes. 2023 keeps a syntax rule only for literals; unequal identifier sizes become a runtime exception with undefined results.",
+  "source": "audit-1985/state-route"
+ }
+}

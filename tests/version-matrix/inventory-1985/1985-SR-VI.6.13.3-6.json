@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-SR-VI.6.13.3-6",
+ "rule-digest": "570f3a39a632",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.13.3-7",
+   "SR-14.9.13.3-10"
+  ],
+  "bridge": true,
+  "reason": "1985: 'a. Identifiers, literals, or arithmetic expressions appearing within a selection object must be valid operands for comparison'; 2023: 'a) Identifiers, literals, or expressions ... d) Partial-expression-1 shall correspond to a selection subject that is an identifier'. Rules a-c carry over, but 2023 adds selection-object cases 1985 lacks: any expression (boolean too) in rule a, and partial-expressions in d. Table 15 sets the allowed combinations.",
+  "source": "audit-1985/state-route"
+ }
+}

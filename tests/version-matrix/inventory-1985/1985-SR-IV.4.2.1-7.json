@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-IV.4.2.1-7",
+ "rule-digest": "b40079617e67",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-8.3.5-7"
+  ],
+  "bridge": true,
+  "reason": "Both make the colon a separator, required where shown in formats. The invocation-operator exception concerns only a 2023 construct, so no 1985 program is treated differently.",
+  "source": "audit-1985/state-route"
+ }
+}

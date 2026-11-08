@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-GR-XIII.4.5.4-4",
+ "rule-digest": "bc98ffb2a8bf",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.27.4-2",
+   "GR-14.9.6.4-8",
+   "SR-13.18.46.3-3"
+  ],
+  "bridge": true,
+  "reason": "2023 allows OPEN OUTPUT/EXTEND on report files and needs the connector closed (CLOSE without UNIT, REEL being its synonym) before reopening. Status '41' restates the shall-not-be-open rule.",
+  "source": "audit-1985/state-route"
+ }
+}

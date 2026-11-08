@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-VI.6.12.3-2",
+ "rule-digest": "513e670b8865",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'Routine-name-1 is a COBOL word and it may be referred to only in an ENTER sentence.'; 2023: 'No 2023 clause holds the ENTER statement; the statement and routine-name-1 are dropped.'. No 2023 clause holds the ENTER feature, and no worded candidate covers routine-name-1 or the ENTER sentence. The statement is absent from 2023, so the rule is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

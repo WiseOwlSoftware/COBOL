@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-IV.4.3.8.3.3-1",
+ "rule-digest": "e8120de72f4c",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-8.4.3.3.3-1"
+  ],
+  "bridge": true,
+  "reason": "1985: 'Data-name-1 must reference a data item whose usage is DISPLAY.'; 2023: '— a boolean data item, — a national data item, … that is not subordinate to a strongly-typed group item'. 1985 allows only usage DISPLAY items. 2023 adds boolean and national items, and refuses some display items: those under strongly-typed groups, and strongly-typed or variable-length groups.",
+  "source": "audit-1985/state-route"
+ }
+}

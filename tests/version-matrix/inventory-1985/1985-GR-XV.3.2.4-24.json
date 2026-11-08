@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XV.3.2.4-24",
+ "rule-digest": "dec4311355ed",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'If a reference to identifier-1 causes the debugging section to be executed, then: a. DEBUG-LINE identifies the source statement'; 2023: 'No 2023 clause holds USE FOR DEBUGGING; the 14.9.49 USE statement rules cover only exception declaratives (EXCEPTION-OBJECT).'. No 2023 clause holds the Debug module. The USE rules shown cover only exception declaratives, with no debugging section and no DEBUG-LINE, DEBUG-NAME or DEBUG-CONTENTS.",
+  "source": "audit-1985/state-route"
+ }
+}

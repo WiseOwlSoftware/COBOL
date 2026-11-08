@@ -245,15 +245,21 @@ def custom_id(pass_name: str, item_id: str) -> str:
 
 
 def write_plan(p: Pass, items: list[dict[str, Any]]) -> int:
-    """Write the pass's items once. A plan that exists is kept when it is the same, and refused when it is not: a run's
-    answers belong to its items."""
+    """Write the pass's items once. A plan that exists is kept when it is the same, GROWN when the new plan keeps every
+    planned item unchanged and adds others (the drafts of the rules the adjudication made CHANGED or REMOVED, kb/Work
+    PB4995), and refused otherwise: a run's answers belong to its items, so no planned item may change or go."""
     planned = {custom_id(p.name, it["id"]): it for it in items}
     if len(planned) != len(items):
         raise SystemExit(f"{TOOL}: the {p.name} plan names an item twice")
     if p.items_file.exists():
-        if json.loads(p.items_file.read_text(encoding="utf-8")) != planned:
+        held = json.loads(p.items_file.read_text(encoding="utf-8"))
+        if any(planned.get(cid) != it for cid, it in held.items()):
             raise SystemExit(f"{TOOL}: {p.items_file} holds another plan; a new plan needs a new --state")
-        print(f"{p.name}: the plan of {len(planned)} item(s) exists and is unchanged", flush=True)
+        if len(planned) == len(held):
+            print(f"{p.name}: the plan of {len(planned)} item(s) exists and is unchanged", flush=True)
+            return 0
+        write_atomic(p.items_file, json.dumps(planned, indent=1, ensure_ascii=False))
+        print(f"{p.name}: the plan of {len(held)} item(s) grew by {len(planned) - len(held)}", flush=True)
         return 0
     p.dir.mkdir(parents=True, exist_ok=True)
     write_atomic(p.items_file, json.dumps(planned, indent=1, ensure_ascii=False))
@@ -507,9 +513,14 @@ def final_dispositions(state: pathlib.Path) -> dict[str, dict[str, Any]]:
 
 
 def plan_drafts(state: pathlib.Path) -> list[dict[str, Any]]:
+    """Each rule that may hold a verdict of its own at its edition: an OWN-ROW rule, and a rule the adjudication decided
+    CHANGED or REMOVED (a DISPUTED SAME can be either; kb/Work PB4995). Planned again after the adjudication, the plan
+    grows by those (`write_plan`)."""
     disp = final_dispositions(state)
     items = Pass(state, "map").items()
-    return [{"id": it["id"], "rule": it["rule"]} for it in items.values() if disp[it["id"]]["disposition"] == "OWN-ROW"]
+    return [{"id": it["id"], "rule": it["rule"]} for it in items.values()
+            if disp[it["id"]]["disposition"] == "OWN-ROW"
+            or disp[it["id"]].get("change", {}).get("kind") in (CHANGED, REMOVED)]
 
 
 def plan_adjudicate(state: pathlib.Path) -> list[dict[str, Any]]:

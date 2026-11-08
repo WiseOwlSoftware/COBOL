@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-IX.4.7.4-4",
+ "rule-digest": "327cadcf8bf2",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.41.4-17"
+  ],
+  "bridge": true,
+  "reason": "Same for 1985's operators: compare on key of reference, truncated to equal length, file's collating sequence, else invalid key. LESS and SUPPRESS WHEN are new 2023 features.",
+  "source": "audit-1985/state-route"
+ }
+}

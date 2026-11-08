@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.3.3.4-5",
+ "rule-digest": "ede591b8fd8e",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'When the OUTPUT phrase is specified, the logical paths are activated for all destinations specified by the content of each'; 2023: 'No 2023 clause holds the ENABLE statement or the communication module; the by-wording candidates are unrelated.'. No 2023 clause holds the communication module or its ENABLE statement. The by-wording candidates (SET, RELEASE, WRITE and others) only share terms like data-name-5.",
+  "source": "audit-1985/state-route"
+ }
+}

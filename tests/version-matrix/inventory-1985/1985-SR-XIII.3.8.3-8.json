@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-SR-XIII.3.8.3-8",
+ "rule-digest": "486044992d09",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.39.4-2",
+   "GR-13.18.39.4-4",
+   "GR-13.18.57.4-8"
+  ],
+  "bridge": true,
+  "reason": "1985: 'A control heading or detail report group ... from the line number specified by integer-3 to the line number specified by integer-4, inclusive.'; 2023: 'd) The lower limit for a control heading is the line given by the LAST CONTROL HEADING integer.'. Other regions match. 2023 adds a LAST CONTROL HEADING limit, which may be below LAST DETAIL, so control headings can be confined more tightly than details. It defaults to LAST DETAIL.",
+  "source": "audit-1985/state-route"
+ }
+}

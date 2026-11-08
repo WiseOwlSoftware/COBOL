@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XVI.1.4.3-L2.1",
+ "rule-digest": "da3b30141f10",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'Control is transferred implicitly to that segment from a segment with a different segment-number'; 2023: 'No 2023 clause holds segmentation; the candidates cover file ORGANIZATION and general transfer of control only'. The 1985 rule is a Segmentation rule on implicit transfer between segments. No 2023 clause holds that feature, and no candidate deals with segments or segment-numbers.",
+  "source": "audit-1985/state-route"
+ }
+}

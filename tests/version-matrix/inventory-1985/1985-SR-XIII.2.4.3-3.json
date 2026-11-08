@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-XIII.2.4.3-3",
+ "rule-digest": "1664591d4f42",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'availability of specific clauses in the I-O-CONTROL paragraph for a report file is dependent on the level of Sequential I-O module'; 2023: 'No module levels; SR-12.4.6.4.3-5 fixes it: report file may be in one file-area SAME clause, not record-area or sort-merge'. 2023 has no module levels. Report-file use of I-O-CONTROL clauses is stated directly (SAME file-area only), so the level dependency is gone.",
+  "source": "audit-1985/state-route"
+ }
+}

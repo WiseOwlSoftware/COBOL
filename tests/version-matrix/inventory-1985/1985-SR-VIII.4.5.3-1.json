@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-VIII.4.5.3-1",
+ "rule-digest": "cbc42648a33c",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.30.4-4"
+  ],
+  "bridge": true,
+  "reason": "1985: 'The storage area associated with identifier-1 and the record area associated with file-name-1 must not be the same storage area.'; 2023: '14.6.10, Overlapping operands, and 14.9.25, MOVE statement, General rules, apply to any cases in which ... share any part'. 1985 forbids the INTO item sharing storage with the record area. 2023 drops that ban: shared storage falls under the overlapping-operand and MOVE rules, so the result may be undefined.",
+  "source": "audit-1985/state-route"
+ }
+}

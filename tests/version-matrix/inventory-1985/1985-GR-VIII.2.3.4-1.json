@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VIII.2.3.4-1",
+ "rule-digest": "288212897c2f",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-12.4.5.3-1"
+  ],
+  "bridge": true,
+  "reason": "1985: 'd. The same organization. e. The same access mode. f. The same external data item for data-name-1 in the RELATIVE KEY phrase.'; 2023: 'i) The same specification of the FILE STATUS clause, where data-name-4 shall reference the same corresponding external data item.'. 2023 keeps items a-f for external file connectors but adds a FILE STATUS consistency requirement, which 1985 did not impose, so some 1985-valid programs are now refused.",
+  "source": "audit-1985/state-route"
+ }
+}

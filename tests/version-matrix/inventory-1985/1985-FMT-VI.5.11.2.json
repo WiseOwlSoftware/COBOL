@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-FMT-VI.5.11.2",
+ "rule-digest": "11907b6f3a05",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "FMT-13.18.45.2"
+  ],
+  "bridge": true,
+  "reason": "The 2023 format is the same: 66 data-name-1 RENAMES data-name-2 [THROUGH/THRU data-name-3], with the same context note. The 1985 level-2 box is not a difference.",
+  "source": "audit-1985/state-route"
+ }
+}

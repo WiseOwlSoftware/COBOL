@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-XIII.3.20.4-9",
+ "rule-digest": "c847874e44a3",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.49.4-9",
+   "GR-14.9.45.4-3"
+  ],
+  "bridge": true,
+  "reason": "1985: 'If a SUPPRESS statement has been executed or if the report group is not printable, there is no further processing to be done'; 2023: 'the following report group functions are inhibited: a) The printing of the print lines ... b) Any page advance ... c) ... NEXT GROUP ... d) ... LINE-COUNTER'. 2023 keeps USE-before-processing order but replaces 'no further processing' with a list of inhibited functions, and no longer states the 'not printable' case.",
+  "source": "audit-1985/state-route"
+ }
+}

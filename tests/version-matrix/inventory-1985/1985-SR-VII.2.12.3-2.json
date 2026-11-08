@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-VII.2.12.3-2",
+ "rule-digest": "f88d09999c40",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'The END OF REEL/UNIT phrase may only be used if file-name-2 is a sequentially organized file.'; 2023: 'No 2023 clause holds the RERUN clause; the REEL/UNIT candidates cover only the CLOSE, READ and WRITE statements.'. No 2023 clause holds the RERUN feature. Candidates on REEL/UNIT concern CLOSE, READ and WRITE, not RERUN, so the 2023 standard lacks the clause and this rule.",
+  "source": "audit-1985/state-route"
+ }
+}

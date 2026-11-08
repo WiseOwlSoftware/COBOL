@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-IX.4.7.3-3",
+ "rule-digest": "4d4d72b432fc",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'The INVALID KEY phrase must be specified if no applicable USE AFTER STANDARD EXCEPTION procedure is specified for file-name-1.'; 2023: 'GR-14.9.41.4-6 calls the INVALID KEY phrases \"optional\"; GR-9.1.14-3: \"or there are no applicable exception processing statements, control is transferred to the end\"'. 2023 START syntax rules drop the requirement. INVALID KEY is optional, and 9.1.14 defines control flow when neither it nor a USE procedure is present, so programs 1985 refused are accepted.",
+  "source": "audit-1985/state-route"
+ }
+}

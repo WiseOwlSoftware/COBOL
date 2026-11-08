@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-IX.3.2.4-6",
+ "rule-digest": "0c67f5f27646",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'The VALUE OF clause for the Indexed I-O module is the same as the VALUE OF clause for the Sequential I-O module.'; 2023: 'No VALUE OF clause: the 13.4.5 file description entry rules and the clause rules shown never mention it'. VALUE OF was obsolete in 1985 and slated for deletion. No 2023 candidate covers it, and the 2023 file description clauses shown (BLOCK, RECORD, CODE-SET, EXTERNAL, GLOBAL) omit it.",
+  "source": "audit-1985/state-route"
+ }
+}

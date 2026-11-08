@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-FMT-VIII.4.5.2",
+ "rule-digest": "d1d664e97ebc",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-14.9.30.2"
+  ],
+  "bridge": true,
+  "reason": "1985: '[ AT END imperative-statement-1 ] [ NOT AT END imperative-statement-2 ]'; 2023: 'zero or more of the enclosed alternatives may be specified, each at most once, in any order'. 2023 READ format accepts NOT AT END/NOT INVALID KEY before AT END/INVALID KEY, which 1985 refused. It also adds PREVIOUS, LOCK, retry and KEY phrases.",
+  "source": "audit-1985/state-route"
+ }
+}

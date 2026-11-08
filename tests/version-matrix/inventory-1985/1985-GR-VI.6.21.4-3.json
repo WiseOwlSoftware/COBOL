@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.6.21.4-3",
+ "rule-digest": "453681a4439c",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.28.4-4"
+  ],
+  "bridge": true,
+  "reason": "GR-4 ties out-of-line PERFORM to procedure-name-1 and inline PERFORM to statements contained within it. That is the same split as the 1985 definition; no program's acceptance or effect changes.",
+  "source": "audit-1985/state-route"
+ }
+}

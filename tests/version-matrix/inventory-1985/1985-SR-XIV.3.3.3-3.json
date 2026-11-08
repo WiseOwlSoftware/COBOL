@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-XIV.3.3.3-3",
+ "rule-digest": "aff2775f4fe6",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'Cd-name-1 must reference an output CD when the OUTPUT phrase is specified.'; 2023: 'No ENABLE statement or CD; the communication module is not carried into 2023'. No candidate covers the ENABLE statement or communication descriptions. The OUTPUT-phrase candidates concern OPEN, REPORT files and screens, so the communication feature is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

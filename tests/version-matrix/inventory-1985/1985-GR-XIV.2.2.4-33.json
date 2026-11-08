@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.2.2.4-33",
+ "rule-digest": "5ba7a590924b",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'The content of the data item referenced by data-name-5 is set only by the MCS as part of the execution of a RECEIVE statement'; 2023: 'No communication description entry or end key; 2023 RECEIVE (14.9.31) is message-server based with no data-name-5 setting'. 2023 has no CD entry, so no end-key item set to 0-3. Its RECEIVE candidates use a message-server model and say nothing of end-of-group, message or segment indicators.",
+  "source": "audit-1985/state-route"
+ }
+}

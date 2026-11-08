@@ -1,0 +1,16 @@
+{
+ "rule-id": "1993-GR-XII.2.4-12",
+ "rule-digest": "1e8437876da2",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-7.2.3.4-12",
+   "GR-7.2.3.4-10",
+   "GR-7.2.3.4-13"
+  ],
+  "bridge": true,
+  "reason": "1985: 'The text produced as a result of the complete processing of a COPY statement must not contain a COPY statement.'; 2023: 'If the REPLACING phrase is not specified, the library text may contain a COPY statement that does not include a REPLACING phrase.'. 1985 bars any COPY in copied text. 2023 allows nested COPY (at least 5 levels) without REPLACING and bars COPY only with REPLACING or when the replacing action introduces one.",
+  "source": "audit-1985/state-route"
+ }
+}

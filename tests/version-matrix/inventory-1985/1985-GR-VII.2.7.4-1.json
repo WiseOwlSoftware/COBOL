@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-VII.2.7.4-1",
+ "rule-digest": "6264a85a1d7a",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'The PADDING CHARACTER clause specifies the character which is to be used for block padding on sequential files.'; 2023: 'No PADDING CHARACTER clause among the 2023 file-control clauses; BLOCK CONTAINS only mentions padding as area outside a record'. No 2023 clause holds the PADDING CHARACTER feature. No candidate defines a padding character or bypassing/filling padding on input/output, so the clause is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

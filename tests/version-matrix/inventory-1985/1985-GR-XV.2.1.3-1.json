@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XV.2.1.3-1",
+ "rule-digest": "9b825db52c83",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'all USE FOR DEBUGGING statements are compiled'; 2023: 'SOURCE-COMPUTER rules (GR-12.3.5.4-1..3) cover only scope and source computer; no USE FOR DEBUGGING statement exists'. The 2023 SOURCE-COMPUTER candidates state no rule on compiling USE FOR DEBUGGING statements. The Debug module's USE FOR DEBUGGING statement is dropped, so this requirement is removed.",
+  "source": "audit-1985/state-route"
+ }
+}

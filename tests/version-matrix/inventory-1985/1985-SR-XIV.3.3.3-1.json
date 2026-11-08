@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-XIV.3.3.3-1",
+ "rule-digest": "13a49a25459b",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'Cd-name-1 must reference an input CD when the INPUT phrase is specified.'; 2023: 'No ENABLE statement or CD entry among the candidates; the Communication module is not carried into 2023'. No candidate covers ENABLE or communication description entries. The by-wording matches concern OPEN, SORT, CALL and similar statements, so the Communication feature is absent.",
+  "source": "audit-1985/state-route"
+ }
+}

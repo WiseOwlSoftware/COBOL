@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-XI.4.4.3-4",
+ "rule-digest": "53f39118d1d6",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.40.3-6"
+  ],
+  "bridge": true,
+  "reason": "Rules a, c-f carry over (bytes for character positions). The new class and dynamic-item bans cover only post-1985 features. Qualification stays allowed under the general rules.",
+  "source": "audit-1985/state-route"
+ }
+}

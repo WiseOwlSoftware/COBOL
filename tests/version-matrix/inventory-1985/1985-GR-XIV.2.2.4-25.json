@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.2.2.4-25",
+ "rule-digest": "95f3f8b75ac4",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'the first RECEIVE statement referencing the input-output CD with the INITIAL clause returns the actual message'; 2023: 'No communication description entry or INITIAL clause exists in 2023; the RECEIVE CONTINUE rule is a different subject'. No 2023 clause holds the CD entry feature, and no candidate covers the INITIAL CD or scheduled-message delivery. The 2023 RECEIVE rule concerns the CONTINUE phrase only.",
+  "source": "audit-1985/state-route"
+ }
+}

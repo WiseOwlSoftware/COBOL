@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XII.2.4-2",
+ "rule-digest": "13c08161efeb",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-7.2.3.4-6"
+  ],
+  "bridge": true,
+  "reason": "Same effect: library text logically replaces the whole COPY statement from COPY through the period. literal-1 is only another way to name the text; 'compilation group' is a new term.",
+  "source": "audit-1985/state-route"
+ }
+}

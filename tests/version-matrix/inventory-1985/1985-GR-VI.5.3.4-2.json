@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VI.5.3.4-2",
+ "rule-digest": "311d36422c35",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-13.16.3-24",
+   "GR-13.16.4-3"
+  ],
+  "bridge": true,
+  "reason": "1985: 'c. A group containing items with descriptions including JUSTIFIED, SYNCHRONIZED, or USAGE (other than USAGE IS DISPLAY).'; 2023: 'c) An alphanumeric group containing items with a usage other than display. ... h) A variable-length group.'. Same rule in substance, but 2023 limits the usage exclusion to alphanumeric groups and adds exclusions (ANY LENGTH, STRONG types, variable-length group).",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-XIII.3.15.3-9",
+ "rule-digest": "149414de10d7",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'The first LINE NUMBER clause specified within a PAGE FOOTING report group must be an absolute LINE NUMBER clause.'; 2023: 'If the report group is a page footing, the line number is given by (FOOTING integer + integer-2).'. 2023 GR-13.18.35.4-5 b)4 defines a relative first LINE clause in a page footing. No SR keeps the absolute-only restriction, so the 1985 requirement is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

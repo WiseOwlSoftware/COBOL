@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.3.6.4-14",
+ "rule-digest": "ebbdfce32cd4",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'On a device where vertical positioning is applicable and the ADVANCING phrase is not specified, automatic advancing'; 2023: '2023 SEND (14.9.38) is a message-server SEND with no ADVANCING phrase or devices; the communication module is gone'. 2023 SEND sends messages between run units and has no ADVANCING phrase or devices. WRITE's similar default-advancing rule belongs to a different statement, so it is no counterpart.",
+  "source": "audit-1985/state-route"
+ }
+}

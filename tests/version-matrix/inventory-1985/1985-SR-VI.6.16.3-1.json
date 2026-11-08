@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-VI.6.16.3-1",
+ "rule-digest": "4792831bedf5",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.19.3-1"
+  ],
+  "bridge": true,
+  "reason": "Same alternatives: imperative statement(s), or a conditional statement optionally preceded by imperatives. The level-2 box is no difference, and 'one or more' only spells out a sequence.",
+  "source": "audit-1985/state-route"
+ }
+}

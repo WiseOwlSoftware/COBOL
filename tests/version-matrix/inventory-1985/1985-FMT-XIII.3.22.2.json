@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-FMT-XIII.3.22.2",
+ "rule-digest": "e12d93cad91a",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-13.18.63.2"
+  ],
+  "bridge": true,
+  "reason": "1985: 'VALUE IS literal-1'; 2023: 'Format 4 (report-section): { VALUE IS | VALUES ARE } { literal-1 } …'. The 2023 report-section format adds the VALUES ARE option and repeated literals; the 1985 Report Writer VALUE clause allows exactly one literal, so more programs are now accepted.",
+  "source": "audit-1985/state-route"
+ }
+}

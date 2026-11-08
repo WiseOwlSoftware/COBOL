@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XI.4.1.4-6",
+ "rule-digest": "08832ed82952",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.24.4-6"
+  ],
+  "bridge": true,
+  "reason": "1985: 'The results of the merge operation are undefined unless the records ... are ordered as described in the ASCENDING or DESCENDING KEY phrases'; 2023: 'the EC-SORT-MERGE-SEQUENCE exception condition is set to exist, all files associated with the MERGE statement are closed, and the results ... undefined'. Out-of-order input still gives undefined merge results, but 2023 adds defined effects: the EC-SORT-MERGE-SEQUENCE exception is set and all files of the MERGE are closed.",
+  "source": "audit-1985/state-route"
+ }
+}

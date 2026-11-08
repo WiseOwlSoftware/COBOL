@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.2.2.4-34",
+ "rule-digest": "e7090b92e5d7",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'The content of the data item referenced by data-name-6 indicates the status condition of the previously executed ... RECEIVE, or SEND'; 2023: 'No communication description entry; the Communication module is absent from the 2023 candidates'. The 2023 standard lacks the communication description entry and its status key. No candidate covers CD entries or RECEIVE/SEND status, so the feature was dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

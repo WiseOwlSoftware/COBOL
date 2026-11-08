@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VII.3.3.3-1",
+ "rule-digest": "83fcd80ef805",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.10.4-1"
+  ],
+  "bridge": true,
+  "reason": "1985: 'c. The number of records contained in a block is specified in the operating environment.'; 2023: 'c) The number of records or characters contained in a block is specified in the operating environment.'. Same rule and same conditions a and b, but 2023 adds an exemption: the clause may also be omitted when the operating environment specifies the characters in a block.",
+  "source": "audit-1985/state-route"
+ }
+}

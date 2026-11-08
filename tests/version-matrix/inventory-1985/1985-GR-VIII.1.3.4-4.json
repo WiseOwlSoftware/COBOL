@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-GR-VIII.1.3.4-4",
+ "rule-digest": "36833954591f",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-9.1.13.6-1",
+   "GR-14.9.49.4-7",
+   "GR-14.6.13.1.3-3"
+  ],
+  "bridge": true,
+  "reason": "1985: 'The permanent error condition remains in effect for all subsequent input-output operations on the file unless an implementor-defined'; 2023: 'If the I-O status value does indicate a fatal EC-I-O exception condition, the implementor determines what action is taken'. 2023 makes a permanent error a fatal EC-I-O condition whose follow-up action is implementor-determined. No candidate keeps the 1985 rule that the error persists for later operations on the file.",
+  "source": "audit-1985/state-route"
+ }
+}

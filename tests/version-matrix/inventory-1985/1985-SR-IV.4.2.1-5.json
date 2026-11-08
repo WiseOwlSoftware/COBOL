@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-IV.4.2.1-5",
+ "rule-digest": "fae4916f7142",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-8.3.5-5"
+  ],
+  "bridge": true,
+  "reason": "1985: 'must be immediately preceded by a space or left parenthesis; ... space, comma, semicolon, period, or right parenthesis'; 2023: 'preceded by a space, left parenthesis, or opening pseudo-text delimiter ... right parenthesis, or closing pseudo-text delimiter'. 2023 also lets literal delimiters directly adjoin pseudo-text delimiters (e.g. =='A'==), which 1985 refused. It also allows apostrophes and prefixed delimiters (B\", X\", N\" etc.).",
+  "source": "audit-1985/state-route"
+ }
+}

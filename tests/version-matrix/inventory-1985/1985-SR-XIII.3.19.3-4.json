@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-XIII.3.19.3-4",
+ "rule-digest": "d6e575b691cb",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.54.3-8"
+  ],
+  "bridge": true,
+  "reason": "1985: 'Data-name-2 must not be a lower level control than the associated control for the report group in which the RESET phrase appears.'; 2023: 'If the current report group is a control footing, its level of control shall be a lower level than that of data-name-3.'. Both require RESET's operand or FINAL to be a CONTROL operand. 1985 also allows the footing's own control level; 2023 requires a strictly higher level and refuses equal.",
+  "source": "audit-1985/state-route"
+ }
+}

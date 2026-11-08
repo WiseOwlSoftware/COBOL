@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XIII.3.8.4-4",
+ "rule-digest": "1c371d89db86",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.39.4-1"
+  ],
+  "bridge": true,
+  "reason": "1985 GR4 only says placement rules depend on report group type, stated elsewhere. 2023 likewise confines each group, by type, to page regions. Extra page-numbering text adds no conflict.",
+  "source": "audit-1985/state-route"
+ }
+}

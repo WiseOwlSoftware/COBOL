@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.6.5.4-9",
+ "rule-digest": "3fd12eeff442",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.1.4-11"
+  ],
+  "bridge": true,
+  "reason": "1985: 'The minimum value of TIME is 00000000; the maximum value of TIME is 23595999.'; 2023: '00 through nn, where nn is defined by the implementor, when a LEAP-SECOND directive with the ON phrase is in effect'. Same 8-digit hhmmsscc layout, 24-hour basis and zero for missing fractions. Under LEAP-SECOND ON, 2023 adds a case: seconds may exceed 59 up to an implementor-defined limit.",
+  "source": "audit-1985/state-route"
+ }
+}

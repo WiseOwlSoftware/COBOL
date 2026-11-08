@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.6.26.4-4",
+ "rule-digest": "ae76ab1eb541",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.44.4-4"
+  ],
+  "bridge": true,
+  "reason": "Native arithmetic is the default and the excluded binary-char..float-extended usages are new, so every 1985 SUBTRACT keeps the same guarantee.",
+  "source": "audit-1985/state-route"
+ }
+}

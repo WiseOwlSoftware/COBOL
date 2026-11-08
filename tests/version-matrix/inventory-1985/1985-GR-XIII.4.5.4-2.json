@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XIII.4.5.4-2",
+ "rule-digest": "bd7b4224024f",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.27.4-6"
+  ],
+  "bridge": true,
+  "reason": "1985: 'no statement may be executed which references the file, either explicitly or implicitly, except for an OPEN statement'; 2023: 'except for a MERGE or SORT statement with the USING or GIVING phrase, the COMMIT and ROLLBACK statements, a DELETE FILE statement, or an OPEN statement'. Both forbid statements referencing a file that is not open, but 2023 adds exceptions beyond OPEN: SORT/MERGE USING/GIVING, COMMIT, ROLLBACK and DELETE FILE.",
+  "source": "audit-1985/state-route"
+ }
+}

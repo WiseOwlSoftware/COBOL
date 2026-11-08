@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-IX.4.9.4-4",
+ "rule-digest": "8f3a0a9b0dd7",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.51.4-9"
+  ],
+  "bridge": true,
+  "reason": "1985: 'After the execution of the WRITE statement is complete, the information in the area referenced by identifier-1 is available'; 2023: 'After the successful execution of a WRITE statement, ... provided that identifier-1 is not one or part of one of the record descriptions'. 2023 makes identifier-1 available only after successful execution, and only if it is not part of the file's record descriptions. 1985 covers any completed WRITE, without that proviso.",
+  "source": "audit-1985/state-route"
+ }
+}

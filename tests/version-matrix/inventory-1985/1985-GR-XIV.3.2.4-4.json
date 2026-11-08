@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.3.2.4-4",
+ "rule-digest": "346a7d61b263",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'When the INPUT phrase with the optional word TERMINAL is specified, the logical paths between the source ... are deactivated.'; 2023: 'No DISABLE statement or communication module appears; no candidate covers the subject.'. 2023 has no communication module or DISABLE statement. The candidates are only ACCEPT, DISPLAY and file rules, and none covers deactivating paths to queues.",
+  "source": "audit-1985/state-route"
+ }
+}

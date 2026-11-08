@@ -1,0 +1,17 @@
+{
+ "rule-id": "1985-GR-VIII.1.3.4-L2.4",
+ "rule-digest": "d16321120ab0",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-9.1.13.6-1",
+   "GR-9.1.13.6-5",
+   "GR-9.1.13.6-6",
+   "GR-9.1.13.6-7"
+  ],
+  "bridge": true,
+  "reason": "1985: 'I-O Status = 38. A permanent error exists because an OPEN statement is attempted on a file previously closed with lock.'; 2023: 'No status 38 in 9.1.13.6; 37 adds \"OPEN statement or DELETE FILE statement ... insufficient authority exists to access the file\"'. Statuses 30, 35 and 39 are kept, with DELETE FILE added to 39. The 9.1.13.6 list has no status 38 (closed with lock), and 37 gains an insufficient-authority case.",
+  "source": "audit-1985/state-route"
+ }
+}

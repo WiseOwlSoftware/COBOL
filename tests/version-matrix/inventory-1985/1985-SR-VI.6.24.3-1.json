@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-VI.6.24.3-1",
+ "rule-digest": "f81ac491b046",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'Literal-1 must not be a figurative constant that begins with the word ALL.'; 2023: 'STOP rules only say: \"If literal-1 is numeric, it shall be an integer.\" and \"Literal-1 shall not be a zero-length literal.\"'. The 2023 STOP syntax rules still cover literal-1, but none of them bars a figurative constant that begins with ALL. The 1985 restriction is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

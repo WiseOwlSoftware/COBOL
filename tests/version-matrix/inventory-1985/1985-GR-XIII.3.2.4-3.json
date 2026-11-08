@@ -1,0 +1,17 @@
+{
+ "rule-id": "1985-GR-XIII.3.2.4-3",
+ "rule-digest": "975a933dc786",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.4.5.3-8",
+   "GR-13.18.10.4-1",
+   "GR-13.18.13.4-1",
+   "GR-13.18.43.4-1"
+  ],
+  "bridge": true,
+  "reason": "1985 rule only says the non-REPORT clauses of a report FD follow the sequential file specs. In 2023 the 13.18 clause rules apply to report FDs too; no change in effect.",
+  "source": "audit-1985/state-route"
+ }
+}

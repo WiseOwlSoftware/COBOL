@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.3.6.4-5",
+ "rule-digest": "a178e0e64406",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'The effect of having special control characters within the content of the data item referenced by identifier-1 is undefined.'; 2023: 'The 2023 SEND is a message-server SEND (literal-1/message-server-name-1); no rule covers control characters in identifier-1.'. The 1985 Communication-module SEND is absent from 2023. The 2023 SEND sends to a message server, and no candidate keeps the undefined effect of control characters.",
+  "source": "audit-1985/state-route"
+ }
+}

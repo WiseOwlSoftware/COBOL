@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-FMT-IX.2.4.2",
+ "rule-digest": "851095aef17c",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "FMT-12.4.5.5.1",
+   "FMT-12.4.5.1"
+  ],
+  "bridge": true,
+  "reason": "Both formats select exactly one of SEQUENTIAL, RANDOM or DYNAMIC after ACCESS MODE IS; the 1985 level-2 box on DYNAMIC is no difference per instructions.",
+  "source": "audit-1985/state-route"
+ }
+}

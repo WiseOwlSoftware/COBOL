@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.2.2.4-20",
+ "rule-digest": "7747f07acfdf",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'the data item referenced by data-name-5 contains a symbolic destination name previously known to the MCS'; 2023: 'No communication description entry in 2023; the Communication module is not carried, and no candidate covers MCS destinations'. The 2023 clauses holding this feature yield no candidates, and none of the wording candidates concerns communication description entries or symbolic destination names.",
+  "source": "audit-1985/state-route"
+ }
+}

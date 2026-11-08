@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-VIII.4.7.3-3",
+ "rule-digest": "4d4d72b432fc",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'The INVALID KEY phrase must be specified if no applicable USE AFTER STANDARD EXCEPTION procedure is specified for file-name-1.'; 2023: 'GR-9.1.14-3: or there are no applicable exception processing statements, control is transferred to the end of the input-output statement.'. 2023 calls INVALID KEY optional (GR-14.9.41.4-6) and defines the result when neither it nor a USE procedure exists, so the 1985 requirement is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

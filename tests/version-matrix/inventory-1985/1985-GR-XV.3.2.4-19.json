@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XV.3.2.4-19",
+ "rule-digest": "1fc57292f03f",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"DEBUG-CONTENTS contains: 1) If the reference to procedure-name-1 is in the INPUT phrase of a SORT statement, 'SORT INPUT'.\"; 2023: 'No candidate states USE FOR DEBUGGING, DEBUG-LINE, DEBUG-NAME or DEBUG-CONTENTS; the 2023 USE statement rules lack the debugging form.'. No candidate covers USE FOR DEBUGGING or the DEBUG-ITEM special register. The Debug module and its USE FOR DEBUGGING statement are absent from 2023, so the rule is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

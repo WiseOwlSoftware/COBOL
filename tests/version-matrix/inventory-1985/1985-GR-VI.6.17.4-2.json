@@ -1,0 +1,17 @@
+{
+ "rule-id": "1985-GR-VI.6.17.4-2",
+ "rule-digest": "cef5ffa5e49d",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.20.4-4",
+   "GR-14.9.20.4-5",
+   "GR-14.9.20.4-6",
+   "SR-14.9.20.3-8"
+  ],
+  "bridge": true,
+  "reason": "2023 keeps the implicit elementary MOVEs, REPLACING category selection, every table occurrence and the literal-1/identifier-2 sender. DEFAULT, VALUE and SET only add cases outside 1985 syntax.",
+  "source": "audit-1985/state-route"
+ }
+}

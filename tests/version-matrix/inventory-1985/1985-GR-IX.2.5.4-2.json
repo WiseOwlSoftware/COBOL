@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-IX.2.5.4-2",
+ "rule-digest": "f5119d655088",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-12.4.5.6.4-3"
+  ],
+  "bridge": true,
+  "reason": "Same rule: key data description, its relative location and the alternate key count must match file creation. Data-name-2 adds only the new split-key syntax; 1985 programs are unaffected.",
+  "source": "audit-1985/state-route"
+ }
+}

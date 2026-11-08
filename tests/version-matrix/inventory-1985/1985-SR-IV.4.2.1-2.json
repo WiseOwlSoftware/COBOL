@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-SR-IV.4.2.1-2",
+ "rule-digest": "51c05b292f56",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-8.3.5-2",
+   "SR-13.18.40.3-7"
+  ],
+  "bridge": true,
+  "reason": "1985: 'Except when the comma is used in a PICTURE character-string, the punctuation characters comma and semicolon'; 2023: 'The COBOL characters comma and semicolon, immediately followed by a space, are separators (no PICTURE exception)'. 2023 drops the PICTURE exception: a comma plus space now always separates, and a final picture ',' must be followed directly by the period. In 1985 that comma stayed in the picture.",
+  "source": "audit-1985/state-route"
+ }
+}

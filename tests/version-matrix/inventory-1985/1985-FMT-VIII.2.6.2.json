@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-FMT-VIII.2.6.2",
+ "rule-digest": "8e72b3e44cce",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-12.4.6.2",
+   "FMT-12.4.6.4.2"
+  ],
+  "bridge": true,
+  "reason": "1985: 'RERUN ON { file-name-1 | implementor-name-1 } EVERY { integer-1 RECORDS OF file-name-2 | integer-2 CLOCK-UNITS | condition-name-1 }'; 2023: 'I-O-CONTROL . [ [ apply-commit-clause] . ] [ [ { same-clause }… ]. ]'. 2023 I-O-CONTROL keeps SAME [RECORD] AREA FOR file-names but has no RERUN clause, so programs using RERUN are no longer accepted. 2023 also adds APPLY COMMIT.",
+  "source": "audit-1985/state-route"
+ }
+}

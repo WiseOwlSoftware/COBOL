@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.3.5.4-7",
+ "rule-digest": "b2a25bcf5a44",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: 'never returns to the data item referenced by identifier-1 more than a single message (when the MESSAGE phrase is used) or a single segment'; 2023: 'RECEIVE FROM data-name-1 GIVING identifier-1 data-name-2: no cd-name, no MESSAGE/SEGMENT phrase, no segment concept'. 2023 drops the cd-based Communication module RECEIVE. Its RECEIVE is a new run-unit messaging statement with no MESSAGE or SEGMENT phrase, so the single-message/segment rule is gone.",
+  "source": "audit-1985/state-route"
+ }
+}

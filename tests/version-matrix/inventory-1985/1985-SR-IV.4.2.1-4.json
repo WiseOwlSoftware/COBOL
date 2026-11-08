@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-IV.4.2.1-4",
+ "rule-digest": "6ae27f1deb78",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-8.3.5-4"
+  ],
+  "bridge": true,
+  "reason": "1985: 'Parentheses may appear only in balanced pairs of left and right parentheses delimiting subscripts, reference modifiers, arithmetic expressions, or conditions.'; 2023: 'Except in pseudo-text, ... a list of function or method arguments, a reference modifier, arithmetic or boolean expressions, or conditions.'. Same subject, but 2023 permits more uses: function and method argument lists, boolean expressions, and unbalanced parentheses in pseudo-text. The permitted cases are wider than in 1985.",
+  "source": "audit-1985/state-route"
+ }
+}

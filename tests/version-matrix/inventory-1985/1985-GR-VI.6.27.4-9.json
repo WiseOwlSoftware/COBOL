@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.6.27.4-9",
+ "rule-digest": "926fe335dfeb",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.48.4-8"
+  ],
+  "bridge": true,
+  "reason": "Same rule: contiguous delimiters space-fill alphabetic/alphanumeric receivers and zero-fill numeric ones. National is a category 1985 lacks, so 1985 programs behave alike.",
+  "source": "audit-1985/state-route"
+ }
+}

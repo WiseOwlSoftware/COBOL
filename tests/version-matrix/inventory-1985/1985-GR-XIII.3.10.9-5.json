@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-GR-XIII.3.10.9-5",
+ "rule-digest": "efce2665b84e",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.37.4-5",
+   "GR-8.4.3.15.4-4",
+   "GR-8.4.3.15.4-5"
+  ],
+  "bridge": true,
+  "reason": "Page footing: absolute NEXT GROUP sets LINE-COUNTER to integer-1, relative adds integer-2, otherwise last line printed; dummy groups leave it unchanged. The report footing words only state the effect.",
+  "source": "audit-1985/state-route"
+ }
+}
