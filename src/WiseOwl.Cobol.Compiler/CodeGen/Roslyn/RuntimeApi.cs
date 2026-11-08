@@ -424,17 +424,18 @@ internal static class RuntimeApi
     public static string AsyncSendResponse(string to, string image, string extents, string slots, string raising, string raisingLast, string checking) =>
         $"{nameof(AsyncMessaging)}.{nameof(AsyncMessaging.SendResponse)}({to}, {image}, {extents}, {slots}, {raising}, {raisingLast}, {checking})";
 
-    /// <summary>The message tags of a message area's leaf vector, the slots a SEND carries beside its image (<c>AsyncMessaging.TagsOf</c>, kb/Work PB4744).</summary>
-    public static string AsyncTagsOf(string leaves) => $"{nameof(AsyncMessaging)}.{nameof(AsyncMessaging.TagsOf)}({leaves})";
+    /// <summary>The slots a SEND carries beside its image: every message tag of an elementary tag or a group's leaf vector beside its token (<c>AsyncMessaging.SlotsOf</c>,
+    /// kb/Work PB4744, PB4957).</summary>
+    public static string AsyncSlotsOf(string area) => $"{nameof(AsyncMessaging)}.{nameof(AsyncMessaging.SlotsOf)}({area})";
 
-    /// <summary>The leaf vector with the received message's tags in place of the area's own (<c>AsyncMessaging.WithTags</c>).</summary>
-    public static string AsyncWithTags(string leaves, string tags) => $"{nameof(AsyncMessaging)}.{nameof(AsyncMessaging.WithTags)}({leaves}, {tags})";
+    /// <summary>A received area's leaf vector with each tag its positions decoded to resolved against the message's slots (<c>AsyncMessaging.Resolved</c>, kb/Work PB4957).</summary>
+    public static string AsyncResolved(string leaves, string slots) => $"{nameof(AsyncMessaging)}.{nameof(AsyncMessaging.Resolved)}({leaves}, {slots})";
 
     public static string AsyncReceive(string from, string capacity, string wait, string checking) =>
         $"{nameof(AsyncMessaging)}.{nameof(AsyncMessaging.Receive)}({from}, {capacity}, {wait}, {checking})";
 
-    /// <summary>An elementary message tag's content from a received message's slots (<c>AsyncMessaging.TagOf</c>).</summary>
-    public static string AsyncTagOf(string slots) => $"{nameof(AsyncMessaging)}.{nameof(AsyncMessaging.TagOf)}({slots})";
+    /// <summary>An elementary message tag's content: its positions of the received image, resolved against the message's slots (<c>AsyncMessaging.TagOf</c>, kb/Work PB4957).</summary>
+    public static string AsyncTagOf(string image, string slots) => $"{nameof(AsyncMessaging)}.{nameof(AsyncMessaging.TagOf)}({image}, {slots})";
 
     /// <summary>The size an unbounded RECEIVE's area took after its store (<c>AsyncMessaging.Received</c>; §2023:14.6.11 7)).</summary>
     public static string AsyncReceived(string tag, string size) => $"{nameof(AsyncMessaging)}.{nameof(AsyncMessaging.Received)}({tag}, {size})";
