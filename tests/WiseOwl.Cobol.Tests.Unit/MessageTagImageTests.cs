@@ -71,9 +71,9 @@ public sealed class MessageTagImageTests
         const int n = 20000;
         var tokens = new string[n];
         for (int i = 0; i < n; i++) tokens[i] = MessageTagImage.Of(new MessageTag(Mcs, MessageParty.Requestor, "run-unit-bounded", 1_000_000_000L + i));
-        Assert.True(table.TagBlockCount - before <= n / 4096 + 2, $"grew by {table.TagBlockCount - before}");
+        Assert.True(table.TagBlockCount - before <= n / 256 + 2, $"grew by {table.TagBlockCount - before}");
         Assert.Equal(n, tokens.Distinct().Count());
-        foreach (int i in new[] { 0, 1, 4095, 4096, 12345, n - 1 })
+        foreach (int i in new[] { 0, 1, 255, 256, 12345, n - 1 })
         {
             var back = MessageTagImage.TagOf(tokens[i]);
             Assert.Equal(MessageParty.Requestor, back.Party);

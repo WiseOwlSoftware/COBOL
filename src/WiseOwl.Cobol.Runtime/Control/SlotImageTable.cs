@@ -16,7 +16,7 @@ namespace WiseOwl.Cobol.Runtime;
 internal sealed class SlotImageTable
 {
     private const int FirstSweepAt = 1024;
-    private const int SerialBits = 12;                       // the message-serial bits a token carries itself (kb/Work PB4926)
+    private const int SerialBits = 8;                        // the message-serial bits a token carries itself (kb/Work PB4926)
     private const long SerialMask = (1L << SerialBits) - 1;
     private static long s_lastTagBlock;   // PROCESS-wide, like the pointer bases: two run units of one process never issue the same tag block (review R2-1)
 
@@ -74,7 +74,7 @@ internal sealed class SlotImageTable
             if (!_blockIds.TryGetValue(key, out long block))
             {
                 long next = Interlocked.Increment(ref s_lastTagBlock);
-                if (next >= 1L << (32 - SerialBits)) throw new InvalidOperationException("the process has issued every message-tag block number it can image");
+                if (next >= 1L << (32 - SerialBits)) throw new InvalidOperationException("the process has issued every message-tag block number (2^24 - 1, one per party per 256 messages) it can image");
                 block = (PointerImage.Epoch << 32) | (next << SerialBits);
                 _blockIds[key] = block;
                 _blocks[block] = key;
