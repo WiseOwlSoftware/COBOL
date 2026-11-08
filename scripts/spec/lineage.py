@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """THE RULE LINEAGE: one rule list per COBOL edition, linked by one change record per adjacent pair (kb/Work PB4991).
 
-    python scripts/spec/lineage.py kept-batch --state DIR --out FILE   # the audit's upheld SAME answers as KEPT records
+    python scripts/spec/lineage.py change-batch --state DIR --out FILE # every change record the audit decided (PB4995)
     python scripts/spec/lineage.py --self-test
 
 The design is DESIGN-spec-conformance-review.md §10.2 (owner, 2026-11-08). In short:
@@ -107,18 +107,20 @@ def new_rules(ed: Edition, rows: Iterable[dict[str, Any]], targets: dict[str, di
 
 # -- the audit's KEPT records ---------------------------------------------------------------------------------------------
 
-def kept_batch(state: pathlib.Path, out: pathlib.Path, source: str) -> int:
-    """A record_verdicts batch of the edition audit's CARRIES rules (map SAME, verify UPHELD) as KEPT change records.
-    The audit's DISPUTED and OWN-ROW rules are the fleet's (kb/Work PB4995) and are not in it."""
+def change_batch(state: pathlib.Path, out: pathlib.Path, source: str) -> int:
+    """A record_verdicts batch of every change record the edition audit DECIDED (`results.json`'s `change`, which
+    audit_batch.dispositions derives: KEPT for a SAME the verify pass upheld, and the adjudicate pass's KEPT, CHANGED or
+    REMOVED once its refuter upheld it, kb/Work PB4995). A contested or unadjudicated rule is the fleet's, and not in it."""
     results = json.loads((state / "results.json").read_text(encoding="utf-8"))
     ed = edition(1985)
     want, bridged = ed.next_held, ed.bridged
-    records = [{"rule-id": rid, "next": {"kind": KEPT, "edition": want, "to": d["rules_2023"], "bridge": bridged,
-                                         "reason": "", "source": source}}
-               for rid, d in sorted(results.items()) if d["disposition"] == "CARRIES"]
-    out.write_text(json.dumps({"batch": f"lineage-kept:{source}", "records": records}, indent=1, ensure_ascii=False) + "\n",
+    records = [{"rule-id": rid, "next": {"kind": d["change"]["kind"], "edition": want, "to": d["change"]["to"],
+                                         "bridge": bridged, "reason": d["change"]["reason"], "source": source}}
+               for rid, d in sorted(results.items()) if "change" in d]
+    out.write_text(json.dumps({"batch": f"lineage-change:{source}", "records": records}, indent=1, ensure_ascii=False) + "\n",
                    encoding="utf-8", newline="\n")
-    print(f"kept-batch: {len(records)} KEPT record(s) -> {out}")
+    kinds = {k: sum(1 for r in records if r["next"]["kind"] == k) for k in NEXT_KINDS}
+    print(f"change-batch: {len(records)} change record(s) {kinds} -> {out}")
     return 0
 
 
@@ -205,15 +207,16 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="The rule lineage across editions (kb/Work PB4991).")
     ap.add_argument("--self-test", action="store_true")
     sub = ap.add_subparsers(dest="cmd")
-    kb = sub.add_parser("kept-batch", help="the audit's upheld SAME answers as KEPT records")
+    kb = sub.add_parser("change-batch", help="every change record the audit decided (its upheld SAME answers as KEPT, "
+                                             "its upheld adjudications)")
     kb.add_argument("--state", required=True, type=pathlib.Path, help="the audit run's directory (results.json)")
     kb.add_argument("--out", required=True, type=pathlib.Path)
     kb.add_argument("--source", help="the run named in each record's next.source (default: the state directory's name)")
     a = ap.parse_args(argv)
     if a.self_test:
         return self_test()
-    if a.cmd == "kept-batch":
-        return kept_batch(a.state, a.out, a.source or f"audit-1985/{a.state.name}")
+    if a.cmd == "change-batch":
+        return change_batch(a.state, a.out, a.source or f"audit-1985/{a.state.name}")
     ap.print_help()
     return 2
 

@@ -344,6 +344,93 @@ def main() -> int:
         check("a draft answer is a program and an expected outcome", draft is not None and why == "")
         check("a draft with no outcome is refused", A.parse_answer("drafts", ditems[dcid], '{"program": "x"}')[0] is None)
 
+        print("adjudicate and refute: the decided change records (kb/Work PB4995)")
+        code, out = run(["plan", "--pass", "refute", *base], fake)
+        check("the refute plan waits for the adjudicate pass", code not in (0, None) and "adjudicate pass has no plan" in str(code))
+        code, out = run(["plan", "--pass", "adjudicate", *base], fake)
+        aitems = json.loads((state / "adjudicate" / "items.json").read_text(encoding="utf-8"))
+        aby = {it["id"]: (c, it) for c, it in aitems.items()}
+        check("the adjudicate plan holds every DISPUTED and OWN-ROW rule, with its candidates and both readers' answers",
+              code == 0 and sorted(aby) == sorted(results) and aby[same_rule][1]["readers"]["verify"]["verdict"] == "REFUTED"
+              and aby[same_rule][1]["readers"]["map"]["verdict"] == "SAME"
+              and all(it["readers"]["verify"] is None for k, (_c, it) in aby.items() if k != same_rule)
+              and A.map_candidates(aby[same_rule][1]) == A.map_candidates(items[A.custom_id("map", same_rule)]))
+        atext = A.prompt_parts("adjudicate", aby[same_rule][1])
+        check("an adjudicate request shares the map's cached clause block and carries both readers in its own part",
+              atext[1] == A.prompt_parts("map", items[A.custom_id("map", same_rule)])[1]
+              and "THE VERIFY READER'S ANSWER" in atext[2] and "77 differs" in atext[2] and "KEPT|CHANGED" in atext[0])
+        inspect_rule = "1985-GR-VI.6.18.4-2"
+        debug_rule = "1985-GR-XV.3.2.4-1"
+        ait = aby[inspect_rule][1]
+        kept = {"verdict": "KEPT", "rules_2023": ["GR-14.9.21.4-2"], "differs": {}, "reason": "same"}
+        changed = {"verdict": "CHANGED", "rules_2023": ["GR-14.9.21.4-2"], "differs": {"1985": "character", "2023": "position"},
+                   "reason": "the unit changed"}
+        check("an adjudication names candidates for KEPT and CHANGED, none for REMOVED and OPEN, and a reason for a change",
+              A.parse_answer("adjudicate", ait, json.dumps(kept))[0] is not None
+              and A.parse_answer("adjudicate", ait, json.dumps(changed))[0] is not None
+              and A.parse_answer("adjudicate", ait, json.dumps(dict(kept, rules_2023=[])))[0] is None
+              and A.parse_answer("adjudicate", ait, json.dumps(dict(kept, rules_2023=["GR-99.9-1"])))[0] is None
+              and A.parse_answer("adjudicate", ait, json.dumps(dict(changed, reason=" ")))[0] is None
+              and A.parse_answer("adjudicate", ait, json.dumps({"verdict": "REMOVED", "rules_2023": [], "differs": {},
+                                                                "reason": "deleted"}))[0] is not None
+              and A.parse_answer("adjudicate", ait, json.dumps({"verdict": "REMOVED", "rules_2023": ["GR-14.9.21.4-2"],
+                                                                "differs": {}, "reason": "deleted"}))[0] is None
+              and A.parse_answer("adjudicate", ait, json.dumps({"verdict": "SAME", "rules_2023": [], "reason": "x"}))[0] is None)
+        removed = {"verdict": "REMOVED", "rules_2023": [], "differs": {"1985": "USE FOR DEBUGGING", "2023": "the Debug "
+                   "module is deleted"}, "reason": "the debugging declaratives are gone"}
+        adjudicated = {same_rule: {"verdict": "OPEN", "rules_2023": [], "differs": {}, "reason": "undecided"},
+                       inspect_rule: changed, debug_rule: removed}
+        run(["submit", "--pass", "adjudicate", *base, *key, "--max-usd", "50", "--canary", "5"], fake)
+        bid = fake.created[-1]["id"]
+        answer(fake, bid, {c: json.dumps(adjudicated[aitems[c]["id"]]) for c in fake.created[-1]["ids"]})
+        run(["collect", "--pass", "adjudicate", *base, *key], fake)
+        code, out = run(["plan", "--pass", "refute", *base], fake)
+        fitems = json.loads((state / "refute" / "items.json").read_text(encoding="utf-8"))
+        fby = {it["id"]: (c, it) for c, it in fitems.items()}
+        check("the refute plan holds every decided adjudication (not an OPEN one), with the decision and every candidate",
+              code == 0 and sorted(fby) == sorted([inspect_rule, debug_rule])
+              and fby[inspect_rule][1]["adjudication"]["verdict"] == "CHANGED"
+              and A.map_candidates(fby[debug_rule][1]) == A.map_candidates(aby[debug_rule][1])
+              and "THE ADJUDICATOR'S DECISION" in A.prompt_parts("refute", fby[debug_rule][1])[2])
+        code, out = run(["results", *base], fake)
+        mid = json.loads((state / "results.json").read_text(encoding="utf-8"))
+        check("before its refuter answers, a decided adjudication is no change; an OPEN one is contested at once",
+              "change" not in mid[inspect_rule] and not mid[inspect_rule].get("contested")
+              and mid[same_rule].get("contested") is True and "change" not in mid[same_rule])
+        run(["submit", "--pass", "refute", *base, *key, "--max-usd", "50", "--canary", "5"], fake)
+        refuted = {inspect_rule: {"verdict": "UPHELD", "reason": "r", "differs": {}},
+                   debug_rule: {"verdict": "REFUTED", "reason": "14.9.1 still states it", "differs": {}}}
+        answer(fake, fake.created[-1]["id"], {c: json.dumps(refuted[fitems[c]["id"]]) for c in fake.created[-1]["ids"]})
+        run(["collect", "--pass", "refute", *base, *key], fake)
+        code, out = run(["results", *base], fake)
+        final = json.loads((state / "results.json").read_text(encoding="utf-8"))
+        check("an upheld adjudication is the rule's change, its reason the differing words before the why; a refuted "
+              "one is contested, never a change",
+              final[inspect_rule]["change"] == {"kind": "CHANGED", "to": ["GR-14.9.21.4-2"],
+                                                "reason": "1985: 'character'; 2023: 'position'. the unit changed"}
+              and final[debug_rule].get("contested") is True and "change" not in final[debug_rule]
+              and final[inspect_rule]["refute"] == "UPHELD" and "decided {'CHANGED': 1}; contested 2" in out)
+        import lineage  # noqa: PLC0415  (the change batch reads `change` from results.json)
+        batch = root / "change-batch.json"
+        with contextlib.redirect_stdout(io.StringIO()):
+            lineage.change_batch(state, batch, "planted")
+        records = json.loads(batch.read_text(encoding="utf-8"))["records"]
+        check("the change batch records each decided change once, bridged to the next held edition, and no contested rule",
+              [r["rule-id"] for r in records] == [inspect_rule]
+              and records[0]["next"] == {"kind": "CHANGED", "edition": 2023, "to": ["GR-14.9.21.4-2"], "bridge": True,
+                                         "reason": final[inspect_rule]["change"]["reason"], "source": "planted"})
+        state8 = root / "run8"
+        A.write_plan(A.Pass(state8, "map"), [word_item])
+        A.write_plan(A.Pass(state8, "verify"), [{"id": word_item["id"], "rule": word_item["rule"], "candidates": [c_b]}])
+        for name, said in (("map", json.loads(same_on_word)), ("verify", {"verdict": "UPHELD", "reason": "r", "differs": {}})):
+            (state8 / name / "answers").mkdir()
+            (state8 / name / "answers" / f"{A.custom_id(name, word_item['id'])}.json").write_text(
+                json.dumps({"id": word_item["id"], "answer": said}), encoding="utf-8", newline="\n")
+        check("a SAME the verify pass upheld (CARRIES) is a KEPT change into the rules it named, with no adjudication",
+              A.dispositions(state8)[word_item["id"]] == {
+                  "citation": word_item["rule"]["citation"], "map": "SAME", "rules_2023": [c_b["id"]], "verify": "UPHELD",
+                  "disposition": "CARRIES", "change": {"kind": "KEPT", "to": [c_b["id"]], "reason": ""}})
+
         print("claims: the 1985 text and the citation check")
         planted = root / "repo"
         md = spec_pdf.markdown(1985, planted)
@@ -409,7 +496,8 @@ def main() -> int:
         side = spec_pdf.BOX_SIDE
         boxed = dict(RULES_1985[0], box="whole", level=2, text=f"{side}(1) A planted rule boxed whole.{side}")
         texts = {p: A.prompt_text(p, {"rule": boxed, "candidates": RULES_2023[:1], "clause_candidates": RULES_2023[:1],
-                                      "word_candidates": [], "id": "c1", "claim": "planted",
+                                      "word_candidates": [], "id": "c1", "claim": "planted", "readers": {"map": None},
+                                      "adjudication": {"verdict": "REMOVED"},
                                       "locator": "VI.5.8.3", "text": boxed["text"],
                                       "clause": {"locator": "VI.5.8", "document": "X3.23-1985", "module": "Nucleus",
                                                  "subject": "THE OCCURS CLAUSE", "rules": 1, "sample": [boxed["text"]]},
