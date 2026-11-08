@@ -1,4 +1,4 @@
-## PB4886: the 1985 claims canary's right answers are kept, and a failed canary retries as the canary
+## Entry 3292 — 2026-11-07 18:59 PST — PB4886: the 1985 claims canary's right answers are kept, and a failed canary retries as the canary
 
 The claims canary of the 1985 audit (batch `msgbatch_01WnTYzyAVaUgPU5Lj9RUy2t`) came back with three right answers, and
 `scripts/spec/audit_batch.py` threw all three away. Each cited a Function paragraph as `§1985:VII.3.5.1 Function`. Many
@@ -38,3 +38,4 @@ returned three valid answers: VCR-7.1 CONFIRMED (§1985:VII.3.5.1), VCR-7.2 CONF
 CONFIRMED (§1985:VII.3.6.1). Each citation passed `cite.py --check`. The full claims pass is left for the session.
 
 No inventory row changed, and no code or diagnostic was used (COBOL6526-6528 were returned).
+
