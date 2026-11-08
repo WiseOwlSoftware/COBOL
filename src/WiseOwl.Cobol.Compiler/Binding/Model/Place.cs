@@ -779,6 +779,13 @@ public sealed record OdoGroupPlace(
 /// screen, MAX/MIN's type resolution) sees the element's item exactly as it would a single subscripted reference;
 /// only the intrinsic argument-list renderers expand it, and a single-value read (<c>PlaceRenderer.Read</c>) is an
 /// internal error by construction — a table(ALL) is never a value.</para>
+/// <para>⛔ IT IS ALSO THE PLACE OF A WHOLE TABLE (kb/Work PB4855; <c>PlaceBuilder.WholeTable</c>): a statement that names a table, or
+/// an item under its element, without the subscripts of the levels it ranges over — SEARCH's identifier-1, a Format-2 table
+/// SORT's data-name-2 and its key data-names, INITIALIZE of a whole dynamic-capacity table — references every occurrence of
+/// that item, which is this same enumeration with its fixed subscripts the enclosing occurrences the statement names. Such
+/// a place is the statement's written operand (X3.23-1985 USE FOR DEBUGGING general rules 5 and 6) and nothing reads it but
+/// a debugging section's DEBUG-CONTENTS, the storage images of the occurrences in storage order (rule 24 c;
+/// <c>CobolTable.AllImage</c>). Its index vector is a <see cref="StatementLocalRole.WholeTableIndices"/> local.</para>
 /// </summary>
 public sealed record TableAllPlace(Place Element, LocalVector Indices, IReadOnlyList<AllCount> Counts) : PlaceDecorator(Element)
 {

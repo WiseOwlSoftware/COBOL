@@ -1099,15 +1099,9 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         Func<BoundOperand, string>? lead = null)
     {
         string v = LocalNames.Of(all.Indices.Local);
-        var counts = all.Counts.Select(c => $"{v} => (long)({AllCountExpr(c)})");
         var e = new BoundFieldOperand(all.Element);
-        return RuntimeApi.TableAllArgs(csType, counts, $"{v} => {element(e)}", lead is null ? null : $"{v} => {lead(e)}");
+        return RuntimeApi.TableAllArgs(csType, PlaceRenderer.AllCountLambdas(all), $"{v} => {element(e)}", lead is null ? null : $"{v} => {lead(e)}");
     }
-
-    /// <summary>One ALL level's range as a C# <c>long</c>-valued expression — the ONE occurrence-count renderer
-    /// (<c>PlaceRenderer.OccurrenceCount</c>), shared with INITIALIZE's per-occurrence loop bound (kb/Work
-    /// PB393). It was defined here until INITIALIZE became its second consumer.</summary>
-    private static string AllCountExpr(AllCount c) => PlaceRenderer.OccurrenceCount(c);
 
     /// <summary>The argument list from position <paramref name="from"/> on as ONE <c>T[]</c> expression when a
     /// table(ALL) argument is among them (else null — the caller keeps its comma-list form, byte-identical to
