@@ -745,17 +745,31 @@ edition (kb/Work PB4813) takes the same path once it is transcribed; it is ISO-s
   names a rule records its amendment there. A change that ADDS a rule ("add the following as the new general rule 4") is a
   row of its amendment, cited by the amendment's own page (`§1993:p.B-14`), and keeps the number the amendment gives it;
   the base rules keep their 1985 numbers, which are the ones 1985 citations use.
-- **Completeness** is held as for 2023: a rule-shaped heading no kind resolves ("Editing Rules", "Presentation Rules"), a
-  recognised block that yields no rule, an ordinal that neither continues nor restarts its list, a box in a one-level
-  module, an amendment change naming a rule the catalog cannot find, and a duplicate id are each reported, and `--check`
-  fails on them. The paragraphs that DEFINE the rule kinds (§1985:IV.3) are outside the denominator, as §2023:5.3 is. Which
-  kind a rule-shaped block of another name is (1985 has no counterpart of §2023:5.3.2/5.3.3's typing) is an adjudication,
-  recorded in `rule_catalog_1985.KINDS` or `EXCLUDED_BLOCKS` with its reason, never a guess in the reader.
+- **Completeness** is held as for 2023: a rule-shaped heading no kind resolves, a recognised block that yields no rule,
+  an ordinal that neither continues nor restarts its list, a box in a one-level module, an amendment change naming a rule
+  the catalog cannot find (read from the change's directive, never from the new text it carries), a rule after a scan gap
+  that no entry places, an adjudication the transcription no longer has, and a duplicate id are each reported, and
+  `--check` fails on them. The paragraphs that DEFINE the rule kinds (§1985:IV.3) are outside the denominator, as §2023:5.3
+  is. **The kind table is ONE**: `extract_rule_catalog.KINDS` types both editions' headings, its "Editing Rules" (GR) and
+  "Precedence Rules" (SR) included, the same PICTURE rules §2023:5.3.3 and §2023:5.3.2 type. A 1985 block of another name
+  ("Standard Alignment Rules", "Formation and Evaluation Rules", the Report Writer's counter and presentation rules, and the
+  two paragraphs the amendments themselves call rules, IV.4.2.1 Separators and VI.5.15.6) is an adjudication by
+  §1985:IV.3.1/IV.3.2, recorded with its reason in `rule_catalog_1985.BLOCK_KINDS` (a kind per rule where they differ,
+  the 2023 manifest's `items` shape), `EXCLUDED_BLOCKS` or `KNOWN_EMPTY_BLOCKS`, never a guess in the reader.
+- **The scan's own defects.** The scan prints folios X-11 and X-12 twice (PDF pages 527-528); the transcription keeps
+  both copies under `citation.SCAN_REPEAT_85`'s comment, and the catalog reads no rule from the repeat. Where the scan
+  lacks printed pages (`citation.SCAN_GAP_85`), the text after the gap is never the block before it; a page that resumes a
+  paragraph whose heading is on a missing page names it in `rule_catalog_1985.GAP_RESUMES` (PDF page 634: the TYPE
+  clause's syntax rules 5-7, rows `1985-SR-XIII.3.20.3-5` to `-7`: paragraph 3.20.3 of Section XIII, a locator the
+  transcription has no region for, since its heading is on a missing page).
+- **Not yet held: the content-keyed scan.** 2023's catalog also measures every clause that carries a numbered list under
+  a heading that names no rule block, against a committed manifest of dispositions (§7, kb/Work PB29). The 1985 arm has
+  no such scan yet, so a 1985 paragraph of numbered rules under a prose heading (VI.6.4.2 'The ON SIZE ERROR Phrase') is
+  outside the denominator until it is adjudicated.
 
-The catalog is written (`docs/rearchitecture/spec-rule-catalog-1985.json`) only once the transcription is reconciled
-(kb/Work PB4850); until then `--edition 1985 --check` prints the counts and the findings and writes nothing. On the
-unreconciled file of 2026-11-07 it counts 1,988 rows from 614 blocks (SR 580, GR 1,051, AR 65, RV 80, FMT 212) and 49
-findings, most of them the reconciliation's to repair.
+The catalog is written to `docs/rearchitecture/spec-rule-catalog-1985.json` and held by the gate's RULE CATALOG 1985
+audit (`--edition 1985 --check`: no finding, and the committed catalog is this run's). On the reconciled file it counts
+2,057 rows from 622 blocks (SR 597, GR 1,105, AR 65, RV 80, FMT 210) and no finding.
 
 ### 10.2 The mapping onto the 2023 inventory: SAME, DIFFERS, NONE
 

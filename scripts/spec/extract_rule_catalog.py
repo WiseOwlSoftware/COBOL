@@ -185,6 +185,10 @@ INDENTED_ORDINAL = re.compile(r"^\s+(?P<n>\d+)\\?[.)]\s")
 # §2023:5.3 "Rules" itself stays OUT and is the reason the two above come in: it is the clause that DEFINES the
 # taxonomy (§2023:5.3.1–5.3.3 is prose about what syntax and general rules are) and carries no numbered rules of its
 # own, so there is nothing there to extract.
+#
+# ⛔ THE ONE KIND TABLE OF BOTH EDITIONS (kb/Work PB4886): the 1985 arm (rule_catalog_1985.py) types its headings with
+# this table too, its PICTURE "Editing Rules" and "Precedence Rules" being the same rules; a 1985 block of another name
+# is typed by its locator in rule_catalog_1985.BLOCK_KINDS, never by a second table.
 KINDS = {
     "syntax rule": "SR",
     "general rule": "GR",

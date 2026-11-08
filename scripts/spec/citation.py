@@ -107,7 +107,7 @@ _LOCATOR = {"clause": re.compile(_CLAUSE + r"\Z"), "section": re.compile(_SECTIO
 #: The NUMBERED RULE KINDS a citation's rule names, each the abbreviation of a rule block the standards head: a syntax
 #: rule and a general rule, and an intrinsic function's argument rule and returned-value rule (§2023:15.10.3 AR1; Amendment
 #: 1's Section A, §1989:A.2.5.3 AR1). The rule catalogs of both editions write their rows' citations with them
-#: (rule_catalog_1985.KINDS, extract_rule_catalog.KINDS), so a catalog row's citation parses (kb/Work PB4886).
+#: (extract_rule_catalog.KINDS, the one kind table of both), so a catalog row's citation parses (kb/Work PB4886).
 RULE_KINDS = ("SR", "GR", "AR", "RV")
 #: A numbered rule's kind and ordinal (`GR6d.2` -> GR, 6): `cite.py --check` reads the ordinal with it.
 NUMBERED_RULE = re.compile(rf"({'|'.join(RULE_KINDS)}) ?(\d+)")
@@ -285,9 +285,11 @@ def regions_1985(lines: list[str]):
     """Every citable region of the 1985 transcription. A section's paragraph runs to the next paragraph of the SAME
     section (its region nests nothing: `VI.5.3` ends where `VI.5.3.1` begins, the clause-region convention of the ISO
     transcription); a section or an appendix runs to the next one; a printed page runs from the page break above its
-    folio to the folio."""
+    folio to the folio. A page the scan prints twice (SCAN_REPEAT_85) is no region: the first copy is the one cited. The
+    text after a scan gap (SCAN_GAP_85) is in no paragraph of the page before the gap: its heading is on a missing page."""
     out = []
     owner, owner_start, para, para_start, title, page_start = None, 0, None, 0, "", 0
+    repeat = False
 
     def close_para(at: int) -> None:
         if owner and para:
@@ -295,7 +297,18 @@ def regions_1985(lines: list[str]):
 
     for i, line in enumerate(lines):
         if PAGE_85.match(line):
-            page_start = i
+            if repeat:
+                para_start = i            # the paragraph the repeat interrupted resumes here, a region of its own
+            page_start, repeat = i, False
+        elif SCAN_REPEAT_85.match(line):
+            if para_start != page_start:  # (a paragraph resumed at this page's top holds nothing yet: no region)
+                close_para(i)
+            repeat = True
+        elif line.startswith(SCAN_GAP_85):
+            close_para(i)
+            para = None
+        if repeat:
+            continue
         if (f := FOLIO_85.match(line)) is not None:
             out.append((f"p.{f.group(1)}", "", page_start, i + 1))
             continue
@@ -668,7 +681,13 @@ def _real_1985_heads() -> list[tuple[str, bool]]:
     body = min(s for loc, _t, s, _e in regs if loc == "I")
     early = sorted({loc for loc, _t, s, _e in regs if loc in SECTIONS_85 and s < body})
     orphans = _orphan_paragraphs_85(lines, regs)
-    return [(f"1985: every appendix the document names ({', '.join(letters)}) is a region with its first paragraph",
+    repeated = sorted(loc for loc, _t, _s, _e in regs if loc in ("X.2.5.4", "X.3.1.2"))
+    sum_rules = "".join(lines[s] for loc, _t, s0, e in regs if loc == "XIII.3.19.4" for s in range(s0, e))
+    return [(f"1985: a page the scan prints twice opens no second region (X.2.5.4 and X.3.1.2 once each: {repeated})",
+             repeated == ["X.2.5.4", "X.3.1.2"]),
+            ("1985: a scan gap ends the paragraph before it (SUM's general rules hold no TYPE syntax rule, PDF page 634)",
+             bool(sum_rules) and "SOURCE clauses and associated USE statements" not in sum_rules),
+(f"1985: every appendix the document names ({', '.join(letters)}) is a region with its first paragraph",
              bool(letters) and all(x in known and f"{x}.1" in known for x in letters)),
             (f"1985: no section opens a region in the front matter{' (' + ', '.join(early) + ')' if early else ''}",
              not early),
@@ -679,6 +698,10 @@ def _real_1985_heads() -> list[tuple[str, bool]]:
 #: The comment the transcription writes where the scan lacks printed pages (kb/Work PB4850): a paragraph whose parent
 #: heading fell into that gap is no markup defect.
 SCAN_GAP_85 = "<!-- The scan lacks the printed pages"
+#: The comment that opens a PDF page the scan prints twice (PDF pages 527-528 repeat 525-526, folios X-11 and X-12;
+#: kb/Work PB4850): the transcription keeps both copies, as the scan has them, and a reader of the text cites the first,
+#: so the rule catalog reads no rule from the repeat (kb/Work PB4886).
+SCAN_REPEAT_85 = re.compile(r"^<!-- PDF page (\d+) repeats PDF page (\d+)\b")
 
 
 def _orphan_paragraphs_85(lines: list[str], regs) -> list[str]:
