@@ -1,4 +1,4 @@
-## PB3631: the retake-Attach-fails arm has a swept witness, and finding it showed a re-OPEN answering '61' beside nothing
+## Entry 3314 — 2026-11-08 02:32 PST — PB3631: the retake-Attach-fails arm has a swept witness, and finding it showed a re-OPEN answering '61' beside nothing
 
 **Note:** kb/Work PB3631 (analysis, suspected wrong answer from the 2026-11-07 audit). **Verdict:** the arm itself is correct; the witness that
 reached it exposed a different wrong answer in the same step, fixed here.
@@ -32,3 +32,4 @@ note named the wrong class. Review R1-4: the `§2023:9.1.13.8 1)` form is droppe
 
 **Self-review.** Architecture: the settle's handle swap is one rule in one place, `SettleDeadOwnersOfTheOpen`. Duplication: the unpublish/republish
 pair is the one `AbandonOpen`/`RetakeKeptHandle` use. Performance: the settle runs only when a dead owner stands.
+
