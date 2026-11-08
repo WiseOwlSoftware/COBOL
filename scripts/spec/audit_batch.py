@@ -2,9 +2,14 @@
 """audit_batch.py - THE Message Batches arm of the edition audit (kb/Work PB4886; DESIGN-spec-conformance-review.md §10).
 
 The 1985 audit is the 2023 audit run with an edition parameter. Its independent JUDGMENTS go to a model through the Message
-Batches API in four passes, each a first pass whose answers are DETECTIONS (a verdict stays with the fleet):
+Batches API in five passes, each a first pass whose answers are DETECTIONS (a verdict stays with the fleet):
 
-  map     one request per 1985 catalog rule: its text and the 2023 catalog rules most like it (`candidates`); the answer is
+  route   one request per 1985 clause (the paragraph that holds its rule blocks): its subject, module and first rules, and
+          the list of every 2023 clause; the answer is ROUTED, with the 2023 clauses that state the same feature (a 1985
+          clause may become several, and a module's copy of a clause one), or NONE (kb/Work PB4971);
+  map     one request per 1985 catalog rule: its text and the 2023 rules that may state it (`candidates`: every rule of the
+          same kind in the clauses its clause was routed to or shares a heading with, then the rules most like it by
+          wording); the answer is
           SAME (the 2023 verdict carries over), DIFFERS (a 1985 row of its own) or NONE (no 2023 counterpart), with the
           2023 rule ids and the differing words;
   verify  the adversarial pass: one request per SAME answer, which tries to REFUTE it (UPHELD, REFUTED, UNSURE);
@@ -13,7 +18,9 @@ Batches API in four passes, each a first pass whose answers are DETECTIONS (a ve
   drafts  one request per rule whose disposition is a row of its own: a minimal program and the outcome the 1985 rule
           requires, which the fleet compiles and runs under --std=1985 and checks against the rule text before any use.
 
-    python scripts/spec/audit_batch.py plan    --pass map    --state DIR [--catalog F] [--catalog-2023 F] [--candidates 5]
+    python scripts/spec/audit_batch.py plan    --pass route  --state DIR [--catalog F] [--catalog-2023 F]
+    python scripts/spec/audit_batch.py plan    --pass map    --state DIR [--catalog F] [--catalog-2023 F] [--candidates 15]
+                                                                                   # once every route item is answered
     python scripts/spec/audit_batch.py plan    --pass claims --state DIR --claims FILE
     python scripts/spec/audit_batch.py plan    --pass verify --state DIR          # once every map item is answered
     python scripts/spec/audit_batch.py plan    --pass drafts --state DIR          # once every verify item is answered
@@ -95,6 +102,16 @@ CITATION_FIELDS = ('"locator": "the 1985 locator alone: a Roman section and its 
                    '"SR n or GR n when one numbered syntax or general rule decides, for example GR3; otherwise null"')
 
 PROMPTS: dict[str, str] = {
+    "route": COMMON + """
+Below is one clause of ANSI X3.23-1985 (as amended by X3.23a-1989 and X3.23b-1993): its subject, its module and its first
+rules, and then the list of every clause of ISO/IEC 1989:2023 that has rules, each with its number and subject. Name every
+2023 clause whose rules state the same language feature as this 1985 clause, however it is now named or organized: a 1985
+module's copy of a clause (the OPEN statement of the indexed I-O module) and the one 2023 clause that now holds it, a clause
+renamed, a 1985 clause whose rules 2023 spreads over several clauses (a general concept and the statement that uses it).
+- ROUTED: one or more 2023 clauses state this feature; name them, the closest first;
+- NONE: no 2023 clause states it (a deleted feature, such as the communication module).
+The JSON object: {"verdict": "ROUTED|NONE", "clauses_2023": ["clause number", ...], "reason": "at most 200 characters"}.
+"clauses_2023" names only clause numbers of the list, at most 8, and is empty for NONE.""",
     "map": COMMON + """
 Compare one rule of ANSI X3.23-1985 (as amended by X3.23a-1989 and X3.23b-1993) with candidate rules of ISO/IEC 1989:2023.
 - SAME: one or more candidates state the same requirement in substance: the same programs are accepted or refused, and with
@@ -131,9 +148,12 @@ The JSON object: {"program": "the source text, lines separated by \\n", "expecte
 "output": ["each DISPLAYed line", ...]}, "basis": "the words of the rule that decide the outcome, at most 200 characters"}.""",
 }
 #: The output tokens of one reply, for the estimate before a canary has measured them (thinking included).
-EST_OUTPUT_TOKENS = {"map": 1500, "verify": 1500, "claims": 1200, "drafts": 2500}
-EFFORT = {"map": "medium", "verify": "high", "claims": "medium", "drafts": "medium"}
-VERDICTS = {"map": {SAME, DIFFERS, NONE}, "verify": {"UPHELD", "REFUTED", "UNSURE"},
+EST_OUTPUT_TOKENS = {"route": 1200, "map": 1500, "verify": 1500, "claims": 1200, "drafts": 2500}
+EFFORT = {"route": "high", "map": "medium", "verify": "high", "claims": "medium", "drafts": "medium"}
+ROUTED = "ROUTED"
+#: The most 2023 clauses one route answer may name: a 1985 clause spread over more than this is no single feature.
+MAX_ROUTES = 8
+VERDICTS = {"route": {ROUTED, NONE}, "map": {SAME, DIFFERS, NONE}, "verify": {"UPHELD", "REFUTED", "UNSURE"},
             "claims": {"CONFIRMED", "REFUTED", "NOT-ADDRESSED"}}
 
 WORD = re.compile(r"[a-z][a-z0-9-]{2,}")
@@ -199,9 +219,72 @@ def words(text: str) -> set[str]:
     return {w for w in WORD.findall(re.sub(r"<[^>]+>", " ", text.lower())) if w not in STOPWORDS}
 
 
-def candidates(rules_1985: list[dict[str, Any]], rules_2023: list[dict[str, Any]], k: int) -> dict[str, list[str]]:
-    """The k 2023 rules most like each 1985 rule, by clause heading and wording: the inverse-document-frequency weight of the
-    words they share (the subject's words count twice), a rule of the same kind preferred. Ids, best first."""
+def clause_of(block: str) -> str:
+    """The clause that holds a rule block: its parent paragraph (`VI.6.18.4` -> `VI.6.18`, `14.9.21.4` -> `14.9.21`)."""
+    return block.rsplit(".", 1)[0]
+
+
+def clause_key_1985(rule: dict[str, Any]) -> str:
+    """A 1985 rule's clause, keyed with its document: Amendment 1's Section A numbers its paragraphs anew."""
+    return f"{rule['document']} {clause_of(rule['locator'])}"
+
+
+def subject_key(subject: str | None) -> str:
+    """A clause heading as words alone: `THE START STATEMENT` and `START statement` are one key."""
+    return " ".join(w for w in re.findall(r"[a-z0-9]+", (subject or "").lower()) if w != "the")
+
+
+def clauses_2023(rules_2023: list[dict[str, Any]]) -> list[dict[str, str]]:
+    """Every 2023 clause that has catalog rules, in catalog order: its number and its subject."""
+    seen: dict[str, str] = {}
+    for r in rules_2023:
+        seen.setdefault(clause_of(r["section"]), r.get("subject", ""))
+    return [{"id": c, "subject": s} for c, s in seen.items()]
+
+
+#: The rules of a 1985 clause a route request quotes, and the characters of each.
+ROUTE_SAMPLE, ROUTE_SAMPLE_CHARS = 3, 400
+
+
+def plan_route(catalog: pathlib.Path, catalog_2023: pathlib.Path) -> list[dict[str, Any]]:
+    rules, rules_2023 = load_catalogs(catalog, catalog_2023)
+    listed = clauses_2023(rules_2023)
+    by_clause: dict[str, list[dict[str, Any]]] = collections.defaultdict(list)
+    for r in rules:
+        by_clause[clause_key_1985(r)].append(r)
+    return [{"id": key, "clause": {"locator": clause_of(rs[0]["locator"]), "document": rs[0]["document"],
+                                   "module": rs[0].get("module"), "subject": rs[0].get("subject", ""), "rules": len(rs),
+                                   "sample": [f"{r['citation']}: {r['text'][:ROUTE_SAMPLE_CHARS]}" for r in rs[:ROUTE_SAMPLE]]},
+             "clauses_2023": listed}
+            for key, rs in by_clause.items()]
+
+
+def routes(state: pathlib.Path) -> dict[str, list[str]]:
+    """Each 1985 clause key -> the 2023 clauses its route answer names. Every route item must be answered: the map pass's
+    candidates are built from them, so a map planned before the routes are in would be planned without its strongest signal."""
+    r = Pass(state, "route")
+    items, answers = r.items(), r.answers()
+    if missing := [cid for cid in items if cid not in answers]:
+        raise SystemExit(f"{TOOL}: {len(missing)} route item(s) are unanswered; collect and retry the route pass first")
+    return {answers[cid]["id"]: answers[cid]["answer"]["clauses_2023"] for cid in items}
+
+
+def candidates(rules_1985: list[dict[str, Any]], rules_2023: list[dict[str, Any]], k: int,
+               routed: dict[str, list[str]]) -> dict[str, list[str]]:
+    """The 2023 rules that may state each 1985 rule, ids in order (kb/Work PB4971), from the strongest signal down:
+    1. every 2023 rule of the SAME KIND in the clauses the rule's clause was routed to (`routed`, the route pass, closest
+       clause first) or shares a heading with (`subject_key`), in catalog order;
+    2. then the k rules most like it by wording that step 1 did not name: the inverse-document-frequency weight of the words
+       they share (the subject's words count twice), a rule of the same kind preferred.
+    Step 1 finds the counterpart that wording misses (another clause's name, a module's copy); step 2 finds a rule 2023
+    moved to a clause of another subject, and a counterpart of another kind."""
+    by_clause_kind: dict[tuple[str, str], list[str]] = collections.defaultdict(list)
+    clause_by_subject: dict[str, list[str]] = collections.defaultdict(list)
+    for r in rules_2023:
+        c = clause_of(r["section"])
+        by_clause_kind[(c, r["kind"])].append(r["id"])
+        if c not in clause_by_subject[subject_key(r.get("subject"))]:
+            clause_by_subject[subject_key(r.get("subject"))].append(c)
     index: dict[str, list[int]] = collections.defaultdict(list)
     bags = []
     for i, r in enumerate(rules_2023):
@@ -221,11 +304,17 @@ def candidates(rules_1985: list[dict[str, Any]], rules_2023: list[dict[str, Any]
             score[i] /= math.sqrt(len(bags[i]) + 1)
             if rules_2023[i]["kind"] == r["kind"]:
                 score[i] *= 1.5
-        out[r["id"]] = [rules_2023[i]["id"] for i in sorted(score, key=lambda j: (-score[j], rules_2023[j]["id"]))[:k]]
+        clauses = list(dict.fromkeys(routed.get(clause_key_1985(r), []) + clause_by_subject.get(subject_key(r.get("subject")), [])))
+        first = list(dict.fromkeys(i for c in clauses for i in by_clause_kind.get((c, r["kind"]), [])))
+        named = set(first)
+        worded = [rules_2023[i]["id"] for i in sorted(score, key=lambda j: (-score[j], rules_2023[j]["id"]))
+                  if rules_2023[i]["id"] not in named][:k]
+        out[r["id"]] = first + worded
     return out
 
 
-def plan_map(catalog: pathlib.Path, catalog_2023: pathlib.Path, k: int) -> list[dict[str, Any]]:
+def load_catalogs(catalog: pathlib.Path, catalog_2023: pathlib.Path) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """The 1985 and the 2023 catalog rules; a 1985 rule whose citation is no citation in the one format is no plan."""
     for path in (catalog, catalog_2023):
         if not path.exists():
             raise SystemExit(f"{TOOL}: no catalog at {path} (python scripts/spec/extract_rule_catalog.py --edition ...)")
@@ -235,9 +324,22 @@ def plan_map(catalog: pathlib.Path, catalog_2023: pathlib.Path, k: int) -> list[
             citation.parse(r["citation"])
         except citation.CitationError as e:
             raise SystemExit(f"{TOOL}: catalog rule {r['id']}: its citation {r['citation']!r} is none: {e}") from None
-    rules_2023 = json.loads(catalog_2023.read_text(encoding="utf-8"))["rules"]
+    return rules, json.loads(catalog_2023.read_text(encoding="utf-8"))["rules"]
+
+
+def plan_map(catalog: pathlib.Path, catalog_2023: pathlib.Path, k: int, state: pathlib.Path) -> list[dict[str, Any]]:
+    rules, rules_2023 = load_catalogs(catalog, catalog_2023)
     by_id = {r["id"]: r for r in rules_2023}
-    near = candidates(rules, rules_2023, k)
+    routed = routes(state)
+    # The routes must be THESE catalogs' (review R1-1): a rule whose clause the route pass never saw would be planned
+    # without its strongest signal, and a routed clause the 2023 catalog lacks would name no rule.
+    if unseen := sorted({clause_key_1985(r) for r in rules} - set(routed)):
+        raise SystemExit(f"{TOOL}: {len(unseen)} 1985 clause(s) of this catalog have no route item (e.g. {unseen[0]}): "
+                         "the route pass was planned from another catalog; plan the run again from one catalog")
+    if stale := sorted({c for to in routed.values() for c in to} - {c["id"] for c in clauses_2023(rules_2023)}):
+        raise SystemExit(f"{TOOL}: the route answers name 2023 clause(s) this 2023 catalog lacks (e.g. {stale[0]}): the "
+                         "route pass was planned from another 2023 catalog")
+    near = candidates(rules, rules_2023, k, routed)
     return [{"id": r["id"], "rule": {f: r.get(f) for f in ("citation", "module", "level", "box", "subject", "kind", "text")},
              "candidates": [{"id": c, "section": by_id[c].get("section"), "subject": by_id[c].get("subject", ""),
                              "kind": by_id[c]["kind"], "text": by_id[c].get("text", "")} for c in near[r["id"]]]}
@@ -324,6 +426,11 @@ def prompt_text(pass_name: str, item: dict[str, Any]) -> str:
     if pass_name in ("map", "verify"):
         head = "THE 2023 CANDIDATES" if pass_name == "map" else "THE 2023 RULES JUDGED SAME"
         body = f"{rule_block(item['rule'])}\n\n{head}:\n{candidate_block(item['candidates']) or '(none)'}"
+    elif pass_name == "route":
+        c = item["clause"]
+        body = (f"THE 1985 CLAUSE ({c['document']} {c['locator']}, {c['module'] or 'no module'} module; subject: "
+                f"{c['subject'] or '-'}; {c['rules']} rule(s), the first of them):\n" + "\n".join(c["sample"])
+                + "\n\nTHE 2023 CLAUSES:\n" + "\n".join(f"{x['id']} {x['subject'] or '-'}" for x in item["clauses_2023"]))
     elif pass_name == "claims":
         body = f"THE CLAIM ({item['id']}):\n{item['claim']}\n\nTHE 1985 TEXT (§1985:{item['locator']}):\n{item['text']}"
     else:
@@ -365,6 +472,12 @@ def parse_answer(pass_name: str, item: dict[str, Any], text: str) -> tuple[dict[
         return (obj, "") if ok else (None, "not a draft")
     if obj.get("verdict") not in VERDICTS[pass_name]:
         return None, f"verdict {obj.get('verdict')!r}"
+    if pass_name == "route":
+        ids = obj.get("clauses_2023")
+        if not isinstance(ids, list) or not set(ids) <= {c["id"] for c in item["clauses_2023"]}:
+            return None, "clauses_2023 names a clause that is not in the list"
+        if (obj["verdict"] == NONE) != (not ids) or len(ids) > MAX_ROUTES:
+            return None, f"clauses_2023 must be empty exactly when the verdict is NONE, and name at most {MAX_ROUTES}"
     if pass_name == "map":
         ids = obj.get("rules_2023")
         known = {c["id"] for c in item["candidates"]}
@@ -462,9 +575,10 @@ def build_parser() -> argparse.ArgumentParser:
 
     pl = sub.add_parser("plan", help="write a pass's items (once)")
     common(pl, key=False)
-    pl.add_argument("--catalog", default=str(OUT_1985), help="the 1985 rule catalog (map)")
-    pl.add_argument("--catalog-2023", default=str(OUT), help="the 2023 rule catalog (map)")
-    pl.add_argument("--candidates", type=int, default=5, help="2023 candidates per 1985 rule (map)")
+    pl.add_argument("--catalog", default=str(OUT_1985), help="the 1985 rule catalog (route, map)")
+    pl.add_argument("--catalog-2023", default=str(OUT), help="the 2023 rule catalog (route, map)")
+    pl.add_argument("--candidates", type=int, default=15,
+                    help="the 2023 rules by wording per 1985 rule, after those of its routed clauses (map)")
     pl.add_argument("--claims", help="the VERSION_CHANGE_REFERENCE claims, a JSON list of {id, claim, locator} (claims)")
     for name, helptext in (("submit", "submit the unanswered items not in any batch"),
                            ("retry", "resubmit the items no answer covers and no uncollected batch holds")):
@@ -504,7 +618,8 @@ def main(argv: list[str] | None = None, client_factory: Callable[[str], Any] = m
         if a.pass_name == "claims" and not a.claims:
             raise SystemExit(f"{TOOL}: plan --pass claims needs --claims")
         planners: dict[str, Callable[[], list[dict[str, Any]]]] = {
-            "map": lambda: plan_map(pathlib.Path(a.catalog), pathlib.Path(a.catalog_2023), a.candidates),
+            "route": lambda: plan_route(pathlib.Path(a.catalog), pathlib.Path(a.catalog_2023)),
+            "map": lambda: plan_map(pathlib.Path(a.catalog), pathlib.Path(a.catalog_2023), a.candidates, state),
             "verify": lambda: plan_verify(state),
             "claims": lambda: plan_claims(pathlib.Path(a.claims)),
             "drafts": lambda: plan_drafts(state),

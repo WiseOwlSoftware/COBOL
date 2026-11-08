@@ -41,13 +41,13 @@ def check(name: str, cond: bool) -> None:
 
 
 RULES_1985 = [
-    {"id": "1985-SR-VI.5.8.3-1", "citation": "§1985:VI.5.8.3 SR1", "module": "Nucleus", "level": 1, "box": "none",
+    {"id": "1985-SR-VI.5.8.3-1", "document": "X3.23-1985", "locator": "VI.5.8.3", "citation": "§1985:VI.5.8.3 SR1", "module": "Nucleus", "level": 1, "box": "none",
      "subject": "THE OCCURS CLAUSE", "kind": "SR",
      "text": "The OCCURS clause must not be specified in a data description entry that has a level-number of 01, 66, 77, or 88."},
-    {"id": "1985-GR-VI.6.18.4-2", "citation": "§1985:VI.6.18.4 GR2", "module": "Nucleus", "level": 1, "box": "none",
+    {"id": "1985-GR-VI.6.18.4-2", "document": "X3.23-1985", "locator": "VI.6.18.4", "citation": "§1985:VI.6.18.4 GR2", "module": "Nucleus", "level": 1, "box": "none",
      "subject": "THE INSPECT STATEMENT", "kind": "GR",
      "text": "Inspection of identifier-1 proceeds character by character from the leftmost character position."},
-    {"id": "1985-GR-XV.3.2.4-1", "citation": "§1985:XV.3.2.4 GR1", "module": "Debug", "level": 1, "box": "none",
+    {"id": "1985-GR-XV.3.2.4-1", "document": "X3.23-1985", "locator": "XV.3.2.4", "citation": "§1985:XV.3.2.4 GR1", "module": "Debug", "level": 1, "box": "none",
      "subject": "THE USE FOR DEBUGGING STATEMENT", "kind": "GR",
      "text": "Debugging procedures are executed when the debugging declarative applies to the named procedure."},
 ]
@@ -58,6 +58,8 @@ RULES_2023 = [
      "text": "Inspection of identifier-1 proceeds character position by character position from the leftmost position."},
     {"id": "GR-14.9.1.4-1", "section": "14.9.1.4", "kind": "GR", "subject": "ACCEPT statement",
      "text": "The ACCEPT statement causes data to be transferred from the hardware device."},
+    {"id": "GR-14.9.21.4-7", "section": "14.9.21.4", "kind": "GR", "subject": "INSPECT statement",
+     "text": "Tallying counts the occurrences in the tally."},
 ]
 
 PLANTED_1985 = """# SECTION VI: NUCLEUS MODULE
@@ -94,6 +96,15 @@ def answer(fake: FakeBatches, bid: str, replies: dict[str, str]) -> None:
     fake.results_by_id[bid] = [succeeded(cid, replies[cid], input_tokens=3000, output_tokens=800) for cid in batch["ids"]]
 
 
+def unrouted(state: pathlib.Path, cat85: pathlib.Path, cat23: pathlib.Path, fake: FakeBatches) -> None:
+    """Plan `state`'s route pass and answer every clause NONE, as `collect` stores answers, so its map pass can be planned."""
+    run(["plan", "--pass", "route", "--state", str(state), "--catalog", str(cat85), "--catalog-2023", str(cat23)], fake)
+    (state / "route" / "answers").mkdir(parents=True, exist_ok=True)
+    for c, it in json.loads((state / "route" / "items.json").read_text(encoding="utf-8")).items():
+        (state / "route" / "answers" / f"{c}.json").write_text(json.dumps(
+            {"id": it["id"], "answer": {"verdict": "NONE", "clauses_2023": [], "reason": "planted"}}), encoding="utf-8", newline="\n")
+
+
 def main() -> int:
     with tempfile.TemporaryDirectory() as tmp:
         root = pathlib.Path(tmp)
@@ -108,11 +119,74 @@ def main() -> int:
         fake = FakeBatches()
         cid = {r["id"]: A.custom_id("map", r["id"]) for r in RULES_1985}
 
-        print("the map plan")
-        near = A.candidates(RULES_1985, RULES_2023, 2)
-        check("the closest 2023 rule by heading and wording is the first candidate",
-              near["1985-SR-VI.5.8.3-1"][0] == "SR-13.18.38.3-1" and near["1985-GR-VI.6.18.4-2"][0] == "GR-14.9.21.4-2")
+        print("the route plan (kb/Work PB4971)")
+        (root / "c23b.json").write_text(json.dumps({"rules": RULES_2023[:2] + RULES_2023[3:]}), encoding="utf-8", newline="\n")
+        route = ["plan", "--pass", "route", *base, "--catalog", str(cat85), "--catalog-2023", str(cat23)]
         plan = ["plan", "--pass", "map", *base, "--catalog", str(cat85), "--catalog-2023", str(cat23), "--candidates", "2"]
+        code, out = run(plan, fake)
+        check("the map plan waits for the route pass", code not in (0, None) and "the route pass has no plan" in str(code))
+        code, out = run(route, fake)
+        ritems = json.loads((state / "route" / "items.json").read_text(encoding="utf-8"))
+        rby = {it["id"]: (c, it) for c, it in ritems.items()}
+        check("one route item per 1985 clause, each carrying every 2023 clause once",
+              code == 0 and sorted(rby) == ["X3.23-1985 VI.5.8", "X3.23-1985 VI.6.18", "X3.23-1985 XV.3.2"]
+              and [c["id"] for c in next(iter(ritems.values()))["clauses_2023"]] == ["13.18.38", "14.9.21", "14.9.1"])
+        rtext = A.prompt_text("route", rby["X3.23-1985 VI.6.18"][1])
+        check("a route prompt quotes the clause's rules and lists the 2023 clauses by number and subject",
+              "§1985:VI.6.18.4 GR2" in rtext and "14.9.21 INSPECT statement" in rtext and "13.18.38 OCCURS clause" in rtext)
+        inspect_item = rby["X3.23-1985 VI.6.18"][1]
+        check("a route answer names only listed clauses, none for NONE, at most MAX_ROUTES",
+              A.parse_answer("route", inspect_item, json.dumps({"verdict": "ROUTED", "clauses_2023": ["14.9.21"], "reason": "r"}))[0]
+              is not None
+              and A.parse_answer("route", inspect_item, json.dumps({"verdict": "ROUTED", "clauses_2023": ["99.1"], "reason": "r"}))[0]
+              is None
+              and A.parse_answer("route", inspect_item, json.dumps({"verdict": "NONE", "clauses_2023": ["14.9.21"], "reason": "r"}))[0]
+              is None
+              and A.parse_answer("route", inspect_item, json.dumps({"verdict": "ROUTED", "clauses_2023": [], "reason": "r"}))[0]
+              is None)
+        wide = dict(inspect_item, clauses_2023=[{"id": f"1.{n}", "subject": "s"} for n in range(A.MAX_ROUTES + 1)])
+        check("a route answer naming more than MAX_ROUTES clauses is refused, and MAX_ROUTES is accepted",
+              A.parse_answer("route", wide, json.dumps({"verdict": "ROUTED", "clauses_2023": [c["id"] for c in
+                             wide["clauses_2023"]], "reason": "r"}))[0] is None
+              and A.parse_answer("route", wide, json.dumps({"verdict": "ROUTED", "clauses_2023": [c["id"] for c in
+                                 wide["clauses_2023"][:A.MAX_ROUTES]], "reason": "r"}))[0] is not None)
+        code, out = run(plan, fake)
+        check("the map plan refuses an unanswered route pass", code not in (0, None) and "route item(s) are unanswered" in str(code))
+        (state / "route" / "answers").mkdir()
+        routed_to = {"X3.23-1985 VI.5.8": ("NONE", []), "X3.23-1985 VI.6.18": ("ROUTED", ["14.9.21"]),
+                     "X3.23-1985 XV.3.2": ("ROUTED", ["14.9.1"])}
+        for key_, (verdict, to) in routed_to.items():
+            c_, _it = rby[key_]
+            (state / "route" / "answers" / f"{c_}.json").write_text(json.dumps(
+                {"id": key_, "answer": {"verdict": verdict, "clauses_2023": to, "reason": "planted"}}), encoding="utf-8", newline="\n")
+
+        print("the map plan")
+        near = A.candidates(RULES_1985, RULES_2023, 1, A.routes(state))
+        check("a routed clause's rules of the same kind come first, in catalog order, beyond the wording's k",
+              near["1985-GR-VI.6.18.4-2"] == ["GR-14.9.21.4-2", "GR-14.9.21.4-7"])
+        check("a clause that shares a heading is a route too (THE OCCURS CLAUSE, OCCURS clause), with no route answer",
+              near["1985-SR-VI.5.8.3-1"][0] == "SR-13.18.38.3-1")
+        check("a route finds the counterpart the wording does not",
+              near["1985-GR-XV.3.2.4-1"][0] == "GR-14.9.1.4-1")
+        check("a rule named by its clause is not named again by its wording",
+              all(len(v) == len(set(v)) for v in near.values()))
+        twin = dict(RULES_1985[1], id="1993-GR-VI.6.18.4-2", document="X3.23b-1993")
+        both = A.candidates([RULES_1985[1], twin], RULES_2023, 0,
+                            {"X3.23-1985 VI.6.18": ["14.9.1", "14.9.21"], "X3.23b-1993 VI.6.18": ["14.9.21"]})
+        check("the clause key carries the document: the same locator in another document has its own route",
+              both["1985-GR-VI.6.18.4-2"][0] == "GR-14.9.1.4-1" and both["1993-GR-VI.6.18.4-2"][0] == "GR-14.9.21.4-2")
+        check("several routed clauses keep the route's closest-first order, not their numbers' order",
+              both["1985-GR-VI.6.18.4-2"] == ["GR-14.9.1.4-1", "GR-14.9.21.4-2", "GR-14.9.21.4-7"])
+        extra = root / "c85x.json"
+        extra.write_text(json.dumps({"rules": RULES_1985 + [dict(RULES_1985[0], id="1985-SR-VI.5.9.3-1",
+                                                                 locator="VI.5.9.3", citation="§1985:VI.5.9.3 SR1")]}),
+                         encoding="utf-8", newline="\n")
+        code, out = run(["plan", "--pass", "map", *base, "--catalog", str(extra), "--catalog-2023", str(cat23)], fake)
+        check("a map plan from a 1985 catalog with a clause the route pass never saw is refused (review R1-1)",
+              code not in (0, None) and "have no route item" in str(code) and not (state / "map").exists())
+        code, out = run(["plan", "--pass", "map", *base, "--catalog", str(cat85), "--catalog-2023", str(root / "c23b.json")], fake)
+        check("a map plan from a 2023 catalog that lacks a routed clause is refused",
+              code not in (0, None) and "lacks" in str(code) and not (state / "map").exists())
         code, out = run(plan, fake)
         items = json.loads((state / "map" / "items.json").read_text(encoding="utf-8"))
         check("the plan holds one item per 1985 rule, keyed by a custom id the API accepts",
@@ -121,7 +195,7 @@ def main() -> int:
         check("re-planning the same items keeps the plan", code == 0 and "unchanged" in out)
         other = root / "c23b.json"
         other.write_text(json.dumps({"rules": RULES_2023[1:]}), encoding="utf-8", newline="\n")
-        code, out = run(["plan", "--pass", "map", *base, "--catalog", str(cat85), "--catalog-2023", str(other)], fake)
+        code, out = run(["plan", "--pass", "map", *base, "--catalog", str(cat85), "--catalog-2023", str(other)], fake)  # noqa
         check("another plan in the same run is refused", code not in (0, None) and "another plan" in str(code))
 
         print("submit: --max-usd, the canary first")
@@ -280,7 +354,10 @@ def main() -> int:
         side = spec_pdf.BOX_SIDE
         boxed = dict(RULES_1985[0], box="whole", level=2, text=f"{side}(1) A planted rule boxed whole.{side}")
         texts = {p: A.prompt_text(p, {"rule": boxed, "candidates": RULES_2023[:1], "id": "c1", "claim": "planted",
-                                      "locator": "VI.5.8.3", "text": boxed["text"]}) for p in A.PROMPTS}
+                                      "locator": "VI.5.8.3", "text": boxed["text"],
+                                      "clause": {"locator": "VI.5.8", "document": "X3.23-1985", "module": "Nucleus",
+                                                 "subject": "THE OCCURS CLAUSE", "rules": 1, "sample": [boxed["text"]]},
+                                      "clauses_2023": A.clauses_2023(RULES_2023)}) for p in A.PROMPTS}
         check("every pass's preamble defines the box side the catalog marks a level-2 box with",
               all(f"between two {side} marks" in t and "<ins>" not in t for t in texts.values())
               and rule_catalog_1985.box_of(boxed["text"], "SR") == "whole")
@@ -292,6 +369,12 @@ def main() -> int:
                          encoding="utf-8", newline="\n")
         state2 = root / "run2"
         fake2 = FakeBatches()
+        code, out = run(["plan", "--pass", "route", "--state", str(state2), "--catalog", str(dirty), "--catalog-2023",
+                         str(cat23)], fake2)
+        code, out = run(["submit", "--pass", "route", "--state", str(state2), *key, "--max-usd", "50", "--canary", "1"], fake2)
+        check("a route prompt carrying a stamp shape is refused before any batch",
+              code not in (0, None) and "stamp" in str(code) and not fake2.created)
+        unrouted(state2, dirty, cat23, fake2)
         run(["plan", "--pass", "map", "--state", str(state2), "--catalog", str(dirty), "--catalog-2023", str(cat23)], fake2)
         code, out = run(["submit", "--pass", "map", "--state", str(state2), *key, "--max-usd", "50", "--canary", "1"], fake2)
         check("a prompt carrying a stamp shape is refused before any batch",
@@ -302,6 +385,7 @@ def main() -> int:
         print("retry after a canary whose every reply failed (kb/Work PB4930)")
         state3, fake4 = root / "run3", FakeBatches()
         b3 = ["--state", str(state3)]
+        unrouted(state3, cat85, cat23, fake4)
         run(["plan", "--pass", "map", *b3, "--catalog", str(cat85), "--catalog-2023", str(cat23), "--candidates", "2"], fake4)
         code, out = run(["retry", "--pass", "map", *b3, *key, "--max-usd", "50"], fake4)
         check("a retry before any canary is refused", code not in (0, None) and "canary" in str(code) and not fake4.created)
@@ -324,16 +408,18 @@ def main() -> int:
               code == 0 and len(fake4.created) == 3 and fake4.created[2]["ids"] == rest)
 
         print("the catalog's citations: every pass quotes them")
-        ar = {"id": "1989-AR-A.2.5.3-1", "citation": "§1989:A.2.5.3 AR1", "module": "Intrinsic Function", "level": 1,
+        ar = {"id": "1989-AR-A.2.5.3-1", "document": "X3.23a-1989", "locator": "A.2.5.3", "citation": "§1989:A.2.5.3 AR1", "module": "Intrinsic Function", "level": 1,
               "box": "none", "subject": "ACOS", "kind": "AR", "text": "Argument-1 must be class numeric."}
         good_cat, bad_cat = root / "c85ar.json", root / "c85bad.json"
         good_cat.write_text(json.dumps({"rules": RULES_1985 + [ar]}), encoding="utf-8", newline="\n")
         bad_cat.write_text(json.dumps({"rules": [dict(ar, citation="§1985:VII.3.5.1 Function")]}), encoding="utf-8",
                            newline="\n")
+        state5 = root / "run5"
+        unrouted(state5, good_cat, cat23, FakeBatches())
         check("a catalog row of every rule kind, an argument rule too, is quoted by its citation",
-              [i["rule"]["citation"] for i in A.plan_map(good_cat, cat23, 1)][-1] == "§1989:A.2.5.3 AR1")
+              [i["rule"]["citation"] for i in A.plan_map(good_cat, cat23, 1, state5)][-1] == "§1989:A.2.5.3 AR1")
         try:
-            A.plan_map(bad_cat, cat23, 1)
+            A.plan_map(bad_cat, cat23, 1, state5)
             refused_plan = False
         except SystemExit as e:
             refused_plan = "is not a rule designator" in str(e)

@@ -811,10 +811,22 @@ each a DETECTION a fleet agent turns into a verdict, never a verdict itself:
 
 | pass | one request per | answer |
 |---|---|---|
-| `map` | 1985 catalog rule, with the 2023 rules most like it (the inverse-document-frequency weight of the words of their headings and text, the same kind preferred; 5 by default) | SAME, DIFFERS or NONE, the 2023 ids and the differing words |
+| `route` | 1985 clause (the paragraph that holds its rule blocks), with its subject, module and first three rules, and the list of every 2023 clause that has rules | ROUTED with the 2023 clauses that state the same feature (at most 8, closest first), or NONE |
+| `map` | 1985 catalog rule, with its candidates (below); planned only once every route item is answered | SAME, DIFFERS or NONE, the 2023 ids and the differing words |
 | `verify` | SAME answer | UPHELD, REFUTED or UNSURE: the adversarial pass tries to refute it |
 | `claims` | 1985 claim of `VERSION_CHANGE_REFERENCE.md` (a JSON list of claims the fleet prepares, each with its 1985 locator) | CONFIRMED, REFUTED or NOT-ADDRESSED, with the 1985 `locator` and `rule` (null where no numbered rule decides) as fields of their own |
 | `drafts` | rule whose disposition is a row of its own | a minimal program and the outcome the rule requires, which the fleet compiles and runs under `--std=1985` and checks against the rule text before any use |
+
+**A rule's candidates are drawn from the strongest signal down** (`audit_batch.candidates`, kb/Work PB4971, owner
+2026-11-08: "Use the strongest appropriate signals"):
+1. every 2023 rule of the SAME KIND in the clauses its clause was ROUTED to, or shares a heading with (`subject_key`:
+   `THE START STATEMENT` and `START statement` are one), in catalog order and uncapped;
+2. then the k rules most like it by wording that step 1 did not name (the inverse-document-frequency weight of the words of
+   their headings and text, the same kind preferred; 15 by default).
+Wording alone was measured on the first 1985 run (k = 15): 464 NONE answers, 217 of them giving "no candidate addresses
+it" rather than a deleted feature; a heading alone matches no 2023 clause for 598 of the 2,253 rules, because 1985 repeats
+a clause per module and names clauses differently. The route pass is the signal that reads the clause as a whole, one
+request per clause (247 for 1985), so it is cheap; the heading and the wording stay as the routes' complement.
 
 `results` writes each mapped rule's disposition (CARRIES, OWN-ROW, DISPUTED, or still open). The tool's rules:
 
