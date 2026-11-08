@@ -19,6 +19,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <remarks>The readers are found by their entry points, not listed: any test source that names the two variables
 /// (their constants, read from the runtime) or calls a member of the locale-resolution types. A new reader joins the
 /// rule by being written; one that does not name the collection fails here.</remarks>
+[Trait("Sweep", "tree")]
 public sealed class ProcessGlobalCollectionDriftTests
 {
     private static readonly string[] SiteVariables = [CldrLocaleLoader.EnvDirectory, TailoringRules.EnvDirectory];
