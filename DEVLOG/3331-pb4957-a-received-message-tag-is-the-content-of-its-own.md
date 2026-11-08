@@ -1,4 +1,4 @@
-## PB4957: a received message tag is the content of its own positions, not the next slot in the list
+## Entry 3331 — 2026-11-08 14:24 PST — PB4957: a received message tag is the content of its own positions, not the next slot in the list
 
 **The defect.** The asynchronous messaging facility carried a message's tags beside its image as a list of slots, and the receiver took them in storage ORDER: `AsyncMessaging.TagOf` gave an elementary tag the first slot whatever position it came from, `WithTags` gave a group's n-th tag the n-th slot, and `MessageBody.Truncated` cut the image to identifier-1's capacity but kept every slot. The re-probe on this build (a new two-process test, `MessagingProcessTests.AReceivedTagIsTheContentOfItsOwnPositions_SoATagTheMessageCarriedElsewhereOrPastTheCapacityIsNotIt`) sent `[X(8) LOW-VALUES, tag]` to an elementary tag and printed `T1 SET` where §2023:14.9.31.4 GR1b ("The content of identifier-1 is the content of the message sent by that SEND statement") and GR3's cut to identifier-1's 8 positions give NULL. The note named the elementary arm; the same order-matching put a tag where the message held data for every pair of sender and receiver layouts that differ.
 
@@ -9,3 +9,4 @@
 **Behaviour now stated.** A receiving tag whose positions hold neither NULL nor a carried token (data, or the spaces past the end of a shorter message) is an unresolved tag, as in a short file record (DOC-A.1-212), where the order-matching gave NULL; design section 4.4 and `docs/CONFORMANCE.md` D-MCS-LENGTH say so.
 
 **Tests.** The two two-process witnesses above, and `MessagingProtocolTests.AMessageCarriesOnlyTheSlotsItsImageHolds_SoACutToTheCapacityDropsATagPastIt` (the cut on both receive paths); the codec round-trip and refusal tests carry tokens. No conformance-suite golden: the behaviour needs two run units, which a single-program case cannot be; no diagnostic code was used (COBOL6619 to COBOL6621 returned). No inventory row changes: GR-14.9.31.4-1 and -3 were closed by PB4744, and this corrects how the runtime meets them.
+
