@@ -1,4 +1,4 @@
-## PB4917 and PB4813: a refusal is never a page, and ISO/IEC 1989:2002 transcribed from its text layer
+## Entry 3317 — 2026-11-08 03:26 PST — PB4917 and PB4813: a refusal is never a page, and ISO/IEC 1989:2002 transcribed from its text layer
 
 **PB4917.** `transcribe_pdf.py collect` wrote any reply whose `stop_reason` was `end_turn`, so the 2002 canary's four
 "I can't transcribe this page verbatim ..." replies, each followed by a summary, were written as pages with `bad: []`.
@@ -48,3 +48,4 @@ The 2023 figure moves re-digested four rule-catalog rows (verdicts unchanged), a
 `§2002:14.8.12.2 SR6`). Three gates were RED on audits (the stale catalog, that citation, a comment that spelled the
 General format heading beside a `re.compile`); the fourth: `BUILD-LOCAL GATE: GREEN — Conformance 22,656/22,656 · Unit
 40,494/40,494 · Characterization 37/37` (run 000005-20261108T110430Z).
+
