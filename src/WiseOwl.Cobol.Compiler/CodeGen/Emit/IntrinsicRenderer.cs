@@ -1377,9 +1377,9 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             // receiver, where the SDIDI's 34 stored 00000 for 73792.
             "MaxScaled" when !num.StandardDecimal => Exact("MaxExact", ExactValueArgList(ic), null),
             "MinScaled" when !num.StandardDecimal => Exact("MinExact", ExactValueArgList(ic), null),
-            "SumScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("SumExact", $"{mode}, {ExactValueArgList(ic)}")),
-            "RangeScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("RangeExact", $"{mode}, {ExactValueArgList(ic)}")),
-            "MeanScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("MeanExact", $"{mode}, {ExactValueArgList(ic)}")),
+            "SumScaled" when !num.StandardDecimal => Exact("SumExact", $"{mode}, {ExactValueArgList(ic)}", null),
+            "RangeScaled" when !num.StandardDecimal => Exact("RangeExact", $"{mode}, {ExactValueArgList(ic)}", null),
+            "MeanScaled" when !num.StandardDecimal => Exact("MeanExact", $"{mode}, {ExactValueArgList(ic)}", null),
             // ⛔ A MEDIAN DECIDES ITS PARITY, ITS MIDDLE PAIR AND THEIR KINDS AT RUN TIME (kb/Work PB4827, PB4859, PB4891). An odd count selects
             // (§2023:15.61.4 1), the exact lane keeps the selected argument's own kind); an even count is the mean of the two middle values
             // (§2023:15.61.4 2)), a new value that is the binary64 mean when a MIDDLE value is binary64 (DOC-A.1-92b), as the float lane forms it for
@@ -1387,7 +1387,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             // are the middle pair is a run-time fact, and so is the kind of a nested selection's returned content (MAX (F M2) returns F's or
             // M2's), so the body reads each middle's binary64-ness off its exact value (CobolExact.TryBinary64), never off the written operands.
             "MedianScaled" when !num.StandardDecimal => Exact("MedianExact", $"{mode}, {ExactValueArgList(ic)}", null),
-            "MidrangeScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("MidrangeExact", $"{mode}, {ExactValueArgList(ic)}")),
+            "MidrangeScaled" when !num.StandardDecimal => Exact("MidrangeExact", $"{mode}, {ExactValueArgList(ic)}", null),
             "Variance" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("VarianceExact", $"{mode}, {ExactValueArgList(ic)}")),
             "StandardDeviation" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("StdDevExact", $"{mode}, {ExactValueArgList(ic)}")),
             "PresentValue" when !num.StandardDecimal =>
