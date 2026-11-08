@@ -1,0 +1,859 @@
+{
+ "_comment": [
+  "The COMMITTED inventory of the 1985 standard's paragraphs whose body carries an ascending '(n)' list under a",
+  "heading that names no rule block (kb/Work PB4886): the 1985 arm of the 2023 arm's content-keyed scan (kb/Work",
+  "PB29, spec-unharvested-rule-blocks.json, the same shape and the same test), keyed by CITATION since the base text",
+  "(Appendix A) and Amendment 1 (Section A) both have an A.2.1. extract_rule_catalog.py --edition 1985 measures every",
+  "paragraph of every section and appendix and fails --check on a paragraph measured and not declared here, one",
+  "declared and no longer measured, or an ordinal count that moved. disposition 'rules' ADMITS the paragraph to the",
+  "denominator as a rule block of `kind` (admitted_kinds: one kind, a per-item map, a per-sub-list map); 'not-rules'",
+  "records why its list is no requirement; 'pending' is a worklist entry, never a decision. The test is the 1985",
+  "standard's own: IV.3.1 (a syntax rule defines 'the order in which words or elements are arranged' and may 'impose",
+  "restrictions on individual words or elements') and IV.3.2 (a general rule defines 'the meaning or relationship of",
+  "meanings' and 'the effect that it has on either execution or compilation'), read with the 2023 manifest's",
+  "dispositions of the same text. Shape is no proof either way: read the paragraph."
+ ],
+ "measured": "2026-11-07",
+ "totals": {
+  "clauses": 90,
+  "ordinals": 756,
+  "rules": 53,
+  "not-rules": 37
+ },
+ "blocks": {
+  "§1985:II.3.2.4.2": {
+   "title": "Logical Subdivisions of a Report",
+   "ordinals": 3,
+   "lists": 1,
+   "longest": 3,
+   "disposition": "rules",
+   "kind": "GR",
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-in: 'The occurrence of a control break causes the following sequence of events to take place'. The three items fix the order in which the report writer control system presents the control footing, control heading and detail groups at a control break: what the object program does, normative. Kind GR by IV.3.2 of the 1985 standard: the items define the meaning of an element or its effect at execution or compilation. "
+  },
+  "§1985:II.4.2": {
+   "title": "INITIAL VALUES OF TABLES",
+   "ordinals": 3,
+   "lists": 1,
+   "longest": 3,
+   "disposition": "rules",
+   "kind": "SR",
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-in: 'In the Working-Storage Section, initial values of elements within tables are specified in one of the following ways'. Items 1 and 2 each carry a prohibition ('must not contain VALUE clauses') on the entries a table's initialization may be written with, and item 3 permits VALUE clauses on selected elements: restrictions and permissions on what is written, normative. Kind SR by IV.3.1 of the 1985 standard: the items restrict how words or elements may be written or where they may appear. "
+  },
+  "§1985:II.6.2.3": {
+   "title": "Name Resolution",
+   "ordinals": 5,
+   "lists": 1,
+   "longest": 5,
+   "disposition": "not-rules",
+   "why": "NOT-RULES 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-in: 'Consider the situation when program A contains program B which itself contains program C ...'. The five items are a WORKED EXAMPLE on hypothetical programs A, B and C and the name DUPLICATE-NAME; the rules they illustrate are X.1.3.8.2 'Conventions for Condition-Names, Data-Names, File-Names, Record-Names, and Report-Names', admitted here as its own rows. An example states no requirement of its own."
+  },
+  "§1985:II.6.4.1.2": {
+   "title": "Scope of the CALL Statement",
+   "ordinals": 4,
+   "lists": 1,
+   "longest": 4,
+   "disposition": "rules",
+   "kind": "SR",
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-in: 'In the following, the calling program may or may not possess any of the program attributes ...'. The four items state which programs a CALL statement may name ('A calling program may call a program which neither possesses the common attribute nor is separately compiled if, and only if, ...'): the scope a program-name has in a CALL, normative, as the 2023 manifest admits 8.4.6.3 'Scope of program-names' SR. Kind SR by IV.3.1 of the 1985 standard: the items restrict how words or elements may be written or where they may appear. "
+  },
+  "§1985:II.6.4.1.3": {
+   "title": "Scope of Names of Programs",
+   "ordinals": 4,
+   "lists": 1,
+   "longest": 4,
+   "disposition": "not-rules",
+   "why": "NOT-RULES 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-in: 'The name DUPLICATE-NAME has also been specified for a separately compiled program.' The four items are a WORKED EXAMPLE of which program a call of DUPLICATE-NAME activates in a figure's nesting; the rules it illustrates are II.6.4.1.2 and X.1.3.8.1, admitted as their own rows."
+  },
+  "§1985:II.6.4.3": {
+   "title": "Sharing Data",
+   "ordinals": 3,
+   "lists": 1,
+   "longest": 3,
+   "disposition": "not-rules",
+   "why": "NOT-RULES 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-in: 'Two programs in a run unit may reference common data in the following circumstances'. The three items restate X.1.3.6 'Sharing Data' word for word (adding only a 'See page II-19' reference); that paragraph, in its module and with its level-2 box, is admitted, and a second row for the same requirement would count it twice."
+  },
+  "§1985:II.6.4.4": {
+   "title": "Sharing Files",
+   "ordinals": 2,
+   "lists": 1,
+   "longest": 2,
+   "disposition": "not-rules",
+   "why": "NOT-RULES 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-in: 'Two programs in a run unit may reference common file connectors in the following circumstances'. The two items restate X.1.3.7 'Sharing Files' word for word; that paragraph is admitted, and a second row would count the requirement twice."
+  },
+  "§1985:II.6.5.1": {
+   "title": "Transfer of Control",
+   "ordinals": 4,
+   "lists": 1,
+   "longest": 4,
+   "disposition": "not-rules",
+   "why": "NOT-RULES 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-in: 'There are four methods of transferring control within a program'. The items are bare names of statements and procedures (a GO TO statement, a PERFORM statement, ...): an index of the constructs whose own general rules transfer control, as the 2023 manifest records 10.3."
+  },
+  "§1985:II.7.1": {
+   "title": "THE MESSAGE CONTROL SYSTEM",
+   "ordinals": 3,
+   "lists": 1,
+   "longest": 3,
+   "disposition": "not-rules",
+   "why": "NOT-RULES 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-in: 'The primary functions of the message control system are the following'. The items describe what the message control system, a facility outside the COBOL implementation, does (line discipline, device-dependent tasks); they bind neither a program nor the implementation."
+  },
+  "§1985:II.7.3": {
+   "title": "RELATIONSHIP OF THE COBOL PROGRAM TO THE MESSAGE CONTROL SYSTEM AND COMMUNICATION DEVICES",
+   "ordinals": 7,
+   "lists": 3,
+   "longest": 3,
+   "disposition": "not-rules",
+   "why": "NOT-RULES 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-ins: 'There are two such interfaces', 'The COBOL source program uses three statements to control the interface with the message control system', 'uses two statements to control the interface between the message control system and the communication devices'. The three lists name the interfaces and the statements (RECEIVE, SEND, ACCEPT MESSAGE COUNT, ENABLE, DISABLE), each specified by its own rules in Section XIV: an index."
+  },
+  "§1985:II.7.3.1.1": {
+   "title": "Scheduled Initiation of the COBOL Object Program",
+   "ordinals": 3,
+   "lists": 1,
+   "longest": 3,
+   "disposition": "not-rules",
+   "why": "NOT-RULES 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-in: 'the COBOL program can use three methods to determine what messages, if any, are available'. The items name the statements a program may use (ACCEPT MESSAGE COUNT, RECEIVE with and without NO DATA), each specified in Section XIV: an index of techniques, no requirement."
+  },
+  "§1985:II.7.3.1.3": {
+   "title": "Determining the Method of Scheduling",
+   "ordinals": 3,
+   "lists": 1,
+   "longest": 3,
+   "disposition": "not-rules",
+   "why": "NOT-RULES 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-in: 'the following is one technique that may be used'. The standard itself calls the list ONE TECHNIQUE a program may use; it imposes nothing."
+  },
+  "§1985:II.7.5.1": {
+   "title": "Independent Enqueueing and Dequeueing",
+   "ordinals": 2,
+   "lists": 1,
+   "longest": 2,
+   "disposition": "not-rules",
+   "why": "NOT-RULES 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-in: 'the message control system enqueues the message ...'. The two items describe when the message control system, outside the implementation, holds output messages in a queue (the queue disabled, the destination slower); descriptive."
+  },
+  "§1985:II.7.5.4": {
+   "title": "Queue Hierarchy",
+   "ordinals": 6,
+   "lists": 2,
+   "longest": 4,
+   "disposition": "not-rules",
+   "why": "NOT-RULES 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-ins: 'Let us assume that the message control system is operating under the following queueing algorithm' and 'The following examples illustrate the effect of the above algorithms'. A hypothetical algorithm and its worked examples, by the text's own words."
+  },
+  "§1985:III.2": {
+   "title": "DEFINITIONS",
+   "ordinals": 6,
+   "lists": 2,
+   "longest": 3,
+   "disposition": "not-rules",
+   "why": "NOT-RULES 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). The glossary's definitions ('At End Condition. A condition caused: (1) ...', 'Qualifier', 'Text Word'): terms whose rules are stated where each construct is specified (the READ, RETURN and SEARCH general rules for the at end condition), as the 2023 catalog carries no row for a term of clause 3."
+  },
+  "§1985:IV.4.2.1": {
+   "title": "Separators",
+   "ordinals": 9,
+   "lists": 1,
+   "longest": 9,
+   "disposition": "rules",
+   "kind": "SR",
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-in: 'A separator is a character or two contiguous characters formed according to the following rules': each a restriction on how source text is written (where a space, a quotation mark or a pseudo-text delimiter may stand). The amendments name them 'rule 4' and 'rule 5' (X3.23a-1989 IV-4, X3.23b-1993 IV-4 and IV-5), and the 2023 manifest admits 8.3.5 Separators SR. Kind SR by IV.3.1 of the 1985 standard: the items restrict how words or elements may be written or where they may appear. "
+  },
+  "§1985:IV.4.2.2.1.3": {
+   "title": "Reserved Words",
+   "ordinals": 4,
+   "lists": 1,
+   "longest": 4,
+   "disposition": "not-rules",
+   "why": "NOT-RULES 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-in: 'Reserved words satisfy the following conditions'. The four items state properties of the standard's OWN list of reserved words (no reserved word begins with a digit, X, Y or Z; none is one letter; ...): a description of a list the standard fixes (IV-45, COBOL Reserved Words), which binds no program and no implementation. What binds a program is the paragraph's lead sentence ('must not appear in the programs as user-defined words'), which is not a numbered item."
+  },
+  "§1985:IV.4.2.2.1.3.1": {
+   "title": "Required Words",
+   "ordinals": 2,
+   "lists": 1,
+   "longest": 2,
+   "disposition": "rules",
+   "kind": "SR",
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-in: 'Required words are of two types'. Key words (uppercase and underlined in a format) and special character words (the arithmetic operators and relation characters) are the words a format requires to be written, as the 2023 manifest admits 8.3.2.4.2 'Required words' SR. Kind SR by IV.3.1 of the 1985 standard: the items restrict how words or elements may be written or where they may appear. "
+  },
+  "§1985:IV.4.2.2.2.2": {
+   "title": "Numeric Literals",
+   "ordinals": 4,
+   "lists": 1,
+   "longest": 4,
+   "disposition": "rules",
+   "kind": {
+    "items": {
+     "1": "SR",
+     "2": "SR",
+     "3": "SR",
+     "4": "GR"
+    }
+   },
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-in: 'The rules for the formation of numeric literals are as follows' (the body calls them rules). Items 1-3 restrict the literal's written form (at least one digit, at most one sign and leftmost, at most one decimal point and not rightmost) ⇒ SR by IV.3.1; item 4 states its value and category ('The value of a numeric literal is the algebraic quantity represented') ⇒ GR by IV.3.2. The 2023 manifest types 8.3.3.3.2 the same way."
+  },
+  "§1985:IV.4.2.2.2.3": {
+   "title": "Figurative Constant Values",
+   "ordinals": 13,
+   "lists": 3,
+   "longest": 7,
+   "disposition": "rules",
+   "kind": {
+    "sublists": {
+     "1": "GR",
+     "2": "GR",
+     "3": "SR"
+    }
+   },
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Three lists. List 1 (the figurative constant values and the words that reference them: 'Represents the numeric value 0 ...') and list 2 ('the length of the string is determined by the compiler from context according to the following rules') define the value and the length of each figurative constant ⇒ GR by IV.3.2. List 3 ('A figurative constant may be used whenever literal appears in a format with the following exceptions') restricts where a figurative constant may be written (only ZERO where a numeric literal is required, ALL literal with a numeric item an obsolete element, ALL redundant otherwise) ⇒ SR by IV.3.1."
+  },
+  "§1985:IV.4.3.1.1": {
+   "title": "Physical Aspects of a File",
+   "ordinals": 2,
+   "lists": 1,
+   "longest": 2,
+   "disposition": "not-rules",
+   "why": "NOT-RULES 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-in: 'The physical aspects of a file describe the data as it appears on the input or output media and include such features as'. Illustrative and non-exhaustive ('include such features as'), two bare noun phrases; the 2023 manifest records the same text, 9.1.1, as not rules."
+  },
+  "§1985:IV.4.3.2.1": {
+   "title": "Level-Numbers",
+   "ordinals": 3,
+   "lists": 1,
+   "longest": 3,
+   "disposition": "rules",
+   "kind": "GR",
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-in: 'Three types of entries exist for which there is no true concept of level. These are'. The items fix which entries (RENAMES, noncontiguous items, condition-names) have no level in the hierarchy, a definition the level-number rules depend on, as the 2023 manifest admits 8.5.1.3.2 'Level-numbers' GR. Kind GR by IV.3.2 of the 1985 standard: the items define the meaning of an element or its effect at execution or compilation. "
+  },
+  "§1985:IV.4.3.6": {
+   "title": "Standard Alignment Rules",
+   "ordinals": 3,
+   "lists": 1,
+   "longest": 3,
+   "disposition": "rules",
+   "kind": "GR",
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). 'Standard Alignment Rules': 'The standard rules for positioning data within an elementary item depend on the category of the receiving item'; how data is positioned in a receiving item, the effect of a move. Kind GR by IV.3.2 of the 1985 standard: the items define the meaning of an element or its effect at execution or compilation. "
+  },
+  "§1985:IV.4.3.7": {
+   "title": "Item Alignment for Increased Object-Code Efficiency",
+   "ordinals": 2,
+   "lists": 1,
+   "longest": 2,
+   "disposition": "rules",
+   "kind": "GR",
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-in: 'Synchronization can be accomplished in two ways'. The two ways (the SYNCHRONIZED clause, and organizing data on natural boundaries) define the facility, as the 2023 manifest admits 8.5.1.6.4 'Item alignment for increased object-code efficiency' GR. Kind GR by IV.3.2 of the 1985 standard: the items define the meaning of an element or its effect at execution or compilation. "
+  },
+  "§1985:IV.4.3.8.1": {
+   "title": "Qualification",
+   "ordinals": 14,
+   "lists": 2,
+   "longest": 10,
+   "disposition": "rules",
+   "kind": "SR",
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Two lists: 'Every user-defined name explicitly referenced in a COBOL source program must be uniquely referenced because either' and 'The rules for qualification are as follows' (the body calls them rules): what must be written to reference a name uniquely, which qualifiers are allowed, and the names that must be qualified each time they are referenced. The 2023 manifest admits the same rules, 8.4.2.2.1, SR. Kind SR by IV.3.1 of the 1985 standard: the items restrict how words or elements may be written or where they may appear. "
+  },
+  "§1985:IV.4.4": {
+   "title": "EXPLICIT AND IMPLICIT SPECIFICATIONS",
+   "ordinals": 4,
+   "lists": 1,
+   "longest": 4,
+   "disposition": "not-rules",
+   "why": "NOT-RULES 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-in: 'There are four types of explicit and implicit specifications that occur in COBOL source programs'. The items are the titles of the four subparagraphs IV.4.4.1 to IV.4.4.4 that follow: a table of contents."
+  },
+  "§1985:IV.4.4.2": {
+   "title": "Explicit and Implicit Transfers of Control",
+   "ordinals": 8,
+   "lists": 2,
+   "longest": 5,
+   "disposition": "rules",
+   "kind": "GR",
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Two lists: 'COBOL provides the following types of implicit control flow alterations' and 'There is no next executable statement when the program contains no Procedure Division or following'. Both define where control goes at execution, as the 2023 manifest admits 14.6.3 'Explicit and implicit transfers of control' GR. Kind GR by IV.3.2 of the 1985 standard: the items define the meaning of an element or its effect at execution or compilation. "
+  },
+  "§1985:IV.4.4.4": {
+   "title": "Explicit and Implicit Scope Terminators",
+   "ordinals": 2,
+   "lists": 1,
+   "longest": 2,
+   "disposition": "rules",
+   "kind": "GR",
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-in: 'The implicit scope terminators are the following'. The items define what terminates a statement's scope, as the 2023 manifest admits 14.5.3.3 'Implicit scope termination' GR. Kind GR by IV.3.2 of the 1985 standard: the items define the meaning of an element or its effect at execution or compilation. "
+  },
+  "§1985:IV.6.4.2.1.1": {
+   "title": "Definition of Conditional Statement",
+   "ordinals": 8,
+   "lists": 1,
+   "longest": 8,
+   "disposition": "rules",
+   "kind": "GR",
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-in: 'A conditional statement is one of the following'. The items define the category, which the rules on imperative and conditional statements turn on (where an imperative statement is required, these may not stand), a definitional list as the 2023 manifest admits 4.2.10. Kind GR by IV.3.2 of the 1985 standard: the items define the meaning of an element or its effect at execution or compilation. "
+  },
+  "§1985:IV.6.4.2.1.1.1": {
+   "title": "Definition of Conditional Phrase",
+   "ordinals": 7,
+   "lists": 1,
+   "longest": 7,
+   "disposition": "rules",
+   "kind": "GR",
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-in: 'A conditional phrase is one of the following'. As IV.6.4.2.1.1: the items define the category. Kind GR by IV.3.2 of the 1985 standard: the items define the meaning of an element or its effect at execution or compilation. "
+  },
+  "§1985:VI.5.15.5": {
+   "title": "Condition-Name Rules",
+   "ordinals": 2,
+   "lists": 1,
+   "longest": 2,
+   "disposition": "rules",
+   "kind": "GR",
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). 'Condition-Name Rules' of the VALUE clause continue its general rules (VI.5.15.4) by subject, as VI.5.15.6 does, whose rules X3.23a-1989 (VI-50) calls 'general rule 6'."
+  },
+  "§1985:VI.5.15.6": {
+   "title": "Data Description Entries Other Than Condition-Names",
+   "ordinals": 6,
+   "lists": 1,
+   "longest": 6,
+   "disposition": "rules",
+   "kind": "GR",
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). 'Data Description Entries Other Than Condition-Names' of the VALUE clause: X3.23a-1989's change on page VI-50 names its sixth rule 'general rule 6'."
+  },
+  "§1985:VI.6.2.3": {
+   "title": "Formation and Evaluation Rules",
+   "ordinals": 6,
+   "lists": 1,
+   "longest": 6,
+   "disposition": "rules",
+   "kind": {
+    "items": {
+     "1": "GR",
+     "2": "GR",
+     "3": "SR",
+     "4": "SR",
+     "5": "GR",
+     "6": "GR"
+    }
+   },
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). 'Formation and Evaluation Rules' of arithmetic expressions: rules 1, 2, 5 and 6 define the order and result of evaluation (GR by IV.3.2); rules 3 and 4 state which symbols may be written next to each other and how an expression may begin and end (SR by IV.3.1)."
+  },
+  "§1985:VI.6.3.1.1.2": {
+   "title": "Comparison of Nonnumeric Operands",
+   "ordinals": 5,
+   "lists": 2,
+   "longest": 3,
+   "disposition": "rules",
+   "kind": {
+    "sublists": {
+     "1": {
+      "items": {
+       "1": "GR",
+       "2": "GR",
+       "3": "SR"
+      }
+     },
+     "2": "GR"
+    }
+   },
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Two lists. List 1 ('If one of the operands is specified as numeric, it must be an integer data item or an integer literal and') defines how the numeric operand is treated (items 1 and 2, GR by IV.3.2) and forbids a noninteger numeric operand in the comparison (item 3, 'cannot be compared', SR by IV.3.1). List 2 ('There are two cases to consider: operands of equal size and operands of unequal size') defines the comparison (GR), as the 2023 manifest admits 8.8.4.2.7 'Comparison of alphanumeric operands' GR."
+  },
+  "§1985:VI.6.3.1.1.3": {
+   "title": "Comparisons Involving Index-Names and/or Index Data Items",
+   "ordinals": 3,
+   "lists": 1,
+   "longest": 3,
+   "disposition": "rules",
+   "kind": "GR",
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-in: 'Relation tests may be made only between'. Each item names a pair of operands and defines the comparison's result ('The result is the same as if the corresponding occurrence numbers were compared'), as the 2023 manifest admits 8.8.4.2.13 'Comparisons involving index-names or index data items' GR. Kind GR by IV.3.2 of the 1985 standard: the items define the meaning of an element or its effect at execution or compilation. "
+  },
+  "§1985:VI.6.3.1.2": {
+   "title": "Class Condition",
+   "ordinals": 5,
+   "lists": 1,
+   "longest": 5,
+   "disposition": "rules",
+   "kind": "GR",
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-in: 'The class of an operand is determined as follows': when an operand is numeric, alphabetic, alphabetic-lower, alphabetic-upper or in class-name-1, the class condition's value. Kind GR by IV.3.2 of the 1985 standard: the items define the meaning of an element or its effect at execution or compilation. "
+  },
+  "§1985:VI.6.3.3": {
+   "title": "Abbreviated Combined Relation Conditions",
+   "ordinals": 4,
+   "lists": 2,
+   "longest": 2,
+   "disposition": "rules",
+   "kind": {
+    "sublists": {
+     "1": "SR",
+     "2": "GR"
+    }
+   },
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Two lists of the boxed abbreviated combined relation conditions. List 1 states what may be OMITTED in writing an abbreviation (the subject, or the subject and relational operator) ⇒ SR by IV.3.1. List 2 ('The interpretation applied to the use of the word NOT in an abbreviated combined relation condition is as follows') defines its meaning ⇒ GR by IV.3.2."
+  },
+  "§1985:VI.6.3.4": {
+   "title": "Order of Evaluation of Conditions",
+   "ordinals": 1,
+   "lists": 1,
+   "longest": 1,
+   "disposition": "rules",
+   "kind": "GR",
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-in: 'the evaluation of the conditions within an entire complex condition begins at the left ... and proceeds according to the following rule recursively applied': the order of evaluation, as the 2023 manifest admits 8.8.4.13 'Order of evaluation of conditions' GR. Kind GR by IV.3.2 of the 1985 standard: the items define the meaning of an element or its effect at execution or compilation. "
+  },
+  "§1985:VI.6.4.2": {
+   "title": "The ON SIZE ERROR Phrase",
+   "ordinals": 3,
+   "lists": 1,
+   "longest": 3,
+   "disposition": "rules",
+   "kind": "GR",
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-in: 'The size error condition occurs under the following circumstances'. The items define when the size error condition exists (exponentiation, division by zero, overflow after radix point alignment), as the 2023 manifest admits 14.7.5 'SIZE ERROR phrase and size error condition' GR. Kind GR by IV.3.2 of the 1985 standard: the items define the meaning of an element or its effect at execution or compilation. "
+  },
+  "§1985:VI.6.4.3": {
+   "title": "The CORRESPONDING Phrase",
+   "ordinals": 5,
+   "lists": 1,
+   "longest": 5,
+   "disposition": "rules",
+   "kind": "GR",
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-in: 'A pair of data items, one from D1 and one from D2 correspond if the following conditions exist'. The items define correspondence (and what is ignored), as the 2023 manifest admits 14.7.6 'CORRESPONDING phrase' GR. Kind GR by IV.3.2 of the 1985 standard: the items define the meaning of an element or its effect at execution or compilation. "
+  },
+  "§1985:VI.6.4.4": {
+   "title": "The Arithmetic Statements",
+   "ordinals": 2,
+   "lists": 1,
+   "longest": 2,
+   "disposition": "rules",
+   "kind": {
+    "items": {
+     "1": "GR",
+     "2": "SR"
+    }
+   },
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-in: 'The arithmetic statements are the ADD, COMPUTE, DIVIDE, MULTIPLY, and SUBTRACT statements. They have several common features.' Item 1 (conversion and decimal point alignment are supplied) states an effect ⇒ GR by IV.3.2; item 2 ('The maximum size of each operand is 18 decimal digits. The composite of operands ... must not contain more than 18 decimal digits') restricts the operands that may be written ⇒ SR by IV.3.1, as the 2023 manifest types 14.7.7's item 2 SR."
+  },
+  "§1985:VI.6.4.6": {
+   "title": "Multiple Results in Arithmetic Statements",
+   "ordinals": 2,
+   "lists": 1,
+   "longest": 2,
+   "disposition": "rules",
+   "kind": "GR",
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-in: 'Such statements behave as though they had been written in the following way'. The items define the execution of an arithmetic statement with multiple results. Kind GR by IV.3.2 of the 1985 standard: the items define the meaning of an element or its effect at execution or compilation. "
+  },
+  "§1985:VI.6.23.1": {
+   "title": "Function",
+   "ordinals": 3,
+   "lists": 1,
+   "longest": 3,
+   "disposition": "not-rules",
+   "why": "NOT-RULES 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). The Function paragraph of the SET statement: 'The SET statement establishes reference points ...', 'is also used to alter the status of external switches', 'the value of conditional variables'. A statement's Function paragraph summarizes what its general rules (VI.6.23.4) specify, and no other Function paragraph of the standard is a row; this one happens to number its sentences."
+  },
+  "§1985:VII.1.3.5": {
+   "title": "I-O Status",
+   "ordinals": 10,
+   "lists": 2,
+   "longest": 5,
+   "disposition": "rules",
+   "kind": "GR",
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Two lists: 'I-O status expresses one of the following conditions upon completion of the input-output operation' and 'The following is a list of the values placed in the I-O status for the previously named conditions'. They define each condition and the status values the implementation sets, as the 2023 manifest admits 9.1.13.2 to 9.1.13.11 GR. Kind GR by IV.3.2 of the 1985 standard: the items define the meaning of an element or its effect at execution or compilation. "
+  },
+  "§1985:VII.1.3.7": {
+   "title": "The File Attribute Conflict Condition",
+   "ordinals": 2,
+   "lists": 1,
+   "longest": 2,
+   "disposition": "rules",
+   "kind": "GR",
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-in: 'When the file attribute conflict condition is recognized, these actions take place in the following order'. The items define what the object program does. Kind GR by IV.3.2 of the 1985 standard: the items define the meaning of an element or its effect at execution or compilation. "
+  },
+  "§1985:VIII.1.3.4": {
+   "title": "I-O Status",
+   "ordinals": 12,
+   "lists": 2,
+   "longest": 6,
+   "disposition": "rules",
+   "kind": "GR",
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). The relative I-O module's I-O status: as VII.1.3.5. Kind GR by IV.3.2 of the 1985 standard: the items define the meaning of an element or its effect at execution or compilation. "
+  },
+  "§1985:VIII.1.3.5": {
+   "title": "The Invalid Key Condition",
+   "ordinals": 5,
+   "lists": 2,
+   "longest": 3,
+   "disposition": "rules",
+   "kind": "GR",
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-ins: 'If the invalid key condition exists after the execution of the input-output operation ..., the following actions occur in the order shown' and its converse. The items define the actions, as the 2023 manifest admits 9.1.14 'Invalid key condition' GR. Kind GR by IV.3.2 of the 1985 standard: the items define the meaning of an element or its effect at execution or compilation. "
+  },
+  "§1985:VIII.1.3.7": {
+   "title": "The File Attribute Conflict Condition",
+   "ordinals": 2,
+   "lists": 1,
+   "longest": 2,
+   "disposition": "rules",
+   "kind": "GR",
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). The relative I-O module's file attribute conflict condition: as VII.1.3.7. Kind GR by IV.3.2 of the 1985 standard: the items define the meaning of an element or its effect at execution or compilation. "
+  },
+  "§1985:IX.1.3.4": {
+   "title": "I-O Status",
+   "ordinals": 12,
+   "lists": 2,
+   "longest": 6,
+   "disposition": "rules",
+   "kind": "GR",
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). The indexed I-O module's I-O status: as VII.1.3.5. Kind GR by IV.3.2 of the 1985 standard: the items define the meaning of an element or its effect at execution or compilation. "
+  },
+  "§1985:IX.1.3.5": {
+   "title": "The Invalid Key Condition",
+   "ordinals": 5,
+   "lists": 2,
+   "longest": 3,
+   "disposition": "rules",
+   "kind": "GR",
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). The indexed I-O module's invalid key condition: as VIII.1.3.5. Kind GR by IV.3.2 of the 1985 standard: the items define the meaning of an element or its effect at execution or compilation. "
+  },
+  "§1985:IX.1.3.7": {
+   "title": "The File Attribute Conflict Condition",
+   "ordinals": 2,
+   "lists": 1,
+   "longest": 2,
+   "disposition": "rules",
+   "kind": "GR",
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). The indexed I-O module's file attribute conflict condition: as VII.1.3.7. Kind GR by IV.3.2 of the 1985 standard: the items define the meaning of an element or its effect at execution or compilation. "
+  },
+  "§1985:X.1.3.6": {
+   "title": "Sharing Data",
+   "ordinals": 3,
+   "lists": 1,
+   "longest": 3,
+   "disposition": "rules",
+   "kind": "GR",
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-in: 'Two programs in a run unit may reference common data in the following circumstances'. The items define when data is shared between programs, as the 2023 manifest admits 8.6.7 'Sharing data items' GR. Kind GR by IV.3.2 of the 1985 standard: the items define the meaning of an element or its effect at execution or compilation. "
+  },
+  "§1985:X.1.3.7": {
+   "title": "Sharing Files",
+   "ordinals": 2,
+   "lists": 1,
+   "longest": 2,
+   "disposition": "rules",
+   "kind": "GR",
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-in: 'Two programs in a run unit may reference common file connectors in the following circumstances', as the 2023 manifest admits 9.1.5 'Sharing file connectors' GR. Kind GR by IV.3.2 of the 1985 standard: the items define the meaning of an element or its effect at execution or compilation. "
+  },
+  "§1985:X.1.3.8.1": {
+   "title": "Conventions for Program-Names",
+   "ordinals": 3,
+   "lists": 1,
+   "longest": 3,
+   "disposition": "rules",
+   "kind": "SR",
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-in: 'The following rules regulate the scope of a program-name' (the body calls them rules). Each item states the statements a program-name may be referenced by, as the 2023 manifest admits 8.4.6.3 'Scope of program-names' SR. Kind SR by IV.3.1 of the 1985 standard: the items restrict how words or elements may be written or where they may appear. "
+  },
+  "§1985:X.1.3.8.2": {
+   "title": "Conventions for Condition-Names, Data-Names, File-Names, Record-Names, and Report-Names",
+   "ordinals": 3,
+   "lists": 1,
+   "longest": 3,
+   "disposition": "rules",
+   "kind": "GR",
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-in: 'When such a duplicated name is referenced in program B, the following rules are used to determine the referenced object' (the body calls them rules). They resolve a duplicated name to its object, as the 2023 manifest admits 8.4.6.2.1 GR. Kind GR by IV.3.2 of the 1985 standard: the items define the meaning of an element or its effect at execution or compilation. "
+  },
+  "§1985:X.2.4.1": {
+   "title": "Characteristics of a Program",
+   "ordinals": 4,
+   "lists": 1,
+   "longest": 4,
+   "disposition": "rules",
+   "kind": "GR",
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). The characteristics of a program in its initial state (internal data initialized, internal files not open, PERFORM control reset, altered GO TO reset): its state at execution, as the 2023 manifest admits 14.6.2.3.2 'Initial state' GR. Kind GR by IV.3.2 of the 1985 standard: the items define the meaning of an element or its effect at execution or compilation. "
+  },
+  "§1985:X.2.4.2": {
+   "title": "Programs in the Initial State",
+   "ordinals": 4,
+   "lists": 1,
+   "longest": 4,
+   "disposition": "rules",
+   "kind": "GR",
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-in: 'A program is in the initial state'. The items define when a program is entered in its initial state. Kind GR by IV.3.2 of the 1985 standard: the items define the meaning of an element or its effect at execution or compilation. "
+  },
+  "§1985:X.5.1": {
+   "title": "THE PROCEDURE DIVISION HEADER",
+   "ordinals": 4,
+   "lists": 1,
+   "longest": 4,
+   "disposition": "rules",
+   "kind": "GR",
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-in: 'The following additional rules apply' (the body calls them rules), on the Procedure Division header's USING phrase: how a parameter passed by content or by reference is seen in the called program and which Linkage Section items may be referenced, as the 2023 manifest admits 14.8.2.3.2 and 14.8.2.3.3 GR. Kind GR by IV.3.2 of the 1985 standard: the items define the meaning of an element or its effect at execution or compilation. "
+  },
+  "§1985:XIII.3.5.5": {
+   "title": "PAGE-COUNTER Rules",
+   "ordinals": 6,
+   "lists": 1,
+   "longest": 6,
+   "disposition": "rules",
+   "kind": {
+    "items": {
+     "1": "GR",
+     "2": "SR",
+     "3": "SR",
+     "4": "GR",
+     "5": "GR",
+     "6": "SR"
+    }
+   },
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). 'PAGE-COUNTER Rules': rules 1, 4 and 5 define the register and how the RWCS sets it (GR by IV.3.2); rules 2 and 3 restrict where and how it may be referenced, and rule 6 relaxes the restriction on altering it (SR by IV.3.1)."
+  },
+  "§1985:XIII.3.5.6": {
+   "title": "LINE-COUNTER Rules",
+   "ordinals": 6,
+   "lists": 1,
+   "longest": 6,
+   "disposition": "rules",
+   "kind": {
+    "items": {
+     "1": "GR",
+     "2": "SR",
+     "3": "SR",
+     "4": "GR",
+     "5": "GR",
+     "6": "GR"
+    }
+   },
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). 'LINE-COUNTER Rules': rules 1, 4, 5 and 6 define the register and how the RWCS sets it (GR by IV.3.2); rules 2 and 3 restrict where and how it may be referenced (SR by IV.3.1)."
+  },
+  "§1985:XIII.3.10.1": {
+   "title": "Description",
+   "ordinals": 3,
+   "lists": 1,
+   "longest": 3,
+   "disposition": "not-rules",
+   "why": "NOT-RULES 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-in: 'The tables and rules on the following pages specify'. The three items name what the presentation rules tables and rules (XIII.3.10.4 to XIII.3.10.10) contain: a table of contents, as the 2023 manifest records 15.1."
+  },
+  "§1985:XIII.3.10.2": {
+   "title": "Organization",
+   "ordinals": 5,
+   "lists": 1,
+   "longest": 5,
+   "disposition": "not-rules",
+   "why": "NOT-RULES 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-in: 'The purpose of the rules named in the applicable rules columns is discussed below'. Each item names a category of presentation rule and says what it is for ('These rules specify the vertical subdivisions of the page'); the rules themselves are XIII.3.10.6 to XIII.3.10.10, admitted as their own rows. The paragraph explains how to read the tables."
+  },
+  "§1985:XIII.3.10.3": {
+   "title": "LINE NUMBER Clause Notation",
+   "ordinals": 3,
+   "lists": 1,
+   "longest": 3,
+   "disposition": "not-rules",
+   "why": "NOT-RULES 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-in: 'Column 1 of the presentation rules table uses a shorthand notation ... The meaning of the abbreviations used in column 1 is as follows'. The items are the KEY to the tables' notation (A, R, NP), a reading convention, as the 2023 manifest records 15.6's conventions for Table 21."
+  },
+  "§1985:XIII.3.10.6": {
+   "title": "Report Heading Group Presentation Rules",
+   "ordinals": 5,
+   "lists": 1,
+   "longest": 5,
+   "disposition": "rules",
+   "kind": "GR",
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). 'Report Heading Group Presentation Rules': where the RWCS presents the group and what it places in LINE-COUNTER (XIII.3.10.1: 'The interpretation that the report writer control system (RWCS) gives to these clauses'); a next group rule's limit depends on the line the group is presented on, so it is checked at execution."
+  },
+  "§1985:XIII.3.10.8": {
+   "title": "Body Group Presentation Rules",
+   "ordinals": 6,
+   "lists": 1,
+   "longest": 6,
+   "disposition": "rules",
+   "kind": "GR",
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). 'Body Group Presentation Rules' (see XIII.3.10.6)."
+  },
+  "§1985:XIII.3.10.9": {
+   "title": "Page Footing Presentation Rules",
+   "ordinals": 5,
+   "lists": 1,
+   "longest": 5,
+   "disposition": "rules",
+   "kind": "GR",
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). 'Page Footing Presentation Rules' (see XIII.3.10.6)."
+  },
+  "§1985:XIII.3.10.10": {
+   "title": "Report Footing Presentation Rules",
+   "ordinals": 4,
+   "lists": 1,
+   "longest": 4,
+   "disposition": "rules",
+   "kind": "GR",
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). 'Report Footing Presentation Rules' (see XIII.3.10.6)."
+  },
+  "§1985:XVI.1.4.3": {
+   "title": "Independent Segments",
+   "ordinals": 5,
+   "lists": 2,
+   "longest": 3,
+   "disposition": "rules",
+   "kind": "GR",
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Two lists: when an independent segment is in its initial state and when in its last-used state, the state control finds it in at execution. Kind GR by IV.3.2 of the 1985 standard: the items define the meaning of an element or its effect at execution or compilation. "
+  },
+  "§1985:XVI.1.5": {
+   "title": "SEGMENTATION CLASSIFICATION",
+   "ordinals": 3,
+   "lists": 1,
+   "longest": 3,
+   "disposition": "not-rules",
+   "why": "NOT-RULES 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-in: 'Sections which are to be segmented are classified, using a system of segment-numbers ... and the following criteria'. The items are GUIDANCE to the programmer ('are normally classified', 'Generally, the more frequently a section is referred to, the lower its segment-number', 'should be given the same segment-numbers'); the binding rules on segment-numbers are the rules for segment-numbers the lead-in points to ('see page XVI-7, Segment-Numbers')."
+  },
+  "§1985:XVI.3.3.2": {
+   "title": "The PERFORM Statement",
+   "ordinals": 4,
+   "lists": 2,
+   "longest": 2,
+   "disposition": "rules",
+   "kind": "SR",
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Two lists: 'A PERFORM statement that appears in a section that is not in an independent segment can have within its range ... only one of the following', and the same for one in an independent segment. They restrict what a PERFORM's range may contain, a restriction on the program as written. Kind SR by IV.3.1 of the 1985 standard: the items restrict how words or elements may be written or where they may appear. "
+  },
+  "§1985:XVI.3.3.3": {
+   "title": "The MERGE Statement",
+   "ordinals": 4,
+   "lists": 2,
+   "longest": 2,
+   "disposition": "rules",
+   "kind": "SR",
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Two lists: an output procedure a MERGE statement references 'must appear' within non-independent segments or one independent segment (as XVI.3.3.2). Kind SR by IV.3.1 of the 1985 standard: the items restrict how words or elements may be written or where they may appear. "
+  },
+  "§1985:XVI.3.3.4": {
+   "title": "The SORT Statement",
+   "ordinals": 4,
+   "lists": 2,
+   "longest": 2,
+   "disposition": "rules",
+   "kind": "SR",
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Two lists: the input and output procedures a SORT statement references 'must appear' within non-independent segments or one independent segment (as XVI.3.3.2). Kind SR by IV.3.1 of the 1985 standard: the items restrict how words or elements may be written or where they may appear. "
+  },
+  "§1985:A.2.3": {
+   "title": "COBOL-61 EXTENDED",
+   "ordinals": 3,
+   "lists": 1,
+   "longest": 3,
+   "disposition": "not-rules",
+   "why": "NOT-RULES 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Appendix A, THE HISTORY OF COBOL: the lists name the features each historical document (COBOL-61 Extended, COBOL Edition 1965, the CODASYL Journals of Development) introduced; history, no requirement."
+  },
+  "§1985:A.2.4": {
+   "title": "COBOL, EDITION 1965",
+   "ordinals": 4,
+   "lists": 1,
+   "longest": 4,
+   "disposition": "not-rules",
+   "why": "NOT-RULES 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Appendix A, THE HISTORY OF COBOL: the lists name the features each historical document (COBOL-61 Extended, COBOL Edition 1965, the CODASYL Journals of Development) introduced; history, no requirement."
+  },
+  "§1985:A.2.5": {
+   "title": "CODASYL COBOL JOURNAL OF DEVELOPMENT 1968",
+   "ordinals": 10,
+   "lists": 1,
+   "longest": 10,
+   "disposition": "not-rules",
+   "why": "NOT-RULES 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Appendix A, THE HISTORY OF COBOL: the lists name the features each historical document (COBOL-61 Extended, COBOL Edition 1965, the CODASYL Journals of Development) introduced; history, no requirement."
+  },
+  "§1985:A.2.6": {
+   "title": "CODASYL COBOL JOURNAL OF DEVELOPMENT 1969",
+   "ordinals": 7,
+   "lists": 1,
+   "longest": 7,
+   "disposition": "not-rules",
+   "why": "NOT-RULES 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Appendix A, THE HISTORY OF COBOL: the lists name the features each historical document (COBOL-61 Extended, COBOL Edition 1965, the CODASYL Journals of Development) introduced; history, no requirement."
+  },
+  "§1985:A.2.7": {
+   "title": "CODASYL COBOL JOURNAL OF DEVELOPMENT 1970",
+   "ordinals": 5,
+   "lists": 1,
+   "longest": 5,
+   "disposition": "not-rules",
+   "why": "NOT-RULES 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Appendix A, THE HISTORY OF COBOL: the lists name the features each historical document (COBOL-61 Extended, COBOL Edition 1965, the CODASYL Journals of Development) introduced; history, no requirement."
+  },
+  "§1985:A.2.8": {
+   "title": "CODASYL COBOL JOURNAL OF DEVELOPMENT 1973",
+   "ordinals": 8,
+   "lists": 1,
+   "longest": 8,
+   "disposition": "not-rules",
+   "why": "NOT-RULES 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Appendix A, THE HISTORY OF COBOL: the lists name the features each historical document (COBOL-61 Extended, COBOL Edition 1965, the CODASYL Journals of Development) introduced; history, no requirement."
+  },
+  "§1985:A.2.9": {
+   "title": "CODASYL COBOL JOURNAL OF DEVELOPMENT 1976",
+   "ordinals": 22,
+   "lists": 1,
+   "longest": 22,
+   "disposition": "not-rules",
+   "why": "NOT-RULES 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Appendix A, THE HISTORY OF COBOL: the lists name the features each historical document (COBOL-61 Extended, COBOL Edition 1965, the CODASYL Journals of Development) introduced; history, no requirement."
+  },
+  "§1985:A.2.10": {
+   "title": "CODASYL COBOL JOURNAL OF DEVELOPMENT 1978",
+   "ordinals": 21,
+   "lists": 1,
+   "longest": 21,
+   "disposition": "not-rules",
+   "why": "NOT-RULES 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Appendix A, THE HISTORY OF COBOL: the lists name the features each historical document (COBOL-61 Extended, COBOL Edition 1965, the CODASYL Journals of Development) introduced; history, no requirement."
+  },
+  "§1985:A.2.11": {
+   "title": "CODASYL COBOL JOURNAL OF DEVELOPMENT 1981",
+   "ordinals": 28,
+   "lists": 1,
+   "longest": 28,
+   "disposition": "not-rules",
+   "why": "NOT-RULES 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Appendix A, THE HISTORY OF COBOL: the lists name the features each historical document (COBOL-61 Extended, COBOL Edition 1965, the CODASYL Journals of Development) introduced; history, no requirement."
+  },
+  "§1985:A.2.12": {
+   "title": "CODASYL COBOL JOURNAL OF DEVELOPMENT 1984",
+   "ordinals": 21,
+   "lists": 1,
+   "longest": 21,
+   "disposition": "not-rules",
+   "why": "NOT-RULES 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Appendix A, THE HISTORY OF COBOL: the lists name the features each historical document (COBOL-61 Extended, COBOL Edition 1965, the CODASYL Journals of Development) introduced; history, no requirement."
+  },
+  "§1985:B.2.1": {
+   "title": "SUBSTANTIVE CHANGES NOT AFFECTING EXISTING PROGRAMS",
+   "ordinals": 107,
+   "lists": 1,
+   "longest": 107,
+   "disposition": "not-rules",
+   "why": "NOT-RULES 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Appendix B, DIFFERENCES BETWEEN SECOND AND THIRD STANDARD COBOL: each item describes a change from the 1974 standard and names the paragraph that specifies it; the requirement is that paragraph's row."
+  },
+  "§1985:B.2.2": {
+   "title": "SUBSTANTIVE CHANGES POTENTIALLY AFFECTING EXISTING PROGRAMS",
+   "ordinals": 42,
+   "lists": 1,
+   "longest": 42,
+   "disposition": "not-rules",
+   "why": "NOT-RULES 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Appendix B, DIFFERENCES BETWEEN SECOND AND THIRD STANDARD COBOL: each item describes a change from the 1974 standard and names the paragraph that specifies it; the requirement is that paragraph's row."
+  },
+  "§1985:C.1": {
+   "title": "OBSOLETE LANGUAGE ELEMENT LIST",
+   "ordinals": 18,
+   "lists": 1,
+   "longest": 18,
+   "disposition": "not-rules",
+   "why": "NOT-RULES 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Appendix C, the obsolete language element list: each item names an element I.1.5.2.3 classes obsolete (the warning mechanism of a conforming implementation reports them) and gives the justification; the element's own rules carry its status ('is an obsolete element in Standard COBOL'), so the item adds no rule."
+  },
+  "§1985:C.2": {
+   "title": "IMPLEMENTOR-DEFINED LANGUAGE ELEMENT LIST",
+   "ordinals": 80,
+   "lists": 1,
+   "longest": 80,
+   "disposition": "not-rules",
+   "why": "NOT-RULES 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Appendix C, the implementor-defined language element list: each item names an element whose rules are completed by the implementor and points to them ('(See 4.2.2.1.2 on page IV-8.)'); an index of rules counted where they are stated. Unlike the 2023 standard's Annex A.1, whose items each say 'shall be documented', no 1985 item states a documentation requirement."
+  },
+  "§1985:C.3": {
+   "title": "HARDWARE DEPENDENT LANGUAGE ELEMENT LIST",
+   "ordinals": 20,
+   "lists": 1,
+   "longest": 20,
+   "disposition": "not-rules",
+   "why": "NOT-RULES 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Appendix C, the hardware dependent language element list: an index of elements whose rules are stated where each element is specified."
+  },
+  "§1985:C.4": {
+   "title": "UNDEFINED LANGUAGE ELEMENT LIST",
+   "ordinals": 28,
+   "lists": 1,
+   "longest": 28,
+   "disposition": "not-rules",
+   "why": "NOT-RULES 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Appendix C, the undefined language element list: an index of situations whose results the rules elsewhere leave undefined, each pointing to its rule."
+  },
+  "§1989:A.2.1": {
+   "title": "FUNCTION DEFINITION AND RETURNED VALUE",
+   "ordinals": 3,
+   "lists": 1,
+   "longest": 3,
+   "disposition": "not-rules",
+   "why": "NOT-RULES 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-in: 'The definition of a function identifies'. The items name the parts each function definition specifies (the size, the sign, the value returned): an index of the definitions that follow, whose Arguments and Returned Values paragraphs are rows of their own, as the 2023 manifest records 15.1 'Each intrinsic function definition specifies' as not rules."
+  },
+  "§1989:A.2.3": {
+   "title": "TYPES OF FUNCTIONS",
+   "ordinals": 3,
+   "lists": 1,
+   "longest": 3,
+   "disposition": "rules",
+   "kind": "GR",
+   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-in: 'Types of data item functions are'. Each item defines a type's class, category and usage and where it may be used ('A numeric function may be used only in an arithmetic expression'), as the 2023 manifest admits 15.2 'Types of functions' GR. Kind GR by IV.3.2 of the 1985 standard: the items define the meaning of an element or its effect at execution or compilation. "
+  }
+ }
+}
