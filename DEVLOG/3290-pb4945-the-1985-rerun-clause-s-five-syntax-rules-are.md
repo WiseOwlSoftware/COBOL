@@ -1,4 +1,4 @@
-## PB4945: the 1985 RERUN clause's five syntax rules are screened, and the obsolete I-O-CONTROL clauses resolve their names
+## Entry 3290 — 2026-11-07 18:34 PST — PB4945: the 1985 RERUN clause's five syntax rules are screened, and the obsolete I-O-CONTROL clauses resolve their names
 
 kb/Work PB4945 (wave 20261917 group A). The X3.23-1985 RERUN clause was parsed and ignored. Since PB4919 its RECORDS
 phrase had to name file-name-2, but none of §1985:VII.2.12.3's five syntax rules was checked. The re-probe on the base
@@ -26,3 +26,4 @@ Goldens: `cases/12.4.6-I-O-CONTROL/pb4945_rerun_seven_forms_85` (the seven GR2 f
 the 1985 clause yet (PB4886 builds it), so the note closes none. Self-review covered the rule text against the printed
 1985 page, the arm of every phrase, the null-context guards after parse recovery, and the allocations (one pass, two small
 sets per paragraph).
+
