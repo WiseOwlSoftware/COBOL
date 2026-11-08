@@ -66,11 +66,12 @@ internal sealed class MessagingEmitter(EmitContext ctx, NumericRenderer num, EcS
             ReceiveWait.Seconds => RuntimeApi.MessageWaitOf(MessageWaitKind.Seconds, StatementEmitter.IntervalCall(num.Render(n.Seconds!, ReceiverContext.None))),
             _ => RuntimeApi.MessageWaitOf(MessageWaitKind.Forever),
         };
-        // GR3: a message longer than identifier-1's capacity is EC-MCS-MESSAGE-LENGTH. A slot-carried identifier-1 (an elementary message tag) holds no character
-        // position, so every message is too long for it; one that holds an OCCURS DYNAMIC table has no allocated maximum (its capacity is the implementor's maximum,
-        // §2023:8.5.1.9.1, which FileModel.MaxRecordSize leaves out as no record holds one), so no message is too long for it.
-        string capacity = SlotWindow.CarriedBySlot(n.Into.Item) ? "0"
-            : DataItem.SelfAndDescendantsOf(n.Into.Item).Any(i => i.IsDynamicTable) ? $"{nameof(AsyncMessaging)}.{nameof(AsyncMessaging.UnboundedCapacity)}"
+        // GR3: a message longer than identifier-1's capacity is EC-MCS-MESSAGE-LENGTH. An elementary message tag is its 8 positions (DOC-A.1-212, the token image of
+        // kb/Work PB4838); one that holds an OCCURS DYNAMIC table has no allocated maximum (its capacity is the implementor's maximum, §2023:8.5.1.9.1, which
+        // FileModel.MaxRecordSize leaves out as no record holds one), so no message is too long for it.
+        bool unbounded = !SlotWindow.CarriedBySlot(n.Into.Item) && DataItem.SelfAndDescendantsOf(n.Into.Item).Any(i => i.IsDynamicTable);
+        string capacity = SlotWindow.CarriedBySlot(n.Into.Item) ? n.Into.Item.ByteWidth.ToString(System.Globalization.CultureInfo.InvariantCulture)
+            : unbounded ? $"{nameof(AsyncMessaging)}.{nameof(AsyncMessaging.UnboundedCapacity)}"
             : FileModel.MaxRecordSize(n.Into.Item).ToString(System.Globalization.CultureInfo.InvariantCulture);
         w.Line($"var {m} = {RuntimeApi.AsyncReceive(PlaceRenderer.Read(n.From), capacity, wait, Checking(n))};");
         using (w.Block($"if ({m}.Image is not null)"))
@@ -82,9 +83,15 @@ internal sealed class MessagingEmitter(EmitContext ctx, NumericRenderer num, EcS
                 w.Line(PlaceRenderer.WriteMessageGroupImage(n.Into, RuntimeApi.StrStore(image, $"{n.Into.Item.ByteWidth}"), "RECEIVE GIVING"));
             else if (!SlotWindow.CarriedBySlot(n.Into.Item))
                 seqIo.EmitImageInto(n.Into, image, storesIntoOwnItem: false);   // the sender's storage bytes: verbatim, as other descriptions of the area read them
+            else   // an elementary tag: its content is the message's one slot, never its token positions, which name a tag of the sending run unit
+                w.Line(PlaceRenderer.Write(n.Into, RuntimeApi.AsyncTagOf($"{m}.Slots")));
             // "The slots follow" (design section 4.4): the group's leaf vector is rebuilt with the message's tags in storage order (AsyncMessaging.WithTags) and stored back.
             if (HoldsTags(n.Into))
                 w.Line(PlaceRenderer.WriteGroupLeaves(n.Into, RuntimeApi.AsyncWithTags(PlaceRenderer.GroupLeaves(n.Into), $"{m}.Slots")));
+            // §2023:14.6.11 7): the run unit's end answers an unanswered message with spaces of identifier-1's size, and an area with no allocated maximum has the
+            // size the store just recreated it to (its dynamic tables at the message's occurrences, raised to each FROM minimum), which only its current image states.
+            if (unbounded)
+                w.Line(RuntimeApi.AsyncReceived($"{m}.Tag", $"{OperandText.RecordAreaImage(n.Into, transfer: true)}.Length") + ";");
         }
         using (w.Block($"if ({m}.Length is {{ }} {m}len)"))
             arith.StoreArith(n.Length, new NumX($"{m}len", 0), CobolRounding.Truncation);   // GR3 - "the length ... of the message received"
@@ -103,14 +110,16 @@ internal sealed class MessagingEmitter(EmitContext ctx, NumericRenderer num, EcS
             string image = place.Item.IsGroup && !place.ImageCapable && place.TransferImageCapable
                 ? OperandText.AsStorageImage(place, "SEND FROM", transfer: true)
                 : OperandText.RecordAreaImage(place, transfer: true);   // a variable-length group holding a tag: its one-way current-extent image
-            string slots = HoldsTags(place) ? RuntimeApi.AsyncTagsOf(PlaceRenderer.GroupLeaves(place)) : "[]";
+            string slots = HoldsTags(place) ? RuntimeApi.AsyncTagsOf(PlaceRenderer.GroupLeaves(place))
+                : SlotWindow.CarriedBySlot(place.Item) ? $"new object?[] {{ {PlaceRenderer.Read(place)} }}"   // an elementary tag: its 8 token positions, the tag beside them
+                : "[]";
             return (image, OperandText.RecordAreaExtents(place, transfer: true) ?? "null", slots);
         }
         return (OperandText.AsTransferString(from, num, "SEND FROM"), "null", "[]");
     }
 
     /// <summary>Does the message area hold message tags - a group with a message-tag member (SEND SR3 and RECEIVE SR2 leave no other slot class in it)? An elementary tag is
-    /// no case: it has no positions, so its SEND and RECEIVE are the length conditions of GR1 and GR3.</summary>
+    /// the other case, its own one slot (<see cref="SentMessage"/> and the RECEIVE's slot-carried store).</summary>
     private static bool HoldsTags(Place area) => area.Item.IsGroup && SlotWindow.MembersOf(area.Item).Any();
 
     private static string Checking(IProfiledStatement n) => CsLiteral(n.CheckingProfile.Encoded);

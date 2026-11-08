@@ -883,13 +883,17 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     /// through. The seed occurrence is handed in so a group element keeps the arrays its initializer
     /// allocated. <c>sending: false</c> for the same reason the two <c>FromImage</c> sites below use it
     /// (kb/Work PB230): this is the RECEIVING side of a group decode — the program-visible sending
-    /// reference was the write that produced the image, not this redistribution of it into members.</summary>
+    /// reference was the write that produced the image, not this redistribution of it into members.
+    /// <para>A group element that holds message tags distributes through its <c>FromMessageImage</c>, as a fixed member of the
+    /// variable-length group does (<see cref="EmitMemberFromImage"/> with <c>messageImage</c>): <c>FromVarImage</c> is the
+    /// message area's receiving half (kb/Work PB4744, review R3-1), whose tags travel beside the image as slots, so a tag's
+    /// token positions - the SENDING run unit's - are skipped.</para></summary>
     private static string TableElementFromImage(DataItem d)
     {
         // A NATIONAL element's image is its UTF-16BE byte pairs (DynElementImage): decode them back to its characters first,
         // then to the carrier (the inverse composition of AsImageOf's, design D-N7; kb/Work PB3441).
         string x = d.ImageUnit > 1 ? RuntimeApi.NatFromStorage("__x") : "__x";
-        return d.IsGroup ? "(__e, __x) => { __e.FromImage(__x); return __e; }"
+        return d.IsGroup ? $"(__e, __x) => {{ __e.{(d.HoldsOnlyMessageTagSlots ? "FromMessageImage" : "FromImage")}(__x); return __e; }}"
             : BitLayout.IsBitLeaf(d) ? $"(__e, __x) => {RuntimeApi.BitsUnpack("__x", $"{d.Pic!.Length}")}"
             : !d.StoreAsImage && d.Pic is { HasImageByteForm: true }
                 ? (d.Pic.IsFloat

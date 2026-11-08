@@ -64,9 +64,13 @@ public static class AsyncMessaging
         Outcome(RunUnit.Current.Messaging.SendResponse(to, new MessageBody(image, extents, slots), raisingLast ? LastExceptionName() : raising), checking);
 
     /// <summary>The capacity of a message area that holds an OCCURS DYNAMIC table: it has no allocated maximum (§2023:8.5.1.9.1 - the number of occurrences is the implementor's
-    /// maximum), and a RECEIVE recreates the table to the message, so no message is too long for it (kb/Work PB4744). The temporary the run unit's end answers an unreceived
-    /// message with is then empty: the area's size at that point is no value the protocol holds.</summary>
+    /// maximum), and a RECEIVE recreates the table to the message, so no message is too long for it (kb/Work PB4744). The size the area then took, which the run unit's end
+    /// answers an unanswered message with (§2023:14.6.11 7)), is stated by the program after its store (<see cref="Received"/>).</summary>
     public const int UnboundedCapacity = int.MaxValue;
+
+    /// <summary>After a successful RECEIVE into an area of <see cref="UnboundedCapacity"/> has stored the message: the area is <paramref name="size"/> character positions, the
+    /// temporary's size an implicit SEND at the run unit's end uses for the message <paramref name="tag"/> names (ISO §2023:14.6.11 7), §2023:14.6.12).</summary>
+    public static void Received(MessageTag tag, int size) => RunUnit.Current.Messaging.Received(tag, size);
 
     /// <summary>RECEIVE (§2023:14.9.31.4): <paramref name="capacity"/> is identifier-1's maximum length in character positions, or <see cref="UnboundedCapacity"/>.</summary>
     public static MessageOutcome Receive(MessageTag from, int capacity, MessageWait wait, string checking) =>
@@ -108,6 +112,11 @@ public static class AsyncMessaging
 
         static bool MayHoldTags(Type element) => element == typeof(MessageTag) || element == typeof(object) || element.IsArray;
     }
+
+    /// <summary>The content of an ELEMENTARY message tag a message was received into: the message's first slot, the tag an elementary identifier-1 of the SEND carried beside
+    /// its 8 token positions (DOC-A.1-212), or <see cref="MessageTag.Null"/> when the message carried none (§2023:14.9.31.4 GR1 b) - "the content of identifier-1 is the
+    /// content of the message"; a tag is never made of positions, as <see cref="WithTags"/> says).</summary>
+    public static MessageTag TagOf(object?[]? slots) => slots is [MessageTag tag, ..] ? tag : MessageTag.Null;
 
     private static string? LastExceptionName() =>
         ExceptionState.LastName is { } name && name != ExceptionState.ObjectSentinel ? name : null;   // an exception OBJECT has no name to send (GR8: none raised sends none)

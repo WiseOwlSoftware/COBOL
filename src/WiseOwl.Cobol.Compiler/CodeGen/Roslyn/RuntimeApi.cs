@@ -432,6 +432,12 @@ internal static class RuntimeApi
     public static string AsyncReceive(string from, string capacity, string wait, string checking) =>
         $"{nameof(AsyncMessaging)}.{nameof(AsyncMessaging.Receive)}({from}, {capacity}, {wait}, {checking})";
 
+    /// <summary>An elementary message tag's content from a received message's slots (<c>AsyncMessaging.TagOf</c>).</summary>
+    public static string AsyncTagOf(string slots) => $"{nameof(AsyncMessaging)}.{nameof(AsyncMessaging.TagOf)}({slots})";
+
+    /// <summary>The size an unbounded RECEIVE's area took after its store (<c>AsyncMessaging.Received</c>; §2023:14.6.11 7)).</summary>
+    public static string AsyncReceived(string tag, string size) => $"{nameof(AsyncMessaging)}.{nameof(AsyncMessaging.Received)}({tag}, {size})";
+
     /// <summary>A RECEIVE's wait, spelled so a rename of the kinds breaks here.</summary>
     public static string MessageWaitOf(MessageWaitKind kind, string seconds = "0") =>
         $"new {nameof(MessageWait)}({nameof(MessageWaitKind)}.{kind}, {seconds})";

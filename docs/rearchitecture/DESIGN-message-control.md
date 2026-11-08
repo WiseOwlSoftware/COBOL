@@ -400,22 +400,24 @@ outcome back through the ordinary channels:
   (`SlotWindow.MembersOf`).
 - SR3 and RECEIVE SR2 refuse POINTER, FUNCTION-POINTER, PROGRAM-POINTER and OBJECT-REFERENCE in identifier-1 and its
   subordinates at compile time, so the only slot-carried leaf a message holds is a message tag. **Correction (PB4744): the category is NOT admitted to
-  `DataItem.ElementImageCapable`.** The equality and group-MOVE consumers of the image read that capability, and the placeholder image (eight spaces per tag)
-  is not injective, so a group holding a tag keeps the one-way transfer image an object reference's group has (DISPLAY, MOVE sender, the `BYTE-LENGTH` of 8
-  positions per tag). The message needs the receiving half only, so a separate pair carries it: a group whose only managed slots are message tags
-  (`GroupImageCodec.HoldsOnlyMessageTagSlots`) gets a generated `FromMessageImage` beside its one-way `AsImage` - the `FromImage` distribution with every tag's
-  placeholder positions skipped (a nested struct that holds tags calls its own `FromMessageImage`) - which `PlaceRenderer.WriteMessageGroupImage` calls. The tags
+  `DataItem.ElementImageCapable`.** The equality and group-MOVE consumers of the image read that capability, so a group holding a tag keeps the one-way image
+  for them (DISPLAY, MOVE sender, the `BYTE-LENGTH` of 8 positions per tag), whose 8 positions per tag hold the tag's TOKEN (kb/Work PB4838; DOC-A.1-212). A token
+  names a tag of the run unit that wrote it: a file record read back in that run unit decodes it (`FromImage`, `DataItem.ElementRecordImageCapable`), but a message
+  crosses run units, so it never does. The message needs the receiving half only, and a separate method carries it: a group whose only managed slots are message tags
+  (`DataItem.HoldsOnlyMessageTagSlots`) gets a generated `FromMessageImage` beside `AsImage` - the `FromImage` distribution with every tag's
+  token positions skipped (a nested struct that holds tags, and a dynamic-capacity table's element that does, calls its own `FromMessageImage`) - which `PlaceRenderer.WriteMessageGroupImage` calls. The tags
   travel as the message's slots in storage order: `AsyncMessaging.TagsOf(<leaf vector>)` flattens the group's `AsLeaves` vector on SEND (a table is an array of its
   occurrences and a nested group a nested vector, so the inner OCCURS levels fall out of the walk the vector already is; a storage-cell group's vector comes from
   `PlaceRenderer.GroupLeaves` over `PlaceCursor`), and on RECEIVE `AsyncMessaging.WithTags(<leaf vector>, slots)` rebuilds the vector with the message's tags in place of
   the area's and `PlaceRenderer.WriteGroupLeaves` stores it back after the image. A tag the message did not carry (the receiving group holds more) is NULL. A
   VARIABLE-LENGTH group (an OCCURS DYNAMIC table) that holds a tag is a message area too: its SEND image is the current-extent image and its receiving half is the
-  contiguous decomposition (`FromContiguousImage` to `FromVarImage`), whose fixed-part distribution skips a tag's placeholder positions (`GroupImageCodec.EmitVarImageMethods`,
-  `EmitMemberFromImage(messageImage: true)`; the gate is `DataItem.CurrentExtentMessageImageCapable`); the tags travel as slots over the same `AsLeaves` vector, a dynamic table's occurrences included.
-  An area that holds an OCCURS DYNAMIC table has no allocated maximum (§2023:8.5.1.9.1), so its RECEIVE capacity is `AsyncMessaging.UnboundedCapacity` and the run unit's end answers an unreceived
-  message with an empty temporary. An identifier-1
-  that is a single elementary message tag has the image `""` (`RecordAreaImage`'s slot-carried arm), zero character
-  positions, so its SEND is EC-MCS-MESSAGE-LENGTH under GR1 and a RECEIVE into it takes any message as too long (GR3).
+  contiguous decomposition (`FromContiguousImage` to `FromVarImage`), whose fixed-part distribution skips a tag's token positions (`GroupImageCodec.EmitVarImageMethods`,
+  `EmitMemberFromImage(messageImage: true)`, and a dynamic table's elements through `TableElementFromImage`; the gate is `DataItem.CurrentExtentMessageImageCapable`); the tags travel as slots over the same `AsLeaves` vector, a dynamic table's occurrences included.
+  An area that holds an OCCURS DYNAMIC table has no allocated maximum (§2023:8.5.1.9.1), so its RECEIVE capacity is `AsyncMessaging.UnboundedCapacity`, and after the store
+  the program states the size the area took (`AsyncMessaging.Received`, the length of its current-extent image: the store recreated its tables to the message, each raised
+  to its FROM minimum, §2023:14.6.9.2), which the run unit's end answers an unanswered message with (§2023:14.6.11 7)). An identifier-1
+  that is a single elementary message tag is its 8 token positions (`RecordAreaImage`'s slot-carried arm), so GR1's "shall not be zero" holds; its content, the tag,
+  travels as the message's one slot, and a RECEIVE into an elementary tag (capacity 8) takes it back from the slot (`AsyncMessaging.TagOf`), NULL when the message carried none.
 - RECEIVE stores the message by the receiving inverse a READ uses, arm for arm. An identifier-1 that is a
   variable-length group decomposes the image by the received extent table through
   `PlaceRenderer.WriteVarGroupContiguous` (the group arm of `SequentialIoEmitter.EmitOutOfLineInto`), which honours the

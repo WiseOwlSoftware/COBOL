@@ -615,13 +615,25 @@ internal sealed class MessagingProtocol
         receive.Claim = null;
         string requestor = offer.Link.RequestorRunId!;
         _actions.Add(new Write(offer.Link.Id, new AckFrame(offer.Serial)));
-        _active[(requestor, offer.Serial)] = receive.Capacity == AsyncMessaging.UnboundedCapacity ? 0 : receive.Capacity;   // the temporary of ISO §2023:14.6.11 item 7
+        // The temporary of ISO §2023:14.6.11 7): identifier-1's size. An area with no allocated maximum is recreated by the store that follows, so its program
+        // states the size it took (Received); until then the message's own length stands.
+        _active[(requestor, offer.Serial)] = receive.Capacity == AsyncMessaging.UnboundedCapacity ? message.Image.Length : receive.Capacity;
         var tag = new MessageTag(_mcs, MessageParty.Requestor, requestor, offer.Serial);
         bool tooLong = message.Image.Length > receive.Capacity;
         var body = message.Truncated(receive.Capacity);
         CompleteReceive(receive, tooLong
             ? new StatementResult(ExceptionCatalog.McsMessageLength, tag, body.Image, body.Extents, body.Slots, null)
             : new StatementResult(null, tag, body.Image, body.Extents, body.Slots, body.Image.Length));
+    }
+
+    /// <summary>A RECEIVE into an area with no allocated maximum (<see cref="AsyncMessaging.UnboundedCapacity"/>) stored the message and the area is now
+    /// <paramref name="size"/> characters: the size of "the receiving data item in the associated RECEIVE statement" that the run unit's end answers the message
+    /// with (ISO §2023:14.6.11 7)), which only the program knows, because the store recreated the area's dynamic tables to the message (§2023:14.6.9.2's
+    /// minimum-capacity fill can make it longer than the message). A tag of no active message is ignored: the RECEIVE was unsuccessful or already answered.</summary>
+    internal void Received(MessageTag tag, int size)
+    {
+        if (tag.Party == MessageParty.Requestor && tag.Name is { } requestor && _active.ContainsKey((requestor, tag.Message)))
+            _active[(requestor, tag.Message)] = size;
     }
 
     private void EndIn(InLink link, bool closeIt)

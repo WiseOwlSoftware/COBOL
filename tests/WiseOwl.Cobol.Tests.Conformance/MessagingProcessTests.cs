@@ -170,6 +170,45 @@ public sealed class MessagingProcessTests : IDisposable
     }
 
     [Fact]
+    public void AServerEndingWithoutReplyingToAnAreaWithNoAllocatedMaximum_AnswersSpacesOfTheSizeTheAreaTook()
+    {
+        // §2023:14.6.11 item 7 names the temporary's size, "the size of the receiving data item in the associated RECEIVE statement" (review R3-2 of PB4744). The server's
+        // area holds an OCCURS DYNAMIC table FROM 3, so its RECEIVE recreates the table to the message's one occurrence raised to the minimum of 3 (§2023:14.6.9.2): the
+        // area is 3 + 3 = 6 positions after a 4-position message, and the implicit SEND answers 6 spaces - neither the message's 4 nor an empty reply.
+        const string server = """
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB4744S7.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 RT        USAGE MESSAGE-TAG.
+       01 LEN       PIC 9(4).
+       01 SV.
+          05 SA PIC X(3).
+          05 SE PIC X OCCURS DYNAMIC FROM 3 TO 9.
+       PROCEDURE DIVISION.
+       MAIN-P.
+           DISPLAY "READY"
+           RECEIVE RT GIVING SV LEN
+               ON EXCEPTION DISPLAY "SRV EXC " FUNCTION TRIM(FUNCTION EXCEPTION-STATUS)
+           END-RECEIVE
+           DISPLAY "SRV GOT " SA "/" LEN "/" FUNCTION LENGTH(SV)
+           STOP RUN.
+""";
+        Compile("PB4744S7", server);
+        Compile("PB4744C7", Requestor("PB4744C7", turn: "       >>TURN EC-MCS-NORMAL-TERMINATION CHECKING ON").Replace("VALUE \"HELLO\"", "VALUE \"HELL\"").Replace("PIC X(8)", "PIC X(4)"));
+        var srv = Start("PB4744S7", serves: "SRV");
+        Assert.Equal("READY", srv.ExpectLine());
+        var client = Start("PB4744C7");
+        Assert.Equal("SENT", client.ExpectLine());
+        Assert.Equal("SRV GOT HEL/0004/000000006", srv.ExpectLine());
+        Assert.Equal(0, srv.WaitForExit());
+        client.Send("go");
+        Assert.Equal("CLI EXC EC-MCS-NORMAL-TERMINATION", client.ExpectLine());
+        Assert.Equal("CLI GOT             /0006", client.ExpectLine());
+        Assert.Equal(0, client.WaitForExit());
+    }
+
+    [Fact]
     public void AMessageLongerThanIdentifier1_IsTakenAndEcMcsMessageLength_AndTheServerCanStillAnswerIt()
     {
         // §2023:14.9.31.4 GR3: a length exceeding identifier-1's "is set to exist and the execution of the RECEIVE statement is unsuccessful" (Q7: the message is taken, identifier-1
@@ -352,7 +391,7 @@ public sealed class MessagingProcessTests : IDisposable
     public void AVariableLengthGroupHoldingAMessageTag_CarriesItsTagBesideItsCurrentImage()
     {
         // §2023:14.9.38.3 SR3 and §2023:14.9.31.3 SR2 list neither OCCURS DYNAMIC nor the message tag, so a variable-length group that holds a tag is a legal message area:
-        // the message is its current-extent image (§2023:14.9.38.4 GR4), 3 + 8 (the tag's placeholder positions) + 2 elements, and the tag arrives beside it as a slot.
+        // the message is its current-extent image (§2023:14.9.38.4 GR4), 3 + 8 (the tag's token positions, which the receiver skips) + 2 elements, and the tag arrives beside it as a slot.
         string client = $"""
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB4744C6.
@@ -405,6 +444,136 @@ public sealed class MessagingProcessTests : IDisposable
         Assert.Equal("SENT", cli.ExpectLine());
         Assert.Equal("VA=ABC LEN=0013", srv.ExpectLine());
         Assert.Equal("VT SET", srv.ExpectLine());
+        Assert.Equal(0, cli.WaitForExit());
+        int srvExit = srv.WaitForExit(); Assert.True(srvExit == 0, srv.Stderr);
+    }
+
+    [Fact]
+    public void AnElementaryMessageTag_IsAnEightPositionMessage_WhoseTagTravelsAsItsSlot()
+    {
+        // An elementary message tag has 8 character positions (DOC-A.1-212; kb/Work PB4838 gave them the tag's token), so §2023:14.9.38.4 GR1's "shall not be zero" holds
+        // and the message is 8 positions long (§2023:14.9.31.4 GR3); its content, the tag, travels beside the token as the message's one slot, as a tag inside a group does,
+        // because the token names a tag of the sending run unit. The receiving tag is set; a tag of 8 positions receives a message of 8.
+        const string client = """
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB4744C9.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 MT        USAGE MESSAGE-TAG.
+       01 MT2       USAGE MESSAGE-TAG.
+       01 REQ       PIC X(8) VALUE "FIRST".
+       PROCEDURE DIVISION.
+       MAIN-P.
+           SEND TO "srv" FROM REQ RETURNING MT
+               ON EXCEPTION DISPLAY "CLI SEND-EXC " FUNCTION TRIM(FUNCTION EXCEPTION-STATUS)
+           END-SEND
+           SEND TO "srv" FROM MT RETURNING MT2
+               ON EXCEPTION DISPLAY "CLI SEND2-EXC " FUNCTION TRIM(FUNCTION EXCEPTION-STATUS)
+           END-SEND
+           DISPLAY "SENT"
+           STOP RUN.
+""";
+        const string server = """
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB4744S9.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 RT        USAGE MESSAGE-TAG.
+       01 T2        USAGE MESSAGE-TAG.
+       01 BUF       PIC X(8).
+       01 LEN       PIC 9(4).
+       PROCEDURE DIVISION.
+       MAIN-P.
+           DISPLAY "READY"
+           RECEIVE RT GIVING BUF LEN
+           RECEIVE RT GIVING T2 LEN
+               ON EXCEPTION DISPLAY "SRV EXC " FUNCTION TRIM(FUNCTION EXCEPTION-STATUS)
+           END-RECEIVE
+           DISPLAY "LEN=" LEN
+           IF T2 = NULL DISPLAY "T2 NULL" ELSE DISPLAY "T2 SET" END-IF
+           STOP RUN.
+""";
+        Compile("PB4744S9", server);
+        Compile("PB4744C9", client);
+        var srv = Start("PB4744S9", serves: "SRV");
+        Assert.Equal("READY", srv.ExpectLine());
+        var cli = Start("PB4744C9");
+        Assert.Equal("SENT", cli.ExpectLine());
+        Assert.Equal("LEN=0008", srv.ExpectLine());
+        Assert.Equal("T2 SET", srv.ExpectLine());
+        Assert.Equal(0, cli.WaitForExit());
+        int srvExit = srv.WaitForExit(); Assert.True(srvExit == 0, srv.Stderr);
+    }
+
+    [Fact]
+    public void ADynamicTableWhoseElementsHoldMessageTags_CarriesEachTagBesideItsElement()
+    {
+        // Review R3-1 of PB4744: §2023:14.9.38.3 SR3 and §2023:14.9.31.3 SR2 list neither OCCURS DYNAMIC nor the message tag, so a tag in an ELEMENT of a dynamic-capacity
+        // table is a legal message area too. The message is the current-extent image, 3 + 2 elements of (8 + 1) = 21 positions; each element is recreated by its own
+        // FromMessageImage (a tag's token positions name the sender's tag and are skipped), and the tags arrive beside the image in storage order: element 1's NULL, element 2's set.
+        const string type = """
+       01 TD IS TYPEDEF STRONG.
+          05 DA PIC X(3).
+          05 DL OCCURS DYNAMIC FROM 1 TO 4.
+             10 DT USAGE MESSAGE-TAG.
+             10 DX PIC X.
+""";
+        string client = $"""
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB4744C8.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 MT        USAGE MESSAGE-TAG.
+       01 MT2       USAGE MESSAGE-TAG.
+       01 REQ       PIC X(8) VALUE "FIRST".
+{type}
+       01 G1 TYPE TD.
+       PROCEDURE DIVISION.
+       MAIN-P.
+           SEND TO "srv" FROM REQ RETURNING MT
+               ON EXCEPTION DISPLAY "CLI SEND-EXC " FUNCTION TRIM(FUNCTION EXCEPTION-STATUS)
+           END-SEND
+           MOVE "ABC" TO DA OF G1
+           MOVE "P" TO DX OF G1 (1)
+           MOVE "Q" TO DX OF G1 (2)
+           SET DT OF G1 (2) TO MT
+           SEND TO "srv" FROM G1 RETURNING MT2
+               ON EXCEPTION DISPLAY "CLI SEND2-EXC " FUNCTION TRIM(FUNCTION EXCEPTION-STATUS)
+           END-SEND
+           DISPLAY "SENT"
+           STOP RUN.
+""";
+        string server = $"""
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB4744S8.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 RT        USAGE MESSAGE-TAG.
+       01 BUF       PIC X(8).
+       01 LEN       PIC 9(4).
+{type}
+       01 G2 TYPE TD.
+       PROCEDURE DIVISION.
+       MAIN-P.
+           DISPLAY "READY"
+           RECEIVE RT GIVING BUF LEN
+           RECEIVE RT GIVING G2 LEN
+               ON EXCEPTION DISPLAY "SRV EXC " FUNCTION TRIM(FUNCTION EXCEPTION-STATUS)
+           END-RECEIVE
+           DISPLAY "DA=" DA OF G2 " DX=" DX OF G2 (1) DX OF G2 (2) " LEN=" LEN
+           IF DT OF G2 (1) = NULL DISPLAY "DT1 NULL" ELSE DISPLAY "DT1 SET" END-IF
+           IF DT OF G2 (2) = NULL DISPLAY "DT2 NULL" ELSE DISPLAY "DT2 SET" END-IF
+           STOP RUN.
+""";
+        Compile("PB4744S8", server);
+        Compile("PB4744C8", client);
+        var srv = Start("PB4744S8", serves: "SRV");
+        Assert.Equal("READY", srv.ExpectLine());
+        var cli = Start("PB4744C8");
+        Assert.Equal("SENT", cli.ExpectLine());
+        Assert.Equal("DA=ABC DX=PQ LEN=0021", srv.ExpectLine());
+        Assert.Equal("DT1 NULL", srv.ExpectLine());
+        Assert.Equal("DT2 SET", srv.ExpectLine());
         Assert.Equal(0, cli.WaitForExit());
         int srvExit = srv.WaitForExit(); Assert.True(srvExit == 0, srv.Stderr);
     }
