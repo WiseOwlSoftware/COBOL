@@ -43,3 +43,8 @@ permission stated, no person named; 2002 prints no acknowledgment) and the 2002 
 `sweep_figures`, `specs/ISO_COBOL_2002.md` is assembled: 882 pages, 450 general formats all drawn, PUBLISHABLE, LINT
 CLEAN, `sweep_figures --edition 2002 --check` clean with 439 of 445 located figures byte-identical, and `cite.py` resolves
 `§2002:` citations against it. The page-by-page reconciliation and the refuter pass over the figures remain, in PB4813.
+The 2023 figure moves re-digested four rule-catalog rows (verdicts unchanged), and the citation audit, which now measures
+2002 citations against the 2002 text, caught its own planted twin citing a 2002 clause the edition lacks (now
+`§2002:14.8.12.2 SR6`). Three gates were RED on audits (the stale catalog, that citation, a comment that spelled the
+General format heading beside a `re.compile`); the fourth: `BUILD-LOCAL GATE: GREEN — Conformance 22,656/22,656 · Unit
+40,494/40,494 · Characterization 37/37` (run 000005-20261108T110430Z).
