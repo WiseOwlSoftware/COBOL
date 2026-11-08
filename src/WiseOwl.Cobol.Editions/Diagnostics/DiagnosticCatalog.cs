@@ -5788,7 +5788,8 @@ public static class DiagnosticCatalog
         + "dynamic-capacity register (Format 14) or a dynamic-length elementary item (Format 16). Mixing kinds, "
         + "or writing a kind the direction admits nowhere (an integer data item under UP/DOWN BY — Format 2's "
         + "receiving operand is index-name-3), leaves the statement with no format. Write one statement per "
-        + "receiving kind. ⚠ The diagnostic does not depend on which operand is written first: that asymmetry "
+        + "receiving kind. At --std 85 the message names only Formats 1 and 2 and cites ISO §1985:VI.6.23.2, the "
+        + "formats that edition prints. ⚠ The diagnostic does not depend on which operand is written first: that asymmetry "
         + "was the defect it replaces.",
         "ISO §2023:14.9.39.2 / §2023:14.9.39.3 SR1, SR8, SR17, SR20, SR21, SR23, SR29, SR33");
 
