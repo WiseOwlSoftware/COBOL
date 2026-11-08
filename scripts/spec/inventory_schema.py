@@ -42,6 +42,7 @@ from collections.abc import Iterable, Mapping
 from typing import Any, NamedTuple
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
+import git_batch  # noqa: E402  (scripts/: one git process for many objects)
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
 SCHEMA_REL = "tests/version-matrix/inventory-schema.json"
@@ -91,6 +92,17 @@ class Tree:
     def json(self, rel: str) -> Any:
         text = self.text(rel)
         return None if text is None else json.loads(text)
+
+    def read_ahead(self, rels: Iterable[str]) -> Tree:
+        """This commit with the files `rels` read in one batch (`git_batch`): every file a reader will ask for, so a
+        partial clone (CI's `filter: blob:none`) fetches the commit's missing blobs in ONE request, not one per file (the
+        merge-queue bounce of kb/Work PB4992). A working tree reads its files directly and is returned as it is."""
+        if self.rev is None:
+            return self
+        rels = list(dict.fromkeys(rels))
+        ids = git_batch.object_ids(self.root, [f"{self.rev}:{rel}" for rel in rels])
+        data = dict(git_batch.blobs(self.root, [i for i in ids if i]))
+        return Tree(self.root, self.rev, {rel: data[i].decode("utf-8") for rel, i in zip(rels, ids) if i})
 
 
 WORKING_TREE = Tree()

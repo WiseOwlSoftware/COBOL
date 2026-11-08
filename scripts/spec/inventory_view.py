@@ -46,8 +46,8 @@ from typing import Any, NamedTuple
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import lineage  # noqa: E402  (an older edition's change record and its state)
-from inventory_schema import (HELD, NEWEST, REGISTER_EXTRACT_REL, REPO, WORKING_TREE, Edition, Schema,  # noqa: E402
-                              Tree, edition, load_schema)
+from inventory_schema import (HELD, NEWEST, REGISTER_EXTRACT_REL, REPO, SCHEMA_REL, WORKING_TREE, Edition,  # noqa: E402
+                              Schema, Tree, edition, load_schema)
 from inventory_store import STORE_KEYS, inventory_dir, read_store, store_at  # noqa: E402
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
@@ -216,6 +216,10 @@ def inventory_at(rev: str, year: int | None = None, repo: pathlib.Path = REPO) -
     if all("state" in r for r in records):      # a commit before PB4992: no record of the view's holds a state
         return spec_order(records)
     schema = load_schema(tree)
+    # Every other file the view reads at this commit, in ONE batch (a partial clone fetches them in one request).
+    tree = tree.read_ahead([SCHEMA_REL, REGISTER_EXTRACT_REL, *(e.catalog for e in schema.all_editions if e.held),
+                            *((schema.derivation.undefined_list,) if schema.derivation else ())])
+    schema = load_schema(tree)
     return _join_tree(_edition(schema, year), schema, tree, {r["rule-id"]: r for r in records}).rows
 
 
@@ -305,7 +309,6 @@ def markdown_opened(plant: str = "") -> list[str]:
 
 def self_test() -> int:
     from scratch_repo import ScratchRepo, scratch_dir  # noqa: PLC0415  (scripts/: the one scratch fixture)
-    from inventory_schema import SCHEMA_REL  # noqa: PLC0415
     from inventory_store import write_store  # noqa: PLC0415
     schema = load_schema()
     fails: list[str] = []
