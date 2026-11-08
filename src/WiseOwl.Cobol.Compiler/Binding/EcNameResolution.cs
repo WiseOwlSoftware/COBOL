@@ -28,8 +28,8 @@ internal static class EcNameResolution
     /// only level-3 is legal (the RAISE/RAISING contexts — checked BEFORE the introduction gate so the level
     /// error keeps priority for a level-2 name of a later family); COBOL0878 when the name's family postdates
     /// the targeted edition. Otherwise <see cref="Advise"/> decides: it carries the §2023:15.33 width advisory AND the
-    /// declined-facility postures (the EC-SCREEN / EC-VALIDATE refusals, the EC-MCS
-    /// accept-inert warning), and returns false when it refused.
+    /// declined-facility postures (the EC-SCREEN / EC-VALIDATE refusals)
+    /// and returns false when it refused.
     /// <para>⛔ <paramref name="level3"/> is the RAISING SITE, not a bool, because the rule it enforces has a
     /// DIFFERENT ordinal in each of the three statements that reach here (EXIT §2023:14.9.14.3 SR3 · GOBACK
     /// §2023:14.9.18.3 SR2 · RAISE §2023:14.9.29.3 SR1) and this one message prints it — see <see cref="EcRaiseSite"/>
@@ -113,25 +113,13 @@ internal static class EcNameResolution
     /// naming the construct) while the A.4.14 and A.4.3 families are refused under COBOL1710. The
     /// descriptor also carries whether <c>--permissive</c> moves the refusal, so the row is the only place
     /// a module's posture is written down.
-    /// <para>⛔ EC-MCS IS THE ACCEPT-INERT ROW (kb/Work PB374). Its names had the SAME zero-setting-site shape and
-    /// compiled in silence, but asynchronous messaging is Annex A.3 item 4, PROCESSOR-DEPENDENT, so its licence is
-    /// §2023:4.2.6 — "An implementation shall provide a warning mechanism at compile time to indicate use of
-    /// syntactically-detectable processor-dependent language elements not supported by that implementation" — and
-    /// not A.4.1's accept-only-when-claimed. Refusing the names would be the wrong posture, not a stricter one, and
-    /// an inert reading exists: the facility's own statements (SEND, RECEIVE) are accepted inert under the same
-    /// COBOL1578, so they set no EC-MCS condition, and a name that is accepted is still a correct operand of
-    /// &gt;&gt;TURN, a USE declarative, a WHEN phrase and RAISE — which raises it exactly as for any other level-3 name.
-    /// The row is the module's procedure-surface code, as EC-SCREEN's is.</para>
+    /// <para>EC-MCS WAS A ROW HERE UNTIL kb/Work PB4744 implemented the asynchronous messaging facility (Annex A.3 item 4, DESIGN-message-control.md): its names are
+    /// ordinary 2023 names now, raised by SEND and RECEIVE, so its row was DELETED rather than special-cased. Below 2023 a 2023 name is still COBOL0878
+    /// (<see cref="ExceptionNameRule.Window"/>).</para>
     /// <para>EC-LOCALE-* was in this table until kb/Work PB64 adopted the locale module whole, at which point its
     /// row was DELETED rather than special-cased — the table's other direction working correctly.</para></para></summary>
     private static readonly DeclinedEcFamily[] DeclinedEcFamilies =
     [
-        // Annex A.3 item 4 — "The asynchronous messaging facility is dependent on the capability of a processor to
-        // allow run units to communicate with each other"; its exception-names are the level-2 EC-MCS and the
-        // level-3 names under it (§2023:14.6.13.1.6 Table 13; Annex E.3.2 item 3 lists them as the facility's). The
-        // descriptor is a WARNING, so the name is accepted inert (kb/Work PB374).
-        new("EC-MCS", DiagnosticCatalog.McsFacilityUnsupported, "the asynchronous messaging facility",
-            "ISO Annex A.3 item 4; §2023:14.9.31 / §2023:14.9.38", "docs/CONFORMANCE.md §4 item 1"),
         // Annex A.4.2 item 10 — the EC-SCREEN conditions in the RAISING phrases of EXIT and GOBACK, the
         // RAISING phrase of the procedure division header, the USE statement, the WHEN phrase of PERFORM,
         // RAISE and the TURN directive. Covers the level-2 EC-SCREEN and all four level-3 names. Its
@@ -172,7 +160,7 @@ internal static class EcNameResolution
     /// <returns><see langword="false"/> when the name was REFUSED (a declined module whose row's descriptor
     /// <see cref="EditionContext.Refuses"/> it: EC-SCREEN always, EC-VALIDATE
     /// names unless the compile is <c>--permissive</c>) — every caller must treat that as an unresolved name. An
-    /// accepted row (EC-MCS, and the PermissiveInert rows under <c>--permissive</c>) is named and returns
+    /// accepted row (the PermissiveInert rows under <c>--permissive</c>) is named and returns
     /// <see langword="true"/>.</returns>
     public static bool Advise(EditionContext edition, EcInfo info, string where = "exception-name")
     {

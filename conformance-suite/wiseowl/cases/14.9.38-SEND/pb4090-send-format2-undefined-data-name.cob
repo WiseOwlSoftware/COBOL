@@ -12,8 +12,7 @@
       *> reference that uniquely identifies" the resource - NOSUCH-TAG identifies none.
       *>   cite.py: OK  14.9.38.3 4)  OK  14.9.38.3 2)  OK  14.9.38.2
       *> Before kb/Work PB4090 the TO operand was never resolved, in either format, so the name compiled.
-      *> SEND is the declined asynchronous messaging facility (COBOL1578, docs/CONFORMANCE.md section 4 item 1);
-      *> declining it declines its behaviour, not the identifiers its statements name (kb/Work PB3568).
+      *> SEND and RECEIVE are the asynchronous messaging facility (Annex A.3 item 4, docs/CONFORMANCE.md section 2): the statement binds, and every operand and syntax rule is asked at bind (kb/Work PB3568, PB4743).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB4090N4.
        DATA DIVISION.

@@ -694,18 +694,18 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         _ when s.communicationReceiveStatement() is { } crv => Communication.BindReceive(crv),
         _ when s.communicationSendStatement() is { } csn => Communication.BindSend(csn),
         _ when s.initializeStatement() is { } ini => Init.Bind(ini),
+        // ── The asynchronous messaging facility (ISO §2023:14.9.31 RECEIVE, §2023:14.9.38 SEND; DESIGN-message-control.md §4.3; kb/Work PB4744). It exists from 2023
+        //    (Constructs.AsyncMessaging2023): below that the statement binds to a no-op and the edition pass's COBOL0900 is the whole answer. ──
+        _ when s.messagingReceiveStatement() is { } rcv => BindIntroducedAt(Constructs.AsyncMessaging2023, () => Messaging.BindReceive(rcv)),
+        _ when s.messagingSendStatement() is { } snd => BindIntroducedAt(Constructs.AsyncMessaging2023, () => Messaging.BindSend(snd)),
         // ── Wave H — recognize-and-name the unsupported facilities. ISO §2023:4.2.6 ¶3 makes the compile-time
-        //    warning mechanism MANDATORY for the Annex A.3 halves (MCS, A.3 item 4; COMMIT/ROLLBACK, A.3 items
-        //    6-7); the A.4.14 VALIDATE statement is an OPTIONAL element §2023:4.2.7 requires us only to DOCUMENT,
-        //    and naming it is the choice docs/CONFORMANCE.md §4 item 3 records (kb/Work PB709). Each binds
+        //    warning mechanism MANDATORY for the Annex A.3 halves (COMMIT/ROLLBACK, A.3 items 6-7); the A.4.14
+        //    VALIDATE statement is an OPTIONAL element §2023:4.2.7 requires us only to DOCUMENT, and naming it is
+        //    the choice docs/CONFORMANCE.md §4 item 3 records (kb/Work PB709). Each binds
         //    to BoundNop: the program compiles, runs, and the facility is inert — never a silent wrong answer,
         //    and never an EC (licensed off by §2023:14.6.13.1.1). The statement's IDENTIFIERS are still read first
-        //    (VALIDATE by DeclinedFacilityBinder, kb/Work PB3568; SEND and RECEIVE by MessagingBinder, PB4743); BindDeclinedStatement says why below the statement's
-        //    introduction (VALIDATE 2002, RECEIVE / SEND 2023) it does neither. ──
-        _ when s.messagingReceiveStatement() is { } rcv => BindDeclinedStatement(Constructs.AsyncMessaging2023,
-            DiagnosticCatalog.McsFacilityUnsupported, r => _ = Messaging.BindReceive(r), rcv),
-        _ when s.messagingSendStatement() is { } snd => BindDeclinedStatement(Constructs.AsyncMessaging2023,
-            DiagnosticCatalog.McsFacilityUnsupported, sn => _ = Messaging.BindSend(sn), snd),
+        //    (VALIDATE by DeclinedFacilityBinder, kb/Work PB3568); BindDeclinedStatement says why below the statement's
+        //    introduction (VALIDATE 2002) it does neither. ──
         _ when s.commitFacilityStatement() is not null || s.rollbackFacilityStatement() is not null
             => BindCommitRollback(s.commitFacilityStatement() is not null),
         _ when s.validateFacilityStatement() is { } val => BindDeclinedStatement(Constructs.ValidateStatement2002,
@@ -833,8 +833,13 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         return new BoundNop();
     }
 
-    /// <summary>A statement of a DECLINED facility — the MCS RECEIVE and SEND (ISO §2023:14.9.31, §2023:14.9.38; COBOL1578) and
-    /// VALIDATE (§2023:14.9.50; COBOL1580). Each parses at EVERY edition (the union grammar, kb/Work PB374, PB3148), so below
+    /// <summary>A statement of a facility that exists from an edition on (<paramref name="construct"/>): bound by <paramref name="bind"/> where it exists, and below
+    /// that edition a no-op, because the statement parses at EVERY edition (the union grammar, kb/Work PB374, PB3148) and the edition pass's COBOL0900 is the whole
+    /// answer there, with no second diagnosis of operands the edition does not give a meaning.</summary>
+    private BoundStatement BindIntroducedAt(string construct, Func<BoundStatement> bind) =>
+        ConstructRegistry.IsAvailable(Ctx.Edition.Edition, construct) ? bind() : new BoundNop();
+
+    /// <summary>A statement of a DECLINED facility — VALIDATE (§2023:14.9.50; COBOL1580). It parses at EVERY edition (the union grammar, kb/Work PB374, PB3148), so below
     /// the edition that introduced it (<paramref name="construct"/>) the facility is not this edition's to decline: the
     /// edition pass's COBOL0900 is the whole answer there, and a facility warning beside it would name a later edition's
     /// facility to a program of an earlier one. Where the statement exists the facility is declined

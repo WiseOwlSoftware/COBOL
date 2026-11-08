@@ -268,7 +268,6 @@
     "COBOL1574",
     "COBOL1575",
     "COBOL1577",
-    "COBOL1578",
     "COBOL1580",
     "COBOL1581",
     "COBOL1582",
@@ -831,7 +830,10 @@
     "COBOL6334",
     "COBOL6335",
     "COBOL6442",
-    "COBOL6496"
+    "COBOL6496",
+    "COBOL6529",
+    "COBOL6530",
+    "COBOL6531"
   ],
   "cliOptions": [
     "--copy",

@@ -305,11 +305,6 @@ public sealed class DerivedVerdictDriftTests
             "Annex A.4.14 VALIDATE is Not claimed (CONFORMANCE.md §5, §4 item 3)");
 
     [Fact]
-    public void NoAsynchronousMessagingConditionedRow_Diverges() =>
-        AssertHeldAtTheDerivedVerdict("mcs-only",
-            "Annex A.3 item 4 asynchronous messaging is Not claimed (CONFORMANCE.md §2 row 4, §4 item 1; kb/Work R43)");
-
-    [Fact]
     public void NoUnprovidedFloatingPointFormatRow_Diverges() =>
         AssertHeldAtTheDerivedVerdict("float-formats-not-provided",
             "FLOAT-BINARY-128 and the standard decimal floating-point usages are not provided (CONFORMANCE.md §2 "
@@ -558,31 +553,6 @@ public sealed class DerivedVerdictDriftTests
         // dragged in the SUM clause and the procedure division header. Measured, not imagined.
         Assert.DoesNotContain("SR-13.18.54.3-1", ids);
         Assert.DoesNotContain("SR-14.2.2-1", ids);
-    }
-
-    [Fact]
-    public void TheMcsSelector_IsStillSharp()
-    {
-        var (ids, _) = Select("mcs-only");
-        Assert.InRange(ids.Count, 12, 40);   // 28 when it landed (kb/Work R43); slice S1 (PB4740) took the message-tag class out, slice S3 (PB4743) the formats and syntax rules: 14 remain
-        // Both statements' general rules: the exchange the compiler does not yet render.
-        foreach (string id in (string[])["GR-14.9.31.4-1", "GR-14.9.31.4-5", "GR-14.9.38.4-1", "GR-14.9.38.4-8"])
-            Assert.Contains(id, ids);
-        // ⛔ THE FORMATS AND SYNTAX RULES ARE BOUND AND SCREENED (kb/Work PB4743): adjudicated CONFORMS, so the selector must not hold them at
-        // DOCUMENTED-NON-SUPPORT. SR-14.9.38.3-2 names "a message server run unit" and is the row the text arm would still take.
-        foreach (string id in (string[])["FMT-14.9.31.2", "FMT-14.9.38.2", "SR-14.9.31.3-1", "SR-14.9.31.3-2", "SR-14.9.31.3-3",
-                                         "SR-14.9.38.3-1", "SR-14.9.38.3-2", "SR-14.9.38.3-3", "SR-14.9.38.3-4"])
-            Assert.DoesNotContain(id, ids);
-        // The message server protocol stated from elsewhere.
-        Assert.Contains("GR-14.6.11-7", ids);
-        // ⛔ THE MESSAGE-TAG TYPE IS IMPLEMENTED (kb/Work PB4740): its rows are adjudicated CONFORMS, so the selector must not hold them at
-        // DOCUMENTED-NON-SUPPORT. Message-tag inside an enumeration of classes constrains the others too, which are live.
-        foreach (string id in (string[])["GR-8.4.3.10.4-4", "GR-8.8.4.2.1-9", "DOC-A.1-212", "GR-13.18.60.4-9", "SR-14.9.39.3-35",
-                                         "SR-8.8.4.2.3-5", "GR-13.18.63.4-4", "SR-13.16.3-10", "SR-14.9.11.3-1"])
-            Assert.DoesNotContain(id, ids);
-        // A text arm never takes a general format: USAGE's and INITIALIZE's formats list MESSAGE-TAG among others.
-        Assert.DoesNotContain("FMT-13.18.60.2", ids);
-        Assert.DoesNotContain("FMT-14.9.20.2", ids);
     }
 
     [Fact]

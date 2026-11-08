@@ -136,14 +136,14 @@ public sealed class DeclinedFacilityOperandDriftTests
         }
     }
 
-    /// <summary>The declined statement rules are the ones the statement binder routes to a <c>BindDeclined…</c> method,
+    /// <summary>The facility statement rules are the ones the statement binder routes to a <c>BindDeclined…</c> method (VALIDATE) or binds from their introduction (<c>BindIntroducedAt</c>: SEND and RECEIVE, kb/Work PB4744),
     /// and the operands each gives <c>dataReference</c> match the roster — so a rule that grows an operand fails here
     /// until the binder reads it or the roster says why it cannot.</summary>
     [Fact]
     public void TheDeclinedStatementRules_AndTheirOperands_AreTheRoster()
     {
         string binderCode = CodeOf(StatementBinderPath);
-        var routed = Regex.Matches(binderCode, @"s\.(\w+)\(\) is \{ \} \w+ =>\s*BindDeclined\w+\(")
+        var routed = Regex.Matches(binderCode, @"s\.(\w+)\(\) is \{ \} \w+ =>\s*(?:BindDeclined\w+|BindIntroducedAt)\(")
             .Select(m => m.Groups[1].Value).OrderBy(x => x, StringComparer.Ordinal).ToList();
         Assert.Equal(Roster.Keys.OrderBy(x => x, StringComparer.Ordinal), routed);
 

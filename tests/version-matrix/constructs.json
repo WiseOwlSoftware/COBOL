@@ -126,7 +126,7 @@
   {
    "id": "async-messaging-2023",
    "status": "active",
-   "description": "The asynchronous messaging statements RECEIVE (ISO §2023:14.9.31) and SEND (§2023:14.9.38) — a COBOL-2023 introduction (Annex E.3.2 item 1). The facility is declined (Annex A.3 item 4; docs/CONFORMANCE.md §4 item 1): at 2023 each statement is accepted inert under COBOL1578. Both grammar arms are the UNION grammar, predicated only on the verb's spelling, because §2023:8.9 reserves RECEIVE and SEND at 85 (the '85 communication module) and again at 2023 with a user-word gap between; the VersionConformancePass parse arm (VisitMessagingReceiveStatement / VisitMessagingSendStatement) names the edition on RECOGNITION, so 85, 2002 and 2014 all answer COBOL0900 (kb/Work PB374: the reservation predicate had compiled the 2023 formats at --std 85 under a warning naming the 2023 facility). The SEND writes its END-SEND: §2023:14.9.38.2 prints it without brackets in both formats, so its omission is refused at 2023 (COBOL1850, kb/Work PB2024).",
+   "description": "The asynchronous messaging statements RECEIVE (ISO §2023:14.9.31) and SEND (§2023:14.9.38) — a COBOL-2023 introduction (Annex E.3.2 item 1). The facility is provided (Annex A.3 item 4; docs/CONFORMANCE.md §2 row 4, kb/Work PB4744): at 2023 each statement binds and exchanges messages between run units. Both grammar arms are the UNION grammar, predicated only on the verb's spelling, because §2023:8.9 reserves RECEIVE and SEND at 85 (the '85 communication module) and again at 2023 with a user-word gap between; the VersionConformancePass parse arm (VisitMessagingReceiveStatement / VisitMessagingSendStatement) names the edition on RECOGNITION, so 85, 2002 and 2014 all answer COBOL0900 (kb/Work PB374: the reservation predicate had compiled the 2023 formats at --std 85 under a warning naming the 2023 facility). The SEND writes its END-SEND: §2023:14.9.38.2 prints it without brackets in both formats, so its omission is refused at 2023 (COBOL1850, kb/Work PB2024).",
    "display": "RECEIVE/SEND (asynchronous messaging)",
    "diagnosticCode": "COBOL0900",
    "citation": "ISO §2023:14.9.31 / §2023:14.9.38 (asynchronous messaging; Annex E.3.2 item 1)",
@@ -1806,10 +1806,10 @@
   {
    "id": "national-data-2002",
    "status": "active",
-   "description": "National data (PICTURE symbol N / USAGE NATIONAL, ISO 8.5.2 category national / 13.18.40 / 13.18.60). LIVE, WHOLE: compiles at 2002+ (one UTF-16 char per national position, D-N1; MOVE Table 16 + 14.6.8.5 alignment + 8.8.4.2.9 ordinal comparison); below 2002 the introduction gate rejects (COBOL0900). All FIVE picture shapes 13.18.60.3 SR12 admits are live - national, national-edited, and the national-form boolean / numeric / numeric-edited, whose digits, sign and insertion characters are national character positions (13.18.40.4 GR1) serialized two bytes each (13.18.60.4 GR8, D-N1/D-N7). The byte-surface legs (REDEFINES / EXTERNAL-BASED-ADDRESS-OF cells / FD records) ride too.",
+   "description": "National data (PICTURE symbol N / USAGE NATIONAL, ISO 8.5.2.10 National category / 13.18.40 / 13.18.60). LIVE, WHOLE: compiles at 2002+ (one UTF-16 char per national position, D-N1; MOVE Table 16 + 14.6.8.5 alignment + 8.8.4.2.9 ordinal comparison); below 2002 the introduction gate rejects (COBOL0900). All FIVE picture shapes 13.18.60.3 SR12 admits are live - national, national-edited, and the national-form boolean / numeric / numeric-edited, whose digits, sign and insertion characters are national character positions (13.18.40.4 GR1) serialized two bytes each (13.18.60.4 GR8, D-N1/D-N7). The byte-surface legs (REDEFINES / EXTERNAL-BASED-ADDRESS-OF cells / FD records) ride too.",
    "display": "national data (PICTURE symbol N / USAGE NATIONAL)",
    "diagnosticCode": "COBOL0900",
-   "citation": "ISO §2023:8.5.2 category national / §2023:13.18.40 / §2023:13.18.60; §2023:13.18.60.3 SR12 (the five picture shapes)",
+   "citation": "ISO §2023:8.5.2.10 (National category) / §2023:13.18.40 / §2023:13.18.60; §2023:13.18.60.3 SR12 (the five picture shapes)",
    "introducedIn": 2002,
    "removedIn": null,
    "expectDiagnostic": "COBOL0900",
@@ -1832,10 +1832,10 @@
   {
    "id": "boolean-data-2002",
    "status": "active",
-   "description": "Boolean data (PICTURE symbol 1 / USAGE BIT, ISO 8.5.2 category boolean / 13.18.40 / 13.18.60). LIVE (Phase 4a track (a)): compiles at 2002+ (one alphanumeric '0'/'1' character per boolean position, the 13.18.40.4 GR14 R14 license, D-B1; MOVE zero-fill 14.6.8.6; equality-only relations 8.8.4.2.2); below 2002 the introduction gate rejects (COBOL0900). The B-AND/B-OR/B-XOR/B-NOT operator leg is track (a) increment 2.",
+   "description": "Boolean data (PICTURE symbol 1 / USAGE BIT, ISO 8.5.2.5 Boolean category / 13.18.40 / 13.18.60). LIVE (Phase 4a track (a)): compiles at 2002+ (one alphanumeric '0'/'1' character per boolean position, the 13.18.40.4 GR14 R14 license, D-B1; MOVE zero-fill 14.6.8.6; equality-only relations 8.8.4.2.2); below 2002 the introduction gate rejects (COBOL0900). The B-AND/B-OR/B-XOR/B-NOT operator leg is track (a) increment 2.",
    "display": "boolean data (PICTURE symbol 1 / USAGE BIT)",
    "diagnosticCode": "COBOL0900",
-   "citation": "ISO §2023:8.5.2 category boolean / §2023:13.18.40 / §2023:13.18.60; one '0'/'1' char per position; the boolean-operators leg is boolean-operators-2002",
+   "citation": "ISO §2023:8.5.2.5 (Boolean category) / §2023:13.18.40 / §2023:13.18.60; one '0'/'1' char per position; the boolean-operators leg is boolean-operators-2002",
    "introducedIn": 2002,
    "removedIn": null,
    "expectDiagnostic": "COBOL0900",
@@ -2690,7 +2690,7 @@
   },
   {
    "id": "rerun-removed-2002",
-   "description": "RERUN clause (I-O-CONTROL) - the '85 checkpoint hint (RERUN [ON file/implementor-name] EVERY {[END OF] REEL/UNIT OF f | n RECORDS [OF f] | n CLOCK-UNITS | condition-name}); no program-visible effect, parsed-and-ignored at 85 (a null rerun facility is conforming); deleted by ISO 2002 (absent from the whole 2023 text, 8.9 included).",
+   "description": "RERUN clause (I-O-CONTROL) - the '85 checkpoint hint (RERUN [ON file/implementor-name] EVERY {{[END OF] REEL/UNIT | n RECORDS} OF f | n CLOCK-UNITS | condition-name}); no program-visible effect, parsed-and-ignored at 85 (a null rerun facility is conforming) once its five syntax rules are screened (COBOL6529-COBOL6531, kb/Work PB4945); deleted by ISO 2002 (absent from the whole 2023 text, 8.9 included).",
    "display": "the RERUN clause (I-O-CONTROL)",
    "diagnosticCode": "COBOL0902",
    "citation": "obsolete '85 checkpoint hint deleted by ISO 2002 (absent from the whole 2023 text; §2023:8.9 absence); parsed-and-ignored at 85; VCR Table 7 row 7.15",
@@ -2698,7 +2698,7 @@
    "removedIn": 2002,
    "expectDiagnostic": "COBOL0902",
    "vcr": "VCR Table 7 row 7.15; the W3 notInGrammar 85-acceptance batch (DEVLOG 599)",
-   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMRR1.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F ASSIGN TO \"vmrr\" ORGANIZATION IS SEQUENTIAL.\nI-O-CONTROL.\n    RERUN ON F EVERY 10 RECORDS OF F.\nDATA DIVISION.\nFILE SECTION.\nFD F.\n01 R PIC X(10).\nPROCEDURE DIVISION.\nMAIN.\n    OPEN OUTPUT F.\n    MOVE \"CHECKPOINT\" TO R.\n    WRITE R.\n    CLOSE F.\n    STOP RUN.\n"
+   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMRR1.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F ASSIGN TO \"vmrr\" ORGANIZATION IS SEQUENTIAL.\nI-O-CONTROL.\n    RERUN ON SYSRR EVERY 10 RECORDS OF F.\nDATA DIVISION.\nFILE SECTION.\nFD F.\n01 R PIC X(10).\nPROCEDURE DIVISION.\nMAIN.\n    OPEN OUTPUT F.\n    MOVE \"CHECKPOINT\" TO R.\n    WRITE R.\n    CLOSE F.\n    STOP RUN.\n"
   },
   {
    "id": "enter-removed-2002",
