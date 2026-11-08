@@ -389,7 +389,11 @@ def conflict_brief(branch: str, worktree: str, files: list[str], *, git: Git, re
         subjects = git("log", "--format=%s", f"{base}..HEAD", cwd=worktree)
         own_ids = list(dict.fromkeys(own_ids + (NOTE_ID.findall(subjects.stdout) if subjects.returncode == 0 else [])))
         out += ["", f"## What {who} gained on each file since the merge base"]
-        log = git("log", "--no-merges", "--format=%x1e%H%x1f%s", "--name-only", f"{base}..{against}", "--", *files,
+        # ONE log of the range, filtered here to the conflicted files: a pathspec of every conflicted file made the
+        # command line as long as the conflict (763 files overflowed Windows' limit, WinError 206; kb/Work PB5002).
+        # `--no-renames`: without a pathspec git pairs a rename across the tree and names only the new path, so a
+        # conflicted file main renamed away would lose its commits (review w20261932b R1-1); each side is named instead.
+        log = git("log", "--no-merges", "--no-renames", "--format=%x1e%H%x1f%s", "--name-only", f"{base}..{against}",
                   cwd=worktree) if files else None
         changes: dict[str, list[str]] = {f: [] for f in files}
         if log is not None and log.returncode != 0:
@@ -397,12 +401,13 @@ def conflict_brief(branch: str, worktree: str, files: list[str], *, git: Git, re
         for chunk in (log.stdout.split(chr(30)) if log is not None and log.returncode == 0 else []):
             head, _, names = chunk.strip().partition(chr(10))
             sha, _, subject = head.partition(chr(31))
-            if not sha:
+            touched = [f for f in (n.strip() for n in names.splitlines()) if f in changes]   # a blank line ends the header
+            if not sha or not touched:
                 continue
             for i in NOTE_ID.findall(subject):
                 theirs.setdefault(i)
-            for f in filter(None, (n.strip() for n in names.splitlines())):   # a blank line ends the header
-                changes.setdefault(f, []).append(f"- {sha[:12]} {subject}")
+            for f in touched:
+                changes[f].append(f"- {sha[:12]} {subject}")
         for f, lines in changes.items():
             out += [f"### {f}", *(lines or ["- nothing since the merge base (the conflict is the branch's edit against "
                                             "an older one)"])]
@@ -2561,6 +2566,30 @@ def self_test() -> int:
         expect("conflict brief: the drivers' dry run names the file both sides edited, not the one only main added",
                merge_drivers.merge_conflicts(cbr.path, MAIN) == ["scripts/x.py"],
                str(merge_drivers.merge_conflicts(cbr.path, MAIN)))
+        brief_calls: list[tuple[str, ...]] = []
+
+        def counting_git(*args: str, cwd: str | None = None) -> Any:
+            brief_calls.append(args)
+            return fixture_git(*args, cwd=cwd)
+        many = ["scripts/x.py", *(f"tests/many/{n:04}.json" for n in range(2000))]
+        conflict_brief("wbrief", str(cbr.path), many, git=counting_git, reports=brief_reports)
+        expect("conflict brief: no git call's arguments grow with the conflicted files (763 files overflowed Windows' "
+               "command line, kb/Work PB5002)",
+               brief_calls and max(len(a) for a in brief_calls) < 20, str(max((len(a) for a in brief_calls), default=0)))
+        ren = ScratchRepo.init(root / "wt-brief-rename")
+        ren.commit("base", {"a.txt": "one\ntwo\nthree\nfour\n"})
+        ren_base = ren.git("rev-parse", "HEAD")
+        ren.commit("PB9003 main renames a to b", {"a.txt": None, "b.txt": "one\ntwo\nthree\nfour\n"})
+        ren.commit("PB9004 main rewrites b", {"b.txt": "five\n"})
+        ren.git("update-ref", MAIN, "HEAD")
+        ren.git("reset", "-q", "--hard", ren_base)
+        ren.commit("WIP checkpoint: PB9005 the branch edits a", {"a.txt": "one\ntwo\nthree\nFOUR\n"})
+        renamed = conflict_brief("wren", str(ren.path), ["a.txt"], git=lambda *a, cwd=None: ren.run(*a, cwd=cwd),
+                                 reports=[])
+        ren_gained = next((s for s in renamed.split(chr(10) + "## ") if s.startswith("What main gained")), "")
+        expect("conflict brief: a conflicted file main renamed away keeps main's rename commit (review w20261932b R1-1: "
+               "without a pathspec git pairs the rename and names only the new path)",
+               "PB9003 main renames a to b" in ren_gained.split("### a.txt", 1)[-1], renamed)
         text = conflict_brief("wbrief", str(cbr.path), ["scripts/x.py"], git=fixture_git, reports=brief_reports)
         sections = text.split(chr(10) + "## ")
         gained = next((s for s in sections if s.startswith("What main gained")), "")
