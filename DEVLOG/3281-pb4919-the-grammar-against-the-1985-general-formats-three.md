@@ -1,4 +1,4 @@
-## PB4919: the grammar against the 1985 general formats: three clauses take their optional words, two 2002 relaxations are gated at 85
+## Entry 3281 — 2026-11-07 16:05 PST — PB4919: the grammar against the 1985 general formats: three clauses take their optional words, two 2002 relaxations are gated at 85
 
 kb/Work PB4919 asked for a decision on each of the 36 candidates that `audit_grammar_optional_words.py --edition 1985`
 reports over the 213 decided 1985 formats. Each was read from its rendered 1985 page and probed with a witness compiled
@@ -30,3 +30,4 @@ Goldens: `pb4919_memory_without_size_85`, `pb4919_rerun_optional_words_85`, `pb4
 (COBOL6496 at all four editions), `pb4919_use_debugging_without_for_85`, `pb4919-use-without-after-at-85` and
 `pb4919-set-condition-repeated-at-85`. No inventory row is closed: no 1985 row exists yet, and the 1985 audit (PB4886)
 creates them.
+
