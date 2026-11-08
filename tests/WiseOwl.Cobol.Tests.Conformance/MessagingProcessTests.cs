@@ -676,7 +676,7 @@ public sealed class MessagingProcessTests : IDisposable
     [Fact]
     public void AReceivingGroupInAStorageCell_TakesEachTagFromItsOwnPositions_NotFromTheSlotItHeldBefore()
     {
-        // kb/Work PB4957, the storage-cell arm of the same rule (§2023:14.9.31.4 GR1b: a by-reference formal is a storage cell whose tags live in its managed slots beside
+        // kb/Work PB4957, the storage-cell arm of the same rule (§2023:14.9.31.4 GR1b): a by-reference formal is a storage cell whose tags live in its managed slots beside
         // the bytes (kb/Work PB2087), so the image written through the group's window must still decide each tag: R1 held the requestor's tag before the RECEIVE, and the
         // message holds eight X"00" there, so it is NULL after it; R2's positions hold the sender's token, so it is the tag the message carried beside it.
         const string client = """
