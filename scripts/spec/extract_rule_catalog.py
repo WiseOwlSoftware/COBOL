@@ -187,8 +187,8 @@ INDENTED_ORDINAL = re.compile(r"^\s+(?P<n>\d+)\\?[.)]\s")
 # own, so there is nothing there to extract.
 #
 # ⛔ THE ONE KIND TABLE OF BOTH EDITIONS (kb/Work PB4886): the 1985 arm (rule_catalog_1985.py) types its headings with
-# this table too, its PICTURE "Editing Rules" and "Precedence Rules" being the same rules; a 1985 block of another name
-# is typed by its locator in rule_catalog_1985.BLOCK_KINDS, never by a second table.
+# this table too, its PICTURE "Editing Rules" and "Precedence Rules" being the same rules; a 1985 paragraph of another
+# name is typed by its row in UNHARVESTED_OF[1985] (spec-unharvested-rule-blocks-1985.json), never by a second table.
 KINDS = {
     "syntax rule": "SR",
     "general rule": "GR",
