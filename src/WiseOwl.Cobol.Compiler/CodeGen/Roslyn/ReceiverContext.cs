@@ -76,8 +76,7 @@ internal readonly record struct ReceiverContext(
         return new ReceiverContext(scale, pic is { IsFloat: true }, rounding, checks,
             pic is null ? 0 : Math.Max(0, pic.DigitPositions - scale), FloatEdited: pic is { IsFloatEdited: true },
             Single: pic is { IsFloat: true, IsSingle: true },
-            FloatSignificandDigits: pic is { IsFloatEdited: true, EditMask: { } mask }
-                ? CobolEdit.FloatMask.Parse(mask, pic.DecimalPointIsComma).SigDigits : 0);
+            FloatSignificandDigits: pic?.FloatSignificandDigits() ?? 0);
     }
 
     /// <summary>⛔ THE ONE RULE FOR "THE CONTEXT OF A SET OF RESULTANTS" (kb/Work PB2694): the context a statement with
