@@ -139,7 +139,7 @@ originally architected it"; kb/Work PB4992). Each fact has one home:
 
 | fact | its one home |
 |---|---|
-| the rule: id, citation, section or locator, kind, ordinal, subject, module, level, box, text, status (normal or obsolete, read from the text) | the edition's catalog (`extract_rule_catalog.py --edition`), regenerated from the text |
+| the rule: id, citation, section or locator, kind, ordinal, subject, module, level, box, text, status (normal, archaic or obsolete, read from the text's own lists) | the edition's catalog (`extract_rule_catalog.py --edition`), regenerated from the text |
 | the adjudication: verdict, code-location, test-ref, derivation, notes, and for an older edition the change record `next` (§10.2) | the edition's store, one file per adjudicated rule |
 | the text the adjudication was decided against | the store file's `rule-digest`, compared with the catalog's text on every read |
 | the state (OK or GAP) | nowhere: computed by the view, never stored |
@@ -849,21 +849,31 @@ is `record_verdicts.py --edition <older edition>`.
 **Deprecation is not a fourth kind.** The standard itself marks an element obsolete or archaic in an edition
 (§1985:I.1.5.2.3 requires a conforming implementation to support the obsolete elements of what it claims), so `status`
 is a fact of that edition's rule, read from its text into its catalog: KEPT into a row whose status is obsolete, then REMOVED at the next edition, is the
-deprecate-then-remove lifecycle. A catalog row's `status` is `normal`, or `obsolete: C.1(n)` naming the list entry (or
-entries) that make it so. The authority is the edition's own enumerated list (§1985:C.1, 18 entries), held once as data
-(`docs/rearchitecture/spec-obsolete-elements-1985.json`, `extract_rule_catalog.OBSOLETE_OF`): per entry its number, the
-terms that name the element in a rule, and the sections that specify it; the entry's name is the list's own text. The
-marking (`scripts/spec/obsolete_elements.py`) is decided per SECTION: an OWN section, whose heading names one of the
-entry's terms (THE ALTER STATEMENT, THE RERUN CLAUSE, the Debug and Segmentation modules), marks every rule; a SHARED
+deprecate-then-remove lifecycle. A catalog row's `status`, in every edition's catalog, is `normal`, or one clause per
+standing naming the list entries that confer it (`obsolete: C.1(n)`, `archaic: F.1(n)`; two standings join with `; `).
+The authority is the edition's own enumerated lists: 1985's obsolete list (§1985:C.1, 18 entries); 2023's archaic list
+(§2023:F.1, 2 entries, which §2023:4.2.12 defines) and obsolete list (§2023:F.2, 5 entries, which §2023:4.2.13
+defines). They are held once as data per edition (`docs/rearchitecture/spec-element-standing-<edition>.json`,
+`extract_rule_catalog.STANDING_OF`): per list its standing, its locator and its remark sections; per entry its number,
+the terms that name the element in a rule, the sections that specify it, and a section's own extra terms where one
+section's validation format is named by a word that names something else in the others; the entry's name is the
+list's own text. Both catalog arms apply them through one call (`element_standing.apply`). The
+marking (`scripts/spec/element_standing.py`) is decided per SECTION: an OWN section, whose heading names one of the
+entry's terms (THE ALTER STATEMENT, THE RERUN CLAUSE, the Debug and Segmentation modules; 2023's FLAG-02 directive,
+standard-binary arithmetic, the VALIDATE statement and the clauses that exist only for it), marks every rule; a SHARED
 one (an I-O-CONTROL paragraph beside SAME, a file description entry, VI 3.2 beside PROGRAM-ID, the OPEN, STOP, GO TO,
-DISABLE and ENABLE statements) marks only the syntax and general rules that name a term, never its general format, whose
-later fate is its own CHANGED record. OWN or SHARED is derived from the heading, never held. The drift checks, which the
-RULE CATALOG 1985 audit fails on, hold the data to the text: the entries are exactly the list's items, every section is a
-locator of the text, every "is an obsolete element" sentence falls in a section some entry names (or a section the data
-names as describing the level tables' Z notation), every entry resolves to a rule of its sections that names a term
-(entry 1, double character substitution, is stated in prose outside any rule block and is declared `no-rule`, checked
-both ways), and no shared section's format and no rule outside its entries' sections is marked. 143 rules of the 1985
-catalog are obsolete. A later edition with its own list (2023's §2023:F.2) gets its own data file read by the same code.
+DISABLE and ENABLE statements; 2023's EXIT, IF, SEARCH and MOVE statements, the ARITHMETIC clause, the data description
+entry and the PRESENT WHEN, VALUE and VARYING clauses) marks only the syntax and general rules that name a term, never
+its general format, whose later fate is its own CHANGED record. OWN or SHARED is derived from the heading, never held.
+The drift checks, which the RULE CATALOG and RULE CATALOG 1985 audits fail on, hold the data to the text, per list: the
+entries are exactly the list's items, every section is a locator of the text, every sentence that gives an element the
+list's standing ("is an obsolete element", "is an archaic feature") falls in a section some entry names (or a remark
+section the data names: the 1985 level tables' Z notation, a 2023 definition's note, Annex A's lists, Annex D's
+concepts), every entry marks a rule (counted by the marking itself, so a shared general format naming a term does not
+count; 1985 entry 1, double character substitution, is prose outside any rule block and entry 4, MEMORY SIZE, is named
+only in the shared OBJECT-COMPUTER format, so both are declared `no-rule`, checked both ways), and no shared section's
+format and no rule outside its entries' sections is marked. 1985: 143 rules obsolete. 2023: 12 archaic and 101
+obsolete. A later edition's lists are one more data file read by the same code.
 
 **A verdict is held once per chain.** A run of KEPT links is one chain; its verdict, code location and test live on the
 chain's NEWEST row, and an older row in it holds none (the schema refuses them there), so 2023's adjudicated work serves

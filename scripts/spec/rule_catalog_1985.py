@@ -25,7 +25,7 @@ THE ROW. `id` `<year>-<kind>-<locator>-<n>` (a sub-list restarted inside a block
 citation (`§1985:VI.5.7.3 SR1`), section, paragraph, module, subject (the enclosing paragraph's title), kind (SR, GR, AR,
 RV, FMT for a general format), ordinal, `box` (none, part, whole: how much of the rule the level-2 box covers), `level`
 (1 or 2: 2 only when the WHOLE rule is boxed; None outside a module), `document` (the base standard or Amendment 1),
-`amended_by`, its `status` (normal, or obsolete naming its §1985:C.1 entry: obsolete_elements.py, kb/Work PB4993), the
+`amended_by`, its `status` (normal, or obsolete naming its §1985:C.1 entry: element_standing.py, kb/Work PB4993), the
 PDF page and printed folio it starts on, the printed band in effect, and its text.
 
 COMPLETENESS (design §7) is held the 2023 way: a rule-shaped heading no kind resolves, a recognised block that yields no
@@ -34,7 +34,7 @@ that names a rule this catalog cannot find, a rule after a scan gap that no GAP_
 (EXCLUDED_BLOCKS, KNOWN_EMPTY_BLOCKS, GAP_RESUMES) the transcription no longer has, a paragraph carrying a numbered list
 that the content-keyed scan's manifest does not record as measured (the 2023 arm's PB29 check), a rule of an admitted
 paragraph its kind map does not name, a row whose citation names no region of the transcription, and a disagreement
-between the obsolete list's data and the text (`obsolete_elements.findings`) are each REPORTED,
+between the standing lists' data and the text (`element_standing.findings`) are each REPORTED,
 and `--check` fails on them. A page the scan prints twice (citation.SCAN_REPEAT_85) is read once.
 
     python scripts/spec/extract_rule_catalog.py --edition 1985 --check   # counts and findings; writes nothing
@@ -61,7 +61,7 @@ from extract_rule_catalog import ANY_HEADING, GROUP_LABEL, KINDS, canonical_titl
 from extract_rule_catalog import (RULE_SHAPED, UNHARVESTED_OF, admitted_kinds, kinds_of, ordinal_shape, rule_kind,  # noqa: E402
                                   unharvested_report)
 import citation  # noqa: E402  (THE validator of a citation against the transcription: every row's must name a region)
-import obsolete_elements  # noqa: E402  (THE obsolete standing of a rule, from the edition's list; kb/Work PB4993)
+import element_standing  # noqa: E402  (THE standing of a rule, from the edition's lists; kb/Work PB4993)
 sys.path.append(str(Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
@@ -183,7 +183,7 @@ class Catalog:
     declared: dict[str, dict] = dataclasses.field(default_factory=dict)
     untyped: list[tuple[str, int, int]] = dataclasses.field(default_factory=list)  # (citation, sublist, ordinal)
     uncitable: list[str] = dataclasses.field(default_factory=list)  # a row whose citation names no region (cite_check)
-    obsolete: list[str] = dataclasses.field(default_factory=list)   # the obsolete list's data against the text
+    standing: list[str] = dataclasses.field(default_factory=list)   # the standing lists' data against the text
 
     def drift(self) -> tuple[list[str], int]:
         """The content-keyed check's report and its number of drifts: THE 2023 arm's, on this edition's manifest."""
@@ -197,7 +197,7 @@ class Catalog:
     def findings(self) -> int:
         return (len(self.empty) + len(self.unrecognised) + len(self.unexplained) + len(self.one_level_boxes)
                 + len(self.unresolved) + len(self.unattributed) + len(self.stale) + len(self.duplicates())
-                + self.drift()[1] + len(self.untyped) + len(self.uncitable) + len(self.obsolete))
+                + self.drift()[1] + len(self.untyped) + len(self.uncitable) + len(self.standing))
 
 
 def box_of(text: str, kind: str) -> str:
@@ -461,7 +461,7 @@ def add_row(cat: Catalog, *, document: str, section: str | None, paragraph: str,
     row = {"id": rid, "citation": citation, "document": document, "section": section, "paragraph": paragraph,
            "locator": loc, "module": module, "subject": subject, "kind": kind, "ordinal": None if kind == "FMT" else n,
            "sublist": sublist, "box": box, "level": None if module is None else (2 if box == "whole" and levels == 2 else 1),
-           "amended_by": [], "status": obsolete_elements.NORMAL, "page": page, "folio": folio, "band": band, "text": text}
+           "amended_by": [], "status": element_standing.NORMAL, "page": page, "folio": folio, "band": band, "text": text}
     cat.rules.append(row)
     return row
 
@@ -553,16 +553,14 @@ def summary(cat: Catalog) -> list[str]:
                          ("rule(s) of an admitted paragraph its manifest kind map does not name (citation, sub-list, "
                           "ordinal)", cat.untyped),
                          ("row(s) whose citation names no region of the transcription", cat.uncitable),
-                         ("disagreement(s) of the obsolete list's data with the text (obsolete_elements.findings)",
-                          cat.obsolete)):
+                         ("disagreement(s) of the standing lists' data with the text (element_standing.findings)",
+                          cat.standing)):
         if items:
             out.append(f"⛔ {len(items)} {label}:")
             out.extend(f"      {i}" for i in items[:12])
             if len(items) > 12:
                 out.append(f"      ... and {len(items) - 12} more")
-    obsolete = collections.Counter(n for r in cat.rules for n in obsolete_elements.entries_of(r["status"]))
-    out.append(f"   obsolete rules {sum(r['status'] != obsolete_elements.NORMAL for r in cat.rules)}; by list entry: "
-               + (", ".join(f"({n}) {obsolete[n]}" for n in sorted(obsolete)) or "none"))
+    out.extend(element_standing.tally(cat.rules))
     dispositions = collections.Counter(v.get("disposition") for v in cat.declared.values())
     admitted = {k for k, v in cat.declared.items() if v.get("disposition") == "rules"}
     out.append(f"   content-keyed scan manifest: {dispositions['rules']} paragraph(s) admitted as rules "
@@ -580,13 +578,6 @@ def cite_check(cat: Catalog) -> None:
                      if (why := citation.validate(citation.parse(r["citation"]))) is not None]
 
 
-def obsolete_standing(cat: Catalog, lines: list[str], data: Path) -> None:
-    """Mark each row's `status` from the 1985 obsolete list held at `data` (§1985:C.1) and record where the data and the
-    text disagree (obsolete_elements.py, kb/Work PB4993)."""
-    lst = obsolete_elements.load(data)
-    regions = citation.regions_1985(lines)
-    obsolete_elements.mark(cat.rules, "locator", lst, obsolete_elements.headings(lines, regions))
-    cat.obsolete = obsolete_elements.findings(lines, regions, cat.rules, "locator", lst)
 
 
 # ── SELF-TEST ────────────────────────────────────────────────────────────────────────────────────────────────────────

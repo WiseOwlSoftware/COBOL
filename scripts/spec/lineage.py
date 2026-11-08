@@ -12,9 +12,10 @@ The design is DESIGN-spec-conformance-review.md §10.2 (owner, 2026-11-08). In s
   schema's `next` (`inventory_schema.ChangeRecord`, kb/Work PB4993): no code here spells a kind. A rule of the newer
   edition that no older `to` names is NEW: derived, never written. `bridge` is true while an edition between the two is
   not held (1985 straight to 2023 until 2002 and 2014 are transcribed, kb/Work PB4813).
-- `status` is the rule's standing in its own edition: `normal`, or obsolete (§1985:I.1.5.2.3: an obsolete element is
-  still required, and is to be deleted at the next revision), a fact of the rule read from its text into its catalog
-  (`obsolete_elements.py`), never stored. Deprecation is KEPT into an obsolete rule, then REMOVED.
+- `status` is the rule's standing in its own edition: `normal`, archaic (§2023:4.2.12: still required, discouraged) or
+  obsolete (§1985:I.1.5.2.3, §2023:4.2.13: still required, to be deleted at the next revision), a fact of the rule read
+  from its text into its catalog (`element_standing.py`), never stored. Deprecation is KEPT into an obsolete rule, then
+  REMOVED.
 - A verdict is held once per chain, on the chain's newest row: a row whose record is of the chained kind (KEPT) carries
   none of the schema's `next.verdict-fields` (`next_errors` refuses them), and its state is its chain's at its own edition
   (`state_of`): every `to` row is OK, and every `to` row's `editions` band includes the older edition, which is what
