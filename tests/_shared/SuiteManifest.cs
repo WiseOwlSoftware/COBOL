@@ -24,11 +24,13 @@ namespace WiseOwl.Cobol.Tests.Shared;
 /// option: <c>sign-encoding</c>, <c>numeric-display</c>, <c>flag-extensions</c>, <c>repository-update</c>; empty for every other test.</param>
 /// <param name="Build">A multi-unit WiseOwl test's compilation steps in order (the test's own source among them, where its
 /// header's <c>build</c> puts it); null for a test that is one compilation (DESIGN-external-repository §17.1).</param>
+/// <param name="Servers">A WiseOwl test's message servers in the header's order: the run units the runner starts, each serving its name, before
+/// the test runs (DESIGN-message-control.md §0 Q9); null for a test that starts none.</param>
 internal sealed record SuiteTest(
     string Id, string Clause, string Source, string SourceFormat, IReadOnlyList<string> Files,
     IReadOnlyList<string> Requires, IReadOnlyList<string> Words, string Expect, IReadOnlyList<int> ImplementorDefined,
     IReadOnlyDictionary<string, string> ExpectedOutput, int Line, string? Control, bool InSuite,
-    IReadOnlyDictionary<string, string> Options, IReadOnlyList<SuiteBuildStep>? Build);
+    IReadOnlyDictionary<string, string> Options, IReadOnlyList<SuiteBuildStep>? Build, IReadOnlyList<SuiteServer>? Servers);
 
 /// <summary>One compilation step of a multi-unit test (<c>conformance-suite/harness/generate.py#entry_for</c>, the manifest's
 /// <c>build</c>).</summary>
@@ -38,6 +40,14 @@ internal sealed record SuiteTest(
 /// source, whose output is the test's id.</param>
 /// <param name="Options">The step's WiseOwl compile options (<c>wiseowl/options/</c>, keyed <c>&lt;id&gt;/&lt;file&gt;</c>).</param>
 internal sealed record SuiteBuildStep(string? File, string? Output, IReadOnlyDictionary<string, string> Options);
+
+/// <summary>One message server of a test (<c>conformance-suite/harness/generate.py#entry_for</c>, the manifest's <c>servers</c>): a declared unit whose main
+/// program the runner starts as a concurrent run unit serving <paramref name="Name"/>.</summary>
+/// <param name="Name">The server name as the header writes it (compared as a server name is: trailing spaces removed, without regard to case).</param>
+/// <param name="File">The declared unit, relative to the suite root.</param>
+/// <param name="Output">The assembly's base name, the file's stem.</param>
+/// <param name="Options">The unit's WiseOwl compile options (<c>wiseowl/options/</c>, keyed <c>&lt;id&gt;/&lt;file&gt;</c>).</param>
+internal sealed record SuiteServer(string Name, string File, string Output, IReadOnlyDictionary<string, string> Options);
 
 /// <summary>One of WiseOwl COBOL's refusals (<c>conformance-suite/wiseowl/diagnostics/</c>, carried into the
 /// wiseowl manifest): the editions at which WiseOwl refuses the program, and the code or message substring it
@@ -160,8 +170,13 @@ internal sealed record WiseOwlManifest(
             accepted ? 0 : t.GetProperty("line").GetInt32(),
             accepted ? null : t.GetProperty("control").GetString()!,
             t.GetProperty("in-suite").GetBoolean(), Map(t.GetProperty("options")),
-            t.TryGetProperty("build", out JsonElement build) ? [.. build.EnumerateArray().Select(Step)] : null);
+            t.TryGetProperty("build", out JsonElement build) ? [.. build.EnumerateArray().Select(Step)] : null,
+            t.TryGetProperty("servers", out JsonElement servers) ? [.. servers.EnumerateArray().Select(Server)] : null);
     }
+
+    private static SuiteServer Server(JsonElement server) => new(
+        server.GetProperty("name").GetString()!, server.GetProperty("file").GetString()!, server.GetProperty("output").GetString()!,
+        Map(server.GetProperty("options")));
 
     private static SuiteBuildStep Step(JsonElement step) => new(
         step.GetProperty("file").GetString(), step.GetProperty("output").GetString(), Map(step.GetProperty("options")));

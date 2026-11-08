@@ -30,6 +30,14 @@ internal static class CutRunner
     /// (<c>ConformanceSuiteRunnerDriftTests</c> holds the two equal).</summary>
     internal const string LocalePin = "INVARIANT";
 
+    /// <summary>The environment every program the harness runs gets: the USER and SYSTEM default locales pinned to <see cref="LocalePin"/> (<see cref="RunExit"/>), and the same
+    /// for a message server a test starts before it (<see cref="RunningServers"/>).</summary>
+    internal static IReadOnlyDictionary<string, string?> PinnedEnvironment { get; } = new Dictionary<string, string?>
+    {
+        [WiseOwl.Cobol.Runtime.LocaleState.UserDefaultVariable] = LocalePin,
+        [WiseOwl.Cobol.Runtime.LocaleState.SystemDefaultVariable] = LocalePin,
+    };
+
     /// <summary>The variable that names the asynchronous messaging facility's MCS directory (<c>WISEOWL_COBOL_MCS</c>), which <see cref="RunExit"/> sets to the run's own directory.</summary>
     internal const string McsDirectoryVariable = "WISEOWL_COBOL_MCS";
 
@@ -69,8 +77,7 @@ internal static class CutRunner
         // and a test that wants another default passes it in `env` (which overrides the pin). A NULL value REMOVES
         // the variable, so a test can reach the run unit's fallback when it is unset (docs/CONFORMANCE.md
         // DOC-A.1-118; kb/Work PB2671).
-        psi.Environment[WiseOwl.Cobol.Runtime.LocaleState.UserDefaultVariable] = LocalePin;
-        psi.Environment[WiseOwl.Cobol.Runtime.LocaleState.SystemDefaultVariable] = LocalePin;
+        foreach (var (variable, value) in PinnedEnvironment) psi.Environment[variable] = value;
         // The asynchronous messaging facility's MCS directory is the test's own working directory (DESIGN-message-control.md §7.1; the WiseOwl adapter sets the same):
         // no two tests share a message control system.
         psi.Environment[McsDirectoryVariable] = workDir;

@@ -49,7 +49,7 @@ internal sealed class ServerActivation(McsSocketDirectory sockets, string mcsDir
         {
             stop.ThrowIfCancellationRequested();
             if (transport.EnumerateServers(spelling).Count > 0) return new ActivationEnded(true, null);   // started by the requestor that held the lock before this one
-            return Launch(name, spelling, command, stop);
+            return Launch(sockets, mcsDirectory, runId, name, command, stop, out _);
         }
         finally
         {
@@ -57,8 +57,16 @@ internal sealed class ServerActivation(McsSocketDirectory sockets, string mcsDir
         }
     }
 
-    private ActivationEnded Launch(string name, string spelling, IReadOnlyList<string> command, CancellationToken stop)
+    /// <summary>⛔ THE ONE LAUNCH OF A MESSAGE SERVER (design 5.4.5, steps 3 and 4): binds and listens at <c>n/&lt;runId&gt;</c> under <paramref name="sockets"/>, runs
+    /// <paramref name="command"/> in <paramref name="mcsDirectory"/> with <c>WISEOWL_COBOL_MCS</c>, <c>_SERVER</c> (<paramref name="name"/>), <c>_NOTIFY</c> and <c>_LOG</c> set, and blocks until the
+    /// server connects to the notify socket (successful, <paramref name="started"/> the running process, which the caller owns) or the process ends first (unsuccessful, <paramref name="started"/> null),
+    /// or <paramref name="stop"/> is cancelled. <paramref name="environment"/> is set in the process's environment first (a null value removes the variable), as <c>RunExit</c> sets a test's. The caller holds whatever excludes a second launch of the name: a requestor's <see cref="Run"/> holds the start lock, and a host that starts the
+    /// servers of a test before the test (the conformance suite's <c>servers</c> field, DESIGN-message-control.md §0 Q9) starts each name once. A failure that is not the command's own end is an <see cref="IOException"/>.</summary>
+    internal static ActivationEnded Launch(McsSocketDirectory sockets, string mcsDirectory, string runId, string name, IReadOnlyList<string> command, CancellationToken stop, out Process? started,
+        IReadOnlyDictionary<string, string?>? environment = null)
     {
+        started = null;
+        string spelling = McsServerName.Spell(name);
         string notifyPath = Path.Combine(sockets.Path, "n", runId);
         var endPoint = McsSocketDirectory.EndPointOf(notifyPath);
         SocketTransport.CreateDirectory(Path.GetDirectoryName(notifyPath)!);
@@ -68,7 +76,6 @@ internal sealed class ServerActivation(McsSocketDirectory sockets, string mcsDir
         string logPath = Path.Combine(logDirectory, $"{spelling}.{runId}.log");
         using var listener = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
         Process? process = null;
-        bool succeeded = false;
         try
         {
             try
@@ -89,6 +96,10 @@ internal sealed class ServerActivation(McsSocketDirectory sockets, string mcsDir
                 RedirectStandardError = true,
             };
             for (int i = 1; i < command.Count; i++) start.ArgumentList.Add(command[i]);
+            if (environment is not null)
+                foreach (var (variable, value) in environment)
+                    if (value is null) start.Environment.Remove(variable);
+                    else start.Environment[variable] = value;
             start.Environment[McsDirectory.Variable] = mcsDirectory;
             start.Environment[MessagingSettings.ServerVariable] = name;
             start.Environment[MessagingSettings.NotifyVariable] = notifyPath;
@@ -110,7 +121,7 @@ internal sealed class ServerActivation(McsSocketDirectory sockets, string mcsDir
             if (accepted.IsCompletedSuccessfully)
             {
                 accepted.Result.Dispose();                           // the notification is the connection itself
-                succeeded = true;
+                started = process;
                 return new ActivationEnded(true, null);
             }
             ended.GetAwaiter().GetResult();
@@ -119,12 +130,12 @@ internal sealed class ServerActivation(McsSocketDirectory sockets, string mcsDir
         }
         catch (Exception e) when (e is OperationCanceledException or AggregateException { InnerException: OperationCanceledException })
         {
-            throw new IOException($"starting server '{name}' was interrupted: the run unit ended");
+            throw new IOException($"starting server '{name}' was interrupted before its server was published");
         }
         finally
         {
-            if (!succeeded && process is { HasExited: false }) TryKill(process);
-            if (!succeeded) process?.Dispose();                      // a started server keeps its pipes: the log goes on being drained until they end
+            if (started is null && process is { HasExited: false }) TryKill(process);
+            if (started is null) process?.Dispose();                 // a started server keeps its pipes: the log goes on being drained until they end
             listener.Close();
             SocketTransport.DeleteQuietly(notifyPath);
         }

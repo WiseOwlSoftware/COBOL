@@ -1,7 +1,7 @@
 # The asynchronous messaging facility (COBOL 2023)
 
 Status: APPROVED by the owner 2026-11-04 (kb/Work PB4700; the decision to implement the facility is PB4117's; §0's nine
-questions are decided as recommended). It becomes IMPLEMENTED when the slices of §9 (kb/Work PB4739-PB4745) land.
+questions are decided as recommended). IMPLEMENTED: the slices of §9 (kb/Work PB4739-PB4745) have landed.
 
 WiseOwl COBOL implements the asynchronous messaging facility: SEND (§2023:14.9.38), RECEIVE (§2023:14.9.31), USAGE MESSAGE-TAG
 (§2023:13.18.60), the message-tag class and its NULL, comparison, SET, INITIALIZE and BY VALUE, the implicit SEND at run-unit
@@ -109,7 +109,7 @@ carries a recommendation; §3 records each answer as a `docs/CONFORMANCE.md` det
    this way, "unsuccessful, and, if enabled" (14.9.41.4 GR2, GR6 and GR8, lines 36294, 36335 and 36343). EC-MCS-IMP covers
    every failure of the MCS itself: an unusable `mcs.json`, a socket directory the host refuses, a socket error that is
    not a partner's end, a server that cannot be started.
-9. **Witnessing two run units in the conformance suite.** A case file runs one run unit. **Recommend:** a WiseOwl-only
+9. **Witnessing two run units in the conformance suite (IMPLEMENTED, PB4745: DESIGN-conformance-suite.md §3.1 `servers`, the file a header names, started by `ServerActivation.Launch`).** A case file runs one run unit. **Recommend:** a WiseOwl-only
    `servers` field, beside `build` (`{BALANCE: "BALSRV"}`: run the named program of the file as a concurrent run unit
    serving the name, in a fresh MCS directory, before the test), which amends the approved
    `DESIGN-conformance-suite.md` §3.1. The portable `cases/` keep the single-run-unit tests (§7).
@@ -666,6 +666,12 @@ enumerates `n/`, and the server learns the path only after it listens. The serve
 bells, writes its standard output and error to the log, and connects to the notify path; a process that exits first is
 EC-MCS-IMP. The requestor releases the lock, closes and deletes `n/<r>`, and continues at §5.4.1 step 5.
 
+`ServerActivation.Run` does the lock and the second enumeration; `ServerActivation.Launch` does the rest and is the one launch (the conformance suite's `servers` field uses it, Q9).
+`start` is a command line or an array of the program and its arguments; the process gets no standard input, and its standard output and error are drained into the log
+while the start is awaited and for as long as its pipes last. The log is the started run unit's own: the process entry (`StandardStreams.EnsureUtf8`) sends the console to
+`WISEOWL_COBOL_MCS_LOG`, appended, so a server that outlives its requestor never writes to a closed pipe. A requestor killed during the wait ends the wait (`MessagingPeer.Abort`)
+and the launched process is killed; one whose server has published leaves it running.
+
 ### 5.5 The peer, its pumps and partner death
 
 `RunUnit.Messaging` is a cheap `MessagingPeer` shell that exists with every run unit; its socket directory, `SocketTransport`
@@ -691,8 +697,9 @@ protocol completes it; events that arrived between statements are taken before t
 reply from blocking on a busy requestor, at the price that unreceived replies stay in the requestor's memory. A bell's accept
 loop reads one `Ring` from each connection on its own task with a five-second limit, so a stalled connection costs a pending
 read and never the accept loop. A run unit started by a requestor connects to `WISEOWL_COBOL_MCS_NOTIFY` after it has
-published its listener (`SocketTransport.Notify`); `Activate`, the requestor's side of §5.4.5, is slice S5 (PB4745), and until
-it lands the peer answers an `Activate` with `ActionFailed`, which no definition can ask for because none has a `start`.
+published its listener (`SocketTransport.Notify`); the peer runs `Activate`, the requestor's side of §5.4.5, with `ServerActivation.Run` on the run unit's
+thread (the run unit's kill cancels the wait), and a failure that is not the command's own end answers `ActionFailed`, EC-MCS-IMP. The peer reads `mcs.json`'s `servers`
+once when it starts (`ServerDefinitions.Read`; `MessagingSettings.Definitions` replaces it for a host or a test), and an unusable file is a start failure, EC-MCS-IMP at the first statement.
 
 `LinkEnded` is a zero-byte read or any `SocketException`. `Socket.Receive` returns zero "only if zero bytes were requested
 or if no more bytes are available because the peer socket performed a graceful shutdown". That the OS closes a killed
@@ -882,7 +889,9 @@ aborted during a SEND; `CONTINUE AFTER 2 SECONDS` with no request.
 
 **Across processes** (`conformance-test:MessagingProcessTests`): `Process.Kill` on a server holding an active message, on a
 requestor inside its SEND, and on a server a test hook stops between `GRANT` and `ACK` (never a message seen twice); a
-`start` that activates a server; two requestors racing to activate one name (one launch); a `start` that exits first.
+`start` that activates a server and writes its log; two requestors racing to activate one name (one launch); a `start` that exits first, one that cannot be started, an
+unusable `servers` definition and `maxLength` (all EC-MCS-IMP or EC-MCS-MESSAGE-LENGTH at the SEND); `unit:ServerDefinitionsTests` reads the definitions. A conformance test of the
+wiseowl tree names its servers (`servers: {BALANCE: unit.cbl}`, Q9; `conformance-suite/wiseowl/cases/14.9.38-SEND/pb4745-send-served-by-a-concurrent-run-unit`).
 
 **Unit** (`unit:McsResolutionTests`): the two resolutions and `<h>` (links in a middle and the final component, a
 case variant on Windows), the `$XDG_RUNTIME_DIR` fallback to `/tmp` on overflow, on Unix §6's directories created with
