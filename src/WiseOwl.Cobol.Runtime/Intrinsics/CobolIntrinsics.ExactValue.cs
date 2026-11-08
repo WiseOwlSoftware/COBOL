@@ -275,7 +275,7 @@ public static partial class CobolIntrinsics
     /// the wide form (many periods at a rate of many places) takes the same identity on the arbitrary-precision form (<see cref="PresentValueBig"/>).
     /// <para>⛔ A BINARY64 RATE OR AMOUNT (<see cref="TryBinary64Body"/>, kb/Work PB4979; docs/CONFORMANCE.md DOC-A.1-92b) takes the binary64 body
     /// <c>PRESENT-VALUE (F M)</c> takes, over the discount base <c>1 + rate</c> formed on the rate's own carrier and then narrowed
-    /// (kb/Work PB1000): the base is this exact <c>1 + rate</c> or, for a binary64 rate, the binary64 sum.</para></summary></summary>
+    /// (kb/Work PB1000): the base is this exact <c>1 + rate</c> or, for a binary64 rate, the binary64 sum.</para></summary>
     public static CobolExact PresentValueExact(CobolRounding mode, CobolExact rate, params CobolExact[] amounts)
     {
         RequireArguments(amounts.Length, "PRESENT-VALUE");
