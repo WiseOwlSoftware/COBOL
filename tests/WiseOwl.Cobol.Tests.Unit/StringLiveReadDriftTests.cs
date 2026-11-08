@@ -12,14 +12,14 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ A STRING READS AN OPERAND IN PLACE WHEN A TRANSFER OF THE STATEMENT CAN REACH IT, AND ONLY THEN, AND THE QUESTION
 /// "CAN A TRANSFER REACH IT?" IS ANSWERED IN ONE PLACE (kb/Work PB1908). ISO §2023:14.9.43.4 GR10 (Annex A.2 item 60)
 /// leaves a STRING whose sending or delimiter operand shares storage with the receiving item undefined;
-/// WiseOwl COBOL runs it in place, as GnuCOBOL's <c>cob_string_append</c> does (docs/CONFORMANCE.md D-STR1 to D-STR4),
+/// WiseOwl COBOL runs it in place, as GnuCOBOL's <c>cob_string_append</c> does (docs/CONFORMANCE.md D-STR1 to D-STR3),
 /// so the emitter stores the receiver image back and reads the operand again when its transfer begins.
 /// <para>Three properties keep that true. (1) The decision is <c>StorageOverlap.MayShareStorage</c> (the finer of the two
 /// predicates, kb/Work PB1911 keeps it) and nothing in the STRING emitter walks a record. (2) The cost is paid only
 /// where the predicate says so: a STRING over disjoint operands, or whose only reachable operand is its first, renders
 /// ONE store of the image, the code it always had, which is also why the Characterization emit snapshots did not move.
 /// This class reads the EMITTED C# over each arm of the predicate (the same record, REDEFINES, LINKAGE, a level-66
-/// alias, a function argument) and over the operands that are never in reach (a literal, a sibling field, a function, the first
+/// alias) and over the operands that are never in reach (a literal, a sibling field, a function and its arguments, the first
 /// sending), so a new arm that forgets the re-read fails here even if no golden crosses it. (3) Every function
 /// operand is identified up front in statement order (§2023:14.6.4 7, kb/Work PB3261), so its range tests precede
 /// identifier-3's, and is evaluated ONCE there (D-STR4, kb/Work PB4973): a function-identifier references a temporary
