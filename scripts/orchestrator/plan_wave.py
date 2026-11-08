@@ -196,6 +196,7 @@ sys.path.insert(0, str(HERE.parent / "spec"))
 import adopt_main  # noqa: E402  (the adopted commit: the floor this planner refuses to plan below, kb/Work PB2699)
 import alloc  # noqa: E402
 import coord  # noqa: E402
+import group_sizes  # noqa: E402  (a campaign's measured group size, kb/Work PB4944)
 import work  # noqa: E402  (cluster_order: the ONE reader of cluster: and blocked_by:)
 from standard_streams import ensure_utf8  # noqa: E402
 # The planner's modules, one job each (DESIGN-orchestrator-loop.md section 16.3; their import DAG is section 16.10's,
@@ -253,6 +254,9 @@ class PlanState:
     abandoned: set[str]
     tiers: dict[str, int | None] | None
     answered: Callable[[Report], str | None] | None
+    # the group size and why, when a campaign's measured pace lowered it below the turn cap (group_sizes.campaign_cap,
+    # kb/Work PB4944); None plans at clusters.notes_cap
+    group_size: tuple[int, str] | None = None
     # derived from the inputs (__post_init__)
     live: list[Report] = dataclasses.field(default_factory=list)
     cap: int = 0
@@ -281,7 +285,8 @@ class PlanState:
         # carries. Its reports stay in `reports` (the routing counts them as failed attempts); every planning arm reads
         # `live`.
         self.live = [r for r in self.reports if not (r.branch and r.branch in self.abandoned)]
-        self.cap = notes_cap(self.rules)   # the notes one implementer holds (kb/Work PB4396)
+        # the notes one implementer holds (kb/Work PB4396), or fewer where a campaign's groups always ran over (PB4944)
+        self.cap = self.group_size[0] if self.group_size else notes_cap(self.rules)
         every = self.clusters + self.half_clusters
         self.open_ids = {n["id"] for c in every for n in c["notes"] if n["id"] in self.notes}
         self.note_file = {n["id"]: c["file"] for c in every for n in c["notes"]}
@@ -809,7 +814,7 @@ def plan_partition(s: PlanState) -> None:
         g.model, g.why_model = choose_model(g, s.notes, s.reports, s.rules)
         g.cost = group_cost(g.model, len(g.notes), s.rules)
         for i in g.overflow:
-            waiting[i] = overflow_wait(g, s.rules, "")
+            waiting[i] = overflow_wait(g, s, "")
     s.groups = placed
 
 
@@ -819,13 +824,16 @@ def distinct(groups: Any) -> list[Group]:
     return [g for g in groups if not (id(g) in seen or seen.add(id(g)))]
 
 
-def overflow_wait(g: Group, rules: dict[str, Any], fate: str) -> str:
+def overflow_wait(g: Group, s: PlanState, fate: str) -> str:
     """Why a note of group `g`'s OVERFLOW waits (kb/Work PB4396): it shares the group's files, and the two do not fit one
-    implementer's turns; `fate` says what this wave does with `g` ('' while it is planned)."""
+    implementer's turns, or the campaign's measured group size (PB4944); `fate` says what this wave does with `g` ('' while
+    it is planned)."""
     n = len(g.notes) + len(g.overflow)
+    over = (f"over the {s.group_size[0]} notes a group holds, because {s.group_size[1]}" if s.group_size else
+            f"predicted at {predicted_turns(n, s.rules):.0f} turns, over the {turn_budget(s.rules):.0f} one implementer "
+            f"holds (clusters.notes_cap: {notes_cap(s.rules)} notes)")
     return (f"one step per file (kb/Work PB4396): it shares {g.file or 'its files'} with group {g.letter}, and "
-            f"together they are {n} notes, predicted at {predicted_turns(n, rules):.0f} turns, over the "
-            f"{turn_budget(rules):.0f} one implementer holds (clusters.notes_cap: {notes_cap(rules)} notes); "
+            f"together they are {n} notes, {over}; "
             + (fate or f"the next wave plans it ONTO group {g.letter}'s branch, which lands once, with the chain's "
                        f"last link"))
 
@@ -874,7 +882,7 @@ def plan_budget(s: PlanState) -> dict[str, Any]:
     for g in s.groups:
         if g.overflow and all(g is not c for c in chosen):
             for i in g.overflow:
-                s.waiting[i] = overflow_wait(g, s.rules, "this wave does not run that group either (the group cap, "
+                s.waiting[i] = overflow_wait(g, s, "this wave does not run that group either (the group cap, "
                                                          "the budget or its link cap): the next wave plans the family "
                                                          "again")
     return {"groups": chosen, "skipped": skipped, "awaiting_landing": s.awaiting, "points": spent,
@@ -895,7 +903,8 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
          report_covers: Callable[[Report], bool] | None = None,
          replay: "Callable[[str], Replay | None] | None" = None,
          abandoned: set[str] | None = None, tiers: dict[str, int | None] | None = None,
-         answered: Callable[[Report], str | None] | None = None) -> dict[str, Any]:
+         answered: Callable[[Report], str | None] | None = None,
+         group_size: tuple[int, str] | None = None) -> dict[str, Any]:
     """`clusters` and `half_clusters` are fix_clusters.py --json views of the open and the half notes; they also
     define which notes are plannable at all (ready_notes_view admits only work.fixable notes, kb/Work PB4951).
     `held`, {note: the dispatch holding it} from held_by_dispatch, applies in BOTH lanes: a held note waits.
@@ -958,7 +967,7 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
                   deps, busy, held or {}, drain, carrier or (lambda _b: None), owned or set(), locked or set(),
                   review_covers or (lambda r: bool(r.review) and r.review.covers(r.head)),
                   report_covers or (lambda _r: True), replay or (lambda _b: None), abandoned or set(), tiers,
-                  answered)
+                  answered, group_size)
     plan_held(s)
     plan_finishers(s)
     plan_fill(s)
@@ -1084,7 +1093,7 @@ def plan_main(argv: list[str] | None, stack: contextlib.ExitStack) -> int:
             return fold_unsited(json.loads(pathlib.Path(given).read_text(encoding="utf-8")), notes)["clusters"]
         return run_fix_clusters(status, made / f"clusters-{status}.json", rules)["clusters"]
 
-    deps, waiting, campaign, tiers = None, {}, "", {}
+    deps, waiting, campaign, tiers, group_size = None, {}, "", {}, None
     # THE declared set of a note, one index policy for every plan (kb/Work PB3203): THE index of this tree
     declared = declared_sets(REPO, IndexPolicy.of(cdir, regenerate=not a.no_index_regenerate,
                                                         record_dir=made / "member-index" if a.dry_run else None))
@@ -1099,8 +1108,11 @@ def plan_main(argv: list[str] | None, stack: contextlib.ExitStack) -> int:
         texts = {r["id"]: f.read_text(encoding="utf-8", errors="replace").replace("\r\n", "\n")
                  for r in view["notes"] if (f := REPO / "kb" / "Work" / f"{r['id']}.md").is_file()}
         tiers = {r["id"]: r["tier"] for r in view["notes"]}   # the effective tiers: the placement order (PB3638)
+        # A CAMPAIGN WHOSE GROUPS ALWAYS RUN OVER IS SPLIT SMALLER (kb/Work PB4944): its recorded pace sets the group size
+        cap, why = group_sizes.campaign_cap(cdir, a.cluster, notes_cap(rules))
+        group_size = (cap, why) if why else None
         clusters, half_clusters, deps, waiting = campaign_clusters(view, notes, texts, rules, load_fix_clusters(), REPO,
-                                                                   declared)
+                                                                   declared, cap=cap)
         coord.write_json(made / f"clusters-campaign-{a.cluster}.json",
                          {"cluster": a.cluster, "open": clusters, "half": half_clusters, "deps": deps, "waiting": waiting})
         campaign = f" — CAMPAIGN {a.cluster}"
@@ -1164,7 +1176,7 @@ def plan_main(argv: list[str] | None, stack: contextlib.ExitStack) -> int:
              a.max_groups or rules["wave"]["max_groups"], deps=deps, busy=busy,
              held=held_by_dispatch(cdir, reports, terminal), drain=a.drain, carrier=carrier,
              owned=owned, locked=locked, review_covers=review_covers, report_covers=report_covers, replay=replay,
-             abandoned=abandoned, tiers=tiers, answered=answered)
+             abandoned=abandoned, tiers=tiers, answered=answered, group_size=group_size)
     waiting.update(p["waiting"])
     if a.drain:
         campaign += " — DRAIN (finishers of started work only)"
@@ -1189,6 +1201,8 @@ def plan_main(argv: list[str] | None, stack: contextlib.ExitStack) -> int:
 
     print(f"=== WAVE {wave} PLAN{campaign}: {len(p['groups'])} groups, {p['points']:.2f} of "
           f"{budget_points:.2f} weekly points{' (DRY RUN: nothing reserved or written)' if a.dry_run else ''} ===")
+    if group_size:
+        print(f"  group size {group_size[0]} notes: {group_size[1]}")
     for g, j in zip(p["groups"], gjson):
         print(f"  {j['letter']:>3} {g.model:6} {('after ' + g.after) if g.after else '':9} {g.kind:8} "
               f"{sum(len(notes[i].rows) for i in g.notes):3} rows  {g.cost:.2f} pt  {j['codes']}  {g.file or '-'}")

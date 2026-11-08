@@ -272,7 +272,7 @@ def load_fix_clusters() -> Any:
 
 
 def campaign_clusters(view: dict[str, Any], notes: dict[str, Note], texts: dict[str, str], rules: dict[str, Any],
-                      fc: Any, repo: pathlib.Path, declared: Callable[[str], set[str]]
+                      fc: Any, repo: pathlib.Path, declared: Callable[[str], set[str]], cap: int | None = None
                       ) -> tuple[list[dict], list[dict], dict[str, list[str]], dict[str, str]]:
     """A campaign's plannable notes as fix_clusters-shaped clusters: `(open, half, deps, waiting)`.
 
@@ -287,8 +287,9 @@ def campaign_clusters(view: dict[str, Any], notes: dict[str, Note], texts: dict[
     the partition checks, is collision_set: its notes' declared sets (`declared(text)`, declared_sets: the sites plus
     the member index's callers of what each note moves or changes; PB2118 Draft 8, J2), which never steer the
     clustering itself, plus its primary file. The clusters holding one dependent's blockers merge when they share a
-    depth and fit the cap, so the dependent can follow one successor chain. `texts` is {note: its file text}."""
-    cap = notes_cap(rules)
+    depth and fit the cap, so the dependent can follow one successor chain. `texts` is {note: its file text}. `cap` is
+    the group size, notes_cap's unless the campaign's measured pace lowered it (group_sizes.campaign_cap, kb/Work PB4944)."""
+    cap = cap or notes_cap(rules)
     plannable: dict[str, dict] = {}
     waiting: dict[str, str] = {}
     for r in view["notes"]:  # topological order: every blocker is decided before what it blocks
