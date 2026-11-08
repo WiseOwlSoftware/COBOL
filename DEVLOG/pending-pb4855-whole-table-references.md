@@ -41,7 +41,13 @@ integer-4, else one. Determinations: docs/CONFORMANCE.md D-DEBUG-WHOLE-TABLE; de
 WHEN never names the table, a nested table whose WHEN names ROW (2), a data-name target SEARCH does not change, a 40-position table read past
 position 30); `DebugFacilityTests.TableSortOperands_AreWholeTableReferences` (2002 permissive: `SORT E (I) DESCENDING K` over a nested table,
 the written key, the subscript I, a REDEFINES-class table, a member the statement does not write) and
-`DebugFacilityTests.InitializeWholeDynamicTable_IsOneWholeTableReference` (2023 permissive, both triggers). No diagnostic code was used;
-COBOL6556-COBOL6558 are returned.
+`DebugFacilityTests.InitializeWholeDynamicTable_IsOneWholeTableReference` (2023 permissive, both triggers, and a table at capacity zero
+whose section runs with DEBUG-CONTENTS spaces). No diagnostic code was used; COBOL6556-COBOL6558 are returned.
+
+**Self-review.** Architecture: one builder for the whole-table place, no new place kind, the count rule at one place in the walk.
+Full code: the SORT arm stores the table and its written keys and nothing else; SEARCH's identifier-1 never stores. Performance: the place
+is built once per SEARCH, table SORT and dynamic INITIALIZE at bind time and rendered only inside a debugging fire. Duplication: the
+enumeration walk and the count lambdas each exist once. Gate: `=== BUILD-LOCAL GATE: GREEN — Conformance 22,629/22,629 · Unit
+40,491/40,491 · Characterization 37/37 cases ran (skipped 0) ... (2 class(es) first; run 000003-20261108T063045Z) ===`.
 
 **Rows.** None: the debug module has no ISO 2023 rule and no inventory row (VCR Table 7 row 7.17).
