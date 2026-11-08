@@ -12,7 +12,7 @@ build_links, validate_doc), which had a retired checkout's paths, a retired mode
     python scripts/spec/transcribe_pdf.py pages 12 40-44 --edition 1985 --state DIR --api-key-file KEY [--api-account NAME] [--replace]
     python scripts/spec/transcribe_pdf.py pages 4 122 --edition 1985 --state DIR --local qwen3.6:35b [--replace]
     python scripts/spec/transcribe_pdf.py check    --edition 1985 --state DIR 4 122      # word agreement, numbers only
-    python scripts/spec/transcribe_pdf.py assemble --edition 1985 --state DIR           # the pages -> specs/<edition>.md
+    python scripts/spec/transcribe_pdf.py assemble --edition 1985 --state DIR [--out F]  # the pages -> specs/<edition>.md (refused once it exists)
     python scripts/spec/test_transcribe_pdf.py                                          # its self-test: planted PDF, fake client, no API call
 
 RESTARTABLE WITH MINIMAL LOSS. Every subcommand can be re-run at any time. The state file (`state.json`) is
@@ -478,6 +478,13 @@ def main(argv: list[str] | None = None, client_factory: Callable[[str], Any] = m
             print("=== TRANSCRIBE ASSEMBLE: REFUSED ===")
             return 1
         out = pathlib.Path(a.out) if a.out else spec_pdf.markdown(a.edition)
+        if not a.out and out.exists():
+            # Once assembled, the transcription is the reconciled text (its Preface, its decided figures, its repairs
+            # against the rendered page: kb/Work PB4849, PB4850), which the raw pages do not carry. Re-assembling over
+            # it would discard all of that, so a re-assembly goes to a file of its own, to be compared with it.
+            print(f"assemble: {out} exists and is the reconciled transcription; write the assembly elsewhere with --out")
+            print("=== TRANSCRIBE ASSEMBLE: REFUSED ===")
+            return 1
         write_atomic(out, text)
         print(f"=== TRANSCRIBE ASSEMBLE: {count} pages -> {out} ===")
         return 0

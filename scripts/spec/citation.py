@@ -238,7 +238,7 @@ def render(c: Citation) -> str:
 #: are a bare number, the term itself being the bold line beneath. The annex alternative needs a dot segment, which is
 #: what keeps the annex TITLE headings ("## Annex A") out.
 ISO_HEADING = re.compile(r"^#{2,6}\s+([0-9]+(?:\.[0-9]+)*|[A-Z](?:\.[0-9]+)+)(?:\s+(.*?))?\s*$")
-#: The 1985 transcription (kb/Work PB4816; not yet reconciled, PB4850) marks a section with a `SECTION <roman>:` heading,
+#: The 1985 transcription (kb/Work PB4816; reconciled against the page, PB4850) marks a section with a `SECTION <roman>:` heading,
 #: an appendix with `APPENDIX <letter>:`, a paragraph with a numbered heading (`### 5.3.2 General Format`, `## 1. <u>…`)
 #: or, where the transcription did not head it, a line opening with the number and a capitalised title, and the end of
 #: each printed page with its folio alone on a line (`VI-20`).
@@ -246,10 +246,13 @@ ISO_HEADING = re.compile(r"^#{2,6}\s+([0-9]+(?:\.[0-9]+)*|[A-Z](?:\.[0-9]+)+)(?:
 #: So does each amendment's own part heading (`# AMENDMENT 1: ...`, the assembly's PARTS): the pages between it and Section A
 #: are Amendment 1's front matter and its Addendum 1, whose numbered paragraphs (`8. INTRINSIC FUNCTION FACILITY`) are
 #: no paragraph of Section XVIII, the Index.
-SECTION_85 = re.compile(r"^#{1,2}\s+(?:<u>)?SECTION ([IVX]+|[A-Z]):")
+#: The markup that may open a 1985 heading or paragraph line: an underline, bold, and the side of a level-2 box (`║`,
+#: the Preface's notation note; kb/Work PB4850). None of it is part of the number the line carries.
+MARK_85 = rf"(?:<u>|\*\*|{spec_pdf.BOX_SIDE})*"
+SECTION_85 = re.compile(rf"^#{{1,2}}\s+{MARK_85}SECTION ([IVX]+|[A-Z]):")
 AMENDMENT_85 = re.compile(r"^#\s+AMENDMENT \d+:")
-APPENDIX_85 = re.compile(r"^#{1,6}\s+(?:<u>)?APPENDIX ([A-F]):")
-PARAGRAPH_85 = re.compile(r"^(?:#{1,6}\s+(?:<u>)?(\d+(?:\.\d+)*)\.?(?:\s|<)|(?:<u>|\*\*)?(\d+(?:\.\d+)+)\s+[A-Z])")
+APPENDIX_85 = re.compile(rf"^#{{1,6}}\s+{MARK_85}APPENDIX ([A-F]):")
+PARAGRAPH_85 = re.compile(rf"^(?:#{{1,6}}\s+{MARK_85}(\d+(?:\.\d+)*)\.?(?:\s|<)|{MARK_85}(\d+(?:\.\d+)+)\s+[A-Z])")
 FOLIO_85 = re.compile(r"^((?:[IVX]+|[A-F])-\d+)\s*$")
 PAGE_85 = re.compile(r"^## Page \d+\s*$")
 #: The Roman sections ANSI X3.23-1985 has (I Introductory information ... XVIII Index).
@@ -488,6 +491,10 @@ I-1
 
 the planted general format
 
+### ║5.4 THE PLANTED LEVEL-2 CLAUSE║
+
+║the planted boxed rule║
+
 VI-20
 
 # SECTION XVII: APPENDICES
@@ -531,6 +538,8 @@ def self_test() -> int:
         planted_1985 = [
             ("1985 section and paragraph validates", bad("§1985:VI.5.3.2 GR3", planted) is None),
             ("1985 heading paragraph validates", bad("§1985:VI.5.3", planted) is None),
+            ("1985 heading boxed as level 2 validates: the box side is no part of its number",
+             bad("§1985:VI.5.4", planted) is None),
             ("1985 unheaded paragraph line validates", bad("§1985:I.1.5.2", planted) is None),
             ("1985 printed page validates", bad("§1985:p.VI-20", planted) is None),
             ("1985 section alone validates", bad("§1985:VI", planted) is None),
