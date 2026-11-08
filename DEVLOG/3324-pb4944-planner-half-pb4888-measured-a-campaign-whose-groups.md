@@ -1,4 +1,4 @@
-## PB4944 planner half, PB4888 measured: a campaign whose groups always run over is planned smaller
+## Entry 3324 — 2026-11-08 10:15 PST — PB4944 planner half, PB4888 measured: a campaign whose groups always run over is planned smaller
 
 **PB4944, the open half.** The landed half (w20261923c) made a STALL mean "stopped" and counted OVER-SIZE in the
 PROGRESS line, per wave, never mailed. What it left open was the planner reading those counts, because a count on one
@@ -37,3 +37,4 @@ note names the next lever to measure (the implementer's own self-review) as sepa
 Self-review: architecture (one writer and one reader of the history, one membership rule), code (the cap applies the
 owner's "always"), performance (one JSON file per tick, at most a few dozen entries), duplication (the campaign
 membership rule now lives once, in `note_campaigns`). No inventory rows; process only. Gate: see the report.
+
