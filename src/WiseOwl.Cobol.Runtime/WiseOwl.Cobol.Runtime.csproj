@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="WiseOwl.Cobol.Tests.Unit" />
+    <InternalsVisibleTo Include="WiseOwl.Cobol.Tests.Conformance" />
   </ItemGroup>
 
   <!--

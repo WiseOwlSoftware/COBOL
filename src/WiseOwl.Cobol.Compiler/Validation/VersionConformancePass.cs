@@ -2458,7 +2458,7 @@ internal sealed class VersionConformancePass
         /// they parse at every edition, because §2023:8.9 reserves the two verbs at COBOL-85 for the '85 communication
         /// module and at 2023 for this facility with a user-word gap between, so the reservation predicate they used to
         /// carry recognized the 2023 formats at --std 85 and compiled them under a warning naming the 2023 facility.
-        /// At 2023 the statement is accepted inert by the binder (COBOL1578).</summary>
+        /// At 2023 the binder binds it (MessagingBinder).</summary>
         public override object? VisitMessagingReceiveStatement(CobolParserCore.MessagingReceiveStatementContext ctx)
         { _p.Check(Constructs.AsyncMessaging2023, "the RECEIVE statement (asynchronous messaging)"); return base.VisitChildren(ctx); }
 

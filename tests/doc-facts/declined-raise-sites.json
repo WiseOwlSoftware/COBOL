@@ -2,11 +2,9 @@
  "comment": "THE EXCEPTION-NAMES NO STATEMENT DECLARES AND NO CODE RAISES, each with the CONFORMANCE.md row or section that says why (kb/Work PB4453; moved out of EcRaiseSiteRegistryDriftTests so that test reads no Markdown). Read by that test (each name is catalogued, listed once, and neither declared nor raised) and by scripts/docchecks/facts.py (the anchor quotes the name). An anchor DOC-A.1-n is that Annex A.1 row; §4 is 'Documented non-support facilities' (it must quote the name or its level-2 family); §3:D-x is the §3 determination bullet that begins '- **D-x'. Table 13's implementor-defined level-2 names (§14.6.13.1.1, the '-IMP' suffix type): DOC-A.1-100 says the implementation itself sets only EC-PROGRAM-IMP, so a program sees the others only when it raises them itself (RAISE EXCEPTION); EC-SCREEN-IMP and EC-VALIDATE-IMP belong to modules that are not provided. EC-PROGRAM-IMP and EC-I-O-IMP are NOT here: the first is raised by ProgramTable.ParentInstance and the second is the status map's '9x' row. §4 declines the Message Control System (item 1), the VALIDATE facility (item 3) and screen handling (item 4). EC-BOUND-FUNC-RET-VALUE: §15.65.4 r2, MODULE-NAME's returned item is dynamic-length, so 'does not fit' cannot happen (DOC-A.1-133). EC-FLOW-GLOBAL-EXIT: Table 13 names it ('EXIT PROGRAM in a global Declarative') and no general rule sets it (§14.9.14.4 GR3 imports GOBACK's GR3 and GR4, not GR6, which sets EC-FLOW-GLOBAL-GOBACK).",
  "sites": [
   {"names": ["EC-ARGUMENT-IMP", "EC-BOUND-IMP", "EC-CONTINUE-IMP", "EC-DATA-IMP", "EC-EXTERNAL-IMP", "EC-FLOW-IMP",
-             "EC-FUNCTION-IMP", "EC-LOCALE-IMP", "EC-MCS-IMP", "EC-OO-IMP", "EC-ORDER-IMP", "EC-OVERFLOW-IMP", "EC-RAISING-IMP",
+             "EC-FUNCTION-IMP", "EC-LOCALE-IMP", "EC-OO-IMP", "EC-ORDER-IMP", "EC-OVERFLOW-IMP", "EC-RAISING-IMP",
              "EC-RANGE-IMP", "EC-REPORT-IMP", "EC-SCREEN-IMP", "EC-SIZE-IMP", "EC-SORT-MERGE-IMP", "EC-STORAGE-IMP",
              "EC-VALIDATE-IMP"], "anchor": "DOC-A.1-100"},
-  {"names": ["EC-MCS-ABNORMAL-TERMINATION", "EC-MCS-INVALID-TAG", "EC-MCS-MESSAGE-LENGTH", "EC-MCS-NO-REQUESTER",
-             "EC-MCS-NO-SERVER", "EC-MCS-NORMAL-TERMINATION", "EC-MCS-REQUESTOR-FAILED"], "anchor": "§4", "family": "EC-MCS"},
   {"names": ["EC-SCREEN-FIELD-OVERLAP", "EC-SCREEN-ITEM-TRUNCATED", "EC-SCREEN-LINE-NUMBER", "EC-SCREEN-STARTING-COLUMN"],
    "anchor": "§4", "family": "EC-SCREEN"},
   {"names": ["EC-VALIDATE-CONTENT", "EC-VALIDATE-FORMAT", "EC-VALIDATE-RELATION", "EC-VALIDATE-VARYING"],

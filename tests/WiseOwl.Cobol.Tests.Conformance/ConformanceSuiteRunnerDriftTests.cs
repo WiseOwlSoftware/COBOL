@@ -70,6 +70,9 @@ public sealed class ConformanceSuiteRunnerDriftTests
             Assert.True(environment.TryGetProperty(variable, out JsonElement value) && value.GetString() == CutRunner.LocalePin,
                 $"{adapter} must set {variable} to {CutRunner.LocalePin}, the pin of CutRunner.RunExit");
         }
+        // The MCS directory (DESIGN-message-control.md §7.1): each runner gives a test its own, its working directory.
+        Assert.True(environment.TryGetProperty(CutRunner.McsDirectoryVariable, out JsonElement mcs) && mcs.GetString() == "{work}",
+            $"{adapter} must set {CutRunner.McsDirectoryVariable} to {{work}}, as CutRunner.RunExit sets it to the run's working directory");
     }
 
     [Fact]

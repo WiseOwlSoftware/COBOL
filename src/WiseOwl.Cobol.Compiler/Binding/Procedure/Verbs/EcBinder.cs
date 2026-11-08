@@ -413,7 +413,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
 
     // ── The per-statement TurnState fold (deep-dive D10) ─────────────────────────────────────────────────────
 
-    /// <summary>Give every <see cref="IActivatingStatement"/> in <paramref name="node"/> the activating
+    /// <summary>Give every <see cref="IProfiledStatement"/> in <paramref name="node"/> the activating
     /// statement's own checking profile (§2023:14.9.18.4 GR1 b)). A no-op when nothing is enabled at the line — the
     /// zero-scaffolding gate: such a site emits byte-identical text.
     /// <para>BOTH container shapes are traversed, and both must be: a bind-time desugar hoists its activation
@@ -432,7 +432,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
             BoundImplicitSeries ser =>
                 new BoundImplicitSeries([.. ser.Members.Select(st => StampActivators(st, profile))]),
             BoundActivationSite site => new BoundActivationSite(StampActivators(site.Inner, profile)),
-            IActivatingStatement a => a.WithActivatorChecking(profile),
+            IProfiledStatement a => a.WithCheckingProfile(profile),
             _ => node,
         };
 
@@ -451,8 +451,8 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
         // element", and RAISING LAST EXCEPTION picks the name at RUN time — so the activating statement carries
         // THIS element's §2023:7.3.25 state at THIS line into the run. The recursion reaches the activations a
         // desugar hoisted into a sequence (a user-function reference inside a COMPUTE); a new activating node
-        // inherits the stamp by implementing IActivatingStatement, never by remembering to set a property.
-        if (bound is IActivatingStatement or BoundSequence or BoundImplicitSeries or BoundActivationSite or BoundReceiverBrackets)   // the shapes a profile lands on
+        // inherits the stamp by implementing IProfiledStatement, never by remembering to set a property.
+        if (bound is IProfiledStatement or BoundSequence or BoundImplicitSeries or BoundActivationSite or BoundReceiverBrackets)   // the shapes a profile lands on
             bound = StampActivators(bound, ctx.EcState.Turn.ProfileAt(line));
         // ⛔ ONE ENUMERATION (kb/Work PB3102, CONDITIONS_EXCEPTIONS_DESIGN D13): the exception-names this statement
         // can raise come from DeclaredRaisableNames — the statement-shape rows, the operand rows and the ambient rows —
