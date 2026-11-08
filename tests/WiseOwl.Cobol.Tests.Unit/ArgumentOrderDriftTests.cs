@@ -111,7 +111,9 @@ public sealed class ArgumentOrderDriftTests
     /// place in the list (§2023:8.4.3.2.4 GR2). The enumeration the backend renders where the call renders would read the table AFTER a later
     /// argument's activation, so the operand is recorded in the window where it is built (<c>IntrinsicBinder.TryBindAllArgument</c>) and
     /// held by the one holder (<c>ArgumentOrder</c> to <c>SendingValueTemp.MaterializeTableAll</c>); a third place that builds a
-    /// <c>TableAllPlace</c> would build one the window never sees.</summary>
+    /// <c>TableAllPlace</c> would build one the window never sees. The one other builder is the WHOLE-TABLE place
+    /// (<c>PlaceBuilder.WholeTable</c>, kb/Work PB4855), a STATEMENT's operand (SEARCH, the table SORT, INITIALIZE of a whole dynamic
+    /// table) that no argument list holds, so its callers are those statements' binders and no function-argument binder.</summary>
     [Fact]
     public void ATableAllArgument_IsRecordedWhereItIsBuilt_AndHeldByTheOneHolder()
     {
@@ -120,7 +122,13 @@ public sealed class ArgumentOrderDriftTests
             .Select(Path.GetFileName)
             .OrderBy(n => n, System.StringComparer.Ordinal)
             .ToList();
-        Assert.Equal(["IntrinsicBinder.cs", "SendingValueTemp.cs"], builders);
+        Assert.Equal(["IntrinsicBinder.cs", "PlaceBuilder.cs", "SendingValueTemp.cs"], builders);
+        var wholeTableCallers = CompilerSources()
+            .Where(f => CodeOf(f).Contains(".WholeTable("))
+            .Select(Path.GetFileName)
+            .OrderBy(n => n, System.StringComparer.Ordinal)
+            .ToList();
+        Assert.Equal(["InitializeBinder.cs", "SearchBinder.cs", "SortBinder.cs"], wholeTableCallers);
 
         Assert.Matches(@"new TableAllPlace\([^;]*;\s*args\.Add\(operand\);\s*host\.ArgOrder\.Record\(operand, before\);",
             Verb("IntrinsicBinder.cs"));

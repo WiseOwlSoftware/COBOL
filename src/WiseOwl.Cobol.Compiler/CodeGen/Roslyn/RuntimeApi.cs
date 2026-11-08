@@ -1067,6 +1067,11 @@ internal static class RuntimeApi
     public static string ExactPow(string exact, string int128Exponent) =>
         $"{nameof(CobolExact)}.{nameof(CobolExact.Pow)}({exact}, {int128Exponent})";
 
+    /// <summary>An exact value raised to a non-integer exponent (<c>CobolExact.PowReal</c>, kb/Work PB4923): the binary64 approximation in
+    /// the kind of its operands; <paramref name="taken"/> is the enabled range conditions' spelling, or null for the unchecked power.</summary>
+    public static string ExactPowReal(string exact, string exponent, string? taken) =>
+        $"{nameof(CobolExact)}.{nameof(CobolExact.PowReal)}({exact}, {exponent}{(taken is null ? "" : ", " + taken)})";
+
     /// <summary>A float ITEM's content as an exact value, every digit of its binary expansion (<c>CobolExact.FromBinary64</c>, kb/Work PB4730).</summary>
     public static string ExactFromBinary64(string doubleExpr) =>
         $"{nameof(CobolExact)}.{nameof(CobolExact.FromBinary64)}({doubleExpr})";
@@ -1688,6 +1693,11 @@ internal static class RuntimeApi
     public static string TableAllArgs(string csType, IEnumerable<string> countLambdas, string elementLambda, string? leadLambda = null) =>
         $"{nameof(CobolTable)}.{nameof(CobolTable.AllArgs)}<{csType}>(new Func<long[], long>[] {{ {string.Join(", ", countLambdas)} }}, {elementLambda}"
         + (leadLambda is null ? ")" : $", {leadLambda})");
+
+    /// <summary>The storage image of a whole table, its current occurrences in storage order — <c>CobolTable.AllImage</c>
+    /// (X3.23-1985 USE FOR DEBUGGING general rule 24 c; kb/Work PB4855).</summary>
+    public static string TableAllImage(IEnumerable<string> countLambdas, string elementLambda) =>
+        $"{nameof(CobolTable)}.{nameof(CobolTable.AllImage)}(new Func<long[], long>[] {{ {string.Join(", ", countLambdas)} }}, {elementLambda})";
 
     /// <summary>The statement that ends the reference when a held table(ALL) argument's copy found no occurrence —
     /// <c>CobolTable.RequireOccurrences(count)</c> (ISO §2023:15.3 14); kb/Work PB4162).</summary>

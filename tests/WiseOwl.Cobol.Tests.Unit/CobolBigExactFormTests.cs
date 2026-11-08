@@ -453,7 +453,7 @@ public sealed class CobolBigExactFormTests
     }
 
     /// <summary>⛔ A FLOAT ITEM'S CONTENT CARRIES ITS BINARY64 MARK (kb/Work PB4891): a selection returns it whole and a negation and a
-    /// precision change keep it, an operation that forms a new value drops it, and an even MEDIAN reads it off its two middles, so the mean
+    /// precision change keep it, an operation over it is a binary64 operation (kb/Work PB4923) and one over fixed-point values forms an unmarked value, and an even MEDIAN reads it off its two middles, so the mean
     /// of the content MAX selected beside 0.5 is the binary64 mean 0.3 (§2023:15.61.4 2), DOC-A.1-92b), not the exact mean
     /// .30000000000000000277..., in both lanes; two fixed-point middles keep the exact mean whatever else the list holds.</summary>
     [Fact]
@@ -465,7 +465,9 @@ public sealed class CobolBigExactFormTests
         Assert.True(selected.TryBinary64(out _));
         Assert.True(CobolExact.Negate(selected).TryBinary64(out double negated) && negated == -0.1);
         Assert.True(selected.WithPrecision(0).TryBinary64(out _));
-        Assert.False(CobolExact.Add(selected, CobolExact.From(0, 0)).TryBinary64(out _));
+        // An operation over a float item's content is a binary64 operation (kb/Work PB4923): its value is itself a binary64's content.
+        Assert.True(CobolExact.Add(selected, CobolExact.From(0, 0)).TryBinary64(out double sum) && sum == 0.1);
+        Assert.False(CobolExact.Add(CobolExact.From(1, 1), CobolExact.From(0, 0)).TryBinary64(out _));
         Assert.False(half.TryBinary64(out _));
         double binaryMean = (0.1 + 0.5) / 2;
         Assert.Equal(binaryMean, FloatResultant.FromExact(CobolIntrinsics.MedianExact(CobolRounding.NearestEven, selected, half),
@@ -474,6 +476,22 @@ public sealed class CobolBigExactFormTests
         CobolExact fixedMean = CobolIntrinsics.MedianExact(CobolRounding.NearestEven, f, half, CobolExact.From(6, 1), CobolExact.From(7, 1));
         Assert.Equal(0, CobolExact.Compare(CobolExact.From(55, 2), fixedMean));
         Assert.False(fixedMean.TryBinary64(out _));
+    }
+
+    /// <summary>⛔ A NON-INTEGER POWER OVER A FLOAT ITEM'S CONTENT IS THE BINARY64 POWER IN ITS KIND (kb/Work PB4923, review finding R1-1):
+    /// `M ** MAX (F M2)` is `M ** F` when MAX selected F, in the base and in the exponent position, and its value is itself a float
+    /// item's content; over fixed-point operands alone it is an engine approximation (shortest decimal, no float-item mark).</summary>
+    [Fact]
+    public void PowReal_OverAFloatContent_IsTheBinary64PowerInItsKind()
+    {
+        CobolExact f = CobolExact.FromBinary64(0.1), half = CobolExact.From(5, 1);
+        CobolExact asExponent = CobolExact.PowReal(half, f), asBase = CobolExact.PowReal(f, half);
+        Assert.True(asExponent.TryBinary64(out double e) && e == System.Math.Pow(0.5, 0.1) && asExponent.IsFloatContent);
+        Assert.True(asBase.TryBinary64(out double b) && b == System.Math.Pow(0.1, 0.5) && asBase.IsFloatContent);
+        CobolExact fixedOnly = CobolExact.PowReal(CobolExact.From(2, 1), half);
+        Assert.True(fixedOnly.TryBinary64(out double a) && a == System.Math.Pow(0.2, 0.5));
+        Assert.False(fixedOnly.IsFloatContent);
+        Assert.Throws<CobolSizeError>(() => CobolExact.PowReal(CobolExact.From(-5, 1), half));   // §2023:8.8.1.2 rule 6c
     }
 
     /// <summary>An engine's approximation lands as the binary64 it is, in every mode (its decimal, truncated, would sit one below

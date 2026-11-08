@@ -822,6 +822,7 @@ static WiseOwl.Cobol.Runtime.CobolExact.FromWide(WiseOwl.Cobol.Runtime.CobolWide
 static WiseOwl.Cobol.Runtime.CobolExact.Mul(WiseOwl.Cobol.Runtime.CobolExact a, WiseOwl.Cobol.Runtime.CobolExact b) -> WiseOwl.Cobol.Runtime.CobolExact
 static WiseOwl.Cobol.Runtime.CobolExact.Negate(WiseOwl.Cobol.Runtime.CobolExact a) -> WiseOwl.Cobol.Runtime.CobolExact
 static WiseOwl.Cobol.Runtime.CobolExact.Pow(WiseOwl.Cobol.Runtime.CobolExact b, System.Int128 e) -> WiseOwl.Cobol.Runtime.CobolExact
+static WiseOwl.Cobol.Runtime.CobolExact.PowReal(WiseOwl.Cobol.Runtime.CobolExact b, WiseOwl.Cobol.Runtime.CobolExact e, WiseOwl.Cobol.Runtime.SizeChecks taken = WiseOwl.Cobol.Runtime.SizeChecks.None) -> WiseOwl.Cobol.Runtime.CobolExact
 static WiseOwl.Cobol.Runtime.CobolExact.QuotientAtScale(WiseOwl.Cobol.Runtime.CobolExact a, WiseOwl.Cobol.Runtime.CobolExact b, int toScale, WiseOwl.Cobol.Runtime.CobolRounding mode, bool checkedTransfer) -> System.Int128
 static WiseOwl.Cobol.Runtime.CobolExact.Sub(WiseOwl.Cobol.Runtime.CobolExact a, WiseOwl.Cobol.Runtime.CobolExact b) -> WiseOwl.Cobol.Runtime.CobolExact
 static WiseOwl.Cobol.Runtime.CobolExact.SubsidiaryQuotient(WiseOwl.Cobol.Runtime.CobolExact a, WiseOwl.Cobol.Runtime.CobolExact b, int scale) -> WiseOwl.Cobol.Runtime.CobolExact
@@ -855,12 +856,12 @@ static WiseOwl.Cobol.Runtime.CobolIntrinsics.Log10Wide(WiseOwl.Cobol.Runtime.Cob
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.LogWide(WiseOwl.Cobol.Runtime.CobolWide? x, int scale) -> double
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.MaxExact(params WiseOwl.Cobol.Runtime.CobolExact[]! xs) -> WiseOwl.Cobol.Runtime.CobolExact
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.MaxWide(params WiseOwl.Cobol.Runtime.CobolWide[]! xs) -> WiseOwl.Cobol.Runtime.CobolWide
-static WiseOwl.Cobol.Runtime.CobolIntrinsics.MeanExact(WiseOwl.Cobol.Runtime.CobolRounding mode, params WiseOwl.Cobol.Runtime.CobolExact[]! xs) -> WiseOwl.Cobol.Runtime.CobolDec
+static WiseOwl.Cobol.Runtime.CobolIntrinsics.MeanExact(WiseOwl.Cobol.Runtime.CobolRounding mode, params WiseOwl.Cobol.Runtime.CobolExact[]! xs) -> WiseOwl.Cobol.Runtime.CobolExact
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.MeanWide(WiseOwl.Cobol.Runtime.CobolRounding mode, int scale, params WiseOwl.Cobol.Runtime.CobolWide[]! xs) -> WiseOwl.Cobol.Runtime.CobolDec
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.MedianExact(WiseOwl.Cobol.Runtime.CobolRounding mode, params WiseOwl.Cobol.Runtime.CobolExact[]! xs) -> WiseOwl.Cobol.Runtime.CobolExact
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.MedianWhole(params WiseOwl.Cobol.Runtime.CobolExact[]! xs) -> WiseOwl.Cobol.Runtime.CobolExact
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.MedianWide(params WiseOwl.Cobol.Runtime.CobolWide[]! xs) -> WiseOwl.Cobol.Runtime.CobolWide
-static WiseOwl.Cobol.Runtime.CobolIntrinsics.MidrangeExact(WiseOwl.Cobol.Runtime.CobolRounding mode, params WiseOwl.Cobol.Runtime.CobolExact[]! xs) -> WiseOwl.Cobol.Runtime.CobolDec
+static WiseOwl.Cobol.Runtime.CobolIntrinsics.MidrangeExact(WiseOwl.Cobol.Runtime.CobolRounding mode, params WiseOwl.Cobol.Runtime.CobolExact[]! xs) -> WiseOwl.Cobol.Runtime.CobolExact
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.MidrangeWhole(params WiseOwl.Cobol.Runtime.CobolExact[]! xs) -> WiseOwl.Cobol.Runtime.CobolExact
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.MidrangeWide(params WiseOwl.Cobol.Runtime.CobolWide[]! xs) -> WiseOwl.Cobol.Runtime.CobolWide
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.MinExact(params WiseOwl.Cobol.Runtime.CobolExact[]! xs) -> WiseOwl.Cobol.Runtime.CobolExact
@@ -874,7 +875,7 @@ static WiseOwl.Cobol.Runtime.CobolIntrinsics.OrdMinWide(params WiseOwl.Cobol.Run
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.PowNativeRealChecked(double b, double e, WiseOwl.Cobol.Runtime.SizeChecks taken) -> double
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.PresentValue(WiseOwl.Cobol.Runtime.CobolRounding mode, WiseOwl.Cobol.Runtime.CobolExact rate, params WiseOwl.Cobol.Runtime.CobolExact[]! amounts) -> double
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.PresentValueExact(WiseOwl.Cobol.Runtime.CobolRounding mode, WiseOwl.Cobol.Runtime.CobolExact rate, params WiseOwl.Cobol.Runtime.CobolExact[]! amounts) -> WiseOwl.Cobol.Runtime.CobolDec
-static WiseOwl.Cobol.Runtime.CobolIntrinsics.RangeExact(WiseOwl.Cobol.Runtime.CobolRounding mode, params WiseOwl.Cobol.Runtime.CobolExact[]! xs) -> WiseOwl.Cobol.Runtime.CobolDec
+static WiseOwl.Cobol.Runtime.CobolIntrinsics.RangeExact(WiseOwl.Cobol.Runtime.CobolRounding mode, params WiseOwl.Cobol.Runtime.CobolExact[]! xs) -> WiseOwl.Cobol.Runtime.CobolExact
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.RangeWhole(params WiseOwl.Cobol.Runtime.CobolExact[]! xs) -> WiseOwl.Cobol.Runtime.CobolExact
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.RangeWide(params WiseOwl.Cobol.Runtime.CobolWide[]! xs) -> WiseOwl.Cobol.Runtime.CobolWide
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.RemExact(WiseOwl.Cobol.Runtime.CobolRounding mode, WiseOwl.Cobol.Runtime.CobolExact a, WiseOwl.Cobol.Runtime.CobolExact b) -> WiseOwl.Cobol.Runtime.CobolDec
@@ -885,7 +886,7 @@ static WiseOwl.Cobol.Runtime.CobolIntrinsics.SignWide(WiseOwl.Cobol.Runtime.Cobo
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.SinWide(WiseOwl.Cobol.Runtime.CobolWide x, int scale) -> double
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.StandardDeviation(WiseOwl.Cobol.Runtime.CobolRounding mode, params WiseOwl.Cobol.Runtime.CobolExact[]! xs) -> double
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.StdDevExact(WiseOwl.Cobol.Runtime.CobolRounding mode, params WiseOwl.Cobol.Runtime.CobolExact[]! xs) -> WiseOwl.Cobol.Runtime.CobolDec
-static WiseOwl.Cobol.Runtime.CobolIntrinsics.SumExact(WiseOwl.Cobol.Runtime.CobolRounding mode, params WiseOwl.Cobol.Runtime.CobolExact[]! xs) -> WiseOwl.Cobol.Runtime.CobolDec
+static WiseOwl.Cobol.Runtime.CobolIntrinsics.SumExact(WiseOwl.Cobol.Runtime.CobolRounding mode, params WiseOwl.Cobol.Runtime.CobolExact[]! xs) -> WiseOwl.Cobol.Runtime.CobolExact
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.SumScaled(params System.Int128[]! xs) -> System.Int128
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.SumWhole(params WiseOwl.Cobol.Runtime.CobolExact[]! xs) -> WiseOwl.Cobol.Runtime.CobolExact
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.SumWide(params WiseOwl.Cobol.Runtime.CobolWide[]! xs) -> WiseOwl.Cobol.Runtime.CobolWide
@@ -916,6 +917,7 @@ static WiseOwl.Cobol.Runtime.CobolNum.SubChecked(System.Int128 a, System.Int128 
 static WiseOwl.Cobol.Runtime.CobolObject.CheckActiveClassFormal(bool enabledInMethod, string! what, WiseOwl.Cobol.Runtime.ActivationDescription! argument, WiseOwl.Cobol.Runtime.ActivationDescription! formal) -> void
 static WiseOwl.Cobol.Runtime.CobolObject.CheckActiveClassReturning(bool enabledInMethod, string! what, WiseOwl.Cobol.Runtime.ActivationDescription! receiving, WiseOwl.Cobol.Runtime.ActivationDescription! sending) -> void
 static WiseOwl.Cobol.Runtime.CobolSizeError.ProhibitedInexact() -> WiseOwl.Cobol.Runtime.CobolSizeError!
+static WiseOwl.Cobol.Runtime.CobolTable.AllImage(System.Func<long[]!, long>![]! counts, System.Func<long[]!, string!>! element) -> string!
 static WiseOwl.Cobol.Runtime.CobolTable.OdoExtentTrimmed(WiseOwl.Cobol.Runtime.Occurrence count, int min, int max, int fixedUnits, int strideUnits, int trailingUnits) -> int
 static WiseOwl.Cobol.Runtime.CobolTable.RequireOccurrences(long count) -> void
 static WiseOwl.Cobol.Runtime.CobolTiming.Interval(System.Int128 unscaled, int scale) -> long

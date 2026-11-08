@@ -67,6 +67,17 @@ internal static class FunctionValueLane
         "SignOf", "OrdMax", "OrdMin", "MaxScaled", "MinScaled", "MedianScaled",
     }.ToFrozenSet(StringComparer.Ordinal);
 
+    /// <summary>The native SDIDI bodies whose value <c>IntrinsicRenderer.RenderDec</c> returns as a run-time-scaled EXACT value
+    /// (<c>NumX.Exact</c>) that its consumer reads as the SDIDI image it lowers to: SUM, RANGE, MEAN and MIDRANGE, which return an exact
+    /// value so that a binary64 argument a nested selection handed them can make the value a binary64's content
+    /// (<c>CobolIntrinsics.TryBinary64Body</c>, kb/Work PB4923). They are predicted as the SDIDI (<see cref="CarrierKind.Dec"/>), as
+    /// before: a function above one (ANNUITY (SUM (T (ALL)) 3)) computes on the SDIDI. <c>FunctionValueLaneDriftTests</c> derives
+    /// this set with <see cref="NativeSdidiBodiesWithExactResult"/> from the renderer's switch.</summary>
+    internal static readonly FrozenSet<string> NativeSdidiBodiesWithWholeResult = new[]
+    {
+        "SumScaled", "RangeScaled", "MeanScaled", "MidrangeScaled",
+    }.ToFrozenSet(StringComparer.Ordinal);
+
     /// <summary>The pure selections, which a MIXED list takes onto the SDIDI under native arithmetic so the compared and
     /// selected argument keeps its own carrier: MAX / MIN return "the content of the argument-1 having the greatest
     /// [least] value" (§2023:15.59.4 r1 / §2023:15.63.4 r1), ORD-MAX / ORD-MIN "the ordinal number that corresponds to the position

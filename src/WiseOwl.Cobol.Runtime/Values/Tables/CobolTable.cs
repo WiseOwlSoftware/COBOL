@@ -301,17 +301,39 @@ public static class CobolTable
     /// </summary>
     public static T[] AllArgs<T>(Func<long[], long>[] counts, Func<long[], T> element, Func<long[], T>? lead = null)
     {
-        var idx = new long[counts.Length];
         var list = new List<T>();
+        EnumerateOccurrences(counts, idx => list.Add(list.Count == 0 && lead is not null ? lead(idx) : element(idx)));
+        RequireOccurrences(list.Count);
+        return list.ToArray();
+    }
+
+    /// <summary>
+    /// The STORAGE IMAGE of a whole table a statement references without the subscripts of its own level (X3.23-1985 USE FOR
+    /// DEBUGGING general rule 24 c: DEBUG-CONTENTS "contains the content of the data item referenced by identifier-1"; kb/Work
+    /// PB4855): the images of its CURRENT occurrences in storage order, the same row-major walk as <see cref="AllArgs{T}"/>,
+    /// each level's range read as that level is entered. A table whose current count is zero (an OCCURS DEPENDING table at
+    /// integer-1 = 0, a dynamic-capacity table at capacity zero) has the empty image; it is not an error, because this is the
+    /// content of a data item and not an argument list.
+    /// </summary>
+    public static string AllImage(Func<long[], long>[] counts, Func<long[], string> element)
+    {
+        var image = new System.Text.StringBuilder();
+        EnumerateOccurrences(counts, idx => image.Append(element(idx)));
+        return image.ToString();
+    }
+
+    /// <summary>The one row-major walk over a table's ranges, outermost first, the rightmost level varying fastest; each level's
+    /// range is a function of the outer indices, read when the level is entered.</summary>
+    private static void EnumerateOccurrences(Func<long[], long>[] counts, Action<long[]> visit)
+    {
+        var idx = new long[counts.Length];
         void Walk(int level)
         {
-            if (level == counts.Length) { list.Add(list.Count == 0 && lead is not null ? lead(idx) : element(idx)); return; }
+            if (level == counts.Length) { visit(idx); return; }
             long n = counts[level](idx);
             for (long i = 1; i <= n; i++) { idx[level] = i; Walk(level + 1); }
         }
         Walk(0);
-        RequireOccurrences(list.Count);
-        return list.ToArray();
     }
 
     /// <summary>"The evaluation of an ALL subscript shall result in at least one argument, otherwise the result of the reference to the
