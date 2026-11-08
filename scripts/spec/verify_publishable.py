@@ -242,8 +242,10 @@ def check_corrections(text: str, edition: int) -> list[str]:
 
     # the flags in the body: each is a blockquote paragraph opening with the CORRECTED marker
     flags: dict[str, list[tuple[int, str]]] = {}
-    i = 0
+    i, fenced = 0, False
     while i < addendum_at:
+        if lines[i].lstrip().startswith("```"):
+            fenced = not fenced
         if CORRECTION_NOTE.match(lines[i]):
             j = i
             while j + 1 < addendum_at and lines[j + 1].startswith(">"):
@@ -252,6 +254,12 @@ def check_corrections(text: str, edition: int) -> list[str]:
             ids = flag.findall(paragraph)
             for cid in ids[:1]:
                 flags.setdefault(cid, []).append((i + 1, paragraph))
+            # A flag stands alone: a line right after it continues the blockquote (CommonMark's lazy continuation), so
+            # the text it carries would render inside the note and drop out of its own paragraph (kb/Work PB4972 R2-1).
+            # Inside a fenced block nothing is a blockquote, and the next line is the example's own code.
+            if not fenced and j + 1 < addendum_at and lines[j + 1].strip():
+                failures.append(f"the flag at line {i + 1} is followed by text with no blank line: Markdown reads "
+                                f"{lines[j + 1].strip()[:40]!r} as part of the note")
             i = j
         i += 1
     referenced = set(flag.findall("\n".join(lines[:addendum_at])))
@@ -517,6 +525,13 @@ def self_test() -> int:
     listed = flagged + "\n### C1 · page 21 (folio I-1) · a rule · `fopting` → `footing`\n\n**Printed**: `fopting`\n"
     check("a 1985 correction flagged in place and listed in the Errata passes",
           quietly(check_corrections, listed, 1985) == [])
+    glued = listed.replace("(page 21, folio I-1).", "(page 21, folio I-1).\n   an index line right after it")
+    check("a flag followed by a line with no blank line between is refused: the line would render inside the note",
+          any("followed by text with no blank line" in f for f in quietly(check_corrections, glued, 1985)))
+    in_fence = listed.replace("> ⚠ **CORRECTED", "```cobol\n> ⚠ **CORRECTED").replace(
+        "(page 21, folio I-1).", "(page 21, folio I-1).\n       DISPLAY 'X'.\n```")
+    check("a flag inside a fenced example may be followed by the example's code",
+          not any("followed by text" in f for f in quietly(check_corrections, in_fence, 1985)))
     check("a 1985 flag with no Errata entry is refused",
           any("MISSING from the Errata" in f for f in quietly(check_corrections, flagged, 1985)))
     check("1985 reads its own section: a flag that says `see the Addendum` is no 1985 flag, so its entry is unreferenced",

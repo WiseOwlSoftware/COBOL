@@ -29729,12 +29729,12 @@ JUSTIFIED (JUST) clause, VI-24
    Condition-name, VI-21
    Figurative constant, IV-11
    Report group description entry, XIII-21
-
-> ⚠ **CORRECTED — see the Errata (C19).** The standard prints `Report group desçription entry` (page 813, folio XVIII-7): a damaged letter on the printed page, which the transcription had reproduced. Corrected to `description`.
    Standard alignment, IV-17
    STRING statement, VI-131
    USAGE IS INDEX clause, VI-46
    VALUE clause, VI-49
+
+> ⚠ **CORRECTED — see the Errata (C19).** The standard prints `Report group desçription entry` (page 813, folio XVIII-7): a damaged letter on the printed page, which the transcription had reproduced. Corrected to `description`.
 
 KEY data-names
    MERGE statement, XI-8
@@ -36745,7 +36745,7 @@ correction is a departure from the page.
 | [C16](#errata-c16) | 881 | A-51 | Amendment 1, Addendum 1, the LOWER-CASE function, its description | `upppercase` | `uppercase` | spelling |
 | [C17](#errata-c17) | 889 | A-59 | Amendment 1, Addendum 1, the NUMVAL-C function, its description | `ıeturns` | `returns` | damage |
 | [C18](#errata-c18) | 634 | XIII-56 | Section XIII, the TYPE clause, general rule 3, item a | `rêport` | `report` | damage |
-| [C19](#errata-c19) | 813 | XVIII-7 | Section XVIII, the index, under Report | `desçription` | `description` | damage |
+| [C19](#errata-c19) | 813 | XVIII-7 | Section XVIII, the index, under JUSTIFIED (JUST) clause | `desçription` | `description` | damage |
 
 <a id="errata-c1"></a>
 
@@ -36947,7 +36947,7 @@ A damaged letter on the printed page, which the transcription had reproduced, re
 
 <a id="errata-c19"></a>
 
-### C19 · page 813 (folio XVIII-7) · Section XVIII, the index, under Report · `desçription` → `description`
+### C19 · page 813 (folio XVIII-7) · Section XVIII, the index, under JUSTIFIED (JUST) clause · `desçription` → `description`
 
 | | |
 |---|---|

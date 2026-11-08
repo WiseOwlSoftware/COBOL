@@ -16,5 +16,5 @@ constitutent, statment twice, coresponding, concernings, upppercase). Twelve are
 transcription had reproduced (piovides, _ables, comment-entrıes, BEFCRE, Fil'es, omi-ted, fopting, thac, techñique,
 ıeturns, rêport, desçription). BEFCRE sits in INSPECT's general format on page
 217, so its figure verdict now carries BEFORE and is decided `neither`. The acknowledgment stays exactly as printed;
-Amendment 1's copy of it misprints "Commerical", recorded as D2 and not corrected. Nine catalog rule texts changed.
+Amendment 1's copy of it misprints "Commerical", recorded as D2 and not corrected. Eight catalog rule texts changed.
 The KEPT ledger claim for "fopting" written the day before is removed, since the word is now corrected.
