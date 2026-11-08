@@ -66,7 +66,7 @@ public static partial class CobolIntrinsics
     /// is binary64 (<see cref="CobolExact.TryBinary64"/>: a float item's content or an engine's approximation, written or returned by a nested
     /// selection, which only the run time knows) the mean is evaluated in binary64 (§2023:15.4.1: "an implementor-defined approximation of the value
     /// of that expression"; docs/CONFORMANCE.md DOC-A.1-92b), as <see cref="MedianReal"/> forms it for a count the binder knows, and is itself a
-    /// binary64's content (<see cref="CobolExact.FromBinary64"/>); when both middles are fixed-point it is their exact mean, a binary64 elsewhere
+    /// binary64 of the kind its middles have (<see cref="CobolExact.OfBinary64Result"/>); when both middles are fixed-point it is their exact mean, a binary64 elsewhere
     /// in the list being no operand of it, rounded once in <paramref name="sdidi"/> when the lane returns the SDIDI. Equal values keep their
     /// written order, so the middle values are the ones <c>FunctionValueField.Median</c> picks for DISPLAY.</summary>
     private static CobolExact Median(CobolExact[] xs, CobolRounding? sdidi)
@@ -79,20 +79,42 @@ public static partial class CobolIntrinsics
         CobolExact low = xs[order[xs.Length / 2 - 1]];
         bool lowBinary64 = low.TryBinary64(out double lowDouble), highBinary64 = high.TryBinary64(out double highDouble);
         if (lowBinary64 || highBinary64)
-            return CobolExact.FromBinary64(MedianReal(
+            return CobolExact.OfBinary64Result(MedianReal(
                 lowBinary64 ? lowDouble : FloatResultant.FromExact(low, CobolRounding.NearestEven, single: false),
-                highBinary64 ? highDouble : FloatResultant.FromExact(high, CobolRounding.NearestEven, single: false)));
+                highBinary64 ? highDouble : FloatResultant.FromExact(high, CobolRounding.NearestEven, single: false)),
+                low.IsFloatContent || high.IsFloatContent);
         CobolExact mean = HalfSum(low, high);
         return sdidi is { } mode ? CobolExact.FromDec(mean.ToDecRounded(mode)) : mean;
     }
 
-    /// <summary>MIDRANGE (§2023:15.62.4): <c>(FUNCTION MAX + FUNCTION MIN) / 2</c>, rounded once.</summary>
-    public static CobolDec MidrangeExact(CobolRounding mode, params CobolExact[] xs) =>
-        MidrangeWhole(xs).ToDecRounded(mode);
+    /// <summary>⛔ THE BINARY64 EVALUATION OF AN ARITHMETIC-FAMILY BODY (kb/Work PB4923; docs/CONFORMANCE.md DOC-A.1-92b): when ANY argument
+    /// is binary64 (<see cref="CobolExact.TryBinary64"/>: a float item's content or an approximation, written, or returned by a nested
+    /// selection, which only the run time knows) the function's equivalent arithmetic expression is evaluated in binary64
+    /// (§2023:15.4.1: "an implementor-defined approximation of the value of that expression"), as the float lane evaluates it for a
+    /// list whose kinds the binder knows, by <paramref name="real"/> over each argument's binary64. The value is a binary64 of the
+    /// kind its arguments have (<see cref="CobolExact.OfBinary64Result"/>). False, with nothing evaluated, when every argument is
+    /// fixed-point: the body is then exact. SUM, MEAN, RANGE, MIDRANGE and MEDIAN share this one reading.</summary>
+    private static bool TryBinary64Body(CobolExact[] xs, Func<double[], double> real, out CobolExact value)
+    {
+        value = default;
+        if (!xs.Any(x => x.TryBinary64(out _))) return false;
+        value = CobolExact.OfBinary64Result(real([.. xs.Select(x => x.AsBinary64())]), xs.Any(x => x.IsFloatContent));
+        return true;
+    }
+
+    /// <summary>MIDRANGE (§2023:15.62.4): <c>(FUNCTION MAX + FUNCTION MIN) / 2</c>, rounded once; the binary64 mean of the two when an
+    /// argument is binary64 (<see cref="TryBinary64Body"/>).</summary>
+    public static CobolExact MidrangeExact(CobolRounding mode, params CobolExact[] xs) => Midrange(xs, mode);
 
     /// <summary>MIDRANGE (§2023:15.62.4) exactly (see <see cref="MedianWhole"/>).</summary>
-    public static CobolExact MidrangeWhole(params CobolExact[] xs) =>
-        HalfSum(xs[SelectExact(xs, greatest: true, "MIDRANGE")], xs[SelectExact(xs, greatest: false, "MIDRANGE")]);
+    public static CobolExact MidrangeWhole(params CobolExact[] xs) => Midrange(xs, null);
+
+    private static CobolExact Midrange(CobolExact[] xs, CobolRounding? sdidi)
+    {
+        if (xs.Length > 0 && TryBinary64Body(xs, MidrangeReal, out CobolExact real)) return real;
+        CobolExact mean = HalfSum(xs[SelectExact(xs, greatest: true, "MIDRANGE")], xs[SelectExact(xs, greatest: false, "MIDRANGE")]);
+        return sdidi is { } mode ? CobolExact.FromDec(mean.ToDecRounded(mode)) : mean;
+    }
 
     /// <summary>(<paramref name="a"/> + <paramref name="b"/>) / 2 exactly: the sum times 5 at one more fraction digit (halving is exact in
     /// decimal), so a caller rounds it once, or not at all.</summary>
@@ -107,33 +129,46 @@ public static partial class CobolIntrinsics
         return sum;
     }
 
-    /// <summary>SUM (§2023:15.88.4): the exact sum of the arguments at their common scale, rounded once.</summary>
-    public static CobolDec SumExact(CobolRounding mode, params CobolExact[] xs) => SumWhole(xs).ToDecRounded(mode);
+    /// <summary>SUM (§2023:15.88.4): the exact sum of the arguments at their common scale, rounded once; the binary64 sum when an
+    /// argument is binary64 (<see cref="TryBinary64Body"/>).</summary>
+    public static CobolExact SumExact(CobolRounding mode, params CobolExact[] xs) => Sum(xs, mode);
 
     /// <summary>SUM (§2023:15.88.4) exactly (see <see cref="MedianWhole"/>): 10000 and .9999999999999999999999999999999 stored at five places
     /// are 10000.99999, not the 10001.00000 of the sum's 34-digit image.</summary>
-    public static CobolExact SumWhole(params CobolExact[] xs)
+    public static CobolExact SumWhole(params CobolExact[] xs) => Sum(xs, null);
+
+    private static CobolExact Sum(CobolExact[] xs, CobolRounding? sdidi)
     {
         RequireArguments(xs.Length, "SUM");
-        return Total(xs);
+        if (TryBinary64Body(xs, SumReal, out CobolExact real)) return real;
+        CobolExact total = Total(xs);
+        return sdidi is { } mode ? CobolExact.FromDec(total.ToDecRounded(mode)) : total;
     }
 
-    /// <summary>RANGE (§2023:15.76.4): <c>FUNCTION MAX − FUNCTION MIN</c>, at the two values' common scale, rounded once.</summary>
-    public static CobolDec RangeExact(CobolRounding mode, params CobolExact[] xs) => RangeWhole(xs).ToDecRounded(mode);
+    /// <summary>RANGE (§2023:15.76.4): <c>FUNCTION MAX − FUNCTION MIN</c>, at the two values' common scale, rounded once; the binary64
+    /// difference when an argument is binary64 (<see cref="TryBinary64Body"/>).</summary>
+    public static CobolExact RangeExact(CobolRounding mode, params CobolExact[] xs) => Range(xs, mode);
 
     /// <summary>RANGE (§2023:15.76.4) exactly (see <see cref="MedianWhole"/>).</summary>
-    public static CobolExact RangeWhole(params CobolExact[] xs)
+    public static CobolExact RangeWhole(params CobolExact[] xs) => Range(xs, null);
+
+    private static CobolExact Range(CobolExact[] xs, CobolRounding? sdidi)
     {
+        if (xs.Length > 0 && TryBinary64Body(xs, RangeReal, out CobolExact real)) return real;
         CobolExact max = xs[SelectExact(xs, greatest: true, "RANGE")], min = xs[SelectExact(xs, greatest: false, "RANGE")];
-        return CobolExact.Sub(max, min);
+        CobolExact difference = CobolExact.Sub(max, min);
+        return sdidi is { } mode ? CobolExact.FromDec(difference.ToDecRounded(mode)) : difference;
     }
 
     /// <summary>MEAN (§2023:15.60.4 1): <c>(argument-11 + … + argument-1n) / n</c>, the exact sum divided ONCE — the SDIDI quotient every
-    /// lane forms (kb/Work PB3860, PB4075; <see cref="MeanWide"/> is the same quotient over a wide sum).</summary>
-    public static CobolDec MeanExact(CobolRounding mode, params CobolExact[] xs)
+    /// lane forms (kb/Work PB3860, PB4075; <see cref="MeanWide"/> is the same quotient over a wide sum); the binary64 mean when an
+    /// argument is binary64 (<see cref="TryBinary64Body"/>).</summary>
+    public static CobolExact MeanExact(CobolRounding mode, params CobolExact[] xs)
     {
         RequireArguments(xs.Length, "MEAN");
-        return CobolExact.Quotient(Total(xs), CobolExact.From(xs.Length, 0), mode, jam: false);
+        return TryBinary64Body(xs, MeanReal, out CobolExact real)
+            ? real
+            : CobolExact.FromDec(CobolExact.Quotient(Total(xs), CobolExact.From(xs.Length, 0), mode, jam: false));
     }
 
     /// <summary>MOD (§2023:15.64.4): <c>argument-1 − argument-2 × FUNCTION INTEGER (argument-1 / argument-2)</c>, the floored modulus of the

@@ -168,6 +168,39 @@ public readonly struct CobolExact
         return _isApproximation || _isFloatContent;
     }
 
+    /// <summary>Is this value a float ITEM's content (<see cref="FromBinary64"/>, or a negation of one), as against an engine's
+    /// approximation (<see cref="FromApproximation"/>)? The compile-time lane keys the evaluation of an arithmetic expression on exactly
+    /// this kind: a float item owns the operation (<c>F + M</c> is binary64), while an approximation beside fixed-point operands is
+    /// lifted to its shortest decimal and the expression stays exact (<c>NumericRenderer.FloatItemLane</c>, kb/Work PB1641).</summary>
+    internal bool IsFloatContent => _isFloatContent;
+
+    /// <summary>This value as the binary64 a binary64 evaluation reads it as: the double a float item's content or an approximation
+    /// is, else the value rounded to the nearest binary64 (<see cref="FloatResultant.FromExact"/>, as the float lane converts a
+    /// fixed-point operand).</summary>
+    internal double AsBinary64() =>
+        _isApproximation || _isFloatContent ? _binary64 : FloatResultant.FromExact(this, CobolRounding.NearestEven, single: false);
+
+    /// <summary>⛔ THE RESULT OF A BINARY64 EVALUATION, IN ITS KIND (kb/Work PB4923; docs/CONFORMANCE.md DOC-A.1-92b): a value derived
+    /// from a float ITEM's content is itself a binary64's content (<see cref="FromBinary64"/>) and lands by its exact binary value;
+    /// one derived from engine approximations alone is an approximation (<see cref="FromApproximation"/>) and lands by its shortest
+    /// round-trip decimal, the kind <c>IntrinsicCarrierRules.Binary64ResultIsApproximation</c> predicts at bind time for a call whose
+    /// arguments the binder can see. A selection's returned item is a run-time fact (<see cref="TryBinary64"/>), so a body reads it
+    /// from the values and forms the kind here.</summary>
+    internal static CobolExact OfBinary64Result(double value, bool floatItem) =>
+        floatItem ? FromBinary64(value) : FromApproximation(value);
+
+    /// <summary>⛔ THE OPERANDS OF A BINARY64 OPERATION (kb/Work PB4923): a float ITEM owns the operation it takes part in, so
+    /// <c>MAX (F M2) + M</c> is evaluated in binary64 exactly as <c>F + M</c> is, when MAX selected F's content, a run-time fact the
+    /// compiler cannot see (<see cref="TryBinary64"/>). False when neither operand is a float item's content: the operation is then
+    /// exact, an approximation beside fixed-point operands being its shortest decimal.</summary>
+    private static bool TryBinary64Operands(CobolExact a, CobolExact b, out double x, out double y)
+    {
+        (x, y) = (0, 0);
+        if (!a._isFloatContent && !b._isFloatContent) return false;
+        (x, y) = (a.AsBinary64(), b.AsBinary64());
+        return true;
+    }
+
     /// <summary>The exact magnitude's binary64-rounding questions (<see cref="FloatResultant.FromExact"/>), on the arbitrary-precision form.</summary>
     internal CobolBig.Binary64Magnitude BinaryMagnitude() => AsBig().Magnitude();
 
@@ -201,6 +234,7 @@ public readonly struct CobolExact
 
     private static CobolExact Additive(CobolExact a, CobolExact b, bool subtract)
     {
+        if (TryBinary64Operands(a, b, out double x, out double y)) return FromBinary64(subtract ? x - y : x + y);
         int precision = Math.Max(a._precision, b._precision);
         int scale = Math.Max(a.Scale, b.Scale);
         if (a.TryAt(scale, out CobolWide left) && b.TryAt(scale, out CobolWide right)
@@ -215,6 +249,7 @@ public readonly struct CobolExact
     /// the precisions.</summary>
     public static CobolExact Mul(CobolExact a, CobolExact b)
     {
+        if (TryBinary64Operands(a, b, out double x, out double y)) return FromBinary64(x * y);
         int precision = a._precision + b._precision;
         if (a.TryAt(a.Scale, out CobolWide left) && b.TryAt(b.Scale, out CobolWide right)
             && CobolWide.TryMul(left, right, out CobolWide product))
@@ -230,6 +265,7 @@ public readonly struct CobolExact
     /// <see cref="CobolSizeError.ZeroDivide"/> (ISO §2023:14.7.5 case 2).</summary>
     public static CobolExact DivTruncated(CobolExact a, CobolExact b, int receiverScale)
     {
+        if (TryBinary64Operands(a, b, out double x, out double y)) return FromBinary64(CobolFloat.Div(x, y));
         int precision = Math.Max(a._precision, b._precision);
         return TruncatedQuotient(a, b, CobolNum.NestedQuotientScale(receiverScale, precision), precision);
     }
@@ -274,7 +310,9 @@ public readonly struct CobolExact
     /// resultant that has no such intermediate lands from <see cref="QuotientAtScale"/> instead.</para>
     /// A zero divisor raises <see cref="CobolSizeError.ZeroDivide"/> (ISO §2023:14.7.5 case 2).</summary>
     public static CobolDec DivToOdd(CobolExact a, CobolExact b, CobolRounding intermediate) =>
-        Quotient(a, b, intermediate, jam: intermediate != CobolRounding.Prohibited);
+        TryBinary64Operands(a, b, out double x, out double y)
+            ? FromBinary64(CobolFloat.Div(x, y)).Image
+            : Quotient(a, b, intermediate, jam: intermediate != CobolRounding.Prohibited);
 
     /// <summary>The exact quotient of two exact values reduced to the SDIDI's 34 digits ONCE: ROUND-TO-ODD with <paramref name="jam"/>, else
     /// in <paramref name="mode"/> (MEAN's, MEDIAN's and MIDRANGE's single division of an exact sum). On the wide form while both operands
@@ -295,6 +333,11 @@ public readonly struct CobolExact
     /// 000003000100000000 for 000003000000000000). A zero divisor raises <see cref="CobolSizeError.ZeroDivide"/> (ISO §2023:14.7.5 case 2).</summary>
     public static Int128 QuotientAtScale(CobolExact a, CobolExact b, int toScale, CobolRounding mode, bool checkedTransfer)
     {
+        if (TryBinary64Operands(a, b, out double x, out double y))
+        {
+            double quotient = CobolFloat.Div(x, y);
+            return checkedTransfer ? CobolFloat.ToScaled(quotient, toScale, mode) : CobolFloat.ToScaledUnchecked(quotient, toScale, mode);
+        }
         if (b.Sign == 0) throw CobolSizeError.ZeroDivide();
         return TryQuotientAtScale(a, b, toScale, mode, checkedTransfer, out Int128 landed)
             ? landed
@@ -354,6 +397,7 @@ public readonly struct CobolExact
     {
         CobolIntrinsics.CheckPowRule6(b.Sign, (double)e);
         if (e == 0) return From(1, 0);
+        if (b._isFloatContent) return FromBinary64(CobolIntrinsics.PowNativeReal(b._binary64, (double)e));
         Int128 n = Int128.Abs(e);
         int precision = (int)Int128.Clamp(b._precision * Int128.Clamp(e, 0, int.MaxValue), int.MinValue, int.MaxValue);
         // An exponent past 2^40 is one of its own parity: every base but 0 and ±1 is out of the range at it, and those three
