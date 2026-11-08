@@ -22,7 +22,7 @@ held edition (kb/Work PB4995), and the fleet decides only what they leave open:
           change record, KEPT (with the 2023 rules it carries into), CHANGED (with the rules and the words that differ) or
           REMOVED (the 2023 text drops it), or OPEN when the texts do not decide it;
   refute  the adjudication's independent refuter: one request per KEPT, CHANGED or REMOVED answer (UPHELD, REFUTED, UNSURE).
-          An upheld answer is the rule's change record (`dispositions`' `change`, which lineage.py's change batch records);
+          An upheld answer is the rule's change record (`dispositions`' `change`, which `change-batch` writes);
           a refuted, unsure or OPEN one is CONTESTED and goes to a fleet adjudicator, never to a vote.
 
     python scripts/spec/audit_batch.py plan    --pass route  --state DIR [--catalog F] [--catalog-2023 F]
@@ -39,6 +39,9 @@ held edition (kb/Work PB4995), and the fleet decides only what they leave open:
     python scripts/spec/audit_batch.py collect --pass P --state DIR --api-key-file KEY
     python scripts/spec/audit_batch.py retry   --pass P --state DIR --api-key-file KEY --max-usd N
     python scripts/spec/audit_batch.py results --state DIR                        # DIR/results.json: each rule's disposition
+    python scripts/spec/audit_batch.py change-batch --state DIR --out FILE        # every DECIDED change record (KEPT,
+                                                                                   # CHANGED, REMOVED; record_verdicts.py
+                                                                                   # --edition 1985)
     python scripts/spec/test_audit_batch.py                                       # its self-test: a fake client, no API call
 
 RESTARTABLE. A pass lives in `DIR/<pass>/`: `items.json` (written once by `plan`: custom id -> the item, every input its
@@ -80,7 +83,7 @@ import citation  # noqa: E402  (THE citation format and the 1985 regions, kb/Wor
 import spec_pdf  # noqa: E402  (the one edition table, kb/Work PB4815)
 import verify_publishable  # noqa: E402  (the stamp shapes)
 from extract_rule_catalog import OUT, OUT_1985  # noqa: E402  (the 2023 and the 1985 catalogs)
-from lineage import CHANGED, KEPT, NEXT_KINDS, REMOVED  # noqa: E402  (THE change record's kinds, DESIGN §10.2)
+from inventory_schema import ChangeRecord, edition, load_schema  # noqa: E402  (the 1985 edition and its change record)
 from message_batches import (CACHE_MIN_SHARERS, DEFAULT_MODEL, BatchRun, cached_system, cached_text,  # noqa: E402
                              make_client, reply_text, usd, write_atomic)  # noqa: E402  (THE batch state)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/
@@ -95,10 +98,19 @@ REGION_CHARS = 12000
 CHARS_PER_TOKEN = 3.5
 
 SAME, DIFFERS, NONE = "SAME", "DIFFERS", "NONE"
-#: The adjudicator's answer when the texts do not decide a rule's change record (whose kinds are lineage.NEXT_KINDS).
-OPEN = "OPEN"
-#: The dispositions the adjudicate pass decides: a refuted or unsure SAME, and a DIFFERS or NONE answer.
-ADJUDICATED = ("DISPUTED", "OWN-ROW")
+#: A mapped 1985 rule's disposition (`dispositions`, the run's results.json): CARRIES is a SAME the verify pass upheld, whose
+#: decided change is the chained (KEPT) change record (kb/Work PB4993); the others are the adjudicate pass's, or in flight.
+CARRIES, OWN_ROW, DISPUTED, UNVERIFIED, OPEN = "CARRIES", "OWN-ROW", "DISPUTED", "UNVERIFIED", "OPEN"
+#: The dispositions the adjudicate pass decides: a refuted or unsure SAME, and a DIFFERS or NONE answer (kb/Work PB4995).
+ADJUDICATED = (DISPUTED, OWN_ROW)
+#: The adjudicator's answer when the texts do not decide a rule's change record. Its other answers are the change record's
+#: kinds, the schema's `next.kinds` (`change_kinds`): no code here spells a kind.
+UNDECIDED = "OPEN"
+
+
+def change_kinds() -> ChangeRecord:
+    """The change record's shape, the schema's `next` (read when asked: the schema loads lazily, kb/Work PB4993)."""
+    return load_schema().next
 
 #: The preamble of every pass. Its box sentence names the transcription's OWN level-2 markup (spec_pdf.BOX_SIDE for prose,
 #: FIGURE-STYLE.md rule 9's double lines for a general format; TRANSCRIPTION-STATE.md "The 1985 transcription", kb/Work
@@ -199,8 +211,12 @@ ROUTED = "ROUTED"
 #: The most 2023 clauses one route answer may name: a 1985 clause spread over more than this is no single feature.
 MAX_ROUTES = 8
 VERDICTS = {"route": {ROUTED, NONE}, "map": {SAME, DIFFERS, NONE}, "verify": {"UPHELD", "REFUTED", "UNSURE"},
-            "claims": {"CONFIRMED", "REFUTED", "NOT-ADDRESSED"}, "adjudicate": {*NEXT_KINDS, OPEN},
-            "refute": {"UPHELD", "REFUTED", "UNSURE"}}
+            "claims": {"CONFIRMED", "REFUTED", "NOT-ADDRESSED"}, "refute": {"UPHELD", "REFUTED", "UNSURE"}}
+
+
+def verdicts(pass_name: str) -> set[str]:
+    """The verdicts a pass's answer may give: the adjudicate pass's are the change record's kinds, and UNDECIDED."""
+    return {*change_kinds().kinds, UNDECIDED} if pass_name == "adjudicate" else VERDICTS[pass_name]
 #: The passes whose one item is a map item's rule with its candidates: their requests share the map's cached clause block.
 WITH_CANDIDATES = ("map", "adjudicate", "refute")
 
@@ -459,12 +475,12 @@ def answers_by_id(state: pathlib.Path, name: str) -> dict[str, dict[str, Any]]:
 
 
 def change_of(adjudicated: dict[str, Any]) -> dict[str, Any]:
-    """An upheld adjudication as its change record's decided part (lineage.py adds the edition, the bridge and the source):
+    """An upheld adjudication as its change record's decided part (`change_records` adds the edition, the bridge and the source):
     its kind, the 2023 rules it carries into, and its reason, the words that differ before the adjudicator's why."""
     differs = adjudicated.get("differs") or {}
     words = "; ".join(f"{ed}: {differs[ed]!r}" for ed in ("1985", "2023") if differs.get(ed))
-    return {"kind": adjudicated["verdict"], "to": adjudicated["rules_2023"],
-            "reason": f"{words}. {adjudicated['reason']}" if words else adjudicated["reason"]}
+    reason = (f"{words}. {adjudicated['reason']}" if words else adjudicated["reason"]).strip()
+    return {"kind": adjudicated["verdict"], "to": adjudicated["rules_2023"], **({"reason": reason} if reason else {})}
 
 
 def dispositions(state: pathlib.Path) -> dict[str, dict[str, Any]]:
@@ -485,29 +501,41 @@ def dispositions(state: pathlib.Path) -> dict[str, dict[str, Any]]:
         row: dict[str, Any] = {"citation": it["rule"]["citation"], "map": a and a["verdict"],
                                "rules_2023": a["rules_2023"] if a else [], "verify": None}
         if a is None:
-            row["disposition"] = "OPEN"
+            row["disposition"] = OPEN
         elif a["verdict"] != SAME:
-            row["disposition"] = "OWN-ROW"
+            row["disposition"] = OWN_ROW
         else:
             got = verify.get(it["id"])
             row["verify"] = got and got["verdict"]
-            row["disposition"] = "UNVERIFIED" if got is None else "CARRIES" if got["verdict"] == "UPHELD" else "DISPUTED"
-        if row["disposition"] == "CARRIES":
-            row["change"] = {"kind": KEPT, "to": row["rules_2023"], "reason": ""}
+            row["disposition"] = UNVERIFIED if got is None else CARRIES if got["verdict"] == "UPHELD" else DISPUTED
+        if row["disposition"] == CARRIES:
+            row["change"] = {"kind": change_kinds().chained.name, "to": row["rules_2023"]}   # the same requirement: no reason
         elif (adj := adjudicate.get(it["id"])) is not None:
             row["adjudicate"], row["refute"] = adj["verdict"], (refute.get(it["id"]) or {}).get("verdict")
             if row["refute"] == "UPHELD":
                 row["change"] = change_of(adj)
-            elif adj["verdict"] == OPEN or row["refute"] is not None:
+            elif adj["verdict"] == UNDECIDED or row["refute"] is not None:
                 row["contested"] = True
         out[it["id"]] = row
     return out
 
 
+def change_records(disp: dict[str, dict[str, Any]], source: str) -> list[dict[str, Any]]:
+    """Every DECIDED change record of the run (each rule's `change`: the chained kind, KEPT, for a CARRIES rule, and the
+    adjudicate pass's KEPT, CHANGED or REMOVED once its refuter upheld it) as record_verdicts records of the 1985 edition's
+    change record (the schema's `next`): into the 2023 rules it names, its reason only when it states one (one stored form,
+    lineage.next_errors), the run as its source (kb/Work PB4993, PB4995; DESIGN-spec-conformance-review.md section 10.2).
+    A contested or unadjudicated rule is the fleet's, and not in it."""
+    ed = edition(1985)
+    return [{"rule-id": rid, "next": {"kind": c["kind"], "edition": ed.next_held, "to": c["to"], "bridge": ed.bridged,
+                                      **({"reason": c["reason"]} if c.get("reason") else {}), "source": source}}
+            for rid, d in sorted(disp.items()) if (c := d.get("change"))]
+
+
 def final_dispositions(state: pathlib.Path) -> dict[str, dict[str, Any]]:
     """`dispositions`, refused while a rule has none yet: the drafts and the adjudication are planned from final ones."""
     disp = dispositions(state)
-    if waiting := [i for i, d in disp.items() if d["disposition"] in ("OPEN", "UNVERIFIED")]:
+    if waiting := [i for i, d in disp.items() if d["disposition"] in (OPEN, UNVERIFIED)]:
         raise SystemExit(f"{TOOL}: {len(waiting)} rule(s) have no final disposition yet; finish the map and verify passes")
     return disp
 
@@ -518,9 +546,10 @@ def plan_drafts(state: pathlib.Path) -> list[dict[str, Any]]:
     grows by those (`write_plan`)."""
     disp = final_dispositions(state)
     items = Pass(state, "map").items()
+    kinds = change_kinds().kinds
     return [{"id": it["id"], "rule": it["rule"]} for it in items.values()
-            if disp[it["id"]]["disposition"] == "OWN-ROW"
-            or disp[it["id"]].get("change", {}).get("kind") in (CHANGED, REMOVED)]
+            if disp[it["id"]]["disposition"] == OWN_ROW
+            or ((c := disp[it["id"]].get("change")) and not kinds[c["kind"]].chained)]
 
 
 def plan_adjudicate(state: pathlib.Path) -> list[dict[str, Any]]:
@@ -543,7 +572,7 @@ def plan_refute(state: pathlib.Path) -> list[dict[str, Any]]:
         raise SystemExit(f"{TOOL}: {len(missing)} adjudicate item(s) are unanswered; collect and retry that pass first")
     return [{"id": it["id"], "rule": it["rule"], "clause_candidates": it["clause_candidates"],
              "word_candidates": it["word_candidates"], "adjudication": answers[cid]["answer"]}
-            for cid, it in items.items() if answers[cid]["answer"]["verdict"] != OPEN]
+            for cid, it in items.items() if answers[cid]["answer"]["verdict"] != UNDECIDED]
 
 
 # -- the requests ---------------------------------------------------------------------------------------------------------
@@ -623,12 +652,18 @@ def request(pass_name: str, cid: str, item: dict[str, Any], model: str, shapes: 
 # -- the answers ----------------------------------------------------------------------------------------------------------
 
 def parse_answer(pass_name: str, item: dict[str, Any], text: str) -> tuple[dict[str, Any] | None, str]:
-    """The reply as the pass's answer, or None and why it is not one."""
+    """The reply as the pass's answer, or None and why it is not one. The answer is the ONE JSON value that starts at the
+    reply's first `{`, read to its own end (`raw_decode`), so a fence, prose or a stray brace after it is never part of it:
+    cutting at the reply's LAST `}` failed a complete answer that a model followed with an extra `}` (PB4995's drafts). A
+    reply that opens a second object after it (a self-correction) holds two answers, and neither is taken (review
+    w20261932a R1-1)."""
     body = re.sub(r"\A\s*```[a-z]*\s*|\s*```\s*\Z", "", text)
     try:
-        obj = json.loads(body[body.index("{"):body.rindex("}") + 1])
+        obj, end = json.JSONDecoder().raw_decode(body, body.index("{"))
     except ValueError:
         return None, "unparsed"
+    if "{" in body[end:]:
+        return None, "two answers"
     if not isinstance(obj, dict):
         return None, "not an object"
     if pass_name == "drafts":
@@ -637,7 +672,7 @@ def parse_answer(pass_name: str, item: dict[str, Any], text: str) -> tuple[dict[
               and exp.get("outcome") in ("refused", "output")
               and (exp["outcome"] == "refused" or isinstance(exp.get("output"), list)))
         return (obj, "") if ok else (None, "not a draft")
-    if obj.get("verdict") not in VERDICTS[pass_name]:
+    if obj.get("verdict") not in verdicts(pass_name):
         return None, f"verdict {obj.get('verdict')!r}"
     if pass_name == "route":
         ids = obj.get("clauses_2023")
@@ -650,10 +685,12 @@ def parse_answer(pass_name: str, item: dict[str, Any], text: str) -> tuple[dict[
         known = {c["id"] for c in map_candidates(item)}
         if not isinstance(ids, list) or not set(ids) <= known:
             return None, "rules_2023 names a rule that is no candidate"
-        if (obj["verdict"] in (NONE, REMOVED, OPEN)) != (not ids):
+        kind = change_kinds().kinds.get(obj["verdict"]) if pass_name == "adjudicate" else None
+        names = obj["verdict"] == SAME or obj["verdict"] == DIFFERS or bool(kind and kind.to)
+        if names == (not ids):
             return None, "rules_2023 must be empty exactly when the verdict names no counterpart"
-    if pass_name == "adjudicate" and obj["verdict"] in (CHANGED, REMOVED) and not str(obj.get("reason") or "").strip():
-        return None, f"a {obj['verdict']} decision states its reason"   # the change record's (lineage.next_errors)
+        if kind and kind.reason and not str(obj.get("reason") or "").strip():
+            return None, f"a {obj['verdict']} decision states its reason"   # the change record's (lineage.next_errors)
     if pass_name == "claims" and obj["verdict"] != "NOT-ADDRESSED":
         found, why = cited(obj)
         if found is None:
@@ -776,6 +813,10 @@ def build_parser() -> argparse.ArgumentParser:
     common(sub.add_parser("collect", help="store the answers of every ended batch"))
     common(sub.add_parser("results", help="write DIR/results.json: each mapped rule's disposition and decided change"),
            key=False, pass_arg=False)
+    cb = sub.add_parser("change-batch", help="write every decided change record as a record_verdicts batch")
+    common(cb, key=False, pass_arg=False)
+    cb.add_argument("--out", required=True, help="the batch file to write")
+    cb.add_argument("--source", help="each record's next.source (default: audit-1985/<the state directory's name>)")
     return ap
 
 
@@ -799,6 +840,16 @@ def main(argv: list[str] | None = None, client_factory: Callable[[str], Any] = m
         print(f"results: {dict(sorted(collections.Counter(d['disposition'] for d in disp.values()).items()))}; decided "
               f"{dict(sorted(decided.items()))}; contested {sum(1 for d in disp.values() if d.get('contested'))} "
               f"-> {state / 'results.json'}", flush=True)
+        return 0
+    if a.cmd == "change-batch":
+        records = change_records(dispositions(state), a.source or f"audit-1985/{state.name}")
+        out = pathlib.Path(a.out)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        write_atomic(out, json.dumps({"batch": f"lineage-change:{state.name}", "records": records}, indent=1,
+                                     ensure_ascii=False) + "\n")
+        kinds = collections.Counter(r["next"]["kind"] for r in records)
+        print(f"change-batch: {len(records)} change record(s) {dict(sorted(kinds.items()))} -> {out}\n"
+              f"  validate: python scripts/spec/record_verdicts.py --edition 1985 --dry-run {out}", flush=True)
         return 0
     p = Pass(state, a.pass_name)
     if a.cmd == "plan":

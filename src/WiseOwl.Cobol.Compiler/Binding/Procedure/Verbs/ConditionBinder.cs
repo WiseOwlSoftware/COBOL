@@ -6,6 +6,7 @@ using WiseOwl.Cobol.Common;
 using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions.Diagnostics;
+using WiseOwl.Cobol.Frontend.Cst;
 using WiseOwl.Cobol.Frontend.Expressions;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Editions;
@@ -1378,7 +1379,15 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // A constant-name is the literal it substitutes (§2023:13.10.4 GR1), and a symbolic-character a figurative constant
         // (§2023:12.3.7.4 GR11 a)): neither is a data item, and neither is a condition — a boolean constant never gets
         // here, it is the §2023:8.8.4.3 simple boolean condition AnalyzeBareOperand routed it as (kb/Work PB3191).
-        if (dref is { } ad && ad.dataReferenceSuffix().Length == 0 && host.Expr.LiteralAliasOf(ad) is { } alias)
+        // ⛔ A COUNTER REGISTER IS NO CONDITION (kb/Work PB4947): LINAGE-COUNTER, LINE-COUNTER and PAGE-COUNTER reference "a
+        // temporary unsigned integer data item of class and category numeric" (§2023:8.4.3.14.4 GR1; §2023:8.4.3.15.4 GR1), which
+        // §2023:8.8.4.2.1's list of the simple conditions does not contain. It resolves to no data item (the register is not in
+        // the symbol table), so it used to fall to the undefined-word arm below and compile with only COBOL1756, aborting the
+        // run unit, where the numeric data item `IF W` is refused. The register arm comes FIRST: its cobolWord() is the
+        // QUALIFIER (`LINAGE-COUNTER OF F` gives F), which the alias, class-name and mnemonic tests below must not read.
+        if (dref is { } reg && new DataReferenceCst(reg).Register != SpecialRegister.None)
+            what = $"the special register {DataBinder.WrittenText(reg)}, an unsigned integer data item of class and category numeric";
+        else if (dref is { } ad && ad.dataReferenceSuffix().Length == 0 && host.Expr.LiteralAliasOf(ad) is { } alias)
             what = $"{alias.Described}, which is none of the conditions";
         else if (BareClassWord(vo) is { } classWord)
             what = ctx.Data.SpecialNames.IsAlphabetName(classWord)
@@ -1386,7 +1395,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                   + "\"identifier-1 IS [NOT] alphabet-name-1\" (ISO §2023:8.8.4.4.2)"
                 : $"class-name '{classWord}', which forms a class condition only after the identifier it tests — "
                   + "\"identifier-1 IS [NOT] class-name-1\" (ISO §2023:8.8.4.4.2)";
-        else if (dref is { } d && d.dataReferenceSuffix().Length == 0 && d.cobolWord()?.GetText() is { } word
+        else if (dref is { } d && d.dataReferenceSuffix().Length == 0 && ReferenceResolver.WrittenWordOf(d) is { } word
                  && ctx.Mnemonics.TryPeek(word, out var mnemonicRow) && mnemonicRow.Kind == SystemNameKind.Switch)
             what = $"the mnemonic-name '{word}' of a switch; a switch-status condition is written with a condition-name "
                 + "the SPECIAL-NAMES paragraph associates with the switch's ON or OFF status (ISO §2023:8.8.4.6.1; the §2023:8.8.4.6.2 format is condition-name-1)";
@@ -1544,8 +1553,8 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// classifier may ask it before anything is bound.</summary>
     public string? BareClassWord(Core.ValueOperandContext? vo) =>
         vo?.arithmeticExpression() is { } expr && SoleDataRef(expr) is { } dref && dref.dataReferenceSuffix().Length == 0
-            && dref.cobolWord() is { } word && ctx.Data.SpecialNames.IsClassConditionWord(word.GetText()) && !ctx.Refs.DescribesOwnItem(dref)
-            ? word.GetText() : null;
+            && ReferenceResolver.WrittenWordOf(dref) is { } word && ctx.Data.SpecialNames.IsClassConditionWord(word) && !ctx.Refs.DescribesOwnItem(dref)
+            ? word : null;   // WrittenWordOf: a counter register's cobolWord() is its QUALIFIER (kb/Work PB4154, PB4947)
 
     /// <summary>§2023:14.9.13.3 SR5 over a selection object the grammar parsed as a whole <c>condition</c>: the
     /// class-name / alphabet-name its LEFTMOST simple condition is written as, bare, or null. <c>WHEN MY-CLASS AND

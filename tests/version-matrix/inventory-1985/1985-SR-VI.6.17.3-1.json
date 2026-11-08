@@ -9,7 +9,6 @@
    "SR-14.9.20.3-8"
   ],
   "bridge": true,
-  "reason": "",
   "source": "audit-1985/state-route"
  }
 }

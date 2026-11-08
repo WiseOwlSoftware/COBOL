@@ -23,6 +23,8 @@ import tempfile
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import audit_batch as A  # noqa: E402
+import inventory_schema  # noqa: E402  (the 1985 edition and the change record, change-batch)
+import lineage  # noqa: E402  (THE validator of a change record)
 import rule_catalog_1985  # noqa: E402  (THE reader of a level-2 box)
 import spec_pdf  # noqa: E402
 from fake_batches import Crash, FakeBatches, client, succeeded  # noqa: E402  (THE fake client)
@@ -170,6 +172,15 @@ def main() -> int:
               is None
               and A.parse_answer("route", inspect_item, json.dumps({"verdict": "ROUTED", "clauses_2023": [], "reason": "r"}))[0]
               is None)
+        routed = json.dumps({"verdict": "ROUTED", "clauses_2023": ["14.9.21"], "reason": "r"})
+        check("an answer is the one object at the reply's first brace: a stray brace or prose after it is not part of it",
+              A.parse_answer("route", inspect_item, routed + "}")[0] is not None
+              and A.parse_answer("route", inspect_item, "```json" + chr(10) + routed + chr(10) + "```")[0] is not None
+              and A.parse_answer("route", inspect_item, "Answer: " + routed + " (from the text)")[0] is not None
+              and A.parse_answer("route", inspect_item, routed[:-1]) == (None, "unparsed"))
+        nonroute = json.dumps({"verdict": "NONE", "clauses_2023": [], "reason": "r"})
+        check("a reply that answers twice (a self-correction after the first object) is refused, never read as its first",
+              A.parse_answer("route", inspect_item, routed + " Correction: " + nonroute) == (None, "two answers"))
         wide = dict(inspect_item, clauses_2023=[{"id": f"1.{n}", "subject": "s"} for n in range(A.MAX_ROUTES + 1)])
         check("a route answer naming more than MAX_ROUTES clauses is refused, and MAX_ROUTES is accepted",
               A.parse_answer("route", wide, json.dumps({"verdict": "ROUTED", "clauses_2023": [c["id"] for c in
@@ -336,6 +347,26 @@ def main() -> int:
         check("a refuted SAME is DISPUTED, a DIFFERS and a NONE are rows of their own",
               results[same_rule]["disposition"] == "DISPUTED" and results[same_rule]["verify"] == "REFUTED"
               and sorted(d["disposition"] for d in results.values()) == ["DISPUTED", "OWN-ROW", "OWN-ROW"])
+        kept = root / "kept.json"
+        code, out = run(["change-batch", *base, "--out", str(kept)], fake)
+        check("change-batch writes no record while no SAME is upheld and nothing is adjudicated (kb/Work PB4993)",
+              code == 0 and json.loads(kept.read_text(encoding="utf-8"))["records"] == [])
+        planted = {"1985-SR-VI.5.8.3-1": {"disposition": A.CARRIES, "rules_2023": ["SR-13.18.38.3-1"],
+                                          "change": {"kind": "KEPT", "to": ["SR-13.18.38.3-1"]}},
+                   "1985-SR-VI.5.8.3-2": {"disposition": A.DISPUTED, "rules_2023": ["SR-13.18.38.3-1"], "contested": True},
+                   "1985-GR-VI.5.8.4-1": {"disposition": A.OWN_ROW, "rules_2023": [],
+                                          "change": {"kind": "REMOVED", "to": [], "reason": "the module is deleted"}},
+                   "1985-GR-VI.5.8.4-2": {"disposition": A.OWN_ROW, "rules_2023": []}}
+        recs = A.change_records(planted, "audit-1985/planted")
+        schema = inventory_schema.load_schema()
+        targets = {"SR-13.18.38.3-1": {"rule-id": "SR-13.18.38.3-1", "state": "OK", "editions": "85,2002,2014,2023"}}
+        check("the change records are the decided rules only (no contested or unadjudicated one), each legal, a reason "
+              "stored only when one is stated (one stored form)",
+              [r["rule-id"] for r in recs] == ["1985-GR-VI.5.8.4-1", "1985-SR-VI.5.8.3-1"]
+              and "reason" not in recs[1]["next"] and recs[0]["next"]["reason"] == "the module is deleted"
+              and all(lineage.next_errors({**r, "verdict": ""}, inventory_schema.edition(1985), schema, targets) == []
+                      for r in recs)
+              and lineage.chained(recs[1], schema) and not lineage.chained(recs[0], schema))
         code, out = run(["plan", "--pass", "drafts", *base], fake)
         ditems = json.loads((state / "drafts" / "items.json").read_text(encoding="utf-8"))
         check("the drafts plan holds the rows of their own only", code == 0 and len(ditems) == 2
@@ -361,6 +392,9 @@ def main() -> int:
         check("an adjudicate request shares the map's cached clause block and carries both readers in its own part",
               atext[1] == A.prompt_parts("map", items[A.custom_id("map", same_rule)])[1]
               and "THE VERIFY READER'S ANSWER" in atext[2] and "77 differs" in atext[2] and "KEPT|CHANGED" in atext[0])
+        check("the adjudicate prompt offers every kind of the schema's change record, and UNDECIDED (a kind the schema "
+              "adds is offered, or this fails)",
+              f'"verdict": "{"|".join([*inventory_schema.load_schema().next.kinds, A.UNDECIDED])}"' in atext[0])
         inspect_rule = "1985-GR-VI.6.18.4-2"
         debug_rule = "1985-GR-XV.3.2.4-1"
         ait = aby[inspect_rule][1]
@@ -412,10 +446,8 @@ def main() -> int:
                                                 "reason": "1985: 'character'; 2023: 'position'. the unit changed"}
               and final[debug_rule].get("contested") is True and "change" not in final[debug_rule]
               and final[inspect_rule]["refute"] == "UPHELD" and "decided {'CHANGED': 1}; contested 2" in out)
-        import lineage  # noqa: PLC0415  (the change batch reads `change` from results.json)
         batch = root / "change-batch.json"
-        with contextlib.redirect_stdout(io.StringIO()):
-            lineage.change_batch(state, batch, "planted")
+        code, out = run(["change-batch", *base, "--out", str(batch), "--source", "planted"], fake)
         records = json.loads(batch.read_text(encoding="utf-8"))["records"]
         check("the change batch records each decided change once, bridged to the next held edition, and no contested rule",
               [r["rule-id"] for r in records] == [inspect_rule]
@@ -450,7 +482,7 @@ def main() -> int:
         check("a SAME the verify pass upheld (CARRIES) is a KEPT change into the rules it named, with no adjudication",
               A.dispositions(state8)[word_item["id"]] == {
                   "citation": word_item["rule"]["citation"], "map": "SAME", "rules_2023": [c_b["id"]], "verify": "UPHELD",
-                  "disposition": "CARRIES", "change": {"kind": "KEPT", "to": [c_b["id"]], "reason": ""}})
+                  "disposition": "CARRIES", "change": {"kind": "KEPT", "to": [c_b["id"]]}})
 
         print("claims: the 1985 text and the citation check")
         planted = root / "repo"

@@ -10,7 +10,6 @@
    "SR-13.4.5.3-9"
   ],
   "bridge": true,
-  "reason": "",
   "source": "audit-1985/state-route"
  }
 }

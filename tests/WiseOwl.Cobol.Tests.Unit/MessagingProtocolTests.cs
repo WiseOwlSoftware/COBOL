@@ -50,7 +50,8 @@ public sealed class MessagingProtocolTests
         internal void Serve() => Run(Protocol.Serve());
         internal void Send(string server, string image) => Run(Protocol.BeginSend(server, MessageBody.Of(image)));
         internal void Send(string server, MessageBody body) => Run(Protocol.BeginSend(server, body));
-        internal void SendResponse(MessageTag to, string image, string? raising = null) => Run(Protocol.BeginSendResponse(to, MessageBody.Of(image), raising));
+        internal void SendResponse(MessageTag to, string image, string? raising = null) => SendResponse(to, MessageBody.Of(image), raising);
+        internal void SendResponse(MessageTag to, MessageBody body, string? raising = null) => Run(Protocol.BeginSendResponse(to, body, raising));
         internal void Receive(MessageTag from, int capacity = 100, MessageWait? wait = null) => Run(Protocol.BeginReceive(from, capacity, wait ?? MessageWait.Forever));
         internal void End(bool abnormal = false) => Run(Protocol.End(abnormal));
         internal void Post(ProtocolEvent protocolEvent) => Run(Protocol.Handle(protocolEvent));
@@ -160,7 +161,7 @@ public sealed class MessagingProtocolTests
     {
         var extents = new RecordExtents([0, 4], [2, 3]);
         var tag = new MessageTag(Mcs, MessageParty.Requestor, "run1", 7);
-        var body = new MessageBody("héllo 😀", extents, [tag, MessageTag.Null]);
+        var body = new MessageBody("héllo 😀", extents, [new MessageSlot("TOKEN-01", tag), new MessageSlot("TOKEN-02", MessageTag.Null)]);
         PeerFrame[] frames =
         [
             new HelloFrame(1, Mcs, "run1", 42, "SRV"), new OfferFrame(9, 3), new ClaimFrame(9, 3), new GrantFrame(9, 3, body),
@@ -176,9 +177,11 @@ public sealed class MessagingProtocolTests
         Assert.Equal(body.Image, grant.Message.Image);
         Assert.Equal([0, 4], grant.Message.Extents!.FixedAt);
         Assert.Equal([2, 3], grant.Message.Extents.Lengths);
-        Assert.True(MessageTag.SameParty(tag, (MessageTag)grant.Message.Slots[0]!));
-        Assert.Equal(7, ((MessageTag)grant.Message.Slots[0]!).Message);
-        Assert.True(((MessageTag)grant.Message.Slots[1]!).IsNull);
+        Assert.Equal("TOKEN-01", grant.Message.Slots[0].Token);
+        Assert.True(MessageTag.SameParty(tag, grant.Message.Slots[0].Tag));
+        Assert.Equal(7, grant.Message.Slots[0].Tag.Message);
+        Assert.Equal("TOKEN-02", grant.Message.Slots[1].Token);
+        Assert.True(grant.Message.Slots[1].Tag.IsNull);
     }
 
     [Fact]
@@ -192,10 +195,15 @@ public sealed class MessagingProtocolTests
         var negative = (byte[])good.Clone();
         negative[12 + 3] = 0x80;                                                                                          // the image's count goes negative
         Assert.Throws<InvalidDataException>(() => PeerFrameCodec.Decode(McsFrameKind.Grant, negative));
-        var badParty = PeerFrameCodec.Encode(new GrantFrame(1, 1, new MessageBody("", null, [new MessageTag(Mcs, MessageParty.Server, "S", 1)])));
+        var badParty = PeerFrameCodec.Encode(new GrantFrame(1, 1, new MessageBody("", null, [new MessageSlot("TOKEN-01", new MessageTag(Mcs, MessageParty.Server, "S", 1))])));
         badParty[badParty.Length - 8 - 7 - 1] = 9;                                                                        // the party byte
         Assert.Throws<InvalidDataException>(() => PeerFrameCodec.Decode(McsFrameKind.Grant, badParty));
-        Assert.Throws<ArgumentException>(() => PeerFrameCodec.Encode(new GrantFrame(1, 1, new MessageBody("", null, ["not a tag"]))));
+        // A slot's token is the 8 positions a message tag occupies (DOC-A.1-212), on the way out and on the way in (kb/Work PB4957).
+        Assert.Throws<ArgumentException>(() => PeerFrameCodec.Encode(new GrantFrame(1, 1, new MessageBody("", null, [new MessageSlot("SHORT", MessageTag.Null)]))));
+        var shortToken = PeerFrameCodec.Encode(new GrantFrame(1, 1, new MessageBody("", null, [new MessageSlot("TOKEN-01", MessageTag.Null)])));
+        int tokenCount = Array.IndexOf(shortToken, (byte)'T', 0) - 4;                                                    // the token's count precedes its first unit
+        shortToken[tokenCount] = 7;
+        Assert.Throws<InvalidDataException>(() => PeerFrameCodec.Decode(McsFrameKind.Grant, shortToken));
     }
 
     [Fact]
@@ -299,13 +307,46 @@ public sealed class MessagingProtocolTests
     {
         var (_, server, requestor) = Pair();
         var tag = new MessageTag(Mcs, MessageParty.Requestor, "someone", 4);
-        requestor.Send("SRV", new MessageBody("AAKEY", new RecordExtents([0], [2]), [tag]));
+        requestor.Send("SRV", new MessageBody("AAKEY", new RecordExtents([0], [2]), [new MessageSlot("TOKEN-01", tag)]));
         server.Receive(default);
         Pump(requestor, server);
         var got = server.Last;
         Assert.Equal([0], got.Extents!.FixedAt);
         Assert.Equal([2], got.Extents.Lengths);
-        Assert.True(MessageTag.SameParty(tag, (MessageTag)got.Slots![0]!));
+        Assert.True(MessageTag.SameParty(tag, got.Slots![0].Tag));
+    }
+
+    [Fact]
+    public void AMessageCarriesOnlyTheSlotsItsImageHolds_SoACutToTheCapacityDropsATagPastIt()
+    {
+        // kb/Work PB4957: a slot stands for the positions that hold its token (MessageBody.Carrying). GR3 of §2023:14.9.31.4 cuts a longer message to identifier-1's
+        // positions (Q7), so the tag whose token lay past them is no part of what it received, on the GRANT path and on the REPLY path alike; one the cut keeps stays.
+        var first = new MessageTag(Mcs, MessageParty.Requestor, "first", 1);
+        var second = new MessageTag(Mcs, MessageParty.Requestor, "second", 2);
+        MessageSlot[] slots = [new("FIRST-TK", first), new("SECONDTK", second), new("ABSENTTK", second)];
+        var body = MessageBody.Carrying("FIRST-TK" + "SECONDTK", null, slots);
+        Assert.Equal(["FIRST-TK", "SECONDTK"], body.Slots.Select(s => s.Token));      // a token the image does not hold stands for nothing
+        Assert.Equal(["FIRST-TK"], body.Truncated(8).Slots.Select(s => s.Token));
+        Assert.Same(body, body.Truncated(16));
+
+        var (_, server, requestor) = Pair();
+        requestor.Send("SRV", body);
+        Pump(requestor, server);
+        server.Receive(default, capacity: 8);
+        Pump(requestor, server);
+        var received = server.Last;
+        Assert.Equal(ExceptionCatalog.McsMessageLength, received.ExceptionName);
+        Assert.Equal("FIRST-TK", received.Image);
+        Assert.Equal(["FIRST-TK"], received.Slots!.Select(s => s.Token));
+        var sent = requestor.Last;
+        Assert.True(sent.Successful);
+        requestor.Receive(sent.Tag, capacity: 12);
+        server.SendResponse(received.Tag, body);
+        Pump(requestor, server);
+        Assert.True(server.Last.Successful);
+        Assert.Equal(ExceptionCatalog.McsMessageLength, requestor.Last.ExceptionName);
+        Assert.Equal("FIRST-TKSECO", requestor.Last.Image);
+        Assert.Equal(["FIRST-TK"], requestor.Last.Slots!.Select(s => s.Token));
     }
 
     [Fact]

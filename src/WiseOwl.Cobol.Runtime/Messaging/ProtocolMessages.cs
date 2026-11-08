@@ -13,7 +13,7 @@ internal sealed record ServerDefinition(int? MaxLength, bool HasStart);
 /// <paramref name="Tag"/> (§2023:14.9.31.4 GR2: identifier-1 becomes spaces); <paramref name="Detail"/> explains an EC-MCS-IMP.
 /// </summary>
 internal sealed record StatementResult(
-    string? ExceptionName, MessageTag Tag, string? Image, RecordExtents? Extents, object?[]? Slots, long? Length, string? Detail = null)
+    string? ExceptionName, MessageTag Tag, string? Image, RecordExtents? Extents, MessageSlot[]? Slots, long? Length, string? Detail = null)
 {
     /// <summary>True when no exception condition was set.</summary>
     internal bool Successful => ExceptionName is null;

@@ -112,8 +112,10 @@ public sealed class ReferenceResolver(DataBinder data)
     /// lookup <see cref="Resolve"/> performs, with the declaration and nothing built from it — no
     /// <see cref="Place"/>, no shape screen, no COBOL1639 on a name that identifies nothing. For a caller whose
     /// question is about the DECLARATION (what USAGE does this item carry?) and whose format has a legal reading on
-    /// which the name is no data item at all; the SEND statement's TO operand, which is a message-server-name-1 in
-    /// Format 1 and a message-tag data-name-2 in Format 2 (§2023:14.9.38.2), is the one such caller. Null for a special register, a name nothing declares and an ambiguous reference.</summary>
+    /// which the name is no data item at all; the SEND statement's TO operand (a message-server-name-1 in
+    /// Format 1, a message-tag data-name-2 in Format 2, §2023:14.9.38.2), the MOVE-to-same-name flag's operands
+    /// (<c>FlagConformancePass.ResolveItem</c>, which must not report COBOL1639 again at the verb) and the lookups of
+    /// <c>ProcedureTableBuilder</c> are such callers. Null for a special register, a name nothing declares and an ambiguous reference.</summary>
     internal DataItem? ProbeDeclaration(Core.DataReferenceContext dref)
     {
         DataReferenceCst written = dref;

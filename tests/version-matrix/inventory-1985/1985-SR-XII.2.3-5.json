@@ -8,7 +8,6 @@
    "SR-7.2.3.3-8"
   ],
   "bridge": true,
-  "reason": "",
   "source": "audit-1985/state-route"
  }
 }
