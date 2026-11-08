@@ -1,3 +1,4 @@
-## Leads of waves 20261930 and 20261931 and groups 26a and 26c filed as kb/Work notes
+## Entry 3337 — 2026-11-08 15:03 PST — Leads of waves 20261930 and 20261931 and groups 26a and 26c filed as kb/Work notes
 
 Filed PB5003 (EXTERNAL FD record of an EXTERNAL strong type: CS0102), PB5004 (PeerFrame decoder bypasses MessageBody.Carrying), PB5005 (no witness for the SEARCH ALL counter-register naming), PB5006 (TrackedTreeScopeDriftTests budget starved under gate load), PB5007 (COBOL-85 validation clauses draw a generic diagnostic), PB5008 (refuter upholds 98 percent), PB5009 (drafts pass recorded under account1 cannot bill), PB5010 (CldrLocaleLoaderTests outside process-globals) and PB5011 (PB4271 classifier reads a runner-starved cancelled job as UNCLASSIFIED). Folded into PB4970 (semgrep UNNAMED seen again), PB4995 (two fleet-triage leads) and PB4999 (the columns 73-80 lint). Dropped: the PB4954 and PB4958 review leads, whose code and golden are not on main yet, the PB4952 title lead (its branch is unlanded), and the skipped-gate misunderstanding, which PB3612's enqueue check already refuses. PB5012 to PB5014 are unused. No code changed.
+
