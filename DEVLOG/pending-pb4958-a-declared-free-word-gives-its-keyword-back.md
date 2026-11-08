@@ -37,3 +37,5 @@ diagnostics must agree by code. With the put-back disabled, 36 of the 42 fail. G
 `cases/11.4-FACTORY/pb4958-factory-paragraph-with-an-item-named-factory` (refused at 85, the class's COBOL0900) and
 `cases/8.3.2.1-General/pb4958_key_named_typedef_is_a_user_word_85` (accepted at 85: SEARCH ALL on the TYPEDEF key prints 2).
 No inventory row is re-verdicted (a diagnosis fix).
+
+Self-review (architecture, full code, performance, duplication): one mechanism replaces two; the restore is per occurrence and acts only where a name reading failed; the tree walks run only for a program that frees a gated word; no rule is written twice. Gate: `=== BUILD-LOCAL GATE: GREEN — Conformance 22,672/22,672 · Unit 40,556/40,556 · Characterization 37/37 cases ran (skipped 0)` (run 000002-20261108T213342Z); the first run was RED on a harness non-observation only (TrackedTreeScopeDriftTests: drift_rules.py --scopes timed out at 100 % host load, 6 s standalone).
