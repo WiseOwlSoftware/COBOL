@@ -319,6 +319,8 @@ AUDITS = (
     ("WITNESS LOSS", ["scripts/spec/audit_witness_loss.py", "--check"]),
     ("RULE CATALOG", ["scripts/spec/extract_rule_catalog.py", "--check"]),
     ("SPEC CORRECTIONS", ["scripts/spec/verify_publishable.py"]),
+    # kb/Work PB4850: the 1985 transcription is publishable and agrees with its reconciliation ledger (LEDGER-1985.json).
+    ("SPEC CORRECTIONS 1985", ["scripts/spec/verify_publishable.py", "--edition", "1985"]),
     ("LINE ENDINGS", ["scripts/line_endings.py", "--check"]),
     # kb/Work PB735, PB2878: a byte-level fact about the committed tree, an audit so that no test reads every path.
     ("CONFLICT MARKERS", ["scripts/conflict_markers.py", "--check"]),

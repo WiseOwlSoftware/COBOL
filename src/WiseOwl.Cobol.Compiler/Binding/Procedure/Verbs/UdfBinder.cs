@@ -93,11 +93,8 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
         // A specifier whose AS literal-5 was refused (§2023:12.3.8.3 SR2) was reported where it is written and registers no
         // prototype; the reference is its cascade and adds no COBOL1505 (kb/Work PB4822). Asked BEFORE the table: a refused
         // specifier must not let the bare word resolve to a same-named function of the group.
-        if (ctx.Data.State.Configuration.RefusedFunctionSpecifiers.Contains(name))
-        {
-            ctx.Edition.NoteCauseReportedEarlier();
+        if (ctx.Data.State.Configuration.IsRefusedFunctionReference(name, ctx.Edition))
             return BoundExprError.Refused(ctx.Edition, $"FUNCTION {name}");
-        }
         if (host.UserFunctions is null || !host.UserFunctions.TryGetValue(name, out var fn))
         {
             ctx.Edition.Error(DiagnosticCatalog.UserFunctionPrototypeUnresolved,
@@ -132,11 +129,8 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
         // take GR4's characteristics from and nothing further to say here.
         if (pointer.Item.Pic?.RestrictedPrototypeName is not { } proto)
             return BoundExprError.Refused(ctx.Edition, $"FUNCTION {name}");
-        if (ctx.Data.State.Configuration.RefusedFunctionSpecifiers.Contains(proto))   // the same cascade (kb/Work PB4822)
-        {
-            ctx.Edition.NoteCauseReportedEarlier();
+        if (ctx.Data.State.Configuration.IsRefusedFunctionReference(proto, ctx.Edition))   // the same cascade (kb/Work PB4822)
             return BoundExprError.Refused(ctx.Edition, $"FUNCTION {name}");
-        }
         if (host.UserFunctions is null || !host.UserFunctions.TryGetValue(proto, out var fn))
         {
             ctx.Edition.Error(DiagnosticCatalog.UserFunctionPrototypeUnresolved,
@@ -398,7 +392,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
     /// is "the statement in which the inline invocation or function invocation was specified") and a §2023:15.4
     /// subscript temporary store alike (GR2 a) 1.: "the one in which the exception condition was raised"; before
     /// PB1432 an unmarked store's size-error landing wrote a <c>goto</c> inside a short-circuited operand's lambda,
-    /// CS0159, and fell back INTO the statement when hoisted). An <see cref="IActivatingStatement"/> is also given THAT statement's
+    /// CS0159, and fell back INTO the statement when hoisted). An <see cref="IProfiledStatement"/> is also given THAT statement's
     /// §2023:7.3.25 checking profile (§2023:14.9.18.4 GR1 b) — "if checking for that exception condition is enabled in the
     /// activating runtime element"). The profile cannot wait for <c>EcBinder.EcWrap</c>'s stamp: a per-evaluation
     /// window's activations live inside a CONDITION or an OPERAND, which that statement-shaped walk never enters,
@@ -420,10 +414,10 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
         for (int i = 0; i < taken.Count; i++)
         {
             var step = taken[i] with { OperandEvaluation = true };
-            if (step is IActivatingStatement a)
+            if (step is IProfiledStatement a)
             {
                 profile ??= ctx.EcState.Turn.ProfileAt(host.StatementLine);
-                step = a.WithActivatorChecking(profile);
+                step = a.WithCheckingProfile(profile);
             }
             taken[i] = step;
             ctx.Data.Procedure.OperandEvaluations.Advance(ctx.Data.Procedure.OperandEvaluations.Current + 1);

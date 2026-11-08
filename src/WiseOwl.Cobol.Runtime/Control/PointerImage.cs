@@ -45,8 +45,9 @@ namespace WiseOwl.Cobol.Runtime;
 /// brought in from another run unit, or from a program that wrote it with other bases — is NOT read as NULL: it is a
 /// <see cref="ForeignAddress"/> (a program- or function-pointer carries the reserved name <see cref="ForeignName"/>) that
 /// keeps its eight positions, so it images back unchanged, and a reference through it raises <c>EC-BOUND-PTR</c>
-/// (§2023:13.18.5.4 GR4, "does not address data storage" — <c>CobolPtr.Deref</c>) or finds no program to CALL. The round trip is exact while a
-/// displacement stays inside ±2^31 (the domain in which two areas' images never meet).
+/// (§2023:13.18.5.4 GR4, "not a valid address of storage" — <c>CobolPtr.Deref</c>) or finds no program to CALL. The round trip is exact for every
+/// displacement: inside ±2^31 (the domain in which two areas' images never meet) the token is base + displacement, and a pointer displaced
+/// further, which addresses none of its cell's storage, gets a base of its own (<see cref="FarBase"/>, kb/Work PB4925).
 /// Passing a pointer's BYTES to a non-pointer item stays a one-way copy (§2023:14.8.2.3.2 forbids the BY REFERENCE pairing; §2023:14.8.2.3.3
 /// admits BY CONTENT into a same-length item); the decoders exist for the one consumer that must restore a reference from those
 /// bytes, the file record codec.
@@ -80,7 +81,17 @@ public static class PointerImage
     private sealed class CellLives
     {
         public readonly List<(int Generation, long Base)> Bases = [];
+        /// <summary>The base each FAR pointer into the cell was given (<see cref="FarBase"/>), by its life and displacement.</summary>
+        public readonly Dictionary<(int Generation, long Offset), long> Far = [];
     }
+
+    /// <summary>A data-pointer whose displacement from its cell lies outside the ±2^31 the shape base + displacement can state (kb/Work PB4925): the entry
+    /// its own base names, so its token decodes to exactly it.</summary>
+    internal sealed record FarDisplacement(StorageCell Cell, int Generation, long Offset);
+
+    /// <summary>Whether base + <paramref name="offset"/> decodes back to its own base: the nearest base (<see cref="DataPointerOf"/>) is the pointer's own while
+    /// the displacement is in [-2^31, 2^31), the half-open window the rounding gives each base.</summary>
+    private static bool InDomain(long offset) => offset >= -(1L << (BaseShift - 1)) && offset < 1L << (BaseShift - 1);
 
     private static readonly ConditionalWeakTable<StorageCell, CellLives> s_cellBases = new();
 
@@ -95,7 +106,8 @@ public static class PointerImage
     {
         null or { IsNull: true } => NullImage,
         ForeignAddress f => f.Image,
-        CellPointer c => Render(unchecked(CellBase(c) + c.Offset)),
+        CellPointer c when InDomain(c.Offset) => Render(unchecked(CellBase(c) + c.Offset)),
+        CellPointer far => Render(FarBase(far)),   // kb/Work PB4925: base + displacement would name another area's window
         { } other => Render(AreaBase(other)),   // an address with no area geometry: its own identity token
     };
 
@@ -123,6 +135,8 @@ public static class PointerImage
             {
                 case CellLife life:
                     return new CellPointer(life.Cell, offset, life.Generation);
+                case FarDisplacement far when offset == 0:
+                    return new CellPointer(far.Cell, far.Offset, far.Generation);
                 case ManagedPointer identity when offset == 0:
                     return identity;
             }
@@ -205,6 +219,23 @@ public static class PointerImage
             b = lives.Bases[at].Base;
         }
         RunUnit.Current.SlotImages.Note(b, new CellLife(pointer.Cell, pointer.Generation));
+        return b;
+    }
+
+    /// <summary>⛔ A FAR POINTER GETS A BASE OF ITS OWN (kb/Work PB4925). <c>SET P UP BY n</c> is unbounded, so a displacement can leave the ±2^31 window in which
+    /// base + displacement is unambiguous, and that image is the image of another area's window: decoded, it was a valid pointer to the WRONG storage, a silent
+    /// wrong answer. Such a pointer addresses no data storage of its cell (a dereference is EC-BOUND-PTR, §2023:13.18.5.4 GR4: "not a valid address of storage"), so its image needs no address
+    /// arithmetic, only identity: one base per (cell life, displacement), so equal pointers image equal (§2023:8.8.4.2.16) and the token decodes to exactly it.</summary>
+    private static long FarBase(CellPointer pointer)
+    {
+        long b;
+        lock (s_lock)
+        {
+            var far = s_cellBases.GetOrCreateValue(pointer.Cell).Far;
+            if (!far.TryGetValue((pointer.Generation, pointer.Offset), out b))
+                far[(pointer.Generation, pointer.Offset)] = b = ++s_nextBase << BaseShift;
+        }
+        RunUnit.Current.SlotImages.Note(b, new FarDisplacement(pointer.Cell, pointer.Generation, pointer.Offset));
         return b;
     }
 

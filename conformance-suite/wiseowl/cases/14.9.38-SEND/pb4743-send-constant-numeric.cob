@@ -9,8 +9,7 @@
       *> of constant-name-1", and 13.10.4 GR1 makes the effect "as if literal-1 ... were written": the statement is
       *> SEND TO 5, whose literal-1 is numeric. 14.9.38.3 SR1: "Literal-1 shall be an alphanumeric or national literal."
       *>   cite.py: OK  13.10.3 2)  OK  13.10.4 1)  OK  14.9.38.3 1)
-      *> SEND and RECEIVE are the asynchronous messaging facility (COBOL1578, docs/CONFORMANCE.md section 4 item 1;
-      *> Annex A.3 item 4); the statement is accepted inert, but its syntax rules are asked (kb/Work PB4743).
+      *> SEND and RECEIVE are the asynchronous messaging facility (Annex A.3 item 4, docs/CONFORMANCE.md section 2): the statement binds, and every operand and syntax rule is asked at bind (kb/Work PB3568, PB4743).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB4743N9.
        DATA DIVISION.

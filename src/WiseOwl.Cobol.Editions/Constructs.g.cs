@@ -312,6 +312,8 @@ public static class Constructs
     public const string SubscriptArithmeticExpression2002 = "subscript-arithmetic-expression-2002";
     public const string UnstringSenderReferenceModified2002 = "unstring-sender-reference-modified-2002";
     public const string UseWithoutProcedure2002 = "use-without-procedure-2002";
+    public const string UseWithoutAfter2002 = "use-without-after-2002";
+    public const string SetConditionRepeated2002 = "set-condition-repeated-2002";
     public const string ValueClauseLinkageFileExternal2002 = "value-clause-linkage-file-external-2002";
     public const string SearchIdentifier1EnclosingSubscript2023 = "search-identifier-1-enclosing-subscript-2023";
 }

@@ -72,6 +72,9 @@ internal sealed class MessagingPeer
     internal StatementResult Receive(MessageTag from, int capacity, MessageWait wait) =>
         Run(protocol => protocol.BeginReceive(from, capacity, wait));
 
+    /// <summary>The size an unbounded RECEIVE's area took (<see cref="MessagingProtocol.Received"/>): state only, on the run unit's thread, so no statement runs.</summary>
+    internal void Received(MessageTag tag, int size) => _protocol?.Received(tag, size);
+
     /// <summary>The run unit ends (design 5.6): the protocol answers each active message and closes its links; then the transport unpublishes its files. Idempotent, and a peer that
     /// never started has nothing to end. It never throws: the run unit's end must not hang on a socket.</summary>
     internal void End(bool abnormal)
@@ -199,13 +202,13 @@ internal sealed class MessagingPeer
 
     private void Arm(ArmDeadline deadline)
     {
-        // A timer waits at most uint.MaxValue - 1 milliseconds (about 49 days), so a longer CONTINUE AFTER is armed for that long.
-        TimeSpan due = deadline.Seconds >= MaxSeconds ? TimeSpan.FromSeconds(MaxSeconds) : TimeSpan.FromSeconds(Math.Max(deadline.Seconds, 0));
+        // ⛔ THE INTERVAL IS CONTINUE'S (kb/Work PB4921): the RECEIVE's CONTINUE AFTER value has already been taken through CobolTiming.Interval, the one rule for
+        // "the maximum meaningful value" the implementor specifies (§2023:14.9.9.4 GR1; one day, CobolTiming.MaxSeconds), so a wait is never longer than that - far
+        // inside one timer's range (uint.MaxValue - 1 milliseconds), and one timer is the whole wait. A host that builds a MessageWait itself is held to the same rule.
+        TimeSpan due = TimeSpan.FromSeconds(Math.Clamp(deadline.Seconds, 0, CobolTiming.MaxSeconds));
         int token = deadline.Token;
         _timers[token] = _settings().Time.CreateTimer(_ => { _deadlines.Enqueue(token); SignalWake(); }, null, due, Timeout.InfiniteTimeSpan);
     }
-
-    private const long MaxSeconds = (uint.MaxValue - 1L) / 1000;
 
     private void SignalWake()
     {

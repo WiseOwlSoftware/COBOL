@@ -48,6 +48,8 @@ class Edition:
     markdown: str               # file name under specs/
     geometry: str               # "vector": the general formats are strokes in the PDF; "raster": they are scanned pixels
     folio_offset: int | None    # PDF page minus printed folio; None until measured from that edition's PDF
+    body: str | None            # the line of the transcription that opens the body: everything before it is front matter
+                                # (the Preface and the acknowledgment); None while the edition has no transcription
 
 
 #: Each edition's files, named after its public transcription in specs/. 1985 is a scan (PB4812: 0 vector drawings and
@@ -55,10 +57,16 @@ class Edition:
 #: (PB4817 measures them); 2002 is a true vector PDF like 2023 (PB4813). The folio offset of 1985 and 2002 is measured
 #: when their runs begin (PB4812, PB4813), so a tool that needs it exits naming this table until then.
 EDITIONS: dict[int, Edition] = {
-    1985: Edition("ANSI_COBOL_1985.pdf", "ANSI_COBOL_1985.md", "raster", None),
-    2002: Edition("ISO_COBOL_2002.pdf", "ISO_COBOL_2002.md", "vector", None),
-    2023: Edition("ISO_COBOL_2023.pdf", "ISO_COBOL_2023.md", "vector", 30),
+    1985: Edition("ANSI_COBOL_1985.pdf", "ANSI_COBOL_1985.md", "raster", None, "# SECTION I: INTRODUCTORY INFORMATION"),
+    2002: Edition("ISO_COBOL_2002.pdf", "ISO_COBOL_2002.md", "vector", None, None),
+    2023: Edition("ISO_COBOL_2023.pdf", "ISO_COBOL_2023.md", "vector", 30, '<a id="section-1"></a>'),
 }
+
+
+#: The side of a level-2 box, as a transcription that draws the boxes writes it (1985: a `║` at each end of each boxed
+#: block of prose, the Preface's notation note, and `║` columns in a general format, FIGURE-STYLE.md rule 9; kb/Work
+#: PB4850). It is notation, never part of a heading's number or title, so every reader of a heading skips it.
+BOX_SIDE = "║"
 
 
 def path(edition: int = DEFAULT_EDITION, private: pathlib.Path = PRIVATE) -> pathlib.Path | None:
@@ -108,6 +116,18 @@ def folio_offset(edition: int = DEFAULT_EDITION) -> int:
         sys.exit(f"FATAL: spec_pdf.EDITIONS has no folio offset for the {edition} edition yet - measure it from that "
                  "edition's PDF (printed folio against PDF page) and record it there; no tool borrows another edition's.")
     return n
+
+
+def front_matter(text: str, edition: int = DEFAULT_EDITION) -> str | None:
+    """The front matter of `edition`'s transcription `text`: everything before the line `EDITIONS[edition].body`, the
+    one marker of where the body starts (2023 dropped its pages and opens the body at clause 1's anchor; 1985 keeps its
+    pages and opens it at Section I). None when that line is absent; an edition with no transcription exits naming
+    this table."""
+    marker = EDITIONS[edition].body
+    if marker is None:
+        sys.exit(f"FATAL: spec_pdf.EDITIONS has no body marker for the {edition} edition: it has no transcription yet.")
+    at = re.search(rf"^{re.escape(marker)}$", text, re.M)
+    return text[:at.start()] if at else None
 
 
 def add_edition_argument(parser: argparse.ArgumentParser) -> None:

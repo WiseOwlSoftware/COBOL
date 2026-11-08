@@ -37,7 +37,7 @@ public sealed class Ansi85AcceptanceTests
         FILE-CONTROL.
             SELECT F ASSIGN TO "a85rr1" ORGANIZATION IS SEQUENTIAL.
         I-O-CONTROL.
-            RERUN ON F EVERY 10 RECORDS OF F.
+            RERUN ON SYSRR EVERY 10 RECORDS OF F.
         DATA DIVISION.
         FILE SECTION.
         FD F.
@@ -72,7 +72,7 @@ public sealed class Ansi85AcceptanceTests
         FILE-CONTROL.
             SELECT F ASSIGN TO "a85rr2" ORGANIZATION IS SEQUENTIAL.
         I-O-CONTROL.
-            RERUN ON F EVERY 20 CLOCK-UNITS
+            RERUN ON SYSRR EVERY 20 CLOCK-UNITS
             RERUN ON F EVERY SW1-ON
             RERUN EVERY END OF REEL OF F.
         DATA DIVISION.
@@ -101,7 +101,7 @@ public sealed class Ansi85AcceptanceTests
             SELECT F2 ASSIGN TO "a85rr3b" ORGANIZATION IS SEQUENTIAL.
         I-O-CONTROL.
             SAME RECORD AREA FOR F1 F2
-            RERUN ON F1 EVERY 5 RECORDS OF F1.
+            RERUN ON SYSRR EVERY 5 RECORDS OF F1.
         DATA DIVISION.
         FILE SECTION.
         FD F1.

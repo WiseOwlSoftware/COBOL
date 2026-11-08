@@ -16,8 +16,7 @@ using Core = CobolParserCore;
 /// <para><b>The licence, and why a refusal rather than a warning.</b> A.4.1: "An implementation shall accept the
 /// syntax and provide the functionality for an optional element only when support for that language element is
 /// claimed by the implementor." That is a prohibition on ACCEPTING, which is why the whole module is an ERROR
-/// here and not the §2023:4.2.6 recognize-and-warn the Annex A.3 processor-dependent facilities get (COBOL1578
-/// MCS, 1579 COMMIT/ROLLBACK, 1580 VALIDATE). A.4.1 ¶2 — "Any associated syntax rules, general rules, other
+/// here and not the §2023:4.2.6 recognize-and-warn the Annex A.3 processor-dependent facilities get (1580 VALIDATE). A.4.1 ¶2 — "Any associated syntax rules, general rules, other
 /// rules, exception conditions, and I-O status values are also optional, even if not explicitly listed" —
 /// extends the licence from the 27 printed items to the clauses' rules and to the EC-SCREEN family.</para>
 ///

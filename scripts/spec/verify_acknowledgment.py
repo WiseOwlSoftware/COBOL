@@ -10,7 +10,7 @@ different class of mistake from a typo.
 
 WHAT IS CHECKED, all three against each other:
   1. the paragraphs in the file's PREFACE,
-  2. the same paragraphs transcribed IN POSITION at page 28,
+  2. the same paragraphs transcribed IN POSITION (2023: its Introduction, PDF page 28; 1985: PDF page 3),
   3. the PRINTED TEXT, read from the PDF.
 
 Comparing 1 and 2 to each other would only prove they agree with one another; the PDF is what makes it a check
@@ -45,14 +45,27 @@ class Acknowledgment(NamedTuple):
     first: str          # its first words
     last: str           # its last words
     stamp: str          # the shape of the reseller's per-copy stamp, removed from the printed page before comparing
+    in_position: str    # the line of the transcription that opens the region holding the in-position copy
+    misread: tuple[tuple[str, str], ...] = ()
+    """A SCANNED page's text layer is OCR, not the printed text: each pair is one misreading of that layer (the
+    normalised text it reads, then what the rendered page prints), every one confirmed against the rendered page and
+    applied before comparing. Whatever else differs still fails. A vector page's text layer is the printed text and
+    carries none."""
 
 
 # The acknowledgment runs from the first paragraph to the end of the authorization sentence. The trademark
-# footnotes are attached to it and are carried too. Keyed by edition: 1985 prints the CODASYL grant on PDF page 3 and
-# 2002 prints none (PB4812, PB4813), so their rows are read from those PDFs when their runs begin.
+# footnotes are attached to it and are carried too. Keyed by edition: 2002 prints none (PB4813). 1985 prints the CODASYL
+# grant on PDF page 3 (kb/Work PB4850): the same paragraphs as 2023 with the 1985 punctuation (no period after
+# "therewith" or before "Such"), and the scan's text layer misreads "or" as "OI", drops the space in "1958, 1959" and
+# breaks two words at a line-end hyphen; the rendered page prints each as the second string of its pair.
 ACKNOWLEDGMENT: dict[int, Acknowledgment] = {
+    1985: Acknowledgment(3, "COBOL is an industry language and is not the property of any company",
+                         "programming manuals or similar publications.", r"Copyright by INCITS\..*?prohibited\.", "## Page 3",
+                         ((" OI ", " or "), ("1958,1959", "1958, 1959"), ("copy- righted", "copyrighted"),
+                          ("ex- tends", "extends"))),
     2023: Acknowledgment(28, "COBOL is an industry language and is not the property of any company",
-                         "programming manuals or similar publications.", r"Licensed to .*?prohibited\."),
+                         "programming manuals or similar publications.", r"Licensed to .*?prohibited\.",
+                         "## Introduction"),
 }
 
 
@@ -77,6 +90,15 @@ def slice_between(text: str, first: str, last: str, label: str) -> str:
     return text[i:j + len(last)]
 
 
+def read_printed(text_layer: str, ack: Acknowledgment) -> str:
+    """The acknowledgment as the page prints it: the text layer, normalised, with the edition's confirmed misreadings
+    of a scanned page put right, sliced from its first words to its last."""
+    text = norm(text_layer)
+    for read, printed in ack.misread:
+        text = text.replace(read, printed)
+    return slice_between(text, ack.first, ack.last, "the PDF")
+
+
 def main(edition: int = spec_pdf.DEFAULT_EDITION) -> int:
     ack = spec_pdf.edition_data(ACKNOWLEDGMENT, edition, "acknowledgment text (verify_acknowledgment.ACKNOWLEDGMENT)")
     first, last = ack.first, ack.last
@@ -85,31 +107,31 @@ def main(edition: int = spec_pdf.DEFAULT_EDITION) -> int:
 
     md = spec_pdf.markdown(edition).read_text(encoding="utf-8")
     if not md.lstrip().startswith("# Preface"):
-        sys.exit("FATAL: the file does not open with the Preface — page 28 asks for the acknowledgment "
+        sys.exit(f"FATAL: the file does not open with the Preface — PDF page {ack.pdf_page} asks for the acknowledgment "
                  "'as part of the preface', so it has to come first")
 
-    # Both copies are delimited by the DOCUMENT STRUCTURE, not by page anchors: pages have been removed from
-    # the transcription (a layout artifact of one typesetting, meaningless in Markdown), so the front matter
-    # ends at clause 1 and the in-position copy lives in the Introduction.
-    # 1 — the preface copy: everything before the first clause.
-    cut = md.find('<a id="section-1"></a>')
-    if cut < 0:
-        sys.exit("FATAL: the clause-1 anchor is missing; cannot delimit the front matter")
-    preface = slice_between(md[:cut], first, last, "preface")
+    # Both copies are delimited by the DOCUMENT STRUCTURE: the front matter ends at the edition's body line
+    # (spec_pdf.EDITIONS body), and the in-position copy lives after the edition's `in_position` line.
+    # 1 — the preface copy: everything before the body, up to the in-position region.
+    front = spec_pdf.front_matter(md, edition)
+    if front is None:
+        sys.exit(f"FATAL: the body's opening line ({spec_pdf.EDITIONS[edition].body}) is missing; cannot delimit the "
+                 "front matter")
+    at = re.search(rf"^{re.escape(ack.in_position)}$", front, re.M)
+    if at is None:
+        sys.exit(f"FATAL: the line {ack.in_position!r} is missing; cannot locate the in-position acknowledgment")
+    preface = slice_between(front[:at.start()], first, last, "preface")
 
-    # 2 — the in-position copy, inside the Introduction.
-    intro = md.find("\n## Introduction")
-    if intro < 0:
-        sys.exit("FATAL: the Introduction heading is missing; cannot locate the in-position acknowledgment")
-    inplace = slice_between(md[intro:cut], first, last, "the Introduction")
+    # 2 — the in-position copy.
+    inplace = slice_between(front[at.start():], first, last, f"the in-position copy ({ack.in_position})")
 
     # 3 — the printed text.
     doc = pymupdf.open(pdf)
     printed_raw = re.sub(ack.stamp, " ", doc[ack.pdf_page - 1].get_text(), flags=re.S)
-    printed = slice_between(printed_raw, first, last, "the PDF")
+    printed = read_printed(printed_raw, ack)
 
     ok = True
-    for label, got in (("preface vs printed", preface), ("Introduction vs printed", inplace)):
+    for label, got in (("preface vs printed", preface), ("in position vs printed", inplace)):
         if got == printed:
             print(f"  ✓ {label}: verbatim ({len(got)} chars)")
         else:
@@ -124,7 +146,7 @@ def main(edition: int = spec_pdf.DEFAULT_EDITION) -> int:
             else:
                 print(f"      one is a prefix of the other: file={len(got)} printed={len(printed)} chars")
     if not ok:
-        sys.exit("\nFATAL: the acknowledgment is not reproduced verbatim. Page 28 asks for it 'in their "
+        sys.exit("\nFATAL: the acknowledgment is not reproduced verbatim. The standard asks for it 'in their "
                  "entirety'; it is the condition this transcription is distributed under.")
     print("\nacknowledgment reproduced verbatim in the preface and in position — distribution condition met")
     return 0
@@ -147,13 +169,21 @@ def self_test() -> int:
     stamped = f"x Licensed to someone, single copy. Copying prohibited. y {ack.first}"
     check("the stamp shape of the edition is removed before the comparison",
           ack.first in re.sub(ack.stamp, " ", stamped, flags=re.S) and "Licensed" not in re.sub(ack.stamp, " ", stamped, flags=re.S))
-    for edition in (1985, 2002):
-        try:
-            main(edition)
-            check(f"{edition} with no acknowledgment row exits", False)
-        except SystemExit as ex:
-            check(f"{edition} with no row exits naming the table and the edition, before it reads any file",
-                  str(edition) in str(ex.code) and "verify_acknowledgment.ACKNOWLEDGMENT" in str(ex.code))
+    try:
+        main(2002)
+        check("2002 with no acknowledgment row exits", False)
+    except SystemExit as ex:
+        check("2002 with no row exits naming the table and the edition, before it reads any file",
+              "2002" in str(ex.code) and "verify_acknowledgment.ACKNOWLEDGMENT" in str(ex.code))
+    scan = ACKNOWLEDGMENT[1985]
+    layer = (f"x {scan.first} OI group,\ncopyrighted 1958,1959, copy-\nrighted; it ex-\ntends to {scan.last}\n"
+             "Copyright by INCITS. Licensed to a planted name. Copying prohibited.")
+    check("a scanned page's confirmed misreadings are put right before the comparison, and its stamp line removed",
+          read_printed(re.sub(scan.stamp, " ", layer, flags=re.S), scan)
+          == f"{scan.first} or group, copyrighted 1958, 1959, copyrighted; it extends to {scan.last}")
+    check("a misreading the row does not name still differs",
+          read_printed(layer.replace("OI group", "OR group"), scan) != read_printed(layer, scan))
+    check("a vector edition names no misreading: its text layer is the printed text", ACKNOWLEDGMENT[2023].misread == ())
     print(f"=== VERIFY ACKNOWLEDGMENT SELF-TEST: {'FAIL - ' + str(len(failures)) if failures else 'PASS'} ===")
     return 1 if failures else 0
 

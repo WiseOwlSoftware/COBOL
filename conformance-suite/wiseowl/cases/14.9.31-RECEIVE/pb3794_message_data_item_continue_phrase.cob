@@ -17,10 +17,10 @@
       *>   leg 3  CONTINUE AFTER MESSAGE SECONDS - the data item IS arithmetic-expression-1;
       *>   leg 4  CONTINUE MESSAGE + 1 - the data item inside an expression, SECONDS omitted.
       *> Before the fix leg 1 was refused with "unexpected 'RECEIVED'".
-      *> SEND and RECEIVE are the declined asynchronous messaging facility (COBOL1578, docs/CONFORMANCE.md
-      *> section 4 item 1; Annex A.3 item 4): each RECEIVE is accepted and performs no message I-O, so the
-      *> program's output is its own DISPLAYs. EXPECTED VALUES, DERIVED: MESSAGE starts at its VALUE 2, the ADD
-      *> makes it 3 (14.9.2), and the receiving buffer keeps its VALUE because no message is moved into it.
+      *> RECEIVE is the asynchronous messaging facility (Annex A.3 item 4): this run unit serves no server name, so each RECEIVE
+      *> of the NULL tag is EC-MCS-NO-REQUESTER at once (D-MCS-NR) and stores nothing, and the program's output is its own
+      *> DISPLAYs. EXPECTED VALUES, DERIVED: MESSAGE starts at its VALUE 2, the ADD makes it 3 (14.9.2), and the receiving
+      *> buffer keeps its VALUE because no message is moved into it.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3794MSG.
        DATA DIVISION.

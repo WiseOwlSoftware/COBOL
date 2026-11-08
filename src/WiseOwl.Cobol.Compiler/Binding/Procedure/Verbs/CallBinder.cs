@@ -191,8 +191,8 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             else if (spellingB && BarePrototypeWord(dref) is { } declaredWord
                      && ctx.Data.State.Configuration.DeclaresProgramSpecifier(declaredWord))
                 // The word is a declared PROGRAM specifier that registered no prototype — no provider answered it (REPO-1 at
-                // the specifier, DESIGN-external-repository §8.2 step 4) or its literal-3 was refused (kb/Work PB4708) — so
-                // this is SR16's undeclared prototype, never a data name.
+                // the specifier, DESIGN-external-repository §8.2 step 4) or its literal-3 was refused (kb/Work PB4708, silent: reported at the
+                // specifier, kb/Work PB4936) — so this is SR16's undeclared prototype, never a data name.
             {
                 _ = ResolvePrototype(declaredWord, "CALL");
                 return BoundRejected.Reported(ctx.Edition);
@@ -1142,9 +1142,40 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     private ProgramPrototype? ResolvePrototype(string name, string verb, string alsoNot = "")
     {
         if (host.ProgramPrototypes?.GetValueOrDefault(name) is { } proto) return proto;
+        if (ctx.Data.State.Configuration.IsRefusedProgramReference(name, ctx.Edition)) return null;   // reported at the specifier (kb/Work PB4936)
         ctx.Edition.Error(DiagnosticCatalog.ProgramPrototypeUndeclared,
             $"{verb} {name}: '{name}' is not a program prototype — {ctx.Data.State.Configuration.WhyNoPrototype(name)}{alsoNot}");
         return null;
+    }
+
+    /// <summary>The signature a Format-2 CALL activates, asked WITHOUT binding the statement (kb/Work PB4934): the statement funnel
+    /// (<see cref="StatementBinder"/>'s gated-message-tag question) needs it before <see cref="BindCall"/> runs, and a
+    /// pure question reports nothing. The same three producers <see cref="BindCall"/> reads into <c>callee</c> -- AS NESTED
+    /// literal-1 through the contained-program table (§2023:14.9.4.3 SR15), AS program-prototype-name-1 and a bare
+    /// program-prototype-name-1 (§2023:14.9.4.4 GR7, spelling (b) of §2023:14.9.4.2) through the prototype table -- so the
+    /// two cannot name different callees. Null when the callee is not statically known (a Format 1 CALL, an unresolved name,
+    /// a separately compiled prototype). The literal-1 read is diagnostic-free
+    /// (<see cref="ExpressionBinder.PeekNonNumericLiteralOperand"/>): a malformed literal is reported by <see cref="BindCall"/> when the
+    /// statement binds.</summary>
+    internal CalleeSignature? CalleeSignatureOf(Core.CallStatementContext call)
+    {
+        var target = call.callTarget();
+        if (call.callAsPhrase() is { } asPhrase)
+        {
+            if (asPhrase.formatWord() is null)
+                return host.ProgramPrototypes?.GetValueOrDefault(asPhrase.cobolWord().GetText())?.Signature;
+            BoundOperand? literal1 = target?.literal() is { } lit ? host.Expr.PeekNonNumericLiteralOperand(lit.nonNumericLiteral())
+                : target?.dataReference() is { } alias && host.Expr.LiteralAliasOf(alias) is { Constant.Category: not PicCategory.Numeric } constant
+                    ? host.Expr.AliasOperand(constant)
+                : null;
+            return ProgramNameLiteral.Form(literal1, ctx.Edition.Edition.Year).Name is { } nested
+                && host.NestedCallables is { } nestedCallables && nestedCallables.TryGetValue(nested, out var sig) ? sig : null;
+        }
+        // Spelling (b): a bare word that is no constant-name and names no data item.
+        return ProgramPrototypeNamesExist && target?.dataReference() is { } dref && BarePrototypeWord(dref) is { } word
+            && host.Expr.LiteralAliasOf(dref) is null && ctx.Refs.Probe(dref) is null
+            ? host.ProgramPrototypes?.GetValueOrDefault(word)?.Signature
+            : null;
     }
 
     /// <summary>The BARE user-defined word a data reference spells, or null when it is qualified, subscripted,
@@ -1465,10 +1496,11 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         // (kb/Work PB4901).
         if (ctx.Edition.Edition.Year < 2002)
             host.Params.ScreenSection(p, written, DiagnosticCatalog.CallOperandSection, $"CALL {role}",
-                "§1985:X.5.2.3 SR3", addressAdmitted: false);
+                StorageSectionRule.Cobol85, addressAdmitted: false);
         else if (isReturning || !formatTwo || mode is CobolPassMode.Reference)
             host.Params.ScreenSection(p, written, DiagnosticCatalog.CallOperandSection, $"CALL {role}",
-                isReturning ? "§2023:14.9.4.3 SR7" : "§2023:14.9.4.3 SR3", addressAdmitted: !isReturning);
+                StorageSectionRule.Of2023(isReturning ? "§2023:14.9.4.3 SR7" : "§2023:14.9.4.3 SR3"),
+                addressAdmitted: !isReturning);
 
         // ⛔ THE ANY LENGTH SCREEN IS EXACTLY AS WIDE AS THE TWO RULES THAT STATE IT (kb/Work PB240):
         //   SR11 (FORMAT 1) — "Identifier-2 and identifier-3 shall not be described with the ANY LENGTH clause":

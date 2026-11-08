@@ -356,7 +356,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// element can be another compilation group's, so whether it has declaratives is not known here. The pickup is gated on
     /// <c>EcState.Active</c>, which spans class units.</summary>
     /// <returns><see cref="EmitPropagationPickup"/>'s raised flag.</returns>
-    public string? EmitActivationReturned(IActivatingStatement site, bool reportRaised = false)
+    public string? EmitActivationReturned(IProfiledStatement site, bool reportRaised = false)
     {
         var w = ctx.Writer;
         if (!ecState.Active)
@@ -390,7 +390,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// propagated condition (a name or an object) was RAISED here — the §2023:14.9.4.4 GR3i "propagated" test the
     /// CALL's NOT ON EXCEPTION phrase keys on (kb/Work PB606). Null when no pickup is emitted (nothing can be
     /// raised) or no caller asked.</returns>
-    private string? EmitPropagationPickup(IActivatingStatement site, bool reportRaised = false)
+    private string? EmitPropagationPickup(IProfiledStatement site, bool reportRaised = false)
     {
         if (!ecState.Active) return null;
         var w = ctx.Writer;
@@ -423,7 +423,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             }
             w.Line("// Normal/ResumeNext: declarative completed / RESUME NEXT — normal continuation (:24604)");
         }
-        using (w.Block($"if (ExceptionState.TakeRaisedPropagation({CsLiteral(site.ActivatorChecking.Encoded)}, "
+        using (w.Block($"if (ExceptionState.TakeRaisedPropagation({CsLiteral(site.CheckingProfile.Encoded)}, "
             + $"out var __pn{id}, out var __pf{id}))   // §2023:14.9.18.4 GR1b — raised HERE iff checking is enabled HERE"))
         {
             if (raised is not null) w.Line($"{raised} = true;");

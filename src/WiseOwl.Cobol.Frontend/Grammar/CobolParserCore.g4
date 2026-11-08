@@ -605,11 +605,13 @@ objectComputerClause
     | unrecognizedClause       // ⛔ LAST — refused BY NAME by ClosedFormatPass (COBOL1970)
     ;
 
-// X3.23-1985 `MEMORY SIZE integer {WORDS | CHARACTERS | MODULES}`. MEMORY, WORDS and MODULES are not lexer tokens
-// (none is reserved at 2002+), so the clause is recognized by the TEXT of its words through the parser base's one
-// word funnel — the left-edge predicate reads MEMORY followed by the SIZE token, the unit predicate the unit word.
+// X3.23-1985 `MEMORY SIZE integer-1 {WORDS | CHARACTERS | MODULES}` (§1985:VI.4.4.2, the printed page VI-11): MEMORY is
+// underlined and SIZE is NOT, so SIZE is an optional word and `MEMORY 8 WORDS` is the same clause (kb/Work PB4919).
+// MEMORY, WORDS and MODULES are not lexer tokens (none is reserved at 2002+), so the clause is recognized by the TEXT
+// of its words through the parser base's one word funnel — the left-edge predicate reads MEMORY followed by the SIZE
+// token or by integer-1, the unit predicate the unit word.
 memorySizeClause
-    : {memorySizeAhead()}? IDENTIFIER SIZE integerLiteral (CHARACTERS | {memoryUnitAhead()}? IDENTIFIER)
+    : {memorySizeAhead()}? IDENTIFIER SIZE? integerLiteral (CHARACTERS | {memoryUnitAhead()}? IDENTIFIER)
     ;
 
 // X3.23-1985 `SEGMENT-LIMIT IS segment-number` (the Segmentation module; IS is not underlined). Recognized by
@@ -993,7 +995,7 @@ statement
     //    ⛔ RECEIVE AND SEND ARE THE UNION GRAMMAR, GATED ON INTRODUCTION, NOT ON RESERVATION (kb/Work PB374).
     //    Both words are NON-MONOTONIC in §2023:8.9: reserved at COBOL-85 and 2002 (the communication facility's verbs), user
     //    words at 2014, reserved again at 2023. A reservation predicate therefore recognized the 2023-only
-    //    §2023:14.9.31.2 / §2023:14.9.38.2 formats at --std 85 and warned COBOL1578 naming a 2023 facility, while
+    //    §2023:14.9.31.2 / §2023:14.9.38.2 formats at --std 85 and compiled them as a 2023 facility, while
     //    2002/2014 answered a raw parse error. The arm fires wherever the token spells the verb (wordAhead, so a
     //    >>COBOL-WORDS UNDEFINE still removes it), and the edition pass names the introduction
     //    (VersionConformancePass VisitMcs*Statement → async-messaging-2023 → COBOL0900). No legal program of
