@@ -318,6 +318,9 @@ AUDITS = (
     ("RENDERED VIEWS", ["scripts/rendered_views.py", "--check"]),
     ("WITNESS LOSS", ["scripts/spec/audit_witness_loss.py", "--check"]),
     ("RULE CATALOG", ["scripts/spec/extract_rule_catalog.py", "--check"]),
+    # kb/Work PB4886: the 1985 catalog is complete (no finding) and the committed one is this run's, so a later repair of
+    # specs/ANSI_COBOL_1985.md cannot reopen a gap in the 1985 audit's denominator.
+    ("RULE CATALOG 1985", ["scripts/spec/extract_rule_catalog.py", "--edition", "1985", "--check"]),
     ("SPEC CORRECTIONS", ["scripts/spec/verify_publishable.py"]),
     # kb/Work PB4850: the 1985 transcription is publishable and agrees with its reconciliation ledger (LEDGER-1985.json).
     ("SPEC CORRECTIONS 1985", ["scripts/spec/verify_publishable.py", "--edition", "1985"]),
