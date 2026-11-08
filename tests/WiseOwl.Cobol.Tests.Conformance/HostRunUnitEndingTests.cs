@@ -155,4 +155,57 @@ public sealed class HostRunUnitEndingTests
         }
         finally { ScratchDirectory.Remove(dir); }
     }
+
+    /// <summary>Opens a file, writes a record and GOBACKs without closing it: nothing in the program closes the file.</summary>
+    private const string Leaver = """
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. PB4946L.
+        ENVIRONMENT DIVISION.
+        INPUT-OUTPUT SECTION.
+        FILE-CONTROL.
+            SELECT F ASSIGN TO "pb4946out.dat" ORGANIZATION IS LINE SEQUENTIAL.
+        DATA DIVISION.
+        FILE SECTION.
+        FD F.
+        01 F-REC PIC X(5).
+        PROCEDURE DIVISION.
+        P1.
+            OPEN OUTPUT F.
+            MOVE "BYEBY" TO F-REC.
+            WRITE F-REC.
+            GOBACK.
+        END PROGRAM PB4946L.
+        """;
+
+    /// <summary>The host activates the program OUTSIDE <c>RunUnit.Run</c> and exits at once, so the program runs in the
+    /// host's ambient run unit and nothing but the process's exit can end it.</summary>
+    private const string AmbientHost = """
+        public static class PB4946HostProgram
+        {
+            public static int Main()
+            {
+                Cobol.PB4946L.PB4946L.Call();
+                return 0;
+            }
+        }
+        """;
+
+    /// <summary>kb/Work PB4946: the ambient run unit ends at process exit. §2023:14.6.11 2) (cite.py OK): "These implicit
+    /// close statements shall be executed for all open files in the run unit" -- the file the program left open is
+    /// closed, its record written, when the host process that never ended the run unit exits.</summary>
+    [Fact]
+    public void AnAmbientRunUnit_IsEndedByTheHostProcessExit_ItsOpenFilesClosed()
+    {
+        string dir = ScratchDirectory.Create("pb4946host");
+        try
+        {
+            NonCobolElement.CompileCobol(dir, "PB4946L", Leaver);
+            NonCobolElement.CompileCSharp(dir, "PB4946HOST", AmbientHost, "PB4946L", "PB4946L");
+            var (exit, _, stderr) = CutRunner.RunExit(Path.Combine(dir, "PB4946HOST.dll"), dir);
+            Assert.Equal(0, exit);
+            Assert.Equal("", stderr);
+            Assert.Equal("BYEBY", File.ReadAllText(Path.Combine(dir, "pb4946out.dat")).TrimEnd());
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
 }
