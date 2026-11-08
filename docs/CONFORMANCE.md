@@ -242,7 +242,7 @@ of an unsupported facility.
   GR1 ends "the execution of the RECEIVE statement is unsuccessful" in the SEND statement (the SEND is unsuccessful); GR4 says the message "contains the content of data-name-1",
   which is the RETURNING tag (the message is identifier-1's content); GR7 raises "the EC-MCS-NO-RECEIVER exception condition", a name Table 13 does not list
   (EC-MCS-NO-REQUESTER is raised, D-MCS-NR extended: a SEND Format 2 whose tag is NULL, a server tag or an answered message, and a RECEIVE FROM NULL in a run unit that
-  serves no name, which no requestor can address). A tag of another message control system is EC-MCS-INVALID-TAG, the test §2023:14.9.31.4 GR1 b) makes of the same operand.
+  serves no name, which no requestor can address). A tag of another message control system is EC-MCS-INVALID-TAG, the test §2023:14.9.31.4 GR1b makes of the same operand.
   A tag's contents are the MCS identity, the party's role, the server name or the requestor run unit, and the message's serial number (A.1 item 212); two tags are equal
   when they name the same party (§2023:8.8.4.2.14). Witnesses `conformance-test:MessagingProcessTests`, `unit:MessagingProtocolTests`, `unit:MessagingPeerTests`.
 - **D-MCS-LENGTH — message lengths** (kb/Work PB4744; DESIGN-message-control.md §0 Q7). §2023:14.9.38.4 GR1 makes a message of zero positions, or one "larger than the message
@@ -250,8 +250,11 @@ of an unsupported facility.
   is measured against the requestor's own identifier-1. §2023:14.9.31.4 GR3 makes a message longer than identifier-1 unsuccessful with EC-MCS-MESSAGE-LENGTH and says nothing of the
   message: the message is taken (it does not stay queued, where the next RECEIVE FROM NULL would loop on it), identifier-1 receives its first positions, data-name-2 is unchanged,
   data-name-1 identifies the sender, and the server can answer it. A message's length is the number of positions of the sender's identifier-1, two per national character (A.1 item 213).
-  An identifier-1 that is an elementary message tag is a message of 8 positions, its token; the tag travels as the message's one slot, and a RECEIVE into an elementary tag
-  (capacity 8) sets it to that slot's tag, NULL when the message carried none (`AsyncMessaging.TagOf`). Witness `conformance-test:MessagingProcessTests`.
+  An identifier-1 that is an elementary message tag is a message of 8 positions, its token; the tag travels as the message's one slot. A receiving message tag, elementary
+  or in a group, is what the message holds at its own positions (§2023:14.9.31.4 GR1b, decoded as a file record's tag is (DOC-A.1-212) with the slots the message
+  carries standing for the sending run unit's tokens (`AsyncMessaging.Resolve`, kb/Work PB4957): so a message cut to identifier-1 (GR3) delivers no tag that lay past the
+  cut, eight X"00" positions are NULL, and positions that hold no carried token (spaces past a shorter message included) are an unresolved tag, as in a short file
+  record. Witness `conformance-test:MessagingProcessTests`.
 - **D-MCS-WAIT — CONTINUE AFTER of a RECEIVE** (kb/Work PB4744; DESIGN-message-control.md §0 Q5). §2023:14.9.31.4 GR2 completes the RECEIVE "when the message or an exception is returned from the
   MCS or when the CONTINUE parameters are completed", content of identifier-1 then all spaces and the RECEIVE successful, and gives MESSAGE RECEIVED no other meaning. `CONTINUE AFTER MESSAGE RECEIVED` polls: a waiting
   message is received, otherwise identifier-1 is spaces, data-name-2 zero and the statement successful. `CONTINUE AFTER arithmetic-expression-1 SECONDS` waits at most that long, the interval evaluated by the rule of
@@ -3413,8 +3416,9 @@ WHICH annex licenses the decline, and the distinction is normative, not stylisti
    OBJECT-REFERENCE, POINTER, FUNCTION-POINTER or PROGRAM-POINTER clause and no OCCURS DEPENDING ON whose object lies outside
    identifier-1 (§2023:14.9.38.3 SR3, §2023:14.9.31.3 SR2), each refused with **COBOL6266** (a RECEIVE's CONSTANT RECORD receiver is the receiving funnel's COBOL1548 first, §2023:13.18.15.3 SR2);
    and the word after `CONTINUE AFTER MESSAGE` is RECEIVED (§2023:14.9.31.2). The binder builds one node per statement format
-   (`BoundSendToServer`, `BoundSendResponse`, `BoundReceiveMessage`), which `MessagingEmitter` renders as one `AsyncMessaging` call each (kb/Work PB4744). A FIXED group item that holds message tags is a message area: the tags travel beside its image as the message's slots in storage order
-   (`AsyncMessaging.TagsOf`, `WithTags`; `conformance:cases/14.9.38-SEND/send-group-holding-tag`, `MessagingProcessTests`), and so does a variable-length group that holds one (its contiguous decomposition skips the tag's positions: `conformance:cases/14.9.38-SEND/send-var-group-holding-tag`). Pinned by
+   (`BoundSendToServer`, `BoundSendResponse`, `BoundReceiveMessage`), which `MessagingEmitter` renders as one `AsyncMessaging` call each (kb/Work PB4744). A FIXED group item that holds message tags is a message area: each tag travels beside its image as a slot of the tag and its token
+   (`AsyncMessaging.SlotsOf`), and a receiving tag is what the message holds at its own positions, the token of a carried slot resolving to that slot's tag
+   (`AsyncMessaging.Resolved`, kb/Work PB4957; `conformance:cases/14.9.38-SEND/send-group-holding-tag`, `MessagingProcessTests`), and so does a variable-length group that holds one (its contiguous decomposition decodes the tag's positions: `conformance:cases/14.9.38-SEND/send-var-group-holding-tag`). Pinned by
    `conformance:wiseowl/cases/14.9.31-RECEIVE/pb3568-receive-undefined-operand`, its siblings and the
    `conformance:wiseowl/cases/14.9.38-SEND/pb4090-*` cases.
    They are a COBOL-2023 introduction, and below `--std 2023` the edition pass answers **COBOL0900**
