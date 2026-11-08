@@ -299,23 +299,31 @@ def self_test() -> int:
     src = ScratchRepo.init(t / "promisor")
     src.git("config", "uploadpack.allowFilter", "true")
     src.git("config", "uploadpack.allowAnySHA1InWant", "true")
+    others = [f"docs/f{i}.json" for i in range(5)]   # the view's other base files: Tree.read_ahead (review R6-1)
     write_store([rec(f"GR-9.9-{i}", verdict="PARTIAL") for i in range(8)], src.path / new.store)
-    src.commit("base")
+    src.commit("base", {rel: json.dumps({"at": "base", "n": rel}) for rel in others})
     write_store([rec(f"GR-9.9-{i}", verdict="CONFORMS") for i in range(8)], src.path / new.store)
-    src.commit("every record changed")
+    src.commit("every record changed", {rel: json.dumps({"at": "head", "n": rel}) for rel in others})
     src.run("clone", "-q", "--filter=blob:none", "--no-checkout", (src.path).as_uri(), str(t / "partial"), cwd=t)
     partial = t / "partial"
-    trace = t / "trace2.json"
-    os.environ["GIT_TRACE2_EVENT"] = str(trace)
-    try:
-        at_base = store_at(Tree(partial, "HEAD~1"), new)
-    finally:
-        del os.environ["GIT_TRACE2_EVENT"]
-    events = [json.loads(line) for line in trace.read_text(encoding="utf-8").splitlines()] if trace.exists() else []
-    fetches = [e for e in events if e.get("event") == "start" and "fetch" in (e.get("argv") or [])]
-    check([r["verdict"] for r in at_base or []] == ["PARTIAL"] * 8 and len(fetches) == 1,
-          f"a partial clone reads a base store of 8 absent records with ONE fetch, not one per record "
-          f"({len(fetches)} fetch(es))")
+
+    def fetches_of(read):
+        """(what `read()` returned, how many `git fetch` processes git's own trace2 log saw start during it)."""
+        trace = scratch_dir("trace2-") / "trace2.json"
+        os.environ["GIT_TRACE2_EVENT"] = str(trace)
+        try:
+            got = read()
+        finally:
+            del os.environ["GIT_TRACE2_EVENT"]
+        events = [json.loads(line) for line in trace.read_text(encoding="utf-8").splitlines()] if trace.exists() else []
+        return got, len([e for e in events if e.get("event") == "start" and "fetch" in (e.get("argv") or [])])
+
+    at_base, n = fetches_of(lambda: store_at(Tree(partial, "HEAD~1"), new))
+    check([r["verdict"] for r in at_base or []] == ["PARTIAL"] * 8 and n == 1,
+          f"a partial clone reads a base store of 8 absent records with ONE fetch, not one per record ({n} fetch(es))")
+    ahead, n = fetches_of(lambda: Tree(partial, "HEAD~1").read_ahead(others))
+    check([ahead.json(rel)["at"] for rel in others] == ["base"] * 5 and n == 1,
+          f"Tree.read_ahead reads 5 absent base files with ONE fetch, not one per file ({n} fetch(es))")
     for f in failures:
         print(f"FAIL: {f}")
     print(f"inventory_store self-test: {'FAIL' if failures else 'OK'}")

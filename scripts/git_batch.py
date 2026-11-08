@@ -12,6 +12,7 @@
     git_batch.object_ids(repo, ["<rev>:<path>", ...])        # `git rev-parse -q --verify <rev>:<path>`, each
     git_batch.patch_ids(repo, [commit, ...])                 # `git show <commit> | git patch-id --stable`, each
     git_batch.tree_entries(repo, ["<rev>:<dir>", ...])       # `git ls-tree <rev>:<dir>`, each: {file name: object id}
+    git_batch.path_ids(repo, rev, [path, ...])               # `git ls-tree <rev> -- <path>...`: {path: blob id}, no blob read
     git_batch.blobs(repo, [object id, ...])                  # `git cat-file blob <object id>`, each: (object id, bytes), one at a time
                                                              # (a partial clone's missing blobs: ONE batched fetch first)
 
@@ -187,6 +188,24 @@ def tree_entries(repo: pathlib.Path | str, specs: Sequence[str]) -> list[dict[st
                 entries[data[sp + 1:nul].decode("utf-8", "replace")] = data[nul + 1:nul + 1 + width].hex()
             at = nul + 1 + width
         out.append(entries)
+    return out
+
+
+def path_ids(repo: pathlib.Path | str, rev: str, paths: Sequence[str]) -> dict[str, str] | None:
+    """{path: blob id} of the files `paths` name in commit `rev` (a directory names its own entries; no recursion), from
+    ONE `git ls-tree`, which reads trees only: in a partial clone it fetches no blob, so the ids it gives can be fetched
+    in one batch (`blobs`). A path the commit lacks is absent; None when `rev` names no commit."""
+    r = subprocess.run(["git", "-C", str(repo), "ls-tree", "-z", f"{rev}^{{commit}}", "--", *paths],
+                       capture_output=True)
+    if r.returncode != 0:
+        return None
+    out: dict[str, str] = {}
+    for rec in r.stdout.decode("utf-8").split("\0"):
+        if rec:
+            meta, _, path = rec.partition("\t")
+            _, kind, oid = meta.split()
+            if kind == "blob":
+                out[path] = oid
     return out
 
 

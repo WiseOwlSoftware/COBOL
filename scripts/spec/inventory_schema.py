@@ -99,10 +99,9 @@ class Tree:
         merge-queue bounce of kb/Work PB4992). A working tree reads its files directly and is returned as it is."""
         if self.rev is None:
             return self
-        rels = list(dict.fromkeys(rels))
-        ids = git_batch.object_ids(self.root, [f"{self.rev}:{rel}" for rel in rels])
-        data = dict(git_batch.blobs(self.root, [i for i in ids if i]))
-        return Tree(self.root, self.rev, {rel: data[i].decode("utf-8") for rel, i in zip(rels, ids) if i})
+        ids = git_batch.path_ids(self.root, self.rev, list(dict.fromkeys(rels))) or {}   # trees only: no blob fetched
+        data = dict(git_batch.blobs(self.root, ids.values()))
+        return Tree(self.root, self.rev, {rel: data[i].decode("utf-8") for rel, i in ids.items()})
 
 
 WORKING_TREE = Tree()

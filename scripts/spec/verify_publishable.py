@@ -51,6 +51,7 @@ from cite import CORRECTION_NOTE  # noqa: E402  — ONE definition of what an ed
 import spec_pdf  # noqa: E402  (scripts/spec: the one edition table, kb/Work PB4815)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
+import git_batch  # noqa: E402  (scripts/: one git process for many objects)
 
 REPO = spec_pdf.REPO
 
@@ -123,15 +124,9 @@ def check_tree(repo: pathlib.Path = REPO) -> list[str]:
     sys.path.insert(0, str(repo / "scripts" / "orchestrator"))
     import coord  # noqa: E402  (the ONE list of the files no landing carries)
     blobs = {meta.split()[1]: path for meta, path in entries if not meta.startswith("160000") and coord.is_work(path)}
-    batch = subprocess.run(["git", "-C", str(repo), "cat-file", "--batch"], input="\n".join(blobs).encode() + b"\n",
-                           capture_output=True, check=True).stdout
-    failures, at = [], 0
+    failures = []
     pats = [(re.compile(p), what) for p, what in tree_shapes()]
-    while at < len(batch):
-        nl = batch.index(b"\n", at)
-        sha, _kind, size = batch[at:nl].decode().split()
-        body = batch[nl + 1: nl + 1 + int(size)]
-        at = nl + 1 + int(size) + 1
+    for sha, body in git_batch.blobs(repo, blobs):
         if b"\0" in body[:8000]:
             continue
         text = body.decode("utf-8", "replace")
