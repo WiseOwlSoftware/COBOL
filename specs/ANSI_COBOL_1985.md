@@ -3829,7 +3829,7 @@ Concepts
 
 COBOL offers many features which allow the user to obtain a necessary function without programming the function in detail. In this section each of these features is discussed, considering the reason for its inclusion in the language and the concept of its use and organization.
 
-2. <u>FILES</u>
+## 2. <u>FILES</u>
 
 A file is a collection of records which may be placed into or retrieved from a storage medium. The user not only chooses the file organization, but also chooses the file processing method and sequence. Although the file organization and processing method are restricted for sequential media, no such restrictions exist for mass storage media.
 
@@ -20995,7 +20995,7 @@ XII-5
 
 Source Text Manipulation - REPLACE
 
-║3. <u>THE REPLACE STATEMENT</u>║
+## ║3. <u>THE REPLACE STATEMENT</u>║
 
 ║3.1 Function║
 

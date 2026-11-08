@@ -3608,10 +3608,22 @@
    "now": "## 1. <u>INTRODUCTION</u>"
   },
   {
+   "page": 85,
+   "sweep": "paragraph-heads(p709-1)",
+   "was": "2. <u>FILES</u>",
+   "now": "## 2. <u>FILES</u>"
+  },
+  {
    "page": 150,
    "sweep": "paragraph-heads(p709-1)",
    "was": "4. <u>LANGUAGE CONCEPTS</u>",
    "now": "## 4. <u>LANGUAGE CONCEPTS</u>"
+  },
+  {
+   "page": 580,
+   "sweep": "paragraph-heads(p709-1)",
+   "was": "║3. <u>THE REPLACE STATEMENT</u>║",
+   "now": "## ║3. <u>THE REPLACE STATEMENT</u>║"
   },
   {
    "page": 711,

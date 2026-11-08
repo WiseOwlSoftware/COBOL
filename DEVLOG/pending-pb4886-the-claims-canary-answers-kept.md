@@ -21,12 +21,14 @@ refused while they run, and then proves the pass. The new claims cases fail on t
 `locator` answer was refused).
 
 **The 1985 heads.** Appendix C's heading was an unheaded line, so the obsolete-element list folded into B.2.2 and Appendix
-C had no region. The single-number paragraphs II.1, IV.4, A.1 (with A.1.1 and A.1.2, which sat in an indented code
-block), A.2, A.3, C.1, C.3 and C.4 had no region either. The rendered pages (PDF 709 and 789) print them as headings, and
+C had no region. The single-number paragraphs II.1, II.2, IV.4, XII.3 (boxed), A.1 (with A.1.1 and A.1.2, which sat in an indented code
+block), A.2, A.3, C.1, C.3 and C.4 had no region either. The rendered pages (PDF 85, 580, 709 and 789) print them as headings, and
 the transcription now heads them that way. Two contents lines on PDF page 15 had been written as headings, which gave
 Sections X and XI a second region in the front matter. They are plain lines again. `citation.py --self-test` holds both
 rules against the real file (every appendix the document names has a region and its first paragraph; no section opens a
-region before Section I), and both fail on the old file. LEDGER-1985 records every edit: page 709's claims 1-4 are
+region before Section I; every paragraph's parent paragraph is a region, unless its page opens at a marked scan
+gap), and each fails on the old file. The branch review found II.2 and XII.3 left unheaded by the first sweep; the
+parent-paragraph rule is the check that catches such an orphan. LEDGER-1985 records every edit: page 709's claims 1-4 are
 APPLIED, and the `paragraph-heads(p709-1)` sweep covers the others. The lead that VII.2.12 (RERUN) lost its `2.12.1
 Function` heading was refuted by the page: PDF 391 prints no such heading, so the function sentence is the paragraph's own
 text, `§1985:VII.2.12`.

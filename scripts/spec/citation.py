@@ -667,10 +667,35 @@ def _real_1985_heads() -> list[tuple[str, bool]]:
     known = {r[0] for r in regs}
     body = min(s for loc, _t, s, _e in regs if loc == "I")
     early = sorted({loc for loc, _t, s, _e in regs if loc in SECTIONS_85 and s < body})
+    orphans = _orphan_paragraphs_85(lines, regs)
     return [(f"1985: every appendix the document names ({', '.join(letters)}) is a region with its first paragraph",
              bool(letters) and all(x in known and f"{x}.1" in known for x in letters)),
             (f"1985: no section opens a region in the front matter{' (' + ', '.join(early) + ')' if early else ''}",
-             not early)]
+             not early),
+            (f"1985: every paragraph's parent paragraph is a region{' (orphans: ' + ', '.join(orphans) + ')' if orphans else ''}"
+             " (kb/Work PB4886 review R1-1)", not orphans)]
+
+
+#: The comment the transcription writes where the scan lacks printed pages (kb/Work PB4850): a paragraph whose parent
+#: heading fell into that gap is no markup defect.
+SCAN_GAP_85 = "<!-- The scan lacks the printed pages"
+
+
+def _orphan_paragraphs_85(lines: list[str], regs) -> list[str]:
+    """The paragraph regions (`VI.5.3.1`, never a page) whose parent paragraph (`VI.5.3`) is no region: a heading the
+    transcription left as plain text, so the parent's text falls into its preceding sibling (kb/Work PB4886 review
+    R1-1, `2. FILES` and the boxed `3. THE REPLACE STATEMENT`). A paragraph on a page that opens at a scan gap
+    (SCAN_GAP_85) is excused: its parent heading is on a printed page the PDF lacks."""
+    known = {loc for loc, _t, _s, _e in regs}
+    out = []
+    for loc, _t, start, _e in regs:
+        parent = loc.rpartition(".")[0]
+        if loc.startswith("p.") or parent.count(".") < 1 or parent in known:
+            continue
+        page = next((i for i in range(start, -1, -1) if PAGE_85.match(lines[i])), 0)
+        if not any(line.startswith(SCAN_GAP_85) for line in lines[page:start]):
+            out.append(loc)
+    return sorted(set(out))
 
 
 def _bare_in(line: str, prev: str = "") -> bool:
