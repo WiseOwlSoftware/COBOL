@@ -311,7 +311,7 @@ public readonly struct CobolExact
     /// A zero divisor raises <see cref="CobolSizeError.ZeroDivide"/> (ISO §2023:14.7.5 case 2).</summary>
     public static CobolDec DivToOdd(CobolExact a, CobolExact b, CobolRounding intermediate) =>
         TryBinary64Operands(a, b, out double x, out double y)
-            ? CobolDec.FromBinary64(CobolFloat.Div(x, y), intermediate)
+            ? FromBinary64(CobolFloat.Div(x, y)).Image
             : Quotient(a, b, intermediate, jam: intermediate != CobolRounding.Prohibited);
 
     /// <summary>The exact quotient of two exact values reduced to the SDIDI's 34 digits ONCE: ROUND-TO-ODD with <paramref name="jam"/>, else

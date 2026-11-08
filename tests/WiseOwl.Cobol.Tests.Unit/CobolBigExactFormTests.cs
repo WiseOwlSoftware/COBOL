@@ -453,7 +453,7 @@ public sealed class CobolBigExactFormTests
     }
 
     /// <summary>⛔ A FLOAT ITEM'S CONTENT CARRIES ITS BINARY64 MARK (kb/Work PB4891): a selection returns it whole and a negation and a
-    /// precision change keep it, an operation that forms a new value drops it, and an even MEDIAN reads it off its two middles, so the mean
+    /// precision change keep it, an operation over it is a binary64 operation (kb/Work PB4923) and one over fixed-point values forms an unmarked value, and an even MEDIAN reads it off its two middles, so the mean
     /// of the content MAX selected beside 0.5 is the binary64 mean 0.3 (§2023:15.61.4 2), DOC-A.1-92b), not the exact mean
     /// .30000000000000000277..., in both lanes; two fixed-point middles keep the exact mean whatever else the list holds.</summary>
     [Fact]
@@ -465,7 +465,9 @@ public sealed class CobolBigExactFormTests
         Assert.True(selected.TryBinary64(out _));
         Assert.True(CobolExact.Negate(selected).TryBinary64(out double negated) && negated == -0.1);
         Assert.True(selected.WithPrecision(0).TryBinary64(out _));
-        Assert.False(CobolExact.Add(selected, CobolExact.From(0, 0)).TryBinary64(out _));
+        // An operation over a float item's content is a binary64 operation (kb/Work PB4923): its value is itself a binary64's content.
+        Assert.True(CobolExact.Add(selected, CobolExact.From(0, 0)).TryBinary64(out double sum) && sum == 0.1);
+        Assert.False(CobolExact.Add(CobolExact.From(1, 1), CobolExact.From(0, 0)).TryBinary64(out _));
         Assert.False(half.TryBinary64(out _));
         double binaryMean = (0.1 + 0.5) / 2;
         Assert.Equal(binaryMean, FloatResultant.FromExact(CobolIntrinsics.MedianExact(CobolRounding.NearestEven, selected, half),
