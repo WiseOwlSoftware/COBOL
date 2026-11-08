@@ -48,6 +48,7 @@ internal static class DebugTriggerPlanner
     {
         switch (s)
         {
+            case BoundSequence { RepeatsPhraseOperands: true }: break;   // the phrase's own window runs these operands when the phrase is evaluated (PB4977)
             case BoundSequence seq:
                 foreach (var step in seq.Steps) foreach (var l in Leaves(step)) yield return l;
                 break;

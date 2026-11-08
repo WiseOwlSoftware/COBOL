@@ -126,7 +126,7 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
     /// <summary>The SEARCH statement preceded by the pre-ops that fix the enclosing occurrence of a dynamic-capacity
     /// table (<see cref="DynamicTablePath"/>); the search itself when there are none.</summary>
     private static BoundStatement Preceded(IReadOnlyList<BoundStatement> prelude, BoundSearch search) =>
-        prelude.Count == 0 ? search : new BoundSequence([.. prelude, search]);
+        prelude.Count == 0 ? search : new BoundSequence([new BoundSequence(prelude, RepeatsPhraseOperands: true), search]);
 
     /// <summary>The ALL-FORMATS phrases both formats print identically — <c>[ AT END imperative-statement-1 ]</c>
     /// and the WHEN arms' <c>{ imperative-statement-2 | NEXT SENTENCE }</c> under an optional END-SEARCH — bound

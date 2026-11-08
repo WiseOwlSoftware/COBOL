@@ -1024,4 +1024,70 @@ public sealed class DebugFacilityTests
         Assert.Equal(["NO WHEN", "AT END", "  DB3 +0002 [     ] [xyz ]", "WHEN", "FOUND", "  DB1 [2 ]", "  DB3 +0002 [     ] [xyz ]", "END"],
             lines);
     }
+
+    /// <summary>A function written in a WHEN phrase's subscript is evaluated by that phrase, so its operand is the phrase's reference and only
+    /// an execution that evaluates the phrase runs the section (X3.23-1985 USE FOR DEBUGGING general rules 5 and 6: "If identifier-1 is
+    /// specified in a phrase that is not executed or evaluated, the associated debugging section is not executed"; kb/Work PB4977). A
+    /// dynamic-capacity table nested under another names its enclosing occurrence in that subscript (§2023:14.9.37.4 GR1), and the scan bound
+    /// is read before the first WHEN: the hoisted copy of the subscript's evaluation is no reference of its own, so the AT END search that
+    /// reaches no WHEN runs no section for I. The EVALUATE and IF legs pin the reading of the phrase's own function activation (an operand
+    /// evaluation step inside a condition's window is that operand's reference, never a statement nested in the one asked).</summary>
+    [Fact]
+    public void FunctionInWhenSubscript_IsReferencedOnlyWhenThePhraseIsEvaluated()
+    {
+        const string src = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. DBGSWFN.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            SOURCE-COMPUTER. IBM-PC WITH DEBUGGING MODE.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 I PIC 9 VALUE 2.
+            01 NB.
+               02 ROW OCCURS 2 TIMES INDEXED BY RX.
+                  03 C OCCURS DYNAMIC CAPACITY IN CC INITIALIZED
+                     INDEXED BY CX PIC X.
+            01 T.
+               02 D PIC X OCCURS 3.
+            PROCEDURE DIVISION.
+            DECLARATIVES.
+            DB1 SECTION.
+                USE FOR DEBUGGING ON ALL REFERENCES OF I.
+            DB1-B.
+                DISPLAY "  DB1 [" DEBUG-CONTENTS (1:2) "]".
+            END DECLARATIVES.
+            MAIN SECTION.
+            M1.
+                MOVE "x" TO C (2, 1).
+                MOVE "y" TO C (2, 2).
+                MOVE "z" TO C (2, 3).
+                MOVE "xyz" TO T.
+                DISPLAY "AT END".
+                SET CX TO 3.
+                SET CX UP BY 1.
+                SEARCH C AT END DISPLAY "NONE"
+                    WHEN C (FUNCTION MAX(I 1), CX) = "y" DISPLAY "FOUND".
+                DISPLAY "WHEN".
+                SET CX TO 1.
+                SEARCH C AT END DISPLAY "NONE"
+                    WHEN C (FUNCTION MAX(I 1), CX) = "y" DISPLAY "FOUND".
+                DISPLAY "EVALUATE".
+                EVALUATE TRUE
+                    WHEN D (FUNCTION MAX(I 1)) = "y" DISPLAY "FOUND"
+                END-EVALUATE.
+                DISPLAY "PLAIN".
+                EVALUATE TRUE
+                    WHEN I = 9 DISPLAY "NINE"
+                    WHEN OTHER DISPLAY "OTHER"
+                END-EVALUATE.
+                DISPLAY "END".
+                STOP RUN.
+            """;
+        var (ok, stdout, detail) = EditionHarness.CompileAndRun(src, 2023, permissive: true);
+        Assert.True(ok, detail);
+        var lines = stdout.Replace("\r", "").TrimEnd('\n').Split('\n').SkipWhile(l => l != "AT END").ToArray();
+        Assert.Equal(["AT END", "NONE", "WHEN", "FOUND", "  DB1 [2 ]", "EVALUATE", "FOUND", "  DB1 [2 ]", "PLAIN", "OTHER", "  DB1 [2 ]", "END"],
+            lines);
+    }
 }

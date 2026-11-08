@@ -427,7 +427,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
         profile.IsEmpty ? node
         : node switch
         {
-            BoundSequence seq => new BoundSequence([.. seq.Steps.Select(st => StampActivators(st, profile))]),
+            BoundSequence seq => seq with { Steps = [.. seq.Steps.Select(st => StampActivators(st, profile))] },
             BoundReceiverBrackets brackets => brackets.Mapped(st => StampActivators(st, profile)),
             BoundImplicitSeries ser =>
                 new BoundImplicitSeries([.. ser.Members.Select(st => StampActivators(st, profile))]),

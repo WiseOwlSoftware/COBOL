@@ -106,7 +106,10 @@ internal static class BoundReferences
                 VisitFields(node, found, skip, yieldPlace: false, statementsAreDirect: false);
                 return;
             case BoundStatement statement:
-                if (!statementsAreDirect) return;   // a statement nested in the one asked
+                // A statement nested in the one asked is a statement of its own (rule 7), but an operand-evaluation step is no statement the
+                // program wrote: it evaluates an operand of the one asked (a function activation or object-property GET inside a condition's
+                // window), so what it reads is that operand's reference (kb/Work PB4977).
+                if (!statementsAreDirect && !statement.OperandEvaluation) return;
                 VisitFields(node, found, skip, yieldPlace: true, statementsAreDirect: IsTransparent(statement));
                 return;
             default:

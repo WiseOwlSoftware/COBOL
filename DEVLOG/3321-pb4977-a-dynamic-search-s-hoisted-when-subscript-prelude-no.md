@@ -1,0 +1,8 @@
+## Entry 3321 — 2026-11-08 04:59 PST — PB4977: a dynamic SEARCH's hoisted WHEN-subscript prelude no longer counts as a debug reference of the statement
+
+Re-probe (function in a WHEN subscript of a nested OCCURS DYNAMIC table, USE FOR DEBUGGING ON ALL REFERENCES OF I): the AT END search, which evaluates no WHEN, still ran the section for I, because `SearchBinder.Preceded` put copies of the subscript's pre-ops in the statement's own `BoundSequence` and `DebugTriggerPlanner.Leaves` yielded them as leaves. X3.23-1985 USE FOR DEBUGGING rules 5 and 6 close with "not executed or evaluated" for a phrase that did not run.
+
+Removing them exposed the cause behind: `BoundReferences` skipped every nested statement, including the operand-evaluation steps a condition's per-evaluation window holds (`BoundUdfEvaluated.Activations`), so the WHEN phrase itself never reported the function's operand. The prelude had been hiding this. An EVALUATE WHEN with a function in a subscript lost the section on main.
+
+Fix shape: `BoundSequence.RepeatsPhraseOperands` marks the prelude (`Preceded` nests it), the planner skips it, `EcBinder.StampActivators` keeps the flag, and `BoundReferences.Visit` enters a nested `OperandEvaluation` step as the operand's own reference. Witness: `DebugFacilityTests.FunctionInWhenSubscript_IsReferencedOnlyWhenThePhraseIsEvaluated` (SEARCH AT END leg, SEARCH WHEN leg, EVALUATE WHEN leg). The debug module has no ISO 2023 inventory row, so no rows close and no conformance-suite case applies (VCR Table 7 row 7.17).
+
