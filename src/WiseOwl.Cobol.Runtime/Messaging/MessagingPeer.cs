@@ -189,6 +189,10 @@ internal sealed class MessagingPeer
                     case RingBells r: transport.RingBells(r.Spelling); break;
                     case ArmDeadline d: Arm(d); break;
                     case Activate: throw new IOException("a server cannot be started from this run unit yet");   // slice S5 (PB4745): no definition has a start command until then
+                    case Deliver d:
+                        transport.Write(d.Ack.Link, d.Ack.Frame.Kind, PeerFrameCodec.Encode(d.Ack.Frame));   // a write that throws leaves the RECEIVE current: nothing was delivered
+                        _result = d.Result;
+                        break;
                     case Complete c: _result = c.Result; break;
                     default: throw new InvalidOperationException($"no executor for {action.GetType().Name}");
                 }

@@ -58,6 +58,11 @@ internal sealed record ArmDeadline(int Token, long Seconds) : ProtocolAction;
 /// <summary>Start the server named <paramref name="Name"/> (design 5.4.5), answered by <see cref="ActivationEnded"/>.</summary>
 internal sealed record Activate(string Name) : ProtocolAction;
 
+/// <summary>Write <paramref name="Ack"/>, then complete the current RECEIVE with <paramref name="Result"/>: "a server writes ACK before its RECEIVE returns"
+/// (docs/rearchitecture/DESIGN-message-control.md §5.4.1 step 9), so a RECEIVE whose ACK cannot be written does not complete. The peer performs the write, and
+/// when it fails it answers <see cref="ActionFailed"/> with this action and the statement stays current.</summary>
+internal sealed record Deliver(Write Ack, StatementResult Result) : ProtocolAction;
+
 /// <summary>The current statement is over.</summary>
 internal sealed record Complete(StatementResult Result) : ProtocolAction;
 
