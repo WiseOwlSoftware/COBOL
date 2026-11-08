@@ -9,6 +9,10 @@ precedence for implementation options; obey it, and where the standard leaves a 
 
 Codes allocated: {codes}, in order; list the ones you use and RETURN the ones you do not.
 Report: {reports}\{slug}-{lead}-report.md   (the ONE reports directory the enqueue unit reads, whatever this wave's scratch: kb/Work PB2980; wave-prefixed, so a later agent never overwrites an earlier report)
+⛔ WRITE THE REPORT WITH THE Write TOOL, never a shell redirect or heredoc (kb/Work PB4900): the report lies outside your
+worktree, and the worktree-isolation guard REFUSES a shell command that writes there ("too complex to verify that it stays
+inside the worktree"). A refused command did not run. Then `test -f` the report path, and return only once it exists: three
+agents returned DONE or SPLIT naming a report the guard had refused, and the wave dropped each from review.
 Scratch:  {S}\{slug}\   (YOURS ALONE, MANDATORY-PRACTICES P16, kb/Work PB4466: create it, and write every helper script, probe, batch, log and commit-message file you keep outside
 your worktree ONLY there, never in the session scratchpad your environment notes name, which every agent of the session shares and where two agents' `callers.py` collided, and never in the bare wave scratch)
 Report your ACTUAL branch (`git branch --show-current`).

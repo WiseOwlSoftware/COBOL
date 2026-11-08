@@ -40,6 +40,11 @@ namespace WiseOwl.Cobol.CodeGen;
 /// mask's significand scale only as a working-scale hint (<c>RuntimeApi.ReceiverScaleOf</c>) and is NOT the
 /// scale a final transfer rounds at. <see cref="FloatLanding"/> is the one reader.
 /// </param>
+/// <param name="FloatSignificandDigits">
+/// For a <see cref="FloatEdited"/> receiver, the digit positions of its mask's significand (<c>CobolEdit.FloatMask.SigDigits</c>,
+/// §2023:13.18.40.3 SR15), 0 otherwise. A final-transfer quotient reduced to 34 digits by round-to-odd serves the receiver's
+/// one rounding only while the receiver is at least two digits coarser, so <c>NumericRenderer.DecBinary</c> reads this bound.
+/// </param>
 /// <param name="Single">
 /// True when the resultant identifier is a BINARY32 item (COMP-1, FLOAT-SHORT): the final transfer of an exact value rounds ONCE into it
 /// (<c>FloatResultant.FromExact</c>, kb/Work PB4730), never through a binary64 first. A SET of resultants carries no single answer and
@@ -47,7 +52,7 @@ namespace WiseOwl.Cobol.CodeGen;
 /// </param>
 internal readonly record struct ReceiverContext(
     int Scale, bool Real, CobolRounding Rounding, SizeChecks Checks, int IntegerDigits = 0,
-    bool Receiverless = false, bool FloatEdited = false, bool Single = false)
+    bool Receiverless = false, bool FloatEdited = false, bool Single = false, int FloatSignificandDigits = 0)
 {
     /// <summary>The receiver-less context: scale 0, no capacity, not floating, TRUNCATION, no size-error checking.</summary>
     public static readonly ReceiverContext None =
@@ -70,7 +75,8 @@ internal readonly record struct ReceiverContext(
         int scale = pic?.ReceiverScale() ?? 0;
         return new ReceiverContext(scale, pic is { IsFloat: true }, rounding, checks,
             pic is null ? 0 : Math.Max(0, pic.DigitPositions - scale), FloatEdited: pic is { IsFloatEdited: true },
-            Single: pic is { IsFloat: true, IsSingle: true });
+            Single: pic is { IsFloat: true, IsSingle: true },
+            FloatSignificandDigits: pic?.FloatSignificandDigits() ?? 0);
     }
 
     /// <summary>⛔ THE ONE RULE FOR "THE CONTEXT OF A SET OF RESULTANTS" (kb/Work PB2694): the context a statement with

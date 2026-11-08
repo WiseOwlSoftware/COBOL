@@ -884,6 +884,11 @@ internal static class RuntimeApi
     public static string DecDivTruncatedToOdd(string leftOperand, string rightOperand, int resultScale) =>
         $"{nameof(CobolDec)}.{nameof(CobolDec.DivTruncatedToOdd)}({leftOperand}, {rightOperand}, {resultScale})";
 
+    /// <summary>The FINAL-TRANSFER native quotient of two SDIDI values — <c>CobolDec.DivFinal</c>: round-to-odd at 34 digits, so the
+    /// receiver's one rounding is the exact quotient's (kb/Work PB4641); PROHIBITED screens it as every SDIDI intermediate is.</summary>
+    public static string DecDivFinal(string leftOperand, string rightOperand, string modeExpr) =>
+        $"{nameof(CobolDec)}.{nameof(CobolDec.DivFinal)}({leftOperand}, {rightOperand}, {modeExpr})";
+
     /// <summary>The negation of an SDIDI value, its operand evaluated once — <c>CobolDec.Negate</c>.</summary>
     public static string DecNegate(string operand) => $"{nameof(CobolDec)}.{nameof(CobolDec.Negate)}({operand})";
 
@@ -1683,6 +1688,11 @@ internal static class RuntimeApi
     public static string TableAllArgs(string csType, IEnumerable<string> countLambdas, string elementLambda, string? leadLambda = null) =>
         $"{nameof(CobolTable)}.{nameof(CobolTable.AllArgs)}<{csType}>(new Func<long[], long>[] {{ {string.Join(", ", countLambdas)} }}, {elementLambda}"
         + (leadLambda is null ? ")" : $", {leadLambda})");
+
+    /// <summary>The storage image of a whole table, its current occurrences in storage order — <c>CobolTable.AllImage</c>
+    /// (X3.23-1985 USE FOR DEBUGGING general rule 24 c; kb/Work PB4855).</summary>
+    public static string TableAllImage(IEnumerable<string> countLambdas, string elementLambda) =>
+        $"{nameof(CobolTable)}.{nameof(CobolTable.AllImage)}(new Func<long[], long>[] {{ {string.Join(", ", countLambdas)} }}, {elementLambda})";
 
     /// <summary>The statement that ends the reference when a held table(ALL) argument's copy found no occurrence —
     /// <c>CobolTable.RequireOccurrences(count)</c> (ISO §2023:15.3 14); kb/Work PB4162).</summary>

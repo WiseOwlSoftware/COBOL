@@ -217,12 +217,21 @@ internal sealed class DebugTriggerEmitter(EmitContext ctx, PlaceTable places, Nu
     /// DEBUGGING general rule 24 c) — the WHOLE item, never the window a reference-modified statement used (syntax rule 12 bars
     /// reference modification of identifier-1, and the item is what the rule moves), and moved "exactly as if it was an alphanumeric to
     /// alphanumeric elementary move with no conversion of data from one form of internal representation to another" (general rule 11):
-    /// its storage image, the one channel (<see cref="OperandText.AsStorageImage"/>) a binary, packed or float item's bytes travel in.</summary>
-    private static string DataItemImage(Place referenced) =>
-        OperandText.AsStorageImage(referenced.Undecorated, "the DEBUG-CONTENTS of");
+    /// its storage image, the one channel (<see cref="OperandText.AsStorageImage"/>) a binary, packed or float item's bytes travel in.
+    /// <para>A WHOLE table (a <see cref="TableAllPlace"/>: SEARCH's identifier-1, a table SORT's data-name-2 and keys, INITIALIZE of a
+    /// whole dynamic-capacity table; kb/Work PB4855) is every current occurrence of the item, so its content is their storage images
+    /// in storage order (<c>CobolTable.AllImage</c>, each level's range read as the walk enters it).</para></summary>
+    private static string DataItemImage(Place referenced)
+    {
+        if (referenced is not TableAllPlace whole) return OperandText.AsStorageImage(referenced.Undecorated, "the DEBUG-CONTENTS of");
+        string element = OperandText.AsStorageImage(whole.Element.Undecorated, "the DEBUG-CONTENTS of");
+        return RuntimeApi.TableAllImage(PlaceRenderer.AllCountLambdas(whole), $"{LocalNames.Of(whole.Indices.Local)} => {element}");
+    }
 
     /// <summary>The occurrence number each subscripted level of the reference computes, outermost first (general rule 14: "the occurrence
-    /// number of each level is entered in DEBUG-SUB-1, DEBUG-SUB-2, DEBUG-SUB-3"), as C# <c>long</c> expressions read when the section runs.</summary>
+    /// number of each level is entered in DEBUG-SUB-1, DEBUG-SUB-2, DEBUG-SUB-3"), as C# <c>long</c> expressions read when the section runs.
+    /// A whole table names no occurrence of the levels it ranges over (its trailing levels, enumerated by its own index vector), so those
+    /// stay spaces (rule 11).</summary>
     private static IEnumerable<string> OccurrenceNumbers(Place place)
     {
         var path = place.Undecorated switch
@@ -236,13 +245,15 @@ internal sealed class DebugTriggerEmitter(EmitContext ctx, PlaceTable places, Nu
         int emitted = 0;
         foreach (var segment in path.Segments)
         {
-            string? occurrence = segment switch
+            Position? index = segment switch
             {
-                FixedTableSegment f => PositionRenderer.Render(f.OneBasedIndex),
-                DynTableSegment d => PositionRenderer.Render(d.OneBasedIndex),
+                FixedTableSegment f => f.OneBasedIndex,
+                DynTableSegment d => d.OneBasedIndex,
                 _ => null,
             };
-            if (occurrence is null) continue;
+            if (index is null) continue;
+            if (place is TableAllPlace whole && index is PositionLocalElement e && e.Vector == whole.Indices) yield break;
+            string occurrence = PositionRenderer.Render(index);
             if (++emitted > WiseOwl.Cobol.Runtime.DebugItem.MaxSubscriptLevels) yield break;
             yield return occurrence;
         }

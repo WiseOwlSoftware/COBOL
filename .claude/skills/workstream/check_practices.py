@@ -72,6 +72,7 @@ BRIEFS = {
     # PB1721: the gate is the ORDERED gate — `build-local.ps1 -Priority BelowNormal`; PB4328: the whole population; PB3022: one shape.
     'dispatch-spec-implementer.md': [r'claude-skills', POINTER, r'BelowNormal', r'build-local\.ps1 -Priority BelowNormal', r'\{global_stop\}', r'\{stop_file\}',
                                      r'\{reports\}',  # PB2980: the report goes in coord.reports_dir(), never the wave's scratch
+                                     r'WRITE THE REPORT WITH THE Write TOOL',  # PB4900: a shell write outside the worktree is refused
                                      TEMPLATE_SCRATCH,  # PB4466: the agent's own directory, written to and nowhere else
                                      r'until grep -q', r'where\.py', r'orient\.py', r'semgrep/verify\.py', r'cite\.py --check',
                                      r'Turn cap \{turn_cap\}',  # PB3701: read from the agent's maxTurns, never typed
