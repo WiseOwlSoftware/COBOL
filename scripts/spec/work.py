@@ -699,13 +699,16 @@ def register_problems(work_dir: pathlib.Path = WORK) -> tuple[list[dict], list[s
                 bad.append(f'{it["_file"]}: heading says {h.group("status").strip()!r} but '
                            f'status is {it.get("status")!r} — a landed note that still reads OPEN is how the '
                            f'register lies to a reader (the frontmatter is what work.py next reads)')
-        # ⛔ AN OPEN DEFECT WITH NO HARM FLAG IS INVISIBLE TO `next`, AND SILENCE IS HOW IT STAYS THAT WAY.
-        # `actionable` selects on HARM_FLAGS, so a defect that sets none of them is filed and then never
+        # ⛔ AN OPEN DEFECT OR ANALYSIS WITH NO HARM FLAG IS INVISIBLE TO `next`, AND SILENCE IS HOW IT STAYS THAT WAY.
+        # `actionable` selects on HARM_FLAGS, so a note that sets none of them is filed and then never
         # ranked — the same disappearance the two-flag predicate used to cause for every false-reject. An item
-        # that genuinely does nothing to a user's program says so with `process_only: true`.
-        if (it.get("kind") == "defect" and it.get("status") in ("open", "half")
+        # that genuinely does nothing to a user's program says so with `process_only: true`. ANALYSES ARE HELD TO
+        # IT TOO (kb/Work PB4949): on 2026-11-07, 37 open analyses set neither, and an audit found 8 of them
+        # describing a user-visible defect (three wrong answers, three under-rejections, a misleading
+        # diagnostic, a lost commit) that `next` never showed.
+        if (it.get("kind") in HARM_CHECKED_KINDS and it.get("status") in ("open", "half")
                 and not it.get("process_only") and not any(it.get(f) for f in HARM_FLAGS)):
-            bad.append(f'{it["_file"]}: open defect with no harm flag set — it can never appear in '
+            bad.append(f'{it["_file"]}: open {it.get("kind")} with no harm flag set — it can never appear in '
                        f'`work.py next`. Set one of {list(HARM_FLAGS)} (a message that names the wrong fault is '
                        f'`misleads_diagnosis`), or process_only: true if it genuinely does nothing to a user\'s '
                        f'program (process_only_problems refuses that on a note whose sites are all under src/).')
@@ -774,6 +777,10 @@ HARM_LABELS = {
     "misleads_diagnosis": "misleading diagnostic",
 }
 HARM_FLAGS = tuple(HARM_LABELS)
+#: The kinds whose open notes must set a harm flag or `process_only: true` (register_problems, kb/Work PB4949): the two
+#: kinds that describe our compiler's behavior. A decision or adjudication records a ruling, and an upstream record
+#: describes another project.
+HARM_CHECKED_KINDS = ("defect", "analysis")
 #: The harm words a review finding or an adjudicator's record uses (`wrong-answer`) and the frontmatter flag each files as
 #: (`wrong_answer`): HARM_FLAGS and `silent`, the qualifier no class ranks. The writers of defect notes (the R2 review's
 #: collector and census writer) read it, so a harm class added to HARM_LABELS is a word they accept and a flag they write.
@@ -2118,6 +2125,34 @@ def view_findings() -> list[str]:
 HARM_RESTATEMENT_ROOTS = (".claude/skills/workstream/templates",)
 
 
+def unflagged_kind_findings() -> list[str]:
+    """Every kind in HARM_CHECKED_KINDS is refused open with no harm flag and no `process_only` (kb/Work PB4949), a
+    harm flag or `process_only: true` answers the refusal, and a decision is not held to it."""
+    import tempfile  # noqa: PLC0415
+
+    nl = chr(10)
+
+    def note(pb: str, kind: str, extra: str = "") -> bytes:
+        return (f"---{nl}id: {pb}{nl}kind: {kind}{nl}status: open{nl}area: x{nl}closes_rows: []{nl}"
+                f'closes_rows_reason: "none"{nl}{extra}---{nl}body{nl}').encode("utf-8")
+
+    bad = []
+    cases = [("PB9201", "defect", "", True), ("PB9202", "analysis", "", True),
+             ("PB9203", "analysis", f"wrong_answer: true{nl}", False),
+             ("PB9204", "analysis", f"process_only: true{nl}", False), ("PB9205", "decision", "", False)]
+    with tempfile.TemporaryDirectory(prefix="work-unflagged-") as tmp:
+        d = pathlib.Path(tmp)
+        for pb, kind, extra, _ in cases:
+            (d / f"{pb}.md").write_bytes(note(pb, kind, extra))
+        _, problems = register_problems(d)
+        for pb, kind, extra, want in cases:
+            got = any(f"{pb}.md" in p and "with no harm flag set" in p for p in problems)
+            if got != want:
+                bad.append(f"an open {kind} {extra.strip() or 'with no flag'} is "
+                           f"{'not ' if want else ''}refused as unflagged: {[p for p in problems if pb in p]}")
+    return bad
+
+
 def harm_vocabulary_findings(repo: pathlib.Path = REPO) -> list[str]:
     """The harm vocabulary written outside this module agrees with HARM_LABELS (kb/Work PB3836): `.agent-fleet.json`
     weighs exactly HARM_FLAGS, in rank order, each class strictly below the one before it (the planner and the branch
@@ -2187,6 +2222,7 @@ def self_test() -> int:
     findings += process_only_findings()
     findings += site_member_findings()
     findings += harm_vocabulary_findings()
+    findings += unflagged_kind_findings()
     # FALSIFICATION: a repository whose weights are flat and whose brief names two classes of the vocabulary is refused
     # on both counts, and one that is consistent is not.
     import tempfile  # noqa: PLC0415
