@@ -1,4 +1,4 @@
-## PB4765, PB4947: a counter register is refused as a condition, and a parenthesized function or register is no relation operand of an index-name
+## Entry 3327 — 2026-11-08 11:29 PST — PB4765, PB4947: a counter register is refused as a condition, and a parenthesized function or register is no relation operand of an index-name
 
 **PB4947.** `IF LINAGE-COUNTER`, `IF LINAGE-COUNTER OF F` and `IF LINE-COUNTER` compiled with only warning COBOL1756 and aborted the run
 unit, while `IF W` over a numeric item drew COBOL2318. A register resolves to no data item, so `ConditionBinder.RefuseNonCondition` sent it
@@ -17,3 +17,4 @@ ConditionBinder read follows PB4763's refusal.
 Goldens: `pb4947-if-linage-counter`, `-qualified`, `pb4947-if-line-counter`, `pb4947-if-page-counter` (COBOL2318);
 `pb4765-index-name-paren-function`, `pb4765-index-name-paren-counter` (COBOL2533), `pb4765-alphanumeric-paren-counter` (COBOL2532), and the
 control `pb4765-index-name-sole-function` (prints EQ, NE). No inventory row claimed or closed.
+
