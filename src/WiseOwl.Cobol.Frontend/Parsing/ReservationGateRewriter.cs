@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
+using Antlr4.Runtime.Tree;
 using WiseOwl.Cobol.Frontend.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Runtime;
@@ -37,6 +38,15 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// arrives as <c>IDENTIFIER</c> as well. Such a word's row carries the <c>keywordWhereFree</c> determination and the
 /// grammar reads it only through its generated <c>&lt;word&gt;Keyword</c> rule, which accepts the token or the retyped
 /// spelling (kb/Work PB2623, PB3794; <c>CobolWordsDriftTests</c> re-derives the 2023 members from the standard).</para>
+/// <para><b>But a later construct's keyword is kept.</b> A word whose every keyword position heads or sits in a construct the
+/// free editions LACK (SCREEN SECTION, LOCAL-STORAGE SECTION, the REPOSITORY and OPTIONS paragraphs at COBOL-85; the
+/// COMMUNICATION SECTION and its CD at 2014 and 2023; the five comment paragraphs from 2002) carries the
+/// <c>refusalWhereFree</c> determination, and the keyword tokens a pass read in such a position are not retyped
+/// (<see cref="TokenRetypes.KeptKeywords"/>): the union grammar spells the construct there so its named edition refusal can
+/// answer, and retyping the header made <c>01 SCREEN LINE 1.</c> in a COBOL-85 SCREEN SECTION a COBOL0001 at the header
+/// (kb/Work PB4933). Kept rather than read by a keyword rule: an IDENTIFIER arm at a header would sit in every
+/// predicate-blind reading of the ATN the error strategy makes (the recovery sets, the missing-period walk, the
+/// closed-format residue) and read every user-defined word there as that header.</para>
 /// <para><b>Why DECLARED, not merely free.</b> The union grammar still spells the word's constructs at editions
 /// that lack them, so the named edition gate can answer (<c>GOBACK.</c> at COBOL-85 → "requires COBOL-2002"), and
 /// the migration mode (<c>--permissive</c>) admits a word the edition added while it is ALSO that edition's
@@ -87,10 +97,14 @@ public static class ReservationGateRewriter
             // The words the recovery of this pass read as names (kb/Work PB4218) are the pass's own repair: put back before
             // the gate looks for the keyword tokens it retypes, and before another pass reads the stream.
             parser.RestoreWordsReadAsNames();
-            if (parser.FreeGatedDeclarations.Where(freed.Add).ToList() is { Count: > 0 })
+            if (parser.FreeGatedDeclarations.Where(freed.Add).ToList() is { Count: > 0 } newlyFreed)
             {
-                retypes = retypes with { FreedReservedWords = new HashSet<string>(freed, StringComparer.Ordinal) };
-                Retype(tokens, retypes.FreedReservedWords);
+                retypes = retypes with
+                {
+                    FreedReservedWords = new HashSet<string>(freed, StringComparer.Ordinal),
+                    KeptKeywords = KeywordsReadIn(tree, newlyFreed, parser.DeclaredGatedWords, retypes.KeptKeywords),
+                };
+                Retype(tokens, retypes.FreedReservedWords, retypes.KeptKeywords);
                 continue;
             }
             // Only a pass the gate accepts can say what a ZERO's sign is: a ZERO read as an operand-list item where the
@@ -117,10 +131,59 @@ public static class ReservationGateRewriter
         }
     }
 
+    /// <summary>⛔ THE KEYWORD TOKENS A PASS READ IN A KEYWORD POSITION OF A DECLARED <c>refusalWhereFree</c> WORD (kb/Work
+    /// PB4933): <paramref name="kept"/> with, for each word of <paramref name="newlyFreed"/> that the pass DECLARED
+    /// (<paramref name="declared"/>; a word only a syntax error freed was refused in its keyword reading) and whose row carries
+    /// the determination (<see cref="CobolLexer.IsRefusalWhereFree"/>), the source offset of every token of it the tree holds
+    /// outside a user-defined-word slot. Every keyword position of such a word heads or sits in a construct the editions that
+    /// free it lack, where no reading of the free word competes (the row's determination), so the keyword the parse read
+    /// there IS the construct's keyword: <c>SCREEN SECTION.</c> stays the SCREEN SECTION after <c>01 SCREEN LINE 1.</c>
+    /// declares SCREEN at COBOL-85, and the source draws the section's named COBOL1560, not "unexpected 'SCREEN'". The tree
+    /// is walked only when such a word was freed, which nearly no program does.</summary>
+    private static IReadOnlySet<int> KeywordsReadIn(IParseTree tree, List<string> newlyFreed, IReadOnlyCollection<string> declared,
+        IReadOnlySet<int> kept)
+    {
+        var words = newlyFreed.Where(w => CobolLexer.IsRefusalWhereFree(w) && declared.Contains(w)).ToHashSet(StringComparer.Ordinal);
+        if (words.Count == 0) return kept;
+        var result = new HashSet<int>(kept);
+        var spells = new Dictionary<(int Rule, int Token), bool>();
+        var work = new Stack<IParseTree>();
+        work.Push(tree);
+        while (work.TryPop(out var node))
+        {
+            if (node is ITerminalNode { Symbol: { } symbol } terminal)
+            {
+                if (terminal is not IErrorNode && symbol.TokenIndex >= 0 && CobolLexer.IsReservationGated(symbol.Type)
+                    && terminal.Parent is ParserRuleContext { RuleIndex: var rule } && rule != CobolParserCore.RULE_reservedGatedWord
+                    && words.Contains(CobolNames.UpperFold(symbol.Text))
+                    && (spells.TryGetValue((rule, symbol.Type), out bool known) ? known : spells[(rule, symbol.Type)] = RuleSpells(rule, symbol.Type)))
+                    result.Add(symbol.StartIndex);
+                continue;
+            }
+            for (int i = 0; i < node.ChildCount; i++) work.Push(node.GetChild(i));
+        }
+        return result;
+    }
+
+    /// <summary>Does <paramref name="rule"/> itself match <paramref name="tokenType"/> (a token edge of one of its own ATN
+    /// states)? The terminal of a keyword the format spells sits in the rule that spells it; a word the error recovery read
+    /// as a name and then gave back its keyword type (<see cref="CobolParserCoreBase.RestoreWordsReadAsNames"/>, kb/Work
+    /// PB4218) sits in a name rule that spells no such token, and is no keyword read (<c>DISPLAY SCREEN.</c> at 2002 under
+    /// <c>--permissive</c>).</summary>
+    private static bool RuleSpells(int rule, int tokenType)
+    {
+        foreach (var state in CobolParserCore._ATN.states)
+            if (state.ruleIndex == rule)
+                for (int i = 0; i < state.NumberOfTransitions; i++)
+                    if (state.Transition(i) is { IsEpsilon: false, Label: { } label } && label.Contains(tokenType)) return true;
+        return false;
+    }
+
     /// <summary>Retype every default-channel reservation-gated keyword token whose word is in
-    /// <paramref name="freed"/> (upper-case) to <c>IDENTIFIER</c>, keeping its source spelling. Returns how many
+    /// <paramref name="freed"/> (upper-case) to <c>IDENTIFIER</c>, keeping its source spelling, but a token whose source
+    /// offset is in <paramref name="kept"/> (<see cref="TokenRetypes.KeptKeywords"/>, kb/Work PB4933). Returns how many
     /// tokens changed; the stream is rewound.</summary>
-    public static int Retype(CommonTokenStream tokens, IReadOnlySet<string> freed)
+    public static int Retype(CommonTokenStream tokens, IReadOnlySet<string> freed, IReadOnlySet<int> kept)
     {
         if (freed.Count == 0) return 0;
         tokens.Fill();
@@ -131,7 +194,7 @@ public static class ReservationGateRewriter
             var tok = list[i];
             if (tok.Channel != Lexer.DefaultTokenChannel || !CobolLexer.IsReservationGated(tok.Type)) continue;
             // By WORD, not by type alone: the decision is §2023:8.9's, and §2023:8.9 is keyed by spelling (the PB250 text rule).
-            if (!freed.Contains(CobolNames.UpperFold(tok.Text))) continue;
+            if (!freed.Contains(CobolNames.UpperFold(tok.Text)) || kept.Contains(tok.StartIndex)) continue;
             list[i] = new CommonToken(tok) { Type = idType };
             changed++;
         }
