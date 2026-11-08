@@ -21,7 +21,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// the structure that keeps the determination true.
 /// <para>Every write goes through <see cref="FileStatusCode.PhraseOnNonReelMedium"/>, and a second spelling of the
 /// value is a second setter nobody is guarding, so the test reads both: the named constant may be used only inside
-/// <c>FileRegistry.CloseByFormat</c> (Table 14's symbols e and g, §2023:14.9.6.4 GR3) and
+/// <c>FileRegistry.CloseCell</c> (Table 14's symbols e and g, §2023:14.9.6.4 GR3) and
 /// <c>FileRegistry.NoRewindPhraseEffect</c> (§2023:14.9.27.4 GR11), and the string <c>"07"</c> appears in the runtime and the
 /// code generator nowhere but the constant's own declaration. A new medium or organization that needs the status
 /// changes those two dispatches, never a third site.</para>
@@ -66,7 +66,7 @@ public sealed class IoStatus07SetterDriftTests
             .ToList();
 
         Assert.Equal(
-            ["FileRegistry.cs:CloseByFormat", "FileRegistry.cs:NoRewindPhraseEffect"],
+            ["FileRegistry.cs:CloseCell", "FileRegistry.cs:NoRewindPhraseEffect"],
             sites);
     }
 

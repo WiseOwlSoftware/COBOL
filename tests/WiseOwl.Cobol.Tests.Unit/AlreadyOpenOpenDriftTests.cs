@@ -105,18 +105,18 @@ public sealed class AlreadyOpenOpenDriftTests
     public void TheOneOpenDispatch_AsksGr2BeforeItTouchesTheConnector()
     {
         string[] lines = File.ReadAllLines(TestRepo.Src("WiseOwl.Cobol.Runtime", "IO", "FileRegistry.cs"));
-        int start = Array.FindIndex(lines, l => l.Contains("private void OpenCore(string name, FileOpenMode mode", StringComparison.Ordinal));
-        Assert.True(start >= 0, "FileRegistry.OpenCore moved; re-point this drift test at the one OPEN dispatch.");
+        int start = Array.FindIndex(lines, l => l.Contains("private void OpenArbitrated(string name, FileOpenMode mode", StringComparison.Ordinal));
+        Assert.True(start >= 0, "FileRegistry.OpenArbitrated moved; re-point this drift test at the one OPEN dispatch.");
         int end = Array.FindIndex(lines, start + 1, l => l == "    }");
         var body = lines[start..end].Select(l => l.Split("//")[0]).ToList();
         int Line(string text)
         {
             int at = body.FindIndex(l => l.Contains(text, StringComparison.Ordinal));
-            Assert.True(at >= 0, $"'{text}' is no longer in FileRegistry.OpenCore.");
+            Assert.True(at >= 0, $"'{text}' is no longer in FileRegistry.OpenArbitrated.");
             return at;
         }
         int guard = Line("RefusedAsAlreadyOpen(name, mode)");
         foreach (string touch in new[] { "Associate(name", "ReversedRequested", "HasLinageClause", "SharedOpenAttempt(" })
-            Assert.True(Line(touch) > guard, $"OpenCore reaches '{touch}' before §2023:14.9.27.4 GR2's already-open answer.");
+            Assert.True(Line(touch) > guard, $"OpenArbitrated reaches '{touch}' before §2023:14.9.27.4 GR2's already-open answer.");
     }
 }

@@ -15,7 +15,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// shall be executed for all open files in the run unit, even when an error occurs during the execution of one or
 /// more of the CLOSE statements."</i>
 /// <para>So <see cref="FileRegistry.CloseAll"/> reaches each connector through the ONE CLOSE dispatch
-/// (<c>FileRegistry.CloseByFormat</c>, Table 14's plain CLOSE row): no member of <see cref="FileRegistry"/> but that
+/// (<c>FileRegistry.CloseCell</c>, Table 14's plain CLOSE row): no member of <see cref="FileRegistry"/> but that
 /// dispatch calls a connector's own <c>Close()</c>, so the implicit CLOSE cannot drift from the explicit one in its
 /// not-open guard, its §2023:9.1.15 file-lock removal or its §2023:9.1.16 record-lock release. A connector that is not open is
 /// not touched (the "sequential connectors close unconditionally" behavior stamped '42' on every closed sequential
@@ -176,9 +176,9 @@ public sealed class RunUnitImplicitCloseDriftTests
                             ?? "<outside a method>")
             .ToList();
         Assert.True(callers.Count > 0, "FileRegistry no longer calls a connector's Close(); re-point this drift test.");
-        Assert.True(callers.All(m => m == "CloseByFormat"),
+        Assert.True(callers.All(m => m == "CloseCell"),
             "A connector's Close() is called outside the ONE CLOSE dispatch, from: "
-            + string.Join(", ", callers.Where(m => m != "CloseByFormat").Distinct())
+            + string.Join(", ", callers.Where(m => m != "CloseCell").Distinct())
             + " — route it through Close(name) / CloseIfOpen(name) (§2023:14.6.11 2), kb/Work PB603).");
     }
 }
