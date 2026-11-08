@@ -866,7 +866,9 @@ longest first by the committed weights file. The growth trigger of kb/Work/PB432
   `xunit.runner.json` caps it. The test hosts run Server GC (kb/Work PB2526).
 - **The record** (`verdict.json`, schema 5): the verdict, its line and exit code, the measured head and trees, the base,
   the toolchain, the slot, the lane, whether tooling was touched, the first classes, each host's exit, wall and finish,
-  the timings (`build_s`, `tests_s`, `first_red_s`, `wall_s`, the waits beside), `assembly_wall_s`,
+  the timings (`slot_wait_s`, `slot_taken_s` (seconds from the gate's start to its slot, so the run directory's UTC stamp
+  plus it is WHEN the slot was taken, kb/Work PB4888), `build_s`, `tests_s`, `first_red_s`, `wall_s`, the waits beside),
+  `assembly_wall_s`,
   `effective_concurrency` and each population's counts.
 - **A gate that measured nothing ends `NOT RUN [<cause>]`**, never GREEN and never RED. `gate.NOT_RUN_CAUSES` is the ONE table
   of causes, each with a class: ENVIRONMENT (the host, not the tree: `settings`, `interpreter`, `toolchain`, `disk`, `tree`,
@@ -981,12 +983,16 @@ the cap bounds the concurrent solution builds as well as the test legs (an inert
   when no live ticket is served before it, and it drops its ticket only AFTER it holds the slot; a gate that finishes and
   re-gates at once therefore queues BEHIND everyone already waiting. `gate-slot: waiting, k ahead (ticket t, cap N, …)` is
   printed each time `k` changes, `gate-slot: took slot k of N (ticket t, waited s)` on acquisition, and a waiting gate says
-  WHY it waits (a count that rises while it waits is a landing ticket numbered after its own and served first; the gate next
+  WHY it waits (a count that rises while it waits is a ticket of an earlier class numbered after its own and served first; the gate next
   in line says it waits for the first released slot).
-- **Two classes, landing first (kb/Work PB3103).** A ticket is `landing` (`ticket-<seq>-landing.lock`, selected by
-  `COBOL_GATE_CLASS=landing`) or `implementer`; every live landing ticket is served before every implementer ticket, FIFO
-  within a class, with the same cap. ⚠ Since the landing stopped gating (kb/Work PB4331) nothing sets that variable, so the
-  class is served but never used.
+- **Three classes, served in `GATE_CLASSES` order (kb/Work PB3103, PB4888).** A ticket is `landing`
+  (`ticket-<seq>-landing.lock`, `COBOL_GATE_CLASS=landing`), `fix` (`ticket-<seq>-fix.lock`, `COBOL_GATE_CLASS=fix`: the
+  re-gate of a branch already through a review round, which a review or gate finisher sets, owner 2026-11-07) or
+  `implementer`; every live ticket of an earlier class is served before every ticket of a later one, FIFO within a class,
+  with the same cap, so a branch one fix away from CLEAN stops queueing behind a new group's first gate (wave 20261887's
+  fix rounds were 86 % gate time, 14 of their 40 minutes a wait for a slot). The order is the tuple's, so a class added to
+  it is served at its place. ⚠ Since the landing stopped gating (kb/Work PB4331) nothing sets `landing`; kb/Work PB4400
+  deletes that one class.
 - **What holds it.** A Python caller uses `GateSlots.for_repo().acquire(label)` (released by its `with` block or the holder's
   death); a shell caller wraps a command with `gate_slot.py run [--label TEXT] -- <command>`. `gate.py` takes the slot after
   the worktree's gate lock and its audits and BEFORE the build, and holds it through the population check. The slot is held
@@ -1034,7 +1040,7 @@ the cap bounds the concurrent solution builds as well as the test legs (an inert
   LAST), release on a killed holder, a dead waiter leaving the queue, the orphaned tree (the job kills the orphaned child and
   grandchild on Windows; on Linux the tree keeps the slot until it exits), sharing across worktrees, the SHARED CAP (a gate
   at the head under cap 1 and one behind it both take a slot the moment `set-cap 3` is written from the linked worktree),
-  the EXPIRY and the refusals, STATUS (a slot held above a lowered cap is shown), the CODED DEFAULTS, CLEAR, LANDING FIRST,
+  the EXPIRY and the refusals, STATUS (a slot held above a lowered cap is shown), the CODED DEFAULTS, CLEAR, the CLASS ORDER (landing, fix, implementer),
   LONG HOLDS, and A WAITING GATE SAYS WHY. Each arm was seen RED on a planted defect (no ticket check, a ticket file counted
   live unlocked, no Job object, the descriptor withheld from Linux children, the per-worktree git dir, the cap read once per
   process, `status` probing only the slots below the cap). It passes on Windows and under WSL, `self_tests.py` runs it in every

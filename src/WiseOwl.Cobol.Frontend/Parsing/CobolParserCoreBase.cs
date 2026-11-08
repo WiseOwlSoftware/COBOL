@@ -430,16 +430,29 @@ public abstract class CobolParserCoreBase : Parser
 
     private HashSet<string>? _freeGatedDeclarations;
 
+    /// <summary>The words of <see cref="FreeGatedDeclarations"/> this parse matched in a user-defined-word slot itself (the
+    /// <c>reservedGatedWord</c> action), not merely as a syntax error's offending token (<see cref="NoteGatedOffender"/>):
+    /// the program DECLARES them. Only such a word keeps the keyword token a parse read in a keyword position of it
+    /// (<see cref="ReservationGateRewriter"/>, kb/Work PB4933); a word freed by the second witness alone was refused there,
+    /// and its keyword reading is the one that failed. Cleared by <see cref="Reset"/>.</summary>
+    internal IReadOnlyCollection<string> DeclaredGatedWords => (IReadOnlyCollection<string>?)_declaredGatedWords ?? [];
+
+    private HashSet<string>? _declaredGatedWords;
+
     /// <summary>The <c>reservedGatedWord</c> action: <paramref name="word"/> was read as a USER-DEFINED WORD — every use
     /// of that rule is a user-defined-word slot (VersionConformancePass.VisitReservedGatedWord relies on the same fact):
     /// a definition slot, or <c>procedureName</c>, whose REFERENCES match the word only where the full-context parse
     /// found no keyword reading of it that parses — the evidence <see cref="NoteGatedOffender"/> takes from a syntax
     /// error (kb/Work PB4206). Recorded only when §2023:8.9 leaves it free here; where §2023:8.9 reserves it the match stands and
     /// the funnel answers COBOL0901. Actions never run during prediction.</summary>
-    protected void gatedDeclaration(IToken? word)
+    protected void gatedDeclaration(IToken? word) => FreeGatedWord(word, declared: true);
+
+    private void FreeGatedWord(IToken? word, bool declared)
     {
-        if (word?.Text is { Length: > 0 } t && userWordHere(t))
-            (_freeGatedDeclarations ??= new(StringComparer.Ordinal)).Add(CobolNames.UpperFold(t));
+        if (word?.Text is not { Length: > 0 } t || !userWordHere(t)) return;
+        string upper = CobolNames.UpperFold(t);
+        (_freeGatedDeclarations ??= new(StringComparer.Ordinal)).Add(upper);
+        if (declared) (_declaredGatedWords ??= new(StringComparer.Ordinal)).Add(upper);
     }
 
     /// <summary>The token-level gate's SECOND witness (kb/Work PB655): a syntax error whose offending token is a
@@ -450,7 +463,7 @@ public abstract class CobolParserCoreBase : Parser
     /// listener of the authoritative pass.</summary>
     internal void NoteGatedOffender(IToken? offending)
     {
-        if (offending is not null && CobolLexer.IsReservationGated(offending.Type)) gatedDeclaration(offending);
+        if (offending is not null && CobolLexer.IsReservationGated(offending.Type)) FreeGatedWord(offending, declared: false);
     }
 
     /// <summary>⛔ THE ENTRY-NAME SLOT YIELDS TO THE CLAUSE A RESERVED WORD BEGINS (kb/Work PB845, PB2501, PB4889) — the
@@ -953,6 +966,7 @@ public abstract class CobolParserCoreBase : Parser
         base.Reset();
         RestoreWordsReadAsNames();   // a new pass reads the source as written
         _freeGatedDeclarations = null;
+        _declaredGatedWords = null;
         _declaredNames = null;
         _communicationNames.Clear();
         _entryClauseProbe = null;

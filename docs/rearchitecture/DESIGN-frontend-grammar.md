@@ -582,6 +582,33 @@ and the determinations are RE-DERIVED from the standard where the standard is in
 1985-only) needs no rule; the earlier editions' texts are not in the repository, so a determination for them would
 stand on its row's citation.
 
+⛔ **A LATER CONSTRUCT'S KEYWORD IS KEPT, SO ITS EDITION REFUSAL STAYS REACHABLE (kb/Work PB4933).** The union grammar
+spells a construct at the editions that lack it so its named refusal can answer, and a gated word that heads such a
+construct is free exactly there: `01 SCREEN LINE 1.` in a COBOL-85 SCREEN SECTION had every SCREEN retyped, the header's
+too, and the section drew COBOL0001 "unexpected 'SCREEN'" instead of COBOL1560; LOCAL-STORAGE, REPOSITORY and OPTIONS at
+85, COMMUNICATION and CD at 2014 and 2023, and the five comment paragraphs (AUTHOR, INSTALLATION, DATE-WRITTEN,
+DATE-COMPILED, SECURITY) from 2002 lost their edition refusals the same way. Their rows carry a second determination,
+`refusalWhereFree` (the construct and the editions, cited): every keyword position of the word heads or sits in a
+construct the free editions lack, and no reading of the free word competes there. `gen-cobol-words.ps1` step 5d checks
+the rows (gated, free at some edition, never also `keywordWhereFree`) and step 6 emits `CobolLexer.IsRefusalWhereFree`.
+`ReservationGateRewriter.ParseToFixpoint` then KEEPS, for such a word the pass declared in a user-defined-word slot, every
+keyword token the pass's tree holds outside `reservedGatedWord` (`TokenRetypes.KeptKeywords`, by source offset, so a
+re-lex of the same text keeps them and a fragment, a slice of it, applies none: `TokenRetypes.RewriteSlice`); the word's
+other occurrences are retyped as before. A word freed only by the second witness (a syntax error at it) keeps nothing: its
+keyword reading is the one that failed (`01 LOCAL-STORAGE SECTION.` at 85 stays an entry named LOCAL-STORAGE).
+**Why not a keyword rule.** The `<word>Keyword` rule above was tried first and fails here: its IDENTIFIER arm at a header
+is in every predicate-blind reading of the ATN the error strategy makes, so recovery sets, the missing-period walk and the
+closed-format residue read EVERY user-defined word there as the header (`MAIN SECTION.` after a missing period became a
+missing period before the LOCAL-STORAGE SECTION, `WIBBLE GLOBAL.` in the identification division named GLOBAL instead of
+WIBBLE, since the arm kept a second alternative viable past the unknown word). Keeping the token changes no grammar rule,
+so the parse of a program that declares the word reads the header exactly as one that does not. The source-unit words
+(CLASS-ID, FUNCTION-ID, INTERFACE-ID, METHOD-ID, FACTORY, OBJECT) carry no determination: the union grammar lets a unit
+begin without its IDENTIFICATION DIVISION header, so `FUNCTION-ID. X.` after a COBOL-85 program's paragraphs is two
+paragraphs there, and FACTORY and OBJECT are keywords of phrases a name competes in. `CobolWordsDriftTests`
+(`A_Gated_Header_Word_Carries_The_RefusalWhereFree_Determination`) scans every header-shaped alternative (one word, an
+optional SECTION, the period) and requires each gated header word to carry the determination or to be one of those six,
+so the next gated header fails a test.
+
 ⛔ **NO LEXER TOKEN MAY COST THE USER A WORD ISO LEAVES FREE (kb/Work PB655).** A word the lexer tokenizes never
 reaches `IDENTIFIER` by itself, so without a `nameSlot` row it is refused as a user-defined word at every edition.
 `CobolWordsDriftTests.LexerWordTokens_Cost_The_User_No_Word_Iso_Leaves_Free` joins the COMPILED lexer vocabulary

@@ -68,7 +68,7 @@ public static class FragmentParse
         // this slice of that text is a COMMENT line: hide it, exactly as the main lexer's region skip did (kb/Work PB1705).
         DebuggingLineRewriter.HideAll(tokens);
         if (rewriteZero) ZeroTokenRewriter.Rewrite(tokens);
-        retypes.Rewrite(tokens);
+        retypes.RewriteSlice(tokens);
         var parser = new CobolParserCore(tokens) { Edition = edition, CobolWords = retypes.CobolWords };
         parser.RemoveErrorListeners();
         parser.AddErrorListener(flag);

@@ -106,7 +106,7 @@ public sealed class EditionReadDriftTests
     {
         ["src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs"] =
         [
-            "HeaderReadingRefused", "IsKeywordReadingHere", "KeywordContinuesFrom", "NoteGatedOffender", "PrintsConstantName", "PrintsKeyword", "ReservedAsAName", "ReservedGatedWord",
+            "FreeGatedWord", "HeaderReadingRefused", "IsKeywordReadingHere", "KeywordContinuesFrom", "NoteGatedOffender", "PrintsConstantName", "PrintsKeyword", "ReservedAsAName", "ReservedGatedWord",
             "ReservedProcedureName", "ReservedUserWordViolation", "ReservedWord", "ReservedWordHere", "UserWordViolationOf", "conditionalPhraseAssociates",
             "entryNameHere", "facilityWord",
             "gatedDeclaration", "is2002", "is2014",

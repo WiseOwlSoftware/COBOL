@@ -786,7 +786,7 @@ each a DETECTION a fleet agent turns into a verdict, never a verdict itself:
 |---|---|---|
 | `map` | 1985 catalog rule, with the 2023 rules most like it (the inverse-document-frequency weight of the words of their headings and text, the same kind preferred; 5 by default) | SAME, DIFFERS or NONE, the 2023 ids and the differing words |
 | `verify` | SAME answer | UPHELD, REFUTED or UNSURE: the adversarial pass tries to refute it |
-| `claims` | 1985 claim of `VERSION_CHANGE_REFERENCE.md` (a JSON list of claims the fleet prepares, each with its 1985 locator) | CONFIRMED, REFUTED or NOT-ADDRESSED, with its `§1985:` citation, which must parse |
+| `claims` | 1985 claim of `VERSION_CHANGE_REFERENCE.md` (a JSON list of claims the fleet prepares, each with its 1985 locator) | CONFIRMED, REFUTED or NOT-ADDRESSED, with the 1985 `locator` and `rule` (null where no numbered rule decides) as fields of their own |
 | `drafts` | rule whose disposition is a row of its own | a minimal program and the outcome the rule requires, which the fleet compiles and runs under `--std=1985` and checks against the rule text before any use |
 
 `results` writes each mapped rule's disposition (CARRIES, OWN-ROW, DISPUTED, or still open). The tool's rules:
@@ -800,7 +800,13 @@ each a DETECTION a fleet agent turns into a verdict, never a verdict itself:
 - **A canary before each full submit**: `submit --canary N` first, and a full submit is refused until that pass holds a
   collected canary with a valid answer. **`--max-usd` on every submit and retry**, against spent plus in-flight plus this
   submit, priced by the canary's measured cost per request. The map pass on the unreconciled file estimates about $0.017
-  a request, about $34 for the pass, before a canary measures it.
+  a request, about $34 for the pass, before a canary measures it. Until a canary is proven, `retry` resubmits that
+  canary's own unanswered items, as the canary, and nothing else (kb/Work PB4930).
+- **One citation shape** (kb/Work PB4886): many 1985 paragraphs a reader cites are a Function, a General Format or prose
+  with no numbered rule, so an answer names its `locator` and its `rule` as two fields (`audit_batch.CITATION_FIELDS`, the
+  prompt's words), read through `citation.py` and validated against the 1985 transcription. The catalog citation every
+  pass quotes for its rule must parse too (`plan --pass map` refuses a catalog whose row does not); its rule kinds are
+  `citation.RULE_KINDS` (SR, GR, AR, RV), the kinds both catalogs write.
 - **Public text only**: a prompt carries the tracked transcriptions' text, never a page image; a request whose text
   matches any per-copy stamp shape (`verify_publishable`) is refused before any batch.
 - **The key** comes through `scripts/api_key.py` with `--api-account`; a pass's `state.json` records the account's name,
