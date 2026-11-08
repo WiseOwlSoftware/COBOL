@@ -821,6 +821,7 @@ static WiseOwl.Cobol.Runtime.CobolExact.FromWide(WiseOwl.Cobol.Runtime.CobolWide
 static WiseOwl.Cobol.Runtime.CobolExact.Mul(WiseOwl.Cobol.Runtime.CobolExact a, WiseOwl.Cobol.Runtime.CobolExact b) -> WiseOwl.Cobol.Runtime.CobolExact
 static WiseOwl.Cobol.Runtime.CobolExact.Negate(WiseOwl.Cobol.Runtime.CobolExact a) -> WiseOwl.Cobol.Runtime.CobolExact
 static WiseOwl.Cobol.Runtime.CobolExact.Pow(WiseOwl.Cobol.Runtime.CobolExact b, System.Int128 e) -> WiseOwl.Cobol.Runtime.CobolExact
+static WiseOwl.Cobol.Runtime.CobolExact.PowReal(WiseOwl.Cobol.Runtime.CobolExact b, WiseOwl.Cobol.Runtime.CobolExact e, WiseOwl.Cobol.Runtime.SizeChecks taken = WiseOwl.Cobol.Runtime.SizeChecks.None) -> WiseOwl.Cobol.Runtime.CobolExact
 static WiseOwl.Cobol.Runtime.CobolExact.QuotientAtScale(WiseOwl.Cobol.Runtime.CobolExact a, WiseOwl.Cobol.Runtime.CobolExact b, int toScale, WiseOwl.Cobol.Runtime.CobolRounding mode, bool checkedTransfer) -> System.Int128
 static WiseOwl.Cobol.Runtime.CobolExact.Sub(WiseOwl.Cobol.Runtime.CobolExact a, WiseOwl.Cobol.Runtime.CobolExact b) -> WiseOwl.Cobol.Runtime.CobolExact
 static WiseOwl.Cobol.Runtime.CobolExact.SubsidiaryQuotient(WiseOwl.Cobol.Runtime.CobolExact a, WiseOwl.Cobol.Runtime.CobolExact b, int scale) -> WiseOwl.Cobol.Runtime.CobolExact

@@ -478,6 +478,22 @@ public sealed class CobolBigExactFormTests
         Assert.False(fixedMean.TryBinary64(out _));
     }
 
+    /// <summary>⛔ A NON-INTEGER POWER OVER A FLOAT ITEM'S CONTENT IS THE BINARY64 POWER IN ITS KIND (kb/Work PB4923, review finding R1-1):
+    /// `M ** MAX (F M2)` is `M ** F` when MAX selected F, in the base and in the exponent position, and its value is itself a float
+    /// item's content; over fixed-point operands alone it is an engine approximation (shortest decimal, no float-item mark).</summary>
+    [Fact]
+    public void PowReal_OverAFloatContent_IsTheBinary64PowerInItsKind()
+    {
+        CobolExact f = CobolExact.FromBinary64(0.1), half = CobolExact.From(5, 1);
+        CobolExact asExponent = CobolExact.PowReal(half, f), asBase = CobolExact.PowReal(f, half);
+        Assert.True(asExponent.TryBinary64(out double e) && e == System.Math.Pow(0.5, 0.1) && asExponent.IsFloatContent);
+        Assert.True(asBase.TryBinary64(out double b) && b == System.Math.Pow(0.1, 0.5) && asBase.IsFloatContent);
+        CobolExact fixedOnly = CobolExact.PowReal(CobolExact.From(2, 1), half);
+        Assert.True(fixedOnly.TryBinary64(out double a) && a == System.Math.Pow(0.2, 0.5));
+        Assert.False(fixedOnly.IsFloatContent);
+        Assert.Throws<CobolSizeError>(() => CobolExact.PowReal(CobolExact.From(-5, 1), half));   // §2023:8.8.1.2 rule 6c
+    }
+
     /// <summary>An engine's approximation lands as the binary64 it is, in every mode (its decimal, truncated, would sit one below
     /// 0.001's double); a PROHIBITED landing of an inexact value raises, an exact one does not; a checked landing past the format's range
     /// is the size error; a binary32 receiver rounds once.</summary>

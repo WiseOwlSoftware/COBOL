@@ -409,6 +409,21 @@ public readonly struct CobolExact
         return new(reciprocal, CobolDec.FractionDigits(reciprocal));
     }
 
+    /// <summary>⛔ THE NATIVE POWER WITH A NON-INTEGER EXPONENT OVER AN EXACT OPERAND (kb/Work PB4923, review finding R1-1): the binary64
+    /// approximation of §2023:8.8.1.3, in the kind of its operands. A float ITEM's content owns the operation it takes part in
+    /// (<see cref="TryBinary64Operands"/>), so <c>M ** FUNCTION MAX (F M2)</c> is <c>M ** F</c> when MAX selected F, a run-time fact the
+    /// compiler cannot see: the result is then a float item's content (<see cref="FromBinary64"/>) and lands by its exact binary value;
+    /// otherwise an approximation (<see cref="FromApproximation"/>) and lands by its shortest round-trip decimal. The
+    /// §2023:8.8.1.2 rule-6 screen is <see cref="CobolIntrinsics.PowNativeReal"/>'s, written once; <paramref name="taken"/> is the
+    /// range conditions whose checking is enabled (<see cref="CobolIntrinsics.PowNativeRealChecked"/>).</summary>
+    public static CobolExact PowReal(CobolExact b, CobolExact e, SizeChecks taken = SizeChecks.None)
+    {
+        bool floatItem = b._isFloatContent || e._isFloatContent;
+        double x = b._isFloatContent ? b._binary64 : b.ToDouble(), y = e._isFloatContent ? e._binary64 : e.ToDouble();
+        double r = taken == SizeChecks.None ? CobolIntrinsics.PowNativeReal(x, y) : CobolIntrinsics.PowNativeRealChecked(x, y, taken);
+        return OfBinary64Result(r, floatItem);
+    }
+
     private static CobolExact PositivePower(CobolExact b, long n, int precision)
     {
         if (n <= int.MaxValue && b.TryAt(b.Scale, out CobolWide wide))

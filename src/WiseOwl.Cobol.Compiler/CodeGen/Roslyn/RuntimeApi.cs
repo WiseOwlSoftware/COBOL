@@ -1062,6 +1062,11 @@ internal static class RuntimeApi
     public static string ExactPow(string exact, string int128Exponent) =>
         $"{nameof(CobolExact)}.{nameof(CobolExact.Pow)}({exact}, {int128Exponent})";
 
+    /// <summary>An exact value raised to a non-integer exponent (<c>CobolExact.PowReal</c>, kb/Work PB4923): the binary64 approximation in
+    /// the kind of its operands; <paramref name="taken"/> is the enabled range conditions' spelling, or null for the unchecked power.</summary>
+    public static string ExactPowReal(string exact, string exponent, string? taken) =>
+        $"{nameof(CobolExact)}.{nameof(CobolExact.PowReal)}({exact}, {exponent}{(taken is null ? "" : ", " + taken)})";
+
     /// <summary>A float ITEM's content as an exact value, every digit of its binary expansion (<c>CobolExact.FromBinary64</c>, kb/Work PB4730).</summary>
     public static string ExactFromBinary64(string doubleExpr) =>
         $"{nameof(CobolExact)}.{nameof(CobolExact.FromBinary64)}({doubleExpr})";

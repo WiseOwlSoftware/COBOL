@@ -21,6 +21,8 @@
       *>   V  MAX (F M2) / N = 0.14285714285714288 (0.14285714285714287696)
       *>   W  MAX (F M2) ** 3 = 0.0010000000000000002 (0.00100000000000000023)
       *>   X  (MAX (F M2) + N) / N = 1.1428571428571428 (1.14285714285714279370)
+      *>   Z1 M ** MAX (F M2) = 0.5 ** 0.1 = 0.9330329915368074 (0.93303299153680741007), the power of a non-integer exponent
+      *>   Z2 MAX (F M2) ** M = 0.1 ** 0.5 = 0.31622776601683794 (0.31622776601683794117), the same in the base position
       *>   Y  MAX (M F) + N selects M (both fixed-point): the exact 1.20000000000000000000
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB4923ARI.
@@ -58,5 +60,9 @@
            DISPLAY "X " R
            COMPUTE R = FUNCTION MAX (M F) + N
            DISPLAY "Y " R
+           COMPUTE R = M ** FUNCTION MAX (F M2)
+           DISPLAY "Z1 " R
+           COMPUTE R = FUNCTION MAX (F M2) ** M
+           DISPLAY "Z2 " R
            STOP RUN.
        END PROGRAM PB4923ARI.
