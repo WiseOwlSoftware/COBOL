@@ -1,4 +1,4 @@
-## PB4992: the traceability inventory is a view; the store holds adjudications only
+## Entry 3322 — 2026-11-08 06:36 PST — PB4992: the traceability inventory is a view; the store holds adjudications only
 
 The first slice of the rule-lineage design (kb/Work PB4991, DESIGN-spec-conformance-review.md section 4 and section
 10.2), under the owner's standing requirement of 2026-11-08: "We must eliminate redundant code and data. The new
@@ -74,3 +74,4 @@ notes record what is already in place.
 branch where data can carry it (the record validator branches on the edition's fields, not its year), the history
 readers' cost (the trend stays two processes), and shadowing in `audit_annex_a1` (renamed). No inventory row was
 re-verdicted; GAP 2023 stays 0.
+
