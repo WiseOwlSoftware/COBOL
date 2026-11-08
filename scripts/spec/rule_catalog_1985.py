@@ -12,7 +12,7 @@ is not ISO's:
     Sort-Merge, Report Writer and Intrinsic Function has two LEVELS, and the standard draws a BOX around every
     specification unique to level 2 (§1985:I.1.3; FIGURE-STYLE.md rule 9 for a general format);
   - a rule block is a paragraph headed `Syntax Rules`, `General Rules`, `Arguments` or `Returned Values`, or another title
-    THE kind table types (`Editing Rules`), or one BLOCK_KINDS adjudicates by its locator (headed with `#` or, where the
+    THE kind table types (`Editing Rules`), or one the content-keyed scan's manifest admits (headed with `#` or, where the
     transcription did not head it, a plain line opening with its number, as citation.PARAGRAPH_85 reads both), and a
     rule is a column-0 `(n)`; its lettered `a.` items and their `1)` items are its text (THE RULE IS THE
     UNIT, design §3);
@@ -29,9 +29,11 @@ RV, FMT for a general format), ordinal, `box` (none, part, whole: how much of th
 
 COMPLETENESS (design §7) is held the 2023 way: a rule-shaped heading no kind resolves, a recognised block that yields no
 rule, an ordinal that neither continues its list nor restarts it, a box inside a one-level module, an amendment change
-that names a rule this catalog cannot find, a rule after a scan gap that no GAP_RESUMES entry places, and an adjudication
-(EXCLUDED_BLOCKS, BLOCK_KINDS, KNOWN_EMPTY_BLOCKS, GAP_RESUMES) the transcription no longer has are each REPORTED, and
-`--check` fails on them. A page the scan prints twice (citation.SCAN_REPEAT_85) is read once.
+that names a rule this catalog cannot find, a rule after a scan gap that no GAP_RESUMES entry places, an adjudication
+(EXCLUDED_BLOCKS, KNOWN_EMPTY_BLOCKS, GAP_RESUMES) the transcription no longer has, a paragraph carrying a numbered list
+that the content-keyed scan's manifest does not record as measured (the 2023 arm's PB29 check), a rule of an admitted
+paragraph its kind map does not name, and a row whose citation names no region of the transcription are each REPORTED,
+and `--check` fails on them. A page the scan prints twice (citation.SCAN_REPEAT_85) is read once.
 
     python scripts/spec/extract_rule_catalog.py --edition 1985 --check   # counts and findings; writes nothing
     python scripts/spec/rule_catalog_1985.py --self-test                 # planted text, no transcription read
@@ -52,6 +54,10 @@ from spec_headings import GENERAL_FORMAT_TITLE  # noqa: E402  (THE spelling of a
 # THE singular form of a block title, THE kind table, any Markdown heading, and a printed band inside a rule list
 # ("FORMAT 2", "SEQUENTIAL FILES"): the 2023 arm's, one definition each.
 from extract_rule_catalog import ANY_HEADING, GROUP_LABEL, KINDS, canonical_title  # noqa: E402
+# THE content-keyed scan (kb/Work PB29), its manifest and its report: the 2023 arm's, with the edition as a parameter.
+from extract_rule_catalog import (RULE_SHAPED, UNHARVESTED_OF, admitted_kinds, kinds_of, ordinal_shape, rule_kind,  # noqa: E402
+                                  unharvested_report)
+import citation  # noqa: E402  (THE validator of a citation against the transcription: every row's must name a region)
 sys.path.append(str(Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
@@ -79,52 +85,26 @@ EXCLUDED_BLOCKS = {
               "paragraphs: its own text is one sentence about them (§1985:VI.6.4 'provide a description of the common "
               "options') and no numbered rule",
     "XIII.3.10": "'PRESENTATION RULES TABLES' is the parent of the presentation rules paragraphs XIII.3.10.1 to "
-                 "XIII.3.10.10, and carries no text of its own; the four tables' rules are typed in BLOCK_KINDS",
+                 "XIII.3.10.10, and carries no text of its own; the four tables' rules are admitted in the manifest",
 }
 
 #: THE rule-block kinds are extract_rule_catalog.KINDS, by the canonical title: one table for both editions. The 1985
 #: document heads them "Syntax Rules", "General Rules" and, in Amendment 1's Section A, "Arguments" and "Returned
 #: Values"; its PICTURE clause's "Editing Rules" and "Precedence Rules" are the same rules §2023:5.3.3 and §2023:5.3.2
 #: type GR and SR, and the table types them so in both editions.
-#: A heading that names rules in some spelling and that neither KINDS nor BLOCK_KINDS resolves holds numbered rules
-#: this catalog does not harvest, and is reported: which kind each is is an adjudication, never a guess here.
-RULE_SHAPED = re.compile(r"\brules?\b", re.IGNORECASE)
-#: THE ADJUDICATED BLOCKS: a 1985 paragraph whose heading is no rule-block title, typed here by its locator, with the
-#: reason. `kind` is the kind of every rule; `items` overrides it for the rules it names (a block whose rules are not all
-#: one kind, the 2023 manifest's {"items": ...} shape). The test is §1985:IV.3.1 (a syntax rule defines "the order in
-#: which words or elements are arranged", and may "impose restrictions on individual words or elements or relax
-#: restrictions implied by words or elements") and §1985:IV.3.2 (a general rule defines "the meaning or relationship
-#: of meanings" and "the effect that it has on either execution or compilation").
-BLOCK_KINDS: dict[str, dict] = {
-    "IV.4.2.1": {"kind": "SR", "why": "'Separators': 'A separator is a character or two contiguous characters formed "
-                 "according to the following rules', each a restriction on how source text is written (where a space, "
-                 "a quotation mark or a pseudo-text delimiter may stand); the amendments name them 'rule 4' and 'rule "
-                 "5' (X3.23a-1989 IV-4, X3.23b-1993 IV-4 and IV-5); §2023:8.3.5 Separators is admitted SR"},
-    "IV.4.3.6": {"kind": "GR", "why": "'Standard Alignment Rules': how data is positioned in a receiving item, the "
-                 "effect of a move"},
-    "VI.5.15.5": {"kind": "GR", "why": "'Condition-Name Rules' of the VALUE clause continue its general rules "
-                  "(VI.5.15.4) by subject, as VI.5.15.6 does, whose rules X3.23a-1989 (VI-50) calls 'general rule 6'"},
-    "VI.5.15.6": {"kind": "GR", "why": "'Data Description Entries Other Than Condition-Names' of the VALUE clause: "
-                  "X3.23a-1989's change on page VI-50 names its sixth rule 'general rule 6'"},
-    "VI.6.2.3": {"kind": "GR", "items": {"3": "SR", "4": "SR"},
-                 "why": "'Formation and Evaluation Rules' of arithmetic expressions: rules 1, 2, 5 and 6 define the "
-                 "order and result of evaluation (GR); rules 3 and 4 state which symbols may be written next to each "
-                 "other and how an expression may begin and end (SR)"},
-    "XIII.3.5.5": {"kind": "GR", "items": {"2": "SR", "3": "SR", "6": "SR"},
-                   "why": "'PAGE-COUNTER Rules': rules 1, 4 and 5 define the register and how the RWCS sets it (GR); "
-                   "rules 2 and 3 restrict where and how it may be referenced, and rule 6 relaxes the restriction on "
-                   "altering it (SR)"},
-    "XIII.3.5.6": {"kind": "GR", "items": {"2": "SR", "3": "SR"},
-                   "why": "'LINE-COUNTER Rules': rules 1, 4, 5 and 6 define the register and how the RWCS sets it "
-                   "(GR); rules 2 and 3 restrict where and how it may be referenced (SR)"},
-    "XIII.3.10.6": {"kind": "GR", "why": "'Report Heading Group Presentation Rules': where the RWCS presents the group "
-                    "and what it places in LINE-COUNTER (§1985:XIII.3.10.1: 'The interpretation that the report writer "
-                    "control system (RWCS) gives to these clauses'); a next group rule's limit depends on the line the "
-                    "group is presented on, so it is checked at execution"},
-    "XIII.3.10.8": {"kind": "GR", "why": "'Body Group Presentation Rules' (see XIII.3.10.6)"},
-    "XIII.3.10.9": {"kind": "GR", "why": "'Page Footing Presentation Rules' (see XIII.3.10.6)"},
-    "XIII.3.10.10": {"kind": "GR", "why": "'Report Footing Presentation Rules' (see XIII.3.10.6)"},
-}
+#: A heading that names rules in some spelling (extract_rule_catalog.RULE_SHAPED) and that neither KINDS nor the manifest
+#: types holds numbered rules this catalog does not harvest, and is reported: which kind each is is an adjudication,
+#: never a guess here.
+#: THE ADJUDICATED PARAGRAPHS are the content-keyed scan's manifest, the 2023 arm's mechanism with the edition as its
+#: parameter (extract_rule_catalog.UNHARVESTED_OF[1985], kb/Work PB29 and PB4886): every paragraph whose heading names no
+#: rule block and whose body carries a column-0 `(n)` list is MEASURED (ordinal_shape) and recorded there, keyed by its
+#: citation, with its disposition and reason: `rules` and its kind (admitted_kinds' three shapes), or `not-rules`. The
+#: test is §1985:IV.3.1 (a syntax rule defines "the order in which words or elements are arranged", and may "impose
+#: restrictions on individual words or elements or relax restrictions implied by words or elements") and §1985:IV.3.2 (a
+#: general rule defines "the meaning or relationship of meanings" and "the effect that it has on either execution or
+#: compilation"). Admitting a paragraph is a data edit with its reason, never a code edit.
+#: The block kind of an admitted paragraph whose rules are not all one kind (its rows carry each rule's own kind).
+MIXED = "MIXED"
 #: Recognised blocks that rightly yield no numbered rule (the 2023 arm's KNOWN_EMPTY_BLOCKS).
 KNOWN_EMPTY_BLOCKS = {
     "VI.5.9.6": "the PICTURE precedence rules are unnumbered prose and the chart on page VI-37 (§1985:VI.5.9.6 'The "
@@ -193,6 +173,16 @@ class Catalog:
     unresolved: list[tuple[str, str, str]] = dataclasses.field(default_factory=list)  # (document, page, change)
     unattributed: list[tuple[int, int]] = dataclasses.field(default_factory=list)  # (PDF page, ordinal) after a scan gap
     stale: list[str] = dataclasses.field(default_factory=list)   # an adjudication the transcription no longer needs
+    #: THE CONTENT-KEYED SCAN (kb/Work PB29): every paragraph whose heading names no rule block and whose body carries a
+    #: numbered list, by citation ⇒ {title, ordinals, lists, longest}; and the manifest's record of them (`declared`).
+    unharvested: dict[str, dict] = dataclasses.field(default_factory=dict)
+    declared: dict[str, dict] = dataclasses.field(default_factory=dict)
+    untyped: list[tuple[str, int, int]] = dataclasses.field(default_factory=list)  # (citation, sublist, ordinal)
+    uncitable: list[str] = dataclasses.field(default_factory=list)  # a row whose citation names no region (cite_check)
+
+    def drift(self) -> tuple[list[str], int]:
+        """The content-keyed check's report and its number of drifts: THE 2023 arm's, on this edition's manifest."""
+        return unharvested_report(self.unharvested, self.declared, UNHARVESTED_OF[1985], label="")
 
     def duplicates(self) -> list[str]:
         """Every id more than one row carries: the inventory is keyed on it, so a duplicate is a lost row."""
@@ -201,7 +191,8 @@ class Catalog:
 
     def findings(self) -> int:
         return (len(self.empty) + len(self.unrecognised) + len(self.unexplained) + len(self.one_level_boxes)
-                + len(self.unresolved) + len(self.unattributed) + len(self.stale) + len(self.duplicates()))
+                + len(self.unresolved) + len(self.unattributed) + len(self.stale) + len(self.duplicates())
+                + self.drift()[1] + len(self.untyped) + len(self.uncitable))
 
 
 def box_of(text: str, kind: str) -> str:
@@ -217,9 +208,12 @@ def box_of(text: str, kind: str) -> str:
     return "whole" if not re.sub(r"[\s.,;:]", "", rest) else "part"
 
 
-def parse(lines: list[str]) -> Catalog:
-    """The 1985 catalog of a transcription's lines (the module docstring states the structure it reads)."""
-    cat = Catalog()
+def parse(lines: list[str], manifest: dict[str, dict] | None = None) -> Catalog:
+    """The 1985 catalog of a transcription's lines (the module docstring states the structure it reads), with the
+    content-keyed scan measured against `manifest`, the `blocks` of extract_rule_catalog.UNHARVESTED_OF[1985]: the
+    paragraphs it admits are rule blocks of their declared kind."""
+    cat = Catalog(declared=dict(manifest or {}))
+    admitted = admitted_kinds(cat.declared)
     folio_of: dict[int, str] = {}
     page = 0
     for line in lines:
@@ -229,6 +223,7 @@ def parse(lines: list[str]) -> Catalog:
             folio_of[page] = f.group(1)
 
     section: str | None = None        # the Roman section, or "A"; None outside every section
+    appendix: str | None = None       # the appendix of Section XVII being read, its letter the locator's (`§1985:C.2`)
     document = BASE
     titles: dict[str, str] = {}        # locator -> title of every paragraph of the section, for the subject
     block: tuple[str, str, str] | None = None   # (locator, kind, paragraph) of the open rule block
@@ -249,13 +244,16 @@ def parse(lines: list[str]) -> Catalog:
             buf = []
             return
         loc, kind, para = block
-        kind = start.get("kind", kind)   # a rule BLOCK_KINDS types by its ordinal
+        kind = start.get("kind", kind)   # a rule an admitted paragraph types by its ordinal (rule_kind)
         text = re.sub(r"[ \t]+", " ", "\n".join(buf)).strip() if kind != "FMT" else "\n".join(buf).strip()
-        year = YEAR_OF[document]
+        year, folio = YEAR_OF[document], folio_of.get(start["page"], "")
+        # A paragraph whose heading is on a page the scan lacks (GAP_RESUMES) is no region of the transcription, so its
+        # rules are cited by the printed page that owns them (kb/Work PB4886), as an amendment's added rule is.
         add_row(cat, document=document, section=section, paragraph=para, kind=kind, n=start["n"],
-                sublist=start["sublist"], text=text, page=start["page"], folio=folio_of.get(start["page"], ""),
+                sublist=start["sublist"], text=text, page=start["page"], folio=folio,
                 band=start["band"], subject=titles.get(para.rsplit(".", 1)[0], ""),
-                citation=f"§{year}:{loc}" + ("" if kind == "FMT" else f" {kind}{start['n']}"))
+                citation=f"§{year}:p.{folio}" if cite_page else
+                f"§{year}:{loc}" + ("" if kind == "FMT" else f" {kind}{start['n']}"))
         buf = []
 
     def close_block() -> None:
@@ -265,13 +263,23 @@ def parse(lines: list[str]) -> Catalog:
             cat.empty.append(f"{block[1]} {block[0]}")
         block, block_rules = None, 0
 
-    def open_block(loc: str, kind: str, num: str) -> None:
-        nonlocal block, block_rules, sublist, last, band, items
+    def open_block(loc: str, kind: str, num: str, admitted_as: str | dict | None = None, by_page: bool = False) -> None:
+        nonlocal block, block_rules, sublist, last, band, spec, cite_page
         block, block_rules, sublist, last, band = (loc, kind, num), 0, 1, 0, ""
-        items = BLOCK_KINDS.get(loc, {}).get("items", {})
+        spec, cite_page = admitted_as, by_page
         cat.blocks.append((loc, kind))
 
-    items: dict[str, str] = {}     # the open block's per-rule kinds (BLOCK_KINDS)
+    def close_scan() -> None:
+        """Record the paragraph the content-keyed scan is reading, if its body carries a numbered list."""
+        nonlocal scan, scan_body
+        if scan is not None and (shape := ordinal_shape(scan_body, ORDINAL)) is not None:
+            cat.unharvested[scan[0]] = {"title": scan[1], **shape}
+        scan, scan_body = None, []
+
+    spec: str | dict | None = None  # the open block's kind as the manifest admits it (rule_kind), or None
+    cite_page = False              # the open block is cited by its page (a GAP_RESUMES paragraph)
+    scan: tuple[str, str] | None = None   # (citation, title) of the paragraph the content-keyed scan reads
+    scan_body: list[str] = []
     repeat = False                 # on a page the scan prints twice (SCAN_REPEAT_85): no rule is read from it
     after_gap = False              # between a scan gap and the next heading: a rule here belongs to no known block
     met: set[str] = set()          # every adjudicated locator and gap page the transcription still has
@@ -287,11 +295,12 @@ def parse(lines: list[str]) -> Catalog:
         if line.startswith(SCAN_GAP_85):
             # The text after a gap is never the block before it (kb/Work PB4886: SUM's general rules 9, 5, 6, 7).
             close_block()
+            close_scan()
             if (resume := GAP_RESUMES.get(page)) is not None and section is not None:
                 met.add(f"p{page}")
                 num = resume["paragraph"]
                 titles[num.rsplit(".", 1)[0]] = resume["subject"]
-                open_block(f"{section}.{num}", KINDS[canonical_title(resume["title"])], num)
+                open_block(f"{section}.{num}", KINDS[canonical_title(resume["title"])], num, by_page=True)
                 last = -1                  # its first rules are on the missing pages: the list resumes anywhere
             else:
                 after_gap = True
@@ -304,22 +313,27 @@ def parse(lines: list[str]) -> Catalog:
                 continue
         if AMENDMENT_85.match(line):
             close_block()
+            close_scan()
             amendment = AMENDMENT_1 if line.split()[2].rstrip(":") == "1" else AMENDMENT_2
-            section, document = None, BASE
+            section, document, appendix = None, BASE, None
             continue
         if (head := SECTION_85.match(line) or APPENDIX_85.match(line)) is not None:
             close_block()
+            close_scan()
             name = head.group(1)
             if SECTION_85.match(line):
+                appendix = None
                 if name in SECTIONS_85:
                     section, document, amendment = name, BASE, None
                 elif name == "A" and amendment == AMENDMENT_1:
                     section, document = "A", AMENDMENT_1
                 else:
                     section = None
-                titles = {}
+            else:
+                appendix = name
+            titles = {}
             continue
-        if section is None or section in NO_RULES:
+        if section is None:
             if amendment is None:
                 continue
             if (row := CHANGE_ROW.match(line) or CHANGE_PROSE_ROW.match(line)) is not None:
@@ -336,31 +350,47 @@ def parse(lines: list[str]) -> Catalog:
         p = PARAGRAPH_85.match(line)
         if p is not None:
             close_block()
+            close_scan()
             num = (p.group(1) or p.group(2)).rstrip(".")
             title = re.sub(r"^#*\s*" + MARK_85 + re.escape(num) + r"\.?\s*", "", line).strip()
             title = re.sub(rf"</?u>|\*\*|{BOX_SIDE}", "", title).strip()
-            loc = f"{section}.{num}"
+            loc = f"{appendix or section}.{num}"
             titles[num] = title
             after_gap = False
             kind = kind_of(title)
+            if kind is None:
+                # THE CONTENT-KEYED SCAN reads every paragraph a heading does not type, in every section and appendix:
+                # a guard keyed on what a block is CALLED cannot find one called something else (kb/Work PB29).
+                scan = (f"§{YEAR_OF[document]}:{loc}", title)
+            if section in NO_RULES or appendix is not None:
+                # The Index and the appendices carry no rule block; one headed as such here is reported, not read.
+                if kind is not None or RULE_SHAPED.search(title):
+                    cat.unrecognised.append((loc, title))
+                continue
             if loc in EXCLUDED_BLOCKS:
                 met.add(loc)
                 continue
-            if loc in BLOCK_KINDS:
-                met.add(loc)
-                if kind is not None:   # a heading KINDS types needs no adjudication: the entry is stale
-                    cat.stale.append(f"BLOCK_KINDS[{loc!r}]: its heading '{title}' is typed {kind} by KINDS")
-                kind = BLOCK_KINDS[loc]["kind"]
+            admitted_as = admitted.get(f"§{YEAR_OF[document]}:{loc}") if kind is None else None
+            if admitted_as is not None:
+                kinds = kinds_of(admitted_as)
+                kind = kinds.pop() if len(kinds) == 1 else MIXED
             if loc in KNOWN_EMPTY_BLOCKS:
                 met.add(loc)
             if kind is not None:
-                open_block(loc, kind, num)
+                open_block(loc, kind, num, admitted_as)
                 if kind == "FMT":
                     start = {"n": 0, "sublist": 1, "page": page, "band": ""}
                     buf = []
                     block_rules = 1
             elif RULE_SHAPED.search(title):
                 cat.unrecognised.append((loc, title))
+            continue
+        if scan is not None:
+            if ANY_HEADING.match(line) and GROUP_LABEL.match(line) is None:
+                close_scan()
+            else:
+                scan_body.append(line)
+        if section in NO_RULES or appendix is not None:
             continue
         if block is None:
             if after_gap and (m := ORDINAL.match(line)) is not None:
@@ -386,12 +416,17 @@ def parse(lines: list[str]) -> Catalog:
                 cat.unexplained.append((block[0], n, last))
             last = n
             block_rules += 1
-            start = {"n": n, "sublist": sublist, "page": page, "band": band, "kind": items.get(str(n), block[1])}
+            kind = block[1] if spec is None else rule_kind(spec, sublist, n)
+            if kind is None:   # the manifest's map does not name this rule: reported, never guessed
+                cat.untyped.append((f"§{YEAR_OF[document]}:{block[0]}", sublist, n))
+                kind = block[1]
+            start = {"n": n, "sublist": sublist, "page": page, "band": band, "kind": kind}
             buf = [m.group("box") + m.group("text")]
         elif buf:
             buf.append(line.strip())
     close_block()
-    for declared in (*EXCLUDED_BLOCKS, *BLOCK_KINDS, *KNOWN_EMPTY_BLOCKS, *(f"p{p}" for p in GAP_RESUMES)):
+    close_scan()
+    for declared in (*EXCLUDED_BLOCKS, *KNOWN_EMPTY_BLOCKS, *(f"p{p}" for p in GAP_RESUMES)):
         if declared not in met:
             cat.stale.append(f"{declared}: adjudicated here, but the transcription no longer has it")
     cat.changes = len(change_rows)
@@ -437,7 +472,7 @@ def resolve_change(cat: Catalog, doc: str, cell: str, change: str, own_folio: st
         kind = KINDS.get(canonical_title(f"{added['kind']} rule"))
         folio, in_amendment = pages[0]
         sec = "A" if in_amendment else folio.split("-")[0]
-        blocks = [loc for loc, k in cat.blocks if k == kind and loc.split(".", 1)[0] == sec
+        blocks = [loc for loc, k in cat.blocks if k in (kind, MIXED) and loc.split(".", 1)[0] == sec
                   and para["num"] in (loc.split(".", 1)[1], loc.split(".", 1)[1].rsplit(".", 1)[0])]
         if len(blocks) == 1 and "<br><br>" in change:
             paragraph = blocks[0].split(".", 1)[1]
@@ -501,14 +536,30 @@ def summary(cat: Catalog) -> list[str]:
                           cat.unattributed),
                          ("adjudication(s) the transcription no longer supports", cat.stale),
                          ("DUPLICATE id(s): the inventory key is not unique (a paragraph transcribed twice, or a "
-                          "list the ordinals above broke)", cat.duplicates())):
+                          "list the ordinals above broke)", cat.duplicates()),
+                         ("rule(s) of an admitted paragraph its manifest kind map does not name (citation, sub-list, "
+                          "ordinal)", cat.untyped),
+                         ("row(s) whose citation names no region of the transcription", cat.uncitable)):
         if items:
             out.append(f"⛔ {len(items)} {label}:")
             out.extend(f"      {i}" for i in items[:12])
             if len(items) > 12:
                 out.append(f"      ... and {len(items) - 12} more")
+    dispositions = collections.Counter(v.get("disposition") for v in cat.declared.values())
+    admitted = {k for k, v in cat.declared.items() if v.get("disposition") == "rules"}
+    out.append(f"   content-keyed scan manifest: {dispositions['rules']} paragraph(s) admitted as rules "
+               f"({sum(1 for r in cat.rules if r['citation'].split(' ')[0] in admitted)} rows), "
+               f"{dispositions['not-rules']} recorded as not rules")
+    out.extend(cat.drift()[0])
     out.append("✓ no findings" if not cat.findings() else f"FINDINGS: {cat.findings()}")
     return out
+
+
+def cite_check(cat: Catalog) -> None:
+    """Record every row whose citation names no region of the real transcription (citation.validate, the reader cite.py
+    --check uses): a row is cited so that its text can be checked, and one cite.py refuses cannot be (kb/Work PB4886)."""
+    cat.uncitable = [f"{r['id']}: {why}" for r in cat.rules
+                     if (why := citation.validate(citation.parse(r["citation"]))) is not None]
 
 
 # ── SELF-TEST ────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -612,6 +663,20 @@ The chart shows the order of precedence, planted.
 
 ║(3) A planted formation rule.║
 
+### 6.4.2 The ON SIZE ERROR Phrase
+
+The size error condition occurs under the following circumstances, planted:
+
+(1) Division by zero.
+
+(2) An overflow.
+
+### 6.4.3 The CORRESPONDING Phrase
+
+(1) A planted correspondence rule.
+
+(2) A rule its manifest map does not name.
+
 VI-27
 
 # SECTION XI: SORT-MERGE MODULE
@@ -657,6 +722,24 @@ Report Writer - Nothing
 (2) A planted rule after a gap no entry resumes.
 
 XIII-101
+
+# SECTION XVII: APPENDICES
+
+## Page 790
+
+### APPENDIX C: LANGUAGE ELEMENT LISTS
+
+## 2. <u>IMPLEMENTOR-DEFINED LANGUAGE ELEMENT LIST</u>
+
+(1) A planted list item. (See 4.2.2.1.2 on page IV-8.)
+
+(2) A second.
+
+### 3.1 Syntax Rules
+
+(1) A planted heading in an appendix, which carries no rule block.
+
+XVII-87
 
 # SECTION XVIII: INDEX
 
@@ -711,6 +794,20 @@ B-1
 """
 
 
+#: The planted content-keyed scan manifest: two admitted paragraphs (one whose map misses a rule), one the text lacks,
+#: and one whose ordinal count moved; PLANTED's VI.6.4.2 is measured and undeclared.
+PLANTED_MANIFEST = {
+    "§1985:VI.6.2.3": {"title": "Formation and Evaluation Rules", "ordinals": 3, "lists": 1, "longest": 3,
+                       "disposition": "rules", "kind": {"items": {"1": "GR", "2": "GR", "3": "SR"}}, "why": "planted"},
+    "§1985:VI.6.4.3": {"title": "The CORRESPONDING Phrase", "ordinals": 2, "lists": 1, "longest": 2,
+                       "disposition": "rules", "kind": {"items": {"1": "GR"}}, "why": "planted"},
+    "§1985:IV.4.2.1": {"title": "Separators", "ordinals": 9, "lists": 1, "longest": 9, "disposition": "rules",
+                       "kind": "SR", "why": "planted: declared, and not in the planted text"},
+    "§1985:C.2": {"title": "IMPLEMENTOR-DEFINED LANGUAGE ELEMENT LIST", "ordinals": 5, "lists": 1, "longest": 5,
+                  "disposition": "not-rules", "why": "planted: its count moved"},
+}
+
+
 def self_test() -> int:
     failures: list[str] = []
 
@@ -719,7 +816,7 @@ def self_test() -> int:
         if not cond:
             failures.append(name)
 
-    cat = parse(PLANTED.splitlines())
+    cat = parse(PLANTED.splitlines(), PLANTED_MANIFEST)
     by = {r["id"]: r for r in cat.rules}
     check("a rule is a column-0 (n) of a Syntax Rules paragraph, unheaded or headed",
           "1985-SR-VI.5.7.3-1" in by and "1985-GR-VI.5.7.4-1" in by)
@@ -764,18 +861,42 @@ def self_test() -> int:
     check("Editing and Precedence Rules are typed by THE kind table (GR, and SR with no numbered rule: no finding)",
           by.get("1985-GR-VI.5.9.5-1", {}).get("text") == "A planted editing rule." and ("VI.5.9.6", "SR") in cat.blocks
           and "SR VI.5.9.6" not in cat.empty)
-    check("an adjudicated block types each rule by its ordinal (BLOCK_KINDS items)",
+    check("a paragraph the manifest admits types each rule by its ordinal (its items map)",
           "1985-GR-VI.6.2.3-1" in by and "1985-GR-VI.6.2.3-2" in by
           and by.get("1985-SR-VI.6.2.3-3", {}).get("citation") == "§1985:VI.6.2.3 SR3"
-          and by["1985-SR-VI.6.2.3-3"]["level"] == 2)
+          and by["1985-SR-VI.6.2.3-3"]["level"] == 2 and ("VI.6.2.3", MIXED) in cat.blocks)
+    check("a rule of an admitted paragraph its map does not name is reported, never guessed",
+          cat.untyped == [("§1985:VI.6.4.3", 1, 2)] and "1985-GR-VI.6.4.3-1" in by)
+    drift, drifts = cat.drift()
+    check("THE CONTENT-KEYED SCAN measures a prose paragraph's numbered list, and an undeclared one is a drift",
+          cat.unharvested.get("§1985:VI.6.4.2", {}).get("ordinals") == 2
+          and any(ln.startswith("      + §1985:VI.6.4.2 (2 ordinals)") for ln in drift)
+          and not any(r["paragraph"] == "6.4.2" for r in cat.rules))
+    check("a declared paragraph the text no longer has, and a moved ordinal count, are drifts (4 in all, with the"
+          " unrecognised Fit Test Rules list and VI.6.4.2)",
+          any(ln.startswith("      - §1985:IV.4.2.1 ") for ln in drift)
+          and any(ln.startswith("      ~ §1985:C.2  5 → 2") for ln in drift) and drifts == 4)
+    check("an appendix paragraph is measured under its appendix's locator, and no appendix heading opens a rule block",
+          "§1985:C.2" in cat.unharvested and ("C.3.1", "Syntax Rules") in cat.unrecognised
+          and not any(r["section"] in ("XVII", "C") for r in cat.rules))
     check("a scan gap closes the block before it, and the resumed paragraph takes the rules after it",
           [r["id"] for r in cat.rules if r["paragraph"] == "3.19.4"] == ["1985-GR-XIII.3.19.4-1"]
           and by.get("1985-SR-XIII.3.20.3-5", {}).get("subject") == "THE TYPE CLAUSE"
           and not any(loc.startswith("XIII") for loc, _n, _l in cat.unexplained))
+    check("a resumed paragraph has no region (its heading is on a missing page): its rules cite the printed page",
+          by["1985-SR-XIII.3.20.3-5"]["citation"] == "§1985:p.XIII-56"
+          and by["1985-GR-XIII.3.20.4-1"]["citation"] == "§1985:XIII.3.20.4 GR1")
     check("a rule after a gap that no entry resumes is reported", cat.unattributed == [(700, 2)])
     check("an adjudication the text no longer has is reported, one it has is not",
-          any(s.startswith("IV.4.2.1:") for s in cat.stale) and not any(s.startswith("VI.6.2.3:") for s in cat.stale)
+          any(s.startswith("XIII.3.10:") for s in cat.stale) and not any(s.startswith("IV.3:") for s in cat.stale)
           and not any(s.startswith("p634:") for s in cat.stale))
+    check("THE shared measure counts lists, ascending items and the longest run, and no stray ordinal",
+          ordinal_shape(["(1) a", "(2) b", "x (9) not", "(1) c", "(7) stray", "(2) d", "(3) e"], ORDINAL)
+          == {"ordinals": 5, "lists": 2, "longest": 3} and ordinal_shape(["prose"], ORDINAL) is None)
+    nested = {"sublists": {"1": {"items": {"1": "GR", "3": "SR"}}, "2": "GR"}}
+    check("a sub-list's kind may be an items map (rule_kind), and kinds_of names every kind a map gives",
+          (rule_kind(nested, 1, 3), rule_kind(nested, 2, 9), rule_kind(nested, 1, 2), rule_kind(nested, 3, 1))
+          == ("SR", "GR", None, None) and kinds_of(nested) == {"GR", "SR"})
     check("an added rule the table prints below its row is that row's text",
           by.get("1993-SR-VI.5.7.3-3", {}).get("text") == "A planted rule printed below its row: a. its item.")
     check("every id is unique", not cat.duplicates())
@@ -785,7 +906,7 @@ def self_test() -> int:
           and added.get("text") == "A planted added rule." and added.get("module") == "Nucleus")
     check("a box in a one-level module leaves its rule at level 1", by["1985-SR-XI.4.3.3-1"]["level"] == 1)
     check("the summary counts per module and level (the whole-boxed rule and the whole-boxed format are level 2)",
-          any(ln.split()[:7] == ["Nucleus", "level", "1", "9", "level", "2", "5"] for ln in summary(cat)))
+          any(ln.split()[:7] == ["Nucleus", "level", "1", "11", "level", "2", "5"] for ln in summary(cat)))
     print(f"SELF-TEST: {'PASS' if not failures else 'FAIL'}")
     return 1 if failures else 0
 

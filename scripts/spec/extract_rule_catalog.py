@@ -292,43 +292,8 @@ def unharvested_rule_blocks(lines: list[str], titles: dict[str, str]) -> dict[st
     body: list[str] = []
 
     def close() -> None:
-        if cur is None:
-            return
-        num, title = cur
-        # ⛔ COUNT THE LISTS, NOT ONLY THE ITEMS — the distinction is the whole triage signal, and reporting only
-        # a total actively misleads. §2023:8.3.2.2 "User-defined words" reports 15 items, which reads like a numbered
-        # rule block; they are FIVE nested sub-lists inside prose, each restarting at 1 (1-2-3, 1-2, 1-6, 1-2,
-        # 1-2). A rule block is normally ONE ascending list, so `lists == 1` is weak evidence FOR admitting the
-        # clause and `lists > 1` is weak evidence for a prose enumeration — neither is proof, which is why each
-        # clause is still adjudicated, but the shape is what makes 100 clauses triageable at all.
-        # The real rule-block parser above tracks the same phenomenon as `sublist`; this mirrors it.
-        ordinals, lists, last = 0, 0, 0
-        for ln in body:
-            if m := ORDINAL.match(ln):
-                n = int(m.group("n"))
-                if n == 1:
-                    lists, last = lists + 1, 1
-                    ordinals += 1
-                elif n == last + 1:              # ascending within the current list
-                    ordinals, last = ordinals + 1, n
-                # anything else is a stray "3)" mid-prose and is not counted
-        if ordinals and kind_of(title) is None:
-            found[num] = {"title": title, "ordinals": ordinals, "lists": lists, "longest": max_run(body)}
-
-    def max_run(lines_: list[str]) -> int:
-        """The longest single ascending run — the size of the biggest candidate rule list in the clause."""
-        best, run, last = 0, 0, 0
-        for ln in lines_:
-            if m := ORDINAL.match(ln):
-                n = int(m.group("n"))
-                if n == 1:
-                    run, last = 1, 1
-                elif n == last + 1:
-                    run, last = run + 1, n
-                else:
-                    continue
-                best = max(best, run)
-        return best
+        if cur is not None and kind_of(cur[1]) is None and (shape := ordinal_shape(body)) is not None:
+            found[cur[0]] = {"title": cur[1], **shape}
 
     for line in lines:
         if ANY_HEADING.match(line):
@@ -343,6 +308,114 @@ def unharvested_rule_blocks(lines: list[str], titles: dict[str, str]) -> dict[st
             body.append(line)
     close()
     return found
+
+
+def ordinal_shape(body: list[str], ordinal: re.Pattern[str] = ORDINAL) -> dict | None:
+    """THE content-keyed scan's measure of one clause or paragraph body, for every edition (kb/Work PB29, PB4886): how
+    many column-0 ordinals continue an ascending list (`ordinals`), how many lists open at 1 (`lists`) and the longest
+    single run (`longest`); None when the body carries no list. `ordinal` is the edition's rule ordinal, its number in
+    the group `n` (2023's `1)`, 1985's `(1)`).
+
+    ⛔ COUNT THE LISTS, NOT ONLY THE ITEMS — the distinction is the whole triage signal, and reporting only a total
+    actively misleads. §2023:8.3.2.2 "User-defined words" reports 15 items, which reads like a numbered rule block; they
+    are FIVE nested sub-lists inside prose, each restarting at 1 (1-2-3, 1-2, 1-6, 1-2, 1-2). The shape is no proof of
+    normativity either way (the manifest's comment records the test that refuted that), which is why each clause is
+    adjudicated; it is what makes a hundred clauses triageable at all. An ordinal that neither opens nor continues a list
+    is a stray "3)" mid-prose and is not counted."""
+    ordinals = lists = last = run = longest = 0
+    for line in body:
+        if (m := ordinal.match(line)) is None:
+            continue
+        n = int(m.group("n"))
+        if n == 1:
+            lists, last, run = lists + 1, 1, 1
+        elif n == last + 1:
+            last, run = n, run + 1
+        else:
+            continue
+        ordinals += 1
+        longest = max(longest, run)
+    return {"ordinals": ordinals, "lists": lists, "longest": longest} if ordinals else None
+
+
+#: THE COMMITTED MANIFEST of the content-keyed scan, per edition (kb/Work PB29; the 1985 arm's, PB4886). Both carry the
+#: same shape: `blocks`, a clause (2023: its number; 1985: its citation, `§1985:VI.6.4.2`, since the base text and
+#: Amendment 1 both have an `A.2.1`) ⇒ its measured shape, its `disposition` (`rules` with its `kind`, `not-rules` with
+#: `why`, or `pending`, never a decision) and the reason.
+UNHARVESTED_OF = {2023: UNHARVESTED, 1985: REPO / "docs" / "rearchitecture" / "spec-unharvested-rule-blocks-1985.json"}
+
+
+def manifest_blocks(path: pathlib.Path) -> dict[str, dict]:
+    """The `blocks` of a content-keyed scan manifest, or none while it does not exist."""
+    return json.loads(path.read_text(encoding="utf-8"))["blocks"] if path.exists() else {}
+
+
+def admitted_kinds(blocks: dict[str, dict]) -> dict[str, str | dict]:
+    """The clauses a manifest ADMITS to the denominator (disposition `rules`) ⇒ their declared kind: so admitting a clause
+    is a data edit with a recorded reason, never a code edit. ⛔ A kind need not be uniform across a clause, and the two
+    non-uniform shapes are EXPLICIT so they cannot be confused (DEVLOG 1166 recorded the limit; these forms are its
+    removal):
+      "SR"                                   — every rule in the clause is this kind;
+      {"sublists": {"1": "SR", "2": "GR"}}   — kind per SUB-LIST (§2023:8.3.2.2: five normative sub-lists, two constrain
+                                               where words may be WRITTEN ⇒ SR per §2023:5.3.2, three state effect or
+                                               treatment ⇒ GR per §2023:5.3.3);
+      {"items": {"1": "SR", "4": "GR"}}      — kind per ITEM of a SINGLE list (§2023:8.3.3.3.2: items 1-3 constrain the
+                                               literal's written form ⇒ SR, item 4 states its value ⇒ GR);
+    and a sub-list's kind may itself be an `items` map, for a sub-list whose items differ
+    ({"sublists": {"1": {"items": {"1": "GR", "3": "SR"}}, "2": "GR"}})."""
+    return {sec: info["kind"] for sec, info in blocks.items() if info.get("disposition") == "rules"}
+
+
+def rule_kind(kind: str | dict, sublist: int, ordinal: int) -> str | None:
+    """The kind of rule `ordinal` of sub-list `sublist` in a clause admitted as `kind` (admitted_kinds' shapes), or None
+    when the map does not name it: a manifest/segmentation DISAGREEMENT, which each arm reports, since writing a guessed
+    kind would be the silent mis-typing the dict forms exist to prevent."""
+    if isinstance(kind, str):
+        return kind
+    if "sublists" in kind:
+        of_sublist = kind["sublists"].get(str(sublist))
+        return of_sublist if of_sublist is None or isinstance(of_sublist, str) else rule_kind(of_sublist, 1, ordinal)
+    if "items" in kind:
+        return kind["items"].get(str(ordinal)) if sublist == 1 else None
+    return None
+
+
+def kinds_of(kind: str | dict) -> set[str]:
+    """Every rule kind a clause admitted as `kind` (admitted_kinds' shapes) can give its rules."""
+    if isinstance(kind, str):
+        return {kind}
+    return {k for shape in kind.values() for sub in shape.values() for k in kinds_of(sub)}
+
+
+def unharvested_report(measured: dict[str, dict], declared: dict[str, dict], manifest: pathlib.Path,
+                       label: str = "§") -> tuple[list[str], int]:
+    """THE CONTENT-KEYED CHECK's report, for every edition: the scan's `measured` clauses against the committed manifest's
+    `declared` ones. Returns the lines and the number of drifts (a clause measured and undeclared, declared and no longer
+    measured, or measured with another ordinal count), each of which fails `--check`. `label` prefixes a manifest key
+    where it prints (`§2023:` for 2023's bare clause numbers; 1985's keys are citations already)."""
+    added = sorted(set(measured) - set(declared))
+    removed = sorted(set(declared) - set(measured))
+    changed = sorted(s for s in set(measured) & set(declared) if measured[s]["ordinals"] != declared[s]["ordinals"])
+    pending = {s: v for s, v in declared.items() if v.get("disposition") == "pending"}
+    out = ["",
+           "⛔ CONTENT-KEYED SCAN — clauses carrying an ascending numbered list that this extractor does NOT harvest:",
+           f"      {len(measured):4d} clauses, {sum(v['ordinals'] for v in measured.values()):5d} ordinals (an UPPER BOUND"
+           " — see ordinal_shape)",
+           f"      {len(pending):4d} clauses, {sum(v['ordinals'] for v in pending.values()):5d} ordinals awaiting a "
+           "denominator disposition (fix-queue PB29)"]
+    if added or removed or changed:
+        out.append("")
+        out.append("⛔ THE UNHARVESTED SET HAS DRIFTED FROM ITS MANIFEST — the denominator may now be short again.")
+        out += [f"      + {label}{s} ({measured[s]['ordinals']} ordinals) '{measured[s]['title']}' — NEW, undeclared"
+                for s in added]
+        out += [f"      - {label}{s} — declared but no longer measured (harvested now, or the transcription moved)"
+                for s in removed]
+        out += [f"      ~ {label}{s}  {declared[s]['ordinals']} → {measured[s]['ordinals']} ordinals" for s in changed]
+        out.append(f"   Adjudicate each and update {manifest.relative_to(REPO)}: a clause is either a RULE block")
+        out.append("   (disposition 'rules' with its kind) or a prose enumeration (disposition 'not-rules', with why).")
+    else:
+        out.append("      ✓ matches the committed manifest exactly — no clause has silently left the denominator")
+    return out, len(added) + len(removed) + len(changed)
 
 
 #: A line that CONTINUES the paragraph before it instead of opening a new one: a numbered or lettered list item, a
@@ -421,7 +494,8 @@ def main_1985(args: argparse.Namespace) -> int:
     if not spec.exists():
         sys.exit(f"spec not found: {spec}")
     lines = spec.read_text(encoding="utf-8").splitlines()
-    cat = rule_catalog_1985.parse(lines)
+    cat = rule_catalog_1985.parse(lines, manifest_blocks(UNHARVESTED_OF[1985]))
+    rule_catalog_1985.cite_check(cat)
     print(f"spec:            {spec.relative_to(REPO)}  ({len(lines):,} lines)")
     for line in rule_catalog_1985.summary(cat):
         print(line)
@@ -453,23 +527,10 @@ def main_2023(args: argparse.Namespace) -> int:
         sys.exit(f"spec not found: {SPEC}\nRun: git submodule update --init --recursive")
 
     # The clauses ADMITTED to the denominator by adjudication (PB29) — section ⇒ declared rule kind. Read from
-    # the manifest so admitting a clause is a data edit with a recorded reason, never a code edit.
-    # ⛔ A kind need not be uniform across a clause, and the two non-uniform shapes are EXPLICIT so they cannot
-    # be confused (DEVLOG 1166 recorded the limit; these forms are its removal):
-    #   "SR"                                   — every rule in the clause is this kind;
-    #   {"sublists": {"1": "SR", "2": "GR"}}   — kind per SUB-LIST (§2023:8.3.2.2: five normative sub-lists, two
-    #                                            constrain where words may be WRITTEN ⇒ SR per §2023:5.3.2, three
-    #                                            state effect or treatment ⇒ GR per §2023:5.3.3);
-    #   {"items": {"1": "SR", "4": "GR"}}      — kind per ITEM of a SINGLE list (§2023:8.3.3.3.2: items 1-3
-    #                                            constrain the literal's written form ⇒ SR, item 4 states its
-    #                                            value ⇒ GR). Requires the clause to segment as one list.
-    # A sub-list or item the map does not know is a manifest/segmentation DISAGREEMENT and is FATAL at flush —
-    # silently guessing a kind is the mis-typing this mechanism exists to prevent.
-    admitted: dict[str, str | dict] = {}
-    if UNHARVESTED.exists():
-        for sec, info in json.loads(UNHARVESTED.read_text(encoding="utf-8"))["blocks"].items():
-            if info.get("disposition") == "rules":
-                admitted[sec] = info["kind"]
+    # the manifest (admitted_kinds, the three kind shapes). A sub-list or item the map does not know is a
+    # manifest/segmentation DISAGREEMENT and is FATAL at flush.
+    declared = manifest_blocks(UNHARVESTED)
+    admitted = admitted_kinds(declared)
     # The PROSE clauses admitted as paragraph rows (see `prose_paragraphs`): section ⇒ {kind, kinds?, why}.
     paragraph_blocks: dict[str, dict] = {
         sec: info for sec, info in (json.loads(UNHARVESTED.read_text(encoding="utf-8")).get(PARAGRAPH_BLOCKS, {})
@@ -607,12 +668,7 @@ def main_2023(args: argparse.Namespace) -> int:
         if cur and ordinal and (text := " ".join(x.strip() for x in buf).strip()):
             sec, kind = cur
             if cur_kinds is not None:
-                if "sublists" in cur_kinds:
-                    kind = cur_kinds["sublists"].get(str(cur_sublist))
-                elif "items" in cur_kinds:
-                    kind = cur_kinds["items"].get(str(ordinal)) if cur_sublist == 1 else None
-                else:
-                    kind = None
+                kind = rule_kind(cur_kinds, cur_sublist, ordinal)
                 if kind is None:
                     # A sub-list or item the map does not know is a manifest/segmentation DISAGREEMENT —
                     # writing a guessed kind would be the silent mis-typing the dict form exists to prevent.
@@ -1038,7 +1094,7 @@ def main_2023(args: argparse.Namespace) -> int:
     # heading whose title contains "rule" and reports the ones KINDS cannot resolve.
     unrecognised = sorted(
         ((num, title) for num, title in titles.items()
-         if RULE_SHAPED.search(title) and kind_of(title) is None and num not in EXCLUDED_BLOCKS),
+         if RULE_SHAPED.search(title) and kind_of(title) is None and num not in EXCLUDED_BLOCKS and num not in admitted),
         key=lambda kv: kv[0])
     for num, why in sorted(EXCLUDED_BLOCKS.items()):
         print(f"\n· §{num} '{titles.get(num, '?')}' is deliberately outside the denominator: {why}")
@@ -1055,28 +1111,8 @@ def main_2023(args: argparse.Namespace) -> int:
     # See unharvested_rule_blocks(). Measured against a COMMITTED MANIFEST rather than a remembered number, so a
     # newly-transcribed clause carrying rules is LOUD instead of silently absent from the denominator.
     measured = unharvested_rule_blocks(lines, titles)
-    declared = json.loads(UNHARVESTED.read_text(encoding="utf-8"))["blocks"] if UNHARVESTED.exists() else {}
-    added = sorted(set(measured) - set(declared))
-    removed = sorted(set(declared) - set(measured))
-    changed = sorted(s for s in set(measured) & set(declared)
-                     if measured[s]["ordinals"] != declared[s]["ordinals"])
-    pending = {s: v for s, v in declared.items() if v.get("disposition") == "pending"}
-
-    print(f"\n⛔ CONTENT-KEYED SCAN — clauses carrying an ascending 'N)' list that this extractor does NOT harvest:")
-    print(f"      {len(measured):4d} clauses, {sum(v['ordinals'] for v in measured.values()):5d} ordinals (an UPPER BOUND — see the docstring)")
-    print(f"      {len(pending):4d} clauses, {sum(v['ordinals'] for v in pending.values()):5d} ordinals awaiting a denominator disposition (fix-queue PB29)")
-    if added or removed or changed:
-        print("\n⛔ THE UNHARVESTED SET HAS DRIFTED FROM ITS MANIFEST — the denominator may now be short again.")
-        for s in added:
-            print(f"      + §{s} ({measured[s]['ordinals']} ordinals) '{measured[s]['title']}' — NEW, undeclared")
-        for s in removed:
-            print(f"      - §{s} — declared but no longer measured (harvested now, or the transcription moved)")
-        for s in changed:
-            print(f"      ~ §{s}  {declared[s]['ordinals']} → {measured[s]['ordinals']} ordinals")
-        print(f"   Adjudicate each and update {UNHARVESTED.relative_to(REPO)}: a clause is either a RULE block")
-        print("   (give its heading a kind in KINDS) or a prose enumeration (disposition 'not-rules', with why).")
-    else:
-        print("      ✓ matches the committed manifest exactly — no clause has silently left the denominator")
+    report, drifts = unharvested_report(measured, declared, UNHARVESTED, "§2023:")
+    print(chr(10).join(report))
 
     # The general-format bar (kb/Work PB1536 Q2) — see the FMT scan above.
     for sec in fmt_parents:
@@ -1127,7 +1163,7 @@ def main_2023(args: argparse.Namespace) -> int:
         print("   (then python scripts/spec/build_inventory.py, whose rule-digest check names any verdict on changed text).")
 
     if args.check:
-        return 1 if (gaps or unrecognised or added or removed or changed or unexplained
+        return 1 if (gaps or unrecognised or drifts or unexplained
                      or heading_labels or flattened_tails or unmeasured or stale or fmt_undrawn
                      or unrecognised_general or paragraph_defects) else 0
 

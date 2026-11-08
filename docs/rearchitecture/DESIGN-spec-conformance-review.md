@@ -748,28 +748,41 @@ edition (kb/Work PB4813) takes the same path once it is transcribed; it is ISO-s
 - **Completeness** is held as for 2023: a rule-shaped heading no kind resolves, a recognised block that yields no rule,
   an ordinal that neither continues nor restarts its list, a box in a one-level module, an amendment change naming a rule
   the catalog cannot find (read from the change's directive, never from the new text it carries), a rule after a scan gap
-  that no entry places, an adjudication the transcription no longer has, and a duplicate id are each reported, and
-  `--check` fails on them. The paragraphs that DEFINE the rule kinds (§1985:IV.3) are outside the denominator, as §2023:5.3
-  is. **The kind table is ONE**: `extract_rule_catalog.KINDS` types both editions' headings, its "Editing Rules" (GR) and
-  "Precedence Rules" (SR) included, the same PICTURE rules §2023:5.3.3 and §2023:5.3.2 type. A 1985 block of another name
-  ("Standard Alignment Rules", "Formation and Evaluation Rules", the Report Writer's counter and presentation rules, and the
-  two paragraphs the amendments themselves call rules, IV.4.2.1 Separators and VI.5.15.6) is an adjudication by
-  §1985:IV.3.1/IV.3.2, recorded with its reason in `rule_catalog_1985.BLOCK_KINDS` (a kind per rule where they differ,
-  the 2023 manifest's `items` shape), `EXCLUDED_BLOCKS` or `KNOWN_EMPTY_BLOCKS`, never a guess in the reader.
+  that no entry places, an adjudication the transcription no longer has, a duplicate id, a rule of an admitted paragraph
+  its kind map does not name, and a row whose citation `cite.py --check` would refuse (`rule_catalog_1985.cite_check`,
+  `citation.validate` on every row) are each reported, and `--check` fails on them. The paragraphs that DEFINE the rule
+  kinds (§1985:IV.3) are outside the denominator, as §2023:5.3 is. **The kind table is ONE**: `extract_rule_catalog.KINDS`
+  types both editions' headings, its "Editing Rules" (GR) and "Precedence Rules" (SR) included, the same PICTURE rules
+  §2023:5.3.3 and §2023:5.3.2 type, and `extract_rule_catalog.RULE_SHAPED` is the one test of a rule-shaped heading.
+- **The content-keyed scan is the 2023 arm's, with the edition as its parameter** (§7, kb/Work PB29). A guard keyed on
+  what a block is CALLED cannot find one called something else, so the reader measures EVERY paragraph whose heading names
+  no rule block, in every section and appendix (`extract_rule_catalog.ordinal_shape`, the one measure of both editions:
+  ordinals, lists, longest run), and compares the result with the committed manifest
+  `docs/rearchitecture/spec-unharvested-rule-blocks-1985.json` (`UNHARVESTED_OF[1985]`, the 2023 manifest's shape, keyed
+  by citation because the base text's Appendix A and Amendment 1's Section A both have an `A.2.1`). A paragraph measured
+  and undeclared, declared and no longer measured, or with a moved ordinal count is a drift (`unharvested_report`, one
+  report for both editions), and `--check` fails on it. Each paragraph's disposition is an adjudication by §1985:IV.3.1
+  and IV.3.2, read with the 2023 manifest's disposition of the same text: `rules` ADMITS it as a rule block of its `kind`
+  (`admitted_kinds`: one kind, a per-item map, a per-sub-list map whose entry may itself be a per-item map, as
+  VI.6.3.1.1.2 needs), and `not-rules` records why its list states no requirement (a worked example, an index, a
+  technique the text calls one, a glossary entry, the history and the element lists of the appendices, a verbatim
+  restatement of a module paragraph that is admitted). The blocks whose heading names rules that KINDS does not type
+  ("Standard Alignment Rules", "Formation and Evaluation Rules", the Report Writer's counter and presentation rules,
+  IV.4.2.1 Separators and VI.5.15.6) are entries of the same manifest: there is no second adjudication table in the code.
+  `EXCLUDED_BLOCKS` (IV.3, VI.6.4, XIII.3.10) and `KNOWN_EMPTY_BLOCKS` (VI.5.9.6) stay, as in the 2023 arm. The Index and
+  the appendices open no rule block: a rule-block heading there is reported.
 - **The scan's own defects.** The scan prints folios X-11 and X-12 twice (PDF pages 527-528); the transcription keeps
   both copies under `citation.SCAN_REPEAT_85`'s comment, and the catalog reads no rule from the repeat. Where the scan
   lacks printed pages (`citation.SCAN_GAP_85`), the text after the gap is never the block before it; a page that resumes a
   paragraph whose heading is on a missing page names it in `rule_catalog_1985.GAP_RESUMES` (PDF page 634: the TYPE
-  clause's syntax rules 5-7, rows `1985-SR-XIII.3.20.3-5` to `-7`: paragraph 3.20.3 of Section XIII, a locator the
-  transcription has no region for, since its heading is on a missing page).
-- **Not yet held: the content-keyed scan.** 2023's catalog also measures every clause that carries a numbered list under
-  a heading that names no rule block, against a committed manifest of dispositions (§7, kb/Work PB29). The 1985 arm has
-  no such scan yet, so a 1985 paragraph of numbered rules under a prose heading (VI.6.4.2 'The ON SIZE ERROR Phrase') is
-  outside the denominator until it is adjudicated.
+  clause's syntax rules 5-7, rows `1985-SR-XIII.3.20.3-5` to `-7`: paragraph 3.20.3 of Section XIII). That paragraph has
+  no region in the transcription, since its heading is on a missing page, so its rows cite the printed page that owns
+  them (`§1985:p.XIII-56`), as an amendment's added rule cites its own page.
 
 The catalog is written to `docs/rearchitecture/spec-rule-catalog-1985.json` and held by the gate's RULE CATALOG 1985
 audit (`--edition 1985 --check`: no finding, and the committed catalog is this run's). On the reconciled file it counts
-2,057 rows from 622 blocks (SR 597, GR 1,105, AR 65, RV 80, FMT 210) and no finding.
+2,253 rows from 664 blocks (SR 645, GR 1,253, AR 65, RV 80, FMT 210) and no finding; the content-keyed scan measures 90
+paragraphs (756 ordinals, an upper bound), of which the manifest admits 53 (254 rows) and records 37 as not rules.
 
 ### 10.2 The mapping onto the 2023 inventory: SAME, DIFFERS, NONE
 
