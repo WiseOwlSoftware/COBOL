@@ -1451,10 +1451,11 @@ internal static class IntrinsicArgumentRules
         // is an integer one, §2023:15.2 item 5) and so is admitted here; whether its function is INTEGER is the class
         // kind's integer test, not this predicate's (kb/Work PB4507 — it used to bar the function outright).
         // The position's class kind says INTEGER where the rule does (§2023:15.37.3 r3, §2023:15.12.3 r1's bases) and class numeric, alphanumeric...
-        // where it does not (CONCAT, BASECONVERT argument-1), so the shape verdict names the shape alone. A BOOLEAN expression is no
-        // arithmetic one and is not refused here: §2023:15.3 type 3 ("a boolean expression or literal") admits it where the class is boolean,
-        // and CONCAT's class list names boolean (conformance case pb124_boolean_argument_boundary).
-        ArgPredicateKind.DataItemOrLiteralOnly when op is BoundComputedOperand && !IsDataItem(op) =>
+        // where it does not (CONCAT, BASECONVERT argument-1), so the shape verdict names the shape alone. A BOOLEAN expression is refused
+        // as the arithmetic one is (kb/Work PB4711): §2023:15.18.3 AR1 says "data items or literals of class ... boolean", and §2023:15.3 type 3's
+        // "a boolean expression or literal" belongs to the positions whose class kind is BOOLEAN, which CONCAT's is not; a boolean DATA ITEM or
+        // boolean LITERAL is admitted (IsBooleanExpression).
+        ArgPredicateKind.DataItemOrLiteralOnly when (op is BoundComputedOperand && !IsDataItem(op)) || IsBooleanExpression(op) =>
             $"is {OperandShapeName(op)}, not a data item or literal, which ISO {p.Clause} requires",
         // §2023:15.48.3 r3 "shall be a data item": the literal that rule was written to exclude, and an arithmetic or
         // boolean expression, are not one; a nested function-identifier IS (§2023:8.4.3.2.4 GR1), kb/Work PB4507.
@@ -1499,6 +1500,13 @@ internal static class IntrinsicArgumentRules
         BoundComputedOperand { CounterRegisterValue: true } => true,
         _ => false,
     };
+
+    /// <summary>Is this operand a boolean EXPRESSION (§2023:8.8.2) rather than a boolean data item or a boolean literal (kb/Work PB4711)?
+    /// The boolean-expression binder answers a bare literal as <see cref="BoundBoolLiteral"/> and a bare nested boolean function as
+    /// <see cref="BoundBoolCall"/> (a function-identifier is a data item, §2023:8.4.3.2.4 GR1); every other <see cref="BoundBoolOperand"/> is an
+    /// expression, a parenthesized item (<c>(BB)</c>, §2023:8.8.1.1) included.</summary>
+    private static bool IsBooleanExpression(BoundOperand op) =>
+        op is BoundBoolOperand { Expr: not (BoundBoolLiteral or BoundBoolCall) };
 
     /// <summary>What a non-data-item operand IS, in the words a diagnostic names it with.</summary>
     private static string OperandShapeName(BoundOperand op) => op switch

@@ -1,0 +1,7 @@
+## PB4711: a boolean expression is no CONCAT argument
+
+PB4711 asked whether a boolean expression satisfies CONCAT's argument rule. Re-probe on the branch build: `CONCAT(WS-A B1 B-AND B0)` and `CONCAT(WS-A B-NOT B1)` compiled clean and ran. The standard decides it: §2023:15.18.3 AR1 requires "data items or literals of class alphabetic, alphanumeric, boolean, numeric or national"; a boolean expression (§2023:8.8.2) is neither a data item nor a literal, and §2023:15.3 type 3 ("a boolean expression or literal") governs only the positions whose class kind is boolean, which CONCAT's is not (cite.py --check OK on AR1).
+
+Fix shape: `IntrinsicArgumentRules.PredicateViolation`'s `DataItemOrLiteralOnly` arm refused only the arithmetic expression; it now also refuses a boolean expression through the new `IsBooleanExpression` (a `BoundBoolOperand` that is not a bare literal or a bare nested boolean function). A bare boolean item or literal stays legal. The one arm serves every data-item-or-literal position (CONCAT, BASECONVERT argument-1, FIND-STRING argument-3), so the siblings change together; the old comment that justified the exemption is rewritten.
+
+Goldens: `pb124_boolean_argument_boundary`'s two CONCAT lines used B-AND expressions; they now use adjacent boolean items and a boolean literal (`ab10`, `x11`), the INTEGER-OF-BOOLEAN lines are unchanged. New refusal `pb4711-concat-boolean-expression` (COBOL1627). No inventory row changes verdict (AR-15.18.3-1 already CONFORMS).
