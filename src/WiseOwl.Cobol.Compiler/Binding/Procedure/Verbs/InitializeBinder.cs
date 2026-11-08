@@ -193,9 +193,10 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
     /// subscripts), then walk its subtree in
     /// definition order (GR8) collecting the per-elementary stores. identifier-1 itself MAY have / sit under a
     /// REDEFINES (GR5a3's exclusion applies only BELOW it).</summary>
-    /// <param name="written">identifier-1 as the statement wrote it (the place <c>ResolveReceiving</c> answered), null when it
-    /// resolved to none (the whole-dynamic-table arm). It is the one operand the statement explicitly references; every store the
-    /// expansion adds below it is the statement's meaning (<see cref="BoundInitialize.ImplicitOperands"/>).</param>
+    /// <param name="written">identifier-1 as the statement wrote it — the place <c>ResolveReceiving</c> answered, or the whole table of
+    /// the whole-dynamic-table arm (<c>PlaceBuilder.WholeTable</c>, kb/Work PB4855) — null when it resolved to none. It is the one operand
+    /// the statement explicitly references; every store the expansion adds below it is the statement's meaning
+    /// (<see cref="BoundInitialize.ImplicitOperands"/>).</param>
     private void BindInitializeTarget(Core.DataReferenceContext dref, in InitializeSpec spec, List<InitializeAction> actions, out Place? written)
     {
         written = null;
@@ -209,6 +210,15 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
             && ctx.Symbols.TryResolveUnqualified(dref.cobolWord()?.GetText() ?? dref.GetText(), ctx.ActiveScope, out var dyns)
             && dyns.FirstOrDefault(i => i.IsDynamicTable) is { } dtbl && PlaceBuilder.BuildTablePath(dtbl) is { } tblPath)
         {
+            // identifier-1 is the whole table, every current occurrence of it (kb/Work PB4855): the operand the statement references
+            // and stores, while the element stores below are what it means.
+            written = ctx.Refs.Places.WholeTable(dtbl, []);
+            if (written is null)
+            {
+                actions.Add(new InitializeErrorAction(
+                    $"INITIALIZE of the dynamic-capacity table '{dtbl.CobolName ?? "FILLER"}' (no element access)"));
+                return;
+            }
             var v = NextLoopVar();
             var body = new List<InitializeAction>();
             // identifier-1 carries no subscript on this arm (the guard above), so the ONE dimension the expansion

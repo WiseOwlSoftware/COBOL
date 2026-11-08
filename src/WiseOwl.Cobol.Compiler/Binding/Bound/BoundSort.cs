@@ -76,15 +76,14 @@ public sealed record BoundSort(
 /// <para><paramref name="Storage"/> is WHERE the table's elements live (<see cref="TableSortStorage"/>): the typed
 /// element array a plain table is, or the byte area a table inside a REDEFINES class shares with the other views
 /// (§2023:13.18.44.4 GR1). The statement's two halves — §2023:14.9.40.4 GR19's key comparison and GR24's placing back — are the same
-/// for both; only how an element is reached differs (kb/Work PB1175, PB1055).</para></summary>
+/// for both; only how an element is reached differs (kb/Work PB1175, PB1055).</para>
+/// <para><paramref name="Written"/> is data-name-2 as the statement wrote it: the WHOLE table under the enclosing occurrences the
+/// statement names (<c>PlaceBuilder.WholeTable</c>), the operand the statement explicitly references and whose content it changes
+/// (X3.23-1985 USE FOR DEBUGGING general rules 5 and 6 c; kb/Work PB4855). The sort itself reads <paramref name="Storage"/>, never
+/// it.</para></summary>
 public sealed record BoundTableSort(
     TableSortStorage Storage, DataItem Table, AllCount Count,
-    IReadOnlyList<BoundTableSortKey> Keys, bool DuplicatesInOrder, SortCollation Collating) : BoundStatement, IBoundImplicitOperands
-{
-    /// <summary>The places the table's current occurrence count reads (its OCCURS DEPENDING ON item, its capacity register) are the table's, not
-    /// operands the program wrote (X3.23-1985 USE FOR DEBUGGING general rule 5: "explicitly references").</summary>
-    public IEnumerable<object> ImplicitOperands => [.. Count.Places];
-}
+    IReadOnlyList<BoundTableSortKey> Keys, bool DuplicatesInOrder, SortCollation Collating, TableAllPlace Written) : BoundStatement;
 
 /// <summary>Where a Format-2 table SORT's elements are stored — the closed answer the binder reads off the table's
 /// data description (§2023:14.9.40.3 SR13, §2023:13.18.44.4 GR1). The data-name-2 reference's own subscripts are the ENCLOSING
@@ -116,7 +115,15 @@ public abstract record TableSortStorage
 /// window law. A null chain is a key with no stored field on the element struct (a REDEFINES-view member, kb/Work
 /// PB599): the statement reads every key of such a table through its window
 /// (<see cref="TableSortStorage.TypedArray.KeyWindowOuter"/>).</summary>
-public sealed record BoundTableSortKey(bool Descending, IReadOnlyList<DataItem>? MemberChain, DataItem Key);
+public sealed record BoundTableSortKey(bool Descending, IReadOnlyList<DataItem>? MemberChain, DataItem Key)
+{
+    /// <summary>The key data-name as the statement WROTE it — the key item in every current occurrence of the table
+    /// (<c>PlaceBuilder.WholeTable</c>): a key the statement names is an operand it explicitly references, and the sort moves its content
+    /// (X3.23-1985 USE FOR DEBUGGING general rules 5 and 6 c; kb/Work PB4855). Null for a key the statement did not write: the table
+    /// element itself when data-name-1 is omitted (ISO/IEC 1989:2023 §2023:14.9.40.4 GR23, which is data-name-2, already
+    /// <see cref="BoundTableSort.Written"/>) and the keys of the table's own KEY phrase (GR21).</summary>
+    public TableAllPlace? Written { get; init; }
+}
 
 /// <summary><c>MERGE file-name-1 …</c> (ISO §2023:14.9.24): a k-way merge of the pre-sorted <paramref name="Using"/>
 /// streams — equal keys keep USING-file order, all of one file's records before the next file's (GR4a/GR4b) —

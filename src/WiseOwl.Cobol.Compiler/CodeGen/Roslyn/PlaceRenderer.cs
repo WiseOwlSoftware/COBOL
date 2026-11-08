@@ -1335,4 +1335,14 @@ internal static class PlaceRenderer
             RuntimeApi.HostInt32(CountRead(d.Depending)), d.MinOccurs, d.MaxOccurs),
         _ => throw new InvalidOperationException($"unknown occurrence count {c.GetType().Name}"),
     };
+
+    /// <summary>The ranges of a <see cref="TableAllPlace"/>'s enumerated levels, outermost first, each a C# lambda over the index vector
+    /// (<c>v =&gt; (long)(count)</c>), so a nested dynamic-capacity table's capacity reads the OUTER occurrence's: the one spelling the
+    /// two enumerations of the place share — a table(ALL) argument list (<c>CobolTable.AllArgs</c>) and a whole table's storage image
+    /// (<c>CobolTable.AllImage</c>).</summary>
+    public static IEnumerable<string> AllCountLambdas(TableAllPlace all)
+    {
+        string v = LocalNames.Of(all.Indices.Local);
+        return all.Counts.Select(c => $"{v} => (long)({OccurrenceCount(c)})");
+    }
 }

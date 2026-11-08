@@ -212,7 +212,14 @@ public static class BoundStores
         public StoreKind Visit(BoundKeyedDelete n) => StoreKind.None;   // no data receiver; its INVALID KEY body is separately wrapped
         public StoreKind Visit(BoundSort n) => StoreKind.None;
         public StoreKind Visit(BoundMerge n) => StoreKind.None;
-        public StoreKind Visit(BoundTableSort n) => StoreKind.None;
+        // The table SORT reads the table and places its occurrences back (ISO/IEC 1989:2023 §2023:14.9.40.4 GR24): data-name-2 and every
+        // key data-name it writes are changed in place (kb/Work PB4855). Its storage is reached through n.Storage, the same table.
+        public StoreKind Visit(BoundTableSort n)
+        {
+            bool hit = Hit(n.Written);
+            foreach (var key in n.Keys) hit |= Hit(key.Written);
+            return hit ? StoreKind.ReadWrite : StoreKind.None;
+        }
         public StoreKind Visit(BoundUnlock n) => StoreKind.None;
 
         // ── Wrappers / containers ───────────────────────────────────────────────────────────────────────

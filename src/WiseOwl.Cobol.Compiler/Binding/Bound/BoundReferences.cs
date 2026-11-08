@@ -17,7 +17,8 @@ namespace WiseOwl.Cobol.Binding.Bound;
 /// <para><b>What it yields.</b> Every <see cref="Place"/> the statement holds in an operand position, in source order, plus a
 /// <see cref="MemberPlace"/> for each data item a subscript or reference-modification position READS (<c>T (I)</c> references
 /// <c>I</c>). A place that wraps another (a reference-modified, group-image or OCCURS-DEPENDING decoration, the leaves a
-/// RENAMES spans) is one reference, the outer place.</para>
+/// RENAMES spans) is one reference, the outer place. A current occurrence count (<see cref="AllCount"/>: a loop's, a table SORT's,
+/// a whole table's) is no reference: the places it reads are the table's (kb/Work PB4854, PB4855).</para>
 /// <para><b>What it never enters.</b> A statement NESTED in the one asked — an IF arm, an inline PERFORM body, a conditional
 /// phrase's imperative statements — because it is a statement of its own (rule 7); and any type outside the operand model
 /// (<see cref="DataItem"/>, file and communication models), whose graphs are not operands. The transparent wrappers one written
@@ -89,6 +90,11 @@ internal static class BoundReferences
         {
             case PositionItemRead read:
                 found.AddPlace(new MemberPlace(read.Path, read.Item));   // a subscript or window position that reads an item references it
+                return;
+            case AllCount count:
+                // A current occurrence count reads its places (an OCCURS DEPENDING ON item, a capacity register) for the statement's meaning,
+                // never because the program wrote them (AllCount.Places): only the positions inside them are references.
+                foreach (var counted in count.Places) VisitFields(counted, found, skip, yieldPlace: false, statementsAreDirect: false);
                 return;
             case BoundLinageCounterRef or BoundReportCounterRef:
                 found.AddRegister((BoundExpr)node);   // a runtime-sourced register no place stands for, referenced where it is read

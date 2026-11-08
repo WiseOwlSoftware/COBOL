@@ -43,6 +43,12 @@ public enum StatementLocalRole
     /// <see cref="DataItem.Uid"/>.</summary>
     HeldTableAllIndices,
 
+    /// <summary>The index vector of a WHOLE-TABLE reference (a table written without the subscripts of its own level: SEARCH's
+    /// identifier-1, a Format-2 table SORT's data-name-2 and its key data-names, INITIALIZE of a whole dynamic-capacity table;
+    /// kb/Work PB4855), which a debugging section's DEBUG-CONTENTS enumerates; the ordinal is the referenced item's
+    /// <see cref="DataItem.Uid"/>.</summary>
+    WholeTableIndices,
+
     /// <summary>A report VARYING counter (ISO §2023:13.18.64.4 1): "an independent temporary integer data item"); the ordinal is
     /// the counter's compilation-unique <c>ReportVaryingModel.Uid</c>.</summary>
     ReportVaryingCounter,
