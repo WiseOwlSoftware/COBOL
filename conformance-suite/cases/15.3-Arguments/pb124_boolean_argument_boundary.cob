@@ -11,8 +11,10 @@
       *> predicated EVERY earlier argument into the boolean alternative — CONCAT(WS-A B1 B-AND B0) routed the
       *> alphanumeric WS-A down the boolean channel. A boolean expression connects every term with an operator
       *> (8.8.2 r1), so two ADJACENT operand terms are an argument boundary. Hand-derived: B"1" B-AND B"0" =
-      *> B"0" -> CONCAT("ab" B"0") = "ab0"; the subscripted pair BT(1) B-AND BT(2) = B"1" -> ORD-position
-      *> arithmetic avoided, INTEGER-OF-BOOLEAN = 1; a literal before a boolean pair keeps its own argument.
+      *> B"0" -> INTEGER-OF-BOOLEAN = 0; the subscripted pair BT(1) B-AND BT(2) = B"1" -> INTEGER-OF-BOOLEAN = 1.
+      *> CONCAT's argument is a "data item or literal" (15.18.3 AR1), so a boolean expression is no CONCAT argument
+      *> (kb/Work PB4711, pb4711-concat-boolean-expression refuses it); the boundary stays witnessed for CONCAT by
+      *> adjacent boolean items and literals: CONCAT(WS-A B1 B0) = "ab10", CONCAT("x" B1 B"1") = "x11".
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB124BB.
        DATA DIVISION.
@@ -30,10 +32,10 @@
            IF R = 1 DISPLAY "IOB OK" ELSE DISPLAY "IOB BAD " R END-IF
            COMPUTE R = FUNCTION INTEGER-OF-BOOLEAN(BT(1) B-AND BT(2))
            IF R = 1 DISPLAY "SUB OK" ELSE DISPLAY "SUB BAD " R END-IF
-           MOVE FUNCTION CONCAT(WS-A B1 B-AND B0) TO RS
-           IF RS = "ab0   " DISPLAY "CAT OK" ELSE DISPLAY "CAT BAD [" RS "]"
+           MOVE FUNCTION CONCAT(WS-A B1 B0) TO RS
+           IF RS = "ab10  " DISPLAY "CAT OK" ELSE DISPLAY "CAT BAD [" RS "]"
            END-IF
-           MOVE FUNCTION CONCAT("x" B1 B-AND B1) TO RS
-           IF RS = "x1    " DISPLAY "LIT OK" ELSE DISPLAY "LIT BAD [" RS "]"
+           MOVE FUNCTION CONCAT("x" B1 B"1") TO RS
+           IF RS = "x11   " DISPLAY "LIT OK" ELSE DISPLAY "LIT BAD [" RS "]"
            END-IF
            STOP RUN.
