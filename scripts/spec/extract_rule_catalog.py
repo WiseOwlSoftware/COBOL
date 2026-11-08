@@ -344,6 +344,9 @@ def ordinal_shape(body: list[str], ordinal: re.Pattern[str] = ORDINAL) -> dict |
 #: Amendment 1 both have an `A.2.1`) ⇒ its measured shape, its `disposition` (`rules` with its `kind`, `not-rules` with
 #: `why`, or `pending`, never a decision) and the reason.
 UNHARVESTED_OF = {2023: UNHARVESTED, 1985: REPO / "docs" / "rearchitecture" / "spec-unharvested-rule-blocks-1985.json"}
+#: THE OBSOLETE LIST of an edition, held once as data (kb/Work PB4993; obsolete_elements.py): each catalog rule's
+#: `status` is read from it. 1985's is §1985:C.1.
+OBSOLETE_OF = {1985: REPO / "docs" / "rearchitecture" / "spec-obsolete-elements-1985.json"}
 
 
 def manifest_blocks(path: pathlib.Path) -> dict[str, dict]:
@@ -497,6 +500,7 @@ def main_1985(args: argparse.Namespace) -> int:
     lines = spec.read_text(encoding="utf-8").splitlines()
     cat = rule_catalog_1985.parse(lines, manifest_blocks(UNHARVESTED_OF[1985]))
     rule_catalog_1985.cite_check(cat)
+    rule_catalog_1985.obsolete_standing(cat, lines, OBSOLETE_OF[1985])
     print(f"spec:            {spec.relative_to(REPO)}  ({len(lines):,} lines)")
     for line in rule_catalog_1985.summary(cat):
         print(line)
