@@ -133,6 +133,19 @@ public sealed record CalleeSignature(IReadOnlyList<LinkageFormal> Formals, DataI
 /// resolution (REPO-1 and the external repository's, DESIGN-external-repository §14) is reported.</summary>
 public sealed record ProgramSpecifier(string Name, string ExternalizedName, Antlr4.Runtime.ParserRuleContext At);
 
+/// <summary>The kind of a REPOSITORY specifier whose <c>AS literal-n</c> was refused (§2023:12.3.8.3 SR2) and reported where it is
+/// written: the key of <c>EditionContext.NoteSpecifierRefusalReported</c> / <c>NoteCauseReportedEarlier</c>, so a reference through
+/// the refused word is a silent cascade (kb/Work PB4936). The next kind that needs it (class, interface and property specifiers,
+/// kb/Work PB4773) is a member here and a method on <c>ConfigurationSlice</c>.</summary>
+internal enum RefusedSpecifierKind
+{
+    /// <summary>A PROGRAM specifier whose <c>AS literal-3</c> was refused.</summary>
+    Program,
+
+    /// <summary>A FUNCTION specifier whose <c>AS literal-5</c> was refused.</summary>
+    Function,
+}
+
 /// <summary>Why a WRITTEN program-specifier registers no program prototype although it declares its word (kb/Work PB4708):
 /// the one fact <c>ConfigurationSlice.WhyNoPrototype</c> reads to name the right refusal. The third route — no provider answers it,
 /// REPO-1 at the specifier (§2023:12.3.8.3 SR14) — has no member: it is the specifier having a row and no entry here.</summary>
