@@ -16,6 +16,7 @@ namespace WiseOwl.Cobol.Tests.Unit.Collation;
 /// compare apart. The closure is ONE step, <c>CollationTable.Rebuild</c>, that every tailoring goes through
 /// (kb/Work PB2765: the .tailor front-end once skipped it, and tailoring c left ç at its root weights).
 /// </summary>
+[Collection("process-globals")]   // resolves locales, which read COBOL_CLDR_DIR / COBOL_COLLATION_DIR; LocaleCollationFailureTests sets them (kb/Work PB3947)
 public sealed class CanonicalClosureDriftTests
 {
     private static readonly CollationOptions AllLevels = CollationOptions.Default with { Strength = CollationStrength.Quaternary };

@@ -11,6 +11,7 @@ namespace WiseOwl.Cobol.Tests.Unit.Collation;
 /// and expanding code points, equality of keys for equal texts, the case-only and accent-only differences landing on
 /// exactly the tertiary / secondary level, the byte image, and the guard against comparing keys of different collators.
 /// </summary>
+[Collection("process-globals")]   // resolves locales, which read COBOL_CLDR_DIR / COBOL_COLLATION_DIR; LocaleCollationFailureTests sets them (kb/Work PB3947)
 public sealed class CollationKeyTests
 {
     [Fact]
