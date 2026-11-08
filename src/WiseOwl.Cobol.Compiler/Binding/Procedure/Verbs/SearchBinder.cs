@@ -118,6 +118,11 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
         return null;
     }
 
+    /// <summary>The enclosing-occurrence subscripts the statement BORROWS from its WHEN phrases (<see cref="BoundSearch.WhenSubscripts"/>):
+    /// the WHEN phrases' when identifier-1 wrote none, else none.</summary>
+    private static IReadOnlyList<Position> Borrowed(IReadOnlyList<Position>? written, EnclosingOccurrence? fromWhens) =>
+        written is null ? fromWhens?.Subscripts ?? [] : [];
+
     /// <summary>The SEARCH statement preceded by the pre-ops that fix the enclosing occurrence of a dynamic-capacity
     /// table (<see cref="DynamicTablePath"/>); the search itself when there are none.</summary>
     private static BoundStatement Preceded(IReadOnlyList<BoundStatement> prelude, BoundSearch search) =>
@@ -219,7 +224,7 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
         if (!DynamicTablePath(s.dataReference(), "SEARCH", table, written, whenEnclosing, out var dynTable, out var prelude, out bail))
             return bail;
         if (WrittenTable("SEARCH", table, written, whenEnclosing, out bail) is not { } whole) return bail;
-        return Preceded(prelude, new BoundSearch(searchIx, table.Occurs ?? 0, whole, also, atEnd, whens,
+        return Preceded(prelude, new BoundSearch(searchIx, table.Occurs ?? 0, whole, also, atEnd, whens, Borrowed(written, whenEnclosing),
             DependItem: OdoModel.SearchDepending(table, ctx.Refs.Places),
             DynTable: dynTable,   // EC-FLOW-SEARCH bracket (GR31, D9)
             // §2023:14.9.37.4 GR4: an out-of-range initial index (SEARCH-INDEX) / a scan advancing off the end (NO-MATCH)
@@ -269,7 +274,7 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
             return bail;
         if (WrittenTable("SEARCH ALL", table, written, whenEnclosing, out bail) is not { } whole) return bail;
         return Preceded(prelude, new BoundSearch(table.Indexes[0].Cell, table.Occurs ?? 0, whole,
-            AlsoVaried: null, atEnd, whens, IsAll: true, DependItem: OdoModel.SearchDepending(table, ctx.Refs.Places),
+            AlsoVaried: null, atEnd, whens, Borrowed(written, whenEnclosing), IsAll: true, DependItem: OdoModel.SearchDepending(table, ctx.Refs.Places),
             DynTable: dynTable,   // EC-FLOW-SEARCH bracket (GR31, D9)
             // SEARCH ALL forces the index to 1 (GR9 ignores the initial setting) so SEARCH-INDEX can never arise;
             // only an unsuccessful scan (incl. an empty table) sets EC-RANGE-SEARCH-NO-MATCH.

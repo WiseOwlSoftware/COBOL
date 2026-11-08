@@ -51,3 +51,10 @@ enumeration walk and the count lambdas each exist once. Gate: `=== BUILD-LOCAL G
 40,491/40,491 · Characterization 37/37 cases ran (skipped 0) ... (2 class(es) first; run 000003-20261108T063045Z) ===`.
 
 **Rows.** None: the debug module has no ISO 2023 rule and no inventory row (VCR Table 7 row 7.17).
+
+**Review round 1.** R1-1 (blocking): the whole-table place of a nested SEARCH's identifier-1 borrowed the WHEN phrases' subscripts, so a
+subscript written only in a WHEN phrase was referenced by an execution that evaluated none (probe: `SET CX` past the table, AT END at once,
+`USE FOR DEBUGGING ON ALL REFERENCES OF I` ran). `BoundSearch.WhenSubscripts` now carries the borrowed subscripts as implicit operands, so
+they stay the WHEN phrase's references; the dynamic-capacity scan bound (`DynTable`), which borrowed them already on main, is fixed by the
+same field. Witness `DebugFacilityTests.SearchWhenNamedOccurrence_IsReferencedOnlyWhenTheWhenIsEvaluated` (85 and 2023 permissive).
+R1-2 and R1-3 are leads left to the clerk.

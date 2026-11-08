@@ -2026,16 +2026,22 @@ public sealed record BoundSearchWhen(BoundCondition Condition, IReadOnlyList<Bou
 /// <paramref name="AlsoVaried"/> is null there.</para>
 /// <para><paramref name="Table"/> is identifier-1 as the statement wrote it: the WHOLE table under the enclosing occurrence the
 /// statement names (<c>PlaceBuilder.WholeTable</c>), the operand SEARCH explicitly references (X3.23-1985 USE FOR DEBUGGING general
-/// rule 5; kb/Work PB4855). The scan reads <paramref name="IndexField"/>, never it.</para></summary>
+/// rule 5; kb/Work PB4855). The scan reads <paramref name="IndexField"/>, never it.</para>
+/// <para><paramref name="WhenSubscripts"/> are the enclosing-occurrence subscripts <paramref name="Table"/> and <paramref name="DynTable"/>
+/// BORROW from the WHEN phrases when identifier-1 wrote none (§2023:14.9.37.4 GR1: "The subscript that is used to determine the occurrence
+/// of each superordinate table to search is specified by the user in the WHEN phrases"); empty when identifier-1 wrote its own. They are
+/// written in a WHEN phrase, so they are that phrase's references and never the statement's: a data item written only there is not
+/// referenced by an execution that evaluates no WHEN phrase (X3.23-1985 USE FOR DEBUGGING general rules 5 and 6: "If identifier-1 is
+/// specified in a phrase that is not executed or evaluated, the associated debugging section is not executed").</para></summary>
 public sealed record BoundSearch(
     string IndexField, long Count, TableAllPlace Table, BoundSetTarget? AlsoVaried,
-    IReadOnlyList<BoundStatement>? AtEnd, IReadOnlyList<BoundSearchWhen> Whens,
+    IReadOnlyList<BoundStatement>? AtEnd, IReadOnlyList<BoundSearchWhen> Whens, IReadOnlyList<Position> WhenSubscripts,
     bool IsAll = false, Place? DependItem = null, AccessPath? DynTable = null,
     bool CheckSearchIndex = false, bool CheckSearchNoMatch = false) : BoundStatement, IBoundEvaluatedPhrases, IBoundImplicitOperands
 {
     /// <summary>The OCCURS DEPENDING ON item the scan's bound reads is the table's, not an operand the program wrote (X3.23-1985 USE FOR
-    /// DEBUGGING general rule 5: "explicitly references").</summary>
-    public IEnumerable<object> ImplicitOperands => DependItem is null ? [] : [DependItem];
+    /// DEBUGGING general rule 5: "explicitly references"); the subscripts borrowed from the WHEN phrases are the phrases' own operands.</summary>
+    public IEnumerable<object> ImplicitOperands => DependItem is null ? WhenSubscripts : [DependItem, .. WhenSubscripts];
 
     /// <summary>Each WHEN condition is evaluated only when the scan reaches it and every earlier one was false.</summary>
     public IReadOnlyList<object> PhraseOperands => [.. Whens.Select(w => (object)w.Condition)];

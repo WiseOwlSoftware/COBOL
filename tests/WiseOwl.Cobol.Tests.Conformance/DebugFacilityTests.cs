@@ -957,4 +957,71 @@ public sealed class DebugFacilityTests
         Assert.Equal(["INITIALIZE T", "  DB1 T [     ] [ZZZ ]", "INITIALIZE U", "  DB2 U [     ] [YY  ]", "INITIALIZE W", "  DB3 W [    ]", "END"],
             lines);
     }
+
+    /// <summary>A nested SEARCH whose identifier-1 writes no subscript takes the enclosing occurrence from the WHEN phrases (§2023:14.9.37.4 GR1:
+    /// "The subscript that is used to determine the occurrence of each superordinate table to search is specified by the user in the WHEN
+    /// phrases"), and those subscripts stay the WHEN phrase's own operands (kb/Work PB4855 review R1-1): an execution that evaluates no WHEN
+    /// phrase does not reference a data item written only there (X3.23-1985 USE FOR DEBUGGING general rules 5 and 6: "If identifier-1 is
+    /// specified in a phrase that is not executed or evaluated, the associated debugging section is not executed"), while identifier-1, the
+    /// table, is referenced by every execution (rule 5) with the WHEN-named occurrence's content (rule 24 c). An index set past the table
+    /// ends the search at once (§2023:14.9.37.4 GR4), so the first SEARCH evaluates no WHEN phrase and runs no section for I. <paramref name="edition"/> 85 is the fixed table; 2023 (--permissive keeps the removed
+    /// declarative) is the dynamic-capacity table, whose scan bound is the WHEN-named instance's capacity, read through the same borrowed
+    /// subscripts.</summary>
+    [Theory]
+    [InlineData(85, "C OCCURS 3 TIMES")]
+    [InlineData(2023, "C OCCURS DYNAMIC CAPACITY IN CC")]
+    public void SearchWhenNamedOccurrence_IsReferencedOnlyWhenTheWhenIsEvaluated(int edition, string occurs)
+    {
+        string src = $"""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. DBGSWHEN.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            SOURCE-COMPUTER. IBM-PC WITH DEBUGGING MODE.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 I PIC 9 VALUE 2.
+            01 NB.
+               02 ROW OCCURS 2 TIMES INDEXED BY RX.
+                  03 {occurs}
+                     INDEXED BY CX PIC X.
+            01 X5 PIC X(5).
+            PROCEDURE DIVISION.
+            DECLARATIVES.
+            DB1 SECTION.
+                USE FOR DEBUGGING ON ALL REFERENCES OF I.
+            DB1-B.
+                DISPLAY "  DB1 [" DEBUG-CONTENTS (1:2) "]".
+            DB3 SECTION.
+                USE FOR DEBUGGING ON ALL REFERENCES OF C.
+            DB3-B.
+                MOVE DEBUG-SUB-2 TO X5.
+                DISPLAY "  DB3 " DEBUG-SUB-1 " [" X5 "] [" DEBUG-CONTENTS (1:4) "]".
+            END DECLARATIVES.
+            MAIN SECTION.
+            M1.
+                MOVE "u" TO C (1, 1).
+                MOVE "v" TO C (1, 2).
+                MOVE "w" TO C (1, 3).
+                MOVE "x" TO C (2, 1).
+                MOVE "y" TO C (2, 2).
+                MOVE "z" TO C (2, 3).
+                DISPLAY "NO WHEN".
+                SET CX TO 3.
+                SET CX UP BY 1.
+                SEARCH C AT END DISPLAY "AT END"
+                    WHEN C (I, CX) = "y" DISPLAY "FOUND".
+                DISPLAY "WHEN".
+                SET CX TO 1.
+                SEARCH C AT END DISPLAY "AT END"
+                    WHEN C (I, CX) = "y" DISPLAY "FOUND".
+                DISPLAY "END".
+                STOP RUN.
+            """;
+        var (ok, stdout, detail) = EditionHarness.CompileAndRun(src, edition, permissive: edition != 85);
+        Assert.True(ok, detail);
+        var lines = stdout.Replace("\r", "").TrimEnd('\n').Split('\n').SkipWhile(l => l != "NO WHEN").ToArray();
+        Assert.Equal(["NO WHEN", "AT END", "  DB3 +0002 [     ] [xyz ]", "WHEN", "FOUND", "  DB1 [2 ]", "  DB3 +0002 [     ] [xyz ]", "END"],
+            lines);
+    }
 }
