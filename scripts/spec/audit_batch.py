@@ -507,12 +507,16 @@ def request(pass_name: str, cid: str, item: dict[str, Any], model: str, shapes: 
 def parse_answer(pass_name: str, item: dict[str, Any], text: str) -> tuple[dict[str, Any] | None, str]:
     """The reply as the pass's answer, or None and why it is not one. The answer is the ONE JSON value that starts at the
     reply's first `{`, read to its own end (`raw_decode`), so a fence, prose or a stray brace after it is never part of it:
-    cutting at the reply's LAST `}` failed a complete answer that a model followed with an extra `}` (PB4995's drafts)."""
+    cutting at the reply's LAST `}` failed a complete answer that a model followed with an extra `}` (PB4995's drafts). A
+    reply that opens a second object after it (a self-correction) holds two answers, and neither is taken (review
+    w20261932a R1-1)."""
     body = re.sub(r"\A\s*```[a-z]*\s*|\s*```\s*\Z", "", text)
     try:
-        obj, _ = json.JSONDecoder().raw_decode(body, body.index("{"))
+        obj, end = json.JSONDecoder().raw_decode(body, body.index("{"))
     except ValueError:
         return None, "unparsed"
+    if "{" in body[end:]:
+        return None, "two answers"
     if not isinstance(obj, dict):
         return None, "not an object"
     if pass_name == "drafts":

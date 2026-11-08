@@ -174,6 +174,9 @@ def main() -> int:
               and A.parse_answer("route", inspect_item, "```json" + chr(10) + routed + chr(10) + "```")[0] is not None
               and A.parse_answer("route", inspect_item, "Answer: " + routed + " (from the text)")[0] is not None
               and A.parse_answer("route", inspect_item, routed[:-1]) == (None, "unparsed"))
+        nonroute = json.dumps({"verdict": "NONE", "clauses_2023": [], "reason": "r"})
+        check("a reply that answers twice (a self-correction after the first object) is refused, never read as its first",
+              A.parse_answer("route", inspect_item, routed + " Correction: " + nonroute) == (None, "two answers"))
         wide = dict(inspect_item, clauses_2023=[{"id": f"1.{n}", "subject": "s"} for n in range(A.MAX_ROUTES + 1)])
         check("a route answer naming more than MAX_ROUTES clauses is refused, and MAX_ROUTES is accepted",
               A.parse_answer("route", wide, json.dumps({"verdict": "ROUTED", "clauses_2023": [c["id"] for c in
