@@ -1,4 +1,4 @@
-## PB4115: an INSPECT TALLYING evaluates a function-identifier once, whatever its counters overlap
+## Entry 3303 — 2026-11-07 22:36 PST — PB4115: an INSPECT TALLYING evaluates a function-identifier once, whatever its counters overlap
 
 kb/Work PB4115 was filed as a duplication analysis: `InspectEmitter.MayReadStorageOf` answered "may" for every
 function-identifier, so the D-INS1 re-run of the tallying cycle (docs/CONFORMANCE.md) re-read the image and the operands
@@ -31,3 +31,4 @@ runtime call, and UNSTRING's `LiveReads.Of` already treats a function result as 
 D-STR4 still evaluates a function a second time at its transfer. The same GR1 reading questions that, so it is reported
 as a lead and left unchanged here, because it reverses a documented determination that a golden pins. The two
 may-share predicates (`StorageSharing` and `StorageOverlap`) stay kb/Work PB1911's job.
+
