@@ -43,6 +43,11 @@ Preface. Defects that are doubtful rather than clear are transcribed AS PRINTED 
 from the Addendum, listed in the Addendum but referenced nowhere, flagged without quoting the printed form and naming
 the printed page, or listed without its printed page. It runs in every gate and in CI.
 
+`ANSI_COBOL_1985.md` follows the same convention (kb/Work PB4972). Its closing section is the **Errata**, because the
+1985 text already has an Addendum of its own (Amendment 1's Addendum 1). Its flags say `see the Errata (Cn)` and name
+the PDF page, the `## Page N` heading of that file, with the printed folio after it. The acknowledgment is reproduced
+exactly as printed in every copy and is never corrected.
+
 ## A note on page numbers
 
 Citations in the transcription and its Addendum use the standard's own **printed folios**, so they can be

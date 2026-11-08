@@ -167,6 +167,19 @@ passes compared all 976 pages, so a page with no claim was found to agree. `veri
 holds the transcription to the ledger (a gate audit and a CI step run it): a repair lost, a claim left undecided or a
 box side the ledger does not account for is refused. A new repair adds its ledger entry in the same change.
 
+**A misprint of the printed page is corrected and listed in the Errata** (owner 2026-11-08, kb/Work PB4972), the 2023
+convention (specs/README.md "Corrections") under the name 1985 needs, because its text already has an Addendum of its
+own (`verify_publishable.CORRECTIONS_SECTION`). A misspelling or a damaged letter is corrected in place, flagged
+with a `> ⚠ **CORRECTED — see the Errata (Cn).**` note that quotes the printed form and names the PDF page (and the
+folio), and listed under `# Errata` at the end of the file; `verify_publishable.py --edition 1985` holds the three
+together. The ledger records how the transcription reads the page; the Errata records where it departs from the page.
+The acknowledgment is never corrected (its slips are Errata `D` entries). A correction inside a general format changes
+its figure verdict's `figure_lines` too, and the verdict becomes `neither` (sweep_figures.load_verdicts: a figure that
+reads differently from the batch's drawing is neither drawing), with the Errata entry named in its reason (C4, page 217).
+The 19 corrections of 2026-11-08 came from a scan for rare words one edit from a common word and a sweep of the body
+for every accented or foreign letter (U+00C0 to U+024F, the dotless i), each read on the rendered page; the scan finds a misprint that makes a non-word, not one that makes
+another real word.
+
 **A level-2 box in prose is a `║` at each end of each boxed block** (`spec_pdf.BOX_SIDE`; the 1985 standard boxes every
 specification unique to level 2 of a module, §1985:I.1.3 and §1985:IV.1). One markup, used everywhere:
 
