@@ -884,6 +884,11 @@ internal static class RuntimeApi
     public static string DecDivTruncatedToOdd(string leftOperand, string rightOperand, int resultScale) =>
         $"{nameof(CobolDec)}.{nameof(CobolDec.DivTruncatedToOdd)}({leftOperand}, {rightOperand}, {resultScale})";
 
+    /// <summary>The FINAL-TRANSFER native quotient of two SDIDI values — <c>CobolDec.DivFinal</c>: round-to-odd at 34 digits, so the
+    /// receiver's one rounding is the exact quotient's (kb/Work PB4641); PROHIBITED screens it as every SDIDI intermediate is.</summary>
+    public static string DecDivFinal(string leftOperand, string rightOperand, string modeExpr) =>
+        $"{nameof(CobolDec)}.{nameof(CobolDec.DivFinal)}({leftOperand}, {rightOperand}, {modeExpr})";
+
     /// <summary>The negation of an SDIDI value, its operand evaluated once — <c>CobolDec.Negate</c>.</summary>
     public static string DecNegate(string operand) => $"{nameof(CobolDec)}.{nameof(CobolDec.Negate)}({operand})";
 
@@ -1061,6 +1066,11 @@ internal static class RuntimeApi
     /// wherever a consumer lowers it (kb/Work PB4587).</summary>
     public static string ExactPow(string exact, string int128Exponent) =>
         $"{nameof(CobolExact)}.{nameof(CobolExact.Pow)}({exact}, {int128Exponent})";
+
+    /// <summary>An exact value raised to a non-integer exponent (<c>CobolExact.PowReal</c>, kb/Work PB4923): the binary64 approximation in
+    /// the kind of its operands; <paramref name="taken"/> is the enabled range conditions' spelling, or null for the unchecked power.</summary>
+    public static string ExactPowReal(string exact, string exponent, string? taken) =>
+        $"{nameof(CobolExact)}.{nameof(CobolExact.PowReal)}({exact}, {exponent}{(taken is null ? "" : ", " + taken)})";
 
     /// <summary>A float ITEM's content as an exact value, every digit of its binary expansion (<c>CobolExact.FromBinary64</c>, kb/Work PB4730).</summary>
     public static string ExactFromBinary64(string doubleExpr) =>
@@ -1683,6 +1693,11 @@ internal static class RuntimeApi
     public static string TableAllArgs(string csType, IEnumerable<string> countLambdas, string elementLambda, string? leadLambda = null) =>
         $"{nameof(CobolTable)}.{nameof(CobolTable.AllArgs)}<{csType}>(new Func<long[], long>[] {{ {string.Join(", ", countLambdas)} }}, {elementLambda}"
         + (leadLambda is null ? ")" : $", {leadLambda})");
+
+    /// <summary>The storage image of a whole table, its current occurrences in storage order — <c>CobolTable.AllImage</c>
+    /// (X3.23-1985 USE FOR DEBUGGING general rule 24 c; kb/Work PB4855).</summary>
+    public static string TableAllImage(IEnumerable<string> countLambdas, string elementLambda) =>
+        $"{nameof(CobolTable)}.{nameof(CobolTable.AllImage)}(new Func<long[], long>[] {{ {string.Join(", ", countLambdas)} }}, {elementLambda})";
 
     /// <summary>The statement that ends the reference when a held table(ALL) argument's copy found no occurrence —
     /// <c>CobolTable.RequireOccurrences(count)</c> (ISO §2023:15.3 14); kb/Work PB4162).</summary>

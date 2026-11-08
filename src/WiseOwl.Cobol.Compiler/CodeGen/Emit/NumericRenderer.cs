@@ -838,7 +838,14 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         string? kernel = op switch { "+" => "Add", "-" => "Sub", "*" => "Mul", "/" => "Div", _ => null };
         if (kernel is null) return a;
         string left = DecOperand(a), right = DecOperand(b);
-        string value = $"CobolDec.{kernel}({left}, {right}, {IntermediateMode})";
+        // ⛔ A NATIVE FINAL-TRANSFER QUOTIENT IS ROUNDED ONCE, AT THE RECEIVER (kb/Work PB4641; DOC-A.1-123): round-to-odd at 34 digits.
+        // Only the STANDARD-DECIMAL lane rounds the quotient itself, its quotient being an SDIDI value (§2023:8.8.1.5); a nested
+        // native quotient never comes here (Divide).
+        // A FLOATING-POINT EDITED receiver whose significand holds 33 to 36 digits (§2023:13.18.40.3 SR15) keeps Div: round-to-odd
+        // at 34 digits preserves the receiver's rounding only while the receiver is at least two digits coarser.
+        string value = op == "/" && !StandardDecimal && _rcv.FloatSignificandDigits <= 32
+            ? RuntimeApi.DecDivFinal(left, right, IntermediateMode)
+            : $"CobolDec.{kernel}({left}, {right}, {IntermediateMode})";
         // Under STANDARD-DECIMAL no nested quotient reads a precision; a quotient here is a final transfer's (Divide owns
         // every nested one), so nothing above it reads its precision either.
         if (StandardDecimal || op == "/") return new NumX(value, 0, Dec: true);
@@ -1493,6 +1500,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// <c>SQRT(10) ** 2</c> = 9.999999988 into 9 (IF136A F-SQRT-25).</summary>
     private NumX Power(NumX b, NumX e, Int128? literalExponent)
     {
+        NumX exactBase = b, exactExponent = e;   // before the lowering below drops an exact operand's float-item mark (PB4923)
         // An exact exponent (NumX.Wide, NumX.Exact) has no power form: it enters on the SDIDI (kb/Work PB1900).
         e = LowerWide(e);
         // ⛔ AN EXACT BASE RAISED TO AN INTEGER EXPONENT KEEPS EVERY DIGIT (kb/Work PB4575 review finding R1-1): the power of an
@@ -1544,6 +1552,13 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
                         Precision: b.Precision is null ? null : b.FractionPrecision * (int)n);
             return new NumX(RuntimeApi.ExactPow(ExactOperand(b), e.Expr), 0, Exact: true);
         }
+        // ⛔ A NON-INTEGER POWER OVER AN EXACT OPERAND IS THE BINARY64 OF ITS OPERANDS' KIND, DECIDED AT RUN TIME (kb/Work PB4923, review
+        // finding R1-1; docs/CONFORMANCE.md DOC-A.1-92b). An exact operand is a nested selection's value (`M ** FUNCTION MAX (F M2)`), which
+        // MAX may have returned as F's content: a float item owns the operation it takes part in (CombineCore's lane note), as `M ** F`
+        // does, and that is a run-time fact (CobolExact.TryBinary64). The lowering above would have dropped the mark, so the operands
+        // enter as they were and CobolExact.PowReal forms the result in its kind.
+        if (exactBase.Exact || exactExponent.Exact)
+            return new NumX(RuntimeApi.ExactPowReal(ExactOperand(DeU(exactBase)), ExactOperand(DeU(exactExponent)), RangeChecks), 0, Exact: true);
         // D16 (NATIVE): a float base/exponent OR a float receiver keeps the result FLOATING (native double) — skip
         // the FromDouble quantize-back that a pure fixed-point power needs, so a float ** stays in the float pipeline.
         // A receiver-less exponentiation keeps the binary64 result for the same reason the float-intrinsic family

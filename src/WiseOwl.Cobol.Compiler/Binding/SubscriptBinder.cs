@@ -24,8 +24,9 @@ internal sealed record EnclosingOccurrence(IReadOnlyList<Position> Subscripts, I
 /// <summary>Which statement's <b>table</b> operand a subscript list is read for (<see cref="ReadSubscripts"/>) —
 /// the operand names a table, not one occurrence of it, so its own level takes no subscript and what is written
 /// is the ENCLOSING tables' occurrences. <see cref="Sort"/>: a Format-2 SORT's data-name-2 (§2023:14.9.40.3 SR13).
-/// <see cref="Search"/>: SEARCH's identifier-1 (§2023:14.9.37.3 SR2), read only for a dynamic-capacity table nested
-/// under other tables, whose scan bound is one instance's current capacity.</summary>
+/// <see cref="Search"/>: SEARCH's identifier-1 (§2023:14.9.37.3 SR2), read for a table nested under other tables: a
+/// dynamic-capacity table's scan bound is one instance's current capacity, and the whole table the statement references is
+/// that occurrence's (kb/Work PB4855).</summary>
 internal enum TableSubject { None, Sort, Search }
 
 /// <summary>ONE written position — a subscript of a subscript list, or a reference modifier's leftmost position or
@@ -133,9 +134,10 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     /// within it) wrote, outermost first, or null when it references none. The positions are taken from the one
     /// committing subscript reading (<see cref="ReadSubscripts"/>), never read a second time: a subscript that
     /// activates a function would activate twice, and a probe (<c>Probing</c>) offers nothing for the same reason.
-    /// <para>Only a dynamic-capacity table needs this: its scan bound is one occurrence's current capacity
-    /// (§2023:8.5.1.9.1), where a fixed or occurs-depending table has one bound for every occurrence of the enclosing
-    /// tables. When a condition references the table at two occurrences, the first reference in source order names it.
+    /// <para>A dynamic-capacity table's scan bound is one occurrence's current capacity (§2023:8.5.1.9.1), where a fixed or
+    /// occurs-depending table has one bound for every occurrence of the enclosing tables; and the whole table SEARCH references
+    /// is that occurrence's for every nested table (kb/Work PB4855). When a condition references the table at two occurrences,
+    /// the first reference in source order names it.
     /// Save/restored like <c>Probing</c>: a nested resolution can re-enter.</para>
     /// <para>⛔ A SUBSCRIPT THAT BEARS A FUNCTION CARRIES ITS PRE-OPS WITH IT. Such a subscript is lowered to a D18
     /// temp whose store (and the activation feeding it) the WHEN condition's per-evaluation wrapper runs INSIDE the

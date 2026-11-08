@@ -1,0 +1,13 @@
+A: SEARCH ALL T
+FOUND B
+  DBT T  [     ] [ABC   ]
+B: SEARCH T
+AT END
+  DBT T  [     ] [ABC   ]
+C: SEARCH C
+FOUND y
+  DBC C  [0002 ] [xyz ]
+E: SEARCH W
+FOUND E
+  DBW [AAAAA] [GGGGGHHHHH]
+END

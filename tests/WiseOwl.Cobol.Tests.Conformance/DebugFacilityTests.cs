@@ -822,4 +822,206 @@ public sealed class DebugFacilityTests
         var lines = stdout.Replace("\r", "").TrimEnd('\n').Split('\n');
         Assert.Equal(["ALLOCATE BP", "  DB1 BP", "SET ADDRESS OF BQ", "  DB2 BQ", "SET P TO ADDRESS OF AX", "  DB3 AX", "END"], lines);
     }
+
+    /// <summary>A Format-2 table SORT names a WHOLE table and its key data-names without the subscripts of the sorted level (kb/Work PB4855):
+    /// each is an operand the statement explicitly references and whose content it changes (X3.23-1985 USE FOR DEBUGGING general rules 5 and
+    /// 6 c), and DEBUG-CONTENTS is "the content of the data item referenced" (rule 24 c): every occurrence of the item under the enclosing
+    /// occurrence the statement names, in storage order, after the sort. DEBUG-SUB-1 is that enclosing occurrence (rule 14) and DEBUG-SUB-2,
+    /// the level the reference ranges over, is spaces. A subscript the statement writes is a reference too (I). A table in a REDEFINES class
+    /// (a shared area) is the same. The table SORT is a 2002 introduction and the facility is 1985's, so the one program that has both is the
+    /// 2002 compile that keeps the removed declarative (--permissive).</summary>
+    [Fact]
+    public void TableSortOperands_AreWholeTableReferences()
+    {
+        const string src = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. DBGTSORT.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            SOURCE-COMPUTER. IBM-PC WITH DEBUGGING MODE.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 TB.
+               02 ROW OCCURS 2 TIMES.
+                  03 E OCCURS 3 TIMES.
+                     04 K PIC X.
+                     04 V PIC 9.
+            01 RB.
+               02 RX PIC X(12).
+            01 RR REDEFINES RB.
+               02 S OCCURS 4 TIMES PIC XXX.
+            01 I PIC 9 VALUE 2.
+            01 X5 PIC X(5).
+            PROCEDURE DIVISION.
+            DECLARATIVES.
+            DB1 SECTION.
+                USE FOR DEBUGGING ON ALL REFERENCES OF K.
+            DB1-B.
+                MOVE DEBUG-SUB-2 TO X5.
+                DISPLAY "  DB1 " DEBUG-NAME (1:1) " " DEBUG-SUB-1 " [" X5 "] [" DEBUG-CONTENTS (1:4) "]".
+            DB2 SECTION.
+                USE FOR DEBUGGING ON E.
+            DB2-B.
+                DISPLAY "  DB2 " DEBUG-NAME (1:1) " " DEBUG-SUB-1 " [" DEBUG-CONTENTS (1:7) "]".
+            DB3 SECTION.
+                USE FOR DEBUGGING ON ALL REFERENCES OF I.
+            DB3-B.
+                DISPLAY "  DB3 [" DEBUG-CONTENTS (1:2) "]".
+            DB4 SECTION.
+                USE FOR DEBUGGING ON S.
+            DB4-B.
+                DISPLAY "  DB4 [" DEBUG-CONTENTS (1:13) "]".
+            DB5 SECTION.
+                USE FOR DEBUGGING ON V.
+            DB5-B.
+                DISPLAY "  DB5 NOT EXPECTED".
+            END DECLARATIVES.
+            MAIN SECTION.
+            M1.
+                MOVE "a1b2c3d4e5f6" TO TB.
+                MOVE "DDDCCCBBBAAA" TO RX.
+                DISPLAY "SORT E (I)".
+                SORT E (I) DESCENDING K.
+                DISPLAY TB.
+                DISPLAY "SORT S".
+                SORT S ASCENDING.
+                DISPLAY RX.
+                STOP RUN.
+            """;
+        var (ok, stdout, detail) = EditionHarness.CompileAndRun(src, 2002, permissive: true);
+        Assert.True(ok, detail);
+        var lines = stdout.Replace("\r", "").TrimEnd('\n').Split('\n');
+        Assert.Equal(["SORT E (I)", "  DB1 K +0002 [     ] [fed ]", "  DB2 E +0002 [f6e5d4 ]", "  DB3 [2 ]", "a1b2c3f6e5d4",
+            "SORT S", "  DB4 [AAABBBCCCDDD ]", "AAABBBCCCDDD"], lines);
+    }
+
+    /// <summary>INITIALIZE of a WHOLE dynamic-capacity table names the table, every current occurrence of it (kb/Work PB4855): identifier-1 is
+    /// the one operand the statement explicitly references and stores (X3.23-1985 USE FOR DEBUGGING general rules 5 and 6 c; rule 9 — the
+    /// element stores the expansion adds are no references of their own), so each kind of section runs ONCE after the statement, with the
+    /// initialized occurrences as DEBUG-CONTENTS (rule 24 c) and no subscript. A table at capacity zero still names the table: the section
+    /// runs, its DEBUG-CONTENTS spaces (the empty content, rule 11's space fill), where a table(ALL) argument over no occurrence would raise
+    /// EC-ARGUMENT-FUNCTION. OCCURS DYNAMIC is a 2014 introduction, so the program is the 2023 compile that keeps the removed declarative
+    /// (--permissive).</summary>
+    [Fact]
+    public void InitializeWholeDynamicTable_IsOneWholeTableReference()
+    {
+        const string src = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. DBGINDYN.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            SOURCE-COMPUTER. IBM-PC WITH DEBUGGING MODE.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 TB.
+               02 T OCCURS DYNAMIC CAPACITY IN TC PIC X.
+            01 UB.
+               02 U OCCURS DYNAMIC CAPACITY IN UC PIC X.
+            01 WB.
+               02 W OCCURS DYNAMIC CAPACITY IN WC PIC X.
+            01 X5 PIC X(5).
+            PROCEDURE DIVISION.
+            DECLARATIVES.
+            DB1 SECTION.
+                USE FOR DEBUGGING ON T.
+            DB1-B.
+                MOVE DEBUG-SUB-1 TO X5.
+                DISPLAY "  DB1 " DEBUG-NAME (1:1) " [" X5 "] [" DEBUG-CONTENTS (1:4) "]".
+            DB2 SECTION.
+                USE FOR DEBUGGING ON ALL REFERENCES OF U.
+            DB2-B.
+                MOVE DEBUG-SUB-1 TO X5.
+                DISPLAY "  DB2 " DEBUG-NAME (1:1) " [" X5 "] [" DEBUG-CONTENTS (1:4) "]".
+            DB3 SECTION.
+                USE FOR DEBUGGING ON ALL REFERENCES OF W.
+            DB3-B.
+                DISPLAY "  DB3 " DEBUG-NAME (1:1) " [" DEBUG-CONTENTS (1:4) "]".
+            END DECLARATIVES.
+            MAIN SECTION.
+            M1.
+                SET TC TO 3.
+                SET UC TO 2.
+                DISPLAY "INITIALIZE T".
+                INITIALIZE T REPLACING ALPHANUMERIC BY "Z".
+                DISPLAY "INITIALIZE U".
+                INITIALIZE U REPLACING ALPHANUMERIC BY "Y".
+                DISPLAY "INITIALIZE W".
+                SET WC TO 0.
+                INITIALIZE W.
+                DISPLAY "END".
+                STOP RUN.
+            """;
+        var (ok, stdout, detail) = EditionHarness.CompileAndRun(src, 2023, permissive: true);
+        Assert.True(ok, detail);
+        var lines = stdout.Replace("\r", "").TrimEnd('\n').Split('\n');
+        Assert.Equal(["INITIALIZE T", "  DB1 T [     ] [ZZZ ]", "INITIALIZE U", "  DB2 U [     ] [YY  ]", "INITIALIZE W", "  DB3 W [    ]", "END"],
+            lines);
+    }
+
+    /// <summary>A nested SEARCH whose identifier-1 writes no subscript takes the enclosing occurrence from the WHEN phrases (§2023:14.9.37.4 GR1:
+    /// "The subscript that is used to determine the occurrence of each superordinate table to search is specified by the user in the WHEN
+    /// phrases"), and those subscripts stay the WHEN phrase's own operands (kb/Work PB4855 review R1-1): an execution that evaluates no WHEN
+    /// phrase does not reference a data item written only there (X3.23-1985 USE FOR DEBUGGING general rules 5 and 6: "If identifier-1 is
+    /// specified in a phrase that is not executed or evaluated, the associated debugging section is not executed"), while identifier-1, the
+    /// table, is referenced by every execution (rule 5) with the WHEN-named occurrence's content (rule 24 c). An index set past the table
+    /// ends the search at once (§2023:14.9.37.4 GR4), so the first SEARCH evaluates no WHEN phrase and runs no section for I. <paramref name="edition"/> 85 is the fixed table; 2023 (--permissive keeps the removed
+    /// declarative) is the dynamic-capacity table, whose scan bound is the WHEN-named instance's capacity, read through the same borrowed
+    /// subscripts.</summary>
+    [Theory]
+    [InlineData(85, "C OCCURS 3 TIMES")]
+    [InlineData(2023, "C OCCURS DYNAMIC CAPACITY IN CC")]
+    public void SearchWhenNamedOccurrence_IsReferencedOnlyWhenTheWhenIsEvaluated(int edition, string occurs)
+    {
+        string src = $"""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. DBGSWHEN.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            SOURCE-COMPUTER. IBM-PC WITH DEBUGGING MODE.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 I PIC 9 VALUE 2.
+            01 NB.
+               02 ROW OCCURS 2 TIMES INDEXED BY RX.
+                  03 {occurs}
+                     INDEXED BY CX PIC X.
+            01 X5 PIC X(5).
+            PROCEDURE DIVISION.
+            DECLARATIVES.
+            DB1 SECTION.
+                USE FOR DEBUGGING ON ALL REFERENCES OF I.
+            DB1-B.
+                DISPLAY "  DB1 [" DEBUG-CONTENTS (1:2) "]".
+            DB3 SECTION.
+                USE FOR DEBUGGING ON ALL REFERENCES OF C.
+            DB3-B.
+                MOVE DEBUG-SUB-2 TO X5.
+                DISPLAY "  DB3 " DEBUG-SUB-1 " [" X5 "] [" DEBUG-CONTENTS (1:4) "]".
+            END DECLARATIVES.
+            MAIN SECTION.
+            M1.
+                MOVE "u" TO C (1, 1).
+                MOVE "v" TO C (1, 2).
+                MOVE "w" TO C (1, 3).
+                MOVE "x" TO C (2, 1).
+                MOVE "y" TO C (2, 2).
+                MOVE "z" TO C (2, 3).
+                DISPLAY "NO WHEN".
+                SET CX TO 3.
+                SET CX UP BY 1.
+                SEARCH C AT END DISPLAY "AT END"
+                    WHEN C (I, CX) = "y" DISPLAY "FOUND".
+                DISPLAY "WHEN".
+                SET CX TO 1.
+                SEARCH C AT END DISPLAY "AT END"
+                    WHEN C (I, CX) = "y" DISPLAY "FOUND".
+                DISPLAY "END".
+                STOP RUN.
+            """;
+        var (ok, stdout, detail) = EditionHarness.CompileAndRun(src, edition, permissive: edition != 85);
+        Assert.True(ok, detail);
+        var lines = stdout.Replace("\r", "").TrimEnd('\n').Split('\n').SkipWhile(l => l != "NO WHEN").ToArray();
+        Assert.Equal(["NO WHEN", "AT END", "  DB3 +0002 [     ] [xyz ]", "WHEN", "FOUND", "  DB1 [2 ]", "  DB3 +0002 [     ] [xyz ]", "END"],
+            lines);
+    }
 }

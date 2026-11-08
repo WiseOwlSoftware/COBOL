@@ -50,6 +50,22 @@ internal static class RecordLayout
         : item.HasBitDescendant ? BitLayout.Characters(BitLayout.ExtentBits(item))
         : item.Children.Where(c => c.RedefinesTargetName is null).Sum(c => ImageContribution(item, c) * (c.Occurs ?? 1));
 
+    /// <summary>The character positions EVERY occurrence of <paramref name="item"/> occupies — <see cref="ImageWidth"/> (one occurrence)
+    /// times the occurrences of each table level on its path: the most a reference that names the item without subscripts (a whole
+    /// table, <c>PlaceBuilder.WholeTable</c>) can hold, which is what X3.23-1985 USE FOR DEBUGGING general rule 15 sizes DEBUG-CONTENTS
+    /// by ("large enough to contain the data required by the following general rules"; rule 24 c, kb/Work PB4855). A fixed or OCCURS
+    /// DEPENDING level counts its maximum (§2023:8.5.1.8). A dynamic-capacity level has no maximum (§2023:8.5.1.9.1 2), so it counts
+    /// its expected capacity (TO integer-5), else its initial capacity (FROM integer-4), at least one; an image past the register's
+    /// width is truncated by the rule 11 move (docs/CONFORMANCE.md D-DEBUG-WHOLE-TABLE (4)). Equal to <see cref="ImageWidth"/> for an
+    /// item in no table.</summary>
+    public static long AllOccurrencesImageWidth(DataItem item)
+    {
+        long width = ImageWidth(item);
+        foreach (var level in item.SubscriptLevels())
+            width *= level.Occurs ?? (level.OccursSpec is { IsDynamic: true } d ? Math.Max(1, d.ExpectedMax ?? d.InitialCap ?? 1) : 1);
+        return width;
+    }
+
     /// <summary>ONE occurrence of <paramref name="child"/> in the character positions of its enclosing
     /// <paramref name="group"/> — see <see cref="ImageWidth"/>: its own width, doubled to storage characters when
     /// the enclosing group is alphanumeric and the child is of class national.</summary>

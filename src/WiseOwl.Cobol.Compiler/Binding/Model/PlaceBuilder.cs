@@ -57,8 +57,8 @@ internal sealed class PlaceBuilder(IPlaceFacts facts)
         if (item.Renames is { } ren) return PlaceForRenames(item, ren, indexExprs, out gap);
         // A WHOLE (unsubscripted) OCCURS DYNAMIC table reference has no element access — it would otherwise fold to a
         // MemberPlace wrapping the bare CobolDynTable<T> object, which is uncompilable in any value context. Fail
-        // LOUD here (data-model D9); FUNCTION LENGTH and other whole-table operations route to a dedicated
-        // DynWholeTablePlace in a later increment. A SUBSCRIPTED dynamic element (indexExprs non-empty) is inc 3's
+        // LOUD here (data-model D9); a statement that names a whole table asks WholeTable, which enumerates the
+        // occurrences (kb/Work PB4855). A SUBSCRIPTED dynamic element (indexExprs non-empty) is inc 3's
         // access path and is NOT caught by this guard.
         if (item.IsDynamicTable && indexExprs.Count == 0) { gap = new(DeferredShape.DynamicWholeTable, item); return null; }
         if (item.Class is { Tier: RedefinesTier.StringCanonical } sc)
@@ -459,6 +459,33 @@ internal sealed class PlaceBuilder(IPlaceFacts facts)
     /// register needs (the two used to be two copies of the switch, each documented as the one).</para></summary>
     internal AllCount? CurrentOccurrenceCount(DataItem table, IReadOnlyList<Position> outerIndexExprs) =>
         OccurrenceCounts.Current(table, table.IsDynamicTable ? BuildTablePath(table, outerIndexExprs) : null, this);
+
+    /// <summary>⛔ THE ONE PLACE OF A WHOLE TABLE — a table, or an item under its element, written WITHOUT the subscripts of the
+    /// levels it ranges over (kb/Work PB4855): SEARCH's identifier-1, a Format-2 table SORT's data-name-2 and each key data-name
+    /// it writes, INITIALIZE of a whole dynamic-capacity table. It is the <see cref="TableAllPlace"/> whose fixed subscripts are
+    /// <paramref name="outer"/> (the enclosing occurrences the statement names, outermost first) and whose ALL levels are every
+    /// remaining level of <paramref name="item"/>, each ranging over its CURRENT occurrences (<see cref="CurrentOccurrenceCount"/>):
+    /// "the effect is as if each table element associated with that subscript position were specified" (ISO/IEC 1989:2023
+    /// §2023:15.3), which is what the data item such a statement references is — every occurrence of it, in storage order. Its
+    /// one reader is the statement's reference (X3.23-1985 USE FOR DEBUGGING general rules 5 and 6) and the debugging section's
+    /// DEBUG-CONTENTS, the storage image of those occurrences (rule 24 c); no statement stores or sends through it.
+    /// <see langword="null"/> when a level's count or the element cannot be addressed — the statement's own element access
+    /// would fail the same way, and its binder reports it.</summary>
+    internal TableAllPlace? WholeTable(DataItem item, IReadOnlyList<Position> outer)
+    {
+        var levels = item.SubscriptLevels();
+        if (outer.Count >= levels.Count) return null;
+        var indices = new LocalVector(new StatementLocal(StatementLocalRole.WholeTableIndices, item.Uid));
+        var positions = new List<Position>(outer);
+        var counts = new List<AllCount>();
+        for (int i = outer.Count; i < levels.Count; i++)
+        {
+            if (CurrentOccurrenceCount(levels[i], positions) is not { } count) return null;
+            counts.Add(count);
+            positions.Add(new PositionLocalElement(indices, counts.Count - 1));
+        }
+        return PlaceForItem(item, positions) is { } element ? new TableAllPlace(element, indices, counts) : null;
+    }
 
     /// <summary>The §2023:13.18.38.4 GR7 check a subscripted reference through <paramref name="level"/> carries
     /// (<see cref="OdoReferenceCheck"/>, kb/Work PB1268): data-name-1's place and integer-1/integer-2 for an OCCURS

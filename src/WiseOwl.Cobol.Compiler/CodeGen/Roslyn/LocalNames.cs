@@ -43,6 +43,7 @@ internal static class LocalNames
         StatementLocalRole.CorrespondingSendingAnchor or StatementLocalRole.CorrespondingReceivingAnchor => "__corr",
         StatementLocalRole.TableAllIndices => "__all",
         StatementLocalRole.HeldTableAllIndices => "__hold",
+        StatementLocalRole.WholeTableIndices => "__whole",
         StatementLocalRole.ReportVaryingCounter => "__kv",
         // Not the program arm's `__lnk` member stem: that carrier is a class member the binder names (kb/Work PB4380).
         StatementLocalRole.MethodFormalCarrier => "__mlnk",
