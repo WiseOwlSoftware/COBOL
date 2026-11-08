@@ -789,6 +789,7 @@ static WiseOwl.Cobol.Runtime.CobolBits.Strided(string![]! occurrences, int strid
 static WiseOwl.Cobol.Runtime.CobolBits.WriteWindowInto(char[]! buffer, int startBit, string! bits) -> void
 static WiseOwl.Cobol.Runtime.CobolBool.FromCharacters(string? v) -> string!
 static WiseOwl.Cobol.Runtime.CobolBool.Store(string? value, int width, bool justifiedRight) -> string!
+static WiseOwl.Cobol.Runtime.CobolDec.DivFinal(WiseOwl.Cobol.Runtime.CobolDec a, WiseOwl.Cobol.Runtime.CobolDec b, WiseOwl.Cobol.Runtime.CobolRounding mode) -> WiseOwl.Cobol.Runtime.CobolDec
 static WiseOwl.Cobol.Runtime.CobolDec.DivTruncatedToOdd(WiseOwl.Cobol.Runtime.CobolDec a, WiseOwl.Cobol.Runtime.CobolDec b, int scale) -> WiseOwl.Cobol.Runtime.CobolDec
 static WiseOwl.Cobol.Runtime.CobolDec.FractionDigits(WiseOwl.Cobol.Runtime.CobolDec value) -> int
 static WiseOwl.Cobol.Runtime.CobolDec.FromApproximation(double d) -> WiseOwl.Cobol.Runtime.CobolDec

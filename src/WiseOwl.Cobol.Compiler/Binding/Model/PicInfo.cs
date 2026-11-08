@@ -473,6 +473,13 @@ public sealed record PicInfo(
     /// parser (the analyzer validated the form; consumers read it through the runtime type).</summary>
     public bool IsFloatEdited { get; init; }
 
+    /// <summary>The digit positions of a FLOATING-POINT numeric-edited item's significand (<c>CobolEdit.FloatMask.SigDigits</c>,
+    /// §2023:13.18.40.3 SR15); 0 for every other item. The compile-time reader of the ONE mask parser, so a final-transfer
+    /// quotient can ask whether the receiver is coarse enough for a 34-digit round-to-odd quotient (kb/Work PB4641).</summary>
+    public int FloatSignificandDigits() =>
+        IsFloatEdited && EditMask is { } mask
+            ? WiseOwl.Cobol.Runtime.CobolEdit.FloatMask.Parse(mask, DecimalPointIsComma).SigDigits : 0;
+
     /// <summary>PICTURE format 2 — the LOCALE phrase (ISO §2023:13.18.40.2; kb/Work PB64 T6): the item is fixed-point
     /// numeric-edited (§2023:13.18.40.4 GR16) whose length is the SIZE phrase's integer-1 (GR17 — <see cref="Length"/>
     /// carries it; the picture contributes only the digit shape), whose editing/de-editing is the named-else-current
