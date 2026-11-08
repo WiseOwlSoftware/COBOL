@@ -219,13 +219,13 @@ internal sealed class SocketTransport : IPeerTransport
         }
     }
 
-    private static void CreateDirectory(string path)
+    internal static void CreateDirectory(string path)
     {
         if (OperatingSystem.IsWindows()) Directory.CreateDirectory(path);
         else Directory.CreateDirectory(path, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
     }
 
-    private static void DeleteQuietly(string path)
+    internal static void DeleteQuietly(string path)
     {
         try { File.Delete(path); }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException) { /* a file already gone is skipped (the refusal rule); one that cannot be deleted stays for the next refusal */ }

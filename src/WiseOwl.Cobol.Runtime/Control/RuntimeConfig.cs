@@ -128,6 +128,11 @@ public static class RuntimeConfig
             "the path of a Unix domain socket the starter listens on; unset or blank = this server was not started by a requestor",
             typeof(Messaging.MessagingSettings), "Messaging/MessagingSettings.cs"),
 
+        new(Messaging.ServerActivation.LogVariable, "messaging",
+            "the log of a message server a requestor started (DESIGN-message-control.md section 5.4.5): the process entry sends standard output and standard error there, appended; set by the runtime that starts the server, not by a user",
+            "the path of a file the server may create and append to; unset or empty = standard output and error are the process's own",
+            typeof(Messaging.ServerActivation), "Messaging/ServerActivation.cs"),
+
         // ── file I-O (IO/FileRegistry.cs — the §2023:14.9.27.4 GR10 / A.1 item 129 key-check opt-out) ──
         new(FileRegistry.KeyCheckVariable, "files",
             "whether an INDEXED file's KEY TABLE is part of the §2023:14.9.27.4 GR10 fixed-file-attribute set the OPEN statement validates (docs/CONFORMANCE.md DOC-A.1-129; GnuCOBOL's COB_KEYCHECK) — off means an OPEN whose declared keys disagree with the store header's succeeds instead of answering '39', and the organization, record type and record sizes are still validated",

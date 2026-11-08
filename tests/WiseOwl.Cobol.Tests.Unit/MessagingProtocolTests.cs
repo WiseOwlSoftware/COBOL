@@ -329,7 +329,7 @@ public sealed class MessagingProtocolTests
         var network = Network();
         int windows = 0;
         network.BetweenListenAndRename = _ => windows++;
-        var requestor = new Peer(network, "req1", definitions: n => n == "LIMITED" ? new ServerDefinition(4, false) : null);
+        var requestor = new Peer(network, "req1", definitions: n => n == "LIMITED" ? new ServerDefinition(4, null) : null);
         requestor.Send("SRV", string.Empty);
         requestor.Send("LIMITED", "12345");
         Assert.Equal([ExceptionCatalog.McsMessageLength, ExceptionCatalog.McsMessageLength], requestor.Results.Select(r => r.ExceptionName));
@@ -503,7 +503,7 @@ public sealed class MessagingProtocolTests
     public void ARequestorWithAStartCommandActivatesOnceAndThenFindsTheServerOrNone()
     {
         var network = Network();
-        var requestor = new Peer(network, "req1", definitions: n => new ServerDefinition(null, HasStart: true));
+        var requestor = new Peer(network, "req1", definitions: n => new ServerDefinition(null, ["start"]));
         var started = new Peer(network, "srvS", "SRV");
         requestor.OnActivate = _ =>
         {
@@ -517,13 +517,13 @@ public sealed class MessagingProtocolTests
         Pump(requestor, started);
         Assert.Equal("WAKE", started.Last.Image);
 
-        var none = new Peer(network, "req2", definitions: n => new ServerDefinition(null, HasStart: true)) { OnActivate = _ => true };
+        var none = new Peer(network, "req2", definitions: n => new ServerDefinition(null, ["start"])) { OnActivate = _ => true };
         none.Send("OTHER", "x");
         Pump(none);
         Assert.Single(none.Activations);                                 // activated once; the server it started never appeared
         Assert.Equal(ExceptionCatalog.McsNoServer, none.Last.ExceptionName);
 
-        var failing = new Peer(network, "req3", definitions: n => new ServerDefinition(null, HasStart: true)) { OnActivate = _ => false };
+        var failing = new Peer(network, "req3", definitions: n => new ServerDefinition(null, ["start"])) { OnActivate = _ => false };
         failing.Send("OTHER", "x");
         Pump(failing);
         Assert.Equal(ExceptionCatalog.McsImp, failing.Last.ExceptionName);

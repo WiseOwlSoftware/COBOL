@@ -146,6 +146,27 @@ public static class StandardStreams
             try { Console.SetError(new StreamWriter(Console.OpenStandardError(), utf8) { AutoFlush = true }); }
             catch (IOException) { /* no such standard handle: nothing to encode (a Windows service) */ }
         }
+        RouteToServerLog(utf8);
+    }
+
+    /// <summary>⛔ A MESSAGE SERVER A REQUESTOR STARTED WRITES TO ITS LOG (docs/rearchitecture/DESIGN-message-control.md §5.4.5; kb/Work PB4745): when the process was started with
+    /// <c>WISEOWL_COBOL_MCS_LOG</c>, standard output and standard error are the file it names, appended, in the encoding above. The requestor that started the process is not
+    /// its console, and a server outlives it. It is the process entry's to do, with the rest of the console (see the class remarks), and a log that cannot be opened is said
+    /// on standard error and leaves the console as it was.</summary>
+    private static void RouteToServerLog(Encoding utf8)
+    {
+        if (Environment.GetEnvironmentVariable(Messaging.ServerActivation.LogVariable) is not { Length: > 0 } path) return;
+        try
+        {
+            var log = TextWriter.Synchronized(new StreamWriter(
+                new FileStream(path, FileMode.Append, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete), utf8) { AutoFlush = true });
+            Console.SetOut(log);
+            Console.SetError(log);
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            Console.Error.WriteLine($"cannot open the message server log '{path}': {e.Message}");
+        }
     }
 
     /// <summary>Apply one console encoding. False when the console refuses it, and then nothing has changed (a setter that
