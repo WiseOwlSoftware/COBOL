@@ -95,7 +95,7 @@ PAT = re.compile(citation.PATTERN + r'[^§"“\n]{0,80}' + QUOTED)
 #:  · the citation must CLOSE — bracket, comma, stop, or the `/` and `·` of a citation list. A `§` followed by
 #:    more prose is an aside about a construct the quote names, not the quote's source (see the order rule).
 POST = re.compile(QUOTED + r'\s{0,2}[(\[]?(?:ISO\s+)?' + citation.PATTERN + r'(?!\.\d)'
-                  r'(?:\s+(?:SR|GR|item|rule)\s?\d+[a-z]?\)?)?\s*(?:[)\],.;:/·]|$)')
+                  r'(?:\s+(?:' + '|'.join(citation.RULE_KINDS) + r'|item|rule)\s?\d+[a-z]?\)?)?\s*(?:[)\],.;:/·]|$)')
 
 #: Marks that a "quote" is elided, marked up, or otherwise not verbatim — never a checkable citation.
 #: ⚠ BOTH SPELLINGS OF THE ELLIPSIS, and the ASCII one was missing until the ELIDED arm measured its absence.

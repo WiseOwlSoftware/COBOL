@@ -696,7 +696,7 @@ vi
 
 ## Page 15
 
-## <u>SECTION X: INTER-PROGRAM COMMUNICATION MODULE</u>
+<u>SECTION X: INTER-PROGRAM COMMUNICATION MODULE</u>
 
 Chapter 1: Introduction to the Inter-Program Communication Module
 
@@ -744,7 +744,7 @@ Chapter 5: Procedure Division in the Inter-Program Communication Module
 | 5.5 | The USE Statement ................................................... | X-34 |
 | 5.6 | The USE BEFORE REPORTING Statement .................................. | X-35 |
 
-## <u>SECTION XI: SORT-MERGE MODULE</u>
+<u>SECTION XI: SORT-MERGE MODULE</u>
 
 Chapter 1: Introduction to the Sort-Merge Module
 
@@ -3825,7 +3825,7 @@ Concepts
 
 <u>SECTION II: CONCEPTS</u>
 
-1. <u>INTRODUCTION</u>
+## 1. <u>INTRODUCTION</u>
 
 COBOL offers many features which allow the user to obtain a necessary function without programming the function in detail. In this section each of these features is discussed, considering the reason for its inclusion in the language and the concept of its use and organization.
 
@@ -5968,7 +5968,7 @@ IV-3
 
 Language Concepts
 
-4. <u>LANGUAGE CONCEPTS</u>
+## 4. <u>LANGUAGE CONCEPTS</u>
 
 4.1 CHARACTER SET
 
@@ -25215,19 +25215,19 @@ History of COBOL
 
 ### APPENDIX A: THE HISTORY OF COBOL
 
-1.  **THE DEVELOPMENT OF COBOL**
+## 1. <u>THE DEVELOPMENT OF COBOL</u>
 
-    1.1 **ORGANIZATION OF COBOL EFFORT**
+## 1.1 ORGANIZATION OF COBOL EFFORT
 
-        On May 28 and 29, 1959, a meeting was held for the purpose of considering both the desirability and the feasibility of establishing a common language for programming of computers in business data processing applications. This meeting was attended by representatives from users, both in private industry and in government, computer manufacturers, and other interested parties. It was agreed that the language must be open-ended and capable of accepting change and amendment, that it should be problem-oriented and machine-independent, and that it should use simple English or pseudo-English and avoid symbolism as far as possible. The COnference on DAta SYstems Languages (CODASYL) developed out of this meeting.
+On May 28 and 29, 1959, a meeting was held for the purpose of considering both the desirability and the feasibility of establishing a common language for programming of computers in business data processing applications. This meeting was attended by representatives from users, both in private industry and in government, computer manufacturers, and other interested parties. It was agreed that the language must be open-ended and capable of accepting change and amendment, that it should be problem-oriented and machine-independent, and that it should use simple English or pseudo-English and avoid symbolism as far as possible. The COnference on DAta SYstems Languages (CODASYL) developed out of this meeting.
 
-        The original COBOL specifications resulted from the work of a committee of CODASYL. By September 1959 this committee had specified a framework upon which an effective common business language could be built. The name COBOL which suggests a COmmon Business Oriented Language was adopted for these specifications. The final report of this committee was accepted by the Executive Committee of CODASYL and published in April 1960. The document was titled: "COBOL - A Report to the Conference on Data Systems Languages, including Initial Specifications for a Common Business Oriented Language (COBOL) for Programming Electronic Digital Computers". The language described in this report has since become known as COBOL-60.
+The original COBOL specifications resulted from the work of a committee of CODASYL. By September 1959 this committee had specified a framework upon which an effective common business language could be built. The name COBOL which suggests a COmmon Business Oriented Language was adopted for these specifications. The final report of this committee was accepted by the Executive Committee of CODASYL and published in April 1960. The document was titled: "COBOL - A Report to the Conference on Data Systems Languages, including Initial Specifications for a Common Business Oriented Language (COBOL) for Programming Electronic Digital Computers". The language described in this report has since become known as COBOL-60.
 
-    1.2 **THE COBOL MAINTENANCE COMMITTEE**
+## 1.2 THE COBOL MAINTENANCE COMMITTEE
 
-        The Executive Committee of CODASYL recognized that the task of defining the COBOL language was a continuing one and that the COBOL language had to be maintained and improved. To this end, the COBOL Maintenance Committee was created in February 1960. The COBOL Maintenance Committee was charged with the task of answering questions arising from users and implementors of the language and making definitive modifications, including additions, clarifications, and changes to the COBOL language.
+The Executive Committee of CODASYL recognized that the task of defining the COBOL language was a continuing one and that the COBOL language had to be maintained and improved. To this end, the COBOL Maintenance Committee was created in February 1960. The COBOL Maintenance Committee was charged with the task of answering questions arising from users and implementors of the language and making definitive modifications, including additions, clarifications, and changes to the COBOL language.
 
-        In order to devote concentrated attention to publishing a revised and updated COBOL specification, the Executive Committee of CODASYL created a Special Task Group. This Special Task Group completed its task in early 1961 and published the COBOL-61 document in mid-1961.
+In order to devote concentrated attention to publishing a revised and updated COBOL specification, the Executive Committee of CODASYL created a Special Task Group. This Special Task Group completed its task in early 1961 and published the COBOL-61 document in mid-1961.
 
 XVII-1
 
@@ -25265,7 +25265,7 @@ XVII-2
 
 History of COBOL
 
-2. <u>THE EVOLUTION OF CODASYL COBOL</u>
+## 2. <u>THE EVOLUTION OF CODASYL COBOL</u>
 
 2.1 COBOL-60
 
@@ -25641,7 +25641,7 @@ XVII-10
 
 History of COBOL
 
-3. <u>THE STANDARDIZATION OF COBOL</u>
+## 3. <u>THE STANDARDIZATION OF COBOL</u>
 
 3.1 INITIAL STANDARDIZATION EFFORT
 
@@ -28296,9 +28296,9 @@ XVII-80
 
 Obsolete Element List
 
-<u>APPENDIX C:  LANGUAGE ELEMENT LISTS</u>
+## <u>APPENDIX C:  LANGUAGE ELEMENT LISTS</u>
 
-1. <u>OBSOLETE LANGUAGE ELEMENT LIST</u>
+## 1. <u>OBSOLETE LANGUAGE ELEMENT LIST</u>
 
 The purpose of the obsolete language element category is to limit the impact of deleting features that are seen as obsolete or improperly specified. It is felt by X3J4 that, although the elements in this category are obsolete, their abrupt removal from Standard COBOL would be a disservice to COBOL users. Features placed in the obsolete element category have the following characteristics:
 
@@ -28689,7 +28689,7 @@ XVII-93
 
 Hardware Dependent Element List
 
-3. <u>HARDWARE DEPENDENT LANGUAGE ELEMENT LIST</u>
+## 3. <u>HARDWARE DEPENDENT LANGUAGE ELEMENT LIST</u>
 
 The following is a list of the COBOL language elements within third Standard COBOL that depend on specific types of hardware components.
 
@@ -28745,7 +28745,7 @@ XVII-95
 
 Undefined Element List
 
-4. <u>UNDEFINED LANGUAGE ELEMENT LIST</u>
+## 4. <u>UNDEFINED LANGUAGE ELEMENT LIST</u>
 
 The following is a list of the COBOL language elements within third Standard COBOL that are explicitly undefined.
 

@@ -149,8 +149,8 @@ def find(lines, cls, text, edition: int):
 
 def check(lines, cls, cited: citation.Citation, text):
     """(exit code, output lines) for `--check`: TEXT must appear inside the cited locator's own region, and, when the
-    citation of an ISO edition names a syntax or general rule (`GR6d.2`), under that rule: the printed path must open
-    with `6)`. A 1985 rule is not checked: that transcription numbers its rules in another style, which `rule_path`
+    citation of an ISO edition names a numbered rule (`GR6d.2`, `AR1`: citation.NUMBERED_RULE), under that rule: the
+    printed path must open with `6)`. A 1985 rule is not checked: that transcription numbers its rules in another style, which `rule_path`
     does not read (its reconciliation is kb/Work PB4850).
 
     ⛔ THE RULE ORDINAL IS CHECKED, NOT ONLY THE CLAUSE (kb/Work PB4887). A whole citation carries its rule, and a
@@ -163,7 +163,7 @@ def check(lines, cls, cited: citation.Citation, text):
     if not needle:
         return 1, [f"FAIL: {EMPTY_NEEDLE}"]
     iso = citation.EDITIONS[cited.edition].locator == "clause"
-    ordinal = m.group(1) if iso and cited.rule and (m := re.match(r"(?:SR|GR)(\d+)", cited.rule)) else None
+    ordinal = m.group(2) if iso and cited.rule and (m := citation.NUMBERED_RULE.match(cited.rule)) else None
     elsewhere = []
     for n, t, s, e in region:
         for i in range(s, e):

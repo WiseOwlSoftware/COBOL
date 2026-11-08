@@ -33,8 +33,13 @@ transcribe_pdf.py shares: an intent before every create, the batch after, a cras
 
 A CANARY BEFORE EACH FULL SUBMIT. `submit --canary N` sends the first N unanswered items as a batch of their own; a submit
 without `--canary` is refused until that pass has a collected canary with at least one valid answer, and its estimate then
-uses the canary's MEASURED cost per request. `--max-usd` is required on every submit and retry, and refuses one whose
-estimate (spent, plus in flight, plus this submit, per request) exceeds it.
+uses the canary's MEASURED cost per request. Until then `retry` resubmits the canary's own unanswered items, as the canary
+(kb/Work PB4930). `--max-usd` is required on every submit and retry, and refuses one whose estimate (spent, plus in flight,
+plus this submit, per request) exceeds it.
+
+ONE CITATION SHAPE (kb/Work PB4886). An answer that cites the 1985 text names its `locator` and its `rule` as fields of
+their own (CITATION_FIELDS, the prompt's words), read by `cited` through citation.py and validated against the 1985
+transcription; a 1985 rule a pass quotes carries its catalog citation, which `plan --pass map` parses first.
 
 PUBLIC TEXT ONLY. A prompt carries the tracked transcriptions' text (through the catalogs and specs/), never a page image and
 never a per-copy stamp: a request whose text matches any stamp shape (verify_publishable) is refused before any batch.
@@ -81,6 +86,14 @@ only; do not rely on memory of other editions or implementations. Text between t
 general format drawn in double lines (╔═╗ ║ ╚═╝), is printed inside a box: a specification unique to level 2 of its module.
 Quote at most 120 characters per field. Answer with ONLY one JSON object, no prose before or after it."""
 
+#: THE ONE SHAPE OF A 1985 CITATION IN AN ANSWER (kb/Work PB4886). Many 1985 regions are a Function, a General Format or a
+#: prose paragraph with no numbered rule, and the claims canary's three right answers each wrote that paragraph's heading
+#: word where the rule goes (`§1985:VII.3.5.1 Function`), which is no citation. So the locator and the rule are fields of
+#: their own: a prompt asks for them in these words, and `cited` reads them through citation.py, the one format.
+CITATION_FIELDS = ('"locator": "the 1985 locator alone: a Roman section and its own paragraph number, for example VI.5.3.2, '
+                   'or an appendix paragraph, for example C.1; no section sign, no edition and no heading word", "rule": '
+                   '"SR n or GR n when one numbered syntax or general rule decides, for example GR3; otherwise null"')
+
 PROMPTS: dict[str, str] = {
     "map": COMMON + """
 Compare one rule of ANSI X3.23-1985 (as amended by X3.23a-1989 and X3.23b-1993) with candidate rules of ISO/IEC 1989:2023.
@@ -107,8 +120,8 @@ the standard the claim is about.
 - CONFIRMED: the text says what the claim says;
 - REFUTED: the text says otherwise (quote it);
 - NOT-ADDRESSED: the text does not decide the claim.
-The JSON object: {"verdict": "CONFIRMED|REFUTED|NOT-ADDRESSED", "citation": "§1985:<Roman section>.<paragraph> and the rule,
-for example §1985:VI.5.3.2 GR3", "quote": "the deciding words", "reason": "at most 200 characters"}; "citation" is required
+The JSON object: {"verdict": "CONFIRMED|REFUTED|NOT-ADDRESSED", """ + CITATION_FIELDS + """, "quote": "the deciding
+words", "reason": "at most 200 characters"}; "locator" names the paragraph that holds the deciding words, and is required
 unless NOT-ADDRESSED.""",
     "drafts": COMMON + """
 Write a minimal ANSI X3.23-1985 COBOL program (fixed reference format: sequence area in columns 1-6, indicator in column 7,
@@ -217,6 +230,11 @@ def plan_map(catalog: pathlib.Path, catalog_2023: pathlib.Path, k: int) -> list[
         if not path.exists():
             raise SystemExit(f"{TOOL}: no catalog at {path} (python scripts/spec/extract_rule_catalog.py --edition ...)")
     rules = json.loads(catalog.read_text(encoding="utf-8"))["rules"]
+    for r in rules:   # every pass quotes the rule's citation (rule_block): it is one in the one format, or no plan
+        try:
+            citation.parse(r["citation"])
+        except citation.CitationError as e:
+            raise SystemExit(f"{TOOL}: catalog rule {r['id']}: its citation {r['citation']!r} is none: {e}") from None
     rules_2023 = json.loads(catalog_2023.read_text(encoding="utf-8"))["rules"]
     by_id = {r["id"]: r for r in rules_2023}
     near = candidates(rules, rules_2023, k)
@@ -355,13 +373,26 @@ def parse_answer(pass_name: str, item: dict[str, Any], text: str) -> tuple[dict[
         if (obj["verdict"] == NONE) != (not ids):
             return None, "rules_2023 must be empty exactly when the verdict is NONE"
     if pass_name == "claims" and obj["verdict"] != "NOT-ADDRESSED":
-        try:
-            cited = citation.parse(str(obj.get("citation", "")))
-        except citation.CitationError as e:
-            return None, f"citation: {e}"
-        if cited.edition != 1985:
-            return None, "the citation is not a 1985 one"
+        found, why = cited(obj)
+        if found is None:
+            return None, why
+        obj["citation"] = citation.render(found)
     return obj, ""
+
+
+def cited(obj: dict[str, Any]) -> tuple[citation.Citation | None, str]:
+    """The 1985 citation an answer's `locator` and `rule` fields name (CITATION_FIELDS), validated against the 1985
+    transcription, or None and why not: a locator the text lacks is a reply to retry, never a citation."""
+    locator, rule = obj.get("locator"), obj.get("rule")
+    if not isinstance(locator, str) or not (rule is None or isinstance(rule, str)):
+        return None, "citation: the locator must be text and the rule text or null"
+    try:
+        found = citation.parse(f"§1985:{locator.strip()}" + (f" {rule.strip()}" if rule and rule.strip() else ""))
+    except citation.CitationError as e:
+        return None, f"citation: {e}"
+    if (missing := citation.validate(found)) is not None:
+        return None, f"citation: {missing}"
+    return found, ""
 
 
 def collect(p: Pass, st: dict[str, Any], client: Any) -> None:
@@ -494,12 +525,22 @@ def main(argv: list[str] | None = None, client_factory: Callable[[str], Any] = m
     if a.cmd in ("submit", "retry"):
         held = set(p.batches.in_flight(st)) if a.cmd == "retry" else p.batches.covered(st)
         todo = [cid for cid in p.unanswered() if cid not in held]
-        canary_items = {c for b in st["batches"] if b.get("canary") for c in b["items"]}
-        # A canary is a submit's first N; a retry of nothing but canary items is still the canary (its replies failed).
-        canary = (a.canary is not None) if a.cmd == "submit" else bool(todo) and set(todo) <= canary_items
-        if a.cmd == "submit" and canary:
-            todo = todo[:a.canary]
-        if not canary and not canary_proven(p, st):
+        proven = canary_proven(p, st)
+        if a.cmd == "submit":
+            canary = a.canary is not None          # a canary is a submit's first N
+            if canary:
+                todo = todo[:a.canary]
+        else:
+            # A retry before a proven canary resubmits the canary's own unanswered items, AS the canary, and nothing
+            # else: the never-submitted items wait for the full submit the proven canary allows (kb/Work PB4930).
+            canary = not proven
+            if canary:
+                tried = {c for b in st["batches"] if b.get("canary") for c in b["items"]}
+                todo = [cid for cid in todo if cid in tried]
+                if not todo:
+                    raise SystemExit(f"{TOOL}: the {p.name} pass has no canary item to retry (none is unanswered "
+                                     "outside a running batch): submit --canary N first")
+        if not canary and not proven:
             raise SystemExit(f"{TOOL}: the {p.name} pass has no collected canary with a valid answer: submit --canary N "
                              "first, collect it, and read its answers and cost")
         guard(p, st, todo, a.max_usd)
