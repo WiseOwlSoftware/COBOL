@@ -580,7 +580,7 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
         if (send is not null && ResolveItem(send) is { } sendItem)
             foreach (var recv in recvs)
                 if (ResolveItem(recv) is { } recvItem && ReferenceEquals(sendItem, recvItem)
-                    && MoveToSameNameFlaggable(sendItem, operandsRefModified: IsRefModified(send) || IsRefModified(recv)))
+                    && MoveToSameNameFlaggable(sendItem, operandsRefModified: ReferenceResolver.ReadWritten(send).IsReferenceModified || ReferenceResolver.ReadWritten(recv).IsReferenceModified))
                 {
                     Flag(FlagOption.Flag02MoveToSameName, ctx.Start.Line,
                         "the MOVE whose sending and receiving operands are the same data description entry");
@@ -613,13 +613,9 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
     /// span of the same DDE). Null for a special register, a name-less reference, or outside a resolvable unit.</summary>
     private DataItem? ResolveItem(CobolParserCore.DataReferenceContext dref)
     {
-        if (_currentRefs is null) return null;
-        DataReferenceCst r = dref;
-        if (r.Register != SpecialRegister.None || r.BaseName is not { } name) return null;
-        var quals = new List<string>();
-        foreach (var suffix in dref.dataReferenceSuffix())
-            if (suffix.qualification()?.cobolWord()?.GetText() is { } q) quals.Add(q);
-        return _currentRefs.Names.FindItem(name, quals);
+        // The ONE silent declaration lookup (kb/Work PB4119): probing, so an ambiguous name is COBOL1639's at its own
+        // statement and not reported a second time here.
+        return _currentRefs?.ProbeDeclaration(dref);
     }
 
     /// <summary>Whether a same-DDE MOVE operand triggers GR4 d: (1) the OPERANDS are category alphanumeric-edited (the
@@ -638,12 +634,6 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
     private static bool MoveToSameNameFlaggable(DataItem item, bool operandsRefModified)
         => (!operandsRefModified && item.Pic is { Category: PicCategory.Alphanumeric, EditMask: not null })
         || (OdoModel.TableUnder(item) is { OccursSpec.Depending: { } dep } && OdoModel.IsWithin(dep, item));
-
-    /// <summary>Whether the reference carries a reference modification (§2023:8.4.3.3): a <c>refModPart</c> suffix, on the
-    /// base word or on a qualifier.</summary>
-    private static bool IsRefModified(CobolParserCore.DataReferenceContext dref)
-        => dref.dataReferenceSuffix().Any(s => s.refModPart() is not null
-            || (s.qualification() is { } q && q.refModPart().Length > 0));   // `X OF G (1:3)`
 
     // ── FLAG-02 e RANGE-EXCEPTION-FOR-INDEX (§2023:7.3.14.4 GR4 e) — a Format-1 index-assignment (SET … TO) or Format-2
     //    index-arithmetic (SET … UP/DOWN BY) whose receiving field is an INDEX-NAME, flagged when EC-RANGE-INDEX
