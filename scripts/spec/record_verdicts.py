@@ -234,14 +234,14 @@ def validate(records: list[tuple[pathlib.Path, int, dict]], schema, catalog: dic
 
         row = by_id.get(rid, {})
         verdict = rec.get("verdict", "")
-        # ⛔ AN OLDER EDITION'S CHANGE RECORD (kb/Work PB4993, lineage.py). A KEPT rule's verdict is its chain's, so its
-        # record carries none; every other check of an older row is the change record's own (`next_errors`), asked of
-        # the row as it will be written.
+        # ⛔ AN OLDER EDITION'S CHANGE RECORD (kb/Work PB4993, lineage.py). A chained (KEPT) rule's verdict is its chain's,
+        # so its record carries none; every other check of an older row is the change record's own (`next_errors`, the
+        # schema's `next`), asked of the row as it will be written.
         if "next" in fields:
             after = {**row, **merged(row, rec, schema, ed)}
-            for err in lineage.next_errors(after, ed, targets or {}):
+            for err in lineage.next_errors(after, ed, schema, targets or {}):
                 bad.append(f"{where}: {err}")
-            if (after.get("next") or {}).get("kind") == lineage.KEPT:
+            if lineage.chained(after, schema):
                 continue
             if not verdict and not row.get("verdict") and set(rec) <= {"rule-id", "next", "notes"}:
                 continue                        # a CHANGED or REMOVED record before its verdict is recorded
@@ -413,7 +413,8 @@ def main() -> int:
         for f in WITNESS_FIELDS:
             added[f] += len(set(schema.split(row.get(f, ""), _sep(f, schema)))
                             - set(schema.split(before.get(f, "") or "", _sep(f, schema))))
-        verdicts[verdict] += 1
+        # A chained (KEPT) row of an older edition holds no verdict of its own: it is counted under its change record.
+        verdicts[verdict or f"next {(row.get('next') or {}).get('kind')}"] += 1
         if row["state"] == "OK":
             closed[verdict] += 1
             if row.get("derivation"):

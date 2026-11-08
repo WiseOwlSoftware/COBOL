@@ -840,11 +840,30 @@ never between every pair. Each rule of the older edition carries one classificat
 A rule of the newer edition that no older row's `to` names is NEW; that is derived, never written. A `next` stores the
 rule ids it links, its `reason` (the words that differ, or what deleted the feature) and its `source` (the audit run or
 the adjudication); its evidence is the citation of the older rule and of each `to` rule, read from their catalogs,
-never stored a second time, and each one `cite.py --check`s against its own text.
+never stored a second time, and each one `cite.py --check`s against its own text. The record's shape is DATA, the
+schema's `next` (kb/Work PB4993): the keys it may carry, the fields that state a verdict, and each kind's flags (does it
+name `to` rules, must it state its `reason`, is its verdict its chain's: `chained`, KEPT alone), read as
+`inventory_schema.ChangeRecord` by `lineage.next_errors` and `lineage.state_of`; no code spells a kind. The one writer
+is `record_verdicts.py --edition <older edition>`.
+
 **Deprecation is not a fourth kind.** The standard itself marks an element obsolete or archaic in an edition
 (§1985:I.1.5.2.3 requires a conforming implementation to support the obsolete elements of what it claims), so `status`
 is a fact of that edition's rule, read from its text into its catalog: KEPT into a row whose status is obsolete, then REMOVED at the next edition, is the
-deprecate-then-remove lifecycle.
+deprecate-then-remove lifecycle. A catalog row's `status` is `normal`, or `obsolete: C.1(n)` naming the list entry (or
+entries) that make it so. The authority is the edition's own enumerated list (§1985:C.1, 18 entries), held once as data
+(`docs/rearchitecture/spec-obsolete-elements-1985.json`, `extract_rule_catalog.OBSOLETE_OF`): per entry its number, the
+terms that name the element in a rule, and the sections that specify it; the entry's name is the list's own text. The
+marking (`scripts/spec/obsolete_elements.py`) is decided per SECTION: an OWN section, whose heading names one of the
+entry's terms (THE ALTER STATEMENT, THE RERUN CLAUSE, the Debug and Segmentation modules), marks every rule; a SHARED
+one (an I-O-CONTROL paragraph beside SAME, a file description entry, VI 3.2 beside PROGRAM-ID, the OPEN, STOP, GO TO,
+DISABLE and ENABLE statements) marks only the syntax and general rules that name a term, never its general format, whose
+later fate is its own CHANGED record. OWN or SHARED is derived from the heading, never held. The drift checks, which the
+RULE CATALOG 1985 audit fails on, hold the data to the text: the entries are exactly the list's items, every section is a
+locator of the text, every "is an obsolete element" sentence falls in a section some entry names (or a section the data
+names as describing the level tables' Z notation), every entry resolves to a rule of its sections that names a term
+(entry 1, double character substitution, is stated in prose outside any rule block and is declared `no-rule`, checked
+both ways), and no shared section's format and no rule outside its entries' sections is marked. 143 rules of the 1985
+catalog are obsolete. A later edition with its own list (2023's §2023:F.2) gets its own data file read by the same code.
 
 **A verdict is held once per chain.** A run of KEPT links is one chain; its verdict, code location and test live on the
 chain's NEWEST row, and an older row in it holds none (the schema refuses them there), so 2023's adjudicated work serves
@@ -853,8 +872,9 @@ the chain's test must also be placed at that edition (the conformance suite's pl
 CHANGED and REMOVED rows, and NEW ones, carry verdicts of their own. The fleet's work is therefore only what changed.
 
 **The audit fills the change records** (§10.3). Its passes are detections. A SAME that the verify pass upholds is
-recorded as KEPT through the one recording path (`record_verdicts.py`, a batch derived from the run's `results.json`, as
-the 2023 derived batches are); a DISPUTED rule goes to a fleet adjudicator, who records KEPT or CHANGED; a DIFFERS or
+recorded as KEPT through the one recording path (`record_verdicts.py --edition 1985`, a batch the run itself writes from
+its dispositions, `audit_batch.py kept-batch`, as the 2023 derived batches are written by `derive_verdict_batch.py`; the
+1985 audit's 759 upheld SAME rules are recorded, kb/Work PB4993); a DISPUTED rule goes to a fleet adjudicator, who records KEPT or CHANGED; a DIFFERS or
 NONE answer is a CHANGED or REMOVED candidate that an adjudicator confirms with its evidence, and then a verdict of its own
 under `--std=<edition>`, its witness a draft from the drafts pass checked against the rule text.
 
