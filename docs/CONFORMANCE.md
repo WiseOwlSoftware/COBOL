@@ -3236,36 +3236,23 @@ a result, so GnuCOBOL 3.2 (libcob, measured on every case below) is the comparat
   3-4 of the receiver gives `..07cd..` (the second transfer continues at 5 although the item now holds `ab`); and the
   pointer item as a sender after a transfer overwrote it gives `05ABefgh`. Pinned by
   `conformance:cases/14.9.43-STRING/pb1908_string_overlap_pointer` (P1 to P3).
-- **D-STR4 — STRING: a FUNCTION operand whose argument can occupy identifier-3 is identified in order and evaluated
-  again when its transfer begins (kb/Work PB1908, row `GR-14.9.43.4-10`).** A function-identifier is an identifier of the statement, and
-  §2023:14.6.4 7) evaluates the identifiers of a statement *"in left to right order as the first operation of the execution
-  of that statement"* (`cite.py --check 14.6.4 "the identifiers within a statement are evaluated in left to right order
-  as the first operation"` → OK, 7)); a statement whose operands share no storage with identifier-3 therefore
-  evaluates its functions with its other identifiers, before any character moves, and so does WiseOwl COBOL. GR10 leaves
-  the other case undefined, and GnuCOBOL evaluates a function in the argument list of `cob_string_append`, when its
-  transfer begins. **WiseOwl COBOL follows GnuCOBOL there, for a function whose argument is a data item that can share
-  identifier-3's storage** (`StringEmitter.ReadsStorageOf` walks a function's arguments, an arithmetic argument and
-  the positions of a reference-modified result; a shape it does not walk, a user-defined function, answers "may"):
-  the function is identified up front like every other operand (its arguments and reference modifiers are evaluated
-  and range-tested in statement order) and then evaluated AGAIN, from the storage the earlier transfers stored, when
-  its own transfer begins. **The FIRST sending is never such a case** (no transfer has stored before it, so GR10
-  cannot reach it), and neither is a function the walk proves disjoint: each is evaluated once, up front, so an
+- **D-STR4 — STRING: a FUNCTION operand is evaluated ONCE, when the statement's identifiers are identified (kb/Work PB4973, PB1908;
+  row `GR-14.9.43.4-10`).** A function-identifier "references a temporary data item whose value is determined when the function is referenced
+  at runtime" (§2023:8.4.3.2.4 GR1; `cite.py --check "§2023:8.4.3.2.4 GR1"` OK), and §2023:14.6.4 7) evaluates the identifiers of a statement
+  *"in left to right order as the first operation of the execution of that statement"* (`cite.py --check "§2023:14.6.4 GR7"` OK). No transfer
+  of the STRING can store into a temporary item, so GR10's overlap (identifier-1 or identifier-2 occupying identifier-3's storage)
+  never reaches a function, whatever its arguments are, and the standard DEFINES the result: `STRING "xy" FUNCTION UPPER-CASE(F)
+  INTO F` over `F = "abcdefgh"` gives `xyABCDEF`, and the delimiter `FUNCTION UPPER-CASE(X(1:1))` after `"z"` filled `X(1:1)` is `Q`, the
+  original, so `"12Z34Q56"` is cut at `Q` (`z12Z34....`). Every function of every sending, the first included, is therefore
+  identified and evaluated once, up front, in statement order (its arguments and reference modifiers range-tested then, so an
   EC-BOUND-REF-MOD in the sender precedes an EC-BOUND-SUBSCRIPT in identifier-3 as §2023:14.6.4 7) and §2023:14.9.49.4 GR11
-  require (kb/Work PB3261; `conformance:cases/14.9.43-STRING/pb1908_string_function_order`). A LATER sending whose
-  function argument is a LINKAGE item (or another reference no declaration pins) cannot be shown disjoint at compile
-  time; it is identified up front too, so a failure inside it interrupts the statement before any character moves
-  (`F6`, `F7`), and it is evaluated again at its transfer. The second evaluation repeats only what the first did, so
-  it is skipped for exactly the functions it would change: **`FUNCTION RANDOM`** (§2023:15.75.3 5): "subsequent references
-  without specifying argument-1 return the next number in the current sequence"; `cite.py --check 15.75.3 "return the
-  next number in the current sequence"` → OK, 5)) and an operand the walk does not know (a user-defined function, an index or counter
-  reference) are rendered inline into their transfer and run once, after the image of the earlier transfers was
-  stored. Measured (cobc 3.2.0 and this build agree): `STRING "xy"
-  FUNCTION UPPER-CASE(F) INTO F` over `F = "abcdefgh"` gives `xyXYCDEF` (an up-front evaluation gives `xyABCDEF`), and
-  the delimiter `FUNCTION UPPER-CASE(X(1:1))` after `"z"` filled `X(1:1)` is `Z`, so `"12Z34Q56"` is cut at `Z`
-  (`z12.......`). A function whose arguments are disjoint from identifier-3 keeps the single up-front evaluation (`F3`).
+  require, kb/Work PB3261; `conformance:cases/14.9.43-STRING/pb1908_string_function_order`); FUNCTION RANDOM and a user-defined
+  function run once like the rest. **This reverses the determination this entry held until PB4973**, which followed GnuCOBOL (cobc
+  3.2.0 evaluates a function in the argument list of `cob_string_append`, when its transfer begins, giving `xyXYCDEF` and `z12.......`):
+  the standard controls (CLAUDE.md rule 1), and GnuCOBOL's behaviour for this case is a divergence, as for INSPECT (D-INS1, PB4115).
+  Only a DATA-ITEM sender or delimiter that can share identifier-3's storage (D-STR1, D-STR2) is read again at its transfer.
   Pinned by `conformance:cases/14.9.43-STRING/pb1908_string_overlap_function` and held by `unit:StringLiveReadDriftTests`
-  (`RepeatableFunctionOverTheReceiver_IsIdentifiedUpFront_AndEvaluatedAgainAtItsTransfer`,
-  `RandomOverTheReceiver_IsEvaluatedOnce_InlineAtItsTransfer`).
+  (`FunctionOverTheReceiver_IsEvaluatedOnceUpFront_AndNeverStoresBetween`, `RandomOverTheReceiver_IsEvaluatedOnce`).
 
 ### 3.2 Nonstandard extensions (§2023:4.2.10; kb/Work PB1525)
 
