@@ -116,7 +116,7 @@ internal sealed class FunctionDeviceText(NumericRenderer num)
                 case (_, "MedianScaled"):
                     return num.StandardDecimal
                         ? RuntimeApi.FunctionFieldMedianStandard(num.IntermediateMode, ArgumentList(ic))
-                        : RuntimeApi.FunctionFieldMedian(ArgumentList(ic));
+                        : RuntimeApi.FunctionFieldMedian(num.IntermediateMode, ArgumentList(ic));
                 case (_, "MeanScaled"): return Field(ic.Args[0]);
             }
         }
