@@ -153,25 +153,25 @@ public sealed class CobolExactIntrinsicsTests
         // §2023:15.98.4 1): {10^43 + 10^10, 10^43} deviate by ±5·10^9 from the exact mean, so the variance is 2.5·10^19; the 34-digit
         // mean of the images rounds 10^43 + 5·10^9 to 10^43 + 10^10 and answered 5·10^19.
         Assert.Equal(0, CobolDec.Compare(new CobolDec(25, 18),
-            CobolIntrinsics.VarianceExact(Away, Sdidi("1000000000000000000000000000000001", 10), Sdidi("1", 43))));
+            CobolIntrinsics.VarianceExact(Away, Sdidi("1000000000000000000000000000000001", 10), Sdidi("1", 43)).Image));
     }
 
     [Fact]
     public void VarianceAndPresentValue_AreTheExactExpression_DividedOnce()
     {
-        Assert.Equal(D("0.25"), CobolIntrinsics.VarianceExact(Away, Wide(P), Wide(P - 1)));
-        Assert.Equal(D("0.5"), CobolIntrinsics.StdDevExact(Away, Wide(P), Wide(P - 1)));
-        Assert.Equal(D("1.555555555555555555555555555555556"), CobolIntrinsics.VarianceExact(Away, Fixed(1), Fixed(2), Fixed(4)));
+        Assert.Equal(D("0.25"), CobolIntrinsics.VarianceExact(Away, Wide(P), Wide(P - 1)).Image);
+        Assert.Equal(D("0.5"), CobolIntrinsics.StdDevExact(Away, Wide(P), Wide(P - 1)).Image);
+        Assert.Equal(D("1.555555555555555555555555555555556"), CobolIntrinsics.VarianceExact(Away, Fixed(1), Fixed(2), Fixed(4)).Image);
         CobolExact e30 = Fixed(1, -30), e30p1 = CobolExact.From(Int128.Parse("1000000000000000000000000000001", CultureInfo.InvariantCulture), 0);
-        Assert.Equal(D("0.2222222222222222222222222222222222"), CobolIntrinsics.VarianceExact(Away, e30, e30p1, e30p1));
-        Assert.Equal(D("0"), CobolIntrinsics.VarianceExact(Away, Wide(P)));                 // one argument: no deviation
+        Assert.Equal(D("0.2222222222222222222222222222222222"), CobolIntrinsics.VarianceExact(Away, e30, e30p1, e30p1).Image);
+        Assert.Equal(D("0"), CobolIntrinsics.VarianceExact(Away, Wide(P)).Image);                 // one argument: no deviation
         // §2023:15.74.4 1): 100 / 1.05 + 100 / 1.05²; 1 / 1.5 − 2 / 1.5² + 0.7 / 1.5³; rate 0 sums the amounts.
-        Assert.Equal(D("185.9410430839002267573696145124717"), CobolIntrinsics.PresentValueExact(Away, Fixed(5, 2), Fixed(100), Fixed(100)));
+        Assert.Equal(D("185.9410430839002267573696145124717"), CobolIntrinsics.PresentValueExact(Away, Fixed(5, 2), Fixed(100), Fixed(100)).Image);
         Assert.Equal(D("-0.01481481481481481481481481481481481"),
-            CobolIntrinsics.PresentValueExact(Away, Fixed(5, 1), Fixed(1), Fixed(-2), Fixed(7, 1)));
-        Assert.Equal(D("1"), CobolIntrinsics.PresentValueExact(Away, Fixed(0), Wide(P), Wide(1 - P)));
+            CobolIntrinsics.PresentValueExact(Away, Fixed(5, 1), Fixed(1), Fixed(-2), Fixed(7, 1)).Image);
+        Assert.Equal(D("1"), CobolIntrinsics.PresentValueExact(Away, Fixed(0), Wide(P), Wide(1 - P)).Image);
         Assert.Equal(D("0.25"), CobolIntrinsics.PresentValueExact(Away, Fixed(3),
-            Sdidi("1000000000000000000000000000000001"), Sdidi("-4", 33)));
+            Sdidi("1000000000000000000000000000000001"), Sdidi("-4", 33)).Image);
     }
 
     [Fact]
@@ -181,9 +181,9 @@ public sealed class CobolExactIntrinsicsTests
         ExceptionState.ArgumentFunctionChecking = false;
         try
         {
-            Assert.Equal(0, CobolIntrinsics.PresentValueExact(Away, Fixed(-1), Fixed(5)).Sig);                       // §2023:15.74.3 r2: the §2023:15.3 default
-            Assert.Equal(0, CobolIntrinsics.PresentValueExact(Away, Sdidi("-1000000000000000000001", -21), Fixed(5)).Sig);
-            Assert.NotEqual(0, CobolIntrinsics.PresentValueExact(Away, Sdidi("-999999999999999999999", -21), Fixed(5)).Sig);
+            Assert.Equal(0, CobolIntrinsics.PresentValueExact(Away, Fixed(-1), Fixed(5)).Image.Sig);                       // §2023:15.74.3 r2: the §2023:15.3 default
+            Assert.Equal(0, CobolIntrinsics.PresentValueExact(Away, Sdidi("-1000000000000000000001", -21), Fixed(5)).Image.Sig);
+            Assert.NotEqual(0, CobolIntrinsics.PresentValueExact(Away, Sdidi("-999999999999999999999", -21), Fixed(5)).Image.Sig);
         }
         finally { ExceptionState.ArgumentFunctionChecking = saved; }
     }
@@ -197,12 +197,12 @@ public sealed class CobolExactIntrinsicsTests
         CobolDec[] images = [D("1"), new CobolDec(1, -6000), D("3")];
         Assert.Equal(CobolIntrinsics.SumDec(Away, images), CobolIntrinsics.SumExact(Away, list).Image);
         Assert.Equal(CobolIntrinsics.MeanDec(Away, images), CobolIntrinsics.MeanExact(Away, list).Image);
-        Assert.Equal(CobolIntrinsics.VarianceDec(Away, images), CobolIntrinsics.VarianceExact(Away, list));
+        Assert.Equal(CobolIntrinsics.VarianceDec(Away, images), CobolIntrinsics.VarianceExact(Away, list).Image);
         Assert.Equal(CobolIntrinsics.ModDec(Away, D("5"), new CobolDec(1, 100)), CobolIntrinsics.ModExact(Away, Fixed(5), huge));
         // A rate of 70 places: the powers of 10^70 leave the wide form at two periods, and the value is formed exactly on the
         // arbitrary-precision form (kb/Work PB4750): 2 / (1 + r) + 3 / (1 + r)^2 = 5 - 8r + ..., rounded away at 34 digits to 5.
         CobolExact rate = CobolExact.From(1, 70);
-        Assert.Equal(0, CobolDec.Compare(D("5"), CobolIntrinsics.PresentValueExact(Away, rate, Fixed(2), Fixed(3))));
+        Assert.Equal(0, CobolDec.Compare(D("5"), CobolIntrinsics.PresentValueExact(Away, rate, Fixed(2), Fixed(3)).Image));
         // The ordering never needs the fallback.
         Assert.Equal(2, CobolIntrinsics.OrdMinExact(Fixed(1), tiny, Fixed(3)));
     }
@@ -214,12 +214,12 @@ public sealed class CobolExactIntrinsicsTests
     public void WorkingNumbersPastTheValueRange_DoNotOverflowAnInRangeResult()
     {
         CobolExact[] list = [.. Enumerable.Repeat(Fixed(0), 9), Sdidi("2", 3072)];
-        CobolDec variance = CobolIntrinsics.VarianceExact(Away, list);
+        CobolDec variance = CobolIntrinsics.VarianceExact(Away, list).Image;
         Assert.Equal(0, CobolDec.Compare(new CobolDec(36, 6142), variance));
-        CobolDec pv = CobolIntrinsics.PresentValueExact(Away, Sdidi("1", 3100), Fixed(1), Fixed(1), Fixed(1));
+        CobolDec pv = CobolIntrinsics.PresentValueExact(Away, Sdidi("1", 3100), Fixed(1), Fixed(1), Fixed(1)).Image;
         Assert.True(CobolDec.Compare(new CobolDec(2, -3100), pv) > 0 && CobolDec.Compare(new CobolDec(5, -3101), pv) < 0);
         // The result's own range is still the caller's: a variance whose VALUE is past 10^6145 stays a size error.
-        Assert.Throws<CobolSizeError>(() => CobolIntrinsics.VarianceExact(Away, Fixed(0), Sdidi("1", 3100)));
+        Assert.Throws<CobolSizeError>(() => CobolIntrinsics.VarianceExact(Away, Fixed(0), Sdidi("1", 3100)).Image);
     }
 
     // ── THE RUN-TIME-SCALED EXACT CARRIER (kb/Work PB4575): an expression in which a wide value meets an SDIDI-carried operand. ──

@@ -1682,8 +1682,13 @@ public sealed record BoundContinueAfter(BoundExpr Seconds, bool CheckLessThanZer
 /// that wrap ONE source statement in synthesized neighbors (first client: object-property references,
 /// ISO §2023:8.4.3.9.4 GR1–GR3 — the pre-GET / statement / post-SET triple over a compiler temp; deep-dive
 /// D-P2). NOT a control-flow construct: no pc identity of its own, both backends render the children
-/// consecutively; a child that transfers control (GO TO/EXIT) behaves exactly as if written in line.</summary>
-public sealed record BoundSequence(IReadOnlyList<BoundStatement> Steps) : BoundStatement;
+/// consecutively; a child that transfers control (GO TO/EXIT) behaves exactly as if written in line.
+/// <para><paramref name="RepeatsPhraseOperands"/> marks a sequence whose steps are COPIES of the pre-ops a conditional phrase's own
+/// per-evaluation window runs again when the phrase is evaluated (a dynamic SEARCH's scan-bound prelude, kb/Work PB3365): the program
+/// wrote their operands in that phrase, so they are the phrase's references and never the statement's (X3.23-1985 USE FOR DEBUGGING
+/// general rules 5 and 6: "If identifier-1 is specified in a phrase that is not executed or evaluated, the associated debugging section
+/// is not executed"; kb/Work PB4977).</para></summary>
+public sealed record BoundSequence(IReadOnlyList<BoundStatement> Steps, bool RepeatsPhraseOperands = false) : BoundStatement;
 
 /// <summary>⛔ ONE WRITTEN STATEMENT THAT *IS* N SEPARATE STATEMENTS — the multi-operand rule the standard states
 /// SEVEN times, once per verb, in identical words: CLOSE (ISO §2023:14.9.6.4 GR10), FREE (§2023:14.9.15.4 GR2), INITIALIZE

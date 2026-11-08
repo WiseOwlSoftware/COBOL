@@ -841,10 +841,11 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // ⛔ A NATIVE FINAL-TRANSFER QUOTIENT IS ROUNDED ONCE, AT THE RECEIVER (kb/Work PB4641; DOC-A.1-123): round-to-odd at 34 digits.
         // Only the STANDARD-DECIMAL lane rounds the quotient itself, its quotient being an SDIDI value (§2023:8.8.1.5); a nested
         // native quotient never comes here (Divide).
-        // A FLOATING-POINT EDITED receiver whose significand holds 33 to 36 digits (§2023:13.18.40.3 SR15) keeps Div: round-to-odd
-        // at 34 digits preserves the receiver's rounding only while the receiver is at least two digits coarser.
-        string value = op == "/" && !StandardDecimal && _rcv.FloatSignificandDigits <= 32
-            ? RuntimeApi.DecDivFinal(left, right, IntermediateMode)
+        // A FLOATING-POINT EDITED receiver whose significand holds 33 to 36 digits (§2023:13.18.40.3 SR15) is not two digits coarser than
+        // the 34, so the final transfer's quotient keeps its significand plus two (CobolDec.DivFinal, kb/Work PB4975): the receiver's
+        // one rounding sees the exact quotient's, as a narrower receiver's does.
+        string value = op == "/" && !StandardDecimal
+            ? RuntimeApi.DecDivFinal(left, right, IntermediateMode, FinalTransferSignificandDigits)
             : $"CobolDec.{kernel}({left}, {right}, {IntermediateMode})";
         // Under STANDARD-DECIMAL no nested quotient reads a precision; a quotient here is a final transfer's (Divide owns
         // every nested one), so nothing above it reads its precision either.
@@ -1238,8 +1239,14 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // INTERMEDIATE ROUNDING IS PROHIBITED screens the 34-digit quotient (below), so it keeps that lane.
         if (_outermost && _rcv.RoundsAtItsScale && intermediate != CobolRounding.Prohibited)
             return new NumX(RuntimeApi.ExactQuotientAtScale(ExactOperand(a), ExactOperand(b), _rcv.Scale, _rcv.Rounding, CheckedLanding), _rcv.Scale);
-        return new(RuntimeApi.ExactDivToOdd(ExactOperand(a), ExactOperand(b), RuntimeApi.RoundingText(intermediate)), 0, Dec: true);
+        return new(RuntimeApi.ExactDivToOdd(ExactOperand(a), ExactOperand(b), RuntimeApi.RoundingText(intermediate), FinalTransferSignificandDigits), 0, Dec: true);
     }
+
+    /// <summary>The significand digits of a FLOATING-POINT EDITED receiver (§2023:13.18.40.3 SR15) when the quotient being rendered is
+    /// its final transfer, else 0: the width the 34-digit round-to-odd quotient must widen to for the receiver's one rounding to equal
+    /// rounding the exact quotient (<c>CobolDec.DivFinal</c>, <c>CobolExact.DivToOdd</c>, kb/Work PB4975). A nested quotient is read by the
+    /// next SDIDI operation, which holds 34 digits, and never widens.</summary>
+    private int FinalTransferSignificandDigits => _outermost ? _rcv.FloatSignificandDigits : 0;
 
     /// <summary>⛔ THE SUBSIDIARY QUOTIENT OF A NATIVE <c>DIVIDE ... REMAINDER</c> OVER EXACT OPERANDS (ISO §2023:14.9.12.4 6) c), kb/Work
     /// PB4640): the quotient of the two operands' EXACT values truncated at identifier-3's <paramref name="scale"/> with every integer
