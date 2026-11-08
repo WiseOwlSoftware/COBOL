@@ -893,6 +893,16 @@ request per clause (247 for 1985), so it is cheap; the heading and the wording s
   submit, priced by the canary's measured cost per request. The map pass on the unreconciled file estimates about $0.017
   a request, about $34 for the pass, before a canary measures it. Until a canary is proven, `retry` resubmits that
   canary's own unanswered items, as the canary, and nothing else (kb/Work PB4930).
+- **A request is built in cache layers, most shared first** (kb/Work PB4998, after Anthropic's notice of 2026-11-08 that
+  this account's direct API traffic had a low prompt-cache hit rate): the pass's instructions are the request's cached
+  `system` (`message_batches.cached_system`), a group's shared part is its cached first user block
+  (`message_batches.cached_text`), and the item's own part comes last (`audit_batch.prompt_parts`). The route pass's group is
+  every request (the list of every 2023 clause, about 7,000 tokens); a map request's is the clause's candidates, which every
+  rule of that 1985 clause and kind shares (`Candidates.clause`), so the rules of one clause read it once, measured on the
+  re-run at 47 % of the map pass's input. The TTL is an hour (`message_batches.CACHE_TTL`), because a batch runs for
+  longer than five minutes and its cache hits are best-effort; `usd` prices the cache writes (twice the input price) and
+  reads (a twentieth on Opus 5.5) the replies report (`message_batches.usage_of`). A prefix below the model's minimum (512
+  tokens on Opus 5.5: each pass's instructions alone) caches nothing and costs nothing.
 - **One citation shape** (kb/Work PB4886): many 1985 paragraphs a reader cites are a Function, a General Format or prose
   with no numbered rule, so an answer names its `locator` and its `rule` as two fields (`audit_batch.CITATION_FIELDS`, the
   prompt's words), read through `citation.py` and validated against the 1985 transcription. The catalog citation every

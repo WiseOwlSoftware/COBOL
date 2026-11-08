@@ -64,14 +64,14 @@ import math
 import pathlib
 import re
 import sys
-from typing import Any, Callable, Iterable
+from typing import Any, Callable, Iterable, NamedTuple
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import citation  # noqa: E402  (THE citation format and the 1985 regions, kb/Work PB4887)
 import spec_pdf  # noqa: E402  (the one edition table, kb/Work PB4815)
 import verify_publishable  # noqa: E402  (the stamp shapes)
 from extract_rule_catalog import OUT, OUT_1985  # noqa: E402  (the 2023 and the 1985 catalogs)
-from message_batches import DEFAULT_MODEL, BatchRun, make_client, reply_text, usd, write_atomic  # noqa: E402  (THE batch state)
+from message_batches import DEFAULT_MODEL, BatchRun, cached_system, cached_text, make_client, reply_text, usd, write_atomic  # noqa: E402  (THE batch state)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/
 from api_key import ACCOUNT_HELP  # noqa: E402
 from standard_streams import ensure_utf8  # noqa: E402
@@ -269,8 +269,20 @@ def routes(state: pathlib.Path) -> dict[str, list[str]]:
     return {answers[cid]["id"]: answers[cid]["answer"]["clauses_2023"] for cid in items}
 
 
+class Candidates(NamedTuple):
+    """A 1985 rule's 2023 candidates, in the two parts `candidates` draws them from: its CLAUSE's (every rule of its kind
+    in the clauses its clause was routed to or shares a heading with), which every rule of that clause and kind shares,
+    and its own by WORDING. The clause part is a request's cached block, so the rules of one clause read it once."""
+    clause: list[str]
+    worded: list[str]
+
+    @property
+    def all(self) -> list[str]:
+        return self.clause + self.worded
+
+
 def candidates(rules_1985: list[dict[str, Any]], rules_2023: list[dict[str, Any]], k: int,
-               routed: dict[str, list[str]]) -> dict[str, list[str]]:
+               routed: dict[str, list[str]]) -> dict[str, Candidates]:
     """The 2023 rules that may state each 1985 rule, ids in order (kb/Work PB4971), from the strongest signal down:
     1. every 2023 rule of the SAME KIND in the clauses the rule's clause was routed to (`routed`, the route pass, closest
        clause first) or shares a heading with (`subject_key`), in catalog order;
@@ -293,7 +305,7 @@ def candidates(rules_1985: list[dict[str, Any]], rules_2023: list[dict[str, Any]
         for w in bag:
             index[w].append(i)
     idf = {w: math.log(len(rules_2023) / len(post)) for w, post in index.items()}
-    out: dict[str, list[str]] = {}
+    out: dict[str, Candidates] = {}
     for r in rules_1985:
         mine = words(r.get("text", "")) | {f"s:{w}" for w in words(r.get("subject", ""))}
         score: dict[int, float] = collections.defaultdict(float)
@@ -309,7 +321,7 @@ def candidates(rules_1985: list[dict[str, Any]], rules_2023: list[dict[str, Any]
         named = set(first)
         worded = [rules_2023[i]["id"] for i in sorted(score, key=lambda j: (-score[j], rules_2023[j]["id"]))
                   if rules_2023[i]["id"] not in named][:k]
-        out[r["id"]] = first + worded
+        out[r["id"]] = Candidates(first, worded)
     return out
 
 
@@ -340,10 +352,18 @@ def plan_map(catalog: pathlib.Path, catalog_2023: pathlib.Path, k: int, state: p
         raise SystemExit(f"{TOOL}: the route answers name 2023 clause(s) this 2023 catalog lacks (e.g. {stale[0]}): the "
                          "route pass was planned from another 2023 catalog")
     near = candidates(rules, rules_2023, k, routed)
+
+    def quoted(ids: list[str]) -> list[dict[str, Any]]:
+        return [{"id": c, "section": by_id[c].get("section"), "subject": by_id[c].get("subject", ""),
+                 "kind": by_id[c]["kind"], "text": by_id[c].get("text", "")} for c in ids]
     return [{"id": r["id"], "rule": {f: r.get(f) for f in ("citation", "module", "level", "box", "subject", "kind", "text")},
-             "candidates": [{"id": c, "section": by_id[c].get("section"), "subject": by_id[c].get("subject", ""),
-                             "kind": by_id[c]["kind"], "text": by_id[c].get("text", "")} for c in near[r["id"]]]}
+             "clause_candidates": quoted(near[r["id"]].clause), "word_candidates": quoted(near[r["id"]].worded)}
             for r in rules]
+
+
+def map_candidates(item: dict[str, Any]) -> list[dict[str, Any]]:
+    """Every candidate of a map item: its clause's, then its own by wording."""
+    return item["clause_candidates"] + item["word_candidates"]
 
 
 def plan_verify(state: pathlib.Path) -> list[dict[str, Any]]:
@@ -356,7 +376,8 @@ def plan_verify(state: pathlib.Path) -> list[dict[str, Any]]:
         a = answers[cid]["answer"]
         if a["verdict"] == SAME:
             chosen = set(a["rules_2023"])
-            out.append({"id": it["id"], "rule": it["rule"], "candidates": [c for c in it["candidates"] if c["id"] in chosen]})
+            out.append({"id": it["id"], "rule": it["rule"],
+                        "candidates": [c for c in map_candidates(it) if c["id"] in chosen]})
     return out
 
 
@@ -422,20 +443,33 @@ def candidate_block(cands: list[dict[str, Any]]) -> str:
                        for c in cands)
 
 
-def prompt_text(pass_name: str, item: dict[str, Any]) -> str:
-    if pass_name in ("map", "verify"):
-        head = "THE 2023 CANDIDATES" if pass_name == "map" else "THE 2023 RULES JUDGED SAME"
-        body = f"{rule_block(item['rule'])}\n\n{head}:\n{candidate_block(item['candidates']) or '(none)'}"
+def prompt_parts(pass_name: str, item: dict[str, Any]) -> tuple[str, str, str]:
+    """A request's text in its three cache layers (Anthropic's notice of 2026-11-08), most shared first:
+    (what every request of the pass shares: its cached `system`; what a GROUP of requests shares: a cached first user
+    block, or "" where the pass has no group; what is the item's own). The route pass's every request shares the list of
+    every 2023 clause; a map request shares its clause's candidates with the other rules of that clause and kind."""
+    shared, group = PROMPTS[pass_name], ""
+    if pass_name == "map":
+        group = f"THE 2023 CANDIDATES OF ITS CLAUSE:\n{candidate_block(item['clause_candidates']) or '(none)'}"
+        own = (f"{rule_block(item['rule'])}\n\nTHE 2023 CANDIDATES BY WORDING:\n"
+               f"{candidate_block(item['word_candidates']) or '(none)'}")
+    elif pass_name == "verify":
+        own = f"{rule_block(item['rule'])}\n\nTHE 2023 RULES JUDGED SAME:\n{candidate_block(item['candidates']) or '(none)'}"
     elif pass_name == "route":
         c = item["clause"]
-        body = (f"THE 1985 CLAUSE ({c['document']} {c['locator']}, {c['module'] or 'no module'} module; subject: "
-                f"{c['subject'] or '-'}; {c['rules']} rule(s), the first of them):\n" + "\n".join(c["sample"])
-                + "\n\nTHE 2023 CLAUSES:\n" + "\n".join(f"{x['id']} {x['subject'] or '-'}" for x in item["clauses_2023"]))
+        shared += "\n\nTHE 2023 CLAUSES:\n" + "\n".join(f"{x['id']} {x['subject'] or '-'}" for x in item["clauses_2023"])
+        own = (f"THE 1985 CLAUSE ({c['document']} {c['locator']}, {c['module'] or 'no module'} module; subject: "
+               f"{c['subject'] or '-'}; {c['rules']} rule(s), the first of them):\n" + "\n".join(c["sample"]))
     elif pass_name == "claims":
-        body = f"THE CLAIM ({item['id']}):\n{item['claim']}\n\nTHE 1985 TEXT (§1985:{item['locator']}):\n{item['text']}"
+        own = f"THE CLAIM ({item['id']}):\n{item['claim']}\n\nTHE 1985 TEXT (§1985:{item['locator']}):\n{item['text']}"
     else:
-        body = rule_block(item["rule"])
-    return PROMPTS[pass_name] + "\n\n" + body
+        own = rule_block(item["rule"])
+    return shared, group, own
+
+
+def prompt_text(pass_name: str, item: dict[str, Any]) -> str:
+    """The whole text the model reads for `item`, its layers in order."""
+    return "\n\n".join(p for p in prompt_parts(pass_name, item) if p)
 
 
 def stamp_shapes() -> list[re.Pattern[str]]:
@@ -445,12 +479,14 @@ def stamp_shapes() -> list[re.Pattern[str]]:
 
 
 def request(pass_name: str, cid: str, item: dict[str, Any], model: str, shapes: list[re.Pattern[str]]) -> dict[str, Any]:
-    text = prompt_text(pass_name, item)
-    if any(p.search(text) for p in shapes):
+    shared, group, own = prompt_parts(pass_name, item)
+    if any(p.search(part) for p in shapes for part in (shared, group, own)):
         raise SystemExit(f"{TOOL}: the {pass_name} request for {item['id']} carries a per-copy stamp shape; nothing submitted")
     return {"custom_id": cid, "params": {"model": model, "max_tokens": MAX_OUTPUT_TOKENS,
                                          "output_config": {"effort": EFFORT[pass_name]},
-                                         "messages": [{"role": "user", "content": [{"type": "text", "text": text}]}]}}
+                                         "system": cached_system(shared),
+                                         "messages": [{"role": "user", "content": [cached_text(group)] * bool(group)
+                                                       + [{"type": "text", "text": own}]}]}}
 
 
 # -- the answers ----------------------------------------------------------------------------------------------------------
@@ -480,7 +516,7 @@ def parse_answer(pass_name: str, item: dict[str, Any], text: str) -> tuple[dict[
             return None, f"clauses_2023 must be empty exactly when the verdict is NONE, and name at most {MAX_ROUTES}"
     if pass_name == "map":
         ids = obj.get("rules_2023")
-        known = {c["id"] for c in item["candidates"]}
+        known = {c["id"] for c in map_candidates(item)}
         if not isinstance(ids, list) or not set(ids) <= known:
             return None, "rules_2023 names a rule that is no candidate"
         if (obj["verdict"] == NONE) != (not ids):

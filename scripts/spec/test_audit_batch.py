@@ -24,7 +24,7 @@ import audit_batch as A  # noqa: E402
 import rule_catalog_1985  # noqa: E402  (THE reader of a level-2 box)
 import spec_pdf  # noqa: E402
 from fake_batches import Crash, FakeBatches, client, succeeded  # noqa: E402  (THE fake client)
-from message_batches import BatchRun, usd  # noqa: E402
+from message_batches import BatchRun, usage_of, usd  # noqa: E402
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
@@ -134,6 +134,23 @@ def main() -> int:
         rtext = A.prompt_text("route", rby["X3.23-1985 VI.6.18"][1])
         check("a route prompt quotes the clause's rules and lists the 2023 clauses by number and subject",
               "§1985:VI.6.18.4 GR2" in rtext and "14.9.21 INSPECT statement" in rtext and "13.18.38 OCCURS clause" in rtext)
+        layers = {k: A.prompt_parts("route", it) for k, (_c, it) in rby.items()}
+        check("every route request shares one system text, the 2023 clause list, and its own part is its clause",
+              len({sh for sh, _g, _o in layers.values()}) == 1
+              and "14.9.21 INSPECT statement" in layers["X3.23-1985 VI.6.18"][0]
+              and "§1985:VI.6.18.4 GR2" in layers["X3.23-1985 VI.6.18"][2]
+              and "14.9.21 INSPECT" not in layers["X3.23-1985 VI.6.18"][2] and layers["X3.23-1985 VI.6.18"][1] == "")
+        check("a cache write costs twice the input price and a read a twentieth, at the batch discount",
+              abs(usd("claude-opus-5-5", 0, 0, 1_000_000, 0) - 4.0) < 1e-9
+              and abs(usd("claude-opus-5-5", 0, 0, 0, 1_000_000) - 0.1) < 1e-9
+              and abs(usd("claude-opus-5-5", 1_000_000, 0) - 2.0) < 1e-9)
+        from types import SimpleNamespace  # noqa: PLC0415
+        cached_reply = SimpleNamespace(usage=SimpleNamespace(input_tokens=700, output_tokens=900,
+                                                             cache_creation_input_tokens=7000, cache_read_input_tokens=0))
+        later_reply = SimpleNamespace(usage=SimpleNamespace(input_tokens=700, output_tokens=900,
+                                                            cache_creation_input_tokens=None, cache_read_input_tokens=7000))
+        check("a reply's usage records its cache write and read (kb/Work PB4998), a missing count as none",
+              usage_of(cached_reply) == [700, 900, 7000, 0] and usage_of(later_reply) == [700, 900, 0, 7000])
         inspect_item = rby["X3.23-1985 VI.6.18"][1]
         check("a route answer names only listed clauses, none for NONE, at most MAX_ROUTES",
               A.parse_answer("route", inspect_item, json.dumps({"verdict": "ROUTED", "clauses_2023": ["14.9.21"], "reason": "r"}))[0]
@@ -162,21 +179,23 @@ def main() -> int:
 
         print("the map plan")
         near = A.candidates(RULES_1985, RULES_2023, 1, A.routes(state))
-        check("a routed clause's rules of the same kind come first, in catalog order, beyond the wording's k",
-              near["1985-GR-VI.6.18.4-2"] == ["GR-14.9.21.4-2", "GR-14.9.21.4-7"])
+        check("a routed clause's rules of the same kind are its clause part, in catalog order, beyond the wording's k",
+              near["1985-GR-VI.6.18.4-2"].clause == ["GR-14.9.21.4-2", "GR-14.9.21.4-7"])
         check("a clause that shares a heading is a route too (THE OCCURS CLAUSE, OCCURS clause), with no route answer",
-              near["1985-SR-VI.5.8.3-1"][0] == "SR-13.18.38.3-1")
+              near["1985-SR-VI.5.8.3-1"].clause == ["SR-13.18.38.3-1"])
         check("a route finds the counterpart the wording does not",
-              near["1985-GR-XV.3.2.4-1"][0] == "GR-14.9.1.4-1")
+              near["1985-GR-XV.3.2.4-1"].all[0] == "GR-14.9.1.4-1")
         check("a rule named by its clause is not named again by its wording",
-              all(len(v) == len(set(v)) for v in near.values()))
+              all(not set(v.clause) & set(v.worded) for v in near.values()))
         twin = dict(RULES_1985[1], id="1993-GR-VI.6.18.4-2", document="X3.23b-1993")
         both = A.candidates([RULES_1985[1], twin], RULES_2023, 0,
-                            {"X3.23-1985 VI.6.18": ["14.9.1", "14.9.21"], "X3.23b-1993 VI.6.18": ["14.9.21"]})
+                            {"X3.23-1985 VI.6.18": ["14.9.21", "14.9.1"], "X3.23b-1993 VI.6.18": ["14.9.21"]})
         check("the clause key carries the document: the same locator in another document has its own route",
-              both["1985-GR-VI.6.18.4-2"][0] == "GR-14.9.1.4-1" and both["1993-GR-VI.6.18.4-2"][0] == "GR-14.9.21.4-2")
-        check("several routed clauses keep the route's closest-first order, not their numbers' order",
-              both["1985-GR-VI.6.18.4-2"] == ["GR-14.9.1.4-1", "GR-14.9.21.4-2", "GR-14.9.21.4-7"])
+              both["1985-GR-VI.6.18.4-2"].clause[-1] == "GR-14.9.1.4-1"
+              and "GR-14.9.1.4-1" not in both["1993-GR-VI.6.18.4-2"].clause)
+        check("several routed clauses keep the route's closest-first order (14.9.21, then 14.9.1), not their numbers' "
+              "order (review w20261922b R2-1)",
+              both["1985-GR-VI.6.18.4-2"].clause == ["GR-14.9.21.4-2", "GR-14.9.21.4-7", "GR-14.9.1.4-1"])
         extra = root / "c85x.json"
         extra.write_text(json.dumps({"rules": RULES_1985 + [dict(RULES_1985[0], id="1985-SR-VI.5.9.3-1",
                                                                  locator="VI.5.9.3", citation="§1985:VI.5.9.3 SR1")]}),
@@ -215,8 +234,17 @@ def main() -> int:
         req = fake.created[0]["requests"][0]
         content = req["params"]["messages"][0]["content"]
         check("a request is text only, Opus, its rule and its candidates' ids in the prompt",
-              [c["type"] for c in content] == ["text"] and req["params"]["model"] == "claude-opus-5-5"
-              and "§1985:VI.5.8.3 SR1" in content[0]["text"] and "[SR-13.18.38.3-1]" in content[0]["text"])
+              all(c["type"] == "text" for c in content) and req["params"]["model"] == "claude-opus-5-5"
+              and "§1985:VI.5.8.3 SR1" in content[-1]["text"]
+              and any("[SR-13.18.38.3-1]" in c["text"] for c in content))
+        ttl = {"type": "ephemeral", "ttl": "1h"}
+        check("a request's pass instructions are its cached system block, an hour's TTL (Anthropic notice 2026-11-08)",
+              req["params"]["system"] == [{"type": "text", "text": A.PROMPTS["map"], "cache_control": ttl}])
+        check("a map request's clause candidates are its cached first user block, before the rule; the rule and its "
+              "wording candidates are its own, uncached",
+              len(content) == 2 and content[0].get("cache_control") == ttl and "OF ITS CLAUSE" in content[0]["text"]
+              and "[SR-13.18.38.3-1]" in content[0]["text"] and "cache_control" not in content[1]
+              and "§1985:VI.5.8.3 SR1" not in content[0]["text"])
 
         print("collect: before and after the canary ends")
         run(["collect", "--pass", "map", *base, *key], fake)
@@ -353,7 +381,8 @@ def main() -> int:
         print("the level-2 box: the preamble names the transcription's own markup")
         side = spec_pdf.BOX_SIDE
         boxed = dict(RULES_1985[0], box="whole", level=2, text=f"{side}(1) A planted rule boxed whole.{side}")
-        texts = {p: A.prompt_text(p, {"rule": boxed, "candidates": RULES_2023[:1], "id": "c1", "claim": "planted",
+        texts = {p: A.prompt_text(p, {"rule": boxed, "candidates": RULES_2023[:1], "clause_candidates": RULES_2023[:1],
+                                      "word_candidates": [], "id": "c1", "claim": "planted",
                                       "locator": "VI.5.8.3", "text": boxed["text"],
                                       "clause": {"locator": "VI.5.8", "document": "X3.23-1985", "module": "Nucleus",
                                                  "subject": "THE OCCURS CLAUSE", "rules": 1, "sample": [boxed["text"]]},
