@@ -1,4 +1,4 @@
-## PB4972: the 1985 transcription corrects 19 misprints of the printed standard and lists them in an Errata
+## Entry 3309 — 2026-11-08 01:04 PST — PB4972: the 1985 transcription corrects 19 misprints of the printed standard and lists them in an Errata
 
 The owner decided on 2026-11-08 that `specs/ANSI_COBOL_1985.md` corrects the misprints it inherits from the printed
 standard and ends with a section listing every correction. Until then the file transcribed misprints as printed.
@@ -18,3 +18,4 @@ transcription had reproduced (piovides, _ables, comment-entrıes, BEFCRE, Fil'es
 217, so its figure verdict now carries BEFORE and is decided `neither`. The acknowledgment stays exactly as printed;
 Amendment 1's copy of it misprints "Commerical", recorded as D2 and not corrected. Eight catalog rule texts changed.
 The KEPT ledger claim for "fopting" written the day before is removed, since the word is now corrected.
+
