@@ -1,4 +1,4 @@
-## PB4933: a declared free word no longer hides the edition refusal of the header it begins
+## Entry 3293 — 2026-11-07 19:03 PST — PB4933: a declared free word no longer hides the edition refusal of the header it begins
 
 **The defect.** At COBOL-85, `01 SCREEN LINE 1.` in a SCREEN SECTION made the section header a syntax error, `COBOL0001:
 unexpected 'SCREEN'`, where the same section without the item draws the named COBOL1560. ISO §2023:8.3.2.1 1) refuses only a
@@ -58,3 +58,4 @@ determined word the program declares, so a program that declares none of these w
 before any parse, so no keyword token exists to keep.
 
 **Gate.** Run 000001 RED (the keyword-rule shape, withdrawn); run 000002 RED on two cases (the recovery-restored SCREEN under `--permissive`, and the edition-read record for `FreeGatedWord`), both fixed; run 000003-20261108T021921Z: `=== BUILD-LOCAL GATE: GREEN — Conformance 22,533/22,533 · Unit 40,483/40,483 · Characterization 37/37 cases ran (skipped 0) ===`.
+
