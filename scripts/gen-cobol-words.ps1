@@ -69,16 +69,11 @@ foreach ($r in $rows) {
     if ($r.PSObject.Properties['reservationGated']) {
         throw "token $($r.token): 'reservationGated' is no longer a JSON field (kb/Work PB693) — the gate is DERIVED from reserved-words.json; delete the flag"
     }
-    # The two determinations a gated word's keyword positions may carry: keywordWhereFree (kb/Work PB3794, step 5c's
-    # keyword rule) and refusalWhereFree (kb/Work PB4933, step 6's IsRefusalWhereFree).
-    foreach ($field in 'keywordWhereFree', 'refusalWhereFree') {
-        $kw = $r.PSObject.Properties[$field]
-        if ($kw -and ($kw.Value -isnot [string] -or [string]::IsNullOrWhiteSpace($kw.Value))) {
-            throw "token $($r.token): $field must be the determination's cited text, not '$($kw.Value)'"
-        }
-    }
-    if ($r.PSObject.Properties['keywordWhereFree'] -and $r.PSObject.Properties['refusalWhereFree']) {
-        throw "token $($r.token): carries both keywordWhereFree and refusalWhereFree - a word whose keyword rule reads the retyped spelling has no keyword token left to keep; drop one"
+    # The determination a gated word's keyword positions may carry: keywordWhereFree (kb/Work PB3794, step 5c's
+    # keyword rule).
+    $kw = $r.PSObject.Properties['keywordWhereFree']
+    if ($kw -and ($kw.Value -isnot [string] -or [string]::IsNullOrWhiteSpace($kw.Value))) {
+        throw "token $($r.token): keywordWhereFree must be the determination's cited text, not '$($kw.Value)'"
     }
 }
 # IDENTIFIER is the base user-defined word — it MUST be in both sets or every name/subscript breaks.
@@ -304,23 +299,6 @@ foreach ($r in $keywordRows) {
     [void]$sb.AppendLine('    ;')
 }
 
-# ---- 5d. The refusalWhereFree words (kb/Work PB4933) — a gated word whose every keyword position heads or sits in a ----
-# construct the editions where §2023:8.9 leaves it free LACK (a later edition's, or one an edition deleted), where no reading
-# of the free word competes. The union grammar spells the construct there so its named edition refusal can answer, and the
-# gate's retype by word turned the header's token into IDENTIFIER too: `01 SCREEN LINE 1.` in a COBOL-85 SCREEN SECTION drew
-# COBOL0001 "unexpected 'SCREEN'" instead of COBOL1560. ReservationGateRewriter KEEPS the keyword token a parse read in a
-# keyword position of such a word (IsRefusalWhereFree, step 6). No grammar rule changes, so no predicate-blind reading of
-# the ATN gains an IDENTIFIER where the header stands. The same two checks as 5c hold the rows.
-$refusalRows = @($rows | Where-Object { $_.PSObject.Properties['refusalWhereFree'] } | Sort-Object -Property token -CaseSensitive)
-foreach ($r in $refusalRows) {
-    if (-not $gated.Contains($r.token)) {
-        throw "token $($r.token): refusalWhereFree on a word the derived gate does not hold — the gate never retypes it, so its keyword token is never lost; drop the determination"
-    }
-    $e = $rwMap[(To-Word $r.token)]
-    if ($e -and $e.r85 -and $e.r2002 -and $e.r2014 -and $e.r2023) {
-        throw "token $($r.token): refusalWhereFree on a word §2023:8.9 reserves at every edition - no edition leaves it free; drop the determination"
-    }
-}
 Set-LfContent -LiteralPath $g4Out -Value $sb.ToString().TrimEnd()
 
 # ---- 6. Emit CobolLexerWordSet.g.cs (the generated `partial class CobolLexer` holding _dataNameTokens) ----
@@ -363,18 +341,6 @@ foreach ($t in $gatedTokens) { [void]$cs.AppendLine("        $t,") }
 [void]$cs.AppendLine('    {')
 foreach ($r in $keywordRows) { [void]$cs.AppendLine("        `"$(To-Word $r.token)`",") }
 [void]$cs.AppendLine('    };')
-[void]$cs.AppendLine('')
-[void]$cs.AppendLine('    /// <summary>The gated words whose keyword token a parse reads in a keyword position is KEPT when the program declares')
-[void]$cs.AppendLine('    /// the word where §2023:8.9 leaves it free: the rows carrying the refusalWhereFree determination (kb/Work PB4933). Every')
-[void]$cs.AppendLine('    /// keyword position of such a word heads or sits in a construct the free editions lack, and no reading of the free word')
-[void]$cs.AppendLine('    /// competes there, so ReservationGateRewriter retypes the word''s other occurrences and the construct still draws its')
-[void]$cs.AppendLine('    /// named edition refusal. Generated, so a determination added tomorrow needs no edit anywhere.</summary>')
-[void]$cs.AppendLine('    internal static bool IsRefusalWhereFree(string word) => _refusalWhereFreeWords.Contains(word);')
-[void]$cs.AppendLine('')
-[void]$cs.AppendLine('    private static readonly System.Collections.Generic.HashSet<string> _refusalWhereFreeWords = new(System.StringComparer.Ordinal)')
-[void]$cs.AppendLine('    {')
-foreach ($r in $refusalRows) { [void]$cs.AppendLine("        `"$(To-Word $r.token)`",") }
-[void]$cs.AppendLine('    };')
 [void]$cs.AppendLine('}')
 Set-LfContent -LiteralPath $csOut -Value $cs.ToString().TrimEnd()
 
@@ -388,7 +354,6 @@ $stats = [ordered]@{
     nameSlotReservedAll4 = $nameSlotReservedAll4.Count   # RW-2: §2023:8.9-funnel-gated name-slot admissions
     reservationGated = $gatedTokens.Count                # 4b: DERIVED — nameSlot words §2023:8.9 reserves at >=1 edition
     keywordRules     = $keywordRows.Count                # 5c: the keywordWhereFree determinations
-    refusalWords     = $refusalRows.Count                # 6: the refusalWhereFree determinations (IsRefusalWhereFree)
     namespace        = $antlrNamespace
 }
 Write-Output ("cobol-words generated: " + (($stats.GetEnumerator() | ForEach-Object { "$($_.Key)=$($_.Value)" }) -join ' '))
