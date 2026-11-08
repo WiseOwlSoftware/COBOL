@@ -134,14 +134,14 @@ def self_test() -> int:
     with tempfile.TemporaryDirectory() as tmp:
         root = pathlib.Path(tmp)
         stub = root / "stubcc.py"
-        stub.write_text(harness._STUB, encoding="utf-8")
+        stub.write_text(harness._STUB, encoding="utf-8", newline="\n")
         (root / "adapters").mkdir()
         (root / "profiles").mkdir()
         adapter = harness._stub_adapter("stub", stub)
         adapter["profile"] = "wiseowl"
-        (root / "adapters" / "stub.json").write_text(json.dumps(adapter), encoding="utf-8")
+        (root / "adapters" / "stub.json").write_text(json.dumps(adapter), encoding="utf-8", newline="\n")
         (root / "profiles" / "wiseowl.json").write_text((REPO / "conformance-suite" / "profiles" / "wiseowl.json")
-                                                        .read_text(encoding="utf-8"), encoding="utf-8")
+                                                        .read_text(encoding="utf-8"), encoding="utf-8", newline="\n")
         state = root / "run"
         drafts = {"1985-GR-A.1-1": ("*> STUB run out HELLO", "output", ["HELLO"]),
                   "1985-GR-A.1-2": ("*> STUB run out BYE", "output", ["HELLO"]),
@@ -153,7 +153,7 @@ def self_test() -> int:
         for n, (rid, (program, outcome, output)) in enumerate(drafts.items()):
             exp = {"outcome": outcome, **({"output": output} if output is not None else {})}
             (p.answers_dir / f"drafts-{n}.json").write_text(json.dumps(
-                {"id": rid, "answer": {"program": program, "expected": exp, "basis": "planted"}}), encoding="utf-8")
+                {"id": rid, "answer": {"program": program, "expected": exp, "basis": "planted"}}), encoding="utf-8", newline="\n")
         record = run_drafts(state, root / "adapters" / "stub.json", {}, "85", 2, "planted")
         got = {rid: r["verdict"] for rid, r in record["runs"].items()}
         ok(got == {"1985-GR-A.1-1": MATCH, "1985-GR-A.1-2": MISMATCH, "1985-SR-A.1-3": MATCH,
