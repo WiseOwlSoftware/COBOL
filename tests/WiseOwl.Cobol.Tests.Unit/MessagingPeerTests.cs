@@ -255,7 +255,7 @@ public sealed class MessagingPeerTests : IDisposable
         string longTemp = Path.Combine(_work, new string('t', McsSocketDirectory.MaxPathBytes)) + Path.DirectorySeparatorChar;     // a host whose temp path is long
         foreach (bool serves in new[] { true, false })
         {
-            var peer = Peer(serves ? "LONGROOT" : null, sockets: identity => McsSocketDirectory.Under(McsSocketDirectory.WindowsDirectory(longTemp, identity)));
+            var peer = Peer(serves ? "LONGROOT" : null, sockets: identity => McsSocketDirectory.Under(McsSocketDirectory.WindowsDirectory(longTemp, longTemp, "fedcba9876543210", identity).Path));   // no short root either
             var result = peer.Send("ANY", MessageBody.Of("X"));                       // a run unit that serves nothing starts at its first statement
             Assert.Equal(ExceptionCatalog.McsImp, result.ExceptionName);
             Assert.Contains("leaves no room", result.Detail);

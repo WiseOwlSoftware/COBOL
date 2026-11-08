@@ -523,10 +523,12 @@ which S0 pins as `MaxPathBytes`. The longest entry adds 33 bytes to `<S>`: `p/` 
 | Linux, `$XDG_RUNTIME_DIR` = `/run/user/<uid>` | `/run/user/<uid>/wiseowl-mcs-<uid>/<h>/` | 94 bytes with a 10-digit uid (82 with uid 1000) | 107 |
 | Linux or macOS, `/tmp` | `/tmp/wiseowl-mcs-<uid>/<h>/` | 78 bytes with a 10-digit uid | 107 (Linux), 103 (macOS) |
 | Windows | `Path.GetTempPath()` + `wiseowl-mcs\<h>\` | 91 bytes plus the user-name segment of `C:\Users\<user>\AppData\Local\Temp\` | 107 (S0) |
+| Windows, the temp path too long | `%ProgramData%\wiseowl-mcs-<u>\<h>\` | 94 bytes under `C:\ProgramData` | 107 (S0) |
 
 macOS never uses its `$TMPDIR`, a per-user directory of about 49 bytes under `/var/folders`, which would make the worst
 case about 115 bytes for uid 501 against 103. `McsSocketDirectory.Resolve` falls back from an
-`$XDG_RUNTIME_DIR` under which `Fits(33)` fails to `/tmp` (§6). The peer then asks `McsSocketDirectory.Fits(33)` once,
+`$XDG_RUNTIME_DIR` under which `Fits(33)` fails to `/tmp`, and on Windows from a temp path under which it fails (a user name over 16
+characters in the default layout, or a TEMP redirected anywhere long) to `%ProgramData%` (§6; kb/Work PB4922). The peer then asks `McsSocketDirectory.Fits(33)` once,
 and a failure is EC-MCS-IMP at the run unit's first messaging statement, with a message naming `<S>` and the limit, so
 whether a run unit can message never depends on the length of a server name.
 
@@ -752,7 +754,12 @@ to the enumeration. `MaxPathBytes` is pinned by S0.
 - **`McsSocketDirectory.Resolve(h)`** names the socket directory `<S>`. On Unix (Linux, macOS) it is
   `<base>/wiseowl-mcs-<uid>/<h>/`, where `<uid>` is the effective user id in decimal (`geteuid` through `libc`) and `<base>` is `$XDG_RUNTIME_DIR` when it is set, absolute and leaves room
   for the longest entry of either facility (`Fits(33)`, the 2023 facility's `p/<N>/<r>`, §5.1), else `/tmp`. It never uses `Path.GetTempPath()` on Unix, because macOS's per-user `$TMPDIR` is too long (§5.1).
-  On Windows it is `Path.GetTempPath()` followed by `wiseowl-mcs\<h>\`, inside a per-user directory. On Unix every
+  On Windows it is `Path.GetTempPath()` followed by `wiseowl-mcs\<h>\`, inside a per-user directory, when `Fits(33)` holds there, else
+  `%ProgramData%\wiseowl-mcs-<u>\<h>\` (`McsSocketDirectory.WindowsDirectory`; kb/Work PB4922), `<u>` the first 16 lower-case hex digits of the SHA-256 of
+  the user's SID. `%ProgramData%` lets every user create a directory, so the user level `wiseowl-mcs-<u>` is created owned by the user with a PROTECTED access
+  list granting the user alone full control (`McsSocketDirectory.SecureWindowsUserLevel`), and an existing one is refused unless the user owns it, its list
+  is protected and it allows no other trustee anything: the Windows twin of mode 0700, with the `/tmp` posture (another user can deny the fallback, never read
+  or plant a socket). On Unix every
   directory it creates is created with mode 0700 (`Directory.CreateDirectory(string, UnixFileMode)`), and an existing
   `wiseowl-mcs-<uid>` or `<h>` whose mode (`File.GetUnixFileMode`) grants anything to group or others is refused, by `McsSocketDirectoryRefusedException` (an `IOException`), which a directory that cannot be created
   throws too. `$XDG_RUNTIME_DIR` must also exist. `Resolve` returns a `McsSocketDirectory` whose `Path` ends in the
