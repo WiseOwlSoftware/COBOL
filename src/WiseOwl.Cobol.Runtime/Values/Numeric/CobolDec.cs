@@ -909,6 +909,15 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     /// caller's single rounding to the result scale (any mode, ≥ 2 digits coarser) equals rounding the exact quotient.</summary>
     public static CobolDec DivToOdd(CobolDec a, CobolDec b) => Div(a, b, CobolRounding.Truncation, jam: true);
 
+    /// <summary>⛔ THE FINAL-TRANSFER NATIVE QUOTIENT OF SDIDI OPERANDS (kb/Work PB4641; DOC-A.1-123): the quotient reduced to 34 digits
+    /// by ROUND-TO-ODD, so the receiver's ONE rounding equals rounding the exact quotient. <see cref="Div(CobolDec, CobolDec, CobolRounding)"/>
+    /// rounded at the program's mode here and the receiver rounded again: `9.99…9E-1 / 2.0E0`, an exact 35th-digit tie, stored 1 under
+    /// ROUNDED and .5000… in a truncating receiver, where the value is below .5. PROHIBITED keeps its screening (§2023:11.9.11.2 GR2d:
+    /// an inexact quotient raises EC-SIZE-TRUNCATION), the one mode the jam would hide. The STANDARD-DECIMAL lane does not come here:
+    /// its quotient IS an SDIDI value (§2023:8.8.1.5) and rounds at the program's mode.</summary>
+    public static CobolDec DivFinal(CobolDec a, CobolDec b, CobolRounding mode) =>
+        Div(a, b, mode, jam: mode != CobolRounding.Prohibited);
+
     private static CobolDec Div(CobolDec a, CobolDec b, CobolRounding mode, bool jam)
     {
         if (b.Sig == 0) throw CobolSizeError.ZeroDivide();
