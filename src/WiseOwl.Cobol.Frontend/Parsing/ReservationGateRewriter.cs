@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
+using WiseOwl.Cobol.Frontend.Cst;
 using WiseOwl.Cobol.Frontend.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Runtime;
@@ -38,15 +39,22 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// arrives as <c>IDENTIFIER</c> as well. Such a word's row carries the <c>keywordWhereFree</c> determination and the
 /// grammar reads it only through its generated <c>&lt;word&gt;Keyword</c> rule, which accepts the token or the retyped
 /// spelling (kb/Work PB2623, PB3794; <c>CobolWordsDriftTests</c> re-derives the 2023 members from the standard).</para>
-/// <para><b>But a later construct's keyword is kept.</b> A word whose every keyword position heads or sits in a construct the
-/// free editions LACK (SCREEN SECTION, LOCAL-STORAGE SECTION, the REPOSITORY and OPTIONS paragraphs at COBOL-85; the
-/// COMMUNICATION SECTION and its CD at 2014 and 2023; the five comment paragraphs from 2002) carries the
-/// <c>refusalWhereFree</c> determination, and the keyword tokens a pass read in such a position are not retyped
-/// (<see cref="TokenRetypes.KeptKeywords"/>): the union grammar spells the construct there so its named edition refusal can
-/// answer, and retyping the header made <c>01 SCREEN LINE 1.</c> in a COBOL-85 SCREEN SECTION a COBOL0001 at the header
-/// (kb/Work PB4933). Kept rather than read by a keyword rule: an IDENTIFIER arm at a header would sit in every
-/// predicate-blind reading of the ATN the error strategy makes (the recovery sets, the missing-period walk, the
-/// closed-format residue) and read every user-defined word there as that header.</para>
+/// <para><b>But where the user-word reading fails, the keyword is put back.</b> The union grammar spells a later
+/// edition's construct (and one an edition deleted) at the editions that lack it, so its named edition refusal can
+/// answer, and the word that heads or begins it is free exactly there: retyped with the rest, <c>01 SCREEN LINE 1.</c> in
+/// a COBOL-85 SCREEN SECTION made the section header a COBOL0001 (kb/Work PB4933), and <c>01 TYPEDEF PIC X.</c> made
+/// <c>01 T PIC X TYPEDEF.</c> an unknown clause, COBOL1941, instead of the clause's COBOL0900 (kb/Work PB4958). So the gate
+/// remembers each token of a freed word that the pass before its retype read in a keyword position, and a later pass
+/// whose USER-WORD reading of that very token fails, a syntax error at it or a closed format's error production
+/// (<see cref="ClosedFormats.IsErrorProduction"/>) that holds it, gets its keyword back
+/// (<see cref="TokenRetypes.KeptKeywords"/>): the word's only readings are the user-defined word and its keyword
+/// (§2023:8.3.2.1), and the first has failed there. Decided per OCCURRENCE by the parse, never per word by a list: the same
+/// word is a name wherever a name reading parses (<c>ASCENDING KEY IS K TYPEDEF</c> at COBOL-85 keys the table on the item
+/// TYPEDEF, where the clause reading also parses), and a statement verb at the start of a sentence is the paragraph
+/// header it reads as (<c>GOBACK.</c> where the program declares GOBACK). Put back rather than read by a keyword rule: an
+/// IDENTIFIER arm at a header would sit in every predicate-blind reading of the ATN the error strategy makes (the recovery
+/// sets, the missing-period walk, the closed-format residue) and read every user-defined word there as that
+/// header.</para>
 /// <para><b>Why DECLARED, not merely free.</b> The union grammar still spells the word's constructs at editions
 /// that lack them, so the named edition gate can answer (<c>GOBACK.</c> at COBOL-85 → "requires COBOL-2002"), and
 /// the migration mode (<c>--permissive</c>) admits a word the edition added while it is ALSO that edition's
@@ -80,7 +88,12 @@ public static class ReservationGateRewriter
     /// <para><paramref name="parsePass"/> parses the whole stream once from token 0 into the bag it is handed, and
     /// attaches the listener it is handed to its AUTHORITATIVE pass only (never a speculative SLL pass, which can
     /// fail where full LL succeeds) — that listener is the gate's second witness,
-    /// <see cref="CobolParserCoreBase.NoteGatedOffender"/>.</para></summary>
+    /// <see cref="CobolParserCoreBase.NoteGatedOffender"/>.</para>
+    /// <para>⛔ A THIRD ROUND PUTS A KEYWORD BACK (kb/Work PB4933, PB4958): before a word's retype, the pass's tree says
+    /// which of its tokens it read in a keyword position (<see cref="KeywordsReadIn"/>); a later pass whose user-word reading
+    /// of such a token fails (<see cref="NameReadingsRefused"/>) gives it its keyword type again
+    /// (<see cref="TokenRetypes.KeptKeywords"/>), and the source is parsed again. Each such round keeps at least one more
+    /// token of a finite set, so the loop still ends.</para></summary>
     public static CobolParserCore.CompilationUnitContext ParseToFixpoint(CobolParserCore parser,
         CommonTokenStream tokens, TokenRetypes retypes, DiagnosticBag diagnostics,
         Func<DiagnosticBag, IAntlrErrorListener<IToken>, CobolParserCore.CompilationUnitContext> parsePass)
@@ -89,6 +102,9 @@ public static class ReservationGateRewriter
         // later round's decisions ADD to them instead of replacing them.
         var freed = new HashSet<string>(retypes.FreedReservedWords, StringComparer.Ordinal);
         var zeroSigns = new ZeroSignReading(tokens);
+        // The source offsets of the tokens of a freed word that a pass read in a keyword position before the word's retype:
+        // the occurrences whose keyword reading the gate has SEEN parse, the only ones it may put back.
+        var keywordReadings = new HashSet<int>();
         while (true)
         {
             var passDiagnostics = new DiagnosticBag();
@@ -97,13 +113,20 @@ public static class ReservationGateRewriter
             // The words the recovery of this pass read as names (kb/Work PB4218) are the pass's own repair: put back before
             // the gate looks for the keyword tokens it retypes, and before another pass reads the stream.
             parser.RestoreWordsReadAsNames();
+            // A refused user-word reading is settled FIRST: what the pass found after it may be its consequence. `OPTIONS.`
+            // read as an unknown paragraph left `DEFAULT ROUNDED MODE …` no paragraph to sit in, and the syntax error at
+            // DEFAULT would free DEFAULT too, so the restored OPTIONS paragraph lost its clause (kb/Work PB4958). A
+            // declaration the pass found is found again by the next one.
+            if (NameReadingsRefused(tree, tokens, witness.Offenders, keywordReadings, retypes.KeptKeywords) is { Count: > 0 } refused)
+            {
+                retypes = retypes with { KeptKeywords = new HashSet<int>(retypes.KeptKeywords.Concat(refused)) };
+                Retype(tokens, retypes.FreedReservedWords, retypes.KeptKeywords);
+                continue;
+            }
             if (parser.FreeGatedDeclarations.Where(freed.Add).ToList() is { Count: > 0 } newlyFreed)
             {
-                retypes = retypes with
-                {
-                    FreedReservedWords = new HashSet<string>(freed, StringComparer.Ordinal),
-                    KeptKeywords = KeywordsReadIn(tree, newlyFreed, parser.DeclaredGatedWords, retypes.KeptKeywords),
-                };
+                keywordReadings.UnionWith(KeywordsReadIn(tree, newlyFreed, witness.Offenders));
+                retypes = retypes with { FreedReservedWords = new HashSet<string>(freed, StringComparer.Ordinal) };
                 Retype(tokens, retypes.FreedReservedWords, retypes.KeptKeywords);
                 continue;
             }
@@ -131,21 +154,18 @@ public static class ReservationGateRewriter
         }
     }
 
-    /// <summary>⛔ THE KEYWORD TOKENS A PASS READ IN A KEYWORD POSITION OF A DECLARED <c>refusalWhereFree</c> WORD (kb/Work
-    /// PB4933): <paramref name="kept"/> with, for each word of <paramref name="newlyFreed"/> that the pass DECLARED
-    /// (<paramref name="declared"/>; a word only a syntax error freed was refused in its keyword reading) and whose row carries
-    /// the determination (<see cref="CobolLexer.IsRefusalWhereFree"/>), the source offset of every token of it the tree holds
-    /// outside a user-defined-word slot. Every keyword position of such a word heads or sits in a construct the editions that
-    /// free it lack, where no reading of the free word competes (the row's determination), so the keyword the parse read
-    /// there IS the construct's keyword: <c>SCREEN SECTION.</c> stays the SCREEN SECTION after <c>01 SCREEN LINE 1.</c>
-    /// declares SCREEN at COBOL-85, and the source draws the section's named COBOL1560, not "unexpected 'SCREEN'". The tree
-    /// is walked only when such a word was freed, which nearly no program does.</summary>
-    private static IReadOnlySet<int> KeywordsReadIn(IParseTree tree, List<string> newlyFreed, IReadOnlyCollection<string> declared,
-        IReadOnlySet<int> kept)
+    /// <summary>⛔ THE TOKENS OF A NEWLY FREED WORD THIS PASS READ IN A KEYWORD POSITION (kb/Work PB4933, PB4958): the source
+    /// offset of every token of a word of <paramref name="newlyFreed"/> that the tree holds outside a user-defined-word slot,
+    /// in a rule that spells the token (<see cref="RuleSpells"/>), and that was no syntax error's offending token
+    /// (<paramref name="offenders"/>: its keyword reading is the one that failed, so <c>01 LOCAL-STORAGE SECTION.</c> at
+    /// COBOL-85 stays an entry named LOCAL-STORAGE). These are the occurrences whose keyword reading the gate has seen parse;
+    /// <see cref="NameReadingsRefused"/> gives one its keyword back only where its user-word reading then fails. The tree is
+    /// walked only when a word was freed, which nearly no program does.</summary>
+    private static HashSet<int> KeywordsReadIn(IParseTree tree, List<string> newlyFreed, List<IToken> offenders)
     {
-        var words = newlyFreed.Where(w => CobolLexer.IsRefusalWhereFree(w) && declared.Contains(w)).ToHashSet(StringComparer.Ordinal);
-        if (words.Count == 0) return kept;
-        var result = new HashSet<int>(kept);
+        var words = newlyFreed.ToHashSet(StringComparer.Ordinal);
+        var refused = offenders.Select(t => t.StartIndex).ToHashSet();
+        var result = new HashSet<int>();
         var spells = new Dictionary<(int Rule, int Token), bool>();
         var work = new Stack<IParseTree>();
         work.Push(tree);
@@ -155,7 +175,7 @@ public static class ReservationGateRewriter
             {
                 if (terminal is not IErrorNode && symbol.TokenIndex >= 0 && CobolLexer.IsReservationGated(symbol.Type)
                     && terminal.Parent is ParserRuleContext { RuleIndex: var rule } && rule != CobolParserCore.RULE_reservedGatedWord
-                    && words.Contains(CobolNames.UpperFold(symbol.Text))
+                    && words.Contains(CobolNames.UpperFold(symbol.Text)) && !refused.Contains(symbol.StartIndex)
                     && (spells.TryGetValue((rule, symbol.Type), out bool known) ? known : spells[(rule, symbol.Type)] = RuleSpells(rule, symbol.Type)))
                     result.Add(symbol.StartIndex);
                 continue;
@@ -179,26 +199,69 @@ public static class ReservationGateRewriter
         return false;
     }
 
-    /// <summary>Retype every default-channel reservation-gated keyword token whose word is in
-    /// <paramref name="freed"/> (upper-case) to <c>IDENTIFIER</c>, keeping its source spelling, but a token whose source
-    /// offset is in <paramref name="kept"/> (<see cref="TokenRetypes.KeptKeywords"/>, kb/Work PB4933). Returns how many
-    /// tokens changed; the stream is rewound.</summary>
-    public static int Retype(CommonTokenStream tokens, IReadOnlySet<string> freed, IReadOnlySet<int> kept)
+    /// <summary>⛔ THE TOKENS WHOSE USER-WORD READING THIS PASS REFUSED, AND WHOSE KEYWORD READING AN EARLIER PASS READ (kb/Work
+    /// PB4958): each offset of <paramref name="keywordReadings"/> not yet in <paramref name="kept"/> whose token is now a
+    /// user-defined word and is either a syntax error's offending token (<paramref name="offenders"/>) or held by a closed
+    /// format's error production (<see cref="ClosedFormats.IsErrorProduction"/>, the run <c>ClosedFormatPass</c> refuses as no
+    /// clause or paragraph of the format). §2023:8.3.2.1 leaves a word §2023:8.9 frees two readings, the user-defined word and
+    /// its keyword; the first failed there, so the token is the keyword the earlier pass read it as, and its construct
+    /// draws its own diagnosis (<c>01 T PIC X TYPEDEF.</c> at COBOL-85 is the TYPEDEF clause's COBOL0900, not the unknown
+    /// clause's COBOL1941). The tree is walked only while such an offset waits, which nearly no program has.</summary>
+    private static List<int> NameReadingsRefused(IParseTree tree, CommonTokenStream tokens, List<IToken> offenders,
+        HashSet<int> keywordReadings, IReadOnlySet<int> kept)
     {
-        if (freed.Count == 0) return 0;
+        var waiting = keywordReadings.Where(o => !kept.Contains(o)).ToHashSet();
+        if (waiting.Count == 0) return [];
+        var refused = offenders.Select(t => t.StartIndex).Where(waiting.Contains).ToHashSet();
+        var work = new Stack<IParseTree>();
+        work.Push(tree);
+        while (work.TryPop(out var node))
+        {
+            if (node is not ParserRuleContext ctx) continue;
+            if (ClosedFormats.IsErrorProduction(ctx.RuleIndex) && ctx.Start is { TokenIndex: >= 0 } start && ctx.Stop is { } stop)
+            {
+                for (int i = start.TokenIndex; i <= stop.TokenIndex; i++)
+                    if (waiting.Contains(tokens.Get(i).StartIndex)) refused.Add(tokens.Get(i).StartIndex);
+                continue;
+            }
+            for (int i = 0; i < ctx.ChildCount; i++) work.Push(ctx.GetChild(i));
+        }
+        return [.. refused];
+    }
+
+    /// <summary>Retype every default-channel reservation-gated keyword token whose word is in <paramref name="freed"/>
+    /// (upper-case) to <c>IDENTIFIER</c>, keeping its source spelling, but a token whose source offset is in
+    /// <paramref name="kept"/> (<see cref="TokenRetypes.KeptKeywords"/>, kb/Work PB4933, PB4958), which keeps its keyword type
+    /// or, retyped by an earlier round of the same stream, gets it back (<see cref="RetypedToken"/>). The stream is
+    /// rewound.</summary>
+    public static void Retype(CommonTokenStream tokens, IReadOnlySet<string> freed, IReadOnlySet<int> kept)
+    {
+        if (freed.Count == 0) return;
         tokens.Fill();
         var list = tokens.GetTokens();
-        int idType = CobolKeywordTokens.IdentifierType, changed = 0;
         for (int i = 0; i < list.Count; i++)
         {
             var tok = list[i];
-            if (tok.Channel != Lexer.DefaultTokenChannel || !CobolLexer.IsReservationGated(tok.Type)) continue;
+            int keywordType = tok is RetypedToken retyped ? retyped.KeywordType : tok.Type;
+            if (tok.Channel != Lexer.DefaultTokenChannel || !CobolLexer.IsReservationGated(keywordType)) continue;
             // By WORD, not by type alone: the decision is §2023:8.9's, and §2023:8.9 is keyed by spelling (the PB250 text rule).
-            if (!freed.Contains(CobolNames.UpperFold(tok.Text)) || kept.Contains(tok.StartIndex)) continue;
-            list[i] = new CommonToken(tok) { Type = idType };
-            changed++;
+            bool asName = freed.Contains(CobolNames.UpperFold(tok.Text)) && !kept.Contains(tok.StartIndex);
+            if (asName == tok is RetypedToken) continue;
+            list[i] = asName ? new RetypedToken(tok) : new CommonToken(tok) { Type = keywordType };
         }
         tokens.Seek(0);
-        return changed;
+    }
+
+    /// <summary>A reservation-gated keyword token the gate retyped to <c>IDENTIFIER</c>, remembering its keyword type so a later
+    /// round of the same stream can give it back (<see cref="NameReadingsRefused"/>).</summary>
+    private sealed class RetypedToken : CommonToken
+    {
+        public RetypedToken(IToken keyword) : base(keyword)
+        {
+            KeywordType = keyword.Type;
+            Type = CobolKeywordTokens.IdentifierType;
+        }
+
+        public int KeywordType { get; }
     }
 }
