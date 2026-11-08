@@ -197,10 +197,21 @@ def self_test() -> int:
     two = copy.deepcopy(raw)
     two["next"]["kinds"]["CHANGED"]["chained"] = True
     try:
-        Schema(two)
+        Schema(two).next
         ok(False, "a schema with two chained kinds is refused")
     except SystemExit:
         ok(True, "a schema with two chained kinds is refused")
+    # A history reader joins the newest edition at a commit whose schema predates `next` (the gate's WITNESS LOSS audit
+    # reads main's): that schema loads, and only a reader that asks for the change record is refused by name.
+    before = copy.deepcopy(raw)
+    del before["next"]
+    old = Schema(before)
+    try:
+        old.next
+        ok(False, "a schema before the change record loads, and asking it for `next` is refused")
+    except SystemExit:
+        ok(old.state_for({"rule-id": "x", "verdict": ""}) == "GAP",
+           "a schema before the change record loads, and asking it for `next` is refused")
     ok(state_of(row(), ed, schema, targets) == "OK", "a KEPT row is OK when its chain's row is OK and its band includes 85")
     ok(state_of(row(to=["SR-13.18.38.3-2"]), ed, schema, targets) == "GAP",
        "a KEPT row whose chain's test is not placed at 85 (the band starts at 2002) is a GAP")

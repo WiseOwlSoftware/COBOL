@@ -33,6 +33,7 @@ DIVISION OF LABOUR between the two, deliberately with NO overlap:
 from __future__ import annotations
 
 import dataclasses
+import functools
 import json
 import pathlib
 import re
@@ -184,7 +185,6 @@ class ChangeKind:
     """A kind of change record (the schema's `next.kinds`): does it name rules of the next edition (`to`), must it state
     its `reason`, and is its verdict its chain's (`chained`) rather than its own?"""
     name: str
-    meaning: str
     to: bool
     reason: bool
     chained: bool
@@ -212,7 +212,7 @@ def change_record_of(raw: dict[str, Any]) -> ChangeRecord:
     for name, k in spec["kinds"].items():
         if not all(isinstance(k.get(f), bool) for f in ("to", "reason", "chained")):
             raise SystemExit(f"{SCHEMA_REL}: next.kinds.{name} states `to`, `reason` and `chained` as booleans")
-        kinds[name] = ChangeKind(name, k.get("meaning", ""), k["to"], k["reason"], k["chained"])
+        kinds[name] = ChangeKind(name, k["to"], k["reason"], k["chained"])
     if sum(k.chained for k in kinds.values()) != 1:
         raise SystemExit(f"{SCHEMA_REL}: exactly one of next.kinds is `chained` (the kind whose verdict is its chain's)")
     return ChangeRecord(frozenset(spec["keys"]), tuple(spec["verdict-fields"]), kinds)
@@ -1018,8 +1018,6 @@ class Schema:
         #: The editions' band spellings, ascending — the order IS the spelling's order (`spell_editions`).
         self.editions: list[str] = [e.spelling for e in self.all_editions]
         self.editions_sep: str = raw["editions"]["separator"]
-        #: An older edition's change record (`next`): its keys, its verdict fields and its kinds (kb/Work PB4993).
-        self.next: ChangeRecord = change_record_of(raw)
         #: A row must name its band (kb/Work PB3173, S0b), and the band runs from the rule's introducing edition
         #: THROUGH the last edition: every catalog rule is a rule of the newest text, so it exists there.
         self.editions_required: bool = raw["editions"]["required"]
@@ -1054,6 +1052,16 @@ class Schema:
         self._rule_ids: set[str] | None = None
         #: The §7 register, injectable — see `register_items`.
         self._register_items: set[str] | None = None
+
+    @functools.cached_property
+    def next(self) -> ChangeRecord:
+        """An older edition's change record (`next`): its keys, its verdict fields and its kinds (kb/Work PB4993). Read when
+        first asked, as only the lineage asks: a history reader's view of the newest edition at a commit whose schema
+        predates the change record (main before PB4993) never asks, and one that does is refused by name."""
+        if "next" not in self._raw:
+            raise SystemExit(f"inventory schema at {self.tree.rev or self.tree.root} has no `next`, the change record this "
+                             f"reader needs (kb/Work PB4993)")
+        return change_record_of(self._raw)
 
     def edition(self, year: int) -> Edition:
         """The held edition `year` of this schema."""

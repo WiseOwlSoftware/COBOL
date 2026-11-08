@@ -218,9 +218,9 @@ def findings(lines: Sequence[str], regions: Sequence[tuple[str, str, int, int]],
             out.append(f"entry {lst.locator}({e.n}) says no rule states it ({e.no_rule}), but {resolving[:3]} do")
         if not e.no_rule and not resolving:
             out.append(f"entry {lst.locator}({e.n}) ({items.get(e.n, '?')}) resolves to no rule of its sections {list(e.sections)}")
-    marked = [dict(r, status=status_of(ns, lst)) for r in rows
-              if (ns := standing([r], key, lst, heads).get(r["id"]))]
-    out += marking_errors(marked, key, lst, heads)
+    standings = standing(rows, key, lst, heads)
+    out += marking_errors([dict(r, status=status_of(standings[r["id"]], lst)) for r in rows if r["id"] in standings],
+                          key, lst, heads)
     return out
 
 
