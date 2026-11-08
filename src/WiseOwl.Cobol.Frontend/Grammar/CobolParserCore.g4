@@ -605,11 +605,13 @@ objectComputerClause
     | unrecognizedClause       // ⛔ LAST — refused BY NAME by ClosedFormatPass (COBOL1970)
     ;
 
-// X3.23-1985 `MEMORY SIZE integer {WORDS | CHARACTERS | MODULES}`. MEMORY, WORDS and MODULES are not lexer tokens
-// (none is reserved at 2002+), so the clause is recognized by the TEXT of its words through the parser base's one
-// word funnel — the left-edge predicate reads MEMORY followed by the SIZE token, the unit predicate the unit word.
+// X3.23-1985 `MEMORY SIZE integer-1 {WORDS | CHARACTERS | MODULES}` (§1985:VI.4.4.2, the printed page VI-11): MEMORY is
+// underlined and SIZE is NOT, so SIZE is an optional word and `MEMORY 8 WORDS` is the same clause (kb/Work PB4919).
+// MEMORY, WORDS and MODULES are not lexer tokens (none is reserved at 2002+), so the clause is recognized by the TEXT
+// of its words through the parser base's one word funnel — the left-edge predicate reads MEMORY followed by the SIZE
+// token or by integer-1, the unit predicate the unit word.
 memorySizeClause
-    : {memorySizeAhead()}? IDENTIFIER SIZE integerLiteral (CHARACTERS | {memoryUnitAhead()}? IDENTIFIER)
+    : {memorySizeAhead()}? IDENTIFIER SIZE? integerLiteral (CHARACTERS | {memoryUnitAhead()}? IDENTIFIER)
     ;
 
 // X3.23-1985 `SEGMENT-LIMIT IS segment-number` (the Segmentation module; IS is not underlined). Recognized by

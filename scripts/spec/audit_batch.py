@@ -73,10 +73,13 @@ CHARS_PER_TOKEN = 3.5
 
 SAME, DIFFERS, NONE = "SAME", "DIFFERS", "NONE"
 
-COMMON = """You are one independent reader in a conformance audit of a COBOL compiler. Judge from the standards' text below
-only; do not rely on memory of other editions or implementations. Text marked <ins>...</ins> in a 1985 rule is printed inside
-a box: a specification unique to level 2 of its module. Quote at most 120 characters per field. Answer with ONLY one JSON
-object, no prose before or after it."""
+#: The preamble of every pass. Its box sentence names the transcription's OWN level-2 markup (spec_pdf.BOX_SIDE for prose,
+#: FIGURE-STYLE.md rule 9's double lines for a general format; TRANSCRIPTION-STATE.md "The 1985 transcription", kb/Work
+#: PB4850), so a reader sees in the quoted text the level-2 box the standard prints (§1985:I.1.3).
+COMMON = f"""You are one independent reader in a conformance audit of a COBOL compiler. Judge from the standards' text below
+only; do not rely on memory of other editions or implementations. Text between two {spec_pdf.BOX_SIDE} marks in 1985 text, and a
+general format drawn in double lines (╔═╗ ║ ╚═╝), is printed inside a box: a specification unique to level 2 of its module.
+Quote at most 120 characters per field. Answer with ONLY one JSON object, no prose before or after it."""
 
 PROMPTS: dict[str, str] = {
     "map": COMMON + """
