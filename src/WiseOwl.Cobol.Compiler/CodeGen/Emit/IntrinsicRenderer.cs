@@ -1388,10 +1388,15 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             // M2's), so the body reads each middle's binary64-ness off its exact value (CobolExact.TryBinary64), never off the written operands.
             "MedianScaled" when !num.StandardDecimal => Exact("MedianExact", $"{mode}, {ExactValueArgList(ic)}", null),
             "MidrangeScaled" when !num.StandardDecimal => Exact("MidrangeExact", $"{mode}, {ExactValueArgList(ic)}", null),
-            "Variance" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("VarianceExact", $"{mode}, {ExactValueArgList(ic)}")),
-            "StandardDeviation" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("StdDevExact", $"{mode}, {ExactValueArgList(ic)}")),
+            // ⛔ VARIANCE, STANDARD-DEVIATION, PRESENT-VALUE AND ANNUITY DECIDE THEIR KIND AT RUN TIME TOO (kb/Work PB4979; DOC-A.1-92b): an argument
+            // that is a nested selection may have returned a float item's content, so the body reads the arguments' binary64-ness off their
+            // exact values (CobolExact.TryBinary64) and returns the binary64 of `VARIANCE (F M)` as the SUM family does (PB4923), else the
+            // exact value rounded once. The value is a run-time-scaled exact one that its consumer reads as the SDIDI image it lowers to.
+            "Variance" when !num.StandardDecimal => Exact("VarianceExact", $"{mode}, {ExactValueArgList(ic)}", null),
+            "StandardDeviation" when !num.StandardDecimal => Exact("StdDevExact", $"{mode}, {ExactValueArgList(ic)}", null),
             "PresentValue" when !num.StandardDecimal =>
-                Dec(LeadThenTail(ic, "PresentValueExact", $"{mode}, ", RuntimeApi.ExactType, a => ExactValueOf(ic, a))),
+                new NumX(LeadThenTail(ic, "PresentValueExact", $"{mode}, ", RuntimeApi.ExactType, a => ExactValueOf(ic, a)), 0, Exact: true),
+            "Annuity" when !num.StandardDecimal => Exact("AnnuityExact", $"{mode}, {ExactValueArg(ic, 0)}, {DecArg(ic, 1)}", null),
             "ModScaled" => Dec(RuntimeApi.Intrinsic("ModDec", $"{mode}, {DecArg(ic, 0)}, {DecArg(ic, 1)}")),
             "RemScaled" => Dec(RuntimeApi.Intrinsic("RemDec", $"{mode}, {DecArg(ic, 0)}, {DecArg(ic, 1)}")),
             "MaxScaled" => Dec(RuntimeApi.Intrinsic("MaxDec", DecArgList(ic))),

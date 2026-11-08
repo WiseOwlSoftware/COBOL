@@ -93,12 +93,15 @@ public static partial class CobolIntrinsics
     /// (§2023:15.4.1: "an implementor-defined approximation of the value of that expression"), as the float lane evaluates it for a
     /// list whose kinds the binder knows, by <paramref name="real"/> over each argument's binary64. The value is a binary64 of the
     /// kind its arguments have (<see cref="CobolExact.OfBinary64Result"/>). False, with nothing evaluated, when every argument is
-    /// fixed-point: the body is then exact. SUM, MEAN, RANGE, MIDRANGE and MEDIAN share this one reading.</summary>
-    private static bool TryBinary64Body(CobolExact[] xs, Func<double[], double> real, out CobolExact value)
+    /// fixed-point: the body is then exact. SUM, MEAN, RANGE, MIDRANGE and MEDIAN share this one reading.
+    /// <para><paramref name="floatFamily"/> is true for a function of the §2023:15.4.1 floating-math family (VARIANCE, STANDARD-DEVIATION,
+    /// PRESENT-VALUE, ANNUITY: <c>IntrinsicCarrierRules.Binary64ResultIsApproximation</c>, kb/Work PB4979): its binary64 value is always an
+    /// engine approximation and lands by its shortest round-trip decimal, never a float item's content that lands by its exact expansion.</para></summary>
+    private static bool TryBinary64Body(CobolExact[] xs, Func<double[], double> real, out CobolExact value, bool floatFamily = false)
     {
         value = default;
         if (!xs.Any(x => x.TryBinary64(out _))) return false;
-        value = CobolExact.OfBinary64Result(real([.. xs.Select(x => x.AsBinary64())]), xs.Any(x => x.IsFloatContent));
+        value = CobolExact.OfBinary64Result(real([.. xs.Select(x => x.AsBinary64())]), !floatFamily && xs.Any(x => x.IsFloatContent));
         return true;
     }
 
@@ -200,14 +203,21 @@ public static partial class CobolIntrinsics
     /// divided once (<see cref="CobolWide.QuotientDec(int, CobolWide, int, CobolRounding, bool)"/>). The 34-digit mean of <see cref="VarianceDec"/> is no approximation of it
     /// under native arithmetic: a mean off by δ adds exactly δ² (the cross term Σ(xᵢ − m) is 0), so VARIANCE (P, P − 1) of a 39-digit
     /// P answered 10^10 for 0.25, and VARIANCE of 10^30, 10^30 + 1, 10^30 + 1 answered 0.2222223333 for 2/9. Deviations whose squares
-    /// leave the 77 digits take the same identity on the arbitrary-precision form (<see cref="VarianceBig"/>).</summary>
-    public static CobolDec VarianceExact(CobolRounding mode, params CobolExact[] xs)
+    /// leave the 77 digits take the same identity on the arbitrary-precision form (<see cref="VarianceBig"/>).
+    /// <para>⛔ THE BINARY64 EVALUATION WHEN AN ARGUMENT IS BINARY64 (kb/Work PB4979; docs/CONFORMANCE.md DOC-A.1-92b): a nested selection that returned
+    /// a float item's content is binary64, a run-time fact (<see cref="TryBinary64Body"/>), so the variance is formed in binary64 as
+    /// <c>VARIANCE (F M)</c> forms it, and is itself an approximation (the floating-math family's value, which lands by its shortest round-trip decimal).</para></summary>
+    public static CobolExact VarianceExact(CobolRounding mode, params CobolExact[] xs)
     {
         RequireArguments(xs.Length, "VARIANCE");            // §2023:15.3 — at least one argument (kb/Work PB257)
-        return TryVariance(xs, mode, out CobolDec variance) ? variance : VarianceBig(xs, mode);
+        return TryBinary64Body(xs, Variance, out CobolExact real, floatFamily: true) ? real : CobolExact.FromDec(VarianceOfExact(xs, mode));
     }
 
-    /// <summary>The identity of <see cref="VarianceExact"/> where a step leaves the wide form: the same numerator
+    /// <summary>The variance of arguments that are all fixed-point, exactly and rounded once (<see cref="VarianceExact"/>'s fixed-point arm).</summary>
+    private static CobolDec VarianceOfExact(CobolExact[] xs, CobolRounding mode) =>
+        TryVariance(xs, mode, out CobolDec variance) ? variance : VarianceBig(xs, mode);
+
+    /// <summary>The identity of <see cref="VarianceOfExact"/> where a step leaves the wide form: the same numerator
     /// <c>n·Σdᵢ² − (Σdᵢ)²</c> and denominator <c>n²</c> formed by <see cref="CobolExact"/>'s operations (the wide form, then the
     /// arbitrary-precision one, kb/Work PB4592), divided once, so a variance of arguments past 77 digits is the exact variance
     /// rounded once and never the SDIDI body's (kb/Work PB4750).</summary>
@@ -246,11 +256,14 @@ public static partial class CobolIntrinsics
 
     /// <summary>STANDARD-DEVIATION (§2023:15.86.4 1): <c>(FUNCTION SQRT (FUNCTION VARIANCE (argument-list)))</c>, the two bodies composed,
     /// so §2023:15.84.4's square root is the ONE SQRT body's (<see cref="SqrtDec"/>). The variance rounded once at 34 digits before the
-    /// root is harmless: the square root's condition number is ½.</summary>
-    public static CobolDec StdDevExact(CobolRounding mode, params CobolExact[] xs)
+    /// root is harmless: the square root's condition number is ½.
+    /// <para>A binary64 argument (<see cref="TryBinary64Body"/>) takes the binary64 body, <c>StandardDeviation (F M)</c>'s (kb/Work PB4979).</para></summary>
+    public static CobolExact StdDevExact(CobolRounding mode, params CobolExact[] xs)
     {
         RequireArguments(xs.Length, "STANDARD-DEVIATION");
-        return SqrtDec(mode, VarianceExact(mode, xs));
+        return TryBinary64Body(xs, StandardDeviation, out CobolExact real, floatFamily: true)
+            ? real
+            : CobolExact.FromDec(SqrtDec(mode, VarianceOfExact(xs, mode)));
     }
 
     /// <summary>⛔ PRESENT-VALUE (§2023:15.74.4 1) OF THE EXACT ARGUMENTS, DIVIDED ONCE (kb/Work PB4111): <c>Σ aₖ / (1 + rate)^k</c>, k = 1…n,
@@ -259,13 +272,32 @@ public static partial class CobolIntrinsics
     /// denominator on the wide form, rounded once. §2023:15.74.3 r2 (rate &gt; −1, so p &gt; 0) is screened on the exact rate through the ONE
     /// raise site (<see cref="PresentValueDomain"/>). The 34-digit term quotients of <see cref="PresentValueDec"/> answered
     /// PRESENT-VALUE (0, P, 1 − P) = 0 for 1 and PRESENT-VALUE (3, 10^33 + 1, −4·10^33) = 0.3 for 0.25. A discount whose powers leave
-    /// the wide form (many periods at a rate of many places) takes the same identity on the arbitrary-precision form (<see cref="PresentValueBig"/>).</summary>
-    public static CobolDec PresentValueExact(CobolRounding mode, CobolExact rate, params CobolExact[] amounts)
+    /// the wide form (many periods at a rate of many places) takes the same identity on the arbitrary-precision form (<see cref="PresentValueBig"/>).
+    /// <para>⛔ A BINARY64 RATE OR AMOUNT (<see cref="TryBinary64Body"/>, kb/Work PB4979; docs/CONFORMANCE.md DOC-A.1-92b) takes the binary64 body
+    /// <c>PRESENT-VALUE (F M)</c> takes, over the discount base <c>1 + rate</c> formed on the rate's own carrier and then narrowed
+    /// (kb/Work PB1000): the base is this exact <c>1 + rate</c> or, for a binary64 rate, the binary64 sum.</para></summary></summary>
+    public static CobolExact PresentValueExact(CobolRounding mode, CobolExact rate, params CobolExact[] amounts)
     {
         RequireArguments(amounts.Length, "PRESENT-VALUE");
         CobolExact discount = CobolExact.Add(CobolExact.From(1, 0), rate);   // 1 + rate, exact
-        if (discount.Sign <= 0) return CobolDec.From(PresentValueDomain(rate.Image.ToDouble()), 0);   // §2023:15.74.3 r2
-        return TryPresentValue(rate, amounts, mode, out CobolDec value) ? value : PresentValueBig(discount, amounts, mode);
+        if (discount.Sign <= 0) return CobolExact.From(PresentValueDomain(rate.Image.ToDouble()), 0);   // §2023:15.74.3 r2
+        if (TryBinary64Body([rate, .. amounts], list => PresentValue(discount.AsBinary64(), list[1..]), out CobolExact real, floatFamily: true)) return real;
+        return CobolExact.FromDec(TryPresentValue(rate, amounts, mode, out CobolDec value) ? value : PresentValueBig(discount, amounts, mode));
+    }
+
+    /// <summary>⛔ ANNUITY (§2023:15.9.4) WITH A RATE THAT MAY BE A NESTED SELECTION OF A FLOAT ITEM (kb/Work PB4979; docs/CONFORMANCE.md DOC-A.1-92b).
+    /// Argument-1 is a number, so a nested <c>MAX (F M2)</c> returns F's binary64 content when F is the greatest, a run-time fact
+    /// (<see cref="CobolExact.TryBinary64"/>): the value is then <c>ANNUITY (F n)</c>'s binary64 (<see cref="Annuity(double, double)"/>, the
+    /// domain screen §2023:15.9.3 r2/r3 through the same raise site as <see cref="AnnuityDec"/>), an approximation
+    /// (<see cref="CobolExact.FromApproximation"/>: the floating-math family's value). Otherwise the SDIDI evaluation of <see cref="AnnuityDec"/>, which takes
+    /// <paramref name="periods"/> as the unbounded SDIDI integer the §2023:15.3 type-6 position intake left (kb/Work PB637).</summary>
+    public static CobolExact AnnuityExact(CobolRounding mode, CobolExact rate, CobolDec periods)
+    {
+        if (!rate.TryBinary64(out double binaryRate)) return CobolExact.FromDec(AnnuityDec(mode, rate.Image, periods));
+        double n = periods.ToDouble();
+        return binaryRate < 0 || periods.Sig <= 0
+            ? CobolExact.From(AnnuityDomain(binaryRate, n), 0)
+            : CobolExact.FromApproximation(Annuity(binaryRate, n));
     }
 
     /// <summary>The identity of <see cref="PresentValueExact"/> where a step leaves the wide form (many periods at a rate of many

@@ -278,9 +278,16 @@ public readonly struct CobolExact
     /// GnuCOBOL 3.2's <c>cob_div_quotient</c> / <c>cob_div_remainder</c> by CLAUDE.md rule 1) lost its low-order digits there, so
     /// <c>dividend − subsidiary × divisor</c> was not the remainder. The truncation is the nested quotient's
     /// (<see cref="DivTruncated"/>), at the receiver's own scale and not the working scale derived from it, and the precision is that
-    /// scale. A zero divisor raises <see cref="CobolSizeError.ZeroDivide"/> (ISO §2023:14.7.5 case 2).</summary>
+    /// scale. A zero divisor raises <see cref="CobolSizeError.ZeroDivide"/> (ISO §2023:14.7.5 case 2).
+    /// <para>⛔ A FLOAT ITEM'S CONTENT AMONG THE OPERANDS MAKES THE QUOTIENT A BINARY64 (kb/Work PB4979; docs/CONFORMANCE.md DOC-A.1-92b): a
+    /// nested selection that returned a float item's content (<c>DIVIDE M BY FUNCTION MAX (F M2) GIVING Q REMAINDER R</c>) is evaluated
+    /// as <c>DIVIDE M BY F</c> is, the quotient <see cref="QuotientAtScale"/> stores being the binary64 one; the subsidiary quotient is
+    /// that binary64 quotient's exact expansion truncated at <paramref name="scale"/>, not the exact operands' quotient, whose
+    /// truncation can lie one unit below it (4.99999 for the binary64 quotient 5) and leave the remainder the difference.</para></summary>
     public static CobolExact SubsidiaryQuotient(CobolExact a, CobolExact b, int scale) =>
-        TruncatedQuotient(a, b, scale, scale);
+        TryBinary64Operands(a, b, out double x, out double y)
+            ? TruncatedQuotient(FromBinary64(CobolFloat.Div(x, y)), From(1, 0), scale, scale)
+            : TruncatedQuotient(a, b, scale, scale);
 
     /// <summary>The quotient truncated toward zero at <paramref name="w"/> fraction digits, carrying <paramref name="precision"/>: exact
     /// on the wide form while the dividend's alignment fits it (<see cref="CobolWide.DivTruncated"/>), else exact on the

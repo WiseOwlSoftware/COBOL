@@ -70,12 +70,13 @@ internal static class FunctionValueLane
     /// <summary>The native SDIDI bodies whose value <c>IntrinsicRenderer.RenderDec</c> returns as a run-time-scaled EXACT value
     /// (<c>NumX.Exact</c>) that its consumer reads as the SDIDI image it lowers to: SUM, RANGE, MEAN and MIDRANGE, which return an exact
     /// value so that a binary64 argument a nested selection handed them can make the value a binary64's content
-    /// (<c>CobolIntrinsics.TryBinary64Body</c>, kb/Work PB4923). They are predicted as the SDIDI (<see cref="CarrierKind.Dec"/>), as
+    /// (<c>CobolIntrinsics.TryBinary64Body</c>, kb/Work PB4923); and VARIANCE, STANDARD-DEVIATION, ANNUITY and PRESENT-VALUE, which do the
+    /// same for the same reason (kb/Work PB4979). They are predicted as the SDIDI (<see cref="CarrierKind.Dec"/>), as
     /// before: a function above one (ANNUITY (SUM (T (ALL)) 3)) computes on the SDIDI. <c>FunctionValueLaneDriftTests</c> derives
     /// this set with <see cref="NativeSdidiBodiesWithExactResult"/> from the renderer's switch.</summary>
     internal static readonly FrozenSet<string> NativeSdidiBodiesWithWholeResult = new[]
     {
-        "SumScaled", "RangeScaled", "MeanScaled", "MidrangeScaled",
+        "SumScaled", "RangeScaled", "MeanScaled", "MidrangeScaled", "Variance", "StandardDeviation", "Annuity", "PresentValue",
     }.ToFrozenSet(StringComparer.Ordinal);
 
     /// <summary>The pure selections, which a MIXED list takes onto the SDIDI under native arithmetic so the compared and

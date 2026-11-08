@@ -785,6 +785,14 @@ binary64, CONFORMANCE.md DOC-A.1-92b); an SDIDI or wide argument is routed to th
 Dec arm (PB69, PB4111), which returns the value on the SDIDI. `WholeRangeBodiesDriftTests` requires every variadic Float
 catalog row to be a member and pins each overload. Pinned by `conformance-suite/cases/15.74.4-Returned-value-rule/pb1565_variadic_exact_argument_list`.
 
+**An argument that is a nested selection decides its kind at run time (PB4979).** `VarianceExact`, `StdDevExact`, `PresentValueExact` and
+`AnnuityExact` return `CobolExact` and read the arguments' binary64 mark (`CobolExact.TryBinary64`, through `TryBinary64Body`) as SUM, MEAN,
+RANGE and MIDRANGE do (PB4923): `MAX (F M2)` returns F's binary64 content when F is the greatest, which only the run time knows, and
+`VARIANCE (FUNCTION MAX (F M2) M)` is then the binary64 body `VARIANCE (F M)` takes (DOC-A.1-92b). Their binary64 value is always an
+approximation (these four are the §2023:15.4.1 floating-math family, `IntrinsicCarrierRules.Binary64ResultIsApproximation`) and lands
+by its shortest round-trip decimal; with only fixed-point arguments the body is the exact one below. The four are members of
+`FunctionValueLane.NativeSdidiBodiesWithWholeResult`. Pinned by `conformance-suite/cases/15.98.4-Returned-value-rules/pb4979_functions_over_a_nested_selection_of_a_float_are_binary64`.
+
 **Under native arithmetic the value is the exact expression's, divided once (PB4111).** A 34-digit evaluation was the
 second way to lose the value: `VarianceDec`'s mean is a 34-digit quotient, and a mean off by δ adds exactly δ² to the
 variance (the cross term Σ(xᵢ − m) is 0), so VARIANCE of the 31-digit items 10^30, 10^30 + 1, 10^30 + 1 answered
