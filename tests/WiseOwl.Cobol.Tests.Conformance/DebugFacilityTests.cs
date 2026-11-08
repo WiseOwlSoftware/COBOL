@@ -898,8 +898,10 @@ public sealed class DebugFacilityTests
     /// <summary>INITIALIZE of a WHOLE dynamic-capacity table names the table, every current occurrence of it (kb/Work PB4855): identifier-1 is
     /// the one operand the statement explicitly references and stores (X3.23-1985 USE FOR DEBUGGING general rules 5 and 6 c; rule 9 — the
     /// element stores the expansion adds are no references of their own), so each kind of section runs ONCE after the statement, with the
-    /// initialized occurrences as DEBUG-CONTENTS (rule 24 c) and no subscript. OCCURS DYNAMIC is a 2014 introduction, so the program is the
-    /// 2023 compile that keeps the removed declarative (--permissive).</summary>
+    /// initialized occurrences as DEBUG-CONTENTS (rule 24 c) and no subscript. A table at capacity zero still names the table: the section
+    /// runs, its DEBUG-CONTENTS spaces (the empty content, rule 11's space fill), where a table(ALL) argument over no occurrence would raise
+    /// EC-ARGUMENT-FUNCTION. OCCURS DYNAMIC is a 2014 introduction, so the program is the 2023 compile that keeps the removed declarative
+    /// (--permissive).</summary>
     [Fact]
     public void InitializeWholeDynamicTable_IsOneWholeTableReference()
     {
@@ -915,6 +917,8 @@ public sealed class DebugFacilityTests
                02 T OCCURS DYNAMIC CAPACITY IN TC PIC X.
             01 UB.
                02 U OCCURS DYNAMIC CAPACITY IN UC PIC X.
+            01 WB.
+               02 W OCCURS DYNAMIC CAPACITY IN WC PIC X.
             01 X5 PIC X(5).
             PROCEDURE DIVISION.
             DECLARATIVES.
@@ -928,6 +932,10 @@ public sealed class DebugFacilityTests
             DB2-B.
                 MOVE DEBUG-SUB-1 TO X5.
                 DISPLAY "  DB2 " DEBUG-NAME (1:1) " [" X5 "] [" DEBUG-CONTENTS (1:4) "]".
+            DB3 SECTION.
+                USE FOR DEBUGGING ON ALL REFERENCES OF W.
+            DB3-B.
+                DISPLAY "  DB3 " DEBUG-NAME (1:1) " [" DEBUG-CONTENTS (1:4) "]".
             END DECLARATIVES.
             MAIN SECTION.
             M1.
@@ -937,12 +945,16 @@ public sealed class DebugFacilityTests
                 INITIALIZE T REPLACING ALPHANUMERIC BY "Z".
                 DISPLAY "INITIALIZE U".
                 INITIALIZE U REPLACING ALPHANUMERIC BY "Y".
+                DISPLAY "INITIALIZE W".
+                SET WC TO 0.
+                INITIALIZE W.
                 DISPLAY "END".
                 STOP RUN.
             """;
         var (ok, stdout, detail) = EditionHarness.CompileAndRun(src, 2023, permissive: true);
         Assert.True(ok, detail);
         var lines = stdout.Replace("\r", "").TrimEnd('\n').Split('\n');
-        Assert.Equal(["INITIALIZE T", "  DB1 T [     ] [ZZZ ]", "INITIALIZE U", "  DB2 U [     ] [YY  ]", "END"], lines);
+        Assert.Equal(["INITIALIZE T", "  DB1 T [     ] [ZZZ ]", "INITIALIZE U", "  DB2 U [     ] [YY  ]", "INITIALIZE W", "  DB3 W [    ]", "END"],
+            lines);
     }
 }
