@@ -1,4 +1,4 @@
-## PB4946 the ambient run unit ends at process exit (§2023:14.6.11 2, §2023:9.1.18.5)
+## Entry 3310 — 2026-11-08 01:06 PST — PB4946 the ambient run unit ends at process exit (§2023:14.6.11 2, §2023:9.1.18.5)
 
 Re-probe: a C# host that activates a program through its generated `Call()` outside `RunUnit.Run` and returns from `Main`
 left the program's open LINE SEQUENTIAL file unwritten (the new `HostRunUnitEndingTests.AnAmbientRunUnit_IsEndedByTheHostProcessExit_ItsOpenFilesClosed`
@@ -22,3 +22,4 @@ run unit from the set so a per-request ambient run unit that closed everything i
 (`AnAmbientRunUnit_ThatClosedEverythingItOpened_IsNotPinnedForTheLifeOfTheProcess`, a host that GCs a WeakReference; fails with the
 removal disabled). R1-2: `AnAmbientRunUnit_ThatClosedItsFileUnderApplyCommit_IsCommittedAtTheHostProcessExit` covers the
 §2023:9.1.18.5 commit of a file already closed under APPLY COMMIT (fails with the ProcessExit subscription removed).
+
