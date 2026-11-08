@@ -155,4 +155,189 @@ public sealed class HostRunUnitEndingTests
         }
         finally { ScratchDirectory.Remove(dir); }
     }
+
+    /// <summary>Opens a file, writes a record and GOBACKs without closing it: nothing in the program closes the file.</summary>
+    private const string Leaver = """
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. PB4946L.
+        ENVIRONMENT DIVISION.
+        INPUT-OUTPUT SECTION.
+        FILE-CONTROL.
+            SELECT F ASSIGN TO "pb4946out.dat" ORGANIZATION IS LINE SEQUENTIAL.
+        DATA DIVISION.
+        FILE SECTION.
+        FD F.
+        01 F-REC PIC X(5).
+        PROCEDURE DIVISION.
+        P1.
+            OPEN OUTPUT F.
+            MOVE "BYEBY" TO F-REC.
+            WRITE F-REC.
+            GOBACK.
+        END PROGRAM PB4946L.
+        """;
+
+    /// <summary>The host activates the program OUTSIDE <c>RunUnit.Run</c> and exits at once, so the program runs in the
+    /// host's ambient run unit and nothing but the process's exit can end it.</summary>
+    private const string AmbientHost = """
+        public static class PB4946HostProgram
+        {
+            public static int Main()
+            {
+                Cobol.PB4946L.PB4946L.Call();
+                return 0;
+            }
+        }
+        """;
+
+    /// <summary>kb/Work PB4946: the ambient run unit ends at process exit. §2023:14.6.11 2) (cite.py OK): "These implicit
+    /// close statements shall be executed for all open files in the run unit" -- the file the program left open is
+    /// closed, its record written, when the host process that never ended the run unit exits.</summary>
+    [Fact]
+    public void AnAmbientRunUnit_IsEndedByTheHostProcessExit_ItsOpenFilesClosed()
+    {
+        string dir = ScratchDirectory.Create("pb4946host");
+        try
+        {
+            NonCobolElement.CompileCobol(dir, "PB4946L", Leaver);
+            NonCobolElement.CompileCSharp(dir, "PB4946HOST", AmbientHost, "PB4946L", "PB4946L");
+            var (exit, _, stderr) = CutRunner.RunExit(Path.Combine(dir, "PB4946HOST.dll"), dir);
+            Assert.Equal(0, exit);
+            Assert.Equal("", stderr);
+            Assert.Equal("BYEBY", File.ReadAllText(Path.Combine(dir, "pb4946out.dat")).TrimEnd());
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
+
+    /// <summary>Under APPLY COMMIT the program OPENs, WRITEs and CLOSEs its file (the CLOSE keeps the change uncommitted,
+    /// §2023:9.1.15) and GOBACKs; the run unit is still owed its commit.</summary>
+    private const string CommitLeaver = """
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. PB4946C.
+        ENVIRONMENT DIVISION.
+        INPUT-OUTPUT SECTION.
+        FILE-CONTROL.
+            SELECT F ASSIGN TO "pb4946c.dat" ORGANIZATION IS LINE SEQUENTIAL.
+        I-O-CONTROL.
+            APPLY COMMIT ON F.
+        DATA DIVISION.
+        FILE SECTION.
+        FD F.
+        01 F-REC PIC X(5).
+        PROCEDURE DIVISION.
+        P1.
+            OPEN OUTPUT F.
+            MOVE "COMIT" TO F-REC.
+            WRITE F-REC.
+            CLOSE F.
+            GOBACK.
+        END PROGRAM PB4946C.
+        """;
+
+    private const string CommitHost = """
+        public static class PB4946CHostProgram
+        {
+            public static int Main()
+            {
+                Cobol.PB4946C.PB4946C.Call();
+                return 0;
+            }
+        }
+        """;
+
+    /// <summary>kb/Work PB4946, review finding R1-2. §2023:9.1.18.5 (cite.py OK): "When a run unit terminates normally, all
+    /// file changes are permanently committed." The program closed its file, so nothing is open at the host's exit, yet the
+    /// change is uncommitted: the exit commits it, so the next access does not
+    /// roll it back as a dead owner's.</summary>
+    [Fact]
+    public void AnAmbientRunUnit_ThatClosedItsFileUnderApplyCommit_IsCommittedAtTheHostProcessExit()
+    {
+        string dir = ScratchDirectory.Create("pb4946commit");
+        try
+        {
+            NonCobolElement.CompileCobol(dir, "PB4946C", CommitLeaver);
+            NonCobolElement.CompileCSharp(dir, "PB4946CHOST", CommitHost, "PB4946C", "PB4946C");
+            var (exit, _, stderr) = CutRunner.RunExit(Path.Combine(dir, "PB4946CHOST.dll"), dir);
+            Assert.Equal(0, exit);
+            Assert.Equal("", stderr);
+            string data = Path.Combine(dir, "pb4946c.dat");
+            Assert.Equal("COMIT", File.ReadAllText(data).TrimEnd());
+            // A transaction that stands leaves its journal and holder files in the physical file's lock directory; a
+            // committed one (and a rolled-back one) removes them.
+            string locks = WiseOwl.Cobol.Runtime.IO.SidecarLockFiles.LockDirectoryOf(data);
+            var left = Directory.Exists(locks) ? Directory.GetFiles(locks) : [];
+            Assert.True(left.Length == 0, "the exit left the transaction standing: " + string.Join(", ", left));
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
+
+    /// <summary>Opens and closes its file: nothing is owed afterwards.</summary>
+    private const string Closer = """
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. PB4946K.
+        ENVIRONMENT DIVISION.
+        INPUT-OUTPUT SECTION.
+        FILE-CONTROL.
+            SELECT F ASSIGN TO "pb4946k.dat" ORGANIZATION IS LINE SEQUENTIAL.
+        DATA DIVISION.
+        FILE SECTION.
+        FD F.
+        01 F-REC PIC X(5).
+        PROCEDURE DIVISION.
+        P1.
+            OPEN OUTPUT F.
+            MOVE "CLOSE" TO F-REC.
+            WRITE F-REC.
+            CLOSE F.
+            GOBACK.
+        END PROGRAM PB4946K.
+        """;
+
+    /// <summary>The host activates the program on a task of its own (an async flow has its own ambient run unit) and, when
+    /// the flow is over, collects: a run unit that owes nothing must be collectable.</summary>
+    private const string FlowHost = """
+        using System;
+        using System.Runtime.CompilerServices;
+        using System.Threading.Tasks;
+        public static class PB4946KHostProgram
+        {
+            [MethodImpl(MethodImplOptions.NoInlining)]
+            private static WeakReference Flow()
+            {
+                WeakReference weak = null;
+                Task.Run(() =>
+                {
+                    Cobol.PB4946K.PB4946K.Call();
+                    weak = new WeakReference(WiseOwl.Cobol.Runtime.RunUnit.Current);
+                }).Wait();
+                return weak;
+            }
+
+            public static int Main()
+            {
+                var weak = Flow();
+                for (int i = 0; i < 3; i++) { GC.Collect(); GC.WaitForPendingFinalizers(); }
+                Console.Out.Write(weak.IsAlive ? "PINNED" : "COLLECTED");
+                return 0;
+            }
+        }
+        """;
+
+    /// <summary>kb/Work PB4946, review finding R1-1: the process-exit set must not pin a run unit that has closed every file
+    /// and owes no commit, or a host serving requests leaks one run unit per request.</summary>
+    [Fact]
+    public void AnAmbientRunUnit_ThatClosedEverythingItOpened_IsNotPinnedForTheLifeOfTheProcess()
+    {
+        string dir = ScratchDirectory.Create("pb4946flow");
+        try
+        {
+            NonCobolElement.CompileCobol(dir, "PB4946K", Closer);
+            NonCobolElement.CompileCSharp(dir, "PB4946KHOST", FlowHost, "PB4946K", "PB4946K");
+            var (exit, stdout, stderr) = CutRunner.RunExit(Path.Combine(dir, "PB4946KHOST.dll"), dir);
+            Assert.Equal(0, exit);
+            Assert.Equal("", stderr);
+            Assert.Equal("COLLECTED", stdout);
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
 }

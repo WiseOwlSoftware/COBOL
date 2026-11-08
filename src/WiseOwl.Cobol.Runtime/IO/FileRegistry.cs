@@ -428,7 +428,11 @@ public sealed class FileRegistry
     /// <summary>CLOSE (ISO §2023:14.9.6) — Table 14's <c>CLOSE</c> row, symbol c. For a sharing-active connector this
     /// also deregisters it from the physical-file registry and releases its record locks (§2023:14.9.6.4 GR9 /
     /// §2023:9.1.16) - those of a file in an APPLY COMMIT clause excepted, which only a COMMIT or ROLLBACK releases.</summary>
-    public void Close(string name) => CloseByFormat(name, CloseFormat.Normal);
+    public void Close(string name)
+    {
+        CloseByFormat(name, CloseFormat.Normal);
+        SettleOwing();
+    }
 
     /// <summary>⛔ THE ONE CLOSE DISPATCH — §2023:14.9.6.4 GR3: <i>"The results of executing each type of CLOSE for
     /// each category of physical file are summarized in Table 14, Relationship of categories of physical files
@@ -1592,6 +1596,7 @@ public sealed class FileRegistry
                 return holder.Name;
             }
         ReleaseCommitLocks();
+        SettleOwing();
         return null;
     }
 
@@ -1646,6 +1651,7 @@ public sealed class FileRegistry
             refused ??= holder.Name;
         }
         ReleaseCommitLocks();
+        SettleOwing();
         return refused;
     }
 
@@ -1783,6 +1789,34 @@ public sealed class FileRegistry
         return true;
     }
 
+    /// <summary>Told when this registry starts (<c>true</c>, before an OPEN is dispatched) or stops (<c>false</c>) owing its run
+    /// unit an ending: the owning run unit uses it to answer for what it owes at process exit and to be collectable when it
+    /// owes nothing (<see cref="RunUnit.EndAtProcessExit"/>, kb/Work PB4946).</summary>
+    internal Action<bool>? Owing { get; set; }
+
+    private bool _owing;
+
+    /// <summary>The registry owes an ending (§2023:14.6.11 2): a file in the open mode, or a transaction standing that
+    /// §2023:9.1.18.5 commits at a normal termination.</summary>
+    private bool OwesAnEnding() =>
+        _files.Values.Any(c => c.IsOpen) || _retired.Count > 0 || _retiredSequential.Count > 0 || TransactionHolders().Count > 0;
+
+    private void NoteOwing()
+    {
+        if (_owing) return;
+        _owing = true;
+        Owing?.Invoke(true);
+    }
+
+    /// <summary>After a CLOSE, COMMIT or ROLLBACK: a registry with nothing left to end gives its run unit back to the garbage
+    /// collector, so a host's per-request ambient run units that opened and closed their files are not pinned until exit.</summary>
+    private void SettleOwing()
+    {
+        if (!_owing || OwesAnEnding()) return;
+        _owing = false;
+        Owing?.Invoke(false);
+    }
+
     /// <summary>⛔ THE ONE OPEN DISPATCH (ISO §2023:14.9.27). Every OPEN — phrase-bearing or plain — arbitrates against
     /// the physical-file registry, because §2023:9.1.15's gate is written over the physical file and not over the
     /// connectors that opted in: <i>"Before access to a shared physical file is allowed through an OPEN statement,
@@ -1813,6 +1847,7 @@ public sealed class FileRegistry
         LinagePage? page)
     {
         DrainPendingObjectCloses();   // reclaim any GC-finalized per-object connectors on this (mutator) thread first
+        NoteOwing();
         if (RefusedAsAlreadyOpen(name, mode)) return;   // §2023:14.9.27.4 GR2 — before anything below touches the connector
         // §2023:14.9.27.4 GR26 → §2023:12.4.5.3 GR3, and BEFORE the Table-19 arbitration: a sharing conflict is defined
         // over "another file connector" holding THE PHYSICAL FILE this OPEN names (§2023:9.1.13.9), so the association
