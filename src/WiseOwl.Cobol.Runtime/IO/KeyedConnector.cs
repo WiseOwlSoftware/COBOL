@@ -255,6 +255,11 @@ public abstract partial class KeyedConnector : FileConnector
     /// kb/Work PB3336), which read its <see cref="PagedFile.Counters"/> and drop its cache cold.</summary>
     internal PagedFile? PagedStore => _attached ? AttachedStore.File : null;
 
+    /// <summary>How many retakes of the kept handle (<see cref="RetakeKeptHandle"/>) this connector made whose store the medium refused to
+    /// adopt again while the unsuccessful OPEN held record-lock ids off the host: the arm kb/Work PB3631's witnesses must reach, counted so
+    /// that a change which stops reaching it fails them instead of leaving it unwitnessed again.</summary>
+    internal int RetakesThatLostTheAdoptionHoldingLocks { get; private set; }
+
     /// <summary>The file position indicator's validity bit (§2023:9.1.11; §2023:14.9.41.4 GR7 clears it), the one piece of the
     /// position both organizations keep alike.</summary>
     private protected bool FpiValid { get; set; }
@@ -271,7 +276,7 @@ public abstract partial class KeyedConnector : FileConnector
     protected sealed override string OpenCore(FileOpenMode mode, FilePresence presence)
     {
         ResetPosition();
-        (_begunByOpen, _openChangedFile, _fileRemoved) = (null, false, false);
+        (_begunByOpen, _openChangedFile, _fileRemoved, _unpublishedBySettle) = (null, false, false, null);
         // Table 18's availability axis; GR3 has already turned an Unauthorized probe into '37' upstream, so
         // a refusal can never be read here as "unavailable" (kb/Work PB323).
         bool exists = presence is FilePresence.Present;
@@ -618,11 +623,14 @@ public abstract partial class KeyedConnector : FileConnector
             // lives, and without the endpoint its READ of a record the CLOSE kept locked would answer '00'. The store stays
             // unadopted (no file) until the connector's next OPEN reads it again.
             if (Attach(create: false) is not null)
+            {
+                if (unpublished is { Count: > 0 }) RetakesThatLostTheAdoptionHoldingLocks++;
                 InStoreMutex(() =>
                 {
                     CarryKeptHoldings(AttachedStore);
                     return StoreStatus.Ok;
                 });
+            }
             var regions = _regions;
             if (unpublished is { Count: > 0 } && Physical is { } physical)
                 InStoreMutex(() =>
@@ -801,6 +809,11 @@ public abstract partial class KeyedConnector : FileConnector
         List<string>? unpublished = null;
         if (_kept is { Handle: null } && Physical is { } stale && _regions is { } own)
             unpublished = PhysicalFileTable.Unpublish(stale, own);
+        if (_unpublishedBySettle is { Count: > 0 } offTheHost && _kept is { Handle: null })   // SettleDeadOwnersOfTheOpen's: the handle they left with is gone
+        {
+            (unpublished ??= []).AddRange(offTheHost);
+            _unpublishedBySettle = null;
+        }
         // The OPEN already answers its own failure; a refused re-adoption here leaves the store's fence owed
         // (KeyedStore.DetachHandle), which is all it can change.
         try
