@@ -1,0 +1,3 @@
+## Review leads of wave 20261930 filed: PB5015, PB5016, and folds into PB4952 and PB4976
+
+Four low leads from the PB4952, PB4954 and PB4958 reports. The PB4952 lead was not a new note: its title and Expected line still claimed 18 duplicate ids in rule_catalog_1985.parse, which PB4886 (a2b9c17e42) fixed, so both were corrected in place. The PB4954 lead on the BraceOf comment (a dynamic-length item declares at 2014 while Format 16 begins at 2023, so the labelled arm is reached and untested) is PB5015. The PB4954 lead on the drift test pinning only F5, F8, F9 and F10 is PB5016, a different mechanism from PB4785 (comment wording). The PB4958 golden's `1)` citation form is one more site in PB4976.
