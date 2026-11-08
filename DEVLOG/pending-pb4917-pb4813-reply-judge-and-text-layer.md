@@ -22,4 +22,4 @@ pages, so that run, the figures and the assembly continue in a later wave.
 `message_batches.BatchRun` (kb/Work PB4886). `collect_batches` now hands `BatchRun.collect` a `take` that asks `judge`
 and records a refused page in `failed`, so the one batch loop serves both batch tools; usage is keyed by batch and custom
 id there, and the self-test checks that key. `spec_pdf.EDITIONS[2002]` keeps main's body-anchor field with the measured
-offset 22. `docs/DOC_INDEX.md`'s converter row now names the `text` backend and `judge`. Gate: see the landing record.
+offset 22. `docs/DOC_INDEX.md`'s converter row now names the `text` backend and `judge`. The first gate was RED on `spec_headings.py --self-test`: `text_layer.py` wrote its own General format heading regex, which also missed the "General forms" spelling; it now asks `spec_headings.GENERAL_FORMAT_TITLE` (kb/Work PB284). The re-gate: `BUILD-LOCAL GATE: GREEN — Conformance 22,616/22,616 · Unit 40,486/40,486 · Characterization 37/37` (run 000002-20261108T033558Z).
