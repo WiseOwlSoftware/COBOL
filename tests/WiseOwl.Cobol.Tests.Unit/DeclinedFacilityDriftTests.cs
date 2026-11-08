@@ -326,7 +326,7 @@ public sealed class DeclinedFacilityDriftTests
     }
 
     /// <summary>The declined-facility diagnostics are ERRORS, not warnings — the distinction that makes
-    /// the whole band different from the §2023:4.2.6 processor-dependent band (COBOL1578/1579/1580, Warning).
+    /// the whole band different from the §2023:4.2.6 processor-dependent band (COBOL1580, Warning).
     /// Annex A.4.1: an implementation "shall accept the syntax … for an optional element ONLY when support for
     /// that language element is claimed", so accepting a declined element's syntax is itself the
     /// non-conformance. It is also what makes the rows WITNESSABLE: the negative corpus asserts a failing

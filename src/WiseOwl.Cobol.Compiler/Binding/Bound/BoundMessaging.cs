@@ -15,7 +15,14 @@ namespace WiseOwl.Cobol.Binding.Bound;
 /// message server run unit", no data item), <see cref="ServerLiteral"/> is literal-1 (SR1: alphanumeric or national).</summary>
 public sealed record BoundSendToServer(
     string? ServerName, BoundOperand? ServerLiteral, BoundOperand From, Place Returning,
-    IReadOnlyList<BoundStatement>? OnException, IReadOnlyList<BoundStatement>? NotOnException) : BoundStatement;
+    IReadOnlyList<BoundStatement>? OnException, IReadOnlyList<BoundStatement>? NotOnException) : BoundStatement, IProfiledStatement
+{
+    /// <inheritdoc/>
+    public WiseOwl.Cobol.Runtime.Exceptions.EcCheckingProfile CheckingProfile { get; init; } = WiseOwl.Cobol.Runtime.Exceptions.EcCheckingProfile.None;
+
+    /// <inheritdoc/>
+    public BoundStatement WithCheckingProfile(WiseOwl.Cobol.Runtime.Exceptions.EcCheckingProfile profile) => this with { CheckingProfile = profile };
+}
 
 /// <summary>SEND Format 2, message-server-response (§2023:14.9.38.2): <c>SEND [TO] data-name-2 FROM identifier-1 [RAISING { EXCEPTION exception-name-1 | LAST
 /// [EXCEPTION] }]</c>. <see cref="To"/> holds the requestor's tag (§2023:14.9.38.4 GR7); <see cref="Raising"/> is the written exception-name, and
@@ -23,7 +30,14 @@ public sealed record BoundSendToServer(
 /// requestor program"); neither written sends no exception.</summary>
 public sealed record BoundSendResponse(
     Place To, BoundOperand From, EcInfo? Raising, bool RaisingLast,
-    IReadOnlyList<BoundStatement>? OnException, IReadOnlyList<BoundStatement>? NotOnException) : BoundStatement;
+    IReadOnlyList<BoundStatement>? OnException, IReadOnlyList<BoundStatement>? NotOnException) : BoundStatement, IProfiledStatement
+{
+    /// <inheritdoc/>
+    public WiseOwl.Cobol.Runtime.Exceptions.EcCheckingProfile CheckingProfile { get; init; } = WiseOwl.Cobol.Runtime.Exceptions.EcCheckingProfile.None;
+
+    /// <inheritdoc/>
+    public BoundStatement WithCheckingProfile(WiseOwl.Cobol.Runtime.Exceptions.EcCheckingProfile profile) => this with { CheckingProfile = profile };
+}
 
 /// <summary>How long a RECEIVE waits for a message (§2023:14.9.31.2's CONTINUE phrase, §2023:14.9.31.4 GR2): <see cref="Forever"/> when no CONTINUE phrase is
 /// written, <see cref="Seconds"/> for <c>CONTINUE AFTER arithmetic-expression-1 [SECONDS]</c>, and <see cref="Poll"/> for <c>CONTINUE AFTER MESSAGE
@@ -35,4 +49,11 @@ public enum ReceiveWait { Forever, Seconds, Poll }
 /// length (GR3), and <see cref="Seconds"/> the interval expression when <see cref="Wait"/> is <see cref="ReceiveWait.Seconds"/>.</summary>
 public sealed record BoundReceiveMessage(
     Place From, Place Into, Place Length, ReceiveWait Wait, BoundExpr? Seconds,
-    IReadOnlyList<BoundStatement>? OnException, IReadOnlyList<BoundStatement>? NotOnException) : BoundStatement;
+    IReadOnlyList<BoundStatement>? OnException, IReadOnlyList<BoundStatement>? NotOnException) : BoundStatement, IProfiledStatement
+{
+    /// <inheritdoc/>
+    public WiseOwl.Cobol.Runtime.Exceptions.EcCheckingProfile CheckingProfile { get; init; } = WiseOwl.Cobol.Runtime.Exceptions.EcCheckingProfile.None;
+
+    /// <inheritdoc/>
+    public BoundStatement WithCheckingProfile(WiseOwl.Cobol.Runtime.Exceptions.EcCheckingProfile profile) => this with { CheckingProfile = profile };
+}

@@ -79,8 +79,7 @@ internal enum SetFormat
     /// <summary>Format 16 — dynamic-length-elementary-data-item.</summary>
     F16,
     /// <summary>Format 17 — message-tag. The DATA half of the Annex A.3 item-4 asynchronous messaging facility,
-    /// which this implementation declines (docs/CONFORMANCE.md §4 item 1); selected so §2023:4.2.6's mandatory
-    /// warning mechanism names the facility, exactly as COBOL1578 already does for its SEND/RECEIVE half.</summary>
+    /// which this implementation provides (kb/Work PB4740, PB4744; docs/CONFORMANCE.md §2 row 4).</summary>
     F17,
 }
 

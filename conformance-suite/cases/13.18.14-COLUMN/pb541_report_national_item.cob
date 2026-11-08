@@ -31,7 +31,7 @@
       *>   entry is national with no USAGE clause anywhere. It is the arm a screen written over the USAGE
       *>   CLAUSE alone would miss, which is why the rule is asked once more of the usage the entry settles on.
       *>
-      *> EDITION. National data is a COBOL-2002 introduction (§2023:8.5.2 category national), so 2002 is the
+      *> EDITION. National data is a COBOL-2002 introduction (§2023:8.5.2.10, National category), so 2002 is the
       *> introducing edition for a NATIONAL report item and conformance:cases/13.18.60-USAGE/pb541-report-national-at-85
       *> is the negative below it. The behaviour does not differ across 2002/2014/2023, so there is one copy.
       *>

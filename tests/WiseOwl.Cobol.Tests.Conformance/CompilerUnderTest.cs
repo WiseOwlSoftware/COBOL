@@ -30,6 +30,9 @@ internal static class CutRunner
     /// (<c>ConformanceSuiteRunnerDriftTests</c> holds the two equal).</summary>
     internal const string LocalePin = "INVARIANT";
 
+    /// <summary>The variable that names the asynchronous messaging facility's MCS directory (<c>WISEOWL_COBOL_MCS</c>), which <see cref="RunExit"/> sets to the run's own directory.</summary>
+    internal const string McsDirectoryVariable = "WISEOWL_COBOL_MCS";
+
     /// <summary>Run <c>dotnet &lt;dll&gt;</c> in <paramref name="workDir"/> and capture normalized stdout.
     /// <paramref name="stdinFile"/> (when given) is piped to the program's stdin — ACCEPT device input (ISO
     /// §2023:14.9.1 F1); stdin is always redirected and closed so an over-reading ACCEPT sees EOF, never the console.</summary>
@@ -68,6 +71,9 @@ internal static class CutRunner
         // DOC-A.1-118; kb/Work PB2671).
         psi.Environment[WiseOwl.Cobol.Runtime.LocaleState.UserDefaultVariable] = LocalePin;
         psi.Environment[WiseOwl.Cobol.Runtime.LocaleState.SystemDefaultVariable] = LocalePin;
+        // The asynchronous messaging facility's MCS directory is the test's own working directory (DESIGN-message-control.md §7.1; the WiseOwl adapter sets the same):
+        // no two tests share a message control system.
+        psi.Environment[McsDirectoryVariable] = workDir;
         if (env is not null)
             foreach (var (k, v) in env)
                 if (v is null) psi.Environment.Remove(k);

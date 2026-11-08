@@ -11,9 +11,7 @@
       *> identifier-1 may be either. Before kb/Work PB4118 DeclinedFacilityBinder resolved the three references without
       *> asking how they were written.
       *>   cite.py: OK  14.9.31.2  OK  8.4.2.3.1  OK  8.4.3.3.3 5)
-      *> SEND and RECEIVE are the declined asynchronous messaging facility (COBOL1578, docs/CONFORMANCE.md section 4
-      *> item 1; Annex A.3 item 4): declining it declines its behaviour, not the syntax rules of its statements, and
-      *> the statement still reads its operands (kb/Work PB3568, PB4118).
+      *> SEND and RECEIVE are the asynchronous messaging facility (Annex A.3 item 4, docs/CONFORMANCE.md section 2): the statement binds, and every operand and syntax rule is asked at bind (kb/Work PB3568, PB4743).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB4118R1.
        DATA DIVISION.

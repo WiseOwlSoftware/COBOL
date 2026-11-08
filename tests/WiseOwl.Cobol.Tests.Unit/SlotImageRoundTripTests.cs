@@ -33,6 +33,31 @@ public sealed class SlotImageRoundTripTests
     }
 
     [Fact]
+    public void DataPointerOf_APointerDisplacedBeyondTheWindow_ReadsBackAsItself_NeverAsAnotherArea()
+    {
+        // kb/Work PB4925: base + displacement names another area's window once the displacement leaves [-2^31, 2^31), so a far pointer takes a base of its
+        // own. Areas A and B are imaged in turn, so B's base is A's next; A + 2^32 and A + 2^32 + 5 would otherwise decode as B and B + 5.
+        var a = new StorageCell { Ref = "AAAA" };
+        var b = new StorageCell { Ref = "BBBB" };
+        _ = PointerImage.Of(ManagedPointer.At(a, 0));
+        _ = PointerImage.Of(ManagedPointer.At(b, 0));
+        foreach (long offset in new long[] { 1L << 32, (1L << 32) + 5, 1L << 31, -(1L << 31) - 1, long.MaxValue, long.MinValue })
+        {
+            var written = ManagedPointer.At(a, offset);
+            string image = PointerImage.Of(written);
+            var read = PointerImage.DataPointerOf(image);
+            var cell = Assert.IsType<CellPointer>(read);
+            Assert.Same(a, cell.Cell);
+            Assert.Equal(offset, cell.Offset);
+            Assert.Equal(image, PointerImage.Of(read));                                 // equal pointers image equal (§2023:8.8.4.2.16)
+            Assert.False(ManagedPointer.SameTarget(ManagedPointer.At(b, offset - (1L << 32)), read), $"offset {offset}");
+        }
+        // The window's edges stay base + displacement: -2^31 and 2^31 - 1 decode back with no base of their own.
+        foreach (long offset in new long[] { -(1L << 31), (1L << 31) - 1 })
+            Assert.Equal(offset, Assert.IsType<CellPointer>(PointerImage.DataPointerOf(PointerImage.Of(ManagedPointer.At(a, offset)))).Offset);
+    }
+
+    [Fact]
     public void DataPointerOf_AnAddresslessPointer_ReadsBackAsItself()
     {
         var carrier = ManagedPointer<string>.Cell("x");

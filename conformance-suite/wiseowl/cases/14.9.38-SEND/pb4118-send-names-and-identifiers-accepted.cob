@@ -11,12 +11,12 @@
       *>          lets carry OF/IN qualifiers; Format 2 prints no RETURNING (14.9.38.2), so none is needed;
       *>   leg 2  SEND TO SRV FROM TBL(2) RETURNING WS-REPLY - identifier-1 (FROM) is an identifier and may be subscripted;
       *>   leg 3  RECEIVE FROM WS-TAG GIVING TBL(3) WS-LEN - identifier-1 (GIVING) may be subscripted too.
-      *> EXPECTED VALUES, DERIVED: the facility is declined (COBOL1578, nothing is sent or received), so the tags stay NULL and the items keep
-      *> their VALUE clauses; the three DISPLAYs print what the program started with.
+      *> EXPECTED VALUES, DERIVED: no run unit serves SRV, so the SENDs are EC-MCS-NO-SERVER (14.9.38.4 GR5) and the RECEIVE of the NULL tag
+      *> is EC-MCS-NO-REQUESTER (D-MCS-NR), all unsuccessful and storing nothing: the tags stay NULL and the items keep their VALUE
+      *> clauses; the three DISPLAYs print what the program started with.
       *>   cite.py: OK  14.9.38.2  OK  8.4.2.2.2  OK  14.9.31.2
-      *> SEND and RECEIVE are the declined asynchronous messaging facility (COBOL1578, docs/CONFORMANCE.md section 4
-      *> item 1; Annex A.3 item 4): declining it declines its behaviour, not the syntax rules of its statements, and
-      *> the statement still reads its operands (kb/Work PB3568, PB4118).
+      *> SEND and RECEIVE are the asynchronous messaging facility (Annex A.3 item 4); each statement reads its operands
+      *> (kb/Work PB3568, PB4118).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB4118A1.
        DATA DIVISION.

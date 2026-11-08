@@ -133,6 +133,20 @@ public sealed class MessagingPeerTests : IDisposable
     }
 
     [Fact]
+    public void AWaitAboveTheMaximumMeaningfulValueIsArmedForTheMaximum_TheOneRuleOfContinue()
+    {
+        // kb/Work PB4921: §2023:14.9.9.4 GR1's maximum meaningful value (CobolTiming.MaxSeconds, one day) bounds the RECEIVE's wait as it bounds CONTINUE's, so a
+        // wait of 5,000,000 seconds (about 58 days, past one timer's 49.7-day range) is one timer of one day, never a timer that ends at the platform's cap.
+        var time = new ManualTime();
+        var server = Peer("LONGWAIT", time);
+        var waiting = OnThread(() => server.Receive(default, 100, new MessageWait(MessageWaitKind.Seconds, 5_000_000)));
+        Assert.True(time.Armed.Wait(Guard), "the deadline was never armed");
+        Assert.Equal(TimeSpan.FromSeconds(CobolTiming.MaxSeconds), time.Due);
+        time.Advance();
+        Assert.True(Result(waiting).Successful);
+    }
+
+    [Fact]
     public void APollAsksOnceAndWaitsForNothing()
     {
         var server = Peer("POLL");
@@ -241,7 +255,7 @@ public sealed class MessagingPeerTests : IDisposable
         string longTemp = Path.Combine(_work, new string('t', McsSocketDirectory.MaxPathBytes)) + Path.DirectorySeparatorChar;     // a host whose temp path is long
         foreach (bool serves in new[] { true, false })
         {
-            var peer = Peer(serves ? "LONGROOT" : null, sockets: identity => McsSocketDirectory.Under(McsSocketDirectory.WindowsDirectory(longTemp, identity)));
+            var peer = Peer(serves ? "LONGROOT" : null, sockets: identity => McsSocketDirectory.Under(McsSocketDirectory.WindowsDirectory(longTemp, longTemp, "fedcba9876543210", identity).Path));   // no short root either
             var result = peer.Send("ANY", MessageBody.Of("X"));                       // a run unit that serves nothing starts at its first statement
             Assert.Equal(ExceptionCatalog.McsImp, result.ExceptionName);
             Assert.Contains("leaves no room", result.Detail);
