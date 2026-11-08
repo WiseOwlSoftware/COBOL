@@ -175,8 +175,8 @@ public sealed class RunUnitStateDriftTests
             "the activation floor of the run unit's THREAD: [ThreadStatic], set once when ActivationStack starts the "
             + "thread from that thread's own stack bounds, and a property of the thread's stack, not of any run unit's "
             + "state (kb/Work PB2659)",
-        ["WiseOwl.Cobol.Runtime.SlotImageTable::s_lastTagSerial"] =
-            "the message-tag id serial (kb/Work PB4838, DOC-A.1-212): counts per PROCESS like the pointer-image bases, so the ids of two run units "
+        ["WiseOwl.Cobol.Runtime.SlotImageTable::s_lastTagBlock"] =
+            "the message-tag block serial (kb/Work PB4838, DOC-A.1-212): counts per PROCESS like the pointer-image bases, so the ids of two run units "
             + "of one process never coincide and a tag token another run unit wrote does not decode to this run unit's own tag",
         ["WiseOwl.Cobol.Runtime.PointerImage::s_nextBase"] =
             "the pointer-image base allocator (kb/Work PB970 arm 2, DOC-A.1-216): its bases key the process-wide "
