@@ -1,4 +1,4 @@
-## PB4973: a STRING evaluates a function-identifier once (D-STR4 reversed to the standard)
+## Entry 3319 — 2026-11-08 04:43 PST — PB4973: a STRING evaluates a function-identifier once (D-STR4 reversed to the standard)
 
 `STRING "xy" FUNCTION UPPER-CASE(F) INTO F` over `F = "abcdefgh"` gave `xyXYCDEF`: `StringEmitter.ReadOperand`/`ReachOf` evaluated a later
 sending's function a second time at its transfer, from the storage the earlier transfers had stored into (D-STR4, following GnuCOBOL's
@@ -11,3 +11,4 @@ Re-probe on this build before the fix: the golden printed `F1 [xyXYCDEF]`, `F2 [
 `ReadsStorageOf` answers only for a data-item reference (D-STR1, D-STR2 keep their in-place re-read); the `Reach` record and its three `ReachOf` overloads are
 deleted, so FUNCTION RANDOM and a user-defined function need no special case. The golden `pb1908_string_overlap_function` now expects `xyABCDEF` and
 `z12Z34....`; `StringLiveReadDriftTests` pins one evaluation and one store. Row GR-14.9.43.4-10 stays CONFORMS with restated notes and witnesses.
+
