@@ -1,4 +1,4 @@
-## PB4119 and PB4948: one silent declaration lookup, one reference-modification reader
+## Entry 3330 — 2026-11-08 13:40 PST — PB4119 and PB4948: one silent declaration lookup, one reference-modification reader
 
 **PB4119.** `FlagConformancePass.ResolveItem` was a second copy of `ReferenceResolver.ProbeDeclaration` and it did not
 probe, so under `--permissive` with a `>>FLAG-02` option an ambiguous name drew COBOL1639 a second time at the MOVE verb
@@ -16,3 +16,4 @@ only. The test lives once, in `ReferenceResolver.ReadWritten` (`WrittenReference
 Self-review: review round 1 (R1-1) found a first draft had added a second reader, DataReferenceCst.IsReferenceModified,
 that disagreed with ReadWritten on a property suffix; it is deleted and the three callers use the resolver decomposition.
 The USE FOR DEBUGGING check at ProcedureTableBuilder 809 also tests subscripts and was left.
+
