@@ -10,8 +10,8 @@
       *> "| EC-MCS-NO-REQUESTER | NF | RECEIVE statement |". Annex E.3.2
       *> 3) (informative) prints EC-MCS-NO-REQUESTOR, which is not a
       *> name (docs/CONFORMANCE.md D-MCS-NR). The sibling keeps Table
-      *> 13's -OR spelling, EC-MCS-REQUESTOR-FAILED. Both are accepted
-      *> inert with the COBOL1578 warning (PB374), and a RAISE
+      *> 13's -OR spelling, EC-MCS-REQUESTOR-FAILED. Both are ordinary
+      *> level-3 names (PB374, PB4744), and a RAISE
       *> raises each: 14.9.29.4 GR1 "the associated exception
       *> condition is raised". Both are NONFATAL (Table 13 "NF"), so
       *> control continues after the RAISE.

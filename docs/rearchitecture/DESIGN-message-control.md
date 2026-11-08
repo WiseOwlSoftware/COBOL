@@ -241,7 +241,7 @@ recommends fatal). Every Table 13 description is placed:
 
 | Latitude | ISO | GnuCOBOL | IBM, Micro Focus | Choice | CONFORMANCE.md |
 |---|---|---|---|---|---|
-| Whether the facility is provided | A.3 item 4 | pending | unknown | provided | §2 Annex A.3 row 4 flips from **Not claimed** to **Claimed**; §4 item 1 is deleted and every "§4 item N" reference renumbered in the same change; the preamble's COBOL1578 sentences go |
+| Whether the facility is provided | A.3 item 4 | pending | unknown | provided | §2 Annex A.3 row 4 flips from **Not claimed** to **Claimed**; §4 item 1 becomes a tombstone that keeps its number (PB4744: items 2 to 5 are cited as "§4 item N" in some 350 places, and renumbering them is a tree-wide rename that lands alone; item 2 already keeps its slot the same way); the preamble's COBOL1578 sentences go |
 | Message-tag size, contents, alignment | §2023:13.18.60.4 GR9; A.1 item 212 | none | unknown | the slot rule of DOC-A.1-210, -214 and -217 (D-SLOT), §4.2; a determination, not an owner question | new DOC-A.1-212 row |
 | EC-MCS-IMP's fatality | Table 13 (Imp) | fatal flag 0 for every -IMP name | unknown | Q4 | DOC-A.1-100: under Q4's recommendation its "each is FATAL" stands and "the implementation itself sets only EC-PROGRAM-IMP" names EC-MCS-IMP too |
 | Argument conformance of a message tag | §2023:14.8.2.3.2 | none | unknown | the pointer rule (§2.3) | new D-MCS-ARG |
@@ -399,14 +399,21 @@ outcome back through the ordinary channels:
   sends no table. The message-tag slots of a strongly-typed identifier-1 travel beside the image
   (`SlotWindow.MembersOf`).
 - SR3 and RECEIVE SR2 refuse POINTER, FUNCTION-POINTER, PROGRAM-POINTER and OBJECT-REFERENCE in identifier-1 and its
-  subordinates at compile time, so the only slot-carried leaf a message holds is a message tag. A strongly-typed group
-  holding one has an image only if `DataItem.ElementImageCapable` admits the category: it admits `PicCategory.MessageTag`
-  with an image of eight spaces (DOC-A.1-212), as R40 admitted INDEX: the generated `FromImage` skips those positions
-  and the slot carries the value. A pointer-class leaf stays excluded, and `DataItem.TransferImageCapable`'s slot arm is
-  unchanged. Slice S1 (kb/Work PB4740) landed the tag as a slot-carried category (`SlotWindow.CarriedBySlot`) and left
-  `ElementImageCapable` as it was, so a strongly-typed group holding a tag has today the one-way transfer image an object
-  reference's group has (DISPLAY, MOVE sender, the `BYTE-LENGTH` of 8 positions per tag); the two-way image that SEND and
-  RECEIVE need is this bullet's admission, which belongs to slice S4 with the emitter that consumes it. An identifier-1
+  subordinates at compile time, so the only slot-carried leaf a message holds is a message tag. **Correction (PB4744): the category is NOT admitted to
+  `DataItem.ElementImageCapable`.** The equality and group-MOVE consumers of the image read that capability, and the placeholder image (eight spaces per tag)
+  is not injective, so a group holding a tag keeps the one-way transfer image an object reference's group has (DISPLAY, MOVE sender, the `BYTE-LENGTH` of 8
+  positions per tag). The message needs the receiving half only, so a separate pair carries it: a group whose only managed slots are message tags
+  (`GroupImageCodec.HoldsOnlyMessageTagSlots`) gets a generated `FromMessageImage` beside its one-way `AsImage` - the `FromImage` distribution with every tag's
+  placeholder positions skipped (a nested struct that holds tags calls its own `FromMessageImage`) - which `PlaceRenderer.WriteMessageGroupImage` calls. The tags
+  travel as the message's slots in storage order: `AsyncMessaging.TagsOf(<leaf vector>)` flattens the group's `AsLeaves` vector on SEND (a table is an array of its
+  occurrences and a nested group a nested vector, so the inner OCCURS levels fall out of the walk the vector already is; a storage-cell group's vector comes from
+  `PlaceRenderer.GroupLeaves` over `PlaceCursor`), and on RECEIVE `AsyncMessaging.WithTags(<leaf vector>, slots)` rebuilds the vector with the message's tags in place of
+  the area's and `PlaceRenderer.WriteGroupLeaves` stores it back after the image. A tag the message did not carry (the receiving group holds more) is NULL. A
+  VARIABLE-LENGTH group (an OCCURS DYNAMIC table) that holds a tag is a message area too: its SEND image is the current-extent image and its receiving half is the
+  contiguous decomposition (`FromContiguousImage` to `FromVarImage`), whose fixed-part distribution skips a tag's placeholder positions (`GroupImageCodec.EmitVarImageMethods`,
+  `EmitMemberFromImage(messageImage: true)`; the gate is `DataItem.CurrentExtentMessageImageCapable`); the tags travel as slots over the same `AsLeaves` vector, a dynamic table's occurrences included.
+  An area that holds an OCCURS DYNAMIC table has no allocated maximum (§2023:8.5.1.9.1), so its RECEIVE capacity is `AsyncMessaging.UnboundedCapacity` and the run unit's end answers an unreceived
+  message with an empty temporary. An identifier-1
   that is a single elementary message tag has the image `""` (`RecordAreaImage`'s slot-carried arm), zero character
   positions, so its SEND is EC-MCS-MESSAGE-LENGTH under GR1 and a RECEIVE into it takes any message as too long (GR3).
 - RECEIVE stores the message by the receiving inverse a READ uses, arm for arm. An identifier-1 that is a
@@ -434,14 +441,16 @@ A statement's raisable names are one structure, `EcBinder.DeclaredRaisableNames`
 | `BoundSendResponse` | EC-MCS-NO-REQUESTER, EC-MCS-INVALID-TAG, EC-MCS-MESSAGE-LENGTH (GR1's zero length), EC-MCS-IMP |
 | `BoundReceiveMessage` | EC-MCS-INVALID-TAG, EC-MCS-REQUESTOR-FAILED, EC-MCS-MESSAGE-LENGTH, EC-MCS-NO-REQUESTER, EC-MCS-NORMAL-TERMINATION, EC-MCS-ABNORMAL-TERMINATION, EC-MCS-IMP; EC-CONTINUE-LESS-THAN-ZERO when it waits on seconds (Q5) |
 
-Each of these fixed names follows `CheckingFlags`' five declarations (a field, the engine property, its forwarder, the
-`EcEmitter` gate row, a one-line raise helper), and `ExceptionRaiseHelperDriftTests` holds each helper to its one flag.
+**Correction (PB4744): one mechanism, the profile, for every EC-MCS name.** The fixed names were to follow `CheckingFlags`' five declarations (a field, the engine property, its forwarder, the
+`EcEmitter` gate row, a one-line raise helper). The message control system names the condition at run time for all of them, and a requestor's RECEIVE raises a name a server chose, so each statement carries its checking profile
+(`IProfiledStatement`, below) and `AsyncMessaging` asks `profile.Enabled(name)` for every name before `ExceptionState.Set(name, fatal)`; the site then runs the selection over the raised name (`EcEmitter.EmitSelection`, the shape of the GOBACK ... RAISING pickup), the
+ON EXCEPTION phrase taking the condition ahead of it (§2023:14.6.13.1.3 1)). Forty lines of flags, forwarders and gate rows that would each read the same profile are not written, and `EcRaiseSiteRegistryDriftTests` counts a reference to an `ExceptionCatalog` constant outside the catalog as the raise site.
 
 A forwarded name (Q6) is not fixed: the server chooses it, and the requestor learns it at run time, so no flag and no
-declaration can name it. `BoundReceiveMessage` therefore carries the profile an activating statement carries
-(`IActivatingStatement.ActivatorChecking`, an `EcCheckingProfile` "queryable at run time for a name chosen at run time",
-stamped by `BindStatement`'s one exit); a RECEIVE is no activation, so the slice renames that interface for what it
-carries and changes every implementer. `AsyncMessaging.Receive` takes the profile and asks
+declaration can name it. All three nodes therefore carry the profile an activating statement carries
+(`IProfiledStatement.CheckingProfile`, an `EcCheckingProfile` "queryable at run time for a name chosen at run time",
+stamped by `BindStatement`'s one exit); a SEND and a RECEIVE are no activation, so the slice renamed the interface (`IActivatingStatement.ActivatorChecking` became
+`IProfiledStatement.CheckingProfile`) for what it carries and changed every implementer. `AsyncMessaging` takes the profile (its encoded form) and asks
 `profile.Enabled(name)` before `ExceptionState.Set(name, fatal)`, the test the activating statement of a GOBACK or EXIT
 RAISING already makes for a propagated name (kb/Work PB408). A level-1 or level-2 name sets nothing (Q6).
 
@@ -703,12 +712,12 @@ refusal rule of §5.4.1 deletes the files it left.
 ```csharp
 public static class AsyncMessaging      // Runtime/Messaging; PublicAPI.Unshipped.txt
 {
-    public static MessageOutcome SendToServer(string server, string image, RecordExtents? extents, object?[] slots);
-    public static MessageOutcome SendResponse(MessageTag to, string image, RecordExtents? extents, object?[] slots, string? raising);
-    public static MessageOutcome Receive(MessageTag from, int capacity, MessageWait wait, EcCheckingProfile profile);
+    public static MessageOutcome SendToServer(string server, string image, RecordExtents? extents, object?[] slots, string checking);
+    public static MessageOutcome SendResponse(MessageTag to, string image, RecordExtents? extents, object?[] slots, string? raising, bool raisingLast, string checking);
+    public static MessageOutcome Receive(MessageTag from, int capacity, MessageWait wait, string checking);   // checking: the statement's EcCheckingProfile, encoded
 }
 public readonly record struct MessageOutcome(bool Successful, MessageTag Tag, string? Image, RecordExtents? Extents,
-    object?[]? Slots, long Length);
+    object?[]? Slots, long? Length, string? Raised, bool RaisedFatal, string? Detail);   // Raised: the condition set to exist, when checking enabled it
 public readonly record struct MessageWait(MessageWaitKind Kind, long Seconds);
 ```
 
@@ -793,8 +802,7 @@ These are case files under the clause folders of the conformance suite (`DESIGN-
 | `cases/14.6.11-Normal-run-unit-termination/no-active-message.cob` | a run unit with no active message ends normally |
 
 Each runs with `WISEOWL_COBOL_MCS` pointing at a fresh empty directory, which the runner supplies to every test
-(`wiseowl/options` sets no runtime environment today; slice S4 adds this, with the first case that exchanges a message,
-and `receive-poll` sets `WISEOWL_COBOL_MCS_SERVER` the same way). The refusals are one test each in
+(S4 gave it through the WiseOwl adapter's `environment` (`WISEOWL_COBOL_MCS` = the test's `{work}` directory) and `CutRunner.RunExit`, both held equal by `ConformanceSuiteRunnerDriftTests`; `wiseowl/options` still sets no runtime environment, so the cases that need a served name, `receive-poll` and the poll legs, are `conformance-test:MessagingProcessTests` and not case files). The refusals are one test each in
 `wiseowl/diagnostics/`: SEND SR1, SR3, SR4 (both operands), RECEIVE SR1, SR2 (each clause, and CONSTANT RECORD for RECEIVE
 only), SR3; SET Format 17 with a non-tag operand; the relation with a tag and a pointer; an ordering relation over a
 strongly-typed group holding a tag (COBOL1535); a message tag as CALL BY VALUE argument (§2023:14.9.4.3 SR22) and as ACCEPT

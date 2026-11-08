@@ -615,7 +615,7 @@ internal sealed class MessagingProtocol
         receive.Claim = null;
         string requestor = offer.Link.RequestorRunId!;
         _actions.Add(new Write(offer.Link.Id, new AckFrame(offer.Serial)));
-        _active[(requestor, offer.Serial)] = receive.Capacity;
+        _active[(requestor, offer.Serial)] = receive.Capacity == AsyncMessaging.UnboundedCapacity ? 0 : receive.Capacity;   // the temporary of ISO §2023:14.6.11 item 7
         var tag = new MessageTag(_mcs, MessageParty.Requestor, requestor, offer.Serial);
         bool tooLong = message.Image.Length > receive.Capacity;
         var body = message.Truncated(receive.Capacity);

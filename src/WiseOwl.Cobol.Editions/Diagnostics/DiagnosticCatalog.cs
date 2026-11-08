@@ -3556,8 +3556,8 @@ public static class DiagnosticCatalog
     //    every site routes through `EditionContext.Declined(descriptor, seen)`, never a local strictness test
     //    and never a second helper (feedback_one_mechanism_per_job).
     //
-    //    • ACCEPT-INERT (Warning) — COBOL1578 / 1580 / 1778. These facilities are ADDITIVE: the
-    //      program still means what it says with them absent (no message I-O, VALIDATE validates nothing, a RECORD DELIMITER selects a framing §2023:12.4.5.11.4 GR1
+    //    • ACCEPT-INERT (Warning) — COBOL1580 / 1778. These facilities are ADDITIVE: the
+    //      program still means what it says with them absent (VALIDATE validates nothing, a RECORD DELIMITER selects a framing §2023:12.4.5.11.4 GR1
     //      forbids the program from seeing), so the program COMPILES, RUNS, and the facility is inert, with
     //      §2023:14.6.13.1.1 licensing NO exception conditions. Before this band these constructs produced a
     //      GENERIC parse error, which satisfied neither obligation below nor the "never a silent wrong
@@ -3565,8 +3565,8 @@ public static class DiagnosticCatalog
     //      ⛔ TWO DIFFERENT LICENCES REACH THIS ONE DISPOSITION, and conflating them is kb/Work PB709's
     //      defect — the descriptor's `Annex` datum is what tells them apart now, and `PostureClause` derives
     //      the § from it so that no site writes the clause by hand:
-    //        · 1578 (MCS, Annex A.3 item 4) and 1778 (RECORD DELIMITER, A.3 item 26) are
-    //          PROCESSOR-DEPENDENT (1579, commit and rollback, A.3 items 6-7, is retired: kb/Work PB3338),
+    //        · 1778 (RECORD DELIMITER, A.3 item 26) is
+    //          PROCESSOR-DEPENDENT (1578, the asynchronous messaging facility, and 1579, commit and rollback, A.3 items 4 and 6-7, are retired: kb/Work PB4744, PB3338),
     //          and §2023:4.2.6 ¶3 makes the warning MANDATORY: "shall provide a warning mechanism at compile time to indicate use of syntactically-detectable
     //          processor-dependent language elements not supported". There the warning IS the obligation.
     //        · 1580 (VALIDATE) is NOT in Annex A.3 at all — it is Annex A.4.14, OPTIONAL, and §2023:4.2.7 carries
@@ -3601,14 +3601,8 @@ public static class DiagnosticCatalog
     //      not required to produce executable code when unsupported processor-dependent language elements are
     //      used." The annex still decides the POSTURE CLAUSE the message cites (DiagnosticDescriptor.Annex →
     //      PostureClause: §2023:4.2.6 for A.3, §2023:4.2.7 for A.4); it does not decide the severity.
-    public static readonly DiagnosticDescriptor McsFacilityUnsupported = new(
-        "COBOL1578", "mcs-facility-unsupported", EditionSeverity.Warning,
-        "The asynchronous messaging facility (SEND/RECEIVE, ISO §2023:14.9.31/§2023:14.9.38) is a processor-dependent "
-        + "element (§2023:4.2.6; Annex A.3 item 4) that is not supported — a SEND or RECEIVE statement is accepted but "
-        + "performs no message I-O, and the facility raises no EC-MCS-* condition (§2023:14.6.13.1.1); an EC-MCS "
-        + "exception-name is accepted. See docs/CONFORMANCE.md §4.",
-        "ISO §2023:4.2.6 ¶3 / Annex A.3 item 4 / §2023:14.9.31 / §2023:14.9.38", RecognizedNotImplemented,
-        Annex: DeclinedAnnex.A3);
+    // ⛔ COBOL1578 ("mcs-facility-unsupported") is RETIRED — NEVER REALLOCATE IT. It named SEND and RECEIVE accepted inert while the asynchronous messaging facility
+    //    (Annex A.3 item 4) was declined; kb/Work PB4744 built the exchange (DESIGN-message-control.md), so the statements run and the EC-MCS names are raised.
     // ⛔ COBOL1579 ("commit-rollback-unsupported") is RETIRED — NEVER REALLOCATE IT. It named COMMIT and ROLLBACK
     //    accepted inert while the facility was declined; kb/Work PB3338 built them on the keyed store engine.
     public static readonly DiagnosticDescriptor ValidateFacilityUnsupported = new(
