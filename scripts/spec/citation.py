@@ -20,7 +20,7 @@ THE FORMAT (owner 2026-11-06; the edition is MANDATORY):
 | `1989`  | ANSI X3.23a-1989 (the amendment) | its own numbering                                                     | parsed only              |
 | `1993`  | ANSI X3.23b-1993 (the amendment) | its own numbering                                                     | parsed only              |
 
-- **Rule** (optional, after ONE space): `SR n` | `GR n` | `Format n` | `Table n`. A syntax or general rule is written
+- **Rule** (optional, after ONE space): `SR n` | `GR n` | `AR n` | `RV n` | `Format n` | `Table n` (`RULE_KINDS`). A syntax or general rule is written
   glued (`GR1`, `SR17`), and its sub-item path is glued after the number as the repository has always written it
   (`GR6d.2`, `SR3b`). `render` writes the glued form; `parse` also reads `GR 1`.
 - **Disambiguation.** `§` immediately followed by an edition token and a colon is a citation of the standard, and
@@ -104,9 +104,16 @@ _OWN_LOCATOR = r"(?:p\.)?[A-Z0-9]+(?:[.-][A-Z0-9]+)*(?![a-z])"
 _LOCATOR = {"clause": re.compile(_CLAUSE + r"\Z"), "section": re.compile(_SECTION_LOCATOR + r"\Z"),
             "own": re.compile(_OWN_LOCATOR + r"\Z")}
 
+#: The NUMBERED RULE KINDS a citation's rule names, each the abbreviation of a rule block the standards head: a syntax
+#: rule and a general rule, and an intrinsic function's argument rule and returned-value rule (§2023:15.10.3 AR1; Amendment
+#: 1's Section A, §1989:A.2.5.3 AR1). The rule catalogs of both editions write their rows' citations with them
+#: (rule_catalog_1985.KINDS, extract_rule_catalog.KINDS), so a catalog row's citation parses (kb/Work PB4886).
+RULE_KINDS = ("SR", "GR", "AR", "RV")
+#: A numbered rule's kind and ordinal (`GR6d.2` -> GR, 6): `cite.py --check` reads the ordinal with it.
+NUMBERED_RULE = re.compile(rf"({'|'.join(RULE_KINDS)}) ?(\d+)")
 #: The rule designator, after one space. Its glued sub-item path is `[a-z0-9.]` ending in a letter or digit, so a
 #: sentence's full stop is never part of it.
-RULE = r"(?:(?:SR|GR) ?\d+(?:[a-z0-9.]*[a-z0-9])?|Format \d+|Table \d+)"
+RULE = rf"(?:(?:{'|'.join(RULE_KINDS)}) ?\d+(?:[a-z0-9.]*[a-z0-9])?|Format \d+|Table \d+)"
 _RULE = re.compile(RULE + r"\Z")
 
 #: THE ONE CITATION PATTERN. `edition`/`locator` are the edition form (the locator read loosely here, and per edition
@@ -149,9 +156,9 @@ def _rule(raw: str | None) -> str | None:
         return None
     raw = raw.strip()
     if not _RULE.match(raw):
-        raise CitationError(f"{raw!r} is not a rule designator: write SR n, GR n (its sub-item path glued: GR6d.2), "
-                            "Format n or Table n")
-    return re.sub(r"^(SR|GR) ", r"\1", raw)
+        raise CitationError(f"{raw!r} is not a rule designator: write SR n, GR n, AR n or RV n (its sub-item path "
+                            "glued: GR6d.2), Format n or Table n")
+    return NUMBERED_RULE.sub(r"\1\2", raw, count=1)
 
 
 def _edition_locator(token: str, locator: str | None) -> tuple[int, str]:
@@ -573,6 +580,12 @@ def self_test() -> int:
         ("2002 is parsed only while its transcription is absent", parse_only),
         ("1989 and 1993 are parsed only", bad("§1989:A.2.1") is None and bad("§1993:3.1") is None),
         ("1985 against the real transcription", bad("§1985:VI.5.3.2") is None and bad("§1985:p.VI-20") is None),
+        *_real_1985_heads(),
+        ("parses an argument rule and a returned-value rule, the catalogs' AR and RV (kb/Work PB4886)",
+         parse("§2023:15.10.3 AR1").rule == "AR1" and parse("§1989:A.2.5.4 RV1").rule == "RV1"
+         and render(parse("§2023:15.10.3 AR 2")) == "§2023:15.10.3 AR2"),
+        ("rejects a paragraph's heading word as a rule: the locator alone names a Function paragraph (kb/Work PB4886)",
+         raises("§1985:VII.3.5.1 Function", "is not a rule designator")),
         ("rejects an unknown edition", raises("§2020:1.2", "is not an edition")),
         ("rejects a 1985 locator without its section", raises("§1985:5.3.2", "is not a 1985 locator")),
         ("rejects a Roman locator for 2023", raises("§2023:VI.5.3", "is not a 2023 locator")),
@@ -640,6 +653,24 @@ def self_test() -> int:
     failed = [n for n, ok in cases if not ok]
     print("SELF-TEST: " + ("FAIL " + str(failed) if failed else "PASS"))
     return 1 if failed else 0
+
+
+def _real_1985_heads() -> list[tuple[str, bool]]:
+    """The real 1985 transcription heads what the standard heads (kb/Work PB4886): every appendix the document names is a
+    region of the body with its first paragraph, and no section opens a region in the front matter (the contents pages
+    name every section, and a contents line written as a heading would be a second, bogus region of that section)."""
+    loaded = regions(1985)
+    if loaded is None:
+        return []
+    lines, regs = loaded
+    letters = sorted({m.group(1) for line in lines if (m := re.search(r"APPENDIX ([A-F]):", line))})
+    known = {r[0] for r in regs}
+    body = min(s for loc, _t, s, _e in regs if loc == "I")
+    early = sorted({loc for loc, _t, s, _e in regs if loc in SECTIONS_85 and s < body})
+    return [(f"1985: every appendix the document names ({', '.join(letters)}) is a region with its first paragraph",
+             bool(letters) and all(x in known and f"{x}.1" in known for x in letters)),
+            (f"1985: no section opens a region in the front matter{' (' + ', '.join(early) + ')' if early else ''}",
+             not early)]
 
 
 def _bare_in(line: str, prev: str = "") -> bool:

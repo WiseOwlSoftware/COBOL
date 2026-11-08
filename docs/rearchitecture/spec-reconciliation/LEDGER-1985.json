@@ -2709,8 +2709,14 @@
    "kind": "heading",
    "where": "1. THE DEVELOPMENT OF COBOL",
    "batch": "REFUTED",
-   "decision": "REFUTED",
-   "reason": "the adversarial verify pass refuted it: The number and title are transcribed correctly. Choosing a heading or a bold list item is a Markdown convention."
+   "decision": "APPLIED",
+   "reason": "applied for kb/Work PB4886: the printed page heads the paragraph, its number and title on a line of their own; as a list item in an indented block it was no citable region, so §1985:A.1, A.1.1 and A.1.2 named nothing. The verify pass had refuted it as a Markdown convention; the convention is the file's own heading markup, which citation.regions_1985 reads",
+   "edits": [
+    {
+     "was": "1.  **THE DEVELOPMENT OF COBOL**",
+     "now": "## 1. <u>THE DEVELOPMENT OF COBOL</u>"
+    }
+   ]
   },
   {
    "page": 709,
@@ -2718,8 +2724,14 @@
    "kind": "underline",
    "where": "1. THE DEVELOPMENT OF COBOL",
    "batch": "REFUTED",
-   "decision": "REFUTED",
-   "reason": "the adversarial verify pass refuted it: Underlining is heading styling. The underlined section headings are likewise rendered as plain Markdown headings."
+   "decision": "APPLIED",
+   "reason": "applied for kb/Work PB4886: the printed page heads the paragraph, its number and title on a line of their own; as a list item in an indented block it was no citable region, so §1985:A.1, A.1.1 and A.1.2 named nothing. The verify pass had refuted it as a Markdown convention; the convention is the file's own heading markup, which citation.regions_1985 reads",
+   "edits": [
+    {
+     "was": "1.  **THE DEVELOPMENT OF COBOL**",
+     "now": "## 1. <u>THE DEVELOPMENT OF COBOL</u>"
+    }
+   ]
   },
   {
    "page": 709,
@@ -2727,8 +2739,14 @@
    "kind": "heading",
    "where": "1.1 ORGANIZATION OF COBOL EFFORT",
    "batch": "REFUTED",
-   "decision": "REFUTED",
-   "reason": "the adversarial verify pass refuted it: The text matches the page. Indentation and nesting are Markdown rendering choices, not content."
+   "decision": "APPLIED",
+   "reason": "applied for kb/Work PB4886: the printed page heads the paragraph, its number and title on a line of their own; as a list item in an indented block it was no citable region, so §1985:A.1, A.1.1 and A.1.2 named nothing. The verify pass had refuted it as a Markdown convention; the convention is the file's own heading markup, which citation.regions_1985 reads",
+   "edits": [
+    {
+     "was": "1.1 **ORGANIZATION OF COBOL EFFORT**",
+     "now": "## 1.1 ORGANIZATION OF COBOL EFFORT"
+    }
+   ]
   },
   {
    "page": 709,
@@ -2736,8 +2754,14 @@
    "kind": "heading",
    "where": "1.2 THE COBOL MAINTENANCE COMMITTEE",
    "batch": "REFUTED",
-   "decision": "REFUTED",
-   "reason": "the adversarial verify pass refuted it: The text matches the page. Indentation and nesting are Markdown rendering choices, not content."
+   "decision": "APPLIED",
+   "reason": "applied for kb/Work PB4886: the printed page heads the paragraph, its number and title on a line of their own; as a list item in an indented block it was no citable region, so §1985:A.1, A.1.1 and A.1.2 named nothing. The verify pass had refuted it as a Markdown convention; the convention is the file's own heading markup, which citation.regions_1985 reads",
+   "edits": [
+    {
+     "was": "1.2 **THE COBOL MAINTENANCE COMMITTEE**",
+     "now": "## 1.2 THE COBOL MAINTENANCE COMMITTEE"
+    }
+   ]
   },
   {
    "page": 712,
@@ -3149,13 +3173,13 @@
    "page": 15,
    "sweep": "contents-titles(p9-0)",
    "was": "## SECTION X: INTER-PROGRAM COMMUNICATION MODULE",
-   "now": "## <u>SECTION X: INTER-PROGRAM COMMUNICATION MODULE</u>"
+   "now": "<u>SECTION X: INTER-PROGRAM COMMUNICATION MODULE</u>"
   },
   {
    "page": 15,
    "sweep": "contents-titles(p9-0)",
    "was": "## SECTION XI: SORT-MERGE MODULE",
-   "now": "## <u>SECTION XI: SORT-MERGE MODULE</u>"
+   "now": "<u>SECTION XI: SORT-MERGE MODULE</u>"
   },
   {
    "page": 165,
@@ -3576,6 +3600,54 @@
    "sweep": "amendment-1-heads(p853-0)",
    "was": "| Page No. | Change to ANSI X3.23-1985 and ISO 1989-1985 |",
    "now": "| <u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u> |"
+  },
+  {
+   "page": 85,
+   "sweep": "paragraph-heads(p709-1)",
+   "was": "1. <u>INTRODUCTION</u>",
+   "now": "## 1. <u>INTRODUCTION</u>"
+  },
+  {
+   "page": 150,
+   "sweep": "paragraph-heads(p709-1)",
+   "was": "4. <u>LANGUAGE CONCEPTS</u>",
+   "now": "## 4. <u>LANGUAGE CONCEPTS</u>"
+  },
+  {
+   "page": 711,
+   "sweep": "paragraph-heads(p709-1)",
+   "was": "2. <u>THE EVOLUTION OF CODASYL COBOL</u>",
+   "now": "## 2. <u>THE EVOLUTION OF CODASYL COBOL</u>"
+  },
+  {
+   "page": 719,
+   "sweep": "paragraph-heads(p709-1)",
+   "was": "3. <u>THE STANDARDIZATION OF COBOL</u>",
+   "now": "## 3. <u>THE STANDARDIZATION OF COBOL</u>"
+  },
+  {
+   "page": 789,
+   "sweep": "paragraph-heads(p709-1)",
+   "was": "<u>APPENDIX C:  LANGUAGE ELEMENT LISTS</u>",
+   "now": "## <u>APPENDIX C:  LANGUAGE ELEMENT LISTS</u>"
+  },
+  {
+   "page": 789,
+   "sweep": "paragraph-heads(p709-1)",
+   "was": "1. <u>OBSOLETE LANGUAGE ELEMENT LIST</u>",
+   "now": "## 1. <u>OBSOLETE LANGUAGE ELEMENT LIST</u>"
+  },
+  {
+   "page": 802,
+   "sweep": "paragraph-heads(p709-1)",
+   "was": "3. <u>HARDWARE DEPENDENT LANGUAGE ELEMENT LIST</u>",
+   "now": "## 3. <u>HARDWARE DEPENDENT LANGUAGE ELEMENT LIST</u>"
+  },
+  {
+   "page": 804,
+   "sweep": "paragraph-heads(p709-1)",
+   "was": "4. <u>UNDEFINED LANGUAGE ELEMENT LIST</u>",
+   "now": "## 4. <u>UNDEFINED LANGUAGE ELEMENT LIST</u>"
   }
  ],
  "boxes": [
