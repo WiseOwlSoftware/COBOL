@@ -39,6 +39,19 @@ DEFAULT_MODEL = "claude-opus-5-5"
 #: Standard (non-batch) US dollars per million tokens, (input, output), by model; a batch costs half.
 STANDARD_PRICE_PER_MTOK: dict[str, tuple[float, float]] = {"claude-opus-5-5": (4.0, 20.0)}
 BATCH_DISCOUNT = 0.5
+#: THE PROMPT CACHE OF A BATCH (Anthropic's notice of 2026-11-08: a low cache hit rate on this account's direct API
+#: traffic). Every request of a pass shares its instructions, so they are a cached `system` block (`cached_system`). A
+#: batch runs for minutes to hours and its cache hits are best-effort, so the entry lives an hour: a write of that TTL
+#: costs CACHE_WRITE_MULTIPLIER times the input price, and a read CACHE_READ_MULTIPLIER[model] times it.
+CACHE_TTL = "1h"
+CACHE_WRITE_MULTIPLIER = 2.0
+CACHE_READ_MULTIPLIER: dict[str, float] = {"claude-opus-5-5": 0.05}
+#: The fewest requests that must share a block for caching it to pay: the first writes it at CACHE_WRITE_MULTIPLIER and
+#: each later one reads it, so n requests cost 2 + 0.05 (n - 1) times the input against n uncached: from 3 on (review
+#: w20261922c R1-3). A block fewer requests share is sent uncached.
+CACHE_MIN_SHARERS = 3
+#: A reply's usage counts, in the order `usd` takes them (THE one reader of them: `usage_of`).
+USAGE_FIELDS = ("input_tokens", "output_tokens", "cache_creation_input_tokens", "cache_read_input_tokens")
 #: One batch is capped at 256 MB by the API; a submit splits under this budget.
 BATCH_BYTES = 180 * 1024 * 1024
 #: The SDK retries a network error or a 5xx this many times, and waits this long for one reply.
@@ -60,10 +73,27 @@ def make_client(key: str) -> Any:
     return anthropic.Anthropic(api_key=key, max_retries=CLIENT_RETRIES, timeout=CLIENT_TIMEOUT_SECONDS)
 
 
-def usd(model: str, input_tokens: int, output_tokens: int) -> float:
-    """The batch price of one reply's tokens."""
+def usd(model: str, input_tokens: int, output_tokens: int, cache_write_tokens: int = 0, cache_read_tokens: int = 0) -> float:
+    """The batch price of one reply's tokens: its uncached input, its output, and the cache it wrote and read."""
     price_in, price_out = STANDARD_PRICE_PER_MTOK[model]
-    return (input_tokens * price_in + output_tokens * price_out) / 1e6 * BATCH_DISCOUNT
+    cached = cache_write_tokens * CACHE_WRITE_MULTIPLIER + cache_read_tokens * CACHE_READ_MULTIPLIER[model]
+    return ((input_tokens + cached) * price_in + output_tokens * price_out) / 1e6 * BATCH_DISCOUNT
+
+
+def usage_of(message: Any) -> list[int]:
+    """A reply's usage as `usd` takes it (USAGE_FIELDS), a count the reply does not report as none."""
+    return [int(getattr(message.usage, f, 0) or 0) for f in USAGE_FIELDS]
+
+
+def cached_text(text: str) -> dict[str, Any]:
+    """`text`, a part many requests of a batch share, as a text block the prompt cache keeps for CACHE_TTL: the cache
+    reads it for every later request whose prefix up to this block is the same."""
+    return {"type": "text", "text": text, "cache_control": {"type": "ephemeral", "ttl": CACHE_TTL}}
+
+
+def cached_system(text: str) -> list[dict[str, Any]]:
+    """`text`, the part every request of a batch shares, as its cached `system`."""
+    return [cached_text(text)]
 
 
 def reply_text(message: Any) -> str:
@@ -116,7 +146,7 @@ class BatchRun(Generic[M]):
 
     def cost_so_far(self, st: dict[str, Any]) -> float:
         """The batch price of every reply `usage` records: what the run has been billed."""
-        return sum(usd(st["model"], i, o) for i, o in st.get("usage", {}).values())
+        return sum(usd(st["model"], *u) for u in st.get("usage", {}).values())
 
     def adopt_pending(self, st: dict[str, Any], client: Any) -> None:
         """A crash between `create` and the state write: find the batch the server accepted (the same request count,
@@ -182,8 +212,7 @@ class BatchRun(Generic[M]):
                     bad.append([res.custom_id, res.result.type])
                     continue
                 m = res.result.message
-                st.setdefault("usage", {})[self.usage_key(b["id"], res.custom_id)] = [
-                    m.usage.input_tokens, m.usage.output_tokens]
+                st.setdefault("usage", {})[self.usage_key(b["id"], res.custom_id)] = usage_of(m)
                 if m.stop_reason != "end_turn":
                     bad.append([res.custom_id, m.stop_reason])
                     continue
