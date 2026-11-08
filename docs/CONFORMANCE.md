@@ -2308,6 +2308,13 @@ of an unsupported facility.
   `MOVE`, `STRING` and the other receiving statements accept DEBUG-ITEM, each member and a reference-modified DEBUG-CONTENTS as receivers; the store
   lands in the register (`DebugItem.StoreImage`, `StoreLine`, `StoreName`, `StoreSub`, `StoreContents`, fitted to the member's width) and stands until
   the facility updates the register for the next section. Witness: `conformance:cases/_unassigned/pb4858-debug-register-receiving`.
+  **DEBUG-ITEM is a GROUP (kb/Work PB4903; the text decides, no latitude).** General rule 10 describes `01 DEBUG-ITEM` with the six members and the
+  one-character FILLER entries between them, so the item is a group item whose entries are those eleven: a store into the whole item lands in the
+  FILLER entries too (`DebugItem.StoreImage`), INITIALIZE walks the entries by category (ISO/IEC 1989:2023 §2023:14.9.20.4 GR4, GR5 and GR6: the
+  DEBUG-SUB-n entries become zero, the alphanumeric entries spaces, the FILLER entries are left alone), and CORRESPONDING takes it as a group operand
+  (§2023:14.9.25.3 SR12 is met; no user item can share a member's name, DEBUG-* being reserved at COBOL-85, so no pair exists and the statement changes nothing). This differs from GnuCOBOL 3.2, which models the register as one
+  alphanumeric item; the text controls (CLAUDE.md rule 1). Witness: `conformance:cases/_unassigned/pb4903-debug-item-group`
+  (refused from 2002: `pb4903-debug-item-group-removed-2002`).
 - **D-DEBUG-ITEM-REFERENCE — DEBUG-ITEM is referenced only from within a debugging section** (kb/Work PB4858). X3.23-1985 USE FOR DEBUGGING
   syntax rule 11 (§1985:XV.3.2.3): "References to the special register DEBUG-ITEM are restricted to references from within a debugging section."
   The text decides (no latitude): a statement outside every debugging section that references DEBUG-ITEM or a member, whole, reference-modified or
@@ -2318,7 +2325,7 @@ of an unsupported facility.
 - **D-DEBUG-SUB — what DEBUG-SUB-1 to DEBUG-SUB-3 are** (kb/Work PB4810). General rule 10 of the 1985 text describes each as `PICTURE S9999
   SIGN IS LEADING SEPARATE`, and a member the reference does not use is SPACES. **Determination (the text decides, no latitude):** each is a
   NUMERIC item of that PICTURE, carried as its five-character image (`+0003`, or five spaces; one description and one profile for the three,
-  `ImplicitRegisters.DebugSubRegister`), so a numeric comparison, COMPUTE and DISPLAY read the occurrence number (DISPLAY shows `+0003`), and a
+  `ImplicitRegisters.DebugSubRegisters`), so a numeric comparison, COMPUTE and DISPLAY read the occurrence number (DISPLAY shows `+0003`), and a
   MOVE to an alphanumeric item drops the separate sign (ISO/IEC 1989:2023 §2023:14.9.25.4 GR6): CCVS DB201A moves DEBUG-SUB-1 to `PIC X(5)` and
   compares `"0005"`, which `"0005 "` satisfies. A member the reference does not use is spaces, which a numeric use reads as invalid data. **Implementor latitude (ISO leaves the content of an invalid numeric sender undefined; precedence follows GnuCOBOL, rule 1):** a MOVE of an image-carried numeric holding such content to an alphanumeric item copies the characters as they stand (the separate sign dropped), as GnuCOBOL's display-to-alphanumeric MOVE does, so an unused DEBUG-SUB-n moved to `PIC X(5)` is five spaces and compares equal to SPACES; the decode-and-reformat of a VALID image is unchanged (`CobolNum.DeSignImage`). Witness: `conformance:cases/_unassigned/pb4810-debug-reach-and-implicit`.
   Witness: `conformance:cases/_unassigned/pb4810-debug-contents-and-sub-values`.

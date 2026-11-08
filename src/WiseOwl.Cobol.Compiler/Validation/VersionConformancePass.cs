@@ -2965,8 +2965,13 @@ internal sealed class VersionConformancePass
             // user-defined word — a legal '85 reference to the now-modeled debug facility (VCR Table 7 row 7.17;
             // the switch-ABSENT case never gets here — comment treatment skips the section body). The binder
             // resolves it to a DebugRegisterPlace, so ACCEPT it here (no §2023:8.9 violation, no not-implemented note).
+            // ⛔ ONLY AS A REFERENCE: a DECLARATION (`02 DEBUG-NAME PIC X.`) has no enclosing statement and keeps the
+            // funnel, because DEBUG-NAME and its family are reserved at COBOL-85 (kb/Work PB4903, review R1-1): the register
+            // exempts the reference, never a user-defined word of the same spelling.
             if (_debuggingModeDeclared && word.StartsWith("DEBUG-", StringComparison.Ordinal))
-                return base.VisitChildren(ctx);
+                for (Antlr4.Runtime.RuleContext? a = ctx.Parent; a is not null; a = a.Parent)
+                    if (a is CobolParserCore.StatementContext)
+                        return base.VisitChildren(ctx);
             FlagReservedUserWord(word, ctx.Start);
             return base.VisitChildren(ctx);
         }

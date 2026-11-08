@@ -776,11 +776,11 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// <summary>Whether a debugging section activated the DEBUG-ITEM register family (the only programs in which DEBUG-ITEM names anything).</summary>
     public bool HasDebugRegisters => ctx.Data.State.Implicit.DebugRegisters.Count > 0;
 
-    /// <summary>Whether <paramref name="item"/> is the description of DEBUG-ITEM or one of its members (X3.23-1985 USE FOR DEBUGGING syntax rule 11).</summary>
+    /// <summary>Whether <paramref name="item"/> is the DEBUG-ITEM group or one of its named members (X3.23-1985 USE FOR DEBUGGING syntax rule 11).</summary>
     public bool IsDebugRegister(DataItem item) => ctx.Data.State.Implicit.IsDebugRegister(item);
 
-    /// <summary>The description the DEBUG-SUB-n members share (general rule 10); null when no debugging section activated the register.</summary>
-    public DataItem? DebugSubRegister => ctx.Data.State.Implicit.DebugSubRegister;
+    /// <summary>The three DEBUG-SUB-n items (general rule 10), each its own `DataItem` with its own profile; empty when no debugging section activated the register.</summary>
+    public IReadOnlyList<DataItem> DebugSubRegisters => ctx.Data.State.Implicit.DebugSubRegisters;
 
     /// <summary>Whether <paramref name="section"/> is a debugging section. General rule 1: "Automatic execution of a debugging section is not
     /// caused by a statement appearing in a debugging section", so the statement binder plans no fire for one.</summary>
