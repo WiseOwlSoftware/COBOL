@@ -226,12 +226,28 @@ def main() -> int:
         citems = A.plan_claims(claims, planted)
         check("a claim carries the 1985 text of the locator it names",
               len(citems) == 1 and "must not be specified" in citems[0]["text"])
-        ok, _ = A.parse_answer("claims", citems[0], json.dumps({"verdict": "CONFIRMED", "citation": "§1985:VI.5.8.3 SR1",
-                                                                "quote": "must not", "reason": "says so"}))
-        bad, why = A.parse_answer("claims", citems[0], json.dumps({"verdict": "REFUTED", "citation": "VI.5.8.3",
-                                                                   "quote": "x", "reason": "y"}))
-        check("a CONFIRMED claim with a 1985 citation is an answer; a citation not in the format is refused",
-              ok is not None and bad is None and why.startswith("citation"))
+        def claim(**fields: object) -> tuple[object, str]:
+            return A.parse_answer("claims", citems[0], json.dumps({"verdict": "CONFIRMED", "quote": "q", "reason": "r",
+                                                                   **fields}))
+        ok, _ = claim(locator="VI.5.8.3", rule="SR1")
+        check("a CONFIRMED claim citing a locator and its rule is an answer, its citation rendered in the one format",
+              ok is not None and ok["citation"] == "§1985:VI.5.8.3 SR1")
+        # The claims canary of 2026-11-07: three right answers, each citing a Function paragraph (kb/Work PB4886).
+        function, why = claim(locator="VII.3.5.1", rule=None)
+        check("a paragraph with no numbered rule (a Function) is cited by its locator alone, the rule null",
+              function is not None and function["citation"] == "§1985:VII.3.5.1" and why == "")
+        check("the prompt asks for the locator and the rule as fields of their own, in CITATION_FIELDS' words",
+              A.CITATION_FIELDS in A.PROMPTS["claims"] and '"locator"' in A.CITATION_FIELDS)
+        refused = {"a heading word in the rule": claim(locator="VII.3.5.1", rule="Function"),
+                   "a heading word in the locator": claim(locator="VII.3.5.1 Function"),
+                   "the edition in the locator": claim(locator="§1985:VII.3.5.1"),
+                   "no locator": claim(citation="§1985:VII.3.5.1"),
+                   "a locator the 1985 text lacks": claim(locator="VII.99.9"),
+                   "a paragraph outside its section": claim(locator="I.5.8.3")}
+        check("a citation outside the shape, or naming nothing in the 1985 text, is a reply to retry: "
+              + ", ".join(refused), all(a is None and w.startswith("citation") for a, w in refused.values()))
+        na, _ = A.parse_answer("claims", citems[0], json.dumps({"verdict": "NOT-ADDRESSED", "reason": "silent"}))
+        check("a NOT-ADDRESSED answer needs no locator", na is not None)
         missing = root / "missing.json"
         missing.write_text(json.dumps([{"id": "VCR-2", "claim": "x", "locator": "VI.9.9"}]), encoding="utf-8", newline="\n")
         try:
@@ -282,6 +298,46 @@ def main() -> int:
               code not in (0, None) and "stamp" in str(code) and not fake2.created)
         code, out = run(["status", "--pass", "map", *base], fake)
         check("status needs no key", code == 0 and "items 3" in out)
+
+        print("retry after a canary whose every reply failed (kb/Work PB4930)")
+        state3, fake4 = root / "run3", FakeBatches()
+        b3 = ["--state", str(state3)]
+        run(["plan", "--pass", "map", *b3, "--catalog", str(cat85), "--catalog-2023", str(cat23), "--candidates", "2"], fake4)
+        code, out = run(["retry", "--pass", "map", *b3, *key, "--max-usd", "50"], fake4)
+        check("a retry before any canary is refused", code not in (0, None) and "canary" in str(code) and not fake4.created)
+        run(["submit", "--pass", "map", *b3, *key, "--max-usd", "50", "--canary", "2"], fake4)
+        tried = fake4.created[0]["ids"]
+        answer(fake4, "msgbatch_1", {c: "no JSON here" for c in tried})
+        run(["collect", "--pass", "map", *b3, *key], fake4)
+        code, out = run(["retry", "--pass", "map", *b3, *key, "--max-usd", "50"], fake4)
+        st3 = json.loads((state3 / "map" / "state.json").read_text(encoding="utf-8"))
+        check("the retry resubmits the failed canary's items, as the canary, and no never-submitted item",
+              code == 0 and len(fake4.created) == 2 and fake4.created[1]["ids"] == tried and st3["batches"][1]["canary"])
+        code, out = run(["submit", "--pass", "map", *b3, *key, "--max-usd", "50"], fake4)
+        check("the full submit stays refused while the retried canary runs", code not in (0, None) and len(fake4.created) == 2)
+        none = json.dumps({"verdict": "NONE", "rules_2023": [], "differs": {}, "reason": "no counterpart"})
+        answer(fake4, "msgbatch_2", {tried[0]: none, tried[1]: "no JSON here"})
+        run(["collect", "--pass", "map", *b3, *key], fake4)
+        code, out = run(["submit", "--pass", "map", *b3, *key, "--max-usd", "50"], fake4)
+        rest = [c for c in json.loads((state3 / "map" / "items.json").read_text(encoding="utf-8")) if c not in tried]
+        check("the retried canary's valid answer proves the pass: the full submit sends the never-submitted item",
+              code == 0 and len(fake4.created) == 3 and fake4.created[2]["ids"] == rest)
+
+        print("the catalog's citations: every pass quotes them")
+        ar = {"id": "1989-AR-A.2.5.3-1", "citation": "§1989:A.2.5.3 AR1", "module": "Intrinsic Function", "level": 1,
+              "box": "none", "subject": "ACOS", "kind": "AR", "text": "Argument-1 must be class numeric."}
+        good_cat, bad_cat = root / "c85ar.json", root / "c85bad.json"
+        good_cat.write_text(json.dumps({"rules": RULES_1985 + [ar]}), encoding="utf-8", newline="\n")
+        bad_cat.write_text(json.dumps({"rules": [dict(ar, citation="§1985:VII.3.5.1 Function")]}), encoding="utf-8",
+                           newline="\n")
+        check("a catalog row of every rule kind, an argument rule too, is quoted by its citation",
+              [i["rule"]["citation"] for i in A.plan_map(good_cat, cat23, 1)][-1] == "§1989:A.2.5.3 AR1")
+        try:
+            A.plan_map(bad_cat, cat23, 1)
+            refused_plan = False
+        except SystemExit as e:
+            refused_plan = "is not a rule designator" in str(e)
+        check("a catalog row whose citation is none refuses the plan", refused_plan)
     print(f"=== AUDIT_BATCH SELF-TEST: {'GREEN' if not failures else 'RED: ' + '; '.join(failures)} ===")
     return 1 if failures else 0
 
