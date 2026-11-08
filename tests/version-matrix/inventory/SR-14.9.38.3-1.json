@@ -7,9 +7,9 @@
  "rule-digest": "ba0f711fdd17",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MessagingBinder.cs#BindSend",
- "test-ref": "conformance:wiseowl/cases/14.6.11-Normal-run-unit-termination/w59_mcs_facility_witness; conformance-test:DocumentedNonSupportWitnessTests.McsFacility_NamedNonSupportWarning_AtBothStatements_PinnedToSpec; conformance:wiseowl/cases/14.9.38-SEND/pb4743-send-literal-numeric; conformance:wiseowl/cases/14.9.38-SEND/pb4743-send-syntax-rules-accepted; conformance-test:MessagingSyntaxRuleTests.TheClassScreens",
+ "test-ref": "conformance:wiseowl/cases/14.9.38-SEND/pb4743-send-literal-numeric; conformance:wiseowl/cases/14.9.38-SEND/pb4743-send-syntax-rules-accepted; conformance-test:MessagingSyntaxRuleTests.TheClassScreens; conformance:wiseowl/cases/14.9.31-RECEIVE/w59_mcs_facility_witness",
  "derivation": "",
  "editions": "2023",
- "notes": "kb/Work PB4743: SEND's literal-1 shall be an alphanumeric or national literal; MessagingBinder asks IntrinsicArgumentRules.ClassOf of the bound literal and refuses a numeric or boolean literal with COBOL6265.",
+ "notes": "kb/Work PB4743: SEND's literal-1 shall be an alphanumeric or national literal; MessagingBinder asks IntrinsicArgumentRules.ClassOf of the bound literal and refuses a numeric or boolean literal with COBOL6265. retired-witness: conformance-test:DocumentedNonSupportWitnessTests.McsFacility_NamedNonSupportWarning_AtBothStatements_PinnedToSpec (the facility is provided (kb/Work PB4744): the decline witness was removed and its program moved to the clause of its rules as an exchange witness) retired-witness: conformance:wiseowl/cases/14.6.11-Normal-run-unit-termination/w59_mcs_facility_witness (the facility is provided (kb/Work PB4744): the decline witness was removed and its program moved to the clause of its rules as an exchange witness)",
  "state": "OK"
 }

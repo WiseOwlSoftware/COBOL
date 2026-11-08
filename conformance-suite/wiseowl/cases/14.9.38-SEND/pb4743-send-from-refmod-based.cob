@@ -9,8 +9,7 @@
       *> referenced by identifier-1", and GR6 gives it identifier-1's class, category and usage, so its data description
       *> entry is B's. 14.9.38.3 SR3: identifier-1 "shall not contain ... the BASED clause".
       *>   cite.py: OK  8.4.3.3.4 5)  OK  14.9.38.3 3)
-      *> SEND and RECEIVE are the asynchronous messaging facility (COBOL1578, docs/CONFORMANCE.md section 4 item 1;
-      *> Annex A.3 item 4); the statement is accepted inert, but its syntax rules are asked (kb/Work PB4743).
+      *> SEND and RECEIVE are the asynchronous messaging facility (Annex A.3 item 4, docs/CONFORMANCE.md section 2): the statement binds, and every operand and syntax rule is asked at bind (kb/Work PB3568, PB4743).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB4743NA.
        DATA DIVISION.

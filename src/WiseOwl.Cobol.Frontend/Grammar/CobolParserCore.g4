@@ -995,7 +995,7 @@ statement
     //    ⛔ RECEIVE AND SEND ARE THE UNION GRAMMAR, GATED ON INTRODUCTION, NOT ON RESERVATION (kb/Work PB374).
     //    Both words are NON-MONOTONIC in §2023:8.9: reserved at COBOL-85 and 2002 (the communication facility's verbs), user
     //    words at 2014, reserved again at 2023. A reservation predicate therefore recognized the 2023-only
-    //    §2023:14.9.31.2 / §2023:14.9.38.2 formats at --std 85 and warned COBOL1578 naming a 2023 facility, while
+    //    §2023:14.9.31.2 / §2023:14.9.38.2 formats at --std 85 and compiled them as a 2023 facility, while
     //    2002/2014 answered a raw parse error. The arm fires wherever the token spells the verb (wordAhead, so a
     //    >>COBOL-WORDS UNDEFINE still removes it), and the edition pass names the introduction
     //    (VersionConformancePass VisitMcs*Statement → async-messaging-2023 → COBOL0900). No legal program of

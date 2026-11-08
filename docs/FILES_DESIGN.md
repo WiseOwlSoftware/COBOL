@@ -2733,7 +2733,7 @@ is what the traceability inventory refuses to close a DOCUMENTED-NON-SUPPORT row
 carries the full printed general format (rendered from the PDF, not read off the OCR) purely so the binder
 can name what it saw.
 
-The severity is the point of difference from `COBOL1578/1580`, which ACCEPT their facility inert
+The severity is the point of difference from `COBOL1579/1580`, which ACCEPT their facility inert
 and warn. Those facilities are **additive** — a program means what it says with the message or validate
 behavior simply absent. These two are not: an inert FORMAT changes which bytes reach the medium
 (§2023:13.18.24.4 GR1 — external media format), an inert SELECT WHEN selects the wrong record description entry

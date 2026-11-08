@@ -29,10 +29,11 @@ public sealed partial class FileControlBinder
     /// (Format 1) and sort-merge-area (Format 3) formats are storage-economy permissions (GR1/GR4 — shared/reusable
     /// ALLOCATION plus open-mode constraints on the program, nothing a typed-native runtime must alias) — bound as
     /// conformant no-ops; MULTIPLE FILE TAPE is obsolete and parsed-and-ignored (grammar note) once
-    /// <see cref="ScreenMultipleFileClause"/> has asked for its file list (kb/Work PB4307), and so is the
+    /// <see cref="ScreenMultipleFileClause"/> has resolved its file list (kb/Work PB4307, PB4945), and so is the
     /// X3.23-1985 RERUN clause (a checkpoint HINT with no program-visible effect — a null rerun facility is
     /// conforming; deleted by ISO 2002, 0902-gated ≥2002 by the version-conformance pass, VCR Table 7 row 7.15) once
-    /// <see cref="ScreenRerunClause"/> has asked for its file-name-2 (kb/Work PB4919) —
+    /// <see cref="ScreenRerunClauses"/> has asked its format and its five syntax rules, after the whole paragraph
+    /// because SR4 and SR5 compare its clauses (kb/Work PB4919, PB4945) —
     /// both skip SAME's screens through a <c>continue</c> below by design. The APPLY COMMIT clause (§2023:12.4.6.3) is the one
     /// other arm that is not a no-op here: <see cref="BindApplyCommitClause"/> (kb/Work PB3338).
     /// EVERY SAME format also records its MEMBERSHIP on its files
@@ -45,6 +46,7 @@ public sealed partial class FileControlBinder
         var io = program.environmentDivision()?.inputOutputSection()?.ioControlParagraph();
         if (io is null) return;
         var sites = new List<SameSite>();
+        var reruns = new List<Core.RerunClauseContext>();
         foreach (var clause in io.ioControlClause())
         {
             using var _ = Edition.At(clause);
@@ -60,7 +62,7 @@ public sealed partial class FileControlBinder
             }
             if (clause.rerunClause() is { } rerun)
             {
-                ScreenRerunClause(rerun);
+                reruns.Add(rerun);
                 continue;
             }
             if (clause.sameClause() is not { } same) continue;
@@ -80,6 +82,7 @@ public sealed partial class FileControlBinder
             sites.Add(new SameSite(same, recorded, complete));
         }
         ScreenSameClauses(sites);
+        ScreenRerunClauses(reruns);
         // §2023:12.4.6.4.3 SR11 — asked after the WHOLE paragraph, because an APPLY COMMIT clause may follow the SAME
         // clause it constrains. One clause mixing the two kinds is one violation, reported at the clause.
         foreach (var site in sites)
@@ -96,7 +99,8 @@ public sealed partial class FileControlBinder
             if (site.Clause.Kind == SameClauseKind.RecordArea) LinkSameRecordArea(site.Clause);
     }
 
-    /// <summary>The X3.23-1985 MULTIPLE FILE clause's one syntax rule this binder can state (kb/Work PB4307): its file
+    /// <summary>The X3.23-1985 MULTIPLE FILE TAPE clause against its general format (§1985:VII.2.11.2; the clause prints
+    /// no syntax rules) and its file-name references (kb/Work PB4307, PB4945). Each file-name resolves to a file; the file
     /// list, <c>{file-name [POSITION integer]} …</c>, is not optional, so <c>MULTIPLE FILE TAPE.</c> is refused like
     /// <c>MULTIPLE FILE TAPE CONTAINS.</c>, which the parser already refuses. The grammar keeps the list optional on
     /// purpose: a required list would send the bare clause to the I-O-CONTROL error production, whose COBOL1970 ("not
@@ -104,24 +108,137 @@ public sealed partial class FileControlBinder
     /// otherwise parsed and ignored (a reel-sharing description has nothing to do on disk storage).</summary>
     private void ScreenMultipleFileClause(Core.MultipleFileClauseContext multiple)
     {
+        // Each file-name-1 is a reference to a file (§1985:VII.2.11.3 GR1 names the files "used in the object program"),
+        // so it resolves like every other file-name (kb/Work PB4945's sweep): `MULTIPLE FILE TAPE CONTAINS NOSUCH` compiled clean.
+        foreach (var entry in multiple.multipleFileTapeEntry())
+            if (entry.fileName() is { } name) ResolveIoControlFile(name, "the MULTIPLE FILE clause");
         if (multiple.multipleFileTapeEntry().Length > 0) return;
         Edition.Error(DiagnosticCatalog.MultipleFileNamesNoFile,
             "the MULTIPLE FILE clause names no file: its format is MULTIPLE FILE [TAPE] [CONTAINS] "
             + "{file-name [POSITION integer]} ..., so at least one file-name is required (X3.23-1985; VCR Table 7 row 7.6)");
     }
 
-    /// <summary>The X3.23-1985 RERUN clause's file-name-2 after <c>integer-1 RECORDS</c> (kb/Work PB4919). The printed
-    /// format (§1985:VII.2.12.2) shares one <c>OF file-name-2</c>, outside brackets, between the END OF REEL/UNIT and the
-    /// RECORDS phrases, so <c>RERUN ON X EVERY 100 RECORDS.</c> is refused; the grammar keeps the file optional on that arm
-    /// only so the refusal names the rule instead of a bare "unexpected '.'". Asked at every edition, as
-    /// <see cref="ScreenMultipleFileClause"/> is: the clause is otherwise parsed and ignored.</summary>
-    private void ScreenRerunClause(Core.RerunClauseContext rerun)
+    /// <summary>The file a file-name operand of an obsolete I-O-CONTROL clause (RERUN, MULTIPLE FILE) references, or null
+    /// after reporting COBOL1639: the clause is otherwise ignored, so this is the one place its file-names are resolved
+    /// (§1985:IV.4.3.8: "a statement in a COBOL program must contain a reference which uniquely identifies that
+    /// resource"). Visible files are searched, a containing program's GLOBAL file included, as every file-name reference is.</summary>
+    private FileModel? ResolveIoControlFile(Core.FileNameContext name, string clause)
     {
-        if (rerun.rerunEvery() is not { } every || every.RECORDS() is null || every.fileName() is not null) return;
-        Edition.Error(DiagnosticCatalog.RerunRecordsNoFile,
-            "the RERUN clause's integer-1 RECORDS phrase names no file: its format is RERUN [ON {file-name-1 | "
-            + "implementor-name-1}] EVERY {[END OF] {REEL | UNIT} | integer-1 RECORDS} OF file-name-2 ..., so file-name-2 "
-            + "is required (§1985:VII.2.12.2; VCR Table 7 row 7.15)");
+        string word = name.GetText();
+        if (_host.State.VisibleFiles.TryGetValue(word, out var file)) return file;
+        using var _ = Edition.At(name);
+        Edition.Error(DiagnosticCatalog.UndefinedReference,
+            $"{clause} names '{word}', which is not defined as a file: no SELECT clause of this program gives that name, so "
+            + "the reference identifies no resource (§1985:IV.4.3.8: \"a statement in a COBOL program must contain a reference "
+            + "which uniquely identifies that resource\")");
+        return null;
+    }
+
+    /// <summary>Whether <paramref name="file"/> is "a sequentially organized file" (§1985:VII.2.12.3 SR1, SR2): every
+    /// organization but RELATIVE and INDEXED, LINE SEQUENTIAL included (a sequential organization whose records are lines).</summary>
+    private static bool IsSequentiallyOrganized(FileModel file) =>
+        file.Organization is FileOrganization.Sequential or FileOrganization.LineSequential;
+
+    /// <summary>The X3.23-1985 RERUN clauses of one I-O-CONTROL paragraph against the clause's general format
+    /// (§1985:VII.2.12.2) and its five syntax rules (§1985:VII.2.12.3; kb/Work PB4919, PB4945). The Relative and Indexed
+    /// I-O modules print a subset of the format and point here (§1985:VIII.2.6.3 GR1, §1985:IX.2.8.3 GR1). Asked at every
+    /// edition, as <see cref="ScreenMultipleFileClause"/> is: from 2002 the clause is also COBOL0902 (removed), and under
+    /// <c>--permissive</c> it is accepted with a warning, so its rules still hold. The clause is otherwise parsed and
+    /// ignored: a null rerun facility is conforming (§1985:VII.2.12.4 GR2 asks for "at least one" form, and the
+    /// translator records the rerun points of none).
+    /// <list type="bullet">
+    /// <item>The format: <c>OF file-name-2</c>, outside brackets, follows both the END OF REEL/UNIT and the RECORDS
+    /// phrases, so <c>RERUN ON X EVERY 100 RECORDS.</c> is refused (COBOL6496); the grammar keeps the file optional on
+    /// that arm only so the refusal names the rule instead of a bare "unexpected '.'".</item>
+    /// <item>ON names file-name-1 when the word names a file, implementor-name-1 otherwise (an implementor-name is a
+    /// system-name, never a file-name). SR1: file-name-1 is sequentially organized; SR2: so is the file-name-2 of an END
+    /// OF REEL/UNIT phrase (COBOL6529).</item>
+    /// <item>SR3: the RECORDS and CLOCK-UNITS phrases need implementor-name-1; GR2's forms f and g, the only ones with a
+    /// condition-name-1 phrase, both write an ON phrase (COBOL6530). Condition-name-1 is a switch-status condition-name
+    /// of SPECIAL-NAMES (GR2 f, g: "the associated switch must be defined in the SPECIAL-NAMES paragraph").</item>
+    /// <item>SR4 a/b and SR5, across the paragraph: no file-name-2 twice among the RECORDS phrases, nor among the END
+    /// OF REEL/UNIT phrases, and one CLOCK-UNITS phrase (COBOL6531).</item>
+    /// </list></summary>
+    private void ScreenRerunClauses(IReadOnlyList<Core.RerunClauseContext> reruns)
+    {
+        var recordsFiles = new HashSet<FileModel>();
+        var reelFiles = new HashSet<FileModel>();
+        bool clockUnitsSeen = false;
+        foreach (var rerun in reruns)
+        {
+            using var _ = Edition.At(rerun);
+            var on = rerun.cobolWord();
+            FileModel? onFile = null;
+            if (on is not null && _host.State.VisibleFiles.TryGetValue(on.GetText(), out var named))
+            {
+                onFile = named;
+                if (!IsSequentiallyOrganized(named))
+                    using (Edition.At(on))
+                        Edition.Error(DiagnosticCatalog.RerunFileNotSequential,
+                            $"the RERUN clause's ON phrase names '{named.CobolName}', whose organization is {named.OrganizationFace} "
+                            + "(§1985:VII.2.12.3 SR1: \"File-name-1 must be a sequentially organized file.\")");
+            }
+            if (rerun.rerunEvery() is not { } every) continue;
+            if (every.REEL() is not null || every.UNIT() is not null)
+            {
+                // The grammar requires the file on this arm; a parse that recovered without it has already been reported.
+                if (every.fileName() is not { } reelName || ResolveIoControlFile(reelName, "the RERUN clause") is not { } reel)
+                    continue;
+                if (!IsSequentiallyOrganized(reel))
+                    Edition.Error(DiagnosticCatalog.RerunFileNotSequential,
+                        $"the RERUN clause's END OF {(every.REEL() is not null ? "REEL" : "UNIT")} phrase names '{reel.CobolName}', "
+                        + $"whose organization is {reel.OrganizationFace} (§1985:VII.2.12.3 SR2: \"The END OF REEL/UNIT phrase "
+                        + "may only be used if file-name-2 is a sequentially organized file.\")");
+                if (!reelFiles.Add(reel))
+                    Edition.Error(DiagnosticCatalog.RerunPhraseRepeated,
+                        $"a second RERUN clause's END OF REEL or END OF UNIT phrase names '{reel.CobolName}' (§1985:VII.2.12.3 "
+                        + "SR4 b: \"When multiple END OF REEL or END OF UNIT phrases are specified, no two of them may specify "
+                        + "the same file-name-2.\")");
+            }
+            else if (every.RECORDS() is not null || every.CLOCK_UNITS() is not null)
+            {
+                string phrase = every.RECORDS() is not null ? "integer-1 RECORDS" : "integer-2 CLOCK-UNITS";
+                if (on is null || onFile is not null)
+                    Edition.Error(DiagnosticCatalog.RerunOnPhraseRequired,
+                        $"the RERUN clause's {phrase} phrase "
+                        + (on is null ? "has no ON phrase" : $"names the file '{onFile!.CobolName}' in its ON phrase")
+                        + ", where implementor-name-1 is required (§1985:VII.2.12.3 SR3: \"When either the integer-1 RECORDS "
+                        + "phrase or the integer-2 CLOCK-UNITS phrase is specified, implementor-name-1 must be given in the "
+                        + "RERUN clause.\")");
+                if (every.CLOCK_UNITS() is not null)
+                {
+                    if (clockUnitsSeen)
+                        Edition.Error(DiagnosticCatalog.RerunPhraseRepeated,
+                            "a second RERUN clause contains the CLOCK-UNITS phrase (§1985:VII.2.12.3 SR5: \"Only one RERUN "
+                            + "clause containing the CLOCK-UNITS phrase may be specified.\")");
+                    clockUnitsSeen = true;
+                }
+                else if (every.fileName() is not { } countedName)
+                    Edition.Error(DiagnosticCatalog.RerunRecordsNoFile,
+                        "the RERUN clause's integer-1 RECORDS phrase names no file: its format is RERUN [ON {file-name-1 | "
+                        + "implementor-name-1}] EVERY {[END OF] {REEL | UNIT} | integer-1 RECORDS} OF file-name-2 ..., so "
+                        + "file-name-2 is required (§1985:VII.2.12.2; VCR Table 7 row 7.15)");
+                else if (ResolveIoControlFile(countedName, "the RERUN clause") is { } counted && !recordsFiles.Add(counted))
+                    Edition.Error(DiagnosticCatalog.RerunPhraseRepeated,
+                        $"a second RERUN clause's integer-1 RECORDS phrase names '{counted.CobolName}' (§1985:VII.2.12.3 SR4 a: "
+                        + "\"When multiple integer-1 RECORDS phrases are specified, no two of them may specify the same "
+                        + "file-name-2.\")");
+            }
+            else if (every.cobolWord() is { } condition)
+            {
+                if (on is null)
+                    Edition.Error(DiagnosticCatalog.RerunOnPhraseRequired,
+                        $"the RERUN clause's condition-name-1 phrase '{condition.GetText()}' has no ON phrase: the two forms of "
+                        + "the clause that write condition-name-1 name implementor-name-1 or file-name-1 in the ON phrase "
+                        + "(§1985:VII.2.12.4 GR2 f, g)");
+                if (!_host.State.Configuration.SwitchConditions.TryUse(condition, condition.GetText(), out var _))
+                    using (Edition.At(condition))
+                        Edition.Error(DiagnosticCatalog.UndefinedReference,
+                            $"the RERUN clause names '{condition.GetText()}', which is not a condition-name of a switch status: "
+                            + "condition-name-1 is \"a particular status\" of a switch that \"must be defined in the SPECIAL-NAMES "
+                            + "paragraph\" (§1985:VII.2.12.4 GR2 f, g)");
+            }
+        }
     }
 
     /// <summary>The source element's APPLY COMMIT clause (ISO §2023:12.4.6.3; kb/Work PB3338), or null when its I-O-CONTROL

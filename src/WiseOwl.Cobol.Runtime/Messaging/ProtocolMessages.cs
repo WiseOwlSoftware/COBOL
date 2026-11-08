@@ -2,29 +2,6 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 namespace WiseOwl.Cobol.Runtime.Messaging;
 
-/// <summary>How a RECEIVE waits (ISO §2023:14.9.31.4 GR2; §0 Q5).</summary>
-internal enum MessageWaitKind
-{
-    /// <summary>No CONTINUE phrase: until a message or an exception arrives.</summary>
-    Forever,
-
-    /// <summary>CONTINUE AFTER MESSAGE RECEIVED: ask once.</summary>
-    MessageReceived,
-
-    /// <summary>CONTINUE AFTER n SECONDS, n already evaluated by <c>CobolTiming</c>'s rule; zero and a negative value ask once.</summary>
-    Seconds,
-}
-
-/// <summary>How long a RECEIVE waits (the protocol-side twin of the bound <c>MessageWait</c>; slice S4 widens it to the public surface of design 5.7).</summary>
-internal readonly record struct MessageWait(MessageWaitKind Kind, long Seconds)
-{
-    internal static readonly MessageWait Forever = new(MessageWaitKind.Forever, 0);
-    internal static readonly MessageWait Poll = new(MessageWaitKind.MessageReceived, 0);
-
-    /// <summary>True when the RECEIVE asks once and never waits.</summary>
-    internal bool AsksOnce => Kind == MessageWaitKind.MessageReceived || (Kind == MessageWaitKind.Seconds && Seconds <= 0);
-}
-
 /// <summary>What <c>mcs.json</c> defines for one server name (§0 Q3): its <c>maxLength</c>, and whether it has a <c>start</c> command.</summary>
 internal sealed record ServerDefinition(int? MaxLength, bool HasStart);
 

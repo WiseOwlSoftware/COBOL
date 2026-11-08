@@ -8,8 +8,7 @@
       *> ISO 14.9.31.2 prints the phrase as "CONTINUE [AFTER] { arithmetic-expression-1 [SECONDS] | MESSAGE RECEIVED }":
       *> the word after MESSAGE is RECEIVED. The arm was messageKeyword cobolWord, so any word compiled.
       *>   cite.py: OK  14.9.31.2  (General format)  "MESSAGE RECEIVED"
-      *> SEND and RECEIVE are the asynchronous messaging facility (COBOL1578, docs/CONFORMANCE.md section 4 item 1;
-      *> Annex A.3 item 4); the statement is accepted inert, but its syntax rules are asked (kb/Work PB4743).
+      *> SEND and RECEIVE are the asynchronous messaging facility (Annex A.3 item 4, docs/CONFORMANCE.md section 2): the statement binds, and every operand and syntax rule is asked at bind (kb/Work PB3568, PB4743).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB4743N9.
        DATA DIVISION.
