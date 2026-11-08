@@ -30,6 +30,11 @@ LANDS = [r'enqueue\.py land', r'READY-TO-LAND <this worktree> <branch>|READY-TO-
 # slug, which the agent alone writes to. A rendered spec carries the same line with the paths filled (RENDERED_SCRATCH).
 TEMPLATE_SCRATCH = r'(?m)^Scratch:  \{S\}\\\{slug\}\\ +\(YOURS ALONE, MANDATORY-PRACTICES P16'
 
+# PB4888 (I12): a finisher's gate follows the tests that cover its change and carries the fix class, in every place a
+# finisher is told how: the finisher brief, the rolling wave's two finisher prompts and the practices file.
+FIX_GATE_PRACTICE = r'MANDATORY-PRACTICES I12.*?dotnet test --filter'
+FIX_GATE_ENV = r"COBOL_GATE_CLASS = 'fix'"
+
 # role → (file, required patterns). Every brief must point at the practices file; the patterns are the practices
 # that are cheapest to lose silently.
 BRIEFS = {
@@ -41,7 +46,8 @@ BRIEFS = {
                           # the owner's exception-path test rule: a POINTER to its one home, never a second case list
                           r'SORT AND FILE I/O TESTS \(MANDATORY-PRACTICES I11', r'the I11 row of `templates/MANDATORY-PRACTICES\.md`',
                           # PB4473 (P16): the finisher writes in its own scratch directory, never the session scratchpad
-                          r'YOUR SCRATCH DIRECTORY is the one your prompt names \(MANDATORY-PRACTICES P16'],
+                          r'YOUR SCRATCH DIRECTORY is the one your prompt names \(MANDATORY-PRACTICES P16',
+                          FIX_GATE_PRACTICE, FIX_GATE_ENV],  # PB4888 (I12)
     # I11: the report records the exception-path tests, so the reviewer has one place to read them
     'implementer-report-template.md': [r'## Owner test requirement \(MANDATORY-PRACTICES I11\)'],
     # the lanes MANDATORY-PRACTICES I10 does not review name themselves at the landing (enqueue.py UNREVIEWED_LANES)
@@ -103,7 +109,11 @@ BRIEFS = {
                            # PB3359: a campaign's standing requirements and the group's dispatch spec reach the reviewer
                            r'g\.requirements', r'reviewerRequirements\(g\)', r'msg-w\$\{W\}-\$\{g\.letter\.toLowerCase\(\)\}\.txt: read it',
                            # PB4466 (P16): each branch reviewer writes in its own scratch directory, never the shared scratchpad
-                           r'YOUR SCRATCH DIRECTORY is \$\{reviewScratch\(g\)\} \(MANDATORY-PRACTICES P16'],
+                           r'YOUR SCRATCH DIRECTORY is \$\{reviewScratch\(g\)\} \(MANDATORY-PRACTICES P16',
+                           # PB4888 (I12): the gate finisher's prompt (first in the file) and the review finisher's BOTH carry
+                           # FIX_GATE_LINE, the targeted tests first and the fix gate
+                           r'(?s)GATE FINISHER.*?FIX_GATE_LINE \+ `Re-gate.*?REVIEW FINISHER.*?FIX_GATE_LINE \+ `Re-gate',
+                           FIX_GATE_PRACTICE, FIX_GATE_ENV],
     # O8: every fleet workflow runs with the stall watchdog beside it (PB1704).
     'MANDATORY-PRACTICES.md': [r'stall_watch\.py', r'linux-gate\.sh', r'I9', r'dispatch_guard\.py', r'prune_worktrees\.py',  # O8; PB1732; I9, O9, O10
                                r'STOP-<scope>',  # P3, PB2483: the scoped stop
@@ -113,12 +123,15 @@ BRIEFS = {
                                r'NO BRANCH IS LEFT UNDECIDED', r'--abandon', r'ONE LANDING PATH', r'coord\.py loop-state',
                                r'READY-TO-LAND <worktree> <branch>', r'enqueue\.py land',  # PB3023
                                r'I10', r'review_findings\.py', r'WAITING FOR REVIEW',  # PB3027: review on the branch
-                               r'\| I11 \|'],  # the owner's SORT and file I/O exception-path test rule (2026-10-17)
+                               r'\| I11 \|',  # the owner's SORT and file I/O exception-path test rule (2026-10-17)
+                               r'\| I12 \|', FIX_GATE_ENV],  # PB4888: the finisher's targeted tests and its fix gate
 }
 # Prompts that live in code, not in a template (kb/Work PB4473): the loop's review lane builds its agents' prompts in
 # review_lane.py (its reviewer and conflict finisher), and each must tell the agent its own scratch directory in the rolling
 # wave's reviewer wording (the BRIEFS pin above), so the two reviewers are bound by one rule. Path (from the repo root) -> patterns.
 CODE_PROMPTS = {
+    # PB4888 (I12): the planner's review-FINDINGS finisher is told its targeted tests and its fix gate by groups.FINDINGS_ANSWER
+    'scripts/orchestrator/groups.py': [r'MANDATORY-PRACTICES I12', r'run the targeted tests', FIX_GATE_ENV],
     'scripts/orchestrator/review_lane.py': [r'YOUR SCRATCH DIRECTORY is \{r\[\'scratch\'\]\} \(MANDATORY-PRACTICES P16',
                                             r'(?s)def review_prompt.*?scratch_line\(r\).*?def finisher_prompt.*?scratch_line\(r\).*?def claude_argv'],
 }

@@ -95,7 +95,7 @@ import gate_growth  # noqa: E402  — THE growth trigger's sample: one per GREEN
 import inert_lane  # noqa: E402  — THE classification of a change no test reads (kb/Work PB2878)
 import toolchain  # noqa: E402  — THE reader of toolchain.env, the versions CI and every host run (kb/Work PB4007)
 from self_tests import HANG_EXIT as SELF_TESTS_HANG_EXIT  # noqa: E402
-from gate_slot import ExclusiveLock, GateSlots, Slot  # noqa: E402
+from gate_slot import ExclusiveLock, GateSlots, Slot, gate_class_from_env  # noqa: E402
 from detached import kill_tree, pid_alive, spawn_detached  # noqa: E402  — THE one launch that outlives its caller (kb/Work PB3536), THE one tree kill (PB4072), THE one liveness probe (PB4008)
 sys.path.append(str(REPO / "scripts" / "orchestrator"))  # appended: no module of it shadows one of scripts/
 from coord import NEVER_WORK  # noqa: E402  — THE paths that are never work, so never part of a measured tree
@@ -964,6 +964,7 @@ class Outcome:
     exit_code: int = 2
     reasons: list[str] = field(default_factory=list)
     slot: str | None = None
+    gate_class: str | None = None  # the class the slot was queued under (gate_slot.GATE_CLASSES, kb/Work PB4888)
     #: The test classes this gate ran first (`Gate._first`): red at the previous run or in the merge queue.
     first: list[str] = field(default_factory=list)
     runs: list[HostRun] = field(default_factory=list)
@@ -1266,6 +1267,8 @@ class Gate:
         except ValueError as e:  # the shared gate settings turned malformed while this gate queued: stop, with the reason
             return self._finish(out, run, NOT_RUN_CAUSES["settings"].verdict, str(e), 2)
         out.timings["slot_wait_s"] = round(time.monotonic() - t, 1)
+        out.timings["slot_taken_s"] = round(time.monotonic() - started, 1)  # WHEN the slot was taken, from the gate's start (PB4888)
+        out.gate_class = gate_class_from_env()
         out.slot = slot.describe()  # acquire() has printed `gate-slot: took slot k of N …`; the verdict line names it
         try:
             return self._tested(out, run, slot, started)
@@ -1493,7 +1496,7 @@ class Gate:
                 "head": out.head, "tree": out.tree, "tree_end": out.tree_end, "base": out.base,
                 "head_tree": out.head_tree, "toolchain": out.toolchain,
                 "reused_from": out.reused_from, "reused_detail": out.reused_detail, "reasons": out.reasons,
-                "slot": out.slot, "lane": out.lane, "tooling": out.tooling, "first": out.first,
+                "slot": out.slot, "gate_class": out.gate_class, "lane": out.lane, "tooling": out.tooling, "first": out.first,
                 "runs": [vars(r) for r in out.runs], "timings": out.timings,
                 "assembly_wall_s": self._assembly_walls(out), "effective_concurrency": self._concurrency(out),
                 "populations": {a: {"discovered": p.discovered, "ran": p.ran, "skipped": p.skipped, "exact": p.exact}

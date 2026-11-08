@@ -396,7 +396,10 @@ one chain link per wave, hand off at ~60 min". Three mechanisms carry it:
   (never on the event loop, never fatal), prints `PROGRESS <unit> at <n> min:` with the dispatch-ledger groups by state
   (running, DONE reviewed CLEAN, FINDINGS, unreviewed, other), the landings enqueued and merged since the unit started
   and the oldest waiting item, plus a `STALL` line for each group running past 60 minutes or DONE and unreviewed past 15
-  (half the 30-minute dispatch-to-queue bar). The supervisor says every line in its log, and `progress.py --post` sends
+  (half the 30-minute dispatch-to-queue bar, counted from the implementer's LAST ACT: a DONE report is not a return, since
+  the implementer gates the tip it reports and fills the gate line in at the verdict, so a gate holding its worktree's lock
+  counts the group as running and otherwise the clock starts at the newest of the report, the worktree's HEAD log and its
+  STATUS.md, `progress.implementer_activity`, kb/Work PB4918). The supervisor says every line in its log, and `progress.py --post` sends
   each stalled item once to the inbox of the lane that dispatched its group (`kind: info`, `--unless-pending`, again
   only an hour later while it stays stalled: every message wakes the attended session, so a message per tick would cost
   it a turn every ten minutes for news it has). The ledger entry's `lane` (`operator` or `mythos`) is the account's lane

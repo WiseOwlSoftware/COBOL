@@ -64,6 +64,12 @@ const IMPL_SCHEMA = {
   },
   required: ['status', 'branch', 'worktree', 'report', 'gate_verdict', 'summary'],
 }
+// A FINISHER'S GATE IS A FIX GATE, AND FOLLOWS THE TARGETED TESTS (MANDATORY-PRACTICES I12; owner 2026-11-07 through Mythos, kb/Work PB4888).
+// Wave 20261887's fix cycles were 86 % gate time (22 gates, 11 RED): the finisher runs the tests that cover what it changed before it
+// spends a slot, and its re-gate (a branch one fix away from CLEAN) is served before an implementer's first gate (gate_slot.py GATE_CLASSES).
+const FIX_GATE_LINE =
+  `BEFORE YOU GATE (MANDATORY-PRACTICES I12, kb/Work PB4888): when you changed code or a test, run \`dotnet test --filter\` (P12's filter rules) over the tests that cover what each finding touched, the finding's own golden or test and the tests of the members you changed, and launch the gate only once they pass (the gate stays the only evidence; this only stops a known RED from spending a slot and a whole run). ` +
+  `Launch the gate as a FIX gate: \`$env:COBOL_GATE_CLASS = 'fix'\` in the PowerShell that starts \`pwsh scripts/build-local.ps1 -Priority BelowNormal\` (gate_slot.py serves a fix gate before an implementer's, so this branch does not queue behind a new group's first gate). `
 const RETURN_LINE =
   `⛔ YOUR LAST ACTION MUST BE THE StructuredOutput CALL — never end on a report file or a summary message (three agents in waves 65-67 did, and their finished branches were stranded): ` +
   `status, your ACTUAL branch (git branch --show-current), your worktree path, base sha, head sha, report path, your last gate's run directory (TestResults/build-local/<run>, whose verdict.json records its timings) and its verdict line, the notes you landed, the codes you used, and any new leads (text; do NOT allocate PB ids). ` +
@@ -117,7 +123,7 @@ function fixGate(g, r, v, round) {
     `Your dispatch spec is the file ${S}\\msg-w${W}-${g.letter.toLowerCase()}.txt — read it WHOLE and follow its brief, codes, gate, checkpoint and stop rules; its notes are implemented on the branch. ` +
     `FIRST \`python scripts/merge_drivers.py merge ${r.branch} --keep\` into your branch (head ${r.head}; worktree ${r.worktree}), then run \`python tools/claude-skills/skills/agent-fleet/references/status_delta.py ${r.worktree}\` and read ${r.report} as your orientation. ` +
     `Its gate (run ${r.gate_run}) ended: ${v.line} — read that run's verdict.json, its gate.log and each assembly's \`<assembly>.log\` and \`<assembly>.trx\`, and fix every red at its root with the sibling sweep (a gate that DIED or was NOT RUN with no red of the change needs only the re-gate). ` +
-    `Re-gate (the spec's gate, blocking on its verdict line). Then REWRITE the report at ${r.report} for YOUR branch: its header names your worktree, branch, base and HEAD and your status, and its gate section your verdict. ` +
+    FIX_GATE_LINE + `Re-gate (the spec's gate, blocking on its verdict line). Then REWRITE the report at ${r.report} for YOUR branch: its header names your worktree, branch, base and HEAD and your status, and its gate section your verdict. ` +
     `Before EACH new step ${STOP_LINE}checkpoint-commit, write STATUS.md NEXT and the report, and return status SPLIT. ` +
     RETURN_LINE,
     { label: `gatefix-${g.letter}-r${round}`, phase: 'Implement', agentType: 'cobol-implementer', isolation: 'worktree', schema: IMPL_SCHEMA, ...implModel(g) }
@@ -381,7 +387,7 @@ function fixFindings(g, r, v, round) {
     `Your dispatch spec is the file ${S}\\msg-w${W}-${g.letter.toLowerCase()}.txt — read it WHOLE and follow its brief, codes, gate, checkpoint and stop rules; its notes are already implemented on the reviewed branch. ` +
     `FIRST \`python scripts/merge_drivers.py merge ${r.branch} --keep\` into your branch (the reviewed head ${r.head}; worktree ${r.worktree}), then run \`python tools/claude-skills/skills/agent-fleet/references/status_delta.py ${r.worktree}\` and read ${r.report} as your orientation. ` +
     `The reviewer recorded ${v.findings} blocking finding(s): \`python scripts/orchestrator/review_findings.py show ${findingsFile(g)} --round ${round}\`. Answer EVERY BLOCKING one by its id: fix it at its root, with a regression test or golden and the sibling sweep, or answer no_change_needed with the reason. A LEAD (not blocking) is already listed in the report's "## Review findings": fix it when it sits in a file you change anyway (I9), else leave it for the clerk. ` +
-    `Re-gate (the spec's gate, blocking on its verdict line). Then REWRITE the report at ${r.report} for YOUR branch: its header names your worktree, branch, base and HEAD, carries no Review line (your branch is reviewed again when you return DONE), and its "## Review findings" section keeps every LEAD line and gains one line per blocking finding id: fixed (the commit) or no_change_needed (the reason). ` +
+    FIX_GATE_LINE + `Re-gate (the spec's gate, blocking on its verdict line). Then REWRITE the report at ${r.report} for YOUR branch: its header names your worktree, branch, base and HEAD, carries no Review line (your branch is reviewed again when you return DONE), and its "## Review findings" section keeps every LEAD line and gains one line per blocking finding id: fixed (the commit) or no_change_needed (the reason). ` +
     `Before EACH new step ${STOP_LINE}checkpoint-commit, write STATUS.md NEXT and the report, and return status SPLIT. ` +
     RETURN_LINE,
     { label: `fix-${g.letter}-r${round}`, phase: 'Implement', agentType: 'cobol-implementer', isolation: 'worktree', schema: IMPL_SCHEMA, ...implModel(g) }
