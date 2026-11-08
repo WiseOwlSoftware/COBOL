@@ -627,7 +627,9 @@ value-fixed-by-definition pair, the carrier-escape bound — are `IntrinsicCarri
 literal's digit bound is `NumericLiteral.TryUnscaledParts` / `UnscaledDigitBound` in `frontend.common`, so neither layer
 reaches the other, DESIGN-architecture-review.md §8.1; and a NESTED call is classified by the carrier the renderer's arm returns it on,
 an INTEGER function included: INTEGER(1.5E0) is FloorDec's SDIDI value, and only SIGN / ORD-MAX / ORD-MIN, whose SDIDI
-bodies return an exact integer, are exact, `FunctionValueLane.NativeSdidiBodiesWithExactResult`) — each receiver's own
+bodies return an exact integer, are exact, `FunctionValueLane.NativeSdidiBodiesWithExactResult`; MAX / MIN / MEDIAN and
+SUM / RANGE / MEAN / MIDRANGE return a run-time-scaled exact value that the function above reads as the SDIDI,
+`NativeSdidiBodiesWithWholeResult`, kb/Work PB4980) — each receiver's own
 float landing then quantizes once, at its own scale —
 the 36-digit decimal `+9.9(35)E+9999` (`WidestFloatEditedPic`, kb/Work PB370) for a value whose every receiver is
 numeric with a floating-point one among them that no one binary format serves, or whose every receiver is fixed-point with more
