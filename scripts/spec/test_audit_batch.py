@@ -21,6 +21,7 @@ import tempfile
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import audit_batch as A  # noqa: E402
+import rule_catalog_1985  # noqa: E402  (THE reader of a level-2 box)
 import spec_pdf  # noqa: E402
 from fake_batches import Crash, FakeBatches, client, succeeded  # noqa: E402  (THE fake client)
 from message_batches import BatchRun, usd  # noqa: E402
@@ -258,6 +259,16 @@ def main() -> int:
         cst["batches"][1]["collected"] = False   # a crash after the usage, before the batch was marked collected
         run_.collect(cst, client(fake3), lambda m, msg, b: None)
         check("a collect repeated after a crash records each reply once", abs(run_.cost_so_far(cst) - both) < 1e-9)
+
+        print("the level-2 box: the preamble names the transcription's own markup")
+        side = spec_pdf.BOX_SIDE
+        boxed = dict(RULES_1985[0], box="whole", level=2, text=f"{side}(1) A planted rule boxed whole.{side}")
+        texts = {p: A.prompt_text(p, {"rule": boxed, "candidates": RULES_2023[:1], "id": "c1", "claim": "planted",
+                                      "locator": "VI.5.8.3", "text": boxed["text"]}) for p in A.PROMPTS}
+        check("every pass's preamble defines the box side the catalog marks a level-2 box with",
+              all(f"between two {side} marks" in t and "<ins>" not in t for t in texts.values())
+              and rule_catalog_1985.box_of(boxed["text"], "SR") == "whole")
+        check("every pass quotes the boxed text with its box sides", all(boxed["text"] in t for t in texts.values()))
 
         print("public text only")
         dirty = root / "dirty.json"

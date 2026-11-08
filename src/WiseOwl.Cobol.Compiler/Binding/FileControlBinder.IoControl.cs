@@ -31,7 +31,8 @@ public sealed partial class FileControlBinder
     /// conformant no-ops; MULTIPLE FILE TAPE is obsolete and parsed-and-ignored (grammar note) once
     /// <see cref="ScreenMultipleFileClause"/> has asked for its file list (kb/Work PB4307), and so is the
     /// X3.23-1985 RERUN clause (a checkpoint HINT with no program-visible effect — a null rerun facility is
-    /// conforming; deleted by ISO 2002, 0902-gated ≥2002 by the version-conformance pass, VCR Table 7 row 7.15) —
+    /// conforming; deleted by ISO 2002, 0902-gated ≥2002 by the version-conformance pass, VCR Table 7 row 7.15) once
+    /// <see cref="ScreenRerunClause"/> has asked for its file-name-2 (kb/Work PB4919) —
     /// both skip SAME's screens through a <c>continue</c> below by design. The APPLY COMMIT clause (§2023:12.4.6.3) is the one
     /// other arm that is not a no-op here: <see cref="BindApplyCommitClause"/> (kb/Work PB3338).
     /// EVERY SAME format also records its MEMBERSHIP on its files
@@ -55,6 +56,11 @@ public sealed partial class FileControlBinder
             if (clause.multipleFileClause() is { } multiple)
             {
                 ScreenMultipleFileClause(multiple);
+                continue;
+            }
+            if (clause.rerunClause() is { } rerun)
+            {
+                ScreenRerunClause(rerun);
                 continue;
             }
             if (clause.sameClause() is not { } same) continue;
@@ -102,6 +108,20 @@ public sealed partial class FileControlBinder
         Edition.Error(DiagnosticCatalog.MultipleFileNamesNoFile,
             "the MULTIPLE FILE clause names no file: its format is MULTIPLE FILE [TAPE] [CONTAINS] "
             + "{file-name [POSITION integer]} ..., so at least one file-name is required (X3.23-1985; VCR Table 7 row 7.6)");
+    }
+
+    /// <summary>The X3.23-1985 RERUN clause's file-name-2 after <c>integer-1 RECORDS</c> (kb/Work PB4919). The printed
+    /// format (§1985:VII.2.12.2) shares one <c>OF file-name-2</c>, outside brackets, between the END OF REEL/UNIT and the
+    /// RECORDS phrases, so <c>RERUN ON X EVERY 100 RECORDS.</c> is refused; the grammar keeps the file optional on that arm
+    /// only so the refusal names the rule instead of a bare "unexpected '.'". Asked at every edition, as
+    /// <see cref="ScreenMultipleFileClause"/> is: the clause is otherwise parsed and ignored.</summary>
+    private void ScreenRerunClause(Core.RerunClauseContext rerun)
+    {
+        if (rerun.rerunEvery() is not { } every || every.RECORDS() is null || every.fileName() is not null) return;
+        Edition.Error(DiagnosticCatalog.RerunRecordsNoFile,
+            "the RERUN clause's integer-1 RECORDS phrase names no file: its format is RERUN [ON {file-name-1 | "
+            + "implementor-name-1}] EVERY {[END OF] {REEL | UNIT} | integer-1 RECORDS} OF file-name-2 ..., so file-name-2 "
+            + "is required (§1985:VII.2.12.2; VCR Table 7 row 7.15)");
     }
 
     /// <summary>The source element's APPLY COMMIT clause (ISO §2023:12.4.6.3; kb/Work PB3338), or null when its I-O-CONTROL
