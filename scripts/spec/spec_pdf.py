@@ -61,7 +61,7 @@ class Edition:
 #: exits naming this table until then.
 EDITIONS: dict[int, Edition] = {
     1985: Edition("ANSI_COBOL_1985.pdf", "ANSI_COBOL_1985.md", "raster", None, "# SECTION I: INTRODUCTORY INFORMATION"),
-    2002: Edition("ISO_COBOL_2002.pdf", "ISO_COBOL_2002.md", "vector", 22, None),
+    2002: Edition("ISO_COBOL_2002.pdf", "ISO_COBOL_2002.md", "vector", 22, "# Clauses 1 to 16"),
     2023: Edition("ISO_COBOL_2023.pdf", "ISO_COBOL_2023.md", "vector", 30, '<a id="section-1"></a>'),
 }
 

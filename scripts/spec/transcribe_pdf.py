@@ -154,6 +154,15 @@ PARTS: dict[int, list[tuple[int, str]]] = {
         (821, "AMENDMENT 1: INTRINSIC FUNCTION MODULE (ANSI X3.23a-1989)"),
         (907, "AMENDMENT 2: CORRECTION AMENDMENT (ANSI X3.23b-1993)"),
     ],
+    # Measured from the 2002 PDF's pages (kb/Work PB4813): the INCITS cover and the ISO front matter to the Introduction
+    # (roman folios), the sixteen clauses (folio 1 on PDF page 23), the eight annexes (Annex A on page 676), then the
+    # bibliography and the index.
+    2002: [
+        (1, "Front matter: covers, contents, foreword and introduction"),
+        (23, "Clauses 1 to 16"),
+        (676, "Annexes A to H"),
+        (858, "Bibliography and index"),
+    ],
 }
 
 #: A model that declined or summarised instead of transcribing says so: a first-person declining of the task (the 2002

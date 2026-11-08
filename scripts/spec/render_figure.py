@@ -794,7 +794,7 @@ BODY_TOP, BODY_BOTTOM = 60.0, 730.0     # inside the running header and the foli
 # laid out separately, and requiring a title on the line dropped every one of them — including `5.2 General
 # formats`, the clause that DEFINES underlining. Measured over the whole standard: 87 such lines, all genuine
 # clause headings, none a numbered list item or a table cell (kb/Work PB332).
-CLAUSE_HEADING = re.compile(r"^\d+(?:\.\d+)+(?:\s+\S|$)")
+CLAUSE_HEADING = re.compile(r"^(?:\d+|[A-Z])(?:\.\d+)+(?:\s+\S|$)")   # an annex clause too: 2002's `A.2.1.1 General format`
 FORMAT_LABEL = re.compile(r"^Formats?\s+\d+\b")
 PAD_ABOVE, PAD_BELOW = 6.0, 14.0        # a band must reach the bracket feet below its last row of text
 
@@ -803,7 +803,9 @@ HEADING_STEP = 0.5                      # a heading is at least this much larger
 
 
 def body_size(blocks) -> float:
-    """The page's body-text size: the size that sets the most letters in the body band (`headings`' yardstick)."""
+    """The page's body-text size: the size that sets the most letters in a regular (not bold) face in the body band
+    (`headings`' yardstick). Bold is left out because the headings are: a short 2002 function page (`15.55 NUMVAL-C`,
+    folio 624) sets more bold heading letters than regular ones."""
     sizes = collections.Counter()
     for blk in blocks:
         if blk["type"] != 0:
@@ -811,7 +813,8 @@ def body_size(blocks) -> float:
         for line in blk["lines"]:
             if BODY_TOP <= line["bbox"][1] <= BODY_BOTTOM:
                 for s in line["spans"]:
-                    sizes[round(s["size"], 1)] += sum(c.isalpha() for c in s["text"])
+                    if "bold" not in s["font"].lower():
+                        sizes[round(s["size"], 1)] += sum(c.isalpha() for c in s["text"])
     return sizes.most_common(1)[0][0] if sizes else 0.0
 
 
@@ -849,7 +852,7 @@ def headings(page):
                 continue
             text = re.sub(r"\s+", " ", "".join(s["text"] for s in spans)).strip()
             if CLAUSE_HEADING.match(text):
-                out.append((y, text))
+                out.append((round(y, 1), text))   # rounded as `extract` rounds a word's top, so a heading row is never inside its own region
     return sorted(out)
 
 
@@ -1004,7 +1007,7 @@ def find_bands(page, extract):
     return [(b[0], b[1]) for b in find_figures(page, extract)]
 
 
-CLAUSE_NUMBER = re.compile(r"^(\d+(?:\.\d+)+)")
+CLAUSE_NUMBER = re.compile(r"^((?:\d+|[A-Z])(?:\.\d+)+)")
 FORMAT_NUMBER = re.compile(r"^Formats?\s+(\d+)")
 
 

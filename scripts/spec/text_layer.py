@@ -42,6 +42,7 @@ import io
 import re
 from typing import Any, Callable, Iterable
 
+import figure_geometry  # noqa: E402  (`strokes`: THE reader of a page's vector drawing)
 from figure_extract import GLYPH_PIECES  # THE Symbol font's delimiter pieces: a row carrying one is a figure's, never prose
 from spec_headings import GENERAL_FORMAT_TITLE  # THE general-format heading (kb/Work PB284)
 
@@ -83,6 +84,8 @@ FULL_SLACK = 75.0
 COLUMN_GAP = 3.0
 #: The clear gutter, in points, between the two columns of a two-column page (`two_columns`).
 COLUMN_GUTTER = 10.0
+#: How far, in points, a table rule may lie from the edge or the row it bounds (`ruled_parts`).
+RULE_TOL = 2.0
 
 
 @dataclasses.dataclass(frozen=True)
@@ -394,15 +397,21 @@ def convert(layout: Layout, pno: int, stamp: Callable[[str], bool], format_open:
         in_fmt = in_format
         fmt_rows: set[int] = set()
         run: list[tuple[int, str]] = []
+        labels: set[int] = set()
         for i, r in enumerate(rows):
             h = heading_of(r)
             if h:
                 in_fmt = bool(GENERAL_FORMAT_TITLE.fullmatch(h[1]))
                 run = []
                 continue
-            kind = "figure" if r.figure else classify_row(r) if in_fmt else "prose"
-            if r.figure and not in_fmt:
-                ambiguous.append(f"a general-format glyph outside a General format clause (y {r.y0:.0f})")
+            if r.figure:
+                kind = "figure"
+                if not in_fmt:
+                    ambiguous.append(f"a general-format glyph outside a General format clause (y {r.y0:.0f})")
+            elif in_fmt:
+                kind = classify_row(r)
+            else:   # outside a clause only a glyph row starts a figure; its notation rows join it (NUMVAL's `DB`, folio 623)
+                kind = "glue" if classify_row(r) in ("figure", "glue") else "prose"
             # A run of figure and glue rows is a figure when it holds a figure row (`render_figure.find_figures`'
             # rule: glue alone, such as 5.1's `— Keywords` list, is no figure); a label or prose closes the run.
             if kind in ("figure", "glue"):
@@ -410,6 +419,8 @@ def convert(layout: Layout, pno: int, stamp: Callable[[str], bool], format_open:
                 if any(k == "figure" for _, k in run):
                     fmt_rows.update(j for j, _ in run)
             else:
+                if kind == "label":
+                    labels.add(i)   # a `Format N` label, whatever its face (2002 sets 7.2.10.1's in Courier, folio 46)
                 run = []
         in_format = in_fmt
         fmt_extent = [(rows[i].y0, rows[i].y1) for i in fmt_rows]
@@ -456,6 +467,10 @@ def convert(layout: Layout, pno: int, stamp: Callable[[str], bool], format_open:
                     blocks[-1].rows.append(r)
                 else:
                     blocks.append(Block("figure", [r]))
+                prev = r
+                continue
+            if i in labels:
+                blocks.append(Block("para", [r]))
                 prev = r
                 continue
             if r.mono:
@@ -530,9 +545,12 @@ def table_markdown(t: Table, spans: list[Span]) -> str:
 
 
 def figure_rows(b: Block) -> tuple[float, float]:
-    """Where a figure block's rows lie: the TOPS of its first and last rows, the extent `render_figure.draw` pads into the
-    band it builds the figure from (as `render_figure.find_figures` does with the rows it locates)."""
-    return min(r.y0 for r in b.rows), max(r.y0 for r in b.rows)
+    """Where a figure block's words lie: the TOPS of its highest and lowest words, the extent `render_figure.draw` pads into
+    the band it builds the figure from (as `render_figure.find_figures` does with the rows it locates). Words, not rows:
+    a brace's bottom hook joins the row of the word below it (`rows_of`), so a row's top can lie a line above its lowest
+    word (PERFORM Format 1's `varying-phrase`, 2002 folio 489, was left out of the band)."""
+    tops = [s.y0 for r in b.rows for s in r.spans]
+    return min(tops), max(tops)
 
 
 def render(blocks: list[Block], pno: int) -> str:
@@ -615,14 +633,35 @@ def read_layout(doc: Any, pno: int) -> Layout:
                     word = [ch] if ch is not None and ch["c"].strip() else []
     with contextlib.redirect_stdout(io.StringIO()):   # the table finder prints an advertisement for another package
         found = page.find_tables(strategy="lines")
-    tables = tuple(Table(tuple(t.bbox), tuple(tuple(tuple(c) if c else None for c in r.cells) for r in t.rows))
-                   for t in found.tables)
-    strokes: list[tuple[float, float, float, float]] = []
-    for d in page.get_drawings():   # one path may hold a whole table's rules: each item is a stroke of its own
-        for item in d["items"]:
-            pts = [p for p in item[1:] if hasattr(p, "x")]
-            if pts:
-                strokes.append((min(p.x for p in pts), min(p.y for p in pts), max(p.x for p in pts), max(p.y for p in pts)))
-            elif hasattr(item[1], "x0"):
-                strokes.append(tuple(item[1]))
-    return Layout(page.rect.width, page.rect.height, tuple(spans), tables, images, tuple(strokes))
+    strokes = tuple(figure_geometry.strokes(page))   # one path may hold a whole table's rules: each item is a stroke
+    tables = tuple(part for t in found.tables
+                   for part in ruled_parts(Table(tuple(t.bbox), tuple(tuple(tuple(c) if c else None for c in r.cells)
+                                                                      for r in t.rows)), strokes))
+    return Layout(page.rect.width, page.rect.height, tuple(spans), tables, images, strokes)
+
+
+def ruled_parts(t: Table, strokes: tuple[tuple[float, float, float, float], ...]) -> list[Table]:
+    """A found table split into the runs of rows its LEFT RULE spans. The line-strategy finder joins two ruled tables whose
+    rules share their columns into one, with the unruled gap between them as a row (2002's INSPECT examples 5 and 6, folio
+    802, whose Courier code then read as a cell), so a row no vertical rule at the table's left edge spans is dropped and
+    the table split there."""
+    left = t.bbox[0]
+    rules = [s for s in strokes if s[2] - s[0] <= RULE_TOL and t.bbox[0] - RULE_TOL <= s[0] <= t.bbox[2] + RULE_TOL]
+    if not rules:
+        return [t]                                  # a table open at its sides (horizontal rules only) splits nowhere
+
+    def ruled(row: tuple) -> bool:                  # a vertical rule at one of the row's cell edges spans that cell
+        return any(abs(s[0] - c[0]) <= RULE_TOL and s[1] <= c[1] + RULE_TOL and s[3] >= c[3] - RULE_TOL
+                   for c in row if c for s in rules)
+
+    parts: list[list[tuple]] = [[]]
+    for row in t.rows:
+        if ruled(row):
+            parts[-1].append(row)
+        elif parts[-1]:
+            parts.append([])
+    parts = [p for p in parts if p]
+    if len(parts) == 1 and len(parts[0]) == len(t.rows):
+        return [t]
+    return [Table((left, min(c[1] for r in p for c in r if c), t.bbox[2], max(c[3] for r in p for c in r if c)), tuple(p))
+            for p in parts]

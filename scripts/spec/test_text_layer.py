@@ -130,6 +130,14 @@ def main() -> int:
           L.FIGURE_MARK not in told.markdown and "Elements used in depicting" in told.markdown and "— Keywords" in told.markdown)
 
     print("tables, code, columns, ambiguity")
+    # 2002 folio 802: two ruled tables sharing their columns, which the line-strategy finder joins over the gap between.
+    joined = L.Table((179, 225, 417, 479), (((179, 225, 298, 253), (298, 225, 417, 253)), ((179, 270, 417, 400), None),
+                                           ((179, 400, 298, 428), (298, 400, 417, 428))))
+    rules = ((178.75, 225, 179.25, 270), (297.75, 225, 298.25, 270), (178.75, 400, 179.25, 428), (297.75, 400, 298.25, 428))
+    parts = L.ruled_parts(joined, rules)
+    check("a found table is split at a row no vertical rule spans, and that row dropped",
+          [p.bbox for p in parts] == [(179, 225, 417, 253), (179, 400, 417, 428)] and [len(p.rows) for p in parts] == [1, 1])
+    check("a table with no vertical rule is kept whole", L.ruled_parts(joined, ()) == [joined])
     cells = (((74, 279, 296, 302), (296, 279, 557, 302)), ((74, 302, 296, 340), (296, 302, 557, 340)))
     p = page(words("Provision", 165, 286, 9, BOLD), words("Verbal form", 312, 286, 9, BOLD),
              words("a requirement on an implementation or a pro-", 79.7, 307), words("gram", 79.7, 318),
