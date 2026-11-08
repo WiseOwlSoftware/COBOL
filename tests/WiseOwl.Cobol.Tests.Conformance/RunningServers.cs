@@ -39,7 +39,7 @@ internal sealed class RunningServers : IDisposable
                 try
                 {
                     started = ServerActivation.Launch(sockets, mcs.Path, McsSocketDirectory.NewRunId(), McsServerName.Normalize(server.Name),
-                        ["dotnet", Path.Combine(work, server.Output + ".dll")], budget.Token, out process, CutRunner.PinnedEnvironment);
+                        ["dotnet", Path.Combine(work, server.Output + ".dll")], budget.Token, out process, out _, CutRunner.PinnedEnvironment);
                 }
                 catch (IOException e) when (budget.IsCancellationRequested)
                 {

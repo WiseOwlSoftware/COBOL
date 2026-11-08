@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Diagnostics;
 using WiseOwl.Cobol.Runtime.Mcs;
+using WiseOwl.Cobol.Runtime.Messaging;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 
@@ -93,13 +94,14 @@ public sealed class MessagingProcessTests : IDisposable
            STOP RUN.
 """;
 
-    private LiveProcess Start(string module, string? serves = null)
+    private LiveProcess Start(string module, string? serves = null, string? log = null)
     {
         var psi = new ProcessStartInfo("dotnet", $"\"{Path.Combine(_dir, module + ".dll")}\"") { WorkingDirectory = _dir };
         psi.Environment["COBOL_USER_LOCALE"] = CutRunner.LocalePin;
         psi.Environment["COBOL_SYSTEM_LOCALE"] = CutRunner.LocalePin;
         psi.Environment[CutRunner.McsDirectoryVariable] = _dir;
         if (serves is not null) psi.Environment["WISEOWL_COBOL_MCS_SERVER"] = serves;
+        if (log is not null) psi.Environment[ServerActivation.LogVariable] = log;
         var live = LiveProcess.Start(psi);
         _live.Add(live);
         return live;
@@ -706,6 +708,38 @@ public sealed class MessagingProcessTests : IDisposable
         Assert.Contains("SRV OK", log);
         Assert.Contains("SRV GOT HELLO               /0008", log);
         Assert.Empty(client.Stderr);
+    }
+
+    [Fact]
+    public void AProcessStartedWithAServerLog_WritesItsConsoleToTheLog_NotToItsOwnStandardOutput()
+    {
+        // DESIGN §5.4.5: a server outlives the requestor that started it, so its console is the log named by WISEOWL_COBOL_MCS_LOG from the process entry on. This process is
+        // started with no requestor draining its pipes: what DISPLAY wrote can only have reached the file through the process's own routing.
+        Compile("PB4745S4", Server("PB4745S4", 20, ReplyAfter));
+        string logPath = Path.Combine(_dir, "routed.log");
+        var server = Start("PB4745S4", serves: "SRV", log: logPath);
+        var deadline = DateTime.UtcNow.AddMilliseconds(ObservationBudget.UnitMs);
+        while (!(File.Exists(logPath) && ReadLog(logPath).Contains("READY", StringComparison.Ordinal)))
+        {
+            Assert.True(DateTime.UtcNow < deadline, "READY never reached the server log");
+            Thread.Sleep(20);
+        }
+        Assert.Empty(server.Stderr);
+    }
+
+    [Fact]
+    public void TwoWritersOfOneServerLog_KeepEachOthersLines()
+    {
+        // .NET's FileMode.Append seeks to the end once and then writes at its own offset, so two streams on one log overwrite each other; ServerLog positions at the end per write.
+        string path = Path.Combine(_dir, "two-writers.log");
+        using (var first = ServerLog.Open(path))
+        using (var second = ServerLog.Open(path))
+        {
+            first.Write("stdout line\n"u8);
+            second.Write("stderr!\n"u8);
+            first.Write("more stdout\n"u8);
+        }
+        Assert.Equal("stdout line\nstderr!\nmore stdout\n", ReadLog(path));
     }
 
     [Fact]

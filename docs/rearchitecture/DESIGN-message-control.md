@@ -669,7 +669,7 @@ EC-MCS-IMP. The requestor releases the lock, closes and deletes `n/<r>`, and con
 `ServerActivation.Run` does the lock and the second enumeration; `ServerActivation.Launch` does the rest and is the one launch (the conformance suite's `servers` field uses it, Q9).
 `start` is a command line or an array of the program and its arguments; the process gets no standard input, and its standard output and error are drained into the log
 while the start is awaited and for as long as its pipes last. The log is the started run unit's own: the process entry (`StandardStreams.EnsureUtf8`) sends the console to
-`WISEOWL_COBOL_MCS_LOG`, appended, so a server that outlives its requestor never writes to a closed pipe. A requestor killed during the wait ends the wait (`MessagingPeer.Abort`)
+`WISEOWL_COBOL_MCS_LOG`, appended (`ServerLog`: every writer positions at the end before each write, which .NET's `FileMode.Append` does not), so a server that outlives its requestor never writes to a closed pipe. A requestor killed during the wait ends the wait (`MessagingPeer.Abort`)
 and the launched process is killed; one whose server has published leaves it running.
 
 ### 5.5 The peer, its pumps and partner death

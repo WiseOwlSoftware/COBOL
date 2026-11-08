@@ -29,16 +29,11 @@ internal sealed class ServerActivation(McsSocketDirectory sockets, string mcsDir
     /// <summary>The variable that names the log a started server's standard output and error go to (design 5.4.5).</summary>
     internal const string LogVariable = "WISEOWL_COBOL_MCS_LOG";
 
-    /// <summary>The log at <paramref name="path"/>, opened for append and shared with its other writers: the requestor drains the started command's pipes into it, and the started
-    /// run unit's own console is the same file (<see cref="OpenLogOfThisProcess"/>), so each side's lines land whole. It is no COBOL file connector's handle (a message server's log is
-    /// outside the file facility, §2023:9.1), so <c>HostFile</c> is not its opener.</summary>
-    internal static FileStream OpenLog(string path) =>
-        new(path, FileMode.Append, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
-
     /// <summary>The log this process was started to write (<c>WISEOWL_COBOL_MCS_LOG</c>), opened; null when the process was not started by a requestor. Called by the process entry
-    /// (<see cref="StandardStreams.EnsureUtf8"/>) alone, which sends the console to it.</summary>
-    internal static FileStream? OpenLogOfThisProcess() =>
-        Environment.GetEnvironmentVariable(LogVariable) is { Length: > 0 } path ? OpenLog(path) : null;
+    /// (<see cref="StandardStreams.EnsureUtf8"/>) alone, which sends the console to it. The requestor drains the started command's pipes into the same file, so each side appends
+    /// through <see cref="ServerLog"/>.</summary>
+    internal static ServerLog? OpenLogOfThisProcess() =>
+        Environment.GetEnvironmentVariable(LogVariable) is { Length: > 0 } path ? ServerLog.Open(path) : null;
 
     /// <summary>How long a connection the listener already holds is awaited when the command has ended: the accept completes at once, so this bounds a defect and not a normal wait.</summary>
     private static readonly TimeSpan NotifyGrace = TimeSpan.FromSeconds(5);
@@ -60,7 +55,10 @@ internal sealed class ServerActivation(McsSocketDirectory sockets, string mcsDir
         {
             stop.ThrowIfCancellationRequested();
             if (transport.EnumerateServers(spelling).Count > 0) return new ActivationEnded(true, null);   // started by the requestor that held the lock before this one
-            return Launch(sockets, mcsDirectory, runId, name, command, stop, out _);
+            var ended = Launch(sockets, mcsDirectory, runId, name, command, stop, out var started, out var drained);
+            // Nothing in a requestor uses the started process: its handle and pipes are released when the pipes end (the server is its own run unit and logs through its own console).
+            if (started is not null) _ = drained.ContinueWith(_ => started.Dispose(), TaskScheduler.Default);
+            return ended;
         }
         finally
         {
@@ -73,10 +71,11 @@ internal sealed class ServerActivation(McsSocketDirectory sockets, string mcsDir
     /// server connects to the notify socket (successful, <paramref name="started"/> the running process, which the caller owns) or the process ends first (unsuccessful, <paramref name="started"/> null),
     /// or <paramref name="stop"/> is cancelled. <paramref name="environment"/> is set in the process's environment first (a null value removes the variable), as <c>RunExit</c> sets a test's. The caller holds whatever excludes a second launch of the name: a requestor's <see cref="Run"/> holds the start lock, and a host that starts the
     /// servers of a test before the test (the conformance suite's <c>servers</c> field, DESIGN-message-control.md §0 Q9) starts each name once. A failure that is not the command's own end is an <see cref="IOException"/>.</summary>
-    internal static ActivationEnded Launch(McsSocketDirectory sockets, string mcsDirectory, string runId, string name, IReadOnlyList<string> command, CancellationToken stop, out Process? started,
+    internal static ActivationEnded Launch(McsSocketDirectory sockets, string mcsDirectory, string runId, string name, IReadOnlyList<string> command, CancellationToken stop, out Process? started, out Task drained,
         IReadOnlyDictionary<string, string?>? environment = null)
     {
         started = null;
+        drained = Task.CompletedTask;
         string spelling = McsServerName.Spell(name);
         string notifyPath = Path.Combine(sockets.Path, "n", runId);
         var endPoint = McsSocketDirectory.EndPointOf(notifyPath);
@@ -85,6 +84,7 @@ internal sealed class ServerActivation(McsSocketDirectory sockets, string mcsDir
         string logDirectory = Path.Combine(mcsDirectory, "servers");
         Directory.CreateDirectory(logDirectory);
         string logPath = Path.Combine(logDirectory, $"{spelling}.{runId}.log");
+        var log = ServerLog.Open(logPath);
         using var listener = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
         Process? process = null;
         try
@@ -121,7 +121,7 @@ internal sealed class ServerActivation(McsSocketDirectory sockets, string mcsDir
                 throw new IOException($"cannot start server '{name}' with '{command[0]}': {e.Message}", e);
             }
             process.StandardInput.Close();
-            Task drained = Task.WhenAll(Drain(process.StandardOutput.BaseStream, logPath), Drain(process.StandardError.BaseStream, logPath));
+            Task pipes = Task.WhenAll(Drain(process.StandardOutput.BaseStream, log), Drain(process.StandardError.BaseStream, log));
             var accepted = listener.AcceptAsync(stop).AsTask();
             var ended = process.WaitForExitAsync(CancellationToken.None);
             Task.WaitAny(accepted, ended);
@@ -133,10 +133,11 @@ internal sealed class ServerActivation(McsSocketDirectory sockets, string mcsDir
             {
                 accepted.Result.Dispose();                           // the notification is the connection itself
                 started = process;
+                drained = pipes;
                 return new ActivationEnded(true, null);
             }
             ended.GetAwaiter().GetResult();
-            drained.Wait(TimeSpan.FromSeconds(2));
+            pipes.Wait(TimeSpan.FromSeconds(2));
             return new ActivationEnded(false, $"the start command of server '{name}' ended with exit code {process.ExitCode} before its server was published; its log is '{logPath}'");
         }
         catch (Exception e) when (e is OperationCanceledException or AggregateException { InnerException: OperationCanceledException })
@@ -146,18 +147,19 @@ internal sealed class ServerActivation(McsSocketDirectory sockets, string mcsDir
         finally
         {
             if (started is null && process is { HasExited: false }) TryKill(process);
-            if (started is null) process?.Dispose();                 // a started server keeps its pipes: the log goes on being drained until they end
+            if (started is null) process?.Dispose();                 // a started server keeps its pipes and the log: both go on being drained until the pipes end
+            if (started is null) log.Dispose();
+            else _ = drained.ContinueWith(_ => log.Dispose(), TaskScheduler.Default);
             listener.Close();
             SocketTransport.DeleteQuietly(notifyPath);
         }
     }
 
-    /// <summary>Copies what the started command writes into the log until its pipe ends. The log is opened for append, so the started run unit's own writes to it interleave whole.</summary>
-    private static async Task Drain(Stream pipe, string logPath)
+    /// <summary>Copies what the started command writes into the log until its pipe ends. Both pipes share the one <see cref="ServerLog"/>, which appends each write whole.</summary>
+    private static async Task Drain(Stream pipe, ServerLog log)
     {
         try
         {
-            await using var log = OpenLog(logPath);
             await pipe.CopyToAsync(log).ConfigureAwait(false);
         }
         catch (Exception e) when (e is IOException or ObjectDisposedException)
