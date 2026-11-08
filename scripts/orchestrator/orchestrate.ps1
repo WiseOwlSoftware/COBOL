@@ -241,7 +241,7 @@ function Start-PyBackground([string[]]$ArgList) {
 
 # THE PROGRESS LINE (kb/Work PB3638 defect 3; design section 4.3). The owner, 2026-10-24: "It's stupid to have work
 # running with no updates or progress for multiple hours." progress.py reads the dispatch ledger, the reports and the
-# landing records (no git, no GitHub), prints one PROGRESS line and a STALL line per item waiting past its limit, and
+# landing records (no git, no GitHub), prints one PROGRESS line and a STALL line per item that stopped moving (kb/Work PB4944; an item past its size limit is only counted), and
 # posts each new stall once to the operator's mailbox (--post: the unit's log is the message's ref). Background, one at
 # a time, never fatal, as the lane tick.
 $script:ProgressTick = $null
