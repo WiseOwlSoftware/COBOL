@@ -247,8 +247,8 @@ public sealed class HostRunUnitEndingTests
 
     /// <summary>kb/Work PB4946, review finding R1-2. §2023:9.1.18.5 (cite.py OK): "When a run unit terminates normally, all
     /// file changes are permanently committed." The program closed its file, so nothing is open at the host's exit, yet the
-    /// change is uncommitted: the exit commits it, and leaves no transaction journal beside the file for the next access to
-    /// roll back as a dead owner's.</summary>
+    /// change is uncommitted: the exit commits it, so the next access does not
+    /// roll it back as a dead owner's.</summary>
     [Fact]
     public void AnAmbientRunUnit_ThatClosedItsFileUnderApplyCommit_IsCommittedAtTheHostProcessExit()
     {
@@ -260,12 +260,13 @@ public sealed class HostRunUnitEndingTests
             var (exit, _, stderr) = CutRunner.RunExit(Path.Combine(dir, "PB4946CHOST.dll"), dir);
             Assert.Equal(0, exit);
             Assert.Equal("", stderr);
-            Assert.Equal("COMIT", File.ReadAllText(Path.Combine(dir, "pb4946c.dat")).TrimEnd());
-            var stray = Directory.GetFiles(dir, "*", SearchOption.AllDirectories)
-                .Where(f => !f.EndsWith(".dll", StringComparison.OrdinalIgnoreCase) && !f.EndsWith(".json", StringComparison.OrdinalIgnoreCase) && !f.EndsWith(".cs", StringComparison.OrdinalIgnoreCase)
-                    && !f.EndsWith(".pdb", StringComparison.OrdinalIgnoreCase) && !f.EndsWith("pb4946c.dat", StringComparison.OrdinalIgnoreCase))
-                .ToList();
-            Assert.True(stray.Count == 0, "left beside the committed file: " + string.Join(", ", stray));
+            string data = Path.Combine(dir, "pb4946c.dat");
+            Assert.Equal("COMIT", File.ReadAllText(data).TrimEnd());
+            // A transaction that stands leaves its journal and holder files in the physical file's lock directory; a
+            // committed one (and a rolled-back one) removes them.
+            string locks = WiseOwl.Cobol.Runtime.IO.SidecarLockFiles.LockDirectoryOf(data);
+            var left = Directory.Exists(locks) ? Directory.GetFiles(locks) : [];
+            Assert.True(left.Length == 0, "the exit left the transaction standing: " + string.Join(", ", left));
         }
         finally { ScratchDirectory.Remove(dir); }
     }
