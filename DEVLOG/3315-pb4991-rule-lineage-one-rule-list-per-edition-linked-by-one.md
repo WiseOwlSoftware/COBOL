@@ -1,4 +1,4 @@
-## PB4991: rule lineage: one rule list per edition, linked by one change record between adjacent editions
+## Entry 3315 — 2026-11-08 03:12 PST — PB4991: rule lineage: one rule list per edition, linked by one change record between adjacent editions
 
 The 1985 audit's results were ready to enter the inventory, and two designs disagreed on the shape: a second set of
 1985 rows carrying 2023 verdicts by reference (the conformance-review design's §10.2), or one inventory with edition
@@ -17,3 +17,4 @@ chains). Until 2002 and 2014 are transcribed, the 1985 records bridge to 2023.
 
 DESIGN-spec-conformance-review.md §10.2 is rewritten. The conformance suite design's decision 10 now states that the
 1985 text is held, and §3.5 derives bands from the chains. The slices are PB4992 to PB4997.
+
