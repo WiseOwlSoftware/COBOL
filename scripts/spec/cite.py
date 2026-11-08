@@ -31,7 +31,7 @@ refuse such a quotation outright; it is the gate failing open, which is worse th
 
 THE CORRECTED TEXT AND THE PRINTED TEXT BOTH PASS (R66, specs/README.md "Corrections"). Where the transcription
 corrects a defect of the printed standard, the corrected line is followed by a `> ⚠ **CORRECTED — see the
-Addendum (Cn).**` note that quotes the PRINTED line verbatim, so a quotation of either form is found inside the
+Addendum (Cn).**` note (`Errata` in 1985: verify_publishable.CORRECTIONS_SECTION) that quotes the PRINTED line verbatim, so a quotation of either form is found inside the
 same clause, and the rule path reported for a quotation of the printed form is the corrected line's.
 """
 from __future__ import annotations

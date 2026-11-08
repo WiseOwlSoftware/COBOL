@@ -2530,15 +2530,6 @@
    "reason": "inside a general format: decided by its figures-1985 verdict and held by sweep_figures --check (PB4849)"
   },
   {
-   "page": 634,
-   "i": 0,
-   "kind": "word",
-   "where": "TYPE clause, syntax rule (5), first line: 'In control fopting'",
-   "batch": "NONE",
-   "decision": "KEPT",
-   "reason": "the printed page reads 'fopting' (a misprint of 'footing'), read on the rendered page 2026-11-07 during the 1985 audit (kb/Work PB4886); no batch pass claimed it; kept as printed"
-  },
-  {
    "page": 655,
    "i": 0,
    "kind": "extra",

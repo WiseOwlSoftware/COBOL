@@ -9,16 +9,16 @@
   "⎪ ⎨<u>LEADING</u>⎬ ⎨⎩literal-1   ⎭    ⎩literal-3   ⎭ └⎩<u>AFTER</u> ⎭         ⎩literal-2   ⎭┘ ... ⎬ ... ⎪",
   "⎩ ⎩<u>FIRST</u>  ⎭ ⎩                                                                       ⎭     ⎭"
  ],
- "decided": "drawn",
+ "decided": "neither",
  "figure_lines": [
   " <u>REPLACING</u>",
   "╭ <u>CHARACTERS</u>  <u>BY</u> ╭identifier-5╮ ┌ ╭<u>BEFORE</u>╮ INITIAL  ╭identifier-4╮ ┐  …                          ╮",
   "│                ┤            ├ │ ┤      ├          ┤            ├ │                             │",
   "│                ╰literal-3   ╯ └ ╰<u>AFTER</u> ╯          ╰literal-2   ╯ ┘                             │",
-  "┤ ╭<u>ALL</u>    ╮ ╭ ╭identifier-3╮ <u>BY</u> ╭ identifier-5╮ ┌╭ <u>BEFCRE</u>╮ INITIAL  ╭ identifier-4 ╮ ┐     ╮     ├ …",
+  "┤ ╭<u>ALL</u>    ╮ ╭ ╭identifier-3╮ <u>BY</u> ╭ identifier-5╮ ┌╭ <u>BEFORE</u>╮ INITIAL  ╭ identifier-4 ╮ ┐     ╮     ├ …",
   "│ │       │ │ ┤            ├    ┤             ├ │┤       ├          ┤              ├ │     │     │",
   "│ ┤<u>LEADING</u>├ ┤ ╰literal-1   ╯    ╰ literal-3   ╯ └╰ <u>AFTER</u> ╯          ╰ literal-2    ╯ ┘ …   ├ …   │",
   "╰ ╰<u>FIRST</u>  ╯ ╰                                                                              ╯     ╯"
  ],
- "reason": "The printed page sets the REPLACING part of INSPECT ... TALLYING ... REPLACING as the batch drew it; the page prints the second BEFORE as BEFCRE (a misprint transcribed as printed, TRANSCRIPTION-STATE.md). Drawn in the house style (figure_reading.restyle)."
+ "reason": "The printed page sets the REPLACING part of INSPECT ... TALLYING ... REPLACING as the batch drew it; the page prints the second BEFORE as BEFCRE, a damaged letter; the decided figure is the batch's drawing with BEFORE, so it is `neither` drawing: corrected and listed in the Errata as C4 (kb/Work PB4972). Drawn in the house style (figure_reading.restyle)."
 }
