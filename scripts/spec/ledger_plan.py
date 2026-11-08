@@ -9,8 +9,8 @@ This module measures the plan's part of it and writes nothing:
     the rest of v1.0 (its gates), and the work the owner HELD until zero GAP and zero known compiler defects (kb/Work
     PB2911). Each bucket is counted with its harm breakdown, its notes ready / waiting / blocked, and the LANE that
     plans each note: the fix lane, a campaign lane, held, or none. ⛔ A note no lane plans is the defect that kept GAP
-    flat for days (PB2911: 53 open notes held every GAP row, and the fix lane plans only `.agent-fleet.json`'s
-    population), so `remaining()` names every such note and the page flags it loudly.
+    flat for days (PB2911: 53 open notes held every GAP row, and the fix lane plans only the notes `work.fixable`
+    admits), so `remaining()` names every such note and the page flags it loudly.
   * AN ESTIMATE PER BUCKET from measured inputs only: groups from the fix lane's own clustering (`fix_clusters.py`,
     through `clusters.run_fix_clusters`) and the planner's group cap, waves from the planner's groups per wave,
     weekly points from `model_rules.json`'s cost constants (`groups.group_cost` / `landing_cost`, imported) and from
@@ -22,8 +22,8 @@ This module measures the plan's part of it and writes nothing:
   * The external repository's slices (found by title) and the v1.0 gates (`GATES`).
 
 ⭐ EVERY STATUS IS READ, NEVER WRITTEN. Cluster membership is work.py's `cluster_members`, a note's status and flags are
-its frontmatter, `open_blockers` decides waiting, the fix lane's population is `.agent-fleet.json`'s `kind` and
-`skip_flag` (the file fix_clusters.py and plan_wave.py read), and the lanes the loop runs are the owner's decision
+its frontmatter, `open_blockers` decides waiting, the fix lane's population is `work.fixable` (the predicate `next` and
+the planner's view, clusters.ready_notes_view, share; kb/Work PB4951), and the lanes the loop runs are the owner's decision
 PB2911 (`CAMPAIGNS`, `HELD`). A note filed tomorrow in any of those shapes is counted with no edit here.
 
 ⛔ THE HAND-KEPT STRUCTURES ARE SMALL AND SELF-TESTED: the campaign and held clusters, the v1.0 gates (a note id, a
@@ -39,7 +39,6 @@ from __future__ import annotations
 import argparse
 import collections
 import datetime
-import json
 import math
 import pathlib
 import re
@@ -53,9 +52,6 @@ import inventory_store  # noqa: E402  (the inventory's one reader)
 import work  # noqa: E402  (the register's one reader)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
-
-#: The fix lane's population: `.agent-fleet.json`'s `kind` and `skip_flag`, the file fix_clusters.py reads.
-FLEET = REPO / ".agent-fleet.json"
 
 #: The owner's decision of 2026-10-10 (kb/Work PB2911): the loop runs these clusters as campaign lanes beside the fix
 #: lane (`orchestrate.ps1 -Cluster PB2911,PB1086`) ...
@@ -94,12 +90,6 @@ def live(items: list[dict]) -> list[dict]:
     return [i for i in items if not finished(str(i.get("status")))]
 
 
-def fleet_population(path: pathlib.Path = FLEET) -> tuple[str, tuple[str, ...]]:
-    """(kind, population skip flags) of the fix lane, read from `.agent-fleet.json`."""
-    cfg = json.loads(path.read_text(encoding="utf-8"))
-    return str(cfg.get("kind", "")), tuple(cfg.get("skip_flag", []))
-
-
 def note_state(it: dict, by_id: dict[str, dict]) -> str:
     """`waiting` on an open blocker note, `blocked` on something that is not a note (status owner or blocked), `ready`
     otherwise: work.py's `waiting_on`, the one reading of "blocked" (kb/Work PB3389), for any note."""
@@ -108,10 +98,10 @@ def note_state(it: dict, by_id: dict[str, dict]) -> str:
     return "blocked" if work.waiting_on(it, by_id) else "ready"
 
 
-def lanes_of(it: dict, fleet: tuple[str, tuple[str, ...]]) -> list[str]:
-    """Every lane that plans the note: FIX, a campaign lead, `held:<lead>`; [] when none does."""
-    kind, skip = fleet
-    out = [FIX] if it.get("kind") == kind and not any(it.get(f) for f in skip) else []
+def lanes_of(it: dict) -> list[str]:
+    """Every lane that plans the note: FIX (work.fixable, kb/Work PB4951), a campaign lead, `held:<lead>`; [] when
+    none does."""
+    out = [FIX] if work.fixable(it) else []
     clusters = it.get("cluster") if isinstance(it.get("cluster"), list) else []
     out += [lead for lead, _ in CAMPAIGNS if lead in clusters]
     out += [f"held:{lead}" for lead, _ in HELD if lead in clusters]
@@ -142,7 +132,7 @@ def register_counts(items: list[dict], gap_rows: set[str]) -> dict | None:
 REGISTER_KEYS = ("compiler_open", "defects", "wrong_answer", "crashes", "gap_holders")
 
 
-def remaining(items: list[dict], rows: list[dict], gap: int, fleet: tuple[str, tuple[str, ...]]) -> dict:
+def remaining(items: list[dict], rows: list[dict], gap: int) -> dict:
     """The buckets of what remains to v1.0, each with its notes, harm, states and lanes. A note's LANE is read as the
     planner reads it (work.with_inherited_harm, as clusters.ready_notes_view does), so a prerequisite of a harmed note
     is fix-lane compiler work here too (kb/Work PB4769 review R1-1); its harm counts stay its own, because the buckets
@@ -151,7 +141,7 @@ def remaining(items: list[dict], rows: list[dict], gap: int, fleet: tuple[str, t
     open_items = live(items)
     gap_rows = {r["rule-id"]: r for r in rows if r["state"] == "GAP"}
     owed = {str(i.get("id")): i for i in work.with_inherited_harm(open_items) if i.get("harm_inherited")}
-    lanes = {str(i.get("id")): lanes_of(owed.get(str(i.get("id")), i), fleet) for i in open_items}
+    lanes = {str(i.get("id")): lanes_of(owed.get(str(i.get("id")), i)) for i in open_items}
 
     def compiler_work(i: dict) -> bool:
         return not i.get("process_only") or str(i.get("id")) in owed
@@ -393,7 +383,7 @@ def problems(items: list[dict], plan: dict, rem: dict) -> list[str]:
 def live_problems() -> list[str]:
     items, rows = work.load(), inventory_store.load_inventory()
     gap = sum(1 for r in rows if r["state"] == "GAP")
-    return problems(items, measure(items, gap), remaining(items, rows, gap, fleet_population()))
+    return problems(items, measure(items, gap), remaining(items, rows, gap))
 
 
 def self_test() -> int:
@@ -403,7 +393,6 @@ def self_test() -> int:
         return {"id": nid, "title": f"{nid} — {title}", "kind": kind, "status": status, "cluster": list(cluster),
                 "blocked_by": list(blocked_by), "inventory_rows": list(rows), "_file": f"{nid}.md", **flags}
 
-    fleet = ("defect", ("process_only",))
     leads = [note(lead, "a lead", "decision", process_only=True) for lead, _ in (*CAMPAIGNS, *HELD)]
     gate_notes = [note(arg, "a gate", process_only=True) for _, (how, arg) in GATES if how == "note"]
     good = [*leads, *gate_notes,
@@ -425,7 +414,7 @@ def self_test() -> int:
         results.append(ok)
         print(f"{'✓' if ok else '✗'} {name}: {got!r}" + ("" if ok else f" (want {want!r})"))
 
-    rem = remaining(good, rows, 3, fleet)
+    rem = remaining(good, rows, 3)
     c, g = rem["compiler"], rem["gap"]
     check("compiler bucket: notes, kinds, harm, states", (c["n"], c["kind"]["defect"], c["harm"]["wrong_answer"],
           c["harm"]["crashes"], dict(c["states"])), (4, 3, 1, 1, {"ready": 2, "waiting": 1, "blocked": 1}))
@@ -442,10 +431,15 @@ def self_test() -> int:
     check("register_counts of a tree with no register", register_counts([], set()), None)
     # a process_only prerequisite of a harmed note is fix-lane compiler work, with no harm of its own (kb/Work PB4769)
     pre = [*good, note("PB9020", kind="defect", process_only=True), note("PB9021", kind="defect", crashes=True, blocked_by=["PB9020"])]
-    rp = remaining(pre, rows, 3, fleet)
+    rp = remaining(pre, rows, 3)
     check("a prerequisite of a harmed note has the fix lane and is compiler work, its harm counts its own",
           ("PB9020" in rp["compiler"]["ids"], rp["compiler"]["lanes"][FIX] - rem["compiler"]["lanes"][FIX],
            rp["compiler"]["harm"]["crashes"] - rem["compiler"]["harm"]["crashes"]), (True, 2, 1))
+    # the fix lane plans a harmed note whatever its kind, as `next` ranks it (work.fixable, kb/Work PB4951)
+    ka = remaining([*good, note("PB9022", kind="analysis", wrong_answer=True), note("PB9023", kind="adjudication",
+                   under_rejects=True), note("PB9024", kind="defect")], rows, 3)
+    check("a harmed analysis or adjudication has the fix lane; a note with no harm flag has none, whatever its kind",
+          [nid for nid in ("PB9022", "PB9023", "PB9024") if nid in ka["compiler"]["no_lane"]], ["PB9024"])
     check("register_counts before inventory_rows existed",
           register_counts([{"id": "PB1", "status": "open", "kind": "defect"}], {"R-1"})["gap_holders"], None)
 
@@ -477,7 +471,7 @@ def self_test() -> int:
     check("clean planted register", problems(good, plan, rem), [])
 
     def fires(name, items, prefix, mutate=None):
-        r = remaining(items, rows, 3, fleet)
+        r = remaining(items, rows, 3)
         if mutate:
             mutate(r)
         got = problems(items, measure(items, 3), r)

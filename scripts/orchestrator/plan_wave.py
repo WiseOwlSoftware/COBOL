@@ -897,7 +897,7 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
          abandoned: set[str] | None = None, tiers: dict[str, int | None] | None = None,
          answered: Callable[[Report], str | None] | None = None) -> dict[str, Any]:
     """`clusters` and `half_clusters` are fix_clusters.py --json views of the open and the half notes; they also
-    define which notes are plannable at all (fix_clusters applies .agent-fleet.json's kind and skip flags).
+    define which notes are plannable at all (ready_notes_view admits only work.fixable notes, kb/Work PB4951).
     `held`, {note: the dispatch holding it} from held_by_dispatch, applies in BOTH lanes: a held note waits.
 
     A CAMPAIGN (`--cluster`, kb/Work PB2120) passes `deps`, {note: its open blockers}, and clusters that carry the

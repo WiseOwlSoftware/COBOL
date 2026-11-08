@@ -168,22 +168,23 @@ def add_closed_notes(reports: list[Report], classify: Callable[[str], str], git:
 
 
 def ready_notes_view(status: str, view: pathlib.Path, work_dir: pathlib.Path | None = None) -> pathlib.Path:
-    """The notes of `status` that wait on nothing (work.waiting_on), copied into the empty directory `view` for
-    fix_clusters.py to read (kb/Work PB3389). fix_clusters skips a note by a flag of its stored frontmatter
-    (`.agent-fleet.json` `skip_flag`), and whether a note is blocked is derived, never stored, so the fix lane's
-    population is the register's own answer and the public script reads only what is ready. A ready prerequisite of a
-    harmed note (work.inherited_harm, kb/Work PB4769) is copied with the harm it owes written into the copy's
-    frontmatter and `process_only: false`, so the skip flag no longer hides the work a harmed note waits on and it
-    ranks as that note does; the register's own file is never edited."""
+    """The fix lane's population: the notes of `status` that wait on nothing (work.waiting_on, kb/Work PB3389) and that
+    the fix lane works (work.fixable: a harm flag set and not `process_only`, whatever the `kind`, kb/Work PB4951),
+    copied into the empty directory `view` for fix_clusters.py to read. Both are derived, never stored, so the
+    population is the register's own answer, the one `next` lists, and the public script filters nothing itself. A
+    ready prerequisite of a harmed note (work.inherited_harm, kb/Work PB4769) is copied with the harm it owes written
+    into the copy's frontmatter and `process_only: false`, so it ranks as that note does; the register's own file is
+    never edited."""
     work_dir = work_dir or work.WORK
     items = work.load(work_dir)
     by_id = {i.get("id"): i for i in items}
     owed = work.inherited_harm(items)
+    works = {i.get("id") for i in work.with_inherited_harm(items) if work.fixable(i)}
     if view.exists():
         shutil.rmtree(view)
     view.mkdir(parents=True)
     for it in items:
-        if it.get("status") == status and not work.waiting_on(it, by_id):
+        if it.get("status") == status and it.get("id") in works and not work.waiting_on(it, by_id):
             if it.get("id") in owed:
                 (view / it["_file"]).write_text(owing(work_dir / it["_file"], owed[it["id"]]), encoding="utf-8", newline="")
             else:
@@ -225,7 +226,7 @@ def fold_unsited(raw: Mapping[str, Any], notes: Mapping[str, Note]) -> dict[str,
 
 
 def run_fix_clusters(status: str, out: pathlib.Path, rules: dict[str, Any]) -> dict[str, Any]:
-    """The fix lane's groups: fix_clusters.py --json over .agent-fleet.json's population (`kind`, `skip_flag`) of the
+    """The fix lane's groups: fix_clusters.py --json over the fix lane's population (work.fixable, kb/Work PB4951) of the
     notes that wait on nothing (ready_notes_view), at the planner's group size (notes_cap), written to `out`, and returned
     with every unsited note a group of its own (fold_unsited). The ONE call, shared by this planner and the ledger's
     estimate (scripts/spec/ledger_plan.py, kb/Work PB2912), so both size the lane alike."""

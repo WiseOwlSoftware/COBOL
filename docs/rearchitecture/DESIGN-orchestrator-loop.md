@@ -984,8 +984,9 @@ of one account bracket a measured spend (open decisions D6, D8).
 reports directory, the dispatch ledger or the newest DEVLOG lines, and past every number handed out; a wave planned with
 no report yet, another session's included, holds its number: kb/Work PB2806, PB3700).
 
-The plannable notes are exactly those `fix_clusters.py --json` lists (the submodule's view of `kb/Work`, which
-applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status: open`, once over `status: half`.
+The plannable notes are exactly those `fix_clusters.py --json` lists over `clusters.ready_notes_view`, the notes
+`work.fixable` admits (a harm flag set and not `process_only`, whatever the `kind`: the predicate `work.py next` uses,
+kb/Work PB4951) that wait on nothing, run twice: once over `status: open`, once over `status: half`.
 
 1. **Awaiting landing.** A note whose newest report is `DONE` and names a branch that is not on `main` yet
    (`prune_worktrees.classify`, reused: `UNLANDED` or `CHECK`) is excluded and listed: re-planning it would dispatch
@@ -1215,10 +1216,11 @@ from that measurement and are refit from `units.jsonl` and `usage_report.py` (PB
 
 ### 9.1 The campaign lane (`--cluster`, kb/Work PB2120)
 
-The fix lane plans from harm: `fix_clusters.py` reads `.agent-fleet.json`, which keeps `kind: defect`, skips
-`process_only` notes, and resolves sites under `src/WiseOwl.Cobol.*` only, over the notes that wait on nothing
-(`clusters.ready_notes_view` copies them into a directory of its own: `fix_clusters.py` skips by a stored flag, and
-whether a note is blocked is derived, kb/Work PB3389). A CAMPAIGN (the legacy
+The fix lane plans from harm: `clusters.ready_notes_view` copies into a directory of its own the notes that wait on
+nothing (kb/Work PB3389) and that `work.fixable` admits, a harm flag set and not `process_only` whatever the `kind`
+(the predicate `work.py next` ranks by, kb/Work PB4951: while `.agent-fleet.json` kept `kind: defect`, a harmed
+analysis led `next` and no lane planned it), and `fix_clusters.py` resolves their sites under `src/WiseOwl.Cobol.*`
+only (`.agent-fleet.json`). Both halves are derived, never stored, so the public script filters nothing itself. A CAMPAIGN (the legacy
 retirement `PB2108`, the architecture review `PB1754`) is `process_only` work in `tests/`, `scripts/`, `.github/`,
 `docs/` and the legacy tree, so before this lane it could be dispatched only by a hand-written `groups.json`. A
 campaign is a named cluster in the register: every note whose `cluster:` list names the lead (a lead note may list
