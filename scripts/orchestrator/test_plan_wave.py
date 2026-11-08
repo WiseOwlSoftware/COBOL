@@ -2203,17 +2203,27 @@ check("the planner's cluster view waits on what waiting_on says",
       [(r["id"], r["waiting_on"]) for r in work.cluster_order(TOPO + [dict(TOPO_BY_ID["T5"], id="T13", cluster=["Q"]),
                                                                        dict(TOPO_BY_ID["T10"], id="T14", cluster=["Q"])], "Q")["notes"]],
       [("T13", ["T3"]), ("T14", ["status: owner"])])
-# the fix lane's population is the ready notes (kb/Work PB3389): fix_clusters.py skips by a stored flag, so the planner
-# hands it a directory of the notes that wait on nothing
+# the fix lane's population is the ready notes (kb/Work PB3389) the fix lane works (work.fixable, kb/Work PB4951): the
+# planner hands fix_clusters.py a directory of the harmed, not process_only notes that wait on nothing, whatever the kind
 FL = TMP / "fix-lane-register"
 FL.mkdir()
-for nid, status, bb in (("PB801", "open", ""), ("PB802", "open", "PB801"), ("PB803", "open", "PB804"),
-                        ("PB804", "landed", ""), ("PB805", "owner", ""), ("PB806", "half", ""), ("PB807", "open", "PB802")):
-    (FL / f"{nid}.md").write_text(f"---{NL}id: {nid}{NL}kind: defect{NL}status: {status}{NL}area: x{NL}blocked_by: [{bb}]{NL}---{NL}b{NL}",
-                                  encoding="utf-8", newline="")
+for nid, status, bb, kind, flags in (("PB801", "open", "", "defect", "wrong_answer: true"),
+                                     ("PB802", "open", "PB801", "defect", "wrong_answer: true"),
+                                     ("PB803", "open", "PB804", "defect", "crashes: true"),
+                                     ("PB804", "landed", "", "defect", "wrong_answer: true"),
+                                     ("PB805", "owner", "", "defect", "wrong_answer: true"),
+                                     ("PB806", "half", "", "defect", "under_rejects: true"),
+                                     ("PB807", "open", "PB802", "defect", "wrong_answer: true"),
+                                     ("PB808", "open", "", "analysis", "wrong_answer: true"),
+                                     ("PB809", "open", "", "decision", "wrong_answer: false"),
+                                     ("PB810", "open", "", "defect", f"under_rejects: true{NL}process_only: true"),
+                                     ("PB816", "open", "", "analysis", "wrong_answer: false")):
+    (FL / f"{nid}.md").write_text(f"---{NL}id: {nid}{NL}kind: {kind}{NL}status: {status}{NL}area: x{NL}{flags}{NL}"
+                                  f"blocked_by: [{bb}]{NL}---{NL}b{NL}", encoding="utf-8", newline="")
 view = ready_notes_view("open", TMP / "fix-lane-view", FL)
-check("the fix lane reads the open notes that wait on nothing: a landed blocker is no hold, an open one, an owner status and "
-      "a chain are", sorted(p.stem for p in view.iterdir()), ["PB801", "PB803"])
+check("the fix lane reads the open harmed notes that wait on nothing: a landed blocker is no hold, an open one, an owner "
+      "status and a chain are; a harmed analysis is in, an unharmed decision or analysis and a process_only defect are not",
+      sorted(p.stem for p in view.iterdir()), ["PB801", "PB803", "PB808"])
 # a ready process_only prerequisite of a harmed note joins the view with the harm it owes (kb/Work PB4769); one with no
 # harmed dependent stays hidden, and the register's own file is untouched
 PQ = TMP / "prereq-register"
@@ -2223,12 +2233,11 @@ for nid, extra in (("PB811", f"process_only: true{NL}process_only: true"), ("PB8
     (PQ / f"{nid}.md").write_text(f"---{NL}id: {nid}{NL}kind: defect{NL}status: open{NL}area: x{NL}{extra}{NL}---{NL}b{NL}",
                                   encoding="utf-8", newline="")
 pv = ready_notes_view("open", TMP / "prereq-view", PQ)
-check("a chain's ready root joins the fix lane's view; a waiting link and a dependent-less note do not",
-      sorted(p.stem for p in pv.iterdir()), ["PB811", "PB814"])
+check("a chain's ready root joins the fix lane's view; a waiting link and a process_only note with no harmed dependent "
+      "do not", sorted(p.stem for p in pv.iterdir()), ["PB811"])
 fm = (pv / "PB811.md").read_text(encoding="utf-8")
 check("the view's copy owes the harmed note's harm and is no longer process_only",
       ("wrong_answer: true" in fm, "process_only: false" in fm, "process_only: true" in fm), (True, True, False))
-check("a process_only note no harmed note waits on keeps its stored flag", "process_only: true" in (pv / "PB814.md").read_text(encoding="utf-8"), True)
 check("the register's file is untouched", "wrong_answer" in (PQ / "PB811.md").read_text(encoding="utf-8"), False)
 check("an earlier view is replaced, never merged into", sorted(p.stem for p in ready_notes_view("half", view, FL).iterdir()),
       ["PB806"])
