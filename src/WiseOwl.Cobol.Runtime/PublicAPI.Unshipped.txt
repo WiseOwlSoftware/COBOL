@@ -789,7 +789,7 @@ static WiseOwl.Cobol.Runtime.CobolBits.Strided(string![]! occurrences, int strid
 static WiseOwl.Cobol.Runtime.CobolBits.WriteWindowInto(char[]! buffer, int startBit, string! bits) -> void
 static WiseOwl.Cobol.Runtime.CobolBool.FromCharacters(string? v) -> string!
 static WiseOwl.Cobol.Runtime.CobolBool.Store(string? value, int width, bool justifiedRight) -> string!
-static WiseOwl.Cobol.Runtime.CobolDec.DivFinal(WiseOwl.Cobol.Runtime.CobolDec a, WiseOwl.Cobol.Runtime.CobolDec b, WiseOwl.Cobol.Runtime.CobolRounding mode) -> WiseOwl.Cobol.Runtime.CobolDec
+static WiseOwl.Cobol.Runtime.CobolDec.DivFinal(WiseOwl.Cobol.Runtime.CobolDec a, WiseOwl.Cobol.Runtime.CobolDec b, WiseOwl.Cobol.Runtime.CobolRounding mode, int floatSignificandDigits = 0) -> WiseOwl.Cobol.Runtime.CobolDec
 static WiseOwl.Cobol.Runtime.CobolDec.DivTruncatedToOdd(WiseOwl.Cobol.Runtime.CobolDec a, WiseOwl.Cobol.Runtime.CobolDec b, int scale) -> WiseOwl.Cobol.Runtime.CobolDec
 static WiseOwl.Cobol.Runtime.CobolDec.FractionDigits(WiseOwl.Cobol.Runtime.CobolDec value) -> int
 static WiseOwl.Cobol.Runtime.CobolDec.FromApproximation(double d) -> WiseOwl.Cobol.Runtime.CobolDec
@@ -810,7 +810,7 @@ static WiseOwl.Cobol.Runtime.CobolDynStructure.UnitOf(int code) -> int
 static WiseOwl.Cobol.Runtime.CobolEdit.TruncateToFloatShape(WiseOwl.Cobol.Runtime.CobolDec value, string! picture, bool commaMode = false, WiseOwl.Cobol.Runtime.CobolEdit.EditRule[]? edits = null) -> WiseOwl.Cobol.Runtime.CobolDec
 static WiseOwl.Cobol.Runtime.CobolExact.Add(WiseOwl.Cobol.Runtime.CobolExact a, WiseOwl.Cobol.Runtime.CobolExact b) -> WiseOwl.Cobol.Runtime.CobolExact
 static WiseOwl.Cobol.Runtime.CobolExact.Compare(WiseOwl.Cobol.Runtime.CobolExact a, WiseOwl.Cobol.Runtime.CobolExact b) -> int
-static WiseOwl.Cobol.Runtime.CobolExact.DivToOdd(WiseOwl.Cobol.Runtime.CobolExact a, WiseOwl.Cobol.Runtime.CobolExact b, WiseOwl.Cobol.Runtime.CobolRounding intermediate) -> WiseOwl.Cobol.Runtime.CobolDec
+static WiseOwl.Cobol.Runtime.CobolExact.DivToOdd(WiseOwl.Cobol.Runtime.CobolExact a, WiseOwl.Cobol.Runtime.CobolExact b, WiseOwl.Cobol.Runtime.CobolRounding intermediate, int floatSignificandDigits = 0) -> WiseOwl.Cobol.Runtime.CobolDec
 static WiseOwl.Cobol.Runtime.CobolExact.DivTruncated(WiseOwl.Cobol.Runtime.CobolExact a, WiseOwl.Cobol.Runtime.CobolExact b, int receiverScale) -> WiseOwl.Cobol.Runtime.CobolExact
 static WiseOwl.Cobol.Runtime.CobolExact.From(System.Int128 unscaled, int scale, int? precision = null) -> WiseOwl.Cobol.Runtime.CobolExact
 static WiseOwl.Cobol.Runtime.CobolExact.FromApproximation(double value) -> WiseOwl.Cobol.Runtime.CobolExact

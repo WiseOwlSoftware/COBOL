@@ -914,9 +914,16 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     /// rounded at the program's mode here and the receiver rounded again: `9.99…9E-1 / 2.0E0`, an exact 35th-digit tie, stored 1 under
     /// ROUNDED and .5000… in a truncating receiver, where the value is below .5. PROHIBITED keeps its screening (§2023:11.9.11.2 GR3d:
     /// an inexact quotient raises EC-SIZE-TRUNCATION), the one mode the jam would hide. The STANDARD-DECIMAL lane does not come here:
-    /// its quotient IS an SDIDI value (§2023:8.8.1.5) and rounds at the program's mode.</summary>
-    public static CobolDec DivFinal(CobolDec a, CobolDec b, CobolRounding mode) =>
-        Div(a, b, mode, jam: mode != CobolRounding.Prohibited);
+    /// its quotient IS an SDIDI value (§2023:8.8.1.5) and rounds at the program's mode.
+    /// <para>⛔ <paramref name="floatSignificandDigits"/> is the significand of a FLOATING-POINT EDITED receiver (§2023:13.18.40.3 SR15; 0 for
+    /// any other), and the reduction then keeps that many digits plus two (kb/Work PB4975): round-to-odd at 34 digits serves the
+    /// receiver's one rounding only while the receiver is at least two digits coarser, so a significand of 33 to 36 digits took
+    /// <c>Div</c> at the program's mode, a 34-digit rounding the receiver rounded again. The wider quotient is a <see cref="CobolDec"/>
+    /// of up to 38 digits that only the receiver's store reads (<c>CobolEdit.FormatFloatStore</c>), never another SDIDI operation.</para></summary>
+    public static CobolDec DivFinal(CobolDec a, CobolDec b, CobolRounding mode, int floatSignificandDigits = 0) =>
+        mode == CobolRounding.Prohibited || floatSignificandDigits <= 32
+            ? Div(a, b, mode, jam: mode != CobolRounding.Prohibited)
+            : CobolBig.QuotientToOdd(a.Sig, a.Exp, b.Sig, b.Exp, floatSignificandDigits + 2);
 
     private static CobolDec Div(CobolDec a, CobolDec b, CobolRounding mode, bool jam)
     {

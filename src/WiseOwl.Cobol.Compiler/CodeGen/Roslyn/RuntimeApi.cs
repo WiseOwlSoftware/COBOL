@@ -884,10 +884,15 @@ internal static class RuntimeApi
     public static string DecDivTruncatedToOdd(string leftOperand, string rightOperand, int resultScale) =>
         $"{nameof(CobolDec)}.{nameof(CobolDec.DivTruncatedToOdd)}({leftOperand}, {rightOperand}, {resultScale})";
 
+    /// <summary>The trailing significand argument of the two final-transfer quotients: a FLOATING-POINT EDITED receiver's significand digits
+    /// (kb/Work PB4975), omitted for every other receiver (0, the callee's default).</summary>
+    private static string FloatSignificandArg(int floatSignificandDigits) => floatSignificandDigits > 0 ? $", {floatSignificandDigits}" : "";
+
     /// <summary>The FINAL-TRANSFER native quotient of two SDIDI values — <c>CobolDec.DivFinal</c>: round-to-odd at 34 digits, so the
-    /// receiver's one rounding is the exact quotient's (kb/Work PB4641); PROHIBITED screens it as every SDIDI intermediate is.</summary>
-    public static string DecDivFinal(string leftOperand, string rightOperand, string modeExpr) =>
-        $"{nameof(CobolDec)}.{nameof(CobolDec.DivFinal)}({leftOperand}, {rightOperand}, {modeExpr})";
+    /// receiver's one rounding is the exact quotient's (kb/Work PB4641); PROHIBITED screens it as every SDIDI intermediate is. A
+    /// floating-point edited receiver whose significand passes 32 digits widens the reduction to its significand plus two (PB4975).</summary>
+    public static string DecDivFinal(string leftOperand, string rightOperand, string modeExpr, int floatSignificandDigits) =>
+        $"{nameof(CobolDec)}.{nameof(CobolDec.DivFinal)}({leftOperand}, {rightOperand}, {modeExpr}{FloatSignificandArg(floatSignificandDigits)})";
 
     /// <summary>The negation of an SDIDI value, its operand evaluated once — <c>CobolDec.Negate</c>.</summary>
     public static string DecNegate(string operand) => $"{nameof(CobolDec)}.{nameof(CobolDec.Negate)}({operand})";
@@ -1046,8 +1051,8 @@ internal static class RuntimeApi
 
     /// <summary>The FINAL-TRANSFER native quotient of two exact values, the SDIDI of the exact quotient's round-to-odd 34 digits
     /// (<c>CobolExact.DivToOdd</c>, kb/Work PB4599), screened by <paramref name="modeExpr"/> when it is PROHIBITED.</summary>
-    public static string ExactDivToOdd(string left, string right, string modeExpr) =>
-        $"{nameof(CobolExact)}.{nameof(CobolExact.DivToOdd)}({left}, {right}, {modeExpr})";
+    public static string ExactDivToOdd(string left, string right, string modeExpr, int floatSignificandDigits) =>
+        $"{nameof(CobolExact)}.{nameof(CobolExact.DivToOdd)}({left}, {right}, {modeExpr}{FloatSignificandArg(floatSignificandDigits)})";
 
     /// <summary>The SUBSIDIARY quotient of a native <c>DIVIDE ... REMAINDER</c> over exact values (<c>CobolExact.SubsidiaryQuotient</c>,
     /// kb/Work PB4640): the exact quotient truncated at identifier-3's <paramref name="scale"/>.</summary>

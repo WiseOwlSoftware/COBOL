@@ -308,11 +308,18 @@ public readonly struct CobolExact
     /// mode leaves the round-to-odd value, which no later rounding sees as other than the exact quotient. The plain native lane passes
     /// <see cref="CobolRounding.Truncation"/>: it has no SDIDI intermediate to screen. A final transfer into a fixed-point
     /// resultant that has no such intermediate lands from <see cref="QuotientAtScale"/> instead.</para>
-    /// A zero divisor raises <see cref="CobolSizeError.ZeroDivide"/> (ISO §2023:14.7.5 case 2).</summary>
-    public static CobolDec DivToOdd(CobolExact a, CobolExact b, CobolRounding intermediate) =>
-        TryBinary64Operands(a, b, out double x, out double y)
-            ? FromBinary64(CobolFloat.Div(x, y)).Image
-            : Quotient(a, b, intermediate, jam: intermediate != CobolRounding.Prohibited);
+    /// A zero divisor raises <see cref="CobolSizeError.ZeroDivide"/> (ISO §2023:14.7.5 case 2).
+    /// <para><paramref name="floatSignificandDigits"/> is a FLOATING-POINT EDITED receiver's significand (§2023:13.18.40.3 SR15; 0 for any
+    /// other): a significand of 33 to 36 digits is not at least two digits coarser than the 34, so the reduction keeps that many digits
+    /// plus two (<see cref="CobolBig.QuotientToOdd"/>, kb/Work PB4975), as <see cref="CobolDec.DivFinal"/> does for SDIDI operands.</para></summary>
+    public static CobolDec DivToOdd(CobolExact a, CobolExact b, CobolRounding intermediate, int floatSignificandDigits = 0)
+    {
+        if (TryBinary64Operands(a, b, out double x, out double y)) return FromBinary64(CobolFloat.Div(x, y)).Image;
+        if (intermediate == CobolRounding.Prohibited || floatSignificandDigits <= 32)
+            return Quotient(a, b, intermediate, jam: intermediate != CobolRounding.Prohibited);
+        CobolBig dividend = a.AsBig(), divisor = b.AsBig();
+        return CobolBig.QuotientToOdd(dividend.Value, -dividend.Scale, divisor.Value, -divisor.Scale, floatSignificandDigits + 2);
+    }
 
     /// <summary>The exact quotient of two exact values reduced to the SDIDI's 34 digits ONCE: ROUND-TO-ODD with <paramref name="jam"/>, else
     /// in <paramref name="mode"/> (MEAN's, MEDIAN's and MIDRANGE's single division of an exact sum). On the wide form while both operands
