@@ -227,8 +227,10 @@ public readonly struct FunctionValueField
 
     /// <summary>§2023:15.61.4 - an odd count returns the content of the middle argument of the sorted list (equal values keep their
     /// written order, so the first of a run is the earlier one); an even count returns the arithmetic mean of the two middle
-    /// values, a value with no item of its own.</summary>
-    public static FunctionValueField Median(params FunctionValueField[] arguments)
+    /// values, a value with no item of its own. ⛔ A binary64 mean is a float item's content on both channels (kb/Work PB4924):
+    /// <see cref="OfBinary64"/> in <paramref name="mode"/>, ordered by its exact value as <c>CobolIntrinsics.MedianExact</c>'s
+    /// <see cref="CobolExact.FromBinary64"/> orders it, never <see cref="OfFloat"/>'s shortest image.</summary>
+    public static FunctionValueField Median(CobolRounding mode, params FunctionValueField[] arguments)
     {
         (FunctionValueField low, FunctionValueField high, bool even) = MedianMiddles(arguments);
         if (!even) return low;
@@ -240,7 +242,7 @@ public readonly struct FunctionValueField
         // digit, and MEDIAN (A B) = (A + B) / 2 was true on COMPUTE alone). Under a standard mode the mean is the SDIDI's
         // (<see cref="MedianStandard"/>).
         if (low._shape == Shape.Float || high._shape == Shape.Float)
-            return OfFloat(CobolIntrinsics.MedianReal(low.Double(), high.Double()));
+            return OfBinary64(CobolIntrinsics.MedianReal(low.Double(), high.Double()), mode);
         return OfExactValue(CobolExact.Mul(CobolExact.Add(low.Exact(), high.Exact()), CobolExact.From(5, 1)));
     }
 

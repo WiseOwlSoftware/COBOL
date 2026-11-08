@@ -219,8 +219,9 @@ internal static class RuntimeApi
     /// <summary>MIN over argument fields.</summary>
     public static string FunctionFieldMin(string arguments) => $"{nameof(FunctionValueField)}.{nameof(FunctionValueField.Min)}({arguments})";
 
-    /// <summary>MEDIAN over argument fields.</summary>
-    public static string FunctionFieldMedian(string arguments) => $"{nameof(FunctionValueField)}.{nameof(FunctionValueField.Median)}({arguments})";
+    /// <summary>MEDIAN over argument fields; <paramref name="mode"/> lifts a binary64 mean as COMPUTE lifts it (kb/Work PB4924).</summary>
+    public static string FunctionFieldMedian(string mode, string arguments) =>
+        $"{nameof(FunctionValueField)}.{nameof(FunctionValueField.Median)}({mode}, {arguments})";
 
     /// <summary>MEDIAN over argument fields under a standard arithmetic mode: the mean is the SDIDI's, rounded as <paramref name="mode"/> says.</summary>
     public static string FunctionFieldMedianStandard(string mode, string arguments) =>
