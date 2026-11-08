@@ -151,9 +151,9 @@ def unreachable_items() -> dict[int, str]:
     element this register documents in full. The presence of the row is the test, and it is the same fact
     `Schema.anchor_obliged` keys on, read through the same parser.
     """
-    from inventory_schema import load_catalog, load_schema  # local: keeps this script standalone-runnable
+    from inventory_schema import NEWEST, load_schema  # local: keeps this script standalone-runnable
     schema = load_schema()
-    rules = load_catalog()
+    rules = NEWEST.rules()
     determined = schema.register_items()
     out: dict[int, str] = {}
     for name, sel in schema.derived.items():

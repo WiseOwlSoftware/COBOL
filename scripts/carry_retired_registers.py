@@ -44,8 +44,8 @@ HERE = pathlib.Path(__file__).resolve().parent
 REPO = HERE.parent
 sys.path.insert(0, str(HERE / "spec"))
 sys.path.insert(0, str(REPO / "conformance-suite" / "harness"))
+import inventory_schema  # noqa: E402  (each edition's store and the single file that held it before kb/Work PB4148)
 import inventory_store  # noqa: E402
-import lineage  # noqa: E402  (the fields a 2023 store file holds)
 from standard_streams import ensure_utf8  # noqa: E402
 from generate import DIAGNOSTICS_DIR, OPTIONS_DIR, load_sidecars, sidecar_path  # noqa: E402
 
@@ -78,11 +78,13 @@ def _sidecar_writer(registry: pathlib.Path) -> Callable[[pathlib.Path, Entries, 
     return write
 
 
-def _rows_of(text: str) -> Entries:
-    """The retired single file's rows as the store records they are (kb/Work PB4992): a row's catalog copies and its state
-    are not the store's, and a row with no adjudication has no record."""
-    fields = lineage.edition(2023).adjudicated
-    return {r["rule-id"]: rec for r in json.loads(text) if (rec := inventory_store.record_of(r, fields)) is not None}
+def _rows_of(edition: inventory_schema.Edition) -> Callable[[str], Entries]:
+    """The reader of `edition`'s retired single file: its rows as the store records they are (kb/Work PB4992), a row's
+    catalog copies and its state not the store's, and a row with no adjudication no record."""
+    def rows_of(text: str) -> Entries:
+        return {r["rule-id"]: rec for r in json.loads(text)
+                if (rec := inventory_store.record_of(r, edition.adjudicated)) is not None}
+    return rows_of
 
 
 def _read_rows(directory: pathlib.Path) -> Entries:
@@ -107,7 +109,8 @@ REGISTERS = (
              _sidecars_of, _read_sidecars, _sidecar_writer(DIAGNOSTICS_DIR)),
     Register("conformance-suite/wiseowl/options.json", "conformance-suite/wiseowl/options",
              _sidecars_of, _read_sidecars, _sidecar_writer(OPTIONS_DIR)),
-    Register(inventory_store.LEGACY_FILE_REL, inventory_store.INVENTORY_DIRS_REL[2023], _rows_of, _read_rows, _write_rows),
+    *(Register(ed.legacy_file, ed.store, _rows_of(ed), _read_rows, _write_rows)
+      for ed in inventory_schema.EDITIONS if ed.legacy_file),
 )
 
 
@@ -210,7 +213,7 @@ def self_test() -> int:
         for reg, entries in ((refusals, _sidecars_of(json.dumps(ref))), (options, opts)):
             (repo.path / reg.directory).mkdir(parents=True)
             reg.write(repo.path / reg.directory, {}, entries)
-        _write_rows(repo.path / inventory.directory, {}, _rows_of(json.dumps(rows)))
+        _write_rows(repo.path / inventory.directory, {}, inventory.entries_of(json.dumps(rows)))
 
     t = scratch_dir("carry-retired-")
     repo = ScratchRepo.init(t / "repo")
@@ -231,7 +234,7 @@ def self_test() -> int:
     repo.commit("split the registers")
     split_head = repo.git("rev-parse", "HEAD")
     want_refusals = _sidecars_of(json.dumps(main_refusals))
-    want_rows = _rows_of(json.dumps(main_rows))
+    want_rows = inventory.entries_of(json.dumps(main_rows))
 
     def merged(side: str, other: str, label: str) -> str:
         repo.git("checkout", "-q", side)

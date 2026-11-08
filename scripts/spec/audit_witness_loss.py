@@ -45,16 +45,13 @@ import sys
 from collections import Counter
 from typing import Any, NamedTuple
 
-from inventory_schema import (REPO, RETIRED_WITNESS_MARK, SCHEMA_PATH, Schema, StatementLoss,
-                              WitnessLoss, load_schema, statement_losses, statement_text,
+from inventory_schema import (NEWEST, REPO, RETIRED_WITNESS_MARK, SCHEMA_PATH, SCHEMA_REL, Schema, StatementLoss,
+                              Tree, WitnessLoss, load_schema, statement_losses, statement_text,
                               witness_losses, witness_shape_error)
-from inventory_store import INVENTORY_DIRS_REL, history_pathspecs
+from inventory_store import history_pathspecs
 from inventory_view import inventory, inventory_at
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
-
-SCHEMA_REL = SCHEMA_PATH.relative_to(REPO).as_posix()
-
 
 def _git(*args: str) -> str:
     return subprocess.run(["git", *args], cwd=REPO, check=True, capture_output=True, text=True,
@@ -67,11 +64,12 @@ def _sep(field: str, schema) -> str:
 
 def schema_at(rev: str) -> Schema | None:
     """The inventory schema as committed at `rev` (its test-ref forms name the files of THAT tree), or None."""
-    r = subprocess.run(["git", "show", f"{rev}:{SCHEMA_REL}"], cwd=REPO, capture_output=True)
-    if r.returncode != 0:
+    tree = Tree(REPO, rev)
+    raw = tree.json(SCHEMA_REL)
+    if raw is None:
         return None
     try:
-        return Schema(json.loads(r.stdout.decode("utf-8")))
+        return Schema(raw, tree)
     except (KeyError, TypeError):
         # A schema from before a shape change (PB3172 made `editions` an object) is not one this class can read.
         # The callers fall back to the current schema, which only loses the re-spelling of a moved test file.
@@ -183,7 +181,7 @@ def default_base() -> str:
 def check(base: str, schema) -> int:
     before = inventory_at(base)
     if before is None:
-        print(f"⛔ {INVENTORY_DIRS_REL[2023]} does not exist at {base} — nothing to compare against")
+        print(f"⛔ {NEWEST.store} does not exist at {base} — nothing to compare against")
         return 2
     after = inventory()
     losses, vanished = compare_revisions(before, after, base, None, schema)
@@ -222,7 +220,7 @@ def history(since: str | None, schema) -> tuple[list[tuple[str, str, WitnessLoss
     """
     rng = [f"{since}..HEAD"] if since else []
     shas = _git("log", "--reverse", "--first-parent", "--format=%H %ad %s", "--date=short", *rng, "--",
-                *history_pathspecs(2023)).splitlines()
+                *history_pathspecs(NEWEST)).splitlines()
     found: list[tuple[str, str, WitnessLoss]] = []
     vanished: Counter[str] = Counter()
     erased: list[Erasure] = []

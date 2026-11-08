@@ -45,7 +45,7 @@ import pathlib
 import sys
 from collections import Counter
 
-from inventory_schema import DerivedSelector, load_catalog, load_schema
+from inventory_schema import NEWEST, DerivedSelector, load_schema
 import inventory_view  # noqa: E402  (the one view of the inventory, kb/Work PB4992)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
@@ -264,7 +264,7 @@ def main() -> int:
         return self_test()
 
     schema = load_schema()
-    rules = load_catalog()
+    rules = NEWEST.rules()
     inventory = {r["rule-id"]: r for r in inventory_view.inventory()}
 
     if args.list:

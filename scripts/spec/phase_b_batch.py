@@ -713,7 +713,7 @@ def main() -> int:
     if not args.clauses:
         ap.error("name at least one clause or range")
 
-    rules = inventory_schema.load_catalog()
+    rules = inventory_schema.NEWEST.rules()
     done = set() if args.include_adjudicated else {
         r["rule-id"] for r in inventory_view.inventory() if r.get("verdict")}
 

@@ -32,8 +32,7 @@ import json
 import pathlib
 import sys
 
-from inventory_schema import DerivationRow, load_schema
-from inventory_store import INVENTORY_DIRS_REL
+from inventory_schema import NEWEST, DerivationRow, load_schema
 from inventory_view import inventory
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
@@ -175,7 +174,7 @@ def main() -> int:
         findings += live
         closed = [r["rule-id"] for r in rows
                   if (r.get(schema.derivation.field) or "").strip() and r["state"] == "OK"]
-        print(f"inventory     : {len(rows)} rows from the view of {INVENTORY_DIRS_REL[2023]}")
+        print(f"inventory     : {len(rows)} rows from the view of {NEWEST.store}")
         print(f"  claiming a derivation : {len(claimed)}")
         print(f"  closed on one         : {len(closed)}  {sorted(closed)}")
         # ⛔ POPULATION BEFORE VERDICT. "No findings" over zero rows is a statement about nothing.

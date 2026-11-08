@@ -20,84 +20,27 @@ The design is DESIGN-spec-conformance-review.md §10.2 (owner, 2026-11-08). In s
   is OK, and every `to` row's `editions` band includes the older edition, which is what places the chain's test there.
   A CHANGED or REMOVED row, and a row not yet classified, is judged on its own fields by `Schema.state_for`.
 
-This module is the one definition of an edition's rule list (`Edition`: its catalog, the catalog key that locates a rule,
-and the adjudicated fields its store holds), of the change record's shape (`next_errors`) and of an older row's state
-(`state_of`). The view (`inventory_view.py`) joins each edition's catalog with its store through it and runs the audit,
+Each edition (its catalog, the catalog key that locates a rule, its store and the adjudicated fields the store holds)
+is the schema's `editions.of`, read as `inventory_schema.Edition`; this module is the one definition of the change
+record's shape (`next_errors`) and of an older row's state (`state_of`). The view (`inventory_view.py`) joins each edition's catalog with its store through it and runs the audit,
 and `record_verdicts.py --edition` writes through it; nothing else spells the rules.
 """
 from __future__ import annotations
 
 import argparse
-import dataclasses
 import json
 import pathlib
 import sys
-from collections import Counter
 from typing import Any, Iterable
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-from extract_rule_catalog import OUT, OUT_1985  # noqa: E402  (each edition's catalog)
-from inventory_schema import STORE_ADJUDICATED, WITNESS_FIELDS, load_catalog  # noqa: E402
+from inventory_schema import Edition, edition  # noqa: E402  (each edition: the schema's `editions.of`)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
 KEPT, CHANGED, REMOVED = "KEPT", "CHANGED", "REMOVED"
 NEXT_KINDS = (KEPT, CHANGED, REMOVED)
 NEXT_KEYS = frozenset({"kind", "edition", "to", "bridge", "reason", "source"})
-#: Every edition in order, held or not: the change record names the next HELD one, and is a bridge over any between.
-EDITIONS = (1985, 2002, 2014, 2023)
-#: The `editions` spelling of an edition in the 2023 rows' bands (inventory-schema.json `editions.values`).
-BAND_NAME = {1985: "85", 2002: "2002", 2014: "2014", 2023: "2023"}
-
-
-@dataclasses.dataclass(frozen=True)
-class Edition:
-    """An edition's rule list: its catalog, the catalog key that locates a rule in its text (the view's `section`), and
-    the adjudicated fields its store holds. What differs between editions is this data, never a branch on the year."""
-    year: int
-    catalog: pathlib.Path
-    locator: str
-    adjudicated: tuple[str, ...]
-
-    @property
-    def statements(self) -> tuple[str, ...]:
-        return tuple(f for f in self.adjudicated if f not in WITNESS_FIELDS)
-
-    def next_held(self) -> int | None:
-        later = [e for e in HELD if e > self.year]
-        return later[0] if later else None
-
-    @property
-    def newest(self) -> bool:
-        """Is no later edition held? Its rows are judged on their own fields; an older edition's KEPT rows on their chain."""
-        return self.next_held() is None
-
-    def bridged(self) -> bool:
-        """Is an edition between this one and the next held one missing, so that its change record is a bridge?"""
-        nxt = self.next_held()
-        return nxt is not None and any(self.year < e < nxt for e in EDITIONS)
-
-    def blank(self) -> dict[str, Any]:
-        """The adjudicated fields of a rule nobody has adjudicated: each empty (the change record an empty object)."""
-        return {f: {} if f == "next" else "" for f in self.adjudicated}
-
-    def rules(self) -> list[dict[str, Any]]:
-        return load_catalog(self.catalog)
-
-
-#: The HELD editions, oldest first: those with a catalog and a store. The newest edition's rows carry their `editions`
-#: band; an older edition's rows are rules of that edition alone and carry the change record instead (kb/Work PB4993).
-EDITION_OF: dict[int, Edition] = {
-    1985: Edition(1985, OUT_1985, "locator", STORE_ADJUDICATED[1985]),
-    2023: Edition(2023, OUT, "section", STORE_ADJUDICATED[2023]),
-}
-HELD: tuple[int, ...] = tuple(sorted(EDITION_OF))
-
-
-def edition(year: int) -> Edition:
-    if year not in EDITION_OF:
-        raise SystemExit(f"lineage: edition {year} is not held (lineage.EDITION_OF names {sorted(EDITION_OF)})")
-    return EDITION_OF[year]
 
 
 def next_errors(row: dict[str, Any], ed: Edition, targets: dict[str, dict[str, Any]]) -> list[str]:
@@ -114,10 +57,10 @@ def next_errors(row: dict[str, Any], ed: Edition, targets: dict[str, dict[str, A
     kind, to = nxt.get("kind"), nxt.get("to")
     if kind not in NEXT_KINDS:
         errs.append(f"next.kind {kind!r} is not one of {list(NEXT_KINDS)}")
-    want = ed.next_held()
+    want = ed.next_held
     if nxt.get("edition") != want:
         errs.append(f"next.edition must be {want}, the next held edition after {ed.year}")
-    bridged = ed.bridged()
+    bridged = ed.bridged
     if nxt.get("bridge") is not bridged:
         errs.append(f"next.bridge must be {bridged}: an edition between {ed.year} and {want} is "
                     f"{'not ' if bridged else ''}missing")
@@ -146,7 +89,7 @@ def state_of(row: dict[str, Any], ed: Edition, schema, targets: dict[str, dict[s
     nxt = row.get("next") or {}
     if nxt.get("kind") != KEPT:
         return schema.state_for(row)
-    band = BAND_NAME[ed.year]
+    band = ed.spelling
     for t in nxt.get("to") or []:
         target = targets.get(t)
         if target is None or target.get("state") != "OK":
@@ -168,8 +111,8 @@ def kept_batch(state: pathlib.Path, out: pathlib.Path, source: str) -> int:
     """A record_verdicts batch of the edition audit's CARRIES rules (map SAME, verify UPHELD) as KEPT change records.
     The audit's DISPUTED and OWN-ROW rules are the fleet's (kb/Work PB4995) and are not in it."""
     results = json.loads((state / "results.json").read_text(encoding="utf-8"))
-    ed = EDITION_OF[1985]
-    want, bridged = ed.next_held(), ed.bridged()
+    ed = edition(1985)
+    want, bridged = ed.next_held, ed.bridged
     records = [{"rule-id": rid, "next": {"kind": KEPT, "edition": want, "to": d["rules_2023"], "bridge": bridged,
                                          "reason": "", "source": source}}
                for rid, d in sorted(results.items()) if d["disposition"] == "CARRIES"]
@@ -191,7 +134,7 @@ def self_test() -> int:
         if not cond:
             fails.append(what)
 
-    ed = EDITION_OF[1985]
+    ed = edition(1985)
     targets = {"SR-13.18.38.3-1": {"rule-id": "SR-13.18.38.3-1", "state": "OK", "editions": "85,2002,2014,2023"},
                "SR-13.18.38.3-2": {"rule-id": "SR-13.18.38.3-2", "state": "OK", "editions": "2002,2014,2023"},
                "GR-14.9.21.4-2": {"rule-id": "GR-14.9.21.4-2", "state": "GAP", "editions": "85,2002,2014,2023"}}
@@ -201,11 +144,11 @@ def self_test() -> int:
         return {"rule-id": "1985-SR-VI.5.8.3-1", "verdict": "", "next": {**base, **nxt}}
 
     ok(ed.adjudicated[-1] == "next" and "editions" not in ed.adjudicated and "status" not in ed.adjudicated
-       and EDITION_OF[2023].newest and not ed.newest,
+       and edition(2023).newest and not ed.newest,
        "an older edition's store holds next, not editions; status is the catalog's; 2023 is the newest held edition")
-    ok(ed.next_held() == 2023 and ed.bridged() and not EDITION_OF[2023].bridged(),
+    ok(ed.next_held == 2023 and ed.bridged and not edition(2023).bridged,
        "1985's next held edition is 2023, a bridge while 2002 and 2014 are not held")
-    ok(ed.blank()["next"] == {} and EDITION_OF[2023].blank()["editions"] == "" and ed.locator == "locator",
+    ok(ed.blank()["next"] == {} and edition(2023).blank()["editions"] == "" and ed.locator == "locator",
        "an unadjudicated rule's fields are empty, and each edition names the catalog key that locates a rule")
     ok(next_errors(row(), ed, targets) == [], "a KEPT record into a rule of the next edition, bridged, is legal")
     ok(any("bridge must be True" in e for e in next_errors(row(bridge=False), ed, targets)),
@@ -228,6 +171,32 @@ def self_test() -> int:
     ok(state_of({"rule-id": "x", "verdict": ""}, ed, schema, targets) == "GAP", "an unclassified row with no verdict is a GAP")
     ok(new_rules(ed, [row()], targets) == ["SR-13.18.38.3-2", "GR-14.9.21.4-2"],
        "a rule of the next edition no record reaches is NEW")
+
+    # Branch review R1-1: an edition is the schema's `editions.of` and nothing else, so adding one there is the whole
+    # change: the order, the bridges, the newest edition, the band spelling and the store all follow, with no KeyError.
+    import copy  # noqa: PLC0415
+    from inventory_schema import SCHEMA_PATH, Schema, editions_of, held_edition  # noqa: PLC0415
+    from inventory_store import inventory_dir  # noqa: PLC0415
+    raw = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
+    unheld, held = copy.deepcopy(raw), copy.deepcopy(raw)
+    unheld["editions"]["of"].append({"year": 2027, "spelling": "2027"})
+    held["editions"]["of"].append({"year": 2027, "spelling": "2027", "catalog": "docs/rearchitecture/spec-rule-catalog-2027.json",
+                                   "locator": "section", "store": "tests/version-matrix/inventory-2027",
+                                   "adjudicated": list(edition(2023).adjudicated)})
+    s_unheld, s_held = Schema(unheld), Schema(held)
+    ok(s_unheld.newest.year == 2023 and s_unheld.edition(2023).newest and s_unheld.editions[-1] == "2027"
+       and s_unheld.spell_editions(["2027", "2023"]) == "2023,2027",
+       "an edition named in the schema alone is in the order and the bands, and is not held")
+    e85, e23, e27 = (held_edition(editions_of(held), y) for y in (1985, 2023, 2027))
+    ok(e27.newest and s_held.newest == e27 and not e23.newest and e23.next_held == 2027 and not e23.bridged
+       and e85.next_held == 2023 and e85.bridged and inventory_dir(e27).name == "inventory-2027",
+       "a held edition named in the schema alone becomes the newest; 2023 then carries a change record into it, unbridged")
+    kept23 = {"rule-id": "SR-13.18.38.3-1", "verdict": "",
+              "next": {"kind": KEPT, "edition": 2027, "to": ["SR-1"], "bridge": False, "reason": "", "source": "planted"}}
+    t27 = {"SR-1": {"rule-id": "SR-1", "state": "OK", "editions": "85,2002,2014,2023,2027"}}
+    ok(next_errors(kept23, e23, t27) == [] and state_of(kept23, e23, s_held, t27) == "OK"
+       and state_of(kept23, e23, s_held, {"SR-1": dict(t27["SR-1"], editions="2027")}) == "GAP",
+       "a 2023 row KEPT into 2027 is judged by its chain at its own spelling, 2023")
     print(f"=== LINEAGE SELF-TEST: {'PASS' if not fails else 'FAIL - ' + str(len(fails))} ===")
     return 1 if fails else 0
 

@@ -83,11 +83,11 @@ import pathlib
 import sys
 from collections import Counter
 
-from inventory_schema import (RETIRED_WITNESS_MARK, WITNESS_FIELDS, load_schema, prose_of, resites,
-                              retired_symbols_left_in_prose, statement_losses, witness_losses, witness_shape_error)
+from inventory_schema import (NEWEST, RETIRED_WITNESS_MARK, WITNESS_FIELDS, Edition, edition, load_schema, prose_of,
+                              resites, retired_symbols_left_in_prose, statement_losses, witness_losses, witness_shape_error)
 from inventory_store import REPO, inventory_dir, record_of, write_store
 import inventory_view  # noqa: E402  (THE view: the rows a batch is validated against and written from; kb/Work PB4992)
-import lineage  # noqa: E402  (THE definition of an edition's rule list: fields, change record, state; kb/Work PB4993)
+import lineage  # noqa: E402  (THE definition of an older edition's change record and its state; kb/Work PB4993)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
@@ -140,7 +140,7 @@ def _list_hint(field: str, value: object, schema) -> str:
     return ""
 
 
-def is_witness_only(rec: dict, ed: lineage.Edition | None = None) -> bool:
+def is_witness_only(rec: dict, ed: Edition = NEWEST) -> bool:
     """A record that ADDS (or retires) witnesses on an already-adjudicated row and restates no statement of its edition
     (`ed`, 2023 by default).
 
@@ -148,10 +148,10 @@ def is_witness_only(rec: dict, ed: lineage.Edition | None = None) -> bool:
     re-adjudication, and forcing it to restate the verdict, editions and notes is how a batch applied after
     another train's re-adjudication would silently REVERT it (the lander re-applies batches on a merged tree).
     """
-    return not any(f in rec for f in (ed or lineage.edition(2023)).statements)
+    return not any(f in rec for f in ed.statements)
 
 
-def merged(row: dict, rec: dict, schema, ed: lineage.Edition | None = None) -> dict:
+def merged(row: dict, rec: dict, schema, ed: Edition = NEWEST) -> dict:
     """The adjudicated fields `row` carries after `rec` is applied — THE write rule, read by `validate` too.
 
     Witness fields: the row's witnesses minus the record's retirements, then the record's new ones, deduplicated in
@@ -169,7 +169,6 @@ def merged(row: dict, rec: dict, schema, ed: lineage.Edition | None = None) -> d
     A WITNESS-ONLY record (`is_witness_only`: no verdict and no statement field) names no statement field, so every
     one keeps the row's value and the record can be applied on any tree, in any order, any number of times.
     """
-    ed = ed or lineage.edition(2023)
     blank = ed.blank()
     retire = set(schema.split(rec.get(RETIRE, ""), schema.test_ref_sep))
     out = {f: (rec[f] if f in rec else row.get(f)) or blank[f] for f in ed.statements}
@@ -188,7 +187,7 @@ def merged(row: dict, rec: dict, schema, ed: lineage.Edition | None = None) -> d
 
 
 def validate(records: list[tuple[pathlib.Path, int, dict]], schema, catalog: dict[str, str],
-             by_id: dict[str, dict], ed: "lineage.Edition | None" = None,
+             by_id: dict[str, dict], ed: Edition = NEWEST,
              targets: dict[str, dict] | None = None) -> list[str]:
     """Every shape violation across the whole set — reported together, never one at a time.
 
@@ -203,7 +202,6 @@ def validate(records: list[tuple[pathlib.Path, int, dict]], schema, catalog: dic
     """
     bad: list[str] = []
     seen: dict[str, str] = {}
-    ed = ed or lineage.edition(2023)
     fields = ed.adjudicated
 
     for path, i, rec in records:
@@ -356,17 +354,17 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("batches", nargs="+", type=pathlib.Path, help="one or more verdict batch files")
     ap.add_argument("--dry-run", action="store_true", help="validate and report; write nothing")
-    ap.add_argument("--edition", type=int, default=2023,
-                    help="the edition whose store the batch records into (default 2023; kb/Work PB4993)")
+    ap.add_argument("--edition", type=int,
+                    help="the held edition whose store the batch records into (default: the newest; kb/Work PB4993)")
     args = ap.parse_args()
 
     schema = load_schema()
-    ed = lineage.edition(args.edition)
+    ed = NEWEST if args.edition is None else edition(args.edition)
     view = inventory_view.view(ed.year, schema)
     rows = view.rows
     by_id = {r["rule-id"]: r for r in rows}
     catalog = {r["rule-id"]: r["kind"] for r in rows}
-    targets = {} if ed.newest else {r["rule-id"]: r for r in inventory_view.inventory(ed.next_held(), schema)}
+    targets = {} if ed.newest else {r["rule-id"]: r for r in inventory_view.inventory(ed.next_held, schema)}
 
     records: list[tuple[pathlib.Path, int, dict]] = []
     for path in args.batches:
@@ -472,7 +470,7 @@ def main() -> int:
         print("\n--dry-run: nothing written.")
         return 0
 
-    store = inventory_dir(ed.year)
+    store = inventory_dir(ed)
     changed = write_store([rec for r in rows if (rec := record_of(r, ed.adjudicated)) is not None], store)
     print(f"\nwrote {changed} store file(s) under {store.relative_to(REPO).as_posix()}/")
     print(f"⛔ NOW RUN THE GATE — it is what checks that these references actually resolve:\n    {GATE}")

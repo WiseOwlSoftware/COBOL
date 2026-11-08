@@ -156,8 +156,10 @@ different rows touch different files and merge with git's plain merge; a conflic
 row. A file is named by its rule id, nothing else lives in the directory, and two names differing only in case are
 refused (`merge_drivers.py --self-test`, its real-tree arm).
 
-**The view, ONE PER LANGUAGE.** `scripts/spec/inventory_view.py` (`inventory(edition)`, and `inventory_at(rev,
-edition)` for a commit: that commit's store joined with that commit's catalog under that commit's schema) and
+**The view, ONE PER LANGUAGE.** `scripts/spec/inventory_view.py` (`inventory(edition)` over a working tree, its root
+the repository's or another worktree's, and `inventory_at(rev, edition)` for a commit: every file the state rule reads,
+the store, the catalog, the schema, `docs/CONFORMANCE.md`'s registers and the Annex A.2 list, read as that one tree has
+it, `inventory_schema.Tree`) and
 `tests/_shared/TraceabilityInventory.cs` join the catalog and the store; the state is computed by the one state rule
 (`inventory_schema.Schema.state_for`, and for an older edition the chain, §10.2) and, on the C# side, by its twin
 (`SpecTraceabilityInventoryDriftTests.DerivedState`), which `EveryRuleState_AgreesWithThePythonView` holds to the Python
@@ -167,9 +169,12 @@ is a second job. The view refuses: a store file of a rule the catalog no longer 
 store file holds (a catalog field or a state copied in), and a store file whose `rule-digest` is not the catalog's text
 (an adjudication decided against other text, kb/Work PB698; `record_verdicts.py` accepts that one only for a rule its
 batch re-adjudicates). The store refuses a stray or misnamed file and two names that differ only in case. The refusals
-are said once, in Python: `inventory_view.py --check` is the gate's INVENTORY VIEW audit, in every lane. The view's order
-is the spec's (section or locator, ordinal, id). The fields a store file holds are DATA, `inventory-schema.json`'s
-`store` (its `keys` and each edition's `adjudicated`), read by both languages.
+are said once, in Python: `inventory_view.py --check` is the gate's INVENTORY VIEW audit, in every lane, and no C# test
+re-checks them; the C# tests hold the C# view to the Python one. The view's order is the spec's (section or locator,
+ordinal, id). The editions are DATA, `inventory-schema.json`'s `editions.of`, read by both languages: each edition's
+year, its band spelling and, for a held edition, its catalog, locator, store directory, legacy single file and the
+`adjudicated` fields its store holds (beside `store.keys`). No code names an edition's year: adding an edition is an
+entry there (`lineage.py --self-test` adds a 2027 and watches the order, the bridges and the store follow).
 
 | store field | meaning |
 |---|---|
@@ -629,7 +634,7 @@ row, cross-checked against a register PARSED by one reader per language.
   `specs/ISO_COBOL_2023.md` and resolves each item's citation against `spec-rule-catalog.json` — and both engines then
   read the resolved `rule-ids` as data. Parsing the spec markdown in C# as well would be the second parser this
   design spends its whole length avoiding, and re-parsing 66 items per row would put a 1.3 MB read on the path
-  `EveryRowState_IsDerived_NotAsserted` walks 4,311 times. `extract_annex_a2.py --check` regenerates and diffs, so
+  `EveryRuleState_AgreesWithThePythonView` walks 4,311 times. `extract_annex_a2.py --check` regenerates and diffs, so
   the artifact cannot go stale silently; `AnnexA2UndefinedListDriftTests` runs it every build, the
   gate-audit precedent of `audit_annex_a1.py` (kb/Work PB4453).
 - **Adding an A.2-arm row costs one register row.** The item→rule-id resolution is mechanical, so the next rule
@@ -818,8 +823,9 @@ verdict by reference into the one 2023 store.
 **One rule list per edition, from that edition's own text.** Each edition has its catalog (§10.1 for 1985, §3 for 2023;
 2002 and 2014 when transcribed, kb/Work PB4813), and its inventory is the view of §4 over a store of its own,
 `tests/version-matrix/inventory/` for 2023 and `tests/version-matrix/inventory-<edition>/` for each earlier one
-(`inventory_store.py` and the view `inventory_view.py`, each of which takes the edition; `lineage.Edition` carries what
-differs: the catalog, the key that locates a rule, the store's fields). A reader names the edition it reads.
+(`inventory_store.py` and the view `inventory_view.py`, each of which takes the edition; `inventory_schema.Edition`,
+read from the schema's `editions.of`, carries what differs: the catalog, the key that locates a rule, the store's
+directory and fields). A reader names the edition it reads, or reads the newest held one.
 
 **Change is recorded once, between ADJACENT editions only** (85 to 2002, 2002 to 2014, 2014 to 2023, and 2023 to 2027),
 never between every pair. Each rule of the older edition carries one classification against the next held edition, in a

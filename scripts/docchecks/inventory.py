@@ -58,8 +58,9 @@ def anchor_findings(rows: list[dict], texts: dict[str, str], code_location_sep: 
 
 
 def _inventory(root: Path) -> list[str]:
-    rows = inventory_view.inventory()
-    sch = schema.load_schema()
+    tree = schema.Tree(root)   # the tree this check is given: its inventory, its schema, its documents (review R1-4)
+    sch = schema.load_schema(tree)
+    rows = inventory_view.inventory(schema=sch, tree=tree)
     resolved = tuple(json.loads(common.text(root, KINDS_PATH))["documentKinds"])
     paths = {p for r in rows for p in _paths(r, sch.code_location_sep, resolved)}
     texts = {p: common.text(root, p) for p in paths if (root / p).is_file()}
@@ -90,4 +91,26 @@ def self_test() -> list[str]:
         ("a source file's anchor is the compiler test's, not judged here", anchor_findings(rows + [{"rule-id": "Y", "code-location": "src/q.cs#Nope"}],
                                                                                            texts, "; ", ident), []),
         ("too few anchors measure nothing", len(anchor_findings(rows[:3], texts, "; ", ident)), 1),
+        ("the check reads the tree it is given, its inventory included (review R1-4)", _planted_root_findings(), ["GR-1.1-7"]),
     ])
+
+
+def _planted_root_findings() -> list[str]:
+    """The rule ids `_inventory` finds in a planted tree whose inventory anchors 120 rules into its own CONFORMANCE.md,
+    one of them at an anchor the document lacks: the planted tree's rows, never the repository's."""
+    import inventory_store  # noqa: PLC0415
+    from scratch_repo import scratch_dir  # noqa: PLC0415  (scripts/: the one scratch fixture)
+    root = scratch_dir("docchecks-inventory-")
+    newest = schema.NEWEST
+    rules = [{"id": f"GR-1.1-{n}", "section": "1.1", "kind": "GR", "ordinal": n, "subject": "s", "text": f"Rule {n}."}
+             for n in range(120)]
+    files = {schema.SCHEMA_REL: schema.WORKING_TREE.text(schema.SCHEMA_REL), KINDS_PATH: schema.WORKING_TREE.text(KINDS_PATH),
+             newest.catalog: json.dumps({"rules": rules}),
+             common.CONFORMANCE: " ".join(f"Anchor{n}" for n in range(120) if n != 7)}
+    for rel, text in files.items():
+        (root / rel).parent.mkdir(parents=True, exist_ok=True)
+        (root / rel).write_text(text, encoding="utf-8", newline="\n")
+    inventory_store.write_store([{"rule-id": r["id"], "rule-digest": inventory_view.rule_digest(r["text"]),
+                                  "verdict": "CONFORMS", "code-location": f"{common.CONFORMANCE}#Anchor{r['ordinal']}"}
+                                 for r in rules], inventory_store.inventory_dir(newest, root))
+    return [f.partition(":")[0] for f in _inventory(root)]

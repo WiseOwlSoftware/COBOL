@@ -42,7 +42,7 @@ $refusals = @(Get-ChildItem 'conformance-suite/wiseowl/diagnostics' -File -Filte
 Write-Host "suite  : $tests tests · $refusals WiseOwl refusals (conformance-suite/)"
 
 # 5. Traceability inventory (exists after P14 Step 0)
-if (Test-Path 'tests/version-matrix/inventory') {
+if (Test-Path 'tests/version-matrix/inventory-schema.json') {
     # Each edition's inventory is a VIEW, its catalog joined with its store and each rule's state computed (kb/Work
     # PB4992, scripts/spec/inventory_view.py): the probe prints the view's own summary, each edition's rules and GAP
     # count side by side, then each edition's verdicts and its CONFORMS rows still a spec-derived test from closing.

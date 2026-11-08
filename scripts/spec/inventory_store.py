@@ -21,6 +21,8 @@ refusal registry (PB4147). The adjudications now live where two different rules 
     tests/version-matrix/inventory/<rule-id>.json            2023
     tests/version-matrix/inventory-<edition>/<rule-id>.json  an older edition (kb/Work PB4991)
 
+(each edition's directory is its `store` in the schema's `editions.of`, `inventory_schema.Edition.store`)
+
 each an object, `json.dumps(indent=1)` plus a newline. Git's plain merge keeps both branches' files; a conflict means two
 branches changed the SAME rule's adjudication, which is a real one. No merge driver governs a store (`scripts/merge_drivers.py
 --self-test` holds that), and `.gitattributes` does not name it. An edition's store starts with no directory at all (git
@@ -30,48 +32,38 @@ THE FILE'S NAME IS ITS RULE ID, so a reader finds a record without a scan and a 
 `row_name` is the one place that turns an id into a file name and refuses an id that would not be a safe, case-
 insensitively unique one.
 
-HISTORY. Every commit before PB4148 stored the 2023 inventory as the single file `LEGACY_FILE_REL`, and every commit before
-PB4992 stored each rule's catalog fields and state in its file. `store_at(rev)` reads either layout as committed; the view
-(`inventory_view.inventory_at`) decides what a commit's rows were.
+HISTORY. Every commit before PB4148 stored the 2023 inventory as a single file (the edition's `legacy_file`), and every
+commit before PB4992 stored each rule's catalog fields and state in its file. `store_at(tree, edition)` reads either layout
+as committed; the view (`inventory_view.inventory_at`) decides what a commit's rows were.
 """
 from __future__ import annotations
 
 import json
 import pathlib
 import re
-import subprocess
 import sys
 from collections.abc import Iterable, Sequence
 from typing import Any
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-from inventory_schema import STORE_KEYS  # noqa: E402  (the keys a store file carries: the schema's `store.keys`)
+from inventory_schema import REPO, STORE_KEYS, Edition, Tree  # noqa: E402  (the keys a store file carries; each edition)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
-
-REPO = pathlib.Path(__file__).resolve().parents[2]
-#: ONE STORE PER EDITION (kb/Work PB4991, PB4992; DESIGN-spec-conformance-review.md §10.2).
-INVENTORY_DIRS_REL: dict[int, str] = {2023: "tests/version-matrix/inventory", 1985: "tests/version-matrix/inventory-1985"}
-#: The single file every commit before PB4148 stored the 2023 inventory in. History only: `store_at` reads it.
-LEGACY_FILE_REL = "tests/version-matrix/traceability-inventory.json"
 
 #: A rule id is a file name: letters, digits, `.` and `-`, no `..` and no leading separator, so no id is a path. A 1985
 #: id begins with its year (`1985-SR-VI.5.7.3-1`, `1989-AR-A.2.5.3-1`).
 _SAFE_ID = re.compile(r"[A-Za-z0-9]+(?:[.-][A-Za-z0-9]+)*")
 
 
-def inventory_dir(edition: int, repo: pathlib.Path = REPO) -> pathlib.Path:
-    """The store of `edition`. An edition with no store is a SystemExit naming the table."""
-    if edition not in INVENTORY_DIRS_REL:
-        raise SystemExit(f"inventory: edition {edition} has no store (inventory_store.INVENTORY_DIRS_REL)")
-    return repo / INVENTORY_DIRS_REL[edition]
+def inventory_dir(edition: Edition, root: pathlib.Path = REPO) -> pathlib.Path:
+    """The store of the held `edition` in the working tree at `root`."""
+    return root / edition.store
 
 
-def history_pathspecs(edition: int) -> tuple[str, ...]:
-    """The pathspecs under which a commit "touched `edition`'s store", for `git log`: its directory and, for 2023 before
-    PB4148, the single legacy file."""
-    inventory_dir(edition)
-    return (INVENTORY_DIRS_REL[edition], LEGACY_FILE_REL) if edition == 2023 else (INVENTORY_DIRS_REL[edition],)
+def history_pathspecs(edition: Edition) -> tuple[str, ...]:
+    """The pathspecs under which a commit "touched `edition`'s store", for `git log`: its directory and the single file
+    that held it before PB4148, if it had one."""
+    return (edition.store, *((edition.legacy_file,) if edition.legacy_file else ()))
 
 
 def row_name(rule_id: str) -> str:
@@ -169,21 +161,14 @@ def write_store(records: Iterable[dict[str, Any]], directory: pathlib.Path) -> i
     return changed
 
 
-def git_bytes(repo: pathlib.Path, *args: str, stdin: bytes | None = None) -> bytes | None:
-    """`git <args>`'s stdout in `repo`, or None when it fails (a revision or a path the commit lacks)."""
-    r = subprocess.run(["git", *args], cwd=repo, input=stdin, capture_output=True)
-    return r.stdout if r.returncode == 0 else None
-
-
-def store_at(rev: str, edition: int = 2023, repo: pathlib.Path = REPO) -> list[dict[str, Any]] | None:
-    """`edition`'s store as committed at `rev` of `repo`, in file order, or None when `rev` has none. Reads the per-rule
-    directory and, for a 2023 commit before PB4148, the single legacy file. The records are as committed: a commit before
-    PB4992 stored each rule's catalog fields and state beside its adjudication."""
-    inventory_dir(edition)
-    listing = git_bytes(repo, "ls-tree", "-r", rev, "--", INVENTORY_DIRS_REL[edition])
+def store_at(tree: Tree, edition: Edition) -> list[dict[str, Any]] | None:
+    """`edition`'s store as committed at `tree.rev`, in file order, or None when the commit has none. Reads the per-rule
+    directory and, for a commit before PB4148, the edition's single legacy file. The records are as committed: a commit
+    before PB4992 stored each rule's catalog fields and state beside its adjudication."""
+    listing = tree.git("ls-tree", "-r", tree.rev, "--", edition.store)
     if listing:
         entries = [ln.split(b"\t", 1) for ln in listing.splitlines()]
-        blobs = git_bytes(repo, "cat-file", "--batch", stdin=b"".join(meta.split()[2] + b"\n" for meta, _ in entries))
+        blobs = tree.git("cat-file", "--batch", stdin=b"".join(meta.split()[2] + b"\n" for meta, _ in entries))
         records: list[dict[str, Any]] = []
         pos = 0
         for _ in entries:
@@ -192,14 +177,13 @@ def store_at(rev: str, edition: int = 2023, repo: pathlib.Path = REPO) -> list[d
             records.append(json.loads(blobs[end + 1:end + 1 + size].decode("utf-8")))
             pos = end + 1 + size + 1
         return records
-    if edition != 2023:
-        return None
-    legacy = git_bytes(repo, "show", f"{rev}:{LEGACY_FILE_REL}")
-    return json.loads(legacy.decode("utf-8")) if legacy else None
+    return tree.json(edition.legacy_file) if edition.legacy_file else None
 
 
 def self_test() -> int:
     from scratch_repo import ScratchRepo, scratch_dir  # noqa: PLC0415  (scripts/: the one scratch fixture)
+    from inventory_schema import edition  # noqa: PLC0415
+    new, old_ed = edition(2023), edition(1985)
     failures: list[str] = []
 
     def check(ok: bool, what: str) -> None:
@@ -223,11 +207,11 @@ def self_test() -> int:
     check(row_name("1985-SR-VI.5.7.3-1") == "1985-SR-VI.5.7.3-1.json"
           and row_name("1989-AR-A.2.5.3-1") == "1989-AR-A.2.5.3-1.json",
           "a 1985 id, which begins with its year, is a file name (kb/Work PB4992)")
-    check(inventory_dir(1985).name == "inventory-1985" and inventory_dir(2023) == REPO / INVENTORY_DIRS_REL[2023]
-          and "no store" in refuses(lambda: inventory_dir(2002)),
+    check(inventory_dir(old_ed).name == "inventory-1985" and inventory_dir(new) == REPO / new.store
+          and "not held" in refuses(lambda: edition(2002)),
           "each edition names its own store, and an edition with none is refused")
-    check(history_pathspecs(2023) == (INVENTORY_DIRS_REL[2023], LEGACY_FILE_REL)
-          and history_pathspecs(1985) == (INVENTORY_DIRS_REL[1985],), "only 2023 had a single legacy file")
+    check(history_pathspecs(new) == (new.store, new.legacy_file) and new.legacy_file
+          and history_pathspecs(old_ed) == (old_ed.store,), "only the edition the schema says had one has a legacy file")
     for bad in ("", "../x", "a/b", "GR-4..2", "GR-4.2-", "-GR", "GR 4", "GR\\4"):
         check(bool(refuses(lambda b=bad: row_name(b))), f"{bad!r} is no file name")
 
@@ -268,7 +252,7 @@ def self_test() -> int:
     # The acceptance of kb/Work PB4148, against git itself: the merge queue runs no merge driver, so two branches that close
     # different rules must merge with git's plain merge, and only the SAME rule changed twice is a conflict.
     repo = ScratchRepo.init(t / "repo")
-    store = repo.path / INVENTORY_DIRS_REL[2023]
+    store = repo.path / new.store
     base = [rec(f"GR-4.4-{i}", notes="n") for i in (1, 2, 3)]
     write_store(base, store)
     repo.commit("base")
@@ -282,11 +266,11 @@ def self_test() -> int:
     repo.git("checkout", "-q", "main")
     close("GR-4.4-2", "CONFORMS")
     plain = repo.run("merge", "--no-edit", "side")
-    merged = sorted(store_at("HEAD", 2023, repo.path) or [], key=lambda r: r["rule-id"])
+    merged = sorted(store_at(Tree(repo.path, "HEAD"), new) or [], key=lambda r: r["rule-id"])
     check(plain.returncode == 0 and [r.get("verdict", "") for r in merged] == ["CONFORMS", "CONFORMS", ""],
           "two branches that closed different rules merge with git's plain merge, no driver" + f" ({plain.stdout.strip()[:60]})")
-    check(store_at("HEAD~1", 2023, repo.path) is not None and store_at("no-such-rev", 2023, repo.path) is None
-          and store_at("HEAD", 1985, repo.path) is None,
+    check(store_at(Tree(repo.path, "HEAD~1"), new) is not None and store_at(Tree(repo.path, "no-such-rev"), new) is None
+          and store_at(Tree(repo.path, "HEAD"), old_ed) is None,
           "store_at reads a revision's records, and none for a revision or an edition the commit lacks")
     repo.git("checkout", "-q", "-b", "other", "HEAD~1")
     close("GR-4.4-3", "DIVERGES")
@@ -298,8 +282,8 @@ def self_test() -> int:
 
     # A commit before PB4148 holds the one legacy file; store_at reads it.
     old = ScratchRepo.init(t / "old")
-    old.commit("legacy", {LEGACY_FILE_REL: json.dumps([rec("GR-4.4-2"), rec("GR-4.4-1")])})
-    check([r["rule-id"] for r in store_at("HEAD", 2023, old.path) or []] == ["GR-4.4-2", "GR-4.4-1"],
+    old.commit("legacy", {new.legacy_file: json.dumps([rec("GR-4.4-2"), rec("GR-4.4-1")])})
+    check([r["rule-id"] for r in store_at(Tree(old.path, "HEAD"), new) or []] == ["GR-4.4-2", "GR-4.4-1"],
           "store_at reads the single legacy file of a commit before PB4148, as committed")
     for f in failures:
         print(f"FAIL: {f}")

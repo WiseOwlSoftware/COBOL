@@ -32,9 +32,11 @@ DIVISION OF LABOUR between the two, deliberately with NO overlap:
 """
 from __future__ import annotations
 
+import dataclasses
 import json
 import pathlib
 import re
+import subprocess
 import sys
 from collections.abc import Iterable, Mapping
 from typing import Any, NamedTuple
@@ -42,28 +44,146 @@ sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, f
 from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
-SCHEMA_PATH = REPO / "tests" / "version-matrix" / "inventory-schema.json"
-CATALOG_PATH = REPO / "docs" / "rearchitecture" / "spec-rule-catalog.json"
+SCHEMA_REL = "tests/version-matrix/inventory-schema.json"
+SCHEMA_PATH = REPO / SCHEMA_REL
 #: The IMPLEMENTOR-DEFINED ELEMENT REGISTER — docs/CONFORMANCE.md §7, whose rows are keyed by the inventory
 #: rule-id `DOC-A.1-<n>` because `kinds.DOC.anchor-template` computes that key as the row's own anchor. An item's FURTHER
 #: determinations are keyed by that id plus a letter (`DOC-A.1-92b`, kb/Work PB3840); no inventory row anchors on those.
-REGISTER_PATH = REPO / "docs" / "CONFORMANCE.md"
+REGISTER_REL = "docs/CONFORMANCE.md"
+REGISTER_PATH = REPO / REGISTER_REL
 REGISTER_HEADING = "## 7. Annex A.1"
 #: The label in the §7 table's own header row, so the reader can tell a header from a determination.
 REGISTER_HEADER_CELL = "A.1 item"
 
+
+@dataclasses.dataclass(frozen=True)
+class Tree:
+    """The tree a view of the inventory reads every file from: the working tree at `root`, or, with `rev`, that commit of
+    the repository at `root`. The state rule reads more than the store: the schema, the catalog, docs/CONFORMANCE.md's
+    registers and the Annex A.2 list. A view of a commit reads each of them as that commit has it, and a view of another
+    worktree reads that worktree's (branch review R1-3, R1-4). `files`, when given, are the commit's files already read
+    (by path), as a reader that reads many commits' blobs in one batch has them (`gen_ledger.measure_commits`); a path it
+    does not hold is a file the commit lacks."""
+    root: pathlib.Path = REPO
+    rev: str | None = None
+    files: Mapping[str, str] | None = None
+
+    def git(self, *args: str, stdin: bytes | None = None) -> bytes | None:
+        """`git <args>`'s stdout in `root`, or None when it fails (a revision or a path the commit lacks)."""
+        r = subprocess.run(["git", *args], cwd=self.root, input=stdin, capture_output=True)
+        return r.stdout if r.returncode == 0 else None
+
+    def text(self, rel: str) -> str | None:
+        """The file `rel` (repository-relative, `/`-separated) in this tree, or None when the tree has none."""
+        if self.files is not None:
+            return self.files.get(rel)
+        if self.rev is None:
+            p = self.root / rel
+            return p.read_text(encoding="utf-8") if p.is_file() else None
+        data = self.git("show", f"{self.rev}:{rel}")
+        return None if data is None else data.decode("utf-8")
+
+    def json(self, rel: str) -> Any:
+        text = self.text(rel)
+        return None if text is None else json.loads(text)
+
+
+WORKING_TREE = Tree()
+
+
+@dataclasses.dataclass(frozen=True)
+class Edition:
+    """An edition of the standard as the schema's `editions.of` states it, the one home of the editions (kb/Work PB4991,
+    PB4992; branch review R1-1): its year, its spelling in an `editions` band, and for an edition the inventory HOLDS its
+    rule catalog, the catalog key that locates a rule in its text (the view's `section`), its store directory, the single
+    file that held its store before kb/Work PB4148 (if any) and the adjudicated fields its store holds. `next_held` and
+    `bridged` are computed from the order. What differs between editions is this data: no code names a year."""
+    year: int
+    spelling: str
+    catalog: str | None
+    locator: str | None
+    store: str | None
+    legacy_file: str | None
+    adjudicated: tuple[str, ...]
+    #: The next HELD edition after this one, which an older row's change record names; None for the newest.
+    next_held: int | None
+    #: Is an edition between this one and `next_held` not held, so that a change record over it is a bridge?
+    bridged: bool
+
+    @property
+    def held(self) -> bool:
+        return self.store is not None
+
+    @property
+    def newest(self) -> bool:
+        """Is no later edition held? Its rows are judged on their own fields; an older edition's KEPT rows on their chain."""
+        return self.held and self.next_held is None
+
+    @property
+    def statements(self) -> tuple[str, ...]:
+        return tuple(f for f in self.adjudicated if f not in WITNESS_FIELDS)
+
+    def blank(self) -> dict[str, Any]:
+        """The adjudicated fields of a rule nobody has adjudicated: each empty (the change record an empty object)."""
+        return {f: {} if f == "next" else "" for f in self.adjudicated}
+
+    def rules(self, tree: Tree = WORKING_TREE) -> list[dict[str, Any]]:
+        """This edition's catalog rules, as `tree` has them."""
+        doc = tree.json(self.catalog)
+        if doc is None:
+            raise SystemExit(f"catalog not found: {self.catalog} in {tree.rev or tree.root}\n"
+                             f"Run: python scripts/spec/extract_rule_catalog.py [--edition {self.year}]")
+        return doc["rules"]
+
+
+def editions_of(raw: dict[str, Any]) -> tuple[Edition, ...]:
+    """Every edition the schema `raw` names (`editions.of`), oldest first. A held edition (one with a `store`) names its
+    catalog, locator and adjudicated fields; an edition out of order, or held without them, is a SystemExit."""
+    entries = raw["editions"]["of"]
+    years = [e["year"] for e in entries]
+    if years != sorted(set(years)):
+        raise SystemExit(f"{SCHEMA_REL}: editions.of must name each edition once, oldest first (got {years})")
+    held = [e["year"] for e in entries if "store" in e]
+    out: list[Edition] = []
+    for e in entries:
+        if "store" in e and (missing := [k for k in ("catalog", "locator", "adjudicated") if not e.get(k)]):
+            raise SystemExit(f"{SCHEMA_REL}: the held edition {e['year']} names no {missing}")
+        nxt = next((y for y in held if y > e["year"]), None)
+        out.append(Edition(e["year"], e["spelling"], e.get("catalog"), e.get("locator"), e.get("store"),
+                           e.get("legacy-file"), tuple(e.get("adjudicated", ())), nxt,
+                           nxt is not None and any(e["year"] < y < nxt for y in years)))
+    return tuple(out)
+
+
+def held_edition(editions: Iterable[Edition], year: int) -> Edition:
+    """The held edition `year` of `editions`; an edition the inventory does not hold is a SystemExit."""
+    held = {e.year: e for e in editions if e.held}
+    if year not in held:
+        raise SystemExit(f"inventory: edition {year} is not held ({SCHEMA_REL} editions.of holds {sorted(held)})")
+    return held[year]
+
+
 _RAW_SCHEMA: dict[str, Any] = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
-#: Each edition's adjudicated fields, by year: the ones its store file holds and a verdict record may set — DATA, the
-#: schema's `store.adjudicated`, because the C# view reads the same list. Everything else on a view's row is the
-#: catalog's or computed, and is not the reviewer's to write (DESIGN-spec-conformance-review.md section 4, kb/Work PB4992).
-STORE_ADJUDICATED: dict[int, tuple[str, ...]] = {
-    int(year): tuple(fields) for year, fields in _RAW_SCHEMA["store"]["adjudicated"].items()}
+#: Every edition, oldest first (the schema's `editions.of`); `HELD` are the years of those with a catalog and a store, and
+#: `NEWEST` is the newest of them, whose rows carry the `editions` band.
+EDITIONS: tuple[Edition, ...] = editions_of(_RAW_SCHEMA)
+HELD: tuple[int, ...] = tuple(e.year for e in EDITIONS if e.held)
+NEWEST: Edition = held_edition(EDITIONS, HELD[-1])
+
+
+def edition(year: int) -> Edition:
+    """The held edition `year` of the working tree's schema."""
+    return held_edition(EDITIONS, year)
+
+
 #: The keys every store file carries besides its adjudicated fields: its rule, and the text it was decided against.
 STORE_KEYS: tuple[str, ...] = tuple(_RAW_SCHEMA["store"]["keys"])
-#: The 2023 rule's adjudicated fields (`lineage.Edition.adjudicated` names each edition's).
+#: The newest held edition's adjudicated fields: the ones its store file holds and a verdict record may set (each
+#: edition's are `Edition.adjudicated`). Everything else on a view's row is the catalog's or computed, and is not the
+#: reviewer's to write (DESIGN-spec-conformance-review.md section 4, kb/Work PB4992).
 #: ⚙ `derivation` is the §1.1 alternative to `test-ref` (owner decision kb/Work PB386, 2026-09-03) — see
 #: `Derivation` below.
-ADJUDICATED = STORE_ADJUDICATED[2023]
+ADJUDICATED = NEWEST.adjudicated
 
 #: The adjudicated fields that are SETS OF WITNESSES rather than one statement (kb/Work PB959). A verdict record
 #: MERGES into these — the union of what the row carried and what the record names — because a witness is
@@ -675,8 +795,10 @@ class Derivation:
     """
 
     def __init__(self, raw: dict[str, Any], register: dict[str, DerivationRow] | None = None,
-                 undefined: dict[int, set[str]] | None = None) -> None:
+                 undefined: dict[int, set[str]] | None = None, tree: Tree = WORKING_TREE) -> None:
         self._raw = raw
+        #: The tree the register and the A.2 list are read from (a commit's view reads the commit's, branch review R1-3).
+        self.tree = tree
         self.field: str = raw["field"]
         self.anchor_template: str = raw["anchor-template"]
         self.heading: str = raw["register-heading"]
@@ -704,7 +826,8 @@ class Derivation:
     @property
     def register(self) -> dict[str, DerivationRow]:
         if self._register is None:
-            self._register = register_derivations(self.heading, header_cell=self.header_cell)
+            self._register = (register_derivations(self.heading, header_cell=self.header_cell) if self.tree == WORKING_TREE
+                              else register_derivations(self.heading, self.tree.text(REGISTER_REL) or "", self.header_cell))
         return self._register
 
     @property
@@ -717,11 +840,10 @@ class Derivation:
         `extract_annex_a2.py --check` is what keeps the artifact equal to the standard.
         """
         if self._undefined is None:
-            path = REPO / self.undefined_list
-            if not path.exists():
-                raise SystemExit(f"{self.undefined_list} not found — "
+            doc = self.tree.json(self.undefined_list)
+            if doc is None:
+                raise SystemExit(f"{self.undefined_list} not found in {self.tree.rev or self.tree.root} — "
                                  "run: python scripts/spec/extract_annex_a2.py")
-            doc = json.loads(path.read_text(encoding="utf-8"))
             self._undefined = {it["item"]: set(it["rule-ids"]) for it in doc["items"]}
         return self._undefined
 
@@ -842,16 +964,20 @@ def register_derivations(heading: str, text: str | None = None,
 
 
 class Schema:
-    """`tests/version-matrix/inventory-schema.json`, parsed."""
+    """`tests/version-matrix/inventory-schema.json` as `tree` has it, parsed. Everything the state rule reads besides the
+    row (the catalog's rule ids, docs/CONFORMANCE.md's registers, the Annex A.2 list) is read from that same tree."""
 
-    def __init__(self, raw: dict[str, Any]) -> None:
+    def __init__(self, raw: dict[str, Any], tree: Tree = WORKING_TREE) -> None:
         self._raw = raw
+        self.tree = tree
         self.verdicts: dict[str, dict[str, Any]] = raw["verdicts"]
-        #: The editions, ascending — the order IS the spelling's order (`spell_editions`).
-        self.editions: list[str] = raw["editions"]["values"]
+        #: Every edition this schema names, oldest first (`editions.of`, the one home of the editions).
+        self.all_editions: tuple[Edition, ...] = editions_of(raw)
+        #: The editions' band spellings, ascending — the order IS the spelling's order (`spell_editions`).
+        self.editions: list[str] = [e.spelling for e in self.all_editions]
         self.editions_sep: str = raw["editions"]["separator"]
         #: A row must name its band (kb/Work PB3173, S0b), and the band runs from the rule's introducing edition
-        #: THROUGH the last of `values`: every catalog rule is a rule of the newest text, so it exists there.
+        #: THROUGH the last edition: every catalog rule is a rule of the newest text, so it exists there.
         self.editions_required: bool = raw["editions"]["required"]
         self.editions_run_through_last: bool = raw["editions"]["run-through-last"]
         self.code_location_re = re.compile(raw["code-location"]["pattern"])
@@ -877,17 +1003,27 @@ class Schema:
         }
         #: §1.1's owner-signed alternative to a spec-derived test (kb/Work PB386). `None` when the schema
         #: declares none — the door is DATA, so removing the object closes it everywhere at once.
-        self.derivation: Derivation | None = Derivation(raw["derivation"]) if "derivation" in raw else None
+        self.derivation: Derivation | None = (Derivation(raw["derivation"], tree=tree) if "derivation" in raw
+                                              else None)
         #: The catalog rule-ids, for the `indistinguishable-consequent` arm. Lazy, because only that arm needs
         #: them and every other consumer of this class would otherwise pay a 4,311-rule parse it never reads.
         self._rule_ids: set[str] | None = None
         #: The §7 register, injectable — see `register_items`.
         self._register_items: set[str] | None = None
 
+    def edition(self, year: int) -> Edition:
+        """The held edition `year` of this schema."""
+        return held_edition(self.all_editions, year)
+
+    @property
+    def newest(self) -> Edition:
+        """The newest held edition of this schema: the one whose rows carry the `editions` band."""
+        return [e for e in self.all_editions if e.held][-1]
+
     @property
     def rule_ids(self) -> set[str]:
         if self._rule_ids is None:
-            self._rule_ids = {r["id"] for r in load_catalog()}
+            self._rule_ids = {r["id"] for r in self.newest.rules(self.tree)}
         return self._rule_ids
 
     def locations(self, row: dict[str, Any]) -> list[str]:
@@ -942,9 +1078,13 @@ class Schema:
         """The rule-ids docs/CONFORMANCE.md §7 carries a determination for.
 
         Injectable through `_register_items` for the same reason the C# side makes it a Schema FIELD: a
-        hermetic case has to be able to drive both arms of `anchor_obliged` against a fabricated register.
+        hermetic case has to be able to drive both arms of `anchor_obliged` against a fabricated register. Read
+        once, from this schema's tree.
         """
-        return set(register_determinations()) if self._register_items is None else self._register_items
+        if self._register_items is None:
+            self._register_items = set(register_determinations() if self.tree == WORKING_TREE
+                                       else register_determinations(self.tree.text(REGISTER_REL) or ""))
+        return self._register_items
 
     def is_observable(self, row: dict[str, Any]) -> bool:
         """Does this row name a site in the compiler a program could observe the determination through?
@@ -1147,19 +1287,12 @@ class Schema:
         return None
 
 
-def load_schema() -> Schema:
-    if not SCHEMA_PATH.exists():
-        raise SystemExit(f"inventory schema not found: {SCHEMA_PATH}")
-    return Schema(json.loads(SCHEMA_PATH.read_text(encoding="utf-8")))
-
-
-def load_catalog(path: pathlib.Path = CATALOG_PATH) -> list[dict[str, Any]]:
-    """The rules of the catalog at `path` (the 2023 one by default; an edition's is `lineage.Edition.catalog`): the one
-    reader of a rule catalog."""
-    if not path.exists():
-        raise SystemExit(
-            f"catalog not found: {path}\nRun: python scripts/spec/extract_rule_catalog.py [--edition <year>]")
-    return json.loads(path.read_text(encoding="utf-8"))["rules"]
+def load_schema(tree: Tree = WORKING_TREE) -> Schema:
+    """The schema as `tree` has it (the working tree by default)."""
+    raw = tree.json(SCHEMA_REL)
+    if raw is None:
+        raise SystemExit(f"inventory schema not found: {SCHEMA_REL} in {tree.rev or tree.root}")
+    return Schema(raw, tree)
 
 
 def self_test() -> int:

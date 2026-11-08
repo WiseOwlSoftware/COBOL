@@ -113,7 +113,6 @@ import git_batch  # noqa: E402  (scripts/: one git process for many objects)
 import inventory_schema  # noqa: E402  (a commit's schema, for its view)
 import inventory_store  # noqa: E402  (the store's paths, for reading a commit's trees)
 import inventory_view  # noqa: E402  (the one view of the inventory: the tree and a commit's own)
-import lineage  # noqa: E402  (the 2023 edition: its catalog and store fields)
 import ledger_plan  # noqa: E402  (the plan's lanes: measured there, rendered here)
 from standard_streams import ensure_utf8  # noqa: E402
 
@@ -187,8 +186,8 @@ def git(*args: str, stdin: str | None = None) -> str:
 #: from. Deliberately absent from this set: the rendered page and the trend series — including either would make
 #: regenerating move the stamp, so `--check` would never converge.
 STAMP_PATHS = (
-    *inventory_store.INVENTORY_DIRS_REL.values(),
-    *(lineage.edition(y).catalog.relative_to(inventory_store.REPO).as_posix() for y in lineage.HELD),
+    *(ed.store for ed in inventory_schema.EDITIONS if ed.held),
+    *(ed.catalog for ed in inventory_schema.EDITIONS if ed.held),
     "tests/version-matrix/inventory-schema.json",
     "tests/version-matrix/constructs.json",
     "conformance-suite",
@@ -436,40 +435,48 @@ def measure_commits(shas: typing.Sequence[str], register: bool = True) -> dict[s
     (`git_batch.blobs`): a note or an inventory row that two commits share is read and parsed ONCE, so a commit that moved
     one note, or closed one row, costs one blob. Each blob is reduced to its summary (a row's id, state and verdict, a
     note's frontmatter) as it arrives and then dropped. A commit's inventory is its `tests/version-matrix/inventory/`
-    directory, or for a commit before kb/Work PB4148 the one legacy file. `--self-test` holds the process count constant in the number of commits (a structural bound, never a
+    directory, or for a commit before kb/Work PB4148 the one legacy file; from kb/Work PB4992 on it is the commit's view,
+    and every file that view reads (the schema, the catalog, docs/CONFORMANCE.md's registers, the Annex A.2 list) is read
+    as that commit has it, in the same two processes (branch review R1-3). `--self-test` holds the process count constant in the number of commits (a structural bound, never a
     wall-clock one)."""
     uniq = list(dict.fromkeys(shas))
     if not uniq:
         return {}
-    # A commit's inventory is its per-rule store or, before kb/Work PB4148, the one legacy file (which lives beside the
-    # schema); from kb/Work PB4992 on, the store holds adjudications only and the commit's rows are its VIEW: the store
-    # joined with that commit's catalog under that commit's schema, read in the same two processes.
-    ed = lineage.edition(2023)
-    legacy_dir, legacy_name = inventory_store.LEGACY_FILE_REL.rsplit("/", 1)
-    schema_dir, schema_name = inventory_view.SCHEMA_PATH.relative_to(inventory_store.REPO).as_posix().rsplit("/", 1)
-    catalog_dir, catalog_name = ed.catalog.relative_to(inventory_store.REPO).as_posix().rsplit("/", 1)
-    assert schema_dir == legacy_dir, "the legacy file and the schema share a directory, read as one tree"
-    asked = (*(("kb/Work",) if register else ()), inventory_store.INVENTORY_DIRS_REL[2023], legacy_dir, catalog_dir)
+    # A commit's inventory is its per-rule store or, before kb/Work PB4148, the one legacy file; from kb/Work PB4992 on, the
+    # store holds adjudications only and the commit's rows are its VIEW, read under the files that commit holds. Each is
+    # located by the working tree's newest edition (a commit before the editions were the schema's names none).
+    ed = inventory_schema.NEWEST
+    viewed = sorted({inventory_schema.SCHEMA_REL, ed.catalog, inventory_schema.REGISTER_REL,
+                     inventory_schema.load_schema().derivation.undefined_list})
+    dirs = sorted({f.rpartition("/")[0] for f in (*viewed, *((ed.legacy_file,) if ed.legacy_file else ()))})
+    asked = (*(("kb/Work",) if register else ()), ed.store, *dirs)
     trees = git_batch.tree_entries(REPO, [f"{sha}:{directory}" for sha in uniq for directory in asked])
     width = len(asked)
     work_trees = trees[0::width] if register else [None] * len(uniq)
-    row_trees, matrix_trees, catalog_trees = trees[width - 3::width], trees[width - 2::width], trees[width - 1::width]
+    first_dir = width - len(dirs)
+    row_trees = trees[first_dir - 1::width]
+    dir_trees = [{d: trees[i + first_dir + k] for k, d in enumerate(dirs)} for i in range(0, len(trees), width)]
+
+    def oid_at(entries: dict[str, typing.Any], rel: str) -> str | None:
+        directory, _, name = rel.rpartition("/")
+        return (entries[directory] or {}).get(name)
+
     row_ids = [[oid for name, oid in (t or {}).items() if name.endswith(".json")] for t in row_trees]
-    legacy_ids = [None if rows else (t or {}).get(legacy_name) for t, rows in zip(matrix_trees, row_ids)]
-    schema_ids = [(t or {}).get(schema_name) for t in matrix_trees]
-    catalog_ids = [(t or {}).get(catalog_name) for t in catalog_trees]
+    legacy_ids = [None if rows or not ed.legacy_file else oid_at(entries, ed.legacy_file)
+                  for entries, rows in zip(dir_trees, row_ids)]
+    viewed_ids = [{rel: oid for rel in viewed if (oid := oid_at(entries, rel))} for entries in dir_trees]
     note_ids = [[oid for name, oid in (t or {}).items() if name.endswith(".md")] for t in work_trees]
     import work  # noqa: PLC0415
 
     inventory_oids = {o for ids in row_ids for o in ids} | {o for o in legacy_ids if o}
-    joined_oids = {o for o in (*schema_ids, *catalog_ids) if o}
+    joined_oids = {o for ids in viewed_ids for o in ids.values()}
     records: dict[str, list[dict] | None] = {}   # blob -> its rows (whole, before PB4992) or its record; None: unreadable
-    joined: dict[str, typing.Any] = {}   # a schema or catalog blob -> its parsed JSON
+    joined: dict[str, str] = {}   # a blob the view reads (schema, catalog, register, A.2 list) -> its text
     notes: dict[str, dict | None] = {}   # a file without frontmatter counts as no note: these are HISTORICAL trees, which may hold one a later `work.py check` refuses (PB3654)
     for oid, data in git_batch.blobs(REPO, [*inventory_oids, *joined_oids, *(o for ids in note_ids for o in ids)]):
         text = data.decode("utf-8", errors="replace")
         if oid in joined_oids:
-            joined[oid] = json.loads(text)
+            joined[oid] = text
         elif oid not in inventory_oids:
             notes[oid] = work.parse_frontmatter(text)
         else:
@@ -479,23 +486,24 @@ def measure_commits(shas: typing.Sequence[str], register: bool = True) -> dict[s
             except ValueError:
                 records[oid] = None
 
-    def rows_of(blobs: list[str], schema_id: str | None, catalog_id: str | None) -> list[dict] | None:
+    def rows_of(sha: str, blobs: list[str], files: dict[str, str]) -> list[dict] | None:
         found = [records[o] for o in blobs]
         if not blobs or None in found:
             return None
         rows = [r for part in found for r in part]
         if all("state" in r for r in rows):          # a commit before PB4992: its rows as committed
             return rows
-        if schema_id is None or catalog_id is None:
+        if inventory_schema.SCHEMA_REL not in files or ed.catalog not in files:
             return None
-        return inventory_view.join(ed, joined[catalog_id]["rules"], {r["rule-id"]: r for r in rows},
-                                   inventory_schema.Schema(joined[schema_id]), {}).rows
+        tree = inventory_schema.Tree(REPO, sha, {rel: joined[oid] for rel, oid in files.items()})
+        schema = inventory_schema.load_schema(tree)
+        newest = schema.newest
+        return inventory_view.join(newest, newest.rules(tree), {r["rule-id"]: r for r in rows}, schema, {}).rows
 
     out: dict[str, Committed] = {}
-    for sha, ids, legacy_id, schema_id, catalog_id, note_oids in zip(uniq, row_ids, legacy_ids, schema_ids, catalog_ids,
-                                                                     note_ids):
+    for sha, ids, legacy_id, files, note_oids in zip(uniq, row_ids, legacy_ids, viewed_ids, note_ids):
         try:
-            rows = rows_of([*ids] if ids else [legacy_id] if legacy_id else [], schema_id, catalog_id)
+            rows = rows_of(sha, [*ids] if ids else [legacy_id] if legacy_id else [], files)
             rows = None if rows is None else [(r["rule-id"], r["state"], r["verdict"]) for r in rows]
         except KeyError:
             rows = None
@@ -532,9 +540,9 @@ def missed_points(pts: list[dict]) -> list[dict]:
     # shas appeared twice in the frozen series).
     revs = ["HEAD", *(f"^{sha}" for sha in recorded)]
     # A commit moves the view when it touches the store or the catalog it is joined with (kb/Work PB4992).
-    catalog = lineage.edition(2023).catalog.relative_to(inventory_store.REPO).as_posix()
+    newest = inventory_schema.NEWEST
     log = git("log", "--reverse", "--format=%h|%cI|%s", "--abbrev=8", "--stdin", "--",
-              *inventory_store.history_pathspecs(2023), catalog, "kb/Work", stdin="\n".join(revs) + "\n")
+              *inventory_store.history_pathspecs(newest), newest.catalog, "kb/Work", stdin="\n".join(revs) + "\n")
     walked = [line.split("|", 2) for line in log.splitlines() if line]
     measured = measure_commits([sha for sha, _, _ in walked])   # two processes however many commits (PB3315)
     out: list[dict] = []
@@ -1442,7 +1450,7 @@ def self_test() -> int:
 
         REPO = tmp / "repo"
         (REPO / "kb" / "Work").mkdir(parents=True)
-        legacy = REPO / inventory_store.LEGACY_FILE_REL   # a commit before kb/Work PB4148 holds the inventory as ONE file
+        legacy = REPO / inventory_schema.NEWEST.legacy_file   # a commit before kb/Work PB4148 holds the inventory as ONE file
         legacy.parent.mkdir(parents=True)
         legacy.write_text(json.dumps(rows), encoding="utf-8", newline="\n")
         fm = ("---\ntitle: \"{i} — x\"\nid: {i}\nkind: defect\nstatus: {s}\nwrong_answer: true\ncrashes: false\n"
@@ -1464,7 +1472,7 @@ def self_test() -> int:
 
         # kb/Work PB4148: the same rows as one file per row give the same counts, from the commit's own directory.
         legacy.unlink()
-        store = REPO / inventory_store.INVENTORY_DIRS_REL[2023]
+        store = REPO / inventory_schema.NEWEST.store
         inventory_store.write_store(rows, store)
         scratch.commit("per-row layout")
         after = measure_commits(["HEAD", "HEAD~1"], register=False)
@@ -1474,14 +1482,13 @@ def self_test() -> int:
 
         # kb/Work PB4992: a store of adjudications only is joined with the commit's own catalog under its own schema, in
         # the same two processes; a rule with no store file is a GAP of that commit's view.
-        catalog_rel = lineage.edition(2023).catalog.relative_to(inventory_store.REPO).as_posix()
-        schema_rel = inventory_view.SCHEMA_PATH.relative_to(inventory_store.REPO).as_posix()
+        catalog_rel, schema_rel = inventory_schema.NEWEST.catalog, inventory_schema.SCHEMA_REL
         rules = [{"id": f"GR-4.4-{i}", "section": "4.4", "kind": "GR", "ordinal": i, "subject": "s", "text": f"Rule {i}."}
                  for i in (1, 2, 3)]
         inventory_store.write_store([{"rule-id": "GR-4.4-1", "rule-digest": inventory_view.rule_digest("Rule 1."),
                                       "verdict": "DOCUMENTED-NON-SUPPORT", "notes": "n"}], store)
         scratch.commit("the view", {catalog_rel: json.dumps({"rules": rules}),
-                                    schema_rel: inventory_view.SCHEMA_PATH.read_text(encoding="utf-8")})
+                                    schema_rel: inventory_schema.WORKING_TREE.text(schema_rel)})
         viewed = measure_commits(["HEAD"], register=False)["HEAD"].inventory
         check("a commit after PB4992 is measured as its view: its catalog joined with its store under its schema",
               viewed == {"gap": 3, "closed": 0, "dns": 1} and gap_at("HEAD") == 3, f"{viewed}")

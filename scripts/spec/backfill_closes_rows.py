@@ -53,6 +53,7 @@ import subprocess
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+import inventory_schema  # noqa: E402  (the newest held edition: its store)
 import inventory_store  # noqa: E402  (the store's history pathspecs)
 import inventory_view  # noqa: E402  (the one view of the inventory, in the tree and at a commit)
 import work  # noqa: E402  (same directory; this is the register's ONE reader)
@@ -103,7 +104,7 @@ def verdicts_at(sha: str) -> dict[str, tuple[str, str]]:
 
 def closures_from_history(resolving: set[str], progress=None) -> tuple[dict[str, set[str]], dict]:
     """`note id -> rule-ids it closed`, walked over every commit that touched the inventory."""
-    log = git("log", "--reverse", "--format=%H%x1f%B%x1e", "--", *inventory_store.history_pathspecs(2023))
+    log = git("log", "--reverse", "--format=%H%x1f%B%x1e", "--", *inventory_store.history_pathspecs(inventory_schema.NEWEST))
     commits = [c.strip() for c in log.split("\x1e") if c.strip()]
     closed: dict[str, set[str]] = collections.defaultdict(set)
     stats = {"commits": len(commits), "transitions": 0, "unattributed": 0, "by-arm": collections.Counter()}
@@ -347,7 +348,7 @@ def main() -> int:
             print(f"   {f}")
         return 0
 
-    print(f"walking {inventory_store.INVENTORY_DIRS_REL[2023]} (and, before kb/Work PB4148, the one legacy file) through its history …")
+    print(f"walking {inventory_schema.NEWEST.store} (and, before kb/Work PB4148, the one legacy file) through its history …")
     closed, stats = closures_from_history(
         resolving, progress=lambda i, n: print(f"   {i}/{n} commits", flush=True))
     want = derive(items, state_now, closed)
