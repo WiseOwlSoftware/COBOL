@@ -137,11 +137,11 @@ def self_test() -> int:
         stub.write_text(harness._STUB, encoding="utf-8", newline="\n")
         (root / "adapters").mkdir()
         (root / "profiles").mkdir()
-        adapter = harness._stub_adapter("stub", stub)
-        adapter["profile"] = "wiseowl"
-        (root / "adapters" / "stub.json").write_text(json.dumps(adapter), encoding="utf-8", newline="\n")
-        (root / "profiles" / "wiseowl.json").write_text((REPO / "conformance-suite" / "profiles" / "wiseowl.json")
-                                                        .read_text(encoding="utf-8"), encoding="utf-8", newline="\n")
+        (root / "adapters" / "stub.json").write_text(json.dumps(harness._stub_adapter("stub", stub)), encoding="utf-8",
+                                                     newline="\n")
+        (root / "profiles" / "stub.json").write_text(json.dumps({"compiler": "stub", "editions": ["85"], "modules": {},
+                                                                 "elements": {}, "implementor-defined": {}}),
+                                                     encoding="utf-8", newline="\n")
         state = root / "run"
         drafts = {"1985-GR-A.1-1": ("*> STUB run out HELLO", "output", ["HELLO"]),
                   "1985-GR-A.1-2": ("*> STUB run out BYE", "output", ["HELLO"]),
