@@ -237,7 +237,7 @@ def check() -> int:
         line = f"inventory {year}: {len(v.rows)} rules, {_gaps(v.rows)} GAP"
         if not ed.newest:
             targets = {r["rule-id"]: r for r in inventory(ed.next_held, schema)}
-            findings += [f"{year}: {r['rule-id']}: {e}" for r in v.rows for e in lineage.next_errors(r, ed, targets)]
+            findings += [f"{year}: {r['rule-id']}: {e}" for r in v.rows for e in lineage.next_errors(r, ed, schema, targets)]
             kinds = Counter((r["next"] or {}).get("kind") or "unclassified" for r in v.rows)
             line += (f"; change records {dict(sorted(kinds.items()))}; "
                      f"{len(lineage.new_rules(ed, v.rows, targets))} rule(s) of {ed.next_held} NEW (derived)")
