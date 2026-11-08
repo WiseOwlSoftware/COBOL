@@ -22,7 +22,8 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, Arith
     /// FOLLOWED by the replacing pass over that same image (GR19 — two successive statements; tallying never
     /// writes identifier-1 UNLESS a counter shares its storage — GR13's undefined overlap, which docs/CONFORMANCE.md
     /// D-INS1/D-INS2 define as: each later tallying operand, and the replacing pass, read identifier-1 and the
-    /// operand values again after the counters stored so far — so the one snapshot is exact whenever no counter can
+    /// operand data items again after the counters stored so far; a function-identifier, a temporary item no counter
+    /// occupies, is evaluated once (kb/Work PB4115) — so the one snapshot is exact whenever no counter can
     /// overlap what the statement reads, and the statement is then the single shared cycle). Tally counts ADD into their counters (GR11); a
     /// REPLACING/CONVERTING result stores back through the target's <see cref="Place"/>, re-signing a signed
     /// numeric target with its retained original sign (GR4d).
@@ -112,24 +113,24 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, Arith
         {
             var t = ins.Tallying;
             string kinds = string.Join(", ", t.Select(x => RuntimeApi.InspectTallyKindText(x.Kind)));
-            string pats = string.Join(", ", t.Select(x => OperandTextOf(x.Pattern, cat)));
-            string befs = string.Join(", ", t.Select(x => OperandTextOf(x.Before, cat)));
-            string afts = string.Join(", ", t.Select(x => OperandTextOf(x.After, cat)));
+            // Each operand's text, in source order: a function-identifier's value is evaluated HERE, once (see TallyOperandTexts).
+            var (pats, befs, afts) = TallyOperandTexts(t, id, cat);
             string tally = RuntimeApi.InspectTally(img, kinds, pats, befs, afts, back);
             w.Line($"long[] __cnt{id} = {tally};");
             // One add per operand, in source order — the same counter may appear under several operands and
             // accumulates each count (GR11 — INSPECT adds, it never initializes).
             // ⛔ A COUNTER THAT SHARES STORAGE WITH WHAT THE NEXT OPERAND READS (docs/CONFORMANCE.md D-INS1; the
             // standard leaves it undefined, §2023:14.9.22.4 GR13 / Annex A.2 item 21 d)) CHANGES THAT READ: each operand's
-            // count is taken from the statement's state AFTER the preceding operands stored theirs, so the image
-            // and every operand value are read again and the cycle re-run. When no counter can overlap anything the
-            // statement reads (the proof is conservative, StorageOverlap) the state never changes, the re-run would
-            // return the same counts, and the ONE shared cycle above is the whole statement.
+            // count is taken from the statement's state AFTER the preceding operands stored theirs, so identifier-1's
+            // image (when that counter may overlap it) and every data-item operand are read again and the cycle re-run.
+            // When no counter can overlap anything the statement reads (the proof is conservative, StorageOverlap) the
+            // state never changes, the re-run would return the same counts, and the ONE shared cycle above is the
+            // whole statement. A function-identifier is never read again (MayReadStorageOf).
             for (int k = 0; k < t.Count; k++)
             {
                 if (k > 0 && CounterMayChangeInputs(ins, t[k - 1].Counter))
                 {
-                    w.Line($"{img} = {readImage};");
+                    if (CounterMayOverlapTarget(ins, t[k - 1].Counter)) w.Line($"{img} = {readImage};");
                     w.Line($"__cnt{id} = {tally};");
                 }
                 arith.StoreArith(t[k].Counter,
@@ -189,8 +190,8 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, Arith
     }
 
     /// <summary>Can storing <paramref name="counter"/> change what identifier-1 reads (§2023:14.9.22.4 GR13's identifier-1
-    /// overlap, GR19's format 3 hand-over)? A function-identifier identifier-1 is derived from its arguments at each
-    /// read, which this cannot see through, so it answers yes.</summary>
+    /// overlap, GR19's format 3 hand-over)? A function-identifier identifier-1 never: its image is read once, into the
+    /// statement's image local (see <see cref="MayReadStorageOf"/>).</summary>
     private static bool CounterMayOverlapTarget(BoundInspect ins, Place counter) => MayReadStorageOf(ins.Target, counter);
 
     /// <summary>Can storing <paramref name="counter"/> change anything the TALLYING cycle reads — identifier-1 or any
@@ -201,15 +202,46 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, Arith
         || ins.Tallying.Any(x => MayReadStorageOf(x.Pattern, counter) || MayReadStorageOf(x.Before, counter)
                                  || MayReadStorageOf(x.After, counter));
 
-    /// <summary>Does reading <paramref name="op"/> possibly read the storage <paramref name="counter"/> names? A
-    /// literal or a figurative never does; a field does when <see cref="StorageOverlap"/> cannot prove it disjoint;
-    /// any other operand shape (a function-identifier's arguments) is not analysed and answers yes.</summary>
-    private static bool MayReadStorageOf(BoundOperand? op, Place counter) => op switch
+    /// <summary>Does reading <paramref name="op"/> again possibly read the storage <paramref name="counter"/> names? Only a
+    /// data-item reference can: it does when <see cref="StorageOverlap"/> cannot prove it disjoint. A literal or a
+    /// figurative reads no storage. ⛔ A FUNCTION-IDENTIFIER NEVER DOES, WHATEVER ITS ARGUMENTS (kb/Work PB4115): it
+    /// "references a temporary data item whose value is determined when the function is referenced at runtime"
+    /// (§2023:8.4.3.2.4 GR1), and INSPECT references each identifier once (§2023:14.9.22.4 GR6) — identifier-1 into the
+    /// statement's image, a TALLYING operand into its own local (<see cref="TallyOperandTexts"/>) — so no counter can
+    /// occupy that temporary item and GR13's overlap cannot arise. Re-evaluating it after a counter store (the former
+    /// answer, "may" for every function) evaluated one reference twice: <c>INSPECT FUNCTION UPPER-CASE(G) TALLYING T
+    /// ...</c> with T inside G counted the counter's new digit, and <c>INSPECT FUNCTION CURRENT-DATE</c> read the clock
+    /// twice. GnuCOBOL 3.2 evaluates the function once.</summary>
+    private static bool MayReadStorageOf(BoundOperand? op, Place counter) =>
+        op is BoundFieldOperand f && StorageOverlap.MayShareStorage(counter, f.Place);
+
+    /// <summary>The TALLYING operands' texts for <see cref="RuntimeApi.InspectTally"/>, as the three array element lists
+    /// (patterns, BEFORE delimiters, AFTER delimiters). Every operand that is evaluated at run time but is not a
+    /// data-item reference — a function-identifier — is evaluated HERE, once, in source order, into a local
+    /// (§2023:8.4.3.2.4 GR1, §2023:14.9.22.4 GR6), so the D-INS1 re-run of the cycle re-reads only the data items a
+    /// counter may overlap (<see cref="MayReadStorageOf"/>); a data item and a literal stay inline.</summary>
+    private (string Patterns, string Befores, string Afters) TallyOperandTexts(IReadOnlyList<BoundInspectTally> tallying, int id, PicCategory? cat)
     {
-        null or BoundStringLiteral or BoundNumericLiteral or BoundFigurative or BoundAllLiteral => false,
-        BoundFieldOperand f => StorageOverlap.MayShareStorage(counter, f.Place),
-        _ => true,
-    };
+        var pats = new string[tallying.Count];
+        var befs = new string[tallying.Count];
+        var afts = new string[tallying.Count];
+        int n = 0;
+        string Once(BoundOperand? op)
+        {
+            string text = OperandTextOf(op, cat);
+            if (op is null or BoundFieldOperand || !PlaceIdentification.IdentifiesAtRunTime(op)) return text;
+            string local = $"__insOp{id}_{n++}";
+            ctx.Writer.Line($"var {local} = {text};");
+            return local;
+        }
+        for (int k = 0; k < tallying.Count; k++)
+        {
+            pats[k] = Once(tallying[k].Pattern);
+            befs[k] = Once(tallying[k].Before);
+            afts[k] = Once(tallying[k].After);
+        }
+        return (string.Join(", ", pats), string.Join(", ", befs), string.Join(", ", afts));
+    }
 
     /// <summary>Store the replaced/converted image back into identifier-1 by its storage shape: a group through the
     /// ONE group value writer in the alphabet it was read in (a Tier-B view group splices its window); an elementary
