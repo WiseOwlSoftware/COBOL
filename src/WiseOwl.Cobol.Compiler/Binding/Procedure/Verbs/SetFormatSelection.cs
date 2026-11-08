@@ -142,12 +142,33 @@ internal sealed class SetFormatSelection(BinderContext ctx, StatementBinder host
     /// receiving list landed on Format 1's catch-all brace — <see cref="SelectForTo"/>.</para></summary>
     private readonly record struct Row(
         SetFormat Format, SetDirections Dir, SetOperandKind[] Admits, SetOperandKind[] SendsOnly,
-        string Rule, string Brace)
+        string Rule, string Brace, RowAt1985? At1985 = null)
     {
         public uint Mask { get; } = Bits(Admits);
 
         public uint SendsMask { get; } = Bits(SendsOnly);
     }
+
+    /// <summary>A row's wording where the 1985 standard also prints that format: §1985:VI.6.23.2 prints only
+    /// Format 1 (index assignment) and Format 2 (index arithmetic) as receiver-taking SET formats — its Formats 3 and 4 are the
+    /// switch and condition-name statements, chosen by their own alternative — so a row with none has no 1985 form, and
+    /// a program compiled below 2002 is told about the rows that do (kb/Work PB4939).</summary>
+    /// <param name="Brace">The receiving brace as §1985:VI.6.23.2 prints it.</param>
+    /// <param name="Rule">The syntax or general rule that governs the operands it admits.</param>
+    private readonly record struct RowAt1985(string Brace, string Rule);
+
+    /// <summary>The 1985 standard governs this compilation: §1985:VI.6.23.2's four formats, not §2023:14.9.39.2's seventeen.</summary>
+    private bool Is1985 => ctx.Edition.Edition.Year < 2002;
+
+    /// <summary>The clause that prints the SET formats in the governing edition.</summary>
+    private string FormatsClause => Is1985 ? "ISO §1985:VI.6.23.2" : "ISO §2023:14.9.39.2";
+
+    /// <summary>The row's receiving brace in the governing edition's words (a row the 1985 standard lacks keeps the
+    /// 2023 text: no 1985 wording exists to give).</summary>
+    private string BraceOf(Row row) => Is1985 && row.At1985 is { } r ? r.Brace : row.Brace;
+
+    /// <summary>The row's governing rule in the governing edition's words.</summary>
+    private string RuleOf(Row row) => Is1985 && row.At1985 is { } r ? r.Rule : row.Rule;
 
     /// <summary>The kinds as a bit set — one bit per <see cref="SetOperandKind"/> member.</summary>
     private static uint Bits(IEnumerable<SetOperandKind> kinds)
@@ -188,7 +209,9 @@ internal sealed class SetFormatSelection(BinderContext ctx, StatementBinder host
         new(SetFormat.F10, SetDirections.UpDown, [SetOperandKind.DataPointer],      [], "ISO §2023:14.9.39.3 SR23",
             "Format 10's receiving operand is identifier-9, of category data-pointer"),
         new(SetFormat.F2,  SetDirections.UpDown, [SetOperandKind.IndexName],        [], "ISO §2023:14.9.39.2 Format 2 / §2023:14.9.39.4 GR4",
-            "Format 2's receiving operand is index-name-3, an index-name of an INDEXED BY phrase"),
+            "Format 2's receiving operand is index-name-3, an index-name of an INDEXED BY phrase",
+            new("Format 2's receiving operand is index-name-3, an index-name of an INDEXED BY phrase",
+                "ISO §1985:VI.6.23.2 Format 2 / §1985:VI.6.23.4 GR4")),
         // ⛔ LAST, AND DELIBERATELY WIDE. Format 1's brace is `{ index-name-1 | identifier-1 } …`: the BRACE
         // admits any identifier and SR1 ("a data item of class index or an integer data item") is a CATEGORY
         // screen over it, not a selection question. That screen is its own open item (kb/Work PB212); putting it
@@ -198,7 +221,9 @@ internal sealed class SetFormatSelection(BinderContext ctx, StatementBinder host
             [SetOperandKind.IndexName, SetOperandKind.IndexDataItem, SetOperandKind.IntegerItem, SetOperandKind.OtherDataItem],
             [],
             "ISO §2023:14.9.39.3 SR1",
-            "Format 1's receiving operand is index-name-1 or identifier-1, a data item of class index or an integer data item"),
+            "Format 1's receiving operand is index-name-1 or identifier-1, a data item of class index or an integer data item",
+            new("Format 1's receiving operand is index-name-1 or identifier-1, an index data item or an elementary item described as an integer",
+                "ISO §1985:VI.6.23.3 SR2")),
     ];
 
     /// <summary>The rows, for the drift test that pins the table unambiguous.</summary>
@@ -361,10 +386,12 @@ internal sealed class SetFormatSelection(BinderContext ctx, StatementBinder host
         string what = string.Join("; ", receivers
             .Select((r, i) => $"'{DataBinder.WrittenText(r)}' is {Describe(kinds[i])}")
             .Distinct());
-        string braces = string.Join("; ", Formats.Where(f => (f.Dir & dir) != 0).Select(f => f.Brace));
+        // Below 2002 only the formats §1985:VI.6.23.2 prints are named; the 2023 rows are formats that edition lacks.
+        string braces = string.Join("; ", Formats
+            .Where(f => (f.Dir & dir) != 0 && (!Is1985 || f.At1985 is not null)).Select(BraceOf));
         ctx.Edition.Error(DiagnosticCatalog.SetNoFormatAdmitsReceiver,
             $"SET {written} {(dir == SetDirections.UpDown ? "UP/DOWN BY" : "TO")} {amount}: no SET general format "
-            + $"admits this receiving operand list — {what}, and {braces} (ISO §2023:14.9.39.2)");
+            + $"admits this receiving operand list — {what}, and {braces} ({FormatsClause})");
     }
 
     /// <summary>COBOL2112 over the operands a SELECTED format does not admit — the arm for the formats whose
@@ -381,8 +408,8 @@ internal sealed class SetFormatSelection(BinderContext ctx, StatementBinder host
         {
             if (kinds[i] == SetOperandKind.Unclassified || row.Admits.Contains(kinds[i])) continue;
             ctx.Edition.Error(DiagnosticCatalog.SetNoFormatAdmitsReceiver,
-                $"SET '{DataBinder.WrittenText(receivers[i])}': {row.Brace}, and '{DataBinder.WrittenText(receivers[i])}' is "
-                + $"{Describe(kinds[i])} ({row.Rule})");
+                $"SET '{DataBinder.WrittenText(receivers[i])}': {BraceOf(row)}, and '{DataBinder.WrittenText(receivers[i])}' is "
+                + $"{Describe(kinds[i])} ({RuleOf(row)})");
             return true;
         }
         return false;
@@ -402,8 +429,8 @@ internal sealed class SetFormatSelection(BinderContext ctx, StatementBinder host
         if (ReportNotAdmitted(receivers, kinds, format)) return;
         var row = Formats.First(f => f.Format == format);
         ctx.Edition.Error(DiagnosticCatalog.SetNoFormatAdmitsReceiver,
-            $"SET {Written(receivers)}: {row.Brace} — ONE operand, "
-            + $"written with no ellipsis, and {receivers.Count} receiving operands are specified ({row.Rule})");
+            $"SET {Written(receivers)}: {BraceOf(row)} — ONE operand, "
+            + $"written with no ellipsis, and {receivers.Count} receiving operands are specified ({RuleOf(row)})");
     }
 
     /// <summary>The operand's kind in the standard's own words, for a diagnostic.</summary>

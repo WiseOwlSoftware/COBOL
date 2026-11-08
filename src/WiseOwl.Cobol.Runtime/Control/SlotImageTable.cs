@@ -16,12 +16,14 @@ namespace WiseOwl.Cobol.Runtime;
 internal sealed class SlotImageTable
 {
     private const int FirstSweepAt = 1024;
-    private static int s_lastTagSerial;   // PROCESS-wide, like the pointer bases: two run units of one process never issue the same tag id (review R2-1)
+    private const int SerialBits = 8;                        // the message-serial bits a token carries itself (kb/Work PB4926)
+    private const long SerialMask = (1L << SerialBits) - 1;
+    private static long s_lastTagBlock;   // PROCESS-wide, like the pointer bases: two run units of one process never issue the same tag block (review R2-1)
 
     private readonly object _gate = new();
     private readonly Dictionary<long, object> _bases = [];   // CellLife and NamedAddress held strongly, an identity as a WeakReference
-    private readonly Dictionary<(string? Mcs, MessageParty Party, string? Name, long Message), long> _tagIds = [];
-    private readonly Dictionary<long, MessageTag> _tags = [];
+    private readonly Dictionary<(string? Mcs, MessageParty Party, string? Name, long High), long> _blockIds = [];   // (party, serial >> SerialBits) -> block token
+    private readonly Dictionary<long, (string? Mcs, MessageParty Party, string? Name, long High)> _blocks = [];
     private int _sweepAt = FirstSweepAt;
 
     /// <summary>Record that <paramref name="entry"/> (a <c>PointerImage.CellLife</c>, a <c>PointerImage.NamedAddress</c> or the
@@ -58,27 +60,42 @@ internal sealed class SlotImageTable
         _sweepAt = Math.Max(FirstSweepAt, _bases.Count * 2);
     }
 
-    /// <summary>The identifier of <paramref name="tag"/> in this run unit, assigned on first use (the process epoch in the high half,
-    /// a process-wide serial 1, 2, 3 ... in the low, so no two run units of a process share an id); the message serial number is part of the key, because the tag read back must reply to the message it
-    /// was sent for.</summary>
+    /// <summary>The identifier of <paramref name="tag"/> in this run unit: the process epoch in the high half, and in the low half a block number
+    /// (a process-wide serial, so no two run units of a process share one) above the low <see cref="SerialBits"/> bits of the message serial number.
+    /// The message serial number rides IN the token, because the tag read back must reply to the message it was sent for; the table holds
+    /// one entry per (party, serial block), never one per message, so a long SEND/RECEIVE batch grows it by one entry per
+    /// 2^<see cref="SerialBits"/> messages of a party (kb/Work PB4926).</summary>
     internal long TagId(MessageTag tag)
     {
-        var key = (tag.Mcs, tag.Party, tag.Name, tag.Message);
+        long high = tag.Message >> SerialBits;
+        var key = (tag.Mcs, tag.Party, tag.Name, high);
         lock (_gate)
         {
-            if (!_tagIds.TryGetValue(key, out long id))
+            if (!_blockIds.TryGetValue(key, out long block))
             {
-                id = (PointerImage.Epoch << 32) | (uint)Interlocked.Increment(ref s_lastTagSerial);
-                _tagIds[key] = id;
-                _tags[id] = tag;
+                long next = Interlocked.Increment(ref s_lastTagBlock);
+                if (next >= 1L << (32 - SerialBits)) throw new InvalidOperationException("the process has issued every message-tag block number (2^24 - 1, one per party per 256 messages) it can image");
+                block = (PointerImage.Epoch << 32) | (next << SerialBits);
+                _blockIds[key] = block;
+                _blocks[block] = key;
             }
-            return id;
+            return block | (tag.Message & SerialMask);
         }
     }
 
     /// <summary>The tag identified by <paramref name="id"/> in this run unit, or null when it never assigned that identifier.</summary>
     internal MessageTag? TagOf(long id)
     {
-        lock (_gate) return _tags.TryGetValue(id, out var tag) ? tag : null;
+        lock (_gate)
+        {
+            if (!_blocks.TryGetValue(id & ~SerialMask, out var key)) return null;
+            return new MessageTag(key.Mcs!, key.Party, key.Name!, (key.High << SerialBits) | (id & SerialMask));
+        }
+    }
+
+    /// <summary>How many (party, serial block) entries the run unit holds; a test reads it to pin that imaging N messages leaves it bounded.</summary>
+    internal int TagBlockCount
+    {
+        get { lock (_gate) return _blocks.Count; }
     }
 }
