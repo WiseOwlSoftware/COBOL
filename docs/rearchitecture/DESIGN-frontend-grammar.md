@@ -582,6 +582,23 @@ and the determinations are RE-DERIVED from the standard where the standard is in
 1985-only) needs no rule; the earlier editions' texts are not in the repository, so a determination for them would
 stand on its row's citation.
 
+⛔ **THE SAME RULE KEEPS A LATER CONSTRUCT'S EDITION REFUSAL REACHABLE (kb/Work PB4933).** The union grammar spells a
+construct at the editions that lack it so its named refusal can answer, and a gated word that heads such a construct is
+free exactly there: `01 SCREEN LINE 1.` in a COBOL-85 SCREEN SECTION had every SCREEN retyped, the header's too, and the
+section drew COBOL0001 "unexpected 'SCREEN'" instead of COBOL1560; LOCAL-STORAGE, REPOSITORY and OPTIONS at 85,
+COMMUNICATION and CD at 2014 and 2023, and the five comment paragraphs (AUTHOR, INSTALLATION, DATE-WRITTEN,
+DATE-COMPILED, SECURITY) from 2002 lost their edition refusals the same way. Their rows carry the second determination,
+`refusalWhereFree` (the construct and the editions, cited), and get the same generated `<word>Keyword` rule, under the
+same spelling obligation; they stay OUT of `CobolLexer.IsKeywordWhereFree`, because no format of a free edition prints
+the word and a syntax diagnostic there must not name it as expected. A row carries one determination or the other,
+never both. The determination holds only where no reading of the free word competes in any position the grammar spells
+it, which is why the source-unit words (CLASS-ID, FUNCTION-ID, INTERFACE-ID, METHOD-ID, FACTORY, OBJECT) carry none: the
+union grammar lets a unit begin without its IDENTIFICATION DIVISION header, so `FUNCTION-ID. X.` after a COBOL-85
+program's paragraphs is two paragraphs there, and a keyword rule would read a unit header. `CobolWordsDriftTests`
+(`A_Gated_Header_Word_Reads_Through_Its_Keyword_Rule`) scans every header-shaped alternative (one word, an optional
+SECTION, the period) and requires each gated header word to read through its rule or to be one of those six, so the next
+gated header fails a test.
+
 ⛔ **NO LEXER TOKEN MAY COST THE USER A WORD ISO LEAVES FREE (kb/Work PB655).** A word the lexer tokenizes never
 reaches `IDENTIFIER` by itself, so without a `nameSlot` row it is refused as a user-defined word at every edition.
 `CobolWordsDriftTests.LexerWordTokens_Cost_The_User_No_Word_Iso_Leaves_Free` joins the COMPILED lexer vocabulary

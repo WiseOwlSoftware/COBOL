@@ -137,12 +137,27 @@ public sealed class CobolWordsDriftTests
             + "declaration with no COBOL0901 (the funnel reports high-confidence rows only)");
     }
 
-    /// <summary>The tokens whose <c>cobol-words.json</c> row carries the <c>keywordWhereFree</c> determination.</summary>
-    internal static HashSet<string> KeywordWhereFreeTokens()
+    /// <summary>The tokens whose <c>cobol-words.json</c> row carries the <c>keywordWhereFree</c> determination: the words a
+    /// free edition's own format prints as keywords (<c>CobolLexer.IsKeywordWhereFree</c>).</summary>
+    internal static HashSet<string> KeywordWhereFreeTokens() => DeterminationTokens("keywordWhereFree");
+
+    /// <summary>The tokens whose row carries the <c>refusalWhereFree</c> determination (kb/Work PB4933): the union grammar
+    /// spells the word as the keyword of a construct its free editions lack, so the construct's edition refusal answers.</summary>
+    internal static HashSet<string> RefusalWhereFreeTokens() => DeterminationTokens("refusalWhereFree");
+
+    /// <summary>The tokens that have a generated <c>&lt;word&gt;Keyword</c> rule: either determination.</summary>
+    internal static HashSet<string> KeywordRuleTokens()
+    {
+        var all = KeywordWhereFreeTokens();
+        all.UnionWith(RefusalWhereFreeTokens());
+        return all;
+    }
+
+    private static HashSet<string> DeterminationTokens(string field)
     {
         using var doc = JsonDocument.Parse(File.ReadAllText(TestRepo.VersionMatrix("cobol-words.json")));
         return doc.RootElement.GetProperty("words").EnumerateArray()
-            .Where(e => e.TryGetProperty("keywordWhereFree", out var v) && v.GetString() is { Length: > 0 })
+            .Where(e => e.TryGetProperty(field, out var v) && v.GetString() is { Length: > 0 })
             .Select(e => e.GetProperty("token").GetString()!)
             .ToHashSet(StringComparer.Ordinal);
     }
@@ -159,12 +174,15 @@ public sealed class CobolWordsDriftTests
     /// (kb/Work PB2623, PB3794). The token-level gate retypes EVERY occurrence of a declared free word to IDENTIFIER, so
     /// such a format's keyword position must accept the retyped spelling: <c>01 MESSAGE PIC 9.</c> then <c>CONTINUE
     /// AFTER MESSAGE RECEIVED</c> at 2023 was a parse error. The generated rules are exactly the
-    /// <c>keywordWhereFree</c> rows, each of the one shape <c>TOKEN | {wordAhead("WORD")}? IDENTIFIER</c>, and each on a
-    /// word the derived gate holds (a word it never retypes needs none).</summary>
+    /// <c>keywordWhereFree</c> and <c>refusalWhereFree</c> rows (no row carries both: one rule serves either), each of the
+    /// one shape <c>TOKEN | {wordAhead("WORD")}? IDENTIFIER</c>, and each on a word the derived gate holds (a word it never
+    /// retypes needs none).</summary>
     [Fact]
-    public void KeywordRules_Are_Generated_From_The_KeywordWhereFree_Rows()
+    public void KeywordRules_Are_Generated_From_The_Determination_Rows()
     {
-        var rows = KeywordWhereFreeTokens();
+        var both = KeywordWhereFreeTokens().Intersect(RefusalWhereFreeTokens(), StringComparer.Ordinal).Order(StringComparer.Ordinal).ToList();
+        Assert.True(both.Count == 0, $"row(s) [{string.Join(",", both)}] carry both keywordWhereFree and refusalWhereFree");
+        var rows = KeywordRuleTokens();
         Assert.NotEmpty(rows);
         string g4 = File.ReadAllText(GeneratedWordsG4()).Replace("\r\n", "\n");
         var generated = Regex.Matches(g4, @"^([a-z][A-Za-z0-9]*Keyword)\n((?:    [^\n]*\n?)*?)    ;", RegexOptions.Multiline)
@@ -178,7 +196,7 @@ public sealed class CobolWordsDriftTests
             Assert.Equal($"    : {token}\n    | {{wordAhead(\"{ToWord(token)}\")}}? IDENTIFIER\n", generated[rule]);
         var gated = DerivedGateSet();
         var ungated = rows.Where(t => !gated.Contains(t)).Order(StringComparer.Ordinal).ToList();
-        Assert.True(ungated.Count == 0, $"keywordWhereFree on word(s) the gate never retypes: [{string.Join(",", ungated)}]");
+        Assert.True(ungated.Count == 0, $"a keyword-rule determination on word(s) the gate never retypes: [{string.Join(",", ungated)}]");
         // A word §2023:8.9 reserves at EVERY edition is never free: the one way to free it, >>COBOL-WORDS UNDEFINE, withdraws
         // "any syntax requiring the use of" it (§2023:7.3.10.4 GR3), so its keyword rule would accept what GR3 makes
         // unavailable (kb/Work PB3957: ORDER, whose r85=false the row's determination once rested on).
@@ -186,7 +204,7 @@ public sealed class CobolWordsDriftTests
         var neverFree = rows.Where(t => reserved.TryGetValue(ToWord(t), out var f) && f.All(x => x))
             .Order(StringComparer.Ordinal).ToList();
         Assert.True(neverFree.Count == 0,
-            $"keywordWhereFree on word(s) §2023:8.9 reserves at every edition: [{string.Join(",", neverFree)}] — no edition leaves them free");
+            $"a keyword-rule determination on word(s) §2023:8.9 reserves at every edition: [{string.Join(",", neverFree)}] — no edition leaves them free");
     }
 
     /// <summary>The (rule, token) pairs of <paramref name="grammar"/> that spell one of <paramref name="tokens"/> as
@@ -200,25 +218,96 @@ public sealed class CobolWordsDriftTests
                     yield return $"{m.Groups[1].Value}:{t}";
     }
 
-    /// <summary>⛔ THE OBLIGATION: the hand-written grammar spells a <c>keywordWhereFree</c> word ONLY through its
-    /// keyword rule. A bare token is the PB3794 defect itself — the position never sees the retyped IDENTIFIER — and
-    /// the next format to spell the word must not be able to reintroduce it.</summary>
+    /// <summary>⛔ THE OBLIGATION: the hand-written grammar spells a word with a keyword rule (either determination) ONLY
+    /// through that rule. A bare token is the PB3794 defect itself — the position never sees the retyped IDENTIFIER — and
+    /// the next format to spell the word must not be able to reintroduce it (kb/Work PB4933: the SCREEN of BLANK SCREEN).</summary>
     [Fact]
-    public void A_KeywordWhereFree_Word_Is_Spelled_Only_Through_Its_Keyword_Rule()
+    public void A_Keyword_Rule_Word_Is_Spelled_Only_Through_Its_Keyword_Rule()
     {
-        var tokens = KeywordWhereFreeTokens();
+        var tokens = KeywordRuleTokens();
         var files = UserWordSlotDriftTests.ParserGrammars()
             .Where(f => !Path.GetFileName(f).Equals("CobolWords.g4", StringComparison.Ordinal)).ToList();
         Assert.True(files.Count >= 10, $"only {files.Count} hand-written parser grammar file(s) found — the scan is blind");
         var bare = files.SelectMany(f => BareTokenSpellings(File.ReadAllText(f), tokens))
             .Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToList();
         Assert.True(bare.Count == 0,
-            $"rule:token [{string.Join(", ", bare)}] spell a keywordWhereFree word as its bare token; a program that declares "
+            $"rule:token [{string.Join(", ", bare)}] spell a keyword-rule word as its bare token; a program that declares "
             + "the word has it retyped to IDENTIFIER there (ReservationGateRewriter) — spell it through its <word>Keyword rule");
         string all = string.Join("\n", files.Select(File.ReadAllText));
         var unused = tokens.Select(KeywordRuleName).Where(r => !Regex.IsMatch(all, $@"\b{r}\b"))
             .Order(StringComparer.Ordinal).ToList();
         Assert.True(unused.Count == 0, $"keyword rule(s) [{string.Join(",", unused)}] spelled by no format — drop the determination");
+    }
+
+    /// <summary>The words that head a section or paragraph header written as a bare gated token, and why each is left so.
+    /// They are the object-oriented and user-function SOURCE-UNIT words: the header begins or sits inside a source unit
+    /// COBOL-85 lacks altogether, and CLASS-ID, FUNCTION-ID and INTERFACE-ID can begin the next unit where a COBOL-85
+    /// procedure paragraph stands (the ID DIVISION header is optional in the union grammar), so a keyword rule would let a
+    /// program that declares the word and writes <c>FUNCTION-ID. X.</c> (two COBOL-85 paragraphs) read a unit header.</summary>
+    private static readonly HashSet<string> SourceUnitHeaderWords =
+        new(["CLASS_ID", "FACTORY", "FUNCTION_ID", "INTERFACE_ID", "METHOD_ID", "OBJECT"], StringComparer.Ordinal);
+
+    /// <summary>The first word of every header-shaped alternative of <paramref name="grammar"/>: an alternative that opens
+    /// (after the optional <c>IDENTIFICATION DIVISION .</c> of a source unit) with one word, an optional <c>SECTION</c> and
+    /// the separator period. Comments and actions removed; alternatives split at the rule's top level.</summary>
+    internal static IEnumerable<string> HeaderWords(string grammar)
+    {
+        string text = UserWordSlotDriftTests.StripActions(UserWordSlotDriftTests.Comment.Replace(grammar, ""));
+        foreach (Match m in UserWordSlotDriftTests.Rule.Matches(text))
+            foreach (var alt in TopLevelAlternatives(m.Groups[2].Value))
+                if (Regex.Match(alt, @"^\s*(?:\(\s*IDENTIFICATION\s+DIVISION\s+DOT\s*\)\?\s*)?(?:PRED\s+)?([A-Za-z][A-Za-z0-9_]*)\s+(?:SECTION\s+)?DOT\b")
+                    is { Success: true } h)
+                    yield return h.Groups[1].Value;
+    }
+
+    private static IEnumerable<string> TopLevelAlternatives(string body)
+    {
+        int depth = 0, start = 0;
+        for (int i = 0; i < body.Length; i++)
+        {
+            if (body[i] == '(') depth++;
+            else if (body[i] == ')') depth--;
+            else if (body[i] == '|' && depth == 0) { yield return body[start..i]; start = i + 1; }
+        }
+        yield return body[start..];
+    }
+
+    /// <summary>⛔ A GATED WORD THAT HEADS A SECTION OR PARAGRAPH READS THROUGH ITS KEYWORD RULE (kb/Work PB4933). The gate
+    /// retypes every occurrence of a declared free word, the header's too, so a header spelled with the bare token is
+    /// unreachable exactly when a program declares the word: <c>01 SCREEN LINE 1.</c> in a COBOL-85 SCREEN SECTION made the
+    /// header COBOL0001 "unexpected 'SCREEN'" instead of the named COBOL1560, and LOCAL-STORAGE, REPOSITORY, OPTIONS,
+    /// COMMUNICATION and the five comment paragraphs lost their edition refusals the same way. A header word is either
+    /// spelled through its generated rule (its row carries a determination) or is one of the
+    /// <see cref="SourceUnitHeaderWords"/>, and that set is exact: the next gated header fails here, not in a program.</summary>
+    [Fact]
+    public void A_Gated_Header_Word_Reads_Through_Its_Keyword_Rule()
+    {
+        var files = UserWordSlotDriftTests.ParserGrammars()
+            .Where(f => !Path.GetFileName(f).Equals("CobolWords.g4", StringComparison.Ordinal)).ToList();
+        var headers = files.SelectMany(f => HeaderWords(File.ReadAllText(f))).ToHashSet(StringComparer.Ordinal);
+        var ruled = KeywordRuleTokens().Select(KeywordRuleName).Where(headers.Contains).ToList();
+        Assert.True(headers.Count >= 25 && ruled.Count >= 10,
+            $"the header scan found {headers.Count} header word(s), {ruled.Count} through a keyword rule — fewer than it was written against: the scan is blind");
+        var gated = DerivedGateSet();
+        var bare = headers.Where(gated.Contains).ToHashSet(StringComparer.Ordinal);
+        var unruled = bare.Except(SourceUnitHeaderWords).Order(StringComparer.Ordinal).ToList();
+        var stale = SourceUnitHeaderWords.Except(bare).Order(StringComparer.Ordinal).ToList();
+        Assert.True(unruled.Count == 0 && stale.Count == 0,
+            $"gated header word(s) spelled as a bare token [{string.Join(",", unruled)}]: give the row a refusalWhereFree determination and "
+            + $"spell the header through its keyword rule; source-unit exemption(s) no header spells bare [{string.Join(",", stale)}]");
+    }
+
+    /// <summary>Prove the header scan can FAIL: a bare-token section and paragraph header are found, through the optional
+    /// IDENTIFICATION DIVISION prefix too, and a keyword-rule header reports its rule.</summary>
+    [Fact]
+    public void TheHeaderScan_FindsBareAndRuledHeaders()
+    {
+        const string grammar = "parser grammar Probe;\noptions { tokenVocab = CobolLexer; }\n"
+            + "aSection\n    : SCREEN SECTION DOT entry*   // SCREEN in a comment\n    ;\n"
+            + "aUnit : (IDENTIFICATION DIVISION DOT)? FACTORY DOT body END FACTORY DOT ;\n"
+            + "aParagraph\n    : x DOT\n    | optionsKeyword DOT clause*\n    ;\n"
+            + "notAHeader : SCREEN LINE ;\n";
+        Assert.Equal(["SCREEN", "FACTORY", "x", "optionsKeyword"], HeaderWords(grammar).ToArray());
     }
 
     /// <summary>Prove the spelling guard can FAIL: a bare token is reported (labelled and quantified too), the keyword

@@ -36,7 +36,12 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// declared free word as a keyword (MESSAGE in the 2023 RECEIVE's CONTINUE phrase, METHOD in END METHOD), that keyword
 /// arrives as <c>IDENTIFIER</c> as well. Such a word's row carries the <c>keywordWhereFree</c> determination and the
 /// grammar reads it only through its generated <c>&lt;word&gt;Keyword</c> rule, which accepts the token or the retyped
-/// spelling (kb/Work PB2623, PB3794; <c>CobolWordsDriftTests</c> re-derives the 2023 members from the standard).</para>
+/// spelling (kb/Work PB2623, PB3794; <c>CobolWordsDriftTests</c> re-derives the 2023 members from the standard). The
+/// same rule serves the union grammar's spelling of a word as the keyword of a construct its free editions LACK, kept so
+/// the construct's edition refusal can answer: such a row carries the <c>refusalWhereFree</c> determination instead, so
+/// <c>01 SCREEN LINE 1.</c> in a COBOL-85 SCREEN SECTION leaves the header the SCREEN SECTION and the source draws the named
+/// COBOL1560, not "unexpected 'SCREEN'" (kb/Work PB4933; every gated section and paragraph header reads its word this way
+/// but the source-unit headers, <c>CobolWordsDriftTests.A_Gated_Header_Word_Reads_Through_Its_Keyword_Rule</c>).</para>
 /// <para><b>Why DECLARED, not merely free.</b> The union grammar still spells the word's constructs at editions
 /// that lack them, so the named edition gate can answer (<c>GOBACK.</c> at COBOL-85 → "requires COBOL-2002"), and
 /// the migration mode (<c>--permissive</c>) admits a word the edition added while it is ALSO that edition's
