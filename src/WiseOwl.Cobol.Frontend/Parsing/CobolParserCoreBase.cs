@@ -1589,6 +1589,10 @@ public abstract class CobolParserCoreBase : Parser
             switch (t)
             {
                 // The operator-free parenthesized boolean literal, the same recognition boolExprAhead makes.
+                // A grouping '(' straight after a completed term at depth 0 STARTS A NEW TERM (PB124's space-separated boundary; a
+                // subscript / ref-mod '(' is REF_LPAREN), so `CONCAT("A" (B"1"))` is two arguments, not one boolean expression.
+                case CobolLexer.LPAREN when depth == 0 && IsBoolOperandTerm(prev) && ParenRunOpensOnBoolLiteral(i):
+                    return false;
                 case CobolLexer.LPAREN when ParenRunOpensOnBoolLiteral(i):
                     return true;
                 case CobolLexer.LPAREN: case CobolLexer.FNARG_LPAREN: case CobolLexer.REF_LPAREN: depth++; break;

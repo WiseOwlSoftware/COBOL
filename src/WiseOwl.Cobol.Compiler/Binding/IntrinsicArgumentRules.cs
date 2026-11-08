@@ -1473,11 +1473,12 @@ internal static class IntrinsicArgumentRules
     /// about the operand's SHAPE, which no coercion relaxes (§2023:15.48.3 r3, kb/Work PB58 / PB4507). A "data item or literal" rule at an INTEGER
     /// position reads the expression's VALUE, which the computed operand has, so the coercion exists (FIND-STRING argument-3,
     /// BASECONVERT's bases); at a CHARACTER-reading position (CONCAT, BASECONVERT argument-1) it reads an IMAGE of characters, which an
-    /// arithmetic or boolean expression does not have, so the shape stays an error (kb/Work PB4635 review R3-1).</summary>
-    public static bool IsCoercible(ArgPredicate p, ArgRule rule) => p.Kind switch
+    /// arithmetic or boolean expression does not have, so the shape stays an error (kb/Work PB4635 review R3-1). A BOOLEAN expression
+    /// has no numeric value at an integer position either, so it stays an error there too (kb/Work PB4711 review R1-2).</summary>
+    public static bool IsCoercible(ArgPredicate p, ArgRule rule, BoundOperand op) => p.Kind switch
     {
         ArgPredicateKind.DataItemOnly => false,
-        ArgPredicateKind.DataItemOrLiteralOnly => rule.Kind == 'i',
+        ArgPredicateKind.DataItemOrLiteralOnly => rule.Kind == 'i' && !IsBooleanExpression(op),
         _ => true,
     };
 
@@ -1502,11 +1503,11 @@ internal static class IntrinsicArgumentRules
     };
 
     /// <summary>Is this operand a boolean EXPRESSION (§2023:8.8.2) rather than a boolean data item or a boolean literal (kb/Work PB4711)?
-    /// The boolean-expression binder answers a bare literal as <see cref="BoundBoolLiteral"/> and a bare nested boolean function as
-    /// <see cref="BoundBoolCall"/> (a function-identifier is a data item, §2023:8.4.3.2.4 GR1); every other <see cref="BoundBoolOperand"/> is an
-    /// expression, a parenthesized item (<c>(BB)</c>, §2023:8.8.1.1) included.</summary>
-    private static bool IsBooleanExpression(BoundOperand op) =>
-        op is BoundBoolOperand { Expr: not (BoundBoolLiteral or BoundBoolCall) };
+    /// A bare boolean literal binds as a literal operand (IntrinsicBinder.BindArgOperandCore's nonNumericLiteral arm) and a bare boolean data
+    /// item as a field operand, so every <see cref="BoundBoolOperand"/> that reaches an argument screen is an expression: a compound one
+    /// (<c>B1 B-AND B0</c>) or a parenthesized item or literal (<c>(BB)</c>, <c>(B"1")</c>: "a boolean expression enclosed in
+    /// parentheses", §2023:8.8.2).</summary>
+    private static bool IsBooleanExpression(BoundOperand op) => op is BoundBoolOperand;
 
     /// <summary>What a non-data-item operand IS, in the words a diagnostic names it with.</summary>
     private static string OperandShapeName(BoundOperand op) => op switch

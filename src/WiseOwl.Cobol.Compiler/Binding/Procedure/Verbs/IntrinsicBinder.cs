@@ -2012,7 +2012,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             // (§2023:15.48.3 r3, kb/Work PB58 / PB4507); IntrinsicArgumentRules.IsCoercible says which predicates are.
             foreach (var p in rule.Predicates)
                 if (IntrinsicArgumentRules.PredicateViolation(p, args[i], KnownWidth(args[i])) is { } pWhy)
-                    Emit($"FUNCTION {sig.Name} argument-{i + 1} {pWhy}", coercible: IntrinsicArgumentRules.IsCoercible(p, rule));
+                    Emit($"FUNCTION {sig.Name} argument-{i + 1} {pWhy}", coercible: IntrinsicArgumentRules.IsCoercible(p, rule, args[i]));
             if (IntrinsicArgumentRules.Violation(rule, args[i]) is not { } why) continue;
             ReportClass($"FUNCTION {sig.Name} argument-{i + 1} {why} ({rule.Clause})", args[i]);
         }
