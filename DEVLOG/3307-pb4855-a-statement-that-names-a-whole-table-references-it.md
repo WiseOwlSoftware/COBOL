@@ -1,4 +1,4 @@
-## PB4855: a statement that names a whole table references it, and DEBUG-CONTENTS is every current occurrence
+## Entry 3307 — 2026-11-08 00:34 PST — PB4855: a statement that names a whole table references it, and DEBUG-CONTENTS is every current occurrence
 
 kb/Work PB4855's last open family, operands that name a table, or an item under its element, without the subscripts of the level they
 range over: SEARCH's identifier-1, a Format-2 table SORT's data-name-2 and its key data-names, and INITIALIZE of a whole OCCURS DYNAMIC
@@ -58,3 +58,4 @@ subscript written only in a WHEN phrase was referenced by an execution that eval
 they stay the WHEN phrase's references; the dynamic-capacity scan bound (`DynTable`), which borrowed them already on main, is fixed by the
 same field. Witness `DebugFacilityTests.SearchWhenNamedOccurrence_IsReferencedOnlyWhenTheWhenIsEvaluated` (85 and 2023 permissive).
 R1-2 and R1-3 are leads left to the clerk.
+
