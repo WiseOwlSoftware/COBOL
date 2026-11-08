@@ -21,3 +21,5 @@ no longer mean a stall; no caller outside the file used them. Self-test arms wer
 `self_test_arms.py` (`DECLARED`). Not done, and kept in PB4944: the planner reading the over-size counts to split a campaign
 that always runs over (nothing records the counts per unit yet), and a lead note carrying `running_limit_min:`. No goldens:
 process-only, no compiled program changes. PB4888 stays open for the post-lever measurement.
+
+Review round 1 (3 blocking, all fixed in progress.py): group_activity now takes the ledger group and also reads one directory below scratch/ (a campaign wave keeps its groups under the wave scratch, so Mythos groups no longer showed no act) and the branch review hyphenated review-w<wave>-<letter> findings file and scratch (the slug never matched it). queue_empty_minutes counts a record with no merged stamp as queued for at most 60 minutes after its enqueue (12 closed, never-merged records from October had made the figure 0 for every window). The self-test plants a wave-scratch group, a review findings file and a closed record.

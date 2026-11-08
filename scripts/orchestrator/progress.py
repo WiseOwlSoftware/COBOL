@@ -19,8 +19,9 @@ THE LINE, read from the coordination directory only (no git, no GitHub: it runs 
   reviewed      the groups whose branch review has a verdict, and how many of them drew FINDINGS at round 1 (a CLEAN
                 stamp at round 2 or later means round 1 found something): the round-1 FINDINGS rate (kb/Work PB4888 lever 5)
   queue empty   the minutes of the unit's window in which no landing record was enqueued and unmerged (the merge queue
-                sat empty; PB4888 lever 5). A record enqueued and never merged counts as in the queue until now, so a
-                missing merged stamp (kb/Work PB3725) understates the empty minutes, never overstates them
+                sat empty; PB4888 lever 5). A record with no merged stamp counts as in the queue for at most
+                `QUEUE_OPEN_MAX_MIN` after its enqueue, so a closed, never-merged record (kb/Work PB3725) cannot fill the
+                window forever; a pull request queued longer than that is under-counted
 TWO SIGNALS, TWO WORDS (kb/Work PB4944). A STALL means a group stopped MOVING: a group RUNNING, or a DONE report awaiting
 its review, with no act in the coordination directory for `STALL_IDLE_MIN` minutes (`group_activity`: the group's scratch
 directory, its scratch files and its reports, and for a DONE report the worktree's last act). The slot wait seen at worst
@@ -32,8 +33,8 @@ it is counted in the PROGRESS line, per wave, and never mailed. Only a stall is 
 A DONE REPORT IS NOT YET A RETURN (kb/Work PB4918). The rolling wave starts a branch's review only when its implementer
 RETURNS, and an implementer writes its report, then gates the tip it reports and fills the gate line in at the verdict, so
 the report's mtime can be a whole gate (25 to 60 minutes) before the return. `implementer_activity` reads the report's own
-worktree: a gate holding its lock there means the implementer is still working (the group counts as running, under
-`RUNNING_STALL_MIN`, from its dispatch), and otherwise the review clock starts at the newest of the report's mtime and the
+worktree: a gate holding its lock there means the implementer is still working (the group counts as running, with the
+idle clock of its activity, from its dispatch), and otherwise the review clock starts at the newest of the report's mtime and the
 worktree's last act (its HEAD log, its STATUS.md), never at the report alone.
 
 Usage:
@@ -64,6 +65,7 @@ from standard_streams import ensure_utf8  # noqa: E402
 RUNNING_LIMIT_MIN = 60   # the owner, 2026-10-23: "no wave may take hours; one chain link per wave, hand off at ~60 min"
 REVIEW_LIMIT_MIN = 15    # half the owner's 30-minute dispatch-to-queue bar (kb/Work PB3638, landing_measure.BUDGETS)
 STALL_IDLE_MIN = 20      # no act this long is a stall (kb/Work PB4944): longer than the slot wait seen at worst, 17 minutes
+QUEUE_OPEN_MAX_MIN = 60  # an unmerged landing record counts as in the merge queue this long (queue_empty_minutes)
 ACTIVITY_SCAN_MAX = 5000  # files of one group's scratch directory read for the newest mtime
 REVIEW_ROUND = re.compile(r"-r(?P<n>[0-9]+)$")   # a reviewer id's round: `w7c-review-r2` is round 2
 
@@ -96,29 +98,37 @@ def implementer_activity(worktree: str | None) -> tuple[bool, float]:
     return gate.live_gate(gdir / gate.LOCK_NAME) is not None, max(stamps, default=0.0)
 
 
-def group_activity(cdir: pathlib.Path, slug: str) -> float:
-    """The mtime of a group's newest act in the coordination directory (kb/Work PB4944), or 0.0 when it left none: the
-    newest file under its scratch directory `scratch/<slug>/` (the gate log it redirects, its probes and batches, MANDATORY-
-    PRACTICES P16), the scratch files named for it (`scratch/*<slug>*`: a branch review's findings file) and its reports
-    (`scratch/reports/<slug>-*`). The loop reads no git, so a commit shows only as the STATUS.md and gate log the
-    checkpoint rewrites, which land in these places; a waiting gate writes its log, so a slot wait is not silence."""
+def group_activity(cdir: pathlib.Path, g: dict) -> float:
+    """The mtime of a group's newest act in the coordination directory (kb/Work PB4944), or 0.0 when it left none. Three
+    places, each at the top of `scratch/` and one directory below it (a campaign wave keeps its groups' scratch under its
+    own, `scratch/<wave scratch>/<slug>/`, which is where every Mythos 1985-campaign implementer writes): the group's
+    scratch directory and files named for its slug `w<wave><letter>` (the gate log it redirects, its probes and batches,
+    MANDATORY-PRACTICES P16); its branch review's findings file and scratch, which the rolling wave names
+    `review-w<wave>-<letter>` (hyphenated, so the slug never matches them); and its reports (`scratch/reports/<slug>-*`).
+    The loop reads no git, so a commit shows only as the STATUS.md and gate log the checkpoint rewrites, which land in
+    these places; a waiting gate writes its log, so a slot wait is not silence."""
+    slug = reports.ledger_slug(g)
+    review = f"review-w{g['wave']}-{str(g['letter']).lower()}"
     scratch = cdir / "scratch"
     newest, seen = 0.0, 0
-    for root, _dirs, files in os.walk(scratch / slug):
-        for f in files:
-            seen += 1
-            try:
-                newest = max(newest, (pathlib.Path(root) / f).stat().st_mtime)
-            except OSError:
-                pass
-        if seen >= ACTIVITY_SCAN_MAX:
-            break
-    for pattern in (f"*{slug}*", f"reports/{slug}-*"):
-        for p in scratch.glob(pattern):
-            try:
-                newest = max(newest, p.stat().st_mtime)
-            except OSError:
-                pass
+    for prefix in ("", "*/"):
+        for name in (f"{prefix}*{slug}*", f"{prefix}{review}*"):
+            for top in scratch.glob(name):
+                walk = [(str(top.parent), [], [top.name])] if top.is_file() else os.walk(top)
+                for root, _dirs, files in walk:
+                    for f in files:
+                        seen += 1
+                        try:
+                            newest = max(newest, (pathlib.Path(root) / f).stat().st_mtime)
+                        except OSError:
+                            pass
+                    if seen >= ACTIVITY_SCAN_MAX:
+                        return newest
+    for p in scratch.glob(f"reports/{slug}-*"):
+        try:
+            newest = max(newest, p.stat().st_mtime)
+        except OSError:
+            pass
     return newest
 
 
@@ -130,13 +140,17 @@ def review_round(r: "reports.Review") -> int:
 
 def queue_empty_minutes(recs: list[dict], since: float, now: float) -> float:
     """The minutes of [since, now] in which no landing record was in the merge queue (kb/Work PB4888 lever 5): the union of
-    the records' [enqueued, merged or now] intervals, cut to the window, taken from the window's length."""
+    the records' [enqueued, merged] intervals, cut to the window, taken from the window's length. A record with no merged
+    stamp is a pull request still queued, or one closed and never merged (the register holds such records from weeks ago):
+    it counts as queued for at most `QUEUE_OPEN_MAX_MIN` after its enqueue, the longest a merge-group run takes, so an
+    abandoned record never fills the window and the figure can still be nonzero."""
     spans = []
     for x in recs:
         if not x.get("enqueued"):
             continue
         a = landing_measure.iso_time(x["enqueued"]).timestamp()
-        b = landing_measure.iso_time(x["merged"]).timestamp() if x.get("merged") else now
+        b = (landing_measure.iso_time(x["merged"]).timestamp() if x.get("merged")
+             else min(now, a + QUEUE_OPEN_MAX_MIN * 60))
         a, b = max(a, since), min(b, now)
         if b > a:
             spans.append((a, b))
@@ -175,7 +189,7 @@ def progress(cdir: pathlib.Path, since: float, now: float | None = None,
     for g in coord.ledger_groups(cdir):
         slug = reports.ledger_slug(g)
         mine = [r for r in reps if reports.answers(r, g)]
-        acts = group_activity(cdir, slug)
+        acts = group_activity(cdir, g)
         if not mine:
             groups["running"] += 1
             if isinstance(g.get("at"), (int, float)):
@@ -308,7 +322,8 @@ def self_test() -> int:
     for name, body in (("PB710", "cluster: [PB710]" + nl + "running_limit_min: 150"), ("PB711", "cluster: [PB710]")):
         (register / f"{name}.md").write_text(f"---{nl}id: {name}{nl}title: t{nl}{body}{nl}---{nl}", encoding="utf-8", newline=nl)
     for slug in ("w7j", "w7k"):
-        log = cdir / "scratch" / slug / "gate1.log"   # the gate log an implementer redirects (group_activity reads it)
+        wave_scratch = "camp" if slug == "w7k" else ""   # a campaign wave's groups write under the wave's own scratch
+        log = cdir / "scratch" / wave_scratch / slug / "gate1.log"   # the gate log an implementer redirects
         log.parent.mkdir(parents=True)
         log.write_text("gate-slot: waiting, 2 ahead" + nl, encoding="utf-8", newline=nl)
         os.utime(log, (now - 5 * 60, now - 5 * 60))
@@ -345,7 +360,9 @@ def self_test() -> int:
          "merged": iso(now - 30 * 60).astimezone().isoformat()},
         {"pr": 2, "branch": "b2", "enqueued": iso(now - 10 * 60).astimezone().isoformat()},
         {"pr": 3, "branch": "b3", "enqueued": iso(now - 300 * 60).astimezone().isoformat(),
-         "merged": iso(now - 200 * 60).astimezone().isoformat()})), encoding="utf-8", newline="\n")
+         "merged": iso(now - 200 * 60).astimezone().isoformat()},
+        {"pr": 4, "branch": "b4", "enqueued": iso(now - 200 * 60).astimezone().isoformat()})),   # closed, never merged
+        encoding="utf-8", newline="\n")
     import gate  # noqa: PLC0415
     import gate_slot  # noqa: PLC0415
     held = gate_slot.ExclusiveLock.try_take(wt_gating / ".git" / gate.LOCK_NAME, "gate (self-test)")
@@ -368,6 +385,14 @@ def self_test() -> int:
           f"two reviewed groups, one of which drew FINDINGS at round 1 (PB4888 lever 5): {p['reviewed']}")
     check(round(p["queue_empty_min"]) == 70,
           f"the window's 100 minutes less 20 (a merged record) and 10 (an open one) in the queue: {p['queue_empty_min']}")
+    rev = cdir / "scratch" / "camp" / "review-w7-m.jsonl"   # a branch review's findings file, hyphenated, in a wave scratch
+    rev.write_text("{}" + nl, encoding="utf-8", newline=nl)
+    os.utime(rev, (now - 4 * 60, now - 4 * 60))
+    m = group_activity(cdir, {"wave": "7", "letter": "M", "notes": []})
+    check(round((now - m) / 60) == 4 and round((now - group_activity(cdir, {"wave": "7", "letter": "K", "notes": []})) / 60) == 5
+          and group_activity(cdir, {"wave": "7", "letter": "L", "notes": []}) == 0.0,
+          f"a group's acts are its scratch under a wave scratch (K) and its review's hyphenated findings file (M), and a "
+          f"silent one (L) has none: {m}")
     r2 = reports.Review("CLEAN", 0, "w7c-review-r2", "abcdef12", None)
     check(review_round(r2) == 2 and review_round(reports.Review("CLEAN", 0, "w7c", "abcdef12", None)) == 1,
           "a reviewer id's -rN suffix is its round")
