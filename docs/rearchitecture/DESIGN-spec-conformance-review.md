@@ -855,9 +855,11 @@ The authority is the edition's own enumerated lists: 1985's obsolete list (§198
 (§2023:F.1, 2 entries, which §2023:4.2.12 defines) and obsolete list (§2023:F.2, 5 entries, which §2023:4.2.13
 defines). They are held once as data per edition (`docs/rearchitecture/spec-element-standing-<edition>.json`,
 `extract_rule_catalog.STANDING_OF`): per list its standing, its locator and its remark sections; per entry its number,
-the terms that name the element in a rule, the sections that specify it, and a section's own extra terms where one
-section's validation format is named by a word that names something else in the others; the entry's name is the
-list's own text. Both catalog arms apply them through one call (`element_standing.apply`). The
+the terms that name the element in a rule, the sections that specify it, a section's own extra terms (VALUE's VALID and
+INVALID phrases), and a SHARED section's numbered formats that are wholly the element (`section-formats`: the EXIT
+statement's Format 2 (program), the data description entry's Format 4 (validation), PRESENT WHEN's Format 2
+(validation), VALUE's Format 5 (content-validation-entry)), whose band's every syntax and general rule is marked, by the
+rule's `band-formats`, whether its text names a term or not; the entry's name is the list's own text. Both catalog arms apply them through one call (`element_standing.apply`). The
 marking (`scripts/spec/element_standing.py`) is decided per SECTION: an OWN section, whose heading names one of the
 entry's terms (THE ALTER STATEMENT, THE RERUN CLAUSE, the Debug and Segmentation modules; 2023's FLAG-02 directive,
 standard-binary arithmetic, the VALIDATE statement and the clauses that exist only for it), marks every rule; a SHARED
@@ -869,10 +871,13 @@ The drift checks, which the RULE CATALOG and RULE CATALOG 1985 audits fail on, h
 entries are exactly the list's items, every section is a locator of the text, every sentence that gives an element the
 list's standing ("is an obsolete element", "is an archaic feature") falls in a section some entry names (or a remark
 section the data names: the 1985 level tables' Z notation, a 2023 definition's note, Annex A's lists, Annex D's
-concepts), every entry marks a rule (counted by the marking itself, so a shared general format naming a term does not
+concepts), every sentence giving a NAMED format the standing ("The Program format of the EXIT statement is an archaic
+feature", "The validation format of the data description is an obsolete feature") names a format an entry declares, a
+declared format is a numbered format of its section, a format's number is never a term (it misses the band's rules that
+do not repeat it), every entry marks a rule (counted by the marking itself, so a shared general format naming a term does not
 count; 1985 entry 1, double character substitution, is prose outside any rule block and entry 4, MEMORY SIZE, is named
 only in the shared OBJECT-COMPUTER format, so both are declared `no-rule`, checked both ways), and no shared section's
-format and no rule outside its entries' sections is marked. 1985: 143 rules obsolete. 2023: 12 archaic and 101
+format and no rule outside its entries' sections is marked. 1985: 143 rules obsolete. 2023: 13 archaic and 106
 obsolete. A later edition's lists are one more data file read by the same code.
 
 **A verdict is held once per chain.** A run of KEPT links is one chain; its verdict, code location and test live on the

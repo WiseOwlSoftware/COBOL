@@ -23,15 +23,20 @@ obsolete elements of §2023:F.2 (§2023:4.2.12 and §2023:4.2.13 define them). E
 per entry: its number, the terms that name it, the sections that specify it, and a section's own extra terms; the name
 is read from the list itself), and `scripts/spec/element_standing.py` applies them through one call both catalog arms
 make (`apply`), as the Mythos session decided after review w20261927a: per section, OWN when the heading names a term
-(every rule marked), else SHARED (only the syntax and general rules naming a term; the general format stays current).
+(every rule marked), else SHARED (only the syntax and general rules naming a term, and every syntax and general rule
+in the band of a format that is wholly the element, `section-formats`: EXIT's Format 2 (program), the data description
+entry's Format 4 (validation), PRESENT WHEN's Format 2 and VALUE's Format 5, after review w20261929a R2-1, where a
+format-number term had left six rules of those bands normal; the general format stays current). A sentence giving a
+named format the standing ("The Program format of the EXIT statement is an archaic feature") must name a declared
+format, and a format's number may not be a term.
 The drift checks run in the RULE CATALOG and RULE CATALOG 1985 audits: each list's entries are exactly its items; each
 section is a locator of the text; each sentence giving an element the list's standing ("is an obsolete element", "is an
 archaic feature") falls in a section some entry names or in a remark section (the 1985 level tables' Z notation, a 2023
 definition's note, Annex A's lists and Annex D's concepts); each entry marks a rule, counted by the marking itself, so
 a shared general format no longer passes for one (review w20261929a R1-2: 1985 entry 4, MEMORY SIZE, named only in the
 OBJECT-COMPUTER format, is now declared `no-rule` beside entry 1); and no shared format or out-of-section rule is
-marked. 1985: 143 rules obsolete. 2023: 12 archaic (EXIT PROGRAM 7, NEXT SENTENCE 5) and 101 obsolete (FLAG-02 7, the
-MOVE of an ALL digit literal 1, STANDARD-BINARY 9, the fixed continuation indicator 3, the VALIDATE facility 81, which
+marked. 1985: 143 rules obsolete. 2023: 13 archaic (EXIT PROGRAM 8, NEXT SENTENCE 5) and 106 obsolete (FLAG-02 7, the
+MOVE of an ALL digit literal 1, STANDARD-BINARY 9, the fixed continuation indicator 3, the VALIDATE facility 86, which
 owns its CLASS, DEFAULT, DESTINATION, INVALID and VALIDATE-STATUS clauses and shares the data description entry and the
 PRESENT WHEN, VALUE and VARYING clauses). Neither audit finds anything.
 

@@ -17946,7 +17946,7 @@
    "band-formats": [
     2
    ],
-   "status": "normal"
+   "status": "obsolete: F.2(5)"
   },
   {
    "id": "GR-13.18.41.4-1",
@@ -21465,7 +21465,7 @@
    "band-formats": [
     5
    ],
-   "status": "normal"
+   "status": "obsolete: F.2(5)"
   },
   {
    "id": "SR-13.18.63.3-37",
@@ -21493,7 +21493,7 @@
    "band-formats": [
     5
    ],
-   "status": "normal"
+   "status": "obsolete: F.2(5)"
   },
   {
    "id": "SR-13.18.63.3-39",
@@ -21507,7 +21507,7 @@
    "band-formats": [
     5
    ],
-   "status": "normal"
+   "status": "obsolete: F.2(5)"
   },
   {
    "id": "GR-13.18.63.4-1",
@@ -21843,7 +21843,7 @@
    "band-formats": [
     5
    ],
-   "status": "normal"
+   "status": "obsolete: F.2(5)"
   },
   {
    "id": "GR-13.18.63.4-25",
@@ -26494,7 +26494,7 @@
    "band-formats": [
     2
    ],
-   "status": "normal"
+   "status": "archaic: F.1(1)"
   },
   {
    "id": "SR-14.9.14.3-3",

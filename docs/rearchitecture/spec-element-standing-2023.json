@@ -4,11 +4,14 @@
   "10.2): the archaic language elements of §2023:F.1, which §2023:4.2.12 defines, and the obsolete language elements of",
   "§2023:F.2, which §2023:4.2.13 defines. The shape is the 1985 file's (spec-element-standing-1985.json, whose comment",
   "states each key): per list its `standing`, its locator, its `remarks` and its entries; per entry its number, its",
-  "`terms`, its `sections` and optional `section-terms`. A section is the element's SPECIFICATION; OWN or SHARED is",
-  "derived from its heading (element_standing.own). The VALIDATE facility owns the clauses that exist only for it (CLASS,",
-  "DEFAULT, DESTINATION, INVALID, VALIDATE-STATUS; the validation-clauses of §2023:13.16.2) and shares the data",
-  "description entry, the PRESENT WHEN, VALUE and VARYING clauses (each serves report writer or current data too) and the",
-  "exception-name table, where a section's own terms name its validation format alone. `remarks` names the sections whose",
+  "`terms`, its `sections`, optional `section-terms` and optional `section-formats` (a SHARED section's numbered formats",
+  "that are wholly the element: every syntax and general rule of their band is marked). A section is the element's",
+  "SPECIFICATION; OWN or SHARED is derived from its heading (element_standing.own). EXIT PROGRAM is Format 2 (program) of",
+  "the EXIT statement. The VALIDATE facility owns the clauses that exist only for it (CLASS, DEFAULT, DESTINATION,",
+  "INVALID, VALIDATE-STATUS; the validation-clauses of §2023:13.16.2) and shares the data description entry (its Format 4",
+  "(validation)), the PRESENT WHEN clause (Format 2 (validation)), the VALUE clause (Format 5 (content-validation-entry),",
+  "and its VALID and INVALID phrases), the VARYING clause (it serves report writer too) and the exception-name table.",
+  "`remarks` names the sections whose",
   "standing sentence is not an element's specification: a definition's note, Annex A's processor-dependent and optional",
   "element lists, and Annex D's informative concepts. extract_rule_catalog.py applies the lists (each rule's `status`)",
   "and --check fails on any element_standing.findings."
@@ -20,8 +23,7 @@
    "remarks": {"why": "the definition of a term, whose note names the element's standing",
                "sections": ["3.74"]},
    "entries": [
-    {"n": 1, "terms": ["EXIT PROGRAM", "Exception-name-1", "exception-name-1", "Identifier-1", "LAST phrase"],
-     "sections": ["14.9.14"]},
+    {"n": 1, "terms": ["EXIT PROGRAM"], "sections": ["14.9.14"], "section-formats": {"14.9.14": [2]}},
     {"n": 2, "terms": ["NEXT SENTENCE"], "sections": ["14.9.19", "14.9.37"]}
    ]
   },
@@ -41,8 +43,8 @@
                        "DESTINATION clause", "INVALID clause"],
      "sections": ["13.16", "13.18.11", "13.18.17", "13.18.18", "13.18.31", "13.18.41", "13.18.62", "13.18.63",
                   "13.18.64", "14.6.13.1.6", "14.9.50"],
-     "section-terms": {"13.16": ["Format 4"], "13.18.41": ["Format 2"],
-                       "13.18.63": ["Format 5", "VALID phrase", "INVALID phrase"]}}
+     "section-terms": {"13.18.63": ["VALID phrase", "INVALID phrase"]},
+     "section-formats": {"13.16": [4], "13.18.41": [2], "13.18.63": [5]}}
    ]
   }
  ]

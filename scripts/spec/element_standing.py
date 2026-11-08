@@ -24,14 +24,22 @@ w20261927a R1-1), because several whole elements own no section of their own:
 - an OWN section, one whose heading names one of the entry's terms (THE ALTER STATEMENT, SECTION XV: DEBUG MODULE,
   FLAG-02 directive, VALIDATE statement), marks every rule of the section, its general formats included;
 - every other named section is SHARED with current syntax (an I-O-CONTROL paragraph beside SAME, the OPEN, STOP, IF,
-  SEARCH and MOVE statements, the ARITHMETIC clause). It marks only the syntax and general rules whose text names one
-  of the entry's terms; its general format stays current even where it carries the element's syntax, since what a
-  later edition does to the format is the format's own change record (CHANGED).
+  SEARCH and MOVE statements, the ARITHMETIC clause). It marks the syntax and general rules whose text names one of
+  the entry's terms, and every syntax and general rule of the BAND of a format that is wholly the element (the EXIT
+  statement's Format 2 (program), the data description entry's Format 4 (validation), PRESENT WHEN's Format 2
+  (validation), VALUE's Format 5 (content-validation-entry)): the entry's `section-formats` name those formats, and a
+  rule is in the band when every format its `band-formats` names is one of them. Its general format stays current
+  even where it carries the element's syntax, since what a later edition does to the format is the format's own
+  change record (CHANGED).
 
 OWN or SHARED is DERIVED from the heading, never held in the data, so the two cannot disagree (review R2-1).
 
 THE DRIFT CHECKS (`findings`) hold the data to the text, per list: the entries are exactly the list's items; every
-section is a locator of the text; every sentence of the text that gives an element the list's standing ("... is an
+section is a locator of the text; a format the data names (`section-formats`) is a numbered format of its section's
+general format and no term is a format's number (a rule names its format only now and then, so `Format 5` as a term
+misses the band's other rules); every sentence that gives a NAMED format the standing ("The Program format of the EXIT
+statement is an archaic feature", "The validation format of the data description is an obsolete feature") names a
+format some entry declares; every sentence of the text that gives an element the list's standing ("... is an
 obsolete element in Standard COBOL ...", "... is an archaic feature.") falls in a section some entry names, or in a
 section the data names as a REMARK (a sentence that is not the element's specification: the 1985 level tables' Z
 notation, a 2023 definition's note, an informative annex); every entry marks at least one rule (`standing`, the
@@ -65,6 +73,10 @@ LIST_ITEMS = (re.compile(r"^\((?P<n>\d+)\)\s+<u>(?P<name>[^<]+)</u>"),
               re.compile(r"^(?P<n>\d+)[\\]\)\s+\*\*(?P<name>[^*]+?)\.?\*\*"))
 _MARKUP = re.compile(r"<[^>]+>|" + re.escape(spec_pdf.BOX_SIDE))
 _CLAUSE = re.compile(r"(?P<locator>[A-Z0-9.]+)\((?P<n>\d+)\)")
+#: A numbered format of a general format, with its name: `Format 2 (program):` (§2023:5.2.1).
+_FORMAT_NAMED = re.compile(r"Format (?P<n>\d+) \((?P<name>[^)]+)\)")
+#: A format's number used as a term: the shape `section-formats` replaces.
+_FORMAT_TERM = re.compile(r"^Format \d+$")
 
 
 def sentence(standing: str) -> re.Pattern[str]:
@@ -72,6 +84,13 @@ def sentence(standing: str) -> re.Pattern[str]:
     (§1985:VI.6.7.1), "are obsolete elements" (§1985:VI.3.2), "is an obsolete feature" (§1985:IV.4.1), "are an obsolete
     feature" (§2023:14.6.13.1.6), "is an archaic feature" (§2023:14.9.19.2)."""
     return re.compile(rf"\b(?:is an|are an|are) {standing} (?:element|feature)s?\b")
+
+
+def format_sentence(standing: str) -> re.Pattern[str]:
+    """A sentence giving one NAMED format of a general format `standing`: "The Program format of the EXIT statement is
+    an archaic feature" (§2023:14.9.14.2), "The validation format of the data description is an obsolete feature"
+    (§2023:13.16.2)."""
+    return re.compile(rf"\bThe (?P<name>[\w-]+) format of .*?\bis an {standing} feature\b")
 
 
 @dataclasses.dataclass(frozen=True)
@@ -84,9 +103,16 @@ class Entry:
     section_terms: Mapping[str, tuple[str, ...]]
     #: Why no rule of the catalog states the element (its text is prose outside any rule block), or "" when one does.
     no_rule: str
+    #: The numbered formats of a SHARED section's general format that are wholly the element (its band is marked).
+    section_formats: Mapping[str, tuple[int, ...]] = dataclasses.field(default_factory=dict)
 
     def terms_in(self, section: str) -> tuple[str, ...]:
         return self.terms + self.section_terms.get(section, ())
+
+    def in_band(self, section: str, row: Mapping[str, Any]) -> bool:
+        """Is `row` a rule of the band of a format of `section` that is wholly the element?"""
+        bands = row.get("band-formats") or []
+        return bool(bands) and set(bands) <= set(self.section_formats.get(section, ()))
 
 
 @dataclasses.dataclass(frozen=True)
@@ -104,7 +130,8 @@ def load(path: pathlib.Path) -> tuple[ElementList, ...]:
     return tuple(ElementList(lst["standing"], lst["list"], tuple(lst["remarks"]["sections"]),
                              tuple(Entry(e["n"], tuple(e["terms"]), tuple(e["sections"]),
                                          {s: tuple(t) for s, t in e.get("section-terms", {}).items()},
-                                         e.get("no-rule", ""))
+                                         e.get("no-rule", ""),
+                                         {s: tuple(f) for s, f in e.get("section-formats", {}).items()})
                                    for e in lst["entries"]))
                  for lst in raw["lists"])
 
@@ -148,7 +175,8 @@ def standing(rows: Iterable[dict[str, Any]], key: str, lst: ElementList,
         for sec in e.sections:
             whole = own(sec, e, heads)
             for r in rows:
-                if within(r[key], sec) and (whole or (r["kind"] != FORMAT and names(r["text"], e.terms_in(sec)))):
+                if within(r[key], sec) and (whole or (r["kind"] != FORMAT and (names(r["text"], e.terms_in(sec))
+                                                                              or e.in_band(sec, r)))):
                     if e.n not in out.setdefault(r["id"], []):
                         out[r["id"]].append(e.n)
     return out
@@ -196,15 +224,47 @@ def listed(lines: Sequence[str], regions: Iterable[tuple[str, str, int, int]], l
 
 
 def sentences(lines: Sequence[str], regions: Iterable[tuple[str, str, int, int]],
-              standing_word: str) -> list[tuple[int, str]]:
-    """Each line of the text that gives an element `standing_word`, with the locator of the innermost region that holds
-    it (a printed page's region, `p.…`, is not a section)."""
+              said: re.Pattern[str]) -> list[tuple[int, str, re.Match[str]]]:
+    """Each line of the text that `said` matches (a standing sentence), with the locator of the innermost region that
+    holds it (a printed page's region, `p.…`, is not a section) and the match."""
     spans = sorted(((loc, s, e) for loc, _t, s, e in regions if not loc.startswith("p.")), key=lambda x: x[2] - x[1])
-    said = sentence(standing_word)
     out = []
     for i, line in enumerate(lines):
-        if said.search(line):
-            out.append((i + 1, next((loc for loc, s, e in spans if s <= i < e), "")))
+        if m := said.search(line):
+            out.append((i + 1, next((loc for loc, s, e in spans if s <= i < e), ""), m))
+    return out
+
+
+def formats_of(rows: Iterable[dict[str, Any]], key: str, section: str) -> dict[int, str]:
+    """The numbered formats of `section`'s general format: number -> name (`Format 2 (program)` -> 2: "program")."""
+    return {int(m["n"]): m["name"] for r in rows if r["kind"] == FORMAT and within(r[key], section)
+            for m in _FORMAT_NAMED.finditer(plain(r["text"]))}
+
+
+def format_errors(rows: Sequence[dict[str, Any]], key: str, lst: ElementList, lines: Sequence[str],
+                  regions: Sequence[tuple[str, str, int, int]]) -> list[str]:
+    """Where a list's FORMAT data and the text disagree: a format-number term, a `section-formats` section the entry
+    does not name or a number its general format lacks, and a sentence giving a named format the list's standing that
+    names no format an entry declares."""
+    out = []
+    for e in lst.entries:
+        for sec, terms in e.section_terms.items():
+            out += [f"entry {lst.locator}({e.n}) names {sec}'s format by its number ({t!r}) as a term: declare it in "
+                    "section-formats, whose band is the format's" for t in terms if _FORMAT_TERM.match(t)]
+        for sec, numbers in e.section_formats.items():
+            if sec not in e.sections:
+                out.append(f"entry {lst.locator}({e.n}) gives formats to {sec}, which is none of its sections")
+                continue
+            have = formats_of(rows, key, sec)
+            out += [f"entry {lst.locator}({e.n}) declares Format {n} of {sec}, whose general format has only "
+                    f"{sorted(have)}" for n in numbers if n not in have]
+    for line, loc, m in sentences(lines, regions, format_sentence(lst.standing)):
+        hits = [(e, sec) for e in lst.entries for sec in e.sections if within(loc, sec)]
+        declared = [n for e, sec in hits for n, name in formats_of(rows, key, sec).items()
+                    if name.lower() == m["name"].lower() and n in e.section_formats.get(sec, ())]
+        if not declared:
+            out.append(f"line {line}: the text gives the {m['name']} format in {loc or 'no section'} the {lst.standing} "
+                       f"standing, but no entry of {lst.locator} declares it in section-formats")
     return out
 
 
@@ -252,14 +312,15 @@ def findings(lines: Sequence[str], regions: Sequence[tuple[str, str, int, int]],
             if sec not in universe:
                 out.append(f"{lst.locator}: section {sec} is no locator of the text")
         named = {s for e in lst.entries for s in e.sections} | set(lst.remarks)
-        said = sentences(lines, regions, lst.standing)
-        for line, loc in said:
+        said = sentences(lines, regions, sentence(lst.standing))
+        for line, loc, _m in said:
             if not within(loc, lst.locator) and not any(within(loc, s) for s in named):
                 out.append(f"line {line}: an {lst.standing}-element sentence in {loc or 'no section'}, which no "
                            f"entry of {lst.locator} names")
         for sec in lst.remarks:
-            if not any(within(loc, sec) for _, loc in said):
+            if not any(within(loc, sec) for _, loc, _m in said):
                 out.append(f"{lst.locator}: remark section {sec} holds no {lst.standing}-element sentence")
+        out += format_errors(rows, key, lst, lines, regions)
         marked = standing(rows, key, lst, heads)
         for e in lst.entries:
             resolving = [rid for rid, ns in marked.items() if e.n in ns]
@@ -325,7 +386,13 @@ The letter Z: this element is an obsolete element in Standard COBOL because it i
 
 #: An ISO-shaped text with two lists, to hold the 2023 shape: an archaic and an obsolete list, a section the archaic
 #: entry shares, and an obsolete entry whose OWN section is named by its heading.
-PLANTED_ISO = """#### 14.9.19 IF statement
+PLANTED_ISO = """#### 14.9.14 EXIT statement
+##### 14.9.14.2 General formats
+Format 1 (simple):
+Format 2 (program):
+NOTE The Program format of the EXIT statement is an archaic feature.
+##### 14.9.14.3 Syntax rules
+#### 14.9.19 IF statement
 ##### 14.9.19.2 General formats
 NOTE NEXT SENTENCE is an archaic feature.
 ##### 14.9.19.3 Syntax rules
@@ -344,8 +411,8 @@ def _row(rid: str, loc: str, kind: str, text: str) -> dict[str, Any]:
     return {"id": rid, "locator": loc, "kind": kind, "text": text}
 
 
-def _iso_row(rid: str, section: str, kind: str, text: str) -> dict[str, Any]:
-    return {"id": rid, "section": section, "kind": kind, "text": text}
+def _iso_row(rid: str, section: str, kind: str, text: str, bands: Sequence[int] = ()) -> dict[str, Any]:
+    return {"id": rid, "section": section, "kind": kind, "text": text} | ({"band-formats": list(bands)} if bands else {})
 
 
 def self_test() -> int:
@@ -369,8 +436,9 @@ def self_test() -> int:
             _row("GR-VI.6.24.4-2", "VI.6.24.4", "GR", "Prose about literal-10 is no term.")]
 
     def entry(n: int, terms: tuple[str, ...], sections: tuple[str, ...], no_rule: str = "",
-              section_terms: Mapping[str, tuple[str, ...]] | None = None) -> Entry:
-        return Entry(n, terms, sections, section_terms or {}, no_rule)
+              section_terms: Mapping[str, tuple[str, ...]] | None = None,
+              section_formats: Mapping[str, tuple[int, ...]] | None = None) -> Entry:
+        return Entry(n, terms, sections, section_terms or {}, no_rule, section_formats or {})
 
     lst = ElementList("obsolete", "C.1", ("I.2.1",), (entry(1, ("AUTHOR",), ("VI.3.2",)),
                                                      entry(2, ("ALTER",), ("VI.6.7",)),
@@ -424,14 +492,21 @@ def self_test() -> int:
 
     iso = PLANTED_ISO.splitlines()
     iso_regions = citation.iso_regions(iso)
-    iso_rows = [_iso_row("FMT-14.9.19.2", "14.9.19.2", "FMT", "IF condition-1 THEN NEXT SENTENCE"),
+    iso_rows = [_iso_row("FMT-14.9.14.2", "14.9.14.2", "FMT",
+                         "Format 1 (simple): <u>EXIT</u> Format 2 (program): <u>EXIT</u> <u>PROGRAM</u>"),
+                _iso_row("SR-14.9.14.3-1", "14.9.14.3", "SR", "The EXIT statement shall appear by itself.", (1,)),
+                _iso_row("SR-14.9.14.3-2", "14.9.14.3", "SR", "The EXIT statement shall not be in a GLOBAL "
+                         "declarative.", (2,)),
+                _iso_row("SR-14.9.14.3-3", "14.9.14.3", "SR", "An EXIT PROGRAM statement may be specified only in a "
+                         "program.", (2,)),
+                _iso_row("SR-14.9.14.3-4", "14.9.14.3", "SR", "The EXIT statement applies to both.", (1, 2)),
+                _iso_row("FMT-14.9.19.2", "14.9.19.2", "FMT", "IF condition-1 THEN NEXT SENTENCE"),
                 _iso_row("SR-14.9.19.3-1", "14.9.19.3", "SR", "The ELSE NEXT SENTENCE phrase may be omitted."),
                 _iso_row("SR-14.9.19.3-2", "14.9.19.3", "SR", "Condition-1 is a conditional expression."),
                 _iso_row("FMT-14.9.50.2", "14.9.50.2", "FMT", "VALIDATE identifier-1"),
                 _iso_row("SR-14.9.50.3-1", "14.9.50.3", "SR", "Identifier-1 shall reference a data item.")]
-    archaic = ElementList("archaic", "F.1", (), (entry(1, ("EXIT PROGRAM",), ("14.9.19",),
-                                                       "planted: the EXIT statement is not in the text"),
-                                                 entry(2, ("NEXT SENTENCE",), ("14.9.19",))))
+    exit_program = entry(1, ("EXIT PROGRAM",), ("14.9.14",), section_formats={"14.9.14": (2,)})
+    archaic = ElementList("archaic", "F.1", (), (exit_program, entry(2, ("NEXT SENTENCE",), ("14.9.19",))))
     obsolete = ElementList("obsolete", "F.2", (), (entry(1, ("VALIDATE",), ("14.9.50",)),))
     ok(listed(iso, iso_regions, "F.1") == {1: "The EXIT PROGRAM Statement",
                                            2: "NEXT SENTENCE phrase in the IF and SEARCH statements"},
@@ -439,8 +514,29 @@ def self_test() -> int:
     got = findings(iso, iso_regions, iso_rows, "section", [archaic, obsolete])
     ok(got == [], f"two lists of one edition, each with its own standing sentence, agree with the text: {got}")
     mark(iso_rows, "section", [archaic, obsolete], headings(iso, iso_regions))
-    ok([r["status"] for r in iso_rows] == [NORMAL, "archaic: F.1(2)", NORMAL, "obsolete: F.2(1)", "obsolete: F.2(1)"],
-       "each list confers its own standing: a SHARED archaic section, an OWN obsolete one")
+    a1 = "archaic: F.1(1)"
+    ok([r["status"] for r in iso_rows] == [NORMAL, NORMAL, a1, a1, NORMAL, NORMAL, "archaic: F.1(2)", NORMAL,
+                                           "obsolete: F.2(1)", "obsolete: F.2(1)"],
+       "each list confers its own standing: a SHARED archaic section, an OWN obsolete one; a SHARED section's format "
+       "that is wholly the element marks its band's every rule, naming a term or not, and no rule of another band")
+
+    def archaic_with(e1: Entry) -> list[str]:
+        return findings(iso, iso_regions, iso_rows, "section",
+                        [dataclasses.replace(archaic, entries=(e1, *archaic.entries[1:])), obsolete])
+    ok(any("Program format in 14.9.14.2" in f and "declares it" in f
+           for f in archaic_with(entry(1, ("EXIT PROGRAM",), ("14.9.14",)))),
+       "a sentence giving a named format the standing needs an entry declaring that format (section-formats)")
+    ok(any("by its number ('Format 2')" in f
+           for f in archaic_with(entry(1, ("EXIT PROGRAM",), ("14.9.14",), section_terms={"14.9.14": ("Format 2",)},
+                                       section_formats={"14.9.14": (2,)}))),
+       "a format's number is never a term: its band is declared in section-formats")
+    ok(any("declares Format 3 of 14.9.14" in f
+           for f in archaic_with(entry(1, ("EXIT PROGRAM",), ("14.9.14",), section_formats={"14.9.14": (2, 3)}))),
+       "a declared format must be a numbered format of the section's general format")
+    ok(any("gives formats to 14.9.19" in f
+           for f in archaic_with(entry(1, ("EXIT PROGRAM",), ("14.9.14",),
+                                       section_formats={"14.9.14": (2,), "14.9.19": (2,)}))),
+       "a section's declared formats must belong to one of the entry's sections")
     stray = ElementList("obsolete", "F.2", (), (entry(1, ("VALIDATE",), ("14.9.19",)),))
     ok(any("obsolete-element sentence in 14.9.50.1" in f
            for f in findings(iso, iso_regions, iso_rows, "section", [archaic, stray])),
