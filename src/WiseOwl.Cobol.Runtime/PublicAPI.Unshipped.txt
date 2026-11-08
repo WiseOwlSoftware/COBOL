@@ -780,7 +780,6 @@ static WiseOwl.Cobol.Runtime.ActivationRelations.MatchViolation(WiseOwl.Cobol.Ru
 static WiseOwl.Cobol.Runtime.ActivationRelations.SignatureDifference(WiseOwl.Cobol.Runtime.ActivationDescription! first, WiseOwl.Cobol.Runtime.ActivationDescription! second, string! firstRole = "item", string! secondRole = "corresponding item") -> string?
 static WiseOwl.Cobol.Runtime.AsyncMessaging.Receive(WiseOwl.Cobol.Runtime.MessageTag from, int capacity, WiseOwl.Cobol.Runtime.MessageWait wait, string! checking) -> WiseOwl.Cobol.Runtime.MessageOutcome
 static WiseOwl.Cobol.Runtime.AsyncMessaging.Received(WiseOwl.Cobol.Runtime.MessageTag tag, int size) -> void
-static WiseOwl.Cobol.Runtime.AsyncMessaging.Resolve(WiseOwl.Cobol.Runtime.MessageTag decoded, WiseOwl.Cobol.Runtime.MessageSlot[]? slots) -> WiseOwl.Cobol.Runtime.MessageTag
 static WiseOwl.Cobol.Runtime.AsyncMessaging.Resolved(object?[]! leaves, WiseOwl.Cobol.Runtime.MessageSlot[]? slots) -> object?[]!
 static WiseOwl.Cobol.Runtime.AsyncMessaging.SendResponse(WiseOwl.Cobol.Runtime.MessageTag to, string! image, WiseOwl.Cobol.Runtime.RecordExtents? extents, WiseOwl.Cobol.Runtime.MessageSlot[]! slots, string? raising, bool raisingLast, string! checking) -> WiseOwl.Cobol.Runtime.MessageOutcome
 static WiseOwl.Cobol.Runtime.AsyncMessaging.SendToServer(string! server, string! image, WiseOwl.Cobol.Runtime.RecordExtents? extents, WiseOwl.Cobol.Runtime.MessageSlot[]! slots, string! checking) -> WiseOwl.Cobol.Runtime.MessageOutcome

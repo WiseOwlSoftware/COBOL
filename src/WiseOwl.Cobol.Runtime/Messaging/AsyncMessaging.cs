@@ -99,7 +99,7 @@ public static class AsyncMessaging
     /// the one decode a file record's tag takes): eight X"00" are NULL, and a token this run unit did not assign is an unresolved tag that keeps its positions. Such a
     /// token that is one the message carries a slot for is that slot's tag - the sending run unit's identifier, which this one learns from the slot alone.
     /// Every other content stays what it decoded to, as it would from a file (DOC-A.1-212): a position past the end of a shorter message is a space.</summary>
-    public static MessageTag Resolve(MessageTag decoded, MessageSlot[]? slots)
+    internal static MessageTag Resolve(MessageTag decoded, MessageSlot[]? slots)
     {
         if (decoded.Party == MessageParty.Unresolved && slots is not null)
             foreach (var slot in slots)
