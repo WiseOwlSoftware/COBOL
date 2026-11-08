@@ -48,7 +48,7 @@ import tempfile
 REPO = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 sys.path.insert(0, str(REPO / "scripts" / "orchestrator"))
-import inventory_store  # noqa: E402  (the inventory's one reader)
+import inventory_view  # noqa: E402  (the one view of the inventory, kb/Work PB4992)
 import work  # noqa: E402  (the register's one reader)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
@@ -381,7 +381,7 @@ def problems(items: list[dict], plan: dict, rem: dict) -> list[str]:
 
 
 def live_problems() -> list[str]:
-    items, rows = work.load(), inventory_store.load_inventory()
+    items, rows = work.load(), inventory_view.inventory()
     gap = sum(1 for r in rows if r["state"] == "GAP")
     return problems(items, measure(items, gap), remaining(items, rows, gap))
 

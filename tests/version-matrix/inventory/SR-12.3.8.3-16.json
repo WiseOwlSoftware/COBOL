@@ -1,15 +1,9 @@
 {
  "rule-id": "SR-12.3.8.3-16",
- "section": "12.3.8.3",
- "kind": "SR",
- "ordinal": 16,
- "subject": "REPOSITORY paragraph",
  "rule-digest": "34211d48970a",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#CheckPropertySpecifiers",
  "test-ref": "conformance:wiseowl/cases/12.3.8-REPOSITORY/pb2104_import_interface_and_property; conformance-test:ExternalRepositoryClassImportTests.APropertySpecifierNoClassOfItsParagraphHas_IsRepo1",
- "derivation": "",
  "editions": "2002,2014,2023",
- "notes": "a PROPERTY specifier needs an accessor of literal-4 ?? word in a class or interface of its own paragraph, group or imported.",
- "state": "OK"
+ "notes": "a PROPERTY specifier needs an accessor of literal-4 ?? word in a class or interface of its own paragraph, group or imported."
 }

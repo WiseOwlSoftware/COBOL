@@ -1,15 +1,9 @@
 {
  "rule-id": "GR-8.4.3.10.4-4",
- "section": "8.4.3.10.4",
- "kind": "GR",
- "ordinal": 4,
- "subject": "NULL address pointer and message tag content",
  "rule-digest": "32002337e8b2",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Runtime/Messaging/MessageTag.cs#Null; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#RenderRelational; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#DefaultInitializer",
  "test-ref": "conformance:cases/8.8.4.2-Simple-relation-conditions/message-tag-relation; conformance:cases/13.18.60-USAGE/message-tag-usage",
- "derivation": "",
  "editions": "2023",
- "notes": "8.4.3.10.4 GR4 (cite.py --check 8.4.3.10.4 OK, 4)): when associated with a message-tag, NULL references a data item of category message-tag that contains the null content, an implementor-defined value guaranteed not to represent a server or requestor. The null content is MessageTag.Null (no party), the item's initial value and the sender of SET Format 17 and INITIALIZE; DOC-A.1-125 states it. kb/Work PB4740. retired-witness: conformance:wiseowl/cases/8.4.3.10-NULL-address-pointer-and-message-tag/pb487-message-tag-usage (the usage is no longer refused in ParseUsage; the null content is MessageTag.Null) retired-witness: src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ParseUsage (the usage is no longer refused in ParseUsage; the null content is MessageTag.Null)",
- "state": "OK"
+ "notes": "8.4.3.10.4 GR4 (cite.py --check 8.4.3.10.4 OK, 4)): when associated with a message-tag, NULL references a data item of category message-tag that contains the null content, an implementor-defined value guaranteed not to represent a server or requestor. The null content is MessageTag.Null (no party), the item's initial value and the sender of SET Format 17 and INITIALIZE; DOC-A.1-125 states it. kb/Work PB4740. retired-witness: conformance:wiseowl/cases/8.4.3.10-NULL-address-pointer-and-message-tag/pb487-message-tag-usage (the usage is no longer refused in ParseUsage; the null content is MessageTag.Null) retired-witness: src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ParseUsage (the usage is no longer refused in ParseUsage; the null content is MessageTag.Null)"
 }

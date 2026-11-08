@@ -1,15 +1,9 @@
 {
  "rule-id": "SR-14.9.38.3-3",
- "section": "14.9.38.3",
- "kind": "SR",
- "ordinal": 3,
- "subject": "SEND statement",
  "rule-digest": "713ed7706629",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MessagingBinder.cs#ScreenMessageArea; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MessagingBinder.cs#ForbiddenClause",
  "test-ref": "conformance:wiseowl/cases/14.9.38-SEND/pb4743-send-from-pointer-area; conformance:wiseowl/cases/14.9.38-SEND/pb4743-send-from-odo-object-outside; conformance:wiseowl/cases/14.9.38-SEND/pb4743-send-syntax-rules-accepted; conformance-test:MessagingSyntaxRuleTests.SendFrom_ARefusedClause_IsRefusedWithItsRule; conformance:wiseowl/cases/14.9.31-RECEIVE/w59_mcs_facility_witness",
- "derivation": "",
  "editions": "2023",
- "notes": "kb/Work PB4743: one walk over identifier-1 and its subordinates refuses the ANY LENGTH, BASED, DYNAMIC-LENGTH, OBJECT-REFERENCE, POINTER, FUNCTION-POINTER and PROGRAM-POINTER clauses and an OCCURS DEPENDING ON whose object is not within identifier-1, with COBOL6266; SEND's list does not name CONSTANT RECORD, so a constant record is a message SEND reads. retired-witness: conformance-test:DocumentedNonSupportWitnessTests.McsFacility_NamedNonSupportWarning_AtBothStatements_PinnedToSpec (the facility is provided (kb/Work PB4744): the decline witness was removed and its program moved to the clause of its rules as an exchange witness) retired-witness: conformance:wiseowl/cases/14.6.11-Normal-run-unit-termination/w59_mcs_facility_witness (the facility is provided (kb/Work PB4744): the decline witness was removed and its program moved to the clause of its rules as an exchange witness)",
- "state": "OK"
+ "notes": "kb/Work PB4743: one walk over identifier-1 and its subordinates refuses the ANY LENGTH, BASED, DYNAMIC-LENGTH, OBJECT-REFERENCE, POINTER, FUNCTION-POINTER and PROGRAM-POINTER clauses and an OCCURS DEPENDING ON whose object is not within identifier-1, with COBOL6266; SEND's list does not name CONSTANT RECORD, so a constant record is a message SEND reads. retired-witness: conformance-test:DocumentedNonSupportWitnessTests.McsFacility_NamedNonSupportWarning_AtBothStatements_PinnedToSpec (the facility is provided (kb/Work PB4744): the decline witness was removed and its program moved to the clause of its rules as an exchange witness) retired-witness: conformance:wiseowl/cases/14.6.11-Normal-run-unit-termination/w59_mcs_facility_witness (the facility is provided (kb/Work PB4744): the decline witness was removed and its program moved to the clause of its rules as an exchange witness)"
 }

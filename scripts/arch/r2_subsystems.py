@@ -50,6 +50,7 @@ import tempfile
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
+import git_batch  # noqa: E402  (scripts/: one git process for many objects)
 
 REPO = Path(__file__).resolve().parents[2]
 DESIGN = Path("docs/rearchitecture/DESIGN-architecture-review.md")
@@ -218,16 +219,8 @@ def tree_lines(blobs, repo: Path = REPO):
     distinct blob read once."""
     if not blobs:
         return {}
-    oids = list(dict.fromkeys(blobs.values()))
-    proc = subprocess.run(["git", "-C", str(repo), "cat-file", "--batch"], input="\n".join(oids).encode() + b"\n",
-                          capture_output=True, check=True).stdout
-    pos, by_oid = 0, {}
-    while pos < len(proc):
-        nl = proc.index(b"\n", pos)
-        oid, _, size = proc[pos:nl].decode().split()
-        body = proc[nl + 1:nl + 1 + int(size)]
-        by_oid[oid] = body.count(b"\n") + (1 if body and not body.endswith(b"\n") else 0)
-        pos = nl + 1 + int(size) + 1
+    by_oid = {oid: body.count(b"\n") + (1 if body and not body.endswith(b"\n") else 0)
+              for oid, body in git_batch.blobs(repo, blobs.values())}
     return {p: by_oid[o] for p, o in blobs.items()}
 
 

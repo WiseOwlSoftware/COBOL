@@ -1,15 +1,9 @@
 {
  "rule-id": "SR-13.18.60.3-21",
- "section": "13.18.60.3",
- "kind": "SR",
- "ordinal": 21,
- "subject": "USAGE clause",
  "rule-digest": "219f0f5f3ef4",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#MessageTagUsageExclusive; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#CheckMessageTagExclusivity",
  "test-ref": "conformance:wiseowl/cases/13.18.60-USAGE/pb544-message-tag-usage-exclusive",
- "derivation": "",
  "editions": "2023",
- "notes": "13.18.60.3 SR21 (cite.py --check 13.18.60.3 'If MESSAGE-TAG is specified, no other usage clauses shall be specified in the data description entry' OK, 21): COBOL2158 is raised from the entry's list of USAGE clauses at every edition that has the usage, in either order, and is witnessed by its own negative golden. Since kb/Work PB4740 the usage is no longer declined, so this is the rule's whole enforcement (kb/Work PB544 landed the screen). retired-witness: conformance:wiseowl/cases/8.4.3.10-NULL-address-pointer-and-message-tag/pb487-message-tag-usage (COBOL1943 and the refusal case are retired with the decline; the exclusivity screen has its own witness) retired-witness: src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#MessageTagUsageUnsupported (COBOL1943 and the refusal case are retired with the decline; the exclusivity screen has its own witness)",
- "state": "OK"
+ "notes": "13.18.60.3 SR21 (cite.py --check 13.18.60.3 'If MESSAGE-TAG is specified, no other usage clauses shall be specified in the data description entry' OK, 21): COBOL2158 is raised from the entry's list of USAGE clauses at every edition that has the usage, in either order, and is witnessed by its own negative golden. Since kb/Work PB4740 the usage is no longer declined, so this is the rule's whole enforcement (kb/Work PB544 landed the screen). retired-witness: conformance:wiseowl/cases/8.4.3.10-NULL-address-pointer-and-message-tag/pb487-message-tag-usage (COBOL1943 and the refusal case are retired with the decline; the exclusivity screen has its own witness) retired-witness: src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#MessageTagUsageUnsupported (COBOL1943 and the refusal case are retired with the decline; the exclusivity screen has its own witness)"
 }

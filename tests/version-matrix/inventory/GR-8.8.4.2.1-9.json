@@ -1,15 +1,9 @@
 {
  "rule-id": "GR-8.8.4.2.1-9",
- "section": "8.8.4.2.1",
- "kind": "GR",
- "ordinal": 9,
- "subject": "Simple relation conditions",
  "rule-digest": "7d451a663125",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#RenderRelational; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckFormat3Relation; src/WiseOwl.Cobol.Runtime/Messaging/MessageTag.cs#SameParty",
  "test-ref": "conformance:cases/8.8.4.2-Simple-relation-conditions/message-tag-relation; unit:MessageTagTests.SameParty_IsEqualityOfTheParty",
- "derivation": "",
  "editions": "2023",
- "notes": "8.8.4.2.1 item 9 'Two operands of class message-tag' (cite.py --check 8.8.4.2.1 OK, 9) and 8.8.4.2.14 (cite.py --check 8.8.4.2.14 OK): equality and inequality only, NULL admitted; two operands are equal when both are NULL or they name the same server name or requestor (MessageTag.SameParty), the message number taking no part. An ordering relation is refused (COBOL0869) and a strongly-typed group holding a tag is refused one too (COBOL1535, 8.8.4.2.3 SR4). kb/Work PB4740. retired-witness: conformance:wiseowl/cases/8.4.3.10-NULL-address-pointer-and-message-tag/pb487-message-tag-usage (the usage is no longer refused; the relation is rendered through MessageTag.SameParty) retired-witness: src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ParseUsage (the usage is no longer refused; the relation is rendered through MessageTag.SameParty)",
- "state": "OK"
+ "notes": "8.8.4.2.1 item 9 'Two operands of class message-tag' (cite.py --check 8.8.4.2.1 OK, 9) and 8.8.4.2.14 (cite.py --check 8.8.4.2.14 OK): equality and inequality only, NULL admitted; two operands are equal when both are NULL or they name the same server name or requestor (MessageTag.SameParty), the message number taking no part. An ordering relation is refused (COBOL0869) and a strongly-typed group holding a tag is refused one too (COBOL1535, 8.8.4.2.3 SR4). kb/Work PB4740. retired-witness: conformance:wiseowl/cases/8.4.3.10-NULL-address-pointer-and-message-tag/pb487-message-tag-usage (the usage is no longer refused; the relation is rendered through MessageTag.SameParty) retired-witness: src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ParseUsage (the usage is no longer refused; the relation is rendered through MessageTag.SameParty)"
 }

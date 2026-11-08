@@ -19,11 +19,12 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 /// <remarks>
 /// <para>
-/// A completion metric that nothing audits is a self-report. Every row of
-/// <c>tests/version-matrix/inventory/&lt;rule-id&gt;.json</c> (one file per row, kb/Work PB4148) claims three things — that a rule was located in the
+/// A completion metric that nothing audits is a self-report. Every row of the inventory's view
+/// (<see cref="TraceabilityInventory"/>: the catalog joined with <c>tests/version-matrix/inventory/&lt;rule-id&gt;.json</c>, one
+/// file per adjudicated rule, kb/Work PB4148, PB4992) claims three things — that a rule was located in the
 /// code, that a verdict was reached against the spec text, and that a spec-derived test covers it — and each of
 /// those claims is cheap to write and expensive to earn. These tests make the cheap version fail:
-/// <c>state</c> is RECOMPUTED here rather than believed, a <c>code-location</c> must name a file and a symbol that
+/// <c>state</c> is computed here by a second engine and held to the Python view's, a <c>code-location</c> must name a file and a symbol that
 /// still exist IN THAT FILE'S CODE (<see cref="SymbolResolves"/>: a comment does not count), a <c>test-ref</c> must
 /// resolve to a test that is really on disk, and every <c>path#Symbol</c> a row's <c>notes</c> prose spells must
 /// resolve as a <c>code-location</c> does (kb/Work PB762: <c>notes</c> was the one adjudicated field no gate read,
@@ -46,7 +47,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// The vocabulary these tests enforce is not written down here either: verdicts, their <c>resolves</c> flag, their
 /// required evidence, the test-ref forms, the per-KIND evidence rules and the anchored-file spaces are read from
 /// <c>tests/version-matrix/inventory-schema.json</c>, the same file the Python side reads. What exists twice is
-/// the evaluator, not the rule — and <see cref="EveryRowState_IsDerived_NotAsserted"/> is what would catch the two
+/// the evaluator, not the rule — and <see cref="EveryRuleState_AgreesWithThePythonView"/> is what would catch the two
 /// evaluators drifting apart.
 /// </para>
 /// <para>
@@ -77,12 +78,14 @@ public sealed class SpecTraceabilityInventoryDriftTests
 
     // ── the artifacts under test ─────────────────────────────────────────────────────────────────────
 
-    private sealed record Row(
-        string RuleId, string Section, string Kind, int Ordinal, string Subject,
-        string Verdict, string CodeLocation, string TestRef, string Derivation, string Editions, string Notes,
-        string State);
+    /// <summary>A row of the view (<see cref="TraceabilityInventory.Row"/>, the one row type) with <paramref name="State"/>:
+    /// the state the OTHER engine computed for it (the Python view's, <c>inventory_view.py --states</c>; a fabricated row's
+    /// is what that engine would say). No state is stored anywhere (kb/Work PB4992), so this engine's own is always
+    /// <see cref="DerivedState"/>.</summary>
+    private sealed record Judged(TraceabilityInventory.Row Row, string State);
 
-    private sealed record CatalogRule(string Id, string Section, string Kind, int Ordinal, string Subject);
+
+    private static Judged Says(TraceabilityInventory.Row row, string state) => new(row, state);
 
     private sealed record Verdict(string Name, bool Resolves, string[] Requires);
 
@@ -224,7 +227,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
 
         return new Schema(
             verdicts,
-            [.. editions.GetProperty("values").EnumerateArray().Select(x => x.GetString()!)],
+            [.. editions.GetProperty("of").EnumerateArray().Select(x => x.GetProperty("spelling").GetString()!)],
             editions.GetProperty("separator").GetString()!,
             editions.GetProperty("required").GetBoolean(),
             editions.GetProperty("run-through-last").GetBoolean(),
@@ -251,7 +254,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
     /// ⛔ THE A.2 LIST IS READ FROM DATA, NOT PARSED FROM THE SPEC HERE. <c>scripts/spec/extract_annex_a2.py</c>
     /// owns the extraction and <see cref="AnnexA2UndefinedListDriftTests"/> proves the artifact still equals the
     /// standard; parsing 1.3 MB of spec markdown on this side too would be the second parser this whole schema
-    /// exists to avoid, and <see cref="EveryRowState_IsDerived_NotAsserted"/> recomputes 4,311 rows per build.
+    /// exists to avoid, and <see cref="EveryRuleState_AgreesWithThePythonView"/> recomputes 4,311 rows per build.
     /// </remarks>
     private static DerivationRule LoadDerivation(JsonElement d)
     {
@@ -289,32 +292,34 @@ public sealed class SpecTraceabilityInventoryDriftTests
     }
 
     /// <summary>
-    /// Every rule-id the catalog knows, parsed ONCE per test assembly. <c>LoadSchema()</c> runs a dozen times a
-    /// gate and the catalog is 4,311 rules; the <c>indistinguishable-consequent</c> arm needs the ids and
-    /// nothing else, so re-parsing that file per call is pure cost.
+    /// Every rule-id the catalog knows, read ONCE per test assembly from the view, which has one row per rule:
+    /// <c>LoadSchema()</c> runs a dozen times a gate, and the <c>indistinguishable-consequent</c> arm needs the ids alone.
     /// </summary>
     private static readonly Lazy<IReadOnlySet<string>> CatalogIds =
-        new(() => LoadCatalog().Select(c => c.Id).ToHashSet(StringComparer.Ordinal));
+        new(() => TraceabilityInventory.Rows.Select(r => r.RuleId).ToHashSet(StringComparer.Ordinal));
 
-    private static List<Row> LoadInventory()
+    /// <summary>
+    /// The Python view's state of every rule (<c>inventory_view.py --states</c>), run once per test assembly. The run is
+    /// also the Python view's refusals: a store record it refuses (a rule the catalog dropped, a copied catalog field or
+    /// state, an adjudication decided against other text) fails it, naming the record.
+    /// </summary>
+    private static readonly Lazy<IReadOnlyDictionary<string, string>> PythonStates = new(() =>
     {
-        Assert.True(Directory.Exists(TraceabilityInventory.DirectoryPath),
-            $"inventory missing: {TraceabilityInventory.DirectoryPath} — run python scripts/spec/build_inventory.py");
-        return [.. TraceabilityInventory.Rows.Select(e => new Row(
-            Str(e, "rule-id"), Str(e, "section"), Str(e, "kind"), e.GetProperty("ordinal").GetInt32(),
-            Str(e, "subject"), Str(e, "verdict"), Str(e, "code-location"), Str(e, "test-ref"),
-            Str(e, "derivation"), Str(e, "editions"), Str(e, "notes"), Str(e, "state")))];
-    }
+        var run = PythonInstrument.Run(ObservationBudget.OneProcess, TestRepo.Scripts("spec", "inventory_view.py"), "--states");
+        string? line = run.Stdout.Split('\n').Select(l => l.Trim())
+            .FirstOrDefault(l => l.StartsWith("JSON ", StringComparison.Ordinal));
+        Assert.True(run.ExitCode == 0 && line is not null,
+            $"inventory_view.py --states exited {run.ExitCode} with no JSON line:\n{run.Stdout}\n{run.Stderr}");
+        return JsonSerializer.Deserialize<Dictionary<string, string>>(line!["JSON ".Length..])!;
+    });
 
-    private static List<CatalogRule> LoadCatalog()
+    private static IReadOnlyList<TraceabilityInventory.Row> LoadInventory() => TraceabilityInventory.Rows;
+
+    /// <summary>Each row with the state the Python view computes for it.</summary>
+    private static List<Judged> Judge(IEnumerable<TraceabilityInventory.Row> rows)
     {
-        string path = TestRepo.Docs("rearchitecture", "spec-rule-catalog.json");
-        Assert.True(File.Exists(path),
-            $"rule catalog missing: {path} — run python scripts/spec/extract_rule_catalog.py");
-        using var doc = JsonDocument.Parse(File.ReadAllText(path));
-        return [.. doc.RootElement.GetProperty("rules").EnumerateArray().Select(e => new CatalogRule(
-            Str(e, "id"), Str(e, "section"), Str(e, "kind"), e.GetProperty("ordinal").GetInt32(),
-            Str(e, "subject")))];
+        var theirs = PythonStates.Value;
+        return [.. rows.Select(r => Says(r, theirs.GetValueOrDefault(r.RuleId, "")))];
     }
 
     private static string[] Split(string value, string separator) =>
@@ -324,17 +329,17 @@ public sealed class SpecTraceabilityInventoryDriftTests
 
     /// <summary>
     /// The state a row is ENTITLED to, per the schema. Mirrors <c>Schema.state_for</c> in Python — and
-    /// <see cref="EveryRowState_IsDerived_NotAsserted"/> is what catches the two drifting apart.
+    /// <see cref="EveryRuleState_AgreesWithThePythonView"/> is what catches the two drifting apart.
     /// </summary>
     /// <remarks>
     /// The spec-derived clause is separate from <c>requires</c> on purpose: it is what makes
     /// CONFORMS-but-untested expressible (the rule verified against the code, no test yet pinning it), a category
     /// the design doc §3 Phase C names outright.
     /// </remarks>
-    private static string DerivedState(Row r, Schema s)
+    private static string DerivedState(TraceabilityInventory.Row r, Schema s)
     {
         if (!s.Verdicts.TryGetValue(r.Verdict, out var v) || !v.Resolves) return "GAP";
-        if (!v.Requires.All(f => Field(r, f).Length > 0)) return "GAP";
+        if (!v.Requires.All(f => r.Field(f).Length > 0)) return "GAP";
         // A kind that declares evidence rules pays them too, and BOTH are extra COSTS rather than an escape: the
         // computed anchor must be present (a determination filed under another item is not evidence for this
         // row), and something in the compiler must implement it. A DOC row whose only location is its own §7
@@ -361,10 +366,10 @@ public sealed class SpecTraceabilityInventoryDriftTests
     /// compiler to observe still computes GAP, derivation or no derivation, because it never reaches this line.
     /// Moving the call earlier would silently reverse an owner decision.
     /// </remarks>
-    private static bool DerivationStands(Row r, Schema s) =>
+    private static bool DerivationStands(TraceabilityInventory.Row r, Schema s) =>
         s.Derivation is { } d && r.Derivation.Trim().Length > 0 && DerivationRefusals(r, s).Count == 0;
 
-    private static string DerivationAnchor(Row r, Schema s) =>
+    private static string DerivationAnchor(TraceabilityInventory.Row r, Schema s) =>
         s.Derivation!.AnchorTemplate.Replace("{rule-id}", r.RuleId, StringComparison.Ordinal);
 
     /// <summary>
@@ -377,7 +382,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
     /// time and <see cref="DerivedState"/> asks only whether the list is empty. Writing the bounds twice is how a
     /// writer and a gate come to disagree about one rule — the entire content of <c>kb/Work/PB315</c>.
     /// </remarks>
-    private static List<Refusal> DerivationRefusals(Row r, Schema s)
+    private static List<Refusal> DerivationRefusals(TraceabilityInventory.Row r, Schema s)
     {
         var bad = new List<Refusal>();
         if (s.Derivation is not { } d) return bad;
@@ -491,7 +496,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
     }
 
     /// <summary>Every live row whose <c>derivation</c> claim does not stand — the gate over §1.1.</summary>
-    private static List<string> BadDerivations(IEnumerable<Row> rows, Schema s) =>
+    private static List<string> BadDerivations(IEnumerable<TraceabilityInventory.Row> rows, Schema s) =>
         [.. rows.Where(r => r.Derivation.Trim().Length > 0)
                 .SelectMany(r => DerivationRefusals(r, s)).Select(x => $"[{x.Code}] {x.Message}")];
 
@@ -506,12 +511,12 @@ public sealed class SpecTraceabilityInventoryDriftTests
     /// §2023:15.3.3.2 fractional-seconds determination sat under item 87, whose obligation is FORMATTED-CURRENT-DATE's
     /// accuracy, because the NUMBER was inherited and never re-derived.
     /// </remarks>
-    private static string? AnchorFor(Row r, Schema s) =>
+    private static string? AnchorFor(TraceabilityInventory.Row r, Schema s) =>
         s.Kinds.TryGetValue(r.Kind, out var k) && k.AnchorTemplate.Length > 0
             ? k.AnchorTemplate.Replace("{rule-id}", r.RuleId, StringComparison.Ordinal)
             : null;
 
-    private static bool IsAnchored(Row r, Schema s) =>
+    private static bool IsAnchored(TraceabilityInventory.Row r, Schema s) =>
         AnchorFor(r, s) is { } anchor
         && Split(r.CodeLocation, s.CodeLocationSeparator).Contains(anchor, StringComparer.Ordinal);
 
@@ -536,7 +541,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
     /// therefore names the verdicts that MAY be exempt, and the register decides.
     /// </para>
     /// </remarks>
-    private static bool AnchorObliged(Row r, Schema s) =>
+    private static bool AnchorObliged(TraceabilityInventory.Row r, Schema s) =>
         AnchorFor(r, s) is not null
         && s.Kinds.TryGetValue(r.Kind, out var k)
         && (!k.AnchorExemptVerdicts.Contains(r.Verdict, StringComparer.Ordinal)
@@ -552,7 +557,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
     /// independent reader who goes looking for the code; an opinion is not. A kind that declares no pattern is
     /// vacuously observable, so adding a kind never tightens an existing one.
     /// </remarks>
-    private static bool IsObservable(Row r, Schema s)
+    private static bool IsObservable(TraceabilityInventory.Row r, Schema s)
     {
         if (!s.Kinds.TryGetValue(r.Kind, out var k) || k.Implementation is null) return true;
         string? anchor = AnchorFor(r, s);
@@ -564,7 +569,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
     /// A row whose KIND obliges a register anchor and whose locations do not carry the anchor its own rule-id
     /// computes — either none at all, or, the <c>kb/Work/A11</c> shape, the anchor of a DIFFERENT item.
     /// </summary>
-    private static List<string> MisanchoredRows(IEnumerable<Row> rows, Schema s) =>
+    private static List<string> MisanchoredRows(IEnumerable<TraceabilityInventory.Row> rows, Schema s) =>
         [.. from r in rows
             where (r.Verdict.Length > 0 || r.CodeLocation.Length > 0)
                   && AnchorObliged(r, s) && !IsAnchored(r, s)
@@ -583,7 +588,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
     /// that basis. A BARE citation of an anchored file is the same defect one step weaker, resolving on
     /// <c>File.Exists</c> alone, so it is a violation too; three more live rows were doing it.
     /// </remarks>
-    private static List<string> BadAnchorFragments(IEnumerable<Row> rows, Schema s) =>
+    private static List<string> BadAnchorFragments(IEnumerable<TraceabilityInventory.Row> rows, Schema s) =>
         [.. from r in rows
             where r.CodeLocation.Length > 0
             from loc in Split(r.CodeLocation, s.CodeLocationSeparator)
@@ -594,34 +599,21 @@ public sealed class SpecTraceabilityInventoryDriftTests
             select $"{r.RuleId}: code-location '{loc}' — '{parts[0]}' is an anchored file, so its fragment must "
                    + $"match {rx} ({(parts.Length == 1 ? "there is no fragment at all" : $"got '{parts[1]}'")})"];
 
-    private static string Field(Row r, string name) => name switch
-    {
-        "verdict" => r.Verdict,
-        "code-location" => r.CodeLocation,
-        "test-ref" => r.TestRef,
-        "derivation" => r.Derivation,
-        "editions" => r.Editions,
-        "notes" => r.Notes,
-        _ => throw new InvalidOperationException(
-            $"inventory-schema.json requires a field '{name}' that no inventory row has — "
-            + "add it to the row schema in build_inventory.py and to Field() here."),
-    };
-
-    private static List<string> BadVerdicts(IEnumerable<Row> rows, Schema s) =>
+    private static List<string> BadVerdicts(IEnumerable<TraceabilityInventory.Row> rows, Schema s) =>
         [.. rows.Where(r => r.Verdict.Length > 0 && !s.Verdicts.ContainsKey(r.Verdict))
                 .Select(r => $"{r.RuleId}: verdict '{r.Verdict}' is not in the schema vocabulary")];
 
-    private static List<string> BadStates(IEnumerable<Row> rows, Schema s) =>
-        [.. rows.Where(r => r.State != DerivedState(r, s))
-                .Select(r => $"{r.RuleId}: state '{r.State}' but the schema derives '{DerivedState(r, s)}' "
-                             + $"from verdict '{r.Verdict}'")];
+    private static List<string> BadStates(IEnumerable<Judged> judged, Schema s) =>
+        [.. judged.Where(j => j.State != DerivedState(j.Row, s))
+                  .Select(j => $"{j.Row.RuleId}: the Python view computes '{j.State}' but this engine derives "
+                               + $"'{DerivedState(j.Row, s)}' from verdict '{j.Row.Verdict}'")];
 
-    private static List<string> MissingEvidence(IEnumerable<Row> rows, Schema s) =>
+    private static List<string> MissingEvidence(IEnumerable<TraceabilityInventory.Row> rows, Schema s) =>
         [.. from r in rows
             where s.Verdicts.TryGetValue(r.Verdict, out _)
             let v = s.Verdicts[r.Verdict]
             from f in v.Requires
-            where Field(r, f).Length == 0
+            where r.Field(f).Length == 0
             select $"{r.RuleId}: verdict {r.Verdict} requires a non-empty '{f}'"];
 
     /// <summary>
@@ -649,7 +641,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
     /// refuses to close such a row, so in a healthy tree this is unreachable — it is kept as a named, independent
     /// assertion of the RULE, so that a future bug in the derivation cannot quietly close rows on NIST goldens.
     /// </summary>
-    private static List<string> DifferentialOnlyCoverage(IEnumerable<Row> rows, Schema s)
+    private static List<string> DifferentialOnlyCoverage(IEnumerable<Judged> judged, Schema s)
     {
         if (!s.SpecDerivedRequired) return [];
         // ⚠ A row closed on an owner-signed DERIVATION is not "covered by a differential" — it is covered by
@@ -657,15 +649,16 @@ public sealed class SpecTraceabilityInventoryDriftTests
         // of the same rule `DerivedState` implements, and forgetting it would have turned every PB386 closure
         // red under a check about NIST goldens (`feedback_two_arm_dispatch`). `DerivationStands` is the same
         // predicate, so the two arms cannot come to disagree.
-        return [.. from r in rows
-                   where r.State == "OK"
+        return [.. from j in judged
+                   where j.State == "OK"   // the Python view closed it
+                   let r = j.Row
                    let refs = Split(r.TestRef, s.TestRefSeparator)
                    where !refs.Any(x => IsSpecDerived(x, s)) && !DerivationStands(r, s)
                    select $"{r.RuleId}: state OK but covered ONLY by non-spec-derived test(s) "
                           + $"[{string.Join(", ", refs)}] — a differential cannot close a row (design doc §1c)"];
     }
 
-    private static List<string> BadEditions(IEnumerable<Row> rows, Schema s) =>
+    private static List<string> BadEditions(IEnumerable<TraceabilityInventory.Row> rows, Schema s) =>
         [.. from r in rows
             let error = EditionsError(r.Editions, s)
             where error is not null
@@ -723,7 +716,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
     /// <param name="functionOfSection">clause 15 function section → function name</param>
     /// <param name="introducedIn">function name → its introducing edition</param>
     private static List<string> EarlyFunctionBands(
-        IEnumerable<Row> rows, Schema s, IReadOnlyDictionary<string, string> functionOfSection,
+        IEnumerable<TraceabilityInventory.Row> rows, Schema s, IReadOnlyDictionary<string, string> functionOfSection,
         Func<string, int> introducedIn)
     {
         var bad = new List<string>();
@@ -857,7 +850,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
     private static bool ResolvedHere(string file) =>
         !DocumentKinds.Value.Contains(Path.GetExtension(file), StringComparer.OrdinalIgnoreCase);
 
-    private static List<string> UnresolvedCodeLocations(IEnumerable<Row> rows, Schema s, string root)
+    private static List<string> UnresolvedCodeLocations(IEnumerable<TraceabilityInventory.Row> rows, Schema s, string root)
     {
         var bad = new List<string>();
         foreach (var r in rows.Where(r => r.CodeLocation.Length > 0))
@@ -903,7 +896,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
     /// appends a retired witness to the notes behind a mark (<see cref="ProseOf"/>), and that history may name a
     /// symbol that is gone; the prose above it is what a reader takes for the present state of the code.
     /// </summary>
-    private static List<string> UnresolvedNotesLocations(IEnumerable<Row> rows, Schema s, string root)
+    private static List<string> UnresolvedNotesLocations(IEnumerable<TraceabilityInventory.Row> rows, Schema s, string root)
     {
         var bad = new List<string>();
         foreach (var r in rows.Where(r => r.Notes.Length > 0))
@@ -939,9 +932,9 @@ public sealed class SpecTraceabilityInventoryDriftTests
     /// stripped) is dead, and a row's prose (<see cref="ProseOf"/>) may not name it. A name a mark retires that a
     /// grammar file still has (the rule MOVED to another file) is live and exempt.
     /// </summary>
-    private static List<string> RetiredGrammarRulesNamedInProse(IEnumerable<Row> rows, Schema s, IReadOnlyList<string> grammarCode)
+    private static List<string> RetiredGrammarRulesNamedInProse(IEnumerable<TraceabilityInventory.Row> rows, Schema s, IReadOnlyList<string> grammarCode)
     {
-        var all = rows as IReadOnlyCollection<Row> ?? [.. rows];
+        var all = rows as IReadOnlyCollection<TraceabilityInventory.Row> ?? [.. rows];
         Regex witness = RetiredGrammarWitness(s);
         var gone = all.SelectMany(r => witness.Matches(r.Notes).Select(m => m.Groups[1].Value))
             .Where(rule => !grammarCode.Any(code => Regex.IsMatch(code, WholeWord(rule))))
@@ -957,7 +950,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
         return bad;
     }
 
-    private static List<string> UnresolvedTestRefs(IEnumerable<Row> rows, Schema s, string root)
+    private static List<string> UnresolvedTestRefs(IEnumerable<TraceabilityInventory.Row> rows, Schema s, string root)
     {
         // Both caches matter at full scale: 3,790 rows will eventually cite a few hundred distinct test classes,
         // and the uncached form re-globs the directory AND re-reads the same .cs file once per citing row.
@@ -1038,80 +1031,6 @@ public sealed class SpecTraceabilityInventoryDriftTests
 
     // ── the gate ─────────────────────────────────────────────────────────────────────────────────────
 
-    /// <summary>
-    /// ⛔ THE INVENTORY IS ONE FILE PER ROW, NAMED BY ITS RULE ID, AND NOTHING ELSE IS IN ITS DIRECTORY (kb/Work PB4148).
-    /// Two landings that close different rows edit different files, so the merge queue (which runs no merge driver) merges
-    /// them; the single 4,214-row file held every landing that closed a row behind any other open pull request that did.
-    /// Held from the files, not from the Python store: a file that is not <c>&lt;rule-id&gt;.json</c> for the row it
-    /// holds, a stray or temporary file, a subdirectory, and two names differing only in case (one file on NTFS and APFS)
-    /// are each a finding; the old single file is gone.
-    /// </summary>
-    [Fact]
-    public void EveryRow_IsItsOwnFile_AndTheDirectoryHoldsNothingElse()
-    {
-        string directory = TraceabilityInventory.DirectoryPath;
-        Assert.False(File.Exists(TestRepo.VersionMatrix("traceability-inventory.json")),
-            "the single-file inventory is back: rows are one file each under tests/version-matrix/inventory/ (kb/Work PB4148)");
-        var findings = new List<string>();
-        var names = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        foreach (string entry in Directory.EnumerateFileSystemEntries(directory).Order(StringComparer.Ordinal))
-        {
-            string name = Path.GetFileName(entry);
-            if (!File.Exists(entry) || !name.EndsWith(".json", StringComparison.Ordinal) || name[0] == '.')
-            {
-                findings.Add($"{name}: the directory holds one `<rule-id>.json` per row and nothing else");
-                continue;
-            }
-
-            using var doc = JsonDocument.Parse(File.ReadAllBytes(entry));
-            string? id = doc.RootElement.ValueKind == JsonValueKind.Object && doc.RootElement.TryGetProperty("rule-id", out var r)
-                ? r.GetString() : null;
-            if (id is null || name != id + ".json")
-                findings.Add($"{name}: holds {(id is null ? "no rule-id" : $"the row {id}")}, so the file is named <rule-id>.json");
-            else if (names.TryGetValue(name, out string? other) && other != name)
-                findings.Add($"{name}: differs from {other} only in case");
-            names[name] = name;
-        }
-
-        Assert.True(findings.Count == 0, Report("inventory file(s) off the one-file-per-row layout", findings, TraceabilityInventory.Rows.Count));
-        Assert.True(TraceabilityInventory.Rows.Count > 0, "no inventory row: this gate would be vacuous");
-    }
-
-    /// <summary>The inventory covers the catalog EXACTLY — no orphan row, no unreviewed rule hidden by omission.</summary>
-    [Fact]
-    public void Inventory_CoversTheCatalog_Exactly()
-    {
-        var rows = LoadInventory();
-        var catalog = LoadCatalog();
-
-        var inRows = rows.Select(r => r.RuleId).ToHashSet(StringComparer.Ordinal);
-        var inCatalog = catalog.Select(c => c.Id).ToHashSet(StringComparer.Ordinal);
-
-        var missing = inCatalog.Except(inRows).Order().Take(10).ToList();
-        var orphan = inRows.Except(inCatalog).Order().Take(10).ToList();
-        Assert.True(missing.Count == 0 && orphan.Count == 0,
-            $"inventory {rows.Count} rows vs catalog {catalog.Count} rules — "
-            + $"rules with no row: [{string.Join(", ", missing)}]; rows with no rule: [{string.Join(", ", orphan)}] "
-            + "— re-run python scripts/spec/build_inventory.py");
-        Assert.Equal(rows.Count, rows.Select(r => r.RuleId).Distinct(StringComparer.Ordinal).Count());
-    }
-
-    /// <summary>A row's catalog-owned fields are REGENERATED, so a hand-edit to one is drift, not data.</summary>
-    [Fact]
-    public void EveryRow_MatchesItsCatalogEntry()
-    {
-        var catalog = LoadCatalog().ToDictionary(c => c.Id, StringComparer.Ordinal);
-        var bad = new List<string>();
-        foreach (var r in LoadInventory())
-        {
-            if (!catalog.TryGetValue(r.RuleId, out var c)) continue;   // covered by the coverage test
-            if (r.Section != c.Section || r.Kind != c.Kind || r.Ordinal != c.Ordinal || r.Subject != c.Subject)
-                bad.Add($"{r.RuleId}: row ({r.Section}/{r.Kind}/{r.Ordinal}) disagrees with the catalog "
-                        + $"({c.Section}/{c.Kind}/{c.Ordinal})");
-        }
-        Assert.True(bad.Count == 0, Report("row(s) disagree with the catalog", bad, catalog.Count));
-    }
-
     /// <summary>Every recorded verdict is one the schema defines.</summary>
     [Fact]
     public void EveryVerdict_IsInTheSchemaVocabulary()
@@ -1122,15 +1041,45 @@ public sealed class SpecTraceabilityInventoryDriftTests
     }
 
     /// <summary>
-    /// <c>state</c> is DERIVED from the verdict and its evidence — never taken at face value. This is the test that
-    /// makes the burn-down honest: without it, closing a GAP costs one hand-edited string.
+    /// <c>state</c> is DERIVED from the verdict and its evidence, by two engines that read one schema, and stored nowhere
+    /// (kb/Work PB4992): every rule's state as this engine computes it is the state the Python view computes, and the two
+    /// views hold the same rules. This is the test that makes the burn-down honest: an evaluator that drifted from its
+    /// twin, or a join that lost a rule, turns it red instead of quietly moving the GAP count.
     /// </summary>
     [Fact]
-    public void EveryRowState_IsDerived_NotAsserted()
+    public void EveryRuleState_AgreesWithThePythonView()
     {
         var rows = LoadInventory();
-        var bad = BadStates(rows, LoadSchema());
-        Assert.True(bad.Count == 0, Report("row(s) whose stored state is not the derived one", bad, rows.Count));
+        var theirs = PythonStates.Value;
+        var onlyOneSide = rows.Select(r => r.RuleId).ToHashSet(StringComparer.Ordinal);
+        onlyOneSide.SymmetricExceptWith(theirs.Keys);
+        Assert.True(onlyOneSide.Count == 0,
+            $"the C# and Python views hold different rules: [{string.Join(", ", onlyOneSide.Order().Take(10))}]");
+        var bad = BadStates(Judge(rows), LoadSchema());
+        Assert.True(bad.Count == 0, Report("rule(s) whose state the two engines compute differently", bad, rows.Count));
+    }
+
+    /// <summary>
+    /// The C# view reads every field the newest edition's store file holds: <c>inventory-schema.json</c>'s
+    /// <c>editions.of</c>, the one list (kb/Work PB4992, branch review R1-6), which the Python store and view read too.
+    /// A store record carrying a distinct value in each field is joined through the view's own reader
+    /// (<see cref="TraceabilityInventory.RowOf"/>), and each field must come back through <c>Row.Field</c>: a field added
+    /// to the schema and not to the view throws or comes back empty, so it is never read by one language only.
+    /// </summary>
+    [Fact]
+    public void TheViewsRow_CarriesEveryStoreField()
+    {
+        var fields = TraceabilityInventory.Newest.Adjudicated;
+        Assert.True(fields.Count >= 6, $"the newest edition names {fields.Count} adjudicated field(s): the schema lost its list");
+        var record = fields.ToDictionary(f => f, f => $"value of {f}", StringComparer.Ordinal);
+        using var ruleDoc = JsonDocument.Parse(JsonSerializer.Serialize(new Dictionary<string, object>
+        {
+            ["id"] = "X-1", [TraceabilityInventory.Newest.Locator] = "1.1", ["kind"] = "GR", ["ordinal"] = 1, ["subject"] = "s",
+        }));
+        using var recordDoc = JsonDocument.Parse(JsonSerializer.Serialize(record));
+        var row = TraceabilityInventory.RowOf(ruleDoc.RootElement, recordDoc.RootElement, TraceabilityInventory.Newest.Locator);
+        Assert.Equal(record, fields.ToDictionary(f => f, row.Field, StringComparer.Ordinal));
+        Assert.Equal("1.1", row.Section);
     }
 
     /// <summary>Each verdict carries the evidence the schema says that verdict requires.</summary>
@@ -1153,7 +1102,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
     public void EveryResolvedRow_CitesASpecDerivedTest()
     {
         var rows = LoadInventory();
-        var bad = DifferentialOnlyCoverage(rows, LoadSchema());
+        var bad = DifferentialOnlyCoverage(Judge(rows), LoadSchema());
         Assert.True(bad.Count == 0, Report("row(s) closed on differential evidence alone", bad, rows.Count));
     }
 
@@ -1488,11 +1437,11 @@ public sealed class SpecTraceabilityInventoryDriftTests
         };
     }
 
-    private static Row FixtureRow(JsonElement e) => new(
+    private static TraceabilityInventory.Row FixtureRow(JsonElement e) => new(
         Str(e, "rule-id"), Str(e, "section"), Str(e, "kind"),
         e.TryGetProperty("ordinal", out var o) ? o.GetInt32() : 0, Str(e, "subject"),
         Str(e, "verdict"), Str(e, "code-location"), Str(e, "test-ref"), Str(e, "derivation"),
-        Str(e, "editions"), Str(e, "notes"), Str(e, "state"));
+        Str(e, "editions"), Str(e, "notes"));
 
     /// <summary>Every traceability link still points at code that exists — the link is the whole point of it.</summary>
     [Fact]
@@ -1552,22 +1501,21 @@ public sealed class SpecTraceabilityInventoryDriftTests
         var s = LoadSchema();
         string root = TestRepo.Root;
 
-        Row Base(string id) => new(id, "15.7", "AR", 1, "ABS function", "", "", "", "", "", "", "GAP");
+        TraceabilityInventory.Row Base(string id) => new(id, "15.7", "AR", 1, "ABS function", "", "", "", "", "", "");
 
         // A verdict outside the vocabulary.
         Assert.Single(BadVerdicts([Base("X-1") with { Verdict = "PROBABLY-FINE" }], s));
 
         // A GAP row hand-promoted to OK with nothing behind it — the cheapest possible way to fake the burn-down.
-        Assert.Single(BadStates([Base("X-2") with { Verdict = "CONFORMS", State = "OK" }], s));
+        Assert.Single(BadStates([Says(Base("X-2") with { Verdict = "CONFORMS" }, "OK")], s));
 
         // The mirror: a fully-evidenced CONFORMS row left marked GAP, so the metric under-reports.
-        Assert.Single(BadStates([Base("X-3") with
+        Assert.Single(BadStates([Says(Base("X-3") with
         {
             Verdict = "CONFORMS",
-            CodeLocation = "scripts/spec/build_inventory.py",
-            TestRef = "unit:SpecTraceabilityInventoryDriftTests.EveryRowState_IsDerived_NotAsserted",
-            State = "GAP",
-        }], s));
+            CodeLocation = "scripts/spec/inventory_view.py",
+            TestRef = "unit:SpecTraceabilityInventoryDriftTests.EveryRuleState_AgreesWithThePythonView",
+        }, "GAP")], s));
 
         // CONFORMS with no code-location: the one field that verdict requires. (test-ref is NOT required to
         // record a CONFORMS — only to CLOSE the row — which is what makes CONFORMS-but-untested expressible.)
@@ -1608,10 +1556,10 @@ public sealed class SpecTraceabilityInventoryDriftTests
         // ⛔ DIFFERENTIAL-ONLY COVERAGE. A NIST golden alone, and a *_MatchesLegacy test alone, are both real
         // shapes — the first Phase-B batch produced seven of them before this rule existed. Neither may close a
         // row, so the derived state is GAP and a row asserting OK on that basis is caught twice over.
-        Row Covered(string id, string testRef) => Base(id) with
+        Judged Covered(string id, string testRef) => Says(Base(id) with
         {
-            Verdict = "CONFORMS", CodeLocation = "scripts/spec/inventory_schema.py", TestRef = testRef, State = "OK",
-        };
+            Verdict = "CONFORMS", CodeLocation = "scripts/spec/inventory_schema.py", TestRef = testRef,
+        }, "OK");
         Assert.Single(DifferentialOnlyCoverage([Covered("X-5a", "nist:IF128A")], s));
         Assert.Single(DifferentialOnlyCoverage(
             [Covered("X-5b", "conformance-test:IntrinsicFunctionDifferentialTests.ExactFamily_MatchesLegacy")], s));
@@ -1627,13 +1575,13 @@ public sealed class SpecTraceabilityInventoryDriftTests
         Assert.Empty(MissingEvidence(
             [Base("X-5f") with { Verdict = "CONFORMS", CodeLocation = "scripts/spec/inventory_schema.py" }], s));
         Assert.Empty(BadStates(
-            [Base("X-5g") with { Verdict = "CONFORMS", CodeLocation = "scripts/spec/inventory_schema.py" }], s));
+            [Says(Base("X-5g") with { Verdict = "CONFORMS", CodeLocation = "scripts/spec/inventory_schema.py" }, "GAP")], s));
 
         // A code-location whose FILE is gone, and one whose SYMBOL is gone from a file that still exists.
         Assert.Single(UnresolvedCodeLocations(
             [Base("X-6") with { CodeLocation = "src/WiseOwl.Cobol.Compiler/NoSuchFile.cs" }], s, root));
         Assert.Single(UnresolvedCodeLocations(
-            [Base("X-7") with { CodeLocation = "scripts/spec/build_inventory.py#NoSuchSymbolAnywhere" }], s, root));
+            [Base("X-7") with { CodeLocation = "scripts/spec/inventory_view.py#NoSuchSymbolAnywhere" }], s, root));
 
         // Test refs: an unknown form, a golden that does not exist, and an xUnit method that does not exist.
         Assert.Single(UnresolvedTestRefs([Base("X-8") with { TestRef = "vibes:it-looked-right" }], s, root));
@@ -1648,7 +1596,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
         Assert.Empty(UnresolvedTestRefs(
             [Base("X-12") with
             {
-                TestRef = "unit:SpecTraceabilityInventoryDriftTests.EveryRowState_IsDerived_NotAsserted",
+                TestRef = "unit:SpecTraceabilityInventoryDriftTests.EveryRuleState_AgreesWithThePythonView",
             }], s, root));
 
         // ⛔ A SYMBOL IN A COMMENT IS NOT A SYMBOL (kb/Work PB762), and a row's prose is read too. Built in a scratch
@@ -1716,7 +1664,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
         // grammar text, so the fixture cannot rot with the production grammar.
         {
             string retireMark = s.RetiredWitnessMark;
-            Row Retiring() => Base("X-PB3848-a") with
+            TraceabilityInventory.Row Retiring() => Base("X-PB3848-a") with
             {
                 Notes = $"Prose. {retireMark} src/Gone/Grammar.g4#goneRule (the rule was deleted)",
             };
@@ -1747,8 +1695,8 @@ public sealed class SpecTraceabilityInventoryDriftTests
         // of the three is driven separately below, and each positive control shows the checker discriminating.
         const string Anchor = "docs/CONFORMANCE.md#DOC-A.1-19";
         const string Src = "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CancelNode";
-        Row Doc(string id) => new(id, "A.1", "DOC", 19,
-            "CANCEL statement (result of canceling a non-COBOL program)", "CONFORMS", "", "", "", "", "", "GAP");
+        TraceabilityInventory.Row Doc(string id) => new(id, "A.1", "DOC", 19,
+            "CANCEL statement (result of canceling a non-COBOL program)", "CONFORMS", "", "", "", "", "");
 
         // A src site and no register anchor at all: the determination is unlocatable.
         Assert.Single(MisanchoredRows([Doc("DOC-A.1-19") with { CodeLocation = Src }], s));
@@ -1776,39 +1724,39 @@ public sealed class SpecTraceabilityInventoryDriftTests
 
         // OBSERVABLE but untested, asserted OK — the ordinary §1(c) failure, on a DOC row.
         Assert.Single(BadStates(
-            [Doc("DOC-A.1-19") with { CodeLocation = $"{Anchor}; {Src}", State = "OK" }], s));
+            [Says(Doc("DOC-A.1-19") with { CodeLocation = $"{Anchor}; {Src}" }, "OK")], s));
         // ⛔ NO POLICY ARM. A row whose ONLY location is its register anchor does not close — not with no test,
         // and not with a spec-derived one either. Closing it would widen the design doc §1(a) definition of DONE
         // (a traceability link into src/WiseOwl.Cobol.*, or a recorded owner non-support decision), and that is the
         // owner's completion metric, not an agent's (kb/Work PB280 Q2). Both arms are driven, because the
         // second is the one a future "it has a test, surely it closes" reading would break.
-        Assert.Single(BadStates([Doc("DOC-A.1-19") with { CodeLocation = Anchor, State = "OK" }], s));
+        Assert.Single(BadStates([Says(Doc("DOC-A.1-19") with { CodeLocation = Anchor }, "OK")], s));
         Assert.Single(BadStates(
-            [Doc("DOC-A.1-19") with
+            [Says(Doc("DOC-A.1-19") with
             {
-                CodeLocation = Anchor, TestRef = "conformance:cases/14.9.5-CANCEL/pb154_cancel_active", State = "OK",
-            }], s));
+                CodeLocation = Anchor, TestRef = "conformance:cases/14.9.5-CANCEL/pb154_cancel_active",
+            }, "OK")], s));
         // A code location outside src/WiseOwl.Cobol.* is not an implementing site: tooling, scripts and test harness
         // code are not the compiler, so a row resting on one is as unobservable as one resting on nothing.
         Assert.Single(BadStates(
-            [Doc("DOC-A.1-19") with
+            [Says(Doc("DOC-A.1-19") with
             {
                 CodeLocation = $"{Anchor}; tools/ArchCensus/Program.cs#Main",
-                TestRef = "conformance:cases/14.9.5-CANCEL/pb154_cancel_active", State = "OK",
-            }], s));
+                TestRef = "conformance:cases/14.9.5-CANCEL/pb154_cancel_active",
+            }, "OK")], s));
         // ✔ And the shape that DOES close: own anchor + a greenfield site + a spec-derived test.
         Assert.Empty(BadStates(
-            [Doc("DOC-A.1-19") with
+            [Says(Doc("DOC-A.1-19") with
             {
-                CodeLocation = $"{Anchor}; {Src}", TestRef = "conformance:cases/14.9.5-CANCEL/pb154_cancel_active", State = "OK",
-            }], s));
+                CodeLocation = $"{Anchor}; {Src}", TestRef = "conformance:cases/14.9.5-CANCEL/pb154_cancel_active",
+            }, "OK")], s));
         // …which is also the row `DifferentialOnlyCoverage` must leave alone — no kind exemption exists there,
         // and none is needed, because every closing DOC row carries a spec-derived test like every other row.
         Assert.Empty(DifferentialOnlyCoverage(
-            [Doc("DOC-A.1-19") with
+            [Says(Doc("DOC-A.1-19") with
             {
-                CodeLocation = $"{Anchor}; {Src}", TestRef = "conformance:cases/14.9.5-CANCEL/pb154_cancel_active", State = "OK",
-            }], s));
+                CodeLocation = $"{Anchor}; {Src}", TestRef = "conformance:cases/14.9.5-CANCEL/pb154_cancel_active",
+            }, "OK")], s));
 
         // ── the anchor is owed by the rows with a determination to point at, and the REGISTER decides ──
         //
@@ -1823,7 +1771,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
         // keyed on the verdict passes the first and silently excuses the second. The fabricated register is two
         // literal ids, because the pair has to be driven in one place to be a pair at all.
         var reg = s with { RegisterItems = new HashSet<string>(StringComparer.Ordinal) { "DOC-A.1-127" } };
-        Row Declined(string id) => Doc(id) with
+        TraceabilityInventory.Row Declined(string id) => Doc(id) with
         {
             Verdict = "DOCUMENTED-NON-SUPPORT",
             Notes = "the conditioning module is Not claimed (docs/CONFORMANCE.md §5)",
@@ -1832,23 +1780,23 @@ public sealed class SpecTraceabilityInventoryDriftTests
         Assert.Empty(MisanchoredRows([Declined("DOC-A.1-19")], reg));
         // …AND THE EXEMPTION IS NOT AN ESCAPE. Without its module's WITNESS the row still does not close, so a
         // module cannot move the burn-down by being declined — the §1(c) rule survives the carve-out intact.
-        Assert.Single(BadStates([Declined("DOC-A.1-19") with { State = "OK" }], reg));
+        Assert.Single(BadStates([Says(Declined("DOC-A.1-19"), "OK")], reg));
         // The pairing that proves the exemption DISCRIMINATES rather than blanket-disabling the check: the same
         // absent anchor on a CONFORMS row is still caught (driven above), and the declined row closes exactly
         // when its witness arrives.
         Assert.Single(MisanchoredRows([Doc("DOC-A.1-19") with { CodeLocation = "" }], reg));
         Assert.Empty(BadStates(
-            [Declined("DOC-A.1-19") with
+            [Says(Declined("DOC-A.1-19") with
             {
-                TestRef = "conformance:cases/14.9.5-CANCEL/pb154_cancel_active", State = "OK",
-            }], reg));
+                TestRef = "conformance:cases/14.9.5-CANCEL/pb154_cancel_active",
+            }, "OK")], reg));
 
         // ⛔ THE DOCUMENTED DECLINE — same verdict, and §7 DOES carry the row. Item 127 is A.1-optional and its
         // determination opens "Not provided.", so the non-provision IS the determination: the row owes its
         // anchor, and must name a site to observe, exactly as a CONFORMS row does. Under a verdict-keyed
         // predicate every assertion below passes vacuously.
         const string Anchor127 = "docs/CONFORMANCE.md#DOC-A.1-127";
-        Row Documented(string loc) => Doc("DOC-A.1-127") with
+        TraceabilityInventory.Row Documented(string loc) => Doc("DOC-A.1-127") with
         {
             Verdict = "DOCUMENTED-NON-SUPPORT",
             Notes = "kb/Work PB280 Q1 — the OPTIONAL element is not provided; §7 records it",
@@ -1860,13 +1808,13 @@ public sealed class SpecTraceabilityInventoryDriftTests
         // The anchor alone does not close it — PB280 Q2, answered NO: a row with nothing observable stays a GAP
         // whatever its test-ref, and that is the same rule the CONFORMS arm pays above.
         Assert.Single(BadStates(
-            [Documented(Anchor127) with { TestRef = "conformance:cases/14.9.5-CANCEL/pb154_cancel_active", State = "OK" }], reg));
+            [Says(Documented(Anchor127) with { TestRef = "conformance:cases/14.9.5-CANCEL/pb154_cancel_active" }, "OK")], reg));
         // ✔ And the shape that DOES close: its own computed anchor, a greenfield site, and a witness.
         Assert.Empty(BadStates(
-            [Documented($"{Anchor127}; {Src}") with
+            [Says(Documented($"{Anchor127}; {Src}") with
             {
-                TestRef = "conformance:cases/14.9.5-CANCEL/pb154_cancel_active", State = "OK",
-            }], reg));
+                TestRef = "conformance:cases/14.9.5-CANCEL/pb154_cancel_active",
+            }, "OK")], reg));
 
         // ── the DERIVATION: §1.1's owner-signed alternative to a test, and every bound the owner set ──
         //
@@ -1902,18 +1850,18 @@ public sealed class SpecTraceabilityInventoryDriftTests
             Derivation = d with { Register = fakeRegister, Undefined = fakeA2 },
             CatalogRuleIds = new HashSet<string>(StringComparer.Ordinal) { "GR-14.9.5.4-7" },
         };
-        Row Derived(string id, string subject = "CANCEL statement") => new(
+        TraceabilityInventory.Row Derived(string id, string subject = "CANCEL statement") => new(
             id, "14.9.5.4", "GR", 11, subject, "CONFORMS",
             "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallPointer", "",
-            $"docs/CONFORMANCE.md#DRV-{id}", "85,2002,2014,2023", "", "OK");
+            $"docs/CONFORMANCE.md#DRV-{id}", "85,2002,2014,2023", "");
 
         // ✔ THE SHAPE THAT CLOSES: a resolving verdict, its evidence, and an A.2 arm that mechanically covers
         // this very rule. Driven FIRST, so every refusal below is a discrimination and not a blanket no.
         Assert.Empty(DerivationRefusals(Derived("GR-14.9.5.4-11"), ds));
-        Assert.Empty(BadStates([Derived("GR-14.9.5.4-11")], ds));
+        Assert.Empty(BadStates([Says(Derived("GR-14.9.5.4-11"), "OK")], ds));
         // …and the two argument arms, likewise accepted when their shape holds.
-        Assert.Empty(BadStates([Derived("GR-14.9.5.4-14")], ds));
-        Assert.Empty(BadStates([Derived("GR-14.9.5.4-16")], ds));
+        Assert.Empty(BadStates([Says(Derived("GR-14.9.5.4-14"), "OK")], ds));
+        Assert.Empty(BadStates([Says(Derived("GR-14.9.5.4-16"), "OK")], ds));
 
         static string[] Codes(List<Refusal> rs) => [.. rs.Select(x => x.Code).Order(StringComparer.Ordinal)];
 
@@ -1921,7 +1869,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
         // about a real undefined rule; it is simply not THIS one, which only a mechanical resolution can see.
         Assert.Equal(["a2-does-not-cover"], Codes(DerivationRefusals(Derived("GR-14.9.5.4-12"), ds)));
         Assert.Equal(["a2-no-such-item"], Codes(DerivationRefusals(Derived("GR-14.9.5.4-13"), ds)));
-        Assert.Single(BadStates([Derived("GR-14.9.5.4-12")], ds));
+        Assert.Single(BadStates([Says(Derived("GR-14.9.5.4-12"), "OK")], ds));
 
         // ⛔ DRIFT (i) — A DERIVATION ON A ROW WITH AN OBSERVABLE OBLIGATION IS REFUSED. This is the owner's
         // explicit bound: a spec-derived test on the same row REFUTES the claim that none can exist. ⚠ The row
@@ -1979,10 +1927,10 @@ public sealed class SpecTraceabilityInventoryDriftTests
         };
         const string Drv19 = "docs/CONFORMANCE.md#DRV-DOC-A.1-19";
         Assert.Single(BadStates(
-            [Doc("DOC-A.1-19") with { CodeLocation = Anchor, Derivation = Drv19, State = "OK" }], docS));
+            [Says(Doc("DOC-A.1-19") with { CodeLocation = Anchor, Derivation = Drv19 }, "OK")], docS));
         // ✔ …and the shape that DOES close on a derivation: its own §7 anchor, a greenfield site, no test.
         Assert.Empty(BadStates(
-            [Doc("DOC-A.1-19") with { CodeLocation = $"{Anchor}; {Src}", Derivation = Drv19, State = "OK" }],
+            [Says(Doc("DOC-A.1-19") with { CodeLocation = $"{Anchor}; {Src}", Derivation = Drv19 }, "OK")],
             docS));
         // ⛔ REFUSAL 3 — the same row where §7 does NOT document the item: the documentation obligation is not
         // yet STATED, so there is nothing for a derivation to be about (PB280 Q2's unfalsifiable shape).

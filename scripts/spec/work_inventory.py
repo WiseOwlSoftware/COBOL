@@ -186,12 +186,10 @@ def live_problems(notes: list[Note], terminal: Collection[str]) -> list[str]:
     """The findings for the repository's own inventory and schema (`work.py check` calls this with its own
     TERMINAL_STATUSES: the vocabulary has one home, and importing it from here would load `work.py` twice)."""
     import inventory_schema  # noqa: PLC0415  (this directory's; imported here so --self-test needs neither file)
-    import inventory_store  # noqa: PLC0415
+    import inventory_view  # noqa: PLC0415  (the one view of the inventory, kb/Work PB4992)
 
-    if not inventory_store.INVENTORY_DIR.is_dir():
-        return [f"inventory missing: {inventory_store.INVENTORY_DIR} — run python scripts/spec/build_inventory.py"]
-    return problems(notes, inventory_store.load_inventory(), inventory_schema.load_schema().defective,
-                    terminal)
+    schema = inventory_schema.load_schema()
+    return problems(notes, inventory_view.inventory(schema=schema), schema.defective, terminal)
 
 
 # ── the self-test ────────────────────────────────────────────────────────────────────────────────────────────────

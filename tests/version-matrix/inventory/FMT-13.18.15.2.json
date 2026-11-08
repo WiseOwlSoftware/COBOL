@@ -1,15 +1,9 @@
 {
  "rule-id": "FMT-13.18.15.2",
- "section": "13.18.15.2",
- "kind": "FMT",
- "ordinal": 0,
- "subject": "CONSTANT RECORD clause",
  "rule-digest": "9bce506df09c",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#constantRecordClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitConstantRecordClause",
  "test-ref": "conformance:cases/13.18.15-CONSTANT-RECORD/constant_record; conformance:cases/13.18.15-CONSTANT-RECORD/constant-record-below-2014",
- "derivation": "",
  "editions": "2014,2023",
- "notes": "Format: CONSTANT RECORD, both words underlined (cite.py --check 13.18.15.2 \"CONSTANT\" OK). Grammar constantRecordClause : CONSTANT RECORD, LL-disjoint from constantEntryBody by the second token; BindEntry sets isConstantRecord. Probes: clause accepted in either order with GLOBAL (`01 R1 GLOBAL CONSTANT RECORD.` / `01 R2 CONSTANT RECORD GLOBAL.` -> G1G2 at 2014 and 2023; COBOL0900 at 2002). Edition gate constant-record-2014 -> COBOL0900 at --std 85 and 2002 (negative conformance:cases/13.18.15-CONSTANT-RECORD/constant-record-below-2014). Golden conformance:cases/13.18.15-CONSTANT-RECORD/constant_record compiles the clause and reads the record. || Editions (kb/Work PB3600): 2014, 2023 (a COBOL-2014 introduction: ISO/IEC FCD 1989:2001 and the 2001-12-04 post-ballot text have no CONSTANT RECORD clause, the 2009 CD has it at clause 13.18.15, and Annex E.2 item 10 shows the 2014 standard carried it; not in 1985 or 2002)",
- "state": "OK"
+ "notes": "Format: CONSTANT RECORD, both words underlined (cite.py --check 13.18.15.2 \"CONSTANT\" OK). Grammar constantRecordClause : CONSTANT RECORD, LL-disjoint from constantEntryBody by the second token; BindEntry sets isConstantRecord. Probes: clause accepted in either order with GLOBAL (`01 R1 GLOBAL CONSTANT RECORD.` / `01 R2 CONSTANT RECORD GLOBAL.` -> G1G2 at 2014 and 2023; COBOL0900 at 2002). Edition gate constant-record-2014 -> COBOL0900 at --std 85 and 2002 (negative conformance:cases/13.18.15-CONSTANT-RECORD/constant-record-below-2014). Golden conformance:cases/13.18.15-CONSTANT-RECORD/constant_record compiles the clause and reads the record. || Editions (kb/Work PB3600): 2014, 2023 (a COBOL-2014 introduction: ISO/IEC FCD 1989:2001 and the 2001-12-04 post-ballot text have no CONSTANT RECORD clause, the 2009 CD has it at clause 13.18.15, and Annex E.2 item 10 shows the 2014 standard carried it; not in 1985 or 2002)"
 }

@@ -30,7 +30,7 @@ from collections import Counter, defaultdict
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import generated_output  # noqa: E402  (the one way a generator clears the directory it writes: never wholesale)
-import inventory_store  # noqa: E402  (the one reader of the inventory)
+import inventory_view  # noqa: E402  (the one view of the inventory, kb/Work PB4992)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
@@ -95,8 +95,8 @@ def build_notes(rows: list[dict]) -> dict[str, str]:
                  "first time, and per-item rows drift. Query the inventory instead:",
                  "",
                  "```",
-                 "python -c \"import sys;sys.path.insert(0,'scripts/spec');from inventory_store import load_inventory;"
-                 f"print([r['rule-id'] for r in load_inventory() if r['section'].startswith('{clause}.') "
+                 "python -c \"import sys;sys.path.insert(0,'scripts/spec');from inventory_view import inventory;"
+                 f"print([r['rule-id'] for r in inventory() if r['section'].startswith('{clause}.') "
                  "and r['state']=='GAP'][:40])\"",
                  "```", "",
                  "See also [[kb/Conformance/_Dashboard|the conformance dashboard]].", ""]
@@ -148,7 +148,7 @@ def main() -> int:
     ap.add_argument("--check", action="store_true",
                     help="render in memory and exit non-zero when the inventory no longer produces a view")
     args = ap.parse_args()
-    rows = inventory_store.load_inventory()   # refuses an absent or malformed inventory, naming the rebuild
+    rows = inventory_view.inventory()   # refuses a refused store record, naming it
     notes = build_notes(rows)
 
     if args.check:
@@ -157,7 +157,7 @@ def main() -> int:
         # that the inventory stops producing a view: a row without a field `build_notes` reads raises above, and an
         # inventory with no rows renders a dashboard of zeros, which is no view of the standard (train 1063 review).
         if not rows:
-            print(f"the inventory has no rows: {inventory_store.INVENTORY_DIR}")
+            print("the inventory view has no rows: the 2023 catalog has no rule")
             return 1
         print(f"the inventory renders {len(notes)} conformance notes")
         return 0

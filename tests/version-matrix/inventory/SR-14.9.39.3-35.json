@@ -1,15 +1,9 @@
 {
  "rule-id": "SR-14.9.39.3-35",
- "section": "14.9.39.3",
- "kind": "SR",
- "ordinal": 35,
- "subject": "SET statement",
  "rule-digest": "0a5b6c6ff171",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindMessageTagSet; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetFormatSelection.cs",
  "test-ref": "conformance:cases/14.9.39-SET/set-message-tag; conformance:cases/14.9.39-SET/message-tag-refused-set-numeric-sender; conformance:cases/14.9.39-SET/message-tag-refused-set-numeric-receiver",
- "derivation": "",
  "editions": "2023",
- "notes": "14.9.39.3 SR35 (cite.py --check 14.9.39.3 'Data-name-4 and data-name-5 shall be message-tag data items' via --find OK, 35): BindMessageTagSet refuses a receiver that is not a message-tag item and a sender that is neither a message-tag item nor NULL (COBOL0869, the SET operand-shape band), and a list of receivers, since Format 17 prints one data-name-4. kb/Work PB4740. retired-witness: conformance:wiseowl/cases/14.9.39-SET/pb453-set-message-tag-format17 (both were refusals of the statement over a declined usage (COBOL2205, COBOL1943); the statement now binds) retired-witness: conformance:wiseowl/cases/8.4.3.10-NULL-address-pointer-and-message-tag/pb487-message-tag-usage (both were refusals of the statement over a declined usage (COBOL2205, COBOL1943); the statement now binds)",
- "state": "OK"
+ "notes": "14.9.39.3 SR35 (cite.py --check 14.9.39.3 'Data-name-4 and data-name-5 shall be message-tag data items' via --find OK, 35): BindMessageTagSet refuses a receiver that is not a message-tag item and a sender that is neither a message-tag item nor NULL (COBOL0869, the SET operand-shape band), and a list of receivers, since Format 17 prints one data-name-4. kb/Work PB4740. retired-witness: conformance:wiseowl/cases/14.9.39-SET/pb453-set-message-tag-format17 (both were refusals of the statement over a declined usage (COBOL2205, COBOL1943); the statement now binds) retired-witness: conformance:wiseowl/cases/8.4.3.10-NULL-address-pointer-and-message-tag/pb487-message-tag-usage (both were refusals of the statement over a declined usage (COBOL2205, COBOL1943); the statement now binds)"
 }

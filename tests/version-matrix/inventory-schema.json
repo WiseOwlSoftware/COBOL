@@ -2,7 +2,7 @@
   "$comment": [
     "THE schema for the P14 Step-0 spec-traceability inventory — the single place the verdict vocabulary and the",
     "per-verdict evidence requirements are written down. Three consumers read THIS file rather than carrying their",
-    "own copy: scripts/spec/build_inventory.py (which derives each row's GAP/OK state), ",
+    "own copy: scripts/spec/inventory_view.py (which computes each rule's GAP/OK state in the view), ",
     "scripts/spec/record_verdicts.py (which validates an incoming batch before merging it), and the C# battery gate",
     "SpecTraceabilityInventoryDriftTests (which enforces referential integrity against the working tree).",
     "",
@@ -31,6 +31,17 @@
     "describes. 19 of the 37 rows the first A.1 back-fill recorded are exactly that — the identical legitimate Phase-C",
     "category as CONFORMS-but-untested, not a defect in the batch."
   ],
+
+  "store": {
+    "$comment": [
+      "WHAT A STORE FILE HOLDS (DESIGN-spec-conformance-review.md section 4, kb/Work PB4992): an edition's inventory is a",
+      "VIEW, its catalog joined with its store of adjudications, each rule's state computed and stored nowhere. A store",
+      "file is `keys` plus the edition's `adjudicated` fields (`editions.of`) that say something; a rule nobody has",
+      "adjudicated has no file. A catalog field (section, kind, ordinal, subject) or a state in a store file is refused by",
+      "the view (inventory_view.py)."
+    ],
+    "keys": ["rule-id", "rule-digest"]
+  },
 
   "verdicts": {
     "CONFORMS": {
@@ -1032,23 +1043,40 @@
     "$comment": [
       "The editions a rule can exist at, and the ONE spelling of a row's `editions` field (kb/Work PB3172;",
       "docs/rearchitecture/DESIGN-conformance-suite.md §6 step 0, §13 S0a): the editions it names, each at most",
-      "once, in the order of `values` (ascending), joined by `separator` with no spaces: `85,2002,2014,2023`,",
+      "once, in the order of `of` (ascending), each by its `spelling`, joined by `separator` with no spaces: `85,2002,2014,2023`,",
       "`2002,2014,2023`, `2023`. Until 2026-10-16 the field was written two ways (645 rows used ', ', 37 of them",
       "out of order as well), so every reader parsed it its own way. `inventory_schema.Schema.editions_error` is",
       "the one validator (record_verdicts.py asks it of every record, and SpecTraceabilityInventoryDriftTests",
       "mirrors it over the whole inventory); `Schema.spell_editions` is the one writer of the spelling",
-      "(build_inventory.py, normalize_batch.py, grammar_findings_to_batch.py).",
+      "(normalize_batch.py, grammar_findings_to_batch.py).",
       "`required` (kb/Work PB3173, S0b): an EMPTY field is refused. Every row names the editions its rule exists",
       "at, decided from the standard and docs/VERSION_CHANGE_REFERENCE.md, so a per-edition conformance suite can",
       "tell whether the rule belongs to it (the 148 empty rows were decided 2026-10-16, each with its evidence in",
       "the row's notes). A row new to a catalog rebuild arrives empty and is decided by a record_verdicts batch.",
-      "`run-through-last` (kb/Work PB3173): the band is a RUN of `values` ending at the last one. Every row is a",
+      "`run-through-last` (kb/Work PB3173): the band is a RUN of `of` ending at the last one. Every row is a",
       "rule of the newest standard's text (the catalog is extracted from it), so the rule exists at that edition,",
       "and from the edition that introduced it on, with no gap. Before this rule 20 rows wrote a band some other",
       "way: a start edition alone ('2002' on nine constant-entry rows, '85' on six), endpoints ('85,2023',",
-      "'85,2002,2023') or a band stopping at 2014 on rules the 2023 text states."
+      "'85,2002,2023') or a band stopping at 2014 on rules the 2023 text states.",
+      "",
+      "`of` IS THE ONE HOME OF THE EDITIONS (kb/Work PB4991, PB4992; branch review R1-1): each edition's `year`, its",
+      "`spelling` in a band, and, for an edition the inventory HOLDS, its rule `catalog`, the catalog key that `locator`s",
+      "a rule in its text, its `store` directory (one `<rule-id>.json` per adjudicated rule), the `legacy-file` that held",
+      "its store before kb/Work PB4148 if any, and the `adjudicated` fields its store holds. An edition with no `store` is",
+      "not held: it is in the order (a change record over it is a bridge) and in the bands, and has no rows. The newest",
+      "held edition's rows carry their `editions` band; an older one's carry the change record `next` (section 10.2).",
+      "inventory_schema.Edition (Python) and TraceabilityInventory (C#) read it; no code names an edition's year."
     ],
-    "values": ["85", "2002", "2014", "2023"],
+    "of": [
+      {"year": 1985, "spelling": "85", "catalog": "docs/rearchitecture/spec-rule-catalog-1985.json", "locator": "locator",
+       "store": "tests/version-matrix/inventory-1985",
+       "adjudicated": ["verdict", "code-location", "test-ref", "derivation", "notes", "next"]},
+      {"year": 2002, "spelling": "2002"},
+      {"year": 2014, "spelling": "2014"},
+      {"year": 2023, "spelling": "2023", "catalog": "docs/rearchitecture/spec-rule-catalog.json", "locator": "section",
+       "store": "tests/version-matrix/inventory", "legacy-file": "tests/version-matrix/traceability-inventory.json",
+       "adjudicated": ["verdict", "code-location", "test-ref", "derivation", "editions", "notes"]}
+    ],
     "separator": ",",
     "required": true,
     "run-through-last": true

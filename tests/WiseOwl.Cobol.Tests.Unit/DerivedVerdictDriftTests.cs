@@ -126,13 +126,8 @@ public sealed class DerivedVerdictDriftTests
                                       ? [.. bf.EnumerateArray().Select(n => n.GetInt32())] : []))];
     }
 
-    private static Dictionary<string, JsonElement> Inventory()
-    {
-        var map = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
-        foreach (var row in TraceabilityInventory.Rows)
-            map[row.GetProperty("rule-id").GetString()!] = row;
-        return map;
-    }
+    private static Dictionary<string, TraceabilityInventory.Row> Inventory() =>
+        TraceabilityInventory.Rows.ToDictionary(r => r.RuleId, StringComparer.Ordinal);
 
     private static List<string> Strings(JsonElement arm, string field) =>
         arm.TryGetProperty(field, out var a) ? [.. a.EnumerateArray().Select(x => x.GetString()!)] : [];
@@ -258,7 +253,7 @@ public sealed class DerivedVerdictDriftTests
         foreach (string id in ids)
         {
             if (!inv.TryGetValue(id, out var row)) { wrong.Add($"{id}: no inventory row"); continue; }
-            string got = row.TryGetProperty("verdict", out var v) ? v.GetString() ?? "" : "";
+            string got = row.Verdict;
             if (!string.Equals(got, verdict, StringComparison.Ordinal))
                 wrong.Add($"{id}: {(got.Length == 0 ? "(blank)" : got)}");
         }

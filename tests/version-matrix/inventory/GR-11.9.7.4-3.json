@@ -1,15 +1,9 @@
 {
  "rule-id": "GR-11.9.7.4-3",
- "section": "11.9.7.4",
- "kind": "GR",
- "ordinal": 3,
- "subject": "ENTRY-CONVENTION clause",
  "rule-digest": "946478a3b63c",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/OptionsBinder.cs#ScreenEntryConvention",
  "test-ref": "conformance:cases/11.9.7-ENTRY-CONVENTION/pb232-entry-convention-name",
- "derivation": "",
  "editions": "2002,2014,2023",
- "notes": "kb/Work PB232 (wave 56): the implementor-defined meaning is that NO entry-convention-name-1 is defined (docs/CONFORMANCE.md §7 DOC-A.1-64); one written is refused by name, COBOL2385. || Editions (re-recorded kb/Work PB4611 against the 2002 text and the 2014 FCD): 2002, 2014, 2023 (ISO/IEC 1989:2002 11.8.5.3 GR2 (t2002.txt:10997) has the same rule for entry-convention-name-1; constructs.json options-entry-convention-2014 gates the COBOL alternative only) retired-witness: src/Cobol.Net.Compiler/Binding/OptionsBinder.cs#EntryConventionOf (kb/Work PB298: the ENTRY-CONVENTION screen returns nothing now that the clause has no model field, so EntryConventionOf became ScreenEntryConvention (the same SR1 + GR3 checks, COBOL2385))",
- "state": "OK"
+ "notes": "kb/Work PB232 (wave 56): the implementor-defined meaning is that NO entry-convention-name-1 is defined (docs/CONFORMANCE.md §7 DOC-A.1-64); one written is refused by name, COBOL2385. || Editions (re-recorded kb/Work PB4611 against the 2002 text and the 2014 FCD): 2002, 2014, 2023 (ISO/IEC 1989:2002 11.8.5.3 GR2 (t2002.txt:10997) has the same rule for entry-convention-name-1; constructs.json options-entry-convention-2014 gates the COBOL alternative only) retired-witness: src/Cobol.Net.Compiler/Binding/OptionsBinder.cs#EntryConventionOf (kb/Work PB298: the ENTRY-CONVENTION screen returns nothing now that the clause has no model field, so EntryConventionOf became ScreenEntryConvention (the same SR1 + GR3 checks, COBOL2385))"
 }

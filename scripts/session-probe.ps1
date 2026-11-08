@@ -42,27 +42,11 @@ $refusals = @(Get-ChildItem 'conformance-suite/wiseowl/diagnostics' -File -Filte
 Write-Host "suite  : $tests tests · $refusals WiseOwl refusals (conformance-suite/)"
 
 # 5. Traceability inventory (exists after P14 Step 0)
-if (Test-Path 'tests/version-matrix/inventory') {
-    # One JSON file per row (kb/Work PB4148, scripts/spec/inventory_store.py): read as bytes and parsed as one array.
-    $inv = '[' + ((Get-ChildItem 'tests/version-matrix/inventory' -File -Filter *.json |
-        ForEach-Object { [System.IO.File]::ReadAllText($_.FullName) }) -join ',') + ']' | ConvertFrom-Json
-    $gaps = @($inv | Where-Object { $_.state -eq 'GAP' }).Count
-    Write-Host "invent : $(@($inv).Count) rows · $gaps GAP (v1.0 = zero GAP)"
-    # Once Phase B starts, the GAP count alone hides the SHAPE of what is left — a DIVERGES is a queued fix, a
-    # NEEDS-OWNER-DECISION is blocked on the owner, and a CONFORMS still lacking a test is a golden away from
-    # closing. Print the breakdown only when there is one, so this stays a single line before Phase B.
-    $adjudicated = @($inv | Where-Object { $_.verdict })
-    if ($adjudicated.Count -gt 0) {
-        $byVerdict = $adjudicated | Group-Object verdict | Sort-Object Count -Descending |
-            ForEach-Object { "$($_.Name) $($_.Count)" }
-        Write-Host "       $($adjudicated.Count) adjudicated · $($byVerdict -join ' · ')"
-        # ⛔ "test-needed" is a row that DID NOT CLOSE, not a row with an empty test-ref. The two differ: a row
-        # can cite a NIST golden or a *_MatchesLegacy differential — which resolves on disk and is worth
-        # recording — and still be open, because only a SPEC-DERIVED test closes a row. Keying on the empty
-        # string under-reported this by 7 of 11 on the first Phase-B batch.
-        $needTest = @($adjudicated | Where-Object { $_.verdict -eq 'CONFORMS' -and $_.state -eq 'GAP' }).Count
-        if ($needTest -gt 0) { Write-Host "       $needTest CONFORMS still test-needed (each is one spec-derived golden from OK)" }
-    }
+if (Test-Path 'tests/version-matrix/inventory-schema.json') {
+    # Each edition's inventory is a VIEW, its catalog joined with its store and each rule's state computed (kb/Work
+    # PB4992, scripts/spec/inventory_view.py): the probe prints the view's own summary, each edition's rules and GAP
+    # count side by side, then each edition's verdicts and its CONFORMS rows still a spec-derived test from closing.
+    & python scripts/spec/inventory_view.py --summary 2>&1 | ForEach-Object { Write-Host $_ }
     # ⛔ THE WORK LIST, PRINTED, FROM THE ONE REGISTER. Deriving "what should I fix next" from a 2,400-line
     # prose queue is what led to picking PB39 (rule-id cosmetics, zero wrong answers) over PB24 (FUNCTION LENGTH
     # silently wrong) — both are [MAJOR], so severity could not separate them. kb/Work/ replaced FIVE overlapping

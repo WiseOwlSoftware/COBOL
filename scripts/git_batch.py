@@ -12,7 +12,9 @@
     git_batch.object_ids(repo, ["<rev>:<path>", ...])        # `git rev-parse -q --verify <rev>:<path>`, each
     git_batch.patch_ids(repo, [commit, ...])                 # `git show <commit> | git patch-id --stable`, each
     git_batch.tree_entries(repo, ["<rev>:<dir>", ...])       # `git ls-tree <rev>:<dir>`, each: {file name: object id}
+    git_batch.path_ids(repo, rev, [path, ...])               # `git ls-tree <rev> -- <path>...`: {path: blob id}, no blob read
     git_batch.blobs(repo, [object id, ...])                  # `git cat-file blob <object id>`, each: (object id, bytes), one at a time
+                                                             # (a partial clone's missing blobs: ONE batched fetch first)
 
     python scripts/git_batch.py --self-test                  # each reader against the one-process-per-object form
 
@@ -58,6 +60,7 @@ self-test holds it (`per_object_questions`, over the real files and a planted on
 """
 from __future__ import annotations
 
+import os
 import pathlib
 import re
 import subprocess
@@ -131,11 +134,13 @@ def object_ids(repo: pathlib.Path | str, specs: Sequence[str], git: Runner | Non
     return [a[0] if a else "" for a in _batch_check(repo, list(specs), git)]
 
 
-def _object_stream(repo: pathlib.Path | str, specs: Sequence[str]) -> Iterator[tuple[str, str, bytes] | None]:
+def _object_stream(repo: pathlib.Path | str, specs: Sequence[str],
+                   lazy: bool = True) -> Iterator[tuple[str, str, bytes] | None]:
     """(object id, type, content) | None per spec, in the questions' order, from ONE `git cat-file --batch` (`<spec>
     missing` and an ambiguous abbreviation -> None). The answers are written to a temporary file and read back one at a
     time, so a caller that reduces each object as it arrives holds one object, not the whole output. A short or torn
-    output raises GitError."""
+    output raises GitError. `lazy` False answers a partial clone's absent object `missing` instead of fetching it (git's
+    GIT_NO_LAZY_FETCH), which is how `blobs` learns what to fetch in one batch."""
     if not specs:
         return
     bad = [s for s in specs if not s or "\n" in s]
@@ -143,7 +148,8 @@ def _object_stream(repo: pathlib.Path | str, specs: Sequence[str]) -> Iterator[t
         raise GitError(f"git cat-file --batch cannot ask about {bad[0]!r}")
     with tempfile.TemporaryFile() as out:
         r = subprocess.run(["git", "-C", str(repo), "cat-file", "--batch"], stdout=out, stderr=subprocess.PIPE,
-                           input="".join(f"{s}\n" for s in specs).encode("utf-8"))
+                           input="".join(f"{s}\n" for s in specs).encode("utf-8"),
+                           env=None if lazy else {**os.environ, "GIT_NO_LAZY_FETCH": "1"})
         if r.returncode != 0:
             raise GitError(f"git cat-file --batch in {repo} failed ({r.returncode}): {r.stderr.decode('utf-8', 'replace').strip()[:300]}")
         out.seek(0)
@@ -185,15 +191,68 @@ def tree_entries(repo: pathlib.Path | str, specs: Sequence[str]) -> list[dict[st
     return out
 
 
+def path_ids(repo: pathlib.Path | str, rev: str, paths: Sequence[str]) -> dict[str, str] | None:
+    """{path: blob id} of the files `paths` name in commit `rev` (a directory names its own entries; no recursion), from
+    ONE `git ls-tree`, which reads trees only: in a partial clone it fetches no blob, so the ids it gives can be fetched
+    in one batch (`blobs`). A path the commit lacks is absent; None when `rev` names no commit."""
+    r = subprocess.run(["git", "-C", str(repo), "ls-tree", "-z", f"{rev}^{{commit}}", "--", *paths],
+                       capture_output=True)
+    if r.returncode != 0:
+        return None
+    out: dict[str, str] = {}
+    for rec in r.stdout.decode("utf-8").split("\0"):
+        if rec:
+            meta, _, path = rec.partition("\t")
+            _, kind, oid = meta.split()
+            if kind == "blob":
+                out[path] = oid
+    return out
+
+
 def blobs(repo: pathlib.Path | str, oids: Iterable[str]) -> Iterator[tuple[str, bytes]]:
-    """(object id, its content) for every distinct id, from ONE process, one blob at a time: a caller that reduces each
-    blob as it arrives (counts, a parsed frontmatter) holds one blob, however many ids it asked. An id that names no
-    blob raises GitError: a caller that read it out of a tree must find it."""
+    """(object id, its content) for every distinct id, from ONE process in a full clone, one blob at a time: a caller that
+    reduces each blob as it arrives (counts, a parsed frontmatter) holds one blob, however many ids it asked. An id that
+    names no blob raises GitError: a caller that read it out of a tree must find it. The order is the questions' in a full
+    clone; in a partial clone the blobs it already held come first.
+
+    ⛔ A PARTIAL CLONE FETCHES ITS MISSING BLOBS IN ONE REQUEST (the merge-queue bounce of kb/Work PB4992). CI checks out
+    with `filter: blob:none`, and `git cat-file --batch` fetches each absent blob from the promisor remote by itself, one
+    round trip per blob: the witness-loss audit read a base commit's 4,214 inventory records that way and was cancelled
+    after 8.5 minutes. The first pass reads with lazy fetching off; the ids it reports missing are fetched in ONE `git
+    fetch --stdin` from the promisor remote (`fetch_missing`), and only they are read again."""
     uniq = list(dict.fromkeys(o for o in oids if o))
-    for oid, found in zip(uniq, _object_stream(repo, uniq)):
-        if found is None or found[1] != "blob":
+    missing: list[str] = []
+    for oid, found in zip(uniq, _object_stream(repo, uniq, lazy=False)):
+        if found is None:
+            missing.append(oid)
+        elif found[1] != "blob":
             raise GitError(f"{oid} is not a blob in {repo}")
-        yield oid, found[2]
+        else:
+            yield oid, found[2]
+    if missing:
+        fetch_missing(repo, missing)
+        for oid, found in zip(missing, _object_stream(repo, missing)):
+            if found is None or found[1] != "blob":
+                raise GitError(f"{oid} is not a blob in {repo}")
+            yield oid, found[2]
+
+
+def fetch_missing(repo: pathlib.Path | str, oids: Sequence[str]) -> None:
+    """Fetch the objects `oids` a partial clone lacks from its promisor remote, in ONE request: the command git runs for
+    one lazily fetched object (promisor-remote.c), given every id at once. Nothing to do without a promisor remote: an
+    object a full clone lacks is not there to fetch, and the reader that asked raises on it."""
+    remotes = [key[len("remote."):-len(".promisor")] for key, _, value in
+               (line.partition(" ") for line in run(repo, "config", "--get-regexp", r"^remote\..*\.promisor$")
+                .stdout.splitlines()) if value.strip() == "true"]
+    if not remotes:
+        return
+    # Bytes, not text: a text pipe on Windows writes CRLF, and `fetch --stdin` reads the CR as part of the id.
+    r = subprocess.run(["git", "-C", str(repo), "-c", "fetch.negotiationAlgorithm=noop", "fetch", remotes[0], "--no-tags",
+                        "--no-write-fetch-head", "--recurse-submodules=no", "--filter=blob:none", "--stdin"],
+                       input="".join(f"{o}\n" for o in oids).encode("ascii"), capture_output=True)
+    if r.returncode != 0:
+        raise GitError(f"git fetch of {len(oids)} missing object(s) in {repo} failed ({r.returncode}): "
+                       f"{r.stderr.decode('utf-8', 'replace').strip()[:300]}")
 
 
 def patch_ids(repo: pathlib.Path | str, commits: Iterable[str], git: Runner | None = None) -> dict[str, str]:

@@ -1,15 +1,9 @@
 {
  "rule-id": "SR-13.18.22.3-2",
- "section": "13.18.22.3",
- "kind": "SR",
- "ordinal": 2,
- "subject": "EXTERNAL clause",
  "rule-digest": "9d4ee557d192",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#CheckExternalizedNameUniqueness",
  "test-ref": "conformance:cases/13.18.22-EXTERNAL/pb511-externalized-name-not-unique; conformance:cases/13.18.22-EXTERNAL/pb1236-externalized-name-differs-only-in-case",
- "derivation": "",
  "editions": "2002,2014,2023",
- "notes": "kb/Work PB1236: the SR2 uniqueness screen asks the run-unit store's own (case-insensitive) question, so EXTERNAL and EXTERNAL AS \"a\" are one externalized name (COBOL2159). retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Linkage.cs#CheckExternalizedNameUniqueness (kb/Work PB2359 moved the member, unchanged, out of the DataBinder.Linkage.cs partial: the LINKAGE / EXTERNAL / GLOBAL binder is LinkageBinder, and the cell-backing forcer and the inherited-name tier went to the data binder files that own the name tables)",
- "state": "OK"
+ "notes": "kb/Work PB1236: the SR2 uniqueness screen asks the run-unit store's own (case-insensitive) question, so EXTERNAL and EXTERNAL AS \"a\" are one externalized name (COBOL2159). retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Linkage.cs#CheckExternalizedNameUniqueness (kb/Work PB2359 moved the member, unchanged, out of the DataBinder.Linkage.cs partial: the LINKAGE / EXTERNAL / GLOBAL binder is LinkageBinder, and the cell-backing forcer and the inherited-name tier went to the data binder files that own the name tables)"
 }

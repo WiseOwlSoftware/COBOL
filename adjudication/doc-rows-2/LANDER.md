@@ -18,7 +18,7 @@ code, claimed by the owning note). You are in a fresh worktree cut from main.
 
 ## Steps (checkpoint-commit after each; STATUS.md)
 1. **Merge the FMT-5.2 branch first:** `git merge worktree-agent-a69372df1365cdda7` (w60b, PB1536 Q2). Then on the merged
-   tree run `python scripts/spec/extract_rule_catalog.py`, `python scripts/spec/build_inventory.py`, and re-apply
+   tree run `python scripts/spec/extract_rule_catalog.py`, `python scripts/spec/inventory_view.py --check`, and re-apply
    `{SCRATCH}\w60b\batch-1-fmt-15.78.2.json` (never merge catalog/inventory JSON as hunks). GAP −1.
 2. **Build the final item set** (one script under `{SCRATCH}\doc2\land\`, reusing
    `adjudication/doc-rows-1/apply_rows.py`'s approach): for each of the 51 items take the writer row/record, apply the
