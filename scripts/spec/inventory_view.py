@@ -46,8 +46,8 @@ from typing import Any, NamedTuple
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import lineage  # noqa: E402  (an older edition's change record and its state)
-from inventory_schema import (HELD, NEWEST, REPO, WORKING_TREE, Edition, Schema, Tree, edition,  # noqa: E402
-                              load_schema)
+from inventory_schema import (HELD, NEWEST, REGISTER_EXTRACT_REL, REPO, WORKING_TREE, Edition, Schema,  # noqa: E402
+                              Tree, edition, load_schema)
 from inventory_store import STORE_KEYS, inventory_dir, read_store, store_at  # noqa: E402
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
@@ -348,19 +348,31 @@ def self_test() -> int:
        "a later commit's view joins its own catalog and store, its states computed under its own schema")
     ok(inventory_at("HEAD", 1985, repo.path) is None and inventory_at("no-such-rev", 2023, repo.path) is None,
        "a commit with no store of an edition has no view of it")
-    # Branch review R1-3: the state rule's other inputs (docs/CONFORMANCE.md's registers, the Annex A.2 list, the catalog's
-    # rule ids) are read as the commit has them, never from the working tree.
+    # Branch review R1-3: the state rule's other inputs (the registers' extract, the Annex A.2 list, the catalog's rule ids)
+    # are read as the commit has them, never from the working tree.
     at_schema = load_schema(Tree(repo.path, "HEAD"))
     undefined_rel = at_schema.derivation.undefined_list
     repo.commit("registers", {
-        "docs/CONFORMANCE.md": "## 7. Annex A.1\n\n| A.1 item | Element | Our determination | Pinned by |\n|---|---|---|---|\n"
-                               "| DOC-A.1-1 | e | Provided. | t |\n",
+        REGISTER_EXTRACT_REL: json.dumps({"annexA1": [{"key": "DOC-A.1-1", "lead": "Provided."}], "derivations": [
+            {"key": "DRV-GR-4.2-1", "arm": "undefined-A.2", "names": "A.2 item 1", "signature": "owner"}]}),
         undefined_rel: json.dumps({"items": [{"item": 1, "rule-ids": ["GR-4.2-1"]}]})})
     at_schema = load_schema(Tree(repo.path, "HEAD"))
     ok(at_schema.register_items() == {"DOC-A.1-1"} and at_schema.register_items() != schema.register_items()
-       and at_schema.derivation.undefined == {1: {"GR-4.2-1"}} and at_schema.derivation.register == {}
+       and at_schema.derivation.undefined == {1: {"GR-4.2-1"}}
+       and list(at_schema.derivation.register) == ["DRV-GR-4.2-1"]
        and at_schema.rule_ids == {"GR-4.10-1", "GR-4.2-1", "DOC-A.1-1"},
-       "a commit's schema reads that commit's §7 and §8 registers, Annex A.2 list and catalog, not the working tree's")
+       "a commit's schema reads that commit's register extract, Annex A.2 list and catalog, not the working tree's")
+    # The merge-queue bounce of PB4992 (inert watch): the view, states included, opens no document. The conformance
+    # manifest's generator runs it inside the compiler tests, where a document is inert (kb/Work PB4453, PB4395).
+    opened: list[str] = []
+    watching = [True]
+    sys.addaudithook(lambda event, args: opened.append(str(args[0])) if watching[0] and event == "open"
+                     and str(args[0]).lower().endswith(".md") else None)
+    fresh = load_schema()
+    inventory(None, fresh)
+    fresh.register_items(), fresh.derivation.register, fresh.derivation.undefined  # noqa: B018  (every lazy input)
+    watching[0] = False
+    ok(not opened, f"the view and the state rule open no Markdown document (opened {opened[:3]})")
     # Branch review R2-1: a tree main never held (a WIP checkpoint whose schema predates `editions.of`) is refused by name.
     old_raw = json.loads(WORKING_TREE.text(SCHEMA_REL))
     old_raw["editions"]["values"] = [e["spelling"] for e in old_raw["editions"].pop("of")]

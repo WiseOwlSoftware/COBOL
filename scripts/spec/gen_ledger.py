@@ -446,7 +446,7 @@ def measure_commits(shas: typing.Sequence[str], register: bool = True) -> dict[s
     # store holds adjudications only and the commit's rows are its VIEW, read under the files that commit holds. Each is
     # located by the working tree's newest edition (a commit before the editions were the schema's names none).
     ed = inventory_schema.NEWEST
-    viewed = sorted({inventory_schema.SCHEMA_REL, ed.catalog, inventory_schema.REGISTER_REL,
+    viewed = sorted({inventory_schema.SCHEMA_REL, ed.catalog, inventory_schema.REGISTER_EXTRACT_REL,
                      inventory_schema.load_schema().derivation.undefined_list})
     dirs = sorted({f.rpartition("/")[0] for f in (*viewed, *((ed.legacy_file,) if ed.legacy_file else ()))})
     asked = (*(("kb/Work",) if register else ()), ed.store, *dirs)
