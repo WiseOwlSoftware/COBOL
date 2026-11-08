@@ -42,6 +42,8 @@ import io
 import re
 from typing import Any, Callable, Iterable
 
+from spec_headings import GENERAL_FORMAT_TITLE  # THE general-format heading (kb/Work PB284)
+
 #: The printed ligatures the text layer carries as one glyph (2002: "identiﬁer"), and their letters.
 LIGATURES = {"ﬀ": "ff", "ﬁ": "fi", "ﬂ": "fl", "ﬃ": "ffi", "ﬄ": "ffl"}
 #: The Symbol font's brace, bracket and parenthesis pieces (U+F8EB..U+F8FE in its private-use encoding): a general format's
@@ -51,7 +53,7 @@ FIGURE_GLYPHS = re.compile("[-]")
 FIGURE_MARK = "<!-- GENERAL FORMAT"
 #: A heading's clause number: `9`, `9.2`, `14.8.24.1`, `A.1`, `E.1.3.2` (a lone letter is a word, not a number).
 CLAUSE_NUMBER = re.compile(r"^(?:\d+(?:\.\d+)*|[A-Z](?:\.\d+)+)$")
-GENERAL_FORMAT = re.compile(r"^General formats?$")
+
 #: A rule label printed as its own span: `1)`, `12)`, `a)`, `iv)`, `1.`, `a.`.
 LABEL = re.compile(r"^(?:\d{1,3}|[a-z]|[ivx]{1,5})[.)]$")
 CAPTION = re.compile(r"^(?:Table|Figure)\s+[A-Z]?\.?\d")
@@ -275,7 +277,7 @@ def opens_format(layout: Layout, stamp: Callable[[str], bool]) -> bool | None:
     for r in rows_of(s for s in layout.spans if s.text.strip()):
         h = heading_of(r)
         if h and not stamp(r.text):
-            last = bool(GENERAL_FORMAT.match(h[1]))
+            last = bool(GENERAL_FORMAT_TITLE.fullmatch(h[1]))
     return last
 
 
@@ -379,7 +381,7 @@ def convert(layout: Layout, pno: int, stamp: Callable[[str], bool], format_open:
         for i, r in enumerate(rows):
             h = heading_of(r)
             if h:
-                in_fmt = bool(GENERAL_FORMAT.match(h[1]))
+                in_fmt = bool(GENERAL_FORMAT_TITLE.fullmatch(h[1]))
                 continue
             if in_fmt or r.figure:
                 fmt_rows.add(i)
