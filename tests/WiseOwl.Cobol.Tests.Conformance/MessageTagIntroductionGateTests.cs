@@ -623,6 +623,7 @@ public sealed class MessageTagIntroductionGateTests
     /// callee as the binding does, so at 2023 the same CALL draws the argument-conformance refusal the gate suppressed (COBOL1688) and no COBOL0900.</summary>
     [Theory]
     [InlineData("CALL \"SUBN\" AS NESTED USING N", "")]
+    [InlineData("CALL \"SU\" & \"BN\" AS NESTED USING N", "")]
     [InlineData("CALL \"SUBN\" AS SUBN USING N", "PROGRAM SUBN.")]
     [InlineData("CALL SUBN USING N", "PROGRAM SUBN.")]
     public void AFormatTwoCallToAMessageTagFormal_IsTheGateAloneBelowTheIntroduction(string call, string repository)

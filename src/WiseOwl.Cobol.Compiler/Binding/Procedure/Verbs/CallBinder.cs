@@ -1153,8 +1153,9 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     /// literal-1 through the contained-program table (§2023:14.9.4.3 SR15), AS program-prototype-name-1 and a bare
     /// program-prototype-name-1 (§2023:14.9.4.4 GR7, spelling (b) of §2023:14.9.4.2) through the prototype table -- so the
     /// two cannot name different callees. Null when the callee is not statically known (a Format 1 CALL, an unresolved name,
-    /// a separately compiled prototype). The literal-1 read is muted: it reports a malformed literal, which
-    /// <see cref="BindCall"/> reports when the statement binds.</summary>
+    /// a separately compiled prototype). The literal-1 read is diagnostic-free
+    /// (<see cref="ExpressionBinder.PeekNonNumericLiteralOperand"/>): a malformed literal is reported by <see cref="BindCall"/> when the
+    /// statement binds.</summary>
     internal CalleeSignature? CalleeSignatureOf(Core.CallStatementContext call)
     {
         var target = call.callTarget();
@@ -1162,15 +1163,18 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         {
             if (asPhrase.formatWord() is null)
                 return host.ProgramPrototypes?.GetValueOrDefault(asPhrase.cobolWord().GetText())?.Signature;
-            using var _ = ctx.Edition.Muted(true);
-            return Literal1Of(target?.literal(), target?.dataReference())?.Form(ctx.Edition.Edition.Year).Name is { } nested
+            BoundOperand? literal1 = target?.literal() is { } lit ? host.Expr.PeekNonNumericLiteralOperand(lit.nonNumericLiteral())
+                : target?.dataReference() is { } alias && host.Expr.LiteralAliasOf(alias) is { Constant.Category: not PicCategory.Numeric } constant
+                    ? host.Expr.AliasOperand(constant)
+                : null;
+            return ProgramNameLiteral.Form(literal1, ctx.Edition.Edition.Year).Name is { } nested
                 && host.NestedCallables is { } nestedCallables && nestedCallables.TryGetValue(nested, out var sig) ? sig : null;
         }
-        if (!ProgramPrototypeNamesExist || target?.dataReference() is not { } dref
-            || BarePrototypeWord(dref) is not { } word || ctx.Refs.Probe(dref) is not null)
-            return null;
-        using var __ = ctx.Edition.Muted(true);
-        return Literal1Of(null, dref) is null ? host.ProgramPrototypes?.GetValueOrDefault(word)?.Signature : null;
+        // Spelling (b): a bare word that is no constant-name and names no data item.
+        return ProgramPrototypeNamesExist && target?.dataReference() is { } dref && BarePrototypeWord(dref) is { } word
+            && host.Expr.LiteralAliasOf(dref) is null && ctx.Refs.Probe(dref) is null
+            ? host.ProgramPrototypes?.GetValueOrDefault(word)?.Signature
+            : null;
     }
 
     /// <summary>The BARE user-defined word a data reference spells, or null when it is qualified, subscripted,

@@ -4,7 +4,7 @@
 (`callnest.cob --source-format free --std 2014`, reproduced on this build). `StatementBinder.NamesGatedMessageTag` had arms for data
 references, functions, inline invocations and INVOKE (PB4893) but none for CALL. Fix: `CallBinder.CalleeSignatureOf` answers the callee
 signature without binding (AS NESTED through the contained-program table, AS program-prototype-name-1 and the bare prototype word through
-the prototype table), the literal-1 read muted because `BindCall` reports a malformed literal when the statement binds; `CalleeSignature`
+the prototype table), the literal-1 read through the new diagnostic-free `ExpressionBinder.PeekNonNumericLiteralOperand` (a first attempt with `EditionContext.Muted` was refused by `EditionMutedDriftTests`, which keeps Muted to the usage walk; `BindCall` reports a malformed literal when the statement binds); `CalleeSignature`
 gained `SignatureItems` like `UserFunctionSignature`; the funnel has a `CallStatementContext` arm. The probe now draws COBOL0900 alone.
 Witness: `AFormatTwoCallToAMessageTagFormal_IsTheGateAloneBelowTheIntroduction` (three spellings; 2014 the gate alone, 2023 COBOL1688 and no COBOL0900).
 
