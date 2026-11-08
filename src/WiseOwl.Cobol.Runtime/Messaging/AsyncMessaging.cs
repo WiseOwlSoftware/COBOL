@@ -38,7 +38,7 @@ public readonly record struct MessageWait(MessageWaitKind Kind, long Seconds)
 /// null when it stays unchanged; <see cref="Tag"/> is the server tag a SEND Format 1 returns or the requestor tag a RECEIVE reports.</para>
 /// </summary>
 public readonly record struct MessageOutcome(
-    bool Successful, MessageTag Tag, string? Image, RecordExtents? Extents, object?[]? Slots, long? Length,
+    bool Successful, MessageTag Tag, string? Image, RecordExtents? Extents, MessageSlot[]? Slots, long? Length,
     string? Raised, bool RaisedFatal, string? Detail);
 
 /// <summary>
@@ -55,13 +55,13 @@ public readonly record struct MessageOutcome(
 public static class AsyncMessaging
 {
     /// <summary>SEND Format 1 (§2023:14.9.38.4 GR4 to GR6): offers the message image to the run unit that serves <paramref name="server"/> and waits until one takes it.</summary>
-    public static MessageOutcome SendToServer(string server, string image, RecordExtents? extents, object?[] slots, string checking) =>
-        Outcome(RunUnit.Current.Messaging.Send(server, new MessageBody(image, extents, slots)), checking);
+    public static MessageOutcome SendToServer(string server, string image, RecordExtents? extents, MessageSlot[] slots, string checking) =>
+        Outcome(RunUnit.Current.Messaging.Send(server, MessageBody.Carrying(image, extents, slots)), checking);
 
     /// <summary>SEND Format 2 (§2023:14.9.38.4 GR7, GR8): answers the requestor <paramref name="to"/> names. <paramref name="raising"/> is the written
     /// exception-name, <paramref name="raisingLast"/> the LAST phrase, which sends "the name of the last exception raised in the current run unit" or none.</summary>
-    public static MessageOutcome SendResponse(MessageTag to, string image, RecordExtents? extents, object?[] slots, string? raising, bool raisingLast, string checking) =>
-        Outcome(RunUnit.Current.Messaging.SendResponse(to, new MessageBody(image, extents, slots), raisingLast ? LastExceptionName() : raising), checking);
+    public static MessageOutcome SendResponse(MessageTag to, string image, RecordExtents? extents, MessageSlot[] slots, string? raising, bool raisingLast, string checking) =>
+        Outcome(RunUnit.Current.Messaging.SendResponse(to, MessageBody.Carrying(image, extents, slots), raisingLast ? LastExceptionName() : raising), checking);
 
     /// <summary>The capacity of a message area that holds an OCCURS DYNAMIC table: it has no allocated maximum (§2023:8.5.1.9.1 - the number of occurrences is the implementor's
     /// maximum), and a RECEIVE recreates the table to the message, so no message is too long for it (kb/Work PB4744). The size the area then took, which the run unit's end
@@ -76,34 +76,47 @@ public static class AsyncMessaging
     public static MessageOutcome Receive(MessageTag from, int capacity, MessageWait wait, string checking) =>
         Outcome(RunUnit.Current.Messaging.Receive(from, capacity, wait), checking, lessThanZero: wait.Kind == MessageWaitKind.Seconds && wait.Seconds < 0);
 
-    /// <summary>The message tags a message area holds, in storage order, from the area's leaf vector (<c>AsLeaves</c>: a nested group is a nested vector, a table an array of
-    /// its occurrences): the slots that travel beside the image (§2023:14.9.38.4 GR4 - "The message contains the content of" identifier-1 - and §2023:14.9.31.4 GR1; a tag
-    /// lives in a managed slot and is no part of the image, DOC-A.1-212; docs/rearchitecture/DESIGN-message-control.md section 4.4). Every other leaf is image.</summary>
-    public static object?[] TagsOf(object?[] leaves)
+    /// <summary>The slots a message carries beside its image (§2023:14.9.38.4 GR4 - "The message contains the content of" identifier-1; DOC-A.1-212; docs/rearchitecture/
+    /// DESIGN-message-control.md section 4.4; kb/Work PB4957): one for every message tag that is not NULL in <paramref name="area"/> - an elementary message tag, or a
+    /// group's leaf vector (<c>AsLeaves</c>: a nested group is a nested vector, a table an array of its occurrences) - each beside the token its positions hold in the
+    /// image, the one <see cref="MessageTagImage.Of"/> renders. A NULL tag's positions are eight X"00", which decode to NULL with no slot. Every other leaf is image.</summary>
+    public static MessageSlot[] SlotsOf(object? area)
     {
-        var tags = new List<object?>();
-        Collect(leaves);
-        return [.. tags];
+        var slots = new List<MessageSlot>();
+        Collect(area);
+        return [.. slots];
 
         void Collect(object? value)
         {
-            if (value is MessageTag) tags.Add(value);
+            if (value is MessageTag tag) { if (!tag.IsNull) slots.Add(new MessageSlot(MessageTagImage.Of(tag), tag)); }
             else if (value is Array elements and not byte[] and not char[])
                 foreach (object? element in elements) Collect(element);
         }
     }
 
-    /// <summary>The inverse of <see cref="TagsOf"/>: a copy of a message area's leaf vector whose tags, in storage order, are <paramref name="tags"/> - the slots of a received
-    /// message. A tag the message did not carry (the receiving area holds more than the sender's did) is <see cref="MessageTag.Null"/>: its positions were filled with spaces
-    /// (§2023:14.9.31.4 GR1), and a tag is never made of them.</summary>
-    public static object?[] WithTags(object?[] leaves, object?[]? tags)
+    /// <summary>⛔ A RECEIVED MESSAGE TAG IS WHAT THE MESSAGE HOLDS AT ITS POSITIONS (§2023:14.9.31.4 GR1b - "The content of identifier-1 is the content of the message
+    /// sent by that SEND statement"; kb/Work PB4957). <paramref name="decoded"/> is the receiving tag as its positions decode in this run unit (<see cref="MessageTagImage.TagOf"/>,
+    /// the one decode a file record's tag takes): eight X"00" are NULL, and a token this run unit did not assign is an unresolved tag that keeps its positions. Such a
+    /// token that is one the message carries a slot for is that slot's tag - the sending run unit's identifier, which this one learns from the slot alone.
+    /// Every other content stays what it decoded to, as it would from a file (DOC-A.1-212): a position past the end of a shorter message is a space.</summary>
+    internal static MessageTag Resolve(MessageTag decoded, MessageSlot[]? slots)
     {
-        int next = 0;
+        if (decoded.Party == MessageParty.Unresolved && slots is not null)
+            foreach (var slot in slots)
+                if (string.Equals(slot.Token, decoded.Name, StringComparison.Ordinal)) return slot.Tag;
+        return decoded;
+    }
+
+    /// <summary>A received message area's leaf vector with every message tag <see cref="Resolve"/>d against the message's <paramref name="slots"/>: the vector of the
+    /// area just stored from the image, whose tags hold what their positions decode to (a record struct's <c>FromImage</c>; a storage cell's positions,
+    /// <c>PlaceRenderer.ImagedGroupLeaves</c>).</summary>
+    public static object?[] Resolved(object?[] leaves, MessageSlot[]? slots)
+    {
         return (object?[])Replace(leaves)!;
 
         object? Replace(object? value)
         {
-            if (value is MessageTag) return next < (tags?.Length ?? 0) ? tags![next++] : MessageTag.Null;
+            if (value is MessageTag tag) return Resolve(tag, slots);
             if (value is not Array elements || value is byte[] or char[] || !MayHoldTags(elements.GetType().GetElementType()!)) return value;
             var copy = (Array)elements.Clone();
             for (int i = 0; i < copy.Length; i++) copy.SetValue(Replace(elements.GetValue(i)), i);
@@ -113,10 +126,10 @@ public static class AsyncMessaging
         static bool MayHoldTags(Type element) => element == typeof(MessageTag) || element == typeof(object) || element.IsArray;
     }
 
-    /// <summary>The content of an ELEMENTARY message tag a message was received into: the message's first slot, the tag an elementary identifier-1 of the SEND carried beside
-    /// its 8 token positions (DOC-A.1-212), or <see cref="MessageTag.Null"/> when the message carried none (§2023:14.9.31.4 GR1 b) - "the content of identifier-1 is the
-    /// content of the message"; a tag is never made of positions, as <see cref="WithTags"/> says).</summary>
-    public static MessageTag TagOf(object?[]? slots) => slots is [MessageTag tag, ..] ? tag : MessageTag.Null;
+    /// <summary>The content of an ELEMENTARY message tag a message was received into: its 8 positions of the message <paramref name="image"/> (a shorter message
+    /// leaves the rest spaces, §2023:14.9.31.4 GR1b, as a group move does), decoded and <see cref="Resolve"/>d as a group's tag is.</summary>
+    public static MessageTag TagOf(string image, MessageSlot[]? slots) =>
+        Resolve(MessageTagImage.TagOf(image.Length >= PointerImage.Width ? image[..PointerImage.Width] : image.PadRight(PointerImage.Width)), slots);
 
     private static string? LastExceptionName() =>
         ExceptionState.LastName is { } name && name != ExceptionState.ObjectSentinel ? name : null;   // an exception OBJECT has no name to send (GR8: none raised sends none)

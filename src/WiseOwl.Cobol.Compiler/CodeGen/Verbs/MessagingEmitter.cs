@@ -77,17 +77,18 @@ internal sealed class MessagingEmitter(EmitContext ctx, NumericRenderer num, EcS
         using (w.Block($"if ({m}.Image is not null)"))
         {
             string image = $"{m}.Image";
+            // §2023:14.9.31.4 GR1b: "The content of identifier-1 is the content of the message" - the sender's storage positions, verbatim, stored as a record area is
+            // (a tag's positions decode as a file record's do, DOC-A.1-212). An elementary tag is its 8 positions of the message.
             if (FileModel.IsOutOfLineRecord(n.Into.Item) && !SlotWindow.CarriedBySlot(n.Into.Item))
                 seqIo.EmitOutOfLineInto(n.Into, image, $"{m}.Extents", fixedForm: false);
-            else if (HoldsTags(n.Into))   // the tags are slots: the image goes in without their placeholder positions (FromMessageImage)
-                w.Line(PlaceRenderer.WriteMessageGroupImage(n.Into, RuntimeApi.StrStore(image, $"{n.Into.Item.ByteWidth}"), "RECEIVE GIVING"));
             else if (!SlotWindow.CarriedBySlot(n.Into.Item))
-                seqIo.EmitImageInto(n.Into, image, storesIntoOwnItem: false);   // the sender's storage bytes: verbatim, as other descriptions of the area read them
-            else   // an elementary tag: its content is the message's one slot, never its token positions, which name a tag of the sending run unit
-                w.Line(PlaceRenderer.Write(n.Into, RuntimeApi.AsyncTagOf($"{m}.Slots")));
-            // "The slots follow" (design section 4.4): the group's leaf vector is rebuilt with the message's tags in storage order (AsyncMessaging.WithTags) and stored back.
+                seqIo.EmitImageInto(n.Into, image, storesIntoOwnItem: false);
+            else
+                w.Line(PlaceRenderer.Write(n.Into, RuntimeApi.AsyncTagOf(image, $"{m}.Slots")));
+            // "The slots follow" (design section 4.4; kb/Work PB4957): a token names a tag of the SENDING run unit, so each tag the store decoded is resolved against the
+            // slots the message carries beside its image (AsyncMessaging.Resolved), position for position, and the vector is stored back.
             if (HoldsTags(n.Into))
-                w.Line(PlaceRenderer.WriteGroupLeaves(n.Into, RuntimeApi.AsyncWithTags(PlaceRenderer.GroupLeaves(n.Into), $"{m}.Slots")));
+                w.Line(PlaceRenderer.WriteGroupLeaves(n.Into, RuntimeApi.AsyncResolved(PlaceRenderer.ImagedGroupLeaves(n.Into), $"{m}.Slots")));
             // §2023:14.6.11 7): the run unit's end answers an unanswered message with spaces of identifier-1's size, and an area with no allocated maximum has the
             // size the store just recreated it to (its dynamic tables at the message's occurrences, raised to each FROM minimum), which only its current image states.
             if (unbounded)
@@ -105,13 +106,13 @@ internal sealed class MessagingEmitter(EmitContext ctx, NumericRenderer num, EcS
     {
         if (from is BoundFieldOperand { Place: var place })
         {
-            // A strongly-typed group holding a message tag has the one-way transfer image only (DataItem.TransferImageCapable): the sender's storage positions, a tag's
-            // as its token (kb/Work PB4838), which the receiver's FromMessageImage skips - all the length checks and the receiver's positions need - and its tags travel beside the image as the message's slots (design section 4.4).
+            // A strongly-typed group holding a message tag sends its transfer image (DataItem.TransferImageCapable): the sender's storage positions, a tag's as its token
+            // (kb/Work PB4838), and beside the image a slot for each tag its token names, which the receiver resolves the positions it receives against (design section 4.4).
             string image = place.Item.IsGroup && !place.ImageCapable && place.TransferImageCapable
                 ? OperandText.AsStorageImage(place, "SEND FROM", transfer: true)
                 : OperandText.RecordAreaImage(place, transfer: true);   // a variable-length group holding a tag: its one-way current-extent image
-            string slots = HoldsTags(place) ? RuntimeApi.AsyncTagsOf(PlaceRenderer.GroupLeaves(place))
-                : SlotWindow.CarriedBySlot(place.Item) ? $"new object?[] {{ {PlaceRenderer.Read(place)} }}"   // an elementary tag: its 8 token positions, the tag beside them
+            string slots = HoldsTags(place) ? RuntimeApi.AsyncSlotsOf(PlaceRenderer.GroupLeaves(place))
+                : SlotWindow.CarriedBySlot(place.Item) ? RuntimeApi.AsyncSlotsOf(PlaceRenderer.Read(place))   // an elementary tag: its 8 token positions, the tag beside them
                 : "[]";
             return (image, OperandText.RecordAreaExtents(place, transfer: true) ?? "null", slots);
         }
