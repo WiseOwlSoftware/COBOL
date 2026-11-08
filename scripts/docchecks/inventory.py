@@ -104,7 +104,7 @@ def _planted_root_findings() -> list[str]:
     newest = schema.NEWEST
     rules = [{"id": f"GR-1.1-{n}", "section": "1.1", "kind": "GR", "ordinal": n, "subject": "s", "text": f"Rule {n}."}
              for n in range(120)]
-    files = {schema.SCHEMA_REL: schema.WORKING_TREE.text(schema.SCHEMA_REL), KINDS_PATH: schema.WORKING_TREE.text(KINDS_PATH),
+    files = {schema.SCHEMA_REL: schema.WORKING_TREE.text(schema.SCHEMA_REL), KINDS_PATH: json.dumps({"documentKinds": [".md"]}),
              newest.catalog: json.dumps({"rules": rules}),
              common.CONFORMANCE: " ".join(f"Anchor{n}" for n in range(120) if n != 7)}
     for rel, text in files.items():
