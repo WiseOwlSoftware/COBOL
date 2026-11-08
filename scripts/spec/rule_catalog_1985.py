@@ -50,6 +50,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from citation import (AMENDMENT_85, APPENDIX_85, FOLIO_85, MARK_85, PAGE_85, PARAGRAPH_85, SCAN_GAP_85,  # noqa: E402
                       SCAN_REPEAT_85, SECTION_85, SECTIONS_85)  # (THE readers of the 1985 structure, kb/Work PB4887)
 from spec_pdf import BOX_SIDE  # noqa: E402  (THE side of a level-2 box, kb/Work PB4850)
+from cite import CORRECTION_NOTE  # noqa: E402  (THE shape of an editorial correction note: never rule text, R66)
 from spec_headings import GENERAL_FORMAT_TITLE  # noqa: E402  (THE spelling of a general-format heading, kb/Work PB284)
 # THE singular form of a block title, THE kind table, any Markdown heading, and a printed band inside a rule list
 # ("FORMAT 2", "SEQUENTIAL FILES"): the 2023 arm's, one definition each.
@@ -281,6 +282,7 @@ def parse(lines: list[str], manifest: dict[str, dict] | None = None) -> Catalog:
     scan: tuple[str, str] | None = None   # (citation, title) of the paragraph the content-keyed scan reads
     scan_body: list[str] = []
     repeat = False                 # on a page the scan prints twice (SCAN_REPEAT_85): no rule is read from it
+    in_note = False                # inside a correction note's blockquote paragraph (CORRECTION_NOTE)
     after_gap = False              # between a scan gap and the next heading: a rule here belongs to no known block
     met: set[str] = set()          # every adjudicated locator and gap page the transcription still has
     for line in lines:
@@ -288,7 +290,14 @@ def parse(lines: list[str], manifest: dict[str, dict] | None = None) -> Catalog:
             page, page_top, repeat = int(line.split()[-1]), True, False
             continue
         if repeat or not line.strip():
+            in_note = False
             continue
+        # ⛔ AN EDITORIAL CORRECTION NOTE IS NOT RULE TEXT (R66, kb/Work PB4972): `> ⚠ **CORRECTED — see the Errata (Cn).**`
+        # flags a correction where it was made and quotes the printed form; the rule's text is the corrected line above it.
+        if CORRECTION_NOTE.match(line) or (in_note and line.startswith(">")):
+            in_note = True
+            continue
+        in_note = False
         if SCAN_REPEAT_85.match(line):
             repeat = True
             continue
@@ -592,6 +601,9 @@ level-number
 
 (1) A planted first syntax rule.
 
+> ⚠ **CORRECTED — see the Errata (C1).** The standard prints `A planted frist syntax rule.` (page 257): a planted
+> misprint, its note continued on a second line.
+
 (2) A planted second rule with items:
 
 a. its first item, ║boxed in part║, and
@@ -823,6 +835,9 @@ def self_test() -> int:
     check("the row carries its citation, module and subject",
           by["1985-SR-VI.5.7.3-1"]["citation"] == "§1985:VI.5.7.3 SR1" and by["1985-SR-VI.5.7.3-1"]["module"] == "Nucleus"
           and by["1985-SR-VI.5.7.3-1"]["subject"] == "LEVEL-NUMBER")
+    check("a correction note under a rule is not its text, nor the next rule's (kb/Work PB4972)",
+          by["1985-SR-VI.5.7.3-1"]["text"] == "A planted first syntax rule."
+          and "CORRECTED" not in by["1985-SR-VI.5.7.3-2"]["text"])
     r2 = by["1985-SR-VI.5.7.3-2"]
     check("lettered items are the rule's text, and a page break's furniture is not",
           "its second item" in r2["text"] and "continued on the next page." in r2["text"]

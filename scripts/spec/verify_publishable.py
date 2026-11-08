@@ -163,6 +163,7 @@ REQUIRED: dict[int, list[tuple[str, str]]] = {
          "the acknowledgment's authorization paragraph"),
         (r"NOT part of American National Standard X3\.23-1985",
          "the Preface must state that it is not part of the standard"),
+        (r"^# Errata", "the Errata that lists every correction (check_corrections, kb/Work PB4972)"),
     ],
     2023: [
         (r"\A# Preface\n", "the file must open with the Preface (page 28: 'as part of the preface')"),
@@ -182,9 +183,23 @@ REQUIRED: dict[int, list[tuple[str, str]]] = {
 ACKNOWLEDGMENT_OPENING: dict[int, str] = {1985: "COBOL is an industry language", 2023: "COBOL is an industry language"}
 
 
-#: An Addendum correction entry: `### C6 · page 607 · 14.9.10.4 … · printed → corrected`.
+#: The closing section that lists every correction a transcription makes to its printed standard, by edition (kb/Work R66,
+#: PB4972). 1985 calls it the Errata because its text already has an Addendum of its own: Amendment 1, Addendum 1. Its
+#: heading is `# <name>`, and each in-place flag says `see the <name> (Cn)`. An edition with no row may correct nothing.
+CORRECTIONS_SECTION: dict[int, str] = {1985: "Errata", 2023: "Addendum"}
+#: A correction entry: `### C6 · page 607 · 14.9.10.4 … · printed → corrected`. Its page is the edition's own page
+#: reference: the printed folio in 2023, the PDF page (`## Page N`) in 1985, whose folios are per section (`XIII-56`).
 ENTRY_HEADING = re.compile(r"^###\s+(C\d+)\s+·\s+(.*)$")
-FLAG_REFERENCE = re.compile(r"see the Addendum \((C\d+)\)")
+
+
+def corrections_section(edition: int) -> str:
+    """The name of `edition`'s corrections section ("Addendum", "Errata"); "Addendum" for an edition with no row."""
+    return CORRECTIONS_SECTION.get(edition, "Addendum")
+
+
+def flag_reference(edition: int) -> re.Pattern:
+    """An in-place flag's reference to its entry in `edition`'s corrections section: `see the Errata (C4)`."""
+    return re.compile(rf"see the {corrections_section(edition)} \((C\d+)\)")
 PAGES_IN_HEADING = re.compile(r"\bpages?\s+((?:\d+(?:,\s*|\s+and\s+)?)+)")
 PAGE_IN_NOTE = re.compile(r"\bpage\s+(\d+)\b")
 #: A correction that changes a CLASS of characters across the whole text is flagged once, in the Preface, and is
@@ -192,15 +207,16 @@ PAGE_IN_NOTE = re.compile(r"\bpage\s+(\d+)\b")
 WHOLE_TEXT = "the whole text"
 
 
-def check_corrections(text: str) -> list[str]:
-    """Every correction is FLAGGED where it was made, LISTED in the Addendum, and names its PRINTED FORM and PAGE.
+def check_corrections(text: str, edition: int) -> list[str]:
+    """Every correction is FLAGGED where it was made, LISTED in the edition's corrections section (the Addendum of
+    2023, the Errata of 1985: CORRECTIONS_SECTION), and names its PRINTED FORM and PAGE.
 
-    The Addendum exists so a correction can be reversed if it later proves mistaken (specs/README.md "Corrections",
+    The section exists so a correction can be reversed if it later proves mistaken (specs/README.md "Corrections",
     kb/Work R66). That only works while three things hold, and each is checked here because each can be edited away
     independently of the others:
 
-      1. the two sets agree — every `see the Addendum (Cn)` flag has a `### Cn` entry and every entry is pointed at;
-      2. every in-place flag is a `> ⚠ **CORRECTED — see the Addendum (Cn).**` note that QUOTES THE PRINTED FORM in a code
+      1. the two sets agree — every `see the <section> (Cn)` flag has a `### Cn` entry and every entry is pointed at;
+      2. every in-place flag is a `> ⚠ **CORRECTED — see the <section> (Cn).**` note that QUOTES THE PRINTED FORM in a code
          span and names the PRINTED PAGE, and that page is one the entry's heading lists — `cite.py --check` finds a
          quotation of the printed form in the note (and reports the corrected line's rule path, cite.rule_path), which
          is what keeps every citation written against the printed form passing;
@@ -209,10 +225,11 @@ def check_corrections(text: str) -> list[str]:
     """
     failures: list[str] = []
     lines = text.split("\n")
-    addendum_at = next((i for i, l in enumerate(lines) if l.startswith("# Addendum")), len(lines))
-    print("\ncorrections — every flag must match an Addendum entry that names the printed form and page:")
+    name, flag = corrections_section(edition), flag_reference(edition)
+    addendum_at = next((i for i, l in enumerate(lines) if l.startswith(f"# {name}")), len(lines))
+    print(f"\ncorrections — every flag must match an {name} entry that names the printed form and page:")
 
-    # the Addendum's entries, each with its body up to the next heading
+    # the section's entries, each with its body up to the next heading
     entries: dict[str, dict] = {}
     current = None
     for l in lines[addendum_at:]:
@@ -232,24 +249,24 @@ def check_corrections(text: str) -> list[str]:
             while j + 1 < addendum_at and lines[j + 1].startswith(">"):
                 j += 1
             paragraph = " ".join(l.lstrip("> ").strip() for l in lines[i:j + 1])
-            ids = FLAG_REFERENCE.findall(paragraph)
+            ids = flag.findall(paragraph)
             for cid in ids[:1]:
                 flags.setdefault(cid, []).append((i + 1, paragraph))
             i = j
         i += 1
-    referenced = set(FLAG_REFERENCE.findall("\n".join(lines[:addendum_at])))
+    referenced = set(flag.findall("\n".join(lines[:addendum_at])))
 
     if not entries and not referenced:
-        # A transcription that corrects nothing flags none and lists none. One that has an Addendum requires it by its
-        # REQUIRED row, so deleting the Addendum together with its flags is still refused there.
+        # A transcription that corrects nothing flags none and lists none. One that has a corrections section requires
+        # it by its REQUIRED row, so deleting the section together with its flags is still refused there.
         print("  ✓ no corrections: the text flags none and lists none")
     for cid in sorted(referenced | set(entries), key=lambda c: int(c[1:])):
         problems: list[str] = []
         entry = entries.get(cid)
         if cid not in entries:
-            problems.append("referenced from the text, but MISSING from the Addendum")
+            problems.append(f"referenced from the text, but MISSING from the {name}")
         elif cid not in referenced:
-            problems.append("in the Addendum, but never referenced from the text")
+            problems.append(f"in the {name}, but never referenced from the text")
         else:
             heading, body = entry["heading"], "\n".join(entry["body"])
             is_class = WHOLE_TEXT in heading
@@ -277,7 +294,7 @@ def check_corrections(text: str) -> list[str]:
                 failures.append(f"{cid}: {p}")
             print(f"  ✗ {cid}: " + "; ".join(problems))
         else:
-            print(f"  ✓ {cid}: flagged in place, listed in the Addendum, printed form and page named")
+            print(f"  ✓ {cid}: flagged in place, listed in the {name}, printed form and page named")
     return failures
 
 
@@ -416,7 +433,7 @@ def main(edition: int = spec_pdf.DEFAULT_EDITION) -> int:
     text = spec_md.read_text(encoding="utf-8")
 
     failures = check_text(text, edition)
-    failures.extend(check_corrections(text))
+    failures.extend(check_corrections(text, edition))
     if edition in LEDGER:
         failures.extend(check_ledger(text, json.loads((REPO / LEDGER[edition]).read_text(encoding="utf-8"))))
     failures.extend(check_tree())
@@ -479,16 +496,35 @@ def self_test() -> int:
         check("2002 with no row exits naming the table and the edition",
               "2002" in str(ex.code) and "verify_publishable" in str(ex.code))
     good_1985 = good.replace("ISO/IEC 1989:2023", "American National Standard X3.23-1985").replace(
-        '<a id="section-1"></a>\n\n## 1 Scope', "# SECTION I: INTRODUCTORY INFORMATION\n\n## Page 21")
+        '<a id="section-1"></a>\n\n## 1 Scope', "# SECTION I: INTRODUCTORY INFORMATION\n\n## Page 21").replace(
+        "# Addendum\n", "# Errata\n")
     check("a clean 1985 text passes, its body opening at Section I", quietly(check_text, good_1985, 1985) == [])
     check("1985 reads its own body line: 2023's text, which has no Section I heading, has no 1985 front matter",
-          len(quietly(check_text, good, 1985)) == 2)
+          any(f.startswith("the body's opening line") for f in quietly(check_text, good, 1985)))
     section_i = "# SECTION I: INTRODUCTORY INFORMATION\n"
     body_only = good_1985.replace(section_i, "").replace("# Preface\n", "# Preface\n\n" + section_i)
     check("a text whose acknowledgment is only in the body is refused",
           "the acknowledgment appears in the body but NOT in the preface" in quietly(check_text, body_only, 1985))
     check("a text that flags no correction and lists none passes the correction check",
-          quietly(check_corrections, good_1985) == [])
+          quietly(check_corrections, good_1985, 1985) == [])
+    check("1985 requires its Errata, as 2023 its Addendum",
+          "missing: the Errata that lists every correction (check_corrections, kb/Work PB4972)"
+          in quietly(check_text, good_1985.replace("# Errata\n", ""), 1985))
+    # A 1985 correction (kb/Work PB4972): its flag says `see the Errata (Cn)` and names the PDF page, its entry under
+    # `# Errata` names the same page and the printed form.
+    flagged = good_1985.replace("## Page 21", "## Page 21\n\nIn control footing, page heading.\n\n> ⚠ **CORRECTED — see "
+                                "the Errata (C1).** The standard prints `In control fopting` (page 21, folio I-1).")
+    listed = flagged + "\n### C1 · page 21 (folio I-1) · a rule · `fopting` → `footing`\n\n**Printed**: `fopting`\n"
+    check("a 1985 correction flagged in place and listed in the Errata passes",
+          quietly(check_corrections, listed, 1985) == [])
+    check("a 1985 flag with no Errata entry is refused",
+          any("MISSING from the Errata" in f for f in quietly(check_corrections, flagged, 1985)))
+    check("1985 reads its own section: a flag that says `see the Addendum` is no 1985 flag, so its entry is unreferenced",
+          any("never referenced" in f
+              for f in quietly(check_corrections, listed.replace("see the Errata", "see the Addendum"), 1985)))
+    check("2023 still reads its Addendum, not the Errata",
+          quietly(check_corrections, listed.replace("# Errata", "# Addendum").replace("the Errata", "the Addendum"), 2023)
+          == [])
     check("2023 requires its Addendum, so deleting it with its flags is still refused",
           "missing: the Addendum that lists every correction (check_corrections)"
           in quietly(check_text, good.replace("# Addendum\n", ""), 2023))

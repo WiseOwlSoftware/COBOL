@@ -23552,7 +23552,7 @@
    "page": 489,
    "folio": "IX-19",
    "band": "",
-   "text": "Indexed files are classified as belonging to the category of non-sequential single/multi-reel/unit. The results of executing each type of CLOSE for this category of file are summarized in the following table.\n| CLOSE Statement Format | File Category<br>Non-Sequential Single/Multi-Reel/Unit |\n|---|---|\n| CLOSE | A |\n| CLOSE WITH LOCK | A,B |\nThe definitions of the symbols in the table are given below. Where the definition depends on whether the file is an input, output, or input-output file, alternate definitions are given; otherwise, a definition applies to input, output, and input-output files.\nA. Close File\n<u>Input Files and Input-Output Files (Sequential Access Mode)</u>:\nIf the file is positioned at its end and label records are specified for the file, the labels are processed according to the implementor's standard label convention. The behavior of the CLOSE statement when label records are specified but not present, or when label records are not specified but are present, is undefined. Closing operations specified by the implementor are executed. If the file is positioned at its end and label records are not specified for the file, label processing does not take place but other closing operations specified by the implementor are executed. If the file is positioned other than at its end, the closing operations specified by the implementor are executed, but there is no ending label processing.\n<u>Input Fil'es and Input-Output Files (Random ║or Dynamic║ Access Mode)</u>;\n<u>Output Files (Random, ║Dynamic,║ or Sequential Access Mode)</u>:\nIf label records are specified for the file, the labels are processed according to the implementor's standard label convention. The behavior of the CLOSE statement when label records are specified but not present, or when label records are not specified but are present, is undefined. Closing operations specified by the implementor are executed. If label records are not specified for the file, label processing does not take place but other closing operations specified by the implementor are executed.\n║B. File Lock║\n║The file is locked and cannot be opened again during this execution of this run unit.║"
+   "text": "Indexed files are classified as belonging to the category of non-sequential single/multi-reel/unit. The results of executing each type of CLOSE for this category of file are summarized in the following table.\n| CLOSE Statement Format | File Category<br>Non-Sequential Single/Multi-Reel/Unit |\n|---|---|\n| CLOSE | A |\n| CLOSE WITH LOCK | A,B |\nThe definitions of the symbols in the table are given below. Where the definition depends on whether the file is an input, output, or input-output file, alternate definitions are given; otherwise, a definition applies to input, output, and input-output files.\nA. Close File\n<u>Input Files and Input-Output Files (Sequential Access Mode)</u>:\nIf the file is positioned at its end and label records are specified for the file, the labels are processed according to the implementor's standard label convention. The behavior of the CLOSE statement when label records are specified but not present, or when label records are not specified but are present, is undefined. Closing operations specified by the implementor are executed. If the file is positioned at its end and label records are not specified for the file, label processing does not take place but other closing operations specified by the implementor are executed. If the file is positioned other than at its end, the closing operations specified by the implementor are executed, but there is no ending label processing.\n<u>Input Files and Input-Output Files (Random ║or Dynamic║ Access Mode)</u>;\n<u>Output Files (Random, ║Dynamic,║ or Sequential Access Mode)</u>:\nIf label records are specified for the file, the labels are processed according to the implementor's standard label convention. The behavior of the CLOSE statement when label records are specified but not present, or when label records are not specified but are present, is undefined. Closing operations specified by the implementor are executed. If label records are not specified for the file, label processing does not take place but other closing operations specified by the implementor are executed.\n║B. File Lock║\n║The file is locked and cannot be opened again during this execution of this run unit.║"
   },
   {
    "id": "1985-GR-IX.4.2.4-3",
@@ -27285,7 +27285,7 @@
    "page": 537,
    "folio": "X-21",
    "band": "",
-   "text": "The availability of specific clauses in the data description entry is dependent on the level of the Nucleus module suppported by the implementation. (See page VI-20 in the Nucleus module.)"
+   "text": "The availability of specific clauses in the data description entry is dependent on the level of the Nucleus module supported by the implementation. (See page VI-20 in the Nucleus module.)"
   },
   {
    "id": "1985-SR-X.4.3.3-2",
@@ -28007,7 +28007,7 @@
    "page": 544,
    "folio": "X-28",
    "band": "",
-   "text": "║Two or more programs in the run unit may have the same program-name, and the reference in a CALL statement to such a program-name is resolved by using the scope of names conventions for program-names. (See page X-5, Conventions for Program-Names.)║\n║For example, when only two programs in the run unit have the same name as that specified in a CALL statment:║\n║a. One of those two programs must also be contained directly or indirectly either within the separately compiled program which includes that CALL statement or within the separately compiled program which itself directly or indirectly contains the program which includes that CALL statement, and║\n║b. The other of those two programs must be a different separately compiled program.║\n║The mechanism used in this example is as follows:║\n║a. If one of the two programs having the same name as that specified in the CALL statement is directly contained within the program which includes that CALL statement, that program is called.║\n║b. If one of the two programs having the same name as that specified in the CALL statement possesses the common attribute and is directly contained within another program which directly or indirectly contains║ the program which\n║includes the CALL statement, that common program is called unless the calling program is contained within that common program.║\n║c. Otherwise, the separately compiled program is called.║"
+   "text": "║Two or more programs in the run unit may have the same program-name, and the reference in a CALL statement to such a program-name is resolved by using the scope of names conventions for program-names. (See page X-5, Conventions for Program-Names.)║\n║For example, when only two programs in the run unit have the same name as that specified in a CALL statement:║\n║a. One of those two programs must also be contained directly or indirectly either within the separately compiled program which includes that CALL statement or within the separately compiled program which itself directly or indirectly contains the program which includes that CALL statement, and║\n║b. The other of those two programs must be a different separately compiled program.║\n║The mechanism used in this example is as follows:║\n║a. If one of the two programs having the same name as that specified in the CALL statement is directly contained within the program which includes that CALL statement, that program is called.║\n║b. If one of the two programs having the same name as that specified in the CALL statement possesses the common attribute and is directly contained within another program which directly or indirectly contains║ the program which\n║includes the CALL statement, that common program is called unless the calling program is contained within that common program.║\n║c. Otherwise, the separately compiled program is called.║"
   },
   {
    "id": "1985-GR-X.5.2.4-5",
@@ -28207,7 +28207,7 @@
    "page": 546,
    "folio": "X-30",
    "band": "",
-   "text": "║If the BY CONTENT phrase is specified or implied for a parameter, the called program cannot change the value of this parameter as referenced in the CALL statement's USING phrase, though the called program may change the value of the data item referenced by the coresponding data-name in the called program's Procedure Division header. The data description of each parameter in the BY CONTENT phrase of the CALL statement must be the same, meaning no conversion or extension or truncation, as the data description of the corresponding parameter in the USING phrase of the Procedure Division header. (See page X-25, The Procedure Division Header.)║"
+   "text": "║If the BY CONTENT phrase is specified or implied for a parameter, the called program cannot change the value of this parameter as referenced in the CALL statement's USING phrase, though the called program may change the value of the data item referenced by the corresponding data-name in the called program's Procedure Division header. The data description of each parameter in the BY CONTENT phrase of the CALL statement must be the same, meaning no conversion or extension or truncation, as the data description of the corresponding parameter in the USING phrase of the Procedure Division header. (See page X-25, The Procedure Division Header.)║"
   },
   {
    "id": "1985-GR-X.5.2.4-15",
@@ -28467,7 +28467,7 @@
    "page": 547,
    "folio": "X-31",
    "band": "",
-   "text": "║No action is taken when an explicit or implicit CANCEL statment is executed naming a program that has not been called in this run unit or has been║\n║called and is at present cancelled. Control is transferred to the next executable statement following the explicit CANCEL statement.║"
+   "text": "║No action is taken when an explicit or implicit CANCEL statement is executed naming a program that has not been called in this run unit or has been║\n║called and is at present cancelled. Control is transferred to the next executable statement following the explicit CANCEL statement.║"
   },
   {
    "id": "1985-GR-X.5.3.4-9",
@@ -32925,7 +32925,7 @@
    "page": 601,
    "folio": "XIII-19",
    "band": "",
-   "text": "If the PAGE clause is specified the following implicit values are assumed for any omitted phrases:\na. If the HEADING phrase is omitted, a value of one is assumed for integer-2.\nb. If the FIRST DETAIL phrase is omitted, a value equal to integer-2 is given to integer-3.\nc. If the LAST DETAIL and the FOOTING phrases are both omitted, the value of integer-1 is given to both integer-4 and integer-5.\nd. If the FOOTING phrase is specified and the LAST DETAIL phrase is omitted, the value of integer-5 is given to integer-4.\ne. If the LAST DETAIL phrase is specified and the FOOTING phrase is omi-ted, the value of integer-4 is given to integer-5."
+   "text": "If the PAGE clause is specified the following implicit values are assumed for any omitted phrases:\na. If the HEADING phrase is omitted, a value of one is assumed for integer-2.\nb. If the FIRST DETAIL phrase is omitted, a value equal to integer-2 is given to integer-3.\nc. If the LAST DETAIL and the FOOTING phrases are both omitted, the value of integer-1 is given to both integer-4 and integer-5.\nd. If the FOOTING phrase is specified and the LAST DETAIL phrase is omitted, the value of integer-5 is given to integer-4.\ne. If the LAST DETAIL phrase is specified and the FOOTING phrase is omitted, the value of integer-4 is given to integer-5."
   },
   {
    "id": "1985-GR-XIII.3.8.4-3",
@@ -35087,7 +35087,7 @@
    "page": 634,
    "folio": "XIII-56",
    "band": "",
-   "text": "In control fopting, page heading, page footing, and report footing report groups, SOURCE clauses and associated USE statements must not reference any of the following:\na. Group data items containing a control data item.\nb. Data items subordinate to a control data item.\nc. A redefinition or renaming of any part of a control data item.\nIn page heading and page footing report groups, SOURCE clauses and USE statements must not reference control data-names."
+   "text": "In control footing, page heading, page footing, and report footing report groups, SOURCE clauses and associated USE statements must not reference any of the following:\na. Group data items containing a control data item.\nb. Data items subordinate to a control data item.\nc. A redefinition or renaming of any part of a control data item.\nIn page heading and page footing report groups, SOURCE clauses and USE statements must not reference control data-names."
   },
   {
    "id": "1985-SR-XIII.3.20.3-6",
@@ -35187,7 +35187,7 @@
    "page": 634,
    "folio": "XIII-56",
    "band": "",
-   "text": "The PAGE HEADING phrase specifies a report group that is processed by the report writer control system as the first report group on each page of that report except under the following conditions:\na. A page heading report group is not processed on a page that is to contain only a report heading report group or only a rêport footing report group.\nb. A page heading report group is processed as the second report group on a page when it is preceded by a report heading report group thac is not to be presented on a page by itself.\n(See page XIII-24, Presentation Rules Tables.)"
+   "text": "The PAGE HEADING phrase specifies a report group that is processed by the report writer control system as the first report group on each page of that report except under the following conditions:\na. A page heading report group is not processed on a page that is to contain only a report heading report group or only a rêport footing report group.\nb. A page heading report group is processed as the second report group on a page when it is preceded by a report heading report group that is not to be presented on a page by itself.\n(See page XIII-24, Presentation Rules Tables.)"
   },
   {
    "id": "1985-GR-XIII.3.20.4-4",

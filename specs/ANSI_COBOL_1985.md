@@ -42,8 +42,10 @@ publications.
 
 > **About this transcription.** American National Standard X3.23-1985 and its amendments are the authoritative text;
 > where this transcription and the published standard differ, **the published standard governs**. The words, the
-> punctuation and the spelling are transcribed as printed, a printed slip included (the acknowledgment above omits two
-> periods because the printed page does).
+> punctuation and the spelling are transcribed as printed, with one exception: a misspelling or a damaged letter on the
+> printed page is corrected in place, flagged there with a ⚠ note that quotes the printed form, and listed with its
+> page in the **Errata** at the end of this document, so that any correction can be reversed. The acknowledgment is
+> never corrected (the acknowledgment above omits two periods because the printed page does).
 >
 > **The pages are kept.** The source is a scan, and the transcription was made and reconciled page by page against
 > the rendered page, so each `## Page N` heading opens the text of PDF page N. The printed folios (`VI-21`, `XVII-3`)
@@ -255,7 +257,9 @@ i
 
 # Preface
 
-This document piovides the definition of the programming language features that make up American National Standard X3.23-1985.
+This document provides the definition of the programming language features that make up American National Standard X3.23-1985.
+
+> ⚠ **CORRECTED — see the Errata (C1).** The standard prints `This document piovides the definition` (page 7): a damaged letter on the printed page, which the transcription had reproduced. Corrected to `provides`.
 
 Within this document, the following terms are used·
 
@@ -837,7 +841,7 @@ Chapter 3: Data Division in the Report Writer Module (Continued)
 | 3.7 | The CONTROL Clause............................................... | XIII-15 |
 | 3.8 | The PAGE Clause ................................................ | XIII-17 |
 | 3.9 | The Report Group Description Entry ............................. | XIII-20 |
-| 3.10 | Presentation Rules _ables ...................................... | XIII-24 |
+| 3.10 | Presentation Rules Tables ...................................... | XIII-24 |
 | 3.11 | The COLUMN NUMBER Clause ........................................ | XIII-42 |
 | 3.12 | The Data-Name Clause ........................................... | XIII-43 |
 | 3.13 | The GROUP INDICATE Clause ...................................... | XIII-44 |
@@ -850,6 +854,8 @@ Chapter 3: Data Division in the Report Writer Module (Continued)
 | 3.20 | The TYPE Clause ................................................ | XIII-55 |
 | 3.21 | The USAGE Clause ............................................... | XIII-60 |
 | 3.22 | The VALUE Clause ............................................... | XIII-61 |
+
+> ⚠ **CORRECTED — see the Errata (C2).** The standard prints `Presentation Rules _ables` (page 17): a damaged letter on the printed page, which the transcription had reproduced. Corrected to `Tables`.
 
 Chapter 4: Procedure Division in the Report Writer Module
 
@@ -5902,7 +5908,9 @@ Elements which make up a clause or a statement consist of uppercase words, lower
 
 All underlined uppercase words are called key words and are required when the functions of which they are a part are used. Uppercase words which are not underlined are optional to the user and need not be written in the source program. Uppercase words, whether underlined or not, must be spelled correctly.
 
-Lowercase words, in a general format, are generic terms used to represent COBOL words, literals, PICTURE character-strings, comment-entrıes, or a complete syntactical entry that must be supplied by the user. Where generic terms are
+Lowercase words, in a general format, are generic terms used to represent COBOL words, literals, PICTURE character-strings, comment-entries, or a complete syntactical entry that must be supplied by the user. Where generic terms are
+
+> ⚠ **CORRECTED — see the Errata (C3).** The standard prints `PICTURE character-strings, comment-entrıes, or a complete` (page 147, folio IV-1): a damaged letter on the printed page, which the transcription had reproduced. Corrected to `comment-entries`.
 
 IV-1
 
@@ -8700,11 +8708,13 @@ Verb Formats (INSPECT - MULTIPLY)
 ╭ <u>CHARACTERS</u>  <u>BY</u> ╭identifier-5╮ ┌ ╭<u>BEFORE</u>╮ INITIAL  ╭identifier-4╮ ┐  …                          ╮
 │                ┤            ├ │ ┤      ├          ┤            ├ │                             │
 │                ╰literal-3   ╯ └ ╰<u>AFTER</u> ╯          ╰literal-2   ╯ ┘                             │
-┤ ╭<u>ALL</u>    ╮ ╭ ╭identifier-3╮ <u>BY</u> ╭ identifier-5╮ ┌╭ <u>BEFCRE</u>╮ INITIAL  ╭ identifier-4 ╮ ┐     ╮     ├ …
+┤ ╭<u>ALL</u>    ╮ ╭ ╭identifier-3╮ <u>BY</u> ╭ identifier-5╮ ┌╭ <u>BEFORE</u>╮ INITIAL  ╭ identifier-4 ╮ ┐     ╮     ├ …
 │ │       │ │ ┤            ├    ┤             ├ │┤       ├          ┤              ├ │     │     │
 │ ┤<u>LEADING</u>├ ┤ ╰literal-1   ╯    ╰ literal-3   ╯ └╰ <u>AFTER</u> ╯          ╰ literal-2    ╯ ┘ …   ├ …   │
 ╰ ╰<u>FIRST</u>  ╯ ╰                                                                              ╯     ╯
 </pre>
+
+> ⚠ **CORRECTED — see the Errata (C4).** The standard prints `BEFCRE` (page 217, folio V-25): a damaged letter on the printed page, which the transcription had reproduced. Corrected to `BEFORE`.
 
 <pre style="line-height:1">
                                 ╭ identifier-6 ╮    ╭ identifier-7 ╮
@@ -18183,8 +18193,10 @@ IX-19
 
 Indexed I-O - CLOSE
 
-<u>Input Fil'es and Input-Output Files (Random ║or Dynamic║ Access Mode)</u>;
+<u>Input Files and Input-Output Files (Random ║or Dynamic║ Access Mode)</u>;
 <u>Output Files (Random, ║Dynamic,║ or Sequential Access Mode)</u>:
+
+> ⚠ **CORRECTED — see the Errata (C5).** The standard prints `Input Fil'es and Input-Output Files` (page 490, folio IX-20): a damaged letter on the printed page, which the transcription had reproduced. Corrected to `Files`.
 
 If label records are specified for the file, the labels are processed according to the implementor's standard label convention. The behavior of the CLOSE statement when label records are specified but not present, or when label records are not specified but are present, is undefined. Closing operations specified by the implementor are executed. If label records are not specified for the file, label processing does not take place but other closing operations specified by the implementor are executed.
 
@@ -19693,7 +19705,9 @@ Inter-Program Communication - Data Description Entry
 
 ### 4.3.3 Syntax Rules
 
-(1) The availability of specific clauses in the data description entry is dependent on the level of the Nucleus module suppported by the implementation. (See page VI-20 in the Nucleus module.)
+(1) The availability of specific clauses in the data description entry is dependent on the level of the Nucleus module supported by the implementation. (See page VI-20 in the Nucleus module.)
+
+> ⚠ **CORRECTED — see the Errata (C6).** The standard prints `the level of the Nucleus module suppported by the implementation` (page 537, folio X-21): a misspelling on the printed page. Corrected to `supported`.
 
 ║(2) The EXTERNAL clause may be specified only in data description entries in the Working-Storage Section whose level-number is 01.║
 
@@ -19761,7 +19775,9 @@ Inter-Program Communication - EXTERNAL
 
 ### ║4.5.1 Function║
 
-║The EXTERNAL clause specifies that a data item or a file connector is external. The constitutent data items and group data items of an external data record are available to every program in the run unit which describes that record.║
+║The EXTERNAL clause specifies that a data item or a file connector is external. The constituent data items and group data items of an external data record are available to every program in the run unit which describes that record.║
+
+> ⚠ **CORRECTED — see the Errata (C7).** The standard prints `The constitutent data items` (page 539, folio X-23): a misspelling on the printed page. Corrected to `constituent`.
 
 ### ║4.5.2 General Format║
 
@@ -19941,7 +19957,9 @@ b. ║If the ON OVERFLOW or ON EXCEPTION phrase is not specified in the CALL sta
 
 ║(4) Two or more programs in the run unit may have the same program-name, and the reference in a CALL statement to such a program-name is resolved by using the scope of names conventions for program-names. (See page X-5, Conventions for Program-Names.)║
 
-║For example, when only two programs in the run unit have the same name as that specified in a CALL statment:║
+║For example, when only two programs in the run unit have the same name as that specified in a CALL statement:║
+
+> ⚠ **CORRECTED — see the Errata (C8).** The standard prints `as that specified in a CALL statment` (page 544, folio X-28): a misspelling on the printed page. Corrected to `statement`.
 
 ║a. One of those two programs must also be contained directly or indirectly either within the separately compiled program which includes that CALL statement or within the separately compiled program which itself directly or indirectly contains the program which includes that CALL statement, and║
 
@@ -19993,7 +20011,9 @@ Inter-Program Communication - CALL
 
 the same number of character positions as described by the description of the corresponding data item in the calling program.
 
-║(14) If the BY CONTENT phrase is specified or implied for a parameter, the called program cannot change the value of this parameter as referenced in the CALL statement's USING phrase, though the called program may change the value of the data item referenced by the coresponding data-name in the called program's Procedure Division header. The data description of each parameter in the BY CONTENT phrase of the CALL statement must be the same, meaning no conversion or extension or truncation, as the data description of the corresponding parameter in the USING phrase of the Procedure Division header. (See page X-25, The Procedure Division Header.)║
+║(14) If the BY CONTENT phrase is specified or implied for a parameter, the called program cannot change the value of this parameter as referenced in the CALL statement's USING phrase, though the called program may change the value of the data item referenced by the corresponding data-name in the called program's Procedure Division header. The data description of each parameter in the BY CONTENT phrase of the CALL statement must be the same, meaning no conversion or extension or truncation, as the data description of the corresponding parameter in the USING phrase of the Procedure Division header. (See page X-25, The Procedure Division Header.)║
+
+> ⚠ **CORRECTED — see the Errata (C9).** The standard prints `referenced by the coresponding data-name` (page 546, folio X-30): a misspelling on the printed page. Corrected to `corresponding`.
 
 (15) Called programs may contain CALL statements. However, a called program must not execute a CALL statement that directly or indirectly calls the calling program. If a CALL statement is executed within the range of a declarative, that CALL statement cannot directly or indirectly reference any called program to which control has been transferred and which has not completed execution.
 
@@ -20041,7 +20061,9 @@ Inter-Program Communication - CANCEL
 
 ║(7) A called program is cancelled either by being referred to as the operand of a CANCEL statement, by the termination of the run unit of which the program is a member, or by execution of an EXIT PROGRAM statement in a called program that possesses the initial attribute.║
 
-║(8) No action is taken when an explicit or implicit CANCEL statment is executed naming a program that has not been called in this run unit or has been║
+║(8) No action is taken when an explicit or implicit CANCEL statement is executed naming a program that has not been called in this run unit or has been║
+
+> ⚠ **CORRECTED — see the Errata (C10).** The standard prints `explicit or implicit CANCEL statment is executed` (page 547, folio X-31): a misspelling on the printed page. Corrected to `statement`.
 
 X-31
 
@@ -21677,7 +21699,9 @@ c. If the LAST DETAIL and the FOOTING phrases are both omitted, the value of int
 
 d. If the FOOTING phrase is specified and the LAST DETAIL phrase is omitted, the value of integer-5 is given to integer-4.
 
-e. If the LAST DETAIL phrase is specified and the FOOTING phrase is omi-ted, the value of integer-4 is given to integer-5.
+e. If the LAST DETAIL phrase is specified and the FOOTING phrase is omitted, the value of integer-4 is given to integer-5.
+
+> ⚠ **CORRECTED — see the Errata (C11).** The standard prints `the FOOTING phrase is omi-ted, the value` (page 601, folio XIII-19): a damaged letter on the printed page, which the transcription had reproduced. Corrected to `omitted`.
 
 (3) If the PAGE clause is omitted, the report consists of a single page of indefinite length.
 
@@ -22795,7 +22819,9 @@ XIII-53
 
 Report Writer - TYPE
 
-(5) In control fopting, page heading, page footing, and report footing report groups, SOURCE clauses and associated USE statements must not reference any of the following:
+(5) In control footing, page heading, page footing, and report footing report groups, SOURCE clauses and associated USE statements must not reference any of the following:
+
+> ⚠ **CORRECTED — see the Errata (C12).** The standard prints `In control fopting, page heading` (page 634, folio XIII-56): a misspelling on the printed page. Corrected to `footing`.
 
 a. Group data items containing a control data item.
 
@@ -22819,7 +22845,9 @@ In page heading and page footing report groups, SOURCE clauses and USE statement
 
 a. A page heading report group is not processed on a page that is to contain only a report heading report group or only a rêport footing report group.
 
-b. A page heading report group is processed as the second report group on a page when it is preceded by a report heading report group thac is not to be presented on a page by itself.
+b. A page heading report group is processed as the second report group on a page when it is preceded by a report heading report group that is not to be presented on a page by itself.
+
+> ⚠ **CORRECTED — see the Errata (C13).** The standard prints `report heading report group thac is not` (page 634, folio XIII-56): a misspelling on the printed page. Corrected to `that`.
 
 (See page XIII-24, Presentation Rules Tables.)
 
@@ -27936,7 +27964,9 @@ XVII-69
 
 Substantive Changes (Potentially Affecting)
 
-user-controlled techñique. Thus, the decision was made to separate these diverse techniques.
+user-controlled technique. Thus, the decision was made to separate these diverse techniques.
+
+> ⚠ **CORRECTED — see the Errata (C14).** The standard prints `user-controlled techñique.` (page 778, folio XVII-70): a damaged letter on the printed page, which the transcription had reproduced. Corrected to `technique`.
 
 Although these phrases were allowed together in second Standard COBOL, few implementations could handle them. Thus there will be minimal impact on existing programs.
 
@@ -30669,7 +30699,9 @@ Approved American National Standard
 
 This standard has been adopted for Federal Government use.
 
-Details concernings its use within the Federal Government are contained in Federal Information Processing Standards Publication 21-3, COBOL. For a complete list of the publications available in the Federal Information Processing Standards Series, write to the Standards Processing Coordinator (ADP), National Institute of Standards and Technology, Gaithersburg, MD 20899.
+Details concerning its use within the Federal Government are contained in Federal Information Processing Standards Publication 21-3, COBOL. For a complete list of the publications available in the Federal Information Processing Standards Series, write to the Standards Processing Coordinator (ADP), National Institute of Standards and Technology, Gaithersburg, MD 20899.
+
+> ⚠ **CORRECTED — see the Errata (C15).** The standard prints `Details concernings its use` (page 822): a misspelling on the printed page. Corrected to `concerning`.
 
 ## Page 823
 
@@ -32557,7 +32589,9 @@ Intrinsic Function - LOWER-CASE
 
 ### 2.22.1 Description
 
-The LOWER-CASE function returns a character string that is the same length as argument-1 with each upppercase letter replaced by the corresponding lowercase letter. The type of this function is alphanumeric.
+The LOWER-CASE function returns a character string that is the same length as argument-1 with each uppercase letter replaced by the corresponding lowercase letter. The type of this function is alphanumeric.
+
+> ⚠ **CORRECTED — see the Errata (C16).** The standard prints `with each upppercase letter replaced` (page 881, folio A-51): a misspelling on the printed page. Corrected to `uppercase`.
 
 ### 2.22.2 General Format
 
@@ -32836,7 +32870,9 @@ A-58
 
 ### 2.30.1 Description
 
-The NUMVAL-C function ıeturns the numeric value represented by the character string specified by argument-1. Any optional currency sign specified by argument-2 and any optional commas preceding the decimal point are ignored. The type of this function is numeric.
+The NUMVAL-C function returns the numeric value represented by the character string specified by argument-1. Any optional currency sign specified by argument-2 and any optional commas preceding the decimal point are ignored. The type of this function is numeric.
+
+> ⚠ **CORRECTED — see the Errata (C17).** The standard prints `The NUMVAL-C function ıeturns the numeric value` (page 889, folio A-59): a damaged letter on the printed page, which the transcription had reproduced. Corrected to `returns`.
 
 ### 2.30.2 General Format
 
@@ -36657,3 +36693,251 @@ Zero suppression editing, VI-35
 
 B-64
 
+# Errata — corrections applied to this transcription
+
+> **This section is NOT part of American National Standard X3.23-1985 or its amendments.** It is supplied by
+> the publisher of this transcription.
+
+This transcription is the working copy of the standard for the project that keeps it, and **correctness rules
+over faithfulness to a typographical error**: where the printed page carries a misspelling, or a letter the
+printing damaged, the word is corrected in place. **Every departure is listed here with the printed form and the
+page, so that any correction can be reversed** if it later proves mistaken. The published standard remains
+authoritative: where this transcription and the published standard differ, **the published standard governs**.
+
+Each correction is flagged where it was made with a ⚠ note that quotes the printed form verbatim, so a quotation
+of either form is found in the same paragraph (`scripts/spec/cite.py --check` accepts both) and the rule
+catalog never carries the note. The acknowledgment is reproduced exactly as printed, wherever it is printed, and
+is never corrected (its slips are recorded at the end of this section). `scripts/spec/verify_publishable.py --edition 1985`
+enforces the convention: a flag without an entry, an entry nothing points at, and an entry or flag without its
+printed form or page each fail it.
+
+> **Page numbers here are PDF pages**, the `## Page N` headings of this transcription, because the scanned
+> standard numbers its pages per section (`XIII-56`). The printed folio follows where the page prints one.
+
+Every correction was found by a scan of the transcription for rare words one letter from a common word, or
+carrying a letter no English word has, and each was read on the rendered page before it was corrected (kb/Work
+PB4972). A damaged letter the transcription reproduced is listed here too: the printed page shows it, so the
+correction is a departure from the page.
+
+## Corrections applied
+
+| | page | folio | where | printed | this transcription | kind |
+|---|---:|---|---|---|---|---|
+| [C1](#errata-c1) | 7 | — | the standard's Preface, first sentence | `piovides` | `provides` | damage |
+| [C2](#errata-c2) | 17 | — | the table of contents, Section XIII entry 3.10 | `_ables` | `Tables` | damage |
+| [C3](#errata-c3) | 147 | IV-1 | Section IV, the notation of a general format (lowercase words) | `comment-entrıes` | `comment-entries` | damage |
+| [C4](#errata-c4) | 217 | V-25 | Section V, the INSPECT statement's TALLYING ... REPLACING format, the REPLACING ALL / LEADING / FIRST phrase | `BEFCRE` | `BEFORE` | damage |
+| [C5](#errata-c5) | 490 | IX-20 | Section IX, the indexed CLOSE statement, the heading of its first case | `Fil'es` | `Files` | damage |
+| [C6](#errata-c6) | 537 | X-21 | Section X, the data description entry, syntax rule 1 | `suppported` | `supported` | spelling |
+| [C7](#errata-c7) | 539 | X-23 | Section X, the EXTERNAL clause, its Function paragraph | `constitutent` | `constituent` | spelling |
+| [C8](#errata-c8) | 544 | X-28 | Section X, the CALL statement, the example under general rule 4 | `statment` | `statement` | spelling |
+| [C9](#errata-c9) | 546 | X-30 | Section X, the CALL statement, general rule 14 | `coresponding` | `corresponding` | spelling |
+| [C10](#errata-c10) | 547 | X-31 | Section X, the CANCEL statement, general rule 8 | `statment` | `statement` | spelling |
+| [C11](#errata-c11) | 601 | XIII-19 | Section XIII, the PAGE clause, general rule 2, item e | `omi-ted` | `omitted` | damage |
+| [C12](#errata-c12) | 634 | XIII-56 | Section XIII, the TYPE clause, syntax rule 5 | `fopting` | `footing` | spelling |
+| [C13](#errata-c13) | 634 | XIII-56 | Section XIII, the TYPE clause, general rule 3, item b | `thac` | `that` | spelling |
+| [C14](#errata-c14) | 778 | XVII-70 | Appendix A of Section XVII, the substantive changes (WITH DUPLICATES and the RERUN techniques) | `techñique` | `technique` | damage |
+| [C15](#errata-c15) | 822 | — | Amendment 1's front matter, the note on Federal Government use | `concernings` | `concerning` | spelling |
+| [C16](#errata-c16) | 881 | A-51 | Amendment 1, Addendum 1, the LOWER-CASE function, its description | `upppercase` | `uppercase` | spelling |
+| [C17](#errata-c17) | 889 | A-59 | Amendment 1, Addendum 1, the NUMVAL-C function, its description | `ıeturns` | `returns` | damage |
+
+<a id="errata-c1"></a>
+
+### C1 · page 7 · the standard's Preface, first sentence · `piovides` → `provides`
+
+| | |
+|---|---|
+| **Printed** | `This document piovides the definition` |
+| **This transcription** | `This document provides the definition` |
+
+A damaged letter on the printed page, which the transcription had reproduced, read on the rendered page.
+
+<a id="errata-c2"></a>
+
+### C2 · page 17 · the table of contents, Section XIII entry 3.10 · `_ables` → `Tables`
+
+| | |
+|---|---|
+| **Printed** | `Presentation Rules _ables` |
+| **This transcription** | `Presentation Rules Tables` |
+
+A damaged letter on the printed page, which the transcription had reproduced, read on the rendered page.
+
+<a id="errata-c3"></a>
+
+### C3 · page 147 (folio IV-1) · Section IV, the notation of a general format (lowercase words) · `comment-entrıes` → `comment-entries`
+
+| | |
+|---|---|
+| **Printed** | `PICTURE character-strings, comment-entrıes, or a complete` |
+| **This transcription** | `PICTURE character-strings, comment-entries, or a complete` |
+
+A damaged letter on the printed page, which the transcription had reproduced, read on the rendered page.
+
+<a id="errata-c4"></a>
+
+### C4 · page 217 (folio V-25) · Section V, the INSPECT statement's TALLYING ... REPLACING format, the REPLACING ALL / LEADING / FIRST phrase · `BEFCRE` → `BEFORE`
+
+| | |
+|---|---|
+| **Printed** | `BEFCRE` |
+| **This transcription** | `BEFORE` |
+
+A damaged letter on the printed page, which the transcription had reproduced, read on the rendered page.
+
+<a id="errata-c5"></a>
+
+### C5 · page 490 (folio IX-20) · Section IX, the indexed CLOSE statement, the heading of its first case · `Fil'es` → `Files`
+
+| | |
+|---|---|
+| **Printed** | `Input Fil'es and Input-Output Files` |
+| **This transcription** | `Input Files and Input-Output Files` |
+
+A damaged letter on the printed page, which the transcription had reproduced, read on the rendered page.
+
+<a id="errata-c6"></a>
+
+### C6 · page 537 (folio X-21) · Section X, the data description entry, syntax rule 1 · `suppported` → `supported`
+
+| | |
+|---|---|
+| **Printed** | `the level of the Nucleus module suppported by the implementation` |
+| **This transcription** | `the level of the Nucleus module supported by the implementation` |
+
+A misspelling on the printed page, read on the rendered page.
+
+<a id="errata-c7"></a>
+
+### C7 · page 539 (folio X-23) · Section X, the EXTERNAL clause, its Function paragraph · `constitutent` → `constituent`
+
+| | |
+|---|---|
+| **Printed** | `The constitutent data items` |
+| **This transcription** | `The constituent data items` |
+
+A misspelling on the printed page, read on the rendered page.
+
+<a id="errata-c8"></a>
+
+### C8 · page 544 (folio X-28) · Section X, the CALL statement, the example under general rule 4 · `statment` → `statement`
+
+| | |
+|---|---|
+| **Printed** | `as that specified in a CALL statment` |
+| **This transcription** | `as that specified in a CALL statement` |
+
+A misspelling on the printed page, read on the rendered page.
+
+<a id="errata-c9"></a>
+
+### C9 · page 546 (folio X-30) · Section X, the CALL statement, general rule 14 · `coresponding` → `corresponding`
+
+| | |
+|---|---|
+| **Printed** | `referenced by the coresponding data-name` |
+| **This transcription** | `referenced by the corresponding data-name` |
+
+A misspelling on the printed page, read on the rendered page.
+
+<a id="errata-c10"></a>
+
+### C10 · page 547 (folio X-31) · Section X, the CANCEL statement, general rule 8 · `statment` → `statement`
+
+| | |
+|---|---|
+| **Printed** | `explicit or implicit CANCEL statment is executed` |
+| **This transcription** | `explicit or implicit CANCEL statement is executed` |
+
+A misspelling on the printed page, read on the rendered page.
+
+<a id="errata-c11"></a>
+
+### C11 · page 601 (folio XIII-19) · Section XIII, the PAGE clause, general rule 2, item e · `omi-ted` → `omitted`
+
+| | |
+|---|---|
+| **Printed** | `the FOOTING phrase is omi-ted, the value` |
+| **This transcription** | `the FOOTING phrase is omitted, the value` |
+
+A damaged letter on the printed page, which the transcription had reproduced, read on the rendered page.
+
+<a id="errata-c12"></a>
+
+### C12 · page 634 (folio XIII-56) · Section XIII, the TYPE clause, syntax rule 5 · `fopting` → `footing`
+
+| | |
+|---|---|
+| **Printed** | `In control fopting, page heading` |
+| **This transcription** | `In control footing, page heading` |
+
+A misspelling on the printed page, read on the rendered page.
+
+<a id="errata-c13"></a>
+
+### C13 · page 634 (folio XIII-56) · Section XIII, the TYPE clause, general rule 3, item b · `thac` → `that`
+
+| | |
+|---|---|
+| **Printed** | `report heading report group thac is not` |
+| **This transcription** | `report heading report group that is not` |
+
+A misspelling on the printed page, read on the rendered page.
+
+<a id="errata-c14"></a>
+
+### C14 · page 778 (folio XVII-70) · Appendix A of Section XVII, the substantive changes (WITH DUPLICATES and the RERUN techniques) · `techñique` → `technique`
+
+| | |
+|---|---|
+| **Printed** | `user-controlled techñique.` |
+| **This transcription** | `user-controlled technique.` |
+
+A damaged letter on the printed page, which the transcription had reproduced, read on the rendered page.
+
+<a id="errata-c15"></a>
+
+### C15 · page 822 · Amendment 1's front matter, the note on Federal Government use · `concernings` → `concerning`
+
+| | |
+|---|---|
+| **Printed** | `Details concernings its use` |
+| **This transcription** | `Details concerning its use` |
+
+A misspelling on the printed page, read on the rendered page.
+
+<a id="errata-c16"></a>
+
+### C16 · page 881 (folio A-51) · Amendment 1, Addendum 1, the LOWER-CASE function, its description · `upppercase` → `uppercase`
+
+| | |
+|---|---|
+| **Printed** | `with each upppercase letter replaced` |
+| **This transcription** | `with each uppercase letter replaced` |
+
+A misspelling on the printed page, read on the rendered page.
+
+<a id="errata-c17"></a>
+
+### C17 · page 889 (folio A-59) · Amendment 1, Addendum 1, the NUMVAL-C function, its description · `ıeturns` → `returns`
+
+| | |
+|---|---|
+| **Printed** | `The NUMVAL-C function ıeturns the numeric value` |
+| **This transcription** | `The NUMVAL-C function returns the numeric value` |
+
+A damaged letter on the printed page, which the transcription had reproduced, read on the rendered page.
+
+## Defects recorded but NOT corrected
+
+The acknowledgment is reproduced in its entirety exactly as printed (its own terms), so its slips stay as
+printed and are recorded here. Nothing in this list is flagged in the text.
+
+### D1 · page 3 · the acknowledgment · two periods omitted
+
+The acknowledgment on page 3 omits two periods the sentences need; the Preface of this transcription says so.
+
+### D2 · page 823 · the acknowledgment as Amendment 1 reprints it · `Commerical`
+
+Amendment 1 reprints the acknowledgment with `IBM Commerical Translater`. Page 3 and Amendment 2 print
+`IBM Commercial Translater`. `Translater` is the grant's own wording in every copy, and is not a slip.

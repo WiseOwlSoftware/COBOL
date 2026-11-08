@@ -48,12 +48,12 @@ sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, f
 from standard_streams import ensure_utf8  # noqa: E402
 
 import spec_pdf  # noqa: E402  (scripts/spec: the one edition table, kb/Work PB4815)
+import verify_publishable  # noqa: E402  (THE flag of a documented correction, kb/Work PB4972)
 
 PAGE_ANCHOR = re.compile(r'^<a id="page-(\d+)"></a>\s*$')
 #: A clause heading, read through its bold and a level-2 box's sides (spec_pdf.BOX_SIDE).
 MD_HEADING = re.compile(rf"^\s*#{{1,6}}\s+[*{spec_pdf.BOX_SIDE}]*(\d+(?:\.\d+)+)\s+(.+?)[*{spec_pdf.BOX_SIDE}]*\s*$")
 MD_FORMAT = re.compile(r"^\s*\**Formats?\s+(\d+)")
-ADDENDUM_REF = re.compile(r"see the Addendum \(C\d+\)")
 # A fence may carry a LANGUAGE TAG (```cobol on the example programs). Not matching it would leave the
 # example's lines loose, where the bare-run scanner could mistake a COBOL example for a figure.
 # `<pre>` carries a `line-height:1` style attribute (see render_figure.PRE_OPEN — it is what makes the
@@ -893,6 +893,7 @@ def main() -> int:
     index = md_index(lines)
     clause_span = clause_spans(lines)
     figs, failed = generated(doc, extract, classify_page, R)
+    documented = verify_publishable.flag_reference(args.edition)
 
     stats = collections.Counter()
     edits, problems = [], []
@@ -926,7 +927,7 @@ def main() -> int:
             # from the standard it says so in place and lists the change in the Addendum, so regenerating from
             # the page would silently revert it — 12.3.6.2 corrects the standard's `locae-name-1` under C3.
             near = chr(10).join(lines[max(a - 3, 0):min(b + 8, len(lines))])
-            if have != want and ADDENDUM_REF.search(near):
+            if have != want and documented.search(near):
                 stats["documented_correction"] += 1
                 continue
             if have != want:
