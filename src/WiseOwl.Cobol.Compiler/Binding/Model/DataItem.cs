@@ -1286,16 +1286,16 @@ public sealed class DataItem
     /// and never a second. For a group holding no reference this and <see cref="CurrentExtentImageCapable"/> are one.</para></summary>
     public bool CurrentExtentTransferImageCapable => ComposesCurrentExtent(transfer: true);
 
-    /// <summary>⛔ THE ONE QUESTION "does this group's receiving half skip message-tag positions?" (kb/Work PB4744): the group holds at least one managed slot and every
+    /// <summary>⛔ THE ONE QUESTION "is this group a message area that holds message tags?" (kb/Work PB4744): the group holds at least one managed slot and every
     /// slot it holds is a message tag. A pointer or object-reference slot is no case - SEND SR3 and RECEIVE SR2 refuse them in a message area, and their groups keep the
-    /// one-way image alone. Asked by the fixed group's <c>FromMessageImage</c> (<c>GroupImageCodec</c>), by the nested-struct arm of <c>EmitMemberFromImage</c>, and by the
-    /// variable-length group's carrier methods (<c>RecordStructEmitter</c>: a variable-length message area decomposes through <c>FromContiguousImage</c>).</summary>
+    /// one-way image alone. Asked by <see cref="CurrentExtentMessageImageCapable"/>, the gate of a variable-length group's carrier methods (<c>RecordStructEmitter</c>:
+    /// a variable-length message area decomposes through <c>FromContiguousImage</c>, whose tags decode their token positions, kb/Work PB4957).</summary>
     public bool HoldsOnlyMessageTagSlots =>
         SlotWindow.MembersOf(this) is var slots && slots.Any() && slots.All(ItemCategory.IsMessageTag);
 
     /// <summary>A variable-length group whose current extent composes with its message tags set aside (kb/Work PB4744): the message area a SEND sends as its one-way
-    /// <c>CurrentImage()</c> and a RECEIVE stores by <c>FromContiguousImage</c>, whose <c>FromVarImage</c> skips a tag's placeholder positions; the tags travel as slots beside
-    /// the image. It stands beside <see cref="CurrentExtentImageCapable"/> (a tag has no inverse in the image, so that capability stays false) - the gate of the
+    /// <c>CurrentImage()</c> and a RECEIVE stores by <c>FromContiguousImage</c>, whose <c>FromVarImage</c> decodes a tag's token positions; the tags travel as slots beside
+    /// the image, and the RECEIVE resolves each token of the sending run unit against them (kb/Work PB4957). It stands beside <see cref="CurrentExtentImageCapable"/> (a tag has no inverse in the image, so that capability stays false) - the gate of the
     /// carrier methods <c>RecordStructEmitter</c> emits and of <c>PlaceRenderer.WriteVarGroupContiguous</c>.</summary>
     public bool CurrentExtentMessageImageCapable => HoldsOnlyMessageTagSlots && CurrentExtentTransferImageCapable;
 

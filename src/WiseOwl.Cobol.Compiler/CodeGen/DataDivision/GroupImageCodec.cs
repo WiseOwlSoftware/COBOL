@@ -767,9 +767,9 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                             // CURRENT image from the first unused occurrence on).
                             w.Line(OdoMemberTail.Of(p).KeepUnusedOccurrences(off, AsImageOf(p.Field)));
                         }
-                        // A message tag is no part of the image (kb/Work PB4744): its placeholder positions are skipped and a fixed group holding tags distributes by
-                        // FromMessageImage, so a variable-length message area decomposes like any other and its tags travel beside it as slots.
-                        EmitMemberFromImage(p.Field, off, w, messageImage: true);
+                        // A message tag decodes its token positions as every token leaf does (kb/Work PB4838), so a variable-length message area decomposes like any
+                        // other; a RECEIVE then resolves a token of the sending run unit against the message's slots (AsyncMessaging.Resolved, kb/Work PB4957).
+                        EmitMemberFromImage(p.Field, off, w);
                         off += p.Field.Width;
                         break;
                     case VarPartKind.NestedTable:
@@ -884,16 +884,14 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     /// allocated. <c>sending: false</c> for the same reason the two <c>FromImage</c> sites below use it
     /// (kb/Work PB230): this is the RECEIVING side of a group decode — the program-visible sending
     /// reference was the write that produced the image, not this redistribution of it into members.
-    /// <para>A group element that holds message tags distributes through its <c>FromMessageImage</c>, as a fixed member of the
-    /// variable-length group does (<see cref="EmitMemberFromImage"/> with <c>messageImage</c>): <c>FromVarImage</c> is the
-    /// message area's receiving half (kb/Work PB4744, review R3-1), whose tags travel beside the image as slots, so a tag's
-    /// token positions - the SENDING run unit's - are skipped.</para></summary>
+    /// <para>A group element that holds message tags distributes through its <c>FromImage</c>, whose tags decode their token positions
+    /// (kb/Work PB4838); a RECEIVE resolves a token of the sending run unit against the message's slots afterwards (kb/Work PB4957).</para></summary>
     private static string TableElementFromImage(DataItem d)
     {
         // A NATIONAL element's image is its UTF-16BE byte pairs (DynElementImage): decode them back to its characters first,
         // then to the carrier (the inverse composition of AsImageOf's, design D-N7; kb/Work PB3441).
         string x = d.ImageUnit > 1 ? RuntimeApi.NatFromStorage("__x") : "__x";
-        return d.IsGroup ? $"(__e, __x) => {{ __e.{(d.HoldsOnlyMessageTagSlots ? "FromMessageImage" : "FromImage")}(__x); return __e; }}"
+        return d.IsGroup ? "(__e, __x) => { __e.FromImage(__x); return __e; }"
             : BitLayout.IsBitLeaf(d) ? $"(__e, __x) => {RuntimeApi.BitsUnpack("__x", $"{d.Pic!.Length}")}"
             : !d.StoreAsImage && d.Pic is { HasImageByteForm: true }
                 ? (d.Pic.IsFloat
@@ -953,29 +951,22 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             return;
         }
         w.Line($"public readonly string AsImage() => {(members.Count > 0 ? string.Join(" + ", members.Select(AsImageOf)) : "\"\"")};");
-        // A group whose only managed slots are MESSAGE TAGS has the receiving half a message needs, FromMessageImage: the image's other positions
-        // distribute as FromImage does and a tag's token positions are skipped, the tag itself arriving beside the image as a slot (kb/Work PB4744;
-        // §2023:14.9.31.4 GR1; DESIGN-message-control.md section 4.4). A token names a tag of the SENDING run unit, so FromImage's decode of it
-        // (kb/Work PB4838, the file record's inverse) is not the message's.
-        if (group.HoldsOnlyMessageTagSlots) EmitFromImage("FromMessageImage", messageImage: true);
+        // ⛔ A RECEIVED MESSAGE IS STORED BY THIS SAME FromImage (kb/Work PB4957; §2023:14.9.31.4 GR1b: "The content of identifier-1 is the content of the
+        // message"): a tag's positions decode as a file record's do, and a token of the SENDING run unit, which this one cannot decode, is resolved against the
+        // slots the message carries beside its image afterwards (AsyncMessaging.Resolved), so there is no second receiving half to skip it.
         if (!group.ElementRecordImageCapable) return;   // one-way (PB244): no FromImage over an object leaf, which has no token
-        EmitFromImage("FromImage", messageImage: false);
-        if (group.GroupUsage is GroupUsage.Bit) EmitBitMethods(group, w);
-        if (group.GroupUsage is GroupUsage.National) EmitNatMethods(group, w);
-
-        void EmitFromImage(string method, bool messageImage)
+        using (w.Block("public void FromImage(string __s)"))
         {
-            using (w.Block($"public void {method}(string __s)"))
+            w.Line($"__s = {RuntimeApi.StrStore("__s", $"{members.Sum(f => f.Width)}")};");   // pad/truncate to the image width
+            int off = 0;
+            foreach (var f in members)
             {
-                w.Line($"__s = {RuntimeApi.StrStore("__s", $"{members.Sum(f => f.Width)}")};");   // pad/truncate to the image width
-                int off = 0;
-                foreach (var f in members)
-                {
-                    EmitMemberFromImage(f, off, w, messageImage);
-                    off += f.Width;
-                }
+                EmitMemberFromImage(f, off, w);
+                off += f.Width;
             }
         }
+        if (group.GroupUsage is GroupUsage.Bit) EmitBitMethods(group, w);
+        if (group.GroupUsage is GroupUsage.National) EmitNatMethods(group, w);
     }
 
     /// <summary>A NATIONAL GROUP's elementary face (ISO §2023:13.18.29.4 GR2b — "a national group is treated as though
@@ -1290,7 +1281,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     /// leaf's sign lives in those bytes (two's complement / the sign nibble) and its <c>SignKind</c> — a DISPLAY
     /// concern — is not consulted at all. The former <c>ImageProfileOf</c> sign rewrite existed only because the
     /// image was a zoned digit run that had to carry a fixed-width sign.</para></summary>
-    private static void EmitMemberFromImage(PhysicalModel.Physical f, int off, CodeWriter w, bool messageImage = false)
+    private static void EmitMemberFromImage(PhysicalModel.Physical f, int off, CodeWriter w)
     {
         // D19/PB43 — the run's leader unpacks the shared byte(s) ONCE and distributes the boolean positions back
         // to each member in declaration order; the continuations have Width 0 and consume no slice.
@@ -1320,8 +1311,6 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             return;
         }
         if (f.Width == 0) return;   // a run continuation — its value came from the leader's unpack
-        // A message tag rides beside the message image as a slot (kb/Work PB4744): in the message image its token positions are skipped.
-        if (messageImage && f.SlotLeaf is not null) return;
         // ⛔ A POINTER OR MESSAGE-TAG LEAF DECODES ITS TOKEN (kb/Work PB4838): the inverse of SlotImageOf, through the decoder of the
         // leaf's own category (RuntimeApi.SlotFromImage), every occurrence of a fixed table in turn. Reached only through a group
         // whose every slot leaf CarriesTokenImage (DataItem.ElementRecordImageCapable) - an object leaf never gets a FromImage.
@@ -1337,8 +1326,6 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                 w.Line($"{f.Name}[__i] = {RuntimeApi.SlotFromImage(slot, $"__s.Substring({off} + __i * {unit}, {unit})")};");
             return;
         }
-        // A nested struct that holds message tags distributes by its own FromMessageImage in the message image (HoldsOnlyMessageTagSlots), else by FromImage.
-        string fromImage = messageImage && f.Group is { } nested && nested.HoldsOnlyMessageTagSlots ? "FromMessageImage" : "FromImage";
         // ⛔ THE INVERSE OF AsImageOf's national arm (kb/Work PB327): decode the UTF-16BE byte pairs back to the
         // leaf's character positions through CobolBits.NatReadWindow — the inverse CobolBits.NatBytes names, never
         // a second decoder. A pair the image is too short to hold decodes as the NATIONAL space, which is exactly
@@ -1366,14 +1353,14 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         if (f.Occurs == 0)
         {
             w.Line(f.IsGroupStruct
-                ? $"{f.Name}.{fromImage}(__s.Substring({off}, {f.Width}));"
+                ? $"{f.Name}.FromImage(__s.Substring({off}, {f.Width}));"
                 : $"{f.Name} = {CarrierFromChars(f, $"__s.Substring({off}, {f.Width})")};");
             return;
         }
         int elem = f.Width / f.Occurs;   // per-occurrence width (Width = elem × Occurs, exact by construction)
         using (w.Block($"for (int __i = 0; __i < {f.Occurs}; __i++)"))
             w.Line(f.IsGroupStruct
-                ? $"{f.Name}[__i].{fromImage}(__s.Substring({off} + __i * {elem}, {elem}));"
+                ? $"{f.Name}[__i].FromImage(__s.Substring({off} + __i * {elem}, {elem}));"
                 : $"{f.Name}[__i] = {CarrierFromChars(f, $"__s.Substring({off} + __i * {elem}, {elem})")};");
     }
 
