@@ -1783,6 +1783,10 @@ public sealed class FileRegistry
         return true;
     }
 
+    /// <summary>Told before every OPEN statement is dispatched: the owning run unit uses it to answer for its open files at
+    /// process exit (<see cref="RunUnit.EndAtProcessExit"/>, kb/Work PB4946).</summary>
+    internal Action? Opening { get; set; }
+
     /// <summary>⛔ THE ONE OPEN DISPATCH (ISO §2023:14.9.27). Every OPEN — phrase-bearing or plain — arbitrates against
     /// the physical-file registry, because §2023:9.1.15's gate is written over the physical file and not over the
     /// connectors that opted in: <i>"Before access to a shared physical file is allowed through an OPEN statement,
@@ -1813,6 +1817,7 @@ public sealed class FileRegistry
         LinagePage? page)
     {
         DrainPendingObjectCloses();   // reclaim any GC-finalized per-object connectors on this (mutator) thread first
+        Opening?.Invoke();
         if (RefusedAsAlreadyOpen(name, mode)) return;   // §2023:14.9.27.4 GR2 — before anything below touches the connector
         // §2023:14.9.27.4 GR26 → §2023:12.4.5.3 GR3, and BEFORE the Table-19 arbitration: a sharing conflict is defined
         // over "another file connector" holding THE PHYSICAL FILE this OPEN names (§2023:9.1.13.9), so the association
