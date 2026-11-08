@@ -231,8 +231,8 @@ public sealed class WrittenKindRefusalTests
         "expected COMMON or INITIAL (ISO §2023:5.2.1)", "PROTOTYPE")]   // RECURSIVE is in the 2002 list of §2002:8.10, PROTOTYPE a 2002 §2002:8.9 word
     [InlineData("program-id-attribute-2002", 2002, "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. PB4174G IS GLOBAL.\n" + Proc,
         "expected COMMON, INITIAL, PROTOTYPE or RECURSIVE (ISO §2023:5.2.1)", null)]
-    [InlineData("use-85", 85, UseDeclarative, "expected AFTER, BEFORE, ERROR, EXCEPTION", "EC, EO")]
-    [InlineData("use-2002", 2002, UseDeclarative, "expected AFTER, BEFORE, EC, EO, ERROR, EXCEPTION", null)]
+    [InlineData("use-85", 85, UseDeclarative, "expected AFTER, BEFORE, DEBUGGING, ERROR, EXCEPTION", "EC, EO")]   // USE [FOR] DEBUGGING: FOR is an optional word (kb/Work PB4919)
+    [InlineData("use-2002", 2002, UseDeclarative, "expected AFTER, BEFORE, DEBUGGING, EC, EO, ERROR, EXCEPTION", null)]
     // The §2023:8.10 context-sensitive words follow the same rule, from the edition of their first listing
     // (ContextSensitiveWordEntry.Introduced): STANDARD-BINARY and STANDARD-DECIMAL are 2014's, NATIVE and STANDARD 2002's
     // (ISO §2023:8.10, whose 2002 list this repository records, and the 2014 words that Annex E.3.3 item 13 does not call new).
