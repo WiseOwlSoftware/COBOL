@@ -36,7 +36,7 @@ import sys
 from collections import Counter
 
 from inventory_schema import ADJUDICATED as CARRIED, CATALOG_PATH as CATALOG, load_schema
-from inventory_store import INVENTORY_DIR, INVENTORY_DIR_REL, load_inventory, write_inventory
+from inventory_store import INVENTORY_DIR, INVENTORY_DIR_REL, REPO, load_inventory, write_inventory
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
@@ -60,12 +60,61 @@ def rule_digest(text: str) -> str:
     return hashlib.sha1(_SQUASH.sub(" ", text.replace("\\", "")).strip().encode("utf-8")).hexdigest()[:12]
 
 
+#: The catalog fields an OLDER edition's row repeats (kb/Work PB4992): what an adjudicator and a reader of the row need
+#: without opening the catalog. `section` is the rule's locator, so the store's spec order reads it.
+OLDER_CATALOG_FIELDS = ("citation", "document", "kind", "ordinal", "sublist", "subject", "module", "level", "box")
+
+
+def build_older(year: int, args: argparse.Namespace) -> int:
+    """Seed or refresh an older edition's store from its catalog (kb/Work PB4992; lineage.py). Like the 2023 arm it never
+    writes a change record or a verdict: it carries the adjudicated fields across a rebuild, by id, and refuses a carry
+    onto changed rule text."""
+    import lineage  # noqa: PLC0415
+    from inventory_store import inventory_dir  # noqa: PLC0415
+    ed = lineage.edition(year)
+    schema = load_schema()
+    store = inventory_dir(year)
+    prior = {r["rule-id"]: r for r in load_inventory(store)} if store.is_dir() else {}
+    targets = lineage.targets_of(ed)
+    out: list[dict] = []
+    for r in ed.rules():
+        row = {"rule-id": r["id"], "section": r["locator"], **{f: r.get(f) for f in OLDER_CATALOG_FIELDS},
+               "rule-digest": rule_digest(r["text"]),
+               "verdict": "", "code-location": "", "test-ref": "", "derivation": "", "notes": "", "next": {},
+               "status": "normal"}
+        if old := prior.get(r["id"]):
+            for k in ed.adjudicated:
+                if old.get(k):
+                    row[k] = old[k]
+        row["state"] = lineage.state_of(row, ed, schema, targets)
+        out.append(row)
+    drifted = [r["rule-id"] for r in out
+               if (p := prior.get(r["rule-id"])) and p.get("rule-digest") and p["rule-digest"] != r["rule-digest"]
+               and any(r[k] for k in ed.adjudicated if k != "status")]
+    removed = [rid for rid in prior if rid not in {r["rule-id"] for r in out}]
+    gaps = sum(1 for r in out if r["state"] == "GAP")
+    print(f"edition {year}: {len(out)} rows, {gaps} GAP; {len(removed)} removed; {len(drifted)} carried onto changed text")
+    for rid in drifted:
+        print(f"  ⛔ {rid}: its carried change record or verdict was decided against other text: re-adjudicate it")
+    if args.check:
+        return 1 if drifted else 0
+    if args.stats:
+        return 0
+    changed = write_inventory(out, store)
+    print(f"wrote {store.relative_to(REPO).as_posix()}/  ({len(out)} rows, {changed} file(s) changed)")
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--stats", action="store_true", help="report only; write nothing")
     ap.add_argument("--check", action="store_true",
                     help="report only; exit 1 if a carried verdict landed on CHANGED rule text")
+    ap.add_argument("--edition", type=int, default=2023,
+                    help="the edition whose store to build (default 2023; an older one per lineage.EDITION_OF)")
     args = ap.parse_args()
+    if args.edition != 2023:
+        return build_older(args.edition, args)
 
     if not CATALOG.exists():
         sys.exit(f"catalog not found: {CATALOG}\nRun: python scripts/spec/extract_rule_catalog.py")

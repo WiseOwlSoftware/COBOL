@@ -80,7 +80,8 @@ from collections import Counter
 from inventory_schema import (ADJUDICATED, RETIRED_WITNESS_MARK, STATEMENT_FIELDS, WITNESS_FIELDS, load_catalog,
                               load_schema, prose_of, resites, retired_symbols_left_in_prose,
                               statement_losses, witness_losses, witness_shape_error)
-from inventory_store import INVENTORY_DIR_REL, load_inventory, write_inventory
+from inventory_store import INVENTORY_DIR_REL, REPO, inventory_dir, load_inventory, write_inventory
+import lineage  # noqa: E402  (THE definition of an older edition's row: fields, change record, state; kb/Work PB4993)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
@@ -143,7 +144,7 @@ def is_witness_only(rec: dict) -> bool:
     return not any(f in rec for f in ADJUDICATED if f not in WITNESS_FIELDS)
 
 
-def merged(row: dict, rec: dict, schema) -> dict[str, str]:
+def merged(row: dict, rec: dict, schema, statements: tuple[str, ...] = STATEMENT_FIELDS) -> dict:
     """The adjudicated fields `row` carries after `rec` is applied — THE write rule, read by `validate` too.
 
     Witness fields: the row's witnesses minus the record's retirements, then the record's new ones, deduplicated in
@@ -162,7 +163,7 @@ def merged(row: dict, rec: dict, schema) -> dict[str, str]:
     one keeps the row's value and the record can be applied on any tree, in any order, any number of times.
     """
     retire = set(schema.split(rec.get(RETIRE, ""), schema.test_ref_sep))
-    out = {f: (rec[f] if f in rec else row.get(f, "")) or "" for f in STATEMENT_FIELDS}
+    out = {f: (rec[f] if f in rec else row.get(f, "")) or ("" if f != "next" else {}) for f in statements}
     for field in WITNESS_FIELDS:
         sep = _sep(field, schema)
         given = schema.split(rec.get(field, ""), sep)
@@ -178,7 +179,8 @@ def merged(row: dict, rec: dict, schema) -> dict[str, str]:
 
 
 def validate(records: list[tuple[pathlib.Path, int, dict]], schema, catalog: dict[str, str],
-             by_id: dict[str, dict]) -> list[str]:
+             by_id: dict[str, dict], ed: "lineage.Edition | None" = None,
+             targets: dict[str, dict] | None = None) -> list[str]:
     """Every shape violation across the whole set — reported together, never one at a time.
 
     Stopping at the first bad record would make a reviewer re-run this once per mistake, and a batch produced by a
@@ -192,6 +194,8 @@ def validate(records: list[tuple[pathlib.Path, int, dict]], schema, catalog: dic
     """
     bad: list[str] = []
     seen: dict[str, str] = {}
+    ed = ed or lineage.edition(2023)
+    fields = ed.adjudicated
 
     for path, i, rec in records:
         where = f"{path.name}[{i}]"
@@ -205,22 +209,35 @@ def validate(records: list[tuple[pathlib.Path, int, dict]], schema, catalog: dic
             bad.append(f"{where}: rule-id '{rid}' recorded twice in this run (also {seen[rid]})")
         seen.setdefault(rid, where)
 
-        if unknown := set(rec) - {"rule-id", *ADJUDICATED, *CONTROL}:
-            bad.append(f"{where}: unknown field(s) {sorted(unknown)} — a record may set only {list(ADJUDICATED)}"
-                       f" (plus the control fields {list(CONTROL)})")
+        if unknown := set(rec) - {"rule-id", *fields, *CONTROL}:
+            bad.append(f"{where}: unknown field(s) {sorted(unknown)} — a record of edition {ed.year} may set only "
+                       f"{list(fields)} (plus the control fields {list(CONTROL)})")
 
         # ⛔ TYPE-CHECK BEFORE TOUCHING A FIELD. A batch file is UNTRUSTED input — it is written by an agent, or
         # by hand — and the first real batch to get this wrong supplied `editions` as a JSON LIST, which made the
         # validator itself throw an AttributeError. A validator that crashes on malformed input tells the author
         # nothing about what to fix and reports no other violation in the file; it must FAIL THE RECORD, not the
         # run. Checked here so every field access below is safe.
-        if mistyped := sorted(f for f in (*ADJUDICATED, *CONTROL) if f in rec and not isinstance(rec[f], str)):
+        if mistyped := sorted(f for f in (*fields, *CONTROL)
+                              if f in rec and not isinstance(rec[f], dict if f == "next" else str)):
             for f in mistyped:
-                bad.append(f"{where}: '{f}' is {type(rec[f]).__name__}, not a string{_list_hint(f, rec[f], schema)}")
+                bad.append(f"{where}: '{f}' is {type(rec[f]).__name__}, not "
+                           f"{'an object' if f == 'next' else 'a string'}{_list_hint(f, rec[f], schema)}")
             continue
 
         row = by_id.get(rid, {})
         verdict = rec.get("verdict", "")
+        # ⛔ AN OLDER EDITION'S CHANGE RECORD (kb/Work PB4993, lineage.py). A KEPT rule's verdict is its chain's, so its
+        # record carries none; every other check of an older row is the change record's own (`next_errors`), asked of
+        # the row as it will be written.
+        if not ed.newest:
+            after = {**row, **merged(row, rec, schema, ed.statements)}
+            for err in lineage.next_errors(after, ed, targets or {}):
+                bad.append(f"{where}: {err}")
+            if (after.get("next") or {}).get("kind") == lineage.KEPT:
+                continue
+            if not verdict and not row.get("verdict") and set(rec) <= {"rule-id", "next", "status", "notes"}:
+                continue                        # a CHANGED or REMOVED record before its verdict is recorded
         if is_witness_only(rec):
             if not (rec.get("code-location") or rec.get("test-ref") or rec.get(RETIRE)):
                 bad.append(f"{where}: no verdict and no witness — the record says nothing")
@@ -241,7 +258,7 @@ def validate(records: list[tuple[pathlib.Path, int, dict]], schema, catalog: dic
         # record that names only a new test-ref still leaves the row's code-locations in place (kb/Work PB959),
         # so requiring the record to restate them would be requiring the very re-typing that used to lose them.
         # The per-reference SYNTAX checks further down stay on the record's own values — those are its claims.
-        after = merged(row, rec, schema)
+        after = merged(row, rec, schema, ed.statements)
         # ⛔ A STATEMENT IS NEVER ERASED, AND A RE-ADJUDICATION RESTATES ITS PROSE (kb/Work PB3795, PB3375). An
         # omitted statement field keeps the row's value (`merged`), so the only way left to blank one is to WRITE it
         # empty — `inventory_schema.statement_losses` is the one definition of that, which the auditor asks of the
@@ -287,7 +304,7 @@ def validate(records: list[tuple[pathlib.Path, int, dict]], schema, catalog: dic
         # The one validator of the field (`Schema.editions_error`): the one spelling (kb/Work PB3172), never
         # empty and a run through the newest edition (kb/Work PB3173). Asked of the row AS WRITTEN, like the
         # evidence rules above: a witness-only record restates no editions and keeps the row's.
-        if err := schema.editions_error(after["editions"]):
+        if ed.newest and (err := schema.editions_error(after["editions"])):
             bad.append(f"{where}: {err}")
 
         # Each reference the record NAMES is shape-checked by the one predicate the history replay also asks
@@ -330,12 +347,17 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("batches", nargs="+", type=pathlib.Path, help="one or more verdict batch files")
     ap.add_argument("--dry-run", action="store_true", help="validate and report; write nothing")
+    ap.add_argument("--edition", type=int, default=2023,
+                    help="the edition whose store the batch records into (default 2023; kb/Work PB4993)")
     args = ap.parse_args()
 
     schema = load_schema()
-    rows = load_inventory()
+    ed = lineage.edition(args.edition)
+    store = inventory_dir(ed.year)
+    rows = load_inventory(store)
     by_id = {r["rule-id"]: r for r in rows}
-    catalog = {r["id"]: r.get("kind", "") for r in load_catalog()}
+    catalog = {r["id"]: r.get("kind", "") for r in (load_catalog() if ed.newest else ed.rules())}
+    targets = lineage.targets_of(ed)
 
     records: list[tuple[pathlib.Path, int, dict]] = []
     for path in args.batches:
@@ -347,7 +369,7 @@ def main() -> int:
         print("no records in the named batch file(s) — nothing to do")
         return 0
 
-    if bad := validate(records, schema, catalog, by_id):
+    if bad := validate(records, schema, catalog, by_id, ed, targets):
         print(f"⛔ {len(bad)} shape violation(s) — NOTHING was written:\n")
         for b in bad:
             print(f"   {b}")
@@ -365,12 +387,12 @@ def main() -> int:
         row = by_id[rec["rule-id"]]
         had = row.get("verdict") or ""
         before = dict(row)
-        row.update(merged(row, rec, schema))
-        row["state"] = schema.state_for(row)
+        row.update(merged(row, rec, schema, ed.statements))
+        row["state"] = schema.state_for(row) if ed.newest else lineage.state_of(row, ed, schema, targets)
         verdict = row["verdict"]   # a witness-only record carries none of its own
         if had and had != verdict:
             rewritten.append(f"{rec['rule-id']}: {had} → {verdict}")
-        if any(row.get(k, "") != before.get(k, "") for k in ADJUDICATED):
+        if any(row.get(k, "") != before.get(k, "") for k in ed.adjudicated):
             changed += 1
         # ⛔ THE WITNESS COUNT IS WATCHED, NOT ONLY THE FIELDS (kb/Work PB959): a narrowing and a widening both
         # increment `changed`, so it cannot be the number anyone reads to learn that evidence left a row.
@@ -436,8 +458,8 @@ def main() -> int:
         print("\n--dry-run: nothing written.")
         return 0
 
-    changed = write_inventory(rows)
-    print(f"\nwrote {changed} row file(s) under {INVENTORY_DIR_REL}/")
+    changed = write_inventory(rows, store)
+    print(f"\nwrote {changed} row file(s) under {store.relative_to(REPO).as_posix()}/")
     print(f"⛔ NOW RUN THE GATE — it is what checks that these references actually resolve:\n    {GATE}")
     return 0
 

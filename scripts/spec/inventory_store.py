@@ -40,15 +40,39 @@ sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, f
 from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
-INVENTORY_DIR_REL = "tests/version-matrix/inventory"
+#: ONE STORE PER EDITION (kb/Work PB4991, PB4992; DESIGN-spec-conformance-review.md §10.2): each edition's rule list has
+#: its own directory, so every reader of the 2023 store stays a 2023 reader. An older edition's row carries its `next`
+#: change record to the next held edition (`lineage.py`).
+INVENTORY_DIRS_REL: dict[int, str] = {2023: "tests/version-matrix/inventory", 1985: "tests/version-matrix/inventory-1985"}
+#: The 2023 store, the one every reader that names no edition reads.
+INVENTORY_DIR_REL = INVENTORY_DIRS_REL[2023]
 INVENTORY_DIR = REPO / INVENTORY_DIR_REL
+
+
+def inventory_dir(edition: int, repo: pathlib.Path = REPO) -> pathlib.Path:
+    """The store of `edition`'s rows. An edition with no store is a SystemExit naming the table."""
+    if edition not in INVENTORY_DIRS_REL:
+        raise SystemExit(f"inventory: edition {edition} has no store (inventory_store.INVENTORY_DIRS_REL)")
+    return repo / INVENTORY_DIRS_REL[edition]
 #: The single file every commit before PB4148 stored the inventory in. History only: `inventory_at` reads it, nothing writes it.
 LEGACY_FILE_REL = "tests/version-matrix/traceability-inventory.json"
 #: The pathspecs under which a commit "touched the inventory", for `git log`: the directory and, before PB4148, the file.
 HISTORY_PATHSPECS = (INVENTORY_DIR_REL, LEGACY_FILE_REL)
 
-#: A rule id is a file name: letters, digits, `.` and `-`, beginning with a letter, no `..`, so no id is a path.
-_SAFE_ID = re.compile(r"[A-Za-z][A-Za-z0-9]*(?:[.-][A-Za-z0-9]+)*")
+#: A rule id is a file name: letters, digits, `.` and `-`, no `..` and no leading separator, so no id is a path. A 1985
+#: id begins with its year (`1985-SR-VI.5.7.3-1`, `1989-AR-A.2.5.3-1`).
+_SAFE_ID = re.compile(r"[A-Za-z0-9]+(?:[.-][A-Za-z0-9]+)*")
+#: A Roman section of the 1985 document (`VI` in `VI.5.7.3`), ordered by its value.
+_ROMAN = re.compile(r"[IVX]+")
+_ROMAN_VALUE = {"I": 1, "V": 5, "X": 10}
+
+
+def _roman(part: str) -> int:
+    total = 0
+    for a, b in zip(part, part[1:] + " "):
+        v = _ROMAN_VALUE[a]
+        total += -v if b != " " and _ROMAN_VALUE[b] > v else v
+    return total
 
 
 def row_name(rule_id: str) -> str:
@@ -63,7 +87,8 @@ def row_path(rule_id: str, directory: pathlib.Path = INVENTORY_DIR) -> pathlib.P
 
 
 def _section_key(section: str) -> list[tuple[int, int, str]]:
-    return [(0, int(p), "") if p.isdigit() else (1, 0, p) for p in section.split(".")]
+    return [(0, int(p), "") if p.isdigit() else (0, _roman(p), "") if _ROMAN.fullmatch(p) else (1, 0, p)
+            for p in section.split(".")]
 
 
 def spec_order(rows: Iterable[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -149,10 +174,11 @@ def _git_bytes(repo: pathlib.Path, *args: str, stdin: bytes | None = None) -> by
     return r.stdout if r.returncode == 0 else None
 
 
-def inventory_at(rev: str, repo: pathlib.Path = REPO) -> list[dict[str, Any]] | None:
-    """The inventory as committed at `rev` of `repo` (spec order), or None when `rev` has none. Reads the per-row
-    directory and, for a commit before PB4148, the single legacy file."""
-    listing = _git_bytes(repo, "ls-tree", "-r", rev, "--", INVENTORY_DIR_REL)
+def inventory_at(rev: str, repo: pathlib.Path = REPO, edition: int = 2023) -> list[dict[str, Any]] | None:
+    """`edition`'s inventory as committed at `rev` of `repo` (spec order), or None when `rev` has none. Reads the per-row
+    directory and, for a 2023 commit before PB4148, the single legacy file."""
+    inventory_dir(edition)                      # an edition with no store is refused by name
+    listing = _git_bytes(repo, "ls-tree", "-r", rev, "--", INVENTORY_DIRS_REL[edition])
     if listing:
         entries = [ln.split(b"\t", 1) for ln in listing.splitlines()]
         blobs = _git_bytes(repo, "cat-file", "--batch", stdin=b"".join(meta.split()[2] + b"\n" for meta, _ in entries))
@@ -164,6 +190,8 @@ def inventory_at(rev: str, repo: pathlib.Path = REPO) -> list[dict[str, Any]] | 
             rows.append(json.loads(blobs[end + 1:end + 1 + size].decode("utf-8")))
             pos = end + 1 + size + 1
         return spec_order(rows)
+    if edition != 2023:
+        return None
     legacy = _git_bytes(repo, "show", f"{rev}:{LEGACY_FILE_REL}")
     return spec_order(json.loads(legacy.decode("utf-8"))) if legacy else None
 
@@ -188,6 +216,17 @@ def self_test() -> int:
 
     check(row_name("GR-4.2.10-1") == "GR-4.2.10-1.json" and row_name("FMT-14.9.32.2") == "FMT-14.9.32.2.json"
           and row_name("DOC-A.1-92") == "DOC-A.1-92.json", "ordinary ids are file names")
+    check(row_name("1985-SR-VI.5.7.3-1") == "1985-SR-VI.5.7.3-1.json"
+          and row_name("1989-AR-A.2.5.3-1") == "1989-AR-A.2.5.3-1.json",
+          "a 1985 id, which begins with its year, is a file name (kb/Work PB4992)")
+    check(inventory_dir(1985).name == "inventory-1985" and inventory_dir(2023) == INVENTORY_DIR
+          and "no store" in refuses(lambda: inventory_dir(2002)),
+          "each edition names its own store, and an edition with none is refused")
+    roman = spec_order([row("1985-GR-IX.2.3.4-1", "IX.2.3.4", 1), row("1985-GR-V.1.2-1", "V.1.2", 1),
+                        row("1985-GR-XVII.1-1", "XVII.1", 1), row("1985-GR-IV.4.2-1", "IV.4.2", 1),
+                        row("1989-GR-A.2.5.3-1", "A.2.5.3", 1)])
+    check([r["section"] for r in roman] == ["IV.4.2", "V.1.2", "IX.2.3.4", "XVII.1", "A.2.5.3"],
+          "a Roman section orders by its value (IV, V, IX, XVII), Amendment 1's Section A after them")
     for bad in ("", "../x", "a/b", "GR-4..2", "GR-4.2-", "-GR", "GR 4", "GR\\4"):
         check(bool(refuses(lambda b=bad: row_name(b))), f"{bad!r} is no file name")
 
