@@ -252,6 +252,25 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         return null;
     }
 
+    /// <summary>The operand a non-numeric literal reads as WITHOUT reporting anything (kb/Work PB4934): the diagnostic-free twin of
+    /// <see cref="NonNumericLiteralOperand"/> for a reader that only needs the value of an alphanumeric or national literal -- the
+    /// callee name of a statement-funnel question that is not the literal's reporting site. A concatenation expression is the pure fold
+    /// (<see cref="ConcatFolder.Peek"/>); every other form is null, which is what a figurative constant, a boolean literal and NULL
+    /// are to such a reader (none names a program).</summary>
+    internal BoundOperand? PeekNonNumericLiteralOperand(Core.NonNumericLiteralContext? nn)
+    {
+        if (nn is null) return null;
+        if (nn.concatenationExpression() is { } ce)
+        {
+            var folded = ConcatFolder.Peek(ce, ctx.Data.LiteralEnv);
+            return new BoundStringLiteral(folded.Value) { Category = folded.Category };
+        }
+        if (nn.STRINGLIT() is { } s) return new BoundStringLiteral(CobolLiteral.Decode(s.GetText()));
+        if (nn.HEXLIT() is { } hx) return new BoundStringLiteral(CobolLiteral.DecodeHex(hx.GetText()));
+        if (nn.NATLIT() is { } nat) return new BoundStringLiteral(CobolLiteral.Decode(nat.GetText())) { Category = PicCategory.National };
+        return null;
+    }
+
     /// <summary>A <c>literal</c> node as an operand: the non-numeric forms through the ONE
     /// <see cref="NonNumericLiteralOperand"/> mapping, else a numeric literal under the edition digit cap
     /// (ISO §2023:8.3.3.3.2).</summary>
