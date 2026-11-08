@@ -510,7 +510,10 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                 if (BindSpecifierExternalizedName(re, "FUNCTION", fn.GetText(), "literal-5") is { } functionExternalized)
                     State.Configuration.FunctionSpecifiers[fn.GetText()] = new FunctionSpecifier(fn.GetText(), functionExternalized, re);
                 else
+                {
                     State.Configuration.RefusedFunctionSpecifiers.Add(fn.GetText());
+                    Edition.NoteSpecifierRefusalReported(RefusedSpecifierKind.Function, fn.GetText());   // reported by BindSpecifierExternalizedName
+                }
             }
             // FUNCTION … INTRINSIC (§2023:12.3.8): `ALL` (GR14) or a LIST of intrinsic-function-names (§2023:12.3.8.2's
             // `{ intrinsic-function-name-1 } …`, kb/Work PB974) — the §2023:8.4.3.2 SR2 keyword-omission enabler
