@@ -194,7 +194,8 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     // funnel every statement passes — reads the ledger: a refusal with no error during the statement fails the
     // compile (COBOL2362), an unbuilt operand in a statement that drew no error is announced (COBOL1756).
 
-    /// <summary>Every <see cref="Error(string, string)"/> call, a de-duplicated repeat INCLUDED — so a
+    /// <summary>Every <see cref="Error(string, string)"/> call, and every <see cref="NoteCauseReportedEarlier"/> answer that found
+    /// its report in the ledger, a de-duplicated repeat INCLUDED — so a
     /// parameterized expansion that re-binds a line and re-finds its error (kb/Work PB759, where the text is
     /// dropped as the same fact) still counts as "this statement drew an error".</summary>
     public int ErrorsRecorded { get; private set; }
@@ -217,11 +218,29 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
         return any;
     }
 
+    /// <summary>The REPOSITORY specifiers whose refusal was reported where they are written (kb/Work PB4936), by kind and
+    /// folded word: the ledger <see cref="NoteCauseReportedEarlier"/> checks before it answers for a reference.</summary>
+    private readonly HashSet<(RefusedSpecifierKind Kind, string Word)> _refusedSpecifiersReported = [];
+
+    /// <summary>Record that the REPOSITORY specifier of <paramref name="kind"/> naming <paramref name="word"/> was refused
+    /// and the refusal REPORTED (by the <see cref="Error(string, string)"/> call the caller just made, at the specifier).
+    /// Called once at the site that writes the specifier's refusal, never by a reference.</summary>
+    internal void NoteSpecifierRefusalReported(RefusedSpecifierKind kind, string word) =>
+        _refusedSpecifiersReported.Add((kind, CobolNames.Fold(word)));
+
     /// <summary>Answer for a refusal whose ONLY cause was reported EARLIER, where the construct it depends on was written (a
-    /// reference to a REPOSITORY word whose specifier was refused, kb/Work PB4822): a second report here would be a cascade
-    /// of the first, but the statement funnel still wants "this statement drew an error" before it accepts a refusal node.
-    /// The compile is already failed by the earlier report, which the caller guarantees was made.</summary>
-    internal void NoteCauseReportedEarlier() => ErrorsRecorded++;
+    /// reference to a REPOSITORY word whose specifier was refused, kb/Work PB4822, PB4936): a second report here would be a
+    /// cascade of the first, but the statement funnel still wants "this statement drew an error" before it accepts a refusal
+    /// node. Returns whether the ledger (<see cref="NoteSpecifierRefusalReported"/>) holds a reported refusal for
+    /// <paramref name="kind"/> <paramref name="word"/>; only then does it count as an error recorded, so a caller that
+    /// wrongly claims "reported earlier" gets <c>false</c> and reports the refusal itself, and the backstop of
+    /// <see cref="NoteRefusal"/> keeps its meaning: <see cref="ErrorsRecorded"/> is never raised without a report behind it.</summary>
+    internal bool NoteCauseReportedEarlier(RefusedSpecifierKind kind, string word)
+    {
+        if (!_refusedSpecifiersReported.Contains((kind, CobolNames.Fold(word)))) return false;
+        ErrorsRecorded++;
+        return true;
+    }
 
     private readonly List<string> _unbuilt = [];
 

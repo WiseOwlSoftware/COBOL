@@ -559,7 +559,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             if (byReference)
             {
                 if (!host.Params.ScreenSection(place, dref, DiagnosticCatalog.InvokeOperandSection, subject,
-                        "§2023:14.9.23.3 SR9", addressAdmitted: true))
+                        StorageSectionRule.Of2023("§2023:14.9.23.3 SR9"), addressAdmitted: true))
                     return false;
                 if (BitLayout.IsBitItem(place.Item))
                     host.Params.ScreenBitAlignment(place, DiagnosticCatalog.InvokeBitAlignment, subject, "§2023:14.9.23.3 SR12");
@@ -1071,7 +1071,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
     {
         string subject = methodName is null ? "INVOKE RETURNING item" : $"INVOKE \"{methodName}\" RETURNING item";
         if (!host.Params.ScreenSection(rp, retRef, DiagnosticCatalog.InvokeOperandSection, subject,
-                "§2023:14.9.23.3 SR11", addressAdmitted: false))
+                StorageSectionRule.Of2023("§2023:14.9.23.3 SR11"), addressAdmitted: false))
             return false;
         if (BitLayout.IsBitItem(rp.Item))
             host.Params.ScreenBitAlignment(rp, DiagnosticCatalog.InvokeBitAlignment, subject, "§2023:14.9.23.3 SR12");
@@ -1419,7 +1419,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             if (byReference)
             {
                 if (!host.Params.ScreenSection(place, dref!, DiagnosticCatalog.InvokeOperandSection,
-                        $"{verb} \"{methodName}\" USING argument", "§2023:14.9.23.3 SR9", addressAdmitted: true))
+                        $"{verb} \"{methodName}\" USING argument", StorageSectionRule.Of2023("§2023:14.9.23.3 SR9"), addressAdmitted: true))
                     return null;
                 if (BitLayout.IsBitItem(place.Item))
                     host.Params.ScreenBitAlignment(place, DiagnosticCatalog.InvokeBitAlignment,
@@ -1703,7 +1703,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             // compiler temporary is refused rather than passed BY CONTENT.
             if (!host.Params.ScreenSection(p, dref, DiagnosticCatalog.InvokeOperandSection,
                     "INVOKE USING argument (through a universal object reference, BY REFERENCE by SR6)",
-                    "§2023:14.9.23.3 SR9", addressAdmitted: true))
+                    StorageSectionRule.Of2023("§2023:14.9.23.3 SR9"), addressAdmitted: true))
                 return BoundRejected.Reported(ctx.Edition);
             if (BitLayout.IsBitItem(p.Item))
                 host.Params.ScreenBitAlignment(p, DiagnosticCatalog.InvokeBitAlignment, "INVOKE USING argument",

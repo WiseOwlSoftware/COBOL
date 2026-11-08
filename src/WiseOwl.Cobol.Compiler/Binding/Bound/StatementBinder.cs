@@ -597,7 +597,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// ACTIVATES a function or method whose signature has one — its RETURNING item, which the operand's temporary takes the description of
     /// (§2023:8.4.3.2.4 GR1, §2023:8.4.3.4.4 GR1b), or a formal parameter its argument conforms to (§2023:14.8.2): a function-identifier
     /// (<see cref="IntrinsicBinder.SignatureOf(Core.FunctionCallContext)"/>; the keyword-omitted form is a data reference no data item answers
-    /// to), an inline method invocation through any receiver (<see cref="OoBinder.InvokedMethodsOf"/>: a typed data item, a class-name, SELF,
+    /// to), a Format-2 CALL (<see cref="CallBinder.CalleeSignatureOf"/>; kb/Work PB4934), an inline method invocation through any receiver (<see cref="OoBinder.InvokedMethodsOf"/>: a typed data item, a class-name, SELF,
     /// SUPER, an object view, a function-identifier, a previous segment) and an INVOKE statement, RETURNING phrase or not
     /// (<see cref="OoBinder.InvokedMethodOf"/>; kb/Work PB4893). Each is the diagnostic-free answer the binding reads again when it binds.
     /// ⛔ THE NO-OP IS EARNED BY A GATED OPERAND, NOT BY THE EDITION: an operand that is
@@ -631,6 +631,9 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
                 case Core.InvokeStatementContext invoke:
                     if (Oo.InvokedMethodOf(invoke) is { } method && NamesGatedMessageTag(method)) return true;
                     break;
+                case Core.CallStatementContext call:
+                    if (Call.CalleeSignatureOf(call) is { } callee && NamesGatedMessageTag(callee)) return true;
+                    break;
             }
             for (int i = node.ChildCount - 1; i >= 0; i--) pending.Push(node.GetChild(i));
         }
@@ -645,6 +648,9 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
 
     /// <summary>Whether the signature of the user function an operand activates has a gated message-tag item: its RETURNING item or a formal.</summary>
     private static bool NamesGatedMessageTag(UserFunctionSignature function) => function.SignatureItems.Any(IsGatedMessageTag);
+
+    /// <summary>Whether the signature a Format-2 CALL activates (<see cref="CallBinder.CalleeSignatureOf"/>) has a gated message-tag item: its RETURNING item or a formal.</summary>
+    private static bool NamesGatedMessageTag(CalleeSignature callee) => callee.SignatureItems.Any(IsGatedMessageTag);
 
     /// <summary>Whether the signature of the method an invocation activates has a gated message-tag item: its RETURNING item or a formal.</summary>
     private static bool NamesGatedMessageTag(OoMethodSymbol method) => method.Binding?.SignatureItems.Any(IsGatedMessageTag) == true;

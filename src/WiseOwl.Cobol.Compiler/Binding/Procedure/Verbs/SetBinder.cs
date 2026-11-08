@@ -1194,6 +1194,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         var configuration = ctx.Data.State.Configuration;
         if (ctx.Refs.Probe(operandRef) is null && configuration.DeclaresProgramSpecifier(word))
         {
+            if (configuration.IsRefusedProgramReference(word, ctx.Edition)) return null;   // reported at the specifier (kb/Work PB4936)
             ctx.Edition.Error(DiagnosticCatalog.ProgramAddressOperand,
                 $"{site} ADDRESS OF PROGRAM {word}: '{word}' is no program-prototype-name here — "
                 + $"{configuration.WhyNoPrototype(word)} (ISO §2023:8.4.3.13.3 SR3) — and no resolvable identifier (SR1)");

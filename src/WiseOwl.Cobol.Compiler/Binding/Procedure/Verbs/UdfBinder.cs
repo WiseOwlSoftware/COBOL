@@ -93,11 +93,8 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
         // A specifier whose AS literal-5 was refused (§2023:12.3.8.3 SR2) was reported where it is written and registers no
         // prototype; the reference is its cascade and adds no COBOL1505 (kb/Work PB4822). Asked BEFORE the table: a refused
         // specifier must not let the bare word resolve to a same-named function of the group.
-        if (ctx.Data.State.Configuration.RefusedFunctionSpecifiers.Contains(name))
-        {
-            ctx.Edition.NoteCauseReportedEarlier();
+        if (ctx.Data.State.Configuration.IsRefusedFunctionReference(name, ctx.Edition))
             return BoundExprError.Refused(ctx.Edition, $"FUNCTION {name}");
-        }
         if (host.UserFunctions is null || !host.UserFunctions.TryGetValue(name, out var fn))
         {
             ctx.Edition.Error(DiagnosticCatalog.UserFunctionPrototypeUnresolved,
@@ -132,11 +129,8 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
         // take GR4's characteristics from and nothing further to say here.
         if (pointer.Item.Pic?.RestrictedPrototypeName is not { } proto)
             return BoundExprError.Refused(ctx.Edition, $"FUNCTION {name}");
-        if (ctx.Data.State.Configuration.RefusedFunctionSpecifiers.Contains(proto))   // the same cascade (kb/Work PB4822)
-        {
-            ctx.Edition.NoteCauseReportedEarlier();
+        if (ctx.Data.State.Configuration.IsRefusedFunctionReference(proto, ctx.Edition))   // the same cascade (kb/Work PB4822)
             return BoundExprError.Refused(ctx.Edition, $"FUNCTION {name}");
-        }
         if (host.UserFunctions is null || !host.UserFunctions.TryGetValue(proto, out var fn))
         {
             ctx.Edition.Error(DiagnosticCatalog.UserFunctionPrototypeUnresolved,

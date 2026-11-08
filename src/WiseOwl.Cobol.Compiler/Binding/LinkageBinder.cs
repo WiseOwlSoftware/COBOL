@@ -122,7 +122,13 @@ public sealed record UserFunctionSignature(
 /// so the prototype arm inherited the whole set the day it was wired in.</para>
 /// <paramref name="Returning"/> is null when the callee's header declares no returning item, which §2023:14.8.3.1
 /// makes a conformance fact in its own right ("if and only if").</summary>
-public sealed record CalleeSignature(IReadOnlyList<LinkageFormal> Formals, DataItem? Returning);
+public sealed record CalleeSignature(IReadOnlyList<LinkageFormal> Formals, DataItem? Returning)
+{
+    /// <summary>The items the signature describes: each formal parameter's, then the RETURNING item's when there is one
+    /// (the same roster <see cref="UserFunctionSignature.SignatureItems"/> gives a function).</summary>
+    public IEnumerable<DataItem> SignatureItems =>
+        Returning is { } returning ? Formals.Select(formal => formal.Item).Append(returning) : Formals.Select(formal => formal.Item);
+}
 
 /// <summary>One §2023:12.3.8.2 program-specifier as WRITTEN — <c>PROGRAM program-prototype-name-1 [AS literal-3]</c>
 /// (kb/Work PB237). <paramref name="ExternalizedName"/> is literal-3 when the AS phrase is present and the
@@ -132,6 +138,19 @@ public sealed record CalleeSignature(IReadOnlyList<LinkageFormal> Formals, DataI
 /// <c>BinderDriver.ProgramPrototypesOf</c>. <paramref name="At"/> is the REPOSITORY entry, where a diagnostic about its
 /// resolution (REPO-1 and the external repository's, DESIGN-external-repository §14) is reported.</summary>
 public sealed record ProgramSpecifier(string Name, string ExternalizedName, Antlr4.Runtime.ParserRuleContext At);
+
+/// <summary>The kind of a REPOSITORY specifier whose <c>AS literal-n</c> was refused (§2023:12.3.8.3 SR2) and reported where it is
+/// written: the key of <c>EditionContext.NoteSpecifierRefusalReported</c> / <c>NoteCauseReportedEarlier</c>, so a reference through
+/// the refused word is a silent cascade (kb/Work PB4936). The next kind that needs it (class, interface and property specifiers,
+/// kb/Work PB4773) is a member here and a method on <c>ConfigurationSlice</c>.</summary>
+internal enum RefusedSpecifierKind
+{
+    /// <summary>A PROGRAM specifier whose <c>AS literal-3</c> was refused.</summary>
+    Program,
+
+    /// <summary>A FUNCTION specifier whose <c>AS literal-5</c> was refused.</summary>
+    Function,
+}
 
 /// <summary>Why a WRITTEN program-specifier registers no program prototype although it declares its word (kb/Work PB4708):
 /// the one fact <c>ConfigurationSlice.WhyNoPrototype</c> reads to name the right refusal. The third route — no provider answers it,

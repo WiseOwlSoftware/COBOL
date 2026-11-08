@@ -63,6 +63,26 @@ public sealed class MessageTagImageTests
     }
 
     [Fact]
+    public void ImagingNManyMessages_LeavesTheRunUnitTableBounded_AndEveryTokenReadsBackItsMessage()
+    {
+        // kb/Work PB4926: the serial rides in the token, so the table holds one entry per party and serial block, not one per message.
+        var table = RunUnit.Current.SlotImages;
+        int before = table.TagBlockCount;
+        const int n = 20000;
+        var tokens = new string[n];
+        for (int i = 0; i < n; i++) tokens[i] = MessageTagImage.Of(new MessageTag(Mcs, MessageParty.Requestor, "run-unit-bounded", 1_000_000_000L + i));
+        Assert.True(table.TagBlockCount - before <= n / 256 + 2, $"grew by {table.TagBlockCount - before}");
+        Assert.Equal(n, tokens.Distinct().Count());
+        foreach (int i in new[] { 0, 1, 255, 256, 12345, n - 1 })
+        {
+            var back = MessageTagImage.TagOf(tokens[i]);
+            Assert.Equal(MessageParty.Requestor, back.Party);
+            Assert.Equal("run-unit-bounded", back.Name);
+            Assert.Equal(1_000_000_000L + i, back.Message);
+        }
+    }
+
+    [Fact]
     public void ASlotMembersImage_OfAMessageTag_IsItsToken()
     {
         var tag = new MessageTag(Mcs, MessageParty.Server, "PAYROLL", 5);
