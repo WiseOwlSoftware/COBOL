@@ -117,13 +117,14 @@ def new_rules(ed: Edition, rows: Iterable[dict[str, Any]], targets: dict[str, di
 def kept_batch(state: pathlib.Path, out: pathlib.Path, source: str, schema: Schema) -> int:
     """A record_verdicts batch of the edition audit's CARRIES rules (map SAME, verify UPHELD), read from the run's
     results.json (`audit_batch.py results`), each as a change record of the chained kind (KEPT). The audit's DISPUTED and
-    OWN-ROW rules are the fleet's (kb/Work PB4995) and are not in it."""
+    OWN-ROW rules are the fleet's (kb/Work PB4995) and are not in it. A kept record states no reason (the requirement is
+    the same), so it carries none: a store holds only what says something."""
     from audit_batch import CARRIES  # noqa: PLC0415  (the disposition vocabulary's one home)
     results = json.loads((state / "results.json").read_text(encoding="utf-8"))
     ed = edition(1985)
     kind = schema.next.chained.name
     records = [{"rule-id": rid, "next": {"kind": kind, "edition": ed.next_held, "to": d["rules_2023"],
-                                         "bridge": ed.bridged, "reason": "", "source": source}}
+                                         "bridge": ed.bridged, "source": source}}
                for rid, d in sorted(results.items()) if d["disposition"] == CARRIES]
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps({"batch": f"lineage-kept:{source}", "records": records}, indent=1, ensure_ascii=False) + "\n",
