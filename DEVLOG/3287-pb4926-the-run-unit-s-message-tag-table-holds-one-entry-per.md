@@ -1,4 +1,4 @@
-## PB4926: the run unit's message-tag table holds one entry per party and serial block, not one per message
+## Entry 3287 — 2026-11-07 17:59 PST — PB4926: the run unit's message-tag table holds one entry per party and serial block, not one per message
 
 SlotImageTable kept `_tagIds` and `_tags` entries for every distinct (MCS, party, name, message serial) tag for the run unit's life, so a long SEND/RECEIVE batch grew it without bound. Re-probe on this build: `TagId` still inserted one entry per serial.
 
@@ -7,3 +7,4 @@ Fix: the low 8 bits of the message serial now ride in the 8-position token itsel
 Test: MessageTagImageTests.ImagingNManyMessages_LeavesTheRunUnitTableBounded_AndEveryTokenReadsBackItsMessage (20000 messages, table growth at most 6, all tokens distinct, spot-checked round trips). No inventory rows closed. Gate: see branch report.
 
 Also fixed on the gate: PointerImageTests.AsBigEndian asserted every image char <= 0xFF, but byte 0xFF images as HIGH-VALUE U+FFFF and the random per-process epoch carries it about 1 run in 85; it now decodes through StorageByte.
+
