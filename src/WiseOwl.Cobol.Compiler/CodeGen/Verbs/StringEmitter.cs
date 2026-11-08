@@ -153,7 +153,7 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
     /// identifier-3's storage (<see cref="ReadsStorageOf"/>) adds its (local, rendering) pair to <paramref name="rereads"/>,
     /// which the emitter assigns again when the operand's own transfer begins (D-STR1, D-STR2). A FUNCTION never does
     /// (D-STR4, kb/Work PB4973): a function-identifier "references a temporary data item whose value is determined when the
-    /// function is referenced at runtime" (§2023:8.4.3.2.4 GR1), so no transfer can store into it and GR10's overlap
+    /// function is referenced at runtime" (§2023:8.4.3.2.4 GR1), so no transfer can store into it and §2023:14.9.43.4 GR10's overlap
     /// never reaches it; it is evaluated once, with the statement's other identifiers (§2023:14.6.4 7), whatever its
     /// arguments are, FUNCTION RANDOM and a user-defined function included.</summary>
     private string ReadOperand(BoundOperand operand, string local, BoundStringStmt s, bool first, List<(string Local, string Read)> rereads)
