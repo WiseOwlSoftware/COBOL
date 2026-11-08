@@ -25,8 +25,8 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
     /// sending operand transfers into it via <c>StringTransfer</c> in statement order (GR3), and the
     /// final image stores back through the receiver's own store path. An operand that can occupy identifier-3's storage
     /// (GR10, Annex A.2 item 60 — undefined) is read AT ITS TRANSFER from the storage the earlier transfers stored into,
-    /// as libcob <c>cob_string_append</c> does (D-STR1 to D-STR4, docs/CONFORMANCE.md), after being identified up front
-    /// like every operand (§2023:14.6.4 7); every other operand is read once, up front. The pointer initializes from the POINTER item
+    /// as libcob <c>cob_string_append</c> does (D-STR1, D-STR2, docs/CONFORMANCE.md), after being identified up front
+    /// like every operand (§2023:14.6.4 7); every other operand, a function-identifier included (D-STR4), is read once, up front. The pointer initializes from the POINTER item
     /// (GR4) or 1 (GR5), advances only with the per-character moves (GR6 — the runtime kernel), and writes back —
     /// before the overflow phrases run, which may inspect it — only when the phrase was written. The overflow flag
     /// is latched across sendings by the kernel (GR8a) and dispatches ON / NOT ON OVERFLOW per GR8c/GR8e/GR9 (the
@@ -49,9 +49,9 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
         // operand and delimiter that identifies at run time is therefore read here, in statement order, BEFORE
         // identifier-3 is read and before the POINTER item's value is taken. The transfers change only the working image,
         // so a value read here is the value the transfer would have read — except where an operand can occupy
-        // identifier-3's storage (§2023:14.9.43.4 GR10): that operand is read AGAIN at its own transfer (D-STR1, D-STR2, D-STR4
-        // below) - except FUNCTION RANDOM and a user-defined function, which cannot run twice and are evaluated once, at
-        // their transfer. The first sending follows no store, so it is never such an operand.
+        // identifier-3's storage (§2023:14.9.43.4 GR10): that operand is read AGAIN at its own transfer (D-STR1, D-STR2
+        // below). A function is never such an operand: its result is a temporary item (§2023:8.4.3.2.4 GR1), evaluated once
+        // here (D-STR4, kb/Work PB4973). The first sending follows no store, so it is never such an operand.
         var sendings = new List<StringSending>(s.Sendings.Count);
         foreach (var snd in s.Sendings)
         {
@@ -148,89 +148,31 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
     }
 
     /// <summary>One sending operand's or delimiter's text for <c>StringTransfer</c>: its ONE rendering
-    /// (<see cref="OperandText.AsString"/>, in the receiver's character category). An operand no transfer of the
-    /// statement can reach (<see cref="ReadsStorageOf(BoundOperand, Place)"/>), and every operand of the
-    /// <paramref name="first"/> sending (no store precedes it), is read once, in statement order
-    /// (<see cref="ReadInOrder"/>, §2023:14.6.4 7), whatever it reads. A reachable data-item reference is read in order as
-    /// well (its range tests run in statement order) and adds its (local, rendering) pair to <paramref name="rereads"/>,
-    /// which the emitter assigns again when the operand's own transfer begins (D-STR1, D-STR2). A reachable FUNCTION
-    /// that evaluating twice changes nothing but time (<see cref="Reach.Repeatable"/>) is handled the same way: its
-    /// arguments are identified and range-tested in statement order first (§2023:14.6.4 7, §2023:14.9.49.4 GR11), then it is
-    /// evaluated again from the storage the earlier transfers stored (D-STR4). A reachable function that is NOT repeatable
-    /// (FUNCTION RANDOM advances its sequence, a user-defined function runs a program) stays inline and is evaluated
-    /// once, when its transfer begins.</summary>
+    /// (<see cref="OperandText.AsString"/>, in the receiver's character category). Every operand is read once, in statement
+    /// order (<see cref="ReadInOrder"/>, §2023:14.6.4 7). A DATA-ITEM reference of a later sending that can occupy
+    /// identifier-3's storage (<see cref="ReadsStorageOf"/>) adds its (local, rendering) pair to <paramref name="rereads"/>,
+    /// which the emitter assigns again when the operand's own transfer begins (D-STR1, D-STR2). A FUNCTION never does
+    /// (D-STR4, kb/Work PB4973): a function-identifier "references a temporary data item whose value is determined when the
+    /// function is referenced at runtime" (§2023:8.4.3.2.4 GR1), so no transfer can store into it and GR10's overlap
+    /// never reaches it; it is evaluated once, with the statement's other identifiers (§2023:14.6.4 7), whatever its
+    /// arguments are, FUNCTION RANDOM and a user-defined function included.</summary>
     private string ReadOperand(BoundOperand operand, string local, BoundStringStmt s, bool first, List<(string Local, string Read)> rereads)
     {
         string read = OperandText.AsString(operand, num, characterCategory: s.CharacterCategory);
-        var reach = first ? Reach.None : ReachOf(operand, s.Into);
-        if (reach.MayShare && !reach.Repeatable) return read;
         string value = ReadInOrder(operand, read, local);
-        if (reach.MayShare && !ReferenceEquals(value, read)) rereads.Add((value, read));
+        if (!first && ReadsStorageOf(operand, s.Into) && !ReferenceEquals(value, read)) rereads.Add((value, read));
         return value;
     }
 
     /// <summary>⛔ CAN A TRANSFER OF THIS STRING REACH THIS OPERAND? (kb/Work PB1908; §2023:14.9.43.4 GR10, Annex A.2 item
     /// 60). Identifier-3 is the one place a STRING stores before it ends (the POINTER item is stored last, after every
-    /// transfer), so an operand needs the in-place read exactly when a data item it reads is one
-    /// <see cref="StorageOverlap.MayShareStorage"/> cannot prove disjoint from identifier-3: a data-item reference
-    /// itself, or a function whose arguments (and whose result's reference-modifier positions) read such a reference. A
-    /// literal and a figurative constant read no storage. The answer is conservative like the predicate's: an operand
-    /// of a shape this method does not walk (a user-defined function, an index or counter reference) cannot be shown
-    /// disjoint and answers true. The ONE decision: the emitter asks here and derives nothing from a record walk.</summary>
-    private static bool ReadsStorageOf(BoundOperand operand, Place receiver) => ReachOf(operand, receiver).MayShare;
-
-    /// <summary>What a walk of one operand found: <paramref name="MayShare"/> says it reads storage
-    /// <see cref="StorageOverlap"/> cannot prove disjoint from identifier-3 (or has a shape the walk does not know);
-    /// <paramref name="Repeatable"/> says evaluating it a second time changes nothing but time. A data item, a literal and an
-    /// intrinsic function other than RANDOM are repeatable; FUNCTION RANDOM returns "the next number in the current
-    /// sequence" (§2023:15.75.3 5)) and an unwalked shape (a user-defined function runs a program) are not.</summary>
-    private readonly record struct Reach(bool MayShare, bool Repeatable)
-    {
-        /// <summary>Reads nothing that can matter.</summary>
-        public static readonly Reach None = new(false, true);
-
-        /// <summary>A shape the walk does not know: it may share, and evaluating it twice is not known to be harmless.</summary>
-        public static readonly Reach Unknown = new(true, false);
-
-        public Reach Or(Reach other) => new(MayShare || other.MayShare, Repeatable && other.Repeatable);
-
-        public static Reach Of(bool mayShare) => new(mayShare, true);
-    }
-
-    private static Reach ReachOf(BoundOperand operand, Place receiver) => operand switch
-    {
-        BoundFieldOperand f => Reach.Of(StorageOverlap.MayShareStorage(f.Place, receiver)),
-        BoundStringLiteral or BoundNumericLiteral or BoundFigurative or BoundAllLiteral or BoundPredefinedNull
-            or BoundOperandError => Reach.None,
-        BoundComputedOperand { Expr: var expr } => ReachOf(expr, receiver),
-        _ => Reach.Unknown,
-    };
-
-    /// <summary>The numeric-expression arm of <see cref="ReachOf(BoundOperand, Place)"/>: a function call reads its
-    /// arguments and the positions of its result's reference modification, an arithmetic argument reads each item it names.</summary>
-    private static Reach ReachOf(BoundExpr expr, Place receiver) => expr switch
-    {
-        BoundNumLiteral => Reach.None,
-        BoundNumRef r => Reach.Of(StorageOverlap.MayShareStorage(r.Place, receiver)),
-        BoundBinary b => ReachOf(b.Left, receiver).Or(ReachOf(b.Right, receiver)),
-        BoundNegate n => ReachOf(n.Operand, receiver),
-        BoundPower p => ReachOf(p.Base, receiver).Or(ReachOf(p.Exp, receiver)),
-        BoundIntrinsicCall call => call.Args.Aggregate(
-                new Reach(false, call.Sig.Name != "RANDOM"), (acc, a) => acc.Or(ReachOf(a, receiver)))
-            .Or(call.RefMod is { } rm ? ReachOf(rm.Start, receiver).Or(rm.Length is { } len ? ReachOf(len, receiver) : Reach.None) : Reach.None),
-        _ => Reach.Unknown,
-    };
-
-    /// <summary>The reference-modifier position arm: a constant reads nothing, an item read is judged by its item.</summary>
-    private static Reach ReachOf(Position position, Place receiver) => position switch
-    {
-        PositionConstant or PositionWideConstant => Reach.None,
-        PositionItemRead r => Reach.Of(StorageOverlap.MayShareStorage(r.Item, receiver)),
-        PositionBinary b => ReachOf(b.Left, receiver).Or(ReachOf(b.Right, receiver)),
-        PositionNegate n => ReachOf(n.Operand, receiver),
-        PositionGroup g => ReachOf(g.Inner, receiver),
-        _ => Reach.Unknown,
-    };
+    /// transfer), so an operand needs the in-place read exactly when it is a data-item reference
+    /// <see cref="StorageOverlap.MayShareStorage"/> cannot prove disjoint from identifier-3. A literal and a figurative
+    /// constant read no storage, and a function's result is a temporary item that no transfer stores into
+    /// (§2023:8.4.3.2.4 GR1; D-STR4, kb/Work PB4973). The ONE decision: the emitter asks here and derives nothing from a
+    /// record walk.</summary>
+    private static bool ReadsStorageOf(BoundOperand operand, Place receiver)
+        => operand is BoundFieldOperand f && StorageOverlap.MayShareStorage(f.Place, receiver);
 
     /// <summary>One sending (identifier/literal-1 with its DELIMITED BY phrase) as <c>StringTransfer</c> takes it:
     /// <paramref name="Source"/> and <paramref name="Delimiter"/> are C# expressions (a local or the inline rendering,

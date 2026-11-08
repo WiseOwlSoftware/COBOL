@@ -19,12 +19,11 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// where the predicate says so: a STRING over disjoint operands, or whose only reachable operand is its first, renders
 /// ONE store of the image, the code it always had, which is also why the Characterization emit snapshots did not move.
 /// This class reads the EMITTED C# over each arm of the predicate (the same record, REDEFINES, LINKAGE, a level-66
-/// alias, a function argument) and over the operands that are never in reach (a literal, a sibling field, the first
+/// alias, a function argument) and over the operands that are never in reach (a literal, a sibling field, a function, the first
 /// sending), so a new arm that forgets the re-read fails here even if no golden crosses it. (3) Every function
 /// operand is identified up front in statement order (§2023:14.6.4 7, kb/Work PB3261), so its range tests precede
-/// identifier-3's; one of a later sending that may share identifier-3's storage is then evaluated again at its
-/// transfer (D-STR4), except FUNCTION RANDOM and a shape the walk does not know, which run ONCE, inline, at their
-/// transfer.</para>
+/// identifier-3's, and is evaluated ONCE there (D-STR4, kb/Work PB4973): a function-identifier references a temporary
+/// item (§2023:8.4.3.2.4 GR1) that no transfer stores into, so only a data-item operand is ever read again.</para>
 /// </summary>
 public sealed class StringLiveReadDriftTests
 {
@@ -175,20 +174,21 @@ public sealed class StringLiveReadDriftTests
     }
 
     [Fact]
-    public void RepeatableFunctionOverTheReceiver_IsIdentifiedUpFront_AndEvaluatedAgainAtItsTransfer()
+    public void FunctionOverTheReceiver_IsEvaluatedOnceUpFront_AndNeverStoresBetween()
     {
-        // §2023:14.6.4 7) identifies the function first (its range tests run before identifier-3's); D-STR4 evaluates it
-        // again from the storage the earlier transfers stored. Review r1: a LATER sending's LINKAGE argument must not
-        // let "XY" be transferred before the function's own failure interrupts the statement.
+        // §2023:14.6.4 7) identifies the function first (its range tests run before identifier-3's), and a function-identifier
+        // references a temporary data item (§2023:8.4.3.2.4 GR1) that no transfer can store into, so D-STR4 (kb/Work PB4973)
+        // evaluates it ONCE, there: STRING "xy" FUNCTION UPPER-CASE(F) INTO F gives xyABCDEF. A LATER sending's
+        // failure still interrupts the statement before "XY" is transferred.
         string cs = EmitCSharp(Program(Disjoint, """STRING "XY" DELIMITED BY SIZE FUNCTION UPPER-CASE(R1) DELIMITED BY SIZE INTO R1 END-STRING"""));
-        Assert.Equal(2, Stores(cs));
+        Assert.Equal(1, Stores(cs));
         Assert.Matches(new Regex(@"string __strSrc\d+_1 = ", RegexOptions.Multiline), cs);
-        Assert.Matches(new Regex(@"^\s*__strSrc\d+_1 = ", RegexOptions.Multiline), cs);
-        Assert.Equal(2, Regex.Matches(cs, @"CobolIntrinsics\.UpperCase\(").Count);
+        Assert.DoesNotMatch(Reread, cs);
+        Assert.Single(Regex.Matches(cs, @"CobolIntrinsics\.UpperCase\("));
     }
 
     [Fact]
-    public void RandomOverTheReceiver_IsEvaluatedOnce_InlineAtItsTransfer()
+    public void RandomOverTheReceiver_IsEvaluatedOnce()
     {
         // FUNCTION RANDOM returns the next number of its sequence each time it runs (§2023:15.75.3 5)): never twice.
         const string data = """
@@ -197,8 +197,8 @@ public sealed class StringLiveReadDriftTests
                05 BUF PIC X(8) VALUE "ABCDEFGH".
             """;
         string cs = EmitCSharp(Program(data, """STRING "XY" DELIMITED BY SIZE FUNCTION CHAR(FUNCTION INTEGER(FUNCTION RANDOM(CNT) * 9) + 66) DELIMITED BY SIZE INTO REC END-STRING"""));
-        Assert.Equal(2, Stores(cs));
-        Assert.DoesNotMatch(new Regex(@"__strSrc\d+_1 = ", RegexOptions.Multiline), cs);
+        Assert.Equal(1, Stores(cs));
+        Assert.DoesNotMatch(Reread, cs);
         Assert.Single(Regex.Matches(cs, @"CobolIntrinsics\.Random\("));
     }
 
@@ -256,9 +256,9 @@ public sealed class StringLiveReadDriftTests
     }
 
     [Fact]
-    public void AReferenceModifierPositionOrArithmeticArgumentInTheReceiver_StillReadsInPlace()
+    public void AReferenceModifierPositionOrArithmeticArgumentInTheReceiver_IsStillEvaluatedOnce()
     {
-        // The walk answers "may share" when the storage a position or an arithmetic argument reads can be identifier-3's.
+        // A function reads the receiver through a position or an arithmetic argument: still one temporary item, evaluated once (D-STR4).
         const string data = """
             01 REC.
                05 CNT PIC 9 VALUE 2.
@@ -266,12 +266,11 @@ public sealed class StringLiveReadDriftTests
             01 S1   PIC X(4)  VALUE "abcd".
             """;
         string position = EmitCSharp(Program(data, """STRING "XY" DELIMITED BY SIZE FUNCTION UPPER-CASE(S1)(1:CNT) DELIMITED BY SIZE INTO REC END-STRING"""));
-        var reread = new Regex(@"^\s*__strSrc\d+_1 = ", RegexOptions.Multiline);
-        Assert.Equal(2, Stores(position));
-        Assert.Matches(reread, position);
+        Assert.Equal(1, Stores(position));
+        Assert.DoesNotMatch(Reread, position);
         string arithmetic = EmitCSharp(Program(data, """STRING "XY" DELIMITED BY SIZE FUNCTION CHAR(CNT + 64) DELIMITED BY SIZE INTO REC END-STRING"""));
-        Assert.Equal(2, Stores(arithmetic));
-        Assert.Matches(reread, arithmetic);
+        Assert.Equal(1, Stores(arithmetic));
+        Assert.DoesNotMatch(Reread, arithmetic);
     }
 
     [Fact]

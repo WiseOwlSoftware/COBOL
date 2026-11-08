@@ -5,30 +5,25 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> PB1908 -- STRING overlap: the argument of a FUNCTION
-      *> sending operand or delimiter shares storage with the
-      *> receiving item (identifier-3).
-      *> ISO 14.9.43.4 GR10 / Annex A.2 item 60: the result is
-      *> undefined; 4.4 2): a run unit that allows it is conforming.
-      *> Documented implementor choice (docs/CONFORMANCE.md D-STR4,
-      *> GnuCOBOL 3.2 libcob strings.c: cobc evaluates the function
-      *> in the argument list of cob_string_append, when that
-      *> transfer begins): a function whose argument can occupy
-      *> identifier-3's storage is evaluated, after the statement's
-      *> identifiers are identified in order, again when its own
-      *> transfer begins, from the storage the earlier transfers
-      *> stored into. A function whose arguments are disjoint from
-      *> identifier-3 is evaluated with the statement's other
-      *> identifiers, before any character moves (ISO 14.6.4 7)).
-      *> F1: "xy" fills WS-F(1:2), so FUNCTION UPPER-CASE(WS-F) is
-      *>     XYCDEFGH, of which six characters fit (GR8).
-      *>     Result xyXYCDEF. Snapshot: xyABCDEF.
-      *> F2: "z" fills WS-X(1:1), so the delimiter
-      *>     FUNCTION UPPER-CASE(WS-X(1:1)) is "Z", not "Q": the
-      *>     text "12Z34Q56" is cut at "Z" and "12" fills 2-3.
-      *>     Result z12....... Snapshot: z12Z34....
-      *> F3: the function's argument is WS-S, outside the receiver:
-      *>     it is the same before and after the transfers.
+      *> PB1908/PB4973 -- STRING with a FUNCTION operand whose
+      *> argument shares storage with the receiving item
+      *> (identifier-3).
+      *> ISO 8.4.3.2.4 GR1: a function-identifier references a
+      *> temporary data item whose value is determined when the
+      *> function is referenced; 14.6.4 7): the identifiers of a
+      *> statement are evaluated in left to right order as the
+      *> first operation. No transfer stores into the temporary
+      *> item, so 14.9.43.4 GR10 (overlap undefined) never reaches
+      *> a function: it is evaluated ONCE, before any character
+      *> moves (docs/CONFORMANCE.md D-STR4). GnuCOBOL 3.2 evaluates
+      *> it again when its transfer begins; the standard controls.
+      *> F1: FUNCTION UPPER-CASE(WS-F) is ABCDEFGH of the original
+      *>     WS-F, of which six characters fit after "xy" (GR8).
+      *>     Result xyABCDEF.
+      *> F2: the delimiter FUNCTION UPPER-CASE(WS-X(1:1)) is "Q"
+      *>     of the original WS-X, so "12Z34Q56" is cut at "Q":
+      *>     "12Z34" fills 2-6. Result z12Z34....
+      *> F3: the function's argument is WS-S, outside the receiver.
       *>     Result ab-ABC-...
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1908S5.
