@@ -794,7 +794,7 @@ BODY_TOP, BODY_BOTTOM = 60.0, 730.0     # inside the running header and the foli
 # laid out separately, and requiring a title on the line dropped every one of them — including `5.2 General
 # formats`, the clause that DEFINES underlining. Measured over the whole standard: 87 such lines, all genuine
 # clause headings, none a numbered list item or a table cell (kb/Work PB332).
-CLAUSE_HEADING = re.compile(r"^(?:\d+|[A-Z])(?:\.\d+)+(?:\s+\S|$)")   # an annex clause too: 2002's `A.2.1.1 General format`
+CLAUSE_HEADING = re.compile(r"^(?:\d+|[A-Z])(?:\.\d+)+(?:\s+\S|$)")   # an annex clause too: 2002's `A.2.1.1` (Annex A)
 FORMAT_LABEL = re.compile(r"^Formats?\s+\d+\b")
 PAD_ABOVE, PAD_BELOW = 6.0, 14.0        # a band must reach the bracket feet below its last row of text
 
