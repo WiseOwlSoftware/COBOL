@@ -1,15 +1,9 @@
 {
  "rule-id": "SR-12.3.7.3-32",
- "section": "12.3.7.3",
- "kind": "SR",
- "ordinal": 32,
- "subject": "SPECIAL-NAMES paragraph",
  "rule-digest": "2c78a1f651a8",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.cs#DynamicLengthStructureBind",
  "test-ref": "conformance-test:DynamicLengthTests.StructureClause_Refused",
- "derivation": "",
  "editions": "2014,2023",
- "notes": "kb/Work PB829. 'The implementor shall specify the names supported for physical-structure-name-1' (cite.py --check 12.3.7.3 OK, 32). The specified set is EMPTY (docs/CONFORMANCE.md section 3 D-DL3): a physical-structure-name is refused by name, COBOL2257. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#DynamicLengthStructureBind (kb/Work PB2355 extracted the SPECIAL-NAMES binding out of DataBinder.Switches.cs into the SpecialNamesBinder class (its partial files) and the configuration-section services DataBinder keeps into DataBinder.Configuration.cs; each member is the same rule, moved with its body unchanged)",
- "state": "OK"
+ "notes": "kb/Work PB829. 'The implementor shall specify the names supported for physical-structure-name-1' (cite.py --check 12.3.7.3 OK, 32). The specified set is EMPTY (docs/CONFORMANCE.md section 3 D-DL3): a physical-structure-name is refused by name, COBOL2257. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#DynamicLengthStructureBind (kb/Work PB2355 extracted the SPECIAL-NAMES binding out of DataBinder.Switches.cs into the SpecialNamesBinder class (its partial files) and the configuration-section services DataBinder keeps into DataBinder.Configuration.cs; each member is the same rule, moved with its body unchanged)"
 }

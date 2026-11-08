@@ -16,7 +16,7 @@ from . import common
 from .common import Check
 
 import inventory_schema as schema  # noqa: E402
-import inventory_store  # noqa: E402
+import inventory_view  # noqa: E402
 
 KINDS_PATH = "tests/doc-facts/inventory-anchor-kinds.json"
 #: A `path#Symbol` spelling inside a row's prose: the form a code-location is written in.
@@ -58,7 +58,7 @@ def anchor_findings(rows: list[dict], texts: dict[str, str], code_location_sep: 
 
 
 def _inventory(root: Path) -> list[str]:
-    rows = inventory_store.load_inventory(root / "tests" / "version-matrix" / "inventory")
+    rows = inventory_view.inventory()
     sch = schema.load_schema()
     resolved = tuple(json.loads(common.text(root, KINDS_PATH))["documentKinds"])
     paths = {p for r in rows for p in _paths(r, sch.code_location_sep, resolved)}

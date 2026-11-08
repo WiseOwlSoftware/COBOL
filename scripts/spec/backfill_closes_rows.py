@@ -53,7 +53,8 @@ import subprocess
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-import inventory_store  # noqa: E402  (the inventory's one reader, in the tree and at a commit)
+import inventory_store  # noqa: E402  (the store's history pathspecs)
+import inventory_view  # noqa: E402  (the one view of the inventory, in the tree and at a commit)
 import work  # noqa: E402  (same directory; this is the register's ONE reader)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
@@ -97,12 +98,12 @@ def attribute(commit_message: str, row_notes: str) -> set[str]:
 
 def verdicts_at(sha: str) -> dict[str, tuple[str, str]]:
     """`rule-id -> (verdict, notes)` as of one commit, or `{}` when the commit has no inventory."""
-    return {r["rule-id"]: (r.get("verdict") or "", r.get("notes") or "") for r in inventory_store.inventory_at(sha) or ()}
+    return {r["rule-id"]: (r.get("verdict") or "", r.get("notes") or "") for r in inventory_view.inventory_at(sha) or ()}
 
 
 def closures_from_history(resolving: set[str], progress=None) -> tuple[dict[str, set[str]], dict]:
     """`note id -> rule-ids it closed`, walked over every commit that touched the inventory."""
-    log = git("log", "--reverse", "--format=%H%x1f%B%x1e", "--", *inventory_store.HISTORY_PATHSPECS)
+    log = git("log", "--reverse", "--format=%H%x1f%B%x1e", "--", *inventory_store.history_pathspecs(2023))
     commits = [c.strip() for c in log.split("\x1e") if c.strip()]
     closed: dict[str, set[str]] = collections.defaultdict(set)
     stats = {"commits": len(commits), "transitions": 0, "unattributed": 0, "by-arm": collections.Counter()}
@@ -335,7 +336,7 @@ def main() -> int:
         return self_test()
 
     resolving = resolving_verdicts()
-    rows = inventory_store.load_inventory()
+    rows = inventory_view.inventory()
     state_now = {r["rule-id"]: r.get("state") or "" for r in rows}
     items = work.load()
 
@@ -346,7 +347,7 @@ def main() -> int:
             print(f"   {f}")
         return 0
 
-    print(f"walking {inventory_store.INVENTORY_DIR_REL} (and, before kb/Work PB4148, the one legacy file) through its history …")
+    print(f"walking {inventory_store.INVENTORY_DIRS_REL[2023]} (and, before kb/Work PB4148, the one legacy file) through its history …")
     closed, stats = closures_from_history(
         resolving, progress=lambda i, n: print(f"   {i}/{n} commits", flush=True))
     want = derive(items, state_now, closed)

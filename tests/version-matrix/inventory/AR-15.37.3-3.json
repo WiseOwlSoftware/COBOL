@@ -1,15 +1,9 @@
 {
  "rule-id": "AR-15.37.3-3",
- "section": "15.37.3",
- "kind": "AR",
- "ordinal": 3,
- "subject": "FIND-STRING function",
  "rule-digest": "5f21d9431264",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#PredicateViolation",
  "test-ref": "conformance:cases/15.3-Arguments/pb58_argument_predicates_legal; conformance-test:ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic; conformance:cases/15.37.3-Argument-rules/pb4507_find_string_function_argument_3",
- "derivation": "",
  "editions": "2023",
- "notes": "LANDED 2026-08-17 (kb/Work PB58 — the argument-screen table's missing predicate kinds and absent rows). §15.37.3 r3 'argument-3 shall be an integer data item or integer literal' — NARROWER than §15.3 type 6 — is the DataItemOrLiteralOnly predicate on position 3: an arithmetic expression (pb58-findstr-expr) is rejected outright; a nested function-identifier is a data item (8.4.3.2.4 GR1: a temporary data item), so a nested INTEGER function binds (pb4507_find_string_function_argument_3) and a nested numeric function is refused by the 15.3 type 6 integer test (pb4507-findstr-numeric-function) - kb/Work PB4507 moved the bar that pb58-findstr-func (retired) had drawn at every nested function; an integer data item and an integer literal bind (golden FIND/FIND0). retired-witness: conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic (kb/Work PB3177 replaced the corpus runner with the conformance suite's: the refusal is asserted by ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic)",
- "state": "OK"
+ "notes": "LANDED 2026-08-17 (kb/Work PB58 — the argument-screen table's missing predicate kinds and absent rows). §15.37.3 r3 'argument-3 shall be an integer data item or integer literal' — NARROWER than §15.3 type 6 — is the DataItemOrLiteralOnly predicate on position 3: an arithmetic expression (pb58-findstr-expr) is rejected outright; a nested function-identifier is a data item (8.4.3.2.4 GR1: a temporary data item), so a nested INTEGER function binds (pb4507_find_string_function_argument_3) and a nested numeric function is refused by the 15.3 type 6 integer test (pb4507-findstr-numeric-function) - kb/Work PB4507 moved the bar that pb58-findstr-func (retired) had drawn at every nested function; an integer data item and an integer literal bind (golden FIND/FIND0). retired-witness: conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic (kb/Work PB3177 replaced the corpus runner with the conformance suite's: the refusal is asserted by ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic)"
 }

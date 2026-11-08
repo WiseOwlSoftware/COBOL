@@ -2,7 +2,7 @@
   "$comment": [
     "THE schema for the P14 Step-0 spec-traceability inventory — the single place the verdict vocabulary and the",
     "per-verdict evidence requirements are written down. Three consumers read THIS file rather than carrying their",
-    "own copy: scripts/spec/build_inventory.py (which derives each row's GAP/OK state), ",
+    "own copy: scripts/spec/inventory_view.py (which computes each rule's GAP/OK state in the view), ",
     "scripts/spec/record_verdicts.py (which validates an incoming batch before merging it), and the C# battery gate",
     "SpecTraceabilityInventoryDriftTests (which enforces referential integrity against the working tree).",
     "",
@@ -31,6 +31,23 @@
     "describes. 19 of the 37 rows the first A.1 back-fill recorded are exactly that — the identical legitimate Phase-C",
     "category as CONFORMS-but-untested, not a defect in the batch."
   ],
+
+  "store": {
+    "$comment": [
+      "WHAT A STORE FILE HOLDS (DESIGN-spec-conformance-review.md section 4, kb/Work PB4992): an edition's inventory is a",
+      "VIEW, its catalog joined with its store of adjudications, each rule's state computed and stored nowhere. A store",
+      "file is `keys` plus the edition's `adjudicated` fields that say something; a rule nobody has adjudicated has no",
+      "file. A catalog field (section, kind, ordinal, subject) or a state in a store file is refused by the view",
+      "(inventory_view.py). This is the one list of those fields: inventory_schema.ADJUDICATED and lineage.Edition read",
+      "it, and the C# view's row (TraceabilityInventory.Row) is held to it by SpecTraceabilityInventoryDriftTests.",
+      "An older edition's rows carry the change record `next` (section 10.2) instead of the 2023 band `editions`."
+    ],
+    "keys": ["rule-id", "rule-digest"],
+    "adjudicated": {
+      "2023": ["verdict", "code-location", "test-ref", "derivation", "editions", "notes"],
+      "1985": ["verdict", "code-location", "test-ref", "derivation", "notes", "next"]
+    }
+  },
 
   "verdicts": {
     "CONFORMS": {
@@ -1037,7 +1054,7 @@
       "out of order as well), so every reader parsed it its own way. `inventory_schema.Schema.editions_error` is",
       "the one validator (record_verdicts.py asks it of every record, and SpecTraceabilityInventoryDriftTests",
       "mirrors it over the whole inventory); `Schema.spell_editions` is the one writer of the spelling",
-      "(build_inventory.py, normalize_batch.py, grammar_findings_to_batch.py).",
+      "(normalize_batch.py, grammar_findings_to_batch.py).",
       "`required` (kb/Work PB3173, S0b): an EMPTY field is refused. Every row names the editions its rule exists",
       "at, decided from the standard and docs/VERSION_CHANGE_REFERENCE.md, so a per-edition conformance suite can",
       "tell whether the rule belongs to it (the 148 empty rows were decided 2026-10-16, each with its evidence in",

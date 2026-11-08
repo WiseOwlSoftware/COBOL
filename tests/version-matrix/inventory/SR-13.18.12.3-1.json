@@ -1,15 +1,9 @@
 {
  "rule-id": "SR-13.18.12.3-1",
- "section": "13.18.12.3",
- "kind": "SR",
- "ordinal": 1,
- "subject": "CODE clause",
  "rule-digest": "b93bde5d0ce6",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#ReportCodeClauseRule; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindCodeClause",
  "test-ref": "conformance:cases/13.18.12-CODE/pb1129-code-literal-numeric; conformance:cases/13.18.12-CODE/pb1129_rd_code_literal",
- "derivation": "",
  "editions": "85,2002,2014,2023",
- "notes": "(kb/Work PB1129, wave 1005 A). 'Literal-1 shall be an alphanumeric literal' (cite.py --check 13.18.12.3 OK 1)): BindCodeClause asks the one literal classifier (OperandLiteralClass) - a numeric, national or boolean literal and a figurative constant are COBOL2713; an alphanumeric one decodes through LiteralCharsOf (a concatenation folds, a hexadecimal format decodes). retired-witness: src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#ReportCodeClause (the descriptor was deleted: the CODE clause is implemented and its syntax rules are COBOL2713 (ReportCodeClauseRule)) retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#BindCodeClause (kb/Work PB2357 split DataBinder.Reports.cs: the same code, unchanged, now lives in ReportSectionBinder.cs (the binder), ReportModel.cs (the model types) and ReportScope.cs (the visible-report lookups))",
- "state": "OK"
+ "notes": "(kb/Work PB1129, wave 1005 A). 'Literal-1 shall be an alphanumeric literal' (cite.py --check 13.18.12.3 OK 1)): BindCodeClause asks the one literal classifier (OperandLiteralClass) - a numeric, national or boolean literal and a figurative constant are COBOL2713; an alphanumeric one decodes through LiteralCharsOf (a concatenation folds, a hexadecimal format decodes). retired-witness: src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#ReportCodeClause (the descriptor was deleted: the CODE clause is implemented and its syntax rules are COBOL2713 (ReportCodeClauseRule)) retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#BindCodeClause (kb/Work PB2357 split DataBinder.Reports.cs: the same code, unchanged, now lives in ReportSectionBinder.cs (the binder), ReportModel.cs (the model types) and ReportScope.cs (the visible-report lookups))"
 }

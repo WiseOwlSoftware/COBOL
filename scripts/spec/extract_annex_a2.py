@@ -17,7 +17,7 @@ inventory row r* without a human in the loop — which needs A.2 as DATA.
 repository's Python writer (`Schema.state_for`) and its C# battery gate (`DerivedState`) — and they must agree
 (`kb/Work/PB315` is the note recording what happens when they do not). Parsing 1.3 MB of spec markdown in BOTH
 languages would be a second parser of the same artifact, which is the duplication `feedback_one_rule_one_place`
-names; and `EveryRowState_IsDerived_NotAsserted` recomputes the state of all 4,311 rows every build, so a
+names; and `EveryRuleState_AgreesWithThePythonView` recomputes the state of all 4,311 rows every build, so a
 per-row re-parse would be a per-row 1.3 MB read. So the extraction lives HERE, once, and both engines read the
 resolved data. `--check` re-derives and diffs, and `AnnexA2UndefinedListDriftTests` runs it every build, so the
 artifact cannot drift from the standard silently — the `AnnexA1RegisterDriftTests` precedent.

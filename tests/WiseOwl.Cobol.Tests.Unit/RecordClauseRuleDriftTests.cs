@@ -265,9 +265,9 @@ public sealed class RecordClauseRuleDriftTests
         var allIds = new HashSet<string>(StringComparer.Ordinal);
         foreach (var row in TraceabilityInventory.Rows)
         {
-            string id = row.GetProperty("rule-id").GetString()!;
+            string id = row.RuleId;
             allIds.Add(id);
-            string where = row.TryGetProperty("code-location", out var cl) ? cl.GetString() ?? "" : "";
+            string where = row.CodeLocation;
             if (where.Contains("RecordClauseRules", StringComparison.Ordinal)) claimed.Add(id);
             else if (where.Length > 0) locatedElsewhere[id] = where;
         }

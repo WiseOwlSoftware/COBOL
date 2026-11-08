@@ -1,15 +1,9 @@
 {
  "rule-id": "GR-12.3.8.4-6",
- "section": "12.3.8.4",
- "kind": "GR",
- "ordinal": 6,
- "subject": "REPOSITORY paragraph",
  "rule-digest": "4bf6c2033875",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/MetadataRepositoryProvider.cs#Class; src/WiseOwl.Cobol.Compiler/Oo/OoNameResolution.cs#Find; src/WiseOwl.Cobol.Compiler/Binding/Repository/ExpansionPlacementPass.cs#Run",
  "test-ref": "conformance:cases/8.3.2.2-User-defined-words/pb974_repository_as_phrase; conformance:wiseowl/cases/12.3.8-REPOSITORY/pb2104_import_class_under_another_word; conformance-test:ExternalRepositoryClassImportTests.AnImportedClassInheritingAnImportedClass_ImportsTheWholeChain; conformance-test:ExternalRepositoryClassImportTests.TwoNeededAssembliesOfOneSimpleName_AreRepo6; conformance:wiseowl/cases/12.3.8-REPOSITORY/pb2104_expansion_is_one_class_across_groups",
- "derivation": "",
  "editions": "2002,2014,2023",
- "notes": "the details of a class the group does not define come from the external repository: its record, its superclass and interfaces by identity, and — for an expansion — the existing expansion of the same name and key.",
- "state": "OK"
+ "notes": "the details of a class the group does not define come from the external repository: its record, its superclass and interfaces by identity, and — for an expansion — the existing expansion of the same name and key."
 }

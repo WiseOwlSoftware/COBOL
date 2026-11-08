@@ -1,15 +1,9 @@
 {
  "rule-id": "DOC-A.1-161",
- "section": "A.1",
- "kind": "DOC",
- "ordinal": 161,
- "subject": "REPOSITORY paragraph (how external repository and class-specifier determine which class is used)",
  "rule-digest": "23b7940ebf04",
  "verdict": "CONFORMS",
  "code-location": "docs/CONFORMANCE.md#DOC-A.1-161; src/WiseOwl.Cobol.Compiler/Binding/MetadataRepositoryProvider.cs#Class",
  "test-ref": "conformance:cases/8.3.2.2-User-defined-words/pb974_repository_as_phrase; conformance:wiseowl/cases/12.3.8-REPOSITORY/pb2104_import_class_under_another_word; conformance:wiseowl/cases/12.3.8-REPOSITORY/pb2104_expand_skeleton_from_repository",
- "derivation": "",
  "editions": "2002,2014,2023",
- "notes": "Documented in docs/CONFORMANCE.md section 7: the external repository is the metadata of compiled WiseOwl COBOL assemblies; a class-specifier resolves by identity (literal-1 else the word) against the group's definitions, BASE, the group's parameterized definitions and the repository, first match in the documented search order; the class is imported (PB2104 step 1 and 2) and an unanswered specifier is REPO-1.",
- "state": "OK"
+ "notes": "Documented in docs/CONFORMANCE.md section 7: the external repository is the metadata of compiled WiseOwl COBOL assemblies; a class-specifier resolves by identity (literal-1 else the word) against the group's definitions, BASE, the group's parameterized definitions and the repository, first match in the documented search order; the class is imported (PB2104 step 1 and 2) and an unanswered specifier is REPO-1."
 }

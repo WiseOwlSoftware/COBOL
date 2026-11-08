@@ -19,11 +19,12 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 /// <remarks>
 /// <para>
-/// A completion metric that nothing audits is a self-report. Every row of
-/// <c>tests/version-matrix/inventory/&lt;rule-id&gt;.json</c> (one file per row, kb/Work PB4148) claims three things — that a rule was located in the
+/// A completion metric that nothing audits is a self-report. Every row of the inventory's view
+/// (<see cref="TraceabilityInventory"/>: the catalog joined with <c>tests/version-matrix/inventory/&lt;rule-id&gt;.json</c>, one
+/// file per adjudicated rule, kb/Work PB4148, PB4992) claims three things — that a rule was located in the
 /// code, that a verdict was reached against the spec text, and that a spec-derived test covers it — and each of
 /// those claims is cheap to write and expensive to earn. These tests make the cheap version fail:
-/// <c>state</c> is RECOMPUTED here rather than believed, a <c>code-location</c> must name a file and a symbol that
+/// <c>state</c> is computed here by a second engine and held to the Python view's, a <c>code-location</c> must name a file and a symbol that
 /// still exist IN THAT FILE'S CODE (<see cref="SymbolResolves"/>: a comment does not count), a <c>test-ref</c> must
 /// resolve to a test that is really on disk, and every <c>path#Symbol</c> a row's <c>notes</c> prose spells must
 /// resolve as a <c>code-location</c> does (kb/Work PB762: <c>notes</c> was the one adjudicated field no gate read,
@@ -46,7 +47,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// The vocabulary these tests enforce is not written down here either: verdicts, their <c>resolves</c> flag, their
 /// required evidence, the test-ref forms, the per-KIND evidence rules and the anchored-file spaces are read from
 /// <c>tests/version-matrix/inventory-schema.json</c>, the same file the Python side reads. What exists twice is
-/// the evaluator, not the rule — and <see cref="EveryRowState_IsDerived_NotAsserted"/> is what would catch the two
+/// the evaluator, not the rule — and <see cref="EveryRuleState_AgreesWithThePythonView"/> is what would catch the two
 /// evaluators drifting apart.
 /// </para>
 /// <para>
@@ -77,12 +78,13 @@ public sealed class SpecTraceabilityInventoryDriftTests
 
     // ── the artifacts under test ─────────────────────────────────────────────────────────────────────
 
+    /// <summary>A row of the view, with <paramref name="State"/>: the state the OTHER engine computed for it (the Python
+    /// view's, <c>inventory_view.py --states</c>; a fixture's is what that engine would say). No state is stored anywhere
+    /// (kb/Work PB4992), so this engine's own is always <see cref="DerivedState"/>.</summary>
     private sealed record Row(
         string RuleId, string Section, string Kind, int Ordinal, string Subject,
         string Verdict, string CodeLocation, string TestRef, string Derivation, string Editions, string Notes,
         string State);
-
-    private sealed record CatalogRule(string Id, string Section, string Kind, int Ordinal, string Subject);
 
     private sealed record Verdict(string Name, bool Resolves, string[] Requires);
 
@@ -251,7 +253,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
     /// ⛔ THE A.2 LIST IS READ FROM DATA, NOT PARSED FROM THE SPEC HERE. <c>scripts/spec/extract_annex_a2.py</c>
     /// owns the extraction and <see cref="AnnexA2UndefinedListDriftTests"/> proves the artifact still equals the
     /// standard; parsing 1.3 MB of spec markdown on this side too would be the second parser this whole schema
-    /// exists to avoid, and <see cref="EveryRowState_IsDerived_NotAsserted"/> recomputes 4,311 rows per build.
+    /// exists to avoid, and <see cref="EveryRuleState_AgreesWithThePythonView"/> recomputes 4,311 rows per build.
     /// </remarks>
     private static DerivationRule LoadDerivation(JsonElement d)
     {
@@ -293,28 +295,31 @@ public sealed class SpecTraceabilityInventoryDriftTests
     /// gate and the catalog is 4,311 rules; the <c>indistinguishable-consequent</c> arm needs the ids and
     /// nothing else, so re-parsing that file per call is pure cost.
     /// </summary>
+    /// <summary>Every catalog rule id: the view has one row per rule.</summary>
     private static readonly Lazy<IReadOnlySet<string>> CatalogIds =
-        new(() => LoadCatalog().Select(c => c.Id).ToHashSet(StringComparer.Ordinal));
+        new(() => TraceabilityInventory.Rows.Select(r => r.RuleId).ToHashSet(StringComparer.Ordinal));
+
+    /// <summary>
+    /// The Python view's state of every rule (<c>inventory_view.py --states</c>), run once per test assembly. The run is
+    /// also the Python view's refusals: a store record it refuses (a rule the catalog dropped, a copied catalog field or
+    /// state, an adjudication decided against other text) fails it, naming the record.
+    /// </summary>
+    private static readonly Lazy<IReadOnlyDictionary<string, string>> PythonStates = new(() =>
+    {
+        var run = PythonInstrument.Run(ObservationBudget.OneProcess, TestRepo.Scripts("spec", "inventory_view.py"), "--states");
+        string? line = run.Stdout.Split('\n').Select(l => l.Trim())
+            .FirstOrDefault(l => l.StartsWith("JSON ", StringComparison.Ordinal));
+        Assert.True(run.ExitCode == 0 && line is not null,
+            $"inventory_view.py --states exited {run.ExitCode} with no JSON line:\n{run.Stdout}\n{run.Stderr}");
+        return JsonSerializer.Deserialize<Dictionary<string, string>>(line!["JSON ".Length..])!;
+    });
 
     private static List<Row> LoadInventory()
     {
-        Assert.True(Directory.Exists(TraceabilityInventory.DirectoryPath),
-            $"inventory missing: {TraceabilityInventory.DirectoryPath} — run python scripts/spec/build_inventory.py");
-        return [.. TraceabilityInventory.Rows.Select(e => new Row(
-            Str(e, "rule-id"), Str(e, "section"), Str(e, "kind"), e.GetProperty("ordinal").GetInt32(),
-            Str(e, "subject"), Str(e, "verdict"), Str(e, "code-location"), Str(e, "test-ref"),
-            Str(e, "derivation"), Str(e, "editions"), Str(e, "notes"), Str(e, "state")))];
-    }
-
-    private static List<CatalogRule> LoadCatalog()
-    {
-        string path = TestRepo.Docs("rearchitecture", "spec-rule-catalog.json");
-        Assert.True(File.Exists(path),
-            $"rule catalog missing: {path} — run python scripts/spec/extract_rule_catalog.py");
-        using var doc = JsonDocument.Parse(File.ReadAllText(path));
-        return [.. doc.RootElement.GetProperty("rules").EnumerateArray().Select(e => new CatalogRule(
-            Str(e, "id"), Str(e, "section"), Str(e, "kind"), e.GetProperty("ordinal").GetInt32(),
-            Str(e, "subject")))];
+        var theirs = PythonStates.Value;
+        return [.. TraceabilityInventory.Rows.Select(r => new Row(
+            r.RuleId, r.Section, r.Kind, r.Ordinal, r.Subject, r.Verdict, r.CodeLocation, r.TestRef, r.Derivation,
+            r.Editions, r.Notes, theirs.GetValueOrDefault(r.RuleId, "")))];
     }
 
     private static string[] Split(string value, string separator) =>
@@ -324,7 +329,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
 
     /// <summary>
     /// The state a row is ENTITLED to, per the schema. Mirrors <c>Schema.state_for</c> in Python — and
-    /// <see cref="EveryRowState_IsDerived_NotAsserted"/> is what catches the two drifting apart.
+    /// <see cref="EveryRuleState_AgreesWithThePythonView"/> is what catches the two drifting apart.
     /// </summary>
     /// <remarks>
     /// The spec-derived clause is separate from <c>requires</c> on purpose: it is what makes
@@ -603,8 +608,8 @@ public sealed class SpecTraceabilityInventoryDriftTests
         "editions" => r.Editions,
         "notes" => r.Notes,
         _ => throw new InvalidOperationException(
-            $"inventory-schema.json requires a field '{name}' that no inventory row has — "
-            + "add it to the row schema in build_inventory.py and to Field() here."),
+            $"inventory-schema.json requires a field '{name}' that no inventory row has — add it to the store's "
+            + "fields (inventory-schema.json `store`), to TraceabilityInventory.Row and to Field() here."),
     };
 
     private static List<string> BadVerdicts(IEnumerable<Row> rows, Schema s) =>
@@ -613,8 +618,8 @@ public sealed class SpecTraceabilityInventoryDriftTests
 
     private static List<string> BadStates(IEnumerable<Row> rows, Schema s) =>
         [.. rows.Where(r => r.State != DerivedState(r, s))
-                .Select(r => $"{r.RuleId}: state '{r.State}' but the schema derives '{DerivedState(r, s)}' "
-                             + $"from verdict '{r.Verdict}'")];
+                .Select(r => $"{r.RuleId}: the Python view computes '{r.State}' but this engine derives "
+                             + $"'{DerivedState(r, s)}' from verdict '{r.Verdict}'")];
 
     private static List<string> MissingEvidence(IEnumerable<Row> rows, Schema s) =>
         [.. from r in rows
@@ -658,7 +663,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
         // red under a check about NIST goldens (`feedback_two_arm_dispatch`). `DerivationStands` is the same
         // predicate, so the two arms cannot come to disagree.
         return [.. from r in rows
-                   where r.State == "OK"
+                   where r.State == "OK"   // the Python view closed it
                    let refs = Split(r.TestRef, s.TestRefSeparator)
                    where !refs.Any(x => IsSpecDerived(x, s)) && !DerivationStands(r, s)
                    select $"{r.RuleId}: state OK but covered ONLY by non-spec-derived test(s) "
@@ -1039,17 +1044,17 @@ public sealed class SpecTraceabilityInventoryDriftTests
     // ── the gate ─────────────────────────────────────────────────────────────────────────────────────
 
     /// <summary>
-    /// ⛔ THE INVENTORY IS ONE FILE PER ROW, NAMED BY ITS RULE ID, AND NOTHING ELSE IS IN ITS DIRECTORY (kb/Work PB4148).
-    /// Two landings that close different rows edit different files, so the merge queue (which runs no merge driver) merges
-    /// them; the single 4,214-row file held every landing that closed a row behind any other open pull request that did.
-    /// Held from the files, not from the Python store: a file that is not <c>&lt;rule-id&gt;.json</c> for the row it
-    /// holds, a stray or temporary file, a subdirectory, and two names differing only in case (one file on NTFS and APFS)
-    /// are each a finding; the old single file is gone.
+    /// ⛔ THE STORE IS ONE FILE PER ADJUDICATED RULE, NAMED BY ITS RULE ID, AND NOTHING ELSE IS IN ITS DIRECTORY (kb/Work
+    /// PB4148). Two landings that close different rows edit different files, so the merge queue (which runs no merge
+    /// driver) merges them; the single 4,214-row file held every landing that closed a row behind any other open pull
+    /// request that did. Held from the files, not from the Python store: a file that is not <c>&lt;rule-id&gt;.json</c> for
+    /// the record it holds, a stray or temporary file, a subdirectory, and two names differing only in case (one file on
+    /// NTFS and APFS) are each a finding; the old single file is gone.
     /// </summary>
     [Fact]
-    public void EveryRow_IsItsOwnFile_AndTheDirectoryHoldsNothingElse()
+    public void EveryStoreRecord_IsItsOwnFile_AndTheDirectoryHoldsNothingElse()
     {
-        string directory = TraceabilityInventory.DirectoryPath;
+        string directory = TraceabilityInventory.StorePath;
         Assert.False(File.Exists(TestRepo.VersionMatrix("traceability-inventory.json")),
             "the single-file inventory is back: rows are one file each under tests/version-matrix/inventory/ (kb/Work PB4148)");
         var findings = new List<string>();
@@ -1077,41 +1082,6 @@ public sealed class SpecTraceabilityInventoryDriftTests
         Assert.True(TraceabilityInventory.Rows.Count > 0, "no inventory row: this gate would be vacuous");
     }
 
-    /// <summary>The inventory covers the catalog EXACTLY — no orphan row, no unreviewed rule hidden by omission.</summary>
-    [Fact]
-    public void Inventory_CoversTheCatalog_Exactly()
-    {
-        var rows = LoadInventory();
-        var catalog = LoadCatalog();
-
-        var inRows = rows.Select(r => r.RuleId).ToHashSet(StringComparer.Ordinal);
-        var inCatalog = catalog.Select(c => c.Id).ToHashSet(StringComparer.Ordinal);
-
-        var missing = inCatalog.Except(inRows).Order().Take(10).ToList();
-        var orphan = inRows.Except(inCatalog).Order().Take(10).ToList();
-        Assert.True(missing.Count == 0 && orphan.Count == 0,
-            $"inventory {rows.Count} rows vs catalog {catalog.Count} rules — "
-            + $"rules with no row: [{string.Join(", ", missing)}]; rows with no rule: [{string.Join(", ", orphan)}] "
-            + "— re-run python scripts/spec/build_inventory.py");
-        Assert.Equal(rows.Count, rows.Select(r => r.RuleId).Distinct(StringComparer.Ordinal).Count());
-    }
-
-    /// <summary>A row's catalog-owned fields are REGENERATED, so a hand-edit to one is drift, not data.</summary>
-    [Fact]
-    public void EveryRow_MatchesItsCatalogEntry()
-    {
-        var catalog = LoadCatalog().ToDictionary(c => c.Id, StringComparer.Ordinal);
-        var bad = new List<string>();
-        foreach (var r in LoadInventory())
-        {
-            if (!catalog.TryGetValue(r.RuleId, out var c)) continue;   // covered by the coverage test
-            if (r.Section != c.Section || r.Kind != c.Kind || r.Ordinal != c.Ordinal || r.Subject != c.Subject)
-                bad.Add($"{r.RuleId}: row ({r.Section}/{r.Kind}/{r.Ordinal}) disagrees with the catalog "
-                        + $"({c.Section}/{c.Kind}/{c.Ordinal})");
-        }
-        Assert.True(bad.Count == 0, Report("row(s) disagree with the catalog", bad, catalog.Count));
-    }
-
     /// <summary>Every recorded verdict is one the schema defines.</summary>
     [Fact]
     public void EveryVerdict_IsInTheSchemaVocabulary()
@@ -1122,15 +1092,38 @@ public sealed class SpecTraceabilityInventoryDriftTests
     }
 
     /// <summary>
-    /// <c>state</c> is DERIVED from the verdict and its evidence — never taken at face value. This is the test that
-    /// makes the burn-down honest: without it, closing a GAP costs one hand-edited string.
+    /// <c>state</c> is DERIVED from the verdict and its evidence, by two engines that read one schema, and stored nowhere
+    /// (kb/Work PB4992): every rule's state as this engine computes it is the state the Python view computes, and the two
+    /// views hold the same rules. This is the test that makes the burn-down honest: an evaluator that drifted from its
+    /// twin, or a join that lost a rule, turns it red instead of quietly moving the GAP count.
     /// </summary>
     [Fact]
-    public void EveryRowState_IsDerived_NotAsserted()
+    public void EveryRuleState_AgreesWithThePythonView()
     {
         var rows = LoadInventory();
+        var theirs = PythonStates.Value;
+        var onlyOneSide = rows.Select(r => r.RuleId).ToHashSet(StringComparer.Ordinal);
+        onlyOneSide.SymmetricExceptWith(theirs.Keys);
+        Assert.True(onlyOneSide.Count == 0,
+            $"the C# and Python views hold different rules: [{string.Join(", ", onlyOneSide.Order().Take(10))}]");
         var bad = BadStates(rows, LoadSchema());
-        Assert.True(bad.Count == 0, Report("row(s) whose stored state is not the derived one", bad, rows.Count));
+        Assert.True(bad.Count == 0, Report("rule(s) whose state the two engines compute differently", bad, rows.Count));
+    }
+
+    /// <summary>
+    /// The C# view's row carries exactly the fields a 2023 store file holds: <c>inventory-schema.json</c>'s
+    /// <c>store.adjudicated.2023</c>, the one list (kb/Work PB4992), which the Python store and view read too. A field
+    /// added there and not here would be read by one language only.
+    /// </summary>
+    [Fact]
+    public void TheViewsRow_CarriesEveryStoreField()
+    {
+        using var doc = JsonDocument.Parse(File.ReadAllText(TestRepo.VersionMatrix("inventory-schema.json")));
+        string[] fields = [.. doc.RootElement.GetProperty("store").GetProperty("adjudicated").GetProperty("2023")
+            .EnumerateArray().Select(f => f.GetString()!)];
+        Assert.True(fields.Length >= 6, $"store.adjudicated.2023 names {fields.Length} field(s): the schema lost its list");
+        var row = new Row("X", "", "", 0, "", "v", "c", "t", "d", "e", "n", "");
+        Assert.Equal(fields.Length, fields.Select(f => Field(row, f)).Distinct(StringComparer.Ordinal).Count());
     }
 
     /// <summary>Each verdict carries the evidence the schema says that verdict requires.</summary>
@@ -1564,8 +1557,8 @@ public sealed class SpecTraceabilityInventoryDriftTests
         Assert.Single(BadStates([Base("X-3") with
         {
             Verdict = "CONFORMS",
-            CodeLocation = "scripts/spec/build_inventory.py",
-            TestRef = "unit:SpecTraceabilityInventoryDriftTests.EveryRowState_IsDerived_NotAsserted",
+            CodeLocation = "scripts/spec/inventory_view.py",
+            TestRef = "unit:SpecTraceabilityInventoryDriftTests.EveryRuleState_AgreesWithThePythonView",
             State = "GAP",
         }], s));
 
@@ -1633,7 +1626,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
         Assert.Single(UnresolvedCodeLocations(
             [Base("X-6") with { CodeLocation = "src/WiseOwl.Cobol.Compiler/NoSuchFile.cs" }], s, root));
         Assert.Single(UnresolvedCodeLocations(
-            [Base("X-7") with { CodeLocation = "scripts/spec/build_inventory.py#NoSuchSymbolAnywhere" }], s, root));
+            [Base("X-7") with { CodeLocation = "scripts/spec/inventory_view.py#NoSuchSymbolAnywhere" }], s, root));
 
         // Test refs: an unknown form, a golden that does not exist, and an xUnit method that does not exist.
         Assert.Single(UnresolvedTestRefs([Base("X-8") with { TestRef = "vibes:it-looked-right" }], s, root));
@@ -1648,7 +1641,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
         Assert.Empty(UnresolvedTestRefs(
             [Base("X-12") with
             {
-                TestRef = "unit:SpecTraceabilityInventoryDriftTests.EveryRowState_IsDerived_NotAsserted",
+                TestRef = "unit:SpecTraceabilityInventoryDriftTests.EveryRuleState_AgreesWithThePythonView",
             }], s, root));
 
         // ⛔ A SYMBOL IN A COMMENT IS NOT A SYMBOL (kb/Work PB762), and a row's prose is read too. Built in a scratch

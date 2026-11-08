@@ -841,11 +841,12 @@ def main(argv: list[str]) -> int:
     # kb/Work PB3840 — a lettered determination cited in code or a doc must be a real row.
     findings.extend(sweep_lettered_citations({r.key for r in rows}, ROOT))
     # The determination and its evidence are ONE artifact: §7's `Pinned by` cell and the inventory row's own
-    # spec-derived test-ref must agree. Imported lazily so the register audit still runs where the inventory
-    # has not been built (the error a missing inventory raises is a SystemExit with the rebuild command).
+    # spec-derived test-ref must agree. Read from the one view (kb/Work PB4992), imported lazily so the register
+    # audit's own checks above run before a refused store record stops it (a SystemExit naming the record).
     from inventory_schema import load_schema
-    from inventory_store import load_inventory
-    findings.extend(check_pins(pinned, load_inventory(), load_schema()))
+    from inventory_view import inventory
+    inventory_rows = inventory()
+    findings.extend(check_pins(pinned, inventory_rows, load_schema()))
     findings.extend(check_pin_resolution(pinned, load_schema(), ROOT))
     # kb/Work PB4453 — population before verdict (the register loaded, §7 filed something), then the orphan check.
     if len(register) <= 200:
@@ -853,9 +854,9 @@ def main(argv: list[str]) -> int:
     if not numbered:
         findings.append('the audit filed ZERO §7 determinations, so "no findings" is a statement about nothing: the §7 table '
                         'or its parser is what changed')
-    findings.extend(orphan_verdicts(load_inventory(), set(numbered), set(unreachable)))
+    findings.extend(orphan_verdicts(inventory_rows, set(numbered), set(unreachable)))
     # kb/Work PB593 — no Annex A.1 element is grounded on §2023:4.2.7, which its own first sentence scopes to Annex A.4.
-    findings.extend(sweep_inherited_grounds(text, load_inventory(), json.loads(SCHEMA_PATH.read_text(encoding='utf-8'))))
+    findings.extend(sweep_inherited_grounds(text, inventory_rows, json.loads(SCHEMA_PATH.read_text(encoding='utf-8'))))
 
     print('\n=== docs/CONFORMANCE.md §7 ROWS ===')
     seen: set[int] = set()

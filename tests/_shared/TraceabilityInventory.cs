@@ -5,43 +5,72 @@ using System.Text.Json;
 namespace WiseOwl.Cobol.Tests.Shared;
 
 /// <summary>
-/// The traceability inventory, read: one JSON file per row under <c>tests/version-matrix/inventory/</c>, named by the row's
-/// rule id (kb/Work PB4148).
+/// The 2023 traceability inventory, as a VIEW: the rule catalog joined with the store of adjudications
+/// (<c>tests/version-matrix/inventory/</c>, one JSON file per adjudicated rule, named by its rule id), one row per catalog
+/// rule (DESIGN-spec-conformance-review.md section 4, kb/Work PB4992).
 /// </summary>
 /// <remarks>
 /// <para>
-/// ⛔ ONE READER PER LANGUAGE, and this is the C# one; its twin is <c>load_inventory</c> in
-/// <c>scripts/spec/inventory_store.py</c>. Six drift tests read the inventory, each once from a single 7.6 MB file with
-/// its own <c>File.ReadAllText</c> and <c>JsonDocument.Parse</c>; the rows are now 4,214 files, so the read belongs in one
-/// place that parses them ONCE per test assembly and hands every test the same elements.
+/// ⛔ ONE VIEW PER LANGUAGE, and this is the C# one; its twin is <c>inventory()</c> in <c>scripts/spec/inventory_view.py</c>.
+/// Each fact has one home: a rule's section, kind, ordinal and subject are the catalog's; its adjudication is the store's;
+/// its state is computed and stored nowhere (<c>SpecTraceabilityInventoryDriftTests.DerivedState</c> computes it on this
+/// side and holds it to the Python view's). A rule nobody has adjudicated has no store file and is a row with empty
+/// adjudication.
 /// </para>
 /// <para>
-/// The rows come back ordered by file name (the rule id), which is not the spec's order and is promised to no caller:
-/// every test keys a row by its <c>rule-id</c>. A file that is not <c>&lt;rule-id&gt;.json</c> is not this type's to
-/// judge; <c>SpecTraceabilityInventoryDriftTests.EveryRow_IsItsOwnFile_AndTheDirectoryHoldsNothingElse</c> holds it.
+/// What the view REFUSES (a store file of a rule the catalog no longer has, one holding a field no store file holds, one
+/// decided against other text) is the Python view's to say, once: the gate's INVENTORY VIEW audit runs it in every lane,
+/// and the drift tests' state parity runs it again. A store file this side cannot join is not read. The rows come back in
+/// catalog order, which is promised to no caller: every test keys a row by its rule id.
 /// </para>
 /// </remarks>
 internal static class TraceabilityInventory
 {
-    /// <summary><c>tests/version-matrix/inventory/</c>.</summary>
-    internal static string DirectoryPath => TestRepo.VersionMatrix("inventory");
+    /// <summary>A rule of the 2023 catalog and its adjudication (empty strings when the store holds none).</summary>
+    internal sealed record Row(
+        string RuleId, string Section, string Kind, int Ordinal, string Subject,
+        string Verdict, string CodeLocation, string TestRef, string Derivation, string Editions, string Notes);
 
-    /// <summary>Every row, parsed once per test assembly. The elements outlive their documents (<see cref="JsonElement.Clone"/>).</summary>
-    internal static IReadOnlyList<JsonElement> Rows => s_rows.Value;
+    /// <summary><c>tests/version-matrix/inventory/</c>: the 2023 store.</summary>
+    internal static string StorePath => TestRepo.VersionMatrix("inventory");
 
-    private static readonly Lazy<IReadOnlyList<JsonElement>> s_rows = new(Load);
+    /// <summary><c>docs/rearchitecture/spec-rule-catalog.json</c>: the 2023 rule catalog.</summary>
+    internal static string CatalogPath => TestRepo.Docs("rearchitecture", "spec-rule-catalog.json");
 
-    private static IReadOnlyList<JsonElement> Load()
+    /// <summary>Every row of the view, joined once per test assembly.</summary>
+    internal static IReadOnlyList<Row> Rows => s_rows.Value;
+
+    private static readonly Lazy<IReadOnlyList<Row>> s_rows = new(Load);
+
+    private static string Str(JsonElement e, string name) =>
+        e.ValueKind == JsonValueKind.Object && e.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.String
+            ? v.GetString()!
+            : "";
+
+    private static IReadOnlyList<Row> Load()
     {
-        if (!Directory.Exists(DirectoryPath))
-            throw new DirectoryNotFoundException(
-                $"inventory missing: {DirectoryPath} — run python scripts/spec/build_inventory.py");
-        var files = Directory.EnumerateFiles(DirectoryPath, "*.json").Order(StringComparer.Ordinal).ToList();
-        var rows = new List<JsonElement>(files.Count);
-        foreach (string file in files)
+        if (!File.Exists(CatalogPath))
+            throw new FileNotFoundException($"rule catalog missing: {CatalogPath} — run python scripts/spec/extract_rule_catalog.py");
+        var store = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
+        if (Directory.Exists(StorePath))
         {
-            using var doc = JsonDocument.Parse(File.ReadAllBytes(file));
-            rows.Add(doc.RootElement.Clone());
+            foreach (string file in Directory.EnumerateFiles(StorePath, "*.json"))
+            {
+                using var doc = JsonDocument.Parse(File.ReadAllBytes(file));
+                store[Path.GetFileNameWithoutExtension(file)] = doc.RootElement.Clone();
+            }
+        }
+
+        using var catalog = JsonDocument.Parse(File.ReadAllBytes(CatalogPath));
+        var rows = new List<Row>();
+        foreach (var rule in catalog.RootElement.GetProperty("rules").EnumerateArray())
+        {
+            string id = Str(rule, "id");
+            var a = store.GetValueOrDefault(id);
+            rows.Add(new Row(
+                id, Str(rule, "section"), Str(rule, "kind"), rule.GetProperty("ordinal").GetInt32(), Str(rule, "subject"),
+                Str(a, "verdict"), Str(a, "code-location"), Str(a, "test-ref"), Str(a, "derivation"), Str(a, "editions"),
+                Str(a, "notes")));
         }
 
         return rows;

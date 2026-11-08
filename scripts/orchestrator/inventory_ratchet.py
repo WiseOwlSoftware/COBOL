@@ -33,7 +33,7 @@ from typing import Any, Iterable
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "spec"))
 from audit_witness_loss import default_base  # noqa: E402
 from inventory_schema import REPO  # noqa: E402
-from inventory_store import inventory_at, load_inventory  # noqa: E402  (the one reader of the inventory, in the tree and at a ref)
+from inventory_view import inventory, inventory_at  # noqa: E402  (the one view of the inventory, in the tree and at a ref)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
@@ -97,7 +97,7 @@ def main(argv: list[str] | None = None) -> int:
     if before is None:
         print(f"⛔ the inventory does not exist at {base}: nothing to compare against")
         return 2
-    after = load_inventory() if a.head == WORKTREE else inventory_at(a.head)
+    after = inventory() if a.head == WORKTREE else inventory_at(a.head)
     if after is None:
         print(f"⛔ the inventory does not exist at {a.head}")
         return 2

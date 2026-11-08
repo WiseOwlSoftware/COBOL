@@ -1,15 +1,9 @@
 {
  "rule-id": "GR-14.9.39.4-40",
- "section": "14.9.39.4",
- "kind": "GR",
- "ordinal": 40,
- "subject": "SET statement",
  "rule-digest": "6192f11afdc4",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindMessageTagSet; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SetEmitter.cs#EmitSetMessageTag",
  "test-ref": "conformance:cases/14.9.39-SET/set-message-tag",
- "derivation": "",
  "editions": "2023",
- "notes": "14.9.39.4 GR40 prints 'the content of data-name-4 is moved to data-name-5', against the format and 14.9.39.1 that make data-name-4 the receiver: read with data-name-4 as the receiver (owner-approved, docs/CONFORMANCE.md D-SET17; DESIGN-message-control.md section 0 Q1). SET T1 TO T2 copies T2's content into T1 (SetEmitter.EmitSetMessageTag). kb/Work PB4740. retired-witness: conformance:wiseowl/cases/14.9.39-SET/pb453-set-message-tag-format17 (refusal cases of the retired decline) retired-witness: conformance:wiseowl/cases/8.4.3.10-NULL-address-pointer-and-message-tag/pb487-message-tag-usage (refusal cases of the retired decline)",
- "state": "OK"
+ "notes": "14.9.39.4 GR40 prints 'the content of data-name-4 is moved to data-name-5', against the format and 14.9.39.1 that make data-name-4 the receiver: read with data-name-4 as the receiver (owner-approved, docs/CONFORMANCE.md D-SET17; DESIGN-message-control.md section 0 Q1). SET T1 TO T2 copies T2's content into T1 (SetEmitter.EmitSetMessageTag). kb/Work PB4740. retired-witness: conformance:wiseowl/cases/14.9.39-SET/pb453-set-message-tag-format17 (refusal cases of the retired decline) retired-witness: conformance:wiseowl/cases/8.4.3.10-NULL-address-pointer-and-message-tag/pb487-message-tag-usage (refusal cases of the retired decline)"
 }

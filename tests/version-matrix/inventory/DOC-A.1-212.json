@@ -1,15 +1,9 @@
 {
  "rule-id": "DOC-A.1-212",
- "section": "A.1",
- "kind": "DOC",
- "ordinal": 212,
- "subject": "USAGE MESSAGE-TAG (size and contents)",
  "rule-digest": "94766873531b",
  "verdict": "CONFORMS",
  "code-location": "docs/CONFORMANCE.md#DOC-A.1-212; src/WiseOwl.Cobol.Runtime/Messaging/MessageTag.cs; src/WiseOwl.Cobol.Compiler/Binding/Model/StorageForm.cs#MessageTagRef; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs",
  "test-ref": "conformance:cases/13.18.60-USAGE/message-tag-usage; unit:MessageTagTests.SameParty_IsEqualityOfTheParty",
- "derivation": "",
  "editions": "2023",
- "notes": "A.1 item 212 (the alignment, size and representation of a message-tag data item, 13.18.60.4 GR9) is documented in docs/CONFORMANCE.md section 7: no alignment, 8 positions (the slot rule D-SLOT), the runtime MessageTag struct. kb/Work PB4740 (slice S1 of DESIGN-message-control.md). retired-witness: conformance:wiseowl/cases/8.4.3.10-NULL-address-pointer-and-message-tag/pb487-message-tag-usage (the A.1 item was withdrawn with the declined facility; it is documented again in section 7) retired-witness: src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ParseUsage (the A.1 item was withdrawn with the declined facility; it is documented again in section 7)",
- "state": "OK"
+ "notes": "A.1 item 212 (the alignment, size and representation of a message-tag data item, 13.18.60.4 GR9) is documented in docs/CONFORMANCE.md section 7: no alignment, 8 positions (the slot rule D-SLOT), the runtime MessageTag struct. kb/Work PB4740 (slice S1 of DESIGN-message-control.md). retired-witness: conformance:wiseowl/cases/8.4.3.10-NULL-address-pointer-and-message-tag/pb487-message-tag-usage (the A.1 item was withdrawn with the declined facility; it is documented again in section 7) retired-witness: src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ParseUsage (the A.1 item was withdrawn with the declined facility; it is documented again in section 7)"
 }

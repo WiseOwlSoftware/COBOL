@@ -28,8 +28,8 @@ a statement (`notes` prose, `derivation`, `verdict`, `editions`) that went from 
 (`inventory_schema.statement_losses`: one definition, asked by the writer too); `--history` lists every erasure and
 `--restore-batch` emits the full records that give the erased `notes` back.
 
-WHAT IS NOT A WITNESS LOSS: a ROW that disappears. Rows are regenerated from the rule catalog by
-`build_inventory.py`, which owns a row's existence; such rows are counted and printed, never gated.
+WHAT IS NOT A WITNESS LOSS: a ROW that disappears. A row is a rule of the catalog (the view, `inventory_view.py`), so
+the catalog owns a row's existence; such rows are counted and printed, never gated.
 
 WHETHER A RESTORED REFERENCE STILL RESOLVES is NOT decided here. That is the C# battery gate's job (the division
 of labour in `inventory_schema.py`); a `--restore-batch` is applied through `record_verdicts.py` and then gated
@@ -48,7 +48,8 @@ from typing import Any, NamedTuple
 from inventory_schema import (REPO, RETIRED_WITNESS_MARK, SCHEMA_PATH, Schema, StatementLoss,
                               WitnessLoss, load_schema, statement_losses, statement_text,
                               witness_losses, witness_shape_error)
-from inventory_store import HISTORY_PATHSPECS, INVENTORY_DIR_REL, inventory_at, load_inventory
+from inventory_store import INVENTORY_DIRS_REL, history_pathspecs
+from inventory_view import inventory, inventory_at
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
@@ -182,9 +183,9 @@ def default_base() -> str:
 def check(base: str, schema) -> int:
     before = inventory_at(base)
     if before is None:
-        print(f"⛔ {INVENTORY_DIR_REL} does not exist at {base} — nothing to compare against")
+        print(f"⛔ {INVENTORY_DIRS_REL[2023]} does not exist at {base} — nothing to compare against")
         return 2
-    after = load_inventory()
+    after = inventory()
     losses, vanished = compare_revisions(before, after, base, None, schema)
     erased = compare_statements(before, after, schema)
     unexcused = [l for l in losses if not l.excused]
@@ -221,7 +222,7 @@ def history(since: str | None, schema) -> tuple[list[tuple[str, str, WitnessLoss
     """
     rng = [f"{since}..HEAD"] if since else []
     shas = _git("log", "--reverse", "--first-parent", "--format=%H %ad %s", "--date=short", *rng, "--",
-                *HISTORY_PATHSPECS).splitlines()
+                *history_pathspecs(2023)).splitlines()
     found: list[tuple[str, str, WitnessLoss]] = []
     vanished: Counter[str] = Counter()
     erased: list[Erasure] = []
@@ -324,7 +325,7 @@ def restore_records(owed: dict[str, dict[str, set[str]]], owed_text: dict[str, d
 
 def run_history(args, schema) -> int:
     found, vanished, erased = history(args.since, schema)
-    current = {r["rule-id"]: r for r in load_inventory()}
+    current = {r["rule-id"]: r for r in inventory()}
     per_commit: Counter[str] = Counter(label for label, _, _ in found)
     owed = owed_back(found, current, schema)
     kinds = Counter(("retired" if l.retired else "re-sited" if l.resited else "re-spelled" if l.respelled
@@ -361,7 +362,7 @@ def run_history(args, schema) -> int:
 
 def self_test(schema) -> int:
     """Prove each arm FIRES on a planted defect, and stays silent on the shapes that are not one."""
-    rows = load_inventory()
+    rows = inventory()
     row = next(r for r in rows if len(schema.split(r.get("test-ref", ""), schema.test_ref_sep)) >= 3
                and len(schema.split(r.get("code-location", ""), schema.code_location_sep)) >= 2
                and r.get("verdict"))

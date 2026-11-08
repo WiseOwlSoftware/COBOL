@@ -3,7 +3,7 @@
 
 ⛔ WHERE THE RULES LIVE. The verdict vocabulary, each verdict's `resolves` flag and each verdict's required
 evidence fields are DATA, in `tests/version-matrix/inventory-schema.json`. Nothing here — and nothing in
-`build_inventory.py`, `record_verdicts.py` or the C# gate — carries its own copy of that list. Adding a verdict is
+`inventory_view.py`, `record_verdicts.py` or the C# gate — carries its own copy of that list. Adding a verdict is
 an edit to the JSON and nothing else. This is CLAUDE.md rule 5 applied to the thing most likely to drift: the DA
 wave's whole lesson (`feedback_one_rule_one_place`) was that every symptom traced back to one rule written down in
 more than one place.
@@ -11,9 +11,9 @@ more than one place.
 ⚖ WHAT IS AND IS NOT DUPLICATED. Two engines evaluate these rules at two different times: this module at RECORD
 time, and `SpecTraceabilityInventoryDriftTests` at BATTERY time. Both read the same JSON, so neither hard-codes a
 verdict name, a flag or a field — what exists twice is the ten-line evaluator, not the rule. And the divergence
-that would matter is itself gated: the C# side asserts every row's stored `state` equals the state the schema
-implies, so a Python evaluator that drifted from the C# one turns the battery red instead of quietly inflating the
-burn-down.
+that would matter is itself gated: the C# side asserts that every rule's state as it computes it equals the state the
+Python view computes (`inventory_view.py --states`), so a Python evaluator that drifted from the C# one turns the
+battery red instead of quietly inflating the burn-down.
 
 DIVISION OF LABOUR between the two, deliberately with NO overlap:
   · SHAPE      — verdict is in the vocabulary, required fields present, editions legal, rule-id known, and — for a
@@ -52,11 +52,18 @@ REGISTER_HEADING = "## 7. Annex A.1"
 #: The label in the §7 table's own header row, so the reader can tell a header from a determination.
 REGISTER_HEADER_CELL = "A.1 item"
 
-#: The adjudicated fields — the ones a re-run of build_inventory.py must carry forward, and the ones a verdict
-#: record may set. Everything else on a row is regenerated from the catalog and is not the reviewer's to write.
+_RAW_SCHEMA: dict[str, Any] = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
+#: Each edition's adjudicated fields, by year: the ones its store file holds and a verdict record may set — DATA, the
+#: schema's `store.adjudicated`, because the C# view reads the same list. Everything else on a view's row is the
+#: catalog's or computed, and is not the reviewer's to write (DESIGN-spec-conformance-review.md section 4, kb/Work PB4992).
+STORE_ADJUDICATED: dict[int, tuple[str, ...]] = {
+    int(year): tuple(fields) for year, fields in _RAW_SCHEMA["store"]["adjudicated"].items()}
+#: The keys every store file carries besides its adjudicated fields: its rule, and the text it was decided against.
+STORE_KEYS: tuple[str, ...] = tuple(_RAW_SCHEMA["store"]["keys"])
+#: The 2023 rule's adjudicated fields (`lineage.Edition.adjudicated` names each edition's).
 #: ⚙ `derivation` is the §1.1 alternative to `test-ref` (owner decision kb/Work PB386, 2026-09-03) — see
 #: `Derivation` below.
-ADJUDICATED = ("verdict", "code-location", "test-ref", "derivation", "editions", "notes")
+ADJUDICATED = STORE_ADJUDICATED[2023]
 
 #: The adjudicated fields that are SETS OF WITNESSES rather than one statement (kb/Work PB959). A verdict record
 #: MERGES into these — the union of what the row carried and what the record names — because a witness is
@@ -81,7 +88,7 @@ CODE_LOCATION_RESITES_ON_READJUDICATION = True
 #: `notes.retired-witness-mark`, because the C# battery gate reads the same spelling (kb/Work PB762): the gate must
 #: tell a row's PROSE from the history the writer appended after it, and two spellings of the mark would be two
 #: definitions of where the one ends and the other begins.
-RETIRED_WITNESS_MARK: str = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))["notes"]["retired-witness-mark"]
+RETIRED_WITNESS_MARK: str = _RAW_SCHEMA["notes"]["retired-witness-mark"]
 _RETIRED_RE = re.compile(re.escape(RETIRED_WITNESS_MARK) + r"\s*(\S+)")
 
 
@@ -381,7 +388,7 @@ def register_section_at(text: str, heading: str, header_cell: str) -> list[tuple
     determination at all), `DerivedSelector` (whose `determination-prefix` arm reads what the determination SAYS),
     `Derivation` (which reads §8) and the Phase-B dossier (which tags its citing lines). The C# twin is
     `tests/_shared/ConformanceRegister.cs`; that pair is the same two-engines-one-artifact shape as the selector
-    evaluator, and `EveryRowState_IsDerived_NotAsserted` catches them drifting.
+    evaluator, and `EveryRuleState_AgreesWithThePythonView` catches them drifting.
 
     ⛔ IT STOPS AT THE NEXT `## ` HEADING, and that is not tidiness. Until §8 existed §7 was the LAST section, so
     reading to end-of-file was indistinguishable from reading the section — and the moment a second register was
@@ -704,7 +711,7 @@ class Derivation:
     def undefined(self) -> dict[int, set[str]]:
         """`{A.2 item -> the rule-ids it covers}` — read ONCE, from the generated artifact.
 
-        ⛔ NOT a parse of `specs/ISO_COBOL_2023.md` here. `EveryRowState_IsDerived_NotAsserted` recomputes the state
+        ⛔ NOT a parse of `specs/ISO_COBOL_2023.md` here. `EveryRuleState_AgreesWithThePythonView` recomputes the state
         of all 4,311 rows on every build, so a per-row spec read would put 1.3 MB of I/O on that path; and the
         C# twin would need a second markdown parser, which is the duplication this module exists to prevent.
         `extract_annex_a2.py --check` is what keeps the artifact equal to the standard.
@@ -1017,7 +1024,7 @@ class Schema:
         defect (kb/Work PB315): the C# twin `DerivedState` had ALWAYS asked `AnchorObliged` and said in its own
         comment that "this side and the Python writer read ONE rule" — they did not, and the disagreement was
         unobservable until a declined DOC row first earned a witness test, at which point three rows could never
-        close and `EveryRowState_IsDerived_NotAsserted` went red on a correct batch.
+        close and `EveryRuleState_AgreesWithThePythonView` went red on a correct batch.
         """
         verdict = row.get("verdict") or ""
         if verdict not in self.resolving:
@@ -1146,11 +1153,13 @@ def load_schema() -> Schema:
     return Schema(json.loads(SCHEMA_PATH.read_text(encoding="utf-8")))
 
 
-def load_catalog() -> list[dict[str, Any]]:
-    if not CATALOG_PATH.exists():
+def load_catalog(path: pathlib.Path = CATALOG_PATH) -> list[dict[str, Any]]:
+    """The rules of the catalog at `path` (the 2023 one by default; an edition's is `lineage.Edition.catalog`): the one
+    reader of a rule catalog."""
+    if not path.exists():
         raise SystemExit(
-            f"catalog not found: {CATALOG_PATH}\nRun: python scripts/spec/extract_rule_catalog.py")
-    return json.loads(CATALOG_PATH.read_text(encoding="utf-8"))["rules"]
+            f"catalog not found: {path}\nRun: python scripts/spec/extract_rule_catalog.py [--edition <year>]")
+    return json.loads(path.read_text(encoding="utf-8"))["rules"]
 
 
 def self_test() -> int:

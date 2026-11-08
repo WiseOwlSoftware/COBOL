@@ -1160,7 +1160,7 @@ def main_2023(args: argparse.Namespace) -> int:
         for rid in stale[:10]:
             print(f"      {rid}")
         print("   Regenerate it in the same change as the transcription edit: python scripts/spec/extract_rule_catalog.py")
-        print("   (then python scripts/spec/build_inventory.py, whose rule-digest check names any verdict on changed text).")
+        print("   (then python scripts/spec/inventory_view.py --check, which refuses any adjudication decided against changed text).")
 
     if args.check:
         return 1 if (gaps or unrecognised or drifts or unexplained

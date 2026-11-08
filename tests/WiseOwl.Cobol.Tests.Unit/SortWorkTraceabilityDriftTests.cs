@@ -33,8 +33,8 @@ public sealed class SortWorkTraceabilityDriftTests
         Assert.Contains("GR-14.9.40.4-3", cited);
 
         var locations = TraceabilityInventory.Rows.ToDictionary(
-            r => r.GetProperty("rule-id").GetString()!,
-            r => r.TryGetProperty("code-location", out var c) ? c.GetString() ?? "" : "",
+            r => r.RuleId,
+            r => r.CodeLocation,
             StringComparer.Ordinal);
 
         var untraced = cited.Order(StringComparer.Ordinal)

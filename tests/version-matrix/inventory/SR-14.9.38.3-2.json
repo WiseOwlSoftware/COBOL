@@ -1,15 +1,9 @@
 {
  "rule-id": "SR-14.9.38.3-2",
- "section": "14.9.38.3",
- "kind": "SR",
- "ordinal": 2,
- "subject": "SEND statement",
  "rule-digest": "5df4729d999d",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MessagingBinder.cs#ClassifySend; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MessagingBinder.cs#BindSend",
  "test-ref": "conformance:wiseowl/cases/14.9.38-SEND/pb4090-send-format1-server-name-returning; conformance:wiseowl/cases/14.9.38-SEND/pb4118-send-names-and-identifiers-accepted; conformance-test:SendFormatClassificationTests.ANonTagToName_IsFormat1_AndNeedsReturning; conformance:wiseowl/cases/14.9.31-RECEIVE/w59_mcs_facility_witness",
- "derivation": "",
  "editions": "2023",
- "notes": "kb/Work PB4743: message-server-name-1 is the name of a message server run unit, a processor-defined name that is no data item; MessagingBinder keeps it a bare word (BoundSendToServer.ServerName) and never resolves it as a data name, so an undefined one is no error. Whether a run unit of that name exists is a run-time fact (EC-MCS-NO-SERVER, slice S4). retired-witness: conformance-test:DocumentedNonSupportWitnessTests.McsFacility_NamedNonSupportWarning_AtBothStatements_PinnedToSpec (the facility is provided (kb/Work PB4744): the decline witness was removed and its program moved to the clause of its rules as an exchange witness) retired-witness: conformance:wiseowl/cases/14.6.11-Normal-run-unit-termination/w59_mcs_facility_witness (the facility is provided (kb/Work PB4744): the decline witness was removed and its program moved to the clause of its rules as an exchange witness)",
- "state": "OK"
+ "notes": "kb/Work PB4743: message-server-name-1 is the name of a message server run unit, a processor-defined name that is no data item; MessagingBinder keeps it a bare word (BoundSendToServer.ServerName) and never resolves it as a data name, so an undefined one is no error. Whether a run unit of that name exists is a run-time fact (EC-MCS-NO-SERVER, slice S4). retired-witness: conformance-test:DocumentedNonSupportWitnessTests.McsFacility_NamedNonSupportWarning_AtBothStatements_PinnedToSpec (the facility is provided (kb/Work PB4744): the decline witness was removed and its program moved to the clause of its rules as an exchange witness) retired-witness: conformance:wiseowl/cases/14.6.11-Normal-run-unit-termination/w59_mcs_facility_witness (the facility is provided (kb/Work PB4744): the decline witness was removed and its program moved to the clause of its rules as an exchange witness)"
 }

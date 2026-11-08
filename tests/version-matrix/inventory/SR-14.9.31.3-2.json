@@ -1,15 +1,9 @@
 {
  "rule-id": "SR-14.9.31.3-2",
- "section": "14.9.31.3",
- "kind": "SR",
- "ordinal": 2,
- "subject": "RECEIVE statement",
  "rule-digest": "f1b2645358fb",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MessagingBinder.cs#ScreenMessageArea; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MessagingBinder.cs#ForbiddenClause",
  "test-ref": "conformance:wiseowl/cases/14.9.31-RECEIVE/pb4743-receive-giving-based; conformance:wiseowl/cases/14.9.31-RECEIVE/pb4743-receive-syntax-rules-accepted; conformance-test:MessagingSyntaxRuleTests.ReceiveGiving_ARefusedClause_IsRefusedWithItsRule; conformance:wiseowl/cases/14.9.31-RECEIVE/w59_mcs_facility_witness",
- "derivation": "",
  "editions": "2023",
- "notes": "kb/Work PB4743: one walk over identifier-1 and its subordinates (DataItem.SelfAndDescendantsOf) refuses the ANY LENGTH, BASED, DYNAMIC-LENGTH, OBJECT-REFERENCE, POINTER, FUNCTION-POINTER and PROGRAM-POINTER clauses and an OCCURS DEPENDING ON whose object is not within identifier-1, with COBOL6266; the CONSTANT RECORD clause is refused earlier by the receiving funnel (COBOL1548, section 13.18.15.3 SR2), since a RECEIVE writes identifier-1. retired-witness: conformance-test:DocumentedNonSupportWitnessTests.McsFacility_NamedNonSupportWarning_AtBothStatements_PinnedToSpec (the facility is provided (kb/Work PB4744): the decline witness was removed and its program moved to the clause of its rules as an exchange witness) retired-witness: conformance:wiseowl/cases/14.6.11-Normal-run-unit-termination/w59_mcs_facility_witness (the facility is provided (kb/Work PB4744): the decline witness was removed and its program moved to the clause of its rules as an exchange witness)",
- "state": "OK"
+ "notes": "kb/Work PB4743: one walk over identifier-1 and its subordinates (DataItem.SelfAndDescendantsOf) refuses the ANY LENGTH, BASED, DYNAMIC-LENGTH, OBJECT-REFERENCE, POINTER, FUNCTION-POINTER and PROGRAM-POINTER clauses and an OCCURS DEPENDING ON whose object is not within identifier-1, with COBOL6266; the CONSTANT RECORD clause is refused earlier by the receiving funnel (COBOL1548, section 13.18.15.3 SR2), since a RECEIVE writes identifier-1. retired-witness: conformance-test:DocumentedNonSupportWitnessTests.McsFacility_NamedNonSupportWarning_AtBothStatements_PinnedToSpec (the facility is provided (kb/Work PB4744): the decline witness was removed and its program moved to the clause of its rules as an exchange witness) retired-witness: conformance:wiseowl/cases/14.6.11-Normal-run-unit-termination/w59_mcs_facility_witness (the facility is provided (kb/Work PB4744): the decline witness was removed and its program moved to the clause of its rules as an exchange witness)"
 }
