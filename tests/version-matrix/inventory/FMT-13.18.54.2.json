@@ -4,7 +4,7 @@
  "kind": "FMT",
  "ordinal": 0,
  "subject": "SUM clause",
- "rule-digest": "692275d2f27c",
+ "rule-digest": "c4e9ee14dfd3",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportSumClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportSumGroup; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportEntryClausePresence; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindSumClause",
  "test-ref": "conformance:cases/13.18.54-SUM/pb1295-sum-reset-between-groups; conformance:cases/13.18.54-SUM/pb1295-sum-rounded-between-groups; conformance:cases/13.18.54-SUM/pb1295_report_sum_groups_then_reset_rounded",
