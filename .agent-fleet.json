@@ -11,8 +11,6 @@
   "ext": ".cs,.g4",
   "exclude_dir": ["Generated"],
   "harm": "wrong_answer=16,crashes=8,rejects_legal_source=4,under_rejects=2,misleads_diagnosis=1",
-  "kind": "defect",
-  "skip_flag": ["process_only"],
   "base": "origin/main",
   "exclude": [".claude/settings.local.json"]
 }

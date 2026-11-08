@@ -840,16 +840,24 @@ def with_inherited_harm(items: list[dict]) -> list[dict]:
             if i.get("id") in owed else i for i in items]
 
 
+def fixable(it: dict) -> bool:
+    """Whether the fix lane works the note once it is open and waits on nothing: it sets a harm flag and is not
+    `process_only`, read on `with_inherited_harm`'s copy, so a prerequisite counts with the harm it owes. Whatever its
+    `kind`: `next` ranks a harmed analysis as it ranks a harmed defect, and the fix lane's population was once
+    `.agent-fleet.json`'s `kind: defect`, so the harmed analyses `next` listed first (PB4929, PB4923) no lane ever
+    planned (kb/Work PB4951). The ONE predicate `actionable`, the planner's view (clusters.ready_notes_view) and the
+    ledger's lane reading (ledger_plan.lanes_of) share."""
+    return any(it.get(f) for f in HARM_FLAGS) and not it.get("process_only")
+
+
 def actionable(items: list[dict]) -> list[dict]:
-    """`next`: the open, unblocked notes that harm a user's program, by severity, then by what the harm DOES to the
-    program (HARM_FLAGS' order: a wrong answer before a misleading message), then by id. A prerequisite of a harmed
-    note counts with the harm it owes (with_inherited_harm, kb/Work PB4769)."""
+    """`next`: the open, unblocked notes that harm a user's program (fixable), by severity, then by what the harm DOES
+    to the program (HARM_FLAGS' order: a wrong answer before a misleading message), then by id. A prerequisite of a
+    harmed note counts with the harm it owes (with_inherited_harm, kb/Work PB4769)."""
     sev = {"BLOCKER": 0, "MAJOR": 1, "MINOR": 2, "OWNER": 3}
     items = with_inherited_harm(items)
     by_id = {i.get("id"): i for i in items}
-    live = [i for i in items if i.get("status") in ("open", "half")
-            and any(i.get(f) for f in HARM_FLAGS)
-            and not i.get("process_only") and not waiting_on(i, by_id)]
+    live = [i for i in items if i.get("status") in ("open", "half") and fixable(i) and not waiting_on(i, by_id)]
     return sorted(live, key=lambda i: (sev.get(i.get("severity"), 9), harm_rank(i), i.get("id", "")))
 
 

@@ -1274,7 +1274,7 @@ def build() -> tuple[str, dict]:
     head = measure_head()
     bat = measure_battery(head["sha"])
     items, rows = work.load(), inventory_store.load_inventory()
-    rem = ledger_plan.remaining(items, rows, inv["gap"], ledger_plan.fleet_population())
+    rem = ledger_plan.remaining(items, rows, inv["gap"])
     pts, is_new = trend_series(inv, head, bat, rem["counts"])
     plan = ledger_plan.measure(items, inv["gap"])
     inputs = ledger_plan.estimate_inputs()
@@ -1304,7 +1304,7 @@ def self_test() -> int:
     items = [*leads, note("PB9001", "defect", cluster=[ledger_plan.GAP_CAMPAIGN], rows=["R-1"], wrong_answer=True),
              note("PB9003", silent=True), note("PB9004", process_only=True, rows=["R-2"])]
     rows = [{"rule-id": "R-1", "state": "GAP", "verdict": "PARTIAL"}, {"rule-id": "R-2", "state": "GAP", "verdict": "PARTIAL"}]
-    rem = ledger_plan.remaining(items, rows, 2, ("defect", ("process_only",)))
+    rem = ledger_plan.remaining(items, rows, 2)
     cp = {"vcr_todo": 1, "vcr_total": 2}
     none = {"rules": None, "fix_groups": None, "rate": None, "burn": None}
     page = render_remaining(rem, ledger_plan.bucket_estimates(rem, none), cp, none)
