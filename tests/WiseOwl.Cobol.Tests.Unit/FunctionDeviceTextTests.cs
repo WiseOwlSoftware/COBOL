@@ -134,10 +134,10 @@ public sealed class FunctionDeviceTextTests
         var a = Copy("12.5", Item(7, 2, signed: false));
         var b = Copy("-12.5", Item(7, 2, signed: true));
         var c = Copy("2.5", Item(2, 1, signed: false));
-        Assert.Equal("2.5", FunctionValueField.Median(a, b, c).DeviceText(false));              // middle of -12.5 2.5 12.5: c's PIC 9V9
-        Assert.Equal("-00012.50", FunctionValueField.Median(b).DeviceText(false));                // one argument: that argument's item
+        Assert.Equal("2.5", FunctionValueField.Median(CobolRounding.NearestEven, a, b, c).DeviceText(false));              // middle of -12.5 2.5 12.5: c's PIC 9V9
+        Assert.Equal("-00012.50", FunctionValueField.Median(CobolRounding.NearestEven, b).DeviceText(false));                // one argument: that argument's item
         var d = Copy("7", Item(3, 0, signed: false));
-        Assert.Equal("0000004.75", FunctionValueField.Median(a, b, c, d).DeviceText(false));    // (2.5 + 7) / 2: the value's temporary
+        Assert.Equal("0000004.75", FunctionValueField.Median(CobolRounding.NearestEven, a, b, c, d).DeviceText(false));    // (2.5 + 7) / 2: the value's temporary
     }
 
     /// <summary>The temporary of an arithmetic expression or a nested function is described when it is MADE, so ABS of a negative one is a
@@ -165,7 +165,7 @@ public sealed class FunctionDeviceTextTests
     [Fact]
     public void ASelectionOverNoArgumentsIsAnArgumentError()
     {
-        foreach (Func<FunctionValueField> call in new Func<FunctionValueField>[] { () => FunctionValueField.Max(), () => FunctionValueField.Min(), () => FunctionValueField.Median() })
+        foreach (Func<FunctionValueField> call in new Func<FunctionValueField>[] { () => FunctionValueField.Max(), () => FunctionValueField.Min(), () => FunctionValueField.Median(CobolRounding.NearestEven) })
             Assert.Contains("EMPTY argument list", Assert.ThrowsAny<Exception>(() => _ = call()).Message, StringComparison.Ordinal);
     }
 
@@ -230,7 +230,7 @@ public sealed class FunctionDeviceTextTests
         Assert.Equal(5, FunctionValueField.Max(packed, display).ByteLength);
         Assert.Equal(7, FunctionValueField.Min(packed, display).ByteLength);
         Assert.Equal(7, FunctionValueField.Max(display, FunctionValueField.OfItem(Dec("-12.5"), Packed(9, 2), 5, 5)).ByteLength);   // equal: the leftmost wins (§2023:15.59.4 2)
-        Assert.Equal(5, FunctionValueField.Median(display, packed, FunctionValueField.OfLiteral(Dec("9"), 1, 0, signed: false)).ByteLength);
+        Assert.Equal(5, FunctionValueField.Median(CobolRounding.NearestEven, display, packed, FunctionValueField.OfLiteral(Dec("9"), 1, 0, signed: false)).ByteLength);
     }
 
     /// <summary>A literal's field has a position for every digit written and one for a sign written; DATE-OF-INTEGER and DAY-OF-INTEGER are

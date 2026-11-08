@@ -130,6 +130,10 @@ rows between the groups inside it: a box is not a group, so it adds no blank row
 two stems of kind `box`), and `figure_reading` reads them from either drawing: these sides, or a full double-line
 rectangle (`╔═══╗` above and `╚═══╝` below the rows it holds), and `compare` names a word whose boxes differ.
 
+The same box in PROSE is the same side, `║` (`spec_pdf.BOX_SIDE`), at each end of each boxed block or span of words:
+TRANSCRIPTION-STATE.md "The 1985 transcription" states the rule, and the transcription's Preface explains it to a
+reader.
+
 ## Where a figure IS, for the generator
 
 Located from the **clause structure**, never from spacing. A bold numbered heading opens and closes every

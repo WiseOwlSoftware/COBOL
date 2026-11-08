@@ -3938,6 +3938,30 @@
   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMUNP.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F ASSIGN TO \"VMUNP\".\nDATA DIVISION.\nFILE SECTION.\nFD F.\n01 R PIC X(10).\nPROCEDURE DIVISION.\nDECLARATIVES.\nD1 SECTION.\n    USE AFTER STANDARD ERROR ON F.\nD1-P.\n    DISPLAY \"ERR\".\nEND DECLARATIVES.\nMAIN SECTION.\nM1.\n    STOP RUN.\n"
  },
  {
+  "id": "use-without-after-2002",
+  "description": "A USE STANDARD EXCEPTION/ERROR statement (Format 1, the file-exception declarative) without the word AFTER - a COBOL-2002 relaxation of a COBOL-85 restriction. The ANSI X3.23-1985 format underlines AFTER (USE AFTER STANDARD {EXCEPTION | ERROR} PROCEDURE ON ..., §1985:VII.4.6.2, printed page VII-50, and the same in every I-O module and the Inter-Program Communication module), so it is a required word at 85; the post-ballot ISO/IEC 1989:2002 text (2001-12-04, 14.8.45.1 Format 1) prints AFTER without underlining, as the 2023 text does (§2023:14.9.49.2). The 2002 Annex F.2 list names the PROCEDURE relaxation (item 141, use-without-procedure-2002) but not this one; the edge is read from the two printed formats, not from F.2 (kb/Work PB4919). Gated in ONE place, VersionConformancePass.ParseArm.VisitUseStatement, the Format 1 arm beside its PROCEDURE twin; Formats 3 and 4, whose AFTER is also optional, are 2002 introductions gated whole.",
+  "display": "a USE STANDARD EXCEPTION/ERROR statement without the word AFTER",
+  "diagnosticCode": "COBOL0900",
+  "citation": "ISO §2023:14.9.49.2; §1985:VII.4.6.2 underlines AFTER; the ISO/IEC 1989:2002 post-ballot text 14.8.45.1 Format 1 does not",
+  "introducedIn": 2002,
+  "removedIn": null,
+  "expectDiagnostic": "COBOL0900",
+  "vcr": "VCR Table 7 row 7.52 (a) - USE without AFTER, a COBOL-85 restriction read from the printed formats",
+  "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMUNA.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F ASSIGN TO \"VMUNA\".\nDATA DIVISION.\nFILE SECTION.\nFD F.\n01 R PIC X(10).\nPROCEDURE DIVISION.\nDECLARATIVES.\nD1 SECTION.\n    USE STANDARD ERROR PROCEDURE ON F.\nD1-P.\n    DISPLAY \"ERR\".\nEND DECLARATIVES.\nMAIN SECTION.\nM1.\n    STOP RUN.\n"
+ },
+ {
+  "id": "set-condition-repeated-2002",
+  "description": "A SET statement (Format 4, condition-setting) that writes more than one {condition-name-1}... TO TRUE phrase - SET A1 TO TRUE B1 TO TRUE. ANSI X3.23-1985 prints Format 4 as SET {condition-name-1}... TO TRUE with no ellipsis on the whole unit (§1985:VI.6.23.2, printed page VI-127), so a statement carries ONE TO TRUE phrase; the post-ballot ISO/IEC 1989:2002 text (2001-12-04, 14.8.35.1 Format 4) repeats the unit, SET {{condition-name-1}... TO {TRUE | FALSE}}..., as the 2023 text does (§2023:14.9.39.2). A COBOL-2002 introduction (kb/Work PB4919), gated in ONE place, VersionConformancePass.ParseArm.VisitSetBooleanStatement, on the count of setConditionPhrase nodes beside the FALSE arm's gate (set-condition-false-2002).",
+  "display": "a SET statement with more than one condition-name TO TRUE phrase",
+  "diagnosticCode": "COBOL0900",
+  "citation": "ISO §2023:14.9.39.2 Format 4; §1985:VI.6.23.2 Format 4 has no outer ellipsis; the ISO/IEC 1989:2002 post-ballot text 14.8.35.1 Format 4 adds it",
+  "introducedIn": 2002,
+  "removedIn": null,
+  "expectDiagnostic": "COBOL0900",
+  "vcr": "VCR Table 7 row 7.52 (b) - repeated SET ... TO TRUE phrases, a COBOL-85 restriction read from the printed formats",
+  "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMSTR.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 A PIC 9 VALUE 0.\n   88 A1 VALUE 1.\n01 B PIC 9 VALUE 0.\n   88 B1 VALUE 2.\nPROCEDURE DIVISION.\nMAIN.\n    SET A1 TO TRUE B1 TO TRUE.\n    DISPLAY A B.\n    STOP RUN.\n"
+ },
+ {
   "id": "value-clause-linkage-file-external-2002",
   "description": "A data-item or table VALUE clause in the linkage or file section or on an EXTERNAL item — a COBOL-2002 relaxation of a COBOL-85 restriction, QUOTED from ISO/IEC 1989:2002 Annex F.2 item 145: \"VALUE clause ignored in external data items and in linkage and file sections. The data-item and table formats of the VALUE clause may be specified in data descriptions in the linkage section and in the file section and for items described with the EXTERNAL clause.\" COBOL-85 is the edition a 2002 Annex F.2 'formerly' statement describes: the owner's decision of 2026-10-31 (kb/Work PB4305) makes the F.2 statements the rule for the 85 edge, as D-SIGN2 (item 124) and PB3683 (item 123) did; GnuCOBOL -std=cobol85 accepts some of them as dialect leniency, which rule 1 places below the ISO text. Gated in ONE place, VersionConformancePass.ParseArm.VisitValueClause (kb/Work PB4305; VCR row 7.47).",
   "display": "a data-item or table VALUE clause in the linkage or file section or on an EXTERNAL item",

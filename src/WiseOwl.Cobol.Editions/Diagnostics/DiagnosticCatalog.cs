@@ -5788,7 +5788,8 @@ public static class DiagnosticCatalog
         + "dynamic-capacity register (Format 14) or a dynamic-length elementary item (Format 16). Mixing kinds, "
         + "or writing a kind the direction admits nowhere (an integer data item under UP/DOWN BY — Format 2's "
         + "receiving operand is index-name-3), leaves the statement with no format. Write one statement per "
-        + "receiving kind. ⚠ The diagnostic does not depend on which operand is written first: that asymmetry "
+        + "receiving kind. At --std 85 the message names only Formats 1 and 2 and cites ISO §1985:VI.6.23.2, the "
+        + "formats that edition prints. ⚠ The diagnostic does not depend on which operand is written first: that asymmetry "
         + "was the defect it replaces.",
         "ISO §2023:14.9.39.2 / §2023:14.9.39.3 SR1, SR8, SR17, SR20, SR21, SR23, SR29, SR33");
 
@@ -8082,6 +8083,18 @@ public static class DiagnosticCatalog
         + "format for it, and GnuCOBOL refuses the clause with no file-name under its cobol85, ibm and mf "
         + "dialects.",
         "VCR Table 7 row 7.6 (X3.23-1985 MULTIPLE FILE TAPE clause)");
+
+    // kb/Work PB4919: `RERUN ON SYSRR EVERY 100 RECORDS.` compiled clean at --std 85, because the grammar transcribed the
+    // RECORDS arm as `integer-1 RECORDS [OF file-name-2]`. Emitted by FileControlBinder.ScreenRerunClause at every edition:
+    // from 2002 the clause is also COBOL0902 (removed), and a removed clause written without its file is malformed too.
+    public static readonly DiagnosticDescriptor RerunRecordsNoFile = new(
+        "COBOL6496", "rerun-records-no-file", EditionSeverity.Error,
+        "The X3.23-1985 RERUN clause's integer-1 RECORDS phrase names no file. The printed format, RERUN [ON {file-name-1 "
+        + "| implementor-name-1}] EVERY {{[END OF] {REEL | UNIT} | integer-1 RECORDS} OF file-name-2 | integer-2 "
+        + "CLOCK-UNITS | condition-name-1}, closes one brace pair over the END OF REEL/UNIT and RECORDS phrases and "
+        + "follows it with OF file-name-2, which is not in brackets: the RECORDS phrase counts the records of "
+        + "file-name-2, so file-name-2 is required (OF is an optional word).",
+        "X3.23-1985 RERUN clause general format (§1985:VII.2.12.2; VCR Table 7 row 7.15)");
 
     // ── One descriptor per rule (kb/Work PB4463): OCCURS, REDEFINES, ANY LENGTH, VALUE, TYPE, SPECIAL-NAMES collating, file locking ──
 

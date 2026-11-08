@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb450_set_outer_repetition
       *> rules: [GR-14.9.39.4-8, FMT-14.9.39.2]
-      *> accept: [85]
+      *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
@@ -35,9 +35,12 @@
       *>   14.9.39.4 GR4/GR5 - a Format-3 group sets its switches to the status its own ON/OFF names, so
       *>     SET SW-A TO ON SW-B TO OFF -> 12.3.7's switch-status conditions answer A-ON and B-OFF.
       *>
-      *> COBOL-85 is the earliest edition of both formats (the FALSE arm alone is a COBOL-2002 addition -
-      *> constructs.json set-condition-false-2002 - which is why this program writes TRUE only and its
-      *> mixed twin lives in the 2002 corpus).
+      *> COBOL-2002 is the earliest edition of the Format-4 repetition (kb/Work PB4919): COBOL-85 prints
+      *> Format 4 as SET {condition-name-1} ... TO TRUE with no outer ellipsis (§1985:VI.6.23.2), and the
+      *> 2002 text adds it (constructs.json set-condition-repeated-2002; its 85 refusal is
+      *> pb4919-set-condition-repeated-at-85). The FALSE arm is a separate COBOL-2002 addition -
+      *> set-condition-false-2002 - which is why this program writes TRUE only and its mixed twin is
+      *> pb450_set_condition_mixed_groups.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB450OUTREP.
        ENVIRONMENT DIVISION.

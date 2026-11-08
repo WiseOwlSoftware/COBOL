@@ -51,7 +51,10 @@ public sealed partial class DataBinder
         if (BindSpecifierExternalizedName(re, "PROGRAM", name, "literal-3") is { } externalized)
             State.Configuration.ProgramSpecifiers.TryAdd(name, new ProgramSpecifier(name, externalized, re));
         else
+        {
             State.Configuration.RefusedProgramSpecifiers.TryAdd(name, ProgramSpecifierRefusal.Literal3);
+            Edition.NoteSpecifierRefusalReported(RefusedSpecifierKind.Program, name);   // reported by BindSpecifierExternalizedName
+        }
     }
 
     /// <summary>⛔ THE ONE SCREEN OF A REPOSITORY SPECIFIER'S <c>[ AS literal-n ]</c> — class (literal-1), interface
