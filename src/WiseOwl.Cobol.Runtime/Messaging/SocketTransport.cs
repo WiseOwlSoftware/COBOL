@@ -28,6 +28,9 @@ internal sealed class SocketTransport : IPeerTransport
     /// <summary>How long a bell's connection may take to deliver its one <see cref="McsFrameKind.Ring"/> before it is dropped.</summary>
     private static readonly TimeSpan RingTimeout = TimeSpan.FromSeconds(5);
 
+    /// <summary>How long an accept loop waits after an accept failure that is not its listener closing before it accepts again (resource exhaustion lasts a moment; an aborted handshake is over at once).</summary>
+    private static readonly TimeSpan AcceptRetryDelay = TimeSpan.FromMilliseconds(50);
+
     private const int ListenBacklog = 128;
 
     private sealed class Listener(Socket socket, CancellationTokenSource stop, string path)
@@ -49,8 +52,10 @@ internal sealed class SocketTransport : IPeerTransport
     private readonly ConcurrentQueue<TransportEvent> _events = new();
     private readonly ConcurrentDictionary<int, PeerLink> _links = new();
     private readonly Dictionary<PeerEndpoint, Listener> _listeners = [];
+    private readonly object _linksGate = new();
     private int _nextLink;
     private bool _dead;
+    private bool _linksClosed;
 
     /// <summary>A transport for the run unit <paramref name="runId"/> under <paramref name="directory"/>; <paramref name="wake"/> is called from a pump whenever an event is queued.</summary>
     internal SocketTransport(McsSocketDirectory directory, string runId, Action wake)
@@ -63,6 +68,9 @@ internal sealed class SocketTransport : IPeerTransport
     /// <summary>Called by <see cref="Publish"/> after the listener is bound and listening and before its file takes its final name: the window design 5.4.1
     /// closes. A test that enumerates, connects or rings here proves that no one sees a listener that is not yet listening.</summary>
     internal Action<PeerEndpoint>? BetweenListenAndRename { get; set; }
+
+    /// <summary>The accept every listener awaits; a test replaces it to fail an accept the way the OS does, or to deliver a socket after the transport has ended (kb/Work PB4920).</summary>
+    internal Func<Socket, CancellationToken, ValueTask<Socket>> AcceptSocketAsync { get; set; } = static (socket, token) => socket.AcceptAsync(token);
 
     public void Publish(PeerEndpoint endpoint)
     {
@@ -113,7 +121,7 @@ internal sealed class SocketTransport : IPeerTransport
         ThrowIfDead();
         var socket = ConnectTo(PathOf(endpoint));
         if (socket is null) return new ConnectResult(ConnectOutcome.Refused, default);
-        var link = NewLink(socket);
+        var link = NewLink(socket) ?? throw new ObjectDisposedException(nameof(SocketTransport), "the run unit was killed or has ended");
         link.StartPump();
         return new ConnectResult(ConnectOutcome.Connected, link.Id);
     }
@@ -163,32 +171,31 @@ internal sealed class SocketTransport : IPeerTransport
         using var socket = ConnectTo(path) ?? throw new IOException($"the notify socket '{path}' refused the connection");
     }
 
-    /// <summary>The kill: every socket is dropped as the OS drops a killed process's, nothing is unpublished, and the transport takes no further call.</summary>
+    /// <summary>The kill: every socket is dropped as the OS drops a killed process's, nothing is unpublished, and the transport takes no further call.
+    /// The listeners go first, so no accept starts a link after the links are dropped (kb/Work PB4920).</summary>
     internal void Abort()
     {
         if (_dead) return;
         _dead = true;
         foreach (var listener in _listeners.Values) listener.Close();     // the files stay: the next connect to one is refused and deletes it
         _listeners.Clear();
-        foreach (var link in _links.Values) link.Abort();
-        _links.Clear();
+        foreach (var link in CloseLinkRegistry()) link.Abort();
         _events.Clear();
     }
 
-    /// <summary>Normal end: links closed, listeners unpublished and their files deleted. Nothing is left under the socket directory but other run units' files.</summary>
+    /// <summary>Normal end: listeners unpublished and their files deleted, then links closed. The listeners go first, so no accept starts a link after the links
+    /// are closed (kb/Work PB4920). Nothing is left under the socket directory but other run units' files.</summary>
     public void Dispose()
     {
         if (_dead) return;
         _dead = true;
-        foreach (var link in _links.Values) link.Close();
-        _links.Clear();
-        foreach (var endpoint in _listeners.Keys.ToArray())
+        foreach (var listener in _listeners.Values)
         {
-            var listener = _listeners[endpoint];
             listener.Close();
             DeleteQuietly(listener.Path);
         }
         _listeners.Clear();
+        foreach (var link in CloseLinkRegistry()) link.Close();
     }
 
     // ---------------------------------------------------------------- the socket directory
@@ -256,11 +263,33 @@ internal sealed class SocketTransport : IPeerTransport
 
     // ---------------------------------------------------------------- links, accept loops
 
-    private PeerLink NewLink(Socket socket)
+    /// <summary>A link over <paramref name="socket"/>, registered; null, with <paramref name="socket"/> closed, once the transport has ended (an accept already past its
+    /// await can arrive then, and nothing would dispose its link).</summary>
+    private PeerLink? NewLink(Socket socket)
     {
-        var link = new PeerLink(new PeerLinkId(Interlocked.Increment(ref _nextLink)), socket, Post);
-        _links[link.Id.Value] = link;
-        return link;
+        lock (_linksGate)
+        {
+            if (!_linksClosed)
+            {
+                var link = new PeerLink(new PeerLinkId(Interlocked.Increment(ref _nextLink)), socket, Post);
+                _links[link.Id.Value] = link;
+                return link;
+            }
+        }
+        socket.Dispose();
+        return null;
+    }
+
+    /// <summary>Refuses every later <see cref="NewLink"/> and returns the links to end.</summary>
+    private PeerLink[] CloseLinkRegistry()
+    {
+        lock (_linksGate)
+        {
+            _linksClosed = true;
+            var links = _links.Values.ToArray();
+            _links.Clear();
+            return links;
+        }
     }
 
     private void Post(TransportEvent transportEvent)
@@ -270,39 +299,45 @@ internal sealed class SocketTransport : IPeerTransport
     }
 
     /// <summary>A server's listener accepts for as long as it is published; each connection is a link, announced before its first frame can be.</summary>
-    private async Task AcceptServerAsync(Listener listener)
+    private Task AcceptServerAsync(Listener listener) => AcceptLoopAsync(listener, accepted =>
     {
-        try
-        {
-            while (true)
-            {
-                var accepted = await listener.Socket.AcceptAsync(listener.Stop.Token).ConfigureAwait(false);
-                var link = NewLink(accepted);
-                Post(new LinkAccepted(link.Id));
-                link.StartPump();
-            }
-        }
-        catch (Exception e) when (e is SocketException or ObjectDisposedException or OperationCanceledException)
-        {
-            // the listener was closed: Unpublish, Dispose or Abort
-        }
-    }
+        if (NewLink(accepted) is not { } link) return;
+        Post(new LinkAccepted(link.Id));
+        link.StartPump();
+    });
 
     /// <summary>A bell's listener: each connection carries one <see cref="McsFrameKind.Ring"/> and is then closed; anything else is dropped, so a stalled or malformed
     /// connection costs a pending read, never the accept loop.</summary>
-    private async Task AcceptBellAsync(Listener listener, string spelling)
+    private Task AcceptBellAsync(Listener listener, string spelling) =>
+        AcceptLoopAsync(listener, accepted => _ = Task.Run(() => ReadRingAsync(accepted, spelling, listener.Stop.Token)));
+
+    /// <summary>The one accept loop. It ends only when its listener is closed (<see cref="Listener.Stop"/> cancelled: Unpublish, Dispose or Abort, whatever exception the
+    /// close surfaces as). Any other accept failure (resource exhaustion, a handshake the OS aborted) leaves a listener that is still published, so the loop waits
+    /// <see cref="AcceptRetryDelay"/> and accepts again, rather than leave a requestor connecting to a socket nothing accepts from (kb/Work PB4920). A socket
+    /// accepted once the listener is closed is closed at once.</summary>
+    private async Task AcceptLoopAsync(Listener listener, Action<Socket> onAccepted)
     {
-        try
+        var stop = listener.Stop.Token;
+        while (!stop.IsCancellationRequested)
         {
-            while (true)
+            Socket accepted;
+            try
             {
-                var accepted = await listener.Socket.AcceptAsync(listener.Stop.Token).ConfigureAwait(false);
-                _ = Task.Run(() => ReadRingAsync(accepted, spelling, listener.Stop.Token));
+                accepted = await AcceptSocketAsync(listener.Socket, stop).ConfigureAwait(false);
             }
-        }
-        catch (Exception e) when (e is SocketException or ObjectDisposedException or OperationCanceledException)
-        {
-            // the bell was closed
+            catch (Exception e) when (e is SocketException or ObjectDisposedException or OperationCanceledException or IOException)
+            {
+                if (stop.IsCancellationRequested) return;
+                try { await Task.Delay(AcceptRetryDelay, stop).ConfigureAwait(false); }
+                catch (OperationCanceledException) { return; }
+                continue;
+            }
+            if (stop.IsCancellationRequested)
+            {
+                accepted.Dispose();
+                return;
+            }
+            onAccepted(accepted);
         }
     }
 
