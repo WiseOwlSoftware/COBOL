@@ -1963,7 +1963,13 @@ have the effect of a CONTINUE statement (§2023:14.9.7.4 GR1 / §2023:14.9.36.4 
   read page 2 under the mutex): a dead owner found, the OPEN's own handle is given back first, whatever the host (a host with
   mandatory share modes would refuse the writable one beside it: INPUT's implementor default is `SHARING WITH READ ONLY`, whose
   share mode refuses every writer; the Table 19 column, the file lock between run units, stays held), the step runs, and the OPEN takes its
-  handle and attaches again; a connector that holds the handle a CLOSE under commit control kept keeps it. (2) **the statement's
+  handle and attaches again; a connector that holds the handle a CLOSE under commit control kept keeps it and settles beside it. A re-OPEN
+  whose share mode made it give that kept handle back (kb/Work PB3483) holds a handle of its own that a writer cannot be beside when
+  its share mode excludes writers, and no other file connector has the file open (§2023:9.1.13.9 answers '61' only for another one), so it
+  goes through the same give-back-and-retake as an OPEN with no kept state; the record-lock ids it carried leave the table's endpoint
+  with the handle and are published through the handle that takes its place, or, when that retake is refused, through the kept handle
+  `AbandonOpen` retakes (kb/Work PB3631, review finding R1-1). Only a kept handle given back takes that path: one still on the file
+  beside the OPEN's own handle, adopted or not, is settled beside, and the store it holds is live, so no retake reads. (2) **the statement's
   coherent entry** (`KeyedConnector.Enter`), for the connectors whose share mode admits another run unit's writer
   (`BeginStatement` is inert for `SHARING WITH NO OTHER`, and a `READ ONLY` reader has no live writer beside it, so no owner can
   die after its OPEN): after page 2 is read under the SHARED mutex a dead owner is looked for (`KeyedStore.FindDeadOwner`: the
