@@ -83,6 +83,9 @@ internal static class RelationComparability
     /// equal for N = 7 where the same test of a USAGE DISPLAY <c>N</c> answers equal.</para></summary>
     private static bool IsNumericIntegerOperand(BoundOperand o) => o switch
     {
+        // ⛔ AN EXPRESSION AS WRITTEN IS NONE OF THE ADMITTED FORMS (kb/Work PB4765). The binder drops grouping parentheses, so
+        // `(LINAGE-COUNTER)` carries the register's own tree; the operand says what was written (ExpressionAsWritten).
+        { ExpressionAsWritten: true } => false,
         _ when IntrinsicArgumentRules.FunctionIsNotDisplayOrNational(o, out _) => false,
         BoundNumericLiteral => IntrinsicResultType.IsIntegerOperand(o),
         BoundFieldOperand { Place.Item: { IsGroup: false, Pic: { Usage: Usage.Display or Usage.National } } } =>
@@ -115,6 +118,11 @@ internal static class RelationComparability
         index is BoundComputedOperand { Expr: BoundIndexRef }
         && other switch
         {
+            // ⛔ A PARENTHESIZED FUNCTION OR REGISTER IS AN ARITHMETIC EXPRESSION, NOT ROW 2'S DATA ITEM (kb/Work PB4765):
+            // the binder drops the grouping parentheses, so `(FUNCTION ABS(N))` and `(LINAGE-COUNTER)` carry the tree of the
+            // function-identifier and the register written sole, and only `ExpressionAsWritten` tells them apart
+            // (§2023:8.8.1.1, "an arithmetic expression enclosed in parentheses"; `IX = (N)` is refused the same way).
+            { ExpressionAsWritten: true } => false,
             BoundNumericLiteral or BoundFigurative { Kind: 'Z' } => true,
             BoundFieldOperand or BoundComputedOperand { Expr: BoundIntrinsicCall } =>
                 IntrinsicArgumentRules.ClassOf(other) is CobolClass.Numeric,

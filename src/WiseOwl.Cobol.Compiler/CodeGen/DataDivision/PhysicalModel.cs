@@ -76,15 +76,13 @@ internal sealed class PhysicalModel(EmitContext ctx)
     /// PB244): the item whose slice of the one-way transfer image <c>GroupImageCodec.AsImageOf</c> renders — the
     /// pointer's storage image (<c>PointerImage</c>, DOC-A.1-216; kb/Work PB1071) when
     /// <see cref="SlotWindow.CarriesTokenImage"/>, else the reserved placeholder positions. Null on every other field.</param>
-    /// <param name="Group">The group item a record-struct group field stands for (null on every other field): what <c>GroupImageCodec</c> asks whether the
-    /// nested struct holds message tags (kb/Work PB4744), whose <c>FromMessageImage</c> then stands in for <c>FromImage</c>.</param>
     /// <param name="FillerBits">⛔ Non-zero ONLY on a STORED IMPLICIT FILLER (ISO §2023:8.5.1.6.3, kb/Work PB3564): the hidden string
     /// field of boolean positions that holds <c>BitLayout.FillersOf</c>'s entry — the bits after a run's last member, or
     /// between a strided table's occurrences — whose value is data of the owner group (a group move writes it, the next
     /// read gives it back). It is a FIELD and no part of the image: <see cref="Width"/> is 0 and the run leader's packed
     /// slice (<c>GroupImageCodec.AsImageOf</c>) is what carries its positions; every walk that is one-to-one with the
     /// group's MEMBERS (a leaf vector) skips it. Initialized to zero positions, §2023:13.18.63's boolean initial state.</param>
-    internal readonly record struct Physical(string Name, string Type, int Width, bool IsGroupStruct, string Init, string Comment, int Occurs = 0, DataItem? NumLeaf = null, IReadOnlyList<DataItem>? BitRun = null, DataItem? NatLeaf = null, DataItem? SlotLeaf = null, int FillerBits = 0, DataItem? Group = null);
+    internal readonly record struct Physical(string Name, string Type, int Width, bool IsGroupStruct, string Init, string Comment, int Occurs = 0, DataItem? NumLeaf = null, IReadOnlyList<DataItem>? BitRun = null, DataItem? NatLeaf = null, DataItem? SlotLeaf = null, int FillerBits = 0);
 
     /// <summary>The memoized physical fields of a group's children (the root forest under the sentinel).
     /// <para>⚠ <paramref name="subs"/> is the OCCURRENCE CONTEXT (see <see cref="ValueInitializer.FieldInit"/>) and
@@ -241,7 +239,7 @@ internal sealed class PhysicalModel(EmitContext ctx)
             // (PB1071) or its reserved placeholder positions (D-SLOT) - GroupImageCodec.SlotImageOf, the same recipe
             // the storage seed uses.
             yield return new Physical(c.ClrName, c.FieldType, width, c.IsGroup, Values.FieldInit(c, subs, recipe), comment, occurs, numLeaf, null, natLeaf,
-                SlotWindow.CarriedBySlot(c) ? c : null, 0, c.IsGroup ? c : null);
+                SlotWindow.CarriedBySlot(c) ? c : null);
         }
     }
 
