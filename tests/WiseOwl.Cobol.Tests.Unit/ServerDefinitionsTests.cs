@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text.Json.Nodes;
+using WiseOwl.Cobol.Tests.Shared;
 using WiseOwl.Cobol.Runtime.Messaging;
 using Xunit;
 
@@ -14,9 +15,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 public sealed class ServerDefinitionsTests : IDisposable
 {
-    private readonly string _dir = Directory.CreateTempSubdirectory("pb4745d-").FullName;
+    private readonly string _dir = ScratchDirectory.Create("pb4745d-");
 
-    public void Dispose() => Directory.Delete(_dir, recursive: true);
+    public void Dispose() => ScratchDirectory.Remove(_dir);
 
     private Func<string, ServerDefinition?> Read(string json)
     {

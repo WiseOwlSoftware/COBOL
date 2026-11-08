@@ -155,17 +155,16 @@ public static class StandardStreams
     /// on standard error and leaves the console as it was.</summary>
     private static void RouteToServerLog(Encoding utf8)
     {
-        if (Environment.GetEnvironmentVariable(Messaging.ServerActivation.LogVariable) is not { Length: > 0 } path) return;
         try
         {
-            var log = TextWriter.Synchronized(new StreamWriter(
-                new FileStream(path, FileMode.Append, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete), utf8) { AutoFlush = true });
+            if (Messaging.ServerActivation.OpenLogOfThisProcess() is not { } stream) return;
+            var log = TextWriter.Synchronized(new StreamWriter(stream, utf8) { AutoFlush = true });
             Console.SetOut(log);
             Console.SetError(log);
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
-            Console.Error.WriteLine($"cannot open the message server log '{path}': {e.Message}");
+            Console.Error.WriteLine($"cannot open the message server log: {e.Message}");
         }
     }
 

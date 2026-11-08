@@ -29,6 +29,17 @@ internal sealed class ServerActivation(McsSocketDirectory sockets, string mcsDir
     /// <summary>The variable that names the log a started server's standard output and error go to (design 5.4.5).</summary>
     internal const string LogVariable = "WISEOWL_COBOL_MCS_LOG";
 
+    /// <summary>The log at <paramref name="path"/>, opened for append and shared with its other writers: the requestor drains the started command's pipes into it, and the started
+    /// run unit's own console is the same file (<see cref="OpenLogOfThisProcess"/>), so each side's lines land whole. It is no COBOL file connector's handle (a message server's log is
+    /// outside the file facility, §2023:9.1), so <c>HostFile</c> is not its opener.</summary>
+    internal static FileStream OpenLog(string path) =>
+        new(path, FileMode.Append, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
+
+    /// <summary>The log this process was started to write (<c>WISEOWL_COBOL_MCS_LOG</c>), opened; null when the process was not started by a requestor. Called by the process entry
+    /// (<see cref="StandardStreams.EnsureUtf8"/>) alone, which sends the console to it.</summary>
+    internal static FileStream? OpenLogOfThisProcess() =>
+        Environment.GetEnvironmentVariable(LogVariable) is { Length: > 0 } path ? OpenLog(path) : null;
+
     /// <summary>How long a connection the listener already holds is awaited when the command has ended: the accept completes at once, so this bounds a defect and not a normal wait.</summary>
     private static readonly TimeSpan NotifyGrace = TimeSpan.FromSeconds(5);
 
@@ -146,7 +157,7 @@ internal sealed class ServerActivation(McsSocketDirectory sockets, string mcsDir
     {
         try
         {
-            await using var log = new FileStream(logPath, FileMode.Append, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
+            await using var log = OpenLog(logPath);
             await pipe.CopyToAsync(log).ConfigureAwait(false);
         }
         catch (Exception e) when (e is IOException or ObjectDisposedException)
