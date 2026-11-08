@@ -884,6 +884,11 @@ internal static class RuntimeApi
     public static string DecDivTruncatedToOdd(string leftOperand, string rightOperand, int resultScale) =>
         $"{nameof(CobolDec)}.{nameof(CobolDec.DivTruncatedToOdd)}({leftOperand}, {rightOperand}, {resultScale})";
 
+    /// <summary>The FINAL-TRANSFER native quotient of two SDIDI values — <c>CobolDec.DivFinal</c>: round-to-odd at 34 digits, so the
+    /// receiver's one rounding is the exact quotient's (kb/Work PB4641); PROHIBITED screens it as every SDIDI intermediate is.</summary>
+    public static string DecDivFinal(string leftOperand, string rightOperand, string modeExpr) =>
+        $"{nameof(CobolDec)}.{nameof(CobolDec.DivFinal)}({leftOperand}, {rightOperand}, {modeExpr})";
+
     /// <summary>The negation of an SDIDI value, its operand evaluated once — <c>CobolDec.Negate</c>.</summary>
     public static string DecNegate(string operand) => $"{nameof(CobolDec)}.{nameof(CobolDec.Negate)}({operand})";
 

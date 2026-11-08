@@ -838,7 +838,14 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         string? kernel = op switch { "+" => "Add", "-" => "Sub", "*" => "Mul", "/" => "Div", _ => null };
         if (kernel is null) return a;
         string left = DecOperand(a), right = DecOperand(b);
-        string value = $"CobolDec.{kernel}({left}, {right}, {IntermediateMode})";
+        // ⛔ A NATIVE FINAL-TRANSFER QUOTIENT IS ROUNDED ONCE, AT THE RECEIVER (kb/Work PB4641; DOC-A.1-123): round-to-odd at 34 digits.
+        // Only the STANDARD-DECIMAL lane rounds the quotient itself, its quotient being an SDIDI value (§2023:8.8.1.5); a nested
+        // native quotient never comes here (Divide).
+        // A FLOATING-POINT EDITED receiver whose significand holds 33 to 36 digits (§2023:13.18.40.3 SR15) keeps Div: round-to-odd
+        // at 34 digits preserves the receiver's rounding only while the receiver is at least two digits coarser.
+        string value = op == "/" && !StandardDecimal && _rcv.FloatSignificandDigits <= 32
+            ? RuntimeApi.DecDivFinal(left, right, IntermediateMode)
+            : $"CobolDec.{kernel}({left}, {right}, {IntermediateMode})";
         // Under STANDARD-DECIMAL no nested quotient reads a precision; a quotient here is a final transfer's (Divide owns
         // every nested one), so nothing above it reads its precision either.
         if (StandardDecimal || op == "/") return new NumX(value, 0, Dec: true);
