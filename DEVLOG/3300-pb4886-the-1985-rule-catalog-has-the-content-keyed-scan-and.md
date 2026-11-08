@@ -1,4 +1,4 @@
-## PB4886: the 1985 rule catalog has the content-keyed scan, and its denominator is complete
+## Entry 3300 — 2026-11-07 21:35 PST — PB4886: the 1985 rule catalog has the content-keyed scan, and its denominator is complete
 
 The 1985 catalog (kb/Work PB4886) typed its rule blocks by their headings, and a paragraph of numbered rules under a
 prose heading (§1985:VI.6.4.2 'The ON SIZE ERROR Phrase') was outside the denominator without a finding. The 2023
@@ -47,3 +47,4 @@ file system. Duplication: the deleted copies are `BLOCK_KINDS`, the 1985 `RULE_S
 kind resolution and drift printing. The cost is one linear pass, as before. Leads not fixed here: the 1985 Section I
 conformance requirements are prose with no row (2023's `paragraph-blocks` shape); a rule of a second sub-list cites the
 same `GR1` as the first list's; the transcription's "control fopting" on PDF page 634.
+
