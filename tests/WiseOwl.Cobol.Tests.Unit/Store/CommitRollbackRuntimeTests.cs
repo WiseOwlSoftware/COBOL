@@ -2680,7 +2680,7 @@ public sealed class CommitRollbackRuntimeReplacedFileTests : CommitRollbackRunti
             Assert.Equal("00", a.Status("F"));
             a.PagedStoreOf("F")!.DropCache();
             armed = true;
-            a.OpenShared("F", FileOpenMode.Input, hasSharingOverride: true, FileSharing.NoOther, FileRetryKind.None, 0,
+            a.OpenShared("F", FileOpenMode.Extend, hasSharingOverride: true, FileSharing.NoOther, FileRetryKind.None, 0,
                 OpenTapePhrase.None, assign: "", assignDynamic: false, page: null);
             Assert.Equal("30", a.Status("F"));
             armed = false;
