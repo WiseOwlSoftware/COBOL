@@ -1,4 +1,4 @@
-## PB4934, PB4938: the CALL arm of the message-tag gate, and the CALL storage-section rule as one value
+## Entry 3288 — 2026-11-07 18:01 PST — PB4934, PB4938: the CALL arm of the message-tag gate, and the CALL storage-section rule as one value
 
 **PB4934.** Below 2023 a Format-2 CALL passing a non-tag argument to a same-file message-tag formal drew COBOL1688 beside COBOL0900
 (`callnest.cob --source-format free --std 2014`, reproduced on this build). `StatementBinder.NamesGatedMessageTag` had arms for data
@@ -14,3 +14,4 @@ sites) and INVOKE (four sites) callers pass it. The golden `pb4901-call-debug-re
 one substring, so a regression of the clause to a 2023 one turns it red.
 
 No inventory row closes in either note.
+
