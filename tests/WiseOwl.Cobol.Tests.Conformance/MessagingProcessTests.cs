@@ -113,7 +113,7 @@ public sealed class MessagingProcessTests : IDisposable
     public void ARequestAndItsReplyCrossTwoProcesses_AndTheServerNameMatchesWithoutRegardToCase()
     {
         // §2023:14.9.38.4 GR4 (the SEND waits until the server run unit receives the message), GR6 (the tag), §2023:14.9.31.4 GR1 a) (the server's RECEIVE of NULL names its requestor),
-        // GR3 (the length of the message), GR7 (the server answers the requestor it received) and §2023:14.9.31.4 GR1 b) (the requestor receives the answer by the server tag).
+        // GR3 (the length of the message), GR7 (the server answers the requestor it received) and §2023:14.9.31.4 GR1b (the requestor receives the answer by the server tag).
         // D-MCS-SERVER: a server name is compared with trailing spaces removed and without regard to case ("srv " serves SRV).
         Compile("PB4744S1", Server("PB4744S1", 20, ReplyAfter));
         Compile("PB4744C1", Requestor("PB4744C1"));
@@ -391,7 +391,7 @@ public sealed class MessagingProcessTests : IDisposable
     public void AVariableLengthGroupHoldingAMessageTag_CarriesItsTagBesideItsCurrentImage()
     {
         // §2023:14.9.38.3 SR3 and §2023:14.9.31.3 SR2 list neither OCCURS DYNAMIC nor the message tag, so a variable-length group that holds a tag is a legal message area:
-        // the message is its current-extent image (§2023:14.9.38.4 GR4), 3 + 8 (the tag's token positions, which the receiver skips) + 2 elements, and the tag arrives beside it as a slot.
+        // the message is its current-extent image (§2023:14.9.38.4 GR4), 3 + 8 (the tag's token positions, which the receiver resolves against the slot, kb/Work PB4957) + 2 elements, and the tag arrives beside it as a slot.
         string client = $"""
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB4744C6.
@@ -510,7 +510,7 @@ public sealed class MessagingProcessTests : IDisposable
     {
         // Review R3-1 of PB4744: §2023:14.9.38.3 SR3 and §2023:14.9.31.3 SR2 list neither OCCURS DYNAMIC nor the message tag, so a tag in an ELEMENT of a dynamic-capacity
         // table is a legal message area too. The message is the current-extent image, 3 + 2 elements of (8 + 1) = 21 positions; each element is recreated by its own
-        // FromMessageImage (a tag's token positions name the sender's tag and are skipped), and the tags arrive beside the image in storage order: element 1's NULL, element 2's set.
+        // FromImage (a tag's token positions name the sender's tag, which the slot beside the image resolves, kb/Work PB4957): element 1's NULL, element 2's set.
         const string type = """
        01 TD IS TYPEDEF STRONG.
           05 DA PIC X(3).
@@ -574,6 +574,181 @@ public sealed class MessagingProcessTests : IDisposable
         Assert.Equal("DA=ABC DX=PQ LEN=0021", srv.ExpectLine());
         Assert.Equal("DT1 NULL", srv.ExpectLine());
         Assert.Equal("DT2 SET", srv.ExpectLine());
+        Assert.Equal(0, cli.WaitForExit());
+        int srvExit = srv.WaitForExit(); Assert.True(srvExit == 0, srv.Stderr);
+    }
+
+    [Fact]
+    public void AReceivedTagIsTheContentOfItsOwnPositions_SoATagTheMessageCarriedElsewhereOrPastTheCapacityIsNotIt()
+    {
+        // kb/Work PB4957. §2023:14.9.31.4 GR1b: "The content of identifier-1 is the content of the message sent by that SEND statement" - position for position, so a
+        // receiving tag takes what the message holds at ITS positions: the sender's tag token there names the tag the message carries beside it (DOC-A.1-212), and eight
+        // X"00" positions are NULL. GR3 cuts a message longer than identifier-1 to identifier-1's positions, so a tag that lay past them is no part of what it received.
+        // The sender's L1 is [8 X"00", tag] and L2 is [tag, 8 X"00"], 16 positions each. An elementary tag (8 positions) receiving L1 gets NULL and receiving L2 the tag,
+        // both EC-MCS-MESSAGE-LENGTH; a group [tag, tag] receiving L1 gets NULL then the tag, the order of the positions and not of the slots.
+        const string client = """
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB4957C1.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 MT        USAGE MESSAGE-TAG.
+       01 MT2       USAGE MESSAGE-TAG.
+       01 REQ       PIC X(8) VALUE "FIRST".
+       01 TL1 IS TYPEDEF STRONG.
+          05 LA PIC X(8).
+          05 LT USAGE MESSAGE-TAG.
+       01 TL2 IS TYPEDEF STRONG.
+          05 KT USAGE MESSAGE-TAG.
+          05 KA PIC X(8).
+       01 L1 TYPE TL1.
+       01 L2 TYPE TL2.
+       PROCEDURE DIVISION.
+       MAIN-P.
+           SEND TO "srv" FROM REQ RETURNING MT
+               ON EXCEPTION DISPLAY "CLI SEND-EXC " FUNCTION TRIM(FUNCTION EXCEPTION-STATUS)
+           END-SEND
+           MOVE LOW-VALUES TO LA OF L1
+           SET LT OF L1 TO MT
+           MOVE LOW-VALUES TO KA OF L2
+           SET KT OF L2 TO MT
+           SEND TO "srv" FROM L1 RETURNING MT2
+           END-SEND
+           SEND TO "srv" FROM L2 RETURNING MT2
+           END-SEND
+           SEND TO "srv" FROM L1 RETURNING MT2
+               ON EXCEPTION DISPLAY "CLI SEND2-EXC " FUNCTION TRIM(FUNCTION EXCEPTION-STATUS)
+           END-SEND
+           DISPLAY "SENT"
+           STOP RUN.
+""";
+        const string server = """
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB4957S1.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 RT        USAGE MESSAGE-TAG.
+       01 T1        USAGE MESSAGE-TAG.
+       01 T2        USAGE MESSAGE-TAG.
+       01 BUF       PIC X(8).
+       01 LEN       PIC 9(4).
+       01 TR IS TYPEDEF STRONG.
+          05 R1 USAGE MESSAGE-TAG.
+          05 R2 USAGE MESSAGE-TAG.
+       01 RG TYPE TR.
+       PROCEDURE DIVISION.
+       MAIN-P.
+       >>TURN EC-MCS-MESSAGE-LENGTH CHECKING ON
+           DISPLAY "READY"
+           RECEIVE RT GIVING BUF LEN
+           RECEIVE RT GIVING T1 LEN
+               ON EXCEPTION DISPLAY "T1 " FUNCTION TRIM(FUNCTION EXCEPTION-STATUS)
+           END-RECEIVE
+           IF T1 = NULL DISPLAY "T1 NULL" ELSE DISPLAY "T1 SET" END-IF
+           RECEIVE RT GIVING T2 LEN
+               ON EXCEPTION DISPLAY "T2 " FUNCTION TRIM(FUNCTION EXCEPTION-STATUS)
+           END-RECEIVE
+           IF T2 = NULL DISPLAY "T2 NULL" ELSE DISPLAY "T2 SET" END-IF
+           RECEIVE RT GIVING RG LEN
+           DISPLAY "LEN=" LEN
+           IF R1 OF RG = NULL DISPLAY "R1 NULL" ELSE DISPLAY "R1 SET" END-IF
+           IF R2 OF RG = NULL DISPLAY "R2 NULL" ELSE DISPLAY "R2 SET" END-IF
+           IF R2 OF RG = T2 DISPLAY "R2 SAME AS T2" END-IF
+           STOP RUN.
+""";
+        Compile("PB4957S1", server);
+        Compile("PB4957C1", client);
+        var srv = Start("PB4957S1", serves: "SRV");
+        Assert.Equal("READY", srv.ExpectLine());
+        var cli = Start("PB4957C1");
+        Assert.Equal("SENT", cli.ExpectLine());
+        Assert.Equal("T1 EC-MCS-MESSAGE-LENGTH", srv.ExpectLine());
+        Assert.Equal("T1 NULL", srv.ExpectLine());
+        Assert.Equal("T2 EC-MCS-MESSAGE-LENGTH", srv.ExpectLine());
+        Assert.Equal("T2 SET", srv.ExpectLine());
+        Assert.Equal("LEN=0016", srv.ExpectLine());
+        Assert.Equal("R1 NULL", srv.ExpectLine());
+        Assert.Equal("R2 SET", srv.ExpectLine());
+        Assert.Equal("R2 SAME AS T2", srv.ExpectLine());
+        Assert.Equal(0, cli.WaitForExit());
+        int srvExit = srv.WaitForExit(); Assert.True(srvExit == 0, srv.Stderr);
+    }
+
+    [Fact]
+    public void AReceivingGroupInAStorageCell_TakesEachTagFromItsOwnPositions_NotFromTheSlotItHeldBefore()
+    {
+        // kb/Work PB4957, the storage-cell arm of the same rule (§2023:14.9.31.4 GR1b): a by-reference formal is a storage cell whose tags live in its managed slots beside
+        // the bytes (kb/Work PB2087), so the image written through the group's window must still decide each tag: R1 held the requestor's tag before the RECEIVE, and the
+        // message holds eight X"00" there, so it is NULL after it; R2's positions hold the sender's token, so it is the tag the message carried beside it.
+        const string client = """
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB4957C2.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 MT        USAGE MESSAGE-TAG.
+       01 MT2       USAGE MESSAGE-TAG.
+       01 REQ       PIC X(8) VALUE "FIRST".
+       01 TL1 IS TYPEDEF STRONG.
+          05 LA PIC X(8).
+          05 LT USAGE MESSAGE-TAG.
+       01 L1 TYPE TL1.
+       PROCEDURE DIVISION.
+       MAIN-P.
+           SEND TO "srv" FROM REQ RETURNING MT
+               ON EXCEPTION DISPLAY "CLI SEND-EXC " FUNCTION TRIM(FUNCTION EXCEPTION-STATUS)
+           END-SEND
+           MOVE LOW-VALUES TO LA OF L1
+           SET LT OF L1 TO MT
+           SEND TO "srv" FROM L1 RETURNING MT2
+               ON EXCEPTION DISPLAY "CLI SEND2-EXC " FUNCTION TRIM(FUNCTION EXCEPTION-STATUS)
+           END-SEND
+           DISPLAY "SENT"
+           STOP RUN.
+""";
+        const string server = """
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB4957S2.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 RT        USAGE MESSAGE-TAG.
+       01 BUF       PIC X(8).
+       01 LEN       PIC 9(4).
+       01 TR IS TYPEDEF STRONG GLOBAL.
+          05 R1 USAGE MESSAGE-TAG.
+          05 R2 USAGE MESSAGE-TAG.
+       01 RG TYPE TR.
+       PROCEDURE DIVISION.
+       MAIN-P.
+           DISPLAY "READY"
+           RECEIVE RT GIVING BUF LEN
+           SET R1 OF RG TO RT
+           CALL "PB4957SR" AS NESTED USING RT RG
+           IF R1 OF RG = NULL DISPLAY "R1 NULL" ELSE DISPLAY "R1 SET" END-IF
+           IF R2 OF RG = NULL DISPLAY "R2 NULL" ELSE DISPLAY "R2 SET" END-IF
+           STOP RUN.
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB4957SR.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 LLEN      PIC 9(4).
+       LINKAGE SECTION.
+       01 LRT       USAGE MESSAGE-TAG.
+       01 LG TYPE TR.
+       PROCEDURE DIVISION USING LRT LG.
+           RECEIVE LRT GIVING LG LLEN
+               ON EXCEPTION DISPLAY "SRV EXC"
+           END-RECEIVE
+           GOBACK.
+       END PROGRAM PB4957SR.
+       END PROGRAM PB4957S2.
+""";
+        Compile("PB4957S2", server);
+        Compile("PB4957C2", client);
+        var srv = Start("PB4957S2", serves: "SRV");
+        Assert.Equal("READY", srv.ExpectLine());
+        var cli = Start("PB4957C2");
+        Assert.Equal("SENT", cli.ExpectLine());
+        Assert.Equal("R1 NULL", srv.ExpectLine());
+        Assert.Equal("R2 SET", srv.ExpectLine());
         Assert.Equal(0, cli.WaitForExit());
         int srvExit = srv.WaitForExit(); Assert.True(srvExit == 0, srv.Stderr);
     }

@@ -139,7 +139,7 @@ originally architected it"; kb/Work PB4992). Each fact has one home:
 
 | fact | its one home |
 |---|---|
-| the rule: id, citation, section or locator, kind, ordinal, subject, module, level, box, text, status (normal or obsolete, read from the text) | the edition's catalog (`extract_rule_catalog.py --edition`), regenerated from the text |
+| the rule: id, citation, section or locator, kind, ordinal, subject, module, level, box, text, status (normal, archaic or obsolete, read from the text's own lists) | the edition's catalog (`extract_rule_catalog.py --edition`), regenerated from the text |
 | the adjudication: verdict, code-location, test-ref, derivation, notes, and for an older edition the change record `next` (§10.2) | the edition's store, one file per adjudicated rule |
 | the text the adjudication was decided against | the store file's `rule-digest`, compared with the catalog's text on every read |
 | the state (OK or GAP) | nowhere: computed by the view, never stored |
@@ -840,11 +840,45 @@ never between every pair. Each rule of the older edition carries one classificat
 A rule of the newer edition that no older row's `to` names is NEW; that is derived, never written. A `next` stores the
 rule ids it links, its `reason` (the words that differ, or what deleted the feature) and its `source` (the audit run or
 the adjudication); its evidence is the citation of the older rule and of each `to` rule, read from their catalogs,
-never stored a second time, and each one `cite.py --check`s against its own text.
+never stored a second time, and each one `cite.py --check`s against its own text. The record's shape is DATA, the
+schema's `next` (kb/Work PB4993): the keys it may carry, the fields that state a verdict, and each kind's flags (does it
+name `to` rules, must it state its `reason`, is its verdict its chain's: `chained`, KEPT alone), read as
+`inventory_schema.ChangeRecord` by `lineage.next_errors` and `lineage.state_of`; no code spells a kind. The one writer
+is `record_verdicts.py --edition <older edition>`.
+
 **Deprecation is not a fourth kind.** The standard itself marks an element obsolete or archaic in an edition
 (§1985:I.1.5.2.3 requires a conforming implementation to support the obsolete elements of what it claims), so `status`
 is a fact of that edition's rule, read from its text into its catalog: KEPT into a row whose status is obsolete, then REMOVED at the next edition, is the
-deprecate-then-remove lifecycle.
+deprecate-then-remove lifecycle. A catalog row's `status`, in every edition's catalog, is `normal`, or one clause per
+standing naming the list entries that confer it (`obsolete: C.1(n)`, `archaic: F.1(n)`; two standings join with `; `).
+The authority is the edition's own enumerated lists: 1985's obsolete list (§1985:C.1, 18 entries); 2023's archaic list
+(§2023:F.1, 2 entries, which §2023:4.2.12 defines) and obsolete list (§2023:F.2, 5 entries, which §2023:4.2.13
+defines). They are held once as data per edition (`docs/rearchitecture/spec-element-standing-<edition>.json`,
+`extract_rule_catalog.STANDING_OF`): per list its standing, its locator and its remark sections; per entry its number,
+the terms that name the element in a rule, the sections that specify it, a section's own extra terms (VALUE's VALID and
+INVALID phrases), and a SHARED section's numbered formats that are wholly the element (`section-formats`: the EXIT
+statement's Format 2 (program), the data description entry's Format 4 (validation), PRESENT WHEN's Format 2
+(validation), VALUE's Format 5 (content-validation-entry)), whose band's every syntax and general rule is marked, by the
+rule's `band-formats`, whether its text names a term or not; the entry's name is the list's own text. Both catalog arms apply them through one call (`element_standing.apply`). The
+marking (`scripts/spec/element_standing.py`) is decided per SECTION: an OWN section, whose heading names one of the
+entry's terms (THE ALTER STATEMENT, THE RERUN CLAUSE, the Debug and Segmentation modules; 2023's FLAG-02 directive,
+standard-binary arithmetic, the VALIDATE statement and the clauses that exist only for it), marks every rule; a SHARED
+one (an I-O-CONTROL paragraph beside SAME, a file description entry, VI 3.2 beside PROGRAM-ID, the OPEN, STOP, GO TO,
+DISABLE and ENABLE statements; 2023's EXIT, IF, SEARCH and MOVE statements, the ARITHMETIC clause, the data description
+entry and the PRESENT WHEN, VALUE and VARYING clauses) marks only the syntax and general rules that name a term, never
+its general format, whose later fate is its own CHANGED record. OWN or SHARED is derived from the heading, never held.
+The drift checks, which the RULE CATALOG and RULE CATALOG 1985 audits fail on, hold the data to the text, per list: the
+entries are exactly the list's items, every section is a locator of the text, every sentence that gives an element the
+list's standing ("is an obsolete element", "is an archaic feature") falls in a section some entry names (or a remark
+section the data names: the 1985 level tables' Z notation, a 2023 definition's note, Annex A's lists, Annex D's
+concepts), every sentence giving a NAMED format the standing ("The Program format of the EXIT statement is an archaic
+feature", "The validation format of the data description is an obsolete feature") names a format an entry declares, a
+declared format is a numbered format of its section, a format's number is never a term (it misses the band's rules that
+do not repeat it), every entry marks a rule (counted by the marking itself, so a shared general format naming a term does not
+count; 1985 entry 1, double character substitution, is prose outside any rule block and entry 4, MEMORY SIZE, is named
+only in the shared OBJECT-COMPUTER format, so both are declared `no-rule`, checked both ways), and no shared section's
+format and no rule outside its entries' sections is marked. 1985: 143 rules obsolete. 2023: 13 archaic and 106
+obsolete. A later edition's lists are one more data file read by the same code.
 
 **A verdict is held once per chain.** A run of KEPT links is one chain; its verdict, code location and test live on the
 chain's NEWEST row, and an older row in it holds none (the schema refuses them there), so 2023's adjudicated work serves
@@ -853,8 +887,9 @@ the chain's test must also be placed at that edition (the conformance suite's pl
 CHANGED and REMOVED rows, and NEW ones, carry verdicts of their own. The fleet's work is therefore only what changed.
 
 **The audit fills the change records** (§10.3). Its passes are detections. A SAME that the verify pass upholds is
-recorded as KEPT through the one recording path (`record_verdicts.py`, a batch derived from the run's `results.json`, as
-the 2023 derived batches are); a DISPUTED rule goes to a fleet adjudicator, who records KEPT or CHANGED; a DIFFERS or
+recorded as KEPT through the one recording path (`record_verdicts.py --edition 1985`, a batch the run itself writes from
+its dispositions, `audit_batch.py kept-batch`, as the 2023 derived batches are written by `derive_verdict_batch.py`; the
+1985 audit's 759 upheld SAME rules are recorded, kb/Work PB4993); a DISPUTED rule goes to a fleet adjudicator, who records KEPT or CHANGED; a DIFFERS or
 NONE answer is a CHANGED or REMOVED candidate that an adjudicator confirms with its evidence, and then a verdict of its own
 under `--std=<edition>`, its witness a draft from the drafts pass checked against the rule text.
 
