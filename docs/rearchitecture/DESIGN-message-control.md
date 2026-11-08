@@ -877,7 +877,7 @@ tag's party; two servers of one name; a server started while a SEND waits takes 
 with checking on and off, and a level-2 name (Q6); a foreign tag; a long message (Q7) and `maxLength`; a server ending
 normally, fatally and aborted with a message active; a requestor ending before the reply; a server tag reused; a message
 carrying a tag; a variable-length identifier-1 with two OCCURS DYNAMIC tables, received by the same description (the
-extent table restores both extents); an elementary message tag as identifier-1 (EC-MCS-MESSAGE-LENGTH); the only server
+extent table restores both extents); an elementary message tag as identifier-1 (an 8-position message whose tag travels as its one slot); the only server
 aborted during a SEND; `CONTINUE AFTER 2 SECONDS` with no request.
 
 **Across processes** (`conformance-test:MessagingProcessTests`): `Process.Kill` on a server holding an active message, on a

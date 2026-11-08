@@ -41,3 +41,7 @@ stays open.
 
 **Self-review** covered architecture (one predicate `HoldsOnlyMessageTagSlots` for every tag-skipping arm; the socket fallback in the one resolver), full code
 (every citation checked with `cite.py`), performance (the far-pointer table grows only with far pointers that are imaged) and duplication (none added).
+
+**Review round 1, R1-1.** The D-MCS-LENGTH determination in docs/CONFORMANCE.md and the design's test-case list still said an elementary message tag has no
+character position, so a SEND from one is EC-MCS-MESSAGE-LENGTH. Since the merge of PB4838 it is an 8-position message whose tag travels as its one slot, and both
+documents now say so (`MessagingProcessTests.AnElementaryMessageTag_IsAnEightPositionMessage_WhoseTagTravelsAsItsSlot` is the witness).

@@ -250,7 +250,8 @@ of an unsupported facility.
   is measured against the requestor's own identifier-1. §2023:14.9.31.4 GR3 makes a message longer than identifier-1 unsuccessful with EC-MCS-MESSAGE-LENGTH and says nothing of the
   message: the message is taken (it does not stay queued, where the next RECEIVE FROM NULL would loop on it), identifier-1 receives its first positions, data-name-2 is unchanged,
   data-name-1 identifies the sender, and the server can answer it. A message's length is the number of positions of the sender's identifier-1, two per national character (A.1 item 213).
-  An elementary message tag has no character position, so a SEND from one is EC-MCS-MESSAGE-LENGTH and a RECEIVE into one takes every message as too long.
+  An identifier-1 that is an elementary message tag is a message of 8 positions, its token; the tag travels as the message's one slot, and a RECEIVE into an elementary tag
+  (capacity 8) sets it to that slot's tag, NULL when the message carried none (`AsyncMessaging.TagOf`). Witness `conformance-test:MessagingProcessTests`.
 - **D-MCS-WAIT — CONTINUE AFTER of a RECEIVE** (kb/Work PB4744; DESIGN-message-control.md §0 Q5). §2023:14.9.31.4 GR2 completes the RECEIVE "when the message or an exception is returned from the
   MCS or when the CONTINUE parameters are completed", content of identifier-1 then all spaces and the RECEIVE successful, and gives MESSAGE RECEIVED no other meaning. `CONTINUE AFTER MESSAGE RECEIVED` polls: a waiting
   message is received, otherwise identifier-1 is spaces, data-name-2 zero and the statement successful. `CONTINUE AFTER arithmetic-expression-1 SECONDS` waits at most that long, the interval evaluated by the rule of
