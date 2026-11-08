@@ -349,9 +349,10 @@ public static partial class CobolIntrinsics
         CobolFloat.InBinary64Range(r, nonzero, $"FUNCTION {function}", SizeChecks.Range);
 
     /// <summary>An EXACT returned value narrowed to the family's binary64, range-checked against its own value
-    /// (<see cref="InBinary64Range"/>) — the one narrowing of an SDIDI-evaluated body.</summary>
-    private static double NarrowResult(CobolDec v, string function) =>
-        InBinary64Range(v.ToDouble(), v.Sig != 0, function);
+    /// (<see cref="InBinary64Range"/>) — the one narrowing of an SDIDI-evaluated body. A value the body evaluated in binary64
+    /// (<see cref="CobolExact.TryBinary64"/>, kb/Work PB4979) is that binary64, already range-checked by its float body.</summary>
+    private static double NarrowResult(CobolExact v, string function) =>
+        v.TryBinary64(out double binary64) ? binary64 : InBinary64Range(v.ToDouble(), v.Sign != 0, function);
 
     /// <summary>§2023:15.34 EXP of a floating argument — e^x is never zero, so a finite argument's zero is an underflow.</summary>
     public static double Exp(double x) =>                      // §2023:15.34 — e ** argument (COBOL-2002+)

@@ -238,6 +238,45 @@ internal readonly struct CobolBig
         return CobolDec.Round34Wide(0, low, (a.Value.Sign < 0) != (b.Value.Sign < 0), exp, mode, extraSticky: inexact, jam: jam);
     }
 
+    /// <summary>⛔ THE EXACT QUOTIENT OF TWO DECIMAL VALUES REDUCED BY ROUND-TO-ODD TO <paramref name="digits"/> SIGNIFICANT DIGITS (kb/Work
+    /// PB4975; DOC-A.1-123): numerator × 10^<paramref name="numeratorExp"/> over denominator × 10^<paramref name="denominatorExp"/>, the
+    /// dividend scaled until the integer quotient holds more than <paramref name="digits"/> digits, the true remainder and any dropped
+    /// digit the sticky bit, and an inexact quotient keeps an ODD last digit. A receiver at least two digits coarser than
+    /// <paramref name="digits"/> then rounds this value, in any §2023:14.7.4.3 mode, exactly as it would round the exact quotient.
+    /// <see cref="QuotientDec"/> is the 34-digit form for an SDIDI result; this one serves a floating-point edited receiver whose significand
+    /// holds 33 to 36 digits (§2023:13.18.40.3 SR15), which an SDIDI cannot round once. <paramref name="digits"/> is at most 38, so the
+    /// significand is an <see cref="Int128"/>. An exact quotient keeps the preferred exponent, the dividend's less the divisor's. A zero
+    /// divisor raises <see cref="CobolSizeError.ZeroDivide"/>.</summary>
+    internal static CobolDec QuotientToOdd(BigInteger numerator, long numeratorExp, BigInteger denominator, long denominatorExp, int digits)
+    {
+        if (denominator.IsZero) throw CobolSizeError.ZeroDivide();
+        long preferred = numeratorExp - denominatorExp;
+        if (numerator.IsZero) return CobolDec.Zero(preferred);
+        BigInteger magnitude = BigInteger.Abs(numerator), divisor = BigInteger.Abs(denominator);
+        int up = Math.Max(0, digits + 1 + Digits(divisor) - Digits(magnitude));
+        BigInteger quotient = BigInteger.DivRem(magnitude * Pow10(up), divisor, out BigInteger remainder);
+        bool inexact = !remainder.IsZero;
+        long steps = up;
+        int held = Digits(quotient);
+        if (held > digits)
+        {
+            quotient = BigInteger.DivRem(quotient, Pow10(held - digits), out remainder);
+            inexact |= !remainder.IsZero;
+            steps -= held - digits;
+        }
+        long exp = preferred - steps;
+        if (inexact)
+        {
+            if (quotient.IsEven) quotient += 1;
+        }
+        else
+        {
+            while (exp < preferred && !quotient.IsZero && (quotient % 10).IsZero) { quotient /= 10; exp++; }
+        }
+        Int128 significand = (Int128)quotient;
+        return new CobolDec((numerator.Sign < 0) != (denominator.Sign < 0) ? -significand : significand, (int)Math.Clamp(exp, int.MinValue, int.MaxValue));
+    }
+
     /// <summary>⛔ THE EXACT QUOTIENT LANDED ONCE AT <paramref name="toScale"/> (kb/Work PB4701): the final transfer of a native
     /// <c>COMPUTE R = a / b</c> over exact operands, rounded ONCE in the receiver's <paramref name="mode"/> from the true remainder and
     /// landed as <see cref="ToUnscaled"/> lands a value — a quotient the receiver cannot hold keeps the exact quotient's own low-order

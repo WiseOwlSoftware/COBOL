@@ -30,9 +30,13 @@ public sealed class FunctionValueLaneDriftTests
     private static readonly Regex Arm = new(
         "^\\s*\"(?<name>\\w+)\"(?<guard>\\s+when\\s+[^=]+?)?\\s*=>\\s*(?<body>.*)$", RegexOptions.Compiled);
 
-    /// <summary>The native arms of <c>RenderDec</c>'s switch (the standard-decimal-only arms excluded), each with whether
-    /// its value is built by the switch's local <c>Dec(...)</c> (an SDIDI value) or otherwise (an exact one).</summary>
-    private static SortedDictionary<string, bool> NativeRenderDecArms()
+    /// <summary>How a <c>RenderDec</c> arm builds its value: the switch's local <c>Dec(...)</c> (an SDIDI value), its local
+    /// <c>Exact(...)</c> (a run-time-scaled <c>NumX.Exact</c> its consumer lowers to the SDIDI), or <c>new NumX(...)</c> (an exact
+    /// scale-0 value). A name with several arms of different kinds resolves to the later kind in declaration order.</summary>
+    private enum ArmKind { Sdidi, Whole, Scalar }
+
+    /// <summary>The native arms of <c>RenderDec</c>'s switch (the standard-decimal-only arms excluded), each with how its value is built.</summary>
+    private static SortedDictionary<string, ArmKind> NativeRenderDecArms()
     {
         string source = File.ReadAllText(Path.Combine(
             TestRepo.Src("WiseOwl.Cobol.Compiler"), "CodeGen", "Emit", "IntrinsicRenderer.cs"));
@@ -40,7 +44,7 @@ public sealed class FunctionValueLaneDriftTests
         int end = source.IndexOf("static NumX Dec(string expr)", start, StringComparison.Ordinal);
         Assert.True(start >= 0 && end > start, "RenderDec's body could not be located in IntrinsicRenderer.cs");
 
-        var native = new SortedDictionary<string, bool>(StringComparer.Ordinal);
+        var native = new SortedDictionary<string, ArmKind>(StringComparer.Ordinal);
         string[] lines = source[start..end].Split('\n');
         for (int i = 0; i < lines.Length; i++)
         {
@@ -54,9 +58,12 @@ public sealed class FunctionValueLaneDriftTests
             if (guard.Contains("num.StandardDecimal", StringComparison.Ordinal) && !guard.Contains("!num.StandardDecimal", StringComparison.Ordinal)) continue;
             string body = m.Groups["body"].Value.Trim();
             if (body.Length == 0 && i + 1 < lines.Length) body = lines[i + 1].Trim();
-            bool sdidi = body.StartsWith("Dec(", StringComparison.Ordinal);
+            ArmKind kind = body.StartsWith("Dec(", StringComparison.Ordinal) ? ArmKind.Sdidi
+                : body.StartsWith("Exact(", StringComparison.Ordinal) ? ArmKind.Whole
+                : ArmKind.Scalar;
             // A name with several arms (NUMVAL-C's LOCALE arm and its plain one) is SDIDI only when every arm is.
-            native[m.Groups["name"].Value] = native.TryGetValue(m.Groups["name"].Value, out bool prior) ? prior && sdidi : sdidi;
+            native[m.Groups["name"].Value] = native.TryGetValue(m.Groups["name"].Value, out ArmKind prior)
+                ? (ArmKind)Math.Max((int)prior, (int)kind) : kind;
         }
         Assert.True(native.Count > 10, "the RenderDec arm scan found suspiciously few arms: " + string.Join(", ", native.Keys));
         return native;
@@ -136,21 +143,29 @@ public sealed class FunctionValueLaneDriftTests
     }
 
     /// <summary>The native SDIDI bodies whose value the renderer returns as an EXACT scale-0 value (SIGN, ORD-MAX, ORD-MIN:
-    /// not built by <c>RenderDec</c>'s <c>Dec(...)</c>) are exactly <see cref="FunctionValueLane.NativeSdidiBodiesWithExactResult"/>
-    /// — so a nested call the lane prediction routes onto an SDIDI body is handed to its caller on the carrier the
-    /// renderer's arm really returns (kb/Work PB3268, review R3-1: an INTEGER function is no longer exempted wholesale).</summary>
+    /// built by <c>new NumX(...)</c>) are exactly <see cref="FunctionValueLane.NativeSdidiBodiesWithExactResult"/>, and those it
+    /// returns as a run-time-scaled <c>Exact(...)</c> value its consumer lowers to the SDIDI (SUM, RANGE, MEAN, MIDRANGE, MAX, MIN,
+    /// MEDIAN) are exactly <see cref="FunctionValueLane.NativeSdidiBodiesWithWholeResult"/> — so a nested call the lane prediction
+    /// routes onto an SDIDI body is handed to its caller on the carrier the renderer's arm really returns (kb/Work PB3268, review R3-1:
+    /// an INTEGER function is no longer exempted wholesale; kb/Work PB4980: MAX / MIN / MEDIAN were predicted as scale-0 values, and the
+    /// function above them took the float lane in a multi-receiver MOVE where the single-receiver MOVE computed it on the SDIDI).</summary>
     [Fact]
     public void NativeSdidiBodiesWithExactResult_AreTheRenderDecArmsNotBuiltByDec()
     {
-        var exact = new SortedSet<string>(NativeRenderDecArms().Where(a => !a.Value).Select(a => a.Key), StringComparer.Ordinal);
-        var restated = new SortedSet<string>(FunctionValueLane.NativeSdidiBodiesWithExactResult, StringComparer.Ordinal);
-        Assert.Empty(FunctionValueLane.NativeSdidiBodiesWithExactResult.Intersect(FunctionValueLane.NativeSdidiBodiesWithWholeResult));
-        restated.UnionWith(FunctionValueLane.NativeSdidiBodiesWithWholeResult);
-        Assert.NotEmpty(exact);
-        Assert.True(exact.SetEquals(restated),
-            "FunctionValueLane.NativeSdidiBodiesWithExactResult and NativeSdidiBodiesWithWholeResult must be exactly RenderDec's native arms not built by Dec(...).\n"
-            + "  in RenderDec only: [" + string.Join(", ", exact.Except(restated)) + "]\n"
-            + "  in NativeSdidiBodiesWithExactResult only: [" + string.Join(", ", restated.Except(exact)) + "]");
+        var arms = NativeRenderDecArms();
+        foreach ((ArmKind kind, string name, IReadOnlySet<string> restated) in new[]
+        {
+            (ArmKind.Scalar, "NativeSdidiBodiesWithExactResult", (IReadOnlySet<string>)FunctionValueLane.NativeSdidiBodiesWithExactResult),
+            (ArmKind.Whole, "NativeSdidiBodiesWithWholeResult", FunctionValueLane.NativeSdidiBodiesWithWholeResult),
+        })
+        {
+            var built = new SortedSet<string>(arms.Where(a => a.Value == kind).Select(a => a.Key), StringComparer.Ordinal);
+            Assert.NotEmpty(built);
+            Assert.True(built.SetEquals(restated),
+                $"FunctionValueLane.{name} must be exactly RenderDec's native arms built as {kind}.\n"
+                + "  in RenderDec only: [" + string.Join(", ", built.Except(restated)) + "]\n"
+                + $"  in {name} only: [" + string.Join(", ", restated.Except(built)) + "]");
+        }
     }
 
     /// <summary>⛔ A FUNCTION'S BINARY64 VALUE IS AN APPROXIMATION OR A FLOAT ITEM'S CONTENT BY ONE PREDICATE, ASKED BY THE BINDER AND BY

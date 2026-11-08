@@ -55,27 +55,31 @@ internal static class FunctionValueLane
         "MedianScaled", "MidrangeScaled", "Variance", "StandardDeviation", "Annuity", "PresentValue",
     }.ToFrozenSet(StringComparer.Ordinal);
 
-    /// <summary>The native SDIDI bodies whose value <c>IntrinsicRenderer.RenderDec</c> returns as an EXACT value
-    /// rather than on the SDIDI: SIGN reads an SDIDI argument and returns +1, 0 or -1 (§2023:15.81.1), ORD-MAX / ORD-MIN
+    /// <summary>The native SDIDI bodies whose value <c>IntrinsicRenderer.RenderDec</c> returns as an EXACT scale-0 value
+    /// rather than on the SDIDI: SIGN reads an SDIDI argument and returns +1, 0 or -1 (§2023:15.81.1), and ORD-MAX / ORD-MIN
     /// compare on the SDIDI and return "the ordinal number that corresponds to the position of the argument-1 having the
-    /// greatest [least] value" (§2023:15.71.4 r1 / §2023:15.72.4 r1), and MAX / MIN / MEDIAN return "the content of the argument" selected
-    /// (§2023:15.59.4 r1 / §2023:15.63.4 r1 / §2023:15.61.1) as the exact value it is, whole (kb/Work PB4730). Every other member of
-    /// <see cref="NativeSdidiBodies"/> returns the SDIDI. <c>FunctionValueLaneDriftTests</c> derives this set from the renderer's switch as well (the native arms
-    /// not wrapped in its <c>Dec(...)</c>).</summary>
+    /// greatest [least] value" (§2023:15.71.4 r1 / §2023:15.72.4 r1). That value is an ordinary scaled integer, so a function above
+    /// one reads it as an exact operand (<see cref="CarrierKind.Fixed"/>). <c>FunctionValueLaneDriftTests</c> derives this set from
+    /// the renderer's switch (the native arms built as <c>new NumX(...)</c>).</summary>
     internal static readonly FrozenSet<string> NativeSdidiBodiesWithExactResult = new[]
     {
-        "SignOf", "OrdMax", "OrdMin", "MaxScaled", "MinScaled", "MedianScaled",
+        "SignOf", "OrdMax", "OrdMin",
     }.ToFrozenSet(StringComparer.Ordinal);
 
     /// <summary>The native SDIDI bodies whose value <c>IntrinsicRenderer.RenderDec</c> returns as a run-time-scaled EXACT value
-    /// (<c>NumX.Exact</c>) that its consumer reads as the SDIDI image it lowers to: SUM, RANGE, MEAN and MIDRANGE, which return an exact
-    /// value so that a binary64 argument a nested selection handed them can make the value a binary64's content
-    /// (<c>CobolIntrinsics.TryBinary64Body</c>, kb/Work PB4923). They are predicted as the SDIDI (<see cref="CarrierKind.Dec"/>), as
-    /// before: a function above one (ANNUITY (SUM (T (ALL)) 3)) computes on the SDIDI. <c>FunctionValueLaneDriftTests</c> derives
-    /// this set with <see cref="NativeSdidiBodiesWithExactResult"/> from the renderer's switch.</summary>
+    /// (<c>NumX.Exact</c>) that its consumer reads as the SDIDI image it lowers to (<c>NumericRenderer.LowerWide</c>): SUM, RANGE, MEAN and
+    /// MIDRANGE, which return an exact value so that a binary64 argument a nested selection handed them can make the value a binary64's
+    /// content (<c>CobolIntrinsics.TryBinary64Body</c>, kb/Work PB4923), VARIANCE, STANDARD-DEVIATION, ANNUITY and PRESENT-VALUE, which do the same
+    /// for the same reason (kb/Work PB4979), and MAX / MIN / MEDIAN, which return "the content of the argument"
+    /// selected (§2023:15.59.4 r1 / §2023:15.63.4 r1 / §2023:15.61.1) as the exact value it is, whole (kb/Work PB4730). They are predicted
+    /// as the SDIDI (<see cref="CarrierKind.Dec"/>) because that is how the function above one receives them: ANNUITY (MEDIAN (T (ALL)) 3)
+    /// computes on the SDIDI and returns its exact value, and a prediction of <see cref="CarrierKind.Fixed"/> sent the same call to a
+    /// COMP-2 intermediate in a multi-receiver MOVE (kb/Work PB4980; §2023:15.4.1: "the returned value is the same for all instances of
+    /// a given function"). <c>FunctionValueLaneDriftTests</c> derives this set from the renderer's switch (the native arms built by <c>Exact(...)</c>).</summary>
     internal static readonly FrozenSet<string> NativeSdidiBodiesWithWholeResult = new[]
     {
-        "SumScaled", "RangeScaled", "MeanScaled", "MidrangeScaled",
+        "SumScaled", "RangeScaled", "MeanScaled", "MidrangeScaled", "MaxScaled", "MinScaled", "MedianScaled",
+        "Variance", "StandardDeviation", "Annuity", "PresentValue",
     }.ToFrozenSet(StringComparer.Ordinal);
 
     /// <summary>The pure selections, which a MIXED list takes onto the SDIDI under native arithmetic so the compared and
@@ -156,8 +160,9 @@ internal static class FunctionValueLane
         return CarrierKind.Fixed;
     }
 
-    /// <summary>The carrier of the value an SDIDI body returns (<c>RenderDec</c>'s arm for the function): the SDIDI, or an
-    /// exact scale-0 value for <see cref="NativeSdidiBodiesWithExactResult"/>.</summary>
+    /// <summary>The carrier of the value an SDIDI body returns (<c>RenderDec</c>'s arm for the function), as its consumer receives it: the
+    /// SDIDI (also for <see cref="NativeSdidiBodiesWithWholeResult"/>, which lower to it), or an exact scale-0 value for
+    /// <see cref="NativeSdidiBodiesWithExactResult"/>.</summary>
     private static CarrierKind OnSdidiBody(string runtimeMethod) =>
         NativeSdidiBodiesWithExactResult.Contains(runtimeMethod) ? CarrierKind.Fixed : CarrierKind.Dec;
 

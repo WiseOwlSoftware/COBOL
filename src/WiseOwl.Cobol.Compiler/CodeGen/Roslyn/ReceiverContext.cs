@@ -43,7 +43,8 @@ namespace WiseOwl.Cobol.CodeGen;
 /// <param name="FloatSignificandDigits">
 /// For a <see cref="FloatEdited"/> receiver, the digit positions of its mask's significand (<c>CobolEdit.FloatMask.SigDigits</c>,
 /// §2023:13.18.40.3 SR15), 0 otherwise. A final-transfer quotient reduced to 34 digits by round-to-odd serves the receiver's
-/// one rounding only while the receiver is at least two digits coarser, so <c>NumericRenderer.DecBinary</c> reads this bound.
+/// one rounding only while the receiver is at least two digits coarser, so <c>NumericRenderer.FinalTransferSignificandDigits</c> hands this width to
+/// the quotient (<c>CobolDec.DivFinal</c>, <c>CobolExact.DivToOdd</c>), which keeps the significand plus two digits past 32 (kb/Work PB4975).
 /// </param>
 /// <param name="Single">
 /// True when the resultant identifier is a BINARY32 item (COMP-1, FLOAT-SHORT): the final transfer of an exact value rounds ONCE into it
