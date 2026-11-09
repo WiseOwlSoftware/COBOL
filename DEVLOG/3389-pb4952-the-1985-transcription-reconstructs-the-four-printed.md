@@ -1,4 +1,4 @@
-## PB4952: the 1985 transcription reconstructs the four printed pages the scan lacks, and marks every rule it reads there provisional
+## Entry 3389 — 2026-11-09 13:22 PST — PB4952: the 1985 transcription reconstructs the four printed pages the scan lacks, and marks every rule it reads there provisional
 
 The scan of ANSI X3.23-1985 lacks folios XIII-30, XIII-31, XIII-54 and XIII-55, and the owner chose on 2026-11-09 to
 fill the three gaps with reconstructed placeholders until ANSI supplies the pages. This landing does that, end to end.
@@ -54,3 +54,4 @@ Errata's keep-as-printed policy: the transcription is the most accurate version 
 a later revision's corrections are applied with attribution; PB5045 (filed here) owns that correction sweep.
 
 **Gate:** see the branch's gate record.
+
