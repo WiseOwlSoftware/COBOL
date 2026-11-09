@@ -1,4 +1,4 @@
-## PB4995: the 1985 audit's disputed and own-row rules are adjudicated and refuted by batch, 2,104 change records recorded, and the drafts run at 85
+## Entry 3345 — 2026-11-08 16:34 PST — PB4995: the 1985 audit's disputed and own-row rules are adjudicated and refuted by batch, 2,104 change records recorded, and the drafts run at 85
 
 Lineage slice 4 (kb/Work PB4995, DESIGN-spec-conformance-review.md §10.2 and §10.3). The 1985 audit left 564 DISPUTED
 rules (a SAME the verify pass refuted or was unsure of) and 930 OWN-ROW rules (DIFFERS or NONE). The note's plan was the
@@ -43,3 +43,4 @@ pass (it upheld 98 %); the MISMATCH drafts to triage; and each CHANGED or REMOVE
 second prompt builder), the change record's kinds have one home, the runner reuses the harness rather than a second
 compile-and-compare, and each new arm has a planted self-test case (adjudicate and refute plans and answer shapes,
 decided and contested results, the change batch, CARRIES as KEPT, a plan that grows, and the runner's outcomes through the harness).
+
