@@ -1,0 +1,12 @@
+## Entry 3366 — 2026-11-08 23:39 PST — The asynchronous messaging facility closes: PB4700 and three comment notes it removed the subject of
+
+PB4700 asked that SEND, RECEIVE and USAGE MESSAGE-TAG be implemented. Its slices PB4739 to PB4745 had all landed, so this change is the closing one.
+
+**Re-probe.** On a fresh Debug build (0 warnings, 0 errors) `conformance-suite/cases/14.9.38-SEND/send-no-server.cob` compiles and runs: `LEG1 EXC EC-MCS-NO-SERVER`, `LEG1 TAG=NULL`, `LEG2 EXC`, `LEG2 TAG=NULL`, the values its header derives from §2023:14.9.38.4 GR5. `DeclinedFacilityBinder` holds VALIDATE alone, COBOL1578 and COBOL1943 are retired, and `docs/CONFORMANCE.md` row 4 reads Claimed. No messaging rule of the 2023 inventory is still DOCUMENTED-NON-SUPPORT (the slices re-adjudicated them as they landed), so the note closes no row of its own and says why in `closes_rows_reason`.
+
+**Cleaned up on the way (PB3593, PB3594, PB4202).** The class remark of `DeclinedFacilityBinder` and the docstring of `DeclinedFacilityOperandDriftTests` misread §2023:4.2.6 paragraph 3 and still said SEND and RECEIVE were routed through the declined seam; both now state that VALIDATE (Annex A.4.14, §2023:4.2.7) is the only declined statement and that reading its operands is a quality choice. The roster's `Resolved` column asserted only `<=` and could drift unseen, so it is gone and the roster pins the grammar's operand count alone. Three refusal goldens (`pb4700-receive-undefined-data-name-1`, `-data-name-2`, `pb4700-receive-continue-after-undefined`, each COBOL1639 under §2023:8.4.2.1) pin the RECEIVE operands no golden covered. The `Sr8PicturelessVerdict` summary no longer says its fall-through is the float family.
+
+**Self-review.** Architecture, full code, performance and duplication lenses found nothing in a diff of comments, one test roster and three goldens.
+
+**Review round 1.** R1-1: the SEND RETURNING operand had no undefined-name golden; `pb4700-send-returning-undefined` (COBOL1639) now pins it, so all four operands PB3594 named are covered. R1-2: the two stale comments naming SEND and RECEIVE as declined (DeclinedFacilityOperandDriftTests docstring, DeclinedFacilityPass.VisitProcedureDivision) now say VALIDATE only.
+

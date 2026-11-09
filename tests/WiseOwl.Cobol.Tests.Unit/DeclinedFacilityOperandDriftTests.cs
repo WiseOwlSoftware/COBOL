@@ -13,12 +13,14 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ A DECLINED FACILITY'S STATEMENT STILL READS ITS IDENTIFIERS (kb/Work PB3568, CLAUDE.md rule 5).
-/// <para>The recognize-and-name arms (<c>StatementBinder.BindUnsupportedFacility</c>: VALIDATE, the MCS SEND and
-/// RECEIVE) bind to a no-op, and for a long time they bound NOTHING else: an undefined name, a reference-modified
+/// <para>The recognize-and-name arms (<c>StatementBinder.BindUnsupportedFacility</c>: VALIDATE) bind to a no-op, and for a long time they bound NOTHING else: an undefined name, a reference-modified
 /// VALIDATE operand and a pointer operand compiled clean, and so did an undefined name in the statement list of a
-/// SEND's ON EXCEPTION phrase. Declining a facility licenses its BEHAVIOUR to be absent (ISO §2023:4.2.6 ¶3, §2023:4.2.7); the
-/// statement's operands are identifiers all the same, and the general identifier rules and VALIDATE's §2023:14.9.50.3
-/// syntax rules apply to them. The shape that keeps the NEXT declined statement from repeating it: a declined
+/// SEND's ON EXCEPTION phrase. Declining a facility licenses its BEHAVIOUR to be absent; §2023:4.2.6 ¶3 even leaves the syntax of an
+/// unsupported processor-dependent element undiagnosed ("not required to diagnose syntax errors within this unsupported syntax") and
+/// §2023:4.2.7 asks an unclaimed optional element only to be documented. Reading the operands is a QUALITY CHOICE, not a requirement: the statement's
+/// operands are identifiers all the same, and the general identifier rules and VALIDATE's §2023:14.9.50.3
+/// syntax rules apply to them. SEND and RECEIVE are no longer declined (kb/Work PB4700); this census still guards their
+/// operands. The shape that keeps the NEXT declined statement from repeating it: a declined
 /// statement is routed through a <c>BindDeclined…</c> method that reads its operands in
 /// <c>DeclinedFacilityBinder</c> first, and the operands the grammar gives each declined rule are a census that
 /// fails when a rule grows one.</para>
@@ -37,18 +39,20 @@ public sealed class DeclinedFacilityOperandDriftTests
     private static readonly string GrammarPath =
         TestRepo.Src("WiseOwl.Cobol.Frontend", "Grammar", "CobolParserCore.g4");
 
-    /// <summary>The declined statement rules, each with the number of <c>dataReference</c> operands the grammar gives
-    /// it and the number the binder that reads its operands resolves (<c>DeclinedFacilityBinder</c> for VALIDATE,
-    /// <c>MessagingBinder</c> for SEND and RECEIVE, which the declined-statement seam routes until their exchange is rendered, kb/Work PB4743). Adding an operand to a rule — or a declined rule —
-    /// is an adjudication: either the binder resolves it, or the reason it cannot is written here.</summary>
-    private static readonly Dictionary<string, (int InGrammar, int Resolved, string Reason)> Roster =
+    /// <summary>The statement rules whose operands a binder reads for their identifier rules, each with the number of
+    /// <c>dataReference</c> operands the grammar gives it (<c>DeclinedFacilityBinder</c> for VALIDATE,
+    /// <c>MessagingBinder</c> for SEND and RECEIVE, kb/Work PB4743). Adding an operand to a rule is an adjudication:
+    /// the binder reads it and a refusal golden pins it (an undefined name in each RECEIVE and SEND operand:
+    /// <c>conformance-suite/wiseowl/cases/14.9.31-RECEIVE</c> and <c>14.9.38-SEND</c>, kb/Work PB3594, PB4700), or the
+    /// reason it cannot be read is written here.</summary>
+    private static readonly Dictionary<string, (int InGrammar, string Reason)> Roster =
         new(StringComparer.Ordinal)
         {
-            ["validateFacilityStatement"] = (1, 1,
+            ["validateFacilityStatement"] = (1,
                 "VALIDATE { identifier-1 } … — the repeated operand, every one screened against §2023:14.9.50.3 SR1/SR2/SR4/SR5"),
-            ["messagingReceiveStatement"] = (3, 3,
+            ["messagingReceiveStatement"] = (3,
                 "RECEIVE [FROM] data-name-1 GIVING identifier-1 data-name-2 — the three data references; data-name-1 and -2 are names (ScreenedNames)"),
-            ["messagingSendStatement"] = (3, 3,
+            ["messagingSendStatement"] = (3,
                 "SEND [TO] { literal-1 | message-server-name-1 | data-name-2 } FROM identifier-1 [RETURNING data-name-1] — "
                 + "FROM and RETURNING always resolve (RETURNING, a name, after its shape is screened); the TO operand resolves only in Format 2, where it is a data-name-2 "
                 + "(§2023:14.9.38.3 SR4): in Format 1 it names a message-server-name-1, 'the name of a message server run unit' "
@@ -149,7 +153,7 @@ public sealed class DeclinedFacilityOperandDriftTests
 
         string grammar = CodeOf(GrammarPath);
         string facility = CodeOf(DeclinedFacilityBinderPath) + CodeOf(MessagingBinderPath);
-        foreach (var (rule, (inGrammar, resolved, reason)) in Roster)
+        foreach (var (rule, (inGrammar, reason)) in Roster)
         {
             var m = Regex.Match(grammar, @"^" + rule + @"\s*\r?\n\s*:(?<body>.*?)\r?\n\s*;", RegexOptions.Multiline | RegexOptions.Singleline);
             Assert.True(m.Success, $"grammar rule '{rule}' not found in CobolParserCore.g4");
@@ -157,7 +161,6 @@ public sealed class DeclinedFacilityOperandDriftTests
             Assert.True(refs == inGrammar,
                 $"{rule} gives {refs} dataReference operand(s) in the grammar, the roster expects {inGrammar} ({reason}). "
                 + "Read the new operand in DeclinedFacilityBinder or MessagingBinder, or record in the roster why it cannot be resolved.");
-            Assert.True(resolved <= inGrammar, $"{rule}: the roster resolves more operands than the grammar has.");
         }
 
         // the binder half: each roster rule has its method over the generated context, so the roster cannot name a
