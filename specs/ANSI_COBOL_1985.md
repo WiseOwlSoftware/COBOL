@@ -13597,23 +13597,35 @@ a. The operands of the TALLYING or REPLACING phrase are considered in the order 
 
 1\) If neither LEADING nor FIRST is specified; or
 
-2\) If the LEADING adjective applies to literal-1 and literal-1 is a leading occurrence as defined in general rules 10 and 13; or
+2\) If the LEADING adjective applies to literal-1 and literal-1 is a leading occurrence as defined in general rules 12 and 15; or
 
-3\) If the FIRST adjective applies to literal-1 and literal-1 is the first occurrence as defined in general rule 13.
+> ⚠ **CORRECTED — see the Errata (C235).** The standard prints `is a leading occurrence as defined in general rules 10 and 13; or` (page 329, folio VI-97). Amendment 2 (ANSI X3.23b-1993), its change for page VI-97 (page 923, folio B-11), applied in place: "Paragraph 6.18.4, new general rule 7a, subitem 2, change 'general rules 10 and 13' to 'general rules 12 and 15'" (kb/Work PB5045). Corrected to `is a leading occurrence as defined in general rules 12 and 15; or`.
+
+3\) If the FIRST adjective applies to literal-1 and literal-1 is the first occurrence as defined in general rule 15.
+
+> ⚠ **CORRECTED — see the Errata (C236).** The standard prints `is the first occurrence as defined in general rule 13.` (page 329, folio VI-97). Amendment 2 (ANSI X3.23b-1993), its change for page VI-97 (page 923, folio B-11), applied in place: "Paragraph 6.18.4, new general rule 7a, subitem 3, change 'defined in general rule 13' to 'defined in general rule 15'" (kb/Work PB5045). Corrected to `is the first occurrence as defined in general rule 15.`.
 
 b. If no match occurs in the comparison of the first literal-1, the comparison is repeated with each successive literal-1, if any, until either a match is found or there is no next successive literal-1. When there is no next successive literal-1, the character position in the data item referenced by identifier-1 immediately to the right of the leftmost character position considered in the last comparison cycle is considered as the leftmost character position, and the comparison cycle begins again with the first literal-1.
 
-c. Whenever a match occurs, tallying or replacing takes place as described in general rules 10 and 13. The character position in the data item referenced by identifier-1 immediately to the right of the rightmost character position that participated in the match is now considered to be the leftmost character position of the data item referenced by identifier-1, and the comparison cycle starts again with the first literal-1.
+c. Whenever a match occurs, tallying or replacing takes place as described in general rules 12 and 15. The character position in the data item referenced by identifier-1 immediately to the right of the rightmost character position that participated in the match is now considered to be the leftmost character position of the data item referenced by identifier-1, and the comparison cycle starts again with the first literal-1.
+
+> ⚠ **CORRECTED — see the Errata (C237).** The standard prints `tallying or replacing takes place as described in general rules 10 and 13.` (page 329, folio VI-97). Amendment 2 (ANSI X3.23b-1993), its change for page VI-97 (page 923, folio B-11), applied in place: "Paragraph 6.18.4, new general rule 7c, second line, change 'in general rules 10 and 13' to 'in general rules 12 and 15'" (kb/Work PB5045). Corrected to `tallying or replacing takes place as described in general rules 12 and 15.`.
 
 d. The comparison operation continues until the rightmost character position of the data item referenced by identifier-1 has participated in a match or has been considered as the leftmost character position. When this occurs, inspection is terminated.
 
-e. If the CHARACTERS phrase is specified, an implied one character operand participates in the cycle described in paragraphs 6a through 6d above as if it had been specified by literal-1, except that no comparison to the content of the data item referenced by identifier-1 takes place. This implied character is considered always to match the leftmost character of the content of the data item referenced by identifier-1 participating in the current comparison cycle.
+e. If the CHARACTERS phrase is specified, an implied one character operand participates in the cycle described in general rules 7a through 7d above as if it had been specified by literal-1, except that no comparison to the content of the data item referenced by identifier-1 takes place. This implied character is considered always to match the leftmost character of the content of the data item referenced by identifier-1 participating in the current comparison cycle.
 
-(8) The comparison operation defined in general rule 6 is restricted by the BEFORE and AFTER phrase as follows:
+> ⚠ **CORRECTED — see the Errata (C238).** The standard prints `participates in the cycle described in paragraphs 6a through 6d above` (page 329, folio VI-97). Amendment 2 (ANSI X3.23b-1993), its change for page VI-97 (page 923, folio B-11), applied in place: "Paragraph 6.18.4, new general rule 7e, second line, change 'paragraphs 6a through 6d' to 'general rules 7a through 7d'" (kb/Work PB5045). Corrected to `participates in the cycle described in general rules 7a through 7d above`.
+
+(8) The comparison operation defined in general rule 7 is restricted by the BEFORE and AFTER phrase as follows:
 
 > ⚠ **CORRECTED — see the Errata (C226).** The standard prints `general rules (7) to (7) as printed` (page 329, folio VI-97). Amendment 2 (ANSI X3.23b-1993), its change for page VI-96 (page 922, folio B-10), applied in place: "Paragraph 6.18.4 of the INSPECT statement, insert the following as a new general rule 1 and renumber old general rules 1 through 7 as new general rules 2 through 8; renumber old general rules 8 through 17 as new general rules 10 through 19" (kb/Work PB5045). Corrected to `each renumbered: old 1-7 are 2-8, old 8-17 are 10-19`.
 
-a. If neither the BEFORE nor AFTER phrase is specified, literal-1 or the implied operand of the CHARACTERS phrase participates in the comparison operation as described in general rule 6. Literal-1 or the implied operand of the CHARACTERS phrase is first eligible to participate in matching at the leftmost character position of identifier-1.
+> ⚠ **CORRECTED — see the Errata (C239).** The standard prints `(8) The comparison operation defined in general rule 6 is restricted` (page 329, folio VI-97). Amendment 2 (ANSI X3.23b-1993), its change for page VI-97 (page 923, folio B-11), applied in place: "Paragraph 6.18.4, new general rule 8, first line, change 'in general rule 6' to 'in general rule 7'" (kb/Work PB5045). Corrected to `(8) The comparison operation defined in general rule 7 is restricted`.
+
+a. If neither the BEFORE nor AFTER phrase is specified, literal-1 or the implied operand of the CHARACTERS phrase participates in the comparison operation as described in general rule 7. Literal-1 or the implied operand of the CHARACTERS phrase is first eligible to participate in matching at the leftmost character position of identifier-1.
+
+> ⚠ **CORRECTED — see the Errata (C240).** The standard prints `the comparison operation as described in general rule 6.` (page 329, folio VI-97). Amendment 2 (ANSI X3.23b-1993), its change for page VI-97 (page 923, folio B-11), applied in place: "Paragraph 6.18.4, new general rule 8a, third line, change 'in general rule 6' to 'in general rule 7'" (kb/Work PB5045). Corrected to `the comparison operation as described in general rule 7.`.
 
 b. If the BEFORE phrase is specified, the associated literal-1 or the implied operand of the CHARACTERS phrase participates only in those comparison cycles which involve that portion of the content of the data item referenced by identifier-1 from its leftmost character position up to, but not including, the
 
@@ -13623,13 +13635,21 @@ VI-97
 
 Nucleus - INSPECT
 
-first occurrence of literal-2 within the content of the data item referenced by identifier-1. The position of this first occurrence is determined before the first cycle of the comparison operation described in general rule 6 is begun. If, on any comparison cycle, literal-1 or the implied operand of the CHARACTERS phrase is not eligible to participate, it is considered not to match the content of the data item referenced by identifier-1. If there is no occurrence of literal-2 within the content of the data item referenced by identifier-1, its associated literal-1 or the implied operand of the CHARACTERS phrase participates in the comparison operation as though the BEFORE phrase had not been specified.
+first occurrence of literal-2 within the content of the data item referenced by identifier-1. The position of this first occurrence is determined before the first cycle of the comparison operation described in general rule 7 is begun. If, on any comparison cycle, literal-1 or the implied operand of the CHARACTERS phrase is not eligible to participate, it is considered not to match the content of the data item referenced by identifier-1. If there is no occurrence of literal-2 within the content of the data item referenced by identifier-1, its associated literal-1 or the implied operand of the CHARACTERS phrase participates in the comparison operation as though the BEFORE phrase had not been specified.
 
-c. If the AFTER phrase is specified, the associated literal-1 or the implied operand of the CHARACTERS phrase participates only in those comparison cycles which involve that portion of the content of the data item referenced by identifier-1 from the character position immediately to the right of the rightmost character position of the first occurrence of literal-2 within the content of the data item referenced by identifier-1 to the rightmost character position of the data item referenced by identifier-1. This is the character position at which literal-1 or the implied operand of the CHARACTERS phrase is first eligible to participate in matching. The position of this first occurrence is determined before the first cycle of the comparison operation described in general rule 6 is begun. If, on any comparison cycle, literal-1 or the implied operand of the CHARACTERS phrase is not eligible to participate, it is considered not to match the content of the data item referenced by identifier-1. If there is no occurrence of literal-2 within the content of the data item referenced by identifier-1, its associated literal-1 or the implied operand of the CHARACTERS phrase is never eligible to participate in the comparison operation.
+> ⚠ **CORRECTED — see the Errata (C241).** The standard prints `the comparison operation described in general rule 6 is begun` (page 330, folio VI-98). Amendment 2 (ANSI X3.23b-1993), its change for page VI-98 (page 923, folio B-11), applied in place: "Paragraph 6.18.4, new general rule 8b, eighth line from end of paragraph, change 'in general rule 6' to 'in general rule 7'" (kb/Work PB5045). Corrected to `the comparison operation described in general rule 7 is begun`.
+
+c. If the AFTER phrase is specified, the associated literal-1 or the implied operand of the CHARACTERS phrase participates only in those comparison cycles which involve that portion of the content of the data item referenced by identifier-1 from the character position immediately to the right of the rightmost character position of the first occurrence of literal-2 within the content of the data item referenced by identifier-1 to the rightmost character position of the data item referenced by identifier-1. This is the character position at which literal-1 or the implied operand of the CHARACTERS phrase is first eligible to participate in matching. The position of this first occurrence is determined before the first cycle of the comparison operation described in general rule 7 is begun. If, on any comparison cycle, literal-1 or the implied operand of the CHARACTERS phrase is not eligible to participate, it is considered not to match the content of the data item referenced by identifier-1. If there is no occurrence of literal-2 within the content of the data item referenced by identifier-1, its associated literal-1 or the implied operand of the CHARACTERS phrase is never eligible to participate in the comparison operation.
 
 > ⚠ **CORRECTED — see the Errata (C23).** The standard prints `CHARACTERS phrase participate only` (page 330, folio VI-98): a real word printed for another on the printed page. Corrected to `participates`.
 
+> ⚠ **CORRECTED — see the Errata (C242).** The standard prints `the comparison operation described in general rule 6 is begun` (page 330, folio VI-98). Amendment 2 (ANSI X3.23b-1993), its change for page VI-98 (page 923, folio B-11), applied in place: "Paragraph 6.18.4, new general rule 8c, seventh line from end of paragraph, change 'in general rule 6' to 'in general rule 7'" (kb/Work PB5045). Corrected to `the comparison operation described in general rule 7 is begun`.
+
 <u>FORMAT 1</u>:
+
+(9) Identifier-1 is a sending data item.
+
+> ⚠ **CORRECTED — see the Errata (C243).** The standard prints `FORMAT 1: (the header the rule follows)` (page 330, folio VI-98). Amendment 2 (ANSI X3.23b-1993), its change for page VI-98 (page 923, folio B-11), applied in place: "Paragraph 6.18.4 of the INSPECT statement, add the following as the new general rule 9 located immediately after the header FORMAT 1" (kb/Work PB5045). Corrected to `(9) Identifier-1 is a sending data item.`.
 
 (10) The required words ALL and LEADING are adjectives that apply to each succeeding literal-1 until the next adjective appears.
 
@@ -13643,7 +13663,9 @@ a. If the ALL phrase is specified, the content of the data item referenced by id
 
 b. If the LEADING phrase is specified, the content of the data item referenced by identifier-2 is incremented by one for the first and each subsequent contiguous occurrence of literal-1 matched within the content of the data item referenced by identifier-1, provided that the leftmost such occurrence is at the point where comparison began in the first comparison cycle in which literal-1 was eligible to participate.
 
-c. If the CHARACTERS phrase is specified, the content of the data item referenced by identifier-2 is incremented by one for each character matched, in the sense of general rule 6e, within the content of the data item referenced by identifier-1.
+c. If the CHARACTERS phrase is specified, the content of the data item referenced by identifier-2 is incremented by one for each character matched, in the sense of general rule 7e, within the content of the data item referenced by identifier-1.
+
+> ⚠ **CORRECTED — see the Errata (C244).** The standard prints `in the sense of general rule 6e` (page 330, folio VI-98). Amendment 2 (ANSI X3.23b-1993), its change for page VI-98 (page 923, folio B-11), applied in place: "Paragraph 6.18.4, new general rule 12c, third line, change 'in general rule 6e' to 'in general rule 7e'" (kb/Work PB5045). Corrected to `in the sense of general rule 7e`.
 
 VI-98
 
@@ -13659,7 +13681,9 @@ Nucleus - INSPECT
 
 (15) The rules for replacement are as follows:
 
-a. When the CHARACTERS phrase is specified, each character matched, in the sense of general rule 6e, in the content of the data item referenced by identifier-1 is replaced by literal-3.
+a. When the CHARACTERS phrase is specified, each character matched, in the sense of general rule 7e, in the content of the data item referenced by identifier-1 is replaced by literal-3.
+
+> ⚠ **CORRECTED — see the Errata (C245).** The standard prints `in the sense of general rule 6e` (page 331, folio VI-99). Amendment 2 (ANSI X3.23b-1993), its change for page VI-99 (page 923, folio B-11), applied in place: "Paragraph 6.18.4, new general rule 15a, second line, change 'in general rule 6e to 'in general rule 7e'" (the amendment prints no closing quotation mark after 6e) (kb/Work PB5045). Corrected to `in the sense of general rule 7e`.
 
 b. When the adjective ALL is specified, each occurrence of literal-1 matched in the content of the data item referenced by identifier-1 is replaced by literal-3.
 
@@ -38060,6 +38084,17 @@ it is taken as the rule of 1985.
 | [C232](#errata-c232) | 328 | VI-96 | Section VI, paragraph 6.18.4 (INSPECT), new general rule 3b | `(see general rule 2a)` | `(see general rule 3a)` | amendment-2 |
 | [C233](#errata-c233) | 328 | VI-96 | Section VI, paragraph 6.18.4 (INSPECT), new general rule 3c | `in general rule 2b` | `in general rule 3b` | amendment-2 |
 | [C234](#errata-c234) | 328 | VI-96 | Section VI, paragraph 6.18.4 (INSPECT), new general rule 4, first line | `In general rules 5 through 17` | `in general rules 6 through 19` | amendment-2 |
+| [C235](#errata-c235) | 329 | VI-97 | Section VI, paragraph 6.18.4 (INSPECT), new general rule 7a, subitem 2 | `general rules 10 and 13` | `general rules 12 and 15` | amendment-2 |
+| [C236](#errata-c236) | 329 | VI-97 | Section VI, paragraph 6.18.4 (INSPECT), new general rule 7a, subitem 3 | `defined in general rule 13` | `defined in general rule 15` | amendment-2 |
+| [C237](#errata-c237) | 329 | VI-97 | Section VI, paragraph 6.18.4 (INSPECT), new general rule 7c | `in general rules 10 and 13` | `in general rules 12 and 15` | amendment-2 |
+| [C238](#errata-c238) | 329 | VI-97 | Section VI, paragraph 6.18.4 (INSPECT), new general rule 7e | `paragraphs 6a through 6d` | `general rules 7a through 7d` | amendment-2 |
+| [C239](#errata-c239) | 329 | VI-97 | Section VI, paragraph 6.18.4 (INSPECT), new general rule 8, first line | `in general rule 6` | `in general rule 7` | amendment-2 |
+| [C240](#errata-c240) | 329 | VI-97 | Section VI, paragraph 6.18.4 (INSPECT), new general rule 8a | `in general rule 6` | `in general rule 7` | amendment-2 |
+| [C241](#errata-c241) | 330 | VI-98 | Section VI, paragraph 6.18.4 (INSPECT), new general rule 8b | `in general rule 6` | `in general rule 7` | amendment-2 |
+| [C242](#errata-c242) | 330 | VI-98 | Section VI, paragraph 6.18.4 (INSPECT), new general rule 8c | `in general rule 6` | `in general rule 7` | amendment-2 |
+| [C243](#errata-c243) | 330 | VI-98 | Section VI, paragraph 6.18.4 (INSPECT), a new general rule 9 after the header FORMAT 1 | `(no rule 9)` | `(9) Identifier-1 is a sending data item.` | amendment-2 |
+| [C244](#errata-c244) | 330 | VI-98 | Section VI, paragraph 6.18.4 (INSPECT), new general rule 12c | `general rule 6e` | `general rule 7e` | amendment-2 |
+| [C245](#errata-c245) | 331 | VI-99 | Section VI, paragraph 6.18.4 (INSPECT), new general rule 15a | `general rule 6e` | `general rule 7e` | amendment-2 |
 
 <a id="errata-c1"></a>
 
@@ -40634,6 +40669,127 @@ Amendment 2 (ANSI X3.23b-1993), its change for page VI-96 (page 922, folio B-10)
 | **This transcription** | `in general rules 6 through 19,` |
 
 Amendment 2 (ANSI X3.23b-1993), its change for page VI-96 (page 922, folio B-10), applied in place: "Paragraph 6.18.4, new general rule 4, first line, change 'In general rules 5 through 17' to 'in general rules 6 through 19'" (the amendment prints the lowercase 'in') (kb/Work PB5045).
+
+<a id="errata-c235"></a>
+
+### C235 · page 329 (folio VI-97) · Section VI, paragraph 6.18.4 (INSPECT), new general rule 7a, subitem 2 · `general rules 10 and 13` → `general rules 12 and 15`
+
+| | |
+|---|---|
+| **Printed** | `is a leading occurrence as defined in general rules 10 and 13; or` |
+| **This transcription** | `is a leading occurrence as defined in general rules 12 and 15; or` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-97 (page 923, folio B-11), applied in place: "Paragraph 6.18.4, new general rule 7a, subitem 2, change 'general rules 10 and 13' to 'general rules 12 and 15'" (kb/Work PB5045).
+
+<a id="errata-c236"></a>
+
+### C236 · page 329 (folio VI-97) · Section VI, paragraph 6.18.4 (INSPECT), new general rule 7a, subitem 3 · `defined in general rule 13` → `defined in general rule 15`
+
+| | |
+|---|---|
+| **Printed** | `is the first occurrence as defined in general rule 13.` |
+| **This transcription** | `is the first occurrence as defined in general rule 15.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-97 (page 923, folio B-11), applied in place: "Paragraph 6.18.4, new general rule 7a, subitem 3, change 'defined in general rule 13' to 'defined in general rule 15'" (kb/Work PB5045).
+
+<a id="errata-c237"></a>
+
+### C237 · page 329 (folio VI-97) · Section VI, paragraph 6.18.4 (INSPECT), new general rule 7c · `in general rules 10 and 13` → `in general rules 12 and 15`
+
+| | |
+|---|---|
+| **Printed** | `tallying or replacing takes place as described in general rules 10 and 13.` |
+| **This transcription** | `tallying or replacing takes place as described in general rules 12 and 15.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-97 (page 923, folio B-11), applied in place: "Paragraph 6.18.4, new general rule 7c, second line, change 'in general rules 10 and 13' to 'in general rules 12 and 15'" (kb/Work PB5045).
+
+<a id="errata-c238"></a>
+
+### C238 · page 329 (folio VI-97) · Section VI, paragraph 6.18.4 (INSPECT), new general rule 7e · `paragraphs 6a through 6d` → `general rules 7a through 7d`
+
+| | |
+|---|---|
+| **Printed** | `participates in the cycle described in paragraphs 6a through 6d above` |
+| **This transcription** | `participates in the cycle described in general rules 7a through 7d above` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-97 (page 923, folio B-11), applied in place: "Paragraph 6.18.4, new general rule 7e, second line, change 'paragraphs 6a through 6d' to 'general rules 7a through 7d'" (kb/Work PB5045).
+
+<a id="errata-c239"></a>
+
+### C239 · page 329 (folio VI-97) · Section VI, paragraph 6.18.4 (INSPECT), new general rule 8, first line · `in general rule 6` → `in general rule 7`
+
+| | |
+|---|---|
+| **Printed** | `(8) The comparison operation defined in general rule 6 is restricted` |
+| **This transcription** | `(8) The comparison operation defined in general rule 7 is restricted` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-97 (page 923, folio B-11), applied in place: "Paragraph 6.18.4, new general rule 8, first line, change 'in general rule 6' to 'in general rule 7'" (kb/Work PB5045).
+
+<a id="errata-c240"></a>
+
+### C240 · page 329 (folio VI-97) · Section VI, paragraph 6.18.4 (INSPECT), new general rule 8a · `in general rule 6` → `in general rule 7`
+
+| | |
+|---|---|
+| **Printed** | `the comparison operation as described in general rule 6.` |
+| **This transcription** | `the comparison operation as described in general rule 7.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-97 (page 923, folio B-11), applied in place: "Paragraph 6.18.4, new general rule 8a, third line, change 'in general rule 6' to 'in general rule 7'" (kb/Work PB5045).
+
+<a id="errata-c241"></a>
+
+### C241 · page 330 (folio VI-98) · Section VI, paragraph 6.18.4 (INSPECT), new general rule 8b · `in general rule 6` → `in general rule 7`
+
+| | |
+|---|---|
+| **Printed** | `the comparison operation described in general rule 6 is begun` |
+| **This transcription** | `the comparison operation described in general rule 7 is begun` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-98 (page 923, folio B-11), applied in place: "Paragraph 6.18.4, new general rule 8b, eighth line from end of paragraph, change 'in general rule 6' to 'in general rule 7'" (kb/Work PB5045).
+
+<a id="errata-c242"></a>
+
+### C242 · page 330 (folio VI-98) · Section VI, paragraph 6.18.4 (INSPECT), new general rule 8c · `in general rule 6` → `in general rule 7`
+
+| | |
+|---|---|
+| **Printed** | `the comparison operation described in general rule 6 is begun` |
+| **This transcription** | `the comparison operation described in general rule 7 is begun` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-98 (page 923, folio B-11), applied in place: "Paragraph 6.18.4, new general rule 8c, seventh line from end of paragraph, change 'in general rule 6' to 'in general rule 7'" (kb/Work PB5045).
+
+<a id="errata-c243"></a>
+
+### C243 · page 330 (folio VI-98) · Section VI, paragraph 6.18.4 (INSPECT), a new general rule 9 after the header FORMAT 1 · `(no rule 9)` → `(9) Identifier-1 is a sending data item.`
+
+| | |
+|---|---|
+| **Printed** | `FORMAT 1: (the header the rule follows)` |
+| **This transcription** | `(9) Identifier-1 is a sending data item.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-98 (page 923, folio B-11), applied in place: "Paragraph 6.18.4 of the INSPECT statement, add the following as the new general rule 9 located immediately after the header FORMAT 1" (kb/Work PB5045).
+
+<a id="errata-c244"></a>
+
+### C244 · page 330 (folio VI-98) · Section VI, paragraph 6.18.4 (INSPECT), new general rule 12c · `general rule 6e` → `general rule 7e`
+
+| | |
+|---|---|
+| **Printed** | `in the sense of general rule 6e` |
+| **This transcription** | `in the sense of general rule 7e` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-98 (page 923, folio B-11), applied in place: "Paragraph 6.18.4, new general rule 12c, third line, change 'in general rule 6e' to 'in general rule 7e'" (kb/Work PB5045).
+
+<a id="errata-c245"></a>
+
+### C245 · page 331 (folio VI-99) · Section VI, paragraph 6.18.4 (INSPECT), new general rule 15a · `general rule 6e` → `general rule 7e`
+
+| | |
+|---|---|
+| **Printed** | `in the sense of general rule 6e` |
+| **This transcription** | `in the sense of general rule 7e` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-99 (page 923, folio B-11), applied in place: "Paragraph 6.18.4, new general rule 15a, second line, change 'in general rule 6e to 'in general rule 7e'" (the amendment prints no closing quotation mark after 6e) (kb/Work PB5045).
 
 ## Defects recorded but NOT corrected
 
