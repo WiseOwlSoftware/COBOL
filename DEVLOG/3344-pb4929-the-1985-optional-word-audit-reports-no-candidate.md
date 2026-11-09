@@ -1,4 +1,4 @@
-## PB4929: the 1985 optional-word audit reports no candidate
+## Entry 3344 — 2026-11-08 16:23 PST — PB4929: the 1985 optional-word audit reports no candidate
 
 PB4929 asked for a verdict on each of the 36 candidates that `audit_grammar_optional_words.py --edition 1985` reported, and
 for an audit whose next run is empty. PB4919 had already landed the same lead: it fixed the five real mechanisms and
@@ -39,3 +39,4 @@ arms (audit, `figure_options`, `figure_reading`) each fail with their mechanism 
 `DOC_INDEX.md` describe the four mechanisms. PB4929 is landed with `closes_rows: []`, because the change is to tooling
 and touches no compiler behaviour. PB4110 records which of its causes remain: COLUMN NUMBERS across nesting levels, and
 the DYNAMIC LENGTH rule map.
+
