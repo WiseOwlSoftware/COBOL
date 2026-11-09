@@ -1041,9 +1041,10 @@ before it judges. `python scripts/spec/run_drafts.py --state DIR` compiles and r
 conformance harness (`conformance-suite/harness/run.py`'s `Run` and the WiseOwl adapter, the one judge of a program's
 outcome): an output draft is an accepted test (`Run.accept`), and a refused draft a FLAGGED test (`Run.flagged`), so a
 refusal counts only when it is the rule's: the draft names the line that violates the rule and carries a control (the
-program with that line made conforming), the control must compile and the diagnostic must be AT that line. A draft that
-names neither (one written before the drafts prompt asked for them) is REFUSED UNCONFIRMED when the compiler reports any
-diagnostic, never a MATCH. It writes `DIR/drafts/runs.json`: MATCH, MISMATCH, REFUSED UNCONFIRMED or NO VERDICT per rule,
+program with that line made conforming), the control must compile and the diagnostic must be AT that line. Every stored
+draft names both, since the drafts pass's answer shape requires them; the 291 refused drafts written before it did were
+withdrawn (`audit_batch.py withdraw`) and drafted again (kb/Work PB4995). It writes `DIR/drafts/runs.json`: MATCH,
+MISMATCH or NO VERDICT per rule,
 naming the compiler binary (its `--version` and the digest of its assemblies, never a checkout's HEAD). A MATCH is a candidate witness, placed in the conformance suite only after the fleet checks the draft
 against the rule text; a MISMATCH is a defect or a suspect draft for the fleet to tell apart. The tool's rules:
 
@@ -1052,7 +1053,9 @@ against the rule text; a MISMATCH is a defect or a suspect draft for the fleet t
   run, the usage of every billed reply recorded under its batch and custom id (a retried item's earlier reply stays in the
   spend `--max-usd` checks). A pass's items are planned once (`items.json`, every input its prompts need);
   each answer is written once and never overwritten; a reply outside the pass's answer shape is kept in `raw/` and its item
-  retried.
+  retried. When the shape grows (a refused draft's violating line and control), `withdraw` moves each stored answer the
+  shape now refuses to `raw/` (`<custom id>.withdrawn.json`) and `retry` asks for it again, so the shape stays the one rule
+  of what an answer is and no reader keeps an arm for an older one.
 - **A canary before each full submit**: `submit --canary N` first, and a full submit is refused until that pass holds a
   collected canary with a valid answer. **`--max-usd` on every submit and retry**, against spent plus in-flight plus this
   submit, priced by the canary's measured cost per request. The map pass on the unreconciled file estimates about $0.017

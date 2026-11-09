@@ -14,9 +14,9 @@ A draft that must run is an ACCEPTED test (`Run.accept`: it compiles, runs, and 
 the compiler must refuse is a FLAGGED test (`Run.flagged`), so a refusal counts only when it is the rule's: the draft names
 the line of its program that violates the rule and carries a control, the same program with that line made conforming; the
 control must compile and the program must draw a diagnostic AT that line. A refusal for another reason (a diagnostic only on
-other lines) is a MISMATCH, and so is a control the compiler refuses. A draft written before the drafts prompt asked for the
-line and the control (review w20261931a R1-1) cannot be tied to the rule: a diagnostic anywhere makes it REFUSED UNCONFIRMED,
-its own class and never a MATCH, which a new draft of the rule decides.
+other lines) is a MISMATCH, and so is a control the compiler refuses. Every stored draft carries both: the drafts pass's
+answer shape requires them (audit_batch.py `parse_answer`), and a draft stored before it did is withdrawn and drafted again
+(`audit_batch.py withdraw`, kb/Work PB4995), so no draft is judged without them.
 
 A MATCH is a candidate witness of the rule's verdict at that edition, once the draft is checked against the rule text (a
 draft is a model's, so it is never a witness unchecked: the fleet checks it and places it in the conformance suite). A
@@ -49,7 +49,7 @@ sys.path.append(str(REPO / "scripts"))
 from standard_streams import ensure_utf8  # noqa: E402
 
 TOOL = "run_drafts"
-MATCH, MISMATCH, UNCONFIRMED, NO_VERDICT = "MATCH", "MISMATCH", "REFUSED UNCONFIRMED", "NO VERDICT"
+MATCH, MISMATCH, NO_VERDICT = "MATCH", "MISMATCH", "NO VERDICT"
 #: The harness's verdict of a draft's test as the draft's: a control the compiler refuses (the harness's NOT APPLICABLE) is
 #: a MISMATCH here, since a draft's control is legal 1985 by its own claim (a refused control is a defect or a bad draft).
 VERDICT_OF = {harness.PASS: MATCH, harness.FAIL: MISMATCH, harness.NOT_APPLICABLE: MISMATCH}
@@ -62,8 +62,7 @@ DEFAULT_COBOL = REPO / "src" / "WiseOwl.Cobol.Cli" / "bin" / "Debug" / "net10.0"
 def tests_of(root: pathlib.Path, rule_id: str, draft: dict[str, Any]) -> list[dict[str, Any]]:
     """A draft as conformance-harness tests (the manifest's shape, DESIGN-conformance-suite.md §4), its files written under
     `cases/drafts/` of the run's scratch root: the draft's own test first, then its control when it has one. An output draft
-    is an accepted test; a refused draft a flagged test at the line it names, with its control (`line` and `control` None
-    for a draft that names neither)."""
+    is an accepted test; a refused draft a flagged test at the line it names, with its control."""
     stem = "d" + rule_id.replace(".", "_").replace("-", "_")
     expected = draft["expected"]
 
@@ -79,8 +78,6 @@ def tests_of(root: pathlib.Path, rule_id: str, draft: dict[str, Any]) -> list[di
         (root / f"cases/drafts/{stem}.out").write_text("\n".join(expected["output"]), encoding="utf-8", newline="\n")
         return [test(stem, draft["program"], expect="accept", **{"implementor-defined": [],
                                                                    "expected-output": {"": f"cases/drafts/{stem}.out"}})]
-    if "line" not in expected or "control" not in expected:
-        return [test(stem, draft["program"], expect="flag", flag="syntax", line=None, control=None)]
     control = test(f"{stem}_control", expected["control"], expect="accept", **{"implementor-defined": [],
                                                                                "expected-output": {}})
     return [test(stem, draft["program"], expect="flag", flag="syntax", line=expected["line"], control=control["id"]),
@@ -94,20 +91,9 @@ def judge(run: harness.Run, edition: str, test: dict[str, Any]) -> dict[str, Any
         if test["expect"] == "accept":
             verdict, reason = run.accept(edition, test, work)
             return {"expected": "output", "verdict": VERDICT_OF.get(verdict, NO_VERDICT), "reason": reason}
-        if test["control"] is not None:
-            verdict, reason = run.flagged(edition, test, work)
-            return {"expected": "refused", "verdict": VERDICT_OF.get(verdict, NO_VERDICT),
-                    "reason": reason or f"a diagnostic at the violating line {test['line']}"}
-        source, program = run.stage(test, work)
-        why, lines, step = run.flag(edition, test, work, source, program)
-        if why:
-            return {"expected": "refused", "verdict": NO_VERDICT, "reason": why}
-        if not lines:
-            return {"expected": "refused", "verdict": MISMATCH,
-                    "reason": f"no diagnostic reported (exit {step.returncode})"}
-        return {"expected": "refused", "verdict": UNCONFIRMED,
-                "reason": (f"diagnostics at line(s) {', '.join(map(str, lines))}, and the draft names no violating line "
-                           f"or control to tie them to the rule: {harness.first_lines(step.text())}")}
+        verdict, reason = run.flagged(edition, test, work)
+        return {"expected": "refused", "verdict": VERDICT_OF.get(verdict, NO_VERDICT),
+                "reason": reason or f"a diagnostic at the violating line {test['line']}"}
     except (harness.HarnessError, OSError) as e:
         return {"expected": "output" if test["expect"] == "accept" else "refused", "verdict": NO_VERDICT,
                 "reason": f"the harness could not run it: {e}"}
@@ -180,7 +166,7 @@ def write_record(state: pathlib.Path, record: dict[str, Any]) -> pathlib.Path:
 def self_test() -> int:
     """Planted drafts through the conformance harness's own stub compiler (run.py `_STUB`, whose `diag N` reports a
     diagnostic at line N): a matched output, a mismatched output, a refusal at its violating line, a refusal at another
-    line, a refused control, an unmarked refusal, an unmarked draft the compiler translates, and a crash; then the
+    line, a refused control, a refusal the compiler translates, and a crash; then the
     compiler's identity."""
     fails: list[str] = []
 
@@ -208,8 +194,7 @@ def self_test() -> int:
                   "1985-SR-A.1-3": (two, {"outcome": "refused", "line": 2, "control": clean}),
                   "1985-SR-A.1-4": (two, {"outcome": "refused", "line": 1, "control": clean}),
                   "1985-SR-A.1-5": (two, {"outcome": "refused", "line": 2, "control": "*> STUB refuse"}),
-                  "1985-SR-A.1-6": (two, {"outcome": "refused"}),
-                  "1985-SR-A.1-7": ("*> STUB run out X", {"outcome": "refused"}),
+                  "1985-SR-A.1-7": ("*> STUB run out X", {"outcome": "refused", "line": 1, "control": clean}),
                   "1985-SR-A.1-8": ("*> STUB crash", {"outcome": "output", "output": ["X"]})}
         p = Pass(state, "drafts")
         write_plan(p, [{"id": rid} for rid in drafts])
@@ -222,15 +207,14 @@ def self_test() -> int:
         record = run_drafts(state, root / "adapters" / "stub.json", {}, "85", 2, planted)
         got = {rid: r["verdict"] for rid, r in record["runs"].items()}
         ok(got == {"1985-GR-A.1-1": MATCH, "1985-GR-A.1-2": MISMATCH, "1985-SR-A.1-3": MATCH, "1985-SR-A.1-4": MISMATCH,
-                   "1985-SR-A.1-5": MISMATCH, "1985-SR-A.1-6": UNCONFIRMED, "1985-SR-A.1-7": MISMATCH,
+                   "1985-SR-A.1-5": MISMATCH, "1985-SR-A.1-7": MISMATCH,
                    "1985-SR-A.1-8": NO_VERDICT},
            "the harness judges each draft: output matched and mismatched; a refusal a MATCH only with a diagnostic at its "
-           f"violating line and a control that compiles; an unmarked refusal never a MATCH; a crash no verdict ({got})")
+           f"violating line and a control that compiles; a crash no verdict ({got})")
         runs = record["runs"]
         ok("HELLO" in runs["1985-GR-A.1-2"]["reason"] and "marked line 1" in runs["1985-SR-A.1-4"]["reason"]
-           and "control" in runs["1985-SR-A.1-5"]["reason"] and "names no violating line" in runs["1985-SR-A.1-6"]["reason"]
-           and "no diagnostic" in runs["1985-SR-A.1-7"]["reason"],
-           "each reason says why: the differing output, the diagnostic elsewhere, the refused control, the unmarked draft")
+           and "control" in runs["1985-SR-A.1-5"]["reason"] and runs["1985-SR-A.1-7"]["reason"],
+           "each reason says why: the differing output, the diagnostic elsewhere, the refused control, the translated one")
         ok(record["compiler"] == planted and record["edition"] == "85", "the record names the compiler and the edition")
         out = write_record(state, record)
         ok(json.loads(out.read_text(encoding="utf-8")) == record and out.parent == p.dir,
