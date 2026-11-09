@@ -684,6 +684,17 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
+        /// <summary>APPLY COMMIT (I-O-CONTROL, ISO §2023:12.4.6.3) — the commit-and-rollback facility, a COBOL-2023
+        /// introduction (§2023:E.3.2 2), gated on RECOGNITION (kb/Work PB5025). The arm is the union grammar, so at
+        /// --std 2014 <c>APPLY COMMIT ON F.</c> reaches here and names the edition where the {is2023()}? construct gate
+        /// made it the closed-format refusal (COBOL1970). The §2023:12.4.6.3.3 syntax rules stay in the binder
+        /// (<c>FileControlBinder.BindApplyCommitClause</c>); this arm only names the edition.</summary>
+        public override object? VisitApplyCommitClause(CobolParserCore.ApplyCommitClauseContext ctx)
+        {
+            _p.Check(Constructs.ApplyCommitClause2023, "the I-O-CONTROL APPLY COMMIT clause");
+            return base.VisitChildren(ctx);
+        }
+
         /// <summary>PADDING CHARACTER (file control entry) — the ANSI X3.23-1985 Sequential I-O block-fill
         /// character, DELETED from the standard: the 2023 file control entry's clauses are §2023:12.4.5.4–§2023:12.4.5.15
         /// and none is PADDING, and the word appears nowhere in the 2023 text (§2023:8.9's list runs PACKED-DECIMAL →
