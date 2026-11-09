@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Diagnostics;
 using WiseOwl.Cobol.Runtime.Mcs;
+using WiseOwl.Cobol.Runtime.Messaging;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 
@@ -93,13 +94,14 @@ public sealed class MessagingProcessTests : IDisposable
            STOP RUN.
 """;
 
-    private LiveProcess Start(string module, string? serves = null)
+    private LiveProcess Start(string module, string? serves = null, string? log = null)
     {
         var psi = new ProcessStartInfo("dotnet", $"\"{Path.Combine(_dir, module + ".dll")}\"") { WorkingDirectory = _dir };
         psi.Environment["COBOL_USER_LOCALE"] = CutRunner.LocalePin;
         psi.Environment["COBOL_SYSTEM_LOCALE"] = CutRunner.LocalePin;
         psi.Environment[CutRunner.McsDirectoryVariable] = _dir;
         if (serves is not null) psi.Environment["WISEOWL_COBOL_MCS_SERVER"] = serves;
+        if (log is not null) psi.Environment[ServerActivation.LogVariable] = log;
         var live = LiveProcess.Start(psi);
         _live.Add(live);
         return live;
@@ -792,5 +794,209 @@ public sealed class MessagingProcessTests : IDisposable
         Assert.Equal(0, exit);
         Assert.Equal("", stderr);
         Assert.Equal("DECL LTZ\nPOLL OK\nEND", stdout);
+    }
+
+    // ---------------------------------------------------------------- activation (kb/Work PB4745; DESIGN-message-control.md §5.4.5, §7.2 "Across processes")
+
+    /// <summary>Writes the MCS directory's <c>mcs.json</c>: one server <paramref name="name"/> whose <c>start</c> runs <paramref name="module"/>'s assembly with <c>dotnet</c>, and
+    /// <paramref name="extra"/> (a JSON object's members, comma first) beside it.</summary>
+    private void DefineServer(string name, string? module, string extra = "")
+    {
+        string start = module is null ? "" : $", \"start\": [\"dotnet\", {System.Text.Json.JsonSerializer.Serialize(Path.Combine(_dir, module + ".dll"))}]";
+        File.WriteAllText(Path.Combine(_dir, "mcs.json"), $"{{ \"servers\": [ {{ \"name\": \"{name}\"{start}{extra} }} ] }}");
+    }
+
+    /// <summary>The logs of the servers a requestor started (<c>servers/&lt;N&gt;.&lt;r&gt;.log</c>, DESIGN-message-control.md §5.4.5).</summary>
+    private string[] ServerLogs(string spelling) =>
+        Directory.Exists(Path.Combine(_dir, "servers")) ? Directory.GetFiles(Path.Combine(_dir, "servers"), spelling + ".*.log") : [];
+
+    /// <summary>A server log as it stands: the server that writes it may still be running, so it is read without excluding its writer.</summary>
+    private static string ReadLog(string path)
+    {
+        using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+        return new StreamReader(stream).ReadToEnd();
+    }
+
+    /// <summary>A requestor that SENDs once and reports the SEND's outcome: <c>SENT</c>, or the exception condition set, which <paramref name="condition"/> enables.</summary>
+    private static string OneSend(string name, string condition, string to = "srv", string message = "HELLO") => $"""
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. {name}.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 MT        USAGE MESSAGE-TAG.
+       01 REQ       PIC X(8) VALUE "{message}".
+       PROCEDURE DIVISION.
+       MAIN-P.
+       >>TURN {condition} CHECKING ON
+           SEND TO "{to}" FROM REQ RETURNING MT
+               ON EXCEPTION DISPLAY "CLI SEND-EXC " FUNCTION TRIM(FUNCTION EXCEPTION-STATUS)
+               NOT ON EXCEPTION DISPLAY "SENT"
+           END-SEND
+           STOP RUN.
+""";
+
+    /// <summary>A server that answers <paramref name="count"/> requests, one after the other, each with a reply.</summary>
+    private static string TwoRequestServer(string name, int count) => $"""
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. {name}.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 RT        USAGE MESSAGE-TAG.
+       01 BUF       PIC X(8).
+       01 LEN       PIC 9(4).
+       01 REPLY     PIC X(6) VALUE "PONG!!".
+       01 N         PIC 9 VALUE 0.
+       PROCEDURE DIVISION.
+       MAIN-P.
+           DISPLAY "READY"
+           PERFORM {count} TIMES
+               SET RT TO NULL
+               RECEIVE RT GIVING BUF LEN
+               END-RECEIVE
+               SEND TO RT FROM REPLY
+               END-SEND
+               ADD 1 TO N
+               DISPLAY "SRV SERVED " N
+           END-PERFORM
+           STOP RUN.
+""";
+
+    [Fact]
+    public void ASendToAServerNobodyServes_StartsItFromItsDefinition_AndTheServerLogsToItsLog()
+    {
+        // §2023:14.9.38.4 GR4 sends the message to the server run unit; the MCS finds none, and the definition's start command (DESIGN §5.4.5, §0 Q3) runs in the MCS directory
+        // with WISEOWL_COBOL_MCS_SERVER naming the server, _NOTIFY the requestor's notify socket and _LOG the server's log. The started run unit serves "SRV", takes the request, and
+        // answers it. Its standard output is the log (servers/<N>.<r>.log), not the requestor's console.
+        Compile("PB4745S1", Server("PB4745S1", 20, ReplyAfter));
+        Compile("PB4745C1", Requestor("PB4745C1"));
+        DefineServer("Srv", "PB4745S1");
+        var client = Start("PB4745C1");
+        Assert.Equal("SENT", client.ExpectLine());
+        client.Send("go");
+        Assert.Equal("CLI OK", client.ExpectLine());
+        Assert.Equal("CLI GOT PONG!!      /0006", client.ExpectLine());
+        Assert.Equal(0, client.WaitForExit());
+        string[] logs = ServerLogs("SRV");
+        Assert.Single(logs);
+        string log = ReadLog(logs[0]);
+        Assert.Contains("READY", log);                                   // printed before the reply that the requestor has now received
+        Assert.Contains("SRV OK", log);
+        Assert.Contains("SRV GOT HELLO               /0008", log);
+        Assert.Empty(client.Stderr);
+    }
+
+    [Fact]
+    public void AProcessStartedWithAServerLog_WritesItsConsoleToTheLog_NotToItsOwnStandardOutput()
+    {
+        // DESIGN §5.4.5: a server outlives the requestor that started it, so its console is the log named by WISEOWL_COBOL_MCS_LOG from the process entry on. This process is
+        // started with no requestor draining its pipes: what DISPLAY wrote can only have reached the file through the process's own routing.
+        Compile("PB4745S4", Server("PB4745S4", 20, ReplyAfter));
+        string logPath = Path.Combine(_dir, "routed.log");
+        var server = Start("PB4745S4", serves: "SRV", log: logPath);
+        var deadline = DateTime.UtcNow.AddMilliseconds(ObservationBudget.UnitMs);
+        while (!(File.Exists(logPath) && ReadLog(logPath).Contains("READY", StringComparison.Ordinal)))
+        {
+            Assert.True(DateTime.UtcNow < deadline, "READY never reached the server log");
+            Thread.Sleep(20);
+        }
+        Assert.Empty(server.Stderr);
+    }
+
+    [Fact]
+    public void TwoWritersOfOneServerLog_KeepEachOthersLines()
+    {
+        // .NET's FileMode.Append seeks to the end once and then writes at its own offset, so two streams on one log overwrite each other; ServerLog positions at the end per write.
+        string path = Path.Combine(_dir, "two-writers.log");
+        using (var first = ServerLog.Open(path))
+        using (var second = ServerLog.Open(path))
+        {
+            first.Write("stdout line\n"u8);
+            second.Write("stderr!\n"u8);
+            first.Write("more stdout\n"u8);
+        }
+        Assert.Equal("stdout line\nstderr!\nmore stdout\n", ReadLog(path));
+    }
+
+    [Fact]
+    public void TwoRequestorsRacingToActivateOneName_LaunchItOnce()
+    {
+        // DESIGN §5.4.5: the requestor that holds start/<N>.lock launches the server and keeps the lock until the server has published its listener; the other, which waited
+        // for the lock, enumerates again and finds that server. One log is one launch, and the one server answers both.
+        Compile("PB4745S2", TwoRequestServer("PB4745S2", 2));
+        Compile("PB4745C2A", Requestor("PB4745C2A"));
+        Compile("PB4745C2B", Requestor("PB4745C2B"));
+        DefineServer("SRV", "PB4745S2");
+        var first = Start("PB4745C2A");
+        var second = Start("PB4745C2B");
+        Assert.Equal("SENT", first.ExpectLine());
+        Assert.Equal("SENT", second.ExpectLine());
+        first.Send("go");
+        second.Send("go");
+        Assert.Equal("CLI OK", first.ExpectLine());
+        Assert.Equal("CLI OK", second.ExpectLine());
+        Assert.Equal("CLI GOT PONG!!      /0006", first.ExpectLine());
+        Assert.Equal("CLI GOT PONG!!      /0006", second.ExpectLine());
+        Assert.Equal(0, first.WaitForExit());
+        Assert.Equal(0, second.WaitForExit());
+        Assert.Single(ServerLogs("SRV"));
+    }
+
+    [Fact]
+    public void AStartCommandThatEndsBeforeItsServerIsPublished_IsEcMcsImp_AndWhatItPrintedIsInTheLog()
+    {
+        // DESIGN §5.4.5: "a process that exits first is EC-MCS-IMP" (§0 Q8: every failure of the MCS itself, a server that cannot be started among them). The start command is dotnet
+        // run on an assembly that does not exist, which ends at once with a message the requestor drains into the server's log.
+        Compile("PB4745C3", OneSend("PB4745C3", "EC-MCS-IMP"));
+        File.WriteAllText(Path.Combine(_dir, "mcs.json"),
+            $"{{ \"servers\": [ {{ \"name\": \"SRV\", \"start\": [\"dotnet\", {System.Text.Json.JsonSerializer.Serialize(Path.Combine(_dir, "NoSuchServer.dll"))}] }} ] }}");
+        var (exit, stdout, stderr) = CutRunner.RunExit(Path.Combine(_dir, "PB4745C3.dll"), _dir);
+        Assert.Equal("", stderr);
+        Assert.Equal(0, exit);
+        Assert.Equal("CLI SEND-EXC EC-MCS-IMP", stdout);
+        string[] logs = ServerLogs("SRV");
+        Assert.Single(logs);
+        Assert.NotEmpty(ReadLog(logs[0]));
+    }
+
+    [Fact]
+    public void AStartCommandThatCannotBeStarted_IsEcMcsImp()
+    {
+        // DESIGN §5.4.5 and §0 Q8: a program the host cannot start is a server that cannot be started.
+        Compile("PB4745C4", OneSend("PB4745C4", "EC-MCS-IMP"));
+        File.WriteAllText(Path.Combine(_dir, "mcs.json"), """{ "servers": [ { "name": "SRV", "start": "no-such-program-pb4745 --serve" } ] }""");
+        var (exit, stdout, stderr) = CutRunner.RunExit(Path.Combine(_dir, "PB4745C4.dll"), _dir);
+        Assert.Equal("", stderr);
+        Assert.Equal(0, exit);
+        Assert.Equal("CLI SEND-EXC EC-MCS-IMP", stdout);
+    }
+
+    [Theory]
+    [InlineData("{ \"servers\": [ ")]
+    [InlineData("""{ "servers": [ { "name": "SRV", "maxLength": 0 } ] }""")]
+    [InlineData("""{ "servers": [ { "name": "SRV" }, { "name": "srv " } ] }""")]
+    [InlineData("""{ "servers": [ { "start": "x" } ] }""")]
+    public void AnUnusableServersDefinition_IsEcMcsImpAtTheFirstMessagingStatement(string json)
+    {
+        // §0 Q8: "EC-MCS-IMP covers every failure of the MCS itself: an unusable mcs.json". The definitions are read when the run unit's messaging starts, so the SEND is
+        // unsuccessful whatever name it addresses.
+        Compile("PB4745C5", OneSend("PB4745C5", "EC-MCS-IMP"));
+        File.WriteAllText(Path.Combine(_dir, "mcs.json"), json);
+        var (exit, stdout, stderr) = CutRunner.RunExit(Path.Combine(_dir, "PB4745C5.dll"), _dir);
+        Assert.Equal("", stderr);
+        Assert.Equal(0, exit);
+        Assert.Equal("CLI SEND-EXC EC-MCS-IMP", stdout);
+    }
+
+    [Fact]
+    public void AMessageLongerThanTheServersMaxLength_IsEcMcsMessageLength_BeforeAnyServerIsLookedFor()
+    {
+        // §2023:14.9.38.4 GR1: the SEND is unsuccessful when the message is "larger than the message server allows"; this implementation's server allows what mcs.json defines
+        // as the name's maxLength (docs/CONFORMANCE.md D-MCS-LENGTH). The message is 8 positions and the limit 4, and no server runs and none can be started.
+        Compile("PB4745C6", OneSend("PB4745C6", "EC-MCS-MESSAGE-LENGTH"));
+        DefineServer("SRV", null, ", \"maxLength\": 4");
+        var (exit, stdout, stderr) = CutRunner.RunExit(Path.Combine(_dir, "PB4745C6.dll"), _dir);
+        Assert.Equal("", stderr);
+        Assert.Equal(0, exit);
+        Assert.Equal("CLI SEND-EXC EC-MCS-MESSAGE-LENGTH", stdout);
     }
 }

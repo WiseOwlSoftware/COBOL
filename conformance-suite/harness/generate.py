@@ -117,7 +117,7 @@ CONTINUATION = "    "
 FIELDS = {
     "id": "scalar", "rules": "list", "accept": "list", "flag": "map", "control": "scalar", "requires": "list",
     "implementor-defined": "list", "files": "list", "source-format": "scalar", "portable": "scalar",
-    "constructs": "list", "build": "list",
+    "constructs": "list", "build": "list", "servers": "map",
 }
 FLAG_FIELDS = {"kind": "scalar", "at": "list", "why": "scalar"}
 #: §3.2: the kinds of standard-conformance diagnostic a flagged test requires.
@@ -186,6 +186,9 @@ class Case:
     #: A WiseOwl test's compilation steps (§3.1 `build`, DESIGN-external-repository §17.1): in order, each `(declared file,
     #: output base name)`, the test's own source as `(None, None)`; None for a test that is one compilation.
     build: tuple[tuple[str | None, str | None], ...] | None = None
+    #: A WiseOwl test's message servers (§3.1 `servers`, DESIGN-message-control.md §0 Q9): in the header's order, each `(server
+    #: name as written, declared file)`; None for a test that starts none.
+    servers: tuple[tuple[str, str], ...] | None = None
 
     @property
     def in_suite(self) -> bool:
@@ -465,6 +468,7 @@ class Reader:
                                                                  f"not {v!r}")
             else:
                 items.append(int(v))
+        build = self._build(rel, h, tree, test_id, self._shaped(rel, h, "files", "list") or ())
         case = Case(
             tree=tree, folder=folder, path=rel, test_id=test_id, source_format=fmt, rules=rules, accept=accept,
             flag=flag, control=self._shaped(rel, h, "control", "scalar"),
@@ -472,7 +476,8 @@ class Reader:
             files=tuple(self._shaped(rel, h, "files", "list") or ()),
             constructs=tuple(self._shaped(rel, h, "constructs", "list") or ()),
             portable=portable_value is None, marked_line=None,
-            build=self._build(rel, h, tree, test_id, self._shaped(rel, h, "files", "list") or ()))
+            build=build,
+            servers=self._servers(rel, h, tree, test_id, self._shaped(rel, h, "files", "list") or (), build))
         self.sources[test_id] = text
         self._check_program(case, h, text)
         return case
@@ -528,6 +533,50 @@ class Reader:
         if not any(f is None for f, _ in steps):
             steps.append((None, None))
         return tuple(steps)
+
+    def _servers(self, rel: Path, h: Header, tree: str, test_id: str, files: Iterable[str],
+                 build: tuple[tuple[str | None, str | None], ...] | None) -> tuple[tuple[str, str], ...] | None:
+        """A WiseOwl test's `servers` (§3.1, DESIGN-message-control.md §0 Q9): a map from a message server name to the declared file
+        whose main program the runner starts, before the test, as a concurrent run unit serving that name in the test's own MCS
+        directory. Each file is compiled as a `build` unit is (`wiseowl/options/<id>.<file>.json` names its options), into an
+        assembly named after the file. A name is compared as the server name is (trailing spaces removed, without regard to
+        case, ISO §2023:14.9.38.4 GR4 with DESIGN-message-control.md §0 Q3), so two entries naming one server are refused."""
+        raw = self._shaped(rel, h, "servers", "map")
+        if raw is None:
+            return None
+        line = h.lines["servers"]
+        if tree != "wiseowl":
+            self.refuse(rel, line, "servers is a WiseOwl-only field: how a second run unit is started and found is the "
+                                   "implementor's (§2023:14.9.38.4 GR4), so no test of cases/ states it (§4)")
+            return None
+        if not raw:
+            self.refuse(rel, line, "servers names at least one server")
+            return None
+        declared = set(files)
+        taken_names: set[str] = set()
+        taken_outputs = {out.casefold() for _, out in build or () if out is not None}
+        taken_outputs.add(test_id.casefold())
+        servers: list[tuple[str, str]] = []
+        for name, file in raw.items():
+            key = name.rstrip(" ").casefold()
+            if not isinstance(file, str):
+                self.refuse(rel, line, f"servers: {name!r} maps to a declared file, not {file!r}")
+            elif not key:
+                self.refuse(rel, line, "servers: a server name is not blank")
+            elif key in taken_names:
+                self.refuse(rel, line, f"servers names {name!r} twice (a server name is compared without regard to case, "
+                                       f"trailing spaces removed)")
+            elif file not in declared:
+                self.refuse(rel, line, f"servers: {name!r} maps to {file!r}, which is not a declared file of this test "
+                                       f"(`files`, §3.1)")
+            elif Path(file).stem.casefold() in taken_outputs:
+                self.refuse(rel, line, f"servers: {name!r} maps to {file!r}, whose assembly {Path(file).stem!r} is the test's "
+                                       f"own program, a build step's output or another server's")
+            else:
+                taken_names.add(key)
+                taken_outputs.add(Path(file).stem.casefold())
+                servers.append((name, file))
+        return tuple(servers)
 
     def _flag(self, rel: Path, line: int, raw: dict[str, Any]) -> Flag | None:
         for key in raw:
@@ -825,8 +874,9 @@ def check_cases(reader: Reader) -> None:
             # `<id>/<step file>`: the options of one compilation step of a multi-unit test (§3.1 `build`).
             owner, _, step_file = test_id.partition("/")
             case = by_id.get(owner)
-            if case is not None and step_file not in {f for f, _ in case.build or () if f is not None}:
-                reader.refuse(where, 1, f"an entry for {test_id!r}: {owner} has no build step {step_file!r}")
+            units = {f for f, _ in case.build or () if f is not None} | {f for _, f in case.servers or ()} if case else set()
+            if case is not None and step_file not in units:
+                reader.refuse(where, 1, f"an entry for {test_id!r}: {owner} has no build step or server file {step_file!r}")
                 continue
         if case is None:
             reader.refuse(where, 1, f"an entry for {test_id!r}, which is no test")
@@ -971,6 +1021,10 @@ def entry_for(case: Case, edition: str, inputs: Inputs) -> dict[str, Any]:
         entry["build"] = [{"file": None if f is None else _posix(folder / f), "output": out,
                            "options": {} if f is None else dict(inputs.options.get(f"{case.test_id}/{f}", {}))}
                           for f, out in case.build]
+    if case.servers is not None:
+        folder = case.path.parent
+        entry["servers"] = [{"name": name, "file": _posix(folder / f), "output": Path(f).stem,
+                             "options": dict(inputs.options.get(f"{case.test_id}/{f}", {}))} for name, f in case.servers]
     if edition in case.accept:
         expected = {}
         values = [[(i, v) for v in inputs.implementor_defined[i]] for i in case.implementor_defined]
@@ -1374,6 +1428,10 @@ def self_test() -> int:
             ["id: multi-tail", "rules: [GR-1.1.1-1]", "accept: [2023]", "files: [U1.cbl]", "build: [U1.cbl]",
              "source-format: fixed"], _PROGRAM),
         "wiseowl/cases/1.1.1-Rule/multi-tail.out": "x\n",
+        "wiseowl/cases/1.1.1-Rule/served.cob": _fixed(
+            ["id: served", "rules: [GR-1.1.1-1]", "accept: [2023]", "files: [U1.cbl, U2.cbl]",
+             "build: [\"U1.cbl > Lib\"]", "servers: {BALANCE: U2.cbl, \"audit \": U1.cbl}", "source-format: fixed"], _PROGRAM),
+        "wiseowl/cases/1.1.1-Rule/served.out": "x\n",
         "wiseowl/cases/1.1.1-Rule/U1.cbl": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. U1.\n",
         "wiseowl/cases/1.1.1-Rule/U2.cbl": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. U2.\n",
         "cases/2.2.2-Free/free-test.cob": "*>--- conformance-case\n*> id: free-test\n*> rules: [RV-2.2.2-1]\n"
@@ -1389,7 +1447,7 @@ def self_test() -> int:
         root = Path(d)
         _plant(root, good)
         inputs = _planted_inputs()
-        inputs.options = {"multi/U1.cbl": {"repository-update": "off", "std": "85"}}
+        inputs.options = {"multi/U1.cbl": {"repository-update": "off", "std": "85"}, "served/U2.cbl": {"repository-update": "off"}}
         rc_gen, reader = generate(root, inputs, [], root / "suites")
         check("arm: a well-formed tree is GREEN", rc_gen == 0, [str(r) for r in reader.refusals])
         if rc_gen == 0:
@@ -1442,6 +1500,12 @@ def self_test() -> int:
                   w2023["multi-tail"]["build"] == [{"file": unit + "U1.cbl", "output": "U1", "options": {}},
                                                    {"file": None, "output": None, "options": {}}]
                   and "build" not in w2023["own"], w2023["multi-tail"])
+            check("arm: a test's servers reach its entry in the header's order, each with its file, its assembly's name and its "
+                  "step options (wiseowl/options/<id>.<file>.json); a test with none has no key",
+                  w2023["served"]["servers"] == [
+                      {"name": "BALANCE", "file": unit + "U2.cbl", "output": "U2", "options": {"repository-update": "off"}},
+                      {"name": "audit ", "file": unit + "U1.cbl", "output": "U1", "options": {}}]
+                  and "servers" not in w2023["multi"], w2023["served"])
             check("arm: ... and all three are in the wiseowl manifest",
                   {"loose", "own"} <= set(w2023) and "unverified" in {t["id"] for t in mw["editions"]["85"]}, w2023)
             check("arm: the wiseowl manifest carries wiseowl/diagnostics/'s refusals",
@@ -1694,6 +1758,44 @@ def self_test() -> int:
             _fixed(["id: bld-self", "rules: [GR-1.1.1-1]", "accept: [2023]", "files: [U1.cbl]",
                     "build: [\"{self}\", U1.cbl, \"{self}\"]", "source-format: fixed"], _PROGRAM),
             "names {self} twice"),
+        "servers in a suite test": ("cases/1.1.1-Rule/srv-suite.cob",
+                                    _fixed(["id: srv-suite", "rules: [GR-1.1.1-1]", "accept: [85]", "files: [CPY1.cpy]",
+                                            "servers: {SRV: CPY1.cpy}", "source-format: fixed"], _PROGRAM),
+                                    "servers is a WiseOwl-only field"),
+        "servers names an undeclared file": (
+            "wiseowl/cases/1.1.1-Rule/srv-undeclared.cob",
+            _fixed(["id: srv-undeclared", "rules: [GR-1.1.1-1]", "accept: [2023]", "files: [U1.cbl]",
+                    "servers: {SRV: U2.cbl}", "source-format: fixed"], _PROGRAM),
+            "which is not a declared file of this test"),
+        "servers names a server twice": (
+            "wiseowl/cases/1.1.1-Rule/srv-twice.cob",
+            _fixed(["id: srv-twice", "rules: [GR-1.1.1-1]", "accept: [2023]", "files: [U1.cbl, U2.cbl]",
+                    "servers: {SRV: U1.cbl, \"srv  \": U2.cbl}", "source-format: fixed"], _PROGRAM),
+            "names 'srv  ' twice"),
+        "servers with a blank name": (
+            "wiseowl/cases/1.1.1-Rule/srv-blank.cob",
+            _fixed(["id: srv-blank", "rules: [GR-1.1.1-1]", "accept: [2023]", "files: [U1.cbl]",
+                    "servers: {\"  \": U1.cbl}", "source-format: fixed"], _PROGRAM),
+            "a server name is not blank"),
+        "servers with an empty map": (
+            "wiseowl/cases/1.1.1-Rule/srv-empty.cob",
+            _fixed(["id: srv-empty", "rules: [GR-1.1.1-1]", "accept: [2023]", "servers: {}", "source-format: fixed"], _PROGRAM),
+            "servers names at least one server"),
+        "servers whose assembly is the test's own": (
+            "wiseowl/cases/1.1.1-Rule/srv-own.cob",
+            _fixed(["id: srv-own", "rules: [GR-1.1.1-1]", "accept: [2023]", "files: [srv-own.cbl]",
+                    "servers: {SRV: srv-own.cbl}", "source-format: fixed"], _PROGRAM),
+            "whose assembly 'srv-own' is the test's own program"),
+        "servers whose assembly is a build step's": (
+            "wiseowl/cases/1.1.1-Rule/srv-built.cob",
+            _fixed(["id: srv-built", "rules: [GR-1.1.1-1]", "accept: [2023]", "files: [U1.cbl, U2.cbl]",
+                    "build: [\"U2.cbl > U1\"]", "servers: {SRV: U1.cbl}", "source-format: fixed"], _PROGRAM),
+            "a build step's output"),
+        "servers mapping to a non-file": (
+            "wiseowl/cases/1.1.1-Rule/srv-nonfile.cob",
+            _fixed(["id: srv-nonfile", "rules: [GR-1.1.1-1]", "accept: [2023]", "files: [U1.cbl]",
+                    "servers: {SRV: [U1.cbl]}", "source-format: fixed"], _PROGRAM),
+            "maps to a declared file"),
         "duplicate id": ("wiseowl/cases/1.1.1-Rule/ok.cob",
                          _fixed(["id: ok", "rules: [GR-1.1.1-1]", "accept: [85]", "source-format: fixed"], _PROGRAM),
                          "is also"),

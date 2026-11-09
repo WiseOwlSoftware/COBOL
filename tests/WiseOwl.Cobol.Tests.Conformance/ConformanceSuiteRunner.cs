@@ -43,6 +43,8 @@ internal readonly record struct SuiteResult(string Verdict, string Reason);
 /// declared unit to <c>&lt;output&gt;.dll</c> with its step's WiseOwl options, and the test's own source AT ITS PLACE in the
 /// list, so a step after it compiles beside, and may overwrite the output of, the program already built (the stale
 /// caller: the callee rebuilt after its caller). The run follows the last step.</para>
+/// <para><b>A test that names servers</b> (its header's <c>servers</c>, DESIGN-message-control.md §0 Q9) has each server's unit compiled like a build step and started as a
+/// concurrent run unit serving its name, in the same working directory (the test's MCS directory), before the test runs; <see cref="RunningServers"/> ends them with the test.</para>
 /// </remarks>
 internal static class ConformanceSuiteRunner
 {
@@ -115,17 +117,18 @@ internal static class ConformanceSuiteRunner
     /// <summary>The compile of one declared unit of a multi-unit test (<paramref name="step"/>, a step with a file): the unit
     /// staged beside the test's source and its declared files, its assembly <c>&lt;output&gt;.dll</c> in
     /// <paramref name="work"/>, compiled as the test is at <paramref name="edition"/> with the step's own WiseOwl options.</summary>
-    private static CompilerDriver.Options UnitOptions(SuiteTest test, SuiteBuildStep step, string edition, string work)
+    private static CompilerDriver.Options UnitOptions(SuiteTest test, string file, string output,
+        IReadOnlyDictionary<string, string> unitOptions, string edition, string work)
     {
         string compileDir = Path.Combine(work, "compile");
-        string unit = Path.Combine(compileDir, Path.GetFileName(step.File!));
+        string unit = Path.Combine(compileDir, Path.GetFileName(file));
         string folder = Path.GetDirectoryName(test.Source)!;
         var companions = test.Files.ToDictionary(
             declared => Path.GetRelativePath(folder, declared).Replace('\\', '/'),
             declared => File.ReadAllBytes(Path.Combine(SuiteManifest.Root, declared)), StringComparer.Ordinal);
         Directory.CreateDirectory(compileDir);
-        string source = CompiledProgramCache.StageSource(unit, File.ReadAllText(Path.Combine(SuiteManifest.Root, step.File!)), companions);
-        return Options(source, Path.Combine(work, step.Output + ".dll"), edition, test.SourceFormat, flag: false, step.Options);
+        string source = CompiledProgramCache.StageSource(unit, File.ReadAllText(Path.Combine(SuiteManifest.Root, file)), companions);
+        return Options(source, Path.Combine(work, output + ".dll"), edition, test.SourceFormat, flag: false, unitOptions);
     }
 
     /// <summary>The ordinary compile of a refused program at <paramref name="edition"/>, staged in
@@ -141,12 +144,20 @@ internal static class ConformanceSuiteRunner
         foreach (SuiteBuildStep step in test.Build ?? [new SuiteBuildStep(null, null, new Dictionary<string, string>())])
         {
             string what = step.File is null ? "it" : $"its unit {Path.GetFileName(step.File)}";
-            var (result, crash) = Compile(step.File is null ? options : UnitOptions(test, step, edition, work));
+            var (result, crash) = Compile(step.File is null ? options : UnitOptions(test, step.File, step.Output!, step.Options, edition, work));
             if (result is null) return new(NoVerdict, $"the compiler crashed on {what}: {crash}");
             if (!result.Success) return new(Fail, $"{what} did not translate ({result.Status}): {FirstLines(result.Errors)}");
         }
+        foreach (SuiteServer server in test.Servers ?? [])
+        {
+            var (result, crash) = Compile(UnitOptions(test, server.File, server.Output, server.Options, edition, work));
+            if (result is null) return new(NoVerdict, $"the compiler crashed on server {server.Name}, {Path.GetFileName(server.File)}: {crash}");
+            if (!result.Success) return new(Fail, $"server {server.Name}, {Path.GetFileName(server.File)}, did not translate ({result.Status}): {FirstLines(result.Errors)}");
+        }
 
-        var (_, stdout, _) = CutRunner.RunExit(dll, work);   // the exit status is not judged (§2023:3.2)
+        // The servers run beside the test and end with it (DESIGN-message-control.md §0 Q9); the exit status is not judged (§2023:3.2).
+        using var servers = RunningServers.Start(test.Servers ?? [], work);
+        var (_, stdout, _) = CutRunner.RunExit(dll, work);
         string key = string.Join(".", test.ImplementorDefined.Order().Select(item =>
             ConformanceSuite.Profile.ImplementorDefined.TryGetValue(item, out string? value)
                 ? $"{item}={value}"
