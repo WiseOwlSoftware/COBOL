@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb1294_report_rolled_unprintable_source
       *> rules: [GR-13.18.53.4-3, GR-13.18.54.4-6]
-      *> accept: [85]
+      *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

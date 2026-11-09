@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb1454_sum_counter_group_qualifier
       *> rules: [SR-8.4.2.2.3-2, SR-8.4.2.2.3-4]
-      *> accept: [85]
+      *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

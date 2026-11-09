@@ -25,10 +25,10 @@
       *> DERIVATION (T(1..3) = T1 T2 T3, WS-X = WXYZ, WS-SUB = 3):
       *>   forms line  - WS-T(2) = T2 at column 1; WS-X(2:2) = XY at column 4; WS-T(WS-SUB - 1) = WS-T(2) = T2 at
       *>                 column 7  =>  `T2 XY T2`.
-      *>   sum line    - RUNTOT sums WS-AMT; SOURCE RUNTOT reads the sum counter of the current report, which has
-      *>                 received this GENERATE's WS-AMT before the group's lines are printed (GR7 b/c): 5 then 7.
-      *>                 => `0005 0005` then `0007 0007` (the counter resets after each detail group, GR2).
-      *>   control footing FINAL - the counter was reset after the last detail, so SOURCE RUNTOT reads 0000.
+      *>   control footing FINAL - RUNTOT (a SUM entry of a control footing, the only group 1985:XIII.3.19.3 SR3 admits a SUM clause in)
+      *>                 sums WS-AMT at each GENERATE (5 then 7), so it holds 12 when the footing is processed; SOURCE RUNTOT reads the
+      *>                 sum counter of the current report, 12, on the same line and on the next (the counter resets only at the end
+      *>                 of the group, GR2)  =>  `0012 0012` then `     0012`.
       *> Fails (COBOL0899 'a subscripted or reference-modified SOURCE operand ... is not yet implemented',
       *> 'SOURCE RUNTOT does not resolve to a data item') on a binder whose identifier arm looks a NAME up in ordinary
       *> storage.
@@ -67,10 +67,10 @@
                03  COLUMN 1 PIC X(2) SOURCE WS-T(2).
                03  COLUMN 4 PIC X(2) SOURCE WS-X(2:2).
                03  COLUMN 7 PIC X(2) SOURCE WS-T(WS-SUB - 1).
+       01  CF-FINAL TYPE CONTROL FOOTING FINAL.
            02  LINE PLUS 1.
                03  RUNTOT COLUMN 1 PIC 9(4) SUM WS-AMT.
                03  COLUMN 6 PIC 9(4) SOURCE RUNTOT.
-       01  CF-FINAL TYPE CONTROL FOOTING FINAL.
            02  LINE PLUS 1.
                03  COLUMN 6 PIC 9(4) SOURCE RUNTOT.
        PROCEDURE DIVISION.

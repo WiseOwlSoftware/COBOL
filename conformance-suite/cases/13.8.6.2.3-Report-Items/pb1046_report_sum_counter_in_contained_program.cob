@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb1046_report_sum_counter_in_contained_program
       *> rules: [SR-13.8.6.2.3-1, SR-13.8.6.2.3-2, SR-13.15.3-7, GR-13.18.54.4-12]
-      *> accept: [85, 2002, 2014, 2023]
+      *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
