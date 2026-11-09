@@ -137,10 +137,12 @@ PAIR_W_LEN, PAIR_W_ROW, PAIR_W_COL, PAIR_W_HINT = 1.0, 4.0, 1.0, 2.0
 PAIR_ACCEPT = 2.5
 PITCH_BEARING = 0.2            # a word's ink is its letters' cells less one glyph's side bearings, in pitches (page 305)
 PAIR_W_NEIGHBOUR = 1.5         # a typed delimiter whose word beside it is not the converted word beside it
-TEXT_RULE_BELOW = 0.27         # a proportional line's underline lies at or below this share of its OCR box's height above the box's bottom (the baseline is 0.29 above it)
+TEXT_RULE_BELOW = 0.30         # a proportional line's underline lies at or below this share of its OCR box's height above the box's bottom (the baseline is 0.29 above it; 0.27 lost the rule under page 882's `Argument` and 905's `Contents`, whose boxes sit a little high; 0.34 and more read the next face's serifs as rules: `align`, `digit`, `this`)
 TEXT_RULE_COVER = 0.96         # ... and inks this share of the word's width in every row of its thickness: 1.00 for a rule on PDF pages 842 and 853, at most 0.94 for the baseline feet of bold Times ("and", "last"; kb/Work PB5041)
 TEXT_RULE_ROWS = 3             # ... for at least this many pixel rows (0.54 pt at 400 dpi)
-TEXT_RULE_MIN_W = 14.0         # a proportional word narrower than this (in, is, the) is judged by no run: its letters' feet cover it whole
+TEXT_RULE_SHORT_W = 14.0       # a proportional word narrower than this (in, is, the), or one character, has feet that cover its width whole: its rule is told from them by what flanks it (below)
+TEXT_RULE_SPACE_PAD = 0.3      # ... a short word is underlined when the rule runs on across the space beside it (between this much inside each neighbour's edge) to the next underlined word: page 832's `to` and `and`. A short word underlined alone is read on the page
+MONO_RULE_MIN_W = 6.0          # a monospaced word narrower than this is a single glyph, judged by no run
 MONO_BOX_H = 10.0              # an OCR box shorter than this is the monospaced general-format face (8 pt Courier; the proportional text is 12 pt)
 MONO_RULE_COVER = 0.85         # its underline is ragged: 0.91 on PDF page 863
 HINT_DY = 5.0                 # an OCR word overlaps a box when their middles are this close in height
@@ -1419,19 +1421,35 @@ def locate(figures: list, hints: list) -> list:
 
 # ---------------------------------------------------------------- the entry points
 
+def _spaces(hints: list, y1: float, a: int, b: int, scale: float) -> list:
+    """The pixel columns of the two spaces beside the OCR word spanning columns `a`..`b` on the line whose boxes end at
+    height `y1`: from the previous word's right edge to `a` and from `b` to the next word's left edge, each trimmed by
+    `TEXT_RULE_SPACE_PAD` at both ends so the neighbours' own serifs are not read. A line's first or last word has no
+    space on that side."""
+    pad = TEXT_RULE_SPACE_PAD * scale
+    left = [int(h[2] * scale) for h in hints if abs(h[3] - y1) <= HINT_LINE_DY and int(h[2] * scale) <= a]
+    right = [int(h[0] * scale) for h in hints if abs(h[3] - y1) <= HINT_LINE_DY and int(h[0] * scale) >= b]
+    return ([(int(max(left) + pad), int(a - pad))] if left else []) + ([(int(b + pad), int(min(right) - pad))] if right else [])
+
+
 def underlined_hints(ink: np.ndarray, hints: list, scale: float) -> list:
     """The OCR words (`text_layer_hints`, in the deskewed frame of `ink`, the UNCLOSED deskewed ink) that carry an
     underline beneath them (kb/Work PB5041). `find_rules` reads the monospaced general-format band and takes a serif
     chain of Times text for a rule; a word of running text is judged instead by the rows below its baseline: a printed
     rule inks nearly the whole width of the word for `TEXT_RULE_ROWS` rows, where the feet of the letters reach 0.94 at
-    most and a word that is not underlined has ink below its baseline only in its descenders. A table's border is as
-    long as its cell and is not told from a rule here: read the page."""
+    most and a word that is not underlined has ink below its baseline only in its descenders. A short word (one
+    character, or under `TEXT_RULE_SHORT_W`) has feet that cover it whole, so it is underlined only when the rule runs
+    on across the space beside it (`_spaces`; kb/Work PB5044). The blind spots, each read on the page: a short word
+    underlined alone, an OCR box displaced by more than the window reaches (page 905's `Contents` sits within it, others
+    may not), a table's border (as long as its cell, told from no rule), and the bold ligature feet of `final` and
+    `the`, which read as rules (two false hits on pages 851 and 842)."""
     out = []
     for x0, y0, x1, y1, text in hints:
         a, b = int(x0 * scale), int(x1 * scale)
         h = y1 - y0
         mono = h < MONO_BOX_H
-        if len(text) < 2 or b - a < (6.0 if mono else TEXT_RULE_MIN_W) * scale:
+        short = len(text) < 2 or b - a < TEXT_RULE_SHORT_W * scale
+        if mono and (len(text) < 2 or b - a < MONO_RULE_MIN_W * scale):
             continue
         cover = MONO_RULE_COVER if mono else TEXT_RULE_COVER
         top, bottom = int((y1 - TEXT_RULE_BELOW * h) * scale), min(int((y1 + 2.5) * scale), ink.shape[0])
@@ -1439,8 +1457,11 @@ def underlined_hints(ink: np.ndarray, hints: list, scale: float) -> list:
         for r in range(max(top, 0), bottom):
             run = run + 1 if ink[r, a:b].mean() >= cover else 0
             if run >= TEXT_RULE_ROWS:
-                out.append((x0, y0, x1, y1, text))
-                break
+                rows = slice(r - TEXT_RULE_ROWS + 1, r + 1)
+                if mono or not short or any(hi > lo and ink[rows, lo:hi].mean() >= cover for lo, hi in _spaces(hints, y1, a, b, scale)):
+                    out.append((x0, y0, x1, y1, text))
+                    break
+                run = 0                                      # feet, not a rule: a rule may lie below them
     return out
 
 

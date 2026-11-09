@@ -239,5 +239,10 @@ the page's `<u>` marks. The Amendment's headings are bold, not underlined; the u
 formats, and the column heads of its tables. Eight table heads the page underlines lacked `<u>` (`Argument Type` and
 `Function Type` on pages 882, 886, 895 and 901; `Character Positions` and `Contents` on 869, 870, 905 and 906); the ledger
 sweep is `table-head-underlines(PB5041)`. A table's border reads as a rule on pages 861 and 862 and is not an underline.
-The detector misses a word whose OCR box is displaced (page 905's `Contents`), so a hit is read on the page and a miss is
-not proof.
+The detector (as of kb/Work PB5044) judges a short word (one character, or under 14 pt: `to`, `and`, `of`) by the rule
+running on across the space beside it, and reaches 0.30 of the OCR box's height above its bottom, which finds the rule
+under `Argument` (page 882) and `Contents` (page 905) that the PB5041 run missed along with page 869's `Contents` (a box
+displaced further than the window reaches). Its remaining blind spots are a short word underlined alone, an OCR box
+displaced beyond the window, and a table's border (read as a rule: pages 861 and 862); it also reads the bold ligature
+feet of `final` (page 851) and `the` (page 842) as rules. A hit is therefore read on the page and a miss is not proof.
+Re-running it over pages 831-906 found no word the transcription leaves unmarked.

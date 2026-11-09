@@ -610,18 +610,40 @@ def main() -> int:
 
     # 8b. Underlined words of running text (kb/Work PB5041): hint boxes are 12 pt tall, the baseline 3.5 pt above a box's
     #     bottom. A rule under the word is found; a word with no rule, a word whose letters' feet cover 93 % of its width
-    #     (bold Times), a short word and a rule hugging the baseline-free box top are not.
+    #     (bold Times), a short word whose rule stops at its own width and a rule above the window (the box's top) are not.
     img = canvas()
     fill(img, 20, 40, 60, 40.8)                                  # the rule, 0.8 pt thick, below the baseline (y 40)
     fill(img, 20, 30, 60, 38)                                    # a solid word body above it
     fill(img, 20, 62, 60, 70.5)                                  # no rule
     for i in range(10):                                          # feet at 93 %: a chain with a 0.3 pt gap per 4.3 pt
         fill(img, 20 + i * 4.3, 98, 24 + i * 4.3, 99.2)
-    fill(img, 20, 110, 28, 110.8)                                # a rule under a word narrower than 14 pt
-    hints = [(20, 29, 60, 41.5, "RULED"), (20, 62, 60, 74.0, "BARE"), (20, 88, 60, 100.5, "FEET"), (20, 100, 28, 112.5, "IN")]
+    fill(img, 20, 110, 28, 110.8)                                # a rule under a word narrower than 14 pt, stopping at its width
+    fill(img, 100, 30, 140, 30.8)                                # a rule at the box's top (y 29), 11 pt above its bottom
+    fill(img, 100, 50, 140, 50.5)                                # a rule 3.6 pt above its box's bottom (y 53.6), the top row of the window `TEXT_RULE_BELOW` sets: a displaced OCR box
+    hints = [(20, 29, 60, 41.5, "RULED"), (20, 62, 60, 74.0, "BARE"), (20, 88, 60, 100.5, "FEET"), (20, 100, 28, 112.5, "IN"),
+             (100, 29, 140, 41.5, "TOPRULE"), (100, 41.5, 140, 53.6, "DISPLACED")]
     got = [h[4] for h in R.underlined_hints(img < 128, hints, S)]
     total += 1
-    check("an underline below a word's baseline is found, feet and short words are not", got == ["RULED"], f"got {got}")
+    check("an underline below a word's baseline is found, feet, a lone short word and a rule above the window are not",
+          got == ["RULED", "DISPLACED"], f"got {got}")
+
+    #     A short word (under 14 pt, or one character: its feet cover its width whole) is underlined when the rule runs on
+    #     across the space beside it; a monospaced word (an OCR box under 10 pt) is judged by its ragged rule (`MONO_RULE_COVER`).
+    img = canvas()
+    fill(img, 20, 24.5, 85, 25.3)                                # one rule under XX TO YY, spaces included
+    fill(img, 20, 54.5, 82, 55.3)                                # one rule under QQ A RR
+    fill(img, 110, 24.5, 117, 25.3)                              # the feet of IN, and nothing in the spaces beside it
+    fill(img, 20, 106.2, 40, 107)                                # MONO: rule with a 1 pt break (97 %)
+    fill(img, 41, 106.2, 60, 107)
+    fill(img, 20, 126.2, 48, 127)                                # MONOHALF: a rule under 70 % of the word
+    hints = [(20, 13, 45, 26.0, "XX"), (49, 13, 56, 26.0, "TO"), (60, 13, 85, 26.0, "YY"),
+             (20, 43, 45, 56.0, "QQ"), (49, 43, 53, 56.0, "A"), (57, 43, 82, 56.0, "RR"),
+             (95, 13, 107, 26.0, "AA"), (110, 13, 117, 26.0, "IN"), (120, 13, 140, 26.0, "BB"),
+             (20, 100, 60, 108.0, "MONO"), (20, 110, 60, 118.0, "MONOBARE"), (20, 120, 60, 128.0, "MONOHALF")]
+    got = [h[4] for h in R.underlined_hints(img < 128, hints, S)]
+    total += 1
+    check("a short word is underlined by the rule across its spaces and a monospaced word by its ragged rule",
+          got == ["XX", "TO", "YY", "QQ", "A", "RR", "MONO"], f"got {got}")
 
     # 9. REAL 1985 pages (kb/Work PB4848, PB4897, PB4899): general-format regions cropped from the licensed scan, binarized,
     #    the stamp margins excluded, each counted BY EYE against the rendered page. The calibration table is
