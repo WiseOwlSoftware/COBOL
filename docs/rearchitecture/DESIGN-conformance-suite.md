@@ -412,7 +412,7 @@ A test's editions are checked against the inventory's bands (does the rule exist
 functions and reserved words (does the facility exist at V?). An edge is the edition where a band or window starts or
 ends.
 
-**Every edge records evidence that can prove it.** **Bands are a view of the rule lineage** (owner 2026-11-08, kb/Work PB4991, PB4996; DESIGN-spec-conformance-review.md §10.2): one rule list per edition and a change record between each adjacent pair, so a band is a KEPT chain's span and an 85 edge's evidence is the 1985 text (`iso-1985`, `cite.py --check`ed), as decision 10 states. The classes below remain for the editions whose text is not yet held (2002 and 2014, until PB4813). Held, untracked, in
+**Every edge records evidence that can prove it.** **Bands are a view of the rule lineage** (owner 2026-11-08, kb/Work PB4991, PB4996; DESIGN-spec-conformance-review.md §10.2): one rule list per edition and a change record between each adjacent pair, so a band is a KEPT chain's span and an 85 edge's evidence is the 1985 text (`iso-1985`, `cite.py --check`ed), as decision 10 states. A newest-edition rule is at 85 exactly when a KEPT record of 1985 carries into it (a bridged one through 2002 and 2014 as well; a CHANGED record proves no band); S5's band reader takes the 85 position from the chains (`lineage.band_drift` is the one definition), and until the stored `85` token agrees with them it stays stored and the view measures the distance (`inventory_view.py --band-drift`, DESIGN-spec-conformance-review.md §10.2). The facilities' windows are held to the same lineage by the EDITION GATES audit (`edition_gates.py`): a window's start rests on a NEW or CHANGED rule its citation names, its end on a REMOVED or CHANGED 1985 rule. The classes below remain for the editions whose text is not yet held (2002 and 2014, until PB4813). Held, untracked, in
 `E:/COBOL-coord/specs-drafts/`: the 2002 working document of 2001-12-04 (`t2002.txt`) and the 2014 FCD (`t2014.txt`),
 with their PDFs. Each edge carries `evidence: {class, source, locator}`, and the validator refuses a locator offered for
 an edge its source does not speak about:
@@ -831,6 +831,8 @@ gate's and CI's audits before the build, so a refused test is red in seconds. Be
 - Every edge below 2023 has a class that can prove it; `iso-2023` locators pass `cite.py --check`, draft locators the
   per-edition check where held; every 85 start, and the 85 side of every 85|2002 edge, is `inferred`.
 - Every obsolete and archaic flag's editions equal its construct's.
+- Every construct window and grammar version predicate whose edge the held editions span rests on a lineage edge its
+  citation names (the EDITION GATES audit, `scripts/spec/edition_gates.py`, kb/Work PB4996).
 - Every crosswalk file passes its audit; no inventory `test-ref` names a NIST program.
 - Every row added by a measuring slice records the slice.
 - `reformat.py`, `group.py` and every sibling module pass their self-tests.
