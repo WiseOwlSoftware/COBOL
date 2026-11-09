@@ -46,6 +46,7 @@ complements, not duplicates.
 from __future__ import annotations
 
 import argparse
+import itertools
 import json
 import pathlib
 import re
@@ -423,7 +424,7 @@ def check_reconstructions(lines: list[str], edition: int) -> list[str]:
             failures.append(f"line {r.start + 1}: the reconstruction of {r.folios} is never closed")
         elif cite.folios_of(r.closing) != cite.folios_of(r.folios):
             failures.append(f"line {r.start + 1}: the reconstruction of {r.folios} closes as {r.closing}")
-        note = " ".join(ln for ln in lines[r.start:r.start + 40] if ln.startswith(">"))
+        note = " ".join(itertools.takewhile(lambda ln: ln.startswith(">"), lines[r.start:]))   # its own paragraph
         if "**Sources:**" not in note or "**Confidence:" not in note:
             failures.append(f"line {r.start + 1}: the reconstruction of {r.folios} names no **Sources:** or no "
                             "**Confidence:**")
