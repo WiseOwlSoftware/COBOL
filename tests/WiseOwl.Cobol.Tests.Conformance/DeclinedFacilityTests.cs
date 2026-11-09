@@ -223,17 +223,95 @@ public sealed class DeclinedFacilityTests
     /// <c>01 CLASS PIC X.</c> must still compile". MEASURED against
     /// <c>tests/version-matrix/reserved-words.json</c>, that premise is FALSE: CLASS is reserved at all four
     /// editions ("continuous since 1985"), because §2023:12.3.7's SPECIAL-NAMES CLASS clause has always existed.
-    /// <para>The fact the <c>{is2002()}?</c> gate actually carries is this one: the DATA-DESCRIPTION CLASS
-    /// clause (§2023:13.18.11) arrived with VALIDATE at COBOL-2002, so at <c>--std 85</c> the entry is a construct
-    /// that does not exist in the targeted edition — an ordinary syntax error — and naming the declined
-    /// VALIDATE facility there would be the wrong answer under the four-editions mandate. Without this leg the
-    /// theory above would pass just as well against an ungated arm.</para></summary>
+    /// <para>The fact that matters at 85 is this one: the DATA-DESCRIPTION CLASS clause (§2023:13.18.11) arrived with
+    /// VALIDATE at COBOL-2002, so at <c>--std 85</c> the entry is a construct that does not exist in the targeted
+    /// edition, and naming the declined VALIDATE facility there would be the wrong answer under the four-editions
+    /// mandate. Since kb/Work PB5007 the grammar spells the clause at every edition and the introduction gate names
+    /// COBOL-2002 (COBOL0900) — the same answer as for every other clause of the group, see
+    /// <see cref="ValidationClausesAt85_AreRefusedByTheirEdition_NotByTheDecline"/>.</para></summary>
     [Fact]
-    public void ClassClauseAt85_IsNotTheDeclinedFacility_ButAPlainSyntaxError()
+    public void ClassClauseAt85_IsNotTheDeclinedFacility_ButItsEditionRefusal()
     {
         var (ok, errors, _) = EditionHarness.CompileFull(ClassEntry, 85);
         Assert.False(ok, "the §2023:13.18.11 CLASS clause does not exist at COBOL-85");
         EditionHarness.AssertNoDiagnostic(errors, "COBOL1708");
+        Assert.Contains(errors, e => e.Contains("COBOL0900", StringComparison.Ordinal)
+                                     && e.Contains("the CLASS clause", StringComparison.Ordinal));
+    }
+
+    /// <summary>kb/Work PB5007 — at <c>--std 85</c> every clause of the §2023:13.16.2 validation-clauses group, and the
+    /// §2023:13.18.63 format-5 phrase, is refused by its EDITION: COBOL0900 naming COBOL-2002 and the clause, one
+    /// diagnostic, with neither the decline (COBOL1708: the facility is not COBOL-85's to decline) nor the generic
+    /// COBOL5506 / COBOL1941 the {is2002()}? construct gates produced (DEFAULT IS "AB" failed at the literal, PRESENT
+    /// at the word). Each leg fails if its clause loses its arm, its gate, or regains a generic error.</summary>
+    [Theory]
+    [InlineData("05 WS-A PIC X(4) DEFAULT IS \"AB\".", "the DEFAULT clause")]
+    [InlineData("05 WS-A PIC X(4) PRESENT WHEN WS-A = \"X\".", "the PRESENT WHEN clause")]
+    [InlineData("05 WS-A PIC X(4) VALIDATE-STATUS IS \"E\" WHEN ERROR FOR WS-A.", "the VALIDATE-STATUS clause")]
+    [InlineData("05 WS-A PIC X(4) VAL-STATUS IS \"E\" WHEN ERROR FOR WS-A.", "the VAL-STATUS clause")]
+    [InlineData("05 WS-A PIC X(4) CLASS IS NUMERIC.", "the CLASS clause")]
+    [InlineData("05 WS-A PIC X(4) DESTINATION IS WS-B.", "the DESTINATION clause")]
+    [InlineData("05 WS-A PIC X(4) INVALID WHEN WS-A = \"X\".", "the INVALID WHEN clause")]
+    [InlineData("05 WS-A PIC X(4) VARYING WS-B.", "the VARYING clause")]
+    [InlineData("05 WS-A PIC X(4).\n                      88 WS-A-OK VALUE \"Y\" IS VALID.", "the VALUE clause's 'VALID' phrase")]
+    [InlineData("05 WS-A PIC X(4).\n                      88 WS-A-NO VALUE \"N\" IS INVALID.", "the VALUE clause's 'INVALID' phrase")]
+    public void ValidationClausesAt85_AreRefusedByTheirEdition_NotByTheDecline(string entry, string named)
+    {
+        var (ok, errors, _) = EditionHarness.CompileFull($"""
+                   IDENTIFICATION DIVISION.
+                   PROGRAM-ID. DCLV85E.
+                   DATA DIVISION.
+                   WORKING-STORAGE SECTION.
+                   01 WS-REC.
+                      {entry}
+                      05 WS-B PIC X.
+                   PROCEDURE DIVISION.
+                   MAIN-P.
+                       STOP RUN.
+
+               """, 85);
+        Assert.False(ok, $"{named} does not exist at COBOL-85");
+        string refusal = Assert.Single(errors);
+        Assert.Contains("COBOL0900", refusal, StringComparison.Ordinal);
+        Assert.Contains("requires COBOL-2002 (targeting COBOL-85)", refusal, StringComparison.Ordinal);
+        Assert.Contains($"— {named} (", refusal, StringComparison.Ordinal);
+    }
+
+    /// <summary>The word-status half of kb/Work PB5007: DEFAULT, PRESENT, VALID, VALIDATE-STATUS and VAL-STATUS are
+    /// §2023:8.9 user-defined words at COBOL-85, so a COBOL-85 program that names items with them — in an entry-name
+    /// slot, a KEY list, an INDEXED BY list, a symbolic-character standing as a VALUE operand — keeps every one of those
+    /// readings now that the clause arms are ungated. The reservation gate retypes a declared free word to a
+    /// user-defined word, so no clause arm can take it; this fails if the gate stops doing so for any of them.</summary>
+    [Fact]
+    public void ValidationClauseWords_AreLegalNamesAt85()
+    {
+        var (ok, errors, _) = EditionHarness.CompileFull("""
+                   IDENTIFICATION DIVISION.
+                   PROGRAM-ID. DCLN85.
+                   ENVIRONMENT DIVISION.
+                   CONFIGURATION SECTION.
+                   SPECIAL-NAMES.
+                       SYMBOLIC CHARACTERS VALID IS 90.
+                   DATA DIVISION.
+                   WORKING-STORAGE SECTION.
+                   01 DEFAULT PIC X VALUE "D".
+                   01 VALIDATE-STATUS PIC X VALUE "V".
+                   01 VAL-STATUS IS GLOBAL PIC X VALUE "S".
+                   01 C PIC X VALUE "Y".
+                      88 C-OK VALUE "A" VALID.
+                   01 T.
+                      05 E OCCURS 3 ASCENDING KEY IS K PRESENT INDEXED BY X1.
+                         10 K PIC X.
+                         10 PRESENT PIC X.
+                   PROCEDURE DIVISION.
+                   MAIN-P.
+                       MOVE DEFAULT TO PRESENT (1).
+                       DISPLAY DEFAULT VALIDATE-STATUS VAL-STATUS PRESENT (1).
+                       IF C-OK DISPLAY "OK".
+                       STOP RUN.
+
+               """, 85);
+        Assert.True(ok, "names spelled like the 2002 validation clause words are legal COBOL-85: " + string.Join("\n", errors));
     }
 
     /// <summary>⛔ THE NEIGHBOURING HAZARD, which is a SUPPORTED construct sharing the same word — the shape

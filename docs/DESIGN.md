@@ -102,11 +102,12 @@ parse itself depends on it: `reservedHere`, `facilityWord`, `screenPositionAhead
 two `{isXXXX()}?` spellings (bare LOCATION in PERFORM, OPEN's RETRY phrase). The lexer and the retype stage read it
 too, as word status: the Annex C spelling a word has at the edition (`ApplyEditionSpelling`) and whether the edition
 reserves a subscript trigger (`PreviousTokenCouldBeDataName`, primed by `TokenRetypes.ReservedNonDataNames`). **A
-CONSTRUCT GATE at parse time is a D7 defect**, and three remain, all on the declined Annex A.4 surface
-(`CobolDeclined.g4`): `{is2002()}? validationClause`, the INVALID arm of `{is2002()}? validateValidPhrase`, and
-`{is2023()}? applyCommitClause` refuse a construct that has no other reading below its introduction with a bare
-COBOL0001 where this pass should name the edition (COBOL0900); moving them waits on a constructs.json row form for
-a construct refused by name AT its introduction. DESIGN-architecture-review §8.4 defines the reads by a rule (a
+CONSTRUCT GATE at parse time is a D7 defect**, and one remains: `{is2023()}? applyCommitClause` (`CobolIO.g4`)
+refuses a construct that has no other reading below its introduction with a generic parse error where this pass should
+name the edition (COBOL0900). The two on the declined Annex A.4 surface, `{is2002()}? validationClause` and
+`{is2002()}? validateValidPhrase`, were removed by kb/Work PB5007: constructs.json gained the DECLINED row form (a
+construct refused by name AT and after its introduction, `declined`; `docs/VERSION_TEST_MATRIX_DESIGN.md`), the grammar
+spells the VALIDATE facility's data description syntax at every edition, and this pass names COBOL-2002 below it. DESIGN-architecture-review §8.4 defines the reads by a rule (a
 parser-superclass, lexer or retype-stage member whose body reaches edition state — the parser's `Edition`, an
 `EditionInfo`, or a lexer field primed from one — and every predicate, action, listener or other front-end member that
 calls one); `EditionReadDriftTests` applies that rule and holds the computed set equal to kb/Work PB2291's recorded

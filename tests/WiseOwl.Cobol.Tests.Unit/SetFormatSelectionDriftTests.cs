@@ -221,4 +221,39 @@ public sealed class SetFormatSelectionDriftTests : WiseOwlCobolTestBase
         foreach (var n in named) Assert.Contains(n, message, StringComparison.Ordinal);
         foreach (var a in absent) Assert.DoesNotContain(a, message, StringComparison.Ordinal);
     }
+
+    /// <summary>kb/Work PB5015 — a statement can SELECT a row its edition does not print, because selection reads
+    /// the operands' kinds: a dynamic-length item declares from 2014 while Format 16 begins at 2023, and a CAPACITY
+    /// register declared at 2002 (refused COBOL0900, still bound) selects Format 14, which begins at 2014. The
+    /// COBOL2112 that names the selected row labels it with its introducing edition below that edition and prints it
+    /// plain from it, on both arms that name a selected row (an operand the brace does not admit, and a second
+    /// receiver of a one-operand format).</summary>
+    [Theory]
+    [InlineData("D-ITEM PIC X DYNAMIC LENGTH", "SET D-ITEM N TO 5", 2014, "Format 16's", "COBOL-2023")]
+    [InlineData("D-ITEM PIC X DYNAMIC LENGTH", "SET D-ITEM N TO 5", 2023, "Format 16's", null)]
+    [InlineData("D-ITEM PIC X DYNAMIC LENGTH", "SET D-ITEM D-ITEM TO 5", 2014, "Format 16's", "COBOL-2023")]
+    [InlineData("D-ITEM PIC X DYNAMIC LENGTH", "SET D-ITEM D-ITEM TO 5", 2023, "Format 16's", null)]
+    [InlineData("T. 05 TE PIC X OCCURS DYNAMIC CAPACITY IN TC", "SET TC N TO 5", 2002, "Format 14's", "COBOL-2014")]
+    [InlineData("T. 05 TE PIC X OCCURS DYNAMIC CAPACITY IN TC", "SET TC N TO 5", 2014, "Format 14's", null)]
+    public void ASelectedRowTheEditionLacks_IsLabelledWithItsIntroducingEdition(
+        string entry, string statement, int dialect, string format, string? introducedIn)
+    {
+        string id = $"PB5015-{dialect}";
+        string src = Path.Combine(TempDir, $"{id}-{entry.Length}-{statement.Length}.cob");
+        File.WriteAllLines(src,
+        [
+            "       IDENTIFICATION DIVISION.", $"       PROGRAM-ID. {id}.", "       DATA DIVISION.",
+            "       WORKING-STORAGE SECTION.", $"       01 {entry}.", "       01 N PIC 9(4).",
+            "       PROCEDURE DIVISION.", "       P1.", $"           {statement}.", "           STOP RUN.",
+        ]);
+        var r = CompilerDriver.Compile(new CompilerDriver.Options(src, DialectLevel: dialect,
+            SourceFormat: WiseOwl.Cobol.Frontend.Preprocessor.InitialReferenceFormat.Auto));
+        string message = Assert.Single(r.Errors, e => e.Contains("COBOL2112", StringComparison.Ordinal));
+        Assert.Contains(format, message, StringComparison.Ordinal);
+        const string Label = "absent from this edition";
+        if (introducedIn is null)
+            Assert.DoesNotContain(Label, message, StringComparison.Ordinal);
+        else
+            Assert.Contains($"(a format first printed in {introducedIn}, {Label})", message, StringComparison.Ordinal);
+    }
 }

@@ -50,6 +50,40 @@ public readonly record struct MarginRCut(int Column, int LastProgramTextPosition
     /// <c>CharacterPositions</c>).</summary>
     public int LastCutPosition => LastProgramTextPosition + CharacterPositions.Count(Text);
 
+    /// <summary>The most characters of the cut text a diagnostic quotes (<see cref="Account"/>).</summary>
+    public const int MaxDroppedShown = 24;
+
+    /// <summary>What was cut, as the ONE sentence both diagnostics that name a cut say it (the note beside a syntax error,
+    /// <c>CobolErrorListener</c>, and the warning for a cut inside a token that still parses, <c>MarginRCutScreen</c>; kb/Work
+    /// PB2555, PB4999): where the program text ended, what lies past it and that the format ignored it (ISO §2023:6.3.1).
+    /// A line whose program-text area is blank has no "end" to name: all of its text lies past margin R (kb/Work PB4372).</summary>
+    public string Account
+    {
+        get
+        {
+            string shown = CharacterPositions.Count(Text) > MaxDroppedShown
+                ? Text[..CharacterPositions.IndexAt(Text, MaxDroppedShown)] + "..."
+                : Text;
+            // The message counts POSITIONS, which a tab fills and a character is one of; the location beside it is the COLUMN
+            // the file holds the cut at (kb/Work PB4373), so a line whose two differ says so rather than state two margins.
+            string held = Column == LastProgramTextPosition
+                ? ""
+                : " (a tab counts the positions it fills, so the column this warning names, where the file holds the cut, is less than that)";
+            return HoldsProgramText
+                ? $"the program text of this line was cut at margin R: it ends at position {LastProgramTextPosition}{held}, and what "
+                  + $"follows, '{shown}' (positions {FirstCutPosition} to {LastCutPosition}), is outside the "
+                  + "program-text area and was ignored (ISO §2023:6.3.1)."
+                : $"this line has no program text: all that it holds, '{shown}' (positions {FirstCutPosition} to "
+                  + $"{LastCutPosition}), lies past margin R, after position {LastProgramTextPosition}{held}, outside "
+                  + "the program-text area, so it was ignored and the line reads as blank (ISO §2023:6.3.1).";
+        }
+    }
+
+    /// <summary>What to do about the cut (<see cref="Account"/>): keep the text within the program-text area.</summary>
+    public string Remedy => HoldsProgramText
+        ? $"Shorten the line to end at position {LastProgramTextPosition} or continue it on the next line."
+        : $"Write the text within positions 8 to {LastProgramTextPosition}.";
+
     /// <summary>Whether the text begins AT margin R, with no space between it and the program-text area: a word the margin
     /// ends may then go on past it, so the cut can fall INSIDE a word.</summary>
     public bool BeginsAtMargin => Text.Length > 0 && !CobolSpace.IsBlank(Text.AsSpan(0, 1));

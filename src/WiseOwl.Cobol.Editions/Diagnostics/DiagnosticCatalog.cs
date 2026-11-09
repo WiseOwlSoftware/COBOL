@@ -3146,6 +3146,21 @@ public static class DiagnosticCatalog
         + "lies past it is not program text, so it is ignored. If that text was meant to be part of the statement, "
         + "continue it on the next line with a continuation indicator, or shorten the line to end at position 72.",
         "ISO §2023:6.3.1 / Annex A.1 item 158");
+    /// <summary>COBOL6688 — a token of a fixed-form line runs across margin R, so the program-text area holds only its first
+    /// part and the rest is ignored, with NO syntax error to say so (kb/Work PB4999; ISO §2023:6.3.1, Annex A.1 item 158). The
+    /// sibling of COBOL5788, which is given only beside a syntax error: a number <c>0.7</c> whose <c>7</c> stands at position 73
+    /// reads <c>0.</c> and the program computes a different value. Given when the token's last character stands at position 72
+    /// and the cut text begins at position 73 with no space between them; a sequence number or identification tag set off by a
+    /// space, a tag that recurs and the rest of an inline comment (§2023:6.3.7.3) are the ordinary uses of those positions and
+    /// stay silent.</summary>
+    public static readonly DiagnosticDescriptor TokenCutAtMarginR = new(
+        "COBOL6688", "token-cut-at-margin-r", EditionSeverity.Warning,
+        "A token on a fixed-form line ends at position 72, margin R, and text follows it at position 73 with no space between: "
+        + "ISO §2023:6.3.1 makes margin R the implementor's position (position 72 here, Annex A.1 item 158) and what lies past it "
+        + "is not program text, so the token is read as far as position 72 and the rest is ignored, which can change the meaning "
+        + "of a program that still parses (the number 0.7 read as 0.). Shorten the line to end at position 72 or continue it on "
+        + "the next line with a continuation indicator.",
+        "ISO §2023:6.3.1 / Annex A.1 item 158");
     /// <summary>COBOL2449 — a COPY or REPLACE statement that does not follow its general format (kb/Work PB1354).
     /// Both statements are parsed over §2023:7.2.2.5 text-words in general-format order (COPY: text-name-1/literal-1, the
     /// OF/IN phrase, SUPPRESS [PRINTING], REPLACING operands, the separator period); a word out of place, a missing BY,
@@ -3755,10 +3770,9 @@ public static class DiagnosticCatalog
         + "VALIDATE facility is an OPTIONAL element (Annex A.4.14) whose support WiseOwl COBOL does not claim "
         + "(docs/CONFORMANCE.md §4 item 3, §5), and at COBOL-2023 it is additionally OBSOLETE (§2023:4.2.13; Annex "
         + "F.2 item 5); Annex A.4.1 admits the syntax only when support IS claimed, so the clause is refused by "
-        + "name. Every clause of the group exists from COBOL-2002. CLASS is the one whose leading word is "
-        + "reserved BELOW that edition too (§2023:12.3.7's SPECIAL-NAMES CLASS clause, continuous since 1985), so "
-        + "at --std 85 `CLASS IS NUMERIC` in a data description entry is an ordinary syntax error rather than "
-        + "this decline; for the others the word is a user-defined word there (§2023:8.9). Annex A.4 does not list "
+        + "name. Every clause of the group exists from COBOL-2002; below that edition it is not declined but refused "
+        + "by its edition (COBOL0900, kb/Work PB5007), and a COBOL-85 name spelled DEFAULT, PRESENT, VALID, "
+        + "VALIDATE-STATUS or VAL-STATUS stays a user-defined word there (§2023:8.9). Annex A.4 does not list "
         + "CLASS among A.4.14's items — it reaches the module through §2023:13.16.2's validation-clauses group, "
         + "which opens with `[ class-clause ]` (owner decision, kb/Work PB375, 2026-09-02).",
         "ISO §2023:4.2.7 / Annex A.4.1 / Annex A.4.14 / §2023:13.16.2 / §2023:4.2.13", DeclinedOptionalElement,
