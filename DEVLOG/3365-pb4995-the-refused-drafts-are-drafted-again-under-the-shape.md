@@ -1,4 +1,4 @@
-## PB4995: the refused drafts are drafted again under the shape that ties them to their rule; the recheck canary is measured
+## Entry 3365 — 2026-11-08 23:09 PST — PB4995: the refused drafts are drafted again under the shape that ties them to their rule; the recheck canary is measured
 
 Wave 20261939, group A (PB4995, PB4996), the 1985 lineage campaign (PB4991). PB4996 stays blocked on PB4995: the band
 drift closes only by the fleet's adjudications, and nothing in this change moves it.
@@ -26,3 +26,4 @@ the full submit waits for the owner: the spend, and whether a same-kind record t
 
 Self-review: one rule of an answer's shape, read by the pass and by `withdraw`; no reader keeps an arm for an older
 shape; no new list. Gate: see the branch's gate record.
+
